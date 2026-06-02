@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>织幕 · 长线互动叙事引擎</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">织</div>
+          <div>
+            <div class="brand-name">织幕</div>
+            <div class="brand-subtitle">NARRATIVE ENGINE</div>
+          </div>
+        </div>
+
+        <div class="world-switcher">
+          <span class="world-icon">云</span>
+          <div>
+            <strong>正在读取世界</strong>
+            <small>连接云端创作空间</small>
+          </div>
+          <span class="chevron">⌄</span>
+        </div>
+        <button class="create-world-btn" id="create-world-btn"><span>＋</span> 创建新世界</button>
+
+        <nav class="main-nav" aria-label="主导航">
+          <p class="nav-label">工作区</p>
+          <button class="nav-item active" data-view="overview"><span>⌂</span>世界总览</button>
+          <button class="nav-item" data-view="writer"><span>✎</span>剧本杀创作</button>
+          <button class="nav-item" data-view="studio"><span>◇</span>剧情编排</button>
+          <button class="nav-item" data-view="assets"><span>▤</span>内容资产</button>
+          <button class="nav-item" data-view="rules"><span>⌘</span>自动化规则</button>
+          <p class="nav-label">运行</p>
+          <button class="nav-item" data-view="director"><span>◉</span>主持监控台<i class="live-dot"></i></button>
+          <button class="nav-item" data-view="player"><span>♙</span>玩家视角</button>
+          <button class="nav-item" data-view="archive"><span>◷</span>存档与复盘</button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <button class="nav-item muted" data-view="settings"><span>⚙</span>世界设置</button>
+          <div class="profile">
+            <div class="avatar small">沈</div>
+            <div><strong>沈舟</strong><small>主创作者</small></div>
+            <span class="online"></span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="page-eyebrow">世界工作区</p>
+            <h1 id="page-title">世界总览</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-btn" id="search-btn" aria-label="搜索">⌕</button>
+            <button class="icon-btn" id="notify-btn" aria-label="通知">♢<i class="notify"></i></button>
+            <div class="divider"></div>
+            <button class="secondary-btn" id="preview-btn">玩家预览</button>
+            <button class="primary-btn" id="run-btn"><span>▶</span> 进入主持台</button>
+          </div>
+        </header>
+
+        <div class="content" id="content"></div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <div class="modal-backdrop" id="modal-backdrop">
+      <section class="modal" id="modal"></section>
+    </div>
+
+    <script src="./api-client.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

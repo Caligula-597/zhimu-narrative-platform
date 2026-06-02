@@ -1,0 +1,27 @@
+{
+  "name": "zhimu-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "demo:create-cloud-story": "node scripts/create-cloud-demo-story.js",
+    "demo:seed-exploration": "node scripts/seed-exploration.js",
+    "demo:seed-voice-participants": "node scripts/seed-demo-voice-participants.js",
+    "assets:purge": "node scripts/purge-deleted-assets.js",
+    "assets:cleanup-uploads": "node scripts/cleanup-expired-uploads.js",
+    "check": "node --check src/server.js && node --check src/routes.js && node --check src/auth.js && node --check src/document-parser.js && node --check src/deepseek.js && node --check src/rule-engine.js && node --check src/asset-policy.js && node --check src/storage/object-storage.js && node --check src/storage/r2-storage.js && node --check src/storage/index.js && node --check scripts/purge-deleted-assets.js && node --check scripts/cleanup-expired-uploads.js && node --check scripts/seed-exploration.js && node --check scripts/seed-demo-voice-participants.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.922.0",
+    "@aws-sdk/s3-request-presigner": "^3.922.0",
+    "@fastify/cors": "^11.0.0",
+    "dotenv": "^16.6.1",
+    "fastify": "^5.6.1",
+    "mammoth": "^1.12.0",
+    "pg": "^8.16.3"
+  }
+}
