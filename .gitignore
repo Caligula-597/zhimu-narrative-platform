@@ -8,3 +8,4 @@ backend/.env.*
 *.log
 .DS_Store
 artifacts/
+.tools/
