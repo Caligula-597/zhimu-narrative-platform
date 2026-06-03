@@ -71,7 +71,8 @@
 - 后端只返回当前角色已解锁的内容。
 - 主持查询必须验证 `host` 或 `cohost` 身份。
 - 正式请求使用 Bearer Session，后端解析后写入只读的 `request.actorId`。
-- `x-user-id` 只在本地显式设置 `ALLOW_DEMO_USER_HEADER=true` 时兼容演示数据，生产环境必须保持关闭。
+- 前端 UI 不得硬编码运行态假数据（玩家列表、时间线日志、资产卡片）；总览/资产/存档仅展示 API 或空状态。详见 [FEATURE_CATALOG.md §12](./FEATURE_CATALOG.md#12-近期变更p0-1--2026-06-03)。
+- `x-user-id` 只在本地显式设置 `ALLOW_DEMO_USER_HEADER=true` 时兼容演示身份，生产环境必须保持关闭。
 
 ## 规则引擎
 

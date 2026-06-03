@@ -52,11 +52,22 @@ window.zhimuApi = {
   completeSection: (sectionId) => request(`/rooms/${demoContext.roomId}/sections/${sectionId}/complete`, { userId: demoContext.playerUserId, method: "POST" }),
   addNotebookEntry: (entry) => request(`/rooms/${demoContext.roomId}/notebook`, { userId: demoContext.playerUserId, method: "POST", body: entry }),
   getHostProgress: () => request(`/rooms/${demoContext.roomId}/host-progress`, { userId: demoContext.hostUserId }),
+  getHostPlayers: () => request(`/rooms/${demoContext.roomId}/host/players`, { userId: demoContext.hostUserId }),
+  getHostPlayerDetail: (roleSlotId) => request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}`, { userId: demoContext.hostUserId }),
+  hostGrantClue: (payload) => request(`/rooms/${demoContext.roomId}/host/grant-clue`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  hostUnlockSection: (payload) => request(`/rooms/${demoContext.roomId}/host/unlock-section`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  hostUnlockScene: (sceneId) => request(`/rooms/${demoContext.roomId}/scenes/${sceneId}/unlock`, { userId: demoContext.hostUserId, method: "POST" }),
+  hostAddLog: (payload) => request(`/rooms/${demoContext.roomId}/host/log`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  hostSaveNotes: (roleSlotId, notes) => request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}/notes`, { userId: demoContext.hostUserId, method: "PUT", body: { notes } }),
   getExploration: () => request(`/rooms/${demoContext.roomId}/exploration`, { userId: demoContext.playerUserId }),
   investigate: (pointId) => request(`/rooms/${demoContext.roomId}/investigation-points/${pointId}/investigate`, { userId: demoContext.playerUserId, method: "POST" }),
   readClue: (clueId) => request(`/rooms/${demoContext.roomId}/clues/${clueId}/read`, { userId: demoContext.playerUserId, method: "POST" }),
   getHostEvents: () => request(`/rooms/${demoContext.roomId}/host-events`, { userId: demoContext.hostUserId }),
   executeHostEvent: (eventId) => request(`/rooms/${demoContext.roomId}/host-events/${eventId}/execute`, { userId: demoContext.hostUserId, method: "POST" }),
+  dismissHostEvent: (eventId) => request(`/rooms/${demoContext.roomId}/host-events/${eventId}/dismiss`, { userId: demoContext.hostUserId, method: "POST" }),
+  getCheckpoints: () => request(`/rooms/${demoContext.roomId}/checkpoints`, { userId: demoContext.hostUserId }),
+  getCheckpoint: (checkpointId) => request(`/rooms/${demoContext.roomId}/checkpoints/${checkpointId}`, { userId: demoContext.hostUserId }),
+  createCheckpoint: (payload) => request(`/rooms/${demoContext.roomId}/checkpoints`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   createWorld: (payload) => request("/worlds", { userId: demoContext.hostUserId, method: "POST", body: payload }),
   createChapter: (worldId, payload) => request(`/worlds/${worldId}/chapters`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   createRole: (worldId, payload) => request(`/worlds/${worldId}/roles`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
@@ -73,8 +84,12 @@ window.zhimuApi = {
   createRoom: (worldId, payload) => request(`/worlds/${worldId}/rooms`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   getStudio: () => request(`/worlds/${demoContext.worldId}/studio`, { userId: demoContext.hostUserId }),
   createScene: (payload) => request(`/worlds/${demoContext.worldId}/scenes`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  updateScene: (sceneId, payload) => request(`/worlds/${demoContext.worldId}/scenes/${sceneId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
   createClue: (payload) => request(`/worlds/${demoContext.worldId}/clues`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  updateClue: (clueId, payload) => request(`/worlds/${demoContext.worldId}/clues/${clueId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
   createInvestigationPoint: (sceneId, payload) => request(`/worlds/${demoContext.worldId}/scenes/${sceneId}/investigation-points`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  updateInvestigationPoint: (pointId, payload) => request(`/worlds/${demoContext.worldId}/investigation-points/${pointId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
+  getStudioNodeReferences: (nodeType, nodeId) => request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/references`, { userId: demoContext.hostUserId }),
   createStudioChapter: (payload) => request(`/worlds/${demoContext.worldId}/chapters`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   createStoryEdge: (payload) => request(`/worlds/${demoContext.worldId}/story-edges`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   analyzeStoryDraft: (text) => request(`/worlds/${demoContext.worldId}/story-assistant/analyze`, { userId: demoContext.hostUserId, method: "POST", body: { text } }),
@@ -131,6 +146,47 @@ window.zhimuApi = {
     return request(`/assets/${ticket.assetId}/confirm`, {
       userId: demoContext.hostUserId,
       method: "POST"
+    });
+  },
+
+  /** SSE via fetch (supports Bearer / x-user-id). onEvent(type, data); type "__connected__" on open. */
+  streamRoomEvents(roomId, onEvent, signal, userId = demoContext.hostUserId) {
+    const headers = { Accept: "text/event-stream" };
+    const sessionToken = localStorage.getItem("zhimuSessionToken");
+    if (sessionToken) headers.authorization = `Bearer ${sessionToken}`;
+    else if (demoMode && userId) headers["x-user-id"] = userId;
+    return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `SSE ${res.status}`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buffer.indexOf("\n\n")) >= 0) {
+          const block = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          const dataLine = block.split("\n").find((l) => l.startsWith("data: "));
+          if (!dataLine) continue;
+          try {
+            const msg = JSON.parse(dataLine.slice(6));
+            if (msg.type === "connected") {
+              onEvent("__connected__", msg);
+              continue;
+            }
+            if (msg.type === "heartbeat") continue;
+            const { type, at, roomId: rid, ...rest } = msg;
+            if (type) onEvent(type, rest);
+          } catch {
+            /* ignore malformed */
+          }
+        }
+      }
     });
   }
 };

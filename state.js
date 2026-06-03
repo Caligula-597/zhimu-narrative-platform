@@ -1,17 +1,16 @@
 window.zhimuState = {
   view: "overview",
-  chapter: 2,
-  progress: 62,
-  running: true,
-  demoStep: 0,
-  voiceRoom: "公共讨论房",
+  voiceRoom: "尚未选择",
   voiceRoomId: null,
   voiceMessages: [],
-  notes: [],
   cloudPlayer: null,
   cloudHost: [],
+  cloudHostPlayers: [],
+  cloudHostStuckCount: 0,
   cloudExploration: null,
   cloudHostEvents: [],
+  cloudWorldLogs: [],
+  cloudCheckpoints: [],
   cloudStudio: null,
   cloudWorlds: [],
   cloudRules: [],
@@ -23,6 +22,7 @@ window.zhimuState = {
   cloudAssets: [],
   storageUsage: null,
   apiError: "",
+  roomEventsConnected: false,
   wizardStep: 0,
   wizardRoleEditor: null,
   wizardDraft: {
@@ -70,18 +70,5 @@ window.zhimuState = {
       chapter: true,
       hint: false
     }
-  },
-  rules: [true, true, true, false],
-  players: [
-    { name: "顾言", role: "记者", scene: "旧港档案馆", progress: 76, color: "#b9795c" },
-    { name: "林烛", role: "医生", scene: "雾港诊所", progress: 64, color: "#587f79" },
-    { name: "周岚", role: "巡警", scene: "码头仓库", progress: 58, color: "#706b91" },
-    { name: "闻彻", role: "商人", scene: "钟楼广场", progress: 43, color: "#9a814f" }
-  ],
-  logs: [
-    ["顾言 解读了线索「被撕去一页的航运录」", "2 分钟前", "ok"],
-    ["规则触发：档案馆的暗门现已开放", "8 分钟前", "ok"],
-    ["周岚在码头仓库停留较久，可能需要提示", "16 分钟前", "warn"],
-    ["林烛 与 NPC 沈怀安 完成一次对话", "21 分钟前", "ok"]
-  ]
+  }
 };

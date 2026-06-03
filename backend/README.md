@@ -75,9 +75,13 @@ AI 只生成待复核的结构化提案，不会直接修改正式剧情。作�
 - `GET /api/worlds/:worldId/rooms`
 - `POST /api/worlds/:worldId/rules`
 - `POST /api/worlds/:worldId/scenes`
+- `PATCH /api/worlds/:worldId/scenes/:sceneId`
 - `POST /api/worlds/:worldId/clues`
+- `PATCH /api/worlds/:worldId/clues/:clueId`
 - `POST /api/worlds/:worldId/scenes/:sceneId/investigation-points`
+- `PATCH /api/worlds/:worldId/investigation-points/:pointId`
 - `GET /api/worlds/:worldId/studio`
+- `GET /api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/references`
 - `POST /api/worlds/:worldId/story-edges`
 - `DELETE /api/worlds/:worldId/story-edges/:edgeId`
 - `DELETE /api/worlds/:worldId/studio-nodes/:nodeType/:nodeId`
@@ -91,9 +95,20 @@ AI 只生成待复核的结构化提案，不会直接修改正式剧情。作�
 - `POST /api/rooms/:roomId/clues/:clueId/read`
 - `POST /api/rooms/:roomId/sections/:sectionId/complete`
 - `POST /api/rooms/:roomId/notebook`
+- `GET /api/rooms/:roomId/host/players`
+- `GET /api/rooms/:roomId/host/players/:roleSlotId`
+- `POST /api/rooms/:roomId/host/grant-clue`
+- `POST /api/rooms/:roomId/host/unlock-section`
+- `POST /api/rooms/:roomId/host/log`
+- `PUT /api/rooms/:roomId/host/players/:roleSlotId/notes`
 - `GET /api/rooms/:roomId/host-progress`
 - `GET /api/rooms/:roomId/host-events`
 - `POST /api/rooms/:roomId/host-events/:eventId/execute`
+- `POST /api/rooms/:roomId/host-events/:eventId/dismiss`
+- `GET /api/rooms/:roomId/checkpoints`
+- `POST /api/rooms/:roomId/checkpoints`
+- `GET /api/rooms/:roomId/checkpoints/:checkpointId`
+- `GET /api/rooms/:roomId/events/stream`（SSE 房间事件；需房间成员）
 - `GET /api/storage/usage`
 - `GET /api/worlds/:worldId/assets`
 - `POST /api/assets/upload-url`
@@ -122,13 +137,22 @@ npm run demo:seed-exploration
 ```powershell
 npm run check
 npm test
+npm run test:ui
 ```
 
-本地演示后端启动后，再运行真实 API 冒烟测试：
+本地演示后端启动后，再运行真实 API 冒烟测试（需 4180 为最新进程）：
 
 ```powershell
 npm run test:smoke
 ```
+
+完整功能说明见项目根目录 [FEATURE_CATALOG.md](../FEATURE_CATALOG.md)（含 P0-1～P1 变更 §12–§18 与整体验收 §18）。
+
+## 前端数据边界（与后端对应）
+
+- 世界总览读取 `GET /worlds/:id/logs`（`limit`、可选 `roomId`）展示最近事件。
+- 内容资产仅列出 `GET /worlds/:id/assets` 返回的 R2 附件。
+- 种子数据（如 `雾港来信`）仅存在于数据库/API，**不会**在前端 UI 中硬编码为假卡片或假日志。
 
 ## 云存储
 

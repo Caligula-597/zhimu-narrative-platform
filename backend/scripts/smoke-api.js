@@ -4,9 +4,14 @@ const playerUserId = process.env.SMOKE_PLAYER_USER_ID || "1d5e8155-a80f-4e7f-99f
 const worldId = process.env.SMOKE_WORLD_ID || "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
 const roomId = process.env.SMOKE_ROOM_ID || "a65f94eb-a987-463c-bb81-aa482367e54a";
 
-async function request(path, userId) {
+async function request(path, userId, { method = "GET", body } = {}) {
+  const headers = {};
+  if (userId) headers["x-user-id"] = userId;
+  if (body !== undefined) headers["content-type"] = "application/json";
   const response = await fetch(`${baseUrl}${path}`, {
-    headers: userId ? { "x-user-id": userId } : {}
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body)
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(`${response.status} ${path}: ${payload.error || "request failed"}`);
@@ -55,6 +60,19 @@ const results = await Promise.all([
     return `scenes=${exploration.scenes.length}, investigationPoints=${points.length}`;
   }),
   check("host-progress", async () => (await request(`/rooms/${roomId}/host-progress`, hostUserId)).length),
+  check("host-players", async () => {
+    const payload = await request(`/rooms/${roomId}/host/players`, hostUserId);
+    return `players=${payload.players.length}, stuck=${payload.stuckCount}`;
+  }),
+  check("checkpoints", async () => {
+    const created = await request(`/rooms/${roomId}/checkpoints`, hostUserId, {
+      method: "POST",
+      body: { title: "smoke checkpoint", description: "api smoke" }
+    });
+    const list = await request(`/rooms/${roomId}/checkpoints`, hostUserId);
+    const detail = await request(`/rooms/${roomId}/checkpoints/${created.id}`, hostUserId);
+    return `list=${list.length}, snapshotPlayers=${detail.snapshot.players.length}`;
+  }),
   check("join-rejects-foreign-role", async () => {
     const response = await fetch(`${baseUrl}/rooms/join`, {
       method: "POST",

@@ -28,24 +28,84 @@ function render() {
   document.querySelector("#page-eyebrow").textContent = eyebrow;
   document.querySelector("#page-title").textContent = title;
   document.querySelectorAll(".nav-item").forEach(item => item.classList.toggle("active", item.dataset.view === state.view));
+  updateNotifyBadge();
   const views = { overview, writer, studio: studioCloud, assets, rules, director, player, archive, settings };
   content.innerHTML = views[state.view]();
   bindDynamic();
 }
 
+function formatRelativeTime(value) {
+  if (!value) return "";
+  const diff = Date.now() - new Date(value).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "刚刚";
+  if (minutes < 60) return `${minutes} 分钟前`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} 小时前`;
+  return formatTime(value);
+}
+function logActivityType(eventType = "") {
+  return /warn|stuck|delay|卡关/i.test(eventType) ? "warn" : "ok";
+}
+function overviewRuntimeProgress() {
+  const host = state.cloudHost || [];
+  if (!host.length) return { percent: 0, label: "暂无玩家进度" };
+  const totals = host.reduce((acc, item) => {
+    acc.completed += item.completed_sections || 0;
+    acc.total += item.total_sections || 0;
+    return acc;
+  }, { completed: 0, total: 0 });
+  const percent = totals.total ? Math.round((totals.completed / totals.total) * 100) : 0;
+  return { percent, label: totals.total ? `${totals.completed} / ${totals.total} 段私人剧情已完成` : "暂无玩家进度" };
+}
+function chapterPublicationLabel(status) {
+  return { draft: "草稿", testing: "测试中", published: "已发布" }[status] || status;
+}
+function chapterFlowClass(status) {
+  if (status === "published") return "ok";
+  if (status === "testing") return "live";
+  return "locked";
+}
+
 function overview() {
   const studio = state.cloudStudio, world = studio?.world;
   const roleCount = studio?.roles?.length ?? 0, chapterCount = studio?.chapters?.length ?? 0;
-  const assetCount = studio ? studio.scenes.length + studio.clues.length + studio.investigationPoints.length : 0;
-  const rooms = studio?.rooms || [], hasRuntime = rooms.length > 0;
+  const uploadCount = state.cloudAssets?.length ?? 0;
+  const rooms = studio?.rooms || [], hasRooms = rooms.length > 0;
+  const room = activeRuntimeRoom(), hasActiveRoom = Boolean(room);
   const enabledRules = (state.cloudRules || []).filter(rule => rule.enabled).length;
-  const pendingEvents = hasRuntime ? (state.cloudHostEvents || []).length : 0;
-  const chapterFlow = studio?.chapters?.map(chapter => flow(`第 ${chapter.sequence} 章`, escapeHtml(chapter.title), hasRuntime ? "等待运行状态" : "尚未开始", "locked")).join("") || `<div class="empty-state">尚未创建公共章节。</div>`;
-  const activities = hasRuntime && state.logs.length ? state.logs.map(log => activity(...log)).join("") : `<div class="empty-state">当前世界暂无运行日志。创建测试房并邀请玩家后，阅读、调查和规则触发会记录在这里。</div>`;
-  const roleRows = studio?.roles?.map((role,index) => {
+  const pendingEvents = hasActiveRoom ? (state.cloudHostEvents || []).length : 0;
+  const runtimeProgress = hasActiveRoom ? overviewRuntimeProgress() : { percent: 0, label: "当前未选中运行房" };
+  const activePlayers = hasActiveRoom ? (state.cloudHost || []).filter(item => (item.completed_sections || 0) > 0 || item.current_scene_id).length : 0;
+  const chapterFlow = studio?.chapters?.map(chapter => flow(
+    `第 ${chapter.sequence} 章`,
+    escapeHtml(chapter.title),
+    chapterPublicationLabel(chapter.publication_status),
+    chapterFlowClass(chapter.publication_status)
+  )).join("") || `<div class="empty-state">尚未创建公共章节。</div>`;
+  const logs = state.cloudWorldLogs || [];
+  const activities = logs.length
+    ? logs.slice(0, 8).map(log => activity(escapeHtml(log.message), formatRelativeTime(log.created_at), logActivityType(log.event_type))).join("")
+    : `<div class="empty-state">${hasActiveRoom ? "暂无最近事件" : hasRooms ? "请选择一个运行房以查看该房间的最近事件。" : "暂无运行房。创建测试房后，阅读、调查和规则触发会记录在这里。"}</div>`;
+  const hostByRole = new Map((state.cloudHost || []).map(item => [item.role_slot_id, item]));
+  const roleColors = ["#b9795c", "#587f79", "#706b91", "#9a814f", "#76614d", "#657c91"];
+  const roleRows = studio?.roles?.map((role, index) => {
     const sections = studio.sections.filter(section => section.role_slot_id === role.id).length;
-    return readingRow(role.name[0], escapeHtml(role.name), hasRuntime ? "等待玩家加入或读取运行状态" : "尚未加入运行房", `${sections} 段已编排`, "", ["#b9795c","#587f79","#706b91","#9a814f","#76614d","#657c91"][index%6]);
-  }).join("") || `<div class="empty-state">尚未创建角色席位。</div>`;
+    const host = hostByRole.get(role.id);
+    if (hasActiveRoom && host) {
+      const pct = host.total_sections ? Math.round((host.completed_sections / host.total_sections) * 100) : 0;
+      const text = host.current_scene_id ? "已记录当前场景" : host.completed_sections > 0 ? "正在阅读私人章节" : "席位已建立，等待玩家阅读";
+      const status = host.total_sections ? `${host.completed_sections}/${host.total_sections} 段 · ${pct}%` : `${sections} 段已编排`;
+      return readingRow(role.name[0], escapeHtml(role.name), text, status, pct >= 100 ? "ok" : pct > 0 ? "live" : "", roleColors[index % 6]);
+    }
+    if (hasActiveRoom) {
+      return readingRow(role.name[0], escapeHtml(role.name), "席位已建立，等待玩家加入", `${sections} 段已编排`, "", roleColors[index % 6]);
+    }
+    return readingRow(role.name[0], escapeHtml(role.name), "尚未加入运行房", `${sections} 段已编排`, "", roleColors[index % 6]);
+  }).join("") || `<div class="empty-state">${hasActiveRoom ? "暂无玩家进度" : "尚未创建角色席位。"}</div>`;
+  const statusHead = hasActiveRoom ? "● 运行中" : hasRooms ? "○ 运行房已建立" : "○ 尚未开始运行";
+  const statusTitle = hasActiveRoom ? escapeHtml(room.name) : hasRooms ? "请选择一个运行房" : "尚未创建测试房";
+  const statusKicker = hasActiveRoom ? "RUNTIME ACTIVE" : hasRooms ? "ROOMS READY" : "CREATOR MODE";
   return `
     ${cloudStatus()}
     <section class="hero">
@@ -53,21 +113,21 @@ function overview() {
         <p class="eyebrow">CURRENT WORLD · ONLINE</p>
         <h2>${escapeHtml(world?.name || "正在读取云端世界")}</h2>
         <p>${escapeHtml(world?.summary || "世界基础信息加载完成后会显示在这里。")}</p>
-        <div class="hero-stats"><div><strong>${String(roleCount).padStart(2,"0")}</strong><small>角色席位</small></div><div><strong>${String(chapterCount).padStart(2,"0")}</strong><small>公共章节</small></div><div><strong>${String(assetCount).padStart(2,"0")}</strong><small>剧情资产</small></div></div>
+        <div class="hero-stats"><div><strong>${String(roleCount).padStart(2,"0")}</strong><small>角色席位</small></div><div><strong>${String(chapterCount).padStart(2,"0")}</strong><small>公共章节</small></div><div><strong>${String(uploadCount).padStart(2,"0")}</strong><small>云端附件</small></div></div>
       </article>
       <article class="status-card">
-        <div class="status-head"><h3>当前进度</h3><span>${hasRuntime ? "● 运行房已建立" : "○ 尚未开始运行"}</span></div>
-        <div class="chapter"><p class="section-kicker">${hasRuntime ? "RUNTIME READY" : "CREATOR MODE"}</p><strong>${hasRuntime ? escapeHtml(rooms[0].name) : "尚未创建测试房"}</strong></div>
-        <div class="progress"><i style="width:${hasRuntime ? state.progress : 0}%"></i></div>
-        <div class="status-meta"><span>${hasRuntime ? "等待读取房间运行节点" : "当前仅有创作内容，没有玩家运行状态"}</span><span>${hasRuntime ? state.progress : 0}%</span></div>
-        <div class="pulse-line"><i></i><span>${hasRuntime ? "运行实例已连接" : "完成检查后可建立测试房"}</span></div>
+        <div class="status-head"><h3>当前进度</h3><span>${statusHead}</span></div>
+        <div class="chapter"><p class="section-kicker">${statusKicker}</p><strong>${statusTitle}</strong></div>
+        <div class="progress"><i style="width:${hasActiveRoom ? runtimeProgress.percent : 0}%"></i></div>
+        <div class="status-meta"><span>${hasActiveRoom ? runtimeProgress.label : hasRooms ? "已建立运行房，请进入房间后查看玩家进度" : "当前仅有创作内容，没有玩家运行状态"}</span><span>${hasActiveRoom ? runtimeProgress.percent : 0}%</span></div>
+        <div class="pulse-line"><i></i><span>${hasActiveRoom ? "运行实例已连接" : hasRooms ? "选择一个平行房以读取运行状态" : "完成检查后可建立测试房"}</span></div>
       </article>
     </section>
     <section class="stats-grid">
-      ${stat("♙",hasRuntime ? String(state.cloudHost.length) : "0","已入房角色",hasRuntime ? "读取当前测试房玩家" : "尚未建立测试房")}
+      ${stat("♙",hasActiveRoom ? String(activePlayers) : "0","有进度角色",hasActiveRoom ? "读取当前运行房玩家" : "尚未建立或选中运行房")}
       ${stat("⌘",String(enabledRules),"已启用规则",enabledRules ? "云端规则已配置" : "尚未为当前世界配置规则")}
-      ${stat("◇",String(studio?.clues?.length || 0),"已编排线索","创作态内容，不等于玩家已解锁")}
-      ${stat("◷",String(pendingEvents),"待确认事件",pendingEvents ? "需要主持人处理" : "当前没有运行事件")}
+      ${stat("↑",String(uploadCount),"已上传附件",uploadCount ? "来自 Cloudflare R2" : "暂无上传资产")}
+      ${stat("◷",String(pendingEvents),"待确认事件",pendingEvents ? "需要主持人处理" : "暂无待确认事件")}
     </section>
     <section class="dashboard-grid">
       <article class="card">
@@ -92,7 +152,8 @@ function overview() {
           ${task("◇","复核剧情编排",`${studio?.scenes?.length || 0} 个场景、${studio?.investigationPoints?.length || 0} 个调查点和 ${studio?.edges?.length || 0} 条连线已经写入`,"studio","打开编排")}
           ${task("✎","逐角色检查私人剧本",`${roleCount} 个角色席位，共 ${studio?.sections?.length || 0} 段私人正文`,"writer","检查角色稿")}
           ${task("⌘","配置自动化规则",enabledRules ? `当前已有 ${enabledRules} 条启用规则` : "当前世界还没有运行规则","rules","打开规则")}
-          ${taskAction(hasRuntime ? "◉" : "＋",hasRuntime ? "管理平行房" : "建立测试房",hasRuntime ? `${rooms.length} 个互相隔离的运行房可管理` : "当前世界尚未创建运行实例","world-rooms",hasRuntime ? "查看房间" : "创建平行房")}
+          ${taskAction(hasRooms ? "◉" : "＋",hasRooms ? "管理平行房" : "建立测试房",hasRooms ? `${rooms.length} 个互相隔离的运行房可管理` : "当前世界尚未创建运行实例","world-rooms",hasRooms ? "查看房间" : "创建平行房")}
+          ${uploadCount ? task("↑","管理云端附件",`${uploadCount} 个文件已上传到 R2 私有存储`,"assets","打开资产页") : task("↑","上传世界附件","当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。","assets","前往上传")}
         </div>
       </article>
     </section>
@@ -118,35 +179,6 @@ function task(icon,title,text,view,action){return `<div class="task-row"><span c
 function taskAction(icon,title,text,action,label){return `<div class="task-row"><span class="task-icon">${icon}</span><div><strong>${title}</strong><p>${text}</p></div><button data-action="${action}">${label} →</button></div>`}
 function capability(icon,title,text,view){return `<article class="capability-card"><i>${icon}</i><h3>${title}</h3><p>${text}</p><button ${view==="wizard"?'data-action="open-wizard"':`data-go="${view}"`}>打开功能 →</button></article>`}
 
-function studio() {
-  return `<section class="studio-layout">
-    <aside class="panel"><div class="panel-title">世界结构</div><div class="tree">
-      <div class="tree-item">⌄　雾港来信</div><div class="tree-item indent">✓　序章：雾中来信</div><div class="tree-item indent">✓　第一章：未归之船</div><div class="tree-item indent active">◉　第二章：潮声下的名字</div><div class="tree-item indent">◇　第三章：灯塔守夜人</div><div class="tree-item indent">◇　终章：远航者之墓</div>
-      <div class="tree-item">⌄　支线剧情</div><div class="tree-item indent">◇　诊所旧事</div><div class="tree-item indent">◇　失踪的摆渡人</div>
-    </div></aside>
-    <div class="node-board">
-      <div class="board-toolbar"><div class="tool-group"><button class="tool" disabled>＋ 添加节点 · 待接入</button><button class="tool" disabled>自动布局 · 待接入</button><button class="tool" disabled>连线模式 · 待接入</button></div><div class="tool-group"><button class="tool" disabled>−</button><button class="tool" disabled>86%</button><button class="tool" disabled>＋</button></div></div>
-      ${line(163,172,105,0)}${line(305,172,105,45)}${line(305,172,105,-47)}${line(475,312,68,0)}${line(475,126,68,0)}
-      ${node(22,130,"场景","进入档案馆","玩家抵达后可自由调查","")}
-      ${node(190,130,"线索","航运录残页","调查旧报架后获得","current")}
-      ${node(360,80,"事件","馆长的迟疑","持有旧照片时开放新对话","event")}
-      ${node(360,270,"谜题","暗门机关","解读航运录 + 使用黄铜钥匙","lock")}
-      ${node(540,270,"场景","档案密室","已满足条件，等待玩家进入","")}
-      ${node(540,80,"线索","守夜人手记","对话后由馆长交付","lock")}
-    </div>
-    <aside class="panel inspector"><div class="panel-title">节点检查器</div><div class="inspector-body">
-      <p class="section-kicker">CLUE NODE</p><h3 style="margin-top:7px">航运录残页</h3>
-      <label>节点类型</label><select class="field"><option>线索节点</option><option>事件节点</option></select>
-      <label>可见范围</label><select class="field"><option>获得后可见</option><option>全员公开</option></select>
-      <label>标签</label><div><span class="tag">主线</span><span class="tag">可解读</span><span class="tag">档案馆</span></div>
-      <label>解锁条件</label><div class="rule-block">当玩家调查「旧报架」<br>并且 当前章节 = 第二章<br>→ 发放线索并写入日志</div>
-      <button class="primary-btn full-btn" data-action="unavailable" data-feature="节点写入 API">保存节点配置 · 待接入</button>
-    </div></aside>
-  </section>`;
-}
-function line(x,y,w,r){return `<i class="connector" style="left:${x}px;top:${y}px;width:${w}px;transform:rotate(${r}deg)"></i>`}
-function node(x,y,badge,title,desc,cls){return `<article class="node ${cls}" style="left:${x}px;top:${y}px"><span class="badge">${badge}</span><strong>${title}</strong><small>${desc}</small></article>`}
-
 function studioCloud() {
  const data=state.cloudStudio;
  if(!data)return `<section class="card"><h3>正在读取云端剧情编排...</h3><p>章节、角色剧本、场景和线索会从 PostgreSQL 加载。</p></section>`;
@@ -164,7 +196,7 @@ function studioCloud() {
       ${studioEdges(data)}${studioNodes(data)}
    </div></div>
   </div>
-  <aside class="panel inspector"><div class="panel-title">云端编排检查器</div><div class="inspector-body">
+  <aside class="panel inspector"><div class="panel-title">节点编辑</div><div class="inspector-body">
    <p class="section-kicker">SCRIPTED WORLD</p><h3 style="margin-top:7px">${data.world.name}</h3>
    <label>公共章节</label><div class="rule-block">${data.chapters.map(chapter=>`${chapter.sequence}. ${chapter.title}`).join("<br>")||"尚未创建"}</div>
    <label>角色专属剧本</label><div class="rule-block">${data.roles.map(role=>`${role.name}：${data.sections.filter(section=>section.role_slot_id===role.id).length} 段私人内容`).join("<br>")||"尚未创建"}</div>
@@ -177,7 +209,7 @@ function studioCloud() {
 function studioNodes(data){
  const nodes=[],visible=studioVisibleNodes(data);
  visible.forEach(node=>{const position=studioNodePosition(node,data);nodes.push(studioNode(position.x,position.y,node.type,node.id,node.badge,node.title,node.desc,node.cls,node.metadata))});
- return nodes.join("")||node(30,120,"开始","建立公共剧情线","请添加章节、公共场景和线索","");
+ return nodes.join("")||`<article class="node" style="left:30px;top:120px"><span class="badge">开始</span><strong>建立公共剧情线</strong><small>请添加章节、公共场景和线索</small></article>`;
 }
 function studioNode(x,y,type,id,badge,title,desc,cls,metadata={}){const selected=state.studioSelectedNode?.type===type&&state.studioSelectedNode?.id===id,anchors=studioNodeAnchors({metadata});return `<button class="node ${cls} ${selected?"selected":""}" style="left:${x}px;top:${y}px;text-align:left" data-action="studio-select-node" data-node-type="${type}" data-node-id="${id}"><span class="node-drag-handle">⠿ 拖动</span>${anchors.map(anchor=>`<span class="node-link-handle ${state.studioAnchorEditing&&selected?"anchor-editing":""}" style="left:${anchor.x}px;top:${anchor.y}px" data-anchor-id="${anchor.id}" title="${state.studioAnchorEditing&&selected?"拖动调整连接点位置":"拖到其他节点创建连线"}"></span>`).join("")}<span class="badge">${badge}</span><strong>${title}</strong><small>${desc}</small></button>`}
 function studioNodeList(data){return [...data.scenes.map(node=>({type:"scene",id:node.id,name:`场景 · ${node.name}`,title:node.name,badge:"公共场景",desc:node.public_text||"等待补充场景说明",cls:"",metadata:node.metadata})),...data.clues.map(node=>({type:"clue",id:node.id,name:`线索 · ${node.name}`,title:node.name,badge:"线索",desc:node.public_text||"等待补充线索说明",cls:"current",metadata:node.metadata})),...data.investigationPoints.map(node=>({type:"investigation_point",id:node.id,name:`调查点 · ${node.name}`,title:node.name,badge:"调查点",desc:node.description||"等待补充调查说明",cls:"event",metadata:node.metadata}))]}
@@ -199,9 +231,38 @@ function studioEdges(data){
 function studioSelection(data){
  const selected=state.studioSelectedNode;
  const edges=data.edges.map(edge=>`<div class="edge-row"><span class="tag">${({mainline:"主线",parallel:"并列",extension:"延伸"})[edge.relation_type]}</span><p>${studioNodeName(data,edge.from_type,edge.from_id)} → ${studioNodeName(data,edge.to_type,edge.to_id)}</p><button class="text-btn" data-action="studio-delete-edge" data-edge-id="${edge.id}">删除</button></div>`).join("");
- if(!selected)return `<label>剧情连线</label>${edges||`<p class="wizard-intro">点击节点后可以建立主线、并列或延伸关系。</p>`}`;
+ if(!selected)return `<label>剧情连线</label>${edges||`<p class="wizard-intro">点击节点后可以编辑内容，并建立主线、并列或延伸关系。</p>`}`;
  const anchors=studioNodeAnchors(studioNodeRecord(data,selected.type,selected.id));
- return `<label>当前节点</label><div class="rule-block">${studioNodeName(data,selected.type,selected.id)}</div><div class="anchor-toolbar"><button class="secondary-btn" data-action="studio-add-anchor">＋ 添加连接点</button><button class="secondary-btn" data-action="studio-toggle-anchor-edit">${state.studioAnchorEditing?"完成位置调整":"拖动调整连接点"}</button></div><div class="anchor-list">${anchors.map((anchor,index)=>`<div class="anchor-row"><span><i></i> 连接点 ${index+1}</span>${anchors.length>1?`<button class="text-btn danger-text" data-action="studio-delete-anchor" data-anchor-id="${anchor.id}">删除</button>`:""}</div>`).join("")}</div><button class="secondary-btn full-btn" data-action="studio-connect-node">＋ 创建剧情连线</button><button class="danger-btn full-btn" data-action="studio-delete-node">删除当前节点</button><label>剧情连线</label>${edges||`<p class="wizard-intro">尚未创建连线。</p>`}`;
+ return `${studioNodeEditPanel(data,selected)}<div class="anchor-toolbar"><button class="secondary-btn" data-action="studio-add-anchor">＋ 添加连接点</button><button class="secondary-btn" data-action="studio-toggle-anchor-edit">${state.studioAnchorEditing?"完成位置调整":"拖动调整连接点"}</button></div><div class="anchor-list">${anchors.map((anchor,index)=>`<div class="anchor-row"><span><i></i> 连接点 ${index+1}</span>${anchors.length>1?`<button class="text-btn danger-text" data-action="studio-delete-anchor" data-anchor-id="${anchor.id}">删除</button>`:""}</div>`).join("")}</div><button class="secondary-btn full-btn" data-action="studio-connect-node">＋ 创建剧情连线</button><button class="danger-btn full-btn" data-action="studio-delete-node">删除当前节点</button><label>剧情连线</label>${edges||`<p class="wizard-intro">尚未创建连线。</p>`}`;
+}
+function studioEditField(label,key,type="input",value=""){
+ return `<label>${label}</label>${type==="textarea"?`<textarea class="field" data-studio-edit-field="${key}" rows="4">${escapeHtml(value)}</textarea>`:`<input class="field" data-studio-edit-field="${key}" value="${escapeHtml(value)}">`}`;
+}
+function studioEditSelect(label,key,options,selected=""){
+ return `<label>${label}</label><select class="field" data-studio-edit-field="${key}">${options.map(option=>`<option value="${option.id}" ${String(option.id)===String(selected)?"selected":""}>${escapeHtml(option.name||option.title||"")}</option>`).join("")}</select>`;
+}
+function studioEditValues(){
+ const values={};
+ document.querySelectorAll("[data-studio-edit-field]").forEach(input=>{values[input.dataset.studioEditField]=input.value.trim();});
+ values.visibleRoleSlotIds=[...document.querySelectorAll('[data-studio-edit-checkbox="visibleRoleSlotIds"]:checked')].map(input=>input.value);
+ document.querySelectorAll("[data-studio-edit-boolean]").forEach(input=>{values[input.dataset.studioEditBoolean]=input.checked;});
+ return values;
+}
+function studioNodeEditPanel(data,selected){
+ const record=studioNodeRecord(data,selected.type,selected.id);
+ if(!record)return `<p class="wizard-intro">节点数据不可用，请刷新后重试。</p>`;
+ const meta=record.metadata||{};
+ if(selected.type==="scene"){
+  const chapters=[{id:"",name:"暂不绑定章节"},...data.chapters];
+  const visibleIds=Array.isArray(meta.visibleRoleSlotIds)?meta.visibleRoleSlotIds:[];
+  return `<div class="studio-edit-panel"><p class="section-kicker">编辑场景</p>${studioEditField("场景标题","name","input",record.name)}${studioEditField("场景摘要","summary","textarea",meta.summary||"")}${studioEditField("场景正文 / 描述","publicText","textarea",record.public_text||"")}${studioEditSelect("开放状态","openStatus",[{id:"locked",name:"锁定 · 需规则或主持开放"},{id:"unlocked",name:"已开放 · 初始可见"}],meta.openStatus||"locked")}${studioEditSelect("所属章节","chapterId",chapters.map(chapter=>({id:chapter.id,name:chapter.title})),record.chapter_id||"")}<label>可见角色范围</label><div class="studio-role-checks">${data.roles.map(role=>`<label class="studio-check-row"><input type="checkbox" data-studio-edit-checkbox="visibleRoleSlotIds" value="${role.id}" ${visibleIds.includes(role.id)?"checked":""}> ${escapeHtml(role.name)}</label>`).join("")||`<span class="wizard-intro">请先创建角色席位。</span>`}</div>${studioEditField("主持备注","hostText","textarea",record.host_text||"")}<button class="primary-btn full-btn" data-action="studio-save-node">保存场景</button></div>`;
+ }
+ if(selected.type==="clue"){
+  const assets=[{id:"",name:"不关联附件"},...(state.cloudAssets||[]).map(asset=>({id:asset.id,name:asset.original_filename}))];
+  return `<div class="studio-edit-panel"><p class="section-kicker">编辑线索</p>${studioEditField("线索标题","name","input",record.name)}${studioEditField("线索正文","publicText","textarea",record.public_text||"")}${studioEditSelect("线索类型","clueType",[{id:"text",name:"文字"},{id:"image",name:"图片"},{id:"file",name:"文件"},{id:"audio",name:"音频"}],meta.clueType||"text")}${studioEditSelect("关联资产","assetId",assets,meta.assetId||"")}${studioEditSelect("默认可见性","visibility",[{id:"role",name:"私密 · 仅获得角色可见"},{id:"public",name:"房间公开"},{id:"host",name:"主持可见"}],record.visibility||"role")}${studioEditSelect("重要程度","importance",[{id:"normal",name:"普通"},{id:"key",name:"关键"},{id:"red_herring",name:"烟雾弹"}],meta.importance||"normal")}${studioEditField("主持提示","hostText","textarea",record.host_text||"")}<button class="primary-btn full-btn" data-action="studio-save-node">保存线索</button></div>`;
+ }
+ const scenes=data.scenes||[],clues=[{id:"",name:"不发放线索"},...(data.clues||[])],items=[{id:"",name:"不需要物品"},...(data.items||[])];
+ return `<div class="studio-edit-panel"><p class="section-kicker">编辑调查点</p>${studioEditField("调查点标题","name","input",record.name)}${studioEditField("调查描述","description","textarea",record.description||"")}${studioEditSelect("所属场景","sceneId",scenes.map(scene=>({id:scene.id,name:scene.name})),record.scene_id||"")}${studioEditField("调查结果","resultText","textarea",record.result_text||"")}${studioEditSelect("成功后发放线索","clueId",clues,record.clue_id||"")}${studioEditSelect("是否需要物品","requiredItemId",items,record.required_item_id||"")}<label class="studio-check-row"><input type="checkbox" data-studio-edit-boolean="hostConfirmRequired" ${meta.hostConfirmRequired?"checked":""}> 是否需要主持确认</label><label class="studio-check-row"><input type="checkbox" data-studio-edit-boolean="oneTime" ${meta.oneTime!==false?"checked":""}> 是否一次性</label>${studioEditField("主持备注","hostNote","textarea",meta.hostNote||"")}<button class="primary-btn full-btn" data-action="studio-save-node">保存调查点</button></div>`;
 }
 
 function writer(){
@@ -232,23 +293,12 @@ function placeholderModule(title,text,feature){return `<article class="placehold
 function creatorTool(title,text,action,label){return `<article class="placeholder-module connected"><span>CONNECTED</span><h3>${title}</h3><p>${text}</p><button class="text-btn" data-action="${action}">${label}</button></article>`}
 function formatTime(value){return new Date(value).toLocaleString("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}
 
-const assetsData = [
- ["线索","被撕去一页的航运录","船只抵港记录中，二十年前的最后一页被人撕走。","档案馆","已解锁"],
- ["角色","顾言 · 记者","收到匿名来信后返回雾港，似乎与失踪者关系匪浅。","玩家角色","在线"],
- ["场景","旧港档案馆","海水浸泡过的旧档案堆满木架，空气中残留着盐味。","第一章","开放"],
- ["物品","黄铜钥匙","钥匙柄上刻着已经模糊的灯塔纹样。","码头仓库","周岚持有"],
- ["NPC","沈怀安 · 馆长","看守旧港档案三十年，对当年的沉船事故始终讳莫如深。","档案馆","可对话"],
- ["线索","守夜人手记","泛黄纸页记录着灯塔熄灭前最后一次交接。","馆长对话","未解锁"],
- ["事件","档案馆的暗门","航运录残页与黄铜钥匙将共同开启隐藏空间。","自动规则","待触发"],
- ["场景","潮汐诊所","诊所地下留有一间不在建筑图纸中的观察室。","支线剧情","开放"],
- ["物品","未寄出的信","署名被墨水洇开，只留下半枚红色火漆印。","诊所旧事","林烛持有"]
-];
 function assets(){
   const usage=state.storageUsage; const pct=usage?Math.min(100,Math.round(usage.usedBytes/usage.maxBytes*100)):0;
-  return `<div class="asset-toolbar"><div class="search-box">⌕<input placeholder="搜索线索、角色、场景或标签"></div><div class="row"><button class="secondary-btn" data-action="upload-asset">↑ 上传云端附件</button><button class="primary-btn" data-action="new-asset">＋ 新建内容</button></div></div>
-  <article class="card" style="margin-bottom:14px"><div class="section-head"><div><h3>云端附件空间</h3><p>真实连接 Cloudflare R2 私有 Bucket，附件通过短期签名地址上传下载</p></div><span class="cloud-pill">R2 · PRIVATE</span></div><div class="usage-bar"><i style="width:${pct}%"></i></div><div class="status-meta"><span>${usage?formatBytes(usage.usedBytes):"读取中"} / ${usage?formatBytes(usage.maxBytes):"500 MB"}</span><span>${pct}%</span></div>${state.cloudAssets.length?`<div class="cloud-asset-list">${state.cloudAssets.map(a=>`<div class="cloud-asset-row"><div><strong>${a.original_filename}</strong><p>${a.asset_kind} · ${formatBytes(a.byte_size)} · ${a.visibility}</p></div><button class="danger-btn" data-action="delete-asset" data-asset="${a.id}">移入回收站</button></div>`).join("")}</div>`:`<div class="empty-state">尚未上传云端附件。</div>`}</article>
-  <div class="tabs"><button class="tab active" disabled>全部 32 · 当前展示</button><button class="tab" disabled>线索 12 · 待筛选 API</button><button class="tab" disabled>角色 8</button><button class="tab" disabled>场景 7</button><button class="tab" disabled>事件 5</button></div>
-  <section class="asset-grid">${assetsData.map(asset => `<article class="asset-card"><div class="asset-top"><span class="asset-type">${asset[0]}</span><button class="ghost-btn" disabled title="编辑 API 待接入">•••</button></div><h3>${asset[1]}</h3><p>${asset[2]}</p><div class="asset-meta"><span>${asset[3]}</span><span>${asset[4]}</span></div></article>`).join("")}</section>`;
+  const assets=state.cloudAssets||[];
+  return `<div class="asset-toolbar"><div class="search-box disabled-hint" title="Alpha 尚未接入">⌕<input placeholder="搜索线索、角色、场景或标签（Alpha 尚未接入）" disabled></div><div class="row"><button class="secondary-btn" data-action="upload-asset">↑ 上传云端附件</button><button class="secondary-btn" data-action="unavailable" data-feature="内容资产新建 API">＋ 新建内容 · 待接入</button></div></div>
+  <article class="card" style="margin-bottom:14px"><div class="section-head"><div><h3>云端附件空间</h3><p>真实连接 Cloudflare R2 私有 Bucket，附件通过短期签名地址上传下载</p></div><span class="cloud-pill">R2 · PRIVATE</span></div><div class="usage-bar"><i style="width:${pct}%"></i></div><div class="status-meta"><span>${usage?formatBytes(usage.usedBytes):"读取中"} / ${usage?formatBytes(usage.maxBytes):"500 MB"}</span><span>${pct}%</span></div>${assets.length?`<div class="cloud-asset-list">${assets.map(a=>`<div class="cloud-asset-row"><div><strong>${escapeHtml(a.original_filename)}</strong><p>${escapeHtml(a.asset_kind)} · ${formatBytes(a.byte_size)} · ${escapeHtml(a.visibility)}</p></div><button class="danger-btn" data-action="delete-asset" data-asset="${a.id}">移入回收站</button></div>`).join("")}</div>`:`<div class="empty-state">当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。</div>`}</article>
+  <div class="tabs"><button class="tab active" disabled>全部 ${assets.length}</button><button class="tab" disabled title="Alpha 尚未接入">线索 · 待接入</button><button class="tab" disabled title="Alpha 尚未接入">角色 · 待接入</button><button class="tab" disabled title="Alpha 尚未接入">场景 · 待接入</button><button class="tab" disabled title="Alpha 尚未接入">事件 · 待接入</button></div>`;
 }
 function formatBytes(bytes){if(bytes<1024)return `${bytes} B`;if(bytes<1024*1024)return `${(bytes/1024).toFixed(1)} KB`;return `${(bytes/1024/1024).toFixed(1)} MB`}
 function rules() {
@@ -268,13 +318,14 @@ function runtimeEmpty(title,description){
 function director(){
  const room=activeRuntimeRoom(),world=state.cloudStudio?.world;
  if(!room)return runtimeEmpty("主持监控台","主持监控台只展示当前世界中被选中的独立运行房，不再回退到初始演示副本。");
- const players=directorPlayers(),rules=(state.cloudRules||[]).filter(rule=>rule.enabled&&(!rule.room_id||rule.room_id===room.id)),events=state.cloudHostEvents||[];
- return `${cloudStatus()}<div class="director-head"><div><span class="live-label">● LIVE</span><strong>　${escapeHtml(world?.name||"当前世界")} · ${escapeHtml(room.name)}</strong></div><div class="row"><button class="secondary-btn" data-action="refresh-cloud">刷新运行状态</button><button class="primary-btn" data-action="unavailable" data-feature="存档快照 API">＋ 创建存档点 · 待接入</button></div></div>
- <section class="stats-grid">${stat("♙",String(players.length),"角色席位","读取当前平行房进度")}${stat("⌘",String(rules.length),"运行中规则","仅统计当前房和世界模板")}${stat("◷",String(events.length),"待确认事件",events.length?"需要主持人判断":"当前无需人工介入")}${stat("⚑","0","卡关预警","尚未接入行为阈值判断")}</section>
- <section class="director-grid" style="margin-top:15px"><article class="card"><div class="section-head"><div><h3>玩家状态</h3><p>系统根据阅读、位置和交互行为实时更新</p></div></div><div class="player-list">
- ${players.map(p=>`<div class="player-row"><div class="avatar" style="background:${p.color}">${p.name[0]}</div><div><strong>${escapeHtml(p.name)} · ${escapeHtml(p.role)}</strong><p>${escapeHtml(p.scene)}</p></div><div><div class="progress"><i style="width:${p.progress}%"></i></div><p>${escapeHtml(p.caption)}</p></div></div>`).join("")||`<div class="empty-state">当前运行房尚未建立角色席位。</div>`}</div></article>
- <aside><article class="card"><div class="section-head"><div><h3>等待确认</h3><p>由真实规则引擎生成，确认后立即写入当前房间状态</p></div></div>${hostEventRows()}</article>
- <article class="card" style="margin-top:15px"><div class="section-head"><div><h3>运行说明</h3><p>当前监控台已绑定独立平行房</p></div></div><div class="tutorial-tip"><b>${escapeHtml(room.name)}</b><span>阅读进度、规则执行和待确认事件只属于该房间，不会污染同剧本的其他平行房。</span></div></article></aside></section>`;
+ const players=state.cloudHostPlayers||[],rules=(state.cloudRules||[]).filter(rule=>rule.enabled&&(!rule.room_id||rule.room_id===room.id)),events=state.cloudHostEvents||[];
+ const joinedCount=players.filter(player=>player.joined).length,stuckCount=state.cloudHostStuckCount||0;
+ return `${cloudStatus()}<div class="director-head"><div><span class="live-label">● LIVE</span><strong>　${escapeHtml(world?.name||"当前世界")} · ${escapeHtml(room.name)}</strong><small class="director-poll-hint">${state.roomEventsConnected?"实时推送已连接 · 待确认事件与玩家进度会自动更新":"打开本页时每 15 秒自动刷新待确认事件与玩家进度"}</small></div><div class="row director-refresh-row"><button class="secondary-btn" data-action="refresh-host-room">刷新房间状态</button><button class="secondary-btn" data-action="refresh-host-events">刷新待确认事件</button><button class="secondary-btn" data-action="refresh-host-players">刷新玩家进度</button><button class="secondary-btn" data-action="host-manual-log">＋ 主持日志</button><button class="primary-btn" data-action="create-checkpoint">＋ 创建存档点</button></div></div>
+ <section class="stats-grid">${stat("♙",String(joinedCount),"已加入玩家",players.length+" 个角色席位")}${stat("⚑",String(stuckCount),"疑似卡关",stuckCount?"超过阈值未推进":"当前无卡关预警")}${stat("◷",String(events.length),"待确认事件",events.length?"需要主持人判断":"当前无需人工介入")}${stat("⌘",String(rules.length),"运行中规则","仅统计当前房和世界模板")}</section>
+ <article class="card host-events-card"><div class="section-head"><div><h3>待确认事件</h3><p>规则或调查触发的关键节点，确认后立即写入当前房间状态</p></div></div>${hostEventRows()}</article>
+ <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>玩家运行状态</h3><p>点击行查看分幕、线索、调查与最近日志；支持手动干预</p></div><div class="row host-manual-actions"><button class="secondary-btn" data-action="host-manual-grant-clue">手动发线索</button><button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button><button class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button></div></div>
+ <div class="host-runtime-table-wrap"><table class="host-runtime-table"><thead><tr><th>玩家 / 角色</th><th>入房</th><th>阅读进度</th><th>线索</th><th>最近操作</th><th>状态</th><th></th></tr></thead><tbody>${hostPlayerTableRows(players)}</tbody></table></div>
+ </article>`;
 }
 function player(){
  const room=activeRuntimeRoom(),home=state.cloudPlayer,role=home?.role;
@@ -290,9 +341,17 @@ function player(){
  <article class="card"><div class="section-head"><div><h3>我的云端线索</h3><p>${escapeHtml(parts.name)} · 已获得 ${(home.clues||[]).length} 条</p></div></div>${cloudClueRows()}</article>
  </aside></section></section>`;
 }
-function demoStrip(){return `<section class="demo-strip"><div><span class="demo-badge">DEMO · 可控演示</span><strong style="margin-top:7px">主持人观察玩家行为后推进世界状态</strong><p>系统不会按时间打断玩家阅读。这里仅用于模拟阅读、调查或解读完成后的规则触发。</p></div><div class="row"><button class="primary-btn" data-action="demo-next">模拟下一项行为</button><button class="ghost-btn" data-action="demo-reset">重置演示</button></div></section>`}
 function cloudStatus(){const rooms=state.cloudStudio?.rooms||[];return `<section class="demo-strip"><div><span class="cloud-pill ${state.apiError?"offline":""}">${state.apiError?"部分运行模块尚未连接":"● 云端 Alpha 已连接"}</span><strong style="margin-top:7px">${state.apiError||"当前世界的创作数据已经从 Supabase PostgreSQL 读取"}</strong><p>${state.cloudStudio?(rooms.length?`当前世界已建立 ${rooms.length} 个运行房间。`:"当前世界尚未建立测试房，运行状态为空。"):"正在读取 Supabase PostgreSQL..."}</p></div><button class="secondary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`}
-function directorPlayers(){return (state.cloudHost||[]).map((item,index)=>{const parts=roleParts(item.name),pct=item.total_sections?Math.round(item.completed_sections/item.total_sections*100):0;return {...parts,progress:pct,caption:`云端阅读 ${item.completed_sections} / ${item.total_sections}`,scene:item.current_scene_id?"已记录当前场景":"尚未记录当前位置",color:["#b9795c","#587f79","#706b91","#9a814f","#76614d","#657c91"][index%6]}})}
+function hostOperationLabel(type="",message=""){
+ const labels={reading_completed:"阅读完成",investigation_completed:"调查完成",host_grant_clue:"主持发线索",host_unlock_section:"解锁分幕",scene_unlocked:"开放场景",host_event_executed:"主持确认",host_event_dismissed:"主持拒绝",host_note:"主持备注",rule_action:"规则动作"};
+ return labels[type]||message||"系统记录";
+}
+function hostPlayerTableRows(players){
+ if(!players.length)return `<tr><td colspan="7"><div class="empty-state">当前运行房尚未建立角色席位。</div></td></tr>`;
+ return players.map((player,index)=>`<tr class="${player.maybe_stuck?"host-row-warn":""}"><td><div class="host-player-cell"><div class="avatar small" style="background:${hostPlayerColor(index)}">${(player.player_display_name||player.role_name||"?")[0]}</div><div><strong>${escapeHtml(player.player_display_name||"席位空置")}</strong><p>${escapeHtml(player.role_name)}</p></div></div></td><td>${player.joined?`<span class="status-chip published">已加入</span><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"刚刚"}</small>`:`<span class="status-chip draft">未加入</span>`}</td><td><strong>${player.completed_sections}/${player.total_sections}</strong><small>${escapeHtml(player.last_completed_section_title||"尚无完成分幕")}</small></td><td><strong>${player.clue_count}</strong><small>已读 ${player.read_clue_count}</small></td><td><strong>${escapeHtml(hostOperationLabel(player.last_operation_type,player.last_operation_message))}</strong><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"—"}</small></td><td><span class="status-chip ${player.maybe_stuck?"testing":"published"}">${escapeHtml(player.stuck_label)}</span></td><td><button class="text-btn" data-action="host-player-detail" data-role="${player.role_slot_id}">详情</button></td></tr>`).join("");
+}
+function hostPlayerColor(index){return ["#b9795c","#587f79","#706b91","#9a814f","#76614d","#657c91"][index%6]}
+function directorPlayers(){return (state.cloudHostPlayers||[]).map((item,index)=>{const parts=roleParts(item.role_name||item.name||""),pct=item.total_sections?Math.round(item.completed_sections/item.total_sections*100):0;return {...parts,progress:pct,caption:`云端阅读 ${item.completed_sections} / ${item.total_sections}`,scene:item.current_scene_id?"已记录当前场景":"尚未记录当前位置",color:hostPlayerColor(index)}})}
 function voiceHub(){const members=(state.cloudPlayer?.roomMembers||[]).filter(member=>member.online),room=(state.cloudPlayer?.voiceRooms||[]).find(item=>item.id===state.voiceRoomId);return `<section class="voice-stack"><section class="voice-hub"><div class="voice-hub-left"><div class="voice-hub-icon">♬</div><div><strong>语音空间 · ${escapeHtml(room?.name||"尚未选择")}</strong><p>${room?.room_type==="public"?"所有房间成员可见":"私密通话 · 仅受邀玩家可见"}</p></div></div><div class="row"><div class="voice-hub-users">${members.slice(0,6).map(member=>`<div class="avatar">${escapeHtml((member.display_name||member.role_name||"?")[0])}</div>`).join("")}</div><button class="primary-btn" data-action="voice-room">切换语音房</button></div></section>${voiceChat()}</section>`}
 function voiceChat(){const messages=state.voiceMessages||[];return `<article class="voice-chat"><div class="voice-chat-head"><div><strong>房内文字频道</strong><p>消息只会显示给当前语音房成员，用于语音接入前的流程测试。</p></div><button class="text-btn" data-action="voice-chat-refresh">刷新</button></div><div class="voice-chat-log">${messages.length?messages.map(message=>`<div class="voice-message"><b>${escapeHtml(message.sender_name||"玩家")}</b><span>${formatTime(message.created_at)}</span><p>${escapeHtml(message.body)}</p></div>`).join(""):`<div class="empty-state">当前语音房还没有消息。</div>`}</div><div class="voice-chat-compose"><input class="field" data-voice-chat-input placeholder="发送给当前语音房成员"><button class="primary-btn" data-action="voice-chat-send">发送</button></div></article>`}
 function currentCloudScene(){const scenes=state.cloudExploration?.scenes||[],scene=scenes[scenes.length-1];return scene?{title:scene.name,text:scene.public_text,art:scene.name[0]}:{title:"等待主持人开放场景",text:"当前运行房还没有开放探索场景。完成角色阅读或由主持人推进规则后，新场景会出现在这里。",art:"候"}}
@@ -306,40 +365,43 @@ function reader(){
  }
  return `<article class="reader-card"><div class="empty-state">当前角色尚未解锁私人章节。请由主持人检查房间规则或等待后续推进。</div></article>`
 }
-function storyParagraph(text,label){const marked=state.notes.some(n=>n.text===text);return `<p class="story-paragraph ${marked?"marked":""}">${text}<button class="mark-btn" data-action="add-note" data-label="${label}" data-note="${text}">${marked?"已标记":"标记重点"}</button></p>`}
 function notebookCard(){const count=state.cloudPlayer?.notes?.length||0;return `<article class="notebook-card"><div class="notebook-head"><strong>▤ 随身笔记本</strong><span>${count} 条云端重点</span></div><p>标记剧情片段和关键线索，笔记会保存到当前角色的云端档案。</p><button class="secondary-btn" data-action="notebook">打开笔记本</button></article>`}
-function locationRow(icon,title,text,action){return `<div class="location-row"><div class="location-icon">${icon}</div><div><strong>${title}</strong><p>${text}</p></div><button data-action="unavailable" data-feature="场景探索 API">${action} · 演示</button></div>`}
-function clue(title,meta){return `<div class="clue-row"><strong>${title}</strong><p>${meta}</p><button class="text-btn" data-action="add-note" data-label="线索" data-note="${title} · ${meta}">＋ 记入笔记</button></div>`}
 function archive(){
- return `<article class="card"><div class="section-head"><div><h3>存档时间线</h3><p>当前仅展示设计结构，存档写入与恢复 API 尚未接入</p></div><button class="primary-btn" data-action="unavailable" data-feature="存档快照 API">＋ 创建存档点 · 待接入</button></div>
- ${archiveRow("今天 21:42","第二章 · 档案馆暗门开放","顾言解读航运录，系统开放档案密室。自动存档。","当前进度")}
- ${archiveRow("今天 20:18","第二章 · 抵达雾港","玩家分别前往诊所、码头和档案馆，支线状态初始化。","自动存档")}
- ${archiveRow("5 月 24 日","第一章 · 未归之船完成","全员确认登船名单异常，进入第二章。","章节存档")}
- ${archiveRow("5 月 17 日","序章 · 雾中来信完成","四名玩家完成角色阅读，世界正式开始运行。","章节存档")}
- </article>`;
+ const room=activeRuntimeRoom(),checkpoints=state.cloudCheckpoints||[];
+ if(!room)return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">RUNTIME REQUIRED</p><h2>存档与复盘需要运行房</h2><p>请先建立或选择一个平行房。运行房存档与创作版本快照是两套独立数据。</p><button class="primary-btn" data-action="world-rooms">管理平行房</button></article>`;
+ return `${cloudStatus()}<article class="card"><div class="section-head"><div><h3>运行房存档 · ${escapeHtml(room.name)}</h3><p>保存当前房间的玩家进度、线索与开放场景快照。恢复回滚尚未接入。</p></div><button class="primary-btn" data-action="create-checkpoint">＋ 创建存档点</button></div>
+ ${checkpoints.length?`<div class="checkpoint-list">${checkpoints.map(item=>`<article class="checkpoint-card"><div class="checkpoint-head"><div><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.description||"无主持备注")}</p></div><span class="status-chip testing">仅快照</span></div><div class="checkpoint-meta"><span>创建于 ${formatTime(item.created_at)}</span><span>${escapeHtml(item.created_by_name||"主持人")}</span><span>${item.summary?.joinedPlayers||0} 人已加入 · ${item.summary?.clueCount||0} 条线索 · ${item.summary?.unlockedSceneCount||0} 个开放场景</span></div><div class="row"><button class="secondary-btn" data-action="checkpoint-detail" data-checkpoint="${item.id}">查看详情</button><button class="text-btn" data-action="unavailable" data-feature="运行房存档恢复 API">从此存档恢复 · 未接入</button></div></article>`).join("")}</div>`:`<div class="empty-state">暂无存档点。主持人可在主持监控台或本页创建第一个运行房快照。</div>`}
+ <div class="tutorial-tip"><b>与创作版本区分</b><span>这里的 checkpoint 只记录运行房状态，不会覆盖编排台中的章节、场景或规则内容。</span></div></article>`;
 }
-function archiveRow(date,title,text,status){return `<div class="archive-row"><div class="archive-date">${date}</div><div><h3>${title}</h3><p>${text}</p></div><button class="secondary-btn" disabled>${status} · 展示</button></div>`}
+function checkpointPlayerSummary(snapshot={}){
+ const players=snapshot.players||[];
+ if(!players.length)return `<div class="empty-state">快照中尚无角色席位数据。</div>`;
+ return players.map(player=>`<div class="checkpoint-row"><strong>${escapeHtml(player.playerDisplayName||"席位空置")} · ${escapeHtml(player.roleName)}</strong><p>阅读 ${player.completedSections}/${player.totalSections} · 线索 ${player.ownedClues}（已读 ${player.readClues}）</p></div>`).join("");
+}
+function checkpointClueSummary(snapshot={}){
+ const clues=snapshot.clueOwnership||[];
+ if(!clues.length)return `<div class="empty-state">快照中尚无已发放线索。</div>`;
+ return clues.map(clue=>`<div class="checkpoint-row"><strong>${escapeHtml(clue.clueName)}</strong><p>${escapeHtml(clue.roleName)}${clue.playerDisplayName?` · ${escapeHtml(clue.playerDisplayName)}`:""} · ${formatTime(clue.acquiredAt)}</p></div>`).join("");
+}
 function settings(){
- return `<section class="rules-layout"><article class="card"><div class="section-head"><div><h3>基础信息</h3><p>世界的公开信息和运行参数</p></div></div><div class="form-group"><label>世界名称</label><input class="field" value="雾港来信"><label>世界简介</label><input class="field" value="一场发生在海港旧城的长线悬疑调查"><label>默认运行方式</label><select class="field"><option>自动推进为主，主持人确认关键节点</option></select><label>玩家人数</label><input class="field" value="4"><button class="primary-btn" style="margin-top:14px" data-action="unavailable" data-feature="世界设置写入 API">保存设置 · 待接入</button></div></article>
+ const world=state.cloudStudio?.world;
+ return `<section class="rules-layout"><article class="card"><div class="section-head"><div><h3>基础信息</h3><p>世界的公开信息和运行参数</p></div></div><div class="form-group"><label>世界名称</label><input class="field" value="${escapeHtml(world?.name||"")}" readonly><label>世界简介</label><input class="field" value="${escapeHtml(world?.summary||"")}" readonly><label>默认运行方式</label><select class="field" disabled><option>自动推进为主，主持人确认关键节点</option></select><label>玩家人数</label><input class="field" value="${String(state.cloudStudio?.roles?.length||0)}" readonly><button class="primary-btn" style="margin-top:14px" data-action="unavailable" data-feature="世界设置写入 API">保存设置 · 待接入</button></div></article>
  <aside class="card"><div class="section-head"><div><h3>数据管理</h3><p>以下接口仍在开发队列中</p></div></div><button class="secondary-btn full-btn" data-action="unavailable" data-feature="世界导出 API">导出世界 JSON · 待接入</button><button class="secondary-btn full-btn" data-action="unavailable" data-feature="内容包导入 API">导入内容包 · 待接入</button><button class="secondary-btn full-btn" data-action="unavailable" data-feature="实体卡绑定 API">实体卡绑定接口 · 待接入</button></aside></section>`;
 }
 
 function bindDynamic(){
   enhanceCloudPanels();
   document.querySelectorAll("[data-go]").forEach(btn=>btn.onclick=()=>go(btn.dataset.go));
-  document.querySelectorAll("[data-rule]").forEach(btn=>btn.onclick=()=>{const i=+btn.dataset.rule; state.rules[i]=!state.rules[i]; render(); showToast(state.rules[i]?"规则已启用":"规则已暂停")});
   document.querySelectorAll("[data-action]").forEach(btn=>btn.onclick=()=>handle(btn.dataset.action,btn));
   if(state.view==="studio") bindStudioDragging();
 }
 function handle(action,el){
   if(action==="save-node"||action==="save-settings") return showToast("配置已保存");
   if(action==="test-rules") return showToast("规则检查完成：未发现冲突");
-  if(action==="pause"){state.running=!state.running; render(); return showToast(state.running?"自动推进已恢复":"自动推进已暂停")}
-  if(action==="checkpoint") return showToast("已创建新的手动存档点");
+  if(action==="create-checkpoint") return openCreateCheckpointModal();
+  if(action==="checkpoint-detail") return openCheckpointDetail(el.dataset.checkpoint);
   if(action==="delay-event") return showToast("已延迟，系统将在 15 分钟后提醒");
-  if(action==="approve-event"){state.logs.unshift(["主持人执行了事件「馆长交付手记」","刚刚","ok"]); render(); return showToast("事件已执行，线索已发放给顾言")}
   if(action==="explore") return openModal("调查进行中",`你开始调查「${el.dataset.place}」。系统将根据角色状态、持有物品和已解读线索展示可发现的内容。`,`确认调查`);
-  if(action==="new-asset") return openModal("内容编辑器尚未接入","角色、线索、场景和事件的写入 API 仍在开发。当前可以使用旁边的“上传云端附件”验证真实 R2 存储。","知道了");
   if(action==="new-rule") return openModal("新建自动化规则","使用“当满足条件，则执行动作”的方式配置规则。每个规则都支持自动执行、主持确认和仅手动三种模式。","开始配置");
   if(action==="export") return showToast("世界数据已准备导出");
   if(action==="import") return openModal("导入内容包","支持后续接入 JSON、Markdown 和表格格式。当前版本已保留完整导入入口。","选择文件");
@@ -350,20 +412,26 @@ function handle(action,el){
   if(action==="join-room") return joinVoiceRoom(el.dataset.roomId,el.dataset.room);
   if(action==="voice-chat-refresh") return refreshVoiceMessages();
   if(action==="voice-chat-send") return sendVoiceMessage();
-  if(action==="demo-next") return advanceDemo();
-  if(action==="demo-reset") return resetDemo();
-  if(action==="read-next") return completeReading();
-  if(action==="add-note") return addNote(el.dataset.label,el.dataset.note);
   if(action==="notebook") return openNotebook();
   if(action==="open-wizard") return openWizard();
   if(action==="capabilities") return openCapabilities();
   if(action==="refresh-cloud") return loadCloudData(true);
+  if(action==="refresh-host-room") return refreshHostRoom(true);
+  if(action==="refresh-host-events") return refreshHostEvents(true);
+  if(action==="refresh-host-players") return refreshHostPlayers(true);
   if(action==="read-cloud-next") return completeCloudReading(el.dataset.section);
   if(action==="add-cloud-note") return addCloudNote(el.dataset.section,el.dataset.label,el.dataset.note);
   if(action==="add-cloud-clue-note") return addCloudClueNote(el.dataset.clue,el.dataset.label,el.dataset.note);
   if(action==="investigate-cloud") return investigateCloud(el.dataset.point);
   if(action==="read-cloud-clue") return readCloudClue(el.dataset.clue);
   if(action==="execute-host-event") return executeHostEvent(el.dataset.event);
+  if(action==="dismiss-host-event") return dismissHostEvent(el.dataset.event);
+  if(action==="host-event-context") return openHostEventContext(el.dataset.event);
+  if(action==="host-player-detail") return openHostPlayerDetail(el.dataset.role);
+  if(action==="host-manual-grant-clue") return openHostGrantClueModal();
+  if(action==="host-manual-unlock-section") return openHostUnlockSectionModal();
+  if(action==="host-manual-unlock-scene") return openHostUnlockSceneModal();
+  if(action==="host-manual-log") return openHostLogModal();
   if(action==="studio-add-chapter") return openStudioChapter();
   if(action==="studio-add-scene") return openStudioScene();
   if(action==="studio-add-clue") return openStudioClue();
@@ -375,6 +443,7 @@ function handle(action,el){
   if(action==="studio-toggle-anchor-edit"){state.studioAnchorEditing=!state.studioAnchorEditing;render();return}
   if(action==="studio-connect-node") return openStudioConnection();
   if(action==="studio-delete-node") return deleteSelectedStudioNode();
+  if(action==="studio-save-node") return saveSelectedStudioNode();
   if(action==="studio-delete-edge") return deleteStudioEdge(el.dataset.edgeId);
   if(action==="studio-filter"){state.studioFilter=el.dataset.filter;render();return}
   if(action==="studio-auto-layout") return autoLayoutStudio();
@@ -540,7 +609,7 @@ async function openWorldLibrary(){
  }catch(error){showToast(error.message)}
 }
 async function selectWorld(worldId){
- zhimuApi.selectWorld(worldId);state.cloudStudio=null;state.cloudRules=[];state.cloudCreatorChecks=[];state.cloudHost=[];state.cloudHostEvents=[];state.cloudPlayer=null;state.cloudExploration=null;closeModal();await loadCloudData();showToast("已切换剧本工作区");
+ zhimuApi.selectWorld(worldId);state.cloudStudio=null;state.cloudRules=[];state.cloudCreatorChecks=[];state.cloudHost=[];state.cloudHostPlayers=[];state.cloudHostStuckCount=0;state.cloudHostEvents=[];state.cloudCheckpoints=[];state.cloudWorldLogs=[];state.cloudPlayer=null;state.cloudExploration=null;closeModal();await loadCloudData();showToast("已切换剧本工作区");
 }
 async function openWorldRooms(){
  try{
@@ -645,9 +714,31 @@ function openStudioConnection(){
 function openStudioDragConnection(from,to){
  studioModal("确认拖拽连线",`<div class="rule-block">${studioNodeName(state.cloudStudio,from.type,from.id)} → ${studioNodeName(state.cloudStudio,to.type,to.id)}</div>`+studioSelect("关系类型","relationType",[{id:"mainline",name:"主线 · 核心推进路径"},{id:"parallel",name:"并列 · 同阶段可同时发生"},{id:"extension",name:"延伸 · 支线或后续补充"}])+studioField("连线备注","label"),"写入云端",async()=>{try{const values=studioValues();await zhimuApi.createStoryEdge({fromType:from.type,fromId:from.id,toType:to.type,toId:to.id,relationType:values.relationType,label:values.label});closeModal();await loadCloudData();showToast("拖拽连线已写入云端")}catch(error){showToast(error.message)}});
 }
+async function saveSelectedStudioNode(){
+ const selected=state.studioSelectedNode;if(!selected)return;
+ const values=studioEditValues();
+ try{
+  if(selected.type==="scene"){
+   await zhimuApi.updateScene(selected.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,chapterId:values.chapterId||null,metadata:{summary:values.summary,openStatus:values.openStatus,visibleRoleSlotIds:values.visibleRoleSlotIds||[]}});
+  }else if(selected.type==="clue"){
+   await zhimuApi.updateClue(selected.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,visibility:values.visibility||"role",metadata:{clueType:values.clueType||"text",assetId:values.assetId||null,importance:values.importance||"normal"}});
+  }else{
+   await zhimuApi.updateInvestigationPoint(selected.id,{name:values.name,description:values.description,resultText:values.resultText,sceneId:values.sceneId,clueId:values.clueId||null,requiredItemId:values.requiredItemId||null,metadata:{hostConfirmRequired:Boolean(values.hostConfirmRequired),oneTime:values.oneTime!==false,hostNote:values.hostNote||""}});
+  }
+  await loadCloudData();showToast("节点已保存");
+ }catch(error){showToast(error.message)}
+}
 async function deleteSelectedStudioNode(){
  const selected=state.studioSelectedNode;if(!selected)return;
- try{await zhimuApi.deleteStudioNode(selected.type,selected.id);state.studioSelectedNode=null;await loadCloudData();showToast("节点及相关连线已删除")}catch(error){showToast(error.message)}
+ try{
+  const refs=await zhimuApi.getStudioNodeReferences(selected.type,selected.id),parts=[];
+  if(refs.edgeCount)parts.push(`${refs.edgeCount} 条剧情连线`);
+  if(refs.investigationPointCount)parts.push(`${refs.investigationPointCount} 个调查点`);
+  if(refs.clueGrantCount)parts.push(`${refs.clueGrantCount} 个调查点引用此线索`);
+  if(refs.ruleReferenceCount)parts.push(`${refs.ruleReferenceCount} 条规则引用`);
+  const detail=parts.length?`<p>检测到 ${parts.join("、")}。</p>`:"";
+  studioModal("确认删除节点",`${detail}<p>这个节点可能被规则、边或调查点引用。删除后可能影响运行房。</p><div class="rule-block"><strong>${escapeHtml(studioNodeName(state.cloudStudio,selected.type,selected.id))}</strong></div>`,"确认删除",async()=>{try{await zhimuApi.deleteStudioNode(selected.type,selected.id);state.studioSelectedNode=null;closeModal();await loadCloudData();showToast("节点及相关连线已删除")}catch(error){showToast(error.message)}});
+ }catch(error){showToast(error.message)}
 }
 async function deleteStudioEdge(edgeId){
  try{await zhimuApi.deleteStoryEdge(edgeId);await loadCloudData();showToast("剧情连线已删除")}catch(error){showToast(error.message)}
@@ -666,8 +757,64 @@ function cloudClueRows(){
 }
 function hostEventRows(){
  const events=state.cloudHostEvents||[];
- if(!events.length)return `<div class="tutorial-tip"><b>当前无需人工介入</b><span>普通动作由系统自动执行，关键转折会进入这里等待主持人判断。</span></div>`;
- return events.map(event=>`<div class="event-ready"><h3>${escapeHtml(event.title)}</h3><p>${escapeHtml(event.description)}</p><div class="event-actions"><button class="primary-btn" data-action="execute-host-event" data-event="${event.id}">确认并执行</button></div></div>`).join("");
+ if(!events.length)return `<div class="empty-state">当前无需人工介入。普通动作由系统自动执行，关键转折会进入这里等待主持人判断。</div>`;
+ return events.map(event=>`<article class="host-event-card"><div class="host-event-head"><span class="cloud-pill">${escapeHtml(event.source_label||"系统")}</span><strong>${escapeHtml(event.title)}</strong><small>${formatRelativeTime(event.created_at)}</small></div><p>${escapeHtml(event.description)}</p>${event.rule_name?`<div class="rule-block"><b>来源规则</b> · ${escapeHtml(event.rule_name)}</div>`:""}${event.action_summaries?.length?`<div class="host-event-actions-preview"><b>将执行</b>${event.action_summaries.map(item=>`<span>${escapeHtml(item)}</span>`).join("")}</div>`:""}<div class="event-actions"><button class="primary-btn" data-action="execute-host-event" data-event="${event.id}">确认并执行</button><button class="secondary-btn" data-action="dismiss-host-event" data-event="${event.id}">拒绝</button><button class="text-btn" data-action="host-event-context" data-event="${event.id}">查看上下文</button></div></article>`).join("");
+}
+function hostActionSummary(actions=[]){
+ return actions.map(action=>{
+  if(action.type==="grant_clue")return `发放线索给角色席位`;
+  if(action.type==="unlock_script_section")return `解锁分幕`;
+  if(action.type==="unlock_scene")return `开放场景`;
+  if(action.type==="timeline_log")return action.message||"写入日志";
+  return action.type;
+ }).join("；");
+}
+async function openHostPlayerDetail(roleSlotId){
+ try{
+  const detail=await zhimuApi.getHostPlayerDetail(roleSlotId),role=detail.role;
+  modal.className="modal host-detail-modal";modal.innerHTML=`<h2>${escapeHtml(role.player_display_name||role.name)} · ${escapeHtml(role.name)}</h2><p class="wizard-intro">${escapeHtml(role.public_profile||"尚未补充公开身份")}</p><div class="host-detail-grid"><section><h3>分幕进度</h3><div class="host-detail-list">${detail.sections.map(section=>`<div class="host-detail-row"><div><strong>${section.sequence}. ${escapeHtml(section.title)}</strong><p>${section.completed?"已完成":section.unlocked||section.sequence===1?"可阅读":"未解锁"} · ${section.publication_status}</p></div>${section.completed?`<span class="status-chip published">完成</span>`:`<button class="text-btn" data-unlock-section="${section.id}" data-role="${roleSlotId}">手动解锁</button>`}</div>`).join("")||`<div class="empty-state">尚无分幕。</div>`}</div></section><section><h3>线索 · ${detail.clues.length}</h3><div class="host-detail-list">${detail.clues.map(clue=>`<div class="host-detail-row"><div><strong>${escapeHtml(clue.name)}</strong><p>${clue.read_at?"已阅读":"未阅读"} · ${formatTime(clue.acquired_at)}</p></div></div>`).join("")||`<div class="empty-state">尚未获得线索。</div>`}</div></section><section><h3>调查记录 · ${detail.investigations.length}</h3><div class="host-detail-list">${detail.investigations.map(item=>`<div class="host-detail-row"><strong>${escapeHtml(item.point_name)}</strong><p>${escapeHtml(item.scene_name)} · ${formatTime(item.investigated_at)}</p></div>`).join("")||`<div class="empty-state">尚无调查记录。</div>`}</div></section><section><h3>笔记 · ${detail.notes.length}</h3><div class="host-detail-list">${detail.notes.slice(0,6).map(note=>`<div class="host-detail-row"><strong>${escapeHtml(note.title)}</strong><p>${escapeHtml(note.body.slice(0,80))}</p></div>`).join("")||`<div class="empty-state">尚无笔记。</div>`}</div></section><section><h3>最近日志</h3><div class="host-detail-list">${detail.recentLogs.slice(0,8).map(log=>`<div class="host-detail-row"><strong>${escapeHtml(hostOperationLabel(log.event_type,log.message))}</strong><p>${escapeHtml(log.message)} · ${formatTime(log.created_at)}</p></div>`).join("")||`<div class="empty-state">尚无相关日志。</div>`}</div></section></div><label>主持备注</label><textarea class="field" rows="3" data-host-notes>${escapeHtml(role.host_notes||"")}</textarea><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-save-host-notes data-role="${roleSlotId}">保存备注</button></div>`;
+  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-save-host-notes]").onclick=async()=>{try{await zhimuApi.hostSaveNotes(roleSlotId,modal.querySelector("[data-host-notes]").value);closeModal();await loadCloudData();showToast("主持备注已保存")}catch(error){showToast(error.message)}};
+  modal.querySelectorAll("[data-unlock-section]").forEach(button=>button.onclick=async()=>{try{await zhimuApi.hostUnlockSection({roleSlotId:button.dataset.role,scriptSectionId:button.dataset.unlockSection});closeModal();await loadCloudData();showToast("分幕已手动解锁")}catch(error){showToast(error.message)}});
+ }catch(error){showToast(error.message)}
+}
+function openHostEventContext(eventId){
+ const event=(state.cloudHostEvents||[]).find(item=>item.id===eventId);if(!event)return;
+ openModal("待确认事件上下文",`<div class="rule-block"><b>来源</b> · ${escapeHtml(event.source_label||"系统")}<br><b>规则</b> · ${escapeHtml(event.rule_name||"—")}<br><b>触发条件</b><br>${escapeHtml(JSON.stringify(event.rule_conditions||{},null,2))}<br><br><b>将执行动作</b><br>${escapeHtml(JSON.stringify(event.actions||[],null,2))}</div>`,"关闭");
+}
+function openHostGrantClueModal(){
+ const players=(state.cloudHostPlayers||[]).filter(player=>player.joined),clues=state.cloudStudio?.clues||[];
+ if(!players.length)return showToast("当前没有已加入的玩家");
+ if(!clues.length)return showToast("当前世界尚未创建线索");
+ modal.className="modal";modal.innerHTML=`<h2>手动发放线索</h2><p class="wizard-intro">线索会写入指定角色的 clue_ownership，并记录主持日志。</p><div class="form-group">${studioSelect("目标角色","grantRole",players.map(player=>({id:player.role_slot_id,name:`${player.player_display_name||"玩家"} · ${player.role_name}`})))}${studioSelect("线索","grantClue",clues.map(clue=>({id:clue.id,name:clue.name})))}${studioField("日志说明","grantMessage","input","主持人手动发放线索")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-grant-submit>确认发放</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-host-grant-submit]").onclick=async()=>{try{const values=studioValues();await zhimuApi.hostGrantClue({roleSlotId:values.grantRole,clueId:values.grantClue,message:values.grantMessage});closeModal();await loadCloudData();showToast("线索已发放")}catch(error){showToast(error.message)}};
+}
+function openHostUnlockSectionModal(){
+ const players=(state.cloudHostPlayers||[]).filter(player=>player.joined);if(!players.length)return showToast("当前没有已加入的玩家");
+ const sections=(state.cloudStudio?.sections||[]);
+ modal.className="modal";modal.innerHTML=`<h2>手动解锁分幕</h2><p class="wizard-intro">写入 room_content_unlocks 后，玩家即可阅读对应私人分幕。</p><div class="form-group">${studioSelect("目标角色","unlockRole",players.map(player=>({id:player.role_slot_id,name:`${player.player_display_name||"玩家"} · ${player.role_name}`})))}${studioSelect("分幕","unlockSection",sections.filter(section=>section.role_slot_id===players[0].role_slot_id).map(section=>({id:section.id,name:`${section.sequence}. ${section.title}`})))}${studioField("日志说明","unlockMessage","input","主持人手动解锁分幕")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-unlock-submit>确认解锁</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const roleSelect=modal.querySelector('[data-studio-field="unlockRole"]'),sectionSelect=modal.querySelector('[data-studio-field="unlockSection"]');const refreshSections=()=>{const roleId=roleSelect.value;sectionSelect.innerHTML=sections.filter(section=>section.role_slot_id===roleId).map(section=>`<option value="${section.id}">${section.sequence}. ${escapeHtml(section.title)}</option>`).join("")||`<option value="">该角色尚无分幕</option>`};roleSelect.onchange=refreshSections;refreshSections();modal.querySelector("[data-host-unlock-submit]").onclick=async()=>{try{const values=studioValues();await zhimuApi.hostUnlockSection({roleSlotId:values.unlockRole,scriptSectionId:values.unlockSection,message:values.unlockMessage});closeModal();await loadCloudData();showToast("分幕已解锁")}catch(error){showToast(error.message)}};
+}
+function openHostUnlockSceneModal(){
+ const scenes=state.cloudStudio?.scenes||[];if(!scenes.length)return showToast("当前世界尚未创建场景");
+ modal.className="modal";modal.innerHTML=`<h2>手动开放场景</h2><p class="wizard-intro">开放后所有已入房玩家可在探索页看到该场景。</p><div class="form-group">${studioSelect("场景","unlockScene",scenes.map(scene=>({id:scene.id,name:scene.name})))}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-scene-submit>确认开放</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-host-scene-submit]").onclick=async()=>{try{await zhimuApi.hostUnlockScene(modal.querySelector('[data-studio-field="unlockScene"]').value);closeModal();await loadCloudData();showToast("场景已开放")}catch(error){showToast(error.message)}};
+}
+function openHostLogModal(){
+ modal.className="modal";modal.innerHTML=`<h2>添加主持日志</h2><p class="wizard-intro">写入当前房间 timeline_logs，可在世界运行日志中查看。</p><div class="form-group">${studioSelect("关联角色","logRole",[{id:"",name:"不指定角色"},...(state.cloudHostPlayers||[]).filter(player=>player.joined).map(player=>({id:player.role_slot_id,name:`${player.player_display_name||"玩家"} · ${player.role_name}`}))])}${studioField("日志内容","logMessage","textarea","例如：提醒林夏继续阅读序章")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-log-submit>写入日志</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-host-log-submit]").onclick=async()=>{try{const values=studioValues(),payload={message:values.logMessage,eventType:"host_note"};if(values.logRole)payload.roleSlotId=values.logRole;await zhimuApi.hostAddLog(payload);closeModal();await loadCloudData();showToast("主持日志已写入")}catch(error){showToast(error.message)}};
+}
+function openCreateCheckpointModal(){
+ if(!activeRuntimeRoom())return showToast("请先选择运行房");
+ modal.className="modal";modal.innerHTML=`<h2>创建运行房存档点</h2><p class="wizard-intro">保存当前玩家进度、线索归属、开放场景、待确认事件与最近日志。此快照不会修改编排内容，也暂不支持一键恢复。</p><div class="form-group">${studioField("存档名称","checkpointTitle","input","例如：第一夜收工")}${studioField("主持备注","checkpointDescription","textarea","记录今晚推进到了哪里、下次从哪里继续")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-checkpoint-submit>确认创建</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-checkpoint-submit]").onclick=async()=>{try{const values=studioValues();if(!values.checkpointTitle)return showToast("请填写存档名称");await zhimuApi.createCheckpoint({title:values.checkpointTitle,description:values.checkpointDescription});closeModal();await loadCloudData();showToast("运行房存档点已创建")}catch(error){showToast(error.message)}};
+}
+async function openCheckpointDetail(checkpointId){
+ if(!activeRuntimeRoom())return showToast("请先选择运行房");
+ try{
+  const detail=await zhimuApi.getCheckpoint(checkpointId),snapshot=detail.snapshot||{};
+  modal.className="modal host-detail-modal";modal.innerHTML=`<h2>${escapeHtml(detail.label)}</h2><p class="wizard-intro">${escapeHtml(detail.description||"无主持备注")} · 创建于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p>${snapshot.phase?`<div class="rule-block"><b>最近推进章节</b> · 第 ${snapshot.phase.sequence} 章 · ${escapeHtml(snapshot.phase.chapterTitle||"未命名章节")}</div>`:""}<div class="host-detail-grid"><section><h3>玩家进度摘要</h3><div class="host-detail-list">${checkpointPlayerSummary(snapshot)}</div></section><section><h3>线索摘要</h3><div class="host-detail-list">${checkpointClueSummary(snapshot)}</div></section><section><h3>开放场景 · ${(snapshot.unlockedScenes||[]).length}</h3><div class="host-detail-list">${(snapshot.unlockedScenes||[]).map(scene=>`<div class="checkpoint-row"><strong>${escapeHtml(scene.name)}</strong><p>${formatTime(scene.unlockedAt)}</p></div>`).join("")||`<div class="empty-state">尚无开放场景。</div>`}</div></section><section><h3>待确认事件 · ${(snapshot.pendingEvents||[]).length}</h3><div class="host-detail-list">${(snapshot.pendingEvents||[]).map(event=>`<div class="checkpoint-row"><strong>${escapeHtml(event.title)}</strong><p>${escapeHtml(event.description||"")}</p></div>`).join("")||`<div class="empty-state">快照时没有待确认事件。</div>`}</div></section></div><div class="tutorial-tip"><b>恢复功能未接入</b><span>当前版本只支持查看快照，不能从此存档回滚房间状态。</span></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-action="unavailable" data-feature="运行房存档恢复 API">从此存档恢复 · 未接入</button></div>`;
+  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
+ }catch(error){showToast(error.message)}
 }
 function openModal(title,text,confirm){
  modal.className="modal";
@@ -694,19 +841,14 @@ function openInviteVoiceRoom(roomId,roomName){
 async function joinVoiceRoom(roomId,roomName){state.voiceRoomId=roomId;state.voiceRoom=roomName;closeModal();await refreshVoiceMessages();render();showToast(`已进入${state.voiceRoom}`)}
 async function refreshVoiceMessages(){if(!state.voiceRoomId)return;try{state.voiceMessages=await zhimuApi.getVoiceMessages(state.voiceRoomId);render()}catch(error){showToast(error.message)}}
 async function sendVoiceMessage(){const input=document.querySelector("[data-voice-chat-input]"),body=input?.value.trim();if(!body)return showToast("请输入聊天内容");try{await zhimuApi.sendVoiceMessage(state.voiceRoomId,body);await refreshVoiceMessages();showToast("消息已发送到当前语音房")}catch(error){showToast(error.message)}}
-function addNote(label,text){
- const exists=state.notes.some(note=>note.text===text);
- if(exists){state.notes=state.notes.filter(note=>note.text!==text);render();return showToast("已从随身笔记本移除")}
- state.notes.unshift({label,text});render();showToast("已标记重点，记入随身笔记本");
-}
 function openNotebook(){
- const notes=state.cloudPlayer?.notes?.map(note=>({label:note.title,text:note.body}))||state.notes;
+ const notes=state.cloudPlayer?.notes?.map(note=>({label:note.title,text:note.body}))||[];
  const roleName=state.cloudPlayer?.role?.name||"当前角色";
  modal.className="modal";modal.innerHTML=`<h2>▤ ${escapeHtml(roleName)}的随身笔记本</h2><p>这里汇总你主动标记的剧情片段与关键线索。内容已保存到云端，仅当前角色可以查看。</p><div class="note-list">${notes.length?notes.map(note=>`<div class="note-item"><strong>${escapeHtml(note.label)}</strong><p>${escapeHtml(note.text)}</p></div>`).join(""):`<div class="tutorial-tip"><b>暂无笔记</b><span>阅读剧情时点击“标记重点”，或在线索下点击“记入笔记”。</span></div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
 }
 async function completeCloudReading(sectionId){
- try{await zhimuApi.completeSection(sectionId);await loadCloudData();showToast("云端阅读状态已保存，规则引擎已完成检测")}catch(error){showToast(error.message)}
+ try{await zhimuApi.completeSection(sectionId);await loadCloudData();showToast("已记录阅读进度，可能触发新的剧情解锁。",3200)}catch(error){showToast(error.message)}
 }
 async function addCloudNote(sectionId,label,text){
  try{await zhimuApi.addNotebookEntry({sourceType:"script_section",sourceId:sectionId,title:label,body:text});await loadCloudData();showToast("重点已写入云端随身笔记本")}catch(error){showToast(error.message)}
@@ -718,11 +860,21 @@ async function investigateCloud(pointId){
  try{
   const result=await zhimuApi.investigate(pointId);
   await loadCloudData();
-  openModal("调查完成",`${result.resultText}${result.clue?`<br><br><strong>获得线索：${result.clue.name}</strong><br>${result.clue.public_text}`:""}`,"继续探索");
+  if(result.clue?.name)showToast(`调查完成。你获得了新线索：${result.clue.name}。主持事件可能已触发。`,3600);
+  else showToast("调查完成，新的线索或主持事件可能已触发。",3200);
+  openModal("调查完成",`${result.resultText}${result.clue?`<br><br><strong>获得线索：${escapeHtml(result.clue.name)}</strong><br>${escapeHtml(result.clue.public_text)}`:""}${result.executedRules?.length?`<br><br><small>已触发 ${result.executedRules.length} 条自动化规则。</small>`:""}`,"继续探索");
  }catch(error){showToast(error.message)}
 }
 async function readCloudClue(clueId){
- try{await zhimuApi.readClue(clueId);await loadCloudData();showToast("线索阅读状态已保存到云端")}catch(error){showToast(error.message)}
+ try{
+  const clue=(state.cloudPlayer?.clues||[]).find(item=>item.id===clueId);
+  await zhimuApi.readClue(clueId);
+  await loadCloudData();
+  showToast(clue?.name?`已阅读线索：${clue.name}`:"线索阅读状态已保存");
+ }catch(error){showToast(error.message)}
+}
+async function dismissHostEvent(eventId){
+ try{await zhimuApi.dismissHostEvent(eventId);await loadCloudData();showToast("已拒绝该待确认事件")}catch(error){showToast(error.message)}
 }
 async function executeHostEvent(eventId){
  try{await zhimuApi.executeHostEvent(eventId);await loadCloudData();showToast("关键节点已确认，下一探索场景已经开放")}catch(error){showToast(error.message)}
@@ -747,25 +899,7 @@ function openCapabilities(){
  </div><div class="tutorial-tip"><b>当前边界</b><span>账号注册、云数据库、协作权限、运行日志、文档解析和 R2 文件上传已经接入后端。后续仍需补充邮箱验证、多人 WebSocket 同步、LiveKit 语音流和上传安全扫描。</span></div><div class="modal-actions"><button class="primary-btn" data-close>知道了</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
 }
-function completeReading(){
- const current=state.demoStep;advanceDemo();state.logs.unshift([`顾言已读完私人剧情第 ${current+1} 段，系统完成阅读状态记录`,"刚刚","ok"]);state.logs=state.logs.slice(0,5);render();showToast("阅读状态已记录，下一段剧情已解锁");
-}
 function voiceOption(icon,title,text,roomId,cls){return `<div class="voice-option ${cls}"><i>${icon}</i><div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></div><div class="row">${cls==="invite_private"?`<button class="secondary-btn" data-action="voice-room-invite" data-room-id="${roomId}" data-room="${escapeHtml(title)}">邀请成员</button>`:""}<button data-action="join-room" data-room-id="${roomId}" data-room="${escapeHtml(title)}">${state.voiceRoomId===roomId?"当前房间":"加入"}</button></div></div>`}
-const demoEvents=[
-  ["顾言翻开航运录，系统记录阅读完成","旧港档案馆",79,65],
-  ["林烛进入诊所地下观察室，支线状态更新","潮汐诊所地下室",71,69],
-  ["周岚使用黄铜钥匙，规则检测到暗门条件满足","旧港档案馆",67,73],
-  ["自动推进：档案密室开放，所有玩家收到场景更新","档案密室入口",72,78],
-  ["闻彻加入公共讨论房，开始共享新线索","旧港档案馆",52,82]
-];
-function advanceDemo(){
- const event=demoEvents[state.demoStep%demoEvents.length]; state.demoStep++; state.progress=event[3];
- const target=state.players[(state.demoStep-1)%state.players.length]; target.scene=event[1]; target.progress=event[2];
- state.logs.unshift([event[0],"刚刚",state.demoStep===3?"warn":"ok"]); state.logs=state.logs.slice(0,5); render(); showToast(event[0]);
-}
-function resetDemo(){
- state.demoStep=0;state.progress=62;state.players[0].scene="旧港档案馆";state.players[0].progress=76;state.players[1].scene="雾港诊所";state.players[1].progress=64;state.players[2].scene="码头仓库";state.players[2].progress=58;state.players[3].scene="钟楼广场";state.players[3].progress=43;render();showToast("演示内容已重置");
-}
 const wizardSteps = ["创建方式","角色与席位","章节与内容","自动化规则","测试并发布"];
 function openWizard(step=0){
   state.wizardStep=Math.max(0,Math.min(step,wizardSteps.length-1));
@@ -915,14 +1049,153 @@ async function finishWizard(){
   openModal("测试房间已创建",`世界、角色、章节和序章已经真实写入云端。<br><br><strong>邀请码：${inviteCode}</strong><br><small>房间 ID：${room.id}</small>`,"开始继续编排");
  }catch(error){button.disabled=false;button.textContent="重新创建测试房间";showToast(error.message)}
 }
-function showToast(text){toast.textContent=text; toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),2200)}
-function go(view){state.view=view;render()}
+function showToast(text,duration=2200){toast.textContent=text;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),duration)}
+function pendingHostEventCount(){return activeRuntimeRoom()?(state.cloudHostEvents||[]).length:0}
+function updateNotifyBadge(){
+ const btn=document.querySelector("#notify-btn");if(!btn)return;
+ const count=pendingHostEventCount();
+ let badge=btn.querySelector(".notify-count");
+ const dot=btn.querySelector(".notify");
+ if(count>0){
+  if(!badge){badge=document.createElement("span");badge.className="notify-count";btn.appendChild(badge)}
+  badge.textContent=count>9?"9+":String(count);badge.style.display="";
+  if(dot)dot.style.display="none";
+  btn.setAttribute("aria-label",`${count} 条待确认主持事件`);
+ }else{
+  if(badge)badge.style.display="none";
+  if(dot)dot.style.display="none";
+  btn.setAttribute("aria-label","通知");
+ }
+}
+let directorPollTimer=null;
+const DIRECTOR_POLL_MS=15000;
+let roomEventAbort=null;
+let roomEventReconnectTimer=null;
+function streamUserIdForRoom(){return state.view==="player"&&zhimuApi.context.playerUserId?zhimuApi.context.playerUserId:zhimuApi.context.hostUserId}
+function disconnectRoomEventStream(){
+ if(roomEventReconnectTimer){clearTimeout(roomEventReconnectTimer);roomEventReconnectTimer=null}
+ if(roomEventAbort){roomEventAbort.abort();roomEventAbort=null}
+ if(state.roomEventsConnected){state.roomEventsConnected=false;syncDirectorPolling();if(state.view==="director")render()}
+}
+function scheduleRoomEventReconnect(){
+ if(roomEventReconnectTimer||!zhimuApi.context.roomId)return;
+ roomEventReconnectTimer=setTimeout(()=>{roomEventReconnectTimer=null;connectRoomEventStream()},5000);
+}
+function connectRoomEventStream(){
+ disconnectRoomEventStream();
+ const roomId=zhimuApi.context.roomId;
+ if(!roomId)return;
+ const boundRoom=roomId;
+ roomEventAbort=new AbortController();
+ const signal=roomEventAbort.signal;
+ zhimuApi.streamRoomEvents(roomId,async(type,data)=>{
+  if(type==="__connected__"){state.roomEventsConnected=true;syncDirectorPolling();if(state.view==="director")render();return}
+  await handleRoomEvent(type,data);
+ },signal,streamUserIdForRoom()).catch(()=>{}).finally(()=>{
+  const shouldReconnect=state.roomEventsConnected&&zhimuApi.context.roomId===boundRoom&&!signal.aborted;
+  state.roomEventsConnected=false;
+  syncDirectorPolling();
+  if(shouldReconnect)scheduleRoomEventReconnect();
+ });
+}
+async function handleRoomEvent(type,data){
+ if(!zhimuApi.context.roomId)return;
+ switch(type){
+  case "room.player_joined":
+   if(state.view==="director"||state.view==="overview"){await refreshHostPlayers(false,true);showToast("有新玩家加入房间",2800)}
+   break;
+  case "room.section_completed":
+   if(state.view==="director"||state.view==="overview")await refreshHostPlayers(false,true);
+   else if(state.view==="player"&&data.roleSlotId===state.cloudPlayer?.role?.id)await refreshPlayerHome();
+   break;
+  case "room.clue_granted":
+   if(state.view==="director"||state.view==="overview")await refreshHostPlayers(false,true);
+   else if(state.view==="player"){await refreshPlayerHome();showToast(data.clueName?`获得新线索：${data.clueName}`:"获得新线索",2800)}
+   break;
+  case "room.host_event_pending":
+   await refreshHostEvents(false,true);
+   if(!data.action&&state.view==="director")showToast("有新的待确认事件",2800);
+   break;
+  case "room.scene_unlocked":
+   if(state.view==="player"){await refreshExploration();showToast("新场景已开放",2800)}
+   else if(state.view==="director"||state.view==="overview")await refreshHostPlayers(false,true);
+   break;
+  case "room.voice_message_created":
+   if(data.voiceRoomId===state.voiceRoomId)await refreshVoiceMessages();
+   break;
+ }
+}
+async function refreshPlayerHome(){
+ if(!zhimuApi.context.roomId)return;
+ try{state.cloudPlayer=await zhimuApi.getPlayerHome();if(state.view==="player")render()}catch(error){/* stream refresh best-effort */}
+}
+async function refreshExploration(){
+ if(!zhimuApi.context.roomId)return;
+ try{state.cloudExploration=await zhimuApi.getExploration();if(state.view==="player")render()}catch(error){/* stream refresh best-effort */}
+}
+function syncDirectorPolling(){
+ if(state.roomEventsConnected){if(directorPollTimer){clearInterval(directorPollTimer);directorPollTimer=null}return}
+ if(state.view==="director"&&zhimuApi.context.roomId){
+  if(!directorPollTimer){
+   directorPollTimer=setInterval(async()=>{
+    if(state.view!=="director"||!zhimuApi.context.roomId){clearInterval(directorPollTimer);directorPollTimer=null;return}
+    await refreshDirectorPoll();
+   },DIRECTOR_POLL_MS);
+  }
+ }else if(directorPollTimer){clearInterval(directorPollTimer);directorPollTimer=null}
+}
+async function refreshDirectorPoll(){
+ try{
+  await Promise.all([refreshHostEvents(false,true),refreshHostPlayers(false,true)]);
+  if(state.view==="director")render();
+ }catch(error){state.apiError=error.message}
+}
+function applyHostPlayersPayload(value){
+ state.cloudHostPlayers=value?.players||[];
+ state.cloudHostStuckCount=value?.stuckCount||0;
+ state.cloudHost=state.cloudHostPlayers.map(player=>({role_slot_id:player.role_slot_id,name:player.role_name,total_sections:player.total_sections,completed_sections:player.completed_sections,current_scene_id:player.current_scene_id,updated_at:player.last_activity_at}));
+}
+async function refreshHostEvents(withToast=false,silent=false){
+ if(!zhimuApi.context.roomId){if(withToast&&!silent)showToast("请先选择运行房");return}
+ try{
+  state.cloudHostEvents=await zhimuApi.getHostEvents()||[];
+  updateNotifyBadge();
+  if(state.view==="director"||state.view==="overview")render();
+  if(withToast&&!silent)showToast(`待确认事件已刷新（${state.cloudHostEvents.length} 条）`);
+ }catch(error){if(withToast&&!silent)showToast(error.message)}
+}
+async function refreshHostPlayers(withToast=false,silent=false){
+ if(!zhimuApi.context.roomId){if(withToast&&!silent)showToast("请先选择运行房");return}
+ try{
+  applyHostPlayersPayload(await zhimuApi.getHostPlayers());
+  if(state.view==="director"||state.view==="overview")render();
+  if(withToast&&!silent)showToast(`玩家进度已刷新（${state.cloudHostPlayers.filter(player=>player.joined).length} 人已加入）`);
+ }catch(error){if(withToast&&!silent)showToast(error.message)}
+}
+async function refreshHostRoom(withToast=false){
+ if(!zhimuApi.context.roomId){if(withToast)showToast("请先选择运行房");return}
+ try{
+  const logParams={limit:"20",roomId:zhimuApi.context.roomId};
+  const [hostPlayers,hostEvents,worldLogs]=await Promise.all([zhimuApi.getHostPlayers(),zhimuApi.getHostEvents(),zhimuApi.getWorldLogs(logParams)]);
+  applyHostPlayersPayload(hostPlayers);
+  state.cloudHostEvents=hostEvents||[];
+  state.cloudWorldLogs=worldLogs||[];
+  updateNotifyBadge();
+  if(state.view==="director"||state.view==="overview")render();
+  if(withToast)showToast(`房间状态已刷新 · 待确认 ${state.cloudHostEvents.length} 条 · 玩家 ${state.cloudHostPlayers.filter(player=>player.joined).length} 人`);
+ }catch(error){if(withToast)showToast(error.message)}
+}
+function go(view){state.view=view;syncDirectorPolling();connectRoomEventStream();render()}
 
 document.querySelectorAll(".nav-item[data-view]").forEach(btn=>btn.addEventListener("click",()=>go(btn.dataset.view)));
 document.querySelector("#run-btn").onclick=()=>go("director");
 document.querySelector("#preview-btn").onclick=()=>state.cloudPlayer?go("player"):openJoinRoom();
 document.querySelector("#search-btn").onclick=()=>openModal("全局搜索尚未接入","搜索界面仍在设计中，当前不会执行查询。后续将检索角色、线索、场景、事件与规则。","知道了");
-document.querySelector("#notify-btn").onclick=()=>showToast((state.cloudHostEvents||[]).length?`${state.cloudHostEvents.length} 条运行事件等待处理`:"当前世界没有待处理运行事件");
+document.querySelector("#notify-btn").onclick=()=>{
+ if(!activeRuntimeRoom())return showToast("请先选择运行房后再查看主持待办");
+ go("director");
+ if(!pendingHostEventCount())showToast("当前没有待确认事件，可在此刷新玩家进度");
+};
 document.querySelector("#create-world-btn").onclick=()=>openWizard();
 document.querySelector(".world-switcher").onclick=()=>openWorldLibrary();
 document.querySelector(".profile").onclick=()=>openAuth();
@@ -930,14 +1203,20 @@ modalBackdrop.onclick=e=>{if(e.target===modalBackdrop) closeModal()};
 render();
 async function loadCloudData(withToast=false){
  const hasRoom=Boolean(zhimuApi.context.roomId),skipRoom=()=>Promise.resolve(null);
- const requests=[hasRoom?zhimuApi.getPlayerHome():skipRoom(),hasRoom?zhimuApi.getHostProgress():skipRoom(),zhimuApi.getStorageUsage(),zhimuApi.getAssets(),hasRoom?zhimuApi.getExploration():skipRoom(),hasRoom?zhimuApi.getHostEvents():skipRoom(),zhimuApi.getStudio(),zhimuApi.getCreatorChecks(),zhimuApi.getRules()];
- const [playerHome,hostProgress,usage,assets,exploration,hostEvents,studioData,creatorChecks,rulesData]=await Promise.allSettled(requests),errors=[];
+ const logParams={limit:"20"};if(hasRoom)logParams.roomId=zhimuApi.context.roomId;
+ const requests=[hasRoom?zhimuApi.getPlayerHome():skipRoom(),hasRoom?zhimuApi.getHostPlayers():skipRoom(),zhimuApi.getStorageUsage(),zhimuApi.getAssets(),hasRoom?zhimuApi.getExploration():skipRoom(),hasRoom?zhimuApi.getHostEvents():skipRoom(),hasRoom?zhimuApi.getCheckpoints():skipRoom(),zhimuApi.getStudio(),zhimuApi.getCreatorChecks(),zhimuApi.getRules(),zhimuApi.getWorldLogs(logParams)];
+ const [playerHome,hostPlayers,usage,assets,exploration,hostEvents,checkpoints,studioData,creatorChecks,rulesData,worldLogs]=await Promise.allSettled(requests),errors=[];
  const take=(result,apply,onError=()=>{})=>result.status==="fulfilled"?apply(result.value):(onError(),errors.push(result.reason.message));
  if(!hasRoom)clearRuntimeState();
- take(playerHome,value=>state.cloudPlayer=value,()=>state.cloudPlayer=null);take(hostProgress,value=>state.cloudHost=value||[],()=>state.cloudHost=[]);take(usage,value=>state.storageUsage=value);take(assets,value=>state.cloudAssets=value);take(exploration,value=>state.cloudExploration=value,()=>state.cloudExploration=null);take(hostEvents,value=>state.cloudHostEvents=value||[],()=>state.cloudHostEvents=[]);take(studioData,value=>state.cloudStudio=value);take(creatorChecks,value=>state.cloudCreatorChecks=value.checks);take(rulesData,value=>state.cloudRules=value);
+ take(playerHome,value=>state.cloudPlayer=value,()=>state.cloudPlayer=null);
+ take(hostPlayers,value=>{
+  applyHostPlayersPayload(value);
+ },()=>{state.cloudHostPlayers=[];state.cloudHostStuckCount=0;state.cloudHost=[]});
+ take(usage,value=>state.storageUsage=value);
+ take(assets,value=>state.cloudAssets=value);take(exploration,value=>state.cloudExploration=value,()=>state.cloudExploration=null);take(hostEvents,value=>state.cloudHostEvents=value||[],()=>state.cloudHostEvents=[]);take(checkpoints,value=>state.cloudCheckpoints=value||[],()=>state.cloudCheckpoints=[]);take(studioData,value=>state.cloudStudio=value);take(creatorChecks,value=>state.cloudCreatorChecks=value.checks);take(rulesData,value=>state.cloudRules=value);take(worldLogs,value=>state.cloudWorldLogs=value||[],()=>state.cloudWorldLogs=[]);
  if(hasRoom&&state.cloudStudio&&!activeRuntimeRoom()){zhimuApi.clearRoom();clearRuntimeState();errors.push("当前运行房不属于所选世界，已自动解除绑定")}
  const voiceRooms=state.cloudPlayer?.voiceRooms||[],currentRoom=voiceRooms.find(room=>room.id===state.voiceRoomId)||voiceRooms[0];if(currentRoom){state.voiceRoomId=currentRoom.id;state.voiceRoom=currentRoom.name;try{state.voiceMessages=await zhimuApi.getVoiceMessages(currentRoom.id)}catch(error){errors.push(error.message)}}
- state.apiError=errors.join(" · ");render();if(withToast)showToast(errors.length?`部分运行数据尚未连接：${errors[0]}`:"云端数据已刷新");
+ state.apiError=errors.join(" · ");syncDirectorPolling();connectRoomEventStream();render();if(withToast)showToast(errors.length?`部分运行数据尚未连接：${errors[0]}`:"云端数据已刷新");
 }
-function clearRuntimeState(){state.cloudPlayer=null;state.cloudHost=[];state.cloudExploration=null;state.cloudHostEvents=[];state.voiceRoomId=null;state.voiceRoom="尚未选择";state.voiceMessages=[]}
+function clearRuntimeState(){disconnectRoomEventStream();state.cloudPlayer=null;state.cloudHost=[];state.cloudHostPlayers=[];state.cloudHostStuckCount=0;state.cloudExploration=null;state.cloudHostEvents=[];state.cloudCheckpoints=[];state.voiceRoomId=null;state.voiceRoom="尚未选择";state.voiceMessages=[]}
 loadCloudData();

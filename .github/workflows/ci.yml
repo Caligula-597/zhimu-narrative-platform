@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, codex/**]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: zhimu
+          POSTGRES_USER: zhimu
+          POSTGRES_PASSWORD: replace_me
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zhimu -d zhimu"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://zhimu:replace_me@localhost:5432/zhimu
+      ALLOW_DEMO_USER_HEADER: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+      - name: Migrate and seed
+        run: npm run db:migrate && npm run db:seed && npm run demo:seed-exploration
+        working-directory: backend
+      - name: Syntax check
+        run: npm run check
+        working-directory: backend
+      - name: Unit and integration tests
+        run: npm test
+        working-directory: backend
+      - name: API smoke tests
+        run: npm run test:smoke
+        working-directory: backend
+      - name: Start backend for UI smoke
+        run: node src/server.js &
+        working-directory: backend
+      - name: Start frontend for UI smoke
+        run: node server.js &
+        working-directory: .
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:4180/api/health >/dev/null && curl -sf http://localhost:4173/ >/dev/null && exit 0
+            sleep 1
+          done
+          exit 1
+      - name: UI smoke tests
+        run: node scripts/ui-smoke.js

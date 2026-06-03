@@ -1,0 +1,58 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createApp } from "../src/app.js";
+
+const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
+const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
+const fogRoomId = "a65f94eb-a987-463c-bb81-aa482367e54a";
+
+test("host can create list and read room checkpoints", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const create = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fogRoomId}/checkpoints`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: "第一夜收工", description: "玩家已完成序章调查" }
+  });
+  assert.equal(create.statusCode, 201);
+  const created = create.json();
+  assert.equal(created.label, "第一夜收工");
+  assert.equal(created.description, "玩家已完成序章调查");
+  assert.ok(Array.isArray(created.snapshot.players));
+  assert.ok(Object.hasOwn(created.snapshot, "unlockedScenes"));
+  assert.ok(Object.hasOwn(created.snapshot, "pendingEvents"));
+  assert.ok(Object.hasOwn(created.snapshot, "recentLogs"));
+
+  const list = await app.inject({
+    method: "GET",
+    url: `/api/rooms/${fogRoomId}/checkpoints`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(list.statusCode, 200);
+  const checkpoints = list.json();
+  assert.ok(checkpoints.some((item) => item.id === created.id));
+  assert.ok(checkpoints[0].summary);
+
+  const detail = await app.inject({
+    method: "GET",
+    url: `/api/rooms/${fogRoomId}/checkpoints/${created.id}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(detail.statusCode, 200);
+  assert.equal(detail.json().snapshot.roomId, fogRoomId);
+  assert.equal(detail.json().label, "第一夜收工");
+});
+
+test("player cannot create checkpoints", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const response = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fogRoomId}/checkpoints`,
+    headers: { "x-user-id": playerUserId },
+    payload: { title: "不应成功", description: "玩家不能创建" }
+  });
+  assert.equal(response.statusCode, 403);
+});

@@ -6,13 +6,15 @@
 
 - API 调用集中在 `api-client.js`。
 - 玩家入口、平行房邀请、语音房文字频道和主持台已经使用真实后端数据。
+- **世界总览、内容资产、存档页**（2026-06-03 P0-1）仅展示 API 数据或空状态；`state.js` 不再含 `players`/`logs` 等运行时假字段，总览动态来自 `cloudWorldLogs`。
 - 有正式 Bearer Session 时，浏览器不再发送 demo `x-user-id` 请求头。
 - 切换世界或平行房时会清理旧房间运行态，避免残留上一个房间的剧情、线索、语音消息和探索点。
 
 ## 拆分顺序
 
 1. `state.js`
-   - 迁移 `state`、`loadCloudData()`、`clearRuntimeState()` 和视图切换。
+   - 已迁移 `window.zhimuState`（含 `cloudWorldLogs`）；**不含**运行时演示字段。
+   - 待迁移：`loadCloudData()`、`clearRuntimeState()` 和视图切换（仍在 `app.js`）。
 
 2. `components/modal.js`
    - 迁移弹窗、toast、表单取值。
@@ -40,3 +42,4 @@
 - 主持台只展示当前平行房数据。
 - 玩家视角只能展示当前角色已发布或已解锁的内容。
 - 正式登录 session 存在时，不发送 demo 身份请求头。
+- **空世界**打开总览/资产页时，不得出现假玩家、假日志、假资产卡片（`assetsData` 不得回归主 UI）。
