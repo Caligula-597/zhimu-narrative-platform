@@ -6,53 +6,22 @@ import { randomUUID } from "node:crypto";
 import { createDeepseekMysteryPackage, createDeepseekStoryProposal, deepseekConfig, validateDeepseekProposal } from "./deepseek.js";
 import { parseCreatorDocument } from "./document-parser.js";
 import { requireActor } from "./request-actor.js";
-
-async function requireRoomRole(actorId, roomId) {
-  const result = await query(
-    `SELECT rm.role_slot_id, rm.member_type
-     FROM room_members rm
-     WHERE rm.room_id = $1 AND rm.user_id = $2 AND rm.status = 'active'`,
-    [roomId, actorId]
-  );
-  if (!result.rowCount) {
-    const error = new Error("Room membership required");
-    error.statusCode = 403;
-    throw error;
-  }
-  return result.rows[0];
-}
-
-async function requireWorldRole(actorId, worldId, allowedRoles = ["owner", "editor"]) {
-  const result = await query(
-    `SELECT role FROM world_members WHERE world_id = $1 AND user_id = $2`,
-    [worldId, actorId]
-  );
-  if (!result.rowCount || !allowedRoles.includes(result.rows[0].role)) {
-    const error = new Error("World editor permission required");
-    error.statusCode = 403;
-    throw error;
-  }
-  return result.rows[0];
-}
-
-async function requireVoiceRoomAccess(actorId, voiceRoomId) {
-  const result = await query(
-    `SELECT vr.id, vr.room_id, vr.name, vr.room_type
-     FROM voice_rooms vr
-     JOIN room_members rm ON rm.room_id = vr.room_id AND rm.user_id = $2 AND rm.status = 'active'
-     WHERE vr.id = $1 AND vr.status = 'active'
-       AND (
-         vr.room_type = 'public'
-         OR EXISTS (
-           SELECT 1 FROM voice_room_members vrm
-           WHERE vrm.voice_room_id = vr.id AND vrm.user_id = $2
-         )
-       )`,
-    [voiceRoomId, actorId]
-  );
-  if (!result.rowCount) throw Object.assign(new Error("Voice room membership required"), { statusCode: 403 });
-  return result.rows[0];
-}
+import { requireRoomRole, requireVoiceRoomAccess, requireWorldRole } from "./routes/route-guards.js";
+import {
+  appendVoiceMembersSchema,
+  completeSectionSchema,
+  createVoiceRoomSchema,
+  hostEventSchema,
+  inviteLookupSchema,
+  investigatePointSchema,
+  joinRoomSchema,
+  notebookEntrySchema,
+  paramsSchema,
+  readClueSchema,
+  roomIdParams,
+  sendVoiceMessageSchema,
+  voiceRoomIdParams
+} from "./routes/schemas.js";
 
 async function storageUsage(userId) {
   const result = await query(
@@ -1334,7 +1303,9 @@ export async function registerRoutes(app) {
     return { ok: true, updated: positions.length };
   });
 
-  app.post("/api/rooms/:roomId/scenes/:sceneId/unlock", async (request) => {
+  app.post("/api/rooms/:roomId/scenes/:sceneId/unlock", {
+    schema: { params: paramsSchema({ roomId: { type: "string", minLength: 36, maxLength: 36 }, sceneId: { type: "string", minLength: 36, maxLength: 36 } }) }
+  }, async (request) => {
     const actorId = requireActor(request);
     const { roomId, sceneId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
@@ -1356,7 +1327,7 @@ export async function registerRoutes(app) {
     return { ok: true };
   });
 
-  app.get("/api/rooms/invite/:inviteCode", async (request, reply) => {
+  app.get("/api/rooms/invite/:inviteCode", { schema: inviteLookupSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const room = await query(
       `SELECT r.id, r.name, r.status, w.id AS world_id, w.name AS world_name
@@ -1388,7 +1359,7 @@ export async function registerRoutes(app) {
     };
   });
 
-  app.post("/api/rooms/join", async (request, reply) => {
+  app.post("/api/rooms/join", { schema: joinRoomSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { inviteCode, roleSlotId } = request.body ?? {};
     if (!inviteCode || !roleSlotId) return reply.code(400).send({ error: "inviteCode and roleSlotId are required" });
@@ -1412,7 +1383,7 @@ export async function registerRoutes(app) {
     return { ok: true, roomId: room.rows[0].id };
   });
 
-  app.get("/api/rooms/:roomId/player-home", async (request) => {
+  app.get("/api/rooms/:roomId/player-home", { schema: { params: roomIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
@@ -1488,7 +1459,7 @@ export async function registerRoutes(app) {
     return { role: role.rows[0], sections: sections.rows, notes: notes.rows, clues: clues.rows, voiceRooms: rooms.rows, roomMembers: members.rows };
   });
 
-  app.get("/api/voice-rooms/:voiceRoomId/messages", async (request) => {
+  app.get("/api/voice-rooms/:voiceRoomId/messages", { schema: { params: voiceRoomIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { voiceRoomId } = request.params;
     await requireVoiceRoomAccess(actorId, voiceRoomId);
@@ -1503,7 +1474,7 @@ export async function registerRoutes(app) {
     return result.rows.reverse();
   });
 
-  app.post("/api/rooms/:roomId/voice-rooms", async (request, reply) => {
+  app.post("/api/rooms/:roomId/voice-rooms", { schema: createVoiceRoomSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     await requireRoomRole(actorId, roomId);
@@ -1534,7 +1505,7 @@ export async function registerRoutes(app) {
     return reply.code(201).send(room);
   });
 
-  app.post("/api/voice-rooms/:voiceRoomId/messages", async (request, reply) => {
+  app.post("/api/voice-rooms/:voiceRoomId/messages", { schema: sendVoiceMessageSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { voiceRoomId } = request.params;
     await requireVoiceRoomAccess(actorId, voiceRoomId);
@@ -1549,7 +1520,7 @@ export async function registerRoutes(app) {
     return reply.code(201).send(result.rows[0]);
   });
 
-  app.post("/api/voice-rooms/:voiceRoomId/members", async (request, reply) => {
+  app.post("/api/voice-rooms/:voiceRoomId/members", { schema: appendVoiceMembersSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { voiceRoomId } = request.params;
     const access = await requireVoiceRoomAccess(actorId, voiceRoomId);
@@ -1578,11 +1549,30 @@ export async function registerRoutes(app) {
     return reply.code(201).send({ ok: true, invited: invitees.length });
   });
 
-  app.post("/api/rooms/:roomId/sections/:sectionId/complete", async (request) => {
+  app.post("/api/rooms/:roomId/sections/:sectionId/complete", { schema: completeSectionSchema }, async (request) => {
     const actorId = requireActor(request);
     const { roomId, sectionId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
     if (!membership.role_slot_id) throw Object.assign(new Error("Player role required"), { statusCode: 409 });
+    const section = await query(
+      `SELECT ss.id
+       FROM script_sections ss
+       JOIN rooms room ON room.id = $1
+       WHERE ss.id = $2
+         AND ss.role_slot_id = $3
+         AND (
+           ss.publication_status = 'published'
+           OR (room.status = 'testing' AND ss.publication_status = 'testing')
+         )
+         AND (
+           ss.sequence = 1 OR EXISTS (
+             SELECT 1 FROM room_content_unlocks rcu
+             WHERE rcu.room_id = $1 AND rcu.content_type = 'script_section' AND rcu.content_id = ss.id
+           )
+         )`,
+      [roomId, sectionId, membership.role_slot_id]
+    );
+    if (!section.rowCount) throw Object.assign(new Error("Script section is locked or unavailable"), { statusCode: 404 });
 
     await transaction(async (client) => {
       await client.query(
@@ -1602,7 +1592,7 @@ export async function registerRoutes(app) {
     return { ok: true, executedRules };
   });
 
-  app.post("/api/rooms/:roomId/notebook", async (request, reply) => {
+  app.post("/api/rooms/:roomId/notebook", { schema: notebookEntrySchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
@@ -1618,7 +1608,7 @@ export async function registerRoutes(app) {
     return reply.code(201).send(result.rows[0]);
   });
 
-  app.get("/api/rooms/:roomId/exploration", async (request) => {
+  app.get("/api/rooms/:roomId/exploration", { schema: { params: roomIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
@@ -1647,7 +1637,7 @@ export async function registerRoutes(app) {
     return { scenes: scenes.rows };
   });
 
-  app.post("/api/rooms/:roomId/investigation-points/:pointId/investigate", async (request, reply) => {
+  app.post("/api/rooms/:roomId/investigation-points/:pointId/investigate", { schema: investigatePointSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { roomId, pointId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
@@ -1698,7 +1688,7 @@ export async function registerRoutes(app) {
     return { ok: true, resultText: target.result_text, clue, executedRules };
   });
 
-  app.post("/api/rooms/:roomId/clues/:clueId/read", async (request, reply) => {
+  app.post("/api/rooms/:roomId/clues/:clueId/read", { schema: readClueSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { roomId, clueId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
@@ -1713,7 +1703,7 @@ export async function registerRoutes(app) {
     return { ok: true, readAt: result.rows[0].read_at };
   });
 
-  app.get("/api/rooms/:roomId/host-events", async (request) => {
+  app.get("/api/rooms/:roomId/host-events", { schema: { params: roomIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
@@ -1730,7 +1720,7 @@ export async function registerRoutes(app) {
     return result.rows;
   });
 
-  app.post("/api/rooms/:roomId/host-events/:eventId/execute", async (request, reply) => {
+  app.post("/api/rooms/:roomId/host-events/:eventId/execute", { schema: hostEventSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { roomId, eventId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
@@ -1762,7 +1752,7 @@ export async function registerRoutes(app) {
     return { ok: true };
   });
 
-  app.get("/api/rooms/:roomId/host-progress", async (request) => {
+  app.get("/api/rooms/:roomId/host-progress", { schema: { params: roomIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);

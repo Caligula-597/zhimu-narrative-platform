@@ -8,7 +8,10 @@ import { registerRoutes } from "./routes.js";
 
 export async function createApp(options = {}) {
   const app = Fastify({ logger: options.logger ?? true });
-  const allowDemoUserHeader = options.allowDemoUserHeader ?? process.env.ALLOW_DEMO_USER_HEADER === "true";
+  const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV ?? "development";
+  const allowDemoUserHeader = nodeEnv === "production"
+    ? false
+    : (options.allowDemoUserHeader ?? process.env.ALLOW_DEMO_USER_HEADER === "true");
   await app.register(cors, {
     origin: options.corsOrigin ?? true,
     methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"]

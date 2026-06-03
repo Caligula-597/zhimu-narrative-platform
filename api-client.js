@@ -13,7 +13,7 @@ async function request(path, { userId, method = "GET", body } = {}) {
   const headers = {};
   const sessionToken = localStorage.getItem("zhimuSessionToken");
   if (sessionToken) headers.authorization = `Bearer ${sessionToken}`;
-  if (userId) headers["x-user-id"] = userId;
+  if (userId && !sessionToken) headers["x-user-id"] = userId;
   if (body !== undefined) headers["content-type"] = "application/json";
   const response = await fetch(`${API_BASE}${path}`, {
     method,
