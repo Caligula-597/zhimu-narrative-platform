@@ -94,6 +94,149 @@ export const readClueSchema = {
   params: paramsSchema({ roomId: uuid, clueId: uuid })
 };
 
+export const cluePlayerNoteSchema = {
+  params: paramsSchema({ roomId: uuid, clueId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["note"],
+    properties: {
+      note: { type: "string", maxLength: 2000 }
+    }
+  }
+};
+
+export const clueShareRoomSchema = {
+  params: paramsSchema({ roomId: uuid, clueId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      shared: { type: "boolean" }
+    }
+  }
+};
+
+export const hostClueNoteSchema = {
+  params: paramsSchema({ roomId: uuid, clueId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["roleSlotId", "hostNote"],
+    properties: {
+      roleSlotId: uuid,
+      hostNote: { type: "string", maxLength: 2000 }
+    }
+  }
+};
+
 export const hostEventSchema = {
   params: paramsSchema({ roomId: uuid, eventId: uuid })
+};
+
+export const roleSlotRoomParams = paramsSchema({ roomId: uuid, roleSlotId: uuid });
+
+export const hostGrantClueSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["roleSlotId", "clueId"],
+    properties: {
+      roleSlotId: uuid,
+      clueId: uuid,
+      message: { type: "string", maxLength: 500 }
+    }
+  }
+};
+
+export const hostGrantItemSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["roleSlotId", "itemId"],
+    properties: {
+      roleSlotId: uuid,
+      itemId: uuid,
+      quantity: { type: "integer", minimum: 1, maximum: 99 },
+      message: { type: "string", maxLength: 500 }
+    }
+  }
+};
+
+export const hostUnlockSectionSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["roleSlotId", "scriptSectionId"],
+    properties: {
+      roleSlotId: uuid,
+      scriptSectionId: uuid,
+      message: { type: "string", maxLength: 500 }
+    }
+  }
+};
+
+export const hostLogSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["message"],
+    properties: {
+      message: nonEmptyText,
+      eventType: { type: "string", maxLength: 40 },
+      roleSlotId: uuid
+    }
+  }
+};
+
+export const hostNotesSchema = {
+  params: roleSlotRoomParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["notes"],
+    properties: {
+      notes: { type: "string", maxLength: 2000 }
+    }
+  }
+};
+
+export const checkpointIdParams = paramsSchema({
+  roomId: uuid,
+  checkpointId: uuid
+});
+
+export const createRecapSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["title"],
+    properties: {
+      title: { type: "string", minLength: 1, maxLength: 120 },
+      description: { type: "string", maxLength: 2000 }
+    }
+  }
+};
+
+export const recapIdParams = paramsSchema({
+  roomId: uuid,
+  recapId: uuid
+});
+
+export const createCheckpointSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["title"],
+    properties: {
+      title: { type: "string", minLength: 1, maxLength: 120 },
+      description: { type: "string", maxLength: 2000 }
+    }
+  }
 };

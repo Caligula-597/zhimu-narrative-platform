@@ -1,4 +1,5 @@
 import { query } from "../db.js";
+export { requireVoiceRoomAccess, resolveVoiceRoomAccess } from "./voice-access.js";
 
 export async function requireRoomRole(actorId, roomId) {
   const result = await query(
@@ -25,24 +26,5 @@ export async function requireWorldRole(actorId, worldId, allowedRoles = ["owner"
     error.statusCode = 403;
     throw error;
   }
-  return result.rows[0];
-}
-
-export async function requireVoiceRoomAccess(actorId, voiceRoomId) {
-  const result = await query(
-    `SELECT vr.id, vr.room_id, vr.name, vr.room_type
-     FROM voice_rooms vr
-     JOIN room_members rm ON rm.room_id = vr.room_id AND rm.user_id = $2 AND rm.status = 'active'
-     WHERE vr.id = $1 AND vr.status = 'active'
-       AND (
-         vr.room_type = 'public'
-         OR EXISTS (
-           SELECT 1 FROM voice_room_members vrm
-           WHERE vrm.voice_room_id = vr.id AND vrm.user_id = $2
-         )
-       )`,
-    [voiceRoomId, actorId]
-  );
-  if (!result.rowCount) throw Object.assign(new Error("Voice room membership required"), { statusCode: 403 });
   return result.rows[0];
 }

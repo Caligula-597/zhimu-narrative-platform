@@ -1,0 +1,105 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createApp } from "../src/app.js";
+import { query } from "../src/db.js";
+
+const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
+const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
+const fogRoomId = "a65f94eb-a987-463c-bb81-aa482367e54a";
+
+async function fogRoleId() {
+  const result = await query(
+    `SELECT rm.role_slot_id
+     FROM room_members rm
+     WHERE rm.room_id = $1 AND rm.user_id = $2 AND rm.status = 'active'`,
+    [fogRoomId, playerUserId]
+  );
+  assert.ok(result.rowCount, "fog player fixture is required");
+  return result.rows[0].role_slot_id;
+}
+
+test("host players list returns runtime table rows for hosts", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const response = await app.inject({
+    method: "GET",
+    url: `/api/rooms/${fogRoomId}/host/players`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(response.statusCode, 200);
+  const payload = response.json();
+  assert.ok(Array.isArray(payload.players));
+  assert.ok(payload.players.length >= 1);
+  assert.ok(Object.hasOwn(payload.players[0], "completed_sections"));
+  assert.ok(Object.hasOwn(payload.players[0], "clue_count"));
+  assert.equal(typeof payload.stuckCount, "number");
+});
+
+test("host can grant clue and unlock section manually", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const roleSlotId = await fogRoleId();
+  const clue = await query(
+    `SELECT c.id FROM clues c
+     JOIN rooms r ON r.world_id = c.world_id
+     WHERE r.id = $1
+     LIMIT 1`,
+    [fogRoomId]
+  );
+  const section = await query(
+    `SELECT id FROM script_sections WHERE role_slot_id = $1 ORDER BY sequence DESC LIMIT 1`,
+    [roleSlotId]
+  );
+  assert.ok(clue.rowCount, "clue fixture required");
+  assert.ok(section.rowCount, "section fixture required");
+
+  const grant = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fogRoomId}/host/grant-clue`,
+    headers: { "x-user-id": hostUserId },
+    payload: { roleSlotId, clueId: clue.rows[0].id, message: "测试发放" }
+  });
+  assert.equal(grant.statusCode, 200);
+  assert.equal(grant.json().ok, true);
+
+  const unlock = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fogRoomId}/host/unlock-section`,
+    headers: { "x-user-id": hostUserId },
+    payload: { roleSlotId, scriptSectionId: section.rows[0].id, message: "测试解锁" }
+  });
+  assert.equal(unlock.statusCode, 200);
+  assert.equal(unlock.json().ok, true);
+
+  const detail = await app.inject({
+    method: "GET",
+    url: `/api/rooms/${fogRoomId}/host/players/${roleSlotId}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(detail.statusCode, 200);
+  const payload = detail.json();
+  assert.ok(payload.clues.some((item) => item.id === clue.rows[0].id));
+  assert.ok(payload.sections.some((item) => item.id === section.rows[0].id && item.unlocked));
+});
+
+test("host events include action summaries and can be dismissed", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const events = await app.inject({
+    method: "GET",
+    url: `/api/rooms/${fogRoomId}/host-events`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(events.statusCode, 200);
+  const list = events.json();
+  if (list.length) {
+    assert.ok(Array.isArray(list[0].action_summaries));
+    const dismiss = await app.inject({
+      method: "POST",
+      url: `/api/rooms/${fogRoomId}/host-events/${list[0].id}/dismiss`,
+      headers: { "x-user-id": hostUserId }
+    });
+    assert.equal(dismiss.statusCode, 200);
+    assert.equal(dismiss.json().ok, true);
+  }
+});

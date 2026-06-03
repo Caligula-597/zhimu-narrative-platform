@@ -1,4 +1,5 @@
 import { transaction } from "./db.js";
+import { publishRoomEvent } from "./room-event-bus.js";
 
 async function conditionSatisfied(client, roomId, condition) {
   if (condition.type === "reading_completed") {
@@ -98,6 +99,8 @@ export async function executeActions(roomId, actions) {
   });
 }
 
+export { executeActionsWithClient };
+
 export async function evaluateRoomRules(roomId) {
   return transaction(async (client) => {
     const rules = await client.query(
@@ -123,11 +126,12 @@ export async function evaluateRoomRules(roomId) {
       if (!checks.every(Boolean)) continue;
 
       if (rule.mode === "host_confirm") {
-        await client.query(
+        const inserted = await client.query(
           `INSERT INTO pending_host_events
             (room_id, rule_id, event_key, title, description, actions)
            VALUES ($1, $2, $3, $4, $5, $6::jsonb)
-           ON CONFLICT (room_id, rule_id) WHERE rule_id IS NOT NULL DO NOTHING`,
+           ON CONFLICT (room_id, rule_id) WHERE rule_id IS NOT NULL DO NOTHING
+           RETURNING id, title`,
           [
             roomId,
             rule.id,
@@ -137,10 +141,29 @@ export async function evaluateRoomRules(roomId) {
             JSON.stringify(rule.actions ?? [])
           ]
         );
+        if (inserted.rowCount) {
+          publishRoomEvent(roomId, "room.host_event_pending", {
+            eventId: inserted.rows[0].id,
+            title: inserted.rows[0].title,
+            source: "rule"
+          });
+        }
         continue;
       }
 
       await executeActionsWithClient(client, roomId, rule.actions);
+      for (const action of rule.actions ?? []) {
+        if (action.type === "unlock_scene") {
+          publishRoomEvent(roomId, "room.scene_unlocked", { sceneId: action.sceneId, source: "rule" });
+        }
+        if (action.type === "grant_clue") {
+          publishRoomEvent(roomId, "room.clue_granted", {
+            clueId: action.clueId,
+            roleSlotId: action.roleSlotId,
+            source: "rule"
+          });
+        }
+      }
       await client.query(
         `INSERT INTO rule_executions (rule_id, room_id, result)
          VALUES ($1, $2, '{"status":"executed"}'::jsonb)`,
