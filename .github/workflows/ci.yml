@@ -44,10 +44,7 @@ jobs:
       - name: Unit and integration tests
         run: npm test
         working-directory: backend
-      - name: API smoke tests
-        run: npm run test:smoke
-        working-directory: backend
-      - name: Start backend for UI smoke
+      - name: Start backend for smoke tests
         run: node src/server.js &
         working-directory: backend
       - name: Start frontend for UI smoke
@@ -60,5 +57,8 @@ jobs:
             sleep 1
           done
           exit 1
+      - name: API smoke tests
+        run: npm run test:smoke
+        working-directory: backend
       - name: UI smoke tests
         run: node scripts/ui-smoke.js
