@@ -1,0 +1,87 @@
+window.zhimuState = {
+  view: "overview",
+  chapter: 2,
+  progress: 62,
+  running: true,
+  demoStep: 0,
+  voiceRoom: "公共讨论房",
+  voiceRoomId: null,
+  voiceMessages: [],
+  notes: [],
+  cloudPlayer: null,
+  cloudHost: [],
+  cloudExploration: null,
+  cloudHostEvents: [],
+  cloudStudio: null,
+  cloudWorlds: [],
+  cloudRules: [],
+  cloudCreatorChecks: [],
+  studioSelectedNode: null,
+  studioAnchorEditing: false,
+  studioFilter: "all",
+  studioZoom: 1,
+  cloudAssets: [],
+  storageUsage: null,
+  apiError: "",
+  wizardStep: 0,
+  wizardRoleEditor: null,
+  wizardDraft: {
+    worldName: "我的长线世界",
+    summary: "一个可持续推进的线上调查故事",
+    worldMode: "scripted",
+    contentSource: "document",
+    roleSets: {
+      scripted: [
+        { name:"记者", goal:"调查真相", publicProfile:"追踪旧港航运记录的记者", privateProfile:"你在寻找父亲失踪前寄出的最后一封信。" },
+        { name:"医生", goal:"隐瞒过去", publicProfile:"在雾港经营诊所的医生", privateProfile:"你认得旧档案上被涂去的名字。" },
+        { name:"巡警", goal:"保护证人", publicProfile:"负责旧港片区的巡警", privateProfile:"你收到过一份不能公开的证人名单。" }
+      ],
+      campaign: [
+        { name:"调查员", goal:"追查异象", publicProfile:"受邀来到雾港的自由调查员", privateProfile:"你曾在梦中见过这座港口。" },
+        { name:"领航员", goal:"绘制路线", publicProfile:"熟悉近海航线的领航员", privateProfile:"你的旧海图上标记着一座不存在的灯塔。" },
+        { name:"民俗学者", goal:"解释仪式", publicProfile:"研究沿海传说的民俗学者", privateProfile:"你知道潮落时不能回应谁的呼唤。" }
+      ],
+      hybrid: [
+        { name:"记录者", goal:"整理线索", publicProfile:"负责记录调查进展的编辑", privateProfile:"你收到过来自未来章节的残页。" },
+        { name:"守夜人", goal:"维持秩序", publicProfile:"熟悉港区夜路的守夜人", privateProfile:"你保管着一把只能打开一次的钥匙。" },
+        { name:"调解人", goal:"连接阵营", publicProfile:"负责协调各方关系的中间人", privateProfile:"你和馆长约定过一个不能公开的交换条件。" }
+      ]
+    },
+    contentSets: {
+      scripted: {
+        chapterTitle:"序章",
+        sectionTitle:"角色序章：抵达现场",
+        sectionBody:"夜色落下后，你收到了一封没有署名的来信。信中只有一处地址，以及一句话：请在午夜前抵达。"
+      },
+      campaign: {
+        chapterTitle:"第一次冒险：雾港异象",
+        sectionTitle:"开场钩子：失踪的领航员",
+        sectionBody:"潮水退去后，码头留下了一艘没有船员的旧艇。你们需要决定先调查航海日志、失踪者住处，还是海图上的异常坐标。"
+      },
+      hybrid: {
+        chapterTitle:"第一阶段：雾中来信",
+        sectionTitle:"个人节点：共同调查前夜",
+        sectionBody:"公开调查将在午夜开始，但你提前收到了一条只属于自己的消息。它会影响你在第一个开放场景中的选择。"
+      }
+    },
+    automationTemplates: {
+      reading: true,
+      clue: true,
+      chapter: true,
+      hint: false
+    }
+  },
+  rules: [true, true, true, false],
+  players: [
+    { name: "顾言", role: "记者", scene: "旧港档案馆", progress: 76, color: "#b9795c" },
+    { name: "林烛", role: "医生", scene: "雾港诊所", progress: 64, color: "#587f79" },
+    { name: "周岚", role: "巡警", scene: "码头仓库", progress: 58, color: "#706b91" },
+    { name: "闻彻", role: "商人", scene: "钟楼广场", progress: 43, color: "#9a814f" }
+  ],
+  logs: [
+    ["顾言 解读了线索「被撕去一页的航运录」", "2 分钟前", "ok"],
+    ["规则触发：档案馆的暗门现已开放", "8 分钟前", "ok"],
+    ["周岚在码头仓库停留较久，可能需要提示", "16 分钟前", "warn"],
+    ["林烛 与 NPC 沈怀安 完成一次对话", "21 分钟前", "ok"]
+  ]
+};

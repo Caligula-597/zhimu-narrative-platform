@@ -1,10 +1,14 @@
-const API_BASE = "http://localhost:4180/api";
+const runtimeConfig = window.zhimuConfig || {};
+const API_BASE = runtimeConfig.apiBase || "/api";
+const demoMode = Boolean(runtimeConfig.demoMode);
+const demoUsers = runtimeConfig.demoUsers || {};
+const demoWorld = runtimeConfig.demoWorld || {};
 
 const demoContext = {
-  hostUserId: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
-  playerUserId: "1d5e8155-a80f-4e7f-99f0-0ae317a35f35",
-  worldId: "e0370ac3-65d4-4de1-89e3-d54ed51fa72a",
-  roomId: "a65f94eb-a987-463c-bb81-aa482367e54a"
+  hostUserId: demoUsers.hostUserId || "",
+  playerUserId: demoUsers.playerUserId || "",
+  worldId: demoWorld.worldId || "",
+  roomId: demoWorld.roomId || ""
 };
 demoContext.worldId = localStorage.getItem("zhimuActiveWorldId") || demoContext.worldId;
 demoContext.roomId = localStorage.getItem(`zhimuActiveRoomId:${demoContext.worldId}`) || "";
@@ -13,7 +17,7 @@ async function request(path, { userId, method = "GET", body } = {}) {
   const headers = {};
   const sessionToken = localStorage.getItem("zhimuSessionToken");
   if (sessionToken) headers.authorization = `Bearer ${sessionToken}`;
-  if (userId && !sessionToken) headers["x-user-id"] = userId;
+  if (demoMode && userId && !sessionToken) headers["x-user-id"] = userId;
   if (body !== undefined) headers["content-type"] = "application/json";
   const response = await fetch(`${API_BASE}${path}`, {
     method,
