@@ -101,7 +101,9 @@ AI 只生成待复核的结构化提案，不会直接修改正式剧情。作�
 - `GET /api/assets/:assetId/download-url`
 - `DELETE /api/assets/:assetId`
 
-正式账号使用 Bearer Session。为了兼容现有演示世界，开发阶段仍保留显式 `x-user-id` 请求头；生产部署应关闭该兼容入口。
+正式账号使用 Bearer Session。为了兼容现有演示世界，本地开发可以显式设置
+`ALLOW_DEMO_USER_HEADER=true`，临时允许 `x-user-id` 请求头。该开关默认关闭，
+生产部署不得开启。
 
 ## 演示探索数据
 
@@ -112,6 +114,21 @@ npm run demo:seed-exploration
 ```
 
 该命令会补齐“旧港档案馆 -> 旧报架 -> 航运录 -> 主持确认 -> 档案密室”探索链路。
+
+## 回归检查
+
+后端结构调整后先运行静态检查和自动测试：
+
+```powershell
+npm run check
+npm test
+```
+
+本地演示后端启动后，再运行真实 API 冒烟测试：
+
+```powershell
+npm run test:smoke
+```
 
 ## 云存储
 

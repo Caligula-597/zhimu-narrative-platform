@@ -70,7 +70,8 @@
 - 每一个玩家查询都从 `room_members.role_slot_id` 推导角色。
 - 后端只返回当前角色已解锁的内容。
 - 主持查询必须验证 `host` 或 `cohost` 身份。
-- 后续接入正式登录后，用 Session 替换开发阶段的 `x-user-id`。
+- 正式请求使用 Bearer Session，后端解析后写入只读的 `request.actorId`。
+- `x-user-id` 只在本地显式设置 `ALLOW_DEMO_USER_HEADER=true` 时兼容演示数据，生产环境必须保持关闭。
 
 ## 规则引擎
 
