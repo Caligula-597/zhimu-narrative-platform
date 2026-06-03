@@ -39,7 +39,8 @@ const results = await Promise.all([
   check("rules", async () => (await request(`/worlds/${worldId}/rules`, hostUserId)).length),
   check("player-home", async () => {
     const home = await request(`/rooms/${roomId}/player-home`, playerUserId);
-    return `sections=${home.sections.length}, voiceRooms=${home.voiceRooms.length}`;
+    if (!Array.isArray(home.inventory)) throw new Error("player-home must include inventory array");
+    return `sections=${home.sections.length}, voiceRooms=${home.voiceRooms.length}, inventory=${home.inventory.length}`;
   }),
   check("voice-room-append-invite", async () => {
     const home = await request(`/rooms/${roomId}/player-home`, playerUserId);
@@ -72,6 +73,47 @@ const results = await Promise.all([
     const list = await request(`/rooms/${roomId}/checkpoints`, hostUserId);
     const detail = await request(`/rooms/${roomId}/checkpoints/${created.id}`, hostUserId);
     return `list=${list.length}, snapshotPlayers=${detail.snapshot.players.length}`;
+  }),
+  check("recaps", async () => {
+    const created = await request(`/rooms/${roomId}/recaps`, hostUserId, {
+      method: "POST",
+      body: { title: "smoke recap", description: "api smoke recap" }
+    });
+    const list = await request(`/rooms/${roomId}/recaps`, hostUserId);
+    const detail = await request(`/rooms/${roomId}/recaps/${created.id}`, hostUserId);
+    const playerView = await request(`/rooms/${roomId}/recaps/${created.id}`, playerUserId);
+    if (detail.perspective !== "host") throw new Error("host recap perspective must be host");
+    if (playerView.perspective !== "player") throw new Error("player recap perspective must be player");
+    return `list=${list.length}, timeline=${detail.snapshot.keyTimeline?.length ?? 0}`;
+  }),
+  check("items-crud", async () => {
+    const created = await request(`/worlds/${worldId}/items`, hostUserId, {
+      method: "POST",
+      body: { name: `smoke-item-${Date.now()}`, publicText: "smoke", unique: true, consumable: false }
+    });
+    await request(`/worlds/${worldId}/items/${created.id}`, hostUserId, {
+      method: "PATCH",
+      body: { publicText: "smoke updated" }
+    });
+    await request(`/worlds/${worldId}/items/${created.id}`, hostUserId, { method: "DELETE" });
+    return created.id;
+  }),
+  check("livekit-token", async () => {
+    const home = await request(`/rooms/${roomId}/player-home`, playerUserId);
+    const publicRoom = home.voiceRooms.find((room) => room.room_type === "public");
+    if (!publicRoom) throw new Error("expected public voice room fixture");
+    const response = await fetch(`${baseUrl}/rooms/${roomId}/voice-rooms/${publicRoom.id}/token`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-user-id": playerUserId },
+      body: "{}"
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (response.status === 503) return "503 without LiveKit env (expected in CI)";
+    if (!response.ok || !payload.token) throw new Error(`${response.status}: ${payload.error || "token failed"}`);
+    if (payload.token.includes(process.env.LIVEKIT_API_SECRET || "__no_secret__")) {
+      throw new Error("token response must not leak API secret");
+    }
+    return "token issued";
   }),
   check("join-rejects-foreign-role", async () => {
     const response = await fetch(`${baseUrl}/rooms/join`, {

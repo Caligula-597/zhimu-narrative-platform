@@ -41,7 +41,7 @@ export async function requireAssetRead(actorId, assetId) {
 }
 
 export async function buildWorldSnapshot(worldId, client = { query }) {
-  const [world, chapters, roles, sections, scenes, clues, points, edges, rules, rooms] = await Promise.all([
+  const [world, chapters, roles, sections, scenes, clues, points, items, edges, rules, rooms] = await Promise.all([
     client.query(`SELECT id, name, summary, status, settings FROM worlds WHERE id = $1`, [worldId]),
     client.query(`SELECT * FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]),
     client.query(`SELECT * FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]),
@@ -54,13 +54,14 @@ export async function buildWorldSnapshot(worldId, client = { query }) {
     client.query(`SELECT * FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]),
     client.query(`SELECT * FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]),
     client.query(`SELECT * FROM investigation_points WHERE world_id = $1 ORDER BY created_at`, [worldId]),
+    client.query(`SELECT id, name FROM items WHERE world_id = $1 ORDER BY created_at`, [worldId]),
     client.query(`SELECT * FROM story_graph_edges WHERE world_id = $1 ORDER BY created_at`, [worldId]),
     client.query(`SELECT * FROM automation_rules WHERE world_id = $1 ORDER BY priority, created_at`, [worldId]),
     client.query(`SELECT id, name, status, invite_code FROM rooms WHERE world_id = $1 ORDER BY created_at DESC`, [worldId])
   ]);
   return {
     world: world.rows[0], chapters: chapters.rows, roles: roles.rows, sections: sections.rows,
-    scenes: scenes.rows, clues: clues.rows, investigationPoints: points.rows, edges: edges.rows,
+    scenes: scenes.rows, clues: clues.rows, investigationPoints: points.rows, items: items.rows, edges: edges.rows,
     rules: rules.rows, rooms: rooms.rows
   };
 }

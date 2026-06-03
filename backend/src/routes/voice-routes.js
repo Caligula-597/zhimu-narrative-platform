@@ -1,13 +1,25 @@
 import { query, transaction } from "../db.js";
 import { publishRoomEvent } from "../room-event-bus.js";
+import { createVoiceRoomToken, isLiveKitConfigured } from "../livekit.js";
 import { requireActor } from "../request-actor.js";
-import { requireRoomRole, requireVoiceRoomAccess } from "./route-guards.js";
+import { requireRoomRole } from "./route-guards.js";
+import { ensureVoiceProviderRoomKey, requireVoiceRoomAccess, resolveVoiceRoomAccess } from "./voice-access.js";
 import {
   appendVoiceMembersSchema,
   createVoiceRoomSchema,
   sendVoiceMessageSchema,
   voiceRoomIdParams
 } from "./schemas.js";
+
+const voiceRoomInRoomParams = {
+  type: "object",
+  additionalProperties: false,
+  required: ["roomId", "voiceRoomId"],
+  properties: {
+    roomId: { type: "string", minLength: 36, maxLength: 36 },
+    voiceRoomId: { type: "string", minLength: 36, maxLength: 36 }
+  }
+};
 
 export async function registerVoiceRoutes(app) {
   app.get("/api/voice-rooms/:voiceRoomId/messages", { schema: { params: voiceRoomIdParams } }, async (request) => {
@@ -106,6 +118,31 @@ export async function registerVoiceRoutes(app) {
       }
     });
     return reply.code(201).send({ ok: true, invited: invitees.length });
+  });
+
+  app.post("/api/rooms/:roomId/voice-rooms/:voiceRoomId/token", { schema: { params: voiceRoomInRoomParams } }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { roomId, voiceRoomId } = request.params;
+    const access = await resolveVoiceRoomAccess(actorId, voiceRoomId);
+    if (!access.allowed) return reply.code(403).send({ error: access.error });
+    if (access.room_id !== roomId) return reply.code(404).send({ error: "Voice room not found in this parallel room" });
+    if (!isLiveKitConfigured()) return reply.code(503).send({ error: "LiveKit is not configured on the server" });
+
+    const user = await query(`SELECT display_name FROM users WHERE id = $1`, [actorId]);
+    const displayName = user.rows[0]?.display_name || "玩家";
+    const providerRoomKey = await ensureVoiceProviderRoomKey(voiceRoomId, access.provider_room_key);
+    const issued = await createVoiceRoomToken({
+      roomName: providerRoomKey,
+      participantIdentity: actorId,
+      participantName: displayName
+    });
+    return {
+      token: issued.token,
+      url: issued.url,
+      roomName: issued.roomName,
+      voiceRoomId,
+      livekit: true
+    };
   });
 
 }

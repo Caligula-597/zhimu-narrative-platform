@@ -94,6 +94,42 @@ export const readClueSchema = {
   params: paramsSchema({ roomId: uuid, clueId: uuid })
 };
 
+export const cluePlayerNoteSchema = {
+  params: paramsSchema({ roomId: uuid, clueId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["note"],
+    properties: {
+      note: { type: "string", maxLength: 2000 }
+    }
+  }
+};
+
+export const clueShareRoomSchema = {
+  params: paramsSchema({ roomId: uuid, clueId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      shared: { type: "boolean" }
+    }
+  }
+};
+
+export const hostClueNoteSchema = {
+  params: paramsSchema({ roomId: uuid, clueId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["roleSlotId", "hostNote"],
+    properties: {
+      roleSlotId: uuid,
+      hostNote: { type: "string", maxLength: 2000 }
+    }
+  }
+};
+
 export const hostEventSchema = {
   params: paramsSchema({ roomId: uuid, eventId: uuid })
 };
@@ -109,6 +145,21 @@ export const hostGrantClueSchema = {
     properties: {
       roleSlotId: uuid,
       clueId: uuid,
+      message: { type: "string", maxLength: 500 }
+    }
+  }
+};
+
+export const hostGrantItemSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["roleSlotId", "itemId"],
+    properties: {
+      roleSlotId: uuid,
+      itemId: uuid,
+      quantity: { type: "integer", minimum: 1, maximum: 99 },
       message: { type: "string", maxLength: 500 }
     }
   }
@@ -157,6 +208,24 @@ export const hostNotesSchema = {
 export const checkpointIdParams = paramsSchema({
   roomId: uuid,
   checkpointId: uuid
+});
+
+export const createRecapSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["title"],
+    properties: {
+      title: { type: "string", minLength: 1, maxLength: 120 },
+      description: { type: "string", maxLength: 2000 }
+    }
+  }
+};
+
+export const recapIdParams = paramsSchema({
+  roomId: uuid,
+  recapId: uuid
 });
 
 export const createCheckpointSchema = {

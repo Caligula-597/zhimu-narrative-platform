@@ -1,6 +1,7 @@
 import { query } from "../db.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole } from "./route-guards.js";
+import { validateRuleBody } from "../rule-structure-validator.js";
 import { buildWorldSnapshot, creatorChecks } from "./world-helpers.js";
 
 export async function registerRulesRoutes(app) {
@@ -70,6 +71,15 @@ export async function registerRulesRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const snapshot = await buildWorldSnapshot(worldId);
     return { checks: creatorChecks(snapshot), totalRules: snapshot.rules.length };
+  });
+
+  app.post("/api/worlds/:worldId/rules/validate-body", async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const snapshot = await buildWorldSnapshot(worldId);
+    const { conditions, actions } = request.body ?? {};
+    return validateRuleBody(snapshot, { conditions, actions });
   });
 
 }

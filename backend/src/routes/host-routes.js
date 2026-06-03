@@ -1,13 +1,15 @@
 import { query, transaction } from "../db.js";
-import { executeActions, executeActionsWithClient } from "../rule-engine.js";
+import { executeActions, executeActionsWithClient, evaluateRoomRules } from "../rule-engine.js";
 import { publishRoomEvent } from "../room-event-bus.js";
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole } from "./route-guards.js";
 import {
   hostEventSchema,
   hostGrantClueSchema,
+  hostGrantItemSchema,
   hostLogSchema,
   hostNotesSchema,
+  hostClueNoteSchema,
   hostUnlockSectionSchema,
   paramsSchema,
   roomIdParams,
@@ -19,6 +21,8 @@ import {
   fetchHostPlayers,
   summarizeHostAction
 } from "./host-helpers.js";
+import { fetchHostClueMatrix } from "./clue-helpers.js";
+import { grantItemToInventory } from "../inventory-helpers.js";
 
 async function requireHostMembership(actorId, roomId) {
   const membership = await requireRoomRole(actorId, roomId);
@@ -28,8 +32,8 @@ async function requireHostMembership(actorId, roomId) {
   return membership;
 }
 
-async function assertRoleInRoomWorld(client, roomId, roleSlotId) {
-  const result = await client.query(
+async function assertRoleInRoomWorld(runQuery, roomId, roleSlotId) {
+  const result = await runQuery(
     `SELECT 1 FROM role_slots rs
      JOIN rooms r ON r.world_id = rs.world_id
      WHERE r.id = $1 AND rs.id = $2`,
@@ -46,6 +50,29 @@ export async function registerHostRoutes(app) {
     const players = await fetchHostPlayers(query, roomId);
     const stuckCount = players.filter((player) => player.maybe_stuck).length;
     return { players, stuckCount };
+  });
+
+  app.get("/api/rooms/:roomId/host/clue-matrix", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireHostMembership(actorId, roomId);
+    return fetchHostClueMatrix(query, roomId);
+  });
+
+  app.put("/api/rooms/:roomId/host/clues/:clueId/notes", { schema: hostClueNoteSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { roomId, clueId } = request.params;
+    const { roleSlotId, hostNote = "" } = request.body ?? {};
+    await requireHostMembership(actorId, roomId);
+    await assertRoleInRoomWorld(query, roomId, roleSlotId);
+    const result = await query(
+      `UPDATE clue_ownership SET host_note = $4
+       WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3
+       RETURNING host_note`,
+      [roomId, roleSlotId, clueId, hostNote]
+    );
+    if (!result.rowCount) return reply.code(404).send({ error: "Clue ownership not found" });
+    return { ok: true, hostNote: result.rows[0].host_note };
   });
 
   app.get("/api/rooms/:roomId/host/players/:roleSlotId", { schema: { params: roleSlotRoomParams } }, async (request, reply) => {
@@ -70,7 +97,7 @@ export async function registerHostRoutes(app) {
     );
     if (!clue.rowCount) return reply.code(404).send({ error: "Clue not found in room world" });
     await transaction(async (client) => {
-      await assertRoleInRoomWorld(client, roomId, roleSlotId);
+      await assertRoleInRoomWorld((text, params) => client.query(text, params), roomId, roleSlotId);
       await executeActionsWithClient(client, roomId, [{
         type: "grant_clue",
         roleSlotId,
@@ -96,6 +123,42 @@ export async function registerHostRoutes(app) {
       source: "host_manual"
     });
     return { ok: true };
+  });
+
+  app.post("/api/rooms/:roomId/host/grant-item", { schema: hostGrantItemSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const { roleSlotId, itemId, quantity = 1, message } = request.body ?? {};
+    await requireHostMembership(actorId, roomId);
+    let item;
+    await transaction(async (client) => {
+      item = await grantItemToInventory(client, {
+        roomId,
+        roleSlotId,
+        itemId,
+        quantity,
+        source: "host_manual"
+      });
+      await client.query(
+        `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+         VALUES ($1, $2, 'host', 'host_grant_item', $3, jsonb_build_object('roleSlotId', $4::text, 'itemId', $5::text))`,
+        [
+          roomId,
+          actorId,
+          message || `主持人发放物品「${item.name}」`,
+          roleSlotId,
+          itemId
+        ]
+      );
+    });
+    publishRoomEvent(roomId, "room.item_granted", {
+      itemId,
+      roleSlotId,
+      itemName: item.name,
+      source: "host_manual"
+    });
+    const executedRules = await evaluateRoomRules(roomId);
+    return { ok: true, item: { id: item.id, name: item.name }, executedRules };
   });
 
   app.post("/api/rooms/:roomId/host/unlock-section", { schema: hostUnlockSectionSchema }, async (request, reply) => {
@@ -154,7 +217,7 @@ export async function registerHostRoutes(app) {
     const { notes } = request.body ?? {};
     await requireHostMembership(actorId, roomId);
     await transaction(async (client) => {
-      await assertRoleInRoomWorld(client, roomId, roleSlotId);
+      await assertRoleInRoomWorld((text, params) => client.query(text, params), roomId, roleSlotId);
       await client.query(
         `INSERT INTO player_states (room_id, role_slot_id, variables, updated_at)
          VALUES ($1, $2, jsonb_build_object('hostNotes', $3::text), now())

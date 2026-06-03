@@ -11,7 +11,8 @@ export async function buildRoomCheckpointSnapshot(query, roomId) {
     fetchHostPlayers(query, roomId),
     query(
       `SELECT rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name,
-              c.id AS clue_id, c.name AS clue_name, co.acquired_at, co.read_at
+              c.id AS clue_id, c.name AS clue_name, co.acquired_at, co.read_at,
+              co.shared_with_room, co.player_note, co.host_note
        FROM clue_ownership co
        JOIN clues c ON c.id = co.clue_id
        JOIN role_slots rs ON rs.id = co.role_slot_id

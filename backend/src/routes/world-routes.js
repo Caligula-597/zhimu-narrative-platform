@@ -7,13 +7,15 @@ import { parseCreatorDocument } from "../document-parser.js";
 export async function registerWorldRoutes(app) {
   app.get("/api/worlds", async (request) => {
     const actorId = requireActor(request);
+    const includeArchived = String(request.query?.includeArchived ?? "") === "true";
     const result = await query(
       `SELECT w.id, w.name, w.summary, w.status, wm.role AS membership_role
        FROM worlds w
        JOIN world_members wm ON wm.world_id = w.id
        WHERE wm.user_id = $1
+         AND ($2::boolean OR w.status <> 'archived')
        ORDER BY w.updated_at DESC`,
-      [actorId]
+      [actorId, includeArchived]
     );
     return result.rows;
   });

@@ -1,7 +1,7 @@
 # 织幕 · 完整功能目录（Alpha）
 
 > **文档用途**：团队协调用的功能总表。每个功能标明已实现、部分实现、未实现与已知局限。  
-> **更新日期**：2026-06-03（P0-1～P0-5 + P1 SSE 最高优先级项已全部落地；见 §12–§18）
+> **更新日期**：2026-06-03（P0-1～P1 + **P2-1 LiveKit · P2-2 物品 · P2-3 复盘**；见 §12–§26）
 > **版本阶段**：Alpha（可内测，非生产 SaaS）
 
 ---
@@ -148,11 +148,12 @@
 |------|------|--------|----------------|
 | 规则 CRUD | ✅ | 世界模板或指定 room_id | — |
 | 规则模式 | ✅ | automatic / host_confirm / manual | manual 模式**无专门「手动触发」API/UI** |
-| 条件类型 | 🟡 | reading_completed · clue_owned · investigation_completed · item_owned | **无 OR/NOT/变量比较**；item 条件有引擎支持但**缺 items API/UI** |
+| 条件类型 | 🟡 | reading_completed · clue_owned · investigation_completed · item_owned | **无 OR/NOT/变量比较** |
 | 动作类型 | 🟡 | unlock_script_section · unlock_scene · timeline_log · grant_clue | 无 unlock_chapter、无发物品动作 |
 | 主持确认流 | ✅ | pending_host_events → execute | 无批量确认、无延迟 scheduling UI |
 | 幂等执行 | ✅ | rule_executions 防重复 | host_confirm 重复 evaluate 不会重复 pending（UNIQUE） |
 | 规则 JSON 编辑器 | ✅ | 前端直接编辑 JSON | **无可视化条件积木** |
+| 规则可视化编辑器 | ✅ | 可视化 / JSON 双 Tab；表单生成 `conditions.all` + `actions`；保存前 `validate-body` 人话报错 | 仅 AND；无 OR/NOT/流程图 |
 | 规则结构校验 | ✅ | creator-checks + rules/validate | 不模拟 dry-run |
 
 **后端 API**：rules CRUD · validate · host-events · evaluateRoomRules（内部）
@@ -172,8 +173,9 @@
 | 阅读完成触发规则 | ✅ | 写 reading_progress + evaluateRoomRules；玩家 toast；SSE `room.section_completed` | — |
 | 随身笔记本 | ✅ | 关联 sourceType/sourceId | 无全文检索 |
 | 场景探索 | ✅ | 仅已 unlock 场景；调查点持久化 | 调查为**房间级**记录（investigation_records 无 role 维度在条件里） |
-| 调查发线索 | ✅ | clue_ownership | required_item 调查门槛**有 DB 无物品系统** |
-| 线索已读标记 | ✅ | read_at | — |
+| 调查发线索 | ✅ | clue_ownership | 可配置 required_item 门槛与可消耗物品 |
+| 线索已读标记 | ✅ | read_at + 阅读日志 | — |
+| 线索公开与解读 | ✅ | 公开到全房间、玩家解读、主持矩阵、分享/阅读日志 | 第一版不做指定玩家私享 |
 | 玩家入口按钮 | ✅ | 无 cloudPlayer 时打开邀请码弹窗 | — |
 
 **后端 API**：invite · join · player-home · complete section · notebook · exploration · investigate · read clue
@@ -199,13 +201,15 @@
 
 | 功能 | 状态 | 已实现 | 未实现 / 局限 |
 |------|------|--------|----------------|
-| 公共语音房 | ✅ | 创建房间时自动建「公共讨论房」 | **无音频流** |
-| 临时私密房 | ✅ | 多选邀请；文字频道 | 无 LiveKit token |
-| 私密房权限 | ✅ | voice_room_members 校验 | — |
+| 公共语音房 | ✅ | 创建房间时自动建「公共讨论房」；LiveKit 音频 | 需配置 `LIVEKIT_*` 环境变量 |
+| 临时私密房 | ✅ | 多选邀请；文字 + LiveKit | — |
+| 私密房权限 | ✅ | voice_room_members + token 校验 | — |
+| LiveKit token | ✅ | `POST .../voice-rooms/:id/token` | secret 仅存服务端 |
+| 主持旁听 | ✅ | `rooms.settings.hostVoiceListen` | 设置 UI 待接入 |
 | 房内文字消息 | ✅ | 最近 80 条；隔离未受邀成员 | 无图片/表情、无编辑删除 |
-| 切换语音房 | ✅ | 玩家 UI | 无 Push 通知 |
+| 切换语音房 | ✅ | 玩家 UI；切换时断开旧音频 | 无 Push 通知 |
 
-**后端 API**：voice-rooms · messages · members
+**后端 API**：voice-rooms · messages · members · **token**
 
 ---
 
@@ -232,10 +236,11 @@
 |------|------|--------|----------------|
 | 存档时间线 UI | ✅ | 真实 checkpoint 列表；无静态假数据 | 无恢复 |
 | 房间 checkpoint | ✅ | `GET/POST checkpoints` · JSONB 快照 | 无 restore API |
+| 房间复盘报告 | ✅ | `GET/POST recaps` · 全局/玩家视角 · 真实日志与线索流转 | 无 AI 总结 |
 | 分支结局 / 回滚 | 🔲 | 可查看快照；UI 标注恢复未接入 | 无回滚 API |
 | 创作版本 vs 运行存档 | — | 创作版本仅恢复正文 | **二者不同概念，勿混淆** |
 
-**后端 API**：`GET/POST /rooms/:roomId/checkpoints` · `GET /rooms/:roomId/checkpoints/:id`
+**后端 API**：`GET/POST /rooms/:roomId/checkpoints` · `GET /rooms/:roomId/checkpoints/:id` · `GET/POST /rooms/:roomId/recaps` · `GET /rooms/:roomId/recaps/:id` · `GET /rooms/:roomId/recap/latest`
 
 ---
 
@@ -253,8 +258,8 @@
 
 | 功能 | 状态 | 说明 |
 |------|------|------|
-| items / inventory 表 | 🔲 | Schema 存在；规则引擎支持 item_owned；**无 CRUD API 与 UI** |
-| 调查 required_item | 🟡 | 后端校验 inventory | 无法通过正常 UI 获得物品 |
+| items / inventory 表 | ✅ | CRUD API · 创作台物品节点 · 主持发放 · 玩家背包 · 调查门槛 · item_owned 规则 |
+| 调查 required_item | ✅ | 后端校验 inventory；可消耗物品调查后扣除 |
 | NPC 对话 | 🔲 | 无 NPC 实体模型与 API | 资产页已不再展示假 NPC 卡片 |
 | 实体卡 QR/NFC | 🔲 | UI 占位 | token_status ENUM 已预留 |
 
@@ -264,18 +269,19 @@
 
 | 项目 | 状态 | 说明 |
 |------|------|------|
-| PostgreSQL 迁移 | ✅ | 9 个 migration；无 SQLite |
+| PostgreSQL 迁移 | ✅ | **11** 个 migration（含 `room_recaps`）；无 SQLite |
 | Supabase 云库 | ✅ | 生产/开发可连 |
 | Cloudflare R2 | ✅ | 私有 bucket + 签名 URL |
-| 路由模块化 | ✅ | `backend/src/routes/*.js` + `world-helpers.js` |
-| 单元/集成测试 | ✅ | **25 项**（auth · checkpoint · host-console · room-events · rule-engine · runtime · studio-edit） |
-| API smoke | ✅ | `scripts/smoke-api.js` 13 项真实库（需本地 4180 已启动最新后端） |
-| UI smoke | ✅ | `scripts/ui-smoke.js` **20 项**（P0-1～P1 接线检查） |
+| 路由模块化 | ✅ | `backend/src/routes/*.js` + helpers |
+| 单元/集成测试 | ✅ | **53 项**（auth · checkpoint · clue-sharing · content-package · demo-act2 · host · **inventory** · **livekit** · **recap** · room-events · rule-engine · runtime · studio-edit · worlds-list） |
+| API smoke | ✅ | `scripts/smoke-api.js` **16 项**真实库（需本地 4180 已启动最新后端） |
+| UI smoke | ✅ | `scripts/ui-smoke.js` **29 项**（P0-1～P2 接线检查） |
+| 脚本加载验证 | ✅ | `scripts/verify-script-load.mjs` **24 项**（捕获 SyntaxError） |
 | GitHub Actions CI | ✅ | `.github/workflows/ci.yml` |
 | WebSocket 实时推送 | 🔲 | 未开始（多节点集群场景） |
 | SSE 房间事件流 | ✅ | `GET /api/rooms/:roomId/events/stream`；单节点内存总线（见 §17） |
-| LiveKit | 🔲 | 未开始 |
-| 前端模块化 | 🟡 | `state.js` 已拆（含 `cloudWorldLogs`）；`app.js` 仍 ~920 行 | 见 FRONTEND_MODULE_PLAN |
+| LiveKit | ✅ | token API + 前端连接；需 `LIVEKIT_*`（见 §24） |
+| 前端模块化 | ✅ | `src/` 视图/组件/API 拆分；`app.js` ~70 行 bootstrap | 见 §21 |
 | 全文检索 | 🔲 | 未开始 |
 | Rate limit / 上传扫描 | 🔲 | 未开始 |
 
@@ -292,7 +298,7 @@
 | 自动化规则 | rules | cloudRules | JSON 编辑 |
 | 主持监控台 | director | cloudHost · cloudHostEvents | 需平行房 |
 | 玩家视角 | player | cloudPlayer · cloudExploration | 需入房选角 |
-| 存档与复盘 | archive | **运行房 checkpoint 列表与详情** | 恢复回滚未接入 |
+| 存档与复盘 | archive | **checkpoint 快照** + **房间复盘**（主持全局 / 玩家视角） | checkpoint 恢复回滚未接入 |
 | 世界设置 | settings | cloudStudio（只读）+ 弹窗 | 写入 API 待接入 |
 
 ---
@@ -353,12 +359,13 @@
 ## 8. 已知全局局限
 
 1. **~~无 WebSocket 实时推送~~**：已接入 SSE 房间事件流（§17）；主持台在连接成功时停止 15 秒轮询，断线自动回退。  
-2. **无真实语音**：仅文字频道 + 权限模型。  
+2. **LiveKit 需环境配置**：未设置 `LIVEKIT_*` 时音频 token 503；文字频道与权限模型仍可用（§24）。  
 3. **单体前端**：`app.js` 维护成本高，无组件测试。  
-4. **规则表达力有限**：无复杂逻辑、无物品/NPC 完整链路。  
+4. **规则表达力有限**：无复杂逻辑、无 grant_item 规则动作；NPC 未建模。  
 5. **运行存档恢复缺失**：可创建 checkpoint 快照，**暂不支持从此恢复房间**（见 §16）。  
-6. **生产安全**：需关闭 demo header、配置 HTTPS、R2 密钥轮换；无 rate limit。  
-7. **多语言**：仅中文 UI。
+6. **复盘无 AI 总结**：结构化报告已落地（§26），叙事总结待后续接入。  
+7. **生产安全**：需关闭 demo header、配置 HTTPS、R2 密钥轮换；无 rate limit。  
+8. **多语言**：仅中文 UI。
 
 ---
 
@@ -373,11 +380,13 @@
 | ~~P0~~ | ~~运行房 checkpoint 存档 API + 存档页真实数据~~ | ✅ 2026-06-03 已完成（见 §16） |
 | ~~P1~~ | ~~WebSocket / SSE 实时推送（阅读/规则/主持待办）~~ | ✅ 2026-06-03 SSE 第一版（见 §17） |
 | **下一步** | **Demo 标准路线**（雾港 12 分钟脚本） | 见 [DEMO_ROUTE.md](./DEMO_ROUTE.md) · [RELEASE_NOTES.md](./RELEASE_NOTES.md) |
-| P1 | 规则可视化编辑器 | 降低 JSON 门槛 |
-| P1 | 前端 `app.js` 按 FRONTEND_MODULE_PLAN 拆分 | 可维护性 |
-| P2 | LiveKit 语音 | 剧本杀刚需 |
+| ~~P1~~ | ~~规则可视化编辑器~~ | ✅ 2026-06-03 双 Tab 可视化（见 §19） |
+| ~~P1~~ | ~~线索分享 / 公开 / 解读~~ | ✅ 2026-06-03 全房间公开 + 玩家解读 + 主持矩阵（见 §20） |
+| ~~P1~~ | ~~前端 app.js 模块化拆分~~ | ✅ 2026-06-03 src/views + components（见 §21） |
+| P2 | LiveKit 语音 | ✅ 2026-06-03（见 §24） |
 | P2 | checkpoint 恢复回滚 API | 长线团恢复 |
-| P2 | items/inventory API | 规则 item 条件可用 |
+| ~~P2~~ | ~~items/inventory API~~ | ✅ 2026-06-03（见 §25） |
+| ~~P2~~ | ~~复盘报告~~ | ✅ 2026-06-03（见 §26） |
 | P3 | 全文检索 · 实体卡 · 上传扫描 | 规模化运营 |
 
 ---
@@ -405,14 +414,16 @@
 cd backend
 npm run ci
 
-# 或分步复验最高优先级项（见 FEATURE_CATALOG §18）
+# 或分步复验（P0～P2）
 npm run check    # 语法
-npm test         # 25 项单元/集成
-npm run test:ui  # 20 项前端接线（在项目根执行亦可）
+npm test         # 53 项单元/集成
+npm run test:smoke   # 16 项 API（需 4180 已启动）
+npm run test:ui:load # 24 项脚本加载（项目根）
 
-# 前端 UI（需 4173 + 4180 已启动且为最新代码）
+# 前端 UI 接线（需 4173 + 4180 已启动且为最新代码）
 cd ..
-node scripts/ui-smoke.js
+node scripts/ui-smoke.js   # 29 项
+node scripts/verify-script-load.mjs
 ```
 
 ---
@@ -677,4 +688,311 @@ npm test
 npm run test:ui
 # 确保 4180 为最新后端进程后：
 npm run test:smoke
+```
+
+---
+
+## 19. 近期变更（P1-1 · 规则可视化编辑器 · 2026-06-03）
+
+**目标**：创作者无需写 JSON 即可配置「当…则…」规则，同时保留 JSON 高级模式与原有规则引擎兼容。
+
+### 后端
+
+- **`rule-structure-validator.js`** — 校验 `conditions.all` + `actions` 结构与引用
+- **`POST /api/worlds/:worldId/rules/validate-body`** — 返回 `{ ok, errors: [{ path, message }] }` 中文提示
+- **`buildWorldSnapshot` / studio** — 附带 `items` 列表供物品条件下拉
+
+### 前端
+
+- **`rule-visual.js`** — 可视化 ↔ JSON 互转、条件/动作行渲染
+- **规则弹窗双 Tab**：可视化编辑（默认）/ JSON 编辑
+- 保存前调用 `validateRuleBody`；错误列表指向具体条件/动作
+- 规则卡片列表改为人话摘要（非 raw JSON）
+
+### 验收标准（已通过）
+
+1. 不写 JSON 可创建「读完第一章 → 解锁第二章」。  
+2. 不写 JSON 可创建「调查完成 → 主持确认 → 发线索」（模式选 host_confirm + 调查条件 + 发线索动作）。  
+3. 可视化保存后规则引擎可执行（JSON 结构不变）。  
+4. JSON 高级模式仍可用。  
+5. 错误提示指出具体条件/动作字段。
+
+### 刻意未做
+
+- OR / NOT / 复杂表达式  
+- 流程图式规则引擎  
+- 破坏既有 JSON 规则格式
+
+---
+
+## 20. 近期变更（P1-2 · 线索分享 / 公开 / 解读 · 2026-06-03）
+
+**目标**：玩家不只「拿到线索」，还能公开、写解读；主持台看清谁拥有/读过/公开过；分享行为写入房间日志。
+
+### 数据模型（`010_clue_sharing.sql`）
+
+- `clue_ownership` 扩展：`shared_with_room`、`shared_with_roles`、`player_note`、`host_note`、`shared_at`
+- 新表 `clue_read_receipts` — 非拥有者阅读公开线索时的已读回执
+
+### 后端 API
+
+| 端点 | 说明 |
+|------|------|
+| `POST .../clues/:clueId/share-room` | 玩家公开/撤回全房间线索 |
+| `PATCH .../clues/:clueId/player-note` | 玩家保存「我的解读」 |
+| `POST .../clues/:clueId/read` | 拥有或可见线索标记已读；写 `clue_read` 日志 |
+| `GET .../host/clue-matrix` | 线索 × 玩家矩阵 + 文字摘要 |
+| `PUT .../host/clues/:clueId/notes` | 主持备注 `host_note` |
+
+- `player-home` 返回 `clues`（自有）+ `sharedClues`（他人公开）
+- 时间线事件：`clue_shared_room`、`clue_read`
+- SSE：`room.clue_granted`（`source: shared_room`）
+
+### 前端
+
+- 玩家线索卡：标记已读、添加解读、公开到公共讨论区
+- 公共讨论区 `sharedClueSection` 展示他人公开线索
+- 主持台「线索矩阵」表格 + SSE/轮询刷新
+
+### 验收标准（已通过）
+
+1. 玩家可公开自己拥有的线索。  
+2. 公开后其他玩家可在公共讨论区看到。  
+3. 主持台矩阵显示拥有 / 已读 / 公开状态。  
+4. 玩家可写 `player_note` 解读。  
+5. 公开与阅读写入 `timeline_logs`。
+
+### 第一版刻意未做
+
+- 指定玩家私享 / 私聊转发  
+- 线索交易、篡改、复杂权限图谱
+
+---
+
+## 21. 近期变更（P1-3 · 前端 app.js 模块化 · 2026-06-03）
+
+**目标**：把单体 `app.js` 拆成可维护模块，行为与拆分前一致，不改 UI 风格、不引入框架。
+
+### 目录结构
+
+| 路径 | 职责 |
+|------|------|
+| `src/state.js` | `window.zhimuState` |
+| `src/api/client.js` | `window.zhimuApi` 全部 HTTP/SSE |
+| `src/utils/format.js` | `escapeHtml`、时间/字节格式化、角色名解析 |
+| `src/components/toast.js` | `showToast`、通知角标 |
+| `src/components/modal.js` | 弹窗壳、`studioField` / `studioValues` |
+| `src/components/emptyState.js` | `cloudStatus`、`runtimeEmpty`、卡片 HTML 片段 |
+| `src/views/*.js` | 各导航视图渲染（overview / writer / studio / …） |
+| `src/runtime/data.js` | `loadCloudData`、SSE、主持台刷新 |
+| `src/runtime/actions.js` | `handle` / `bindDynamic` 事件分发 |
+| `src/runtime/wizard.js` | 五步创建向导 |
+| `src/runtime/auth-world.js` | 登录、世界/平行房选择 |
+| `app.js` | **~70 行**：`render` / `go`、顶栏事件、启动 `loadCloudData` |
+
+模块通过 `window.zhimuFormat` / `zhimuUi` / `zhimuViews` / `zhimuRuntime` 命名空间互调；`index.html` 按依赖顺序加载脚本。
+
+### 验收标准（已通过）
+
+1. `app.js` 明显变薄，只负责初始化和路由。  
+2. 各视图渲染进入 `src/views/`。  
+3. API 集中在 `src/api/client.js`。  
+4. UI 行为与拆分前一致（UI smoke 22/22）。  
+5. `npm run check` / `test:ui` 通过。
+
+### 刻意未做
+
+- React/Vue 迁移  
+- 业务逻辑重写或 UI 改版  
+- 拆分过程中加新功能
+
+### 维护须知（空白页 / 重复声明）
+
+P1-3 机械拆分曾导致浏览器 **整页空白**（`const` 别名与本地 `function` 同名 → SyntaxError，脚本链中断）。修复与日后规范见 **[FRONTEND_MODULE_PLAN.md](./FRONTEND_MODULE_PLAN.md)** 中「定义方 vs 消费方」「事故复盘」「日常维护检查清单」。
+
+改模块后建议执行：
+
+```bash
+node scripts/verify-script-load.mjs
+cd backend && npm run test:ui
+```
+
+---
+
+## 22. 近期变更（P1-4 · 内容包导入导出增强 · 2026-06-03）
+
+**目标**：让 JSON 内容包从「能导出/追加导入」升级为正式 DIY 工作流：导出前摘要、导入前预览、两种安全导入模式。
+
+### 后端 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/worlds/:worldId/content-package/summary` | 导出前摘要（各实体数量、是否含资产引用） |
+| GET | `/api/worlds/:worldId/content-package` | 下载完整 JSON 包（不变） |
+| POST | `/api/worlds/:worldId/content-package/preview` | 追加导入预览（重名、缺失引用） |
+| POST | `/api/content-package/preview-new-world` | 新世界导入预览 |
+| POST | `/api/worlds/:worldId/content-package/import` | **追加导入**（INSERT only，序号自动续排） |
+| POST | `/api/worlds/from-content-package` | **创建新世界并导入** |
+
+核心逻辑：`backend/src/routes/content-package-helpers.js`（摘要、预览、ID 重映射、warnings）。
+
+### 前端（创作中心）
+
+- **导出备份**：先弹窗展示角色/章节/分幕/场景/线索/调查点/规则/资产数量，确认后再下载 JSON。
+- **导入内容**：选文件 → 选模式（追加 / 新世界）→ **解析预览** → 确认导入。
+- 预览展示：即将导入的角色/章节/线索列表、重名提示、缺失引用 warnings。
+- **不做覆盖导入**。
+
+### 验收标准（已通过）
+
+1. 导出前能看到内容摘要。  
+2. 导入前能预览内容（JSON）。  
+3. 导入后 ID 正确重映射（规则/连线/调查点引用）。  
+4. 追加导入不会覆盖已有内容（仅 INSERT + sequence 续排）。  
+5. 缺失引用会在预览与导入结果中提示。  
+6. `npm test` 36/36 · `test/content-package.test.js` 5 项。
+
+### 刻意未做
+
+- 覆盖导入 / 合并同名实体  
+- 内容包内嵌二进制资产（资产仍走 R2 上传流程）  
+- `items` / `rooms` 从包内恢复
+
+---
+
+## 23. 近期变更（Demo Act 2 · 玩家阅读与第二章解锁 · 2026-06-03）
+
+**目标**：验收 DEMO_ROUTE Act 2——邀请码入房、读完第一章、规则解锁第二幕；并修复总览首屏加载过慢。
+
+### 自动化验收
+
+| 测试 | 内容 |
+|------|------|
+| `test/demo-act2-reading.test.js` | 邀请码、读完「抵达档案馆」→ 解锁「被撕去的一页」、主持台进度 |
+
+```bash
+cd backend && node --test test/demo-act2-reading.test.js
+```
+
+### 前端加载优化（总览卡顿）
+
+**原因**：`loadCloudData` 曾一次性并行 12 个 API（含重型 `creator-checks`），且 `data.js` 与 `app.js` **重复调用**；最慢请求完成前 `cloudStudio` 为空，总览一直显示「正在读取云端世界」。
+
+**修复**（`src/runtime/data.js`）：
+
+1. 移除 `data.js` 底部自动 `loadCloudData()`，仅 `app.js` bootstrap 调用一次  
+2. **分阶段加载**：先 `getStudio` → 立即 `render`；再并行运行房/日志/规则；资产与 `creator-checks` 后台加载  
+3. 请求去重：并发刷新复用同一 Promise  
+4. API 客户端 20s 超时，避免无限挂起  
+5. `state.cloudLoading` + 总览文案「正在连接云端…」
+
+### 验收标准（已通过）
+
+1. Act 2 自动化 3/3。  
+2. 刷新后总览在 studio 返回后即可显示世界名（不再长时间卡在旧文案）。  
+3. `npm test` 53/53 · `node scripts/ui-smoke.js` 29/29 · `npm run test:smoke` 16/16。
+
+---
+
+## 24. P2-1 · LiveKit 真实语音（2026-06-03）
+
+**目标**：剧本杀线上语音讨论；后端签发 LiveKit token，前端连接音频，secret 不下发。
+
+### API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/rooms/:roomId/voice-rooms/:voiceRoomId/token` | 返回 `{ token, url, roomName, voiceRoomId }` |
+
+### 权限
+
+- **公共房**：活跃平行房成员  
+- **私密房**：`voice_room_members` 受邀成员  
+- **主持旁听**：`rooms.settings.hostVoiceListen === true` 且 `member_type = host`
+
+### 环境变量
+
+`LIVEKIT_URL` · `LIVEKIT_API_KEY` · `LIVEKIT_API_SECRET`（见 `backend/.env.example`）
+
+### 前端
+
+- `livekit-client@2`（CDN）+ `src/runtime/livekit-voice.js`  
+- 玩家视角：连接/断开音频、麦克风开关、LiveKit 参与者列表  
+- 切换平行房 / 清 runtime 时自动断开音频
+
+### 验收
+
+`backend/test/livekit-voice.test.js` — 公共房、私密邀请、未邀请 403、主持旁听、`503` 且无 secret 泄漏。
+
+```bash
+cd backend && node --test test/livekit-voice.test.js
+```
+
+---
+
+## 25. P2-2 · 物品 / Inventory 系统（2026-06-03）
+
+**目标**：创作者定义物品、主持发放、玩家背包、调查点门槛与 `item_owned` 规则闭环。
+
+### API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/worlds/:worldId/items` | 创建物品（name · publicText · unique · consumable · assetId · hostText） |
+| `PATCH` | `/api/worlds/:worldId/items/:itemId` | 更新物品 |
+| `DELETE` | `/api/worlds/:worldId/items/:itemId` | 删除（被调查点引用时 409） |
+| `POST` | `/api/rooms/:roomId/host/grant-item` | 主持发放 → inventory + SSE `room.item_granted` + 规则评估 |
+
+### 运行时
+
+- `player-home` 返回 `inventory`  
+- `exploration` 返回 `requiredItemId` · `requiredItemName` · `hasRequiredItem`  
+- 调查 POST 校验物品；可消耗物品调查后 `consumeItemIfNeeded`
+
+### 前端
+
+- 创作台：「＋ 物品」、画布物品节点、调查点「需要物品」  
+- 主持台：「手动发物品」  
+- 玩家视角：背包卡片；缺物品时调查按钮禁用并提示  
+- SSE：`room.item_granted` 刷新背包与探索
+
+### 验收
+
+`backend/test/inventory.test.js` — CRUD · 主持发放 · 调查门槛/消耗 · item_owned 解锁场景。
+
+```bash
+cd backend && node --test test/inventory.test.js
+```
+
+---
+
+## 26. P2-3 · 复盘报告（2026-06-03）
+
+**目标**：跑团结束后生成结构化复盘，基于真实日志与线索流转；主持看全局，玩家看自己视角。
+
+### API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/rooms/:roomId/recaps` | 主持生成复盘（JSONB 快照） |
+| `GET` | `/api/rooms/:roomId/recaps` | 主持列出历史复盘 |
+| `GET` | `/api/rooms/:roomId/recaps/:recapId` | 主持全局 / 玩家过滤视角 |
+| `GET` | `/api/rooms/:roomId/recap/latest` | 最新复盘（按身份自动过滤） |
+
+### 快照内容
+
+房间信息 · 玩家角色 · 关键时间线 · 线索发现顺序 · 未发现/错过线索 · 主持确认事件 · 规则触发（结局条件） · 笔记精选 · 世界简介
+
+### 前端
+
+- 「存档与复盘」页：生成 / 列表 / 详情  
+- 主持监控台：「生成复盘」快捷入口  
+- 玩家：查看最新复盘（自己视角，未公开线索名称打码）
+
+### 验收
+
+`backend/test/recap.test.js` — 主持生成 · 含日志与线索 · 玩家视角 · 全局线索顺序。
+
+```bash
+cd backend && node --test test/recap.test.js
 ```

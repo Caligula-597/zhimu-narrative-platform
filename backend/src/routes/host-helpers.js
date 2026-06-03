@@ -150,7 +150,8 @@ export async function fetchHostPlayerDetail(query, roomId, roleSlotId) {
       [roomId, roleSlotId]
     ),
     query(
-      `SELECT c.id, c.name, c.public_text, co.acquired_at, co.read_at, co.metadata
+      `SELECT c.id, c.name, c.public_text, co.acquired_at, co.read_at, co.metadata,
+              co.shared_with_room, co.player_note, co.host_note, co.shared_at
        FROM clue_ownership co JOIN clues c ON c.id = co.clue_id
        WHERE co.room_id = $1 AND co.role_slot_id = $2::uuid
        ORDER BY co.acquired_at DESC`,

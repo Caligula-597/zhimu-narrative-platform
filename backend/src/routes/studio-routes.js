@@ -124,7 +124,8 @@ export async function registerStudioRoutes(app) {
            sequence = COALESCE($11, sequence),
            metadata = COALESCE(metadata, '{}'::jsonb) || $12::jsonb
        WHERE id = $1 AND world_id = $2
-       RETURNING id, scene_id, name, description, interaction_text, result_text, clue_id, sequence, metadata`,
+       RETURNING id, scene_id, name, description, interaction_text, result_text, clue_id,
+                required_item_id, required_role_slot_id, sequence, metadata`,
       [
         pointId,
         worldId,
@@ -167,11 +168,76 @@ export async function registerStudioRoutes(app) {
     return reply.code(201).send(result.rows[0]);
   });
 
+  app.post("/api/worlds/:worldId/items", async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const { name, publicText = "", hostText = "", unique = false, consumable = false, assetId = null, metadata = {} } = request.body ?? {};
+    if (!name?.trim()) return reply.code(400).send({ error: "name is required" });
+    const itemMeta = {
+      ...metadata,
+      unique: Boolean(unique),
+      consumable: Boolean(consumable),
+      assetId: assetId || null
+    };
+    const result = await query(
+      `INSERT INTO items (world_id, name, public_text, host_text, metadata)
+       VALUES ($1, $2, $3, $4, $5::jsonb)
+       RETURNING id, name, public_text, host_text, metadata, created_at`,
+      [worldId, name.trim(), publicText, hostText, JSON.stringify(itemMeta)]
+    );
+    return reply.code(201).send(result.rows[0]);
+  });
+
+  app.patch("/api/worlds/:worldId/items/:itemId", async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, itemId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const { name, publicText, hostText, unique, consumable, assetId, metadata = {} } = request.body ?? {};
+    if (name !== undefined && !String(name).trim()) return reply.code(400).send({ error: "name cannot be empty" });
+    const current = await query(`SELECT metadata FROM items WHERE id = $1 AND world_id = $2`, [itemId, worldId]);
+    if (!current.rowCount) return reply.code(404).send({ error: "Item not found" });
+    const mergedMeta = {
+      ...(current.rows[0].metadata ?? {}),
+      ...metadata,
+      ...(unique !== undefined ? { unique: Boolean(unique) } : {}),
+      ...(consumable !== undefined ? { consumable: Boolean(consumable) } : {}),
+      ...(assetId !== undefined ? { assetId: assetId || null } : {})
+    };
+    const result = await query(
+      `UPDATE items
+       SET name = COALESCE($3, name),
+           public_text = COALESCE($4, public_text),
+           host_text = COALESCE($5, host_text),
+           metadata = $6::jsonb
+       WHERE id = $1 AND world_id = $2
+       RETURNING id, name, public_text, host_text, metadata, created_at`,
+      [itemId, worldId, name?.trim() ?? null, publicText ?? null, hostText ?? null, JSON.stringify(mergedMeta)]
+    );
+    return result.rows[0];
+  });
+
+  app.delete("/api/worlds/:worldId/items/:itemId", async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, itemId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const refs = await query(
+      `SELECT COUNT(*)::int AS count FROM investigation_points WHERE world_id = $1 AND required_item_id = $2`,
+      [worldId, itemId]
+    );
+    if (refs.rows[0].count > 0) {
+      return reply.code(409).send({ error: "Item is referenced by investigation points" });
+    }
+    const result = await query(`DELETE FROM items WHERE id = $1 AND world_id = $2 RETURNING id`, [itemId, worldId]);
+    if (!result.rowCount) return reply.code(404).send({ error: "Item not found" });
+    return { ok: true };
+  });
+
   app.get("/api/worlds/:worldId/studio", async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const [world, chapters, roles, sections, scenes, clues, points, edges, versions, rooms] = await Promise.all([
+    const [world, chapters, roles, sections, scenes, clues, points, items, edges, versions, rooms] = await Promise.all([
       query(`SELECT id, name, summary, status, settings FROM worlds WHERE id = $1`, [worldId]),
       query(`SELECT id, title, summary, sequence, publication_status, unlock_rules FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]),
       query(`SELECT id, name, public_profile, private_profile, sequence FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]),
@@ -186,12 +252,14 @@ export async function registerStudioRoutes(app) {
       query(`SELECT id, chapter_id, name, public_text, host_text, metadata FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]),
       query(`SELECT id, name, public_text, host_text, visibility, metadata FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]),
       query(
-        `SELECT ip.id, ip.scene_id, ip.name, ip.description, ip.interaction_text, ip.result_text, ip.clue_id, ip.sequence, ip.metadata
+        `SELECT ip.id, ip.scene_id, ip.name, ip.description, ip.interaction_text, ip.result_text,
+                ip.clue_id, ip.required_item_id, ip.required_role_slot_id, ip.sequence, ip.metadata
          FROM investigation_points ip
          WHERE ip.world_id = $1
          ORDER BY ip.scene_id, ip.sequence, ip.created_at`,
         [worldId]
       ),
+      query(`SELECT id, name, public_text, host_text, metadata FROM items WHERE world_id = $1 ORDER BY created_at`, [worldId]),
       query(
         `SELECT id, from_type, from_id, to_type, to_id, relation_type, label
          FROM story_graph_edges
@@ -214,6 +282,7 @@ export async function registerStudioRoutes(app) {
       scenes: scenes.rows,
       clues: clues.rows,
       investigationPoints: points.rows,
+      items: items.rows,
       edges: edges.rows,
       versions: versions.rows,
       rooms: rooms.rows

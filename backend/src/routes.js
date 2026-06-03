@@ -6,6 +6,7 @@ import { registerStudioRoutes } from "./routes/studio-routes.js";
 import { registerStoryAssistantRoutes } from "./routes/story-assistant-routes.js";
 import { registerStudioGraphRoutes } from "./routes/studio-graph-routes.js";
 import { registerCheckpointRoutes } from "./routes/checkpoint-routes.js";
+import { registerRecapRoutes } from "./routes/recap-routes.js";
 import { registerRoomEventsRoutes } from "./routes/room-events-routes.js";
 import { registerHostRoutes } from "./routes/host-routes.js";
 import { registerPlayerRoutes } from "./routes/player-routes.js";
@@ -22,6 +23,7 @@ export async function registerRoutes(app) {
   await registerStudioGraphRoutes(app);
   await registerHostRoutes(app);
   await registerCheckpointRoutes(app);
+  await registerRecapRoutes(app);
   await registerRoomEventsRoutes(app);
   await registerPlayerRoutes(app);
   await registerVoiceRoutes(app);

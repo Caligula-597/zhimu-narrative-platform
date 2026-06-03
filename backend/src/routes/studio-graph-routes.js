@@ -7,7 +7,7 @@ export async function registerStudioGraphRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, nodeType, nodeId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points" };
+    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     if (!tables[nodeType]) return reply.code(400).send({ error: "Unsupported nodeType" });
     const exists = await query(`SELECT 1 FROM ${tables[nodeType]} WHERE id = $1 AND world_id = $2`, [nodeId, worldId]);
     if (!exists.rowCount) return reply.code(404).send({ error: "Studio node not found" });
@@ -36,16 +36,25 @@ export async function registerStudioGraphRoutes(app) {
         [worldId, nodeId]
       );
     }
+    let requiredItemCount = { rows: [{ value: 0 }] };
+    if (nodeType === "item") {
+      requiredItemCount = await query(
+        `SELECT COUNT(*)::int AS value FROM investigation_points WHERE world_id = $1 AND required_item_id = $2::uuid`,
+        [worldId, nodeId]
+      );
+    }
 
     return {
       edgeCount: edgeCount.rows[0].value,
       investigationPointCount: investigationPointCount.rows[0].value,
       clueGrantCount: clueGrantCount.rows[0].value,
+      requiredItemCount: requiredItemCount.rows[0].value,
       ruleReferenceCount: ruleReferenceCount.rows[0].value,
       totalReferences:
         edgeCount.rows[0].value
         + investigationPointCount.rows[0].value
         + clueGrantCount.rows[0].value
+        + requiredItemCount.rows[0].value
         + ruleReferenceCount.rows[0].value
     };
   });
@@ -63,7 +72,7 @@ export async function registerStudioGraphRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, nodeType, nodeId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const tables = { chapter: "chapters", scene: "scenes", clue: "clues", investigation_point: "investigation_points" };
+    const tables = { chapter: "chapters", scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     const table = tables[nodeType];
     if (!table) return reply.code(400).send({ error: "Unsupported nodeType" });
     const result = await transaction(async (client) => {
@@ -83,7 +92,7 @@ export async function registerStudioGraphRoutes(app) {
     const { worldId, nodeType, nodeId } = request.params;
     const { x, y } = request.body ?? {};
     await requireWorldRole(actorId, worldId);
-    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points" };
+    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     const table = tables[nodeType];
     if (!table) return reply.code(400).send({ error: "Unsupported draggable nodeType" });
     if (!Number.isFinite(x) || !Number.isFinite(y)) return reply.code(400).send({ error: "Finite x and y are required" });
@@ -102,7 +111,7 @@ export async function registerStudioGraphRoutes(app) {
     const { worldId, nodeType, nodeId } = request.params;
     const { anchors = [] } = request.body ?? {};
     await requireWorldRole(actorId, worldId);
-    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points" };
+    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     const table = tables[nodeType];
     if (!table) return reply.code(400).send({ error: "Unsupported draggable nodeType" });
     if (!Array.isArray(anchors) || anchors.length < 1 || anchors.length > 8) {
@@ -129,7 +138,7 @@ export async function registerStudioGraphRoutes(app) {
     const { worldId } = request.params;
     const { positions = [] } = request.body ?? {};
     await requireWorldRole(actorId, worldId);
-    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points" };
+    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     if (!Array.isArray(positions) || positions.length > 300) return reply.code(400).send({ error: "positions must be an array of up to 300 nodes" });
     await transaction(async (client) => {
       for (const position of positions) {
