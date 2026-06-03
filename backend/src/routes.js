@@ -4,18 +4,8 @@ import { validateUpload } from "./asset-policy.js";
 import { getObjectStorage } from "./storage/index.js";
 import { randomUUID } from "node:crypto";
 import { createDeepseekMysteryPackage, createDeepseekStoryProposal, deepseekConfig, validateDeepseekProposal } from "./deepseek.js";
-import { createSession, deleteSession, hashPassword, verifyPassword } from "./auth.js";
 import { parseCreatorDocument } from "./document-parser.js";
-
-function requireActor(request) {
-  const actorId = request.headers["x-user-id"];
-  if (!actorId) {
-    const error = new Error("Missing x-user-id header");
-    error.statusCode = 401;
-    throw error;
-  }
-  return actorId;
-}
+import { requireActor } from "./request-actor.js";
 
 async function requireRoomRole(actorId, roomId) {
   const result = await query(
@@ -43,10 +33,6 @@ async function requireWorldRole(actorId, worldId, allowedRoles = ["owner", "edit
     throw error;
   }
   return result.rows[0];
-}
-
-function bearerToken(request) {
-  return request.headers.authorization?.startsWith("Bearer ") ? request.headers.authorization.slice(7) : "";
 }
 
 async function requireVoiceRoomAccess(actorId, voiceRoomId) {
@@ -417,55 +403,6 @@ async function importDeepseekMysteryPackage(worldId, mystery) {
 }
 
 export async function registerRoutes(app) {
-  app.get("/api/health", async () => {
-    const result = await query("SELECT now() AS database_time");
-    return { ok: true, databaseTime: result.rows[0].database_time };
-  });
-
-  app.post("/api/auth/register", async (request, reply) => {
-    const email = String(request.body?.email ?? "").trim().toLowerCase();
-    const displayName = String(request.body?.displayName ?? "").trim();
-    const password = String(request.body?.password ?? "");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return reply.code(400).send({ error: "Valid email is required" });
-    if (displayName.length < 2 || displayName.length > 40) return reply.code(400).send({ error: "Display name must contain between 2 and 40 characters" });
-    if (password.length < 8 || password.length > 128) return reply.code(400).send({ error: "Password must contain between 8 and 128 characters" });
-    const { passwordHash, passwordSalt } = await hashPassword(password);
-    const created = await query(
-      `INSERT INTO users (email, display_name, password_hash, password_salt)
-       VALUES ($1,$2,$3,$4) RETURNING id, email, display_name`,
-      [email, displayName, passwordHash, passwordSalt]
-    ).catch((error) => {
-      if (error.code === "23505") throw Object.assign(new Error("Email is already registered"), { statusCode: 409 });
-      throw error;
-    });
-    await storageUsage(created.rows[0].id);
-    const session = await createSession(created.rows[0].id);
-    return reply.code(201).send({ user: created.rows[0], ...session });
-  });
-
-  app.post("/api/auth/login", async (request, reply) => {
-    const email = String(request.body?.email ?? "").trim().toLowerCase();
-    const password = String(request.body?.password ?? "");
-    const result = await query(`SELECT id, email, display_name, password_hash, password_salt FROM users WHERE email = $1`, [email]);
-    if (!result.rowCount || !(await verifyPassword(password, result.rows[0].password_hash, result.rows[0].password_salt))) {
-      return reply.code(401).send({ error: "Email or password is incorrect" });
-    }
-    const session = await createSession(result.rows[0].id);
-    return { user: { id: result.rows[0].id, email: result.rows[0].email, display_name: result.rows[0].display_name }, ...session };
-  });
-
-  app.get("/api/auth/me", async (request) => {
-    const actorId = requireActor(request);
-    const result = await query(`SELECT id, email, display_name, avatar_url, created_at FROM users WHERE id = $1`, [actorId]);
-    if (!result.rowCount) throw Object.assign(new Error("User not found"), { statusCode: 404 });
-    return result.rows[0];
-  });
-
-  app.post("/api/auth/logout", async (request) => {
-    await deleteSession(bearerToken(request));
-    return { ok: true };
-  });
-
   app.get("/api/worlds", async (request) => {
     const actorId = requireActor(request);
     const result = await query(
@@ -1419,12 +1356,52 @@ export async function registerRoutes(app) {
     return { ok: true };
   });
 
+  app.get("/api/rooms/invite/:inviteCode", async (request, reply) => {
+    const actorId = requireActor(request);
+    const room = await query(
+      `SELECT r.id, r.name, r.status, w.id AS world_id, w.name AS world_name
+       FROM rooms r JOIN worlds w ON w.id = r.world_id
+       WHERE r.invite_code = $1`,
+      [request.params.inviteCode]
+    );
+    if (!room.rowCount) return reply.code(404).send({ error: "Room not found" });
+    const roles = await query(
+      `SELECT rs.id, rs.name, rs.public_profile,
+              EXISTS (
+                SELECT 1 FROM room_members rm
+                WHERE rm.room_id = $1 AND rm.role_slot_id = rs.id AND rm.status = 'active'
+              ) AS occupied,
+              EXISTS (
+                SELECT 1 FROM room_members rm
+                WHERE rm.room_id = $1 AND rm.role_slot_id = rs.id
+                  AND rm.user_id = $3 AND rm.status = 'active'
+              ) AS occupied_by_current
+       FROM role_slots rs
+       WHERE rs.world_id = $2
+       ORDER BY rs.sequence`,
+      [room.rows[0].id, room.rows[0].world_id, actorId]
+    );
+    return {
+      room: { id: room.rows[0].id, name: room.rows[0].name, status: room.rows[0].status },
+      world: { id: room.rows[0].world_id, name: room.rows[0].world_name },
+      roles: roles.rows
+    };
+  });
+
   app.post("/api/rooms/join", async (request, reply) => {
     const actorId = requireActor(request);
     const { inviteCode, roleSlotId } = request.body ?? {};
     if (!inviteCode || !roleSlotId) return reply.code(400).send({ error: "inviteCode and roleSlotId are required" });
-    const room = await query(`SELECT id FROM rooms WHERE invite_code = $1`, [inviteCode]);
+    const room = await query(`SELECT id, world_id FROM rooms WHERE invite_code = $1`, [inviteCode]);
     if (!room.rowCount) return reply.code(404).send({ error: "Room not found" });
+    const role = await query(`SELECT 1 FROM role_slots WHERE id = $1 AND world_id = $2`, [roleSlotId, room.rows[0].world_id]);
+    if (!role.rowCount) return reply.code(400).send({ error: "Role slot not found in room world" });
+    const occupied = await query(
+      `SELECT 1 FROM room_members
+       WHERE room_id = $1 AND role_slot_id = $2 AND user_id <> $3 AND status = 'active'`,
+      [room.rows[0].id, roleSlotId, actorId]
+    );
+    if (occupied.rowCount) return reply.code(409).send({ error: "Role slot already occupied" });
     await query(
       `INSERT INTO room_members (room_id, user_id, member_type, role_slot_id)
        VALUES ($1, $2, 'player', $3)
@@ -1570,6 +1547,35 @@ export async function registerRoutes(app) {
       [voiceRoomId, actorId, body]
     );
     return reply.code(201).send(result.rows[0]);
+  });
+
+  app.post("/api/voice-rooms/:voiceRoomId/members", async (request, reply) => {
+    const actorId = requireActor(request);
+    const { voiceRoomId } = request.params;
+    const access = await requireVoiceRoomAccess(actorId, voiceRoomId);
+    const { inviteUserIds = [] } = request.body ?? {};
+    if (!Array.isArray(inviteUserIds) || !inviteUserIds.length || inviteUserIds.length > 20) {
+      return reply.code(400).send({ error: "inviteUserIds must contain between 1 and 20 members" });
+    }
+    if (access.room_type === "public") return reply.code(400).send({ error: "Public voice rooms do not require invitations" });
+    const invitees = [...new Set(inviteUserIds)];
+    await transaction(async (client) => {
+      for (const userId of invitees) {
+        const member = await client.query(
+          `SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2 AND status = 'active'`,
+          [access.room_id, userId]
+        );
+        if (!member.rowCount) throw Object.assign(new Error("Invited user must be an active room member"), { statusCode: 400 });
+      }
+      for (const userId of invitees) {
+        await client.query(
+          `INSERT INTO voice_room_members (voice_room_id, user_id, invited_by_user_id, joined_at)
+           VALUES ($1, $2, $3, now()) ON CONFLICT (voice_room_id, user_id) DO NOTHING`,
+          [voiceRoomId, userId, actorId]
+        );
+      }
+    });
+    return reply.code(201).send({ ok: true, invited: invitees.length });
   });
 
   app.post("/api/rooms/:roomId/sections/:sectionId/complete", async (request) => {

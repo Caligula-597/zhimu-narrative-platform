@@ -345,62 +345,55 @@ function rules() {
  ${stat("⌘",String(data.length),"条云端规则","支持世界模板与测试房")}${stat("✓",String(data.filter(rule=>rule.enabled).length),"条已启用","暂停规则不会触发")}${stat("◷",String(data.filter(rule=>rule.mode==="host_confirm").length),"项主持确认","关键转折保留人工判断")}
  <button class="secondary-btn full-btn" data-action="rule-validate">运行规则检查</button></aside></section>`;
 }
+function activeRuntimeRoom(){return (state.cloudStudio?.rooms||[]).find(room=>room.id===zhimuApi.context.roomId)||null}
+function roleParts(name=""){const parts=String(name).split(" · ");return {name:parts[0]||"未命名角色",role:parts.slice(1).join(" · ")||"玩家角色"}}
+function runtimeEmpty(title,description){
+ const world=state.cloudStudio?.world;
+ return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">RUNTIME REQUIRED</p><h2>${title}尚未连接运行房</h2><p>${description}</p><div class="tutorial-tip"><b>${escapeHtml(world?.name||"当前世界")}</b><span>创作内容仍然保留在云端。建立或选择一个平行房后，这里才会显示该房间自己的玩家状态、章节进度和互动数据。</span></div><button class="primary-btn" data-action="world-rooms">管理平行房</button></article>`;
+}
 function director(){
- return `${cloudStatus()}${demoStrip()}<div class="director-head"><div><span class="live-label">● LIVE</span><strong>　雾港来信 · 潮声下的名字</strong></div><div class="row"><button class="secondary-btn" data-action="pause">${state.running?"暂停自动推进":"恢复自动推进"}</button><button class="primary-btn" data-action="unavailable" data-feature="存档快照 API">＋ 创建存档点 · 待接入</button></div></div>
- <section class="stats-grid">${stat("♙","4","在线玩家","全部连接正常")}${stat("⌘","3","运行中规则","最近检测：刚刚")}${stat("◷","01:18","本章时长","预计剩余 42 分钟")}${stat("⚑","1","卡关预警","码头仓库")}</section>
+ const room=activeRuntimeRoom(),world=state.cloudStudio?.world;
+ if(!room)return runtimeEmpty("主持监控台","主持监控台只展示当前世界中被选中的独立运行房，不再回退到初始演示副本。");
+ const players=directorPlayers(),rules=(state.cloudRules||[]).filter(rule=>rule.enabled&&(!rule.room_id||rule.room_id===room.id)),events=state.cloudHostEvents||[];
+ return `${cloudStatus()}<div class="director-head"><div><span class="live-label">● LIVE</span><strong>　${escapeHtml(world?.name||"当前世界")} · ${escapeHtml(room.name)}</strong></div><div class="row"><button class="secondary-btn" data-action="refresh-cloud">刷新运行状态</button><button class="primary-btn" data-action="unavailable" data-feature="存档快照 API">＋ 创建存档点 · 待接入</button></div></div>
+ <section class="stats-grid">${stat("♙",String(players.length),"角色席位","读取当前平行房进度")}${stat("⌘",String(rules.length),"运行中规则","仅统计当前房和世界模板")}${stat("◷",String(events.length),"待确认事件",events.length?"需要主持人判断":"当前无需人工介入")}${stat("⚑","0","卡关预警","尚未接入行为阈值判断")}</section>
  <section class="director-grid" style="margin-top:15px"><article class="card"><div class="section-head"><div><h3>玩家状态</h3><p>系统根据阅读、位置和交互行为实时更新</p></div></div><div class="player-list">
- ${directorPlayers().map((p,i)=>`<div class="player-row"><div class="avatar" style="background:${p.color}">${p.name[0]}</div><div><strong>${p.name} · ${p.role}</strong><p>${p.scene}</p></div><div><div class="progress"><i style="width:${p.progress}%"></i></div><p>${p.caption}</p></div></div>`).join("")}</div></article>
- <aside><article class="card"><div class="section-head"><div><h3>等待确认</h3><p>以下按钮仅演示主持交互，事件写入 API 尚未接入</p></div></div><div class="event-ready"><h3>馆长交付手记</h3><p>顾言已完成馆长的隐藏对话条件。可现在交付，也可以延迟到玩家进入密室后。</p><div class="event-actions"><button class="primary-btn" data-action="approve-event">演示执行</button><button class="secondary-btn" data-action="delay-event">演示延迟</button></div></div></article>
- <article class="card" style="margin-top:15px"><div class="section-head"><div><h3>实时动态</h3><p>最近状态变化</p></div></div><div class="activity-list">${state.logs.map(log=>activity(...log)).join("")}</div></article></aside></section>`;
+ ${players.map(p=>`<div class="player-row"><div class="avatar" style="background:${p.color}">${p.name[0]}</div><div><strong>${escapeHtml(p.name)} · ${escapeHtml(p.role)}</strong><p>${escapeHtml(p.scene)}</p></div><div><div class="progress"><i style="width:${p.progress}%"></i></div><p>${escapeHtml(p.caption)}</p></div></div>`).join("")||`<div class="empty-state">当前运行房尚未建立角色席位。</div>`}</div></article>
+ <aside><article class="card"><div class="section-head"><div><h3>等待确认</h3><p>由真实规则引擎生成，确认后立即写入当前房间状态</p></div></div>${hostEventRows()}</article>
+ <article class="card" style="margin-top:15px"><div class="section-head"><div><h3>运行说明</h3><p>当前监控台已绑定独立平行房</p></div></div><div class="tutorial-tip"><b>${escapeHtml(room.name)}</b><span>阅读进度、规则执行和待确认事件只属于该房间，不会污染同剧本的其他平行房。</span></div></article></aside></section>`;
 }
 function player(){
- const scene=currentScene();
- return `<section class="player-view">${cloudStatus()}${voiceHub()}<article class="player-hero live-flash"><div class="player-hero-copy"><p class="eyebrow">CHAPTER 02 · 角色剧情</p><h2>${scene.title}</h2><p>${scene.text}</p></div><div class="scene-art">${scene.art}</div></article>
+ const room=activeRuntimeRoom(),home=state.cloudPlayer,role=home?.role;
+ if(!room)return runtimeEmpty("玩家视角","玩家视角必须来自当前世界中的具体运行房。请先建立平行房，并让玩家通过邀请码选择角色。");
+ if(!role)return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">PLAYER ROLE REQUIRED</p><h2>${escapeHtml(room.name)} 尚无可预览角色</h2><p>当前预览账号尚未加入这个运行房，或尚未选择角色席位。玩家加入后，这里才会读取该角色的私人章节、线索和语音空间。</p><button class="primary-btn" data-action="world-rooms">切换平行房</button></article>`;
+ const scene=currentCloudScene(),parts=roleParts(role.name);
+ return `<section class="player-view">${cloudStatus()}${voiceHub()}<article class="player-hero live-flash"><div class="player-hero-copy"><p class="eyebrow">${escapeHtml(parts.name)} · 当前开放场景</p><h2>${escapeHtml(scene.title)}</h2><p>${escapeHtml(scene.text)}</p></div><div class="scene-art">${escapeHtml(scene.art)}</div></article>
  ${reader()}
  <section class="player-layout"><div><article class="card"><div class="section-head"><div><h3>探索当前场景</h3><p>阅读完成后，可以选择地点继续调查</p></div></div>
- ${locationRow("▥","旧报架","泛黄的报纸按照年份堆叠，其中几册明显有被翻动过的痕迹。","调查")}
- ${locationRow("▤","航运档案柜","柜门已经生锈，锁孔的形状有些特殊。","查看")}
- ${locationRow("♙","馆长办公桌","桌上散落着半杯凉茶和一张没有写完的便签。","调查")}
+ ${explorationRows()}
  </article></div><aside>${notebookCard()}
- <article class="role-story"><p class="section-kicker">仅你可见 · 角色剧本</p><h3>记者的旧日来信</h3><p>你认得馆长办公桌上的火漆印。十年前，父亲失踪前寄给你的最后一封信上，也有相同的印记。</p><button class="text-btn" disabled style="margin-top:9px">完整剧本目录 · 待接入</button></article>
- <article class="card"><div class="section-head"><div><h3>我的线索</h3><p>顾言 · 已获得 5 条</p></div></div>
- ${clue("被撕去一页的航运录","已解读 · 核心线索")}${clue("二十年前的港口合影","未解读 · 个人线索")}${clue("匿名来信","已阅读 · 初始线索")}<button class="secondary-btn full-btn" disabled>完整线索列表 · 待接入</button></article>
+ <article class="role-story"><p class="section-kicker">仅你可见 · 角色资料</p><h3>${escapeHtml(role.name)}</h3><p>${escapeHtml(role.private_profile||"当前角色尚未填写私人资料。")}</p></article>
+ <article class="card"><div class="section-head"><div><h3>我的云端线索</h3><p>${escapeHtml(parts.name)} · 已获得 ${(home.clues||[]).length} 条</p></div></div>${cloudClueRows()}</article>
  </aside></section></section>`;
 }
 function demoStrip(){return `<section class="demo-strip"><div><span class="demo-badge">DEMO · 可控演示</span><strong style="margin-top:7px">主持人观察玩家行为后推进世界状态</strong><p>系统不会按时间打断玩家阅读。这里仅用于模拟阅读、调查或解读完成后的规则触发。</p></div><div class="row"><button class="primary-btn" data-action="demo-next">模拟下一项行为</button><button class="ghost-btn" data-action="demo-reset">重置演示</button></div></section>`}
 function cloudStatus(){const rooms=state.cloudStudio?.rooms||[];return `<section class="demo-strip"><div><span class="cloud-pill ${state.apiError?"offline":""}">${state.apiError?"部分运行模块尚未连接":"● 云端 Alpha 已连接"}</span><strong style="margin-top:7px">${state.apiError||"当前世界的创作数据已经从 Supabase PostgreSQL 读取"}</strong><p>${state.cloudStudio?(rooms.length?`当前世界已建立 ${rooms.length} 个运行房间。`:"当前世界尚未建立测试房，运行状态为空。"):"正在读取 Supabase PostgreSQL..."}</p></div><button class="secondary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`}
-function directorPlayers(){const base=state.players.map(p=>({...p,caption:`${p.progress}% 完成`,scene:`当前位置：${p.scene}`}));const real=state.cloudHost[0];if(real){const pct=real.total_sections?Math.round(real.completed_sections/real.total_sections*100):0;base[0]={...base[0],name:real.name.split(" · ")[0],role:real.name.split(" · ")[1]||"角色",progress:pct,caption:`云端阅读 ${real.completed_sections} / ${real.total_sections}`,scene:"真实云端进度"};}return base}
-function voiceHub(){return `<section class="voice-stack"><section class="voice-hub"><div class="voice-hub-left"><div class="voice-hub-icon">♬</div><div><strong>语音空间 · ${state.voiceRoom}</strong><p>${state.voiceRoom==="公共讨论房"?"所有房间成员可见":"私密通话 · 仅受邀玩家可见"}</p></div></div><div class="row"><div class="voice-hub-users">${state.players.slice(0,state.voiceRoom==="公共讨论房"?4:2).map(p=>`<div class="avatar" style="background:${p.color}">${p.name[0]}</div>`).join("")}</div><button class="primary-btn" data-action="voice-room">切换语音房</button></div></section>${voiceChat()}</section>`}
+function directorPlayers(){return (state.cloudHost||[]).map((item,index)=>{const parts=roleParts(item.name),pct=item.total_sections?Math.round(item.completed_sections/item.total_sections*100):0;return {...parts,progress:pct,caption:`云端阅读 ${item.completed_sections} / ${item.total_sections}`,scene:item.current_scene_id?"已记录当前场景":"尚未记录当前位置",color:["#b9795c","#587f79","#706b91","#9a814f","#76614d","#657c91"][index%6]}})}
+function voiceHub(){const members=(state.cloudPlayer?.roomMembers||[]).filter(member=>member.online),room=(state.cloudPlayer?.voiceRooms||[]).find(item=>item.id===state.voiceRoomId);return `<section class="voice-stack"><section class="voice-hub"><div class="voice-hub-left"><div class="voice-hub-icon">♬</div><div><strong>语音空间 · ${escapeHtml(room?.name||"尚未选择")}</strong><p>${room?.room_type==="public"?"所有房间成员可见":"私密通话 · 仅受邀玩家可见"}</p></div></div><div class="row"><div class="voice-hub-users">${members.slice(0,6).map(member=>`<div class="avatar">${escapeHtml((member.display_name||member.role_name||"?")[0])}</div>`).join("")}</div><button class="primary-btn" data-action="voice-room">切换语音房</button></div></section>${voiceChat()}</section>`}
 function voiceChat(){const messages=state.voiceMessages||[];return `<article class="voice-chat"><div class="voice-chat-head"><div><strong>房内文字频道</strong><p>消息只会显示给当前语音房成员，用于语音接入前的流程测试。</p></div><button class="text-btn" data-action="voice-chat-refresh">刷新</button></div><div class="voice-chat-log">${messages.length?messages.map(message=>`<div class="voice-message"><b>${escapeHtml(message.sender_name||"玩家")}</b><span>${formatTime(message.created_at)}</span><p>${escapeHtml(message.body)}</p></div>`).join(""):`<div class="empty-state">当前语音房还没有消息。</div>`}</div><div class="voice-chat-compose"><input class="field" data-voice-chat-input placeholder="发送给当前语音房成员"><button class="primary-btn" data-action="voice-chat-send">发送</button></div></article>`}
-function currentScene(){
- const scenes=[
-  ["旧港档案馆","窗外的雾压在斑驳玻璃上。馆长离开后，木架深处传来极轻的碰撞声，像是有什么东西正随着潮水呼吸。","档"],
-  ["航运档案柜","顾言翻开残缺的航运录，盐渍沿着纸页边缘蔓延。被撕走的那一页，似乎与父亲失踪的日期重合。","录"],
-  ["潮汐诊所地下室","远处传来同伴的新消息。诊所地下的观察室已经开启，一份从未登记过的病历进入共享线索池。","诊"],
-  ["档案馆暗门","黄铜钥匙转动时，书架后方响起沉闷的机关声。墙面裂开一道缝隙，潮湿空气从黑暗中漫出。","钥"],
-  ["档案密室入口","隐藏多年的入口已经开放。密室内有微弱灯光，系统提示所有玩家重新确认是否进入下一节点。","密"]
- ];
- const item=scenes[state.demoStep%scenes.length]; return {title:item[0],text:item[1],art:item[2]};
-}
+function currentCloudScene(){const scenes=state.cloudExploration?.scenes||[],scene=scenes[scenes.length-1];return scene?{title:scene.name,text:scene.public_text,art:scene.name[0]}:{title:"等待主持人开放场景",text:"当前运行房还没有开放探索场景。完成角色阅读或由主持人推进规则后，新场景会出现在这里。",art:"候"}}
 function reader(){
  const cloudSections=state.cloudPlayer?.sections||[];
  const cloudSection=cloudSections.find(section=>!section.completed)||cloudSections[cloudSections.length-1];
+ const roleName=state.cloudPlayer?.role?.name||"当前角色";
  if(cloudSection){
   const marked=state.cloudPlayer.notes.some(note=>note.source_id===cloudSection.id);
-  return `<article class="reader-card"><div class="reader-head"><div><p class="section-kicker">顾言 · 云端私人章节</p><h3>${cloudSection.title}</h3><p>内容来自 Supabase PostgreSQL。阅读完成后会真实保存并触发规则。</p></div><span class="reader-progress">${cloudSection.sequence} / ${Math.max(cloudSections.length,2)}</span></div><p class="story-paragraph ${marked?"marked":""}">${cloudSection.body}<button class="mark-btn" data-action="add-cloud-note" data-section="${cloudSection.id}" data-label="剧情 · ${cloudSection.title}" data-note="${cloudSection.body}">${marked?"已记入云端":"标记重点"}</button></p><div class="reader-footer"><p>${cloudSection.completed?"本章节已完成，可以继续查看已解锁内容。":"由你主动确认阅读完成，系统不会自动跳转。"}</p><button class="primary-btn" data-action="read-cloud-next" data-section="${cloudSection.id}" ${cloudSection.completed?"disabled":""}>${cloudSection.completed?"已完成":"我已读完，保存并继续"}</button></div></article>`
+  return `<article class="reader-card"><div class="reader-head"><div><p class="section-kicker">${escapeHtml(roleName)} · 云端私人章节</p><h3>${escapeHtml(cloudSection.title)}</h3><p>内容来自 Supabase PostgreSQL。阅读完成后会真实保存并触发规则。</p></div><span class="reader-progress">${cloudSection.sequence} / ${cloudSections.length}</span></div><p class="story-paragraph ${marked?"marked":""}">${escapeHtml(cloudSection.body)}<button class="mark-btn" data-action="add-cloud-note" data-section="${cloudSection.id}" data-label="剧情 · ${escapeHtml(cloudSection.title)}" data-note="${escapeHtml(cloudSection.body)}">${marked?"已记入云端":"标记重点"}</button></p><div class="reader-footer"><p>${cloudSection.completed?"本章节已完成，可以继续查看已解锁内容。":"由你主动确认阅读完成，系统不会自动跳转。"}</p><button class="primary-btn" data-action="read-cloud-next" data-section="${cloudSection.id}" ${cloudSection.completed?"disabled":""}>${cloudSection.completed?"已完成":"我已读完，保存并继续"}</button></div></article>`
  }
- const chapters=[
-  ["抵达档案馆",["馆长将一串沉重的钥匙留在桌面上，便借口整理旧报纸离开。门轴发出一声轻响，走廊重新沉入雾色。","你在航运录的封皮内侧摸到一行几乎被磨平的铅笔字：潮水退去时，灯塔会替死者说话。"]],
-  ["被撕去的一页",["盐渍沿着残缺纸页向内蔓延。你逐行核对船名，终于发现父亲失踪的日期旁边留着一道明显的撕痕。","那不是意外破损。有人刻意取走了一整页记录，而负责签字的人正是如今避而不谈的馆长。"]],
-  ["来自诊所的消息",["通讯器轻震了一下。林烛发来一张昏暗照片：诊所地下室里摆着一只锈迹斑斑的药柜。","照片边缘露出半枚红色火漆印。它与你父亲最后一封来信上的印记完全相同。"]],
-  ["暗门之后",["黄铜钥匙插入档案柜侧面的锁孔。书架后方传来沉闷的机关声，潮湿空气从缝隙中漫出来。","你忽然意识到，馆长不是忘记取走钥匙。他在等待某个人替他打开这扇门。"]],
-  ["进入密室",["密室内只有一盏微弱的灯。墙上贴满早已褪色的航线图，每一条线最终都指向雾港外海的同一处坐标。","桌面中央放着一本守夜人手记。它像是专门留给你，也像是一封迟到了二十年的回信。"]]
- ];
- const data=chapters[state.demoStep%chapters.length];
- return `<article class="reader-card"><div class="reader-head"><div><p class="section-kicker">顾言 · 私人阅读章节</p><h3>${data[0]}</h3><p>这段剧情仅对当前角色可见。阅读时不会自动跳转。</p></div><span class="reader-progress">${state.demoStep+1} / ${chapters.length}</span></div>${data[1].map((text,i)=>storyParagraph(text,`剧情 · ${data[0]} · 第 ${i+1} 段`)).join("")}<div class="reader-footer"><p>读完后由你主动进入下一段，系统会记录阅读状态。</p><button class="primary-btn" data-action="read-next">我已读完，继续剧情</button></div></article>`
+ return `<article class="reader-card"><div class="empty-state">当前角色尚未解锁私人章节。请由主持人检查房间规则或等待后续推进。</div></article>`
 }
 function storyParagraph(text,label){const marked=state.notes.some(n=>n.text===text);return `<p class="story-paragraph ${marked?"marked":""}">${text}<button class="mark-btn" data-action="add-note" data-label="${label}" data-note="${text}">${marked?"已标记":"标记重点"}</button></p>`}
-function notebookCard(){const count=state.cloudPlayer?.notes?.length??state.notes.length;return `<article class="notebook-card"><div class="notebook-head"><strong>▤ 随身笔记本</strong><span>${count} 条云端重点</span></div><p>标记剧情片段和关键线索，笔记会保存到当前角色的云端档案。</p><button class="secondary-btn" data-action="notebook">打开笔记本</button></article>`}
+function notebookCard(){const count=state.cloudPlayer?.notes?.length||0;return `<article class="notebook-card"><div class="notebook-head"><strong>▤ 随身笔记本</strong><span>${count} 条云端重点</span></div><p>标记剧情片段和关键线索，笔记会保存到当前角色的云端档案。</p><button class="secondary-btn" data-action="notebook">打开笔记本</button></article>`}
 function locationRow(icon,title,text,action){return `<div class="location-row"><div class="location-icon">${icon}</div><div><strong>${title}</strong><p>${text}</p></div><button data-action="unavailable" data-feature="场景探索 API">${action} · 演示</button></div>`}
 function clue(title,meta){return `<div class="clue-row"><strong>${title}</strong><p>${meta}</p><button class="text-btn" data-action="add-note" data-label="线索" data-note="${title} · ${meta}">＋ 记入笔记</button></div>`}
 function archive(){
@@ -439,6 +432,7 @@ function handle(action,el){
   if(action==="token") return openModal("实体卡绑定接口","已预留二维码与 NFC Token 数据结构。实体卡可绑定线索、道具、角色身份或限定支线。","查看接口");
   if(action==="voice-room") return openVoiceRooms();
   if(action==="voice-room-create") return openCreateVoiceRoom();
+  if(action==="voice-room-invite") return openInviteVoiceRoom(el.dataset.roomId,el.dataset.room);
   if(action==="join-room") return joinVoiceRoom(el.dataset.roomId,el.dataset.room);
   if(action==="voice-chat-refresh") return refreshVoiceMessages();
   if(action==="voice-chat-send") return sendVoiceMessage();
@@ -485,6 +479,8 @@ function handle(action,el){
   if(action==="world-rooms") return openWorldRooms();
   if(action==="world-select") return selectWorld(el.dataset.worldId);
   if(action==="room-select") return selectParallelRoom(el.dataset.roomId);
+  if(action==="room-invite") return openRoomInvite(el.dataset.roomId,el.dataset.inviteCode,el.dataset.roomName);
+  if(action==="room-join") return openJoinRoom(el.dataset.inviteCode);
   if(action==="room-create") return createParallelRoom();
   if(action==="deepseek-assistant") return openDeepseekAssistant();
   if(action==="story-manuscript") return openStoryManuscript();
@@ -635,7 +631,7 @@ async function selectWorld(worldId){
 async function openWorldRooms(){
  try{
   const rooms=await zhimuApi.getWorldRooms(),world=state.cloudStudio?.world;
-  modal.className="modal world-library-modal";modal.innerHTML=`<h2>${escapeHtml(world?.name||"当前剧本")} · 平行房</h2><p class="wizard-intro">每个平行房拥有自己的邀请码、玩家成员、阅读进度、日志、规则执行记录和语音空间。房间之间不会互相推进。</p><div class="parallel-room-create"><input class="field" data-room-name placeholder="例如：周末测试组 A"><button class="primary-btn" data-action="room-create">＋ 开放新平行房</button></div><div class="parallel-room-list">${rooms.map(room=>`<article class="parallel-room-row ${room.id===zhimuApi.context.roomId?"active":""}"><div><h3>${escapeHtml(room.name)}</h3><p>邀请码：${escapeHtml(room.invite_code)} · ${room.member_count} 名成员 · ${escapeHtml(room.status)}</p></div><button class="${room.id===zhimuApi.context.roomId?"secondary-btn":"primary-btn"}" data-action="room-select" data-room-id="${room.id}">${room.id===zhimuApi.context.roomId?"当前房间":"进入房间"}</button></article>`).join("")||`<div class="empty-state">尚未开放平行房。创建后会生成独立邀请码和公共讨论房。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+  modal.className="modal world-library-modal";modal.innerHTML=`<h2>${escapeHtml(world?.name||"当前剧本")} · 平行房</h2><p class="wizard-intro">每个平行房拥有自己的邀请码、玩家成员、阅读进度、日志、规则执行记录和语音空间。房间之间不会互相推进。</p><div class="parallel-room-create"><input class="field" data-room-name placeholder="例如：周末测试组 A"><button class="primary-btn" data-action="room-create">＋ 开放新平行房</button></div><div class="parallel-room-list">${rooms.map(room=>`<article class="parallel-room-row ${room.id===zhimuApi.context.roomId?"active":""}"><div><h3>${escapeHtml(room.name)}</h3><p>邀请码：${escapeHtml(room.invite_code)} · ${room.member_count} 名成员 · ${escapeHtml(room.status)}</p></div><div class="row"><button class="secondary-btn" data-action="room-invite" data-room-id="${room.id}" data-room-name="${escapeHtml(room.name)}" data-invite-code="${escapeHtml(room.invite_code)}">邀请玩家</button><button class="${room.id===zhimuApi.context.roomId?"secondary-btn":"primary-btn"}" data-action="room-select" data-room-id="${room.id}">${room.id===zhimuApi.context.roomId?"当前房间":"进入房间"}</button></div></article>`).join("")||`<div class="empty-state">尚未开放平行房。创建后会生成独立邀请码和公共讨论房。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-action="room-join">使用邀请码加入房间</button><button class="secondary-btn" data-close>关闭</button></div>`;
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelectorAll("[data-action]").forEach(btn=>btn.onclick=()=>handle(btn.dataset.action,btn));
  }catch(error){showToast(error.message)}
 }
@@ -644,7 +640,21 @@ async function createParallelRoom(){
  try{const room=await zhimuApi.createRoom(zhimuApi.context.worldId,{name,inviteCode:`ROOM-${Date.now().toString(36).toUpperCase()}`});zhimuApi.selectRoom(room.id);closeModal();await loadCloudData();showToast(`平行房已开放：${room.invite_code}`);openWorldRooms()}catch(error){showToast(error.message)}
 }
 async function selectParallelRoom(roomId){
- zhimuApi.selectRoom(roomId);closeModal();await loadCloudData();showToast("已切换到独立平行房");
+ zhimuApi.selectRoom(roomId);clearRuntimeState();closeModal();await loadCloudData();showToast("已切换到独立平行房");
+}
+function openRoomInvite(roomId,inviteCode,roomName){
+ const roles=state.cloudStudio?.roles||[];
+ modal.className="modal";modal.innerHTML=`<h2>邀请玩家 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">把邀请码发送给玩家。玩家打开织幕并选择“使用邀请码加入房间”，再从空闲角色中选择自己的席位。</p><div class="tutorial-tip"><b>房间邀请码</b><span class="invite-code">${escapeHtml(inviteCode)}</span></div><div class="checklist">${roles.map(role=>check(escapeHtml(role.name),"玩家加入时选择这个角色席位")).join("")||`<div class="empty-state">当前剧本尚未建立角色席位。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-copy-invite>复制邀请码</button><button class="primary-btn" data-action="room-join" data-invite-code="${escapeHtml(inviteCode)}">用当前预览玩家测试加入</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-copy-invite]").onclick=async()=>{try{await navigator.clipboard.writeText(inviteCode);showToast("邀请码已复制")}catch{showToast(`邀请码：${inviteCode}`)}};modal.querySelector("[data-action]").onclick=()=>openJoinRoom(inviteCode);
+}
+function openJoinRoom(inviteCode=""){
+ let invite=null;
+ const draw=()=>{const roles=invite?.roles||[],available=roles.filter(role=>!role.occupied||role.occupied_by_current);modal.className="modal";modal.innerHTML=`<h2>使用邀请码加入房间</h2><p class="wizard-intro">玩家只需要输入主持人发送的邀请码。系统会读取对应剧本的角色席位，再将玩家加入正确的独立平行房。</p><div class="form-group"><label>房间邀请码</label><div class="row"><input class="field" data-join-code value="${escapeHtml(inviteCode)}" placeholder="输入主持人发送的邀请码"><button class="secondary-btn" data-join-lookup>读取角色席位</button></div>${invite?`<div class="tutorial-tip"><b>${escapeHtml(invite.room.name)}</b><span>${escapeHtml(invite.world.name)} · 选择你的角色后进入房间。</span></div>`:""}<label>选择角色席位</label><select class="field" data-join-role ${available.length?"":"disabled"}>${roles.map(role=>`<option value="${role.id}" ${role.occupied&&!role.occupied_by_current?"disabled":""}>${escapeHtml(role.name)}${role.occupied_by_current?" · 当前角色":role.occupied?" · 已被选择":""}</option>`).join("")||`<option>请先读取角色席位</option>`}</select></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-join-submit ${available.length?"":"disabled"}>加入并进入玩家视角</button></div>`;
+  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-join-lookup]").onclick=lookup;modal.querySelector("[data-join-submit]").onclick=submit;
+ };
+ const lookup=async()=>{const code=modal.querySelector("[data-join-code]").value.trim();if(!code)return showToast("请填写房间邀请码");try{inviteCode=code;invite=await zhimuApi.getRoomInvite(code);draw();showToast("已读取可选角色席位")}catch(error){showToast(error.message)}};
+ const submit=async()=>{const roleSlotId=modal.querySelector("[data-join-role]").value;if(!inviteCode||!roleSlotId)return showToast("请先读取角色席位");try{const result=await zhimuApi.joinRoom(inviteCode,roleSlotId);zhimuApi.selectWorld(invite.world.id);zhimuApi.selectRoom(result.roomId);closeModal();await loadCloudData();go("player");showToast("已加入房间，可以继续创建临时密谈")}catch(error){showToast(error.message)}};
+ draw();if(inviteCode)lookup();
 }
 async function openDeepseekAssistant(){
  try{
@@ -729,34 +739,21 @@ async function deleteStudioEdge(edgeId){
  try{await zhimuApi.deleteStoryEdge(edgeId);await loadCloudData();showToast("剧情连线已删除")}catch(error){showToast(error.message)}
 }
 function enhanceCloudPanels(){
-  if(state.view==="player"&&state.cloudExploration){
-    const explorationCard=document.querySelector(".player-layout > div > .card");
-    if(explorationCard){
-      explorationCard.querySelectorAll(".location-row").forEach(row=>row.remove());
-      explorationCard.insertAdjacentHTML("beforeend",explorationRows());
-    }
-    const clueCard=document.querySelector(".player-layout aside .card:last-child");
-    if(clueCard) clueCard.innerHTML=`<div class="section-head"><div><h3>我的云端线索</h3><p>调查结果只对当前角色可见</p></div></div>${cloudClueRows()}`;
-  }
-  if(state.view==="director"){
-    const eventCard=document.querySelector(".director-grid aside .card:first-child");
-    if(eventCard) eventCard.innerHTML=`<div class="section-head"><div><h3>等待确认</h3><p>由真实规则引擎生成，确认后立即写入房间状态</p></div></div>${hostEventRows()}`;
-  }
 }
 function explorationRows(){
  const scenes=state.cloudExploration?.scenes||[];
  if(!scenes.length)return `<div class="tutorial-tip"><b>暂无开放场景</b><span>请由主持人在运行台开放一个探索场景。</span></div>`;
- return scenes.map(scene=>`<div class="tutorial-tip"><b>${scene.name}</b><span>${scene.public_text}</span></div>${(scene.investigation_points||[]).map(point=>`<div class="location-row"><div class="location-icon">⌕</div><div><strong>${point.name}</strong><p>${point.description}</p></div><button class="${point.investigated?"secondary-btn":"primary-btn"}" data-action="investigate-cloud" data-point="${point.id}" ${point.investigated?"disabled":""}>${point.investigated?"已调查":"调查"}</button></div>`).join("")}`).join("");
+ return scenes.map(scene=>`<div class="tutorial-tip"><b>${escapeHtml(scene.name)}</b><span>${escapeHtml(scene.public_text)}</span></div>${(scene.investigation_points||[]).map(point=>`<div class="location-row"><div class="location-icon">⌕</div><div><strong>${escapeHtml(point.name)}</strong><p>${escapeHtml(point.description)}</p></div><button class="${point.investigated?"secondary-btn":"primary-btn"}" data-action="investigate-cloud" data-point="${point.id}" ${point.investigated?"disabled":""}>${point.investigated?"已调查":"调查"}</button></div>`).join("")}`).join("");
 }
 function cloudClueRows(){
  const clues=state.cloudPlayer?.clues||[];
  if(!clues.length)return `<div class="tutorial-tip"><b>尚无线索</b><span>调查场景中的可交互位置，发现内容后会自动进入个人线索库。</span></div>`;
- return clues.map(item=>`<div class="clue-row"><strong>${item.name}</strong><p>${item.public_text}</p><div class="row"><button class="text-btn" data-action="read-cloud-clue" data-clue="${item.id}" ${item.read_at?"disabled":""}>${item.read_at?"已阅读":"标记为已阅读"}</button><button class="text-btn" data-action="add-cloud-clue-note" data-clue="${item.id}" data-label="线索 · ${item.name}" data-note="${item.public_text}">＋ 记入云端笔记</button></div></div>`).join("");
+ return clues.map(item=>`<div class="clue-row"><strong>${escapeHtml(item.name)}</strong><p>${escapeHtml(item.public_text)}</p><div class="row"><button class="text-btn" data-action="read-cloud-clue" data-clue="${item.id}" ${item.read_at?"disabled":""}>${item.read_at?"已阅读":"标记为已阅读"}</button><button class="text-btn" data-action="add-cloud-clue-note" data-clue="${item.id}" data-label="线索 · ${escapeHtml(item.name)}" data-note="${escapeHtml(item.public_text)}">＋ 记入云端笔记</button></div></div>`).join("");
 }
 function hostEventRows(){
  const events=state.cloudHostEvents||[];
  if(!events.length)return `<div class="tutorial-tip"><b>当前无需人工介入</b><span>普通动作由系统自动执行，关键转折会进入这里等待主持人判断。</span></div>`;
- return events.map(event=>`<div class="event-ready"><h3>${event.title}</h3><p>${event.description}</p><div class="event-actions"><button class="primary-btn" data-action="execute-host-event" data-event="${event.id}">确认并执行</button></div></div>`).join("");
+ return events.map(event=>`<div class="event-ready"><h3>${escapeHtml(event.title)}</h3><p>${escapeHtml(event.description)}</p><div class="event-actions"><button class="primary-btn" data-action="execute-host-event" data-event="${event.id}">确认并执行</button></div></div>`).join("");
 }
 function openModal(title,text,confirm){
  modal.className="modal";
@@ -775,6 +772,11 @@ function openCreateVoiceRoom(){
  modal.className="modal";modal.innerHTML=`<h2>创建临时密谈</h2><p class="wizard-intro">从全部玩家角色中选择受邀者，可以一次邀请多人。你自己会自动进入密谈，无需重复勾选；尚未进入房间的角色会保留席位提示。</p><div class="form-group">${studioField("房间名称","voiceName","input","临时密谈")}<label>邀请其他玩家角色</label><div class="member-picker">${seats.map(member=>{const self=member.user_id===currentUserId,disabled=self||!member.online;return `<label class="${disabled?"member-disabled":""}"><input type="checkbox" data-voice-invite value="${member.user_id||""}" ${disabled?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${self?" · 当前角色，已自动加入":member.online?" · 可邀请":" · 尚未进入房间"}</span></label>`}).join("")||`<div class="empty-state">当前世界尚未建立玩家角色席位。</div>`}</div></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-create-voice-room>创建并进入</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-create-voice-room]").onclick=async()=>{try{const name=modal.querySelector('[data-studio-field="voiceName"]').value.trim(),inviteUserIds=[...modal.querySelectorAll("[data-voice-invite]:checked")].map(input=>input.value),room=await zhimuApi.createVoiceRoom({name,roomType:"invite_private",inviteUserIds});await loadCloudData();await joinVoiceRoom(room.id,room.name);showToast("临时密谈已创建")}catch(error){showToast(error.message)}};
 }
+function openInviteVoiceRoom(roomId,roomName){
+ const seats=state.cloudPlayer?.roomMembers||[],currentUserId=zhimuApi.context.playerUserId;
+ modal.className="modal";modal.innerHTML=`<h2>邀请成员 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">从已经进入当前平行房的角色中追加邀请。新成员会立即获得这个密谈文字频道的访问权限。</p><div class="member-picker">${seats.map(member=>{const self=member.user_id===currentUserId,disabled=self||!member.online;return `<label class="${disabled?"member-disabled":""}"><input type="checkbox" data-voice-invite value="${member.user_id||""}" ${disabled?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${self?" · 当前角色":member.online?" · 可追加邀请":" · 尚未进入平行房"}</span></label>`}).join("")||`<div class="empty-state">当前平行房尚未建立角色成员。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-invite-submit>发送邀请</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-invite-submit]").onclick=async()=>{const inviteUserIds=[...modal.querySelectorAll("[data-voice-invite]:checked")].map(input=>input.value);if(!inviteUserIds.length)return showToast("请至少选择一名已进入平行房的玩家");try{await zhimuApi.inviteVoiceRoomMembers(roomId,inviteUserIds);closeModal();await loadCloudData();showToast("密谈成员已追加邀请")}catch(error){showToast(error.message)}};
+}
 async function joinVoiceRoom(roomId,roomName){state.voiceRoomId=roomId;state.voiceRoom=roomName;closeModal();await refreshVoiceMessages();render();showToast(`已进入${state.voiceRoom}`)}
 async function refreshVoiceMessages(){if(!state.voiceRoomId)return;try{state.voiceMessages=await zhimuApi.getVoiceMessages(state.voiceRoomId);render()}catch(error){showToast(error.message)}}
 async function sendVoiceMessage(){const input=document.querySelector("[data-voice-chat-input]"),body=input?.value.trim();if(!body)return showToast("请输入聊天内容");try{await zhimuApi.sendVoiceMessage(state.voiceRoomId,body);await refreshVoiceMessages();showToast("消息已发送到当前语音房")}catch(error){showToast(error.message)}}
@@ -785,7 +787,8 @@ function addNote(label,text){
 }
 function openNotebook(){
  const notes=state.cloudPlayer?.notes?.map(note=>({label:note.title,text:note.body}))||state.notes;
- modal.className="modal";modal.innerHTML=`<h2>▤ 顾言的随身笔记本</h2><p>这里汇总你主动标记的剧情片段与关键线索。内容已保存到云端，仅当前角色可以查看。</p><div class="note-list">${notes.length?notes.map(note=>`<div class="note-item"><strong>${note.label}</strong><p>${note.text}</p></div>`).join(""):`<div class="tutorial-tip"><b>暂无笔记</b><span>阅读剧情时点击“标记重点”，或在线索下点击“记入笔记”。</span></div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+ const roleName=state.cloudPlayer?.role?.name||"当前角色";
+ modal.className="modal";modal.innerHTML=`<h2>▤ ${escapeHtml(roleName)}的随身笔记本</h2><p>这里汇总你主动标记的剧情片段与关键线索。内容已保存到云端，仅当前角色可以查看。</p><div class="note-list">${notes.length?notes.map(note=>`<div class="note-item"><strong>${escapeHtml(note.label)}</strong><p>${escapeHtml(note.text)}</p></div>`).join(""):`<div class="tutorial-tip"><b>暂无笔记</b><span>阅读剧情时点击“标记重点”，或在线索下点击“记入笔记”。</span></div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
 }
 async function completeCloudReading(sectionId){
@@ -833,7 +836,7 @@ function openCapabilities(){
 function completeReading(){
  const current=state.demoStep;advanceDemo();state.logs.unshift([`顾言已读完私人剧情第 ${current+1} 段，系统完成阅读状态记录`,"刚刚","ok"]);state.logs=state.logs.slice(0,5);render();showToast("阅读状态已记录，下一段剧情已解锁");
 }
-function voiceOption(icon,title,text,roomId,cls){return `<div class="voice-option ${cls}"><i>${icon}</i><div><strong>${title}</strong><p>${text}</p></div><button data-action="join-room" data-room-id="${roomId}" data-room="${title}">${state.voiceRoomId===roomId?"当前房间":"加入"}</button></div>`}
+function voiceOption(icon,title,text,roomId,cls){return `<div class="voice-option ${cls}"><i>${icon}</i><div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></div><div class="row">${cls==="invite_private"?`<button class="secondary-btn" data-action="voice-room-invite" data-room-id="${roomId}" data-room="${escapeHtml(title)}">邀请成员</button>`:""}<button data-action="join-room" data-room-id="${roomId}" data-room="${escapeHtml(title)}">${state.voiceRoomId===roomId?"当前房间":"加入"}</button></div></div>`}
 const demoEvents=[
   ["顾言翻开航运录，系统记录阅读完成","旧港档案馆",79,65],
   ["林烛进入诊所地下观察室，支线状态更新","潮汐诊所地下室",71,69],
@@ -1003,7 +1006,7 @@ function go(view){state.view=view;render()}
 
 document.querySelectorAll(".nav-item[data-view]").forEach(btn=>btn.addEventListener("click",()=>go(btn.dataset.view)));
 document.querySelector("#run-btn").onclick=()=>go("director");
-document.querySelector("#preview-btn").onclick=()=>go("player");
+document.querySelector("#preview-btn").onclick=()=>state.cloudPlayer?go("player"):openJoinRoom();
 document.querySelector("#search-btn").onclick=()=>openModal("全局搜索尚未接入","搜索界面仍在设计中，当前不会执行查询。后续将检索角色、线索、场景、事件与规则。","知道了");
 document.querySelector("#notify-btn").onclick=()=>showToast((state.cloudHostEvents||[]).length?`${state.cloudHostEvents.length} 条运行事件等待处理`:"当前世界没有待处理运行事件");
 document.querySelector("#create-world-btn").onclick=()=>openWizard();
@@ -1015,9 +1018,12 @@ async function loadCloudData(withToast=false){
  const hasRoom=Boolean(zhimuApi.context.roomId),skipRoom=()=>Promise.resolve(null);
  const requests=[hasRoom?zhimuApi.getPlayerHome():skipRoom(),hasRoom?zhimuApi.getHostProgress():skipRoom(),zhimuApi.getStorageUsage(),zhimuApi.getAssets(),hasRoom?zhimuApi.getExploration():skipRoom(),hasRoom?zhimuApi.getHostEvents():skipRoom(),zhimuApi.getStudio(),zhimuApi.getCreatorChecks(),zhimuApi.getRules()];
  const [playerHome,hostProgress,usage,assets,exploration,hostEvents,studioData,creatorChecks,rulesData]=await Promise.allSettled(requests),errors=[];
- const take=(result,apply)=>result.status==="fulfilled"?apply(result.value):errors.push(result.reason.message);
- take(playerHome,value=>state.cloudPlayer=value);take(hostProgress,value=>state.cloudHost=value||[]);take(usage,value=>state.storageUsage=value);take(assets,value=>state.cloudAssets=value);take(exploration,value=>state.cloudExploration=value);take(hostEvents,value=>state.cloudHostEvents=value||[]);take(studioData,value=>state.cloudStudio=value);take(creatorChecks,value=>state.cloudCreatorChecks=value.checks);take(rulesData,value=>state.cloudRules=value);
+ const take=(result,apply,onError=()=>{})=>result.status==="fulfilled"?apply(result.value):(onError(),errors.push(result.reason.message));
+ if(!hasRoom)clearRuntimeState();
+ take(playerHome,value=>state.cloudPlayer=value,()=>state.cloudPlayer=null);take(hostProgress,value=>state.cloudHost=value||[],()=>state.cloudHost=[]);take(usage,value=>state.storageUsage=value);take(assets,value=>state.cloudAssets=value);take(exploration,value=>state.cloudExploration=value,()=>state.cloudExploration=null);take(hostEvents,value=>state.cloudHostEvents=value||[],()=>state.cloudHostEvents=[]);take(studioData,value=>state.cloudStudio=value);take(creatorChecks,value=>state.cloudCreatorChecks=value.checks);take(rulesData,value=>state.cloudRules=value);
+ if(hasRoom&&state.cloudStudio&&!activeRuntimeRoom()){zhimuApi.clearRoom();clearRuntimeState();errors.push("当前运行房不属于所选世界，已自动解除绑定")}
  const voiceRooms=state.cloudPlayer?.voiceRooms||[],currentRoom=voiceRooms.find(room=>room.id===state.voiceRoomId)||voiceRooms[0];if(currentRoom){state.voiceRoomId=currentRoom.id;state.voiceRoom=currentRoom.name;try{state.voiceMessages=await zhimuApi.getVoiceMessages(currentRoom.id)}catch(error){errors.push(error.message)}}
  state.apiError=errors.join(" · ");render();if(withToast)showToast(errors.length?`部分运行数据尚未连接：${errors[0]}`:"云端数据已刷新");
 }
+function clearRuntimeState(){state.cloudPlayer=null;state.cloudHost=[];state.cloudExploration=null;state.cloudHostEvents=[];state.voiceRoomId=null;state.voiceRoom="尚未选择";state.voiceMessages=[]}
 loadCloudData();
