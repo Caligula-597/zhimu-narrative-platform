@@ -36,8 +36,8 @@ try {
   );
 
   const chapter = await client.query(
-    `INSERT INTO chapters (world_id, title, sequence) VALUES ($1, '潮声下的名字', 1)
-     ON CONFLICT (world_id, sequence) DO UPDATE SET title = EXCLUDED.title
+    `INSERT INTO chapters (world_id, title, sequence, publication_status) VALUES ($1, '潮声下的名字', 1, 'testing')
+     ON CONFLICT (world_id, sequence) DO UPDATE SET title = EXCLUDED.title, publication_status = 'testing'
      RETURNING id`,
     [FIXTURE.worldId]
   );
@@ -63,8 +63,8 @@ try {
   ).rows[0].id;
 
   const first = await client.query(
-    `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence)
-     SELECT $1, $2, $3, '抵达档案馆', '馆长将一串沉重的钥匙留在桌面上，便借口整理旧报纸离开。', 1
+    `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status)
+     SELECT $1, $2, $3, '抵达档案馆', '馆长将一串沉重的钥匙留在桌面上，便借口整理旧报纸离开。', 1, 'testing'
      WHERE NOT EXISTS (
        SELECT 1 FROM script_sections WHERE role_slot_id = $2 AND chapter_id = $3 AND sequence = 1
      )
@@ -79,8 +79,8 @@ try {
   ).rows[0].id;
 
   const second = await client.query(
-    `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence)
-     SELECT $1, $2, $3, '被撕去的一页', '盐渍沿着残缺纸页向内蔓延。父亲失踪日期旁边留着明显撕痕。', 2
+    `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status)
+     SELECT $1, $2, $3, '被撕去的一页', '盐渍沿着残缺纸页向内蔓延。父亲失踪日期旁边留着明显撕痕。', 2, 'testing'
      WHERE NOT EXISTS (
        SELECT 1 FROM script_sections WHERE role_slot_id = $2 AND chapter_id = $3 AND sequence = 2
      )
@@ -93,6 +93,12 @@ try {
       [role.rows[0].id, chapter.rows[0].id]
     )
   ).rows[0].id;
+
+  await client.query(
+    `UPDATE script_sections SET publication_status = 'testing'
+     WHERE role_slot_id = $1 AND publication_status <> 'testing'`,
+    [role.rows[0].id]
+  );
 
   await client.query(
     `INSERT INTO rooms (id, world_id, host_user_id, name, invite_code, status)
