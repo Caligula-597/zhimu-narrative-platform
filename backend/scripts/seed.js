@@ -51,6 +51,15 @@ try {
     [FIXTURE.worldId]
   );
 
+  const role2 = await client.query(
+    `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
+     VALUES ($1, '林夏 · 医生', '在雾港经营诊所，对外保持克制。', '你认得旧档案上被涂去的名字。', 2)
+     ON CONFLICT (world_id, sequence) DO UPDATE
+     SET name = EXCLUDED.name, public_profile = EXCLUDED.public_profile, private_profile = EXCLUDED.private_profile
+     RETURNING id`,
+    [FIXTURE.worldId]
+  );
+
   const script = await client.query(
     `INSERT INTO character_scripts (role_slot_id, title)
      SELECT $1, '记者的旧日来信'
@@ -121,6 +130,11 @@ try {
     `INSERT INTO player_states (room_id, role_slot_id) VALUES ($1, $2)
      ON CONFLICT (room_id, role_slot_id) DO NOTHING`,
     [FIXTURE.roomId, role.rows[0].id]
+  );
+  await client.query(
+    `INSERT INTO player_states (room_id, role_slot_id) VALUES ($1, $2)
+     ON CONFLICT (room_id, role_slot_id) DO NOTHING`,
+    [FIXTURE.roomId, role2.rows[0].id]
   );
 
   const publicVoice = await client.query(

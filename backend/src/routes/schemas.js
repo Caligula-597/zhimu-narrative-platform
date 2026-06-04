@@ -117,6 +117,22 @@ export const clueShareRoomSchema = {
   }
 };
 
+export const clueShareRolesSchema = {
+  params: paramsSchema({ roomId: uuid, clueId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["roleSlotIds"],
+    properties: {
+      roleSlotIds: {
+        type: "array",
+        items: uuid,
+        maxItems: 20
+      }
+    }
+  }
+};
+
 export const hostClueNoteSchema = {
   params: paramsSchema({ roomId: uuid, clueId: uuid }),
   body: {
@@ -132,6 +148,18 @@ export const hostClueNoteSchema = {
 
 export const hostEventSchema = {
   params: paramsSchema({ roomId: uuid, eventId: uuid })
+};
+
+export const hostEventDelaySchema = {
+  params: paramsSchema({ roomId: uuid, eventId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["delayMinutes"],
+    properties: {
+      delayMinutes: { type: "integer", minimum: 1, maximum: 1440 }
+    }
+  }
 };
 
 export const hostEventBatchSchema = {
@@ -159,9 +187,15 @@ export const hostGrantClueSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["roleSlotId", "clueId"],
+    required: ["clueId"],
     properties: {
       roleSlotId: uuid,
+      roleSlotIds: {
+        type: "array",
+        items: uuid,
+        minItems: 1,
+        maxItems: 20
+      },
       clueId: uuid,
       message: { type: "string", maxLength: 500 }
     }
@@ -414,6 +448,10 @@ export const confirmAssetSchema = {
 };
 
 export const deleteAssetSchema = {
+  params: assetIdParams
+};
+
+export const restoreAssetSchema = {
   params: assetIdParams
 };
 

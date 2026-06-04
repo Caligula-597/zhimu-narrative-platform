@@ -135,6 +135,7 @@ export const API_ERRORS = {
   ASSET_ROOM_WORLD_MISMATCH: { status: 400, message: "roomId does not belong to worldId" },
   ASSET_ROLE_WORLD_MISMATCH: { status: 400, message: "roleSlotId does not belong to worldId" },
   ASSET_NOT_FOUND: { status: 404, message: "Asset not found or permission denied" },
+  ASSET_NOT_IN_RECYCLE: { status: 404, message: "Asset is not in recycle bin or purge window expired" },
   UPLOAD_SESSION_NOT_FOUND: { status: 404, message: "Active upload session not found" },
   UPLOAD_SIZE_MISMATCH: { status: 409, message: "Uploaded file size does not match upload request" },
   UPLOAD_TYPE_MISMATCH: { status: 409, message: "Uploaded content type does not match upload request" },

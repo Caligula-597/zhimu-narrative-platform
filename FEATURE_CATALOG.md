@@ -3,7 +3,7 @@
 > **文档用途**：团队协调用的功能总表。每个功能标明已实现、部分实现、未实现与已知局限。  
 > **产品现状（中文长文，推荐先读）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **一张表总览（后端/前端/未接通/缺陷）**：[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)  
-> **更新日期**：2026-06-03（Beta 过渡：搜索、E2E、内测 UI、131 测试）  
+> **更新日期**：2026-06-04（Beta-1 体验 + Beta-2/3 后端 · **170** 测试 · **54** schema）  
 > **版本阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）
 
 ---
@@ -58,7 +58,7 @@
 | 剧本库入口 | ✅ | 世界切换器打开已有剧本 | — |
 | 平行运行房 | ✅ | 同一剧本多房间；独立邀请码、进度、日志、语音 | 房间无合并/对比视图 |
 | 世界总览页 | ✅ | `cloudStudio` 章节脉络、`cloudWorldLogs` 最近事件、`cloudHost` 阅读进度（选中运行房时）、`cloudAssets` 附件统计；无数据时显示空状态 | 未选运行房时不展示玩家进度；需手动刷新日志 |
-| 全局搜索 | ✅ | 顶栏 ⌕ → `GET /worlds/:id/search`；ILIKE + `plainto_tsquery` | 结果跳转工作区，暂不支持图谱内高亮定位 |
+| 全局搜索 | ✅ | 顶栏 ⌕ → `GET /worlds/:id/search`；跳转 studio/clues 并 **高亮定位** | — |
 | 通知铃铛 | ✅ | 数量来自 `pending_host_events`；点击跳转主持台；SSE 推送或手动刷新后更新 | SSE 连接时主持台停止 15s 轮询；断线自动回退轮询 |
 
 **后端 API**：`GET/POST/DELETE /worlds` · `GET/POST /worlds/:id/rooms`
@@ -125,7 +125,7 @@
 | 连接点（anchors） | ✅ | 增删改位置；拖拽连线 | — |
 | 画布平移 / 缩放 / 筛选 | ✅ | 前端 state 控制 | 旧版假编排画布 `studio()` 已删除 |
 | 画布内快速建点 | ✅ | 四类节点可新增 | — |
-| 场景/线索/调查点独立管理页 | 🔲 | 编排台可建可改 | **无独立线索管理 UI**（分享、解读流程） |
+| 场景/线索/调查点独立管理页 | ✅ | **线索管理 `clues` 视图**：列表、搜索、编辑、跳转编排 | 场景/调查点仍主要在编排台 |
 
 **后端 API**：studio · POST/PATCH scenes · POST/PATCH clues · POST/PATCH investigation-points · story-edges · studio-nodes · references · story-layout
 
@@ -149,10 +149,10 @@
 | 功能 | 状态 | 已实现 | 未实现 / 局限 |
 |------|------|--------|----------------|
 | 规则 CRUD | ✅ | 世界模板或指定 room_id | — |
-| 规则模式 | ✅ | automatic / host_confirm / manual | manual 模式**无专门「手动触发」API/UI** |
-| 条件类型 | 🟡 | reading_completed · clue_owned · investigation_completed · item_owned | **无 OR/NOT/变量比较** |
-| 动作类型 | 🟡 | unlock_script_section · unlock_scene · timeline_log · grant_clue | 无 unlock_chapter、无发物品动作 |
-| 主持确认流 | ✅ | pending_host_events → execute | 无批量确认、无延迟 scheduling UI |
+| 规则模式 | ✅ | automatic / host_confirm / manual | manual 有主持台「手动触发」 |
+| 条件类型 | ✅ | reading · clue · investigation · item · **variable_compare**；**all / any / not** | — |
+| 动作类型 | ✅ | unlock_section · unlock_scene · timeline_log · grant_clue · **grant_item** | 无 unlock_chapter |
+| 主持确认流 | ✅ | pending_host_events → execute/dismiss；**批量**；**延迟调度**（`delay_until`） | 无自定义主持事件编辑器 |
 | 幂等执行 | ✅ | rule_executions 防重复 | host_confirm 重复 evaluate 不会重复 pending（UNIQUE） |
 | 规则 JSON 编辑器 | ✅ | 前端直接编辑 JSON | **无可视化条件积木** |
 | 规则可视化编辑器 | ✅ | 可视化 / JSON 双 Tab；表单生成 `conditions.all` + `actions`；保存前 `validate-body` 人话报错 | 仅 AND；无 OR/NOT/流程图 |
@@ -177,7 +177,7 @@
 | 场景探索 | ✅ | 仅已 unlock 场景；调查点持久化 | 调查为**房间级**记录（investigation_records 无 role 维度在条件里） |
 | 调查发线索 | ✅ | clue_ownership | 可配置 required_item 门槛与可消耗物品 |
 | 线索已读标记 | ✅ | read_at + 阅读日志 | — |
-| 线索公开与解读 | ✅ | 公开到全房间、玩家解读、主持矩阵、分享/阅读日志 | 第一版不做指定玩家私享 |
+| 线索公开与解读 | ✅ | 全房间公开、**私享指定角色**（`share-roles`）、玩家解读、主持矩阵 | — |
 | 玩家入口按钮 | ✅ | 无 cloudPlayer 时打开邀请码弹窗 | — |
 
 **后端 API**：invite · join · player-home · complete section · notebook · exploration · investigate · read clue
@@ -191,11 +191,12 @@
 | 主持监控台 | ✅ | 绑定平行房；玩家运行时状态表；分项刷新；SSE 实时推送（连接成功时停轮询，断线 15s 回退） | 无多节点集群总线 |
 | 卡关预警 | ✅ | 启发式：`maybe_stuck`（45 分钟无活动 / 30 分钟未读首段）；`stuckCount` 来自 API | 非 ML；依赖 reading_progress / clue / investigate 活动时间 |
 | 玩家详情弹窗 | ✅ | 分幕进度、线索、调查、笔记、最近日志、主持备注 | SSE 触发局部刷新，无需整页 reload |
-| 待确认事件 | ✅ | 列表含规则来源、动作预览；确认 / 拒绝 / 查看上下文 | 无自定义主持事件编辑器 |
-| 手动主持动作 | ✅ | 发放线索、解锁分幕、开放场景、写日志、**创建存档点** | **恢复回滚 UI 未接**（后端 API 已就绪） |
+| 待确认事件 | ✅ | 列表含规则来源、动作预览；确认 / 拒绝 / **延迟** / 批量 / 查看上下文 | — |
+| 手动主持动作 | ✅ | 发放线索/物品、解锁分幕、开放场景、写日志、创建存档点 | — |
+| 主持审计 | ✅ | 审计卡片展示 grant / delay / restore / settings 等 | 世界级审计页待做 |
 | 玩家阅读进度 | ✅ | completed/total sections；`current_scene_id` 来自 player_states | scene 更新路径仍有限 |
 | 进入主持台 | ✅ | 需选运行房 | — |
-| 存档点（主持台） | ✅ | 「创建存档点」写入 checkpoints | **不支持 UI 一键恢复** |
+| 存档点（主持台） | ✅ | 「创建存档点」；恢复在 **archive** 页 scoped restore | — |
 
 **后端 API**：`GET host/players` · `GET host/players/:roleSlotId` · `POST host/grant-clue` · `POST host/unlock-section` · `POST host/log` · `PUT host/players/:roleSlotId/notes` · `POST host-events/:id/dismiss` · `GET/POST checkpoints` · host-progress（兼容） · host-events · execute · scene unlock
 
@@ -222,7 +223,7 @@
 | R2 上传 | ✅ | 签名 URL → confirm；类型/大小配额 | 无病毒扫描、无图片转码 |
 | 附件列表 | ✅ | 按世界列出 active 文件；**仅展示 `cloudAssets`，无假卡片** | — |
 | 下载签名 URL | ✅ | 权限校验 visibility | 链接短期有效 |
-| 回收站 | ✅ | 软删除；14 天后 purge 脚本 | 无 UI 恢复，仅移入回收站 |
+| 回收站 | ✅ | 软删除；14 天后 purge 脚本；**回收站 Tab + 恢复**（`?recycled=1` + `POST .../restore`） | — |
 | 存储用量 | ✅ | 账号级 used/max | — |
 | 资产分类 Tab | ✅ | 按 kind 筛选；中文标签 | — |
 | 新建内容按钮 | 🔲 | 占位说明 | 场景/线索请在编排台创建 |
@@ -238,7 +239,8 @@
 |------|------|--------|----------------|
 | 存档时间线 UI | ✅ | 真实 checkpoint 列表；卡片「可恢复」 | — |
 | 房间 checkpoint | ✅ | `GET/POST checkpoints` · JSONB 快照 v2 | — |
-| 存档恢复 | ✅ | scoped restore + 跨平行房 · 中文 scope 勾选 · 幂等 · SSE toast | 恢复历史/审计不对用户展示 |
+| 存档恢复 | ✅ | scoped restore + 跨平行房 · 中文 scope 勾选 · 幂等 · SSE toast | checkpoint restores 历史明细仍仅 ops |
+| 主持审计 | ✅ | `host_audit_log` + **主持台审计卡片** | 世界 owner 级审计页待做 |
 | 房间复盘报告 | ✅ | `GET/POST recaps` · 全局/玩家视角 · 真实日志与线索流转 | 无 AI 总结 |
 | 分支结局 / 回滚 | ✅ | 快照 + scoped restore + 幂等 + 前端恢复弹窗 | — |
 | 创作版本 vs 运行存档 | — | 创作版本仅恢复正文 | **二者不同概念，勿混淆** |
@@ -272,14 +274,14 @@
 
 | 项目 | 状态 | 说明 |
 |------|------|------|
-| PostgreSQL 迁移 | ✅ | **14** 个 migration（含 014 全文搜索）；无 SQLite |
+| PostgreSQL 迁移 | ✅ | **18** 个 migration（含 014 搜索、018 主持延迟）；无 SQLite |
 | Supabase 云库 | ✅ | 生产/开发可连 |
 | Cloudflare R2 | ✅ | 私有 bucket + 签名 URL |
 | 路由模块化 | ✅ | `backend/src/routes/*.js` + helpers |
-| 单元/集成测试 | ✅ | **131 项** / ~41 文件（见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5） |
+| 单元/集成测试 | ✅ | **170 项** / ~44 文件（见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5） |
 | 测试数量门禁 | ✅ | `npm run check:tests`（下限 ≥100，`verify-test-count.mjs`） |
 | API smoke | ✅ | `scripts/smoke-api.js` **18 项**真实库（含 checkpoint-restore） |
-| UI smoke | ✅ | `scripts/ui-smoke.js` **34 项**（含 restore/settings/search/assets 接线） |
+| UI smoke | ✅ | `scripts/ui-smoke.js` **41 项**（含 restore/settings/search/assets 回收站接线） |
 | 脚本加载验证 | ✅ | `check:modules` **29 项**（捕获 SyntaxError） |
 | Playwright E2E | ✅ | `e2e/fog-demo-route.spec.js`（雾港 E2E 房） |
 | GitHub Actions CI | ✅ | migrate → seed → check → check:boot → **check:tests** → npm test → smoke |
@@ -422,7 +424,7 @@ npm run ci
 
 # 或分步复验（P0～P2）
 npm run check    # 语法
-npm test         # 131 项单元/集成
+npm test         # 148 项单元/集成
 npm run test:smoke   # 16 项 API（需 4180 已启动）
 npm run test:ui:load # 24 项脚本加载（项目根）
 
@@ -1130,7 +1132,7 @@ npm run bootstrap:local   # migrate + seed + exploration
 
 ### 测试扩充（历史记录 · 当时数字）
 
-> **当前验收**见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5：**131** 单测 · **18** smoke · **34** UI smoke · **29** modules · Playwright E2E。
+> **当前验收**见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5：**170** 单测 · **54** schema · **18** smoke · **41** UI smoke · **29** modules · Playwright E2E。
 
 | 套件 | 数量（当时） | 新增 |
 |------|------|------|

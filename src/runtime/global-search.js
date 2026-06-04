@@ -16,6 +16,16 @@
     item: "物品"
   };
 
+  function highlightText(text, query) {
+    const clean = String(text || "");
+    if (!query) return escapeHtml(clean);
+    const lower = clean.toLowerCase();
+    const q = String(query).toLowerCase();
+    const idx = lower.indexOf(q);
+    if (idx < 0) return escapeHtml(clean);
+    return `${escapeHtml(clean.slice(0, idx))}<mark class="search-mark">${escapeHtml(clean.slice(idx, idx + query.length))}</mark>${escapeHtml(clean.slice(idx + query.length))}`;
+  }
+
   let searchTimer = null;
 
   function openGlobalSearch() {
@@ -45,16 +55,25 @@
           resultsEl.innerHTML = `<div class="empty-state">没有匹配「${escapeHtml(q)}」的内容。试试更短的关键词或到各页面浏览列表。</div>`;
           return;
         }
+        const queryTerm = payload.query || q;
         resultsEl.innerHTML = `<p class="muted-note" style="margin-bottom:10px">共 ${payload.total} 条结果</p><div class="global-search-list">${payload.results
           .map(
-            (row) => `<button type="button" class="global-search-row" data-search-go="${escapeHtml(row.view)}" data-search-title="${escapeHtml(row.title)}"><span class="cloud-pill">${escapeHtml(labels[row.type] || row.type)}</span><strong>${escapeHtml(row.title)}</strong><p>${escapeHtml(row.snippet || "无摘要")}</p></button>`
+            (row) => `<button type="button" class="global-search-row" data-search-go="${escapeHtml(row.view)}" data-search-type="${escapeHtml(row.type)}" data-search-id="${escapeHtml(row.id)}" data-search-title="${escapeHtml(row.title)}" data-search-query="${escapeHtml(queryTerm)}"><span class="cloud-pill">${escapeHtml(labels[row.type] || row.type)}</span><strong>${highlightText(row.title, queryTerm)}</strong><p>${highlightText(row.snippet || "无摘要", queryTerm)}</p></button>`
           )
           .join("")}</div>`;
         resultsEl.querySelectorAll("[data-search-go]").forEach((btn) => {
           btn.onclick = () => {
+            const targetView = btn.dataset.searchGo;
+            window.zhimuState.searchFocus = {
+              view: targetView,
+              type: btn.dataset.searchType,
+              id: btn.dataset.searchId,
+              query: btn.dataset.searchQuery,
+              nodeType: btn.dataset.searchType === "investigation_point" ? "investigation_point" : btn.dataset.searchType
+            };
             closeModal();
-            go(btn.dataset.searchGo);
-            showToast(`已跳转到「${btn.dataset.searchTitle}」所在工作区`);
+            go(targetView);
+            showToast(`已跳转到「${btn.dataset.searchTitle}」`);
           };
         });
       } catch (error) {

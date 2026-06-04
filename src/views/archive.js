@@ -15,6 +15,7 @@
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const roleParts = F.roleParts || (() => ({ name: "", role: "" }));
   const hostOperationLabel = F.hostOperationLabel || ((t, m) => m || t);
+  const checkpointRestoreStatusLabel = F.checkpointRestoreStatusLabel || ((s) => s);
   const hostPlayerColor = F.hostPlayerColor || (() => "#666");
   const logActivityType = F.logActivityType || (() => "ok");
   const chapterPublicationLabel = F.chapterPublicationLabel || ((s) => s);
@@ -170,11 +171,25 @@ function closeRecapDetail(){
  render();
 }
 
+function checkpointRestoreHistoryRows(restores = []) {
+ if(!restores.length)return `<div class="empty-state">此存档点尚未被恢复过。</div>`;
+ return restores.map((row)=>{
+  const scopeKeys=row.restore_scope&&typeof row.restore_scope==="object"?Object.entries(row.restore_scope).filter(([,v])=>v).map(([k])=>k):[];
+  const scopeHint=scopeKeys.length?` · 域：${scopeKeys.join("、")}`:"";
+  const err=row.error_message?` · ${row.error_message}`:"";
+  return `<div class="checkpoint-row"><strong>${escapeHtml(checkpointRestoreStatusLabel(row.status))}</strong><p>${escapeHtml(row.requested_by_name||"主持人")} · ${formatTime(row.applied_at||row.created_at)}${scopeHint}${err?escapeHtml(err):""}</p></div>`;
+ }).join("");
+}
+
 async function openCheckpointDetail(checkpointId){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  try{
-  const detail=await zhimuApi.getCheckpoint(checkpointId),snapshot=detail.snapshot||{};
-  modal.className="modal host-detail-modal";modal.innerHTML=`<h2>${escapeHtml(detail.label)}</h2><p class="wizard-intro">${escapeHtml(detail.description||"无主持备注")} · 创建于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p>${snapshot.phase?`<div class="rule-block"><b>最近推进章节</b> · 第 ${snapshot.phase.sequence} 章 · ${escapeHtml(snapshot.phase.chapterTitle||"未命名章节")}</div>`:""}<div class="host-detail-grid"><section><h3>玩家进度摘要</h3><div class="host-detail-list">${checkpointPlayerSummary(snapshot)}</div></section><section><h3>线索摘要</h3><div class="host-detail-list">${checkpointClueSummary(snapshot)}</div></section><section><h3>开放场景 · ${(snapshot.unlockedScenes||[]).length}</h3><div class="host-detail-list">${(snapshot.unlockedScenes||[]).map(scene=>`<div class="checkpoint-row"><strong>${escapeHtml(scene.name)}</strong><p>${formatTime(scene.unlockedAt)}</p></div>`).join("")||`<div class="empty-state">尚无开放场景。</div>`}</div></section><section><h3>待确认事件 · ${(snapshot.pendingEvents||[]).length}</h3><div class="host-detail-list">${(snapshot.pendingEvents||[]).map(event=>`<div class="checkpoint-row"><strong>${escapeHtml(event.title)}</strong><p>${escapeHtml(event.description||"")}</p></div>`).join("")||`<div class="empty-state">快照时没有待确认事件。</div>`}</div></section></div><div class="tutorial-tip"><b>恢复说明</b><span>恢复只会影响运行进度，不会修改剧本编排或规则内容。建议在恢复前先创建一个新存档点。</span></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-action="restore-checkpoint" data-checkpoint="${checkpointId}">恢复到此状态</button></div>`;
+  const [detail,restores]=await Promise.all([
+   zhimuApi.getCheckpoint(checkpointId),
+   zhimuApi.getCheckpointRestores(checkpointId).catch(()=>[])
+  ]);
+  const snapshot=detail.snapshot||{};
+  modal.className="modal host-detail-modal";modal.innerHTML=`<h2>${escapeHtml(detail.label)}</h2><p class="wizard-intro">${escapeHtml(detail.description||"无主持备注")} · 创建于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p>${snapshot.phase?`<div class="rule-block"><b>最近推进章节</b> · 第 ${snapshot.phase.sequence} 章 · ${escapeHtml(snapshot.phase.chapterTitle||"未命名章节")}</div>`:""}<div class="host-detail-grid"><section><h3>玩家进度摘要</h3><div class="host-detail-list">${checkpointPlayerSummary(snapshot)}</div></section><section><h3>线索摘要</h3><div class="host-detail-list">${checkpointClueSummary(snapshot)}</div></section><section><h3>开放场景 · ${(snapshot.unlockedScenes||[]).length}</h3><div class="host-detail-list">${(snapshot.unlockedScenes||[]).map(scene=>`<div class="checkpoint-row"><strong>${escapeHtml(scene.name)}</strong><p>${formatTime(scene.unlockedAt)}</p></div>`).join("")||`<div class="empty-state">尚无开放场景。</div>`}</div></section><section><h3>待确认事件 · ${(snapshot.pendingEvents||[]).length}</h3><div class="host-detail-list">${(snapshot.pendingEvents||[]).map(event=>`<div class="checkpoint-row"><strong>${escapeHtml(event.title)}</strong><p>${escapeHtml(event.description||"")}</p></div>`).join("")||`<div class="empty-state">快照时没有待确认事件。</div>`}</div></section><section><h3>恢复历史 · ${restores.length}</h3><div class="host-detail-list">${checkpointRestoreHistoryRows(restores)}</div></section></div><div class="tutorial-tip"><b>恢复说明</b><span>恢复只会影响运行进度，不会修改剧本编排或规则内容。建议在恢复前先创建一个新存档点。</span></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-action="restore-checkpoint" data-checkpoint="${checkpointId}">恢复到此状态</button></div>`;
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
   modal.querySelector("[data-action=restore-checkpoint]").onclick=()=>{closeModal();openRestoreCheckpointModal(checkpointId,detail.label)};
  }catch(error){showToast(error.message)}
@@ -224,6 +239,7 @@ function openRestoreCheckpointModal(checkpointId,checkpointLabel){
   viewExports.openCreateCheckpointModal = openCreateCheckpointModal;
   viewExports.openRecapDetail = openRecapDetail;
   viewExports.closeRecapDetail = closeRecapDetail;
+  viewExports.checkpointRestoreHistoryRows = checkpointRestoreHistoryRows;
   viewExports.openCheckpointDetail = openCheckpointDetail;
   viewExports.openRestoreCheckpointModal = openRestoreCheckpointModal;
 })(window);

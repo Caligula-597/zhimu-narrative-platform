@@ -63,14 +63,12 @@ function player(){
  </aside></section></section>`;
 }
 
-function voiceLiveStatusLabel(){return ({idle:"音频未连接",connecting:"正在连接 LiveKit…",connected:"音频已连接",error:"音频连接失败"})[state.voiceLiveStatus]||"音频未连接"}
-
-function voiceHubParticipants(){
- if(state.voiceParticipants?.length)return state.voiceParticipants;
- return (state.cloudPlayer?.roomMembers||[]).filter(member=>member.online).map(member=>({name:member.display_name||member.role_name||"?",micEnabled:null,isLocal:false}));
+function voiceLiveStatusLabel(){
+ if(state.voiceLiveStatus==="error"&&state.voiceLiveError)return state.voiceLiveError;
+ return ({idle:"音频未连接",connecting:"正在连接 LiveKit…",connected:"音频已连接",error:"音频连接失败 · 仍可使用文字频道"})[state.voiceLiveStatus]||"音频未连接";
 }
 
-function voiceHub(){const room=(state.cloudPlayer?.voiceRooms||[]).find(item=>item.id===state.voiceRoomId),participants=voiceHubParticipants(),connected=state.voiceLiveStatus==="connected";return `<section class="voice-stack"><section class="voice-hub"><div class="voice-hub-left"><div class="voice-hub-icon">${connected?"🎙":"♬"}</div><div><strong>语音空间 · ${escapeHtml(room?.name||"尚未选择")}</strong><p>${room?.room_type==="public"?"所有房间成员可进入":"私密通话 · 仅受邀玩家可见"} · ${voiceLiveStatusLabel()}</p></div></div><div class="row voice-hub-actions"><div class="voice-hub-users">${participants.slice(0,8).map(participant=>`<div class="avatar ${participant.micEnabled===false?"avatar-muted":""}" title="${escapeHtml(participant.name)}">${escapeHtml(String(participant.name)[0])}</div>`).join("")}</div>${connected?`<button class="secondary-btn" data-action="voice-mic-toggle">${state.voiceMicEnabled?"🎙 麦克风开":"🔇 麦克风关"}</button><button class="secondary-btn" data-action="voice-live-disconnect">退出音频</button>`:(room?`<button class="primary-btn" data-action="voice-live-connect">连接音频</button>`:"")}<button class="secondary-btn" data-action="voice-room">切换语音房</button></div></section>${voiceChat()}</section>`}
+function voiceHub(){const room=(state.cloudPlayer?.voiceRooms||[]).find(item=>item.id===state.voiceRoomId),participants=voiceHubParticipants(),connected=state.voiceLiveStatus==="connected",connecting=state.voiceLiveStatus==="connecting",failed=state.voiceLiveStatus==="error";return `<section class="voice-stack"><section class="voice-hub ${failed?"voice-hub-error":""}"><div class="voice-hub-left"><div class="voice-hub-icon">${connected?"🎙":connecting?"…":"♬"}</div><div><strong>语音空间 · ${escapeHtml(room?.name||"尚未选择")}</strong><p>${room?.room_type==="public"?"所有房间成员可进入":"私密通话 · 仅受邀玩家可见"} · ${voiceLiveStatusLabel()}${connected&&participants.length?` · ${participants.length} 人在线`:""}</p></div></div><div class="row voice-hub-actions"><div class="voice-hub-users">${participants.slice(0,8).map(participant=>`<div class="avatar ${participant.micEnabled===false?"avatar-muted":""}" title="${escapeHtml(participant.name)}">${escapeHtml(String(participant.name)[0])}</div>`).join("")}</div>${connected?`<button class="secondary-btn" data-action="voice-mic-toggle">${state.voiceMicEnabled?"🎙 麦克风开":"🔇 麦克风关"}</button><button class="secondary-btn" data-action="voice-live-disconnect">退出音频</button>`:(room&&!connecting?`<button class="primary-btn" data-action="voice-live-connect">${failed?"重试音频连接":"连接音频"}</button>`:"")}<button class="secondary-btn" data-action="voice-room">切换语音房</button></div></section>${voiceChat()}</section>`}
 
 function voiceChat(){const messages=state.voiceMessages||[];return `<article class="voice-chat"><div class="voice-chat-head"><div><strong>房内文字频道</strong><p>文字消息与 LiveKit 音频并行；无音频配置时仍可使用文字讨论。</p></div><button class="text-btn" data-action="voice-chat-refresh">刷新</button></div><div class="voice-chat-log">${messages.length?messages.map(message=>`<div class="voice-message"><b>${escapeHtml(message.sender_name||"玩家")}</b><span>${formatTime(message.created_at)}</span><p>${escapeHtml(message.body)}</p></div>`).join(""):`<div class="empty-state">当前语音房还没有消息。</div>`}</div><div class="voice-chat-compose"><input class="field" data-voice-chat-input placeholder="发送给当前语音房成员"><button class="primary-btn" data-action="voice-chat-send">发送</button></div></article>`}
 
@@ -111,13 +109,30 @@ function explorationRows(){
 function cloudClueRows(){
  const clues=state.cloudPlayer?.clues||[];
  if(!clues.length)return `<div class="tutorial-tip"><b>尚无线索</b><span>调查场景中的可交互位置，发现内容后会自动进入个人线索库。</span></div>`;
- return clues.map(item=>`<div class="clue-row ${item.shared_with_room?"clue-row-public":""}"><div class="clue-row-head"><strong>${escapeHtml(item.name)}</strong>${item.shared_with_room?`<span class="status-chip published">已公开</span>`:""}${item.read_at?`<span class="status-chip testing">已读</span>`:`<span class="status-chip draft">未读</span>`}</div><p>${escapeHtml(item.public_text)}</p>${item.player_note?`<div class="clue-note-box"><b>我的解读</b><p>${escapeHtml(item.player_note)}</p></div>`:""}<div class="row clue-row-actions"><button class="text-btn" data-action="read-cloud-clue" data-clue="${item.id}" ${item.read_at?"disabled":""}>${item.read_at?"已阅读":"标记已读"}</button><button class="text-btn" data-action="edit-clue-note" data-clue="${item.id}">${item.player_note?"修改解读":"添加解读"}</button><button class="text-btn" data-action="share-cloud-clue" data-clue="${item.id}">${item.shared_with_room?"取消公开":"公开到全房间"}</button><button class="text-btn" data-action="add-cloud-clue-note" data-clue="${item.id}" data-label="线索 · ${escapeHtml(item.name)}" data-note="${escapeHtml(item.public_text)}">记入笔记</button></div></div>`).join("");
+ return clues.map(item=>{
+  const roleShareCount=(item.shared_with_roles||[]).length;
+  const sharedRoles=roleShareCount>0;
+  return `<div class="clue-row ${item.shared_with_room?"clue-row-public":sharedRoles?"clue-row-private":""}"><div class="clue-row-head"><strong>${escapeHtml(item.name)}</strong>${item.shared_with_room?`<span class="status-chip published">已公开</span>`:""}${sharedRoles?`<span class="status-chip testing">已私享 ${roleShareCount} 人</span>`:""}${item.read_at?`<span class="status-chip testing">已读</span>`:`<span class="status-chip draft">未读</span>`}</div><p>${escapeHtml(item.public_text)}</p>${item.player_note?`<div class="clue-note-box"><b>我的解读</b><p>${escapeHtml(item.player_note)}</p></div>`:""}<div class="row clue-row-actions"><button class="text-btn" data-action="read-cloud-clue" data-clue="${item.id}" ${item.read_at?"disabled":""}>${item.read_at?"已阅读":"标记已读"}</button><button class="text-btn" data-action="edit-clue-note" data-clue="${item.id}">${item.player_note?"修改解读":"添加解读"}</button><button class="text-btn" data-action="share-cloud-clue" data-clue="${item.id}">${item.shared_with_room?"取消公开":"公开到全房间"}</button><button class="text-btn" data-action="share-clue-roles" data-clue="${item.id}">${sharedRoles?"调整私享":"私享给指定玩家"}</button><button class="text-btn" data-action="add-cloud-clue-note" data-clue="${item.id}" data-label="线索 · ${escapeHtml(item.name)}" data-note="${escapeHtml(item.public_text)}">记入笔记</button></div></div>`;
+ }).join("");
 }
 
 function sharedClueSection(){
  const shared=state.cloudPlayer?.sharedClues||[];
  if(!shared.length)return "";
- return `<article class="card shared-clues-card"><div class="section-head"><div><h3>公共讨论区 · 已公开线索</h3><p>其他玩家选择公开分享的线索，全房间可见</p></div></div>${shared.map(item=>`<div class="clue-row shared"><div class="clue-row-head"><strong>${escapeHtml(item.name)}</strong><span class="status-chip published">来自 ${escapeHtml(item.owner_player_name||item.owner_role_name||"玩家")}</span></div><p>${escapeHtml(item.public_text)}</p>${item.player_note?`<div class="clue-note-box"><b>分享者解读</b><p>${escapeHtml(item.player_note)}</p></div>`:""}<div class="row clue-row-actions"><button class="text-btn" data-action="read-shared-clue" data-clue="${item.id}" data-shared="1" ${item.read_by_me?"disabled":""}>${item.read_by_me?"已阅读":"标记已读"}</button></div></div>`).join("")}</article>`;
+ const roomShared=shared.filter(item=>item.shared_scope!=="roles");
+ const roleShared=shared.filter(item=>item.shared_scope==="roles");
+ let html="";
+ if(roomShared.length){
+  html+=`<article class="card shared-clues-card"><div class="section-head"><div><h3>公共讨论区 · 已公开线索</h3><p>其他玩家选择公开分享的线索，全房间可见</p></div></div>${roomShared.map(item=>sharedClueRow(item,"published","来自 "+escapeHtml(item.owner_player_name||item.owner_role_name||"玩家"))).join("")}</article>`;
+ }
+ if(roleShared.length){
+  html+=`<article class="card shared-clues-card shared-clues-private"><div class="section-head"><div><h3>私享线索 · 仅指定玩家可见</h3><p>其他玩家定向分享给你的线索，不会进入全房间讨论区</p></div></div>${roleShared.map(item=>sharedClueRow(item,"testing","私享 · "+escapeHtml(item.owner_player_name||item.owner_role_name||"玩家"))).join("")}</article>`;
+ }
+ return html;
+}
+
+function sharedClueRow(item,chipClass,chipLabel){
+ return `<div class="clue-row shared"><div class="clue-row-head"><strong>${escapeHtml(item.name)}</strong><span class="status-chip ${chipClass}">${chipLabel}</span></div><p>${escapeHtml(item.public_text)}</p>${item.player_note?`<div class="clue-note-box"><b>分享者解读</b><p>${escapeHtml(item.player_note)}</p></div>`:""}<div class="row clue-row-actions"><button class="text-btn" data-action="read-shared-clue" data-clue="${item.id}" data-shared="1" ${item.read_by_me?"disabled":""}>${item.read_by_me?"已阅读":"标记已读"}</button></div></div>`;
 }
 
 function openVoiceRooms(){
@@ -140,16 +155,23 @@ function openInviteVoiceRoom(roomId,roomName){
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-invite-submit]").onclick=async()=>{const inviteUserIds=[...modal.querySelectorAll("[data-voice-invite]:checked")].map(input=>input.value);if(!inviteUserIds.length)return showToast("请至少选择一名已进入平行房的玩家");try{await zhimuApi.inviteVoiceRoomMembers(roomId,inviteUserIds);closeModal();await loadCloudData();showToast("密谈成员已追加邀请")}catch(error){showToast(error.message)}};
 }
 
+function voiceHubParticipants(){
+ if(state.voiceParticipants?.length)return state.voiceParticipants;
+ return (state.cloudPlayer?.roomMembers||[]).filter(member=>member.online).map(member=>({name:member.display_name||member.role_name||"?",micEnabled:null,isLocal:false}));
+}
+
 async function connectVoiceLive(){
  if(!state.voiceRoomId)return showToast("请先选择语音房");
  try{
+  state.voiceLiveError="";
   const tokenPayload=await zhimuApi.getVoiceRoomToken(state.voiceRoomId);
   await window.zhimuLiveKitVoice.connectVoiceRoom(tokenPayload);
   showToast("LiveKit 音频已连接");
  }catch(error){
   state.voiceLiveStatus="error";
+  state.voiceLiveError=error.message||"音频连接失败";
   render();
-  showToast(error.message);
+  showToast(/LiveKit|503|403|未加载/.test(error.message)?`${error.message} · 仍可使用文字频道`:error.message);
  }
 }
 
@@ -168,15 +190,16 @@ async function toggleVoiceMic(){
 
 async function joinVoiceRoom(roomId,roomName){
  if(state.voiceRoomId&&state.voiceRoomId!==roomId)await window.zhimuLiveKitVoice?.disconnectVoiceRoom?.();
- state.voiceRoomId=roomId;state.voiceRoom=roomName;closeModal();await refreshVoiceMessages();
+ state.voiceRoomId=roomId;state.voiceRoom=roomName;state.voiceLiveError="";closeModal();await refreshVoiceMessages();
  try{
   const tokenPayload=await zhimuApi.getVoiceRoomToken(roomId);
   await window.zhimuLiveKitVoice.connectVoiceRoom(tokenPayload);
   showToast(`已进入 ${roomName} · 音频已连接`);
  }catch(error){
   state.voiceLiveStatus="error";
+  state.voiceLiveError=error.message||"音频连接失败";
   render();
-  showToast(/LiveKit|503|403/.test(error.message)?`${error.message} · 仍可使用文字频道`:error.message);
+  showToast(/LiveKit|503|403|未加载/.test(error.message)?`${error.message} · 仍可使用文字频道`:error.message);
  }
 }
 
@@ -233,6 +256,27 @@ async function shareCloudClue(clueId){
  }catch(error){showToast(error.message)}
 }
 
+function openShareClueRolesModal(clueId){
+ const clue=(state.cloudPlayer?.clues||[]).find(item=>item.id===clueId);
+ if(!clue)return showToast("只能私享自己拥有的线索");
+ const myRoleId=state.cloudPlayer?.role?.id;
+ const seats=(state.cloudPlayer?.roomMembers||[]).filter(member=>member.role_slot_id!==myRoleId);
+ const selected=new Set(clue.shared_with_roles||[]);
+ modal.className="modal";
+ modal.innerHTML=`<h2>私享线索 · ${escapeHtml(clue.name)}</h2><p class="wizard-intro">选择可以查看这条线索的玩家角色。私享不会进入全房间讨论区；保存私享时会取消「公开到全房间」状态。</p><div class="member-picker">${seats.map(member=>{const disabled=!member.online&&!selected.has(member.role_slot_id);return `<label class="${disabled&&!selected.has(member.role_slot_id)?"member-disabled":""}"><input type="checkbox" data-share-role value="${member.role_slot_id}" ${selected.has(member.role_slot_id)?"checked":""} ${disabled&&!selected.has(member.role_slot_id)?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${member.online?" · 已入房":" · 尚未入房"}</span></label>`}).join("")||`<div class="empty-state">当前世界没有其他角色席位。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-share-roles-submit>保存私享</button></div>`;
+ modalBackdrop.classList.add("show");
+ modal.querySelector("[data-close]").onclick=closeModal;
+ modal.querySelector("[data-share-roles-submit]").onclick=async()=>{
+  try{
+   const roleSlotIds=[...modal.querySelectorAll("[data-share-role]:checked")].map(input=>input.value);
+   await zhimuApi.shareClueToRoles(clueId,roleSlotIds);
+   closeModal();
+   await loadCloudData();
+   showToast(roleSlotIds.length?`已私享给 ${roleSlotIds.length} 名玩家`:"已清空私享名单");
+  }catch(error){showToast(error.message)}
+ };
+}
+
 function openClueNoteModal(clueId){
  const clue=(state.cloudPlayer?.clues||[]).find(item=>item.id===clueId);
  if(!clue)return showToast("只能为自己拥有的线索添加解读");
@@ -273,6 +317,7 @@ async function executeHostEvent(eventId){
   viewExports.investigateCloud = investigateCloud;
   viewExports.readCloudClue = readCloudClue;
   viewExports.shareCloudClue = shareCloudClue;
+  viewExports.openShareClueRolesModal = openShareClueRolesModal;
   viewExports.openClueNoteModal = openClueNoteModal;
   viewExports.dismissHostEvent = dismissHostEvent;
   viewExports.executeHostEvent = executeHostEvent;

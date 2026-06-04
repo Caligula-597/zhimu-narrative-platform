@@ -5,6 +5,7 @@ import { sendErr } from "../api-errors.js";
 import { storageUsage } from "./world-helpers.js";
 import { parseCreatorDocument } from "../document-parser.js";
 import { deleteOwnedWorld } from "../world-delete.js";
+import { listWorldHostAuditLog } from "../audit-log.js";
 import {
   updateWorldSchema,
   worldIdParams,
@@ -295,6 +296,15 @@ export async function registerWorldRoutes(app) {
       [worldId, roomId || null, eventType, keyword, limit]
     );
     return result.rows;
+  });
+
+  app.get("/api/worlds/:worldId/host-audit-log", { schema: { params: worldIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);
+    const limit = Math.min(Math.max(Number(request.query?.limit) || 50, 1), 200);
+    const entries = await listWorldHostAuditLog(worldId, { limit });
+    return { entries };
   });
 
 }

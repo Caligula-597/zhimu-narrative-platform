@@ -133,8 +133,8 @@ async function applySnapshotState(client, roomId, snapshot, scope) {
       if (!["pending", "delayed"].includes(status)) continue;
       await client.query(
         `INSERT INTO pending_host_events
-          (id, room_id, rule_id, event_key, title, description, actions, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9)
+          (id, room_id, rule_id, event_key, title, description, actions, status, created_at, delay_until)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10)
          ON CONFLICT (id) DO NOTHING`,
         [
           row.id,
@@ -145,7 +145,8 @@ async function applySnapshotState(client, roomId, snapshot, scope) {
           row.description ?? "",
           JSON.stringify(row.actions ?? []),
           status,
-          row.created_at ?? row.createdAt ?? new Date()
+          row.created_at ?? row.createdAt ?? new Date(),
+          row.delay_until ?? row.delayUntil ?? null
         ]
       );
     }

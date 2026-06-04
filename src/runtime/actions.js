@@ -66,6 +66,7 @@
   const refreshHostEvents = R.refreshHostEvents || (async () => {});
   const refreshHostPlayers = R.refreshHostPlayers || (async () => {});
   const refreshHostClueMatrix = R.refreshHostClueMatrix || (async () => {});
+  const refreshHostAuditLog = R.refreshHostAuditLog || (async () => {});
   const openAuth = R.openAuth || (() => {});
   const openWorldLibrary = R.openWorldLibrary || (() => {});
   const joinCatalogWorld = (...args) => window.zhimuRuntime?.joinCatalogWorld?.(...args);
@@ -114,6 +115,7 @@
   const openHostPlayerDetail = V.director?.openHostPlayerDetail || (async () => {});
   const openHostClueNote = V.director?.openHostClueNote || (async () => {});
   const openHostGrantClueModal = V.director?.openHostGrantClueModal || (() => {});
+  const openDelayHostEventModal = V.director?.openDelayHostEventModal || (() => {});
   const openHostGrantItemModal = V.director?.openHostGrantItemModal || (() => {});
   const openHostUnlockSectionModal = V.director?.openHostUnlockSectionModal || (() => {});
   const openHostUnlockSceneModal = V.director?.openHostUnlockSceneModal || (() => {});
@@ -125,9 +127,12 @@
   const openCheckpointDetail = V.archive?.openCheckpointDetail || (async () => {});
   const openRestoreCheckpointModal = V.archive?.openRestoreCheckpointModal || (() => {});
   const saveWorldSettings = V.settings?.saveWorldSettings || (async () => {});
+  const openWorldAuditModal = V.settings?.openWorldAuditModal || (async () => {});
   const saveRoomSettings = V.settings?.saveRoomSettings || (async () => {});
   const goWriterExport = V.settings?.goWriterExport || (() => {});
   const setAssetFilter = V.assets?.setAssetFilter || (async () => {});
+  const toggleAssetRecycle = V.assets?.toggleAssetRecycle || (async () => {});
+  const restoreCloudAsset = V.assets?.restoreCloudAsset || (async () => {});
   const downloadCloudAsset = V.assets?.downloadCloudAsset || (async () => {});
   const refreshRulesPreview = V.director?.refreshRulesPreview || (async () => {});
   const triggerManualRuleFromDirector = V.director?.triggerManualRuleFromDirector || (async () => {});
@@ -147,7 +152,10 @@
   const investigateCloud = V.player?.investigateCloud || (async () => {});
   const readCloudClue = V.player?.readCloudClue || (async () => {});
   const shareCloudClue = V.player?.shareCloudClue || (async () => {});
+  const openShareClueRolesModal = V.player?.openShareClueRolesModal || (() => {});
   const openClueNoteModal = V.player?.openClueNoteModal || (() => {});
+  const openCluesEditor = V.clues?.openCluesEditor || (() => {});
+  const openClueInStudio = V.clues?.openClueInStudio || (() => {});
   const executeHostEvent = V.player?.executeHostEvent || (async () => {});
   const dismissHostEvent = V.player?.dismissHostEvent || (async () => {});
   const toggleHostEventSelection = V.director?.toggleHostEventSelection || (() => {});
@@ -164,6 +172,8 @@
   });
   if(state.view==="studio") bindStudioDragging();
   if(state.view==="assets") V.assets?.bindAssetSearch?.();
+  if(state.view==="clues") V.clues?.bindCluesSearch?.();
+  window.zhimuSearchFocus?.applyAfterRender?.();
 }
 
 function handle(action,el){
@@ -177,11 +187,14 @@ function handle(action,el){
   if(action==="restore-checkpoint") return openRestoreCheckpointModal(el.dataset.checkpoint);
   if(action==="save-world-settings") return saveWorldSettings();
   if(action==="save-room-settings") return saveRoomSettings();
+  if(action==="world-audit") return openWorldAuditModal();
   if(action==="go-writer-export") return goWriterExport();
   if(action==="asset-filter") return setAssetFilter(el.dataset.kind);
+  if(action==="asset-recycle-toggle") return toggleAssetRecycle();
   if(action==="rules-preview") return refreshRulesPreview();
   if(action==="rule-manual-trigger") return triggerManualRuleFromDirector(el.dataset.rule);
-  if(action==="delay-event") return showToast("已延迟，系统将在 15 分钟后提醒");
+  if(action==="delay-host-event") return openDelayHostEventModal(el.dataset.event);
+  if(action==="delay-event") return openDelayHostEventModal(el.dataset.event);
   if(action==="explore") return openModal("调查进行中",`你开始调查「${el.dataset.place}」。系统将根据角色状态、持有物品和已解读线索展示可发现的内容。`,`确认调查`);
   if(action==="new-rule") return openModal("新建自动化规则","使用“当满足条件，则执行动作”的方式配置规则。每个规则都支持自动执行、主持确认和仅手动三种模式。","开始配置");
   if(action==="export") return showToast("世界数据已准备导出");
@@ -204,12 +217,17 @@ function handle(action,el){
   if(action==="refresh-host-events") return refreshHostEvents(true);
   if(action==="refresh-host-players") return refreshHostPlayers(true);
   if(action==="refresh-host-clue-matrix") return refreshHostClueMatrix(true);
+  if(action==="refresh-host-audit") return refreshHostAuditLog(true);
   if(action==="read-cloud-next") return completeCloudReading(el.dataset.section);
   if(action==="add-cloud-note") return addCloudNote(el.dataset.section,el.dataset.label,el.dataset.note);
   if(action==="add-cloud-clue-note") return addCloudClueNote(el.dataset.clue,el.dataset.label,el.dataset.note);
   if(action==="investigate-cloud") return investigateCloud(el.dataset.point);
   if(action==="read-cloud-clue") return readCloudClue(el.dataset.clue,el.dataset.shared==="1");
   if(action==="share-cloud-clue") return shareCloudClue(el.dataset.clue);
+  if(action==="share-clue-roles") return openShareClueRolesModal(el.dataset.clue);
+  if(action==="clues-edit") return openCluesEditor(el.dataset.clue);
+  if(action==="clues-open-studio") return openClueInStudio(el.dataset.clue);
+  if(action==="clues-add") return openCluesEditor("");
   if(action==="edit-clue-note") return openClueNoteModal(el.dataset.clue);
   if(action==="read-shared-clue") return readCloudClue(el.dataset.clue,true);
   if(action==="execute-host-event") return executeHostEvent(el.dataset.event);
@@ -253,7 +271,7 @@ function handle(action,el){
   if(action==="creator-collaboration") return openCollaboration();
   if(action==="creator-logs") return openWorldLogs();
   if(action==="creator-document-parser") return openDocumentParser();
-  if(action==="account") return openAuth();
+  if(action==="account"||action==="open-auth") return openAuth();
   if(action==="world-library") return openWorldLibrary();
   if(action==="open-catalog") return openWorldLibrary("catalog");
   if(action==="catalog-join") return joinCatalogWorld(el.dataset.worldId);
@@ -284,6 +302,7 @@ function handle(action,el){
   if(action==="creator-restore") return restoreCreatorSnapshot(el.dataset.version);
   if(action==="creator-delete-version") return deleteCreatorSnapshot(el.dataset.version);
   if(action==="delete-asset") return deleteCloudAsset(el.dataset.asset);
+  if(action==="restore-asset") return restoreCloudAsset(el.dataset.asset);
   if(action==="upload-asset") return openAssetUpload();
   if(action==="unavailable") return openModal("功能筹备中",`${el.dataset.feature||"该功能"} 将在后续版本开放。内测版请优先使用已接通的功能（剧本创作、编排、主持台与玩家入口）。`,"知道了");
 }

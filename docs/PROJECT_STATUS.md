@@ -2,7 +2,7 @@
 
 
 
-> **更新**：2026-06-03  
+> **更新**：2026-06-04  
 
 > **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
 
@@ -72,7 +72,11 @@
 
 - **多实例 SSE**：`ROOM_EVENTS_BUS=postgres`（PostgreSQL NOTIFY）
 
-- **Schema 门禁**：**48 条**写/SSE 路由（含 world 成员 + story-assistant + search）
+- **Schema 门禁**：**54** 条写/SSE 路由（含 share-roles、host-event delay、assets restore）
+
+- **Beta-1 产品体验**：LiveKit 语音流、线索私享、主持延迟 UI、搜索高亮、独立线索页、**主持审计 UI**
+
+- **Beta-2 后端加固**：upload/AI 限流分桶、上传扫描 stub/quarantine、主持延迟 audit、`/api/ops/status` telemetry
 
 - **规则 POST/PUT** 入库前 **`validateRuleBody`**（422 `RULE_BODY_INVALID`）
 
@@ -112,9 +116,9 @@
 
 |------|------|
 
-| `backend npm test` | **131** |
+| `backend npm test` | **170** |
 
-| `npm run check:schemas` | **48** 条路由 |
+| `npm run check:schemas` | **54** 条路由 |
 
 | `npm run check:tests` | ≥100 |
 

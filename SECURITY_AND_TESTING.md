@@ -37,7 +37,7 @@
 
 所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
 
-`npm test` 当前覆盖（**131 项**，约 41 个测试文件；精确数以 `npm run check:tests` 为准）：
+`npm test` 当前覆盖（**170 项**，约 44 个测试文件；精确数以 `npm run check:tests` 为准）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -50,6 +50,9 @@
 | `demo-act2-reading.test.js` | 雾港 Act 2 阅读解锁 |
 | `event-journal-e2e.test.js` | API 写操作 → journal 落库 |
 | `host-console.test.js` | 玩家表、手动干预、待确认 |
+| `host-audit.test.js` | 主持审计 API 权限、limit、排序 |
+| `host-event-robustness.test.js` | 延迟调度 schema/404/权限、wake 函数 |
+| `clue-share-robustness.test.js` | 私享边界：未拥有、空列表、跨世界 |
 | `idempotency-coverage.test.js` | 幂等 routeKey 注册表 |
 | `inventory.test.js` | 物品 CRUD、主持发放、调查门槛 |
 | `livekit-voice.test.js` | 公共/私密 token、503 无 env |
@@ -71,6 +74,9 @@
 | `creator-schema-validation.test.js` | 创作写路由 schema |
 | `room-lifecycle.test.js` | checkpoint restore + 幂等阅读 |
 | `room-event-journal.test.js` | journal 按 id 补发 |
+| `beta2-ops.test.js` | ops status、telemetry、rateLimits |
+| `rate-limit.test.js` | upload/AI 独立限流桶 |
+| `asset-recycle.test.js` | 回收站列表、恢复、404 边界 |
 | `transaction-events.test.js` | commit 后才 publish SSE |
 
 **CI 门禁**：`.github/workflows/ci.yml`
@@ -95,19 +101,21 @@ npm test
 npm run check:modules
 npm run build
 node scripts/verify-dist-host.mjs   # 需 4173 dist 服务
-node scripts/ui-smoke.js            # 34 项，需 4173 + 4180
+node scripts/ui-smoke.js            # 41 项，需 4173 + 4180
+npm run test:format-helpers         # 4 项纯函数（format.js）
 ```
 
 `npm run test:smoke`（backend，**18 项**）：需 `localhost:4180` 已启动。
 
-## 整体验收（2026-06-03 收工）
+## 整体验收（2026-06-04 收工）
 
 | 命令 | 结果 |
 |------|------|
-| `backend npm test` | **131/131** |
-| `npm run check:schemas` | **48** 条路由 |
+| `backend npm test` | **170/170** |
+| `npm run check:schemas` | **54** 条路由 |
 | `npm run test:smoke` | **18/18** |
-| `node scripts/ui-smoke.js` | **34/34** |
+| `node scripts/ui-smoke.js` | **41/41** |
+| `npm run test:format-helpers` | **4/4** |
 | `npm run check:modules` | **29/29** |
 | `npm run verify:full:fresh` | Playwright E2E + 上述门禁 |
 

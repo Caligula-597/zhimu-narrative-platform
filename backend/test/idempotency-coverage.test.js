@@ -129,6 +129,77 @@ test("host event dismiss is idempotent with Idempotency-Key", async (context) =>
   assert.deepEqual(second.json(), first.json());
 });
 
+test("share-roles clue endpoint is idempotent with Idempotency-Key", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const roleSlotId = await fogRoleId();
+  const clueId = await fogClueId();
+  const peer = await query(
+    `SELECT rs.id FROM role_slots rs
+     JOIN rooms r ON r.world_id = rs.world_id
+     WHERE r.id = $1 AND rs.id <> $2 ORDER BY rs.sequence LIMIT 1`,
+    [fogRoomId, roleSlotId]
+  );
+  assert.ok(peer.rowCount);
+
+  await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fogRoomId}/host/grant-clue`,
+    headers: { "x-user-id": hostUserId, "idempotency-key": `share-roles-grant-${Date.now()}` },
+    payload: { roleSlotId, clueId }
+  });
+
+  const key = `share-roles-${Date.now()}`;
+  const url = `/api/rooms/${fogRoomId}/clues/${clueId}/share-roles`;
+  const body = { roleSlotIds: [peer.rows[0].id] };
+  const first = await app.inject({
+    method: "POST",
+    url,
+    headers: { "x-user-id": playerUserId, "idempotency-key": key },
+    payload: body
+  });
+  assert.equal(first.statusCode, 200);
+  const second = await app.inject({
+    method: "POST",
+    url,
+    headers: { "x-user-id": playerUserId, "idempotency-key": key },
+    payload: body
+  });
+  assert.equal(second.statusCode, 200);
+  assert.deepEqual(second.json(), first.json());
+});
+
+test("host event delay is idempotent with Idempotency-Key", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const inserted = await query(
+    `INSERT INTO pending_host_events (room_id, event_key, title, description, actions, status)
+     VALUES ($1, $2, 'idempotent delay', '', '[]'::jsonb, 'pending')
+     RETURNING id`,
+    [fogRoomId, `delay-idem-${Date.now()}`]
+  );
+  const eventId = inserted.rows[0].id;
+  const key = `delay-idem-${Date.now()}`;
+  const url = `/api/rooms/${fogRoomId}/host-events/${eventId}/delay`;
+  const first = await app.inject({
+    method: "POST",
+    url,
+    headers: { "x-user-id": hostUserId, "idempotency-key": key },
+    payload: { delayMinutes: 20 }
+  });
+  assert.equal(first.statusCode, 200);
+  const second = await app.inject({
+    method: "POST",
+    url,
+    headers: { "x-user-id": hostUserId, "idempotency-key": key },
+    payload: { delayMinutes: 20 }
+  });
+  assert.equal(second.statusCode, 200);
+  assert.deepEqual(second.json(), first.json());
+});
+
 /** Documents routes expected to honor Idempotency-Key (audit guard). */
 test("idempotency coverage registry matches implemented routes", () => {
   const covered = [
@@ -139,10 +210,12 @@ test("idempotency coverage registry matches implemented routes", () => {
     "host.unlock_section",
     "host.event_dismiss",
     "host.event_execute",
+    "host.event_delay",
     "host.event_batch",
     "host.rule_trigger",
     "player.investigate",
-    "clues.share_room"
+    "clues.share_room",
+    "clues.share_roles"
   ];
-  assert.equal(covered.length, 11);
+  assert.equal(covered.length, 13);
 });

@@ -15,6 +15,8 @@
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const roleParts = F.roleParts || (() => ({ name: "", role: "" }));
   const hostOperationLabel = F.hostOperationLabel || ((t, m) => m || t);
+  const hostAuditActionLabel = F.hostAuditActionLabel || ((a) => a);
+  const hostAuditDetail = F.hostAuditDetail || (() => "");
   const hostPlayerColor = F.hostPlayerColor || (() => "#666");
   const logActivityType = F.logActivityType || (() => "ok");
   const chapterPublicationLabel = F.chapterPublicationLabel || ((s) => s);
@@ -50,11 +52,13 @@ function director(){
  const room=activeRuntimeRoom(),world=state.cloudStudio?.world;
  if(!room)return runtimeEmpty("主持监控台","主持监控台只展示当前世界中被选中的独立运行房，不再回退到初始演示副本。");
  const players=state.cloudHostPlayers||[],rules=(state.cloudRules||[]).filter(rule=>rule.enabled&&(!rule.room_id||rule.room_id===room.id)),events=state.cloudHostEvents||[];
+ const pendingEvents=events.filter(e=>e.status!=="delayed");
  const joinedCount=players.filter(player=>player.joined).length,stuckCount=state.cloudHostStuckCount||0;
  return `${cloudStatus()}<div class="director-head"><div><span class="live-label">● LIVE</span><strong>　${escapeHtml(world?.name||"当前世界")} · ${escapeHtml(room.name)}</strong><small class="director-poll-hint">${state.roomEventsConnected?"实时推送已连接 · 待确认事件与玩家进度会自动更新":"打开本页时每 15 秒自动刷新待确认事件与玩家进度"}</small></div><div class="row director-refresh-row"><button class="secondary-btn" data-action="refresh-host-room">刷新房间状态</button><button class="secondary-btn" data-action="refresh-host-events">刷新待确认事件</button><button class="secondary-btn" data-action="refresh-host-players">刷新玩家进度</button><button class="secondary-btn" data-action="create-recap">生成复盘</button><button class="secondary-btn" data-action="host-manual-log">＋ 主持日志</button><button class="primary-btn" data-action="create-checkpoint">＋ 创建存档点</button></div></div>
- <section class="stats-grid">${stat("♙",String(joinedCount),"已加入玩家",players.length+" 个角色席位")}${stat("⚑",String(stuckCount),"疑似卡关",stuckCount?"超过阈值未推进":"当前无卡关预警")}${stat("◷",String(events.length),"待确认事件",events.length?"需要主持人判断":"当前无需人工介入")}${stat("⌘",String(rules.length),"运行中规则","仅统计当前房和世界模板")}</section>
+ <section class="stats-grid">${stat("♙",String(joinedCount),"已加入玩家",players.length+" 个角色席位")}${stat("⚑",String(stuckCount),"疑似卡关",stuckCount?"超过阈值未推进":"当前无卡关预警")}${stat("◷",String(pendingEvents.length),"待确认事件",pendingEvents.length?"需要主持人判断":events.length?"均已延迟":"当前无需人工介入")}${stat("⌘",String(rules.length),"运行中规则","仅统计当前房和世界模板")}</section>
  <article class="card host-events-card"><div class="section-head"><div><h3>待确认事件</h3><p>规则或调查触发的关键节点，确认后立即写入当前房间状态</p></div>${hostEventBatchToolbar()}</div>${hostEventRows()}</article>
  ${hostClueMatrixCard()}
+ ${hostAuditCard()}
  <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>规则运行预览</h3><p>查看当前平行房中各条规则的实时状态（不会修改任何数据）</p></div><button class="secondary-btn" data-action="rules-preview">刷新预览</button></div>${directorRulesPreview()}</article>
  <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>玩家运行状态</h3><p>点击行查看分幕、线索、调查与最近日志；支持手动干预</p></div><div class="row host-manual-actions"><button class="secondary-btn" data-action="host-manual-grant-clue">手动发线索</button><button class="secondary-btn" data-action="host-manual-grant-item">手动发物品</button><button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button><button class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button></div></div>
  <div class="host-runtime-table-wrap"><table class="host-runtime-table"><thead><tr><th>玩家 / 角色</th><th>入房</th><th>阅读进度</th><th>线索</th><th>最近操作</th><th>状态</th><th></th></tr></thead><tbody>${hostPlayerTableRows(players)}</tbody></table></div>
@@ -106,7 +110,10 @@ function hostEventRows(){
  const events=state.cloudHostEvents||[];
  if(!events.length){state.hostEventSelection=[];return `<div class="empty-state">当前无需人工介入。普通动作由系统自动执行，关键转折会进入这里等待主持人判断。</div>`;}
  const selected=new Set(state.hostEventSelection||[]);
- return events.map(event=>`<article class="host-event-card"><label class="host-event-select check-label"><input type="checkbox" data-action="host-event-toggle" data-event="${event.id}" ${selected.has(event.id)?"checked":""}></label><div class="host-event-body"><div class="host-event-head"><span class="cloud-pill">${escapeHtml(event.source_label||"系统")}</span><strong>${escapeHtml(event.title)}</strong><small>${formatRelativeTime(event.created_at)}</small></div><p>${escapeHtml(event.description)}</p>${event.rule_name?`<div class="rule-block"><b>来源规则</b> · ${escapeHtml(event.rule_name)}</div>`:""}${event.action_summaries?.length?`<div class="host-event-actions-preview"><b>将执行</b>${event.action_summaries.map(item=>`<span>${escapeHtml(item)}</span>`).join("")}</div>`:""}<div class="event-actions"><button class="primary-btn" data-action="execute-host-event" data-event="${event.id}">确认并执行</button><button class="secondary-btn" data-action="dismiss-host-event" data-event="${event.id}">拒绝</button><button class="text-btn" data-action="host-event-context" data-event="${event.id}">查看上下文</button></div></div></article>`).join("");
+ const pending=events.filter(e=>e.status!=="delayed");
+ const delayed=events.filter(e=>e.status==="delayed");
+ const renderCard=(event,delayedCard=false)=>`<article class="host-event-card ${delayedCard?"host-event-delayed":""}"><label class="host-event-select check-label"><input type="checkbox" data-action="host-event-toggle" data-event="${event.id}" ${selected.has(event.id)?"checked":""} ${delayedCard?"disabled":""}></label><div class="host-event-body"><div class="host-event-head"><span class="cloud-pill">${escapeHtml(event.source_label||"系统")}</span>${delayedCard?`<span class="status-chip testing">已延迟</span>`:""}<strong>${escapeHtml(event.title)}</strong><small>${delayedCard&&event.delay_until?`将于 ${formatTime(event.delay_until)} 再次提醒 · `:``}${formatRelativeTime(event.created_at)}</small></div><p>${escapeHtml(event.description)}</p>${event.rule_name?`<div class="rule-block"><b>来源规则</b> · ${escapeHtml(event.rule_name)}</div>`:""}${event.action_summaries?.length?`<div class="host-event-actions-preview"><b>将执行</b>${event.action_summaries.map(item=>`<span>${escapeHtml(item)}</span>`).join("")}</div>`:""}<div class="event-actions"><button class="primary-btn" data-action="execute-host-event" data-event="${event.id}">确认并执行</button><button class="secondary-btn" data-action="dismiss-host-event" data-event="${event.id}">拒绝</button>${delayedCard?"":`<button class="secondary-btn" data-action="delay-host-event" data-event="${event.id}">延迟</button>`}<button class="text-btn" data-action="host-event-context" data-event="${event.id}">查看上下文</button></div></div></article>`;
+ return `${pending.map(event=>renderCard(event,false)).join("")}${delayed.length?`<div class="host-events-delayed-block"><p class="section-kicker">已延迟 · ${delayed.length}</p>${delayed.map(event=>renderCard(event,true)).join("")}</div>`:""}`;
 }
 
 function hostActionSummary(actions=[]){
@@ -125,6 +132,7 @@ function hostClueMatrixLabel(cell={}){
  if(cell.owned)parts.push("已拥有");
  if(cell.read)parts.push("已读");
  if(cell.sharedWithRoom)parts.push("已公开");
+ if(cell.sharedWithRoles)parts.push("已私享");
  if(!cell.owned&&cell.visible)parts.push(cell.read?"已读(分享)":"可见");
  return parts.join("·")||"—";
 }
@@ -139,6 +147,17 @@ function hostClueMatrixCard(){
  }).join("");
  const summaries=(matrix.summaries||[]).map(item=>`<div class="clue-matrix-summary"><strong>${escapeHtml(item.clueName)}</strong><p>${escapeHtml(item.summary)}</p></div>`).join("");
  return `<article class="card host-clue-matrix-card"><div class="section-head"><div><h3>线索掌握矩阵</h3><p>查看谁拥有、读过或公开过每条线索</p></div><button class="secondary-btn" data-action="refresh-host-clue-matrix">刷新矩阵</button></div><div class="host-clue-matrix-wrap"><table class="host-clue-matrix"><thead><tr><th>线索 \\ 玩家</th>${head}</tr></thead><tbody>${body}</tbody></table></div><div class="clue-matrix-summaries">${summaries}</div></article>`;
+}
+
+function hostAuditCard(){
+ const rows=state.cloudHostAuditLog||[];
+ const body=rows.length?rows.map(entry=>{
+  const actor=entry.actor_name?`${escapeHtml(entry.actor_name)} · `:"";
+  const detail=hostAuditDetail(entry);
+  const text=`${actor}<strong>${escapeHtml(hostAuditActionLabel(entry.action))}</strong>${detail?` · ${escapeHtml(detail)}`:""}`;
+  return activity(text,formatRelativeTime(entry.created_at),"ok");
+ }).join(""):`<div class="empty-state">暂无主持审计记录。手动发线索、延迟事件、存档恢复等操作会写入此处。</div>`;
+ return `<article class="card host-audit-card" style="margin-top:14px"><div class="section-head"><div><h3>主持审计</h3><p>记录主持侧敏感操作，便于复盘与协作 accountability</p></div><button class="secondary-btn" data-action="refresh-host-audit">刷新审计</button></div><div class="host-audit-list">${body}</div></article>`;
 }
 
 async function openHostPlayerDetail(roleSlotId){
@@ -167,8 +186,15 @@ function openHostGrantClueModal(){
  const players=(state.cloudHostPlayers||[]).filter(player=>player.joined),clues=state.cloudStudio?.clues||[];
  if(!players.length)return showToast("当前没有已加入的玩家");
  if(!clues.length)return showToast("当前世界尚未创建线索");
- modal.className="modal";modal.innerHTML=`<h2>手动发放线索</h2><p class="wizard-intro">线索会写入指定角色的 clue_ownership，并记录主持日志。</p><div class="form-group">${studioSelect("目标角色","grantRole",players.map(player=>({id:player.role_slot_id,name:`${player.player_display_name||"玩家"} · ${player.role_name}`})))}${studioSelect("线索","grantClue",clues.map(clue=>({id:clue.id,name:clue.name})))}${studioField("日志说明","grantMessage","input","主持人手动发放线索")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-grant-submit>确认发放</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-host-grant-submit]").onclick=async()=>{try{const values=studioValues();await zhimuApi.hostGrantClue({roleSlotId:values.grantRole,clueId:values.grantClue,message:values.grantMessage});closeModal();await loadCloudData();showToast("线索已发放")}catch(error){showToast(error.message)}};
+ modal.className="modal";modal.innerHTML=`<h2>手动发放线索</h2><p class="wizard-intro">可一次发给多名玩家；每人独立获得 clue_ownership，不会默认公开给全房间。</p><div class="form-group">${studioSelect("线索","grantClue",clues.map(clue=>({id:clue.id,name:clue.name})))}<label>目标角色（可多选）</label><div class="member-picker">${players.map(player=>`<label><input type="checkbox" data-grant-role value="${player.role_slot_id}"> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}</span></label>`).join("")}</div>${studioField("日志说明","grantMessage","input","主持人手动发放线索")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-grant-submit>确认发放</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-host-grant-submit]").onclick=async()=>{try{const values=studioValues();const roleSlotIds=[...modal.querySelectorAll("[data-grant-role]:checked")].map(el=>el.value);if(!roleSlotIds.length)return showToast("请至少选择一名玩家");await zhimuApi.hostGrantClue({roleSlotIds,clueId:values.grantClue,message:values.grantMessage});closeModal();await loadCloudData();showToast(`线索已发放给 ${roleSlotIds.length} 名玩家`)}catch(error){showToast(error.message)}};
+}
+
+function openDelayHostEventModal(eventId){
+ const event=(state.cloudHostEvents||[]).find(item=>item.id===eventId);
+ if(!event)return showToast("找不到待确认事件");
+ modal.className="modal";modal.innerHTML=`<h2>延迟待确认事件</h2><p class="wizard-intro">「${escapeHtml(event.title)}」将从待办列表移出，到期后自动回到待确认队列。</p><div class="form-group"><label>延迟时长</label><select class="field" data-delay-minutes><option value="5">5 分钟</option><option value="15" selected>15 分钟</option><option value="30">30 分钟</option><option value="60">1 小时</option><option value="120">2 小时</option></select></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-delay-submit>确认延迟</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-delay-submit]").onclick=async()=>{try{const delayMinutes=Number(modal.querySelector("[data-delay-minutes]").value)||15;await zhimuApi.delayHostEvent(eventId,delayMinutes);closeModal();await loadCloudData();showToast(`已延迟 ${delayMinutes} 分钟`)}catch(error){showToast(error.message)}};
 }
 
 function openHostGrantItemModal(){
@@ -238,10 +264,12 @@ async function triggerManualRuleFromDirector(ruleId){
   viewExports.batchHostEventsAction = batchHostEventsAction;
   viewExports.hostClueMatrixLabel = hostClueMatrixLabel;
   viewExports.hostClueMatrixCard = hostClueMatrixCard;
+  viewExports.hostAuditCard = hostAuditCard;
   viewExports.openHostPlayerDetail = openHostPlayerDetail;
   viewExports.openHostClueNote = openHostClueNote;
   viewExports.openHostEventContext = openHostEventContext;
   viewExports.openHostGrantClueModal = openHostGrantClueModal;
+  viewExports.openDelayHostEventModal = openDelayHostEventModal;
   viewExports.openHostGrantItemModal = openHostGrantItemModal;
   viewExports.openHostUnlockSectionModal = openHostUnlockSectionModal;
   viewExports.openHostUnlockSceneModal = openHostUnlockSceneModal;

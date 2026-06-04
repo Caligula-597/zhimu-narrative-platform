@@ -1,7 +1,7 @@
 # 织幕 · 功能实现状态总览
 
 > **用途**：团队协调用的「一张表看清全貌」——后端做到哪、前端做到哪、哪里没接通、哪里有坑。  
-> **更新**：2026-06-03（Vite · 131 测试 · schema 48 · UI smoke 34 · API smoke 18）  
+> **更新**：2026-06-04（Vite · **170** 测试 · schema **54** · UI smoke **41** · API smoke **18**）  
 > **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
 > **中文总览**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)  
@@ -67,7 +67,7 @@
 | SSE + room_event_journal | ✅ | commit 后落库；Live SSE 带 journal `id` |
 | LiveKit token | 🟡 | 无 env 时 503 |
 | **PATCH 运行房 settings** | ✅ | 如 `hostVoiceListen` |
-| **host_audit_log** | ✅ | restore / grant / settings 等 |
+| **host_audit_log** | ✅ | restore / grant / settings / **host_event_delayed** 等 |
 | **写操作幂等 Idempotency-Key** | ✅ | 10 条路由（见 §1.5） |
 | 统一 API 错误 `{ error, code }` | ✅ | 全路由 |
 
@@ -122,7 +122,7 @@
 | 复盘 | AI 叙事总结 |
 | 实时 | Redis / 多节点 SSE；WebSocket 集群 |
 | 资产 | 病毒扫描、图片转码 |
-| 安全 | 上传内容扫描；**生产环境 API 读写限流**（auth 20/min · write 120/min · read 300/min；SSE 除外） |
+| 安全 | 上传扫描 **stub** + quarantine；**upload/AI 限流分桶** |
 | 实体 | NPC 模型与 API；实体卡 QR/NFC |
 | Schema | 创作/资产部分路由尚无 Fastify schema |
 | 协作 | 邀请未注册用户；待接受邀请状态 |
@@ -167,8 +167,8 @@
 
 | 项 | 状态 |
 |----|------|
-| `npm test` | **131/131**（含 ops-health、postgres bus、world-search 等） |
-| `check:schemas` | **48** 条写/SSE 路由 schema 门禁 |
+| `npm test` | **170/170**（含 beta2-ops、rate-limit、upload-scan、asset-recycle、clue-sharing 扩展） |
+| `check:schemas` | **53** 条写/SSE 路由 schema 门禁 |
 | `check:tests` 数量下限 | ≥100 |
 | checkpoint / journal / 幂等 E2E | ✅ 专项测试 |
 | `test:smoke` | **18** 项（需 4180 进程，含 checkpoint-restore） |
@@ -184,8 +184,8 @@
 - **模板 vs 实例**：世界内容修改不自动回溯已开运行房（需 checkpoint restore）。
 - **创作版本 ≠ 运行存档**：前者只恢复正文；后者恢复进度/线索/规则执行等。
 - **规则表达能力**：仅结构化 JSON，无可视化流程图执行引擎。
-- **主持确认**：主持台支持批量确认/拒绝；无延迟调度 UI。
-- **线索分享**：第一版仅「公开到全房间」，无私享给指定玩家。
+- **主持确认**：主持台支持批量确认/拒绝、**延迟调度 UI**（`delay_until` + 到期唤醒）。
+- **线索分享**：全房间公开 + **私享指定角色**（`share-roles`）。
 - **前端架构**：**Vite 6** 构建 + `frontend/main.js` 顺序 import；仍用 `window.*` 全局；详见 [FRONTEND_MODULE_PLAN.md](./FRONTEND_MODULE_PLAN.md)、[docs/OPS.md](./docs/OPS.md)。
 - **LiveKit**：可选；无 env 时语音不可用，文字频道仍可用。
 - **Beta 前建议**：创作 API schema 全覆盖、ES module 去全局化、上传扫描、指标；多实例 SSE 已可用 Postgres NOTIFY。
@@ -196,13 +196,14 @@
 
 | 视图 | 导航 | 状态 | 已实现要点 | 主要缺口 |
 |------|------|------|------------|----------|
-| 世界总览 | overview | ✅ | 真实 logs / 进度 / 资产统计 | 顶栏全局搜索在 overview 外；图谱内高亮未做 |
+| 世界总览 | overview | ✅ | 真实 logs / 进度 / 资产统计 | — |
 | 剧本创作 | writer | ✅ | 分幕编辑、版本、导入导出、DeepSeek | 实体小卡 🔲 |
-| 剧情编排 | studio | ✅ | 图谱 CRUD、拖拽、PATCH 编辑 | 独立线索管理页 🔲 |
+| 剧情编排 | studio | ✅ | 图谱 CRUD、拖拽、PATCH 编辑 | — |
+| **线索管理** | clues | ✅ | 独立列表、搜索、编辑、跳转编排 | — |
 | 内容资产 | assets | ✅ | R2 列表、上传、删除、分类 Tab、搜索 | 「＋ 新建内容」仍占位（场景/线索在编排台创建） |
 | 自动化规则 | rules | ✅ | JSON + 可视化（含 OR/变量比较/发放物品）；validate API | — |
-| 主持监控台 | director | ✅ | 玩家表、干预、SSE、存档创建、规则预览/手动触发 | — |
-| 玩家视角 | player | ✅ | 阅读、探索、线索、语音、LiveKit | 依赖入房 |
+| 主持监控台 | director | ✅ | 玩家表、干预、SSE、存档创建、规则预览/手动触发、**主持审计** | — |
+| 玩家视角 | player | ✅ | 阅读、探索、线索私享/公开、**LiveKit 语音** | 依赖入房 + env |
 | 存档与复盘 | archive | ✅ | 列表、详情、创建 checkpoint/recap、**scoped restore** | — |
 | 世界设置 | settings | ✅ | 编辑世界名/简介；`hostVoiceListen` 开关；导出/导入跳转创作台 | 实体卡绑定仍占位 |
 
@@ -212,7 +213,7 @@
 |----|------|
 | `zhimuApi` 客户端 | ✅ 覆盖大部分运行/创作 API；`friendlyApiError` |
 | SSE `streamRoomEvents` | ✅ 主持台/玩家 toast；`Last-Event-ID` 断线补发 |
-| LiveKit 前端模块 | 🟡 需 env + token |
+| LiveKit 前端模块 | ✅ | 连接/麦克风/重试；需 env + token |
 | 按 `code` 展示错误 | ✅ 常见码已映射（`user-messages.js`） |
 | `Idempotency-Key` 请求头 | ✅ 写操作透明发送（用户不可见） |
 | `Last-Event-ID` SSE 补发 | ✅ 客户端已传 cursor |
@@ -225,14 +226,17 @@
 
 | 后端 API | 说明 |
 |----------|------|
-| `GET .../checkpoints/:id/restores` | 恢复审计，仅运维/DB |
-| `GET .../host/audit-log` | 主持审计，仅运维/DB |
+| `GET .../checkpoints/:id/restores` | 恢复历史明细（存档详情弹窗） |
 | `GET /api/ops/*` | 运维 token |
 
 ~~`GET /assets/:id/download-url`~~ — ✅ 资产页下载（2026-06-03）  
 ~~`GET /worlds/:worldId/search`~~ — ✅ 顶栏全局搜索（2026-06-03）  
 ~~`POST .../deepseek/full-mystery/*`~~ — ✅ 创作台「AI 整本悬疑」（2026-06-03）  
-~~`GET .../host/players/:roleSlotId`~~ — ✅ `getHostPlayerDetail` + 主持台详情（2026-06-03）
+~~`GET .../host/players/:roleSlotId`~~ — ✅ `getHostPlayerDetail` + 主持台详情（2026-06-03）  
+~~`GET .../host/audit-log`~~ — ✅ 主持台审计卡片（2026-06-04）  
+~~`GET /worlds/:worldId/host-audit-log`~~ — ✅ 设置页世界审计（2026-06-04）  
+~~`GET .../checkpoints/:id/restores`~~ — ✅ 存档详情恢复历史（2026-06-04）  
+~~`POST .../clues/:id/share-roles`~~ — ✅ 玩家端私享 UI（2026-06-04）
 
 ### 6.1b 近期已接通（原 §6.1）
 
@@ -288,13 +292,13 @@
 | [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) | 按工作区逐项功能说明（§3）+ 变更历史（§12–§27） |
 | [ALPHA_FEATURE_MATRIX.md](./ALPHA_FEATURE_MATRIX.md) | 真实 / 演示 / 待接入 速查 |
 | [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) | **产品功能与工程现状（中文总览）** |
-| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + 131 项测试矩阵 |
+| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + 148 项测试矩阵 |
 | [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) | **休息/交接检查点** |
 | [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md) | 后端运维路线图 |
 | [docs/OPS.md](./docs/OPS.md) | 部署与故障排查 |
 | [FRONTEND_MODULE_PLAN.md](./FRONTEND_MODULE_PLAN.md) | Vite + 前端模块边界 |
 | [ALPHA_ASSESSMENT.md](./ALPHA_ASSESSMENT.md) | 工程质量评估与阶段建议 |
-| [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) | 迁移 001–014 + restore scope |
+| [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) | 迁移 001–018 + restore scope |
 | [backend/docs/API_ERRORS.md](./backend/docs/API_ERRORS.md) | 错误码注册表 |
 | [docs/CREATOR_GUIDE.md](./docs/CREATOR_GUIDE.md) | 创作者步骤指引（界面内可打开） |
 | [docs/USER_ERROR_GUIDE.md](./docs/USER_ERROR_GUIDE.md) | 错误码用户说明与边界检测 |
@@ -307,6 +311,6 @@
 2. **Prometheus `/metrics` + 告警 Runbook** — 对标 Datadog/Grafana 基线
 3. ~~**全文搜索 API + 顶栏 UI**~~ — ✅ `GET /worlds/:id/search`（2026-06-03）
 4. ~~**多节点 SSE**~~ — ✅ Postgres NOTIFY；Redis 总线待 Beta 高吞吐场景
-5. **实体卡 / NFC**、上传病毒扫描、OpenTelemetry SDK（P2/P3）
+5. **实体卡 / NFC**、生产级上传 AV、OpenTelemetry SDK（P2/P3）
 
-前端剩余：线索私享、图谱内搜索高亮、LiveKit 语音流接入。
+前端剩余：实体卡/NFC。

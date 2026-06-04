@@ -62,6 +62,38 @@ export async function executeHostEventById(roomId, actorId, eventId) {
   return { ok: true };
 }
 
+export async function delayHostEventById(roomId, actorId, eventId, delayMinutes) {
+  const minutes = Math.min(Math.max(Number(delayMinutes) || 15, 1), 1440);
+  const event = await query(
+    `SELECT id, title FROM pending_host_events
+     WHERE id = $1 AND room_id = $2 AND status IN ('pending', 'delayed')`,
+    [eventId, roomId]
+  );
+  if (!event.rowCount) return { ok: false, code: "HOST_EVENT_NOT_FOUND" };
+
+  await query(
+    `UPDATE pending_host_events
+     SET status = 'delayed',
+         delay_until = now() + ($3::text || ' minutes')::interval,
+         resolved_at = NULL,
+         resolved_by_user_id = NULL
+     WHERE id = $1 AND room_id = $2`,
+    [eventId, roomId, String(minutes)]
+  );
+  await query(
+    `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+     VALUES ($1, $2, 'host', 'host_event_delayed', $3, jsonb_build_object('eventId', $4::text, 'delayMinutes', $5::int))`,
+    [
+      roomId,
+      actorId,
+      `主持人延迟待确认事件「${event.rows[0].title}」${minutes} 分钟`,
+      eventId,
+      minutes
+    ]
+  );
+  return { ok: true, delayMinutes: minutes };
+}
+
 export async function batchHostEvents(roomId, actorId, action, eventIds) {
   const uniqueIds = [...new Set((eventIds ?? []).filter(Boolean))].slice(0, 50);
   if (!uniqueIds.length) return { ok: false, code: "BAD_REQUEST", message: "请至少选择一条待确认事件。" };

@@ -12,6 +12,14 @@ export async function scanUploadedObject({ key, contentType, byteSize }) {
     return { clean: true, mode: "none", skipped: true };
   }
 
+  if (mode === "stub") {
+    const verdict = (process.env.UPLOAD_SCAN_STUB_RESULT || "clean").toLowerCase();
+    if (verdict === "infected") {
+      throwErr("UPLOAD_SCAN_INFECTED");
+    }
+    return { clean: true, mode: "stub" };
+  }
+
   if (mode === "webhook") {
     const url = process.env.UPLOAD_SCAN_WEBHOOK_URL;
     if (!url) {

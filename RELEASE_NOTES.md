@@ -1,8 +1,21 @@
 # 织幕 Alpha · Release Notes
 
-**最新增量**：2026-06-03 · Beta 过渡（内测 UI + 搜索 + E2E + 预发栈）  
-**版本标签建议**：`beta-gap-closure-2026-06-03`  
+**最新增量**：2026-06-04 · Beta-1 体验 + Beta-2 后端加固  
+**版本标签建议**：`beta-1-2-2026-06-04`  
 **分支**：`main`
+
+---
+
+## 2026-06-04 · Beta-1 体验 + Beta-2 后端
+
+| 领域 | 交付 |
+|------|------|
+| Beta-1 产品 | LiveKit 语音流 UI、线索私享 `share-roles`、主持延迟调度、搜索跳转高亮、独立线索页 `clues` |
+| 主持审计 | 后端 `host_event_delayed` audit + **主持台审计卡片** |
+| Beta-2 后端 | upload/AI 限流分桶、上传扫描 stub/quarantine、telemetry 钩子、迁移 018 `delay_until` |
+| Beta-3 资产 | 回收站列表 `?recycled=1` + **恢复 API/UI**；CI `pg-backup.mjs` smoke |
+| Seed | 雾港第二角色席位「林夏 · 医生」 |
+| 验收 | backend **170** 测试 · schema **54** 路由 · smoke **18** · UI smoke **41** · modules **29** |
 
 ---
 
@@ -15,7 +28,7 @@
 | 内测 | `VITE_REQUIRE_AUTH`、登录条、Session 默认路径 |
 | E2E | Playwright 雾港全链路；`npm run verify:full:fresh` |
 | 预发 | Docker Compose + [docs/ops/STAGING.md](./docs/ops/STAGING.md) |
-| 验收 | backend **131** 测试 · schema **48** 路由 · smoke **18** · modules **29** |
+| 验收 | backend **148** 测试 · schema **53** 路由 · smoke **18** · UI smoke **34** · modules **29** |
 
 ---
 

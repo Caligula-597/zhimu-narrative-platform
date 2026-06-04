@@ -8,6 +8,7 @@
   const M = window.zhimuModal || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatBytes = F.formatBytes || (() => "");
+  const formatTime = F.formatTime || (() => "");
   const showToast = T.showToast || (() => {});
   const closeModal = M.closeModal || (() => {});
   const ASSET_KIND_TABS = window.zhimuUserMessages?.ASSET_KIND_TABS || [{ id: "", label: "全部" }];
@@ -24,10 +25,21 @@ function assets(){
   const total=state.assetTotal||assets.length;
   const kind=state.assetKindFilter||"";
   const q=state.assetSearchQuery||"";
-  const tabs=ASSET_KIND_TABS.map((tab)=>`<button class="tab ${kind===tab.id?"active":""}" data-action="asset-filter" data-kind="${tab.id}">${escapeHtml(tab.label)}${tab.id===""?` ${total}`:""}</button>`).join("");
-  return `<div class="asset-toolbar"><div class="search-box"><span>⌕</span><input id="asset-search-input" placeholder="搜索文件名…" value="${escapeHtml(q)}"></div><div class="row"><button class="secondary-btn" data-action="upload-asset">↑ 上传云端附件</button></div></div>
-  <article class="card" style="margin-bottom:14px"><div class="section-head"><div><h3>云端附件空间</h3><p>图片、音频与文档附件，可在剧情编排中关联到场景或线索</p></div><span class="cloud-pill">R2 · PRIVATE</span></div><div class="usage-bar"><i style="width:${pct}%"></i></div><div class="status-meta"><span>${usage?formatBytes(usage.usedBytes):"读取中"} / ${usage?formatBytes(usage.maxBytes):"500 MB"}</span><span>${pct}%</span></div>${assets.length?`<div class="cloud-asset-list">${assets.map((a)=>`<div class="cloud-asset-row"><div><strong>${escapeHtml(a.original_filename)}</strong><p>${escapeHtml(assetKindLabel(a.asset_kind))} · ${formatBytes(a.byte_size)}</p></div><div class="row"><button class="secondary-btn" data-action="download-asset" data-asset="${a.id}">下载</button><button class="danger-btn" data-action="delete-asset" data-asset="${a.id}">移入回收站</button></div></div>`).join("")}</div>`:`<div class="empty-state">${q||kind?"没有匹配的附件。":"当前世界还没有上传附件。你可以上传线索图、音频、角色图或文档。"}</div>`}</article>
-  <div class="tabs">${tabs}</div>`;
+  const recycle=Boolean(state.assetShowRecycle);
+  const tabs=ASSET_KIND_TABS.map((tab)=>`<button class="tab ${!recycle&&kind===tab.id?"active":""}" data-action="asset-filter" data-kind="${tab.id}">${escapeHtml(tab.label)}${tab.id===""&&!recycle?` ${total}`:""}</button>`).join("");
+  const recycleBtn=`<button class="tab ${recycle?"active":""}" data-action="asset-recycle-toggle">${recycle?"← 返回附件":"🗑 回收站"}</button>`;
+  const listTitle=recycle?"回收站（14 天内可恢复）":"云端附件空间";
+  const listHint=recycle?"已删除的附件仍占用配额，恢复后重新出现在列表中。":"图片、音频与文档附件，可在剧情编排中关联到场景或线索";
+  const rows=assets.length?assets.map((a)=>{
+   if(recycle){
+    const purge=a.purge_after?` · 将于 ${formatTime(a.purge_after)} 永久删除`:"";
+    return `<div class="cloud-asset-row"><div><strong>${escapeHtml(a.original_filename)}</strong><p>${escapeHtml(assetKindLabel(a.asset_kind))} · ${formatBytes(a.byte_size)}${purge}</p></div><div class="row"><button class="primary-btn" data-action="restore-asset" data-asset="${a.id}">恢复</button></div></div>`;
+   }
+   return `<div class="cloud-asset-row"><div><strong>${escapeHtml(a.original_filename)}</strong><p>${escapeHtml(assetKindLabel(a.asset_kind))} · ${formatBytes(a.byte_size)}</p></div><div class="row"><button class="secondary-btn" data-action="download-asset" data-asset="${a.id}">下载</button><button class="danger-btn" data-action="delete-asset" data-asset="${a.id}">移入回收站</button></div></div>`;
+  }).join(""):`<div class="empty-state">${recycle?"回收站为空。":q||kind?"没有匹配的附件。":"当前世界还没有上传附件。你可以上传线索图、音频、角色图或文档。"}</div>`;
+  return `<div class="asset-toolbar"><div class="search-box"><span>⌕</span><input id="asset-search-input" placeholder="搜索文件名…" value="${escapeHtml(q)}"></div><div class="row"><button class="secondary-btn" data-action="upload-asset" ${recycle?"disabled":""}>↑ 上传云端附件</button></div></div>
+  <article class="card" style="margin-bottom:14px"><div class="section-head"><div><h3>${listTitle}</h3><p>${listHint}</p></div><span class="cloud-pill">R2 · PRIVATE</span></div>${!recycle?`<div class="usage-bar"><i style="width:${pct}%"></i></div><div class="status-meta"><span>${usage?formatBytes(usage.usedBytes):"读取中"} / ${usage?formatBytes(usage.maxBytes):"500 MB"}</span><span>${pct}%</span></div>`:""}<div class="cloud-asset-list">${rows}</div></article>
+  <div class="tabs">${tabs}${recycleBtn}</div>`;
 }
 
 function bindAssetSearch(){
@@ -51,6 +63,7 @@ async function reloadAssets(){
   const params={};
   if(state.assetKindFilter)params.kind=state.assetKindFilter;
   if(state.assetSearchQuery)params.q=state.assetSearchQuery;
+  if(state.assetShowRecycle)params.recycled=true;
   const result=await zhimuApi.getAssets(params);
   if(Array.isArray(result)){
    state.cloudAssets=result;
@@ -63,10 +76,27 @@ async function reloadAssets(){
 }
 
 async function setAssetFilter(kind){
+ state.assetShowRecycle=false;
  state.assetKindFilter=kind||"";
  await reloadAssets();
  render();
  bindAssetSearch();
+}
+
+async function toggleAssetRecycle(){
+ state.assetShowRecycle=!state.assetShowRecycle;
+ await reloadAssets();
+ render();
+ bindAssetSearch();
+}
+
+async function restoreCloudAsset(assetId){
+ try{
+  await zhimuApi.restoreAsset(assetId);
+  await reloadAssets();
+  await loadCloudData();
+  showToast("附件已从回收站恢复");
+ }catch(error){showToast(error.message)}
 }
 
 async function deleteCloudAsset(assetId){try{await zhimuApi.deleteAsset(assetId);await reloadAssets();await loadCloudData();showToast("附件已移入 14 天回收站")}catch(error){showToast(error.message)}}
@@ -100,6 +130,8 @@ async function uploadSelectedAsset(){
   viewExports.bindAssetSearch = bindAssetSearch;
   viewExports.reloadAssets = reloadAssets;
   viewExports.setAssetFilter = setAssetFilter;
+  viewExports.toggleAssetRecycle = toggleAssetRecycle;
+  viewExports.restoreCloudAsset = restoreCloudAsset;
   viewExports.deleteCloudAsset = deleteCloudAsset;
   viewExports.downloadCloudAsset = downloadCloudAsset;
   viewExports.openAssetUpload = openAssetUpload;

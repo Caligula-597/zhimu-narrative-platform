@@ -28,6 +28,26 @@ const apiReadRateLimit = createRateLimiter({
   max: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
   routeKey: "api-read"
 });
+const uploadRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_UPLOAD_MAX ?? 30),
+  routeKey: "api-upload"
+});
+const aiRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_AI_MAX ?? 40),
+  routeKey: "api-ai"
+});
+
+function isUploadRoute(url, method) {
+  if (method !== "POST") return false;
+  return url === "/api/assets/upload-url" || /^\/api\/assets\/[^/]+\/confirm$/.test(url);
+}
+
+function isAiRoute(url, method) {
+  if (method !== "POST") return false;
+  return url.includes("/story-assistant/") || url.includes("/deepseek/");
+}
 
 function shouldSkipReadRateLimit(url) {
   return url.includes("/events/stream");
@@ -126,6 +146,14 @@ export async function createApp(options = {}) {
     if (!url.startsWith("/api/")) return;
 
     const method = request.method;
+    if (isUploadRoute(url, method)) {
+      await uploadRateLimit(request, reply);
+      return;
+    }
+    if (isAiRoute(url, method)) {
+      await aiRateLimit(request, reply);
+      return;
+    }
     if (method === "GET" || method === "HEAD") {
       if (!shouldSkipReadRateLimit(url)) {
         await apiReadRateLimit(request, reply);

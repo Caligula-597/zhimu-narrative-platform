@@ -14,7 +14,7 @@ const VIEW_BY_TYPE = {
   role: "writer",
   section: "writer",
   scene: "studio",
-  clue: "studio",
+  clue: "clues",
   investigation_point: "studio",
   rule: "rules",
   item: "studio"

@@ -97,6 +97,11 @@ window.zhimuApi = {
     demoContext.roomId = "";
     localStorage.removeItem("zhimuActiveWorldId");
   },
+  /** Drop active world/room — call on login, register, or logout to avoid demo world leaking into real accounts. */
+  resetActiveWorld() {
+    this.clearWorld();
+    this.clearRoom();
+  },
   selectRoom(roomId) { demoContext.roomId = roomId; localStorage.setItem(`zhimuActiveRoomId:${demoContext.worldId}`, roomId); },
   clearRoom() { demoContext.roomId = ""; localStorage.removeItem(`zhimuActiveRoomId:${demoContext.worldId}`); },
   loadKey() { return `${demoContext.worldId}:${demoContext.roomId}`; },
@@ -145,14 +150,20 @@ window.zhimuApi = {
   readClue: (clueId) => request(`/rooms/${demoContext.roomId}/clues/${clueId}/read`, { userId: demoContext.playerUserId, method: "POST" }),
   shareClueToRoom: (clueId, shared = true) =>
     request(`/rooms/${demoContext.roomId}/clues/${clueId}/share-room`, { userId: demoContext.playerUserId, method: "POST", body: { shared }, idempotent: true }),
+  shareClueToRoles: (clueId, roleSlotIds) =>
+    request(`/rooms/${demoContext.roomId}/clues/${clueId}/share-roles`, { userId: demoContext.playerUserId, method: "POST", body: { roleSlotIds }, idempotent: true }),
   updateCluePlayerNote: (clueId, note) => request(`/rooms/${demoContext.roomId}/clues/${clueId}/player-note`, { userId: demoContext.playerUserId, method: "PATCH", body: { note } }),
   getHostClueMatrix: () => request(`/rooms/${demoContext.roomId}/host/clue-matrix`, { userId: demoContext.hostUserId }),
   hostClueNote: (clueId, payload) => request(`/rooms/${demoContext.roomId}/host/clues/${clueId}/notes`, { userId: demoContext.hostUserId, method: "PUT", body: payload }),
   getHostEvents: () => request(`/rooms/${demoContext.roomId}/host-events`, { userId: demoContext.hostUserId }),
+  getHostAuditLog: (limit = 50) =>
+    request(`/rooms/${demoContext.roomId}/host/audit-log?limit=${limit}`, { userId: demoContext.hostUserId }),
   executeHostEvent: (eventId) =>
     request(`/rooms/${demoContext.roomId}/host-events/${eventId}/execute`, { userId: demoContext.hostUserId, method: "POST", idempotent: true }),
   dismissHostEvent: (eventId) =>
     request(`/rooms/${demoContext.roomId}/host-events/${eventId}/dismiss`, { userId: demoContext.hostUserId, method: "POST", idempotent: true }),
+  delayHostEvent: (eventId, delayMinutes) =>
+    request(`/rooms/${demoContext.roomId}/host-events/${eventId}/delay`, { userId: demoContext.hostUserId, method: "POST", body: { delayMinutes }, idempotent: true }),
   batchHostEvents: (action, eventIds) =>
     request(`/rooms/${demoContext.roomId}/host-events/batch`, {
       userId: demoContext.hostUserId,
@@ -165,6 +176,8 @@ window.zhimuApi = {
     request(`/rooms/${roomId}/rules/${ruleId}/trigger`, { userId: demoContext.hostUserId, method: "POST", idempotent: true }),
   getCheckpoints: () => request(`/rooms/${demoContext.roomId}/checkpoints`, { userId: demoContext.hostUserId }),
   getCheckpoint: (checkpointId) => request(`/rooms/${demoContext.roomId}/checkpoints/${checkpointId}`, { userId: demoContext.hostUserId }),
+  getCheckpointRestores: (checkpointId) =>
+    request(`/rooms/${demoContext.roomId}/checkpoints/${checkpointId}/restores`, { userId: demoContext.hostUserId }),
   createCheckpoint: (payload) =>
     request(`/rooms/${demoContext.roomId}/checkpoints`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   restoreCheckpoint: (checkpointId, { scope, targetRoomId } = {}) =>
@@ -229,6 +242,8 @@ window.zhimuApi = {
   updateWorldMember: (userId, role) => request(`/worlds/${demoContext.worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "PUT", body: { role } }),
   deleteWorldMember: (userId) => request(`/worlds/${demoContext.worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
   getWorldLogs: (params = {}) => request(`/worlds/${demoContext.worldId}/logs?${new URLSearchParams(params)}`, { userId: demoContext.hostUserId }),
+  getWorldHostAuditLog: (limit = 50) =>
+    request(`/worlds/${demoContext.worldId}/host-audit-log?limit=${limit}`, { userId: demoContext.hostUserId }),
   parseDocument: (payload) => request(`/worlds/${demoContext.worldId}/documents/parse`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   importParsedDocument: (payload) => request(`/worlds/${demoContext.worldId}/documents/import`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   getStoryManuscript: () => request(`/worlds/${demoContext.worldId}/story-manuscript`, { userId: demoContext.hostUserId }),
@@ -257,10 +272,12 @@ window.zhimuApi = {
     const query = new URLSearchParams();
     if (params.kind) query.set("kind", params.kind);
     if (params.q) query.set("q", params.q);
+    if (params.recycled) query.set("recycled", "1");
     const qs = query.toString();
     return request(`/worlds/${demoContext.worldId}/assets${qs ? `?${qs}` : ""}`, { userId: demoContext.hostUserId });
   },
   deleteAsset: (assetId) => request(`/assets/${assetId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
+  restoreAsset: (assetId) => request(`/assets/${assetId}/restore`, { userId: demoContext.hostUserId, method: "POST" }),
   getAssetDownloadUrl: (assetId) => request(`/assets/${assetId}/download-url`, { userId: demoContext.hostUserId }),
   searchWorld: (q, { limit, type } = {}) => {
     const query = new URLSearchParams({ q: String(q).trim() });

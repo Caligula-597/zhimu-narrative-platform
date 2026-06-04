@@ -22,6 +22,7 @@
     "verify:full:fresh": "node scripts/full-chain.mjs --fresh",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --headed",
+    "test:format-helpers": "node --test scripts/format-helpers.test.mjs",
     "explore:ai": "node e2e/ai-explore.mjs",
     "explore:ai:llm": "node e2e/ai-explore.mjs --llm --headed",
     "postinstall": "node scripts/ensure-esm-exports.mjs"

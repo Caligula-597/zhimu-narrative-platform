@@ -7,6 +7,7 @@ import { requireRoomRole } from "./route-guards.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import {
   hostEventSchema,
+  hostEventDelaySchema,
   hostEventBatchSchema,
   hostGrantClueSchema,
   hostGrantItemSchema,
@@ -31,7 +32,8 @@ import { fetchHostClueMatrix } from "./clue-helpers.js";
 import { grantItemToInventory } from "../inventory-helpers.js";
 import { logHostAction, listHostAuditLog } from "../audit-log.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
-import { dismissHostEventById, executeHostEventById, batchHostEvents } from "./host-event-actions.js";
+import { dismissHostEventById, executeHostEventById, batchHostEvents, delayHostEventById } from "./host-event-actions.js";
+import { wakeDueDelayedHostEvents } from "../host-delay-wake.js";
 
 async function requireHostMembership(actorId, roomId) {
   const membership = await requireRoomRole(actorId, roomId);
@@ -158,7 +160,13 @@ export async function registerHostRoutes(app) {
   app.post("/api/rooms/:roomId/host/grant-clue", { schema: hostGrantClueSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;
-    const { roleSlotId, clueId, message } = request.body ?? {};
+    const { roleSlotId, roleSlotIds, clueId, message } = request.body ?? {};
+    const targets = [
+      ...new Set(
+        [...(roleSlotIds ?? []), roleSlotId].filter(Boolean)
+      )
+    ];
+    if (!targets.length) return sendErr(reply, "ROLE_SLOT_IMPORT_REQUIRED", "请指定至少一名目标角色。");
     await requireHostMembership(actorId, roomId);
     const clue = await query(
       `SELECT c.id, c.name FROM clues c
@@ -170,30 +178,32 @@ export async function registerHostRoutes(app) {
 
     return withRoomIdempotency(roomId, request, "host.grant_clue", async () => {
       await transactionWithEvents(async (client, queueEvent) => {
-        await assertRoleInRoomWorld((text, params) => client.query(text, params), roomId, roleSlotId);
-        await executeActionsWithClient(client, roomId, [{
-          type: "grant_clue",
-          roleSlotId,
-          clueId,
-          source: "host_manual"
-        }]);
+        for (const slotId of targets) {
+          await assertRoleInRoomWorld((text, params) => client.query(text, params), roomId, slotId);
+          await executeActionsWithClient(client, roomId, [{
+            type: "grant_clue",
+            roleSlotId: slotId,
+            clueId,
+            source: "host_manual"
+          }]);
+          queueEvent(roomId, "room.clue_granted", {
+            clueId,
+            roleSlotId: slotId,
+            clueName: clue.rows[0].name,
+            source: "host_manual"
+          });
+        }
         await client.query(
           `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
-           VALUES ($1, $2, 'host', 'host_grant_clue', $3, jsonb_build_object('roleSlotId', $4::text, 'clueId', $5::text))`,
+           VALUES ($1, $2, 'host', 'host_grant_clue', $3, jsonb_build_object('roleSlotIds', $4::jsonb, 'clueId', $5::text))`,
           [
             roomId,
             actorId,
-            message || `主持人手动发放线索「${clue.rows[0].name}」`,
-            roleSlotId,
+            message || `主持人手动发放线索「${clue.rows[0].name}」给 ${targets.length} 名玩家`,
+            JSON.stringify(targets),
             clueId
           ]
         );
-        queueEvent(roomId, "room.clue_granted", {
-          clueId,
-          roleSlotId,
-          clueName: clue.rows[0].name,
-          source: "host_manual"
-        });
       });
       await logHostAction({
         roomId,
@@ -201,9 +211,9 @@ export async function registerHostRoutes(app) {
         action: "host_grant_clue",
         targetType: "clue",
         targetId: clueId,
-        metadata: { roleSlotId }
+        metadata: { roleSlotIds: targets }
       });
-      return { ok: true };
+      return { ok: true, granted: targets.length };
     });
   });
 
@@ -363,14 +373,16 @@ export async function registerHostRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     await requireHostMembership(actorId, roomId);
+    await wakeDueDelayedHostEvents();
     const result = await query(
       `SELECT phe.id, phe.event_key, phe.title, phe.description, phe.status, phe.created_at,
+              phe.delay_until,
               phe.rule_id, phe.actions,
               ar.name AS rule_name, ar.conditions AS rule_conditions, ar.mode AS rule_mode
        FROM pending_host_events phe
        LEFT JOIN automation_rules ar ON ar.id = phe.rule_id
        WHERE phe.room_id = $1 AND phe.status IN ('pending', 'delayed')
-       ORDER BY phe.created_at`,
+       ORDER BY CASE WHEN phe.status = 'delayed' THEN 1 ELSE 0 END, phe.created_at`,
       [roomId]
     );
     return result.rows.map((event) => ({
@@ -415,6 +427,27 @@ export async function registerHostRoutes(app) {
       const result = await executeHostEventById(roomId, actorId, eventId);
       if (!result.ok) return sendErr(reply, result.code);
       return { ok: true };
+    });
+  });
+
+  app.post("/api/rooms/:roomId/host-events/:eventId/delay", { schema: hostEventDelaySchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { roomId, eventId } = request.params;
+    const { delayMinutes } = request.body ?? {};
+    await requireHostMembership(actorId, roomId);
+
+    return withRoomIdempotency(roomId, request, "host.event_delay", async () => {
+      const result = await delayHostEventById(roomId, actorId, eventId, delayMinutes);
+      if (!result.ok) return sendErr(reply, result.code);
+      await logHostAction({
+        roomId,
+        actorUserId: actorId,
+        action: "host_event_delayed",
+        targetType: "host_event",
+        targetId: eventId,
+        metadata: { delayMinutes: result.delayMinutes }
+      });
+      return { ok: true, delayMinutes: result.delayMinutes };
     });
   });
 

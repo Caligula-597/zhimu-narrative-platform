@@ -4,6 +4,7 @@ export function formatClueCellLabel(cell) {
   if (cell.owned) parts.push("已拥有");
   if (cell.read) parts.push("已读");
   if (cell.sharedWithRoom) parts.push("已公开");
+  if (cell.sharedWithRoles) parts.push("已私享");
   if (!cell.owned && cell.visible) parts.push(cell.read ? "已读(分享)" : "可见");
   return parts.join("·") || "—";
 }
@@ -26,9 +27,10 @@ export async function fetchPlayerClues(query, roomId, roleSlotId) {
 
   const shared = await query(
     `SELECT c.id, c.name, c.public_text, co.acquired_at, co.shared_at,
-            co.player_note, co.shared_with_room,
+            co.player_note, co.shared_with_room, co.shared_with_roles,
             false AS is_owner, co.role_slot_id AS owner_role_slot_id,
             rs.name AS owner_role_name, u.display_name AS owner_player_name,
+            CASE WHEN co.shared_with_room THEN 'room' ELSE 'roles' END AS shared_scope,
             EXISTS (
               SELECT 1 FROM clue_read_receipts crr
               WHERE crr.room_id = $1 AND crr.clue_id = c.id AND crr.role_slot_id = $2
@@ -42,8 +44,11 @@ export async function fetchPlayerClues(query, roomId, roleSlotId) {
      LEFT JOIN room_members rm ON rm.room_id = co.room_id AND rm.role_slot_id = co.role_slot_id AND rm.status = 'active'
      LEFT JOIN users u ON u.id = rm.user_id
      WHERE co.room_id = $1
-       AND co.shared_with_room = true
        AND co.role_slot_id <> $2
+       AND (
+         co.shared_with_room = true
+         OR $2::uuid = ANY(COALESCE(co.shared_with_roles, '{}'))
+       )
      ORDER BY co.shared_at DESC NULLS LAST, co.acquired_at DESC`,
     [roomId, roleSlotId]
   );
@@ -74,7 +79,7 @@ export async function fetchHostClueMatrix(query, roomId) {
     ),
     query(
       `SELECT co.clue_id, co.role_slot_id, co.read_at IS NOT NULL AS read_flag,
-              co.shared_with_room, co.player_note, co.host_note
+              co.shared_with_room, co.shared_with_roles, co.player_note, co.host_note
        FROM clue_ownership co
        WHERE co.room_id = $1`,
       [roomId]
@@ -86,14 +91,25 @@ export async function fetchHostClueMatrix(query, roomId) {
   ]);
 
   const ownMap = new Map();
+  const ownersByClue = new Map();
   for (const row of ownership.rows) {
     ownMap.set(`${row.clue_id}:${row.role_slot_id}`, row);
+    if (!ownersByClue.has(row.clue_id)) ownersByClue.set(row.clue_id, []);
+    ownersByClue.get(row.clue_id).push(row);
   }
   const receiptSet = new Set(receipts.rows.map((row) => `${row.clue_id}:${row.role_slot_id}`));
 
   const sharedClueIds = new Set(
     ownership.rows.filter((row) => row.shared_with_room).map((row) => row.clue_id)
   );
+
+  function visibleViaRoles(clueId, roleSlotId) {
+    for (const owner of ownersByClue.get(clueId) || []) {
+      const roles = owner.shared_with_roles || [];
+      if (Array.isArray(roles) && roles.includes(roleSlotId)) return true;
+    }
+    return false;
+  }
 
   const cells = {};
   for (const clue of clues.rows) {
@@ -102,11 +118,13 @@ export async function fetchHostClueMatrix(query, roomId) {
       const key = `${clue.id}:${player.role_slot_id}`;
       const own = ownMap.get(key);
       const read = own?.read_flag || receiptSet.has(key);
-      const visible = Boolean(own) || sharedClueIds.has(clue.id);
+      const roleShared = visibleViaRoles(clue.id, player.role_slot_id);
+      const visible = Boolean(own) || sharedClueIds.has(clue.id) || roleShared;
       cells[clue.id][player.role_slot_id] = {
         owned: Boolean(own),
         read,
         sharedWithRoom: Boolean(own?.shared_with_room),
+        sharedWithRoles: roleShared && !own,
         visible,
         playerNote: own?.player_note || "",
         hostNote: own?.host_note || ""

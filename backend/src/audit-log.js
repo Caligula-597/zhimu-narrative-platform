@@ -26,6 +26,21 @@ export async function listHostAuditLog(roomId, { limit = 50 } = {}) {
   return result.rows;
 }
 
+export async function listWorldHostAuditLog(worldId, { limit = 50 } = {}) {
+  const result = await query(
+    `SELECT hal.id, hal.room_id, hal.action, hal.target_type, hal.target_id, hal.metadata, hal.created_at,
+            u.display_name AS actor_name, r.name AS room_name
+     FROM host_audit_log hal
+     JOIN rooms r ON r.id = hal.room_id
+     LEFT JOIN users u ON u.id = hal.actor_user_id
+     WHERE r.world_id = $1
+     ORDER BY hal.created_at DESC
+     LIMIT $2`,
+    [worldId, limit]
+  );
+  return result.rows;
+}
+
 export async function listAuditLogOps({ limit = 50, offset = 0, roomId, action } = {}) {
   const params = [];
   const where = [];

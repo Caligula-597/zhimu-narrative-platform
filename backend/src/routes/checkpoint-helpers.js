@@ -37,7 +37,7 @@ export async function buildRoomCheckpointSnapshot(roomId, options = {}) {
         [roomId]
       ),
       q(
-        `SELECT id, rule_id, event_key, title, description, actions, status, created_at
+        `SELECT id, rule_id, event_key, title, description, actions, status, created_at, delay_until
          FROM pending_host_events
          WHERE room_id = $1 AND status IN ('pending', 'delayed')
          ORDER BY created_at`,

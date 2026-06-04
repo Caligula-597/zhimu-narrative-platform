@@ -15,7 +15,10 @@
 | **Request ID** | 响应头 `X-Request-Id`（可传入 `X-Request-Id`） |
 | **CORS 生产配置** | `CORS_ORIGIN` 逗号分隔；生产默认拒绝反射 |
 | **多实例 SSE** | `ROOM_EVENTS_BUS=postgres` → PostgreSQL `LISTEN/NOTIFY` 扇出 |
-| **Schema 门禁** | 运行 + **创作写路由**（**48 条**）+ `npm run check:schemas` |
+| **Schema 门禁** | 运行 + **创作写路由**（**53 条**）+ `npm run check:schemas` |
+| **细粒度限流** | upload / AI 独立桶（`RATE_LIMIT_UPLOAD_MAX` · `RATE_LIMIT_AI_MAX`） |
+| **上传扫描 stub** | `UPLOAD_SCAN_MODE=stub`；失败 quarantine |
+| **Telemetry 钩子** | `/api/ops/status` 含 rateLimits、telemetry |
 
 ## 健康检查用法
 
@@ -46,7 +49,7 @@ ROOM_EVENTS_BUS=postgres
 
 ## Schema 覆盖阶段
 
-`npm run check:schemas` 校验 **48 条**写/改/SSE 路由。
+`npm run check:schemas` 校验 **53 条**写/改/SSE 路由。
 
 ### 已完成（2026-06-03）
 
@@ -58,8 +61,10 @@ ROOM_EVENTS_BUS=postgres
 - **`world-routes.js`** — 成员 CRUD + delete world schema（4 条）
 - **规则 POST/PUT** — 入库前 `validateRuleBody`（422）
 - **P0 运维** — `/metrics`、JSON 日志、`/api/openapi.json`、`db:backup`、Trace ID
-- **P1 运维** — ops API、告警文档、上传 webhook 扫描钩子
+- **P1 运维** — ops API、告警文档、上传 webhook 扫描钩子（**stub 模式**）
 - **`beta-gates.test.js`** — 建世界/成员/规则成功路径
+- **`beta2-ops.test.js`** — ops status、telemetry、限流元数据
+- **迁移 018** — `pending_host_events.delay_until` + 延迟唤醒轮询
 
 ### 下一阶段
 

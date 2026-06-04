@@ -67,14 +67,20 @@ function runtimeEmpty(title,description){
  return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">RUNTIME REQUIRED</p><h2>${title}尚未连接运行房</h2><p>${description}</p><div class="tutorial-tip"><b>${escapeHtml(world?.name||"当前世界")}</b><span>创作内容仍然保留在云端。建立或选择一个平行房后，这里才会显示该房间自己的玩家状态、章节进度和互动数据。</span></div><button class="primary-btn" data-action="world-rooms">管理平行房</button></article>`;
 }
 
+function demoIdentityBanner(){
+ if(localStorage.getItem("zhimuSessionToken"))return "";
+ if(!window.zhimuConfig?.demoMode)return "";
+ return `<section class="demo-strip demo-identity-strip"><div><span class="cloud-pill">演示身份</span><strong style="margin-top:7px">当前以示例账号「沈舟」浏览，看到的是数据库里的演示剧本，不是你的私人账号数据。</strong><p>注册或登录后只会显示<strong>属于你</strong>的剧本；新账号可从下方「公开剧本库」体验《雾港来信》，或创建自己的世界。</p></div><button class="primary-btn" data-action="open-auth">登录 / 注册</button></section>`;
+}
+
 function cloudStatus(){
  const rooms=state.cloudStudio?.rooms||[];
  const panelMsg=window.zhimuUserMessages?.formatCloudPanelError?.(state.apiError,{hasStudio:Boolean(state.cloudStudio)})||state.apiError||"正在读取云端…";
  const isOutage=state.apiError&&/无法连接|API_UNAVAILABLE|ECONNREFUSED/i.test(state.apiError);
  const isEmptyAccount=state.apiError&&/还没有可访问的剧本/.test(state.apiError);
  const pill=isOutage?"部分运行模块尚未连接":isEmptyAccount?"● 已连接 · 尚无剧本":state.apiError?"部分提示":"● 云端已连接";
- const catalogHint=isEmptyAccount&&!isOutage?"左侧可点「公开剧本库」，或在本页下方直接体验公开剧本。":"";
- return `<section class="demo-strip"><div><span class="cloud-pill ${isOutage?"offline":""}">${pill}</span><strong style="margin-top:7px">${escapeHtml(panelMsg)}</strong><p>${state.cloudStudio?(rooms.length?`当前世界已建立 ${rooms.length} 个运行房间。`:"当前世界尚未建立测试房，运行状态为空。"):state.cloudLoading?"正在连接…":catalogHint}</p></div><button class="secondary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`}
+ const catalogHint=isEmptyAccount&&!isOutage?"可点「公开剧本库」体验示例剧本，或创建你自己的世界。":"";
+ return `${demoIdentityBanner()}<section class="demo-strip"><div><span class="cloud-pill ${isOutage?"offline":""}">${pill}</span><strong style="margin-top:7px">${escapeHtml(panelMsg)}</strong><p>${state.cloudStudio?(rooms.length?`当前世界已建立 ${rooms.length} 个运行房间。`:"当前世界尚未建立测试房，运行状态为空。"):state.cloudLoading?"正在连接…":catalogHint}</p></div><button class="secondary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`}
 
 function stat(icon,num,label,sub){return `<article class="stat-card"><div class="stat-icon">${icon}</div><strong>${num}</strong><span>${label} · ${sub}</span></article>`}
 

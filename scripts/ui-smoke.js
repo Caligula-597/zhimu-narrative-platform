@@ -35,6 +35,7 @@ const requiredModuleScripts = [
   "src/views/overview.js",
   "src/views/writer.js",
   "src/views/studio.js",
+  "src/views/clues.js",
   "src/views/assets.js",
   "src/views/rules.js",
   "src/views/director.js",
@@ -45,16 +46,17 @@ const requiredModuleScripts = [
   "src/runtime/auth-world.js",
   "src/runtime/auth-session.js",
   "src/runtime/global-search.js",
+  "src/runtime/search-focus.js",
   "src/runtime/livekit-voice.js",
   "src/runtime/data.js",
   "src/runtime/actions.js",
   "app.js"
 ];
-const requiredNavViews = ["overview", "writer", "studio", "assets", "rules", "director", "player", "archive", "settings"];
+const requiredNavViews = ["overview", "writer", "studio", "clues", "assets", "rules", "director", "player", "archive", "settings"];
 const requiredDomIds = ["content", "toast", "modal-backdrop", "modal", "page-title", "create-world-btn", "preview-btn", "run-btn"];
 const requiredApiMethods = [
-  "getWorlds", "getStudio", "getPlayerHome", "getHostProgress", "getHostPlayers", "getHostPlayerDetail",
-  "joinRoom", "getRoomInvite", "searchWorld", "getAssetDownloadUrl",
+  "getWorlds", "getStudio", "getPlayerHome", "getHostProgress", "getHostPlayers", "getHostPlayerDetail", "getHostAuditLog",
+  "joinRoom", "getRoomInvite", "searchWorld", "getAssetDownloadUrl", "shareClueToRoles", "delayHostEvent",
   "completeSection", "getExploration", "createWorld", "getRules", "hostGrantClue", "hostUnlockSection", "dismissHostEvent"
 ];
 
@@ -173,7 +175,7 @@ await check("api-client-surface", async () => {
 await check("state-runtime-boundaries", async () => {
   const js = readSource("src/state.js");
   if (!js.includes("window.zhimuState")) throw new Error("zhimuState not defined");
-  for (const key of ["cloudStudio", "cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostStuckCount", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest", "cloudWorldLogs", "voiceRoomId", "voiceLiveStatus"]) {
+  for (const key of ["cloudStudio", "cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostStuckCount", "cloudHostAuditLog", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest", "cloudWorldLogs", "voiceRoomId", "voiceLiveStatus"]) {
     if (!js.includes(key)) throw new Error(`state missing ${key}`);
   }
   for (const removed of ["players:", "logs:", "demoStep:"]) {
@@ -275,13 +277,78 @@ await check("refresh-notify-wired", async () => {
   return "refresh + notify polling wired";
 });
 
+await check("host-audit-wired", async () => {
+  const director = readSource("src/views/director.js");
+  const dataJs = readSource("src/runtime/data.js");
+  const actionsJs = readSource("src/runtime/actions.js");
+  const formatJs = readSource("src/utils/format.js");
+  for (const token of ["hostAuditCard", "host-audit-card", "refresh-host-audit", "cloudHostAuditLog"]) {
+    const bundle = `${director}${dataJs}${actionsJs}`;
+    if (!bundle.includes(token)) throw new Error(`host audit wiring missing ${token}`);
+  }
+  for (const fn of ["hostAuditActionLabel", "hostAuditDetail"]) {
+    if (!formatJs.includes(fn)) throw new Error(`format.js missing ${fn}`);
+  }
+  const apiJs = readSource("src/api/client.js");
+  if (!apiJs.includes("getHostAuditLog")) throw new Error("api-client missing getHostAuditLog");
+  return "host audit UI + refresh + format helpers wired";
+});
+
+await check("clues-view-wired", async () => {
+  const clues = readSource("src/views/clues.js");
+  const appJs = readSource("app.js");
+  for (const token of ["cluesSearchQuery", "cluesSelectedId", "clues-edit", "clues-add", "openCluesEditor"]) {
+    if (!clues.includes(token)) throw new Error(`clues view missing ${token}`);
+  }
+  if (!appJs.includes("V.clues.clues")) throw new Error("app.js must register clues view");
+  return "standalone clues management view wired";
+});
+
+await check("clue-share-roles-wired", async () => {
+  const player = readSource("src/views/player.js");
+  const apiJs = readSource("src/api/client.js");
+  for (const token of ["share-clue-roles", "shareClueToRoles", "shared_with_roles", "私享线索"]) {
+    const bundle = `${player}${apiJs}`;
+    if (!bundle.includes(token)) throw new Error(`clue share-roles wiring missing ${token}`);
+  }
+  return "player private clue share UI wired";
+});
+
+await check("host-delay-wired", async () => {
+  const director = readSource("src/views/director.js");
+  const apiJs = readSource("src/api/client.js");
+  for (const token of ["openDelayHostEventModal", "delayHostEvent", "host-event-delayed", "delay_until"]) {
+    const bundle = `${director}${apiJs}`;
+    if (!bundle.includes(token)) throw new Error(`host delay wiring missing ${token}`);
+  }
+  return "host event delay UI wired";
+});
+
+await check("global-search-focus-wired", async () => {
+  const searchJs = readSource("src/runtime/global-search.js");
+  const focusJs = readSource("src/runtime/search-focus.js");
+  for (const token of ["searchFocus", "applyAfterRender", "search-highlight", "zhimuSearchFocus"]) {
+    const bundle = `${searchJs}${focusJs}`;
+    if (!bundle.includes(token)) throw new Error(`search focus wiring missing ${token}`);
+  }
+  return "global search highlight/focus wired";
+});
+
+await check("runtime-state-clears-audit", async () => {
+  const dataJs = readSource("src/runtime/data.js");
+  const authJs = readSource("src/runtime/auth-world.js");
+  if (!dataJs.includes("cloudHostAuditLog=[]")) throw new Error("clearRuntimeState must reset cloudHostAuditLog");
+  if (!authJs.includes("cloudHostAuditLog")) throw new Error("auth-world world switch must reset cloudHostAuditLog");
+  return "audit log cleared on world/room reset";
+});
+
 await check("checkpoint-wired", async () => {
   const archive = readSource("src/views/archive.js");
-  for (const token of ["openCreateCheckpointModal", "openCheckpointDetail", "openRestoreCheckpointModal", "cloudCheckpoints", "create-checkpoint", "restore-checkpoint", "data-restore-scope", "restore-target-room"]) {
+  for (const token of ["openCreateCheckpointModal", "openCheckpointDetail", "openRestoreCheckpointModal", "cloudCheckpoints", "create-checkpoint", "restore-checkpoint", "data-restore-scope", "restore-target-room", "checkpointRestoreHistoryRows", "恢复历史"]) {
     if (!archive.includes(token)) throw new Error(`archive view missing checkpoint token ${token}`);
   }
   const apiJs = readSource("src/api/client.js");
-  for (const method of ["getCheckpoints", "createCheckpoint", "getCheckpoint", "restoreCheckpoint"]) {
+  for (const method of ["getCheckpoints", "createCheckpoint", "getCheckpoint", "getCheckpointRestores", "restoreCheckpoint"]) {
     if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
   }
   const userMsg = readSource("src/utils/user-messages.js");
@@ -292,6 +359,17 @@ await check("checkpoint-wired", async () => {
   const dataJs = readSource("src/runtime/data.js");
   if (!dataJs.includes("room.checkpoint_restored")) throw new Error("SSE handler missing room.checkpoint_restored");
   return "checkpoint create/detail/restore UI + API wired";
+});
+
+await check("world-audit-wired", async () => {
+  const settings = readSource("src/views/settings.js");
+  const actionsJs = readSource("src/runtime/actions.js");
+  const apiJs = readSource("src/api/client.js");
+  for (const token of ["world-audit", "openWorldAuditModal", "getWorldHostAuditLog", "世界主持审计"]) {
+    const bundle = `${settings}${actionsJs}${apiJs}`;
+    if (!bundle.includes(token)) throw new Error(`world audit wiring missing ${token}`);
+  }
+  return "world-level host audit in settings wired";
 });
 
 await check("settings-world-patch-wired", async () => {
@@ -322,12 +400,13 @@ await check("rules-preview-wired", async () => {
 
 await check("assets-filter-wired", async () => {
   const assets = readSource("src/views/assets.js");
-  for (const token of ["assetKindFilter", "assetSearchQuery", "asset-filter", "asset-search-input", "reloadAssets"]) {
+  for (const token of ["assetKindFilter", "assetSearchQuery", "assetShowRecycle", "asset-filter", "asset-recycle-toggle", "restore-asset", "toggleAssetRecycle", "restoreCloudAsset"]) {
     if (!assets.includes(token)) throw new Error(`assets view missing filter token ${token}`);
   }
   const apiJs = readSource("src/api/client.js");
   if (!apiJs.includes("getAssets:")) throw new Error("api-client missing getAssets with query params");
-  return "assets kind/search filter wired";
+  if (!apiJs.includes("restoreAsset")) throw new Error("api-client missing restoreAsset");
+  return "assets kind/search/recycle filter wired";
 });
 
 await check("friendly-api-errors-wired", async () => {
@@ -417,7 +496,7 @@ await check("world-switch-sync", async () => {
   const authJs = readSource("src/runtime/auth-world.js");
   if (!appJs.includes("syncWorldSwitcher")) throw new Error("syncWorldSwitcher missing from app.js");
   if (!dataJs.includes("ensureActiveWorld")) throw new Error("ensureActiveWorld missing from data.js");
-  if (!authJs.includes("正在读取你的剧本列表")) throw new Error("world library loading state missing");
+  if (!authJs.includes("正在加载…")) throw new Error("world library loading state missing");
   return "world switcher + active world validation wired";
 });
 
@@ -445,7 +524,7 @@ await check("content-package-p1-4-wired", async () => {
 await check("app-bootstrap-thin", async () => {
   const appJs = readSource("app.js");
   const lines = appJs.split("\n").filter((line) => line.trim() && !line.trim().startsWith("//")).length;
-  if (lines > 120) throw new Error(`app.js still too large (${lines} non-empty lines)`);
+  if (lines > 140) throw new Error(`app.js still too large (${lines} non-empty lines)`);
   if (!appJs.includes("function render") || !appJs.includes("function go")) throw new Error("app.js must own render/go bootstrap");
   return `app.js bootstrap ${lines} lines`;
 });

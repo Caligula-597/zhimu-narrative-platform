@@ -46,6 +46,7 @@
       state.voiceLiveStatus = "idle";
       state.voiceMicEnabled = false;
       state.voiceParticipants = [];
+      state.voiceLiveError = "";
       return;
     }
     disconnecting = true;
@@ -60,18 +61,34 @@
       state.voiceLiveStatus = "idle";
       state.voiceMicEnabled = false;
       state.voiceParticipants = [];
+      state.voiceLiveError = "";
       renderIfPlayer();
     }
+  }
+
+  function friendlyConnectError(error) {
+    const message = error?.message || String(error || "连接失败");
+    if (/NotAllowedError|Permission|permission/i.test(message)) return "麦克风权限被拒绝 · 仍可使用文字频道";
+    if (/NotFoundError|device/i.test(message)) return "未检测到麦克风设备 · 仍可使用文字频道";
+    if (/LiveKit|token|401|403|503/i.test(message)) return message;
+    return `LiveKit 连接失败：${message}`;
   }
 
   async function connectVoiceRoom(tokenPayload) {
     const sdk = liveKitSdk();
     if (!sdk?.Room) {
       state.voiceLiveStatus = "error";
+      state.voiceLiveError = "LiveKit 客户端未加载";
       throw new Error("LiveKit 客户端未加载，请刷新页面后重试");
+    }
+    if (!tokenPayload?.url || !tokenPayload?.token) {
+      state.voiceLiveStatus = "error";
+      state.voiceLiveError = "语音 Token 无效";
+      throw new Error("语音 Token 无效，请稍后重试");
     }
     await disconnectVoiceRoom();
     state.voiceLiveStatus = "connecting";
+    state.voiceLiveError = "";
     renderIfPlayer();
     const nextRoom = new sdk.Room({
       adaptiveStream: true,
@@ -102,11 +119,23 @@
         renderIfPlayer();
       }
     });
-    await nextRoom.connect(tokenPayload.url, tokenPayload.token);
-    await nextRoom.localParticipant.setMicrophoneEnabled(true);
+    try {
+      await nextRoom.connect(tokenPayload.url, tokenPayload.token);
+    } catch (error) {
+      state.voiceLiveStatus = "error";
+      state.voiceLiveError = friendlyConnectError(error);
+      renderIfPlayer();
+      throw new Error(state.voiceLiveError);
+    }
     room = nextRoom;
     state.voiceLiveStatus = "connected";
-    state.voiceMicEnabled = nextRoom.localParticipant.isMicrophoneEnabled;
+    try {
+      await nextRoom.localParticipant.setMicrophoneEnabled(true);
+      state.voiceMicEnabled = nextRoom.localParticipant.isMicrophoneEnabled;
+    } catch (error) {
+      state.voiceMicEnabled = false;
+      state.voiceLiveError = friendlyConnectError(error);
+    }
     syncParticipants(nextRoom);
     renderIfPlayer();
     return nextRoom;

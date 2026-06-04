@@ -68,6 +68,21 @@ button { cursor: pointer; border: 0; }
 .global-search-row:hover { border-color:#c9b88a; background:#fffdf8; }
 .global-search-row strong { font-size:14px; }
 .global-search-row p { margin:0; color:var(--muted); font-size:11px; line-height:1.45; }
+.search-mark { background:rgba(201,184,138,.35); color:inherit; padding:0 2px; border-radius:3px; }
+.search-highlight { outline:2px solid rgba(201,152,74,.75); box-shadow:0 0 0 4px rgba(201,152,74,.18); animation:searchPulse 1.2s ease-in-out 2; }
+@keyframes searchPulse { 0%,100%{ box-shadow:0 0 0 4px rgba(201,152,74,.18); } 50%{ box-shadow:0 0 0 8px rgba(201,152,74,.28); } }
+.clues-page { display:grid; gap:14px; }
+.clues-search { max-width:420px; }
+.clues-table { display:grid; gap:10px; }
+.clues-row { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:#fbfcfa; }
+.clues-row-selected { border-color:rgba(44,107,98,.42); background:#f7fbf9; }
+.clues-row-head { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px; }
+.clues-row-actions { flex-shrink:0; }
+.clue-row-private { border-left:3px solid rgba(201,152,74,.55); }
+.shared-clues-private { margin-top:14px; }
+.host-events-delayed-block { margin-top:16px; padding-top:12px; border-top:1px dashed var(--line); }
+.host-event-delayed { opacity:.92; }
+.voice-hub-error { border-color:rgba(180,72,72,.35); background:#fff8f8; }
 .clue-matrix-cell-btn { border:0; background:transparent; cursor:pointer; padding:0; font:inherit; color:inherit; text-decoration:underline dotted; }
 h1,h2,h3,p { margin:0; }
 h1,h2,h3 { font-family:"Noto Serif SC","Microsoft YaHei"; }

@@ -25,7 +25,7 @@
 
 **织幕**是面向线上长线剧本杀的自动化叙事引擎：创作者在云端写世界、编排剧情、配规则；玩家入房阅读、探索、收线索；主持台监控进度、确认事件、手动干预；数据落在 **PostgreSQL** 与 **Cloudflare R2**。
 
-当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**131** 项后端测试 + **48** 条 schema 门禁 + smoke/E2E 可复验。尚不适合作为公开 SaaS：缺完整账号体系、语音实流、实体卡、上传病毒扫描与前端现代化。
+当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**170** 项后端测试 + **54** 条 schema 门禁 + smoke/E2E 可复验。Beta-1 产品体验五项已落地；Beta-2 后端加固（限流分桶、上传扫描 stub、主持审计、telemetry）已部分完成。尚不适合作为公开 SaaS：缺完整账号体系、实体卡、生产级 AV 扫描与前端现代化。
 
 ---
 
@@ -41,7 +41,7 @@
 | 资产 R2 | ✅ | 上传/列表/下载/回收站 |
 | 全局搜索 | ✅ | `GET /worlds/:id/search` + 顶栏 UI |
 | DeepSeek AI | 🟡 | 需 `DEEPSEEK_API_KEY` |
-| LiveKit 语音 | 🟡 | Token API 有；**音频流未产品化** |
+| LiveKit 语音 | ✅ | Token API + 前端连接/麦克风状态与重试 |
 | 实体卡 / NFC | ❌ | 仅占位 |
 | 生产 SaaS（OAuth/付费/AV 扫描） | ❌ | 路线图 |
 
@@ -65,7 +65,7 @@
 | 世界 CRUD、PATCH、成员角色 | ✅ | 只能邀请**已注册**邮箱；无邀请链接 |
 | 平行运行房、邀请码 | ✅ | 房间无合并对比视图 |
 | 世界运行日志 timeline | ✅ | 无导出 |
-| 全文搜索 | ✅ | 迁移 014；图谱内高亮未做 |
+| 全文搜索 | ✅ | 迁移 014；顶栏搜索 + **图谱/线索页跳转高亮** |
 | 归档世界列表 API | ✅ | 前端可选展示 |
 
 **调试**：本地 `ALLOW_DEMO_USER_HEADER=true` 可用固定 `x-user-id`；**生产开启会 FATAL 拒绝启动**。
@@ -101,26 +101,24 @@
 | SSE + journal + `Last-Event-ID` | ✅ | |
 | 多实例 SSE | ✅ | `ROOM_EVENTS_BUS=postgres` |
 | 写操作 Idempotency-Key | ✅ | 10 条关键 POST |
-| 线索私享指定玩家 | ❌ | 仅全房间公开 |
-| 主持延迟调度 UI | ❌ | |
+| 线索私享指定玩家 | ✅ | `POST .../clues/:id/share-roles` + 玩家端公共/私享分区 |
+| 主持延迟调度 UI | ✅ | `delay_until` + 主持台延迟弹窗 + 30s 到期唤醒 |
 
 ### 3.4 资产、语音、运维 API
 
 | 能力 | 状态 | 局限 |
 |------|------|------|
-| R2 上传/确认/下载 URL | ✅ | 无病毒扫描、无转码 |
-| 软删除 + 14 天 purge | ✅ | UI 无「从回收站恢复」 |
+| R2 上传/确认/下载 URL | ✅ | 扫描 stub 模式；失败可 quarantine |
+| 软删除 + 14 天 purge | ✅ | **回收站 UI 可恢复**（`?recycled=1` + restore API） |
 | LiveKit Token | 🟡 | 无 env → 503 |
 | 语音房文字 + 成员隔离 | ✅ | |
 | `/health/live` `/health/ready` `/metrics` | ✅ | |
-| OpenAPI、ops API、审计表 | ✅ | **不对普通用户 UI 开放** |
-| 生产限流 | ✅ | SSE 除外 |
+| OpenAPI、ops API、审计表 | ✅ | 主持台 **审计卡片** + ops token API |
+| 生产限流 | ✅ | auth/write/read + **upload/AI 独立桶**；SSE 除外 |
 
 ### 3.5 有 API、无产品 UI
 
-- `GET .../checkpoints/:id/restores`
-- `GET .../host/audit-log`
-- `GET /api/ops/*`
+- `GET /api/ops/*`（运维 token）
 
 ---
 
@@ -132,14 +130,15 @@
 |------|----------|----------|------|
 | 世界总览 | ✅ API/空状态 | 日志、进度、资产统计 | 部分块需手动刷新 |
 | 剧本创作 writer | ✅ | 分幕 MD、版本、导入、**AI 悬疑创作**（合并原结构提案/整本/分步） | 实体卡占位 |
-| 剧情编排 studio | ✅ | 图谱 CRUD、侧栏 PATCH | 无独立线索管理页 |
+| 剧情编排 studio | ✅ | 图谱 CRUD、侧栏 PATCH | — |
+| **线索管理 clues** | ✅ | 独立列表/搜索/编辑、跳转编排 | — |
 | 内容资产 assets | ✅ | 上传/删/下载、kind Tab、搜索 | 「新建内容」占位 |
 | 自动化规则 rules | ✅ | JSON + 可视化双 Tab | — |
-| 主持台 director | ✅ | 玩家表、SSE、预览/触发、存档 | 审计不对用户 |
-| 玩家 player | ✅ | 阅读/探索/线索/笔记/语音文字 | 语音流未接 |
+| 主持台 director | ✅ | 玩家表、SSE、预览/触发、存档、**主持审计** | — |
+| 玩家 player | ✅ | 阅读/探索/线索/笔记、**LiveKit 语音** | 依赖 env |
 | 存档 archive | ✅ | checkpoint、scoped restore、recap | — |
 | 设置 settings | ✅ | 世界 PATCH、旁听开关 | 实体卡占位 |
-| 顶栏搜索 | ✅ | 调 search API | 无图谱高亮 |
+| 顶栏搜索 | ✅ | 调 search API + **跳转高亮** | — |
 
 ### 4.1 健壮性机制
 
@@ -161,26 +160,26 @@
 
 ## 5. 测试体系（分层说明）
 
-**当前验收数字**（2026-06-03）：
+**当前验收数字**（2026-06-04）：
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **131** |
-| `npm run check:schemas` | **48** 条路由 |
+| `backend npm test` | **170** |
+| `npm run check:schemas` | **54** 条路由 |
 | `npm run test:smoke` | **18** |
-| `node scripts/ui-smoke.js` | **34** |
+| `node scripts/ui-smoke.js` | **41/41** |
 | `npm run check:modules` | **29** |
 | Playwright E2E | 1 spec（雾港 Acts 1–5，双浏览器） |
 
 ### 5.1 后端单元/集成（`backend npm test`）
 
 - Node test runner，`--test-concurrency=1`（防 PG 池耗尽）。
-- 约 **41** 个 `*.test.js` 文件，覆盖：认证、规则引擎、主持台、checkpoint/restore E2E、线索、物品、SSE/NOTIFY/journal、资产策略、ops 健康、beta-gates、**world-search** 等。
+- 约 **43** 个 `*.test.js` 文件，覆盖：认证、规则引擎、主持台、checkpoint/restore E2E、线索私享、物品、SSE/NOTIFY/journal、资产策略、ops 健康、beta-gates、**beta2-ops**、**rate-limit**、**upload-scan**、world-search 等。
 - **需要**：`DATABASE_URL` + 已 migrate。
 
 ### 5.2 Schema 门禁（`check:schemas`）
 
-- 48 条写/改/SSE 路由必须有 Fastify JSON Schema。
+- **54** 条写/改/SSE 路由必须有 Fastify JSON Schema（含 `share-roles`、`host-events/:id/delay`、assets restore）。
 - 规则 POST/PUT 另有语义校验 `validateRuleBody`。
 
 ### 5.3 数量与启动门禁
@@ -228,7 +227,7 @@ npm run verify:full:fresh
 | 生产读写/auth 限流 | ✅ |
 | Postgres NOTIFY 多实例 SSE | ✅ |
 | Docker 预发栈 | ✅ 见 [ops/STAGING.md](./ops/STAGING.md)（本机需 Docker/虚拟化） |
-| 上传病毒扫描 / OTel SDK | ❌ 路线图 |
+| 上传病毒扫描 / OTel SDK | 🟡 stub 扫描 + telemetry 钩子；完整 AV/OTLP 待做 |
 
 详见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md)、[BACKEND_OPS.md](./BACKEND_OPS.md)、[OPS.md](./OPS.md)。
 
@@ -246,8 +245,7 @@ npm run verify:full:fresh
 
 1. 本机或 VPS 跑通 Docker 预发（[STAGING.md](./ops/STAGING.md)）。
 2. 内测包：`VITE_REQUIRE_AUTH=1` 构建 + [REMOTE_TESTING.md](./ops/REMOTE_TESTING.md)。
-3. LiveKit 语音流产品化、线索私享、实体卡/NFC。
-4. 上传扫描强化、OpenTelemetry、可选 Redis 总线。
+3. 实体卡/NFC、生产级上传 AV、OpenTelemetry SDK、可选 Redis 总线。
 
 ---
 

@@ -61,17 +61,34 @@
       throw error;
     }
     state.cloudWorlds = worlds;
+    const hasSession = Boolean(localStorage.getItem("zhimuSessionToken"));
+    const current = zhimuApi.context.worldId;
+
+    // Logged-in users must not keep a demo-world id from prior anonymous browsing.
+    if (hasSession && current && !worlds.some((world) => world.id === current)) {
+      zhimuApi.clearWorld();
+      zhimuApi.clearRoom();
+    }
+
     if (!worlds.length) {
       zhimuApi.clearWorld();
+      zhimuApi.clearRoom();
       return null;
     }
-    const current = zhimuApi.context.worldId;
-    if (current && worlds.some((world) => world.id === current)) return current;
+
+    const activeId = zhimuApi.context.worldId;
+    if (activeId && worlds.some((world) => world.id === activeId)) return activeId;
+
     const demoId = window.zhimuConfig?.demoWorld?.worldId;
-    const fallback = demoId && worlds.some((world) => world.id === demoId) ? demoId : worlds[0].id;
-    zhimuApi.selectWorld(fallback);
+    if (!hasSession && demoId && worlds.some((world) => world.id === demoId)) {
+      zhimuApi.selectWorld(demoId);
+      zhimuApi.clearRoom();
+      return demoId;
+    }
+
+    zhimuApi.selectWorld(worlds[0].id);
     zhimuApi.clearRoom();
-    return fallback;
+    return worlds[0].id;
   }
 
   async function loadCloudData(withToast = false, force = false) {
@@ -176,7 +193,8 @@ async function loadCloudDataInternal(withToast=false){
    hasRoom?zhimuApi.getRecaps().catch(()=>[]):Promise.resolve([]),
    hasRoom?zhimuApi.getLatestRecap(state.view==="player").catch(()=>null):Promise.resolve(null),
    zhimuApi.getWorldLogs(logParams),
-   zhimuApi.getRules()
+   zhimuApi.getRules(),
+   hasRoom?zhimuApi.getHostAuditLog().catch(()=>({entries:[]})):Promise.resolve({entries:[]})
   ]);
   take(phase2[0],value=>state.cloudPlayer=value,()=>state.cloudPlayer=null);
   take(phase2[1],value=>applyHostPlayersPayload(value),()=>{state.cloudHostPlayers=[];state.cloudHostStuckCount=0;state.cloudHost=[]});
@@ -188,10 +206,11 @@ async function loadCloudDataInternal(withToast=false){
   take(phase2[7],value=>state.cloudRecapLatest=value,()=>state.cloudRecapLatest=null);
   take(phase2[8],value=>state.cloudWorldLogs=value||[],()=>state.cloudWorldLogs=[]);
   take(phase2[9],value=>state.cloudRules=value,()=>state.cloudRules=[]);
+  take(phase2[10],value=>state.cloudHostAuditLog=value?.entries||[],()=>state.cloudHostAuditLog=[]);
   }else{
    state.cloudPlayer=null;
    state.cloudHostPlayers=[];state.cloudHostStuckCount=0;state.cloudHost=[];
-   state.cloudExploration=null;state.cloudHostEvents=[];state.cloudHostClueMatrix=null;
+   state.cloudExploration=null;state.cloudHostEvents=[];state.cloudHostClueMatrix=null;state.cloudHostAuditLog=[];
    state.cloudCheckpoints=[];state.cloudRecaps=[];state.cloudRecapLatest=null;
    state.cloudWorldLogs=[];state.cloudRules=[];state.cloudAssets=[];state.assetTotal=0;
    state.cloudCreatorChecks=[];state.storageUsage=null;
@@ -235,7 +254,7 @@ async function loadCloudDataInternal(withToast=false){
  }
 }
 
-function clearRuntimeState(){disconnectRoomEventStream();window.zhimuLiveKitVoice?.disconnectVoiceRoom?.();state.cloudPlayer=null;state.cloudHost=[];state.cloudHostPlayers=[];state.cloudHostStuckCount=0;state.cloudExploration=null;state.cloudHostEvents=[];state.cloudHostClueMatrix=null;state.cloudCheckpoints=[];state.cloudRecaps=[];state.cloudRecapLatest=null;state.cloudRecapDetail=null;state.activeRecapId=null;state.voiceRoomId=null;state.voiceRoom="尚未选择";state.voiceMessages=[];state.voiceLiveStatus="idle";state.voiceMicEnabled=false;state.voiceParticipants=[]}
+function clearRuntimeState(){disconnectRoomEventStream();window.zhimuLiveKitVoice?.disconnectVoiceRoom?.();state.cloudPlayer=null;state.cloudHost=[];state.cloudHostPlayers=[];state.cloudHostStuckCount=0;state.cloudExploration=null;state.cloudHostEvents=[];state.cloudHostClueMatrix=null;state.cloudHostAuditLog=[];state.cloudCheckpoints=[];state.cloudRecaps=[];state.cloudRecapLatest=null;state.cloudRecapDetail=null;state.activeRecapId=null;state.voiceRoomId=null;state.voiceRoom="尚未选择";state.voiceMessages=[];state.voiceLiveStatus="idle";state.voiceMicEnabled=false;state.voiceParticipants=[];state.voiceLiveError=""}
 
 function applyHostPlayersPayload(value){
  state.cloudHostPlayers=value?.players||[];
@@ -291,6 +310,16 @@ async function refreshHostPlayers(withToast=false,silent=false){
  }catch(error){if(withToast&&!silent)showToast(error.message)}
 }
 
+async function refreshHostAuditLog(withToast=false,silent=false){
+ if(!zhimuApi.context.roomId){if(withToast&&!silent)showToast("请先选择运行房");return}
+ try{
+  const payload=await zhimuApi.getHostAuditLog();
+  state.cloudHostAuditLog=payload?.entries||[];
+  if(state.view==="director")render();
+  if(withToast&&!silent)showToast(`主持审计已刷新（${state.cloudHostAuditLog.length} 条）`);
+ }catch(error){if(withToast&&!silent)showToast(error.message)}
+}
+
 async function refreshHostClueMatrix(withToast=false,silent=false){
  if(!zhimuApi.context.roomId)return;
  try{
@@ -304,11 +333,12 @@ async function refreshHostRoom(withToast=false){
  if(!zhimuApi.context.roomId){if(withToast)showToast("请先选择运行房");return}
  try{
   const logParams={limit:"20",roomId:zhimuApi.context.roomId};
-  const [hostPlayers,hostEvents,worldLogs,clueMatrix]=await Promise.all([zhimuApi.getHostPlayers(),zhimuApi.getHostEvents(),zhimuApi.getWorldLogs(logParams),zhimuApi.getHostClueMatrix()]);
+  const [hostPlayers,hostEvents,worldLogs,clueMatrix,auditLog]=await Promise.all([zhimuApi.getHostPlayers(),zhimuApi.getHostEvents(),zhimuApi.getWorldLogs(logParams),zhimuApi.getHostClueMatrix(),zhimuApi.getHostAuditLog().catch(()=>({entries:[]}))]);
   applyHostPlayersPayload(hostPlayers);
   state.cloudHostEvents=hostEvents||[];
   state.cloudWorldLogs=worldLogs||[];
   state.cloudHostClueMatrix=clueMatrix;
+  state.cloudHostAuditLog=auditLog?.entries||[];
   updateNotifyBadge();
   if(state.view==="director"||state.view==="overview")render();
   if(withToast)showToast(`房间状态已刷新 · 待确认 ${state.cloudHostEvents.length} 条 · 玩家 ${state.cloudHostPlayers.filter(player=>player.joined).length} 人`);
@@ -356,7 +386,7 @@ async function handleRoomEvent(type,data){
    break;
   case "room.clue_granted":
    if(state.view==="director"||state.view==="overview"){await refreshHostPlayers(false,true);await refreshHostClueMatrix(false,true)}
-   else if(state.view==="player"){await refreshPlayerHome();if(data.source!=="shared_room")showToast(data.clueName?`获得新线索：${data.clueName}`:"获得新线索",2800);else showToast(data.clueName?`房间内有新公开线索：${data.clueName}`:"有新的公开线索",2800)}
+   else if(state.view==="player"){await refreshPlayerHome();if(data.source==="shared_room")showToast(data.clueName?`房间内有新公开线索：${data.clueName}`:"有新的公开线索",2800);else if(data.source==="shared_roles")showToast(data.clueName?`${data.clueName} · 有玩家私享给你`:"有玩家私享线索给你",2800);else showToast(data.clueName?`获得新线索：${data.clueName}`:"获得新线索",2800)}
    break;
   case "room.item_granted":
    if(state.view==="director"||state.view==="overview")await refreshHostPlayers(false,true);
@@ -386,6 +416,6 @@ function streamUserIdForRoom(){return state.view==="player"&&zhimuApi.context.pl
 
 function enhanceCloudPanels(){
 }
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { loadCloudData, ensureActiveWorld, clearRuntimeState, go: window.zhimuRuntime?.go, render: window.zhimuRuntime?.render, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, syncDirectorPolling, refreshDirectorPoll, refreshHostEvents, refreshHostPlayers, refreshHostClueMatrix, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels });
+  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { loadCloudData, ensureActiveWorld, clearRuntimeState, go: window.zhimuRuntime?.go, render: window.zhimuRuntime?.render, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, syncDirectorPolling, refreshDirectorPoll, refreshHostEvents, refreshHostPlayers, refreshHostClueMatrix, refreshHostAuditLog, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels });
 })(window);
 export {};

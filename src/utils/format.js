@@ -22,12 +22,48 @@
   }
 
   function escapeHtml(value = "") {
-    return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
   }
 
   function roleParts(name = "") {
     const parts = String(name).split(" · ");
     return { name: parts[0] || "未命名角色", role: parts.slice(1).join(" · ") || "玩家角色" };
+  }
+
+  function checkpointRestoreStatusLabel(status = "") {
+    const labels = { pending: "排队中", applied: "已应用", failed: "失败", cancelled: "已取消" };
+    return labels[status] || status || "未知";
+  }
+
+  function hostAuditActionLabel(action = "") {
+    const labels = {
+      manual_rule_triggered: "手动触发规则",
+      room_settings_updated: "房间设置变更",
+      host_grant_clue: "手动发线索",
+      host_grant_item: "手动发物品",
+      host_event_delayed: "延迟待确认事件",
+      checkpoint_restore: "存档点恢复",
+      delay_expired: "延迟到期唤醒"
+    };
+    return labels[action] || action || "主持操作";
+  }
+
+  function hostAuditDetail(entry = {}) {
+    const meta = entry.metadata && typeof entry.metadata === "object" ? entry.metadata : {};
+    if (entry.action === "host_event_delayed") return `延迟 ${meta.delayMinutes ?? "?"} 分钟`;
+    if (entry.action === "host_grant_clue") return `发放给 ${(meta.roleSlotIds || []).length} 名玩家`;
+    if (entry.action === "host_grant_item") return `发放给 ${meta.roleSlotId ? "1" : "0"} 名玩家`;
+    if (entry.action === "checkpoint_restore") {
+      const scope = meta.scope && typeof meta.scope === "object" ? Object.entries(meta.scope).filter(([, v]) => v).map(([k]) => k) : [];
+      return scope.length ? `回滚域：${scope.join("、")}${meta.crossRoom ? " · 跨平行房" : ""}` : meta.crossRoom ? "跨平行房恢复" : "已应用恢复";
+    }
+    if (entry.action === "room_settings_updated" && meta.settings) {
+      const keys = Object.keys(meta.settings);
+      return keys.length ? `变更：${keys.join("、")}` : "已更新房间设置";
+    }
+    if (entry.action === "manual_rule_triggered" && meta.ruleId) return `规则 ${String(meta.ruleId).slice(0, 8)}…`;
+    if (entry.target_type && entry.target_id) return `${entry.target_type} · ${String(entry.target_id).slice(0, 8)}…`;
+    return "";
   }
 
   function hostOperationLabel(type = "", message = "") {
@@ -71,6 +107,9 @@
     formatBytes,
     escapeHtml,
     roleParts,
+    hostAuditActionLabel,
+    hostAuditDetail,
+    checkpointRestoreStatusLabel,
     hostOperationLabel,
     hostPlayerColor,
     logActivityType,

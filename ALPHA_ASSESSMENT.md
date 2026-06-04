@@ -10,7 +10,7 @@
 | 维度 | 评级 | 说明 |
 |------|------|------|
 | 后端数据模型 | **良好** | 世界/房间分离清晰；迁移 001–**014** 覆盖运行态与全文搜索 |
-| 测试体系 | **较强（Beta 过渡）** | **131** 单元/集成 + 18 API smoke + 34 UI smoke + 29 脚本加载 + Playwright E2E |
+| 测试体系 | **较强（Beta 过渡）** | **148** 单元/集成 + 18 API smoke + 34 UI smoke + 29 脚本加载 + Playwright E2E |
 | 前端架构 | **脆弱但可接受** | Vite 构建 + `src/` 模块；仍依赖 `window.*` 全局 |
 | 生产就绪 | **未就绪** | LiveKit 语音流、实体卡、上传 AV 扫描、OAuth 仍缺；多节点 SSE 可用 NOTIFY |
 
@@ -27,7 +27,7 @@
 | `npm run check` | 语法检查全通过 | 无 |
 | `npm run check:boot` | 启动链 + schema | PostgreSQL |
 | `npm run check:tests` | 测试用例数 ≥100 | 无 |
-| `npm test` | **131** 项 / ~41 文件 | PostgreSQL + `npm ci` |
+| `npm test` | **148** 项 / ~43 文件 | PostgreSQL + `npm ci` |
 | `npm run test:smoke` | **18** 项 | 后端 `4180` 已启动 |
 | `npm run test:ui` | **34** 项 | 前端 `4173` + 后端 `4180` |
 | `npm run test:ui:load` / `check:modules` | **29** 项 | 无（静态解析脚本） |

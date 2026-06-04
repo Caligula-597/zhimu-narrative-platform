@@ -3,6 +3,7 @@ import { getReadinessStatus } from "../database-status.js";
 import { getPoolStats } from "../db.js";
 import { requireOpsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
+import { getTelemetryStatus } from "../telemetry.js";
 
 const opsAuditLogQuerySchema = {
   type: "object",
@@ -91,7 +92,15 @@ export async function registerOpsRoutes(app) {
         features: {
           uploadScan: (process.env.UPLOAD_SCAN_MODE || "none").toLowerCase(),
           roomEventsBus: bus.mode,
-          openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production"
+          openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production",
+          telemetry: getTelemetryStatus()
+        },
+        rateLimits: {
+          authPerMin: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
+          writePerMin: Number(process.env.RATE_LIMIT_WRITE_MAX ?? 120),
+          readPerMin: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
+          uploadPerMin: Number(process.env.RATE_LIMIT_UPLOAD_MAX ?? 30),
+          aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40)
         }
       };
     }

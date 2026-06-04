@@ -40,3 +40,27 @@ test("write API routes return RATE_LIMITED after threshold", async (context) => 
   assert.equal(lastStatus, 429);
   resetRateLimitersForTests();
 });
+
+test("upload routes return RATE_LIMITED after threshold", async (context) => {
+  resetRateLimitersForTests();
+  const app = await createApp({ logger: false, rateLimit: true });
+  context.after(() => app.close());
+
+  let lastStatus = 200;
+  for (let attempt = 0; attempt < 32; attempt += 1) {
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/assets/upload-url",
+      payload: {
+        worldId: "00000000-0000-4000-8000-000000000001",
+        filename: "x.png",
+        contentType: "image/png",
+        byteSize: 1
+      }
+    });
+    lastStatus = response.statusCode;
+  }
+
+  assert.equal(lastStatus, 429);
+  resetRateLimitersForTests();
+});

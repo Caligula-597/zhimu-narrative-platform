@@ -5,12 +5,14 @@ import { publishRoomEvent } from "../room-event-bus.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { fetchPlayerClues } from "./clue-helpers.js";
+import { assertRolesInRoomWorld } from "./clue-share-helpers.js";
 import { listPlayerInventory, consumeItemIfNeeded } from "../inventory-helpers.js";
 import { requireRoomRole } from "./route-guards.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import {
   cluePlayerNoteSchema,
   clueShareRoomSchema,
+  clueShareRolesSchema,
   completeSectionSchema,
   investigatePointSchema,
   inviteLookupSchema,
@@ -368,8 +370,13 @@ export async function registerPlayerRoutes(app) {
     );
     const shared = !owned.rowCount
       ? await query(
-          `SELECT 1 FROM clue_ownership WHERE room_id = $1 AND clue_id = $2 AND shared_with_room = true`,
-          [roomId, clueId]
+          `SELECT 1 FROM clue_ownership
+           WHERE room_id = $1 AND clue_id = $2
+             AND (
+               shared_with_room = true
+               OR $3::uuid = ANY(COALESCE(shared_with_roles, '{}'))
+             )`,
+          [roomId, clueId, membership.role_slot_id]
         )
       : { rowCount: 0 };
 
@@ -441,6 +448,7 @@ export async function registerPlayerRoutes(app) {
         const updated = await client.query(
           `UPDATE clue_ownership
            SET shared_with_room = $4,
+               shared_with_roles = CASE WHEN $4 THEN '{}'::uuid[] ELSE shared_with_roles END,
                shared_at = CASE WHEN $4 THEN COALESCE(shared_at, now()) ELSE NULL END
            WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3
            RETURNING shared_with_room, shared_at`,
@@ -467,6 +475,78 @@ export async function registerPlayerRoutes(app) {
       if (!result) return sendErr(reply, "CLUE_NOT_OWNED");
 
       return { ok: true, sharedWithRoom: result.shared_with_room, sharedAt: result.shared_at };
+    });
+  });
+
+  app.post("/api/rooms/:roomId/clues/:clueId/share-roles", { schema: clueShareRolesSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { roomId, clueId } = request.params;
+    const membership = await requireRoomRole(actorId, roomId);
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
+    const roleSlotIds = request.body?.roleSlotIds ?? [];
+
+    return withRoomIdempotency(roomId, request, "clues.share_roles", async () => {
+      const clue = await query(
+        `SELECT c.name FROM clues c JOIN rooms r ON r.world_id = c.world_id WHERE c.id = $1 AND r.id = $2`,
+        [clueId, roomId]
+      );
+      if (!clue.rowCount) return sendErr(reply, "CLUE_NOT_FOUND");
+
+      let targets;
+      try {
+        targets = await assertRolesInRoomWorld(query, roomId, roleSlotIds, {
+          excludeRoleSlotId: membership.role_slot_id
+        });
+      } catch (error) {
+        if (error.code === "ROLE_SLOT_WORLD_MISMATCH") return sendErr(reply, "ROLE_SLOT_WORLD_MISMATCH");
+        throw error;
+      }
+
+      const result = await transactionWithEvents(async (client, queueEvent) => {
+        const updated = await client.query(
+          `UPDATE clue_ownership
+           SET shared_with_roles = $4::uuid[],
+               shared_with_room = false,
+               shared_at = CASE WHEN cardinality($4::uuid[]) > 0 THEN COALESCE(shared_at, now()) ELSE NULL END
+           WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3
+           RETURNING shared_with_roles, shared_at`,
+          [roomId, membership.role_slot_id, clueId, targets]
+        );
+        if (!updated.rowCount) return null;
+
+        const playerName = await playerDisplayName(
+          (text, params) => client.query(text, params),
+          roomId,
+          membership.role_slot_id
+        );
+        if (targets.length) {
+          await client.query(
+            `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+             VALUES ($1, $2, 'host', 'clue_shared_roles', $3, jsonb_build_object('clueId', $4::text, 'roleSlotId', $5::text, 'targetRoleSlotIds', $6::jsonb))`,
+            [
+              roomId,
+              actorId,
+              `${playerName}私享线索「${clue.rows[0].name}」给 ${targets.length} 名玩家`,
+              clueId,
+              membership.role_slot_id,
+              JSON.stringify(targets)
+            ]
+          );
+          for (const targetId of targets) {
+            queueEvent(roomId, "room.clue_granted", {
+              clueId,
+              roleSlotId: targetId,
+              clueName: clue.rows[0].name,
+              source: "shared_roles",
+              ownerRoleSlotId: membership.role_slot_id
+            });
+          }
+        }
+        return updated.rows[0];
+      });
+      if (!result) return sendErr(reply, "CLUE_NOT_OWNED");
+
+      return { ok: true, sharedWithRoles: result.shared_with_roles, sharedAt: result.shared_at };
     });
   });
 

@@ -48,6 +48,11 @@ jobs:
       - name: Migrate and seed
         run: npm run db:migrate && npm run db:seed && npm run demo:seed-exploration && npm run demo:bootstrap-e2e-room
         working-directory: backend
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: DB backup smoke
+        run: node scripts/pg-backup.mjs --out /tmp/zhimu-ci-backup.sql
+        working-directory: backend
       - name: Syntax and module graph check
         run: npm run check && npm run check:schemas
         working-directory: backend
@@ -57,6 +62,8 @@ jobs:
       - name: Unit and integration tests
         run: npm run check:tests && npm test
         working-directory: backend
+      - name: Format helper tests
+        run: npm run test:format-helpers
       - name: Start backend for smoke tests
         run: node src/server.js &
         working-directory: backend

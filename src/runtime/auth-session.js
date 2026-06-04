@@ -30,6 +30,10 @@
         strong.textContent = "未登录";
         small.textContent = "点击登录或注册";
         avatar.textContent = "?";
+      } else if (window.zhimuConfig?.demoMode) {
+        strong.textContent = "演示 · 沈舟";
+        small.textContent = "未登录 · 共享示例剧本";
+        avatar.textContent = "演";
       }
       return;
     }

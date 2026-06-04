@@ -8,7 +8,7 @@ import { scanUploadedObject } from "../upload-scan.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import { requireAssetRead, storageUsage } from "./world-helpers.js";
-import { assetUploadUrlSchema, confirmAssetSchema, deleteAssetSchema, worldIdParams } from "./schemas.js";
+import { assetUploadUrlSchema, confirmAssetSchema, deleteAssetSchema, restoreAssetSchema, worldIdParams } from "./schemas.js";
 
 export async function registerAssetRoutes(app) {
   app.get("/api/storage/usage", async (request) => {
@@ -36,7 +36,7 @@ export async function registerAssetRoutes(app) {
       return sendErr(reply, "ASSET_VISIBILITY_INVALID");
     }
 
-    const { listSql, countSql, params, countParams } = buildAssetListQuery(worldId, filters);
+    const { listSql, countSql, params, countParams } = buildAssetListQuery(worldId, filters, { actorId });
     const result = await query(listSql, params);
 
     if (!filters.envelope) {
@@ -130,11 +130,23 @@ export async function registerAssetRoutes(app) {
     if (stat.contentType !== session.rows[0].expected_content_type) {
       throwErr("UPLOAD_TYPE_MISMATCH");
     }
-    await scanUploadedObject({
-      key: session.rows[0].object_key,
-      contentType: stat.contentType,
-      byteSize: stat.byteSize
-    });
+    try {
+      await scanUploadedObject({
+        key: session.rows[0].object_key,
+        contentType: stat.contentType,
+        byteSize: stat.byteSize
+      });
+    } catch (error) {
+      if (error.code === "UPLOAD_SCAN_INFECTED" || error.code === "UPLOAD_SCAN_FAILED") {
+        await getObjectStorage().deleteObject({ key: session.rows[0].object_key }).catch(() => {});
+        await query(
+          `UPDATE asset_files SET status = 'quarantined', updated_at = now(), metadata = metadata || $2::jsonb WHERE id = $1`,
+          [assetId, JSON.stringify({ scanError: error.code, quarantinedAt: new Date().toISOString() })]
+        );
+        await query(`UPDATE upload_sessions SET status = 'cancelled' WHERE id = $1`, [session.rows[0].id]);
+      }
+      throw error;
+    }
     await transaction(async (client) => {
       await client.query(`UPDATE asset_files SET status = 'active', updated_at = now() WHERE id = $1`, [assetId]);
       await client.query(`UPDATE upload_sessions SET status = 'confirmed', confirmed_at = now() WHERE id = $1`, [session.rows[0].id]);
@@ -170,5 +182,25 @@ export async function registerAssetRoutes(app) {
       );
     });
     return { ok: true, purgeAfterDays: recycleDays };
+  });
+
+  app.post("/api/assets/:assetId/restore", { schema: restoreAssetSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { assetId } = request.params;
+    const row = await query(
+      `SELECT af.id FROM asset_files af
+       JOIN deleted_assets da ON da.asset_file_id = af.id
+       WHERE af.id = $1 AND af.owner_user_id = $2 AND af.status = 'deleted' AND da.purge_after > now()`,
+      [assetId, actorId]
+    );
+    if (!row.rowCount) return sendErr(reply, "ASSET_NOT_IN_RECYCLE");
+    await transaction(async (client) => {
+      await client.query(
+        `UPDATE asset_files SET status = 'active', deleted_at = NULL, updated_at = now() WHERE id = $1`,
+        [assetId]
+      );
+      await client.query(`DELETE FROM deleted_assets WHERE asset_file_id = $1`, [assetId]);
+    });
+    return { ok: true, assetId };
   });
 }

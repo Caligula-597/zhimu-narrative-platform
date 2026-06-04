@@ -44,7 +44,7 @@ npm run start
 | `npm run check` | 全量 JS 语法、`src/` 下错误 `../` import、**createApp 模块图可加载** |
 | `npm run check:boot` | 环境变量 + 模块图 + **数据库 schema**（与 server 启动前相同校验） |
 | `npm run check:tests` | 测试用例数量下限（≥80，`scripts/verify-test-count.mjs`） |
-| `npm test` | **131** 项集成测试（`--test-concurrency=1 --test-force-exit`） |
+| `npm test` | **148** 项集成测试（`--test-concurrency=1 --test-force-exit`） |
 
 后端默认监听 `http://localhost:4180`。
 
@@ -129,7 +129,8 @@ AI 只生成待复核的结构化提案，不会直接修改正式剧情。作�
 - `POST /api/rooms/:roomId/host/unlock-section`
 - `POST /api/rooms/:roomId/host/log`
 - `PUT /api/rooms/:roomId/host/players/:roleSlotId/notes`
-- `GET /api/rooms/:roomId/host/audit-log`
+- `GET /api/rooms/:roomId/host/audit-log` — 主持审计（主持台 UI 已接）
+- `POST /api/rooms/:roomId/host-events/:eventId/delay` — 延迟待确认事件
 - `GET /api/rooms/:roomId/rules/preview`（dry-run：条件评估，不写库）
 - `POST /api/rooms/:roomId/rules/:ruleId/trigger`（manual 规则；支持 `Idempotency-Key`）
 - `PATCH /api/rooms/:roomId/settings`（hostVoiceListen 等运行参数）
@@ -196,7 +197,7 @@ npm run test:smoke
 
 | 套件 | 数量 |
 |------|------|
-| `npm run check:tests` + `npm test` | **131** |
+| `npm run check:tests` + `npm test` | **148** |
 | `npm run test:smoke` | **18** |
 | `node ../scripts/ui-smoke.js` | **34** |
 | `npm run check:modules`（根） | **29** |
@@ -222,6 +223,8 @@ npm run test:smoke
 | `RATE_LIMIT_AUTH_MAX` | 20/min | `/api/auth/login` · `/api/auth/register` |
 | `RATE_LIMIT_WRITE_MAX` | 120/min | 其它 `POST/PUT/PATCH/DELETE /api/*` |
 | `RATE_LIMIT_READ_MAX` | 300/min | `GET/HEAD /api/*`（SSE stream 除外） |
+| `RATE_LIMIT_UPLOAD_MAX` | 30/min | 资产上传确认相关路由 |
+| `RATE_LIMIT_AI_MAX` | 20/min | DeepSeek / story-assistant 写路由 |
 
 开发/测试 `createApp` 默认不限流；生产 `NODE_ENV=production` 自动启用。验收见 `test/rate-limit.test.js`。
 
