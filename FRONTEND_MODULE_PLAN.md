@@ -2,6 +2,8 @@
 
 当前前端为静态 HTML + `src/` 模块化脚本。`app.js` 仅负责 bootstrap；API 在 `src/api/client.js`，视图在 `src/views/`。
 
+**产品功能总览**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)
+
 ## 已落地边界
 
 FRONTEND_MODULE_PLAN.md
@@ -35,7 +37,7 @@ FRONTEND_MODULE_PLAN.md
 | 命令 | 用途 |
 |------|------|
 | `npm run dev` | Vite 开发（HMR，`/api` 代理） |
-| `npm run build` | 输出 `dist/` |
+| `npm run build` | 输出 `dist/`（**单包**，勿拆 views/runtime chunk，见 vite.config.js） |
 | `npm run preview` | 预览生产构建 |
 | `npm run start:dist` | `node server.js --dist` 静态托管 |
 | `npm run check:modules` | 脚本链 SyntaxError 检查 |

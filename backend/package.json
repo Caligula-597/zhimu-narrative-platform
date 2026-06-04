@@ -27,6 +27,7 @@
     "db:backup": "node scripts/pg-backup.mjs",
     "test": "node --test-concurrency=1 --test-force-exit --test test/*.test.js",
     "test:smoke": "node scripts/smoke-api.js",
+    "test:deepseek-pipeline": "node scripts/test-deepseek-pipeline.mjs",
     "test:ui": "node ../scripts/ui-smoke.js",
     "verify:full": "node ../scripts/full-chain.mjs",
     "test:ui:load": "node ../scripts/verify-script-load.mjs",

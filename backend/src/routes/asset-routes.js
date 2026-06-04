@@ -6,7 +6,7 @@ import { ASSET_KINDS, ASSET_VISIBILITIES, buildAssetListQuery, parseAssetListQue
 import { getObjectStorage } from "../storage/index.js";
 import { scanUploadedObject } from "../upload-scan.js";
 import { requireActor } from "../request-actor.js";
-import { requireWorldRole } from "./route-guards.js";
+import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import { requireAssetRead, storageUsage } from "./world-helpers.js";
 import { assetUploadUrlSchema, confirmAssetSchema, deleteAssetSchema, worldIdParams } from "./schemas.js";
 
@@ -26,7 +26,7 @@ export async function registerAssetRoutes(app) {
   app.get("/api/worlds/:worldId/assets", { schema: { params: worldIdParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
+    await requireWorldReader(actorId, worldId);
 
     const filters = parseAssetListQuery(request.query);
     if (filters.kind && !ASSET_KINDS.includes(filters.kind)) {

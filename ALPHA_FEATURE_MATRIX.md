@@ -1,6 +1,7 @@
 # 织幕 Alpha 功能矩阵
 
 > **完整实现状态（后端/前端/未接通/缺陷）见 [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)。**  
+> **中文产品总览见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)。**  
 > 本文档为精简版「真实 / 演示 / 待接入」速查表。  
 > **2026-06-03**：P0-1 已完成——总览、资产、存档页仅显示 API 数据或空状态（详见 FEATURE_CATALOG §12）。  
 > **2026-06-03**：P0-2 已完成——主持台运行时状态表、玩家详情、手动干预与真实卡关计数（详见 FEATURE_CATALOG §13）。  
@@ -72,7 +73,7 @@
 | 主持运行时监控 | 真实可用 | 玩家状态表、详情弹窗、卡关启发式、手动发线索/解锁分幕/开放场景/写日志、待确认事件确认与拒绝 |
 | 主持台刷新与通知 | 真实可用 | 分项刷新按钮、铃铛角标来自真实待确认事件；SSE 连接时停 15s 轮询 |
 | SSE 房间事件流 | 真实可用 | 阅读/入房/线索/待确认/场景/语音消息推送；前端局部刷新 + toast |
-| 运行房 checkpoint | 真实可用 | 创建/列表/详情/scoped restore UI + API smoke + 101 项测试 |
+| 运行房 checkpoint | 真实可用 | 创建/列表/详情/scoped restore UI + API smoke + 131 项后端测试 |
 | 世界/运行房设置 | 真实可用 | 设置页编辑世界名/简介、`hostVoiceListen` 开关 |
 | 资产分类与搜索 | 真实可用 | kind Tab + 文件名 `?q=` 筛选 |
 | 顶栏全局搜索 | 真实可用 | `GET /worlds/:id/search`；顶栏 ⌕ 弹窗 |

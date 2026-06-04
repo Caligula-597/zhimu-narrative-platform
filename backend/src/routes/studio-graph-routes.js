@@ -1,7 +1,7 @@
 import { query, transaction } from "../db.js";
 import { requireActor } from "../request-actor.js";
 import { sendErr, throwErr } from "../api-errors.js";
-import { requireWorldRole } from "./route-guards.js";
+import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import {
   studioNodeReferencesSchema,
   deleteStoryEdgeSchema,
@@ -15,7 +15,7 @@ export async function registerStudioGraphRoutes(app) {
   app.get("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/references", { schema: studioNodeReferencesSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, nodeType, nodeId } = request.params;
-    await requireWorldRole(actorId, worldId);
+    await requireWorldReader(actorId, worldId);
     const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     if (!tables[nodeType]) return sendErr(reply, "NODE_TYPE_UNSUPPORTED");
     const exists = await query(`SELECT 1 FROM ${tables[nodeType]} WHERE id = $1 AND world_id = $2`, [nodeId, worldId]);

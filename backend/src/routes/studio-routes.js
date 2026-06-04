@@ -1,8 +1,8 @@
 import { query, transaction } from "../db.js";
 import { requireActor } from "../request-actor.js";
 import { sendErr } from "../api-errors.js";
-import { requireWorldRole } from "./route-guards.js";
-import { buildWorldSnapshot, creatorChecks } from "./world-helpers.js";
+import { requireWorldRole, requireWorldReader } from "./route-guards.js";
+import { buildWorldSnapshot, creatorChecks, ROOMS_VISIBLE_TO_ACTOR_SQL } from "./world-helpers.js";
 import {
   worldIdParams,
   createSceneSchema,
@@ -245,9 +245,15 @@ export async function registerStudioRoutes(app) {
   app.get("/api/worlds/:worldId/studio", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
+    await requireWorldReader(actorId, worldId);
     const [world, chapters, roles, sections, scenes, clues, points, items, edges, versions, rooms] = await Promise.all([
-      query(`SELECT id, name, summary, status, settings FROM worlds WHERE id = $1`, [worldId]),
+      query(
+        `SELECT w.id, w.owner_user_id, w.name, w.summary, w.status, w.catalog_public, w.settings, wm.role AS membership_role
+         FROM worlds w
+         JOIN world_members wm ON wm.world_id = w.id AND wm.user_id = $2
+         WHERE w.id = $1`,
+        [worldId, actorId]
+      ),
       query(`SELECT id, title, summary, sequence, publication_status, unlock_rules FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]),
       query(`SELECT id, name, public_profile, private_profile, sequence FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]),
       query(
@@ -281,7 +287,13 @@ export async function registerStudioRoutes(app) {
          WHERE world_id = $1 ORDER BY created_at DESC LIMIT 12`,
         [worldId]
       ),
-      query(`SELECT id, name, status, invite_code FROM rooms WHERE world_id = $1 ORDER BY created_at DESC`, [worldId])
+      query(
+        `SELECT r.id, r.name, r.status, r.invite_code
+         FROM rooms r
+         WHERE r.world_id = $1 AND ${ROOMS_VISIBLE_TO_ACTOR_SQL}
+         ORDER BY r.created_at DESC`,
+        [worldId, actorId]
+      )
     ]);
     return {
       world: world.rows[0],
@@ -301,7 +313,7 @@ export async function registerStudioRoutes(app) {
   app.get("/api/worlds/:worldId/creator-checks", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
+    await requireWorldReader(actorId, worldId);
     return { checks: creatorChecks(await buildWorldSnapshot(worldId)) };
   });
 

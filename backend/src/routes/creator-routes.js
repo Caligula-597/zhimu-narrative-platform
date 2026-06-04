@@ -3,6 +3,7 @@ import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { parseCreatorDocument } from "../document-parser.js";
 import { requireWorldRole } from "./route-guards.js";
+import { ROOMS_VISIBLE_TO_ACTOR_SQL } from "./world-helpers.js";
 import {
   worldIdParams,
   parseDocumentSchema,
@@ -207,14 +208,15 @@ export async function registerCreatorRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);
     const result = await query(
-      `SELECT r.id, r.name, r.invite_code, r.status, r.created_at,
-              COUNT(rm.user_id)::int AS member_count
+      `SELECT r.id, r.name, r.invite_code, r.status, r.created_at, r.host_user_id,
+              COUNT(rm.user_id)::int AS member_count,
+              (r.host_user_id = $2) AS is_mine
        FROM rooms r
        LEFT JOIN room_members rm ON rm.room_id = r.id AND rm.status = 'active'
-       WHERE r.world_id = $1
+       WHERE r.world_id = $1 AND ${ROOMS_VISIBLE_TO_ACTOR_SQL}
        GROUP BY r.id
        ORDER BY r.created_at DESC`,
-      [worldId]
+      [worldId, actorId]
     );
     return result.rows;
   });

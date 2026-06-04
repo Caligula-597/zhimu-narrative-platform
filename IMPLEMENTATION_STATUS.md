@@ -1,8 +1,9 @@
 # 织幕 · 功能实现状态总览
 
 > **用途**：团队协调用的「一张表看清全貌」——后端做到哪、前端做到哪、哪里没接通、哪里有坑。  
-> **更新**：2026-06-03（Vite 构建 · 后端 ops · 109 测试 · UI smoke 34 · API smoke 17）  
-> **阶段**：Alpha（可内测，非生产 SaaS）  
+> **更新**：2026-06-03（Vite · 131 测试 · schema 48 · UI smoke 34 · API smoke 18）  
+> **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
+> **中文总览**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)  
 > **详细功能说明**仍见 [FEATURE_CATALOG.md](./FEATURE_CATALOG.md)；**测试矩阵**见 [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md)；**后端路线图**见 [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md)。
 
@@ -166,13 +167,14 @@
 
 | 项 | 状态 |
 |----|------|
-| `npm test` | **109/109**（含 ops-health、postgres bus、asset schema） |
-| `check:schemas` | 35 条写/SSE 路由 schema 门禁 |
+| `npm test` | **131/131**（含 ops-health、postgres bus、world-search 等） |
+| `check:schemas` | **48** 条写/SSE 路由 schema 门禁 |
 | `check:tests` 数量下限 | ≥100 |
 | checkpoint / journal / 幂等 E2E | ✅ 专项测试 |
-| `test:smoke` | 17 项（需 4180 进程，含 checkpoint-restore） |
-| UI smoke | 34+ 项静态（含 Vite dist 托管、restore/settings 等接线） |
-| `npm run check:modules` | 27 脚本顺序加载（Vite 入口链） |
+| `test:smoke` | **18** 项（需 4180 进程，含 checkpoint-restore） |
+| UI smoke | **34** 项静态（含 Vite dist 托管、restore/settings 等接线） |
+| `npm run check:modules` | **29** 脚本顺序加载（Vite 入口链） |
+| Playwright E2E | 1 spec（雾港 E2E 房全链路） |
 | 前端构建 | `npm run build` → `dist/`；CI 用 `server.js --dist` |
 
 ---
@@ -194,7 +196,7 @@
 
 | 视图 | 导航 | 状态 | 已实现要点 | 主要缺口 |
 |------|------|------|------------|----------|
-| 世界总览 | overview | ✅ | 真实 logs / 进度 / 资产统计 | 全局搜索 🔲 |
+| 世界总览 | overview | ✅ | 真实 logs / 进度 / 资产统计 | 顶栏全局搜索在 overview 外；图谱内高亮未做 |
 | 剧本创作 | writer | ✅ | 分幕编辑、版本、导入导出、DeepSeek | 实体小卡 🔲 |
 | 剧情编排 | studio | ✅ | 图谱 CRUD、拖拽、PATCH 编辑 | 独立线索管理页 🔲 |
 | 内容资产 | assets | ✅ | R2 列表、上传、删除、分类 Tab、搜索 | 「＋ 新建内容」仍占位（场景/线索在编排台创建） |
@@ -285,13 +287,14 @@
 |------|------|
 | [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) | 按工作区逐项功能说明（§3）+ 变更历史（§12–§27） |
 | [ALPHA_FEATURE_MATRIX.md](./ALPHA_FEATURE_MATRIX.md) | 真实 / 演示 / 待接入 速查 |
-| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + 109 项测试矩阵 |
+| [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) | **产品功能与工程现状（中文总览）** |
+| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + 131 项测试矩阵 |
 | [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) | **休息/交接检查点** |
 | [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md) | 后端运维路线图 |
 | [docs/OPS.md](./docs/OPS.md) | 部署与故障排查 |
 | [FRONTEND_MODULE_PLAN.md](./FRONTEND_MODULE_PLAN.md) | Vite + 前端模块边界 |
 | [ALPHA_ASSESSMENT.md](./ALPHA_ASSESSMENT.md) | 工程质量评估与阶段建议 |
-| [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) | 迁移 001–013 + restore scope |
+| [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) | 迁移 001–014 + restore scope |
 | [backend/docs/API_ERRORS.md](./backend/docs/API_ERRORS.md) | 错误码注册表 |
 | [docs/CREATOR_GUIDE.md](./docs/CREATOR_GUIDE.md) | 创作者步骤指引（界面内可打开） |
 | [docs/USER_ERROR_GUIDE.md](./docs/USER_ERROR_GUIDE.md) | 错误码用户说明与边界检测 |

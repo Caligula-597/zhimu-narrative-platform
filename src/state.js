@@ -1,4 +1,5 @@
 window.zhimuState = {
+  currentUser: null,
   view: "overview",
   voiceRoom: "尚未选择",
   voiceRoomId: null,
@@ -22,6 +23,8 @@ window.zhimuState = {
   cloudStudio: null,
   cloudLoading: true,
   cloudWorlds: [],
+  cloudCatalog: [],
+  cloudCatalogError: "",
   cloudRules: [],
   cloudCreatorChecks: [],
   studioSelectedNode: null,

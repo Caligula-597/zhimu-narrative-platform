@@ -71,16 +71,9 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "dist",
       emptyOutDir: true,
-      sourcemap: true,
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes("livekit")) return "livekit";
-            if (id.includes("src/views/")) return "views";
-            if (id.includes("src/runtime/")) return "runtime";
-          }
-        }
-      }
+      sourcemap: true
+      // No manualChunks: views/runtime/livekit-voice attach to window.* at load time
+      // and must follow config.js → dom.js → state.js (splitting caused staging white screen).
     }
   };
 });

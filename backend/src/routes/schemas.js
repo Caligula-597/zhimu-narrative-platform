@@ -302,6 +302,20 @@ export const updateWorldSchema = {
 
 export const deleteWorldSchema = { params: worldIdParams };
 
+export const updateWorldCatalogSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["catalogPublic"],
+    properties: {
+      catalogPublic: { type: "boolean" }
+    }
+  }
+};
+
+export const joinWorldCatalogSchema = { params: worldIdParams };
+
 export const worldMemberUserIdParams = paramsSchema({ worldId: uuid, userId: uuid });
 
 const collaborationRole = { type: "string", enum: ["editor", "host", "viewer"] };
@@ -954,12 +968,139 @@ const deepseekBriefBody = {
     audience: { type: "string", maxLength: 400 },
     requirements: { type: "string", maxLength: 3000 },
     roleRequirements: { type: "string", maxLength: 3000 },
+    evaluationFocus: { type: "string", maxLength: 3000 },
     existingManuscript: { type: "string", maxLength: 12_000 },
+    playerCount: { type: "integer", minimum: 4, maximum: 8 },
     targetWordCount: { type: "integer", minimum: 500, maximum: 20_000 },
     chapterCount: { type: "integer", minimum: 1, maximum: 12 },
     sceneCount: { type: "integer", minimum: 1, maximum: 40 },
     investigationPointCount: { type: "integer", minimum: 1, maximum: 80 },
-    clueCount: { type: "integer", minimum: 1, maximum: 80 }
+    clueCount: { type: "integer", minimum: 1, maximum: 80 },
+    skipOutline: { type: "boolean" }
+  }
+};
+
+const deepseekJsonObject = { type: "object", additionalProperties: true };
+
+export const deepseekPipelineSpecSchema = {
+  params: worldIdParams,
+  body: deepseekBriefBody
+};
+
+export const deepseekPipelineOutlineSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      ...deepseekBriefBody.properties,
+      spec: deepseekJsonObject
+    }
+  }
+};
+
+export const deepseekPipelineStructureSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      ...deepseekBriefBody.properties,
+      spec: deepseekJsonObject,
+      outline: deepseekJsonObject
+    }
+  }
+};
+
+export const deepseekPipelineRoleMatrixSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["spec", "proposal"],
+    properties: {
+      ...deepseekBriefBody.properties,
+      spec: deepseekJsonObject,
+      outline: deepseekJsonObject,
+      proposal: deepseekJsonObject
+    }
+  }
+};
+
+export const deepseekPipelineSectionSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["spec", "proposal", "roleMatrix", "roleKey", "chapterKey"],
+    properties: {
+      ...deepseekBriefBody.properties,
+      spec: deepseekJsonObject,
+      outline: deepseekJsonObject,
+      proposal: deepseekJsonObject,
+      roleMatrix: deepseekJsonObject,
+      roleKey: { type: "string", minLength: 1, maxLength: 40 },
+      chapterKey: { type: "string", minLength: 1, maxLength: 40 }
+    }
+  }
+};
+
+export const deepseekPipelineManuscriptSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["spec", "proposal"],
+    properties: {
+      ...deepseekBriefBody.properties,
+      spec: deepseekJsonObject,
+      outline: deepseekJsonObject,
+      proposal: deepseekJsonObject,
+      roleMatrix: deepseekJsonObject
+    }
+  }
+};
+
+export const deepseekPipelineImportSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["pipeline"],
+    properties: {
+      pipeline: {
+        type: "object",
+        additionalProperties: true,
+        required: ["proposal"],
+        properties: {
+          proposal: deepseekJsonObject,
+          roleMatrix: deepseekJsonObject,
+          sections: deepseekJsonObject,
+          synopsis: deepseekJsonObject,
+          package: deepseekJsonObject
+        }
+      }
+    }
+  }
+};
+
+export const deepseekPipelineEvaluateSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["spec", "proposal"],
+    properties: {
+      ...deepseekBriefBody.properties,
+      evaluationFocus: { type: "string", maxLength: 3000 },
+      spec: deepseekJsonObject,
+      outline: deepseekJsonObject,
+      proposal: deepseekJsonObject,
+      roleMatrix: deepseekJsonObject,
+      sections: deepseekJsonObject,
+      synopsis: deepseekJsonObject,
+      sampleSection: deepseekJsonObject
+    }
   }
 };
 

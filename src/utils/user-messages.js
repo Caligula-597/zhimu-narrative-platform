@@ -29,6 +29,9 @@
 
     WORLD_NOT_FOUND: "世界不存在或你无权访问。",
     WORLD_QUOTA_EXCEEDED: "可创建的世界数量已达上限。",
+    WORLD_OWNER_REQUIRED: "只有剧本主创作者可以设置是否公开到剧本库。",
+    CATALOG_NOT_PUBLIC: "该剧本尚未公开，无法从剧本库加入。",
+    WORLD_DELETE_BLOCKED: "无法删除剧本：仍有平行房或运行数据未清理，请刷新后重试。",
     COLLABORATOR_NOT_REGISTERED: "该邮箱尚未注册，请先邀请对方完成注册。",
     COLLABORATION_MEMBER_NOT_FOUND: "找不到该协作者或无法变更所有者。",
     COLLABORATION_ROLE_INVALID: "协作角色无效。",
@@ -171,10 +174,53 @@
   };
 
   function friendlyApiError(payload = {}, fallback = "操作失败，请稍后重试") {
-    if (payload.code && API_ERROR_MESSAGES[payload.code]) {
-      return API_ERROR_MESSAGES[payload.code];
+    const code = payload.code;
+    if (code === "FST_ERR_VALIDATION" || code === "VALIDATION_ERROR") {
+      const raw = String(payload.error || "");
+      if (/worldId/i.test(raw)) return "请先创建或选择一个剧本世界。";
+      if (/roomId/i.test(raw)) return "请先选择或进入一个运行房。";
+      return API_ERROR_MESSAGES.VALIDATION_ERROR;
     }
-    return payload.error || fallback;
+    if (code && API_ERROR_MESSAGES[code]) {
+      return API_ERROR_MESSAGES[code];
+    }
+    const raw = String(payload.error || "");
+    if (/params\/worldId must NOT/i.test(raw)) return "请先创建或选择一个剧本世界。";
+    if (/params\/roomId must NOT/i.test(raw)) return "请先选择或进入一个运行房。";
+    if (/rooms_world_id_fkey|violates foreign key constraint.*rooms/i.test(raw)) {
+      return "删除失败：当前连接的后端仍是旧版本。请在项目目录执行 npm run staging:rebuild-api（或重启本地 backend）后再删。";
+    }
+    return raw || fallback;
+  }
+
+  /** Strip Fastify noise; classify empty-account vs real outage for top banners. */
+  function formatCloudPanelError(apiError, { hasStudio = false } = {}) {
+    if (!apiError) {
+      return hasStudio
+        ? "当前世界的创作数据已从云端读取"
+        : "登录成功。点击侧栏「＋ 创建新世界」开始你的第一个剧本。";
+    }
+    if (/还没有可访问的剧本/.test(apiError)) {
+      return "当前账号还没有剧本。点击「＋ 创建新世界」或使用创作向导开始。";
+    }
+    if (/请先登录/.test(apiError)) return apiError;
+    if (/无法连接|API_UNAVAILABLE|ECONNREFUSED|Failed to fetch|请求超时/i.test(apiError)) {
+      return "无法连接服务器，请确认网络后点击「刷新云端数据」。";
+    }
+    const parts = apiError
+      .split(" · ")
+      .map((part) => friendlyApiError({ error: part }, part))
+      .filter((part) => part && !/params\/|must NOT have fewer/i.test(part));
+    return parts.length ? parts.join(" · ") : "部分数据暂未加载，请刷新重试。";
+  }
+
+  function overviewHeroTitle({ loading, worldName, apiError }) {
+    if (loading) return "正在连接云端…";
+    if (worldName) return worldName;
+    if (apiError && /还没有可访问的剧本/.test(apiError)) return "欢迎，创作者";
+    if (apiError && /无法连接|API_UNAVAILABLE|ECONNREFUSED/i.test(apiError)) return "暂时无法连接云端";
+    if (apiError) return "加载未完成";
+    return "未选择剧本";
   }
 
   function assetKindLabel(kind) {
@@ -192,6 +238,8 @@
     ASSET_KIND_TABS,
     ASSET_KIND_LABELS,
     friendlyApiError,
+    formatCloudPanelError,
+    overviewHeroTitle,
     assetKindLabel,
     rulePreviewStatusLabel
   };

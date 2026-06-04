@@ -1,0 +1,295 @@
+# 织幕 · 产品功能与工程现状（中文总览）
+
+> **用途**：给团队/新成员的一份「做到哪了、能用什么、不能用什么、怎么验」的**单一长文**。  
+> **更新**：2026-06-04  
+> **阶段**：Alpha → **Beta 过渡**（可内测，**非**生产级 SaaS）  
+> **更细的逐项说明**：[FEATURE_CATALOG.md](../FEATURE_CATALOG.md) · **实现/缺口表**：[IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) · **交接检查点**：[PROJECT_STATUS.md](./PROJECT_STATUS.md)
+
+---
+
+## 目录
+
+1. [一句话结论](#1-一句话结论)
+2. [整体能力地图](#2-整体能力地图)
+3. [后端：能做什么 / 不能做什么](#3-后端能做什么--不能做什么)
+4. [前端：视图与健壮性](#4-前端视图与健壮性)
+5. [测试体系（分层说明）](#5-测试体系分层说明)
+6. [安全、运维与部署](#6-安全运维与部署)
+7. [已知局限与路线图](#7-已知局限与路线图)
+8. [本地启动与验收命令](#8-本地启动与验收命令)
+9. [文档索引与维护约定](#9-文档索引与维护约定)
+
+---
+
+## 1. 一句话结论
+
+**织幕**是面向线上长线剧本杀的自动化叙事引擎：创作者在云端写世界、编排剧情、配规则；玩家入房阅读、探索、收线索；主持台监控进度、确认事件、手动干预；数据落在 **PostgreSQL** 与 **Cloudflare R2**。
+
+当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**131** 项后端测试 + **48** 条 schema 门禁 + smoke/E2E 可复验。尚不适合作为公开 SaaS：缺完整账号体系、语音实流、实体卡、上传病毒扫描与前端现代化。
+
+---
+
+## 2. 整体能力地图
+
+| 领域 | 成熟度 | 说明 |
+|------|--------|------|
+| 世界/成员/平行房 | ✅ 内测可用 | 协作权限、运行日志、配额 |
+| 创作（角色/分幕/编排/规则） | ✅ | 图谱 CRUD、母稿同步、内容包 |
+| 运行态（阅读/探索/规则/SSE） | ✅ | 自动+主持确认+手动触发 |
+| 主持台 | ✅ | 玩家表、干预、待确认、SSE |
+| 存档/复盘/checkpoint restore | ✅ | scoped 回滚、跨平行房 |
+| 资产 R2 | ✅ | 上传/列表/下载/回收站 |
+| 全局搜索 | ✅ | `GET /worlds/:id/search` + 顶栏 UI |
+| DeepSeek AI | 🟡 | 需 `DEEPSEEK_API_KEY` |
+| LiveKit 语音 | 🟡 | Token API 有；**音频流未产品化** |
+| 实体卡 / NFC | ❌ | 仅占位 |
+| 生产 SaaS（OAuth/付费/AV 扫描） | ❌ | 路线图 |
+
+**参考 Demo**
+
+| 名称 | 邀请码 / 说明 |
+|------|----------------|
+| 雾港来信（勿破坏） | `FOG-HARBOR-DEMO`，世界 `08646748-e4ae-446a-a5e7-ce59ca23ffc3` |
+| E2E 隔离房 | `FOG-E2E-AUTO`，Playwright 专用 |
+| 12 分钟手动路线 | [DEMO_ROUTE.md](../DEMO_ROUTE.md) |
+
+---
+
+## 3. 后端：能做什么 / 不能做什么
+
+### 3.1 认证与世界
+
+| 能力 | 状态 | 局限 |
+|------|------|------|
+| 注册 / 登录 / Bearer Session | ✅ | 无邮箱验证、找回密码、OAuth |
+| 世界 CRUD、PATCH、成员角色 | ✅ | 只能邀请**已注册**邮箱；无邀请链接 |
+| 平行运行房、邀请码 | ✅ | 房间无合并对比视图 |
+| 世界运行日志 timeline | ✅ | 无导出 |
+| 全文搜索 | ✅ | 迁移 014；图谱内高亮未做 |
+| 归档世界列表 API | ✅ | 前端可选展示 |
+
+**调试**：本地 `ALLOW_DEMO_USER_HEADER=true` 可用固定 `x-user-id`；**生产开启会 FATAL 拒绝启动**。
+
+### 3.2 创作与编排
+
+| 能力 | 状态 | 局限 |
+|------|------|------|
+| 角色 / 章节 / 分幕 CRUD | ✅ | 玩家接口过滤草稿 |
+| Studio 场景/线索/调查点/边/布局 | ✅ | |
+| 剧情助手（本地启发式） | ✅ | 非 LLM |
+| DeepSeek 分层流水线 + AI 悬疑创作向导 | 🟡 | 需 `DEEPSEEK_API_KEY`；① 规格手动、②～⑦ AI；见 [AI_PIPELINE_UI_ZH.md](./AI_PIPELINE_UI_ZH.md) |
+| DOCX/TXT/MD 导入 | ✅ | 复杂排版可能分段不准 |
+| 内容包 JSON 导入导出 | ✅ | JSON **追加**并重映射 ID |
+| 创作版本 restore | ✅ | **仅**章节+分幕正文与发布状态 |
+| 母稿 ↔ 编排同步 | ✅ | 不覆盖私人剧本 |
+| 跑团/混合向导 | 🟡 | UI 有选项，实质仍剧本杀写库 |
+
+**产品边界**：改模板**不自动**改已开运行房 → 用 **checkpoint restore** 回滚运行态。
+
+### 3.3 规则与运行态
+
+| 能力 | 状态 | 局限 |
+|------|------|------|
+| 规则 CRUD + `validateRuleBody` | ✅ | JSON 引擎，无可视化流程图执行 |
+| 条件 / 动作 / 预览 / 手动触发 | ✅ | |
+| 规则幂等、待确认 execute/dismiss | ✅ | |
+| 玩家 join、阅读完成、调查、线索、背包 | ✅ | |
+| 主持手动干预全套 | ✅ | |
+| checkpoint + **scoped restore**（9 域） | ✅ | `timelineLogs` 默认不回滚 |
+| 跨平行房 restore | ✅ | |
+| recap 复盘 | ✅ | 无 AI 总结 |
+| SSE + journal + `Last-Event-ID` | ✅ | |
+| 多实例 SSE | ✅ | `ROOM_EVENTS_BUS=postgres` |
+| 写操作 Idempotency-Key | ✅ | 10 条关键 POST |
+| 线索私享指定玩家 | ❌ | 仅全房间公开 |
+| 主持延迟调度 UI | ❌ | |
+
+### 3.4 资产、语音、运维 API
+
+| 能力 | 状态 | 局限 |
+|------|------|------|
+| R2 上传/确认/下载 URL | ✅ | 无病毒扫描、无转码 |
+| 软删除 + 14 天 purge | ✅ | UI 无「从回收站恢复」 |
+| LiveKit Token | 🟡 | 无 env → 503 |
+| 语音房文字 + 成员隔离 | ✅ | |
+| `/health/live` `/health/ready` `/metrics` | ✅ | |
+| OpenAPI、ops API、审计表 | ✅ | **不对普通用户 UI 开放** |
+| 生产限流 | ✅ | SSE 除外 |
+
+### 3.5 有 API、无产品 UI
+
+- `GET .../checkpoints/:id/restores`
+- `GET .../host/audit-log`
+- `GET /api/ops/*`
+
+---
+
+## 4. 前端：视图与健壮性
+
+**工程**：Vite 6 构建；`frontend/main.js` + `src/api/client.js`（`zhimuApi`）；仍用 `window.*` 全局（去全局化留 Beta 后）。
+
+| 视图 | 数据诚实 | 主要能力 | 缺口 |
+|------|----------|----------|------|
+| 世界总览 | ✅ API/空状态 | 日志、进度、资产统计 | 部分块需手动刷新 |
+| 剧本创作 writer | ✅ | 分幕 MD、版本、导入、**AI 悬疑创作**（合并原结构提案/整本/分步） | 实体卡占位 |
+| 剧情编排 studio | ✅ | 图谱 CRUD、侧栏 PATCH | 无独立线索管理页 |
+| 内容资产 assets | ✅ | 上传/删/下载、kind Tab、搜索 | 「新建内容」占位 |
+| 自动化规则 rules | ✅ | JSON + 可视化双 Tab | — |
+| 主持台 director | ✅ | 玩家表、SSE、预览/触发、存档 | 审计不对用户 |
+| 玩家 player | ✅ | 阅读/探索/线索/笔记/语音文字 | 语音流未接 |
+| 存档 archive | ✅ | checkpoint、scoped restore、recap | — |
+| 设置 settings | ✅ | 世界 PATCH、旁听开关 | 实体卡占位 |
+| 顶栏搜索 | ✅ | 调 search API | 无图谱高亮 |
+
+### 4.1 健壮性机制
+
+| 机制 | 说明 |
+|------|------|
+| `friendlyApiError` + `user-messages.js` | 常见 `code` 中文说明 |
+| SSE + 轮询回退 | 连接时停 15s 轮询 |
+| Idempotency-Key | 写操作自动带头 |
+| P0-1 数据诚实 | 已移除假玩家/假日志/假资产卡片 |
+| UI smoke 局限 | **不执行浏览器内 JS**；语法靠 `check:modules` |
+| XSS | 依赖 `escapeHtml`；非正式渗透审计 |
+
+### 4.2 内测构建
+
+- `VITE_REQUIRE_AUTH=1 npm run build` — 正式登录路径
+- 见 [ops/REMOTE_TESTING.md](./ops/REMOTE_TESTING.md)
+
+---
+
+## 5. 测试体系（分层说明）
+
+**当前验收数字**（2026-06-03）：
+
+| 门禁 | 数量 |
+|------|------|
+| `backend npm test` | **131** |
+| `npm run check:schemas` | **48** 条路由 |
+| `npm run test:smoke` | **18** |
+| `node scripts/ui-smoke.js` | **34** |
+| `npm run check:modules` | **29** |
+| Playwright E2E | 1 spec（雾港 Acts 1–5，双浏览器） |
+
+### 5.1 后端单元/集成（`backend npm test`）
+
+- Node test runner，`--test-concurrency=1`（防 PG 池耗尽）。
+- 约 **41** 个 `*.test.js` 文件，覆盖：认证、规则引擎、主持台、checkpoint/restore E2E、线索、物品、SSE/NOTIFY/journal、资产策略、ops 健康、beta-gates、**world-search** 等。
+- **需要**：`DATABASE_URL` + 已 migrate。
+
+### 5.2 Schema 门禁（`check:schemas`）
+
+- 48 条写/改/SSE 路由必须有 Fastify JSON Schema。
+- 规则 POST/PUT 另有语义校验 `validateRuleBody`。
+
+### 5.3 数量与启动门禁
+
+- `check:tests`：测试数 ≥ 100（`verify-test-count.mjs`）。
+- `check:boot`：DB + 启动链。
+- `check:modules`（根）：29 个脚本按 Vite 顺序可加载。
+
+### 5.4 API Smoke（`test:smoke`，18 项）
+
+- 需 `localhost:4180` + 雾港 seed。
+- 真实 HTTP，覆盖 health、studio、rules、player-home、checkpoint restore、recap、livekit-token 等。
+
+### 5.5 UI Smoke（34 项）
+
+- 读源码 + 可选 HTTP；验证模块链、接线、数据诚实不变量。
+- **不能**替代 Playwright 点击流。
+
+### 5.6 Playwright E2E
+
+- `e2e/fog-demo-route.spec.js` — 仅用 `FOG-E2E-AUTO` 房。
+- 双 browser：主持 + 玩家全链路。
+
+### 5.7 一键全链路
+
+```powershell
+npm run verify:full:fresh
+```
+
+含 migrate/seed、单测、smoke、E2E（需 DB；建议 4173+4180 已起）。
+
+### 5.8 CI
+
+`.github/workflows/ci.yml`：push `main` 跑 backend test + 前端 build + smoke。
+
+---
+
+## 6. 安全、运维与部署
+
+| 项 | 状态 |
+|----|------|
+| 生产禁止 demo header 启动 | ✅ |
+| HTTP 安全头、CORS、Request ID | ✅ |
+| 上传 MIME + 扩展名黑名单 | ✅ |
+| 生产读写/auth 限流 | ✅ |
+| Postgres NOTIFY 多实例 SSE | ✅ |
+| Docker 预发栈 | ✅ 见 [ops/STAGING.md](./ops/STAGING.md)（本机需 Docker/虚拟化） |
+| 上传病毒扫描 / OTel SDK | ❌ 路线图 |
+
+详见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md)、[BACKEND_OPS.md](./BACKEND_OPS.md)、[OPS.md](./OPS.md)。
+
+---
+
+## 7. 已知局限与路线图
+
+### 7.1 不建议现在做的假设
+
+- 把本项目当多租户公开 SaaS（缺 OAuth、计费、AV、完整监控）。
+- 在多台 API 上只靠 memory SSE（应设 `ROOM_EVENTS_BUS=postgres`）。
+- 生产环境开启 `ALLOW_DEMO_USER_HEADER`。
+
+### 7.2 建议下一步（产品/工程）
+
+1. 本机或 VPS 跑通 Docker 预发（[STAGING.md](./ops/STAGING.md)）。
+2. 内测包：`VITE_REQUIRE_AUTH=1` 构建 + [REMOTE_TESTING.md](./ops/REMOTE_TESTING.md)。
+3. LiveKit 语音流产品化、线索私享、实体卡/NFC。
+4. 上传扫描强化、OpenTelemetry、可选 Redis 总线。
+
+---
+
+## 8. 本地启动与验收命令
+
+```powershell
+# 终端 1
+cd backend
+Copy-Item .env.example .env   # 本地 Demo: ALLOW_DEMO_USER_HEADER=true
+npm run dev                   # :4180
+
+# 终端 2（项目根）
+npm run dev                   # :4173，/api 代理 4180
+```
+
+**收工前自检**：
+
+```powershell
+npm run verify:full:fresh
+# 或分步
+cd backend && npm run check:schemas && npm test && npm run test:smoke
+cd .. && npm run check:modules && npm run build
+```
+
+---
+
+## 9. 文档索引与维护约定
+
+| 文档 | 何时看 |
+|------|--------|
+| **本文** `docs/PRODUCT_STATUS_ZH.md` | 功能总览、交接、对外说明草稿 |
+| [PROJECT_STATUS.md](./PROJECT_STATUS.md) | 休息检查点、当前数字表 |
+| [IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) | 前后端未接通、风险、幂等表 |
+| [FEATURE_CATALOG.md](../FEATURE_CATALOG.md) | 逐项功能 + **变更历史**（历史章节数字可能滞后） |
+| [ALPHA_FEATURE_MATRIX.md](../ALPHA_FEATURE_MATRIX.md) | 真实/演示/待接入速查 |
+| [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) | 安全项 + 测试文件列表 |
+| [RELEASE_NOTES.md](../RELEASE_NOTES.md) | 版本增量摘要 |
+| [AI_PIPELINE_UI_ZH.md](./AI_PIPELINE_UI_ZH.md) | AI 悬疑创作 UI 位置、流程、性能 |
+| [PROMPT_ENGINEERING.md](./PROMPT_ENGINEERING.md) | DeepSeek 分层 API 与 prompt |
+
+**维护约定**：改验收数字时，同步更新 **PROJECT_STATUS §2**、**SECURITY_AND_TESTING 整体验收表**、**本文 §5 表**；`FEATURE_CATALOG` 工程总表（§3 前「工程与测试」）与历史 § 内快照数字可保留「当时」语义，但勿与 PROJECT_STATUS 矛盾。
+
+---
+
+*织幕 · 产品现状文档 · 与仓库 `main` 同步维护*

@@ -30,25 +30,28 @@ async function fetchJson(url, options) {
   return { response, json, text };
 }
 
-await check("frontend index", async () => {
+await check("js bootstrap", async () => {
   const { response, text } = await fetchJson(`${BASE}/`);
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  if (!text.includes("织幕") && !text.includes("zhimu")) throw new Error("missing app shell");
-  return "HTML served";
+  // Single-bundle build must not preload split chunks before dom.js (regression guard).
+  if (/modulepreload.*\/assets\/views-/i.test(text)) {
+    throw new Error("index.html preloads views chunk — init order bug");
+  }
+  return "shell ok";
 });
 
 await check("health live", async () => {
   const { response, json } = await fetchJson(`${API}/health/live`);
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  if (json?.status !== "ok") throw new Error(JSON.stringify(json));
-  return json.status;
+  if (json?.ok !== true) throw new Error(JSON.stringify(json));
+  return "ok";
 });
 
 await check("health ready", async () => {
   const { response, json } = await fetchJson(`${API}/health/ready`);
   if (!response.ok) throw new Error(`HTTP ${response.status} — DB not ready?`);
-  if (json?.status !== "ok") throw new Error(JSON.stringify(json));
-  return "database ready";
+  if (json?.ok !== true || json?.ready !== true) throw new Error(JSON.stringify(json));
+  return `migrations=${json?.database?.migrationsApplied ?? "?"}`;
 });
 
 await check("auth register+login", async () => {

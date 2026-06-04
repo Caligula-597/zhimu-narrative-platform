@@ -43,10 +43,19 @@
     }
     if (!worldName) {
       icon.textContent = "云";
-      strong.textContent = window.zhimuApi.context.worldId ? worldSwitcherFailureLabel() : "未选择剧本";
-      const hint = state.apiError
-        || (window.zhimuApi.context.worldId ? "点击切换剧本，或在设置中刷新云端" : "点击选择已有剧本");
-      small.textContent = hint;
+      const emptyAccount = state.apiError && /还没有可访问的剧本/.test(state.apiError);
+      strong.textContent = emptyAccount
+        ? "尚无剧本"
+        : window.zhimuApi.context.worldId
+          ? worldSwitcherFailureLabel()
+          : "未选择剧本";
+      small.textContent = emptyAccount
+        ? "点击「＋ 创建新世界」开始"
+        : state.apiError && !/params\/|must NOT/i.test(state.apiError)
+          ? state.apiError
+          : window.zhimuApi.context.worldId
+            ? "点击切换剧本"
+            : "点击选择或创建剧本";
       return;
     }
     icon.textContent = worldName.slice(0, 1);
@@ -108,6 +117,7 @@
     if (!T.pendingHostEventCount()) T.showToast("当前没有待确认事件，可在此刷新玩家进度");
   };
   document.querySelector("#create-world-btn").onclick = () => R.openWizard();
+  document.querySelector("#catalog-world-btn")?.addEventListener("click", () => R.openWorldLibrary("catalog"));
   document.querySelector(".world-switcher").onclick = () => R.openWorldLibrary();
   document.querySelector(".profile").onclick = () => R.openAuth();
   modalBackdrop.onclick = (e) => {

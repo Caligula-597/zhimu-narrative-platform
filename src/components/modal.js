@@ -39,7 +39,41 @@
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
   window.zhimuViews = window.zhimuViews || {};
-  function closeModal(){modalBackdrop.classList.remove("show");modal.className="modal"}
+
+  let modalScrollY = 0;
+  function lockPageScroll() {
+    if (document.body.classList.contains("modal-scroll-lock")) return;
+    modalScrollY = window.scrollY;
+    document.documentElement.classList.add("modal-scroll-lock");
+    document.body.classList.add("modal-scroll-lock");
+    document.body.style.top = `-${modalScrollY}px`;
+  }
+  function unlockPageScroll() {
+    if (!document.body.classList.contains("modal-scroll-lock")) return;
+    document.documentElement.classList.remove("modal-scroll-lock");
+    document.body.classList.remove("modal-scroll-lock");
+    document.body.style.top = "";
+    window.scrollTo(0, modalScrollY);
+  }
+  function syncModalScrollLock() {
+    if (modalBackdrop.classList.contains("show")) lockPageScroll();
+    else unlockPageScroll();
+  }
+  if (modalBackdrop) {
+    new MutationObserver(syncModalScrollLock).observe(modalBackdrop, { attributes: true, attributeFilter: ["class"] });
+    modalBackdrop.addEventListener("wheel", (event) => {
+      if (!modalBackdrop.classList.contains("show")) return;
+      const scrollable = event.target.closest(".pipeline-layer-editor, .pipeline-ladder, .pipeline-brief-fold[open] .pipeline-brief-grid, .creator-guide-body, .collab-list, .log-list, .note-list");
+      if (scrollable && scrollable.scrollHeight > scrollable.clientHeight) return;
+      event.preventDefault();
+    }, { passive: false });
+  }
+
+  function closeModal() {
+    modalBackdrop.classList.remove("show");
+    modal.className = "modal";
+    unlockPageScroll();
+  }
 
 function openModal(title,text,confirm){
  modal.className="modal";

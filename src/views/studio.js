@@ -20,6 +20,7 @@
   const chapterPublicationLabel = F.chapterPublicationLabel || ((s) => s);
   const chapterFlowClass = F.chapterFlowClass || (() => "");
   const activeRuntimeRoom = U.activeRuntimeRoom || (() => null);
+  const catalogExperienceBanner = U.catalogExperienceBanner || (() => "");
   const cloudStatus = U.cloudStatus || (() => "");
   const runtimeEmpty = U.runtimeEmpty || (() => "");
   const stat = U.stat || (() => "");
@@ -48,8 +49,8 @@
   const viewExports = window.zhimuViews.studio = window.zhimuViews.studio || {};
 function studioCloud() {
  const data=state.cloudStudio;
- if(!data)return `<section class="card"><h3>正在读取云端剧情编排...</h3><p>章节、角色剧本、场景和线索会从 PostgreSQL 加载。</p></section>`;
- return `<section class="studio-layout">
+ if(!data)return U.creatorWorkspaceEmpty?.({title:"剧情编排台",kicker:"STORY STUDIO",intro:"用场景、线索、调查点与连线组织可运行的互动结构。选择剧本后会在画布上展示完整图谱。",guideTitle:"编排台会提供什么",guideItems:[{label:"图谱",title:"节点与连线",text:"章节、场景、线索、物品、调查点可视化编排。",bullets:["拖拽布局与自动排版","节点引用检查"]},{label:"探索",title:"调查与线索流转",text:"玩家调查、获得线索、主持确认后解锁新区域。",bullets:["与运行房进度隔离的平行房"]},{label:"资产",title:"附件关联",text:"线索图、音频等可在节点上引用。",bullets:["需先在「内容资产」上传"]}]})||`<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
+ return `${catalogExperienceBanner(data.world)}<section class="studio-layout">
   <aside class="panel"><div class="panel-title">剧本杀世界结构</div><div class="tree">
    <div class="tree-item">◈　${data.world.name}</div>
    ${data.chapters.map(chapter=>`<div class="tree-item indent">▤　${chapter.title}</div>`).join("")||`<div class="tree-item indent">尚未建立章节</div>`}

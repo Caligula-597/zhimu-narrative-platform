@@ -18,6 +18,8 @@ window.zhimuState = {
   cloudStudio: null,
   cloudLoading: false,
   cloudWorlds: [],
+  cloudCatalog: [],
+  cloudCatalogError: "",
   cloudRules: [],
   cloudCreatorChecks: [],
   studioSelectedNode: null,

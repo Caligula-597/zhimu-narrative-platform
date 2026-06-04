@@ -35,6 +35,9 @@ export const API_ERRORS = {
   // Worlds & collaboration
   WORLD_NOT_FOUND: { status: 404, message: "World not found" },
   WORLD_QUOTA_EXCEEDED: { status: 403, message: "World quota exceeded" },
+  WORLD_OWNER_REQUIRED: { status: 403, message: "Only the world owner can change catalog visibility" },
+  CATALOG_NOT_PUBLIC: { status: 403, message: "This world is not listed in the public catalog" },
+  WORLD_DELETE_BLOCKED: { status: 409, message: "Cannot delete world while dependent runtime data still exists" },
   COLLABORATOR_NOT_REGISTERED: { status: 404, message: "该邮箱尚未注册，请先让协作者完成注册。" },
   COLLABORATION_MEMBER_NOT_FOUND: { status: 404, message: "Collaboration member not found or owner cannot be changed" },
   COLLABORATION_ROLE_INVALID: { status: 400, message: "Unsupported collaboration role" },

@@ -2,6 +2,19 @@ import { query, transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
 import { validateDeepseekProposal } from "../deepseek.js";
 
+/** Rooms visible to actor: owners/editors see all; hosts/viewers only their own hosted or joined rooms. */
+export const ROOMS_VISIBLE_TO_ACTOR_SQL = `(
+  EXISTS (
+    SELECT 1 FROM world_members wm
+    WHERE wm.world_id = r.world_id AND wm.user_id = $2 AND wm.role IN ('owner', 'editor')
+  )
+  OR r.host_user_id = $2
+  OR EXISTS (
+    SELECT 1 FROM room_members rm
+    WHERE rm.room_id = r.id AND rm.user_id = $2 AND rm.status = 'active'
+  )
+)`;
+
 export async function storageUsage(userId) {
   const result = await query(
     `SELECT q.max_bytes, q.max_worlds, q.max_single_file_bytes,
@@ -348,5 +361,71 @@ export async function importDeepseekMysteryPackage(worldId, mystery) {
       [worldId, mystery.package.overallManuscript]
     );
     return { ...graph.summary, roles: mystery.package.roles.length, sections: sectionCount, manuscriptCharacters: mystery.package.overallManuscript.length };
+  });
+}
+
+export async function importDeepseekPipelinePackage(worldId, pipeline) {
+  const proposal = validateDeepseekProposal(pipeline.proposal);
+  const roles = pipeline.roleMatrix?.roles || pipeline.package?.roles || [];
+  if (!roles.length) throwErr("DEEPSEEK_PACKAGE_REQUIRED");
+  const sectionsMap = pipeline.sections || {};
+  return transaction(async (client) => {
+    const graph = await importDeepseekProposalWithClient(client, worldId, proposal);
+    let sectionCount = 0;
+    for (const [roleIndex, role] of roles.entries()) {
+      const createdRole = await client.query(
+        `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
+         VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+        [worldId, role.name, role.publicProfile || "", role.privateProfile || "", roleIndex + 1]
+      );
+      const script = await client.query(
+        `INSERT INTO character_scripts (role_slot_id, title) VALUES ($1,$2) RETURNING id`,
+        [createdRole.rows[0].id, `${role.name} · 私人剧本`]
+      );
+      const roleSections = sectionsMap[role.key] || {};
+      const fromPackage = role.sections || [];
+      for (const [sectionIndex, chapter] of proposal.chapters.entries()) {
+        const mapped = roleSections[chapter.key];
+        const packaged = fromPackage.find((item) => item.chapterKey === chapter.key);
+        const body = mapped?.body || packaged?.body;
+        if (!body) continue;
+        await client.query(
+          `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
+           VALUES ($1,$2,$3,$4,$5,$6,'testing',$7::jsonb)`,
+          [
+            script.rows[0].id,
+            createdRole.rows[0].id,
+            graph.chapterIds.get(chapter.key),
+            mapped?.title || packaged?.title || `${chapter.title} · ${role.name}`,
+            body,
+            sectionIndex + 1,
+            JSON.stringify({ source: "deepseek_pipeline", chapterKey: chapter.key, roleKey: role.key })
+          ]
+        );
+        sectionCount += 1;
+      }
+    }
+    const synopsis = pipeline.synopsis || pipeline.package;
+    if (synopsis?.title || synopsis?.summary) {
+      await client.query(
+        `UPDATE worlds SET name = COALESCE($1, name), summary = COALESCE($2, summary), updated_at = now() WHERE id = $3`,
+        [synopsis.title || null, synopsis.summary || null, worldId]
+      );
+    }
+    const manuscript = synopsis?.overallManuscript;
+    if (manuscript) {
+      await client.query(
+        `INSERT INTO story_manuscripts (world_id, body, last_sync_direction)
+         VALUES ($1,$2,'manual')
+         ON CONFLICT (world_id) DO UPDATE SET body = EXCLUDED.body, last_sync_direction = EXCLUDED.last_sync_direction, updated_at = now()`,
+        [worldId, manuscript]
+      );
+    }
+    return {
+      ...graph.summary,
+      roles: roles.length,
+      sections: sectionCount,
+      manuscriptCharacters: manuscript?.length || 0
+    };
   });
 }

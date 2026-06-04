@@ -142,6 +142,7 @@
 
 |------|------|
 
+| [PRODUCT_STATUS_ZH.md](./PRODUCT_STATUS_ZH.md) | **产品功能与工程现状（中文总览，推荐先读）** |
 | [IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) | 功能实现总览、未接通、风险 |
 
 | [FEATURE_CATALOG.md](../FEATURE_CATALOG.md) | 逐项功能说明与变更历史 |
@@ -249,5 +250,5 @@ cd .. && npm run check:modules && npm run build
 
 
 
-`FEATURE_CATALOG.md` 部分历史章节仍写旧状态；以 **IMPLEMENTATION_STATUS** 与 **ALPHA_FEATURE_MATRIX** 为准。
+`FEATURE_CATALOG.md` **变更历史章节**（§12 起）可能保留当时验收数字；**当前数字**以 **本文 §2**、**[PRODUCT_STATUS_ZH.md](./PRODUCT_STATUS_ZH.md)**、**IMPLEMENTATION_STATUS**、**ALPHA_FEATURE_MATRIX** 为准。
 

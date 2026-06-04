@@ -20,12 +20,17 @@ export async function getDatabaseStatus() {
   const present = new Set(tables.rows.map((row) => row.table_name));
   const missingTables = requiredTables.filter((name) => !present.has(name));
 
+  const latestMigration = migrations.rows.at(-1)?.filename ?? null;
   return {
     ok: missingTables.length === 0,
     databaseTime: time.rows[0].database_time,
     latencyMs,
     migrationsApplied: migrations.rows.length,
-    latestMigration: migrations.rows.at(-1)?.filename ?? null,
+    latestMigration,
+    features: {
+      cascadeWorldDelete: true,
+      roomsWorldCascadeMigration: Boolean(latestMigration && latestMigration >= "017_rooms_world_cascade.sql")
+    },
     missingTables,
     pool: getPoolStats(),
     hint: missingTables.length

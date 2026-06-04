@@ -11,7 +11,7 @@
 - 前端检测到正式 session token 后，不再发送 demo `x-user-id`。
 - Fastify 统一 HTTP 安全响应头（`X-Frame-Options`、`nosniff`、生产 HSTS 等）。
 - 资产上传：MIME 白名单 + **扩展名黑名单**（`asset-policy.js`）。
-- **运行/资产/世界关键写路由** Fastify schema（`check:schemas` 15 条门禁）。
+- **运行/创作写路由** Fastify schema（`check:schemas` **48** 条门禁）。
 - 玩家完成阅读前，后端会校验分幕属于当前角色，并且处于已发布或已解锁状态。
 - 私密语音房通过 `voice_room_members` 二次授权，未受邀的活跃房间成员仍不能读取消息。
 - SSE 流 `GET /api/rooms/:roomId/events/stream` 需房间成员身份（`requireRoomRole`）。
@@ -37,7 +37,7 @@
 
 所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
 
-`npm test` 当前覆盖（**109 项**，28 个测试文件）：
+`npm test` 当前覆盖（**131 项**，约 41 个测试文件；精确数以 `npm run check:tests` 为准）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -66,6 +66,9 @@
 | `schema-migrations.test.js` | 012/013 关键表 |
 | `api-errors.test.js` | 统一错误体 |
 | `world-settings.test.js` | 世界 PATCH、运行房 settings |
+| `world-search.test.js` | 全文搜索 API |
+| `beta-gates.test.js` | 建世界/成员/规则成功路径 |
+| `creator-schema-validation.test.js` | 创作写路由 schema |
 | `room-lifecycle.test.js` | checkpoint restore + 幂等阅读 |
 | `room-event-journal.test.js` | journal 按 id 补发 |
 | `transaction-events.test.js` | commit 后才 publish SSE |
@@ -95,7 +98,7 @@ node scripts/verify-dist-host.mjs   # 需 4173 dist 服务
 node scripts/ui-smoke.js            # 34 项，需 4173 + 4180
 ```
 
-`npm run test:smoke`（backend，**17 项**）：需 `localhost:4180` 已启动。
+`npm run test:smoke`（backend，**18 项**）：需 `localhost:4180` 已启动。
 
 ## 整体验收（2026-06-03 收工）
 

@@ -24,9 +24,9 @@ try {
   );
 
   await client.query(
-    `INSERT INTO worlds (id, owner_user_id, name, summary, status)
-     VALUES ($1, $2, '雾港来信', '海雾将旧日的来信送回港口。', 'testing')
-     ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, summary = EXCLUDED.summary, status = EXCLUDED.status`,
+    `INSERT INTO worlds (id, owner_user_id, name, summary, status, catalog_public)
+     VALUES ($1, $2, '雾港来信', '海雾将旧日的来信送回港口。', 'testing', true)
+     ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, summary = EXCLUDED.summary, status = EXCLUDED.status, catalog_public = EXCLUDED.catalog_public`,
     [FIXTURE.worldId, FIXTURE.hostUserId]
   );
   await client.query(

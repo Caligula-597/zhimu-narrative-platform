@@ -8,10 +8,33 @@
   const viteDemoMode = viteEnv.VITE_DEMO_MODE;
   const viteRequireAuth = viteEnv.VITE_REQUIRE_AUTH;
 
-  // Vite dev: always same-origin /api (proxy → backend). Static server.js has no proxy → direct 4180 on localhost.
-  let defaultApiBase = "/api";
-  if (!isViteDev && localHost && !viteApiBase) {
-    defaultApiBase = "http://localhost:4180/api";
+  /** Production default API root. */
+  function resolveDefaultApiBase() {
+    if (viteApiBase) return viteApiBase;
+    // Vite dev / nginx staging / same-origin deploy: /api (proxy or reverse proxy).
+    if (isViteDev) return "/api";
+    if (localHost) {
+      const port = location.port;
+      // node server.js --dist on :4173 has no /api proxy — talk to backend directly.
+      if (port === "4173" || port === "5173") {
+        return "http://localhost:4180/api";
+      }
+    }
+    return "/api";
+  }
+
+  /** Ignore stale dev override when using Docker staging on :8080. */
+  function resolveApiBase() {
+    const fallback = resolveDefaultApiBase();
+    if (!storedApiBase) return fallback;
+    if (
+      localHost &&
+      location.port === "8080" &&
+      /^https?:\/\/(?:localhost|127\.0\.0\.1):4180/i.test(storedApiBase)
+    ) {
+      return fallback;
+    }
+    return storedApiBase;
   }
 
   const buildDemoMode =
@@ -21,7 +44,7 @@
     (viteDemoMode === "false" && !localHost && !isViteDev);
 
   window.zhimuConfig = {
-    apiBase: storedApiBase || viteApiBase || defaultApiBase,
+    apiBase: resolveApiBase(),
     requireAuth,
     demoMode:
       storedDemoMode === null

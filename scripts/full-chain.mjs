@@ -59,7 +59,7 @@ const apiUp = await probe("http://localhost:4180/api/health/live");
 const uiUp = await probe("http://localhost:4173/");
 
 if (apiUp) {
-  run("API smoke (17)", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:smoke"], { cwd: backend });
+  run("API smoke (18)", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:smoke"], { cwd: backend });
 } else {
   console.warn("\nWARN  backend :4180 未响应 — 跳过 API smoke");
   console.warn("      终端 A: cd backend && npm run dev");

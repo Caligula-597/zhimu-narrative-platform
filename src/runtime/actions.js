@@ -68,6 +68,7 @@
   const refreshHostClueMatrix = R.refreshHostClueMatrix || (async () => {});
   const openAuth = R.openAuth || (() => {});
   const openWorldLibrary = R.openWorldLibrary || (() => {});
+  const joinCatalogWorld = (...args) => window.zhimuRuntime?.joinCatalogWorld?.(...args);
   const selectWorld = (...args) => window.zhimuRuntime?.selectWorld?.(...args);
   const deleteWorld = (...args) => window.zhimuRuntime?.deleteWorld?.(...args);
   const openWorldRooms = R.openWorldRooms || (async () => {});
@@ -97,6 +98,7 @@
   const openWorldLogs = V.writer?.openWorldLogs || (async () => {});
   const openDocumentParser = V.writer?.openDocumentParser || (async () => {});
   const openDeepseekAssistant = V.writer?.openDeepseekAssistant || (async () => {});
+  const openDeepseekPipeline = V.writer?.openDeepseekPipeline || (async () => {});
   const openDeepseekFullMystery = V.writer?.openDeepseekFullMystery || (async () => {});
   const openStoryManuscript = V.writer?.openStoryManuscript || (async () => {});
   const openStoryAssistant = V.writer?.openStoryAssistant || (() => {});
@@ -253,6 +255,8 @@ function handle(action,el){
   if(action==="creator-document-parser") return openDocumentParser();
   if(action==="account") return openAuth();
   if(action==="world-library") return openWorldLibrary();
+  if(action==="open-catalog") return openWorldLibrary("catalog");
+  if(action==="catalog-join") return joinCatalogWorld(el.dataset.worldId);
   if(action==="world-rooms") return openWorldRooms();
   if(action==="world-select") return selectWorld(el.dataset.worldId);
   if(action==="world-delete") return deleteWorld(el.dataset.worldId,el.dataset.worldName);
@@ -261,6 +265,7 @@ function handle(action,el){
   if(action==="room-join") return openJoinRoom(el.dataset.inviteCode);
   if(action==="room-create") return createParallelRoom();
   if(action==="deepseek-assistant") return openDeepseekAssistant();
+  if(action==="deepseek-pipeline") return openDeepseekPipeline();
   if(action==="deepseek-full-mystery") return openDeepseekFullMystery();
   if(action==="download-asset") return downloadCloudAsset(el.dataset.asset);
   if(action==="host-clue-note") return openHostClueNote(el.dataset.clue,el.dataset.role);

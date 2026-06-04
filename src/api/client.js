@@ -31,6 +31,13 @@ function sseCursorKey(roomId) {
   return `zhimuSseCursor:${roomId}`;
 }
 
+/** DeepSeek 单次生成常需 30～90 秒；默认 fetch 20 秒会误报超时 */
+const DEEPSEEK_TIMEOUT_MS = 120_000;
+
+function deepseekRequest(path, opts = {}) {
+  return request(path, { ...opts, timeoutMs: opts.timeoutMs ?? DEEPSEEK_TIMEOUT_MS });
+}
+
 async function request(path, { userId, method = "GET", body, timeoutMs = 20000, idempotent = false, idempotencyKey } = {}, authRetry = false) {
   const headers = authHeaders(userId);
   if (body !== undefined) headers["content-type"] = "application/json";
@@ -64,7 +71,10 @@ async function request(path, { userId, method = "GET", body, timeoutMs = 20000, 
     }
     return response.json();
   } catch (error) {
-    if (error.name === "AbortError") throw new Error(`请求超时，请检查网络后重试`);
+    if (error.name === "AbortError") {
+      const secs = Math.round(timeoutMs / 1000);
+      throw new Error(`请求超时（已等待 ${secs} 秒）。DeepSeek 生成较慢，请重试；若仍失败可在 backend/.env 增大 DEEPSEEK_TIMEOUT_MS，或减少章节/角色规模。`);
+    }
     if (error instanceof TypeError) {
       throw new Error("无法连接后端 API。请确认已运行：cd backend && npm run dev（端口 4180）");
     }
@@ -91,6 +101,11 @@ window.zhimuApi = {
   clearRoom() { demoContext.roomId = ""; localStorage.removeItem(`zhimuActiveRoomId:${demoContext.worldId}`); },
   loadKey() { return `${demoContext.worldId}:${demoContext.roomId}`; },
   getWorlds: (includeArchived = false) => request(`/worlds${includeArchived ? "?includeArchived=true" : ""}`, { userId: demoContext.hostUserId }),
+  getWorldCatalog: () => request("/worlds/catalog", { userId: demoContext.hostUserId }),
+  patchWorldCatalog: (catalogPublic, worldId = demoContext.worldId) =>
+    request(`/worlds/${worldId}/catalog`, { userId: demoContext.hostUserId, method: "PATCH", body: { catalogPublic } }),
+  joinWorldCatalog: (worldId) =>
+    request(`/worlds/${worldId}/catalog/join`, { userId: demoContext.hostUserId, method: "POST", body: {} }),
   getWorld: (worldId = demoContext.worldId) => request(`/worlds/${worldId}`, { userId: demoContext.hostUserId }),
   patchWorld: (payload, worldId = demoContext.worldId) => request(`/worlds/${worldId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
   patchRoomSettings: (settings, roomId = demoContext.roomId) =>
@@ -196,10 +211,18 @@ window.zhimuApi = {
   createStoryEdge: (payload) => request(`/worlds/${demoContext.worldId}/story-edges`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   analyzeStoryDraft: (text) => request(`/worlds/${demoContext.worldId}/story-assistant/analyze`, { userId: demoContext.hostUserId, method: "POST", body: { text } }),
   importStoryDraft: (text) => request(`/worlds/${demoContext.worldId}/story-assistant/import`, { userId: demoContext.hostUserId, method: "POST", body: { text } }),
-  getDeepseekStatus: () => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/status`, { userId: demoContext.hostUserId }),
-  proposeWithDeepseek: (payload) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/propose`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  getDeepseekStatus: () => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/status`, { userId: demoContext.hostUserId }),
+  proposeWithDeepseek: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/propose`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   importDeepseekProposal: (proposal) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/import`, { userId: demoContext.hostUserId, method: "POST", body: { proposal } }),
-  proposeFullMysteryWithDeepseek: (payload) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/full-mystery/propose`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  deepseekPipelineSpec: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/spec`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  deepseekPipelineOutline: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/outline`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  deepseekPipelineStructure: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/structure`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  deepseekPipelineRoleMatrix: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/role-matrix`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  deepseekPipelineSection: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/section`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  deepseekPipelineManuscriptSynopsis: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/manuscript-synopsis`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  importDeepseekPipeline: (pipeline) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/import`, { userId: demoContext.hostUserId, method: "POST", body: { pipeline } }),
+  deepseekPipelineEvaluate: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/evaluate`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  proposeFullMysteryWithDeepseek: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/full-mystery/propose`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 600_000 }),
   importFullMysteryWithDeepseek: (mystery) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/full-mystery/import`, { userId: demoContext.hostUserId, method: "POST", body: { mystery } }),
   getWorldMembers: () => request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId }),
   addWorldMember: (payload) => request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId, method: "POST", body: payload }),

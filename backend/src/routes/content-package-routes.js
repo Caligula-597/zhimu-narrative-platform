@@ -1,6 +1,6 @@
 import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
-import { requireWorldRole } from "./route-guards.js";
+import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import { buildWorldSnapshot } from "./world-helpers.js";
 import {
   worldIdParams,
@@ -22,14 +22,14 @@ export async function registerContentPackageRoutes(app) {
   app.get("/api/worlds/:worldId/content-package/summary", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
+    await requireWorldReader(actorId, worldId);
     return exportSummaryForWorld(worldId);
   });
 
   app.get("/api/worlds/:worldId/content-package", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
+    await requireWorldReader(actorId, worldId);
     return {
       format: PACKAGE_FORMAT,
       version: PACKAGE_VERSION,

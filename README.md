@@ -6,6 +6,7 @@
 
 - 前端：**Vite 6** 构建（`npm run dev` / `build` / `start:dist`），仍用 `window.*` 全局。
 - `backend/`：PostgreSQL 正式后端。
+- **产品现状（中文总览）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)
 - **休息/交接**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)
 - [RELEASE_NOTES.md](./RELEASE_NOTES.md) P0/P1/P2 发布说明
 - [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) **功能实现状态总览**

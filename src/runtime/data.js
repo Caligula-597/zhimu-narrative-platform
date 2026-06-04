@@ -101,11 +101,47 @@ async function loadCloudDataInternal(withToast=false){
  try{
   try{
    await ensureActiveWorld();
+   const hasSession=Boolean(localStorage.getItem("zhimuSessionToken"));
+   if(hasSession){
+    try{
+     state.cloudCatalog=await zhimuApi.getWorldCatalog();
+     state.cloudCatalogError="";
+    }catch(catalogErr){
+     state.cloudCatalog=[];
+     state.cloudCatalogError=catalogErr.message||String(catalogErr);
+     if(/catalog_public|does not exist/i.test(state.cloudCatalogError)){
+      errors.push("公开剧本库尚未就绪：请在 backend 执行 node scripts/migrate.js");
+     }
+    }
+   }else{
+    state.cloudCatalog=[];
+    state.cloudCatalogError="";
+   }
    if(!zhimuApi.context.worldId){
     state.cloudStudio=null;
     errors.push("当前账号还没有可访问的剧本");
    }else{
-    state.cloudStudio=await zhimuApi.getStudio();
+    try{
+     state.cloudStudio=await zhimuApi.getStudio();
+     const roles=state.cloudStudio?.roles?.length||0;
+     const sections=state.cloudStudio?.sections?.length||0;
+     if(roles===0){
+      errors.push("当前剧本在数据库中尚无角色/分幕。若体验《雾港来信》，请执行 npm run staging:catalog 后刷新。");
+     }
+    }catch(studioErr){
+     state.cloudStudio=null;
+     const msg=studioErr.message||String(studioErr);
+     if(studioErr.code==="WORLD_EDITOR_REQUIRED"||/WORLD_EDITOR_REQUIRED/i.test(msg)){
+      errors.push("无法读取剧本正文：后端版本过旧。请执行 npm run staging:rebuild-api 后硬刷新页面。");
+     }else{
+      errors.push(msg);
+     }
+    }
+    const listed=(state.cloudWorlds||[]).find((w)=>w.id===zhimuApi.context.worldId);
+    if(listed&&state.cloudStudio?.world){
+     if(!state.cloudStudio.world.membership_role)state.cloudStudio.world.membership_role=listed.membership_role;
+     if(listed.catalog_public!=null)state.cloudStudio.world.catalog_public=listed.catalog_public;
+    }
    }
   }catch(error){
    state.cloudStudio=null;
@@ -126,6 +162,8 @@ async function loadCloudDataInternal(withToast=false){
   if(hasRoom&&state.cloudStudio&&!activeRuntimeRoom()){zhimuApi.clearRoom();clearRuntimeState();hasRoom=false;errors.push("当前运行房不属于所选世界，已自动解除绑定")}
   if(!hasRoom)clearRuntimeState();
 
+  const worldReady=Boolean(zhimuApi.context.worldId);
+  if(worldReady){
   const logParams={limit:"20"};
   if(hasRoom)logParams.roomId=zhimuApi.context.roomId;
   const phase2=await Promise.allSettled([
@@ -150,13 +188,22 @@ async function loadCloudDataInternal(withToast=false){
   take(phase2[7],value=>state.cloudRecapLatest=value,()=>state.cloudRecapLatest=null);
   take(phase2[8],value=>state.cloudWorldLogs=value||[],()=>state.cloudWorldLogs=[]);
   take(phase2[9],value=>state.cloudRules=value,()=>state.cloudRules=[]);
+  }else{
+   state.cloudPlayer=null;
+   state.cloudHostPlayers=[];state.cloudHostStuckCount=0;state.cloudHost=[];
+   state.cloudExploration=null;state.cloudHostEvents=[];state.cloudHostClueMatrix=null;
+   state.cloudCheckpoints=[];state.cloudRecaps=[];state.cloudRecapLatest=null;
+   state.cloudWorldLogs=[];state.cloudRules=[];state.cloudAssets=[];state.assetTotal=0;
+   state.cloudCreatorChecks=[];state.storageUsage=null;
+  }
 
   state.apiError=errors.join(" · ");
   syncDirectorPolling();
-  connectRoomEventStream();
+  if(worldReady)connectRoomEventStream();
   render();
 
   void (async()=>{
+   if(!zhimuApi.context.worldId)return;
    const params={};
    if(state.assetKindFilter)params.kind=state.assetKindFilter;
    if(state.assetSearchQuery)params.q=state.assetSearchQuery;

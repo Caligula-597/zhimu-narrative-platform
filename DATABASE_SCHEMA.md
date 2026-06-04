@@ -1,7 +1,7 @@
 # 织幕 · 数据库结构索引
 
 > **用途**：后端表/枚举/迁移的快速参考。权威定义在 `backend/migrations/*.sql`。  
-> **更新**：2026-06-03（迁移 **001–013**）
+> **更新**：2026-06-03（迁移 **001–014**）
 
 ---
 
@@ -22,6 +22,7 @@
 | `011_room_recaps.sql` | 房间复盘快照 |
 | `012_runtime_foundation.sql` | checkpoint 恢复审计、事件日志、索引、快照版本 |
 | `013_host_audit_and_idempotency.sql` | 主持审计、写操作幂等键 |
+| `014_world_search.sql` | 世界全文搜索（`tsvector` + 多表 ILIKE 索引） |
 
 应用：`cd backend && npm run db:migrate`
 

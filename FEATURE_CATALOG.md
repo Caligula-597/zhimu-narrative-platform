@@ -1,9 +1,10 @@
 # 织幕 · 完整功能目录（Alpha）
 
 > **文档用途**：团队协调用的功能总表。每个功能标明已实现、部分实现、未实现与已知局限。  
-> **一张表总览（后端/前端/未接通/缺陷）**：见 **[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)** ← 推荐协调时先看此文档。  
-> **更新日期**：2026-06-03（P0-1～P1 + **P2 LiveKit/物品/复盘** + **§27 后端基础与 restore E2E**）  
-> **版本阶段**：Alpha（可内测，非生产 SaaS）
+> **产品现状（中文长文，推荐先读）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
+> **一张表总览（后端/前端/未接通/缺陷）**：[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)  
+> **更新日期**：2026-06-03（Beta 过渡：搜索、E2E、内测 UI、131 测试）  
+> **版本阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）
 
 ---
 
@@ -135,8 +136,8 @@
 | 功能 | 状态 | 已实现 | 未实现 / 局限 |
 |------|------|--------|----------------|
 | 规则分类器（本地） | ✅ | 粘贴文本 → 分类场景/线索/调查点 → 写入编排 | 规则基于关键词启发式，非 LLM |
-| DeepSeek 结构提案 | 🟡 | propose + import；服务端 schema 校验 | **需配置 `DEEPSEEK_API_KEY`**；否则仅 UI 提示 |
-| DeepSeek 完整 mystery 包 | ✅ | 创作台「AI 整本悬疑」→ propose + import | **需 `DEEPSEEK_API_KEY`** |
+| DeepSeek AI 悬疑创作（分步/一键） | 🟡 | `pipeline-wizard.js` + 分层 API；① 规格手动 | **需 `DEEPSEEK_API_KEY`**；见 [docs/AI_PIPELINE_UI_ZH.md](docs/AI_PIPELINE_UI_ZH.md) |
+| DeepSeek 结构提案 / 整本悬疑（旧入口） | — | 已合并为「AI 悬疑创作」 | 兼容 localStorage 草稿迁移 |
 | AI 不自动发布 | ✅ | 一律需作者确认后 import | — |
 
 **后端 API**：story-assistant/* · deepseek/*
@@ -271,22 +272,24 @@
 
 | 项目 | 状态 | 说明 |
 |------|------|------|
-| PostgreSQL 迁移 | ✅ | **13** 个 migration（含审计/幂等 013）；无 SQLite |
+| PostgreSQL 迁移 | ✅ | **14** 个 migration（含 014 全文搜索）；无 SQLite |
 | Supabase 云库 | ✅ | 生产/开发可连 |
 | Cloudflare R2 | ✅ | 私有 bucket + 签名 URL |
 | 路由模块化 | ✅ | `backend/src/routes/*.js` + helpers |
-| 单元/集成测试 | ✅ | **101 项** / 30 文件 |
+| 单元/集成测试 | ✅ | **131 项** / ~41 文件（见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5） |
 | 测试数量门禁 | ✅ | `npm run check:tests`（下限 ≥100，`verify-test-count.mjs`） |
-| API smoke | ✅ | `scripts/smoke-api.js` **17 项**真实库（含 checkpoint-restore） |
-| UI smoke | ✅ | `scripts/ui-smoke.js` **33 项**（含 restore/settings/rules-preview/assets 接线） |
-| 脚本加载验证 | ✅ | `scripts/verify-script-load.mjs` **24 项**（捕获 SyntaxError） |
+| API smoke | ✅ | `scripts/smoke-api.js` **18 项**真实库（含 checkpoint-restore） |
+| UI smoke | ✅ | `scripts/ui-smoke.js` **34 项**（含 restore/settings/search/assets 接线） |
+| 脚本加载验证 | ✅ | `check:modules` **29 项**（捕获 SyntaxError） |
+| Playwright E2E | ✅ | `e2e/fog-demo-route.spec.js`（雾港 E2E 房） |
 | GitHub Actions CI | ✅ | migrate → seed → check → check:boot → **check:tests** → npm test → smoke |
 | WebSocket 实时推送 | 🔲 | 未开始（多节点集群场景） |
 | SSE 房间事件流 | ✅ | `GET /api/rooms/:roomId/events/stream`；单节点内存总线（见 §17） |
 | LiveKit | ✅ | token API + 前端连接；需 `LIVEKIT_*`（见 §24） |
 | 前端模块化 | ✅ | `src/` 视图/组件/API 拆分；`app.js` ~70 行 bootstrap | 见 §21 |
-| 全文检索 | 🔲 | 未开始 |
-| Rate limit / 上传扫描 | 🔲 | 未开始 |
+| 全文检索 | ✅ | `GET /worlds/:id/search` + 迁移 014；顶栏 UI |
+| Rate limit | ✅ | 生产环境 auth/write/read 限流 |
+| 上传扫描 | 🟡 | webhook 钩子；无完整 AV |
 
 ---
 
@@ -419,7 +422,7 @@ npm run ci
 
 # 或分步复验（P0～P2）
 npm run check    # 语法
-npm test         # 101 项单元/集成
+npm test         # 131 项单元/集成
 npm run test:smoke   # 16 项 API（需 4180 已启动）
 npm run test:ui:load # 24 项脚本加载（项目根）
 
@@ -453,7 +456,7 @@ node scripts/verify-script-load.mjs
 
 - 删除硬编码 `assetsData`（32 条假卡片）；**仅渲染 `cloudAssets`**。
 - 无附件时显示：「当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。」
-- 资产「新建内容」、全局搜索仍占位；分类 Tab 与搜索框已接通。
+- 资产「新建内容」仍占位（场景/线索在编排台创建）；分类 Tab、文件名搜索与下载已接通；全局搜索在顶栏 ⌕。
 
 ### `app.js` · 存档与复盘
 
@@ -893,7 +896,7 @@ cd backend && node --test test/demo-act2-reading.test.js
 
 1. Act 2 自动化 3/3。  
 2. 刷新后总览在 studio 返回后即可显示世界名（不再长时间卡在旧文案）。  
-3. `npm run check:tests` · `npm test` 101/101 · `node scripts/ui-smoke.js` 33/33 · `npm run test:smoke` 17/17。
+3. `npm run check:tests` · `npm test` 101/101 · `node scripts/ui-smoke.js` 33/33 · `npm run test:smoke` 17/17。（**当时**验收数字；当前见 [PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)）
 
 ---
 
@@ -1125,9 +1128,11 @@ npm run bootstrap:local   # migrate + seed + exploration
 - **资产页**：kind Tab + 文件名搜索
 - **`user-messages.js`**：友好错误码；不暴露 audit / idempotency / scope 英文字段
 
-### 测试扩充
+### 测试扩充（历史记录 · 当时数字）
 
-| 套件 | 数量 | 新增 |
+> **当前验收**见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5：**131** 单测 · **18** smoke · **34** UI smoke · **29** modules · Playwright E2E。
+
+| 套件 | 数量（当时） | 新增 |
 |------|------|------|
 | `npm test` | **101/101** | `CHECKPOINT_WORLD_MISMATCH` E2E |
 | `npm run test:smoke` | **17/17** | `checkpoint-restore` |

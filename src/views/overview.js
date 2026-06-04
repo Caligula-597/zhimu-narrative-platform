@@ -62,6 +62,8 @@ function overview() {
   const studio = state.cloudStudio;
   const listedWorld = (state.cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
   const world = studio?.world || listedWorld;
+  const studioEmpty=Boolean(zhimuApi.context.worldId)&&!studio?.roles?.length;
+  const studioEmptyBanner=studioEmpty?`<section class="demo-strip" style="margin-bottom:14px;border-color:#e8c4c4;background:#fff8f7"><div><span class="cloud-pill">内容未载入</span><strong style="margin-top:7px">剧本「${escapeHtml(world?.name||"当前")}」在数据库中尚无角色/分幕</strong><p>${escapeHtml(state.apiError||"若使用 Docker 预发，请在项目根目录执行 npm run staging:catalog，然后 npm run staging:rebuild-api，再点「刷新云端数据」。")}</p></div><button class="primary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`:"";
   const loading = state.cloudLoading && !studio?.world;
   const roleCount = studio?.roles?.length ?? 0, chapterCount = studio?.chapters?.length ?? 0;
   const uploadCount = state.cloudAssets?.length ?? 0;
@@ -100,13 +102,16 @@ function overview() {
   const statusHead = hasActiveRoom ? "● 运行中" : hasRooms ? "○ 运行房已建立" : "○ 尚未开始运行";
   const statusTitle = hasActiveRoom ? escapeHtml(room.name) : hasRooms ? "请选择一个运行房" : "尚未创建测试房";
   const statusKicker = hasActiveRoom ? "RUNTIME ACTIVE" : hasRooms ? "ROOMS READY" : "CREATOR MODE";
+  const showCatalogPromo = !loading && !studio && Boolean(localStorage.getItem("zhimuSessionToken") || window.zhimuConfig?.requireAuth);
   return `
     ${cloudStatus()}
+    ${studioEmptyBanner}
+    ${showCatalogPromo ? U.catalogPromoSection?.() || "" : ""}
     <section class="hero">
       <article class="hero-card">
         <p class="eyebrow">CURRENT WORLD · ONLINE</p>
-        <h2>${loading ? "正在连接云端…" : escapeHtml(world?.name || (state.apiError ? "云端连接失败" : "未选择世界"))}</h2>
-        <p>${loading ? "正在读取世界基础信息与章节结构，通常只需片刻。" : escapeHtml(world?.summary || (state.apiError ? state.apiError : "世界基础信息加载完成后会显示在这里。"))}</p>
+        <h2>${loading ? "正在连接云端…" : escapeHtml((window.zhimuUserMessages?.overviewHeroTitle || (() => "未选择世界"))({ loading, worldName: world?.name, apiError: state.apiError }))}</h2>
+        <p>${loading ? "正在读取世界基础信息与章节结构，通常只需片刻。" : escapeHtml(world?.summary || (window.zhimuUserMessages?.formatCloudPanelError?.(state.apiError, { hasStudio: Boolean(world) }) || "世界基础信息加载完成后会显示在这里。"))}</p>
         <div class="hero-stats"><div><strong>${String(roleCount).padStart(2,"0")}</strong><small>角色席位</small></div><div><strong>${String(chapterCount).padStart(2,"0")}</strong><small>公共章节</small></div><div><strong>${String(uploadCount).padStart(2,"0")}</strong><small>云端附件</small></div></div>
       </article>
       <article class="status-card">
@@ -114,7 +119,7 @@ function overview() {
         <div class="chapter"><p class="section-kicker">${statusKicker}</p><strong>${statusTitle}</strong></div>
         <div class="progress"><i style="width:${hasActiveRoom ? runtimeProgress.percent : 0}%"></i></div>
         <div class="status-meta"><span>${hasActiveRoom ? runtimeProgress.label : hasRooms ? "已建立运行房，请进入房间后查看玩家进度" : "当前仅有创作内容，没有玩家运行状态"}</span><span>${hasActiveRoom ? runtimeProgress.percent : 0}%</span></div>
-        <div class="pulse-line"><i></i><span>${hasActiveRoom ? "运行实例已连接" : hasRooms ? "选择一个平行房以读取运行状态" : "完成检查后可建立测试房"}</span></div>
+        <div class="pulse-line"><i></i><span>${hasActiveRoom ? "运行实例已连接" : hasRooms ? "选择一个运行房以读取运行状态" : "完成检查后可建立测试房"}</span></div>
       </article>
     </section>
     <section class="stats-grid">
@@ -146,7 +151,7 @@ function overview() {
           ${task("◇","复核剧情编排",`${studio?.scenes?.length || 0} 个场景、${studio?.investigationPoints?.length || 0} 个调查点和 ${studio?.edges?.length || 0} 条连线已经写入`,"studio","打开编排")}
           ${task("✎","逐角色检查私人剧本",`${roleCount} 个角色席位，共 ${studio?.sections?.length || 0} 段私人正文`,"writer","检查角色稿")}
           ${task("⌘","配置自动化规则",enabledRules ? `当前已有 ${enabledRules} 条启用规则` : "当前世界还没有运行规则","rules","打开规则")}
-          ${taskAction(hasRooms ? "◉" : "＋",hasRooms ? "管理平行房" : "建立测试房",hasRooms ? `${rooms.length} 个互相隔离的运行房可管理` : "当前世界尚未创建运行实例","world-rooms",hasRooms ? "查看房间" : "创建平行房")}
+          ${taskAction(hasRooms ? "◉" : "＋",hasRooms ? "管理运行房" : "建立运行房",hasRooms ? (rooms.length===1?`当前运行房：${escapeHtml((room||rooms[0])?.name||"运行房")}`:`${rooms.length} 个你可访问的运行房`): "当前世界尚未创建运行实例","world-rooms",hasRooms ? "查看房间" : "创建运行房")}
           ${uploadCount ? task("↑","管理云端附件",`${uploadCount} 个文件已上传到 R2 私有存储`,"assets","打开资产页") : task("↑","上传世界附件","当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。","assets","前往上传")}
         </div>
       </article>
