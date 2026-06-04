@@ -103,3 +103,65 @@ test("host events include action summaries and can be dismissed", async (context
     assert.equal(dismiss.json().ok, true);
   }
 });
+
+test("host events batch execute and dismiss", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const inserted = await query(
+    `INSERT INTO pending_host_events (room_id, event_key, title, description, actions, status)
+     VALUES ($1, $2, '批量测试 A', '', '[]'::jsonb, 'pending'),
+            ($1, $3, '批量测试 B', '', '[]'::jsonb, 'pending')
+     RETURNING id`,
+    [fogRoomId, `batch-a-${Date.now()}`, `batch-b-${Date.now()}`]
+  );
+  const ids = inserted.rows.map((row) => row.id);
+
+  const dismiss = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fogRoomId}/host-events/batch`,
+    headers: { "x-user-id": hostUserId, "idempotency-key": `batch-dismiss-${Date.now()}` },
+    payload: { action: "dismiss", eventIds: ids }
+  });
+  assert.equal(dismiss.statusCode, 200);
+  assert.equal(dismiss.json().processed, 2);
+
+  const remaining = await query(
+    `SELECT status FROM pending_host_events WHERE id = ANY($1::uuid[])`,
+    [ids]
+  );
+  assert.ok(remaining.rows.every((row) => row.status === "dismissed"));
+});
+
+test("host audit log lists recent host actions", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const roleSlotId = await fogRoleId();
+  const clue = await query(
+    `SELECT c.id FROM clues c
+     JOIN rooms r ON r.world_id = c.world_id
+     WHERE r.id = $1
+     LIMIT 1`,
+    [fogRoomId]
+  );
+  assert.ok(clue.rowCount);
+
+  const grant = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fogRoomId}/host/grant-clue`,
+    headers: { "x-user-id": hostUserId, "idempotency-key": `audit-probe-${Date.now()}` },
+    payload: { roleSlotId, clueId: clue.rows[0].id }
+  });
+  assert.equal(grant.statusCode, 200);
+
+  const audit = await app.inject({
+    method: "GET",
+    url: `/api/rooms/${fogRoomId}/host/audit-log?limit=10`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(audit.statusCode, 200);
+  const entries = audit.json().entries;
+  assert.ok(Array.isArray(entries));
+  assert.ok(entries.some((row) => row.action === "host_grant_clue"));
+});

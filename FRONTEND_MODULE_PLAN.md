@@ -4,7 +4,7 @@
 
 ## 已落地边界
 
-- API 调用集中在 `src/api/client.js`（根目录 `api-client.js` 为同步副本）。
+FRONTEND_MODULE_PLAN.md
 - 玩家入口、平行房邀请、语音房文字频道和主持台已经使用真实后端数据。
 - **世界总览、内容资产、存档页**（2026-06-03 P0-1）仅展示 API 数据或空状态；`state.js` 不再含 `players`/`logs` 等运行时假字段，总览动态来自 `cloudWorldLogs`。
 - 有正式 Bearer Session 时，浏览器不再发送 demo `x-user-id` 请求头。
@@ -26,7 +26,21 @@
 
 ## 框架迁移判断
 
-不要在权限和 API 仍快速变化时硬迁移 React/Vue/Svelte。推荐先完成原生模块拆分；等玩家、主持、创作者三个视角的接口稳定后，再用同一套模块边界迁移到组件框架。
+**2026-06-03 更新**：已引入 **Vite** 作为构建与开发服务器，仍保留 `window.*` 全局命名空间；`frontend/main.js` 按原 `index.html` 顺序 side-effect import。完整 ES module 导出与去全局化留作后续阶段。
+
+不要在权限和 API 仍快速变化时硬迁移 React/Vue/Svelte。推荐先完成 Vite 打包 + 原生模块拆分；等玩家、主持、创作者三个视角的接口稳定后，再用同一套模块边界迁移到组件框架。
+
+### Vite 工作流
+
+| 命令 | 用途 |
+|------|------|
+| `npm run dev` | Vite 开发（HMR，`/api` 代理） |
+| `npm run build` | 输出 `dist/` |
+| `npm run preview` | 预览生产构建 |
+| `npm run start:dist` | `node server.js --dist` 静态托管 |
+| `npm run check:modules` | 脚本链 SyntaxError 检查 |
+
+环境：`VITE_API_BASE`（见 `.env.development`）、`VITE_API_PROXY_TARGET`。
 
 ## 回归要求
 
@@ -40,9 +54,11 @@
 
 ## 模块加载与命名空间
 
-`index.html` 按**严格顺序**加载脚本（不可乱序）：`config.js` → `src/dom.js` → `src/state.js` → `src/api/client.js` → `rule-visual.js` → `src/utils/format.js` → `src/components/*` → `src/views/*` → `src/runtime/*` → `app.js`。
+**Vite 入口**：`index.html` 仅加载 LiveKit CDN + `<script type="module" src="/frontend/main.js">`。`frontend/main.js` 按**严格顺序** import 各模块（与旧 script 链一致）。
 
-任一文件 **SyntaxError** 会导致后续脚本全部不执行，表现整页空白。排查时打开浏览器 Console，从第一个报错文件开始修。
+**Legacy 排查**：若不用 Vite，仍可按原顺序单独加载 `config.js` → … → `app.js`（不推荐，CI 以 Vite build 为准）。
+
+任一文件 **SyntaxError** 会导致后续脚本全部不执行，表现整页空白。排查时打开浏览器 Console，从第一个报错文件开始修；或运行 `npm run check:modules`。
 
 | 全局对象 | 定义位置 | 用途 |
 |----------|----------|------|
@@ -124,16 +140,21 @@ SyntaxError: Identifier 'formatRelativeTime' has already been declared
 
 ## 日常维护检查清单
 
-**改完任意 `src/**/*.js` 或 `index.html` 脚本顺序后：**
+**改完任意 `src/**/*.js` 或 `frontend/main.js` 后：**
 
 1. **脚本链验证**（项目根目录）——模拟浏览器加载顺序，确保无 SyntaxError：
    ```bash
-   node scripts/verify-script-load.mjs
+   npm run check:modules
    # 或
    cd backend && npm run test:ui:load
    ```
 
-2. **UI smoke**：
+2. **构建**（改 import 顺序或 Vite 配置时）：
+   ```bash
+   npm run build
+   ```
+
+3. **UI smoke**：
    ```bash
    cd backend && npm run test:ui
    ```
@@ -142,8 +163,9 @@ SyntaxError: Identifier 'formatRelativeTime' has already been declared
 
 **新增模块文件时：**
 
-- 在 `index.html` 插入正确依赖位置（组件 → 视图 → runtime → app.js）。  
+- 在 `frontend/main.js` 插入正确依赖位置（组件 → 视图 → runtime → app.js）。  
 - 在 `scripts/ui-smoke.js` 的 `requiredModuleScripts` 中同步路径。  
+- 运行 `node scripts/ensure-esm-exports.mjs` 为新文件追加 `export {}`（Vite ESM 需要）。  
 - 导出挂到对应 `window.zhimu*` 命名空间，与 `app.js` / `actions.js` 引用一致。
 
 **若再次执行机械拆分：**

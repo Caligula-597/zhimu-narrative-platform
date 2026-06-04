@@ -38,7 +38,7 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = R.go || (() => {});
+  const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
   function handle(action, el) { return window.zhimuHandle(action, el); }
@@ -46,34 +46,24 @@
   const openWizard = R.openWizard || (() => {});
   window.zhimuViews = window.zhimuViews || {};
   function openAuth(){
- const loggedIn=Boolean(localStorage.getItem("zhimuSessionToken"));modal.className="modal auth-modal";modal.innerHTML=loggedIn?`<h2>账号与会话</h2><p class="wizard-intro">当前浏览器已经保存正式登录会话。退出后仍可继续查看演示世界，但账号专属世界需要重新登录。</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="danger-btn" data-auth-logout>退出登录</button></div>`:`<h2>注册或登录</h2><p class="wizard-intro">建立创作者账号后，可以被邀请为协作者、保存自己的世界，并逐步接入正式多人协作。</p><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;if(!loggedIn)modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");if(loggedIn)modal.querySelector("[data-auth-logout]").onclick=async()=>{await zhimuApi.logout();localStorage.removeItem("zhimuSessionToken");closeModal();showToast("已退出登录")};else{modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);closeModal();showToast("注册成功，已经登录")}catch(error){showToast(error.message)}};modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);closeModal();showToast("登录成功")}catch(error){showToast(error.message)}}}
+ const loggedIn=Boolean(localStorage.getItem("zhimuSessionToken"));
+ const requireAuth=Boolean(window.zhimuConfig?.requireAuth);
+ const loggedInIntro=requireAuth?"当前浏览器已保存内测账号会话。退出后需重新登录才能访问你的剧本与世界。":"当前浏览器已经保存正式登录会话。退出后仍可继续查看演示世界，但账号专属世界需要重新登录。";
+ const guestIntro=requireAuth?"内测环境使用正式账号登录。注册后可创建剧本、邀请协作者并保存运行数据。":"建立创作者账号后，可以被邀请为协作者、保存自己的世界，并逐步接入正式多人协作。";
+ modal.className="modal auth-modal";modal.innerHTML=loggedIn?`<h2>账号与会话</h2><p class="wizard-intro">${loggedInIntro}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="danger-btn" data-auth-logout>退出登录</button></div>`:`<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;if(!loggedIn)modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
+ const finishAuth=async(label)=>{sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData()}catch(error){showToast(error.message)}render()};
+ if(loggedIn)modal.querySelector("[data-auth-logout]").onclick=async()=>{await zhimuApi.logout();localStorage.removeItem("zhimuSessionToken");sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast("已退出登录");await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();if(requireAuth)window.zhimuAuthSession?.promptAuthIfNeeded?.(true);else render()};
+ else{modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);await finishAuth("注册成功，已经登录")}catch(error){showToast(error.message)}};modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);await finishAuth("登录成功")}catch(error){showToast(error.message)}}}
 }
 
 async function openWorldLibrary(){
  modal.className="modal world-library-modal";
- modal.innerHTML=`<h2>选择已有剧本</h2><p class="wizard-intro">列表来自当前账号的云端数据库（不含已归档剧本）。本地演示模式共用演示创作者账号，自动化测试或误点「创建新世界」也可能留下额外剧本；不需要且你是 owner 的可以删除。</p><div class="world-library-list"><div class="empty-state">正在读取你的剧本列表…</div></div><div class="modal-actions"><button class="secondary-btn" data-close disabled>关闭</button><button class="primary-btn" data-open-create-world disabled>＋ 创建新世界</button></div>`;
+ modal.innerHTML=`<h2>选择已有剧本</h2><p class="wizard-intro">列表来自当前账号的云端数据库。不需要且你是 owner 的可以删除。</p><label class="check-label" style="margin-bottom:12px"><input type="checkbox" id="world-library-archived"><span>显示已归档剧本</span></label><div class="world-library-list"><div class="empty-state">正在读取你的剧本列表…</div></div><div class="modal-actions"><button class="secondary-btn" data-close disabled>关闭</button><button class="primary-btn" data-open-create-world disabled>＋ 创建新世界</button></div>`;
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
- try{
-  const worlds=await zhimuApi.getWorlds();
-  state.cloudWorlds=worlds;
-  const statusLabel={draft:"草稿",testing:"测试中",published:"已发布",archived:"已归档"};
-  const roomCounts=await Promise.allSettled(worlds.map((world)=>zhimuApi.getWorldRooms(world.id).then((rooms)=>rooms.length)));
-  modal.querySelector(".world-library-list").innerHTML=worlds.map((world,index)=>{
-   const count=roomCounts[index].status==="fulfilled"?roomCounts[index].value:"?";
-   const isCurrent=world.id===zhimuApi.context.worldId;
-   const canDelete=world.membership_role==="owner"&&!isCurrent;
-   return `<article class="world-library-card ${isCurrent?"active":""}"><div><span class="cloud-pill">${escapeHtml(world.membership_role||"member")}</span><span class="status-chip ${world.status||"draft"}">${escapeHtml(statusLabel[world.status]||world.status||"草稿")}</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充世界简介")}</p><small>${count} 个平行房</small></div><div class="row">${canDelete?`<button class="text-btn danger-text" data-action="world-delete" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}">删除</button>`:""}<button class="${isCurrent?"secondary-btn":"primary-btn"}" data-action="world-select" data-world-id="${world.id}">${isCurrent?"当前剧本":"切换剧本"}</button></div></article>`;
-  }).join("")||`<div class="empty-state">当前账号还没有可访问的剧本。你可以创建新世界，或请协作者邀请你加入。</div>`;
-  modal.querySelector("[data-close]").disabled=false;
-  modal.querySelector("[data-open-create-world]").disabled=false;
-  modal.querySelectorAll("[data-action]").forEach(btn=>btn.onclick=()=>handle(btn.dataset.action,btn));
-  modal.querySelector("[data-open-create-world]").onclick=()=>{closeModal();openWizard()};
- }catch(error){
-  modal.querySelector(".world-library-list").innerHTML=`<div class="empty-state">${escapeHtml(error.message)}</div>`;
-  modal.querySelector("[data-close]").disabled=false;
-  showToast(error.message);
- }
+ const draw=async()=>{const includeArchived=Boolean(modal.querySelector("#world-library-archived")?.checked);try{const worlds=await zhimuApi.getWorlds(includeArchived);state.cloudWorlds=worlds;const statusLabel={draft:"草稿",testing:"测试中",published:"已发布",archived:"已归档"};const roomCounts=await Promise.allSettled(worlds.map((world)=>zhimuApi.getWorldRooms(world.id).then((rooms)=>rooms.length)));modal.querySelector(".world-library-list").innerHTML=worlds.map((world,index)=>{const count=roomCounts[index].status==="fulfilled"?roomCounts[index].value:"?";const isCurrent=world.id===zhimuApi.context.worldId;const canDelete=world.membership_role==="owner"&&!isCurrent;return `<article class="world-library-card ${isCurrent?"active":""}"><div><span class="cloud-pill">${escapeHtml(world.membership_role||"member")}</span><span class="status-chip ${world.status||"draft"}">${escapeHtml(statusLabel[world.status]||world.status||"草稿")}</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充世界简介")}</p><small>${count} 个平行房</small></div><div class="row">${canDelete?`<button class="text-btn danger-text" data-action="world-delete" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}">删除</button>`:""}<button class="${isCurrent?"secondary-btn":"primary-btn"}" data-action="world-select" data-world-id="${world.id}">${isCurrent?"当前剧本":"切换剧本"}</button></div></article>`}).join("")||`<div class="empty-state">当前账号还没有可访问的剧本。你可以创建新世界，或请协作者邀请你加入。</div>`;modal.querySelector("[data-close]").disabled=false;modal.querySelector("[data-open-create-world]").disabled=false;modal.querySelectorAll("[data-action]").forEach(btn=>btn.onclick=()=>handle(btn.dataset.action,btn));modal.querySelector("[data-open-create-world]").onclick=()=>{closeModal();openWizard()}}catch(error){modal.querySelector(".world-library-list").innerHTML=`<div class="empty-state">${escapeHtml(error.message)}</div>`;modal.querySelector("[data-close]").disabled=false;showToast(error.message)}};
+ modal.querySelector("#world-library-archived")?.addEventListener("change",draw);
+ await draw();
 }
 
 async function deleteWorld(worldId,worldName){
@@ -162,3 +152,4 @@ function openJoinRoom(inviteCode=""){
 }
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openWorldLibrary, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, selectParallelRoom, openRoomInvite, openJoinRoom });
 })(window);
+export {};

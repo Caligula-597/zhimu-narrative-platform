@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { pool } from "../src/db.js";
 
 test("protected routes reject a spoofed demo header when compatibility is disabled", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: false });
@@ -12,7 +11,7 @@ test("protected routes reject a spoofed demo header when compatibility is disabl
     headers: { "x-user-id": "00000000-0000-0000-0000-000000000000" }
   });
   assert.equal(response.statusCode, 401);
-  assert.deepEqual(response.json(), { error: "Authentication required" });
+  assert.deepEqual(response.json(), { error: "Authentication required", code: "AUTH_REQUIRED" });
 });
 
 test("production mode ignores the demo header even when it is explicitly enabled", async (context) => {
@@ -35,8 +34,4 @@ test("register schema rejects incomplete payloads before database writes", async
     payload: { email: "invalid@example.com" }
   });
   assert.equal(response.statusCode, 400);
-});
-
-test.after(async () => {
-  await pool.end();
 });

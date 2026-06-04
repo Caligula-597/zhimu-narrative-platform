@@ -38,7 +38,7 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = R.go || (() => {});
+  const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
@@ -109,7 +109,10 @@ async function loadCloudDataInternal(withToast=false){
    }
   }catch(error){
    state.cloudStudio=null;
-   if (/Authentication required/i.test(error.message) && !localStorage.getItem("zhimuSessionToken") && window.zhimuConfig?.demoMode) {
+   if (/Authentication required/i.test(error.message) && window.zhimuConfig?.requireAuth) {
+    errors.push("请先登录账号后再继续");
+    window.zhimuAuthSession?.promptAuthIfNeeded?.();
+   } else if (/Authentication required/i.test(error.message) && !localStorage.getItem("zhimuSessionToken") && window.zhimuConfig?.demoMode) {
     errors.push("无法连接云端：请登录账号，或在 backend/.env 设置 ALLOW_DEMO_USER_HEADER=true 后重启后端");
    } else {
     errors.push(error.message);
@@ -154,9 +157,15 @@ async function loadCloudDataInternal(withToast=false){
   render();
 
   void (async()=>{
-   const phase3=await Promise.allSettled([zhimuApi.getStorageUsage(),zhimuApi.getAssets(),zhimuApi.getCreatorChecks()]);
+   const params={};
+   if(state.assetKindFilter)params.kind=state.assetKindFilter;
+   if(state.assetSearchQuery)params.q=state.assetSearchQuery;
+   const phase3=await Promise.allSettled([zhimuApi.getStorageUsage(),zhimuApi.getAssets(Object.keys(params).length?params:{}),zhimuApi.getCreatorChecks()]);
    take(phase3[0],value=>state.storageUsage=value);
-   take(phase3[1],value=>state.cloudAssets=value);
+   take(phase3[1],value=>{
+    if(Array.isArray(value)){state.cloudAssets=value;state.assetTotal=value.length}
+    else{state.cloudAssets=value.assets||[];state.assetTotal=value.total??state.cloudAssets.length}
+   });
    take(phase3[2],value=>state.cloudCreatorChecks=value.checks);
    if(state.view==="overview"||state.view==="assets"||state.view==="writer")render();
   })();
@@ -317,6 +326,12 @@ async function handleRoomEvent(type,data){
   case "room.voice_message_created":
    if(data.voiceRoomId===state.voiceRoomId)await (V.player?.refreshVoiceMessages || (async () => {}))();
    break;
+  case "room.checkpoint_restored":
+   if(state.view==="director"||state.view==="overview"||state.view==="archive"){
+    await refreshHostRoom(false);
+    showToast("房间已从存档恢复",2800);
+   }
+   break;
  }
 }
 
@@ -326,3 +341,4 @@ function enhanceCloudPanels(){
 }
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { loadCloudData, ensureActiveWorld, clearRuntimeState, go: window.zhimuRuntime?.go, render: window.zhimuRuntime?.render, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, syncDirectorPolling, refreshDirectorPoll, refreshHostEvents, refreshHostPlayers, refreshHostClueMatrix, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels });
 })(window);
+export {};

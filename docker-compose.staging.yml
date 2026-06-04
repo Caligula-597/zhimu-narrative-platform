@@ -1,0 +1,58 @@
+# Staging stack: Postgres + API + nginx (static dist).
+# Usage: copy .env.staging.example → .env.staging, then npm run staging:up
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: zhimu
+      POSTGRES_USER: zhimu
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.staging}
+    volumes:
+      - zhimu_staging_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zhimu -d zhimu"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      PORT: 4180
+      NODE_ENV: production
+      ALLOW_DEMO_USER_HEADER: "false"
+      DATABASE_URL: postgresql://zhimu:${POSTGRES_PASSWORD}@postgres:5432/zhimu
+      DATABASE_SSL: "false"
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      RUN_DB_SEED: ${RUN_DB_SEED:-false}
+      OBJECT_STORAGE_PROVIDER: ${OBJECT_STORAGE_PROVIDER:-r2}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_PUBLIC_ENDPOINT: ${R2_PUBLIC_ENDPOINT:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "4180"
+    restart: unless-stopped
+
+  web:
+    image: nginx:1.27-alpine
+    ports:
+      - "${STAGING_HTTP_PORT:-8080}:80"
+    volumes:
+      - ./deploy/nginx.staging.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./dist:/usr/share/nginx/html:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  zhimu_staging_pg:

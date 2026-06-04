@@ -24,6 +24,11 @@ test("host can create list and read room checkpoints", async (context) => {
   assert.ok(Object.hasOwn(created.snapshot, "unlockedScenes"));
   assert.ok(Object.hasOwn(created.snapshot, "pendingEvents"));
   assert.ok(Object.hasOwn(created.snapshot, "recentLogs"));
+  assert.equal(created.snapshot.schemaVersion, 2);
+  assert.ok(Array.isArray(created.snapshot.readingProgress));
+  assert.ok(Array.isArray(created.snapshot.inventory));
+  assert.ok(Array.isArray(created.snapshot.contentUnlocks));
+  assert.ok(Array.isArray(created.snapshot.investigationRecords));
 
   const list = await app.inject({
     method: "GET",
@@ -43,6 +48,46 @@ test("host can create list and read room checkpoints", async (context) => {
   assert.equal(detail.statusCode, 200);
   assert.equal(detail.json().snapshot.roomId, fogRoomId);
   assert.equal(detail.json().label, "第一夜收工");
+});
+
+test("checkpoint restore applies and records audit trail", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const create = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fogRoomId}/checkpoints`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: "restore-probe", description: "schema probe" }
+  });
+  assert.equal(create.statusCode, 201);
+  const checkpointId = create.json().id;
+
+  const restore = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fogRoomId}/checkpoints/${checkpointId}/restore`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      scope: {
+        readingProgress: false,
+        clueOwnership: false,
+        inventory: false,
+        contentUnlocks: false,
+        pendingHostEvents: false
+      }
+    }
+  });
+  assert.equal(restore.statusCode, 200);
+  assert.equal(restore.json().status, "applied");
+  assert.equal(restore.json().checkpointId, checkpointId);
+
+  const history = await app.inject({
+    method: "GET",
+    url: `/api/rooms/${fogRoomId}/checkpoints/${checkpointId}/restores`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(history.statusCode, 200);
+  assert.ok(history.json().some((row) => row.status === "applied"));
 });
 
 test("player cannot create checkpoints", async (context) => {

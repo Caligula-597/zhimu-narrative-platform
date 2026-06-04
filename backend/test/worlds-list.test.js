@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { pool, query } from "../src/db.js";
+import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
@@ -38,8 +38,4 @@ test("GET /worlds hides archived worlds by default", async (context) => {
   });
   assert.equal(fullList.statusCode, 200);
   assert.ok(fullList.json().some((world) => world.id === archived.rows[0].id));
-});
-
-test.after(async () => {
-  await pool.end();
 });

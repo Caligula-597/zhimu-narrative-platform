@@ -18,11 +18,33 @@
 docker compose up -d postgres
 cd .\backend
 Copy-Item .env.example .env
-npm install
-npm run db:migrate
-npm run db:seed
+npm ci
+npm run bootstrap:local
 npm run start
 ```
+
+`bootstrap:local` = migrate + seed + exploration 探索链。详见 [ALPHA_ASSESSMENT.md](../ALPHA_ASSESSMENT.md) 与 [DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md)。
+
+### 连不上后端？
+
+1. **端口占用**：`npm run dev:restart` 或 `netstat -ano | findstr :4180` 后 `taskkill /PID <pid> /F`
+2. **健康检查**：访问 `http://localhost:4180/api/health`，应返回 `ok: true` 与 `migrationsApplied: 13`
+3. **迁移未跑**：`npm run db:migrate`（缺表时 health 会列出 `missingTables`；启动时也会 FATAL 拦截）
+4. **前端 Demo 401**：本地需 `ALLOW_DEMO_USER_HEADER=true`（见 `.env.example`）
+5. **改代码后自检**：`npm run check`（语法 + import 路径 + 模块图）→ `npm run check:boot`（DB + 启动链）
+
+### 错误响应
+
+所有 API 错误返回 `{ error, code, details? }`。完整错误码见 [`docs/API_ERRORS.md`](./docs/API_ERRORS.md)。
+
+## 健壮性检测（改 backend 后必跑）
+
+| 命令 | 作用 |
+|------|------|
+| `npm run check` | 全量 JS 语法、`src/` 下错误 `../` import、**createApp 模块图可加载** |
+| `npm run check:boot` | 环境变量 + 模块图 + **数据库 schema**（与 server 启动前相同校验） |
+| `npm run check:tests` | 测试用例数量下限（≥80，`scripts/verify-test-count.mjs`） |
+| `npm test` | 83 项集成测试（`--test-concurrency=1 --test-force-exit`） |
 
 后端默认监听 `http://localhost:4180`。
 
@@ -35,6 +57,8 @@ npm run start
 - `POST /api/auth/logout`
 - `GET /api/worlds`
 - `POST /api/worlds`
+- `GET /api/worlds/:worldId`
+- `PATCH /api/worlds/:worldId`（name / summary / settings 合并更新）
 - `GET /api/worlds/:worldId/members`
 - `POST /api/worlds/:worldId/members`
 - `PUT /api/worlds/:worldId/members/:userId`
@@ -105,13 +129,19 @@ AI 只生成待复核的结构化提案，不会直接修改正式剧情。作�
 - `POST /api/rooms/:roomId/host/unlock-section`
 - `POST /api/rooms/:roomId/host/log`
 - `PUT /api/rooms/:roomId/host/players/:roleSlotId/notes`
-- `GET /api/rooms/:roomId/host-progress`
+- `GET /api/rooms/:roomId/host/audit-log`
+- `GET /api/rooms/:roomId/rules/preview`（dry-run：条件评估，不写库）
+- `POST /api/rooms/:roomId/rules/:ruleId/trigger`（manual 规则；支持 `Idempotency-Key`）
+- `PATCH /api/rooms/:roomId/settings`（hostVoiceListen 等运行参数）
 - `GET /api/rooms/:roomId/host-events`
 - `POST /api/rooms/:roomId/host-events/:eventId/execute`
 - `POST /api/rooms/:roomId/host-events/:eventId/dismiss`
+- `POST /api/rooms/:roomId/host-events/batch` — `{ action: "execute"|"dismiss", eventIds: [] }`
 - `GET /api/rooms/:roomId/checkpoints`
 - `POST /api/rooms/:roomId/checkpoints`
 - `GET /api/rooms/:roomId/checkpoints/:checkpointId`
+- `GET /api/rooms/:roomId/checkpoints/:checkpointId/restores`
+- `POST /api/rooms/:roomId/checkpoints/:checkpointId/restore`（scoped：阅读/线索/背包/解锁/待确认/调查/玩家状态/规则执行/**时间线**；支持**跨房间**同 world 恢复；`Idempotency-Key`）
 - `GET /api/rooms/:roomId/recaps`
 - `POST /api/rooms/:roomId/recaps`
 - `GET /api/rooms/:roomId/recaps/:recapId`
@@ -121,7 +151,7 @@ AI 只生成待复核的结构化提案，不会直接修改正式剧情。作�
 - `POST /api/rooms/:roomId/voice-rooms/:voiceRoomId/token`
 - `GET /api/rooms/:roomId/events/stream`（SSE 房间事件；需房间成员）
 - `GET /api/storage/usage`
-- `GET /api/worlds/:worldId/assets`
+- `GET /api/worlds/:worldId/assets`（无 query 时返回数组；带 `kind` / `q` / `visibility` / `limit` / `offset` 时返回 `{ assets, total, limit, offset }`）
 - `POST /api/assets/upload-url`
 - `POST /api/assets/:assetId/confirm`
 - `GET /api/assets/:assetId/download-url`
@@ -147,6 +177,8 @@ npm run demo:seed-exploration
 
 ```powershell
 npm run check
+npm run check:boot
+npm run check:tests
 npm test
 npm run test:ui
 npm run test:ui:load   # 按 index.html 顺序执行前端脚本，捕获 SyntaxError
@@ -164,10 +196,32 @@ npm run test:smoke
 
 | 套件 | 数量 |
 |------|------|
-| `npm test` | 53 |
+| `npm run check:tests` + `npm test` | **100** |
 | `npm run test:smoke` | 16 |
 | `node ../scripts/ui-smoke.js` | 29 |
 | `npm run test:ui:load` | 24 |
+
+### 写操作幂等（`Idempotency-Key` 请求头）
+
+以下 POST 支持重试去重（表 `write_idempotency`，迁移 013）：
+
+- `sections.complete` · `player.investigate` · `clues.share_room`
+- `host.grant_clue` · `host.grant_item` · `host.unlock_section`
+- `host.event_execute` · `host.event_dismiss` · `host.rule_trigger` · `checkpoints.restore`
+
+验收见 `test/idempotency-coverage.test.js`。
+
+### API 限流（生产环境默认开启）
+
+单节点内存滑动窗口（`rate-limit.js`），可通过环境变量调整：
+
+| 桶 | 默认 | 范围 |
+|----|------|------|
+| `RATE_LIMIT_AUTH_MAX` | 20/min | `/api/auth/login` · `/api/auth/register` |
+| `RATE_LIMIT_WRITE_MAX` | 120/min | 其它 `POST/PUT/PATCH/DELETE /api/*` |
+| `RATE_LIMIT_READ_MAX` | 300/min | `GET/HEAD /api/*`（SSE stream 除外） |
+
+开发/测试 `createApp` 默认不限流；生产 `NODE_ENV=production` 自动启用。验收见 `test/rate-limit.test.js`。
 
 ## 前端数据边界（与后端对应）
 

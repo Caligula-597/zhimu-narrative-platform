@@ -31,24 +31,37 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: |
+            backend/package-lock.json
+            package-lock.json
       - name: Install backend dependencies
         run: npm ci
         working-directory: backend
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Build frontend
+        run: npm run build
+      - name: Frontend module load check
+        run: npm run check:modules
       - name: Migrate and seed
-        run: npm run db:migrate && npm run db:seed && npm run demo:seed-exploration
+        run: npm run db:migrate && npm run db:seed && npm run demo:seed-exploration && npm run demo:bootstrap-e2e-room
         working-directory: backend
-      - name: Syntax check
-        run: npm run check
+      - name: Syntax and module graph check
+        run: npm run check && npm run check:schemas
+        working-directory: backend
+      - name: Boot validation
+        run: npm run check:boot
         working-directory: backend
       - name: Unit and integration tests
-        run: npm test
+        run: npm run check:tests && npm test
         working-directory: backend
       - name: Start backend for smoke tests
         run: node src/server.js &
         working-directory: backend
       - name: Start frontend for UI smoke
-        run: node server.js &
+        run: node server.js --dist &
         working-directory: .
       - name: Wait for services
         run: |
@@ -62,3 +75,7 @@ jobs:
         working-directory: backend
       - name: UI smoke tests
         run: node scripts/ui-smoke.js
+      - name: Playwright E2E (DEMO_ROUTE)
+        run: PLAYWRIGHT_SKIP_WEBSERVER=1 npx playwright test
+        env:
+          ALLOW_DEMO_USER_HEADER: "true"

@@ -1,0 +1,22 @@
+# Scrape 织幕 API metrics（Prometheus）
+# Adjust targets to your deployment (localhost, k8s service, etc.)
+
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: zhimu-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["127.0.0.1:4180"]
+    # If METRICS_TOKEN is set:
+    # authorization:
+    #   credentials: "your-metrics-token"
+
+  - job_name: zhimu-ready
+    metrics_path: /api/health/ready
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["127.0.0.1:4180"]
+    # Use blackbox_exporter or a small script to alert on non-200;
+    # native Prometheus cannot scrape JSON health as a gauge without exporter.

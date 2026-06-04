@@ -29,6 +29,12 @@ window.zhimuState = {
   studioFilter: "all",
   studioZoom: 1,
   cloudAssets: [],
+  assetKindFilter: "",
+  assetSearchQuery: "",
+  assetTotal: 0,
+  hostEventSelection: [],
+  cloudRoomSettings: { hostVoiceListen: false },
+  cloudRulesPreview: null,
   storageUsage: null,
   apiError: "",
   roomEventsConnected: false,
@@ -81,3 +87,4 @@ window.zhimuState = {
     }
   }
 };
+export {};

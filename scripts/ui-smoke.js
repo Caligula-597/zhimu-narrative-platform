@@ -1,14 +1,31 @@
 /**
  * Static UI smoke check — verifies frontend shell, assets, API wiring, and P0-1 data-honesty invariants.
  * Run with frontend (4173) and optionally backend (4180) already up.
+ * Source-level checks read from UI_SOURCE_ROOT (default: repo root), not HTTP — works with Vite dist.
  */
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 const FRONTEND = process.env.UI_BASE_URL || "http://localhost:4173";
 const API = process.env.UI_API_BASE || "http://localhost:4180/api";
+const sourceRoot = process.env.UI_SOURCE_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+function readSource(rel) {
+  const filePath = path.join(sourceRoot, rel.replace(/^\.\//, ""));
+  if (!fs.existsSync(filePath)) throw new Error(`source missing: ${rel}`);
+  return fs.readFileSync(filePath, "utf8");
+}
+
+async function readSourceBundle(rels) {
+  return Object.fromEntries(rels.map((rel) => [rel, readSource(rel)]));
+}
 
 const requiredModuleScripts = [
   "config.js",
   "src/dom.js",
   "src/state.js",
+  "src/utils/user-messages.js",
   "src/api/client.js",
   "rule-visual.js",
   "src/utils/format.js",
@@ -26,6 +43,8 @@ const requiredModuleScripts = [
   "src/views/settings.js",
   "src/runtime/wizard.js",
   "src/runtime/auth-world.js",
+  "src/runtime/auth-session.js",
+  "src/runtime/global-search.js",
   "src/runtime/livekit-voice.js",
   "src/runtime/data.js",
   "src/runtime/actions.js",
@@ -34,7 +53,8 @@ const requiredModuleScripts = [
 const requiredNavViews = ["overview", "writer", "studio", "assets", "rules", "director", "player", "archive", "settings"];
 const requiredDomIds = ["content", "toast", "modal-backdrop", "modal", "page-title", "create-world-btn", "preview-btn", "run-btn"];
 const requiredApiMethods = [
-  "getWorlds", "getStudio", "getPlayerHome", "getHostProgress", "getHostPlayers", "joinRoom", "getRoomInvite",
+  "getWorlds", "getStudio", "getPlayerHome", "getHostProgress", "getHostPlayers", "getHostPlayerDetail",
+  "joinRoom", "getRoomInvite", "searchWorld", "getAssetDownloadUrl",
   "completeSection", "getExploration", "createWorld", "getRules", "hostGrantClue", "hostUnlockSection", "dismissHostEvent"
 ];
 
@@ -60,8 +80,7 @@ async function fetchText(url) {
 }
 
 async function fetchFrontendSources() {
-  const chunks = await Promise.all(requiredModuleScripts.map((script) => fetchText(`${FRONTEND}/${script}`)));
-  return Object.fromEntries(requiredModuleScripts.map((script, index) => [script, chunks[index]]));
+  return readSourceBundle(requiredModuleScripts);
 }
 
 await check("frontend-index", async () => {
@@ -75,35 +94,54 @@ await check("frontend-index", async () => {
 });
 
 await check("frontend-styles", async () => {
-  const css = await fetchText(`${FRONTEND}/styles.css`);
-  if (css.length < 1000) throw new Error("styles.css suspiciously small");
+  let css;
+  try {
+    css = await fetchText(`${FRONTEND}/styles.css`);
+  } catch {
+    const html = await fetchText(`${FRONTEND}/`);
+    const match = html.match(/href="(\/assets\/[^"]+\.css)"/);
+    if (!match) throw new Error("no stylesheet link in served index.html");
+    css = await fetchText(`${FRONTEND}${match[1]}`);
+  }
+  if (css.length < 1000) throw new Error("stylesheet suspiciously small");
   for (const sel of [".app-shell", ".sidebar", ".main-area", ".modal", ".toast"]) {
     if (!css.includes(sel)) throw new Error(`missing CSS selector ${sel}`);
   }
   return `${Math.round(css.length / 1024)}KB stylesheet`;
 });
 
+await check("frontend-served-bundle", async () => {
+  const html = await fetchText(`${FRONTEND}/`);
+  if (html.includes("/frontend/main.js")) return "Vite dev entry (unbundled)";
+  const match = html.match(/src="(\/assets\/[^"]+\.js)"/);
+  if (!match) throw new Error("served index missing /assets/*.js");
+  const js = await fetchText(`${FRONTEND}${match[1]}`);
+  if (js.length < 10_000) throw new Error("main bundle suspiciously small");
+  return `production bundle ${Math.round(js.length / 1024)}KB`;
+});
+
 for (const script of ["app.js", "src/api/client.js", "src/state.js"]) {
   await check(`script-${script.replace(/\//g, "-")}`, async () => {
-    const js = await fetchText(`${FRONTEND}/${script}`);
+    const js = readSource(script);
     if (js.length < 50) throw new Error("file too small");
     return `${Math.round(js.length / 1024)}KB`;
   });
 }
 
-await check("script-load-order", async () => {
-  const html = await fetchText(`${FRONTEND}/`);
-  const indices = requiredModuleScripts.map((s) => html.indexOf(`./${s}`));
-  if (indices.some((i) => i < 0)) throw new Error("not all module scripts referenced in index.html");
-  for (let i = 1; i < indices.length; i += 1) {
-    if (indices[i] <= indices[i - 1]) throw new Error("module scripts must load in dependency order ending with app.js");
+await check("vite-entry-wired", async () => {
+  const html = readSource("index.html");
+  if (!html.includes('type="module"') || !html.includes("/frontend/main.js")) {
+    throw new Error("index.html must load /frontend/main.js as ES module");
   }
-  return "config → src modules → app.js";
+  if (!fs.existsSync(path.join(sourceRoot, "frontend/main.js"))) {
+    throw new Error("frontend/main.js entry missing");
+  }
+  return "Vite module entry configured";
 });
 
 await check("nav-views-match-app", async () => {
-  const html = await fetchText(`${FRONTEND}/`);
-  const appJs = await fetchText(`${FRONTEND}/app.js`);
+  const html = readSource("index.html");
+  const appJs = readSource("app.js");
   const navViews = [...html.matchAll(/data-view="([^"]+)"/g)].map((m) => m[1]);
   const uniqueNav = [...new Set(navViews)];
   for (const view of requiredNavViews) {
@@ -121,7 +159,7 @@ await check("nav-views-match-app", async () => {
 });
 
 await check("api-client-surface", async () => {
-  const js = await fetchText(`${FRONTEND}/src/api/client.js`);
+  const js = readSource("src/api/client.js");
   if (!js.includes("window.zhimuApi")) throw new Error("zhimuApi not exported");
   if (!js.includes("Bearer")) throw new Error("session Bearer auth not present");
   for (const method of requiredApiMethods) {
@@ -133,7 +171,7 @@ await check("api-client-surface", async () => {
 });
 
 await check("state-runtime-boundaries", async () => {
-  const js = await fetchText(`${FRONTEND}/src/state.js`);
+  const js = readSource("src/state.js");
   if (!js.includes("window.zhimuState")) throw new Error("zhimuState not defined");
   for (const key of ["cloudStudio", "cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostStuckCount", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest", "cloudWorldLogs", "voiceRoomId", "voiceLiveStatus"]) {
     if (!js.includes(key)) throw new Error(`state missing ${key}`);
@@ -141,7 +179,7 @@ await check("state-runtime-boundaries", async () => {
   for (const removed of ["players:", "logs:", "demoStep:"]) {
     if (js.includes(removed)) throw new Error(`state still has demo runtime field ${removed}`);
   }
-  const dataJs = await fetchText(`${FRONTEND}/src/runtime/data.js`);
+  const dataJs = readSource("src/runtime/data.js");
   if (!dataJs.includes("clearRuntimeState")) throw new Error("clearRuntimeState not in runtime/data.js");
   if (!dataJs.includes("loadCloudData")) throw new Error("loadCloudData not in runtime/data.js");
   return "state + runtime cleanup present";
@@ -156,45 +194,45 @@ await check("no-hardcoded-assetsData", async () => {
 });
 
 await check("overview-uses-world-logs", async () => {
-  const overview = await fetchText(`${FRONTEND}/src/views/overview.js`);
-  const dataJs = await fetchText(`${FRONTEND}/src/runtime/data.js`);
+  const overview = readSource("src/views/overview.js");
+  const dataJs = readSource("src/runtime/data.js");
   if (!dataJs.includes("getWorldLogs")) throw new Error("loadCloudData must fetch getWorldLogs");
   if (!overview.includes("cloudWorldLogs")) throw new Error("overview must use cloudWorldLogs");
   return "world logs wired for overview";
 });
 
 await check("host-console-wired", async () => {
-  const director = await fetchText(`${FRONTEND}/src/views/director.js`);
+  const director = readSource("src/views/director.js");
   for (const token of ["hostPlayerTableRows", "openHostPlayerDetail", "host-runtime-table", "hostClueMatrixCard"]) {
     if (!director.includes(token)) throw new Error(`director view missing host console token ${token}`);
   }
-  const css = await fetchText(`${FRONTEND}/styles.css`);
+  const css = readSource("styles.css");
   if (!css.includes(".host-runtime-table")) throw new Error("styles missing host-runtime-table");
   return "host console UI + styles present";
 });
 
 await check("studio-node-edit-wired", async () => {
-  const studio = await fetchText(`${FRONTEND}/src/views/studio.js`);
+  const studio = readSource("src/views/studio.js");
   for (const token of ["studioNodeEditPanel", "studio-save-node", "saveSelectedStudioNode"]) {
     if (!studio.includes(token)) throw new Error(`studio view missing token ${token}`);
   }
-  const apiJs = await fetchText(`${FRONTEND}/src/api/client.js`);
+  const apiJs = readSource("src/api/client.js");
   for (const method of ["updateScene", "updateClue", "updateInvestigationPoint", "getStudioNodeReferences"]) {
     if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
   }
-  const css = await fetchText(`${FRONTEND}/styles.css`);
+  const css = readSource("styles.css");
   if (!css.includes(".studio-edit-panel")) throw new Error("styles missing studio-edit-panel");
   return "studio node edit panel wired";
 });
 
 await check("clue-sharing-wired", async () => {
-  const player = await fetchText(`${FRONTEND}/src/views/player.js`);
-  const director = await fetchText(`${FRONTEND}/src/views/director.js`);
+  const player = readSource("src/views/player.js");
+  const director = readSource("src/views/director.js");
   for (const token of ["shareCloudClue", "sharedClueSection"]) {
     if (!player.includes(token)) throw new Error(`player view missing clue-sharing token ${token}`);
   }
   if (!director.includes("hostClueMatrixCard")) throw new Error("director view missing hostClueMatrixCard");
-  const apiJs = await fetchText(`${FRONTEND}/src/api/client.js`);
+  const apiJs = readSource("src/api/client.js");
   for (const method of ["shareClueToRoom", "updateCluePlayerNote", "getHostClueMatrix"]) {
     if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
   }
@@ -202,31 +240,31 @@ await check("clue-sharing-wired", async () => {
 });
 
 await check("rule-visual-wired", async () => {
-  const rules = await fetchText(`${FRONTEND}/src/views/rules.js`);
-  const ruleJs = await fetchText(`${FRONTEND}/rule-visual.js`);
+  const rules = readSource("src/views/rules.js");
+  const ruleJs = readSource("rule-visual.js");
   for (const token of ["openRuleEditor", "data-rule-tab", "validateRuleBody"]) {
     if (!rules.includes(token)) throw new Error(`rules view missing rule visual token ${token}`);
   }
   if (!ruleJs.includes("visualToRuleJson")) throw new Error("rule-visual.js missing visualToRuleJson");
-  const apiJs = await fetchText(`${FRONTEND}/src/api/client.js`);
+  const apiJs = readSource("src/api/client.js");
   if (!apiJs.includes("validateRuleBody")) throw new Error("api-client missing validateRuleBody");
   return "rule visual editor wired";
 });
 
 await check("room-events-wired", async () => {
-  const dataJs = await fetchText(`${FRONTEND}/src/runtime/data.js`);
+  const dataJs = readSource("src/runtime/data.js");
   for (const token of ["connectRoomEventStream", "handleRoomEvent", "roomEventsConnected"]) {
     if (!dataJs.includes(token)) throw new Error(`runtime/data.js missing room-events token ${token}`);
   }
-  const apiJs = await fetchText(`${FRONTEND}/src/api/client.js`);
+  const apiJs = readSource("src/api/client.js");
   if (!apiJs.includes("streamRoomEvents")) throw new Error("api-client missing streamRoomEvents");
   return "SSE room events wired";
 });
 
 await check("refresh-notify-wired", async () => {
-  const dataJs = await fetchText(`${FRONTEND}/src/runtime/data.js`);
-  const toastJs = await fetchText(`${FRONTEND}/src/components/toast.js`);
-  const director = await fetchText(`${FRONTEND}/src/views/director.js`);
+  const dataJs = readSource("src/runtime/data.js");
+  const toastJs = readSource("src/components/toast.js");
+  const director = readSource("src/views/director.js");
   for (const token of ["refreshHostRoom", "refreshHostEvents", "syncDirectorPolling"]) {
     if (!dataJs.includes(token)) throw new Error(`runtime/data.js missing refresh token ${token}`);
   }
@@ -238,22 +276,75 @@ await check("refresh-notify-wired", async () => {
 });
 
 await check("checkpoint-wired", async () => {
-  const archive = await fetchText(`${FRONTEND}/src/views/archive.js`);
-  for (const token of ["openCreateCheckpointModal", "openCheckpointDetail", "cloudCheckpoints", "create-checkpoint"]) {
+  const archive = readSource("src/views/archive.js");
+  for (const token of ["openCreateCheckpointModal", "openCheckpointDetail", "openRestoreCheckpointModal", "cloudCheckpoints", "create-checkpoint", "restore-checkpoint", "data-restore-scope", "restore-target-room"]) {
     if (!archive.includes(token)) throw new Error(`archive view missing checkpoint token ${token}`);
   }
-  const apiJs = await fetchText(`${FRONTEND}/src/api/client.js`);
-  for (const method of ["getCheckpoints", "createCheckpoint", "getCheckpoint"]) {
+  const apiJs = readSource("src/api/client.js");
+  for (const method of ["getCheckpoints", "createCheckpoint", "getCheckpoint", "restoreCheckpoint"]) {
     if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
   }
-  return "room checkpoint UI wired";
+  const userMsg = readSource("src/utils/user-messages.js");
+  if (!userMsg.includes("RESTORE_SCOPE_OPTIONS")) throw new Error("user-messages missing RESTORE_SCOPE_OPTIONS");
+  if (archive.includes("readingProgress")) throw new Error("archive must not expose raw scope keys in UI");
+  const css = readSource("styles.css");
+  if (!css.includes(".restore-scope-list")) throw new Error("styles missing restore-scope-list");
+  const dataJs = readSource("src/runtime/data.js");
+  if (!dataJs.includes("room.checkpoint_restored")) throw new Error("SSE handler missing room.checkpoint_restored");
+  return "checkpoint create/detail/restore UI + API wired";
+});
+
+await check("settings-world-patch-wired", async () => {
+  const settings = readSource("src/views/settings.js");
+  for (const token of ["save-world-settings", "save-room-settings", "settings-host-voice-listen", "hostVoiceListen"]) {
+    if (!settings.includes(token)) throw new Error(`settings view missing ${token}`);
+  }
+  const apiJs = readSource("src/api/client.js");
+  for (const method of ["getWorld", "patchWorld", "patchRoomSettings"]) {
+    if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
+  }
+  return "world + room settings PATCH wired";
+});
+
+await check("rules-preview-wired", async () => {
+  const director = readSource("src/views/director.js");
+  for (const token of ["directorRulesPreview", "refreshRulesPreview", "triggerManualRuleFromDirector", "rule-manual-trigger"]) {
+    if (!director.includes(token)) throw new Error(`director view missing rules preview token ${token}`);
+  }
+  const apiJs = readSource("src/api/client.js");
+  for (const method of ["previewRoomRules", "triggerManualRule"]) {
+    if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
+  }
+  const userMsg = readSource("src/utils/user-messages.js");
+  if (!userMsg.includes("rulePreviewStatusLabel")) throw new Error("user-messages missing rulePreviewStatusLabel");
+  return "rules preview + manual trigger wired";
+});
+
+await check("assets-filter-wired", async () => {
+  const assets = readSource("src/views/assets.js");
+  for (const token of ["assetKindFilter", "assetSearchQuery", "asset-filter", "asset-search-input", "reloadAssets"]) {
+    if (!assets.includes(token)) throw new Error(`assets view missing filter token ${token}`);
+  }
+  const apiJs = readSource("src/api/client.js");
+  if (!apiJs.includes("getAssets:")) throw new Error("api-client missing getAssets with query params");
+  return "assets kind/search filter wired";
+});
+
+await check("friendly-api-errors-wired", async () => {
+  const client = readSource("src/api/client.js");
+  const userMsg = readSource("src/utils/user-messages.js");
+  if (!client.includes("friendlyApiError")) throw new Error("api client must use friendlyApiError");
+  if (!userMsg.includes("CHECKPOINT_WORLD_MISMATCH")) throw new Error("user-messages must map CHECKPOINT_WORLD_MISMATCH");
+  if (!client.includes("idempotency-key")) throw new Error("idempotent writes must send idempotency-key header");
+  if (!client.includes("Last-Event-ID")) throw new Error("SSE must support Last-Event-ID cursor");
+  return "friendly errors + transparent idempotency/SSE cursor";
 });
 
 await check("inventory-wired", async () => {
-  const studio = await fetchText(`${FRONTEND}/src/views/studio.js`);
-  const player = await fetchText(`${FRONTEND}/src/views/player.js`);
-  const director = await fetchText(`${FRONTEND}/src/views/director.js`);
-  const dataJs = await fetchText(`${FRONTEND}/src/runtime/data.js`);
+  const studio = readSource("src/views/studio.js");
+  const player = readSource("src/views/player.js");
+  const director = readSource("src/views/director.js");
+  const dataJs = readSource("src/runtime/data.js");
   for (const token of ["openStudioItem", "studio-add-item", "requiredItemId"]) {
     if (!studio.includes(token)) throw new Error(`studio view missing inventory token ${token}`);
   }
@@ -262,7 +353,7 @@ await check("inventory-wired", async () => {
   }
   if (!director.includes("host-manual-grant-item")) throw new Error("director missing host grant item");
   if (!dataJs.includes("room.item_granted")) throw new Error("SSE handler missing room.item_granted");
-  const apiJs = await fetchText(`${FRONTEND}/src/api/client.js`);
+  const apiJs = readSource("src/api/client.js");
   for (const method of ["createItem", "updateItem", "deleteItem", "hostGrantItem"]) {
     if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
   }
@@ -270,9 +361,9 @@ await check("inventory-wired", async () => {
 });
 
 await check("livekit-voice-wired", async () => {
-  const player = await fetchText(`${FRONTEND}/src/views/player.js`);
-  const livekit = await fetchText(`${FRONTEND}/src/runtime/livekit-voice.js`);
-  const stateJs = await fetchText(`${FRONTEND}/src/state.js`);
+  const player = readSource("src/views/player.js");
+  const livekit = readSource("src/runtime/livekit-voice.js");
+  const stateJs = readSource("src/state.js");
   for (const token of ["voice-live-connect", "voice-live-disconnect", "voiceMicEnabled", "getVoiceRoomToken"]) {
     const bundle = `${player}${livekit}`;
     if (!bundle.includes(token)) throw new Error(`livekit voice missing token ${token}`);
@@ -280,16 +371,16 @@ await check("livekit-voice-wired", async () => {
   for (const key of ["voiceLiveStatus", "voiceParticipants"]) {
     if (!stateJs.includes(key)) throw new Error(`state missing ${key}`);
   }
-  const apiJs = await fetchText(`${FRONTEND}/src/api/client.js`);
+  const apiJs = readSource("src/api/client.js");
   if (!apiJs.includes("getVoiceRoomToken")) throw new Error("api-client missing getVoiceRoomToken");
   return "LiveKit voice client wired";
 });
 
 await check("recap-wired", async () => {
-  const archive = await fetchText(`${FRONTEND}/src/views/archive.js`);
-  const director = await fetchText(`${FRONTEND}/src/views/director.js`);
-  const dataJs = await fetchText(`${FRONTEND}/src/runtime/data.js`);
-  const stateJs = await fetchText(`${FRONTEND}/src/state.js`);
+  const archive = readSource("src/views/archive.js");
+  const director = readSource("src/views/director.js");
+  const dataJs = readSource("src/runtime/data.js");
+  const stateJs = readSource("src/state.js");
   for (const token of ["openCreateRecapModal", "openRecapDetail", "recapDetailView", "create-recap", "recap-detail"]) {
     if (!archive.includes(token)) throw new Error(`archive view missing recap token ${token}`);
   }
@@ -298,19 +389,19 @@ await check("recap-wired", async () => {
     if (!stateJs.includes(key)) throw new Error(`state missing ${key}`);
   }
   if (!dataJs.includes("getRecaps")) throw new Error("loadCloudData must fetch recaps");
-  const apiJs = await fetchText(`${FRONTEND}/src/api/client.js`);
+  const apiJs = readSource("src/api/client.js");
   for (const method of ["getRecaps", "getRecap", "getLatestRecap", "createRecap"]) {
     if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
   }
-  const css = await fetchText(`${FRONTEND}/styles.css`);
+  const css = readSource("styles.css");
   if (!css.includes(".recap-section")) throw new Error("styles missing recap-section");
   return "room recap UI + API wired";
 });
 
 await check("deferred-render", async () => {
-  const domJs = await fetchText(`${FRONTEND}/src/dom.js`);
-  const dataJs = await fetchText(`${FRONTEND}/src/runtime/data.js`);
-  const authJs = await fetchText(`${FRONTEND}/src/runtime/auth-world.js`);
+  const domJs = readSource("src/dom.js");
+  const dataJs = readSource("src/runtime/data.js");
+  const authJs = readSource("src/runtime/auth-world.js");
   if (!domJs.includes("window.zhimuRender")) throw new Error("zhimuRender helper missing from dom.js");
   if (!domJs.includes("window.zhimuLoadCloudData")) throw new Error("zhimuLoadCloudData helper missing from dom.js");
   if (!domJs.includes("window.zhimuHandle")) throw new Error("zhimuHandle helper missing from dom.js");
@@ -321,9 +412,9 @@ await check("deferred-render", async () => {
 });
 
 await check("world-switch-sync", async () => {
-  const appJs = await fetchText(`${FRONTEND}/app.js`);
-  const dataJs = await fetchText(`${FRONTEND}/src/runtime/data.js`);
-  const authJs = await fetchText(`${FRONTEND}/src/runtime/auth-world.js`);
+  const appJs = readSource("app.js");
+  const dataJs = readSource("src/runtime/data.js");
+  const authJs = readSource("src/runtime/auth-world.js");
   if (!appJs.includes("syncWorldSwitcher")) throw new Error("syncWorldSwitcher missing from app.js");
   if (!dataJs.includes("ensureActiveWorld")) throw new Error("ensureActiveWorld missing from data.js");
   if (!authJs.includes("正在读取你的剧本列表")) throw new Error("world library loading state missing");
@@ -331,8 +422,8 @@ await check("world-switch-sync", async () => {
 });
 
 await check("cloud-load-staged", async () => {
-  const dataJs = await fetchText(`${FRONTEND}/src/runtime/data.js`);
-  const stateJs = await fetchText(`${FRONTEND}/src/state.js`);
+  const dataJs = readSource("src/runtime/data.js");
+  const stateJs = readSource("src/state.js");
   if (dataJs.includes("loadCloudData();")) throw new Error("data.js must not auto-call loadCloudData on import");
   if (!dataJs.includes("loadCloudDataInternal")) throw new Error("staged loadCloudData missing");
   if (!stateJs.includes("cloudLoading")) throw new Error("cloudLoading flag missing from state");
@@ -340,8 +431,8 @@ await check("cloud-load-staged", async () => {
 });
 
 await check("content-package-p1-4-wired", async () => {
-  const client = await fetchText(`${FRONTEND}/src/api/client.js`);
-  const writer = await fetchText(`${FRONTEND}/src/views/writer.js`);
+  const client = readSource("src/api/client.js");
+  const writer = readSource("src/views/writer.js");
   for (const token of ["getContentPackageSummary", "previewContentPackageImport", "importContentPackageAsNewWorld"]) {
     if (!client.includes(token)) throw new Error(`${token} missing from api client`);
   }
@@ -352,7 +443,7 @@ await check("content-package-p1-4-wired", async () => {
 });
 
 await check("app-bootstrap-thin", async () => {
-  const appJs = await fetchText(`${FRONTEND}/app.js`);
+  const appJs = readSource("app.js");
   const lines = appJs.split("\n").filter((line) => line.trim() && !line.trim().startsWith("//")).length;
   if (lines > 120) throw new Error(`app.js still too large (${lines} non-empty lines)`);
   if (!appJs.includes("function render") || !appJs.includes("function go")) throw new Error("app.js must own render/go bootstrap");
@@ -367,15 +458,17 @@ await check("backend-health-reachable", async () => {
 });
 
 await check("frontend-api-config", async () => {
-  const config = await fetchText(`${FRONTEND}/config.js`);
+  const config = readSource("config.js");
   if (!config.includes("zhimuConfig")) throw new Error("zhimuConfig missing");
   if (!config.includes("apiBase")) throw new Error("apiBase missing");
-  if (!config.includes("4180")) throw new Error("local dev should default to port 4180");
-  return "local apiBase → :4180";
+  if (!config.includes("4180") && !config.includes("VITE_API_BASE")) {
+    throw new Error("config must default local api or read VITE_API_BASE");
+  }
+  return "zhimuConfig apiBase wired";
 });
 
 await check("xss-escapeHtml-used", async () => {
-  const formatJs = await fetchText(`${FRONTEND}/src/utils/format.js`);
+  const formatJs = readSource("src/utils/format.js");
   const sources = await fetchFrontendSources();
   const bundle = Object.values(sources).join("\n");
   const innerHtmlCount = (bundle.match(/innerHTML/g) || []).length;

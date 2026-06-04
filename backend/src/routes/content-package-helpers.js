@@ -1,4 +1,5 @@
 import { query, transaction } from "../db.js";
+import { throwErr } from "../api-errors.js";
 import { buildWorldSnapshot, creatorChecks, storageUsage } from "./world-helpers.js";
 
 export const PACKAGE_FORMAT = "zhimu-world-package";
@@ -7,20 +8,20 @@ export const PACKAGE_VERSION = 1;
 export function normalizeContentPackagePayload(body) {
   const envelope = body?.data ?? body;
   if (!envelope || typeof envelope !== "object") {
-    throw Object.assign(new Error("A valid Zhimu JSON content package is required"), { statusCode: 400 });
+    throwErr("CONTENT_PACKAGE_INVALID");
   }
   if (!Array.isArray(envelope.roles) || !Array.isArray(envelope.chapters)) {
-    throw Object.assign(new Error("Content package must include roles and chapters arrays"), { statusCode: 400 });
+    throwErr("CONTENT_PACKAGE_STRUCTURE_INVALID");
   }
   return envelope;
 }
 
 export function validateEnvelope(body) {
   if (body?.format && body.format !== PACKAGE_FORMAT) {
-    throw Object.assign(new Error(`Unsupported package format: ${body.format}`), { statusCode: 400 });
+    throwErr("CONTENT_PACKAGE_FORMAT_INVALID", `Unsupported package format: ${body.format}`);
   }
   if (body?.version && Number(body.version) !== PACKAGE_VERSION) {
-    throw Object.assign(new Error(`Unsupported package version: ${body.version}`), { statusCode: 400 });
+    throwErr("CONTENT_PACKAGE_VERSION_INVALID", `Unsupported package version: ${body.version}`);
   }
 }
 
@@ -435,7 +436,7 @@ export async function createWorldFromContentPackage(actorId, { name, summary = "
   const quota = await storageUsage(actorId);
   const worldCount = await query(`SELECT COUNT(*)::int AS count FROM worlds WHERE owner_user_id = $1 AND status <> 'archived'`, [actorId]);
   if (worldCount.rows[0].count >= quota.max_worlds) {
-    throw Object.assign(new Error("World quota exceeded"), { statusCode: 403 });
+    throwErr("WORLD_QUOTA_EXCEEDED");
   }
   const worldName = name?.trim() || data.world?.name?.trim() || "导入的世界";
   const worldSummary = summary?.trim() || data.world?.summary?.trim() || "";

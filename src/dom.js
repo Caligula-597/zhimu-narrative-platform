@@ -10,6 +10,11 @@
     const fn = window.zhimuRuntime?.render;
     if (typeof fn === "function") fn();
   };
+  /** Route at call time — split modules load before app.js defines zhimuRuntime.go. */
+  window.zhimuGo = function (view) {
+    const fn = window.zhimuRuntime?.go;
+    if (typeof fn === "function") fn(view);
+  };
   window.zhimuLoadCloudData = function (...args) {
     const fn = window.zhimuRuntime?.loadCloudData;
     return fn ? fn(...args) : Promise.resolve();
@@ -23,3 +28,4 @@
     if (typeof fn === "function") fn();
   };
 })(window);
+export {};

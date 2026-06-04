@@ -1,15 +1,31 @@
 import { query, transaction } from "../db.js";
 import { requireActor } from "../request-actor.js";
+import { sendErr } from "../api-errors.js";
 import { requireWorldRole } from "./route-guards.js";
 import { buildWorldSnapshot, creatorChecks } from "./world-helpers.js";
+import {
+  worldIdParams,
+  createSceneSchema,
+  createClueSchema,
+  patchSceneSchema,
+  patchClueSchema,
+  patchInvestigationPointSchema,
+  createInvestigationPointSchema,
+  createItemSchema,
+  patchItemSchema,
+  deleteItemSchema,
+  createContentVersionSchema,
+  restoreContentVersionSchema,
+  deleteContentVersionSchema,
+  createStoryEdgeSchema
+} from "./schemas.js";
 
 export async function registerStudioRoutes(app) {
-  app.post("/api/worlds/:worldId/scenes", async (request, reply) => {
+  app.post("/api/worlds/:worldId/scenes", { schema: createSceneSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { name, publicText = "", hostText = "", chapterId = null, metadata = {} } = request.body ?? {};
-    if (!name) return reply.code(400).send({ error: "name is required" });
     const result = await query(
       `INSERT INTO scenes (world_id, chapter_id, name, public_text, host_text, metadata)
        VALUES ($1, $2, $3, $4, $5, $6::jsonb) RETURNING *`,
@@ -18,12 +34,11 @@ export async function registerStudioRoutes(app) {
     return reply.code(201).send(result.rows[0]);
   });
 
-  app.post("/api/worlds/:worldId/clues", async (request, reply) => {
+  app.post("/api/worlds/:worldId/clues", { schema: createClueSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { name, publicText = "", hostText = "", visibility = "role", metadata = {} } = request.body ?? {};
-    if (!name) return reply.code(400).send({ error: "name is required" });
     const result = await query(
       `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
        VALUES ($1, $2, $3, $4, $5, $6::jsonb) RETURNING *`,
@@ -32,12 +47,12 @@ export async function registerStudioRoutes(app) {
     return reply.code(201).send(result.rows[0]);
   });
 
-  app.patch("/api/worlds/:worldId/scenes/:sceneId", async (request, reply) => {
+  app.patch("/api/worlds/:worldId/scenes/:sceneId", { schema: patchSceneSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, sceneId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { name, publicText, hostText, chapterId, metadata = {} } = request.body ?? {};
-    if (name !== undefined && !String(name).trim()) return reply.code(400).send({ error: "name cannot be empty" });
+    if (name !== undefined && !String(name).trim()) return sendErr(reply, "NAME_EMPTY");
     const result = await query(
       `UPDATE scenes
        SET name = COALESCE($3, name),
@@ -57,20 +72,16 @@ export async function registerStudioRoutes(app) {
         JSON.stringify(metadata)
       ]
     );
-    if (!result.rowCount) return reply.code(404).send({ error: "Scene not found" });
+    if (!result.rowCount) return sendErr(reply, "SCENE_NOT_FOUND");
     return result.rows[0];
   });
 
-  app.patch("/api/worlds/:worldId/clues/:clueId", async (request, reply) => {
+  app.patch("/api/worlds/:worldId/clues/:clueId", { schema: patchClueSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, clueId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { name, publicText, hostText, visibility, metadata = {} } = request.body ?? {};
-    if (name !== undefined && !String(name).trim()) return reply.code(400).send({ error: "name cannot be empty" });
-    const allowedVisibility = ["author", "host", "role", "faction", "public", "postgame"];
-    if (visibility !== undefined && !allowedVisibility.includes(visibility)) {
-      return reply.code(400).send({ error: "Unsupported visibility" });
-    }
+    if (name !== undefined && !String(name).trim()) return sendErr(reply, "NAME_EMPTY");
     const result = await query(
       `UPDATE clues
        SET name = COALESCE($3, name),
@@ -90,11 +101,11 @@ export async function registerStudioRoutes(app) {
         JSON.stringify(metadata)
       ]
     );
-    if (!result.rowCount) return reply.code(404).send({ error: "Clue not found" });
+    if (!result.rowCount) return sendErr(reply, "CLUE_NOT_FOUND");
     return result.rows[0];
   });
 
-  app.patch("/api/worlds/:worldId/investigation-points/:pointId", async (request, reply) => {
+  app.patch("/api/worlds/:worldId/investigation-points/:pointId", { schema: patchInvestigationPointSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, pointId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -102,14 +113,14 @@ export async function registerStudioRoutes(app) {
       name, description, interactionText, resultText, sceneId, clueId,
       requiredItemId, requiredRoleSlotId, sequence, metadata = {}
     } = request.body ?? {};
-    if (name !== undefined && !String(name).trim()) return reply.code(400).send({ error: "name cannot be empty" });
+    if (name !== undefined && !String(name).trim()) return sendErr(reply, "NAME_EMPTY");
     if (sceneId) {
       const scene = await query(`SELECT 1 FROM scenes WHERE id = $1 AND world_id = $2`, [sceneId, worldId]);
-      if (!scene.rowCount) return reply.code(404).send({ error: "Scene not found in world" });
+      if (!scene.rowCount) return sendErr(reply, "SCENE_WORLD_MISMATCH");
     }
     if (clueId) {
       const clue = await query(`SELECT 1 FROM clues WHERE id = $1 AND world_id = $2`, [clueId, worldId]);
-      if (!clue.rowCount) return reply.code(404).send({ error: "Clue not found in world" });
+      if (!clue.rowCount) return sendErr(reply, "CLUE_WORLD_MISMATCH");
     }
     const result = await query(
       `UPDATE investigation_points
@@ -141,21 +152,20 @@ export async function registerStudioRoutes(app) {
         JSON.stringify(metadata)
       ]
     );
-    if (!result.rowCount) return reply.code(404).send({ error: "Investigation point not found" });
+    if (!result.rowCount) return sendErr(reply, "INVESTIGATION_POINT_NOT_FOUND");
     return result.rows[0];
   });
 
-  app.post("/api/worlds/:worldId/scenes/:sceneId/investigation-points", async (request, reply) => {
+  app.post("/api/worlds/:worldId/scenes/:sceneId/investigation-points", { schema: createInvestigationPointSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, sceneId } = request.params;
     await requireWorldRole(actorId, worldId);
     const scene = await query(`SELECT 1 FROM scenes WHERE id = $1 AND world_id = $2`, [sceneId, worldId]);
-    if (!scene.rowCount) return reply.code(404).send({ error: "Scene not found" });
+    if (!scene.rowCount) return sendErr(reply, "SCENE_NOT_FOUND");
     const {
       name, description = "", interactionText = "", resultText = "", clueId = null,
       requiredItemId = null, requiredRoleSlotId = null, sequence = 0, metadata = {}
     } = request.body ?? {};
-    if (!name) return reply.code(400).send({ error: "name is required" });
     const result = await query(
       `INSERT INTO investigation_points
         (world_id, scene_id, name, description, interaction_text, result_text, clue_id,
@@ -168,12 +178,11 @@ export async function registerStudioRoutes(app) {
     return reply.code(201).send(result.rows[0]);
   });
 
-  app.post("/api/worlds/:worldId/items", async (request, reply) => {
+  app.post("/api/worlds/:worldId/items", { schema: createItemSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { name, publicText = "", hostText = "", unique = false, consumable = false, assetId = null, metadata = {} } = request.body ?? {};
-    if (!name?.trim()) return reply.code(400).send({ error: "name is required" });
     const itemMeta = {
       ...metadata,
       unique: Boolean(unique),
@@ -189,14 +198,14 @@ export async function registerStudioRoutes(app) {
     return reply.code(201).send(result.rows[0]);
   });
 
-  app.patch("/api/worlds/:worldId/items/:itemId", async (request, reply) => {
+  app.patch("/api/worlds/:worldId/items/:itemId", { schema: patchItemSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, itemId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { name, publicText, hostText, unique, consumable, assetId, metadata = {} } = request.body ?? {};
-    if (name !== undefined && !String(name).trim()) return reply.code(400).send({ error: "name cannot be empty" });
+    if (name !== undefined && !String(name).trim()) return sendErr(reply, "NAME_EMPTY");
     const current = await query(`SELECT metadata FROM items WHERE id = $1 AND world_id = $2`, [itemId, worldId]);
-    if (!current.rowCount) return reply.code(404).send({ error: "Item not found" });
+    if (!current.rowCount) return sendErr(reply, "ITEM_NOT_FOUND");
     const mergedMeta = {
       ...(current.rows[0].metadata ?? {}),
       ...metadata,
@@ -217,7 +226,7 @@ export async function registerStudioRoutes(app) {
     return result.rows[0];
   });
 
-  app.delete("/api/worlds/:worldId/items/:itemId", async (request, reply) => {
+  app.delete("/api/worlds/:worldId/items/:itemId", { schema: deleteItemSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, itemId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -226,14 +235,14 @@ export async function registerStudioRoutes(app) {
       [worldId, itemId]
     );
     if (refs.rows[0].count > 0) {
-      return reply.code(409).send({ error: "Item is referenced by investigation points" });
+      return sendErr(reply, "ITEM_REFERENCED");
     }
     const result = await query(`DELETE FROM items WHERE id = $1 AND world_id = $2 RETURNING id`, [itemId, worldId]);
-    if (!result.rowCount) return reply.code(404).send({ error: "Item not found" });
+    if (!result.rowCount) return sendErr(reply, "ITEM_NOT_FOUND");
     return { ok: true };
   });
 
-  app.get("/api/worlds/:worldId/studio", async (request) => {
+  app.get("/api/worlds/:worldId/studio", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -289,14 +298,14 @@ export async function registerStudioRoutes(app) {
     };
   });
 
-  app.get("/api/worlds/:worldId/creator-checks", async (request) => {
+  app.get("/api/worlds/:worldId/creator-checks", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     return { checks: creatorChecks(await buildWorldSnapshot(worldId)) };
   });
 
-  app.post("/api/worlds/:worldId/content-versions", async (request, reply) => {
+  app.post("/api/worlds/:worldId/content-versions", { schema: createContentVersionSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -309,12 +318,12 @@ export async function registerStudioRoutes(app) {
     return reply.code(201).send(result.rows[0]);
   });
 
-  app.post("/api/worlds/:worldId/content-versions/:versionId/restore", async (request, reply) => {
+  app.post("/api/worlds/:worldId/content-versions/:versionId/restore", { schema: restoreContentVersionSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, versionId } = request.params;
     await requireWorldRole(actorId, worldId);
     const version = await query(`SELECT snapshot FROM content_versions WHERE id = $1 AND world_id = $2`, [versionId, worldId]);
-    if (!version.rowCount) return reply.code(404).send({ error: "Content version not found" });
+    if (!version.rowCount) return sendErr(reply, "CONTENT_VERSION_NOT_FOUND");
     const snapshot = version.rows[0].snapshot;
     await transaction(async (client) => {
       for (const chapter of snapshot.chapters ?? []) {
@@ -335,27 +344,20 @@ export async function registerStudioRoutes(app) {
     return { ok: true };
   });
 
-  app.delete("/api/worlds/:worldId/content-versions/:versionId", async (request, reply) => {
+  app.delete("/api/worlds/:worldId/content-versions/:versionId", { schema: deleteContentVersionSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, versionId } = request.params;
     await requireWorldRole(actorId, worldId);
     const result = await query(`DELETE FROM content_versions WHERE id = $1 AND world_id = $2 RETURNING id`, [versionId, worldId]);
-    if (!result.rowCount) return reply.code(404).send({ error: "Content version not found" });
+    if (!result.rowCount) return sendErr(reply, "CONTENT_VERSION_NOT_FOUND");
     return { ok: true };
   });
 
-  app.post("/api/worlds/:worldId/story-edges", async (request, reply) => {
+  app.post("/api/worlds/:worldId/story-edges", { schema: createStoryEdgeSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { fromType, fromId, toType, toId, relationType = "mainline", label = "" } = request.body ?? {};
-    const nodeTypes = ["chapter", "scene", "clue", "investigation_point"];
-    if (!nodeTypes.includes(fromType) || !nodeTypes.includes(toType) || !fromId || !toId) {
-      return reply.code(400).send({ error: "Valid fromType, fromId, toType and toId are required" });
-    }
-    if (!["mainline", "parallel", "extension"].includes(relationType)) {
-      return reply.code(400).send({ error: "Unsupported relationType" });
-    }
     const result = await query(
       `INSERT INTO story_graph_edges (world_id, from_type, from_id, to_type, to_id, relation_type, label)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -364,5 +366,4 @@ export async function registerStudioRoutes(app) {
     );
     return reply.code(201).send(result.rows[0]);
   });
-
 }

@@ -88,11 +88,20 @@
 
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { render, go });
 
+  content.addEventListener("click", (event) => {
+    const nav = event.target.closest("[data-go]");
+    if (nav) {
+      event.preventDefault();
+      go(nav.dataset.go);
+    }
+  });
+
   document.querySelectorAll(".nav-item[data-view]").forEach((btn) => btn.addEventListener("click", () => go(btn.dataset.view)));
   document.querySelector("#run-btn").onclick = () => go("director");
   document.querySelector("#preview-btn").onclick = () => (state.cloudPlayer ? go("player") : R.openJoinRoom());
-  document.querySelector("#search-btn").onclick = () =>
-    window.zhimuModal.openModal("全局搜索尚未接入", "搜索界面仍在设计中，当前不会执行查询。后续将检索角色、线索、场景、事件与规则。", "知道了");
+  document.querySelector("#search-btn").onclick = () => window.zhimuGlobalSearch?.openGlobalSearch?.();
+  const authBannerLogin = document.querySelector("#auth-banner-login");
+  if (authBannerLogin) authBannerLogin.onclick = () => R.openAuth();
   document.querySelector("#notify-btn").onclick = () => {
     if (!window.zhimuUi.activeRuntimeRoom()) return T.showToast("请先选择运行房后再查看主持待办");
     go("director");
@@ -106,9 +115,16 @@
   };
 
   render();
-  R.loadCloudData().catch((error) => {
-    state.cloudLoading = false;
-    state.apiError = error.message || String(error);
-    window.zhimuRender();
-  });
+  window.zhimuAuthSession?.syncProfile?.();
+  window.zhimuAuthSession?.syncAuthBanner?.();
+  R.loadCloudData()
+    .catch((error) => {
+      state.cloudLoading = false;
+      state.apiError = error.message || String(error);
+      window.zhimuRender();
+    })
+    .finally(() => {
+      window.zhimuAuthSession?.promptAuthIfNeeded?.();
+    });
 })(window);
+export {};

@@ -1,4 +1,5 @@
 import mammoth from "mammoth";
+import { throwErr } from "./api-errors.js";
 
 const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 
@@ -26,14 +27,14 @@ function splitSections(text) {
 
 export async function parseCreatorDocument({ filename, contentBase64 }) {
   const buffer = Buffer.from(String(contentBase64 ?? ""), "base64");
-  if (!buffer.length || buffer.length > MAX_DOCUMENT_BYTES) throw Object.assign(new Error("Document must contain between 1 byte and 5 MB"), { statusCode: 413 });
+  if (!buffer.length || buffer.length > MAX_DOCUMENT_BYTES) throwErr("DOCUMENT_SIZE_INVALID");
   const extension = String(filename ?? "").toLowerCase().match(/\.[^.]+$/)?.[0];
   let text;
   if ([".txt", ".md", ".markdown"].includes(extension)) text = buffer.toString("utf8");
   else if (extension === ".docx") text = (await mammoth.extractRawText({ buffer })).value;
-  else throw Object.assign(new Error("Only TXT, Markdown and DOCX documents can be parsed"), { statusCode: 415 });
+  else throwErr("DOCUMENT_TYPE_UNSUPPORTED");
   const cleaned = cleanText(text);
-  if (!cleaned) throw Object.assign(new Error("Document does not contain readable text"), { statusCode: 422 });
+  if (!cleaned) throwErr("DOCUMENT_EMPTY");
   const sections = splitSections(cleaned).slice(0, 80);
   return { filename, text: cleaned, sections, characterCount: cleaned.length, sectionCount: sections.length };
 }

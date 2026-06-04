@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { pool, query } from "../src/db.js";
+import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
@@ -179,7 +179,7 @@ test("item_owned rule unlocks scene when player has item", async (context) => {
   );
   const sceneId = sceneRes.rows[0].id;
 
-  await app.inject({
+  const ruleRes = await app.inject({
     method: "POST",
     url: `/api/worlds/${worldId}/rules`,
     headers: { "x-user-id": hostUserId },
@@ -194,6 +194,7 @@ test("item_owned rule unlocks scene when player has item", async (context) => {
       actions: [{ type: "unlock_scene", sceneId }]
     }
   });
+  assert.equal(ruleRes.statusCode, 201, `rule create failed: ${JSON.stringify(ruleRes.json())}`);
 
   const grant = await app.inject({
     method: "POST",
@@ -202,7 +203,7 @@ test("item_owned rule unlocks scene when player has item", async (context) => {
     payload: { roleSlotId, itemId }
   });
   assert.equal(grant.statusCode, 200);
-  assert.ok(Array.isArray(grant.json().executedRules));
+  assert.ok(grant.json().executedRules.length > 0, "item_owned rule should execute on grant-item");
 
   const unlocked = await query(
     `SELECT 1 FROM room_content_unlocks WHERE room_id = $1 AND content_type = 'scene' AND content_id = $2`,
@@ -213,8 +214,4 @@ test("item_owned rule unlocks scene when player has item", async (context) => {
   await query(`DELETE FROM automation_rules WHERE room_id = $1 AND name LIKE '拥有钥匙解锁%'`, [fogRoomId]);
   await query(`DELETE FROM scenes WHERE id = $1`, [sceneId]);
   await query(`DELETE FROM items WHERE id = $1`, [itemId]);
-});
-
-test.after(async () => {
-  await pool.end();
 });

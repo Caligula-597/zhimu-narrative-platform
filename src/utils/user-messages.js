@@ -1,0 +1,199 @@
+/** User-facing copy — hide raw API codes and backend maintenance terms. */
+(function (window) {
+  const API_ERROR_MESSAGES = {
+    AUTH_REQUIRED: "请先登录后再继续。",
+    INVALID_CREDENTIALS: "邮箱或密码不正确。",
+    EMAIL_INVALID: "请输入有效的邮箱地址。",
+    DISPLAY_NAME_INVALID: "显示名需为 2～40 个字符。",
+    EMAIL_ALREADY_REGISTERED: "该邮箱已注册，请直接登录。",
+    USER_NOT_FOUND: "找不到该用户。",
+
+    FORBIDDEN: "你没有权限执行此操作。",
+    ROOM_MEMBERSHIP_REQUIRED: "你不是该运行房的成员。",
+    WORLD_EDITOR_REQUIRED: "需要世界编辑权限（创作者或编辑者）。",
+    HOST_ROLE_REQUIRED: "需要主持人权限才能执行此操作。",
+    VOICE_ACCESS_DENIED: "你无权进入该语音房。",
+
+    BAD_REQUEST: "请求无效，请检查填写内容后重试。",
+    VALIDATION_ERROR: "提交的数据格式不正确，请检查必填项。",
+    NOT_FOUND: "找不到请求的内容。",
+    CONFLICT: "操作与当前状态冲突，请刷新后重试。",
+    RATE_LIMITED: "操作过于频繁，请稍后再试。",
+    PAYLOAD_TOO_LARGE: "提交内容过大，请缩小文件或文本后重试。",
+    UNSUPPORTED_MEDIA_TYPE: "文件类型不受支持，请换用允许的格式。",
+    UNPROCESSABLE: "无法处理当前请求，请检查内容后重试。",
+    UPSTREAM_ERROR: "上游服务暂时出错，请稍后重试。",
+    GATEWAY_TIMEOUT: "请求超时，请检查网络后重试。",
+    INTERNAL_ERROR: "服务器暂时出错，请稍后重试。",
+    UNAVAILABLE: "服务暂时不可用，请稍后重试。",
+
+    WORLD_NOT_FOUND: "世界不存在或你无权访问。",
+    WORLD_QUOTA_EXCEEDED: "可创建的世界数量已达上限。",
+    COLLABORATOR_NOT_REGISTERED: "该邮箱尚未注册，请先邀请对方完成注册。",
+    COLLABORATION_MEMBER_NOT_FOUND: "找不到该协作者或无法变更所有者。",
+    COLLABORATION_ROLE_INVALID: "协作角色无效。",
+
+    ROOM_NOT_FOUND: "运行房不存在或你无权访问。",
+    PLAYER_ROLE_REQUIRED: "需要以玩家身份入房后才能继续。",
+    ROLE_SLOT_OCCUPIED: "该角色席位已被其他玩家占用。",
+    ROLE_SLOT_NOT_FOUND: "角色席位不存在。",
+    ROLE_SLOT_WORLD_MISMATCH: "所选角色不属于当前世界的运行房。",
+    INVITE_FIELDS_REQUIRED: "请填写邀请码并选择角色席位。",
+
+    NAME_REQUIRED: "请填写名称。",
+    NAME_EMPTY: "名称不能为空。",
+    TITLE_REQUIRED: "请填写标题。",
+    TITLE_BODY_SEQUENCE_REQUIRED: "请填写标题、正文与顺序。",
+    TITLE_BODY_REQUIRED: "请填写标题与正文。",
+    SEQUENCE_REQUIRED: "请填写名称与顺序。",
+    ROOM_NAME_INVITE_REQUIRED: "请填写房间名称与邀请码。",
+    PUBLICATION_STATUS_INVALID: "发布状态无效。",
+    CHAPTER_NOT_FOUND: "章节不存在。",
+    SCRIPT_SECTION_NOT_FOUND: "分幕不存在。",
+    SECTION_NOT_FOUND: "找不到该角色的分幕。",
+    SECTION_LOCKED: "该分幕尚未解锁，暂时无法标记为已读。",
+    CONTENT_VERSION_NOT_FOUND: "创作版本不存在。",
+    PARSED_DOCUMENT_REQUIRED: "请先完成文档解析后再提交。",
+    ROLE_SLOT_IMPORT_REQUIRED: "导入角色剧本前需选择有效的角色席位。",
+    NOTEBOOK_FIELDS_REQUIRED: "请填写笔记来源、标题与正文。",
+    VISIBILITY_INVALID: "可见范围设置无效。",
+
+    SCENE_NOT_FOUND: "场景不存在。",
+    SCENE_WORLD_MISMATCH: "场景不属于当前世界。",
+    CLUE_NOT_FOUND: "线索不存在。",
+    CLUE_WORLD_MISMATCH: "线索不属于当前世界。",
+    CLUE_NOT_OWNED: "你尚未获得该线索。",
+    CLUE_NOT_ACCESSIBLE: "你无权查看该线索。",
+    CLUE_OWNERSHIP_NOT_FOUND: "找不到该线索的持有记录。",
+    ITEM_NOT_FOUND: "物品不存在。",
+    ITEM_REFERENCED: "该物品被调查点引用，无法删除。",
+    INVESTIGATION_POINT_NOT_FOUND: "调查点不存在。",
+    INVESTIGATION_POINT_UNAVAILABLE: "该调查点尚未开放或不可用。",
+    REQUIRED_ITEM_MISSING: "缺少调查所需的物品。",
+    STORY_EDGE_NOT_FOUND: "剧情连线不存在。",
+    STUDIO_NODE_NOT_FOUND: "编排节点不存在。",
+    NODE_TYPE_UNSUPPORTED: "不支持的节点类型。",
+    STORY_EDGE_FIELDS_REQUIRED: "请完整填写连线的起点与终点。",
+    RELATION_TYPE_INVALID: "关系类型无效。",
+
+    RULE_NOT_FOUND: "规则不存在或已被删除。",
+    RULE_FIELDS_REQUIRED: "请填写规则名称、条件与动作。",
+    RULE_MODE_INVALID: "规则触发模式无效。",
+    RULE_NOT_MANUAL: "这条规则不是「手动触发」类型。",
+    RULE_DISABLED: "这条规则已暂停。",
+    RULE_ROOM_SCOPE_MISMATCH: "这条规则不适用于当前平行房。",
+    RULE_CONDITIONS_NOT_MET: "规则条件尚未满足，暂时无法触发。",
+    RULE_BODY_INVALID: "规则条件或动作引用无效，请检查后重试。",
+    HOST_EVENT_NOT_FOUND: "待确认事件不存在或已被处理。",
+
+    CHECKPOINT_NOT_FOUND: "找不到该存档点，可能已被删除。",
+    CHECKPOINT_WORLD_MISMATCH: "该存档与所选平行房不属于同一个世界，无法恢复。",
+    INVALID_SNAPSHOT: "存档快照无效，无法恢复。",
+    SNAPSHOT_VERSION_UNSUPPORTED: "存档版本过旧，无法恢复。",
+    RECAP_NOT_FOUND: "复盘报告不存在。",
+    RECAP_NOT_GENERATED: "尚未生成复盘报告。",
+
+    VOICE_ROOM_NAME_REQUIRED: "请填写语音房名称。",
+    VOICE_ROOM_TYPE_INVALID: "语音房类型无效。",
+    VOICE_MESSAGE_INVALID: "消息长度需在 1～1000 字之间。",
+    VOICE_ROOM_NOT_IN_PARALLEL_ROOM: "语音房不属于当前平行房。",
+    VOICE_MEMBER_NOT_IN_ROOM: "被邀请用户必须是运行房成员。",
+    LIVEKIT_NOT_CONFIGURED: "语音服务尚未配置，请联系管理员。",
+
+    STORAGE_QUOTA_EXCEEDED: "云端空间已满，请先清理附件。",
+    FILE_TOO_LARGE: "文件超出大小限制。",
+    ASSET_NOT_FOUND: "附件不存在或无权访问。",
+    ASSET_KIND_INVALID: "附件类型筛选无效。",
+    UPLOAD_SESSION_NOT_FOUND: "上传会话已过期，请重新上传。",
+    UPLOAD_SIZE_MISMATCH: "上传文件大小与请求不一致。",
+    UPLOAD_TYPE_MISMATCH: "上传文件类型与请求不一致。",
+    UPLOAD_FIELDS_REQUIRED: "上传缺少必要信息，请刷新后重试。",
+    UPLOAD_SCAN_NOT_CONFIGURED: "上传安全扫描未配置，请联系管理员。",
+    UPLOAD_SCAN_FAILED: "上传安全扫描失败，请稍后重试。",
+    UPLOAD_SCAN_INFECTED: "文件未通过安全扫描，已被拒绝。",
+    ASSET_VISIBILITY_INVALID: "附件可见范围无效。",
+    ASSET_ROLE_REQUIRED: "角色可见附件需指定角色席位。",
+    ASSET_ROOM_WORLD_MISMATCH: "运行房与当前世界不匹配。",
+    ASSET_ROLE_WORLD_MISMATCH: "角色席位与当前世界不匹配。",
+
+    STORY_MANUSCRIPT_REQUIRED: "请填写或粘贴剧本母稿正文。",
+    STORY_BLOCKS_EMPTY: "未能从文本中识别有效剧情块。",
+    DEEPSEEK_PACKAGE_REQUIRED: "缺少 DeepSeek 解析结果，请重新解析文档。",
+    DOCUMENT_SIZE_INVALID: "文档大小超出限制（最大 5 MB）。",
+
+    STORY_TEXT_REQUIRED: "请粘贴或输入剧情文本。",
+    DEEPSEEK_NOT_CONFIGURED: "DeepSeek 尚未配置，请在服务端填写 API Key。",
+    DOCUMENT_TYPE_UNSUPPORTED: "仅支持 TXT、Markdown 和 DOCX 文档。",
+    DOCUMENT_EMPTY: "文档中没有可读取的文字。",
+
+    CONTENT_PACKAGE_INVALID: "内容包格式无效。",
+    CONTENT_PACKAGE_STRUCTURE_INVALID: "内容包缺少必要的角色或章节数据。",
+    CONTENT_PACKAGE_VERSION_INVALID: "内容包版本不受支持。",
+    CONTENT_PACKAGE_FORMAT_INVALID: "内容包格式不受支持。"
+  };
+
+  const RESTORE_SCOPE_OPTIONS = [
+    { key: "readingProgress", label: "阅读进度", default: true, hint: "各角色已完成的分幕" },
+    { key: "clueOwnership", label: "线索归属", default: true, hint: "谁持有哪些线索、是否已读/公开" },
+    { key: "inventory", label: "背包物品", default: true, hint: "角色持有的道具数量" },
+    { key: "contentUnlocks", label: "已开放场景与分幕", default: true, hint: "当前房间已解锁的内容" },
+    { key: "pendingHostEvents", label: "待确认事件", default: true, hint: "尚未处理的主持确认队列" },
+    { key: "investigationRecords", label: "调查记录", default: true, hint: "各调查点是否已被触发" },
+    { key: "playerStates", label: "玩家位置与变量", default: true, hint: "当前场景与剧情变量" },
+    { key: "ruleExecutions", label: "自动化触发记录", default: true, hint: "哪些规则已被系统视为执行过" },
+    { key: "timelineLogs", label: "主持时间线", default: false, hint: "会替换现有日志，仅在你需要完整还原记录时勾选" }
+  ];
+
+  const RULE_PREVIEW_STATUS = {
+    would_execute: "条件已满足，将自动执行",
+    would_queue_host_confirm: "条件已满足，等待主持确认",
+    pending_host_event: "已有待确认事件",
+    manual_ready: "可手动触发",
+    conditions_unmet: "条件未满足",
+    already_executed: "已执行过（一次性规则）",
+    waiting: "等待中"
+  };
+
+  const ASSET_KIND_TABS = [
+    { id: "", label: "全部" },
+    { id: "image", label: "图片" },
+    { id: "audio", label: "音频" },
+    { id: "document", label: "文档" },
+    { id: "video", label: "视频" }
+  ];
+
+  const ASSET_KIND_LABELS = {
+    image: "图片",
+    audio: "音频",
+    video: "视频",
+    document: "文档",
+    archive: "压缩包"
+  };
+
+  function friendlyApiError(payload = {}, fallback = "操作失败，请稍后重试") {
+    if (payload.code && API_ERROR_MESSAGES[payload.code]) {
+      return API_ERROR_MESSAGES[payload.code];
+    }
+    return payload.error || fallback;
+  }
+
+  function assetKindLabel(kind) {
+    return ASSET_KIND_LABELS[kind] || kind || "附件";
+  }
+
+  function rulePreviewStatusLabel(status) {
+    return RULE_PREVIEW_STATUS[status] || "—";
+  }
+
+  window.zhimuUserMessages = {
+    API_ERROR_MESSAGES,
+    RESTORE_SCOPE_OPTIONS,
+    RULE_PREVIEW_STATUS,
+    ASSET_KIND_TABS,
+    ASSET_KIND_LABELS,
+    friendlyApiError,
+    assetKindLabel,
+    rulePreviewStatusLabel
+  };
+})(window);
+export {};

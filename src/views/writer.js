@@ -38,7 +38,7 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = R.go || (() => {});
+  const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
@@ -51,7 +51,7 @@ function writer(){
  if(!data)return `<section class="card"><h3>正在打开剧本杀创作中心...</h3><p>角色分幕、章节规则与版本记录正在从云端读取。</p></section>`;
  const statusName={draft:"草稿",testing:"测试中",published:"已发布"};
  const checks=state.cloudCreatorChecks||[];
- return `<section class="writer-hero"><div><p class="section-kicker">SCRIPTED MYSTERY CREATOR</p><h2>剧本杀创作中心</h2><p>先写每位玩家真正会读到的私人剧本，再控制公共章节何时进入测试和发布。剧情图谱只负责梳理关系，不会把跑团流程混进来。</p></div><div class="row"><button class="secondary-btn" data-action="deepseek-assistant">AI 剧情策划</button><button class="secondary-btn" data-action="story-manuscript">完整剧情</button><button class="secondary-btn" data-action="story-assistant">规则分类器</button><button class="secondary-btn" data-action="creator-import">导入内容</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="primary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div></section>
+ return `<section class="writer-hero"><div><p class="section-kicker">SCRIPTED MYSTERY CREATOR</p><h2>剧本杀创作中心</h2><p>先写每位玩家真正会读到的私人剧本，再控制公共章节何时进入测试和发布。剧情图谱只负责梳理关系，不会把跑团流程混进来。</p></div><div class="row"><button class="secondary-btn" data-action="deepseek-full-mystery">AI 整本悬疑</button><button class="secondary-btn" data-action="deepseek-assistant">AI 结构提案</button><button class="secondary-btn" data-action="story-manuscript">完整剧情</button><button class="secondary-btn" data-action="story-assistant">规则分类器</button><button class="secondary-btn" data-action="creator-import">导入内容</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="primary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div></section>
  <section class="writer-grid">
   <article class="card writer-main"><div class="section-head"><div><h3>角色私人剧本</h3><p>每个角色拥有独立分幕正文，玩家进入房间后只会读取自己的内容。</p></div><button class="secondary-btn" data-action="creator-add-role">＋ 新增角色</button></div>
    ${data.roles.map(role=>`<section class="role-manuscript"><div class="role-manuscript-head"><div><span class="asset-type">角色席位</span><h3>${role.name}</h3><p>${role.public_profile||"尚未补充公开身份"}</p></div><div class="row"><button class="secondary-btn" data-action="creator-edit-role" data-role="${role.id}">编辑席位</button><button class="primary-btn" data-action="creator-add-section" data-role="${role.id}">＋ 新增一幕</button></div></div>
@@ -59,7 +59,7 @@ function writer(){
   </article>
   <aside class="writer-side">
    <article class="card"><div class="section-head"><div><h3>章节发布控制</h3><p>草稿不会进入玩家房间。</p></div></div>${data.chapters.map(chapter=>`<div class="chapter-control"><div><strong>${chapter.sequence}. ${chapter.title}</strong><p>${chapter.summary||"尚未补充章节摘要"}</p></div><span class="status-chip ${chapter.publication_status}">${statusName[chapter.publication_status]}</span><button class="text-btn" data-action="creator-edit-chapter" data-chapter="${chapter.id}">设置</button></div>`).join("")||`<div class="empty-state">请先在剧情编排中新增章节。</div>`}</article>
-   <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>玩家视角测试</h3><p>发布前检查缺失内容与孤立节点。</p></div></div>${checks.length?checks.map(check=>`<div class="check-result ${check.level}"><b>${check.title}</b><span>${check.detail}</span></div>`).join(""):`<div class="empty-state">点击“运行发布检查”生成真实云端报告。</div>`}<button class="secondary-btn full-btn" data-go="player">切换玩家视角预览</button></article>
+   <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>玩家视角测试</h3><p>发布前检查缺失内容与孤立节点。</p></div></div>${checks.length?checks.map(check=>`<div class="check-result ${check.level}"><b>${check.title}</b><span>${check.detail}</span></div>`).join(""):`<div class="empty-state">点击“运行发布检查”生成真实云端报告。</div>`}<button class="secondary-btn full-btn" data-go="player">进入运行房 · 玩家视角</button><button class="text-btn full-btn" style="margin-top:8px" data-action="creator-preview">仅预览私人剧本（无需运行房）</button></article>
    <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>创作版本历史</h3><p>保存关键节点，需要时恢复正文与发布状态。</p></div></div>${data.versions.map(version=>`<div class="version-row"><div><strong>${version.label}</strong><p>${formatTime(version.created_at)}</p></div><div class="row"><button class="text-btn" data-action="creator-restore" data-version="${version.id}">恢复</button><button class="text-btn" data-action="creator-delete-version" data-version="${version.id}">删除</button></div></div>`).join("")||`<div class="empty-state">尚未保存创作快照。</div>`}</article>
   </aside>
  </section>
@@ -67,11 +67,11 @@ function writer(){
  ${creatorTool("协作权限","邀请已注册成员，分配协作者、主持人或只读观察者权限","creator-collaboration","管理成员 →")}
  ${creatorTool("运行日志","筛选阅读、调查、规则触发与主持操作记录","creator-logs","查看日志 →")}
  ${creatorTool("文档解析","解析 TXT、Markdown 或 DOCX，预览后写入母稿或角色私人剧本","creator-document-parser","解析文档 →")}
- ${placeholderModule("实体小卡","二维码或 NFC 绑定线索、道具和限定支线","实体卡激活 API")}
+ ${placeholderModule("实体小卡","二维码或 NFC 绑定线索、道具和限定支线")}
  </div></section>`;
 }
 
-function placeholderModule(title,text,feature){return `<article class="placeholder-module"><span>PLANNED</span><h3>${title}</h3><p>${text}</p><button class="text-btn" data-action="unavailable" data-feature="${feature}">查看规划 →</button></article>`}
+function placeholderModule(title,text){return `<article class="placeholder-module muted-plan"><span>筹备中</span><h3>${title}</h3><p>${text}</p><small class="muted-note">将在 Beta 阶段开放，当前版本不影响剧本创作与运行。</small></article>`}
 
 function creatorTool(title,text,action,label){return `<article class="placeholder-module connected"><span>CONNECTED</span><h3>${title}</h3><p>${text}</p><button class="text-btn" data-action="${action}">${label}</button></article>`}
 
@@ -149,6 +149,18 @@ async function openDeepseekAssistant(){
 }
 
 function deepseekProposalPreview(result){const proposal=result.proposal,plan=proposal.writingPlan||{};return `<section class="assistant-preview deepseek-preview"><div class="section-head"><div><p class="section-kicker">${escapeHtml(result.model)}</p><h3>${escapeHtml(proposal.title||"未命名提案")}</h3><p>${escapeHtml(proposal.logline||"")}</p></div><span class="cloud-pill">仅预览 · 尚未写入</span></div><div class="proposal-stats"><span>${proposal.chapters.length} 章</span><span>${proposal.scenes.length} 场景</span><span>${proposal.investigationPoints.length} 调查点</span><span>${proposal.clues.length} 线索</span><span>${proposal.edges.length} 连线</span><span>${Number(plan.targetWordCount||result.brief.targetWordCount)} 字建议</span></div><div class="proposal-chapters">${proposal.chapters.map(chapter=>`<article><b>${chapter.sequence}. ${escapeHtml(chapter.title)}</b><p>${escapeHtml(chapter.summary||"")}</p><small>建议字数：${Number((plan.chapterWordBudgets||[]).find(item=>item.chapterKey===chapter.key)?.targetWordCount||0)} 字</small></article>`).join("")}</div><div class="assistant-suggestions"><b>AI 写作建议</b>${proposal.suggestions.map(item=>`<p>· ${escapeHtml(item)}</p>`).join("")}</div></section>`}
+
+function deepseekMysteryPreview(result){const pkg=result.package||{},roles=pkg.roles||[];return `<section class="assistant-preview deepseek-preview"><div class="section-head"><div><p class="section-kicker">${escapeHtml(result.model||"DeepSeek")} · 整本悬疑包</p><h3>${escapeHtml(pkg.title||"未命名剧本")}</h3><p>${escapeHtml(pkg.summary||"")}</p></div><span class="cloud-pill">仅预览 · 尚未写入</span></div><div class="proposal-stats"><span>${roles.length} 角色</span><span>${(result.proposal?.chapters||[]).length} 章结构</span><span>${(result.proposal?.scenes||[]).length} 场景</span><span>${(pkg.overallManuscript||"").length} 字母稿</span></div><div class="proposal-chapters">${roles.slice(0,6).map((role)=>`<article><b>${escapeHtml(role.name)}</b><p>${escapeHtml((role.publicProfile||"").slice(0,120))}</p><small>${(role.sections||[]).length} 段私人正文</small></article>`).join("")}</div><div class="assistant-suggestions"><b>逻辑线说明</b>${(pkg.logicNotes||[]).slice(0,6).map((item)=>`<p>· ${escapeHtml(item)}</p>`).join("")||"<p>· 无</p>"}</div></section>`}
+
+async function openDeepseekFullMystery(){
+ try{
+  const [status,manuscript]=await Promise.all([zhimuApi.getDeepseekStatus(),zhimuApi.getStoryManuscript()]);
+  modal.className="modal deepseek-modal";modal.innerHTML=`<h2>AI 整本悬疑 · DeepSeek</h2><p class="wizard-intro">在结构提案基础上，生成六位角色私人正文与完整幕后母稿。确认后写入角色分幕、母稿与剧情编排。</p><div class="deepseek-status ${status.configured?"ready":"missing"}"><b>${status.configured?"DeepSeek 已连接":"DeepSeek 尚未配置"}</b><span>${status.configured?`当前模型：${escapeHtml(status.model)}`:"请在 backend/.env 中填写 DEEPSEEK_API_KEY。"}</span></div><div class="deepseek-grid"><div class="form-group">${studioField("剧本名称","aiTitle","input",state.cloudStudio?.world?.name||"")} ${studioField("一句话构想","aiPremise","textarea",state.cloudStudio?.world?.summary||"")} ${studioField("风格与氛围","aiStyle","input","悬疑调查，六人互补信息")} ${studioField("角色关系与秘密","aiRoleRequirements","textarea","六人身份差异明显，秘密彼此咬合。")} ${studioField("额外限制","aiRequirements","textarea","不要使用跑团数值。")}</div><aside class="deepseek-controls"><h3>规模</h3>${studioField("建议总字数","aiTargetWordCount","input","8000")}${studioField("章节数","aiChapterCount","input","4")}${studioField("场景数","aiSceneCount","input","10")}${studioField("调查点数","aiPointCount","input","14")}${studioField("线索数","aiClueCount","input","14")}<label class="check-label"><input type="checkbox" data-ai-reference checked> 参考当前完整剧情母稿</label><p class="muted-note">生成约需 1～3 分钟，请勿关闭窗口。</p></aside></div><div data-deepseek-mystery-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-ai-mystery-generate ${status.configured?"":"disabled"}>生成整本悬疑包</button><button class="primary-btn" data-ai-mystery-import disabled>确认写入云端</button></div>`;
+  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;let mystery=null;const preview=modal.querySelector("[data-deepseek-mystery-preview]"),generate=modal.querySelector("[data-ai-mystery-generate]"),commit=modal.querySelector("[data-ai-mystery-import]");
+  generate.onclick=async()=>{try{generate.disabled=true;generate.textContent="正在生成整本悬疑包…";const values=studioValues();mystery=await zhimuApi.proposeFullMysteryWithDeepseek({title:values.aiTitle,premise:values.aiPremise,style:values.aiStyle,requirements:values.aiRequirements,roleRequirements:values.aiRoleRequirements,targetWordCount:Number(values.aiTargetWordCount),chapterCount:Number(values.aiChapterCount),sceneCount:Number(values.aiSceneCount),investigationPointCount:Number(values.aiPointCount),clueCount:Number(values.aiClueCount),existingManuscript:modal.querySelector("[data-ai-reference]").checked?manuscript.body:""});preview.innerHTML=deepseekMysteryPreview(mystery);commit.disabled=false;showToast("整本悬疑包已生成，请复核后确认写入")}catch(error){showToast(error.message)}finally{generate.disabled=!status.configured;generate.textContent="重新生成整本悬疑包"}};
+  commit.onclick=async()=>{if(!mystery)return;try{commit.disabled=true;const result=await zhimuApi.importFullMysteryWithDeepseek(mystery);closeModal();await loadCloudData();go("writer");showToast(`已写入整本悬疑：${result.roles||6} 角色 · ${result.sections||"?"} 分幕`)}catch(error){commit.disabled=false;showToast(error.message)}};
+ }catch(error){showToast(error.message)}
+}
 
 function openStoryAssistant(){
  modal.className="modal story-assistant-modal";modal.innerHTML=`<h2>剧情助手</h2><p class="wizard-intro">粘贴剧情梗概或逐段素材。系统会先识别场景、线索和调查点，再生成建议连线。确认后才会写入剧情编排。</p><div class="assistant-guide"><b>推荐格式</b><span>每段用空行分隔。也可以使用“场景：”“线索：”“调查点：”开头提高识别准确度。</span></div><textarea class="field assistant-draft" rows="14" data-story-draft placeholder="场景：旧灯塔。潮水退去后，塔门露出一枚生锈的锁。&#10;&#10;调查点：检查塔门锁孔，发现内部残留蓝色蜡屑。&#10;&#10;线索：蓝色火漆碎片。它与匿名信上的封蜡一致。"></textarea><div data-assistant-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-assistant-analyze>分析分类</button><button class="primary-btn" data-assistant-import disabled>确认写入剧情编排</button></div>`;
@@ -266,6 +278,7 @@ async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContent
   viewExports.openDocumentParser = openDocumentParser;
   viewExports.fileToBase64 = fileToBase64;
   viewExports.openDeepseekAssistant = openDeepseekAssistant;
+  viewExports.openDeepseekFullMystery = openDeepseekFullMystery;
   viewExports.deepseekProposalPreview = deepseekProposalPreview;
   viewExports.openStoryAssistant = openStoryAssistant;
   viewExports.storyAssistantPreview = storyAssistantPreview;
@@ -275,3 +288,4 @@ async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContent
   viewExports.openCreatorImport = openCreatorImport;
   viewExports.importCreatorPackage = importCreatorPackage;
 })(window);
+export {};

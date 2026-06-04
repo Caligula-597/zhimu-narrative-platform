@@ -1,0 +1,29 @@
+{
+  "name": "zhimu",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:staging": "vite build --mode staging",
+    "preview": "vite preview",
+    "start": "node server.js",
+    "start:dist": "node server.js --dist",
+    "staging:up": "npm run build:staging && docker compose -f docker-compose.staging.yml --env-file .env.staging up -d --build",
+    "staging:down": "docker compose -f docker-compose.staging.yml --env-file .env.staging down",
+    "staging:logs": "docker compose -f docker-compose.staging.yml --env-file .env.staging logs -f api",
+    "staging:smoke": "node scripts/staging-smoke.mjs",
+    "check:modules": "node scripts/verify-script-load.mjs",
+    "verify:full": "node scripts/full-chain.mjs",
+    "verify:full:fresh": "node scripts/full-chain.mjs --fresh",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --headed",
+    "explore:ai": "node e2e/ai-explore.mjs",
+    "explore:ai:llm": "node e2e/ai-explore.mjs --llm --headed",
+    "postinstall": "node scripts/ensure-esm-exports.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "vite": "^6.3.5"
+  }
+}

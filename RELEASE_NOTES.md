@@ -1,27 +1,48 @@
 # 织幕 Alpha · Release Notes
 
-**版本标签建议**：`alpha-p0-p1-2026-06-03`  
-**分支**：`codex/runtime-invite-flow`  
+**最新增量**：2026-06-03 · Beta 过渡（内测 UI + 搜索 + E2E + 预发栈）  
+**版本标签建议**：`beta-gap-closure-2026-06-03`  
+**分支**：`main`
+
+---
+
+## 2026-06-03 · Beta 过渡增量
+
+| 领域 | 交付 |
+|------|------|
+| 前后端对齐 | 统一 `src/api/client.js`；`getHostPlayerDetail`、附件下载、DeepSeek 整本悬疑 UI |
+| 搜索 | `GET /worlds/:id/search` + 顶栏全局搜索弹窗（迁移 014） |
+| 内测 | `VITE_REQUIRE_AUTH`、登录条、Session 默认路径 |
+| E2E | Playwright 雾港全链路；`npm run verify:full:fresh` |
+| 预发 | Docker Compose + [docs/ops/STAGING.md](./docs/ops/STAGING.md) |
+| 验收 | backend **131** 测试 · schema **48** 路由 · smoke **18** · modules **29** |
+
+---
+
+**历史 Alpha 包**：`alpha-p0-p1-2026-06-03` · 分支 `codex/runtime-invite-flow`  
 **日期**：2026-06-03
 
 ---
 
-## 摘要
+## 摘要（Alpha P0–P1）
 
 本版本完成团队最高优先级 **P0-1～P0-5** 与 **P1 SSE** 全部交付：运行态数据诚实、主持台闭环、编排编辑、轻量通知、运行房存档、房间事件实时推送。未引入 presence、全站轮询或大型前端重构。
 
 ---
 
-## 最终验收（2026-06-03 · 重启 4180 后复验）
+## 最终验收（2026-06-03 · P0–P2 全量；详见 P2 增量表）
 
 | 命令 | 结果 |
 |------|------|
-| `npm test` | **25/25 通过** |
-| `npm run test:ui` | **20/20 通过** |
+| `npm run check:tests` + `npm test` | **83/83 通过**（含 checkpoint-restore-e2e · event-journal-e2e · idempotency） |
+| `node scripts/ui-smoke.js` | **29/29 通过** |
 | `npm run check` | **通过** |
-| `npm run test:smoke` | **13/13 通过**（含 `host-players`、`checkpoints`） |
+| `npm run test:smoke` | **16/16 通过**（含 recaps、items、livekit-token） |
+| `npm run test:ui:load` | **24/24 通过** |
 
-复验步骤：结束占用 4180 的旧进程 → `cd backend && npm run dev` → 新终端 `npm run test:smoke`。
+复验步骤：结束占用 4180/4173 的旧进程 → `npm run bootstrap:local` → `npm run dev` + `node server.js` → smoke / ui-smoke。
+
+> 历史记录：P0–P1 里程碑曾记录 25/25 test、13/13 smoke、20/20 ui-smoke；P2 扩展后数字已更新。
 
 ---
 
@@ -106,7 +127,7 @@
 
 | 命令 | 结果 |
 |------|------|
-| `npm test` | **53/53 通过** |
+| `npm run check:tests` + `npm test` | **83/83 通过** |
 | `node scripts/ui-smoke.js` | **29/29 通过** |
 | `npm run test:smoke` | **16/16 通过** |
 | `node scripts/verify-script-load.mjs` | **24/24 通过** |
@@ -133,11 +154,31 @@
 
 ## 已知局限（本版本不解决）
 
-- checkpoint **恢复回滚** API 未接入。
+- checkpoint **前端恢复按钮**未接入（后端 scoped restore + 幂等 + E2E 已就绪）。
 - LiveKit 需配置 `LIVEKIT_*` 才有真实音频；无 env 时仅文字频道。
 - 复盘为结构化非 AI 版；无 AI 叙事总结。
-- 无多节点 Redis/WebSocket 集群。
-- 规则仍为 JSON / 可视化编辑；无 `grant_item` 动作。
+- SSE 为单节点内存总线 + `room_event_journal` 落库；无 Redis 多实例广播。
+- 规则仍为 JSON / 可视化编辑；无 `grant_item` 动作（物品发放走 host API）。
+- 创作/资产 API 未全量 Fastify schema 化。
+
+---
+
+## 后端深化（2026-06-03 · 第二优先）
+
+- **存档 restore 完整 scope**：`ruleExecutions` 纳入回滚；`checkpoint-restore-e2e.test.js` 端到端验收。
+- **事件 journal 一致性**：`event-journal-e2e.test.js`（commit 落库 / rollback 不落库）。
+- **幂等扩展**：调查 · 公开线索 · 主持 execute/dismiss；`idempotency-coverage.test.js`。
+- **CI 可信**：`npm run check:tests`（≥80 下限）；测试 `--test-force-exit`，移除各文件重复 `pool.end()`。
+
+---
+
+## 后端基础（012–013 · 2026-06-03）
+
+- 迁移 `012_runtime_foundation.sql`：`checkpoint_restores`、`room_event_journal`、查询索引。
+- 迁移 `013_host_audit_and_idempotency.sql`：`host_audit_log`、`write_idempotency`。
+- Checkpoint 快照 **v2** + **scoped restore**（含 `ruleExecutions`）。
+- 评估文档：[ALPHA_ASSESSMENT.md](./ALPHA_ASSESSMENT.md) · [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)
+- 本地：`npm run bootstrap:local`
 
 ---
 

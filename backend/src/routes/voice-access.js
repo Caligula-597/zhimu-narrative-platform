@@ -1,4 +1,5 @@
 import { query } from "../db.js";
+import { throwErr } from "../api-errors.js";
 
 /** Shared voice-room authorization for messages, invites, and LiveKit tokens. */
 export async function resolveVoiceRoomAccess(actorId, voiceRoomId) {
@@ -32,7 +33,7 @@ export async function resolveVoiceRoomAccess(actorId, voiceRoomId) {
 export async function requireVoiceRoomAccess(actorId, voiceRoomId) {
   const access = await resolveVoiceRoomAccess(actorId, voiceRoomId);
   if (!access.allowed) {
-    throw Object.assign(new Error(access.error), { statusCode: 403 });
+    throwErr("VOICE_ACCESS_DENIED", access.error);
   }
   return access;
 }

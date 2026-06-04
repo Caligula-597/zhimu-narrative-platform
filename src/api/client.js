@@ -3,6 +3,7 @@ const API_BASE = runtimeConfig.apiBase || "/api";
 const demoMode = Boolean(runtimeConfig.demoMode);
 const demoUsers = runtimeConfig.demoUsers || {};
 const demoWorld = runtimeConfig.demoWorld || {};
+const friendlyApiError = window.zhimuUserMessages?.friendlyApiError || ((payload, fb) => payload.error || fb);
 
 const demoContext = {
   hostUserId: demoUsers.hostUserId || "",
@@ -21,9 +22,21 @@ function authHeaders(userId) {
   return headers;
 }
 
-async function request(path, { userId, method = "GET", body, timeoutMs = 20000 } = {}, authRetry = false) {
+function createIdempotencyKey() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return `idem-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function sseCursorKey(roomId) {
+  return `zhimuSseCursor:${roomId}`;
+}
+
+async function request(path, { userId, method = "GET", body, timeoutMs = 20000, idempotent = false, idempotencyKey } = {}, authRetry = false) {
   const headers = authHeaders(userId);
   if (body !== undefined) headers["content-type"] = "application/json";
+  if (idempotent && method !== "GET" && method !== "HEAD") {
+    headers["idempotency-key"] = idempotencyKey || createIdempotencyKey();
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -35,16 +48,26 @@ async function request(path, { userId, method = "GET", body, timeoutMs = 20000 }
     });
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
-      const message = payload.error || `${method} ${path} failed`;
+      if (response.status === 502 || response.status === 503 || response.status === 504) {
+        const err = new Error("无法连接后端 API。请确认已运行：cd backend && npm run dev（端口 4180）");
+        err.code = "API_UNAVAILABLE";
+        throw err;
+      }
+      const err = new Error(friendlyApiError(payload, `${method} ${path} failed`));
+      err.code = payload.code;
+      err.details = payload.details;
       if (response.status === 401 && !authRetry && localStorage.getItem("zhimuSessionToken")) {
         localStorage.removeItem("zhimuSessionToken");
-        return request(path, { userId, method, body, timeoutMs }, true);
+        return request(path, { userId, method, body, timeoutMs, idempotent, idempotencyKey }, true);
       }
-      throw new Error(message);
+      throw err;
     }
     return response.json();
   } catch (error) {
-    if (error.name === "AbortError") throw new Error(`请求超时：${path}`);
+    if (error.name === "AbortError") throw new Error(`请求超时，请检查网络后重试`);
+    if (error instanceof TypeError) {
+      throw new Error("无法连接后端 API。请确认已运行：cd backend && npm run dev（端口 4180）");
+    }
     throw error;
   } finally {
     clearTimeout(timer);
@@ -53,6 +76,7 @@ async function request(path, { userId, method = "GET", body, timeoutMs = 20000 }
 
 window.zhimuApi = {
   context: demoContext,
+  createIdempotencyKey,
   selectWorld(worldId) {
     demoContext.worldId = worldId;
     demoContext.roomId = localStorage.getItem(`zhimuActiveRoomId:${worldId}`) || "";
@@ -67,6 +91,10 @@ window.zhimuApi = {
   clearRoom() { demoContext.roomId = ""; localStorage.removeItem(`zhimuActiveRoomId:${demoContext.worldId}`); },
   loadKey() { return `${demoContext.worldId}:${demoContext.roomId}`; },
   getWorlds: (includeArchived = false) => request(`/worlds${includeArchived ? "?includeArchived=true" : ""}`, { userId: demoContext.hostUserId }),
+  getWorld: (worldId = demoContext.worldId) => request(`/worlds/${worldId}`, { userId: demoContext.hostUserId }),
+  patchWorld: (payload, worldId = demoContext.worldId) => request(`/worlds/${worldId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
+  patchRoomSettings: (settings, roomId = demoContext.roomId) =>
+    request(`/rooms/${roomId}/settings`, { userId: demoContext.hostUserId, method: "PATCH", body: { settings } }),
   deleteWorld: (worldId = demoContext.worldId) => request(`/worlds/${worldId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
   getWorldRooms: (worldId = demoContext.worldId) => request(`/worlds/${worldId}/rooms`, { userId: demoContext.hostUserId }),
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),
@@ -82,29 +110,55 @@ window.zhimuApi = {
   inviteVoiceRoomMembers: (voiceRoomId, inviteUserIds) => request(`/voice-rooms/${voiceRoomId}/members`, { userId: demoContext.playerUserId, method: "POST", body: { inviteUserIds } }),
   getRoomInvite: (inviteCode) => request(`/rooms/invite/${encodeURIComponent(inviteCode)}`, { userId: demoContext.playerUserId }),
   joinRoom: (inviteCode, roleSlotId) => request("/rooms/join", { userId: demoContext.playerUserId, method: "POST", body: { inviteCode, roleSlotId } }),
-  completeSection: (sectionId) => request(`/rooms/${demoContext.roomId}/sections/${sectionId}/complete`, { userId: demoContext.playerUserId, method: "POST" }),
+  completeSection: (sectionId) =>
+    request(`/rooms/${demoContext.roomId}/sections/${sectionId}/complete`, { userId: demoContext.playerUserId, method: "POST", idempotent: true }),
   addNotebookEntry: (entry) => request(`/rooms/${demoContext.roomId}/notebook`, { userId: demoContext.playerUserId, method: "POST", body: entry }),
   getHostProgress: () => request(`/rooms/${demoContext.roomId}/host-progress`, { userId: demoContext.hostUserId }),
   getHostPlayers: () => request(`/rooms/${demoContext.roomId}/host/players`, { userId: demoContext.hostUserId }),
-  getHostPlayerDetail: (roleSlotId) => request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}`, { userId: demoContext.hostUserId }),
-  hostGrantClue: (payload) => request(`/rooms/${demoContext.roomId}/host/grant-clue`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  hostUnlockSection: (payload) => request(`/rooms/${demoContext.roomId}/host/unlock-section`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  getHostPlayerDetail: (roleSlotId) =>
+    request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}`, { userId: demoContext.hostUserId }),
+  hostGrantClue: (payload) =>
+    request(`/rooms/${demoContext.roomId}/host/grant-clue`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true }),
+  hostUnlockSection: (payload) =>
+    request(`/rooms/${demoContext.roomId}/host/unlock-section`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true }),
   hostUnlockScene: (sceneId) => request(`/rooms/${demoContext.roomId}/scenes/${sceneId}/unlock`, { userId: demoContext.hostUserId, method: "POST" }),
   hostAddLog: (payload) => request(`/rooms/${demoContext.roomId}/host/log`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   hostSaveNotes: (roleSlotId, notes) => request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}/notes`, { userId: demoContext.hostUserId, method: "PUT", body: { notes } }),
   getExploration: () => request(`/rooms/${demoContext.roomId}/exploration`, { userId: demoContext.playerUserId }),
-  investigate: (pointId) => request(`/rooms/${demoContext.roomId}/investigation-points/${pointId}/investigate`, { userId: demoContext.playerUserId, method: "POST" }),
+  investigate: (pointId) =>
+    request(`/rooms/${demoContext.roomId}/investigation-points/${pointId}/investigate`, { userId: demoContext.playerUserId, method: "POST", idempotent: true }),
   readClue: (clueId) => request(`/rooms/${demoContext.roomId}/clues/${clueId}/read`, { userId: demoContext.playerUserId, method: "POST" }),
-  shareClueToRoom: (clueId, shared = true) => request(`/rooms/${demoContext.roomId}/clues/${clueId}/share-room`, { userId: demoContext.playerUserId, method: "POST", body: { shared } }),
+  shareClueToRoom: (clueId, shared = true) =>
+    request(`/rooms/${demoContext.roomId}/clues/${clueId}/share-room`, { userId: demoContext.playerUserId, method: "POST", body: { shared }, idempotent: true }),
   updateCluePlayerNote: (clueId, note) => request(`/rooms/${demoContext.roomId}/clues/${clueId}/player-note`, { userId: demoContext.playerUserId, method: "PATCH", body: { note } }),
   getHostClueMatrix: () => request(`/rooms/${demoContext.roomId}/host/clue-matrix`, { userId: demoContext.hostUserId }),
   hostClueNote: (clueId, payload) => request(`/rooms/${demoContext.roomId}/host/clues/${clueId}/notes`, { userId: demoContext.hostUserId, method: "PUT", body: payload }),
   getHostEvents: () => request(`/rooms/${demoContext.roomId}/host-events`, { userId: demoContext.hostUserId }),
-  executeHostEvent: (eventId) => request(`/rooms/${demoContext.roomId}/host-events/${eventId}/execute`, { userId: demoContext.hostUserId, method: "POST" }),
-  dismissHostEvent: (eventId) => request(`/rooms/${demoContext.roomId}/host-events/${eventId}/dismiss`, { userId: demoContext.hostUserId, method: "POST" }),
+  executeHostEvent: (eventId) =>
+    request(`/rooms/${demoContext.roomId}/host-events/${eventId}/execute`, { userId: demoContext.hostUserId, method: "POST", idempotent: true }),
+  dismissHostEvent: (eventId) =>
+    request(`/rooms/${demoContext.roomId}/host-events/${eventId}/dismiss`, { userId: demoContext.hostUserId, method: "POST", idempotent: true }),
+  batchHostEvents: (action, eventIds) =>
+    request(`/rooms/${demoContext.roomId}/host-events/batch`, {
+      userId: demoContext.hostUserId,
+      method: "POST",
+      body: { action, eventIds },
+      idempotent: true
+    }),
+  previewRoomRules: (roomId = demoContext.roomId) => request(`/rooms/${roomId}/rules/preview`, { userId: demoContext.hostUserId }),
+  triggerManualRule: (ruleId, roomId = demoContext.roomId) =>
+    request(`/rooms/${roomId}/rules/${ruleId}/trigger`, { userId: demoContext.hostUserId, method: "POST", idempotent: true }),
   getCheckpoints: () => request(`/rooms/${demoContext.roomId}/checkpoints`, { userId: demoContext.hostUserId }),
   getCheckpoint: (checkpointId) => request(`/rooms/${demoContext.roomId}/checkpoints/${checkpointId}`, { userId: demoContext.hostUserId }),
-  createCheckpoint: (payload) => request(`/rooms/${demoContext.roomId}/checkpoints`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  createCheckpoint: (payload) =>
+    request(`/rooms/${demoContext.roomId}/checkpoints`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  restoreCheckpoint: (checkpointId, { scope, targetRoomId } = {}) =>
+    request(`/rooms/${targetRoomId || demoContext.roomId}/checkpoints/${checkpointId}/restore`, {
+      userId: demoContext.hostUserId,
+      method: "POST",
+      body: { scope },
+      idempotent: true
+    }),
   getRecaps: () => request(`/rooms/${demoContext.roomId}/recaps`, { userId: demoContext.hostUserId }),
   getRecap: (recapId, asPlayer = false) =>
     request(`/rooms/${demoContext.roomId}/recaps/${recapId}`, { userId: asPlayer ? demoContext.playerUserId : demoContext.hostUserId }),
@@ -133,7 +187,8 @@ window.zhimuApi = {
   createItem: (payload) => request(`/worlds/${demoContext.worldId}/items`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   updateItem: (itemId, payload) => request(`/worlds/${demoContext.worldId}/items/${itemId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
   deleteItem: (itemId) => request(`/worlds/${demoContext.worldId}/items/${itemId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
-  hostGrantItem: (payload) => request(`/rooms/${demoContext.roomId}/host/grant-item`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  hostGrantItem: (payload) =>
+    request(`/rooms/${demoContext.roomId}/host/grant-item`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true }),
   createInvestigationPoint: (sceneId, payload) => request(`/worlds/${demoContext.worldId}/scenes/${sceneId}/investigation-points`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   updateInvestigationPoint: (pointId, payload) => request(`/worlds/${demoContext.worldId}/investigation-points/${pointId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
   getStudioNodeReferences: (nodeType, nodeId) => request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/references`, { userId: demoContext.hostUserId }),
@@ -175,8 +230,21 @@ window.zhimuApi = {
   updateStudioNodeAnchors: (nodeType, nodeId, anchors) => request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/anchors`, { userId: demoContext.hostUserId, method: "PUT", body: { anchors } }),
   updateStoryLayout: (positions) => request(`/worlds/${demoContext.worldId}/story-layout`, { userId: demoContext.hostUserId, method: "PUT", body: { positions } }),
   getStorageUsage: () => request("/storage/usage", { userId: demoContext.hostUserId }),
-  getAssets: () => request(`/worlds/${demoContext.worldId}/assets`, { userId: demoContext.hostUserId }),
+  getAssets: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.kind) query.set("kind", params.kind);
+    if (params.q) query.set("q", params.q);
+    const qs = query.toString();
+    return request(`/worlds/${demoContext.worldId}/assets${qs ? `?${qs}` : ""}`, { userId: demoContext.hostUserId });
+  },
   deleteAsset: (assetId) => request(`/assets/${assetId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
+  getAssetDownloadUrl: (assetId) => request(`/assets/${assetId}/download-url`, { userId: demoContext.hostUserId }),
+  searchWorld: (q, { limit, type } = {}) => {
+    const query = new URLSearchParams({ q: String(q).trim() });
+    if (limit) query.set("limit", String(limit));
+    if (type && type !== "all") query.set("type", type);
+    return request(`/worlds/${demoContext.worldId}/search?${query}`, { userId: demoContext.hostUserId });
+  },
   async uploadAsset(file) {
     const ticket = await request("/assets/upload-url", {
       userId: demoContext.hostUserId,
@@ -194,7 +262,7 @@ window.zhimuApi = {
       headers: ticket.requiredHeaders,
       body: file
     });
-    if (!upload.ok) throw new Error("对象存储上传失败，请检查 R2 CORS 设置");
+    if (!upload.ok) throw new Error("上传失败，请检查网络或存储配置");
     return request(`/assets/${ticket.assetId}/confirm`, {
       userId: demoContext.hostUserId,
       method: "POST"
@@ -207,10 +275,13 @@ window.zhimuApi = {
     const sessionToken = localStorage.getItem("zhimuSessionToken");
     if (sessionToken) headers.authorization = `Bearer ${sessionToken}`;
     else if (demoMode && userId) headers["x-user-id"] = userId;
+    const cursor = localStorage.getItem(sseCursorKey(roomId));
+    if (cursor) headers["Last-Event-ID"] = cursor;
+
     return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal }).then(async (res) => {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `SSE ${res.status}`);
+        throw new Error(friendlyApiError(err, `连接实时推送失败（${res.status}）`));
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -223,7 +294,12 @@ window.zhimuApi = {
         while ((idx = buffer.indexOf("\n\n")) >= 0) {
           const block = buffer.slice(0, idx);
           buffer = buffer.slice(idx + 2);
+          const idLine = block.split("\n").find((l) => l.startsWith("id: "));
           const dataLine = block.split("\n").find((l) => l.startsWith("data: "));
+          if (idLine) {
+            const eventId = idLine.slice(4).trim();
+            if (eventId) localStorage.setItem(sseCursorKey(roomId), eventId);
+          }
           if (!dataLine) continue;
           try {
             const msg = JSON.parse(dataLine.slice(6));
@@ -242,3 +318,4 @@ window.zhimuApi = {
     });
   }
 };
+export {};

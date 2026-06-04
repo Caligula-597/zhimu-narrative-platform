@@ -98,7 +98,7 @@ npm run demo:seed-exploration
 
 ## 3. Demo 前检查清单
 
-- [ ] `npm test` **53/53** · `node scripts/ui-smoke.js` **29/29** · `npm run test:smoke` **16/16**
+- [ ] `npm run check:tests` · `npm test` **83/83** · `node scripts/ui-smoke.js` **29/29** · `npm run test:smoke` **16/16**
 - [ ] `node scripts/verify-script-load.mjs` **24/24**
 - [ ] `node --test test/demo-act2-reading.test.js` 3/3（Act 2 / 第二章解锁）
 - [ ] 4180 为**当前代码**启动的进程（非旧进程）

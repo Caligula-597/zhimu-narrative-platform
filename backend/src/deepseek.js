@@ -1,3 +1,5 @@
+import { throwErr } from "./api-errors.js";
+
 const DEFAULT_BASE_URL = "https://api.deepseek.com";
 const DEFAULT_MODEL = "deepseek-v4-flash";
 const MIN_WORD_COUNT = 500;
@@ -99,15 +101,15 @@ ${JSON.stringify({ ...brief, premise: brief.premise || "请根据主题补充合
 }
 
 function assertArray(value, name) {
-  if (!Array.isArray(value)) throw Object.assign(new Error(`DeepSeek proposal ${name} must be an array`), { statusCode: 502 });
+  if (!Array.isArray(value)) throwErr("UPSTREAM_ERROR", `DeepSeek proposal ${name} must be an array`);
   return value;
 }
 
 function uniqueKeys(items, name) {
   const keys = new Set();
   for (const item of items) {
-    if (!item?.key || typeof item.key !== "string") throw Object.assign(new Error(`DeepSeek proposal ${name} item requires key`), { statusCode: 502 });
-    if (keys.has(item.key)) throw Object.assign(new Error(`DeepSeek proposal ${name} contains duplicate key: ${item.key}`), { statusCode: 502 });
+    if (!item?.key || typeof item.key !== "string") throwErr("UPSTREAM_ERROR", `DeepSeek proposal ${name} item requires key`);
+    if (keys.has(item.key)) throwErr("UPSTREAM_ERROR", `DeepSeek proposal ${name} contains duplicate key: ${item.key}`);
     keys.add(item.key);
   }
   return keys;
@@ -120,21 +122,21 @@ export function validateDeepseekProposal(raw) {
   const points = assertArray(proposal.investigationPoints, "investigationPoints").slice(0, 80);
   const clues = assertArray(proposal.clues, "clues").slice(0, 80);
   const edges = assertArray(proposal.edges, "edges").slice(0, 160);
-  if (!chapters.length || !scenes.length) throw Object.assign(new Error("DeepSeek proposal requires at least one chapter and one scene"), { statusCode: 502 });
+  if (!chapters.length || !scenes.length) throwErr("UPSTREAM_ERROR", "DeepSeek proposal requires at least one chapter and one scene");
   const keys = {
     chapter: uniqueKeys(chapters, "chapters"),
     scene: uniqueKeys(scenes, "scenes"),
     investigation_point: uniqueKeys(points, "investigationPoints"),
     clue: uniqueKeys(clues, "clues")
   };
-  for (const scene of scenes) if (!keys.chapter.has(scene.chapterKey)) throw Object.assign(new Error(`Scene references missing chapter: ${scene.chapterKey}`), { statusCode: 502 });
+  for (const scene of scenes) if (!keys.chapter.has(scene.chapterKey)) throwErr("UPSTREAM_ERROR", `Scene references missing chapter: ${scene.chapterKey}`);
   for (const point of points) {
-    if (!keys.scene.has(point.sceneKey)) throw Object.assign(new Error(`Investigation point references missing scene: ${point.sceneKey}`), { statusCode: 502 });
-    if (point.clueKey && !keys.clue.has(point.clueKey)) throw Object.assign(new Error(`Investigation point references missing clue: ${point.clueKey}`), { statusCode: 502 });
+    if (!keys.scene.has(point.sceneKey)) throwErr("UPSTREAM_ERROR", `Investigation point references missing scene: ${point.sceneKey}`);
+    if (point.clueKey && !keys.clue.has(point.clueKey)) throwErr("UPSTREAM_ERROR", `Investigation point references missing clue: ${point.clueKey}`);
   }
   for (const edge of edges) {
-    if (!keys[edge.fromType]?.has(edge.fromKey) || !keys[edge.toType]?.has(edge.toKey)) throw Object.assign(new Error("Story edge references missing node"), { statusCode: 502 });
-    if (!["mainline", "parallel", "extension"].includes(edge.relationType)) throw Object.assign(new Error(`Unsupported edge relation: ${edge.relationType}`), { statusCode: 502 });
+    if (!keys[edge.fromType]?.has(edge.fromKey) || !keys[edge.toType]?.has(edge.toKey)) throwErr("UPSTREAM_ERROR", "Story edge references missing node");
+    if (!["mainline", "parallel", "extension"].includes(edge.relationType)) throwErr("RELATION_TYPE_INVALID", `Unsupported edge relation: ${edge.relationType}`);
   }
   return {
     title: cleanText(proposal.title, 160),
@@ -147,7 +149,7 @@ export function validateDeepseekProposal(raw) {
 
 async function requestDeepseekJson(messages, maxTokens = 12000) {
   const config = deepseekConfig();
-  if (!config.configured) throw Object.assign(new Error("DeepSeek API 尚未配置。请在 backend/.env 中填写 DEEPSEEK_API_KEY。"), { statusCode: 503 });
+  if (!config.configured) throwErr("DEEPSEEK_NOT_CONFIGURED");
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
   try {
@@ -158,13 +160,13 @@ async function requestDeepseekJson(messages, maxTokens = 12000) {
       signal: controller.signal
     });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw Object.assign(new Error(payload.error?.message || `DeepSeek API request failed with ${response.status}`), { statusCode: 502 });
+    if (!response.ok) throwErr("UPSTREAM_ERROR", payload.error?.message || `DeepSeek API request failed with ${response.status}`);
     const content = payload.choices?.[0]?.message?.content;
-    if (!content) throw Object.assign(new Error("DeepSeek API returned an empty proposal"), { statusCode: 502 });
+    if (!content) throwErr("UPSTREAM_ERROR", "DeepSeek API returned an empty proposal");
     return { model: config.model, value: JSON.parse(content) };
   } catch (error) {
-    if (error.name === "AbortError") throw Object.assign(new Error("DeepSeek API 请求超时，请稍后重试。"), { statusCode: 504 });
-    if (error instanceof SyntaxError) throw Object.assign(new Error("DeepSeek API 返回了无法解析的 JSON，请重试。"), { statusCode: 502 });
+    if (error.name === "AbortError") throwErr("GATEWAY_TIMEOUT", "DeepSeek API 请求超时，请稍后重试。");
+    if (error instanceof SyntaxError) throwErr("UPSTREAM_ERROR", "DeepSeek API 返回了无法解析的 JSON，请重试。");
     throw error;
   } finally {
     clearTimeout(timeout);
@@ -180,26 +182,26 @@ export async function createDeepseekStoryProposal(input) {
 function validateMysteryPackage(raw, proposal) {
   const value = raw && typeof raw === "object" ? raw : {};
   const roles = assertArray(value.roles, "roles").slice(0, 6);
-  if (roles.length !== 6) throw Object.assign(new Error("DeepSeek mystery package requires exactly six roles"), { statusCode: 502 });
+  if (roles.length !== 6) throwErr("UPSTREAM_ERROR", "DeepSeek mystery package requires exactly six roles");
   const chapterKeys = new Set(proposal.chapters.map((chapter) => chapter.key));
   const roleKeys = new Set();
   for (const role of roles) {
-    if (!role?.key || roleKeys.has(role.key)) throw Object.assign(new Error("DeepSeek mystery package role keys must be unique"), { statusCode: 502 });
+    if (!role?.key || roleKeys.has(role.key)) throwErr("UPSTREAM_ERROR", "DeepSeek mystery package role keys must be unique");
     roleKeys.add(role.key);
     role.name = cleanText(role.name, 80);
     role.publicProfile = cleanText(role.publicProfile, 800);
     role.privateProfile = cleanText(role.privateProfile, 2000);
     role.sections = assertArray(role.sections, `roles.${role.key}.sections`).slice(0, 12);
-    if (!role.name || !role.sections.length) throw Object.assign(new Error(`DeepSeek mystery package role ${role.key} requires name and sections`), { statusCode: 502 });
+    if (!role.name || !role.sections.length) throwErr("UPSTREAM_ERROR", `DeepSeek mystery package role ${role.key} requires name and sections`);
     for (const section of role.sections) {
-      if (!chapterKeys.has(section.chapterKey)) throw Object.assign(new Error(`Role section references missing chapter: ${section.chapterKey}`), { statusCode: 502 });
+      if (!chapterKeys.has(section.chapterKey)) throwErr("UPSTREAM_ERROR", `Role section references missing chapter: ${section.chapterKey}`);
       section.title = cleanText(section.title, 160);
       section.body = cleanText(section.body, 6000);
-      if (!section.title || !section.body) throw Object.assign(new Error(`Role section in ${role.key} requires title and body`), { statusCode: 502 });
+      if (!section.title || !section.body) throwErr("UPSTREAM_ERROR", `Role section in ${role.key} requires title and body`);
     }
   }
   const overallManuscript = cleanText(value.overallManuscript, 30000);
-  if (!overallManuscript) throw Object.assign(new Error("DeepSeek mystery package requires overallManuscript"), { statusCode: 502 });
+  if (!overallManuscript) throwErr("UPSTREAM_ERROR", "DeepSeek mystery package requires overallManuscript");
   return {
     title: cleanText(value.title, 160) || proposal.title,
     summary: cleanText(value.summary, 1200) || proposal.logline,

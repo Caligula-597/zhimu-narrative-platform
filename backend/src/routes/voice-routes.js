@@ -1,4 +1,5 @@
 import { query, transaction } from "../db.js";
+import { sendErr, throwErr } from "../api-errors.js";
 import { publishRoomEvent } from "../room-event-bus.js";
 import { createVoiceRoomToken, isLiveKitConfigured } from "../livekit.js";
 import { requireActor } from "../request-actor.js";
@@ -42,9 +43,9 @@ export async function registerVoiceRoutes(app) {
     const { roomId } = request.params;
     await requireRoomRole(actorId, roomId);
     const { name, roomType = "invite_private", inviteUserIds = [] } = request.body ?? {};
-    if (!name?.trim()) return reply.code(400).send({ error: "Voice room name is required" });
-    if (!["public", "role_private", "invite_private"].includes(roomType)) return reply.code(400).send({ error: "Unsupported voice room type" });
-    if (!Array.isArray(inviteUserIds) || inviteUserIds.length > 20) return reply.code(400).send({ error: "inviteUserIds must be an array of up to 20 members" });
+    if (!name?.trim()) return sendErr(reply, "VOICE_ROOM_NAME_REQUIRED");
+    if (!["public", "role_private", "invite_private"].includes(roomType)) return sendErr(reply, "VOICE_ROOM_TYPE_INVALID");
+    if (!Array.isArray(inviteUserIds) || inviteUserIds.length > 20) return sendErr(reply, "VOICE_INVITE_LIST_INVALID");
     const room = await transaction(async (client) => {
       const created = await client.query(
         `INSERT INTO voice_rooms (room_id, name, room_type, created_by_user_id)
@@ -55,7 +56,7 @@ export async function registerVoiceRoutes(app) {
         const invitees = [...new Set([actorId, ...inviteUserIds])];
         for (const userId of invitees) {
           const member = await client.query(`SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2 AND status = 'active'`, [roomId, userId]);
-          if (!member.rowCount) throw Object.assign(new Error("Invited user must be an active room member"), { statusCode: 400 });
+          if (!member.rowCount) throwErr("VOICE_MEMBER_NOT_IN_ROOM");
           await client.query(
             `INSERT INTO voice_room_members (voice_room_id, user_id, invited_by_user_id, joined_at)
              VALUES ($1, $2, $3, now()) ON CONFLICT (voice_room_id, user_id) DO NOTHING`,
@@ -73,7 +74,7 @@ export async function registerVoiceRoutes(app) {
     const { voiceRoomId } = request.params;
     await requireVoiceRoomAccess(actorId, voiceRoomId);
     const body = String(request.body?.body ?? "").trim();
-    if (!body || body.length > 1000) return reply.code(400).send({ error: "Message body must contain between 1 and 1000 characters" });
+    if (!body || body.length > 1000) return sendErr(reply, "VOICE_MESSAGE_INVALID");
     const result = await query(
       `INSERT INTO voice_room_messages (voice_room_id, sender_user_id, body)
        VALUES ($1, $2, $3)
@@ -97,9 +98,9 @@ export async function registerVoiceRoutes(app) {
     const access = await requireVoiceRoomAccess(actorId, voiceRoomId);
     const { inviteUserIds = [] } = request.body ?? {};
     if (!Array.isArray(inviteUserIds) || !inviteUserIds.length || inviteUserIds.length > 20) {
-      return reply.code(400).send({ error: "inviteUserIds must contain between 1 and 20 members" });
+      return sendErr(reply, "VOICE_INVITE_COUNT_INVALID");
     }
-    if (access.room_type === "public") return reply.code(400).send({ error: "Public voice rooms do not require invitations" });
+    if (access.room_type === "public") return sendErr(reply, "VOICE_PUBLIC_NO_INVITE");
     const invitees = [...new Set(inviteUserIds)];
     await transaction(async (client) => {
       for (const userId of invitees) {
@@ -107,7 +108,7 @@ export async function registerVoiceRoutes(app) {
           `SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2 AND status = 'active'`,
           [access.room_id, userId]
         );
-        if (!member.rowCount) throw Object.assign(new Error("Invited user must be an active room member"), { statusCode: 400 });
+        if (!member.rowCount) throwErr("VOICE_MEMBER_NOT_IN_ROOM");
       }
       for (const userId of invitees) {
         await client.query(
@@ -124,9 +125,9 @@ export async function registerVoiceRoutes(app) {
     const actorId = requireActor(request);
     const { roomId, voiceRoomId } = request.params;
     const access = await resolveVoiceRoomAccess(actorId, voiceRoomId);
-    if (!access.allowed) return reply.code(403).send({ error: access.error });
-    if (access.room_id !== roomId) return reply.code(404).send({ error: "Voice room not found in this parallel room" });
-    if (!isLiveKitConfigured()) return reply.code(503).send({ error: "LiveKit is not configured on the server" });
+    if (!access.allowed) return sendErr(reply, "VOICE_ACCESS_DENIED", access.error);
+    if (access.room_id !== roomId) return sendErr(reply, "VOICE_ROOM_NOT_IN_PARALLEL_ROOM");
+    if (!isLiveKitConfigured()) return sendErr(reply, "LIVEKIT_NOT_CONFIGURED");
 
     const user = await query(`SELECT display_name FROM users WHERE id = $1`, [actorId]);
     const displayName = user.rows[0]?.display_name || "玩家";

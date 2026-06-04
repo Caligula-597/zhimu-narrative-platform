@@ -1,6 +1,12 @@
+import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole } from "./route-guards.js";
 import { buildWorldSnapshot } from "./world-helpers.js";
+import {
+  worldIdParams,
+  contentPackageEnvelopeSchema,
+  createWorldFromPackageSchema
+} from "./schemas.js";
 import {
   PACKAGE_FORMAT,
   PACKAGE_VERSION,
@@ -13,14 +19,14 @@ import {
 } from "./content-package-helpers.js";
 
 export async function registerContentPackageRoutes(app) {
-  app.get("/api/worlds/:worldId/content-package/summary", async (request) => {
+  app.get("/api/worlds/:worldId/content-package/summary", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     return exportSummaryForWorld(worldId);
   });
 
-  app.get("/api/worlds/:worldId/content-package", async (request) => {
+  app.get("/api/worlds/:worldId/content-package", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -32,7 +38,7 @@ export async function registerContentPackageRoutes(app) {
     };
   });
 
-  app.post("/api/worlds/:worldId/content-package/preview", async (request, reply) => {
+  app.post("/api/worlds/:worldId/content-package/preview", { schema: { params: worldIdParams, ...contentPackageEnvelopeSchema } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -42,22 +48,22 @@ export async function registerContentPackageRoutes(app) {
       const targetSnapshot = await buildWorldSnapshot(worldId);
       return buildImportPreview(payload, { targetSnapshot, mode: "append" });
     } catch (error) {
-      return reply.code(error.statusCode ?? 400).send({ error: error.message });
+      return sendErr(reply, error.code ?? "BAD_REQUEST", error.message);
     }
   });
 
-  app.post("/api/content-package/preview-new-world", async (request, reply) => {
+  app.post("/api/content-package/preview-new-world", { schema: contentPackageEnvelopeSchema }, async (request, reply) => {
     requireActor(request);
     try {
       validateEnvelope(request.body);
       const payload = normalizeContentPackagePayload(request.body);
       return buildImportPreview(payload, { mode: "new_world" });
     } catch (error) {
-      return reply.code(error.statusCode ?? 400).send({ error: error.message });
+      return sendErr(reply, error.code ?? "BAD_REQUEST", error.message);
     }
   });
 
-  app.post("/api/worlds/:worldId/content-package/import", async (request, reply) => {
+  app.post("/api/worlds/:worldId/content-package/import", { schema: { params: worldIdParams, ...contentPackageEnvelopeSchema } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -67,11 +73,11 @@ export async function registerContentPackageRoutes(app) {
       const result = await importContentPackage(worldId, payload);
       return reply.code(201).send({ ok: true, mode: "append", ...result });
     } catch (error) {
-      return reply.code(error.statusCode ?? 400).send({ error: error.message });
+      return sendErr(reply, error.code ?? "BAD_REQUEST", error.message);
     }
   });
 
-  app.post("/api/worlds/from-content-package", async (request, reply) => {
+  app.post("/api/worlds/from-content-package", { schema: createWorldFromPackageSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     try {
       validateEnvelope(request.body);
@@ -83,7 +89,7 @@ export async function registerContentPackageRoutes(app) {
       });
       return reply.code(201).send({ ok: true, mode: "new_world", ...result });
     } catch (error) {
-      return reply.code(error.statusCode ?? 400).send({ error: error.message });
+      return sendErr(reply, error.code ?? "BAD_REQUEST", error.message);
     }
   });
 }

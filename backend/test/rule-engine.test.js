@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { evaluateRoomRules, executeActions } from "../src/rule-engine.js";
-import { pool, query } from "../src/db.js";
+import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
@@ -216,6 +216,41 @@ test("rule with unmet conditions does not execute", async (context) => {
   assert.equal(unlock.rowCount, 0);
 });
 
-test.after(async () => {
-  await pool.end();
+test("any group executes when one branch is satisfied", async (context) => {
+  const suffix = `${Date.now()}-${Math.round(Math.random() * 10000)}`;
+  const fx = await createRuleFixture(suffix);
+  context.after(() => deleteFixture(fx.worldId));
+
+  const item = await query(
+    `INSERT INTO items (world_id, name, public_text, metadata)
+     VALUES ($1, '测试物品', 'desc', '{}'::jsonb)
+     RETURNING id`,
+    [fx.worldId]
+  );
+
+  const rule = await query(
+    `INSERT INTO automation_rules (world_id, room_id, name, mode, enabled, conditions, actions)
+     VALUES ($1, $2, '任一条件', 'automatic', true, $3::jsonb, $4::jsonb)
+     RETURNING id`,
+    [
+      fx.worldId,
+      fx.roomId,
+      JSON.stringify({
+        any: [
+          { type: "clue_owned", roleSlotId: fx.roleId, clueId: fx.clueId },
+          { type: "item_owned", roleSlotId: fx.roleId, itemId: item.rows[0].id }
+        ]
+      }),
+      JSON.stringify([{ type: "timeline_log", message: "any 规则触发" }])
+    ]
+  );
+
+  await query(
+    `INSERT INTO inventory (room_id, role_slot_id, item_id, quantity)
+     VALUES ($1, $2, $3, 1)`,
+    [fx.roomId, fx.roleId, item.rows[0].id]
+  );
+
+  const executed = await evaluateRoomRules(fx.roomId);
+  assert.deepEqual(executed, [rule.rows[0].id]);
 });

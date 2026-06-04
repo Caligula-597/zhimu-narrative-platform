@@ -217,8 +217,6 @@ fs.mkdirSync(path.join(root, "src/api"), { recursive: true });
 if (fs.existsSync(path.join(root, "state.js"))) {
   fs.copyFileSync(path.join(root, "state.js"), path.join(root, "src/state.js"));
 }
-if (fs.existsSync(path.join(root, "api-client.js"))) {
-  fs.copyFileSync(path.join(root, "api-client.js"), path.join(root, "src/api/client.js"));
-}
+// API client: src/api/client.js (single source of truth)
 
 console.log("Split complete. Unassigned:", unassigned.length);

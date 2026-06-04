@@ -44,11 +44,37 @@ test("validateRuleBody reports human-readable missing clue reference", () => {
   assert.ok(result.errors.some((item) => item.message.includes("动作 1") && item.message.includes("场景不存在")));
 });
 
-test("validateRuleBody rejects unsupported condition container", () => {
+test("validateRuleBody accepts grant_item action", () => {
   const result = validateRuleBody(snapshot, {
-    conditions: { any: [{ type: "reading_completed", roleSlotId: "role-1", scriptSectionId: "sec-1" }] },
+    conditions: {
+      all: [{ type: "item_owned", roleSlotId: "role-1", itemId: "item-1" }]
+    },
+    actions: [{ type: "grant_item", roleSlotId: "role-1", itemId: "item-1", quantity: 1 }]
+  });
+  assert.equal(result.ok, true);
+});
+
+test("validateRuleBody rejects mixed condition container", () => {
+  const result = validateRuleBody(snapshot, {
+    conditions: {
+      all: [{ type: "reading_completed", roleSlotId: "role-1", scriptSectionId: "sec-1" }],
+      any: [{ type: "item_owned", roleSlotId: "role-1", itemId: "item-1" }]
+    },
     actions: [{ type: "timeline_log", message: "ok" }]
   });
   assert.equal(result.ok, false);
-  assert.ok(result.errors[0].message.includes("conditions.all"));
+  assert.ok(result.errors[0].message.includes("不可混用"));
+});
+
+test("validateRuleBody accepts any group and variable_compare", () => {
+  const result = validateRuleBody(snapshot, {
+    conditions: {
+      any: [
+        { type: "item_owned", roleSlotId: "role-1", itemId: "item-1" },
+        { type: "variable_compare", roleSlotId: "role-1", key: "trust", operator: "gte", value: 2 }
+      ]
+    },
+    actions: [{ type: "timeline_log", message: "ok" }]
+  });
+  assert.equal(result.ok, true);
 });

@@ -15,12 +15,15 @@ const files = [
   "config.js",
   "src/dom.js",
   "src/state.js",
+  "src/utils/user-messages.js",
+  "src/utils/wizard-automation-templates.js",
   "src/api/client.js",
   "rule-visual.js",
   "src/utils/format.js",
   "src/components/emptyState.js",
   "src/components/toast.js",
   "src/components/modal.js",
+  "src/components/creator-guide.js",
   "src/views/overview.js",
   "src/views/writer.js",
   "src/views/studio.js",
@@ -32,6 +35,8 @@ const files = [
   "src/views/settings.js",
   "src/runtime/wizard.js",
   "src/runtime/auth-world.js",
+  "src/runtime/auth-session.js",
+  "src/runtime/global-search.js",
   "src/runtime/livekit-voice.js",
   "src/runtime/data.js",
   "src/runtime/actions.js",
@@ -49,7 +54,7 @@ const sandbox = {
     zhimuState: null,
     zhimuApi: null,
     zhimuDom: {
-      content: { innerHTML: "" },
+      content: { innerHTML: "", addEventListener() {}, removeEventListener() {} },
       toast: { textContent: "", classList: { add() {}, remove() {} } },
       modal: {
         className: "",
@@ -65,13 +70,27 @@ const sandbox = {
     zhimuModal: {},
     zhimuViews: {},
     zhimuRuntime: {},
-    zhimuRuleVisual: {}
+    zhimuRuleVisual: {},
+    zhimuUserMessages: {
+      friendlyApiError: (p, fb) => p.error || fb,
+      RESTORE_SCOPE_OPTIONS: [],
+      ASSET_KIND_TABS: [],
+      assetKindLabel: (k) => k,
+      rulePreviewStatusLabel: (s) => s
+    },
+    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+    crypto: { randomUUID: () => "test-uuid" },
+    fetch: async () => ({ ok: true, json: async () => ({}) })
   },
   document: {
+    getElementById: () => null,
     querySelector: () => ({
       textContent: "",
+      innerHTML: "",
       classList: { toggle() {}, add() {}, remove() {} },
       onclick: null,
+      addEventListener() {},
+      removeEventListener() {},
       dataset: {},
       querySelector: () => null,
       querySelectorAll: () => [],
@@ -101,6 +120,7 @@ const sandbox = {
   },
   navigator: { clipboard: { writeText: async () => {} } },
   location: { hostname: "localhost" },
+  import: { meta: { env: { VITE_API_BASE: "/api" } } },
   console
 };
 
@@ -120,8 +140,24 @@ const context = {
   AbortController: sandbox.AbortController,
   navigator: sandbox.navigator,
   location: sandbox.location,
+  import: sandbox.import,
   console
 };
+
+function stripEsmExport(source) {
+  return source.replace(/\nexport\s*\{\s*\}\s*;?\s*$/, "");
+}
+
+function prepareSource(rel, source) {
+  let s = stripEsmExport(source);
+  if (rel === "config.js") {
+    s = s.replace(
+      /const viteEnv = typeof import\.meta[\s\S]*?;\s*\n/,
+      "const viteEnv = { DEV: true, VITE_API_BASE: \"/api\" };\n"
+    );
+  }
+  return s;
+}
 
 let failed = false;
 for (const rel of files) {
@@ -132,7 +168,8 @@ for (const rel of files) {
     continue;
   }
   try {
-    vm.runInNewContext(fs.readFileSync(filePath, "utf8"), context);
+    const source = prepareSource(rel, fs.readFileSync(filePath, "utf8"));
+    vm.runInNewContext(source, context);
     console.log(`OK    ${rel}`);
   } catch (err) {
     console.error(`FAIL  ${rel}  ${err.message}`);

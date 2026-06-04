@@ -35,7 +35,6 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = R.go || (() => {});
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
   const openWizard = R.openWizard || (() => {});
@@ -98,6 +97,7 @@
   const openWorldLogs = V.writer?.openWorldLogs || (async () => {});
   const openDocumentParser = V.writer?.openDocumentParser || (async () => {});
   const openDeepseekAssistant = V.writer?.openDeepseekAssistant || (async () => {});
+  const openDeepseekFullMystery = V.writer?.openDeepseekFullMystery || (async () => {});
   const openStoryManuscript = V.writer?.openStoryManuscript || (async () => {});
   const openStoryAssistant = V.writer?.openStoryAssistant || (() => {});
   const exportCreatorPackage = V.writer?.exportCreatorPackage || (async () => {});
@@ -110,6 +110,7 @@
   const validateCloudRules = V.rules?.validateCloudRules || (async () => {});
   const openHostEventContext = V.director?.openHostEventContext || (() => {});
   const openHostPlayerDetail = V.director?.openHostPlayerDetail || (async () => {});
+  const openHostClueNote = V.director?.openHostClueNote || (async () => {});
   const openHostGrantClueModal = V.director?.openHostGrantClueModal || (() => {});
   const openHostGrantItemModal = V.director?.openHostGrantItemModal || (() => {});
   const openHostUnlockSectionModal = V.director?.openHostUnlockSectionModal || (() => {});
@@ -120,6 +121,14 @@
   const openRecapDetail = V.archive?.openRecapDetail || (async () => {});
   const closeRecapDetail = V.archive?.closeRecapDetail || (() => {});
   const openCheckpointDetail = V.archive?.openCheckpointDetail || (async () => {});
+  const openRestoreCheckpointModal = V.archive?.openRestoreCheckpointModal || (() => {});
+  const saveWorldSettings = V.settings?.saveWorldSettings || (async () => {});
+  const saveRoomSettings = V.settings?.saveRoomSettings || (async () => {});
+  const goWriterExport = V.settings?.goWriterExport || (() => {});
+  const setAssetFilter = V.assets?.setAssetFilter || (async () => {});
+  const downloadCloudAsset = V.assets?.downloadCloudAsset || (async () => {});
+  const refreshRulesPreview = V.director?.refreshRulesPreview || (async () => {});
+  const triggerManualRuleFromDirector = V.director?.triggerManualRuleFromDirector || (async () => {});
   const openVoiceRooms = V.player?.openVoiceRooms || (() => {});
   const openCreateVoiceRoom = V.player?.openCreateVoiceRoom || (() => {});
   const openInviteVoiceRoom = V.player?.openInviteVoiceRoom || (() => {});
@@ -139,14 +148,20 @@
   const openClueNoteModal = V.player?.openClueNoteModal || (() => {});
   const executeHostEvent = V.player?.executeHostEvent || (async () => {});
   const dismissHostEvent = V.player?.dismissHostEvent || (async () => {});
+  const toggleHostEventSelection = V.director?.toggleHostEventSelection || (() => {});
+  const syncHostEventSelectAll = V.director?.syncHostEventSelectAll || (() => {});
+  const batchHostEventsAction = V.director?.batchHostEventsAction || (async () => {});
   const deleteCloudAsset = V.assets?.deleteCloudAsset || (async () => {});
   const openAssetUpload = V.assets?.openAssetUpload || (() => {});
   window.zhimuViews = window.zhimuViews || {};
   function bindDynamic(){
   enhanceCloudPanels();
-  document.querySelectorAll("[data-go]").forEach(btn=>btn.onclick=()=>go(btn.dataset.go));
-  document.querySelectorAll("[data-action]").forEach(btn=>btn.onclick=()=>handle(btn.dataset.action,btn));
+  document.querySelectorAll("[data-action]").forEach(el=>{
+   if(el.type==="checkbox")el.onchange=()=>handle(el.dataset.action,el);
+   else el.onclick=()=>handle(el.dataset.action,el);
+  });
   if(state.view==="studio") bindStudioDragging();
+  if(state.view==="assets") V.assets?.bindAssetSearch?.();
 }
 
 function handle(action,el){
@@ -157,6 +172,13 @@ function handle(action,el){
   if(action==="recap-detail") return openRecapDetail(el.dataset.recap,el.dataset.player==="1");
   if(action==="recap-back") return closeRecapDetail();
   if(action==="checkpoint-detail") return openCheckpointDetail(el.dataset.checkpoint);
+  if(action==="restore-checkpoint") return openRestoreCheckpointModal(el.dataset.checkpoint);
+  if(action==="save-world-settings") return saveWorldSettings();
+  if(action==="save-room-settings") return saveRoomSettings();
+  if(action==="go-writer-export") return goWriterExport();
+  if(action==="asset-filter") return setAssetFilter(el.dataset.kind);
+  if(action==="rules-preview") return refreshRulesPreview();
+  if(action==="rule-manual-trigger") return triggerManualRuleFromDirector(el.dataset.rule);
   if(action==="delay-event") return showToast("已延迟，系统将在 15 分钟后提醒");
   if(action==="explore") return openModal("调查进行中",`你开始调查「${el.dataset.place}」。系统将根据角色状态、持有物品和已解读线索展示可发现的内容。`,`确认调查`);
   if(action==="new-rule") return openModal("新建自动化规则","使用“当满足条件，则执行动作”的方式配置规则。每个规则都支持自动执行、主持确认和仅手动三种模式。","开始配置");
@@ -190,6 +212,12 @@ function handle(action,el){
   if(action==="read-shared-clue") return readCloudClue(el.dataset.clue,true);
   if(action==="execute-host-event") return executeHostEvent(el.dataset.event);
   if(action==="dismiss-host-event") return dismissHostEvent(el.dataset.event);
+  if(action==="host-event-toggle") return toggleHostEventSelection(el.dataset.event,el.checked);
+  if(action==="host-event-select-all") return syncHostEventSelectAll(el.checked);
+  if(action==="batch-execute-host-events") return batchHostEventsAction("execute");
+  if(action==="batch-dismiss-host-events") return batchHostEventsAction("dismiss");
+  if(action==="open-creator-guide") return window.zhimuGuide?.openCreatorGuide?.();
+  if(action==="open-error-guide") return window.zhimuGuide?.openErrorGuide?.();
   if(action==="host-event-context") return openHostEventContext(el.dataset.event);
   if(action==="host-player-detail") return openHostPlayerDetail(el.dataset.role);
   if(action==="host-manual-grant-clue") return openHostGrantClueModal();
@@ -233,6 +261,9 @@ function handle(action,el){
   if(action==="room-join") return openJoinRoom(el.dataset.inviteCode);
   if(action==="room-create") return createParallelRoom();
   if(action==="deepseek-assistant") return openDeepseekAssistant();
+  if(action==="deepseek-full-mystery") return openDeepseekFullMystery();
+  if(action==="download-asset") return downloadCloudAsset(el.dataset.asset);
+  if(action==="host-clue-note") return openHostClueNote(el.dataset.clue,el.dataset.role);
   if(action==="story-manuscript") return openStoryManuscript();
   if(action==="story-assistant") return openStoryAssistant();
   if(action==="creator-add-role") return openCreatorRole();
@@ -249,7 +280,7 @@ function handle(action,el){
   if(action==="creator-delete-version") return deleteCreatorSnapshot(el.dataset.version);
   if(action==="delete-asset") return deleteCloudAsset(el.dataset.asset);
   if(action==="upload-asset") return openAssetUpload();
-  if(action==="unavailable") return openModal("功能尚未开放",`${el.dataset.feature||"该功能"} 尚未接入真实后端。界面保留用于确认产品结构，当前不会写入数据。`,"知道了");
+  if(action==="unavailable") return openModal("功能筹备中",`${el.dataset.feature||"该功能"} 将在后续版本开放。内测版请优先使用已接通的功能（剧本创作、编排、主持台与玩家入口）。`,"知道了");
 }
 
 function openCapabilities(){
@@ -265,3 +296,4 @@ function openCapabilities(){
 }
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { bindDynamic, handle, openCapabilities });
 })(window);
+export {};

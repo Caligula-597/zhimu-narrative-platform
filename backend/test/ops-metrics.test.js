@@ -1,0 +1,52 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createApp } from "../src/app.js";
+import { resetMetricsForTests } from "../src/metrics.js";
+
+test("GET /metrics returns Prometheus text", async (context) => {
+  resetMetricsForTests();
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  await app.inject({ method: "GET", url: "/api/health/live" });
+  const response = await app.inject({ method: "GET", url: "/metrics" });
+  assert.equal(response.statusCode, 200);
+  assert.match(response.headers["content-type"], /text\/plain/);
+  assert.match(response.body, /http_requests_total/);
+  assert.match(response.body, /db_pool_waiting/);
+  assert.match(response.body, /sse_connections_active/);
+});
+
+test("GET /metrics rejects invalid token when METRICS_TOKEN is set", async (context) => {
+  const previous = process.env.METRICS_TOKEN;
+  process.env.METRICS_TOKEN = "test-metrics-secret";
+  context.after(() => {
+    if (previous === undefined) delete process.env.METRICS_TOKEN;
+    else process.env.METRICS_TOKEN = previous;
+  });
+
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const denied = await app.inject({ method: "GET", url: "/metrics" });
+  assert.equal(denied.statusCode, 401);
+
+  const allowed = await app.inject({
+    method: "GET",
+    url: "/metrics",
+    headers: { "x-metrics-token": "test-metrics-secret" }
+  });
+  assert.equal(allowed.statusCode, 200);
+});
+
+test("responses include X-Trace-Id", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const response = await app.inject({
+    method: "GET",
+    url: "/api/health/live",
+    headers: { traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01" }
+  });
+  assert.equal(response.headers["x-trace-id"], "4bf92f3577b34da6a3ce929d0e0e4736");
+});

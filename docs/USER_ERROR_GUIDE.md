@@ -1,0 +1,133 @@
+# 织幕 · 错误提示与排查手册
+
+界面会将常见 API 错误码转为中文提示（见 `user-messages.js`）。若仍看到英文，说明该码尚未映射，可对照下表。
+
+**通用排查顺序**
+
+1. 确认已登录且选中正确的世界 / 平行房  
+2. 刷新页面或重新进入对应视图  
+3. 主持/编辑操作需对应权限  
+4. 仍失败时查看浏览器网络面板中响应 JSON 的 `code` 字段  
+
+---
+
+## 认证与会话
+
+| 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
+|--------|--------------|----------|----------|
+| AUTH_REQUIRED | 请先登录后再继续 | 未登录访问需鉴权 API | 调用 `/auth/me` 返回 401 |
+| INVALID_CREDENTIALS | 邮箱或密码不正确 | 登录失败 | 故意输错密码应出现 |
+| EMAIL_ALREADY_REGISTERED | 该邮箱已注册 | 重复注册 | 同一邮箱注册两次 |
+| EMAIL_INVALID | 邮箱格式无效 | 注册/登录格式错误 | 提交无 @ 的邮箱 |
+| DISPLAY_NAME_INVALID | 显示名长度不符合要求 | 注册时名称过短/过长 | 1 字或超长名称 |
+| USER_NOT_FOUND | 用户不存在 | 查询不存在用户 | 协作邀请未注册邮箱 |
+
+---
+
+## 权限
+
+| 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
+|--------|--------------|----------|----------|
+| FORBIDDEN | 没有权限执行此操作 | 角色权限不足 | 玩家账号调用主持 API |
+| HOST_ROLE_REQUIRED | 需要主持人权限 | 非主持访问主持接口 | 玩家 GET host-events |
+| ROOM_MEMBERSHIP_REQUIRED | 你不是该运行房成员 | 未入房访问房内 API | 未 join 时读 player-home |
+| WORLD_EDITOR_REQUIRED | 需要世界编辑权限 | viewer 修改世界内容 | viewer 角色 PATCH 世界 |
+| VOICE_ACCESS_DENIED | 无权进入该语音房 | 未受邀进入私密语音房 | 未邀请用户请求 token |
+
+---
+
+## 世界与房间
+
+| 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
+|--------|--------------|----------|----------|
+| WORLD_NOT_FOUND | 世界不存在或无权访问 | 错误 worldId | 删除世界后仍请求旧 ID |
+| WORLD_QUOTA_EXCEEDED | 可创建的世界数量已达上限 | 超出账号配额 | 连续创建超过 max_worlds |
+| ROOM_NOT_FOUND | 运行房不存在或无权访问 | 错误 roomId / 邀请码 | 错误 inviteCode join |
+| ROLE_SLOT_OCCUPIED | 该角色席位已被占用 | 两玩家选同一席 | 第二人 join 同 roleSlotId |
+| ROLE_SLOT_NOT_FOUND | 角色席位不存在 | join 时席位 ID 无效 | 伪造 UUID join |
+| ROLE_SLOT_WORLD_MISMATCH | 席位不属于该房间世界 | 跨世界席位 | join 时用其他世界的 roleId |
+| INVITE_FIELDS_REQUIRED | 请填写邀请码并选择角色 | join 缺字段 | POST join 空 body |
+
+---
+
+## 规则与主持确认
+
+| 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
+|--------|--------------|----------|----------|
+| RULE_NOT_FOUND | 规则不存在 | 编辑/触发已删规则 | 删除后 trigger |
+| RULE_DISABLED | 这条规则已暂停 | 触发已禁用规则 | enabled=false 时 manual trigger |
+| RULE_NOT_MANUAL | 不是手动触发类型 | 对 automatic 规则 trigger | preview 非 manual_ready 点触发 |
+| RULE_CONDITIONS_NOT_MET | 规则条件尚未满足 | 手动触发条件不足 | 条件未达成时 trigger |
+| RULE_MODE_INVALID | 规则模式无效 | 保存非法 mode | POST 非法 mode 字符串 |
+| RULE_FIELDS_REQUIRED | 请填写规则名称与条件/动作 | 规则 body 不完整 | 缺 name/conditions |
+| HOST_EVENT_NOT_FOUND | 待确认事件不存在或已处理 | 重复确认/已处理事件 | 对已 execute 的事件再点确认 |
+
+---
+
+## 存档与恢复
+
+| 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
+|--------|--------------|----------|----------|
+| CHECKPOINT_NOT_FOUND | 找不到该存档点 | 恢复已删存档 | 错误 checkpointId |
+| CHECKPOINT_WORLD_MISMATCH | 存档与平行房不属于同一世界 | 跨世界恢复 | restore 到其它世界的房 |
+| INVALID_SNAPSHOT | 存档快照无效 | 损坏快照数据 | 手工改 DB 快照为空 |
+| SNAPSHOT_VERSION_UNSUPPORTED | 存档版本过旧无法恢复 | 旧版 snapshot schema | 降级 snapshot version |
+
+---
+
+## 线索、调查与物品
+
+| 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
+|--------|--------------|----------|----------|
+| CLUE_NOT_OWNED | 你尚未获得该线索 | 读/分享未持有线索 | 读他人私有线索 |
+| CLUE_NOT_ACCESSIBLE | 无权查看该线索 | visibility 限制 | 未解锁时 read |
+| INVESTIGATION_POINT_UNAVAILABLE | 调查点尚未开放 | 场景未解锁或已调查 | 未 unlock 场景 investigate |
+| REQUIRED_ITEM_MISSING | 缺少所需物品 | 调查门槛物品不足 | 无物品时 investigate |
+| ITEM_NOT_FOUND | 物品不存在 | 引用已删物品 | 规则引用旧 itemId |
+| SECTION_LOCKED | 分幕尚未解锁 | 完成未开放分幕 | complete 未 unlock 分幕 |
+
+---
+
+## 资产与上传
+
+| 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
+|--------|--------------|----------|----------|
+| STORAGE_QUOTA_EXCEEDED | 云端空间已满 | 账号存储超限 | 上传至 quota 满 |
+| FILE_TOO_LARGE | 文件超出大小限制 | 单文件过大 | 上传超大文件 |
+| ASSET_NOT_FOUND | 附件不存在 | 删除后访问 | 错误 assetId |
+| UPLOAD_SESSION_NOT_FOUND | 上传会话已过期 | confirm 超时 | 延迟 confirm |
+| DOCUMENT_TYPE_UNSUPPORTED | 不支持的文档类型 | 解析非 txt/md/docx | 上传 pdf 解析 |
+
+---
+
+## AI 与内容包
+
+| 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
+|--------|--------------|----------|----------|
+| DEEPSEEK_NOT_CONFIGURED | DeepSeek 尚未配置 | 无 API Key | 未配 DEEPSEEK_API_KEY |
+| LIVEKIT_NOT_CONFIGURED | 语音服务未配置 | 无 LiveKit env | token 503 |
+| CONTENT_PACKAGE_INVALID | 内容包格式无效 | 导入非 JSON/错误结构 | 导入 `{}` |
+| CONTENT_PACKAGE_VERSION_INVALID | 内容包版本不支持 | 旧版 package | 改 schemaVersion |
+
+---
+
+## 系统与限流
+
+| 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
+|--------|--------------|----------|----------|
+| RATE_LIMITED | 操作过于频繁，请稍后再试 | 生产环境限流 | 短时间大量 login/write |
+| VALIDATION_ERROR | 请求参数不符合要求 | Fastify schema 失败 | 缺必填字段 |
+| NOT_FOUND | 请求的资源不存在 | 错误 URL | GET 不存在路由 |
+| INTERNAL_ERROR | 服务器内部错误 | 未捕获异常 | 查看后端日志 |
+
+---
+
+## 边界测试建议（自测清单）
+
+- 玩家账号访问 `host-events`、`checkpoints` POST → 应 403  
+- 恢复存档到另一世界的平行房 → CHECKPOINT_WORLD_MISMATCH  
+- 手动触发 disabled / 非 manual 规则 → RULE_DISABLED / RULE_NOT_MANUAL  
+- 批量确认已处理事件 → 跳过条数增加，不报错崩溃  
+- 向导勾选全部模板 → 规则列表出现 3～4 条（含暂停占位）  
+
+技术完整码表见 [backend/docs/API_ERRORS.md](../backend/docs/API_ERRORS.md)。

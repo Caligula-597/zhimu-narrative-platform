@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { pool, query } from "../src/db.js";
+import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
@@ -158,8 +158,4 @@ test("token endpoint returns 503 when LiveKit env is missing", async (context) =
   } finally {
     for (const [key, value] of Object.entries(saved)) process.env[key] = value;
   }
-});
-
-test.after(async () => {
-  await pool.end();
 });

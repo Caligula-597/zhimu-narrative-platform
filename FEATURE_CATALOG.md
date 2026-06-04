@@ -1,7 +1,8 @@
 # 织幕 · 完整功能目录（Alpha）
 
 > **文档用途**：团队协调用的功能总表。每个功能标明已实现、部分实现、未实现与已知局限。  
-> **更新日期**：2026-06-03（P0-1～P1 + **P2-1 LiveKit · P2-2 物品 · P2-3 复盘**；见 §12–§26）
+> **一张表总览（后端/前端/未接通/缺陷）**：见 **[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)** ← 推荐协调时先看此文档。  
+> **更新日期**：2026-06-03（P0-1～P1 + **P2 LiveKit/物品/复盘** + **§27 后端基础与 restore E2E**）  
 > **版本阶段**：Alpha（可内测，非生产 SaaS）
 
 ---
@@ -56,7 +57,7 @@
 | 剧本库入口 | ✅ | 世界切换器打开已有剧本 | — |
 | 平行运行房 | ✅ | 同一剧本多房间；独立邀请码、进度、日志、语音 | 房间无合并/对比视图 |
 | 世界总览页 | ✅ | `cloudStudio` 章节脉络、`cloudWorldLogs` 最近事件、`cloudHost` 阅读进度（选中运行房时）、`cloudAssets` 附件统计；无数据时显示空状态 | 未选运行房时不展示玩家进度；需手动刷新日志 |
-| 全局搜索 | 🔲 | 顶栏按钮 | 弹窗明确「尚未接入」 |
+| 全局搜索 | ✅ | 顶栏 ⌕ → `GET /worlds/:id/search`；ILIKE + `plainto_tsquery` | 结果跳转工作区，暂不支持图谱内高亮定位 |
 | 通知铃铛 | ✅ | 数量来自 `pending_host_events`；点击跳转主持台；SSE 推送或手动刷新后更新 | SSE 连接时主持台停止 15s 轮询；断线自动回退轮询 |
 
 **后端 API**：`GET/POST/DELETE /worlds` · `GET/POST /worlds/:id/rooms`
@@ -135,7 +136,7 @@
 |------|------|--------|----------------|
 | 规则分类器（本地） | ✅ | 粘贴文本 → 分类场景/线索/调查点 → 写入编排 | 规则基于关键词启发式，非 LLM |
 | DeepSeek 结构提案 | 🟡 | propose + import；服务端 schema 校验 | **需配置 `DEEPSEEK_API_KEY`**；否则仅 UI 提示 |
-| DeepSeek 完整 mystery 包 | 🟡 | 含角色分幕+母稿的 bulk import | 同上；生成质量依赖 prompt |
+| DeepSeek 完整 mystery 包 | ✅ | 创作台「AI 整本悬疑」→ propose + import | **需 `DEEPSEEK_API_KEY`** |
 | AI 不自动发布 | ✅ | 一律需作者确认后 import | — |
 
 **后端 API**：story-assistant/* · deepseek/*
@@ -190,10 +191,10 @@
 | 卡关预警 | ✅ | 启发式：`maybe_stuck`（45 分钟无活动 / 30 分钟未读首段）；`stuckCount` 来自 API | 非 ML；依赖 reading_progress / clue / investigate 活动时间 |
 | 玩家详情弹窗 | ✅ | 分幕进度、线索、调查、笔记、最近日志、主持备注 | SSE 触发局部刷新，无需整页 reload |
 | 待确认事件 | ✅ | 列表含规则来源、动作预览；确认 / 拒绝 / 查看上下文 | 无自定义主持事件编辑器 |
-| 手动主持动作 | ✅ | 发放线索、解锁分幕、开放场景、写入主持日志、**创建运行房存档点** | 恢复回滚未接入 |
+| 手动主持动作 | ✅ | 发放线索、解锁分幕、开放场景、写日志、**创建存档点** | **恢复回滚 UI 未接**（后端 API 已就绪） |
 | 玩家阅读进度 | ✅ | completed/total sections；`current_scene_id` 来自 player_states | scene 更新路径仍有限 |
 | 进入主持台 | ✅ | 需选运行房 | — |
-| 存档点（主持台） | ✅ | 「创建存档点」写入 `checkpoints` JSONB 快照 | **不支持一键恢复** |
+| 存档点（主持台） | ✅ | 「创建存档点」写入 checkpoints | **不支持 UI 一键恢复** |
 
 **后端 API**：`GET host/players` · `GET host/players/:roleSlotId` · `POST host/grant-clue` · `POST host/unlock-section` · `POST host/log` · `PUT host/players/:roleSlotId/notes` · `POST host-events/:id/dismiss` · `GET/POST checkpoints` · host-progress（兼容） · host-events · execute · scene unlock
 
@@ -205,7 +206,7 @@
 | 临时私密房 | ✅ | 多选邀请；文字 + LiveKit | — |
 | 私密房权限 | ✅ | voice_room_members + token 校验 | — |
 | LiveKit token | ✅ | `POST .../voice-rooms/:id/token` | secret 仅存服务端 |
-| 主持旁听 | ✅ | `rooms.settings.hostVoiceListen` | 设置 UI 待接入 |
+| 主持旁听 | ✅ | `rooms.settings.hostVoiceListen` | 设置 UI 未接 PATCH room settings |
 | 房内文字消息 | ✅ | 最近 80 条；隔离未受邀成员 | 无图片/表情、无编辑删除 |
 | 切换语音房 | ✅ | 玩家 UI；切换时断开旧音频 | 无 Push 通知 |
 
@@ -222,9 +223,9 @@
 | 下载签名 URL | ✅ | 权限校验 visibility | 链接短期有效 |
 | 回收站 | ✅ | 软删除；14 天后 purge 脚本 | 无 UI 恢复，仅移入回收站 |
 | 存储用量 | ✅ | 账号级 used/max | — |
-| 资产分类 Tab | 🔲 | UI 已禁用并标注「待接入」 | 无筛选 API |
-| 新建内容按钮 | 🔲 | 按钮标注「待接入」，点击说明 API 未接入 | 场景/线索请在编排台创建 |
-| 资产内搜索框 | 🔲 | 输入框 disabled，标注 Alpha 尚未接入 | — |
+| 资产分类 Tab | ✅ | 按 kind 筛选；中文标签 | — |
+| 新建内容按钮 | 🔲 | 占位说明 | 场景/线索请在编排台创建 |
+| 资产内搜索框 | ✅ | 按文件名 `?q=` 搜索 | — |
 
 **后端 API**：storage/usage · assets · upload-url · confirm · download-url · DELETE asset
 
@@ -234,10 +235,11 @@
 
 | 功能 | 状态 | 已实现 | 未实现 / 局限 |
 |------|------|--------|----------------|
-| 存档时间线 UI | ✅ | 真实 checkpoint 列表；无静态假数据 | 无恢复 |
-| 房间 checkpoint | ✅ | `GET/POST checkpoints` · JSONB 快照 | 无 restore API |
+| 存档时间线 UI | ✅ | 真实 checkpoint 列表；卡片「可恢复」 | — |
+| 房间 checkpoint | ✅ | `GET/POST checkpoints` · JSONB 快照 v2 | — |
+| 存档恢复 | ✅ | scoped restore + 跨平行房 · 中文 scope 勾选 · 幂等 · SSE toast | 恢复历史/审计不对用户展示 |
 | 房间复盘报告 | ✅ | `GET/POST recaps` · 全局/玩家视角 · 真实日志与线索流转 | 无 AI 总结 |
-| 分支结局 / 回滚 | 🔲 | 可查看快照；UI 标注恢复未接入 | 无回滚 API |
+| 分支结局 / 回滚 | ✅ | 快照 + scoped restore + 幂等 + 前端恢复弹窗 | — |
 | 创作版本 vs 运行存档 | — | 创作版本仅恢复正文 | **二者不同概念，勿混淆** |
 
 **后端 API**：`GET/POST /rooms/:roomId/checkpoints` · `GET /rooms/:roomId/checkpoints/:id` · `GET/POST /rooms/:roomId/recaps` · `GET /rooms/:roomId/recaps/:id` · `GET /rooms/:roomId/recap/latest`
@@ -248,7 +250,7 @@
 
 | 功能 | 状态 | 已实现 | 未实现 / 局限 |
 |------|------|--------|----------------|
-| 设置页 | 🟡 | 只读展示 `cloudStudio.world` 名称/简介与角色席位数；导入导出入口 | 保存设置、运行方式写入 API 未接入 |
+| 设置页 | ✅ | 编辑世界名/简介；`hostVoiceListen` 开关；导出/导入跳转创作台 | 实体卡绑定仍占位 |
 | 导入导出 | ✅ | 同创作中心 content-package | — |
 | 实体卡 / LiveKit 说明 | 🔲 | 文字规划 | — |
 
@@ -269,15 +271,16 @@
 
 | 项目 | 状态 | 说明 |
 |------|------|------|
-| PostgreSQL 迁移 | ✅ | **11** 个 migration（含 `room_recaps`）；无 SQLite |
+| PostgreSQL 迁移 | ✅ | **13** 个 migration（含审计/幂等 013）；无 SQLite |
 | Supabase 云库 | ✅ | 生产/开发可连 |
 | Cloudflare R2 | ✅ | 私有 bucket + 签名 URL |
 | 路由模块化 | ✅ | `backend/src/routes/*.js` + helpers |
-| 单元/集成测试 | ✅ | **53 项**（auth · checkpoint · clue-sharing · content-package · demo-act2 · host · **inventory** · **livekit** · **recap** · room-events · rule-engine · runtime · studio-edit · worlds-list） |
-| API smoke | ✅ | `scripts/smoke-api.js` **16 项**真实库（需本地 4180 已启动最新后端） |
-| UI smoke | ✅ | `scripts/ui-smoke.js` **29 项**（P0-1～P2 接线检查） |
+| 单元/集成测试 | ✅ | **101 项** / 30 文件 |
+| 测试数量门禁 | ✅ | `npm run check:tests`（下限 ≥100，`verify-test-count.mjs`） |
+| API smoke | ✅ | `scripts/smoke-api.js` **17 项**真实库（含 checkpoint-restore） |
+| UI smoke | ✅ | `scripts/ui-smoke.js` **33 项**（含 restore/settings/rules-preview/assets 接线） |
 | 脚本加载验证 | ✅ | `scripts/verify-script-load.mjs` **24 项**（捕获 SyntaxError） |
-| GitHub Actions CI | ✅ | `.github/workflows/ci.yml` |
+| GitHub Actions CI | ✅ | migrate → seed → check → check:boot → **check:tests** → npm test → smoke |
 | WebSocket 实时推送 | 🔲 | 未开始（多节点集群场景） |
 | SSE 房间事件流 | ✅ | `GET /api/rooms/:roomId/events/stream`；单节点内存总线（见 §17） |
 | LiveKit | ✅ | token API + 前端连接；需 `LIVEKIT_*`（见 §24） |
@@ -294,12 +297,12 @@
 | 世界总览 | overview | cloudStudio · cloudWorldLogs · cloudHost（选中房）· cloudAssets · cloudRules | 无运行数据时显示空状态 |
 | 剧本杀创作 | writer | cloudStudio · cloudCreatorChecks | 完整 |
 | 剧情编排 | studio | cloudStudio + 拖拽 state | 完整 |
-| 内容资产 | assets | **仅 cloudAssets** + storageUsage | 分类/搜索/新建待接入 |
-| 自动化规则 | rules | cloudRules | JSON 编辑 |
-| 主持监控台 | director | cloudHost · cloudHostEvents | 需平行房 |
+| 内容资产 | assets | cloudAssets + kind/q 筛选 + storageUsage | 「新建内容」仍占位 |
+| 自动化规则 | rules | cloudRules + 可视化编辑器 | 主持台规则预览/手动触发 |
+| 主持监控台 | director | cloudHost · cloudHostEvents · cloudRulesPreview | 需平行房 |
 | 玩家视角 | player | cloudPlayer · cloudExploration | 需入房选角 |
-| 存档与复盘 | archive | **checkpoint 快照** + **房间复盘**（主持全局 / 玩家视角） | checkpoint 恢复回滚未接入 |
-| 世界设置 | settings | cloudStudio（只读）+ 弹窗 | 写入 API 待接入 |
+| 存档与复盘 | archive | checkpoint 快照 + scoped restore + 房间复盘 | 恢复历史不对用户展示 |
+| 世界设置 | settings | patchWorld · patchRoomSettings | 实体卡仍占位 |
 
 ---
 
@@ -361,7 +364,7 @@
 1. **~~无 WebSocket 实时推送~~**：已接入 SSE 房间事件流（§17）；主持台在连接成功时停止 15 秒轮询，断线自动回退。  
 2. **LiveKit 需环境配置**：未设置 `LIVEKIT_*` 时音频 token 503；文字频道与权限模型仍可用（§24）。  
 3. **单体前端**：`app.js` 维护成本高，无组件测试。  
-4. **规则表达力有限**：无复杂逻辑、无 grant_item 规则动作；NPC 未建模。  
+4. **规则表达力**：支持 `all` / `any` / `not` 与 `variable_compare`（player_states 变量）；NPC 未建模。  
 5. **运行存档恢复缺失**：可创建 checkpoint 快照，**暂不支持从此恢复房间**（见 §16）。  
 6. **复盘无 AI 总结**：结构化报告已落地（§26），叙事总结待后续接入。  
 7. **生产安全**：需关闭 demo header、配置 HTTPS、R2 密钥轮换；无 rate limit。  
@@ -416,13 +419,13 @@ npm run ci
 
 # 或分步复验（P0～P2）
 npm run check    # 语法
-npm test         # 53 项单元/集成
+npm test         # 101 项单元/集成
 npm run test:smoke   # 16 项 API（需 4180 已启动）
 npm run test:ui:load # 24 项脚本加载（项目根）
 
 # 前端 UI 接线（需 4173 + 4180 已启动且为最新代码）
 cd ..
-node scripts/ui-smoke.js   # 29 项
+node scripts/ui-smoke.js   # 33 项
 node scripts/verify-script-load.mjs
 ```
 
@@ -450,7 +453,7 @@ node scripts/verify-script-load.mjs
 
 - 删除硬编码 `assetsData`（32 条假卡片）；**仅渲染 `cloudAssets`**。
 - 无附件时显示：「当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。」
-- 搜索框、分类 Tab、「新建内容」已禁用或标注「待接入」。
+- 资产「新建内容」、全局搜索仍占位；分类 Tab 与搜索框已接通。
 
 ### `app.js` · 存档与复盘
 
@@ -488,7 +491,7 @@ node scripts/verify-script-load.mjs
 - **待确认事件**：`GET host-events` 增强（`action_summaries`、`source_label`）；新增 `POST host-events/:id/dismiss`。
 - **`GET host-progress`**：保留，内部复用 `fetchHostPlayers` 以兼容旧客户端。
 
-### 前端 · `app.js` / `api-client.js` / `state.js`
+### 前端 · `app.js` / `src/api/client.js` / `state.js`
 
 - 主持台改为 **待确认事件优先** + **运行时玩家表**；`cloudHostPlayers` / `cloudHostStuckCount`。
 - 弹窗：玩家详情、发放线索、解锁分幕、开放场景、主持日志、事件上下文。
@@ -619,7 +622,7 @@ node scripts/verify-script-load.mjs
 
 ### 前端
 
-- **`api-client.streamRoomEvents`** — fetch + ReadableStream（支持 Bearer / `x-user-id`）
+- **`zhimuApi.streamRoomEvents`**（`src/api/client.js`）— fetch + ReadableStream（支持 Bearer / `x-user-id`）
 - **`connectRoomEventStream` / `handleRoomEvent`** — 入房后自动连接；断线 5s 重连
 - **SSE 已连接时** — 主持台停止 15s 轮询，页眉提示「实时推送已连接」
 - **收到事件后** —  targeted refresh（`refreshHostEvents` / `refreshHostPlayers` / `refreshPlayerHome` / `refreshExploration` / `refreshVoiceMessages`）+ toast；不 `location.reload`
@@ -890,7 +893,7 @@ cd backend && node --test test/demo-act2-reading.test.js
 
 1. Act 2 自动化 3/3。  
 2. 刷新后总览在 studio 返回后即可显示世界名（不再长时间卡在旧文案）。  
-3. `npm test` 53/53 · `node scripts/ui-smoke.js` 29/29 · `npm run test:smoke` 16/16。
+3. `npm run check:tests` · `npm test` 101/101 · `node scripts/ui-smoke.js` 33/33 · `npm run test:smoke` 17/17。
 
 ---
 
@@ -996,3 +999,148 @@ cd backend && node --test test/inventory.test.js
 ```bash
 cd backend && node --test test/recap.test.js
 ```
+
+---
+
+## 27. Alpha 评估与后端基础（2026-06-03）
+
+**目标**：将 Alpha 客观评估写入文档，并补齐运行态数据结构与迁移，为 Beta 打基础。
+
+### 评估文档
+
+| 文档 | 内容 |
+|------|------|
+| [ALPHA_ASSESSMENT.md](./ALPHA_ASSESSMENT.md) | 测试矩阵、CI、架构风险、本地失败排查、阶段优先级 |
+| [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) | 迁移 001–012、核心表关系、快照 v2 字段、fixture UUID |
+
+### 012 迁移 · 运行时基础
+
+| 对象 | 说明 |
+|------|------|
+| `checkpoints.schema_version` | 快照格式版本（当前 **2**） |
+| `checkpoint_restores` | 恢复操作审计表（`pending/applied/failed/cancelled`） |
+| `room_event_journal` | 房间事件持久化日志（SSE 补发 / 未来多节点） |
+| 索引 | inventory、items/clues/scenes by world、checkpoints by room |
+
+### Checkpoint 快照 v2
+
+除玩家/线索/场景/待确认事件/日志外，新增：
+
+- `readingProgress` · `inventory` · `contentUnlocks` · `ruleExecutions` · `investigationRecords` · `playerStates`
+
+### API（恢复）
+
+| 方法 | 路径 | 状态 |
+|------|------|------|
+| `GET` | `/api/rooms/:roomId/checkpoints/:checkpointId/restores` | ✅ 恢复审计列表 |
+| `POST` | `/api/rooms/:roomId/checkpoints/:checkpointId/restore` | ✅ **MVP 已实现**（阅读/线索/背包/解锁/待确认事件/**rule_executions**/调查/playerStates） |
+
+### Checkpoint 恢复 scope（`POST .../restore` body.scope）
+
+默认全部为 `true`；可按域选择性回滚：
+
+| scope 字段 | 回滚内容 |
+|------------|----------|
+| `readingProgress` | `reading_progress` |
+| `clueOwnership` | `clue_ownership` · `clue_read_receipts` |
+| `inventory` | `inventory` |
+| `contentUnlocks` | `room_content_unlocks` |
+| `pendingHostEvents` | 待确认/延迟中的 `pending_host_events` |
+| `investigationRecords` | `investigation_records` |
+| `playerStates` | `player_states` |
+| `ruleExecutions` | `rule_executions`（2026-06-03 补齐） |
+
+**不回滚**：`timeline_logs`（恢复本身会追加一条 `checkpoint_restored` 日志）。
+
+### Idempotency-Key 覆盖（`write_idempotency` · 013）
+
+请求头 `Idempotency-Key`（≤128 字符）支持以下写操作重试去重：
+
+| routeKey | API |
+|----------|-----|
+| `sections.complete` | `POST .../sections/:sectionId/complete` |
+| `player.investigate` | `POST .../investigation-points/:pointId/investigate` |
+| `clues.share_room` | `POST .../clues/:clueId/share-room` |
+| `host.grant_clue` | `POST .../host/grant-clue` |
+| `host.grant_item` | `POST .../host/grant-item` |
+| `host.unlock_section` | `POST .../host/unlock-section` |
+| `host.event_execute` | `POST .../host-events/:eventId/execute` |
+| `host.event_dismiss` | `POST .../host-events/:eventId/dismiss` |
+| `host.rule_trigger` | `POST .../rules/:ruleId/trigger` |
+| `checkpoints.restore` | `POST .../checkpoints/:checkpointId/restore` |
+
+### 事件与 journal 一致性
+
+- `transactionWithEvents`：DB **COMMIT 成功后**才 `publishRoomEvent`（SSE + best-effort 写 `room_event_journal`）。
+- rollback 时不发布 SSE、不写 journal。
+- 验收：`event-journal-e2e.test.js` · `transaction-events.test.js`
+
+### 底盘增强（2026-06-03 续）
+
+- 统一 API 错误体：`{ error, code, details? }` — **全路由已接入** [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)
+- `throwErr` / `sendErr` + `error-codes.js` 注册表（100+ 稳定 code）
+- `Idempotency-Key`：见上表 **10** 条写路由
+- `host_audit_log`：restore / grant / room_settings 等
+- `GET/PATCH /api/worlds/:worldId` · `PATCH /api/rooms/:roomId/settings`
+- 存档快照含 `investigationRecords` · `playerStates`
+- `room_event_journal` + SSE `Last-Event-ID` 补发
+- 迁移 **013**：审计表 + 幂等表
+- **启动与 CI 健壮性**：`startup-validation.js` · `verify-modules.mjs` · `check:boot` · **`check:tests`**（CI 在 `npm test` 前执行）
+
+### 本地引导
+
+```powershell
+cd backend
+npm ci
+npm run bootstrap:local   # migrate + seed + exploration
+```
+
+### 验收
+
+- `backend/test/schema-migrations.test.js` — 关键表/列/枚举存在  
+- `backend/test/checkpoint-restore-e2e.test.js` — 创建→变更→scoped restore（含 rule_executions · timeline · 跨房 · 跨世界拒绝）
+- `backend/test/event-journal-e2e.test.js` — API 写操作与 journal 一致性
+- `backend/test/idempotency-coverage.test.js` — 幂等路由审计  
+- `backend/test/api-errors.test.js` — 全站 `{ error, code }` 回归  
+- 错误码注册表：[`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)
+
+### 仍属 Alpha 局限（见评估 §3）
+
+- 前端全局脚本顺序脆弱 → Beta 建议 Vite/框架  
+- SSE 内存总线 + journal 落库，**无** Redis 多节点  
+- checkpoint **恢复回滚** MVP 已实现（scoped restore + 幂等 + 审计）；**前端恢复弹窗已接通**（2026-06-03）
+- LiveKit / 创作态 API schema 未全覆盖
+
+---
+
+## 28. 前端 UI 对齐与测试扩充（2026-06-03）
+
+**目标**：接通 restore / 设置 PATCH / 规则预览 / 资产筛选；补全测试与文档；运维概念不对用户展示。
+
+### 前端接通
+
+- **存档页**：scoped restore 弹窗（中文 scope 标签）、跨平行房、SSE `room.checkpoint_restored` toast
+- **设置页**：`patchWorld` / `patchRoomSettings`（含 `hostVoiceListen`）
+- **主持台**：规则运行预览 + 手动触发
+- **资产页**：kind Tab + 文件名搜索
+- **`user-messages.js`**：友好错误码；不暴露 audit / idempotency / scope 英文字段
+
+### 测试扩充
+
+| 套件 | 数量 | 新增 |
+|------|------|------|
+| `npm test` | **101/101** | `CHECKPOINT_WORLD_MISMATCH` E2E |
+| `npm run test:smoke` | **17/17** | `checkpoint-restore` |
+| `node scripts/ui-smoke.js` | **33/33** | restore · settings PATCH · rules preview · assets filter · friendly errors |
+| `verify-script-load.mjs` | 24/24 | — |
+
+### 验收命令
+
+```powershell
+cd backend
+npm run check:tests && npm test
+npm run test:smoke          # 需 :4180
+npm run test:ui:load
+npm run test:ui             # 需 :4173 + :4180
+```
+

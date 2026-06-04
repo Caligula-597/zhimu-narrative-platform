@@ -1,4 +1,5 @@
 import { query } from "../db.js";
+import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole } from "./route-guards.js";
 import { buildRoomRecapSnapshot, filterRecapForPlayer, summarizeRecap } from "./recap-helpers.js";
@@ -7,7 +8,7 @@ import { createRecapSchema, recapIdParams, roomIdParams } from "./schemas.js";
 async function requireHostMembership(actorId, roomId) {
   const membership = await requireRoomRole(actorId, roomId);
   if (!["host", "cohost"].includes(membership.member_type)) {
-    throw Object.assign(new Error("Host role required"), { statusCode: 403 });
+    throwErr("HOST_ROLE_REQUIRED");
   }
   return membership;
 }
@@ -50,14 +51,14 @@ export async function registerRecapRoutes(app) {
        WHERE rr.id = $1 AND rr.room_id = $2`,
       [recapId, roomId]
     );
-    if (!result.rowCount) return reply.code(404).send({ error: "Recap not found" });
+    if (!result.rowCount) return sendErr(reply, "RECAP_NOT_FOUND");
     const row = result.rows[0];
     const isHost = ["host", "cohost"].includes(membership.member_type);
     let snapshot = row.snapshot;
     let perspective = "host";
     if (!isHost) {
       if (!membership.role_slot_id) {
-        return reply.code(409).send({ error: "Player role selection required" });
+        return sendErr(reply, "PLAYER_ROLE_REQUIRED", "Player role selection required");
       }
       snapshot = filterRecapForPlayer(row.snapshot, membership.role_slot_id);
       perspective = "player";
@@ -89,14 +90,14 @@ export async function registerRecapRoutes(app) {
        LIMIT 1`,
       [roomId]
     );
-    if (!result.rowCount) return reply.code(404).send({ error: "No recap generated yet" });
+    if (!result.rowCount) return sendErr(reply, "RECAP_NOT_GENERATED");
     const row = result.rows[0];
     const isHost = ["host", "cohost"].includes(membership.member_type);
     let snapshot = row.snapshot;
     let perspective = "host";
     if (!isHost) {
       if (!membership.role_slot_id) {
-        return reply.code(409).send({ error: "Player role selection required" });
+        return sendErr(reply, "PLAYER_ROLE_REQUIRED", "Player role selection required");
       }
       snapshot = filterRecapForPlayer(row.snapshot, membership.role_slot_id);
       perspective = "player";
@@ -121,7 +122,7 @@ export async function registerRecapRoutes(app) {
     const { title, description = "" } = request.body ?? {};
     await requireHostMembership(actorId, roomId);
     const snapshot = await buildRoomRecapSnapshot(query, roomId);
-    if (!snapshot) return reply.code(404).send({ error: "Room not found" });
+    if (!snapshot) return sendErr(reply, "ROOM_NOT_FOUND");
     snapshot.description = description.trim();
     const result = await query(
       `INSERT INTO room_recaps (room_id, created_by_user_id, label, snapshot)

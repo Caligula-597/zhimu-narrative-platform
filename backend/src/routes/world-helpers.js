@@ -1,4 +1,5 @@
 import { query, transaction } from "../db.js";
+import { throwErr } from "../api-errors.js";
 import { validateDeepseekProposal } from "../deepseek.js";
 
 export async function storageUsage(userId) {
@@ -36,7 +37,7 @@ export async function requireAssetRead(actorId, assetId) {
        )`,
     [assetId, actorId]
   );
-  if (!result.rowCount) throw Object.assign(new Error("Asset not found or permission denied"), { statusCode: 404 });
+  if (!result.rowCount) throwErr("ASSET_NOT_FOUND");
   return result.rows[0];
 }
 
@@ -183,7 +184,7 @@ export function renderStoryManuscript(snapshot) {
 
 export async function syncManuscriptToGraph(worldId, text) {
   const drafts = classifyStoryDraft(text);
-  if (!drafts.length) throw Object.assign(new Error("No story blocks detected"), { statusCode: 400 });
+  if (!drafts.length) throwErr("STORY_BLOCKS_EMPTY");
   return transaction(async (client) => {
     const ids = new Map();
     let currentSceneId = null;

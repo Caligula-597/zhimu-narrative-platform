@@ -74,6 +74,31 @@ const results = await Promise.all([
     const detail = await request(`/rooms/${roomId}/checkpoints/${created.id}`, hostUserId);
     return `list=${list.length}, snapshotPlayers=${detail.snapshot.players.length}`;
   }),
+  check("checkpoint-restore", async () => {
+    const created = await request(`/rooms/${roomId}/checkpoints`, hostUserId, {
+      method: "POST",
+      body: { title: "smoke restore baseline", description: "before scoped restore" }
+    });
+    const checkpointId = created.id;
+    const restore = await request(`/rooms/${roomId}/checkpoints/${checkpointId}/restore`, hostUserId, {
+      method: "POST",
+      body: {
+        scope: {
+          readingProgress: true,
+          clueOwnership: true,
+          inventory: true,
+          contentUnlocks: true,
+          pendingHostEvents: true,
+          investigationRecords: true,
+          playerStates: true,
+          ruleExecutions: true,
+          timelineLogs: false
+        }
+      }
+    });
+    if (restore.status !== "applied") throw new Error(`unexpected restore status: ${restore.status}`);
+    return `checkpoint=${checkpointId.slice(0, 8)}… applied`;
+  }),
   check("recaps", async () => {
     const created = await request(`/rooms/${roomId}/recaps`, hostUserId, {
       method: "POST",
@@ -132,6 +157,10 @@ const results = await Promise.all([
     const response = await fetch(`${baseUrl}/auth/me`);
     if (response.status !== 401) throw new Error(`expected 401, received ${response.status}`);
     return response.status;
+  }),
+  check("world-search", async () => {
+    const payload = await request(`/worlds/${worldId}/search?q=${encodeURIComponent("雾")}`, hostUserId);
+    return `results=${payload.results?.length ?? 0}`;
   })
 ]);
 

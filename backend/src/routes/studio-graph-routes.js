@@ -1,16 +1,25 @@
 import { query, transaction } from "../db.js";
 import { requireActor } from "../request-actor.js";
+import { sendErr, throwErr } from "../api-errors.js";
 import { requireWorldRole } from "./route-guards.js";
+import {
+  studioNodeReferencesSchema,
+  deleteStoryEdgeSchema,
+  deleteStudioNodeSchema,
+  updateNodePositionSchema,
+  updateNodeAnchorsSchema,
+  updateStoryLayoutSchema
+} from "./schemas.js";
 
 export async function registerStudioGraphRoutes(app) {
-  app.get("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/references", async (request, reply) => {
+  app.get("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/references", { schema: studioNodeReferencesSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, nodeType, nodeId } = request.params;
     await requireWorldRole(actorId, worldId);
     const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
-    if (!tables[nodeType]) return reply.code(400).send({ error: "Unsupported nodeType" });
+    if (!tables[nodeType]) return sendErr(reply, "NODE_TYPE_UNSUPPORTED");
     const exists = await query(`SELECT 1 FROM ${tables[nodeType]} WHERE id = $1 AND world_id = $2`, [nodeId, worldId]);
-    if (!exists.rowCount) return reply.code(404).send({ error: "Studio node not found" });
+    if (!exists.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
 
     const edgeCount = await query(
       `SELECT COUNT(*)::int AS value FROM story_graph_edges
@@ -59,22 +68,22 @@ export async function registerStudioGraphRoutes(app) {
     };
   });
 
-  app.delete("/api/worlds/:worldId/story-edges/:edgeId", async (request, reply) => {
+  app.delete("/api/worlds/:worldId/story-edges/:edgeId", { schema: deleteStoryEdgeSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, edgeId } = request.params;
     await requireWorldRole(actorId, worldId);
     const result = await query(`DELETE FROM story_graph_edges WHERE id = $1 AND world_id = $2 RETURNING id`, [edgeId, worldId]);
-    if (!result.rowCount) return reply.code(404).send({ error: "Story edge not found" });
+    if (!result.rowCount) return sendErr(reply, "STORY_EDGE_NOT_FOUND");
     return { ok: true };
   });
 
-  app.delete("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId", async (request, reply) => {
+  app.delete("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId", { schema: deleteStudioNodeSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, nodeType, nodeId } = request.params;
     await requireWorldRole(actorId, worldId);
     const tables = { chapter: "chapters", scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     const table = tables[nodeType];
-    if (!table) return reply.code(400).send({ error: "Unsupported nodeType" });
+    if (!table) return sendErr(reply, "NODE_TYPE_UNSUPPORTED");
     const result = await transaction(async (client) => {
       await client.query(
         `DELETE FROM story_graph_edges
@@ -83,43 +92,39 @@ export async function registerStudioGraphRoutes(app) {
       );
       return client.query(`DELETE FROM ${table} WHERE id = $1 AND world_id = $2 RETURNING id`, [nodeId, worldId]);
     });
-    if (!result.rowCount) return reply.code(404).send({ error: "Studio node not found" });
+    if (!result.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
     return { ok: true };
   });
 
-  app.put("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/position", async (request, reply) => {
+  app.put("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/position", { schema: updateNodePositionSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, nodeType, nodeId } = request.params;
     const { x, y } = request.body ?? {};
     await requireWorldRole(actorId, worldId);
     const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     const table = tables[nodeType];
-    if (!table) return reply.code(400).send({ error: "Unsupported draggable nodeType" });
-    if (!Number.isFinite(x) || !Number.isFinite(y)) return reply.code(400).send({ error: "Finite x and y are required" });
+    if (!table) return sendErr(reply, "NODE_TYPE_DRAG_UNSUPPORTED");
     const result = await query(
       `UPDATE ${table}
        SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{graphPosition}', $1::jsonb, true)
        WHERE id = $2 AND world_id = $3 RETURNING id, metadata`,
       [JSON.stringify({ x: Math.round(x), y: Math.round(y) }), nodeId, worldId]
     );
-    if (!result.rowCount) return reply.code(404).send({ error: "Studio node not found" });
+    if (!result.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
     return result.rows[0];
   });
 
-  app.put("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/anchors", async (request, reply) => {
+  app.put("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/anchors", { schema: updateNodeAnchorsSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, nodeType, nodeId } = request.params;
     const { anchors = [] } = request.body ?? {};
     await requireWorldRole(actorId, worldId);
     const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     const table = tables[nodeType];
-    if (!table) return reply.code(400).send({ error: "Unsupported draggable nodeType" });
-    if (!Array.isArray(anchors) || anchors.length < 1 || anchors.length > 8) {
-      return reply.code(400).send({ error: "anchors must contain between 1 and 8 connection points" });
-    }
+    if (!table) return sendErr(reply, "NODE_TYPE_DRAG_UNSUPPORTED");
     const normalized = anchors.map((anchor) => {
       if (!anchor?.id || typeof anchor.id !== "string" || !Number.isFinite(anchor.x) || !Number.isFinite(anchor.y)) {
-        throw Object.assign(new Error("Each anchor requires id, x and y"), { statusCode: 400 });
+        throwErr("ANCHOR_FIELDS_INVALID");
       }
       return { id: anchor.id.slice(0, 80), x: Math.round(Math.max(0, Math.min(156, anchor.x))), y: Math.round(Math.max(0, Math.min(124, anchor.y))) };
     });
@@ -129,22 +134,21 @@ export async function registerStudioGraphRoutes(app) {
        WHERE id = $2 AND world_id = $3 RETURNING id, metadata`,
       [JSON.stringify(normalized), nodeId, worldId]
     );
-    if (!result.rowCount) return reply.code(404).send({ error: "Studio node not found" });
+    if (!result.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
     return result.rows[0];
   });
 
-  app.put("/api/worlds/:worldId/story-layout", async (request, reply) => {
+  app.put("/api/worlds/:worldId/story-layout", { schema: updateStoryLayoutSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     const { positions = [] } = request.body ?? {};
     await requireWorldRole(actorId, worldId);
     const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
-    if (!Array.isArray(positions) || positions.length > 300) return reply.code(400).send({ error: "positions must be an array of up to 300 nodes" });
     await transaction(async (client) => {
       for (const position of positions) {
         const table = tables[position.type];
-        if (!table || !position.id || !Number.isFinite(position.x) || !Number.isFinite(position.y)) {
-          throw Object.assign(new Error("Each position requires a valid type, id, x and y"), { statusCode: 400 });
+        if (!table || !position.id) {
+          throwErr("POSITION_ENTRY_INVALID");
         }
         await client.query(
           `UPDATE ${table}
@@ -156,5 +160,4 @@ export async function registerStudioGraphRoutes(app) {
     });
     return { ok: true, updated: positions.length };
   });
-
 }

@@ -32,7 +32,7 @@
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
   const showToast = T.showToast || (() => {});
-  const go = R.go || (() => {});
+  const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
@@ -59,3 +59,4 @@ function studioValues(){return Object.fromEntries(Array.from(modal.querySelector
 function studioSelect(label,key,options){return `<label>${label}</label><select class="field" data-studio-field="${key}">${options.map(option=>`<option value="${option.id}">${option.name||option.title}</option>`).join("")}</select>`}
   window.zhimuModal = { closeModal, openModal, studioModal, studioField, studioValues, studioSelect };
 })(window);
+export {};

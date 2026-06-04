@@ -1,10 +1,13 @@
-import { query, transaction } from "../db.js";
+import { query } from "../db.js";
 import { evaluateRoomRules } from "../rule-engine.js";
+import { transactionWithEvents } from "../transaction-events.js";
 import { publishRoomEvent } from "../room-event-bus.js";
+import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { fetchPlayerClues } from "./clue-helpers.js";
 import { listPlayerInventory, consumeItemIfNeeded } from "../inventory-helpers.js";
 import { requireRoomRole } from "./route-guards.js";
+import { sendErr, throwErr } from "../api-errors.js";
 import {
   cluePlayerNoteSchema,
   clueShareRoomSchema,
@@ -39,7 +42,7 @@ export async function registerPlayerRoutes(app) {
        WHERE r.invite_code = $1`,
       [request.params.inviteCode]
     );
-    if (!room.rowCount) return reply.code(404).send({ error: "Room not found" });
+    if (!room.rowCount) return sendErr(reply, "ROOM_NOT_FOUND");
     const roles = await query(
       `SELECT rs.id, rs.name, rs.public_profile,
               EXISTS (
@@ -66,17 +69,17 @@ export async function registerPlayerRoutes(app) {
   app.post("/api/rooms/join", { schema: joinRoomSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { inviteCode, roleSlotId } = request.body ?? {};
-    if (!inviteCode || !roleSlotId) return reply.code(400).send({ error: "inviteCode and roleSlotId are required" });
+    if (!inviteCode || !roleSlotId) return sendErr(reply, "INVITE_FIELDS_REQUIRED");
     const room = await query(`SELECT id, world_id FROM rooms WHERE invite_code = $1`, [inviteCode]);
-    if (!room.rowCount) return reply.code(404).send({ error: "Room not found" });
+    if (!room.rowCount) return sendErr(reply, "ROOM_NOT_FOUND");
     const role = await query(`SELECT 1 FROM role_slots WHERE id = $1 AND world_id = $2`, [roleSlotId, room.rows[0].world_id]);
-    if (!role.rowCount) return reply.code(400).send({ error: "Role slot not found in room world" });
+    if (!role.rowCount) return sendErr(reply, "ROLE_SLOT_WORLD_MISMATCH");
     const occupied = await query(
       `SELECT 1 FROM room_members
        WHERE room_id = $1 AND role_slot_id = $2 AND user_id <> $3 AND status = 'active'`,
       [room.rows[0].id, roleSlotId, actorId]
     );
-    if (occupied.rowCount) return reply.code(409).send({ error: "Role slot already occupied" });
+    if (occupied.rowCount) return sendErr(reply, "ROLE_SLOT_OCCUPIED");
     await query(
       `INSERT INTO room_members (room_id, user_id, member_type, role_slot_id)
        VALUES ($1, $2, 'player', $3)
@@ -88,7 +91,7 @@ export async function registerPlayerRoutes(app) {
     publishRoomEvent(room.rows[0].id, "room.player_joined", {
       roleSlotId,
       roleName: roleInfo.rows[0]?.name ?? "玩家角色"
-    });
+    }).catch(() => {});
     return { ok: true, roomId: room.rows[0].id };
   });
 
@@ -176,7 +179,7 @@ export async function registerPlayerRoutes(app) {
     const actorId = requireActor(request);
     const { roomId, sectionId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
-    if (!membership.role_slot_id) throw Object.assign(new Error("Player role required"), { statusCode: 409 });
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
     const section = await query(
       `SELECT ss.id
        FROM script_sections ss
@@ -195,37 +198,39 @@ export async function registerPlayerRoutes(app) {
          )`,
       [roomId, sectionId, membership.role_slot_id]
     );
-    if (!section.rowCount) throw Object.assign(new Error("Script section is locked or unavailable"), { statusCode: 404 });
+    if (!section.rowCount) throwErr("SECTION_LOCKED");
 
-    await transaction(async (client) => {
-      await client.query(
-        `INSERT INTO reading_progress (room_id, role_slot_id, script_section_id, started_at, completed_at)
-         VALUES ($1, $2, $3, now(), now())
-         ON CONFLICT (room_id, role_slot_id, script_section_id)
-         DO UPDATE SET completed_at = COALESCE(reading_progress.completed_at, now())`,
-        [roomId, membership.role_slot_id, sectionId]
-      );
-      await client.query(
-        `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
-         VALUES ($1, $2, 'host', 'reading_completed', '玩家完成一段角色阅读', jsonb_build_object('sectionId', $3::text))`,
-        [roomId, actorId, sectionId]
-      );
+    return withRoomIdempotency(roomId, request, "sections.complete", async () => {
+      await transactionWithEvents(async (client, queueEvent) => {
+        await client.query(
+          `INSERT INTO reading_progress (room_id, role_slot_id, script_section_id, started_at, completed_at)
+           VALUES ($1, $2, $3, now(), now())
+           ON CONFLICT (room_id, role_slot_id, script_section_id)
+           DO UPDATE SET completed_at = COALESCE(reading_progress.completed_at, now())`,
+          [roomId, membership.role_slot_id, sectionId]
+        );
+        await client.query(
+          `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+           VALUES ($1, $2, 'host', 'reading_completed', '玩家完成一段角色阅读', jsonb_build_object('sectionId', $3::text))`,
+          [roomId, actorId, sectionId]
+        );
+        queueEvent(roomId, "room.section_completed", {
+          sectionId,
+          roleSlotId: membership.role_slot_id
+        });
+      });
+      const executedRules = await evaluateRoomRules(roomId);
+      return { ok: true, executedRules };
     });
-    publishRoomEvent(roomId, "room.section_completed", {
-      sectionId,
-      roleSlotId: membership.role_slot_id
-    });
-    const executedRules = await evaluateRoomRules(roomId);
-    return { ok: true, executedRules };
   });
 
   app.post("/api/rooms/:roomId/notebook", { schema: notebookEntrySchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
-    if (!membership.role_slot_id) throw Object.assign(new Error("Player role required"), { statusCode: 409 });
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
     const { sourceType, sourceId, title, body } = request.body ?? {};
-    if (!sourceType || !title || !body) return reply.code(400).send({ error: "sourceType, title and body are required" });
+    if (!sourceType || !title || !body) return sendErr(reply, "NOTEBOOK_FIELDS_REQUIRED");
     const result = await query(
       `INSERT INTO notebook_entries (room_id, role_slot_id, created_by_user_id, source_type, source_id, title, body)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -239,7 +244,7 @@ export async function registerPlayerRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
-    if (!membership.role_slot_id) throw Object.assign(new Error("Player role required"), { statusCode: 409 });
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
     const scenes = await query(
       `SELECT s.id, s.name, s.public_text,
               COALESCE(json_agg(
@@ -279,76 +284,83 @@ export async function registerPlayerRoutes(app) {
     const actorId = requireActor(request);
     const { roomId, pointId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
-    if (!membership.role_slot_id) throw Object.assign(new Error("Player role required"), { statusCode: 409 });
-    const point = await query(
-      `SELECT ip.*
-       FROM investigation_points ip
-       JOIN room_content_unlocks rcu ON rcu.content_id = ip.scene_id
-        AND rcu.room_id = $1 AND rcu.content_type = 'scene'
-       WHERE ip.id = $2
-         AND (ip.required_role_slot_id IS NULL OR ip.required_role_slot_id = $3)`,
-      [roomId, pointId, membership.role_slot_id]
-    );
-    if (!point.rowCount) return reply.code(404).send({ error: "Investigation point is locked or unavailable" });
-    const target = point.rows[0];
-    if (target.required_item_id) {
-      const inventory = await query(
-        `SELECT 1 FROM inventory WHERE room_id = $1 AND role_slot_id = $2 AND item_id = $3 AND quantity > 0`,
-        [roomId, membership.role_slot_id, target.required_item_id]
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
+
+    return withRoomIdempotency(roomId, request, "player.investigate", async () => {
+      const point = await query(
+        `SELECT ip.*
+         FROM investigation_points ip
+         JOIN room_content_unlocks rcu ON rcu.content_id = ip.scene_id
+          AND rcu.room_id = $1 AND rcu.content_type = 'scene'
+         WHERE ip.id = $2
+           AND (ip.required_role_slot_id IS NULL OR ip.required_role_slot_id = $3)`,
+        [roomId, pointId, membership.role_slot_id]
       );
-      if (!inventory.rowCount) return reply.code(409).send({ error: "Required item is missing" });
-    }
-    await transaction(async (client) => {
-      await client.query(
-        `INSERT INTO investigation_records (room_id, investigation_point_id, role_slot_id, result)
-         VALUES ($1, $2, $3, jsonb_build_object('resultText', $4::text))
-         ON CONFLICT (room_id, investigation_point_id, role_slot_id) DO NOTHING`,
-        [roomId, pointId, membership.role_slot_id, target.result_text]
-      );
+      if (!point.rowCount) return sendErr(reply, "INVESTIGATION_POINT_UNAVAILABLE");
+      const target = point.rows[0];
       if (target.required_item_id) {
-        await consumeItemIfNeeded(client, {
-          roomId,
-          roleSlotId: membership.role_slot_id,
-          itemId: target.required_item_id
-        });
-      }
-      if (target.clue_id) {
-        await client.query(
-          `INSERT INTO clue_ownership (room_id, role_slot_id, clue_id, metadata)
-           VALUES ($1, $2, $3, jsonb_build_object('source', 'investigation', 'pointId', $4::text))
-           ON CONFLICT (room_id, role_slot_id, clue_id) DO NOTHING`,
-          [roomId, membership.role_slot_id, target.clue_id, pointId]
+        const inventory = await query(
+          `SELECT 1 FROM inventory WHERE room_id = $1 AND role_slot_id = $2 AND item_id = $3 AND quantity > 0`,
+          [roomId, membership.role_slot_id, target.required_item_id]
         );
+        if (!inventory.rowCount) {
+          return sendErr(reply, "REQUIRED_ITEM_MISSING");
+        }
       }
-      await client.query(
-        `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
-         VALUES ($1, $2, 'host', 'investigation_completed', $3, jsonb_build_object('pointId', $4::text))`,
-        [roomId, actorId, `玩家调查了「${target.name}」`, pointId]
-      );
-    });
-    if (target.clue_id) {
-      publishRoomEvent(roomId, "room.clue_granted", {
-        clueId: target.clue_id,
-        roleSlotId: membership.role_slot_id,
-        source: "investigation",
-        pointId
+      await transactionWithEvents(async (client, queueEvent) => {
+        await client.query(
+          `INSERT INTO investigation_records (room_id, investigation_point_id, role_slot_id, result)
+           VALUES ($1, $2, $3, jsonb_build_object('resultText', $4::text))
+           ON CONFLICT (room_id, investigation_point_id, role_slot_id) DO NOTHING`,
+          [roomId, pointId, membership.role_slot_id, target.result_text]
+        );
+        if (target.required_item_id) {
+          await consumeItemIfNeeded(client, {
+            roomId,
+            roleSlotId: membership.role_slot_id,
+            itemId: target.required_item_id
+          });
+        }
+        if (target.clue_id) {
+          await client.query(
+            `INSERT INTO clue_ownership (room_id, role_slot_id, clue_id, metadata)
+             VALUES ($1, $2, $3, jsonb_build_object('source', 'investigation', 'pointId', $4::text))
+             ON CONFLICT (room_id, role_slot_id, clue_id) DO NOTHING`,
+            [roomId, membership.role_slot_id, target.clue_id, pointId]
+          );
+          queueEvent(roomId, "room.clue_granted", {
+            clueId: target.clue_id,
+            roleSlotId: membership.role_slot_id,
+            source: "investigation",
+            pointId
+          });
+        }
+        await client.query(
+          `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+           VALUES ($1, $2, 'host', 'investigation_completed', $3, jsonb_build_object('pointId', $4::text))`,
+          [roomId, actorId, `玩家调查了「${target.name}」`, pointId]
+        );
+        queueEvent(roomId, "room.investigation_completed", {
+          pointId,
+          roleSlotId: membership.role_slot_id
+        });
       });
-    }
-    const executedRules = await evaluateRoomRules(roomId);
-    const clue = target.clue_id
-      ? (await query(`SELECT id, name, public_text FROM clues WHERE id = $1`, [target.clue_id])).rows[0]
-      : null;
-    return { ok: true, resultText: target.result_text, clue, executedRules };
+      const executedRules = await evaluateRoomRules(roomId);
+      const clue = target.clue_id
+        ? (await query(`SELECT id, name, public_text FROM clues WHERE id = $1`, [target.clue_id])).rows[0]
+        : null;
+      return { ok: true, resultText: target.result_text, clue, executedRules };
+    });
   });
 
   app.post("/api/rooms/:roomId/clues/:clueId/read", { schema: readClueSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { roomId, clueId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
-    if (!membership.role_slot_id) throw Object.assign(new Error("Player role required"), { statusCode: 409 });
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
 
     const clue = await query(`SELECT id, name FROM clues c JOIN rooms r ON r.world_id = c.world_id WHERE c.id = $1 AND r.id = $2`, [clueId, roomId]);
-    if (!clue.rowCount) return reply.code(404).send({ error: "Clue not found" });
+    if (!clue.rowCount) return sendErr(reply, "CLUE_NOT_FOUND");
 
     const owned = await query(
       `SELECT read_at FROM clue_ownership WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3`,
@@ -361,7 +373,7 @@ export async function registerPlayerRoutes(app) {
         )
       : { rowCount: 0 };
 
-    if (!owned.rowCount && !shared.rowCount) return reply.code(404).send({ error: "Clue not accessible" });
+    if (!owned.rowCount && !shared.rowCount) return sendErr(reply, "CLUE_NOT_ACCESSIBLE");
 
     const playerName = await playerDisplayName(query, roomId, membership.role_slot_id);
     const clueName = clue.rows[0].name;
@@ -415,48 +427,54 @@ export async function registerPlayerRoutes(app) {
     const actorId = requireActor(request);
     const { roomId, clueId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
-    if (!membership.role_slot_id) throw Object.assign(new Error("Player role required"), { statusCode: 409 });
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
     const shared = request.body?.shared !== false;
 
-    const clue = await query(
-      `SELECT c.name FROM clues c JOIN rooms r ON r.world_id = c.world_id WHERE c.id = $1 AND r.id = $2`,
-      [clueId, roomId]
-    );
-    if (!clue.rowCount) return reply.code(404).send({ error: "Clue not found" });
-
-    const result = await query(
-      `UPDATE clue_ownership
-       SET shared_with_room = $4,
-           shared_at = CASE WHEN $4 THEN COALESCE(shared_at, now()) ELSE NULL END
-       WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3
-       RETURNING shared_with_room, shared_at`,
-      [roomId, membership.role_slot_id, clueId, shared]
-    );
-    if (!result.rowCount) return reply.code(404).send({ error: "Clue not owned" });
-
-    const playerName = await playerDisplayName(query, roomId, membership.role_slot_id);
-    if (shared) {
-      await query(
-        `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
-         VALUES ($1, $2, 'host', 'clue_shared_room', $3, jsonb_build_object('clueId', $4::text, 'roleSlotId', $5::text))`,
-        [roomId, actorId, `${playerName}公开了线索「${clue.rows[0].name}」`, clueId, membership.role_slot_id]
+    return withRoomIdempotency(roomId, request, "clues.share_room", async () => {
+      const clue = await query(
+        `SELECT c.name FROM clues c JOIN rooms r ON r.world_id = c.world_id WHERE c.id = $1 AND r.id = $2`,
+        [clueId, roomId]
       );
-      publishRoomEvent(roomId, "room.clue_granted", {
-        clueId,
-        roleSlotId: membership.role_slot_id,
-        clueName: clue.rows[0].name,
-        source: "shared_room"
-      });
-    }
+      if (!clue.rowCount) return sendErr(reply, "CLUE_NOT_FOUND");
 
-    return { ok: true, sharedWithRoom: result.rows[0].shared_with_room, sharedAt: result.rows[0].shared_at };
+      const result = await transactionWithEvents(async (client, queueEvent) => {
+        const updated = await client.query(
+          `UPDATE clue_ownership
+           SET shared_with_room = $4,
+               shared_at = CASE WHEN $4 THEN COALESCE(shared_at, now()) ELSE NULL END
+           WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3
+           RETURNING shared_with_room, shared_at`,
+          [roomId, membership.role_slot_id, clueId, shared]
+        );
+        if (!updated.rowCount) return null;
+
+        const playerName = await playerDisplayName((text, params) => client.query(text, params), roomId, membership.role_slot_id);
+        if (shared) {
+          await client.query(
+            `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+             VALUES ($1, $2, 'host', 'clue_shared_room', $3, jsonb_build_object('clueId', $4::text, 'roleSlotId', $5::text))`,
+            [roomId, actorId, `${playerName}公开了线索「${clue.rows[0].name}」`, clueId, membership.role_slot_id]
+          );
+          queueEvent(roomId, "room.clue_granted", {
+            clueId,
+            roleSlotId: membership.role_slot_id,
+            clueName: clue.rows[0].name,
+            source: "shared_room"
+          });
+        }
+        return updated.rows[0];
+      });
+      if (!result) return sendErr(reply, "CLUE_NOT_OWNED");
+
+      return { ok: true, sharedWithRoom: result.shared_with_room, sharedAt: result.shared_at };
+    });
   });
 
   app.patch("/api/rooms/:roomId/clues/:clueId/player-note", { schema: cluePlayerNoteSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { roomId, clueId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
-    if (!membership.role_slot_id) throw Object.assign(new Error("Player role required"), { statusCode: 409 });
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
     const { note = "" } = request.body ?? {};
 
     const result = await query(
@@ -465,7 +483,7 @@ export async function registerPlayerRoutes(app) {
        RETURNING player_note`,
       [roomId, membership.role_slot_id, clueId, note]
     );
-    if (!result.rowCount) return reply.code(404).send({ error: "Clue not owned" });
+    if (!result.rowCount) return sendErr(reply, "CLUE_NOT_OWNED");
     return { ok: true, playerNote: result.rows[0].player_note };
   });
 }

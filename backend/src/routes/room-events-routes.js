@@ -1,7 +1,13 @@
 import { requireActor } from "../request-actor.js";
 import { subscribeRoomEvents } from "../room-event-bus.js";
+import { fetchJournalEventsAfter } from "../room-event-journal.js";
 import { requireRoomRole } from "./route-guards.js";
 import { roomIdParams } from "./schemas.js";
+
+function writeSseEvent(raw, { id, payload }) {
+  if (id !== undefined && id !== null) raw.write(`id: ${id}\n`);
+  raw.write(`data: ${payload}\n\n`);
+}
 
 export async function registerRoomEventsRoutes(app) {
   app.get("/api/rooms/:roomId/events/stream", { schema: { params: roomIdParams } }, async (request, reply) => {
@@ -17,15 +23,33 @@ export async function registerRoomEventsRoutes(app) {
       "X-Accel-Buffering": "no"
     });
 
-    const writeEvent = (payload) => {
-      reply.raw.write(`data: ${payload}\n\n`);
-    };
+    const lastEventId = request.headers["last-event-id"];
+    if (lastEventId) {
+      try {
+        const replay = await fetchJournalEventsAfter(roomId, lastEventId);
+        for (const row of replay) {
+          writeSseEvent(reply.raw, {
+            id: row.id,
+            payload: JSON.stringify(row.payload)
+          });
+        }
+      } catch {
+        /* replay failure should not block live stream */
+      }
+    }
 
-    writeEvent(JSON.stringify({ type: "connected", roomId, at: new Date().toISOString() }));
+    writeSseEvent(reply.raw, {
+      payload: JSON.stringify({ type: "connected", roomId, at: new Date().toISOString() })
+    });
 
-    const unsubscribe = subscribeRoomEvents(roomId, writeEvent);
+    const unsubscribe = subscribeRoomEvents(roomId, (message) => {
+      const envelope = typeof message === "string" ? { payload: message } : message;
+      writeSseEvent(reply.raw, envelope);
+    });
     const heartbeat = setInterval(() => {
-      writeEvent(JSON.stringify({ type: "heartbeat", roomId, at: new Date().toISOString() }));
+      writeSseEvent(reply.raw, {
+        payload: JSON.stringify({ type: "heartbeat", roomId, at: new Date().toISOString() })
+      });
     }, 25000);
 
     const cleanup = () => {

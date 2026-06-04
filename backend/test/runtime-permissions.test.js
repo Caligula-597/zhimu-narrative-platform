@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { pool, query } from "../src/db.js";
+import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
@@ -176,8 +176,4 @@ test("player cannot complete another role's private script section", async (cont
   });
   assert.equal(response.statusCode, 404);
   assert.equal(response.json().error, "Script section is locked or unavailable");
-});
-
-test.after(async () => {
-  await pool.end();
 });

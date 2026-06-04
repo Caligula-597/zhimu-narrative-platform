@@ -1,55 +1,9 @@
+import { query } from "./db.js";
+import { throwErr } from "./api-errors.js";
 import { transaction } from "./db.js";
-import { publishRoomEvent } from "./room-event-bus.js";
-
-async function conditionSatisfied(client, roomId, condition) {
-  if (condition.type === "reading_completed") {
-    const result = await client.query(
-      `SELECT EXISTS (
-        SELECT 1 FROM reading_progress
-        WHERE room_id = $1 AND role_slot_id = $2 AND script_section_id = $3
-          AND completed_at IS NOT NULL
-      ) AS ok`,
-      [roomId, condition.roleSlotId, condition.scriptSectionId]
-    );
-    return result.rows[0].ok;
-  }
-
-  if (condition.type === "clue_owned") {
-    const result = await client.query(
-      `SELECT EXISTS (
-        SELECT 1 FROM clue_ownership
-        WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3
-      ) AS ok`,
-      [roomId, condition.roleSlotId, condition.clueId]
-    );
-    return result.rows[0].ok;
-  }
-
-  if (condition.type === "item_owned") {
-    const result = await client.query(
-      `SELECT EXISTS (
-        SELECT 1 FROM inventory
-        WHERE room_id = $1 AND role_slot_id = $2 AND item_id = $3 AND quantity > 0
-      ) AS ok`,
-      [roomId, condition.roleSlotId, condition.itemId]
-    );
-    return result.rows[0].ok;
-  }
-
-  if (condition.type === "investigation_completed") {
-    const result = await client.query(
-      `SELECT EXISTS (
-        SELECT 1 FROM investigation_records
-        WHERE room_id = $1 AND investigation_point_id = $2
-      ) AS ok`,
-      [roomId, condition.investigationPointId]
-    );
-    return result.rows[0].ok;
-  }
-
-  return false;
-}
-
+import { transactionWithEvents } from "./transaction-events.js";
+import { grantItemToInventory } from "./inventory-helpers.js";
+import { evaluateConditions } from "./rule-condition-evaluator.js";
 async function executeAction(client, roomId, action) {
   if (action.type === "unlock_script_section") {
     await client.query(
@@ -85,11 +39,49 @@ async function executeAction(client, roomId, action) {
       [roomId, action.roleSlotId, action.clueId, action.source ?? "automation"]
     );
   }
+
+  if (action.type === "grant_item") {
+    await grantItemToInventory(client, {
+      roomId,
+      roleSlotId: action.roleSlotId,
+      itemId: action.itemId,
+      quantity: action.quantity ?? 1,
+      source: action.source ?? "automation"
+    });
+  }
 }
 
 async function executeActionsWithClient(client, roomId, actions) {
   for (const action of actions ?? []) {
     await executeAction(client, roomId, action);
+  }
+}
+
+export function queueRuleActionEvents(queueEvent, roomId, actions, source = "rule") {
+  for (const action of actions ?? []) {
+    if (action.type === "unlock_scene") {
+      queueEvent(roomId, "room.scene_unlocked", { sceneId: action.sceneId, source });
+    }
+    if (action.type === "unlock_script_section") {
+      queueEvent(roomId, "room.section_unlocked", {
+        scriptSectionId: action.scriptSectionId,
+        source
+      });
+    }
+    if (action.type === "grant_clue") {
+      queueEvent(roomId, "room.clue_granted", {
+        clueId: action.clueId,
+        roleSlotId: action.roleSlotId,
+        source
+      });
+    }
+    if (action.type === "grant_item") {
+      queueEvent(roomId, "room.item_granted", {
+        itemId: action.itemId,
+        roleSlotId: action.roleSlotId,
+        source
+      });
+    }
   }
 }
 
@@ -101,8 +93,90 @@ export async function executeActions(roomId, actions) {
 
 export { executeActionsWithClient };
 
+export async function previewRoomRules(roomId) {
+  const rules = await query(
+    `SELECT ar.id, ar.name, ar.mode, ar.priority, ar.conditions, ar.enabled,
+            EXISTS (
+              SELECT 1 FROM rule_executions re
+              WHERE re.rule_id = ar.id AND re.room_id = $1
+            ) AS already_executed,
+            EXISTS (
+              SELECT 1 FROM pending_host_events phe
+              WHERE phe.room_id = $1 AND phe.rule_id = ar.id
+                AND phe.status IN ('pending', 'delayed')
+            ) AS pending_host_event
+     FROM automation_rules ar
+     WHERE ar.room_id = $1 AND ar.enabled = true
+     ORDER BY ar.priority ASC, ar.created_at ASC`,
+    [roomId]
+  );
+
+  const dbClient = { query: (...args) => query(...args) };
+  const preview = [];
+
+  for (const rule of rules.rows) {
+    const conditionsMet = await evaluateConditions(dbClient, roomId, rule.conditions ?? {});
+    let status = "waiting";
+    if (rule.mode === "manual") {
+      status = conditionsMet ? "manual_ready" : "conditions_unmet";
+    } else if (rule.already_executed) {
+      status = "already_executed";
+    } else if (!conditionsMet) {
+      status = "conditions_unmet";
+    } else if (rule.mode === "host_confirm") {
+      status = rule.pending_host_event ? "pending_host_event" : "would_queue_host_confirm";
+    } else {
+      status = "would_execute";
+    }
+
+    preview.push({
+      id: rule.id,
+      name: rule.name,
+      mode: rule.mode,
+      priority: rule.priority,
+      conditionsMet,
+      alreadyExecuted: rule.already_executed,
+      pendingHostEvent: rule.pending_host_event,
+      status
+    });
+  }
+
+  return preview;
+}
+
+export async function triggerManualRule(roomId, ruleId) {
+  return transactionWithEvents(async (client, queueEvent) => {
+    const ruleResult = await client.query(
+      `SELECT id, name, mode, enabled, room_id, conditions, actions
+       FROM automation_rules WHERE id = $1`,
+      [ruleId]
+    );
+    if (!ruleResult.rowCount) throwErr("RULE_NOT_FOUND");
+    const rule = ruleResult.rows[0];
+    if (rule.mode !== "manual") throwErr("RULE_NOT_MANUAL");
+    if (!rule.enabled) throwErr("RULE_DISABLED");
+    if (rule.room_id !== roomId) throwErr("RULE_ROOM_SCOPE_MISMATCH");
+
+    const conditionsMet = await evaluateConditions(client, roomId, rule.conditions ?? {});
+    if (!conditionsMet) {
+      throwErr("RULE_CONDITIONS_NOT_MET");
+    }
+
+    await executeActionsWithClient(client, roomId, rule.actions);
+    queueRuleActionEvents(queueEvent, roomId, rule.actions, "manual_rule");
+
+    await client.query(
+      `INSERT INTO timeline_logs (room_id, visibility, event_type, message, metadata)
+       VALUES ($1, 'host', 'manual_rule_triggered', $2, jsonb_build_object('ruleId', $3::text))`,
+      [roomId, `主持人手动触发规则「${rule.name}」`, ruleId]
+    );
+
+    return { ok: true, ruleId, ruleName: rule.name };
+  });
+}
+
 export async function evaluateRoomRules(roomId) {
-  return transaction(async (client) => {
+  return transactionWithEvents(async (client, queueEvent) => {
     const rules = await client.query(
       `SELECT id, name, mode, conditions, actions
        FROM automation_rules
@@ -119,11 +193,8 @@ export async function evaluateRoomRules(roomId) {
       );
       if (alreadyExecuted.rowCount) continue;
 
-      const conditions = rule.conditions?.all ?? [];
-      const checks = await Promise.all(
-        conditions.map((condition) => conditionSatisfied(client, roomId, condition))
-      );
-      if (!checks.every(Boolean)) continue;
+      const conditionsMet = await evaluateConditions(client, roomId, rule.conditions ?? {});
+      if (!conditionsMet) continue;
 
       if (rule.mode === "host_confirm") {
         const inserted = await client.query(
@@ -142,7 +213,7 @@ export async function evaluateRoomRules(roomId) {
           ]
         );
         if (inserted.rowCount) {
-          publishRoomEvent(roomId, "room.host_event_pending", {
+          queueEvent(roomId, "room.host_event_pending", {
             eventId: inserted.rows[0].id,
             title: inserted.rows[0].title,
             source: "rule"
@@ -152,18 +223,7 @@ export async function evaluateRoomRules(roomId) {
       }
 
       await executeActionsWithClient(client, roomId, rule.actions);
-      for (const action of rule.actions ?? []) {
-        if (action.type === "unlock_scene") {
-          publishRoomEvent(roomId, "room.scene_unlocked", { sceneId: action.sceneId, source: "rule" });
-        }
-        if (action.type === "grant_clue") {
-          publishRoomEvent(roomId, "room.clue_granted", {
-            clueId: action.clueId,
-            roleSlotId: action.roleSlotId,
-            source: "rule"
-          });
-        }
-      }
+      queueRuleActionEvents(queueEvent, roomId, rule.actions, "rule");
       await client.query(
         `INSERT INTO rule_executions (rule_id, room_id, result)
          VALUES ($1, $2, '{"status":"executed"}'::jsonb)`,

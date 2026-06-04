@@ -1,10 +1,14 @@
 import { query, transaction } from "../db.js";
+import { sendErr, throwErr } from "../api-errors.js";
 import { randomUUID } from "node:crypto";
-import { validateUpload } from "../asset-policy.js";
+import { validateUpload, validateFilename } from "../asset-policy.js";
+import { ASSET_KINDS, ASSET_VISIBILITIES, buildAssetListQuery, parseAssetListQuery } from "../asset-list-helpers.js";
 import { getObjectStorage } from "../storage/index.js";
+import { scanUploadedObject } from "../upload-scan.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole } from "./route-guards.js";
 import { requireAssetRead, storageUsage } from "./world-helpers.js";
+import { assetUploadUrlSchema, confirmAssetSchema, deleteAssetSchema, worldIdParams } from "./schemas.js";
 
 export async function registerAssetRoutes(app) {
   app.get("/api/storage/usage", async (request) => {
@@ -19,48 +23,64 @@ export async function registerAssetRoutes(app) {
     };
   });
 
-  app.get("/api/worlds/:worldId/assets", async (request) => {
+  app.get("/api/worlds/:worldId/assets", { schema: { params: worldIdParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const result = await query(
-      `SELECT id, asset_kind, original_filename, content_type, byte_size, visibility, status, created_at
-       FROM asset_files
-       WHERE world_id = $1 AND status = 'active'
-       ORDER BY created_at DESC`,
-      [worldId]
-    );
-    return result.rows;
+
+    const filters = parseAssetListQuery(request.query);
+    if (filters.kind && !ASSET_KINDS.includes(filters.kind)) {
+      return sendErr(reply, "ASSET_KIND_INVALID");
+    }
+    if (filters.visibility && !ASSET_VISIBILITIES.includes(filters.visibility)) {
+      return sendErr(reply, "ASSET_VISIBILITY_INVALID");
+    }
+
+    const { listSql, countSql, params, countParams } = buildAssetListQuery(worldId, filters);
+    const result = await query(listSql, params);
+
+    if (!filters.envelope) {
+      return result.rows;
+    }
+
+    const totalResult = await query(countSql, countParams);
+    return {
+      assets: result.rows,
+      total: totalResult.rows[0].total,
+      limit: filters.limit,
+      offset: filters.offset
+    };
   });
 
-  app.post("/api/assets/upload-url", async (request, reply) => {
+  app.post("/api/assets/upload-url", { schema: assetUploadUrlSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, roomId = null, filename, contentType, byteSize, visibility = "author", roleSlotId = null } = request.body ?? {};
     if (!worldId || !filename || !contentType || !byteSize) {
-      return reply.code(400).send({ error: "worldId, filename, contentType and byteSize are required" });
+      return sendErr(reply, "UPLOAD_FIELDS_REQUIRED");
     }
     await requireWorldRole(actorId, worldId);
+    validateFilename(filename);
     const policy = validateUpload({ contentType, byteSize });
     const usage = await storageUsage(actorId);
     if (Number(byteSize) > Number(usage.max_single_file_bytes)) {
-      return reply.code(413).send({ error: "File exceeds account single-file limit" });
+      return sendErr(reply, "FILE_TOO_LARGE");
     }
     if (Number(usage.used_bytes) + Number(byteSize) > Number(usage.max_bytes)) {
-      return reply.code(413).send({ error: "Storage quota exceeded" });
+      return sendErr(reply, "STORAGE_QUOTA_EXCEEDED");
     }
     if (!["author", "host", "role", "public"].includes(visibility)) {
-      return reply.code(400).send({ error: "Unsupported visibility" });
+      return sendErr(reply, "ASSET_VISIBILITY_INVALID");
     }
     if (visibility === "role" && !roleSlotId) {
-      return reply.code(400).send({ error: "roleSlotId is required for role visibility" });
+      return sendErr(reply, "ASSET_ROLE_REQUIRED");
     }
     if (roomId) {
       const room = await query(`SELECT 1 FROM rooms WHERE id = $1 AND world_id = $2`, [roomId, worldId]);
-      if (!room.rowCount) return reply.code(400).send({ error: "roomId does not belong to worldId" });
+      if (!room.rowCount) return sendErr(reply, "ASSET_ROOM_WORLD_MISMATCH");
     }
     if (roleSlotId) {
       const role = await query(`SELECT 1 FROM role_slots WHERE id = $1 AND world_id = $2`, [roleSlotId, worldId]);
-      if (!role.rowCount) return reply.code(400).send({ error: "roleSlotId does not belong to worldId" });
+      if (!role.rowCount) return sendErr(reply, "ASSET_ROLE_WORLD_MISMATCH");
     }
 
     const objectKey = `users/${actorId}/worlds/${worldId}/assets/${randomUUID()}`;
@@ -93,7 +113,7 @@ export async function registerAssetRoutes(app) {
     });
   });
 
-  app.post("/api/assets/:assetId/confirm", async (request) => {
+  app.post("/api/assets/:assetId/confirm", { schema: confirmAssetSchema }, async (request) => {
     const actorId = requireActor(request);
     const { assetId } = request.params;
     const session = await query(
@@ -102,14 +122,19 @@ export async function registerAssetRoutes(app) {
        WHERE us.asset_file_id = $1 AND us.owner_user_id = $2 AND us.status = 'created' AND us.expires_at > now()`,
       [assetId, actorId]
     );
-    if (!session.rowCount) throw Object.assign(new Error("Active upload session not found"), { statusCode: 404 });
+    if (!session.rowCount) throwErr("UPLOAD_SESSION_NOT_FOUND");
     const stat = await getObjectStorage().statObject({ key: session.rows[0].object_key });
     if (stat.byteSize !== Number(session.rows[0].expected_byte_size)) {
-      throw Object.assign(new Error("Uploaded file size does not match upload request"), { statusCode: 409 });
+      throwErr("UPLOAD_SIZE_MISMATCH");
     }
     if (stat.contentType !== session.rows[0].expected_content_type) {
-      throw Object.assign(new Error("Uploaded content type does not match upload request"), { statusCode: 409 });
+      throwErr("UPLOAD_TYPE_MISMATCH");
     }
+    await scanUploadedObject({
+      key: session.rows[0].object_key,
+      contentType: stat.contentType,
+      byteSize: stat.byteSize
+    });
     await transaction(async (client) => {
       await client.query(`UPDATE asset_files SET status = 'active', updated_at = now() WHERE id = $1`, [assetId]);
       await client.query(`UPDATE upload_sessions SET status = 'confirmed', confirmed_at = now() WHERE id = $1`, [session.rows[0].id]);
@@ -130,10 +155,10 @@ export async function registerAssetRoutes(app) {
     return { downloadUrl, expiresIn: ttl };
   });
 
-  app.delete("/api/assets/:assetId", async (request) => {
+  app.delete("/api/assets/:assetId", { schema: deleteAssetSchema }, async (request) => {
     const actorId = requireActor(request);
     const asset = await query(`SELECT id FROM asset_files WHERE id = $1 AND owner_user_id = $2 AND status <> 'deleted'`, [request.params.assetId, actorId]);
-    if (!asset.rowCount) throw Object.assign(new Error("Asset not found"), { statusCode: 404 });
+    if (!asset.rowCount) throwErr("ASSET_NOT_FOUND");
     const recycleDays = Number(process.env.RECYCLE_BIN_DAYS ?? 14);
     await transaction(async (client) => {
       await client.query(`UPDATE asset_files SET status = 'deleted', deleted_at = now(), updated_at = now() WHERE id = $1`, [request.params.assetId]);

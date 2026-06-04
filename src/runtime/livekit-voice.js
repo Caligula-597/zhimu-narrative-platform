@@ -129,3 +129,4 @@
     isConnected: () => Boolean(room)
   };
 })(window);
+export {};

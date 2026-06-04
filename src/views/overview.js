@@ -38,7 +38,7 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = R.go || (() => {});
+  const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
@@ -168,3 +168,4 @@ function overview() {
   viewExports.overviewRuntimeProgress = overviewRuntimeProgress;
   viewExports.overview = overview;
 })(window);
+export {};

@@ -76,6 +76,10 @@
 
           <button class="nav-item" data-view="rules"><span>⌘</span>自动化规则</button>
 
+          <p class="nav-label">帮助</p>
+
+          <button class="nav-item" data-action="open-creator-guide"><span>?</span>创作指引</button>
+
           <p class="nav-label">运行</p>
 
           <button class="nav-item" data-view="director"><span>◉</span>主持监控台<i class="live-dot"></i></button>
@@ -109,6 +113,11 @@
 
 
       <main class="main-area">
+
+        <div id="auth-banner" class="auth-banner" hidden>
+          <p>内测环境需登录后才能保存剧本、协作与运行数据。</p>
+          <button type="button" class="primary-btn" id="auth-banner-login">登录 / 注册</button>
+        </div>
 
         <header class="topbar">
 
@@ -158,53 +167,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.15.3/dist/livekit-client.umd.min.js"></script>
 
-    <script src="./config.js"></script>
-
-    <script src="./src/dom.js"></script>
-
-    <script src="./src/state.js"></script>
-
-    <script src="./src/api/client.js"></script>
-
-    <script src="./rule-visual.js"></script>
-
-    <script src="./src/utils/format.js"></script>
-
-    <script src="./src/components/emptyState.js"></script>
-
-    <script src="./src/components/toast.js"></script>
-
-    <script src="./src/components/modal.js"></script>
-
-    <script src="./src/views/overview.js"></script>
-
-    <script src="./src/views/writer.js"></script>
-
-    <script src="./src/views/studio.js"></script>
-
-    <script src="./src/views/assets.js"></script>
-
-    <script src="./src/views/rules.js"></script>
-
-    <script src="./src/views/director.js"></script>
-
-    <script src="./src/views/player.js"></script>
-
-    <script src="./src/views/archive.js"></script>
-
-    <script src="./src/views/settings.js"></script>
-
-    <script src="./src/runtime/wizard.js"></script>
-
-    <script src="./src/runtime/auth-world.js"></script>
-
-    <script src="./src/runtime/livekit-voice.js"></script>
-
-    <script src="./src/runtime/data.js"></script>
-
-    <script src="./src/runtime/actions.js"></script>
-
-    <script src="./app.js"></script>
+    <script type="module" src="/frontend/main.js"></script>
 
   </body>
 

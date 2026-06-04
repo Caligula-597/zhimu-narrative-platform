@@ -38,7 +38,7 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = R.go || (() => {});
+  const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
@@ -79,7 +79,7 @@ function wizardContent(step){
  roleStepContent(),
  contentStepContent(),
  automationStepContent(),
- `<p class="section-kicker">STEP 05 · TEST ROOM</p><h2>创建测试房间，先自己跑一遍</h2><p class="wizard-intro">发布前使用不同玩家视角检查专属剧情、线索权限和自动规则。测试房间中的操作不会影响正式存档。</p><div class="checklist">${check("角色席位与私人序章",`将写入 ${currentRoles().length} 个席位与 ${currentRoles().length} 段私人剧情`)}${check("起始章节","将写入 1 个序章")}${check("自动化规则","创建后在创作台按需配置")}${check("语音空间","将自动建立公共讨论房")}</div><div class="tutorial-tip"><b>下一步</b><span>创建测试房间后，你会进入创作台。可以继续补充角色、场景、调查点和关键规则，再邀请协作主持人或切换玩家视角检查体验。</span></div>`
+ `<p class="section-kicker">STEP 05 · TEST ROOM</p><h2>创建测试房间，先自己跑一遍</h2><p class="wizard-intro">发布前使用不同玩家视角检查专属剧情、线索权限和自动规则。测试房间中的操作不会影响正式存档。</p><div class="checklist">${check("角色席位与私人序章",`将写入 ${currentRoles().length} 个席位与 ${currentRoles().length} 段私人剧情`)}${check("起始章节","将写入 1 个序章")}${check("自动化规则",`将写入 ${window.zhimuWizardAutomation?.countEnabledTemplates(state.wizardDraft.automationTemplates)||0} 条起始规则（可在规则页调整）`)}${check("语音空间","将自动建立公共讨论房")}</div><div class="tutorial-tip"><b>下一步</b><span>创建后会进入「自动化规则」页查看模板规则，并可在「剧情编排」继续补充场景与线索。需要步骤说明可点击侧栏「创作指引」。</span></div>`
  ];
  return `${wizardForm(step)}${pages[step]}`;
 }
@@ -102,7 +102,7 @@ function automationStepContent(){
   ["chapter","章节结束与终幕开启","当本章关键节点全部完成时","提交给主持人确认，再进入下一章","主持确认"],
   ["hint","卡关时发送弱提示","当玩家长时间没有获得新信息时","发送与当前位置有关的轻量提示","自动执行"]
  ];
- return `<p class="section-kicker">STEP 04 · AUTOMATION</p><h2>选择这个房间需要的自动推进模板</h2><p class="wizard-intro">自动化不是替主持人做决定，而是持续检测玩家状态。普通解锁交给系统，重要转折仍由主持人确认。点击卡片即可启用或关闭，创建后还能继续细化条件。</p><div class="automation-guide"><b>推荐做法</b><span>第一次创建剧本杀房间时，保留前三项即可。弱提示适合长线测试阶段，正式发布前再决定是否开启。</span></div><div class="automation-template-grid">${templates.map(([key,title,when,action,mode])=>automationTemplate(key,title,when,action,mode)).join("")}</div>`;
+ return `<p class="section-kicker">STEP 04 · AUTOMATION</p><h2>选择这个房间需要的自动推进模板</h2><p class="wizard-intro">自动化不是替主持人做决定，而是持续检测玩家状态。普通解锁交给系统，重要转折仍由主持人确认。点击卡片即可启用或关闭，创建后会写入起始规则。</p><div class="automation-guide"><b>推荐做法</b><span>第一次创建剧本杀房间时，保留前三项即可。弱提示适合长线测试阶段，正式发布前再决定是否开启。详细说明见侧栏「创作指引」。</span></div><div class="automation-template-grid">${templates.map(([key,title,when,action,mode])=>automationTemplate(key,title,when,action,mode)).join("")}</div>`;
 }
 
 function automationTemplate(key,title,when,action,mode){
@@ -200,16 +200,28 @@ async function finishWizard(){
   const d=state.wizardDraft;
   const content=currentContent();
   const world=await zhimuApi.createWorld({name:d.worldName,summary:d.summary,settings:{worldMode:d.worldMode,contentSource:d.contentSource,automationTemplates:d.automationTemplates}});
+  zhimuApi.selectWorld(world.id);
   const chapter=await zhimuApi.createChapter(world.id,{title:content.chapterTitle,summary:d.summary,sequence:1});
+  const createdRoles=[];
   for(const [index,roleDraft] of currentRoles().entries()){
    const role=await zhimuApi.createRole(world.id,{name:roleDraft.name,publicProfile:roleDraft.publicProfile,privateProfile:roleDraft.privateProfile,sequence:index+1});
-   await zhimuApi.createSection(world.id,role.id,{chapterId:chapter.id,title:content.sectionTitle,body:roleDraft.scriptBody||`${roleDraft.privateProfile}\n\n${content.sectionBody}`,sequence:1});
+   const section=await zhimuApi.createSection(world.id,role.id,{chapterId:chapter.id,title:content.sectionTitle,body:roleDraft.scriptBody||`${roleDraft.privateProfile}\n\n${content.sectionBody}`,sequence:1});
+   createdRoles.push({id:role.id,name:roleDraft.name,sectionId:section.id});
+  }
+  const templateRules=window.zhimuWizardAutomation?.buildWizardAutomationRules({roles:createdRoles,templates:d.automationTemplates})||[];
+  let rulesCreated=0;
+  for(const ruleBody of templateRules){
+   try{await zhimuApi.createRule(ruleBody);rulesCreated+=1}catch(error){console.warn("wizard rule template skipped",error)}
   }
   const inviteCode=`TEST-${Date.now().toString(36).toUpperCase()}`;
   const room=await zhimuApi.createRoom(world.id,{name:`${d.worldName} · 测试房`,inviteCode});
-  closeModal();go("studio");
-  openModal("测试房间已创建",`世界、角色、章节和序章已经真实写入云端。<br><br><strong>邀请码：${inviteCode}</strong><br><small>房间 ID：${room.id}</small>`,"开始继续编排");
+  zhimuApi.selectRoom(room.id);
+  await loadCloudData(true);
+  closeModal();go("rules");
+  const rulesHint=rulesCreated?`已根据向导模板写入 ${rulesCreated} 条起始规则，可在本页继续调整。`:"未启用规则模板，可在「自动化规则」页手动创建。";
+  openModal("测试房间已创建",`世界、角色、章节和序章已经真实写入云端。<br><br><strong>邀请码：${escapeHtml(inviteCode)}</strong><br><br>${rulesHint}<br><small>完整步骤见侧栏「创作指引」。</small>`,"查看规则列表");
  }catch(error){button.disabled=false;button.textContent="重新创建测试房间";showToast(error.message)}
 }
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openWizard, finishWizard });
 })(window);
+export {};

@@ -1,3 +1,5 @@
+import { throwErr } from "./api-errors.js";
+
 export function bearerToken(request) {
   const authorization = request.headers.authorization;
   return authorization?.startsWith("Bearer ") ? authorization.slice(7) : "";
@@ -25,7 +27,7 @@ export async function resolveRequestActor(request, { resolveSession, allowDemoUs
 
 export function requireActor(request) {
   if (!request.actorId) {
-    throw Object.assign(new Error("Authentication required"), { statusCode: 401 });
+    throwErr("AUTH_REQUIRED");
   }
   return request.actorId;
 }

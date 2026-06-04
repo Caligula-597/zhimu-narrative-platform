@@ -38,7 +38,7 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = R.go || (() => {});
+  const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
@@ -48,7 +48,7 @@
   const viewExports = window.zhimuViews.rules = window.zhimuViews.rules || {};
 function rules() {
  const data=state.cloudRules||[],modeName={automatic:"自动执行",host_confirm:"主持确认",manual:"仅手动"};
- return `<section class="rules-layout"><div><div class="section-head"><div><h3>规则列表</h3><p>规则已经连接云端数据库。条件满足后，系统执行动作或提交主持人确认。</p></div><button class="primary-btn" data-action="rule-new">＋ 新建规则</button></div>
+ return `<section class="rules-layout"><div><div class="section-head"><div><h3>规则列表</h3><p>规则已经连接云端数据库。条件满足后，系统执行动作或提交主持人确认。</p></div><div class="row"><button class="secondary-btn" data-action="open-creator-guide">创作指引</button><button class="primary-btn" data-action="rule-new">＋ 新建规则</button></div></div>
  ${data.map(rule=>{const summary=window.zhimuRuleVisual?.summarizeRule(rule.conditions,rule.actions)||{when:JSON.stringify(rule.conditions),then:JSON.stringify(rule.actions)};return `<article class="rule-card"><div class="rule-card-top"><button class="toggle ${rule.enabled?"on":""}" data-action="rule-toggle" data-rule="${rule.id}" title="启用或暂停规则"><i></i></button><h3>${rule.name}</h3><span class="mode ${rule.mode==="host_confirm"?"confirm":""}">${modeName[rule.mode]}</span></div><p class="rule-text"><b>当</b> ${escapeHtml(summary.when)}<br><b>则</b> ${escapeHtml(summary.then)}</p><div class="rule-stats"><span>● ${rule.enabled?"已启用":"已暂停"}</span><span>优先级 ${rule.priority}</span><span>${rule.room_name||"世界模板"}</span></div><div class="row rule-actions"><button class="text-btn" data-action="rule-edit" data-rule="${rule.id}">编辑</button><button class="text-btn danger-text" data-action="rule-delete" data-rule="${rule.id}">删除</button></div></article>`}).join("")||`<div class="empty-state">尚未建立自动化规则。先创建一条阅读完成或调查点完成规则。</div>`}</div>
  <aside class="card"><div class="section-head"><div><h3>自动化概览</h3><p>创作阶段规则检查</p></div></div>
  ${stat("⌘",String(data.length),"条云端规则","支持世界模板与测试房")}${stat("✓",String(data.filter(rule=>rule.enabled).length),"条已启用","暂停规则不会触发")}${stat("◷",String(data.filter(rule=>rule.mode==="host_confirm").length),"项主持确认","关键转折保留人工判断")}
@@ -67,9 +67,11 @@ function openRuleEditor(ruleId=""){
  const showRuleErrors=(errors=[])=>{const box=modal.querySelector("[data-rule-errors]");if(!errors.length){box.innerHTML="";box.classList.remove("show");return}box.classList.add("show");box.innerHTML=`<strong>请修正以下问题：</strong><ul>${errors.map(item=>`<li>${escapeHtml(item.message)}</li>`).join("")}</ul>`};
  const wireRuleVisualPanel=()=>{
   modal.querySelectorAll("[data-rule-condition-type]").forEach(select=>select.onchange=()=>{const index=Number(select.dataset.ruleConditionType);visualState.conditions[index]=window.zhimuRuleVisual.emptyCondition(select.value);renderVisual()});
-  modal.querySelectorAll("[data-rule-condition-field]").forEach(select=>select.onchange=()=>{visualState.conditions[Number(select.dataset.ruleConditionIndex)][select.dataset.ruleConditionField]=select.value;if(select.dataset.ruleConditionField==="roleSlotId")renderVisual()});
+  modal.querySelectorAll("[data-rule-condition-field]").forEach(el=>{const handler=()=>{const field=el.dataset.ruleConditionField;let val=el.value;if(field==="value")val=Number(el.value);visualState.conditions[Number(el.dataset.ruleConditionIndex)][field]=val;if(field==="roleSlotId")renderVisual()};el.onchange=handler;el.oninput=handler});
   modal.querySelectorAll("[data-rule-action-type]").forEach(select=>select.onchange=()=>{const index=Number(select.dataset.ruleActionType);visualState.actions[index]=window.zhimuRuleVisual.emptyAction(select.value);renderVisual()});
-  modal.querySelectorAll("[data-rule-action-field]").forEach(field=>{const handler=()=>{visualState.actions[Number(field.dataset.ruleActionIndex)][field.dataset.ruleActionField]=field.value};field.onchange=handler;field.oninput=handler});
+  modal.querySelectorAll("[data-rule-action-field]").forEach(field=>{const handler=()=>{const val=field.type==="number"?Number(field.value):field.value;visualState.actions[Number(field.dataset.ruleActionIndex)][field.dataset.ruleActionField]=val};field.onchange=handler;field.oninput=handler});
+  const logicSelect=modal.querySelector("[data-rule-condition-logic]");
+  if(logicSelect)logicSelect.onchange=()=>{visualState.conditionLogic=logicSelect.value;renderVisual()};
   modal.querySelector("[data-rule-add-condition]")&&(modal.querySelector("[data-rule-add-condition]").onclick=()=>{visualState.conditions.push(window.zhimuRuleVisual.emptyCondition());renderVisual()});
   modal.querySelector("[data-rule-add-action]")&&(modal.querySelector("[data-rule-add-action]").onclick=()=>{visualState.actions.push(window.zhimuRuleVisual.emptyAction());renderVisual()});
   modal.querySelectorAll("[data-rule-remove-condition]").forEach(button=>button.onclick=()=>{visualState.conditions.splice(Number(button.dataset.ruleRemoveCondition),1);if(!visualState.conditions.length)visualState.conditions.push(window.zhimuRuleVisual.emptyCondition());renderVisual()});
@@ -93,7 +95,7 @@ function openRuleEditor(ruleId=""){
   showRuleErrors([]);
  };
  modal.className="modal rule-editor-modal";
- modal.innerHTML=`<h2>${rule?"编辑自动化规则":"新建自动化规则"}</h2><p class="wizard-intro">用可视化表单描述「当…则…」。所有条件必须同时满足（AND）。高级用户可切换到 JSON 模式。</p><div class="rule-editor-tabs"><button type="button" class="rule-tab active" data-rule-tab="visual">可视化编辑</button><button type="button" class="rule-tab" data-rule-tab="json">JSON 编辑</button></div><div class="form-group">${studioField("规则名称","name","input",value.name)}${studioSelect("绑定范围","roomId",[{id:"",name:"世界模板 · 可复用于新房间"},...rooms])}${studioSelect("触发模式","mode",[{id:"automatic",name:"自动执行"},{id:"host_confirm",name:"主持确认"},{id:"manual",name:"手动触发"}])}${studioField("优先级","priority","input",value.priority)}<label class="check-label"><input type="checkbox" data-rule-enabled ${value.enabled?"checked":""}> 启用规则</label></div><div data-rule-errors class="rule-error-box"></div><div data-rule-visual-wrap><div data-rule-visual-panel></div></div><div data-rule-json-wrap style="display:none"><div class="form-group">${studioField("检测条件 JSON","conditions","textarea",value.conditions)}${studioField("执行动作 JSON","actions","textarea",value.actions)}</div><p class="wizard-intro">JSON 模式面向高级用户。保存前仍会校验结构与引用。</p></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-rule-submit>写入云端</button></div>`;
+ modal.innerHTML=`<h2>${rule?"编辑自动化规则":"新建自动化规则"}</h2><p class="wizard-intro">用可视化表单描述「当…则…」。支持全部满足或任一满足；复杂结构（如取反）请用 JSON 模式。</p><div class="rule-editor-tabs"><button type="button" class="rule-tab active" data-rule-tab="visual">可视化编辑</button><button type="button" class="rule-tab" data-rule-tab="json">JSON 编辑</button></div><div class="form-group">${studioField("规则名称","name","input",value.name)}${studioSelect("绑定范围","roomId",[{id:"",name:"世界模板 · 可复用于新房间"},...rooms])}${studioSelect("触发模式","mode",[{id:"automatic",name:"自动执行"},{id:"host_confirm",name:"主持确认"},{id:"manual",name:"手动触发"}])}${studioField("优先级","priority","input",value.priority)}<label class="check-label"><input type="checkbox" data-rule-enabled ${value.enabled?"checked":""}> 启用规则</label></div><div data-rule-errors class="rule-error-box"></div><div data-rule-visual-wrap><div data-rule-visual-panel></div></div><div data-rule-json-wrap style="display:none"><div class="form-group">${studioField("检测条件 JSON","conditions","textarea",value.conditions)}${studioField("执行动作 JSON","actions","textarea",value.actions)}</div><p class="wizard-intro">JSON 模式面向高级用户。保存前仍会校验结构与引用。</p></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-rule-submit>写入云端</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector('[data-studio-field="roomId"]').value=value.roomId;modal.querySelector('[data-studio-field="mode"]').value=value.mode;
  modal.querySelectorAll("[data-rule-tab]").forEach(button=>button.onclick=()=>setRuleTab(button.dataset.ruleTab));
  if(parsed.compatible===false&&rule)showToast(parsed.reason);
@@ -127,3 +129,4 @@ async function validateCloudRules(){try{const result=await zhimuApi.validateRule
   viewExports.deleteCloudRule = deleteCloudRule;
   viewExports.validateCloudRules = validateCloudRules;
 })(window);
+export {};

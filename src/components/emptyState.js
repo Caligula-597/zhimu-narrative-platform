@@ -26,7 +26,7 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = R.go || (() => {});
+  const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
@@ -62,3 +62,4 @@ function check(title,status){return `<div class="check-item"><i>✓</i><div><str
 function voiceOption(icon,title,text,roomId,cls){return `<div class="voice-option ${cls}"><i>${icon}</i><div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></div><div class="row">${cls==="invite_private"?`<button class="secondary-btn" data-action="voice-room-invite" data-room-id="${roomId}" data-room="${escapeHtml(title)}">邀请成员</button>`:""}<button data-action="join-room" data-room-id="${roomId}" data-room="${escapeHtml(title)}">${state.voiceRoomId===roomId?"当前房间":"加入"}</button></div></div>`}
   window.zhimuUi = { activeRuntimeRoom, runtimeEmpty, cloudStatus, stat, flow, activity, readingRow, task, taskAction, capability, check, voiceOption };
 })(window);
+export {};
