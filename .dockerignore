@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.github
+playwright-report
+test-results
+artifacts
+.env
+.env.*
+!.env.example
+backend/test-output.txt
+*.log

@@ -101,8 +101,18 @@ railway up
 | Builder | Dockerfile |
 | Start Command | **留空**（禁止 `npm start`，那是前端 4173） |
 
-**若 Deploy Logs 出现 `织幕已启动：http://localhost:4173` → 跑错了**，说明在用根目录 `npm start`（前端），不是 API。  
-修复：保存根目录 `railway.toml`（已提交）并 Redeploy；或在 Settings 把 **Root Directory 改为 `backend`**，Builder 选 Dockerfile。
+**若 Deploy Logs 出现 `织幕已启动：http://localhost:4173` → 跑错了**，说明在用根目录 `npm start`（前端），不是 API。
+
+**若 Build Logs 出现 `postinstall` / `ensure-esm-exports.mjs` 或 `RUN npm ci --omit=dev`（无 `--ignore-scripts`）→ 没用 Dockerfile**，Railway 在用 Nixpacks/Railpack 构建根目录。
+
+修复（Settings → Build，逐项确认）：
+
+1. **Builder** = **Dockerfile**（不要 Nixpacks / Railpack / 自动检测）
+2. **Dockerfile path** = `Dockerfile`（仓库根目录，不是 `backend/Dockerfile`）
+3. **Custom Build Command** / **Start Command** = **留空**
+4. **Clear build cache** → **Redeploy**
+
+仓库已提供 `railway.toml` + `railway.json` + 根 `Dockerfile`；若 UI 与 config 冲突，以 UI 选 Dockerfile 为准。
 
 | Root Directory | 配置 |
 |----------------|------|

@@ -29,7 +29,7 @@
     "test:modal-helpers": "node --test scripts/modal-helpers.test.mjs",
     "explore:ai": "node e2e/ai-explore.mjs",
     "explore:ai:llm": "node e2e/ai-explore.mjs --llm --headed",
-    "postinstall": "node scripts/ensure-esm-exports.mjs"
+    "ensure:esm": "node scripts/ensure-esm-exports.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
