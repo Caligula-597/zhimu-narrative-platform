@@ -1,7 +1,7 @@
-# Railway deploys from repo root by default — force backend API (Dockerfile), not root `npm start`.
+# Railway deploys from repo root — use root Dockerfile (backend/ package.json).
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "backend/Dockerfile"
+dockerfilePath = "Dockerfile"
 watchPatterns = ["backend/**"]
 
 [deploy]

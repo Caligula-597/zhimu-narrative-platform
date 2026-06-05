@@ -106,8 +106,8 @@ railway up
 
 | Root Directory | 配置 |
 |----------------|------|
-| 留空（默认） | 使用仓库根 `railway.toml` → `backend/Dockerfile` |
-| `backend` | 使用 `backend/railway.toml` → `Dockerfile` |
+| 留空（默认） | 使用仓库根 **`Dockerfile`** + `railway.toml`（context =  repo root） |
+| `backend` | 使用 `backend/Dockerfile`（本地 docker-compose 同款） |
 
 **两种都不要**选 Nixpacks / `npm start`。
 
