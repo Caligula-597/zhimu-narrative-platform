@@ -97,11 +97,19 @@ railway up
 
 | 设置项 | 推荐值 |
 |--------|--------|
-| Root Directory | `backend` |
-| Builder | Dockerfile（`backend/Dockerfile`） |
-| `railway.toml` | 已在 `backend/railway.toml`（健康检查 300s） |
-| Start Command | 留空（用 entrypoint 自动 migrate + 启动） |
-| Healthcheck | `/api/health/live` 或 `/api/health/ready` |
+| Root Directory | **留空（仓库根）** 或 `backend` — 二选一，见下 |
+| Builder | Dockerfile |
+| Start Command | **留空**（禁止 `npm start`，那是前端 4173） |
+
+**若 Deploy Logs 出现 `织幕已启动：http://localhost:4173` → 跑错了**，说明在用根目录 `npm start`（前端），不是 API。  
+修复：保存根目录 `railway.toml`（已提交）并 Redeploy；或在 Settings 把 **Root Directory 改为 `backend`**，Builder 选 Dockerfile。
+
+| Root Directory | 配置 |
+|----------------|------|
+| 留空（默认） | 使用仓库根 `railway.toml` → `backend/Dockerfile` |
+| `backend` | 使用 `backend/railway.toml` → `Dockerfile` |
+
+**两种都不要**选 Nixpacks / `npm start`。
 
 ---
 
