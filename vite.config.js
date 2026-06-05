@@ -27,14 +27,18 @@ function docsStaticPlugin() {
       });
     },
     closeBundle() {
-      const out = path.join(root, "dist", "docs");
-      if (!fs.existsSync(docsRoot)) return;
-      fs.mkdirSync(out, { recursive: true });
-      for (const name of fs.readdirSync(docsRoot)) {
-        if (name.endsWith(".md")) {
-          fs.copyFileSync(path.join(docsRoot, name), path.join(out, name));
+      const outDir = path.join(root, "dist");
+      const out = path.join(outDir, "docs");
+      if (fs.existsSync(docsRoot)) {
+        fs.mkdirSync(out, { recursive: true });
+        for (const name of fs.readdirSync(docsRoot)) {
+          if (name.endsWith(".md")) {
+            fs.copyFileSync(path.join(docsRoot, name), path.join(out, name));
+          }
         }
       }
+      // Cloudflare Pages SPA fallback (do not use wrangler deploy for static Pages)
+      fs.writeFileSync(path.join(outDir, "_redirects"), "/* /index.html 200\n");
     }
   };
 }
