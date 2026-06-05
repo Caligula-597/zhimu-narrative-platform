@@ -1,0 +1,137 @@
+/**
+ * Build Railway-ready env from backend/.env + production overrides.
+ * Output: .env.railway (gitignored) — import in Railway dashboard or CLI.
+ */
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const backendEnvPath = path.join(root, "backend", ".env");
+const outPath = path.join(root, ".env.railway");
+
+function parseEnv(content) {
+  const out = {};
+  for (const line of content.split("\n")) {
+    const t = line.trim();
+    if (!t || t.startsWith("#")) continue;
+    const i = t.indexOf("=");
+    if (i < 0) continue;
+    const key = t.slice(0, i).trim();
+    let val = t.slice(i + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    out[key] = val;
+  }
+  return out;
+}
+
+function normalizeDatabaseUrl(url) {
+  if (!url) return url;
+  let next = url.trim();
+  if (!/sslmode=/i.test(next)) {
+    next += next.includes("?") ? "&sslmode=require" : "?sslmode=require";
+  }
+  return next;
+}
+
+/** Railway Raw Editor: avoid JSON-style quotes; use plain KEY=value or double-quoted .env */
+function serializeEnv(entries) {
+  return `${entries
+    .map(([k, v]) => {
+      const s = String(v);
+      if (/[\s#]/.test(s)) return `${k}="${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+      return `${k}=${s}`;
+    })
+    .join("\n")}\n`;
+}
+
+const urlArg = process.argv.find((a) => a.startsWith("--url="))?.slice(6)
+  ?? (process.argv.includes("--url") ? process.argv[process.argv.indexOf("--url") + 1] : null);
+
+if (!fs.existsSync(backendEnvPath)) {
+  console.error("sync-railway-env: backend/.env not found");
+  process.exit(1);
+}
+
+const local = parseEnv(fs.readFileSync(backendEnvPath, "utf8"));
+const publicUrl = (urlArg || process.env.RAILWAY_APP_PUBLIC_URL || "https://getzhimu.com").replace(/\/$/, "");
+
+const SECRET_KEYS = [
+  "DATABASE_URL",
+  "OBJECT_STORAGE_PROVIDER",
+  "R2_ACCOUNT_ID",
+  "R2_ACCESS_KEY_ID",
+  "R2_SECRET_ACCESS_KEY",
+  "R2_BUCKET",
+  "R2_PUBLIC_ENDPOINT",
+  "SIGNED_UPLOAD_TTL_SECONDS",
+  "SIGNED_DOWNLOAD_TTL_SECONDS",
+  "RECYCLE_BIN_DAYS",
+  "DEEPSEEK_API_KEY",
+  "DEEPSEEK_BASE_URL",
+  "DEEPSEEK_MODEL",
+  "DEEPSEEK_TIMEOUT_MS",
+  "LIVEKIT_URL",
+  "LIVEKIT_API_KEY",
+  "LIVEKIT_API_SECRET",
+  "RESEND_API_KEY",
+  "EMAIL_PROVIDER"
+];
+
+const env = {};
+for (const key of SECRET_KEYS) {
+  if (local[key]) env[key] = local[key];
+}
+
+// Resend: plain "Name <email>" — no nested JSON quotes (Railway misparses those)
+const mailFrom = (local.MAIL_FROM || "").replace(/^["']|["']$/g, "").trim();
+env.MAIL_FROM = mailFrom.includes("@") ? mailFrom : "织幕 <noreply@mail.getzhimu.com>";
+
+env.NODE_ENV = "production";
+env.ALLOW_DEMO_USER_HEADER = "false";
+env.DATABASE_URL = normalizeDatabaseUrl(local.DATABASE_URL);
+env.DATABASE_SSL = "true";
+env.PGPOOL_MAX = "5";
+env.APP_PUBLIC_URL = publicUrl;
+env.CORS_ORIGIN = publicUrl;
+env.EMAIL_PROVIDER = env.EMAIL_PROVIDER || "resend";
+env.REQUIRE_EMAIL_VERIFICATION = local.REQUIRE_EMAIL_VERIFICATION || "false";
+env.RUN_DB_SEED = "false";
+env.SKIP_ENSURE_PLATFORM_CATALOG = "true";
+env.LOG_FORMAT = "json";
+env.LOG_LEVEL = "info";
+env.OPENAPI_UI = "false";
+env.UPLOAD_SCAN_MODE = "none";
+env.RATE_LIMIT_AUTH_MAX = "20";
+env.RATE_LIMIT_WRITE_MAX = "120";
+env.RATE_LIMIT_READ_MAX = "300";
+env.RATE_LIMIT_UPLOAD_MAX = "30";
+env.RATE_LIMIT_AI_MAX = "40";
+
+if (local.OPS_API_TOKEN?.trim()) {
+  env.OPS_API_TOKEN = local.OPS_API_TOKEN.trim();
+} else {
+  env.OPS_API_TOKEN = crypto.randomBytes(24).toString("base64url");
+}
+
+const required = ["DATABASE_URL", "RESEND_API_KEY", "MAIL_FROM", "APP_PUBLIC_URL"];
+const missing = required.filter((k) => !env[k]?.trim());
+if (missing.length) {
+  console.error(`sync-railway-env: missing in backend/.env: ${missing.join(", ")}`);
+  process.exit(1);
+}
+
+const header = `# Paste into Railway → Service → Variables → Raw Editor (replace all)
+# Do NOT set PORT — Railway injects it automatically.
+# Root Directory must be: backend | Builder: Dockerfile
+`;
+fs.writeFileSync(outPath, header + serializeEnv(Object.entries(env)), "utf8");
+
+console.log("sync-railway-env: wrote .env.railway");
+console.log(`  APP_PUBLIC_URL=${publicUrl}`);
+console.log(`  keys=${Object.keys(env).length}`);
+console.log("  SKIP_ENSURE_PLATFORM_CATALOG=true (Supabase already seeded)");
+console.log("  DATABASE_URL appended sslmode=require if missing");
