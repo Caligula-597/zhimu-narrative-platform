@@ -17,6 +17,7 @@
     "staging:e2e": "node scripts/staging-e2e.mjs",
     "staging:sync-env": "node scripts/sync-staging-env.mjs",
     "railway:sync-env": "node scripts/sync-railway-env.mjs",
+    "railway:deploy": "node scripts/railway-deploy.mjs",
     "staging:seed": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/seed.js",
     "staging:catalog": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/ensure-platform-catalog.js",
     "staging:cleanup-rooms": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/cleanup-duplicate-rooms.js",

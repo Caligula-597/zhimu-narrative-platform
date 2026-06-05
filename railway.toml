@@ -1,10 +1,12 @@
-# Railway deploys from repo root — use root Dockerfile (backend/ package.json).
+# If Railway builds from repo root by mistake, use backend/Dockerfile.
+# Preferred deploy: railway up backend --path-as-root (see docs/ops/RAILWAY.md)
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "backend/Dockerfile"
 watchPatterns = ["backend/**"]
 
 [deploy]
+startCommand = ""
 healthcheckPath = "/api/health/live"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
