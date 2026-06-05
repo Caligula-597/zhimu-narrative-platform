@@ -70,7 +70,7 @@ function runtimeEmpty(title,description){
 function demoIdentityBanner(){
  if(localStorage.getItem("zhimuSessionToken"))return "";
  if(!window.zhimuConfig?.demoMode)return "";
- return `<section class="demo-strip demo-identity-strip"><div><span class="cloud-pill">演示身份</span><strong style="margin-top:7px">当前以示例账号「沈舟」浏览，看到的是数据库里的演示剧本，不是你的私人账号数据。</strong><p>注册或登录后只会显示<strong>属于你</strong>的剧本；新账号可从下方「公开剧本库」体验《雾港来信》，或创建自己的世界。</p></div><button class="primary-btn" data-action="open-auth">登录 / 注册</button></section>`;
+ return `<section class="demo-strip demo-identity-strip"><div><span class="cloud-pill">未登录</span><strong style="margin-top:7px">登录后可创建和管理你的剧本</strong><p>也可先浏览「公开剧本库」体验完整示例，或创建自己的世界。</p></div><button class="primary-btn" data-action="open-auth">登录 / 注册</button></section>`;
 }
 
 function cloudStatus(){
@@ -99,12 +99,12 @@ function capability(icon,title,text,view){return `<article class="capability-car
 function catalogCardsHtml(){
  if(state.cloudCatalogError)return `<div class="empty-state">公开库加载失败：${escapeHtml(state.cloudCatalogError)}</div>`;
  const catalog=state.cloudCatalog||[];
- if(!catalog.length)return `<div class="empty-state">公开库暂无剧本。Docker 预发需迁移 + seed（《雾港来信》）；或请主创作者在「世界设置」勾选「公开到剧本库」。</div>`;
+ if(!catalog.length)return `<div class="empty-state">公开库暂无剧本。主创作者可在「世界设置」勾选「公开到剧本库」。</div>`;
  return `<div class="catalog-inline-grid">${catalog.map(world=>`<article class="catalog-inline-card"><div><span class="cloud-pill">公开</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"暂无简介")}</p><small>创作者：${escapeHtml(world.owner_display_name||"未知")} · ${world.role_count||0} 个角色席</small></div><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></article>`).join("")}</div>`;
 }
 
 function catalogPromoSection(){
- return `<section class="catalog-promo card"><div class="section-head"><div><h3>公开剧本库</h3><p>浏览已发布完整剧本（如《雾港来信》），加入后使用<strong>一个</strong>自己的运行房体验，数据来自数据库真实种子而非演示假数。</p></div><button class="secondary-btn" data-action="open-catalog">浏览全部 →</button></div>${catalogCardsHtml()}</section>`;
+ return `<section class="catalog-promo card"><div class="section-head"><div><h3>公开剧本库</h3><p>浏览已发布的完整剧本，加入后会为你开启独立的体验运行房。</p></div><button class="secondary-btn" data-action="open-catalog">浏览全部 →</button></div>${catalogCardsHtml()}</section>`;
 }
 
 function creatorWorkspaceEmpty({title,kicker,intro,guideTitle,guideItems=[]}){

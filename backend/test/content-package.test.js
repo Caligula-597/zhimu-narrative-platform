@@ -92,9 +92,18 @@ test("import preview detects duplicate names and missing refs", async (context) 
 test("append import remaps ids and does not overwrite existing rows", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
-  const before = await query(`SELECT COUNT(*)::int AS count FROM role_slots WHERE world_id = $1`, [worldId]);
-  const beforeRoles = before.rows[0].count;
+
+  const created = await app.inject({
+    method: "POST",
+    url: "/api/worlds",
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `Package append ${Date.now()}`, summary: "test" }
+  });
+  assert.equal(created.statusCode, 201);
+  const worldId = created.json().id;
+  context.after(async () => {
+    await query(`DELETE FROM worlds WHERE id = $1`, [worldId]);
+  });
 
   const response = await app.inject({
     method: "POST",
@@ -109,8 +118,8 @@ test("append import remaps ids and does not overwrite existing rows", async (con
   assert.ok(Object.keys(body.idMaps.roles).length === 1);
   assert.notEqual(Object.values(body.idMaps.roles)[0], "11111111-1111-4111-8111-111111111101");
 
-  const after = await query(`SELECT COUNT(*)::int AS count FROM role_slots WHERE world_id = $1`, [worldId]);
-  assert.equal(after.rows[0].count, beforeRoles + 1);
+  const roleCount = await query(`SELECT COUNT(*)::int AS count FROM role_slots WHERE world_id = $1`, [worldId]);
+  assert.equal(roleCount.rows[0].count, 1);
 
   const rule = await query(
     `SELECT conditions, actions FROM automation_rules WHERE world_id = $1 AND name = '测试规则' ORDER BY created_at DESC LIMIT 1`,
@@ -121,6 +130,17 @@ test("append import remaps ids and does not overwrite existing rows", async (con
   const actionClueId = rule.rows[0].actions[0].clueId;
   assert.equal(conditionClueId, actionClueId);
   assert.notEqual(conditionClueId, "11111111-1111-4111-8111-111111111105");
+
+  const second = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/content-package/import`,
+    headers: { "x-user-id": hostUserId },
+    payload: miniPackage()
+  });
+  assert.equal(second.statusCode, 201);
+  assert.equal(second.json().imported.sections, 0, "re-import must reuse existing sections");
+  const roleCountAfter = await query(`SELECT COUNT(*)::int AS count FROM role_slots WHERE world_id = $1`, [worldId]);
+  assert.equal(roleCountAfter.rows[0].count, 1, "re-import must not duplicate roles");
 });
 
 test("new world import creates isolated world with remapped content", async (context) => {

@@ -63,7 +63,7 @@ function overview() {
   const listedWorld = (state.cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
   const world = studio?.world || listedWorld;
   const studioEmpty=Boolean(zhimuApi.context.worldId)&&!studio?.roles?.length;
-  const studioEmptyBanner=studioEmpty?`<section class="demo-strip" style="margin-bottom:14px;border-color:#e8c4c4;background:#fff8f7"><div><span class="cloud-pill">内容未载入</span><strong style="margin-top:7px">剧本「${escapeHtml(world?.name||"当前")}」在数据库中尚无角色/分幕</strong><p>${escapeHtml(state.apiError||"若使用 Docker 预发，请在项目根目录执行 npm run staging:catalog，然后 npm run staging:rebuild-api，再点「刷新云端数据」。")}</p></div><button class="primary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`:"";
+  const studioEmptyBanner=studioEmpty?`<section class="demo-strip" style="margin-bottom:14px;border-color:#e8c4c4;background:#fff8f7"><div><span class="cloud-pill">内容未载入</span><strong style="margin-top:7px">剧本「${escapeHtml(world?.name||"当前")}」暂无角色或分幕</strong><p>${escapeHtml(state.apiError||"请刷新云端数据，或稍后再试。")}</p></div><button class="primary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`:"";
   const loading = state.cloudLoading && !studio?.world;
   const roleCount = studio?.roles?.length ?? 0, chapterCount = studio?.chapters?.length ?? 0;
   const uploadCount = state.cloudAssets?.length ?? 0;
@@ -152,23 +152,11 @@ function overview() {
           ${task("✎","逐角色检查私人剧本",`${roleCount} 个角色席位，共 ${studio?.sections?.length || 0} 段私人正文`,"writer","检查角色稿")}
           ${task("⌘","配置自动化规则",enabledRules ? `当前已有 ${enabledRules} 条启用规则` : "当前世界还没有运行规则","rules","打开规则")}
           ${taskAction(hasRooms ? "◉" : "＋",hasRooms ? "管理运行房" : "建立运行房",hasRooms ? (rooms.length===1?`当前运行房：${escapeHtml((room||rooms[0])?.name||"运行房")}`:`${rooms.length} 个你可访问的运行房`): "当前世界尚未创建运行实例","world-rooms",hasRooms ? "查看房间" : "创建运行房")}
-          ${uploadCount ? task("↑","管理云端附件",`${uploadCount} 个文件已上传到 R2 私有存储`,"assets","打开资产页") : task("↑","上传世界附件","当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。","assets","前往上传")}
+          ${uploadCount ? task("↑","管理云端附件",`${uploadCount} 个文件已上传`,"assets","打开资产页") : task("↑","上传世界附件","当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。","assets","前往上传")}
         </div>
       </article>
     </section>
-    <section class="card capability-section">
-      <div class="section-head"><div><h3>当前版本支持什么</h3><p>这不是路线图，而是已经放进第一版中的可用能力</p></div><button class="text-btn" data-action="capabilities">查看完整说明 →</button></div>
-      <div class="capability-grid">
-        ${capability("♙","角色专属阅读","每位玩家只看到自己的章节、秘密、任务与线索。","player")}
-        ${capability("⌘","状态规则推进","根据阅读、调查、持有物品和主持确认解锁后续。","rules")}
-        ${capability("♬","隔离语音空间","支持公共房、角色私密房与临时受邀密谈。","player")}
-        ${capability("▤","随身笔记本","玩家可标记剧情段落，也可将线索记入个人笔记。","player")}
-        ${capability("◇","剧情流程编排","用节点连接章节、场景、线索、事件与谜题。","studio")}
-        ${capability("◉","主持监控台","查看玩家状态、系统日志、卡关预警与待确认事件。","director")}
-        ${capability("◷","存档与复盘","保存关键状态，回看章节推进和重要行为。","archive")}
-        ${capability("＋","标准创建教程","通过五步向导建立角色、内容、规则与测试房间。","wizard")}
-      </div>
-    </section>`;
+    `;
 }
   viewExports.overviewRuntimeProgress = overviewRuntimeProgress;
   viewExports.overview = overview;

@@ -2,7 +2,7 @@
 
 
 
-> **更新**：2026-06-04  
+> **更新**：2026-06-06  
 
 > **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
 
@@ -86,6 +86,14 @@
 
 
 
+- **Beta-3 稳健性加固**：AI/内容包导入去重、modal XSS 与 `studioSelect` 选中值、主持事件 `FOR UPDATE`、checkpoint 快照串行查询、线索管理页 **单删/批量删**
+
+- **Beta-4 账号找回密码**：Resend 发信、`POST /auth/forgot-password` · `reset-password`、迁移 019、登录弹窗「忘记密码？」与 `?reset=` 落地页；**4** 项 `auth-password-reset.test.js`
+
+- 详见 [FEATURE_CATALOG.md §30](../FEATURE_CATALOG.md#30-beta-4-找回密码resend2026-06-06)
+
+
+
 ### 问题排查记录
 
 | 现象 | 根因 | 处理 |
@@ -116,15 +124,19 @@
 
 |------|------|
 
-| `backend npm test` | **170** |
+| `backend npm test` | **180** |
 
-| `npm run check:schemas` | **54** 条路由 |
+| `npm run check:schemas` | **56** 条路由 |
 
 | `npm run check:tests` | ≥100 |
 
 | API smoke | **18** 项 |
 
-| UI smoke | **34** 项 |
+| UI smoke | **41** 项 |
+
+| `test:format-helpers` | **5** 项 |
+
+| `test:modal-helpers` | **2** 项 |
 
 | Playwright E2E | 1 项（雾港 Acts 1–5） |
 

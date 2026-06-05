@@ -111,8 +111,7 @@
   document.querySelector("#run-btn").onclick = () => go("director");
   document.querySelector("#preview-btn").onclick = () => (state.cloudPlayer ? go("player") : R.openJoinRoom());
   document.querySelector("#search-btn").onclick = () => window.zhimuGlobalSearch?.openGlobalSearch?.();
-  const authBannerLogin = document.querySelector("#auth-banner-login");
-  if (authBannerLogin) authBannerLogin.onclick = () => R.openAuth();
+  document.querySelector("#auth-banner-login")?.addEventListener("click", () => R.openAuth());
   document.querySelector("#notify-btn").onclick = () => {
     if (!window.zhimuUi.activeRuntimeRoom()) return T.showToast("请先选择运行房后再查看主持待办");
     go("director");
@@ -129,6 +128,15 @@
   render();
   window.zhimuAuthSession?.syncProfile?.();
   window.zhimuAuthSession?.syncAuthBanner?.();
+  const params = new URLSearchParams(window.location.search);
+  const resetToken = params.get("reset");
+  const verifyToken = params.get("verify");
+  if (resetToken || verifyToken) {
+    const cleanUrl = `${window.location.pathname}${window.location.hash || ""}`;
+    window.history.replaceState({}, "", cleanUrl);
+    if (resetToken) window.zhimuRuntime?.openResetPassword?.(resetToken);
+    if (verifyToken) window.zhimuRuntime?.openVerifyEmail?.(verifyToken);
+  }
   R.loadCloudData()
     .catch((error) => {
       state.cloudLoading = false;

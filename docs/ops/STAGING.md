@@ -58,6 +58,9 @@ Postgres ← api (migrate on boot)
 | `CORS_ORIGIN` | 与访问 URL 一致，如 `http://localhost:8080` |
 | `VITE_REQUIRE_AUTH` | `true`（`.env.staging` 构建时写入 dist） |
 | `RUN_DB_SEED` | 首次 `true`，之后改 `false` 避免重复 seed |
+| `RESEND_API_KEY` / `MAIL_FROM` | 与 `backend/.env` 相同；找回密码必需 |
+| `APP_PUBLIC_URL` | 与浏览器访问 URL 一致（如 `http://localhost:8080`） |
+| `LIVEKIT_*` / `DEEPSEEK_*` / `R2_*` | 可选；与本地 dev 相同 Key 即可 |
 
 ## VPS / 公网
 
@@ -78,6 +81,7 @@ docker compose -f docker-compose.staging.yml --env-file .env.staging exec api no
 
 - `npm run staging:smoke` 全部 PASS
 - 浏览器未登录时显示登录条；注册后可创建世界
+- 找回密码：发信后链接应指向当前 `APP_PUBLIC_URL`（非 4173）
 - `x-user-id` demo 头返回 401
 
 ## 相关

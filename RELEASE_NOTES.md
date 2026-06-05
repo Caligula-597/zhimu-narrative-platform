@@ -1,8 +1,37 @@
 # 织幕 Alpha · Release Notes
 
-**最新增量**：2026-06-04 · Beta-1 体验 + Beta-2 后端加固  
-**版本标签建议**：`beta-1-2-2026-06-04`  
+**最新增量**：2026-06-06 · Beta-4 找回密码（Resend）  
+**版本标签建议**：`beta-4-2026-06-06`  
 **分支**：`main`
+
+---
+
+## 2026-06-06 · Beta-4 找回密码（Resend）
+
+| 领域 | 交付 |
+|------|------|
+| 后端 | 迁移 019 `password_reset_tokens`；`email.js` + forgot/reset API；重置后吊销全部 session |
+| 前端 | 登录弹窗「忘记密码？」；`/?reset=` 落地改密 |
+| 配置 | `RESEND_API_KEY`、`MAIL_FROM`、`APP_PUBLIC_URL`（staging 需与访问 URL 一致） |
+| 测试 | `auth-password-reset.test.js`（**4** 项） |
+| 验收 | backend **180** 测试 · schema **56** · smoke **18** · UI smoke **41** · format **5** · modal **2** |
+
+详见 [FEATURE_CATALOG.md §30](./FEATURE_CATALOG.md#30-beta-4-找回密码resend2026-06-06)。
+
+---
+
+## 2026-06-05 · Beta-3 稳健性 + 线索删除
+
+| 领域 | 交付 |
+|------|------|
+| 导入去重 | AI `proposalKey`、pipeline/structure 复用、内容包 `importKey` + `packageSourceId` + 边/规则去重 |
+| 前端健壮性 | modal `escapeHtml`、`studioSelect` 选中值回显、编排节点 XSS 收口 |
+| 主持并发 | 待确认事件 `FOR UPDATE`；重复操作 **409** |
+| 线索管理 | **单条删除 + 勾选批量删除**（引用提示） |
+| 测试 | `robustness-fixes` · `modal-helpers` · CI 纳入 modal 测试 |
+| 验收 | backend **176** 测试 · schema **54** · smoke **18** · UI smoke **41** · format **5** · modal **2** |
+
+详见 [FEATURE_CATALOG.md §29](./FEATURE_CATALOG.md#29-beta-3-稳健性加固与线索删除-2026-06-05)。
 
 ---
 

@@ -3,6 +3,8 @@
 > **完整实现状态（后端/前端/未接通/缺陷）见 [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)。**  
 > **中文产品总览见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)。**  
 > 本文档为精简版「真实 / 演示 / 待接入」速查表。  
+> **2026-06-06**：Beta-4 — **Resend 找回密码**（forgot/reset API + 登录弹窗 + `?reset=` 落地；详见 FEATURE_CATALOG §30）。  
+> **2026-06-05**：Beta-3 稳健性——导入去重、modal XSS、主持事件并发、线索管理页单删/批量删（详见 FEATURE_CATALOG §29）。  
 > **2026-06-03**：P0-1 已完成——总览、资产、存档页仅显示 API 数据或空状态（详见 FEATURE_CATALOG §12）。  
 > **2026-06-03**：P0-2 已完成——主持台运行时状态表、玩家详情、手动干预与真实卡关计数（详见 FEATURE_CATALOG §13）。  
 > **2026-06-03**：P0-3 已完成——编排台场景/线索/调查点右侧面板编辑与删除引用提示（详见 FEATURE_CATALOG §14）。  
@@ -51,7 +53,8 @@
 |---|---|---|
 | PostgreSQL 云数据库 | 真实可用 | Supabase 已连接，迁移已执行 |
 | R2 附件存储 | 真实可用 | 私有 Bucket，短期签名 URL 上传和下载 |
-| 基础注册与登录 Session | 真实可用 | 邮箱、昵称和密码注册；密码使用随机盐与 scrypt 存储；Bearer Token 可查询当前会话并退出 |
+| 基础注册与登录 Session | 真实可用 | 邮箱、昵称和密码注册；scrypt 存储；Bearer Session |
+| 找回密码 | 真实可用 | Resend 邮件重置链接；`POST /auth/forgot-password` · `reset-password`；需 `RESEND_*` + `APP_PUBLIC_URL` |
 | 世界协作权限 | 真实可用 | 主创可邀请已注册成员，分配协作者、主持人和只读观察者权限，并调整或移除成员 |
 | 世界运行日志 | 真实可用 | 按世界读取房间时间线，可按事件类型和关键词筛选阅读、调查、规则与主持操作 |
 | 文档解析与确认导入 | 真实可用 | TXT、Markdown 和 DOCX 可提取正文、预览标题分段，并确认写入完整母稿或指定角色私人剧本 |
@@ -73,7 +76,8 @@
 | 主持运行时监控 | 真实可用 | 玩家状态表、详情弹窗、卡关启发式、手动发线索/解锁分幕/开放场景/写日志、待确认事件确认与拒绝 |
 | 主持台刷新与通知 | 真实可用 | 分项刷新按钮、铃铛角标来自真实待确认事件；SSE 连接时停 15s 轮询 |
 | SSE 房间事件流 | 真实可用 | 阅读/入房/线索/待确认/场景/语音消息推送；前端局部刷新 + toast |
-| 运行房 checkpoint | 真实可用 | 创建/列表/详情/scoped restore UI + API smoke + **148** 项后端测试 |
+| 线索管理页 | 真实可用 | 独立列表/搜索/编辑；**单条删除 + 勾选批量删除**（引用提示）；跳转编排图谱 |
+| 运行房 checkpoint | 真实可用 | 创建/列表/详情/scoped restore UI + API smoke + **180** 项后端测试 |
 | 主持审计 UI | 真实可用 | 主持台「主持审计」卡片 · `GET .../host/audit-log` |
 | 线索私享 | 真实可用 | `POST .../clues/:id/share-roles` + 玩家端公共/私享分区 |
 | 主持延迟调度 | 真实可用 | `delay_until` + 延迟弹窗 + 到期唤醒 |

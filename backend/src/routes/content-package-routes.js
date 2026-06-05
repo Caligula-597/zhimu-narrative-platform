@@ -1,5 +1,6 @@
 import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
+import { requireVerifiedEmail } from "../email-verification-policy.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import { buildWorldSnapshot } from "./world-helpers.js";
 import {
@@ -79,6 +80,7 @@ export async function registerContentPackageRoutes(app) {
 
   app.post("/api/worlds/from-content-package", { schema: createWorldFromPackageSchema }, async (request, reply) => {
     const actorId = requireActor(request);
+    await requireVerifiedEmail(actorId);
     try {
       validateEnvelope(request.body);
       const payload = normalizeContentPackagePayload(request.body?.data ?? request.body);

@@ -851,6 +851,7 @@
           importStructure.disabled = true;
           pipelinePersistActiveEditor(session, ctx);
           const result = await zhimuApi.importDeepseekProposal(session.proposal);
+          session.structureImported = true;
           showToast(`编排已上传：${result.chapters} 章 · ${result.scenes} 场景`);
           await loadCloudData();
           if (!session.roleMatrix && !session.synopsis && !Object.keys(session.sections).length) {
@@ -870,7 +871,11 @@
           closeModal();
           await loadCloudData();
           go("writer");
-          showToast(`已上传云端：${result.roles} 角色 · ${result.sections} 分幕`);
+          if (session.structureImported) {
+            showToast(`已上传角色与分幕（编排沿用已有 ${result.chapters} 章 · ${result.scenes} 场景）`);
+          } else {
+            showToast(`已上传云端：${result.roles} 角色 · ${result.sections} 分幕`);
+          }
         } catch (error) { importAll.disabled = false; showToast(error.message); }
       };
 

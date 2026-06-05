@@ -64,6 +64,8 @@ jobs:
         working-directory: backend
       - name: Format helper tests
         run: npm run test:format-helpers
+      - name: Modal helper tests
+        run: npm run test:modal-helpers
       - name: Start backend for smoke tests
         run: node src/server.js &
         working-directory: backend

@@ -84,6 +84,68 @@ await check("demo header rejected", async () => {
   return "demo x-user-id blocked";
 });
 
+await check("world catalog (雾港)", async () => {
+  const email = `staging-catalog-${Date.now()}@example.test`;
+  const password = "staging-catalog-pass-8";
+  const register = await fetchJson(`${API}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, displayName: "Catalog Probe" })
+  });
+  if (register.response.status !== 201) {
+    throw new Error(`register ${register.response.status}: ${register.text}`);
+  }
+  const token = register.json?.token;
+  const catalog = await fetchJson(`${API}/worlds/catalog`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!catalog.response.ok) throw new Error(`catalog ${catalog.response.status}`);
+  const fog = (catalog.json || []).find((w) => /雾港|fog/i.test(w.name || ""));
+  if (!fog) throw new Error(`catalog empty or missing 雾港: ${JSON.stringify(catalog.json?.slice?.(0, 2))}`);
+  return fog.name;
+});
+
+await check("forgot-password ack", async () => {
+  const forgot = await fetchJson(`${API}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: `nobody-${Date.now()}@example.test` })
+  });
+  if (forgot.response.status === 503) {
+    throw new Error("EMAIL_NOT_CONFIGURED — set RESEND_* in .env.staging");
+  }
+  if (forgot.response.status !== 200 || forgot.json?.ok !== true) {
+    throw new Error(`forgot ${forgot.response.status}: ${forgot.text}`);
+  }
+  return "ok (no email enumeration)";
+});
+
+await check("create world + list", async () => {
+  const email = `staging-world-${Date.now()}@example.test`;
+  const password = "staging-world-pass-8";
+  const register = await fetchJson(`${API}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, displayName: "World Probe" })
+  });
+  const token = register.json?.token;
+  const created = await fetchJson(`${API}/worlds`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ name: `预发验收 ${Date.now()}`, summary: "staging e2e" })
+  });
+  if (created.response.status !== 201) {
+    throw new Error(`create world ${created.response.status}: ${created.text}`);
+  }
+  const list = await fetchJson(`${API}/worlds`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!list.response.ok) throw new Error(`list ${list.response.status}`);
+  const found = (list.json || []).some((w) => w.id === created.json?.id);
+  if (!found) throw new Error("created world missing from list");
+  return created.json?.name || "world ok";
+});
+
 const failed = checks.filter((c) => !c.ok);
 console.log(`\nStaging smoke: ${checks.length - failed.length}/${checks.length} passed`);
 process.exit(failed.length ? 1 : 0);

@@ -6,6 +6,7 @@ import { storageUsage } from "./world-helpers.js";
 import { parseCreatorDocument } from "../document-parser.js";
 import { deleteOwnedWorld } from "../world-delete.js";
 import { listWorldHostAuditLog } from "../audit-log.js";
+import { requireVerifiedEmail } from "../email-verification-policy.js";
 import {
   updateWorldSchema,
   worldIdParams,
@@ -100,6 +101,7 @@ export async function registerWorldRoutes(app) {
 
   app.post("/api/worlds", { schema: createWorldSchema }, async (request, reply) => {
     const actorId = requireActor(request);
+    await requireVerifiedEmail(actorId);
     const { name, summary = "", settings = {} } = request.body ?? {};
     const quota = await storageUsage(actorId);
     const worldCount = await query(`SELECT COUNT(*)::int AS count FROM worlds WHERE owner_user_id = $1 AND status <> 'archived'`, [actorId]);
@@ -138,6 +140,7 @@ export async function registerWorldRoutes(app) {
 
   app.post("/api/worlds/:worldId/catalog/join", { schema: joinWorldCatalogSchema }, async (request, reply) => {
     const actorId = requireActor(request);
+    await requireVerifiedEmail(actorId);
     const { worldId } = request.params;
     const world = await query(
       `SELECT id, name, catalog_public, status FROM worlds WHERE id = $1`,

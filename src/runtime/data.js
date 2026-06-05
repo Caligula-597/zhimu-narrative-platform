@@ -127,7 +127,7 @@ async function loadCloudDataInternal(withToast=false){
      state.cloudCatalog=[];
      state.cloudCatalogError=catalogErr.message||String(catalogErr);
      if(/catalog_public|does not exist/i.test(state.cloudCatalogError)){
-      errors.push("公开剧本库尚未就绪：请在 backend 执行 node scripts/migrate.js");
+      errors.push("公开剧本库暂时无法加载，请稍后刷新");
      }
     }
    }else{
@@ -143,13 +143,13 @@ async function loadCloudDataInternal(withToast=false){
      const roles=state.cloudStudio?.roles?.length||0;
      const sections=state.cloudStudio?.sections?.length||0;
      if(roles===0){
-      errors.push("当前剧本在数据库中尚无角色/分幕。若体验《雾港来信》，请执行 npm run staging:catalog 后刷新。");
+      errors.push("当前剧本暂无角色或分幕，请刷新或重新选择剧本。");
      }
     }catch(studioErr){
      state.cloudStudio=null;
      const msg=studioErr.message||String(studioErr);
      if(studioErr.code==="WORLD_EDITOR_REQUIRED"||/WORLD_EDITOR_REQUIRED/i.test(msg)){
-      errors.push("无法读取剧本正文：后端版本过旧。请执行 npm run staging:rebuild-api 后硬刷新页面。");
+      errors.push("无法读取剧本正文，请刷新页面后重试。");
      }else{
       errors.push(msg);
      }
@@ -166,7 +166,7 @@ async function loadCloudDataInternal(withToast=false){
     errors.push("请先登录账号后再继续");
     window.zhimuAuthSession?.promptAuthIfNeeded?.();
    } else if (/Authentication required/i.test(error.message) && !localStorage.getItem("zhimuSessionToken") && window.zhimuConfig?.demoMode) {
-    errors.push("无法连接云端：请登录账号，或在 backend/.env 设置 ALLOW_DEMO_USER_HEADER=true 后重启后端");
+    errors.push("请先登录账号后再继续");
    } else {
     errors.push(error.message);
    }

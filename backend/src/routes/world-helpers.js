@@ -273,44 +273,124 @@ export async function syncManuscriptToGraph(worldId, text) {
 
 export async function importDeepseekProposalWithClient(client, worldId, rawProposal) {
   const proposal = validateDeepseekProposal(rawProposal);
-  const chapterIds = new Map(), sceneIds = new Map(), clueIds = new Map(), pointIds = new Map();
+  const chapterIds = new Map();
+  const sceneIds = new Map();
+  const clueIds = new Map();
+  const pointIds = new Map();
+  const sourceTag = "deepseek_proposal";
+
+  async function findExistingId(table, proposalKey) {
+    const row = await client.query(
+      `SELECT id FROM ${table}
+       WHERE world_id = $1 AND metadata->>'proposalKey' = $2 AND metadata->>'source' = $3
+       LIMIT 1`,
+      [worldId, proposalKey, sourceTag]
+    );
+    return row.rowCount ? row.rows[0].id : null;
+  }
+
+  async function resolveChapterId(chapterKey, chapter) {
+    const fromScene = await client.query(
+      `SELECT chapter_id FROM scenes
+       WHERE world_id = $1 AND metadata->>'chapterKey' = $2
+       LIMIT 1`,
+      [worldId, chapterKey]
+    );
+    if (fromScene.rowCount) return fromScene.rows[0].chapter_id;
+
+    const fromTitle = await client.query(
+      `SELECT c.id FROM chapters c
+       WHERE c.world_id = $1 AND c.title = $2
+         AND EXISTS (
+           SELECT 1 FROM scenes s
+           WHERE s.chapter_id = c.id AND s.metadata->>'source' = $3
+         )
+       ORDER BY c.sequence
+       LIMIT 1`,
+      [worldId, chapter.title, sourceTag]
+    );
+    return fromTitle.rowCount ? fromTitle.rows[0].id : null;
+  }
+
   const sequence = await client.query(`SELECT COALESCE(MAX(sequence), 0)::int AS value FROM chapters WHERE world_id = $1`, [worldId]);
+  let nextSequence = sequence.rows[0].value;
   for (const [index, chapter] of proposal.chapters.entries()) {
+    const existingId = await resolveChapterId(chapter.key, chapter);
+    if (existingId) {
+      chapterIds.set(chapter.key, existingId);
+      continue;
+    }
+    nextSequence += 1;
     const created = await client.query(
       `INSERT INTO chapters (world_id, title, summary, sequence)
        VALUES ($1,$2,$3,$4) RETURNING id`,
-      [worldId, chapter.title, chapter.summary ?? "", sequence.rows[0].value + index + 1]
+      [worldId, chapter.title, chapter.summary ?? "", nextSequence]
     );
     chapterIds.set(chapter.key, created.rows[0].id);
   }
+
   for (const clue of proposal.clues) {
+    const existingId = await findExistingId("clues", clue.key);
+    if (existingId) {
+      clueIds.set(clue.key, existingId);
+      continue;
+    }
     const created = await client.query(
       `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
        VALUES ($1,$2,$3,$4,'role',$5::jsonb) RETURNING id`,
-      [worldId, clue.name, clue.publicText ?? "", clue.hostText ?? "", JSON.stringify({ source: "deepseek_proposal", proposalKey: clue.key })]
+      [worldId, clue.name, clue.publicText ?? "", clue.hostText ?? "", JSON.stringify({ source: sourceTag, proposalKey: clue.key })]
     );
     clueIds.set(clue.key, created.rows[0].id);
   }
+
   for (const scene of proposal.scenes) {
+    const existingId = await findExistingId("scenes", scene.key);
+    if (existingId) {
+      sceneIds.set(scene.key, existingId);
+      continue;
+    }
     const created = await client.query(
       `INSERT INTO scenes (world_id, chapter_id, name, public_text, host_text, metadata)
        VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
-      [worldId, chapterIds.get(scene.chapterKey), scene.name, scene.publicText ?? "", scene.hostText ?? "", JSON.stringify({ source: "deepseek_proposal", proposalKey: scene.key })]
+      [
+        worldId,
+        chapterIds.get(scene.chapterKey),
+        scene.name,
+        scene.publicText ?? "",
+        scene.hostText ?? "",
+        JSON.stringify({ source: sourceTag, proposalKey: scene.key, chapterKey: scene.chapterKey })
+      ]
     );
     sceneIds.set(scene.key, created.rows[0].id);
   }
+
   for (const point of proposal.investigationPoints) {
+    const existingId = await findExistingId("investigation_points", point.key);
+    if (existingId) {
+      pointIds.set(point.key, existingId);
+      continue;
+    }
     const created = await client.query(
       `INSERT INTO investigation_points (world_id, scene_id, name, description, result_text, clue_id, metadata)
        VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb) RETURNING id`,
-      [worldId, sceneIds.get(point.sceneKey), point.name, point.description ?? "", point.resultText ?? "", point.clueKey ? clueIds.get(point.clueKey) : null, JSON.stringify({ source: "deepseek_proposal", proposalKey: point.key })]
+      [
+        worldId,
+        sceneIds.get(point.sceneKey),
+        point.name,
+        point.description ?? "",
+        point.resultText ?? "",
+        point.clueKey ? clueIds.get(point.clueKey) : null,
+        JSON.stringify({ source: sourceTag, proposalKey: point.key })
+      ]
     );
     pointIds.set(point.key, created.rows[0].id);
   }
+
   const ids = { scene: sceneIds, clue: clueIds, investigation_point: pointIds };
   let edgeCount = 0;
   for (const edge of proposal.edges) {
-    const fromId = ids[edge.fromType]?.get(edge.fromKey), toId = ids[edge.toType]?.get(edge.toKey);
+    const fromId = ids[edge.fromType]?.get(edge.fromKey);
+    const toId = ids[edge.toType]?.get(edge.toKey);
     if (!fromId || !toId) continue;
     await client.query(
       `INSERT INTO story_graph_edges (world_id, from_type, from_id, to_type, to_id, relation_type, label)
@@ -320,7 +400,16 @@ export async function importDeepseekProposalWithClient(client, worldId, rawPropo
     );
     edgeCount += 1;
   }
-  return { chapterIds, summary: { chapters: chapterIds.size, scenes: sceneIds.size, clues: clueIds.size, investigationPoints: pointIds.size, edges: edgeCount } };
+  return {
+    chapterIds,
+    summary: {
+      chapters: chapterIds.size,
+      scenes: sceneIds.size,
+      clues: clueIds.size,
+      investigationPoints: pointIds.size,
+      edges: edgeCount
+    }
+  };
 }
 
 export async function importDeepseekProposal(worldId, rawProposal) {
@@ -332,20 +421,53 @@ export async function importDeepseekMysteryPackage(worldId, mystery) {
     const graph = await importDeepseekProposalWithClient(client, worldId, mystery.proposal);
     let sectionCount = 0;
     for (const [roleIndex, role] of mystery.package.roles.entries()) {
-      const createdRole = await client.query(
-        `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
-         VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-        [worldId, role.name, role.publicProfile, role.privateProfile, roleIndex + 1]
+      const roleKey = role.key || `mystery-role-${roleIndex}`;
+      let roleSlotId;
+      const existingRole = await client.query(
+        `SELECT id FROM role_slots WHERE world_id = $1 AND settings->>'deepseekRoleKey' = $2 LIMIT 1`,
+        [worldId, roleKey]
       );
+      if (existingRole.rowCount) {
+        roleSlotId = existingRole.rows[0].id;
+      } else {
+        const createdRole = await client.query(
+          `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
+           VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
+          [worldId, role.name, role.publicProfile, role.privateProfile, roleIndex + 1, JSON.stringify({ deepseekRoleKey: roleKey })]
+        );
+        roleSlotId = createdRole.rows[0].id;
+        await client.query(
+          `INSERT INTO character_scripts (role_slot_id, title) VALUES ($1,$2)`,
+          [roleSlotId, `${role.name} · 私人剧本`]
+        );
+      }
       const script = await client.query(
-        `INSERT INTO character_scripts (role_slot_id, title) VALUES ($1,$2) RETURNING id`,
-        [createdRole.rows[0].id, `${role.name} · 私人剧本`]
+        `SELECT id FROM character_scripts WHERE role_slot_id = $1 ORDER BY created_at LIMIT 1`,
+        [roleSlotId]
       );
+      const scriptId = script.rows[0]?.id;
+      if (!scriptId) continue;
       for (const [sectionIndex, section] of role.sections.entries()) {
+        const chapterKey = section.chapterKey;
+        const existingSection = await client.query(
+          `SELECT id FROM script_sections
+           WHERE role_slot_id = $1 AND metadata->>'chapterKey' = $2 AND metadata->>'roleKey' = $3
+           LIMIT 1`,
+          [roleSlotId, chapterKey, roleKey]
+        );
+        if (existingSection.rowCount) continue;
         await client.query(
           `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
            VALUES ($1,$2,$3,$4,$5,$6,'testing',$7::jsonb)`,
-          [script.rows[0].id, createdRole.rows[0].id, graph.chapterIds.get(section.chapterKey), section.title, section.body, sectionIndex + 1, JSON.stringify({ source: "deepseek_mystery_package", chapterKey: section.chapterKey })]
+          [
+            scriptId,
+            roleSlotId,
+            graph.chapterIds.get(chapterKey),
+            section.title,
+            section.body,
+            sectionIndex + 1,
+            JSON.stringify({ source: "deepseek_mystery_package", chapterKey, roleKey })
+          ]
         );
         sectionCount += 1;
       }
@@ -373,15 +495,42 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
     const graph = await importDeepseekProposalWithClient(client, worldId, proposal);
     let sectionCount = 0;
     for (const [roleIndex, role] of roles.entries()) {
-      const createdRole = await client.query(
-        `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
-         VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-        [worldId, role.name, role.publicProfile || "", role.privateProfile || "", roleIndex + 1]
+      let roleSlotId;
+      const existingRole = await client.query(
+        `SELECT id FROM role_slots
+         WHERE world_id = $1 AND settings->>'deepseekRoleKey' = $2
+         LIMIT 1`,
+        [worldId, role.key]
       );
+      if (existingRole.rowCount) {
+        roleSlotId = existingRole.rows[0].id;
+      } else {
+        const createdRole = await client.query(
+          `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
+           VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
+          [
+            worldId,
+            role.name,
+            role.publicProfile || "",
+            role.privateProfile || "",
+            roleIndex + 1,
+            JSON.stringify({ deepseekRoleKey: role.key })
+          ]
+        );
+        roleSlotId = createdRole.rows[0].id;
+        await client.query(
+          `INSERT INTO character_scripts (role_slot_id, title) VALUES ($1,$2)`,
+          [roleSlotId, `${role.name} · 私人剧本`]
+        );
+      }
+
       const script = await client.query(
-        `INSERT INTO character_scripts (role_slot_id, title) VALUES ($1,$2) RETURNING id`,
-        [createdRole.rows[0].id, `${role.name} · 私人剧本`]
+        `SELECT id FROM character_scripts WHERE role_slot_id = $1 ORDER BY created_at LIMIT 1`,
+        [roleSlotId]
       );
+      const scriptId = script.rows[0]?.id;
+      if (!scriptId) continue;
+
       const roleSections = sectionsMap[role.key] || {};
       const fromPackage = role.sections || [];
       for (const [sectionIndex, chapter] of proposal.chapters.entries()) {
@@ -389,12 +538,21 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
         const packaged = fromPackage.find((item) => item.chapterKey === chapter.key);
         const body = mapped?.body || packaged?.body;
         if (!body) continue;
+
+        const existingSection = await client.query(
+          `SELECT id FROM script_sections
+           WHERE role_slot_id = $1 AND metadata->>'chapterKey' = $2 AND metadata->>'roleKey' = $3
+           LIMIT 1`,
+          [roleSlotId, chapter.key, role.key]
+        );
+        if (existingSection.rowCount) continue;
+
         await client.query(
           `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
            VALUES ($1,$2,$3,$4,$5,$6,'testing',$7::jsonb)`,
           [
-            script.rows[0].id,
-            createdRole.rows[0].id,
+            scriptId,
+            roleSlotId,
             graph.chapterIds.get(chapter.key),
             mapped?.title || packaged?.title || `${chapter.title} · ${role.name}`,
             body,

@@ -28,7 +28,7 @@ npm run start
 ### 连不上后端？
 
 1. **端口占用**：`npm run dev:restart` 或 `netstat -ano | findstr :4180` 后 `taskkill /PID <pid> /F`
-2. **健康检查**：访问 `http://localhost:4180/api/health`，应返回 `ok: true` 与 `migrationsApplied: 15`（或当前迁移数）
+2. **健康检查**：访问 `http://localhost:4180/api/health`，应返回 `ok: true` 与 `migrationsApplied: 19`（或当前迁移数）
 3. **迁移未跑**：`npm run db:migrate`（缺表时 health 会列出 `missingTables`；启动时也会 FATAL 拦截）
 4. **前端 Demo 401**：本地需 `ALLOW_DEMO_USER_HEADER=true`（见 `.env.example`）
 5. **改代码后自检**：`npm run check`（语法 + import 路径 + 模块图）→ `npm run check:boot`（DB + 启动链）
@@ -44,7 +44,7 @@ npm run start
 | `npm run check` | 全量 JS 语法、`src/` 下错误 `../` import、**createApp 模块图可加载** |
 | `npm run check:boot` | 环境变量 + 模块图 + **数据库 schema**（与 server 启动前相同校验） |
 | `npm run check:tests` | 测试用例数量下限（≥80，`scripts/verify-test-count.mjs`） |
-| `npm test` | **148** 项集成测试（`--test-concurrency=1 --test-force-exit`） |
+| `npm test` | **180** 项集成测试（`--test-concurrency=1 --test-force-exit`） |
 
 后端默认监听 `http://localhost:4180`。
 
@@ -55,6 +55,8 @@ npm run start
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 - `POST /api/auth/logout`
+- `POST /api/auth/forgot-password`（Resend 发重置邮件）
+- `POST /api/auth/reset-password`
 - `GET /api/worlds`
 - `POST /api/worlds`
 - `GET /api/worlds/:worldId`
@@ -197,7 +199,7 @@ npm run test:smoke
 
 | 套件 | 数量 |
 |------|------|
-| `npm run check:tests` + `npm test` | **148** |
+| `npm run check:tests` + `npm test` | **180** |
 | `npm run test:smoke` | **18** |
 | `node ../scripts/ui-smoke.js` | **34** |
 | `npm run check:modules`（根） | **29** |

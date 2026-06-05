@@ -4,6 +4,7 @@ import { getPoolStats } from "../db.js";
 import { requireOpsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
 import { getTelemetryStatus } from "../telemetry.js";
+import { getEmailServiceStatus } from "../email.js";
 
 const opsAuditLogQuerySchema = {
   type: "object",
@@ -93,7 +94,8 @@ export async function registerOpsRoutes(app) {
           uploadScan: (process.env.UPLOAD_SCAN_MODE || "none").toLowerCase(),
           roomEventsBus: bus.mode,
           openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production",
-          telemetry: getTelemetryStatus()
+          telemetry: getTelemetryStatus(),
+          email: getEmailServiceStatus()
         },
         rateLimits: {
           authPerMin: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),

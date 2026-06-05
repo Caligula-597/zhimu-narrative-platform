@@ -7,6 +7,10 @@
     DISPLAY_NAME_INVALID: "显示名需为 2～40 个字符。",
     EMAIL_ALREADY_REGISTERED: "该邮箱已注册，请直接登录。",
     USER_NOT_FOUND: "找不到该用户。",
+    EMAIL_NOT_CONFIGURED: "暂时无法发送邮件，请稍后再试。",
+    EMAIL_NOT_VERIFIED: "请先验证邮箱后再创建剧本。",
+    PASSWORD_RESET_INVALID: "重置链接无效或已过期，请重新申请。",
+    EMAIL_VERIFICATION_INVALID: "验证链接无效或已过期，请重新发送验证邮件。",
 
     FORBIDDEN: "你没有权限执行此操作。",
     ROOM_MEMBERSHIP_REQUIRED: "你不是该运行房的成员。",
@@ -101,7 +105,7 @@
     VOICE_MESSAGE_INVALID: "消息长度需在 1～1000 字之间。",
     VOICE_ROOM_NOT_IN_PARALLEL_ROOM: "语音房不属于当前平行房。",
     VOICE_MEMBER_NOT_IN_ROOM: "被邀请用户必须是运行房成员。",
-    LIVEKIT_NOT_CONFIGURED: "语音服务尚未配置，请联系管理员。",
+    LIVEKIT_NOT_CONFIGURED: "语音服务暂不可用，请稍后再试。",
 
     STORAGE_QUOTA_EXCEEDED: "云端空间已满，请先清理附件。",
     FILE_TOO_LARGE: "文件超出大小限制。",
@@ -125,7 +129,7 @@
     DOCUMENT_SIZE_INVALID: "文档大小超出限制（最大 5 MB）。",
 
     STORY_TEXT_REQUIRED: "请粘贴或输入剧情文本。",
-    DEEPSEEK_NOT_CONFIGURED: "DeepSeek 尚未配置，请在服务端填写 API Key。",
+    DEEPSEEK_NOT_CONFIGURED: "AI 服务暂不可用，请稍后再试。",
     DOCUMENT_TYPE_UNSUPPORTED: "仅支持 TXT、Markdown 和 DOCX 文档。",
     DOCUMENT_EMPTY: "文档中没有可读取的文字。",
 
@@ -188,7 +192,7 @@
     if (/params\/worldId must NOT/i.test(raw)) return "请先创建或选择一个剧本世界。";
     if (/params\/roomId must NOT/i.test(raw)) return "请先选择或进入一个运行房。";
     if (/rooms_world_id_fkey|violates foreign key constraint.*rooms/i.test(raw)) {
-      return "删除失败：当前连接的后端仍是旧版本。请在项目目录执行 npm run staging:rebuild-api（或重启本地 backend）后再删。";
+      return "删除失败：服务暂时不可用，请刷新页面后重试。";
     }
     return raw || fallback;
   }

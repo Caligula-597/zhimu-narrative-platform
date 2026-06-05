@@ -1,105 +1,133 @@
 import { pool } from "../db.js";
 import { fetchHostPlayers } from "./host-helpers.js";
 
-/** Build snapshot using one DB client so parallel sub-queries do not exhaust the pool. */
-export async function buildRoomCheckpointSnapshot(roomId, options = {}) {
-  const owned = !options.client;
-  const client = options.client ?? (await pool.connect());
-  const q = (text, params) => client.query(text, params);
-  try {
-    const room = await q(
-      `SELECT r.id, r.name, r.status, r.world_id FROM rooms r WHERE r.id = $1`,
-      [roomId]
-    );
-    if (!room.rowCount) return null;
+const SNAPSHOT_QUERIES = (roomId) => ({
+  clueRows: [
+    `SELECT rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name,
+            c.id AS clue_id, c.name AS clue_name, co.acquired_at, co.read_at,
+            co.shared_with_room, co.shared_with_roles, co.player_note, co.host_note, co.shared_at
+     FROM clue_ownership co
+     JOIN clues c ON c.id = co.clue_id
+     JOIN role_slots rs ON rs.id = co.role_slot_id
+     LEFT JOIN room_members rm ON rm.room_id = co.room_id AND rm.role_slot_id = co.role_slot_id AND rm.status = 'active'
+     LEFT JOIN users u ON u.id = rm.user_id
+     WHERE co.room_id = $1
+     ORDER BY co.acquired_at`,
+    [roomId]
+  ],
+  unlockedScenes: [
+    `SELECT s.id, s.name, rcu.unlocked_at
+     FROM room_content_unlocks rcu
+     JOIN scenes s ON s.id = rcu.content_id
+     WHERE rcu.room_id = $1 AND rcu.content_type = 'scene'
+     ORDER BY rcu.unlocked_at`,
+    [roomId]
+  ],
+  pendingEvents: [
+    `SELECT id, rule_id, event_key, title, description, actions, status, created_at, delay_until
+     FROM pending_host_events
+     WHERE room_id = $1 AND status IN ('pending', 'delayed')
+     ORDER BY created_at`,
+    [roomId]
+  ],
+  recentLogs: [
+    `SELECT event_type, message, created_at, metadata
+     FROM timeline_logs
+     WHERE room_id = $1
+     ORDER BY created_at DESC
+     LIMIT 20`,
+    [roomId]
+  ],
+  timelineLogs: [
+    `SELECT visibility, event_type, message, metadata, actor_user_id, created_at
+     FROM timeline_logs
+     WHERE room_id = $1
+     ORDER BY created_at ASC`,
+    [roomId]
+  ],
+  phase: [
+    `SELECT ch.id, ch.title, ch.sequence
+     FROM reading_progress rp
+     JOIN script_sections ss ON ss.id = rp.script_section_id
+     LEFT JOIN chapters ch ON ch.id = ss.chapter_id
+     WHERE rp.room_id = $1 AND rp.completed_at IS NOT NULL
+     ORDER BY rp.completed_at DESC
+     LIMIT 1`,
+    [roomId]
+  ],
+  readingProgress: [
+    `SELECT role_slot_id, script_section_id, started_at, completed_at
+     FROM reading_progress WHERE room_id = $1`,
+    [roomId]
+  ],
+  inventory: [
+    `SELECT role_slot_id, item_id, quantity, metadata
+     FROM inventory WHERE room_id = $1 AND quantity > 0`,
+    [roomId]
+  ],
+  contentUnlocks: [
+    `SELECT content_type, content_id, unlocked_at, unlocked_by_rule_id
+     FROM room_content_unlocks WHERE room_id = $1`,
+    [roomId]
+  ],
+  ruleExecutions: [
+    `SELECT rule_id, executed_at, result
+     FROM rule_executions WHERE room_id = $1
+     ORDER BY executed_at DESC LIMIT 50`,
+    [roomId]
+  ],
+  investigationRecords: [
+    `SELECT investigation_point_id, role_slot_id, result, investigated_at
+     FROM investigation_records WHERE room_id = $1`,
+    [roomId]
+  ],
+  playerStates: [
+    `SELECT role_slot_id, current_scene_id, variables, updated_at
+     FROM player_states WHERE room_id = $1`,
+    [roomId]
+  ]
+});
 
-    const [players, clueRows, unlockedScenes, pendingEvents, recentLogs, timelineLogs, phase, readingProgress, inventory, contentUnlocks, ruleExecutions, investigationRecords, playerStates] = await Promise.all([
-      fetchHostPlayers(q, roomId),
-      q(
-        `SELECT rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name,
-                c.id AS clue_id, c.name AS clue_name, co.acquired_at, co.read_at,
-                co.shared_with_room, co.shared_with_roles, co.player_note, co.host_note, co.shared_at
-         FROM clue_ownership co
-         JOIN clues c ON c.id = co.clue_id
-         JOIN role_slots rs ON rs.id = co.role_slot_id
-         LEFT JOIN room_members rm ON rm.room_id = co.room_id AND rm.role_slot_id = co.role_slot_id AND rm.status = 'active'
-         LEFT JOIN users u ON u.id = rm.user_id
-         WHERE co.room_id = $1
-         ORDER BY co.acquired_at`,
-        [roomId]
-      ),
-      q(
-        `SELECT s.id, s.name, rcu.unlocked_at
-         FROM room_content_unlocks rcu
-         JOIN scenes s ON s.id = rcu.content_id
-         WHERE rcu.room_id = $1 AND rcu.content_type = 'scene'
-         ORDER BY rcu.unlocked_at`,
-        [roomId]
-      ),
-      q(
-        `SELECT id, rule_id, event_key, title, description, actions, status, created_at, delay_until
-         FROM pending_host_events
-         WHERE room_id = $1 AND status IN ('pending', 'delayed')
-         ORDER BY created_at`,
-        [roomId]
-      ),
-      q(
-        `SELECT event_type, message, created_at, metadata
-         FROM timeline_logs
-         WHERE room_id = $1
-         ORDER BY created_at DESC
-         LIMIT 20`,
-        [roomId]
-      ),
-      q(
-        `SELECT visibility, event_type, message, metadata, actor_user_id, created_at
-         FROM timeline_logs
-         WHERE room_id = $1
-         ORDER BY created_at ASC`,
-        [roomId]
-      ),
-      q(
-        `SELECT ch.id, ch.title, ch.sequence
-         FROM reading_progress rp
-         JOIN script_sections ss ON ss.id = rp.script_section_id
-         LEFT JOIN chapters ch ON ch.id = ss.chapter_id
-         WHERE rp.room_id = $1 AND rp.completed_at IS NOT NULL
-         ORDER BY rp.completed_at DESC
-         LIMIT 1`,
-        [roomId]
-      ),
-      q(
-        `SELECT role_slot_id, script_section_id, started_at, completed_at
-         FROM reading_progress WHERE room_id = $1`,
-        [roomId]
-      ),
-      q(
-        `SELECT role_slot_id, item_id, quantity, metadata
-         FROM inventory WHERE room_id = $1 AND quantity > 0`,
-        [roomId]
-      ),
-      q(
-        `SELECT content_type, content_id, unlocked_at, unlocked_by_rule_id
-         FROM room_content_unlocks WHERE room_id = $1`,
-        [roomId]
-      ),
-      q(
-        `SELECT rule_id, executed_at, result
-         FROM rule_executions WHERE room_id = $1
-         ORDER BY executed_at DESC LIMIT 50`,
-        [roomId]
-      ),
-      q(
-        `SELECT investigation_point_id, role_slot_id, result, investigated_at
-         FROM investigation_records WHERE room_id = $1`,
-        [roomId]
-      ),
-      q(
-        `SELECT role_slot_id, current_scene_id, variables, updated_at
-         FROM player_states WHERE room_id = $1`,
-        [roomId]
-      )
-    ]);
+async function runSnapshotQueries(queryFn, roomId) {
+  const defs = SNAPSHOT_QUERIES(roomId);
+  const players = await fetchHostPlayers(queryFn, roomId);
+  const parts = { players };
+  for (const [key, [text, params]] of Object.entries(defs)) {
+    parts[key] = await queryFn(text, params);
+  }
+  return parts;
+}
+
+/** Build snapshot; uses pool connections in parallel unless a transaction client is supplied. */
+export async function buildRoomCheckpointSnapshot(roomId, options = {}) {
+  const client = options.client ?? null;
+  const queryFn = client
+    ? (text, params) => client.query(text, params)
+    : (text, params) => pool.query(text, params);
+
+  const room = await queryFn(
+    `SELECT r.id, r.name, r.status, r.world_id FROM rooms r WHERE r.id = $1`,
+    [roomId]
+  );
+  if (!room.rowCount) return null;
+
+  const snapshotParts = await runSnapshotQueries(queryFn, roomId);
+
+    const {
+      players,
+      clueRows,
+      unlockedScenes,
+      pendingEvents,
+      recentLogs,
+      timelineLogs,
+      phase,
+      readingProgress,
+      inventory,
+      contentUnlocks,
+      ruleExecutions,
+      investigationRecords,
+      playerStates
+    } = snapshotParts;
 
     return {
       schemaVersion: 2,
@@ -148,9 +176,6 @@ export async function buildRoomCheckpointSnapshot(roomId, options = {}) {
       investigationRecords: investigationRecords.rows,
       playerStates: playerStates.rows
     };
-  } finally {
-    if (owned) client.release();
-  }
 }
 
 export function summarizeCheckpoint(snapshot = {}) {

@@ -56,7 +56,7 @@ async function request(path, { userId, method = "GET", body, timeoutMs = 20000, 
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
       if (response.status === 502 || response.status === 503 || response.status === 504) {
-        const err = new Error("无法连接后端 API。请确认已运行：cd backend && npm run dev（端口 4180）");
+        const err = new Error("无法连接服务器，请稍后重试。");
         err.code = "API_UNAVAILABLE";
         throw err;
       }
@@ -73,10 +73,10 @@ async function request(path, { userId, method = "GET", body, timeoutMs = 20000, 
   } catch (error) {
     if (error.name === "AbortError") {
       const secs = Math.round(timeoutMs / 1000);
-      throw new Error(`请求超时（已等待 ${secs} 秒）。DeepSeek 生成较慢，请重试；若仍失败可在 backend/.env 增大 DEEPSEEK_TIMEOUT_MS，或减少章节/角色规模。`);
+      throw new Error(`请求超时（已等待 ${secs} 秒）。AI 生成较慢，请重试或减少章节/角色规模。`);
     }
     if (error instanceof TypeError) {
-      throw new Error("无法连接后端 API。请确认已运行：cd backend && npm run dev（端口 4180）");
+      throw new Error("无法连接服务器，请稍后重试。");
     }
     throw error;
   } finally {
@@ -119,6 +119,11 @@ window.zhimuApi = {
   getWorldRooms: (worldId = demoContext.worldId) => request(`/worlds/${worldId}/rooms`, { userId: demoContext.hostUserId }),
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
+  getAuthConfig: () => request("/auth/config"),
+  verifyEmail: (payload) => request("/auth/verify-email", { method: "POST", body: payload }),
+  resendVerification: () => request("/auth/resend-verification", { method: "POST", body: {} }),
+  requestPasswordReset: (payload) => request("/auth/forgot-password", { method: "POST", body: payload }),
+  resetPassword: (payload) => request("/auth/reset-password", { method: "POST", body: payload }),
   me: () => request("/auth/me"),
   logout: () => request("/auth/logout", { method: "POST", body: {} }),
   getPlayerHome: () => request(`/rooms/${demoContext.roomId}/player-home`, { userId: demoContext.playerUserId }),

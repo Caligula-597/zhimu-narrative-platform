@@ -1,7 +1,7 @@
 # 织幕 · 产品功能与工程现状（中文总览）
 
 > **用途**：给团队/新成员的一份「做到哪了、能用什么、不能用什么、怎么验」的**单一长文**。  
-> **更新**：2026-06-04  
+> **更新**：2026-06-06  
 > **阶段**：Alpha → **Beta 过渡**（可内测，**非**生产级 SaaS）  
 > **更细的逐项说明**：[FEATURE_CATALOG.md](../FEATURE_CATALOG.md) · **实现/缺口表**：[IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) · **交接检查点**：[PROJECT_STATUS.md](./PROJECT_STATUS.md)
 
@@ -25,7 +25,7 @@
 
 **织幕**是面向线上长线剧本杀的自动化叙事引擎：创作者在云端写世界、编排剧情、配规则；玩家入房阅读、探索、收线索；主持台监控进度、确认事件、手动干预；数据落在 **PostgreSQL** 与 **Cloudflare R2**。
 
-当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**170** 项后端测试 + **54** 条 schema 门禁 + smoke/E2E 可复验。Beta-1 产品体验五项已落地；Beta-2 后端加固（限流分桶、上传扫描 stub、主持审计、telemetry）已部分完成。尚不适合作为公开 SaaS：缺完整账号体系、实体卡、生产级 AV 扫描与前端现代化。
+当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**180** 项后端测试 + **56** 条 schema 门禁 + smoke/E2E 可复验。Beta-1～3 与 **Beta-4 找回密码（Resend）** 已落地。尚不适合作为公开 SaaS：缺邮箱验证/OAuth、实体卡、生产级 AV 扫描与前端现代化。
 
 ---
 
@@ -34,7 +34,7 @@
 | 领域 | 成熟度 | 说明 |
 |------|--------|------|
 | 世界/成员/平行房 | ✅ 内测可用 | 协作权限、运行日志、配额 |
-| 创作（角色/分幕/编排/规则） | ✅ | 图谱 CRUD、母稿同步、内容包 |
+| 创作（角色/分幕/编排/规则） | ✅ | 图谱 CRUD、母稿同步、内容包去重导入 |
 | 运行态（阅读/探索/规则/SSE） | ✅ | 自动+主持确认+手动触发 |
 | 主持台 | ✅ | 玩家表、干预、待确认、SSE |
 | 存档/复盘/checkpoint restore | ✅ | scoped 回滚、跨平行房 |
@@ -61,7 +61,7 @@
 
 | 能力 | 状态 | 局限 |
 |------|------|------|
-| 注册 / 登录 / Bearer Session | ✅ | 无邮箱验证、找回密码、OAuth |
+| 注册 / 登录 / Bearer Session | ✅ | **找回密码**（Resend 邮件 + `?reset=` 链接）；无邮箱验证、OAuth |
 | 世界 CRUD、PATCH、成员角色 | ✅ | 只能邀请**已注册**邮箱；无邀请链接 |
 | 平行运行房、邀请码 | ✅ | 房间无合并对比视图 |
 | 世界运行日志 timeline | ✅ | 无导出 |
@@ -79,7 +79,7 @@
 | 剧情助手（本地启发式） | ✅ | 非 LLM |
 | DeepSeek 分层流水线 + AI 悬疑创作向导 | 🟡 | 需 `DEEPSEEK_API_KEY`；① 规格手动、②～⑦ AI；见 [AI_PIPELINE_UI_ZH.md](./AI_PIPELINE_UI_ZH.md) |
 | DOCX/TXT/MD 导入 | ✅ | 复杂排版可能分段不准 |
-| 内容包 JSON 导入导出 | ✅ | JSON **追加**并重映射 ID |
+| 内容包 JSON 导入导出 | ✅ | JSON **追加**并重映射 ID；**importKey / packageSourceId 去重** | 不含二进制附件 |
 | 创作版本 restore | ✅ | **仅**章节+分幕正文与发布状态 |
 | 母稿 ↔ 编排同步 | ✅ | 不覆盖私人剧本 |
 | 跑团/混合向导 | 🟡 | UI 有选项，实质仍剧本杀写库 |
@@ -131,7 +131,7 @@
 | 世界总览 | ✅ API/空状态 | 日志、进度、资产统计 | 部分块需手动刷新 |
 | 剧本创作 writer | ✅ | 分幕 MD、版本、导入、**AI 悬疑创作**（合并原结构提案/整本/分步） | 实体卡占位 |
 | 剧情编排 studio | ✅ | 图谱 CRUD、侧栏 PATCH | — |
-| **线索管理 clues** | ✅ | 独立列表/搜索/编辑、跳转编排 | — |
+| **线索管理 clues** | ✅ | 独立列表/搜索/编辑、**单条删除 + 勾选批量删除**（引用提示）、跳转编排 | 场景/调查点仍主要在编排台 |
 | 内容资产 assets | ✅ | 上传/删/下载、kind Tab、搜索 | 「新建内容」占位 |
 | 自动化规则 rules | ✅ | JSON + 可视化双 Tab | — |
 | 主持台 director | ✅ | 玩家表、SSE、预览/触发、存档、**主持审计** | — |
@@ -149,7 +149,9 @@
 | Idempotency-Key | 写操作自动带头 |
 | P0-1 数据诚实 | 已移除假玩家/假日志/假资产卡片 |
 | UI smoke 局限 | **不执行浏览器内 JS**；语法靠 `check:modules` |
-| XSS | 依赖 `escapeHtml`；非正式渗透审计 |
+| XSS | 依赖 `escapeHtml` + `studioSelect`/`studioField` 转义；modal 与编排节点已加固；**非正式渗透审计** |
+| 导入幂等 | AI 提案 `proposalKey`、pipeline 与 structure 去重、内容包 `importKey` | 无浏览器 E2E 覆盖组合路径 |
+| 主持事件并发 | `FOR UPDATE` + 409 `HOST_EVENT_ALREADY_RESOLVED` | 极端并发仍依赖 DB 事务 |
 
 ### 4.2 内测构建
 
@@ -160,26 +162,28 @@
 
 ## 5. 测试体系（分层说明）
 
-**当前验收数字**（2026-06-04）：
+**当前验收数字**（2026-06-06）：
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **170** |
-| `npm run check:schemas` | **54** 条路由 |
+| `backend npm test` | **180** |
+| `npm run check:schemas` | **56** 条路由 |
 | `npm run test:smoke` | **18** |
 | `node scripts/ui-smoke.js` | **41/41** |
+| `npm run test:format-helpers` | **5** |
+| `npm run test:modal-helpers` | **2** |
 | `npm run check:modules` | **29** |
 | Playwright E2E | 1 spec（雾港 Acts 1–5，双浏览器） |
 
 ### 5.1 后端单元/集成（`backend npm test`）
 
 - Node test runner，`--test-concurrency=1`（防 PG 池耗尽）。
-- 约 **43** 个 `*.test.js` 文件，覆盖：认证、规则引擎、主持台、checkpoint/restore E2E、线索私享、物品、SSE/NOTIFY/journal、资产策略、ops 健康、beta-gates、**beta2-ops**、**rate-limit**、**upload-scan**、world-search 等。
+- 约 **45** 个 `*.test.js` 文件，覆盖：认证（含 **找回密码**）、规则引擎、主持台、checkpoint/restore E2E、线索私享、物品、SSE/NOTIFY/journal、资产策略、ops 健康、beta-gates、**beta2-ops**、**rate-limit**、**upload-scan**、world-search 等。
 - **需要**：`DATABASE_URL` + 已 migrate。
 
 ### 5.2 Schema 门禁（`check:schemas`）
 
-- **54** 条写/改/SSE 路由必须有 Fastify JSON Schema（含 `share-roles`、`host-events/:id/delay`、assets restore）。
+- **56** 条写/改/SSE 路由必须有 Fastify JSON Schema（含 `auth/forgot-password`、`auth/reset-password`、`share-roles`、`host-events/:id/delay`、assets restore）。
 - 规则 POST/PUT 另有语义校验 `validateRuleBody`。
 
 ### 5.3 数量与启动门禁
@@ -193,10 +197,15 @@
 - 需 `localhost:4180` + 雾港 seed。
 - 真实 HTTP，覆盖 health、studio、rules、player-home、checkpoint restore、recap、livekit-token 等。
 
-### 5.5 UI Smoke（34 项）
+### 5.5 UI Smoke（41 项）
 
 - 读源码 + 可选 HTTP；验证模块链、接线、数据诚实不变量。
 - **不能**替代 Playwright 点击流。
+
+### 5.5b 前端纯函数测试
+
+- `npm run test:format-helpers`（5）— `escapeHtml`、审计文案等。
+- `npm run test:modal-helpers`（2）— `studioField` / `studioOptionsHtml` XSS 与选中值。
 
 ### 5.6 Playwright E2E
 
@@ -213,7 +222,7 @@ npm run verify:full:fresh
 
 ### 5.8 CI
 
-`.github/workflows/ci.yml`：push `main` 跑 backend test + 前端 build + smoke。
+`.github/workflows/ci.yml`：push `main` 跑 backend test + format/modal helpers + 前端 build + smoke。
 
 ---
 
@@ -243,9 +252,9 @@ npm run verify:full:fresh
 
 ### 7.2 建议下一步（产品/工程）
 
-1. 本机或 VPS 跑通 Docker 预发（[STAGING.md](./ops/STAGING.md)）。
+1. 本机或 VPS 跑通 Docker 预发（[STAGING.md](./ops/STAGING.md)）；`.env.staging` 同步 Resend / LiveKit / R2 / DeepSeek Key，`APP_PUBLIC_URL` 与访问端口一致。
 2. 内测包：`VITE_REQUIRE_AUTH=1` 构建 + [REMOTE_TESTING.md](./ops/REMOTE_TESTING.md)。
-3. 实体卡/NFC、生产级上传 AV、OpenTelemetry SDK、可选 Redis 总线。
+3. 邮箱验证（注册激活）、OAuth、实体卡/NFC、生产级上传 AV、OpenTelemetry SDK、可选 Redis 总线。
 
 ---
 

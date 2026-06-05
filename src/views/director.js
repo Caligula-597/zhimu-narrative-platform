@@ -40,6 +40,7 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
+  const studioOptionsHtml = M.studioOptionsHtml || (() => "");
   const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
@@ -50,7 +51,7 @@
   const viewExports = window.zhimuViews.director = window.zhimuViews.director || {};
 function director(){
  const room=activeRuntimeRoom(),world=state.cloudStudio?.world;
- if(!room)return runtimeEmpty("主持监控台","主持监控台只展示当前世界中被选中的独立运行房，不再回退到初始演示副本。");
+ if(!room)return runtimeEmpty("主持监控台","请先在总览中选择或创建一个平行运行房。");
  const players=state.cloudHostPlayers||[],rules=(state.cloudRules||[]).filter(rule=>rule.enabled&&(!rule.room_id||rule.room_id===room.id)),events=state.cloudHostEvents||[];
  const pendingEvents=events.filter(e=>e.status!=="delayed");
  const joinedCount=players.filter(player=>player.joined).length,stuckCount=state.cloudHostStuckCount||0;
@@ -209,7 +210,7 @@ function openHostUnlockSectionModal(){
  const players=(state.cloudHostPlayers||[]).filter(player=>player.joined);if(!players.length)return showToast("当前没有已加入的玩家");
  const sections=(state.cloudStudio?.sections||[]);
  modal.className="modal";modal.innerHTML=`<h2>手动解锁分幕</h2><p class="wizard-intro">解锁后，对应玩家即可阅读该私人分幕。</p><div class="form-group">${studioSelect("目标角色","unlockRole",players.map(player=>({id:player.role_slot_id,name:`${player.player_display_name||"玩家"} · ${player.role_name}`})))}${studioSelect("分幕","unlockSection",sections.filter(section=>section.role_slot_id===players[0].role_slot_id).map(section=>({id:section.id,name:`${section.sequence}. ${section.title}`})))}${studioField("日志说明","unlockMessage","input","主持人手动解锁分幕")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-unlock-submit>确认解锁</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const roleSelect=modal.querySelector('[data-studio-field="unlockRole"]'),sectionSelect=modal.querySelector('[data-studio-field="unlockSection"]');const refreshSections=()=>{const roleId=roleSelect.value;sectionSelect.innerHTML=sections.filter(section=>section.role_slot_id===roleId).map(section=>`<option value="${section.id}">${section.sequence}. ${escapeHtml(section.title)}</option>`).join("")||`<option value="">该角色尚无分幕</option>`};roleSelect.onchange=refreshSections;refreshSections();modal.querySelector("[data-host-unlock-submit]").onclick=async()=>{try{const values=studioValues();await zhimuApi.hostUnlockSection({roleSlotId:values.unlockRole,scriptSectionId:values.unlockSection,message:values.unlockMessage});closeModal();await loadCloudData();showToast("分幕已解锁")}catch(error){showToast(error.message)}};
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const roleSelect=modal.querySelector('[data-studio-field="unlockRole"]'),sectionSelect=modal.querySelector('[data-studio-field="unlockSection"]');const refreshSections=()=>{const roleId=roleSelect.value;const options=sections.filter(section=>section.role_slot_id===roleId).map(section=>({id:section.id,name:`${section.sequence}. ${section.title}`}));sectionSelect.innerHTML=options.length?studioOptionsHtml(options,""):'<option value="">该角色尚无分幕</option>'};roleSelect.onchange=refreshSections;refreshSections();modal.querySelector("[data-host-unlock-submit]").onclick=async()=>{try{const values=studioValues();await zhimuApi.hostUnlockSection({roleSlotId:values.unlockRole,scriptSectionId:values.unlockSection,message:values.unlockMessage});closeModal();await loadCloudData();showToast("分幕已解锁")}catch(error){showToast(error.message)}};
 }
 
 function openHostUnlockSceneModal(){

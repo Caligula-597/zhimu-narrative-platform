@@ -3,6 +3,7 @@
  * Catches: missing env, broken module graph, incomplete DB schema.
  */
 import { getDatabaseStatus } from "./database-status.js";
+import { isEmailConfigured } from "./email.js";
 
 const REQUIRED_ENV = ["DATABASE_URL"];
 
@@ -26,6 +27,20 @@ export function validateStartupEnvironment() {
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     console.error(`FATAL: Invalid PORT "${process.env.PORT}"`);
     process.exit(1);
+  }
+
+  if (nodeEnv === "production") {
+    if (process.env.REQUIRE_EMAIL_VERIFICATION === "true" && !isEmailConfigured()) {
+      console.error("FATAL: REQUIRE_EMAIL_VERIFICATION=true but email provider is not configured.");
+      console.error("Set EMAIL_PROVIDER + MAIL_FROM + provider API keys, or disable REQUIRE_EMAIL_VERIFICATION.");
+      process.exit(1);
+    }
+    if (!process.env.APP_PUBLIC_URL?.trim()) {
+      console.warn("WARN: APP_PUBLIC_URL is empty — password reset and email verification links will fail.");
+    }
+    if (!process.env.OPS_API_TOKEN?.trim()) {
+      console.warn("WARN: OPS_API_TOKEN is empty — /api/ops/* endpoints reject all requests in production.");
+    }
   }
 }
 

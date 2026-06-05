@@ -3,7 +3,7 @@
 > **文档用途**：团队协调用的功能总表。每个功能标明已实现、部分实现、未实现与已知局限。  
 > **产品现状（中文长文，推荐先读）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **一张表总览（后端/前端/未接通/缺陷）**：[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)  
-> **更新日期**：2026-06-04（Beta-1 体验 + Beta-2/3 后端 · **170** 测试 · **54** schema）  
+> **更新日期**：2026-06-06（Beta-4 找回密码 · **180** 测试 · **56** schema · **41** UI smoke）  
 > **版本阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）
 
 ---
@@ -38,13 +38,14 @@
 
 | 功能 | 状态 | 已实现 | 未实现 / 局限 |
 |------|------|--------|----------------|
-| 邮箱注册 | ✅ | 邮箱+昵称+密码；scrypt 加盐哈希；自动创建存储配额 | 无邮箱验证、无找回密码、无 OAuth |
+| 邮箱注册 | ✅ | 邮箱+昵称+密码；scrypt 加盐哈希；自动创建存储配额 | 无邮箱验证、无 OAuth |
+| **找回密码** | ✅ | Resend 发重置邮件；链接 `/?reset=`；1 小时 token；重置后吊销 session | 需配置 `RESEND_*`、`MAIL_FROM`、`APP_PUBLIC_URL` |
 | 登录 / 退出 | ✅ | Bearer Session（30 天）；`/api/auth/me` | 无 refresh token、无多设备管理 |
 | 正式 Session 优先 | ✅ | 有 token 时不发 demo `x-user-id` | — |
 | Demo 用户头（开发） | 🟡 | `ALLOW_DEMO_USER_HEADER=true` 时可用固定 UUID 调试 | **生产必须关闭**；非真实多用户隔离 |
-| 登录 UI | 🟡 | 设置页/profile 可打开认证弹窗 | 非完整账号中心；未强制登录即可浏览创作台 |
+| 登录 UI | 🟡 | profile 认证弹窗；**忘记密码？** + 邮件链接重置页 | 非完整账号中心；未强制登录即可浏览创作台 |
 
-**后端 API**：`POST /auth/register` · `POST /auth/login` · `GET /auth/me` · `POST /auth/logout`
+**后端 API**：`POST /auth/register` · `POST /auth/login` · `GET /auth/me` · `POST /auth/logout` · `POST /auth/forgot-password` · `POST /auth/reset-password`
 
 ---
 
@@ -101,7 +102,7 @@
 | 发布前检查清单 | ✅ | 缺稿、空正文、孤立节点、规则引用错误等 | 不检查运行时性能 |
 | 创作版本快照 | 🟡 | 保存快照；恢复**章节+分幕正文与发布状态** | **不恢复场景/线索/图谱/规则**；非 Git 式 diff |
 | 导出 JSON 内容包 | ✅ | 完整世界快照 | 导入为追加模式，非覆盖 |
-| 导入 JSON / MD / TXT | ✅ | JSON 重映射 ID；MD/TXT 追加角色分幕 | 无 Excel/CSV |
+| 导入 JSON / MD / TXT | ✅ | JSON 重映射 ID；**importKey / packageSourceId 去重**；MD/TXT 追加角色分幕 | 无 Excel/CSV |
 | 文档解析 DOCX/TXT/MD | ✅ | 预览分段后确认导入母稿或角色剧本 | 复杂排版可能分段不准 |
 | 完整剧情母稿 | ✅ | 母稿 ↔ 编排图谱双向同步 | 同步会标记 `story_manuscript` 来源；需人工复核 |
 | 协作 / 日志 / 文档入口 | ✅ | 创作台工具箱已接 API | — |
@@ -125,7 +126,7 @@
 | 连接点（anchors） | ✅ | 增删改位置；拖拽连线 | — |
 | 画布平移 / 缩放 / 筛选 | ✅ | 前端 state 控制 | 旧版假编排画布 `studio()` 已删除 |
 | 画布内快速建点 | ✅ | 四类节点可新增 | — |
-| 场景/线索/调查点独立管理页 | ✅ | **线索管理 `clues` 视图**：列表、搜索、编辑、跳转编排 | 场景/调查点仍主要在编排台 |
+| 场景/线索/调查点独立管理页 | ✅ | **线索管理 `clues` 视图**：列表、搜索、编辑、**单条/批量删除**（引用提示）、跳转编排 | 场景/调查点仍主要在编排台 |
 
 **后端 API**：studio · POST/PATCH scenes · POST/PATCH clues · POST/PATCH investigation-points · story-edges · studio-nodes · references · story-layout
 
@@ -278,13 +279,14 @@
 | Supabase 云库 | ✅ | 生产/开发可连 |
 | Cloudflare R2 | ✅ | 私有 bucket + 签名 URL |
 | 路由模块化 | ✅ | `backend/src/routes/*.js` + helpers |
-| 单元/集成测试 | ✅ | **170 项** / ~44 文件（见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5） |
+| 单元/集成测试 | ✅ | **180 项** / ~45 文件（见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5） |
+| 前端 helper 测试 | ✅ | `test:format-helpers` **5** · `test:modal-helpers` **2**（CI 已跑） |
 | 测试数量门禁 | ✅ | `npm run check:tests`（下限 ≥100，`verify-test-count.mjs`） |
 | API smoke | ✅ | `scripts/smoke-api.js` **18 项**真实库（含 checkpoint-restore） |
 | UI smoke | ✅ | `scripts/ui-smoke.js` **41 项**（含 restore/settings/search/assets 回收站接线） |
 | 脚本加载验证 | ✅ | `check:modules` **29 项**（捕获 SyntaxError） |
 | Playwright E2E | ✅ | `e2e/fog-demo-route.spec.js`（雾港 E2E 房） |
-| GitHub Actions CI | ✅ | migrate → seed → check → check:boot → **check:tests** → npm test → smoke |
+| GitHub Actions CI | ✅ | migrate → seed → check → check:boot → **check:tests** → npm test → format/modal helpers → smoke |
 | WebSocket 实时推送 | 🔲 | 未开始（多节点集群场景） |
 | SSE 房间事件流 | ✅ | `GET /api/rooms/:roomId/events/stream`；单节点内存总线（见 §17） |
 | LiveKit | ✅ | token API + 前端连接；需 `LIVEKIT_*`（见 §24） |
@@ -302,6 +304,7 @@
 | 世界总览 | overview | cloudStudio · cloudWorldLogs · cloudHost（选中房）· cloudAssets · cloudRules | 无运行数据时显示空状态 |
 | 剧本杀创作 | writer | cloudStudio · cloudCreatorChecks | 完整 |
 | 剧情编排 | studio | cloudStudio + 拖拽 state | 完整 |
+| **线索管理** | clues | cloudStudio.clues + 批量选择 state | 单删/批量删走 `DELETE studio-nodes/clue` |
 | 内容资产 | assets | cloudAssets + kind/q 筛选 + storageUsage | 「新建内容」仍占位 |
 | 自动化规则 | rules | cloudRules + 可视化编辑器 | 主持台规则预览/手动触发 |
 | 主持监控台 | director | cloudHost · cloudHostEvents · cloudRulesPreview | 需平行房 |
@@ -370,9 +373,9 @@
 2. **LiveKit 需环境配置**：未设置 `LIVEKIT_*` 时音频 token 503；文字频道与权限模型仍可用（§24）。  
 3. **单体前端**：`app.js` 维护成本高，无组件测试。  
 4. **规则表达力**：支持 `all` / `any` / `not` 与 `variable_compare`（player_states 变量）；NPC 未建模。  
-5. **运行存档恢复缺失**：可创建 checkpoint 快照，**暂不支持从此恢复房间**（见 §16）。  
+5. **~~运行存档恢复缺失~~**：checkpoint **scoped restore** 已落地（§16、§28）；前端恢复弹窗已接通。  
 6. **复盘无 AI 总结**：结构化报告已落地（§26），叙事总结待后续接入。  
-7. **生产安全**：需关闭 demo header、配置 HTTPS、R2 密钥轮换；无 rate limit。  
+7. **生产安全**：需关闭 demo header、配置 HTTPS、R2 密钥轮换；**生产读写/auth 限流已启用**。  
 8. **多语言**：仅中文 UI。
 
 ---
@@ -424,8 +427,10 @@ npm run ci
 
 # 或分步复验（P0～P2）
 npm run check    # 语法
-npm test         # 148 项单元/集成
-npm run test:smoke   # 16 项 API（需 4180 已启动）
+npm test         # 180 项单元/集成
+npm run test:smoke   # 18 项 API（需 4180 已启动）
+npm run test:format-helpers
+npm run test:modal-helpers
 npm run test:ui:load # 24 项脚本加载（项目根）
 
 # 前端 UI 接线（需 4173 + 4180 已启动且为最新代码）
@@ -1132,7 +1137,7 @@ npm run bootstrap:local   # migrate + seed + exploration
 
 ### 测试扩充（历史记录 · 当时数字）
 
-> **当前验收**见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5：**170** 单测 · **54** schema · **18** smoke · **41** UI smoke · **29** modules · Playwright E2E。
+> **当前验收**见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5：**180** 单测 · **56** schema · **18** smoke · **41** UI smoke · **29** modules · Playwright E2E。
 
 | 套件 | 数量（当时） | 新增 |
 |------|------|------|
@@ -1150,4 +1155,80 @@ npm run test:smoke          # 需 :4180
 npm run test:ui:load
 npm run test:ui             # 需 :4173 + :4180
 ```
+
+---
+
+## 29. Beta-3 稳健性加固与线索删除（2026-06-05）
+
+**目标**：收口内测中暴露的重复导入、XSS、主持并发与表单回显问题；线索库支持清理测试数据。
+
+### 后端
+
+| 项 | 说明 |
+|----|------|
+| AI 导入去重 | `proposalKey` 幂等；pipeline 在 structure 导入后复用角色/分幕/图节点 |
+| 内容包去重 | `meta.importKey` 短路整包；各实体 `packageSourceId` 复用；边 UNIQUE 跳过；规则 `_packageImport` 标记 |
+| 主持事件并发 | `FOR UPDATE` + 状态条件 UPDATE；重复 execute/delay/dismiss → **409** `HOST_EVENT_ALREADY_RESOLVED` |
+| checkpoint 快照 | 单连接/池查询**串行**执行，避免 session pool `max clients` |
+| 线索 PATCH | 合并 metadata 时保留 `assetId` |
+
+**新增/更新测试**：`robustness-fixes.test.js` · `clue-metadata.test.js` · `content-package.test.js`（独立世界 + 二次导入）
+
+### 前端
+
+| 项 | 说明 |
+|----|------|
+| Modal XSS | `studioField` / `studioSelect` / `studioOptionsHtml` 统一 `escapeHtml` |
+| 表单回显 | 线索/规则/写手/主持台 `studioSelect` 传入已选值；动态分幕下拉用 `studioOptionsHtml` |
+| 编排节点 | `studioNode` 标题/描述转义 |
+| **线索管理删除** | 行内「删除」+ 勾选「删除所选」；删除前展示调查点/规则/连线引用；API：`DELETE .../studio-nodes/clue/:id` |
+
+### 测试与 CI（当前）
+
+| 门禁 | 数量 |
+|------|------|
+| `backend npm test` | **180** |
+| `check:schemas` | **56** |
+| `test:smoke` | **18** |
+| `ui-smoke.js` | **41/41** |
+| `test:format-helpers` | **5** |
+| `test:modal-helpers` | **2**（已加入 `.github/workflows/ci.yml`） |
+
+### 仍待加强（非阻塞内测）
+
+- 浏览器级 XSS / 组合路径 E2E（UI smoke 仍为静态接线检查）
+- 内容包章节级 `packageSourceId`（无 scene 关联时仍可能重复章节）
+- 规则 conditions 内 `_packageImport` 为导入标记，非运行时语义
+
+---
+
+## 30. Beta-4 找回密码（Resend）（2026-06-06）
+
+**目标**：内测账号体系补齐「忘记密码」闭环，不暴露邮箱是否已注册。
+
+### 后端
+
+| 项 | 说明 |
+|----|------|
+| 迁移 019 | `password_reset_tokens`（token 哈希、1 小时过期、一次性） |
+| 发信 | `backend/src/email.js` → Resend REST API |
+| API | `POST /api/auth/forgot-password` · `POST /api/auth/reset-password` |
+| 安全 | 未知邮箱同样 200；重置后 `revokeAllSessions`；auth 限流覆盖两路由 |
+| 环境变量 | `RESEND_API_KEY`、`MAIL_FROM`、`APP_PUBLIC_URL` |
+
+**测试**：`auth-password-reset.test.js`（**4** 项）
+
+### 前端
+
+| 项 | 说明 |
+|----|------|
+| 登录弹窗 | 「忘记密码？」→ 填邮箱发信 |
+| 落地 | 邮件链接 `/?reset=<token>` → 自动打开「设置新密码」弹窗 |
+| 客户端 | `zhimuApi.requestPasswordReset` · `resetPassword` |
+| 错误文案 | `EMAIL_NOT_CONFIGURED` · `PASSWORD_RESET_INVALID` |
+
+### 仍缺（非本迭代）
+
+- 注册邮箱验证（激活链接）
+- OAuth / refresh token / 多设备 session 管理
 

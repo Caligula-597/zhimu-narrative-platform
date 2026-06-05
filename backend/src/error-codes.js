@@ -10,6 +10,10 @@ export const API_ERRORS = {
   DISPLAY_NAME_INVALID: { status: 400, message: "Display name must contain between 2 and 40 characters" },
   EMAIL_ALREADY_REGISTERED: { status: 409, message: "Email is already registered" },
   USER_NOT_FOUND: { status: 404, message: "User not found" },
+  EMAIL_NOT_CONFIGURED: { status: 503, message: "Email is not configured on the server" },
+  EMAIL_NOT_VERIFIED: { status: 403, message: "Email address is not verified" },
+  PASSWORD_RESET_INVALID: { status: 400, message: "Password reset link is invalid or expired" },
+  EMAIL_VERIFICATION_INVALID: { status: 400, message: "Email verification link is invalid or expired" },
 
   // Access control
   FORBIDDEN: { status: 403, message: "Forbidden" },
@@ -107,6 +111,7 @@ export const API_ERRORS = {
 
   // Runtime / host
   HOST_EVENT_NOT_FOUND: { status: 404, message: "Pending host event not found" },
+  HOST_EVENT_ALREADY_RESOLVED: { status: 409, message: "Host event already resolved" },
   CHECKPOINT_NOT_FOUND: { status: 404, message: "Checkpoint not found" },
   CHECKPOINT_WORLD_MISMATCH: { status: 400, message: "Checkpoint and target room must belong to the same world" },
   INVALID_SNAPSHOT: { status: 422, message: "Checkpoint snapshot is missing" },

@@ -1,6 +1,6 @@
 # 安全与测试收口记录
 
-日期：2026-06-03（Vite 构建 + 后端 ops 收工同步）
+日期：2026-06-06（Vite 构建 + Beta-4 找回密码同步）
 
 ## 已落地的 P0 安全项
 
@@ -11,7 +11,7 @@
 - 前端检测到正式 session token 后，不再发送 demo `x-user-id`。
 - Fastify 统一 HTTP 安全响应头（`X-Frame-Options`、`nosniff`、生产 HSTS 等）。
 - 资产上传：MIME 白名单 + **扩展名黑名单**（`asset-policy.js`）。
-- **运行/创作写路由** Fastify schema（`check:schemas` **48** 条门禁）。
+- **运行/创作写路由** Fastify schema（`check:schemas` **56** 条门禁）。
 - 玩家完成阅读前，后端会校验分幕属于当前角色，并且处于已发布或已解锁状态。
 - 私密语音房通过 `voice_room_members` 二次授权，未受邀的活跃房间成员仍不能读取消息。
 - SSE 流 `GET /api/rooms/:roomId/events/stream` 需房间成员身份（`requireRoomRole`）。
@@ -37,11 +37,12 @@
 
 所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
 
-`npm test` 当前覆盖（**170 项**，约 44 个测试文件；精确数以 `npm run check:tests` 为准）：
+`npm test` 当前覆盖（**180 项**，约 45 个测试文件；精确数以 `npm run check:tests` 为准）：
 
 | 文件 | 覆盖 |
 |------|------|
 | `app-auth.test.js` | 注册 schema、demo header、session 优先、生产忽略 demo |
+| `auth-password-reset.test.js` | forgot 503/ack、完整重置流、token 一次性 |
 | `asset-policy.test.js` | 文件名黑名单、MIME 校验 |
 | `checkpoint.test.js` | 主持人创建/列表/详情；玩家 403 |
 | `checkpoint-restore-e2e.test.js` | 端到端 scoped restore |
@@ -102,20 +103,22 @@ npm run check:modules
 npm run build
 node scripts/verify-dist-host.mjs   # 需 4173 dist 服务
 node scripts/ui-smoke.js            # 41 项，需 4173 + 4180
-npm run test:format-helpers         # 4 项纯函数（format.js）
+npm run test:format-helpers         # 5 项纯函数（format.js）
+npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 ```
 
 `npm run test:smoke`（backend，**18 项**）：需 `localhost:4180` 已启动。
 
-## 整体验收（2026-06-04 收工）
+## 整体验收（2026-06-06 收工）
 
 | 命令 | 结果 |
 |------|------|
-| `backend npm test` | **170/170** |
-| `npm run check:schemas` | **54** 条路由 |
+| `backend npm test` | **180/180** |
+| `npm run check:schemas` | **56** 条路由 |
 | `npm run test:smoke` | **18/18** |
 | `node scripts/ui-smoke.js` | **41/41** |
-| `npm run test:format-helpers` | **4/4** |
+| `npm run test:format-helpers` | **5/5** |
+| `npm run test:modal-helpers` | **2/2** |
 | `npm run check:modules` | **29/29** |
 | `npm run verify:full:fresh` | Playwright E2E + 上述门禁 |
 

@@ -75,22 +75,52 @@
     unlockPageScroll();
   }
 
-function openModal(title,text,confirm){
- modal.className="modal";
- modal.innerHTML=`<h2>${title}</h2><p>${text}</p><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-close>${confirm}</button></div>`;
- modalBackdrop.classList.add("show"); modal.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeModal);
+function openModal(title, text, confirm) {
+  modal.className = "modal";
+  modal.innerHTML = `<h2>${escapeHtml(title)}</h2><p>${escapeHtml(text)}</p><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-close>${escapeHtml(confirm)}</button></div>`;
+  modalBackdrop.classList.add("show");
+  modal.querySelectorAll("[data-close]").forEach((b) => (b.onclick = closeModal));
 }
 
-function studioModal(title,fields,confirm,submit){
- modal.className="modal";modal.innerHTML=`<h2>${title}</h2><div class="form-group">${fields}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-studio-submit>${confirm}</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-studio-submit]").onclick=submit;
+function studioModal(title, fields, confirm, submit) {
+  modal.className = "modal";
+  modal.innerHTML = `<h2>${escapeHtml(title)}</h2><div class="form-group">${fields}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-studio-submit>${escapeHtml(confirm)}</button></div>`;
+  modalBackdrop.classList.add("show");
+  modal.querySelector("[data-close]").onclick = closeModal;
+  modal.querySelector("[data-studio-submit]").onclick = submit;
 }
 
-function studioField(label,key,type="input",value=""){return `<label>${label}</label>${type==="textarea"?`<textarea class="field" data-studio-field="${key}" rows="4">${value}</textarea>`:`<input class="field" data-studio-field="${key}" value="${value}">`}`}
+function studioField(label, key, type = "input", value = "") {
+  const safeValue = escapeHtml(value ?? "");
+  const safeLabel = escapeHtml(label);
+  const safeKey = escapeHtml(key);
+  return type === "textarea"
+    ? `<label>${safeLabel}</label><textarea class="field" data-studio-field="${safeKey}" rows="4">${safeValue}</textarea>`
+    : `<label>${safeLabel}</label><input class="field" data-studio-field="${safeKey}" value="${safeValue}">`;
+}
 
-function studioValues(){return Object.fromEntries(Array.from(modal.querySelectorAll("[data-studio-field]")).map(input=>[input.dataset.studioField,input.value.trim()]))}
+function studioValues() {
+  return Object.fromEntries(Array.from(modal.querySelectorAll("[data-studio-field]")).map((input) => [input.dataset.studioField, input.value.trim()]));
+}
 
-function studioSelect(label,key,options){return `<label>${label}</label><select class="field" data-studio-field="${key}">${options.map(option=>`<option value="${option.id}">${option.name||option.title}</option>`).join("")}</select>`}
-  window.zhimuModal = { closeModal, openModal, studioModal, studioField, studioValues, studioSelect };
+function studioSelect(label, key, options, selectedId = "") {
+  const safeLabel = escapeHtml(label);
+  const safeKey = escapeHtml(key);
+  return `<label>${safeLabel}</label><select class="field" data-studio-field="${safeKey}">${studioOptionsHtml(options, selectedId)}</select>`;
+}
+
+function studioOptionsHtml(options, selectedId = "") {
+  const selected = selectedId == null ? "" : String(selectedId);
+  return options
+    .map((option) => {
+      const id = String(option.id ?? "");
+      const name = option.name || option.title || "";
+      const sel = id === selected ? " selected" : "";
+      return `<option value="${escapeHtml(id)}"${sel}>${escapeHtml(name)}</option>`;
+    })
+    .join("");
+}
+
+  window.zhimuModal = { closeModal, openModal, studioModal, studioField, studioValues, studioSelect, studioOptionsHtml };
 })(window);
 export {};

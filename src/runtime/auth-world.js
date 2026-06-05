@@ -46,16 +46,51 @@
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   window.zhimuViews = window.zhimuViews || {};
-  function openAuth(){
+  function openForgotPassword(prefillEmail=""){
+ modal.className="modal auth-modal";
+ modal.innerHTML=`<h2>找回密码</h2><p class="wizard-intro">输入注册邮箱，我们会发送重置链接（1 小时内有效）。</p>${studioField("邮箱","forgotEmail","input",prefillEmail)}<div class="modal-actions"><button class="secondary-btn" data-auth-back-login>返回登录</button><button class="primary-btn" data-auth-forgot-submit>发送重置邮件</button></div>`;
+ modalBackdrop.classList.add("show");
+ modal.querySelector("[data-auth-back-login]").onclick=()=>openAuth();
+ modal.querySelector("[data-auth-forgot-submit]").onclick=async()=>{try{const email=modal.querySelector('[data-studio-field="forgotEmail"]').value.trim();if(!email)return showToast("请填写邮箱");await zhimuApi.requestPasswordReset({email});closeModal();showToast("若该邮箱已注册，请查收重置邮件（含垃圾箱）")}catch(error){showToast(error.message)}};
+ modal.querySelector("[data-close]")?.remove();
+}
+
+ function openVerifyPending(prefillEmail=""){
+ modal.className="modal auth-modal";
+ modal.innerHTML=`<h2>验证邮箱</h2><p class="wizard-intro">我们已向 ${escapeHtml(prefillEmail||"你的邮箱")} 发送验证链接（24 小时内有效）。验证通过后即可创建剧本。</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-resend-verify>重新发送验证邮件</button></div>`;
+ modalBackdrop.classList.add("show");
+ modal.querySelector("[data-close]").onclick=closeModal;
+ modal.querySelector("[data-auth-resend-verify]").onclick=async()=>{try{if(!localStorage.getItem("zhimuSessionToken"))return showToast("请先登录后再重发验证邮件");await zhimuApi.resendVerification();showToast("验证邮件已发送（含垃圾箱）")}catch(error){showToast(error.message)}};
+}
+
+ function openVerifyEmail(verifyToken){
+ if(!verifyToken)return;
+ modal.className="modal auth-modal";
+ modal.innerHTML=`<h2>正在验证邮箱…</h2><p class="wizard-intro">请稍候。</p>`;
+ modalBackdrop.classList.add("show");
+ (async()=>{try{const result=await zhimuApi.verifyEmail({token:verifyToken});localStorage.setItem("zhimuSessionToken",result.token);closeModal();showToast("邮箱已验证，已自动登录");await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true);render()}catch(error){showToast(error.message)}}catch(error){modal.innerHTML=`<h2>验证失败</h2><p class="wizard-intro">${escapeHtml(error.message||"链接无效或已过期")}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-open-login>去登录</button></div>`;modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-auth-open-login]").onclick=()=>openAuth()}})();
+}
+
+ function openResetPassword(resetToken){
+ if(!resetToken)return;
+ modal.className="modal auth-modal";
+ modal.innerHTML=`<h2>设置新密码</h2><p class="wizard-intro">请为账号设置新的登录密码（至少 8 位）。设置成功后需重新登录。</p>${studioField("新密码 · 至少 8 位","resetPassword","input","")}${studioField("确认新密码","resetPasswordConfirm","input","")}<div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-auth-reset-submit>更新密码</button></div>`;
+ modalBackdrop.classList.add("show");
+ modal.querySelectorAll('[data-studio-field$="Password"],[data-studio-field$="Confirm"]').forEach(input=>input.type="password");
+ modal.querySelector("[data-close]").onclick=closeModal;
+ modal.querySelector("[data-auth-reset-submit]").onclick=async()=>{try{const password=modal.querySelector('[data-studio-field="resetPassword"]').value;const confirm=modal.querySelector('[data-studio-field="resetPasswordConfirm"]').value;if(password.length<8)return showToast("密码至少 8 位");if(password!==confirm)return showToast("两次输入的密码不一致");await zhimuApi.resetPassword({token:resetToken,password});closeModal();localStorage.removeItem("zhimuSessionToken");showToast("密码已更新，请使用新密码登录");openAuth()}catch(error){showToast(error.message)}};
+}
+
+ function openAuth(){
  const loggedIn=Boolean(localStorage.getItem("zhimuSessionToken"));
  const requireAuth=Boolean(window.zhimuConfig?.requireAuth);
- const loggedInIntro=requireAuth?"当前浏览器已保存内测账号会话。退出后需重新登录才能访问你的剧本与世界。":"当前浏览器已经保存正式登录会话。退出后仍可继续查看演示世界，但账号专属世界需要重新登录。";
- const guestIntro=requireAuth?"内测环境使用正式账号登录。注册后可创建剧本、邀请协作者并保存运行数据。":"建立创作者账号后，可以被邀请为协作者、保存自己的世界，并逐步接入正式多人协作。";
- modal.className="modal auth-modal";modal.innerHTML=loggedIn?`<h2>账号与会话</h2><p class="wizard-intro">${loggedInIntro}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="danger-btn" data-auth-logout>退出登录</button></div>`:`<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;if(!loggedIn)modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
+ const loggedInIntro="退出登录后，需要重新登录才能访问你的剧本与运行数据。";
+ const guestIntro="注册或登录后，可创建剧本、邀请协作者并保存运行数据。";
+ modal.className="modal auth-modal";modal.innerHTML=loggedIn?`<h2>账号与会话</h2><p class="wizard-intro">${loggedInIntro}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="danger-btn" data-auth-logout>退出登录</button></div>`:`<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button><button type="button" class="text-btn" data-auth-forgot style="margin-top:8px">忘记密码？</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;if(!loggedIn)modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
  const resetAccountContext=()=>{zhimuApi.resetActiveWorld?.();state.cloudStudio=null;window.zhimuClearRuntimeState?.()};
  const finishAuth=async(label)=>{resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true)}catch(error){showToast(error.message)}render();if(!zhimuApi.context.worldId){const hasWorlds=(state.cloudWorlds||[]).length>0;setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400)}};
  if(loggedIn)modal.querySelector("[data-auth-logout]").onclick=async()=>{await zhimuApi.logout();localStorage.removeItem("zhimuSessionToken");resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast("已退出登录");await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();if(requireAuth)window.zhimuAuthSession?.promptAuthIfNeeded?.(true);else try{await loadCloudData(true,true);render()}catch(error){showToast(error.message)}};
- else{modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);await finishAuth("注册成功，已经登录")}catch(error){showToast(error.message)}};modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);await finishAuth("登录成功")}catch(error){showToast(error.message)}}}
+ else{modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});if(result.pendingEmailVerification){closeModal();showToast("注册成功，请查收验证邮件");openVerifyPending(modal.querySelector('[data-studio-field="registerEmail"]').value.trim());return}localStorage.setItem("zhimuSessionToken",result.token);await finishAuth("注册成功，已经登录")}catch(error){showToast(error.message)}};modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);if(result.pendingEmailVerification){closeModal();showToast("登录成功，请先验证邮箱");openVerifyPending(modal.querySelector('[data-studio-field="loginEmail"]').value.trim());return}await finishAuth("登录成功")}catch(error){showToast(error.message)}};modal.querySelector("[data-auth-forgot]")?.addEventListener("click",()=>openForgotPassword(modal.querySelector('[data-studio-field="loginEmail"]')?.value||""))}
 }
 
 async function joinCatalogWorld(worldId){
@@ -69,7 +104,7 @@ async function joinCatalogWorld(worldId){
   const roles=state.cloudStudio?.roles?.length||0;
   const sections=state.cloudStudio?.sections?.length||0;
   if(!roles){
-   showToast("已加入剧本，但数据库里还没有正文数据。请让管理员执行 npm run staging:catalog");
+   showToast("已加入剧本，但正文尚未加载完成，请稍后刷新");
   }else{
    showToast(`已加入「${result.worldName}」：${roles} 个角色、${sections} 段分幕。邀请码 ${result.room.invite_code}`);
   }
@@ -101,7 +136,7 @@ async function openWorldLibrary(defaultTab="mine"){
   const worlds=await zhimuApi.getWorldCatalog();
   const err=state.cloudCatalogError;
   if(err)return `<div class="empty-state">公开库加载失败：${escapeHtml(err)}</div>`;
-  return worlds.map(world=>`<article class="world-library-card"><div><span class="cloud-pill">公开</span><span class="status-chip testing">${world.role_count||0} 个角色席</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充世界简介")}</p><small>创作者：${escapeHtml(world.owner_display_name||"未知")}</small></div><div class="row"><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></div></article>`).join("")||`<div class="empty-state">暂无公开剧本。若使用 Docker 预发，请确认已执行数据库迁移并运行过 seed（雾港来信）。主创作者也可在「世界设置」勾选「公开到剧本库」。</div>`;
+  return worlds.map(world=>`<article class="world-library-card"><div><span class="cloud-pill">公开</span><span class="status-chip testing">${world.role_count||0} 个角色席</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充世界简介")}</p><small>创作者：${escapeHtml(world.owner_display_name||"未知")}</small></div><div class="row"><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></div></article>`).join("")||`<div class="empty-state">暂无公开剧本。主创作者可在「世界设置」勾选「公开到剧本库」。</div>`;
  };
  const draw=async()=>{
   const list=modal.querySelector(".world-library-list");
@@ -230,6 +265,6 @@ function openJoinRoom(inviteCode=""){
  const submit=async()=>{const roleSlotId=modal.querySelector("[data-join-role]").value;if(!inviteCode||!roleSlotId)return showToast("请先读取角色席位");try{const result=await zhimuApi.joinRoom(inviteCode,roleSlotId);zhimuApi.selectWorld(invite.world.id);zhimuApi.selectRoom(result.roomId);closeModal();await loadCloudData(true,true);go("player");showToast("已加入房间，可以继续创建临时密谈")}catch(error){showToast(error.message)}};
  draw();if(inviteCode)lookup();
 }
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openWorldLibrary, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, selectParallelRoom, openRoomInvite, openJoinRoom });
+  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, selectParallelRoom, openRoomInvite, openJoinRoom });
 })(window);
 export {};

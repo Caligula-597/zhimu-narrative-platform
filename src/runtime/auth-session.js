@@ -31,9 +31,9 @@
         small.textContent = "点击登录或注册";
         avatar.textContent = "?";
       } else if (window.zhimuConfig?.demoMode) {
-        strong.textContent = "演示 · 沈舟";
-        small.textContent = "未登录 · 共享示例剧本";
-        avatar.textContent = "演";
+        strong.textContent = "未登录";
+        small.textContent = "点击登录或注册";
+        avatar.textContent = "?";
       }
       return;
     }
@@ -43,7 +43,7 @@
       state.currentUser = me;
       const label = me.display_name || me.email || "已登录";
       strong.textContent = label;
-      small.textContent = requiresAuth() ? "内测账号" : "演示 + 账号";
+      small.textContent = me.email || "已登录";
       avatar.textContent = label.slice(0, 1);
     } catch {
       /* session may have expired — client.js clears token on 401 */

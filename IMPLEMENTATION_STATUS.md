@@ -1,7 +1,7 @@
 # 织幕 · 功能实现状态总览
 
 > **用途**：团队协调用的「一张表看清全貌」——后端做到哪、前端做到哪、哪里没接通、哪里有坑。  
-> **更新**：2026-06-04（Vite · **170** 测试 · schema **54** · UI smoke **41** · API smoke **18**）  
+> **更新**：2026-06-06（Vite · **180** 测试 · schema **56** · UI smoke **41** · modal-helpers **2**）  
 > **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
 > **中文总览**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)  
@@ -27,6 +27,7 @@
 | 能力 | 状态 | 说明 |
 |------|------|------|
 | 注册 / 登录 / Session | ✅ | scrypt 密码；Bearer 30 天 |
+| **找回密码** | ✅ | Resend 邮件；`POST /auth/forgot-password` · `reset-password`；重置后吊销全部 session |
 | 世界 CRUD | ✅ | 含配额 `max_worlds` |
 | **GET/PATCH 世界详情** | ✅ | name / summary / settings |
 | 世界成员协作 | ✅ | owner / editor / host / viewer |
@@ -41,9 +42,9 @@
 | 编排 studio 读取 | ✅ | 场景 / 线索 / 调查点 / 边 / 布局 |
 | 场景 / 线索 / 调查点 / 物品 PATCH | ✅ | metadata 合并 |
 | 剧情助手（本地分类） | ✅ | 启发式，非 LLM |
-| DeepSeek 提案导入 | 🟡 | 需 `DEEPSEEK_API_KEY` |
+| DeepSeek 提案导入 | 🟡 | 需 `DEEPSEEK_API_KEY`；**proposalKey / pipeline 去重** |
 | 文档解析 DOCX/TXT/MD | ✅ | 预览后确认导入 |
-| 内容包 import/export | ✅ | 追加模式 + 新世界 |
+| 内容包 import/export | ✅ | 追加模式 + 新世界；**importKey 短路 + packageSourceId 实体/边/规则去重** |
 | 创作版本快照 restore | ✅ | **仅**章节+分幕正文与发布状态 |
 | 完整剧情母稿双向同步 | ✅ | 不覆盖私人剧本 |
 
@@ -60,7 +61,7 @@
 | 玩家 join / 阅读完成 | ✅ | 完成前校验分幕归属与发布状态 |
 | 调查 / 线索 / 背包 | ✅ | required_item + consumable |
 | 主持手动干预 | ✅ | grant clue/item · unlock section/scene · log |
-| 待确认事件 execute/dismiss | ✅ | 事务 + 事件 |
+| 待确认事件 execute/dismiss | ✅ | 事务 + **FOR UPDATE**；重复 execute/delay → **409** |
 | **运行房 checkpoint** | ✅ | 快照 v2 |
 | **checkpoint scoped restore** | ✅ | 9 域回滚（含 **timelineLogs** 可选）+ **跨房间** + 幂等 + 审计 |
 | 房间复盘 recap | ✅ | 结构化非 AI |
@@ -118,7 +119,7 @@
 
 | 领域 | 缺口 |
 |------|------|
-| 认证 | 邮箱验证、找回密码、OAuth、refresh token、多设备管理 |
+| 认证 | 邮箱验证、OAuth、refresh token、多设备管理 |
 | 复盘 | AI 叙事总结 |
 | 实时 | Redis / 多节点 SSE；WebSocket 集群 |
 | 资产 | 病毒扫描、图片转码 |
@@ -159,7 +160,8 @@
 | UI smoke 静态检查 | 中 | 不执行浏览器 JS；SyntaxError 用 `npm run check:modules` 捕获 |
 | Rate limit | — | 生产环境已启用单节点读写/auth 限流；开发/测试默认关闭 |
 | 无上传扫描 | 中 | R2 直传无病毒检测；已加 MIME 白名单 + 扩展名黑名单 |
-| XSS 基线 | 低 | 依赖 `escapeHtml`；ui-smoke 监控 innerHTML 比例，非正式审计 |
+| XSS 基线 | 低 | `escapeHtml` + modal `studioField`/`studioSelect`/`studioOptionsHtml`；ui-smoke 监控 innerHTML 比例，非正式审计 |
+| 导入重复 | — | 内容包 / AI 导入已加 **importKey / proposalKey / packageSourceId** 去重 |
 | 设置页错误文案 | — | 已改为跳转创作台导出/导入；世界名/简介与运行房选项可保存 |
 | 存档页错误文案 | — | 恢复 UI 已接通；卡片显示「可恢复」 |
 
@@ -167,12 +169,14 @@
 
 | 项 | 状态 |
 |----|------|
-| `npm test` | **170/170**（含 beta2-ops、rate-limit、upload-scan、asset-recycle、clue-sharing 扩展） |
-| `check:schemas` | **53** 条写/SSE 路由 schema 门禁 |
+| `npm test` | **180/180**（含 auth-password-reset、robustness-fixes、clue-metadata、content-package 去重、host-event 并发） |
+| `check:schemas` | **56** 条写/SSE 路由 schema 门禁 |
 | `check:tests` 数量下限 | ≥100 |
 | checkpoint / journal / 幂等 E2E | ✅ 专项测试 |
 | `test:smoke` | **18** 项（需 4180 进程，含 checkpoint-restore） |
-| UI smoke | **34** 项静态（含 Vite dist 托管、restore/settings 等接线） |
+| UI smoke | **41** 项静态（含 clues 删除接线、restore/settings 等） |
+| `test:format-helpers` | **5** 项 |
+| `test:modal-helpers` | **2** 项（CI 已纳入） |
 | `npm run check:modules` | **29** 脚本顺序加载（Vite 入口链） |
 | Playwright E2E | 1 spec（雾港 E2E 房全链路） |
 | 前端构建 | `npm run build` → `dist/`；CI 用 `server.js --dist` |
@@ -199,7 +203,7 @@
 | 世界总览 | overview | ✅ | 真实 logs / 进度 / 资产统计 | — |
 | 剧本创作 | writer | ✅ | 分幕编辑、版本、导入导出、DeepSeek | 实体小卡 🔲 |
 | 剧情编排 | studio | ✅ | 图谱 CRUD、拖拽、PATCH 编辑 | — |
-| **线索管理** | clues | ✅ | 独立列表、搜索、编辑、跳转编排 | — |
+| **线索管理** | clues | ✅ | 独立列表、搜索、编辑、**单删/批量删**、跳转编排 | — |
 | 内容资产 | assets | ✅ | R2 列表、上传、删除、分类 Tab、搜索 | 「＋ 新建内容」仍占位（场景/线索在编排台创建） |
 | 自动化规则 | rules | ✅ | JSON + 可视化（含 OR/变量比较/发放物品）；validate API | — |
 | 主持监控台 | director | ✅ | 玩家表、干预、SSE、存档创建、规则预览/手动触发、**主持审计** | — |
@@ -211,7 +215,7 @@
 
 | 项 | 状态 |
 |----|------|
-| `zhimuApi` 客户端 | ✅ 覆盖大部分运行/创作 API；`friendlyApiError` |
+| `zhimuApi` 客户端 | ✅ 覆盖大部分运行/创作 API；`friendlyApiError`；**requestPasswordReset / resetPassword** |
 | SSE `streamRoomEvents` | ✅ 主持台/玩家 toast；`Last-Event-ID` 断线补发 |
 | LiveKit 前端模块 | ✅ | 连接/麦克风/重试；需 env + token |
 | 按 `code` 展示错误 | ✅ 常见码已映射（`user-messages.js`） |
@@ -289,10 +293,10 @@
 
 | 文档 | 内容 |
 |------|------|
-| [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) | 按工作区逐项功能说明（§3）+ 变更历史（§12–§27） |
+| [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) | 按工作区逐项功能说明（§3）+ 变更历史（§12–§29） |
 | [ALPHA_FEATURE_MATRIX.md](./ALPHA_FEATURE_MATRIX.md) | 真实 / 演示 / 待接入 速查 |
 | [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) | **产品功能与工程现状（中文总览）** |
-| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + 148 项测试矩阵 |
+| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + **180** 项测试矩阵 |
 | [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) | **休息/交接检查点** |
 | [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md) | 后端运维路线图 |
 | [docs/OPS.md](./docs/OPS.md) | 部署与故障排查 |

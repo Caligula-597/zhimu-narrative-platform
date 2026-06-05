@@ -82,8 +82,8 @@ test("host delay rejects dismissed events", async (context) => {
     headers: { "x-user-id": hostUserId, "idempotency-key": `delay-dismissed-${Date.now()}` },
     payload: { delayMinutes: 10 }
   });
-  assert.equal(response.statusCode, 404);
-  assert.equal(response.json().code, "HOST_EVENT_NOT_FOUND");
+  assert.equal(response.statusCode, 409);
+  assert.equal(response.json().code, "HOST_EVENT_ALREADY_RESOLVED");
 });
 
 test("wakeDueDelayedHostEvents returns zero when no rows are due", async () => {

@@ -156,6 +156,10 @@
   const openClueNoteModal = V.player?.openClueNoteModal || (() => {});
   const openCluesEditor = V.clues?.openCluesEditor || (() => {});
   const openClueInStudio = V.clues?.openClueInStudio || (() => {});
+  const confirmDeleteClue = V.clues?.confirmDeleteClue || (async () => {});
+  const batchDeleteClues = V.clues?.batchDeleteClues || (async () => {});
+  const toggleCluesSelection = V.clues?.toggleCluesSelection || (() => {});
+  const syncCluesSelectAll = V.clues?.syncCluesSelectAll || (() => {});
   const executeHostEvent = V.player?.executeHostEvent || (async () => {});
   const dismissHostEvent = V.player?.dismissHostEvent || (async () => {});
   const toggleHostEventSelection = V.director?.toggleHostEventSelection || (() => {});
@@ -198,8 +202,8 @@ function handle(action,el){
   if(action==="explore") return openModal("调查进行中",`你开始调查「${el.dataset.place}」。系统将根据角色状态、持有物品和已解读线索展示可发现的内容。`,`确认调查`);
   if(action==="new-rule") return openModal("新建自动化规则","使用“当满足条件，则执行动作”的方式配置规则。每个规则都支持自动执行、主持确认和仅手动三种模式。","开始配置");
   if(action==="export") return showToast("世界数据已准备导出");
-  if(action==="import") return openModal("导入内容包","支持后续接入 JSON、Markdown 和表格格式。当前版本已保留完整导入入口。","选择文件");
-  if(action==="token") return openModal("实体卡绑定接口","已预留二维码与 NFC Token 数据结构。实体卡可绑定线索、道具、角色身份或限定支线。","查看接口");
+  if(action==="import") return handle("creator-import", el);
+  if(action==="token") return showToast("实体小卡功能暂不可用");
   if(action==="voice-room") return openVoiceRooms();
   if(action==="voice-room-create") return openCreateVoiceRoom();
   if(action==="voice-room-invite") return openInviteVoiceRoom(el.dataset.roomId,el.dataset.room);
@@ -211,7 +215,6 @@ function handle(action,el){
   if(action==="voice-chat-send") return sendVoiceMessage();
   if(action==="notebook") return openNotebook();
   if(action==="open-wizard") return openWizard();
-  if(action==="capabilities") return openCapabilities();
   if(action==="refresh-cloud") return loadCloudData(true, true);
   if(action==="refresh-host-room") return refreshHostRoom(true);
   if(action==="refresh-host-events") return refreshHostEvents(true);
@@ -228,6 +231,13 @@ function handle(action,el){
   if(action==="clues-edit") return openCluesEditor(el.dataset.clue);
   if(action==="clues-open-studio") return openClueInStudio(el.dataset.clue);
   if(action==="clues-add") return openCluesEditor("");
+  if(action==="clues-delete") return confirmDeleteClue(el.dataset.clue);
+  if(action==="clues-batch-delete") return batchDeleteClues();
+  if(action==="clues-toggle-select") return toggleCluesSelection(el.dataset.clue, el.checked);
+  if(action==="clues-select-all") {
+    const visible = [...document.querySelectorAll("[data-clue-row]")].map((row) => row.dataset.clueRow);
+    return syncCluesSelectAll(el.checked, visible);
+  }
   if(action==="edit-clue-note") return openClueNoteModal(el.dataset.clue);
   if(action==="read-shared-clue") return readCloudClue(el.dataset.clue,true);
   if(action==="execute-host-event") return executeHostEvent(el.dataset.event);
@@ -304,20 +314,8 @@ function handle(action,el){
   if(action==="delete-asset") return deleteCloudAsset(el.dataset.asset);
   if(action==="restore-asset") return restoreCloudAsset(el.dataset.asset);
   if(action==="upload-asset") return openAssetUpload();
-  if(action==="unavailable") return openModal("功能筹备中",`${el.dataset.feature||"该功能"} 将在后续版本开放。内测版请优先使用已接通的功能（剧本创作、编排、主持台与玩家入口）。`,"知道了");
+  if(action==="unavailable") return showToast(`${el.dataset.feature||"该功能"}暂不可用`);
 }
-
-function openCapabilities(){
- modal.className="modal";modal.innerHTML=`<h2>当前版本能力说明</h2><p>第一版已经形成从创作、测试到线上运行的完整产品骨架。以下能力可以在左侧导航或首页直接进入。</p><div class="checklist">
- ${check("创作与 DIY","章节流程图、内容资产、角色席位、权限和五步创建教程")}
- ${check("玩家体验","小说式私人章节、主动阅读推进、场景探索、个人线索和随身笔记本")}
- ${check("线上协作","公共讨论房、角色私密房、临时受邀密谈的交互入口")}
- ${check("自动化","阅读、调查、线索、物品和主持确认共同构成状态规则")}
- ${check("主持运行","玩家状态、阅读进度、实时日志、卡关预警、待确认事件和存档")}
- ${check("后续接口","实体卡二维码、NFC Token 与 LiveKit 实时语音入口")}
- </div><div class="tutorial-tip"><b>当前边界</b><span>账号注册、云数据库、协作权限、运行日志、文档解析和 R2 文件上传已经接入后端。后续仍需补充邮箱验证、多人 WebSocket 同步、LiveKit 语音流和上传安全扫描。</span></div><div class="modal-actions"><button class="primary-btn" data-close>知道了</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
-}
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { bindDynamic, handle, openCapabilities });
+  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { bindDynamic, handle });
 })(window);
 export {};

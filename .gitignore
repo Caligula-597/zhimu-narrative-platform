@@ -4,11 +4,14 @@ dist/
 .env.*
 !.env.example
 !.env.staging.example
+!.env.production.example
 backend/.env
 backend/.env.*
 !backend/.env.example
+!backend/.env.production.example
 test-results/
 playwright-report/
+backend/test-output.txt
 *.log
 .DS_Store
 artifacts/

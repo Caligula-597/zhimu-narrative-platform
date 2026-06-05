@@ -297,7 +297,7 @@ await check("host-audit-wired", async () => {
 await check("clues-view-wired", async () => {
   const clues = readSource("src/views/clues.js");
   const appJs = readSource("app.js");
-  for (const token of ["cluesSearchQuery", "cluesSelectedId", "clues-edit", "clues-add", "openCluesEditor"]) {
+  for (const token of ["cluesSearchQuery", "cluesSelectedId", "cluesBulkSelection", "clues-edit", "clues-add", "clues-delete", "clues-batch-delete", "openCluesEditor", "confirmDeleteClue"]) {
     if (!clues.includes(token)) throw new Error(`clues view missing ${token}`);
   }
   if (!appJs.includes("V.clues.clues")) throw new Error("app.js must register clues view");

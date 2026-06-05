@@ -13,7 +13,7 @@
 - [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md) **后端运维路线图**（下一步）
 - [docs/OPS.md](./docs/OPS.md) 部署与故障排查
 - [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) 完整功能目录
-- [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) 安全与测试（**148** 项后端测试）
+- [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) 安全与测试（**180** 项后端测试）
 - [FRONTEND_MODULE_PLAN.md](./FRONTEND_MODULE_PLAN.md) Vite + 模块边界
 - [DEMO_ROUTE.md](./DEMO_ROUTE.md) 雾港 12 分钟 Demo
 

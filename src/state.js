@@ -35,6 +35,7 @@ window.zhimuState = {
   searchFocus: null,
   cluesSearchQuery: "",
   cluesSelectedId: null,
+  cluesBulkSelection: [],
   voiceLiveError: "",
   cloudAssets: [],
   assetKindFilter: "",

@@ -268,6 +268,43 @@ function remapRuleValue(value, maps) {
 
 export async function importContentPackageData(client, worldId, payload) {
   const warnings = [];
+  const importKey = payload.meta?.importKey
+    || (payload.meta?.sourceWorldId && payload.meta?.exportedAt ? `${payload.meta.sourceWorldId}:${payload.meta.exportedAt}` : null);
+  if (importKey) {
+    const world = await client.query(`SELECT settings FROM worlds WHERE id = $1`, [worldId]);
+    if (world.rows[0]?.settings?.lastContentPackageImportKey === importKey) {
+      return {
+        deduplicated: true,
+        chapters: 0,
+        roles: 0,
+        sections: 0,
+        scenes: 0,
+        clues: 0,
+        investigationPoints: 0,
+        rules: 0,
+        warnings: [{ level: "info", title: "已跳过重复导入", detail: "相同 importKey 的内容包此前已导入。" }]
+      };
+    }
+  }
+
+  async function findByPackageSourceId(table, sourceId) {
+    if (!sourceId) return null;
+    const row = await client.query(
+      `SELECT id FROM ${table} WHERE world_id = $1 AND metadata->>'packageSourceId' = $2 LIMIT 1`,
+      [worldId, sourceId]
+    );
+    return row.rowCount ? row.rows[0].id : null;
+  }
+
+  async function findRoleByPackageSourceId(sourceId) {
+    if (!sourceId) return null;
+    const row = await client.query(
+      `SELECT id FROM role_slots WHERE world_id = $1 AND settings->>'packageSourceId' = $2 LIMIT 1`,
+      [worldId, sourceId]
+    );
+    return row.rowCount ? row.rows[0].id : null;
+  }
+
   const chapterIds = new Map();
   const roleIds = new Map();
   const sectionIds = new Map();
@@ -290,6 +327,19 @@ export async function importContentPackageData(client, worldId, payload) {
   const sectionOffsetByRole = new Map(sectionSeqByRole.rows.map((row) => [row.role_slot_id, row.max]));
 
   for (const chapter of payload.chapters) {
+    let existingChapterId = null;
+    for (const scene of payload.scenes ?? []) {
+      if (scene.chapter_id !== chapter.id) continue;
+      const existingSceneId = await findByPackageSourceId("scenes", scene.id);
+      if (!existingSceneId) continue;
+      const row = await client.query(`SELECT chapter_id FROM scenes WHERE id = $1`, [existingSceneId]);
+      existingChapterId = row.rows[0]?.chapter_id ?? null;
+      if (existingChapterId) break;
+    }
+    if (existingChapterId) {
+      chapterIds.set(chapter.id, existingChapterId);
+      continue;
+    }
     const sequence = chapterOffset + (chapter.sequence ?? chapterIds.size + 1);
     const result = await client.query(
       `INSERT INTO chapters (world_id, title, summary, sequence, publication_status, unlock_rules)
@@ -300,11 +350,16 @@ export async function importContentPackageData(client, worldId, payload) {
   }
 
   for (const role of payload.roles) {
+    const existingId = await findRoleByPackageSourceId(role.id);
+    if (existingId) {
+      roleIds.set(role.id, existingId);
+      continue;
+    }
     const sequence = roleOffset + (role.sequence ?? roleIds.size + 1);
     const result = await client.query(
-      `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
-       VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-      [worldId, role.name, role.public_profile ?? "", role.private_profile ?? "", sequence]
+      `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
+       VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
+      [worldId, role.name, role.public_profile ?? "", role.private_profile ?? "", sequence, JSON.stringify({ packageSourceId: role.id })]
     );
     roleIds.set(role.id, result.rows[0].id);
   }
@@ -314,6 +369,14 @@ export async function importContentPackageData(client, worldId, payload) {
     const roleId = roleIds.get(section.role_slot_id);
     if (!roleId) {
       warnings.push({ level: "warning", title: `已跳过分幕「${section.title}」`, detail: "缺少有效角色引用。" });
+      continue;
+    }
+    const existingSection = await client.query(
+      `SELECT id FROM script_sections WHERE role_slot_id = $1 AND metadata->>'packageSourceId' = $2 LIMIT 1`,
+      [roleId, section.id]
+    );
+    if (existingSection.rowCount) {
+      sectionIds.set(section.id, existingSection.rows[0].id);
       continue;
     }
     const script = await client.query(
@@ -330,15 +393,20 @@ export async function importContentPackageData(client, worldId, payload) {
     const sequence = sectionOffset + (section.sequence ?? 1);
     sectionOffsetByRole.set(roleId, sequence);
     const result = await client.query(
-      `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-      [scriptId, roleId, chapterId, section.title, section.body ?? "", sequence, section.publication_status ?? "draft"]
+      `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb) RETURNING id`,
+      [scriptId, roleId, chapterId, section.title, section.body ?? "", sequence, section.publication_status ?? "draft", JSON.stringify({ packageSourceId: section.id })]
     );
     sectionIds.set(section.id, result.rows[0].id);
     sectionsImported += 1;
   }
 
   for (const scene of payload.scenes ?? []) {
+    const existingId = await findByPackageSourceId("scenes", scene.id);
+    if (existingId) {
+      sceneIds.set(scene.id, existingId);
+      continue;
+    }
     const chapterId = scene.chapter_id ? chapterIds.get(scene.chapter_id) ?? null : null;
     if (scene.chapter_id && !chapterId) {
       warnings.push({ level: "warning", title: `场景「${scene.name}」未绑定章节`, detail: "原章节引用无法在目标世界中解析。" });
@@ -346,22 +414,32 @@ export async function importContentPackageData(client, worldId, payload) {
     const result = await client.query(
       `INSERT INTO scenes (world_id, chapter_id, name, public_text, host_text, metadata)
        VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
-      [worldId, chapterId, scene.name, scene.public_text ?? "", scene.host_text ?? "", JSON.stringify(scene.metadata ?? {})]
+      [worldId, chapterId, scene.name, scene.public_text ?? "", scene.host_text ?? "", JSON.stringify({ ...(scene.metadata ?? {}), packageSourceId: scene.id })]
     );
     sceneIds.set(scene.id, result.rows[0].id);
   }
 
   for (const clue of payload.clues ?? []) {
+    const existingId = await findByPackageSourceId("clues", clue.id);
+    if (existingId) {
+      clueIds.set(clue.id, existingId);
+      continue;
+    }
     const result = await client.query(
       `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
        VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
-      [worldId, clue.name, clue.public_text ?? "", clue.host_text ?? "", clue.visibility ?? "role", JSON.stringify(clue.metadata ?? {})]
+      [worldId, clue.name, clue.public_text ?? "", clue.host_text ?? "", clue.visibility ?? "role", JSON.stringify({ ...(clue.metadata ?? {}), packageSourceId: clue.id })]
     );
     clueIds.set(clue.id, result.rows[0].id);
   }
 
   let pointsImported = 0;
   for (const point of payload.investigationPoints ?? []) {
+    const existingId = await findByPackageSourceId("investigation_points", point.id);
+    if (existingId) {
+      pointIds.set(point.id, existingId);
+      continue;
+    }
     const sceneId = sceneIds.get(point.scene_id);
     if (!sceneId) {
       warnings.push({ level: "warning", title: `已跳过调查点「${point.name}」`, detail: "缺少有效场景引用。" });
@@ -374,7 +452,7 @@ export async function importContentPackageData(client, worldId, payload) {
     const result = await client.query(
       `INSERT INTO investigation_points (world_id, scene_id, name, description, interaction_text, result_text, clue_id, sequence, metadata)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb) RETURNING id`,
-      [worldId, sceneId, point.name, point.description ?? "", point.interaction_text ?? "", point.result_text ?? "", clueId, point.sequence ?? 0, JSON.stringify(point.metadata ?? {})]
+      [worldId, sceneId, point.name, point.description ?? "", point.interaction_text ?? "", point.result_text ?? "", clueId, point.sequence ?? 0, JSON.stringify({ ...(point.metadata ?? {}), packageSourceId: point.id })]
     );
     pointIds.set(point.id, result.rows[0].id);
     pointsImported += 1;
@@ -386,10 +464,18 @@ export async function importContentPackageData(client, worldId, payload) {
     const fromId = edgeMaps[edge.from_type]?.get(edge.from_id);
     const toId = edgeMaps[edge.to_type]?.get(edge.to_id);
     if (!fromId || !toId) continue;
+    const relationType = edge.relation_type ?? "mainline";
+    const existingEdge = await client.query(
+      `SELECT id FROM story_graph_edges
+       WHERE world_id = $1 AND from_type = $2 AND from_id = $3 AND to_type = $4 AND to_id = $5 AND relation_type = $6
+       LIMIT 1`,
+      [worldId, edge.from_type, fromId, edge.to_type, toId, relationType]
+    );
+    if (existingEdge.rowCount) continue;
     await client.query(
       `INSERT INTO story_graph_edges (world_id, from_type, from_id, to_type, to_id, relation_type, label)
        VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-      [worldId, edge.from_type, fromId, edge.to_type, toId, edge.relation_type ?? "mainline", edge.label ?? ""]
+      [worldId, edge.from_type, fromId, edge.to_type, toId, relationType, edge.label ?? ""]
     );
     edgesImported += 1;
   }
@@ -397,12 +483,28 @@ export async function importContentPackageData(client, worldId, payload) {
   const maps = { roleIds, sectionIds, sceneIds, clueIds, pointIds, chapterIds };
   let rulesImported = 0;
   for (const rule of payload.rules ?? []) {
+    if (rule.id) {
+      const existingRule = await client.query(
+        `SELECT id FROM automation_rules WHERE world_id = $1 AND conditions->'_packageImport'->>'sourceId' = $2 LIMIT 1`,
+        [worldId, rule.id]
+      );
+      if (existingRule.rowCount) continue;
+    }
+    const conditions = remapRuleValue(rule.conditions ?? { all: [] }, maps);
+    if (rule.id) conditions._packageImport = { sourceId: rule.id };
     await client.query(
       `INSERT INTO automation_rules (world_id, name, mode, priority, enabled, conditions, actions)
        VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb)`,
-      [worldId, rule.name, rule.mode ?? "automatic", rule.priority ?? 100, rule.enabled !== false, JSON.stringify(remapRuleValue(rule.conditions ?? { all: [] }, maps)), JSON.stringify(remapRuleValue(rule.actions ?? [], maps))]
+      [worldId, rule.name, rule.mode ?? "automatic", rule.priority ?? 100, rule.enabled !== false, JSON.stringify(conditions), JSON.stringify(remapRuleValue(rule.actions ?? [], maps))]
     );
     rulesImported += 1;
+  }
+
+  if (importKey) {
+    await client.query(
+      `UPDATE worlds SET settings = COALESCE(settings, '{}'::jsonb) || jsonb_build_object('lastContentPackageImportKey', $2::text), updated_at = now() WHERE id = $1`,
+      [worldId, importKey]
+    );
   }
 
   return {

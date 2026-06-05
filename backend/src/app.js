@@ -139,7 +139,8 @@ export async function createApp(options = {}) {
 
     const url = request.url.split("?")[0];
     if (shouldSkipRateLimit(url)) return;
-    if (url.startsWith("/api/auth/login") || url.startsWith("/api/auth/register")) {
+    if (url.startsWith("/api/auth/login") || url.startsWith("/api/auth/register")
+      || url.startsWith("/api/auth/forgot-password") || url.startsWith("/api/auth/reset-password")) {
       await authRateLimit(request, reply);
       return;
     }

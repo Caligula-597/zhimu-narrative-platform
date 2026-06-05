@@ -66,6 +66,7 @@ const sandbox = {
       },
       modalBackdrop: { classList: { add() {}, remove() {} }, onclick: null }
     },
+    location: { pathname: "/", search: "", hash: "" },
     zhimuFormat: {},
     zhimuUi: {},
     zhimuToast: {},
@@ -120,6 +121,13 @@ const sandbox = {
     }
     abort() {}
   },
+  MutationObserver: class MutationObserver {
+    observe() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  },
   navigator: { clipboard: { writeText: async () => {} } },
   location: { hostname: "localhost" },
   import: { meta: { env: { VITE_API_BASE: "/api" } } },
@@ -140,6 +148,7 @@ const context = {
   URLSearchParams: sandbox.URLSearchParams,
   Blob: sandbox.Blob,
   AbortController: sandbox.AbortController,
+  MutationObserver: sandbox.MutationObserver,
   navigator: sandbox.navigator,
   location: sandbox.location,
   import: sandbox.import,
