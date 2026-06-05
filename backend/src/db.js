@@ -3,9 +3,30 @@ import "dotenv/config";
 
 const { Pool } = pg;
 
+/** Strip sslmode from URL — pg v8+ treats require as verify-full and breaks Supabase pooler on Railway. */
+export function resolveDatabaseUrl(raw = process.env.DATABASE_URL) {
+  if (!raw?.trim()) return raw;
+  try {
+    const parsed = new URL(raw.replace(/^postgresql:\/\//, "http://"));
+    parsed.searchParams.delete("sslmode");
+    const query = parsed.searchParams.toString();
+    const base = raw.split("?")[0];
+    return query ? `${base}?${query}` : base;
+  } catch {
+    return raw
+      .replace(/([?&])sslmode=[^&]*&?/g, (_, sep) => (sep === "?" ? "?" : ""))
+      .replace(/\?&/, "?")
+      .replace(/[?&]$/, "");
+  }
+}
+
+export function resolveDatabaseSsl() {
+  return process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false;
+}
+
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false,
+  connectionString: resolveDatabaseUrl(),
+  ssl: resolveDatabaseSsl(),
   max: Number(process.env.PGPOOL_MAX ?? 10),
   idleTimeoutMillis: Number(process.env.PGPOOL_IDLE_MS ?? 30_000)
 });

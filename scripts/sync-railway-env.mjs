@@ -30,11 +30,18 @@ function parseEnv(content) {
 
 function normalizeDatabaseUrl(url) {
   if (!url) return url;
-  let next = url.trim();
-  if (!/sslmode=/i.test(next)) {
-    next += next.includes("?") ? "&sslmode=require" : "?sslmode=require";
+  try {
+    const parsed = new URL(url.replace(/^postgresql:\/\//, "http://"));
+    parsed.searchParams.delete("sslmode");
+    const query = parsed.searchParams.toString();
+    const base = url.split("?")[0];
+    return query ? `${base}?${query}` : base;
+  } catch {
+    return url
+      .replace(/([?&])sslmode=[^&]*&?/g, (_, sep) => (sep === "?" ? "?" : ""))
+      .replace(/\?&/, "?")
+      .replace(/[?&]$/, "");
   }
-  return next;
 }
 
 /** Railway Raw Editor: avoid JSON-style quotes; use plain KEY=value or double-quoted .env */
@@ -134,4 +141,4 @@ console.log("sync-railway-env: wrote .env.railway");
 console.log(`  APP_PUBLIC_URL=${publicUrl}`);
 console.log(`  keys=${Object.keys(env).length}`);
 console.log("  SKIP_ENSURE_PLATFORM_CATALOG=true (Supabase already seeded)");
-console.log("  DATABASE_URL appended sslmode=require if missing");
+console.log("  DATABASE_URL sslmode stripped (use DATABASE_SSL=true instead)");
