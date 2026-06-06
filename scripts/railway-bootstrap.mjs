@@ -16,6 +16,7 @@ import {
   deployService,
   getProject,
   listProjects,
+  listServices,
   updateServiceInstance,
   upsertVariables
 } from "./railway-api.mjs";
@@ -82,56 +83,91 @@ async function main() {
     if (!projects.length) {
       throw new Error("账号下没有 Railway 项目");
     }
-    const match = projects.find((p) => /zhimu|narrative|getzhimu/i.test(p.name)) ?? projects[0];
+    const match =
+      projects.find((p) => /zhimu|narrative|getzhimu/i.test(p.name))
+      ?? projects.find((p) => /beautiful-unity|production/i.test(p.name))
+      ?? projects[0];
     projectId = match.id;
     console.log(`[bootstrap] 使用项目: ${match.name} (${projectId})`);
+    if (projects.length > 1) {
+      console.log("[bootstrap] 其他项目:", projects.filter((p) => p.id !== projectId).map((p) => p.name).join(", "));
+    }
   }
 
   const project = await getProject(token, projectId);
   const production = pickProductionEnv(project);
   if (!production) throw new Error("项目没有 environment");
 
-  const services = project.services;
-  let apiService = pickService(services, {
+  const allServices = await listServices(token, projectId);
+  console.log("[bootstrap] 项目内服务:", allServices.map((s) => `${s.name} (${s.id})`).join(", ") || "(无)");
+
+  const webByName = allServices.find((s) => /^web$/i.test(s.name));
+  const serviceEdges = { edges: allServices.map((s) => ({ node: s })) };
+
+  let apiService = pickService(serviceEdges, {
     id: env.RAILWAY_API_SERVICE_ID,
-    nameHint: env.RAILWAY_API_SERVICE_NAME || "api"
+    nameHint: env.RAILWAY_API_SERVICE_NAME || "zhimu",
+    excludeId: webByName?.id
   });
   if (!apiService) {
-    apiService = pickService(services, { nameHint: "production" })
-      ?? pickService(services, { nameHint: "backend" })
-      ?? (services.edges?.[0]?.node ?? null);
+    apiService = pickService(serviceEdges, { nameHint: "narrative", excludeId: webByName?.id })
+      ?? pickService(serviceEdges, { nameHint: "api", excludeId: webByName?.id })
+      ?? allServices.find((s) => s.id !== webByName?.id)
+      ?? null;
   }
   if (!apiService) {
     throw new Error("找不到 API 服务 — 在 .env.railway.setup 设置 RAILWAY_API_SERVICE_ID");
   }
 
-  let webService = pickService(services, {
-    id: env.RAILWAY_WEB_SERVICE_ID,
-    nameHint: env.RAILWAY_WEB_SERVICE_NAME || "web",
-    excludeId: apiService.id
-  });
+  let webService = webByName
+    ?? pickService(serviceEdges, {
+      id: env.RAILWAY_WEB_SERVICE_ID,
+      nameHint: env.RAILWAY_WEB_SERVICE_NAME || "web",
+      excludeId: apiService.id
+    });
 
   if (!webService) {
     console.log("[bootstrap] 创建 Web 服务…");
-    webService = await createService(token, projectId, env.RAILWAY_WEB_SERVICE_NAME || "web", production.id);
+    try {
+      webService = await createService(token, projectId, env.RAILWAY_WEB_SERVICE_NAME || "web", production.id);
+    } catch (err) {
+      if (!/already exists/i.test(err.message)) throw err;
+      console.log("[bootstrap] Web 服务已存在，重新加载…");
+      const refreshed = await listServices(token, projectId);
+      webService = pickService({ edges: refreshed.map((s) => ({ node: s })) }, {
+        id: env.RAILWAY_WEB_SERVICE_ID,
+        nameHint: env.RAILWAY_WEB_SERVICE_NAME || "web",
+        excludeId: apiService.id
+      });
+      if (!webService) throw new Error("Web 服务已存在但无法找到 — 请设置 RAILWAY_WEB_SERVICE_ID");
+    }
   }
 
   const publicUrl = (env.APP_PUBLIC_URL || "https://getzhimu.com").replace(/\/$/, "");
   const apiPublic = (env.API_PUBLIC_URL || "https://api.getzhimu.com").replace(/\/$/, "");
 
   console.log("[bootstrap] 配置 Web 服务构建 (web/Dockerfile)…");
-  await updateServiceInstance(token, {
-    serviceId: webService.id,
-    environmentId: production.id,
-    input: {
-      builder: "DOCKERFILE",
-      dockerfilePath: "web/Dockerfile",
-      startCommand: null,
-      healthcheckPath: "/",
-      healthcheckTimeout: 120,
-      restartPolicyType: "ON_FAILURE"
+  const buildInputs = [
+    { source: { dockerfilePath: "web/Dockerfile" } },
+    { dockerfilePath: "web/Dockerfile" }
+  ];
+  let buildConfigured = false;
+  for (const input of buildInputs) {
+    try {
+      await updateServiceInstance(token, {
+        serviceId: webService.id,
+        environmentId: production.id,
+        input
+      });
+      buildConfigured = true;
+      break;
+    } catch (err) {
+      console.warn(`[bootstrap] build config retry: ${err.message}`);
     }
-  });
+  }
+  if (!buildConfigured) {
+    console.warn("[bootstrap] 无法在 API 中设置 dockerfilePath — GitHub Actions `railway up` 仍会使用 web/Dockerfile");
+  }
 
   console.log("[bootstrap] 写入 Web 构建变量…");
   await upsertVariables(token, {

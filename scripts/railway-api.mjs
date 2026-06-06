@@ -21,6 +21,19 @@ export async function railwayGraphql(token, query, variables = {}) {
   return body.data;
 }
 
+export async function listServices(token, projectId) {
+  const data = await railwayGraphql(
+    token,
+    `query($id: String!) {
+      project(id: $id) {
+        services { edges { node { id name } } }
+      }
+    }`,
+    { id: projectId }
+  );
+  return (data.project?.services?.edges ?? []).map((e) => e.node);
+}
+
 export async function listProjects(token) {
   const data = await railwayGraphql(
     token,
