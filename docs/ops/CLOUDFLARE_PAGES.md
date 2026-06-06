@@ -9,9 +9,11 @@
 | 机制 | 作用 |
 |------|------|
 | `config/vite.config.mjs` | Vite 配置不在仓库根目录，避免 wrangler 误解析 `vite.config.js` |
-| `wrangler.toml` | `pages_build_output_dir = "./dist"`，Pages 识别静态输出目录 |
-| `postinstall` → `patch-wrangler-pages.mjs` | `wrangler deploy` 只检查 `dist/` 并 exit 0，**不调用** Cloudflare API |
+| `postinstall` + `prebuild` → `patch-wrangler-pages.mjs` | 每次构建都 patch `wrangler deploy` → 检查 `dist/` 后 exit 0 |
+| `wrangler` 在 `dependencies` | 确保 Cloudflare 安装时包含 wrangler（非 devDependencies） |
 | `dist/_redirects` | 构建时写入 SPA 回退 `/* /index.html 200` |
+
+**不要用 `wrangler.toml` 声明 Pages 项目名**——未 patch 时会触发 Pages API 认证错误。
 
 **你只需 push 到 `main`，在 Cloudflare 点 Retry deployment。**
 
@@ -64,7 +66,7 @@ CORS_ORIGIN=https://getzhimu.com
 | 日志 | 处理 |
 |------|------|
 | `Error parsing file ... vite.config.js` | 拉最新 `main`（配置已移到 `config/vite.config.mjs`） |
-| `wrangler deploy` + 认证错误 10000 | 拉最新 `main`（已改为 noop，不再调 `pages deploy` API） |
+| `wrangler deploy` + 认证错误 10000 | 拉最新 `main`；在 Pages 设置里 **Clear build cache** 后重试 |
 | 白屏 / 无法登录 | 检查 `VITE_API_BASE` |
 | CORS | Railway 设 `CORS_ORIGIN=https://getzhimu.com` |
 

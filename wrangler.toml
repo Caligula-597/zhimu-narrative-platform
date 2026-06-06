@@ -1,4 +1,0 @@
-# Cloudflare Pages — static SPA (dist/)
-name = "getzhimu"
-compatibility_date = "2026-06-01"
-pages_build_output_dir = "./dist"
