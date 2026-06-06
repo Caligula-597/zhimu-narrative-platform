@@ -64,15 +64,17 @@ function pickService(services, { id, nameHint, excludeId }) {
 
 async function main() {
   const env = loadSetup();
-  const token = env.RAILWAY_TOKEN?.trim();
+  const token = env.RAILWAY_ACCOUNT_TOKEN?.trim() || env.RAILWAY_TOKEN?.trim();
   if (!token) {
     console.error(`
-缺少 RAILWAY_TOKEN。
+缺少 RAILWAY_ACCOUNT_TOKEN 或 RAILWAY_TOKEN。
 
-1. 打开 https://railway.com/account/tokens → Create Token
+1. Account Token：https://railway.com/account/tokens → Create Token
 2. 复制 .env.railway.setup.example → .env.railway.setup
-3. 填入 RAILWAY_TOKEN=...
-4. 再运行: npm run railway:bootstrap
+3. 填入 RAILWAY_ACCOUNT_TOKEN=...（或 RAILWAY_TOKEN=...）
+4. npm run railway:bootstrap
+
+GitHub Actions 另需 Project Token，见 docs/ops/MANUAL_SETUP_CHECKLIST.md
 `);
     process.exit(1);
   }
@@ -208,7 +210,7 @@ async function main() {
 
 GitHub Secrets（Settings → Secrets → Actions）请确认已有：
 
-  RAILWAY_TOKEN              = （与 .env.railway.setup 相同，或 Project Token）
+  RAILWAY_TOKEN              = GitHub Secret：必须用 **Project Token**（见 MANUAL_SETUP_CHECKLIST.md）
   RAILWAY_SERVICE_ID         = ${apiService.id}   ← API
   RAILWAY_WEB_SERVICE_ID     = ${webService.id}   ← Web（新建/已存在）
   RAILWAY_PUBLIC_URL         = ${apiPublic}       ← 可选，健康检查用
