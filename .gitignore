@@ -5,7 +5,9 @@ dist/
 !.env.example
 !.env.staging.example
 !.env.production.example
+!.env.railway.setup.example
 .env.railway
+.env.railway.setup
 backend/.env
 backend/.env.*
 !backend/.env.example

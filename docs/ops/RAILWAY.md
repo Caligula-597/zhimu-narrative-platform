@@ -1,4 +1,6 @@
-# 织幕 API · Railway 一次性配置（不必反复试错）
+# 织幕 API · Railway 部署
+
+> **推荐先看 [DEPLOY.md](./DEPLOY.md)** — 含 `npm run railway:bootstrap` 一键配置，不必在控制台反复试错。
 
 Railway **默认用 Railpack 构建仓库根目录**（会跑前端 `npm start` / postinstall），这是之前一直 502 / 构建失败的根因。
 

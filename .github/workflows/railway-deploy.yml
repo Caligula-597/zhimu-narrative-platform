@@ -1,41 +1,32 @@
-name: Deploy API to Railway
+name: Deploy to Railway
 
 on:
   push:
     branches: [main]
-    paths:
-      - "backend/**"
-      - "backend/Dockerfile"
-      - "backend/railway.json"
-      - ".github/workflows/railway-deploy.yml"
   workflow_dispatch:
 
 concurrency:
-  group: railway-api-deploy
+  group: railway-deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  deploy-api:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-
       - name: Install Railway CLI
         run: npm install -g @railway/cli
-
-      - name: Deploy backend (--path-as-root, Dockerfile only)
+      - name: Deploy API (backend/)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
           RAILWAY_PUBLIC_URL: ${{ secrets.RAILWAY_PUBLIC_URL }}
         run: |
           if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
-            echo "::warning::Skip Railway deploy — add RAILWAY_TOKEN and RAILWAY_SERVICE_ID to GitHub Secrets."
-            echo "See docs/ops/RAILWAY.md"
+            echo "::warning::Skip API deploy — set RAILWAY_TOKEN + RAILWAY_SERVICE_ID"
             exit 0
           fi
           railway up backend --path-as-root --ci --service "$RAILWAY_SERVICE_ID"
@@ -45,8 +36,29 @@ jobs:
                 echo "API ready at $RAILWAY_PUBLIC_URL"
                 exit 0
               fi
-              echo "Waiting for health... ($i/30)"
+              echo "Waiting for API… ($i/30)"
               sleep 10
             done
-            echo "::warning::Health check timed out — check Railway deploy logs"
+            echo "::warning::API health check timed out"
           fi
+
+  deploy-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      - name: Deploy Web (web/Dockerfile)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_WEB_SERVICE_ID: ${{ secrets.RAILWAY_WEB_SERVICE_ID }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_WEB_SERVICE_ID" ]; then
+            echo "::warning::Skip Web deploy — set RAILWAY_TOKEN + RAILWAY_WEB_SERVICE_ID"
+            echo "Run once locally: npm run railway:bootstrap"
+            exit 0
+          fi
+          railway up --ci --service "$RAILWAY_WEB_SERVICE_ID"
