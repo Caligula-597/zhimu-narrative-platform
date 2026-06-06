@@ -3,11 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:pages": "vite build --mode production",
-    "build:staging": "vite build --mode staging",
-    "preview": "vite preview",
+    "dev": "vite --config config/vite.config.mjs",
+    "build": "vite build --config config/vite.config.mjs",
+    "build:pages": "vite build --mode production --config config/vite.config.mjs",
+    "build:staging": "vite build --mode staging --config config/vite.config.mjs",
+    "cf:pages-deploy": "node scripts/cf-pages-deploy.mjs",
+    "postinstall": "node scripts/patch-wrangler-pages.mjs",
+    "preview": "vite preview --config config/vite.config.mjs",
     "start": "node server.js",
     "start:dist": "node server.js --dist",
     "staging:up": "npm run build:staging && docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging up -d --build",
@@ -35,6 +37,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "wrangler": "^4.98.0"
   }
 }

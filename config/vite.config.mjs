@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = path.dirname(fileURLToPath(import.meta.url));
+const configDir = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(configDir, "..");
 const docsRoot = path.join(root, "docs");
 
 /** Dev + build: serve /docs/*.md from repo docs/ folder. */
@@ -37,7 +38,6 @@ function docsStaticPlugin() {
           }
         }
       }
-      // Cloudflare Pages SPA fallback (do not use wrangler deploy for static Pages)
       fs.writeFileSync(path.join(outDir, "_redirects"), "/* /index.html 200\n");
     }
   };
@@ -76,8 +76,6 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       emptyOutDir: true,
       sourcemap: true
-      // No manualChunks: views/runtime/livekit-voice attach to window.* at load time
-      // and must follow config.js → dom.js → state.js (splitting caused staging white screen).
     }
   };
 });

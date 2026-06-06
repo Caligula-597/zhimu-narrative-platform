@@ -1,50 +1,56 @@
 # 织幕 · Cloudflare Pages 前端部署
 
-> **静态站**：`npm run build` 产出 `dist/`，由 Pages 自动发布。  
-> **不要用** `npx wrangler deploy`（那是 Workers，会误解析 `vite.config.js` 并报错）。
+> **静态站**：`npm run build` → `dist/`。仓库已适配 Cloudflare 默认的 `npx wrangler deploy`，**一般无需改 Deploy command**。
 
 ---
 
-## Cloudflare Pages 设置（复制对照）
+## 仓库里已做的适配（push 后自动生效）
 
-| 项 | 填什么 |
-|----|--------|
+| 机制 | 作用 |
+|------|------|
+| `config/vite.config.mjs` | Vite 配置不在仓库根目录，避免 wrangler 误解析 `vite.config.js` |
+| `wrangler.toml` | `pages_build_output_dir = "./dist"`，Pages 识别静态输出目录 |
+| `postinstall` → `patch-wrangler-pages.mjs` | 将 `wrangler deploy` 重定向为 `wrangler pages deploy` |
+| `dist/_redirects` | 构建时写入 SPA 回退 `/* /index.html 200` |
+
+**你只需 push 到 `main`，在 Cloudflare 点 Retry deployment。**
+
+---
+
+## Cloudflare Pages 推荐设置
+
+| 项 | 值 |
+|----|-----|
 | **Production branch** | `main` |
-| **Root directory** | `/`（仓库根，留空即可） |
 | **Build command** | `npm run build` |
 | **Build output directory** | `dist` |
-| **Deploy command** | **留空 / 删除**（不要 `npx wrangler deploy`） |
+| **Deploy command** | 可留 `npx wrangler deploy`（仓库已 patch）或留空 |
 
 ---
 
-## 环境变量（Build 时填写，Settings → Environment variables）
+## 环境变量（Settings → Environment variables → Production）
 
-| 变量 | Production 值 |
-|------|----------------|
+| 变量 | 值 |
+|------|-----|
 | `VITE_API_BASE` | `https://api.getzhimu.com/api` |
 | `VITE_REQUIRE_AUTH` | `true` |
 | `VITE_DEMO_MODE` | `false` |
-
-未设 `VITE_API_BASE` 时，生产构建会默认走同域 `/api`（仅适用于 API 与前端同域；你当前是 **Pages + Railway 分域**，必须设上表 API 地址）。
 
 ---
 
 ## 自定义域名
 
-1. Pages 项目 → **Custom domains** → 添加 `getzhimu.com`（及可选 `www`）
-2. Cloudflare DNS 会自动添加 CNAME（橙云可开）
+Pages → **Custom domains** → `getzhimu.com`
 
 ---
 
 ## API 子域（Railway）
 
-| 类型 | 名称 | 目标 |
-|------|------|------|
+| DNS | 名称 | 目标 |
+|-----|------|------|
 | CNAME | `api` | `zhimu-narrative-platform-production.up.railway.app` |
 
-Railway → API 服务 → Networking → 添加 `api.getzhimu.com`。
-
-Railway Variables 同步：
+Railway Variables：
 
 ```env
 APP_PUBLIC_URL=https://getzhimu.com
@@ -53,29 +59,18 @@ CORS_ORIGIN=https://getzhimu.com
 
 ---
 
-## 本地验证生产构建
-
-```powershell
-$env:VITE_API_BASE="https://api.getzhimu.com/api"
-$env:VITE_REQUIRE_AUTH="true"
-$env:VITE_DEMO_MODE="false"
-npm run build
-npx vite preview
-```
-
----
-
 ## 常见错误
 
-| 日志 | 原因 | 处理 |
-|------|------|------|
-| `wrangler deploy` + 解析 `vite.config.js` 失败 | Deploy command 配错 | **删掉 Deploy command** |
-| 页面白屏 / 无法登录 | 未设 `VITE_API_BASE` | 设 API 子域并重新 Build |
-| CORS 报错 | Railway 未设 `CORS_ORIGIN` | 设为 `https://getzhimu.com` |
+| 日志 | 处理 |
+|------|------|
+| `Error parsing file ... vite.config.js` | 拉最新 `main`（配置已移到 `config/vite.config.mjs`） |
+| `wrangler deploy` + Missing entry-point | 同上；需 `npm install` 触发 postinstall patch |
+| 白屏 / 无法登录 | 检查 `VITE_API_BASE` |
+| CORS | Railway 设 `CORS_ORIGIN=https://getzhimu.com` |
 
 ---
 
 ## 相关
 
-- [RAILWAY.md](./RAILWAY.md) — 后端 API
+- [RAILWAY.md](./RAILWAY.md)
 - [COMMERCIAL_EXTERNAL_SERVICES.md](./COMMERCIAL_EXTERNAL_SERVICES.md)
