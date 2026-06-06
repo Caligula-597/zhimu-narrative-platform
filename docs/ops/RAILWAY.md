@@ -117,6 +117,7 @@ Backend ready at ...
 |------|------|
 | `backend/Dockerfile` | API 镜像 |
 | `backend/railway.json` | 强制 DOCKERFILE + 清空 startCommand |
+| `railway.toml` + `nixpacks.toml` | 根目录误部署时的兜底/失败提示 |
 | `.github/workflows/railway-deploy.yml` | push main 自动部署 |
 | `scripts/sync-railway-env.mjs` | 生成 `.env.railway` |
 | `scripts/railway-deploy.mjs` | 本机 CLI 部署 |

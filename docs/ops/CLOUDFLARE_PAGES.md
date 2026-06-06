@@ -8,9 +8,11 @@
 
 | 机制 | 作用 |
 |------|------|
-| `config/vite.config.mjs` | Vite 配置不在仓库根目录，避免 wrangler 误解析 `vite.config.js` |
-| `postinstall` + `prebuild` → `patch-wrangler-pages.mjs` | 每次构建都 patch `wrangler deploy` → 检查 `dist/` 后 exit 0 |
-| `wrangler` 在 `dependencies` | 确保 Cloudflare 安装时包含 wrangler（非 devDependencies） |
+| `config/vite.config.mjs` | Vite 配置不在仓库根目录，避免 wrangler 误解析 |
+| `scripts/patch-wrangler-pages.mjs` | 安装/构建前 patch `wrangler deploy` |
+| `scripts/wrangler-pages-deploy-shim.mjs` | deploy 只检查 `dist/` 后 exit 0，不调 Cloudflare API |
+| `postinstall` + `prebuild` | 每次安装/构建都重新 patch（避免 CF 缓存旧 wrangler） |
+| `wrangler` 在 `dependencies` | 确保 Pages 构建环境安装 wrangler |
 | `dist/_redirects` | 构建时写入 SPA 回退 `/* /index.html 200` |
 
 **不要用 `wrangler.toml` 声明 Pages 项目名**——未 patch 时会触发 Pages API 认证错误。

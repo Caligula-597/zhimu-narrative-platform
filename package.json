@@ -5,10 +5,8 @@
   "scripts": {
     "dev": "vite --config config/vite.config.mjs",
     "prebuild": "node scripts/patch-wrangler-pages.mjs",
-    "build": "node scripts/patch-wrangler-pages.mjs && vite build --config config/vite.config.mjs",
-    "build:pages": "vite build --mode production --config config/vite.config.mjs",
+    "build": "vite build --config config/vite.config.mjs",
     "build:staging": "vite build --mode staging --config config/vite.config.mjs",
-    "cf:pages-deploy": "node scripts/cf-pages-deploy.mjs",
     "postinstall": "node scripts/patch-wrangler-pages.mjs",
     "preview": "vite preview --config config/vite.config.mjs",
     "start": "node server.js",
