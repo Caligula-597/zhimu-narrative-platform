@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const useDist = process.argv.includes("--dist");
 const root = useDist ? path.join(__dirname, "dist") : __dirname;
-const port = Number(process.env.FRONTEND_PORT ?? 4173);
+const port = Number(process.env.PORT ?? process.env.FRONTEND_PORT ?? 4173);
 
 const mime = {
   ".html": "text/html; charset=utf-8",
@@ -25,6 +25,18 @@ function safePath(urlPath) {
   return file;
 }
 
+function sendFile(res, filePath) {
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": mime[path.extname(filePath)] || "application/octet-stream" });
+    res.end(data);
+  });
+}
+
 http
   .createServer((req, res) => {
     const target = req.url === "/" ? "/index.html" : req.url ?? "/";
@@ -34,14 +46,16 @@ http
       res.end("Forbidden");
       return;
     }
-    fs.readFile(file, (err, data) => {
-      if (err) {
-        res.writeHead(404);
-        res.end("Not found");
+    fs.stat(file, (err, st) => {
+      if (!err && st.isFile()) {
+        sendFile(res, file);
         return;
       }
-      res.writeHead(200, { "Content-Type": mime[path.extname(file)] || "application/octet-stream" });
-      res.end(data);
+      if (useDist && req.method === "GET" && !path.extname(file)) {
+        sendFile(res, path.join(root, "index.html"));
+        return;
+      }
+      sendFile(res, file);
     });
   })
   .listen(port, () => {

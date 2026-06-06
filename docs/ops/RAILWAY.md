@@ -107,7 +107,7 @@ Backend ready at ...
 不要。`DATABASE_URL` 指向 Supabase 即可；容器启动时自动 `migrate`。
 
 **Q: 前端 getzhimu.com 呢？**  
-另用 **Cloudflare Pages** 部署 `dist/`，`VITE_API_BASE=https://api.getzhimu.com/api`（或 Railway 域名）。
+用 **Railway Web 服务**（`web/Dockerfile`），见 [RAILWAY_WEB.md](./RAILWAY_WEB.md)。Cloudflare 只负责 DNS（和 R2），**不用 Pages**。
 
 ---
 
@@ -120,4 +120,5 @@ Backend ready at ...
 | `railway.toml` + `nixpacks.toml` | 根目录误部署时的兜底/失败提示 |
 | `.github/workflows/railway-deploy.yml` | push main 自动部署 |
 | `scripts/sync-railway-env.mjs` | 生成 `.env.railway` |
-| `scripts/railway-deploy.mjs` | 本机 CLI 部署 |
+| `scripts/railway-deploy.mjs` | 本机 CLI 部署 API |
+| `docs/ops/RAILWAY_WEB.md` | 前端 Web 服务（getzhimu.com） |

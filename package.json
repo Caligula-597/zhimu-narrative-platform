@@ -4,10 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config config/vite.config.mjs",
-    "prebuild": "node scripts/patch-wrangler-pages.mjs",
     "build": "vite build --config config/vite.config.mjs",
     "build:staging": "vite build --mode staging --config config/vite.config.mjs",
-    "postinstall": "node scripts/patch-wrangler-pages.mjs",
     "preview": "vite preview --config config/vite.config.mjs",
     "start": "node server.js",
     "start:dist": "node server.js --dist",
@@ -20,6 +18,7 @@
     "staging:sync-env": "node scripts/sync-staging-env.mjs",
     "railway:sync-env": "node scripts/sync-railway-env.mjs",
     "railway:deploy": "node scripts/railway-deploy.mjs",
+    "railway:deploy:web": "node scripts/railway-deploy-web.mjs",
     "staging:seed": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/seed.js",
     "staging:catalog": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/ensure-platform-catalog.js",
     "staging:cleanup-rooms": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/cleanup-duplicate-rooms.js",
@@ -33,9 +32,6 @@
     "explore:ai": "node e2e/ai-explore.mjs",
     "explore:ai:llm": "node e2e/ai-explore.mjs --llm --headed",
     "ensure:esm": "node scripts/ensure-esm-exports.mjs"
-  },
-  "dependencies": {
-    "wrangler": "^4.98.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",

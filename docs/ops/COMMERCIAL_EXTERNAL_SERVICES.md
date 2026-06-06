@@ -11,7 +11,7 @@
 | 优先级 | 服务 | 路线 A（推荐） | 路线 B（备选） | 必填 env |
 |--------|------|----------------|----------------|----------|
 | P0 | 数据库 | Supabase / Neon / RDS | Docker 自建 Postgres | `DATABASE_URL` |
-| P0 | 公网访问 | Cloudflare + VPS/nginx | 单机 Docker staging | `APP_PUBLIC_URL` |
+| P0 | 公网访问 | **Railway Web + API**（见 RAILWAY_WEB / RAILWAY） | Docker staging | `APP_PUBLIC_URL` / `VITE_*` |
 | P0 | 事务邮件 | **Resend**（已对接） | SendGrid / Mailgun | `EMAIL_PROVIDER` + 密钥 + `MAIL_FROM` |
 | P1 | 对象存储 | **Cloudflare R2**（已对接） | AWS S3 / MinIO | `R2_*` 或 `AWS_*` |
 | P1 | AI 创作 | **DeepSeek**（已对接） | OpenAI 兼容网关 | `DEEPSEEK_*` |
