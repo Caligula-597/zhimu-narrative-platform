@@ -76,6 +76,8 @@ watchPatterns = ["backend/**", "deploy/**", "src/**", ...]
 
 **若构建失败 `"/backend": not found`**：根目录 `.dockerignore` 曾写 `backend` 把整个后端排除在构建上下文外（已改为只忽略 `backend/node_modules` 等）。修复后需 **`git push origin main`**，再 Redeploy。
 
+**若构建失败 `"/dom.js": not found`**：`dom.js` 在 `src/dom.js`，Dockerfile 勿从根目录 COPY（已由 `COPY src ./src` 包含）。
+
 ### 第 2 步：确认变量（通常已完成）
 
 Railway → **Variables** → 确认存在：

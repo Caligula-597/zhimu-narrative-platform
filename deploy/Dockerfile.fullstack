@@ -6,7 +6,7 @@ COPY config ./config
 COPY src ./src
 COPY docs ./docs
 COPY frontend ./frontend
-COPY index.html app.js config.js dom.js state.js styles.css rule-visual.js ./
+COPY index.html app.js config.js state.js styles.css rule-visual.js ./
 RUN npm ci
 ENV VITE_API_BASE=/api
 ENV VITE_REQUIRE_AUTH=true
