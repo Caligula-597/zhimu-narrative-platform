@@ -11,13 +11,13 @@
 | 优先级 | 服务 | 路线 A（推荐） | 路线 B（备选） | 必填 env |
 |--------|------|----------------|----------------|----------|
 | P0 | 数据库 | Supabase / Neon / RDS | Docker 自建 Postgres | `DATABASE_URL` |
-| P0 | 公网访问 | **Railway Web + API**（见 RAILWAY_WEB / RAILWAY） | Docker staging | `APP_PUBLIC_URL` / `VITE_*` |
+| P0 | 公网访问 | **Railway 单服务 fullstack**（见 [DEPLOY.md](./ops/DEPLOY.md)） | Docker staging | `APP_PUBLIC_URL` · 同域 `/api` |
 | P0 | 事务邮件 | **Resend**（已对接） | SendGrid / Mailgun | `EMAIL_PROVIDER` + 密钥 + `MAIL_FROM` |
 | P1 | 对象存储 | **Cloudflare R2**（已对接） | AWS S3 / MinIO | `R2_*` 或 `AWS_*` |
 | P1 | AI 创作 | **DeepSeek**（已对接） | OpenAI 兼容网关 | `DEEPSEEK_*` |
 | P2 | 语音房 | **LiveKit Cloud**（已对接） | 自建 LiveKit | `LIVEKIT_*` |
 | P2 | 监控告警 | Sentry | Grafana Cloud + OTEL | `SENTRY_DSN` / `OTEL_*` |
-| P3 | OAuth 登录 | Google | GitHub | `GOOGLE_*` / `GITHUB_*`（预留） |
+| P3 | OAuth 登录 | Google / GitHub | `GOOGLE_*` / `GITHUB_*` | ✅ 路由+UI；生产需配凭证 |
 | P3 | 订阅支付 | Stripe | 支付宝当面付 | `STRIPE_*` / `ALIPAY_*`（预留） |
 
 ---
@@ -228,7 +228,7 @@ cd backend && npm test   # 后端单测
 | A · Google | [Google Cloud Console](https://console.cloud.google.com) → OAuth 2.0 | `https://app.你的域名/api/auth/oauth/google/callback` | `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET` |
 | B · GitHub | GitHub → Settings → Developer settings → OAuth Apps | 同上路径 `/github/callback` | `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET` |
 
-**状态**：路由与前端按钮 **尚未实现**；你完成注册后把 Client ID/Secret 填入 env，下一阶段开发可直接对接。
+**状态**：✅ 后端路由 + 登录/账号 UI 已实现。生产部署时在 OAuth 控制台登记 `oauthDiagnostics` 中的回调 URL，并填写 env。启动时 `oauth-diagnostics.js` 会 WARN/FATAL 缺失项。
 
 ---
 
@@ -258,19 +258,20 @@ flowchart LR
 
 1. **本周可完成**：Resend 生产发信 + `REQUIRE_EMAIL_VERIFICATION=true` + staging 全绿。
 2. **下一迭代**：Sentry、数据库自动备份（Supabase/Neon 自带；自建需 `pg_dump` cron）。
-3. **再后**：OAuth、协作者邮件邀请、订阅。
+3. **再后**：Stripe 订阅、Sentry 全量接入。
 
 ---
 
 ## 10. 你需要发给我的信息（填完 env 后）
 
-为继续对接 **OAuth / Stripe / Sentry**，请在本机填好 `backend/.env.production.example` 对应项后告知：
+为继续对接 **Stripe / Sentry**，请在本机填好 `backend/.env.production.example` 对应项后告知：
 
 - [ ] `APP_PUBLIC_URL` 最终域名（不含密钥）
 - [ ] 邮件：`EMAIL_PROVIDER` 选型 + 域名是否已通过 SPF/DKIM
 - [ ] 数据库：托管 or Docker（不含连接串密码）
 - [ ] 是否启用 `REQUIRE_EMAIL_VERIFICATION=true`
-- [ ] OAuth 选型（Google / GitHub）及回调域名是否可配置
+- [x] OAuth 选型（Google / GitHub）— 路由已实现；生产需配 Client ID/Secret 与回调 URL
+- [ ] 内测名单：`INTERNAL_BETA_EMAILS` / `INTERNAL_BETA_EMAIL_DOMAINS`
 - [ ] 支付选型（Stripe / 支付宝 / 暂不上线）
 
 **请勿在聊天中粘贴完整 API Key**；只需说明「已填入 backend/.env」即可。

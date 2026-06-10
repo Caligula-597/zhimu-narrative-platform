@@ -78,7 +78,7 @@ test("雾港 Demo 全链路（E2E 副本房）", async ({ browser }) => {
   await playerPage.waitForFunction(() => {
     const sections = window.zhimuState?.cloudPlayer?.sections || [];
     return sections.filter((section) => section.completed).length >= 2;
-  }, { timeout: 25_000 });
+  }, undefined, { timeout: 25_000 });
 
   // ── Act 3: Host monitor + SSE ───────────────────────────────────────────
   await goToView(hostPage, "director");
@@ -91,6 +91,7 @@ test("雾港 Demo 全链路（E2E 副本房）", async ({ browser }) => {
 
   await hostPage.waitForFunction(
     () => (window.zhimuState?.cloudHostPlayers || []).some((player) => /顾言/.test(player.role_name || "")),
+    undefined,
     { timeout: 30_000 }
   );
 
@@ -123,7 +124,7 @@ test("雾港 Demo 全链路（E2E 副本房）", async ({ browser }) => {
   expect((await investigateDone).ok()).toBeTruthy();
   await dismissModalIfOpen(playerPage);
 
-  await playerPage.waitForFunction(() => (window.zhimuState?.cloudPlayer?.clues || []).length > 0, {
+  await playerPage.waitForFunction(() => (window.zhimuState?.cloudPlayer?.clues || []).length > 0, undefined, {
     timeout: 20_000
   });
 
@@ -133,6 +134,7 @@ test("雾港 Demo 全链路（E2E 副本房）", async ({ browser }) => {
   await executeBtn.click();
   await playerPage.waitForFunction(
     () => (window.zhimuState?.cloudExploration?.scenes || []).some((scene) => scene.name?.includes("档案密室")),
+    undefined,
     { timeout: 25_000 }
   );
 

@@ -28,6 +28,14 @@
 | `DISPLAY_NAME_INVALID` | 400 | 显示名长度 2–40 |
 | `EMAIL_ALREADY_REGISTERED` | 409 | 邮箱已注册 |
 | `USER_NOT_FOUND` | 404 | 用户不存在 |
+| `GUEST_ACCOUNT_RESTRICTED` | 403 | 游客账号不可执行此操作 |
+| `EMAIL_NOT_VERIFIED` | 403 | 邮箱未验证 |
+| `WORLD_INVITE_INVALID` | 400 | 协作邀请无效或已过期 |
+| `WORLD_INVITE_EMAIL_MISMATCH` | 403 | 邀请邮箱与当前账号不一致 |
+| `WORLD_INVITE_NOT_FOUND` | 404 | 待接受邀请不存在 |
+| `WORLD_INVITE_SELF` | 400 | 不能邀请自己的邮箱 |
+| `OAUTH_PROVIDER_DISABLED` | 503 | OAuth 提供商未配置 |
+| `OAUTH_LOGIN_CODE_INVALID` | 400 | OAuth 一次性登录码无效 |
 
 ## 权限
 
@@ -44,8 +52,9 @@
 | code | HTTP | 说明 |
 |------|------|------|
 | `WORLD_NOT_FOUND` | 404 | 世界不存在 |
-| `WORLD_QUOTA_EXCEEDED` | 403 | 世界数量配额已满 |
-| `COLLABORATOR_NOT_REGISTERED` | 404 | 协作者邮箱未注册 |
+| `WORLD_QUOTA_EXCEEDED` | 403 | 世界数量配额已满（`details` 含 plan/usage） |
+| `COLLABORATOR_ALREADY_MEMBER` | 409 | 该邮箱已是协作者 |
+| `COLLABORATOR_NOT_REGISTERED` | 404 | 历史：邮箱未注册（现多为 `201 pendingInvite` + 邮件） |
 | `COLLABORATION_MEMBER_NOT_FOUND` | 404 | 成员不存在或无法变更 owner |
 | `COLLABORATION_ROLE_INVALID` | 400 | 协作角色无效 |
 
@@ -111,7 +120,7 @@
 
 | code | HTTP | 说明 |
 |------|------|------|
-| `STORAGE_QUOTA_EXCEEDED` / `FILE_TOO_LARGE` | 413 | 配额或单文件超限 |
+| `STORAGE_QUOTA_EXCEEDED` / `FILE_TOO_LARGE` | 413 | 配额或单文件超限（`details` 含缺口） |
 | `ASSET_KIND_INVALID` / `ASSET_VISIBILITY_INVALID` | 400 | 资产筛选参数无效 |
 | `ASSET_NOT_FOUND` | 404 | 资产不存在 |
 | `UPLOAD_*` | 404/409 | 上传会话或校验失败 |

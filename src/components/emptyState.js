@@ -33,7 +33,11 @@
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
   window.zhimuViews = window.zhimuViews || {};
-  function activeRuntimeRoom(){return (state.cloudStudio?.rooms||[]).find(room=>room.id===zhimuApi.context.roomId)||null}
+  function activeRuntimeRoom(){
+   return (state.cloudStudio?.rooms||[]).find(room=>room.id===zhimuApi.context.roomId)
+    || (state.cloudPlayer?.room?.id===zhimuApi.context.roomId?state.cloudPlayer.room:null)
+    || null;
+  }
 
 function canEditWorldContent(world){
  const role=world?.membership_role;

@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const backendDir = path.join(root, "backend");
 
-const args = ["up", "backend", "--path-as-root", "--ci"];
+const args = ["up", "--ci"];
 if (process.env.RAILWAY_SERVICE_ID) {
   args.push("--service", process.env.RAILWAY_SERVICE_ID);
 }

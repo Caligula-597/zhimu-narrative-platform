@@ -1,9 +1,9 @@
-# If Railway builds from repo root by mistake, use backend/Dockerfile.
-# Preferred deploy: railway up backend --path-as-root (see docs/ops/RAILWAY.md)
+# Single Railway service: API + frontend (deploy/Dockerfile.fullstack)
+# CI: railway up --ci --service $RAILWAY_SERVICE_ID  (repo root)
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "backend/Dockerfile"
-watchPatterns = ["backend/**"]
+dockerfilePath = "deploy/Dockerfile.fullstack"
+watchPatterns = ["backend/**", "deploy/**", "config/**", "src/**", "frontend/**", "index.html", "package.json"]
 
 [deploy]
 startCommand = ""

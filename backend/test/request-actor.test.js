@@ -10,10 +10,11 @@ test("session identity wins over a spoofed demo header", async () => {
   const value = request({ authorization: "Bearer valid-session", "x-user-id": "spoofed-user" });
   const actorId = await resolveRequestActor(value, {
     allowDemoUserHeader: true,
-    resolveSession: async () => "session-user"
+    resolveSession: async () => ({ userId: "session-user", sessionId: "sess-1" })
   });
   assert.equal(actorId, "session-user");
   assert.equal(value.actorId, "session-user");
+  assert.equal(value.sessionId, "sess-1");
   assert.equal(value.authSource, "session");
 });
 

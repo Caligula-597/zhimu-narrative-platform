@@ -5,12 +5,28 @@ import {
   createEmailVerificationToken,
   consumePasswordResetToken,
   consumeEmailVerificationToken,
+  createGuestUser,
   deleteSession,
   hashPassword,
+  listUserSessions,
   revokeAllSessions,
+  revokeSessionById,
+  sessionRequestMeta,
   updateUserPassword,
+  upgradeGuestToRegistered,
   verifyPassword
 } from "../auth.js";
+import { assertCapability } from "../capabilities.js";
+import { acceptWorldMemberInvitesForEmail } from "../world-invites.js";
+import { listEnabledOAuthProviders, oauthFrontendReturnUrl } from "../oauth-providers.js";
+import { getPublicOAuthDiagnostics } from "../oauth-diagnostics.js";
+import {
+  buildOAuthAuthorizeUrl,
+  completeOAuthLoginCode,
+  createOAuthState,
+  handleOAuthCallback
+} from "../oauth-service.js";
+import { fetchUserKind } from "../capabilities.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { bearerToken, requireActor } from "../request-actor.js";
 import {
@@ -24,6 +40,8 @@ import {
   isUserEmailVerified,
   markUserEmailVerified
 } from "../email-verification-policy.js";
+import { applyInternalBetaPrivileges } from "../internal-accounts.js";
+import { ensureUserPlan, initialPlanForEmail, fetchUserPlanCode, planMeta } from "../plans.js";
 
 const forgotPasswordSchema = {
   type: "object",
@@ -74,10 +92,13 @@ const authBodySchema = {
 };
 
 function userAuthPayload(row) {
+  const kind = row.user_kind ?? "registered";
   return {
     id: row.id,
     email: row.email,
     display_name: row.display_name,
+    userKind: kind,
+    isGuest: kind === "guest",
     emailVerified: Boolean(row.email_verified_at)
   };
 }
@@ -98,7 +119,9 @@ async function sendVerificationForUser(userId, email) {
 export async function registerAuthRoutes(app) {
   app.get("/api/auth/config", async () => ({
     requireEmailVerification: isEmailVerificationRequired(),
-    email: getEmailServiceStatus()
+    email: getEmailServiceStatus(),
+    oauth: listEnabledOAuthProviders(),
+    oauthDiagnostics: getPublicOAuthDiagnostics()
   }));
 
   app.post("/api/auth/register", {
@@ -142,7 +165,10 @@ export async function registerAuthRoutes(app) {
     });
 
     const user = created.rows[0];
+    await ensureUserPlan(user.id, initialPlanForEmail(email));
+    await applyInternalBetaPrivileges(user.id, email);
     await ensureStorageQuota(user.id);
+    const acceptedInvites = await acceptWorldMemberInvitesForEmail(user.id, email);
 
     if (verificationRequired) {
       try {
@@ -154,29 +180,84 @@ export async function registerAuthRoutes(app) {
       return reply.code(201).send({
         user: userAuthPayload(user),
         pendingEmailVerification: true,
+        acceptedInvites,
         message: "Registration successful. Please verify your email before creating worlds."
       });
     }
 
-    const session = await createSession(user.id);
+    const session = await createSession(user.id, sessionRequestMeta(request));
+    return reply.code(201).send({ user: userAuthPayload(user), acceptedInvites, ...session });
+  });
+
+  app.post("/api/auth/guest", {
+    schema: {
+      body: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          displayName: { type: "string", minLength: 2, maxLength: 40 },
+          deviceLabel: { type: "string", minLength: 1, maxLength: 80 }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    const displayName = request.body?.displayName?.trim();
+    const user = await createGuestUser(displayName || null);
+    const session = await createSession(user.id, sessionRequestMeta(request));
     return reply.code(201).send({ user: userAuthPayload(user), ...session });
+  });
+
+  app.post("/api/auth/upgrade", {
+    schema: {
+      body: {
+        type: "object",
+        additionalProperties: false,
+        required: ["email", "displayName", "password"],
+        properties: {
+          email: { type: "string", minLength: 3, maxLength: 320 },
+          displayName: { type: "string", minLength: 2, maxLength: 40 },
+          password: { type: "string", minLength: 8, maxLength: 128 }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const email = request.body.email.trim().toLowerCase();
+    const displayName = request.body.displayName.trim();
+    const password = request.body.password;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return sendErr(reply, "EMAIL_INVALID");
+    if (displayName.length < 2) return sendErr(reply, "DISPLAY_NAME_INVALID");
+
+    const user = await upgradeGuestToRegistered(actorId, { email, displayName, password });
+    await ensureUserPlan(user.id, initialPlanForEmail(email));
+    await applyInternalBetaPrivileges(user.id, email);
+    const acceptedInvites = await acceptWorldMemberInvitesForEmail(user.id, email);
+    await revokeAllSessions(actorId);
+    const session = await createSession(user.id, sessionRequestMeta(request));
+    return reply.code(200).send({
+      user: userAuthPayload(user),
+      acceptedInvites,
+      ...session
+    });
   });
 
   app.post("/api/auth/login", { schema: { body: authBodySchema } }, async (request, reply) => {
     const email = request.body.email.trim().toLowerCase();
     const password = request.body.password;
     const result = await query(
-      `SELECT id, email, display_name, password_hash, password_salt, email_verified_at
-       FROM users WHERE email = $1`,
+      `SELECT id, email, display_name, password_hash, password_salt, email_verified_at, user_kind
+       FROM users WHERE email = $1 AND user_kind = 'registered'`,
       [email]
     );
     if (!result.rowCount || !(await verifyPassword(password, result.rows[0].password_hash, result.rows[0].password_salt))) {
       return sendErr(reply, "INVALID_CREDENTIALS");
     }
-    const session = await createSession(result.rows[0].id);
+    const row = result.rows[0];
+    await applyInternalBetaPrivileges(row.id, email);
+    const session = await createSession(row.id, sessionRequestMeta(request));
     return {
-      user: userAuthPayload(result.rows[0]),
-      pendingEmailVerification: isEmailVerificationRequired() && !result.rows[0].email_verified_at,
+      user: userAuthPayload(row),
+      pendingEmailVerification: isEmailVerificationRequired() && !row.email_verified_at,
       ...session
     };
   });
@@ -184,15 +265,57 @@ export async function registerAuthRoutes(app) {
   app.get("/api/auth/me", async (request) => {
     const actorId = requireActor(request);
     const result = await query(
-      `SELECT id, email, display_name, avatar_url, created_at, email_verified_at FROM users WHERE id = $1`,
+      `SELECT id, email, display_name, avatar_url, created_at, email_verified_at, user_kind
+       FROM users WHERE id = $1`,
       [actorId]
     );
     if (!result.rowCount) throwErr("USER_NOT_FOUND");
     const row = result.rows[0];
+    const planCode = await fetchUserPlanCode(actorId);
+    const meta = planMeta(planCode);
     return {
       ...row,
-      emailVerified: Boolean(row.email_verified_at)
+      userKind: row.user_kind,
+      isGuest: row.user_kind === "guest",
+      emailVerified: Boolean(row.email_verified_at),
+      planCode,
+      planLabel: meta.label,
+      planTier: meta.tier,
+      isInternalBeta: planCode === "beta"
     };
+  });
+
+  app.get("/api/auth/sessions", async (request) => {
+    const actorId = requireActor(request);
+    await assertCapability(actorId, "account.authenticated");
+    const sessions = await listUserSessions(actorId, request.sessionId ?? null);
+    return { sessions };
+  });
+
+  app.delete("/api/auth/sessions/:sessionId", {
+    schema: {
+      params: {
+        type: "object",
+        required: ["sessionId"],
+        properties: { sessionId: { type: "string", format: "uuid" } }
+      }
+    }
+  }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { sessionId } = request.params;
+    const ok = await revokeSessionById(actorId, sessionId);
+    if (!ok) return sendErr(reply, "SESSION_NOT_FOUND");
+    if (sessionId === request.sessionId) {
+      await deleteSession(bearerToken(request));
+    }
+    return reply.code(200).send({ ok: true });
+  });
+
+  app.post("/api/auth/logout-all", async (request) => {
+    const actorId = requireActor(request);
+    const current = request.sessionId ?? null;
+    await revokeAllSessions(actorId, current);
+    return { ok: true, currentSessionKept: Boolean(current) };
   });
 
   app.post("/api/auth/logout", async (request) => {
@@ -235,7 +358,7 @@ export async function registerAuthRoutes(app) {
     if (!userId) return sendErr(reply, "EMAIL_VERIFICATION_INVALID");
 
     await markUserEmailVerified(userId);
-    const session = await createSession(userId);
+    const session = await createSession(userId, sessionRequestMeta(request));
     const user = await query(
       `SELECT id, email, display_name, email_verified_at FROM users WHERE id = $1`,
       [userId]
@@ -268,5 +391,97 @@ export async function registerAuthRoutes(app) {
       return sendErr(reply, error.code === "UPSTREAM_ERROR" ? "UPSTREAM_ERROR" : "UNAVAILABLE");
     }
     return reply.code(200).send(VERIFICATION_RESEND_ACK);
+  });
+
+  app.get("/api/auth/oauth/:provider/start", {
+    schema: {
+      params: {
+        type: "object",
+        required: ["provider"],
+        properties: { provider: { type: "string", enum: ["google", "github"] } }
+      }
+    }
+  }, async (request, reply) => {
+    const { provider } = request.params;
+    let guestUserId = null;
+    if (request.actorId) {
+      try {
+        if ((await fetchUserKind(request.actorId)) === "guest") guestUserId = request.actorId;
+      } catch {
+        /* ignore */
+      }
+    }
+    const state = await createOAuthState(provider, guestUserId);
+    return reply.redirect(buildOAuthAuthorizeUrl(provider, state));
+  });
+
+  app.post("/api/auth/oauth/:provider/start-url", {
+    schema: {
+      params: {
+        type: "object",
+        required: ["provider"],
+        properties: { provider: { type: "string", enum: ["google", "github"] } }
+      }
+    }
+  }, async (request) => {
+    const { provider } = request.params;
+    let guestUserId = null;
+    if (request.actorId) {
+      try {
+        if ((await fetchUserKind(request.actorId)) === "guest") guestUserId = request.actorId;
+      } catch {
+        /* ignore */
+      }
+    }
+    const state = await createOAuthState(provider, guestUserId);
+    return { url: buildOAuthAuthorizeUrl(provider, state) };
+  });
+
+  app.get("/api/auth/oauth/:provider/callback", {
+    schema: {
+      params: {
+        type: "object",
+        required: ["provider"],
+        properties: { provider: { type: "string", enum: ["google", "github"] } }
+      }
+    }
+  }, async (request, reply) => {
+    const { provider } = request.params;
+    const code = String(request.query?.code ?? "");
+    const state = String(request.query?.state ?? "");
+    const oauthError = String(request.query?.error ?? "");
+    const frontend = new URL(oauthFrontendReturnUrl());
+    if (oauthError) {
+      frontend.searchParams.set("oauth_error", oauthError);
+      return reply.redirect(frontend.toString());
+    }
+    if (!code || !state) return sendErr(reply, "BAD_REQUEST");
+    try {
+      const redirect = await handleOAuthCallback(provider, { code, state });
+      return reply.redirect(redirect);
+    } catch (error) {
+      request.log.warn({ err: error, provider }, "oauth callback failed");
+      frontend.searchParams.set("oauth_error", error.code || "OAUTH_EXCHANGE_FAILED");
+      return reply.redirect(frontend.toString());
+    }
+  });
+
+  app.post("/api/auth/oauth/complete", {
+    schema: {
+      body: {
+        type: "object",
+        additionalProperties: false,
+        required: ["code"],
+        properties: { code: { type: "string", minLength: 16, maxLength: 128 } }
+      }
+    }
+  }, async (request, reply) => {
+    const result = await completeOAuthLoginCode(request.body.code, sessionRequestMeta(request));
+    return reply.code(200).send({
+      user: userAuthPayload(result.user),
+      token: result.token,
+      expiresAt: result.expiresAt,
+      sessionId: result.sessionId
+    });
   });
 }

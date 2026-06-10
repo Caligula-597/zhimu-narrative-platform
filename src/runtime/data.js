@@ -46,7 +46,9 @@
   window.zhimuViews = window.zhimuViews || {};
   const updateNotifyBadge = T.updateNotifyBadge || (() => {});
   let directorPollTimer = null;
+  let playerPollTimer = null;
   const DIRECTOR_POLL_MS = 15000;
+  const PLAYER_POLL_MS = 15000;
   let roomEventAbort = null;
   let roomEventReconnectTimer = null;
   let loadCloudDataPromise = null;
@@ -216,6 +218,16 @@ async function loadCloudDataInternal(withToast=false){
    state.cloudCreatorChecks=[];state.storageUsage=null;
   }
 
+  void (async()=>{
+   if(localStorage.getItem("zhimuSessionToken")){
+    try{
+     const usage=await zhimuApi.getStorageUsage();
+     state.storageUsage=usage;
+     if(state.view==="settings"||state.view==="overview"||state.view==="assets")render();
+    }catch{}
+   }
+  })();
+
   state.apiError=errors.join(" · ");
   syncDirectorPolling();
   if(worldReady)connectRoomEventStream();
@@ -273,6 +285,7 @@ async function refreshExploration(){
 }
 
 function syncDirectorPolling(){
+ syncPlayerPolling();
  if(state.roomEventsConnected){if(directorPollTimer){clearInterval(directorPollTimer);directorPollTimer=null}return}
  if(state.view==="director"&&zhimuApi.context.roomId){
   if(!directorPollTimer){
@@ -282,6 +295,18 @@ function syncDirectorPolling(){
    },DIRECTOR_POLL_MS);
   }
  }else if(directorPollTimer){clearInterval(directorPollTimer);directorPollTimer=null}
+}
+
+function syncPlayerPolling(){
+ if(state.view==="player"&&zhimuApi.context.roomId){
+  if(!playerPollTimer){
+   playerPollTimer=setInterval(async()=>{
+    if(state.view!=="player"||!zhimuApi.context.roomId){clearInterval(playerPollTimer);playerPollTimer=null;return}
+    await refreshPlayerHome();
+    await refreshExploration();
+   },PLAYER_POLL_MS);
+  }
+ }else if(playerPollTimer){clearInterval(playerPollTimer);playerPollTimer=null}
 }
 
  async function refreshDirectorPoll(){
@@ -394,6 +419,7 @@ async function handleRoomEvent(type,data){
    break;
   case "room.host_event_pending":
    await refreshHostEvents(false,true);
+   if(state.view==="player"&&data.action==="executed"){await refreshPlayerHome();await refreshExploration()}
    if(!data.action&&state.view==="director")showToast("有新的待确认事件",2800);
    break;
   case "room.scene_unlocked":

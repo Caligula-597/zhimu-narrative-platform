@@ -16,7 +16,8 @@
     director: ["实时运行", "主持监控台"],
     player: ["玩家体验", "玩家视角"],
     archive: ["历史记录", "存档与复盘"],
-    settings: ["世界管理", "世界设置"]
+    settings: ["世界管理", "世界设置"],
+    account: ["账号", "账号设置"]
   };
 
   function worldSwitcherFailureLabel() {
@@ -84,7 +85,8 @@
       director: V.director.director,
       player: V.player.player,
       archive: V.archive.archive,
-      settings: V.settings.settings
+      settings: V.settings.settings,
+      account: V.account.account
     };
     content.innerHTML = views[state.view]();
     R.bindDynamic();
@@ -92,6 +94,10 @@
 
   function go(view) {
     state.view = view;
+    if (view === "account") {
+      state.accountView = null;
+      V.account?.refreshAccountView?.();
+    }
     R.syncDirectorPolling();
     R.connectRoomEventStream();
     render();
@@ -128,15 +134,7 @@
   render();
   window.zhimuAuthSession?.syncProfile?.();
   window.zhimuAuthSession?.syncAuthBanner?.();
-  const params = new URLSearchParams(window.location.search);
-  const resetToken = params.get("reset");
-  const verifyToken = params.get("verify");
-  if (resetToken || verifyToken) {
-    const cleanUrl = `${window.location.pathname}${window.location.hash || ""}`;
-    window.history.replaceState({}, "", cleanUrl);
-    if (resetToken) window.zhimuRuntime?.openResetPassword?.(resetToken);
-    if (verifyToken) window.zhimuRuntime?.openVerifyEmail?.(verifyToken);
-  }
+  R.handleStartupAuthParams?.();
   R.loadCloudData()
     .catch((error) => {
       state.cloudLoading = false;

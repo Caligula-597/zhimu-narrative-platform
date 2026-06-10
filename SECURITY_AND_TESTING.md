@@ -37,7 +37,7 @@
 
 所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
 
-`npm test` 当前覆盖（**180 项**，约 45 个测试文件；精确数以 `npm run check:tests` 为准）：
+`npm test` 当前覆盖（**231 项**，约 63 个测试文件；精确数以 `npm run check:tests` 为准）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -79,6 +79,13 @@
 | `rate-limit.test.js` | upload/AI 独立限流桶 |
 | `asset-recycle.test.js` | 回收站列表、恢复、404 边界 |
 | `transaction-events.test.js` | commit 后才 publish SSE |
+| `account-entitlements.test.js` | entitlements API、ops 改套餐 |
+| `world-invites-quota.test.js` | 邀请邮件、重发/撤销、配额 details |
+| `oauth-diagnostics.test.js` | OAuth 回调诊断、生产 WARN/FATAL |
+| `permissions-matrix.test.js` | capabilities 矩阵与 guard |
+| `identity-foundation.test.js` | 游客、邮箱验证、session |
+| `oauth.test.js` | OAuth start/complete 流 |
+| `plan-quota.test.js` | 套餐默认值与 beta 内测 |
 
 **CI 门禁**：`.github/workflows/ci.yml`
 
@@ -113,7 +120,7 @@ npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 
 | 命令 | 结果 |
 |------|------|
-| `backend npm test` | **180/180** |
+| `backend npm test` | **231/231** |
 | `npm run check:schemas` | **56** 条路由 |
 | `npm run test:smoke` | **18/18** |
 | `node scripts/ui-smoke.js` | **41/41** |

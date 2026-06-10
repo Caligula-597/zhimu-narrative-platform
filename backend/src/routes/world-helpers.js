@@ -1,4 +1,4 @@
-import { query, transaction } from "../db.js";
+import { pool, query, transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
 import { validateDeepseekProposal } from "../deepseek.js";
 
@@ -15,24 +15,32 @@ export const ROOMS_VISIBLE_TO_ACTOR_SQL = `(
   )
 )`;
 
+import { effectiveStorageLimits, countOwnedWorlds } from "../plans.js";
+
 export async function storageUsage(userId) {
-  const result = await query(
-    `SELECT q.max_bytes, q.max_worlds, q.max_single_file_bytes,
-            COALESCE(SUM(a.byte_size) FILTER (WHERE a.status IN ('pending_upload', 'active')), 0)::bigint AS used_bytes
-     FROM storage_quotas q
-     LEFT JOIN asset_files a ON a.owner_user_id = q.user_id
-     WHERE q.user_id = $1
-     GROUP BY q.max_bytes, q.max_worlds, q.max_single_file_bytes`,
+  const limits = await effectiveStorageLimits(userId);
+  const usage = await query(
+    `SELECT COALESCE(SUM(a.byte_size) FILTER (WHERE a.status IN ('pending_upload', 'active')), 0)::bigint AS used_bytes
+     FROM asset_files a
+     WHERE a.owner_user_id = $1`,
     [userId]
   );
-  if (result.rowCount) return result.rows[0];
-  const created = await query(
-    `INSERT INTO storage_quotas (user_id) VALUES ($1)
-     ON CONFLICT (user_id) DO UPDATE SET updated_at = storage_quotas.updated_at
-     RETURNING max_bytes, max_worlds, max_single_file_bytes, 0::bigint AS used_bytes`,
-    [userId]
+  const used = Number(usage.rows[0]?.used_bytes ?? 0);
+  const usedWorlds = await countOwnedWorlds(userId);
+  await query(
+    `INSERT INTO storage_quotas (user_id, max_bytes, max_worlds, max_single_file_bytes)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (user_id) DO UPDATE SET updated_at = storage_quotas.updated_at`,
+    [userId, limits.max_bytes, limits.max_worlds, limits.max_single_file_bytes]
   );
-  return created.rows[0];
+  return {
+    max_bytes: limits.max_bytes,
+    max_worlds: limits.max_worlds,
+    max_single_file_bytes: limits.max_single_file_bytes,
+    used_bytes: used,
+    used_worlds: usedWorlds,
+    plan_code: limits.planCode
+  };
 }
 
 export async function requireAssetRead(actorId, assetId) {
@@ -54,25 +62,31 @@ export async function requireAssetRead(actorId, assetId) {
   return result.rows[0];
 }
 
-export async function buildWorldSnapshot(worldId, client = { query }) {
-  const [world, chapters, roles, sections, scenes, clues, points, items, edges, rules, rooms] = await Promise.all([
-    client.query(`SELECT id, name, summary, status, settings FROM worlds WHERE id = $1`, [worldId]),
-    client.query(`SELECT * FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]),
-    client.query(`SELECT * FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]),
-    client.query(
-      `SELECT ss.* FROM script_sections ss
-       JOIN role_slots rs ON rs.id = ss.role_slot_id
-       WHERE rs.world_id = $1 ORDER BY rs.sequence, ss.sequence`,
-      [worldId]
-    ),
-    client.query(`SELECT * FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]),
-    client.query(`SELECT * FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]),
-    client.query(`SELECT * FROM investigation_points WHERE world_id = $1 ORDER BY created_at`, [worldId]),
-    client.query(`SELECT id, name FROM items WHERE world_id = $1 ORDER BY created_at`, [worldId]),
-    client.query(`SELECT * FROM story_graph_edges WHERE world_id = $1 ORDER BY created_at`, [worldId]),
-    client.query(`SELECT * FROM automation_rules WHERE world_id = $1 ORDER BY priority, created_at`, [worldId]),
-    client.query(`SELECT id, name, status, invite_code FROM rooms WHERE world_id = $1 ORDER BY created_at DESC`, [worldId])
-  ]);
+export async function buildWorldSnapshot(worldId, client = null) {
+  if (!client) {
+    const pooledClient = await pool.connect();
+    try {
+      return await buildWorldSnapshot(worldId, pooledClient);
+    } finally {
+      pooledClient.release();
+    }
+  }
+  const world = await client.query(`SELECT id, name, summary, status, settings FROM worlds WHERE id = $1`, [worldId]);
+  const chapters = await client.query(`SELECT * FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]);
+  const roles = await client.query(`SELECT * FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]);
+  const sections = await client.query(
+    `SELECT ss.* FROM script_sections ss
+     JOIN role_slots rs ON rs.id = ss.role_slot_id
+     WHERE rs.world_id = $1 ORDER BY rs.sequence, ss.sequence`,
+    [worldId]
+  );
+  const scenes = await client.query(`SELECT * FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+  const clues = await client.query(`SELECT * FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+  const points = await client.query(`SELECT * FROM investigation_points WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+  const items = await client.query(`SELECT id, name FROM items WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+  const edges = await client.query(`SELECT * FROM story_graph_edges WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+  const rules = await client.query(`SELECT * FROM automation_rules WHERE world_id = $1 ORDER BY priority, created_at`, [worldId]);
+  const rooms = await client.query(`SELECT id, name, status, invite_code FROM rooms WHERE world_id = $1 ORDER BY created_at DESC`, [worldId]);
   return {
     world: world.rows[0], chapters: chapters.rows, roles: roles.rows, sections: sections.rows,
     scenes: scenes.rows, clues: clues.rows, investigationPoints: points.rows, items: items.rows, edges: edges.rows,

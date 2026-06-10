@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy-api:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,46 +19,24 @@ jobs:
           node-version: "22"
       - name: Install Railway CLI
         run: npm install -g @railway/cli
-      - name: Deploy API (backend/)
+      - name: Deploy fullstack (API + frontend, one service)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
           RAILWAY_PUBLIC_URL: ${{ secrets.RAILWAY_PUBLIC_URL }}
         run: |
           if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
-            echo "::warning::Skip API deploy — set RAILWAY_TOKEN + RAILWAY_SERVICE_ID"
+            echo "::warning::Skip deploy — set RAILWAY_TOKEN + RAILWAY_SERVICE_ID"
             exit 0
           fi
-          railway up backend --path-as-root --ci --service "$RAILWAY_SERVICE_ID"
-          if [ -n "$RAILWAY_PUBLIC_URL" ]; then
-            for i in $(seq 1 30); do
-              if curl -sf "$RAILWAY_PUBLIC_URL/api/health/ready" | grep -q '"ready":true'; then
-                echo "API ready at $RAILWAY_PUBLIC_URL"
-                exit 0
-              fi
-              echo "Waiting for API… ($i/30)"
-              sleep 10
-            done
-            echo "::warning::API health check timed out"
-          fi
-
-  deploy-web:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-      - name: Deploy Web (web/Dockerfile)
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_WEB_SERVICE_ID: ${{ secrets.RAILWAY_WEB_SERVICE_ID }}
-        run: |
-          if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_WEB_SERVICE_ID" ]; then
-            echo "::warning::Skip Web deploy — set RAILWAY_TOKEN + RAILWAY_WEB_SERVICE_ID"
-            echo "Run once locally: npm run railway:bootstrap"
-            exit 0
-          fi
-          railway up --ci --service "$RAILWAY_WEB_SERVICE_ID"
+          railway up --ci --service "$RAILWAY_SERVICE_ID"
+          BASE="${RAILWAY_PUBLIC_URL:-https://getzhimu.com}"
+          for i in $(seq 1 30); do
+            if curl -sf "$BASE/api/health/ready" | grep -q '"ready":true'; then
+              echo "Ready at $BASE"
+              exit 0
+            fi
+            echo "Waiting… ($i/30)"
+            sleep 10
+          done
+          echo "::warning::Health check timed out"

@@ -1,0 +1,30 @@
+# Fullstack: Vite frontend + Fastify API in ONE Railway service (no extra Web service).
+FROM node:22-alpine AS web-build
+WORKDIR /web
+COPY package.json package-lock.json ./
+COPY config ./config
+COPY src ./src
+COPY docs ./docs
+COPY frontend ./frontend
+COPY index.html app.js config.js dom.js state.js styles.css rule-visual.js ./
+RUN npm ci
+ENV VITE_API_BASE=/api
+ENV VITE_REQUIRE_AUTH=true
+ENV VITE_DEMO_MODE=false
+RUN npm run build
+
+FROM node:22-alpine AS api
+WORKDIR /app
+
+COPY backend/package.json backend/package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts
+
+COPY backend/ .
+COPY --from=web-build /web/dist ./public/dist
+
+ENV NODE_ENV=production
+ENV SERVE_STATIC=true
+ENV STATIC_ROOT=/app/public/dist
+EXPOSE 4180
+
+ENTRYPOINT ["sh", "./deploy/docker-entrypoint-api.sh"]

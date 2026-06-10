@@ -124,7 +124,7 @@
 
 |------|------|
 
-| `backend npm test` | **180** |
+| `backend npm test` | **222** |
 
 | `npm run check:schemas` | **56** 条路由 |
 

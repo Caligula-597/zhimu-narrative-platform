@@ -8,9 +8,12 @@ export function bearerToken(request) {
 export async function resolveRequestActor(request, { resolveSession, allowDemoUserHeader = false }) {
   const token = bearerToken(request);
   if (token) {
-    const actorId = await resolveSession(token);
+    const ctx = await resolveSession(token);
+    const actorId = typeof ctx === "object" && ctx !== null ? ctx.userId : ctx;
+    const sessionId = typeof ctx === "object" && ctx !== null ? ctx.sessionId : null;
     if (actorId) {
       request.actorId = actorId;
+      request.sessionId = sessionId;
       request.authSource = "session";
       return actorId;
     }

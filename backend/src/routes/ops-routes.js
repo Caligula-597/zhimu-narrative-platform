@@ -5,6 +5,11 @@ import { requireOpsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
 import { getTelemetryStatus } from "../telemetry.js";
 import { getEmailServiceStatus } from "../email.js";
+import { getPublicOAuthDiagnostics } from "../oauth-diagnostics.js";
+import { getStripeBillingStatus } from "../stripe-billing.js";
+import { assignUserPlanByEmail } from "../account-entitlements.js";
+import { PLAN_DEFAULTS } from "../plans.js";
+import { sendErr } from "../api-errors.js";
 
 const opsAuditLogQuerySchema = {
   type: "object",
@@ -95,7 +100,9 @@ export async function registerOpsRoutes(app) {
           roomEventsBus: bus.mode,
           openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production",
           telemetry: getTelemetryStatus(),
-          email: getEmailServiceStatus()
+          email: getEmailServiceStatus(),
+          oauth: getPublicOAuthDiagnostics(),
+          stripe: getStripeBillingStatus()
         },
         rateLimits: {
           authPerMin: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
@@ -105,6 +112,36 @@ export async function registerOpsRoutes(app) {
           aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40)
         }
       };
+    }
+  );
+
+  app.post(
+    "/api/ops/users/plan",
+    {
+      schema: {
+        hide: true,
+        tags: ["system"],
+        body: {
+          type: "object",
+          additionalProperties: false,
+          required: ["email", "planCode"],
+          properties: {
+            email: { type: "string", minLength: 3, maxLength: 320 },
+            planCode: { type: "string", enum: ["free", "creator", "studio", "beta"] }
+          }
+        }
+      }
+    },
+    async (request, reply) => {
+      const { email, planCode } = request.body;
+      if (!PLAN_DEFAULTS[planCode]) return sendErr(reply, "BAD_REQUEST", "Unknown plan code");
+      try {
+        const result = await assignUserPlanByEmail(email, planCode);
+        return reply.code(200).send({ ok: true, ...result });
+      } catch (error) {
+        if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
+        throw error;
+      }
     }
   );
 }

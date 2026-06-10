@@ -2,11 +2,21 @@ import { query, transaction } from "../db.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole } from "./route-guards.js";
 import { sendErr } from "../api-errors.js";
-import { storageUsage } from "./world-helpers.js";
+import { assertWorldCreateQuota, assertStorageBytesQuota, assertSingleFileQuota } from "../quota-guards.js";
 import { parseCreatorDocument } from "../document-parser.js";
 import { deleteOwnedWorld } from "../world-delete.js";
 import { listWorldHostAuditLog } from "../audit-log.js";
 import { requireVerifiedEmail } from "../email-verification-policy.js";
+import { assertCapability } from "../capabilities.js";
+import {
+  inviteWorldCollaborator,
+  addRegisteredWorldCollaborator,
+  resendWorldCollaboratorInvite,
+  revokePendingWorldCollaboratorInvite,
+  listPendingWorldInvites,
+  normalizeCollaboratorEmail
+} from "../world-collaboration.js";
+import { acceptWorldMemberInviteToken } from "../world-invites.js";
 import {
   updateWorldSchema,
   worldIdParams,
@@ -30,15 +40,27 @@ export async function registerWorldRoutes(app) {
     const actorId = requireActor(request);
     const includeArchived = String(request.query?.includeArchived ?? "") === "true";
     const result = await query(
-      `SELECT w.id, w.name, w.summary, w.status, w.catalog_public, wm.role AS membership_role
-       FROM worlds w
-       JOIN world_members wm ON wm.world_id = w.id
-       WHERE wm.user_id = $1
-         AND ($2::boolean OR w.status <> 'archived')
-       ORDER BY w.updated_at DESC`,
+      `SELECT DISTINCT ON (id) id, name, summary, status, catalog_public, membership_role, updated_at
+       FROM (
+         SELECT w.id, w.name, w.summary, w.status, w.catalog_public, wm.role::text AS membership_role, w.updated_at,
+                CASE wm.role WHEN 'owner' THEN 4 WHEN 'editor' THEN 3 WHEN 'host' THEN 2 WHEN 'viewer' THEN 1 ELSE 0 END AS role_rank
+         FROM worlds w
+         JOIN world_members wm ON wm.world_id = w.id
+         WHERE wm.user_id = $1
+           AND ($2::boolean OR w.status <> 'archived')
+         UNION ALL
+         SELECT w.id, w.name, w.summary, w.status, w.catalog_public, 'player' AS membership_role, w.updated_at, 0 AS role_rank
+         FROM worlds w
+         JOIN rooms r ON r.world_id = w.id
+         JOIN room_members rm ON rm.room_id = r.id
+         WHERE rm.user_id = $1
+           AND rm.status = 'active'
+           AND ($2::boolean OR w.status <> 'archived')
+       ) visible_worlds
+       ORDER BY id, role_rank DESC, updated_at DESC`,
       [actorId, includeArchived]
     );
-    return result.rows;
+    return result.rows.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).map(({ updated_at, ...world }) => world);
   });
 
   const PLATFORM_CATALOG_WORLD_ID = "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
@@ -101,13 +123,9 @@ export async function registerWorldRoutes(app) {
 
   app.post("/api/worlds", { schema: createWorldSchema }, async (request, reply) => {
     const actorId = requireActor(request);
-    await requireVerifiedEmail(actorId);
+    await assertCapability(actorId, "world.create");
     const { name, summary = "", settings = {} } = request.body ?? {};
-    const quota = await storageUsage(actorId);
-    const worldCount = await query(`SELECT COUNT(*)::int AS count FROM worlds WHERE owner_user_id = $1 AND status <> 'archived'`, [actorId]);
-    if (worldCount.rows[0].count >= quota.max_worlds) {
-      return sendErr(reply, "WORLD_QUOTA_EXCEEDED");
-    }
+    await assertWorldCreateQuota(actorId);
     const world = await transaction(async (client) => {
       const result = await client.query(
         `INSERT INTO worlds (owner_user_id, name, summary, settings) VALUES ($1, $2, $3, $4::jsonb) RETURNING *`,
@@ -234,30 +252,106 @@ export async function registerWorldRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);
-    const result = await query(
-      `SELECT wm.user_id, u.email, u.display_name, wm.role, wm.created_at
-       FROM world_members wm JOIN users u ON u.id = wm.user_id
-       WHERE wm.world_id = $1 ORDER BY wm.created_at`,
-      [worldId]
-    );
-    return result.rows;
+    const [members, pendingInvites] = await Promise.all([
+      query(
+        `SELECT wm.user_id, u.email, u.display_name, wm.role, wm.created_at
+         FROM world_members wm JOIN users u ON u.id = wm.user_id
+         WHERE wm.world_id = $1 ORDER BY wm.created_at`,
+        [worldId]
+      ),
+      listPendingWorldInvites(worldId)
+    ]);
+    return { members: members.rows, pendingInvites };
+  });
+
+  app.post("/api/worlds/invites/accept", {
+    schema: {
+      body: {
+        type: "object",
+        additionalProperties: false,
+        required: ["token"],
+        properties: { token: { type: "string", minLength: 16, maxLength: 128 } }
+      }
+    }
+  }, async (request, reply) => {
+    const actorId = requireActor(request);
+    await assertCapability(actorId, "world.collaborate");
+    const result = await acceptWorldMemberInviteToken(actorId, request.body.token.trim());
+    return reply.code(200).send({ ok: true, ...result });
   });
 
   app.post("/api/worlds/:worldId/members", { schema: addWorldMemberSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner"]);
-    const email = String(request.body?.email ?? "").trim().toLowerCase();
+    await assertCapability(actorId, "world.collaborate");
+    const email = normalizeCollaboratorEmail(request.body?.email);
     const role = String(request.body?.role ?? "viewer");
     if (!["editor", "host", "viewer"].includes(role)) return sendErr(reply, "COLLABORATION_ROLE_INVALID");
-    const user = await query(`SELECT id, email, display_name FROM users WHERE email = $1`, [email]);
-    if (!user.rowCount) return sendErr(reply, "COLLABORATOR_NOT_REGISTERED");
-    await query(
-      `INSERT INTO world_members (world_id, user_id, role) VALUES ($1,$2,$3)
-       ON CONFLICT (world_id, user_id) DO UPDATE SET role = EXCLUDED.role`,
-      [worldId, user.rows[0].id, role]
-    );
-    return reply.code(201).send({ ...user.rows[0], role });
+
+    const direct = await addRegisteredWorldCollaborator({ worldId, email, role, invitedByUserId: actorId });
+    if (direct) {
+      return reply.code(201).send({ ...direct, pendingInvite: false, emailSent: false });
+    }
+
+    try {
+      const invite = await inviteWorldCollaborator({ worldId, email, role, invitedByUserId: actorId });
+      return reply.code(201).send(invite);
+    } catch (error) {
+      if (error.code && error.statusCode) {
+        return sendErr(reply, error.code, error.message, error.details);
+      }
+      throw error;
+    }
+  });
+
+  app.post("/api/worlds/:worldId/invites/:inviteId/resend", {
+    schema: {
+      params: {
+        type: "object",
+        required: ["worldId", "inviteId"],
+        properties: {
+          worldId: { type: "string", format: "uuid" },
+          inviteId: { type: "string", format: "uuid" }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, inviteId } = request.params;
+    await requireWorldRole(actorId, worldId, ["owner"]);
+    await assertCapability(actorId, "world.collaborate");
+    try {
+      const result = await resendWorldCollaboratorInvite({ worldId, inviteId, invitedByUserId: actorId });
+      return reply.code(200).send(result);
+    } catch (error) {
+      if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
+      throw error;
+    }
+  });
+
+  app.delete("/api/worlds/:worldId/invites/:inviteId", {
+    schema: {
+      params: {
+        type: "object",
+        required: ["worldId", "inviteId"],
+        properties: {
+          worldId: { type: "string", format: "uuid" },
+          inviteId: { type: "string", format: "uuid" }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, inviteId } = request.params;
+    await requireWorldRole(actorId, worldId, ["owner"]);
+    await assertCapability(actorId, "world.collaborate");
+    try {
+      return await revokePendingWorldCollaboratorInvite({ worldId, inviteId });
+    } catch (error) {
+      if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
+      throw error;
+    }
   });
 
   app.put("/api/worlds/:worldId/members/:userId", { schema: updateWorldMemberSchema }, async (request, reply) => {

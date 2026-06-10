@@ -11,5 +11,7 @@ export {
   publicAppUrl,
   sendEmailVerificationEmail,
   sendPasswordResetEmail,
-  sendTransactionalEmail
+  sendTransactionalEmail,
+  sendWorldMemberInviteEmail,
+  peekTestInviteUrl
 } from "./email/index.js";

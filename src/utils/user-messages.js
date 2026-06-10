@@ -33,10 +33,17 @@
 
     WORLD_NOT_FOUND: "世界不存在或你无权访问。",
     WORLD_QUOTA_EXCEEDED: "可创建的世界数量已达上限。",
+    STORAGE_QUOTA_EXCEEDED: "云端空间已满，请先清理附件。",
+    WORLD_INVITE_SELF: "不能邀请自己的邮箱。",
+    WORLD_INVITE_INVALID: "协作邀请无效或已过期，请让邀请人重新发送。",
+    WORLD_INVITE_EMAIL_MISMATCH: "该邀请不属于当前登录邮箱。",
+    WORLD_INVITE_NOT_FOUND: "找不到该待接受邀请。",
+    COLLABORATOR_ALREADY_MEMBER: "该邮箱已是本剧本协作者。",
     WORLD_OWNER_REQUIRED: "只有剧本主创作者可以设置是否公开到剧本库。",
     CATALOG_NOT_PUBLIC: "该剧本尚未公开，无法从剧本库加入。",
     WORLD_DELETE_BLOCKED: "无法删除剧本：仍有平行房或运行数据未清理，请刷新后重试。",
-    COLLABORATOR_NOT_REGISTERED: "该邮箱尚未注册，请先邀请对方完成注册。",
+    GUEST_ACCOUNT_RESTRICTED: "游客账号无法执行此操作，请先注册。",
+    COLLABORATOR_NOT_REGISTERED: "该邮箱尚未注册，已发送邀请；对方注册后会自动加入。",
     COLLABORATION_MEMBER_NOT_FOUND: "找不到该协作者或无法变更所有者。",
     COLLABORATION_ROLE_INVALID: "协作角色无效。",
 
@@ -107,7 +114,6 @@
     VOICE_MEMBER_NOT_IN_ROOM: "被邀请用户必须是运行房成员。",
     LIVEKIT_NOT_CONFIGURED: "语音服务暂不可用，请稍后再试。",
 
-    STORAGE_QUOTA_EXCEEDED: "云端空间已满，请先清理附件。",
     FILE_TOO_LARGE: "文件超出大小限制。",
     ASSET_NOT_FOUND: "附件不存在或无权访问。",
     ASSET_KIND_INVALID: "附件类型筛选无效。",
@@ -179,6 +185,18 @@
 
   function friendlyApiError(payload = {}, fallback = "操作失败，请稍后重试") {
     const code = payload.code;
+    const details = payload.details;
+    if (code === "WORLD_QUOTA_EXCEEDED" && details) {
+      const plan = details.planLabel || details.planCode || "当前套餐";
+      return `可创建剧本已达上限（${details.usedWorlds ?? "?"}/${details.maxWorlds ?? "?"} · ${plan}）。`;
+    }
+    if (code === "STORAGE_QUOTA_EXCEEDED" && details) {
+      const plan = details.planLabel || details.planCode || "当前套餐";
+      return `云存储空间不足（${plan}）。请清理附件或升级套餐。`;
+    }
+    if (code === "FILE_TOO_LARGE" && details?.maxSingleFileBytes) {
+      return `文件超出单文件上限（最大 ${Math.round(details.maxSingleFileBytes / 1048576)} MB）。`;
+    }
     if (code === "FST_ERR_VALIDATION" || code === "VALIDATION_ERROR") {
       const raw = String(payload.error || "");
       if (/worldId/i.test(raw)) return "请先创建或选择一个剧本世界。";
@@ -195,6 +213,20 @@
       return "删除失败：服务暂时不可用，请刷新页面后重试。";
     }
     return raw || fallback;
+  }
+
+  function isQuotaExceededError(error) {
+    return error?.code === "WORLD_QUOTA_EXCEEDED" || error?.code === "STORAGE_QUOTA_EXCEEDED";
+  }
+
+  function handleApiErrorToast(error, showToast) {
+    showToast(error?.message || "操作失败");
+    if (isQuotaExceededError(error)) {
+      setTimeout(() => {
+        if (window.zhimuRuntime?.go) window.zhimuRuntime.go("account");
+        else window.zhimuRuntime?.openAccountPanel?.();
+      }, 400);
+    }
   }
 
   /** Strip Fastify noise; classify empty-account vs real outage for top banners. */
@@ -245,7 +277,9 @@
     formatCloudPanelError,
     overviewHeroTitle,
     assetKindLabel,
-    rulePreviewStatusLabel
+    rulePreviewStatusLabel,
+    isQuotaExceededError,
+    handleApiErrorToast
   };
 })(window);
 export {};

@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { randomUUID } from "node:crypto";
-import { resolveSession } from "./auth.js";
+import { resolveSessionContext } from "./auth.js";
 import { resolveRequestActor } from "./request-actor.js";
 import { formatErrorBody } from "./api-errors.js";
 import { createRateLimiter } from "./rate-limit.js";
@@ -11,7 +11,9 @@ import { registerOpenApi } from "./openapi.js";
 import { registerAuthRoutes } from "./routes/auth-routes.js";
 import { registerSystemRoutes } from "./routes/system-routes.js";
 import { registerOpsRoutes } from "./routes/ops-routes.js";
+import { registerBillingRoutes } from "./routes/billing-routes.js";
 import { registerRoutes } from "./routes.js";
+import { registerStaticFrontend } from "./static-frontend.js";
 
 const authRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -57,7 +59,8 @@ function shouldSkipRateLimit(url) {
   return (
     url === "/metrics" ||
     url === "/api/openapi.json" ||
-    url.startsWith("/api/docs")
+    url.startsWith("/api/docs") ||
+    url === "/api/billing/stripe/webhook"
   );
 }
 
@@ -132,7 +135,7 @@ export async function createApp(options = {}) {
     return payload;
   });
   app.addHook("preHandler", async (request) => {
-    await resolveRequestActor(request, { resolveSession, allowDemoUserHeader });
+    await resolveRequestActor(request, { resolveSession: resolveSessionContext, allowDemoUserHeader });
   });
   app.addHook("preHandler", async (request, reply) => {
     if (!rateLimitEnabled) return;
@@ -167,8 +170,10 @@ export async function createApp(options = {}) {
   });
   await registerSystemRoutes(app);
   await registerOpsRoutes(app);
+  await registerBillingRoutes(app);
   await registerAuthRoutes(app);
   await registerRoutes(app);
+  await registerStaticFrontend(app);
   app.log.info({
     demoUserHeader: allowDemoUserHeader,
     nodeEnv,
@@ -180,8 +185,10 @@ export async function createApp(options = {}) {
     else request.log.info({ err: error, code: error.code, traceId: request.traceId }, error.message);
     reply.code(statusCode).send(formatErrorBody(error, statusCode));
   });
-  app.setNotFoundHandler((request, reply) => {
-    reply.code(404).send({ error: "Route not found", code: "NOT_FOUND" });
-  });
+  if (process.env.SERVE_STATIC !== "true" && process.env.SERVE_STATIC !== "1") {
+    app.setNotFoundHandler((request, reply) => {
+      reply.code(404).send({ error: "Route not found", code: "NOT_FOUND" });
+    });
+  }
   return app;
 }

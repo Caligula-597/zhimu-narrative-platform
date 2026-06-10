@@ -6,21 +6,26 @@ import { ASSET_KINDS, ASSET_VISIBILITIES, buildAssetListQuery, parseAssetListQue
 import { getObjectStorage } from "../storage/index.js";
 import { scanUploadedObject } from "../upload-scan.js";
 import { requireActor } from "../request-actor.js";
+import { assertCapability } from "../capabilities.js";
+import { assertStorageBytesQuota, assertSingleFileQuota } from "../quota-guards.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import { requireAssetRead, storageUsage } from "./world-helpers.js";
+import { buildUsagePayload } from "../plans.js";
 import { assetUploadUrlSchema, confirmAssetSchema, deleteAssetSchema, restoreAssetSchema, worldIdParams } from "./schemas.js";
 
 export async function registerAssetRoutes(app) {
   app.get("/api/storage/usage", async (request) => {
     const actorId = requireActor(request);
     const usage = await storageUsage(actorId);
-    return {
-      maxBytes: Number(usage.max_bytes),
-      maxWorlds: Number(usage.max_worlds),
-      maxSingleFileBytes: Number(usage.max_single_file_bytes),
-      usedBytes: Number(usage.used_bytes),
-      remainingBytes: Number(usage.max_bytes) - Number(usage.used_bytes)
-    };
+    return buildUsagePayload(
+      {
+        planCode: usage.plan_code,
+        max_bytes: usage.max_bytes,
+        max_worlds: usage.max_worlds,
+        max_single_file_bytes: usage.max_single_file_bytes
+      },
+      { usedBytes: Number(usage.used_bytes), usedWorlds: Number(usage.used_worlds) }
+    );
   });
 
   app.get("/api/worlds/:worldId/assets", { schema: { params: worldIdParams } }, async (request, reply) => {
@@ -54,6 +59,7 @@ export async function registerAssetRoutes(app) {
 
   app.post("/api/assets/upload-url", { schema: assetUploadUrlSchema }, async (request, reply) => {
     const actorId = requireActor(request);
+    await assertCapability(actorId, "asset.upload");
     const { worldId, roomId = null, filename, contentType, byteSize, visibility = "author", roleSlotId = null } = request.body ?? {};
     if (!worldId || !filename || !contentType || !byteSize) {
       return sendErr(reply, "UPLOAD_FIELDS_REQUIRED");
@@ -61,13 +67,8 @@ export async function registerAssetRoutes(app) {
     await requireWorldRole(actorId, worldId);
     validateFilename(filename);
     const policy = validateUpload({ contentType, byteSize });
-    const usage = await storageUsage(actorId);
-    if (Number(byteSize) > Number(usage.max_single_file_bytes)) {
-      return sendErr(reply, "FILE_TOO_LARGE");
-    }
-    if (Number(usage.used_bytes) + Number(byteSize) > Number(usage.max_bytes)) {
-      return sendErr(reply, "STORAGE_QUOTA_EXCEEDED");
-    }
+    await assertSingleFileQuota(actorId, byteSize);
+    await assertStorageBytesQuota(actorId, byteSize);
     if (!["author", "host", "role", "public"].includes(visibility)) {
       return sendErr(reply, "ASSET_VISIBILITY_INVALID");
     }

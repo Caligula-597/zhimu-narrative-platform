@@ -119,13 +119,28 @@ window.zhimuApi = {
   getWorldRooms: (worldId = demoContext.worldId) => request(`/worlds/${worldId}/rooms`, { userId: demoContext.hostUserId }),
   register: (payload) => request("/auth/register", { method: "POST", body: payload }),
   login: (payload) => request("/auth/login", { method: "POST", body: payload }),
+  createGuest: (payload = {}) => request("/auth/guest", { method: "POST", body: payload }),
+  completeOAuth: (code) => request("/auth/oauth/complete", { method: "POST", body: { code } }),
+  oauthStartUrl: (provider) => request(`/auth/oauth/${provider}/start-url`, { method: "POST", body: {} }),
+  upgradeGuest: (payload) => request("/auth/upgrade", { method: "POST", body: payload }),
+  listSessions: () => request("/auth/sessions"),
+  revokeSession: (sessionId) => request(`/auth/sessions/${sessionId}`, { method: "DELETE" }),
+  logoutAllDevices: () => request("/auth/logout-all", { method: "POST", body: {} }),
   getAuthConfig: () => request("/auth/config"),
   verifyEmail: (payload) => request("/auth/verify-email", { method: "POST", body: payload }),
   resendVerification: () => request("/auth/resend-verification", { method: "POST", body: {} }),
   requestPasswordReset: (payload) => request("/auth/forgot-password", { method: "POST", body: payload }),
   resetPassword: (payload) => request("/auth/reset-password", { method: "POST", body: payload }),
   me: () => request("/auth/me"),
+  getAccountEntitlements: () => request("/account/entitlements"),
+  getAccountPlans: () => request("/account/plans"),
   logout: () => request("/auth/logout", { method: "POST", body: {} }),
+  async ensurePlayerSession() {
+    if (localStorage.getItem("zhimuSessionToken")) return null;
+    const result = await this.createGuest({});
+    if (result?.token) localStorage.setItem("zhimuSessionToken", result.token);
+    return result;
+  },
   getPlayerHome: () => request(`/rooms/${demoContext.roomId}/player-home`, { userId: demoContext.playerUserId }),
   getVoiceMessages: (voiceRoomId) => request(`/voice-rooms/${voiceRoomId}/messages`, { userId: demoContext.playerUserId }),
   getVoiceRoomToken: (voiceRoomId, userId = demoContext.playerUserId) =>
@@ -242,8 +257,18 @@ window.zhimuApi = {
   deepseekPipelineEvaluate: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/evaluate`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   proposeFullMysteryWithDeepseek: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/full-mystery/propose`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 600_000 }),
   importFullMysteryWithDeepseek: (mystery) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/full-mystery/import`, { userId: demoContext.hostUserId, method: "POST", body: { mystery } }),
-  getWorldMembers: () => request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId }),
+  getWorldMembers: async () => {
+    const payload = await request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId });
+    return Array.isArray(payload) ? payload : payload.members ?? [];
+  },
+  getWorldMemberInvites: async () => {
+    const payload = await request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId });
+    return Array.isArray(payload) ? [] : payload.pendingInvites ?? [];
+  },
   addWorldMember: (payload) => request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  acceptWorldInvite: (token) => request("/worlds/invites/accept", { method: "POST", body: { token } }),
+  resendWorldInvite: (inviteId) => request(`/worlds/${demoContext.worldId}/invites/${inviteId}/resend`, { userId: demoContext.hostUserId, method: "POST" }),
+  revokeWorldInvite: (inviteId) => request(`/worlds/${demoContext.worldId}/invites/${inviteId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
   updateWorldMember: (userId, role) => request(`/worlds/${demoContext.worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "PUT", body: { role } }),
   deleteWorldMember: (userId) => request(`/worlds/${demoContext.worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
   getWorldLogs: (params = {}) => request(`/worlds/${demoContext.worldId}/logs?${new URLSearchParams(params)}`, { userId: demoContext.hostUserId }),

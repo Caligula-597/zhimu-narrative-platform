@@ -43,7 +43,7 @@
       state.currentUser = me;
       const label = me.display_name || me.email || "已登录";
       strong.textContent = label;
-      small.textContent = me.email || "已登录";
+      small.textContent = me.isGuest ? "游客 · 点击升级或管理设备" : (me.email || "已登录");
       avatar.textContent = label.slice(0, 1);
     } catch {
       /* session may have expired — client.js clears token on 401 */

@@ -4,6 +4,7 @@
  */
 import { getDatabaseStatus } from "./database-status.js";
 import { isEmailConfigured } from "./email.js";
+import { validateOAuthProductionConfig } from "./oauth-diagnostics.js";
 
 const REQUIRED_ENV = ["DATABASE_URL"];
 
@@ -41,6 +42,11 @@ export function validateStartupEnvironment() {
     if (!process.env.OPS_API_TOKEN?.trim()) {
       console.warn("WARN: OPS_API_TOKEN is empty — /api/ops/* endpoints reject all requests in production.");
     }
+
+    const oauth = validateOAuthProductionConfig();
+    for (const warning of oauth.warnings) console.warn(`WARN: ${warning}`);
+    for (const fatal of oauth.fatals) console.error(`FATAL: ${fatal}`);
+    if (oauth.fatals.length) process.exit(1);
   }
 }
 

@@ -109,7 +109,7 @@ Backend ready at ...
 不要。`DATABASE_URL` 指向 Supabase 即可；容器启动时自动 `migrate`。
 
 **Q: 前端 getzhimu.com 呢？**  
-用 **Railway Web 服务**（`web/Dockerfile`），见 [RAILWAY_WEB.md](./RAILWAY_WEB.md)。Cloudflare 只负责 DNS（和 R2），**不用 Pages**。
+与 API **同一 Railway 服务**（`deploy/Dockerfile.fullstack`），单域 `getzhimu.com` + 路径 `/api`。见 [DEPLOY.md](./DEPLOY.md) · [PLATFORM_MAP_ZH.md](../PLATFORM_MAP_ZH.md)。Cloudflare 只负责 DNS（和 R2），**不用 Pages**。
 
 ---
 
@@ -117,10 +117,10 @@ Backend ready at ...
 
 | 文件 | 作用 |
 |------|------|
-| `backend/Dockerfile` | API 镜像 |
-| `backend/railway.json` | 强制 DOCKERFILE + 清空 startCommand |
-| `railway.toml` + `nixpacks.toml` | 根目录误部署时的兜底/失败提示 |
+| `deploy/Dockerfile.fullstack` | **生产** API + 前端同镜像 |
+| `railway.toml` | 根目录 `railway up`（CI / 本机） |
 | `.github/workflows/railway-deploy.yml` | push main 自动部署 |
 | `scripts/sync-railway-env.mjs` | 生成 `.env.railway` |
-| `scripts/railway-deploy.mjs` | 本机 CLI 部署 API |
-| `docs/ops/RAILWAY_WEB.md` | 前端 Web 服务（getzhimu.com） |
+| `scripts/railway-deploy.mjs` | 本机 CLI 部署 |
+| `backend/Dockerfile` | 仅 API 本地/分体调试 |
+| ~~`docs/ops/RAILWAY_WEB.md`~~ | 已过时（双服务方案） |

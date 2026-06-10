@@ -111,6 +111,8 @@ env.SKIP_ENSURE_PLATFORM_CATALOG = "true";
 env.LOG_FORMAT = "json";
 env.LOG_LEVEL = "info";
 env.OPENAPI_UI = "false";
+env.SERVE_STATIC = "true";
+env.STATIC_ROOT = "/app/public/dist";
 env.UPLOAD_SCAN_MODE = "none";
 env.RATE_LIMIT_AUTH_MAX = "20";
 env.RATE_LIMIT_WRITE_MAX = "120";
@@ -131,9 +133,10 @@ if (missing.length) {
   process.exit(1);
 }
 
-const header = `# Paste into Railway → Service → Variables → Raw Editor (replace all)
+const header = `# Paste into Railway → zhimu-narrative-platform → Variables → Raw Editor
+# Fullstack: API + 前端同一服务（deploy/Dockerfile.fullstack）
 # Do NOT set PORT — Railway injects it automatically.
-# Root Directory must be: backend | Builder: Dockerfile
+# GitHub Actions: railway up from repo root (railway.toml)
 `;
 fs.writeFileSync(outPath, header + serializeEnv(Object.entries(env)), "utf8");
 

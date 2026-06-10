@@ -26,6 +26,7 @@ import "../src/views/director.js";
 import "../src/views/player.js";
 import "../src/views/archive.js";
 import "../src/views/settings.js";
+import "../src/views/account.js";
 import "../src/runtime/wizard.js";
 import "../src/runtime/auth-world.js";
 import "../src/runtime/auth-session.js";

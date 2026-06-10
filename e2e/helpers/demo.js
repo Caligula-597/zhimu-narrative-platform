@@ -48,14 +48,14 @@ export async function waitForCloudReady(page, timeout = 45_000) {
     const state = window.zhimuState;
     const worldId = window.zhimuApi?.context?.worldId;
     return state && !state.cloudLoading && worldId && (state.cloudWorlds?.length || state.cloudStudio?.world);
-  }, { timeout });
+  }, undefined, { timeout });
 }
 
 export async function waitForSectionCompleted(page, timeout = 20_000) {
   await page.waitForFunction(() => {
     const sections = window.zhimuState?.cloudPlayer?.sections || [];
     return sections.some((section) => section.completed);
-  }, { timeout });
+  }, undefined, { timeout });
 }
 
 /** @param {Page} page */
@@ -88,8 +88,8 @@ export async function joinRoomViaInviteUi(page, inviteCode = E2E.inviteCode) {
   await page.waitForFunction(() => {
     const select = document.querySelector("[data-join-role]");
     return select && !select.disabled && select.value;
-  }, { timeout: 20_000 });
+  }, undefined, { timeout: 20_000 });
   await page.locator("[data-join-submit]").click();
-  await page.waitForFunction(() => window.zhimuState?.view === "player", { timeout: 20_000 });
+  await page.waitForFunction(() => window.zhimuState?.view === "player", undefined, { timeout: 20_000 });
   await waitForCloudReady(page);
 }

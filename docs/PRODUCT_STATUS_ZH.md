@@ -1,7 +1,7 @@
 # 织幕 · 产品功能与工程现状（中文总览）
 
 > **用途**：给团队/新成员的一份「做到哪了、能用什么、不能用什么、怎么验」的**单一长文**。  
-> **更新**：2026-06-06  
+> **更新**：2026-06-08  
 > **阶段**：Alpha → **Beta 过渡**（可内测，**非**生产级 SaaS）  
 > **更细的逐项说明**：[FEATURE_CATALOG.md](../FEATURE_CATALOG.md) · **实现/缺口表**：[IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) · **交接检查点**：[PROJECT_STATUS.md](./PROJECT_STATUS.md)
 
@@ -25,7 +25,7 @@
 
 **织幕**是面向线上长线剧本杀的自动化叙事引擎：创作者在云端写世界、编排剧情、配规则；玩家入房阅读、探索、收线索；主持台监控进度、确认事件、手动干预；数据落在 **PostgreSQL** 与 **Cloudflare R2**。
 
-当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**180** 项后端测试 + **56** 条 schema 门禁 + smoke/E2E 可复验。Beta-1～3 与 **Beta-4 找回密码（Resend）** 已落地。尚不适合作为公开 SaaS：缺邮箱验证/OAuth、实体卡、生产级 AV 扫描与前端现代化。
+当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**222** 项后端测试 + **56** 条 schema 门禁 + smoke/E2E 可复验。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。尚不适合作为公开 SaaS：缺 Stripe 订阅、实体卡、生产级 AV 扫描与前端现代化。
 
 ---
 
@@ -43,7 +43,7 @@
 | DeepSeek AI | 🟡 | 需 `DEEPSEEK_API_KEY` |
 | LiveKit 语音 | ✅ | Token API + 前端连接/麦克风状态与重试 |
 | 实体卡 / NFC | ❌ | 仅占位 |
-| 生产 SaaS（OAuth/付费/AV 扫描） | ❌ | 路线图 |
+| 生产 SaaS（Stripe/AV 扫描） | 🟡 | OAuth/配额/邀请 ✅；Stripe 🔲 |
 
 **参考 Demo**
 
@@ -61,8 +61,10 @@
 
 | 能力 | 状态 | 局限 |
 |------|------|------|
-| 注册 / 登录 / Bearer Session | ✅ | **找回密码**（Resend 邮件 + `?reset=` 链接）；无邮箱验证、OAuth |
-| 世界 CRUD、PATCH、成员角色 | ✅ | 只能邀请**已注册**邮箱；无邀请链接 |
+| 注册 / 登录 / Bearer Session | ✅ | 找回密码（Resend）；**邮箱验证**（可选强制）；**OAuth** Google/GitHub |
+| 游客 / 多设备 Session | ✅ | `POST /auth/guest`；设备列表与下线 |
+| 套餐与配额 | ✅ | `free/creator/studio/beta`；`GET /account/entitlements` |
+| 世界 CRUD、PATCH、成员角色 | ✅ | **协作者邮件邀请** + `?invite=` 接受 |
 | 平行运行房、邀请码 | ✅ | 房间无合并对比视图 |
 | 世界运行日志 timeline | ✅ | 无导出 |
 | 全文搜索 | ✅ | 迁移 014；顶栏搜索 + **图谱/线索页跳转高亮** |
@@ -166,7 +168,7 @@
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **180** |
+| `backend npm test` | **222** |
 | `npm run check:schemas` | **56** 条路由 |
 | `npm run test:smoke` | **18** |
 | `node scripts/ui-smoke.js` | **41/41** |
@@ -246,7 +248,7 @@ npm run verify:full:fresh
 
 ### 7.1 不建议现在做的假设
 
-- 把本项目当多租户公开 SaaS（缺 OAuth、计费、AV、完整监控）。
+- 把本项目当多租户公开 SaaS（缺 Stripe 计费、AV、完整监控）。
 - 在多台 API 上只靠 memory SSE（应设 `ROOM_EVENTS_BUS=postgres`）。
 - 生产环境开启 `ALLOW_DEMO_USER_HEADER`。
 
@@ -254,7 +256,7 @@ npm run verify:full:fresh
 
 1. 本机或 VPS 跑通 Docker 预发（[STAGING.md](./ops/STAGING.md)）；`.env.staging` 同步 Resend / LiveKit / R2 / DeepSeek Key，`APP_PUBLIC_URL` 与访问端口一致。
 2. 内测包：`VITE_REQUIRE_AUTH=1` 构建 + [REMOTE_TESTING.md](./ops/REMOTE_TESTING.md)。
-3. 邮箱验证（注册激活）、OAuth、实体卡/NFC、生产级上传 AV、OpenTelemetry SDK、可选 Redis 总线。
+3. Stripe 订阅 webhook、实体卡/NFC、生产级上传 AV、OpenTelemetry SDK、可选 Redis 总线。
 
 ---
 

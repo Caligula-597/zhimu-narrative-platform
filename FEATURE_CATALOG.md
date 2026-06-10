@@ -3,7 +3,7 @@
 > **文档用途**：团队协调用的功能总表。每个功能标明已实现、部分实现、未实现与已知局限。  
 > **产品现状（中文长文，推荐先读）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **一张表总览（后端/前端/未接通/缺陷）**：[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)  
-> **更新日期**：2026-06-06（Beta-4 找回密码 · **180** 测试 · **56** schema · **41** UI smoke）  
+> **更新日期**：2026-06-08（身份底座 · **222** 测试 · **56** schema · **41** UI smoke）  
 > **版本阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）
 
 ---
@@ -279,7 +279,7 @@
 | Supabase 云库 | ✅ | 生产/开发可连 |
 | Cloudflare R2 | ✅ | 私有 bucket + 签名 URL |
 | 路由模块化 | ✅ | `backend/src/routes/*.js` + helpers |
-| 单元/集成测试 | ✅ | **180 项** / ~45 文件（见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5） |
+| 单元/集成测试 | ✅ | **222 项** / ~62 文件（见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5） |
 | 前端 helper 测试 | ✅ | `test:format-helpers` **5** · `test:modal-helpers` **2**（CI 已跑） |
 | 测试数量门禁 | ✅ | `npm run check:tests`（下限 ≥100，`verify-test-count.mjs`） |
 | API smoke | ✅ | `scripts/smoke-api.js` **18 项**真实库（含 checkpoint-restore） |
@@ -427,7 +427,7 @@ npm run ci
 
 # 或分步复验（P0～P2）
 npm run check    # 语法
-npm test         # 180 项单元/集成
+npm test         # 222 项单元/集成
 npm run test:smoke   # 18 项 API（需 4180 已启动）
 npm run test:format-helpers
 npm run test:modal-helpers
@@ -1137,7 +1137,7 @@ npm run bootstrap:local   # migrate + seed + exploration
 
 ### 测试扩充（历史记录 · 当时数字）
 
-> **当前验收**见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5：**180** 单测 · **56** schema · **18** smoke · **41** UI smoke · **29** modules · Playwright E2E。
+> **当前验收**见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5：**222** 单测 · **56** schema · **18** smoke · **41** UI smoke · **29** modules · Playwright E2E。
 
 | 套件 | 数量（当时） | 新增 |
 |------|------|------|
@@ -1187,7 +1187,7 @@ npm run test:ui             # 需 :4173 + :4180
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **180** |
+| `backend npm test` | **222** |
 | `check:schemas` | **56** |
 | `test:smoke` | **18** |
 | `ui-smoke.js` | **41/41** |

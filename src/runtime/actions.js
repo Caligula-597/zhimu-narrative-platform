@@ -177,6 +177,7 @@
   if(state.view==="studio") bindStudioDragging();
   if(state.view==="assets") V.assets?.bindAssetSearch?.();
   if(state.view==="clues") V.clues?.bindCluesSearch?.();
+  if(state.view==="account") V.account?.bindAccountView?.();
   window.zhimuSearchFocus?.applyAfterRender?.();
 }
 
@@ -193,6 +194,7 @@ function handle(action,el){
   if(action==="save-room-settings") return saveRoomSettings();
   if(action==="world-audit") return openWorldAuditModal();
   if(action==="go-writer-export") return goWriterExport();
+  if(action==="go-account") return R.go?.("account");
   if(action==="asset-filter") return setAssetFilter(el.dataset.kind);
   if(action==="asset-recycle-toggle") return toggleAssetRecycle();
   if(action==="rules-preview") return refreshRulesPreview();

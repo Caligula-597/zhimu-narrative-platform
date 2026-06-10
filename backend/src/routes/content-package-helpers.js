@@ -1,6 +1,7 @@
 import { query, transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
 import { buildWorldSnapshot, creatorChecks, storageUsage } from "./world-helpers.js";
+import { assertWorldCreateQuota } from "../quota-guards.js";
 
 export const PACKAGE_FORMAT = "zhimu-world-package";
 export const PACKAGE_VERSION = 1;
@@ -535,11 +536,7 @@ export async function importContentPackage(worldId, payload) {
 }
 
 export async function createWorldFromContentPackage(actorId, { name, summary = "", data }) {
-  const quota = await storageUsage(actorId);
-  const worldCount = await query(`SELECT COUNT(*)::int AS count FROM worlds WHERE owner_user_id = $1 AND status <> 'archived'`, [actorId]);
-  if (worldCount.rows[0].count >= quota.max_worlds) {
-    throwErr("WORLD_QUOTA_EXCEEDED");
-  }
+  await assertWorldCreateQuota(actorId);
   const worldName = name?.trim() || data.world?.name?.trim() || "导入的世界";
   const worldSummary = summary?.trim() || data.world?.summary?.trim() || "";
   return transaction(async (client) => {

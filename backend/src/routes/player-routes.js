@@ -1,9 +1,10 @@
-import { query } from "../db.js";
+import { pool, query } from "../db.js";
 import { evaluateRoomRules } from "../rule-engine.js";
 import { transactionWithEvents } from "../transaction-events.js";
 import { publishRoomEvent } from "../room-event-bus.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
+import { assertCapability } from "../capabilities.js";
 import { fetchPlayerClues } from "./clue-helpers.js";
 import { assertRolesInRoomWorld } from "./clue-share-helpers.js";
 import { listPlayerInventory, consumeItemIfNeeded } from "../inventory-helpers.js";
@@ -70,6 +71,7 @@ export async function registerPlayerRoutes(app) {
 
   app.post("/api/rooms/join", { schema: joinRoomSchema }, async (request, reply) => {
     const actorId = requireActor(request);
+    await assertCapability(actorId, "room.join");
     const { inviteCode, roleSlotId } = request.body ?? {};
     if (!inviteCode || !roleSlotId) return sendErr(reply, "INVITE_FIELDS_REQUIRED");
     const room = await query(`SELECT id, world_id FROM rooms WHERE invite_code = $1`, [inviteCode]);
@@ -107,9 +109,11 @@ export async function registerPlayerRoutes(app) {
       throw error;
     }
 
-    const [role, sections, notes, clueBundle, rooms, members, inventory] = await Promise.all([
-      query(`SELECT id, name, public_profile, private_profile FROM role_slots WHERE id = $1`, [membership.role_slot_id]),
-      query(
+    const client = await pool.connect();
+    try {
+      const roomInfo = await client.query(`SELECT id, name, invite_code, status FROM rooms WHERE id = $1`, [roomId]);
+      const role = await client.query(`SELECT id, name, public_profile, private_profile FROM role_slots WHERE id = $1`, [membership.role_slot_id]);
+      const sections = await client.query(
         `SELECT ss.id, ss.title, ss.body, ss.sequence,
                 rp.started_at, rp.completed_at,
                 (rp.completed_at IS NOT NULL) AS completed
@@ -130,16 +134,16 @@ export async function registerPlayerRoutes(app) {
            )
          ORDER BY ss.sequence`,
         [roomId, membership.role_slot_id]
-      ),
-      query(
+      );
+      const notes = await client.query(
         `SELECT id, source_type, source_id, title, body, created_at
          FROM notebook_entries
          WHERE room_id = $1 AND role_slot_id = $2
          ORDER BY created_at DESC`,
         [roomId, membership.role_slot_id]
-      ),
-      fetchPlayerClues(query, roomId, membership.role_slot_id),
-      query(
+      );
+      const clueBundle = await fetchPlayerClues(client.query.bind(client), roomId, membership.role_slot_id);
+      const rooms = await client.query(
         `SELECT vr.id, vr.name, vr.room_type, vr.status
          FROM voice_rooms vr
          WHERE vr.room_id = $1 AND (
@@ -149,8 +153,8 @@ export async function registerPlayerRoutes(app) {
            )
          ) ORDER BY vr.created_at`,
         [roomId, actorId]
-      ),
-      query(
+      );
+      const members = await client.query(
         `SELECT rs.id AS role_slot_id, rs.name AS role_name, rm.user_id, u.display_name,
                 rm.member_type, (rm.user_id IS NOT NULL) AS online
          FROM rooms r
@@ -161,20 +165,23 @@ export async function registerPlayerRoutes(app) {
          WHERE r.id = $1
          ORDER BY rs.sequence`,
         [roomId]
-      ),
-      listPlayerInventory(null, roomId, membership.role_slot_id)
-    ]);
+      );
+      const inventory = await listPlayerInventory(client, roomId, membership.role_slot_id);
 
-    return {
-      role: role.rows[0],
-      sections: sections.rows,
-      notes: notes.rows,
-      clues: clueBundle.owned,
-      sharedClues: clueBundle.shared,
-      voiceRooms: rooms.rows,
-      roomMembers: members.rows,
-      inventory
-    };
+      return {
+        room: roomInfo.rows[0],
+        role: role.rows[0],
+        sections: sections.rows,
+        notes: notes.rows,
+        clues: clueBundle.owned,
+        sharedClues: clueBundle.shared,
+        voiceRooms: rooms.rows,
+        roomMembers: members.rows,
+        inventory
+      };
+    } finally {
+      client.release();
+    }
   });
 
   app.post("/api/rooms/:roomId/sections/:sectionId/complete", { schema: completeSectionSchema }, async (request) => {

@@ -9,10 +9,10 @@
 
 | 已自动完成 | 必须你手动（见 MANUAL_SETUP_CHECKLIST） |
 |------------|----------------------------------------|
-| `npm run railway:bootstrap` 写 Web/API 部分变量 | **Project Token** → GitHub `RAILWAY_TOKEN` |
-| GitHub Secrets：Service ID 等 | API 全量变量：粘贴 `.env.railway` |
-| push / Actions 部署脚本 | Railway **web/Dockerfile** 构建路径（网页） |
-| `npm run railway:sync-env` 生成本地 `.env.railway` | 自定义域名 + Cloudflare DNS |
+| fullstack `deploy/Dockerfile.fullstack`（API+前端单服务） | **Project Token** → GitHub `RAILWAY_TOKEN` |
+| GitHub Actions：`railway up` 从仓库根 | 删除多余 **web** 服务（省 Railway 额度） |
+| `npm run railway:push-env` 推送变量 | Railway Dockerfile 路径（若未走 Actions） |
+| `npm run railway:sync-env` 生成 `.env.railway` | 自定义域名 + Cloudflare DNS |
 | | 停用 Cloudflare Pages |
 
 ---
@@ -37,4 +37,4 @@ Secrets 与触发方式见 [MANUAL_SETUP_CHECKLIST.md § 第 1 步](./MANUAL_SET
 ## 相关
 
 - [MANUAL_SETUP_CHECKLIST.md](./MANUAL_SETUP_CHECKLIST.md) — **上线打勾清单**
-- [RAILWAY.md](./RAILWAY.md) · [RAILWAY_WEB.md](./RAILWAY_WEB.md)
+- [RAILWAY.md](./RAILWAY.md)

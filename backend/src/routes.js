@@ -12,6 +12,7 @@ import { registerHostRoutes } from "./routes/host-routes.js";
 import { registerPlayerRoutes } from "./routes/player-routes.js";
 import { registerVoiceRoutes } from "./routes/voice-routes.js";
 import { registerAssetRoutes } from "./routes/asset-routes.js";
+import { registerAccountRoutes } from "./routes/account-routes.js";
 import { registerSearchRoutes } from "./routes/search-routes.js";
 
 export async function registerRoutes(app) {
@@ -30,4 +31,5 @@ export async function registerRoutes(app) {
   await registerPlayerRoutes(app);
   await registerVoiceRoutes(app);
   await registerAssetRoutes(app);
+  await registerAccountRoutes(app);
 }

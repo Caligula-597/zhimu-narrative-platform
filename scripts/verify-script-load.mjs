@@ -34,6 +34,7 @@ const files = [
   "src/views/player.js",
   "src/views/archive.js",
   "src/views/settings.js",
+  "src/views/account.js",
   "src/runtime/wizard.js",
   "src/runtime/auth-world.js",
   "src/runtime/auth-session.js",

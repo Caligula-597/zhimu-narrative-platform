@@ -62,7 +62,7 @@ ROOM_EVENTS_BUS=postgres
 - **规则 POST/PUT** — 入库前 `validateRuleBody`（422）
 - **P0 运维** — `/metrics`、JSON 日志、`/api/openapi.json`、`db:backup`、Trace ID
 - **P1 运维** — ops API、告警文档、上传 webhook 扫描钩子（**stub 模式**）
-- **`beta-gates.test.js`** — 建世界/成员/规则成功路径
+- **`permissions-matrix.test.js`** · **`world-invites-quota.test.js`** · **`oauth-diagnostics.test.js`** · **`account-entitlements.test.js`**
 - **`beta2-ops.test.js`** — ops status、telemetry、限流元数据
 - **迁移 018** — `pending_host_events.delay_until` + 延迟唤醒轮询
 
@@ -79,6 +79,7 @@ ROOM_EVENTS_BUS=postgres
 
 | 优先级 | 项 | 说明 |
 |--------|-----|------|
+| **P0** | 身份权限底座 | ✅ 矩阵/游客/session/配额/邀请/OAuth 诊断 — 见 [IDENTITY_AND_PERMISSIONS.md](./IDENTITY_AND_PERMISSIONS.md) |
 | P1 | Redis 总线（可选） | 高于 NOTIFY 吞吐时替换；journal 仍为真相源 |
 | P2 | 慢查询日志 | `PGLOG_MIN_DURATION` 或 app 层计时 |
 | P3 | ~~全文搜索 API~~ | ✅ `GET /worlds/:id/search` + 迁移 014（2026-06-03） |

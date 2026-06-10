@@ -23,6 +23,14 @@ try {
     [FIXTURE.playerUserId, "player@zhimu.local", "顾言"]
   );
 
+  for (const userId of [FIXTURE.hostUserId, FIXTURE.playerUserId]) {
+    await client.query(
+      `INSERT INTO user_plans (user_id, plan_code) VALUES ($1, 'beta')
+       ON CONFLICT (user_id) DO UPDATE SET plan_code = 'beta', updated_at = now()`,
+      [userId]
+    );
+  }
+
   await client.query(
     `INSERT INTO worlds (id, owner_user_id, name, summary, status, catalog_public)
      VALUES ($1, $2, '雾港来信', '海雾将旧日的来信送回港口。', 'testing', true)

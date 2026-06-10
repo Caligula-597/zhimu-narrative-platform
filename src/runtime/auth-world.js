@@ -83,14 +83,52 @@
 
  function openAuth(){
  const loggedIn=Boolean(localStorage.getItem("zhimuSessionToken"));
+ if(loggedIn){openAccountPanel();return}
+ openAuthForm();
+}
+
+async function openAccountPanel(){
+ try{
+  const [me,sessions,config,entitlements]=await Promise.all([zhimuApi.me(),zhimuApi.listSessions(),zhimuApi.getAuthConfig(),zhimuApi.getAccountEntitlements().catch(()=>null)]);
+  const usage=entitlements?.usage??null;
+  if(usage)state.storageUsage=usage;
+  const oauth=config.oauth||[];
+  const isGuest=Boolean(me.isGuest);
+  const sessionRows=(sessions.sessions||[]).map(s=>`<div class="collab-row"><div><b>${escapeHtml(s.deviceLabel||"未知设备")}</b><p>${escapeHtml(s.userAgent||"—")} · 最近 ${formatTime(s.lastSeenAt)}</p></div>${s.isCurrent?`<span class="cloud-pill">当前</span>`:`<button class="text-btn danger-text" data-revoke-session="${s.id}">下线</button>`}</div>`).join("")||`<div class="empty-state">暂无其他设备记录</div>`;
+  const oauthButtons=oauth.map(p=>`<button class="secondary-btn" data-oauth-start="${p.id}">使用 ${escapeHtml(p.label)} 登录</button>`).join("");
+  modal.className="modal auth-modal";
+  modal.innerHTML=`<h2>账号与会话</h2><p class="wizard-intro">${escapeHtml(me.display_name||me.email||"已登录")}${isGuest?" · 游客账号":me.email?` · ${escapeHtml(me.email)}`:""}</p>${!isGuest?renderQuotaSection(usage):""}${isGuest?`<section class="form-group"><h3>保存进度 · 注册正式账号</h3>${studioField("邮箱","upgradeEmail","input","")}${studioField("昵称","upgradeName","input",me.display_name||"")}${studioField("密码 · 至少 8 位","upgradePassword","input","")}<button class="primary-btn" data-guest-upgrade>绑定邮箱并注册</button><p class="muted-note">或使用 OAuth 绑定（保留当前房间进度）</p>${oauthButtons}</section>`:""}${!isGuest&&oauth.length?`<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>`:""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div><button class="text-btn" data-logout-all>下线其他所有设备</button></section><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="danger-btn" data-auth-logout>退出登录</button></div>`;
+  modalBackdrop.classList.add("show");
+  modal.querySelector("[data-close]").onclick=closeModal;
+  modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
+  modal.querySelector("[data-auth-logout]").onclick=async()=>{await zhimuApi.logout();localStorage.removeItem("zhimuSessionToken");zhimuApi.resetActiveWorld?.();state.cloudStudio=null;window.zhimuClearRuntimeState?.();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast("已退出登录");await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true);render()}catch(error){showToast(error.message)}};
+  modal.querySelector("[data-logout-all]")?.addEventListener("click",async()=>{try{await zhimuApi.logoutAllDevices();showToast("已下线其他设备");openAccountPanel()}catch(error){showToast(error.message)}});
+  modal.querySelectorAll("[data-revoke-session]").forEach(btn=>btn.onclick=async()=>{try{await zhimuApi.revokeSession(btn.dataset.revokeSession);showToast("设备已下线");openAccountPanel()}catch(error){showToast(error.message)}});
+  modal.querySelector("[data-guest-upgrade]")?.addEventListener("click",async()=>{try{const result=await zhimuApi.upgradeGuest({email:modal.querySelector('[data-studio-field="upgradeEmail"]').value,displayName:modal.querySelector('[data-studio-field="upgradeName"]').value,password:modal.querySelector('[data-studio-field="upgradePassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);closeModal();showToast("账号已升级");await window.zhimuAuthSession?.syncProfile?.();await loadCloudData(true,true);render()}catch(error){showToast(error.message)}});
+  modal.querySelectorAll("[data-oauth-start]").forEach(btn=>btn.onclick=async()=>{try{const {url}=await zhimuApi.oauthStartUrl(btn.dataset.oauthStart);window.location.href=url}catch(error){showToast(error.message)}});
+ }catch(error){showToast(error.message);openAuthForm()}
+}
+
+function renderQuotaSection(usage){
+ if(!usage)return `<section class="form-group"><h3>套餐与配额</h3><p class="muted-note">配额信息加载中…</p></section>`;
+ const storagePct=usage.storagePercent??(usage.maxBytes?Math.min(100,Math.round((usage.usedBytes||0)/usage.maxBytes*100)):0);
+ const worldsPct=usage.worldsPercent??(usage.maxWorlds?Math.min(100,Math.round((usage.usedWorlds||0)/usage.maxWorlds*100)):0);
+ const betaNote=usage.isInternalBeta?`<span class="cloud-pill" style="margin-left:6px">内测</span>`:"";
+ return `<section class="form-group"><h3>套餐与配额</h3><div class="row" style="align-items:center;gap:8px;margin-bottom:10px"><span class="cloud-pill">${escapeHtml(usage.planLabel||usage.planCode||"免费版")}</span>${betaNote}</div>${usage.planDescription?`<p class="muted-note" style="margin-bottom:10px">${escapeHtml(usage.planDescription)}</p>`:""}<p class="muted-note" style="margin-bottom:6px">云存储 · ${formatBytes(usage.usedBytes||0)} / ${formatBytes(usage.maxBytes||0)}</p><div class="usage-bar"><i style="width:${storagePct}%"></i></div><div class="status-meta"><span>已用 ${storagePct}%</span><span>剩余 ${formatBytes(usage.remainingBytes??0)}</span></div><p class="muted-note" style="margin-top:14px;margin-bottom:6px">可创建剧本 · ${usage.usedWorlds??0} / ${usage.maxWorlds??0}</p><div class="usage-bar"><i style="width:${worldsPct}%"></i></div><div class="status-meta"><span>已用 ${worldsPct}%</span><span>剩余 ${usage.remainingWorlds??0} 个</span></div><p class="muted-note" style="margin-top:10px">单文件上限 ${formatBytes(usage.maxSingleFileBytes||0)}</p></section>`;
+}
+
+function openAuthForm(){
  const requireAuth=Boolean(window.zhimuConfig?.requireAuth);
- const loggedInIntro="退出登录后，需要重新登录才能访问你的剧本与运行数据。";
  const guestIntro="注册或登录后，可创建剧本、邀请协作者并保存运行数据。";
- modal.className="modal auth-modal";modal.innerHTML=loggedIn?`<h2>账号与会话</h2><p class="wizard-intro">${loggedInIntro}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="danger-btn" data-auth-logout>退出登录</button></div>`:`<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button><button type="button" class="text-btn" data-auth-forgot style="margin-top:8px">忘记密码？</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;if(!loggedIn)modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
+ modal.className="modal auth-modal";
+ modal.innerHTML=`<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div data-oauth-bar class="row" style="margin-bottom:12px"></div><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button><button type="button" class="text-btn" data-auth-forgot style="margin-top:8px">忘记密码？</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
  const resetAccountContext=()=>{zhimuApi.resetActiveWorld?.();state.cloudStudio=null;window.zhimuClearRuntimeState?.()};
- const finishAuth=async(label)=>{resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true)}catch(error){showToast(error.message)}render();if(!zhimuApi.context.worldId){const hasWorlds=(state.cloudWorlds||[]).length>0;setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400)}};
- if(loggedIn)modal.querySelector("[data-auth-logout]").onclick=async()=>{await zhimuApi.logout();localStorage.removeItem("zhimuSessionToken");resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast("已退出登录");await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();if(requireAuth)window.zhimuAuthSession?.promptAuthIfNeeded?.(true);else try{await loadCloudData(true,true);render()}catch(error){showToast(error.message)}};
- else{modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});if(result.pendingEmailVerification){closeModal();showToast("注册成功，请查收验证邮件");openVerifyPending(modal.querySelector('[data-studio-field="registerEmail"]').value.trim());return}localStorage.setItem("zhimuSessionToken",result.token);await finishAuth("注册成功，已经登录")}catch(error){showToast(error.message)}};modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);if(result.pendingEmailVerification){closeModal();showToast("登录成功，请先验证邮箱");openVerifyPending(modal.querySelector('[data-studio-field="loginEmail"]').value.trim());return}await finishAuth("登录成功")}catch(error){showToast(error.message)}};modal.querySelector("[data-auth-forgot]")?.addEventListener("click",()=>openForgotPassword(modal.querySelector('[data-studio-field="loginEmail"]')?.value||""))}
+ const finishAuth=async(label)=>{resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true)}catch(error){showToast(error.message)}render();window.zhimuRuntime?.drainPendingInviteAfterAuth?.();if(!zhimuApi.context.worldId){const hasWorlds=(state.cloudWorlds||[]).length>0;setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400)}};
+ modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});if(result.pendingEmailVerification){closeModal();showToast("注册成功，请查收验证邮件");openVerifyPending(modal.querySelector('[data-studio-field="registerEmail"]').value.trim());return}localStorage.setItem("zhimuSessionToken",result.token);await finishAuth("注册成功，已经登录")}catch(error){showToast(error.message)}};
+ modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);if(result.pendingEmailVerification){closeModal();showToast("登录成功，请先验证邮箱");openVerifyPending(modal.querySelector('[data-studio-field="loginEmail"]').value.trim());return}await finishAuth("登录成功")}catch(error){showToast(error.message)}};
+ modal.querySelector("[data-auth-forgot]")?.addEventListener("click",()=>openForgotPassword(modal.querySelector('[data-studio-field="loginEmail"]')?.value||""));
+ (async()=>{try{const config=await zhimuApi.getAuthConfig();const bar=modal.querySelector("[data-oauth-bar]");if(!bar||!config.oauth?.length)return;bar.innerHTML=config.oauth.map(p=>`<button class="secondary-btn" data-oauth-start="${p.id}">${escapeHtml(p.label)} 登录</button>`).join("");bar.querySelectorAll("[data-oauth-start]").forEach(btn=>btn.onclick=async()=>{try{const {url}=await zhimuApi.oauthStartUrl(btn.dataset.oauthStart);window.location.href=url}catch(error){showToast(error.message)}})}catch{}})();
 }
 
 async function joinCatalogWorld(worldId){
@@ -261,10 +299,71 @@ function openJoinRoom(inviteCode=""){
  const draw=()=>{const roles=invite?.roles||[],available=roles.filter(role=>!role.occupied||role.occupied_by_current);modal.className="modal";modal.innerHTML=`<h2>使用邀请码加入房间</h2><p class="wizard-intro">玩家只需要输入主持人发送的邀请码。系统会读取对应剧本的角色席位，再将玩家加入正确的独立平行房。</p><div class="form-group"><label>房间邀请码</label><div class="row"><input class="field" data-join-code value="${escapeHtml(inviteCode)}" placeholder="输入主持人发送的邀请码"><button class="secondary-btn" data-join-lookup>读取角色席位</button></div>${invite?`<div class="tutorial-tip"><b>${escapeHtml(invite.room.name)}</b><span>${escapeHtml(invite.world.name)} · 选择你的角色后进入房间。</span></div>`:""}<label>选择角色席位</label><select class="field" data-join-role ${available.length?"":"disabled"}>${roles.map(role=>`<option value="${role.id}" ${role.occupied&&!role.occupied_by_current?"disabled":""}>${escapeHtml(role.name)}${role.occupied_by_current?" · 当前角色":role.occupied?" · 已被选择":""}</option>`).join("")||`<option>请先读取角色席位</option>`}</select></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-join-submit ${available.length?"":"disabled"}>加入并进入玩家视角</button></div>`;
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-join-lookup]").onclick=lookup;modal.querySelector("[data-join-submit]").onclick=submit;
  };
- const lookup=async()=>{const code=modal.querySelector("[data-join-code]").value.trim();if(!code)return showToast("请填写房间邀请码");try{inviteCode=code;invite=await zhimuApi.getRoomInvite(code);draw();showToast("已读取可选角色席位")}catch(error){showToast(error.message)}};
- const submit=async()=>{const roleSlotId=modal.querySelector("[data-join-role]").value;if(!inviteCode||!roleSlotId)return showToast("请先读取角色席位");try{const result=await zhimuApi.joinRoom(inviteCode,roleSlotId);zhimuApi.selectWorld(invite.world.id);zhimuApi.selectRoom(result.roomId);closeModal();await loadCloudData(true,true);go("player");showToast("已加入房间，可以继续创建临时密谈")}catch(error){showToast(error.message)}};
+ const lookup=async()=>{const code=modal.querySelector("[data-join-code]").value.trim();if(!code)return showToast("请填写房间邀请码");try{await zhimuApi.ensurePlayerSession();inviteCode=code;invite=await zhimuApi.getRoomInvite(code);draw();showToast("已读取可选角色席位")}catch(error){showToast(error.message)}};
+ const submit=async()=>{const roleSlotId=modal.querySelector("[data-join-role]").value;if(!inviteCode||!roleSlotId)return showToast("请先读取角色席位");try{await zhimuApi.ensurePlayerSession();const result=await zhimuApi.joinRoom(inviteCode,roleSlotId);zhimuApi.selectWorld(invite.world.id);zhimuApi.selectRoom(result.roomId);closeModal();await loadCloudData(true,true);go("player");showToast("已加入房间，可以继续创建临时密谈")}catch(error){showToast(error.message)}};
  draw();if(inviteCode)lookup();
 }
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, selectParallelRoom, openRoomInvite, openJoinRoom });
+
+async function acceptWorldInviteFromUrl(token){
+ if(!token)return;
+ const finish=async()=>{
+  try{
+   await zhimuApi.acceptWorldInvite(token);
+   showToast("协作邀请已接受");
+   await loadCloudData(true,true);
+   render();
+  }catch(error){
+   window.zhimuUserMessages?.handleApiErrorToast?.(error, showToast) || showToast(error.message);
+  }
+ };
+ if(!localStorage.getItem("zhimuSessionToken")){
+  sessionStorage.setItem("zhimuPendingInviteToken", token);
+  showToast("请先登录以接受协作邀请");
+  openAuthForm();
+  return;
+ }
+ await finish();
+}
+
+function drainPendingInviteAfterAuth(){
+ const token=sessionStorage.getItem("zhimuPendingInviteToken");
+ if(!token||!localStorage.getItem("zhimuSessionToken"))return;
+ sessionStorage.removeItem("zhimuPendingInviteToken");
+ void acceptWorldInviteFromUrl(token);
+}
+
+function handleStartupAuthParams(){
+ const params=new URLSearchParams(window.location.search);
+ const resetToken=params.get("reset");
+ const verifyToken=params.get("verify");
+ const oauthCode=params.get("oauth_code");
+ const oauthError=params.get("oauth_error");
+ const inviteToken=params.get("invite");
+ if(!resetToken&&!verifyToken&&!oauthCode&&!oauthError&&!inviteToken)return;
+ const cleanUrl=`${window.location.pathname}${window.location.hash||""}`;
+ window.history.replaceState({},"",cleanUrl);
+ if(resetToken)openResetPassword(resetToken);
+ if(verifyToken)openVerifyEmail(verifyToken);
+ if(oauthError)showToast(`OAuth 登录失败：${oauthError}`);
+ if(inviteToken)acceptWorldInviteFromUrl(inviteToken);
+ if(oauthCode){
+  (async()=>{
+   try{
+    const result=await zhimuApi.completeOAuth(oauthCode);
+    localStorage.setItem("zhimuSessionToken",result.token);
+    zhimuApi.resetActiveWorld?.();
+    await window.zhimuAuthSession?.syncProfile?.();
+    window.zhimuAuthSession?.syncAuthBanner?.();
+    showToast("OAuth 登录成功");
+    await loadCloudData(true,true);
+    drainPendingInviteAfterAuth();
+    render();
+   }catch(error){
+    showToast(error.message||"OAuth 登录失败");
+   }
+  })();
+ }
+}
+  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, selectParallelRoom, openRoomInvite, openJoinRoom, renderQuotaSection, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });
 })(window);
 export {};

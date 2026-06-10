@@ -63,11 +63,12 @@ export async function resetE2eRoomRuntime(client) {
     );
   }
 
-  // Remove player so Act 2 can exercise invite-code join every run.
+  // Remove players so Act 2 can exercise invite-code join every run, including
+  // guest/session users left by interrupted browser runs.
   await client.query(
     `DELETE FROM room_members
-     WHERE room_id = $1 AND user_id = $2 AND member_type = 'player'`,
-    [roomId, E2E.playerUserId]
+     WHERE room_id = $1 AND member_type = 'player'`,
+    [roomId]
   );
 
   return { roomId, roleId, inviteCode: E2E.inviteCode };

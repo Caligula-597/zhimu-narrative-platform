@@ -46,6 +46,8 @@ window.zhimuState = {
   cloudRoomSettings: { hostVoiceListen: false },
   cloudRulesPreview: null,
   storageUsage: null,
+  accountView: null,
+  accountViewLoading: false,
   apiError: "",
   roomEventsConnected: false,
   wizardStep: 0,

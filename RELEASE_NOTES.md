@@ -1,8 +1,22 @@
 # 织幕 Alpha · Release Notes
 
-**最新增量**：2026-06-06 · Beta-4 找回密码（Resend）  
-**版本标签建议**：`beta-4-2026-06-06`  
+**最新增量**：2026-06-08 · 身份底座（配额/邀请/OAuth/entitlements）  
+**版本标签建议**：`beta-5-2026-06-08`  
 **分支**：`main`
+
+---
+
+## 2026-06-08 · Beta-5 身份底座
+
+| 领域 | 交付 |
+|------|------|
+| 后端 | 迁移 023 `beta` 套餐；`quota-guards.js`；协作者邀请邮件 + 重发/撤销；`account-entitlements.js`；`oauth-diagnostics.js`；`POST /ops/users/plan` |
+| 前端 | 账号设置页；`GET /account/entitlements` 接线；`?invite=` 接受；配额触顶引导 |
+| 配置 | `INTERNAL_BETA_*`、`GOOGLE_*`/`GITHUB_*`、`OPS_API_TOKEN`、`REQUIRE_OAUTH_IN_PRODUCTION` |
+| 测试 | `account-entitlements`、`world-invites-quota`、`oauth-diagnostics`、`permissions-matrix` |
+| 验收 | backend **222** 测试 · schema **56** · smoke **18** · UI smoke **41** |
+
+详见 [docs/IDENTITY_AND_PERMISSIONS.md](./docs/IDENTITY_AND_PERMISSIONS.md) · [docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md)。
 
 ---
 

@@ -29,126 +29,112 @@ export async function buildRoomRecapSnapshot(query, roomId) {
   if (!roomRow.rowCount) return null;
 
   const room = roomRow.rows[0];
-  const [
-    players,
-    clueRows,
-    undiscoveredClues,
-    hostEvents,
-    ruleTriggers,
-    investigations,
-    notes,
-    unlockedScenes,
-    timelineLogs,
-    readingCompletions,
-    finalChapter
-  ] = await Promise.all([
-    fetchHostPlayers(query, roomId),
-    query(
-      `SELECT c.id AS clue_id, c.name AS clue_name, c.metadata AS clue_metadata,
-              rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name,
-              co.acquired_at, co.read_at, co.shared_with_room, co.metadata AS ownership_metadata
-       FROM clue_ownership co
-       JOIN clues c ON c.id = co.clue_id
-       JOIN role_slots rs ON rs.id = co.role_slot_id
-       LEFT JOIN room_members rm ON rm.room_id = co.room_id AND rm.role_slot_id = co.role_slot_id AND rm.status = 'active'
-       LEFT JOIN users u ON u.id = rm.user_id
-       WHERE co.room_id = $1
-       ORDER BY co.acquired_at ASC, c.name ASC`,
-      [roomId]
-    ),
-    query(
-      `SELECT c.id AS clue_id, c.name AS clue_name, c.metadata AS clue_metadata
-       FROM clues c
-       JOIN rooms r ON r.world_id = c.world_id
-       WHERE r.id = $1
-         AND NOT EXISTS (
-           SELECT 1 FROM clue_ownership co
-           WHERE co.room_id = $1 AND co.clue_id = c.id
-         )
-       ORDER BY c.name`,
-      [roomId]
-    ),
-    query(
-      `SELECT phe.id, phe.title, phe.description, phe.status, phe.actions,
-              phe.created_at, phe.resolved_at, ar.name AS rule_name
-       FROM pending_host_events phe
-       LEFT JOIN automation_rules ar ON ar.id = phe.rule_id
-       WHERE phe.room_id = $1 AND phe.status IN ('executed', 'dismissed')
-       ORDER BY COALESCE(phe.resolved_at, phe.created_at) ASC`,
-      [roomId]
-    ),
-    query(
-      `SELECT re.executed_at, ar.id AS rule_id, ar.name AS rule_name, ar.mode, ar.conditions, ar.actions, re.result
-       FROM rule_executions re
-       JOIN automation_rules ar ON ar.id = re.rule_id
-       WHERE re.room_id = $1
-       ORDER BY re.executed_at ASC`,
-      [roomId]
-    ),
-    query(
-      `SELECT ir.investigated_at, ip.id AS point_id, ip.name AS point_name, s.name AS scene_name,
-              rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
-       FROM investigation_records ir
-       JOIN investigation_points ip ON ip.id = ir.investigation_point_id
-       JOIN scenes s ON s.id = ip.scene_id
-       JOIN role_slots rs ON rs.id = ir.role_slot_id
-       LEFT JOIN room_members rm ON rm.room_id = ir.room_id AND rm.role_slot_id = ir.role_slot_id AND rm.status = 'active'
-       LEFT JOIN users u ON u.id = rm.user_id
-       WHERE ir.room_id = $1
-       ORDER BY ir.investigated_at ASC`,
-      [roomId]
-    ),
-    query(
-      `SELECT ne.id, ne.title, ne.body, ne.source_type, ne.created_at,
-              rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
-       FROM notebook_entries ne
-       JOIN role_slots rs ON rs.id = ne.role_slot_id
-       LEFT JOIN room_members rm ON rm.room_id = ne.room_id AND rm.role_slot_id = ne.role_slot_id AND rm.status = 'active'
-       LEFT JOIN users u ON u.id = rm.user_id
-       WHERE ne.room_id = $1
-       ORDER BY ne.created_at ASC`,
-      [roomId]
-    ),
-    query(
-      `SELECT s.id, s.name, rcu.unlocked_at
-       FROM room_content_unlocks rcu
-       JOIN scenes s ON s.id = rcu.content_id
-       WHERE rcu.room_id = $1 AND rcu.content_type = 'scene'
-       ORDER BY rcu.unlocked_at ASC`,
-      [roomId]
-    ),
-    query(
-      `SELECT tl.id, tl.event_type, tl.message, tl.visibility, tl.created_at, tl.metadata,
-              u.display_name AS actor_name
-       FROM timeline_logs tl
-       LEFT JOIN users u ON u.id = tl.actor_user_id
-       WHERE tl.room_id = $1
-       ORDER BY tl.created_at ASC`,
-      [roomId]
-    ),
-    query(
-      `SELECT rp.completed_at, ss.id AS section_id, ss.title AS section_title, ss.sequence,
-              rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
-       FROM reading_progress rp
-       JOIN script_sections ss ON ss.id = rp.script_section_id
-       JOIN role_slots rs ON rs.id = rp.role_slot_id
-       LEFT JOIN room_members rm ON rm.room_id = rp.room_id AND rm.role_slot_id = rp.role_slot_id AND rm.status = 'active'
-       LEFT JOIN users u ON u.id = rm.user_id
-       WHERE rp.room_id = $1 AND rp.completed_at IS NOT NULL
-       ORDER BY rp.completed_at ASC`,
-      [roomId]
-    ),
-    query(
-      `SELECT ch.id, ch.title, ch.sequence
-       FROM reading_progress rp
-       JOIN script_sections ss ON ss.id = rp.script_section_id
-       LEFT JOIN chapters ch ON ch.id = ss.chapter_id
-       WHERE rp.room_id = $1 AND rp.completed_at IS NOT NULL
-       ORDER BY rp.completed_at DESC
-       LIMIT 1`,
-      [roomId]
-    )
-  ]);
+  const players = await fetchHostPlayers(query, roomId);
+  const clueRows = await query(
+    `SELECT c.id AS clue_id, c.name AS clue_name, c.metadata AS clue_metadata,
+            rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name,
+            co.acquired_at, co.read_at, co.shared_with_room, co.metadata AS ownership_metadata
+     FROM clue_ownership co
+     JOIN clues c ON c.id = co.clue_id
+     JOIN role_slots rs ON rs.id = co.role_slot_id
+     LEFT JOIN room_members rm ON rm.room_id = co.room_id AND rm.role_slot_id = co.role_slot_id AND rm.status = 'active'
+     LEFT JOIN users u ON u.id = rm.user_id
+     WHERE co.room_id = $1
+     ORDER BY co.acquired_at ASC, c.name ASC`,
+    [roomId]
+  );
+  const undiscoveredClues = await query(
+    `SELECT c.id AS clue_id, c.name AS clue_name, c.metadata AS clue_metadata
+     FROM clues c
+     JOIN rooms r ON r.world_id = c.world_id
+     WHERE r.id = $1
+       AND NOT EXISTS (
+         SELECT 1 FROM clue_ownership co
+         WHERE co.room_id = $1 AND co.clue_id = c.id
+       )
+     ORDER BY c.name`,
+    [roomId]
+  );
+  const hostEvents = await query(
+    `SELECT phe.id, phe.title, phe.description, phe.status, phe.actions,
+            phe.created_at, phe.resolved_at, ar.name AS rule_name
+     FROM pending_host_events phe
+     LEFT JOIN automation_rules ar ON ar.id = phe.rule_id
+     WHERE phe.room_id = $1 AND phe.status IN ('executed', 'dismissed')
+     ORDER BY COALESCE(phe.resolved_at, phe.created_at) ASC`,
+    [roomId]
+  );
+  const ruleTriggers = await query(
+    `SELECT re.executed_at, ar.id AS rule_id, ar.name AS rule_name, ar.mode, ar.conditions, ar.actions, re.result
+     FROM rule_executions re
+     JOIN automation_rules ar ON ar.id = re.rule_id
+     WHERE re.room_id = $1
+     ORDER BY re.executed_at ASC`,
+    [roomId]
+  );
+  const investigations = await query(
+    `SELECT ir.investigated_at, ip.id AS point_id, ip.name AS point_name, s.name AS scene_name,
+            rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
+     FROM investigation_records ir
+     JOIN investigation_points ip ON ip.id = ir.investigation_point_id
+     JOIN scenes s ON s.id = ip.scene_id
+     JOIN role_slots rs ON rs.id = ir.role_slot_id
+     LEFT JOIN room_members rm ON rm.room_id = ir.room_id AND rm.role_slot_id = ir.role_slot_id AND rm.status = 'active'
+     LEFT JOIN users u ON u.id = rm.user_id
+     WHERE ir.room_id = $1
+     ORDER BY ir.investigated_at ASC`,
+    [roomId]
+  );
+  const notes = await query(
+    `SELECT ne.id, ne.title, ne.body, ne.source_type, ne.created_at,
+            rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
+     FROM notebook_entries ne
+     JOIN role_slots rs ON rs.id = ne.role_slot_id
+     LEFT JOIN room_members rm ON rm.room_id = ne.room_id AND rm.role_slot_id = ne.role_slot_id AND rm.status = 'active'
+     LEFT JOIN users u ON u.id = rm.user_id
+     WHERE ne.room_id = $1
+     ORDER BY ne.created_at ASC`,
+    [roomId]
+  );
+  const unlockedScenes = await query(
+    `SELECT s.id, s.name, rcu.unlocked_at
+     FROM room_content_unlocks rcu
+     JOIN scenes s ON s.id = rcu.content_id
+     WHERE rcu.room_id = $1 AND rcu.content_type = 'scene'
+     ORDER BY rcu.unlocked_at ASC`,
+    [roomId]
+  );
+  const timelineLogs = await query(
+    `SELECT tl.id, tl.event_type, tl.message, tl.visibility, tl.created_at, tl.metadata,
+            u.display_name AS actor_name
+     FROM timeline_logs tl
+     LEFT JOIN users u ON u.id = tl.actor_user_id
+     WHERE tl.room_id = $1
+     ORDER BY tl.created_at ASC`,
+    [roomId]
+  );
+  const readingCompletions = await query(
+    `SELECT rp.completed_at, ss.id AS section_id, ss.title AS section_title, ss.sequence,
+            rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
+     FROM reading_progress rp
+     JOIN script_sections ss ON ss.id = rp.script_section_id
+     JOIN role_slots rs ON rs.id = rp.role_slot_id
+     LEFT JOIN room_members rm ON rm.room_id = rp.room_id AND rm.role_slot_id = rp.role_slot_id AND rm.status = 'active'
+     LEFT JOIN users u ON u.id = rm.user_id
+     WHERE rp.room_id = $1 AND rp.completed_at IS NOT NULL
+     ORDER BY rp.completed_at ASC`,
+    [roomId]
+  );
+  const finalChapter = await query(
+    `SELECT ch.id, ch.title, ch.sequence
+     FROM reading_progress rp
+     JOIN script_sections ss ON ss.id = rp.script_section_id
+     LEFT JOIN chapters ch ON ch.id = ss.chapter_id
+     WHERE rp.room_id = $1 AND rp.completed_at IS NOT NULL
+     ORDER BY rp.completed_at DESC
+     LIMIT 1`,
+    [roomId]
+  );
 
   const clueDiscovery = clueRows.rows.map((row) => ({
     clueId: row.clue_id,

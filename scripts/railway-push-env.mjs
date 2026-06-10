@@ -108,8 +108,6 @@ async function main() {
 
   if (!apiService) throw new Error("找不到 API 服务");
 
-  const apiPublic = (setup.API_PUBLIC_URL || "https://api.getzhimu.com").replace(/\/$/, "");
-
   console.log(`[push-env] API 服务 ${apiService.name} ← ${keys.length} 变量…`);
   await upsertVariables(token, {
     projectId,
@@ -120,18 +118,7 @@ async function main() {
   });
 
   if (webService) {
-    console.log(`[push-env] Web 服务 ${webService.name} ← VITE_*…`);
-    await upsertVariables(token, {
-      projectId,
-      environmentId: production.id,
-      serviceId: webService.id,
-      variables: {
-        VITE_API_BASE: `${apiPublic}/api`,
-        VITE_REQUIRE_AUTH: "true",
-        VITE_DEMO_MODE: "false"
-      },
-      skipDeploys: true
-    });
+    console.log(`[push-env] 跳过 Web 服务 ${webService.name}（已改为单服务 fullstack，可在 Railway 删除 web 省费用）`);
   }
 
   const projectToken = setup.RAILWAY_PROJECT_TOKEN?.trim()
@@ -164,19 +151,14 @@ async function main() {
   }
 
   if (webService) {
-    console.log("[push-env] 触发 Web 重新部署…");
-    try {
-      await deployService(token, { serviceId: webService.id, environmentId: production.id });
-    } catch (err) {
-      console.warn("[push-env] Web deploy:", err.message);
-    }
+    console.log("[push-env] 提示: 可在 Railway 删除 web 服务以节省 Hobby 额度");
   }
 
   console.log(`
-✅ Railway 变量已推送（${keys.length} 项 → API）
+✅ Railway 变量已推送（${keys.length} 项 → API fullstack）
 
 API: ${apiService.id} (${apiService.name})
-Web: ${webService ? `${webService.id} (${webService.name})` : "未找到"}
+${webService ? `Web: ${webService.id} (${webService.name}) — 建议删除` : ""}
 
 在 Railway 控制台查看 Deployments 是否开始构建。
 `);

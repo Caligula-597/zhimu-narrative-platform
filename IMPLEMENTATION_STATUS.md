@@ -1,8 +1,9 @@
 # 织幕 · 功能实现状态总览
 
 > **用途**：团队协调用的「一张表看清全貌」——后端做到哪、前端做到哪、哪里没接通、哪里有坑。  
-> **更新**：2026-06-06（Vite · **180** 测试 · schema **56** · UI smoke **41** · modal-helpers **2**）  
+> **更新**：2026-06-08（Vite · **222** 测试 · 身份/配额/邀请/OAuth 诊断 · fullstack 部署）  
 > **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
+> **平台总览（前后端对照）**：[docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md)  
 > **中文总览**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)  
 > **详细功能说明**仍见 [FEATURE_CATALOG.md](./FEATURE_CATALOG.md)；**测试矩阵**见 [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md)；**后端路线图**见 [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md)。
@@ -28,6 +29,11 @@
 |------|------|------|
 | 注册 / 登录 / Session | ✅ | scrypt 密码；Bearer 30 天 |
 | **找回密码** | ✅ | Resend 邮件；`POST /auth/forgot-password` · `reset-password`；重置后吊销全部 session |
+| **邮箱验证** | ✅ | 注册/登录可选强制；`verify-email` · `resend-verification` |
+| **OAuth** | ✅ | Google / GitHub；生产 `oauth-diagnostics` |
+| **游客 / 多设备 Session** | ✅ | `POST /auth/guest` · `GET/DELETE /auth/sessions` |
+| **账号权益聚合** | ✅ | `GET /api/account/entitlements`（plan + usage + capabilities） |
+| **运维改套餐** | ✅ | `POST /api/ops/users/plan` + `OPS_API_TOKEN` |
 | 世界 CRUD | ✅ | 含配额 `max_worlds` |
 | **GET/PATCH 世界详情** | ✅ | name / summary / settings |
 | 世界成员协作 | ✅ | owner / editor / host / viewer |
@@ -119,14 +125,15 @@
 
 | 领域 | 缺口 |
 |------|------|
-| 认证 | 邮箱验证、OAuth、refresh token、多设备管理 |
+| 认证 | Stripe webhook + checkout ✅；前端结账 UI 🔲 |
 | 复盘 | AI 叙事总结 |
 | 实时 | Redis / 多节点 SSE；WebSocket 集群 |
 | 资产 | 病毒扫描、图片转码 |
 | 安全 | 上传扫描 **stub** + quarantine；**upload/AI 限流分桶** |
 | 实体 | NPC 模型与 API；实体卡 QR/NFC |
 | Schema | 创作/资产部分路由尚无 Fastify schema |
-| 协作 | 邀请未注册用户；待接受邀请状态 |
+| 协作 | 邀请邮件 + pending + 注册/`?invite=` 接受 | ✅ `world-collaboration.js` |
+| 配额 | 套餐 UI + 内测 beta + 触顶 details | ✅ `quota-guards.js` |
 
 ---
 
@@ -169,7 +176,7 @@
 
 | 项 | 状态 |
 |----|------|
-| `npm test` | **180/180**（含 auth-password-reset、robustness-fixes、clue-metadata、content-package 去重、host-event 并发） |
+| `npm test` | **231/231**（含 stripe-billing、account-entitlements、world-invites-quota） |
 | `check:schemas` | **56** 条写/SSE 路由 schema 门禁 |
 | `check:tests` 数量下限 | ≥100 |
 | checkpoint / journal / 幂等 E2E | ✅ 专项测试 |
@@ -215,7 +222,7 @@
 
 | 项 | 状态 |
 |----|------|
-| `zhimuApi` 客户端 | ✅ 覆盖大部分运行/创作 API；`friendlyApiError`；**requestPasswordReset / resetPassword** |
+| `zhimuApi` 客户端 | ✅ 覆盖大部分运行/创作 API；`getAccountEntitlements`；`friendlyApiError` |
 | SSE `streamRoomEvents` | ✅ 主持台/玩家 toast；`Last-Event-ID` 断线补发 |
 | LiveKit 前端模块 | ✅ | 连接/麦克风/重试；需 env + token |
 | 按 `code` 展示错误 | ✅ 常见码已映射（`user-messages.js`） |
@@ -296,7 +303,7 @@
 | [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) | 按工作区逐项功能说明（§3）+ 变更历史（§12–§29） |
 | [ALPHA_FEATURE_MATRIX.md](./ALPHA_FEATURE_MATRIX.md) | 真实 / 演示 / 待接入 速查 |
 | [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) | **产品功能与工程现状（中文总览）** |
-| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + **180** 项测试矩阵 |
+| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + **222** 项测试矩阵 |
 | [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) | **休息/交接检查点** |
 | [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md) | 后端运维路线图 |
 | [docs/OPS.md](./docs/OPS.md) | 部署与故障排查 |

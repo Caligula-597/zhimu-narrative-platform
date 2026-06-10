@@ -1,4 +1,4 @@
-import { query, transaction } from "../db.js";
+import { pool, query, transaction } from "../db.js";
 import { requireActor } from "../request-actor.js";
 import { sendErr } from "../api-errors.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
@@ -246,68 +246,71 @@ export async function registerStudioRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldReader(actorId, worldId);
-    const [world, chapters, roles, sections, scenes, clues, points, items, edges, versions, rooms] = await Promise.all([
-      query(
+    const client = await pool.connect();
+    try {
+      const world = await client.query(
         `SELECT w.id, w.owner_user_id, w.name, w.summary, w.status, w.catalog_public, w.settings, wm.role AS membership_role
          FROM worlds w
          JOIN world_members wm ON wm.world_id = w.id AND wm.user_id = $2
          WHERE w.id = $1`,
         [worldId, actorId]
-      ),
-      query(`SELECT id, title, summary, sequence, publication_status, unlock_rules FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]),
-      query(`SELECT id, name, public_profile, private_profile, sequence FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]),
-      query(
+      );
+      const chapters = await client.query(`SELECT id, title, summary, sequence, publication_status, unlock_rules FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]);
+      const roles = await client.query(`SELECT id, name, public_profile, private_profile, sequence FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]);
+      const sections = await client.query(
         `SELECT ss.id, ss.role_slot_id, ss.chapter_id, ss.title, ss.body, ss.sequence, ss.publication_status, ss.updated_at
          FROM script_sections ss
          JOIN role_slots rs ON rs.id = ss.role_slot_id
          WHERE rs.world_id = $1
          ORDER BY rs.sequence, ss.sequence`,
         [worldId]
-      ),
-      query(`SELECT id, chapter_id, name, public_text, host_text, metadata FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]),
-      query(`SELECT id, name, public_text, host_text, visibility, metadata FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]),
-      query(
+      );
+      const scenes = await client.query(`SELECT id, chapter_id, name, public_text, host_text, metadata FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+      const clues = await client.query(`SELECT id, name, public_text, host_text, visibility, metadata FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+      const points = await client.query(
         `SELECT ip.id, ip.scene_id, ip.name, ip.description, ip.interaction_text, ip.result_text,
                 ip.clue_id, ip.required_item_id, ip.required_role_slot_id, ip.sequence, ip.metadata
          FROM investigation_points ip
          WHERE ip.world_id = $1
          ORDER BY ip.scene_id, ip.sequence, ip.created_at`,
         [worldId]
-      ),
-      query(`SELECT id, name, public_text, host_text, metadata FROM items WHERE world_id = $1 ORDER BY created_at`, [worldId]),
-      query(
+      );
+      const items = await client.query(`SELECT id, name, public_text, host_text, metadata FROM items WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+      const edges = await client.query(
         `SELECT id, from_type, from_id, to_type, to_id, relation_type, label
          FROM story_graph_edges
          WHERE world_id = $1
          ORDER BY created_at`,
         [worldId]
-      ),
-      query(
+      );
+      const versions = await client.query(
         `SELECT id, label, created_at FROM content_versions
          WHERE world_id = $1 ORDER BY created_at DESC LIMIT 12`,
         [worldId]
-      ),
-      query(
+      );
+      const rooms = await client.query(
         `SELECT r.id, r.name, r.status, r.invite_code
          FROM rooms r
          WHERE r.world_id = $1 AND ${ROOMS_VISIBLE_TO_ACTOR_SQL}
          ORDER BY r.created_at DESC`,
         [worldId, actorId]
-      )
-    ]);
-    return {
-      world: world.rows[0],
-      chapters: chapters.rows,
-      roles: roles.rows,
-      sections: sections.rows,
-      scenes: scenes.rows,
-      clues: clues.rows,
-      investigationPoints: points.rows,
-      items: items.rows,
-      edges: edges.rows,
-      versions: versions.rows,
-      rooms: rooms.rows
-    };
+      );
+      return {
+        world: world.rows[0],
+        chapters: chapters.rows,
+        roles: roles.rows,
+        sections: sections.rows,
+        scenes: scenes.rows,
+        clues: clues.rows,
+        investigationPoints: points.rows,
+        items: items.rows,
+        edges: edges.rows,
+        versions: versions.rows,
+        rooms: rooms.rows
+      };
+    } finally {
+      client.release();
+    }
   });
 
   app.get("/api/worlds/:worldId/creator-checks", { schema: { params: worldIdParams } }, async (request) => {

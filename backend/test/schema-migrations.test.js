@@ -24,7 +24,12 @@ const REQUIRED_TABLES = [
   "pending_host_events",
   "room_content_unlocks",
   "reading_progress",
-  "auth_sessions"
+  "auth_sessions",
+  "user_plans",
+  "world_member_invites",
+  "oauth_accounts",
+  "oauth_states",
+  "oauth_login_codes"
 ];
 
 const CLUE_OWNERSHIP_COLUMNS = [

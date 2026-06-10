@@ -2,6 +2,7 @@ import { sendViaConsole } from "./providers/console.js";
 import { sendViaMailgun } from "./providers/mailgun.js";
 import { sendViaResend } from "./providers/resend.js";
 import { sendViaSendGrid } from "./providers/sendgrid.js";
+import { worldInviteEmailHtml } from "./templates.js";
 
 function isDeliveryStubbed() {
   return process.env.EMAIL_DELIVERY_STUB === "1" || process.env.PASSWORD_RESET_EMAIL_STUB === "1";
@@ -9,7 +10,8 @@ function isDeliveryStubbed() {
 
 const testCaptures = {
   passwordResetUrl: null,
-  emailVerifyUrl: null
+  emailVerifyUrl: null,
+  worldInviteUrl: null
 };
 
 export function peekTestResetUrl() {
@@ -20,9 +22,14 @@ export function peekTestVerifyUrl() {
   return testCaptures.emailVerifyUrl;
 }
 
+export function peekTestInviteUrl() {
+  return testCaptures.worldInviteUrl;
+}
+
 export function clearTestEmailCapture() {
   testCaptures.passwordResetUrl = null;
   testCaptures.emailVerifyUrl = null;
+  testCaptures.worldInviteUrl = null;
 }
 
 /** @deprecated use clearTestEmailCapture */
@@ -119,5 +126,18 @@ export async function sendEmailVerificationEmail({ to, verifyToken }) {
 <p><a href="${verifyUrl}">${verifyUrl}</a></p>
 <p>若你没有注册织幕账号，可忽略本邮件。</p>
 <p>— 织幕</p>`
+  });
+}
+
+export async function sendWorldMemberInviteEmail({ to, inviteToken, worldName, inviterName, roleLabel }) {
+  const inviteUrl = `${publicAppUrl()}/?invite=${encodeURIComponent(inviteToken)}`;
+  if (isDeliveryStubbed()) {
+    testCaptures.worldInviteUrl = inviteUrl;
+    return;
+  }
+  await sendTransactionalEmail({
+    to,
+    subject: `织幕协作邀请 · ${worldName}`,
+    html: worldInviteEmailHtml({ inviterName, worldName, roleLabel, inviteUrl })
   });
 }
