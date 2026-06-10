@@ -13,8 +13,11 @@ import {
   deployService,
   getProject,
   listProjects,
+  updateServiceInstance,
   upsertVariables
 } from "./railway-api.mjs";
+
+const FULLSTACK_DOCKERFILE = "deploy/Dockerfile.fullstack";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const setupPath = path.join(root, ".env.railway.setup");
@@ -107,6 +110,18 @@ async function main() {
     ?? services.find((s) => /^web$/i.test(s.name));
 
   if (!apiService) throw new Error("找不到 API 服务");
+
+  console.log(`[push-env] 配置 fullstack 构建 (${FULLSTACK_DOCKERFILE})…`);
+  try {
+    await updateServiceInstance(token, {
+      serviceId: apiService.id,
+      environmentId: production.id,
+      input: { dockerfilePath: FULLSTACK_DOCKERFILE }
+    });
+  } catch (err) {
+    console.warn(`[push-env] dockerfilePath 需在 Railway 控制台确认: ${err.message}`);
+    console.warn("  Settings → Build → Root Directory 留空，Dockerfile = deploy/Dockerfile.fullstack");
+  }
 
   console.log(`[push-env] API 服务 ${apiService.name} ← ${keys.length} 变量…`);
   await upsertVariables(token, {

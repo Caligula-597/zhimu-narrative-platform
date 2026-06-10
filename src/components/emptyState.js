@@ -78,6 +78,7 @@ function demoIdentityBanner(){
 }
 
 function cloudStatus(){
+ if(!localStorage.getItem("zhimuSessionToken")&&window.zhimuConfig?.demoMode&&!state.apiError)return demoIdentityBanner();
  const rooms=state.cloudStudio?.rooms||[];
  const panelMsg=window.zhimuUserMessages?.formatCloudPanelError?.(state.apiError,{hasStudio:Boolean(state.cloudStudio)})||state.apiError||"正在读取云端…";
  const isOutage=state.apiError&&/无法连接|API_UNAVAILABLE|ECONNREFUSED/i.test(state.apiError);

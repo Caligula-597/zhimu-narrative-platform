@@ -4,11 +4,9 @@
   const zhimuApi = window.zhimuApi;
   const F = window.zhimuFormat || {};
   const T = window.zhimuToast || {};
-  const R = window.zhimuRuntime || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const showToast = T.showToast || (() => "");
-  const renderQuotaSection = R.renderQuotaSection || (() => "");
   const handleApiError = window.zhimuUserMessages?.handleApiErrorToast || ((err, toast) => toast(err?.message || "操作失败"));
 
   window.zhimuViews = window.zhimuViews || {};
@@ -39,14 +37,18 @@
     const isGuest = Boolean(me.isGuest);
     const sessionRows = sessions.map((s) => `<div class="collab-row"><div><b>${escapeHtml(s.deviceLabel || "未知设备")}</b><p>${escapeHtml(s.userAgent || "—")} · 最近 ${formatTime(s.lastSeenAt)}</p></div>${s.isCurrent ? `<span class="cloud-pill">当前</span>` : `<button class="text-btn danger-text" data-revoke-session="${s.id}">下线</button>`}</div>`).join("") || `<div class="empty-state">暂无其他设备记录</div>`;
     const oauthButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">关联 ${escapeHtml(p.label)}</button>`).join("");
-    return `<p class="wizard-intro">${escapeHtml(me.display_name || me.email || "已登录")}${isGuest ? " · 游客账号" : me.email ? ` · ${escapeHtml(me.email)}` : ""}${me.planLabel ? ` · ${escapeHtml(me.planLabel)}` : ""}</p>${isGuest ? `<section class="form-group"><h3>保存进度</h3><p class="muted-note">游客数据在升级前不会绑定邮箱。请点击右上角头像或下方按钮注册。</p><button class="primary-btn" data-action="open-auth">注册 / 登录</button></section>` : `${renderQuotaSection(usage)}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}${oauthDiagHtml(data.config?.oauthDiagnostics)}`}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><div class="row" style="margin-top:16px"><button class="danger-btn" data-auth-logout>退出登录</button></div>`;
+    const quotaHtml = window.zhimuRuntime?.renderQuotaSection?.(usage) || "";
+    return `<p class="wizard-intro">${escapeHtml(me.display_name || me.email || "已登录")}${isGuest ? " · 游客账号" : me.email ? ` · ${escapeHtml(me.email)}` : ""}${me.planLabel ? ` · ${escapeHtml(me.planLabel)}` : ""}</p>${isGuest ? `<section class="form-group"><h3>保存进度</h3><p class="muted-note">游客数据在升级前不会绑定邮箱。请点击右上角头像或下方按钮注册。</p><button class="primary-btn" data-action="open-auth">注册 / 登录</button></section>` : `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}${oauthDiagHtml(data.config?.oauthDiagnostics)}`}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><div class="row" style="margin-top:16px"><button class="danger-btn" data-auth-logout>退出登录</button></div>`;
   }
 
   function account() {
-    if (!localStorage.getItem("zhimuSessionToken") && !window.zhimuConfig?.demoMode) {
+    if (!localStorage.getItem("zhimuSessionToken")) {
       return accountShell(`<p class="muted-note">登录后可管理账号、配额与会话。</p><button class="primary-btn" data-action="open-auth">登录 / 注册</button>`);
     }
-    if (state.accountViewLoading || !state.accountView) {
+    if (state.accountViewLoading) {
+      return accountShell("", true);
+    }
+    if (!state.accountView) {
       void refreshAccountView();
       return accountShell("", true);
     }

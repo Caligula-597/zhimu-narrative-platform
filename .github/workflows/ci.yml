@@ -48,8 +48,12 @@ jobs:
       - name: Migrate and seed
         run: npm run db:migrate && npm run db:seed && npm run demo:seed-exploration && npm run demo:bootstrap-e2e-room
         working-directory: backend
-      - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
       - name: DB backup smoke
         run: node scripts/pg-backup.mjs --out /tmp/zhimu-ci-backup.sql
         working-directory: backend

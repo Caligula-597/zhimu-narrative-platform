@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * One-shot Railway setup: Web service + env vars + GitHub secret hints.
+ * One-shot Railway setup: single fullstack service (API + frontend).
  *
  * 1. Copy .env.railway.setup.example → .env.railway.setup
- * 2. Paste RAILWAY_TOKEN (https://railway.com/account/tokens)
+ * 2. Paste RAILWAY_ACCOUNT_TOKEN (https://railway.com/account/tokens)
  * 3. npm run railway:bootstrap
  *
  * Requires: Node 18+ with fetch. Does NOT need Railway CLI installed.
@@ -12,17 +12,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  createService,
   deployService,
   getProject,
   listProjects,
-  listServices,
   updateServiceInstance,
   upsertVariables
 } from "./railway-api.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const setupPath = path.join(root, ".env.railway.setup");
+const FULLSTACK_DOCKERFILE = "deploy/Dockerfile.fullstack";
 
 function loadSetup() {
   const env = { ...process.env };
@@ -48,8 +47,10 @@ function pickProductionEnv(project) {
   return envs.find((e) => e.name === "production") ?? envs[0];
 }
 
-function pickService(services, { id, nameHint, excludeId }) {
-  const list = (services?.edges ?? []).map((e) => e.node).filter((s) => s.id !== excludeId);
+function pickService(services, { id, nameHint, excludeNames = [] }) {
+  const list = (services?.edges ?? [])
+    .map((e) => e.node)
+    .filter((s) => !excludeNames.some((n) => new RegExp(`^${n}$`, "i").test(s.name)));
   if (id) {
     const found = list.find((s) => s.id === id);
     if (found) return found;
@@ -59,7 +60,7 @@ function pickService(services, { id, nameHint, excludeId }) {
     const byName = list.find((s) => s.name.toLowerCase().includes(hint));
     if (byName) return byName;
   }
-  return null;
+  return list[0] ?? null;
 }
 
 async function main() {
@@ -71,10 +72,10 @@ async function main() {
 
 1. Account Token：https://railway.com/account/tokens → Create Token
 2. 复制 .env.railway.setup.example → .env.railway.setup
-3. 填入 RAILWAY_ACCOUNT_TOKEN=...（或 RAILWAY_TOKEN=...）
+3. 填入 RAILWAY_ACCOUNT_TOKEN=...
 4. npm run railway:bootstrap
 
-GitHub Actions 另需 Project Token，见 docs/ops/MANUAL_SETUP_CHECKLIST.md
+免费版通常没有 Project Token；部署走 Railway 连 GitHub 或本机 railway login。
 `);
     process.exit(1);
   }
@@ -82,149 +83,105 @@ GitHub Actions 另需 Project Token，见 docs/ops/MANUAL_SETUP_CHECKLIST.md
   let projectId = env.RAILWAY_PROJECT_ID?.trim();
   if (!projectId) {
     const projects = await listProjects(token);
-    if (!projects.length) {
-      throw new Error("账号下没有 Railway 项目");
-    }
+    if (!projects.length) throw new Error("账号下没有 Railway 项目");
     const match =
       projects.find((p) => /zhimu|narrative|getzhimu/i.test(p.name))
       ?? projects.find((p) => /beautiful-unity|production/i.test(p.name))
       ?? projects[0];
     projectId = match.id;
     console.log(`[bootstrap] 使用项目: ${match.name} (${projectId})`);
-    if (projects.length > 1) {
-      console.log("[bootstrap] 其他项目:", projects.filter((p) => p.id !== projectId).map((p) => p.name).join(", "));
-    }
   }
 
   const project = await getProject(token, projectId);
   const production = pickProductionEnv(project);
   if (!production) throw new Error("项目没有 environment");
 
-  const allServices = await listServices(token, projectId);
-  console.log("[bootstrap] 项目内服务:", allServices.map((s) => `${s.name} (${s.id})`).join(", ") || "(无)");
+  const serviceEdges = project.services;
+  const webService = (serviceEdges?.edges ?? []).map((e) => e.node).find((s) => /^web$/i.test(s.name));
 
-  const webByName = allServices.find((s) => /^web$/i.test(s.name));
-  const serviceEdges = { edges: allServices.map((s) => ({ node: s })) };
-
-  let apiService = pickService(serviceEdges, {
-    id: env.RAILWAY_API_SERVICE_ID,
+  const apiService = pickService(serviceEdges, {
+    id: env.RAILWAY_API_SERVICE_ID || env.RAILWAY_SERVICE_ID,
     nameHint: env.RAILWAY_API_SERVICE_NAME || "zhimu",
-    excludeId: webByName?.id
+    excludeNames: ["web"]
   });
-  if (!apiService) {
-    apiService = pickService(serviceEdges, { nameHint: "narrative", excludeId: webByName?.id })
-      ?? pickService(serviceEdges, { nameHint: "api", excludeId: webByName?.id })
-      ?? allServices.find((s) => s.id !== webByName?.id)
-      ?? null;
-  }
-  if (!apiService) {
-    throw new Error("找不到 API 服务 — 在 .env.railway.setup 设置 RAILWAY_API_SERVICE_ID");
-  }
-
-  let webService = webByName
-    ?? pickService(serviceEdges, {
-      id: env.RAILWAY_WEB_SERVICE_ID,
-      nameHint: env.RAILWAY_WEB_SERVICE_NAME || "web",
-      excludeId: apiService.id
-    });
-
-  if (!webService) {
-    console.log("[bootstrap] 创建 Web 服务…");
-    try {
-      webService = await createService(token, projectId, env.RAILWAY_WEB_SERVICE_NAME || "web", production.id);
-    } catch (err) {
-      if (!/already exists/i.test(err.message)) throw err;
-      console.log("[bootstrap] Web 服务已存在，重新加载…");
-      const refreshed = await listServices(token, projectId);
-      webService = pickService({ edges: refreshed.map((s) => ({ node: s })) }, {
-        id: env.RAILWAY_WEB_SERVICE_ID,
-        nameHint: env.RAILWAY_WEB_SERVICE_NAME || "web",
-        excludeId: apiService.id
-      });
-      if (!webService) throw new Error("Web 服务已存在但无法找到 — 请设置 RAILWAY_WEB_SERVICE_ID");
-    }
-  }
+  if (!apiService) throw new Error("找不到 API 服务 — 在 .env.railway.setup 设置 RAILWAY_API_SERVICE_ID");
 
   const publicUrl = (env.APP_PUBLIC_URL || "https://getzhimu.com").replace(/\/$/, "");
-  const apiPublic = (env.API_PUBLIC_URL || "https://api.getzhimu.com").replace(/\/$/, "");
 
-  console.log("[bootstrap] 配置 Web 服务构建 (web/Dockerfile)…");
-  const buildInputs = [
-    { source: { dockerfilePath: "web/Dockerfile" } },
-    { dockerfilePath: "web/Dockerfile" }
-  ];
-  let buildConfigured = false;
-  for (const input of buildInputs) {
-    try {
-      await updateServiceInstance(token, {
-        serviceId: webService.id,
-        environmentId: production.id,
-        input
-      });
-      buildConfigured = true;
-      break;
-    } catch (err) {
-      console.warn(`[bootstrap] build config retry: ${err.message}`);
-    }
-  }
-  if (!buildConfigured) {
-    console.warn("[bootstrap] 无法在 API 中设置 dockerfilePath — GitHub Actions `railway up` 仍会使用 web/Dockerfile");
+  console.log(`[bootstrap] 配置 fullstack 构建 (${FULLSTACK_DOCKERFILE})…`);
+  try {
+    await updateServiceInstance(token, {
+      serviceId: apiService.id,
+      environmentId: production.id,
+      input: { dockerfilePath: FULLSTACK_DOCKERFILE }
+    });
+  } catch (err) {
+    console.warn(`[bootstrap] API 设置 dockerfilePath 失败: ${err.message}`);
+    console.warn("  请在 Railway → Settings → Build 手动确认：Root Directory 留空，Dockerfile = deploy/Dockerfile.fullstack");
   }
 
-  console.log("[bootstrap] 写入 Web 构建变量…");
-  await upsertVariables(token, {
-    projectId,
-    environmentId: production.id,
-    serviceId: webService.id,
-    variables: {
-      VITE_API_BASE: `${apiPublic}/api`,
-      VITE_REQUIRE_AUTH: "true",
-      VITE_DEMO_MODE: "false"
-    },
-    skipDeploys: true
+  console.log("[bootstrap] 同步并推送环境变量…");
+  const { spawnSync } = await import("node:child_process");
+  const sync = spawnSync(process.execPath, [path.join(root, "scripts", "sync-railway-env.mjs")], {
+    cwd: root,
+    stdio: "inherit"
   });
+  if (sync.status !== 0) process.exit(sync.status ?? 1);
 
-  console.log("[bootstrap] 更新 API CORS / 公网 URL…");
+  const railwayEnvPath = path.join(root, ".env.railway");
+  const railwayEnv = {};
+  for (const line of fs.readFileSync(railwayEnvPath, "utf8").split("\n")) {
+    const t = line.trim();
+    if (!t || t.startsWith("#")) continue;
+    const i = t.indexOf("=");
+    if (i < 0) continue;
+    railwayEnv[t.slice(0, i).trim()] = t.slice(i + 1).trim().replace(/^"|"$/g, "");
+  }
+
   await upsertVariables(token, {
     projectId,
     environmentId: production.id,
     serviceId: apiService.id,
     variables: {
+      ...railwayEnv,
       APP_PUBLIC_URL: publicUrl,
-      CORS_ORIGIN: publicUrl
+      CORS_ORIGIN: publicUrl,
+      SERVE_STATIC: "true",
+      STATIC_ROOT: "/app/public/dist"
     },
     skipDeploys: true
   });
 
   if (env.RAILWAY_DEPLOY !== "false") {
-    console.log("[bootstrap] 触发 Web 部署…");
+    console.log("[bootstrap] 触发 fullstack 部署…");
     try {
-      await deployService(token, { serviceId: webService.id, environmentId: production.id });
+      await deployService(token, { serviceId: apiService.id, environmentId: production.id });
     } catch (err) {
-      console.warn("[bootstrap] Web 部署触发失败（可稍后 push 或 Actions 部署）:", err.message);
+      console.warn("[bootstrap] 部署触发失败:", err.message);
     }
   }
 
   console.log(`
-✅ Railway 配置完成
+✅ Railway fullstack 配置完成
 
-GitHub Secrets（Settings → Secrets → Actions）请确认已有：
+服务: ${apiService.name} (${apiService.id})
+公网: ${publicUrl}
+镜像: ${FULLSTACK_DOCKERFILE}（API + 前端同域）
 
-  RAILWAY_TOKEN              = GitHub Secret：必须用 **Project Token**（见 MANUAL_SETUP_CHECKLIST.md）
-  RAILWAY_SERVICE_ID         = ${apiService.id}   ← API
-  RAILWAY_WEB_SERVICE_ID     = ${webService.id}   ← Web（新建/已存在）
-  RAILWAY_PUBLIC_URL         = ${apiPublic}       ← 可选，健康检查用
+${webService ? `⚠️  检测到多余 web 服务 (${webService.name}) — 请在 Railway 删除以省 Hobby 额度` : ""}
 
-本地文件 .env.railway.setup 已 gitignore，勿提交。
+你必须在 Railway 控制台确认（API 无法改 Root Directory 时）：
+  1. zhimu-narrative-platform → Settings → Build
+     - Root Directory：**留空**（不要填 backend）
+     - Dockerfile：**deploy/Dockerfile.fullstack**
+  2. Networking → Custom Domain：**getzhimu.com**
+  3. 等 Deployments 构建完成（日志应有 npm run build + Static frontend enabled）
 
-下一步：
-  1. git push origin main  → GitHub Actions 自动部署 API + Web
-  2. Railway Web 服务 → Networking → 绑定 getzhimu.com
-  3. Cloudflare DNS: getzhimu.com CNAME → Railway Web 域名（停用 Pages）
-  4. 删除或停用 Cloudflare Pages 项目
+验收：
+  https://getzhimu.com/api/health/ready → "ready": true
+  https://getzhimu.com/ → 织幕登录页（不是 JSON 404）
 
-API 服务 ID: ${apiService.id} (${apiService.name})
-Web 服务 ID: ${webService.id} (${webService.name})
+GitHub Actions 部署（可选，需 Project Token）见 docs/ops/MANUAL_SETUP_CHECKLIST.md
 `);
 }
 

@@ -26,7 +26,11 @@ jobs:
           RAILWAY_PUBLIC_URL: ${{ secrets.RAILWAY_PUBLIC_URL }}
         run: |
           if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
-            echo "::warning::Skip deploy — set RAILWAY_TOKEN + RAILWAY_SERVICE_ID"
+            echo "::notice::Skip — 免费版无 Project Token 时，用 Railway 连 GitHub 部署即可"
+            exit 0
+          fi
+          if ! railway whoami >/dev/null 2>&1; then
+            echo "::notice::Skip — RAILWAY_TOKEN 无效；请在 Railway 创建 Project Token 或改用 GitHub 集成"
             exit 0
           fi
           railway up --ci --service "$RAILWAY_SERVICE_ID"

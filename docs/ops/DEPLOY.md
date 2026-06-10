@@ -1,40 +1,42 @@
 # 织幕 · 生产部署
 
-> **手动步骤清单（必看）**：[MANUAL_SETUP_CHECKLIST.md](./MANUAL_SETUP_CHECKLIST.md)  
-> API + 前端在 **Railway**；Cloudflare 只保留 **DNS + R2**，不用 Pages。
+> **必看**：[MANUAL_SETUP_CHECKLIST.md](./MANUAL_SETUP_CHECKLIST.md)
+
+API + 前端在 **Railway 单服务**；Cloudflare 只保留 **DNS + R2**，不用 Pages。
 
 ---
 
 ## 自动化 vs 手动
 
-| 已自动完成 | 必须你手动（见 MANUAL_SETUP_CHECKLIST） |
-|------------|----------------------------------------|
-| fullstack `deploy/Dockerfile.fullstack`（API+前端单服务） | **Project Token** → GitHub `RAILWAY_TOKEN` |
-| GitHub Actions：`railway up` 从仓库根 | 删除多余 **web** 服务（省 Railway 额度） |
-| `npm run railway:push-env` 推送变量 | Railway Dockerfile 路径（若未走 Actions） |
-| `npm run railway:sync-env` 生成 `.env.railway` | 自定义域名 + Cloudflare DNS |
-| | 停用 Cloudflare Pages |
+| 已自动（代码 / 脚本） | 你必须在 Railway 控制台确认 |
+|----------------------|----------------------------|
+| `deploy/Dockerfile.fullstack` | **Root Directory 留空**（不要 `backend`） |
+| `railway.toml` / `railway.json` | Dockerfile = `deploy/Dockerfile.fullstack` |
+| `npm run railway:push-env` 推送 40 项变量 | 等 Deployments 构建完成 |
+| `npm run railway:bootstrap` 一键配置 | 删除多余 **web** 服务 |
+| | 域名 + Cloudflare DNS |
 
 ---
 
-## 本地一键（Account Token）
+## 本机一键（Account Token）
 
 ```powershell
 copy .env.railway.setup.example .env.railway.setup
-# 填 RAILWAY_ACCOUNT_TOKEN=...（account/tokens）
+# 填 RAILWAY_ACCOUNT_TOKEN=...
 npm run railway:bootstrap
-npm run railway:sync-env   # 生成 .env.railway → 粘贴到 Railway API 服务
 ```
 
 ---
 
-## GitHub 部署
+## GitHub 部署（可选，需 Project Token）
 
-Secrets 与触发方式见 [MANUAL_SETUP_CHECKLIST.md § 第 1 步](./MANUAL_SETUP_CHECKLIST.md#第-1-步railway-project-token--github必做约-2-分钟)。
+见 [MANUAL_SETUP_CHECKLIST.md § 可选](./MANUAL_SETUP_CHECKLIST.md#可选github-actions-自动部署)。
+
+免费版无 Project Token 时，用 **Railway 连 GitHub** 即可。
 
 ---
 
 ## 相关
 
-- [MANUAL_SETUP_CHECKLIST.md](./MANUAL_SETUP_CHECKLIST.md) — **上线打勾清单**
+- [MANUAL_SETUP_CHECKLIST.md](./MANUAL_SETUP_CHECKLIST.md)
 - [RAILWAY.md](./RAILWAY.md)

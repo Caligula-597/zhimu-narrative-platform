@@ -62,7 +62,8 @@ function overview() {
   const studio = state.cloudStudio;
   const listedWorld = (state.cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
   const world = studio?.world || listedWorld;
-  const studioEmpty=Boolean(zhimuApi.context.worldId)&&!studio?.roles?.length;
+  const loggedOutDemo=!localStorage.getItem("zhimuSessionToken")&&window.zhimuConfig?.demoMode;
+  const studioEmpty=!loggedOutDemo&&Boolean(zhimuApi.context.worldId)&&!studio?.roles?.length;
   const studioEmptyBanner=studioEmpty?`<section class="demo-strip" style="margin-bottom:14px;border-color:#e8c4c4;background:#fff8f7"><div><span class="cloud-pill">内容未载入</span><strong style="margin-top:7px">剧本「${escapeHtml(world?.name||"当前")}」暂无角色或分幕</strong><p>${escapeHtml(state.apiError||"请刷新云端数据，或稍后再试。")}</p></div><button class="primary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`:"";
   const loading = state.cloudLoading && !studio?.world;
   const roleCount = studio?.roles?.length ?? 0, chapterCount = studio?.chapters?.length ?? 0;

@@ -1,115 +1,78 @@
-# 织幕 API · Railway 部署
+# 织幕 · Railway 部署（单服务 fullstack）
 
-> **推荐先看 [DEPLOY.md](./DEPLOY.md)** — 含 `npm run railway:bootstrap` 一键配置，不必在控制台反复试错。
+> **手动步骤**：[MANUAL_SETUP_CHECKLIST.md](./MANUAL_SETUP_CHECKLIST.md)  
+> **一键脚本**：`npm run railway:bootstrap`（需 Account Token）
 
-Railway **默认用 Railpack 构建仓库根目录**（会跑前端 `npm start` / postinstall），这是之前一直 502 / 构建失败的根因。
+## 架构
 
-**正确做法：只部署 `backend/` 目录**（Dockerfile + Supabase + 你的 Variables）。
+一个 Railway 服务 `zhimu-narrative-platform`：
+
+- 镜像：`deploy/Dockerfile.fullstack`（Vite 构建 + Fastify API）
+- 同域：`https://getzhimu.com/` 前端 + `https://getzhimu.com/api` API
+- 配置：`railway.toml` / `railway.json`（仓库根）
+
+**切勿**将 Root Directory 设为 `backend`（会走仅 API 的 `backend/Dockerfile`，首页 404）。
 
 ---
 
-## 方案 A · GitHub Actions 自动部署（推荐，配一次就不用管）
+## 方案 A · Railway 连 GitHub（免费版推荐）
 
-### 1. 在 Railway 拿两个值（只做一次）
+1. Railway 项目 → 服务 → Settings → **Connect Repo** → `Caligula-597/zhimu-narrative-platform`
+2. Build：Root Directory **留空**，Dockerfile **`deploy/Dockerfile.fullstack`**
+3. 推 `main` 自动部署
 
-1. 打开 [railway.app](https://railway.app) → 你的项目 → **API 服务**
-2. **Settings → Tokens** → Create **Project Token** → 复制
-3. **Settings** 里复制 **Service ID**（或在 URL / `railway status` 里看）
+---
 
-### 2. 在 GitHub 加 Secrets
-
-仓库 → **Settings → Secrets and variables → Actions → New repository secret**
-
-| Secret | 值 |
-|--------|-----|
-| `RAILWAY_TOKEN` | Project Token |
-| `RAILWAY_SERVICE_ID` | API 服务的 Service ID |
-| `RAILWAY_PUBLIC_URL`（可选） | `https://zhimu-narrative-platform-production.up.railway.app` |
-
-### 3. 关闭 Railway 自带的 GitHub 自动构建（避免冲突）
-
-Railway 服务 → **Settings → Source**：
-
-- **Disconnect** GitHub 自动 deploy，**或**
-- 若保留连接：Root Directory 必须为 `backend`，Builder 必须为 **Dockerfile**，Start Command **留空**
-
-推荐：**断开 Railway 直连 GitHub**，只让 GitHub Actions 部署（`.github/workflows/railway-deploy.yml`）。
-
-### 4. 触发部署
+## 方案 B · 本机脚本（Account Token）
 
 ```powershell
-git push origin main
+copy .env.railway.setup.example .env.railway.setup
+# 填 RAILWAY_ACCOUNT_TOKEN=...
+npm run railway:bootstrap
 ```
 
-或 GitHub → **Actions** → **Deploy API to Railway** → **Run workflow**
+等价于：设置 dockerfilePath → 推送 `.env.railway` 变量 → 触发部署。
 
-Actions 会执行：
-
-```bash
-railway up backend --path-as-root --ci
-```
-
-只上传 `backend/`，**不会**碰到根目录 `package.json`。
-
-### 5. Variables
-
-你已在 Railway 粘贴 `.env.railway` 即可。更新时：
+更新变量：
 
 ```powershell
 npm run railway:sync-env
-# 再粘贴到 Railway Variables Raw Editor
+npm run railway:push-env
 ```
 
 ---
 
-## 方案 B · 本机 CLI 部署（不用 GitHub Actions）
+## 方案 C · GitHub Actions（需 Project Token）
+
+`.github/workflows/railway-deploy.yml`：`railway up --ci` 从仓库根。
+
+Secrets：`RAILWAY_TOKEN`（Project Token）、`RAILWAY_SERVICE_ID`。
+
+免费版无 Project Token 时可跳过此方案。
+
+---
+
+## 方案 D · Railway CLI
 
 ```powershell
 npm i -g @railway/cli
 railway login
-cd backend
-railway link          # 选项目 + API 服务
-cd ..
+railway link    # beautiful-unity / zhimu-narrative-platform
 npm run railway:deploy
 ```
-
-等价于 `railway up backend --path-as-root --ci`。
 
 ---
 
 ## 验收
 
 ```text
-https://zhimu-narrative-platform-production.up.railway.app/api/health/ready
-→ "ready": true
+GET https://getzhimu.com/api/health/ready  → "ready": true
+GET https://getzhimu.com/                  → 织幕登录页（HTML）
 ```
 
-Build Logs 应包含：
+Build Logs 应包含 `npm run build` 与 `Static frontend enabled`。
 
-```text
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts
-[zhimu-api] running migrations…
-Backend ready at ...
-```
-
-**不应出现：** `ensure-esm-exports`、`localhost:4173`、`npm start`
-
----
-
-## 常见问题
-
-**Q: 为什么不用仓库根目录部署？**  
-根目录是 Vite 前端；API 在 `backend/`。Railpack 会把根目录当 Node 应用。
-
-**Q: PORT 要填吗？**  
-不要。Railway 自动注入 `PORT`。
-
-**Q: Supabase 要单独部署吗？**  
-不要。`DATABASE_URL` 指向 Supabase 即可；容器启动时自动 `migrate`。
-
-**Q: 前端 getzhimu.com 呢？**  
-与 API **同一 Railway 服务**（`deploy/Dockerfile.fullstack`），单域 `getzhimu.com` + 路径 `/api`。见 [DEPLOY.md](./DEPLOY.md) · [PLATFORM_MAP_ZH.md](../PLATFORM_MAP_ZH.md)。Cloudflare 只负责 DNS（和 R2），**不用 Pages**。
+**不应出现**（说明仍走旧 API-only 构建）：仅 `backend/` 的 `npm ci --omit=dev`、无 `web-build` 阶段。
 
 ---
 
@@ -117,10 +80,9 @@ Backend ready at ...
 
 | 文件 | 作用 |
 |------|------|
-| `deploy/Dockerfile.fullstack` | **生产** API + 前端同镜像 |
-| `railway.toml` | 根目录 `railway up`（CI / 本机） |
-| `.github/workflows/railway-deploy.yml` | push main 自动部署 |
+| `deploy/Dockerfile.fullstack` | 生产唯一镜像 |
+| `railway.toml` / `railway.json` | Railway 构建配置 |
 | `scripts/sync-railway-env.mjs` | 生成 `.env.railway` |
-| `scripts/railway-deploy.mjs` | 本机 CLI 部署 |
-| `backend/Dockerfile` | 仅 API 本地/分体调试 |
-| ~~`docs/ops/RAILWAY_WEB.md`~~ | 已过时（双服务方案） |
+| `scripts/railway-push-env.mjs` | Account Token 推送变量 + 设 Dockerfile |
+| `scripts/railway-bootstrap.mjs` | 一键 fullstack 配置 |
+| `backend/Dockerfile` | 仅本地/分体调试，**非生产** |

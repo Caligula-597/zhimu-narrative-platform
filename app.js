@@ -96,7 +96,6 @@
     state.view = view;
     if (view === "account") {
       state.accountView = null;
-      V.account?.refreshAccountView?.();
     }
     R.syncDirectorPolling();
     R.connectRoomEventStream();
