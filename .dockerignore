@@ -2,7 +2,10 @@ node_modules
 dist
 .git
 .github
-backend
+# fullstack 镜像需要 backend/；勿忽略整个 backend 目录
+backend/node_modules
+backend/test-output.txt
+backend/backups
 e2e
 playwright-report
 test-results
@@ -10,5 +13,4 @@ artifacts
 .env
 .env.*
 !.env.example
-backend/test-output.txt
 *.log

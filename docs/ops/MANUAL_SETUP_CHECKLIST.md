@@ -1,363 +1,185 @@
 # 织幕 · 上线手动清单（API 无法代劳的部分）
 
-
-
 > **架构（省钱版）**：**一个** Railway 服务同时跑 API + 前端（`deploy/Dockerfile.fullstack`），不再单独开 Web 服务。  
-
 > 项目：Railway **beautiful-unity** · GitHub **Caligula-597/zhimu-narrative-platform**
 
+---
 
+## 当前线上状态（2026-06-10）
+
+| 检查 | 状态 | 说明 |
+|------|------|------|
+| `https://getzhimu.com/api/health/ready` | ✅ | `migrationsApplied: 24` |
+| `https://getzhimu.com/` | ❌ JSON 404 | 仍是 **API-only** 镜像，未托管前端 |
+| 环境变量 `SERVE_STATIC` 等 | ✅ 已推送 | 本机 `npm run railway:push-env` 已写入 40 项 |
+| Dockerfile 路径 | ✅ 已设 API | `deploy/Dockerfile.fullstack`（需确认 Root Directory） |
+
+**根因**：服务若 **Root Directory = `backend`**，会走 `backend/Dockerfile`（仅 API），首页必然 404。
 
 ---
 
+## 关于 Railway 免费版
 
+| 项 | 说明 |
+|----|------|
+| **Account Token** | 有。用于本机 `railway:bootstrap` / `railway:push-env`（[account/tokens](https://railway.com/account/tokens)） |
+| **Project Token** | 免费版**通常没有**。GitHub Actions `railway up` 可跳过，改走 **Railway 连 GitHub** |
+| **两个服务（API + Web）** | Hobby 额度按服务数计；**删除 `web` 服务**，只留 `zhimu-narrative-platform` |
+| **自定义域名** | Hobby 支持 |
 
-## 关于「要升级额外花钱」
+**推荐部署路径（免费版）**：Railway 项目连 GitHub → 推 `main` 自动构建，**不依赖** GitHub Actions 的 `RAILWAY_TOKEN`。
 
+---
 
+## 你只需做这 4 步（约 10 分钟）
 
-| 情况 | 说明 |
+### 第 1 步：修正 Build 设置（最关键）
 
+打开 [Railway → beautiful-unity → zhimu-narrative-platform → Settings](https://railway.app/dashboard)
+
+#### 1a. Source（先查这里）
+
+| 项 | 必须 |
+|----|------|
+| 连接仓库 | `Caligula-597/zhimu-narrative-platform` |
+| 分支 | `main` |
+| **Root Directory** | **留空**（若有 `backend` 必须删掉） |
+
+> Root Directory = `backend` 时，会忽略 fullstack 配置，首页一直 404。
+
+#### 1b. Build（由 `railway.toml` 控制）
+
+点 Build 页右侧 **Open file**，在 GitHub 上应看到：
+
+```toml
+dockerfilePath = "deploy/Dockerfile.fullstack"
+watchPatterns = ["backend/**", "deploy/**", "src/**", ...]
+```
+
+**若你仍看到** `backend/Dockerfile` + `watchPatterns = ["backend/**"]`（旧配置）：
+
+1. 说明 Railway **还没拉到最新 `main`**（commit `55517da` 起已改 fullstack）
+2. 去 **Deployments** → 选最新一条 → **Redeploy**，或 Settings → Source → **Disconnect / Reconnect** 仓库后再 Deploy
+
+| 项 | 正确值 |
+|----|--------|
+| Builder | Dockerfile |
+| Dockerfile Path | `deploy/Dockerfile.fullstack`（只读，来自 `railway.toml`） |
+| Start Command | 留空 |
+
+保存后点 **Deploy**。
+
+**构建日志应出现**：
+- 阶段 `web-build`：`npm run build`
+- 阶段 `api`：`COPY --from=web-build /web/dist`
+- 运行日志：`Static frontend enabled`
+
+**若构建失败 `"/backend": not found`**：根目录 `.dockerignore` 曾写 `backend` 把整个后端排除在构建上下文外（已改为只忽略 `backend/node_modules` 等）。修复后需 **`git push origin main`**，再 Redeploy。
+
+### 第 2 步：确认变量（通常已完成）
+
+Railway → **Variables** → 确认存在：
+
+```
+APP_PUBLIC_URL=https://getzhimu.com
+CORS_ORIGIN=https://getzhimu.com
+SERVE_STATIC=true
+STATIC_ROOT=/app/public/dist
+```
+
+本地重新生成并推送（可选）：
+
+```powershell
+npm run railway:sync-env    # 生成 .env.railway
+npm run railway:push-env    # 需 .env.railway.setup 里 Account Token
+```
+
+**不要**手动填 `PORT`（Railway 自动注入）。
+
+### 第 3 步：删多余 Web 服务 + 域名
+
+1. 若有 **web** 服务 → Settings → Danger → **Delete Service**
+2. **zhimu-narrative-platform** → Networking → Custom Domain → **getzhimu.com**
+3. Cloudflare DNS：CNAME 指向 Railway 给的域名；**删除**指向 Cloudflare Pages 的记录
+
+### 第 4 步：验收
+
+| 检查 | 期望 |
 |------|------|
-
-| **两个服务（API + Web）** | Hobby 免费额度按**服务数**计，多开一个 `web` 容易触发升级提示 |
-
-| **Project Token** | **免费**，和付费计划无关，只是 GitHub Actions 部署用的密钥 |
-
-| **自定义域名** | Hobby 支持，不单独收费 |
-
-| **本仓库方案** | 合并为 **1 个服务**，前端由 API 同域提供（`/api` + 静态页） |
-
-
-
-**建议**：在 Railway 里 **删除 `web` 服务**（Settings → Danger → Delete Service），只保留 **zhimu-narrative-platform**。
-
-
+| https://getzhimu.com/api/health/ready | `"ready": true` |
+| https://getzhimu.com/ | 织幕登录页（HTML，不是 `{"error":"Route not found"}`） |
+| 浏览器登录 | 无 CORS 报错（同域 `/api`） |
 
 ---
-
-
 
 ## 已完成（不用重复做）
 
-
-
 | 项 | 状态 |
-
 |----|------|
-
 | 代码：fullstack `deploy/Dockerfile.fullstack` + Fastify 静态前端 | ✅ |
-
-| GitHub Actions：单 job `Deploy to Railway`（仓库根 `railway up`） | ✅ |
-
-| GitHub Secrets：`RAILWAY_SERVICE_ID`、`RAILWAY_PUBLIC_URL` | ✅ |
-
-| 本地 `.env.railway` 含 `SERVE_STATIC=true` 等 | ✅ `npm run railway:sync-env` |
-
+| 根目录 `railway.toml` + `railway.json` | ✅ |
+| `npm run railway:sync-env` / `railway:push-env` / `railway:bootstrap` | ✅ 单服务 fullstack |
+| 生产 DB 迁移到 024 | ✅ |
 | Cloudflare Pages | ❌ 已弃用，请停用 |
 
+---
 
+## 可选：GitHub Actions 自动部署
 
-**当前阻塞**：GitHub 的 `RAILWAY_TOKEN` 需换成 **Project Token**（不是 Account Token）。
+仅当你能在 Railway 创建 **Project Token** 时启用：
 
+1. beautiful-unity → Project Settings → Tokens → Create
+2. GitHub Secrets → `RAILWAY_TOKEN` = Project Token
+3. 已有：`RAILWAY_SERVICE_ID` = `fc78dfb7-98dc-4ca5-8a9e-4cb9a9db80b1`
+4. Actions → Deploy to Railway → Run workflow
 
+**免费版无 Project Token 时**：可删除或忽略失败的 `RAILWAY_TOKEN` Secret；以 Railway 连 GitHub 为准。
+
+若 Railway **已连 GitHub**，建议在服务 Settings → Source 保留连接，并确保 Build 与上表一致（避免与 Actions 双轨冲突时可 Disconnect 其一）。
 
 ---
 
-
-
-## 第 1 步：删 Web 服务 + Project Token（约 3 分钟）
-
-
-
-### 1.1 删除多余的 Web 服务（省额度）
-
-
-
-1. Railway → **beautiful-unity** → 服务 **web**  
-
-2. **Settings** → 底部 **Danger** → **Delete Service**  
-
-
-
-### 1.2 创建 Project Token
-
-
-
-1. 项目 **beautiful-unity** → **Project Settings** → **Tokens** → **Create Token**  
-
-2. 复制 token（**不是** Account Token）
-
-
-
-### 1.3 写入 GitHub Secret
-
-
-
-https://github.com/Caligula-597/zhimu-narrative-platform/settings/secrets/actions  
-
-
-
-| Secret | 值 |
-
-|--------|-----|
-
-| `RAILWAY_TOKEN` | **Project Token**（Update） |
-
-| `RAILWAY_PUBLIC_URL` | `https://getzhimu.com`（建议改，健康检查用） |
-
-| `RAILWAY_SERVICE_ID` | `fc78dfb7-98dc-4ca5-8a9e-4cb9a9db80b1`（不变） |
-
-
-
-`RAILWAY_WEB_SERVICE_ID` 可删除（已不再使用）。
-
-
-
-### 1.4 触发部署
-
-
-
-https://github.com/Caligula-597/zhimu-narrative-platform/actions/workflows/railway-deploy.yml → **Run workflow**
-
-
-
-**成功标志**：job 全绿，无 `Invalid RAILWAY_TOKEN`。
-
-
-
----
-
-
-
-## 第 2 步：Railway 唯一服务配置（约 5 分钟）
-
-
-
-服务：**zhimu-narrative-platform**
-
-
-
-### 2.1 Variables
-
-
-
-1. 本地 `d:\长剧情\.env.railway` → Railway **Raw Editor** 全量粘贴  
-
-2. 确认关键项：  
-
-   - `APP_PUBLIC_URL=https://getzhimu.com`  
-
-   - `CORS_ORIGIN=https://getzhimu.com`  
-
-   - `SERVE_STATIC=true`  
-
-   - `STATIC_ROOT=/app/public/dist`  
-
-3. **不要**手动填 `PORT`  
-
-
-
-或本地：`npm run railway:push-env`（需 `.env.railway.setup` 里 Account Token）
-
-
-
-### 2.2 Settings → Build
-
-
-
-| 项 | 值 |
-
-|----|-----|
-
-| Root Directory | **留空**（仓库根） |
-
-| Builder | **Dockerfile** |
-
-| Dockerfile | **`deploy/Dockerfile.fullstack`** |
-
-| Start Command | **留空** |
-
-
-
-若仍连着 GitHub 自动构建，建议 **Disconnect**，只走 GitHub Actions。
-
-
-
----
-
-
-
-## 第 3 步：自定义域名（一个就够）
-
-
-
-1. 服务 **zhimu-narrative-platform** → **Networking** → **Custom Domain**  
-
-2. 添加 **`getzhimu.com`**（可选 `www.getzhimu.com`）  
-
-3. 记下 Railway 给的 **CNAME 目标**  
-
-
-
-不再需要单独的 `api.getzhimu.com`（API 在同域 `/api`）。若已有 `api` 子域 CNAME，可删或也指同一服务。
-
-
-
----
-
-
-
-## 第 4 步：Cloudflare DNS
-
-
-
-1. https://dash.cloudflare.com → **getzhimu.com** → **DNS**  
-
-2. 删除指向 Cloudflare Pages 的记录  
-
-3. 添加/修改：
-
-
-
-| 类型 | 名称 | 内容 | 代理 |
-
-|------|------|------|------|
-
-| CNAME | `@` 或 `www` | Railway 给的 CNAME | 可开橙云 |
-
-
-
-4. **Workers & Pages** → 旧 Pages 项目 → **Delete** 或暂停  
-
-
-
----
-
-
-
-## 第 5 步：Resend / 邮件（若已用 Resend）
-
-
-
-| 位置 | 做什么 |
-
-|------|--------|
-
-| Resend | 域名 `mail.getzhimu.com` 已验证 |
-
-| Cloudflare DNS | Resend 的 DKIM/SPF |
-
-| Railway Variables | `MAIL_FROM` 等（在 `.env.railway`） |
-
-
-
----
-
-
-
-## 第 6 步：身份 / OAuth / 内测配额（2026-06-08）
+## 身份 / OAuth / 商业化（上线后再配）
 
 | 变量 | 用途 |
 |------|------|
-| `APP_PUBLIC_URL` | 必须为 `https://getzhimu.com` |
-| `GOOGLE_*` / `GITHUB_*` | OAuth 登录（可选） |
-| `INTERNAL_BETA_EMAIL_DOMAINS` | 内测域名自动 `beta` 套餐 |
-| `INTERNAL_BETA_EMAILS` | 指定邮箱内测提权 |
-| `REQUIRE_OAUTH_IN_PRODUCTION` | 未配 OAuth 时 FATAL |
+| `GOOGLE_*` / `GITHUB_*` | OAuth 登录 |
+| `STRIPE_*` | 订阅计费 |
+| `INTERNAL_BETA_EMAIL_DOMAINS` | 内测自动 beta 套餐 |
+| `REQUIRE_OAUTH_IN_PRODUCTION` | 未配 OAuth 时启动 FATAL |
 
-回调 URL 见 `GET /api/auth/config` → `oauthDiagnostics.providers[].callbackUrl`。
-
-运维改套餐：`POST /api/ops/users/plan` + `OPS_API_TOKEN`。
-
-迁移：`npm run db:migrate`（含 `023_plan_beta.sql`）。
+回调 URL：`GET /api/auth/config` → `oauthDiagnostics.providers[].callbackUrl`
 
 ---
-
-
-
-## 验收
-
-
-
-| 检查 | URL |
-
-|------|-----|
-
-| API | https://getzhimu.com/api/health/ready → `"ready": true` |
-
-| 前端 | https://getzhimu.com → 织幕登录页 |
-
-| 登录 | 无 CORS 报错（同域） |
-| OAuth 诊断 | `GET /api/auth/config` → `oauthDiagnostics.ready` 或按 provider issues 修复 |
-| 账号权益 | `GET /api/account/entitlements` → plan + usage + capabilities |
-| 协作邀请 | 未注册邮箱收到 Resend 邮件；链接 `/?invite=` 可接受 |
-
-| Actions | Deploy to Railway 全绿 |
-
-
-
----
-
-
 
 ## 快速链接
 
-
-
 | 用途 | URL |
-
 |------|-----|
-
-| GitHub Secrets | https://github.com/Caligula-597/zhimu-narrative-platform/settings/secrets/actions |
-
-| GitHub Actions | https://github.com/Caligula-597/zhimu-narrative-platform/actions/workflows/railway-deploy.yml |
-
-| Railway | https://railway.app/dashboard |
-
+| Railway 服务 | https://railway.app/dashboard |
+| GitHub Actions | https://github.com/Caligula-597/zhimu-narrative-platform/actions |
 | Cloudflare DNS | https://dash.cloudflare.com → getzhimu.com |
-
-
+| Account Token | https://railway.com/account/tokens |
 
 ---
-
-
 
 ## ID 备忘
 
-
-
 ```
-
-RAILWAY_SERVICE_ID  = fc78dfb7-98dc-4ca5-8a9e-4cb9a9db80b1  (zhimu-narrative-platform，唯一服务)
-
+RAILWAY_SERVICE_ID  = fc78dfb7-98dc-4ca5-8a9e-4cb9a9db80b1  (zhimu-narrative-platform)
 RAILWAY_PUBLIC_URL  = https://getzhimu.com
-
 RAILWAY_PROJECT_ID  = 26f5bb70-1688-4e0b-a414-5c03f16ed95b  (beautiful-unity)
-
 ```
-
-
 
 ---
 
-
-
 ## 两种 Token 区别
 
-
-
 | | Account Token | Project Token |
-
 |--|---------------|---------------|
-
 | 创建位置 | railway.com/account/tokens | 项目 Settings → Tokens |
-
-| 用途 | 本地 bootstrap / push-env | **GitHub Actions**、`railway up --ci` |
-
-| 是否收费 | 否 | 否 |
-
-
+| 本机脚本 | `railway:push-env` / `railway:bootstrap` | — |
+| GitHub Actions | ❌ 不适用 | `RAILWAY_TOKEN` |
+| 免费版 | ✅ 一般有 | ❌ 通常无 |
 
 **不要混用。**
-
