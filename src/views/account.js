@@ -55,9 +55,13 @@
     return accountShell(accountBody(state.accountView));
   }
 
-  async function refreshAccountView() {
-    state.accountViewLoading = true;
-    window.zhimuRender?.();
+  async function refreshAccountView(options = {}) {
+    const background = Boolean(options.background);
+    const showLoading = !background && !state.accountView;
+    if (showLoading) {
+      state.accountViewLoading = true;
+      window.zhimuRender?.();
+    }
     try {
       const [me, sessions, config, entitlements] = await Promise.all([
         zhimuApi.me(),
@@ -69,8 +73,10 @@
       if (usage) state.storageUsage = usage;
       state.accountView = { me, sessions, config, usage, entitlements };
     } catch (error) {
-      state.accountView = null;
-      showToast(error.message);
+      if (!background) {
+        state.accountView = null;
+        showToast(error.message);
+      }
     } finally {
       state.accountViewLoading = false;
       if (state.view === "account") window.zhimuRender?.();

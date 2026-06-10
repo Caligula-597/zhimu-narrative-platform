@@ -93,10 +93,8 @@
   }
 
   function go(view) {
+    if (state.view === view) return;
     state.view = view;
-    if (view === "account") {
-      state.accountView = null;
-    }
     R.syncDirectorPolling();
     R.connectRoomEventStream();
     render();
