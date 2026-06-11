@@ -141,16 +141,31 @@ npm run railway:push-env    # 需 .env.railway.setup 里 Account Token
 
 ---
 
-## 身份 / OAuth / 商业化（上线后再配）
+## 身份 / OAuth（推荐尽快配置）
 
-| 变量 | 用途 |
+> 详细步骤：[OAUTH_SETUP.md](./OAUTH_SETUP.md)
+
+当前生产 `GET /api/auth/config` → **`oauth: []`**，登录页不会出现 Google/GitHub 按钮，直到 Railway 配好凭证。
+
+### 回调 URL（控制台必填）
+
+| Provider | Redirect / Callback URI |
+|----------|-------------------------|
+| Google | `https://getzhimu.com/api/auth/oauth/google/callback` |
+| GitHub | `https://getzhimu.com/api/auth/oauth/github/callback` |
+
+### 配置步骤
+
+1. 在 Google Cloud / GitHub 创建 OAuth 应用（见 OAUTH_SETUP.md）
+2. 写入 `backend/.env`：`GOOGLE_CLIENT_ID/SECRET`、`GITHUB_CLIENT_ID/SECRET`
+3. `npm run oauth:check` → `npm run railway:push-env`
+4. 验收：`oauthDiagnostics.ready: true`，登录弹窗出现 OAuth 按钮
+
+| 其他变量 | 用途 |
 |------|------|
-| `GOOGLE_*` / `GITHUB_*` | OAuth 登录 |
-| `STRIPE_*` | 订阅计费 |
-| `INTERNAL_BETA_EMAIL_DOMAINS` | 内测自动 beta 套餐 |
-| `REQUIRE_OAUTH_IN_PRODUCTION` | 未配 OAuth 时启动 FATAL |
-
-回调 URL：`GET /api/auth/config` → `oauthDiagnostics.providers[].callbackUrl`
+| `STRIPE_*` | 订阅计费（可后配） |
+| `INTERNAL_BETA_*` | 内测套餐 |
+| `REQUIRE_OAUTH_IN_PRODUCTION` | 未配 OAuth 时保持 `false` |
 
 ---
 

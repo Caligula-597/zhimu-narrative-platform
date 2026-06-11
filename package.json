@@ -19,6 +19,7 @@
     "railway:sync-env": "node scripts/sync-railway-env.mjs",
     "railway:bootstrap": "node scripts/railway-bootstrap.mjs",
     "railway:push-env": "node scripts/railway-push-env.mjs",
+    "oauth:check": "node scripts/check-oauth-config.mjs",
     "railway:deploy": "node scripts/railway-deploy.mjs",
     "railway:deploy:web": "node scripts/railway-deploy-web.mjs",
     "staging:seed": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/seed.js",
