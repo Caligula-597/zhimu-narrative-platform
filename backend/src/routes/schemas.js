@@ -348,6 +348,22 @@ export const updateWorldCatalogSchema = {
   }
 };
 
+export const requestCatalogReviewSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["playtestNotes", "themeNotes", "agreed"],
+    properties: {
+      playtestNotes: { type: "string", minLength: 8, maxLength: 4000 },
+      themeNotes: { type: "string", minLength: 8, maxLength: 4000 },
+      sampleNotes: { type: "string", maxLength: 2000 },
+      contact: { type: "string", maxLength: 200 },
+      agreed: { type: "boolean" }
+    }
+  }
+};
+
 export const joinWorldCatalogSchema = { params: worldIdParams };
 
 export const worldMemberUserIdParams = paramsSchema({ worldId: uuid, userId: uuid });

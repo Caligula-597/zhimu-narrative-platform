@@ -192,6 +192,8 @@ function handle(action,el){
   if(action==="restore-checkpoint") return openRestoreCheckpointModal(el.dataset.checkpoint);
   if(action==="save-world-settings") return saveWorldSettings();
   if(action==="save-room-settings") return saveRoomSettings();
+  if(action==="open-catalog-review") return V.settings?.openCatalogReviewModal?.();
+  if(action==="catalog-withdraw") return V.settings?.withdrawCatalogListing?.();
   if(action==="world-audit") return openWorldAuditModal();
   if(action==="go-writer-export") return goWriterExport();
   if(action==="go-account") return R.go?.("account");

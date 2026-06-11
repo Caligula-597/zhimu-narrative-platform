@@ -17,6 +17,7 @@ import {
   normalizeCollaboratorEmail
 } from "../world-collaboration.js";
 import { acceptWorldMemberInviteToken } from "../world-invites.js";
+import { submitCatalogReviewRequest } from "../catalog-review.js";
 import {
   updateWorldSchema,
   worldIdParams,
@@ -26,6 +27,7 @@ import {
   updateWorldMemberSchema,
   deleteWorldMemberSchema,
   updateWorldCatalogSchema,
+  requestCatalogReviewSchema,
   joinWorldCatalogSchema
 } from "./schemas.js";
 
@@ -40,16 +42,16 @@ export async function registerWorldRoutes(app) {
     const actorId = requireActor(request);
     const includeArchived = String(request.query?.includeArchived ?? "") === "true";
     const result = await query(
-      `SELECT DISTINCT ON (id) id, name, summary, status, catalog_public, membership_role, updated_at
+      `SELECT DISTINCT ON (id) id, name, summary, status, catalog_public, catalog_review_status, catalog_review_submitted_at, catalog_review_note, membership_role, updated_at
        FROM (
-         SELECT w.id, w.name, w.summary, w.status, w.catalog_public, wm.role::text AS membership_role, w.updated_at,
+         SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note, wm.role::text AS membership_role, w.updated_at,
                 CASE wm.role WHEN 'owner' THEN 4 WHEN 'editor' THEN 3 WHEN 'host' THEN 2 WHEN 'viewer' THEN 1 ELSE 0 END AS role_rank
          FROM worlds w
          JOIN world_members wm ON wm.world_id = w.id
          WHERE wm.user_id = $1
            AND ($2::boolean OR w.status <> 'archived')
          UNION ALL
-         SELECT w.id, w.name, w.summary, w.status, w.catalog_public, 'player' AS membership_role, w.updated_at, 0 AS role_rank
+         SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note, 'player' AS membership_role, w.updated_at, 0 AS role_rank
          FROM worlds w
          JOIN rooms r ON r.world_id = w.id
          JOIN room_members rm ON rm.room_id = r.id
@@ -91,7 +93,7 @@ export async function registerWorldRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor", "host", "viewer"]);
     const result = await query(
-      `SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.settings, w.created_at, w.updated_at,
+      `SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note, w.settings, w.created_at, w.updated_at,
               wm.role AS membership_role
        FROM worlds w
        JOIN world_members wm ON wm.world_id = w.id AND wm.user_id = $2
@@ -147,13 +149,26 @@ export async function registerWorldRoutes(app) {
     if (!owner.rowCount) return sendErr(reply, "WORLD_NOT_FOUND");
     if (owner.rows[0].owner_user_id !== actorId) return sendErr(reply, "WORLD_OWNER_REQUIRED");
     const catalogPublic = Boolean(request.body?.catalogPublic);
+    if (catalogPublic) return sendErr(reply, "CATALOG_SELF_PUBLISH_DISABLED");
     const result = await query(
-      `UPDATE worlds SET catalog_public = $2, updated_at = now()
+      `UPDATE worlds SET catalog_public = false, catalog_review_status = 'none', updated_at = now()
        WHERE id = $1
-       RETURNING id, name, summary, status, catalog_public, created_at, updated_at`,
-      [worldId, catalogPublic]
+       RETURNING id, name, summary, status, catalog_public, catalog_review_status, created_at, updated_at`,
+      [worldId]
     );
     return result.rows[0];
+  });
+
+  app.post("/api/worlds/:worldId/catalog/request", { schema: requestCatalogReviewSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    try {
+      const row = await submitCatalogReviewRequest(actorId, worldId, request.body ?? {});
+      return reply.code(201).send(row);
+    } catch (error) {
+      if (error.code === "EMAIL_NOT_CONFIGURED") return sendErr(reply, "EMAIL_NOT_CONFIGURED");
+      throw error;
+    }
   });
 
   app.post("/api/worlds/:worldId/catalog/join", { schema: joinWorldCatalogSchema }, async (request, reply) => {

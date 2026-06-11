@@ -249,7 +249,7 @@ export async function registerStudioRoutes(app) {
     const client = await pool.connect();
     try {
       const world = await client.query(
-        `SELECT w.id, w.owner_user_id, w.name, w.summary, w.status, w.catalog_public, w.settings, wm.role AS membership_role
+        `SELECT w.id, w.owner_user_id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note, w.settings, wm.role AS membership_role
          FROM worlds w
          JOIN world_members wm ON wm.world_id = w.id AND wm.user_id = $2
          WHERE w.id = $1`,

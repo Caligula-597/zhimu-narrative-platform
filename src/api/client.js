@@ -109,6 +109,8 @@ window.zhimuApi = {
   getWorldCatalog: () => request("/worlds/catalog", { userId: demoContext.hostUserId }),
   patchWorldCatalog: (catalogPublic, worldId = demoContext.worldId) =>
     request(`/worlds/${worldId}/catalog`, { userId: demoContext.hostUserId, method: "PATCH", body: { catalogPublic } }),
+  requestCatalogReview: (payload, worldId = demoContext.worldId) =>
+    request(`/worlds/${worldId}/catalog/request`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   joinWorldCatalog: (worldId) =>
     request(`/worlds/${worldId}/catalog/join`, { userId: demoContext.hostUserId, method: "POST", body: {} }),
   getWorld: (worldId = demoContext.worldId) => request(`/worlds/${worldId}`, { userId: demoContext.hostUserId }),
