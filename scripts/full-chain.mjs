@@ -53,6 +53,8 @@ if (!skipTests) {
   run("check:schemas", process.execPath, [path.join("scripts", "verify-route-schemas.mjs")], { cwd: backend });
   run("backend npm test", process.platform === "win32" ? "npm.cmd" : "npm", ["test"], { cwd: backend });
   run("format helper tests", process.execPath, ["--test", path.join("scripts", "format-helpers.test.mjs")], { cwd: root });
+  run("runtime store tests", process.execPath, ["--test", path.join("scripts", "runtime-stores.test.mjs")], { cwd: root });
+  run("pipeline session tests", process.execPath, ["--test", path.join("scripts", "pipeline-wizard-session.test.mjs")], { cwd: root });
   run("demo Act2 reading", process.execPath, ["--test", "test/demo-act2-reading.test.js"], { cwd: backend });
 }
 

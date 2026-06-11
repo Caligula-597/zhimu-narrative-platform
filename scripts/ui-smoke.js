@@ -43,8 +43,14 @@ const requiredModuleScripts = [
   "src/views/archive.js",
   "src/views/settings.js",
   "src/runtime/wizard.js",
-  "src/runtime/auth-world.js",
   "src/runtime/auth-session.js",
+  "src/runtime/workspace-store.js",
+  "src/runtime/runtime-store.js",
+  "src/runtime/context-coordinator.js",
+  "src/runtime/account-quota.js",
+  "src/runtime/room-events.js",
+  "src/runtime/auth-world.js",
+  "src/runtime/actions-workspace.js",
   "src/runtime/global-search.js",
   "src/runtime/search-focus.js",
   "src/runtime/livekit-voice.js",
@@ -182,8 +188,14 @@ await check("state-runtime-boundaries", async () => {
     if (js.includes(removed)) throw new Error(`state still has demo runtime field ${removed}`);
   }
   const dataJs = readSource("src/runtime/data.js");
+  const runtimeStoreJs = readSource("src/runtime/runtime-store.js");
+  const workspaceJs = readSource("src/runtime/workspace-store.js");
+  const contextJs = readSource("src/runtime/context-coordinator.js");
   if (!dataJs.includes("clearRuntimeState")) throw new Error("clearRuntimeState not in runtime/data.js");
   if (!dataJs.includes("loadCloudData")) throw new Error("loadCloudData not in runtime/data.js");
+  if (!runtimeStoreJs.includes("clearRuntimeFields")) throw new Error("runtime-store missing clearRuntimeFields");
+  if (!workspaceJs.includes("ensureActiveWorld")) throw new Error("workspace-store missing ensureActiveWorld");
+  if (!contextJs.includes("prepareWorldSwitch")) throw new Error("context-coordinator missing prepareWorldSwitch");
   return "state + runtime cleanup present";
 });
 
@@ -255,8 +267,10 @@ await check("rule-visual-wired", async () => {
 
 await check("room-events-wired", async () => {
   const dataJs = readSource("src/runtime/data.js");
+  const roomJs = readSource("src/runtime/room-events.js");
   for (const token of ["connectRoomEventStream", "handleRoomEvent", "roomEventsConnected"]) {
-    if (!dataJs.includes(token)) throw new Error(`runtime/data.js missing room-events token ${token}`);
+    const bundle = `${dataJs}${roomJs}`;
+    if (!bundle.includes(token)) throw new Error(`room events modules missing token ${token}`);
   }
   const apiJs = readSource("src/api/client.js");
   if (!apiJs.includes("streamRoomEvents")) throw new Error("api-client missing streamRoomEvents");
@@ -335,10 +349,10 @@ await check("global-search-focus-wired", async () => {
 });
 
 await check("runtime-state-clears-audit", async () => {
-  const dataJs = readSource("src/runtime/data.js");
-  const authJs = readSource("src/runtime/auth-world.js");
-  if (!dataJs.includes("cloudHostAuditLog=[]")) throw new Error("clearRuntimeState must reset cloudHostAuditLog");
-  if (!authJs.includes("cloudHostAuditLog")) throw new Error("auth-world world switch must reset cloudHostAuditLog");
+  const runtimeStoreJs = readSource("src/runtime/runtime-store.js");
+  const contextJs = readSource("src/runtime/context-coordinator.js");
+  if (!runtimeStoreJs.includes("cloudHostAuditLog")) throw new Error("clearRuntimeState must reset cloudHostAuditLog");
+  if (!contextJs.includes("cloudHostAuditLog")) throw new Error("world switch must reset cloudHostAuditLog");
   return "audit log cleared on world/room reset";
 });
 
@@ -356,8 +370,8 @@ await check("checkpoint-wired", async () => {
   if (archive.includes("readingProgress")) throw new Error("archive must not expose raw scope keys in UI");
   const css = readSource("styles.css");
   if (!css.includes(".restore-scope-list")) throw new Error("styles missing restore-scope-list");
-  const dataJs = readSource("src/runtime/data.js");
-  if (!dataJs.includes("room.checkpoint_restored")) throw new Error("SSE handler missing room.checkpoint_restored");
+  const roomJs = readSource("src/runtime/room-events.js");
+  if (!roomJs.includes("room.checkpoint_restored")) throw new Error("SSE handler missing room.checkpoint_restored");
   return "checkpoint create/detail/restore UI + API wired";
 });
 
@@ -423,7 +437,7 @@ await check("inventory-wired", async () => {
   const studio = readSource("src/views/studio.js");
   const player = readSource("src/views/player.js");
   const director = readSource("src/views/director.js");
-  const dataJs = readSource("src/runtime/data.js");
+  const roomJs = readSource("src/runtime/room-events.js");
   for (const token of ["openStudioItem", "studio-add-item", "requiredItemId"]) {
     if (!studio.includes(token)) throw new Error(`studio view missing inventory token ${token}`);
   }
@@ -431,7 +445,7 @@ await check("inventory-wired", async () => {
     if (!player.includes(token)) throw new Error(`player view missing inventory token ${token}`);
   }
   if (!director.includes("host-manual-grant-item")) throw new Error("director missing host grant item");
-  if (!dataJs.includes("room.item_granted")) throw new Error("SSE handler missing room.item_granted");
+  if (!roomJs.includes("room.item_granted")) throw new Error("SSE handler missing room.item_granted");
   const apiJs = readSource("src/api/client.js");
   for (const method of ["createItem", "updateItem", "deleteItem", "hostGrantItem"]) {
     if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
@@ -494,8 +508,13 @@ await check("world-switch-sync", async () => {
   const appJs = readSource("app.js");
   const dataJs = readSource("src/runtime/data.js");
   const authJs = readSource("src/runtime/auth-world.js");
+  const workspaceJs = readSource("src/runtime/workspace-store.js");
+  const contextJs = readSource("src/runtime/context-coordinator.js");
   if (!appJs.includes("syncWorldSwitcher")) throw new Error("syncWorldSwitcher missing from app.js");
   if (!dataJs.includes("ensureActiveWorld")) throw new Error("ensureActiveWorld missing from data.js");
+  if (!workspaceJs.includes("ensureActiveWorld")) throw new Error("ensureActiveWorld missing from workspace-store.js");
+  if (!contextJs.includes("resetAccountContext")) throw new Error("resetAccountContext missing from context-coordinator.js");
+  if (!authJs.includes("zhimuContext")) throw new Error("auth-world.js must use zhimuContext coordinator");
   if (!authJs.includes("正在加载…")) throw new Error("world library loading state missing");
   return "world switcher + active world validation wired";
 });

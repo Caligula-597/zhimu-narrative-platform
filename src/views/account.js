@@ -89,10 +89,7 @@
       try {
         await zhimuApi.logout();
         localStorage.removeItem("zhimuSessionToken");
-        zhimuApi.resetActiveWorld?.();
-        state.cloudStudio = null;
-        state.accountView = null;
-        window.zhimuClearRuntimeState?.();
+        window.zhimuContext?.onSessionLogout?.();
         showToast("已退出登录");
         await window.zhimuAuthSession?.syncProfile?.();
         window.zhimuAuthSession?.syncAuthBanner?.();

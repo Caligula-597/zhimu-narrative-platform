@@ -62,9 +62,14 @@
     return true;
   }
 
+  function isDemoBrowseMode() {
+    return Boolean(window.zhimuConfig?.demoMode) && !isLoggedIn();
+  }
+
   window.zhimuAuthSession = {
     isLoggedIn,
     requiresAuth,
+    isDemoBrowseMode,
     syncAuthBanner,
     syncProfile,
     promptAuthIfNeeded

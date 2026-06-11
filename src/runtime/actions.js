@@ -1,325 +1,58 @@
-/* Auto-split from app.js — actions.js */
+/* Global data-action dispatcher — domain handlers live in actions-*.js */
 (function (window) {
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
-  const { content, toast, modal, modalBackdrop } = window.zhimuDom;
-  const F = window.zhimuFormat || {};
-  const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
-  const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
-  const escapeHtml = F.escapeHtml || ((v="") => String(v));
-  const formatTime = F.formatTime || (() => "");
-  const formatBytes = F.formatBytes || (() => "");
-  const formatRelativeTime = F.formatRelativeTime || (() => "");
-  const roleParts = F.roleParts || (() => ({ name: "", role: "" }));
-  const hostOperationLabel = F.hostOperationLabel || ((t,m) => m || t);
-  const hostPlayerColor = F.hostPlayerColor || (() => "#666");
-  const activeRuntimeRoom = U.activeRuntimeRoom || (() => null);
-  const cloudStatus = U.cloudStatus || (() => "");
-  const runtimeEmpty = U.runtimeEmpty || (() => "");
-  const stat = U.stat || (() => "");
-  const flow = U.flow || (() => "");
-  const activity = U.activity || (() => "");
-  const readingRow = U.readingRow || (() => "");
-  const task = U.task || (() => "");
-  const taskAction = U.taskAction || (() => "");
-  const capability = U.capability || (() => "");
-  const check = U.check || (() => "");
-  const voiceOption = U.voiceOption || (() => "");
+  const T = window.zhimuToast || {};
+  const M = window.zhimuModal || {};
   const showToast = T.showToast || (() => {});
-  const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
-  const studioModal = M.studioModal || (() => {});
-  const studioField = M.studioField || (() => "");
-  const studioValues = M.studioValues || (() => ({}));
-  const studioSelect = M.studioSelect || (() => "");
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
-  const openWizard = R.openWizard || (() => {});
-  const openJoinRoom = R.openJoinRoom || (() => {});
-  const openRuleEditor = V.rules?.openRuleEditor || (() => {});
-  const hostClueMatrixCard = V.director?.hostClueMatrixCard || (() => "");
-  const hostEventRows = V.director?.hostEventRows || (() => "");
-  const hostPlayerTableRows = V.director?.hostPlayerTableRows || (() => {});
-  const explorationRows = V.player?.explorationRows || (() => "");
-  const cloudClueRows = V.player?.cloudClueRows || (() => "");
-  const sharedClueSection = V.player?.sharedClueSection || (() => "");
-  const reader = V.player?.reader || (() => "");
-  const notebookCard = V.player?.notebookCard || (() => "");
-  const voiceHub = V.player?.voiceHub || (() => "");
-  const studioNodeName = V.studio?.studioNodeName || (() => "");
-  const studioNodeList = V.studio?.studioNodeList || (() => []);
-  const studioNodeRecord = V.studio?.studioNodeRecord || (() => null);
-  const studioNodeAnchors = V.studio?.studioNodeAnchors || (() => []);
-  const studioNodePosition = V.studio?.studioNodePosition || (() => ({ x: 0, y: 0 }));
-  const studioEditField = V.studio?.studioEditField || (() => "");
-  const studioEditSelect = V.studio?.studioEditSelect || (() => "");
-  const studioEditValues = V.studio?.studioEditValues || (() => ({}));
-  const overviewRuntimeProgress = V.overview?.overviewRuntimeProgress || (() => ({ percent: 0, label: "" }));
-  const logActivityType = F.logActivityType || (() => "ok");
-  const chapterPublicationLabel = F.chapterPublicationLabel || ((s) => s);
-  const chapterFlowClass = F.chapterFlowClass || (() => "");
   const enhanceCloudPanels = R.enhanceCloudPanels || (() => {});
-  const refreshHostRoom = R.refreshHostRoom || (async () => {});
-  const refreshHostEvents = R.refreshHostEvents || (async () => {});
-  const refreshHostPlayers = R.refreshHostPlayers || (async () => {});
-  const refreshHostClueMatrix = R.refreshHostClueMatrix || (async () => {});
-  const refreshHostAuditLog = R.refreshHostAuditLog || (async () => {});
-  const openAuth = R.openAuth || (() => {});
-  const openWorldLibrary = R.openWorldLibrary || (() => {});
-  const joinCatalogWorld = (...args) => window.zhimuRuntime?.joinCatalogWorld?.(...args);
-  const selectWorld = (...args) => window.zhimuRuntime?.selectWorld?.(...args);
-  const deleteWorld = (...args) => window.zhimuRuntime?.deleteWorld?.(...args);
-  const openWorldRooms = R.openWorldRooms || (async () => {});
-  const createParallelRoom = R.createParallelRoom || (async () => {});
-  const selectParallelRoom = R.selectParallelRoom || (async () => {});
-  const openRoomInvite = R.openRoomInvite || (() => {});
-  const bindStudioDragging = V.studio?.bindStudioDragging || (() => {});
-  const addStudioAnchor = V.studio?.addStudioAnchor || (async () => {});
-  const deleteStudioAnchor = V.studio?.deleteStudioAnchor || (async () => {});
-  const openStudioChapter = V.studio?.openStudioChapter || (() => {});
-  const openStudioScene = V.studio?.openStudioScene || (() => {});
-  const openStudioClue = V.studio?.openStudioClue || (() => {});
-  const openStudioItem = V.studio?.openStudioItem || (() => {});
-  const openStudioPoint = V.studio?.openStudioPoint || (() => {});
-  const openStudioNodeMenu = V.studio?.openStudioNodeMenu || (() => {});
-  const openStudioConnection = V.studio?.openStudioConnection || (() => {});
-  const deleteSelectedStudioNode = V.studio?.deleteSelectedStudioNode || (async () => {});
-  const saveSelectedStudioNode = V.studio?.saveSelectedStudioNode || (async () => {});
-  const deleteStudioEdge = V.studio?.deleteStudioEdge || (async () => {});
-  const autoLayoutStudio = V.studio?.autoLayoutStudio || (async () => {});
-  const openCreatorSection = V.writer?.openCreatorSection || (() => {});
-  const openCreatorRole = V.writer?.openCreatorRole || (() => {});
-  const openCreatorChapter = V.writer?.openCreatorChapter || (() => {});
-  const runCreatorChecks = V.writer?.runCreatorChecks || (async () => {});
-  const openCreatorPreview = V.writer?.openCreatorPreview || (() => {});
-  const openCollaboration = V.writer?.openCollaboration || (async () => {});
-  const openWorldLogs = V.writer?.openWorldLogs || (async () => {});
-  const openDocumentParser = V.writer?.openDocumentParser || (async () => {});
-  const openDeepseekAssistant = V.writer?.openDeepseekAssistant || (async () => {});
-  const openDeepseekPipeline = V.writer?.openDeepseekPipeline || (async () => {});
-  const openDeepseekFullMystery = V.writer?.openDeepseekFullMystery || (async () => {});
-  const openStoryManuscript = V.writer?.openStoryManuscript || (async () => {});
-  const openStoryAssistant = V.writer?.openStoryAssistant || (() => {});
-  const exportCreatorPackage = V.writer?.exportCreatorPackage || (async () => {});
-  const openCreatorImport = V.writer?.openCreatorImport || (() => {});
-  const createCreatorSnapshot = V.writer?.createCreatorSnapshot || (() => {});
-  const restoreCreatorSnapshot = V.writer?.restoreCreatorSnapshot || (async () => {});
-  const deleteCreatorSnapshot = V.writer?.deleteCreatorSnapshot || (async () => {});
-  const toggleCloudRule = V.rules?.toggleCloudRule || (async () => {});
-  const deleteCloudRule = V.rules?.deleteCloudRule || (async () => {});
-  const validateCloudRules = V.rules?.validateCloudRules || (async () => {});
-  const openHostEventContext = V.director?.openHostEventContext || (() => {});
-  const openHostPlayerDetail = V.director?.openHostPlayerDetail || (async () => {});
-  const openHostClueNote = V.director?.openHostClueNote || (async () => {});
-  const openHostGrantClueModal = V.director?.openHostGrantClueModal || (() => {});
-  const openDelayHostEventModal = V.director?.openDelayHostEventModal || (() => {});
-  const openHostGrantItemModal = V.director?.openHostGrantItemModal || (() => {});
-  const openHostUnlockSectionModal = V.director?.openHostUnlockSectionModal || (() => {});
-  const openHostUnlockSceneModal = V.director?.openHostUnlockSceneModal || (() => {});
-  const openHostLogModal = V.director?.openHostLogModal || (() => {});
-  const openCreateCheckpointModal = V.archive?.openCreateCheckpointModal || (() => {});
-  const openCreateRecapModal = V.archive?.openCreateRecapModal || (() => {});
-  const openRecapDetail = V.archive?.openRecapDetail || (async () => {});
-  const closeRecapDetail = V.archive?.closeRecapDetail || (() => {});
-  const openCheckpointDetail = V.archive?.openCheckpointDetail || (async () => {});
-  const openRestoreCheckpointModal = V.archive?.openRestoreCheckpointModal || (() => {});
-  const saveWorldSettings = V.settings?.saveWorldSettings || (async () => {});
-  const openWorldAuditModal = V.settings?.openWorldAuditModal || (async () => {});
-  const saveRoomSettings = V.settings?.saveRoomSettings || (async () => {});
-  const goWriterExport = V.settings?.goWriterExport || (() => {});
-  const setAssetFilter = V.assets?.setAssetFilter || (async () => {});
-  const toggleAssetRecycle = V.assets?.toggleAssetRecycle || (async () => {});
-  const restoreCloudAsset = V.assets?.restoreCloudAsset || (async () => {});
-  const downloadCloudAsset = V.assets?.downloadCloudAsset || (async () => {});
-  const refreshRulesPreview = V.director?.refreshRulesPreview || (async () => {});
-  const triggerManualRuleFromDirector = V.director?.triggerManualRuleFromDirector || (async () => {});
-  const openVoiceRooms = V.player?.openVoiceRooms || (() => {});
-  const openCreateVoiceRoom = V.player?.openCreateVoiceRoom || (() => {});
-  const openInviteVoiceRoom = V.player?.openInviteVoiceRoom || (() => {});
-  const joinVoiceRoom = V.player?.joinVoiceRoom || (async () => {});
-  const refreshVoiceMessages = V.player?.refreshVoiceMessages || (async () => {});
-  const sendVoiceMessage = V.player?.sendVoiceMessage || (async () => {});
-  const connectVoiceLive = V.player?.connectVoiceLive || (async () => {});
-  const disconnectVoiceLive = V.player?.disconnectVoiceLive || (async () => {});
-  const toggleVoiceMic = V.player?.toggleVoiceMic || (async () => {});
-  const openNotebook = V.player?.openNotebook || (() => {});
-  const completeCloudReading = V.player?.completeCloudReading || (async () => {});
-  const addCloudNote = V.player?.addCloudNote || (async () => {});
-  const addCloudClueNote = V.player?.addCloudClueNote || (async () => {});
-  const investigateCloud = V.player?.investigateCloud || (async () => {});
-  const readCloudClue = V.player?.readCloudClue || (async () => {});
-  const shareCloudClue = V.player?.shareCloudClue || (async () => {});
-  const openShareClueRolesModal = V.player?.openShareClueRolesModal || (() => {});
-  const openClueNoteModal = V.player?.openClueNoteModal || (() => {});
-  const openCluesEditor = V.clues?.openCluesEditor || (() => {});
-  const openClueInStudio = V.clues?.openClueInStudio || (() => {});
-  const confirmDeleteClue = V.clues?.confirmDeleteClue || (async () => {});
-  const batchDeleteClues = V.clues?.batchDeleteClues || (async () => {});
-  const toggleCluesSelection = V.clues?.toggleCluesSelection || (() => {});
-  const syncCluesSelectAll = V.clues?.syncCluesSelectAll || (() => {});
-  const executeHostEvent = V.player?.executeHostEvent || (async () => {});
-  const dismissHostEvent = V.player?.dismissHostEvent || (async () => {});
-  const toggleHostEventSelection = V.director?.toggleHostEventSelection || (() => {});
-  const syncHostEventSelectAll = V.director?.syncHostEventSelectAll || (() => {});
-  const batchHostEventsAction = V.director?.batchHostEventsAction || (async () => {});
-  const deleteCloudAsset = V.assets?.deleteCloudAsset || (async () => {});
-  const openAssetUpload = V.assets?.openAssetUpload || (() => {});
-  window.zhimuViews = window.zhimuViews || {};
-  function bindDynamic(){
-  enhanceCloudPanels();
-  document.querySelectorAll("[data-action]").forEach(el=>{
-   if(el.type==="checkbox")el.onchange=()=>handle(el.dataset.action,el);
-   else el.onclick=()=>handle(el.dataset.action,el);
-  });
-  if(state.view==="studio") bindStudioDragging();
-  if(state.view==="assets") V.assets?.bindAssetSearch?.();
-  if(state.view==="clues") V.clues?.bindCluesSearch?.();
-  if(state.view==="account") V.account?.bindAccountView?.();
-  window.zhimuSearchFocus?.applyAfterRender?.();
-}
+  const openWizard = R.openWizard || (() => {});
 
-function handle(action,el){
-  if(action==="save-node"||action==="save-settings") return showToast("配置已保存");
-  if(action==="test-rules") return showToast("规则检查完成：未发现冲突");
-  if(action==="create-checkpoint") return openCreateCheckpointModal();
-  if(action==="create-recap") return openCreateRecapModal();
-  if(action==="recap-detail") return openRecapDetail(el.dataset.recap,el.dataset.player==="1");
-  if(action==="recap-back") return closeRecapDetail();
-  if(action==="checkpoint-detail") return openCheckpointDetail(el.dataset.checkpoint);
-  if(action==="restore-checkpoint") return openRestoreCheckpointModal(el.dataset.checkpoint);
-  if(action==="save-world-settings") return saveWorldSettings();
-  if(action==="save-room-settings") return saveRoomSettings();
-  if(action==="open-catalog-review") return V.settings?.openCatalogReviewModal?.();
-  if(action==="catalog-withdraw") return V.settings?.withdrawCatalogListing?.();
-  if(action==="world-audit") return openWorldAuditModal();
-  if(action==="go-writer-export") return goWriterExport();
-  if(action==="go-account") return R.go?.("account");
-  if(action==="asset-filter") return setAssetFilter(el.dataset.kind);
-  if(action==="asset-recycle-toggle") return toggleAssetRecycle();
-  if(action==="rules-preview") return refreshRulesPreview();
-  if(action==="rule-manual-trigger") return triggerManualRuleFromDirector(el.dataset.rule);
-  if(action==="delay-host-event") return openDelayHostEventModal(el.dataset.event);
-  if(action==="delay-event") return openDelayHostEventModal(el.dataset.event);
-  if(action==="explore") return openModal("调查进行中",`你开始调查「${el.dataset.place}」。系统将根据角色状态、持有物品和已解读线索展示可发现的内容。`,`确认调查`);
-  if(action==="new-rule") return openModal("新建自动化规则","使用“当满足条件，则执行动作”的方式配置规则。每个规则都支持自动执行、主持确认和仅手动三种模式。","开始配置");
-  if(action==="export") return showToast("世界数据已准备导出");
-  if(action==="import") return handle("creator-import", el);
-  if(action==="token") return showToast("实体小卡功能暂不可用");
-  if(action==="voice-room") return openVoiceRooms();
-  if(action==="voice-room-create") return openCreateVoiceRoom();
-  if(action==="voice-room-invite") return openInviteVoiceRoom(el.dataset.roomId,el.dataset.room);
-  if(action==="join-room") return joinVoiceRoom(el.dataset.roomId,el.dataset.room);
-  if(action==="voice-live-connect") return connectVoiceLive();
-  if(action==="voice-live-disconnect") return disconnectVoiceLive();
-  if(action==="voice-mic-toggle") return toggleVoiceMic();
-  if(action==="voice-chat-refresh") return refreshVoiceMessages();
-  if(action==="voice-chat-send") return sendVoiceMessage();
-  if(action==="notebook") return openNotebook();
-  if(action==="open-wizard") return openWizard();
-  if(action==="refresh-cloud") return loadCloudData(true, true);
-  if(action==="refresh-host-room") return refreshHostRoom(true);
-  if(action==="refresh-host-events") return refreshHostEvents(true);
-  if(action==="refresh-host-players") return refreshHostPlayers(true);
-  if(action==="refresh-host-clue-matrix") return refreshHostClueMatrix(true);
-  if(action==="refresh-host-audit") return refreshHostAuditLog(true);
-  if(action==="read-cloud-next") return completeCloudReading(el.dataset.section);
-  if(action==="add-cloud-note") return addCloudNote(el.dataset.section,el.dataset.label,el.dataset.note);
-  if(action==="add-cloud-clue-note") return addCloudClueNote(el.dataset.clue,el.dataset.label,el.dataset.note);
-  if(action==="investigate-cloud") return investigateCloud(el.dataset.point);
-  if(action==="read-cloud-clue") return readCloudClue(el.dataset.clue,el.dataset.shared==="1");
-  if(action==="share-cloud-clue") return shareCloudClue(el.dataset.clue);
-  if(action==="share-clue-roles") return openShareClueRolesModal(el.dataset.clue);
-  if(action==="clues-edit") return openCluesEditor(el.dataset.clue);
-  if(action==="clues-open-studio") return openClueInStudio(el.dataset.clue);
-  if(action==="clues-add") return openCluesEditor("");
-  if(action==="clues-delete") return confirmDeleteClue(el.dataset.clue);
-  if(action==="clues-batch-delete") return batchDeleteClues();
-  if(action==="clues-toggle-select") return toggleCluesSelection(el.dataset.clue, el.checked);
-  if(action==="clues-select-all") {
-    const visible = [...document.querySelectorAll("[data-clue-row]")].map((row) => row.dataset.clueRow);
-    return syncCluesSelectAll(el.checked, visible);
+  const dispatchers = [
+    () => window.zhimuActionsWorkspace?.handleWorkspaceAction,
+    () => window.zhimuActionsArchive?.handleArchiveAction,
+    () => window.zhimuActionsPlayer?.handlePlayerAction,
+    () => window.zhimuActionsDirector?.handleDirectorAction,
+    () => window.zhimuActionsStudio?.handleStudioAction,
+    () => window.zhimuActionsWriter?.handleWriterAction,
+    () => window.zhimuActionsRules?.handleRulesAction,
+    () => window.zhimuActionsAssets?.handleAssetsAction,
+    () => window.zhimuActionsClues?.handleCluesAction
+  ];
+
+  function bindDynamic() {
+    enhanceCloudPanels();
+    document.querySelectorAll("[data-action]").forEach((el) => {
+      if (el.type === "checkbox") el.onchange = () => handle(el.dataset.action, el);
+      else el.onclick = () => handle(el.dataset.action, el);
+    });
+    if (state.view === "studio") V.studio?.bindStudioDragging?.();
+    if (state.view === "assets") V.assets?.bindAssetSearch?.();
+    if (state.view === "clues") V.clues?.bindCluesSearch?.();
+    if (state.view === "account") V.account?.bindAccountView?.();
+    window.zhimuSearchFocus?.applyAfterRender?.();
   }
-  if(action==="edit-clue-note") return openClueNoteModal(el.dataset.clue);
-  if(action==="read-shared-clue") return readCloudClue(el.dataset.clue,true);
-  if(action==="execute-host-event") return executeHostEvent(el.dataset.event);
-  if(action==="dismiss-host-event") return dismissHostEvent(el.dataset.event);
-  if(action==="host-event-toggle") return toggleHostEventSelection(el.dataset.event,el.checked);
-  if(action==="host-event-select-all") return syncHostEventSelectAll(el.checked);
-  if(action==="batch-execute-host-events") return batchHostEventsAction("execute");
-  if(action==="batch-dismiss-host-events") return batchHostEventsAction("dismiss");
-  if(action==="open-creator-guide") return window.zhimuGuide?.openCreatorGuide?.();
-  if(action==="open-error-guide") return window.zhimuGuide?.openErrorGuide?.();
-  if(action==="host-event-context") return openHostEventContext(el.dataset.event);
-  if(action==="host-player-detail") return openHostPlayerDetail(el.dataset.role);
-  if(action==="host-manual-grant-clue") return openHostGrantClueModal();
-  if(action==="host-manual-grant-item") return openHostGrantItemModal();
-  if(action==="host-manual-unlock-section") return openHostUnlockSectionModal();
-  if(action==="host-manual-unlock-scene") return openHostUnlockSceneModal();
-  if(action==="host-manual-log") return openHostLogModal();
-  if(action==="studio-add-chapter") return openStudioChapter();
-  if(action==="studio-add-scene") return openStudioScene();
-  if(action==="studio-add-clue") return openStudioClue();
-  if(action==="studio-add-item") return openStudioItem();
-  if(action==="studio-add-point") return openStudioPoint();
-  if(action==="studio-add-node-menu") return openStudioNodeMenu();
-  if(action==="studio-select-node"){state.studioSelectedNode={type:el.dataset.nodeType,id:el.dataset.nodeId};state.studioAnchorEditing=false;render();return}
-  if(action==="studio-add-anchor") return addStudioAnchor();
-  if(action==="studio-delete-anchor") return deleteStudioAnchor(el.dataset.anchorId);
-  if(action==="studio-toggle-anchor-edit"){state.studioAnchorEditing=!state.studioAnchorEditing;render();return}
-  if(action==="studio-connect-node") return openStudioConnection();
-  if(action==="studio-delete-node") return deleteSelectedStudioNode();
-  if(action==="studio-save-node") return saveSelectedStudioNode();
-  if(action==="studio-delete-edge") return deleteStudioEdge(el.dataset.edgeId);
-  if(action==="studio-filter"){state.studioFilter=el.dataset.filter;render();return}
-  if(action==="studio-auto-layout") return autoLayoutStudio();
-  if(action==="studio-zoom-out"){state.studioZoom=Math.max(.7,state.studioZoom-.1);render();return}
-  if(action==="studio-zoom-in"){state.studioZoom=Math.min(1.3,state.studioZoom+.1);render();return}
-  if(action==="creator-add-section") return openCreatorSection(el.dataset.role);
-  if(action==="creator-edit-section") return openCreatorSection(el.dataset.role,el.dataset.section);
-  if(action==="creator-edit-chapter") return openCreatorChapter(el.dataset.chapter);
-  if(action==="creator-check") return runCreatorChecks();
-  if(action==="creator-preview") return openCreatorPreview();
-  if(action==="creator-collaboration") return openCollaboration();
-  if(action==="creator-logs") return openWorldLogs();
-  if(action==="creator-document-parser") return openDocumentParser();
-  if(action==="account"||action==="open-auth") return openAuth();
-  if(action==="world-library") return openWorldLibrary();
-  if(action==="open-catalog") return openWorldLibrary("catalog");
-  if(action==="catalog-join") return joinCatalogWorld(el.dataset.worldId);
-  if(action==="world-rooms") return openWorldRooms();
-  if(action==="world-select") return selectWorld(el.dataset.worldId);
-  if(action==="world-delete") return deleteWorld(el.dataset.worldId,el.dataset.worldName);
-  if(action==="room-select") return selectParallelRoom(el.dataset.roomId);
-  if(action==="room-invite") return openRoomInvite(el.dataset.roomId,el.dataset.inviteCode,el.dataset.roomName);
-  if(action==="room-join") return openJoinRoom(el.dataset.inviteCode);
-  if(action==="room-create") return createParallelRoom();
-  if(action==="deepseek-assistant") return openDeepseekAssistant();
-  if(action==="deepseek-pipeline") return openDeepseekPipeline();
-  if(action==="deepseek-full-mystery") return openDeepseekFullMystery();
-  if(action==="download-asset") return downloadCloudAsset(el.dataset.asset);
-  if(action==="host-clue-note") return openHostClueNote(el.dataset.clue,el.dataset.role);
-  if(action==="story-manuscript") return openStoryManuscript();
-  if(action==="story-assistant") return openStoryAssistant();
-  if(action==="creator-add-role") return openCreatorRole();
-  if(action==="creator-edit-role") return openCreatorRole(el.dataset.role);
-  if(action==="creator-export") return exportCreatorPackage();
-  if(action==="creator-import") return openCreatorImport();
-  if(action==="rule-new") return openRuleEditor();
-  if(action==="rule-edit") return openRuleEditor(el.dataset.rule);
-  if(action==="rule-delete") return deleteCloudRule(el.dataset.rule);
-  if(action==="rule-toggle") return toggleCloudRule(el.dataset.rule);
-  if(action==="rule-validate") return validateCloudRules();
-  if(action==="creator-snapshot") return createCreatorSnapshot();
-  if(action==="creator-restore") return restoreCreatorSnapshot(el.dataset.version);
-  if(action==="creator-delete-version") return deleteCreatorSnapshot(el.dataset.version);
-  if(action==="delete-asset") return deleteCloudAsset(el.dataset.asset);
-  if(action==="restore-asset") return restoreCloudAsset(el.dataset.asset);
-  if(action==="upload-asset") return openAssetUpload();
-  if(action==="unavailable") return showToast(`${el.dataset.feature||"该功能"}暂不可用`);
-}
+
+  function handle(action, el) {
+    for (const getFn of dispatchers) {
+      const fn = getFn();
+      if (typeof fn === "function" && fn(action, el)) return;
+    }
+    if (action === "save-node" || action === "save-settings") return showToast("配置已保存");
+    if (action === "explore") {
+      return openModal("调查进行中", `你开始调查「${el.dataset.place}」。系统将根据角色状态、持有物品和已解读线索展示可发现的内容。`, "确认调查");
+    }
+    if (action === "export") return showToast("世界数据已准备导出");
+    if (action === "import") return handle("creator-import", el);
+    if (action === "token") return showToast("实体小卡功能暂不可用");
+    if (action === "open-wizard") return openWizard();
+    if (action === "open-creator-guide") return window.zhimuGuide?.openCreatorGuide?.();
+    if (action === "open-error-guide") return window.zhimuGuide?.openErrorGuide?.();
+    if (action === "unavailable") return showToast(`${el.dataset.feature || "该功能"}暂不可用`);
+  }
+
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { bindDynamic, handle });
 })(window);
 export {};

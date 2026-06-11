@@ -33,10 +33,8 @@
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
   window.zhimuViews = window.zhimuViews || {};
-  function activeRuntimeRoom(){
-   return (state.cloudStudio?.rooms||[]).find(room=>room.id===zhimuApi.context.roomId)
-    || (state.cloudPlayer?.room?.id===zhimuApi.context.roomId?state.cloudPlayer.room:null)
-    || null;
+  function activeRuntimeRoom() {
+    return window.zhimuWorkspace?.activeRuntimeRoom?.() ?? null;
   }
 
 function canEditWorldContent(world){
@@ -49,16 +47,8 @@ function catalogExperienceBanner(world){
  return `<section class="demo-strip catalog-experience-strip"><div><span class="cloud-pill">公开剧本 · 体验</span><strong style="margin-top:7px">正在浏览主创作者发布的完整剧本</strong><p>可阅读角色分幕与剧情编排；运行数据只显示<strong>你自己的运行房</strong>（重复点「开始体验」不会刷出一堆空房间）。改正文需主创作者授权。</p></div></section>`;
 }
 
-function isWorldOwner(worldId){
- const id=worldId||zhimuApi.context.worldId;
- if(!id)return false;
- const studioWorld=state.cloudStudio?.world;
- if(studioWorld?.id===id){
-  if(studioWorld.membership_role==="owner")return true;
-  if(state.currentUser?.id&&studioWorld.owner_user_id===state.currentUser.id)return true;
- }
- const listed=(state.cloudWorlds||[]).find((w)=>w.id===id);
- return listed?.membership_role==="owner";
+function isWorldOwner(worldId) {
+ return window.zhimuWorkspace?.isWorldOwner?.(worldId) ?? false;
 }
 
 function deleteWorldPanel(world){
