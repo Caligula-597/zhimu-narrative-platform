@@ -172,19 +172,23 @@
         return creative;
       };
 
+      const omitNullishFields = (obj) =>
+        Object.fromEntries(Object.entries(obj).filter(([, value]) => value != null));
+
       const pipelinePayload = () => {
         const creative = ensureCreative();
-        return {
+        const sampleSection = Object.entries(session.sections || {}).flatMap(([roleKey, chapters]) =>
+          Object.entries(chapters || {}).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey }))
+        )[0];
+        return omitNullishFields({
           ...creative,
           narrativeChapters: narrativeChaptersArray(),
           proposal: session.proposal,
           rolesMeta: session.rolesMeta,
           roleMatrix: session.rolesMeta,
           sections: session.sections,
-          sampleSection: Object.entries(session.sections).flatMap(([roleKey, chapters]) =>
-            Object.entries(chapters || {}).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey }))
-          )[0]
-        };
+          sampleSection
+        });
       };
 
       const narrativeChaptersArray = () => (session.config?.chapterKeys || []).map((key) => session.narrativeChapters?.[key]).filter(Boolean);

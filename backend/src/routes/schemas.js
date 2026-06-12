@@ -1037,6 +1037,7 @@ const deepseekBriefBody = {
 };
 
 const deepseekJsonObject = { type: "object", additionalProperties: true };
+const optionalNullableJsonObject = { anyOf: [deepseekJsonObject, { type: "null" }] };
 
 const creativeSettingBody = {
   type: "object",
@@ -1179,13 +1180,13 @@ export const deepseekPipelineEvaluateSchema = {
       ...deepseekBriefBody.properties,
       ...creativePipelineFields,
       evaluationFocus: { type: "string", maxLength: 3000 },
-      spec: deepseekJsonObject,
-      outline: deepseekJsonObject,
-      proposal: deepseekJsonObject,
-      roleMatrix: deepseekJsonObject,
-      rolesMeta: deepseekJsonObject,
-      sections: deepseekJsonObject,
-      sampleSection: deepseekJsonObject,
+      spec: optionalNullableJsonObject,
+      outline: optionalNullableJsonObject,
+      proposal: optionalNullableJsonObject,
+      roleMatrix: optionalNullableJsonObject,
+      rolesMeta: optionalNullableJsonObject,
+      sections: optionalNullableJsonObject,
+      sampleSection: optionalNullableJsonObject,
       narrativeChapters: { type: "array", maxItems: 12, items: deepseekJsonObject }
     }
   }
