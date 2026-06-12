@@ -265,7 +265,12 @@ window.zhimuApi = {
   deepseekPipelineSection: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/section`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   deepseekPipelineManuscriptSynopsis: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/manuscript-synopsis`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   importDeepseekPipeline: (pipeline) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/import`, { userId: demoContext.hostUserId, method: "POST", body: { pipeline } }),
-  deepseekPipelineEvaluate: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/evaluate`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  deepseekPipelineEvaluate: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/evaluate`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: payload,
+    timeoutMs: 240_000
+  }),
   deepseekPipelineNarrativeChapter: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/narrative/chapter`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   deepseekPipelineNarrativeRolesMeta: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/narrative/roles-meta`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   deepseekPipelineNarrativeRoleScript: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/narrative/role-script`, {

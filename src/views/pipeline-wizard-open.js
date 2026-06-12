@@ -358,6 +358,7 @@
       };
 
       const renderLayerActions = () => {
+        if (pipelineGenerating) return;
         const fp = actionsFingerprint();
         if (fp === lastActionsFp && layerActions.children.length) return;
         lastActionsFp = fp;
@@ -369,10 +370,11 @@
         if (layer === "narrative") generateLabel = hasData ? "重新生成本章" : "AI 生成本章";
         else if (layer === "roles" && !rolesMetaReady) generateLabel = "识别角色";
         else if (layer === "roles") generateLabel = hasData ? "重新生成本章私人本" : "AI 生成本章私人本";
+        else if (layer === "sync") generateLabel = hasData ? "重新抽取结构" : "AI 抽取编排结构";
         const generateBtn = layer !== "evaluate" && layer !== "setup"
           ? `<button class="secondary-btn" type="button" data-pipeline-generate ${canGenerate ? "" : "disabled"}>${generateLabel}</button>`
           : layer === "evaluate"
-            ? `<button class="secondary-btn" type="button" data-pipeline-generate ${status.configured && pipelineDepsLocked(session, "evaluate") ? "" : "disabled"}>AI 评判</button>`
+            ? `<button class="secondary-btn" type="button" data-pipeline-generate ${status.configured && pipelineDepsLocked(session, "evaluate") ? "" : "disabled"}>${session.evaluation ? "重新 AI 评判" : "AI 评判"}（约 1～3 分钟）</button>`
             : "";
         const chapterKeys = session.config?.chapterKeys || [];
         const narrativeDone = chapterKeys.filter((key) => (session.narrativeChapters?.[key]?.narrativeBody || "").length > 0).length;
@@ -461,7 +463,15 @@
         });
       }
 
-      const setAutoProgress = () => {};
+      let pipelineProgressBtn = null;
+      let pipelineGenerating = false;
+      const disableLayerActions = () => {
+        layerActions.querySelectorAll("button").forEach((el) => { el.disabled = true; });
+      };
+
+      const setAutoProgress = (label) => {
+        if (pipelineProgressBtn) setPipelineProgress(pipelineProgressBtn, label);
+      };
 
       const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       const isRetryableDeepseekError = (error) => /无法连接|超时|UPSTREAM|API_UNAVAILABLE|RATE_LIMITED|过于频繁|503|502|504/i.test(error?.message || "");
@@ -488,6 +498,7 @@
       const setPipelineProgress = (btn, label) => {
         clearPipelineProgress();
         if (!btn) return;
+        pipelineProgressBtn = btn;
         const start = Date.now();
         pipelineProgressTimer = setInterval(() => {
           const sec = Math.floor((Date.now() - start) / 1000);
@@ -498,6 +509,7 @@
       const clearPipelineProgress = () => {
         if (pipelineProgressTimer) clearInterval(pipelineProgressTimer);
         pipelineProgressTimer = null;
+        pipelineProgressBtn = null;
       };
 
       async function generateNarrativeChapter(chapterKey, creative, progressBtn, progressLabel) {
@@ -563,9 +575,10 @@
         if (!session.locks?.narrative) return showToast("请先确认全部章节总剧情");
         const creative = ensureCreative();
         const btn = layerActions.querySelector("[data-pipeline-generate-all-roles]") || layerActions.querySelector("[data-pipeline-generate]");
+        pipelineGenerating = true;
         try {
           if (btn) btn.disabled = true;
-          layerActions.querySelectorAll("button").forEach((el) => { el.disabled = true; });
+          disableLayerActions();
           await ensureRolesMeta(creative, btn);
           const roles = session.rolesMeta?.roles || [];
           const keys = session.config?.chapterKeys || [];
@@ -585,6 +598,7 @@
           showToast("全部私人本已批量生成 · 请修改后确认");
         } catch (error) { showToast(error.message); }
         finally {
+          pipelineGenerating = false;
           clearPipelineProgress();
           renderPipelineUi({ editor: true });
         }
@@ -596,9 +610,10 @@
         if (!keys.length) return showToast("请先设置章节");
         const creative = ensureCreative();
         const btn = layerActions.querySelector("[data-pipeline-generate-all]") || layerActions.querySelector("[data-pipeline-generate]");
+        pipelineGenerating = true;
         try {
           if (btn) btn.disabled = true;
-          layerActions.querySelectorAll("button").forEach((el) => { el.disabled = true; });
+          disableLayerActions();
           for (let i = 0; i < keys.length; i++) {
             const chapterKey = keys[i];
             const body = session.narrativeChapters?.[chapterKey]?.narrativeBody || "";
@@ -612,6 +627,7 @@
           showToast("全部章节已逐章生成 · 请修改后确认");
         } catch (error) { showToast(error.message); }
         finally {
+          pipelineGenerating = false;
           clearPipelineProgress();
           renderPipelineUi({ editor: true });
         }
@@ -621,8 +637,10 @@
         const layer = session.activeLayer;
         const btn = layerActions.querySelector("[data-pipeline-generate]");
         const creative = ensureCreative();
+        pipelineGenerating = true;
         try {
-          if (btn) { btn.disabled = true; }
+          if (btn) btn.disabled = true;
+          disableLayerActions();
           if (layer === "setup") return showToast("创作立项请手动填写并确认，本层不用 AI");
           if (layer === "narrative") {
             if (!session.locks?.setup) return showToast("请先确认创作立项");
@@ -648,6 +666,7 @@
             await generateRoleScriptChapter(roleKey, chapterKey, creative, btn);
           } else if (layer === "sync") {
             if (!session.locks?.roles) return showToast("请先确认全部角色私人本");
+            setPipelineProgress(btn, "正在抽取编排结构");
             session.proposal = (await callDeepseekStep("⑤ 抽取编排结构", () =>
               zhimuApi.deepseekPipelineNarrativeExtractStructure({
                 ...creative,
@@ -659,6 +678,7 @@
             )).proposal;
           } else if (layer === "evaluate") {
             if (!session.locks?.roles) return showToast("请先确认角色私人本");
+            setPipelineProgress(btn, "AI 评判中");
             session.evaluation = (await callDeepseekStep("④ AI 评判", () => zhimuApi.deepseekPipelineEvaluate(pipelinePayload()))).evaluation;
           }
           session.locks[layer] = false;
@@ -668,6 +688,7 @@
           showToast(`${pipelineStepLabel(layer)} 已生成 · 请修改后确认`);
         } catch (error) { showToast(error.message); }
         finally {
+          pipelineGenerating = false;
           clearPipelineProgress();
           renderPipelineUi({ editor: true });
         }

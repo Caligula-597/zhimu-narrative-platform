@@ -107,7 +107,7 @@
         return `<div class="empty-state"><p>⑤ 汇总同步</p><p class="muted-note">从总剧情与私人本中<strong>抽取</strong>场景、线索与调查点，确认后上传编排台。</p></div>`;
       }
       if (layer === "evaluate") {
-        return `<div class="empty-state"><p>基于总剧情与全部私人本，AI 可给出分层修改建议（可选）。</p><p class="muted-note">点击下方「AI 评判」生成。</p></div>`;
+        return `<div class="empty-state"><p>④ AI 评判</p><p class="muted-note">基于总剧情与全部私人本给出分层修改建议（可选）。点击下方「AI 评判」后按钮会显示<strong>实时计时</strong>，通常需 1～3 分钟。</p></div>`;
       }
       return `<div class="empty-state"><p>${escapeHtml(label)} 尚未生成。</p><p class="muted-note">前置层级已锁定 · 请点击下方「AI 生成初稿」。</p></div>`;
     }
