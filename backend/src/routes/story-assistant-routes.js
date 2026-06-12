@@ -11,6 +11,9 @@ import {
   createDeepseekStoryOutline,
   createDeepseekStoryProposal,
   createDeepseekStorySpec,
+  createDeepseekChapterNarrative,
+  createDeepseekRolesFromNarrative,
+  createDeepseekStructureFromNarrative,
   deepseekConfig,
   normalizeStoryBrief
 } from "../deepseek.js";
@@ -30,6 +33,9 @@ import {
   deepseekMysteryImportSchema,
   deepseekMysteryProposeSchema,
   deepseekPipelineEvaluateSchema,
+  deepseekPipelineNarrativeChapterSchema,
+  deepseekPipelineNarrativeExtractSchema,
+  deepseekPipelineNarrativeRolesSchema,
   deepseekPipelineImportSchema,
   deepseekPipelineManuscriptSchema,
   deepseekPipelineOutlineSchema,
@@ -160,12 +166,34 @@ export async function registerStoryAssistantRoutes(app) {
       evaluationFocus: body.evaluationFocus,
       spec: body.spec,
       outline: body.outline,
+      narrativeChapters: body.narrativeChapters,
       proposal: body.proposal,
       roleMatrix: body.roleMatrix,
       sections: body.sections,
       synopsis: body.synopsis,
       sampleSection: firstSection
     });
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/chapter", { schema: deepseekPipelineNarrativeChapterSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createDeepseekChapterNarrative(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/roles", { schema: deepseekPipelineNarrativeRolesSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createDeepseekRolesFromNarrative(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/extract-structure", { schema: deepseekPipelineNarrativeExtractSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createDeepseekStructureFromNarrative(request.body ?? {});
   });
 
   app.get("/api/worlds/:worldId/story-manuscript", async (request) => {

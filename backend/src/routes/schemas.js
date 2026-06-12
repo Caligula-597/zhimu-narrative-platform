@@ -1018,6 +1018,8 @@ const deepseekBriefBody = {
   properties: {
     title: { type: "string", maxLength: 120 },
     premise: { type: "string", maxLength: 4000 },
+    conflicts: { type: "string", maxLength: 3000 },
+    wordsPerChapter: { type: "integer", minimum: 400, maximum: 2500 },
     style: { type: "string", maxLength: 800 },
     audience: { type: "string", maxLength: 400 },
     requirements: { type: "string", maxLength: 3000 },
@@ -1153,7 +1155,61 @@ export const deepseekPipelineEvaluateSchema = {
       roleMatrix: deepseekJsonObject,
       sections: deepseekJsonObject,
       synopsis: deepseekJsonObject,
-      sampleSection: deepseekJsonObject
+      sampleSection: deepseekJsonObject,
+      narrativeChapters: { type: "array", maxItems: 12, items: deepseekJsonObject }
+    }
+  }
+};
+
+/** 叙事优先流水线：逐章总剧情（承前启后） */
+export const deepseekPipelineNarrativeChapterSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["spec", "chapterKey"],
+    properties: {
+      ...deepseekBriefBody.properties,
+      spec: deepseekJsonObject,
+      chapterKey: { type: "string", minLength: 1, maxLength: 40 },
+      previousChapters: {
+        type: "array",
+        maxItems: 12,
+        items: deepseekJsonObject
+      }
+    }
+  }
+};
+
+/** 叙事优先：从总剧情拆私人分幕 */
+export const deepseekPipelineNarrativeRolesSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["spec", "roleMatrix", "chapters"],
+    properties: {
+      ...deepseekBriefBody.properties,
+      spec: deepseekJsonObject,
+      roleMatrix: deepseekJsonObject,
+      proposal: deepseekJsonObject,
+      chapters: { type: "array", minItems: 1, maxItems: 12, items: deepseekJsonObject }
+    }
+  }
+};
+
+/** 叙事优先：从总剧情抽取场景/线索/调查点 */
+export const deepseekPipelineNarrativeExtractSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["spec", "chapters"],
+    properties: {
+      ...deepseekBriefBody.properties,
+      spec: deepseekJsonObject,
+      chapters: { type: "array", minItems: 1, maxItems: 12, items: deepseekJsonObject },
+      sectionsSample: { type: "array", maxItems: 6, items: deepseekJsonObject }
     }
   }
 };

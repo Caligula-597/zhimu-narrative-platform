@@ -16,7 +16,7 @@
   const AiDraft = () => window.zhimuAiDraft;
   const PS = () => window.zhimuPipelineSession || {};
   const PIPELINE_LAYER_ORDER = PS().PIPELINE_LAYER_ORDER || ["spec", "outline", "structure", "matrix", "section", "synopsis", "evaluate"];
-  const defaultPipelineSession = (...args) => PS().defaultPipelineSession?.(...args) ?? { spec: null, outline: null, proposal: null, roleMatrix: null, sections: {}, synopsis: null, evaluation: null, locks: {}, activeLayer: "spec", _editorRev: {} };
+  const defaultPipelineSession = (...args) => PS().defaultPipelineSession?.(...args) ?? { spec: null, outline: null, narrativeChapters: {}, proposal: null, roleMatrix: null, sections: {}, synopsis: null, evaluation: null, locks: {}, activeLayer: "spec", _editorRev: {} };
   const normalizePipelineSession = (...args) => PS().normalizePipelineSession?.(...args) ?? defaultPipelineSession();
   const pipelineLayerHasData = (...args) => PS().pipelineLayerHasData?.(...args) ?? false;
   const pipelineLayerStatus = (...args) => PS().pipelineLayerStatus?.(...args) ?? "empty";
@@ -24,6 +24,9 @@
   const pipelineClearDownstream = (...args) => PS().pipelineClearDownstream?.(...args);
   const pipelineStepLabel = (...args) => PS().pipelineStepLabel?.(...args) ?? "";
   const pipelineStepName = (...args) => PS().pipelineStepName?.(...args) ?? "";
+  const pipelineChaptersForSession = (...args) => PS().pipelineChaptersForSession?.(...args) ?? [];
+  const pipelineNarrativeChapterList = (...args) => PS().pipelineNarrativeChapterList?.(...args) ?? [];
+  const pipelineStubProposal = (...args) => PS().pipelineStubProposal?.(...args) ?? null;
 
   const PB = () => window.zhimuPipelineBrief || {};
   const PH = () => window.zhimuPipelineHtml || {};
@@ -43,7 +46,22 @@
   function aiDraftWorldId() { return zhimuApi.context?.worldId || ""; }
   function collectAiFormFields() {
     const v = studioValues();
-    return { aiTitle: v.aiTitle, aiPremise: v.aiPremise, aiStyle: v.aiStyle, aiRequirements: v.aiRequirements, aiRoleRequirements: v.aiRoleRequirements, aiEvalFocus: v.aiEvalFocus, aiPlayerCount: v.aiPlayerCount, aiTargetWordCount: v.aiTargetWordCount, aiChapterCount: v.aiChapterCount, aiSceneCount: v.aiSceneCount, aiPointCount: v.aiPointCount, aiClueCount: v.aiClueCount };
+    return {
+      aiTitle: v.aiTitle,
+      aiPremise: v.aiPremise,
+      aiChapterCount: v.aiChapterCount,
+      aiWordsPerChapter: v.aiWordsPerChapter,
+      aiConflicts: v.aiConflicts
+    };
+  }
+  function migrateAiFormFields(form) {
+    if (!form) return form;
+    const next = { ...form };
+    if (!next.aiWordsPerChapter && next.aiTargetWordCount && next.aiChapterCount) {
+      next.aiWordsPerChapter = String(Math.round(Number(next.aiTargetWordCount) / Number(next.aiChapterCount)) || 800);
+    }
+    if (!next.aiConflicts && next.aiRequirements) next.aiConflicts = next.aiRequirements;
+    return next;
   }
   function restoreAiFormFields(form) {
     if (!form || !modal) return;
@@ -76,7 +94,7 @@
         session.proposal = structureDraft.payload.proposal;
         session.locks.structure = false;
         session.activeLayer = "structure";
-        if (structureDraft.payload.form && !existingDraft?.payload?.form) restoreForm(structureDraft.payload.form);
+        if (structureDraft.payload.form && !existingDraft?.payload?.form) restoreAiFormFields(migrateAiFormFields(structureDraft.payload.form));
       }
     }
     if (!session.spec) {
@@ -101,7 +119,7 @@
             session.synopsis = { title: pkg.title, summary: pkg.summary, overallManuscript: pkg.overallManuscript, logicNotes: pkg.logicNotes || [] };
           }
         }
-        if (fullDraft.payload.form && !existingDraft?.payload?.form) restoreForm(fullDraft.payload.form);
+        if (fullDraft.payload.form && !existingDraft?.payload?.form) restoreAiFormFields(migrateAiFormFields(fullDraft.payload.form));
       }
     }
   }
@@ -118,7 +136,11 @@
       const session = normalizePipelineSession(existingDraft?.payload?.session);
       let draftSavedAt = existingDraft?.savedAt || null;
       let pipelineMode = options.mode === "auto" ? "auto" : (existingDraft?.payload?.mode || "interactive");
-      const ctx = { roleKey: session.roleMatrix?.roles?.[0]?.key || "", chapterKey: session.proposal?.chapters?.[0]?.key || "" };
+      const ctx = {
+        roleKey: session.roleMatrix?.roles?.[0]?.key || "",
+        chapterKey: session.spec?.chapterKeys?.[0] || session.proposal?.chapters?.[0]?.key || "",
+        narrativeChapterKey: session.spec?.chapterKeys?.[0] || ""
+      };
       if (options.focusLayer && PIPELINE_LAYER_ORDER.includes(options.focusLayer)) session.activeLayer = options.focusLayer;
       migrateLegacyDrafts(session, existingDraft, restoreAiFormFields);
 
@@ -127,7 +149,7 @@
       modal.innerHTML = pipelineWizardFrameHtml(status, session, pipelineMode);
       modalBackdrop.classList.add("show");
       modal.querySelectorAll("[data-close]").forEach((btn) => { btn.onclick = () => { flushDraftSave(); uiAbort.abort(); closeModal(); }; });
-      if (existingDraft?.payload?.form) restoreAiFormFields(existingDraft.payload.form);
+      if (existingDraft?.payload?.form) restoreAiFormFields(migrateAiFormFields(existingDraft.payload.form));
 
       const ladder = modal.querySelector("[data-pipeline-ladder]");
       const layerHead = modal.querySelector("[data-pipeline-layer-head]");
@@ -141,12 +163,25 @@
       const autoProgress = modal.querySelector("[data-pipeline-auto-progress]");
       const autoRunBtn = modal.querySelector("[data-pipeline-auto-run]");
 
-      const pipelinePayload = () => ({
-        ...pipelineBriefFromForm(), evaluationFocus: studioValues().aiEvalFocus,
-        spec: session.spec, outline: session.outline, proposal: session.proposal,
-        roleMatrix: session.roleMatrix, sections: session.sections, synopsis: session.synopsis,
-        sampleSection: Object.entries(session.sections).flatMap(([roleKey, chapters]) => Object.entries(chapters || {}).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey })))[0]
-      });
+      const pipelinePayload = () => {
+        const brief = pipelineBriefFromForm();
+        return {
+          ...brief,
+          spec: session.spec,
+          outline: session.outline,
+          narrativeChapters: narrativeChaptersArray(),
+          proposal: session.proposal,
+          roleMatrix: session.roleMatrix,
+          sections: session.sections,
+          synopsis: session.synopsis,
+          sampleSection: Object.entries(session.sections).flatMap(([roleKey, chapters]) =>
+            Object.entries(chapters || {}).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey }))
+          )[0]
+        };
+      };
+
+      const narrativeChaptersArray = () => (session.spec?.chapterKeys || []).map((key) => session.narrativeChapters?.[key]).filter(Boolean);
+      const stubProposal = () => pipelineStubProposal(session, pipelineBriefFromForm().title);
 
       let lastDraftFingerprint = "";
       let draftSaveTimer = null;
@@ -183,7 +218,8 @@
       const editorRenderKey = () => {
         const rev = session._editorRev?.[session.activeLayer] || 0;
         const sectionCtx = session.activeLayer === "section" ? `${ctx.roleKey}|${ctx.chapterKey}` : "";
-        return `${session.activeLayer}:${rev}:${sectionCtx}`;
+        const narrativeCtx = session.activeLayer === "narrative" ? ctx.narrativeChapterKey : "";
+        return `${session.activeLayer}:${rev}:${sectionCtx}:${narrativeCtx}`;
       };
       const bumpEditorRevision = (layer) => {
         session._editorRev = session._editorRev || {};
@@ -238,6 +274,13 @@
             renderPipelineUi({ editor: true });
             return;
           }
+          const pickNarrativeBtn = event.target.closest("[data-pipeline-pick-narrative]");
+          if (pickNarrativeBtn) {
+            pipelinePersistActiveEditor(session, ctx);
+            ctx.narrativeChapterKey = pickNarrativeBtn.dataset.pipelinePickNarrative;
+            renderPipelineUi();
+            return;
+          }
           const pickBtn = event.target.closest("[data-pipeline-pick-section]");
           if (pickBtn) {
             pipelinePersistActiveEditor(session, ctx);
@@ -263,7 +306,7 @@
               forceEditorRefresh(next);
             }
             afterSessionChange({ saveNow: true, editor: true });
-            showToast(layer === "section" ? "本分幕已确认" : layer === "spec" ? "规格已确认，请点「AI 生成初稿」生成总纲" : "本层已锁定，可生成下一层");
+            showToast(layer === "section" ? "私人分幕已确认" : layer === "narrative" ? "全部章节已确认" : layer === "spec" ? "创作设定已确认，请生成总纲" : "本层已锁定，可生成下一层");
           }
         }, { signal });
 
@@ -275,6 +318,10 @@
           } else if (event.target.matches("[data-pipeline-chapter]")) {
             pipelinePersistActiveEditor(session, ctx);
             ctx.chapterKey = event.target.value;
+            renderPipelineUi();
+          } else if (event.target.matches("[data-pipeline-narrative-chapter]")) {
+            pipelinePersistActiveEditor(session, ctx);
+            ctx.narrativeChapterKey = event.target.value;
             renderPipelineUi();
           }
         }, { signal });
@@ -294,8 +341,26 @@
             ? `<button class="secondary-btn" type="button" data-pipeline-generate ${status.configured && session.proposal ? "" : "disabled"}>AI 评判</button>`
             : "";
         const saveBtn = interactiveActions && hasData && layer !== "evaluate" ? `<button class="text-btn" type="button" data-pipeline-save>保存修改</button>` : "";
-        const lockBtn = interactiveActions && hasData && layer !== "evaluate" ? `<button class="primary-btn" type="button" data-pipeline-lock>${layer === "section" ? "确认本分幕" : layer === "spec" ? "确认规格并继续" : "确认本层并继续"}</button>` : "";
+        const lockBtn = interactiveActions && hasData && layer !== "evaluate" ? `<button class="primary-btn" type="button" data-pipeline-lock>${layer === "section" ? "确认全部分幕" : layer === "narrative" ? "确认全部章节" : layer === "spec" ? "确认并继续" : "确认本层并继续"}</button>` : "";
         layerActions.innerHTML = interactiveActions ? `${generateBtn}${saveBtn}${lockBtn}` : `<p class="muted-note">一键模式下请用上方「开始一键串行生成」；生成后可在左侧选层编辑。</p>`;
+      };
+
+      const patchNarrativeEditor = () => {
+        const chapterSelect = layerEditor.querySelector("[data-pipeline-narrative-chapter]");
+        if (!chapterSelect) return false;
+        chapterSelect.value = ctx.narrativeChapterKey;
+        const chapter = session.narrativeChapters?.[ctx.narrativeChapterKey];
+        const titleEl = layerEditor.querySelector('[data-studio-field="pipeNarrativeTitle"]');
+        const summaryEl = layerEditor.querySelector('[data-studio-field="pipeNarrativeSummary"]');
+        const bodyEl = layerEditor.querySelector("[data-pipe-narrative-body]");
+        const hostEl = layerEditor.querySelector('[data-studio-field="pipeNarrativeHost"]');
+        if (titleEl) titleEl.value = chapter?.title || "";
+        if (summaryEl) summaryEl.value = chapter?.summary || "";
+        if (bodyEl) bodyEl.value = chapter?.narrativeBody || "";
+        if (hostEl) hostEl.value = chapter?.hostNotes || "";
+        const listHost = layerEditor.querySelector("[data-pipeline-narrative-list-host]");
+        if (listHost) listHost.innerHTML = PH().pipelineNarrativeListHtml?.(session) || "";
+        return true;
       };
 
       const patchSectionEditor = () => {
@@ -326,8 +391,9 @@
           const editorKey = editorRenderKey();
           if (editorKey !== lastEditorKey) {
             const prevLayer = lastEditorKey.split(":")[0];
-            const canPatchSection = session.activeLayer === "section" && prevLayer === "section" && patchSectionEditor();
-            if (!canPatchSection) {
+            const canPatchNarrative = session.activeLayer === "narrative" && prevLayer === "narrative" && patchNarrativeEditor();
+            const canPatchSection = !canPatchNarrative && session.activeLayer === "section" && prevLayer === "section" && patchSectionEditor();
+            if (!canPatchNarrative && !canPatchSection) {
               layerEditor.innerHTML = pipelineLayerEditorHtml(session.activeLayer, session, ctx);
             }
             lastEditorKey = editorKey;
@@ -378,10 +444,10 @@
       const runAutoPipeline = async () => {
         if (!status.configured) return showToast("DeepSeek 未配置");
         pipelinePersistActiveEditor(session, ctx);
-        const spec = pipelineReadSpecFromDom(session.spec);
-        if (!pipelineValidateSpec(spec)) return showToast("请先在① 规格填写并确认");
+        const spec = pipelineReadSpecFromDom();
+        if (!pipelineValidateSpec(spec)) return showToast("请先在① 创作设定填写并确认");
         session.spec = spec;
-        if (!session.locks?.spec) return showToast("请先在① 规格点「确认本层并继续」后再一键串行");
+        if (!session.locks?.spec) return showToast("请先在① 创作设定点「确认并继续」后再一键串行");
         const brief = pipelineBriefFromForm();
         try {
           autoRunBtn.disabled = true;
@@ -393,49 +459,69 @@
           forceEditorRefresh("outline");
           afterSessionChange({ editor: true, saveNow: false });
 
-          setAutoProgress("③ 生成编排结构（原结构提案）…");
-          session.activeLayer = "structure";
-          session.proposal = (await callDeepseekStep("③ 编排结构", () => zhimuApi.deepseekPipelineStructure({ ...brief, spec: session.spec, outline: session.outline }))).proposal;
-          session.locks.structure = true;
-          forceEditorRefresh("structure");
-          afterSessionChange({ editor: true, saveNow: false });
+          session.narrativeChapters = session.narrativeChapters || {};
+          const chapterKeys = session.spec.chapterKeys || [];
+          session.activeLayer = "narrative";
+          for (let i = 0; i < chapterKeys.length; i++) {
+            const chapterKey = chapterKeys[i];
+            const previousChapters = chapterKeys.slice(0, i).map((key) => session.narrativeChapters[key]);
+            setAutoProgress(`③ 章节总剧情 ${i + 1}/${chapterKeys.length}：${chapterKey}…`);
+            session.narrativeChapters[chapterKey] = (await callDeepseekStep(`③ 总剧情 ${i + 1}/${chapterKeys.length}`, () =>
+              zhimuApi.deepseekPipelineNarrativeChapter({ ...brief, spec: session.spec, chapterKey, previousChapters })
+            )).chapter;
+            ctx.narrativeChapterKey = chapterKey;
+            forceEditorRefresh("narrative");
+            afterSessionChange({ editor: true, saveNow: false });
+            if (i < chapterKeys.length - 1) await sleep(400);
+          }
+          session.locks.narrative = true;
 
+          const proposalDraft = stubProposal();
           setAutoProgress("④ 生成角色矩阵…");
           session.activeLayer = "matrix";
-          session.roleMatrix = (await callDeepseekStep("④ 角色矩阵", () => zhimuApi.deepseekPipelineRoleMatrix({ ...brief, spec: session.spec, outline: session.outline, proposal: session.proposal }))).roleMatrix;
+          session.roleMatrix = (await callDeepseekStep("④ 角色矩阵", () => zhimuApi.deepseekPipelineRoleMatrix({ ...brief, spec: session.spec, outline: session.outline, proposal: proposalDraft }))).roleMatrix;
           session.locks.matrix = true;
           ctx.roleKey = session.roleMatrix.roles?.[0]?.key || "";
           forceEditorRefresh("matrix");
           afterSessionChange({ editor: true, saveNow: false });
 
-          const roles = session.roleMatrix.roles || [];
-          const chapters = session.proposal.chapters || [];
-          let done = 0;
-          const total = roles.length * chapters.length;
+          setAutoProgress("⑤ 从总剧情拆分私人分幕…");
           session.activeLayer = "section";
-          for (const role of roles) {
-            for (const chapter of chapters) {
-              done += 1;
-              setAutoProgress(`⑤ 私人分幕 ${done}/${total}：${role.name} · ${chapter.title}…`);
-              const result = await callDeepseekStep(`⑤ 分幕 ${done}/${total}`, () =>
-                zhimuApi.deepseekPipelineSection({ ...brief, spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix, roleKey: role.key, chapterKey: chapter.key })
-              );
-              session.sections[role.key] = session.sections[role.key] || {};
-              session.sections[role.key][chapter.key] = result.section;
-              ctx.roleKey = role.key;
-              ctx.chapterKey = chapter.key;
-              if (done === total || done % 3 === 0) {
-                forceEditorRefresh("section");
-                afterSessionChange({ editor: true, saveNow: false });
-              } else scheduleDraftSave();
-              if (done < total) await sleep(400);
-            }
-          }
+          const rolesResult = await callDeepseekStep("⑤ 私人分幕", () =>
+            zhimuApi.deepseekPipelineNarrativeRoles({
+              ...brief,
+              spec: session.spec,
+              roleMatrix: session.roleMatrix,
+              chapters: narrativeChaptersArray(),
+              proposal: proposalDraft
+            })
+          );
+          session.sections = rolesResult.sections || {};
           session.locks.section = true;
+          ctx.roleKey = session.roleMatrix.roles?.[0]?.key || "";
+          ctx.chapterKey = chapterKeys[0] || "";
+          forceEditorRefresh("section");
+          afterSessionChange({ editor: true, saveNow: false });
 
-          setAutoProgress("⑥ 生成短母稿…");
+          setAutoProgress("⑥ 从剧情反推场景/线索…");
+          session.activeLayer = "structure";
+          session.proposal = (await callDeepseekStep("⑥ 编排结构", () =>
+            zhimuApi.deepseekPipelineNarrativeExtractStructure({
+              ...brief,
+              spec: session.spec,
+              chapters: narrativeChaptersArray(),
+              sectionsSample: Object.entries(session.sections).flatMap(([roleKey, chapters]) =>
+                Object.entries(chapters || {}).slice(0, 1).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey }))
+              ).slice(0, 4)
+            })
+          )).proposal;
+          session.locks.structure = true;
+          forceEditorRefresh("structure");
+          afterSessionChange({ editor: true, saveNow: false });
+
+          setAutoProgress("⑦ 生成短母稿…");
           session.activeLayer = "synopsis";
-          session.synopsis = (await callDeepseekStep("⑥ 短母稿", () =>
+          session.synopsis = (await callDeepseekStep("⑦ 短母稿", () =>
             zhimuApi.deepseekPipelineManuscriptSynopsis({ ...brief, spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix })
           )).synopsis;
           session.locks.synopsis = true;
@@ -444,7 +530,8 @@
 
           clearLocalAiDraft(AiDraft()?.KIND?.FULL_MYSTERY);
           clearLocalAiDraft(AiDraft()?.KIND?.STRUCTURE);
-          setAutoProgress(`完成 · 共 ${3 + total + 1} 次 API。请在左侧逐层检查，满意后点「上传全部到云端」。`);
+          const sectionCount = Object.values(session.sections).reduce((n, chapters) => n + Object.keys(chapters || {}).length, 0);
+          setAutoProgress(`完成 · 共 ${2 + chapterKeys.length + 4} 次 API（${chapterKeys.length} 章逐章 + 分幕 + 反推编排 + 母稿）。请在左侧逐层检查，满意后点「上传全部到云端」。`);
           showToast("一键串行生成完成 · 请复核后上传");
         } catch (error) {
           setAutoProgress(`中断：${error.message}`);
@@ -475,28 +562,52 @@
         const brief = () => pipelineBriefFromForm();
         try {
           if (btn) { btn.disabled = true; btn.textContent = "请求中…"; }
-          if (layer === "spec") return showToast("规格请手动填写并确认，本层不用 AI");
+          if (layer === "spec") return showToast("创作设定请手动填写并确认，本层不用 AI");
           else if (layer === "outline") {
             if (!session.locks?.spec) return showToast("请先生成并确认规格");
             session.outline = (await callDeepseekStep("② 总纲", () => zhimuApi.deepseekPipelineOutline({ ...brief(), spec: session.spec }))).outline;
-          } else if (layer === "structure") {
+          } else if (layer === "narrative") {
             if (!session.locks?.spec || !session.locks?.outline) return showToast("请先确认规格与总纲");
-            session.proposal = (await callDeepseekStep("③ 编排结构", () => zhimuApi.deepseekPipelineStructure({ ...brief(), spec: session.spec, outline: session.outline }))).proposal;
+            const chapterKey = modal.querySelector("[data-pipeline-narrative-chapter]")?.value || ctx.narrativeChapterKey || session.spec?.chapterKeys?.[0];
+            if (!chapterKey) return showToast("请先在规格中设置章节");
+            const chapterIndex = (session.spec.chapterKeys || []).indexOf(chapterKey);
+            const previousChapters = (session.spec.chapterKeys || []).slice(0, chapterIndex).map((key) => session.narrativeChapters?.[key]).filter(Boolean);
+            if (previousChapters.length !== chapterIndex) return showToast(`请先生成第 ${chapterIndex} 章总剧情`);
+            session.narrativeChapters = session.narrativeChapters || {};
+            session.narrativeChapters[chapterKey] = (await callDeepseekStep("③ 章节总剧情", () =>
+              zhimuApi.deepseekPipelineNarrativeChapter({ ...brief(), spec: session.spec, chapterKey, previousChapters })
+            )).chapter;
+            ctx.narrativeChapterKey = chapterKey;
+          } else if (layer === "structure") {
+            if (!session.locks?.section) return showToast("请先确认私人分幕");
+            session.proposal = (await callDeepseekStep("⑥ 编排结构", () =>
+              zhimuApi.deepseekPipelineNarrativeExtractStructure({
+                ...brief(),
+                spec: session.spec,
+                chapters: narrativeChaptersArray(),
+                sectionsSample: Object.entries(session.sections).flatMap(([roleKey, chapters]) =>
+                  Object.entries(chapters || {}).slice(0, 1).map(([ck, section]) => ({ ...section, roleKey, chapterKey: ck }))
+                ).slice(0, 4)
+              })
+            )).proposal;
           } else if (layer === "matrix") {
-            if (!session.locks?.structure) return showToast("请先确认编排结构");
-            session.roleMatrix = (await callDeepseekStep("④ 角色矩阵", () => zhimuApi.deepseekPipelineRoleMatrix({ ...brief(), spec: session.spec, outline: session.outline, proposal: session.proposal }))).roleMatrix;
+            if (!session.locks?.narrative) return showToast("请先确认全部章节总剧情");
+            session.roleMatrix = (await callDeepseekStep("④ 角色矩阵", () => zhimuApi.deepseekPipelineRoleMatrix({ ...brief(), spec: session.spec, outline: session.outline, proposal: stubProposal() }))).roleMatrix;
             if (!ctx.roleKey) ctx.roleKey = session.roleMatrix.roles?.[0]?.key || "";
           } else if (layer === "section") {
-            const roleKey = modal.querySelector("[data-pipeline-role]")?.value || ctx.roleKey;
-            const chapterKey = modal.querySelector("[data-pipeline-chapter]")?.value || ctx.chapterKey;
-            if (!roleKey || !chapterKey) return showToast("请选择角色与章节");
             if (!session.locks?.matrix) return showToast("请先确认角色矩阵");
-            const result = await callDeepseekStep("⑤ 私人分幕", () =>
-              zhimuApi.deepseekPipelineSection({ ...brief(), spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix, roleKey, chapterKey })
+            const rolesResult = await callDeepseekStep("⑤ 私人分幕", () =>
+              zhimuApi.deepseekPipelineNarrativeRoles({
+                ...brief(),
+                spec: session.spec,
+                roleMatrix: session.roleMatrix,
+                chapters: narrativeChaptersArray(),
+                proposal: stubProposal()
+              })
             );
-            session.sections[roleKey] = session.sections[roleKey] || {};
-            session.sections[roleKey][chapterKey] = result.section;
-            ctx.roleKey = roleKey; ctx.chapterKey = chapterKey;
+            session.sections = rolesResult.sections || {};
+            ctx.roleKey = session.roleMatrix?.roles?.[0]?.key || ctx.roleKey;
+            ctx.chapterKey = session.spec?.chapterKeys?.[0] || ctx.chapterKey;
           } else if (layer === "synopsis") {
             if (!session.locks?.structure) return showToast("请先确认编排结构");
             session.synopsis = (await callDeepseekStep("⑥ 短母稿", () =>
@@ -504,7 +615,7 @@
             )).synopsis;
           } else if (layer === "evaluate") {
             if (!session.proposal) return showToast("请至少完成编排结构");
-            session.evaluation = (await callDeepseekStep("⑦ 评判", () => zhimuApi.deepseekPipelineEvaluate(pipelinePayload()))).evaluation;
+            session.evaluation = (await callDeepseekStep("⑧ 评判", () => zhimuApi.deepseekPipelineEvaluate(pipelinePayload()))).evaluation;
           }
           session.locks[layer] = false;
           if (layer !== "evaluate") pipelineClearDownstream(session, layer);
@@ -529,13 +640,13 @@
         renderPipelineUi();
       });
       applyHints.onclick = () => {
-        const field = modal.querySelector('[data-studio-field="aiRequirements"]');
+        const field = modal.querySelector('[data-studio-field="aiConflicts"]');
         if (!field || !session.evaluation) return;
         const hints = (session.evaluation.revisions || []).filter((rev) => rev.promptHint).map((rev) => rev.promptHint);
         if (!hints.length) return showToast("无可应用的提示语");
         field.value = [field.value.trim(), ...hints].filter(Boolean).join("\n");
         scheduleDraftSave();
-        showToast(`已追加 ${hints.length} 条提示到「限制」`);
+        showToast(`已追加 ${hints.length} 条提示到「额外的矛盾冲突」`);
       };
       importStructure.onclick = async () => {
         if (!session.proposal) return;

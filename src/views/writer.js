@@ -146,7 +146,7 @@ function fileToBase64(file){return new Promise((resolve,reject)=>{const reader=n
 
 const AiDraft=()=>window.zhimuAiDraft;
 function aiDraftWorldId(){return zhimuApi.context?.worldId||""}
-function collectAiFormFields(){const v=studioValues();return {aiTitle:v.aiTitle,aiPremise:v.aiPremise,aiStyle:v.aiStyle,aiRequirements:v.aiRequirements,aiRoleRequirements:v.aiRoleRequirements,aiEvalFocus:v.aiEvalFocus,aiPlayerCount:v.aiPlayerCount,aiTargetWordCount:v.aiTargetWordCount,aiChapterCount:v.aiChapterCount,aiSceneCount:v.aiSceneCount,aiPointCount:v.aiPointCount,aiClueCount:v.aiClueCount}}
+function collectAiFormFields(){const v=studioValues();return {aiTitle:v.aiTitle,aiPremise:v.aiPremise,aiChapterCount:v.aiChapterCount,aiWordsPerChapter:v.aiWordsPerChapter,aiConflicts:v.aiConflicts}}
 function restoreAiFormFields(form){if(!form||!modal)return;for(const [field,value] of Object.entries(form)){const el=modal.querySelector(`[data-studio-field="${field}"]`);if(el&&value!=null&&value!=="")el.value=value}}
 function saveLocalAiDraft(kind,payload,{silent=false}={}){const worldId=aiDraftWorldId();if(!worldId)return null;const result=AiDraft()?.save(worldId,kind,payload);if(!result?.ok&&!silent)showToast(result?.error==="DRAFT_TOO_LARGE"?"本地草稿过大，请精简分幕后再保存":"无法写入浏览器本地存储");return result}
 function loadLocalAiDraft(kind){return AiDraft()?.load(aiDraftWorldId(),kind)||null}

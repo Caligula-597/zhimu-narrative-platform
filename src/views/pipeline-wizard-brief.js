@@ -2,7 +2,6 @@
 (function (window) {
   const T = window.zhimuToast || {};
   const showToast = T.showToast || (() => {});
-  const modal = () => window.zhimuDom?.modal;
   const studioValues = () => window.zhimuModal?.studioValues?.() || {};
 
   function pipelineLinesToArray(text) {
@@ -15,51 +14,71 @@
 
   function pipelineBriefFromForm() {
     const values = studioValues();
-    const el = modal();
+    const chapterCount = Math.max(3, Math.min(5, Number(values.aiChapterCount) || 3));
+    const wordsPerChapter = Math.max(400, Math.min(2500, Number(values.aiWordsPerChapter) || 800));
+    const conflicts = String(values.aiConflicts || "").trim();
     return {
       title: values.aiTitle,
       premise: values.aiPremise,
-      style: values.aiStyle,
-      requirements: values.aiRequirements,
-      roleRequirements: values.aiRoleRequirements,
-      evaluationFocus: values.aiEvalFocus,
-      playerCount: Number(values.aiPlayerCount) || 6,
-      targetWordCount: Number(values.aiTargetWordCount),
-      chapterCount: Number(values.aiChapterCount),
-      sceneCount: Number(values.aiSceneCount),
-      investigationPointCount: Number(values.aiPointCount),
-      clueCount: Number(values.aiClueCount),
-      existingManuscript: el?.querySelector("[data-ai-reference]")?.checked
-        ? el.dataset.referenceManuscript || ""
-        : ""
+      wordsPerChapter,
+      conflicts,
+      chapterCount,
+      conflicts: values.aiConflicts,
+      style: "悬疑调查，信息逐步揭示，适合线上长线剧本杀",
+      roleRequirements: "",
+      evaluationFocus: "",
+      playerCount: 6,
+      targetWordCount: chapterCount * wordsPerChapter,
+      sceneCount: Math.max(chapterCount * 2, 6),
+      investigationPointCount: Math.max(chapterCount * 3, 8),
+      clueCount: Math.max(chapterCount * 3, 8),
+      existingManuscript: ""
     };
   }
 
   function defaultSpecFromBrief() {
     const brief = pipelineBriefFromForm();
-    const chapterCount = Math.max(1, Number(brief.chapterCount) || 3);
+    const chapterCount = brief.chapterCount;
     const chapterKeys = Array.from({ length: chapterCount }, (_, i) => `ch${i + 1}`);
-    const constraints = brief.requirements?.trim() ? pipelineLinesToArray(brief.requirements) : [];
+    const conflicts = pipelineLinesToArray(brief.conflicts);
+    const sectionMin = Math.min(800, Math.max(150, Math.floor(brief.wordsPerChapter / 3)));
     return {
-      playerCount: Math.max(2, Number(brief.playerCount) || 6),
+      title: brief.title,
+      playerCount: 6,
       chapterCount,
-      targetWordCount: Number(brief.targetWordCount) || 6000,
-      sceneCount: Number(brief.sceneCount) || 8,
-      investigationPointCount: Number(brief.investigationPointCount) || 10,
-      clueCount: Number(brief.clueCount) || 10,
+      targetWordCount: brief.targetWordCount,
+      wordsPerSectionMin: sectionMin,
+      sceneCount: brief.sceneCount,
+      investigationPointCount: brief.investigationPointCount,
+      clueCount: brief.clueCount,
       chapterKeys,
-      constraints,
-      notes: []
+      constraints: conflicts,
+      notes: [`每章总剧情目标字数约 ${brief.wordsPerChapter} 字`]
     };
   }
 
   function pipelineValidateSpec(spec) {
-    if (!spec?.chapterKeys?.length) {
-      showToast("请填写至少一个章节 key");
+    const brief = pipelineBriefFromForm();
+    if (!brief.title?.trim()) {
+      showToast("请填写主题");
       return false;
     }
-    if ((spec.playerCount || 0) < 2) {
-      showToast("玩家人数至少 2");
+    if (!brief.premise?.trim()) {
+      showToast("请填写剧情纲要");
+      return false;
+    }
+    const chapterCount = Number(brief.chapterCount);
+    if (chapterCount < 3 || chapterCount > 5) {
+      showToast("章节数量请填写 3～5");
+      return false;
+    }
+    const wordsPerChapter = Number(brief.wordsPerChapter);
+    if (wordsPerChapter < 400 || wordsPerChapter > 2500) {
+      showToast("每章节字数建议 400～2500");
+      return false;
+    }
+    if (!spec?.chapterKeys?.length) {
+      showToast("章节配置无效，请检查章节数量");
       return false;
     }
     return true;

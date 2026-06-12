@@ -6,23 +6,8 @@
   const PB = () => window.zhimuPipelineBrief || {};
   const PS = () => window.zhimuPipelineSession || {};
 
-  function pipelineReadSpecFromDom(existing) {
-    const el = modal();
-    const fallback = existing || PB().defaultSpecFromBrief?.() || {};
-    const chapterCount = Number(el?.querySelector('[data-studio-field="pipeSpecChapterCount"]')?.value) || fallback.chapterCount;
-    let keys = String(el?.querySelector("[data-pipe-spec-chapter-keys]")?.value || "").split(/[,，]/).map((s) => s.trim()).filter(Boolean);
-    if (!keys.length && chapterCount) keys = Array.from({ length: chapterCount }, (_, i) => `ch${i + 1}`);
-    return {
-      playerCount: Math.max(2, Number(el?.querySelector('[data-studio-field="pipeSpecPlayerCount"]')?.value) || fallback.playerCount),
-      chapterCount: keys.length || chapterCount,
-      targetWordCount: Number(el?.querySelector('[data-studio-field="pipeSpecTargetWords"]')?.value) || fallback.targetWordCount,
-      sceneCount: Number(el?.querySelector('[data-studio-field="pipeSpecSceneCount"]')?.value) || fallback.sceneCount,
-      investigationPointCount: Number(el?.querySelector('[data-studio-field="pipeSpecPointCount"]')?.value) || fallback.investigationPointCount,
-      clueCount: Number(el?.querySelector('[data-studio-field="pipeSpecClueCount"]')?.value) || fallback.clueCount,
-      chapterKeys: keys,
-      constraints: PB().pipelineLinesToArray?.(el?.querySelector("[data-pipe-spec-constraints]")?.value),
-      notes: PB().pipelineLinesToArray?.(el?.querySelector("[data-pipe-spec-notes]")?.value)
-    };
+  function pipelineReadSpecFromDom() {
+    return PB().defaultSpecFromBrief?.() || {};
   }
 
   function pipelineReadOutlineFromDom(session) {
@@ -99,6 +84,16 @@
     return { ...session.roleMatrix, roles };
   }
 
+  function pipelineReadNarrativeFromDom(chapterKey) {
+    const el = modal();
+    const title = el?.querySelector('[data-studio-field="pipeNarrativeTitle"]')?.value || "";
+    const summary = el?.querySelector('[data-studio-field="pipeNarrativeSummary"]')?.value || "";
+    const narrativeBody = el?.querySelector("[data-pipe-narrative-body]")?.value || "";
+    const hostNotes = el?.querySelector('[data-studio-field="pipeNarrativeHost"]')?.value || "";
+    if (!narrativeBody.trim()) return null;
+    return { chapterKey, title, summary, narrativeBody, hostNotes };
+  }
+
   function pipelineReadSectionFromDom(roleKey, chapterKey) {
     const el = modal();
     const title = el?.querySelector('[data-studio-field="pipeSectionTitle"]')?.value || "";
@@ -121,11 +116,19 @@
 
   function pipelinePersistActiveEditor(session, ctx) {
     const layer = session.activeLayer;
-    if (layer === "spec") session.spec = pipelineReadSpecFromDom(session.spec);
+    if (layer === "spec") session.spec = pipelineReadSpecFromDom();
     else if (layer === "outline" && session.outline) session.outline = pipelineReadOutlineFromDom(session);
     else if (layer === "structure" && session.proposal) session.proposal = pipelineReadStructureFromDom(session);
     else if (layer === "matrix" && session.roleMatrix) session.roleMatrix = pipelineReadMatrixFromDom(session);
-    else if (layer === "section") {
+    else if (layer === "narrative") {
+      const el = modal();
+      const chapterKey = el?.querySelector("[data-pipeline-narrative-chapter]")?.value || ctx.narrativeChapterKey;
+      const chapter = pipelineReadNarrativeFromDom(chapterKey);
+      if (chapter && chapterKey) {
+        session.narrativeChapters = session.narrativeChapters || {};
+        session.narrativeChapters[chapterKey] = chapter;
+      }
+    } else if (layer === "section") {
       const el = modal();
       const roleKey = el?.querySelector("[data-pipeline-role]")?.value || ctx.roleKey;
       const chapterKey = el?.querySelector("[data-pipeline-chapter]")?.value || ctx.chapterKey;
@@ -141,27 +144,54 @@
     const wasLocked = Boolean(session.locks?.[layer]);
     pipelinePersistActiveEditor(session, ctx);
     if (layer === "spec") {
-      const spec = pipelineReadSpecFromDom(session.spec);
+      const spec = pipelineReadSpecFromDom();
       if (lock && !PB().pipelineValidateSpec?.(spec)) return false;
       session.spec = spec;
     } else if (layer === "outline" && session.outline) session.outline = pipelineReadOutlineFromDom(session);
     else if (layer === "structure" && session.proposal) session.proposal = pipelineReadStructureFromDom(session);
     else if (layer === "matrix" && session.roleMatrix) session.roleMatrix = pipelineReadMatrixFromDom(session);
-    else if (layer === "section") {
+    else if (layer === "narrative") {
+      const el = modal();
+      const chapterKey = el?.querySelector("[data-pipeline-narrative-chapter]")?.value || ctx.narrativeChapterKey;
+      const chapter = pipelineReadNarrativeFromDom(chapterKey);
+      if (chapter && chapterKey) {
+        session.narrativeChapters = session.narrativeChapters || {};
+        session.narrativeChapters[chapterKey] = chapter;
+      }
+      if (lock) {
+        const keys = session.spec?.chapterKeys || [];
+        const missing = keys.filter((key) => (session.narrativeChapters?.[key]?.narrativeBody || "").length < 400);
+        if (missing.length) {
+          showToast(`尚有 ${missing.length} 章总剧情未生成或字数不足`);
+          return false;
+        }
+      }
+    } else if (layer === "section") {
       const el = modal();
       const roleKey = el?.querySelector("[data-pipeline-role]")?.value || ctx.roleKey;
       const chapterKey = el?.querySelector("[data-pipeline-chapter]")?.value || ctx.chapterKey;
       const section = pipelineReadSectionFromDom(roleKey, chapterKey);
-      if (!section) {
+      if (section) {
+        session.sections[roleKey] = session.sections[roleKey] || {};
+        session.sections[roleKey][chapterKey] = section;
+      }
+      if (lock) {
+        const roles = session.roleMatrix?.roles || [];
+        const keys = session.spec?.chapterKeys || [];
+        const expected = roles.length * keys.length;
+        const actual = Object.values(session.sections || {}).reduce((n, chapters) => n + Object.keys(chapters || {}).length, 0);
+        if (actual < expected) {
+          showToast(`私人分幕尚未齐全（${actual}/${expected}）`);
+          return false;
+        }
+      } else if (!section) {
         showToast("分幕正文不能为空");
         return false;
       }
-      session.sections[roleKey] = session.sections[roleKey] || {};
-      session.sections[roleKey][chapterKey] = section;
     } else if (layer === "synopsis" && session.synopsis) session.synopsis = pipelineReadSynopsisFromDom(session);
     if (wasLocked) PS().pipelineClearDownstream?.(session, layer);
     if (lock) session.locks[layer] = true;
-    else if (layer !== "section") session.locks[layer] = false;
+    else if (layer !== "section" && layer !== "narrative") session.locks[layer] = false;
     return true;
   }
 
@@ -170,6 +200,7 @@
     pipelineReadOutlineFromDom,
     pipelineReadStructureFromDom,
     pipelineReadMatrixFromDom,
+    pipelineReadNarrativeFromDom,
     pipelineReadSectionFromDom,
     pipelineReadSynopsisFromDom,
     pipelinePersistActiveEditor,

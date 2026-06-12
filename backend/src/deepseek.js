@@ -6,6 +6,9 @@ import { buildRoleMatrixMessages } from "./prompts/role-matrix.js";
 import { buildRoleSectionMessages } from "./prompts/section.js";
 import { buildManuscriptSynopsisMessages } from "./prompts/manuscript-synopsis.js";
 import { buildStoryEvaluationMessages } from "./prompts/evaluate.js";
+import { buildChapterNarrativeMessages } from "./prompts/chapter-narrative.js";
+import { buildRolesFromNarrativeMessages } from "./prompts/roles-from-narrative.js";
+import { buildExtractStructureFromNarrativeMessages } from "./prompts/extract-structure-from-narrative.js";
 import { clampInteger, cleanText } from "./prompts/shared.js";
 
 const DEFAULT_BASE_URL = "https://api.deepseek.com";
@@ -26,21 +29,31 @@ export function deepseekConfig() {
 
 export function normalizeStoryBrief(input = {}) {
   const playerCount = clampInteger(input.playerCount, MIN_PLAYERS, MAX_PLAYERS, 6);
+  const chapterCount = clampInteger(input.chapterCount, 1, 12, 3);
+  const wordsPerChapter = clampInteger(
+    input.wordsPerChapter,
+    400,
+    2500,
+    clampInteger(input.targetWordCount, MIN_WORD_COUNT, MAX_WORD_COUNT, chapterCount * 800) / Math.max(chapterCount, 1)
+  );
+  const conflicts = cleanText(input.conflicts || input.requirements, 3000);
   return {
     title: cleanText(input.title, 120) || "未命名剧本杀",
     premise: cleanText(input.premise, 4000),
+    conflicts,
+    wordsPerChapter,
     style: cleanText(input.style, 800) || "悬疑调查，信息逐步揭示，适合线上长线剧本杀",
     audience: cleanText(input.audience, 400) || "线上剧本杀玩家",
-    requirements: cleanText(input.requirements, 3000),
+    requirements: conflicts,
     roleRequirements: cleanText(input.roleRequirements, 3000),
     evaluationFocus: cleanText(input.evaluationFocus, 3000),
     existingManuscript: cleanText(input.existingManuscript, 12000),
     playerCount,
-    targetWordCount: clampInteger(input.targetWordCount, MIN_WORD_COUNT, MAX_WORD_COUNT, 3000),
-    chapterCount: clampInteger(input.chapterCount, 1, 12, 3),
-    sceneCount: clampInteger(input.sceneCount, 1, 40, 6),
-    investigationPointCount: clampInteger(input.investigationPointCount, 1, 80, 8),
-    clueCount: clampInteger(input.clueCount, 1, 80, 8)
+    targetWordCount: clampInteger(input.targetWordCount, MIN_WORD_COUNT, MAX_WORD_COUNT, chapterCount * wordsPerChapter),
+    chapterCount,
+    sceneCount: clampInteger(input.sceneCount, 1, 40, Math.max(chapterCount * 2, 6)),
+    investigationPointCount: clampInteger(input.investigationPointCount, 1, 80, Math.max(chapterCount * 3, 8)),
+    clueCount: clampInteger(input.clueCount, 1, 80, Math.max(chapterCount * 3, 8))
   };
 }
 
@@ -172,6 +185,118 @@ export function validateRoleSection(raw, roleKey, chapterKey, minWords = 250) {
     chapterKey,
     title: cleanText(value.title, 160) || `${chapterKey} · 私人分幕`,
     body
+  };
+}
+
+const MIN_CHAPTER_NARRATIVE_CHARS = 400;
+
+export function validateChapterNarrative(raw, spec, chapterKey) {
+  const value = raw && typeof raw === "object" ? raw : {};
+  const key = cleanText(value.chapterKey || chapterKey, 40);
+  if (!spec.chapterKeys.includes(key)) throwErr("UPSTREAM_ERROR", `Chapter narrative key must be one of: ${spec.chapterKeys.join(", ")}`);
+  const narrativeBody = cleanText(value.narrativeBody, 8000);
+  if (narrativeBody.length < MIN_CHAPTER_NARRATIVE_CHARS) {
+    throwErr("UPSTREAM_ERROR", `Chapter narrative requires at least ${MIN_CHAPTER_NARRATIVE_CHARS} characters`);
+  }
+  return {
+    chapterKey: key,
+    title: cleanText(value.title, 120) || key,
+    summary: cleanText(value.summary, 600),
+    narrativeBody,
+    hostNotes: cleanText(value.hostNotes, 2000),
+    openThreads: Array.isArray(value.openThreads) ? value.openThreads.slice(0, 8).map((item) => cleanText(item, 300)) : [],
+    resolvedThreads: Array.isArray(value.resolvedThreads) ? value.resolvedThreads.slice(0, 8).map((item) => cleanText(item, 300)) : [],
+    suggestions: Array.isArray(value.suggestions) ? value.suggestions.slice(0, 8).map((item) => cleanText(item, 500)) : []
+  };
+}
+
+export function validateRolesFromNarrative(raw, spec, roleMatrix) {
+  const value = raw && typeof raw === "object" ? raw : {};
+  const sectionsRaw = Array.isArray(value.sections) ? value.sections : [];
+  const roleKeys = new Set(roleMatrix.roles.map((r) => r.key));
+  const chapterKeys = new Set(spec.chapterKeys);
+  const sections = {};
+  for (const item of sectionsRaw) {
+    const roleKey = cleanText(item?.roleKey, 40);
+    const chapterKey = cleanText(item?.chapterKey, 40);
+    if (!roleKeys.has(roleKey) || !chapterKeys.has(chapterKey)) continue;
+    sections[roleKey] = sections[roleKey] || {};
+    sections[roleKey][chapterKey] = validateRoleSection(
+      { roleKey, chapterKey, title: item.title, body: item.body },
+      roleKey,
+      chapterKey,
+      spec.wordsPerSectionMin || 250
+    );
+  }
+  const expected = spec.playerCount * spec.chapterKeys.length;
+  const actual = Object.values(sections).reduce((n, ch) => n + Object.keys(ch).length, 0);
+  if (actual < expected) throwErr("UPSTREAM_ERROR", `Expected ${expected} role sections, got ${actual}`);
+  return {
+    sections,
+    suggestions: Array.isArray(value.suggestions) ? value.suggestions.slice(0, 12).map((item) => cleanText(item, 500)) : []
+  };
+}
+
+export async function createDeepseekChapterNarrative(input) {
+  const brief = mergeBrief(input);
+  const spec = validateStorySpec(input.spec, brief);
+  const chapterKey = cleanText(input.chapterKey, 40);
+  const chapterIndex = spec.chapterKeys.indexOf(chapterKey);
+  if (chapterIndex < 0) throwErr("VALIDATION_ERROR", "chapterKey must exist in spec.chapterKeys");
+  const previousChapters = Array.isArray(input.previousChapters) ? input.previousChapters : [];
+  if (previousChapters.length !== chapterIndex) {
+    throwErr("VALIDATION_ERROR", `previousChapters length must be ${chapterIndex} before chapter ${chapterKey}`);
+  }
+  const result = await requestDeepseekJson(
+    buildChapterNarrativeMessages({
+      brief,
+      spec,
+      chapterKey,
+      chapterIndex,
+      chapterCount: spec.chapterKeys.length,
+      previousChapters
+    }),
+    { maxTokens: 6000, temperature: 0.5 }
+  );
+  return {
+    provider: "deepseek",
+    model: result.model,
+    brief,
+    spec,
+    chapter: validateChapterNarrative(result.value, spec, chapterKey)
+  };
+}
+
+export async function createDeepseekRolesFromNarrative(input) {
+  const brief = mergeBrief(input);
+  const spec = validateStorySpec(input.spec, brief);
+  const roleMatrix = validateRoleMatrix(input.roleMatrix, spec, input.proposal || { chapters: spec.chapterKeys.map((key, i) => ({ key, title: `第 ${i + 1} 章`, summary: "", sequence: i + 1 })) });
+  const chapters = Array.isArray(input.chapters) ? input.chapters.map((ch) => validateChapterNarrative(ch, spec, ch.chapterKey)) : [];
+  if (chapters.length !== spec.chapterKeys.length) throwErr("VALIDATION_ERROR", "All chapter narratives required before role split");
+  const result = await requestDeepseekJson(
+    buildRolesFromNarrativeMessages({ brief, spec, roleMatrix, chapters }),
+    { maxTokens: 12000, temperature: 0.45 }
+  );
+  const parsed = validateRolesFromNarrative(result.value, spec, roleMatrix);
+  return { provider: "deepseek", model: result.model, brief, spec, roleMatrix, sections: parsed.sections, suggestions: parsed.suggestions };
+}
+
+export async function createDeepseekStructureFromNarrative(input) {
+  const brief = mergeBrief(input);
+  const spec = validateStorySpec(input.spec, brief);
+  const chapters = Array.isArray(input.chapters) ? input.chapters.map((ch) => validateChapterNarrative(ch, spec, ch.chapterKey)) : [];
+  if (!chapters.length) throwErr("VALIDATION_ERROR", "chapters required for structure extraction");
+  const sectionsSample = Array.isArray(input.sectionsSample) ? input.sectionsSample : [];
+  const result = await requestDeepseekJson(
+    buildExtractStructureFromNarrativeMessages({ brief, spec, chapters, sectionsSample }),
+    { maxTokens: 8000, temperature: 0.35 }
+  );
+  return {
+    provider: "deepseek",
+    model: result.model,
+    brief,
+    spec,
+    proposal: validateDeepseekProposal(result.value)
   };
 }
 
@@ -419,22 +544,27 @@ export function validateStoryEvaluation(raw) {
     styleFit: clampScore("styleFit")
   };
   const overall = clampInteger(Number(value.overallScore) * 10, 10, 100, 70) / 10;
-  const validLayers = new Set(["brief", "spec", "outline", "structure", "roleMatrix", "section", "synopsis"]);
+  const validLayers = new Set(["brief", "spec", "outline", "narrative", "structure", "roleMatrix", "matrix", "section", "synopsis", "evaluate"]);
   const validPriority = new Set(["must_fix", "should_fix", "optional"]);
   const issues = Array.isArray(value.issues) ? value.issues.slice(0, 12).map((item) => ({
     severity: ["high", "medium", "low"].includes(item?.severity) ? item.severity : "medium",
     area: cleanText(item?.area, 80),
     detail: cleanText(item?.detail, 500)
   })) : [];
-  const revisions = Array.isArray(value.revisions) ? value.revisions.slice(0, 16).map((item) => ({
-    targetLayer: validLayers.has(item?.targetLayer) ? item.targetLayer : "structure",
-    targetKey: cleanText(item?.targetKey, 40) || null,
-    priority: validPriority.has(item?.priority) ? item.priority : "should_fix",
-    problem: cleanText(item?.problem, 400),
-    direction: cleanText(item?.direction, 800),
-    promptHint: cleanText(item?.promptHint, 500),
-    preserve: cleanText(item?.preserve, 400)
-  })) : [];
+  const revisions = Array.isArray(value.revisions) ? value.revisions.slice(0, 16).map((item) => {
+    let targetLayer = validLayers.has(item?.targetLayer) ? item.targetLayer : "structure";
+    if (targetLayer === "roleMatrix") targetLayer = "matrix";
+    if (targetLayer === "brief") targetLayer = "spec";
+    return {
+      targetLayer,
+      targetKey: cleanText(item?.targetKey, 40) || null,
+      priority: validPriority.has(item?.priority) ? item.priority : "should_fix",
+      problem: cleanText(item?.problem, 400),
+      direction: cleanText(item?.direction, 800),
+      promptHint: cleanText(item?.promptHint, 500),
+      preserve: cleanText(item?.preserve, 400)
+    };
+  }) : [];
   const priorityOrder = { must_fix: 0, should_fix: 1, optional: 2 };
   revisions.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
   const styleRaw = value.styleAlignment && typeof value.styleAlignment === "object" ? value.styleAlignment : {};
@@ -445,7 +575,7 @@ export function validateStoryEvaluation(raw) {
     adjustEmphasis: Array.isArray(styleRaw.adjustEmphasis) ? styleRaw.adjustEmphasis.slice(0, 6).map((item) => cleanText(item, 300)) : []
   };
   const nextStepOrder = Array.isArray(value.nextStepOrder)
-    ? value.nextStepOrder.filter((layer) => validLayers.has(layer)).slice(0, 6)
+    ? value.nextStepOrder.map((layer) => (layer === "roleMatrix" ? "matrix" : layer === "brief" ? "spec" : layer)).filter((layer) => validLayers.has(layer)).slice(0, 6)
     : [...new Set(revisions.map((item) => item.targetLayer))].slice(0, 5);
   const hasMustFix = revisions.some((item) => item.priority === "must_fix");
   const hasHigh = issues.some((item) => item.severity === "high");

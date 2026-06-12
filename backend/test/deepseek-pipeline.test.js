@@ -8,6 +8,8 @@ import {
   validateStoryOutline,
   validateStorySpec,
   validateStoryEvaluation,
+  validateChapterNarrative,
+  validateRolesFromNarrative,
   normalizeStoryBrief
 } from "../src/deepseek.js";
 
@@ -103,8 +105,55 @@ test("validateStoryEvaluation normalizes revisions and style", () => {
     nextStepOrder: ["roleMatrix", "outline"],
     readyForImport: true
   });
-  assert.equal(ev.revisions[0].targetLayer, "roleMatrix");
+  assert.equal(ev.revisions[0].targetLayer, "matrix");
   assert.equal(ev.revisions[0].promptHint, "不要内奸角色");
   assert.equal(ev.readyForImport, false);
-  assert.deepEqual(ev.nextStepOrder, ["roleMatrix", "outline"]);
+  assert.deepEqual(ev.nextStepOrder, ["matrix", "outline"]);
+});
+
+test("validateChapterNarrative enforces minimum body length", () => {
+  const spec = validateStorySpec({ playerCount: 4, chapterKeys: ["chapter-1", "chapter-2"], chapterCount: 2 }, brief);
+  const ch = validateChapterNarrative({
+    chapterKey: "chapter-1",
+    title: "入港",
+    summary: "众人到港",
+    narrativeBody: "中".repeat(500),
+    hostNotes: "勿剧透"
+  }, spec, "chapter-1");
+  assert.equal(ch.chapterKey, "chapter-1");
+  assert.ok(ch.narrativeBody.length >= 400);
+});
+
+test("validateRolesFromNarrative builds section map", () => {
+  const spec = validateStorySpec({ playerCount: 4, chapterKeys: ["chapter-1"], chapterCount: 1, wordsPerSectionMin: 250 }, brief);
+  const proposal = validateDeepseekProposal({
+    title: "提案",
+    chapters: [{ key: "chapter-1", title: "第一章", summary: "s", sequence: 1 }],
+    scenes: [{ key: "scene-1", chapterKey: "chapter-1", name: "码头", publicText: "p", hostText: "h" }],
+    investigationPoints: [],
+    clues: [],
+    edges: [],
+    suggestions: []
+  });
+  const matrix = validateRoleMatrix({
+    roles: [1, 2, 3, 4].map((n) => ({
+      key: `role-${n}`,
+      name: `角色${n}`,
+      publicProfile: "p",
+      privateProfile: "s",
+      chapterKnowledge: [{ chapterKey: "chapter-1", knows: "k", mustHide: "h", canDiscuss: "c" }]
+    })),
+    crossChecks: [],
+    suggestions: []
+  }, spec, proposal);
+  const body = "中".repeat(260);
+  const parsed = validateRolesFromNarrative({
+    sections: [1, 2, 3, 4].map((n) => ({
+      roleKey: `role-${n}`,
+      chapterKey: "chapter-1",
+      title: `角色${n}`,
+      body
+    }))
+  }, spec, matrix);
+  assert.ok(parsed.sections["role-1"]["chapter-1"].body.length >= 250);
 });
