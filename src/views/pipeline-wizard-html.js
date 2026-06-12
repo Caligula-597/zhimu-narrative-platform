@@ -68,14 +68,30 @@
     return `<div class="pipeline-edit-grid">${studioField("玩家人数", "pipeSpecPlayerCount", "input", String(s.playerCount || 6))}${studioField("章节数", "pipeSpecChapterCount", "input", String(s.chapterCount || s.chapterKeys?.length || 3))}${studioField("建议总字数", "pipeSpecTargetWords", "input", String(s.targetWordCount || 6000))}${studioField("场景数", "pipeSpecSceneCount", "input", String(s.sceneCount || 8))}${studioField("调查点数", "pipeSpecPointCount", "input", String(s.investigationPointCount || 10))}${studioField("线索数", "pipeSpecClueCount", "input", String(s.clueCount || 10))}<label>章节 key（逗号分隔）</label><input class="field" data-pipe-spec-chapter-keys value="${escapeHtml((s.chapterKeys || []).join(", "))}"><label>约束（每行一条）</label><textarea class="field" rows="3" data-pipe-spec-constraints>${escapeHtml(pipelineArrayToLines(s.constraints))}</textarea><label>备注（每行一条）</label><textarea class="field" rows="3" data-pipe-spec-notes>${escapeHtml(pipelineArrayToLines(s.notes))}</textarea><p class="muted-note">数值可从左侧 brief 预填；确认后才会锁定并进入总纲 AI 生成。</p></div>`;
   }
 
-  function pipelineOutlineEditorHtml(outline) {
-    if (!outline) return `<div class="empty-state">请先生成并确认规格，再生成总纲。</div>`;
+  function pipelineEmptyLayerHtml(layer, session) {
+    const label = PIPELINE_LAYER_LABEL[layer] || layer;
+    if (pipelineDepsLocked(session, layer)) {
+      if (layer === "synopsis") {
+        return `<div class="empty-state"><p>⑥ 短母稿（可选）</p><p class="muted-note">点击下方「AI 生成初稿」生成幕后总览；也可跳过，直接上传编排与分幕。</p></div>`;
+      }
+      if (layer === "evaluate") {
+        return `<div class="empty-state"><p>基于已锁定内容，AI 可给出分层修改建议（可选）。</p><p class="muted-note">点击下方「AI 评判」生成。</p></div>`;
+      }
+      return `<div class="empty-state"><p>${escapeHtml(label)} 尚未生成。</p><p class="muted-note">前置层级已锁定 · 请点击下方「AI 生成初稿」。</p></div>`;
+    }
+    const deps = (PIPELINE_LAYER_DEPS[layer] || []).filter((dep) => !session.locks?.[dep]);
+    const depNames = deps.map((d) => pipelineStepName(d)).join("、") || "前置层级";
+    return `<div class="empty-state"><p>请先完成并锁定：${escapeHtml(depNames)}</p></div>`;
+  }
+
+  function pipelineOutlineEditorHtml(outline, session) {
+    if (!outline) return pipelineEmptyLayerHtml("outline", session);
     const beats = (outline.chapterBeats || []).map((beat, index) => `<article class="pipeline-beat-card" data-beat-index="${index}"><input type="hidden" data-pipe-beat-key value="${escapeHtml(beat.chapterKey || "")}">${studioField(`第 ${index + 1} 章标题`, "pipeBeatTitle" + index, "input", beat.title || "")}${studioField("本章目标", "pipeBeatGoal" + index, "textarea", beat.goal || "")}${studioField("本章转折", "pipeBeatTurn" + index, "textarea", beat.turn || "")}${studioField("主持备注", "pipeBeatHost" + index, "textarea", beat.hostNotes || "")}</article>`).join("");
     return `<div class="pipeline-edit-grid">${studioField("一句话 logline", "pipeOutlineLogline", "textarea", outline.logline || "")}${studioField("幕后真相时间线", "pipeOutlineTruth", "textarea", outline.truthTimeline || "")}<label>误导线（每行一条）</label><textarea class="field" rows="3" data-pipe-outline-red>${escapeHtml(pipelineArrayToLines(outline.redHerrings))}</textarea><div class="pipeline-beat-list"><h4>章节节拍</h4>${beats}</div></div>`;
   }
 
-  function pipelineStructureEditorHtml(proposal) {
-    if (!proposal) return `<div class="empty-state">请先生成并确认总纲，再生成编排结构（原「结构提案」内容在此编辑）。</div>`;
+  function pipelineStructureEditorHtml(proposal, session) {
+    if (!proposal) return pipelineEmptyLayerHtml("structure", session);
     const chapters = (proposal.chapters || []).map((ch) => `<article class="pipeline-mini-card"><input type="hidden" data-pipe-chapter-key value="${escapeHtml(ch.key)}">${studioField("章节标题", "pipeChTitle" + ch.key, "input", ch.title || "")}${studioField("章节摘要", "pipeChSummary" + ch.key, "textarea", ch.summary || "")}</article>`).join("");
     const scenes = (proposal.scenes || []).map((sc) => `<article class="pipeline-mini-card"><input type="hidden" data-pipe-scene-key value="${escapeHtml(sc.key)}"><b>${escapeHtml(sc.key)}</b>${studioField("场景名", "pipeScName" + sc.key, "input", sc.name || "")}${studioField("公开描述", "pipeScPublic" + sc.key, "textarea", sc.publicText || "")}</article>`).join("");
     const clues = (proposal.clues || []).map((cl) => `<article class="pipeline-mini-card inline"><input type="hidden" data-pipe-clue-key value="${escapeHtml(cl.key)}">${studioField("线索", "pipeClName" + cl.key, "input", cl.name || "")}</article>`).join("");
@@ -85,8 +101,8 @@
     return `<div class="pipeline-edit-grid">${studioField("剧本标题", "pipeStructTitle", "input", proposal.title || "")}${studioField("logline", "pipeStructLogline", "textarea", proposal.logline || "")}<div class="proposal-stats"><span>${proposal.chapters?.length || 0} 章</span><span>${sceneCount} 场景</span><span>${proposal.investigationPoints?.length || 0} 调查点</span><span>${proposal.clues?.length || 0} 线索</span><span>${proposal.edges?.length || 0} 连线</span></div><details${chapterOpen}><summary>章节</summary><div class="pipeline-card-grid">${chapters}</div></details><details${sceneOpen}><summary>场景</summary><div class="pipeline-card-grid">${scenes}</div></details><details><summary>线索名称</summary><div class="pipeline-card-grid inline-grid">${clues}</div></details><p class="muted-note">调查点与连线由 AI 生成，细调请上传后在编排台修改。场景/章节较多时默认折叠以减轻卡顿。</p></div>`;
   }
 
-  function pipelineMatrixEditorHtml(matrix, proposal) {
-    if (!matrix) return `<div class="empty-state">请先生成并确认编排结构，再生成角色矩阵。</div>`;
+  function pipelineMatrixEditorHtml(matrix, proposal, session) {
+    if (!matrix) return pipelineEmptyLayerHtml("matrix", session);
     const chapterTitles = new Map((proposal?.chapters || []).map((ch) => [ch.key, ch.title]));
     const roles = (matrix.roles || []).map((role) => {
       const knowledge = (role.chapterKnowledge || []).map((row) => `<article class="pipeline-knowledge-row"><b>${escapeHtml(chapterTitles.get(row.chapterKey) || row.chapterKey || "章节")}</b>${studioField("知道什么", "pipeKnow" + role.key + row.chapterKey, "textarea", row.knows || "")}${studioField("必须隐瞒", "pipeHide" + role.key + row.chapterKey, "textarea", row.mustHide || "")}${studioField("可讨论", "pipeDiscuss" + role.key + row.chapterKey, "textarea", row.canDiscuss || "")}</article>`).join("");
@@ -111,23 +127,30 @@
     const section = session.sections?.[roleKey]?.[chapterKey];
     const roleOptions = (session.roleMatrix?.roles || []).map((r) => `<option value="${escapeHtml(r.key)}" ${r.key === roleKey ? "selected" : ""}>${escapeHtml(r.name)}</option>`).join("");
     const chapterOptions = (session.proposal?.chapters || []).map((ch) => `<option value="${escapeHtml(ch.key)}" ${ch.key === chapterKey ? "selected" : ""}>${escapeHtml(ch.title)}</option>`).join("");
-    if (!session.roleMatrix || !session.proposal) return `<div class="empty-state">请先生成并确认角色矩阵与编排结构。</div>`;
-    return `<div class="pipeline-edit-grid"><label>角色</label><select class="field" data-pipeline-role>${roleOptions}</select><label>章节</label><select class="field" data-pipeline-chapter>${chapterOptions}</select>${studioField("分幕标题", "pipeSectionTitle", "input", section?.title || "")}<label>私人正文</label><textarea class="field manuscript-body" rows="14" data-pipe-section-body>${escapeHtml(section?.body || "")}</textarea><div data-pipeline-section-list-host>${pipelineSectionListHtml(session)}</div></div>`;
+    if (!session.roleMatrix || !session.proposal) return pipelineEmptyLayerHtml("section", session);
+    const bodyHint = section?.body?.trim()
+      ? ""
+      : `<p class="muted-note">正文为空 · 点击下方「AI 生成初稿」生成本角色本章分幕。</p>`;
+    return `<div class="pipeline-edit-grid"><label>角色</label><select class="field" data-pipeline-role>${roleOptions}</select><label>章节</label><select class="field" data-pipeline-chapter>${chapterOptions}</select>${studioField("分幕标题", "pipeSectionTitle", "input", section?.title || "")}<label>私人正文</label>${bodyHint}<textarea class="field manuscript-body" rows="14" data-pipe-section-body>${escapeHtml(section?.body || "")}</textarea><div data-pipeline-section-list-host>${pipelineSectionListHtml(session)}</div></div>`;
   }
 
-  function pipelineSynopsisEditorHtml(synopsis) {
-    if (!synopsis) return `<div class="empty-state">可选：在分幕后生成短母稿（创作者幕后总览）。</div>`;
+  function pipelineSynopsisEditorHtml(synopsis, session) {
+    if (!synopsis) return pipelineEmptyLayerHtml("synopsis", session);
     return `<div class="pipeline-edit-grid">${studioField("标题", "pipeSynTitle", "input", synopsis.title || "")}${studioField("摘要", "pipeSynSummary", "textarea", synopsis.summary || "")}<label>幕后总稿</label><textarea class="field manuscript-body" rows="12" data-pipe-synopsis-body>${escapeHtml(synopsis.overallManuscript || "")}</textarea><label>逻辑说明（每行一条）</label><textarea class="field" rows="4" data-pipe-synopsis-notes>${escapeHtml(pipelineArrayToLines(synopsis.logicNotes))}</textarea></div>`;
   }
 
   function pipelineLayerEditorHtml(layer, session, ctx) {
     if (layer === "spec") return pipelineSpecEditorHtml(session.spec);
-    if (layer === "outline") return pipelineOutlineEditorHtml(session.outline);
-    if (layer === "structure") return pipelineStructureEditorHtml(session.proposal);
-    if (layer === "matrix") return pipelineMatrixEditorHtml(session.roleMatrix, session.proposal);
+    if (layer === "outline") return pipelineOutlineEditorHtml(session.outline, session);
+    if (layer === "structure") return pipelineStructureEditorHtml(session.proposal, session);
+    if (layer === "matrix") return pipelineMatrixEditorHtml(session.roleMatrix, session.proposal, session);
     if (layer === "section") return pipelineSectionEditorHtml(session, ctx.roleKey, ctx.chapterKey);
-    if (layer === "synopsis") return pipelineSynopsisEditorHtml(session.synopsis);
-    if (layer === "evaluate") return session.evaluation ? pipelineEvaluationPreview(session.evaluation) : `<div class="empty-state">基于当前已锁定内容，AI 会给出分层修改建议（可选）。</div>`;
+    if (layer === "synopsis") return pipelineSynopsisEditorHtml(session.synopsis, session);
+    if (layer === "evaluate") {
+      return session.evaluation
+        ? pipelineEvaluationPreview(session.evaluation)
+        : pipelineEmptyLayerHtml("evaluate", session);
+    }
     return "";
   }
 
@@ -148,8 +171,8 @@
 
   function pipelineWizardFrameHtml(status, session, pipelineMode) {
     const statusClass = status.configured ? "ready" : "missing";
-    const statusText = status.configured ? `${escapeHtml(status.model)} · 120s/步` : "请配置 DEEPSEEK_API_KEY";
-    return `<div class="pipeline-wizard-frame"><header class="pipeline-wizard-header"><div class="pipeline-wizard-title-row"><div><h2>AI 悬疑创作</h2><p class="pipeline-wizard-hint">左栏选层级与 brief · 右侧编辑 · 单次 AI 约 <strong>30～120 秒</strong></p></div><div class="deepseek-status pipeline-status-chip ${statusClass}"><b>${status.configured ? "DeepSeek 已连接" : "未配置"}</b><span>${statusText}</span></div></div>${pipelineLocationBarHtml(session, pipelineMode)}</header><div class="pipeline-wizard-body"><aside class="pipeline-wizard-side"><p class="pipeline-side-kicker">创作模式</p>${pipelineModeTabsHtml(pipelineMode)}<p class="pipeline-side-kicker">层级进度</p><nav class="pipeline-ladder" data-pipeline-ladder aria-label="创作层级"></nav>${pipelineBriefFieldsHtml()}</aside><main class="pipeline-wizard-main ${pipelineMode === "auto" ? "pipeline-auto-layout" : ""}"><div class="pipeline-auto-panel ${pipelineMode === "auto" ? "" : "hidden"}" data-pipeline-auto-panel><div class="pipeline-auto-row"><div class="assistant-guide pipeline-auto-guide"><b>一键串行</b><span>须先在① 规格手动填写并确认；之后自动：总纲 → 编排 → 矩阵 → 分幕 → 母稿。</span></div><button type="button" class="primary-btn" data-pipeline-auto-run ${status.configured ? "" : "disabled"}>开始生成</button></div><p class="muted-note pipeline-auto-progress" data-pipeline-auto-progress>尚未开始</p></div><div class="pipeline-layer-head" data-pipeline-layer-head></div><div class="pipeline-layer-editor" data-pipeline-layer-editor></div><footer class="pipeline-layer-bar"><div class="pipeline-layer-actions row" data-pipeline-layer-actions></div><div class="pipeline-summary" data-pipeline-summary></div></footer></main></div><footer class="pipeline-wizard-footer"><div class="pipeline-wizard-footer-left">${aiLocalDraftActions()}</div><div class="pipeline-wizard-footer-right"><button class="secondary-btn" type="button" data-close>关闭</button><button class="secondary-btn" type="button" data-pipeline-apply-hints disabled>应用评判提示</button><button class="secondary-btn" type="button" data-pipeline-import-structure disabled>仅上传编排</button><button class="primary-btn" type="button" data-pipeline-import-all disabled>上传全部到云端</button></div></footer></div>`;
+    const statusText = status.configured ? `${escapeHtml(status.model)} · 180s/步` : "请配置 DEEPSEEK_API_KEY";
+    return `<div class="pipeline-wizard-frame"><header class="pipeline-wizard-header"><div class="pipeline-wizard-title-row"><div><h2>AI 悬疑创作</h2><p class="pipeline-wizard-hint">左栏选层级与 brief · 右侧编辑 · 单次 AI 约 <strong>30～180 秒</strong></p></div><div class="deepseek-status pipeline-status-chip ${statusClass}"><b>${status.configured ? "DeepSeek 已连接" : "未配置"}</b><span>${statusText}</span></div></div>${pipelineLocationBarHtml(session, pipelineMode)}</header><div class="pipeline-wizard-body"><aside class="pipeline-wizard-side"><p class="pipeline-side-kicker">创作模式</p>${pipelineModeTabsHtml(pipelineMode)}<p class="pipeline-side-kicker">层级进度</p><nav class="pipeline-ladder" data-pipeline-ladder aria-label="创作层级"></nav>${pipelineBriefFieldsHtml()}</aside><main class="pipeline-wizard-main ${pipelineMode === "auto" ? "pipeline-auto-layout" : ""}"><div class="pipeline-auto-panel ${pipelineMode === "auto" ? "" : "hidden"}" data-pipeline-auto-panel><div class="pipeline-auto-row"><div class="assistant-guide pipeline-auto-guide"><b>一键串行</b><span>须先在① 规格手动填写并确认；之后自动：总纲 → 编排 → 矩阵 → 分幕 → 母稿。</span></div><button type="button" class="primary-btn" data-pipeline-auto-run ${status.configured ? "" : "disabled"}>开始生成</button></div><p class="muted-note pipeline-auto-progress" data-pipeline-auto-progress>尚未开始</p></div><div class="pipeline-layer-head" data-pipeline-layer-head></div><div class="pipeline-layer-editor" data-pipeline-layer-editor></div><footer class="pipeline-layer-bar"><div class="pipeline-layer-actions row" data-pipeline-layer-actions></div><div class="pipeline-summary" data-pipeline-summary></div></footer></main></div><footer class="pipeline-wizard-footer"><div class="pipeline-wizard-footer-left">${aiLocalDraftActions()}</div><div class="pipeline-wizard-footer-right"><button class="secondary-btn" type="button" data-close>关闭</button><button class="secondary-btn" type="button" data-pipeline-apply-hints disabled>应用评判提示</button><button class="secondary-btn" type="button" data-pipeline-import-structure disabled>仅上传编排</button><button class="primary-btn" type="button" data-pipeline-import-all disabled>上传全部到云端</button></div></footer></div>`;
   }
 
   window.zhimuPipelineHtml = {

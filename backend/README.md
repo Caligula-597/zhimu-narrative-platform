@@ -90,7 +90,7 @@ npm run start
 DEEPSEEK_API_KEY=
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-v4-flash
-DEEPSEEK_TIMEOUT_MS=45000
+DEEPSEEK_TIMEOUT_MS=120000
 ```
 
 AI 只生成待复核的结构化提案，不会直接修改正式剧情。作者确认后，提案才会追加为章节、场景、调查点、线索与剧情连线。

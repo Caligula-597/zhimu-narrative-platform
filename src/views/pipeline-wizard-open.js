@@ -108,6 +108,10 @@
 
   async function openDeepseekPipeline(options = {}) {
     try {
+      if (!zhimuApi.context?.worldId) {
+        showToast("请先选择一个世界后再打开 AI 悬疑创作");
+        return;
+      }
       const [status, manuscript] = await Promise.all([zhimuApi.getDeepseekStatus(), zhimuApi.getStoryManuscript()]);
       const draftKind = AiDraft()?.KIND?.PIPELINE;
       const existingDraft = loadLocalAiDraft(draftKind);
@@ -185,6 +189,10 @@
         session._editorRev = session._editorRev || {};
         session._editorRev[layer] = (session._editorRev[layer] || 0) + 1;
       };
+      const forceEditorRefresh = (layer = session.activeLayer) => {
+        lastEditorKey = "";
+        bumpEditorRevision(layer);
+      };
       const actionsFingerprint = () => {
         const layer = session.activeLayer;
         const hasData = layer === "spec" ? true : pipelineLayerHasData(session, layer);
@@ -226,7 +234,8 @@
           if (layerBtn) {
             pipelinePersistActiveEditor(session, ctx);
             session.activeLayer = layerBtn.dataset.pipelineLayer;
-            renderPipelineUi();
+            forceEditorRefresh(session.activeLayer);
+            renderPipelineUi({ editor: true });
             return;
           }
           const pickBtn = event.target.closest("[data-pipeline-pick-section]");
@@ -249,9 +258,12 @@
             const layer = session.activeLayer;
             if (!pipelineApplyLayerSave(session, layer, ctx, { lock: true })) return;
             const next = PIPELINE_LAYER_ORDER[PIPELINE_LAYER_ORDER.indexOf(layer) + 1];
-            if (next) session.activeLayer = next;
-            afterSessionChange({ saveNow: true });
-            showToast(layer === "section" ? "本分幕已确认" : layer === "spec" ? "规格已确认" : "本层已锁定，可生成下一层");
+            if (next) {
+              session.activeLayer = next;
+              forceEditorRefresh(next);
+            }
+            afterSessionChange({ saveNow: true, editor: true });
+            showToast(layer === "section" ? "本分幕已确认" : layer === "spec" ? "规格已确认，请点「AI 生成初稿」生成总纲" : "本层已锁定，可生成下一层");
           }
         }, { signal });
 
@@ -330,7 +342,7 @@
       };
 
       function renderPipelineUi(opts = {}) {
-        pendingRender.editor = pendingRender.editor !== false && opts.editor !== false;
+        if (opts.editor !== false) pendingRender.editor = true;
         if (renderFrame) return;
         renderFrame = requestAnimationFrame(() => {
           renderFrame = null;
@@ -341,6 +353,27 @@
       }
 
       const setAutoProgress = (text) => { if (autoProgress) autoProgress.textContent = text; };
+
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const isRetryableDeepseekError = (error) => /无法连接|超时|UPSTREAM|API_UNAVAILABLE|RATE_LIMITED|过于频繁|503|502|504/i.test(error?.message || "");
+      async function callDeepseekStep(label, fn, { retries = 1 } = {}) {
+        let lastError;
+        for (let attempt = 0; attempt <= retries; attempt++) {
+          try {
+            return await fn();
+          } catch (error) {
+            lastError = error;
+            if (attempt < retries && isRetryableDeepseekError(error)) {
+              const waitSec = 3 * (attempt + 1);
+              setAutoProgress(`${label} 失败，${waitSec} 秒后重试…（${error.message}）`);
+              await sleep(waitSec * 1000);
+              continue;
+            }
+            throw error;
+          }
+        }
+        throw lastError;
+      }
 
       const runAutoPipeline = async () => {
         if (!status.configured) return showToast("DeepSeek 未配置");
@@ -355,22 +388,25 @@
 
           setAutoProgress("② 生成总纲…");
           session.activeLayer = "outline";
-          session.outline = (await zhimuApi.deepseekPipelineOutline({ ...brief, spec: session.spec })).outline;
+          session.outline = (await callDeepseekStep("② 总纲", () => zhimuApi.deepseekPipelineOutline({ ...brief, spec: session.spec }))).outline;
           session.locks.outline = true;
-          afterSessionChange({ editor: false });
+          forceEditorRefresh("outline");
+          afterSessionChange({ editor: true, saveNow: false });
 
           setAutoProgress("③ 生成编排结构（原结构提案）…");
           session.activeLayer = "structure";
-          session.proposal = (await zhimuApi.deepseekPipelineStructure({ ...brief, spec: session.spec, outline: session.outline })).proposal;
+          session.proposal = (await callDeepseekStep("③ 编排结构", () => zhimuApi.deepseekPipelineStructure({ ...brief, spec: session.spec, outline: session.outline }))).proposal;
           session.locks.structure = true;
-          afterSessionChange({ editor: false });
+          forceEditorRefresh("structure");
+          afterSessionChange({ editor: true, saveNow: false });
 
           setAutoProgress("④ 生成角色矩阵…");
           session.activeLayer = "matrix";
-          session.roleMatrix = (await zhimuApi.deepseekPipelineRoleMatrix({ ...brief, spec: session.spec, outline: session.outline, proposal: session.proposal })).roleMatrix;
+          session.roleMatrix = (await callDeepseekStep("④ 角色矩阵", () => zhimuApi.deepseekPipelineRoleMatrix({ ...brief, spec: session.spec, outline: session.outline, proposal: session.proposal }))).roleMatrix;
           session.locks.matrix = true;
           ctx.roleKey = session.roleMatrix.roles?.[0]?.key || "";
-          afterSessionChange({ editor: false });
+          forceEditorRefresh("matrix");
+          afterSessionChange({ editor: true, saveNow: false });
 
           const roles = session.roleMatrix.roles || [];
           const chapters = session.proposal.chapters || [];
@@ -381,22 +417,30 @@
             for (const chapter of chapters) {
               done += 1;
               setAutoProgress(`⑤ 私人分幕 ${done}/${total}：${role.name} · ${chapter.title}…`);
-              const result = await zhimuApi.deepseekPipelineSection({ ...brief, spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix, roleKey: role.key, chapterKey: chapter.key });
+              const result = await callDeepseekStep(`⑤ 分幕 ${done}/${total}`, () =>
+                zhimuApi.deepseekPipelineSection({ ...brief, spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix, roleKey: role.key, chapterKey: chapter.key })
+              );
               session.sections[role.key] = session.sections[role.key] || {};
               session.sections[role.key][chapter.key] = result.section;
               ctx.roleKey = role.key;
               ctx.chapterKey = chapter.key;
-              if (done === total || done % 3 === 0) afterSessionChange({ editor: false });
-              else scheduleDraftSave();
+              if (done === total || done % 3 === 0) {
+                forceEditorRefresh("section");
+                afterSessionChange({ editor: true, saveNow: false });
+              } else scheduleDraftSave();
+              if (done < total) await sleep(400);
             }
           }
           session.locks.section = true;
 
           setAutoProgress("⑥ 生成短母稿…");
           session.activeLayer = "synopsis";
-          session.synopsis = (await zhimuApi.deepseekPipelineManuscriptSynopsis({ ...brief, spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix })).synopsis;
+          session.synopsis = (await callDeepseekStep("⑥ 短母稿", () =>
+            zhimuApi.deepseekPipelineManuscriptSynopsis({ ...brief, spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix })
+          )).synopsis;
           session.locks.synopsis = true;
-          afterSessionChange({ editor: false, saveNow: true });
+          forceEditorRefresh("synopsis");
+          afterSessionChange({ editor: true, saveNow: true });
 
           clearLocalAiDraft(AiDraft()?.KIND?.FULL_MYSTERY);
           clearLocalAiDraft(AiDraft()?.KIND?.STRUCTURE);
@@ -405,9 +449,11 @@
         } catch (error) {
           setAutoProgress(`中断：${error.message}`);
           showToast(error.message);
+          forceEditorRefresh();
+          renderPipelineUi({ editor: true });
         } finally {
           autoRunBtn.disabled = !status.configured;
-          renderPipelineUi();
+          renderPipelineUi({ editor: true });
         }
       };
 
@@ -419,49 +465,54 @@
           autoPanel?.classList.toggle("hidden", pipelineMode !== "auto");
           modal.querySelector(".pipeline-wizard-main")?.classList.toggle("pipeline-auto-layout", pipelineMode === "auto");
           modal.querySelectorAll(".pipeline-mode-tab").forEach((el) => el.classList.toggle("active", el.dataset.pipelineMode === pipelineMode));
-          afterSessionChange({ editor: false });
+          afterSessionChange({ editor: true });
         };
       });
 
       const runPipelineGenerate = async () => {
         const layer = session.activeLayer;
         const btn = layerActions.querySelector("[data-pipeline-generate]");
+        const brief = () => pipelineBriefFromForm();
         try {
           if (btn) { btn.disabled = true; btn.textContent = "请求中…"; }
           if (layer === "spec") return showToast("规格请手动填写并确认，本层不用 AI");
           else if (layer === "outline") {
             if (!session.locks?.spec) return showToast("请先生成并确认规格");
-            session.outline = (await zhimuApi.deepseekPipelineOutline({ ...pipelineBriefFromForm(), spec: session.spec })).outline;
+            session.outline = (await callDeepseekStep("② 总纲", () => zhimuApi.deepseekPipelineOutline({ ...brief(), spec: session.spec }))).outline;
           } else if (layer === "structure") {
             if (!session.locks?.spec || !session.locks?.outline) return showToast("请先确认规格与总纲");
-            session.proposal = (await zhimuApi.deepseekPipelineStructure({ ...pipelineBriefFromForm(), spec: session.spec, outline: session.outline })).proposal;
+            session.proposal = (await callDeepseekStep("③ 编排结构", () => zhimuApi.deepseekPipelineStructure({ ...brief(), spec: session.spec, outline: session.outline }))).proposal;
           } else if (layer === "matrix") {
             if (!session.locks?.structure) return showToast("请先确认编排结构");
-            session.roleMatrix = (await zhimuApi.deepseekPipelineRoleMatrix({ ...pipelineBriefFromForm(), spec: session.spec, outline: session.outline, proposal: session.proposal })).roleMatrix;
+            session.roleMatrix = (await callDeepseekStep("④ 角色矩阵", () => zhimuApi.deepseekPipelineRoleMatrix({ ...brief(), spec: session.spec, outline: session.outline, proposal: session.proposal }))).roleMatrix;
             if (!ctx.roleKey) ctx.roleKey = session.roleMatrix.roles?.[0]?.key || "";
           } else if (layer === "section") {
             const roleKey = modal.querySelector("[data-pipeline-role]")?.value || ctx.roleKey;
             const chapterKey = modal.querySelector("[data-pipeline-chapter]")?.value || ctx.chapterKey;
             if (!roleKey || !chapterKey) return showToast("请选择角色与章节");
             if (!session.locks?.matrix) return showToast("请先确认角色矩阵");
-            const result = await zhimuApi.deepseekPipelineSection({ ...pipelineBriefFromForm(), spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix, roleKey, chapterKey });
+            const result = await callDeepseekStep("⑤ 私人分幕", () =>
+              zhimuApi.deepseekPipelineSection({ ...brief(), spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix, roleKey, chapterKey })
+            );
             session.sections[roleKey] = session.sections[roleKey] || {};
             session.sections[roleKey][chapterKey] = result.section;
             ctx.roleKey = roleKey; ctx.chapterKey = chapterKey;
           } else if (layer === "synopsis") {
             if (!session.locks?.structure) return showToast("请先确认编排结构");
-            session.synopsis = (await zhimuApi.deepseekPipelineManuscriptSynopsis({ ...pipelineBriefFromForm(), spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix })).synopsis;
+            session.synopsis = (await callDeepseekStep("⑥ 短母稿", () =>
+              zhimuApi.deepseekPipelineManuscriptSynopsis({ ...brief(), spec: session.spec, outline: session.outline, proposal: session.proposal, roleMatrix: session.roleMatrix })
+            )).synopsis;
           } else if (layer === "evaluate") {
             if (!session.proposal) return showToast("请至少完成编排结构");
-            session.evaluation = (await zhimuApi.deepseekPipelineEvaluate(pipelinePayload())).evaluation;
+            session.evaluation = (await callDeepseekStep("⑦ 评判", () => zhimuApi.deepseekPipelineEvaluate(pipelinePayload()))).evaluation;
           }
           session.locks[layer] = false;
           if (layer !== "evaluate") pipelineClearDownstream(session, layer);
-          bumpEditorRevision(layer);
-          afterSessionChange({ saveNow: true });
+          forceEditorRefresh(layer);
+          afterSessionChange({ saveNow: true, editor: true });
           showToast(`${pipelineStepLabel(layer)} 已生成 · 请修改后确认`);
         } catch (error) { showToast(error.message); }
-        finally { renderPipelineUi(); }
+        finally { renderPipelineUi({ editor: true }); }
       };
 
       bindAiDraftClear(draftKind, () => {

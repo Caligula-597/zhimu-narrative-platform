@@ -31,8 +31,8 @@ function sseCursorKey(roomId) {
   return `zhimuSseCursor:${roomId}`;
 }
 
-/** DeepSeek 单次生成常需 30～90 秒；默认 fetch 20 秒会误报超时 */
-const DEEPSEEK_TIMEOUT_MS = 120_000;
+/** 须 ≥ 后端 DEEPSEEK_TIMEOUT_MS（默认 120s，上限 180s），避免客户端先断连 */
+const DEEPSEEK_TIMEOUT_MS = 180_000;
 
 function deepseekRequest(path, opts = {}) {
   return request(path, { ...opts, timeoutMs: opts.timeoutMs ?? DEEPSEEK_TIMEOUT_MS });
@@ -55,9 +55,14 @@ async function request(path, { userId, method = "GET", body, timeoutMs = 20000, 
     });
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
-      if (response.status === 502 || response.status === 503 || response.status === 504) {
-        const err = new Error("无法连接服务器，请稍后重试。");
-        err.code = "API_UNAVAILABLE";
+      if (response.status === 504) {
+        const err = new Error("AI 生成超时（服务器等待过久）。请改用「分步参与」逐层生成，或减少章节/角色/场景数量。");
+        err.code = payload.code || "GATEWAY_TIMEOUT";
+        throw err;
+      }
+      if (response.status === 502 || response.status === 503) {
+        const err = new Error(friendlyApiError(payload, "无法连接服务器，请稍后重试。"));
+        err.code = payload.code || "API_UNAVAILABLE";
         throw err;
       }
       const err = new Error(friendlyApiError(payload, `${method} ${path} failed`));
