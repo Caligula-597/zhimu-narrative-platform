@@ -1,0 +1,36 @@
+---
+description: 安全检测通过后自动 commit 并 push，无需再向用户确认
+alwaysApply: true
+---
+
+# 自动提交与推送
+
+完成代码修改后，**不要询问**用户是否 commit/push。按以下流程自动执行。
+
+## 安全检测（须全部通过）
+
+按改动范围跑最小必要检测，默认至少包括：
+
+1. `backend`: `npm run check`（modules / boot / test-count / schemas）
+2. `backend`: `npm test`，或覆盖本次改动模块的定向测试
+3. 若改了 `src/views/pipeline-*` 或 session 逻辑：`npm run test:pipeline-session`（仓库根目录）
+4. 若改了前端 helper / store：对应 `npm run test:*` 脚本
+
+大范围或跨层改动可跑 `npm run verify:full`（或 `--skip-e2e` 变体）；**不必**每次等小范围修复都跑全链路 E2E。
+
+## 通过后立即执行
+
+1. `git status` / `git diff` — 确认无 `.env`、密钥、token、凭据文件
+2. `git add` 仅相关文件
+3. `git commit` — 1～2 句，说明 why
+4. `git push` — 推送到当前分支（**不要** force push `main`/`master`）
+
+## 禁止自动提交的情况
+
+- 任一安全检测失败
+- 改动含疑似密钥或 `.env`
+- 用户在同一轮对话里明确说「先别提交」或「不要 push」
+
+## 回复用户
+
+检测通过并完成 push 后，简短说明 commit hash、分支与检测项即可；**不要再问**「要不要提交」。
