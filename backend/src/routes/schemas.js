@@ -1242,6 +1242,7 @@ export const deepseekPipelineNarrativeRoleScriptSchema = {
       roleKey: { type: "string", minLength: 1, maxLength: 40 },
       role: deepseekJsonObject,
       chapters: { type: "array", minItems: 1, maxItems: 12, items: deepseekJsonObject },
+      chapterKey: { type: "string", minLength: 1, maxLength: 40 },
       existingSections: { type: "array", maxItems: 12, items: deepseekJsonObject },
       revisionHint: { type: "string", maxLength: 2000 }
     }

@@ -295,7 +295,7 @@ export function validateRolesMeta(raw, playerCount) {
   };
 }
 
-export function validateRoleScriptFromNarrative(raw, roleKey, spec, minWords) {
+export function validateRoleScriptFromNarrative(raw, roleKey, spec, minWords, requiredChapterKeys = null) {
   const value = raw && typeof raw === "object" ? raw : {};
   const sectionsRaw = Array.isArray(value.sections) ? value.sections : [];
   const sections = {};
@@ -306,13 +306,29 @@ export function validateRoleScriptFromNarrative(raw, roleKey, spec, minWords) {
     if (rk !== roleKey || !spec.chapterKeys.includes(ck)) continue;
     sections[roleKey][ck] = validateRoleSection({ roleKey, chapterKey: ck, title: item.title, body: item.body }, roleKey, ck, minWords);
   }
-  const missing = spec.chapterKeys.filter((ck) => !sections[roleKey][ck]);
+  const keys = requiredChapterKeys || spec.chapterKeys;
+  const missing = keys.filter((ck) => !sections[roleKey][ck]);
   if (missing.length) throwErr("DEEPSEEK_OUTPUT_INVALID", `角色 ${roleKey} 缺少分幕：${missing.join("、")}`, { roleKey, missing });
   return {
     roleKey,
     sections: sections[roleKey],
     suggestions: Array.isArray(value.suggestions) ? value.suggestions.slice(0, 8).map((item) => cleanText(item, 500)) : []
   };
+}
+
+function roleScriptMaxTokens(minWords, sectionCount) {
+  const perSection = Math.max(minWords, 800);
+  const targetChars = sectionCount * perSection * 1.25;
+  return Math.min(32768, Math.max(4096, Math.ceil(targetChars * 2.5) + 800));
+}
+
+function roleScriptCallTimeoutMs() {
+  const base = deepseekConfig().timeoutMs;
+  return Math.min(240000, Math.max(base, 180000));
+}
+
+function logRoleScript(roleKey, phase, extra = {}) {
+  console.info(JSON.stringify({ event: "deepseek.role_script", roleKey, phase, ...extra }));
 }
 
 function chapterNarrativeTargetChars(setting, config) {
@@ -433,37 +449,68 @@ export async function createDeepseekRolesMetaFromNarrative(input) {
 }
 
 export async function createDeepseekRoleScriptFromNarrative(input) {
+  const started = Date.now();
   const { setting, synopsis, config } = resolveCreativePipeline(input);
   const roleKey = cleanText(input.roleKey, 40);
   if (!roleKey) throwErr("VALIDATION_ERROR", "roleKey is required");
   const role = input.role;
   if (!role?.key || role.key !== roleKey) throwErr("VALIDATION_ERROR", "role metadata for roleKey is required");
+  const chapterKey = cleanText(input.chapterKey, 40) || null;
+  if (chapterKey && !config.chapterKeys.includes(chapterKey)) {
+    throwErr("VALIDATION_ERROR", `chapterKey must be one of: ${config.chapterKeys.join(", ")}`);
+  }
   const chapters = Array.isArray(input.chapters) ? input.chapters.map((ch) => validateChapterNarrative(ch, config, ch.chapterKey, chapterNarrativeMinChars(setting, config))) : [];
   if (chapters.length !== config.chapterKeys.length) throwErr("VALIDATION_ERROR", "All chapter narratives required");
   const minWords = config.wordsPerSectionMin || 400;
   const existingSections = Array.isArray(input.existingSections) ? input.existingSections : [];
-  const result = await requestDeepseekJson(
-    buildRoleScriptFromNarrativeMessages({
+  const requiredChapterKeys = chapterKey ? [chapterKey] : config.chapterKeys;
+  const maxTokens = roleScriptMaxTokens(minWords, requiredChapterKeys.length);
+  const callTimeoutMs = roleScriptCallTimeoutMs();
+  const ctx = { roleKey, chapterKey, sectionCount: requiredChapterKeys.length, minWords, maxTokens };
+
+  logRoleScript(roleKey, "start", { ...ctx, timeoutMs: callTimeoutMs });
+
+  try {
+    logRoleScript(roleKey, "request", ctx);
+    const result = await requestDeepseekJson(
+      buildRoleScriptFromNarrativeMessages({
+        setting,
+        synopsis,
+        role,
+        chapters,
+        chapterKey,
+        existingSections,
+        revisionHint: input.revisionHint || ""
+      }),
+      { maxTokens, temperature: 0.55, timeoutMs: callTimeoutMs, phase: chapterKey ? "section" : "all_sections", context: ctx }
+    );
+    const parsed = validateRoleScriptFromNarrative(result.value, roleKey, config, minWords, requiredChapterKeys);
+    logRoleScript(roleKey, "done", {
+      chapterKey,
+      sectionChars: Object.fromEntries(Object.entries(parsed.sections).map(([k, s]) => [k, s.body.length])),
+      elapsedMs: Date.now() - started
+    });
+    return {
+      provider: "deepseek",
+      model: result.model,
       setting,
       synopsis,
-      role,
-      chapters,
-      existingSections,
-      revisionHint: input.revisionHint || ""
-    }),
-    { maxTokens: 8192, temperature: 0.55 }
-  );
-  const parsed = validateRoleScriptFromNarrative(result.value, roleKey, config, minWords);
-  return {
-    provider: "deepseek",
-    model: result.model,
-    setting,
-    synopsis,
-    config,
-    roleKey,
-    sections: parsed.sections,
-    suggestions: parsed.suggestions
-  };
+      config,
+      roleKey,
+      chapterKey,
+      sections: parsed.sections,
+      suggestions: parsed.suggestions
+    };
+  } catch (error) {
+    logRoleScript(roleKey, "error", {
+      chapterKey,
+      code: error.code,
+      message: error.message,
+      elapsedMs: Date.now() - started,
+      details: error.details
+    });
+    throw enrichDeepseekError(error, { roleKey, chapterKey, elapsedMs: Date.now() - started });
+  }
 }
 
 export async function createDeepseekRolesFromNarrative(input) {

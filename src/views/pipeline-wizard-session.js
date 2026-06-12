@@ -27,6 +27,30 @@
     return Math.max(2000, Math.floor(Number(target) * 0.45));
   }
 
+  function sectionMinWords(session) {
+    return session.config?.wordsPerSectionMin || Math.min(800, Math.max(400, Math.floor((session.setting?.wordsPerChapter || 8000) / 8)));
+  }
+
+  function countRoleScriptSections(session) {
+    const roles = session.rolesMeta?.roles || [];
+    const chapterKeys = session.config?.chapterKeys || [];
+    const min = sectionMinWords(session);
+    let done = 0;
+    const total = roles.length * chapterKeys.length;
+    for (const role of roles) {
+      for (const chapterKey of chapterKeys) {
+        const body = session.sections?.[role.key]?.[chapterKey]?.body || "";
+        if (body.length >= min) done += 1;
+      }
+    }
+    return { done, total, min };
+  }
+
+  function isRoleScriptSectionComplete(session, roleKey, chapterKey) {
+    const min = sectionMinWords(session);
+    return (session.sections?.[roleKey]?.[chapterKey]?.body || "").length >= min;
+  }
+
   function defaultPipelineSession() {
     return {
       setting: null,
@@ -203,6 +227,9 @@
     PIPELINE_LAYER_LABEL,
     PIPELINE_LAYER_DEPS,
     narrativeMinChars,
+    sectionMinWords,
+    countRoleScriptSections,
+    isRoleScriptSectionComplete,
     defaultPipelineSession,
     normalizePipelineSession,
     pipelineChaptersForSession,

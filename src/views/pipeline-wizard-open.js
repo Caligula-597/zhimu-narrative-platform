@@ -313,7 +313,8 @@
             URL.revokeObjectURL(url);
             return;
           }
-          if (event.target.closest("[data-pipeline-generate-all]")) runPipelineGenerateAllNarrative();
+          if (event.target.closest("[data-pipeline-generate-all-roles]")) runPipelineGenerateAllRoleScripts();
+          else if (event.target.closest("[data-pipeline-generate-all]")) runPipelineGenerateAllNarrative();
           else if (event.target.closest("[data-pipeline-generate]")) runPipelineGenerate();
           else if (event.target.closest("[data-pipeline-save]")) {
             const layer = session.activeLayer;
@@ -367,7 +368,7 @@
         let generateLabel = hasData ? "重新 AI 生成" : "AI 生成初稿";
         if (layer === "narrative") generateLabel = hasData ? "重新生成本章" : "AI 生成本章";
         else if (layer === "roles" && !rolesMetaReady) generateLabel = "识别角色";
-        else if (layer === "roles") generateLabel = "生成本角色剧本";
+        else if (layer === "roles") generateLabel = hasData ? "重新生成本章私人本" : "AI 生成本章私人本";
         const generateBtn = layer !== "evaluate" && layer !== "setup"
           ? `<button class="secondary-btn" type="button" data-pipeline-generate ${canGenerate ? "" : "disabled"}>${generateLabel}</button>`
           : layer === "evaluate"
@@ -378,9 +379,13 @@
         const generateAllBtn = layer === "narrative" && canGenerate && narrativeDone < chapterKeys.length
           ? `<button class="text-btn" type="button" data-pipeline-generate-all>逐章生成全部（${narrativeDone}/${chapterKeys.length}，每章约 1～2 分钟）</button>`
           : "";
+        const roleScriptProgress = layer === "roles" && rolesMetaReady ? PS().countRoleScriptSections?.(session) : null;
+        const generateAllRolesBtn = layer === "roles" && canGenerate && rolesMetaReady && roleScriptProgress && roleScriptProgress.done < roleScriptProgress.total
+          ? `<button class="text-btn" type="button" data-pipeline-generate-all-roles>批量生成全部私人本（${roleScriptProgress.done}/${roleScriptProgress.total}，每段约 30～90 秒）</button>`
+          : "";
         const saveBtn = hasData && layer !== "evaluate" ? `<button class="text-btn" type="button" data-pipeline-save>保存修改</button>` : "";
         const lockBtn = hasData && layer !== "evaluate" ? `<button class="primary-btn" type="button" data-pipeline-lock>${layer === "roles" ? "确认全部私人本" : layer === "narrative" ? "确认全部章节" : layer === "setup" ? "确认并继续" : "确认本层并继续"}</button>` : "";
-        layerActions.innerHTML = `${generateBtn}${generateAllBtn}${saveBtn}${lockBtn}`;
+        layerActions.innerHTML = `${generateBtn}${generateAllBtn}${generateAllRolesBtn}${saveBtn}${lockBtn}`;
       };
 
       const patchNarrativeEditor = () => {
@@ -513,6 +518,78 @@
         afterSessionChange({ editor: true, saveNow: false });
       }
 
+      async function ensureRolesMeta(creative, progressBtn) {
+        if (session.rolesMeta?.roles?.length) return;
+        setPipelineProgress(progressBtn, "正在识别角色");
+        const metaResult = await callDeepseekStep("③ 识别角色", () =>
+          zhimuApi.deepseekPipelineNarrativeRolesMeta({ ...creative, chapters: narrativeChaptersArray() })
+        );
+        session.rolesMeta = metaResult.rolesMeta;
+        session.sections = session.sections || {};
+        ctx.roleKey = session.rolesMeta.roles?.[0]?.key || "";
+        ctx.chapterKey = session.config?.chapterKeys?.[0] || "";
+      }
+
+      async function generateRoleScriptChapter(roleKey, chapterKey, creative, progressBtn, progressLabel) {
+        const role = session.rolesMeta?.roles?.find((r) => r.key === roleKey);
+        if (!role) throw new Error("请选择有效角色");
+        if (PS().isRoleScriptSectionComplete?.(session, roleKey, chapterKey)) return;
+        const chapterIndex = (session.config?.chapterKeys || []).indexOf(chapterKey);
+        const chapterNum = chapterIndex + 1;
+        const label = progressLabel || `正在生成 ${role.name} · 第 ${chapterNum} 章私人本`;
+        setPipelineProgress(progressBtn, label);
+        session.sections = session.sections || {};
+        const revisionHint = modal.querySelector('[data-studio-field="pipeRoleRevisionHint"]')?.value || "";
+        const existingSections = Object.entries(session.sections?.[roleKey] || {}).map(([ck, section]) => ({ ...section, roleKey, chapterKey: ck }));
+        const scriptResult = await callDeepseekStep(`③ ${role.name} · 第 ${chapterNum} 章`, () =>
+          zhimuApi.deepseekPipelineNarrativeRoleScript({
+            ...creative,
+            roleKey,
+            role,
+            chapterKey,
+            chapters: narrativeChaptersArray(),
+            existingSections,
+            revisionHint
+          })
+        );
+        session.sections[roleKey] = { ...(session.sections[roleKey] || {}), ...(scriptResult.sections || {}) };
+        ctx.roleKey = roleKey;
+        ctx.chapterKey = chapterKey;
+        forceEditorRefresh("roles");
+        afterSessionChange({ editor: true, saveNow: false });
+      }
+
+      const runPipelineGenerateAllRoleScripts = async () => {
+        if (!session.locks?.narrative) return showToast("请先确认全部章节总剧情");
+        const creative = ensureCreative();
+        const btn = layerActions.querySelector("[data-pipeline-generate-all-roles]") || layerActions.querySelector("[data-pipeline-generate]");
+        try {
+          if (btn) btn.disabled = true;
+          layerActions.querySelectorAll("button").forEach((el) => { el.disabled = true; });
+          await ensureRolesMeta(creative, btn);
+          const roles = session.rolesMeta?.roles || [];
+          const keys = session.config?.chapterKeys || [];
+          let generated = 0;
+          const { total, done: initialDone } = PS().countRoleScriptSections?.(session) || { total: roles.length * keys.length, done: 0 };
+          for (const role of roles) {
+            for (let i = 0; i < keys.length; i++) {
+              const chapterKey = keys[i];
+              if (PS().isRoleScriptSectionComplete?.(session, role.key, chapterKey)) continue;
+              generated += 1;
+              await generateRoleScriptChapter(role.key, chapterKey, creative, btn, `批量生成 ${initialDone + generated}/${total} · ${role.name} 第 ${i + 1} 章`);
+            }
+          }
+          session.locks.roles = false;
+          pipelineClearDownstream(session, "roles");
+          afterSessionChange({ saveNow: true, editor: true });
+          showToast("全部私人本已批量生成 · 请修改后确认");
+        } catch (error) { showToast(error.message); }
+        finally {
+          clearPipelineProgress();
+          renderPipelineUi({ editor: true });
+        }
+      };
+
       const runPipelineGenerateAllNarrative = async () => {
         if (!session.locks?.setup) return showToast("请先确认创作立项");
         const keys = session.config?.chapterKeys || [];
@@ -554,35 +631,21 @@
             const chapterIndex = (session.config.chapterKeys || []).indexOf(chapterKey);
             await generateNarrativeChapter(chapterKey, creative, btn, `正在生成第 ${chapterIndex + 1} 章`);
           } else if (layer === "roles") {
-            if (btn) setPipelineProgress(btn, session.rolesMeta?.roles?.length ? "正在生成本角色剧本" : "正在识别角色");
             if (!session.locks?.narrative) return showToast("请先确认全部章节总剧情");
             if (!session.rolesMeta?.roles?.length) {
-              const metaResult = await callDeepseekStep("③ 识别角色", () =>
-                zhimuApi.deepseekPipelineNarrativeRolesMeta({ ...creative, chapters: narrativeChaptersArray() })
-              );
-              session.rolesMeta = metaResult.rolesMeta;
-              ctx.roleKey = session.rolesMeta.roles?.[0]?.key || "";
-              ctx.chapterKey = session.config?.chapterKeys?.[0] || "";
-            } else {
-              const roleKey = modal.querySelector("[data-pipeline-role]")?.value || ctx.roleKey || session.rolesMeta.roles[0]?.key;
-              const role = session.rolesMeta.roles.find((r) => r.key === roleKey);
-              if (!role) return showToast("请选择角色");
-              const revisionHint = modal.querySelector('[data-studio-field="pipeRoleRevisionHint"]')?.value || "";
-              const existingSections = Object.entries(session.sections?.[roleKey] || {}).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey }));
-              const scriptResult = await callDeepseekStep(`③ ${role.name} 私人本`, () =>
-                zhimuApi.deepseekPipelineNarrativeRoleScript({
-                  ...creative,
-                  roleKey,
-                  role,
-                  chapters: narrativeChaptersArray(),
-                  existingSections,
-                  revisionHint
-                })
-              );
-              session.sections[roleKey] = scriptResult.sections || {};
-              ctx.roleKey = roleKey;
-              ctx.chapterKey = session.config?.chapterKeys?.[0] || ctx.chapterKey;
+              if (btn) setPipelineProgress(btn, "正在识别角色");
+              await ensureRolesMeta(creative, btn);
+              forceEditorRefresh("roles");
+              afterSessionChange({ saveNow: true, editor: true });
+              showToast("角色已识别 · 请选择角色与章节后生成本章私人本");
+              return;
             }
+            const roleKey = modal.querySelector("[data-pipeline-role]")?.value || ctx.roleKey || session.rolesMeta.roles[0]?.key;
+            const role = session.rolesMeta.roles.find((r) => r.key === roleKey);
+            if (!role) return showToast("请选择角色");
+            const chapterKey = modal.querySelector("[data-pipeline-chapter]")?.value || ctx.chapterKey || session.config?.chapterKeys?.[0];
+            if (!chapterKey) return showToast("请先设置章节");
+            await generateRoleScriptChapter(roleKey, chapterKey, creative, btn);
           } else if (layer === "sync") {
             if (!session.locks?.roles) return showToast("请先确认全部角色私人本");
             session.proposal = (await callDeepseekStep("⑤ 抽取编排结构", () =>

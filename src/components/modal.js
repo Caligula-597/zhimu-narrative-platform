@@ -94,9 +94,10 @@ function studioField(label, key, type = "input", value = "") {
   const safeValue = escapeHtml(value ?? "");
   const safeLabel = escapeHtml(label);
   const safeKey = escapeHtml(key);
+  const id = `studio-field-${safeKey}`;
   return type === "textarea"
-    ? `<label>${safeLabel}</label><textarea class="field" data-studio-field="${safeKey}" rows="4">${safeValue}</textarea>`
-    : `<label>${safeLabel}</label><input class="field" data-studio-field="${safeKey}" value="${safeValue}">`;
+    ? `<label for="${id}">${safeLabel}</label><textarea class="field" id="${id}" name="${safeKey}" data-studio-field="${safeKey}" rows="4">${safeValue}</textarea>`
+    : `<label for="${id}">${safeLabel}</label><input class="field" id="${id}" name="${safeKey}" data-studio-field="${safeKey}" value="${safeValue}">`;
 }
 
 function studioValues() {
@@ -106,7 +107,8 @@ function studioValues() {
 function studioSelect(label, key, options, selectedId = "") {
   const safeLabel = escapeHtml(label);
   const safeKey = escapeHtml(key);
-  return `<label>${safeLabel}</label><select class="field" data-studio-field="${safeKey}">${studioOptionsHtml(options, selectedId)}</select>`;
+  const id = `studio-field-${safeKey}`;
+  return `<label for="${id}">${safeLabel}</label><select class="field" id="${id}" name="${safeKey}" data-studio-field="${safeKey}">${studioOptionsHtml(options, selectedId)}</select>`;
 }
 
 function studioOptionsHtml(options, selectedId = "") {

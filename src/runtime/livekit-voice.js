@@ -3,9 +3,29 @@
   const state = window.zhimuState;
   let room = null;
   let disconnecting = false;
+  let livekitLoadPromise = null;
+  const LIVEKIT_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/livekit-client@2.15.3/dist/livekit-client.umd.min.js";
 
   function liveKitSdk() {
     return window.LivekitClient || window.LiveKit;
+  }
+
+  function loadLiveKitScript() {
+    if (liveKitSdk()) return Promise.resolve();
+    if (livekitLoadPromise) return livekitLoadPromise;
+    livekitLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = LIVEKIT_SCRIPT_URL;
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.onload = () => resolve();
+      script.onerror = () => {
+        livekitLoadPromise = null;
+        reject(new Error("LiveKit 脚本加载失败"));
+      };
+      document.head.appendChild(script);
+    });
+    return livekitLoadPromise;
   }
 
   function syncParticipants(activeRoom) {
@@ -75,6 +95,7 @@
   }
 
   async function connectVoiceRoom(tokenPayload) {
+    await loadLiveKitScript();
     const sdk = liveKitSdk();
     if (!sdk?.Room) {
       state.voiceLiveStatus = "error";
