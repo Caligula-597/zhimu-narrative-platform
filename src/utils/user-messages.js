@@ -27,6 +27,9 @@
     UNSUPPORTED_MEDIA_TYPE: "文件类型不受支持，请换用允许的格式。",
     UNPROCESSABLE: "无法处理当前请求，请检查内容后重试。",
     UPSTREAM_ERROR: "上游服务暂时出错，请稍后重试。",
+    DEEPSEEK_API_ERROR: "AI 服务请求失败，请稍后重试。",
+    DEEPSEEK_RESPONSE_INVALID: "AI 返回格式异常，请重试。",
+    DEEPSEEK_OUTPUT_INVALID: "AI 生成内容未达要求，请重试。",
     GATEWAY_TIMEOUT: "请求超时，请检查网络后重试。",
     INTERNAL_ERROR: "服务器暂时出错，请稍后重试。",
     UNAVAILABLE: "服务暂时不可用，请稍后重试。",
@@ -183,6 +186,14 @@
     archive: "压缩包"
   };
 
+  const DEEPSEEK_ERROR_CODES = new Set([
+    "DEEPSEEK_NOT_CONFIGURED",
+    "DEEPSEEK_API_ERROR",
+    "DEEPSEEK_RESPONSE_INVALID",
+    "DEEPSEEK_OUTPUT_INVALID",
+    "GATEWAY_TIMEOUT"
+  ]);
+
   function friendlyApiError(payload = {}, fallback = "操作失败，请稍后重试") {
     const code = payload.code;
     const details = payload.details;
@@ -202,6 +213,11 @@
       if (/worldId/i.test(raw)) return "请先创建或选择一个剧本世界。";
       if (/roomId/i.test(raw)) return "请先选择或进入一个运行房。";
       return API_ERROR_MESSAGES.VALIDATION_ERROR;
+    }
+    if (code && DEEPSEEK_ERROR_CODES.has(code)) {
+      const raw = String(payload.error || "");
+      if (raw) return raw;
+      if (API_ERROR_MESSAGES[code]) return API_ERROR_MESSAGES[code];
     }
     if (code && API_ERROR_MESSAGES[code]) {
       return API_ERROR_MESSAGES[code];

@@ -1,7 +1,32 @@
 import { PRODUCT_BOUNDARY, cleanText, untrustedUserPayload } from "./shared.js";
 import { creativeInputUserBlocks } from "./creative-input.js";
 
-/** 逐章生成「总剧情」正文；每章携带此前各章全文，保证连贯。 */
+const PRIOR_CHAPTER_SUMMARY_CHARS = 600;
+const PRIOR_CHAPTER_ENDING_CHARS = 2400;
+
+/**
+ * 前文上下文压缩：摘要 + 末尾片段，避免第 3 章起把前两章 8000 字全文塞进 prompt 导致超时。
+ * 完整正文仍保存在 session；生成时只传衔接所需信息。
+ */
+export function compactPreviousChaptersForPrompt(previousChapters = []) {
+  return previousChapters.map((ch) => {
+    const body = cleanText(ch.narrativeBody, 120000);
+    const summary = cleanText(ch.summary, PRIOR_CHAPTER_SUMMARY_CHARS);
+    const base = { chapterKey: ch.chapterKey, title: cleanText(ch.title, 120), summary };
+    if (!body) return { ...base, narrativeBody: "" };
+    if (body.length <= PRIOR_CHAPTER_ENDING_CHARS + 500) {
+      return { ...base, narrativeBody: body };
+    }
+    return {
+      ...base,
+      narrativeBodyLength: body.length,
+      narrativeBodyEnding: body.slice(-PRIOR_CHAPTER_ENDING_CHARS),
+      note: `前文共 ${body.length} 字；此处仅附摘要与末尾 ${PRIOR_CHAPTER_ENDING_CHARS} 字以便衔接，不得与前文章节矛盾。`
+    };
+  });
+}
+
+/** 逐章生成「总剧情」正文；每章携带此前各章压缩上下文，保证连贯。 */
 export function buildChapterNarrativeMessages({
   setting,
   synopsis,
@@ -12,12 +37,7 @@ export function buildChapterNarrativeMessages({
   previousChapters = []
 }) {
   const targetWords = setting.wordsPerChapter || 8000;
-  const prior = previousChapters.map((ch) => ({
-    chapterKey: ch.chapterKey,
-    title: ch.title,
-    summary: cleanText(ch.summary, 400),
-    narrativeBody: cleanText(ch.narrativeBody, 120000)
-  }));
+  const prior = compactPreviousChaptersForPrompt(previousChapters);
   const system = `你是线上剧本杀「总剧情」主笔。你写的是**创作者用的章节母稿**（含 host 视角与公共事件），不是玩家私人分幕。
 
 ${PRODUCT_BOUNDARY}
@@ -43,7 +63,7 @@ ${PRODUCT_BOUNDARY}
 ${creativeInputUserBlocks(setting, synopsis)}
 
 ${untrustedUserPayload("章节配置", { chapterKeys: config.chapterKeys, wordsPerChapter: targetWords })}
-${prior.length ? untrustedUserPayload("此前各章全文（必须承接，不可推翻）", prior) : "（这是第一章，无前文）"}
+${prior.length ? untrustedUserPayload("此前各章（摘要+末尾片段，必须承接，不可推翻）", prior) : "（这是第一章，无前文）"}
 
 只返回 JSON。`;
   return [{ role: "system", content: system }, { role: "user", content: user }];
@@ -61,12 +81,7 @@ export function buildChapterNarrativeContinuationMessages({
   partialChapter,
   remainingChars
 }) {
-  const prior = previousChapters.map((ch) => ({
-    chapterKey: ch.chapterKey,
-    title: ch.title,
-    summary: cleanText(ch.summary, 400),
-    narrativeBody: cleanText(ch.narrativeBody, 120000)
-  }));
+  const prior = compactPreviousChaptersForPrompt(previousChapters);
   const bodyPreview = cleanText(partialChapter?.narrativeBody, 120000);
   const tail = bodyPreview.slice(-800);
   const system = `你是线上剧本杀「总剧情」主笔。你正在**续写**同一章的后半段，必须与已有正文无缝衔接，不得重复或矛盾。

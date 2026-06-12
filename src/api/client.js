@@ -31,11 +31,15 @@ function sseCursorKey(roomId) {
   return `zhimuSseCursor:${roomId}`;
 }
 
-/** 须 ≥ 后端 DEEPSEEK_TIMEOUT_MS（默认 120s，上限 180s），避免客户端先断连 */
+/** 普通 DeepSeek 步骤；须 ≥ 后端单次 DEEPSEEK_TIMEOUT_MS（默认 180s） */
 const DEEPSEEK_TIMEOUT_MS = 180_000;
+/** 逐章总剧情含续写，后端最多 2 轮 × 180s */
+const DEEPSEEK_CHAPTER_NARRATIVE_TIMEOUT_MS = 420_000;
 
 function deepseekRequest(path, opts = {}) {
-  return request(path, { ...opts, timeoutMs: opts.timeoutMs ?? DEEPSEEK_TIMEOUT_MS });
+  const isChapterNarrative = /\/narrative\/chapter$/.test(path);
+  const defaultTimeout = isChapterNarrative ? DEEPSEEK_CHAPTER_NARRATIVE_TIMEOUT_MS : DEEPSEEK_TIMEOUT_MS;
+  return request(path, { ...opts, timeoutMs: opts.timeoutMs ?? defaultTimeout });
 }
 
 async function request(path, { userId, method = "GET", body, timeoutMs = 20000, idempotent = false, idempotencyKey } = {}, authRetry = false) {

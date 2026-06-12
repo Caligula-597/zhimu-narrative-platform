@@ -50,6 +50,12 @@ export const API_ERRORS = {
   RATE_LIMITED: { status: 429, message: "Too many requests" },
   INTERNAL_ERROR: { status: 500, message: "Internal error" },
   UPSTREAM_ERROR: { status: 502, message: "Upstream service error" },
+  /** DeepSeek chat/completions HTTP or quota failure */
+  DEEPSEEK_API_ERROR: { status: 502, message: "DeepSeek API request failed" },
+  /** Empty body, truncated JSON, or other unparseable model output */
+  DEEPSEEK_RESPONSE_INVALID: { status: 502, message: "DeepSeek API returned invalid response" },
+  /** Model output parsed but failed schema / length / consistency checks */
+  DEEPSEEK_OUTPUT_INVALID: { status: 422, message: "DeepSeek output failed validation" },
   UNAVAILABLE: { status: 503, message: "Service unavailable" },
   GATEWAY_TIMEOUT: { status: 504, message: "Gateway timeout" },
 

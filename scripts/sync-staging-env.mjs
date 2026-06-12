@@ -69,7 +69,7 @@ staging.LOG_LEVEL = staging.LOG_LEVEL || "info";
 staging.APP_PUBLIC_URL = "http://localhost:8080";
 staging.DEEPSEEK_BASE_URL = staging.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
 staging.DEEPSEEK_MODEL = staging.DEEPSEEK_MODEL || "deepseek-v4-flash";
-staging.DEEPSEEK_TIMEOUT_MS = staging.DEEPSEEK_TIMEOUT_MS || "120000";
+staging.DEEPSEEK_TIMEOUT_MS = staging.DEEPSEEK_TIMEOUT_MS || "180000";
 
 const mailFrom = staging.MAIL_FROM?.includes(" ") ? `"${staging.MAIL_FROM}"` : staging.MAIL_FROM;
 

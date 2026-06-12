@@ -124,6 +124,20 @@ test("validateChapterNarrative enforces minimum body length", () => {
   assert.ok(ch.narrativeBody.length >= 2000);
 });
 
+test("validateChapterNarrative rejects short body with DEEPSEEK_OUTPUT_INVALID", () => {
+  const spec = validateStorySpec({ playerCount: 4, chapterKeys: ["chapter-1"], chapterCount: 1 }, brief);
+  assert.throws(
+    () => validateChapterNarrative({
+      chapterKey: "chapter-1",
+      title: "入港",
+      summary: "众人到港",
+      narrativeBody: "短",
+      hostNotes: "勿剧透"
+    }, spec, "chapter-1", 2000),
+    (err) => err.code === "DEEPSEEK_OUTPUT_INVALID" && /2000/.test(err.message)
+  );
+});
+
 test("validateRolesFromNarrative builds section map", () => {
   const spec = validateStorySpec({ playerCount: 4, chapterKeys: ["chapter-1"], chapterCount: 1, wordsPerSectionMin: 250 }, brief);
   const proposal = validateDeepseekProposal({

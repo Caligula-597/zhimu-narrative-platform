@@ -26,8 +26,23 @@ export function deepseekConfig() {
     configured: Boolean(process.env.DEEPSEEK_API_KEY),
     baseUrl: (process.env.DEEPSEEK_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, ""),
     model: process.env.DEEPSEEK_MODEL || DEFAULT_MODEL,
-    timeoutMs: clampInteger(process.env.DEEPSEEK_TIMEOUT_MS, 5000, 180000, 120000)
+    timeoutMs: clampInteger(process.env.DEEPSEEK_TIMEOUT_MS, 5000, 240000, 180000)
   };
+}
+
+function chapterNarrativeCallTimeoutMs() {
+  const base = deepseekConfig().timeoutMs;
+  return Math.min(240000, Math.max(base, 180000));
+}
+
+function logChapterNarrative(chapterKey, phase, extra = {}) {
+  console.info(JSON.stringify({ event: "deepseek.chapter_narrative", chapterKey, phase, ...extra }));
+}
+
+function enrichDeepseekError(error, details) {
+  if (!error || typeof error !== "object") return error;
+  error.details = { ...(error.details || {}), ...details };
+  return error;
 }
 
 export function normalizeStoryBrief(input = {}) {
@@ -61,15 +76,15 @@ export function normalizeStoryBrief(input = {}) {
 }
 
 function assertArray(value, name) {
-  if (!Array.isArray(value)) throwErr("UPSTREAM_ERROR", `DeepSeek ${name} must be an array`);
+  if (!Array.isArray(value)) throwErr("DEEPSEEK_OUTPUT_INVALID", `AI 返回的 ${name} 不是数组`);
   return value;
 }
 
 function uniqueKeys(items, name) {
   const keys = new Set();
   for (const item of items) {
-    if (!item?.key || typeof item.key !== "string") throwErr("UPSTREAM_ERROR", `DeepSeek ${name} item requires key`);
-    if (keys.has(item.key)) throwErr("UPSTREAM_ERROR", `DeepSeek ${name} contains duplicate key: ${item.key}`);
+    if (!item?.key || typeof item.key !== "string") throwErr("DEEPSEEK_OUTPUT_INVALID", `AI 返回的 ${name} 缺少 key 字段`);
+    if (keys.has(item.key)) throwErr("DEEPSEEK_OUTPUT_INVALID", `AI 返回的 ${name} 存在重复 key：${item.key}`);
     keys.add(item.key);
   }
   return keys;
@@ -106,7 +121,7 @@ export function validateStoryOutline(raw, spec) {
     turn: cleanText(beat.turn, 600),
     hostNotes: cleanText(beat.hostNotes, 800)
   }));
-  if (!beats.length) throwErr("UPSTREAM_ERROR", "DeepSeek outline requires chapterBeats");
+  if (!beats.length) throwErr("DEEPSEEK_OUTPUT_INVALID", "AI 大纲缺少 chapterBeats");
   return {
     logline: cleanText(value.logline, 600),
     truthTimeline: cleanText(value.truthTimeline, 4000),
@@ -123,20 +138,20 @@ export function validateDeepseekProposal(raw) {
   const points = assertArray(proposal.investigationPoints, "investigationPoints").slice(0, 80);
   const clues = assertArray(proposal.clues, "clues").slice(0, 80);
   const edges = assertArray(proposal.edges, "edges").slice(0, 160);
-  if (!chapters.length || !scenes.length) throwErr("UPSTREAM_ERROR", "DeepSeek proposal requires at least one chapter and one scene");
+  if (!chapters.length || !scenes.length) throwErr("DEEPSEEK_OUTPUT_INVALID", "AI 提案至少需包含一个章节与一个场景");
   const keys = {
     chapter: uniqueKeys(chapters, "chapters"),
     scene: uniqueKeys(scenes, "scenes"),
     investigation_point: uniqueKeys(points, "investigationPoints"),
     clue: uniqueKeys(clues, "clues")
   };
-  for (const scene of scenes) if (!keys.chapter.has(scene.chapterKey)) throwErr("UPSTREAM_ERROR", `Scene references missing chapter: ${scene.chapterKey}`);
+  for (const scene of scenes) if (!keys.chapter.has(scene.chapterKey)) throwErr("DEEPSEEK_OUTPUT_INVALID", `场景引用了不存在的章节：${scene.chapterKey}`);
   for (const point of points) {
-    if (!keys.scene.has(point.sceneKey)) throwErr("UPSTREAM_ERROR", `Investigation point references missing scene: ${point.sceneKey}`);
-    if (point.clueKey && !keys.clue.has(point.clueKey)) throwErr("UPSTREAM_ERROR", `Investigation point references missing clue: ${point.clueKey}`);
+    if (!keys.scene.has(point.sceneKey)) throwErr("DEEPSEEK_OUTPUT_INVALID", `调查点引用了不存在的场景：${point.sceneKey}`);
+    if (point.clueKey && !keys.clue.has(point.clueKey)) throwErr("DEEPSEEK_OUTPUT_INVALID", `调查点引用了不存在的线索：${point.clueKey}`);
   }
   for (const edge of edges) {
-    if (!keys[edge.fromType]?.has(edge.fromKey) || !keys[edge.toType]?.has(edge.toKey)) throwErr("UPSTREAM_ERROR", "Story edge references missing node");
+    if (!keys[edge.fromType]?.has(edge.fromKey) || !keys[edge.toType]?.has(edge.toKey)) throwErr("DEEPSEEK_OUTPUT_INVALID", "剧情边引用了不存在的节点");
     if (!["mainline", "parallel", "extension"].includes(edge.relationType)) throwErr("RELATION_TYPE_INVALID", `Unsupported edge relation: ${edge.relationType}`);
   }
   return {
@@ -151,11 +166,11 @@ export function validateDeepseekProposal(raw) {
 export function validateRoleMatrix(raw, spec, proposal) {
   const value = raw && typeof raw === "object" ? raw : {};
   const roles = assertArray(value.roles, "roles").slice(0, MAX_PLAYERS);
-  if (roles.length !== spec.playerCount) throwErr("UPSTREAM_ERROR", `DeepSeek role matrix requires exactly ${spec.playerCount} roles`);
+  if (roles.length !== spec.playerCount) throwErr("DEEPSEEK_OUTPUT_INVALID", `AI 角色矩阵需恰好 ${spec.playerCount} 个角色，实际 ${roles.length} 个`);
   const chapterKeys = new Set(proposal.chapters.map((chapter) => chapter.key));
   const roleKeys = new Set();
   for (const role of roles) {
-    if (!role?.key || roleKeys.has(role.key)) throwErr("UPSTREAM_ERROR", "Role matrix keys must be unique");
+    if (!role?.key || roleKeys.has(role.key)) throwErr("DEEPSEEK_OUTPUT_INVALID", "角色矩阵 key 必须唯一");
     roleKeys.add(role.key);
     role.name = cleanText(role.name, 80);
     role.publicProfile = cleanText(role.publicProfile, 800);
@@ -166,7 +181,7 @@ export function validateRoleMatrix(raw, spec, proposal) {
       mustHide: cleanText(row.mustHide, 800),
       canDiscuss: cleanText(row.canDiscuss, 800)
     }));
-    if (!role.name) throwErr("UPSTREAM_ERROR", `Role ${role.key} requires name`);
+    if (!role.name) throwErr("DEEPSEEK_OUTPUT_INVALID", `角色 ${role.key} 缺少 name`);
   }
   return {
     roles,
@@ -180,9 +195,11 @@ export function validateRoleMatrix(raw, spec, proposal) {
 
 export function validateRoleSection(raw, roleKey, chapterKey, minWords = 250) {
   const value = raw && typeof raw === "object" ? raw : {};
-  if (value.roleKey !== roleKey || value.chapterKey !== chapterKey) throwErr("UPSTREAM_ERROR", "Section roleKey/chapterKey mismatch");
+  if (value.roleKey !== roleKey || value.chapterKey !== chapterKey) throwErr("DEEPSEEK_OUTPUT_INVALID", "分幕 roleKey/chapterKey 与请求不一致");
   const body = cleanText(value.body, 6000);
-  if (body.length < minWords) throwErr("UPSTREAM_ERROR", `Section body requires at least ${minWords} characters`);
+  if (body.length < minWords) {
+    throwErr("DEEPSEEK_OUTPUT_INVALID", `分幕正文仅 ${body.length} 字，未达到最低 ${minWords} 字`, { actualChars: body.length, minChars: minWords, roleKey, chapterKey });
+  }
   return {
     roleKey,
     chapterKey,
@@ -201,9 +218,11 @@ function chapterNarrativeMinChars(setting, config) {
 function parseChapterNarrative(raw, spec, chapterKey) {
   const value = raw && typeof raw === "object" ? raw : {};
   const key = cleanText(value.chapterKey || chapterKey, 40);
-  if (!spec.chapterKeys.includes(key)) throwErr("UPSTREAM_ERROR", `Chapter narrative key must be one of: ${spec.chapterKeys.join(", ")}`);
+  if (!spec.chapterKeys.includes(key)) {
+    throwErr("DEEPSEEK_OUTPUT_INVALID", `章节 key 必须是 ${spec.chapterKeys.join("、")} 之一，实际为 ${key}`, { chapterKey: key, expectedKeys: spec.chapterKeys });
+  }
   const narrativeBody = cleanText(value.narrativeBody, 120000);
-  if (!narrativeBody) throwErr("UPSTREAM_ERROR", "Chapter narrative body is empty");
+  if (!narrativeBody) throwErr("DEEPSEEK_OUTPUT_INVALID", "AI 返回的总剧情正文为空", { chapterKey: key });
   return {
     chapterKey: key,
     title: cleanText(value.title, 120) || key,
@@ -219,7 +238,11 @@ function parseChapterNarrative(raw, spec, chapterKey) {
 export function validateChapterNarrative(raw, spec, chapterKey, minChars = MIN_CHAPTER_NARRATIVE_CHARS) {
   const chapter = raw?.narrativeBody && raw?.chapterKey ? raw : parseChapterNarrative(raw, spec, chapterKey);
   if (chapter.narrativeBody.length < minChars) {
-    throwErr("UPSTREAM_ERROR", `Chapter narrative requires at least ${minChars} characters`);
+    throwErr("DEEPSEEK_OUTPUT_INVALID", `本章总剧情仅 ${chapter.narrativeBody.length} 字，未达到最低 ${minChars} 字要求`, {
+      chapterKey: chapter.chapterKey,
+      actualChars: chapter.narrativeBody.length,
+      minChars
+    });
   }
   return chapter;
 }
@@ -244,7 +267,7 @@ export function validateRolesFromNarrative(raw, spec, roleMatrix) {
   }
   const expected = spec.playerCount * spec.chapterKeys.length;
   const actual = Object.values(sections).reduce((n, ch) => n + Object.keys(ch).length, 0);
-  if (actual < expected) throwErr("UPSTREAM_ERROR", `Expected ${expected} role sections, got ${actual}`);
+  if (actual < expected) throwErr("DEEPSEEK_OUTPUT_INVALID", `AI 仅返回 ${actual}/${expected} 个角色分幕`);
   return {
     sections,
     suggestions: Array.isArray(value.suggestions) ? value.suggestions.slice(0, 12).map((item) => cleanText(item, 500)) : []
@@ -254,12 +277,12 @@ export function validateRolesFromNarrative(raw, spec, roleMatrix) {
 export function validateRolesMeta(raw, playerCount) {
   const value = raw && typeof raw === "object" ? raw : {};
   const roles = assertArray(value.roles, "roles").slice(0, MAX_PLAYERS);
-  if (roles.length !== playerCount) throwErr("UPSTREAM_ERROR", `Expected ${playerCount} roles, got ${roles.length}`);
+  if (roles.length !== playerCount) throwErr("DEEPSEEK_OUTPUT_INVALID", `AI 返回 ${roles.length} 个角色，需要 ${playerCount} 个`);
   const keys = new Set();
   return {
     roles: roles.map((role, index) => {
       const key = cleanText(role?.key, 40) || `role-${index + 1}`;
-      if (keys.has(key)) throwErr("UPSTREAM_ERROR", "Role keys must be unique");
+      if (keys.has(key)) throwErr("DEEPSEEK_OUTPUT_INVALID", "角色 key 必须唯一");
       keys.add(key);
       return {
         key,
@@ -284,7 +307,7 @@ export function validateRoleScriptFromNarrative(raw, roleKey, spec, minWords) {
     sections[roleKey][ck] = validateRoleSection({ roleKey, chapterKey: ck, title: item.title, body: item.body }, roleKey, ck, minWords);
   }
   const missing = spec.chapterKeys.filter((ck) => !sections[roleKey][ck]);
-  if (missing.length) throwErr("UPSTREAM_ERROR", `Missing sections for ${roleKey}: ${missing.join(", ")}`);
+  if (missing.length) throwErr("DEEPSEEK_OUTPUT_INVALID", `角色 ${roleKey} 缺少分幕：${missing.join("、")}`, { roleKey, missing });
   return {
     roleKey,
     sections: sections[roleKey],
@@ -319,6 +342,7 @@ function mergeChapterNarrativeContinuation(chapter, contRaw) {
 }
 
 export async function createDeepseekChapterNarrative(input) {
+  const started = Date.now();
   const { setting, synopsis, config, brief } = resolveCreativePipeline(input);
   const chapterKey = cleanText(input.chapterKey, 40);
   const chapterIndex = config.chapterKeys.indexOf(chapterKey);
@@ -330,46 +354,70 @@ export async function createDeepseekChapterNarrative(input) {
   const minChars = chapterNarrativeMinChars(setting, config);
   const targetChars = chapterNarrativeTargetChars(setting, config);
   const maxTokens = chapterNarrativeMaxTokens(targetChars);
-  const result = await requestDeepseekJson(
-    buildChapterNarrativeMessages({
-      setting,
-      synopsis,
-      config,
-      chapterKey,
-      chapterIndex,
-      chapterCount: config.chapterKeys.length,
-      previousChapters
-    }),
-    { maxTokens, temperature: 0.5 }
-  );
-  let chapter = parseChapterNarrative(result.value, config, chapterKey);
-  if (chapter.narrativeBody.length < targetChars * 0.85 && targetChars >= 5000) {
-    const remaining = Math.max(1500, targetChars - chapter.narrativeBody.length);
-    const contResult = await requestDeepseekJson(
-      buildChapterNarrativeContinuationMessages({
+  const callTimeoutMs = chapterNarrativeCallTimeoutMs();
+  const ctx = { chapterKey, chapterIndex: chapterIndex + 1, priorCount: previousChapters.length, targetChars, minChars };
+
+  logChapterNarrative(chapterKey, "start", { ...ctx, timeoutMs: callTimeoutMs });
+
+  try {
+    logChapterNarrative(chapterKey, "request_primary", { maxTokens });
+    const result = await requestDeepseekJson(
+      buildChapterNarrativeMessages({
         setting,
         synopsis,
         config,
         chapterKey,
         chapterIndex,
         chapterCount: config.chapterKeys.length,
-        previousChapters,
-        partialChapter: chapter,
-        remainingChars: remaining
+        previousChapters
       }),
-      { maxTokens: chapterNarrativeMaxTokens(remaining), temperature: 0.5 }
+      { maxTokens, temperature: 0.5, timeoutMs: callTimeoutMs, phase: "primary", context: ctx }
     );
-    chapter = mergeChapterNarrativeContinuation(chapter, contResult.value);
+    let chapter = parseChapterNarrative(result.value, config, chapterKey);
+    logChapterNarrative(chapterKey, "primary_done", { bodyChars: chapter.narrativeBody.length, elapsedMs: Date.now() - started });
+
+    const needsContinuation = chapter.narrativeBody.length < targetChars * 0.85 && targetChars >= 5000;
+    if (needsContinuation) {
+      const remaining = Math.max(1500, targetChars - chapter.narrativeBody.length);
+      logChapterNarrative(chapterKey, "request_continuation", { remaining, bodyChars: chapter.narrativeBody.length });
+      const contResult = await requestDeepseekJson(
+        buildChapterNarrativeContinuationMessages({
+          setting,
+          synopsis,
+          config,
+          chapterKey,
+          chapterIndex,
+          chapterCount: config.chapterKeys.length,
+          previousChapters,
+          partialChapter: chapter,
+          remainingChars: remaining
+        }),
+        { maxTokens: chapterNarrativeMaxTokens(remaining), temperature: 0.5, timeoutMs: callTimeoutMs, phase: "continuation", context: ctx }
+      );
+      chapter = mergeChapterNarrativeContinuation(chapter, contResult.value);
+      logChapterNarrative(chapterKey, "continuation_done", { bodyChars: chapter.narrativeBody.length, elapsedMs: Date.now() - started });
+    }
+
+    const validated = validateChapterNarrative(chapter, config, chapterKey, minChars);
+    logChapterNarrative(chapterKey, "done", { bodyChars: validated.narrativeBody.length, elapsedMs: Date.now() - started, continued: needsContinuation });
+    return {
+      provider: "deepseek",
+      model: result.model,
+      setting,
+      synopsis,
+      config,
+      brief,
+      chapter: validated
+    };
+  } catch (error) {
+    logChapterNarrative(chapterKey, "error", {
+      code: error.code,
+      message: error.message,
+      elapsedMs: Date.now() - started,
+      details: error.details
+    });
+    throw enrichDeepseekError(error, { chapterKey, chapterIndex: chapterIndex + 1, elapsedMs: Date.now() - started });
   }
-  return {
-    provider: "deepseek",
-    model: result.model,
-    setting,
-    synopsis,
-    config,
-    brief,
-    chapter: validateChapterNarrative(chapter, config, chapterKey, minChars)
-  };
 }
 
 export async function createDeepseekRolesMetaFromNarrative(input) {
@@ -456,7 +504,7 @@ export async function createDeepseekStructureFromNarrative(input) {
 export function validateManuscriptSynopsis(raw, proposal) {
   const value = raw && typeof raw === "object" ? raw : {};
   const overallManuscript = cleanText(value.overallManuscript, 8000);
-  if (overallManuscript.length < 400) throwErr("UPSTREAM_ERROR", "Manuscript synopsis too short");
+  if (overallManuscript.length < 400) throwErr("DEEPSEEK_OUTPUT_INVALID", "AI 生成的剧本梗概过短");
   return {
     title: cleanText(value.title, 160) || proposal.title,
     summary: cleanText(value.summary, 1200) || proposal.logline,
@@ -465,37 +513,59 @@ export function validateManuscriptSynopsis(raw, proposal) {
   };
 }
 
-export async function requestDeepseekJson(messages, { maxTokens = 8000, temperature = 0.5 } = {}) {
+export async function requestDeepseekJson(messages, { maxTokens = 8000, temperature = 0.5, timeoutMs, phase, context = {}, retryOnJsonParse = true } = {}) {
   const config = deepseekConfig();
   if (!config.configured) throwErr("DEEPSEEK_NOT_CONFIGURED");
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
-  try {
-    const response = await fetch(`${config.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: { authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        model: config.model,
-        messages,
-        response_format: { type: "json_object" },
-        thinking: { type: "disabled" },
-        temperature,
-        max_tokens: maxTokens
-      }),
-      signal: controller.signal
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throwErr("UPSTREAM_ERROR", payload.error?.message || `DeepSeek API request failed with ${response.status}`);
-    const content = payload.choices?.[0]?.message?.content;
-    if (!content) throwErr("UPSTREAM_ERROR", "DeepSeek API returned an empty response");
-    return { model: config.model, value: JSON.parse(content) };
-  } catch (error) {
-    if (error.name === "AbortError") throwErr("GATEWAY_TIMEOUT", "DeepSeek API 请求超时，请稍后重试。");
-    if (error instanceof SyntaxError) throwErr("UPSTREAM_ERROR", "DeepSeek API 返回了无法解析的 JSON，请重试。");
-    throw error;
-  } finally {
-    clearTimeout(timeout);
+  const callTimeoutMs = timeoutMs ?? config.timeoutMs;
+  const attempts = retryOnJsonParse ? 2 : 1;
+  let lastSyntaxError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), callTimeoutMs);
+    try {
+      const response = await fetch(`${config.baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          model: config.model,
+          messages,
+          response_format: { type: "json_object" },
+          thinking: { type: "disabled" },
+          temperature,
+          max_tokens: maxTokens
+        }),
+        signal: controller.signal
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const status = response.status;
+        const upstreamMsg = payload.error?.message || `HTTP ${status}`;
+        if (status === 429) {
+          throwErr("RATE_LIMITED", `AI 服务请求过于频繁，请稍后再试。（${upstreamMsg}）`, { phase, attempt, ...context });
+        }
+        throwErr("DEEPSEEK_API_ERROR", `AI 服务请求失败：${upstreamMsg}`, { phase, attempt, status, ...context });
+      }
+      const content = payload.choices?.[0]?.message?.content;
+      if (!content) {
+        throwErr("DEEPSEEK_RESPONSE_INVALID", "AI 返回了空内容，请重试。", { phase, attempt, ...context });
+      }
+      return { model: config.model, value: JSON.parse(content) };
+    } catch (error) {
+      if (error.name === "AbortError") {
+        throwErr("GATEWAY_TIMEOUT", `AI 请求超时（已等待 ${Math.round(callTimeoutMs / 1000)} 秒），请稍后重试。`, { phase, attempt, timeoutMs: callTimeoutMs, ...context });
+      }
+      if (error instanceof SyntaxError) {
+        lastSyntaxError = error;
+        if (attempt < attempts) continue;
+        throwErr("DEEPSEEK_RESPONSE_INVALID", "AI 返回了无法解析的 JSON，请重试。", { phase, attempt, ...context });
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+  throwErr("DEEPSEEK_RESPONSE_INVALID", "AI 返回了无法解析的 JSON，请重试。", { phase, attempt: attempts, ...context, cause: lastSyntaxError?.message });
 }
 
 export { validateCreativeSetting, validateSynopsisInput };
