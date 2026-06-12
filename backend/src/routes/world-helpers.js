@@ -2,6 +2,67 @@ import { pool, query, transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
 import { validateDeepseekProposal } from "../deepseek.js";
 
+async function nextRoleSlotSequence(client, worldId) {
+  const row = await client.query(
+    `SELECT COALESCE(MAX(sequence), 0)::int AS max_seq FROM role_slots WHERE world_id = $1`,
+    [worldId]
+  );
+  return row.rows[0].max_seq + 1;
+}
+
+async function ensureCharacterScript(client, roleSlotId, roleName) {
+  const script = await client.query(
+    `SELECT id FROM character_scripts WHERE role_slot_id = $1 ORDER BY created_at LIMIT 1`,
+    [roleSlotId]
+  );
+  if (script.rowCount) return script.rows[0].id;
+  const created = await client.query(
+    `INSERT INTO character_scripts (role_slot_id, title) VALUES ($1,$2) RETURNING id`,
+    [roleSlotId, `${roleName} · 私人剧本`]
+  );
+  return created.rows[0].id;
+}
+
+/** Resolve pipeline/mystery role by deepseekRoleKey; create at next free sequence if missing. */
+async function resolveOrCreateDeepseekRoleSlot(client, worldId, role, roleIndex) {
+  const roleKey = role.key || `pipeline-role-${roleIndex}`;
+  const existingRole = await client.query(
+    `SELECT id FROM role_slots
+     WHERE world_id = $1 AND settings->>'deepseekRoleKey' = $2
+     LIMIT 1`,
+    [worldId, roleKey]
+  );
+  if (existingRole.rowCount) {
+    const roleSlotId = existingRole.rows[0].id;
+    await ensureCharacterScript(client, roleSlotId, role.name || roleKey);
+    return { roleSlotId, roleKey };
+  }
+
+  const nextSequence = await nextRoleSlotSequence(client, worldId);
+  const createdRole = await client.query(
+    `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
+     VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
+    [
+      worldId,
+      role.name,
+      role.publicProfile || "",
+      role.privateProfile || "",
+      nextSequence,
+      JSON.stringify({ deepseekRoleKey: roleKey })
+    ]
+  );
+  const roleSlotId = createdRole.rows[0].id;
+  await ensureCharacterScript(client, roleSlotId, role.name || roleKey);
+  return { roleSlotId, roleKey };
+}
+
+function rethrowPipelineImportDbError(error) {
+  if (error?.code === "23505") {
+    throwErr("CONFLICT", "上传与现有角色或编排数据冲突，请刷新创作中心后重试");
+  }
+  throw error;
+}
+
 /** Rooms visible to actor: owners/editors see all; hosts/viewers only their own hosted or joined rooms. */
 export const ROOMS_VISIBLE_TO_ACTOR_SQL = `(
   EXISTS (
@@ -431,73 +492,54 @@ export async function importDeepseekProposal(worldId, rawProposal) {
 }
 
 export async function importDeepseekMysteryPackage(worldId, mystery) {
-  return transaction(async (client) => {
-    const graph = await importDeepseekProposalWithClient(client, worldId, mystery.proposal);
-    let sectionCount = 0;
-    for (const [roleIndex, role] of mystery.package.roles.entries()) {
-      const roleKey = role.key || `mystery-role-${roleIndex}`;
-      let roleSlotId;
-      const existingRole = await client.query(
-        `SELECT id FROM role_slots WHERE world_id = $1 AND settings->>'deepseekRoleKey' = $2 LIMIT 1`,
-        [worldId, roleKey]
-      );
-      if (existingRole.rowCount) {
-        roleSlotId = existingRole.rows[0].id;
-      } else {
-        const createdRole = await client.query(
-          `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
-           VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
-          [worldId, role.name, role.publicProfile, role.privateProfile, roleIndex + 1, JSON.stringify({ deepseekRoleKey: roleKey })]
-        );
-        roleSlotId = createdRole.rows[0].id;
-        await client.query(
-          `INSERT INTO character_scripts (role_slot_id, title) VALUES ($1,$2)`,
-          [roleSlotId, `${role.name} · 私人剧本`]
-        );
+  try {
+    return await transaction(async (client) => {
+      const graph = await importDeepseekProposalWithClient(client, worldId, mystery.proposal);
+      let sectionCount = 0;
+      for (const [roleIndex, role] of mystery.package.roles.entries()) {
+        const { roleSlotId, roleKey } = await resolveOrCreateDeepseekRoleSlot(client, worldId, { ...role, key: role.key || `mystery-role-${roleIndex}` }, roleIndex);
+        const scriptId = await ensureCharacterScript(client, roleSlotId, role.name || roleKey);
+        if (!scriptId) continue;
+        for (const [sectionIndex, section] of role.sections.entries()) {
+          const chapterKey = section.chapterKey;
+          const existingSection = await client.query(
+            `SELECT id FROM script_sections
+             WHERE role_slot_id = $1 AND metadata->>'chapterKey' = $2 AND metadata->>'roleKey' = $3
+             LIMIT 1`,
+            [roleSlotId, chapterKey, roleKey]
+          );
+          if (existingSection.rowCount) continue;
+          await client.query(
+            `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
+             VALUES ($1,$2,$3,$4,$5,$6,'testing',$7::jsonb)`,
+            [
+              scriptId,
+              roleSlotId,
+              graph.chapterIds.get(chapterKey),
+              section.title,
+              section.body,
+              sectionIndex + 1,
+              JSON.stringify({ source: "deepseek_mystery_package", chapterKey, roleKey })
+            ]
+          );
+          sectionCount += 1;
+        }
       }
-      const script = await client.query(
-        `SELECT id FROM character_scripts WHERE role_slot_id = $1 ORDER BY created_at LIMIT 1`,
-        [roleSlotId]
+      await client.query(
+        `UPDATE worlds SET name = $1, summary = $2, updated_at = now() WHERE id = $3`,
+        [mystery.package.title, mystery.package.summary, worldId]
       );
-      const scriptId = script.rows[0]?.id;
-      if (!scriptId) continue;
-      for (const [sectionIndex, section] of role.sections.entries()) {
-        const chapterKey = section.chapterKey;
-        const existingSection = await client.query(
-          `SELECT id FROM script_sections
-           WHERE role_slot_id = $1 AND metadata->>'chapterKey' = $2 AND metadata->>'roleKey' = $3
-           LIMIT 1`,
-          [roleSlotId, chapterKey, roleKey]
-        );
-        if (existingSection.rowCount) continue;
-        await client.query(
-          `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
-           VALUES ($1,$2,$3,$4,$5,$6,'testing',$7::jsonb)`,
-          [
-            scriptId,
-            roleSlotId,
-            graph.chapterIds.get(chapterKey),
-            section.title,
-            section.body,
-            sectionIndex + 1,
-            JSON.stringify({ source: "deepseek_mystery_package", chapterKey, roleKey })
-          ]
-        );
-        sectionCount += 1;
-      }
-    }
-    await client.query(
-      `UPDATE worlds SET name = $1, summary = $2, updated_at = now() WHERE id = $3`,
-      [mystery.package.title, mystery.package.summary, worldId]
-    );
-    await client.query(
-      `INSERT INTO story_manuscripts (world_id, body, last_sync_direction)
-       VALUES ($1,$2,'manual')
-       ON CONFLICT (world_id) DO UPDATE SET body = EXCLUDED.body, last_sync_direction = EXCLUDED.last_sync_direction, updated_at = now()`,
-      [worldId, mystery.package.overallManuscript]
-    );
-    return { ...graph.summary, roles: mystery.package.roles.length, sections: sectionCount, manuscriptCharacters: mystery.package.overallManuscript.length };
-  });
+      await client.query(
+        `INSERT INTO story_manuscripts (world_id, body, last_sync_direction)
+         VALUES ($1,$2,'manual')
+         ON CONFLICT (world_id) DO UPDATE SET body = EXCLUDED.body, last_sync_direction = EXCLUDED.last_sync_direction, updated_at = now()`,
+        [worldId, mystery.package.overallManuscript]
+      );
+      return { ...graph.summary, roles: mystery.package.roles.length, sections: sectionCount, manuscriptCharacters: mystery.package.overallManuscript.length };
+    });
+  } catch (error) {
+    rethrowPipelineImportDbError(error);
+  }
 }
 
 export async function importDeepseekPipelinePackage(worldId, pipeline) {
@@ -505,99 +547,71 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
   const roles = pipeline.roleMatrix?.roles || pipeline.package?.roles || [];
   if (!roles.length) throwErr("DEEPSEEK_PACKAGE_REQUIRED");
   const sectionsMap = pipeline.sections || {};
-  return transaction(async (client) => {
-    const graph = await importDeepseekProposalWithClient(client, worldId, proposal);
-    let sectionCount = 0;
-    for (const [roleIndex, role] of roles.entries()) {
-      let roleSlotId;
-      const existingRole = await client.query(
-        `SELECT id FROM role_slots
-         WHERE world_id = $1 AND settings->>'deepseekRoleKey' = $2
-         LIMIT 1`,
-        [worldId, role.key]
-      );
-      if (existingRole.rowCount) {
-        roleSlotId = existingRole.rows[0].id;
-      } else {
-        const createdRole = await client.query(
-          `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
-           VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
-          [
-            worldId,
-            role.name,
-            role.publicProfile || "",
-            role.privateProfile || "",
-            roleIndex + 1,
-            JSON.stringify({ deepseekRoleKey: role.key })
-          ]
-        );
-        roleSlotId = createdRole.rows[0].id;
+  try {
+    return await transaction(async (client) => {
+      const graph = await importDeepseekProposalWithClient(client, worldId, proposal);
+      let sectionCount = 0;
+      for (const [roleIndex, role] of roles.entries()) {
+        const { roleSlotId, roleKey } = await resolveOrCreateDeepseekRoleSlot(client, worldId, role, roleIndex);
+        const scriptId = await ensureCharacterScript(client, roleSlotId, role.name || roleKey);
+        if (!scriptId) continue;
+
+        const roleSections = sectionsMap[role.key] || sectionsMap[roleKey] || {};
+        const fromPackage = role.sections || [];
+        for (const [sectionIndex, chapter] of proposal.chapters.entries()) {
+          const mapped = roleSections[chapter.key];
+          const packaged = fromPackage.find((item) => item.chapterKey === chapter.key);
+          const body = mapped?.body || packaged?.body;
+          if (!body) continue;
+
+          const existingSection = await client.query(
+            `SELECT id FROM script_sections
+             WHERE role_slot_id = $1 AND metadata->>'chapterKey' = $2 AND metadata->>'roleKey' = $3
+             LIMIT 1`,
+            [roleSlotId, chapter.key, roleKey]
+          );
+          if (existingSection.rowCount) continue;
+
+          await client.query(
+            `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
+             VALUES ($1,$2,$3,$4,$5,$6,'testing',$7::jsonb)`,
+            [
+              scriptId,
+              roleSlotId,
+              graph.chapterIds.get(chapter.key),
+              mapped?.title || packaged?.title || `${chapter.title} · ${role.name}`,
+              body,
+              sectionIndex + 1,
+              JSON.stringify({ source: "deepseek_pipeline", chapterKey: chapter.key, roleKey })
+            ]
+          );
+          sectionCount += 1;
+        }
+      }
+      const synopsis = pipeline.synopsis || pipeline.package;
+      if (synopsis?.title || synopsis?.summary) {
         await client.query(
-          `INSERT INTO character_scripts (role_slot_id, title) VALUES ($1,$2)`,
-          [roleSlotId, `${role.name} · 私人剧本`]
+          `UPDATE worlds SET name = COALESCE($1, name), summary = COALESCE($2, summary), updated_at = now() WHERE id = $3`,
+          [synopsis.title || null, synopsis.summary || null, worldId]
         );
       }
-
-      const script = await client.query(
-        `SELECT id FROM character_scripts WHERE role_slot_id = $1 ORDER BY created_at LIMIT 1`,
-        [roleSlotId]
-      );
-      const scriptId = script.rows[0]?.id;
-      if (!scriptId) continue;
-
-      const roleSections = sectionsMap[role.key] || {};
-      const fromPackage = role.sections || [];
-      for (const [sectionIndex, chapter] of proposal.chapters.entries()) {
-        const mapped = roleSections[chapter.key];
-        const packaged = fromPackage.find((item) => item.chapterKey === chapter.key);
-        const body = mapped?.body || packaged?.body;
-        if (!body) continue;
-
-        const existingSection = await client.query(
-          `SELECT id FROM script_sections
-           WHERE role_slot_id = $1 AND metadata->>'chapterKey' = $2 AND metadata->>'roleKey' = $3
-           LIMIT 1`,
-          [roleSlotId, chapter.key, role.key]
-        );
-        if (existingSection.rowCount) continue;
-
+      const manuscript = synopsis?.overallManuscript;
+      if (manuscript) {
         await client.query(
-          `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
-           VALUES ($1,$2,$3,$4,$5,$6,'testing',$7::jsonb)`,
-          [
-            scriptId,
-            roleSlotId,
-            graph.chapterIds.get(chapter.key),
-            mapped?.title || packaged?.title || `${chapter.title} · ${role.name}`,
-            body,
-            sectionIndex + 1,
-            JSON.stringify({ source: "deepseek_pipeline", chapterKey: chapter.key, roleKey: role.key })
-          ]
+          `INSERT INTO story_manuscripts (world_id, body, last_sync_direction)
+           VALUES ($1,$2,'manual')
+           ON CONFLICT (world_id) DO UPDATE SET body = EXCLUDED.body, last_sync_direction = EXCLUDED.last_sync_direction, updated_at = now()`,
+          [worldId, manuscript]
         );
-        sectionCount += 1;
       }
-    }
-    const synopsis = pipeline.synopsis || pipeline.package;
-    if (synopsis?.title || synopsis?.summary) {
-      await client.query(
-        `UPDATE worlds SET name = COALESCE($1, name), summary = COALESCE($2, summary), updated_at = now() WHERE id = $3`,
-        [synopsis.title || null, synopsis.summary || null, worldId]
-      );
-    }
-    const manuscript = synopsis?.overallManuscript;
-    if (manuscript) {
-      await client.query(
-        `INSERT INTO story_manuscripts (world_id, body, last_sync_direction)
-         VALUES ($1,$2,'manual')
-         ON CONFLICT (world_id) DO UPDATE SET body = EXCLUDED.body, last_sync_direction = EXCLUDED.last_sync_direction, updated_at = now()`,
-        [worldId, manuscript]
-      );
-    }
-    return {
-      ...graph.summary,
-      roles: roles.length,
-      sections: sectionCount,
-      manuscriptCharacters: manuscript?.length || 0
-    };
-  });
+      return {
+        ...graph.summary,
+        roles: roles.length,
+        sections: sectionCount,
+        manuscriptCharacters: manuscript?.length || 0
+      };
+    });
+  } catch (error) {
+    rethrowPipelineImportDbError(error);
+  }
 }

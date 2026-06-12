@@ -197,6 +197,61 @@ test("content package import skips duplicate importKey", async (context) => {
   assert.equal(sceneCount.rows[0].n, 1);
 });
 
+test("pipeline import allocates next role sequence when world already has roles", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const created = await app.inject({
+    method: "POST",
+    url: "/api/worlds",
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `Pipeline seq ${Date.now()}`, summary: "test" }
+  });
+  assert.equal(created.statusCode, 201);
+  const worldId = created.json().id;
+  context.after(async () => {
+    await query(`DELETE FROM worlds WHERE id = $1`, [worldId]);
+  });
+
+  await query(
+    `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
+     VALUES ($1, '已有角色', '', '', 1, '{}'::jsonb)`,
+    [worldId]
+  );
+
+  const pipeline = {
+    proposal: {
+      title: "Seq probe",
+      logline: "probe",
+      chapters: [{ key: "ch-seq", title: "序章", summary: "s" }],
+      scenes: [{ key: "sc-seq", chapterKey: "ch-seq", name: "场景", publicText: "p" }],
+      investigationPoints: [],
+      clues: [],
+      edges: []
+    },
+    roleMatrix: {
+      roles: [{ key: "role-seq", name: "新角色", publicProfile: "p", privateProfile: "s" }]
+    },
+    sections: {
+      "role-seq": { "ch-seq": { title: "分幕", body: "中".repeat(260) } }
+    }
+  };
+
+  const response = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/story-assistant/deepseek/pipeline/import`,
+    headers: { "x-user-id": hostUserId },
+    payload: { pipeline }
+  });
+  assert.equal(response.statusCode, 201, response.body);
+
+  const seqRow = await query(
+    `SELECT sequence FROM role_slots WHERE world_id = $1 AND settings->>'deepseekRoleKey' = 'role-seq'`,
+    [worldId]
+  );
+  assert.equal(seqRow.rows[0].sequence, 2);
+});
+
 test("buildRoomCheckpointSnapshot returns schema v2 without pg client overlap", async () => {
   const snapshot = await buildRoomCheckpointSnapshot(fogRoomId);
   assert.ok(snapshot);
