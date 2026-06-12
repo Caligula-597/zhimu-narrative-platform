@@ -17,7 +17,7 @@
     narrative: ["setup"],
     roles: ["setup", "narrative"],
     evaluate: ["setup", "narrative", "roles"],
-    sync: ["setup", "narrative", "roles"]
+    sync: ["setup", "narrative", "roles", "evaluate"]
   };
 
   function narrativeMinChars(session) {
@@ -111,6 +111,7 @@
         );
       }
       if (session.proposal) session.locks.sync = Boolean(session.evaluation);
+      if (session.evaluation && session.locks.sync) session.locks.evaluate = true;
     }
     return session;
   }

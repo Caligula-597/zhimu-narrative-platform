@@ -201,6 +201,11 @@
         showToast("分幕正文不能为空");
         return false;
       }
+    } else if (normalized === "evaluate") {
+      if (lock && !session.evaluation) {
+        showToast("请先完成 AI 评判");
+        return false;
+      }
     }
     if (wasLocked) PS().pipelineClearDownstream?.(session, normalized);
     if (lock) session.locks[normalized] = true;

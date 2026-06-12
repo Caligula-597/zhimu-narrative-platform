@@ -35,6 +35,8 @@ function sseCursorKey(roomId) {
 const DEEPSEEK_TIMEOUT_MS = 180_000;
 /** 逐章总剧情含续写，后端最多 2 轮 × 180s */
 const DEEPSEEK_CHAPTER_NARRATIVE_TIMEOUT_MS = 420_000;
+/** 上传编排/分幕到云端（多角色多章节时可能较慢） */
+const PIPELINE_IMPORT_TIMEOUT_MS = 180_000;
 
 function deepseekRequest(path, opts = {}) {
   const isChapterNarrative = /\/narrative\/chapter$/.test(path);
@@ -257,14 +259,26 @@ window.zhimuApi = {
   importStoryDraft: (text) => request(`/worlds/${demoContext.worldId}/story-assistant/import`, { userId: demoContext.hostUserId, method: "POST", body: { text } }),
   getDeepseekStatus: () => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/status`, { userId: demoContext.hostUserId }),
   proposeWithDeepseek: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/propose`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  importDeepseekProposal: (proposal) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/import`, { userId: demoContext.hostUserId, method: "POST", body: { proposal } }),
+  importDeepseekProposal: (proposal) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/import`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: { proposal },
+    timeoutMs: PIPELINE_IMPORT_TIMEOUT_MS,
+    idempotent: true
+  }),
   deepseekPipelineSpec: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/spec`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   deepseekPipelineOutline: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/outline`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   deepseekPipelineStructure: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/structure`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   deepseekPipelineRoleMatrix: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/role-matrix`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   deepseekPipelineSection: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/section`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   deepseekPipelineManuscriptSynopsis: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/manuscript-synopsis`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  importDeepseekPipeline: (pipeline) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/import`, { userId: demoContext.hostUserId, method: "POST", body: { pipeline } }),
+  importDeepseekPipeline: (pipeline) => request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/import`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: { pipeline },
+    timeoutMs: PIPELINE_IMPORT_TIMEOUT_MS,
+    idempotent: true
+  }),
   deepseekPipelineEvaluate: (payload) => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/evaluate`, {
     userId: demoContext.hostUserId,
     method: "POST",

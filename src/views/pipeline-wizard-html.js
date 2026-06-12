@@ -76,9 +76,14 @@
     const narrativeNote = layer === "narrative" && status !== "locked"
       ? "<p class=\"muted-note\">② 总剧情按章生成：每次只写当前选中章节，约 1～3 分钟/章（非一口气全书）。</p>"
       : "";
+    const evaluateNote = layer === "evaluate" && status === "draft"
+      ? "<p class=\"muted-note\">查看分层修改建议后点「确认评判结果并继续」，进入 ⑤ 汇总同步；也可点底部「应用评判提示」写回立项。</p>"
+      : layer === "evaluate" && status === "empty" && pipelineDepsLocked(session, layer)
+        ? "<p class=\"muted-note\">基于总剧情与私人本给出质检与改稿方向，通常需 1～3 分钟。</p>"
+        : "";
     const depNote = (PIPELINE_LAYER_DEPS[layer] || []).length && !pipelineDepsLocked(session, layer)
       ? `<p class="pipeline-dep-warn">请先在左侧完成并锁定：${(PIPELINE_LAYER_DEPS[layer] || []).map((item) => pipelineStepName(item)).join("、")}</p>` : "";
-    return `<div class="pipeline-layer-head-inner"><div><p class="section-kicker">${pipelineStepLabel(layer)}</p><h3>${escapeHtml(PIPELINE_LAYER_LABEL[layer] || layer)}</h3><p class="wizard-intro">${statusNote || ""}</p>${narrativeNote}${depNote}</div><span class="cloud-pill pipeline-status-pill status-${status}">${{ empty: layer === "setup" ? "待填写" : "待生成", draft: "待确认", locked: "已锁定" }[status]}</span></div>`;
+    return `<div class="pipeline-layer-head-inner"><div><p class="section-kicker">${pipelineStepLabel(layer)}</p><h3>${escapeHtml(PIPELINE_LAYER_LABEL[layer] || layer)}</h3><p class="wizard-intro">${statusNote || ""}</p>${narrativeNote}${evaluateNote}${depNote}</div><span class="cloud-pill pipeline-status-pill status-${status}">${{ empty: layer === "setup" ? "待填写" : "待生成", draft: "待确认", locked: "已锁定" }[status]}</span></div>`;
   }
 
   function pipelineSetupEditorHtml(session) {

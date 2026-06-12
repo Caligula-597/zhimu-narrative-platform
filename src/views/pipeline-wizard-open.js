@@ -339,6 +339,7 @@
               setup: "创作立项已确认，请生成逐章总剧情",
               narrative: "全部章节已确认",
               roles: "全部角色私人本已确认",
+              evaluate: "评判结果已确认，请进入汇总同步",
               sync: "编排结构已确认"
             }[layer] || "本层已锁定，可生成下一层");
           }
@@ -390,7 +391,14 @@
           ? `<button class="text-btn" type="button" data-pipeline-generate-all-roles>批量生成全部私人本（${roleScriptProgress.done}/${roleScriptProgress.total}，每段约 30～90 秒）</button>`
           : "";
         const saveBtn = hasData && layer !== "evaluate" ? `<button class="text-btn" type="button" data-pipeline-save>保存修改</button>` : "";
-        const lockBtn = hasData && layer !== "evaluate" ? `<button class="primary-btn" type="button" data-pipeline-lock>${layer === "roles" ? "确认全部私人本" : layer === "narrative" ? "确认全部章节" : layer === "setup" ? "确认并继续" : "确认本层并继续"}</button>` : "";
+        const lockLabel = {
+          setup: "确认并继续",
+          narrative: "确认全部章节",
+          roles: "确认全部私人本",
+          evaluate: "确认评判结果并继续",
+          sync: "确认本层并继续"
+        }[layer] || "确认本层并继续";
+        const lockBtn = hasData ? `<button class="primary-btn" type="button" data-pipeline-lock>${lockLabel}</button>` : "";
         layerActions.innerHTML = `${generateBtn}${generateAllBtn}${generateAllRolesBtn}${saveBtn}${lockBtn}`;
       };
 
@@ -724,6 +732,7 @@
         if (!session.proposal) return;
         try {
           importStructure.disabled = true;
+          importStructure.textContent = "上传编排中…";
           pipelinePersistActiveEditor(session, ctx);
           const result = await zhimuApi.importDeepseekProposal(session.proposal);
           session.structureImported = true;
@@ -733,11 +742,13 @@
             clearLocalAiDraft(draftKind); closeModal(); go("studio");
           } else importStructure.disabled = false;
         } catch (error) { importStructure.disabled = false; showToast(error.message); }
+        finally { importStructure.textContent = "仅上传编排"; }
       };
       importAll.onclick = async () => {
         if (!session.proposal) return;
         try {
           importAll.disabled = true;
+          importAll.textContent = "上传中…";
           pipelinePersistActiveEditor(session, ctx);
           const result = await zhimuApi.importDeepseekPipeline({ proposal: session.proposal, roleMatrix: session.rolesMeta, sections: session.sections });
           clearLocalAiDraft(draftKind);
@@ -752,6 +763,7 @@
             showToast(`已上传云端：${result.roles} 角色 · ${result.sections} 分幕`);
           }
         } catch (error) { importAll.disabled = false; showToast(error.message); }
+        finally { importAll.textContent = "上传全部到云端"; }
       };
 
       if (existingDraft) showToast("已恢复本机 AI 剧本草稿");

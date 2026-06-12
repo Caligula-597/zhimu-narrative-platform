@@ -89,3 +89,12 @@ test("pipelineDepsLocked requires narrative before roles", () => {
   session.locks.narrative = true;
   assert.equal(PS.pipelineDepsLocked(session, "roles"), true);
 });
+
+test("pipelineDepsLocked requires evaluate before sync", () => {
+  const PS = loadPipelineSession();
+  const session = PS.defaultPipelineSession();
+  session.locks = { setup: true, narrative: true, roles: true, evaluate: false };
+  assert.equal(PS.pipelineDepsLocked(session, "sync"), false);
+  session.locks.evaluate = true;
+  assert.equal(PS.pipelineDepsLocked(session, "sync"), true);
+});
