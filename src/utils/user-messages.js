@@ -194,6 +194,21 @@
     "GATEWAY_TIMEOUT"
   ]);
 
+  function formatValidationDetails(details) {
+    if (!details?.validation?.length) return "";
+    return details.validation.slice(0, 4).map((item) => {
+      const path = String(item.instancePath || item.dataPath || "/body").replace(/^\//, "body.") || "body";
+      const msg = item.message || "格式不符";
+      if (/additional properties/i.test(msg) && item.params?.additionalProperty) {
+        return `不支持的字段「${item.params.additionalProperty}」`;
+      }
+      if (/required property/i.test(msg) && item.params?.missingProperty) {
+        return `缺少必填字段「${item.params.missingProperty}」`;
+      }
+      return `${path} ${msg}`;
+    }).join("；");
+  }
+
   function friendlyApiError(payload = {}, fallback = "操作失败，请稍后重试") {
     const code = payload.code;
     const details = payload.details;
@@ -210,8 +225,11 @@
     }
     if (code === "FST_ERR_VALIDATION" || code === "VALIDATION_ERROR") {
       const raw = String(payload.error || "");
+      const validationHint = formatValidationDetails(payload.details);
+      if (validationHint) return `提交的数据格式不正确：${validationHint}`;
       if (/worldId/i.test(raw)) return "请先创建或选择一个剧本世界。";
       if (/roomId/i.test(raw)) return "请先选择或进入一个运行房。";
+      if (raw && !/^Validation failed/i.test(raw)) return raw;
       return API_ERROR_MESSAGES.VALIDATION_ERROR;
     }
     if (code && DEEPSEEK_ERROR_CODES.has(code)) {

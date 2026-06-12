@@ -1175,16 +1175,16 @@ export const deepseekPipelineEvaluateSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["spec", "proposal"],
     properties: {
       ...deepseekBriefBody.properties,
+      ...creativePipelineFields,
       evaluationFocus: { type: "string", maxLength: 3000 },
       spec: deepseekJsonObject,
       outline: deepseekJsonObject,
       proposal: deepseekJsonObject,
       roleMatrix: deepseekJsonObject,
+      rolesMeta: deepseekJsonObject,
       sections: deepseekJsonObject,
-      synopsis: deepseekJsonObject,
       sampleSection: deepseekJsonObject,
       narrativeChapters: { type: "array", maxItems: 12, items: deepseekJsonObject }
     }

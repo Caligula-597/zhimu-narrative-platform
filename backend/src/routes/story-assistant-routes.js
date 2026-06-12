@@ -1,5 +1,5 @@
 import { query, transaction } from "../db.js";
-import { sendErr } from "../api-errors.js";
+import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import {
@@ -162,6 +162,11 @@ export async function registerStoryAssistantRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const body = request.body ?? {};
+    const narrativeChapters = Array.isArray(body.narrativeChapters) ? body.narrativeChapters : [];
+    const hasSections = body.sections && typeof body.sections === "object" && Object.keys(body.sections).length > 0;
+    if (!narrativeChapters.length && !hasSections) {
+      throwErr("VALIDATION_ERROR", "评判需要至少一章总剧情或角色私人本，请先完成 ② 总剧情与 ③ 私人本");
+    }
     const firstSection = body.sampleSection || Object.entries(body.sections || {}).flatMap(([roleKey, chapters]) =>
       Object.entries(chapters || {}).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey }))
     )[0];
