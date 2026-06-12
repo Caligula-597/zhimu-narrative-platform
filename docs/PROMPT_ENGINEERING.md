@@ -91,7 +91,7 @@
 | **端点** | `POST .../pipeline/narrative/chapter` |
 | **提示词** | `backend/src/prompts/chapter-narrative.js` |
 
-**字数**：默认 8000 字/章；后端 `maxTokens` 与校验下限须与 `wordsPerChapter` 对齐（Implementation 时调整）。
+**字数**：默认 8000 字/章。首轮 `maxTokens` 按目标字数动态计算（约 `wordsPerChapter × 2.5`）；若不足目标的 85%，自动发起**续写** API 拼接后半段。
 
 ---
 

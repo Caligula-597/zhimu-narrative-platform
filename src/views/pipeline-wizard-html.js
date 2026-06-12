@@ -60,12 +60,15 @@
     const status = pipelineLayerStatus(session, layer);
     const statusNote = {
       empty: layer === "setup" ? "请填写创作设定与剧情纲要，本层不用 AI。填好后点「确认并继续」。" : "请 AI 生成初稿，或直接编辑下方字段。",
-      draft: "修改满意后点「确认本层」，再生成下一层。",
+      draft: "修改满意后点「确认本层」，再进入下一步。",
       locked: "本层已锁定，可继续编辑；保存后会清除下游内容。"
     }[status];
+    const narrativeNote = layer === "narrative" && status !== "locked"
+      ? "<p class=\"muted-note\">② 总剧情按章生成：每次只写当前选中章节，约 1～3 分钟/章（非一口气全书）。</p>"
+      : "";
     const depNote = (PIPELINE_LAYER_DEPS[layer] || []).length && !pipelineDepsLocked(session, layer)
       ? `<p class="pipeline-dep-warn">请先在左侧完成并锁定：${(PIPELINE_LAYER_DEPS[layer] || []).map((item) => pipelineStepName(item)).join("、")}</p>` : "";
-    return `<div class="pipeline-layer-head-inner"><div><p class="section-kicker">${pipelineStepLabel(layer)}</p><h3>${escapeHtml(PIPELINE_LAYER_LABEL[layer] || layer)}</h3><p class="wizard-intro">${statusNote || ""}</p>${depNote}</div><span class="cloud-pill pipeline-status-pill status-${status}">${{ empty: layer === "setup" ? "待填写" : "待生成", draft: "待确认", locked: "已锁定" }[status]}</span></div>`;
+    return `<div class="pipeline-layer-head-inner"><div><p class="section-kicker">${pipelineStepLabel(layer)}</p><h3>${escapeHtml(PIPELINE_LAYER_LABEL[layer] || layer)}</h3><p class="wizard-intro">${statusNote || ""}</p>${narrativeNote}${depNote}</div><span class="cloud-pill pipeline-status-pill status-${status}">${{ empty: layer === "setup" ? "待填写" : "待生成", draft: "待确认", locked: "已锁定" }[status]}</span></div>`;
   }
 
   function pipelineSetupEditorHtml(session) {
@@ -85,7 +88,7 @@
     const label = PIPELINE_LAYER_LABEL[layer] || layer;
     if (pipelineDepsLocked(session, layer)) {
       if (layer === "narrative") {
-        return `<div class="empty-state"><p>② 逐章总剧情</p><p class="muted-note">逐章生成：第 2 章会读取第 1 章全文再写。请先选章节，再点「AI 生成初稿」。</p></div>`;
+        return `<div class="empty-state"><p>② 逐章总剧情</p><p class="muted-note"><strong>每次只生成当前选中的一章</strong>，不是一口气生成全书。选好章节后点「AI 生成本章」；也可点「逐章生成全部」自动串行各章（每章约 1～3 分钟）。</p></div>`;
       }
       if (layer === "roles") {
         return `<div class="empty-state"><p>③ 角色私人本</p><p class="muted-note">先点「识别角色」归纳 ${session.setting?.playerCount || session.config?.playerCount || 6} 位玩家，再逐角色生成私人剧本；支持 AI 改稿。</p></div>`;
@@ -137,10 +140,10 @@
     const chapterIndex = keys.indexOf(activeKey);
     const prevHint = chapterIndex > 0
       ? `<p class="muted-note">生成本章时 AI 会读取前 ${chapterIndex} 章全文（${keys.slice(0, chapterIndex).map((key) => (session.narrativeChapters?.[key]?.narrativeBody || "").length).join(" + ")} 字）。</p>`
-      : `<p class="muted-note">第一章 · 无需前置章节。</p>`;
+      : `<p class="muted-note">第一章 · 无需前置章节。点击下方「AI 生成本章」；<strong>每次只生成当前这一章</strong>，约 1～3 分钟。</p>`;
     const bodyHint = chapter?.narrativeBody?.trim()
       ? ""
-      : `<p class="muted-note">正文为空 · 点击下方「AI 生成初稿」生成本章总剧情。</p>`;
+      : `<p class="muted-note">正文为空 · 点「AI 生成本章」生成本章（非全书一次性生成）。</p>`;
     return `<div class="pipeline-edit-grid"><label>章节</label><select class="field" data-pipeline-narrative-chapter>${chapterOptions}</select>${prevHint}${studioField("章节标题", "pipeNarrativeTitle", "input", chapter?.title || "")}${studioField("章节摘要", "pipeNarrativeSummary", "textarea", chapter?.summary || "")}<label>总剧情正文</label>${bodyHint}<textarea class="field manuscript-body" rows="16" data-pipe-narrative-body>${escapeHtml(chapter?.narrativeBody || "")}</textarea>${studioField("主持备注", "pipeNarrativeHost", "textarea", chapter?.hostNotes || "")}<div data-pipeline-narrative-list-host>${pipelineNarrativeListHtml(session)}</div></div>`;
   }
 
@@ -224,7 +227,7 @@
 
   function pipelineLocationBarHtml(session) {
     const stepLabel = pipelineStepName(session.activeLayer);
-    return `<div class="pipeline-location-bar"><span class="pipeline-loc-muted">创作中心</span><span class="pipeline-loc-arrow">→</span><strong>AI 悬疑创作</strong><span class="pipeline-loc-arrow">→</span><span data-pipeline-loc-step>${escapeHtml(stepLabel)}</span><span class="cloud-pill pipeline-loc-mode">五步流程</span></div>`;
+    return `<div class="pipeline-location-bar"><span class="pipeline-loc-muted">创作中心</span><span class="pipeline-loc-arrow">→</span><strong>AI 剧本创作</strong><span class="pipeline-loc-arrow">→</span><span data-pipeline-loc-step>${escapeHtml(stepLabel)}</span><span class="cloud-pill pipeline-loc-mode">五步流程</span></div>`;
   }
 
   function pipelineModeTabsHtml() {
@@ -238,7 +241,7 @@
   function pipelineWizardFrameHtml(status, session, pipelineMode) {
     const statusClass = status.configured ? "ready" : "missing";
     const statusText = status.configured ? `${escapeHtml(status.model)} · 180s/步` : "请配置 DEEPSEEK_API_KEY";
-    return `<div class="pipeline-wizard-frame"><header class="pipeline-wizard-header"><div class="pipeline-wizard-title-row"><div><h2>AI 悬疑创作</h2><p class="pipeline-wizard-hint">① 立项 → ② 逐章总剧情 → ③ 角色私人本 → ④ 评判 → ⑤ 汇总同步 · 单次 AI 约 <strong>30～180 秒</strong></p></div><div class="deepseek-status pipeline-status-chip ${statusClass}"><b>${status.configured ? "DeepSeek 已连接" : "未配置"}</b><span>${statusText}</span></div></div>${pipelineLocationBarHtml(session)}</header><div class="pipeline-wizard-body"><aside class="pipeline-wizard-side"><p class="pipeline-side-kicker">创作步骤</p><nav class="pipeline-ladder" data-pipeline-ladder aria-label="创作层级"></nav>${pipelineBriefFieldsHtml()}</aside><main class="pipeline-wizard-main"><div class="pipeline-layer-head" data-pipeline-layer-head></div><div class="pipeline-layer-editor" data-pipeline-layer-editor></div><footer class="pipeline-layer-bar"><div class="pipeline-layer-actions row" data-pipeline-layer-actions></div><div class="pipeline-summary" data-pipeline-summary></div></footer></main></div><footer class="pipeline-wizard-footer"><div class="pipeline-wizard-footer-left">${aiLocalDraftActions()}</div><div class="pipeline-wizard-footer-right"><button class="secondary-btn" type="button" data-close>关闭</button><button class="secondary-btn" type="button" data-pipeline-apply-hints disabled>应用评判提示</button><button class="secondary-btn" type="button" data-pipeline-import-structure disabled>仅上传编排</button><button class="primary-btn" type="button" data-pipeline-import-all disabled>上传全部到云端</button></div></footer></div>`;
+    return `<div class="pipeline-wizard-frame"><header class="pipeline-wizard-header"><div class="pipeline-wizard-title-row"><div><h2>AI 剧本创作</h2><p class="pipeline-wizard-hint">① 立项 → ② 逐章总剧情 → ③ 角色私人本 → ④ 评判 → ⑤ 汇总同步 · ② 每次只生成<strong>一章</strong>（8000 字目标约 <strong>1～2 分钟/章</strong>，不足会自动续写）</p></div><div class="deepseek-status pipeline-status-chip ${statusClass}"><b>${status.configured ? "DeepSeek 已连接" : "未配置"}</b><span>${statusText}</span></div></div>${pipelineLocationBarHtml(session)}</header><div class="pipeline-wizard-body"><aside class="pipeline-wizard-side"><p class="pipeline-side-kicker">创作步骤</p><nav class="pipeline-ladder" data-pipeline-ladder aria-label="创作层级"></nav>${pipelineBriefFieldsHtml()}</aside><main class="pipeline-wizard-main"><div class="pipeline-layer-head" data-pipeline-layer-head></div><div class="pipeline-layer-editor" data-pipeline-layer-editor></div><footer class="pipeline-layer-bar"><div class="pipeline-layer-actions row" data-pipeline-layer-actions></div><div class="pipeline-summary" data-pipeline-summary></div></footer></main></div><footer class="pipeline-wizard-footer"><div class="pipeline-wizard-footer-left">${aiLocalDraftActions()}</div><div class="pipeline-wizard-footer-right"><button class="secondary-btn" type="button" data-close>关闭</button><button class="secondary-btn" type="button" data-pipeline-apply-hints disabled>应用评判提示</button><button class="secondary-btn" type="button" data-pipeline-import-structure disabled>仅上传编排</button><button class="primary-btn" type="button" data-pipeline-import-all disabled>上传全部到云端</button></div></footer></div>`;
   }
 
   window.zhimuPipelineHtml = {

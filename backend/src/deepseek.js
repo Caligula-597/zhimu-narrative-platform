@@ -6,7 +6,7 @@ import { buildRoleMatrixMessages } from "./prompts/role-matrix.js";
 import { buildRoleSectionMessages } from "./prompts/section.js";
 import { buildManuscriptSynopsisMessages } from "./prompts/manuscript-synopsis.js";
 import { buildStoryEvaluationMessages } from "./prompts/evaluate.js";
-import { buildChapterNarrativeMessages } from "./prompts/chapter-narrative.js";
+import { buildChapterNarrativeMessages, buildChapterNarrativeContinuationMessages } from "./prompts/chapter-narrative.js";
 import { buildRolesFromNarrativeMessages } from "./prompts/roles-from-narrative.js";
 import { buildExtractStructureFromNarrativeMessages } from "./prompts/extract-structure-from-narrative.js";
 import { buildRolesMetaFromNarrativeMessages } from "./prompts/roles-meta-from-narrative.js";
@@ -198,14 +198,12 @@ function chapterNarrativeMinChars(setting, config) {
   return Math.max(MIN_CHAPTER_NARRATIVE_CHARS, Math.floor(target * 0.45));
 }
 
-export function validateChapterNarrative(raw, spec, chapterKey, minChars = MIN_CHAPTER_NARRATIVE_CHARS) {
+function parseChapterNarrative(raw, spec, chapterKey) {
   const value = raw && typeof raw === "object" ? raw : {};
   const key = cleanText(value.chapterKey || chapterKey, 40);
   if (!spec.chapterKeys.includes(key)) throwErr("UPSTREAM_ERROR", `Chapter narrative key must be one of: ${spec.chapterKeys.join(", ")}`);
   const narrativeBody = cleanText(value.narrativeBody, 120000);
-  if (narrativeBody.length < minChars) {
-    throwErr("UPSTREAM_ERROR", `Chapter narrative requires at least ${minChars} characters`);
-  }
+  if (!narrativeBody) throwErr("UPSTREAM_ERROR", "Chapter narrative body is empty");
   return {
     chapterKey: key,
     title: cleanText(value.title, 120) || key,
@@ -216,6 +214,14 @@ export function validateChapterNarrative(raw, spec, chapterKey, minChars = MIN_C
     resolvedThreads: Array.isArray(value.resolvedThreads) ? value.resolvedThreads.slice(0, 8).map((item) => cleanText(item, 300)) : [],
     suggestions: Array.isArray(value.suggestions) ? value.suggestions.slice(0, 8).map((item) => cleanText(item, 500)) : []
   };
+}
+
+export function validateChapterNarrative(raw, spec, chapterKey, minChars = MIN_CHAPTER_NARRATIVE_CHARS) {
+  const chapter = raw?.narrativeBody && raw?.chapterKey ? raw : parseChapterNarrative(raw, spec, chapterKey);
+  if (chapter.narrativeBody.length < minChars) {
+    throwErr("UPSTREAM_ERROR", `Chapter narrative requires at least ${minChars} characters`);
+  }
+  return chapter;
 }
 
 export function validateRolesFromNarrative(raw, spec, roleMatrix) {
@@ -286,6 +292,32 @@ export function validateRoleScriptFromNarrative(raw, roleKey, spec, minWords) {
   };
 }
 
+function chapterNarrativeTargetChars(setting, config) {
+  return setting?.wordsPerChapter || Math.floor((config?.targetWordCount || 8000) / Math.max(config?.chapterCount || 1, 1));
+}
+
+/** 中文 narrativeBody 约 2～2.5 token/字；JSON 结构额外预留。 */
+function chapterNarrativeMaxTokens(wordsPerChapter) {
+  const target = wordsPerChapter || 8000;
+  return Math.min(32768, Math.max(8192, Math.ceil(target * 2.5) + 1500));
+}
+
+function mergeChapterNarrativeContinuation(chapter, contRaw) {
+  const cont = contRaw && typeof contRaw === "object" ? contRaw : {};
+  const append = cleanText(cont.narrativeBodyContinuation || cont.narrativeBody, 80000);
+  if (!append) return chapter;
+  const hostAppend = cleanText(cont.hostNotesAppend, 2000);
+  return {
+    ...chapter,
+    summary: cleanText(cont.summary, 600) || chapter.summary,
+    narrativeBody: `${chapter.narrativeBody.trim()}\n\n${append.trim()}`,
+    hostNotes: hostAppend ? `${chapter.hostNotes}\n${hostAppend}`.trim() : chapter.hostNotes,
+    openThreads: [...chapter.openThreads, ...(Array.isArray(cont.openThreads) ? cont.openThreads : [])].slice(0, 8).map((item) => cleanText(item, 300)),
+    resolvedThreads: [...chapter.resolvedThreads, ...(Array.isArray(cont.resolvedThreads) ? cont.resolvedThreads : [])].slice(0, 8).map((item) => cleanText(item, 300)),
+    suggestions: [...chapter.suggestions, ...(Array.isArray(cont.suggestions) ? cont.suggestions : [])].slice(0, 8).map((item) => cleanText(item, 500))
+  };
+}
+
 export async function createDeepseekChapterNarrative(input) {
   const { setting, synopsis, config, brief } = resolveCreativePipeline(input);
   const chapterKey = cleanText(input.chapterKey, 40);
@@ -296,6 +328,8 @@ export async function createDeepseekChapterNarrative(input) {
     throwErr("VALIDATION_ERROR", `previousChapters length must be ${chapterIndex} before chapter ${chapterKey}`);
   }
   const minChars = chapterNarrativeMinChars(setting, config);
+  const targetChars = chapterNarrativeTargetChars(setting, config);
+  const maxTokens = chapterNarrativeMaxTokens(targetChars);
   const result = await requestDeepseekJson(
     buildChapterNarrativeMessages({
       setting,
@@ -306,8 +340,27 @@ export async function createDeepseekChapterNarrative(input) {
       chapterCount: config.chapterKeys.length,
       previousChapters
     }),
-    { maxTokens: 8192, temperature: 0.5 }
+    { maxTokens, temperature: 0.5 }
   );
+  let chapter = parseChapterNarrative(result.value, config, chapterKey);
+  if (chapter.narrativeBody.length < targetChars * 0.85 && targetChars >= 5000) {
+    const remaining = Math.max(1500, targetChars - chapter.narrativeBody.length);
+    const contResult = await requestDeepseekJson(
+      buildChapterNarrativeContinuationMessages({
+        setting,
+        synopsis,
+        config,
+        chapterKey,
+        chapterIndex,
+        chapterCount: config.chapterKeys.length,
+        previousChapters,
+        partialChapter: chapter,
+        remainingChars: remaining
+      }),
+      { maxTokens: chapterNarrativeMaxTokens(remaining), temperature: 0.5 }
+    );
+    chapter = mergeChapterNarrativeContinuation(chapter, contResult.value);
+  }
   return {
     provider: "deepseek",
     model: result.model,
@@ -315,7 +368,7 @@ export async function createDeepseekChapterNarrative(input) {
     synopsis,
     config,
     brief,
-    chapter: validateChapterNarrative(result.value, config, chapterKey, minChars)
+    chapter: validateChapterNarrative(chapter, config, chapterKey, minChars)
   };
 }
 

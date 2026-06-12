@@ -131,7 +131,7 @@
 | 视图 | 数据诚实 | 主要能力 | 缺口 |
 |------|----------|----------|------|
 | 世界总览 | ✅ API/空状态 | 日志、进度、资产统计 | 部分块需手动刷新 |
-| 剧本创作 writer | ✅ | 分幕 MD、版本、导入、**AI 悬疑创作**（合并原结构提案/整本/分步） | 实体卡占位 |
+| 剧本创作 writer | ✅ | 分幕 MD、版本、导入、**AI 剧本创作**（五步向导） | 实体卡占位 |
 | 剧情编排 studio | ✅ | 图谱 CRUD、侧栏 PATCH | — |
 | **线索管理 clues** | ✅ | 独立列表/搜索/编辑、**单条删除 + 勾选批量删除**（引用提示）、跳转编排 | 场景/调查点仍主要在编排台 |
 | 内容资产 assets | ✅ | 上传/删/下载、kind Tab、搜索 | 「新建内容」占位 |
@@ -294,7 +294,7 @@ cd .. && npm run check:modules && npm run build
 | [ALPHA_FEATURE_MATRIX.md](../ALPHA_FEATURE_MATRIX.md) | 真实/演示/待接入速查 |
 | [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) | 安全项 + 测试文件列表 |
 | [RELEASE_NOTES.md](../RELEASE_NOTES.md) | 版本增量摘要 |
-| [AI_PIPELINE_UI_ZH.md](./AI_PIPELINE_UI_ZH.md) | AI 悬疑创作 UI 位置、流程、性能 |
+| [AI_PIPELINE_UI_ZH.md](./AI_PIPELINE_UI_ZH.md) | AI 剧本创作 UI 位置、流程、性能 |
 | [PROMPT_ENGINEERING.md](./PROMPT_ENGINEERING.md) | DeepSeek 分层 API 与 prompt |
 
 **维护约定**：改验收数字时，同步更新 **PROJECT_STATUS §2**、**SECURITY_AND_TESTING 整体验收表**、**本文 §5 表**；`FEATURE_CATALOG` 工程总表（§3 前「工程与测试」）与历史 § 内快照数字可保留「当时」语义，但勿与 PROJECT_STATUS 矛盾。
