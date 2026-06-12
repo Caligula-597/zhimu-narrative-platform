@@ -1019,7 +1019,7 @@ const deepseekBriefBody = {
     title: { type: "string", maxLength: 120 },
     premise: { type: "string", maxLength: 4000 },
     conflicts: { type: "string", maxLength: 3000 },
-    wordsPerChapter: { type: "integer", minimum: 400, maximum: 2500 },
+    wordsPerChapter: { type: "integer", minimum: 2000, maximum: 12_000 },
     style: { type: "string", maxLength: 800 },
     audience: { type: "string", maxLength: 400 },
     requirements: { type: "string", maxLength: 3000 },
@@ -1037,6 +1037,36 @@ const deepseekBriefBody = {
 };
 
 const deepseekJsonObject = { type: "object", additionalProperties: true };
+
+const creativeSettingBody = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    theme: { type: "string", maxLength: 120 },
+    playerCount: { type: "integer", minimum: 4, maximum: 8 },
+    chapterCount: { type: "integer", minimum: 3, maximum: 5 },
+    wordsPerChapter: { type: "integer", minimum: 2000, maximum: 12_000 },
+    extraConflicts: { type: "string", maxLength: 3000 },
+    tone: { type: "string", maxLength: 800 }
+  }
+};
+
+const creativeSynopsisBody = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    body: { type: "string", maxLength: 12_000 },
+    charactersSketch: { type: "string", maxLength: 4000 },
+    truthSketch: { type: "string", maxLength: 4000 },
+    redHerringsSketch: { type: "string", maxLength: 2000 }
+  }
+};
+
+const creativePipelineFields = {
+  setting: creativeSettingBody,
+  synopsis: creativeSynopsisBody,
+  config: deepseekJsonObject
+};
 
 export const deepseekPipelineSpecSchema = {
   params: worldIdParams,
@@ -1167,9 +1197,10 @@ export const deepseekPipelineNarrativeChapterSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["spec", "chapterKey"],
+    required: ["chapterKey"],
     properties: {
       ...deepseekBriefBody.properties,
+      ...creativePipelineFields,
       spec: deepseekJsonObject,
       chapterKey: { type: "string", minLength: 1, maxLength: 40 },
       previousChapters: {
@@ -1177,6 +1208,42 @@ export const deepseekPipelineNarrativeChapterSchema = {
         maxItems: 12,
         items: deepseekJsonObject
       }
+    }
+  }
+};
+
+/** 从总剧情归纳角色元数据 */
+export const deepseekPipelineNarrativeRolesMetaSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["chapters"],
+    properties: {
+      ...deepseekBriefBody.properties,
+      ...creativePipelineFields,
+      spec: deepseekJsonObject,
+      chapters: { type: "array", minItems: 1, maxItems: 12, items: deepseekJsonObject }
+    }
+  }
+};
+
+/** 单角色私人剧本生成/改稿 */
+export const deepseekPipelineNarrativeRoleScriptSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["roleKey", "role", "chapters"],
+    properties: {
+      ...deepseekBriefBody.properties,
+      ...creativePipelineFields,
+      spec: deepseekJsonObject,
+      roleKey: { type: "string", minLength: 1, maxLength: 40 },
+      role: deepseekJsonObject,
+      chapters: { type: "array", minItems: 1, maxItems: 12, items: deepseekJsonObject },
+      existingSections: { type: "array", maxItems: 12, items: deepseekJsonObject },
+      revisionHint: { type: "string", maxLength: 2000 }
     }
   }
 };
@@ -1204,9 +1271,10 @@ export const deepseekPipelineNarrativeExtractSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["spec", "chapters"],
+    required: ["chapters"],
     properties: {
       ...deepseekBriefBody.properties,
+      ...creativePipelineFields,
       spec: deepseekJsonObject,
       chapters: { type: "array", minItems: 1, maxItems: 12, items: deepseekJsonObject },
       sectionsSample: { type: "array", maxItems: 6, items: deepseekJsonObject }

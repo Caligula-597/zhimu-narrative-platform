@@ -13,6 +13,8 @@ import {
   createDeepseekStorySpec,
   createDeepseekChapterNarrative,
   createDeepseekRolesFromNarrative,
+  createDeepseekRolesMetaFromNarrative,
+  createDeepseekRoleScriptFromNarrative,
   createDeepseekStructureFromNarrative,
   deepseekConfig,
   normalizeStoryBrief
@@ -36,6 +38,8 @@ import {
   deepseekPipelineNarrativeChapterSchema,
   deepseekPipelineNarrativeExtractSchema,
   deepseekPipelineNarrativeRolesSchema,
+  deepseekPipelineNarrativeRolesMetaSchema,
+  deepseekPipelineNarrativeRoleScriptSchema,
   deepseekPipelineImportSchema,
   deepseekPipelineManuscriptSchema,
   deepseekPipelineOutlineSchema,
@@ -162,15 +166,17 @@ export async function registerStoryAssistantRoutes(app) {
       Object.entries(chapters || {}).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey }))
     )[0];
     return createDeepseekStoryEvaluation({
+      setting: body.setting,
+      synopsis: body.synopsis,
+      config: body.config,
       brief: normalizeStoryBrief(body),
       evaluationFocus: body.evaluationFocus,
-      spec: body.spec,
-      outline: body.outline,
+      spec: body.spec || body.config,
       narrativeChapters: body.narrativeChapters,
       proposal: body.proposal,
-      roleMatrix: body.roleMatrix,
+      roleMatrix: body.roleMatrix || body.rolesMeta,
+      rolesMeta: body.rolesMeta,
       sections: body.sections,
-      synopsis: body.synopsis,
       sampleSection: firstSection
     });
   });
@@ -180,6 +186,20 @@ export async function registerStoryAssistantRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     return createDeepseekChapterNarrative(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/roles-meta", { schema: deepseekPipelineNarrativeRolesMetaSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createDeepseekRolesMetaFromNarrative(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/role-script", { schema: deepseekPipelineNarrativeRoleScriptSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createDeepseekRoleScriptFromNarrative(request.body ?? {});
   });
 
   app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/roles", { schema: deepseekPipelineNarrativeRolesSchema }, async (request) => {

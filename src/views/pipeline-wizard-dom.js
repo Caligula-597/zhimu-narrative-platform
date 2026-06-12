@@ -6,8 +6,12 @@
   const PB = () => window.zhimuPipelineBrief || {};
   const PS = () => window.zhimuPipelineSession || {};
 
+  function pipelineReadSetupFromDom() {
+    return PB().pipelineCreativeFromForm?.() || { setting: {}, synopsis: {}, config: {} };
+  }
+
   function pipelineReadSpecFromDom() {
-    return PB().defaultSpecFromBrief?.() || {};
+    return pipelineReadSetupFromDom().config;
   }
 
   function pipelineReadOutlineFromDom(session) {
@@ -116,11 +120,14 @@
 
   function pipelinePersistActiveEditor(session, ctx) {
     const layer = session.activeLayer;
-    if (layer === "spec") session.spec = pipelineReadSpecFromDom();
-    else if (layer === "outline" && session.outline) session.outline = pipelineReadOutlineFromDom(session);
-    else if (layer === "structure" && session.proposal) session.proposal = pipelineReadStructureFromDom(session);
-    else if (layer === "matrix" && session.roleMatrix) session.roleMatrix = pipelineReadMatrixFromDom(session);
-    else if (layer === "narrative") {
+    if (layer === "setup" || layer === "spec") {
+      const creative = pipelineReadSetupFromDom();
+      session.setting = creative.setting;
+      session.synopsis = creative.synopsis;
+      session.config = creative.config;
+    } else if (layer === "sync" || layer === "structure") {
+      if (session.proposal) session.proposal = pipelineReadStructureFromDom(session);
+    } else if (layer === "narrative") {
       const el = modal();
       const chapterKey = el?.querySelector("[data-pipeline-narrative-chapter]")?.value || ctx.narrativeChapterKey;
       const chapter = pipelineReadNarrativeFromDom(chapterKey);
@@ -128,7 +135,7 @@
         session.narrativeChapters = session.narrativeChapters || {};
         session.narrativeChapters[chapterKey] = chapter;
       }
-    } else if (layer === "section") {
+    } else if (layer === "roles" || layer === "section" || layer === "matrix") {
       const el = modal();
       const roleKey = el?.querySelector("[data-pipeline-role]")?.value || ctx.roleKey;
       const chapterKey = el?.querySelector("[data-pipeline-chapter]")?.value || ctx.chapterKey;
@@ -137,20 +144,21 @@
         session.sections[roleKey] = session.sections[roleKey] || {};
         session.sections[roleKey][chapterKey] = section;
       }
-    } else if (layer === "synopsis" && session.synopsis) session.synopsis = pipelineReadSynopsisFromDom(session);
+    }
   }
 
   function pipelineApplyLayerSave(session, layer, ctx, { lock = false } = {}) {
-    const wasLocked = Boolean(session.locks?.[layer]);
+    const normalized = layer === "spec" ? "setup" : layer === "structure" ? "sync" : layer === "section" || layer === "matrix" ? "roles" : layer;
+    const wasLocked = Boolean(session.locks?.[normalized]);
     pipelinePersistActiveEditor(session, ctx);
-    if (layer === "spec") {
-      const spec = pipelineReadSpecFromDom();
-      if (lock && !PB().pipelineValidateSpec?.(spec)) return false;
-      session.spec = spec;
-    } else if (layer === "outline" && session.outline) session.outline = pipelineReadOutlineFromDom(session);
-    else if (layer === "structure" && session.proposal) session.proposal = pipelineReadStructureFromDom(session);
-    else if (layer === "matrix" && session.roleMatrix) session.roleMatrix = pipelineReadMatrixFromDom(session);
-    else if (layer === "narrative") {
+    if (normalized === "setup") {
+      const creative = pipelineReadSetupFromDom();
+      if (lock && !PB().pipelineValidateSetup?.(creative)) return false;
+      session.setting = creative.setting;
+      session.synopsis = creative.synopsis;
+      session.config = creative.config;
+    } else if (normalized === "sync" && session.proposal) session.proposal = pipelineReadStructureFromDom(session);
+    else if (normalized === "narrative") {
       const el = modal();
       const chapterKey = el?.querySelector("[data-pipeline-narrative-chapter]")?.value || ctx.narrativeChapterKey;
       const chapter = pipelineReadNarrativeFromDom(chapterKey);
@@ -159,14 +167,15 @@
         session.narrativeChapters[chapterKey] = chapter;
       }
       if (lock) {
-        const keys = session.spec?.chapterKeys || [];
-        const missing = keys.filter((key) => (session.narrativeChapters?.[key]?.narrativeBody || "").length < 400);
+        const keys = session.config?.chapterKeys || [];
+        const min = PS().narrativeMinChars?.(session) || 2000;
+        const missing = keys.filter((key) => (session.narrativeChapters?.[key]?.narrativeBody || "").length < min);
         if (missing.length) {
           showToast(`尚有 ${missing.length} 章总剧情未生成或字数不足`);
           return false;
         }
       }
-    } else if (layer === "section") {
+    } else if (normalized === "roles") {
       const el = modal();
       const roleKey = el?.querySelector("[data-pipeline-role]")?.value || ctx.roleKey;
       const chapterKey = el?.querySelector("[data-pipeline-chapter]")?.value || ctx.chapterKey;
@@ -176,26 +185,31 @@
         session.sections[roleKey][chapterKey] = section;
       }
       if (lock) {
-        const roles = session.roleMatrix?.roles || [];
-        const keys = session.spec?.chapterKeys || [];
+        const roles = session.rolesMeta?.roles || [];
+        const keys = session.config?.chapterKeys || [];
         const expected = roles.length * keys.length;
         const actual = Object.values(session.sections || {}).reduce((n, chapters) => n + Object.keys(chapters || {}).length, 0);
+        if (!roles.length) {
+          showToast("请先识别角色");
+          return false;
+        }
         if (actual < expected) {
-          showToast(`私人分幕尚未齐全（${actual}/${expected}）`);
+          showToast(`私人本尚未齐全（${actual}/${expected}）`);
           return false;
         }
       } else if (!section) {
         showToast("分幕正文不能为空");
         return false;
       }
-    } else if (layer === "synopsis" && session.synopsis) session.synopsis = pipelineReadSynopsisFromDom(session);
-    if (wasLocked) PS().pipelineClearDownstream?.(session, layer);
-    if (lock) session.locks[layer] = true;
-    else if (layer !== "section" && layer !== "narrative") session.locks[layer] = false;
+    }
+    if (wasLocked) PS().pipelineClearDownstream?.(session, normalized);
+    if (lock) session.locks[normalized] = true;
+    else if (normalized !== "roles" && normalized !== "narrative") session.locks[normalized] = false;
     return true;
   }
 
   window.zhimuPipelineDom = {
+    pipelineReadSetupFromDom,
     pipelineReadSpecFromDom,
     pipelineReadOutlineFromDom,
     pipelineReadStructureFromDom,

@@ -9,6 +9,9 @@ import { buildStoryEvaluationMessages } from "./prompts/evaluate.js";
 import { buildChapterNarrativeMessages } from "./prompts/chapter-narrative.js";
 import { buildRolesFromNarrativeMessages } from "./prompts/roles-from-narrative.js";
 import { buildExtractStructureFromNarrativeMessages } from "./prompts/extract-structure-from-narrative.js";
+import { buildRolesMetaFromNarrativeMessages } from "./prompts/roles-meta-from-narrative.js";
+import { buildRoleScriptFromNarrativeMessages } from "./prompts/role-script-from-narrative.js";
+import { validateCreativeSetting, validateSynopsisInput } from "./prompts/creative-input.js";
 import { clampInteger, cleanText } from "./prompts/shared.js";
 
 const DEFAULT_BASE_URL = "https://api.deepseek.com";
@@ -32,9 +35,9 @@ export function normalizeStoryBrief(input = {}) {
   const chapterCount = clampInteger(input.chapterCount, 1, 12, 3);
   const wordsPerChapter = clampInteger(
     input.wordsPerChapter,
-    400,
-    2500,
-    clampInteger(input.targetWordCount, MIN_WORD_COUNT, MAX_WORD_COUNT, chapterCount * 800) / Math.max(chapterCount, 1)
+    2000,
+    12000,
+    clampInteger(input.targetWordCount, MIN_WORD_COUNT, MAX_WORD_COUNT, chapterCount * 8000) / Math.max(chapterCount, 1)
   );
   const conflicts = cleanText(input.conflicts || input.requirements, 3000);
   return {
@@ -188,15 +191,20 @@ export function validateRoleSection(raw, roleKey, chapterKey, minWords = 250) {
   };
 }
 
-const MIN_CHAPTER_NARRATIVE_CHARS = 400;
+const MIN_CHAPTER_NARRATIVE_CHARS = 2000;
 
-export function validateChapterNarrative(raw, spec, chapterKey) {
+function chapterNarrativeMinChars(setting, config) {
+  const target = setting?.wordsPerChapter || Math.floor((config?.targetWordCount || 8000) / Math.max(config?.chapterCount || 1, 1));
+  return Math.max(MIN_CHAPTER_NARRATIVE_CHARS, Math.floor(target * 0.45));
+}
+
+export function validateChapterNarrative(raw, spec, chapterKey, minChars = MIN_CHAPTER_NARRATIVE_CHARS) {
   const value = raw && typeof raw === "object" ? raw : {};
   const key = cleanText(value.chapterKey || chapterKey, 40);
   if (!spec.chapterKeys.includes(key)) throwErr("UPSTREAM_ERROR", `Chapter narrative key must be one of: ${spec.chapterKeys.join(", ")}`);
-  const narrativeBody = cleanText(value.narrativeBody, 8000);
-  if (narrativeBody.length < MIN_CHAPTER_NARRATIVE_CHARS) {
-    throwErr("UPSTREAM_ERROR", `Chapter narrative requires at least ${MIN_CHAPTER_NARRATIVE_CHARS} characters`);
+  const narrativeBody = cleanText(value.narrativeBody, 120000);
+  if (narrativeBody.length < minChars) {
+    throwErr("UPSTREAM_ERROR", `Chapter narrative requires at least ${minChars} characters`);
   }
   return {
     chapterKey: key,
@@ -237,33 +245,123 @@ export function validateRolesFromNarrative(raw, spec, roleMatrix) {
   };
 }
 
+export function validateRolesMeta(raw, playerCount) {
+  const value = raw && typeof raw === "object" ? raw : {};
+  const roles = assertArray(value.roles, "roles").slice(0, MAX_PLAYERS);
+  if (roles.length !== playerCount) throwErr("UPSTREAM_ERROR", `Expected ${playerCount} roles, got ${roles.length}`);
+  const keys = new Set();
+  return {
+    roles: roles.map((role, index) => {
+      const key = cleanText(role?.key, 40) || `role-${index + 1}`;
+      if (keys.has(key)) throwErr("UPSTREAM_ERROR", "Role keys must be unique");
+      keys.add(key);
+      return {
+        key,
+        name: cleanText(role.name, 80) || `角色 ${index + 1}`,
+        publicProfile: cleanText(role.publicProfile, 800),
+        privateProfile: cleanText(role.privateProfile, 2000)
+      };
+    }),
+    suggestions: Array.isArray(value.suggestions) ? value.suggestions.slice(0, 8).map((item) => cleanText(item, 500)) : []
+  };
+}
+
+export function validateRoleScriptFromNarrative(raw, roleKey, spec, minWords) {
+  const value = raw && typeof raw === "object" ? raw : {};
+  const sectionsRaw = Array.isArray(value.sections) ? value.sections : [];
+  const sections = {};
+  sections[roleKey] = {};
+  for (const item of sectionsRaw) {
+    const rk = cleanText(item?.roleKey, 40);
+    const ck = cleanText(item?.chapterKey, 40);
+    if (rk !== roleKey || !spec.chapterKeys.includes(ck)) continue;
+    sections[roleKey][ck] = validateRoleSection({ roleKey, chapterKey: ck, title: item.title, body: item.body }, roleKey, ck, minWords);
+  }
+  const missing = spec.chapterKeys.filter((ck) => !sections[roleKey][ck]);
+  if (missing.length) throwErr("UPSTREAM_ERROR", `Missing sections for ${roleKey}: ${missing.join(", ")}`);
+  return {
+    roleKey,
+    sections: sections[roleKey],
+    suggestions: Array.isArray(value.suggestions) ? value.suggestions.slice(0, 8).map((item) => cleanText(item, 500)) : []
+  };
+}
+
 export async function createDeepseekChapterNarrative(input) {
-  const brief = mergeBrief(input);
-  const spec = validateStorySpec(input.spec, brief);
+  const { setting, synopsis, config, brief } = resolveCreativePipeline(input);
   const chapterKey = cleanText(input.chapterKey, 40);
-  const chapterIndex = spec.chapterKeys.indexOf(chapterKey);
-  if (chapterIndex < 0) throwErr("VALIDATION_ERROR", "chapterKey must exist in spec.chapterKeys");
+  const chapterIndex = config.chapterKeys.indexOf(chapterKey);
+  if (chapterIndex < 0) throwErr("VALIDATION_ERROR", "chapterKey must exist in config.chapterKeys");
   const previousChapters = Array.isArray(input.previousChapters) ? input.previousChapters : [];
   if (previousChapters.length !== chapterIndex) {
     throwErr("VALIDATION_ERROR", `previousChapters length must be ${chapterIndex} before chapter ${chapterKey}`);
   }
+  const minChars = chapterNarrativeMinChars(setting, config);
   const result = await requestDeepseekJson(
     buildChapterNarrativeMessages({
-      brief,
-      spec,
+      setting,
+      synopsis,
+      config,
       chapterKey,
       chapterIndex,
-      chapterCount: spec.chapterKeys.length,
+      chapterCount: config.chapterKeys.length,
       previousChapters
     }),
-    { maxTokens: 6000, temperature: 0.5 }
+    { maxTokens: 8192, temperature: 0.5 }
   );
   return {
     provider: "deepseek",
     model: result.model,
+    setting,
+    synopsis,
+    config,
     brief,
-    spec,
-    chapter: validateChapterNarrative(result.value, spec, chapterKey)
+    chapter: validateChapterNarrative(result.value, config, chapterKey, minChars)
+  };
+}
+
+export async function createDeepseekRolesMetaFromNarrative(input) {
+  const { setting, synopsis, config } = resolveCreativePipeline(input);
+  const chapters = Array.isArray(input.chapters) ? input.chapters.map((ch) => validateChapterNarrative(ch, config, ch.chapterKey, chapterNarrativeMinChars(setting, config))) : [];
+  if (chapters.length !== config.chapterKeys.length) throwErr("VALIDATION_ERROR", "All chapter narratives required");
+  const result = await requestDeepseekJson(
+    buildRolesMetaFromNarrativeMessages({ setting, synopsis, chapters }),
+    { maxTokens: 4000, temperature: 0.45 }
+  );
+  const rolesMeta = validateRolesMeta(result.value, setting.playerCount);
+  return { provider: "deepseek", model: result.model, setting, synopsis, config, rolesMeta };
+}
+
+export async function createDeepseekRoleScriptFromNarrative(input) {
+  const { setting, synopsis, config } = resolveCreativePipeline(input);
+  const roleKey = cleanText(input.roleKey, 40);
+  if (!roleKey) throwErr("VALIDATION_ERROR", "roleKey is required");
+  const role = input.role;
+  if (!role?.key || role.key !== roleKey) throwErr("VALIDATION_ERROR", "role metadata for roleKey is required");
+  const chapters = Array.isArray(input.chapters) ? input.chapters.map((ch) => validateChapterNarrative(ch, config, ch.chapterKey, chapterNarrativeMinChars(setting, config))) : [];
+  if (chapters.length !== config.chapterKeys.length) throwErr("VALIDATION_ERROR", "All chapter narratives required");
+  const minWords = config.wordsPerSectionMin || 400;
+  const existingSections = Array.isArray(input.existingSections) ? input.existingSections : [];
+  const result = await requestDeepseekJson(
+    buildRoleScriptFromNarrativeMessages({
+      setting,
+      synopsis,
+      role,
+      chapters,
+      existingSections,
+      revisionHint: input.revisionHint || ""
+    }),
+    { maxTokens: 8192, temperature: 0.55 }
+  );
+  const parsed = validateRoleScriptFromNarrative(result.value, roleKey, config, minWords);
+  return {
+    provider: "deepseek",
+    model: result.model,
+    setting,
+    synopsis,
+    config,
+    roleKey,
+    sections: parsed.sections,
+    suggestions: parsed.suggestions
   };
 }
 
@@ -282,20 +380,22 @@ export async function createDeepseekRolesFromNarrative(input) {
 }
 
 export async function createDeepseekStructureFromNarrative(input) {
-  const brief = mergeBrief(input);
-  const spec = validateStorySpec(input.spec, brief);
-  const chapters = Array.isArray(input.chapters) ? input.chapters.map((ch) => validateChapterNarrative(ch, spec, ch.chapterKey)) : [];
+  const { setting, synopsis, config, brief } = resolveCreativePipeline(input);
+  const minChars = chapterNarrativeMinChars(setting, config);
+  const chapters = Array.isArray(input.chapters) ? input.chapters.map((ch) => validateChapterNarrative(ch, config, ch.chapterKey, minChars)) : [];
   if (!chapters.length) throwErr("VALIDATION_ERROR", "chapters required for structure extraction");
   const sectionsSample = Array.isArray(input.sectionsSample) ? input.sectionsSample : [];
   const result = await requestDeepseekJson(
-    buildExtractStructureFromNarrativeMessages({ brief, spec, chapters, sectionsSample }),
+    buildExtractStructureFromNarrativeMessages({ setting, synopsis, config, chapters, sectionsSample }),
     { maxTokens: 8000, temperature: 0.35 }
   );
   return {
     provider: "deepseek",
     model: result.model,
+    setting,
+    synopsis,
+    config,
     brief,
-    spec,
     proposal: validateDeepseekProposal(result.value)
   };
 }
@@ -343,6 +443,66 @@ export async function requestDeepseekJson(messages, { maxTokens = 8000, temperat
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export { validateCreativeSetting, validateSynopsisInput };
+
+function buildConfigFromSetting(setting) {
+  const chapterKeys = Array.from({ length: setting.chapterCount }, (_, i) => `ch${i + 1}`);
+  return {
+    title: setting.theme,
+    playerCount: setting.playerCount,
+    chapterCount: setting.chapterCount,
+    chapterKeys,
+    targetWordCount: setting.chapterCount * setting.wordsPerChapter,
+    wordsPerSectionMin: Math.min(800, Math.max(400, Math.floor(setting.wordsPerChapter / 8))),
+    sceneCount: Math.max(setting.chapterCount * 2, 6),
+    investigationPointCount: Math.max(setting.chapterCount * 3, 8),
+    clueCount: Math.max(setting.chapterCount * 3, 8),
+    constraints: setting.extraConflicts
+      ? setting.extraConflicts.split(/\n/).map((line) => line.trim()).filter(Boolean)
+      : [],
+    notes: [`每章总剧情目标约 ${setting.wordsPerChapter} 字`]
+  };
+}
+
+function briefFromCreative(setting, synopsis) {
+  return normalizeStoryBrief({
+    title: setting.theme,
+    premise: synopsis.body,
+    playerCount: setting.playerCount,
+    chapterCount: setting.chapterCount,
+    wordsPerChapter: setting.wordsPerChapter,
+    conflicts: setting.extraConflicts,
+    requirements: setting.extraConflicts
+  });
+}
+
+export function resolveCreativePipeline(input = {}) {
+  if (input.setting && input.synopsis) {
+    const setting = validateCreativeSetting(input.setting);
+    const synopsis = validateSynopsisInput(input.synopsis);
+    const brief = briefFromCreative(setting, synopsis);
+    const config = validateStorySpec(input.config || buildConfigFromSetting(setting), brief);
+    return { setting, synopsis, config, brief };
+  }
+  const brief = mergeBrief(input);
+  const config = validateStorySpec(input.spec || input.config, brief);
+  const setting = validateCreativeSetting({
+    theme: config.title || brief.title,
+    playerCount: config.playerCount,
+    chapterCount: config.chapterCount,
+    wordsPerChapter: brief.wordsPerChapter || Math.max(800, Math.floor(config.targetWordCount / Math.max(config.chapterCount, 1))),
+    extraConflicts: (config.constraints || []).join("\n") || brief.requirements,
+    tone: ""
+  });
+  const synopsis = validateSynopsisInput({
+    body: brief.premise,
+    charactersSketch: "",
+    truthSketch: "",
+    redHerringsSketch: ""
+  });
+  return { setting, synopsis, config, brief };
 }
 
 function mergeBrief(input = {}) {
@@ -544,19 +704,23 @@ export function validateStoryEvaluation(raw) {
     styleFit: clampScore("styleFit")
   };
   const overall = clampInteger(Number(value.overallScore) * 10, 10, 100, 70) / 10;
-  const validLayers = new Set(["brief", "spec", "outline", "narrative", "structure", "roleMatrix", "matrix", "section", "synopsis", "evaluate"]);
+  const validLayers = new Set(["setup", "spec", "narrative", "roles", "roleMatrix", "matrix", "section", "sync", "structure", "evaluate"]);
   const validPriority = new Set(["must_fix", "should_fix", "optional"]);
   const issues = Array.isArray(value.issues) ? value.issues.slice(0, 12).map((item) => ({
     severity: ["high", "medium", "low"].includes(item?.severity) ? item.severity : "medium",
     area: cleanText(item?.area, 80),
     detail: cleanText(item?.detail, 500)
   })) : [];
+  const normalizeLayer = (layer) => {
+    if (layer === "roleMatrix" || layer === "matrix" || layer === "section") return "roles";
+    if (layer === "brief" || layer === "spec" || layer === "outline") return "setup";
+    if (layer === "structure" || layer === "synopsis") return "sync";
+    return layer;
+  };
   const revisions = Array.isArray(value.revisions) ? value.revisions.slice(0, 16).map((item) => {
-    let targetLayer = validLayers.has(item?.targetLayer) ? item.targetLayer : "structure";
-    if (targetLayer === "roleMatrix") targetLayer = "matrix";
-    if (targetLayer === "brief") targetLayer = "spec";
+    const rawLayer = validLayers.has(item?.targetLayer) ? item.targetLayer : "narrative";
     return {
-      targetLayer,
+      targetLayer: normalizeLayer(rawLayer),
       targetKey: cleanText(item?.targetKey, 40) || null,
       priority: validPriority.has(item?.priority) ? item.priority : "should_fix",
       problem: cleanText(item?.problem, 400),
@@ -575,7 +739,7 @@ export function validateStoryEvaluation(raw) {
     adjustEmphasis: Array.isArray(styleRaw.adjustEmphasis) ? styleRaw.adjustEmphasis.slice(0, 6).map((item) => cleanText(item, 300)) : []
   };
   const nextStepOrder = Array.isArray(value.nextStepOrder)
-    ? value.nextStepOrder.map((layer) => (layer === "roleMatrix" ? "matrix" : layer === "brief" ? "spec" : layer)).filter((layer) => validLayers.has(layer)).slice(0, 6)
+    ? value.nextStepOrder.map((layer) => normalizeLayer(layer)).filter((layer) => validLayers.has(layer) || layer === "setup" || layer === "roles" || layer === "sync").slice(0, 6)
     : [...new Set(revisions.map((item) => item.targetLayer))].slice(0, 5);
   const hasMustFix = revisions.some((item) => item.priority === "must_fix");
   const hasHigh = issues.some((item) => item.severity === "high");

@@ -105,10 +105,10 @@ test("validateStoryEvaluation normalizes revisions and style", () => {
     nextStepOrder: ["roleMatrix", "outline"],
     readyForImport: true
   });
-  assert.equal(ev.revisions[0].targetLayer, "matrix");
+  assert.equal(ev.revisions[0].targetLayer, "roles");
   assert.equal(ev.revisions[0].promptHint, "不要内奸角色");
   assert.equal(ev.readyForImport, false);
-  assert.deepEqual(ev.nextStepOrder, ["matrix", "outline"]);
+  assert.deepEqual(ev.nextStepOrder, ["roles", "setup"]);
 });
 
 test("validateChapterNarrative enforces minimum body length", () => {
@@ -117,11 +117,11 @@ test("validateChapterNarrative enforces minimum body length", () => {
     chapterKey: "chapter-1",
     title: "入港",
     summary: "众人到港",
-    narrativeBody: "中".repeat(500),
+    narrativeBody: "中".repeat(2500),
     hostNotes: "勿剧透"
-  }, spec, "chapter-1");
+  }, spec, "chapter-1", 2000);
   assert.equal(ch.chapterKey, "chapter-1");
-  assert.ok(ch.narrativeBody.length >= 400);
+  assert.ok(ch.narrativeBody.length >= 2000);
 });
 
 test("validateRolesFromNarrative builds section map", () => {

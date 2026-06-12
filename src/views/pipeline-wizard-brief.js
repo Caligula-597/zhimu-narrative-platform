@@ -1,4 +1,4 @@
-/** AI pipeline brief form + spec validation helpers. */
+/** AI pipeline creative input — setting + synopsis + derived config. */
 (function (window) {
   const T = window.zhimuToast || {};
   const showToast = T.showToast || (() => {});
@@ -12,81 +12,120 @@
     return (items || []).join("\n");
   }
 
-  function pipelineBriefFromForm() {
+  function pipelineSettingFromForm() {
     const values = studioValues();
-    const chapterCount = Math.max(3, Math.min(5, Number(values.aiChapterCount) || 3));
-    const wordsPerChapter = Math.max(400, Math.min(2500, Number(values.aiWordsPerChapter) || 800));
-    const conflicts = String(values.aiConflicts || "").trim();
+    const chapterCount = Math.max(3, Math.min(5, Number(values.aiChapterCount) || 5));
+    const wordsPerChapter = Math.max(2000, Math.min(12000, Number(values.aiWordsPerChapter) || 8000));
+    const playerCount = Math.max(4, Math.min(8, Number(values.aiPlayerCount) || 6));
     return {
-      title: values.aiTitle,
-      premise: values.aiPremise,
-      wordsPerChapter,
-      conflicts,
+      theme: String(values.aiTheme || values.aiTitle || "").trim(),
+      playerCount,
       chapterCount,
-      conflicts: values.aiConflicts,
-      style: "悬疑调查，信息逐步揭示，适合线上长线剧本杀",
-      roleRequirements: "",
-      evaluationFocus: "",
-      playerCount: 6,
-      targetWordCount: chapterCount * wordsPerChapter,
+      wordsPerChapter,
+      extraConflicts: String(values.aiConflicts || "").trim(),
+      tone: String(values.aiTone || "").trim()
+    };
+  }
+
+  function pipelineSynopsisFromForm() {
+    const values = studioValues();
+    return {
+      body: String(values.aiSynopsisBody || values.aiPremise || "").trim(),
+      charactersSketch: String(values.aiCharactersSketch || "").trim(),
+      truthSketch: String(values.aiTruthSketch || "").trim(),
+      redHerringsSketch: String(values.aiRedHerringsSketch || "").trim()
+    };
+  }
+
+  function defaultConfigFromSetting(setting) {
+    const chapterCount = setting.chapterCount;
+    const chapterKeys = Array.from({ length: chapterCount }, (_, i) => `ch${i + 1}`);
+    const conflicts = pipelineLinesToArray(setting.extraConflicts);
+    const sectionMin = Math.min(800, Math.max(400, Math.floor(setting.wordsPerChapter / 8)));
+    return {
+      title: setting.theme,
+      playerCount: setting.playerCount,
+      chapterCount,
+      targetWordCount: chapterCount * setting.wordsPerChapter,
+      wordsPerSectionMin: sectionMin,
       sceneCount: Math.max(chapterCount * 2, 6),
       investigationPointCount: Math.max(chapterCount * 3, 8),
       clueCount: Math.max(chapterCount * 3, 8),
-      existingManuscript: ""
-    };
-  }
-
-  function defaultSpecFromBrief() {
-    const brief = pipelineBriefFromForm();
-    const chapterCount = brief.chapterCount;
-    const chapterKeys = Array.from({ length: chapterCount }, (_, i) => `ch${i + 1}`);
-    const conflicts = pipelineLinesToArray(brief.conflicts);
-    const sectionMin = Math.min(800, Math.max(150, Math.floor(brief.wordsPerChapter / 3)));
-    return {
-      title: brief.title,
-      playerCount: 6,
-      chapterCount,
-      targetWordCount: brief.targetWordCount,
-      wordsPerSectionMin: sectionMin,
-      sceneCount: brief.sceneCount,
-      investigationPointCount: brief.investigationPointCount,
-      clueCount: brief.clueCount,
       chapterKeys,
       constraints: conflicts,
-      notes: [`每章总剧情目标字数约 ${brief.wordsPerChapter} 字`]
+      notes: [`每章总剧情目标约 ${setting.wordsPerChapter} 字`]
     };
   }
 
-  function pipelineValidateSpec(spec) {
-    const brief = pipelineBriefFromForm();
-    if (!brief.title?.trim()) {
+  function pipelineCreativeFromForm() {
+    const setting = pipelineSettingFromForm();
+    const synopsis = pipelineSynopsisFromForm();
+    const config = defaultConfigFromSetting(setting);
+    return { setting, synopsis, config };
+  }
+
+  function pipelineValidateSetup({ setting, synopsis, config } = {}) {
+    if (!setting?.theme?.trim()) {
       showToast("请填写主题");
       return false;
     }
-    if (!brief.premise?.trim()) {
-      showToast("请填写剧情纲要");
+    if (!synopsis?.body?.trim()) {
+      showToast("请填写剧情纲要正文");
       return false;
     }
-    const chapterCount = Number(brief.chapterCount);
+    const chapterCount = Number(setting.chapterCount);
     if (chapterCount < 3 || chapterCount > 5) {
       showToast("章节数量请填写 3～5");
       return false;
     }
-    const wordsPerChapter = Number(brief.wordsPerChapter);
-    if (wordsPerChapter < 400 || wordsPerChapter > 2500) {
-      showToast("每章节字数建议 400～2500");
+    const wordsPerChapter = Number(setting.wordsPerChapter);
+    if (wordsPerChapter < 2000 || wordsPerChapter > 12000) {
+      showToast("每章节字数建议 2000～12000");
       return false;
     }
-    if (!spec?.chapterKeys?.length) {
+    if (!config?.chapterKeys?.length) {
       showToast("章节配置无效，请检查章节数量");
       return false;
     }
     return true;
   }
 
+  /** @deprecated use pipelineCreativeFromForm */
+  function pipelineBriefFromForm() {
+    const { setting, synopsis, config } = pipelineCreativeFromForm();
+    return {
+      title: setting.theme,
+      premise: synopsis.body,
+      wordsPerChapter: setting.wordsPerChapter,
+      conflicts: setting.extraConflicts,
+      chapterCount: setting.chapterCount,
+      playerCount: setting.playerCount,
+      targetWordCount: config.targetWordCount,
+      sceneCount: config.sceneCount,
+      investigationPointCount: config.investigationPointCount,
+      clueCount: config.clueCount
+    };
+  }
+
+  /** @deprecated use pipelineCreativeFromForm */
+  function defaultSpecFromBrief() {
+    return pipelineCreativeFromForm().config;
+  }
+
+  /** @deprecated use pipelineValidateSetup */
+  function pipelineValidateSpec(config) {
+    const { setting, synopsis } = pipelineCreativeFromForm();
+    return pipelineValidateSetup({ setting, synopsis, config });
+  }
+
   window.zhimuPipelineBrief = {
     pipelineLinesToArray,
     pipelineArrayToLines,
+    pipelineSettingFromForm,
+    pipelineSynopsisFromForm,
+    defaultConfigFromSetting,
+    pipelineCreativeFromForm,
+    pipelineValidateSetup,
     pipelineBriefFromForm,
     defaultSpecFromBrief,
     pipelineValidateSpec

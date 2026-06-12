@@ -79,7 +79,7 @@
 | 角色 / 章节 / 分幕 CRUD | ✅ | 玩家接口过滤草稿 |
 | Studio 场景/线索/调查点/边/布局 | ✅ | |
 | 剧情助手（本地启发式） | ✅ | 非 LLM |
-| DeepSeek 叙事优先流水线 + AI 悬疑创作向导 | 🟡 | 需 `DEEPSEEK_API_KEY`；① 五字段手动、②～⑧ AI；见 [AI_PIPELINE_UI_ZH.md](./AI_PIPELINE_UI_ZH.md) |
+| DeepSeek 五步创作向导（立项→逐章→逐角色→评判→同步编排） | 🟡 | 需 `DEEPSEEK_API_KEY`；见 [AI_PIPELINE_UI_ZH.md](./AI_PIPELINE_UI_ZH.md) |
 | DOCX/TXT/MD 导入 | ✅ | 复杂排版可能分段不准 |
 | 内容包 JSON 导入导出 | ✅ | JSON **追加**并重映射 ID；**importKey / packageSourceId 去重** | 不含二进制附件 |
 | 创作版本 restore | ✅ | **仅**章节+分幕正文与发布状态 |

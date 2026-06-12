@@ -1,11 +1,12 @@
-import { PRODUCT_BOUNDARY, cleanText, untrustedUserPayload } from "./shared.js";
+import { PRODUCT_BOUNDARY, cleanText } from "./shared.js";
+import { creativeInputUserBlocks } from "./creative-input.js";
 
 /** 从总剧情文本中**抽取**场景、调查点、线索与图谱边（而非先编结构再写文）。 */
-export function buildExtractStructureFromNarrativeMessages({ brief, spec, chapters = [], sectionsSample = [] }) {
+export function buildExtractStructureFromNarrativeMessages({ setting, synopsis, config, chapters = [], sectionsSample = [] }) {
   const chapterPayload = chapters.map((ch) => ({
     chapterKey: ch.chapterKey,
     title: ch.title,
-    narrativeBody: cleanText(ch.narrativeBody, 5000)
+    narrativeBody: cleanText(ch.narrativeBody, 12000)
   }));
   const system = `你是剧本杀编排工程师。你从**已写好的章节总剧情**中抽取可落库的编排结构 JSON，映射剧情编排台。
 
@@ -15,7 +16,7 @@ ${PRODUCT_BOUNDARY}
 1. **只抽取** narrativeBody 中已出现或明确隐含的场景、可调查动作、可发放线索；不要发明无关节点。
 2. 每个 clue 须在 investigationPoints 中有入口（clueKey 关联）。
 3. publicText 不得泄露 hostText 中的完整真相。
-4. 遵循 spec 的 chapterKeys；sceneCount / clueCount 尽量贴近 spec，不足时在 suggestions 说明。
+4. 遵循 config 的 chapterKeys；sceneCount / clueCount 尽量贴近 config，不足时在 suggestions 说明。
 5. edges：mainline 串联章节推进，extension 连接场景→调查点，parallel 为并行支路。
 
 【输出 schema】与结构提案相同：
@@ -31,10 +32,10 @@ ${PRODUCT_BOUNDARY}
 }`;
   const user = `请从以下总剧情抽取编排结构。
 
-${untrustedUserPayload("规格", spec)}
-${untrustedUserPayload("brief", { title: brief.title, premise: brief.premise })}
-${untrustedUserPayload("各章总剧情", chapterPayload)}
-${sectionsSample.length ? untrustedUserPayload("分幕样本（辅助定位线索）", sectionsSample.slice(0, 3)) : ""}
+${creativeInputUserBlocks(setting, synopsis)}
+${cleanText(JSON.stringify({ chapterKeys: config.chapterKeys, sceneCount: config.sceneCount, clueCount: config.clueCount }), 2000)}
+${cleanText(JSON.stringify({ chapters: chapterPayload }), 80000)}
+${sectionsSample.length ? cleanText(JSON.stringify({ sectionsSample: sectionsSample.slice(0, 3) }), 8000) : ""}
 
 生成前自检：场景归属章节、调查点归属场景、线索有入口、至少一条 mainline。只返回 JSON。`;
   return [{ role: "system", content: system }, { role: "user", content: user }];

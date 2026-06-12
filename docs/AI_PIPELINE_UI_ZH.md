@@ -1,99 +1,103 @@
-# AI 悬疑创作 · UI 与验收说明
+# AI 悬疑创作 · UI 验收（五步流程）
 
-> 更新：2026-06-03 · 叙事优先流水线 · 代码见 `src/views/pipeline-wizard-*.js`
+> 更新：2026-06-03 · 面向普通创作者 · 代码：`src/views/pipeline-wizard-*.js`
 
-## 验收位置
+## 入口
 
-| 项目 | 说明 |
+世界 → **剧本杀创作中心** → **「AI 悬疑创作」** 全屏向导。
+
+---
+
+## 五步（左栏仅此五项）
+
+| 步 | 名称 | 用户做什么 | AI |
+|----|------|------------|-----|
+| **①** | 创作立项 | 填设定 + 剧情纲要 | 无 |
+| **②** | 逐章总剧情 | 选章、编辑、**下载单章/全书** | 逐章生成（默认约 8000 字/章 × 5 章） |
+| **③** | 角色私人本 | **一个角色一个角色** 生成/编辑；支持 **AI 改稿** | 读全书剧情 + 纲要 + 你的角色要求 |
+| **④** | AI 评判 | 看报告，回②③改 | 查矛盾、可玩性 |
+| **⑤** | 汇总同步 | 确认后上传；编排图出现场景/线索/线 | 从正文反推结构并 import |
+
+**不再展示**：总纲、角色矩阵、编排结构（独立层）、短母稿、旧 8 层 ladder。
+
+---
+
+## ① 创作立项 · 表单拆解
+
+### 创作设定
+
+| 字段 | 必填 |
 |------|------|
-| **视图** | 任意世界 → 侧栏 **剧本杀创作中心** |
-| **入口** | Hero **「AI 悬疑创作」** |
-| **弹窗** | 全屏：顶栏 / 左栏层级导航 / 右栏编辑 / 底栏上传 |
-| **模式** | **分步参与** · **一键串行**（须先确认①创作设定） |
+| 主题 | ✅ |
+| 玩家人数 | ✅ |
+| 章节数量 | ✅（建议 5） |
+| 每章节字数 | ✅（建议 8000） |
+| 额外的矛盾冲突 | ✅（可简短） |
+| 场景基调 | 选填 |
 
-## 层级流程（与后端一一对应）
+### 剧情纲要
 
-| 层 | 名称 | 用户操作 | 前端 API |
-|----|------|----------|----------|
-| ① | 创作设定 | **仅填 5 项**，无 AI | — |
-| ② | 总纲 | AI → 编辑 → 确认 | `deepseekPipelineOutline` |
-| ③ | 章节总剧情 | **逐章** AI（第2章读第1章全文） | `deepseekPipelineNarrativeChapter` |
-| ④ | 角色矩阵 | AI → 确认 | `deepseekPipelineRoleMatrix` |
-| ⑤ | 私人分幕 | **一次** AI 拆分全部角色 | `deepseekPipelineNarrativeRoles` |
-| ⑥ | 编排结构 | AI **反推**场景/线索 | `deepseekPipelineNarrativeExtractStructure` |
-| ⑦ | 短母稿 | 可选 | `deepseekPipelineManuscriptSynopsis` |
-| ⑧ | 评判 | 可选；提示追加到「矛盾冲突」 | `deepseekPipelineEvaluate` |
-
-上传：**仅上传编排** 或 **上传全部到云端** → `importDeepseekProposal` / `importDeepseekPipeline`。
-
-## ① 创作设定（唯一的手动表单）
-
-| 字段 | 校验 |
+| 字段 | 必填 |
 |------|------|
-| 主题 | 必填 |
-| 剧情纲要 | 必填 |
-| 章节数量 | 3～5 |
-| 每章节字数 | 400～2500 |
-| 额外的矛盾冲突 | 选填 |
+| 纲要正文（背景、谜题、分章打算等） | ✅ |
+| 人物关系 | 选填 |
+| 真相概要 | 选填 |
+| 误导线 | 选填 |
 
-左侧 **不再有** 独立 brief 折叠面板；所有输入集中在①层编辑区。
+确认①后锁定；**此后每个 API 都必须带上设定 + 纲要**，避免 AI 瞎写。
 
-玩家人数、场景数、线索数等由 `pipeline-wizard-brief.js` 自动推导后写入 `spec` 传给后端。
+---
 
-## Session 数据结构（localStorage 草稿）
+## ② 逐章总剧情
 
-| 字段 | 层 |
-|------|-----|
-| `spec` | ① |
-| `outline` | ② |
-| `narrativeChapters` | ③ |
-| `roleMatrix` | ④ |
-| `sections` | ⑤ |
-| `proposal` | ⑥ |
-| `synopsis` | ⑦ |
-| `evaluation` | ⑧ |
-| `locks` | 各层确认状态 |
+- 左栏显示各章进度（未生成 / 草稿 / 已确认）
+- 生成第 n 章时，后端读取第 1…n−1 章**全文**
+- 编辑器：标题、摘要、正文、主持备注
+- **下载**：单章 Markdown/TXT；可选合并全书
+- 约 **4 万字**（5×8000）为设计目标；超时见 `DEEPSEEK_TIMEOUT_MS`（建议 120000+）
 
-草稿 key：`zhimuAiDraft:{worldId}:pipeline`。
+---
 
-## 前端模块分工
+## ③ 角色私人本
 
-| 文件 | 职责 |
-|------|------|
-| `pipeline-wizard-session.js` | 层级顺序、依赖、锁定、下游清空 |
-| `pipeline-wizard-brief.js` | 五字段 → brief/spec |
-| `pipeline-wizard-html.js` | 各层编辑器 HTML |
-| `pipeline-wizard-dom.js` | DOM ↔ session |
-| `pipeline-wizard-open.js` | 打开向导、调 API、一键串行 |
-| `pipeline-wizard.js` | 薄入口 |
-| `src/api/client.js` | HTTP 客户端 |
+- 先展示 **N 个角色**（N = 玩家人数；名称来自纲要或 AI 从正文归纳）
+- 每次只处理 **一个角色**：该角色在每一章的私人正文
+- 支持手动改 + **「AI 改此角色」**（附带一句修改意图）
+- 不要求用户理解「角色矩阵」数据结构
 
-## 布局与性能
+---
 
-- 弹窗：`min(1360px, 100vw - 40px)` × `calc(100vh - 32px)`
-- 左栏 220px；localStorage 防抖 450ms；rAF 合并渲染
-- ③ 换章 / ⑤ 换角色：patch 更新，不全量重建 DOM
-- DeepSeek 请求超时：**180s**（客户端）
+## ④ AI 评判
 
-## 本地验证
+- 针对：② 全书 + ③ 所有角色本
+- 输出：矛盾点、可玩性、建议回哪一章/哪一角色改
+- 「应用建议」写回对应编辑框
 
-```powershell
-# 终端 A
-cd backend
-npm run dev
+---
 
-# 终端 B（项目根）
-npm run dev
-# http://localhost:4173 → 创作中心 → AI 悬疑创作 → Ctrl+F5
+## ⑤ 汇总同步
+
+- 按钮：**「同步到剧情编排并上传」**
+- 写入：章节、场景、线索、调查点、连线、角色槽、分幕
+- 完成后跳转编排台 / 写作台
+
+---
+
+## Session 草稿字段
+
+```text
+setting, synopsis,
+narrativeChapters,   // ②
+roleScripts,         // ③  { roleKey: { chapterKey: section } }
+rolesMeta,           // ③  角色名列表
+evaluation,          // ④
+proposal             // ⑤ extract 结果（可选预览）
 ```
 
-```bash
-cd backend
-npm test -- test/deepseek-pipeline.test.js
-node --test scripts/pipeline-wizard-session.test.mjs
-```
+localStorage：`zhimuAiDraft:{worldId}:pipeline`
+
+---
 
 ## 相关文档
 
-- [PROMPT_ENGINEERING.md](./PROMPT_ENGINEERING.md) — API 与 brief/spec 映射
-- [PRODUCT_STATUS_ZH.md](./PRODUCT_STATUS_ZH.md) — 产品总览
+- [PROMPT_ENGINEERING.md](./PROMPT_ENGINEERING.md) — API 与 prompt 规则

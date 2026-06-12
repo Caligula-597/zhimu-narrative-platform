@@ -1,92 +1,112 @@
-/** AI pipeline session model — layer order, locks, downstream invalidation (no DOM). */
+/** AI pipeline session model — 5-step flow (no DOM). */
 (function (window) {
-  const PIPELINE_LAYER_ORDER = ["spec", "outline", "narrative", "matrix", "section", "structure", "synopsis", "evaluate"];
+  const PIPELINE_LAYER_ORDER = ["setup", "narrative", "roles", "evaluate", "sync"];
   const PIPELINE_LAYER_LABEL = {
-    brief: "创作 brief",
-    spec: "创作设定",
-    outline: "总纲",
-    narrative: "章节总剧情",
-    structure: "编排结构",
-    roleMatrix: "角色矩阵",
-    matrix: "角色矩阵",
-    section: "私人分幕",
-    synopsis: "短母稿",
-    evaluate: "评判"
+    setup: "创作立项",
+    narrative: "逐章总剧情",
+    roles: "角色私人本",
+    evaluate: "AI 评判",
+    sync: "汇总同步",
+    spec: "创作立项",
+    structure: "汇总同步",
+    matrix: "角色私人本",
+    section: "角色私人本"
   };
   const PIPELINE_LAYER_DEPS = {
-    spec: [],
-    outline: ["spec"],
-    narrative: ["spec", "outline"],
-    matrix: ["spec", "outline", "narrative"],
-    section: ["spec", "outline", "narrative", "matrix"],
-    structure: ["spec", "outline", "narrative", "matrix", "section"],
-    synopsis: ["spec", "outline", "structure"],
-    evaluate: ["structure"]
+    setup: [],
+    narrative: ["setup"],
+    roles: ["setup", "narrative"],
+    evaluate: ["setup", "narrative", "roles"],
+    sync: ["setup", "narrative", "roles"]
   };
+
+  function narrativeMinChars(session) {
+    const target = session.setting?.wordsPerChapter
+      || session.config?.targetWordCount / Math.max(session.config?.chapterCount || 1, 1)
+      || 8000;
+    return Math.max(2000, Math.floor(Number(target) * 0.45));
+  }
 
   function defaultPipelineSession() {
     return {
-      spec: null,
-      outline: null,
-      narrativeChapters: {},
-      proposal: null,
-      roleMatrix: null,
-      sections: {},
+      setting: null,
       synopsis: null,
+      config: null,
+      narrativeChapters: {},
+      rolesMeta: null,
+      sections: {},
       evaluation: null,
+      proposal: null,
       locks: {},
-      activeLayer: "spec",
+      activeLayer: "setup",
       _editorRev: {}
     };
   }
 
+  function migrateLegacySession(raw) {
+    if (!raw || typeof raw !== "object") return raw;
+    const next = { ...raw };
+    if (!next.config && next.spec) next.config = next.spec;
+    if (!next.rolesMeta && next.roleMatrix) next.rolesMeta = next.roleMatrix;
+    if (next.activeLayer === "spec") next.activeLayer = "setup";
+    if (next.activeLayer === "structure") next.activeLayer = "sync";
+    if (next.activeLayer === "matrix" || next.activeLayer === "section") next.activeLayer = "roles";
+    if (next.locks?.spec && !next.locks.setup) next.locks.setup = next.locks.spec;
+    if (next.locks?.structure && !next.locks.sync) next.locks.sync = next.locks.structure;
+    if (next.locks?.matrix && !next.locks.roles) next.locks.roles = next.locks.matrix;
+    return next;
+  }
+
   function normalizePipelineSession(raw) {
     const session = defaultPipelineSession();
-    if (!raw) return session;
+    const migrated = migrateLegacySession(raw);
+    if (!migrated) return session;
     Object.assign(session, {
-      spec: raw.spec ?? null,
-      outline: raw.outline ?? null,
-      narrativeChapters: raw.narrativeChapters || {},
-      proposal: raw.proposal ?? null,
-      roleMatrix: raw.roleMatrix ?? null,
-      sections: raw.sections || {},
-      synopsis: raw.synopsis ?? null,
-      evaluation: raw.evaluation ?? null,
-      locks: raw.locks || {},
-      activeLayer: raw.activeLayer || "spec",
-      _editorRev: raw._editorRev || {}
+      setting: migrated.setting ?? null,
+      synopsis: migrated.synopsis ?? null,
+      config: migrated.config ?? null,
+      narrativeChapters: migrated.narrativeChapters || {},
+      rolesMeta: migrated.rolesMeta ?? null,
+      sections: migrated.sections || {},
+      evaluation: migrated.evaluation ?? null,
+      proposal: migrated.proposal ?? null,
+      locks: migrated.locks || {},
+      activeLayer: migrated.activeLayer || "setup",
+      _editorRev: migrated._editorRev || {}
     });
-    if (!raw.locks) {
-      if (session.spec) session.locks.spec = Boolean(session.outline);
-      if (session.outline) session.locks.outline = pipelineLayerHasData(session, "narrative");
-      if (pipelineLayerHasData(session, "narrative")) session.locks.narrative = Boolean(session.roleMatrix);
-      if (session.roleMatrix) {
-        session.locks.matrix = Object.values(session.sections || {}).some(
+    if (!raw?.locks) {
+      if (session.setting && session.synopsis && session.config) {
+        session.locks.setup = pipelineLayerHasData(session, "narrative");
+      }
+      if (pipelineLayerHasData(session, "narrative")) {
+        session.locks.narrative = Boolean(session.rolesMeta?.roles?.length);
+      }
+      if (session.rolesMeta?.roles?.length) {
+        session.locks.roles = Object.values(session.sections || {}).some(
           (chapters) => Object.keys(chapters || {}).length
         );
       }
-      if (session.proposal) session.locks.structure = Boolean(session.synopsis);
+      if (session.proposal) session.locks.sync = Boolean(session.evaluation);
     }
     return session;
   }
 
   function pipelineChaptersForSession(session) {
     if (session.proposal?.chapters?.length) return session.proposal.chapters;
-    const keys = session.spec?.chapterKeys || [];
+    const keys = session.config?.chapterKeys || [];
     return keys.map((key, index) => {
       const narrative = session.narrativeChapters?.[key];
-      const beat = (session.outline?.chapterBeats || []).find((row) => row.chapterKey === key);
       return {
         key,
-        title: narrative?.title || beat?.title || `第 ${index + 1} 章`,
-        summary: narrative?.summary || beat?.goal || "",
+        title: narrative?.title || `第 ${index + 1} 章`,
+        summary: narrative?.summary || "",
         sequence: index + 1
       };
     });
   }
 
   function pipelineNarrativeChapterList(session) {
-    const keys = session.spec?.chapterKeys || [];
+    const keys = session.config?.chapterKeys || [];
     return keys.map((key) => session.narrativeChapters?.[key] || null).filter(Boolean);
   }
 
@@ -100,8 +120,8 @@
       hostText: ""
     }));
     return {
-      title: title || session.spec?.title || "剧本",
-      logline: session.outline?.logline || "",
+      title: title || session.config?.title || session.setting?.theme || "剧本",
+      logline: "",
       chapters,
       scenes,
       investigationPoints: [],
@@ -112,33 +132,36 @@
   }
 
   function pipelineLayerHasData(session, layer) {
-    if (layer === "spec") return Boolean(session.spec);
-    if (layer === "outline") return Boolean(session.outline);
-    if (layer === "narrative") {
-      const keys = session.spec?.chapterKeys || [];
-      return keys.length > 0 && keys.every((key) => (session.narrativeChapters?.[key]?.narrativeBody || "").length >= 400);
+    const normalized = layer === "spec" ? "setup" : layer === "structure" ? "sync" : layer === "matrix" || layer === "section" ? "roles" : layer;
+    if (normalized === "setup") return Boolean(session.setting?.theme && session.synopsis?.body && session.config?.chapterKeys?.length);
+    if (normalized === "narrative") {
+      const keys = session.config?.chapterKeys || [];
+      const min = narrativeMinChars(session);
+      return keys.length > 0 && keys.every((key) => (session.narrativeChapters?.[key]?.narrativeBody || "").length >= min);
     }
-    if (layer === "structure") return Boolean(session.proposal);
-    if (layer === "matrix") return Boolean(session.roleMatrix);
-    if (layer === "section") {
-      return Object.values(session.sections || {}).some((chapters) => Object.keys(chapters || {}).length);
+    if (normalized === "roles") {
+      return Boolean(session.rolesMeta?.roles?.length)
+        && Object.values(session.sections || {}).some((chapters) => Object.keys(chapters || {}).length);
     }
-    if (layer === "synopsis") return Boolean(session.synopsis);
-    if (layer === "evaluate") return Boolean(session.evaluation);
+    if (normalized === "evaluate") return Boolean(session.evaluation);
+    if (normalized === "sync") return Boolean(session.proposal);
     return false;
   }
 
   function pipelineLayerStatus(session, layer) {
-    if (!pipelineLayerHasData(session, layer)) return "empty";
-    return session.locks?.[layer] ? "locked" : "draft";
+    const normalized = layer === "spec" ? "setup" : layer === "structure" ? "sync" : layer === "matrix" || layer === "section" ? "roles" : layer;
+    if (!pipelineLayerHasData(session, normalized)) return "empty";
+    return session.locks?.[normalized] ? "locked" : "draft";
   }
 
   function pipelineDepsLocked(session, layer) {
-    return (PIPELINE_LAYER_DEPS[layer] || []).every((dep) => session.locks?.[dep]);
+    const normalized = layer === "spec" ? "setup" : layer === "structure" ? "sync" : layer === "matrix" || layer === "section" ? "roles" : layer;
+    return (PIPELINE_LAYER_DEPS[normalized] || []).every((dep) => session.locks?.[dep]);
   }
 
   function pipelineClearDownstream(session, fromLayer) {
-    const idx = PIPELINE_LAYER_ORDER.indexOf(fromLayer);
+    const normalized = fromLayer === "spec" ? "setup" : fromLayer === "structure" ? "sync" : fromLayer === "matrix" || fromLayer === "section" ? "roles" : fromLayer;
+    const idx = PIPELINE_LAYER_ORDER.indexOf(normalized);
     if (idx < 0) return;
     if (session._editorRev) {
       for (let i = idx + 1; i < PIPELINE_LAYER_ORDER.length; i++) {
@@ -149,27 +172,24 @@
     for (let i = idx + 1; i < PIPELINE_LAYER_ORDER.length; i++) {
       const layer = PIPELINE_LAYER_ORDER[i];
       session.locks[layer] = false;
-      if (layer === "section") session.sections = {};
-      else if (layer === "evaluate") session.evaluation = null;
-      else if (layer === "synopsis") session.synopsis = null;
-      else if (layer === "matrix") session.roleMatrix = null;
-      else if (layer === "structure") session.proposal = null;
+      if (layer === "roles") {
+        session.sections = {};
+        session.rolesMeta = null;
+      } else if (layer === "evaluate") session.evaluation = null;
+      else if (layer === "sync") session.proposal = null;
       else if (layer === "narrative") session.narrativeChapters = {};
-      else if (layer === "outline") session.outline = null;
     }
   }
 
   function pipelineStepLabel(step) {
+    const normalized = step === "spec" ? "setup" : step === "structure" ? "sync" : step === "matrix" || step === "section" ? "roles" : step;
     return ({
-      spec: "① 创作设定",
-      outline: "② 总纲",
-      narrative: "③ 章节总剧情",
-      matrix: "④ 角色矩阵",
-      section: "⑤ 私人分幕",
-      structure: "⑥ 编排结构",
-      synopsis: "⑦ 短母稿",
-      evaluate: "⑧ 评判"
-    })[step] || step;
+      setup: "① 创作立项",
+      narrative: "② 逐章总剧情",
+      roles: "③ 角色私人本",
+      evaluate: "④ AI 评判",
+      sync: "⑤ 汇总同步"
+    })[normalized] || step;
   }
 
   function pipelineStepName(step) {
@@ -182,6 +202,7 @@
     PIPELINE_LAYER_ORDER,
     PIPELINE_LAYER_LABEL,
     PIPELINE_LAYER_DEPS,
+    narrativeMinChars,
     defaultPipelineSession,
     normalizePipelineSession,
     pipelineChaptersForSession,
