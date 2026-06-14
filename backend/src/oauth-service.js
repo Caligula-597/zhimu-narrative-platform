@@ -144,6 +144,19 @@ async function ensureStorageQuota(userId) {
   );
 }
 
+async function bootstrapOAuthAccount(userId, email) {
+  await ensureUserPlan(userId, initialPlanForEmail(email));
+  await applyInternalBetaPrivileges(userId, email);
+  await ensureStorageQuota(userId);
+}
+
+function rethrowOAuthDbError(error) {
+  if (error?.code === "23503" || error?.code === "23505") {
+    throwErr("OAUTH_EXCHANGE_FAILED");
+  }
+  throw error;
+}
+
 async function linkOAuthAccount(client, { providerId, providerUserId, userId, email, profile }) {
   await client.query(
     `INSERT INTO oauth_accounts (provider, provider_user_id, user_id, email, profile)
@@ -155,7 +168,8 @@ async function linkOAuthAccount(client, { providerId, providerUserId, userId, em
 }
 
 async function resolveOAuthUser(providerId, profile, guestUserId) {
-  return transaction(async (client) => {
+  let bootstrapAccount = false;
+  const userId = await transaction(async (client) => {
     const linked = await client.query(
       `SELECT user_id FROM oauth_accounts WHERE provider = $1 AND provider_user_id = $2`,
       [providerId, profile.providerUserId]
@@ -200,15 +214,15 @@ async function resolveOAuthUser(providerId, profile, guestUserId) {
     }
 
     if (byEmail.rowCount) {
-      const userId = byEmail.rows[0].id;
+      const existingUserId = byEmail.rows[0].id;
       await linkOAuthAccount(client, {
         providerId,
         providerUserId: profile.providerUserId,
-        userId,
+        userId: existingUserId,
         email: profile.email,
         profile: profile.raw
       });
-      return userId;
+      return existingUserId;
     }
 
     const created = await client.query(
@@ -217,19 +231,26 @@ async function resolveOAuthUser(providerId, profile, guestUserId) {
        RETURNING id`,
       [profile.email, profile.displayName.slice(0, 40), profile.emailVerified ? new Date() : new Date()]
     );
-    const userId = created.rows[0].id;
-    await ensureUserPlan(userId, initialPlanForEmail(profile.email));
-    await applyInternalBetaPrivileges(userId, profile.email);
-    await ensureStorageQuota(userId);
+    const newUserId = created.rows[0].id;
     await linkOAuthAccount(client, {
       providerId,
       providerUserId: profile.providerUserId,
-      userId,
+      userId: newUserId,
       email: profile.email,
       profile: profile.raw
     });
-    return userId;
-  });
+    bootstrapAccount = true;
+    return newUserId;
+  }).catch(rethrowOAuthDbError);
+
+  if (bootstrapAccount && profile.email) {
+    await bootstrapOAuthAccount(userId, profile.email);
+  }
+  return userId;
+}
+
+export async function resolveOAuthUserForTests(providerId, profile, guestUserId = null) {
+  return resolveOAuthUser(providerId, profile, guestUserId);
 }
 
 export async function handleOAuthCallback(providerId, { code, state }) {

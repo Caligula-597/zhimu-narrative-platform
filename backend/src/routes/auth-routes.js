@@ -461,7 +461,10 @@ export async function registerAuthRoutes(app) {
       return reply.redirect(redirect);
     } catch (error) {
       request.log.warn({ err: error, provider }, "oauth callback failed");
-      frontend.searchParams.set("oauth_error", error.code || "OAUTH_EXCHANGE_FAILED");
+      const code = typeof error?.code === "string" && /^[A-Z][A-Z0-9_]*$/.test(error.code)
+        ? error.code
+        : "OAUTH_EXCHANGE_FAILED";
+      frontend.searchParams.set("oauth_error", code);
       return reply.redirect(frontend.toString());
     }
   });
