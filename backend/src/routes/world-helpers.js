@@ -208,6 +208,25 @@ export async function compactChapterSequences(client, worldId) {
   return remaining.rowCount;
 }
 
+export function chapterSequencesNeedRepair(chapterRows) {
+  if (!chapterRows.length) return false;
+  return chapterRows.some((row, index) => Number(row.sequence) !== index + 1);
+}
+
+/** Renumber chapters to 1..N when gaps remain (e.g. prologue deleted before auto-compact existed). */
+export async function repairChapterSequencesIfNeeded(worldId, client = null) {
+  const run = async (c) => {
+    const rows = await c.query(
+      `SELECT id, sequence FROM chapters WHERE world_id = $1 ORDER BY sequence, created_at`,
+      [worldId]
+    );
+    if (!chapterSequencesNeedRepair(rows.rows)) return 0;
+    return compactChapterSequences(c, worldId);
+  };
+  if (client) return run(client);
+  return transaction(run);
+}
+
 /** Delete a public chapter, remove bound role sections + dependent rules, renumber survivors. */
 export async function deleteWorldChapter(client, worldId, chapterId) {
   const sectionRows = await client.query(

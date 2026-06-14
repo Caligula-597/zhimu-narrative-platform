@@ -228,3 +228,44 @@ test("deleting chapter renumbers survivors and removes bound sections and rules"
   const ruleRow = await query(`SELECT id FROM automation_rules WHERE world_id = $1 AND name LIKE '序章读完%'`, [testWorldId]);
   assert.equal(ruleRow.rowCount, 0);
 });
+
+test("GET studio repairs chapter sequence gaps from legacy deletes", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const created = await app.inject({
+    method: "POST",
+    url: "/api/worlds",
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `Chapter repair ${Date.now()}`, summary: "test" }
+  });
+  assert.equal(created.statusCode, 201);
+  const testWorldId = created.json().id;
+  context.after(async () => {
+    await query(`DELETE FROM worlds WHERE id = $1`, [testWorldId]);
+  });
+
+  const ch1 = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${testWorldId}/chapters`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: "边城暮色", summary: "a", sequence: 2 }
+  });
+  const ch2 = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${testWorldId}/chapters`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: "暗流涌动", summary: "b", sequence: 3 }
+  });
+  assert.equal(ch1.statusCode, 201);
+  assert.equal(ch2.statusCode, 201);
+
+  const studio = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${testWorldId}/studio`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(studio.statusCode, 200);
+  const sequences = studio.json().chapters.map((chapter) => chapter.sequence);
+  assert.deepEqual(sequences, [1, 2]);
+});
