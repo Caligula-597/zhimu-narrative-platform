@@ -15,6 +15,8 @@
     OAUTH_EXCHANGE_FAILED: "Google 授权失败，请稍后重试或改用邮箱登录。",
     OAUTH_STATE_INVALID: "登录状态已失效，请重新发起 Google 登录。",
     OAUTH_EMAIL_REQUIRED: "Google 账号未提供邮箱，无法注册，请改用邮箱注册。",
+    ACCOUNT_DELETE_BLOCKED: "当前账号状态不允许注销，请查看页面说明。",
+    ACCOUNT_DELETE_CONFIRMATION_INVALID: "输入的昵称与账号显示名不一致，请原样输入后再试。",
 
     FORBIDDEN: "你没有权限执行此操作。",
     ROOM_MEMBERSHIP_REQUIRED: "你不是该运行房的成员。",

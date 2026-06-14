@@ -21,6 +21,8 @@ export const API_ERRORS = {
   GUEST_ACCOUNT_RESTRICTED: { status: 403, message: "Guest accounts cannot perform this action. Please register to continue." },
   ACCOUNT_ALREADY_REGISTERED: { status: 409, message: "Account is already registered" },
   GUEST_UPGRADE_FAILED: { status: 409, message: "Guest account upgrade failed" },
+  ACCOUNT_DELETE_BLOCKED: { status: 403, message: "Account cannot be deleted in the current state" },
+  ACCOUNT_DELETE_CONFIRMATION_INVALID: { status: 400, message: "Confirmation text does not match your display name" },
   SESSION_NOT_FOUND: { status: 404, message: "Session not found" },
   WORLD_INVITE_INVALID: { status: 400, message: "Collaboration invite is invalid or expired" },
   WORLD_INVITE_EMAIL_MISMATCH: { status: 403, message: "Invite email does not match your account" },

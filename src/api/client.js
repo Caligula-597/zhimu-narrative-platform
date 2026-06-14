@@ -146,6 +146,8 @@ window.zhimuApi = {
   resetPassword: (payload) => request("/auth/reset-password", { method: "POST", body: payload }),
   me: () => request("/auth/me"),
   getAccountEntitlements: () => request("/account/entitlements"),
+  previewAccountDelete: () => request("/account/delete/preview"),
+  deleteAccount: (payload) => request("/account/delete", { method: "POST", body: payload }),
   getAccountPlans: () => request("/account/plans"),
   logout: () => request("/auth/logout", { method: "POST", body: {} }),
   async ensurePlayerSession() {
