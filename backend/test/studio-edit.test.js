@@ -108,3 +108,47 @@ test("creator can patch scene clue and investigation point", async (context) => 
     headers: { "x-user-id": hostUserId }
   });
 });
+
+test("creator can delete chapter and unbind linked scenes", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const worldId = await fogWorldId();
+
+  const chapterCreate = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/chapters`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: `删除测试章 ${Date.now()}`, summary: "待删", sequence: 99 }
+  });
+  assert.equal(chapterCreate.statusCode, 201);
+  const chapterId = chapterCreate.json().id;
+
+  const sceneCreate = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/scenes`,
+    headers: { "x-user-id": hostUserId },
+    payload: { name: "绑定场景", chapterId, publicText: "描述" }
+  });
+  assert.equal(sceneCreate.statusCode, 201);
+  const sceneId = sceneCreate.json().id;
+
+  const refs = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${worldId}/studio-nodes/chapter/${chapterId}/references`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(refs.statusCode, 200);
+  assert.ok(refs.json().sceneCount >= 1);
+
+  const deleted = await app.inject({
+    method: "DELETE",
+    url: `/api/worlds/${worldId}/studio-nodes/chapter/${chapterId}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(deleted.statusCode, 200);
+
+  const chapterRow = await query(`SELECT id FROM chapters WHERE id = $1`, [chapterId]);
+  assert.equal(chapterRow.rowCount, 0);
+  const sceneRow = await query(`SELECT chapter_id FROM scenes WHERE id = $1`, [sceneId]);
+  assert.equal(sceneRow.rows[0].chapter_id, null);
+});

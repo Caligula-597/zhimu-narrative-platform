@@ -8,6 +8,7 @@
       case "creator-add-section": W.openCreatorSection?.(el?.dataset?.role); return true;
       case "creator-edit-section": W.openCreatorSection?.(el?.dataset?.role, el?.dataset?.section); return true;
       case "creator-edit-chapter": W.openCreatorChapter?.(el?.dataset?.chapter); return true;
+      case "creator-delete-chapter": W.deleteCreatorChapter?.(el?.dataset?.chapter); return true;
       case "creator-check": W.runCreatorChecks?.(); return true;
       case "creator-preview": W.openCreatorPreview?.(); return true;
       case "creator-collaboration": W.openCollaboration?.(); return true;

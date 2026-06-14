@@ -59,7 +59,7 @@ function writer(){
    <div class="manuscript-list">${data.sections.filter(section=>section.role_slot_id===role.id).map(section=>`<div class="manuscript-row"><div><strong>${section.sequence}. ${section.title}</strong><p>${section.body.slice(0,86)}${section.body.length>86?"...":""}</p></div><span class="status-chip ${section.publication_status}">${statusName[section.publication_status]}</span><button class="secondary-btn" data-action="creator-edit-section" data-role="${role.id}" data-section="${section.id}">编辑</button></div>`).join("")||`<div class="empty-state">尚无正文。先新增角色序章或第一幕。</div>`}</div></section>`).join("")}
   </article>
   <aside class="writer-side">
-   <article class="card"><div class="section-head"><div><h3>章节发布控制</h3><p>草稿不会进入玩家房间。</p></div></div>${data.chapters.map(chapter=>`<div class="chapter-control"><div><strong>${chapter.sequence}. ${chapter.title}</strong><p>${chapter.summary||"尚未补充章节摘要"}</p></div><span class="status-chip ${chapter.publication_status}">${statusName[chapter.publication_status]}</span><button class="text-btn" data-action="creator-edit-chapter" data-chapter="${chapter.id}">设置</button></div>`).join("")||`<div class="empty-state">请先在剧情编排中新增章节。</div>`}</article>
+   <article class="card"><div class="section-head"><div><h3>章节发布控制</h3><p>草稿不会进入玩家房间。不需要的章节可删除（关联场景与私人分幕会解除绑定）。</p></div></div>${data.chapters.map(chapter=>`<div class="chapter-control"><div><strong>${chapter.sequence}. ${chapter.title}</strong><p>${chapter.summary||"尚未补充章节摘要"}</p></div><span class="status-chip ${chapter.publication_status}">${statusName[chapter.publication_status]}</span><div class="row"><button class="text-btn" data-action="creator-edit-chapter" data-chapter="${chapter.id}">设置</button><button class="text-btn danger-text" data-action="creator-delete-chapter" data-chapter="${chapter.id}">删除</button></div></div>`).join("")||`<div class="empty-state">请先在剧情编排中新增章节。</div>`}</article>
    <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>玩家视角测试</h3><p>发布前检查缺失内容与孤立节点。</p></div></div>${checks.length?checks.map(check=>`<div class="check-result ${check.level}"><b>${check.title}</b><span>${check.detail}</span></div>`).join(""):`<div class="empty-state">点击“运行发布检查”生成真实云端报告。</div>`}<button class="secondary-btn full-btn" data-go="player">进入运行房 · 玩家视角</button><button class="text-btn full-btn" style="margin-top:8px" data-action="creator-preview">仅预览私人剧本（无需运行房）</button></article>
    <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>创作版本历史</h3><p>保存关键节点，需要时恢复正文与发布状态。</p></div></div>${data.versions.map(version=>`<div class="version-row"><div><strong>${version.label}</strong><p>${formatTime(version.created_at)}</p></div><div class="row"><button class="text-btn" data-action="creator-restore" data-version="${version.id}">恢复</button><button class="text-btn" data-action="creator-delete-version" data-version="${version.id}">删除</button></div></div>`).join("")||`<div class="empty-state">尚未保存创作快照。</div>`}</article>
   </aside>
@@ -92,6 +92,27 @@ function openCreatorRole(roleId=""){
 function openCreatorChapter(chapterId){
  const chapter=state.cloudStudio.chapters.find(item=>item.id===chapterId);
  studioModal("章节发布控制",studioField("章节名称","title","input",chapter.title)+studioField("章节摘要","summary","textarea",chapter.summary||"")+studioSelect("发布阶段","publicationStatus",[{id:"draft",name:"草稿 · 不对玩家开放"},{id:"testing",name:"测试中 · 用于测试房"},{id:"published",name:"已发布 · 可进入正式房"}],chapter.publication_status||"draft")+studioSelect("解锁方式","unlockMode",[{id:"host_confirm",name:"主持人确认后开放"},{id:"automatic",name:"满足规则后自动开放"},{id:"manual",name:"仅手动开放"}],chapter.unlock_rules?.mode||"host_confirm"),"保存章节设置",async()=>{try{const values=studioValues();await zhimuApi.updateChapter(chapter.id,{title:values.title,summary:values.summary,publicationStatus:values.publicationStatus,unlockRules:{mode:values.unlockMode}});closeModal();await loadCloudData();showToast("章节发布规则已保存")}catch(error){showToast(error.message)}});
+}
+
+function chapterDeleteReferenceHint(refs){
+ const parts=[];
+ if(refs.sceneCount)parts.push(`${refs.sceneCount} 个场景将解除章节绑定`);
+ if(refs.sectionCount)parts.push(`${refs.sectionCount} 段私人分幕将解除章节绑定`);
+ if(refs.edgeCount)parts.push(`${refs.edgeCount} 条剧情连线`);
+ if(refs.investigationPointCount)parts.push(`${refs.investigationPointCount} 个调查点`);
+ if(refs.clueGrantCount)parts.push(`${refs.clueGrantCount} 个调查点引用此线索`);
+ if(refs.requiredItemCount)parts.push(`${refs.requiredItemCount} 个调查点需要此物品`);
+ if(refs.ruleReferenceCount)parts.push(`${refs.ruleReferenceCount} 条规则引用`);
+ return parts.length?`<p>删除前提示：${parts.join("；")}。</p>`:"";
+}
+
+async function deleteCreatorChapter(chapterId){
+ const chapter=state.cloudStudio?.chapters?.find(item=>item.id===chapterId);
+ if(!chapter)return showToast("未找到章节");
+ try{
+  const refs=await zhimuApi.getStudioNodeReferences("chapter",chapterId);
+  studioModal("确认删除章节",`${chapterDeleteReferenceHint(refs)}<p>将永久删除「${escapeHtml(chapter.title)}」。关联场景与私人分幕<strong>不会</strong>被删除，但会变为「未绑定章节」。</p>`,"确认删除",async()=>{try{await zhimuApi.deleteStudioNode("chapter",chapterId);closeModal();await loadCloudData();showToast(`已删除章节「${chapter.title}」`)}catch(error){showToast(error.message)}});
+ }catch(error){showToast(error.message)}
 }
 
 async function runCreatorChecks(){try{state.cloudCreatorChecks=(await zhimuApi.getCreatorChecks()).checks;render();showToast("发布检查已完成")}catch(error){showToast(error.message)}}
@@ -281,6 +302,7 @@ async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContent
   viewExports.openCreatorSection = openCreatorSection;
   viewExports.openCreatorRole = openCreatorRole;
   viewExports.openCreatorChapter = openCreatorChapter;
+  viewExports.deleteCreatorChapter = deleteCreatorChapter;
   viewExports.runCreatorChecks = runCreatorChecks;
   viewExports.openStoryManuscript = openStoryManuscript;
   viewExports.storyManuscriptStatus = storyManuscriptStatus;

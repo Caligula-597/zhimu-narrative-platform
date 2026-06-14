@@ -16,10 +16,6 @@ export async function registerStudioGraphRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, nodeType, nodeId } = request.params;
     await requireWorldReader(actorId, worldId);
-    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
-    if (!tables[nodeType]) return sendErr(reply, "NODE_TYPE_UNSUPPORTED");
-    const exists = await query(`SELECT 1 FROM ${tables[nodeType]} WHERE id = $1 AND world_id = $2`, [nodeId, worldId]);
-    if (!exists.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
 
     const edgeCount = await query(
       `SELECT COUNT(*)::int AS value FROM story_graph_edges
@@ -31,6 +27,41 @@ export async function registerStudioGraphRoutes(app) {
        WHERE world_id = $1 AND (actions::text LIKE '%' || $2 || '%' OR conditions::text LIKE '%' || $2 || '%')`,
       [worldId, nodeId]
     );
+
+    if (nodeType === "chapter") {
+      const exists = await query(`SELECT 1 FROM chapters WHERE id = $1 AND world_id = $2`, [nodeId, worldId]);
+      if (!exists.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
+      const sceneCount = await query(
+        `SELECT COUNT(*)::int AS value FROM scenes WHERE world_id = $1 AND chapter_id = $2::uuid`,
+        [worldId, nodeId]
+      );
+      const sectionCount = await query(
+        `SELECT COUNT(*)::int AS value FROM script_sections ss
+         INNER JOIN role_slots rs ON rs.id = ss.role_slot_id
+         WHERE rs.world_id = $1 AND ss.chapter_id = $2::uuid`,
+        [worldId, nodeId]
+      );
+      const edge = edgeCount.rows[0].value;
+      const scenes = sceneCount.rows[0].value;
+      const sections = sectionCount.rows[0].value;
+      const rules = ruleReferenceCount.rows[0].value;
+      return {
+        edgeCount: edge,
+        sceneCount: scenes,
+        sectionCount: sections,
+        investigationPointCount: 0,
+        clueGrantCount: 0,
+        requiredItemCount: 0,
+        ruleReferenceCount: rules,
+        totalReferences: edge + scenes + sections + rules
+      };
+    }
+
+    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
+    if (!tables[nodeType]) return sendErr(reply, "NODE_TYPE_UNSUPPORTED");
+    const exists = await query(`SELECT 1 FROM ${tables[nodeType]} WHERE id = $1 AND world_id = $2`, [nodeId, worldId]);
+    if (!exists.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
+
     let investigationPointCount = { rows: [{ value: 0 }] };
     let clueGrantCount = { rows: [{ value: 0 }] };
     if (nodeType === "scene") {
@@ -53,18 +84,20 @@ export async function registerStudioGraphRoutes(app) {
       );
     }
 
+    const edge = edgeCount.rows[0].value;
+    const points = investigationPointCount.rows[0].value;
+    const grants = clueGrantCount.rows[0].value;
+    const items = requiredItemCount.rows[0].value;
+    const rules = ruleReferenceCount.rows[0].value;
     return {
-      edgeCount: edgeCount.rows[0].value,
-      investigationPointCount: investigationPointCount.rows[0].value,
-      clueGrantCount: clueGrantCount.rows[0].value,
-      requiredItemCount: requiredItemCount.rows[0].value,
-      ruleReferenceCount: ruleReferenceCount.rows[0].value,
-      totalReferences:
-        edgeCount.rows[0].value
-        + investigationPointCount.rows[0].value
-        + clueGrantCount.rows[0].value
-        + requiredItemCount.rows[0].value
-        + ruleReferenceCount.rows[0].value
+      edgeCount: edge,
+      sceneCount: 0,
+      sectionCount: 0,
+      investigationPointCount: points,
+      clueGrantCount: grants,
+      requiredItemCount: items,
+      ruleReferenceCount: rules,
+      totalReferences: edge + points + grants + items + rules
     };
   });
 

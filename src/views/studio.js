@@ -59,7 +59,7 @@ function studioCloud() {
   </div></aside>
   <div class="story-workspace">
    <div class="story-toolbar"><div class="story-toolbar-row"><div class="tool-group"><button class="tool" data-action="studio-add-scene">＋ 场景</button><button class="tool" data-action="studio-add-clue">＋ 线索</button><button class="tool" data-action="studio-add-item">＋ 物品</button><button class="tool" data-action="studio-add-point">＋ 调查点</button><button class="tool" data-action="studio-add-chapter">＋ 章节</button></div><div class="tool-group"><button class="tool" data-action="studio-auto-layout">自动布局</button><button class="tool" data-action="studio-zoom-out">−</button><span class="zoom-label">${Math.round(state.studioZoom*100)}%</span><button class="tool" data-action="studio-zoom-in">＋</button></div></div>
-   <div class="story-toolbar-row"><div class="filter-tabs">${studioFilterButton("all","全部节点")}${studioFilterButton("scene","场景")}${studioFilterButton("clue","线索")}${studioFilterButton("item","物品")}${studioFilterButton("investigation_point","调查点")}</div><div class="graph-legend"><span><i class="relation-mainline"></i>主线</span><span><i class="relation-parallel"></i>并列</span><span><i class="relation-extension"></i>延伸</span></div></div>${studioCompactSelection(data)}</div>
+   <div class="story-toolbar-row"><div class="filter-tabs">${studioFilterButton("all","全部节点")}${studioFilterButton("chapter","章节")}${studioFilterButton("scene","场景")}${studioFilterButton("clue","线索")}${studioFilterButton("item","物品")}${studioFilterButton("investigation_point","调查点")}</div><div class="graph-legend"><span><i class="relation-mainline"></i>主线</span><span><i class="relation-parallel"></i>并列</span><span><i class="relation-extension"></i>延伸</span></div></div>${studioCompactSelection(data)}</div>
    <div class="node-board"><button class="canvas-add-btn" data-action="studio-add-node-menu">＋ 在画布中新增节点</button><div class="graph-canvas" style="transform:scale(${state.studioZoom})">
       ${studioEdges(data)}${studioNodes(data)}
    </div></div>
@@ -83,7 +83,10 @@ function studioNodes(data){
 
 function studioNode(x,y,type,id,badge,title,desc,cls,metadata={}){const selected=state.studioSelectedNode?.type===type&&state.studioSelectedNode?.id===id,anchors=studioNodeAnchors({metadata});return `<button class="node ${cls} ${selected?"selected":""}" style="left:${x}px;top:${y}px;text-align:left" data-action="studio-select-node" data-node-type="${type}" data-node-id="${id}"><span class="node-drag-handle">⠿ 拖动</span>${anchors.map(anchor=>`<span class="node-link-handle ${state.studioAnchorEditing&&selected?"anchor-editing":""}" style="left:${anchor.x}px;top:${anchor.y}px" data-anchor-id="${anchor.id}" title="${state.studioAnchorEditing&&selected?"拖动调整连接点位置":"拖到其他节点创建连线"}"></span>`).join("")}<span class="badge">${escapeHtml(badge)}</span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(desc)}</small></button>`}
 
-function studioNodeList(data){return [...data.scenes.map(node=>({type:"scene",id:node.id,name:`场景 · ${node.name}`,title:node.name,badge:"公共场景",desc:node.public_text||"等待补充场景说明",cls:"",metadata:node.metadata})),...data.clues.map(node=>({type:"clue",id:node.id,name:`线索 · ${node.name}`,title:node.name,badge:"线索",desc:node.public_text||"等待补充线索说明",cls:"current",metadata:node.metadata})),...(data.items||[]).map(node=>({type:"item",id:node.id,name:`物品 · ${node.name}`,title:node.name,badge:"物品",desc:node.public_text||"等待补充物品说明",cls:"item",metadata:node.metadata})),...data.investigationPoints.map(node=>({type:"investigation_point",id:node.id,name:`调查点 · ${node.name}`,title:node.name,badge:"调查点",desc:node.description||"等待补充调查说明",cls:"event",metadata:node.metadata}))]}
+function studioNodeList(data){
+ const chapterNodes=(data.chapters||[]).map((chapter,index)=>({type:"chapter",id:chapter.id,name:`章节 · ${chapter.title}`,title:chapter.title,badge:"公共章节",desc:chapter.summary||"公共剧情阶段",cls:"chapter",metadata:chapter.metadata||{}}));
+ return [...chapterNodes,...data.scenes.map(node=>({type:"scene",id:node.id,name:`场景 · ${node.name}`,title:node.name,badge:"公共场景",desc:node.public_text||"等待补充场景说明",cls:"",metadata:node.metadata})),...data.clues.map(node=>({type:"clue",id:node.id,name:`线索 · ${node.name}`,title:node.name,badge:"线索",desc:node.public_text||"等待补充线索说明",cls:"current",metadata:node.metadata})),...(data.items||[]).map(node=>({type:"item",id:node.id,name:`物品 · ${node.name}`,title:node.name,badge:"物品",desc:node.public_text||"等待补充物品说明",cls:"item",metadata:node.metadata})),...data.investigationPoints.map(node=>({type:"investigation_point",id:node.id,name:`调查点 · ${node.name}`,title:node.name,badge:"调查点",desc:node.description||"等待补充调查说明",cls:"event",metadata:node.metadata}))];
+}
 
 function studioVisibleNodes(data){const all=studioNodeList(data);return state.studioFilter==="all"?all:all.filter(node=>node.type===state.studioFilter)}
 
@@ -91,13 +94,13 @@ function studioFilterButton(value,label){return `<button class="filter-tab ${sta
 
 function studioCompactSelection(data){const selected=state.studioSelectedNode;if(!selected)return `<div class="canvas-tip">拖动卡片调整位置；拖动画布空白处平移；选中节点后可以添加连接点，再从圆点拖到另一张卡快速连线。</div>`;return `<div class="compact-selection"><span>当前节点：${studioNodeName(data,selected.type,selected.id)} · ${studioNodeAnchors(studioNodeRecord(data,selected.type,selected.id)).length} 个连接点</span><div class="row"><button class="text-btn" data-action="studio-add-anchor">＋ 连接点</button><button class="text-btn" data-action="studio-toggle-anchor-edit">${state.studioAnchorEditing?"完成调整":"调整连接点"}</button><button class="text-btn" data-action="studio-connect-node">＋ 创建连线</button><button class="text-btn danger-text" data-action="studio-delete-node">删除节点</button></div></div>`}
 
-function studioDefaultPositions(data){const positions=new Map();data.scenes.forEach((scene,index)=>positions.set(`scene:${scene.id}`,{x:48,y:92+index*142}));data.clues.forEach((clue,index)=>positions.set(`clue:${clue.id}`,{x:294,y:92+index*142}));(data.items||[]).forEach((item,index)=>positions.set(`item:${item.id}`,{x:786,y:92+index*142}));data.investigationPoints.forEach((point,index)=>positions.set(`investigation_point:${point.id}`,{x:540,y:92+index*142}));return positions}
+function studioDefaultPositions(data){const positions=new Map();(data.chapters||[]).forEach((chapter,index)=>positions.set(`chapter:${chapter.id}`,{x:48,y:40+index*118}));data.scenes.forEach((scene,index)=>positions.set(`scene:${scene.id}`,{x:240,y:92+index*142}));data.clues.forEach((clue,index)=>positions.set(`clue:${clue.id}`,{x:294,y:92+index*142}));(data.items||[]).forEach((item,index)=>positions.set(`item:${item.id}`,{x:786,y:92+index*142}));data.investigationPoints.forEach((point,index)=>positions.set(`investigation_point:${point.id}`,{x:540,y:92+index*142}));return positions}
 
 function studioNodePosition(node,data){return node.metadata?.graphPosition||studioDefaultPositions(data).get(`${node.type}:${node.id}`)||{x:40,y:100}}
 
-function studioNodeRecord(data,type,id){return ({scene:data.scenes,clue:data.clues,item:data.items||[],investigation_point:data.investigationPoints})[type]?.find(node=>node.id===id)}
+function studioNodeRecord(data,type,id){if(type==="chapter")return data.chapters?.find(node=>node.id===id);return ({scene:data.scenes,clue:data.clues,item:data.items||[],investigation_point:data.investigationPoints})[type]?.find(node=>node.id===id)}
 
-function studioNodeAnchors(node){const anchors=node.metadata?.graphAnchors;return Array.isArray(anchors)&&anchors.length?anchors:[{id:"default",x:156,y:62}]}
+function studioNodeAnchors(node){if(!node)return [{id:"default",x:156,y:62}];const anchors=node.metadata?.graphAnchors;return Array.isArray(anchors)&&anchors.length?anchors:[{id:"default",x:156,y:62}]}
 
 function setStudioNodePosition(type,id,position){const node=studioNodeRecord(state.cloudStudio,type,id);if(node)node.metadata={...(node.metadata||{}),graphPosition:position}}
 
@@ -140,6 +143,9 @@ function studioNodeEditPanel(data,selected){
  const record=studioNodeRecord(data,selected.type,selected.id);
  if(!record)return `<p class="wizard-intro">节点数据不可用，请刷新后重试。</p>`;
  const meta=record.metadata||{};
+ if(selected.type==="chapter"){
+  return `<div class="studio-edit-panel"><p class="section-kicker">编辑公共章节</p>${studioEditField("章节名称","title","input",record.title)}${studioEditField("章节摘要","summary","textarea",record.summary||"")}<p class="muted-note">发布状态与解锁规则请在「剧本杀创作中心 → 章节发布控制」中设置。</p><button class="primary-btn full-btn" data-action="studio-save-node">保存章节</button></div>`;
+ }
  if(selected.type==="scene"){
   const chapters=[{id:"",name:"暂不绑定章节"},...data.chapters];
   const visibleIds=Array.isArray(meta.visibleRoleSlotIds)?meta.visibleRoleSlotIds:[];
@@ -226,8 +232,11 @@ async function autoLayoutStudio(){
 async function saveSelectedStudioNode(){
  const selected=state.studioSelectedNode;if(!selected)return;
  const values=studioEditValues();
+ const record=studioNodeRecord(state.cloudStudio,selected.type,selected.id);
  try{
-  if(selected.type==="scene"){
+  if(selected.type==="chapter"){
+   await zhimuApi.updateChapter(selected.id,{title:values.title,summary:values.summary,publicationStatus:record?.publication_status||"draft",unlockRules:record?.unlock_rules||{mode:"host_confirm"}});
+  }else if(selected.type==="scene"){
    await zhimuApi.updateScene(selected.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,chapterId:values.chapterId||null,metadata:{summary:values.summary,openStatus:values.openStatus,visibleRoleSlotIds:values.visibleRoleSlotIds||[]}});
   }else if(selected.type==="clue"){
    await zhimuApi.updateClue(selected.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,visibility:values.visibility||"role",metadata:{clueType:values.clueType||"text",assetId:values.assetId||null,importance:values.importance||"normal"}});
@@ -244,13 +253,16 @@ async function deleteSelectedStudioNode(){
  const selected=state.studioSelectedNode;if(!selected)return;
  try{
   const refs=await zhimuApi.getStudioNodeReferences(selected.type,selected.id),parts=[];
+  if(refs.sceneCount)parts.push(`${refs.sceneCount} 个场景将解除章节绑定`);
+  if(refs.sectionCount)parts.push(`${refs.sectionCount} 段私人分幕将解除章节绑定`);
   if(refs.edgeCount)parts.push(`${refs.edgeCount} 条剧情连线`);
   if(refs.investigationPointCount)parts.push(`${refs.investigationPointCount} 个调查点`);
   if(refs.clueGrantCount)parts.push(`${refs.clueGrantCount} 个调查点引用此线索`);
   if(refs.requiredItemCount)parts.push(`${refs.requiredItemCount} 个调查点需要此物品`);
   if(refs.ruleReferenceCount)parts.push(`${refs.ruleReferenceCount} 条规则引用`);
   const detail=parts.length?`<p>检测到 ${parts.join("、")}。</p>`:"";
-  studioModal("确认删除节点",`${detail}<p>这个节点可能被规则、边或调查点引用。删除后可能影响运行房。</p><div class="rule-block"><strong>${escapeHtml(studioNodeName(state.cloudStudio,selected.type,selected.id))}</strong></div>`,"确认删除",async()=>{try{await zhimuApi.deleteStudioNode(selected.type,selected.id);state.studioSelectedNode=null;closeModal();await loadCloudData();showToast("节点及相关连线已删除")}catch(error){showToast(error.message)}});
+  const chapterNote=selected.type==="chapter"?`<p>关联场景与私人分幕不会被删除，但会变为「未绑定章节」。</p>`:"<p>这个节点可能被规则、边或调查点引用。删除后可能影响运行房。</p>";
+  studioModal("确认删除节点",`${detail}${chapterNote}<div class="rule-block"><strong>${escapeHtml(studioNodeName(state.cloudStudio,selected.type,selected.id))}</strong></div>`,"确认删除",async()=>{try{await zhimuApi.deleteStudioNode(selected.type,selected.id);state.studioSelectedNode=null;closeModal();await loadCloudData();showToast(selected.type==="chapter"?"章节已删除":"节点及相关连线已删除")}catch(error){showToast(error.message)}});
  }catch(error){showToast(error.message)}
 }
 

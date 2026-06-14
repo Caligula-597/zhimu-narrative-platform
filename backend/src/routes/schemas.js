@@ -674,7 +674,7 @@ export const deleteStudioNodeSchema = {
 };
 
 export const studioNodeReferencesSchema = {
-  params: paramsSchema({ worldId: uuid, nodeType: graphNodeType, nodeId: uuid })
+  params: paramsSchema({ worldId: uuid, nodeType: studioNodeType, nodeId: uuid })
 };
 
 export const updateNodePositionSchema = {
