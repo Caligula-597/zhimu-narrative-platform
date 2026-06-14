@@ -23,7 +23,7 @@ alwaysApply: true
 1. `git status` / `git diff` — 确认无 `.env`、密钥、token、凭据文件
 2. `git add` 仅相关文件
 3. `git commit` — 1～2 句，说明 why
-4. `git push` — 推送到当前分支（**不要** force push `main`/`master`）
+4. `npm run git:push` — 经 Clash 代理推送到当前分支（**不要** force push `main`/`master`；**不要** `git config --global http.proxy`）
 
 ## 禁止自动提交的情况
 

@@ -1,0 +1,34 @@
+---
+description: Git / GitHub 推送经 Clash 代理（本机 7890），勿改全局 git config
+alwaysApply: true
+---
+
+# Git 网络代理（Clash）
+
+用户本机使用 **Clash**。访问 GitHub 失败时，**不要**执行 `git config --global http.proxy`（禁止改 git config）。
+
+## Agent 推送 / pull / fetch
+
+在仓库根目录使用项目脚本（已注入 `HTTP_PROXY` / `HTTPS_PROXY`）：
+
+```bash
+node scripts/git-push.mjs
+# 或带参数：node scripts/git-push.mjs push -u origin HEAD
+npm run git:push
+```
+
+`gh pr create`、`gh push` 等 GitHub CLI 命令前，在 **同一条 shell 命令** 里设置代理（PowerShell 示例）：
+
+```powershell
+$env:HTTPS_PROXY="http://127.0.0.1:7890"; $env:HTTP_PROXY="http://127.0.0.1:7890"; gh ...
+```
+
+或在运行前执行 `node -e "import('./scripts/clash-proxy.mjs').then(m=>m.applyClashProxyEnv())"` 不适用 shell——优先用 `git-push.mjs` 或显式 `$env:HTTPS_PROXY`。
+
+## 端口
+
+默认 `http://127.0.0.1:7890`。若 Clash 端口不同，复制 `config/clash-proxy.env.example` → `config/clash-proxy.env` 并修改，或设置环境变量 `ZHIMU_CLASH_HTTP_PROXY`。
+
+## 自动 commit 规则
+
+`.cursor/rules/auto-commit-push-after-checks.mdc` 中的 push 步骤应使用 `npm run git:push`，不要裸 `git push`。

@@ -36,7 +36,8 @@
     "test:pipeline-session": "node --test scripts/pipeline-wizard-session.test.mjs",
     "explore:ai": "node e2e/ai-explore.mjs",
     "explore:ai:llm": "node e2e/ai-explore.mjs --llm --headed",
-    "ensure:esm": "node scripts/ensure-esm-exports.mjs"
+    "ensure:esm": "node scripts/ensure-esm-exports.mjs",
+    "git:push": "node scripts/git-push.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
