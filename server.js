@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const useDist = process.argv.includes("--dist");
 const root = useDist ? path.join(__dirname, "dist") : __dirname;
+const docsRoot = fs.existsSync(path.join(root, "docs"))
+  ? path.join(root, "docs")
+  : path.join(__dirname, "docs");
 const port = Number(process.env.PORT ?? process.env.FRONTEND_PORT ?? 4173);
 
 const mime = {
@@ -17,11 +20,11 @@ const mime = {
   ".md": "text/markdown; charset=utf-8"
 };
 
-function safePath(urlPath) {
+function safePath(urlPath, base = root) {
   const decoded = decodeURIComponent(urlPath.split("?")[0]);
   const normalized = path.normalize(decoded).replace(/^(\.\.(\/|\\|$))+/, "");
-  const file = path.join(root, normalized);
-  if (!file.startsWith(root)) return null;
+  const file = path.join(base, normalized);
+  if (!file.startsWith(base)) return null;
   return file;
 }
 
@@ -39,7 +42,24 @@ function sendFile(res, filePath) {
 
 http
   .createServer((req, res) => {
-    const target = req.url === "/" ? "/index.html" : req.url ?? "/";
+    const urlPath = (req.url ?? "/").split("?")[0];
+    const target = urlPath === "/" ? "/index.html" : urlPath;
+    if (target.startsWith("/docs/")) {
+      const docFile = safePath(target.slice("/docs/".length), docsRoot);
+      if (!docFile) {
+        res.writeHead(403);
+        res.end("Forbidden");
+        return;
+      }
+      fs.stat(docFile, (err, st) => {
+        if (!err && st.isFile()) sendFile(res, docFile);
+        else {
+          res.writeHead(404);
+          res.end("Not found");
+        }
+      });
+      return;
+    }
     const file = safePath(target === "/" ? "/index.html" : target);
     if (!file) {
       res.writeHead(403);

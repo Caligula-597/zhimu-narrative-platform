@@ -61,10 +61,20 @@
     return html.join("");
   }
 
+  function looksLikeHtml(text) {
+    const head = String(text || "").trimStart().slice(0, 64).toLowerCase();
+    return head.startsWith("<!doctype") || head.startsWith("<html") || head.startsWith("<head");
+  }
+
   async function fetchGuide(path) {
     const response = await fetch(path);
     if (!response.ok) throw new Error("指引文档暂时无法加载，请确认前端服务已启动。");
-    return response.text();
+    const text = await response.text();
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("text/html") || looksLikeHtml(text)) {
+      throw new Error("指引文档未正确部署（返回了网页而非 Markdown）。请重新构建前端：npm run build");
+    }
+    return text;
   }
 
   async function openCreatorGuide() {
