@@ -2,7 +2,7 @@ import { pool, query, transaction } from "../db.js";
 import { requireActor } from "../request-actor.js";
 import { sendErr } from "../api-errors.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
-import { buildWorldSnapshot, creatorChecks, ROOMS_VISIBLE_TO_ACTOR_SQL } from "./world-helpers.js";
+import { buildWorldSnapshot, creatorChecks, ROOMS_VISIBLE_TO_ACTOR_SQL, pruneBrokenAutomationRules } from "./world-helpers.js";
 import {
   worldIdParams,
   createSceneSchema,
@@ -317,6 +317,7 @@ export async function registerStudioRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldReader(actorId, worldId);
+    await pruneBrokenAutomationRules(worldId);
     return { checks: creatorChecks(await buildWorldSnapshot(worldId)) };
   });
 

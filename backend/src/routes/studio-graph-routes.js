@@ -1,4 +1,5 @@
 import { query, transaction } from "../db.js";
+import { deleteWorldChapter } from "./world-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
@@ -118,6 +119,10 @@ export async function registerStudioGraphRoutes(app) {
     const table = tables[nodeType];
     if (!table) return sendErr(reply, "NODE_TYPE_UNSUPPORTED");
     const result = await transaction(async (client) => {
+      if (nodeType === "chapter") {
+        const removed = await deleteWorldChapter(client, worldId, nodeId);
+        return removed ? { rowCount: 1 } : { rowCount: 0 };
+      }
       await client.query(
         `DELETE FROM story_graph_edges
          WHERE world_id = $1 AND ((from_type = $2 AND from_id = $3) OR (to_type = $2 AND to_id = $3))`,

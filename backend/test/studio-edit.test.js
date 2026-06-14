@@ -152,3 +152,79 @@ test("creator can delete chapter and unbind linked scenes", async (context) => {
   const sceneRow = await query(`SELECT chapter_id FROM scenes WHERE id = $1`, [sceneId]);
   assert.equal(sceneRow.rows[0].chapter_id, null);
 });
+
+test("deleting chapter renumbers survivors and removes bound sections and rules", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const worldId = await fogWorldId();
+
+  const created = await app.inject({
+    method: "POST",
+    url: "/api/worlds",
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `Chapter reseq ${Date.now()}`, summary: "test" }
+  });
+  assert.equal(created.statusCode, 201);
+  const testWorldId = created.json().id;
+  context.after(async () => {
+    await query(`DELETE FROM worlds WHERE id = $1`, [testWorldId]);
+  });
+
+  const ch1 = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${testWorldId}/chapters`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: "序章", summary: "删我", sequence: 1 }
+  });
+  const ch2 = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${testWorldId}/chapters`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: "第一章", summary: "留我", sequence: 2 }
+  });
+  const chapter1Id = ch1.json().id;
+  const chapter2Id = ch2.json().id;
+
+  const role = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${testWorldId}/roles`,
+    headers: { "x-user-id": hostUserId },
+    payload: { name: "测试角色", publicProfile: "p", privateProfile: "s", sequence: 1 }
+  });
+  const roleId = role.json().id;
+
+  const section = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${testWorldId}/roles/${roleId}/sections`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: "序章分幕", body: "x".repeat(300), chapterId: chapter1Id, sequence: 1 }
+  });
+  const sectionId = section.json().id;
+
+  await query(
+    `INSERT INTO automation_rules (world_id, name, mode, conditions, actions)
+     VALUES ($1, '序章读完·自动记录', 'automatic', $2::jsonb, $3::jsonb)`,
+    [
+      testWorldId,
+      JSON.stringify({ all: [{ type: "reading_completed", roleSlotId: roleId, scriptSectionId: sectionId }] }),
+      JSON.stringify([{ type: "unlock_scene", sceneId: "00000000-0000-4000-8000-000000000001" }])
+    ]
+  );
+
+  const deleted = await app.inject({
+    method: "DELETE",
+    url: `/api/worlds/${testWorldId}/studio-nodes/chapter/${chapter1Id}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(deleted.statusCode, 200);
+
+  const seqRow = await query(`SELECT sequence, title FROM chapters WHERE id = $1`, [chapter2Id]);
+  assert.equal(seqRow.rows[0].sequence, 1);
+  assert.equal(seqRow.rows[0].title, "第一章");
+
+  const sectionRow = await query(`SELECT id FROM script_sections WHERE id = $1`, [sectionId]);
+  assert.equal(sectionRow.rowCount, 0);
+
+  const ruleRow = await query(`SELECT id FROM automation_rules WHERE world_id = $1 AND name LIKE '序章读完%'`, [testWorldId]);
+  assert.equal(ruleRow.rowCount, 0);
+});

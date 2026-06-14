@@ -261,7 +261,7 @@ async function deleteSelectedStudioNode(){
   if(refs.requiredItemCount)parts.push(`${refs.requiredItemCount} 个调查点需要此物品`);
   if(refs.ruleReferenceCount)parts.push(`${refs.ruleReferenceCount} 条规则引用`);
   const detail=parts.length?`<p>检测到 ${parts.join("、")}。</p>`:"";
-  const chapterNote=selected.type==="chapter"?`<p>关联场景与私人分幕不会被删除，但会变为「未绑定章节」。</p>`:"<p>这个节点可能被规则、边或调查点引用。删除后可能影响运行房。</p>";
+  const chapterNote=selected.type==="chapter"?`<p>绑定本章的私人分幕与引用这些分幕的自动化规则会一并删除；关联场景保留并解除绑定。剩余章节序号会自动重排。</p>`:"<p>这个节点可能被规则、边或调查点引用。删除后可能影响运行房。</p>";
   studioModal("确认删除节点",`${detail}${chapterNote}<div class="rule-block"><strong>${escapeHtml(studioNodeName(state.cloudStudio,selected.type,selected.id))}</strong></div>`,"确认删除",async()=>{try{await zhimuApi.deleteStudioNode(selected.type,selected.id);state.studioSelectedNode=null;closeModal();await loadCloudData();showToast(selected.type==="chapter"?"章节已删除":"节点及相关连线已删除")}catch(error){showToast(error.message)}});
  }catch(error){showToast(error.message)}
 }
