@@ -11,6 +11,10 @@
     EMAIL_NOT_VERIFIED: "请先验证邮箱后再创建剧本。",
     PASSWORD_RESET_INVALID: "重置链接无效或已过期，请重新申请。",
     EMAIL_VERIFICATION_INVALID: "验证链接无效或已过期，请重新发送验证邮件。",
+    OAUTH_LOGIN_CODE_INVALID: "Google 登录会话已过期，请重新点击 Google 登录。",
+    OAUTH_EXCHANGE_FAILED: "Google 授权失败，请稍后重试或改用邮箱登录。",
+    OAUTH_STATE_INVALID: "登录状态已失效，请重新发起 Google 登录。",
+    OAUTH_EMAIL_REQUIRED: "Google 账号未提供邮箱，无法注册，请改用邮箱注册。",
 
     FORBIDDEN: "你没有权限执行此操作。",
     ROOM_MEMBERSHIP_REQUIRED: "你不是该运行房的成员。",

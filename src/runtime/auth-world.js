@@ -305,6 +305,30 @@ function drainPendingInviteAfterAuth(){
  void acceptWorldInviteFromUrl(token);
 }
 
+async function finishOAuthSession(result){
+ localStorage.setItem("zhimuSessionToken",result.token);
+ window.zhimuContext?.resetAccountContext?.();
+ sessionStorage.removeItem("zhimuAuthPrompted");
+ closeModal();
+ await window.zhimuAuthSession?.syncProfile?.();
+ window.zhimuAuthSession?.syncAuthBanner?.();
+ showToast("OAuth 登录成功");
+ await loadCloudData(true,true);
+ drainPendingInviteAfterAuth();
+ render();
+ if(!zhimuApi.context.worldId){
+  const hasWorlds=(state.cloudWorlds||[]).length>0;
+  setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400);
+ }
+}
+
+function clearStartupSearchParams(keys){
+ const params=new URLSearchParams(window.location.search);
+ keys.forEach((key)=>params.delete(key));
+ const qs=params.toString();
+ window.history.replaceState({},"",`${window.location.pathname}${window.location.hash||""}${qs?`?${qs}`:""}`);
+}
+
 function handleStartupAuthParams(){
  const params=new URLSearchParams(window.location.search);
  const resetToken=params.get("reset");
@@ -313,29 +337,36 @@ function handleStartupAuthParams(){
  const oauthError=params.get("oauth_error");
  const inviteToken=params.get("invite");
  if(!resetToken&&!verifyToken&&!oauthCode&&!oauthError&&!inviteToken)return;
- const cleanUrl=`${window.location.pathname}${window.location.hash||""}`;
- window.history.replaceState({},"",cleanUrl);
- if(resetToken)openResetPassword(resetToken);
- if(verifyToken)openVerifyEmail(verifyToken);
- if(oauthError)showToast(`OAuth 登录失败：${oauthError}`);
- if(inviteToken)acceptWorldInviteFromUrl(inviteToken);
+ const pending=[];
+ if(resetToken){
+  clearStartupSearchParams(["reset"]);
+  openResetPassword(resetToken);
+ }
+ if(verifyToken){
+  clearStartupSearchParams(["verify"]);
+  pending.push((async()=>{await openVerifyEmail(verifyToken)})());
+ }
+ if(oauthError){
+  clearStartupSearchParams(["oauth_error"]);
+  showToast(`OAuth 登录失败：${oauthError}`);
+ }
+ if(inviteToken){
+  clearStartupSearchParams(["invite"]);
+  acceptWorldInviteFromUrl(inviteToken);
+ }
  if(oauthCode){
-  (async()=>{
+  pending.push((async()=>{
    try{
     const result=await zhimuApi.completeOAuth(oauthCode);
-    localStorage.setItem("zhimuSessionToken",result.token);
-    window.zhimuContext?.resetAccountContext?.();
-    await window.zhimuAuthSession?.syncProfile?.();
-    window.zhimuAuthSession?.syncAuthBanner?.();
-    showToast("OAuth 登录成功");
-    await loadCloudData(true,true);
-    drainPendingInviteAfterAuth();
-    render();
+    clearStartupSearchParams(["oauth_code"]);
+    await finishOAuthSession(result);
    }catch(error){
+    clearStartupSearchParams(["oauth_code"]);
     showToast(error.message||"OAuth 登录失败");
    }
-  })();
+  })());
  }
+ if(pending.length)return Promise.all(pending);
 }
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, selectParallelRoom, openRoomInvite, openJoinRoom, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });
 })(window);

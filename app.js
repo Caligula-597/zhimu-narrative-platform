@@ -131,15 +131,18 @@
   render();
   window.zhimuAuthSession?.syncProfile?.();
   window.zhimuAuthSession?.syncAuthBanner?.();
-  R.handleStartupAuthParams?.();
-  R.loadCloudData()
+  const startupAuth = R.handleStartupAuthParams?.();
+  Promise.resolve(startupAuth)
+    .then(() => R.loadCloudData())
     .catch((error) => {
       state.cloudLoading = false;
       state.apiError = error.message || String(error);
       window.zhimuRender();
     })
     .finally(() => {
-      window.zhimuAuthSession?.promptAuthIfNeeded?.();
+      if (!window.zhimuAuthSession?.isLoggedIn?.()) {
+        window.zhimuAuthSession?.promptAuthIfNeeded?.();
+      }
     });
 })(window);
 export {};
