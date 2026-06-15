@@ -25,7 +25,7 @@
 
 **织幕**是面向线上长线剧本杀的自动化叙事引擎：创作者在云端写世界、编排剧情、配规则；玩家入房阅读、探索、收线索；主持台监控进度、确认事件、手动干预；数据落在 **PostgreSQL** 与 **Cloudflare R2**。
 
-当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**222** 项后端测试 + **56** 条 schema 门禁 + smoke/E2E 可复验。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。尚不适合作为公开 SaaS：缺 Stripe 订阅、实体卡、生产级 AV 扫描与前端现代化。
+当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**222** 项后端测试 + **56** 条 schema 门禁 + smoke/E2E 可复验。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。**内测期免费、无充值入口**（见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)）；Stripe 订阅等商业化能力**正式对外后再做**。
 
 ---
 
@@ -43,7 +43,7 @@
 | DeepSeek AI | 🟡 | 需 `DEEPSEEK_API_KEY` |
 | LiveKit 语音 | ✅ | Token API + 前端连接/麦克风状态与重试 |
 | 实体卡 / NFC | ❌ | 仅占位 |
-| 生产 SaaS（Stripe/AV 扫描） | 🟡 | OAuth/配额/邀请 ✅；Stripe 🔲 |
+| 生产 SaaS（Stripe/AV 扫描） | 🟡 | 内测免费、无前端结账；OAuth/配额 ✅；Stripe **搁置至商业化** |
 
 **参考 Demo**
 
@@ -255,8 +255,9 @@ npm run verify:full:fresh
 ### 7.2 建议下一步（产品/工程）
 
 1. 本机或 VPS 跑通 Docker 预发（[STAGING.md](./ops/STAGING.md)）；`.env.staging` 同步 Resend / LiveKit / R2 / DeepSeek Key，`APP_PUBLIC_URL` 与访问端口一致。
-2. 内测包：`VITE_REQUIRE_AUTH=1` 构建 + [REMOTE_TESTING.md](./ops/REMOTE_TESTING.md)。
-3. Stripe 订阅 webhook、实体卡/NFC、生产级上传 AV、OpenTelemetry SDK、可选 Redis 总线。
+2. 内测包：`VITE_REQUIRE_AUTH=1` 构建 + [REMOTE_TESTING.md](./ops/REMOTE_TESTING.md)；范围见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)。
+3. **商业化后再做**：Stripe 订阅 webhook、前端结账 UI（当前刻意不提供充值入口）。
+4. 工程向：实体卡/NFC 验签、生产级上传 AV、OpenTelemetry SDK、可选 Redis 总线。
 
 ---
 
@@ -296,6 +297,7 @@ cd .. && npm run check:modules && npm run build
 | [RELEASE_NOTES.md](../RELEASE_NOTES.md) | 版本增量摘要 |
 | [AI_PIPELINE_UI_ZH.md](./AI_PIPELINE_UI_ZH.md) | AI 剧本创作 UI 位置、流程、性能 |
 | [PROMPT_ENGINEERING.md](./PROMPT_ENGINEERING.md) | DeepSeek 分层 API 与 prompt |
+| [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md) | 内测免费范围、无付费入口、配额人工扩容 |
 
 **维护约定**：改验收数字时，同步更新 **PROJECT_STATUS §2**、**SECURITY_AND_TESTING 整体验收表**、**本文 §5 表**；`FEATURE_CATALOG` 工程总表（§3 前「工程与测试」）与历史 § 内快照数字可保留「当时」语义，但勿与 PROJECT_STATUS 矛盾。
 

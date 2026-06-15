@@ -572,6 +572,17 @@ await check("pm-onboarding-session-mode", async () => {
   return "PM P0: session mode + onboarding + empty templates wired";
 });
 
+await check("beta-free-no-payment-copy", async () => {
+  const messages = readSource("src/utils/user-messages.js");
+  const quota = readSource("src/runtime/account-quota.js");
+  if (messages.includes("升级套餐")) throw new Error("user-messages still mentions paid upgrade");
+  if (!messages.includes("support@getzhimu.com")) throw new Error("quota messages missing beta support contact");
+  if (!quota.includes("暂无订阅或充值入口")) throw new Error("account-quota missing beta free note");
+  const betaScope = readSource("docs/BETA_SCOPE_ZH.md");
+  if (!betaScope.includes("无付费入口")) throw new Error("BETA_SCOPE_ZH missing");
+  return "beta free copy + scope doc present";
+});
+
 await check("backend-health-reachable", async () => {
   const response = await fetch(`${API}/health`);
   const payload = await response.json().catch(() => ({}));

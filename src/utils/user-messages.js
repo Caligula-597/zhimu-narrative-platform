@@ -228,11 +228,11 @@
     const details = payload.details;
     if (code === "WORLD_QUOTA_EXCEEDED" && details) {
       const plan = details.planLabel || details.planCode || "当前套餐";
-      return `可创建剧本已达上限（${details.usedWorlds ?? "?"}/${details.maxWorlds ?? "?"} · ${plan}）。`;
+      return `可创建剧本已达上限（${details.usedWorlds ?? "?"}/${details.maxWorlds ?? "?"} · ${plan}）。内测期间如需扩容请联系 support@getzhimu.com。`;
     }
     if (code === "STORAGE_QUOTA_EXCEEDED" && details) {
       const plan = details.planLabel || details.planCode || "当前套餐";
-      return `云存储空间不足（${plan}）。请清理附件或升级套餐。`;
+      return `云存储空间不足（${plan}）。请清理附件或移入回收站；内测期间如需扩容请联系 support@getzhimu.com。`;
     }
     if (code === "FILE_TOO_LARGE" && details?.maxSingleFileBytes) {
       return `文件超出单文件上限（最大 ${Math.round(details.maxSingleFileBytes / 1048576)} MB）。`;

@@ -41,7 +41,7 @@
 | 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
 |--------|--------------|----------|----------|
 | WORLD_NOT_FOUND | 世界不存在或无权访问 | 错误 worldId | 删除世界后仍请求旧 ID |
-| WORLD_QUOTA_EXCEEDED | 可创建的世界数量已达上限 | 超出账号配额 | 连续创建超过 max_worlds |
+| WORLD_QUOTA_EXCEEDED | 可创建的世界数量已达上限 | 超出账号配额 | 连续创建超过 max_worlds；**内测期**联系 support@getzhimu.com 人工扩容 |
 | ROOM_NOT_FOUND | 运行房不存在或无权访问 | 错误 roomId / 邀请码 | 错误 inviteCode join |
 | ROLE_SLOT_OCCUPIED | 该角色席位已被占用 | 两玩家选同一席 | 第二人 join 同 roleSlotId |
 | ROLE_SLOT_NOT_FOUND | 角色席位不存在 | join 时席位 ID 无效 | 伪造 UUID join |
@@ -92,7 +92,7 @@
 
 | 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
 |--------|--------------|----------|----------|
-| STORAGE_QUOTA_EXCEEDED | 云端空间已满 | 账号存储超限 | 上传至 quota 满 |
+| STORAGE_QUOTA_EXCEEDED | 云端空间已满 | 账号存储超限 | 上传至 quota 满；先清理附件/回收站，内测期联系 support@getzhimu.com |
 | FILE_TOO_LARGE | 文件超出大小限制 | 单文件过大 | 上传超大文件 |
 | ASSET_NOT_FOUND | 附件不存在 | 删除后访问 | 错误 assetId |
 | UPLOAD_SESSION_NOT_FOUND | 上传会话已过期 | confirm 超时 | 延迟 confirm |
