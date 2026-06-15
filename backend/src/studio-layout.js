@@ -44,7 +44,7 @@ const PAD = 40;
 const LAYER_STEP_X = 220;
 const LAYER_STEP_Y = 156;
 const CHILD_STEP_Y = 136;
-const CANVAS = Object.freeze({ maxX: 980, maxY: 2400 });
+const CANVAS = Object.freeze({ maxX: 2600, maxY: 8000 });
 
 function nodeKey(type, id) {
   return `${type}:${id}`;

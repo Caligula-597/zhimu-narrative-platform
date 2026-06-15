@@ -34,6 +34,7 @@ window.zhimuState = {
   studioZoom: 1,
   studioLayoutMode: "scene-tree",
   studioCollapsedScenes: [],
+  studioCanvasHeight: 0,
   searchFocus: null,
   cluesSearchQuery: "",
   cluesSelectedId: null,

@@ -50,9 +50,35 @@
   const openJoinRoom = R.openJoinRoom || (() => {});
   window.zhimuViews = window.zhimuViews || {};
   const viewExports = window.zhimuViews.studio = window.zhimuViews.studio || {};
+const STUDIO_NODE_W=172;
+const STUDIO_NODE_H=140;
+const STUDIO_PAD=16;
+const STUDIO_CANVAS_MIN={width:1200,height:1600};
+const STUDIO_CANVAS_MAX={width:2800,height:8000};
+
+function studioCanvasMetrics(data){
+ let maxX=STUDIO_CANVAS_MIN.width,maxY=STUDIO_CANVAS_MIN.height;
+ studioNodeList(data).forEach(node=>{const pos=studioNodePosition(node,data);maxX=Math.max(maxX,pos.x+STUDIO_NODE_W+100);maxY=Math.max(maxY,pos.y+STUDIO_NODE_H+140)});
+ const extra=Number(state.studioCanvasHeight)||0;
+ return {width:Math.min(STUDIO_CANVAS_MAX.width,maxX),height:Math.min(STUDIO_CANVAS_MAX.height,Math.max(maxY,extra,STUDIO_CANVAS_MIN.height))};
+}
+
+function studioClampNodePosition(canvas,x,y){
+ const width=canvas?.offsetWidth||STUDIO_CANVAS_MIN.width,height=canvas?.offsetHeight||STUDIO_CANVAS_MIN.height;
+ return {x:Math.max(STUDIO_PAD,Math.min(width-STUDIO_NODE_W,x)),y:Math.max(STUDIO_PAD,Math.min(height-STUDIO_NODE_H,y))};
+}
+
+function studioEnsureCanvasRoom(canvas,x,y){
+ if(!canvas)return;
+ const needW=Math.min(STUDIO_CANVAS_MAX.width,x+STUDIO_NODE_W+120),needH=Math.min(STUDIO_CANVAS_MAX.height,y+STUDIO_NODE_H+160);
+ if(needW>canvas.offsetWidth)canvas.style.width=`${needW}px`;
+ if(needH>canvas.offsetHeight){canvas.style.minHeight=`${needH}px`;state.studioCanvasHeight=needH;}
+}
+
 function studioCloud() {
  const data=state.cloudStudio;
  if(!data)return U.creatorWorkspaceEmpty?.({title:"剧情编排台",kicker:"STORY STUDIO",intro:"用场景、线索、调查点与连线组织可运行的互动结构。选择剧本后会在画布上展示完整图谱。",guideTitle:"编排台会提供什么",guideItems:[{label:"图谱",title:"节点与连线",text:"章节、场景、线索、物品、调查点可视化编排。",bullets:["拖拽布局与多种自动排布板式","节点引用检查"]},{label:"探索",title:"调查与线索流转",text:"玩家调查、获得线索、主持确认后解锁新区域。",bullets:["与运行房进度隔离的平行房"]},{label:"资产",title:"附件关联",text:"线索图、音频等可在节点上引用。",bullets:["需先在「内容资产」上传"]}]})||`<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
+ const canvas=studioCanvasMetrics(data);
  return `${catalogExperienceBanner(data.world)}<section class="studio-layout">
   <aside class="panel"><div class="panel-title">剧本杀世界结构</div><div class="tree">
    <div class="tree-item">◈　${data.world.name}</div>
@@ -63,7 +89,7 @@ function studioCloud() {
   <div class="story-workspace">
    <div class="story-toolbar"><div class="story-toolbar-row"><div class="tool-group"><button class="tool" data-action="studio-add-scene">＋ 场景</button><button class="tool" data-action="studio-add-clue">＋ 线索</button><button class="tool" data-action="studio-add-item">＋ 物品</button><button class="tool" data-action="studio-add-point">＋ 调查点</button><button class="tool" data-action="studio-add-chapter">＋ 章节</button></div><div class="tool-group"><button class="tool" data-action="studio-auto-layout-menu">自动排布 ▾</button><button class="tool" data-action="studio-zoom-out">−</button><span class="zoom-label">${Math.round(state.studioZoom*100)}%</span><button class="tool" data-action="studio-zoom-in">＋</button></div></div>
    <div class="story-toolbar-row"><div class="filter-tabs">${studioFilterButton("all","全部节点")}${studioFilterButton("chapter","章节")}${studioFilterButton("scene","场景")}${studioFilterButton("clue","线索")}${studioFilterButton("item","物品")}${studioFilterButton("investigation_point","调查点")}</div><div class="graph-legend"><span><i class="relation-mainline"></i>主线</span><span><i class="relation-parallel"></i>并列</span><span><i class="relation-extension"></i>延伸</span></div></div>${studioCompactSelection(data)}</div>
-   <div class="node-board"><button class="canvas-add-btn" data-action="studio-add-node-menu">＋ 在画布中新增节点</button><div class="graph-canvas" style="transform:scale(${state.studioZoom})">
+   <div class="node-board"><button class="canvas-add-btn" data-action="studio-add-node-menu">＋ 在画布中新增节点</button><div class="graph-canvas" style="width:${canvas.width}px;min-height:${canvas.height}px;transform:scale(${state.studioZoom})">
       ${studioEdges(data)}${studioNodes(data)}
    </div></div>
   </div>
@@ -195,12 +221,12 @@ function bindStudioDragging(){
   document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});
  };
  document.querySelectorAll(".node").forEach(target=>target.onpointerdown=event=>{
-  if(event.target.closest(".node-link-handle"))return;
+  if(event.target.closest(".node-link-handle")||event.target.closest(".node-branch-toggle"))return;
   event.preventDefault();event.stopPropagation();
   const canvas=target.closest(".graph-canvas"),scale=state.studioZoom;
   const start={x:event.clientX,y:event.clientY,left:target.offsetLeft,top:target.offsetTop};
   target.classList.add("dragging");target.setPointerCapture?.(event.pointerId);
-  const move=moveEvent=>{const x=Math.max(16,Math.min(1020,start.left+(moveEvent.clientX-start.x)/scale)),y=Math.max(16,Math.min(1200,start.top+(moveEvent.clientY-start.y)/scale));target.style.left=`${x}px`;target.style.top=`${y}px`;refreshStudioConnectors(canvas)};
+  const move=moveEvent=>{let x=start.left+(moveEvent.clientX-start.x)/scale,y=start.top+(moveEvent.clientY-start.y)/scale;studioEnsureCanvasRoom(canvas,x,y);({x,y}=studioClampNodePosition(canvas,x,y));target.style.left=`${x}px`;target.style.top=`${y}px`;refreshStudioConnectors(canvas)};
   const finish=async upEvent=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);target.classList.remove("dragging");const x=Math.round(target.offsetLeft),y=Math.round(target.offsetTop),type=target.dataset.nodeType,id=target.dataset.nodeId;setStudioNodePosition(type,id,{x,y});try{await zhimuApi.updateStudioNodePosition(type,id,{x,y});showToast("节点位置已保存到云端")}catch(error){showToast(error.message)}};
   document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});
  });
@@ -248,6 +274,7 @@ async function autoLayoutStudio(mode = state.studioLayoutMode || "scene-tree"){
   const result=await zhimuApi.autoStoryLayout(mode);
   state.studioLayoutMode=mode;
   state.studioCollapsedScenes=[];
+  state.studioCanvasHeight=0;
   for(const position of result.positions||[]){setStudioNodePosition(position.type,position.id,{x:position.x,y:position.y})}
   render();
   await loadCloudData();
