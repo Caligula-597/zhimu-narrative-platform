@@ -104,8 +104,10 @@ function overview() {
   const statusTitle = hasActiveRoom ? escapeHtml(room.name) : hasRooms ? "请选择一个运行房" : "尚未创建测试房";
   const statusKicker = hasActiveRoom ? "RUNTIME ACTIVE" : hasRooms ? "ROOMS READY" : "CREATOR MODE";
   const showCatalogPromo = !loading && !studio && Boolean(localStorage.getItem("zhimuSessionToken"));
+  const onboardingStrip = window.zhimuOnboarding?.renderOnboardingStrip?.() || "";
   return `
     ${cloudStatus()}
+    ${onboardingStrip}
     ${studioEmptyBanner}
     ${showCatalogPromo ? U.catalogPromoSection?.() || "" : ""}
     <section class="hero">

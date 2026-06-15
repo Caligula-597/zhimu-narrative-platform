@@ -1,20 +1,36 @@
 /** Session-first auth UX for staging / internal test builds. */
 (function (window) {
   const state = window.zhimuState;
+  const S = () => window.zhimuSessionMode || {};
 
   function isLoggedIn() {
-    return Boolean(localStorage.getItem("zhimuSessionToken"));
+    return S().isLoggedIn?.() ?? Boolean(localStorage.getItem("zhimuSessionToken"));
   }
 
   function requiresAuth() {
-    return Boolean(window.zhimuConfig?.requireAuth);
+    return S().requiresAuth?.() ?? Boolean(window.zhimuConfig?.requireAuth);
   }
 
   function syncAuthBanner() {
     const banner = document.getElementById("auth-banner");
     if (!banner) return;
-    const show = requiresAuth() && !isLoggedIn();
+    const meta = S().getSessionModeMeta?.() || { showTopBanner: false };
+    const show = meta.showTopBanner && !isLoggedIn();
     banner.hidden = !show;
+    if (!show) return;
+    const pill = banner.querySelector("[data-session-pill]");
+    const title = banner.querySelector("[data-session-title]");
+    const desc = banner.querySelector("[data-session-desc]");
+    const loginBtn = banner.querySelector("#auth-banner-login");
+    if (pill) {
+      pill.textContent = meta.pill;
+      pill.className = `cloud-pill session-pill ${meta.pillClass || ""}`;
+      pill.hidden = false;
+    }
+    if (title) title.textContent = meta.title;
+    if (desc) desc.textContent = meta.description;
+    if (loginBtn) loginBtn.hidden = !meta.showLoginCta;
+    banner.dataset.sessionMode = meta.mode;
   }
 
   async function syncProfile() {
@@ -26,15 +42,14 @@
     if (!strong || !small || !avatar) return;
 
     if (!isLoggedIn()) {
-      if (requiresAuth()) {
-        strong.textContent = "未登录";
-        small.textContent = "点击登录或注册";
-        avatar.textContent = "?";
-      } else if (window.zhimuConfig?.demoMode) {
-        strong.textContent = "未登录";
-        small.textContent = "点击登录或注册";
-        avatar.textContent = "?";
-      }
+      const fallback = S().getSessionModeMeta?.()?.profileFallback || {
+        strong: "未登录",
+        small: "点击登录或注册",
+        avatar: "?"
+      };
+      strong.textContent = fallback.strong;
+      small.textContent = fallback.small;
+      avatar.textContent = fallback.avatar;
       return;
     }
 
@@ -51,6 +66,8 @@
   }
 
   function promptAuthIfNeeded(force = false) {
+    const mode = S().getSessionMode?.();
+    if (mode === "demo_browse" && !force) return false;
     if (!requiresAuth() && !force) return false;
     if (isLoggedIn()) return false;
     syncAuthBanner();
@@ -63,7 +80,7 @@
   }
 
   function isDemoBrowseMode() {
-    return Boolean(window.zhimuConfig?.demoMode) && !isLoggedIn();
+    return S().isDemoBrowseMode?.() ?? (Boolean(window.zhimuConfig?.demoMode) && !isLoggedIn());
   }
 
   window.zhimuAuthSession = {

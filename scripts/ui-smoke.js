@@ -548,6 +548,30 @@ await check("app-bootstrap-thin", async () => {
   return `app.js bootstrap ${lines} lines`;
 });
 
+await check("pm-onboarding-session-mode", async () => {
+  const sessionMode = readSource("src/runtime/session-mode.js");
+  const onboarding = readSource("src/components/onboarding-strip.js");
+  const authSession = readSource("src/runtime/auth-session.js");
+  const indexHtml = readSource("index.html");
+  const rules = readSource("src/views/rules.js");
+  if (!sessionMode.includes("demo_browse") || !sessionMode.includes("sessionStripHtml")) {
+    throw new Error("session-mode missing demo_browse labels");
+  }
+  if (!authSession.includes("zhimuSessionMode")) throw new Error("auth-session must use zhimuSessionMode");
+  if (!onboarding.includes("renderOnboardingStrip") || !onboarding.includes("dismiss")) {
+    throw new Error("onboarding strip incomplete");
+  }
+  if (!indexHtml.includes("nav-advanced") || !indexHtml.includes("data-session-pill")) {
+    throw new Error("index.html missing nav-advanced or session banner markup");
+  }
+  if (!rules.includes("rule-seed-examples") || !rules.includes("seedExampleRules")) {
+    throw new Error("rules view missing example seed action");
+  }
+  const guide = readSource("docs/CREATOR_GUIDE.md");
+  if (!guide.includes("首次 3 分钟体验")) throw new Error("CREATOR_GUIDE missing 3-min path");
+  return "PM P0: session mode + onboarding + empty templates wired";
+});
+
 await check("backend-health-reachable", async () => {
   const response = await fetch(`${API}/health`);
   const payload = await response.json().catch(() => ({}));

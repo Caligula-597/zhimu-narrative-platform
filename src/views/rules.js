@@ -46,10 +46,22 @@
   const openJoinRoom = R.openJoinRoom || (() => {});
   window.zhimuViews = window.zhimuViews || {};
   const viewExports = window.zhimuViews.rules = window.zhimuViews.rules || {};
+
+function canEditRules(){
+ const world=state.cloudStudio?.world;
+ const role=world?.membership_role;
+ return role==="owner"||role==="editor";
+}
+
+function rulesEmptyState(studio){
+ const editable=canEditRules();
+ return `<div class="empty-state enriched-empty"><p><strong>尚未建立自动化规则</strong></p><p>规则会在玩家读完分幕、获得线索或完成调查后自动推进剧情。空列表不代表功能未完成——你可以一键载入示例模板，或从零新建。</p><ul class="empty-hints"><li>示例含：读完记录、主持确认节点、线索/场景占位规则</li><li>载入后可在可视化编辑器里改成真实引用</li></ul><div class="row">${editable?`<button class="primary-btn" data-action="rule-seed-examples">载入示例规则</button>`:""}<button class="secondary-btn" data-action="rule-new">＋ 新建规则</button><button class="text-btn" data-action="open-creator-guide">阅读规则说明</button></div>${!editable?`<p class="muted-note">当前为只读体验；登录并拥有编辑权限后可写入规则。</p>`:""}</div>`;
+}
+
 function rules() {
- const data=state.cloudRules||[],modeName={automatic:"自动执行",host_confirm:"主持确认",manual:"仅手动"};
+ const data=state.cloudRules||[],modeName={automatic:"自动执行",host_confirm:"主持确认",manual:"仅手动"},studio=state.cloudStudio;
  return `<section class="rules-layout"><div><div class="section-head"><div><h3>规则列表</h3><p>规则已经连接云端数据库。条件满足后，系统执行动作或提交主持人确认。</p></div><div class="row"><button class="secondary-btn" data-action="open-creator-guide">创作指引</button><button class="primary-btn" data-action="rule-new">＋ 新建规则</button></div></div>
- ${data.map(rule=>{const summary=window.zhimuRuleVisual?.summarizeRule(rule.conditions,rule.actions)||{when:JSON.stringify(rule.conditions),then:JSON.stringify(rule.actions)};return `<article class="rule-card"><div class="rule-card-top"><button class="toggle ${rule.enabled?"on":""}" data-action="rule-toggle" data-rule="${rule.id}" title="启用或暂停规则"><i></i></button><h3>${escapeHtml(rule.name)}</h3><span class="mode ${rule.mode==="host_confirm"?"confirm":""}">${modeName[rule.mode]}</span></div><p class="rule-text"><b>当</b> ${escapeHtml(summary.when)}<br><b>则</b> ${escapeHtml(summary.then)}</p><div class="rule-stats"><span>● ${rule.enabled?"已启用":"已暂停"}</span><span>优先级 ${rule.priority}</span><span>${escapeHtml(rule.room_name||"世界模板")}</span></div><div class="row rule-actions"><button class="text-btn" data-action="rule-edit" data-rule="${rule.id}">编辑</button><button class="text-btn danger-text" data-action="rule-delete" data-rule="${rule.id}">删除</button></div></article>`}).join("")||`<div class="empty-state">尚未建立自动化规则。先创建一条阅读完成或调查点完成规则。</div>`}</div>
+ ${data.map(rule=>{const summary=window.zhimuRuleVisual?.summarizeRule(rule.conditions,rule.actions)||{when:JSON.stringify(rule.conditions),then:JSON.stringify(rule.actions)};return `<article class="rule-card"><div class="rule-card-top"><button class="toggle ${rule.enabled?"on":""}" data-action="rule-toggle" data-rule="${rule.id}" title="启用或暂停规则"><i></i></button><h3>${escapeHtml(rule.name)}</h3><span class="mode ${rule.mode==="host_confirm"?"confirm":""}">${modeName[rule.mode]}</span></div><p class="rule-text"><b>当</b> ${escapeHtml(summary.when)}<br><b>则</b> ${escapeHtml(summary.then)}</p><div class="rule-stats"><span>● ${rule.enabled?"已启用":"已暂停"}</span><span>优先级 ${rule.priority}</span><span>${escapeHtml(rule.room_name||"世界模板")}</span></div><div class="row rule-actions"><button class="text-btn" data-action="rule-edit" data-rule="${rule.id}">编辑</button><button class="text-btn danger-text" data-action="rule-delete" data-rule="${rule.id}">删除</button></div></article>`}).join("")||rulesEmptyState(studio)}</div>
  <aside class="card"><div class="section-head"><div><h3>自动化概览</h3><p>创作阶段规则检查</p></div></div>
  ${stat("⌘",String(data.length),"条云端规则","支持世界模板与测试房")}${stat("✓",String(data.filter(rule=>rule.enabled).length),"条已启用","暂停规则不会触发")}${stat("◷",String(data.filter(rule=>rule.mode==="host_confirm").length),"项主持确认","关键转折保留人工判断")}
  <button class="secondary-btn full-btn" data-action="rule-validate">运行规则检查</button></aside></section>`;
@@ -122,11 +134,33 @@ async function toggleCloudRule(ruleId){const rule=state.cloudRules.find(item=>it
 async function deleteCloudRule(ruleId){try{await zhimuApi.deleteRule(ruleId);await loadCloudData();showToast("规则已删除")}catch(error){showToast(error.message)}}
 
 async function validateCloudRules(){try{const result=await zhimuApi.validateRules();openModal("规则检查完成",result.checks.length?result.checks.map(check=>`<b>${escapeHtml(check.title)}</b><br><span>${escapeHtml(check.detail)}</span>`).join("<br><br>"):`已检查 ${result.totalRules} 条规则，没有发现结构问题。`,"知道了")}catch(error){showToast(error.message)}}
+
+async function seedExampleRules(){
+ if(!canEditRules())return showToast("当前为只读体验，登录并拥有编辑权限后可载入示例");
+ const studio=state.cloudStudio;
+ const roles=studio?.roles||[];
+ const sections=studio?.sections||[];
+ if(!roles.length||!sections.length)return showToast("请先确保当前世界已有角色与分幕");
+ const primary=roles[0];
+ const section=sections.find(item=>item.role_slot_id===primary.id);
+ if(!section?.id)return showToast("未找到可用于示例规则的角色分幕");
+ const templates={reading:true,chapter:true,clue:true,hint:true};
+ const bodies=window.zhimuWizardAutomation?.buildWizardAutomationRules?.({roles:[{id:primary.id,name:primary.name,sectionId:section.id}],templates})||[];
+ if(!bodies.length)return showToast("无法生成示例规则");
+ let created=0;
+ for(const body of bodies){
+  try{await zhimuApi.createRule(body);created+=1}catch(error){console.warn("seed rule skipped",error)}
+ }
+ await loadCloudData();
+ showToast(created?`已载入 ${created} 条示例规则，可在列表中编辑引用`:"示例规则载入失败，请稍后重试");
+ render();
+}
   viewExports.rules = rules;
   viewExports.rulePayload = rulePayload;
   viewExports.openRuleEditor = openRuleEditor;
   viewExports.toggleCloudRule = toggleCloudRule;
   viewExports.deleteCloudRule = deleteCloudRule;
   viewExports.validateCloudRules = validateCloudRules;
+  viewExports.seedExampleRules = seedExampleRules;
 })(window);
 export {};

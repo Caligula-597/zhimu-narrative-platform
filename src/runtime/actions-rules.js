@@ -19,6 +19,7 @@
       case "rule-delete": R.deleteCloudRule?.(el?.dataset?.rule); return true;
       case "rule-toggle": R.toggleCloudRule?.(el?.dataset?.rule); return true;
       case "rule-validate": R.validateCloudRules?.(); return true;
+      case "rule-seed-examples": R.seedExampleRules?.(); return true;
       default: return false;
     }
   }

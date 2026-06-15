@@ -41,6 +41,27 @@
       case "refresh-cloud":
         window.zhimuLoadCloudData?.(true, true);
         return true;
+      case "dismiss-onboarding":
+        window.zhimuOnboarding?.dismiss?.();
+        window.zhimuRender?.();
+        return true;
+      case "toggle-nav-advanced": {
+        const panel = document.getElementById("nav-advanced");
+        const expanded = panel && panel.hidden;
+        if (panel) panel.hidden = !expanded;
+        localStorage.setItem("zhimuNavAdvanced", expanded ? "1" : "0");
+        window.zhimuNavShell?.syncNavAdvanced?.();
+        return true;
+      }
+      case "onboarding-go-player":
+        window.zhimuOnboarding?.markPlayerVisit?.();
+        if (window.zhimuState?.cloudPlayer) window.zhimuRuntime?.go?.("player");
+        else window.zhimuRuntime?.openJoinRoom?.();
+        return true;
+      case "onboarding-go-director":
+        window.zhimuOnboarding?.markDirectorVisit?.();
+        window.zhimuRuntime?.go?.("director");
+        return true;
       case "refresh-host-room":
         R.refreshHostRoom?.(true);
         return true;

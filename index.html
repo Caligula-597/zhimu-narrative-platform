@@ -70,27 +70,31 @@
 
           <button class="nav-item active" data-view="overview"><span>⌂</span>世界总览</button>
 
-          <button class="nav-item" data-view="writer"><span>✎</span>剧本杀创作</button>
-
           <button class="nav-item" data-view="studio"><span>◇</span>剧情编排</button>
-
-          <button class="nav-item" data-view="clues"><span>◆</span>线索管理</button>
-
-          <button class="nav-item" data-view="assets"><span>▤</span>内容资产</button>
-
-          <button class="nav-item" data-view="rules"><span>⌘</span>自动化规则</button>
-
-          <p class="nav-label">帮助</p>
-
-          <button class="nav-item" data-action="open-creator-guide"><span>?</span>创作指引</button>
-
-          <p class="nav-label">运行</p>
 
           <button class="nav-item" data-view="director"><span>◉</span>主持监控台<i class="live-dot"></i></button>
 
           <button class="nav-item" data-view="player"><span>♙</span>玩家视角</button>
 
-          <button class="nav-item" data-view="archive"><span>◷</span>存档与复盘</button>
+          <button type="button" class="nav-expand-btn" data-action="toggle-nav-advanced" aria-expanded="false" aria-controls="nav-advanced">⋯ 更多创作工具</button>
+
+          <div class="nav-advanced" id="nav-advanced" hidden>
+
+            <button class="nav-item" data-view="writer"><span>✎</span>剧本杀创作</button>
+
+            <button class="nav-item" data-view="clues"><span>◆</span>线索管理</button>
+
+            <button class="nav-item" data-view="assets"><span>▤</span>内容资产</button>
+
+            <button class="nav-item" data-view="rules"><span>⌘</span>自动化规则</button>
+
+            <button class="nav-item" data-view="archive"><span>◷</span>存档与复盘</button>
+
+          </div>
+
+          <p class="nav-label">帮助</p>
+
+          <button class="nav-item" data-action="open-creator-guide"><span>?</span>创作指引</button>
 
         </nav>
 
@@ -121,7 +125,11 @@
       <main class="main-area">
 
         <div id="auth-banner" class="auth-banner" hidden>
-          <p>登录后可保存剧本、邀请协作并记录运行数据。</p>
+          <div class="auth-banner-copy">
+            <span class="cloud-pill session-pill" data-session-pill hidden></span>
+            <strong data-session-title>请登录后继续使用</strong>
+            <p data-session-desc>登录后可保存剧本、邀请协作并记录运行数据。</p>
+          </div>
           <button type="button" class="primary-btn" id="auth-banner-login">登录 / 注册</button>
         </div>
 
