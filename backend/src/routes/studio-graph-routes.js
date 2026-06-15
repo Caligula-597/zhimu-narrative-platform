@@ -1,15 +1,22 @@
 import { query, transaction } from "../db.js";
-import { deleteWorldChapter } from "./world-helpers.js";
+import { deleteWorldChapter, buildWorldSnapshot } from "./world-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
+import {
+  STUDIO_LAYOUT_MODES,
+  STORY_LAYOUT_TABLES,
+  computeStoryLayout,
+  persistStoryLayoutPositions
+} from "../studio-layout.js";
 import {
   studioNodeReferencesSchema,
   deleteStoryEdgeSchema,
   deleteStudioNodeSchema,
   updateNodePositionSchema,
   updateNodeAnchorsSchema,
-  updateStoryLayoutSchema
+  updateStoryLayoutSchema,
+  autoStoryLayoutSchema
 } from "./schemas.js";
 
 export async function registerStudioGraphRoutes(app) {
@@ -139,8 +146,7 @@ export async function registerStudioGraphRoutes(app) {
     const { worldId, nodeType, nodeId } = request.params;
     const { x, y } = request.body ?? {};
     await requireWorldRole(actorId, worldId);
-    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
-    const table = tables[nodeType];
+    const table = STORY_LAYOUT_TABLES[nodeType];
     if (!table) return sendErr(reply, "NODE_TYPE_DRAG_UNSUPPORTED");
     const result = await query(
       `UPDATE ${table}
@@ -181,21 +187,29 @@ export async function registerStudioGraphRoutes(app) {
     const { worldId } = request.params;
     const { positions = [] } = request.body ?? {};
     await requireWorldRole(actorId, worldId);
-    const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     await transaction(async (client) => {
-      for (const position of positions) {
-        const table = tables[position.type];
-        if (!table || !position.id) {
-          throwErr("POSITION_ENTRY_INVALID");
-        }
-        await client.query(
-          `UPDATE ${table}
-           SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{graphPosition}', $1::jsonb, true)
-           WHERE id = $2 AND world_id = $3`,
-          [JSON.stringify({ x: Math.round(position.x), y: Math.round(position.y) }), position.id, worldId]
-        );
-      }
+      await persistStoryLayoutPositions(client, worldId, positions);
     });
     return { ok: true, updated: positions.length };
+  });
+
+  app.post("/api/worlds/:worldId/story-layout/auto", { schema: autoStoryLayoutSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    const mode = request.body?.mode ?? "scene-tree";
+    await requireWorldRole(actorId, worldId);
+    const snapshot = await buildWorldSnapshot(worldId);
+    const positions = computeStoryLayout(snapshot, mode);
+    await transaction(async (client) => {
+      await persistStoryLayoutPositions(client, worldId, positions);
+    });
+    const preset = STUDIO_LAYOUT_MODES[mode];
+    return {
+      ok: true,
+      mode,
+      label: preset?.label ?? mode,
+      updated: positions.length,
+      positions
+    };
   });
 }

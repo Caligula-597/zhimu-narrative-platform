@@ -95,6 +95,7 @@
     REQUIRED_ITEM_MISSING: "缺少调查所需的物品。",
     STORY_EDGE_NOT_FOUND: "剧情连线不存在。",
     STUDIO_NODE_NOT_FOUND: "编排节点不存在。",
+    STUDIO_LAYOUT_MODE_INVALID: "未知的自动排布板式。",
     NODE_TYPE_UNSUPPORTED: "不支持的节点类型。",
     STORY_EDGE_FIELDS_REQUIRED: "请完整填写连线的起点与终点。",
     RELATION_TYPE_INVALID: "关系类型无效。",

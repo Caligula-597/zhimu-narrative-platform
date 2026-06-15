@@ -339,6 +339,7 @@ window.zhimuApi = {
   updateStudioNodePosition: (nodeType, nodeId, payload) => request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/position`, { userId: demoContext.hostUserId, method: "PUT", body: payload }),
   updateStudioNodeAnchors: (nodeType, nodeId, anchors) => request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/anchors`, { userId: demoContext.hostUserId, method: "PUT", body: { anchors } }),
   updateStoryLayout: (positions) => request(`/worlds/${demoContext.worldId}/story-layout`, { userId: demoContext.hostUserId, method: "PUT", body: { positions } }),
+  autoStoryLayout: (mode = "scene-tree") => request(`/worlds/${demoContext.worldId}/story-layout/auto`, { userId: demoContext.hostUserId, method: "POST", body: { mode } }),
   getStorageUsage: () => request("/storage/usage", { userId: demoContext.hostUserId }),
   getAssets: (params = {}) => {
     const query = new URLSearchParams();

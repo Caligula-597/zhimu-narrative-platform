@@ -128,6 +128,7 @@ export const API_ERRORS = {
   ANCHOR_FIELDS_INVALID: { status: 400, message: "Each anchor requires id, x and y" },
   POSITIONS_INVALID: { status: 400, message: "positions must be an array of up to 300 nodes" },
   POSITION_ENTRY_INVALID: { status: 400, message: "Each position requires a valid type, id, x and y" },
+  STUDIO_LAYOUT_MODE_INVALID: { status: 400, message: "Unknown story layout mode" },
 
   // Rules
   RULE_NOT_FOUND: { status: 404, message: "Rule not found" },

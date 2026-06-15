@@ -6,6 +6,7 @@ import "../config.js";
 import "../src/dom.js";
 import "../src/state.js";
 import "../src/utils/user-messages.js";
+import "../src/utils/studio-scene-tree.js";
 import "../src/utils/wizard-automation-templates.js";
 import "../src/api/client.js";
 import "../src/runtime/ai-draft-store.js";

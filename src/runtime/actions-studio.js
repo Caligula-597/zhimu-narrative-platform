@@ -33,7 +33,18 @@
         state.studioFilter = el?.dataset?.filter;
         render();
         return true;
-      case "studio-auto-layout": S.autoLayoutStudio?.(); return true;
+      case "studio-auto-layout-menu": S.openStudioLayoutMenu?.(); return true;
+      case "studio-auto-layout": S.autoLayoutStudio?.(el?.dataset?.layoutMode); return true;
+      case "studio-toggle-scene-children": {
+        const sceneId = el?.dataset?.sceneId;
+        if (!sceneId) return true;
+        const collapsed = new Set(state.studioCollapsedScenes || []);
+        if (collapsed.has(sceneId)) collapsed.delete(sceneId);
+        else collapsed.add(sceneId);
+        state.studioCollapsedScenes = [...collapsed];
+        render();
+        return true;
+      }
       case "studio-zoom-out":
         state.studioZoom = Math.max(0.7, state.studioZoom - 0.1);
         render();

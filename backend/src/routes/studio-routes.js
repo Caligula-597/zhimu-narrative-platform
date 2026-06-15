@@ -256,7 +256,7 @@ export async function registerStudioRoutes(app) {
          WHERE w.id = $1`,
         [worldId, actorId]
       );
-      const chapters = await client.query(`SELECT id, title, summary, sequence, publication_status, unlock_rules FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]);
+      const chapters = await client.query(`SELECT id, title, summary, sequence, publication_status, unlock_rules, metadata FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]);
       const roles = await client.query(`SELECT id, name, public_profile, private_profile, sequence FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]);
       const sections = await client.query(
         `SELECT ss.id, ss.role_slot_id, ss.chapter_id, ss.title, ss.body, ss.sequence, ss.publication_status, ss.updated_at

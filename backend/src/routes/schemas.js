@@ -476,7 +476,11 @@ const optionalUuid = { anyOf: [uuid, { type: "null" }] };
 const publicationStatus = { type: "string", enum: ["draft", "testing", "published"] };
 const clueVisibility = { type: "string", enum: ["author", "host", "role", "faction", "public", "postgame"] };
 const studioNodeType = { type: "string", enum: ["chapter", "scene", "clue", "investigation_point", "item"] };
-const graphNodeType = { type: "string", enum: ["scene", "clue", "investigation_point", "item"] };
+const graphNodeType = { type: "string", enum: ["chapter", "scene", "clue", "investigation_point", "item"] };
+const studioLayoutMode = {
+  type: "string",
+  enum: ["scene-tree", "columns", "flow-horizontal", "flow-vertical", "chapter-groups"]
+};
 const storyEdgeNodeType = { type: "string", enum: ["chapter", "scene", "clue", "investigation_point"] };
 const relationType = { type: "string", enum: ["mainline", "parallel", "extension"] };
 const ruleMode = { type: "string", enum: ["automatic", "host_confirm", "manual"] };
@@ -725,7 +729,7 @@ export const updateStoryLayoutSchema = {
     properties: {
       positions: {
         type: "array",
-        maxItems: 300,
+        maxItems: 1000,
         items: {
           type: "object",
           additionalProperties: false,
@@ -738,6 +742,17 @@ export const updateStoryLayoutSchema = {
           }
         }
       }
+    }
+  }
+};
+
+export const autoStoryLayoutSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      mode: { ...studioLayoutMode, default: "columns" }
     }
   }
 };
