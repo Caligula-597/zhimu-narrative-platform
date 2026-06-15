@@ -148,6 +148,20 @@ window.zhimuApi = {
   getAccountEntitlements: () => request("/account/entitlements"),
   previewAccountDelete: () => request("/account/delete/preview"),
   deleteAccount: (payload) => request("/account/delete", { method: "POST", body: payload }),
+  listPhysicalTokens: (worldId, query = "") =>
+    request(`/worlds/${worldId || demoContext.worldId}/physical-tokens${query ? `?${query}` : ""}`, { userId: demoContext.hostUserId }),
+  createPhysicalTokens: (payload, worldId = demoContext.worldId) =>
+    request(`/worlds/${worldId}/physical-tokens`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  revokePhysicalToken: (tokenId, worldId = demoContext.worldId) =>
+    request(`/worlds/${worldId}/physical-tokens/${tokenId}/revoke`, { userId: demoContext.hostUserId, method: "POST" }),
+  previewPhysicalToken: (tokenCode) => request(`/physical-tokens/${encodeURIComponent(tokenCode)}/preview`),
+  activatePhysicalToken: (roomId, payload) =>
+    request(`/rooms/${roomId || demoContext.roomId}/physical-tokens/activate`, {
+      userId: demoContext.playerUserId,
+      method: "POST",
+      body: payload,
+      idempotent: true
+    }),
   getAccountPlans: () => request("/account/plans"),
   logout: () => request("/auth/logout", { method: "POST", body: {} }),
   async ensurePlayerSession() {

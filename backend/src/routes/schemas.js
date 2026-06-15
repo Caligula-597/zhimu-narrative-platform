@@ -1405,3 +1405,124 @@ export const storyManuscriptSyncToGraphSchema = {
     }
   }
 };
+
+const physicalTokenContentType = {
+  type: "string",
+  enum: ["clue", "item", "script_section", "event"]
+};
+
+const physicalTokenStatusFilter = {
+  type: "string",
+  enum: ["issued", "activated", "revoked"]
+};
+
+const tumpIntegrationSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    provider: { type: "string", enum: ["tump"] },
+    campaignId: { type: "string", maxLength: 120 },
+    sku: { type: "string", maxLength: 120 },
+    costAmount: { type: "number" },
+    externalId: { type: "string", maxLength: 200 }
+  }
+};
+
+const physicalTokenActivationRuleSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    oneTime: { type: "boolean" },
+    requiredRoleSlotIds: { type: "array", maxItems: 20, items: uuid },
+    eventMessage: { type: "string", maxLength: 500 },
+    eventVisibility: { type: "string", enum: ["host", "public"] },
+    externalGate: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        provider: { type: "string", enum: ["tump"] },
+        required: { type: "boolean" },
+        minAmount: { type: "number" },
+        sku: { type: "string", maxLength: 120 }
+      }
+    }
+  }
+};
+
+const physicalTokenMetadataSchema = {
+  type: "object",
+  additionalProperties: true,
+  properties: {
+    integration: tumpIntegrationSchema,
+    eventMessage: { type: "string", maxLength: 500 }
+  }
+};
+
+const externalActivationProofSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    provider: { type: "string", enum: ["tump"] },
+    transactionId: { type: "string", minLength: 1, maxLength: 200 },
+    amount: { type: "number" },
+    signature: { type: "string", maxLength: 500 }
+  }
+};
+
+export const physicalTokenIdParams = paramsSchema({ worldId: uuid, tokenId: uuid });
+
+export const listPhysicalTokensSchema = {
+  params: worldIdParams,
+  querystring: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      status: physicalTokenStatusFilter,
+      contentType: physicalTokenContentType,
+      limit: { type: "integer", minimum: 1, maximum: 500 },
+      offset: { type: "integer", minimum: 0, maximum: 10000 }
+    }
+  }
+};
+
+export const createPhysicalTokensSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["contentType", "contentId"],
+    properties: {
+      contentType: physicalTokenContentType,
+      contentId: uuid,
+      count: { type: "integer", minimum: 1, maximum: 500 },
+      label: { type: "string", maxLength: 200 },
+      tokenCode: { type: "string", minLength: 12, maxLength: 32 },
+      activationRule: physicalTokenActivationRuleSchema,
+      metadata: physicalTokenMetadataSchema,
+      expiresAt: { type: "string", format: "date-time" }
+    }
+  }
+};
+
+export const revokePhysicalTokenSchema = {
+  params: physicalTokenIdParams
+};
+
+export const physicalTokenPreviewSchema = {
+  params: paramsSchema({
+    tokenCode: { type: "string", minLength: 12, maxLength: 32 }
+  })
+};
+
+export const activatePhysicalTokenSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["tokenCode"],
+    properties: {
+      tokenCode: { type: "string", minLength: 12, maxLength: 32 },
+      externalProof: externalActivationProofSchema
+    }
+  }
+};
