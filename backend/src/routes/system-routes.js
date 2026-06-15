@@ -1,6 +1,6 @@
 import { getDatabaseStatus, getReadinessStatus } from "../database-status.js";
 import { getPoolStats } from "../db.js";
-import { renderPrometheusMetrics } from "../metrics.js";
+import { renderPrometheusMetrics, setApiReadyGauge } from "../metrics.js";
 import { requireMetricsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
 
@@ -51,6 +51,8 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       requireMetricsToken(request);
       const pool = getPoolStats();
       const sse = getSseConnectionMetrics();
+      const ready = await getReadinessStatus();
+      setApiReadyGauge(ready.ready);
       const body = renderPrometheusMetrics({
         poolStats: {
           totalCount: pool.total,
@@ -58,7 +60,8 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
           waitingCount: pool.waiting
         },
         sseStats: sse,
-        uptimeSeconds: Math.floor((Date.now() - processStartedAt) / 1000)
+        uptimeSeconds: Math.floor((Date.now() - processStartedAt) / 1000),
+        readyOk: ready.ready ? 1 : 0
       });
       return reply.type("text/plain; version=0.0.4; charset=utf-8").send(body);
     }

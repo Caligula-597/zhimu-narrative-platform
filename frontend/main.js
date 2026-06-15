@@ -15,6 +15,7 @@ import "../src/utils/format.js";
 import "../src/runtime/session-mode.js";
 import "../src/components/onboarding-strip.js";
 import "../src/runtime/nav-shell.js";
+import "../src/components/service-outage.js";
 import "../src/components/emptyState.js";
 import "../src/components/toast.js";
 import "../src/components/modal.js";

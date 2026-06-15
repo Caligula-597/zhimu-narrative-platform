@@ -583,6 +583,23 @@ await check("beta-free-no-payment-copy", async () => {
   return "beta free copy + scope doc present";
 });
 
+await check("ops-hardening-wired", async () => {
+  const uploadScan = readSource("backend/src/upload-scan.js");
+  const builtin = readSource("backend/src/upload-scan-builtin.js");
+  const alerts = readSource("backend/src/ops-alert-bridge.js");
+  const outage = readSource("src/components/service-outage.js");
+  if (!uploadScan.includes("builtin") || !uploadScan.includes("getUploadScanStatus")) {
+    throw new Error("upload-scan modes incomplete");
+  }
+  if (!builtin.includes("UPLOAD_SCAN_SPOOFED")) throw new Error("builtin scan missing spoof detection");
+  if (!alerts.includes("ALERT_WEBHOOK_URL")) throw new Error("ops alert bridge missing");
+  if (!outage.includes("renderServiceOutage")) throw new Error("service outage UI missing");
+  if (!fs.existsSync(path.join(sourceRoot, "error-pages", "503.html"))) {
+    throw new Error("error-pages/503.html missing");
+  }
+  return "upload scan + error pages + alert bridge wired";
+});
+
 await check("backend-health-reachable", async () => {
   const response = await fetch(`${API}/health`);
   const payload = await response.json().catch(() => ({}));

@@ -11,6 +11,10 @@ export class ObjectStorage {
     throw new Error("statObject is not implemented");
   }
 
+  async readObjectBytes() {
+    throw new Error("readObjectBytes is not implemented");
+  }
+
   async deleteObject() {
     throw new Error("deleteObject is not implemented");
   }

@@ -7,6 +7,12 @@ import { getTelemetryStatus } from "../telemetry.js";
 import { getEmailServiceStatus } from "../email.js";
 import { getPublicOAuthDiagnostics } from "../oauth-diagnostics.js";
 import { getStripeBillingStatus } from "../stripe-billing.js";
+import { getUploadScanStatus } from "../upload-scan.js";
+import {
+  buildAlertPayload,
+  dispatchAlertWebhook,
+  getAlertWebhookConfig
+} from "../ops-alert-bridge.js";
 import { assignUserPlanByEmail } from "../account-entitlements.js";
 import { PLAN_DEFAULTS } from "../plans.js";
 import { sendErr } from "../api-errors.js";
@@ -96,7 +102,8 @@ export async function registerOpsRoutes(app) {
         sse: { connections: sse.connections, rooms: sse.rooms },
         roomEventBus: bus,
         features: {
-          uploadScan: (process.env.UPLOAD_SCAN_MODE || "none").toLowerCase(),
+          uploadScan: getUploadScanStatus(),
+          alerts: getAlertWebhookConfig(),
           roomEventsBus: bus.mode,
           openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production",
           telemetry: getTelemetryStatus(),
@@ -112,6 +119,34 @@ export async function registerOpsRoutes(app) {
           aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40)
         }
       };
+    }
+  );
+
+  app.post(
+    "/api/ops/alerts/test",
+    {
+      schema: {
+        hide: true,
+        tags: ["system"],
+        response: {
+          200: {
+            type: "object",
+            additionalProperties: true
+          }
+        }
+      }
+    },
+    async (_request, reply) => {
+      const config = getAlertWebhookConfig();
+      if (!config.configured) return sendErr(reply, "UNAVAILABLE", "ALERT_WEBHOOK_URL not configured");
+      const payload = await buildAlertPayload({
+        severity: "info",
+        title: "织幕告警测试",
+        body: "来自 POST /api/ops/alerts/test 的手动探测。",
+        labels: { kind: "manual_test" }
+      });
+      const result = await dispatchAlertWebhook(payload);
+      return reply.code(200).send({ ok: true, ...result, payload });
     }
   );
 

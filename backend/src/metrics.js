@@ -7,6 +7,9 @@ const httpErrors5xx = new Map();
 const durationBuckets = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
 /** @type {Map<string, { buckets: number[], sum: number, count: number }>} */
 const httpDuration = new Map();
+const uploadScans = new Map();
+const uploadScanRejected = new Map();
+let apiReadyGauge = 1;
 
 function routeKey(method, route) {
   return `${(method || "GET").toUpperCase()} ${route || "unknown"}`;
@@ -28,6 +31,17 @@ function observeDuration(key, ms) {
   }
   entry.sum += ms;
   entry.count++;
+}
+
+export function recordUploadScan({ mode = "none", result = "clean", reason = "" } = {}) {
+  inc(uploadScans, `${mode}:${result}`);
+  if (result === "rejected" || result === "error") {
+    inc(uploadScanRejected, reason || result);
+  }
+}
+
+export function setApiReadyGauge(value) {
+  apiReadyGauge = value ? 1 : 0;
 }
 
 export function recordHttpRequest({ method, route, statusCode, durationMs }) {
@@ -77,11 +91,16 @@ function renderHistogram(name, help) {
   return lines.join("\n");
 }
 
-export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, uptimeSeconds = 0 } = {}) {
+export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, uptimeSeconds = 0, readyOk = apiReadyGauge } = {}) {
   const sections = [
     renderCounter("http_requests_total", "Total HTTP requests", httpRequests),
     renderCounter("http_errors_5xx_total", "HTTP 5xx responses", httpErrors5xx),
+    renderCounter("upload_scans_total", "Upload malware scans by mode and result", uploadScans),
+    renderCounter("upload_scans_rejected_total", "Rejected or errored upload scans by reason", uploadScanRejected),
     renderHistogram("http_request_duration_ms", "HTTP request duration in milliseconds"),
+    `# HELP api_ready 1 when last readiness check passed`,
+    `# TYPE api_ready gauge`,
+    `api_ready ${readyOk ? 1 : 0}`,
     `# HELP process_uptime_seconds Process uptime`,
     `# TYPE process_uptime_seconds gauge`,
     `process_uptime_seconds ${uptimeSeconds}`,
@@ -112,4 +131,7 @@ export function resetMetricsForTests() {
   httpRequests.clear();
   httpErrors5xx.clear();
   httpDuration.clear();
+  uploadScans.clear();
+  uploadScanRejected.clear();
+  apiReadyGauge = 1;
 }

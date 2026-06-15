@@ -52,6 +52,36 @@ export class R2Storage extends ObjectStorage {
     };
   }
 
+  async readObjectBytes({ key, maxBytes = 65536 }) {
+    const limit = Math.max(1, Math.min(Number(maxBytes) || 65536, 35 * 1024 * 1024));
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Range: `bytes=0-${limit - 1}`
+    });
+    const result = await this.client.send(command);
+    const chunks = [];
+    let total = 0;
+    for await (const chunk of result.Body) {
+      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      chunks.push(buf);
+      total += buf.length;
+      if (total >= limit) break;
+    }
+    return Buffer.concat(chunks, Math.min(total, limit));
+  }
+
+  async streamObjectBytes({ key, maxBytes = 35 * 1024 * 1024 }) {
+    const limit = Math.max(1, Math.min(Number(maxBytes) || 35 * 1024 * 1024, 35 * 1024 * 1024));
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Range: `bytes=0-${limit - 1}`
+    });
+    const result = await this.client.send(command);
+    return result.Body;
+  }
+
   async deleteObject({ key }) {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }

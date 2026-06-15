@@ -37,6 +37,18 @@ export async function registerStaticFrontend(app) {
   }
 
   const docsRoot = resolveDocsRoot(root);
+  const maintenance = process.env.MAINTENANCE_MODE === "true" || process.env.MAINTENANCE_MODE === "1";
+  const maintenancePage = path.join(root, "errors", "503.html");
+
+  app.addHook("onRequest", async (request, reply) => {
+    const url = request.url.split("?")[0];
+    if (!maintenance || url.startsWith("/api") || url.startsWith("/metrics")) return;
+    if (request.method !== "GET" && request.method !== "HEAD") return;
+    if (url.startsWith("/errors/")) return;
+    if (fs.existsSync(maintenancePage)) {
+      return reply.code(503).type("text/html; charset=utf-8").send(fs.readFileSync(maintenancePage, "utf8"));
+    }
+  });
 
   app.get("/docs/*", async (request, reply) => {
     const file = readDocFile(docsRoot, request.params["*"]);
@@ -59,6 +71,20 @@ export async function registerStaticFrontend(app) {
       return reply.code(404).send({ error: "Doc not found", code: "NOT_FOUND" });
     }
     if (request.method === "GET" && !url.startsWith("/api")) {
+      const notFoundPage = path.join(root, "errors", "404.html");
+      if (url.startsWith("/errors/")) {
+        const page = path.join(root, url.slice(1));
+        if (fs.existsSync(page)) {
+          const code = url.includes("503") ? 503 : 404;
+          return reply.code(code).type("text/html; charset=utf-8").send(fs.readFileSync(page, "utf8"));
+        }
+      }
+      if (path.extname(url) && fs.existsSync(path.join(root, url.slice(1)))) {
+        return reply.sendFile(url.slice(1), root);
+      }
+      if (fs.existsSync(notFoundPage) && path.extname(url)) {
+        return reply.code(404).type("text/html; charset=utf-8").send(fs.readFileSync(notFoundPage, "utf8"));
+      }
       return reply.sendFile("index.html", root);
     }
     reply.code(404).send({ error: "Route not found", code: "NOT_FOUND" });

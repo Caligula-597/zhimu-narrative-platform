@@ -29,6 +29,7 @@ test("GET /api/ops/status includes rate limit and telemetry metadata", async (co
   assert.ok(payload.rateLimits);
   assert.equal(typeof payload.rateLimits.uploadPerMin, "number");
   assert.ok(payload.features?.telemetry);
+  assert.ok(typeof payload.features.uploadScan?.mode === "string");
   if (previous === undefined) delete process.env.OPS_API_TOKEN;
   else process.env.OPS_API_TOKEN = previous;
 });

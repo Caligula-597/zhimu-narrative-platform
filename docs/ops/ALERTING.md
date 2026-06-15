@@ -15,6 +15,30 @@
 
 可选保护：设置 `METRICS_TOKEN`，抓取时带 `X-Metrics-Token` 或 `Authorization: Bearer`。
 
+**新增指标（2026-06）**
+
+| 指标 | 类型 | 说明 |
+|------|------|------|
+| `upload_scans_total` | counter | 扫描次数（mode:result） |
+| `upload_scans_rejected_total` | counter | 拒绝/失败（reason 标签） |
+| `api_ready` | gauge | 最近一次 `/metrics` 抓取时的 readiness |
+
+## Webhook 告警（可选）
+
+设置环境变量后，后端在 **readiness 状态变化** 时 POST JSON：
+
+```env
+ALERT_WEBHOOK_URL=https://hooks.example.com/zhimu-alerts
+ALERT_WEBHOOK_SECRET=optional-bearer
+ALERT_CHECK_INTERVAL_MS=60000
+```
+
+手动探测：`POST /api/ops/alerts/test`（需 `OPS_API_TOKEN`）。
+
+Payload 示例：`{ severity, title, body, ts, service, labels, context }`
+
+详见 [UPLOAD_SCAN.md](./UPLOAD_SCAN.md)（上传扫描指标）。
+
 ## 示例告警规则
 
 见 [`prometheus-alerts.yml`](./prometheus-alerts.yml)。核心规则：

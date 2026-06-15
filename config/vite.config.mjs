@@ -26,6 +26,24 @@ function docsStaticPlugin() {
         res.setHeader("Content-Type", "text/markdown; charset=utf-8");
         fs.createReadStream(file).pipe(res);
       });
+      server.middlewares.use("/errors", (req, res, next) => {
+        const rel = decodeURIComponent((req.url || "/").split("?")[0]).replace(/^\//, "");
+        const base = path.join(root, "error-pages");
+        if (!rel || rel.includes("..")) {
+          next();
+          return;
+        }
+        const file = path.join(base, rel);
+        if (!file.startsWith(base) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+          next();
+          return;
+        }
+        const code = rel.includes("503") ? 503 : 200;
+        res.statusCode = code;
+        if (file.endsWith(".css")) res.setHeader("Content-Type", "text/css; charset=utf-8");
+        else res.setHeader("Content-Type", "text/html; charset=utf-8");
+        fs.createReadStream(file).pipe(res);
+      });
     },
     closeBundle() {
       const outDir = path.join(root, "dist");
@@ -36,6 +54,14 @@ function docsStaticPlugin() {
           if (name.endsWith(".md")) {
             fs.copyFileSync(path.join(docsRoot, name), path.join(out, name));
           }
+        }
+      }
+      const errorPagesDir = path.join(root, "error-pages");
+      const errorOut = path.join(outDir, "errors");
+      if (fs.existsSync(errorPagesDir)) {
+        fs.mkdirSync(errorOut, { recursive: true });
+        for (const name of fs.readdirSync(errorPagesDir)) {
+          fs.copyFileSync(path.join(errorPagesDir, name), path.join(errorOut, name));
         }
       }
       fs.writeFileSync(path.join(outDir, "_redirects"), "/* /index.html 200\n");

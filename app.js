@@ -41,7 +41,9 @@
       settings: V.settings.settings,
       account: V.account.account
     };
-    content.innerHTML = views[state.view]();
+    const outage = window.zhimuServiceOutage;
+    const showOutage = outage?.isServiceOutage?.(state.apiError) && !state.cloudLoading;
+    content.innerHTML = showOutage ? outage.renderServiceOutage(state.apiError) : views[state.view]();
     R.bindDynamic();
   }
 

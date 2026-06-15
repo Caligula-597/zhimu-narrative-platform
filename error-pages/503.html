@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>服务维护中 · 织幕</title>
+    <link rel="stylesheet" href="/errors/error.css" />
+  </head>
+  <body>
+    <main class="error-shell">
+      <p class="error-code">503</p>
+      <h1>服务暂时不可用</h1>
+      <p class="error-lead">我们正在恢复云端 API 或数据库连接。请稍后再试，或刷新页面。</p>
+      <div class="error-actions">
+        <button type="button" class="primary-btn" onclick="location.reload()">刷新页面</button>
+        <a class="secondary-btn" href="mailto:support@getzhimu.com">联系支持</a>
+      </div>
+      <p class="error-meta">若你是管理员，请检查 <code>/api/health/ready</code> 与数据库状态。</p>
+    </main>
+  </body>
+</html>

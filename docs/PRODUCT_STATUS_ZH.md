@@ -238,7 +238,7 @@ npm run verify:full:fresh
 | 生产读写/auth 限流 | ✅ |
 | Postgres NOTIFY 多实例 SSE | ✅ |
 | Docker 预发栈 | ✅ 见 [ops/STAGING.md](./ops/STAGING.md)（本机需 Docker/虚拟化） |
-| 上传病毒扫描 / OTel SDK | 🟡 stub 扫描 + telemetry 钩子；完整 AV/OTLP 待做 |
+| 上传病毒扫描 / OTel SDK | 🟡 **`builtin` 魔数 + webhook/clamav/strict**；`ALERT_WEBHOOK` readiness 告警；完整 OTLP 待做 |
 
 详见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md)、[BACKEND_OPS.md](./BACKEND_OPS.md)、[OPS.md](./OPS.md)。
 
@@ -257,7 +257,8 @@ npm run verify:full:fresh
 1. 本机或 VPS 跑通 Docker 预发（[STAGING.md](./ops/STAGING.md)）；`.env.staging` 同步 Resend / LiveKit / R2 / DeepSeek Key，`APP_PUBLIC_URL` 与访问端口一致。
 2. 内测包：`VITE_REQUIRE_AUTH=1` 构建 + [REMOTE_TESTING.md](./ops/REMOTE_TESTING.md)；范围见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)。
 3. **商业化后再做**：Stripe 订阅 webhook、前端结账 UI（当前刻意不提供充值入口）。
-4. 工程向：实体卡/NFC 验签、生产级上传 AV、OpenTelemetry SDK、可选 Redis 总线。
+4. 工程向：实体卡/NFC 验签、生产级上传 AV（`builtin`/`clamav`/`strict` 已就绪）、OpenTelemetry SDK、可选 Redis 总线。
+5. 正式静态错误页（`/errors/*`）与 MAINTENANCE_MODE 503 已提供；应用内 outage 页在 API 不可达时显示。
 
 ---
 

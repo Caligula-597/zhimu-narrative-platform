@@ -118,7 +118,7 @@ export async function registerAssetRoutes(app) {
     const actorId = requireActor(request);
     const { assetId } = request.params;
     const session = await query(
-      `SELECT us.*, a.object_key FROM upload_sessions us
+      `SELECT us.*, a.object_key, a.original_filename FROM upload_sessions us
        JOIN asset_files a ON a.id = us.asset_file_id
        WHERE us.asset_file_id = $1 AND us.owner_user_id = $2 AND us.status = 'created' AND us.expires_at > now()`,
       [assetId, actorId]
@@ -135,10 +135,11 @@ export async function registerAssetRoutes(app) {
       await scanUploadedObject({
         key: session.rows[0].object_key,
         contentType: stat.contentType,
-        byteSize: stat.byteSize
+        byteSize: stat.byteSize,
+        filename: session.rows[0].original_filename
       });
     } catch (error) {
-      if (error.code === "UPLOAD_SCAN_INFECTED" || error.code === "UPLOAD_SCAN_FAILED") {
+      if (error.code === "UPLOAD_SCAN_INFECTED" || error.code === "UPLOAD_SCAN_FAILED" || error.code === "UPLOAD_SCAN_SPOOFED") {
         await getObjectStorage().deleteObject({ key: session.rows[0].object_key }).catch(() => {});
         await query(
           `UPDATE asset_files SET status = 'quarantined', updated_at = now(), metadata = metadata || $2::jsonb WHERE id = $1`,

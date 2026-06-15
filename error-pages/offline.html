@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>无法连接 · 织幕</title>
+    <link rel="stylesheet" href="/errors/error.css" />
+  </head>
+  <body>
+    <main class="error-shell">
+      <p class="error-code">OFFLINE</p>
+      <h1>无法连接服务器</h1>
+      <p class="error-lead">请检查网络连接，或确认后端 API 是否已启动。</p>
+      <div class="error-actions">
+        <button type="button" class="primary-btn" onclick="location.reload()">重试</button>
+        <a class="secondary-btn" href="/errors/503.html">查看维护说明</a>
+      </div>
+      <p class="error-meta">本地开发：前端 :4173 · 后端 :4180 · <code>/api/health</code></p>
+    </main>
+  </body>
+</html>

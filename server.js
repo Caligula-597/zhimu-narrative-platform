@@ -28,14 +28,20 @@ function safePath(urlPath, base = root) {
   return file;
 }
 
-function sendFile(res, filePath) {
+function sendFile(res, filePath, statusCode = 200) {
   fs.readFile(filePath, (err, data) => {
     if (err) {
+      const notFound = path.join(root, "errors", "404.html");
+      if (fs.existsSync(notFound)) {
+        res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
+        fs.createReadStream(notFound).pipe(res);
+        return;
+      }
       res.writeHead(404);
       res.end("Not found");
       return;
     }
-    res.writeHead(200, { "Content-Type": mime[path.extname(filePath)] || "application/octet-stream" });
+    res.writeHead(statusCode, { "Content-Type": mime[path.extname(filePath)] || "application/octet-stream" });
     res.end(data);
   });
 }
@@ -44,6 +50,26 @@ http
   .createServer((req, res) => {
     const urlPath = (req.url ?? "/").split("?")[0];
     const target = urlPath === "/" ? "/index.html" : urlPath;
+    if (target.startsWith("/errors/")) {
+      const errBase = fs.existsSync(path.join(root, "errors")) ? path.join(root, "errors") : path.join(__dirname, "error-pages");
+      const rel = target.slice("/errors/".length);
+      const errFile = safePath(rel, errBase);
+      if (!errFile) {
+        res.writeHead(403);
+        res.end("Forbidden");
+        return;
+      }
+      fs.stat(errFile, (err, st) => {
+        if (!err && st.isFile()) {
+          const code = target.includes("503") ? 503 : 404;
+          sendFile(res, errFile, code);
+        } else {
+          const fallback = path.join(errBase, "404.html");
+          sendFile(res, fs.existsSync(fallback) ? fallback : path.join(__dirname, "error-pages", "404.html"), 404);
+        }
+      });
+      return;
+    }
     if (target.startsWith("/docs/")) {
       const docFile = safePath(target.slice("/docs/".length), docsRoot);
       if (!docFile) {

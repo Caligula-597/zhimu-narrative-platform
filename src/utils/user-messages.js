@@ -141,6 +141,7 @@
     UPLOAD_SCAN_NOT_CONFIGURED: "上传安全扫描未配置，请联系管理员。",
     UPLOAD_SCAN_FAILED: "上传安全扫描失败，请稍后重试。",
     UPLOAD_SCAN_INFECTED: "文件未通过安全扫描，已被拒绝。",
+    UPLOAD_SCAN_SPOOFED: "文件内容与声明类型不符，或使用了不允许的扩展名。",
     ASSET_VISIBILITY_INVALID: "附件可见范围无效。",
     ASSET_ROLE_REQUIRED: "角色可见附件需指定角色席位。",
     ASSET_ROOM_WORLD_MISMATCH: "运行房与当前世界不匹配。",

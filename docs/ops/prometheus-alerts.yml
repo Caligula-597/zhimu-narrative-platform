@@ -13,6 +13,24 @@ groups:
           summary: "织幕 API 5xx 速率过高"
           description: "5xx rate {{ $value }}/s over 5m"
 
+      - alert: UploadScanRejectedHigh
+        expr: sum(rate(upload_scans_rejected_total[10m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "上传扫描拒绝率升高"
+          description: "upload_scans_rejected_total rate {{ $value }}/s"
+
+      - alert: ApiReadyGaugeZero
+        expr: api_ready == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "织幕 API readiness 指标为 0"
+          description: "api_ready gauge reports not ready"
+
       - alert: ApiReadyFailing
         expr: probe_success{job="zhimu-ready"} == 0
         for: 2m

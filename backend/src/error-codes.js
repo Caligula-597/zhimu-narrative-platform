@@ -194,6 +194,7 @@ export const API_ERRORS = {
   UPLOAD_SCAN_NOT_CONFIGURED: { status: 503, message: "Upload scan is not configured" },
   UPLOAD_SCAN_FAILED: { status: 502, message: "Upload scan service failed" },
   UPLOAD_SCAN_INFECTED: { status: 422, message: "Uploaded file failed malware scan" },
+  UPLOAD_SCAN_SPOOFED: { status: 422, message: "Uploaded file content does not match its declared type" },
 
   // Ops / metrics
   OPS_NOT_CONFIGURED: { status: 503, message: "Ops API is not configured (set OPS_API_TOKEN)" },

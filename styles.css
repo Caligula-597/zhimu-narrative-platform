@@ -82,6 +82,12 @@ button { cursor: pointer; border: 0; }
 .enriched-empty { text-align:left; padding:18px 16px; }
 .enriched-empty .empty-hints { margin:10px 0 14px 18px; color:var(--muted); font-size:11px; line-height:1.55; }
 .enriched-empty .row { flex-wrap:wrap; gap:8px; }
+.service-outage-page { display:grid; place-items:center; min-height:min(70vh,640px); padding:12px 0 24px; }
+.service-outage-card { width:min(560px,100%); padding:24px 22px; border:1px solid rgba(196,147,77,.24); border-radius:18px; background:linear-gradient(180deg,#fffdf8,#faf7ef); box-shadow:0 16px 40px rgba(47,42,34,.06); }
+.service-outage-card .error-code { margin:0; font-size:11px; letter-spacing:2px; font-weight:700; color:#9a6b35; }
+.service-outage-card h2 { margin:8px 0 10px; font-size:24px; }
+.service-outage-card p { color:var(--muted); line-height:1.55; font-size:13px; }
+.service-outage-card code { font-size:11px; }
 .muted-note { color:var(--muted); font-size:11px; line-height:1.5; }
 .placeholder-module.muted-plan span { color:#8a7a62; background:#f3efe6; }
 .global-search-modal { width:min(720px,94vw); }

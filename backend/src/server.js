@@ -4,17 +4,20 @@ import { runStartupValidation } from "./startup-validation.js";
 import { createApp } from "./app.js";
 import { startRoomEventBus, stopRoomEventBus } from "./room-event-bus.js";
 import { startHostDelayWakeInterval } from "./host-delay-wake.js";
+import { startOpsAlertMonitor } from "./ops-alert-bridge.js";
 
 await runStartupValidation();
 
 const app = await createApp();
 await startRoomEventBus();
 const hostDelayWakeTimer = startHostDelayWakeInterval();
+const stopAlertMonitor = startOpsAlertMonitor({ log: app.log });
 const port = Number(process.env.PORT ?? 4180);
 
 async function shutdown(signal) {
   app.log.info({ signal }, "shutting down");
   clearInterval(hostDelayWakeTimer);
+  stopAlertMonitor();
   await stopRoomEventBus();
   await app.close();
   await pool.end();

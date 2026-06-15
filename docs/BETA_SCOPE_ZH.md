@@ -29,9 +29,17 @@
 ## 内测后继续（暂不排期）
 
 - Stripe / 支付宝订阅 webhook 与前端结账 UI  
-- 生产级上传病毒扫描（当前为 stub + 类型/大小校验）  
-- 完整可观测性（OTel / 告警仪表盘）  
-- 正式静态错误页（404/503）
+- ClamAV 生产 sidecar 部署（代码已支持 `UPLOAD_SCAN_MODE=clamav|strict`）  
+- 完整 OpenTelemetry SDK 导出（`ALERT_WEBHOOK` + Prometheus 指标已就绪）
+
+## 已落地（2026-06）
+
+| 能力 | 说明 |
+|------|------|
+| 上传扫描加强 | `builtin` 魔数 / `webhook` / `clamav` / `strict`；指标 `upload_scans_*` |
+| 正式错误页 | `/errors/404.html` · `503.html` · `offline.html`；`MAINTENANCE_MODE` |
+| 应用内 outage | API 不可达时全页提示 + 重连 |
+| 监控告警 | `api_ready` gauge；`ALERT_WEBHOOK_URL` readiness 切换通知；`POST /api/ops/alerts/test` |
 
 详见 [PRODUCT_STATUS_ZH.md](./PRODUCT_STATUS_ZH.md) §7。
 
