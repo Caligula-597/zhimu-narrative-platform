@@ -125,15 +125,6 @@ export async function submitCatalogReviewRequest(actorId, worldId, body) {
   if (playtestNotes.length < 8) throwErr("CATALOG_REVIEW_NOTES_TOO_SHORT", "请填写至少 8 字的自测说明");
   if (themeNotes.length < 8) throwErr("CATALOG_REVIEW_NOTES_TOO_SHORT", "请填写至少 8 字的题材说明");
 
-  await sendCatalogReviewRequestEmails({
-    world,
-    submitter,
-    playtestNotes,
-    themeNotes,
-    sampleNotes: String(body.sampleNotes || "").trim(),
-    contact: String(body.contact || "").trim()
-  });
-
   const updated = await query(
     `UPDATE worlds
      SET catalog_review_status = 'pending',
@@ -144,5 +135,19 @@ export async function submitCatalogReviewRequest(actorId, worldId, body) {
      RETURNING id, name, catalog_public, catalog_review_status, catalog_review_submitted_at, catalog_review_note`,
     [worldId]
   );
+
+  try {
+    await sendCatalogReviewRequestEmails({
+      world,
+      submitter,
+      playtestNotes,
+      themeNotes,
+      sampleNotes: String(body.sampleNotes || "").trim(),
+      contact: String(body.contact || "").trim()
+    });
+  } catch (emailError) {
+    console.error("[catalog-review] notify email failed:", emailError?.message || emailError);
+  }
+
   return updated.rows[0];
 }

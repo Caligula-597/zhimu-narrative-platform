@@ -102,6 +102,35 @@ test("POST /worlds/:id/catalog/request submits pending review", async (context) 
   assert.equal(duplicate.json().code, "CATALOG_REVIEW_PENDING");
 });
 
+test("POST /worlds/:id/catalog/request stays pending when notify email fails", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  delete process.env.EMAIL_DELIVERY_STUB;
+  const prevResend = process.env.RESEND_API_KEY;
+  process.env.RESEND_API_KEY = "";
+  context.after(() => {
+    if (prevResend === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = prevResend;
+  });
+  await query(
+    `UPDATE worlds SET catalog_public = false, catalog_review_status = 'none' WHERE id = $1`,
+    [fogWorldId]
+  );
+
+  const response = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${fogWorldId}/catalog/request`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      playtestNotes: "三人完整跑通开始体验流程，分幕与角色正常。",
+      themeNotes: "悬疑推理题材，无真实人物影射，无色情暴力描写。",
+      agreed: true
+    }
+  });
+  assert.equal(response.statusCode, 201, response.body);
+  assert.equal(response.json().catalog_review_status, "pending");
+});
+
 test("POST /worlds/:id/catalog/join grants host membership and a personal room", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());

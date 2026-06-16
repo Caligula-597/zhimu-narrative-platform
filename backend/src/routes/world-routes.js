@@ -162,13 +162,8 @@ export async function registerWorldRoutes(app) {
   app.post("/api/worlds/:worldId/catalog/request", { schema: requestCatalogReviewSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    try {
-      const row = await submitCatalogReviewRequest(actorId, worldId, request.body ?? {});
-      return reply.code(201).send(row);
-    } catch (error) {
-      if (error.code === "EMAIL_NOT_CONFIGURED") return sendErr(reply, "EMAIL_NOT_CONFIGURED");
-      throw error;
-    }
+    const row = await submitCatalogReviewRequest(actorId, worldId, request.body ?? {});
+    return reply.code(201).send(row);
   });
 
   app.post("/api/worlds/:worldId/catalog/join", { schema: joinWorldCatalogSchema }, async (request, reply) => {

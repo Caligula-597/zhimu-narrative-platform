@@ -101,15 +101,19 @@ function openCatalogReviewModal(){
  modal.querySelector("[data-close]").onclick=closeModal;
  modal.querySelector("[data-submit-catalog-review]").onclick=async()=>{
   const val=(key)=>modal.querySelector(`[data-review-field="${key}"]`)?.value?.trim()||"";
+  const playtestNotes=val("playtestNotes");
+  const themeNotes=val("themeNotes");
   const agreed=Boolean(modal.querySelector('[data-review-field="agreed"]')?.checked);
+  if(!agreed)return showToast("请勾选内容合规确认后再提交");
+  if(playtestNotes.length<8)return showToast("自测情况请至少填写 8 个字");
+  if(themeNotes.length<8)return showToast("题材与合规说明请至少填写 8 个字");
+  const payload={playtestNotes,themeNotes,agreed};
+  const sampleNotes=val("sampleNotes");
+  const contact=val("contact");
+  if(sampleNotes)payload.sampleNotes=sampleNotes;
+  if(contact)payload.contact=contact;
   try{
-   await zhimuApi.requestCatalogReview({
-    playtestNotes:val("playtestNotes"),
-    themeNotes:val("themeNotes"),
-    sampleNotes:val("sampleNotes"),
-    contact:val("contact"),
-    agreed
-   });
+   await zhimuApi.requestCatalogReview(payload);
    closeModal();
    await loadCloudData(true,true);
    render();

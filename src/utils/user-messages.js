@@ -50,6 +50,11 @@
     COLLABORATOR_ALREADY_MEMBER: "该邮箱已是本剧本协作者。",
     WORLD_OWNER_REQUIRED: "只有剧本主创作者可以设置是否公开到剧本库。",
     CATALOG_NOT_PUBLIC: "该剧本尚未公开，无法从剧本库加入。",
+    CATALOG_SELF_PUBLISH_DISABLED: "公开库须人工审核，请使用「提交公开库审核申请」。",
+    CATALOG_REVIEW_PENDING: "已有审核申请在处理中，请勿重复提交。",
+    CATALOG_ALREADY_PUBLIC: "该剧本已在公开库展示。",
+    CATALOG_REVIEW_AGREEMENT_REQUIRED: "请勾选内容合规确认后再提交。",
+    CATALOG_REVIEW_NOTES_TOO_SHORT: "自测说明与题材说明各需至少 8 个字。",
     WORLD_DELETE_BLOCKED: "无法删除剧本：仍有平行房或运行数据未清理，请刷新后重试。",
     GUEST_ACCOUNT_RESTRICTED: "游客账号无法执行此操作，请先注册。",
     COLLABORATOR_NOT_REGISTERED: "该邮箱尚未注册，已发送邀请；对方注册后会自动加入。",
@@ -220,6 +225,11 @@
       }
       if (/required property/i.test(msg) && item.params?.missingProperty) {
         return `缺少必填字段「${item.params.missingProperty}」`;
+      }
+      if (/must NOT have fewer than/i.test(msg) && item.params?.limit != null) {
+        const field = path.replace(/^body\./, "");
+        const labels = { playtestNotes: "自测情况", themeNotes: "题材与合规说明", agreed: "合规确认" };
+        return `「${labels[field] || field}」至少需要 ${item.params.limit} 个字符`;
       }
       return `${path} ${msg}`;
     }).join("；");
