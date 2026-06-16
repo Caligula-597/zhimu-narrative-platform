@@ -78,24 +78,47 @@ function sectionHighlights(sectionId){
  return (state.cloudPlayer?.notes||[]).filter(note=>note.source_type==="script_section"&&note.source_id===sectionId);
 }
 
-function applyStoryHighlights(text, entries){
- if(!text||!entries?.length)return escapeHtml(text||"");
+const HIGHLIGHT_OFFSET_RE=/#(\d+):(\d+)$/;
+
+function parseHighlightOffsets(entry){
+ const match=entry?.title?.match(HIGHLIGHT_OFFSET_RE);
+ if(!match)return null;
+ const start=Number(match[1]),end=Number(match[2]);
+ if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start)return null;
+ return {start,end};
+}
+
+function highlightEntryTitle(sectionTitle,start,end){
+ return `高亮 · ${sectionTitle}#${start}:${end}`;
+}
+
+function legacyHighlightRange(text,entry){
+ const needle=entry.body;
+ if(!needle||!text)return null;
+ const idx=text.indexOf(needle);
+ if(idx===-1)return null;
+ return {start:idx,end:idx+needle.length,id:entry.id};
+}
+
+function collectHighlightRanges(text,entries){
  const ranges=[];
- const sorted=[...entries].sort((a,b)=>(b.body||"").length-(a.body||"").length);
- for(const entry of sorted){
-  const needle=entry.body;
-  if(!needle)continue;
-  let from=0;
-  while(from<text.length){
-   const idx=text.indexOf(needle,from);
-   if(idx===-1)break;
-   const end=idx+needle.length;
-   const overlaps=ranges.some(range=>!(end<=range.start||idx>=range.end));
-   if(!overlaps){ranges.push({start:idx,end,id:entry.id});break}
-   from=idx+1;
-  }
+ for(const entry of entries||[]){
+  const offsets=parseHighlightOffsets(entry);
+  let range=null;
+  if(offsets&&offsets.end<=text.length)range={...offsets,id:entry.id};
+  else range=legacyHighlightRange(text,entry);
+  if(!range)continue;
+  const overlaps=ranges.some(item=>!(range.end<=item.start||range.start>=item.end));
+  if(!overlaps)ranges.push(range);
  }
  ranges.sort((a,b)=>a.start-b.start);
+ return ranges;
+}
+
+function applyStoryHighlights(text,entries){
+ if(!text)return escapeHtml(text||"");
+ const ranges=collectHighlightRanges(text,entries);
+ if(!ranges.length)return escapeHtml(text);
  let html="",pos=0;
  for(const range of ranges){
   html+=escapeHtml(text.slice(pos,range.start));
@@ -106,6 +129,24 @@ function applyStoryHighlights(text, entries){
  return html;
 }
 
+function getSectionPlainBody(sectionId){
+ return state.cloudPlayer?.sections?.find(section=>section.id===sectionId)?.body||"";
+}
+
+function getReaderSelectionOffsets(container){
+ const selection=window.getSelection();
+ if(!selection||selection.isCollapsed||!selection.rangeCount)return null;
+ const range=selection.getRangeAt(0);
+ if(!container.contains(range.commonAncestorContainer))return null;
+ const prefix=document.createRange();
+ prefix.selectNodeContents(container);
+ prefix.setEnd(range.startContainer,range.startOffset);
+ const start=prefix.toString().length;
+ const end=start+range.toString().length;
+ if(end<=start)return null;
+ return {start,end,text:range.toString()};
+}
+
 function reader(){
  const cloudSections=state.cloudPlayer?.sections||[];
  const cloudSection=cloudSections.find(section=>!section.completed)||cloudSections[cloudSections.length-1];
@@ -114,8 +155,8 @@ function reader(){
   const highlights=sectionHighlights(cloudSection.id);
   const isPages=cloudSection.content_mode==="pages"||cloudSection.metadata?.contentMode==="pages";
   const pages=cloudSection.pages||[];
-  const highlightHint=highlights.length?`已高亮 ${highlights.length} 处`:"选中文字即可标记高亮";
-  const bodyHtml=isPages&&pages.length?`<div class="reader-pages">${pages.map((page,index)=>`<figure class="reader-page"><img src="${escapeHtml(page.url)}" alt="第 ${index+1} 页" loading="lazy" decoding="async"><figcaption>第 ${index+1} / ${pages.length} 页</figcaption></figure>`).join("")}</div>`:`<div class="story-body" data-reader-body data-section-id="${cloudSection.id}" data-section-title="${escapeHtml(cloudSection.title)}">${applyStoryHighlights(cloudSection.body,highlights)}</div><p class="reader-highlight-hint">${highlightHint} · 点击高亮可取消</p>`;
+  const highlightHint=highlights.length?`已高亮 ${highlights.length} 处`:"拖选任意词句后点「高亮」";
+  const bodyHtml=isPages&&pages.length?`<div class="reader-pages">${pages.map((page,index)=>`<figure class="reader-page"><img src="${escapeHtml(page.url)}" alt="第 ${index+1} 页" loading="lazy" decoding="async"><figcaption>第 ${index+1} / ${pages.length} 页</figcaption></figure>`).join("")}</div>`:`<div class="story-body" data-reader-body data-section-id="${cloudSection.id}" data-section-title="${escapeHtml(cloudSection.title)}">${applyStoryHighlights(cloudSection.body,highlights)}</div><p class="reader-highlight-hint">${highlightHint} · 点击已高亮文字可取消</p>`;
   const footerHint=isPages?"滑动查看全部页面，读完后点击下方按钮记录进度。":"由你主动确认阅读完成，系统不会自动跳转。";
   return `<article class="reader-card ${isPages?"reader-card-pages":""}"><div class="reader-head"><div><p class="section-kicker">${escapeHtml(roleName)} · 云端私人章节</p><h3>${escapeHtml(cloudSection.title)}</h3><p>${isPages?`图片分幕 · 共 ${pages.length||cloudSection.metadata?.pageCount||"?"} 页`:"内容来自云端私人剧本。阅读完成后会保存进度并可能触发规则。"}</p></div><span class="reader-progress">${cloudSection.sequence} / ${cloudSections.length}</span></div>${bodyHtml}<div class="reader-footer"><p>${cloudSection.completed?"本章节已完成，可以继续查看已解锁内容。":footerHint}</p><button class="primary-btn" data-action="read-cloud-next" data-section="${cloudSection.id}" ${cloudSection.completed?"disabled":""}>${cloudSection.completed?"已完成":"我已读完，保存并继续"}</button></div></article>`;
  }
@@ -247,20 +288,23 @@ function hideHighlightToolbar(){
  if(toolbar)toolbar.remove();
 }
 
-function showHighlightToolbar(rect,sectionId,sectionTitle,text){
+function showHighlightToolbar(rect,sectionId,sectionTitle,selection){
  hideHighlightToolbar();
  const toolbar=document.createElement("div");
  toolbar.className="highlight-toolbar";
- toolbar.innerHTML=`<button type="button" class="primary-btn highlight-toolbar-btn" data-highlight-add>高亮</button>`;
+ const preview=selection.text.length>28?`${selection.text.slice(0,28)}…`:selection.text;
+ toolbar.innerHTML=`<button type="button" class="primary-btn highlight-toolbar-btn" data-highlight-add>高亮</button><span class="highlight-toolbar-preview">「${escapeHtml(preview)}」</span>`;
  document.body.appendChild(toolbar);
- const left=Math.min(Math.max(rect.left+rect.width/2,48),window.innerWidth-48);
- const top=Math.max(rect.top-8,12);
+ const left=Math.min(Math.max(rect.left+rect.width/2,80),window.innerWidth-80);
+ const top=Math.max(rect.top,56);
  toolbar.style.left=`${left}px`;
  toolbar.style.top=`${top}px`;
- toolbar.querySelector("[data-highlight-add]").onclick=async()=>{
+ toolbar.querySelector("[data-highlight-add]").onclick=async(event)=>{
+  event.preventDefault();
+  event.stopPropagation();
   hideHighlightToolbar();
   window.getSelection()?.removeAllRanges();
-  await addStoryHighlight(sectionId,sectionTitle,text);
+  await addStoryHighlight(sectionId,sectionTitle,selection);
  };
 }
 
@@ -268,22 +312,27 @@ function bindPlayerReader(){
  const body=document.querySelector("[data-reader-body]");
  if(!body)return;
  hideHighlightToolbar();
- body.onmouseup=()=>{
-  const selection=window.getSelection();
-  if(!selection||selection.isCollapsed||!body.contains(selection.anchorNode))return hideHighlightToolbar();
-  const text=selection.toString().trim();
-  if(text.length<2)return hideHighlightToolbar();
-  const range=selection.getRangeAt(0);
-  showHighlightToolbar(range.getBoundingClientRect(),body.dataset.sectionId,body.dataset.sectionTitle,text);
+ body.onmouseup=(event)=>{
+  if(event.target.closest?.(".highlight-toolbar"))return;
+  window.setTimeout(()=>{
+   const selection=getReaderSelectionOffsets(body);
+   if(!selection||selection.text.trim().length<1)return hideHighlightToolbar();
+   const range=window.getSelection()?.getRangeAt(0);
+   if(!range)return hideHighlightToolbar();
+   showHighlightToolbar(range.getBoundingClientRect(),body.dataset.sectionId,body.dataset.sectionTitle,selection);
+  },0);
  };
  body.onclick=(event)=>{
+  const active=window.getSelection();
+  if(active&&!active.isCollapsed)return;
   const mark=event.target.closest?.(".story-highlight");
   if(mark?.dataset.highlightId)removeStoryHighlight(mark.dataset.highlightId);
  };
  if(!window.__zhimuHighlightDocBound){
   window.__zhimuHighlightDocBound=true;
   document.addEventListener("mousedown",(event)=>{
-   if(!event.target.closest?.(".highlight-toolbar")&&!event.target.closest?.("[data-reader-body]"))hideHighlightToolbar();
+   if(event.target.closest?.(".highlight-toolbar")||event.target.closest?.("[data-reader-body]"))return;
+   hideHighlightToolbar();
   });
  }
 }
@@ -292,12 +341,16 @@ async function completeCloudReading(sectionId){
  try{await zhimuApi.completeSection(sectionId);await loadCloudData();showToast("已记录阅读进度，可能触发新的剧情解锁。",3200)}catch(error){showToast(error.message)}
 }
 
-async function addStoryHighlight(sectionId,sectionTitle,text){
- const snippet=text.trim();
- if(snippet.length<2)return showToast("请至少选中两个字再标记高亮");
- if(sectionHighlights(sectionId).some(entry=>entry.body===snippet))return showToast("这段内容已经高亮过了");
+async function addStoryHighlight(sectionId,sectionTitle,selection){
+ const plain=getSectionPlainBody(sectionId);
+ if(!plain)return showToast("无法读取当前章节正文");
+ const {start,end}=selection;
+ if(end<=start||start<0||end>plain.length)return showToast("选区无效，请重新选择");
+ const snippet=plain.slice(start,end);
+ if(!snippet.trim())return showToast("不能只高亮空白字符");
+ if(sectionHighlights(sectionId).some(entry=>{const off=parseHighlightOffsets(entry);return off&&off.start===start&&off.end===end}))return showToast("这段内容已经高亮过了");
  try{
-  await zhimuApi.addNotebookEntry({sourceType:"script_section",sourceId:sectionId,title:`高亮 · ${sectionTitle}`,body:snippet});
+  await zhimuApi.addNotebookEntry({sourceType:"script_section",sourceId:sectionId,title:highlightEntryTitle(sectionTitle,start,end),body:snippet});
   await loadCloudData();
   showToast("已标记高亮");
  }catch(error){showToast(error.message)}
