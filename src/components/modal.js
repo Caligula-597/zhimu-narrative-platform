@@ -41,6 +41,27 @@
   window.zhimuViews = window.zhimuViews || {};
 
   let modalScrollY = 0;
+
+  function elementCanScrollVertically(el) {
+    if (!el || el.nodeType !== 1) return false;
+    if (el.tagName === "TEXTAREA" || el.tagName === "SELECT") {
+      return el.scrollHeight > el.clientHeight + 1;
+    }
+    const oy = getComputedStyle(el).overflowY;
+    if (oy !== "auto" && oy !== "scroll" && oy !== "overlay") return false;
+    return el.scrollHeight > el.clientHeight + 1;
+  }
+
+  function findModalScrollTarget(from, boundary) {
+    let el = from instanceof Element ? from : from?.parentElement;
+    while (el) {
+      if (elementCanScrollVertically(el)) return el;
+      if (el === boundary) break;
+      el = el.parentElement;
+    }
+    return null;
+  }
+
   function lockPageScroll() {
     if (document.body.classList.contains("modal-scroll-lock")) return;
     modalScrollY = window.scrollY;
@@ -63,8 +84,8 @@
     new MutationObserver(syncModalScrollLock).observe(modalBackdrop, { attributes: true, attributeFilter: ["class"] });
     modalBackdrop.addEventListener("wheel", (event) => {
       if (!modalBackdrop.classList.contains("show")) return;
-      const scrollable = event.target.closest(".pipeline-layer-editor, .pipeline-ladder, .pipeline-brief-fold[open] .pipeline-brief-grid, .creator-guide-body, .collab-list, .log-list, .note-list");
-      if (scrollable && scrollable.scrollHeight > scrollable.clientHeight) return;
+      const scrollable = findModalScrollTarget(event.target, modalBackdrop);
+      if (scrollable) return;
       event.preventDefault();
     }, { passive: false });
   }
