@@ -49,6 +49,7 @@ window.zhimuState = {
   cloudRoomSettings: { hostVoiceListen: false },
   cloudRulesPreview: null,
   storageUsage: null,
+  panelCollapse: {},
   accountHubTab: "account",
   accountView: null,
   accountViewLoading: false,

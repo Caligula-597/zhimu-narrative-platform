@@ -20,6 +20,7 @@ import "../src/components/emptyState.js";
 import "../src/components/toast.js";
 import "../src/components/modal.js";
 import "../src/components/creator-guide.js";
+import "../src/components/collapse-panel.js";
 import "../src/views/overview.js";
 import "../src/views/pipeline-wizard-session.js";
 import "../src/views/pipeline-wizard-brief.js";

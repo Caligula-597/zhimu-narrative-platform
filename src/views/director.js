@@ -47,6 +47,7 @@
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
+  const collapsibleCard = window.zhimuCollapsePanel?.collapsibleCard || ((opts) => `<article class="card">${opts.body || ""}</article>`);
   window.zhimuViews = window.zhimuViews || {};
   const viewExports = window.zhimuViews.director = window.zhimuViews.director || {};
 function director(){
@@ -59,13 +60,11 @@ function director(){
  return `${cloudStatus()}<div class="director-head"><div><span class="live-label">● LIVE</span><strong>　${escapeHtml(world?.name||"当前世界")} · ${escapeHtml(room.name)}</strong><small class="director-poll-hint">${state.roomEventsConnected?"实时推送已连接 · 待确认事件与玩家进度会自动更新":"打开本页时每 15 秒自动刷新待确认事件与玩家进度"}</small></div><div class="row director-refresh-row"><button class="secondary-btn" data-action="refresh-host-room">刷新房间状态</button><button class="secondary-btn" data-action="refresh-host-events">刷新待确认事件</button><button class="secondary-btn" data-action="refresh-host-players">刷新玩家进度</button><button class="secondary-btn" data-action="create-recap">生成复盘</button><button class="secondary-btn" data-action="host-manual-log">＋ 主持日志</button><button class="primary-btn" data-action="create-checkpoint">＋ 创建存档点</button></div></div>
  <section class="stats-grid">${stat("♙",String(joinedCount),"已加入玩家",players.length+" 个角色席位")}${stat("⚑",String(stuckCount),"疑似卡关",stuckCount?"超过阈值未推进":"当前无卡关预警")}${stat("◷",String(pendingEvents.length),"待确认事件",pendingEvents.length?"需要主持人判断":events.length?"均已延迟":"当前无需人工介入")}${stat("⌘",String(rules.length),"运行中规则","仅统计当前房和世界模板")}</section>
  ${noPlayerProgressHint}
- <article class="card host-events-card"><div class="section-head"><div><h3>待确认事件</h3><p>规则或调查触发的关键节点，确认后立即写入当前房间状态</p></div>${hostEventBatchToolbar()}</div>${hostEventRows()}</article>
+ ${collapsibleCard({ id: "director:host-events", title: "待确认事件", subtitle: "规则或调查触发的关键节点，确认后立即写入当前房间状态", headerExtra: hostEventBatchToolbar(), body: hostEventRows(), defaultOpen: true, className: "card host-events-card", style: "margin-top:14px" })}
  ${hostClueMatrixCard()}
  ${hostAuditCard()}
- <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>规则运行预览</h3><p>查看当前平行房中各条规则的实时状态（不会修改任何数据）</p></div><button class="secondary-btn" data-action="rules-preview">刷新预览</button></div>${directorRulesPreview()}</article>
- <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>玩家运行状态</h3><p>点击行查看分幕、线索、调查与最近日志；支持手动干预</p></div><div class="row host-manual-actions"><button class="secondary-btn" data-action="host-manual-grant-clue">手动发线索</button><button class="secondary-btn" data-action="host-manual-grant-item">手动发物品</button><button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button><button class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button></div></div>
- <div class="host-runtime-table-wrap"><table class="host-runtime-table"><thead><tr><th>玩家 / 角色</th><th>入房</th><th>阅读进度</th><th>线索</th><th>最近操作</th><th>状态</th><th></th></tr></thead><tbody>${hostPlayerTableRows(players)}</tbody></table></div>
- </article>`;
+ ${collapsibleCard({ id: "director:rules-preview", title: "规则运行预览", subtitle: "查看当前平行房中各条规则的实时状态（不会修改任何数据）", headerExtra: `<button class="secondary-btn" data-action="rules-preview">刷新预览</button>`, body: directorRulesPreview(), defaultOpen: false, style: "margin-top:14px" })}
+ ${collapsibleCard({ id: "director:players", title: "玩家运行状态", subtitle: "点击行查看分幕、线索、调查与最近日志；支持手动干预", headerExtra: `<div class="row host-manual-actions"><button class="secondary-btn" data-action="host-manual-grant-clue">手动发线索</button><button class="secondary-btn" data-action="host-manual-grant-item">手动发物品</button><button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button><button class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button></div>`, body: `<div class="host-runtime-table-wrap"><table class="host-runtime-table"><thead><tr><th>玩家 / 角色</th><th>入房</th><th>阅读进度</th><th>线索</th><th>最近操作</th><th>状态</th><th></th></tr></thead><tbody>${hostPlayerTableRows(players)}</tbody></table></div>`, defaultOpen: true, style: "margin-top:14px" })}`;
 }
 
 function hostPlayerTableRows(players){
@@ -142,14 +141,14 @@ function hostClueMatrixLabel(cell={}){
 
 function hostClueMatrixCard(){
  const matrix=state.cloudHostClueMatrix,clues=matrix?.clues||[],players=(matrix?.players||[]).filter(player=>player.joined);
- if(!clues.length)return `<article class="card host-clue-matrix-card"><div class="section-head"><div><h3>线索掌握矩阵</h3><p>当前世界尚无线索节点，请先在编排台创建。</p></div></div></article>`;
+ if(!clues.length)return collapsibleCard({ id: "director:clue-matrix", title: "线索掌握矩阵", subtitle: "当前世界尚无线索节点，请先在编排台创建。", body: "", defaultOpen: false, className: "card host-clue-matrix-card", style: "margin-top:14px" });
  const head=players.map(player=>`<th>${escapeHtml(player.player_display_name||player.role_name)}</th>`).join("");
  const body=clues.map(clue=>{
   const cells=players.map(player=>{const cell=matrix.cells?.[clue.id]?.[player.role_slot_id]||{};const owned=cell.owned;return `<td>${owned?`<button type="button" class="clue-matrix-cell-btn ${cell.sharedWithRoom?"public":""}" data-action="host-clue-note" data-clue="${clue.id}" data-role="${player.role_slot_id}" title="点击编辑主持备注">${hostClueMatrixLabel(cell)}</button>`:`<span class="clue-matrix-cell">${hostClueMatrixLabel(cell)}</span>`}</td>`}).join("");
   return `<tr><th class="clue-matrix-clue">${escapeHtml(clue.name)}</th>${cells}</tr>`;
  }).join("");
  const summaries=(matrix.summaries||[]).map(item=>`<div class="clue-matrix-summary"><strong>${escapeHtml(item.clueName)}</strong><p>${escapeHtml(item.summary)}</p></div>`).join("");
- return `<article class="card host-clue-matrix-card"><div class="section-head"><div><h3>线索掌握矩阵</h3><p>查看谁拥有、读过或公开过每条线索</p></div><button class="secondary-btn" data-action="refresh-host-clue-matrix">刷新矩阵</button></div><div class="host-clue-matrix-wrap"><table class="host-clue-matrix"><thead><tr><th>线索 \\ 玩家</th>${head}</tr></thead><tbody>${body}</tbody></table></div><div class="clue-matrix-summaries">${summaries}</div></article>`;
+ return collapsibleCard({ id: "director:clue-matrix", title: "线索掌握矩阵", subtitle: "查看谁拥有、读过或公开过每条线索", headerExtra: `<button class="secondary-btn" data-action="refresh-host-clue-matrix">刷新矩阵</button>`, body: `<div class="host-clue-matrix-wrap"><table class="host-clue-matrix"><thead><tr><th>线索 \\ 玩家</th>${head}</tr></thead><tbody>${body}</tbody></table></div><div class="clue-matrix-summaries">${summaries}</div>`, defaultOpen: false, className: "card host-clue-matrix-card", style: "margin-top:14px" });
 }
 
 function hostAuditCard(){
@@ -160,7 +159,7 @@ function hostAuditCard(){
   const text=`${actor}<strong>${escapeHtml(hostAuditActionLabel(entry.action))}</strong>${detail?` · ${escapeHtml(detail)}`:""}`;
   return activity(text,formatRelativeTime(entry.created_at),"ok");
  }).join(""):`<div class="empty-state">暂无主持审计记录。手动发线索、延迟事件、存档恢复等操作会写入此处。</div>`;
- return `<article class="card host-audit-card" style="margin-top:14px"><div class="section-head"><div><h3>主持审计</h3><p>记录主持侧敏感操作，便于复盘与协作 accountability</p></div><button class="secondary-btn" data-action="refresh-host-audit">刷新审计</button></div><div class="host-audit-list">${body}</div></article>`;
+ return collapsibleCard({ id: "director:audit", title: "主持审计", subtitle: "记录主持侧敏感操作，便于复盘与协作 accountability", headerExtra: `<button class="secondary-btn" data-action="refresh-host-audit">刷新审计</button>`, body: `<div class="host-audit-list">${body}</div>`, defaultOpen: false, style: "margin-top:14px" });
 }
 
 async function openHostPlayerDetail(roleSlotId){

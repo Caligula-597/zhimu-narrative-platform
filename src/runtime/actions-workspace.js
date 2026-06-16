@@ -91,6 +91,14 @@
       case "account-hub-tab":
         void window.zhimuAccountHub?.switchAccountHubTab?.(el?.dataset?.hubTab);
         return true;
+      case "toggle-collapse-panel": {
+        const panelId = el?.dataset?.panelId;
+        if (!panelId) return true;
+        const defaultOpen = el?.dataset?.defaultOpen !== "0";
+        window.zhimuCollapsePanel?.togglePanel?.(panelId, defaultOpen);
+        window.zhimuRender?.();
+        return true;
+      }
       default:
         return false;
     }
