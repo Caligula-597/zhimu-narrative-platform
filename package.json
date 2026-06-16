@@ -26,6 +26,7 @@
     "staging:catalog": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/ensure-platform-catalog.js",
     "staging:cleanup-rooms": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/cleanup-duplicate-rooms.js",
     "check:modules": "node scripts/verify-script-load.mjs",
+    "verify:changed": "node scripts/verify-changed.mjs",
     "verify:full": "node scripts/full-chain.mjs",
     "verify:full:fresh": "node scripts/full-chain.mjs --fresh",
     "test:e2e": "playwright test",

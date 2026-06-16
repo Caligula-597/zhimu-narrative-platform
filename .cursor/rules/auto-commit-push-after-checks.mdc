@@ -1,36 +1,50 @@
 ---
-description: 安全检测通过后自动 commit 并 push，无需再向用户确认
+description: 改动范围检测通过后自动 commit 并 push，无需再向用户确认
 alwaysApply: true
 ---
 
 # 自动提交与推送
 
-完成代码修改后，**不要询问**用户是否 commit/push。按以下流程自动执行。
+完成代码修改后，**默认每次**自动 commit + push。**不要询问**用户是否提交。
 
-## 安全检测（须全部通过）
+## 1. 仅检测改动部分（禁止默认全量）
 
-按改动范围跑最小必要检测，默认至少包括：
+**不要**默认跑 `backend npm test` 全套件、`verify:full`、E2E，或需本地服务已起的 HTTP smoke。
 
-1. `backend`: `npm run check`（modules / boot / test-count / schemas）
-2. `backend`: `npm test`，或覆盖本次改动模块的定向测试
-3. 若改了 `src/views/pipeline-*` 或 session 逻辑：`npm run test:pipeline-session`（仓库根目录）
-4. 若改了前端 helper / store：对应 `npm run test:*` 脚本
+统一用：
 
-大范围或跨层改动可跑 `npm run verify:full`（或 `--skip-e2e` 变体）；**不必**每次等小范围修复都跑全链路 E2E。
+```bash
+npm run verify:changed
+```
 
-## 通过后立即执行
+该脚本根据 `git diff` 变更路径自动选择最小检测，例如：
 
-1. `git status` / `git diff` — 确认无 `.env`、密钥、token、凭据文件
+| 改动 | 检测 |
+|------|------|
+| 任意 `.js/.mjs` | `node --check` 仅变更文件 |
+| `backend/src/foo.js` | 若存在 `backend/test/foo.test.js` 则只跑该文件 |
+| `backend/src/script-bundle*` | `script-bundle*.test.js` |
+| `backend/src/pdf-document*`、`document-*` | `pdf-document.test.js` |
+| `backend/src/routes/schemas*` | `npm run check:schemas` |
+| `src/`、`app.js`、`index.html`、`frontend/` | 若动到入口/视图/组件 → `npm run check:modules` |
+| `src/views/pipeline-*` | `npm run test:pipeline-session` |
+| 仅 `docs/`、`.cursor/rules/`、`.md` | 跳过测试（仍检查是否含密钥路径） |
+
+若需全量验证，仅当用户明确要求或发布前手动执行。
+
+## 2. 通过后立即 commit + push
+
+1. `git status` / `git diff` — 不得含 `.env`、密钥、token、`chi_sim.traineddata` 等
 2. `git add` 仅相关文件
 3. `git commit` — 1～2 句，说明 why
-4. `npm run git:push` — 经 Clash 代理推送到当前分支（**不要** force push `main`/`master`；**不要** `git config --global http.proxy`）
+4. `npm run git:push` — 经 Clash 推送（见 `git-clash-proxy.mdc`；**不要** force push `main`/`master`；**不要** `git config --global http.proxy`）
 
-## 禁止自动提交的情况
+## 3. 禁止自动提交
 
-- 任一安全检测失败
+- `npm run verify:changed` 失败
 - 改动含疑似密钥或 `.env`
-- 用户在同一轮对话里明确说「先别提交」或「不要 push」
+- 用户在本轮对话明确说「先别提交」或「不要 push」
 
-## 回复用户
+## 4. 回复用户
 
-检测通过并完成 push 后，简短说明 commit hash、分支与检测项即可；**不要再问**「要不要提交」。
+完成后简短说明：commit hash、分支、**实际跑了哪些 verify-changed 项**。**不要再问**「要不要提交」。
