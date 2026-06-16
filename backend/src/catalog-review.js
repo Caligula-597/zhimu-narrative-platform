@@ -61,10 +61,14 @@ export async function sendCatalogReviewRequestEmails({
   const opsHtml = brandedEmailHtml({
     title: "公开剧本库 · 新审核申请",
     preview: `${world.name} · ${submitter.email || submitter.display_name || "用户"}`,
-    bodyHtml: `<p>有新的剧本申请上架公开库，请在 Supabase / 运维流程中审核后执行：</p>
-<pre style="background:#f3f4f6;padding:12px;border-radius:8px;font-size:13px">UPDATE worlds SET catalog_public = true, catalog_review_status = 'approved', updated_at = now() WHERE id = '${escapeHtml(world.id)}';</pre>
-<table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:14px">${tableHtml}</table>
-<p style="margin-top:16px;color:#6b7280;font-size:13px">拒审可将 catalog_review_status 设为 rejected 并填写 catalog_review_note。</p>`,
+    bodyHtml: `<p>有新的剧本申请上架公开库。可在运维 API 审核：</p>
+<ul style="font-size:14px;line-height:1.6">
+  <li><code>GET /api/ops/catalog/reviews</code> — 待审列表</li>
+  <li><code>POST /api/ops/catalog/reviews/${escapeHtml(world.id)}/approve</code> — 通过</li>
+  <li><code>POST /api/ops/catalog/reviews/${escapeHtml(world.id)}/reject</code> — 拒绝（body: note）</li>
+</ul>
+<p style="color:#6b7280;font-size:13px">请求头需 <code>x-ops-token</code>（与 OPS_API_TOKEN 一致）。</p>
+<table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:14px">${tableHtml}</table>`,
     ctaUrl: worldLink.startsWith("http") ? worldLink : undefined,
     ctaLabel: "打开织幕"
   });

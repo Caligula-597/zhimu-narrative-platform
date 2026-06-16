@@ -69,7 +69,8 @@ test("player cannot read host progress for a running room", async (context) => {
     headers: { "x-user-id": playerUserId }
   });
   assert.equal(response.statusCode, 403);
-  assert.equal(response.json().error, "Host role required");
+  assert.equal(response.json().code, "HOST_ROLE_REQUIRED");
+  assert.match(response.json().error, /主持人/);
 });
 
 test("private voice rooms are isolated from active room members who were not invited", async (context) => {

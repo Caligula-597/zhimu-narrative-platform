@@ -7,7 +7,37 @@
 1. 打开邮件中的世界 ID，在织幕内抽样阅读（名称、简介、分幕、线索）。
 2. 确认可「开始体验」跑通，内容无明显违规。
 
-### 通过
+### 通过（推荐 · Ops API）
+
+```http
+POST /api/ops/catalog/reviews/<世界UUID>/approve
+x-ops-token: <OPS_API_TOKEN>
+```
+
+或 CLI（数据库需为 pending）：
+
+```bash
+cd backend && node scripts/approve-catalog-world.mjs <世界UUID>
+```
+
+### 拒绝
+
+```http
+POST /api/ops/catalog/reviews/<世界UUID>/reject
+x-ops-token: <OPS_API_TOKEN>
+Content-Type: application/json
+
+{ "note": "请修改 xxx 后重新申请" }
+```
+
+### 待审列表
+
+```http
+GET /api/ops/catalog/reviews?limit=50&offset=0
+x-ops-token: <OPS_API_TOKEN>
+```
+
+### 通过（SQL 备用）
 
 ```sql
 UPDATE worlds
@@ -20,7 +50,7 @@ WHERE id = '<世界UUID>';
 
 回复创作者：已通过，可在公开剧本库搜索。
 
-### 拒绝
+### 拒绝（SQL 备用）
 
 ```sql
 UPDATE worlds
@@ -36,6 +66,7 @@ WHERE id = '<世界UUID>';
 
 | 变量 | 说明 |
 |------|------|
+| `OPS_API_TOKEN` | Ops API 鉴权（含 `/api/ops/catalog/reviews`） |
 | `CATALOG_REVIEW_NOTIFY_EMAIL` | 接收审核申请（默认 `support@getzhimu.com`） |
 | `RESEND_API_KEY` + `MAIL_FROM` | 须已配置，否则表单提交返回 503 |
 

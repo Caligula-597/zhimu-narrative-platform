@@ -18,6 +18,7 @@ import {
 } from "../world-collaboration.js";
 import { acceptWorldMemberInviteToken } from "../world-invites.js";
 import { submitCatalogReviewRequest } from "../catalog-review.js";
+import { enrichWorldMembership, enrichWorldMembershipList } from "../membership-labels.js";
 import {
   updateWorldSchema,
   worldIdParams,
@@ -62,7 +63,9 @@ export async function registerWorldRoutes(app) {
        ORDER BY id, role_rank DESC, updated_at DESC`,
       [actorId, includeArchived]
     );
-    return result.rows.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).map(({ updated_at, ...world }) => world);
+    return enrichWorldMembershipList(
+      result.rows.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).map(({ updated_at, ...world }) => world)
+    );
   });
 
   app.get("/api/worlds/catalog", async (request) => {
@@ -94,7 +97,7 @@ export async function registerWorldRoutes(app) {
       [worldId, actorId]
     );
     if (!result.rowCount) return sendErr(reply, "WORLD_NOT_FOUND");
-    return result.rows[0];
+    return enrichWorldMembership(result.rows[0]);
   });
 
   app.patch("/api/worlds/:worldId", { schema: updateWorldSchema }, async (request, reply) => {

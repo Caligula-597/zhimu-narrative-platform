@@ -21,11 +21,19 @@ export async function requireWorldRole(actorId, worldId, allowedRoles = WORLD_ED
     `SELECT role FROM world_members WHERE world_id = $1 AND user_id = $2`,
     [worldId, actorId]
   );
-  if (!result.rowCount || !allowedRoles.includes(result.rows[0].role)) throwErr("WORLD_EDITOR_REQUIRED");
+  if (!result.rowCount) throwErr("WORLD_ACCESS_DENIED");
+  if (!allowedRoles.includes(result.rows[0].role)) throwErr("WORLD_EDITOR_REQUIRED");
   return result.rows[0];
 }
 
 /** Read script / studio data (public catalog players, hosts, collaborators). */
 export async function requireWorldReader(actorId, worldId) {
-  return requireWorldRole(actorId, worldId, WORLD_READER_ROLES);
+  const result = await query(
+    `SELECT role FROM world_members WHERE world_id = $1 AND user_id = $2`,
+    [worldId, actorId]
+  );
+  if (!result.rowCount || !WORLD_READER_ROLES.includes(result.rows[0].role)) {
+    throwErr("WORLD_ACCESS_DENIED");
+  }
+  return result.rows[0];
 }

@@ -25,7 +25,10 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/pdf-document", ["test/pdf-document.test.js"]],
   ["backend/src/document-parser", ["test/pdf-document.test.js"]],
   ["backend/src/document-page-import", ["test/pdf-document.test.js"]],
-  ["backend/src/document-text-import", ["test/pdf-document.test.js"]]
+  ["backend/src/document-text-import", ["test/pdf-document.test.js"]],
+  ["backend/src/catalog-review-ops", ["test/ops-catalog.test.js"]],
+  ["backend/src/routes/ops-catalog-routes", ["test/ops-catalog.test.js"]],
+  ["backend/src/membership-labels", ["test/membership-labels.test.js"]]
 ];
 
 function gitLines(cmd) {
@@ -104,6 +107,10 @@ for (const t of backendTests) {
     `node --test-concurrency=1 --test-force-exit --import ./test/hooks.mjs --test ${t}`,
     backendRoot
   );
+}
+
+if (files.some((f) => f.startsWith("backend/"))) {
+  run("backend security audit (high+)", "npm audit --audit-level=high --omit=dev", backendRoot);
 }
 
 const frontendChanged = files.some((f) =>
