@@ -380,7 +380,29 @@ h3 { font-size:15px; }
 .restore-scope-row input { margin-top:3px; flex-shrink:0; }
 .restore-scope-row strong { display:block; font-size:11px; }
 .restore-scope-row small { display:block; margin-top:4px; color:var(--muted); font-size:9px; line-height:1.5; letter-spacing:0; }
-.manuscript-editor-modal { width:min(980px,94vw); }.editor-head { display:flex; justify-content:space-between; gap:12px; align-items:center; }.editor-save-state { padding:6px 8px; border-radius:7px; color:var(--green); background:var(--sage-2); font-size:9px; font-weight:700; }.editor-grid { display:grid; grid-template-columns:1fr 210px; gap:14px; }.manuscript-body { min-height:360px; resize:vertical; line-height:1.75; }.editor-side { padding:12px; margin-top:12px; border:1px solid var(--line); border-radius:10px; background:#f8faf7; }.editor-side label { display:block; margin:11px 0 5px; color:var(--muted); font-size:9px; font-weight:700; }.editor-stats { display:flex; align-items:end; gap:5px; margin-top:12px; color:var(--muted); }.editor-stats b { color:var(--green); font-size:25px; }.editor-stats span { padding-bottom:4px; font-size:9px; }
+.manuscript-editor-modal { width:min(920px,94vw); max-height:calc(100vh - 32px); display:flex; flex-direction:column; overflow:hidden; padding:18px 20px 16px; }
+.manuscript-editor-modal .editor-modal-title { margin:0 0 12px; font-size:16px; }
+.manuscript-editor-modal .editor-shell { display:flex; flex-direction:column; min-height:0; flex:1; overflow:auto; }
+.manuscript-editor-modal .editor-top { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+.manuscript-editor-modal .editor-context { flex:1; min-width:0; }
+.manuscript-editor-modal .editor-role { margin:0; color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.4px; }
+.manuscript-editor-modal .editor-title { margin-top:6px; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:#fbfcfa; font-size:15px; font-weight:700; }
+.manuscript-editor-modal .editor-status { display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; }
+.manuscript-editor-modal .editor-word-count { color:var(--muted); font-size:10px; font-weight:700; }
+.manuscript-editor-modal .editor-save-state { padding:6px 8px; border-radius:7px; color:var(--green); background:var(--sage-2); font-size:9px; font-weight:700; white-space:nowrap; }
+.manuscript-editor-modal .editor-body-wrap { flex:1; min-height:min(520px,52vh); margin:12px 0 10px; }
+.manuscript-editor-modal .manuscript-body { width:100%; height:100%; min-height:min(520px,52vh); resize:vertical; line-height:1.8; font-size:12px; padding:14px 16px; border-radius:12px; }
+.manuscript-editor-modal .editor-details { border:1px solid var(--line); border-radius:10px; background:#f8faf7; }
+.manuscript-editor-modal .editor-details + .editor-details { margin-top:8px; }
+.manuscript-editor-modal .editor-details summary { padding:10px 12px; cursor:pointer; list-style:none; color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.3px; user-select:none; }
+.manuscript-editor-modal .editor-details summary::-webkit-details-marker { display:none; }
+.manuscript-editor-modal .editor-details summary::before { content:"▸ "; color:var(--green); }
+.manuscript-editor-modal .editor-details[open] summary::before { content:"▾ "; }
+.manuscript-editor-modal .editor-details-body { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 12px 12px; }
+.manuscript-editor-modal .editor-find-body { grid-template-columns:1fr 1fr auto; align-items:end; }
+.manuscript-editor-modal .editor-meta-field label { display:block; margin:0 0 5px; color:var(--muted); font-size:9px; font-weight:700; letter-spacing:.5px; }
+.manuscript-editor-modal .editor-replace-btn { align-self:end; white-space:nowrap; }
+.manuscript-editor-modal .modal-actions { margin-top:14px; flex-shrink:0; }
 .preview-modal { width:min(860px,94vw); }.preview-controls { display:grid; grid-template-columns:1fr 1fr; gap:10px; }.preview-role-card,.preview-section { padding:13px; margin-top:11px; border:1px solid var(--line); border-radius:11px; background:#fbfcfa; }.preview-role-card p,.preview-section div { margin-top:7px; color:var(--ink-soft); font-size:10px; line-height:1.75; }.preview-section h3 { margin-top:9px; }
 .voice-stack { margin-bottom:15px; }.voice-stack .voice-hub { margin-bottom:0; border-radius:15px 15px 0 0; }.voice-chat { padding:13px; border:1px solid rgba(44,107,98,.18); border-top:0; border-radius:0 0 15px 15px; background:rgba(255,255,255,.92); }.voice-chat-head,.voice-chat-compose { display:flex; align-items:center; justify-content:space-between; gap:10px; }.voice-chat-head p { margin-top:4px; color:var(--muted); font-size:9px; }.voice-chat-log { display:flex; flex-direction:column; gap:7px; max-height:176px; overflow:auto; padding:9px 0; margin:9px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }.voice-message { padding:8px; border-radius:8px; background:#f5f7f3; }.voice-message b { color:var(--green); font-size:10px; }.voice-message span { margin-left:7px; color:var(--muted); font-size:8px; }.voice-message p { margin-top:5px; color:var(--ink-soft); font-size:10px; line-height:1.5; }.voice-chat-compose .field { flex:1; }
 .member-picker { display:grid; grid-template-columns:repeat(2,1fr); gap:7px; padding:9px; border:1px solid var(--line); border-radius:9px; background:#fbfcfa; }.member-picker label { display:flex; align-items:center; gap:6px; margin:0; color:var(--ink-soft); font-size:10px; letter-spacing:0; }.member-picker input { accent-color:var(--green); }
@@ -683,7 +705,8 @@ body.modal-scroll-lock { position:fixed; width:100%; left:0; right:0; }
   .parallel-room-row,.checkpoint-head,.recap-head { align-items:flex-start; flex-direction:column; }
   .reading-row,.task-row,.manuscript-row,.chapter-control,.version-row,.cloud-asset-row,
   .player-row,.location-row,.archive-row,.voice-option,.recap-timeline-row { grid-template-columns:1fr; }
-  .editor-grid,.deepseek-grid,.preview-controls,.auth-grid,.host-detail-grid,.player-hero,.player-layout { grid-template-columns:1fr; }
+  .editor-details-body,.editor-find-body,.deepseek-grid,.preview-controls,.auth-grid,.host-detail-grid,.player-hero,.player-layout { grid-template-columns:1fr; }
+  .manuscript-editor-modal .editor-find-body .editor-replace-btn { width:100%; }
   .story-paragraph { padding-right:0; }
   .mark-btn { position:static; margin-top:8px; }
   .modal-backdrop { padding:10px; align-items:flex-start; overflow:auto; }

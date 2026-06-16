@@ -39,6 +39,7 @@
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
+  const studioOptionsHtml = M.studioOptionsHtml || (() => "");
   const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
@@ -74,14 +75,33 @@ function writer(){
 
 function creatorTool(title,text,action,label){return `<article class="placeholder-module connected"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p><button class="text-btn" data-action="${escapeHtml(action)}">${escapeHtml(label)}</button></article>`}
 
-function openCreatorSection(roleId,sectionId=""){
- const data=state.cloudStudio,sections=data.sections.filter(section=>section.role_slot_id===roleId),section=sections.find(item=>item.id===sectionId);
- modal.className="modal manuscript-editor-modal";modal.innerHTML=`<div class="editor-head"><div><p class="section-kicker">LONGFORM SCRIPT EDITOR</p><h2>${section?"编辑角色分幕":"新增角色分幕"}</h2></div><span class="editor-save-state" data-editor-state>${section?"已加载云端版本":"新分幕尚未写入"}</span></div><div class="editor-grid"><div class="form-group">${studioSelect("所属公共章节","chapterId",[{id:"",name:"暂不绑定章节"},...data.chapters],section?.chapter_id||"")}${studioField("分幕标题","title","input",section?.title||"")}<label>角色正文 · 支持 Markdown</label><textarea class="field manuscript-body" data-studio-field="body" rows="18">${escapeHtml(section?.body||"")}</textarea>${studioSelect("发布状态","publicationStatus",[{id:"draft",name:"草稿 · 仅创作者可见"},{id:"testing",name:"测试中 · 测试房可见"},{id:"published",name:"已发布 · 正式房可见"}],section?.publication_status||"draft")}</div><aside class="editor-side"><h3>当前分幕工具</h3><div class="editor-stats"><b data-word-count>0</b><span>字符</span></div><label>搜索</label><input class="field" data-editor-search placeholder="输入关键词"><label>替换为</label><input class="field" data-editor-replace placeholder="新的文本"><button class="secondary-btn full-btn" data-editor-replace-btn>全部替换</button><div class="tutorial-tip"><b>自动保存</b><span>${section?"停止输入约 0.9 秒后写入云端。":"新分幕首次需要点击保存，之后可继续自动保存。"}</span></div></aside></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-studio-submit>${section?"保存并关闭":"写入云端"}</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
+function manuscriptEditorHtml(data, role, section){
+ const chapters=[{id:"",name:"暂不绑定章节"},...data.chapters];
+ const chapterSelect=`<select class="field" id="editor-chapter" data-studio-field="chapterId">${studioOptionsHtml(chapters,section?.chapter_id||"")}</select>`;
+ const statusSelect=`<select class="field" id="editor-status" data-studio-field="publicationStatus">${studioOptionsHtml([{id:"draft",name:"草稿 · 仅创作者可见"},{id:"testing",name:"测试中 · 测试房可见"},{id:"published",name:"已发布 · 正式房可见"}],section?.publication_status||"draft")}</select>`;
+ const settingsOpen=section?"":" open";
+ const roleLabel=escapeHtml(role?.name||"角色");
+ const seqLabel=section?` · 第 ${section.sequence} 幕`:"";
+ return `<div class="editor-shell"><header class="editor-top"><div class="editor-context"><p class="editor-role">${roleLabel}${seqLabel}</p><input class="field editor-title" data-studio-field="title" value="${escapeHtml(section?.title||"")}" placeholder="分幕标题" autocomplete="off"></div><div class="editor-status"><span class="editor-word-count" data-word-count>0 字</span><span class="editor-save-state" data-editor-state>${section?"已加载云端版本":"新分幕尚未写入"}</span></div></header><div class="editor-body-wrap"><textarea class="field manuscript-body" data-studio-field="body" placeholder="在此撰写角色私人正文，支持 Markdown…" spellcheck="true">${escapeHtml(section?.body||"")}</textarea></div><details class="editor-details"${settingsOpen}><summary>分幕设置</summary><div class="editor-details-body"><div class="editor-meta-field"><label for="editor-chapter">公共章节</label>${chapterSelect}</div><div class="editor-meta-field"><label for="editor-status">发布状态</label>${statusSelect}</div></div></details><details class="editor-details"><summary>查找与替换</summary><div class="editor-details-body editor-find-body"><div class="editor-meta-field"><label for="editor-search">搜索</label><input class="field" id="editor-search" data-editor-search placeholder="关键词"></div><div class="editor-meta-field"><label for="editor-replace">替换为</label><input class="field" id="editor-replace" data-editor-replace placeholder="新的文本"></div><button type="button" class="secondary-btn editor-replace-btn" data-editor-replace-btn>全部替换</button></div></details><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-studio-submit>${section?"保存并关闭":"写入云端"}</button></div></div>`;
+}
+
+function bindManuscriptEditor(roleId, section, sections){
  const body=modal.querySelector('[data-studio-field="body"]'),count=modal.querySelector("[data-word-count]"),status=modal.querySelector("[data-editor-state]");let timer;
- const refreshCount=()=>count.textContent=String(body.value.length);refreshCount();body.addEventListener("input",()=>{refreshCount();status.textContent="有未保存修改";if(section){clearTimeout(timer);timer=setTimeout(async()=>{try{const values=studioValues();if(!values.chapterId)values.chapterId=null;await zhimuApi.updateSection(roleId,section.id,values);section.title=values.title;section.body=values.body;section.chapter_id=values.chapterId;section.publication_status=values.publicationStatus;status.textContent=`已自动保存 · ${new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}`}catch(error){status.textContent=`保存失败 · ${error.message}`}},900)}});modal.querySelector("[data-editor-replace-btn]").onclick=()=>{const from=modal.querySelector("[data-editor-search]").value,to=modal.querySelector("[data-editor-replace]").value;if(!from)return showToast("请先填写搜索关键词");body.value=body.value.split(from).join(to);body.dispatchEvent(new Event("input"));showToast("当前分幕已完成替换")};
+ const refreshCount=()=>{if(count)count.textContent=`${body.value.length} 字`};
+ const scheduleAutosave=()=>{status.textContent="有未保存修改";if(!section)return;clearTimeout(timer);timer=setTimeout(async()=>{try{const values=studioValues();if(!values.chapterId)values.chapterId=null;await zhimuApi.updateSection(roleId,section.id,values);section.title=values.title;section.body=values.body;section.chapter_id=values.chapterId;section.publication_status=values.publicationStatus;status.textContent=`已自动保存 · ${new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}`}catch(error){status.textContent=`保存失败 · ${error.message}`}},900)};
+ refreshCount();
+ modal.querySelectorAll("[data-studio-field]").forEach((field)=>{field.addEventListener("input",()=>{refreshCount();scheduleAutosave()});if(field.tagName==="SELECT")field.addEventListener("change",scheduleAutosave)});
+ modal.querySelector("[data-editor-replace-btn]").onclick=()=>{const from=modal.querySelector("[data-editor-search]").value,to=modal.querySelector("[data-editor-replace]").value;if(!from)return showToast("请先填写搜索关键词");body.value=body.value.split(from).join(to);body.dispatchEvent(new Event("input"));showToast("当前分幕已完成替换")};
  modal.querySelector("[data-studio-submit]").onclick=async()=>{try{const values=studioValues();if(!values.chapterId)values.chapterId=null;if(section)await zhimuApi.updateSection(roleId,section.id,values);else await zhimuApi.createSection(zhimuApi.context.worldId,roleId,{...values,sequence:sections.length+1});closeModal();await loadCloudData();showToast("角色分幕已保存")}catch(error){showToast(error.message)}};
- if(section)modal.querySelector(".modal-actions").insertAdjacentHTML("afterbegin",`<button class="danger-btn" data-delete-section>删除这一幕</button>`),modal.querySelector("[data-delete-section]").onclick=async()=>{try{await zhimuApi.deleteSection(roleId,section.id);closeModal();await loadCloudData();showToast("角色分幕已删除")}catch(error){showToast(error.message)}};
+ if(section){const actions=modal.querySelector(".modal-actions");actions.insertAdjacentHTML("afterbegin",`<button class="danger-btn" data-delete-section>删除这一幕</button>`);actions.querySelector("[data-delete-section]").onclick=async()=>{try{await zhimuApi.deleteSection(roleId,section.id);closeModal();await loadCloudData();showToast("角色分幕已删除")}catch(error){showToast(error.message)}};}
+ setTimeout(()=>body?.focus(),60);
+}
+
+function openCreatorSection(roleId,sectionId=""){
+ const data=state.cloudStudio,role=data.roles.find(item=>item.id===roleId),sections=data.sections.filter(section=>section.role_slot_id===roleId),section=sections.find(item=>item.id===sectionId);
+ modal.className="modal manuscript-editor-modal";modal.innerHTML=`<h2 class="editor-modal-title">${section?"编辑角色分幕":"新增角色分幕"}</h2>${manuscriptEditorHtml(data,role,section)}`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
+ bindManuscriptEditor(roleId,section,sections);
 }
 
 function openCreatorRole(roleId=""){
