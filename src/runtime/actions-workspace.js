@@ -95,8 +95,7 @@
         const panelId = el?.dataset?.panelId;
         if (!panelId) return true;
         const defaultOpen = el?.dataset?.defaultOpen !== "0";
-        window.zhimuCollapsePanel?.togglePanel?.(panelId, defaultOpen);
-        window.zhimuRender?.();
+        window.zhimuCollapsePanel?.togglePanelInDom?.(panelId, defaultOpen, el);
         return true;
       }
       default:

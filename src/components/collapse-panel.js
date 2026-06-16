@@ -15,6 +15,24 @@
     state.panelCollapse[panelId] = !isPanelOpen(panelId, defaultOpen);
   }
 
+  function applyPanelDomState(panel, open) {
+    if (!panel) return;
+    panel.classList.toggle("is-open", open);
+    panel.classList.toggle("is-collapsed", !open);
+    const toggle = panel.querySelector(".collapse-panel-toggle");
+    const chevron = panel.querySelector(".collapse-panel-chevron");
+    if (toggle) toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (chevron) chevron.textContent = open ? "▾" : "▸";
+  }
+
+  function togglePanelInDom(panelId, defaultOpen = true, toggleEl = null) {
+    togglePanel(panelId, defaultOpen);
+    const panel =
+      toggleEl?.closest?.("[data-collapse-panel]") ||
+      document.querySelector(`[data-collapse-panel="${escapeAttr(panelId)}"]`);
+    applyPanelDomState(panel, isPanelOpen(panelId, defaultOpen));
+  }
+
   function collapsibleCard({
     id,
     title,
@@ -47,6 +65,6 @@
     return String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
   }
 
-  window.zhimuCollapsePanel = { isPanelOpen, togglePanel, collapsibleCard };
+  window.zhimuCollapsePanel = { isPanelOpen, togglePanel, togglePanelInDom, applyPanelDomState, collapsibleCard };
 })(window);
 export {};
