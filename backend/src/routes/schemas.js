@@ -762,12 +762,103 @@ export const parseDocumentSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["filename", "contentType", "dataBase64"],
+    required: ["filename"],
     properties: {
       filename: { type: "string", minLength: 1, maxLength: 255 },
       contentType: { type: "string", minLength: 3, maxLength: 120 },
-      dataBase64: { type: "string", minLength: 1, maxLength: 7_000_000 }
+      dataBase64: { type: "string", minLength: 1, maxLength: 7_000_000 },
+      contentBase64: { type: "string", minLength: 1, maxLength: 7_000_000 },
+      parseMode: { type: "string", enum: ["auto", "pages", "text"] },
+      allowOcr: { type: "boolean" }
+    },
+    anyOf: [{ required: ["dataBase64"] }, { required: ["contentBase64"] }]
+  }
+};
+
+export const importDocumentPagesSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["filename", "roleSlotId"],
+    properties: {
+      filename: { type: "string", minLength: 1, maxLength: 255 },
+      contentType: { type: "string", minLength: 3, maxLength: 120 },
+      dataBase64: { type: "string", minLength: 1, maxLength: 7_000_000 },
+      contentBase64: { type: "string", minLength: 1, maxLength: 7_000_000 },
+      roleSlotId: uuid,
+      title: { type: "string", maxLength: 200 },
+      layout: { type: "string", enum: ["single_section", "one_section_per_page"] },
+      publicationStatus,
+      parseMode: { type: "string", enum: ["auto", "pages", "text"] },
+      allowOcr: { type: "boolean" }
+    },
+    anyOf: [{ required: ["dataBase64"] }, { required: ["contentBase64"] }]
+  }
+};
+
+const scriptBundleArchiveBody = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    filename: { type: "string", minLength: 1, maxLength: 255 },
+    dataBase64: { type: "string", minLength: 1, maxLength: 70_000_000 },
+    contentBase64: { type: "string", minLength: 1, maxLength: 70_000_000 }
+  },
+  anyOf: [{ required: ["dataBase64"] }, { required: ["contentBase64"] }]
+};
+
+const scriptBundleImportOptions = {
+  createMissingRoles: { type: "boolean" },
+  pdfLayout: { type: "string", enum: ["single_section", "one_section_per_page"] },
+  publicationStatus,
+  skipCategories: {
+    type: "array",
+    maxItems: 12,
+    items: {
+      type: "string",
+      enum: ["role_script", "clue", "host_manual", "public_script", "role_profile", "asset", "unknown"]
     }
+  },
+  roleMappings: {
+    type: "object",
+    additionalProperties: { type: "string", minLength: 36, maxLength: 36 }
+  }
+};
+
+export const scriptBundleAnalyzeSchema = {
+  params: worldIdParams,
+  body: scriptBundleArchiveBody
+};
+
+export const scriptBundleImportSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: [],
+    properties: {
+      ...scriptBundleArchiveBody.properties,
+      ...scriptBundleImportOptions
+    },
+    anyOf: scriptBundleArchiveBody.anyOf
+  }
+};
+
+export const scriptBundleNewWorldSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      ...scriptBundleArchiveBody.properties,
+      ...scriptBundleImportOptions,
+      worldName: { type: "string", minLength: 1, maxLength: 120 },
+      name: { type: "string", minLength: 1, maxLength: 120 },
+      worldSummary: { type: "string", maxLength: 2000 },
+      summary: { type: "string", maxLength: 2000 },
+      playerCount: { type: "integer", minimum: 1, maximum: 20 }
+    },
+    anyOf: scriptBundleArchiveBody.anyOf
   }
 };
 

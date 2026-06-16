@@ -19,6 +19,7 @@ import "../src/components/service-outage.js";
 import "../src/components/emptyState.js";
 import "../src/components/toast.js";
 import "../src/components/modal.js";
+import "../src/components/account-hub.js";
 import "../src/components/creator-guide.js";
 import "../src/views/overview.js";
 import "../src/views/pipeline-wizard-session.js";

@@ -173,7 +173,8 @@
           try {
             const usage = await zhimuApi.getStorageUsage();
             state.storageUsage = usage;
-            if (state.view === "settings" || state.view === "overview" || state.view === "assets") render();
+            if (state.view === "settings" || state.view === "overview") render();
+            window.zhimuAccountHub?.refreshIfOpen?.();
           } catch {
             /* quota refresh best-effort */
           }
@@ -206,7 +207,8 @@
           }
         });
         take(phase3[2], (value) => { state.cloudCreatorChecks = value.checks; });
-        if (state.view === "overview" || state.view === "assets" || state.view === "writer") render();
+        if (state.view === "overview" || state.view === "writer") render();
+        window.zhimuAccountHub?.refreshAssetsPanel?.();
       })();
 
       void (async () => {

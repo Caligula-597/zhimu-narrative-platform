@@ -11,13 +11,11 @@
     writer: ["剧本杀创作", "创作者工作台"],
     studio: ["内容创作", "剧情编排"],
     clues: ["内容创作", "线索管理"],
-    assets: ["内容创作", "内容资产"],
     rules: ["内容创作", "自动化规则"],
     director: ["实时运行", "主持监控台"],
     player: ["玩家体验", "玩家视角"],
     archive: ["历史记录", "存档与复盘"],
-    settings: ["世界管理", "世界设置"],
-    account: ["账号", "账号设置"]
+    settings: ["世界管理", "世界设置"]
   };
 
   function render() {
@@ -33,13 +31,11 @@
       writer: V.writer.writer,
       studio: V.studio.studioCloud,
       clues: V.clues.clues,
-      assets: V.assets.assets,
       rules: V.rules.rules,
       director: V.director.director,
       player: V.player.player,
       archive: V.archive.archive,
-      settings: V.settings.settings,
-      account: V.account.account
+      settings: V.settings.settings
     };
     const outage = window.zhimuServiceOutage;
     const showOutage = outage?.isServiceOutage?.(state.apiError) && !state.cloudLoading;
@@ -48,6 +44,10 @@
   }
 
   function go(view) {
+    if (view === "account" || view === "assets") {
+      R.openAccountHub?.({ tab: view === "assets" ? "assets" : "account" });
+      return;
+    }
     if (state.view === view) return;
     if (view === "player") window.zhimuOnboarding?.markPlayerVisit?.();
     else if (view === "director") window.zhimuOnboarding?.markDirectorVisit?.();

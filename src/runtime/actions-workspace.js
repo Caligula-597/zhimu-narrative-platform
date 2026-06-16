@@ -77,8 +77,9 @@
       case "refresh-host-audit":
         R.refreshHostAuditLog?.(true);
         return true;
+      case "open-account-hub":
       case "go-account":
-        R.go?.("account");
+        R.openAccountHub?.(el?.dataset?.hubTab ? { tab: el.dataset.hubTab } : {});
         return true;
       default:
         return false;

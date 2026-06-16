@@ -29,7 +29,7 @@
           pillClass: "session-ok",
           title: "",
           description: "",
-          profileFallback: { strong: "已登录", small: "点击管理账号", avatar: "我" },
+          profileFallback: { strong: "已登录", small: "点击账号与资产", avatar: "我" },
           showTopBanner: false,
           showLoginCta: false
         };

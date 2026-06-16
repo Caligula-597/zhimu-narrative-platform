@@ -40,10 +40,14 @@
     "@fastify/static": "^8.3.0",
     "@fastify/swagger": "^9.5.1",
     "@fastify/swagger-ui": "^5.2.2",
+    "@napi-rs/canvas": "^1.0.0",
+    "adm-zip": "^0.5.17",
     "dotenv": "^16.6.1",
     "fastify": "^5.6.1",
     "livekit-server-sdk": "^2.15.4",
     "mammoth": "^1.12.0",
-    "pg": "^8.16.3"
+    "pdfjs-dist": "^6.0.227",
+    "pg": "^8.16.3",
+    "tesseract.js": "^7.0.0"
   }
 }

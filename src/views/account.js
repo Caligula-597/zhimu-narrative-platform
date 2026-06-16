@@ -8,6 +8,7 @@
   const formatTime = F.formatTime || (() => "");
   const showToast = T.showToast || (() => "");
   const handleApiError = window.zhimuUserMessages?.handleApiErrorToast || ((err, toast) => toast(err?.message || "操作失败"));
+  const studioField = window.zhimuModal?.studioField || (() => "");
 
   window.zhimuViews = window.zhimuViews || {};
   const exports = window.zhimuViews.account = window.zhimuViews.account || {};
@@ -109,7 +110,7 @@
     };
   }
 
-  function accountBody(data) {
+  function accountBodyHtml(data) {
     const me = data.me || {};
     const sessions = data.sessions?.sessions || [];
     const oauth = data.config?.oauth || [];
@@ -117,22 +118,17 @@
     const isGuest = Boolean(me.isGuest);
     const sessionRows = sessions.map((s) => `<div class="collab-row"><div><b>${escapeHtml(s.deviceLabel || "未知设备")}</b><p>${escapeHtml(s.userAgent || "—")} · 最近 ${formatTime(s.lastSeenAt)}</p></div>${s.isCurrent ? `<span class="cloud-pill">当前</span>` : `<button class="text-btn danger-text" data-revoke-session="${s.id}">下线</button>`}</div>`).join("") || `<div class="empty-state">暂无其他设备记录</div>`;
     const oauthButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">关联 ${escapeHtml(p.label)}</button>`).join("");
+    const oauthLoginButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">使用 ${escapeHtml(p.label)} 登录</button>`).join("");
     const quotaHtml = window.zhimuRuntime?.renderQuotaSection?.(usage) || "";
-    return `<p class="wizard-intro">${escapeHtml(me.display_name || me.email || "已登录")}${isGuest ? " · 游客账号" : me.email ? ` · ${escapeHtml(me.email)}` : ""}${me.planLabel ? ` · ${escapeHtml(me.planLabel)}` : ""}</p>${isGuest ? `<section class="form-group"><h3>保存进度</h3><p class="muted-note">游客数据在升级前不会绑定邮箱。请点击下方注册，或使用注销删除本游客账号。</p><button class="primary-btn" data-action="open-auth">注册 / 登录</button></section>` : `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}${oauthDiagHtml(data.config?.oauthDiagnostics)}`}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button class="secondary-btn" data-auth-logout>退出登录</button></section><section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
+    const guestUpgrade = isGuest
+      ? `<section class="form-group"><h3>保存进度 · 注册正式账号</h3>${studioField("邮箱", "upgradeEmail", "input", "")}${studioField("昵称", "upgradeName", "input", me.display_name || "")}${studioField("密码 · 至少 8 位", "upgradePassword", "input", "")}<button type="button" class="primary-btn" data-guest-upgrade>绑定邮箱并注册</button><p class="muted-note">或使用 OAuth 绑定（保留当前房间进度）</p>${oauthLoginButtons ? `<div class="row">${oauthLoginButtons}</div>` : ""}</section>`
+      : "";
+    return `${guestUpgrade}${!isGuest ? `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}${oauthDiagHtml(data.config?.oauthDiagnostics)}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section><section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
   }
 
   function account() {
-    if (!localStorage.getItem("zhimuSessionToken")) {
-      return accountShell(`<p class="muted-note">登录后可管理账号、配额与会话。</p><button class="primary-btn" data-action="open-auth">登录 / 注册</button>`);
-    }
-    if (state.accountViewLoading) {
-      return accountShell("", true);
-    }
-    if (!state.accountView) {
-      void refreshAccountView();
-      return accountShell("", true);
-    }
-    return accountShell(accountBody(state.accountView));
+    void window.zhimuAccountHub?.openAccountHub?.({ tab: "account" });
+    return `<section class="card"><p class="muted-note">账号与会话已在「账号与资产」面板中管理。</p></section>`;
   }
 
   async function refreshAccountView(options = {}) {
@@ -152,6 +148,7 @@
       const usage = entitlements?.usage ?? null;
       if (usage) state.storageUsage = usage;
       state.accountView = { me, sessions, config, usage, entitlements };
+      window.zhimuAccountHub?.refreshIfOpen?.({ tab: "account" });
     } catch (error) {
       if (!background) {
         state.accountView = null;
@@ -159,17 +156,16 @@
       }
     } finally {
       state.accountViewLoading = false;
-      if (state.view === "account") window.zhimuRender?.();
     }
   }
 
-  function bindAccountView() {
-    if (state.view !== "account") return;
-    document.querySelector("[data-auth-logout]")?.addEventListener("click", async () => {
+  function bindAccountPanel(root = document) {
+    root.querySelector("[data-auth-logout]")?.addEventListener("click", async () => {
       try {
         await zhimuApi.logout();
         localStorage.removeItem("zhimuSessionToken");
         window.zhimuContext?.onSessionLogout?.();
+        window.zhimuModal?.closeModal?.();
         showToast("已退出登录");
         await window.zhimuAuthSession?.syncProfile?.();
         window.zhimuAuthSession?.syncAuthBanner?.();
@@ -178,7 +174,7 @@
         handleApiError(error, showToast);
       }
     });
-    document.querySelector("[data-logout-all]")?.addEventListener("click", async () => {
+    root.querySelector("[data-logout-all]")?.addEventListener("click", async () => {
       try {
         await zhimuApi.logoutAllDevices();
         showToast("已下线其他设备");
@@ -187,7 +183,7 @@
         handleApiError(error, showToast);
       }
     });
-    document.querySelectorAll("[data-revoke-session]").forEach((btn) => {
+    root.querySelectorAll("[data-revoke-session]").forEach((btn) => {
       btn.onclick = async () => {
         try {
           await zhimuApi.revokeSession(btn.dataset.revokeSession);
@@ -198,7 +194,7 @@
         }
       };
     });
-    document.querySelectorAll("[data-oauth-start]").forEach((btn) => {
+    root.querySelectorAll("[data-oauth-start]").forEach((btn) => {
       btn.onclick = async () => {
         try {
           const { url } = await zhimuApi.oauthStartUrl(btn.dataset.oauthStart);
@@ -208,11 +204,35 @@
         }
       };
     });
-    document.querySelector("[data-open-delete-account]")?.addEventListener("click", () => {
+    root.querySelector("[data-open-delete-account]")?.addEventListener("click", () => {
       void openDeleteAccountWizard();
+    });
+    root.querySelectorAll('[data-studio-field$="Password"]').forEach((input) => {
+      input.type = "password";
+    });
+    root.querySelector("[data-guest-upgrade]")?.addEventListener("click", async () => {
+      try {
+        const result = await zhimuApi.upgradeGuest({
+          email: root.querySelector('[data-studio-field="upgradeEmail"]')?.value,
+          displayName: root.querySelector('[data-studio-field="upgradeName"]')?.value,
+          password: root.querySelector('[data-studio-field="upgradePassword"]')?.value
+        });
+        localStorage.setItem("zhimuSessionToken", result.token);
+        showToast("账号已升级");
+        await window.zhimuAuthSession?.syncProfile?.();
+        await window.zhimuLoadCloudData?.(true, true);
+        await refreshAccountView();
+        window.zhimuRender?.();
+      } catch (error) {
+        handleApiError(error, showToast);
+      }
     });
   }
 
-  Object.assign(exports, { account, refreshAccountView, bindAccountView, openDeleteAccountWizard });
+  function bindAccountView() {
+    bindAccountPanel(document);
+  }
+
+  Object.assign(exports, { account, accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard });
 })(window);
 export {};

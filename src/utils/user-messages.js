@@ -272,8 +272,8 @@
     showToast(error?.message || "操作失败");
     if (isQuotaExceededError(error)) {
       setTimeout(() => {
-        if (window.zhimuRuntime?.go) window.zhimuRuntime.go("account");
-        else window.zhimuRuntime?.openAccountPanel?.();
+        if (window.zhimuRuntime?.openAccountHub) window.zhimuRuntime.openAccountHub();
+        else window.zhimuRuntime?.openAuth?.();
       }, 400);
     }
   }

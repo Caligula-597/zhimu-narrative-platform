@@ -18,7 +18,7 @@
   window.zhimuViews = window.zhimuViews || {};
   const viewExports = window.zhimuViews.assets = window.zhimuViews.assets || {};
 
-function assets(){
+function assetsPanelHtml(){
   const usage=state.storageUsage;
   const pct=usage?Math.min(100,Math.round(usage.usedBytes/usage.maxBytes*100)):0;
   const assets=state.cloudAssets||[];
@@ -42,8 +42,8 @@ function assets(){
   <div class="tabs">${tabs}${recycleBtn}</div>`;
 }
 
-function bindAssetSearch(){
- const input=document.getElementById("asset-search-input");
+function bindAssetsPanel(root=document){
+ const input=root.querySelector("#asset-search-input");
  if(!input||input.dataset.bound)return;
  input.dataset.bound="1";
  let timer=null;
@@ -52,10 +52,13 @@ function bindAssetSearch(){
   timer=setTimeout(async()=>{
    state.assetSearchQuery=input.value.trim();
    await reloadAssets();
-   render();
-   bindAssetSearch();
+   window.zhimuAccountHub?.refreshAssetsPanel?.();
   },300);
  });
+}
+
+function bindAssetSearch(){
+ bindAssetsPanel(document);
 }
 
 async function reloadAssets(){
@@ -79,15 +82,13 @@ async function setAssetFilter(kind){
  state.assetShowRecycle=false;
  state.assetKindFilter=kind||"";
  await reloadAssets();
- render();
- bindAssetSearch();
+ window.zhimuAccountHub?.refreshAssetsPanel?.();
 }
 
 async function toggleAssetRecycle(){
  state.assetShowRecycle=!state.assetShowRecycle;
  await reloadAssets();
- render();
- bindAssetSearch();
+ window.zhimuAccountHub?.refreshAssetsPanel?.();
 }
 
 async function restoreCloudAsset(assetId){
@@ -95,11 +96,12 @@ async function restoreCloudAsset(assetId){
   await zhimuApi.restoreAsset(assetId);
   await reloadAssets();
   await loadCloudData();
+  window.zhimuAccountHub?.refreshAssetsPanel?.();
   showToast("附件已从回收站恢复");
  }catch(error){showToast(error.message)}
 }
 
-async function deleteCloudAsset(assetId){try{await zhimuApi.deleteAsset(assetId);await reloadAssets();await loadCloudData();showToast("附件已移入 14 天回收站")}catch(error){showToast(error.message)}}
+async function deleteCloudAsset(assetId){try{await zhimuApi.deleteAsset(assetId);await reloadAssets();await loadCloudData();window.zhimuAccountHub?.refreshAssetsPanel?.();showToast("附件已移入 14 天回收站")}catch(error){showToast(error.message)}}
 
 async function downloadCloudAsset(assetId){
  try{
@@ -123,11 +125,16 @@ function openAssetUpload(){
 async function uploadSelectedAsset(){
  const input=modal.querySelector("#cloud-file-input");const file=input.files[0];if(!file)return showToast("请先选择文件");
  const button=modal.querySelector("#cloud-upload-confirm");button.disabled=true;button.textContent="上传中...";
- try{await zhimuApi.uploadAsset(file);closeModal();await reloadAssets();showToast("附件已安全上传到云端")}catch(error){button.disabled=false;button.textContent="重新上传";showToast(error.message)}
+ try{await zhimuApi.uploadAsset(file);closeModal();await reloadAssets();window.zhimuAccountHub?.refreshAssetsPanel?.();showToast("附件已安全上传到云端")}catch(error){button.disabled=false;button.textContent="重新上传";showToast(error.message)}
 }
 
-  viewExports.assets = assets;
+  viewExports.assetsPanelHtml = assetsPanelHtml;
+  viewExports.assets = function assetsPageRedirect() {
+    void window.zhimuAccountHub?.openAccountHub?.({ tab: "assets" });
+    return `<section class="card"><p class="muted-note">内容资产已在「账号与资产」面板中管理。</p></section>`;
+  };
   viewExports.bindAssetSearch = bindAssetSearch;
+  viewExports.bindAssetsPanel = bindAssetsPanel;
   viewExports.reloadAssets = reloadAssets;
   viewExports.setAssetFilter = setAssetFilter;
   viewExports.toggleAssetRecycle = toggleAssetRecycle;

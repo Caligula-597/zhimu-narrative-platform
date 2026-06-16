@@ -53,6 +53,10 @@ const REQUIRED_SCHEMA_MARKERS = [
   ["creator-routes.js", 'app.post("/api/worlds/:worldId/chapters", { schema:'],
   ["creator-routes.js", 'app.post("/api/worlds/:worldId/roles/:roleSlotId/sections", { schema:'],
   ["creator-routes.js", 'app.post("/api/worlds/:worldId/rooms", { schema:'],
+  ["creator-routes.js", 'app.post("/api/worlds/:worldId/documents/import-pages", { schema:'],
+  ["script-bundle-routes.js", 'app.post("/api/worlds/:worldId/script-bundle/analyze", { schema:'],
+  ["script-bundle-routes.js", 'app.post("/api/worlds/:worldId/script-bundle/import", { schema:'],
+  ["script-bundle-routes.js", 'app.post("/api/worlds/from-script-bundle", { schema:'],
   // Rules + content package (phase 2)
   ["rules-routes.js", 'app.post("/api/worlds/:worldId/rules", { schema:'],
   ["rules-routes.js", 'app.put("/api/worlds/:worldId/rules/:ruleId", { schema:'],

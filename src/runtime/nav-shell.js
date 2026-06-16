@@ -1,7 +1,7 @@
 /** Sidebar advanced nav expand/collapse + world switcher labels. */
 (function (window) {
   const state = window.zhimuState;
-  const ADVANCED_VIEWS = ["writer", "clues", "assets", "rules", "archive"];
+  const ADVANCED_VIEWS = ["writer", "clues", "rules", "archive"];
 
   function worldSwitcherFailureLabel() {
     const err = state.apiError || "";

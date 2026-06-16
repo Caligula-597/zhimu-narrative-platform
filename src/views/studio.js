@@ -77,7 +77,7 @@ function studioEnsureCanvasRoom(canvas,x,y){
 
 function studioCloud() {
  const data=state.cloudStudio;
- if(!data)return U.creatorWorkspaceEmpty?.({title:"剧情编排台",kicker:"STORY STUDIO",intro:"用场景、线索、调查点与连线组织可运行的互动结构。选择剧本后会在画布上展示完整图谱。",guideTitle:"编排台会提供什么",guideItems:[{label:"图谱",title:"节点与连线",text:"章节、场景、线索、物品、调查点可视化编排。",bullets:["拖拽布局与多种自动排布板式","节点引用检查"]},{label:"探索",title:"调查与线索流转",text:"玩家调查、获得线索、主持确认后解锁新区域。",bullets:["与运行房进度隔离的平行房"]},{label:"资产",title:"附件关联",text:"线索图、音频等可在节点上引用。",bullets:["需先在「内容资产」上传"]}]})||`<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
+ if(!data)return U.creatorWorkspaceEmpty?.({title:"剧情编排台",kicker:"STORY STUDIO",intro:"用场景、线索、调查点与连线组织可运行的互动结构。选择剧本后会在画布上展示完整图谱。",guideTitle:"编排台会提供什么",guideItems:[{label:"图谱",title:"节点与连线",text:"章节、场景、线索、物品、调查点可视化编排。",bullets:["拖拽布局与多种自动排布板式","节点引用检查"]},{label:"探索",title:"调查与线索流转",text:"玩家调查、获得线索、主持确认后解锁新区域。",bullets:["与运行房进度隔离的平行房"]},{label:"资产",title:"附件关联",text:"线索图、音频等可在节点上引用。",bullets:["在「账号与资产」上传附件"]}]})||`<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
  const canvas=studioCanvasMetrics(data);
  return `${catalogExperienceBanner(data.world)}<section class="studio-layout">
   <aside class="panel"><div class="panel-title">剧本杀世界结构</div><div class="tree">

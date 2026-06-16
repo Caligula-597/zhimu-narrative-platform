@@ -2,12 +2,15 @@ import { query, transaction } from "../db.js";
 import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { parseCreatorDocument } from "../document-parser.js";
+import { parseDocumentPayloadBase64 } from "../section-content.js";
+import { importPdfPagesToRoleScript, importImageFileToRoleSection } from "../document-page-import.js";
 import { requireWorldRole } from "./route-guards.js";
 import { ROOMS_VISIBLE_TO_ACTOR_SQL } from "./world-helpers.js";
 import {
   worldIdParams,
   parseDocumentSchema,
   importDocumentSchema,
+  importDocumentPagesSchema,
   createRoleSchema,
   updateRoleSchema,
   deleteRoleSchema,
@@ -56,6 +59,59 @@ export async function registerCreatorRoutes(app) {
       return document.sections.length;
     });
     return reply.code(201).send({ target: "role_script", sections: imported });
+  });
+
+  app.post("/api/worlds/:worldId/documents/import-pages", { schema: importDocumentPagesSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const body = request.body ?? {};
+    const roleSlotId = body.roleSlotId;
+    if (!roleSlotId) return sendErr(reply, "ROLE_SLOT_IMPORT_REQUIRED");
+
+    const contentBase64 = parseDocumentPayloadBase64(body);
+    const buffer = Buffer.from(String(contentBase64 ?? ""), "base64");
+    const filename = String(body.filename ?? "import.png");
+    const extension = filename.toLowerCase().match(/\.[^.]+$/)?.[0] ?? "";
+    const layout = body.layout === "one_section_per_page" ? "one_section_per_page" : "single_section";
+    const publicationStatus = ["draft", "testing", "published"].includes(body.publicationStatus)
+      ? body.publicationStatus
+      : "draft";
+
+    let result;
+    if (extension === ".pdf") {
+      result = await importPdfPagesToRoleScript({
+        worldId,
+        actorId,
+        roleSlotId,
+        filename,
+        buffer,
+        title: body.title,
+        publicationStatus,
+        layout
+      });
+    } else if ([".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(extension)) {
+      result = await importImageFileToRoleSection({
+        worldId,
+        actorId,
+        roleSlotId,
+        filename,
+        buffer,
+        contentType: body.contentType || "image/jpeg",
+        title: body.title,
+        publicationStatus
+      });
+    } else {
+      return sendErr(reply, "DOCUMENT_TYPE_UNSUPPORTED");
+    }
+
+    return reply.code(201).send({
+      target: "role_script_pages",
+      skipped: result.skipped,
+      pageCount: result.pageCount,
+      sections: result.sections,
+      layout: result.layout ?? "single_section"
+    });
   });
 
   app.post("/api/worlds/:worldId/roles", { schema: createRoleSchema }, async (request, reply) => {

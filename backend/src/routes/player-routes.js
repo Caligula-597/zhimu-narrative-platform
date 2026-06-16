@@ -6,6 +6,7 @@ import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { assertCapability } from "../capabilities.js";
 import { fetchPlayerClues } from "./clue-helpers.js";
+import { enrichPlayerSectionsWithPages } from "../section-pages.js";
 import { assertRolesInRoomWorld } from "./clue-share-helpers.js";
 import { listPlayerInventory, consumeItemIfNeeded } from "../inventory-helpers.js";
 import { requireRoomRole } from "./route-guards.js";
@@ -114,7 +115,7 @@ export async function registerPlayerRoutes(app) {
       const roomInfo = await client.query(`SELECT id, name, invite_code, status FROM rooms WHERE id = $1`, [roomId]);
       const role = await client.query(`SELECT id, name, public_profile, private_profile FROM role_slots WHERE id = $1`, [membership.role_slot_id]);
       const sections = await client.query(
-        `SELECT ss.id, ss.title, ss.body, ss.sequence,
+        `SELECT ss.id, ss.title, ss.body, ss.sequence, ss.metadata,
                 rp.started_at, rp.completed_at,
                 (rp.completed_at IS NOT NULL) AS completed
          FROM script_sections ss
@@ -167,11 +168,12 @@ export async function registerPlayerRoutes(app) {
         [roomId]
       );
       const inventory = await listPlayerInventory(client, roomId, membership.role_slot_id);
+      const enrichedSections = await enrichPlayerSectionsWithPages(client, sections.rows);
 
       return {
         room: roomInfo.rows[0],
         role: role.rows[0],
-        sections: sections.rows,
+        sections: enrichedSections,
         notes: notes.rows,
         clues: clueBundle.owned,
         sharedClues: clueBundle.shared,

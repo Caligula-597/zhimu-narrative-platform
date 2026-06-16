@@ -208,8 +208,26 @@ export const API_ERRORS = {
   DEEPSEEK_PACKAGE_REQUIRED: { status: 400, message: "DeepSeek mystery package is required" },
   DEEPSEEK_NOT_CONFIGURED: { status: 503, message: "DeepSeek API 尚未配置。请在 backend/.env 中填写 DEEPSEEK_API_KEY。" },
   DOCUMENT_SIZE_INVALID: { status: 413, message: "Document must contain between 1 byte and 5 MB" },
-  DOCUMENT_TYPE_UNSUPPORTED: { status: 415, message: "Only TXT, Markdown and DOCX documents can be parsed" },
+  DOCUMENT_TYPE_UNSUPPORTED: { status: 415, message: "Only TXT, Markdown, DOCX, PDF and image documents can be parsed" },
   DOCUMENT_EMPTY: { status: 422, message: "Document does not contain readable text" },
+  PDF_PAGES_RECOMMENDED: {
+    status: 422,
+    message: "PDF has no text layer; use image page import instead"
+  },
+  PDF_PAGE_IMPORT_LIMIT: { status: 413, message: "PDF exceeds page import limit" },
+  PDF_OCR_REQUIRED: {
+    status: 422,
+    message: "PDF has no text layer; enable PDF OCR or import as image pages"
+  },
+  PDF_OCR_PAGE_LIMIT: { status: 413, message: "PDF exceeds OCR page limit" },
+
+  SCRIPT_BUNDLE_INVALID: { status: 400, message: "Invalid script bundle zip archive" },
+  SCRIPT_BUNDLE_EMPTY: { status: 400, message: "Script bundle zip is empty" },
+  SCRIPT_BUNDLE_TOO_LARGE: { status: 413, message: "Script bundle zip exceeds size limit" },
+  SCRIPT_BUNDLE_ENTRY_LIMIT: { status: 413, message: "Script bundle has too many files" },
+  SCRIPT_BUNDLE_ENTRY_INVALID: { status: 400, message: "Script bundle contains unsafe path entries" },
+  SCRIPT_BUNDLE_UNCOMPRESSED_LIMIT: { status: 413, message: "Script bundle uncompressed size exceeds limit" },
+  SCRIPT_BUNDLE_NO_SUPPORTED_FILES: { status: 422, message: "Script bundle has no supported files" },
 
   // Content package
   CONTENT_PACKAGE_INVALID: { status: 400, message: "A valid Zhimu JSON content package is required" },

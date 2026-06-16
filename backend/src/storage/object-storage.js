@@ -18,4 +18,8 @@ export class ObjectStorage {
   async deleteObject() {
     throw new Error("deleteObject is not implemented");
   }
+
+  async putObject() {
+    throw new Error("putObject is not implemented");
+  }
 }

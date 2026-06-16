@@ -56,7 +56,7 @@ function writer(){
  <section class="writer-grid">
   <article class="card writer-main"><div class="section-head"><div><h3>角色私人剧本</h3><p>每个角色拥有独立分幕正文，玩家进入房间后只会读取自己的内容。</p></div><button class="secondary-btn" data-action="creator-add-role">＋ 新增角色</button></div>
    ${data.roles.map(role=>`<section class="role-manuscript"><div class="role-manuscript-head"><div><span class="asset-type">角色席位</span><h3>${role.name}</h3><p>${role.public_profile||"尚未补充公开身份"}</p></div><div class="row"><button class="secondary-btn" data-action="creator-edit-role" data-role="${role.id}">编辑席位</button><button class="primary-btn" data-action="creator-add-section" data-role="${role.id}">＋ 新增一幕</button></div></div>
-   <div class="manuscript-list">${data.sections.filter(section=>section.role_slot_id===role.id).map(section=>`<div class="manuscript-row"><div><strong>${section.sequence}. ${section.title}</strong><p>${section.body.slice(0,86)}${section.body.length>86?"...":""}</p></div><span class="status-chip ${section.publication_status}">${statusName[section.publication_status]}</span><button class="secondary-btn" data-action="creator-edit-section" data-role="${role.id}" data-section="${section.id}">编辑</button></div>`).join("")||`<div class="empty-state">尚无正文。先新增角色序章或第一幕。</div>`}</div></section>`).join("")}
+   <div class="manuscript-list">${data.sections.filter(section=>section.role_slot_id===role.id).map(section=>{const meta=typeof section.metadata==="object"?section.metadata:{};const summary=meta.contentMode==="pages"?`图片分幕 · ${meta.pageCount||meta.pageAssetIds?.length||"?"} 页`:`${section.body.slice(0,86)}${section.body.length>86?"...":""}`;return `<div class="manuscript-row"><div><strong>${section.sequence}. ${section.title}</strong><p>${summary}</p></div><span class="status-chip ${section.publication_status}">${statusName[section.publication_status]}</span><button class="secondary-btn" data-action="creator-edit-section" data-role="${role.id}" data-section="${section.id}">编辑</button></div>`}).join("")||`<div class="empty-state">尚无正文。先新增角色序章或第一幕。</div>`}</div></section>`).join("")}
   </article>
   <aside class="writer-side">
    <article class="card"><div class="section-head"><div><h3>章节发布控制</h3><p>草稿不会进入玩家房间。删除章节会重排序号，并移除绑定本章的私人分幕与相关自动化规则。</p></div></div>${data.chapters.map((chapter,index)=>`<div class="chapter-control"><div><strong>${chapter.sequence ?? index + 1}. ${chapter.title}</strong><p>${chapter.summary||"尚未补充章节摘要"}</p></div><span class="status-chip ${chapter.publication_status}">${statusName[chapter.publication_status]}</span><div class="row"><button class="text-btn" data-action="creator-edit-chapter" data-chapter="${chapter.id}">设置</button><button class="text-btn danger-text" data-action="creator-delete-chapter" data-chapter="${chapter.id}">删除</button></div></div>`).join("")||`<div class="empty-state">请先在剧情编排中新增章节。</div>`}</article>
@@ -158,9 +158,56 @@ async function openWorldLogs(){
 }
 
 async function openDocumentParser(){
- const roles=state.cloudStudio?.roles||[];let parsed=null;
- modal.className="modal creator-tool-modal";modal.innerHTML=`<h2>文档解析与导入</h2><p class="wizard-intro">支持 TXT、Markdown 和 DOCX。系统会先提取正文并按标题拆分，确认后才写入完整剧情母稿或指定角色私人剧本。</p><div class="form-group"><label>选择文档</label><input class="field" type="file" accept=".txt,.md,.markdown,.docx" data-document-file><label>写入目标</label><select class="field" data-document-target><option value="manuscript">完整剧情母稿</option>${roles.map(role=>`<option value="${role.id}">角色私人剧本 · ${escapeHtml(role.name)}</option>`).join("")}</select></div><div data-document-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-document-parse>解析预览</button><button class="primary-btn" data-document-import disabled>确认导入</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const commit=modal.querySelector("[data-document-import]");modal.querySelector("[data-document-parse]").onclick=async()=>{const file=modal.querySelector("[data-document-file]").files[0];if(!file)return showToast("请先选择文档");try{parsed=await zhimuApi.parseDocument({filename:file.name,contentBase64:await fileToBase64(file)});modal.querySelector("[data-document-preview]").innerHTML=`<section class="document-preview"><b>${escapeHtml(parsed.filename)}</b><p>${parsed.characterCount} 字符 · ${parsed.sectionCount} 个分段</p>${parsed.sections.slice(0,8).map(section=>`<article><strong>${escapeHtml(section.title)}</strong><span>${escapeHtml(section.body.slice(0,120))}${section.body.length>120?"...":""}</span></article>`).join("")}</section>`;commit.disabled=false;showToast("文档解析完成，请复核分段")}catch(error){showToast(error.message)}};commit.onclick=async()=>{if(!parsed)return;try{const target=modal.querySelector("[data-document-target]").value;await zhimuApi.importParsedDocument({target:target==="manuscript"?"manuscript":"role_script",roleSlotId:target==="manuscript"?null:target,document:parsed});closeModal();await loadCloudData();showToast("文档内容已写入云端")}catch(error){showToast(error.message)}};
+ const roles=state.cloudStudio?.roles||[];
+ let parsed=null;
+ let pendingFile=null;
+ modal.className="modal creator-tool-modal";
+ modal.innerHTML=`<h2>文档解析与导入</h2><p class="wizard-intro">支持 TXT / Markdown / DOCX / PDF / 图片。文本型文档提取文字；图片型 PDF 与 JPG/PNG 将<strong>按页导入为分幕图片</strong>，玩家在端内直接翻页阅读。可选 OCR 提取可编辑文字（需复核）。</p><div class="form-group"><label>选择文档</label><input class="field" type="file" accept=".txt,.md,.markdown,.docx,.pdf,.jpg,.jpeg,.png,.webp" data-document-file><label>写入目标</label><select class="field" data-document-target><option value="manuscript">完整剧情母稿</option>${roles.map(role=>`<option value="${role.id}">角色私人剧本 · ${escapeHtml(role.name)}</option>`).join("")}</select><label class="checkbox-line" style="margin-top:10px"><input type="checkbox" data-document-allow-ocr> 图片型 PDF 尝试 OCR 为文字（较慢，需复核）</label><label>PDF 图片导入布局（仅图片模式）</label><select class="field" data-document-page-layout><option value="single_section">整份 PDF 合并为一个分幕</option><option value="one_section_per_page">每页单独一个分幕</option></select></div><div data-document-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-document-parse>解析预览</button><button class="primary-btn" data-document-import disabled>确认导入</button></div>`;
+ modalBackdrop.classList.add("show");
+ modal.querySelector("[data-close]").onclick=closeModal;
+ const commit=modal.querySelector("[data-document-import]");
+ const extractionLabel=(extraction,contentMode)=>{
+  if(contentMode==="pages"||extraction?.method==="pdf_pages"||extraction?.method==="image_file")return `图片导入 · ${extraction?.pageCount||"?"} 页`;
+  if(extraction?.method==="pdf_ocr")return `OCR 识别 · ${extraction.ocrPages||extraction.pageCount||"?"} 页`;
+  if(extraction?.method==="pdf_text")return `PDF 文字层 · ${extraction.pageCount||"?"} 页`;
+  if(extraction?.method==="docx")return "Word 文档";
+  if(extraction?.method==="plain_text")return "纯文本";
+  return "";
+ };
+ modal.querySelector("[data-document-parse]").onclick=async()=>{
+  const file=modal.querySelector("[data-document-file]").files[0];
+  if(!file)return showToast("请先选择文档");
+  pendingFile=file;
+  try{
+   const allowOcr=modal.querySelector("[data-document-allow-ocr]").checked;
+   parsed=await zhimuApi.parseDocument({filename:file.name,contentBase64:await fileToBase64(file),allowOcr,parseMode:allowOcr?"text":"auto"});
+   const warnHtml=(parsed.warnings||[]).map(w=>`<p class="tutorial-tip"><span>${escapeHtml(w)}</span></p>`).join("");
+   const modeLabel=extractionLabel(parsed.extraction,parsed.contentMode);
+   const previewImg=parsed.previewImageBase64?`<figure class="document-page-preview"><img alt="预览" src="data:image/png;base64,${parsed.previewImageBase64}"></figure>`:"";
+   const sectionPreview=parsed.contentMode==="pages"?"":parsed.sections.slice(0,8).map(section=>`<article><strong>${escapeHtml(section.title)}</strong><span>${escapeHtml(section.body.slice(0,120))}${section.body.length>120?"...":""}</span></article>`).join("");
+   modal.querySelector("[data-document-preview]").innerHTML=`<section class="document-preview"><b>${escapeHtml(parsed.filename)}</b><p>${parsed.contentMode==="pages"?`${parsed.pageCount||0} 页图片分幕`:parsed.characterCount+" 字符 · "+parsed.sectionCount+" 个分段"}${modeLabel?" · "+escapeHtml(modeLabel):""}</p>${warnHtml}${previewImg}${sectionPreview}</section>`;
+   commit.disabled=parsed.contentMode==="pages"?!roles.length&&!modal.querySelector("[data-document-target]").value.startsWith("manuscript"):false;
+   if(parsed.contentMode==="pages"&&modal.querySelector("[data-document-target]").value==="manuscript"){commit.disabled=true;showToast("图片分幕只能导入到角色私人剧本")}
+   else showToast(parsed.contentMode==="pages"?"识别为图片文档，确认后将上传各页":"文档解析完成，请复核分段");
+  }catch(error){showToast(error.message)}
+ };
+ modal.querySelector("[data-document-target]").addEventListener("change",()=>{
+  if(parsed?.contentMode==="pages"&&modal.querySelector("[data-document-target]").value==="manuscript"){commit.disabled=true;showToast("图片分幕只能导入到角色私人剧本");}
+  else if(parsed)commit.disabled=false;
+ });
+ commit.onclick=async()=>{
+  if(!parsed||!pendingFile)return;
+  try{
+   const target=modal.querySelector("[data-document-target]").value;
+   if(parsed.contentMode==="pages"){
+    if(target==="manuscript")return showToast("图片分幕只能导入到角色私人剧本");
+    await zhimuApi.importDocumentPages({filename:pendingFile.name,contentBase64:await fileToBase64(pendingFile),roleSlotId:target,layout:modal.querySelector("[data-document-page-layout]").value,contentType:pendingFile.type||undefined});
+    closeModal();await loadCloudData();showToast("图片分幕已上传，玩家端可翻页阅读");return;
+   }
+   await zhimuApi.importParsedDocument({target:target==="manuscript"?"manuscript":"role_script",roleSlotId:target==="manuscript"?null:target,document:parsed});
+   closeModal();await loadCloudData();showToast("文档内容已写入云端");
+  }catch(error){showToast(error.message)}
+ };
 }
 
 function fileToBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.onerror=reject;reader.readAsDataURL(file)})}
@@ -211,7 +258,7 @@ function openCreatorPreview(){
 }
 
 function contentPackageSummaryHtml(summary){
- return `<section class="assistant-preview package-summary"><div class="proposal-stats"><span>${summary.roles} 角色</span><span>${summary.chapters} 章节</span><span>${summary.sections} 分幕</span><span>${summary.scenes} 场景</span><span>${summary.clues} 线索</span><span>${summary.investigationPoints} 调查点</span><span>${summary.rules} 规则</span><span>${summary.assetCount} 资产</span></div><div class="assistant-guide"><b>${summary.hasAttachments?"包含附件引用":"不含附件文件"}</b><span>JSON 内容包导出角色、章节、分幕、场景、线索、调查点、规则与剧情连线。资产文件本体需单独在内容资产页管理；导出包不会嵌入二进制附件。</span></div></section>`;
+ return `<section class="assistant-preview package-summary"><div class="proposal-stats"><span>${summary.roles} 角色</span><span>${summary.chapters} 章节</span><span>${summary.sections} 分幕</span><span>${summary.scenes} 场景</span><span>${summary.clues} 线索</span><span>${summary.investigationPoints} 调查点</span><span>${summary.rules} 规则</span><span>${summary.assetCount} 资产</span></div><div class="assistant-guide"><b>${summary.hasAttachments?"包含附件引用":"不含附件文件"}</b><span>JSON 内容包导出角色、章节、分幕、场景、线索、调查点、规则与剧情连线。资产文件本体需在「账号与资产」中单独管理；导出包不会嵌入二进制附件。</span></div></section>`;
 }
 
 function contentPackagePreviewHtml(preview){

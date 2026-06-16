@@ -116,6 +116,18 @@ export async function requireAssetRead(actorId, assetId) {
          OR a.visibility = 'public'
          OR (a.visibility = 'host' AND rm.member_type IN ('host', 'cohost'))
          OR (a.visibility = 'role' AND rm.role_slot_id = a.role_slot_id)
+         OR (
+           a.visibility = 'role'
+           AND a.role_slot_id IS NOT NULL
+           AND EXISTS (
+             SELECT 1 FROM room_members rm2
+             JOIN rooms r2 ON r2.id = rm2.room_id
+             WHERE rm2.user_id = $2
+               AND rm2.status = 'active'
+               AND rm2.role_slot_id = a.role_slot_id
+               AND r2.world_id = a.world_id
+           )
+         )
        )`,
     [assetId, actorId]
   );

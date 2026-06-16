@@ -29,9 +29,7 @@
       else el.onclick = () => handle(el.dataset.action, el);
     });
     if (state.view === "studio") V.studio?.bindStudioDragging?.();
-    if (state.view === "assets") V.assets?.bindAssetSearch?.();
     if (state.view === "clues") V.clues?.bindCluesSearch?.();
-    if (state.view === "account") V.account?.bindAccountView?.();
     window.zhimuSearchFocus?.applyAfterRender?.();
   }
 

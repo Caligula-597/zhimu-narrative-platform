@@ -155,7 +155,7 @@ function overview() {
           ${task("✎","逐角色检查私人剧本",`${roleCount} 个角色席位，共 ${studio?.sections?.length || 0} 段私人正文`,"writer","检查角色稿")}
           ${task("⌘","配置自动化规则",enabledRules ? `当前已有 ${enabledRules} 条启用规则` : "当前世界还没有运行规则","rules","打开规则")}
           ${taskAction(hasRooms ? "◉" : "＋",hasRooms ? "管理运行房" : "建立运行房",hasRooms ? (rooms.length===1?`当前运行房：${escapeHtml((room||rooms[0])?.name||"运行房")}`:`${rooms.length} 个你可访问的运行房`): "当前世界尚未创建运行实例","world-rooms",hasRooms ? "查看房间" : "创建运行房")}
-          ${uploadCount ? task("↑","管理云端附件",`${uploadCount} 个文件已上传`,"assets","打开资产页") : task("↑","上传世界附件","当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。","assets","前往上传")}
+          ${uploadCount ? taskAction("↑","管理云端附件",`${uploadCount} 个文件已上传`,"open-account-hub","打开资产","assets") : taskAction("↑","上传世界附件","当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。","open-account-hub","前往上传","assets")}
         </div>
       </article>
     </section>

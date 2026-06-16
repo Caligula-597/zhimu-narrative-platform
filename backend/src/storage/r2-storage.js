@@ -85,4 +85,15 @@ export class R2Storage extends ObjectStorage {
   async deleteObject({ key }) {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
+
+  async putObject({ key, body, contentType }) {
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType
+      })
+    );
+  }
 }

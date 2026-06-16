@@ -89,7 +89,7 @@ function readingRow(initial,name,text,status,cls,color){return `<div class="read
 
 function task(icon,title,text,view,action){return `<div class="task-row"><span class="task-icon">${icon}</span><div><strong>${title}</strong><p>${text}</p></div><button data-go="${view}">${action} →</button></div>`}
 
-function taskAction(icon,title,text,action,label){return `<div class="task-row"><span class="task-icon">${icon}</span><div><strong>${title}</strong><p>${text}</p></div><button data-action="${action}">${label} →</button></div>`}
+function taskAction(icon,title,text,action,label,hubTab=""){const hubAttr=hubTab?` data-hub-tab="${escapeHtml(hubTab)}"`:"";return `<div class="task-row"><span class="task-icon">${icon}</span><div><strong>${title}</strong><p>${text}</p></div><button data-action="${action}"${hubAttr}>${label} →</button></div>`}
 
 function capability(icon,title,text,view){return `<article class="capability-card"><i>${icon}</i><h3>${title}</h3><p>${text}</p><button ${view==="wizard"?'data-action="open-wizard"':`data-go="${view}"`}>打开功能 →</button></article>`}
 
