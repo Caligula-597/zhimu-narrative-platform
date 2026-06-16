@@ -65,15 +65,8 @@ export async function registerWorldRoutes(app) {
     return result.rows.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).map(({ updated_at, ...world }) => world);
   });
 
-  const PLATFORM_CATALOG_WORLD_ID = "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
-
   app.get("/api/worlds/catalog", async (request) => {
     requireActor(request);
-    await query(
-      `UPDATE worlds SET catalog_public = true, updated_at = now()
-       WHERE id = $1 AND status <> 'archived'`,
-      [PLATFORM_CATALOG_WORLD_ID]
-    );
     const result = await query(
       `SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.updated_at,
               u.display_name AS owner_display_name,

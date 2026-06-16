@@ -145,7 +145,7 @@ function checkpointClueSummary(snapshot={}){
 
 function openCreateRecapModal(){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
- modal.className="modal";modal.innerHTML=`<h2>生成房间复盘</h2><p class="wizard-intro">系统会从时间线、线索流转、调查记录、主持确认事件与自动化规则执行汇总生成结构化复盘。玩家只能查看自己视角。</p><div class="form-group">${studioField("复盘标题","recapTitle","input","例如：雾港之夜 · 完整复盘")}${studioField("主持备注","recapDescription","textarea","记录本局结局、未解之谜或下次补充说明")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-recap-submit>确认生成</button></div>`;
+ modal.className="modal";modal.innerHTML=`<h2>生成房间复盘</h2><p class="wizard-intro">系统会从时间线、线索流转、调查记录、主持确认事件与自动化规则执行汇总生成结构化复盘。玩家只能查看自己视角。</p><div class="form-group">${studioField("复盘标题","recapTitle","input","例如：第一夜 · 完整复盘")}${studioField("主持备注","recapDescription","textarea","记录本局结局、未解之谜或下次补充说明")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-recap-submit>确认生成</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-recap-submit]").onclick=async()=>{try{const values=studioValues();if(!values.recapTitle)return showToast("请填写复盘标题");const created=await zhimuApi.createRecap({title:values.recapTitle,description:values.recapDescription});closeModal();await loadCloudData();showToast("房间复盘已生成");state.activeRecapId=created.id;state.cloudRecapDetail=created;render()}catch(error){showToast(error.message)}};
 }
 

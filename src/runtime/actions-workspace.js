@@ -26,6 +26,9 @@
       case "world-delete":
         R.deleteWorld?.(el?.dataset?.worldId, el?.dataset?.worldName);
         return true;
+      case "world-rename":
+        R.openRenameWorldModal?.(el?.dataset?.worldId, el?.dataset?.worldName, el?.dataset?.worldSummary, true);
+        return true;
       case "room-select":
         R.selectParallelRoom?.(el?.dataset?.roomId);
         return true;

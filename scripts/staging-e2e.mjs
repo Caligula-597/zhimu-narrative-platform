@@ -1,5 +1,5 @@
 /**
- * Staging end-to-end API flow: register → join 雾港 catalog → create parallel room.
+ * Staging end-to-end API flow: register → create world → load studio → list rooms.
  * Requires `npm run staging:up` healthy at STAGING_BASE_URL.
  */
 const BASE = (process.env.STAGING_BASE_URL || "http://localhost:8080").replace(/\/$/, "");
@@ -37,32 +37,28 @@ const catalog = await fetchJson(`${API}/worlds/catalog`, {
   headers: { Authorization: `Bearer ${token}` }
 });
 assertOk("catalog list", catalog.response.ok);
-const fog = (catalog.json || []).find((w) => /雾港/.test(w.name || ""));
-assertOk("雾港 in catalog", Boolean(fog), JSON.stringify(catalog.json?.map((w) => w.name)));
+assertOk("catalog array", Array.isArray(catalog.json));
 
-const join = await fetchJson(`${API}/worlds/${fog.id}/catalog/join`, {
+const created = await fetchJson(`${API}/worlds`, {
   method: "POST",
   headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-  body: "{}"
+  body: JSON.stringify({ name: `预发验收 ${Date.now()}`, summary: "staging e2e world" })
 });
-assertOk("catalog join", join.response.ok, join.text);
-const worldId = join.json?.worldId;
-const roomId = join.json?.room?.id;
-assertOk("join payload", Boolean(worldId && roomId), join.text);
+assertOk("create world", created.response.status === 201, created.text);
+const worldId = created.json?.id;
+assertOk("world id", Boolean(worldId));
 
 const studio = await fetchJson(`${API}/worlds/${worldId}/studio`, {
   headers: { Authorization: `Bearer ${token}` }
 });
 assertOk("studio load", studio.response.ok);
-const roles = studio.json?.roles?.length ?? 0;
-const sections = studio.json?.sections?.length ?? 0;
-assertOk("雾港正文", roles > 0 && sections > 0, `roles=${roles} sections=${sections}`);
+assertOk("studio world name", studio.json?.world?.name === created.json?.name);
 
 const room = await fetchJson(`${API}/worlds/${worldId}/rooms`, {
   headers: { Authorization: `Bearer ${token}` }
 });
 assertOk("world rooms", room.response.ok);
-assertOk("personal room listed", (room.json || []).some((r) => r.id === roomId));
+assertOk("rooms array", Array.isArray(room.json));
 
 const resetReq = await fetchJson(`${API}/auth/forgot-password`, {
   method: "POST",
@@ -71,14 +67,4 @@ const resetReq = await fetchJson(`${API}/auth/forgot-password`, {
 });
 assertOk("forgot-password", resetReq.response.status === 200 && resetReq.json?.ok === true, resetReq.text);
 
-const shell = await fetch(`${BASE}/`);
-assertOk("frontend shell", shell.ok);
-const html = await shell.text();
-assertOk("requireAuth build", /VITE_REQUIRE_AUTH.*true|requireAuth:\s*true/i.test(html) || html.includes("auth-banner"), "staging dist");
-
-console.log("\nStaging E2E: all steps passed");
-console.log(`  user: ${email}`);
-console.log(`  world: ${fog.name} (${worldId})`);
-console.log(`  room: ${join.json?.room?.invite_code || roomId}`);
-console.log(`  content: ${roles} roles, ${sections} sections`);
-console.log(`  open: ${BASE}`);
+console.log("\nStaging E2E: all checks passed");

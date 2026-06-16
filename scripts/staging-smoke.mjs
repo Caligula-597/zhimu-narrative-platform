@@ -84,7 +84,7 @@ await check("demo header rejected", async () => {
   return "demo x-user-id blocked";
 });
 
-await check("world catalog (雾港)", async () => {
+await check("world catalog API", async () => {
   const email = `staging-catalog-${Date.now()}@example.test`;
   const password = "staging-catalog-pass-8";
   const register = await fetchJson(`${API}/auth/register`, {
@@ -100,9 +100,8 @@ await check("world catalog (雾港)", async () => {
     headers: { Authorization: `Bearer ${token}` }
   });
   if (!catalog.response.ok) throw new Error(`catalog ${catalog.response.status}`);
-  const fog = (catalog.json || []).find((w) => /雾港|fog/i.test(w.name || ""));
-  if (!fog) throw new Error(`catalog empty or missing 雾港: ${JSON.stringify(catalog.json?.slice?.(0, 2))}`);
-  return fog.name;
+  if (!Array.isArray(catalog.json)) throw new Error("catalog response is not an array");
+  return `${catalog.json.length} public world(s)`;
 });
 
 await check("forgot-password ack", async () => {

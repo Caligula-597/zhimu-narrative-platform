@@ -96,7 +96,7 @@ function capability(icon,title,text,view){return `<article class="capability-car
 function catalogCardsHtml(){
  if(state.cloudCatalogError)return `<div class="empty-state">公开库加载失败：${escapeHtml(state.cloudCatalogError)}</div>`;
  const catalog=state.cloudCatalog||[];
- if(!catalog.length)return `<div class="empty-state">公开库暂无剧本。主创作者可在「世界设置」勾选「公开到剧本库」。</div>`;
+ if(!catalog.length)return `<div class="empty-state">公开库暂无剧本。主创作者可在「世界设置」提交公开库审核申请。</div>`;
  return `<div class="catalog-inline-grid">${catalog.map(world=>`<article class="catalog-inline-card"><div><span class="cloud-pill">公开</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"暂无简介")}</p><small>创作者：${escapeHtml(world.owner_display_name||"未知")} · ${world.role_count||0} 个角色席</small></div><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></article>`).join("")}</div>`;
 }
 
@@ -109,9 +109,9 @@ function creatorWorkspaceEmpty({title,kicker,intro,guideTitle,guideItems=[]}){
  const noWorld=!zhimuApi.context.worldId;
  const panelMsg=window.zhimuUserMessages?.formatCloudPanelError?.(state.apiError,{hasStudio:false})||state.apiError||"";
  return `${cloudStatus()}
- <section class="creator-empty-hero card"><p class="section-kicker">${escapeHtml(kicker||"CREATOR WORKSPACE")}</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(intro)}</p>${panelMsg?`<p class="muted-note">${escapeHtml(panelMsg)}</p>`:""}<div class="row creator-empty-actions"><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button><button class="secondary-btn" data-action="open-wizard">＋ 创建我的世界</button><button class="secondary-btn" data-action="world-library">我的剧本</button></div></section>
+ <section class="creator-empty-hero card"><p class="section-kicker">${escapeHtml(kicker||"CREATOR WORKSPACE")}</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(intro)}</p>${panelMsg?`<p class="muted-note">${escapeHtml(panelMsg)}</p>`:""}<div class="row creator-empty-actions"><button class="primary-btn" data-action="open-wizard">＋ 创建我的世界</button><button class="secondary-btn" data-action="world-library">我的剧本</button><button class="secondary-btn" data-action="open-catalog">浏览公开剧本库</button></div></section>
  ${noWorld?catalogPromoSection():""}
- <section class="creator-empty-guide card"><div class="section-head"><div><h3>${escapeHtml(guideTitle||"进入创作前")}</h3><p>${noWorld?"先体验公开示例或创建世界后，下列工具才会载入你的剧本数据。":"当前世界数据尚未加载，请刷新或重新选择剧本。"}</p></div></div>
+ <section class="creator-empty-guide card"><div class="section-head"><div><h3>${escapeHtml(guideTitle||"进入创作前")}</h3><p>${noWorld?"先创建或选择剧本后，下列工具才会载入你的剧本数据。":"当前世界数据尚未加载，请刷新或重新选择剧本。"}</p></div></div>
  <div class="creator-empty-preview">${guideItems.map(item=>`<article class="creator-preview-block"><span class="asset-type">${escapeHtml(item.label)}</span><h4>${escapeHtml(item.title)}</h4><p>${escapeHtml(item.text)}</p><ul>${(item.bullets||[]).map(b=>`<li>${escapeHtml(b)}</li>`).join("")}</ul></article>`).join("")}</div></section>`;
 }
 
