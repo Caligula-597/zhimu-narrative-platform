@@ -52,6 +52,7 @@ window.zhimuState = {
   accountHubTab: "account",
   accountView: null,
   accountViewLoading: false,
+  accountHubLoadId: 0,
   apiError: "",
   roomEventsConnected: false,
   wizardStep: 0,

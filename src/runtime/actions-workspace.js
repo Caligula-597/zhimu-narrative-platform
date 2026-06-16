@@ -78,10 +78,16 @@
         R.refreshHostAuditLog?.(true);
         return true;
       case "open-account-hub":
-      case "go-account":
-        window.zhimuState.accountHubTab = el?.dataset?.hubTab === "assets" ? "assets" : "account";
+      case "go-account": {
+        const tab = el?.dataset?.hubTab === "assets" ? "assets" : "account";
+        if (window.zhimuState?.view === "account" && window.zhimuState?.accountHubTab !== tab) {
+          void window.zhimuAccountHub?.switchAccountHubTab?.(tab);
+          return true;
+        }
+        window.zhimuState.accountHubTab = tab;
         R.go?.("account");
         return true;
+      }
       case "account-hub-tab":
         void window.zhimuAccountHub?.switchAccountHubTab?.(el?.dataset?.hubTab);
         return true;

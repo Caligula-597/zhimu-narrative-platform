@@ -128,10 +128,11 @@
 
   async function refreshAccountView(options = {}) {
     const background = Boolean(options.background);
+    if (state.accountViewLoading) return;
     const showLoading = !background && !state.accountView;
     if (showLoading) {
       state.accountViewLoading = true;
-      window.zhimuRender?.();
+      if (state.view === "account") window.zhimuRender?.();
     }
     try {
       const [me, sessions, config, entitlements] = await Promise.all([

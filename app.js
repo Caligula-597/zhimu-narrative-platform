@@ -50,16 +50,18 @@
       state.accountHubTab = "assets";
       view = "account";
     }
-    if (state.view === view) {
-      if (view === "account") render();
+    const sameView = state.view === view;
+    if (!sameView) {
+      if (view === "player") window.zhimuOnboarding?.markPlayerVisit?.();
+      else if (view === "director") window.zhimuOnboarding?.markDirectorVisit?.();
+      state.view = view;
+      R.syncDirectorPolling();
+      R.connectRoomEventStream();
+      if (view === "account") window.zhimuAccountHub?.beginAccountHubLoad?.();
+      render();
       return;
     }
-    if (view === "player") window.zhimuOnboarding?.markPlayerVisit?.();
-    else if (view === "director") window.zhimuOnboarding?.markDirectorVisit?.();
-    state.view = view;
-    R.syncDirectorPolling();
-    R.connectRoomEventStream();
-    render();
+    if (view === "account") render();
   }
 
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { render, go });

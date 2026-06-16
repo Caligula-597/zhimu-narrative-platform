@@ -3,9 +3,7 @@
   const state = window.zhimuState;
   const zhimuApi = window.zhimuApi;
   const F = window.zhimuFormat || {};
-  const T = window.zhimuToast || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
-  const showToast = T.showToast || (() => "");
 
   window.zhimuViews = window.zhimuViews || {};
   const exports = window.zhimuViews.accountHub = window.zhimuViews.accountHub || {};
@@ -34,28 +32,37 @@
     return window.zhimuViews?.assets?.assetsPanelHtml?.() || "";
   }
 
+  /** Load account + optional assets data once per navigation — never from accountHub() render. */
+  function beginAccountHubLoad() {
+    if (!localStorage.getItem("zhimuSessionToken")) return;
+    const loadId = ++state.accountHubLoadId;
+    void (async () => {
+      await window.zhimuViews?.account?.refreshAccountView?.();
+      if (loadId !== state.accountHubLoadId || state.view !== "account") return;
+      if (activeTab() === "assets" && zhimuApi.context.worldId) {
+        await window.zhimuViews?.assets?.reloadAssets?.();
+        if (loadId === state.accountHubLoadId && state.view === "account") window.zhimuRender?.();
+      }
+    })();
+  }
+
   function accountHub() {
     if (!localStorage.getItem("zhimuSessionToken")) {
       return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>登录后可管理账号、配额、云端附件与会话。</p></div></div><button type="button" class="primary-btn" data-action="open-auth">登录 / 注册</button></article></section>`;
     }
     if (state.accountViewLoading || !state.accountView) {
-      void window.zhimuViews?.account?.refreshAccountView?.();
       return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>正在加载账号信息…</p></div></div></article></section>`;
     }
     const tab = activeTab();
     const me = state.accountView.me || {};
     const accountHtml = window.zhimuViews?.account?.accountBodyHtml?.(state.accountView) || "";
     const assetsHtml = tab === "assets" ? assetsPanelContent() : "";
-    if (tab === "assets" && zhimuApi.context.worldId && !state.cloudAssets?.length) {
-      void window.zhimuViews?.assets?.reloadAssets?.().then(() => {
-        if (state.view === "account" && activeTab() === "assets") window.zhimuRender?.();
-      });
-    }
     return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>${profileIntro(me)}</p></div></div>${tabButtons(tab)}<div class="account-hub-panels"><section class="account-hub-panel ${tab === "account" ? "" : "hidden"}" data-hub-panel="account" role="tabpanel">${accountHtml}</section><section class="account-hub-panel ${tab === "assets" ? "" : "hidden"}" data-hub-panel="assets" role="tabpanel">${assetsHtml}</section></div></article></section>`;
   }
 
   async function switchAccountHubTab(tab) {
     if (tab !== "account" && tab !== "assets") return;
+    if (tab === state.accountHubTab) return;
     state.accountHubTab = tab;
     if (tab === "assets" && zhimuApi.context.worldId) {
       await window.zhimuViews?.assets?.reloadAssets?.();
@@ -72,12 +79,6 @@
     if (tab === "assets" && zhimuApi.context.worldId) window.zhimuViews?.assets?.bindAssetsPanel?.(root);
   }
 
-  async function ensureAccountHubData() {
-    if (!localStorage.getItem("zhimuSessionToken")) return;
-    if (!state.accountView) await window.zhimuViews?.account?.refreshAccountView?.({ background: true });
-    if (activeTab() === "assets" && zhimuApi.context.worldId) await window.zhimuViews?.assets?.reloadAssets?.();
-  }
-
   function goAccountHub(options = {}) {
     state.accountHubTab = options.tab === "assets" ? "assets" : "account";
     window.zhimuRuntime?.go?.("account");
@@ -86,9 +87,9 @@
   window.zhimuAccountHub = {
     goAccountHub,
     openAccountHub: goAccountHub,
+    beginAccountHubLoad,
     switchAccountHubTab,
     bindAccountHubView,
-    ensureAccountHubData,
     isActive: () => state.view === "account"
   };
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, {
@@ -96,6 +97,6 @@
     openAccountHub: goAccountHub,
     openAccountPanel: goAccountHub
   });
-  Object.assign(exports, { accountHub, bindAccountHubView, switchAccountHubTab, goAccountHub });
+  Object.assign(exports, { accountHub, bindAccountHubView, switchAccountHubTab, goAccountHub, beginAccountHubLoad });
 })(window);
 export {};
