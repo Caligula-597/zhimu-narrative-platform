@@ -31,6 +31,7 @@
     if (state.view === "studio") V.studio?.bindStudioDragging?.();
     if (state.view === "clues") V.clues?.bindCluesSearch?.();
     if (state.view === "account") V.accountHub?.bindAccountHubView?.();
+    if (state.view === "player") V.player?.bindPlayerReader?.();
     window.zhimuSearchFocus?.applyAfterRender?.();
   }
 

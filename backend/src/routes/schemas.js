@@ -86,6 +86,10 @@ export const notebookEntrySchema = {
   }
 };
 
+export const deleteNotebookEntrySchema = {
+  params: paramsSchema({ roomId: uuid, entryId: uuid })
+};
+
 export const investigatePointSchema = {
   params: paramsSchema({ roomId: uuid, pointId: uuid })
 };

@@ -46,7 +46,7 @@
         return true;
       }
       case "studio-zoom-out":
-        state.studioZoom = Math.max(0.7, state.studioZoom - 0.1);
+        state.studioZoom = Math.max(0.4, state.studioZoom - 0.1);
         render();
         return true;
       case "studio-zoom-in":

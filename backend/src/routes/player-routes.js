@@ -19,6 +19,7 @@ import {
   investigatePointSchema,
   inviteLookupSchema,
   joinRoomSchema,
+  deleteNotebookEntrySchema,
   notebookEntrySchema,
   readClueSchema,
   roomIdParams
@@ -249,6 +250,21 @@ export async function registerPlayerRoutes(app) {
       [roomId, membership.role_slot_id, actorId, sourceType, sourceId ?? null, title, body]
     );
     return reply.code(201).send(result.rows[0]);
+  });
+
+  app.delete("/api/rooms/:roomId/notebook/:entryId", { schema: deleteNotebookEntrySchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { roomId, entryId } = request.params;
+    const membership = await requireRoomRole(actorId, roomId);
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
+    const result = await query(
+      `DELETE FROM notebook_entries
+       WHERE id = $1 AND room_id = $2 AND role_slot_id = $3
+       RETURNING id`,
+      [entryId, roomId, membership.role_slot_id]
+    );
+    if (!result.rowCount) return sendErr(reply, "NOTEBOOK_ENTRY_NOT_FOUND");
+    return { ok: true };
   });
 
   app.get("/api/rooms/:roomId/exploration", { schema: { params: roomIdParams } }, async (request) => {

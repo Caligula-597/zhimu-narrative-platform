@@ -56,7 +56,7 @@ test("雾港 Demo 全链路（E2E 副本房）", async ({ browser }) => {
   await goToView(hostPage, "studio");
   await expect(hostPage.locator("main")).toContainText(/旧港|档案馆|编排|场景/, { timeout: 15_000 });
 
-  // ── Act 2: Player — invite join + reading + note ────────────────────────
+  // ── Act 2: Player — invite join + reading + highlight ───────────────────
   await playerPage.goto("/");
   await waitForCloudReady(playerPage);
   await joinRoomViaInviteUi(playerPage, E2E.inviteCode);
@@ -66,7 +66,20 @@ test("雾港 Demo 全链路（E2E 副本房）", async ({ browser }) => {
   await expect(readBtn).toBeVisible({ timeout: 20_000 });
   await expect(playerPage.locator(".reader-card h3")).toContainText(/档案馆|抵达/);
 
-  await playerPage.locator('[data-action="add-cloud-note"]').click({ timeout: 5000 }).catch(() => {});
+  await playerPage.locator("[data-reader-body]").evaluate((el) => {
+    const text = el.textContent || "";
+    const range = document.createRange();
+    const node = el.firstChild;
+    if (!node || !text.trim()) return;
+    const end = Math.min(12, text.length);
+    range.setStart(node, 0);
+    range.setEnd(node, end);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    el.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+  });
+  await playerPage.locator(".highlight-toolbar-btn").click({ timeout: 5000 }).catch(() => {});
 
   await readBtn.click();
   await waitForSectionCompleted(playerPage);
@@ -98,14 +111,6 @@ test("雾港 Demo 全链路（E2E 副本房）", async ({ browser }) => {
   const hostTable = hostPage.locator(".host-runtime-table");
   await expect(hostTable).toContainText(/顾言/);
   await expect(hostTable).toContainText(/2\/2|1\/2/);
-
-  const progressBefore = await hostTable.innerText();
-  await playerPage.locator('[data-action="add-cloud-note"]').first().click({ timeout: 3000 }).catch(() => {});
-  await hostPage.waitForFunction(
-    (prev) => document.querySelector(".host-runtime-table")?.innerText !== prev,
-    progressBefore,
-    { timeout: 20_000 }
-  ).catch(() => {});
 
   // ── Act 4: Explore + host confirm ───────────────────────────────────────
   const rackBtn = playerPage

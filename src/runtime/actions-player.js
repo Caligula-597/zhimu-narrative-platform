@@ -14,10 +14,8 @@
       case "voice-mic-toggle": P.toggleVoiceMic?.(); return true;
       case "voice-chat-refresh": P.refreshVoiceMessages?.(); return true;
       case "voice-chat-send": P.sendVoiceMessage?.(); return true;
-      case "notebook": P.openNotebook?.(); return true;
       case "read-cloud-next": P.completeCloudReading?.(el?.dataset?.section); return true;
-      case "add-cloud-note": P.addCloudNote?.(el?.dataset?.section, el?.dataset?.label, el?.dataset?.note); return true;
-      case "add-cloud-clue-note": P.addCloudClueNote?.(el?.dataset?.clue, el?.dataset?.label, el?.dataset?.note); return true;
+      case "remove-highlight": P.removeStoryHighlight?.(el?.dataset?.highlight); return true;
       case "investigate-cloud": P.investigateCloud?.(el?.dataset?.point); return true;
       case "read-cloud-clue": P.readCloudClue?.(el?.dataset?.clue, el?.dataset?.shared === "1"); return true;
       case "share-cloud-clue": P.shareCloudClue?.(el?.dataset?.clue); return true;

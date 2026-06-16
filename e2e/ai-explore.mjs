@@ -62,11 +62,7 @@ async function heuristicPick(page) {
   } else {
     push("读完章节", '[data-action="read-cloud-next"]:not([disabled])', 90);
     push("调查探索点", '[data-action="investigate-cloud"]:not([disabled])', 85);
-    push("标记重点", '[data-action="add-cloud-note"]', 50);
     push("玩家视角", '[data-view="player"]', 40);
-    push("存档复盘", '[data-view="archive"]', 30);
-    push("玩家入口", "#preview-btn", 35);
-    push("打开笔记本", '[data-action="notebook"]', 20);
   }
 
   candidates.sort((a, b) => b.priority - a.priority);

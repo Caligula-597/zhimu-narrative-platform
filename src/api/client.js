@@ -182,6 +182,8 @@ window.zhimuApi = {
   completeSection: (sectionId) =>
     request(`/rooms/${demoContext.roomId}/sections/${sectionId}/complete`, { userId: demoContext.playerUserId, method: "POST", idempotent: true }),
   addNotebookEntry: (entry) => request(`/rooms/${demoContext.roomId}/notebook`, { userId: demoContext.playerUserId, method: "POST", body: entry }),
+  deleteNotebookEntry: (entryId) =>
+    request(`/rooms/${demoContext.roomId}/notebook/${entryId}`, { userId: demoContext.playerUserId, method: "DELETE" }),
   getHostProgress: () => request(`/rooms/${demoContext.roomId}/host-progress`, { userId: demoContext.hostUserId }),
   getHostPlayers: () => request(`/rooms/${demoContext.roomId}/host/players`, { userId: demoContext.hostUserId }),
   getHostPlayerDetail: (roleSlotId) =>

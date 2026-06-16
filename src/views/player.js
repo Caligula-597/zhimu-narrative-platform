@@ -55,7 +55,7 @@ function player(){
  ${reader()}
  <section class="player-layout"><div><article class="card"><div class="section-head"><div><h3>探索当前场景</h3><p>阅读完成后，可以选择地点继续调查</p></div></div>
  ${explorationRows()}
- </article></div><aside>${notebookCard()}
+ </article></div><aside>
  <article class="card inventory-card"><div class="section-head"><div><h3>我的背包</h3><p>${escapeHtml(parts.name)} · 持有 ${(home.inventory||[]).length} 种物品</p></div></div>${inventoryRows()}</article>
  <article class="role-story"><p class="section-kicker">仅你可见 · 角色资料</p><h3>${escapeHtml(role.name)}</h3><p>${escapeHtml(role.private_profile||"当前角色尚未填写私人资料。")}</p></article>
  <article class="card"><div class="section-head"><div><h3>我的云端线索</h3><p>${escapeHtml(parts.name)} · 已获得 ${(home.clues||[]).length} 条</p></div></div>${cloudClueRows()}</article>
@@ -74,22 +74,53 @@ function voiceChat(){const messages=state.voiceMessages||[];return `<article cla
 
 function currentCloudScene(){const scenes=state.cloudExploration?.scenes||[],scene=scenes[scenes.length-1];return scene?{title:scene.name,text:scene.public_text,art:scene.name[0]}:{title:"等待主持人开放场景",text:"当前运行房还没有开放探索场景。完成角色阅读或由主持人推进规则后，新场景会出现在这里。",art:"候"}}
 
+function sectionHighlights(sectionId){
+ return (state.cloudPlayer?.notes||[]).filter(note=>note.source_type==="script_section"&&note.source_id===sectionId);
+}
+
+function applyStoryHighlights(text, entries){
+ if(!text||!entries?.length)return escapeHtml(text||"");
+ const ranges=[];
+ const sorted=[...entries].sort((a,b)=>(b.body||"").length-(a.body||"").length);
+ for(const entry of sorted){
+  const needle=entry.body;
+  if(!needle)continue;
+  let from=0;
+  while(from<text.length){
+   const idx=text.indexOf(needle,from);
+   if(idx===-1)break;
+   const end=idx+needle.length;
+   const overlaps=ranges.some(range=>!(end<=range.start||idx>=range.end));
+   if(!overlaps){ranges.push({start:idx,end,id:entry.id});break}
+   from=idx+1;
+  }
+ }
+ ranges.sort((a,b)=>a.start-b.start);
+ let html="",pos=0;
+ for(const range of ranges){
+  html+=escapeHtml(text.slice(pos,range.start));
+  html+=`<mark class="story-highlight" data-highlight-id="${escapeHtml(range.id)}" title="点击取消高亮">${escapeHtml(text.slice(range.start,range.end))}</mark>`;
+  pos=range.end;
+ }
+ html+=escapeHtml(text.slice(pos));
+ return html;
+}
+
 function reader(){
  const cloudSections=state.cloudPlayer?.sections||[];
  const cloudSection=cloudSections.find(section=>!section.completed)||cloudSections[cloudSections.length-1];
  const roleName=state.cloudPlayer?.role?.name||"当前角色";
  if(cloudSection){
-  const marked=state.cloudPlayer.notes.some(note=>note.source_id===cloudSection.id);
+  const highlights=sectionHighlights(cloudSection.id);
   const isPages=cloudSection.content_mode==="pages"||cloudSection.metadata?.contentMode==="pages";
   const pages=cloudSection.pages||[];
-  const bodyHtml=isPages&&pages.length?`<div class="reader-pages">${pages.map((page,index)=>`<figure class="reader-page"><img src="${escapeHtml(page.url)}" alt="第 ${index+1} 页" loading="lazy" decoding="async"><figcaption>第 ${index+1} / ${pages.length} 页</figcaption></figure>`).join("")}</div>`:`<p class="story-paragraph ${marked?"marked":""}">${escapeHtml(cloudSection.body)}<button class="mark-btn" data-action="add-cloud-note" data-section="${cloudSection.id}" data-label="剧情 · ${escapeHtml(cloudSection.title)}" data-note="${escapeHtml(cloudSection.body)}">${marked?"已记入云端":"标记重点"}</button></p>`;
+  const highlightHint=highlights.length?`已高亮 ${highlights.length} 处`:"选中文字即可标记高亮";
+  const bodyHtml=isPages&&pages.length?`<div class="reader-pages">${pages.map((page,index)=>`<figure class="reader-page"><img src="${escapeHtml(page.url)}" alt="第 ${index+1} 页" loading="lazy" decoding="async"><figcaption>第 ${index+1} / ${pages.length} 页</figcaption></figure>`).join("")}</div>`:`<div class="story-body" data-reader-body data-section-id="${cloudSection.id}" data-section-title="${escapeHtml(cloudSection.title)}">${applyStoryHighlights(cloudSection.body,highlights)}</div><p class="reader-highlight-hint">${highlightHint} · 点击高亮可取消</p>`;
   const footerHint=isPages?"滑动查看全部页面，读完后点击下方按钮记录进度。":"由你主动确认阅读完成，系统不会自动跳转。";
   return `<article class="reader-card ${isPages?"reader-card-pages":""}"><div class="reader-head"><div><p class="section-kicker">${escapeHtml(roleName)} · 云端私人章节</p><h3>${escapeHtml(cloudSection.title)}</h3><p>${isPages?`图片分幕 · 共 ${pages.length||cloudSection.metadata?.pageCount||"?"} 页`:"内容来自云端私人剧本。阅读完成后会保存进度并可能触发规则。"}</p></div><span class="reader-progress">${cloudSection.sequence} / ${cloudSections.length}</span></div>${bodyHtml}<div class="reader-footer"><p>${cloudSection.completed?"本章节已完成，可以继续查看已解锁内容。":footerHint}</p><button class="primary-btn" data-action="read-cloud-next" data-section="${cloudSection.id}" ${cloudSection.completed?"disabled":""}>${cloudSection.completed?"已完成":"我已读完，保存并继续"}</button></div></article>`;
  }
  return `<article class="reader-card"><div class="empty-state">当前角色尚未解锁私人章节。请由主持人检查房间规则或等待后续推进。</div></article>`;
 }
-
-function notebookCard(){const count=state.cloudPlayer?.notes?.length||0;return `<article class="notebook-card"><div class="notebook-head"><strong>▤ 随身笔记本</strong><span>${count} 条云端重点</span></div><p>标记剧情片段和关键线索，笔记会保存到当前角色的云端档案。</p><button class="secondary-btn" data-action="notebook">打开笔记本</button></article>`}
 
 function inventoryRows(){
  const items=state.cloudPlayer?.inventory||[];
@@ -116,7 +147,7 @@ function cloudClueRows(){
  return clues.map(item=>{
   const roleShareCount=(item.shared_with_roles||[]).length;
   const sharedRoles=roleShareCount>0;
-  return `<div class="clue-row ${item.shared_with_room?"clue-row-public":sharedRoles?"clue-row-private":""}"><div class="clue-row-head"><strong>${escapeHtml(item.name)}</strong>${item.shared_with_room?`<span class="status-chip published">已公开</span>`:""}${sharedRoles?`<span class="status-chip testing">已私享 ${roleShareCount} 人</span>`:""}${item.read_at?`<span class="status-chip testing">已读</span>`:`<span class="status-chip draft">未读</span>`}</div><p>${escapeHtml(item.public_text)}</p>${item.player_note?`<div class="clue-note-box"><b>我的解读</b><p>${escapeHtml(item.player_note)}</p></div>`:""}<div class="row clue-row-actions"><button class="text-btn" data-action="read-cloud-clue" data-clue="${item.id}" ${item.read_at?"disabled":""}>${item.read_at?"已阅读":"标记已读"}</button><button class="text-btn" data-action="edit-clue-note" data-clue="${item.id}">${item.player_note?"修改解读":"添加解读"}</button><button class="text-btn" data-action="share-cloud-clue" data-clue="${item.id}">${item.shared_with_room?"取消公开":"公开到全房间"}</button><button class="text-btn" data-action="share-clue-roles" data-clue="${item.id}">${sharedRoles?"调整私享":"私享给指定玩家"}</button><button class="text-btn" data-action="add-cloud-clue-note" data-clue="${item.id}" data-label="线索 · ${escapeHtml(item.name)}" data-note="${escapeHtml(item.public_text)}">记入笔记</button></div></div>`;
+  return `<div class="clue-row ${item.shared_with_room?"clue-row-public":sharedRoles?"clue-row-private":""}"><div class="clue-row-head"><strong>${escapeHtml(item.name)}</strong>${item.shared_with_room?`<span class="status-chip published">已公开</span>`:""}${sharedRoles?`<span class="status-chip testing">已私享 ${roleShareCount} 人</span>`:""}${item.read_at?`<span class="status-chip testing">已读</span>`:`<span class="status-chip draft">未读</span>`}</div><p>${escapeHtml(item.public_text)}</p>${item.player_note?`<div class="clue-note-box"><b>我的解读</b><p>${escapeHtml(item.player_note)}</p></div>`:""}<div class="row clue-row-actions"><button class="text-btn" data-action="read-cloud-clue" data-clue="${item.id}" ${item.read_at?"disabled":""}>${item.read_at?"已阅读":"标记已读"}</button><button class="text-btn" data-action="edit-clue-note" data-clue="${item.id}">${item.player_note?"修改解读":"添加解读"}</button><button class="text-btn" data-action="share-cloud-clue" data-clue="${item.id}">${item.shared_with_room?"取消公开":"公开到全房间"}</button><button class="text-btn" data-action="share-clue-roles" data-clue="${item.id}">${sharedRoles?"调整私享":"私享给指定玩家"}</button></div></div>`;
  }).join("");
 }
 
@@ -211,23 +242,73 @@ async function refreshVoiceMessages(){if(!state.voiceRoomId)return;try{state.voi
 
 async function sendVoiceMessage(){const input=document.querySelector("[data-voice-chat-input]"),body=input?.value.trim();if(!body)return showToast("请输入聊天内容");try{await zhimuApi.sendVoiceMessage(state.voiceRoomId,body);await refreshVoiceMessages();showToast("消息已发送到当前语音房")}catch(error){showToast(error.message)}}
 
-function openNotebook(){
- const notes=state.cloudPlayer?.notes?.map(note=>({label:note.title,text:note.body}))||[];
- const roleName=state.cloudPlayer?.role?.name||"当前角色";
- modal.className="modal";modal.innerHTML=`<h2>▤ ${escapeHtml(roleName)}的随身笔记本</h2><p>这里汇总你主动标记的剧情片段与关键线索。内容已保存到云端，仅当前角色可以查看。</p><div class="note-list">${notes.length?notes.map(note=>`<div class="note-item"><strong>${escapeHtml(note.label)}</strong><p>${escapeHtml(note.text)}</p></div>`).join(""):`<div class="tutorial-tip"><b>暂无笔记</b><span>阅读剧情时点击“标记重点”，或在线索下点击“记入笔记”。</span></div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
+function hideHighlightToolbar(){
+ const toolbar=document.querySelector(".highlight-toolbar");
+ if(toolbar)toolbar.remove();
+}
+
+function showHighlightToolbar(rect,sectionId,sectionTitle,text){
+ hideHighlightToolbar();
+ const toolbar=document.createElement("div");
+ toolbar.className="highlight-toolbar";
+ toolbar.innerHTML=`<button type="button" class="primary-btn highlight-toolbar-btn" data-highlight-add>高亮</button>`;
+ document.body.appendChild(toolbar);
+ const left=Math.min(Math.max(rect.left+rect.width/2,48),window.innerWidth-48);
+ const top=Math.max(rect.top-8,12);
+ toolbar.style.left=`${left}px`;
+ toolbar.style.top=`${top}px`;
+ toolbar.querySelector("[data-highlight-add]").onclick=async()=>{
+  hideHighlightToolbar();
+  window.getSelection()?.removeAllRanges();
+  await addStoryHighlight(sectionId,sectionTitle,text);
+ };
+}
+
+function bindPlayerReader(){
+ const body=document.querySelector("[data-reader-body]");
+ if(!body)return;
+ hideHighlightToolbar();
+ body.onmouseup=()=>{
+  const selection=window.getSelection();
+  if(!selection||selection.isCollapsed||!body.contains(selection.anchorNode))return hideHighlightToolbar();
+  const text=selection.toString().trim();
+  if(text.length<2)return hideHighlightToolbar();
+  const range=selection.getRangeAt(0);
+  showHighlightToolbar(range.getBoundingClientRect(),body.dataset.sectionId,body.dataset.sectionTitle,text);
+ };
+ body.onclick=(event)=>{
+  const mark=event.target.closest?.(".story-highlight");
+  if(mark?.dataset.highlightId)removeStoryHighlight(mark.dataset.highlightId);
+ };
+ if(!window.__zhimuHighlightDocBound){
+  window.__zhimuHighlightDocBound=true;
+  document.addEventListener("mousedown",(event)=>{
+   if(!event.target.closest?.(".highlight-toolbar")&&!event.target.closest?.("[data-reader-body]"))hideHighlightToolbar();
+  });
+ }
 }
 
 async function completeCloudReading(sectionId){
  try{await zhimuApi.completeSection(sectionId);await loadCloudData();showToast("已记录阅读进度，可能触发新的剧情解锁。",3200)}catch(error){showToast(error.message)}
 }
 
-async function addCloudNote(sectionId,label,text){
- try{await zhimuApi.addNotebookEntry({sourceType:"script_section",sourceId:sectionId,title:label,body:text});await loadCloudData();showToast("重点已写入云端随身笔记本")}catch(error){showToast(error.message)}
+async function addStoryHighlight(sectionId,sectionTitle,text){
+ const snippet=text.trim();
+ if(snippet.length<2)return showToast("请至少选中两个字再标记高亮");
+ if(sectionHighlights(sectionId).some(entry=>entry.body===snippet))return showToast("这段内容已经高亮过了");
+ try{
+  await zhimuApi.addNotebookEntry({sourceType:"script_section",sourceId:sectionId,title:`高亮 · ${sectionTitle}`,body:snippet});
+  await loadCloudData();
+  showToast("已标记高亮");
+ }catch(error){showToast(error.message)}
 }
 
-async function addCloudClueNote(clueId,label,text){
- try{await zhimuApi.addNotebookEntry({sourceType:"clue",sourceId:clueId,title:label,body:text});await loadCloudData();showToast("线索已写入云端随身笔记本")}catch(error){showToast(error.message)}
+async function removeStoryHighlight(entryId){
+ try{
+  await zhimuApi.deleteNotebookEntry(entryId);
+  await loadCloudData();
+  showToast("已取消高亮");
+ }catch(error){showToast(error.message)}
 }
 
 async function investigateCloud(pointId){
@@ -301,7 +382,6 @@ async function executeHostEvent(eventId){
   viewExports.voiceChat = voiceChat;
   viewExports.currentCloudScene = currentCloudScene;
   viewExports.reader = reader;
-  viewExports.notebookCard = notebookCard;
   viewExports.explorationRows = explorationRows;
   viewExports.cloudClueRows = cloudClueRows;
   viewExports.sharedClueSection = sharedClueSection;
@@ -314,10 +394,10 @@ async function executeHostEvent(eventId){
   viewExports.toggleVoiceMic = toggleVoiceMic;
   viewExports.refreshVoiceMessages = refreshVoiceMessages;
   viewExports.sendVoiceMessage = sendVoiceMessage;
-  viewExports.openNotebook = openNotebook;
+  viewExports.bindPlayerReader = bindPlayerReader;
   viewExports.completeCloudReading = completeCloudReading;
-  viewExports.addCloudNote = addCloudNote;
-  viewExports.addCloudClueNote = addCloudClueNote;
+  viewExports.addStoryHighlight = addStoryHighlight;
+  viewExports.removeStoryHighlight = removeStoryHighlight;
   viewExports.investigateCloud = investigateCloud;
   viewExports.readCloudClue = readCloudClue;
   viewExports.shareCloudClue = shareCloudClue;

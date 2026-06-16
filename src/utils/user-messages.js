@@ -79,6 +79,7 @@
     PARSED_DOCUMENT_REQUIRED: "请先完成文档解析后再提交。",
     ROLE_SLOT_IMPORT_REQUIRED: "导入角色剧本前需选择有效的角色席位。",
     NOTEBOOK_FIELDS_REQUIRED: "请填写笔记来源、标题与正文。",
+    NOTEBOOK_ENTRY_NOT_FOUND: "未找到该高亮记录。",
     VISIBILITY_INVALID: "可见范围设置无效。",
 
     SCENE_NOT_FOUND: "场景不存在。",

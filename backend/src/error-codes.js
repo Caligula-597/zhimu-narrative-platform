@@ -102,6 +102,7 @@ export const API_ERRORS = {
   PARSED_DOCUMENT_REQUIRED: { status: 400, message: "Parsed document is required" },
   ROLE_SLOT_IMPORT_REQUIRED: { status: 400, message: "Valid roleSlotId is required for role script import" },
   NOTEBOOK_FIELDS_REQUIRED: { status: 400, message: "sourceType, title and body are required" },
+  NOTEBOOK_ENTRY_NOT_FOUND: { status: 404, message: "Notebook entry not found" },
 
   // Studio & graph
   SCENE_NOT_FOUND: { status: 404, message: "Scene not found" },
