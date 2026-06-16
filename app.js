@@ -15,7 +15,8 @@
     director: ["实时运行", "主持监控台"],
     player: ["玩家体验", "玩家视角"],
     archive: ["历史记录", "存档与复盘"],
-    settings: ["世界管理", "世界设置"]
+    settings: ["世界管理", "世界设置"],
+    account: ["账号", "账号与资产"]
   };
 
   function render() {
@@ -35,7 +36,8 @@
       director: V.director.director,
       player: V.player.player,
       archive: V.archive.archive,
-      settings: V.settings.settings
+      settings: V.settings.settings,
+      account: V.accountHub.accountHub
     };
     const outage = window.zhimuServiceOutage;
     const showOutage = outage?.isServiceOutage?.(state.apiError) && !state.cloudLoading;
@@ -44,11 +46,14 @@
   }
 
   function go(view) {
-    if (view === "account" || view === "assets") {
-      R.openAccountHub?.({ tab: view === "assets" ? "assets" : "account" });
+    if (view === "assets") {
+      state.accountHubTab = "assets";
+      view = "account";
+    }
+    if (state.view === view) {
+      if (view === "account") render();
       return;
     }
-    if (state.view === view) return;
     if (view === "player") window.zhimuOnboarding?.markPlayerVisit?.();
     else if (view === "director") window.zhimuOnboarding?.markDirectorVisit?.();
     state.view = view;

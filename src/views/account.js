@@ -126,11 +126,6 @@
     return `${guestUpgrade}${!isGuest ? `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}${oauthDiagHtml(data.config?.oauthDiagnostics)}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section><section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
   }
 
-  function account() {
-    void window.zhimuAccountHub?.openAccountHub?.({ tab: "account" });
-    return `<section class="card"><p class="muted-note">账号与会话已在「账号与资产」面板中管理。</p></section>`;
-  }
-
   async function refreshAccountView(options = {}) {
     const background = Boolean(options.background);
     const showLoading = !background && !state.accountView;
@@ -148,7 +143,6 @@
       const usage = entitlements?.usage ?? null;
       if (usage) state.storageUsage = usage;
       state.accountView = { me, sessions, config, usage, entitlements };
-      window.zhimuAccountHub?.refreshIfOpen?.({ tab: "account" });
     } catch (error) {
       if (!background) {
         state.accountView = null;
@@ -156,6 +150,7 @@
       }
     } finally {
       state.accountViewLoading = false;
+      if (state.view === "account") window.zhimuRender?.();
     }
   }
 
@@ -165,7 +160,6 @@
         await zhimuApi.logout();
         localStorage.removeItem("zhimuSessionToken");
         window.zhimuContext?.onSessionLogout?.();
-        window.zhimuModal?.closeModal?.();
         showToast("已退出登录");
         await window.zhimuAuthSession?.syncProfile?.();
         window.zhimuAuthSession?.syncAuthBanner?.();
@@ -233,6 +227,6 @@
     bindAccountPanel(document);
   }
 
-  Object.assign(exports, { account, accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard });
+  Object.assign(exports, { accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard });
 })(window);
 export {};

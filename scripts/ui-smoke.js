@@ -58,7 +58,7 @@ const requiredModuleScripts = [
   "src/runtime/actions.js",
   "app.js"
 ];
-const requiredNavViews = ["overview", "writer", "studio", "clues", "rules", "director", "player", "archive", "settings"];
+const requiredNavViews = ["overview", "writer", "studio", "clues", "rules", "director", "player", "archive", "settings", "account"];
 const requiredDomIds = ["content", "toast", "modal-backdrop", "modal", "page-title", "create-world-btn", "preview-btn", "run-btn"];
 const requiredApiMethods = [
   "getWorlds", "getStudio", "getPlayerHome", "getHostProgress", "getHostPlayers", "getHostPlayerDetail", "getHostAuditLog",

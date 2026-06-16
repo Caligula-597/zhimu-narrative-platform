@@ -464,13 +464,12 @@ h3 { font-size:15px; }
 .host-event-batch-toolbar { flex-wrap:wrap; gap:8px; align-items:center; }
 .creator-guide-modal { width:min(860px,94vw); max-height:85vh; overflow:auto; }
 .creator-guide-body { max-height:60vh; overflow:auto; margin:12px 0; line-height:1.75; font-size:11px; }
-.account-hub-modal { width:min(960px,94vw); max-height:calc(100vh - 32px); overflow-y:auto; }
-.account-hub-tabs { display:flex; gap:8px; margin:14px 0 12px; flex-wrap:wrap; }
+.account-hub-page { margin-top:0; }
+.account-hub-tabs { display:flex; gap:8px; margin:14px 0 16px; flex-wrap:wrap; }
 .account-hub-tab { padding:8px 14px; border:1px solid var(--line); border-radius:999px; background:#fbfcfa; font:inherit; font-size:11px; font-weight:600; cursor:pointer; color:var(--ink-soft); }
 .account-hub-tab.active { border-color:rgba(44,107,98,.45); background:#eef5ef; color:var(--green); }
 .account-hub-panels { min-height:0; }
 .account-hub-panel .asset-toolbar { margin-top:0; }
-.account-hub-panel .cloud-asset-list { max-height:min(52vh,420px); overflow:auto; }
 .creator-guide-body h3 { margin:16px 0 8px; font-size:14px; }
 .creator-guide-body h4 { margin:12px 0 6px; font-size:12px; }
 .creator-guide-body ul { margin:8px 0 8px 18px; }

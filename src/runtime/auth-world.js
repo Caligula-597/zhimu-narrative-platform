@@ -83,12 +83,12 @@
 
  function openAuth(){
  const loggedIn=Boolean(localStorage.getItem("zhimuSessionToken"));
- if(loggedIn){window.zhimuAccountHub?.openAccountHub?.();return}
+ if(loggedIn){window.zhimuRuntime?.go?.("account");return}
  openAuthForm();
 }
 
 async function openAccountPanel(){
- return window.zhimuAccountHub?.openAccountHub?.();
+ window.zhimuRuntime?.go?.("account");
 }
 
 function openAuthForm(){

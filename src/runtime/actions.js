@@ -30,6 +30,7 @@
     });
     if (state.view === "studio") V.studio?.bindStudioDragging?.();
     if (state.view === "clues") V.clues?.bindCluesSearch?.();
+    if (state.view === "account") V.accountHub?.bindAccountHubView?.();
     window.zhimuSearchFocus?.applyAfterRender?.();
   }
 

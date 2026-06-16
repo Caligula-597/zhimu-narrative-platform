@@ -79,7 +79,11 @@
         return true;
       case "open-account-hub":
       case "go-account":
-        R.openAccountHub?.(el?.dataset?.hubTab ? { tab: el.dataset.hubTab } : {});
+        window.zhimuState.accountHubTab = el?.dataset?.hubTab === "assets" ? "assets" : "account";
+        R.go?.("account");
+        return true;
+      case "account-hub-tab":
+        void window.zhimuAccountHub?.switchAccountHubTab?.(el?.dataset?.hubTab);
         return true;
       default:
         return false;

@@ -63,7 +63,7 @@
     new MutationObserver(syncModalScrollLock).observe(modalBackdrop, { attributes: true, attributeFilter: ["class"] });
     modalBackdrop.addEventListener("wheel", (event) => {
       if (!modalBackdrop.classList.contains("show")) return;
-      const scrollable = event.target.closest(".pipeline-layer-editor, .pipeline-ladder, .pipeline-brief-fold[open] .pipeline-brief-grid, .creator-guide-body, .collab-list, .log-list, .note-list, .account-hub-modal, .account-hub-panel .cloud-asset-list");
+      const scrollable = event.target.closest(".pipeline-layer-editor, .pipeline-ladder, .pipeline-brief-fold[open] .pipeline-brief-grid, .creator-guide-body, .collab-list, .log-list, .note-list");
       if (scrollable && scrollable.scrollHeight > scrollable.clientHeight) return;
       event.preventDefault();
     }, { passive: false });
