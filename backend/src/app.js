@@ -10,6 +10,7 @@ import { recordHttpRequest, resolveMetricRoute } from "./metrics.js";
 import { registerOpenApi } from "./openapi.js";
 import { registerAuthRoutes } from "./routes/auth-routes.js";
 import { registerSystemRoutes } from "./routes/system-routes.js";
+import { registerOfficialExampleRoutes } from "./routes/official-example-routes.js";
 import { registerOpsRoutes } from "./routes/ops-routes.js";
 import { registerBillingRoutes } from "./routes/billing-routes.js";
 import { registerRoutes } from "./routes.js";
@@ -169,6 +170,7 @@ export async function createApp(options = {}) {
     }
   });
   await registerSystemRoutes(app);
+  await registerOfficialExampleRoutes(app);
   await registerOpsRoutes(app);
   await registerBillingRoutes(app);
   await registerAuthRoutes(app);

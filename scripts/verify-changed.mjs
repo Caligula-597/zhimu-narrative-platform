@@ -28,7 +28,10 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/document-text-import", ["test/pdf-document.test.js"]],
   ["backend/src/catalog-review-ops", ["test/ops-catalog.test.js"]],
   ["backend/src/routes/ops-catalog-routes", ["test/ops-catalog.test.js"]],
-  ["backend/src/membership-labels", ["test/membership-labels.test.js"]]
+  ["backend/src/membership-labels", ["test/membership-labels.test.js"]],
+  ["backend/src/official-example", ["test/official-example.test.js"]],
+  ["backend/src/catalog-join-service", ["test/catalog-join-service.test.js", "test/world-catalog.test.js"]],
+  ["backend/src/routes/official-example-routes", ["test/official-example.test.js"]]
 ];
 
 function gitLines(cmd) {

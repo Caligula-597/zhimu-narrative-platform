@@ -14,11 +14,11 @@
 | Part | 名称 | 后端状态 | 说明 |
 |------|------|----------|------|
 | 0 | 边界冻结 | 文档 | 定位、三用户、不做什么 |
-| 1 | 权限与成员元数据 | **进行中** | `membership-labels.js`、中文 403、`GET /worlds`  enrich |
-| 2 | 官方示例 + 首次路径 | 待做 | 示例 worldId 配置、catalog join |
+| 1 | 权限与成员元数据 | **完成** | `membership-labels.js`、中文 403、`GET /worlds` enrich |
+| 2 | 官方示例 + 首次路径 | **部分完成** | `OFFICIAL_EXAMPLE_WORLD_ID`、`/api/platform/official-example` |
 | 3 | 创作者闭环 | 待做 | 发布前检查 API |
 | 4 | 主持工作流 | 待做 | 事件上下文 payload |
-| 5 | 运营审核 | **部分完成** | `GET/POST /api/ops/catalog/reviews/*` |
+| 5 | 运营审核 | **完成** | `GET/POST /api/ops/catalog/reviews/*` |
 | 6 | 官网内测 | 待做 | 内测申请 API |
 | 7 | 法务运维 | 待做 | 监控、上线 checklist |
 | 8 | 玩家端 A/B | 后置 | `/play` 或独立子域 |
@@ -38,3 +38,14 @@
 CLI：`node backend/scripts/approve-catalog-world.mjs <worldId>`（需 pending 状态）
 
 详见 [ops/CATALOG_REVIEW.md](./ops/CATALOG_REVIEW.md)。
+
+## Part 2 · 官方示例 API
+
+环境变量：`OFFICIAL_EXAMPLE_WORLD_ID`（公开库已上架剧本的 UUID）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/platform/official-example` | 示例是否可用、7 分钟路径步骤、worldId |
+| POST | `/api/platform/official-example/join` | 一键加入官方示例（等同 catalog/join） |
+
+生产示例：在 Railway / Supabase 环境变量中设置你的模板剧本 ID（如已通过审核的「123」）。

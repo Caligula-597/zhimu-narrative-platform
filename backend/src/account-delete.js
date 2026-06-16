@@ -2,9 +2,7 @@ import { query, transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { deleteOwnedWorld } from "./world-delete.js";
 import { getObjectStorage } from "./storage/index.js";
-
-const PLATFORM_CATALOG_WORLD_ID =
-  process.env.PLATFORM_CATALOG_WORLD_ID?.trim() || "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
+import { isProtectedPlatformWorldId } from "./official-example.js";
 
 async function purgeUserObjectStorage(userId) {
   const keys = await query(
@@ -72,7 +70,7 @@ export async function buildAccountDeletePreview(userId) {
   );
 
   const blockers = [];
-  if (ownedWorlds.rows.some((row) => row.id === PLATFORM_CATALOG_WORLD_ID)) {
+  if (ownedWorlds.rows.some((row) => isProtectedPlatformWorldId(row.id))) {
     blockers.push({
       code: "ACCOUNT_DELETE_BLOCKED",
       title: "无法注销",
@@ -137,7 +135,7 @@ export async function deleteUserAccount(userId) {
       [userId]
     );
     for (const row of owned.rows) {
-      if (row.id === PLATFORM_CATALOG_WORLD_ID) {
+      if (isProtectedPlatformWorldId(row.id)) {
         throwErr("ACCOUNT_DELETE_BLOCKED");
       }
       const deleted = await deleteOwnedWorld(client, row.id, userId);
