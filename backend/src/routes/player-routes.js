@@ -1,4 +1,4 @@
-import { pool, query } from "../db.js";
+import { pool, query, transaction } from "../db.js";
 import { evaluateRoomRules } from "../rule-engine.js";
 import { transactionWithEvents } from "../transaction-events.js";
 import { publishRoomEvent } from "../room-event-bus.js";
@@ -76,29 +76,58 @@ export async function registerPlayerRoutes(app) {
     await assertCapability(actorId, "room.join");
     const { inviteCode, roleSlotId } = request.body ?? {};
     if (!inviteCode || !roleSlotId) return sendErr(reply, "INVITE_FIELDS_REQUIRED");
-    const room = await query(`SELECT id, world_id FROM rooms WHERE invite_code = $1`, [inviteCode]);
-    if (!room.rowCount) return sendErr(reply, "ROOM_NOT_FOUND");
-    const role = await query(`SELECT 1 FROM role_slots WHERE id = $1 AND world_id = $2`, [roleSlotId, room.rows[0].world_id]);
-    if (!role.rowCount) return sendErr(reply, "ROLE_SLOT_WORLD_MISMATCH");
-    const occupied = await query(
-      `SELECT 1 FROM room_members
-       WHERE room_id = $1 AND role_slot_id = $2 AND user_id <> $3 AND status = 'active'`,
-      [room.rows[0].id, roleSlotId, actorId]
-    );
-    if (occupied.rowCount) return sendErr(reply, "ROLE_SLOT_OCCUPIED");
-    await query(
-      `INSERT INTO room_members (room_id, user_id, member_type, role_slot_id)
-       VALUES ($1, $2, 'player', $3)
-       ON CONFLICT (room_id, user_id)
-       DO UPDATE SET role_slot_id = EXCLUDED.role_slot_id, status = 'active'`,
-      [room.rows[0].id, actorId, roleSlotId]
-    );
+    let roomId;
+    try {
+      roomId = await transaction(async (client) => {
+        const room = await client.query(`SELECT id, world_id FROM rooms WHERE invite_code = $1`, [inviteCode]);
+        if (!room.rowCount) {
+          const err = new Error("ROOM_NOT_FOUND");
+          err.code = "ROOM_NOT_FOUND";
+          throw err;
+        }
+        const role = await client.query(
+          `SELECT 1 FROM role_slots WHERE id = $1 AND world_id = $2`,
+          [roleSlotId, room.rows[0].world_id]
+        );
+        if (!role.rowCount) {
+          const err = new Error("ROLE_SLOT_WORLD_MISMATCH");
+          err.code = "ROLE_SLOT_WORLD_MISMATCH";
+          throw err;
+        }
+        const occupied = await client.query(
+          `SELECT 1 FROM room_members
+           WHERE room_id = $1 AND role_slot_id = $2 AND user_id <> $3 AND status = 'active'
+           FOR UPDATE`,
+          [room.rows[0].id, roleSlotId, actorId]
+        );
+        if (occupied.rowCount) {
+          const err = new Error("ROLE_SLOT_OCCUPIED");
+          err.code = "ROLE_SLOT_OCCUPIED";
+          throw err;
+        }
+        await client.query(
+          `INSERT INTO room_members (room_id, user_id, member_type, role_slot_id)
+           VALUES ($1, $2, 'player', $3)
+           ON CONFLICT (room_id, user_id)
+           DO UPDATE SET role_slot_id = EXCLUDED.role_slot_id, status = 'active'`,
+          [room.rows[0].id, actorId, roleSlotId]
+        );
+        return room.rows[0].id;
+      });
+    } catch (error) {
+      if (error.code === "ROLE_SLOT_OCCUPIED" || error.code === "23505") {
+        return sendErr(reply, "ROLE_SLOT_OCCUPIED", "该角色席位已被其他玩家占用。");
+      }
+      if (error.code === "ROOM_NOT_FOUND") return sendErr(reply, "ROOM_NOT_FOUND");
+      if (error.code === "ROLE_SLOT_WORLD_MISMATCH") return sendErr(reply, "ROLE_SLOT_WORLD_MISMATCH");
+      throw error;
+    }
     const roleInfo = await query(`SELECT name FROM role_slots WHERE id = $1`, [roleSlotId]);
-    publishRoomEvent(room.rows[0].id, "room.player_joined", {
+    publishRoomEvent(roomId, "room.player_joined", {
       roleSlotId,
       roleName: roleInfo.rows[0]?.name ?? "玩家角色"
     }).catch(() => {});
-    return { ok: true, roomId: room.rows[0].id };
+    return { ok: true, roomId };
   });
 
   app.get("/api/rooms/:roomId/player-home", { schema: { params: roomIdParams } }, async (request) => {

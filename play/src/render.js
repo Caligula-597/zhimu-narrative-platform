@@ -306,18 +306,29 @@ export function renderSections() {
   if (!sections.length) {
     return `<div class="empty">主持人尚未向你的角色发放可读分幕。回到<strong>概览</strong>查看等待说明，或联系主持人。</div>`;
   }
-  const nav = sections.map((section) => `
-    <button type="button" class="section-tab ${section.id === active?.id ? "is-active" : ""} ${section.completed ? "is-done" : ""}" data-action="pick-section" data-section-id="${section.id}">
-      <span>${section.sequence}. ${escapeHtml(section.title)}</span>
-      ${section.completed ? "<em>已完成</em>" : ""}
-    </button>`).join("");
+  const activeIndex = sections.findIndex((section) => section.id === active?.id);
   const body = active?.body || "";
   const pages = active?.pages || [];
+  const switcher = sections.length > 1 ? `
+    <div class="section-switcher">
+      <button type="button" class="btn quiet compact" data-action="section-prev" ${activeIndex <= 0 ? "disabled" : ""} aria-label="上一幕">←</button>
+      <label class="section-select-wrap">
+        <span class="sr-only">切换分幕</span>
+        <select class="field section-select" data-bind="sectionId">
+          ${sections.map((section) => `
+            <option value="${section.id}" ${section.id === active?.id ? "selected" : ""}>
+              第 ${section.sequence} 幕${section.completed ? " · 已完成" : ""}
+            </option>`).join("")}
+        </select>
+      </label>
+      <button type="button" class="btn quiet compact" data-action="section-next" ${activeIndex >= sections.length - 1 ? "disabled" : ""} aria-label="下一幕">→</button>
+      <span class="section-progress">${Math.max(activeIndex, 0) + 1} / ${sections.length}</span>
+    </div>` : "";
   return `
     <div class="sections-layout">
-      <nav class="section-nav" aria-label="分幕列表">${nav}</nav>
-      <article class="reader card">
-        <header>
+      <article class="reader card reader-full">
+        ${switcher}
+        <header class="reader-head">
           <p class="eyebrow">分幕 ${active?.sequence ?? ""}</p>
           <h3>${escapeHtml(active?.title || "")}</h3>
         </header>

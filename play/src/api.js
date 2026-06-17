@@ -27,6 +27,7 @@ async function request(path, { method = "GET", body, timeoutMs = 20000 } = {}) {
       const err = new Error(payload.error || payload.message || `请求失败 (${response.status})`);
       err.code = payload.code;
       err.status = response.status;
+      err.details = payload.details;
       throw err;
     }
     return payload;

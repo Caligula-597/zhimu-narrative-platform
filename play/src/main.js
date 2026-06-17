@@ -7,6 +7,7 @@ import {
   setSessionToken
 } from "./api.js";
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode } from "./security.js";
+import { formatApiError } from "./errors.js";
 import { renderApp } from "./render.js";
 import { persistRoom, setBusy, setToast, state } from "./state.js";
 
@@ -122,24 +123,33 @@ async function bootstrap() {
   }
 }
 
+async function refreshJoinPreview(code) {
+  state.joinPreview = await api.lookupInvite(code);
+  state.inviteCode = code;
+  const roles = state.joinPreview.roles || [];
+  const selected = roles.find((role) => role.id === state.selectedRoleId);
+  if (!selected || (selected.occupied && !selected.occupied_by_current)) {
+    state.selectedRoleId = roles.find((role) => !role.occupied || role.occupied_by_current)?.id || "";
+  }
+  return state.joinPreview;
+}
+
 async function handleLookupInvite({ silent = false } = {}) {
   const code = normalizeInviteCode(state.inviteCode);
   if (!code) return silent ? undefined : setToast("请输入邀请码", render);
   setBusy(true, render);
   try {
     await ensureSession();
-    state.joinPreview = await api.lookupInvite(code);
-    state.inviteCode = code;
-    state.selectedRoleId =
-      state.joinPreview.roles.find((r) => !r.occupied || r.occupied_by_current)?.id || "";
+    await refreshJoinPreview(code);
     state.view = "join";
     state.joinStep = 2;
     render();
   } catch (error) {
     state.joinPreview = null;
     state.joinStep = 1;
-    if (!silent) setToast(error.message || "邀请码无效", render);
-    else state.error = error.message || "邀请码无效";
+    const message = formatApiError(error, "邀请码无效");
+    if (!silent) setToast(message, render);
+    else state.error = message;
   } finally {
     setBusy(false, render);
   }
@@ -153,6 +163,13 @@ async function handleJoinRoom() {
   render();
   try {
     await ensureSession();
+    await refreshJoinPreview(code);
+    const selected = state.joinPreview?.roles?.find((role) => role.id === state.selectedRoleId);
+    if (!selected || (selected.occupied && !selected.occupied_by_current)) {
+      state.joinStep = 2;
+      setToast("该角色刚被其他玩家选走，请重新选择", render);
+      return;
+    }
     const result = await api.joinRoom(code, state.selectedRoleId);
     persistRoom(result.roomId, isUuid);
     state.joinPreview = null;
@@ -162,7 +179,14 @@ async function handleJoinRoom() {
     setToast("已加入房间，欢迎来到故事现场", render);
   } catch (error) {
     state.joinStep = 2;
-    setToast(error.message || "加入失败", render);
+    if (error.code === "ROLE_SLOT_OCCUPIED") {
+      try {
+        await refreshJoinPreview(code);
+      } catch {
+        state.joinPreview = null;
+      }
+    }
+    setToast(formatApiError(error, "加入失败"), render);
   } finally {
     setBusy(false, render);
   }
@@ -296,6 +320,13 @@ app.addEventListener("input", (event) => {
   if (event.target.dataset.bind === "inviteCode") state.inviteCode = event.target.value;
 });
 
+app.addEventListener("change", (event) => {
+  if (event.target.dataset.bind === "sectionId") {
+    state.sectionId = event.target.value;
+    render();
+  }
+});
+
 app.addEventListener("submit", (event) => {
   const form = event.target.closest("[data-form='auth']");
   if (!form) return;
@@ -339,6 +370,20 @@ app.addEventListener("click", async (event) => {
       state.selectedRoleId = button.dataset.roleId;
       render();
       break;
+    case "section-prev": {
+      const sections = state.home?.sections || [];
+      const index = sections.findIndex((section) => section.id === state.sectionId);
+      if (index > 0) state.sectionId = sections[index - 1].id;
+      render();
+      break;
+    }
+    case "section-next": {
+      const sections = state.home?.sections || [];
+      const index = sections.findIndex((section) => section.id === state.sectionId);
+      if (index >= 0 && index < sections.length - 1) state.sectionId = sections[index + 1].id;
+      render();
+      break;
+    }
     case "pick-section":
       state.sectionId = button.dataset.sectionId;
       render();
