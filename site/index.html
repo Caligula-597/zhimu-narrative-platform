@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="织幕是面向线上长线剧本杀与互动叙事的云端创作、编排、主持和玩家探索平台。" />
+    <meta property="og:title" content="织幕 | 长线互动叙事引擎" />
+    <meta property="og:description" content="从剧本创作、线索编排、规则自动化到主持监控与玩家探索，织幕让长线剧本杀在线上持续运行。" />
+    <meta property="og:image" content="/assets/site-preview.svg" />
+    <meta name="theme-color" content="#173d38" />
+    <title>织幕 | 长线互动叙事引擎</title>
+    <link rel="icon" href="/assets/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" data-header>
+      <a class="brand" href="#top" aria-label="织幕首页">
+        <span class="brand-mark">织</span>
+        <span>
+          <strong>织幕</strong>
+          <small>ZHIMU</small>
+        </span>
+      </a>
+
+      <button class="menu-button" type="button" aria-label="打开导航" aria-expanded="false" data-menu-button>
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="site-nav" aria-label="主导航" data-nav>
+        <a href="#product">产品</a>
+        <a href="#workflow">流程</a>
+        <a href="#roles">角色</a>
+        <a href="#beta">内测</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="link-button quiet" data-link-login href="https://app.getzhimu.com/?auth=login">登录</a>
+        <a class="link-button solid" data-link-register href="https://app.getzhimu.com/?auth=register">开始使用</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-media" aria-hidden="true">
+          <img src="/assets/site-preview.svg" alt="" />
+        </div>
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="eyebrow">长线剧本杀 · 云端运行</p>
+          <h1 id="hero-title">织幕</h1>
+          <p class="hero-lede">
+            给创作者、主持人与玩家共用的一套互动叙事引擎。把世界观、章节、线索、规则、玩家进度和复盘沉到云端，让一场长线故事可以稳定地被写作、编排和运行。
+          </p>
+          <div class="hero-actions">
+            <a class="link-button solid large" href="#beta">申请内测</a>
+            <a class="link-button glass large" data-link-official href="https://app.getzhimu.com/?experience=official">体验示例世界</a>
+          </div>
+          <dl class="hero-stats" aria-label="当前能力">
+            <div>
+              <dt>创作</dt>
+              <dd>角色 / 章节 / 分幕</dd>
+            </div>
+            <div>
+              <dt>运行</dt>
+              <dd>主持台 / 玩家视角 / SSE</dd>
+            </div>
+            <div>
+              <dt>沉淀</dt>
+              <dd>存档 / 复盘 / 资产库</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="intro-band" id="product" aria-labelledby="product-title">
+        <div class="section-copy">
+          <p class="eyebrow">不是普通文档，也不只是跑团房间</p>
+          <h2 id="product-title">一套围绕“长线叙事状态”的工作台</h2>
+        </div>
+        <div class="proof-strip" aria-label="产品核心模块">
+          <span>世界库</span>
+          <span>剧本创作</span>
+          <span>剧情编排</span>
+          <span>自动化规则</span>
+          <span>主持监控</span>
+          <span>玩家探索</span>
+          <span>存档复盘</span>
+        </div>
+      </section>
+
+      <section class="feature-band" aria-label="产品能力">
+        <article class="feature-card">
+          <span class="card-icon">01</span>
+          <h3>创作者把世界写成可运行结构</h3>
+          <p>角色、章节、分幕、母稿、内容包、云端资产和 AI 创作向导都围绕同一个世界归档，不再散落在多个表格和聊天记录里。</p>
+        </article>
+        <article class="feature-card">
+          <span class="card-icon">02</span>
+          <h3>主持人掌握每个玩家的推进状态</h3>
+          <p>主持台集中处理待确认事件、线索发放、物品流转、手动干预、审计记录和实时事件，让长线房间可以并行运转。</p>
+        </article>
+        <article class="feature-card">
+          <span class="card-icon">03</span>
+          <h3>玩家用角色视角阅读、调查和记录</h3>
+          <p>公共信息、私密线索、笔记、探索点、语音房与章节阅读进度按玩家身份隔离，减少主持人反复私聊同步。</p>
+        </article>
+      </section>
+
+      <section class="workflow-band" id="workflow" aria-labelledby="workflow-title">
+        <div class="section-copy narrow">
+          <p class="eyebrow">从创作到复盘</p>
+          <h2 id="workflow-title">故事不是一次性页面，而是一条持续更新的链路</h2>
+        </div>
+        <ol class="timeline">
+          <li>
+            <strong>写世界</strong>
+            <span>建立世界、成员、角色、章节与素材。</span>
+          </li>
+          <li>
+            <strong>编排剧情</strong>
+            <span>把场景、线索、调查点和流程图组织成可推进结构。</span>
+          </li>
+          <li>
+            <strong>配置规则</strong>
+            <span>用条件和动作驱动自动推进，关键节点交给主持确认。</span>
+          </li>
+          <li>
+            <strong>开房运行</strong>
+            <span>玩家加入平行房间，主持人实时监控状态和事件。</span>
+          </li>
+          <li>
+            <strong>存档复盘</strong>
+            <span>checkpoint、scoped restore 与 recap 保留每场故事的脉络。</span>
+          </li>
+        </ol>
+      </section>
+
+      <section class="roles-band" id="roles" aria-labelledby="roles-title">
+        <div class="section-copy">
+          <p class="eyebrow">三种入口，同一个故事状态</p>
+          <h2 id="roles-title">创作者、主持人与玩家不再各自维护一份真相</h2>
+        </div>
+        <div class="role-grid">
+          <article class="role-card creator">
+            <p>Creator</p>
+            <h3>创作者</h3>
+            <ul>
+              <li>编写世界、角色与章节</li>
+              <li>导入文档和内容包</li>
+              <li>维护资产与协作者权限</li>
+            </ul>
+          </article>
+          <article class="role-card director">
+            <p>Director</p>
+            <h3>主持人</h3>
+            <ul>
+              <li>查看玩家进度和线索矩阵</li>
+              <li>处理待确认事件</li>
+              <li>手动发放线索、物品和提醒</li>
+            </ul>
+          </article>
+          <article class="role-card player">
+            <p>Player</p>
+            <h3>玩家</h3>
+            <ul>
+              <li>按角色读取章节和私密信息</li>
+              <li>调查探索点并整理笔记</li>
+              <li>参与语音和文字频道</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="beta-band" id="beta" aria-labelledby="beta-title">
+        <div class="beta-copy">
+          <p class="eyebrow">Beta</p>
+          <h2 id="beta-title">当前适合正在筹备线上长线本的团队试用</h2>
+          <p>
+            内测期以免费试用和人工扩容为主，暂不提供付费入口。你可以直接进入应用注册，也可以留下团队信息，方便后续对接运行规模、素材迁移和主持流程。
+          </p>
+          <div class="beta-actions">
+            <a class="link-button solid large" href="https://app.getzhimu.com/?auth=register">直接注册</a>
+            <a class="link-button outline large" href="mailto:support@getzhimu.com">联系支持</a>
+          </div>
+        </div>
+        <form class="beta-form" data-beta-form>
+          <label>
+            称呼 / 团队名
+            <input name="displayName" type="text" autocomplete="name" placeholder="例如：某某剧本创作组" required />
+          </label>
+          <label>
+            邮箱
+            <input name="email" type="email" autocomplete="email" placeholder="用于内测通知与注册" required />
+          </label>
+          <label>
+            使用意向
+            <select name="roleIntent" required>
+              <option value="creator">创作者 · 编写剧本与规则</option>
+              <option value="host">主持 · 开团与监控</option>
+              <option value="player">玩家 · 受邀体验</option>
+              <option value="mixed">创作 + 主持</option>
+              <option value="other">其他合作</option>
+            </select>
+          </label>
+          <label>
+            预计规模
+            <select name="scale" required>
+              <option value="">选择规模</option>
+              <option value="1-8">1-8 人小房间</option>
+              <option value="9-30">9-30 人多房间</option>
+              <option value="30+">30 人以上活动</option>
+            </select>
+          </label>
+          <label>
+            你想先解决什么
+            <textarea name="useCase" rows="4" minlength="16" placeholder="创作协作、线索管理、主持监控、玩家体验、存档复盘等（至少 16 字）" required></textarea>
+          </label>
+          <label>
+            其他联系方式（选填）
+            <input name="contact" type="text" autocomplete="tel" placeholder="微信 / 电话（选填）" />
+          </label>
+          <input type="text" name="companyWebsite" tabindex="-1" autocomplete="off" aria-hidden="true" hidden />
+          <button class="link-button solid large" type="submit">提交内测申请</button>
+          <p class="form-status" data-form-status role="status"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <strong>织幕</strong>
+        <span>长线互动叙事引擎</span>
+      </div>
+      <nav aria-label="页脚导航">
+        <a href="https://app.getzhimu.com/?auth=login">登录</a>
+        <a href="https://app.getzhimu.com/?auth=register">注册</a>
+        <a href="mailto:support@getzhimu.com">support@getzhimu.com</a>
+      </nav>
+    </footer>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

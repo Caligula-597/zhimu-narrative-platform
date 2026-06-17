@@ -1,0 +1,93 @@
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || "https://app.getzhimu.com";
+
+const header = document.querySelector("[data-header]");
+const menuButton = document.querySelector("[data-menu-button]");
+const nav = document.querySelector("[data-nav]");
+const betaForm = document.querySelector("[data-beta-form]");
+const formStatus = document.querySelector("[data-form-status]");
+
+function updateHeader() {
+  header?.classList.toggle("is-scrolled", window.scrollY > 12);
+}
+
+function applySiteLinks(links = {}) {
+  if (!links.register && !links.login && !links.officialExample) return;
+  document.querySelectorAll("[data-link-register]").forEach((node) => {
+    if (links.register) node.setAttribute("href", links.register);
+  });
+  document.querySelectorAll("[data-link-login]").forEach((node) => {
+    if (links.login) node.setAttribute("href", links.login);
+  });
+  document.querySelectorAll("[data-link-official]").forEach((node) => {
+    if (links.officialExample) node.setAttribute("href", links.officialExample);
+  });
+}
+
+async function loadSiteBootstrap() {
+  try {
+    const response = await fetch(`${API_ORIGIN}/api/platform/site`);
+    if (!response.ok) return;
+    const payload = await response.json();
+    applySiteLinks(payload.links);
+    if (payload.beta?.acceptingApplications === false && formStatus) {
+      formStatus.textContent = "内测申请暂未开放，可先直接注册体验。";
+    }
+  } catch {
+    // 静态 fallback links 已写在 HTML 中
+  }
+}
+
+menuButton?.addEventListener("click", () => {
+  const isOpen = nav?.classList.toggle("is-open");
+  menuButton.setAttribute("aria-expanded", String(Boolean(isOpen)));
+});
+
+nav?.addEventListener("click", () => {
+  nav.classList.remove("is-open");
+  menuButton?.setAttribute("aria-expanded", "false");
+});
+
+window.addEventListener("scroll", updateHeader, { passive: true });
+updateHeader();
+loadSiteBootstrap();
+
+betaForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  formStatus.textContent = "正在提交...";
+
+  const formData = new FormData(betaForm);
+  const scale = String(formData.get("scale") || "").trim();
+  const payload = {
+    email: String(formData.get("email") || "").trim(),
+    displayName: String(formData.get("displayName") || "").trim(),
+    roleIntent: String(formData.get("roleIntent") || "creator").trim(),
+    useCase: String(formData.get("useCase") || "").trim(),
+    referralSource: scale ? `预计规模：${scale}` : "",
+    contact: String(formData.get("contact") || "").trim(),
+    companyWebsite: String(formData.get("companyWebsite") || "").trim()
+  };
+
+  try {
+    const response = await fetch(`${API_ORIGIN}/api/platform/beta/apply`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const body = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const message =
+        body.code === "BETA_APPLICATION_PENDING"
+          ? "该邮箱已有待审申请，请勿重复提交。"
+          : body.error || `提交失败（${response.status}）`;
+      throw new Error(message);
+    }
+
+    formStatus.textContent = body.message || "已收到，后续会按内测节奏联系你。";
+    betaForm.reset();
+  } catch (error) {
+    formStatus.textContent =
+      error.message ||
+      "暂时没能提交到内测接口。你也可以直接注册，或发邮件到 support@getzhimu.com。";
+  }
+});
