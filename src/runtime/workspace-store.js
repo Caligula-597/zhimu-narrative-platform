@@ -61,13 +61,6 @@
     const activeId = zhimuApi.context.worldId;
     if (activeId && worlds.some((world) => world.id === activeId)) return activeId;
 
-    const demoId = window.zhimuConfig?.demoWorld?.worldId;
-    if (!hasSession && demoId && worlds.some((world) => world.id === demoId)) {
-      zhimuApi.selectWorld(demoId);
-      zhimuApi.clearRoom();
-      return demoId;
-    }
-
     zhimuApi.selectWorld(worlds[0].id);
     zhimuApi.clearRoom();
     return worlds[0].id;

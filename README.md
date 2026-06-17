@@ -7,6 +7,8 @@
 - 前端：**Vite 6** 构建（`npm run dev` / `build` / `start:dist`），仍用 `window.*` 全局。
 - `backend/`：PostgreSQL 正式后端。
 - **平台总览（前后端对照）**：[docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md) ← **推荐先看**
+- **剧本/测试桩/官方示例**：[docs/WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)
+- **前端说明**：[docs/FRONTEND_README_ZH.md](./docs/FRONTEND_README_ZH.md)
 - **产品现状（中文总览）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)
 - **休息/交接**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)
 - [RELEASE_NOTES.md](./RELEASE_NOTES.md) P0/P1/P2 发布说明
@@ -14,9 +16,8 @@
 - [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md) **后端运维路线图**（下一步）
 - [docs/OPS.md](./docs/OPS.md) 部署与故障排查
 - [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) 完整功能目录
-- [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) 安全与测试（**222** 项后端测试）
+- [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) 安全与测试（**323** 项后端测试）
 - [FRONTEND_MODULE_PLAN.md](./FRONTEND_MODULE_PLAN.md) Vite + 模块边界
-- [DEMO_ROUTE.md](./DEMO_ROUTE.md) 雾港 12 分钟 Demo
 
 ## 启动
 
@@ -37,7 +38,7 @@ npm run start:dist               # 托管 dist/
 Legacy 无构建：`node server.js`（源码直出，CI 以 Vite build 为准）。
 
 - 预发部署：[docs/ops/STAGING.md](./docs/ops/STAGING.md)（Docker Compose，可选）
-- E2E 验收：`npm run verify:full:fresh`（Playwright 雾港全链路）
+- 全链路验收：`npm run verify:full:fresh`（migrate + seed + 后端测试 + smoke）
 
 **收工前**可停掉本地 4173/4180 进程以释放端口与 DB 连接（见 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) §6）。
 

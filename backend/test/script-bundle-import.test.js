@@ -14,10 +14,10 @@ function buildSampleZip() {
   return zip.toBuffer();
 }
 
+import { fixtureWorldId } from "./helpers/fixture-ids.js";
+
 async function fogWorldId() {
-  const result = await query(`SELECT id FROM worlds WHERE name = '雾港来信' ORDER BY created_at LIMIT 1`);
-  assert.ok(result.rowCount, "fog world fixture required");
-  return result.rows[0].id;
+  return fixtureWorldId;
 }
 
 async function createIsolatedWorld(label) {

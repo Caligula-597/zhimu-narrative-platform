@@ -184,7 +184,8 @@ npm run railway:push-env    # 需 .env.railway.setup 里 Account Token
 
 ```
 RAILWAY_SERVICE_ID  = fc78dfb7-98dc-4ca5-8a9e-4cb9a9db80b1  (zhimu-narrative-platform)
-RAILWAY_PUBLIC_URL  = https://getzhimu.com
+RAILWAY_PUBLIC_URL  = https://app.getzhimu.com
+MARKETING_SITE      = https://getzhimu.com (Cloudflare Pages → site/)
 RAILWAY_PROJECT_ID  = 26f5bb70-1688-4e0b-a414-5c03f16ed95b  (beautiful-unity)
 ```
 

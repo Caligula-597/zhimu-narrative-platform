@@ -14,6 +14,8 @@
 
 环境变量见 `backend/.env.example` 与根目录 `.env.development`。
 
+**剧本与示例**：产品功能不绑定单一 UUID。CI 测试桩见 `seed.js`；生产官方示例配置 `OFFICIAL_EXAMPLE_WORLD_ID`。详见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)。
+
 **本地 Demo 身份**：`backend/.env` 中 `ALLOW_DEMO_USER_HEADER=true`，前端可用固定 UUID 调试。正式 Bearer Session 优先于 demo 头。
 
 ## 生产部署检查清单

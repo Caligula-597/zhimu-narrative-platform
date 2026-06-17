@@ -6,8 +6,8 @@ import { buildRoomCheckpointSnapshot } from "../src/routes/checkpoint-helpers.js
 import { executeHostEventById } from "../src/routes/host-event-actions.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
-const fogRoomId = "a65f94eb-a987-463c-bb81-aa482367e54a";
-const fogWorldId = "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
+const fogRoomId = "11111111-2222-4333-8444-555555550002";
+const fogWorldId = "11111111-2222-4333-8444-555555550001";
 
 const sampleProposal = {
   title: "Dedup probe",

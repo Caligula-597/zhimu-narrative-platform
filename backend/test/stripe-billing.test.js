@@ -222,12 +222,12 @@ test("checkout requires Stripe secret key", () => {
 test("world invite email uses branded HTML template", () => {
   const html = worldInviteEmailHtml({
     inviterName: "Alice",
-    worldName: "雾港来信",
+    worldName: "后端集成测试世界",
     roleLabel: "编辑",
     inviteUrl: "http://127.0.0.1:4173/?invite=abc"
   });
   assert.ok(html.includes("织幕"));
   assert.ok(html.includes("接受协作邀请"));
-  assert.ok(html.includes("雾港来信"));
+  assert.ok(html.includes("后端集成测试世界"));
   assert.ok(html.includes("linear-gradient"));
 });

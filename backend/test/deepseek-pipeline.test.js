@@ -24,7 +24,7 @@ test("validateStorySpec normalizes chapter keys", () => {
 test("validateStoryOutline requires chapter beats", () => {
   const spec = validateStorySpec({ playerCount: 4, chapterKeys: ["chapter-1"], chapterCount: 1 }, brief);
   const outline = validateStoryOutline({
-    logline: "雾港来信",
+    logline: "集成测试剧本",
     truthTimeline: "真相",
     chapterBeats: [{ chapterKey: "chapter-1", title: "入港", goal: "集合", turn: "发现尸体", hostNotes: "勿剧透" }]
   }, spec);

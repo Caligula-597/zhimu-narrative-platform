@@ -28,7 +28,7 @@ for (const file of [join(root, ".env"), join(root, "..", ".env.staging")]) {
 const withEvaluate = process.argv.includes("--evaluate") || process.argv.includes("--eval");
 
 const brief = {
-  title: "流水线实测 · 雾港残信",
+  title: "流水线实测 · 示例剧本",
   premise: "四名调查员在封闭货轮上调查失踪船长，线索指向旧日走私网络。",
   style: "悬疑调查，信息互补",
   playerCount: 4,

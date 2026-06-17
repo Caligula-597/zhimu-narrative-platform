@@ -24,7 +24,7 @@
 | `013_host_audit_and_idempotency.sql` | 主持审计、写操作幂等键 |
 | `014_world_search.sql` | 世界全文搜索（`tsvector` + 多表 ILIKE 索引） |
 | `015_world_catalog.sql` | 世界公开剧本库 `catalog_public` |
-| `016_catalog_seed_fog.sql` | 雾港 Demo 标记为公开 catalog |
+| `016_catalog_seed_fog.sql` | （历史）曾标记平台 Demo 公开；现由 028/030 保证测试桩不公开 |
 | `017_rooms_world_cascade.sql` | 删世界时 cascade 平行房 |
 | `018_host_event_delay_until.sql` | 待确认事件 `delay_until` + 延迟唤醒索引 |
 
@@ -153,14 +153,17 @@ users ──┬── world_members ── worlds ──┬── role_slots ─
 
 ## 种子与 CI 固定 UUID
 
-`backend/scripts/seed.js` 使用与测试一致的 fixture ID（雾港来信）：
+`backend/scripts/seed.js` 使用与测试一致的 fixture ID（**后端集成测试世界**，非公开库）：
 
 - Host: `154aa8a9-9cd2-4098-90f4-c75e56c0cc53`
 - Player: `1d5e8155-a80f-4e7f-99f0-0ae317a35f35`
-- World: `08646748-e4ae-446a-a5e7-ce59ca23ffc3`
-- Room: `a65f94eb-a987-463c-bb81-aa482367e54a`
+- World: `11111111-2222-4333-8444-555555550001`
+- Room: `11111111-2222-4333-8444-555555550002`
+- Invite: `TEST-FIXTURE-DEMO`
 
-CI 与 `npm test` 依赖上述 ID；本地 Supabase 演示库可能使用不同 world ID（见 `config.js` demoWorld）。
+CI 与 `npm test` / smoke 依赖上述 ID。生产**官方示例**单独由 `OFFICIAL_EXAMPLE_WORLD_ID` 配置（与 fixture 无关）。详见 [docs/WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)。
+
+已删除的旧平台 Demo（雾港来信 `08646748-…`）见迁移 `031`/`032`。
 
 ---
 

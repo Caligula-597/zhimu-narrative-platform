@@ -3,4 +3,4 @@ UPDATE worlds
 SET catalog_public = false,
     catalog_review_status = 'none',
     updated_at = now()
-WHERE id = '08646748-e4ae-446a-a5e7-ce59ca23ffc3';
+WHERE id = '11111111-2222-4333-8444-555555550001';

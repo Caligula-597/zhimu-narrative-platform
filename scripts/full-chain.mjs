@@ -7,7 +7,7 @@
  *   node scripts/full-chain.mjs --fresh      # 先 bootstrap:local（migrate + seed + exploration）
  *   node scripts/full-chain.mjs --skip-e2e    # 跳过 Playwright 浏览器测试
  *
- * 双浏览器 SSE / 主持确认等见 DEMO_ROUTE.md 手动段。
+ * 双浏览器 SSE / 主持确认等需手动在 TEST-FIXTURE-DEMO 房间验证。
  */
 import { spawnSync } from "node:child_process";
 import path from "node:path";
@@ -46,7 +46,6 @@ console.log("织幕 full-chain — 本地全链路验证\n");
 
 if (fresh) {
   run("bootstrap:local", process.execPath, [path.join("scripts", "bootstrap-local.js")], { cwd: backend });
-  run("bootstrap e2e room", process.execPath, [path.join("scripts", "bootstrap-e2e-room.mjs")], { cwd: backend, optional: true });
 }
 
 if (!skipTests) {
@@ -55,7 +54,6 @@ if (!skipTests) {
   run("format helper tests", process.execPath, ["--test", path.join("scripts", "format-helpers.test.mjs")], { cwd: root });
   run("runtime store tests", process.execPath, ["--test", path.join("scripts", "runtime-stores.test.mjs")], { cwd: root });
   run("pipeline session tests", process.execPath, ["--test", path.join("scripts", "pipeline-wizard-session.test.mjs")], { cwd: root });
-  run("demo Act2 reading", process.execPath, ["--test", "test/demo-act2-reading.test.js"], { cwd: backend });
 }
 
 const apiUp = await probe("http://localhost:4180/api/health/live");
@@ -77,7 +75,7 @@ if (uiUp) {
 
 const e2eReady = apiUp && uiUp && !args.has("--skip-e2e");
 if (e2eReady) {
-  run("Playwright E2E (DEMO_ROUTE)", process.platform === "win32" ? "npx.cmd" : "npx", [
+  run("Playwright E2E", process.platform === "win32" ? "npx.cmd" : "npx", [
     "playwright",
     "test",
     "--config=playwright.config.js"
@@ -91,12 +89,11 @@ if (e2eReady) {
 
 console.log(`
 ════════════════════════════════════════════════════════
-  自动化段完成（含 Playwright · 副本房 FOG-E2E-AUTO）。
+  自动化段完成（含 Playwright · 副本房 TEST-E2E-REMOVED）。
 
-  演示用手动房间 FOG-HARBOR-DEMO 不会被 E2E 写入。
+  演示用手动房间 TEST-FIXTURE-DEMO 不会被 E2E 写入。
+  官方公开示例剧本：平台目录「小示例」（非本测试桩）。
   AI 探索同样使用副本房：npm run explore:ai
-
-  完整演示脚本：DEMO_ROUTE.md
 ════════════════════════════════════════════════════════
 `);
 

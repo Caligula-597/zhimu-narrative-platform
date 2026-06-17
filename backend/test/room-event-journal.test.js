@@ -3,7 +3,7 @@ import test from "node:test";
 import { query } from "../src/db.js";
 import { appendRoomEventJournal, fetchJournalEventsAfter } from "../src/room-event-journal.js";
 
-const fogRoomId = "a65f94eb-a987-463c-bb81-aa482367e54a";
+const fogRoomId = "11111111-2222-4333-8444-555555550002";
 
 test("room event journal supports ordered replay after id", async (context) => {
   const first = await appendRoomEventJournal(fogRoomId, { type: "room.test_event", roomId: fogRoomId, n: 1 });

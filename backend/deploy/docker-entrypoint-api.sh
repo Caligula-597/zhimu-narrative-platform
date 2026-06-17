@@ -5,8 +5,7 @@ echo "[zhimu-api] running migrations…"
 node scripts/migrate.js
 
 if [ "${RUN_PLATFORM_CATALOG_SEED:-false}" = "true" ]; then
-  echo "[zhimu-api] RUN_PLATFORM_CATALOG_SEED=true — legacy platform demo seed…"
-  node scripts/ensure-platform-catalog.js
+  echo "[zhimu-api] RUN_PLATFORM_CATALOG_SEED is deprecated — skipped"
 fi
 
 if [ "${RUN_DB_SEED:-false}" = "true" ]; then

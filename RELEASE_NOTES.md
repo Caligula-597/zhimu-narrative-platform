@@ -1,8 +1,20 @@
 # 织幕 Alpha · Release Notes
 
-**最新增量**：2026-06-08 · 身份底座（配额/邀请/OAuth/entitlements）  
-**版本标签建议**：`beta-5-2026-06-08`  
+**最新增量**：2026-06-17 · 移除雾港绑定 · 官方示例 env 化 · 323 项测试  
+**版本标签建议**：`beta-6-2026-06-17`  
 **分支**：`main`
+
+---
+
+## 2026-06-17 · 剧本解耦与文档收口
+
+| 领域 | 交付 |
+|------|------|
+| 数据 | 删除雾港来信（迁移 031/032）；测试桩「后端集成测试世界」不公开；`OFFICIAL_EXAMPLE_WORLD_ID` → **小示例** |
+| 后端 | `official-example.js` 仅 env 驱动；seed 含探索链 + 公共语音房；CI 移除已删 e2e bootstrap |
+| 前端 | 移除 `config.demoWorld`；世界/房间仅 localStorage + API |
+| 文档 | 新增 [WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)、[FRONTEND_README_ZH.md](./docs/FRONTEND_README_ZH.md)；全库更新雾港/DEMO_ROUTE 引用 |
+| 验收 | backend **323** 测试 · schema **56** · smoke **18** · `verify:full:fresh` |
 
 ---
 
@@ -240,6 +252,6 @@
 
 ## 下一步
 
-见 [DEMO_ROUTE.md](./DEMO_ROUTE.md) — 以「雾港来信」可演示路线为优先。
+见 [CREATOR_GUIDE.md](./docs/CREATOR_GUIDE.md) — 以「测试桩 + 官方示例」验收功能，不绑定单一剧情脚本。
 
 详细变更索引：[FEATURE_CATALOG.md §12–§26](./FEATURE_CATALOG.md)

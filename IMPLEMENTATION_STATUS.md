@@ -1,7 +1,7 @@
 # 织幕 · 功能实现状态总览
 
 > **用途**：团队协调用的「一张表看清全貌」——后端做到哪、前端做到哪、哪里没接通、哪里有坑。  
-> **更新**：2026-06-08（Vite · **222** 测试 · 身份/配额/邀请/OAuth 诊断 · fullstack 部署）  
+> **更新**：2026-06-17（功能与剧本解耦 · **323** 测试 · 官方示例 env 化）  
 > **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
 > **平台总览（前后端对照）**：[docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md)  
 > **中文总览**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
@@ -176,7 +176,7 @@
 
 | 项 | 状态 |
 |----|------|
-| `npm test` | **231/231**（含 stripe-billing、account-entitlements、world-invites-quota） |
+| `npm test` | **323**（含 stripe-billing、account-entitlements、world-invites-quota） |
 | `check:schemas` | **56** 条写/SSE 路由 schema 门禁 |
 | `check:tests` 数量下限 | ≥100 |
 | checkpoint / journal / 幂等 E2E | ✅ 专项测试 |
@@ -185,7 +185,7 @@
 | `test:format-helpers` | **5** 项 |
 | `test:modal-helpers` | **2** 项（CI 已纳入） |
 | `npm run check:modules` | **29** 脚本顺序加载（Vite 入口链） |
-| Playwright E2E | 1 spec（雾港 E2E 房全链路） |
+| 全链路 smoke | `verify:full:fresh`（后端测试 + API/UI smoke） |
 | 前端构建 | `npm run build` → `dist/`；CI 用 `server.js --dist` |
 
 ---
@@ -286,7 +286,7 @@
 
 | 链路 | 验证 |
 |------|------|
-| 雾港：阅读 → 规则 → 探索 → 主持确认 → 密室 | demo-act2 + seed-exploration + smoke |
+| 测试桩：阅读 → 规则 → 探索 → 主持确认 | seed + seed-exploration + rule-engine + smoke |
 | 主持台：发线索 / 解锁 / 待确认 / SSE | host-console.test.js |
 | checkpoint 创建 + 列表 + 详情 | checkpoint.test.js + archive UI |
 | checkpoint **restore** | checkpoint-restore-e2e（5 项）+ room-lifecycle 幂等 + **API smoke** + **archive UI** |
@@ -303,7 +303,7 @@
 | [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) | 按工作区逐项功能说明（§3）+ 变更历史（§12–§29） |
 | [ALPHA_FEATURE_MATRIX.md](./ALPHA_FEATURE_MATRIX.md) | 真实 / 演示 / 待接入 速查 |
 | [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) | **产品功能与工程现状（中文总览）** |
-| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + **222** 项测试矩阵 |
+| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + **323** 项测试矩阵 |
 | [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) | **休息/交接检查点** |
 | [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md) | 后端运维路线图 |
 | [docs/OPS.md](./docs/OPS.md) | 部署与故障排查 |

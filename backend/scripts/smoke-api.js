@@ -1,8 +1,8 @@
 const baseUrl = process.env.SMOKE_API_BASE_URL || "http://localhost:4180/api";
 const hostUserId = process.env.SMOKE_HOST_USER_ID || "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = process.env.SMOKE_PLAYER_USER_ID || "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const worldId = process.env.SMOKE_WORLD_ID || "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
-const roomId = process.env.SMOKE_ROOM_ID || "a65f94eb-a987-463c-bb81-aa482367e54a";
+const worldId = process.env.SMOKE_WORLD_ID || "11111111-2222-4333-8444-555555550001";
+const roomId = process.env.SMOKE_ROOM_ID || "11111111-2222-4333-8444-555555550002";
 
 async function request(path, userId, { method = "GET", body } = {}) {
   const headers = {};
@@ -144,13 +144,13 @@ const results = await Promise.all([
     const response = await fetch(`${baseUrl}/rooms/join`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-user-id": playerUserId },
-      body: JSON.stringify({ inviteCode: "FOG-HARBOR-DEMO", roleSlotId: "00000000-0000-4000-8000-000000000000" })
+      body: JSON.stringify({ inviteCode: "TEST-FIXTURE-DEMO", roleSlotId: "00000000-0000-4000-8000-000000000000" })
     });
     if (response.status !== 400) throw new Error(`expected 400, received ${response.status}`);
     return response.status;
   }),
   check("invite-code-loads-room-roles", async () => {
-    const invite = await request("/rooms/invite/FOG-HARBOR-DEMO", playerUserId);
+    const invite = await request("/rooms/invite/TEST-FIXTURE-DEMO", playerUserId);
     return `world=${invite.world.name}, roles=${invite.roles.length}`;
   }),
   check("unauthenticated-rejected", async () => {

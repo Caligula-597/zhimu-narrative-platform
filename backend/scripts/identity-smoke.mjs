@@ -20,7 +20,7 @@ await ok("guest -> join fog harbor", async () => {
   const { token, user } = g.json();
   const roles = await app.inject({
     method: "GET",
-    url: "/api/rooms/invite/FOG-HARBOR-DEMO",
+    url: "/api/rooms/invite/TEST-FIXTURE-DEMO",
     headers: { authorization: `Bearer ${token}` }
   });
   const open = roles.json().roles.find((r) => !r.occupied);
@@ -29,7 +29,7 @@ await ok("guest -> join fog harbor", async () => {
     method: "POST",
     url: "/api/rooms/join",
     headers: { authorization: `Bearer ${token}` },
-    payload: { inviteCode: "FOG-HARBOR-DEMO", roleSlotId: open.id }
+    payload: { inviteCode: "TEST-FIXTURE-DEMO", roleSlotId: open.id }
   });
   if (join.statusCode !== 200) throw new Error(join.body);
   await query("DELETE FROM room_members WHERE user_id = $1", [user.id]);

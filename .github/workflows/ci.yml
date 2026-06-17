@@ -46,7 +46,7 @@ jobs:
       - name: Frontend module load check
         run: npm run check:modules
       - name: Migrate and seed
-        run: npm run db:migrate && npm run db:seed && npm run demo:seed-exploration && npm run demo:bootstrap-e2e-room
+        run: npm run db:migrate && npm run db:seed && npm run demo:seed-exploration
         working-directory: backend
       - name: Install PostgreSQL 17 client
         run: |
@@ -88,7 +88,3 @@ jobs:
         working-directory: backend
       - name: UI smoke tests
         run: node scripts/ui-smoke.js
-      - name: Playwright E2E (DEMO_ROUTE)
-        run: PLAYWRIGHT_SKIP_WEBSERVER=1 npx playwright test
-        env:
-          ALLOW_DEMO_USER_HEADER: "true"

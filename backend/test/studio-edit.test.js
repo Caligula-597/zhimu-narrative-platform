@@ -5,10 +5,10 @@ import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
+import { fixtureWorldId } from "./helpers/fixture-ids.js";
+
 async function fogWorldId() {
-  const result = await query(`SELECT id FROM worlds WHERE name = '雾港来信' ORDER BY created_at LIMIT 1`);
-  assert.ok(result.rowCount, "fog world fixture required");
-  return result.rows[0].id;
+  return fixtureWorldId;
 }
 
 test("creator can patch scene clue and investigation point", async (context) => {

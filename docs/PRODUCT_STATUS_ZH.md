@@ -1,7 +1,7 @@
 # 织幕 · 产品功能与工程现状（中文总览）
 
 > **用途**：给团队/新成员的一份「做到哪了、能用什么、不能用什么、怎么验」的**单一长文**。  
-> **更新**：2026-06-08  
+> **更新**：2026-06-17  
 > **阶段**：Alpha → **Beta 过渡**（可内测，**非**生产级 SaaS）  
 > **更细的逐项说明**：[FEATURE_CATALOG.md](../FEATURE_CATALOG.md) · **实现/缺口表**：[IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) · **交接检查点**：[PROJECT_STATUS.md](./PROJECT_STATUS.md)
 
@@ -25,7 +25,9 @@
 
 **织幕**是面向线上长线剧本杀的自动化叙事引擎：创作者在云端写世界、编排剧情、配规则；玩家入房阅读、探索、收线索；主持台监控进度、确认事件、手动干预；数据落在 **PostgreSQL** 与 **Cloudflare R2**。
 
-当前状态：**核心运行链路已真实可用**（雾港 Demo、午夜列车 API 流程均已验证），前后端主 API 已对齐，**222** 项后端测试 + **56** 条 schema 门禁 + smoke/E2E 可复验。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。**内测期免费、无充值入口**（见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)）；Stripe 订阅等商业化能力**正式对外后再做**。
+当前状态：**核心运行链路已真实可用**（任意创作者剧本 + 官方示例「小示例」均已验证），前后端主 API 已对齐，**323** 项后端测试 + schema 门禁 + smoke 可复验。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。**内测期免费、无充值入口**（见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)）；Stripe 订阅等商业化能力**正式对外后再做**。
+
+**架构原则**：功能不绑定单一剧本；见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)。
 
 ---
 
@@ -45,13 +47,13 @@
 | 实体卡 / NFC | ❌ | 仅占位 |
 | 生产 SaaS（Stripe/AV 扫描） | 🟡 | 内测免费、无前端结账；OAuth/配额 ✅；Stripe **搁置至商业化** |
 
-**参考 Demo**
+**参考：测试与官方示例**
 
-| 名称 | 邀请码 / 说明 |
-|------|----------------|
-| 雾港来信（勿破坏） | `FOG-HARBOR-DEMO`，世界 `08646748-e4ae-446a-a5e7-ce59ca23ffc3` |
-| E2E 隔离房 | `FOG-E2E-AUTO`，Playwright 专用 |
-| 12 分钟手动路线 | [DEMO_ROUTE.md](../DEMO_ROUTE.md) |
+| 名称 | 说明 |
+|------|------|
+| CI 测试桩（勿破坏） | `TEST-FIXTURE-DEMO` · 世界 `11111111-…0001` · **非公开库** |
+| 官方示例（生产） | 环境变量 `OFFICIAL_EXAMPLE_WORLD_ID` → 当前 **小示例** |
+| 创作者体验 | [CREATOR_GUIDE.md](./CREATOR_GUIDE.md) 首次 3 分钟流程 |
 
 ---
 
@@ -164,18 +166,17 @@
 
 ## 5. 测试体系（分层说明）
 
-**当前验收数字**（2026-06-06）：
+**当前验收数字**（2026-06-17）：
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **222** |
+| `backend npm test` | **323** |
 | `npm run check:schemas` | **56** 条路由 |
 | `npm run test:smoke` | **18** |
-| `node scripts/ui-smoke.js` | **41/41** |
+| `node scripts/ui-smoke.js` | **34** |
 | `npm run test:format-helpers` | **5** |
 | `npm run test:modal-helpers` | **2** |
 | `npm run check:modules` | **29** |
-| Playwright E2E | 1 spec（雾港 Acts 1–5，双浏览器） |
 
 ### 5.1 后端单元/集成（`backend npm test`）
 
@@ -196,7 +197,7 @@
 
 ### 5.4 API Smoke（`test:smoke`，18 项）
 
-- 需 `localhost:4180` + 雾港 seed。
+- 需 `localhost:4180` + `bootstrap:local`（测试桩 seed）。
 - 真实 HTTP，覆盖 health、studio、rules、player-home、checkpoint restore、recap、livekit-token 等。
 
 ### 5.5 UI Smoke（41 项）
@@ -209,10 +210,10 @@
 - `npm run test:format-helpers`（5）— `escapeHtml`、审计文案等。
 - `npm run test:modal-helpers`（2）— `studioField` / `studioOptionsHtml` XSS 与选中值。
 
-### 5.6 Playwright E2E
+### 5.6 浏览器 E2E
 
-- `e2e/fog-demo-route.spec.js` — 仅用 `FOG-E2E-AUTO` 房。
-- 双 browser：主持 + 玩家全链路。
+- 旧「单剧本 Playwright 路线」已移除；功能验收依赖后端集成测试 + API/UI smoke。
+- 可选：`npx playwright test`（`e2e/` 目录，当前无强制 spec）。
 
 ### 5.7 一键全链路
 
@@ -220,11 +221,11 @@
 npm run verify:full:fresh
 ```
 
-含 migrate/seed、单测、smoke、E2E（需 DB；建议 4173+4180 已起）。
+含 migrate/seed、后端单测、API/UI smoke（需 DB；建议 4173+4180 已起）。
 
 ### 5.8 CI
 
-`.github/workflows/ci.yml`：push `main` 跑 backend test + format/modal helpers + 前端 build + smoke。
+`.github/workflows/ci.yml`：push `main` 跑 migrate/seed、backend test、format/modal helpers、前端 build、API/UI smoke（无 Playwright 强制门禁）。
 
 ---
 
@@ -296,7 +297,9 @@ cd .. && npm run check:modules && npm run build
 | [ALPHA_FEATURE_MATRIX.md](../ALPHA_FEATURE_MATRIX.md) | 真实/演示/待接入速查 |
 | [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) | 安全项 + 测试文件列表 |
 | [RELEASE_NOTES.md](../RELEASE_NOTES.md) | 版本增量摘要 |
-| [AI_PIPELINE_UI_ZH.md](./AI_PIPELINE_UI_ZH.md) | AI 剧本创作 UI 位置、流程、性能 |
+| [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md) | **测试桩 vs 官方示例、功能解耦原则** |
+| [FRONTEND_README_ZH.md](./FRONTEND_README_ZH.md) | 前端模块、数据边界、构建 |
+| [PLATFORM_MAP_ZH.md](./PLATFORM_MAP_ZH.md) | 前后端 API ↔ UI 对照 |
 | [PROMPT_ENGINEERING.md](./PROMPT_ENGINEERING.md) | DeepSeek 分层 API 与 prompt |
 | [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md) | 内测免费范围、无付费入口、配额人工扩容 |
 

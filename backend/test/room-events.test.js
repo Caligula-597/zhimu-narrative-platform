@@ -38,7 +38,7 @@ test("publishRoomEvent includes type and room metadata", async () => {
 
 test("publishRoomEvent passes journal id envelope to subscribers", async () => {
   resetRoomEventBusForTests();
-  const fogRoomId = "a65f94eb-a987-463c-bb81-aa482367e54a";
+  const fogRoomId = "11111111-2222-4333-8444-555555550002";
   const received = [];
   subscribeRoomEvents(fogRoomId, (message) => received.push(message));
 

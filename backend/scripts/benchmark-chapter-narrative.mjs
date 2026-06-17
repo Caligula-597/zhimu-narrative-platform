@@ -17,7 +17,7 @@ for (const file of [join(root, ".env"), join(root, "..", ".env.staging")]) {
 }
 
 const setting = {
-  theme: "实测 · 雾港残信",
+  theme: "实测 · 章节叙事",
   playerCount: 6,
   chapterCount: 5,
   wordsPerChapter: 8000,
@@ -26,7 +26,7 @@ const setting = {
 };
 
 const synopsis = {
-  body: "民国末年一艘货轮在雾港失联后神秘返航。六名与旧案有关的人被召集上船，第一夜发现船长室反锁，窗上有从内部无法完成的指纹。全书五章：登船集结→密室初探→关系撕裂→真相逼近→收束与余波。",
+  body: "测试用长篇梗概：六名角色被召集调查一起旧案，第一夜发现上锁的房间与可疑指纹。全书五章推进。",
   charactersSketch: "船长（失踪后重现）、轮机长、货主代表、记者、警探后人、神秘乘客",
   truthSketch: "船长未死，利用走私通道假死脱身",
   redHerringsSketch: "看似内鬼的通讯员"

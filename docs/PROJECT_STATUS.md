@@ -2,7 +2,7 @@
 
 
 
-> **更新**：2026-06-06  
+> **更新**：2026-06-17  
 
 > **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
 
@@ -36,7 +36,7 @@
 
 - **预发栈**：Docker Compose + [ops/STAGING.md](./ops/STAGING.md)（Docker 可选，本地 dev 不受影响）
 
-- **E2E**：Playwright 雾港全链路 + 平行房 `FOG-E2E-AUTO`；`npm run verify:full:fresh`
+- **全链路验收**：`npm run verify:full:fresh`（migrate + seed + 后端测试 + smoke）
 
 - API 客户端统一为 **`src/api/client.js`**（已移除根目录 `api-client.js` 副本）
 
@@ -108,7 +108,7 @@
 
 | 规则 E2E 不触发 | `actions` schema 误为 object，规则创建 400 | 改 array + 断言 201 |
 
-| config 错误 worldId | demoWorld UUID 与 seed 不一致 | 对齐 `08646748-…` |
+| config 硬编码 demoWorld | 前端绑定单一剧本 UUID | 已移除；见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md) |
 
 
 
@@ -124,7 +124,7 @@
 
 |------|------|
 
-| `backend npm test` | **222** |
+| `backend npm test` | **323** |
 
 | `npm run check:schemas` | **56** 条路由 |
 
@@ -138,7 +138,7 @@
 
 | `test:modal-helpers` | **2** 项 |
 
-| Playwright E2E | 1 项（雾港 Acts 1–5） |
+| Playwright E2E | 可选（无强制 spec） |
 
 | `npm run check:modules` | **29** 脚本链 |
 
@@ -175,9 +175,8 @@
 
 | [BACKEND_OPS.md](./BACKEND_OPS.md) | **后端路线图** |
 
-| [FRONTEND_MODULE_PLAN.md](../FRONTEND_MODULE_PLAN.md) | Vite + 模块边界 |
-
-| [DEMO_ROUTE.md](../DEMO_ROUTE.md) | 雾港 12 分钟 Demo |
+| [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md) | **测试桩 vs 官方示例 vs 功能解耦** |
+| [FRONTEND_README_ZH.md](./FRONTEND_README_ZH.md) | **前端说明与数据边界** |
 
 
 
@@ -246,15 +245,15 @@ npm run dev                 # :4173，/api 代理到 4180
 
 
 ```powershell
-# 一键全链路（DB 测试 + API/UI smoke + Demo Act2）
+# 一键全链路（migrate + seed + 后端测试 + smoke）
 npm run verify:full:fresh
 
 # 或分步
-cd backend && npm run check:schemas && npm test && npm run test:smoke
+cd backend && npm run bootstrap:local && npm run check:schemas && npm test && npm run test:smoke
 cd .. && npm run check:modules && npm run build
 ```
 
-手动双浏览器 SSE / 主持确认：见 [DEMO_ROUTE.md](../DEMO_ROUTE.md) Act 3–4。
+手动双浏览器 SSE / 主持确认：在 `TEST-FIXTURE-DEMO` 或自建测试房验证；见 [CREATOR_GUIDE.md](./CREATOR_GUIDE.md)。
 
 
 

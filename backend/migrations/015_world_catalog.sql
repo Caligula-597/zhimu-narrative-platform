@@ -5,7 +5,7 @@ CREATE INDEX IF NOT EXISTS idx_worlds_catalog_public
   ON worlds (catalog_public, updated_at DESC)
   WHERE catalog_public = true AND status <> 'archived';
 
--- 平台示例剧本《雾港来信》（与 seed / E2E fixture 同 ID）
+-- 平台示例剧本《测试桩剧本》（与 seed / E2E fixture 同 ID）
 UPDATE worlds
 SET catalog_public = true
-WHERE id = '08646748-e4ae-446a-a5e7-ce59ca23ffc3';
+WHERE id = '11111111-2222-4333-8444-555555550001';

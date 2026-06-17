@@ -161,7 +161,7 @@
 
 **后端 API**：rules CRUD · validate · host-events · evaluateRoomRules（内部）
 
-**已验证闭环**：雾港「读完首章 → 解锁第二段」；探索「旧报架 → 线索 → 主持确认 → 档案密室」
+**已验证闭环**（测试桩 + 任意创作者世界）：阅读完成 → 规则解锁下一段；探索调查 → 线索 → 主持确认 → 场景开放
 
 ---
 
@@ -285,7 +285,7 @@
 | API smoke | ✅ | `scripts/smoke-api.js` **18 项**真实库（含 checkpoint-restore） |
 | UI smoke | ✅ | `scripts/ui-smoke.js` **41 项**（含 restore/settings/search/assets 回收站接线） |
 | 脚本加载验证 | ✅ | `check:modules` **29 项**（捕获 SyntaxError） |
-| Playwright E2E | ✅ | `e2e/fog-demo-route.spec.js`（雾港 E2E 房） |
+| 全链路 smoke | ✅ | `npm run verify:full:fresh`（后端测试 + API/UI smoke） |
 | GitHub Actions CI | ✅ | migrate → seed → check → check:boot → **check:tests** → npm test → format/modal helpers → smoke |
 | WebSocket 实时推送 | 🔲 | 未开始（多节点集群场景） |
 | SSE 房间事件流 | ✅ | `GET /api/rooms/:roomId/events/stream`；单节点内存总线（见 §17） |
@@ -351,10 +351,10 @@
 
 ## 7. 已验证端到端演示
 
-### 雾港来信
+### 测试桩剧本
 
 ```text
-邀请码 FOG-HARBOR-DEMO → 选角顾言
+邀请码 TEST-FIXTURE-DEMO → 选角顾言
 → 阅读「抵达档案馆」→ 云端笔记 → 完成阅读
 → 自动规则解锁「被撕去的一页」
 → 主持台进度 1/2 → 2/2
@@ -390,7 +390,7 @@
 | ~~P0~~ | ~~轻量刷新/通知（铃铛 + 主持台轮询，WebSocket 下一步）~~ | ✅ 2026-06-03 已完成（见 §15） |
 | ~~P0~~ | ~~运行房 checkpoint 存档 API + 存档页真实数据~~ | ✅ 2026-06-03 已完成（见 §16） |
 | ~~P1~~ | ~~WebSocket / SSE 实时推送（阅读/规则/主持待办）~~ | ✅ 2026-06-03 SSE 第一版（见 §17） |
-| **下一步** | **Demo 标准路线**（雾港 12 分钟脚本） | 见 [DEMO_ROUTE.md](./DEMO_ROUTE.md) · [RELEASE_NOTES.md](./RELEASE_NOTES.md) |
+| **下一步** | **官方示例体验路线** | 见 [CREATOR_GUIDE.md](./docs/CREATOR_GUIDE.md) · [WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md) |
 | ~~P1~~ | ~~规则可视化编辑器~~ | ✅ 2026-06-03 双 Tab 可视化（见 §19） |
 | ~~P1~~ | ~~线索分享 / 公开 / 解读~~ | ✅ 2026-06-03 全房间公开 + 玩家解读 + 主持矩阵（见 §20） |
 | ~~P1~~ | ~~前端 app.js 模块化拆分~~ | ✅ 2026-06-03 src/views + components（见 §21） |
@@ -408,7 +408,8 @@
 |------|------|
 | [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) | **本文 · 功能总表** |
 | [RELEASE_NOTES.md](./RELEASE_NOTES.md) | **P0/P1 正式发布说明与验收** |
-| [DEMO_ROUTE.md](./DEMO_ROUTE.md) | **雾港 Demo 演示脚本与检查清单** |
+| [WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md) | **测试桩 vs 官方示例** |
+| [CREATOR_GUIDE.md](./docs/CREATOR_GUIDE.md) | **创作者首次体验流程** |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 数据边界与权限 |
 | [ALPHA_FEATURE_MATRIX.md](./ALPHA_FEATURE_MATRIX.md) | 精简版真实/演示/待接入矩阵 |
 | [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全与测试 |
@@ -685,7 +686,7 @@ node scripts/verify-script-load.mjs
 
 | 领域 | 验证方式 | 状态 |
 |------|----------|------|
-| 规则引擎 | `rule-engine.test.js` 4 项 + 雾港 E2E 描述 | ✅ |
+| 规则引擎 | `rule-engine.test.js` 4 项 + 测试桩阅读解锁 | ✅ |
 | 玩家权限 | 跨角色阅读拒绝、join schema、语音房隔离 | ✅ |
 | 创作/编排 | studio-edit PATCH、图谱新建/删除/布局 | ✅ |
 | 认证安全 | session 优先、生产忽略 demo header | ✅ |
@@ -875,7 +876,7 @@ cd backend && npm run test:ui
 
 ## 23. 近期变更（Demo Act 2 · 玩家阅读与第二章解锁 · 2026-06-03）
 
-**目标**：验收 DEMO_ROUTE Act 2——邀请码入房、读完第一章、规则解锁第二幕；并修复总览首屏加载过慢。
+**目标**：验收测试桩阅读解锁 + 公开库官方示例 join 流程；总览首屏加载优化。
 
 ### 自动化验收
 

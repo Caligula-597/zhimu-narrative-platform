@@ -5,20 +5,23 @@ import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogRoomId = "a65f94eb-a987-463c-bb81-aa482367e54a";
+const fogWorldId = "11111111-2222-4333-8444-555555550001";
+const fogRoomId = "11111111-2222-4333-8444-555555550002";
 
 test("GET and PATCH world settings for editors", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const world = await query(
-    `SELECT w.id FROM worlds w
-     JOIN world_members wm ON wm.world_id = w.id
-     WHERE wm.user_id = $1 LIMIT 1`,
-    [hostUserId]
-  );
-  assert.ok(world.rowCount);
-  const worldId = world.rows[0].id;
+  const prior = await query(`SELECT summary, settings FROM worlds WHERE id = $1`, [fogWorldId]);
+  context.after(async () => {
+    await query(`UPDATE worlds SET summary = $2, settings = $3::jsonb WHERE id = $1`, [
+      fogWorldId,
+      prior.rows[0]?.summary ?? "海雾将旧日的来信送回港口。",
+      JSON.stringify(prior.rows[0]?.settings ?? {})
+    ]);
+  });
+
+  const worldId = fogWorldId;
 
   const detail = await app.inject({
     method: "GET",

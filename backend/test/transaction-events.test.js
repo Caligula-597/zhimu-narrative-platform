@@ -3,7 +3,7 @@ import test from "node:test";
 import { transactionWithEvents } from "../src/transaction-events.js";
 import { subscribeRoomEvents, resetRoomEventBusForTests } from "../src/room-event-bus.js";
 
-const fogRoomId = "a65f94eb-a987-463c-bb81-aa482367e54a";
+const fogRoomId = "11111111-2222-4333-8444-555555550002";
 
 function parsePayload(message) {
   const payload = typeof message === "string" ? message : message.payload;

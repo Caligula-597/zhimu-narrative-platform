@@ -44,7 +44,7 @@ npm run start
 | `npm run check` | 全量 JS 语法、`src/` 下错误 `../` import、**createApp 模块图可加载** |
 | `npm run check:boot` | 环境变量 + 模块图 + **数据库 schema**（与 server 启动前相同校验） |
 | `npm run check:tests` | 测试用例数量下限（≥80，`scripts/verify-test-count.mjs`） |
-| `npm test` | **231** 项集成测试（`--test-concurrency=1 --test-force-exit --import ./test/hooks.mjs`） |
+| `npm test` | **323** 项集成测试（`--test-concurrency=1 --test-force-exit --import ./test/hooks.mjs`） |
 
 后端默认监听 `http://localhost:4180`。
 
@@ -173,13 +173,17 @@ AI 只生成待复核的结构化提案，不会直接修改正式剧情。作�
 
 ## 演示探索数据
 
-已有 `雾港来信` 种子世界时，可以重复执行：
+`bootstrap:local` 会在 **CI 测试桩** 世界写入最小探索链（场景 A/B、线索、调查点、主持确认规则）及公共语音房。详见 [docs/WORLDS_AND_FIXTURES_ZH.md](../docs/WORLDS_AND_FIXTURES_ZH.md)。
+
+已有测试桩时可重复执行：
 
 ```powershell
 npm run demo:seed-exploration
 ```
 
-该命令会补齐“旧港档案馆 -> 旧报架 -> 航运录 -> 主持确认 -> 档案密室”探索链路。
+## 官方示例（生产）
+
+环境变量 `OFFICIAL_EXAMPLE_WORLD_ID` 指向公开库中的示例剧本（当前：**小示例**）。逻辑见 `src/official-example.js`，与测试桩 UUID 无关。
 
 ## 回归检查
 
@@ -206,7 +210,7 @@ npm run test:smoke
 
 | 套件 | 数量 |
 |------|------|
-| `npm run check:tests` + `npm test` | **222** |
+| `npm run check:tests` + `npm test` | **323** |
 | `npm run test:smoke` | **18** |
 | `node ../scripts/ui-smoke.js` | **34** |
 | `npm run check:modules`（根） | **29** |
@@ -241,7 +245,8 @@ npm run test:smoke
 
 - 世界总览读取 `GET /worlds/:id/logs`（`limit`、可选 `roomId`）展示最近事件。
 - 内容资产仅列出 `GET /worlds/:id/assets` 返回的 R2 附件。
-- 种子数据（如 `雾港来信`）仅存在于数据库/API，**不会**在前端 UI 中硬编码为假卡片或假日志。
+- 种子数据（**后端集成测试世界**）仅存在于数据库/API，**不会**在前端 UI 中硬编码为假卡片或假日志。
+- 官方示例由 `OFFICIAL_EXAMPLE_WORLD_ID` 配置，前端通过 `/api/platform/official-example` 读取。
 
 ## 云存储
 

@@ -1,8 +1,8 @@
 # 织幕 · 平台总览与前后端对照
 
 > **本文档**：产品模块规划 + 后端能力 + 前端入口 + API 客户端方法的一页式索引。  
-> **更新**：2026-06-08 · 测试 **231** 项 · 迁移 **024**  
-> **维护约定**：新 API 或新视图时同步更新 §3 对照表；过时文档见 §6。
+> **更新**：2026-06-17 · 测试 **323** 项 · 迁移 **033**  
+> **维护约定**：新 API 或新视图时同步更新 §3 对照表；剧本/测试桩见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)。
 
 ---
 
@@ -47,7 +47,9 @@
 | **应用** | Railway **单服务** fullstack | `deploy/Dockerfile.fullstack`：Fastify 同域 `/api` + 静态前端 |
 | **数据库** | Supabase Postgres | `DATABASE_URL` pooler |
 | **对象存储** | Cloudflare R2 | 资产签名上传 |
-| **DNS** | Cloudflare | 仅 DNS + R2，**不用 Pages** |
+| **DNS** | Cloudflare | 营销 `getzhimu.com`（Pages）+ 应用 `app.getzhimu.com`（Railway） |
+
+**剧本与示例**：平台能力与世界 ID 解耦。CI 用固定测试桩 UUID；生产官方示例用 `OFFICIAL_EXAMPLE_WORLD_ID`。详见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)、[FRONTEND_README_ZH.md](./FRONTEND_README_ZH.md)。
 | **邮件** | Resend | 验证/重置密码 |
 
 详见 [ops/DEPLOY.md](./ops/DEPLOY.md) · [ops/MANUAL_SETUP_CHECKLIST.md](./ops/MANUAL_SETUP_CHECKLIST.md)

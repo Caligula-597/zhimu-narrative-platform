@@ -66,11 +66,11 @@ window.zhimuState = {
     roleSets: {
       scripted: [
         { name:"记者", goal:"调查真相", publicProfile:"追踪旧港航运记录的记者", privateProfile:"你在寻找父亲失踪前寄出的最后一封信。" },
-        { name:"医生", goal:"隐瞒过去", publicProfile:"在雾港经营诊所的医生", privateProfile:"你认得旧档案上被涂去的名字。" },
+        { name:"医生", goal:"隐瞒过去", publicProfile:"经营诊所的医生", privateProfile:"你认得旧档案上被涂去的名字。" },
         { name:"巡警", goal:"保护证人", publicProfile:"负责旧港片区的巡警", privateProfile:"你收到过一份不能公开的证人名单。" }
       ],
       campaign: [
-        { name:"调查员", goal:"追查异象", publicProfile:"受邀来到雾港的自由调查员", privateProfile:"你曾在梦中见过这座港口。" },
+        { name:"调查员", goal:"追查异象", publicProfile:"受邀前来的自由调查员", privateProfile:"你曾在梦中见过这座城镇。" },
         { name:"领航员", goal:"绘制路线", publicProfile:"熟悉近海航线的领航员", privateProfile:"你的旧海图上标记着一座不存在的灯塔。" },
         { name:"民俗学者", goal:"解释仪式", publicProfile:"研究沿海传说的民俗学者", privateProfile:"你知道潮落时不能回应谁的呼唤。" }
       ],
@@ -87,7 +87,7 @@ window.zhimuState = {
         sectionBody:"夜色落下后，你收到了一封没有署名的来信。信中只有一处地址，以及一句话：请在午夜前抵达。"
       },
       campaign: {
-        chapterTitle:"第一次冒险：雾港异象",
+        chapterTitle:"第一次冒险：异象",
         sectionTitle:"开场钩子：失踪的领航员",
         sectionBody:"潮水退去后，码头留下了一艘没有船员的旧艇。你们需要决定先调查航海日志、失踪者住处，还是海图上的异常坐标。"
       },

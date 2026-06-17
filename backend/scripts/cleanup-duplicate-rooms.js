@@ -1,6 +1,6 @@
 /**
  * Remove duplicate per-user experience rooms (catalog join spam).
- * Keeps one room per (world_id, host_user_id): prefers FOG-HARBOR-DEMO if owned,
+ * Keeps one room per (world_id, host_user_id): prefers TEST-FIXTURE-DEMO if owned,
  * else the room with the most active members, else the oldest created_at.
  *
  * Usage: node scripts/cleanup-duplicate-rooms.js
@@ -8,7 +8,7 @@
  */
 import { pool } from "../src/db.js";
 
-const PROTECTED_INVITES = new Set(["FOG-HARBOR-DEMO", "FOG-E2E-AUTO"]);
+const PROTECTED_INVITES = new Set(["TEST-FIXTURE-DEMO", "TEST-E2E-REMOVED"]);
 const dryRun = process.env.DRY_RUN === "true";
 
 const client = await pool.connect();

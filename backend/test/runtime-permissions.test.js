@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
+import { fixtureWorldName } from "./helpers/fixture-ids.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogRoomId = "a65f94eb-a987-463c-bb81-aa482367e54a";
+const fogRoomId = "11111111-2222-4333-8444-555555550002";
 
 async function fogRoleId() {
   const result = await query(
@@ -23,12 +24,12 @@ test("invite code lookup returns room roles without exposing other runtime state
   context.after(() => app.close());
   const response = await app.inject({
     method: "GET",
-    url: "/api/rooms/invite/FOG-HARBOR-DEMO",
+    url: "/api/rooms/invite/TEST-FIXTURE-DEMO",
     headers: { "x-user-id": playerUserId }
   });
   assert.equal(response.statusCode, 200);
   const payload = response.json();
-  assert.equal(payload.world.name, "雾港来信");
+  assert.equal(payload.world.name, fixtureWorldName);
   assert.ok(payload.roles.length >= 1);
   assert.ok(Object.hasOwn(payload.roles[0], "occupied"));
 });
@@ -41,7 +42,7 @@ test("join rejects a role that does not belong to the invited room world", async
     url: "/api/rooms/join",
     headers: { "x-user-id": playerUserId },
     payload: {
-      inviteCode: "FOG-HARBOR-DEMO",
+      inviteCode: "TEST-FIXTURE-DEMO",
       roleSlotId: "00000000-0000-4000-8000-000000000000"
     }
   });
@@ -55,7 +56,7 @@ test("runtime schemas reject malformed join payloads before route logic", async 
     method: "POST",
     url: "/api/rooms/join",
     headers: { "x-user-id": playerUserId },
-    payload: { inviteCode: "FOG-HARBOR-DEMO" }
+    payload: { inviteCode: "TEST-FIXTURE-DEMO" }
   });
   assert.equal(response.statusCode, 400);
 });

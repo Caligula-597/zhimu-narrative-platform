@@ -58,13 +58,20 @@ function serializeEnv(entries) {
 const urlArg = process.argv.find((a) => a.startsWith("--url="))?.slice(6)
   ?? (process.argv.includes("--url") ? process.argv[process.argv.indexOf("--url") + 1] : null);
 
+const appUrl = (urlArg || process.env.RAILWAY_APP_PUBLIC_URL || "https://app.getzhimu.com").replace(/\/$/, "");
+const marketingOrigins = (process.env.MARKETING_SITE_ORIGIN || "https://getzhimu.com,https://www.getzhimu.com")
+  .split(",")
+  .map((v) => v.trim())
+  .filter(Boolean);
+const marketingUrl = (process.env.MARKETING_SITE_URL || marketingOrigins[0] || "https://getzhimu.com").replace(/\/$/, "");
+
 if (!fs.existsSync(backendEnvPath)) {
   console.error("sync-railway-env: backend/.env not found");
   process.exit(1);
 }
 
 const local = parseEnv(fs.readFileSync(backendEnvPath, "utf8"));
-const publicUrl = (urlArg || process.env.RAILWAY_APP_PUBLIC_URL || "https://getzhimu.com").replace(/\/$/, "");
+const publicUrl = appUrl;
 
 const SECRET_KEYS = [
   "DATABASE_URL",
@@ -110,10 +117,13 @@ env.DATABASE_SSL = "true";
 env.PGPOOL_MAX = "5";
 env.APP_PUBLIC_URL = publicUrl;
 env.CORS_ORIGIN = publicUrl;
+env.MARKETING_SITE_ORIGIN = marketingOrigins.join(",");
+env.MARKETING_SITE_URL = marketingUrl;
 env.EMAIL_PROVIDER = env.EMAIL_PROVIDER || "resend";
 env.REQUIRE_EMAIL_VERIFICATION = local.REQUIRE_EMAIL_VERIFICATION || "false";
 env.RUN_DB_SEED = "false";
-env.SKIP_ENSURE_PLATFORM_CATALOG = "true";
+env.OFFICIAL_EXAMPLE_WORLD_ID =
+  local.OFFICIAL_EXAMPLE_WORLD_ID?.trim() || "20725d66-35ec-4d2f-aef8-4794cef6ace1";
 env.LOG_FORMAT = "json";
 env.LOG_LEVEL = "info";
 env.OPENAPI_UI = "false";
@@ -155,6 +165,9 @@ fs.writeFileSync(outPath, header + serializeEnv(Object.entries(env)), "utf8");
 
 console.log("sync-railway-env: wrote .env.railway");
 console.log(`  APP_PUBLIC_URL=${publicUrl}`);
+console.log(`  MARKETING_SITE_ORIGIN=${env.MARKETING_SITE_ORIGIN}`);
+console.log(`  MARKETING_SITE_URL=${env.MARKETING_SITE_URL}`);
 console.log(`  keys=${Object.keys(env).length}`);
-console.log("  SKIP_ENSURE_PLATFORM_CATALOG=true (Supabase already seeded)");
+console.log("  OFFICIAL_EXAMPLE_WORLD_ID=" + env.OFFICIAL_EXAMPLE_WORLD_ID);
+console.log("  SKIP_ENSURE_PLATFORM_CATALOG removed (legacy demo deleted)");
 console.log("  DATABASE_URL sslmode stripped (use DATABASE_SSL=true instead)");

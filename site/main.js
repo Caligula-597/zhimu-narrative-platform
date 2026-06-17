@@ -7,11 +7,12 @@ const betaForm = document.querySelector("[data-beta-form]");
 const formStatus = document.querySelector("[data-form-status]");
 
 function updateHeader() {
-  header?.classList.toggle("is-scrolled", window.scrollY > 12);
+  header?.classList.toggle("is-scrolled", window.scrollY > 10);
 }
 
 function applySiteLinks(links = {}) {
   if (!links.register && !links.login && !links.officialExample) return;
+
   document.querySelectorAll("[data-link-register]").forEach((node) => {
     if (links.register) node.setAttribute("href", links.register);
   });
@@ -24,6 +25,8 @@ function applySiteLinks(links = {}) {
 }
 
 async function loadSiteBootstrap() {
+  if (["localhost", "127.0.0.1"].includes(window.location.hostname)) return;
+
   try {
     const response = await fetch(`${API_ORIGIN}/api/platform/site`);
     if (!response.ok) return;
@@ -33,7 +36,7 @@ async function loadSiteBootstrap() {
       formStatus.textContent = "内测申请暂未开放，可先直接注册体验。";
     }
   } catch {
-    // 静态 fallback links 已写在 HTML 中
+    // Static fallback links are already present in the HTML.
   }
 }
 

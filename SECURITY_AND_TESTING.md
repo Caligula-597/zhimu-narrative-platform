@@ -1,6 +1,8 @@
 # 安全与测试收口记录
 
-日期：2026-06-06（Vite 构建 + Beta-4 找回密码同步）
+日期：2026-06-17（功能与剧本解耦 · 323 项测试）
+
+> **原则**：测试桩 UUID 仅用于 CI/smoke；产品功能不得硬编码单一剧本。见 [docs/WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)。
 
 ## 已落地的 P0 安全项
 
@@ -37,7 +39,7 @@
 
 所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
 
-`npm test` 当前覆盖（**231 项**，约 63 个测试文件；精确数以 `npm run check:tests` 为准）：
+`npm test` 当前覆盖（**323** 项**，约 85 个测试文件；精确数以 `npm run check:tests` 为准）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -48,7 +50,6 @@
 | `checkpoint-restore-e2e.test.js` | 端到端 scoped restore |
 | `clue-sharing.test.js` | 线索公开、解读、主持矩阵 |
 | `content-package.test.js` | 导入导出、预览、新世界 |
-| `demo-act2-reading.test.js` | 雾港 Act 2 阅读解锁 |
 | `event-journal-e2e.test.js` | API 写操作 → journal 落库 |
 | `host-console.test.js` | 玩家表、手动干预、待确认 |
 | `host-audit.test.js` | 主持审计 API 权限、limit、排序 |
@@ -61,7 +62,7 @@
 | `recap.test.js` | 主持生成复盘、玩家视角 |
 | `room-events.test.js` | 内存总线 pub/sub |
 | `room-event-bus-postgres.test.js` | NOTIFY 模式不重复推送 |
-| `rule-engine.test.js` | 自动执行、主持确认、幂等 |
+| `rule-engine.test.js` | 自动执行、主持确认、幂等（CI 测试桩世界） |
 | `rule-structure-validator.test.js` | 规则 JSON 校验 |
 | `runtime-permissions.test.js` | 邀请码、join、语音隔离 |
 | `studio-edit.test.js` | 场景/线索/调查点 PATCH |

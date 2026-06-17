@@ -7,16 +7,9 @@ export function getOfficialExampleWorldId() {
   return process.env.OFFICIAL_EXAMPLE_WORLD_ID?.trim() || "";
 }
 
-/** @deprecated Use OFFICIAL_EXAMPLE_WORLD_ID. Kept for account-delete guard only. */
-export function getLegacyPlatformCatalogWorldId() {
-  return process.env.PLATFORM_CATALOG_WORLD_ID?.trim() || "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
-}
-
 export function isProtectedPlatformWorldId(worldId) {
   const official = getOfficialExampleWorldId();
-  if (official && worldId === official) return true;
-  const legacy = getLegacyPlatformCatalogWorldId();
-  return Boolean(legacy && worldId === legacy);
+  return Boolean(official && worldId === official);
 }
 
 export const OFFICIAL_EXAMPLE_EXPERIENCE_STEPS = [

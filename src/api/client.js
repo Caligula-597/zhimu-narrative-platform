@@ -2,16 +2,15 @@ const runtimeConfig = window.zhimuConfig || {};
 const API_BASE = runtimeConfig.apiBase || "/api";
 const demoMode = Boolean(runtimeConfig.demoMode);
 const demoUsers = runtimeConfig.demoUsers || {};
-const demoWorld = runtimeConfig.demoWorld || {};
 const friendlyApiError = window.zhimuUserMessages?.friendlyApiError || ((payload, fb) => payload.error || fb);
 
 const demoContext = {
   hostUserId: demoUsers.hostUserId || "",
   playerUserId: demoUsers.playerUserId || "",
-  worldId: demoWorld.worldId || "",
-  roomId: demoWorld.roomId || ""
+  worldId: "",
+  roomId: ""
 };
-demoContext.worldId = localStorage.getItem("zhimuActiveWorldId") || demoContext.worldId;
+demoContext.worldId = localStorage.getItem("zhimuActiveWorldId") || "";
 demoContext.roomId = localStorage.getItem(`zhimuActiveRoomId:${demoContext.worldId}`) || "";
 
 function authHeaders(userId) {
