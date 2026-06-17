@@ -280,64 +280,7 @@ export async function deleteWorldChapter(client, worldId, chapterId) {
   return { deletedId: chapterId, sectionsRemoved: sectionIds.length };
 }
 
-export function creatorChecks(snapshot) {
-  const checks = [];
-  const add = (level, title, detail) => checks.push({ level, title, detail });
-  if (!snapshot.roles.length) add("error", "尚未创建角色", "至少需要一个玩家角色。");
-  for (const role of snapshot.roles) {
-    const sections = snapshot.sections.filter((section) => section.role_slot_id === role.id);
-    if (!sections.length) add("error", `${role.name} 没有私人剧本`, "请为该角色新增至少一幕正文。");
-    if (!sections.some((section) => section.publication_status !== "draft")) {
-      add("warning", `${role.name} 尚无可测试内容`, "将至少一幕切换为测试中或已发布。");
-    }
-  }
-  if (!snapshot.chapters.length) add("error", "尚未创建公共章节", "请先建立故事章节。");
-  if (!snapshot.scenes.length) add("warning", "尚未创建公共场景", "玩家进入房间后将没有可探索地点。");
-  if (!snapshot.clues.length) add("warning", "尚未创建线索", "建议至少建立一条可发现线索。");
-  for (const section of snapshot.sections) {
-    if (!section.body?.trim()) add("error", `${section.title} 正文为空`, "玩家无法阅读空白分幕。");
-  }
-  for (const point of snapshot.investigationPoints) {
-    if (!point.result_text?.trim()) add("warning", `${point.name} 没有调查结果`, "调查点需要告诉玩家搜证后发生了什么。");
-  }
-  const grantedClueIds = new Set([
-    ...snapshot.investigationPoints.map((point) => point.clue_id).filter(Boolean),
-    ...snapshot.rules.flatMap((rule) => rule.actions ?? []).filter((action) => action.type === "grant_clue").map((action) => action.clueId)
-  ]);
-  for (const clue of snapshot.clues) {
-    if (!grantedClueIds.has(clue.id)) add("warning", `${clue.name} 没有搜证入口`, "请将线索绑定到调查点，或通过自动化规则发放。");
-  }
-  if (snapshot.scenes.length > 1 && !snapshot.edges.length) add("warning", "剧情节点尚未连线", "使用主线、并列或延伸关系组织剧情图谱。");
-  const linked = new Set(snapshot.edges.flatMap((edge) => [`${edge.from_type}:${edge.from_id}`, `${edge.to_type}:${edge.to_id}`]));
-  for (const scene of snapshot.scenes) {
-    if (snapshot.scenes.length > 1 && !linked.has(`scene:${scene.id}`)) add("warning", `${scene.name} 尚未进入剧情线`, "该场景目前是孤立节点。");
-  }
-  for (const rule of snapshot.rules) {
-    if (!rule.conditions?.all?.length) add("warning", `${rule.name} 没有检测条件`, "规则不会自动判断何时触发。");
-    if (!rule.actions?.length) add("error", `${rule.name} 没有执行动作`, "规则触发后不会产生任何结果。");
-    const ids = {
-      roles: new Set(snapshot.roles.map((item) => item.id)),
-      sections: new Set(snapshot.sections.map((item) => item.id)),
-      scenes: new Set(snapshot.scenes.map((item) => item.id)),
-      clues: new Set(snapshot.clues.map((item) => item.id)),
-      points: new Set(snapshot.investigationPoints.map((item) => item.id))
-    };
-    for (const condition of rule.conditions?.all ?? []) {
-      if (condition.roleSlotId && !ids.roles.has(condition.roleSlotId)) add("error", `${rule.name} 引用了不存在的角色`, condition.roleSlotId);
-      if (condition.scriptSectionId && !ids.sections.has(condition.scriptSectionId)) add("error", `${rule.name} 引用了不存在的分幕`, condition.scriptSectionId);
-      if (condition.clueId && !ids.clues.has(condition.clueId)) add("error", `${rule.name} 引用了不存在的线索`, condition.clueId);
-      if (condition.investigationPointId && !ids.points.has(condition.investigationPointId)) add("error", `${rule.name} 引用了不存在的调查点`, condition.investigationPointId);
-    }
-    for (const action of rule.actions ?? []) {
-      if (action.roleSlotId && !ids.roles.has(action.roleSlotId)) add("error", `${rule.name} 的动作引用了不存在的角色`, action.roleSlotId);
-      if (action.scriptSectionId && !ids.sections.has(action.scriptSectionId)) add("error", `${rule.name} 的动作引用了不存在的分幕`, action.scriptSectionId);
-      if (action.clueId && !ids.clues.has(action.clueId)) add("error", `${rule.name} 的动作引用了不存在的线索`, action.clueId);
-      if (action.sceneId && !ids.scenes.has(action.sceneId)) add("error", `${rule.name} 的动作引用了不存在的场景`, action.sceneId);
-    }
-  }
-  if (!checks.length) add("success", "剧本杀测试清单已通过", "角色、章节、场景与剧情关系均可进入测试。");
-  return checks;
-}
+export { creatorChecks } from "../world-publish-readiness.js";
 
 export function classifyStoryDraft(text) {
   const blocks = String(text ?? "").split(/\n\s*\n|\r?\n(?=(?:场景|线索|调查点|地点|证据|搜证|scene|clue|point|investigation)\s*[：:])/i).map((item) => item.trim()).filter(Boolean);

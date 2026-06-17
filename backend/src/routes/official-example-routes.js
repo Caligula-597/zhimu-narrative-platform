@@ -1,3 +1,4 @@
+import { getImportGuide } from "../import-guide.js";
 import { joinPublicCatalogWorld } from "../catalog-join-service.js";
 import {
   getOfficialExampleWorldId,
@@ -8,6 +9,22 @@ import { requireVerifiedEmail } from "../email-verification-policy.js";
 import { sendErr } from "../api-errors.js";
 
 export async function registerOfficialExampleRoutes(app) {
+  app.get(
+    "/api/platform/import-guide",
+    {
+      schema: {
+        tags: ["platform"],
+        response: {
+          200: {
+            type: "object",
+            additionalProperties: true
+          }
+        }
+      }
+    },
+    async () => getImportGuide()
+  );
+
   app.get(
     "/api/platform/official-example",
     {

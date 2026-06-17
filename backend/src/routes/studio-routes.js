@@ -2,7 +2,7 @@ import { pool, query, transaction } from "../db.js";
 import { requireActor } from "../request-actor.js";
 import { sendErr } from "../api-errors.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
-import { buildWorldSnapshot, creatorChecks, ROOMS_VISIBLE_TO_ACTOR_SQL, pruneBrokenAutomationRules, repairChapterSequencesIfNeeded } from "./world-helpers.js";
+import { buildWorldSnapshot, ROOMS_VISIBLE_TO_ACTOR_SQL, pruneBrokenAutomationRules, repairChapterSequencesIfNeeded } from "./world-helpers.js";
 import {
   worldIdParams,
   createSceneSchema,
@@ -312,15 +312,6 @@ export async function registerStudioRoutes(app) {
     } finally {
       client.release();
     }
-  });
-
-  app.get("/api/worlds/:worldId/creator-checks", { schema: { params: worldIdParams } }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
-    await pruneBrokenAutomationRules(worldId);
-    await repairChapterSequencesIfNeeded(worldId);
-    return { checks: creatorChecks(await buildWorldSnapshot(worldId)) };
   });
 
   app.post("/api/worlds/:worldId/content-versions", { schema: createContentVersionSchema }, async (request, reply) => {
