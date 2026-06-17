@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { fixtureRoomId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { publishRoomEvent, resetRoomEventBusForTests, subscribeRoomEvents } from "../src/room-event-bus.js";
 
@@ -38,11 +39,11 @@ test("publishRoomEvent includes type and room metadata", async () => {
 
 test("publishRoomEvent passes journal id envelope to subscribers", async () => {
   resetRoomEventBusForTests();
-  const fogRoomId = "11111111-2222-4333-8444-555555550002";
+  
   const received = [];
-  subscribeRoomEvents(fogRoomId, (message) => received.push(message));
+  subscribeRoomEvents(fixtureRoomId, (message) => received.push(message));
 
-  await publishRoomEvent(fogRoomId, "room.test_event", { probe: "journal-id" });
+  await publishRoomEvent(fixtureRoomId, "room.test_event", { probe: "journal-id" });
   assert.equal(received.length, 1);
   assert.ok(typeof received[0].payload === "string");
   assert.ok(received[0].id != null, "live SSE subscribers should receive journal id when available");

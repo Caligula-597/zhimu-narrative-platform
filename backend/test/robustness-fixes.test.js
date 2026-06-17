@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { fixtureRoomId, fixtureWorldId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
@@ -6,8 +7,8 @@ import { buildRoomCheckpointSnapshot } from "../src/routes/checkpoint-helpers.js
 import { executeHostEventById } from "../src/routes/host-event-actions.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
-const fogRoomId = "11111111-2222-4333-8444-555555550002";
-const fogWorldId = "11111111-2222-4333-8444-555555550001";
+
+
 
 const sampleProposal = {
   title: "Dedup probe",
@@ -118,8 +119,8 @@ test("pipeline import after structure import reuses graph entities", async (cont
 });
 
 test("second host event execute returns already resolved", async (context) => {
-  const role = await query(`SELECT id FROM role_slots WHERE world_id = $1 ORDER BY sequence LIMIT 1`, [fogWorldId]);
-  const clue = await query(`SELECT id FROM clues WHERE world_id = $1 ORDER BY created_at LIMIT 1`, [fogWorldId]);
+  const role = await query(`SELECT id FROM role_slots WHERE world_id = $1 ORDER BY sequence LIMIT 1`, [fixtureWorldId]);
+  const clue = await query(`SELECT id FROM clues WHERE world_id = $1 ORDER BY created_at LIMIT 1`, [fixtureWorldId]);
   assert.ok(role.rowCount && clue.rowCount);
 
   const inserted = await query(
@@ -127,17 +128,17 @@ test("second host event execute returns already resolved", async (context) => {
      VALUES ($1, $2, 'double execute probe', '', $3::jsonb, 'pending')
      RETURNING id`,
     [
-      fogRoomId,
+      fixtureRoomId,
       `double-exec-${Date.now()}`,
       JSON.stringify([{ type: "grant_clue", roleSlotId: role.rows[0].id, clueId: clue.rows[0].id, source: "test" }])
     ]
   );
   const eventId = inserted.rows[0].id;
 
-  const first = await executeHostEventById(fogRoomId, hostUserId, eventId);
+  const first = await executeHostEventById(fixtureRoomId, hostUserId, eventId);
   assert.equal(first.ok, true);
 
-  const second = await executeHostEventById(fogRoomId, hostUserId, eventId);
+  const second = await executeHostEventById(fixtureRoomId, hostUserId, eventId);
   assert.equal(second.ok, false);
   assert.equal(second.code, "HOST_EVENT_ALREADY_RESOLVED");
 
@@ -253,7 +254,7 @@ test("pipeline import allocates next role sequence when world already has roles"
 });
 
 test("buildRoomCheckpointSnapshot returns schema v2 without pg client overlap", async () => {
-  const snapshot = await buildRoomCheckpointSnapshot(fogRoomId);
+  const snapshot = await buildRoomCheckpointSnapshot(fixtureRoomId);
   assert.ok(snapshot);
   assert.equal(snapshot.schemaVersion, 2);
   assert.ok(Array.isArray(snapshot.players));

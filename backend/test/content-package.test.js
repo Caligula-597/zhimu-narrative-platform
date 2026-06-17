@@ -4,14 +4,9 @@ import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
 import { buildImportPreview } from "../src/routes/content-package-helpers.js";
 import { buildWorldSnapshot } from "../src/routes/world-helpers.js";
-
-const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
-
 import { fixtureWorldId } from "./helpers/fixture-ids.js";
 
-async function fogWorldId() {
-  return fixtureWorldId;
-}
+const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
 function miniPackage(overrides = {}) {
   const roleId = "11111111-1111-4111-8111-111111111101";
@@ -50,7 +45,7 @@ function miniPackage(overrides = {}) {
 test("export summary endpoint returns entity counts", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
   const response = await app.inject({
     method: "GET",
     url: `/api/worlds/${worldId}/content-package/summary`,
@@ -66,7 +61,7 @@ test("export summary endpoint returns entity counts", async (context) => {
 test("import preview detects duplicate names and missing refs", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
   const snapshot = await buildWorldSnapshot(worldId);
   const existingRoleName = snapshot.roles[0].name;
   const pkg = miniPackage();
@@ -174,7 +169,7 @@ test("new world import creates isolated world with remapped content", async (con
 test("import skips broken section refs and returns warnings via API", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
   const pkg = miniPackage();
   pkg.data.sections[0].role_slot_id = "00000000-0000-4000-8000-000000000099";
   const response = await app.inject({

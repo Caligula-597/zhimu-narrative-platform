@@ -44,6 +44,9 @@
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-backdrop" aria-hidden="true">
           <img src="/assets/site-preview.svg" alt="" />
+          <div class="story-pulse story-pulse-a"></div>
+          <div class="story-pulse story-pulse-b"></div>
+          <div class="story-pulse story-pulse-c"></div>
         </div>
         <div class="hero-content">
           <p class="eyebrow">云端长线剧本杀 · 创作与运行工作台</p>
@@ -110,23 +113,23 @@
           <p class="eyebrow">工作流</p>
           <h2 id="workflow-title">从设定到复盘，保持同一条链路</h2>
         </div>
-        <ol class="workflow-list">
-          <li>
+        <ol class="workflow-list" data-workflow-list>
+          <li data-workflow-step>
             <span>1</span>
             <strong>建立世界</strong>
             <p>配置世界、成员、角色、章节和素材，确定玩家与主持权限。</p>
           </li>
-          <li>
+          <li data-workflow-step>
             <span>2</span>
             <strong>编排推进</strong>
             <p>把场景、线索、调查点和规则整理成可运行的叙事结构。</p>
           </li>
-          <li>
+          <li data-workflow-step>
             <span>3</span>
             <strong>开房运行</strong>
             <p>玩家加入平行房间，主持人通过实时事件和审计记录掌握现场。</p>
           </li>
-          <li>
+          <li data-workflow-step>
             <span>4</span>
             <strong>存档复盘</strong>
             <p>用 checkpoint、scoped restore 和 recap 保留每场故事的脉络。</p>
@@ -208,7 +211,7 @@
         <form class="beta-form" data-beta-form>
           <label>
             称呼 / 团队名
-            <input name="displayName" type="text" autocomplete="name" placeholder="例如：雾港来信制作组" required />
+            <input name="displayName" type="text" autocomplete="name" placeholder="例如：织幕创作组" required />
           </label>
           <label>
             邮箱

@@ -3,12 +3,7 @@ import test from "node:test";
 import { randomUUID } from "node:crypto";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
-import { hostUserId, fogRoomId } from "./helpers/fixture-ids.js";
-
-async function fogWorldId() {
-  const result = await query(`SELECT world_id FROM rooms WHERE id = $1`, [fogRoomId]);
-  return result.rows[0].world_id;
-}
+import { hostUserId, fixtureRoomId, fixtureWorldId } from "./helpers/fixture-ids.js";
 
 async function insertActiveAsset(worldId) {
   const id = randomUUID();
@@ -26,7 +21,7 @@ test("GET assets recycled=1 lists deleted assets with purge_after", async (conte
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
   const assetId = await insertActiveAsset(worldId);
   context.after(async () => {
     await query(`DELETE FROM deleted_assets WHERE asset_file_id = $1`, [assetId]);
@@ -56,7 +51,7 @@ test("POST assets restore moves file back to active list", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
   const assetId = await insertActiveAsset(worldId);
   context.after(async () => {
     await query(`DELETE FROM deleted_assets WHERE asset_file_id = $1`, [assetId]);
@@ -96,7 +91,7 @@ test("POST assets restore rejects non-deleted asset", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
   const assetId = await insertActiveAsset(worldId);
   context.after(async () => {
     await query(`DELETE FROM asset_files WHERE id = $1`, [assetId]);

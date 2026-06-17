@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { fixtureRoomId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogRoomId = "11111111-2222-4333-8444-555555550002";
+
 
 test("host can generate room recap with logs and clue flow", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
@@ -13,7 +14,7 @@ test("host can generate room recap with logs and clue flow", async (context) => 
 
   const create = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/recaps`,
+    url: `/api/rooms/${fixtureRoomId}/recaps`,
     headers: { "x-user-id": hostUserId },
     payload: { title: "第一夜复盘", description: "第一夜收工后的完整复盘" }
   });
@@ -34,7 +35,7 @@ test("host can generate room recap with logs and clue flow", async (context) => 
 
   const list = await app.inject({
     method: "GET",
-    url: `/api/rooms/${fogRoomId}/recaps`,
+    url: `/api/rooms/${fixtureRoomId}/recaps`,
     headers: { "x-user-id": hostUserId }
   });
   assert.equal(list.statusCode, 200);
@@ -42,12 +43,12 @@ test("host can generate room recap with logs and clue flow", async (context) => 
 
   const detail = await app.inject({
     method: "GET",
-    url: `/api/rooms/${fogRoomId}/recaps/${created.id}`,
+    url: `/api/rooms/${fixtureRoomId}/recaps/${created.id}`,
     headers: { "x-user-id": hostUserId }
   });
   assert.equal(detail.statusCode, 200);
   assert.equal(detail.json().perspective, "host");
-  assert.equal(detail.json().snapshot.room.id, fogRoomId);
+  assert.equal(detail.json().snapshot.room.id, fixtureRoomId);
 });
 
 test("player cannot generate recap", async (context) => {
@@ -55,7 +56,7 @@ test("player cannot generate recap", async (context) => {
   context.after(() => app.close());
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/recaps`,
+    url: `/api/rooms/${fixtureRoomId}/recaps`,
     headers: { "x-user-id": playerUserId },
     payload: { title: "不应成功", description: "玩家不能生成" }
   });
@@ -68,7 +69,7 @@ test("player can view own perspective recap", async (context) => {
 
   const create = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/recaps`,
+    url: `/api/rooms/${fixtureRoomId}/recaps`,
     headers: { "x-user-id": hostUserId },
     payload: { title: "玩家视角测试复盘", description: "" }
   });
@@ -77,7 +78,7 @@ test("player can view own perspective recap", async (context) => {
 
   const playerView = await app.inject({
     method: "GET",
-    url: `/api/rooms/${fogRoomId}/recaps/${recapId}`,
+    url: `/api/rooms/${fixtureRoomId}/recaps/${recapId}`,
     headers: { "x-user-id": playerUserId }
   });
   assert.equal(playerView.statusCode, 200, playerView.body);
@@ -96,7 +97,7 @@ test("host global recap includes full clue discovery order", async (context) => 
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const world = await query(`SELECT world_id FROM rooms WHERE id = $1`, [fogRoomId]);
+  const world = await query(`SELECT world_id FROM rooms WHERE id = $1`, [fixtureRoomId]);
   const worldId = world.rows[0]?.world_id;
   assert.ok(worldId);
 
@@ -109,14 +110,14 @@ test("host global recap includes full clue discovery order", async (context) => 
   const clues = studio.json().clues ?? [];
   const players = await app.inject({
     method: "GET",
-    url: `/api/rooms/${fogRoomId}/host/players`,
+    url: `/api/rooms/${fixtureRoomId}/host/players`,
     headers: { "x-user-id": hostUserId }
   });
   const joined = (players.json().players ?? []).find((player) => player.joined);
   if (joined && clues.length) {
     await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/host/grant-clue`,
+      url: `/api/rooms/${fixtureRoomId}/host/grant-clue`,
       headers: { "x-user-id": hostUserId },
       payload: { roleSlotId: joined.role_slot_id, clueId: clues[0].id, message: "复盘测试发放线索" }
     });
@@ -124,7 +125,7 @@ test("host global recap includes full clue discovery order", async (context) => 
 
   const create = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/recaps`,
+    url: `/api/rooms/${fixtureRoomId}/recaps`,
     headers: { "x-user-id": hostUserId },
     payload: { title: "全局复盘", description: "" }
   });

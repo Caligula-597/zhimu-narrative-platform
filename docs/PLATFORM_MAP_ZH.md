@@ -216,7 +216,7 @@ backend/src/
   room-event-bus.js ← SSE 扇出
   auth.js           ← Session/游客
 migrations/         ← 001–023
-test/*.test.js      ← **222** 项
+test/*.test.js      ← **323** 项
 scripts/
   identity-smoke.mjs
   migrate.js

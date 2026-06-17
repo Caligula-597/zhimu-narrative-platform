@@ -5,8 +5,3 @@ export const fixtureWorldId = "11111111-2222-4333-8444-555555550001";
 export const fixtureRoomId = "11111111-2222-4333-8444-555555550002";
 export const fixtureWorldName = "后端集成测试世界";
 export const fixtureInviteCode = "TEST-FIXTURE-DEMO";
-
-/** @deprecated use fixtureWorldId */
-export const fogWorldId = fixtureWorldId;
-/** @deprecated use fixtureRoomId */
-export const fogRoomId = fixtureRoomId;

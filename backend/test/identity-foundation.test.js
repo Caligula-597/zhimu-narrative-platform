@@ -6,7 +6,7 @@ import { CAPABILITIES, assertCapability, USER_KIND } from "../src/capabilities.j
 import { effectiveStorageLimits, setUserPlan } from "../src/plans.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
-const fogWorldId = "11111111-2222-4333-8444-555555550001";
+
 
 async function guestSession(app) {
   const response = await app.inject({

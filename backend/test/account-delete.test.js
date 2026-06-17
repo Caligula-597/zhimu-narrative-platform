@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
+import { fixtureWorldId } from "./helpers/fixture-ids.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
@@ -99,9 +100,15 @@ test("guest account can delete with display name confirmation", async (context) 
   assert.equal(userRow.rowCount, 0);
 });
 
-test("platform catalog owner cannot delete seeded host account", async (context) => {
+test("official example owner cannot delete seeded host account", async (context) => {
+  const prev = process.env.OFFICIAL_EXAMPLE_WORLD_ID;
+  process.env.OFFICIAL_EXAMPLE_WORLD_ID = fixtureWorldId;
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
-  context.after(() => app.close());
+  context.after(() => {
+    if (prev === undefined) delete process.env.OFFICIAL_EXAMPLE_WORLD_ID;
+    else process.env.OFFICIAL_EXAMPLE_WORLD_ID = prev;
+    return app.close();
+  });
 
   const preview = await app.inject({
     method: "GET",

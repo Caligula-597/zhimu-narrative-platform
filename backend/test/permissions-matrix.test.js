@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { fixtureWorldId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogWorldId = "11111111-2222-4333-8444-555555550001";
+
 
 async function guestToken(app) {
   const res = await app.inject({ method: "POST", url: "/api/auth/guest", payload: { displayName: "矩阵游客" } });
@@ -34,7 +35,7 @@ test("permission matrix — core write routes enforce account/world roles", asyn
     {
       name: "player cannot invite collaborator",
       method: "POST",
-      url: `/api/worlds/${fogWorldId}/members`,
+      url: `/api/worlds/${fixtureWorldId}/members`,
       headers: { "x-user-id": playerUserId },
       body: { email: "blocked@example.com", role: "editor" },
       expectStatus: 403
@@ -42,14 +43,14 @@ test("permission matrix — core write routes enforce account/world roles", asyn
     {
       name: "player cannot delete world",
       method: "DELETE",
-      url: `/api/worlds/${fogWorldId}`,
+      url: `/api/worlds/${fixtureWorldId}`,
       headers: { "x-user-id": playerUserId },
       expectStatus: 403
     },
     {
       name: "player cannot patch catalog visibility",
       method: "PATCH",
-      url: `/api/worlds/${fogWorldId}/catalog`,
+      url: `/api/worlds/${fixtureWorldId}/catalog`,
       headers: { "x-user-id": playerUserId },
       body: { catalogPublic: true },
       expectCode: "WORLD_OWNER_REQUIRED"
@@ -57,13 +58,13 @@ test("permission matrix — core write routes enforce account/world roles", asyn
     {
       name: "unauthenticated cannot read world members",
       method: "GET",
-      url: `/api/worlds/${fogWorldId}/members`,
+      url: `/api/worlds/${fixtureWorldId}/members`,
       expectStatus: 401
     },
     {
       name: "host cannot resend invites (owner only)",
       method: "POST",
-      url: `/api/worlds/${fogWorldId}/invites/00000000-0000-4000-8000-000000000001/resend`,
+      url: `/api/worlds/${fixtureWorldId}/invites/00000000-0000-4000-8000-000000000001/resend`,
       headers: { "x-user-id": playerUserId },
       expectStatus: 403
     }
@@ -110,7 +111,7 @@ test("permission matrix — owner can list members", async (context) => {
 
   const res = await app.inject({
     method: "GET",
-    url: `/api/worlds/${fogWorldId}/members`,
+    url: `/api/worlds/${fixtureWorldId}/members`,
     headers: { "x-user-id": hostUserId }
   });
   assert.equal(res.statusCode, 200);

@@ -4,7 +4,7 @@ import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
 import { transactionWithEvents } from "../src/transaction-events.js";
 import { resetRoomEventBusForTests } from "../src/room-event-bus.js";
-import { fogRoomId, playerUserId } from "./helpers/fixture-ids.js";
+import { fixtureRoomId, playerUserId } from "./helpers/fixture-ids.js";
 
 async function maxJournalId(roomId) {
   const result = await query(
@@ -17,7 +17,7 @@ async function maxJournalId(roomId) {
 async function playerRoleId() {
   const result = await query(
     `SELECT role_slot_id FROM room_members WHERE room_id = $1 AND user_id = $2 AND status = 'active'`,
-    [fogRoomId, playerUserId]
+    [fixtureRoomId, playerUserId]
   );
   return result.rows[0].role_slot_id;
 }
@@ -36,16 +36,16 @@ test("complete section appends room.section_completed to journal after commit", 
 
   const roleId = await playerRoleId();
   const sectionId = await firstReadableSection(roleId);
-  const beforeId = await maxJournalId(fogRoomId);
+  const beforeId = await maxJournalId(fixtureRoomId);
 
   await query(
     `DELETE FROM reading_progress WHERE room_id = $1 AND role_slot_id = $2 AND script_section_id = $3`,
-    [fogRoomId, roleId, sectionId]
+    [fixtureRoomId, roleId, sectionId]
   );
 
   const complete = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/sections/${sectionId}/complete`,
+    url: `/api/rooms/${fixtureRoomId}/sections/${sectionId}/complete`,
     headers: { "x-user-id": playerUserId }
   });
   assert.equal(complete.statusCode, 200);
@@ -54,7 +54,7 @@ test("complete section appends room.section_completed to journal after commit", 
     `SELECT event_type, payload FROM room_event_journal
      WHERE room_id = $1 AND id > $2 AND event_type = 'room.section_completed'
      ORDER BY id DESC LIMIT 1`,
-    [fogRoomId, beforeId]
+    [fixtureRoomId, beforeId]
   );
   assert.ok(journal.rowCount >= 1, "journal should contain room.section_completed after API commit");
   assert.equal(journal.rows[0].payload.sectionId, sectionId);
@@ -62,10 +62,10 @@ test("complete section appends room.section_completed to journal after commit", 
 
 test("transactionWithEvents appends journal only after successful commit", async () => {
   resetRoomEventBusForTests();
-  const beforeId = await maxJournalId(fogRoomId);
+  const beforeId = await maxJournalId(fixtureRoomId);
 
   await transactionWithEvents(async (client, queueEvent) => {
-    queueEvent(fogRoomId, "room.test_journal_commit", { probe: "commit" });
+    queueEvent(fixtureRoomId, "room.test_journal_commit", { probe: "commit" });
     await client.query("SELECT 1");
   });
 
@@ -75,7 +75,7 @@ test("transactionWithEvents appends journal only after successful commit", async
     committed = await query(
       `SELECT 1 FROM room_event_journal
        WHERE room_id = $1 AND id > $2 AND event_type = 'room.test_journal_commit'`,
-      [fogRoomId, beforeId]
+      [fixtureRoomId, beforeId]
     );
   }
   assert.ok(committed.rowCount >= 1);
@@ -83,12 +83,12 @@ test("transactionWithEvents appends journal only after successful commit", async
 
 test("transactionWithEvents does not append journal when transaction rolls back", async () => {
   resetRoomEventBusForTests();
-  const beforeId = await maxJournalId(fogRoomId);
+  const beforeId = await maxJournalId(fixtureRoomId);
 
   await assert.rejects(
     () =>
       transactionWithEvents(async (client, queueEvent) => {
-        queueEvent(fogRoomId, "room.test_journal_rollback", { probe: "rollback" });
+        queueEvent(fixtureRoomId, "room.test_journal_rollback", { probe: "rollback" });
         await client.query("SELECT 1");
         throw new Error("journal rollback probe");
       }),
@@ -98,7 +98,7 @@ test("transactionWithEvents does not append journal when transaction rolls back"
   const rolledBack = await query(
     `SELECT 1 FROM room_event_journal
      WHERE room_id = $1 AND id > $2 AND event_type = 'room.test_journal_rollback'`,
-    [fogRoomId, beforeId]
+    [fixtureRoomId, beforeId]
   );
   assert.equal(rolledBack.rowCount, 0);
 });

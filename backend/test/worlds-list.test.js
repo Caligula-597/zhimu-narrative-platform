@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
+import { fixtureRoomId, fixtureWorldId } from "./helpers/fixture-ids.js";
 import { query } from "../src/db.js";
-import { fogRoomId } from "./helpers/fixture-ids.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
@@ -45,12 +45,12 @@ test("GET /worlds includes worlds visible through active room membership", async
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const room = await query(`SELECT world_id FROM rooms WHERE id = $1`, [fogRoomId]);
-  const fogWorldId = room.rows[0].world_id;
+  const room = await query(`SELECT world_id FROM rooms WHERE id = $1`, [fixtureRoomId]);
+  const fixtureWorldId = room.rows[0].world_id;
   const role = await query(
     `INSERT INTO role_slots (world_id, name, sequence)
      VALUES ($1, $2, 9999) RETURNING id`,
-    [fogWorldId, `room-player-role-${Date.now()}`]
+    [fixtureWorldId, `room-player-role-${Date.now()}`]
   );
   const roleSlotId = role.rows[0].id;
   const user = await query(
@@ -64,10 +64,10 @@ test("GET /worlds includes worlds visible through active room membership", async
      VALUES ($1, $2, 'player', $3, 'active')
      ON CONFLICT (room_id, user_id)
      DO UPDATE SET role_slot_id = EXCLUDED.role_slot_id, status = 'active'`,
-    [fogRoomId, roomPlayerId, roleSlotId]
+    [fixtureRoomId, roomPlayerId, roleSlotId]
   );
   context.after(async () => {
-    await query(`DELETE FROM room_members WHERE room_id = $1 AND user_id = $2`, [fogRoomId, roomPlayerId]);
+    await query(`DELETE FROM room_members WHERE room_id = $1 AND user_id = $2`, [fixtureRoomId, roomPlayerId]);
     await query(`DELETE FROM role_slots WHERE id = $1`, [roleSlotId]);
     await query(`DELETE FROM users WHERE id = $1`, [roomPlayerId]);
   });
@@ -79,6 +79,6 @@ test("GET /worlds includes worlds visible through active room membership", async
   });
 
   assert.equal(response.statusCode, 200);
-  const world = response.json().find((row) => row.id === fogWorldId);
+  const world = response.json().find((row) => row.id === fixtureWorldId);
   assert.equal(world?.membership_role, "player");
 });

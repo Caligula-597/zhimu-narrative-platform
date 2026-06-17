@@ -24,6 +24,7 @@
 | Host / Player | `154aa8a9-…` / `1d5e8155-…`（见 seed） |
 
 - 由 `npm run db:seed` + `npm run demo:seed-exploration` 写入。
+- 测试辅助：`backend/test/helpers/fixture-ids.js`（常量）· `fixture-helpers.js`（`queryFixtureRoleId` 等）。
 - 含最小分幕、阅读解锁规则、探索场景/线索、公共语音房等，供 **323** 项后端测试与 smoke 使用。
 - **不会**出现在公开剧本库；迁移 `028`/`030`/`031`/`032` 确保旧平台 Demo（雾港来信）已删除且测试桩不被误上架。
 

@@ -3,12 +3,7 @@ import test from "node:test";
 import { randomUUID } from "node:crypto";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
-import { hostUserId, fogRoomId } from "./helpers/fixture-ids.js";
-
-async function fogWorldId() {
-  const result = await query(`SELECT world_id FROM rooms WHERE id = $1`, [fogRoomId]);
-  return result.rows[0].world_id;
-}
+import { hostUserId, fixtureRoomId, fixtureWorldId } from "./helpers/fixture-ids.js";
 
 async function insertAsset(worldId, { kind, filename, visibility = "author" }) {
   const result = await query(
@@ -25,7 +20,7 @@ test("GET assets without query returns array for backward compatibility", async 
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
   const response = await app.inject({
     method: "GET",
     url: `/api/worlds/${worldId}/assets`,
@@ -39,7 +34,7 @@ test("GET assets supports kind and filename search with envelope", async (contex
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
   const suffix = `${Date.now()}`;
   const image = await insertAsset(worldId, { kind: "image", filename: `线索图-${suffix}.png` });
   const audio = await insertAsset(worldId, { kind: "audio", filename: `旁白-${suffix}.mp3` });

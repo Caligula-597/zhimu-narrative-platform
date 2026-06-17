@@ -121,7 +121,7 @@ npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 
 | 命令 | 结果 |
 |------|------|
-| `backend npm test` | **231/231** |
+| `backend npm test` | **323/323** |
 | `npm run check:schemas` | **56** 条路由 |
 | `npm run test:smoke` | **18/18** |
 | `node scripts/ui-smoke.js` | **41/41** |

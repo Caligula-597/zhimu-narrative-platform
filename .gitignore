@@ -16,6 +16,8 @@ config/clash-proxy.env
 test-results/
 playwright-report/
 backend/test-output.txt
+backend/chi_sim.traineddata
+backend/.test-*.log
 *.log
 .DS_Store
 artifacts/

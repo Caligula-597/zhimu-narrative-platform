@@ -1,23 +1,12 @@
 import assert from "node:assert/strict";
+import { queryFixtureRoleId } from "./helpers/fixture-helpers.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
-import { fixtureWorldName } from "./helpers/fixture-ids.js";
+import { fixtureWorldName, fixtureRoomId } from "./helpers/fixture-ids.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogRoomId = "11111111-2222-4333-8444-555555550002";
-
-async function fogRoleId() {
-  const result = await query(
-    `SELECT rm.role_slot_id
-     FROM room_members rm
-     WHERE rm.room_id = $1 AND rm.user_id = $2 AND rm.status = 'active'`,
-    [fogRoomId, playerUserId]
-  );
-  assert.ok(result.rowCount, "fog player fixture is required");
-  return result.rows[0].role_slot_id;
-}
 
 test("invite code lookup returns room roles without exposing other runtime state", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
@@ -66,7 +55,7 @@ test("player cannot read host progress for a running room", async (context) => {
   context.after(() => app.close());
   const response = await app.inject({
     method: "GET",
-    url: `/api/rooms/${fogRoomId}/host-progress`,
+    url: `/api/rooms/${fixtureRoomId}/host-progress`,
     headers: { "x-user-id": playerUserId }
   });
   assert.equal(response.statusCode, 403);
@@ -79,7 +68,7 @@ test("private voice rooms are isolated from active room members who were not inv
   context.after(() => app.close());
   const room = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/voice-rooms`,
+    url: `/api/rooms/${fixtureRoomId}/voice-rooms`,
     headers: { "x-user-id": playerUserId },
     payload: { name: `权限隔离测试 ${Date.now()}`, roomType: "invite_private", inviteUserIds: [] }
   });
@@ -96,7 +85,7 @@ test("private voice rooms are isolated from active room members who were not inv
 test("player can complete only their own readable script section", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const roleSlotId = await fogRoleId();
+  const roleSlotId = await queryFixtureRoleId();
   const section = await query(
     `SELECT ss.id
      FROM script_sections ss
@@ -108,7 +97,7 @@ test("player can complete only their own readable script section", async (contex
   assert.ok(section.rowCount, "fog section fixture is required");
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/sections/${section.rows[0].id}/complete`,
+    url: `/api/rooms/${fixtureRoomId}/sections/${section.rows[0].id}/complete`,
     headers: { "x-user-id": playerUserId }
   });
   assert.equal(response.statusCode, 200);

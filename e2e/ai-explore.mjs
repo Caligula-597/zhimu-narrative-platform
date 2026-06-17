@@ -16,7 +16,7 @@ import { chromium } from "@playwright/test";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { BASE_URL, E2E, dismissModalIfOpen, goToView, injectPlayerPreJoinContext, joinRoomViaInviteUi, waitForCloudReady } from "./helpers/demo.js";
+import { BASE_URL, FIXTURE, dismissModalIfOpen, goToView, injectPlayerPreJoinContext, joinRoomViaInviteUi, waitForCloudReady } from "./helpers/fixture.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
@@ -108,9 +108,9 @@ async function goalStatus(page) {
   return done;
 }
 
-function prepareE2eRoom() {
+function prepareFixtureRoom() {
   const backend = path.join(root, "backend");
-  for (const script of ["bootstrap-e2e-room.mjs", "reset-e2e-room.mjs"]) {
+  for (const script of ["seed.js", "seed-exploration.js"]) {
     const result = spawnSync(process.execPath, [path.join("scripts", script)], {
       cwd: backend,
       stdio: "inherit",
@@ -121,8 +121,8 @@ function prepareE2eRoom() {
 }
 
 async function main() {
-  console.log(`织幕 AI 探索 · 副本房 ${E2E.inviteCode} · mode=${useLlm ? "llm" : "heuristic"} · max=${maxSteps}\n`);
-  prepareE2eRoom();
+  console.log(`织幕 AI 探索 · 测试桩 ${FIXTURE.inviteCode} · mode=${useLlm ? "llm" : "heuristic"} · max=${maxSteps}\n`);
+  prepareFixtureRoom();
 
   const browser = await chromium.launch({ headless: !headed });
   const context = await browser.newContext({ baseURL: BASE_URL, locale: "zh-CN" });
@@ -131,7 +131,7 @@ async function main() {
 
   await page.goto("/");
   await waitForCloudReady(page);
-  await joinRoomViaInviteUi(page, E2E.inviteCode);
+  await joinRoomViaInviteUi(page, FIXTURE.inviteCode);
 
   const log = [];
   for (let step = 1; step <= maxSteps; step += 1) {

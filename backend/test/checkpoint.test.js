@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
+import { fixtureRoomId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogRoomId = "11111111-2222-4333-8444-555555550002";
+
 
 test("host can create list and read room checkpoints", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
@@ -12,7 +13,7 @@ test("host can create list and read room checkpoints", async (context) => {
 
   const create = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/checkpoints`,
+    url: `/api/rooms/${fixtureRoomId}/checkpoints`,
     headers: { "x-user-id": hostUserId },
     payload: { title: "第一夜收工", description: "玩家已完成序章调查" }
   });
@@ -32,7 +33,7 @@ test("host can create list and read room checkpoints", async (context) => {
 
   const list = await app.inject({
     method: "GET",
-    url: `/api/rooms/${fogRoomId}/checkpoints`,
+    url: `/api/rooms/${fixtureRoomId}/checkpoints`,
     headers: { "x-user-id": hostUserId }
   });
   assert.equal(list.statusCode, 200);
@@ -42,11 +43,11 @@ test("host can create list and read room checkpoints", async (context) => {
 
   const detail = await app.inject({
     method: "GET",
-    url: `/api/rooms/${fogRoomId}/checkpoints/${created.id}`,
+    url: `/api/rooms/${fixtureRoomId}/checkpoints/${created.id}`,
     headers: { "x-user-id": hostUserId }
   });
   assert.equal(detail.statusCode, 200);
-  assert.equal(detail.json().snapshot.roomId, fogRoomId);
+  assert.equal(detail.json().snapshot.roomId, fixtureRoomId);
   assert.equal(detail.json().label, "第一夜收工");
 });
 
@@ -56,7 +57,7 @@ test("checkpoint restore applies and records audit trail", async (context) => {
 
   const create = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/checkpoints`,
+    url: `/api/rooms/${fixtureRoomId}/checkpoints`,
     headers: { "x-user-id": hostUserId },
     payload: { title: "restore-probe", description: "schema probe" }
   });
@@ -65,7 +66,7 @@ test("checkpoint restore applies and records audit trail", async (context) => {
 
   const restore = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/checkpoints/${checkpointId}/restore`,
+    url: `/api/rooms/${fixtureRoomId}/checkpoints/${checkpointId}/restore`,
     headers: { "x-user-id": hostUserId },
     payload: {
       scope: {
@@ -83,7 +84,7 @@ test("checkpoint restore applies and records audit trail", async (context) => {
 
   const history = await app.inject({
     method: "GET",
-    url: `/api/rooms/${fogRoomId}/checkpoints/${checkpointId}/restores`,
+    url: `/api/rooms/${fixtureRoomId}/checkpoints/${checkpointId}/restores`,
     headers: { "x-user-id": hostUserId }
   });
   assert.equal(history.statusCode, 200);
@@ -95,7 +96,7 @@ test("player cannot create checkpoints", async (context) => {
   context.after(() => app.close());
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/checkpoints`,
+    url: `/api/rooms/${fixtureRoomId}/checkpoints`,
     headers: { "x-user-id": playerUserId },
     payload: { title: "不应成功", description: "玩家不能创建" }
   });

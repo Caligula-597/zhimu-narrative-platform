@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { fixtureRoomId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { randomUUID } from "node:crypto";
 import { createApp } from "../src/app.js";
@@ -7,7 +8,7 @@ import { wakeDueDelayedHostEvents } from "../src/host-delay-wake.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogRoomId = "11111111-2222-4333-8444-555555550002";
+
 
 test("host delay rejects invalid delayMinutes schema", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
@@ -17,13 +18,13 @@ test("host delay rejects invalid delayMinutes schema", async (context) => {
     `INSERT INTO pending_host_events (room_id, event_key, title, description, actions, status)
      VALUES ($1, $2, 'schema 测试', '', '[]'::jsonb, 'pending')
      RETURNING id`,
-    [fogRoomId, `delay-schema-${Date.now()}`]
+    [fixtureRoomId, `delay-schema-${Date.now()}`]
   );
 
   for (const payload of [{ delayMinutes: 0 }, { delayMinutes: 2000 }, { delayMinutes: "x" }]) {
     const response = await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/host-events/${inserted.rows[0].id}/delay`,
+      url: `/api/rooms/${fixtureRoomId}/host-events/${inserted.rows[0].id}/delay`,
       headers: { "x-user-id": hostUserId, "idempotency-key": `delay-bad-${Date.now()}-${Math.random()}` },
       payload
     });
@@ -37,7 +38,7 @@ test("host delay returns 404 for missing event", async (context) => {
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/host-events/${randomUUID()}/delay`,
+    url: `/api/rooms/${fixtureRoomId}/host-events/${randomUUID()}/delay`,
     headers: { "x-user-id": hostUserId, "idempotency-key": `delay-missing-${Date.now()}` },
     payload: { delayMinutes: 15 }
   });
@@ -53,12 +54,12 @@ test("host delay rejects players without host membership", async (context) => {
     `INSERT INTO pending_host_events (room_id, event_key, title, description, actions, status)
      VALUES ($1, $2, 'player delay probe', '', '[]'::jsonb, 'pending')
      RETURNING id`,
-    [fogRoomId, `delay-player-${Date.now()}`]
+    [fixtureRoomId, `delay-player-${Date.now()}`]
   );
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/host-events/${inserted.rows[0].id}/delay`,
+    url: `/api/rooms/${fixtureRoomId}/host-events/${inserted.rows[0].id}/delay`,
     headers: { "x-user-id": playerUserId, "idempotency-key": `delay-player-${Date.now()}` },
     payload: { delayMinutes: 10 }
   });
@@ -73,12 +74,12 @@ test("host delay rejects dismissed events", async (context) => {
     `INSERT INTO pending_host_events (room_id, event_key, title, description, actions, status)
      VALUES ($1, $2, 'dismissed delay probe', '', '[]'::jsonb, 'dismissed')
      RETURNING id`,
-    [fogRoomId, `delay-dismissed-${Date.now()}`]
+    [fixtureRoomId, `delay-dismissed-${Date.now()}`]
   );
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/host-events/${inserted.rows[0].id}/delay`,
+    url: `/api/rooms/${fixtureRoomId}/host-events/${inserted.rows[0].id}/delay`,
     headers: { "x-user-id": hostUserId, "idempotency-key": `delay-dismissed-${Date.now()}` },
     payload: { delayMinutes: 10 }
   });
@@ -96,7 +97,7 @@ test("wakeDueDelayedHostEvents restores delayed rows in database", async (contex
     `INSERT INTO pending_host_events (room_id, event_key, title, description, actions, status, delay_until)
      VALUES ($1, $2, 'wake fn probe', '', '[]'::jsonb, 'delayed', now() - interval '2 minutes')
      RETURNING id`,
-    [fogRoomId, `wake-fn-${Date.now()}`]
+    [fixtureRoomId, `wake-fn-${Date.now()}`]
   );
   const eventId = inserted.rows[0].id;
 

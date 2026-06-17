@@ -3,6 +3,7 @@ import test from "node:test";
 import AdmZip from "adm-zip";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
+import { fixtureWorldId } from "./helpers/fixture-ids.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
@@ -12,12 +13,6 @@ function buildSampleZip() {
   zip.addFile("172-水上之谜 (7人开放)/调查线索/长秋宫1.jpg", Buffer.from("fake-jpeg", "utf8"));
   zip.addFile("172-水上之谜 (7人开放)/组织者手册.txt", Buffer.from("主持流程", "utf8"));
   return zip.toBuffer();
-}
-
-import { fixtureWorldId } from "./helpers/fixture-ids.js";
-
-async function fogWorldId() {
-  return fixtureWorldId;
 }
 
 async function createIsolatedWorld(label) {
@@ -35,7 +30,7 @@ async function createIsolatedWorld(label) {
 test("POST script-bundle analyze returns inventory", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
   const buffer = buildSampleZip();
   const response = await app.inject({
     method: "POST",

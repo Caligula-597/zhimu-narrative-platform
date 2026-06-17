@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
+import { fixtureRoomId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { transactionWithEvents } from "../src/transaction-events.js";
 import { subscribeRoomEvents, resetRoomEventBusForTests } from "../src/room-event-bus.js";
 
-const fogRoomId = "11111111-2222-4333-8444-555555550002";
+
 
 function parsePayload(message) {
   const payload = typeof message === "string" ? message : message.payload;
@@ -13,10 +14,10 @@ function parsePayload(message) {
 test("transactionWithEvents publishes only after commit", async () => {
   resetRoomEventBusForTests();
   const received = [];
-  subscribeRoomEvents(fogRoomId, (message) => received.push(parsePayload(message)));
+  subscribeRoomEvents(fixtureRoomId, (message) => received.push(parsePayload(message)));
 
   await transactionWithEvents(async (client, queueEvent) => {
-    queueEvent(fogRoomId, "room.test_event", { step: 1 });
+    queueEvent(fixtureRoomId, "room.test_event", { step: 1 });
     assert.equal(received.length, 0, "event must not publish inside open transaction");
     await client.query("SELECT 1");
   });
@@ -27,12 +28,12 @@ test("transactionWithEvents publishes only after commit", async () => {
 test("transactionWithEvents does not publish when transaction rolls back", async () => {
   resetRoomEventBusForTests();
   const received = [];
-  subscribeRoomEvents(fogRoomId, (message) => received.push(parsePayload(message)));
+  subscribeRoomEvents(fixtureRoomId, (message) => received.push(parsePayload(message)));
 
   await assert.rejects(
     () =>
       transactionWithEvents(async (client, queueEvent) => {
-        queueEvent(fogRoomId, "room.test_event", { step: 2 });
+        queueEvent(fixtureRoomId, "room.test_event", { step: 2 });
         await client.query("SELECT 1");
         throw new Error("rollback probe");
       }),

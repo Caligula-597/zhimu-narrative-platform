@@ -3,14 +3,9 @@ import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
 import { computeStoryLayout, STUDIO_LAYOUT_MODES } from "../src/studio-layout.js";
-
-const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
-
 import { fixtureWorldId } from "./helpers/fixture-ids.js";
 
-async function fogWorldId() {
-  return fixtureWorldId;
-}
+const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
 test("computeStoryLayout supports all preset modes", () => {
   const snapshot = {
@@ -37,7 +32,7 @@ test("computeStoryLayout supports all preset modes", () => {
 test("POST story-layout/auto persists positions for all node types", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
 
   const chapter = await app.inject({
     method: "POST",
@@ -88,7 +83,7 @@ test("POST story-layout/auto persists positions for all node types", async (cont
 test("POST story-layout/auto rejects unknown mode", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
 
   const response = await app.inject({
     method: "POST",

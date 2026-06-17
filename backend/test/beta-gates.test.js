@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { fixtureWorldId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogWorldId = "11111111-2222-4333-8444-555555550001";
+
 
 test("POST /worlds then DELETE succeeds (owner)", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
@@ -70,7 +71,7 @@ test("POST /rules rejects invalid body via validateRuleBody", async (context) =>
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/rules`,
+    url: `/api/worlds/${fixtureWorldId}/rules`,
     headers: { "x-user-id": hostUserId },
     payload: {
       name: `invalid rule ${Date.now()}`,
@@ -90,7 +91,7 @@ test("POST /rules creates valid rule with real world entities", async (context) 
 
   const studio = await app.inject({
     method: "GET",
-    url: `/api/worlds/${fogWorldId}/studio`,
+    url: `/api/worlds/${fixtureWorldId}/studio`,
     headers: { "x-user-id": hostUserId }
   });
   assert.equal(studio.statusCode, 200);
@@ -101,7 +102,7 @@ test("POST /rules creates valid rule with real world entities", async (context) 
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/rules`,
+    url: `/api/worlds/${fixtureWorldId}/rules`,
     headers: { "x-user-id": hostUserId },
     payload: {
       name: `valid rule ${Date.now()}`,
@@ -117,7 +118,7 @@ test("POST /rules creates valid rule with real world entities", async (context) 
 
   await app.inject({
     method: "DELETE",
-    url: `/api/worlds/${fogWorldId}/rules/${response.json().id}`,
+    url: `/api/worlds/${fixtureWorldId}/rules/${response.json().id}`,
     headers: { "x-user-id": hostUserId }
   });
 });
@@ -128,7 +129,7 @@ test("world member routes reject invalid schema", async (context) => {
 
   const bad = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/members`,
+    url: `/api/worlds/${fixtureWorldId}/members`,
     headers: { "x-user-id": hostUserId },
     payload: { email: "not-an-email", role: "superadmin" }
   });

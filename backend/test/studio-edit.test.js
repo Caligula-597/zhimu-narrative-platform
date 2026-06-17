@@ -2,19 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
-
-const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
-
 import { fixtureWorldId } from "./helpers/fixture-ids.js";
 
-async function fogWorldId() {
-  return fixtureWorldId;
-}
+const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
 test("creator can patch scene clue and investigation point", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
 
   const sceneCreate = await app.inject({
     method: "POST",
@@ -112,7 +107,7 @@ test("creator can patch scene clue and investigation point", async (context) => 
 test("creator can delete chapter and unbind linked scenes", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
 
   const chapterCreate = await app.inject({
     method: "POST",
@@ -156,7 +151,7 @@ test("creator can delete chapter and unbind linked scenes", async (context) => {
 test("deleting chapter renumbers survivors and removes bound sections and rules", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const worldId = await fogWorldId();
+  const worldId = fixtureWorldId;
 
   const created = await app.inject({
     method: "POST",

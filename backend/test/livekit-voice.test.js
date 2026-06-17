@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { fixtureRoomId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogRoomId = "11111111-2222-4333-8444-555555550002";
+
 
 const livekitEnv = {
   LIVEKIT_URL: "wss://livekit.test.example",
@@ -30,7 +31,7 @@ function withLiveKitEnv(fn) {
 async function publicVoiceRoomId() {
   const result = await query(
     `SELECT id FROM voice_rooms WHERE room_id = $1 AND room_type = 'public' ORDER BY created_at LIMIT 1`,
-    [fogRoomId]
+    [fixtureRoomId]
   );
   assert.ok(result.rowCount, "public voice room fixture required");
   return result.rows[0].id;
@@ -43,7 +44,7 @@ test("player can request LiveKit token for public voice room", async (context) =
     const voiceRoomId = await publicVoiceRoomId();
     const response = await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/voice-rooms/${voiceRoomId}/token`,
+      url: `/api/rooms/${fixtureRoomId}/voice-rooms/${voiceRoomId}/token`,
       headers: { "x-user-id": playerUserId }
     });
     assert.equal(response.statusCode, 200);
@@ -63,7 +64,7 @@ test("invited player can request token for private voice room", async (context) 
     context.after(() => app.close());
     const created = await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/voice-rooms`,
+      url: `/api/rooms/${fixtureRoomId}/voice-rooms`,
       headers: { "x-user-id": playerUserId },
       payload: {
         name: `LiveKit private ${Date.now()}`,
@@ -75,7 +76,7 @@ test("invited player can request token for private voice room", async (context) 
     const voiceRoomId = created.json().id;
     const response = await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/voice-rooms/${voiceRoomId}/token`,
+      url: `/api/rooms/${fixtureRoomId}/voice-rooms/${voiceRoomId}/token`,
       headers: { "x-user-id": hostUserId }
     });
     assert.equal(response.statusCode, 200);
@@ -89,7 +90,7 @@ test("uninvited active room member cannot request private voice token", async (c
     context.after(() => app.close());
     const created = await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/voice-rooms`,
+      url: `/api/rooms/${fixtureRoomId}/voice-rooms`,
       headers: { "x-user-id": playerUserId },
       payload: {
         name: `LiveKit blocked ${Date.now()}`,
@@ -101,7 +102,7 @@ test("uninvited active room member cannot request private voice token", async (c
     const voiceRoomId = created.json().id;
     const response = await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/voice-rooms/${voiceRoomId}/token`,
+      url: `/api/rooms/${fixtureRoomId}/voice-rooms/${voiceRoomId}/token`,
       headers: { "x-user-id": hostUserId }
     });
     assert.equal(response.statusCode, 403);
@@ -113,16 +114,16 @@ test("host can listen to private voice room when room setting hostVoiceListen is
   await withLiveKitEnv(async () => {
     const app = await createApp({ logger: false, allowDemoUserHeader: true });
     context.after(async () => {
-      await query(`UPDATE rooms SET settings = '{}'::jsonb WHERE id = $1`, [fogRoomId]);
+      await query(`UPDATE rooms SET settings = '{}'::jsonb WHERE id = $1`, [fixtureRoomId]);
       await app.close();
     });
     await query(
       `UPDATE rooms SET settings = jsonb_set(COALESCE(settings, '{}'::jsonb), '{hostVoiceListen}', 'true'::jsonb, true) WHERE id = $1`,
-      [fogRoomId]
+      [fixtureRoomId]
     );
     const created = await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/voice-rooms`,
+      url: `/api/rooms/${fixtureRoomId}/voice-rooms`,
       headers: { "x-user-id": playerUserId },
       payload: {
         name: `Host listen ${Date.now()}`,
@@ -134,7 +135,7 @@ test("host can listen to private voice room when room setting hostVoiceListen is
     const voiceRoomId = created.json().id;
     const response = await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/voice-rooms/${voiceRoomId}/token`,
+      url: `/api/rooms/${fixtureRoomId}/voice-rooms/${voiceRoomId}/token`,
       headers: { "x-user-id": hostUserId }
     });
     assert.equal(response.statusCode, 200);
@@ -151,7 +152,7 @@ test("token endpoint returns 503 when LiveKit env is missing", async (context) =
   try {
     const response = await app.inject({
       method: "POST",
-      url: `/api/rooms/${fogRoomId}/voice-rooms/${voiceRoomId}/token`,
+      url: `/api/rooms/${fixtureRoomId}/voice-rooms/${voiceRoomId}/token`,
       headers: { "x-user-id": playerUserId }
     });
     assert.equal(response.statusCode, 503);

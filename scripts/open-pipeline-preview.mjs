@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Open browser to writer view with AI pipeline modal (local preview). */
 import { chromium } from "@playwright/test";
-import { injectDemoContext, goToView, waitForCloudReady, BASE_URL, dismissModalIfOpen } from "../e2e/helpers/demo.js";
+import { injectDemoContext, goToView, waitForCloudReady, BASE_URL, dismissModalIfOpen } from "../e2e/helpers/fixture.mjs";
 
 const browser = await chromium.launch({ headless: false, channel: "msedge" }).catch(() => chromium.launch({ headless: false }));
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });

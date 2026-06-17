@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { fixtureRoomId } from "./helpers/fixture-ids.js";
+import { queryFixtureRoleId } from "./helpers/fixture-helpers.js";
 import test from "node:test";
 import { randomUUID } from "node:crypto";
 import { createApp } from "../src/app.js";
@@ -6,36 +8,25 @@ import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
-const fogRoomId = "11111111-2222-4333-8444-555555550002";
 
-async function fogRoleId() {
-  const result = await query(
-    `SELECT rm.role_slot_id FROM room_members rm
-     WHERE rm.room_id = $1 AND rm.user_id = $2 AND rm.status = 'active'`,
-    [fogRoomId, playerUserId]
-  );
-  assert.ok(result.rowCount);
-  return result.rows[0].role_slot_id;
-}
-
-async function fogClueId() {
+async function queryFixtureClueId() {
   const result = await query(
     `SELECT c.id FROM clues c
      JOIN rooms r ON r.world_id = c.world_id
      WHERE r.id = $1 LIMIT 1`,
-    [fogRoomId]
+    [fixtureRoomId]
   );
   assert.ok(result.rowCount);
   return result.rows[0].id;
 }
 
-async function fogPeerRoleSlotId(ownerRoleId) {
+async function queryFixturePeerRoleId(ownerRoleId) {
   const peer = await query(
     `SELECT rs.id FROM role_slots rs
      JOIN rooms r ON r.world_id = rs.world_id
      WHERE r.id = $1 AND rs.id <> $2
      ORDER BY rs.sequence LIMIT 1`,
-    [fogRoomId, ownerRoleId]
+    [fixtureRoomId, ownerRoleId]
   );
   assert.ok(peer.rowCount, "peer role fixture required");
   return peer.rows[0].id;
@@ -45,18 +36,18 @@ test("share-roles rejects clue the player does not own", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const ownerRoleId = await fogRoleId();
-  const clueId = await fogClueId();
-  const targetRoleId = await fogPeerRoleSlotId(ownerRoleId);
+  const ownerRoleId = await queryFixtureRoleId();
+  const clueId = await queryFixtureClueId();
+  const targetRoleId = await queryFixturePeerRoleId(ownerRoleId);
 
   await query(
     `DELETE FROM clue_ownership WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3`,
-    [fogRoomId, ownerRoleId, clueId]
+    [fixtureRoomId, ownerRoleId, clueId]
   );
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/clues/${clueId}/share-roles`,
+    url: `/api/rooms/${fixtureRoomId}/clues/${clueId}/share-roles`,
     headers: { "x-user-id": playerUserId, "idempotency-key": `share-not-owned-${Date.now()}` },
     payload: { roleSlotIds: [targetRoleId] }
   });
@@ -68,10 +59,10 @@ test("share-roles rejects invalid roleSlotIds payload", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const clueId = await fogClueId();
+  const clueId = await queryFixtureClueId();
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/clues/${clueId}/share-roles`,
+    url: `/api/rooms/${fixtureRoomId}/clues/${clueId}/share-roles`,
     headers: { "x-user-id": playerUserId, "idempotency-key": `share-bad-payload-${Date.now()}` },
     payload: { roleSlotIds: ["not-a-uuid"] }
   });
@@ -82,12 +73,12 @@ test("share-roles rejects role slots from another world", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const ownerRoleId = await fogRoleId();
-  const clueId = await fogClueId();
+  const ownerRoleId = await queryFixtureRoleId();
+  const clueId = await queryFixtureClueId();
 
   const grant = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/host/grant-clue`,
+    url: `/api/rooms/${fixtureRoomId}/host/grant-clue`,
     headers: { "x-user-id": hostUserId, "idempotency-key": `share-world-mismatch-${Date.now()}` },
     payload: { roleSlotId: ownerRoleId, clueId }
   });
@@ -98,7 +89,7 @@ test("share-roles rejects role slots from another world", async (context) => {
      JOIN worlds w ON w.id = rs.world_id
      WHERE w.id <> (SELECT world_id FROM rooms WHERE id = $1)
      LIMIT 1`,
-    [fogRoomId]
+    [fixtureRoomId]
   );
   if (!foreignRole.rowCount) {
     context.skip("no foreign world role fixture for mismatch test");
@@ -107,7 +98,7 @@ test("share-roles rejects role slots from another world", async (context) => {
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/clues/${clueId}/share-roles`,
+    url: `/api/rooms/${fixtureRoomId}/clues/${clueId}/share-roles`,
     headers: { "x-user-id": playerUserId, "idempotency-key": `share-mismatch-${Date.now()}` },
     payload: { roleSlotIds: [foreignRole.rows[0].id] }
   });
@@ -119,20 +110,20 @@ test("share-roles clears private share when roleSlotIds is empty", async (contex
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
-  const ownerRoleId = await fogRoleId();
-  const clueId = await fogClueId();
-  const targetRoleId = await fogPeerRoleSlotId(ownerRoleId);
+  const ownerRoleId = await queryFixtureRoleId();
+  const clueId = await queryFixtureClueId();
+  const targetRoleId = await queryFixturePeerRoleId(ownerRoleId);
 
   await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/host/grant-clue`,
+    url: `/api/rooms/${fixtureRoomId}/host/grant-clue`,
     headers: { "x-user-id": hostUserId, "idempotency-key": `share-clear-grant-${Date.now()}` },
     payload: { roleSlotId: ownerRoleId, clueId }
   });
 
   const share = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/clues/${clueId}/share-roles`,
+    url: `/api/rooms/${fixtureRoomId}/clues/${clueId}/share-roles`,
     headers: { "x-user-id": playerUserId, "idempotency-key": `share-clear-set-${Date.now()}` },
     payload: { roleSlotIds: [targetRoleId] }
   });
@@ -141,7 +132,7 @@ test("share-roles clears private share when roleSlotIds is empty", async (contex
 
   const clear = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/clues/${clueId}/share-roles`,
+    url: `/api/rooms/${fixtureRoomId}/clues/${clueId}/share-roles`,
     headers: { "x-user-id": playerUserId, "idempotency-key": `share-clear-empty-${Date.now()}` },
     payload: { roleSlotIds: [] }
   });
@@ -155,7 +146,7 @@ test("share-roles rejects unknown clue id", async (context) => {
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/rooms/${fogRoomId}/clues/${randomUUID()}/share-roles`,
+    url: `/api/rooms/${fixtureRoomId}/clues/${randomUUID()}/share-roles`,
     headers: { "x-user-id": playerUserId, "idempotency-key": `share-missing-clue-${Date.now()}` },
     payload: { roleSlotIds: [] }
   });

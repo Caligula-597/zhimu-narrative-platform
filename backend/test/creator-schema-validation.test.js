@@ -1,16 +1,17 @@
 import assert from "node:assert/strict";
+import { fixtureWorldId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
-const fogWorldId = "11111111-2222-4333-8444-555555550001";
+
 
 test("studio create scene rejects empty name via schema", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/scenes`,
+    url: `/api/worlds/${fixtureWorldId}/scenes`,
     headers: { "x-user-id": hostUserId },
     payload: { name: "" }
   });
@@ -22,7 +23,7 @@ test("creator create role rejects missing sequence", async (context) => {
   context.after(() => app.close());
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/roles`,
+    url: `/api/worlds/${fixtureWorldId}/roles`,
     headers: { "x-user-id": hostUserId },
     payload: { name: "测试角色" }
   });
@@ -34,7 +35,7 @@ test("rules create rejects invalid mode enum", async (context) => {
   context.after(() => app.close());
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/rules`,
+    url: `/api/worlds/${fixtureWorldId}/rules`,
     headers: { "x-user-id": hostUserId },
     payload: {
       name: "bad-mode-rule",
@@ -51,7 +52,7 @@ test("rules create accepts actions array with unlock_scene", async (context) => 
   context.after(() => app.close());
   const studio = await app.inject({
     method: "GET",
-    url: `/api/worlds/${fogWorldId}/studio`,
+    url: `/api/worlds/${fixtureWorldId}/studio`,
     headers: { "x-user-id": hostUserId }
   });
   assert.equal(studio.statusCode, 200);
@@ -59,7 +60,7 @@ test("rules create accepts actions array with unlock_scene", async (context) => 
   const sectionId = studio.json().sections?.[0]?.id;
   const scene = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/scenes`,
+    url: `/api/worlds/${fixtureWorldId}/scenes`,
     headers: { "x-user-id": hostUserId },
     payload: { name: `schema scene ${Date.now()}` }
   });
@@ -67,7 +68,7 @@ test("rules create accepts actions array with unlock_scene", async (context) => 
   assert.ok(roleId && sectionId, "fixture world needs roles and sections for rule validation");
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/rules`,
+    url: `/api/worlds/${fixtureWorldId}/rules`,
     headers: { "x-user-id": hostUserId },
     payload: {
       name: `schema rule ${Date.now()}`,
@@ -82,12 +83,12 @@ test("rules create accepts actions array with unlock_scene", async (context) => 
   assert.ok(Array.isArray(response.json().actions));
   await app.inject({
     method: "DELETE",
-    url: `/api/worlds/${fogWorldId}/rules/${response.json().id}`,
+    url: `/api/worlds/${fixtureWorldId}/rules/${response.json().id}`,
     headers: { "x-user-id": hostUserId }
   });
   await app.inject({
     method: "DELETE",
-    url: `/api/worlds/${fogWorldId}/studio-nodes/scene/${scene.json().id}`,
+    url: `/api/worlds/${fixtureWorldId}/studio-nodes/scene/${scene.json().id}`,
     headers: { "x-user-id": hostUserId }
   });
 });
@@ -97,7 +98,7 @@ test("story edge rejects invalid relationType", async (context) => {
   context.after(() => app.close());
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/story-edges`,
+    url: `/api/worlds/${fixtureWorldId}/story-edges`,
     headers: { "x-user-id": hostUserId },
     payload: {
       fromType: "scene",
@@ -115,7 +116,7 @@ test("pipeline evaluate accepts narrative-first payload without spec or proposal
   context.after(() => app.close());
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/story-assistant/deepseek/pipeline/evaluate`,
+    url: `/api/worlds/${fixtureWorldId}/story-assistant/deepseek/pipeline/evaluate`,
     headers: { "x-user-id": hostUserId },
     payload: {
       setting: { theme: "测试", playerCount: 4, chapterCount: 3, wordsPerChapter: 8000 },
@@ -135,7 +136,7 @@ test("pipeline evaluate accepts explicit null proposal from narrative-first sess
   context.after(() => app.close());
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/story-assistant/deepseek/pipeline/evaluate`,
+    url: `/api/worlds/${fixtureWorldId}/story-assistant/deepseek/pipeline/evaluate`,
     headers: { "x-user-id": hostUserId },
     payload: {
       setting: { theme: "测试", playerCount: 4, chapterCount: 3, wordsPerChapter: 8000 },
