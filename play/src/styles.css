@@ -626,12 +626,12 @@ button {
 
 .entry-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   align-items: stretch;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 720px) {
   .entry-grid { grid-template-columns: 1fr; }
 }
 
@@ -1068,4 +1068,104 @@ code {
 .entry-card-lobby {
   border-color: rgba(43, 107, 97, 0.35);
   background: linear-gradient(180deg, rgba(43, 107, 97, 0.06), var(--surface));
+}
+
+.entry-card-plaza {
+  border-color: rgba(154, 129, 79, 0.35);
+  background: linear-gradient(180deg, rgba(154, 129, 79, 0.08), var(--surface));
+}
+
+.plaza-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.plaza-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.plaza-compose h3 {
+  margin: 0 0 12px;
+}
+
+.plaza-form {
+  display: grid;
+  gap: 12px;
+}
+
+.plaza-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.plaza-invite-field.is-hidden {
+  display: none;
+}
+
+.plaza-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.plaza-feed {
+  display: grid;
+  gap: 12px;
+}
+
+.plaza-post-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.plaza-post-head time {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.plaza-kind {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(20, 35, 33, 0.06);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.plaza-post-recruit .plaza-kind {
+  background: rgba(43, 107, 97, 0.12);
+  color: var(--green-2);
+}
+
+.plaza-body {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.plaza-recruit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.plaza-empty {
+  text-align: center;
+  color: var(--muted);
 }

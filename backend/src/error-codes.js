@@ -51,6 +51,7 @@ export const API_ERRORS = {
   UNSUPPORTED_MEDIA_TYPE: { status: 415, message: "Unsupported media type" },
   UNPROCESSABLE: { status: 422, message: "Unprocessable entity" },
   RATE_LIMITED: { status: 429, message: "Too many requests" },
+  PLAZA_POST_INVALID: { status: 400, message: "Plaza post body invalid" },
   INTERNAL_ERROR: { status: 500, message: "Internal error" },
   UPSTREAM_ERROR: { status: 502, message: "Upstream service error" },
   /** DeepSeek chat/completions HTTP or quota failure */

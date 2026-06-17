@@ -86,6 +86,14 @@ export const api = {
     request(`/rooms/${roomId}/clues/${clueId}/read`, { method: "POST", body: {} }),
   platformSite: () => request("/platform/site"),
   publicRooms: (limit = 24) => request(`/platform/public-rooms?limit=${limit}`),
+  plazaPosts: ({ kind, limit = 40 } = {}) => {
+    const params = new URLSearchParams();
+    if (kind && kind !== "all") params.set("kind", kind);
+    params.set("limit", String(limit));
+    const qs = params.toString();
+    return request(`/platform/plaza/posts${qs ? `?${qs}` : ""}`);
+  },
+  createPlazaPost: (payload) => request("/platform/plaza/posts", { method: "POST", body: payload }),
   officialExample: () => request("/platform/official-example"),
   joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} }),
 

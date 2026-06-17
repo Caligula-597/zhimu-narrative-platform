@@ -1743,3 +1743,27 @@ export const submitBetaApplicationSchema = {
     }
   }
 };
+
+export const listPlazaPostsSchema = {
+  querystring: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      kind: { type: "string", enum: ["chat", "recruit"] },
+      limit: { type: "integer", minimum: 1, maximum: 60 }
+    }
+  }
+};
+
+export const createPlazaPostSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["body"],
+    properties: {
+      kind: { type: "string", enum: ["chat", "recruit"] },
+      body: { type: "string", minLength: 1, maxLength: 500 },
+      inviteCode: { type: "string", minLength: 1, maxLength: 80 }
+    }
+  }
+};

@@ -54,6 +54,7 @@ export async function loadMarketingSitePayload() {
       officialExample: "/api/platform/official-example",
       catalogPreview: "/api/platform/catalog-preview",
       publicRooms: "/api/platform/public-rooms",
+      plazaPosts: "/api/platform/plaza/posts",
       healthLive: "/api/health/live"
     },
     supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@getzhimu.com"

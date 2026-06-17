@@ -55,7 +55,7 @@ export function renderHeader() {
         ${userLabel && !roleName ? `<span class="pill">${escapeHtml(userLabel)}</span>` : ""}
       </div>
       <div class="header-actions">
-        ${state.view !== "game" ? `<button class="link-btn quiet" type="button" data-action="go-lobby">找人一起玩</button>` : ""}
+        ${state.view !== "game" ? `<button class="link-btn quiet" type="button" data-action="go-plaza">广场</button><button class="link-btn quiet" type="button" data-action="go-lobby">找人一起玩</button>` : ""}
         <a class="link-btn quiet" href="${appOrigin}/" target="_blank" rel="noopener">创作者入口</a>
         ${getSessionToken() ? `<button class="link-btn quiet" type="button" data-action="logout">退出</button>` : ""}
       </div>
@@ -82,6 +82,87 @@ function renderOfficialExampleCard() {
         : `<p class="hint warn">${escapeHtml(example.unavailableReason || "示例暂不可用")}</p>`}
       <p class="hint">系统会为你创建独立运行房，再选择角色进入玩家视角。</p>
     </article>`;
+}
+
+function formatPlazaTime(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const diff = Date.now() - date.getTime();
+  if (diff < 60_000) return "刚刚";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} 分钟前`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} 小时前`;
+  return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+export function renderPlaza() {
+  const items = state.plazaPosts?.items || [];
+  const filter = state.plazaFilter || "all";
+  const filters = [
+    ["all", "全部"],
+    ["chat", "自由讨论"],
+    ["recruit", "招募队友"]
+  ];
+  return `
+    <section class="plaza-shell">
+      <div class="plaza-head">
+        <div>
+          <p class="eyebrow">PLAYER PLAZA · 玩家广场</p>
+          <h1>没进本也能聊，招募队友一起开局</h1>
+          <p class="lede">在这里自由讨论、找局、发帖招募。无需先加入某个平行房；想开局时可附上邀请码或去「找人一起玩」选公开房间。</p>
+        </div>
+        <button class="btn outline" type="button" data-action="refresh-plaza" ${state.busy ? "disabled" : ""}>刷新</button>
+      </div>
+
+      <article class="card plaza-compose">
+        <h3>发表留言</h3>
+        <form class="plaza-form" data-form="plaza">
+          <label>类型
+            <select class="field" name="kind" data-bind="plazaKind">
+              <option value="chat" ${state.plazaDraftKind !== "recruit" ? "selected" : ""}>自由讨论</option>
+              <option value="recruit" ${state.plazaDraftKind === "recruit" ? "selected" : ""}>招募队友</option>
+            </select>
+          </label>
+          <label>内容
+            <textarea class="field" name="body" rows="3" maxlength="500" placeholder="聊聊想玩的题材、时间，或招募缺的几号位…" required data-bind="plazaBody">${escapeHtml(state.plazaDraftBody || "")}</textarea>
+          </label>
+          <label class="plaza-invite-field ${state.plazaDraftKind === "recruit" ? "" : "is-hidden"}">邀请码（选填，招募时可附上房间码）
+            <input class="field" name="inviteCode" type="text" placeholder="有公开房或熟人局邀请码可填写" value="${escapeHtml(state.plazaDraftInvite || "")}" data-bind="plazaInvite" />
+          </label>
+          <button class="btn primary" type="submit" ${state.busy ? "disabled" : ""}>发布到广场</button>
+          <p class="hint">登录后即可发言；每小时最多 12 条。请勿发布违规或广告内容。</p>
+        </form>
+      </article>
+
+      <nav class="plaza-filters" aria-label="广场筛选">
+        ${filters.map(([id, label]) => `
+          <button type="button" class="tab ${filter === id ? "is-active" : ""}" data-action="plaza-filter" data-kind="${id}">${label}</button>`).join("")}
+      </nav>
+
+      <div class="plaza-feed">
+        ${items.length ? items.map((post) => `
+          <article class="plaza-post card ${post.kind === "recruit" ? "plaza-post-recruit" : ""}">
+            <header class="plaza-post-head">
+              <div>
+                <strong>${escapeHtml(post.authorDisplayName || "玩家")}</strong>
+                <span class="plaza-kind">${post.kind === "recruit" ? "招募队友" : "自由讨论"}</span>
+              </div>
+              <time>${formatPlazaTime(post.createdAt)}</time>
+            </header>
+            <p class="plaza-body">${escapeHtml(post.body).replace(/\n/g, "<br>")}</p>
+            ${post.kind === "recruit" && post.inviteCode ? `
+              <div class="plaza-recruit-meta">
+                ${post.worldLabel ? `<span>${escapeHtml(post.worldLabel)} · ${escapeHtml(post.roomLabel || "运行房")}</span>` : `<span>邀请码：${escapeHtml(post.inviteCode)}</span>`}
+                <button class="btn outline compact" type="button" data-action="plaza-join" data-invite-code="${escapeHtml(post.inviteCode)}">加入这局</button>
+              </div>` : ""}
+          </article>`).join("") : `
+          <article class="card plaza-empty">
+            <p>广场还没有留言。做第一个发帖的人，或去「找人一起玩」看看公开房间。</p>
+          </article>`}
+      </div>
+
+      <button class="text-btn" type="button" data-action="back-landing">← 返回首页</button>
+    </section>`;
 }
 
 export function renderLobby() {
@@ -152,6 +233,15 @@ export function renderLanding() {
       </div>
 
       <div class="entry-grid">
+        <article class="entry-card entry-card-plaza">
+          <div class="entry-card-head">
+            <p class="eyebrow">无需在局中</p>
+            <h3>玩家广场</h3>
+          </div>
+          <p class="entry-card-lede">自由讨论、招募队友、约局聊天。没参与剧本时也能和陌生玩家互动。</p>
+          <button class="btn primary full" type="button" data-action="go-plaza" ${state.busy ? "disabled" : ""}>进入广场</button>
+        </article>
+
         <article class="entry-card entry-card-lobby">
           <div class="entry-card-head">
             <p class="eyebrow">无需认识主持人</p>
@@ -521,6 +611,7 @@ export function renderApp() {
   let main = "";
   if (state.view === "auth") main = renderAuth();
   else if (state.view === "lobby") main = renderLobby();
+  else if (state.view === "plaza") main = renderPlaza();
   else if (state.view === "join") main = renderJoin();
   else if (state.view === "game" && state.home) main = renderGame();
   else main = renderLanding();

@@ -13,6 +13,19 @@ import { renderApp } from "./render.js";
 import { persistRoom, setBusy, setToast, state } from "./state.js";
 
 const app = document.getElementById("app");
+let plazaPollTimer = null;
+
+function syncPlazaPoll(active) {
+  if (plazaPollTimer) {
+    clearInterval(plazaPollTimer);
+    plazaPollTimer = null;
+  }
+  if (!active) return;
+  plazaPollTimer = setInterval(() => {
+    if (state.view !== "plaza") return;
+    loadPlazaPosts({ silent: true });
+  }, 20000);
+}
 
 function render() {
   app.innerHTML = renderApp();
@@ -117,6 +130,44 @@ async function refreshHome() {
       throw error;
     }
     throw error;
+  }
+}
+
+async function loadPlazaPosts({ silent = false } = {}) {
+  if (!silent) setBusy(true, render);
+  try {
+    const kind = state.plazaFilter === "all" ? undefined : state.plazaFilter;
+    state.plazaPosts = await api.plazaPosts({ kind });
+  } catch {
+    if (!state.plazaPosts) state.plazaPosts = { total: 0, items: [] };
+  } finally {
+    if (!silent) setBusy(false, render);
+    else if (state.view === "plaza") render();
+  }
+}
+
+async function handlePlazaSubmit(form) {
+  const kind = form.kind.value === "recruit" ? "recruit" : "chat";
+  const body = form.body.value.trim();
+  const inviteCode = normalizeInviteCode(form.inviteCode?.value || "");
+  if (!body) return setToast("请填写内容", render);
+  setBusy(true, render);
+  try {
+    await ensureSession();
+    await api.createPlazaPost({
+      kind,
+      body,
+      ...(kind === "recruit" && inviteCode ? { inviteCode } : {})
+    });
+    state.plazaDraftBody = "";
+    state.plazaDraftInvite = "";
+    state.plazaDraftKind = kind;
+    await loadPlazaPosts({ silent: true });
+    setToast("已发布到广场", render);
+  } catch (error) {
+    setToast(formatApiError(error, "发布失败"), render);
+  } finally {
+    setBusy(false, render);
   }
 }
 
@@ -369,6 +420,8 @@ function handleLogout() {
 
 app.addEventListener("input", (event) => {
   if (event.target.dataset.bind === "inviteCode") state.inviteCode = event.target.value;
+  if (event.target.dataset.bind === "plazaBody") state.plazaDraftBody = event.target.value;
+  if (event.target.dataset.bind === "plazaInvite") state.plazaDraftInvite = event.target.value;
 });
 
 app.addEventListener("change", (event) => {
@@ -376,9 +429,19 @@ app.addEventListener("change", (event) => {
     state.sectionId = event.target.value;
     render();
   }
+  if (event.target.dataset.bind === "plazaKind") {
+    state.plazaDraftKind = event.target.value === "recruit" ? "recruit" : "chat";
+    render();
+  }
 });
 
 app.addEventListener("submit", (event) => {
+  const plazaForm = event.target.closest("[data-form='plaza']");
+  if (plazaForm) {
+    event.preventDefault();
+    handlePlazaSubmit(plazaForm);
+    return;
+  }
   const form = event.target.closest("[data-form='auth']");
   if (!form) return;
   event.preventDefault();
@@ -399,9 +462,31 @@ app.addEventListener("click", async (event) => {
       render();
       break;
     case "go-lobby":
+      syncPlazaPoll(false);
       await loadPublicRooms();
       state.view = "lobby";
       render();
+      break;
+    case "go-plaza":
+      await loadPlazaPosts();
+      state.view = "plaza";
+      syncPlazaPoll(true);
+      render();
+      break;
+    case "refresh-plaza":
+      await loadPlazaPosts();
+      break;
+    case "plaza-filter":
+      state.plazaFilter = button.dataset.kind || "all";
+      await loadPlazaPosts();
+      break;
+    case "plaza-join":
+      syncPlazaPoll(false);
+      state.inviteCode = normalizeInviteCode(button.dataset.inviteCode || "");
+      if (!state.inviteCode) return setToast("邀请码无效", render);
+      state.view = "join";
+      state.joinStep = 1;
+      await handleLookupInvite();
       break;
     case "refresh-lobby":
       await loadPublicRooms();
@@ -486,6 +571,7 @@ app.addEventListener("click", async (event) => {
       render();
       break;
     case "back-landing":
+      syncPlazaPoll(false);
       state.view = "landing";
       state.joinPreview = null;
       state.joinStep = 1;
