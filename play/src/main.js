@@ -7,6 +7,7 @@ import {
   setSessionToken
 } from "./api.js";
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode } from "./security.js";
+import { connectRoomEvents, disconnectRoomEvents } from "./room-events.js";
 import { formatApiError } from "./errors.js";
 import { renderApp } from "./render.js";
 import { persistRoom, setBusy, setToast, state } from "./state.js";
@@ -45,29 +46,68 @@ async function loadAuthConfig() {
   state.authConfig = await api.authConfig();
 }
 
+async function pullRoomData() {
+  if (!state.roomId || !isUuid(state.roomId)) return;
+  state.home = await api.playerHome(state.roomId);
+  state.exploration = await api.exploration(state.roomId).catch(() => ({ scenes: [] }));
+  const sections = state.home.sections || [];
+  if (state.sectionId && !sections.some((section) => section.id === state.sectionId)) {
+    state.sectionId = sections.find((section) => !section.completed)?.id || sections[0]?.id || "";
+  } else if (!state.sectionId && sections.length) {
+    state.sectionId = sections.find((section) => !section.completed)?.id || sections[0].id;
+  }
+  render();
+}
+
+const roomEventCtx = {
+  getView: () => state.view,
+  getRoomId: () => state.roomId,
+  getRoleId: () => state.home?.role?.id || "",
+  onRefresh: async () => {
+    try {
+      await pullRoomData();
+    } catch {
+      /* SSE/poll refresh is best-effort */
+    }
+  },
+  onToast: (message) => setToast(message, render),
+  setConnected: (connected) => {
+    if (state.roomEventsConnected === connected) return;
+    state.roomEventsConnected = connected;
+    render();
+  }
+};
+
+function syncRoomStream() {
+  if (state.view === "game" && state.roomId && isUuid(state.roomId)) {
+    connectRoomEvents(state.roomId, roomEventCtx);
+  } else {
+    disconnectRoomEvents(roomEventCtx);
+  }
+}
+
 async function refreshHome() {
   if (!state.roomId) {
+    disconnectRoomEvents(roomEventCtx);
     state.home = null;
     state.view = "landing";
     return;
   }
   if (!isUuid(state.roomId)) {
     persistRoom("", isUuid);
+    disconnectRoomEvents(roomEventCtx);
     state.home = null;
     state.view = "landing";
     return;
   }
   try {
-    state.home = await api.playerHome(state.roomId);
-    state.exploration = await api.exploration(state.roomId).catch(() => ({ scenes: [] }));
-    const sections = state.home.sections || [];
-    if (!state.sectionId && sections.length) {
-      state.sectionId = sections.find((s) => !s.completed)?.id || sections[0].id;
-    }
+    await pullRoomData();
     state.view = "game";
     state.tab = state.tab || "home";
+    syncRoomStream();
   } catch (error) {
     if (error.status === 401 || error.status === 403 || error.status === 404 || error.status === 409) {
+      disconnectRoomEvents(roomEventCtx);
       persistRoom("", isUuid);
       state.home = null;
       state.view = "landing";
@@ -221,7 +261,7 @@ async function handleCompleteSection(sectionId) {
   setBusy(true, render);
   try {
     await api.completeSection(state.roomId, sectionId);
-    await refreshHome();
+    await pullRoomData();
     setToast("已标记阅读完成", render);
   } catch (error) {
     setToast(error.message || "操作失败", render);
@@ -234,8 +274,7 @@ async function handleInvestigate(pointId) {
   setBusy(true, render);
   try {
     const result = await api.investigate(state.roomId, pointId);
-    await refreshHome();
-    state.exploration = await api.exploration(state.roomId);
+    await pullRoomData();
     setToast(result.clue ? `获得线索：${result.clue.name}` : "调查完成", render);
   } catch (error) {
     setToast(error.message || "调查失败", render);
@@ -248,9 +287,8 @@ async function handleReadClue(clueId) {
   setBusy(true, render);
   try {
     await api.readClue(state.roomId, clueId);
-    await refreshHome();
+    await pullRoomData();
     state.clueId = clueId;
-    render();
   } catch (error) {
     setToast(error.message || "无法阅读线索", render);
   } finally {
@@ -307,6 +345,7 @@ async function handleOAuth(provider) {
 }
 
 function handleLogout() {
+  disconnectRoomEvents(roomEventCtx);
   clearSession();
   persistRoom("", isUuid);
   state.home = null;
@@ -440,6 +479,7 @@ app.addEventListener("click", async (event) => {
       handleLogout();
       break;
     case "leave-room":
+      disconnectRoomEvents(roomEventCtx);
       persistRoom("", isUuid);
       state.home = null;
       state.view = "landing";

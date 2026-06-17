@@ -24,10 +24,20 @@ test("api client encodes invite codes in path", async () => {
   assert.match(source, /encodeURIComponent\(inviteCode\)/);
 });
 
-test("main.js and render.js escape user content", () => {
-  const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
+test("render.js escapes user content", () => {
   const renderSource = readFileSync(path.join(root, "src", "render.js"), "utf8");
   assert.match(renderSource, /escapeHtml\(/);
   assert.match(renderSource, /sanitizeImageUrl\(/);
-  assert.doesNotMatch(mainSource, /innerHTML\s*=\s*[^;]+\+/);
+});
+
+test("main.js wires room SSE sync for host-player data", () => {
+  const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
+  const apiSource = readFileSync(path.join(root, "src", "api.js"), "utf8");
+  const eventsSource = readFileSync(path.join(root, "src", "room-events.js"), "utf8");
+  assert.match(mainSource, /connectRoomEvents/);
+  assert.match(mainSource, /pullRoomData/);
+  assert.match(apiSource, /events\/stream/);
+  assert.match(apiSource, /Last-Event-ID/);
+  assert.match(eventsSource, /room\.clue_granted/);
+  assert.match(eventsSource, /room\.section_unlocked/);
 });

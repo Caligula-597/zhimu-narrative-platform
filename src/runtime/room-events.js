@@ -172,6 +172,16 @@
         }
         if (!data.action && state.view === "director") showToast("有新的待确认事件", 2800);
         break;
+      case "room.section_unlocked":
+        if (state.view === "director" || state.view === "overview") await R.refreshHostPlayers?.(false, true);
+        else if (state.view === "player") {
+          await refreshPlayerHome();
+          showToast("新分幕已解锁", 2800);
+        }
+        break;
+      case "room.investigation_completed":
+        if (state.view === "director" || state.view === "overview") await R.refreshHostPlayers?.(false, true);
+        break;
       case "room.scene_unlocked":
         if (state.view === "player") {
           await refreshExploration();

@@ -18,7 +18,8 @@ export const state = {
   authMode: "login",
   busy: false,
   toast: "",
-  error: ""
+  error: "",
+  roomEventsConnected: false
 };
 
 export function setToast(message, render) {

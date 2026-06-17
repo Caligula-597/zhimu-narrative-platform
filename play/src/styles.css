@@ -118,6 +118,13 @@ button {
   color: var(--green-2);
 }
 
+.pill.live {
+  border-color: rgba(43, 107, 97, 0.45);
+  background: rgba(43, 107, 97, 0.1);
+  color: var(--green-2);
+  font-size: 11px;
+}
+
 .play-main {
   width: var(--content);
   margin: 0 auto;

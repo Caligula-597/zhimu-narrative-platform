@@ -51,6 +51,7 @@ export function renderHeader() {
       <div class="header-meta">
         ${roomName ? `<span class="pill">${escapeHtml(roomName)}</span>` : ""}
         ${roleName ? `<span class="pill accent">${escapeHtml(roleName)}</span>` : ""}
+        ${state.roomEventsConnected ? `<span class="pill live">实时</span>` : ""}
         ${userLabel && !roleName ? `<span class="pill">${escapeHtml(userLabel)}</span>` : ""}
       </div>
       <div class="header-actions">
