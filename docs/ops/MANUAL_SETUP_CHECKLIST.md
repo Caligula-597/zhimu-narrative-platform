@@ -83,7 +83,8 @@ watchPatterns = ["backend/**", "deploy/**", "src/**", ...]
 Railway → **Variables** → 确认存在：
 
 ```
-APP_PUBLIC_URL=https://getzhimu.com
+APP_PUBLIC_URL=https://app.getzhimu.com
+CORS_ORIGIN=https://app.getzhimu.com
 CORS_ORIGIN=https://getzhimu.com
 SERVE_STATIC=true
 STATIC_ROOT=/app/public/dist
@@ -151,8 +152,8 @@ npm run railway:push-env    # 需 .env.railway.setup 里 Account Token
 
 | Provider | Redirect / Callback URI |
 |----------|-------------------------|
-| Google | `https://getzhimu.com/api/auth/oauth/google/callback` |
-| GitHub | `https://getzhimu.com/api/auth/oauth/github/callback` |
+| Google | `https://app.getzhimu.com/api/auth/oauth/google/callback` |
+| GitHub | `https://app.getzhimu.com/api/auth/oauth/github/callback` |
 
 ### 配置步骤
 

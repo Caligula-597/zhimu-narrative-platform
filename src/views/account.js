@@ -27,7 +27,7 @@
       return `<div class="collab-row"><div><b>${escapeHtml(p.label)}</b><p>${status}</p>${callback}${issues ? `<ul class="muted-note">${issues}</ul>` : ""}</div><span class="${pill}">${p.enabled ? "ON" : "OFF"}</span></div>`;
     }).join("");
     const global = (diag.globalIssues || []).map((i) => `<li>${escapeHtml(i.message)}</li>`).join("");
-    return `<section class="form-group" style="margin-top:18px"><h3>OAuth 状态</h3>${global ? `<ul class="muted-note">${global}</ul>` : ""}<div class="collab-list">${rows}</div><p class="muted-note">生产环境请在 Google/GitHub 控制台登记上方回调 URL，并配置 APP_PUBLIC_URL。</p></section>`;
+    return `<section class="form-group" style="margin-top:18px"><h3>OAuth 状态</h3>${global ? `<ul class="muted-note">${global}</ul>` : ""}<div class="collab-list">${rows}</div><p class="muted-note">生产请在 Google/GitHub 控制台登记 <code>app.getzhimu.com</code> 回调 URL，并配置 Railway 环境变量。见 docs/ops/OAUTH_SETUP.md</p></section>`;
   }
 
   function formatBytesShort(bytes) {

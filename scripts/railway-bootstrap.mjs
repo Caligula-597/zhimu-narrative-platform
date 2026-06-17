@@ -106,7 +106,7 @@ async function main() {
   });
   if (!apiService) throw new Error("找不到 API 服务 — 在 .env.railway.setup 设置 RAILWAY_API_SERVICE_ID");
 
-  const publicUrl = (env.APP_PUBLIC_URL || "https://getzhimu.com").replace(/\/$/, "");
+  const publicUrl = (env.APP_PUBLIC_URL || "https://app.getzhimu.com").replace(/\/$/, "");
 
   console.log(`[bootstrap] 配置 fullstack 构建 (${FULLSTACK_DOCKERFILE})…`);
   try {
