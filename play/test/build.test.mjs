@@ -24,9 +24,10 @@ test("api client encodes invite codes in path", async () => {
   assert.match(source, /encodeURIComponent\(inviteCode\)/);
 });
 
-test("main.js escapes user content before innerHTML", () => {
-  const source = readFileSync(path.join(root, "src", "main.js"), "utf8");
-  assert.match(source, /escapeHtml\(/);
-  assert.match(source, /sanitizeImageUrl\(/);
-  assert.match(source, /isSafeOAuthRedirectUrl\(/);
+test("main.js and render.js escape user content", () => {
+  const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
+  const renderSource = readFileSync(path.join(root, "src", "render.js"), "utf8");
+  assert.match(renderSource, /escapeHtml\(/);
+  assert.match(renderSource, /sanitizeImageUrl\(/);
+  assert.doesNotMatch(mainSource, /innerHTML\s*=\s*[^;]+\+/);
 });

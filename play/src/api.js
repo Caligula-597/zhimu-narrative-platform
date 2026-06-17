@@ -78,5 +78,8 @@ export const api = {
   investigate: (roomId, pointId) =>
     request(`/rooms/${roomId}/investigation-points/${pointId}/investigate`, { method: "POST", body: {} }),
   readClue: (roomId, clueId) =>
-    request(`/rooms/${roomId}/clues/${clueId}/read`, { method: "POST", body: {} })
+    request(`/rooms/${roomId}/clues/${clueId}/read`, { method: "POST", body: {} }),
+  platformSite: () => request("/platform/site"),
+  officialExample: () => request("/platform/official-example"),
+  joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} })
 };

@@ -21,7 +21,7 @@ export function getPlatformLinks() {
     register: appUrl ? `${appUrl}/?auth=register` : null,
     login: appUrl ? `${appUrl}/?auth=login` : null,
     playerJoin: playUrl || null,
-    officialExample: appUrl ? `${appUrl}/?experience=official` : null,
+    officialExample: playUrl ? `${playUrl}/?experience=official` : null,
     creatorGuide: appUrl ? `${appUrl}/docs/CREATOR_GUIDE.md` : null
   };
 }
