@@ -11,6 +11,7 @@ import { registerOpenApi } from "./openapi.js";
 import { registerAuthRoutes } from "./routes/auth-routes.js";
 import { registerSystemRoutes } from "./routes/system-routes.js";
 import { registerOfficialExampleRoutes } from "./routes/official-example-routes.js";
+import { registerPlatformBetaRoutes } from "./routes/platform-beta-routes.js";
 import { registerOpsRoutes } from "./routes/ops-routes.js";
 import { registerBillingRoutes } from "./routes/billing-routes.js";
 import { registerRoutes } from "./routes.js";
@@ -20,6 +21,11 @@ const authRateLimit = createRateLimiter({
   windowMs: 60_000,
   max: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
   routeKey: "auth"
+});
+const betaApplyRateLimit = createRateLimiter({
+  windowMs: 3_600_000,
+  max: Number(process.env.RATE_LIMIT_BETA_APPLY_MAX ?? 5),
+  routeKey: "beta-apply"
 });
 const apiWriteRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -148,6 +154,10 @@ export async function createApp(options = {}) {
       await authRateLimit(request, reply);
       return;
     }
+    if (url.startsWith("/api/platform/beta/apply")) {
+      await betaApplyRateLimit(request, reply);
+      return;
+    }
     if (!url.startsWith("/api/")) return;
 
     const method = request.method;
@@ -171,6 +181,7 @@ export async function createApp(options = {}) {
   });
   await registerSystemRoutes(app);
   await registerOfficialExampleRoutes(app);
+  await registerPlatformBetaRoutes(app);
   await registerOpsRoutes(app);
   await registerBillingRoutes(app);
   await registerAuthRoutes(app);

@@ -4,6 +4,7 @@ import { throwErr } from "./api-errors.js";
 import { createSession } from "./auth.js";
 import { acceptWorldMemberInvitesForEmail } from "./world-invites.js";
 import { applyInternalBetaPrivileges } from "./internal-accounts.js";
+import { applyApprovedBetaApplicationPrivileges } from "./beta-apply.js";
 import { ensureUserPlan, initialPlanForEmail } from "./plans.js";
 import {
   oauthCallbackUrl,
@@ -147,6 +148,7 @@ async function ensureStorageQuota(userId) {
 async function bootstrapOAuthAccount(userId, email) {
   await ensureUserPlan(userId, initialPlanForEmail(email));
   await applyInternalBetaPrivileges(userId, email);
+  await applyApprovedBetaApplicationPrivileges(userId, email);
   await ensureStorageQuota(userId);
 }
 

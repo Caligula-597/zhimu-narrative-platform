@@ -19,7 +19,7 @@
 | 3 | 创作者闭环 | **完成** | 向导 bootstrap、模板库、发布前检查、公开库就绪门槛 |
 | 4 | 主持工作流 | 待做 | 事件上下文 payload |
 | 5 | 运营审核 | **完成** | `GET/POST /api/ops/catalog/reviews/*` |
-| 6 | 官网内测 | 待做 | 内测申请 API |
+| 6 | 官网内测 | **完成** | 内测申请 API、Ops 审批、注册自动 beta 套餐 |
 | 7 | 法务运维 | 待做 | 监控、上线 checklist |
 | 8 | 玩家端 A/B | 后置 | `/play` 或独立子域 |
 
@@ -62,3 +62,12 @@ CLI：`node backend/scripts/approve-catalog-world.mjs <worldId>`（需 pending �
 | POST | `/api/worlds/from-template/:templateId` | 从模板创建世界（可覆盖 name/summary 等） |
 
 公开库申请（`POST /api/worlds/:id/catalog/request`）会在提交前校验 `readyForCatalog`；未通过时返回 `CATALOG_READINESS_BLOCKED` 及缺失项列表。
+
+## Part 6 · 官网内测申请
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/platform/beta` | 表单配置、角色选项、`acceptingApplications` |
+| POST | `/api/platform/beta/apply` | 提交内测申请（限流 5 次/小时/IP） |
+
+Ops 审核见 [ops/BETA_APPLICATIONS.md](./ops/BETA_APPLICATIONS.md)。官网代码约定目录：`site/`（同仓子项目，待宣发开工）。

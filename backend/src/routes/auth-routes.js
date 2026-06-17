@@ -41,6 +41,7 @@ import {
   markUserEmailVerified
 } from "../email-verification-policy.js";
 import { applyInternalBetaPrivileges } from "../internal-accounts.js";
+import { applyApprovedBetaApplicationPrivileges } from "../beta-apply.js";
 import { ensureUserPlan, initialPlanForEmail, fetchUserPlanCode, planMeta } from "../plans.js";
 
 const forgotPasswordSchema = {
@@ -167,6 +168,7 @@ export async function registerAuthRoutes(app) {
     const user = created.rows[0];
     await ensureUserPlan(user.id, initialPlanForEmail(email));
     await applyInternalBetaPrivileges(user.id, email);
+    await applyApprovedBetaApplicationPrivileges(user.id, email);
     await ensureStorageQuota(user.id);
     const acceptedInvites = await acceptWorldMemberInvitesForEmail(user.id, email);
 
@@ -231,6 +233,7 @@ export async function registerAuthRoutes(app) {
     const user = await upgradeGuestToRegistered(actorId, { email, displayName, password });
     await ensureUserPlan(user.id, initialPlanForEmail(email));
     await applyInternalBetaPrivileges(user.id, email);
+    await applyApprovedBetaApplicationPrivileges(user.id, email);
     const acceptedInvites = await acceptWorldMemberInvitesForEmail(user.id, email);
     await revokeAllSessions(actorId);
     const session = await createSession(user.id, sessionRequestMeta(request));
@@ -254,6 +257,7 @@ export async function registerAuthRoutes(app) {
     }
     const row = result.rows[0];
     await applyInternalBetaPrivileges(row.id, email);
+    await applyApprovedBetaApplicationPrivileges(row.id, email);
     const session = await createSession(row.id, sessionRequestMeta(request));
     return {
       user: userAuthPayload(row),

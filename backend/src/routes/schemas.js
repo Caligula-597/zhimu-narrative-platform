@@ -1700,3 +1700,23 @@ export const createWorldFromTemplateSchema = {
     }
   }
 };
+
+export const betaApplicationIdParams = paramsSchema({
+  applicationId: uuid
+});
+
+export const submitBetaApplicationSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["email", "displayName", "useCase"],
+    properties: {
+      email: { type: "string", minLength: 3, maxLength: 320 },
+      displayName: { type: "string", minLength: 2, maxLength: 40 },
+      roleIntent: { type: "string", enum: ["creator", "host", "player", "mixed", "other"] },
+      useCase: { type: "string", minLength: 16, maxLength: 4000 },
+      referralSource: { type: "string", maxLength: 200 },
+      contact: { type: "string", maxLength: 200 }
+    }
+  }
+};

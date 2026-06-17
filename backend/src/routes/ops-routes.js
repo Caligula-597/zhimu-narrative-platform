@@ -17,6 +17,7 @@ import { assignUserPlanByEmail } from "../account-entitlements.js";
 import { PLAN_DEFAULTS } from "../plans.js";
 import { sendErr } from "../api-errors.js";
 import { registerOpsCatalogRoutes } from "./ops-catalog-routes.js";
+import { registerOpsBetaRoutes } from "./ops-beta-routes.js";
 
 const opsAuditLogQuerySchema = {
   type: "object",
@@ -182,4 +183,5 @@ export async function registerOpsRoutes(app) {
   );
 
   await registerOpsCatalogRoutes(app);
+  await registerOpsBetaRoutes(app);
 }

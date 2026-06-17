@@ -40,7 +40,10 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/world-wizard-bootstrap", ["test/world-wizard.test.js"]],
   ["backend/src/world-templates", ["test/world-wizard.test.js"]],
   ["backend/src/routes/world-wizard-routes", ["test/world-wizard.test.js"]],
-  ["backend/src/catalog-review", ["test/world-catalog.test.js", "test/catalog-readiness-gate.test.js"]]
+  ["backend/src/catalog-review", ["test/world-catalog.test.js", "test/catalog-readiness-gate.test.js"]],
+  ["backend/src/beta-apply", ["test/beta-apply.test.js"]],
+  ["backend/src/routes/platform-beta-routes", ["test/beta-apply.test.js"]],
+  ["backend/src/routes/ops-beta-routes", ["test/beta-apply.test.js"]]
 ];
 
 function gitLines(cmd) {
