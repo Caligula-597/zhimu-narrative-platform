@@ -1,5 +1,6 @@
 import { registerWorldRoutes } from "./routes/world-routes.js";
 import { registerWorldReadinessRoutes } from "./routes/world-readiness-routes.js";
+import { registerWorldWizardRoutes } from "./routes/world-wizard-routes.js";
 import { registerCreatorRoutes } from "./routes/creator-routes.js";
 import { registerScriptBundleRoutes } from "./routes/script-bundle-routes.js";
 import { registerRulesRoutes } from "./routes/rules-routes.js";
@@ -21,6 +22,7 @@ import { registerSearchRoutes } from "./routes/search-routes.js";
 export async function registerRoutes(app) {
   await registerWorldRoutes(app);
   await registerWorldReadinessRoutes(app);
+  await registerWorldWizardRoutes(app);
   await registerCreatorRoutes(app);
   await registerScriptBundleRoutes(app);
   await registerRulesRoutes(app);

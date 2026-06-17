@@ -6,6 +6,24 @@ import { hostUserId, playerUserId } from "./helpers/fixture-ids.js";
 
 const fogWorldId = "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
 
+async function createCatalogReadyWorld(app, nameSuffix) {
+  const created = await app.inject({
+    method: "POST",
+    url: "/api/worlds/from-template/classic-script",
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `审核就绪 ${nameSuffix}` }
+  });
+  assert.equal(created.statusCode, 201, created.body);
+  const worldId = created.json().world.id;
+  const readiness = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${worldId}/publish-readiness`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(readiness.json().summary.readyForCatalog, true, readiness.body);
+  return worldId;
+}
+
 test("GET /worlds/catalog lists public worlds including 雾港来信", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
@@ -66,14 +84,11 @@ test("POST /worlds/:id/catalog/request submits pending review", async (context) 
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
   process.env.EMAIL_DELIVERY_STUB = "1";
-  await query(
-    `UPDATE worlds SET catalog_public = false, catalog_review_status = 'none' WHERE id = $1`,
-    [fogWorldId]
-  );
+  const worldId = await createCatalogReadyWorld(app, Date.now());
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/catalog/request`,
+    url: `/api/worlds/${worldId}/catalog/request`,
     headers: { "x-user-id": hostUserId },
     payload: {
       playtestNotes: "三人完整跑通开始体验流程，分幕与角色正常。",
@@ -90,7 +105,7 @@ test("POST /worlds/:id/catalog/request submits pending review", async (context) 
 
   const duplicate = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/catalog/request`,
+    url: `/api/worlds/${worldId}/catalog/request`,
     headers: { "x-user-id": hostUserId },
     payload: {
       playtestNotes: "再次提交应被拒绝。",
@@ -112,14 +127,11 @@ test("POST /worlds/:id/catalog/request stays pending when notify email fails", a
     if (prevResend === undefined) delete process.env.RESEND_API_KEY;
     else process.env.RESEND_API_KEY = prevResend;
   });
-  await query(
-    `UPDATE worlds SET catalog_public = false, catalog_review_status = 'none' WHERE id = $1`,
-    [fogWorldId]
-  );
+  const worldId = await createCatalogReadyWorld(app, `email-${Date.now()}`);
 
   const response = await app.inject({
     method: "POST",
-    url: `/api/worlds/${fogWorldId}/catalog/request`,
+    url: `/api/worlds/${worldId}/catalog/request`,
     headers: { "x-user-id": hostUserId },
     payload: {
       playtestNotes: "三人完整跑通开始体验流程，分幕与角色正常。",

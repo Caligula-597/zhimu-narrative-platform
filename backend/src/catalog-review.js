@@ -5,6 +5,7 @@ import { sendTransactionalEmail } from "./email/index.js";
 import { brandedEmailHtml } from "./email/templates.js";
 import { throwErr } from "./api-errors.js";
 import { query } from "./db.js";
+import { loadWorldPublishReadiness } from "./world-readiness-service.js";
 
 export function catalogReviewNotifyEmail() {
   return (
@@ -128,6 +129,17 @@ export async function submitCatalogReviewRequest(actorId, worldId, body) {
   const themeNotes = String(body.themeNotes || "").trim();
   if (playtestNotes.length < 8) throwErr("CATALOG_REVIEW_NOTES_TOO_SHORT", "请填写至少 8 字的自测说明");
   if (themeNotes.length < 8) throwErr("CATALOG_REVIEW_NOTES_TOO_SHORT", "请填写至少 8 字的题材说明");
+
+  const readiness = await loadWorldPublishReadiness(worldId);
+  if (!readiness.summary.readyForCatalog) {
+    const blocking = readiness.checks.filter((item) => item.level === "error" || item.level === "warning");
+    throwErr("CATALOG_READINESS_BLOCKED", "剧本尚未满足公开库上架要求，请先完成发布前检查", {
+      readyForPlaytest: readiness.summary.readyForPlaytest,
+      readyForCatalog: readiness.summary.readyForCatalog,
+      summary: readiness.summary,
+      issues: blocking.slice(0, 8).map(({ id, level, title, detail }) => ({ id, level, title, detail }))
+    });
+  }
 
   const updated = await query(
     `UPDATE worlds

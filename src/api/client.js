@@ -245,6 +245,15 @@ window.zhimuApi = {
     request(`/rooms/${demoContext.roomId}/recap/latest`, { userId: asPlayer ? demoContext.playerUserId : demoContext.hostUserId }),
   createRecap: (payload) => request(`/rooms/${demoContext.roomId}/recaps`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   createWorld: (payload) => request("/worlds", { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  bootstrapWorldFromWizard: (payload) =>
+    request("/worlds/wizard/bootstrap", { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  getWorldTemplates: () => request("/platform/world-templates", { userId: demoContext.hostUserId }),
+  createWorldFromTemplate: (templateId, payload = {}) =>
+    request(`/worlds/from-template/${encodeURIComponent(templateId)}`, {
+      userId: demoContext.hostUserId,
+      method: "POST",
+      body: payload
+    }),
   createChapter: (worldId, payload) => request(`/worlds/${worldId}/chapters`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   createRole: (worldId, payload) => request(`/worlds/${worldId}/roles`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   updateRole: (roleId, payload) => request(`/worlds/${demoContext.worldId}/roles/${roleId}`, { userId: demoContext.hostUserId, method: "PUT", body: payload }),

@@ -16,7 +16,7 @@
 | 0 | 边界冻结 | 文档 | 定位、三用户、不做什么 |
 | 1 | 权限与成员元数据 | **完成** | `membership-labels.js`、中文 403、`GET /worlds` enrich |
 | 2 | 官方示例 + 首次路径 | **部分完成** | `OFFICIAL_EXAMPLE_WORLD_ID`、`/api/platform/official-example` |
-| 3 | 创作者闭环 | **部分完成** | 发布前检查 API、导入说明 API |
+| 3 | 创作者闭环 | **完成** | 向导 bootstrap、模板库、发布前检查、公开库就绪门槛 |
 | 4 | 主持工作流 | 待做 | 事件上下文 payload |
 | 5 | 运营审核 | **完成** | `GET/POST /api/ops/catalog/reviews/*` |
 | 6 | 官网内测 | 待做 | 内测申请 API |
@@ -57,3 +57,8 @@ CLI：`node backend/scripts/approve-catalog-world.mjs <worldId>`（需 pending �
 | GET | `/api/worlds/:worldId/publish-readiness` | 结构化检查项 + `readyForPlaytest` / `readyForCatalog` |
 | GET | `/api/worlds/:worldId/creator-checks` | 兼容旧前端；含 `checks` + `summary` |
 | GET | `/api/platform/import-guide` | 导入格式、模式、会/不会生成什么 |
+| GET | `/api/platform/world-templates` | 内置剧本骨架模板列表 |
+| POST | `/api/worlds/wizard/bootstrap` | 向导一键创建：世界+角色+分幕+规则+测试房 |
+| POST | `/api/worlds/from-template/:templateId` | 从模板创建世界（可覆盖 name/summary 等） |
+
+公开库申请（`POST /api/worlds/:id/catalog/request`）会在提交前校验 `readyForCatalog`；未通过时返回 `CATALOG_READINESS_BLOCKED` 及缺失项列表。

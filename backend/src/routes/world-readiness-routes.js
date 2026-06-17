@@ -1,23 +1,9 @@
-import { query } from "../db.js";
-import { throwErr } from "../api-errors.js";
-import {
-  buildWorldSnapshot,
-  pruneBrokenAutomationRules,
-  repairChapterSequencesIfNeeded
-} from "./world-helpers.js";
-import { evaluateWorldPublishReadiness } from "../world-publish-readiness.js";
+import { loadWorldPublishReadiness } from "../world-readiness-service.js";
 import { requireWorldReader } from "./route-guards.js";
 import { requireActor } from "../request-actor.js";
 import { worldIdParams } from "./schemas.js";
 
-export async function loadWorldPublishReadiness(worldId) {
-  const world = await query(`SELECT id FROM worlds WHERE id = $1`, [worldId]);
-  if (!world.rowCount) throwErr("WORLD_NOT_FOUND");
-  await pruneBrokenAutomationRules(worldId);
-  await repairChapterSequencesIfNeeded(worldId);
-  const snapshot = await buildWorldSnapshot(worldId);
-  return evaluateWorldPublishReadiness(snapshot);
-}
+export { loadWorldPublishReadiness };
 
 export async function registerWorldReadinessRoutes(app) {
   app.get(

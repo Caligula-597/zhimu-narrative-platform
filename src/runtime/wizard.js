@@ -199,23 +199,51 @@ async function finishWizard(){
  try{
   const d=state.wizardDraft;
   const content=currentContent();
-  const world=await zhimuApi.createWorld({name:d.worldName,summary:d.summary,settings:{worldMode:d.worldMode,contentSource:d.contentSource,automationTemplates:d.automationTemplates}});
+  const roles=currentRoles().map((roleDraft,index)=>({
+   name:roleDraft.name,
+   goal:roleDraft.goal,
+   publicProfile:roleDraft.publicProfile,
+   privateProfile:roleDraft.privateProfile,
+   scriptBody:roleDraft.scriptBody||"",
+   sequence:index+1
+  }));
+  const payload={
+   name:d.worldName,
+   summary:d.summary,
+   settings:{worldMode:d.worldMode,contentSource:d.contentSource,automationTemplates:d.automationTemplates},
+   chapter:{title:content.chapterTitle,summary:d.summary},
+   sectionDefaults:{title:content.sectionTitle,body:content.sectionBody},
+   roles,
+   automationTemplates:d.automationTemplates,
+   createTestRoom:true,
+   roomName:`${d.worldName} · 测试房`
+  };
+  let world, room, rulesCreated=0, inviteCode="";
+  if(zhimuApi.bootstrapWorldFromWizard){
+   const result=await zhimuApi.bootstrapWorldFromWizard(payload);
+   world=result.world;
+   room=result.room;
+   rulesCreated=result.rulesCreated||0;
+   inviteCode=result.inviteCode||room?.invite_code||"";
+  }else{
+   world=await zhimuApi.createWorld({name:d.worldName,summary:d.summary,settings:{worldMode:d.worldMode,contentSource:d.contentSource,automationTemplates:d.automationTemplates}});
+   zhimuApi.selectWorld(world.id);
+   const chapter=await zhimuApi.createChapter(world.id,{title:content.chapterTitle,summary:d.summary,sequence:1});
+   const createdRoles=[];
+   for(const [index,roleDraft] of currentRoles().entries()){
+    const role=await zhimuApi.createRole(world.id,{name:roleDraft.name,publicProfile:roleDraft.publicProfile,privateProfile:roleDraft.privateProfile,sequence:index+1});
+    await zhimuApi.createSection(world.id,role.id,{chapterId:chapter.id,title:content.sectionTitle,body:roleDraft.scriptBody||`${roleDraft.privateProfile}\n\n${content.sectionBody}`,sequence:1,publicationStatus:"testing"});
+    createdRoles.push({id:role.id,name:roleDraft.name});
+   }
+   const templateRules=window.zhimuWizardAutomation?.buildWizardAutomationRules({roles:createdRoles,templates:d.automationTemplates})||[];
+   for(const ruleBody of templateRules){
+    try{await zhimuApi.createRule(ruleBody);rulesCreated+=1}catch(error){console.warn("wizard rule template skipped",error)}
+   }
+   inviteCode=`TEST-${Date.now().toString(36).toUpperCase()}`;
+   room=await zhimuApi.createRoom(world.id,{name:`${d.worldName} · 测试房`,inviteCode});
+  }
   zhimuApi.selectWorld(world.id);
-  const chapter=await zhimuApi.createChapter(world.id,{title:content.chapterTitle,summary:d.summary,sequence:1});
-  const createdRoles=[];
-  for(const [index,roleDraft] of currentRoles().entries()){
-   const role=await zhimuApi.createRole(world.id,{name:roleDraft.name,publicProfile:roleDraft.publicProfile,privateProfile:roleDraft.privateProfile,sequence:index+1});
-   const section=await zhimuApi.createSection(world.id,role.id,{chapterId:chapter.id,title:content.sectionTitle,body:roleDraft.scriptBody||`${roleDraft.privateProfile}\n\n${content.sectionBody}`,sequence:1});
-   createdRoles.push({id:role.id,name:roleDraft.name,sectionId:section.id});
-  }
-  const templateRules=window.zhimuWizardAutomation?.buildWizardAutomationRules({roles:createdRoles,templates:d.automationTemplates})||[];
-  let rulesCreated=0;
-  for(const ruleBody of templateRules){
-   try{await zhimuApi.createRule(ruleBody);rulesCreated+=1}catch(error){console.warn("wizard rule template skipped",error)}
-  }
-  const inviteCode=`TEST-${Date.now().toString(36).toUpperCase()}`;
-  const room=await zhimuApi.createRoom(world.id,{name:`${d.worldName} · 测试房`,inviteCode});
-  zhimuApi.selectRoom(room.id);
+  if(room?.id) zhimuApi.selectRoom(room.id);
   await loadCloudData(true);
   closeModal();go("rules");
   const rulesHint=rulesCreated?`已根据向导模板写入 ${rulesCreated} 条起始规则，可在本页继续调整。`:"未启用规则模板，可在「自动化规则」页手动创建。";

@@ -33,8 +33,14 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/catalog-join-service", ["test/catalog-join-service.test.js", "test/world-catalog.test.js"]],
   ["backend/src/routes/official-example-routes", ["test/official-example.test.js"]],
   ["backend/src/world-publish-readiness", ["test/world-publish-readiness.test.js"]],
+  ["backend/src/world-readiness-service", ["test/world-readiness-routes.test.js", "test/catalog-readiness-gate.test.js"]],
   ["backend/src/routes/world-readiness-routes", ["test/world-readiness-routes.test.js"]],
-  ["backend/src/import-guide", ["test/world-readiness-routes.test.js"]]
+  ["backend/src/import-guide", ["test/world-readiness-routes.test.js"]],
+  ["backend/src/wizard-automation-templates", ["test/world-wizard.test.js"]],
+  ["backend/src/world-wizard-bootstrap", ["test/world-wizard.test.js"]],
+  ["backend/src/world-templates", ["test/world-wizard.test.js"]],
+  ["backend/src/routes/world-wizard-routes", ["test/world-wizard.test.js"]],
+  ["backend/src/catalog-review", ["test/world-catalog.test.js", "test/catalog-readiness-gate.test.js"]]
 ];
 
 function gitLines(cmd) {
