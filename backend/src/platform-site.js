@@ -11,12 +11,16 @@ export function getPlatformLinks() {
     /\/$/,
     ""
   );
+  const playUrl = (process.env.PLAY_SITE_URL || process.env.PLAY_SITE_ORIGIN?.split(",")[0] || "")
+    .replace(/\/$/, "");
 
   return {
     marketingSiteUrl: marketingUrl || null,
     appUrl: appUrl || null,
+    playUrl: playUrl || null,
     register: appUrl ? `${appUrl}/?auth=register` : null,
     login: appUrl ? `${appUrl}/?auth=login` : null,
+    playerJoin: playUrl || null,
     officialExample: appUrl ? `${appUrl}/?experience=official` : null,
     creatorGuide: appUrl ? `${appUrl}/docs/CREATOR_GUIDE.md` : null
   };

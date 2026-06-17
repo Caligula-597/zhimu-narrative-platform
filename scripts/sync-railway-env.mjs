@@ -64,6 +64,11 @@ const marketingOrigins = (process.env.MARKETING_SITE_ORIGIN || "https://getzhimu
   .map((v) => v.trim())
   .filter(Boolean);
 const marketingUrl = (process.env.MARKETING_SITE_URL || marketingOrigins[0] || "https://getzhimu.com").replace(/\/$/, "");
+const playOrigins = (process.env.PLAY_SITE_ORIGIN || "https://play.getzhimu.com")
+  .split(",")
+  .map((v) => v.trim())
+  .filter(Boolean);
+const playUrl = (process.env.PLAY_SITE_URL || playOrigins[0] || "https://play.getzhimu.com").replace(/\/$/, "");
 
 if (!fs.existsSync(backendEnvPath)) {
   console.error("sync-railway-env: backend/.env not found");
@@ -119,6 +124,8 @@ env.APP_PUBLIC_URL = publicUrl;
 env.CORS_ORIGIN = publicUrl;
 env.MARKETING_SITE_ORIGIN = marketingOrigins.join(",");
 env.MARKETING_SITE_URL = marketingUrl;
+env.PLAY_SITE_ORIGIN = playOrigins.join(",");
+env.PLAY_SITE_URL = playUrl;
 env.EMAIL_PROVIDER = env.EMAIL_PROVIDER || "resend";
 env.REQUIRE_EMAIL_VERIFICATION = local.REQUIRE_EMAIL_VERIFICATION || "false";
 env.RUN_DB_SEED = "false";
@@ -167,6 +174,8 @@ console.log("sync-railway-env: wrote .env.railway");
 console.log(`  APP_PUBLIC_URL=${publicUrl}`);
 console.log(`  MARKETING_SITE_ORIGIN=${env.MARKETING_SITE_ORIGIN}`);
 console.log(`  MARKETING_SITE_URL=${env.MARKETING_SITE_URL}`);
+console.log(`  PLAY_SITE_ORIGIN=${env.PLAY_SITE_ORIGIN}`);
+console.log(`  PLAY_SITE_URL=${env.PLAY_SITE_URL}`);
 console.log(`  keys=${Object.keys(env).length}`);
 console.log("  OFFICIAL_EXAMPLE_WORLD_ID=" + env.OFFICIAL_EXAMPLE_WORLD_ID);
 console.log("  SKIP_ENSURE_PLATFORM_CATALOG removed (legacy demo deleted)");

@@ -1,9 +1,10 @@
-# 分域部署：getzhimu.com + app.getzhimu.com
+# 分域部署：getzhimu.com + app.getzhimu.com + play.getzhimu.com
 
 | 域名 | 托管 | 内容 |
 |------|------|------|
 | `getzhimu.com` | **Cloudflare Pages** | 官网 `site/`（营销 + 内测表单） |
-| `app.getzhimu.com` | **Railway** | 织幕 fullstack（前端 + `/api`） |
+| `app.getzhimu.com` | **Railway** | 织幕 fullstack（创作者 / 主持 + `/api`） |
+| `play.getzhimu.com` | **Cloudflare Pages** | 玩家端 `play/`（纯玩家视角） |
 
 ## 一键迁移（本机）
 
@@ -19,6 +20,18 @@ npm run migrate:split-domains
 ```powershell
 node scripts/cloudflare-sync-dns.mjs
 ```
+
+## Cloudflare Pages（玩家端）
+
+| 项 | 值 |
+|----|-----|
+| 项目名 | `zhimu-play`（建议） |
+| Root directory | **`play`** |
+| Build command | `npm ci && npm run build` |
+| Output directory | **`dist`** |
+| 自定义域 | `play.getzhimu.com` |
+
+本地开发见 [play/README.md](../../play/README.md)。
 
 ## Cloudflare Pages（官网）
 
@@ -49,6 +62,8 @@ APP_PUBLIC_URL=https://app.getzhimu.com
 CORS_ORIGIN=https://app.getzhimu.com
 MARKETING_SITE_ORIGIN=https://getzhimu.com,https://www.getzhimu.com
 MARKETING_SITE_URL=https://getzhimu.com
+PLAY_SITE_ORIGIN=https://play.getzhimu.com
+PLAY_SITE_URL=https://play.getzhimu.com
 OFFICIAL_EXAMPLE_WORLD_ID=20725d66-35ec-4d2f-aef8-4794cef6ace1
 ```
 
@@ -65,11 +80,20 @@ https://app.getzhimu.com/api/auth/oauth/github/callback
 
 GitHub 还需把 **Homepage URL** 改为 `https://app.getzhimu.com`。逐步说明见 [OAUTH_SETUP.md](./OAUTH_SETUP.md) § GitHub · 本地检查 `npm run oauth:check`
 
+从 **玩家域** 发起 OAuth 时，Google 控制台还需登记 **Authorized JavaScript origins**：
+
+```text
+https://play.getzhimu.com
+```
+
+回调地址仍在应用域（不变）。
+
 ## 验收
 
 ```text
 GET https://getzhimu.com/                     → 官网 HTML（非登录工作区）
-GET https://app.getzhimu.com/                 → 织幕应用
+GET https://app.getzhimu.com/                 → 织幕应用（创作者 / 主持）
+GET https://play.getzhimu.com/                → 玩家端
 GET https://app.getzhimu.com/api/health/ready → ready: true
 POST https://app.getzhimu.com/api/platform/beta/apply  ← 官网内测表单
 ```

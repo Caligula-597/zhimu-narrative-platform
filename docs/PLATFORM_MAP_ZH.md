@@ -248,8 +248,8 @@ deploy/Dockerfile.fullstack   ← 生产唯一镜像
 | `web/Dockerfile` · `web/railway.json` | ⚠️ 双服务方案已弃用 | 保留作参考或下版删除；生产用 `deploy/Dockerfile.fullstack` |
 | [ops/RAILWAY_WEB.md](./ops/RAILWAY_WEB.md) | ⚠️ 过时 | 已标 DEPRECATED，见 DEPLOY |
 | `npm run railway:deploy:web` | ⚠️ 过时 | 改用 `railway:deploy`（单服务） |
-| `api.getzhimu.com` 双域文档 | ⚠️ 过时 | 现单域 `getzhimu.com` + `/api` |
-| Cloudflare Pages / wrangler | ❌ 已移除 | 勿再引用 |
+| `api.getzhimu.com` 双域文档 | ⚠️ 过时 | 现 **分域**：`app.` 应用 + 根域 Pages |
+| Cloudflare Pages | ✅ 营销站 | `site/` → `getzhimu.com`；勿再写「已移除」 |
 | `COLLABORATOR_NOT_REGISTERED` 错误码 | 🟡 行为已变 | 现返回 `201 pendingInvite`；错误码保留兼容 |
 | `GET .../members` 返回数组 | 🟡 已变 object | client 已兼容 `{ members, pendingInvites }` |
 | 侧栏「世界设置」无账号块 | ✅ 已补 | 侧栏 **账号设置** + 世界设置内跳转 |
@@ -263,8 +263,8 @@ deploy/Dockerfile.fullstack   ← 生产唯一镜像
 
 | 优先级 | 项 |
 |--------|-----|
-| P1 | Stripe / 支付宝订阅（`user_plans` 已有，无 webhook） |
-| P2 | 邀请邮件 HTML 模板品牌化 |
+| P1 | Stripe / 支付宝订阅（后端 webhook 已有，前端结账待做） |
+| P2 | ~~邀请邮件 HTML 模板品牌化~~ | ✅ 2026-06 已与官网视觉统一 |
 | P3 | 多节点 SSE（Redis）/ 完整 OTel SDK |
 
 ---

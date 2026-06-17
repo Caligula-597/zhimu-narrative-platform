@@ -415,7 +415,7 @@ export async function registerAuthRoutes(app) {
         /* ignore */
       }
     }
-    const state = await createOAuthState(provider, guestUserId);
+    const state = await createOAuthState(provider, guestUserId, request.query?.returnOrigin);
     return reply.redirect(buildOAuthAuthorizeUrl(provider, state));
   });
 
@@ -425,6 +425,13 @@ export async function registerAuthRoutes(app) {
         type: "object",
         required: ["provider"],
         properties: { provider: { type: "string", enum: ["google", "github"] } }
+      },
+      body: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          returnOrigin: { type: "string", minLength: 8, maxLength: 200 }
+        }
       }
     }
   }, async (request) => {
@@ -437,7 +444,7 @@ export async function registerAuthRoutes(app) {
         /* ignore */
       }
     }
-    const state = await createOAuthState(provider, guestUserId);
+    const state = await createOAuthState(provider, guestUserId, request.body?.returnOrigin);
     return { url: buildOAuthAuthorizeUrl(provider, state) };
   });
 

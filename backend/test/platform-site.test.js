@@ -27,6 +27,13 @@ test("resolveAllowedCorsOrigins merges marketing and app origins", () => {
 });
 
 test("GET /api/platform/site returns marketing bootstrap without auth", async (context) => {
+  const prevPlay = process.env.PLAY_SITE_ORIGIN;
+  process.env.PLAY_SITE_ORIGIN = "https://play.getzhimu.com";
+  context.after(() => {
+    if (prevPlay === undefined) delete process.env.PLAY_SITE_ORIGIN;
+    else process.env.PLAY_SITE_ORIGIN = prevPlay;
+  });
+
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 
@@ -35,6 +42,7 @@ test("GET /api/platform/site returns marketing bootstrap without auth", async (c
   const body = response.json();
   assert.equal(body.product.name, "织幕");
   assert.ok(body.links);
+  assert.equal(body.links.playerJoin, "https://play.getzhimu.com");
   assert.ok(body.beta?.roleOptions?.length >= 5);
   assert.ok(body.officialExample);
   assert.ok(body.catalog);

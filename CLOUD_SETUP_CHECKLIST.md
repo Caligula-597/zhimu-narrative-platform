@@ -1,6 +1,6 @@
 # 云端免费版接入清单
 
-> **注意**：生产部署步骤已整合至 [docs/ops/MANUAL_SETUP_CHECKLIST.md](./docs/ops/MANUAL_SETUP_CHECKLIST.md) 与 [docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md)。本文保留 Supabase/R2 账号侧说明。
+> **注意**：生产部署见 [docs/ops/SPLIT_DOMAINS.md](./docs/ops/SPLIT_DOMAINS.md) · [docs/ops/MANUAL_SETUP_CHECKLIST.md](./docs/ops/MANUAL_SETUP_CHECKLIST.md) · [docs/ops/MONITORING_SETUP.md](./docs/ops/MONITORING_SETUP.md)。
 
 代码端已经完成 PostgreSQL 和 Cloudflare R2 的接口。以下步骤需要由云账号持有人在控制台完成。
 

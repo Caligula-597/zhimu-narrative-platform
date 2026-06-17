@@ -174,12 +174,15 @@ ${webService ? `⚠️  检测到多余 web 服务 (${webService.name}) — 请�
   1. zhimu-narrative-platform → Settings → Build
      - Root Directory：**留空**（不要填 backend）
      - Dockerfile：**deploy/Dockerfile.fullstack**
-  2. Networking → Custom Domain：**getzhimu.com**
+  2. Networking → Custom Domain：**app.getzhimu.com**（应用域，非营销根域）
   3. 等 Deployments 构建完成（日志应有 npm run build + Static frontend enabled）
+  4. Cloudflare Pages 绑定 getzhimu.com → site/ 营销站（见 docs/ops/SPLIT_DOMAINS.md）
 
 验收：
-  https://getzhimu.com/api/health/ready → "ready": true
-  https://getzhimu.com/ → 织幕登录页（不是 JSON 404）
+  https://app.getzhimu.com/api/health/ready → "ready": true
+  https://app.getzhimu.com/ → 织幕应用（HTML）
+  https://getzhimu.com/ → 营销官网（HTML）
+  npm run monitoring:smoke
 
 GitHub Actions 部署（可选，需 Project Token）见 docs/ops/MANUAL_SETUP_CHECKLIST.md
 `);

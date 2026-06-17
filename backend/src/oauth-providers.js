@@ -53,3 +53,39 @@ export function oauthCallbackUrl(providerId) {
 export function oauthFrontendReturnUrl() {
   return `${appPublicOrigin()}/`;
 }
+
+function parseOriginList(raw) {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function normalizeOrigin(raw) {
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return null;
+  }
+}
+
+export function allowedOAuthReturnOrigins() {
+  const allowed = new Set();
+  for (const key of ["APP_PUBLIC_URL", "CORS_ORIGIN", "MARKETING_SITE_ORIGIN", "PLAY_SITE_ORIGIN"]) {
+    for (const entry of parseOriginList(process.env[key]?.trim())) {
+      const origin = normalizeOrigin(entry);
+      if (origin) allowed.add(origin);
+    }
+  }
+  const fallback = normalizeOrigin(oauthFrontendReturnUrl());
+  if (fallback) allowed.add(fallback);
+  return allowed;
+}
+
+export function resolveOAuthReturnOrigin(requested) {
+  if (!requested?.trim()) return oauthFrontendReturnUrl();
+  const origin = normalizeOrigin(requested.trim());
+  if (!origin || !allowedOAuthReturnOrigins().has(origin)) return oauthFrontendReturnUrl();
+  return `${origin}/`;
+}

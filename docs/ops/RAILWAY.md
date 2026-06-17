@@ -1,5 +1,6 @@
 # 织幕 · Railway 部署（单服务 fullstack）
 
+> **分域架构**：[SPLIT_DOMAINS.md](./SPLIT_DOMAINS.md)（营销 `getzhimu.com` + 应用 `app.getzhimu.com`）  
 > **手动步骤**：[MANUAL_SETUP_CHECKLIST.md](./MANUAL_SETUP_CHECKLIST.md)  
 > **一键脚本**：`npm run railway:bootstrap`（需 Account Token）
 
@@ -8,10 +9,11 @@
 一个 Railway 服务 `zhimu-narrative-platform`：
 
 - 镜像：`deploy/Dockerfile.fullstack`（Vite 构建 + Fastify API）
-- 同域：`https://getzhimu.com/` 前端 + `https://getzhimu.com/api` API
+- **应用域**：`https://app.getzhimu.com/` 前端 + `https://app.getzhimu.com/api` API
+- **营销域**：`https://getzhimu.com` → Cloudflare Pages（`site/`，与 Railway 分离）
 - 配置：`railway.toml` / `railway.json`（仓库根）
 
-**切勿**将 Root Directory 设为 `backend`（会走仅 API 的 `backend/Dockerfile`，首页 404）。
+**切勿**将 Root Directory 设为 `backend`（会走仅 API 的 `backend/Dockerfile`，应用首页 404）。
 
 ---
 
@@ -66,8 +68,10 @@ npm run railway:deploy
 ## 验收
 
 ```text
-GET https://getzhimu.com/api/health/ready  → "ready": true
-GET https://getzhimu.com/                  → 织幕登录页（HTML）
+GET https://app.getzhimu.com/api/health/ready  → "ready": true
+GET https://app.getzhimu.com/                  → 织幕应用（HTML）
+GET https://getzhimu.com/                      → 营销官网（HTML，非 /api）
+npm run monitoring:smoke                         → 健康 + metrics 探测
 ```
 
 Build Logs 应包含 `npm run build` 与 `Static frontend enabled`。
@@ -80,9 +84,11 @@ Build Logs 应包含 `npm run build` 与 `Static frontend enabled`。
 
 | 文件 | 作用 |
 |------|------|
+| [SPLIT_DOMAINS.md](./SPLIT_DOMAINS.md) | 分域 DNS、env、OAuth |
+| [MONITORING_SETUP.md](./MONITORING_SETUP.md) | 监控验收 |
 | `deploy/Dockerfile.fullstack` | 生产唯一镜像 |
 | `railway.toml` / `railway.json` | Railway 构建配置 |
 | `scripts/sync-railway-env.mjs` | 生成 `.env.railway` |
-| `scripts/railway-push-env.mjs` | Account Token 推送变量 + 设 Dockerfile |
+| `scripts/railway-push-env.mjs` | Account Token 推送变量 |
 | `scripts/railway-bootstrap.mjs` | 一键 fullstack 配置 |
 | `backend/Dockerfile` | 仅本地/分体调试，**非生产** |

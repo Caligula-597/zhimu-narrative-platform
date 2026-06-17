@@ -61,6 +61,7 @@ Payload 示例：`{ severity, title, body, ts, service, labels, context }`
 
 ## 相关
 
+- [MONITORING_SETUP.md](./MONITORING_SETUP.md) — **接入与验收清单**、`npm run monitoring:smoke`
 - [LOGGING.md](./LOGGING.md)
 - [BACKUP.md](./BACKUP.md)
 - [SECURITY_EDGE.md](./SECURITY_EDGE.md)

@@ -76,6 +76,8 @@ REQUIRE_OAUTH_IN_PRODUCTION=false
 ```env
 APP_PUBLIC_URL=https://app.getzhimu.com
 CORS_ORIGIN=https://app.getzhimu.com
+MARKETING_SITE_ORIGIN=https://getzhimu.com,https://www.getzhimu.com
+MARKETING_SITE_URL=https://getzhimu.com
 # 同上 GOOGLE_* / GITHUB_*
 ```
 

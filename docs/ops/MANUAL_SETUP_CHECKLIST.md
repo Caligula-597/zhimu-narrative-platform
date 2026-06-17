@@ -1,20 +1,22 @@
 # 织幕 · 上线手动清单（API 无法代劳的部分）
 
-> **架构（省钱版）**：**一个** Railway 服务同时跑 API + 前端（`deploy/Dockerfile.fullstack`），不再单独开 Web 服务。  
+> **架构（分域）**：Railway **一个** fullstack 服务 → `app.getzhimu.com`；Cloudflare Pages → `getzhimu.com` 营销站。  
+> **真相源**：[SPLIT_DOMAINS.md](./SPLIT_DOMAINS.md) · **监控**：[MONITORING_SETUP.md](./MONITORING_SETUP.md)  
 > 项目：Railway **beautiful-unity** · GitHub **Caligula-597/zhimu-narrative-platform**
 
 ---
 
-## 当前线上状态（2026-06-10）
+## 当前线上状态（2026-06）
 
-| 检查 | 状态 | 说明 |
-|------|------|------|
-| `https://getzhimu.com/api/health/ready` | ✅ | `migrationsApplied: 24` |
-| `https://getzhimu.com/` | ❌ JSON 404 | 仍是 **API-only** 镜像，未托管前端 |
-| 环境变量 `SERVE_STATIC` 等 | ✅ 已推送 | 本机 `npm run railway:push-env` 已写入 40 项 |
-| Dockerfile 路径 | ✅ 已设 API | `deploy/Dockerfile.fullstack`（需确认 Root Directory） |
+| 检查 | 期望 |
+|------|------|
+| `https://app.getzhimu.com/api/health/ready` | `"ready": true` |
+| `https://app.getzhimu.com/` | 织幕应用 HTML |
+| `https://getzhimu.com/` | 营销官网 HTML（**无** `/api`） |
+| OAuth | `oauthDiagnostics.ready: true`（见 [OAUTH_SETUP.md](./OAUTH_SETUP.md)） |
+| 监控 | `npm run monitoring:smoke` 全绿 |
 
-**根因**：服务若 **Root Directory = `backend`**，会走 `backend/Dockerfile`（仅 API），首页必然 404。
+> **勿**用 `getzhimu.com/api/health` 验 API — 根域走 Pages，会返回营销站 HTML。
 
 ---
 
@@ -85,7 +87,8 @@ Railway → **Variables** → 确认存在：
 ```
 APP_PUBLIC_URL=https://app.getzhimu.com
 CORS_ORIGIN=https://app.getzhimu.com
-CORS_ORIGIN=https://getzhimu.com
+MARKETING_SITE_ORIGIN=https://getzhimu.com,https://www.getzhimu.com
+MARKETING_SITE_URL=https://getzhimu.com
 SERVE_STATIC=true
 STATIC_ROOT=/app/public/dist
 ```
@@ -99,19 +102,29 @@ npm run railway:push-env    # 需 .env.railway.setup 里 Account Token
 
 **不要**手动填 `PORT`（Railway 自动注入）。
 
-### 第 3 步：删多余 Web 服务 + 域名
+### 第 3 步：域名（分域）
 
-1. 若有 **web** 服务 → Settings → Danger → **Delete Service**
-2. **zhimu-narrative-platform** → Networking → Custom Domain → **getzhimu.com**
-3. Cloudflare DNS：CNAME 指向 Railway 给的域名；**删除**指向 Cloudflare Pages 的记录
+**Railway（应用）**
+
+1. 若有旧 **web** 服务 → Delete Service（只留 `zhimu-narrative-platform`）
+2. Networking → Custom Domain → **`app.getzhimu.com`**
+3. Cloudflare DNS：`app` CNAME → Railway 给的 `*.up.railway.app`（见 [SPLIT_DOMAINS.md](./SPLIT_DOMAINS.md)）
+
+**Cloudflare Pages（营销）**
+
+1. 项目 `zhimu-site`（或自建）→ Root **`site`** → Output **`dist`**
+2. 自定义域 **`getzhimu.com`**、`www.getzhimu.com`
+3. **不要**让根域 CNAME 再指向 Railway（会与 Pages 冲突）
 
 ### 第 4 步：验收
 
 | 检查 | 期望 |
 |------|------|
-| https://getzhimu.com/api/health/ready | `"ready": true` |
-| https://getzhimu.com/ | 织幕登录页（HTML，不是 `{"error":"Route not found"}`） |
-| 浏览器登录 | 无 CORS 报错（同域 `/api`） |
+| https://app.getzhimu.com/api/health/ready | `"ready": true` |
+| https://app.getzhimu.com/ | 织幕应用（HTML） |
+| https://getzhimu.com/ | 营销官网，链到 `app.getzhimu.com` |
+| `npm run monitoring:smoke` | health + metrics 通过 |
+| 浏览器从官网提交内测表单 | 无 CORS 报错 |
 
 ---
 
@@ -122,8 +135,9 @@ npm run railway:push-env    # 需 .env.railway.setup 里 Account Token
 | 代码：fullstack `deploy/Dockerfile.fullstack` + Fastify 静态前端 | ✅ |
 | 根目录 `railway.toml` + `railway.json` | ✅ |
 | `npm run railway:sync-env` / `railway:push-env` / `railway:bootstrap` | ✅ 单服务 fullstack |
-| 生产 DB 迁移到 024 | ✅ |
-| Cloudflare Pages | ❌ 已弃用，请停用 |
+| 生产 DB 迁移 | ✅ 见 `/api/health/ready` → `migrationsApplied` |
+| Cloudflare Pages 营销站 | ✅ `site/` → `getzhimu.com` |
+| 分域文档 | ✅ [SPLIT_DOMAINS.md](./SPLIT_DOMAINS.md) |
 
 ---
 
@@ -146,7 +160,7 @@ npm run railway:push-env    # 需 .env.railway.setup 里 Account Token
 
 > 详细步骤：[OAUTH_SETUP.md](./OAUTH_SETUP.md)
 
-当前生产 `GET /api/auth/config` → **`oauth: []`**，登录页不会出现 Google/GitHub 按钮，直到 Railway 配好凭证。
+当前生产 `GET https://app.getzhimu.com/api/auth/config` → 应 **`oauthDiagnostics.ready: true`**（凭证已 push 时）。
 
 ### 回调 URL（控制台必填）
 

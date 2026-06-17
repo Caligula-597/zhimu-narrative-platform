@@ -2,7 +2,7 @@ import { sendViaConsole } from "./providers/console.js";
 import { sendViaMailgun } from "./providers/mailgun.js";
 import { sendViaResend } from "./providers/resend.js";
 import { sendViaSendGrid } from "./providers/sendgrid.js";
-import { worldInviteEmailHtml } from "./templates.js";
+import { worldInviteEmailHtml, passwordResetEmailHtml, emailVerificationHtml } from "./templates.js";
 
 function isDeliveryStubbed() {
   return process.env.EMAIL_DELIVERY_STUB === "1" || process.env.PASSWORD_RESET_EMAIL_STUB === "1";
@@ -104,11 +104,7 @@ export async function sendPasswordResetEmail({ to, resetToken }) {
   await sendTransactionalEmail({
     to,
     subject: "重置织幕账号密码",
-    html: `<p>你好，</p>
-<p>我们收到了重置织幕账号密码的请求。请点击下方链接设置新密码（链接 1 小时内有效）：</p>
-<p><a href="${resetUrl}">${resetUrl}</a></p>
-<p>若你没有发起此请求，可忽略本邮件，账号密码不会变更。</p>
-<p>— 织幕</p>`
+    html: passwordResetEmailHtml({ resetUrl })
   });
 }
 
@@ -121,11 +117,7 @@ export async function sendEmailVerificationEmail({ to, verifyToken }) {
   await sendTransactionalEmail({
     to,
     subject: "验证织幕账号邮箱",
-    html: `<p>你好，</p>
-<p>欢迎注册织幕。请点击下方链接验证邮箱（链接 24 小时内有效）：</p>
-<p><a href="${verifyUrl}">${verifyUrl}</a></p>
-<p>若你没有注册织幕账号，可忽略本邮件。</p>
-<p>— 织幕</p>`
+    html: emailVerificationHtml({ verifyUrl })
   });
 }
 

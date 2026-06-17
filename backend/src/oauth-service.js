@@ -9,7 +9,8 @@ import { ensureUserPlan, initialPlanForEmail } from "./plans.js";
 import {
   oauthCallbackUrl,
   oauthFrontendReturnUrl,
-  oauthProviderConfig
+  oauthProviderConfig,
+  resolveOAuthReturnOrigin
 } from "./oauth-providers.js";
 
 const STATE_TTL_MS = 10 * 60 * 1000;
@@ -19,13 +20,16 @@ function hash(value) {
   return createHash("sha256").update(String(value)).digest("hex");
 }
 
-export async function createOAuthState(providerId, guestUserId = null) {
+export async function createOAuthState(providerId, guestUserId = null, returnOrigin = null) {
   const state = randomBytes(24).toString("base64url");
   const expiresAt = new Date(Date.now() + STATE_TTL_MS);
+  const resolvedReturn = returnOrigin
+    ? new URL(resolveOAuthReturnOrigin(returnOrigin)).origin
+    : null;
   await query(
-    `INSERT INTO oauth_states (state_hash, provider, guest_user_id, expires_at)
-     VALUES ($1, $2, $3, $4)`,
-    [hash(state), providerId, guestUserId, expiresAt]
+    `INSERT INTO oauth_states (state_hash, provider, guest_user_id, expires_at, return_origin)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [hash(state), providerId, guestUserId, expiresAt, resolvedReturn]
   );
   return state;
 }
@@ -34,11 +38,14 @@ export async function consumeOAuthState(state, providerId) {
   const result = await query(
     `DELETE FROM oauth_states
      WHERE state_hash = $1 AND provider = $2 AND expires_at > now()
-     RETURNING guest_user_id`,
+     RETURNING guest_user_id, return_origin`,
     [hash(state), providerId]
   );
   if (!result.rowCount) throwErr("OAUTH_STATE_INVALID");
-  return { guestUserId: result.rows[0].guest_user_id };
+  return {
+    guestUserId: result.rows[0].guest_user_id,
+    returnOrigin: result.rows[0].return_origin
+  };
 }
 
 async function issueLoginCode(userId) {
@@ -257,7 +264,7 @@ export async function resolveOAuthUserForTests(providerId, profile, guestUserId 
 
 export async function handleOAuthCallback(providerId, { code, state }) {
   if (!oauthProviderConfig(providerId)) throwErr("OAUTH_PROVIDER_DISABLED");
-  const { guestUserId } = await consumeOAuthState(state, providerId);
+  const { guestUserId, returnOrigin } = await consumeOAuthState(state, providerId);
   const accessToken = await exchangeAuthorizationCode(providerId, code);
   const profile = await fetchOAuthProfile(providerId, accessToken);
   const userId = await resolveOAuthUser(providerId, profile, guestUserId);
@@ -266,7 +273,8 @@ export async function handleOAuthCallback(providerId, { code, state }) {
     await acceptWorldMemberInvitesForEmail(userId, profile.email);
   }
   const loginCode = await issueLoginCode(userId);
-  const redirectUrl = new URL(oauthFrontendReturnUrl());
+  const base = returnOrigin ? `${returnOrigin.replace(/\/$/, "")}/` : oauthFrontendReturnUrl();
+  const redirectUrl = new URL(base);
   redirectUrl.searchParams.set("oauth_code", loginCode);
   return redirectUrl.toString();
 }
