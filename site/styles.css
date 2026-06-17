@@ -243,13 +243,94 @@ button {
   align-items: center;
   justify-content: flex-end;
   padding-right: max(0px, calc((100vw - 1180px) / 2));
-  opacity: 0.62;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .hero-backdrop img {
   width: min(900px, 74vw);
   transform: translate(8vw, 28px) rotate(-2.2deg);
   filter: drop-shadow(0 28px 60px rgba(27, 50, 46, 0.16));
+  opacity: 0.56;
+  animation: heroPanelDrift 12s ease-in-out infinite;
+}
+
+.story-pulse {
+  position: absolute;
+  z-index: 3;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brass);
+  opacity: 0;
+  box-shadow: 0 0 0 0 rgba(167, 120, 61, 0);
+  animation: storyPulse 5.6s ease-in-out infinite;
+}
+
+.story-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 1px solid rgba(167, 120, 61, 0.32);
+  border-radius: 50%;
+}
+
+.story-pulse-a {
+  right: clamp(210px, 25vw, 380px);
+  top: 33%;
+}
+
+.story-pulse-b {
+  right: clamp(142px, 18vw, 270px);
+  top: 42%;
+  background: var(--green-2);
+  animation-delay: 1.5s;
+}
+
+.story-pulse-b::after {
+  border-color: rgba(43, 107, 97, 0.32);
+}
+
+.story-pulse-c {
+  right: clamp(84px, 11vw, 160px);
+  top: 27%;
+  background: var(--clay);
+  animation-delay: 3s;
+}
+
+.story-pulse-c::after {
+  border-color: rgba(168, 95, 84, 0.32);
+}
+
+@keyframes heroPanelDrift {
+  0%,
+  100% {
+    transform: translate(8vw, 28px) rotate(-2.2deg);
+  }
+  50% {
+    transform: translate(8vw, 18px) rotate(-1.8deg);
+  }
+}
+
+@keyframes storyPulse {
+  0%,
+  18% {
+    opacity: 0;
+    transform: scale(0.82);
+    box-shadow: 0 0 0 0 rgba(167, 120, 61, 0);
+  }
+  28%,
+  58% {
+    opacity: 0.95;
+    transform: scale(1);
+    box-shadow: 0 0 0 14px rgba(167, 120, 61, 0.12);
+  }
+  76%,
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+    box-shadow: 0 0 0 24px rgba(167, 120, 61, 0);
+  }
 }
 
 .hero-content {
@@ -382,6 +463,21 @@ button {
   box-shadow: 0 14px 40px rgba(20, 35, 33, 0.045);
 }
 
+.module-grid article,
+.systems-grid article,
+.role-table article {
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.module-grid article:hover,
+.systems-grid article:hover,
+.role-table article:hover {
+  transform: translateY(-3px);
+  border-color: rgba(24, 63, 58, 0.24);
+  background: rgba(255, 253, 248, 0.92);
+  box-shadow: var(--shadow-soft);
+}
+
 .module-grid article {
   min-height: 220px;
   padding: 22px;
@@ -454,10 +550,26 @@ button {
 }
 
 .workflow-list li {
+  position: relative;
   min-height: 250px;
   padding: 24px;
   border-right: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.045);
+  transition: background 0.32s ease, border-color 0.32s ease;
+}
+
+.workflow-list li::after {
+  content: "";
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 0;
+  height: 2px;
+  background: #d5aa68;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.42s ease, opacity 0.42s ease;
 }
 
 .workflow-list li:last-child {
@@ -474,6 +586,7 @@ button {
   border-radius: 50%;
   color: #f2c678;
   font-weight: 900;
+  transition: background 0.32s ease, color 0.32s ease, border-color 0.32s ease;
 }
 
 .workflow-list strong {
@@ -486,6 +599,43 @@ button {
   margin: 14px 0 0;
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.8;
+}
+
+.workflow-list li.is-active,
+.workflow-list.is-visible li {
+  background: rgba(255, 255, 255, 0.085);
+  border-color: rgba(244, 198, 120, 0.26);
+}
+
+.workflow-list li.is-active::after,
+.workflow-list.is-visible li::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.workflow-list li.is-active span,
+.workflow-list.is-visible li span {
+  color: var(--green);
+  border-color: rgba(244, 198, 120, 0.7);
+  background: #d5aa68;
+}
+
+.workflow-list li:nth-child(2),
+.workflow-list li:nth-child(2)::after,
+.workflow-list li:nth-child(2) span {
+  transition-delay: 0.08s;
+}
+
+.workflow-list li:nth-child(3),
+.workflow-list li:nth-child(3)::after,
+.workflow-list li:nth-child(3) span {
+  transition-delay: 0.16s;
+}
+
+.workflow-list li:nth-child(4),
+.workflow-list li:nth-child(4)::after,
+.workflow-list li:nth-child(4) span {
+  transition-delay: 0.24s;
 }
 
 .systems-grid {
@@ -606,6 +756,37 @@ button {
   box-shadow: 0 0 0 3px rgba(43, 107, 97, 0.12);
 }
 
+.beta-form button[type="submit"] {
+  position: relative;
+  overflow: hidden;
+}
+
+.beta-form button[type="submit"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -36%;
+  width: 28%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  opacity: 0;
+  transform: skewX(-18deg);
+}
+
+.beta-form.is-submitting button[type="submit"]::after {
+  opacity: 1;
+  animation: submitSheen 1.2s ease-in-out infinite;
+}
+
+@keyframes submitSheen {
+  0% {
+    left: -36%;
+  }
+  100% {
+    left: 112%;
+  }
+}
+
 .form-status {
   min-height: 24px;
   margin: 0;
@@ -677,12 +858,16 @@ button {
 
   .hero-backdrop {
     justify-content: center;
-    opacity: 0.38;
   }
 
   .hero-backdrop img {
     width: 860px;
     transform: translate(18vw, 100px) rotate(-3deg);
+    opacity: 0.38;
+  }
+
+  .story-pulse {
+    display: none;
   }
 
   .section-heading,
@@ -812,5 +997,16 @@ button {
     flex-direction: column;
     padding-left: 16px;
     padding-right: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

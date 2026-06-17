@@ -5,6 +5,8 @@ const menuButton = document.querySelector("[data-menu-button]");
 const nav = document.querySelector("[data-nav]");
 const betaForm = document.querySelector("[data-beta-form]");
 const formStatus = document.querySelector("[data-form-status]");
+const workflowList = document.querySelector("[data-workflow-list]");
+const workflowSteps = [...document.querySelectorAll("[data-workflow-step]")];
 
 function updateHeader() {
   header?.classList.toggle("is-scrolled", window.scrollY > 10);
@@ -40,6 +42,19 @@ async function loadSiteBootstrap() {
   }
 }
 
+function updateWorkflowState() {
+  if (!workflowList || !workflowSteps.length) return;
+
+  const rect = workflowList.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const visibleProgress = (viewportHeight * 0.72 - rect.top) / Math.max(rect.height, 1);
+  const activeCount = Math.max(0, Math.min(workflowSteps.length, Math.ceil(visibleProgress * workflowSteps.length)));
+
+  workflowSteps.forEach((step, index) => {
+    step.classList.toggle("is-active", index < activeCount);
+  });
+}
+
 menuButton?.addEventListener("click", () => {
   const isOpen = nav?.classList.toggle("is-open");
   menuButton.setAttribute("aria-expanded", String(Boolean(isOpen)));
@@ -54,8 +69,27 @@ window.addEventListener("scroll", updateHeader, { passive: true });
 updateHeader();
 loadSiteBootstrap();
 
+if (workflowList && workflowSteps.length) {
+  const workflowRevealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          workflowList.classList.add("is-visible");
+        }
+      });
+    },
+    { threshold: 0.22 }
+  );
+
+  workflowRevealObserver.observe(workflowList);
+  window.addEventListener("scroll", updateWorkflowState, { passive: true });
+  window.addEventListener("resize", updateWorkflowState);
+  updateWorkflowState();
+}
+
 betaForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
+  betaForm.classList.add("is-submitting");
   formStatus.textContent = "正在提交...";
 
   const formData = new FormData(betaForm);
@@ -92,5 +126,7 @@ betaForm?.addEventListener("submit", async (event) => {
     formStatus.textContent =
       error.message ||
       "暂时没能提交到内测接口。你也可以直接注册，或发邮件到 support@getzhimu.com。";
+  } finally {
+    betaForm.classList.remove("is-submitting");
   }
 });
