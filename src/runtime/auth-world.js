@@ -348,7 +348,8 @@ function handleStartupAuthParams(){
  const oauthCode=params.get("oauth_code");
  const oauthError=params.get("oauth_error");
  const inviteToken=params.get("invite");
- if(!resetToken&&!verifyToken&&!oauthCode&&!oauthError&&!inviteToken)return;
+ const authMode=params.get("auth");
+ if(!resetToken&&!verifyToken&&!oauthCode&&!oauthError&&!inviteToken&&!authMode)return;
  const pending=[];
  if(resetToken){
   clearStartupSearchParams(["reset"]);
@@ -360,7 +361,12 @@ function handleStartupAuthParams(){
  }
  if(oauthError){
   clearStartupSearchParams(["oauth_error"]);
-  showToast(`OAuth 登录失败：${oauthError}`);
+  const friendly=window.zhimuUserMessages?.friendlyApiError?.({ code: oauthError, error: oauthError }, oauthError);
+  showToast(friendly||`OAuth 登录失败：${oauthError}`);
+ }
+ if(authMode==="login"||authMode==="register"){
+  clearStartupSearchParams(["auth"]);
+  setTimeout(()=>openAuth(),300);
  }
  if(inviteToken){
   clearStartupSearchParams(["invite"]);
