@@ -722,3 +722,61 @@ body.modal-scroll-lock { position:fixed; width:100%; left:0; right:0; }
   .studio-layout { grid-template-columns:1fr 250px; }
   .studio-layout > .panel:first-child { display:none; }
 }
+
+.invite-strip {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.invite-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.invite-code-display,
+.invite-code-inline {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #f4f1e9;
+  border: 1px solid var(--line);
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+.invite-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.invite-hint a {
+  color: var(--green);
+}
+
+.tutorial-tip .invite-link {
+  display: block;
+  margin-top: 4px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.director-invite-hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--gold);
+  font-size: 11px;
+}
+
+.secondary-btn.compact {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+

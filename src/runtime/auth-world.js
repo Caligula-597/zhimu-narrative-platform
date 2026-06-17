@@ -273,10 +273,17 @@ async function selectParallelRoom(roomId){
  window.zhimuContext?.prepareRoomSwitch?.(roomId);closeModal();await loadCloudData(true,true);showToast("已切换到独立平行房");
 }
 
+function openCurrentRoomInvite(){
+ const room=activeRuntimeRoom();
+ if(!room?.invite_code)return showToast("请先选择运行房");
+ openRoomInvite(room.id,room.invite_code,room.name);
+}
+
 function openRoomInvite(roomId,inviteCode,roomName){
  const roles=state.cloudStudio?.roles||[];
- modal.className="modal";modal.innerHTML=`<h2>邀请玩家 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">把邀请码发送给玩家。玩家打开织幕并选择“使用邀请码加入房间”，再从空闲角色中选择自己的席位。</p><div class="tutorial-tip"><b>房间邀请码</b><span class="invite-code">${escapeHtml(inviteCode)}</span></div><div class="checklist">${roles.map(role=>check(escapeHtml(role.name),"玩家加入时选择这个角色席位")).join("")||`<div class="empty-state">当前剧本尚未建立角色席位。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-copy-invite>复制邀请码</button><button class="primary-btn" data-action="room-join" data-invite-code="${escapeHtml(inviteCode)}">用当前预览玩家测试加入</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-copy-invite]").onclick=async()=>{try{await navigator.clipboard.writeText(inviteCode);showToast("邀请码已复制")}catch{showToast(`邀请码：${inviteCode}`)}};modal.querySelector("[data-action]").onclick=()=>openJoinRoom(inviteCode);
+ const playUrl=window.zhimuInviteLinks?.playerJoinUrl?.(inviteCode)||`https://play.getzhimu.com/?join=${encodeURIComponent(inviteCode)}`;
+ modal.className="modal";modal.innerHTML=`<h2>邀请玩家 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">把<strong>邀请码</strong>或<strong>玩家链接</strong>发给参与者。玩家在 <a href="${escapeHtml(playUrl)}" target="_blank" rel="noopener">play.getzhimu.com</a> 输入码并选择角色席位即可入房。</p><div class="tutorial-tip"><b>房间邀请码</b><span class="invite-code">${escapeHtml(inviteCode)}</span></div><div class="tutorial-tip"><b>玩家链接</b><span class="invite-link">${escapeHtml(playUrl)}</span></div><div class="checklist">${roles.map(role=>check(escapeHtml(role.name),"玩家加入时选择这个角色席位")).join("")||`<div class="empty-state">当前剧本尚未建立角色席位。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-copy-invite-code data-invite-code="${escapeHtml(inviteCode)}">复制邀请码</button><button class="secondary-btn" data-copy-play-link data-invite-code="${escapeHtml(inviteCode)}">复制玩家链接</button><button class="primary-btn" data-action="room-join" data-invite-code="${escapeHtml(inviteCode)}">自测加入</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-copy-invite-code]").onclick=()=>window.zhimuInviteLinks?.copyText?.(inviteCode,"邀请码");modal.querySelector("[data-copy-play-link]").onclick=()=>window.zhimuInviteLinks?.copyText?.(playUrl,"玩家链接");modal.querySelector("[data-action]").onclick=()=>openJoinRoom(inviteCode);
 }
 
 function openJoinRoom(inviteCode=""){
@@ -386,6 +393,6 @@ function handleStartupAuthParams(){
  }
  if(pending.length)return Promise.all(pending);
 }
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, openRenameWorldModal, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, selectParallelRoom, openRoomInvite, openJoinRoom, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });
+  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, openRenameWorldModal, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, selectParallelRoom, openRoomInvite, openCurrentRoomInvite, openJoinRoom, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });
 })(window);
 export {};

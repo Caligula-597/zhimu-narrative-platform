@@ -46,6 +46,7 @@ import "../src/runtime/runtime-store.js";
 import "../src/runtime/context-coordinator.js";
 import "../src/runtime/account-quota.js";
 import "../src/runtime/room-events.js";
+import "../src/runtime/invite-links.js";
 import "../src/runtime/auth-world.js";
 import "../src/runtime/actions-workspace.js";
 import "../src/runtime/actions-archive.js";

@@ -35,6 +35,18 @@
       case "room-invite":
         R.openRoomInvite?.(el?.dataset?.roomId, el?.dataset?.inviteCode, el?.dataset?.roomName);
         return true;
+      case "room-invite-current":
+        R.openCurrentRoomInvite?.();
+        return true;
+      case "copy-invite-code":
+        window.zhimuInviteLinks?.copyText?.(el?.dataset?.inviteCode, "邀请码");
+        return true;
+      case "copy-play-link":
+        window.zhimuInviteLinks?.copyText?.(
+          window.zhimuInviteLinks?.playerJoinUrl?.(el?.dataset?.inviteCode),
+          "玩家链接"
+        );
+        return true;
       case "room-join":
         R.openJoinRoom?.(el?.dataset?.inviteCode);
         return true;

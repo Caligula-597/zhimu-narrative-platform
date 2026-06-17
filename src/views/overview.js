@@ -103,6 +103,21 @@ function overview() {
   const statusHead = hasActiveRoom ? "● 运行中" : hasRooms ? "○ 运行房已建立" : "○ 尚未开始运行";
   const statusTitle = hasActiveRoom ? escapeHtml(room.name) : hasRooms ? "请选择一个运行房" : "尚未创建测试房";
   const statusKicker = hasActiveRoom ? "RUNTIME ACTIVE" : hasRooms ? "ROOMS READY" : "CREATOR MODE";
+  const playJoinUrl = hasActiveRoom && room?.invite_code
+    ? (window.zhimuInviteLinks?.playerJoinUrl?.(room.invite_code) || `https://play.getzhimu.com/?join=${encodeURIComponent(room.invite_code)}`)
+    : "";
+  const inviteStrip = hasActiveRoom && room?.invite_code ? `
+        <div class="invite-strip">
+          <p class="section-kicker">玩家邀请码 · 可随时复制</p>
+          <div class="invite-code-row">
+            <code class="invite-code-display">${escapeHtml(room.invite_code)}</code>
+            <button type="button" class="secondary-btn compact" data-action="copy-invite-code" data-invite-code="${escapeHtml(room.invite_code)}">复制码</button>
+            <button type="button" class="secondary-btn compact" data-action="copy-play-link" data-invite-code="${escapeHtml(room.invite_code)}">复制玩家链接</button>
+            <button type="button" class="text-btn" data-action="room-invite-current">详情</button>
+          </div>
+          <p class="invite-hint">发给玩家：<a href="${escapeHtml(playJoinUrl)}" target="_blank" rel="noopener">${escapeHtml(playJoinUrl)}</a></p>
+        </div>` : hasRooms && !hasActiveRoom ? `
+        <p class="invite-hint">已建立 ${rooms.length} 个平行房。请点下方「管理运行房」选中房间，即可查看并复制邀请码。</p>` : "";
   const showCatalogPromo = !loading && !studio && Boolean(localStorage.getItem("zhimuSessionToken"));
   const onboardingStrip = window.zhimuOnboarding?.renderOnboardingStrip?.() || "";
   return `
@@ -123,6 +138,7 @@ function overview() {
         <div class="progress"><i style="width:${hasActiveRoom ? runtimeProgress.percent : 0}%"></i></div>
         <div class="status-meta"><span>${hasActiveRoom ? runtimeProgress.label : hasRooms ? "已建立运行房，请进入房间后查看玩家进度" : "当前仅有创作内容，没有玩家运行状态"}</span><span>${hasActiveRoom ? runtimeProgress.percent : 0}%</span></div>
         <div class="pulse-line"><i></i><span>${hasActiveRoom ? "运行实例已连接" : hasRooms ? "选择一个运行房以读取运行状态" : "完成检查后可建立测试房"}</span></div>
+        ${inviteStrip}
       </article>
     </section>
     <section class="stats-grid">
@@ -154,6 +170,7 @@ function overview() {
           ${task("◇","复核剧情编排",`${studio?.scenes?.length || 0} 个场景、${studio?.investigationPoints?.length || 0} 个调查点和 ${studio?.edges?.length || 0} 条连线已经写入`,"studio","打开编排")}
           ${task("✎","逐角色检查私人剧本",`${roleCount} 个角色席位，共 ${studio?.sections?.length || 0} 段私人正文`,"writer","检查角色稿")}
           ${task("⌘","配置自动化规则",enabledRules ? `当前已有 ${enabledRules} 条启用规则` : "当前世界还没有运行规则","rules","打开规则")}
+          ${hasActiveRoom && room?.invite_code ? taskAction("⎘", "邀请玩家入房", `邀请码 ${escapeHtml(room.invite_code)}`, "room-invite-current", "复制/分享") : ""}
           ${taskAction(hasRooms ? "◉" : "＋",hasRooms ? "管理运行房" : "建立运行房",hasRooms ? (rooms.length===1?`当前运行房：${escapeHtml((room||rooms[0])?.name||"运行房")}`:`${rooms.length} 个你可访问的运行房`): "当前世界尚未创建运行实例","world-rooms",hasRooms ? "查看房间" : "创建运行房")}
           ${uploadCount ? taskAction("↑","管理云端附件",`${uploadCount} 个文件已上传`,"go-account","打开资产","assets") : taskAction("↑","上传世界附件","当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。","go-account","前往上传","assets")}
         </div>
