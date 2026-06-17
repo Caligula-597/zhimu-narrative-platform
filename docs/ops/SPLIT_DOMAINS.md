@@ -56,23 +56,14 @@ OFFICIAL_EXAMPLE_WORLD_ID=20725d66-35ec-4d2f-aef8-4794cef6ace1
 
 ## OAuth 回调
 
-Google / GitHub 控制台需增加（或改为）：
-
-```text
-https://app.getzhimu.com/api/auth/google/callback
-https://app.getzhimu.com/api/auth/github/callback
-```
-
-## OAuth 回调
-
-Google / GitHub 控制台登记 **应用域** 回调（非营销根域）：
+Google / GitHub 控制台登记 **应用域** 回调（非营销根域 `getzhimu.com`）：
 
 ```text
 https://app.getzhimu.com/api/auth/oauth/google/callback
 https://app.getzhimu.com/api/auth/oauth/github/callback
 ```
 
-详见 [OAUTH_SETUP.md](./OAUTH_SETUP.md) · 本地检查 `npm run oauth:check`
+GitHub 还需把 **Homepage URL** 改为 `https://app.getzhimu.com`。逐步说明见 [OAUTH_SETUP.md](./OAUTH_SETUP.md) § GitHub · 本地检查 `npm run oauth:check`
 
 ## 验收
 

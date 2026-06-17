@@ -226,7 +226,7 @@ cd backend && npm test   # 后端单测
 | 路线 | 控制台 | 回调 URL 示例 | env |
 |------|--------|---------------|-----|
 | A · Google | [Google Cloud Console](https://console.cloud.google.com) → OAuth 2.0 | `https://app.你的域名/api/auth/oauth/google/callback` | `GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET` |
-| B · GitHub | GitHub → Settings → Developer settings → OAuth Apps | 同上路径 `/github/callback` | `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET` |
+| B · GitHub | [GitHub OAuth Apps](https://github.com/settings/developers) | `https://app.你的域名/api/auth/oauth/github/callback`；Homepage URL 同应用域 | `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET` |
 
 **状态**：✅ 后端路由 + 登录/账号 UI 已实现。生产部署时在 OAuth 控制台登记 `oauthDiagnostics` 中的回调 URL，并填写 env。启动时 `oauth-diagnostics.js` 会 WARN/FATAL 缺失项。
 

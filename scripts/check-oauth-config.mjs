@@ -47,6 +47,9 @@ function printBlock(label, publicUrl) {
     console.log(`  ${callback}`);
     if (id === "google") {
       console.log(`  Authorized JavaScript origins → ${publicUrl}`);
+    } else if (id === "github" && publicUrl.startsWith("https://app.")) {
+      console.log(`  GitHub Homepage URL → ${publicUrl}`);
+      console.log(`  控制台 → https://github.com/settings/developers → OAuth Apps → Update application`);
     }
   }
 }
@@ -61,7 +64,7 @@ if (productionOnly) {
 }
 
 console.log("\n--- 必做（分域后）---");
-console.log("1. Google / GitHub OAuth 控制台：登记上方「生产」回调 URL（可保留旧 getzhimu.com 条目）");
+console.log("1. Google：登记生产回调 + JS origins；GitHub：改 Homepage URL + Authorization callback URL（见上方）");
 console.log("2. npm run railway:sync-env && npm run railway:push-env  # 推送 GOOGLE_* / GITHUB_* 到 Railway");
 console.log("3. 验收: https://app.getzhimu.com/api/auth/config → oauth 非空且 oauthDiagnostics.ready === true");
 console.log("\n详见 docs/ops/OAUTH_SETUP.md");

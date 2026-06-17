@@ -32,11 +32,26 @@ Google 还需在 **Authorized JavaScript origins** 添加：`https://app.getzhim
 
 ## 2. GitHub
 
-1. GitHub → **Settings → Developer settings → OAuth Apps**  
-2. 填写或更新：  
-   - **Homepage URL**：`https://app.getzhimu.com`  
-   - **Authorization callback URL**：`https://app.getzhimu.com/api/auth/oauth/github/callback`  
-3. 复制 **Client ID**、**Client Secret**
+控制台：<https://github.com/settings/developers> → **OAuth Apps** → 选择织幕应用 → **Update application**
+
+| 字段 | 生产环境填写（一字不差） |
+|------|--------------------------|
+| **Application name** | 织幕（或现有名称，可不改） |
+| **Homepage URL** | `https://app.getzhimu.com` |
+| **Application description** | 可选 |
+| **Authorization callback URL** | `https://app.getzhimu.com/api/auth/oauth/github/callback` |
+| **Enable Device Flow** | 保持关闭（默认） |
+
+操作步骤：
+
+1. 打开 [Developer settings → OAuth Apps](https://github.com/settings/developers)  
+2. 点击你的 OAuth App（Client ID 与 `backend/.env` 中 `GITHUB_CLIENT_ID` 一致）  
+3. 将 **Homepage URL** 从 `https://getzhimu.com` 改为 **`https://app.getzhimu.com`**  
+4. 将 **Authorization callback URL** 从 `https://getzhimu.com/api/auth/oauth/github/callback` 改为 **`https://app.getzhimu.com/api/auth/oauth/github/callback`**  
+5. 点击 **Update application**  
+6. **不要**点击 *Regenerate client secret*（除非 Secret 已泄露）；若重新生成，须同步更新 `backend/.env` 并 `npm run railway:push-env`
+
+凭证：`Client ID` / `Client secrets` → 写入 `backend/.env` 的 `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET`（通常已有，分域只改 URL 即可）
 
 ---
 

@@ -338,10 +338,10 @@ test("workspace isWorldOwner checks membership_role and owner_user_id", () => {
   assert.equal(win.zhimuWorkspace.isWorldOwner("w2"), true);
 });
 
-test("auth-world and account views delegate logout to zhimuContext", () => {
+test("auth-world and account views delegate session context to zhimuContext", () => {
   const authJs = readModule("src/runtime/auth-world.js");
   const accountJs = readModule("src/views/account.js");
-  assert.match(authJs, /zhimuContext\?\.onSessionLogout/);
+  assert.match(authJs, /zhimuContext\?\.resetAccountContext/);
   assert.match(accountJs, /zhimuContext\?\.onSessionLogout/);
   assert.doesNotMatch(authJs, /const resetAccountContext=\(\)=>\{zhimuApi\.resetActiveWorld/);
 });

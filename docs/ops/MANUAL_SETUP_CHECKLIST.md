@@ -150,10 +150,10 @@ npm run railway:push-env    # 需 .env.railway.setup 里 Account Token
 
 ### 回调 URL（控制台必填）
 
-| Provider | Redirect / Callback URI |
-|----------|-------------------------|
-| Google | `https://app.getzhimu.com/api/auth/oauth/google/callback` |
-| GitHub | `https://app.getzhimu.com/api/auth/oauth/github/callback` |
+| Provider | Redirect / Callback URI | 其他必填 |
+|----------|-------------------------|----------|
+| Google | `https://app.getzhimu.com/api/auth/oauth/google/callback` | JS origins：`https://app.getzhimu.com` |
+| GitHub | `https://app.getzhimu.com/api/auth/oauth/github/callback` | Homepage URL：`https://app.getzhimu.com` |
 
 ### 配置步骤
 
