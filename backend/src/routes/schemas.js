@@ -1716,7 +1716,9 @@ export const submitBetaApplicationSchema = {
       roleIntent: { type: "string", enum: ["creator", "host", "player", "mixed", "other"] },
       useCase: { type: "string", minLength: 16, maxLength: 4000 },
       referralSource: { type: "string", maxLength: 200 },
-      contact: { type: "string", maxLength: 200 }
+      contact: { type: "string", maxLength: 200 },
+      companyWebsite: { type: "string", maxLength: 200 },
+      website: { type: "string", maxLength: 200 }
     }
   }
 };

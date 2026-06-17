@@ -1,48 +1,53 @@
 # 织幕 · 官网（营销站）
 
-> Part 6 API 就绪后，宣发/design 在此目录开发。与产品 App（根目录 `src/`）**同仓不同构建**。
+> 与产品 App（根目录 `src/`）**同仓不同构建**。后端 API 在 `app.getzhimu.com`。
 
-## 为什么放在这里
-
-- 与 `backend/`、`docs/` 同一 git，Part 6 接口与 env 文档对齐  
-- 不污染产品 SPA 的 `index.html` / `verify:changed` / E2E  
-- 独立 `npm run dev` / `npm run build`，发布节奏可与 App 分开  
-
-## 对接契约（开工时复制到 `src/config/links.js`）
+## 推荐：一次拉取整站数据
 
 ```javascript
-export const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || "https://app.getzhimu.com";
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || "https://app.getzhimu.com";
 
-export const links = {
-  register: `${API_ORIGIN}/?auth=register`,
-  login: `${API_ORIGIN}/?auth=login`,
-  officialExample: `${API_ORIGIN}/?experience=official`
-};
-
-export async function fetchBetaFormConfig() {
-  const res = await fetch(`${API_ORIGIN}/api/platform/beta`);
-  return res.json();
-}
-
-export async function submitBetaApplication(payload) {
-  const res = await fetch(`${API_ORIGIN}/api/platform/beta/apply`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+export async function fetchSiteBootstrap() {
+  const res = await fetch(`${API_ORIGIN}/api/platform/site`);
+  if (!res.ok) throw new Error(`site bootstrap failed: ${res.status}`);
   return res.json();
 }
 ```
 
-生产需在 Railway 设置 `CORS_ORIGIN=https://getzhimu.com`（或官网实际域名）。
+返回字段：`product`、`links`、`beta`、`officialExample`、`catalog`、`apis`、`supportEmail`。
 
-## 部署建议
+## 内测表单
+
+```javascript
+export async function submitBetaApplication(payload) {
+  const res = await fetch(`${API_ORIGIN}/api/platform/beta/apply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...payload,
+      companyWebsite: "" // 蜜罐：隐藏字段，留空
+    })
+  });
+  const body = await res.json();
+  if (!res.ok) throw Object.assign(new Error(body.error || "submit failed"), { code: body.code, details: body });
+  return body;
+}
+```
+
+## 生产环境（Railway）
+
+```bash
+APP_PUBLIC_URL=https://app.getzhimu.com
+MARKETING_SITE_ORIGIN=https://getzhimu.com,https://www.getzhimu.com
+MARKETING_SITE_URL=https://getzhimu.com
+CORS_ORIGIN=https://app.getzhimu.com
+```
+
+## 部署
 
 | 域名 | 内容 |
 |------|------|
-| `getzhimu.com` | 本目录构建产物（Cloudflare Pages / 独立 Railway 静态服务） |
-| `app.getzhimu.com` | 现有 fullstack（根目录 `deploy/Dockerfile.fullstack`） |
+| `getzhimu.com` | 本目录 `site/` 构建产物 |
+| `app.getzhimu.com` | 产品 fullstack |
 
-## 文档
-
-- [ops/BETA_APPLICATIONS.md](../docs/ops/BETA_APPLICATIONS.md) — 内测 API 与 Ops 审核
+详见 [docs/ops/BETA_APPLICATIONS.md](../docs/ops/BETA_APPLICATIONS.md)。

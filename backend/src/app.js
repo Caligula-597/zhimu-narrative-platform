@@ -12,10 +12,12 @@ import { registerAuthRoutes } from "./routes/auth-routes.js";
 import { registerSystemRoutes } from "./routes/system-routes.js";
 import { registerOfficialExampleRoutes } from "./routes/official-example-routes.js";
 import { registerPlatformBetaRoutes } from "./routes/platform-beta-routes.js";
+import { registerPlatformSiteRoutes } from "./routes/platform-site-routes.js";
 import { registerOpsRoutes } from "./routes/ops-routes.js";
 import { registerBillingRoutes } from "./routes/billing-routes.js";
 import { registerRoutes } from "./routes.js";
 import { registerStaticFrontend } from "./static-frontend.js";
+import { resolveAllowedCorsOrigins } from "./cors-origins.js";
 
 const authRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -67,20 +69,27 @@ function shouldSkipRateLimit(url) {
     url === "/metrics" ||
     url === "/api/openapi.json" ||
     url.startsWith("/api/docs") ||
-    url === "/api/billing/stripe/webhook"
+    url === "/api/billing/stripe/webhook" ||
+    url === "/api/platform/site" ||
+    url === "/api/platform/beta" ||
+    url === "/api/platform/catalog-preview" ||
+    url === "/api/platform/official-example" ||
+    url === "/api/platform/import-guide" ||
+    url === "/api/platform/world-templates" ||
+    url === "/api/health/live"
+  );
+}
+
+function isPlatformReadRoute(url, method) {
+  return (
+    (method === "GET" || method === "HEAD") &&
+    url.startsWith("/api/platform/") &&
+    !url.startsWith("/api/platform/beta/apply")
   );
 }
 
 function resolveCorsOrigin(options, nodeEnv) {
-  if (options.corsOrigin !== undefined) return options.corsOrigin;
-  const raw = process.env.CORS_ORIGIN?.trim();
-  if (raw) {
-    if (raw === "*") return true;
-    const origins = raw.split(",").map((v) => v.trim()).filter(Boolean);
-    if (origins.length === 1) return origins[0];
-    return origins;
-  }
-  return nodeEnv === "production" ? false : true;
+  return resolveAllowedCorsOrigins(options, nodeEnv);
 }
 
 function resolveTraceId(request) {
@@ -170,7 +179,7 @@ export async function createApp(options = {}) {
       return;
     }
     if (method === "GET" || method === "HEAD") {
-      if (!shouldSkipReadRateLimit(url)) {
+      if (!shouldSkipReadRateLimit(url) && !isPlatformReadRoute(url, method)) {
         await apiReadRateLimit(request, reply);
       }
       return;
@@ -181,6 +190,7 @@ export async function createApp(options = {}) {
   });
   await registerSystemRoutes(app);
   await registerOfficialExampleRoutes(app);
+  await registerPlatformSiteRoutes(app);
   await registerPlatformBetaRoutes(app);
   await registerOpsRoutes(app);
   await registerBillingRoutes(app);

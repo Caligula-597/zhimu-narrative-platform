@@ -32,6 +32,10 @@ export function isBetaApplicationsOpen() {
 
 export function getBetaApplicationFormConfig() {
   const appUrl = (process.env.APP_PUBLIC_URL || "").replace(/\/$/, "");
+  const marketingUrl = (process.env.MARKETING_SITE_URL || process.env.MARKETING_SITE_ORIGIN || "").replace(
+    /\/$/,
+    ""
+  );
   return {
     acceptingApplications: isBetaApplicationsOpen(),
     title: "申请织幕内测",
@@ -40,8 +44,20 @@ export function getBetaApplicationFormConfig() {
     minUseCaseLength: 16,
     supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@getzhimu.com",
     registerUrl: appUrl ? `${appUrl}/?auth=register` : null,
+    marketingSiteUrl: marketingUrl || null,
     applyApiPath: "/api/platform/beta/apply"
   };
+}
+
+function sanitizeText(value = "", maxLength = 4000) {
+  return String(value)
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function isHoneypotTriggered(body) {
+  return Boolean(String(body?.companyWebsite || body?.website || "").trim());
 }
 
 function escapeHtml(value = "") {
@@ -137,14 +153,20 @@ export async function sendBetaApprovalEmail(application) {
 export async function submitBetaApplication(body) {
   if (!isBetaApplicationsOpen()) throwErr("BETA_APPLICATIONS_CLOSED");
 
-  const email = String(body?.email || "")
-    .trim()
-    .toLowerCase();
-  const displayName = String(body?.displayName || "").trim();
-  const roleIntent = String(body?.roleIntent || "creator").trim();
-  const useCase = String(body?.useCase || "").trim();
-  const referralSource = String(body?.referralSource || "").trim();
-  const contact = String(body?.contact || "").trim();
+  if (isHoneypotTriggered(body)) {
+    return {
+      id: null,
+      status: "pending",
+      message: "申请已收到，我们将在 3～5 个工作日内邮件回复。"
+    };
+  }
+
+  const email = sanitizeText(body?.email, 320).toLowerCase();
+  const displayName = sanitizeText(body?.displayName, 40);
+  const roleIntent = sanitizeText(body?.roleIntent || "creator", 32);
+  const useCase = sanitizeText(body?.useCase, 4000);
+  const referralSource = sanitizeText(body?.referralSource, 200);
+  const contact = sanitizeText(body?.contact, 200);
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throwErr("EMAIL_INVALID");
   if (displayName.length < 2) throwErr("DISPLAY_NAME_INVALID");

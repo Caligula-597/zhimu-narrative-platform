@@ -11,15 +11,19 @@
 |------|------|
 | `BETA_APPLICATIONS_OPEN` | 默认开放；设为 `false` 关闭新申请 |
 | `BETA_REVIEW_NOTIFY_EMAIL` | 新申请通知邮箱（默认同公开库审核） |
-| `APP_PUBLIC_URL` | 审批通过邮件中的注册链接 |
-| `CORS_ORIGIN` | 官网域名（如 `https://getzhimu.com`），供跨域 POST 申请 |
+| `APP_PUBLIC_URL` | 产品 App URL（注册链接、审批邮件 CTA） |
+| `MARKETING_SITE_ORIGIN` | 官网 CORS 域名（逗号分隔） |
+| `MARKETING_SITE_URL` | 官网完整 URL（可选） |
+| `CORS_ORIGIN` | App 域名；与 `MARKETING_SITE_ORIGIN` 合并生效 |
 | `OPS_API_TOKEN` | Ops API 鉴权 |
 
 ## 官网对接 API
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/platform/beta` | 表单配置、角色选项、是否开放申请 |
+| GET | `/api/platform/site` | **推荐** 一次拉取链接、内测表单、官方示例、公开库预览 |
+| GET | `/api/platform/catalog-preview?limit=8` | 公开库剧本预览（无需登录） |
+| GET | `/api/platform/beta` | 内测表单配置（`site` 已含可单独用） |
 | POST | `/api/platform/beta/apply` | 提交申请（限流：每 IP 每小时 5 次） |
 
 ### 提交 body 示例
@@ -36,6 +40,17 @@
 ```
 
 `roleIntent`：`creator` | `host` | `player` | `mixed` | `other`
+
+蜜罐字段（请在前端隐藏，勿填）：`companyWebsite` / `website` — 若被填写则静默成功但不入库。
+
+## 生产环境示例
+
+```bash
+APP_PUBLIC_URL=https://app.getzhimu.com
+MARKETING_SITE_ORIGIN=https://getzhimu.com,https://www.getzhimu.com
+MARKETING_SITE_URL=https://getzhimu.com
+CORS_ORIGIN=https://app.getzhimu.com
+```
 
 ## Ops API
 

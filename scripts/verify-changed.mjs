@@ -41,8 +41,12 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/world-templates", ["test/world-wizard.test.js"]],
   ["backend/src/routes/world-wizard-routes", ["test/world-wizard.test.js"]],
   ["backend/src/catalog-review", ["test/world-catalog.test.js", "test/catalog-readiness-gate.test.js"]],
-  ["backend/src/beta-apply", ["test/beta-apply.test.js"]],
-  ["backend/src/routes/platform-beta-routes", ["test/beta-apply.test.js"]],
+  ["backend/src/beta-apply", ["test/beta-apply.test.js", "test/platform-site.test.js"]],
+  ["backend/src/platform-site", ["test/platform-site.test.js"]],
+  ["backend/src/platform-catalog-preview", ["test/platform-site.test.js"]],
+  ["backend/src/cors-origins", ["test/cors-origins.test.js", "test/platform-site.test.js"]],
+  ["backend/src/routes/platform-site-routes", ["test/platform-site.test.js"]],
+  ["backend/src/routes/platform-beta-routes", ["test/beta-apply.test.js", "test/platform-site.test.js"]],
   ["backend/src/routes/ops-beta-routes", ["test/beta-apply.test.js"]]
 ];
 
