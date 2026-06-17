@@ -259,14 +259,32 @@ async function selectWorld(worldId){
 async function openWorldRooms(){
  try{
   const rooms=await zhimuApi.getWorldRooms(),world=state.cloudStudio?.world;
-  modal.className="modal world-library-modal";modal.innerHTML=`<h2>${escapeHtml(world?.name||"当前剧本")} · 平行房</h2><p class="wizard-intro">每个平行房拥有自己的邀请码、玩家成员、阅读进度、日志、规则执行记录和语音空间。房间之间不会互相推进。</p><div class="parallel-room-create"><input class="field" data-room-name placeholder="例如：周末测试组 A"><button class="primary-btn" data-action="room-create">＋ 开放新平行房</button></div><div class="parallel-room-list">${rooms.map(room=>`<article class="parallel-room-row ${room.id===zhimuApi.context.roomId?"active":""}"><div><h3>${escapeHtml(room.name)}</h3><p>邀请码：${escapeHtml(room.invite_code)} · ${room.member_count} 名成员 · ${escapeHtml(room.status)}</p></div><div class="row"><button class="secondary-btn" data-action="room-invite" data-room-id="${room.id}" data-room-name="${escapeHtml(room.name)}" data-invite-code="${escapeHtml(room.invite_code)}">邀请玩家</button><button class="${room.id===zhimuApi.context.roomId?"secondary-btn":"primary-btn"}" data-action="room-select" data-room-id="${room.id}">${room.id===zhimuApi.context.roomId?"当前房间":"进入房间"}</button></div></article>`).join("")||`<div class="empty-state">尚未开放平行房。创建后会生成独立邀请码和公共讨论房。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-action="room-join">使用邀请码加入房间</button><button class="secondary-btn" data-close>关闭</button></div>`;
+  const roomRows=rooms.map(room=>{
+    const listingLabel=room.public_listing?`<span class="status-chip published">公开大厅</span>`:`<span class="status-chip draft">仅邀请码</span>`;
+    const listingAction=room.public_listing
+      ? `<button class="text-btn" data-action="room-listing-off" data-room-id="${room.id}">取消公开</button>`
+      : `<button class="text-btn" data-action="room-listing-on" data-room-id="${room.id}">公开到大厅</button>`;
+    return `<article class="parallel-room-row ${room.id===zhimuApi.context.roomId?"active":""}"><div><div class="row" style="gap:8px;align-items:center"><h3>${escapeHtml(room.name)}</h3>${listingLabel}</div><p>邀请码：${escapeHtml(room.invite_code)} · ${room.member_count} 名成员 · ${escapeHtml(room.status)}</p><p class="muted-note">${room.public_listing?"陌生人可在 play.getzhimu.com「找人一起玩」发现并入房。":"仅持有邀请码的玩家可加入，不会出现在公开大厅。"}</p></div><div class="row"><button class="secondary-btn" data-action="room-invite" data-room-id="${room.id}" data-room-name="${escapeHtml(room.name)}" data-invite-code="${escapeHtml(room.invite_code)}">邀请玩家</button>${listingAction}<button class="${room.id===zhimuApi.context.roomId?"secondary-btn":"primary-btn"}" data-action="room-select" data-room-id="${room.id}">${room.id===zhimuApi.context.roomId?"当前房间":"进入房间"}</button></div></article>`;
+  }).join("");
+  modal.className="modal world-library-modal";modal.innerHTML=`<h2>${escapeHtml(world?.name||"当前剧本")} · 平行房</h2><p class="wizard-intro">平行房彼此独立。<strong>仅邀请码</strong>适合熟人局；<strong>公开到大厅</strong>会出现在玩家端「找人一起玩」，方便陌生人在线凑局（与「公开剧本库」审核上架是两套机制）。</p><div class="parallel-room-create"><input class="field" data-room-name placeholder="例如：周末测试组 A"><label class="check-row"><input type="checkbox" data-room-public-listing> 创建后公开到玩家大厅</label><button class="primary-btn" data-action="room-create">＋ 开放新平行房</button></div><div class="parallel-room-list">${roomRows||`<div class="empty-state">尚未开放平行房。创建后会生成独立邀请码和公共讨论房。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-action="room-join">使用邀请码加入房间</button><button class="secondary-btn" data-close>关闭</button></div>`;
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelectorAll("[data-action]").forEach(btn=>btn.onclick=()=>handle(btn.dataset.action,btn));
  }catch(error){showToast(error.message)}
 }
 
 async function createParallelRoom(){
  const input=modal.querySelector("[data-room-name]"),name=input.value.trim();if(!name)return showToast("请填写平行房名称");
- try{const room=await zhimuApi.createRoom(zhimuApi.context.worldId,{name,inviteCode:`ROOM-${Date.now().toString(36).toUpperCase()}`});zhimuApi.selectRoom(room.id);closeModal();await loadCloudData(true,true);showToast(`平行房已开放：${room.invite_code}`);openWorldRooms()}catch(error){showToast(error.message)}
+ const publicListing=Boolean(modal.querySelector("[data-room-public-listing]")?.checked);
+ try{const room=await zhimuApi.createRoom(zhimuApi.context.worldId,{name,inviteCode:`ROOM-${Date.now().toString(36).toUpperCase()}`,publicListing});zhimuApi.selectRoom(room.id);closeModal();await loadCloudData(true,true);showToast(publicListing?`平行房已开放并公开到大厅：${room.invite_code}`:`平行房已开放：${room.invite_code}`);openWorldRooms()}catch(error){showToast(error.message)}
+}
+
+async function setRoomPublicListing(roomId,publicListing){
+ if(!roomId)return;
+ try{
+  await zhimuApi.updateRoomPublicListing(zhimuApi.context.worldId,roomId,publicListing);
+  await loadCloudData(true,true);
+  showToast(publicListing?"已公开到玩家大厅":"已改为仅邀请码入房");
+  openWorldRooms();
+ }catch(error){showToast(error.message)}
 }
 
 async function selectParallelRoom(roomId){
@@ -393,6 +411,6 @@ function handleStartupAuthParams(){
  }
  if(pending.length)return Promise.all(pending);
 }
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, openRenameWorldModal, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, selectParallelRoom, openRoomInvite, openCurrentRoomInvite, openJoinRoom, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });
+  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, openRenameWorldModal, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, setRoomPublicListing, selectParallelRoom, openRoomInvite, openCurrentRoomInvite, openJoinRoom, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });
 })(window);
 export {};

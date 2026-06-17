@@ -6,6 +6,7 @@ import { parseDocumentPayloadBase64 } from "../section-content.js";
 import { importPdfPagesToRoleScript, importImageFileToRoleSection } from "../document-page-import.js";
 import { requireWorldRole } from "./route-guards.js";
 import { ROOMS_VISIBLE_TO_ACTOR_SQL } from "./world-helpers.js";
+import { setRoomPublicListing } from "../public-room-listing.js";
 import {
   worldIdParams,
   parseDocumentSchema,
@@ -19,7 +20,8 @@ import {
   createSectionSchema,
   updateSectionSchema,
   deleteSectionSchema,
-  createRoomSchema
+  createRoomSchema,
+  updateRoomListingSchema
 } from "./schemas.js";
 
 export async function registerCreatorRoutes(app) {
@@ -238,12 +240,12 @@ export async function registerCreatorRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);
-    const { name, inviteCode } = request.body ?? {};
+    const { name, inviteCode, publicListing = false } = request.body ?? {};
     const room = await transaction(async (client) => {
       const result = await client.query(
-        `INSERT INTO rooms (world_id, host_user_id, name, invite_code, status)
-         VALUES ($1, $2, $3, $4, 'testing') RETURNING *`,
-        [worldId, actorId, name, inviteCode]
+        `INSERT INTO rooms (world_id, host_user_id, name, invite_code, status, public_listing)
+         VALUES ($1, $2, $3, $4, 'testing', $5) RETURNING *`,
+        [worldId, actorId, name, inviteCode, Boolean(publicListing)]
       );
       await client.query(
         `INSERT INTO room_members (room_id, user_id, member_type) VALUES ($1, $2, 'host')`,
@@ -259,12 +261,26 @@ export async function registerCreatorRoutes(app) {
     return reply.code(201).send(room);
   });
 
+  app.patch("/api/worlds/:worldId/rooms/:roomId/listing", { schema: updateRoomListingSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, roomId } = request.params;
+    await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);
+    const { publicListing } = request.body ?? {};
+    try {
+      const room = await setRoomPublicListing({ actorId, worldId, roomId, publicListing });
+      return room;
+    } catch (error) {
+      if (error.code === "ROOM_NOT_FOUND") return sendErr(reply, "ROOM_NOT_FOUND");
+      throw error;
+    }
+  });
+
   app.get("/api/worlds/:worldId/rooms", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);
     const result = await query(
-      `SELECT r.id, r.name, r.invite_code, r.status, r.created_at, r.host_user_id,
+      `SELECT r.id, r.name, r.invite_code, r.status, r.public_listing, r.created_at, r.host_user_id,
               COUNT(rm.user_id)::int AS member_count,
               (r.host_user_id = $2) AS is_mine
        FROM rooms r

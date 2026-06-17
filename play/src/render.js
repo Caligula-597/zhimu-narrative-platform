@@ -55,6 +55,7 @@ export function renderHeader() {
         ${userLabel && !roleName ? `<span class="pill">${escapeHtml(userLabel)}</span>` : ""}
       </div>
       <div class="header-actions">
+        ${state.view !== "game" ? `<button class="link-btn quiet" type="button" data-action="go-lobby">找人一起玩</button>` : ""}
         <a class="link-btn quiet" href="${appOrigin}/" target="_blank" rel="noopener">创作者入口</a>
         ${getSessionToken() ? `<button class="link-btn quiet" type="button" data-action="logout">退出</button>` : ""}
       </div>
@@ -83,8 +84,56 @@ function renderOfficialExampleCard() {
     </article>`;
 }
 
+export function renderLobby() {
+  const listing = state.publicRooms;
+  const items = listing?.items || [];
+  return `
+    <section class="lobby-shell">
+      <div class="lobby-head">
+        <div>
+          <p class="eyebrow">PUBLIC LOBBY · 在线凑局</p>
+          <h1>正在开放的剧本房间</h1>
+          <p class="lede">主持人在织幕里把平行房<strong>公开到大厅</strong>后，会出现在这里。选一间加入，认领角色即可与陌生玩家同局。</p>
+          <p class="hint muted">这与「公开剧本库」不同：剧本库是审核上架的模板；这里是<strong>正在运行的实时房间</strong>。</p>
+        </div>
+        <button class="btn outline" type="button" data-action="refresh-lobby" ${state.busy ? "disabled" : ""}>刷新列表</button>
+      </div>
+
+      ${items.length ? `
+        <div class="lobby-grid">
+          ${items.map((room) => `
+            <article class="lobby-card card">
+              <div class="lobby-card-head">
+                <p class="eyebrow">${escapeHtml(room.worldName)}</p>
+                <h3>${escapeHtml(room.roomName)}</h3>
+              </div>
+              <p class="lobby-summary">${escapeHtml(room.worldSummary || "暂无剧本简介")}</p>
+              <dl class="entry-meta lobby-meta">
+                <div><dt>主持</dt><dd>${escapeHtml(room.hostDisplayName || "玩家")}</dd></div>
+                <div><dt>空席</dt><dd>${room.openSeats} / ${room.roleCount}</dd></div>
+                <div><dt>状态</dt><dd>${escapeHtml(room.roomStatus || "运行中")}</dd></div>
+              </dl>
+              <button class="btn primary full" type="button" data-action="lobby-join" data-invite-code="${escapeHtml(room.inviteCode)}" ${room.openSeats <= 0 || state.busy ? "disabled" : ""}>
+                ${room.openSeats <= 0 ? "席位已满" : "加入这局"}
+              </button>
+            </article>`).join("")}
+        </div>` : `
+        <article class="card lobby-empty">
+          <h3>暂时没有公开房间</h3>
+          <p class="muted">主持人可在 app.getzhimu.com → 管理平行房 →「公开到大厅」开放实时房间；或使用下方邀请码 / 官方示例入房。</p>
+          <div class="row-actions">
+            <button class="btn outline" type="button" data-action="back-landing">输入邀请码</button>
+            <button class="btn quiet" type="button" data-action="join-official">体验官方示例</button>
+          </div>
+        </article>`}
+
+      <button class="text-btn" type="button" data-action="back-landing">← 返回首页</button>
+    </section>`;
+}
+
 export function renderLanding() {
   const example = state.platform?.officialExample;
+  const openCount = state.publicRooms?.total || 0;
   return `
     <section class="landing-shell">
       <div class="landing-hero">
@@ -103,6 +152,19 @@ export function renderLanding() {
       </div>
 
       <div class="entry-grid">
+        <article class="entry-card entry-card-lobby">
+          <div class="entry-card-head">
+            <p class="eyebrow">无需认识主持人</p>
+            <h3>找人一起玩</h3>
+          </div>
+          <p class="entry-card-lede">浏览正在公开的运行房，与陌生玩家在线凑局。主持人在创作者端把平行房公开到大厅后会出现于此。</p>
+          <dl class="entry-meta">
+            <div><dt>当前开放</dt><dd>${openCount} 个房间</dd></div>
+            <div><dt>适合</dt><dd>想随机匹配玩家的线上局</dd></div>
+          </dl>
+          <button class="btn primary full" type="button" data-action="go-lobby" ${state.busy ? "disabled" : ""}>浏览公开房间</button>
+        </article>
+
         <article class="entry-card entry-card-primary">
           <div class="entry-card-head">
             <p class="eyebrow">我有邀请码</p>
@@ -458,6 +520,7 @@ export function renderGame() {
 export function renderApp() {
   let main = "";
   if (state.view === "auth") main = renderAuth();
+  else if (state.view === "lobby") main = renderLobby();
   else if (state.view === "join") main = renderJoin();
   else if (state.view === "game" && state.home) main = renderGame();
   else main = renderLanding();

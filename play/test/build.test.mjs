@@ -30,14 +30,15 @@ test("render.js escapes user content", () => {
   assert.match(renderSource, /sanitizeImageUrl\(/);
 });
 
-test("main.js wires room SSE sync for host-player data", () => {
+test("main.js wires room SSE sync and public lobby", () => {
   const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
   const apiSource = readFileSync(path.join(root, "src", "api.js"), "utf8");
   const eventsSource = readFileSync(path.join(root, "src", "room-events.js"), "utf8");
+  const renderSource = readFileSync(path.join(root, "src", "render.js"), "utf8");
   assert.match(mainSource, /connectRoomEvents/);
-  assert.match(mainSource, /pullRoomData/);
+  assert.match(mainSource, /loadPublicRooms/);
+  assert.match(apiSource, /public-rooms/);
   assert.match(apiSource, /events\/stream/);
-  assert.match(apiSource, /Last-Event-ID/);
   assert.match(eventsSource, /room\.clue_granted/);
-  assert.match(eventsSource, /room\.section_unlocked/);
+  assert.match(renderSource, /renderLobby/);
 });

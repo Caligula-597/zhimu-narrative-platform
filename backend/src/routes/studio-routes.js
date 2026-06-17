@@ -290,7 +290,7 @@ export async function registerStudioRoutes(app) {
         [worldId]
       );
       const rooms = await client.query(
-        `SELECT r.id, r.name, r.status, r.invite_code
+        `SELECT r.id, r.name, r.status, r.invite_code, r.public_listing
          FROM rooms r
          WHERE r.world_id = $1 AND ${ROOMS_VISIBLE_TO_ACTOR_SQL}
          ORDER BY r.created_at DESC`,

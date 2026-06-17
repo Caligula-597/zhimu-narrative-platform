@@ -626,12 +626,12 @@ button {
 
 .entry-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   align-items: stretch;
 }
 
-@media (max-width: 820px) {
+@media (max-width: 960px) {
   .entry-grid { grid-template-columns: 1fr; }
 }
 
@@ -1019,4 +1019,53 @@ code {
 
 .sidebar-actions {
   margin-top: 4px;
+}
+
+.lobby-shell {
+  display: grid;
+  gap: 20px;
+}
+
+.lobby-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.lobby-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.lobby-card {
+  display: grid;
+  gap: 12px;
+}
+
+.lobby-summary {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lobby-meta {
+  margin: 0;
+}
+
+.lobby-empty {
+  text-align: center;
+  padding: 28px 20px;
+}
+
+.entry-card-lobby {
+  border-color: rgba(43, 107, 97, 0.35);
+  background: linear-gradient(180deg, rgba(43, 107, 97, 0.06), var(--surface));
 }

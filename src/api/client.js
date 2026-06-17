@@ -266,6 +266,12 @@ window.zhimuApi = {
   restoreContentVersion: (versionId) => request(`/worlds/${demoContext.worldId}/content-versions/${versionId}/restore`, { userId: demoContext.hostUserId, method: "POST", body: {} }),
   deleteContentVersion: (versionId) => request(`/worlds/${demoContext.worldId}/content-versions/${versionId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
   createRoom: (worldId, payload) => request(`/worlds/${worldId}/rooms`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  updateRoomPublicListing: (worldId, roomId, publicListing) =>
+    request(`/worlds/${worldId}/rooms/${roomId}/listing`, {
+      userId: demoContext.hostUserId,
+      method: "PATCH",
+      body: { publicListing }
+    }),
   getStudio: () => request(`/worlds/${demoContext.worldId}/studio`, { userId: demoContext.hostUserId }),
   createScene: (payload) => request(`/worlds/${demoContext.worldId}/scenes`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   updateScene: (sceneId, payload) => request(`/worlds/${demoContext.worldId}/scenes/${sceneId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),

@@ -12,6 +12,7 @@ export const state = {
   clueId: "",
   inviteCode: "",
   joinPreview: null,
+  publicRooms: null,
   selectedRoleId: "",
   joinStep: 1,
   view: "landing",

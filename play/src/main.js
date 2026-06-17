@@ -120,10 +120,22 @@ async function refreshHome() {
   }
 }
 
+async function loadPublicRooms({ silent = false } = {}) {
+  if (!silent) setBusy(true, render);
+  try {
+    state.publicRooms = await api.publicRooms();
+  } catch {
+    state.publicRooms = { total: 0, items: [] };
+  } finally {
+    if (!silent) setBusy(false, render);
+    else if (state.view === "landing" || state.view === "lobby") render();
+  }
+}
+
 async function bootstrap() {
   setBusy(true, render);
   try {
-    await Promise.all([loadAuthConfig(), loadPlatform()]);
+    await Promise.all([loadAuthConfig(), loadPlatform(), loadPublicRooms({ silent: true })]);
     const params = new URLSearchParams(window.location.search);
     const oauthCode = params.get("oauth_code");
     const oauthError = params.get("oauth_error");
@@ -382,8 +394,24 @@ app.addEventListener("click", async (event) => {
     case "go-home":
       event.preventDefault();
       if (state.view !== "game") return;
+      disconnectRoomEvents(roomEventCtx);
       state.view = "landing";
       render();
+      break;
+    case "go-lobby":
+      await loadPublicRooms();
+      state.view = "lobby";
+      render();
+      break;
+    case "refresh-lobby":
+      await loadPublicRooms();
+      break;
+    case "lobby-join":
+      state.inviteCode = normalizeInviteCode(button.dataset.inviteCode || "");
+      if (!state.inviteCode) return setToast("房间无效", render);
+      state.view = "join";
+      state.joinStep = 1;
+      await handleLookupInvite();
       break;
     case "start-join":
       if (!normalizeInviteCode(state.inviteCode)) {

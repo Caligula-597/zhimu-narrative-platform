@@ -53,6 +53,12 @@
       case "room-create":
         R.createParallelRoom?.();
         return true;
+      case "room-listing-on":
+        R.setRoomPublicListing?.(el?.dataset?.roomId, true);
+        return true;
+      case "room-listing-off":
+        R.setRoomPublicListing?.(el?.dataset?.roomId, false);
+        return true;
       case "refresh-cloud":
         window.zhimuLoadCloudData?.(true, true);
         return true;

@@ -53,6 +53,7 @@ export async function loadMarketingSitePayload() {
       betaApply: beta.applyApiPath,
       officialExample: "/api/platform/official-example",
       catalogPreview: "/api/platform/catalog-preview",
+      publicRooms: "/api/platform/public-rooms",
       healthLive: "/api/health/live"
     },
     supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@getzhimu.com"

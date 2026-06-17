@@ -85,6 +85,7 @@ export const api = {
   readClue: (roomId, clueId) =>
     request(`/rooms/${roomId}/clues/${clueId}/read`, { method: "POST", body: {} }),
   platformSite: () => request("/platform/site"),
+  publicRooms: (limit = 24) => request(`/platform/public-rooms?limit=${limit}`),
   officialExample: () => request("/platform/official-example"),
   joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} }),
 
