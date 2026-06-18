@@ -1,7 +1,6 @@
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { publishPlatformUserEvent } from "./platform-event-bus.js";
-import { assertPlaySocialContentAllowed } from "./play-content-moderation.js";
 
 const HOURLY_DM_LIMIT = 60;
 
@@ -220,7 +219,6 @@ export async function listDmMessages(actorId, conversationId) {
 export async function sendDmMessage(actorId, conversationId, body) {
   const text = String(body ?? "").trim();
   if (!text || text.length > 1000) throwErr("DM_MESSAGE_INVALID", "私信内容需为 1～1000 字。");
-  assertPlaySocialContentAllowed(text);
   const conv = await query(
     `SELECT id, user_low_id, user_high_id FROM play_dm_conversations WHERE id = $1`,
     [conversationId]

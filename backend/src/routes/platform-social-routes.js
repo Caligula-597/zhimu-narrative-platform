@@ -99,9 +99,15 @@ export async function registerPlatformSocialRoutes(app) {
       const { kind = "chat", body, inviteCode } = request.body ?? {};
       try {
         const post = await createPlazaPost({ actorId, kind, body, inviteCode });
+        if (post.reviewPending) return reply.code(202).send(post);
         return reply.code(201).send(post);
       } catch (error) {
-        return handleServiceError(reply, error, ["PLAZA_POST_INVALID", "PLAY_CONTENT_FORBIDDEN", "PLAY_CONTENT_AD"]);
+        return handleServiceError(reply, error, [
+          "PLAZA_POST_INVALID",
+          "PLAZA_POST_REJECTED",
+          "PLAY_CONTENT_FORBIDDEN",
+          "PLAY_CONTENT_AD"
+        ]);
       }
     }
   );
@@ -124,9 +130,7 @@ export async function registerPlatformSocialRoutes(app) {
         return handleServiceError(reply, error, [
           "PLAZA_POST_NOT_FOUND",
           "PLAZA_REPLY_INVALID",
-          "PLAZA_REPLY_NOT_FOUND",
-          "PLAY_CONTENT_FORBIDDEN",
-          "PLAY_CONTENT_AD"
+          "PLAZA_REPLY_NOT_FOUND"
         ]);
       }
     }
@@ -268,14 +272,7 @@ export async function registerPlatformSocialRoutes(app) {
         const message = await sendDmMessage(actorId, request.params.conversationId, request.body?.body);
         return reply.code(201).send(message);
       } catch (error) {
-        return handleServiceError(reply, error, [
-          "DM_NOT_FOUND",
-          "FORBIDDEN",
-          "DM_MESSAGE_INVALID",
-          "DM_FRIEND_REQUIRED",
-          "PLAY_CONTENT_FORBIDDEN",
-          "PLAY_CONTENT_AD"
-        ]);
+        return handleServiceError(reply, error, ["DM_NOT_FOUND", "FORBIDDEN", "DM_MESSAGE_INVALID", "DM_FRIEND_REQUIRED"]);
       }
     }
   );

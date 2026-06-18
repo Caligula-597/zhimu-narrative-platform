@@ -102,7 +102,15 @@ test("plaza replies, reports, friends and DM", async () => {
     payload: { kind: "chat", body: "扫码进群领优惠券，加微信 abc123" }
   });
   assert.equal(blockedPost.statusCode, 422);
-  assert.equal(blockedPost.json().code, "PLAY_CONTENT_AD");
+  assert.equal(blockedPost.json().code, "PLAZA_POST_REJECTED");
+
+  const dmAd = await app.inject({
+    method: "POST",
+    url: `/api/platform/social/dm/conversations/${conversationId}/messages`,
+    headers: { "x-user-id": hostUserId, "content-type": "application/json" },
+    payload: { body: "扫码进群领优惠券，加微信 abc123" }
+  });
+  assert.equal(dmAd.statusCode, 201);
 
   await query(
     `DELETE FROM play_friendships

@@ -135,8 +135,8 @@ function matchesAdPatterns(forms) {
 }
 
 /**
- * Scan user-generated play-portal social text (plaza / DM). Script in-world content is out of scope.
- * @returns {{ ok: true } | { ok: false, reason: 'ad' | 'forbidden' }}
+ * Lightweight keyword scan — used only for plaza AI stub fallback (CI / no API key).
+ * Production plaza posts use AI review; DMs use basic length/rate limits only.
  */
 export function scanPlaySocialContent(text) {
   const trimmed = String(text ?? "").trim();
@@ -155,10 +155,7 @@ export function assertPlaySocialContentAllowed(text) {
   const verdict = scanPlaySocialContent(text);
   if (verdict.ok) return;
   if (verdict.reason === "ad") {
-    throwErr(
-      "PLAY_CONTENT_AD",
-      "广场与私信禁止发布广告、外链、联系方式引流或推广信息。"
-    );
+    throwErr("PLAY_CONTENT_AD", "内容包含广告或联系方式引流，无法发布。");
   }
   throwErr("PLAY_CONTENT_FORBIDDEN", "内容包含违禁词，无法发布。请修改后重试。");
 }

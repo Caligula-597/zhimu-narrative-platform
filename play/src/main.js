@@ -331,7 +331,7 @@ async function handlePlazaSubmit(form) {
   setBusy(true, render);
   try {
     await ensureSession();
-    await api.createPlazaPost({
+    const result = await api.createPlazaPost({
       kind,
       body,
       ...(kind === "recruit" && inviteCode ? { inviteCode } : {})
@@ -339,8 +339,12 @@ async function handlePlazaSubmit(form) {
     state.plazaDraftBody = "";
     state.plazaDraftInvite = "";
     state.plazaDraftKind = kind;
-    await loadPlazaPosts({ silent: true });
-    setToast("已发布到广场", render);
+    if (result.reviewPending) {
+      setToast(result.message || "帖子已提交，等待人工复核", render);
+    } else {
+      await loadPlazaPosts({ silent: true });
+      setToast("已通过审核并发布到广场", render);
+    }
   } catch (error) {
     setToast(formatApiError(error, "发布失败"), render);
   } finally {
