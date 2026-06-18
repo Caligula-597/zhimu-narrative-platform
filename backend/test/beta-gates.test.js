@@ -20,6 +20,9 @@ test("POST /worlds then DELETE succeeds (owner)", async (context) => {
   });
   assert.equal(created.statusCode, 201, created.body);
   const worldId = created.json().id;
+  context.after(async () => {
+    await query(`DELETE FROM worlds WHERE id = $1`, [worldId]).catch(() => {});
+  });
 
   const deleted = await app.inject({
     method: "DELETE",

@@ -1,8 +1,8 @@
 # 织幕 · 平台总览与前后端对照
 
 > **本文档**：产品模块规划 + 后端能力 + 前端入口 + API 客户端方法的一页式索引。  
-> **更新**：2026-06-17 · 测试 **323** 项 · 迁移 **033**  
-> **维护约定**：新 API 或新视图时同步更新 §3 对照表；剧本/测试桩见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)。
+> **更新**：2026-06-18 · 测试 **341** 项 · 迁移 **033**  
+> **系统设计**：[DESIGN_ZH.md](./DESIGN_ZH.md) · **维护约定**：新 API 或新视图时同步更新 §3 对照表
 
 ---
 
@@ -22,7 +22,7 @@
 | **创作** | 角色/章节/分幕、版本、文档 | 创作者工作台 `writer` | `creator-routes` |
 | **编排** | 场景/线索/调查/图谱 | 剧情编排 `studio` · 线索 `clues` | `studio-routes` · `studio-graph-routes` |
 | **规则** | 自动/主持确认/手动 | 自动化规则 `rules` | `rules-routes` · `rule-engine` |
-| **运行房** | 平行房、invite、进度隔离 | 总览 · 平行房 · 主持台 · 玩家 | `player-routes` · `host-routes` |
+| **运行房** | 平行房、invite、进度隔离 | 总览 · 平行房 · 主持台 · 玩家 · **play/** | `player-routes` · `host-routes` |
 | **实时** | SSE 事件、语音 | 主持台/玩家自动连接 | `room-events-routes` · `voice-routes` |
 | **存档** | 快照、分域回滚 | 主持台 · 存档视图 `archive` | `checkpoint-routes` |
 | **复盘** | 结构化报告 | `archive` | `recap-routes` |
@@ -131,11 +131,12 @@
 |----------|--------|------|------|
 | `GET /rooms/invite/:code` | `getRoomInvite` | join 弹窗 | ✅ |
 | `POST /rooms/join` | `joinRoom` | join 弹窗 | ✅ |
-| `GET .../player-home` | `getPlayerHome` | `player` | ✅ |
-| section complete | `completeSection` | `player` | ✅ |
-| exploration / investigate | `getExploration` · `investigate` | `player` | ✅ |
-| clues read/share/note | `readClue` … | `player` · 线索页 | ✅ |
-| notebook | `addNotebookEntry` | `player` | ✅ |
+| `GET .../player-home` | `getPlayerHome` | `player` · **play game** | ✅ |
+| section complete | `completeSection` | `player` · **play sections** | ✅ |
+| exploration / investigate | `getExploration` · `investigate` | `player` · **play explore** | ✅ |
+| clues read/share/note | `readClue` … | `player` · 线索页 · **play clues** | ✅ |
+| notebook | `addNotebookEntry` | `player` · **play reader** | ✅ |
+| player-home `hostConfirm` | — | `player` · **play** 等待横幅 | ✅ |
 
 ### 3.6 主持
 
@@ -143,6 +144,7 @@
 |----------|--------|------|------|
 | host/players · detail | `getHostPlayers` … | `director` | ✅ |
 | host-events batch/execute/delay | `getHostEvents` … | `director` | ✅ |
+| `POST .../host/nudge-waiting` | `hostNudgeWaiting` | `director` 提醒模态 | ✅ |
 | grant clue/item · unlock | `hostGrantClue` … | `director` | ✅ |
 | clue-matrix · notes | `getHostClueMatrix` … | `director` | ✅ |
 | audit-log | `getHostAuditLog` | `director` | ✅ |
@@ -153,8 +155,8 @@
 | 后端 API | client | 视图 | 状态 |
 |----------|--------|------|------|
 | checkpoints CRUD/restore | `getCheckpoints` … | `director` · `archive` | ✅ |
-| recaps | `getRecaps` … | `archive` | ✅ |
-| SSE `/events/stream` | `streamRoomEvents` | `runtime/data.js` | ✅ |
+| recaps | `getRecaps` … | `archive` · **play recap tab** | ✅ |
+| SSE `/events/stream` | `streamRoomEvents` | `runtime/room-events.js` · **play/room-events.js** | ✅ |
 | voice-rooms / LiveKit | `createVoiceRoom` … | `player` · 语音 | 🟡 需 LiveKit env |
 | assets upload/list | `uploadAsset` … | `assets` | ✅ |
 | `GET /storage/usage` | `getStorageUsage` | 账号设置 · 资产页 | ✅ |
@@ -169,9 +171,22 @@
 | `GET /api/ops/*` | 运维令牌 |
 | `GET /api/openapi.json` | OpenAPI |
 
+### 3.9 玩家端（`play/` · play.getzhimu.com）
+
+| 模块 | 路径 | 说明 |
+|------|------|------|
+| 入房 | `views/join.js` · `?join=` | 邀请码向导 |
+| 局内 | `views/game.js` | Tab：概览/语音/分幕/探索/线索/背包/复盘 |
+| 局部 SSE | `runtime/patch-game.js` | 更新 tab/侧栏/横幅，保留滚动 |
+| 路由 | `runtime/url.js` | `view` / `tab` / `reset` / `verify` |
+| 社区 | `views/plaza.js` · `social.js` | 广场/好友/私信（需验证邮箱） |
+| API | `play/src/api.js` | 与主应用同 `/api` 源 |
+
+详 [play/README.md](../play/README.md) · [DESIGN_ZH.md §6.3](./DESIGN_ZH.md#63-玩家端playgetzhimucom)
+
 ---
 
-## 4. 前端结构
+## 4. 前端结构（主应用）
 
 ```
 src/
@@ -216,7 +231,7 @@ backend/src/
   room-event-bus.js ← SSE 扇出
   auth.js           ← Session/游客
 migrations/         ← 001–023
-test/*.test.js      ← **323** 项
+test/*.test.js      ← **341** 项（94 文件）
 scripts/
   identity-smoke.mjs
   migrate.js

@@ -1,8 +1,9 @@
 # 安全与测试收口记录
 
-日期：2026-06-17（功能与剧本解耦 · 323 项测试）
+日期：2026-06-18（主持—玩家联动 · **341** 项测试）
 
-> **原则**：测试桩 UUID 仅用于 CI/smoke；产品功能不得硬编码单一剧本。见 [docs/WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)。
+> **原则**：测试桩 UUID 仅用于 CI/smoke；产品功能不得硬编码单一剧本。见 [docs/WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)。  
+> **系统设计**：[docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md)
 
 ## 已落地的 P0 安全项
 
@@ -39,7 +40,7 @@
 
 所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
 
-`npm test` 当前覆盖（**323** 项**，约 85 个测试文件；精确数以 `npm run check:tests` 为准）：
+`npm test` 当前覆盖（**341** 项**，94 个测试文件；精确数以 `npm run check:tests` 为准）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -78,6 +79,7 @@
 | `room-event-journal.test.js` | journal 按 id 补发 |
 | `beta2-ops.test.js` | ops status、telemetry、rateLimits |
 | `rate-limit.test.js` | upload/AI 独立限流桶 |
+| `register-ip-limit.test.js` | 生产 IP 注册上限；测试 hooks 默认 `REGISTER_IP_DAY_MAX=0` |
 | `asset-recycle.test.js` | 回收站列表、恢复、404 边界 |
 | `transaction-events.test.js` | commit 后才 publish SSE |
 | `account-entitlements.test.js` | entitlements API、ops 改套餐 |
@@ -121,7 +123,7 @@ npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 
 | 命令 | 结果 |
 |------|------|
-| `backend npm test` | **323/323** |
+| `backend npm test` | **341/341** |
 | `npm run check:schemas` | **56** 条路由 |
 | `npm run test:smoke` | **18/18** |
 | `node scripts/ui-smoke.js` | **41/41** |

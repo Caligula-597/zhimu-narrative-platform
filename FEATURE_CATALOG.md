@@ -3,7 +3,7 @@
 > **文档用途**：团队协调用的功能总表。每个功能标明已实现、部分实现、未实现与已知局限。  
 > **产品现状（中文长文，推荐先读）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **一张表总览（后端/前端/未接通/缺陷）**：[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)  
-> **更新日期**：2026-06-17（剧本解耦 · **323** 测试 · **56** schema · **34** UI smoke）  
+> **更新日期**：2026-06-18（主持—玩家联动 · **341** 测试 · **61** schema · **44** UI smoke）  
 > **版本阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）
 
 ---
@@ -279,7 +279,7 @@
 | Supabase 云库 | ✅ | 生产/开发可连 |
 | Cloudflare R2 | ✅ | 私有 bucket + 签名 URL |
 | 路由模块化 | ✅ | `backend/src/routes/*.js` + helpers |
-| 单元/集成测试 | ✅ | **323 项** / ~85 文件（见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5） |
+| 单元/集成测试 | ✅ | **341 项** / 94 文件（见 [docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md) §10） |
 | 前端 helper 测试 | ✅ | `test:format-helpers` **5** · `test:modal-helpers` **2**（CI 已跑） |
 | 测试数量门禁 | ✅ | `npm run check:tests`（下限 ≥100，`verify-test-count.mjs`） |
 | API smoke | ✅ | `scripts/smoke-api.js` **18 项**真实库（含 checkpoint-restore） |
@@ -406,6 +406,7 @@
 
 | 文档 | 用途 |
 |------|------|
+| [docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md) | **系统设计：架构、三端、主持—玩家闭环** |
 | [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) | **本文 · 功能总表** |
 | [RELEASE_NOTES.md](./RELEASE_NOTES.md) | **P0/P1 正式发布说明与验收** |
 | [WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md) | **测试桩 vs 官方示例** |
@@ -428,7 +429,7 @@ npm run ci
 
 # 或分步复验（P0～P2）
 npm run check    # 语法
-npm test         # 323 项单元/集成
+npm test         # 341 项单元/集成
 npm run test:smoke   # 18 项 API（需 4180 已启动）
 npm run test:format-helpers
 npm run test:modal-helpers
@@ -436,7 +437,7 @@ npm run test:ui:load # 24 项脚本加载（项目根）
 
 # 前端 UI 接线（需 4173 + 4180 已启动且为最新代码）
 cd ..
-node scripts/ui-smoke.js   # 33 项
+node scripts/ui-smoke.js   # 44 项
 node scripts/verify-script-load.mjs
 ```
 
@@ -1189,7 +1190,7 @@ npm run test:ui             # 需 :4173 + :4180
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **323** |
+| `backend npm test` | **341** |
 | `check:schemas` | **56** |
 | `test:smoke` | **18** |
 | `ui-smoke.js` | **34** |
@@ -1231,6 +1232,52 @@ npm run test:ui             # 需 :4173 + :4180
 
 ### 仍缺（非本迭代）
 
-- 注册邮箱验证（激活链接）
-- OAuth / refresh token / 多设备 session 管理
+- OAuth refresh token（多设备 session 管理已部分实现）
+- 注册邮箱验证（**play 端与 API 已支持**；主应用弹窗待统一）
+
+---
+
+## 31. 主持—玩家联动与玩家端 parity（2026-06-18）
+
+**目标**：收紧主持台与玩家/play 端感知，形成可验证的运行闭环。
+
+### 后端
+
+| 项 | 说明 |
+|----|------|
+| `player-home.hostConfirm` | 待主持确认数量、是否「在等你」、事件标题 |
+| `POST .../host/nudge-waiting` | SSE `room.host_nudge` + timeline |
+| `host-helpers.js` | 待办关联角色、hostConfirm 聚合 |
+| seed | fixture 房间默认一条演示待确认事件（E2E） |
+
+**测试**：`player-host-confirm.test.js` · `host-console.test.js`（nudge）· `register-ip-limit.test.js`
+
+### 主应用
+
+| 项 | 说明 |
+|----|------|
+| `director` | 待办↔玩家芯片、wait strip、实时动态、**提醒等待中的玩家** |
+| `player` | hostConfirm 横幅、**复盘模态**（玩家视角） |
+| `archive` | recap / checkpoint（不变） |
+| `shared/tokens.css` | 设计 token 导入主应用样式 |
+
+### 玩家端 `play/`
+
+| 项 | 说明 |
+|----|------|
+| 局内 Tab | 含 **复盘**（`latestRecap` + 玩家视角详情） |
+| URL 路由 | `view` / `tab` / `join` / `reset` / `verify` / `post` |
+| 账号 | 忘记密码、重置、邮箱验证、验证横幅 |
+| SSE | `patch-game.js` 局部刷新 tab/侧栏/横幅/复盘圆点 |
+| 阅读 | 分幕高亮、笔记本 API |
+
+### E2E / Smoke
+
+| 套件 | 覆盖 |
+|------|------|
+| `e2e/host-director-smoke.spec.js` | 待办区、wait strip、**nudge 模态** |
+| `e2e/play-portal-smoke.spec.js` | 入房、移动导航、plaza 深链 |
+| `scripts/ui-smoke.js` | **44/44** |
+
+**设计说明**：[docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md)
 

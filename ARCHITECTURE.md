@@ -1,5 +1,8 @@
 # 织幕 Alpha 架构
 
+> **完整系统设计（三端分工、主持—玩家闭环、SSE、内容模型）见 [docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md)。**  
+> API↔UI 对照见 [docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md)。
+
 ## 数据库选择
 
 项目从第一天直接使用 PostgreSQL，不提供 SQLite 兼容模式。
@@ -92,12 +95,27 @@
 
 所有规则执行都会写入 `rule_executions`，避免重复执行。
 
-## 接下来的开发顺序
+## 实时推送（已实现）
 
-1. 提供 PostgreSQL 实例并执行迁移与种子数据。
-2. 将现有前端玩家阅读页改为调用后端 API。
-3. 将主持台改为调用 `/host-progress`。
-4. 接入 Session 登录与账号体系。
-5. 加入 WebSocket，将阅读完成、规则执行和笔记更新实时推送给主持人。
-6. 接入 LiveKit，为语音房生成有权限边界的访问 Token。
-7. 实现存档快照和回滚。
+房间运行态通过 **SSE**（`GET /api/rooms/:roomId/events/stream`）推送，非 WebSocket。事件写入 `room_event_journal`；多 API 实例使用 `ROOM_EVENTS_BUS=postgres`。主持台与玩家视图（含 `play/`）订阅同一端点。详见 [docs/DESIGN_ZH.md §6–§7](./docs/DESIGN_ZH.md#6-主持玩家运行闭环2026-06-重点)。
+
+## 三端部署
+
+| 域名 | 代码 | 角色 |
+|------|------|------|
+| `app.getzhimu.com` | 根目录 Vite 应用 | 创作、主持、存档 |
+| `play.getzhimu.com` | `play/` | 玩家入房与局内 |
+| `getzhimu.com` | `site/` | 营销 |
+
+## 当前能力状态（2026-06）
+
+已实现（相对早期路线图）：
+
+1. PostgreSQL 迁移与种子、Session/OAuth 账号体系。
+2. 玩家/主持 API 闭环、规则引擎、主持待确认与手动干预。
+3. SSE 房间事件 + 主持—玩家联动（待办、nudge、hostConfirm 横幅、复盘）。
+4. Checkpoint 快照与 scoped restore、结构化 recap。
+5. LiveKit 语音客户端（需环境变量）、物品/inventory。
+6. 内容包/script-bundle 导入、DeepSeek 创作流水线（可选 API Key）。
+
+仍待加强：社交深度、规则积木 UX、生产 LiveKit 验收、全文检索。见 [FEATURE_CATALOG.md §9](./FEATURE_CATALOG.md#9-推荐迭代顺序团队协调)。

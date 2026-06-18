@@ -1,7 +1,7 @@
 # 织幕 · 前端说明
 
 > Vite 6 构建的单页应用，通过 `window.zhimuApi` / `window.zhimuState` 与 Fastify 后端通信。  
-> **更新**：2026-06-17
+> **更新**：2026-06-18 · 系统设计见 [DESIGN_ZH.md](./DESIGN_ZH.md) · 玩家独立端见 [play/README.md](../play/README.md)
 
 ---
 
