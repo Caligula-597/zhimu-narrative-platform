@@ -199,6 +199,7 @@ export const API_ERRORS = {
   SNAPSHOT_VERSION_UNSUPPORTED: { status: 422, message: "Checkpoint snapshot version is too old to restore" },
   RECAP_NOT_FOUND: { status: 404, message: "Recap not found" },
   RECAP_NOT_GENERATED: { status: 404, message: "No recap generated yet" },
+  NO_PLAYERS_TO_NUDGE: { status: 400, message: "No joined players to notify" },
 
   // Voice & LiveKit
   VOICE_ROOM_NAME_REQUIRED: { status: 400, message: "Voice room name is required" },

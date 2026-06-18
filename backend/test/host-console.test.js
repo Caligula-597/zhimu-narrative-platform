@@ -155,3 +155,23 @@ test("host audit log lists recent host actions", async (context) => {
   assert.ok(Array.isArray(entries));
   assert.ok(entries.some((row) => row.action === "host_grant_clue"));
 });
+
+test("host can nudge waiting players in room", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const roleSlotId = await queryFixtureRoleId();
+
+  const response = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fixtureRoomId}/host/nudge-waiting`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      message: "请稍候，主持人正在确认推进",
+      roleSlotIds: [roleSlotId]
+    }
+  });
+  assert.equal(response.statusCode, 200);
+  const payload = response.json();
+  assert.equal(payload.ok, true);
+  assert.equal(payload.notifiedCount, 1);
+});

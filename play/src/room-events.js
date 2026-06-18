@@ -73,6 +73,13 @@ async function handleRoomEvent(type, data, ctx) {
     case "room.investigation_completed":
       await ctx.onRefresh();
       break;
+    case "room.host_nudge": {
+      const roleId = ctx.getRoleId();
+      const targets = data.roleSlotIds || [];
+      const forMe = !targets.length || targets.some((id) => String(id) === String(roleId));
+      if (forMe) ctx.onToast(data.message || "主持人提醒你稍候");
+      break;
+    }
     case "room.voice_message_created":
       if (data.voiceRoomId === ctx.getVoiceRoomId?.()) {
         await ctx.onVoiceRefresh?.();

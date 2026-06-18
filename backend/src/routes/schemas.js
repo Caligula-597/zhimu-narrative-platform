@@ -249,6 +249,18 @@ export const hostLogSchema = {
   }
 };
 
+export const hostNudgeWaitingSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      message: { type: "string", maxLength: 500 },
+      roleSlotIds: { type: "array", items: uuid, maxItems: 32 }
+    }
+  }
+};
+
 export const hostNotesSchema = {
   params: roleSlotRoomParams,
   body: {

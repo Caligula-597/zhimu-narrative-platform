@@ -55,7 +55,6 @@ export function renderGameHome() {
 
   return `
     <div class="home-dashboard">
-      ${hostConfirmBanner()}
       ${renderVoiceCompact()}
       <article class="player-hero card live-flash">
         <div class="player-hero-copy">
@@ -311,11 +310,14 @@ export function renderInventory() {
     </div>`;
 }
 
-export function renderGame() {
-  const role = state.home?.role;
+export function renderHostConfirmBannerHtml() {
+  return hostConfirmBanner();
+}
+
+function gameTabDefinitions() {
   const progress = playerProgress(state.home);
   const voiceLive = state.voiceLiveStatus === "connected" ? "live" : "";
-  const tabs = [
+  return [
     ["home", "概览", ""],
     ["voice", "语音", voiceLive ? "●" : ""],
     ["sections", "分幕", progress.sectionsTotal ? `${progress.sectionsCompleted}/${progress.sectionsTotal}` : ""],
@@ -324,14 +326,31 @@ export function renderGame() {
     ["inventory", "背包", progress.inventoryCount || ""],
     ["recap", "复盘", state.recapLatest ? "●" : ""]
   ];
-  let body = "";
-  if (state.tab === "home") body = renderGameHome();
-  else if (state.tab === "voice") body = renderVoiceTab();
-  else if (state.tab === "sections") body = renderSections();
-  else if (state.tab === "explore") body = renderExploration();
-  else if (state.tab === "clues") body = renderClues();
-  else if (state.tab === "recap") body = renderRecapTab();
-  else body = renderInventory();
+}
+
+export function renderGameTabBar() {
+  return gameTabDefinitions()
+    .map(
+      ([id, label, badge]) => `
+            <button type="button" class="tab ${state.tab === id ? "is-active" : ""}" data-action="switch-tab" data-tab="${id}">
+              ${label}${badge ? `<span class="tab-badge">${badge}</span>` : ""}
+            </button>`
+    )
+    .join("");
+}
+
+export function renderGameTabBody() {
+  if (state.tab === "home") return renderGameHome();
+  if (state.tab === "voice") return renderVoiceTab();
+  if (state.tab === "sections") return renderSections();
+  if (state.tab === "explore") return renderExploration();
+  if (state.tab === "clues") return renderClues();
+  if (state.tab === "recap") return renderRecapTab();
+  return renderInventory();
+}
+
+export function renderGame() {
+  const role = state.home?.role;
 
   return `
     <section class="game-shell">
@@ -347,18 +366,11 @@ export function renderGame() {
         </div>
       </aside>
       <div class="game-main">
-        <nav class="tab-bar" aria-label="玩家功能">
-          ${tabs
-            .map(
-              ([id, label, badge]) => `
-            <button type="button" class="tab ${state.tab === id ? "is-active" : ""}" data-action="switch-tab" data-tab="${id}">
-              ${label}${badge ? `<span class="tab-badge">${badge}</span>` : ""}
-            </button>`
-            )
-            .join("")}
+        <nav class="tab-bar" data-game-tab-bar aria-label="玩家功能">
+          ${renderGameTabBar()}
         </nav>
-        ${hostConfirmBanner()}
-        <div class="tab-body">${body}</div>
+        <div data-game-host-banner>${renderHostConfirmBannerHtml()}</div>
+        <div class="tab-body" data-game-tab-body>${renderGameTabBody()}</div>
       </div>
     </section>`;
 }

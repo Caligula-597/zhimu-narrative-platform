@@ -29,6 +29,7 @@ import {
   toggleVoiceMicLive
 } from "./runtime/voice.js";
 import { bindPlayReader } from "./runtime/reader.js";
+import { patchGameView } from "./runtime/patch-game.js";
 import { applyUrlToState, scrollRestoreKey, syncPlayUrl } from "./runtime/url.js";
 import { persistRoom, setBusy, setToast, state } from "./state.js";
 import { setVoiceRenderCallback } from "./voice/livekit-voice.js";
@@ -109,7 +110,8 @@ async function loadAuthConfig() {
   state.authConfig = await api.authConfig();
 }
 
-async function pullRoomData() {
+async function pullRoomData(options = {}) {
+  const { partial = false } = options;
   if (!state.roomId || !isUuid(state.roomId)) return;
   state.home = await api.playerHome(state.roomId);
   state.exploration = await api.exploration(state.roomId).catch(() => ({ scenes: [] }));
@@ -126,6 +128,12 @@ async function pullRoomData() {
     } catch {
       /* voice messages are best-effort on refresh */
     }
+  }
+  if (partial && patchGameView(state, {
+    pullRoomData: (opts) => pullRoomData(opts),
+    onToast: (message) => setToast(message, render)
+  })) {
+    return;
   }
   render();
 }
@@ -145,7 +153,7 @@ const roomEventCtx = {
   },
   onRefresh: async () => {
     try {
-      await pullRoomData();
+      await pullRoomData({ partial: true });
     } catch {
       /* SSE/poll refresh is best-effort */
     }

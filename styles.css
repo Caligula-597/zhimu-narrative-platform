@@ -517,6 +517,8 @@ h3 { font-size:15px; }
 .host-event-actions-preview { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; font-size:10px; }
 .host-event-actions-preview span { padding:4px 8px; border-radius:999px; background:#fff; border:1px solid var(--line); }
 .host-wait-strip { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; border-color:rgba(196,147,77,.35); background:#fdf6ea; }
+.host-wait-actions { flex-wrap:wrap; gap:8px; }
+.recap-entry-strip { margin-bottom:14px; border-color:rgba(44,107,98,.22); background:#eef4ef; display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .host-row-waiting { background:rgba(243,235,224,.45); }
 .host-row-waiting td:first-child { box-shadow:inset 3px 0 0 var(--gold); }
 .host-wait-tag { color:var(--gold); font-weight:700; font-size:10px; }

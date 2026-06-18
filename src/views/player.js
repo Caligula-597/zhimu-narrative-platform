@@ -56,12 +56,18 @@ function hostConfirmBanner(){
  return `<section class="demo-strip host-confirm-room"><div><span class="cloud-pill">进行中</span><strong>主持人正在处理 ${hc.pendingCount} 条待确认事件</strong><p>与你相关的解锁会在确认后实时推送。</p></div></section>`;
 }
 
+function recapEntryBanner(){
+ const latest=state.cloudRecapLatest;
+ if(!latest)return "";
+ return `<section class="demo-strip recap-entry-strip"><div><span class="cloud-pill">复盘就绪</span><strong>${escapeHtml(latest.label)}</strong><p>主持人已生成复盘 · ${latest.summary?.cluesDiscovered??0} 条线索流转 · ${latest.summary?.investigationsCompleted??0} 次调查</p></div><button class="secondary-btn" data-action="player-view-recap">查看我的复盘</button></section>`;
+}
+
 function player(){
  const room=activeRuntimeRoom(),home=state.cloudPlayer,role=home?.role;
  if(!room)return runtimeEmpty("玩家视角","玩家视角必须来自当前世界中的具体运行房。请先建立平行房，并让玩家通过邀请码选择角色。");
  if(!role)return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">PLAYER ROLE REQUIRED</p><h2>${escapeHtml(room.name)} 尚无可预览角色</h2><p>当前预览账号尚未加入这个运行房，或尚未选择角色席位。玩家加入后，这里才会读取该角色的私人章节、线索和语音空间。</p><button class="primary-btn" data-action="world-rooms">切换平行房</button></article>`;
  const scene=currentCloudScene(),parts=roleParts(role.name);
- return `<section class="player-view">${cloudStatus()}${hostConfirmBanner()}${voiceHub()}<article class="player-hero live-flash"><div class="player-hero-copy"><p class="eyebrow">${escapeHtml(parts.name)} · 当前开放场景</p><h2>${escapeHtml(scene.title)}</h2><p>${escapeHtml(scene.text)}</p></div><div class="scene-art">${escapeHtml(scene.art)}</div></article>
+ return `<section class="player-view">${cloudStatus()}${hostConfirmBanner()}${recapEntryBanner()}${voiceHub()}<article class="player-hero live-flash"><div class="player-hero-copy"><p class="eyebrow">${escapeHtml(parts.name)} · 当前开放场景</p><h2>${escapeHtml(scene.title)}</h2><p>${escapeHtml(scene.text)}</p></div><div class="scene-art">${escapeHtml(scene.art)}</div></article>
  ${reader()}
  <section class="player-layout"><div><article class="card"><div class="section-head"><div><h3>探索当前场景</h3><p>阅读完成后，可以选择地点继续调查</p></div></div>
  ${explorationRows()}

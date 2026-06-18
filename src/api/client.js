@@ -193,6 +193,8 @@ window.zhimuApi = {
     request(`/rooms/${demoContext.roomId}/host/unlock-section`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true }),
   hostUnlockScene: (sceneId) => request(`/rooms/${demoContext.roomId}/scenes/${sceneId}/unlock`, { userId: demoContext.hostUserId, method: "POST" }),
   hostAddLog: (payload) => request(`/rooms/${demoContext.roomId}/host/log`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  hostNudgeWaiting: (payload) =>
+    request(`/rooms/${demoContext.roomId}/host/nudge-waiting`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   hostSaveNotes: (roleSlotId, notes) => request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}/notes`, { userId: demoContext.hostUserId, method: "PUT", body: { notes } }),
   getExploration: () => request(`/rooms/${demoContext.roomId}/exploration`, { userId: demoContext.playerUserId }),
   investigate: (pointId) =>

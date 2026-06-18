@@ -10,6 +10,7 @@
       case "create-recap": A.openCreateRecapModal?.(); return true;
       case "recap-detail": A.openRecapDetail?.(el?.dataset?.recap, el?.dataset?.player === "1"); return true;
       case "recap-back": A.closeRecapDetail?.(); return true;
+      case "player-view-recap": A.openPlayerRecapFromBanner?.(); return true;
       case "checkpoint-detail": A.openCheckpointDetail?.(el?.dataset?.checkpoint); return true;
       case "restore-checkpoint": A.openRestoreCheckpointModal?.(el?.dataset?.checkpoint); return true;
       case "save-world-settings": S.saveWorldSettings?.(); return true;

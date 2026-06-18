@@ -189,6 +189,15 @@
           }
         }
         break;
+      case "room.host_nudge": {
+        const roleId = state.cloudPlayer?.role?.id;
+        const targets = data.roleSlotIds || [];
+        const forMe = !targets.length || targets.some((id) => String(id) === String(roleId));
+        if (state.view === "player" && forMe) {
+          showToast(data.message || "主持人提醒你稍候", 3600);
+        }
+        break;
+      }
       case "room.section_unlocked":
         if (state.view === "director" || state.view === "overview") await R.refreshHostPlayers?.(false, true);
         else if (state.view === "player") {

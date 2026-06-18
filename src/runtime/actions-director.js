@@ -23,6 +23,7 @@
       case "batch-dismiss-host-events": D.batchHostEventsAction?.("dismiss"); return true;
       case "execute-host-event": D.executeHostEvent?.(el?.dataset?.event); return true;
       case "dismiss-host-event": D.dismissHostEvent?.(el?.dataset?.event); return true;
+      case "host-nudge-waiting": D.openHostNudgeWaitingModal?.(); return true;
       default: return false;
     }
   }

@@ -158,6 +158,7 @@ function openCreateCheckpointModal(){
 async function openRecapDetail(recapId,asPlayer=false){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  try{
+  if(state.view!=="archive")go("archive");
   const detail=await zhimuApi.getRecap(recapId,asPlayer);
   state.activeRecapId=recapId;
   state.cloudRecapDetail=detail;
@@ -169,6 +170,12 @@ function closeRecapDetail(){
  state.activeRecapId=null;
  state.cloudRecapDetail=null;
  render();
+}
+
+async function openPlayerRecapFromBanner(){
+ const latest=state.cloudRecapLatest;
+ if(!latest)return showToast("主持人尚未生成复盘");
+ await openRecapDetail(latest.id,true);
 }
 
 function checkpointRestoreHistoryRows(restores = []) {
@@ -239,6 +246,7 @@ function openRestoreCheckpointModal(checkpointId,checkpointLabel){
   viewExports.openCreateCheckpointModal = openCreateCheckpointModal;
   viewExports.openRecapDetail = openRecapDetail;
   viewExports.closeRecapDetail = closeRecapDetail;
+  viewExports.openPlayerRecapFromBanner = openPlayerRecapFromBanner;
   viewExports.checkpointRestoreHistoryRows = checkpointRestoreHistoryRows;
   viewExports.openCheckpointDetail = openCheckpointDetail;
   viewExports.openRestoreCheckpointModal = openRestoreCheckpointModal;

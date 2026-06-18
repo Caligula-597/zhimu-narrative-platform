@@ -125,7 +125,7 @@ function hostPlayerWaitStrip(){
  const waitingIds=pendingEventRoleIds();
  const players=(state.cloudHostPlayers||[]).filter((player)=>player.joined&&waitingIds.has(String(player.role_slot_id)));
  const playerLine=players.length?`${players.map((player)=>escapeHtml(player.player_display_name||player.role_name)).join("、")} 可能在等待你确认`:"确认后玩家端会实时收到分幕/场景解锁通知";
- return `<section class="demo-strip host-wait-strip"><div><span class="cloud-pill">主持 ↔ 玩家</span><strong>${events.length} 条待确认 · 关联 ${waitingIds.size||"全"} 个角色席位</strong><p>${playerLine}。优先处理与卡关玩家相关的事件。</p></div><button class="secondary-btn" data-action="refresh-host-events">刷新待办</button></section>`;
+ return `<section class="demo-strip host-wait-strip"><div><span class="cloud-pill">主持 ↔ 玩家</span><strong>${events.length} 条待确认 · 关联 ${waitingIds.size||"全"} 个角色席位</strong><p>${playerLine}。优先处理与卡关玩家相关的事件。</p></div><div class="row host-wait-actions"><button class="primary-btn" data-action="host-nudge-waiting">提醒等待中的玩家</button><button class="secondary-btn" data-action="refresh-host-events">刷新待办</button></div></section>`;
 }
 
 function hostLiveFeed(){
@@ -300,6 +300,14 @@ async function executeHostEvent(eventId){
   showToast(`已确认「${event?.title||"事件"}」· ${preview}`);
  }catch(error){showToast(error.message)}
 }
+
+function openHostNudgeWaitingModal(){
+ const waitingIds=pendingEventRoleIds();
+ const players=(state.cloudHostPlayers||[]).filter((player)=>player.joined&&(!waitingIds.size||waitingIds.has(String(player.role_slot_id))));
+ if(!players.length)return showToast("当前没有已入房且可能在等待的玩家");
+ modal.className="modal";modal.innerHTML=`<h2>提醒等待中的玩家</h2><p class="wizard-intro">消息会通过实时推送送达 play 端与玩家视角，不会发送站外私信。</p><div class="form-group"><label>提醒内容</label><textarea class="field" rows="3" data-nudge-message>主持人正在处理待确认事件，请稍候 — 确认后新内容会自动解锁。</textarea><label>通知对象（默认已选可能在等待的玩家）</label><div class="member-picker">${players.map((player)=>`<label><input type="checkbox" data-nudge-role value="${player.role_slot_id}" checked> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}</span></label>`).join("")}</div></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-nudge-submit>发送提醒</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-nudge-submit]").onclick=async()=>{try{const message=modal.querySelector("[data-nudge-message]").value;const roleSlotIds=[...modal.querySelectorAll("[data-nudge-role]:checked")].map((el)=>el.value);if(!roleSlotIds.length)return showToast("请至少选择一名玩家");const result=await zhimuApi.hostNudgeWaiting({message,roleSlotIds});closeModal();showToast(`已提醒 ${result.notifiedCount} 名玩家`)}catch(error){showToast(error.message)}};
+}
   viewExports.director = director;
   viewExports.hostPlayerTableRows = hostPlayerTableRows;
   viewExports.directorPlayers = directorPlayers;
@@ -354,6 +362,7 @@ async function triggerManualRuleFromDirector(ruleId){
   viewExports.openHostLogModal = openHostLogModal;
   viewExports.dismissHostEvent = dismissHostEvent;
   viewExports.executeHostEvent = executeHostEvent;
+  viewExports.openHostNudgeWaitingModal = openHostNudgeWaitingModal;
   viewExports.hostPlayerWaitStrip = hostPlayerWaitStrip;
   viewExports.hostLiveFeed = hostLiveFeed;
 })(window);
