@@ -1,5 +1,6 @@
 import { renderHeader } from "./header.js";
 import { renderModal } from "./modal.js";
+import { renderMobileNav } from "./mobile-nav.js";
 import { escapeHtml } from "../security.js";
 import { state } from "../state.js";
 import { renderAuth } from "../views/auth.js";
@@ -31,6 +32,7 @@ export function renderApp() {
       ${state.busy ? `<div class="loading-bar" aria-hidden="true"></div>` : ""}
       ${renderMainView()}
     </main>
+    ${renderMobileNav()}
     ${state.toast ? `<div class="toast show" role="status">${escapeHtml(state.toast)}</div>` : ""}
     ${renderModal()}`;
 }

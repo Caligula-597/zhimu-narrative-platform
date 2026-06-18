@@ -24,6 +24,7 @@ import {
 } from "./schemas.js";
 import {
   eventSourceLabel,
+  extractTriggerPlayers,
   fetchHostPlayerDetail,
   fetchHostPlayers,
   summarizeHostAction
@@ -467,10 +468,3 @@ export async function registerHostRoutes(app) {
   });
 }
 
-function extractTriggerPlayers(conditions) {
-  const all = conditions?.all ?? [];
-  const roleIds = all
-    .map((condition) => condition.roleSlotId ?? condition.role_slot_id)
-    .filter(Boolean);
-  return [...new Set(roleIds)];
-}

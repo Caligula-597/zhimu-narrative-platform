@@ -15,6 +15,19 @@ export default {
     screenshot: "only-on-failure",
     video: "retain-on-failure"
   },
+  projects: [
+    {
+      name: "app",
+      testMatch: /host-director-smoke\.spec\.js/
+    },
+    {
+      name: "play",
+      testMatch: /play-portal-smoke\.spec\.js/,
+      use: {
+        baseURL: process.env.PLAYWRIGHT_PLAY_URL || "http://localhost:5174"
+      }
+    }
+  ],
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : [
@@ -31,6 +44,12 @@ export default {
           url: "http://localhost:4173/",
           reuseExistingServer: true,
           timeout: 60_000
+        },
+        {
+          command: "npm run build --prefix play && npm run preview --prefix play",
+          url: "http://localhost:5174/",
+          reuseExistingServer: true,
+          timeout: 120_000
         }
       ]
 };

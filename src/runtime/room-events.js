@@ -142,8 +142,10 @@
         }
         break;
       case "room.section_completed":
-        if (state.view === "director" || state.view === "overview") await R.refreshHostPlayers?.(false, true);
-        else if (state.view === "player" && data.roleSlotId === state.cloudPlayer?.role?.id) await refreshPlayerHome();
+        if (state.view === "director" || state.view === "overview") {
+          await R.refreshHostPlayers?.(false, true);
+          await R.refreshHostEvents?.(false, true);
+        } else if (state.view === "player" && data.roleSlotId === state.cloudPlayer?.role?.id) await refreshPlayerHome();
         break;
       case "room.clue_granted":
         if (state.view === "director" || state.view === "overview") {
@@ -166,11 +168,26 @@
         break;
       case "room.host_event_pending":
         await R.refreshHostEvents?.(false, true);
-        if (state.view === "player" && data.action === "executed") {
+        if (state.view === "director" || state.view === "overview") {
+          await R.refreshHostPlayers?.(false, true);
+          if (data.action === "executed") {
+            showToast("待确认事件已执行 · 玩家端将收到解锁通知", 3200);
+          } else if (data.action === "dismissed") {
+            showToast("待确认事件已拒绝", 2800);
+          } else if (state.view === "director") {
+            showToast("有新的待确认事件 · 玩家可能在等待", 3200);
+          }
+        } else if (state.view === "player") {
           await refreshPlayerHome();
-          await refreshExploration();
+          if (data.action === "executed") {
+            await refreshExploration();
+            showToast("主持人已确认推进 · 新内容可能已解锁", 3200);
+          } else if (data.action === "dismissed") {
+            showToast("主持人已处理待确认事件", 2800);
+          } else if (state.cloudPlayer?.hostConfirm?.waitingForYou) {
+            showToast("剧情推进等待主持人确认", 3200);
+          }
         }
-        if (!data.action && state.view === "director") showToast("有新的待确认事件", 2800);
         break;
       case "room.section_unlocked":
         if (state.view === "director" || state.view === "overview") await R.refreshHostPlayers?.(false, true);
@@ -180,7 +197,10 @@
         }
         break;
       case "room.investigation_completed":
-        if (state.view === "director" || state.view === "overview") await R.refreshHostPlayers?.(false, true);
+        if (state.view === "director" || state.view === "overview") {
+          await R.refreshHostPlayers?.(false, true);
+          await R.refreshHostEvents?.(false, true);
+        }
         break;
       case "room.scene_unlocked":
         if (state.view === "player") {

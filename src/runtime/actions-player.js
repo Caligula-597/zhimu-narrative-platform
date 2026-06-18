@@ -22,8 +22,6 @@
       case "share-clue-roles": P.openShareClueRolesModal?.(el?.dataset?.clue); return true;
       case "edit-clue-note": P.openClueNoteModal?.(el?.dataset?.clue); return true;
       case "read-shared-clue": P.readCloudClue?.(el?.dataset?.clue, true); return true;
-      case "execute-host-event": P.executeHostEvent?.(el?.dataset?.event); return true;
-      case "dismiss-host-event": P.dismissHostEvent?.(el?.dataset?.event); return true;
       default: return false;
     }
   }

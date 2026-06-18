@@ -11,6 +11,7 @@ import { assertRolesInRoomWorld } from "./clue-share-helpers.js";
 import { listPlayerInventory, consumeItemIfNeeded } from "../inventory-helpers.js";
 import { requireRoomRole } from "./route-guards.js";
 import { sendErr, throwErr } from "../api-errors.js";
+import { fetchPlayerHostConfirmStatus } from "./host-helpers.js";
 import {
   cluePlayerNoteSchema,
   clueShareRoomSchema,
@@ -199,6 +200,11 @@ export async function registerPlayerRoutes(app) {
       );
       const inventory = await listPlayerInventory(client, roomId, membership.role_slot_id);
       const enrichedSections = await enrichPlayerSectionsWithPages(client, sections.rows);
+      const hostConfirm = await fetchPlayerHostConfirmStatus(
+        client.query.bind(client),
+        roomId,
+        membership.role_slot_id
+      );
 
       return {
         room: roomInfo.rows[0],
@@ -209,7 +215,8 @@ export async function registerPlayerRoutes(app) {
         sharedClues: clueBundle.shared,
         voiceRooms: rooms.rows,
         roomMembers: members.rows,
-        inventory
+        inventory,
+        hostConfirm
       };
     } finally {
       client.release();

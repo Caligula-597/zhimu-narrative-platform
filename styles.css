@@ -1,26 +1,18 @@
+@import "./shared/tokens.css";
+
 :root {
-  --ink: #162d2b;
-  --ink-soft: #3e5a56;
-  --muted: #78908b;
-  --paper: #f7f5ef;
-  --paper-deep: #efede5;
-  --card: rgba(255,255,255,.83);
-  --line: rgba(31,71,67,.12);
-  --green: #1c514b;
-  --green-2: #2c6b62;
-  --sage: #dce7df;
-  --sage-2: #eef4ef;
-  --gold: #c4934d;
-  --gold-soft: #f3e5cb;
-  --red: #be6b5e;
-  --violet: #756a93;
-  --shadow: 0 18px 38px rgba(27,64,59,.08);
-  --radius: 18px;
+  --card: var(--surface-soft);
+  --gold: var(--brass);
+  --gold-soft: var(--brass-soft);
+  --shadow: var(--shadow-soft);
+  --red: var(--clay);
+  --violet: var(--plum);
+  --radius: 12px;
 }
 * { box-sizing: border-box; }
 body {
   margin: 0; color: var(--ink); background: var(--paper);
-  font-family: "Plus Jakarta Sans", "Microsoft YaHei", sans-serif; font-size: 14px;
+  font-family: var(--font-ui, "Plus Jakarta Sans"), "Microsoft YaHei", sans-serif; font-size: 14px;
 }
 button, input, select { font: inherit; }
 button { cursor: pointer; border: 0; }
@@ -524,6 +516,14 @@ h3 { font-size:15px; }
 .host-event-head small { color:var(--muted); font-size:9px; }
 .host-event-actions-preview { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; font-size:10px; }
 .host-event-actions-preview span { padding:4px 8px; border-radius:999px; background:#fff; border:1px solid var(--line); }
+.host-wait-strip { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; border-color:rgba(196,147,77,.35); background:#fdf6ea; }
+.host-row-waiting { background:rgba(243,235,224,.45); }
+.host-row-waiting td:first-child { box-shadow:inset 3px 0 0 var(--gold); }
+.host-wait-tag { color:var(--gold); font-weight:700; font-size:10px; }
+.host-event-players { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:8px 0; font-size:10px; }
+.host-player-chip { padding:4px 10px; border-radius:999px; border:1px solid var(--line); background:#fff; font-size:10px; }
+.host-confirm-wait { margin-bottom:14px; border-color:rgba(196,147,77,.35); background:#fdf6ea; }
+.host-confirm-room { margin-bottom:14px; border-color:rgba(44,107,98,.18); background:#eef4ef; }
 .host-manual-actions { gap:8px; flex-wrap:wrap; }
 .host-runtime-table-wrap { overflow:auto; margin-top:12px; }
 .host-runtime-table { width:100%; border-collapse:collapse; font-size:10px; }

@@ -1974,3 +1974,129 @@ code {
   }
 }
 
+.host-wait-banner {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(167, 120, 61, 0.35);
+  border-radius: var(--radius-lg);
+  background: var(--brass-soft);
+}
+
+.host-wait-banner.soft {
+  border-color: rgba(43, 107, 97, 0.22);
+  background: var(--sage-2);
+}
+
+.host-wait-banner strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.host-wait-banner p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.highlight-toolbar {
+  position: absolute;
+  z-index: 30;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.story-highlight {
+  background: rgba(167, 120, 61, 0.28);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.reader-hint {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.reader-pages {
+  display: grid;
+  gap: 16px;
+}
+
+.reader-page img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+.reader-page figcaption {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  body {
+    padding-bottom: 72px;
+  }
+
+  .play-header .header-actions {
+    display: none;
+  }
+
+  .mobile-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: rgba(255, 253, 248, 0.94);
+    backdrop-filter: blur(12px);
+  }
+
+  .mobile-nav-item {
+    display: grid;
+    gap: 2px;
+    place-items: center;
+    padding: 6px 4px;
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    position: relative;
+  }
+
+  .mobile-nav-item.is-active {
+    color: var(--green-2);
+    background: var(--accent-soft);
+    font-weight: 600;
+  }
+
+  .mobile-nav .nav-badge {
+    position: absolute;
+    top: 2px;
+    right: 8px;
+    min-width: 16px;
+    padding: 1px 4px;
+    border-radius: 999px;
+    background: var(--clay);
+    color: #fff;
+    font-size: 9px;
+    line-height: 1.2;
+  }
+}
+

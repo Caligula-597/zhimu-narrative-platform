@@ -46,12 +46,22 @@
   const openJoinRoom = R.openJoinRoom || (() => {});
   window.zhimuViews = window.zhimuViews || {};
   const viewExports = window.zhimuViews.player = window.zhimuViews.player || {};
+function hostConfirmBanner(){
+ const hc=state.cloudPlayer?.hostConfirm;
+ if(!hc?.pendingCount)return "";
+ if(hc.waitingForYou){
+  const sample=hc.titles?.[0]?`「${escapeHtml(hc.titles[0])}」`:"";
+  return `<section class="demo-strip host-confirm-wait"><div><span class="cloud-pill">等待主持</span><strong>剧情推进等待主持人确认</strong><p>${sample}${hc.pendingCount>1?` 等 ${hc.pendingCount} 条`:""} — 确认后你会收到通知，页面会自动刷新。</p></div></section>`;
+ }
+ return `<section class="demo-strip host-confirm-room"><div><span class="cloud-pill">进行中</span><strong>主持人正在处理 ${hc.pendingCount} 条待确认事件</strong><p>与你相关的解锁会在确认后实时推送。</p></div></section>`;
+}
+
 function player(){
  const room=activeRuntimeRoom(),home=state.cloudPlayer,role=home?.role;
  if(!room)return runtimeEmpty("玩家视角","玩家视角必须来自当前世界中的具体运行房。请先建立平行房，并让玩家通过邀请码选择角色。");
  if(!role)return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">PLAYER ROLE REQUIRED</p><h2>${escapeHtml(room.name)} 尚无可预览角色</h2><p>当前预览账号尚未加入这个运行房，或尚未选择角色席位。玩家加入后，这里才会读取该角色的私人章节、线索和语音空间。</p><button class="primary-btn" data-action="world-rooms">切换平行房</button></article>`;
  const scene=currentCloudScene(),parts=roleParts(role.name);
- return `<section class="player-view">${cloudStatus()}${voiceHub()}<article class="player-hero live-flash"><div class="player-hero-copy"><p class="eyebrow">${escapeHtml(parts.name)} · 当前开放场景</p><h2>${escapeHtml(scene.title)}</h2><p>${escapeHtml(scene.text)}</p></div><div class="scene-art">${escapeHtml(scene.art)}</div></article>
+ return `<section class="player-view">${cloudStatus()}${hostConfirmBanner()}${voiceHub()}<article class="player-hero live-flash"><div class="player-hero-copy"><p class="eyebrow">${escapeHtml(parts.name)} · 当前开放场景</p><h2>${escapeHtml(scene.title)}</h2><p>${escapeHtml(scene.text)}</p></div><div class="scene-art">${escapeHtml(scene.art)}</div></article>
  ${reader()}
  <section class="player-layout"><div><article class="card"><div class="section-head"><div><h3>探索当前场景</h3><p>阅读完成后，可以选择地点继续调查</p></div></div>
  ${explorationRows()}
@@ -422,14 +432,6 @@ function openClueNoteModal(clueId){
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
  modal.querySelector("[data-save-clue-note]").onclick=async()=>{try{const note=modal.querySelector("[data-clue-note]").value;await zhimuApi.updateCluePlayerNote(clueId,note);closeModal();await loadCloudData();showToast("线索解读已保存")}catch(error){showToast(error.message)}};
 }
-
-async function dismissHostEvent(eventId){
- try{await zhimuApi.dismissHostEvent(eventId);await loadCloudData();showToast("已拒绝该待确认事件")}catch(error){showToast(error.message)}
-}
-
-async function executeHostEvent(eventId){
- try{await zhimuApi.executeHostEvent(eventId);await loadCloudData();showToast("关键节点已确认，下一探索场景已经开放")}catch(error){showToast(error.message)}
-}
   viewExports.player = player;
   viewExports.voiceHub = voiceHub;
   viewExports.voiceChat = voiceChat;
@@ -456,7 +458,6 @@ async function executeHostEvent(eventId){
   viewExports.shareCloudClue = shareCloudClue;
   viewExports.openShareClueRolesModal = openShareClueRolesModal;
   viewExports.openClueNoteModal = openClueNoteModal;
-  viewExports.dismissHostEvent = dismissHostEvent;
-  viewExports.executeHostEvent = executeHostEvent;
+  viewExports.hostConfirmBanner = hostConfirmBanner;
 })(window);
 export {};

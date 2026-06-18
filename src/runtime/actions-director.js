@@ -21,6 +21,8 @@
       case "host-event-select-all": D.syncHostEventSelectAll?.(el?.checked); return true;
       case "batch-execute-host-events": D.batchHostEventsAction?.("execute"); return true;
       case "batch-dismiss-host-events": D.batchHostEventsAction?.("dismiss"); return true;
+      case "execute-host-event": D.executeHostEvent?.(el?.dataset?.event); return true;
+      case "dismiss-host-event": D.dismissHostEvent?.(el?.dataset?.event); return true;
       default: return false;
     }
   }

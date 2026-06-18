@@ -28,6 +28,7 @@ import {
   submitVoiceInvite,
   toggleVoiceMicLive
 } from "./runtime/voice.js";
+import { bindPlayReader } from "./runtime/reader.js";
 import { persistRoom, setBusy, setToast, state } from "./state.js";
 import { setVoiceRenderCallback } from "./voice/livekit-voice.js";
 
@@ -42,6 +43,14 @@ function render() {
   if (state.view === "game" && state.tab === "voice") {
     const voiceLog = document.querySelector("[data-voice-scroll]");
     if (voiceLog) voiceLog.scrollTop = voiceLog.scrollHeight;
+  }
+  if (state.view === "game" && state.tab === "sections" && state.roomId) {
+    bindPlayReader({
+      roomId: state.roomId,
+      notesSource: () => state.home,
+      onRefresh: async () => pullRoomData(),
+      onToast: (message) => setToast(message, render)
+    });
   }
 }
 
@@ -137,6 +146,7 @@ const roomEventCtx = {
     }
   },
   onToast: (message) => setToast(message, render),
+  getHostConfirmWaiting: () => Boolean(state.home?.hostConfirm?.waitingForYou),
   setConnected: (connected) => {
     if (state.roomEventsConnected === connected) return;
     state.roomEventsConnected = connected;

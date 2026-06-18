@@ -1,7 +1,26 @@
 import { escapeHtml, sanitizeImageUrl, asArray } from "../security.js";
 import { currentScene, playerProgress, state } from "../state.js";
 import { clueIsRead, clueOwnerLabel, clueShareRoleCount } from "../utils/clues.js";
+import { applyStoryHighlights, sectionHighlights } from "../utils/highlights.js";
 import { renderVoiceCompact, renderVoiceTab } from "./voice.js";
+
+function hostConfirmBanner() {
+  const hc = state.home?.hostConfirm;
+  if (!hc?.pendingCount) return "";
+  if (hc.waitingForYou) {
+    const sample = hc.titles?.[0] ? `「${escapeHtml(hc.titles[0])}」` : "";
+    return `
+      <div class="banner host-wait-banner">
+        <strong>等待主持人确认</strong>
+        <p>${sample}${hc.pendingCount > 1 ? ` 等 ${hc.pendingCount} 条` : ""} — 确认后新分幕/场景会自动解锁。</p>
+      </div>`;
+  }
+  return `
+    <div class="banner host-wait-banner soft">
+      <strong>主持人正在处理 ${hc.pendingCount} 条待确认事件</strong>
+      <p>与你相关的推进会在确认后实时通知。</p>
+    </div>`;
+}
 
 function renderRoomMembers() {
   const members = state.home?.roomMembers || [];
@@ -35,6 +54,7 @@ export function renderGameHome() {
 
   return `
     <div class="home-dashboard">
+      ${hostConfirmBanner()}
       ${renderVoiceCompact()}
       <article class="player-hero card live-flash">
         <div class="player-hero-copy">
@@ -83,6 +103,19 @@ export function renderSections() {
   const activeIndex = sections.findIndex((section) => section.id === active?.id);
   const body = active?.body || "";
   const pages = active?.pages || [];
+  const isPages = active?.content_mode === "pages" || active?.metadata?.contentMode === "pages";
+  const highlights = sectionHighlights(state.home?.notes, active?.id);
+  const highlightHint = highlights.length ? `已高亮 ${highlights.length} 处` : "拖选词句后点「高亮」";
+  const bodyHtml = isPages && pages.length
+    ? `<div class="reader-pages">${pages
+        .map((page, index) => {
+          const src = sanitizeImageUrl(page.url);
+          if (!src) return "";
+          return `<figure class="reader-page"><img src="${escapeHtml(src)}" alt="第 ${index + 1} 页" loading="lazy" decoding="async" referrerpolicy="no-referrer" /><figcaption>第 ${index + 1} / ${pages.length} 页</figcaption></figure>`;
+        })
+        .filter(Boolean)
+        .join("")}</div>`
+    : `<div class="story-body reader-body" data-reader-body data-section-id="${active?.id || ""}" data-section-title="${escapeHtml(active?.title || "")}">${applyStoryHighlights(body, highlights)}</div><p class="reader-hint muted">${highlightHint} · 点击已高亮文字可取消</p>`;
   const switcher =
     sections.length > 1
       ? `
@@ -113,8 +146,8 @@ export function renderSections() {
           <p class="eyebrow">分幕 ${active?.sequence ?? ""}</p>
           <h3>${escapeHtml(active?.title || "")}</h3>
         </header>
-        <div class="story-body">${escapeHtml(body).replace(/\n/g, "<br>")}</div>
-        ${pages.length
+        ${bodyHtml}
+        ${pages.length && !isPages
           ? `<div class="story-pages">${pages
               .map((page) => {
                 const src = sanitizeImageUrl(page.url);
@@ -321,6 +354,7 @@ export function renderGame() {
             )
             .join("")}
         </nav>
+        ${hostConfirmBanner()}
         <div class="tab-body">${body}</div>
       </div>
     </section>`;

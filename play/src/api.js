@@ -91,6 +91,10 @@ export const api = {
     request(`/rooms/${roomId}/clues/${clueId}/share-roles`, { method: "POST", body: { roleSlotIds } }),
   updateCluePlayerNote: (roomId, clueId, note) =>
     request(`/rooms/${roomId}/clues/${clueId}/player-note`, { method: "PATCH", body: { note } }),
+  addNotebookEntry: (roomId, entry) =>
+    request(`/rooms/${roomId}/notebook`, { method: "POST", body: entry }),
+  deleteNotebookEntry: (roomId, entryId) =>
+    request(`/rooms/${roomId}/notebook/${entryId}`, { method: "DELETE" }),
   getVoiceMessages: (voiceRoomId) => request(`/voice-rooms/${voiceRoomId}/messages`),
   getVoiceRoomToken: (roomId, voiceRoomId) =>
     request(`/rooms/${roomId}/voice-rooms/${voiceRoomId}/token`, { method: "POST", body: {} }),

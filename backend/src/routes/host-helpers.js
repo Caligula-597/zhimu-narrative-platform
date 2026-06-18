@@ -28,6 +28,47 @@ export function eventSourceLabel(event) {
   return "系统";
 }
 
+export function extractTriggerPlayers(conditions) {
+  const all = conditions?.all ?? [];
+  const roleIds = all
+    .map((condition) => condition.roleSlotId ?? condition.role_slot_id)
+    .filter(Boolean);
+  return [...new Set(roleIds)];
+}
+
+export function eventRelatedRoleIds(event) {
+  const ids = new Set((event.trigger_players || []).map(String));
+  for (const action of event.actions || []) {
+    const rid = action.roleSlotId ?? action.role_slot_id;
+    if (rid) ids.add(String(rid));
+    for (const r of action.roleSlotIds || action.role_slot_ids || []) ids.add(String(r));
+  }
+  return [...ids];
+}
+
+export async function fetchPlayerHostConfirmStatus(query, roomId, roleSlotId) {
+  const result = await query(
+    `SELECT phe.title, ar.conditions AS rule_conditions
+     FROM pending_host_events phe
+     LEFT JOIN automation_rules ar ON ar.id = phe.rule_id
+     WHERE phe.room_id = $1 AND phe.status = 'pending'
+     ORDER BY phe.created_at`,
+    [roomId]
+  );
+  let waitingForYou = false;
+  const titles = [];
+  for (const row of result.rows) {
+    titles.push(row.title);
+    const triggers = extractTriggerPlayers(row.rule_conditions);
+    if (!triggers.length || triggers.includes(roleSlotId)) waitingForYou = true;
+  }
+  return {
+    pendingCount: result.rows.length,
+    waitingForYou,
+    titles: titles.slice(0, 3)
+  };
+}
+
 export async function fetchHostPlayers(query, roomId) {
   const result = await query(
     `SELECT rs.id AS role_slot_id,

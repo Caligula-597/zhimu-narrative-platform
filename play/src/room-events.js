@@ -61,7 +61,17 @@ async function handleRoomEvent(type, data, ctx) {
       ctx.onToast("新场景已开放");
       break;
     case "room.host_event_pending":
-      if (data.action === "executed") await ctx.onRefresh();
+      await ctx.onRefresh();
+      if (data.action === "executed") {
+        ctx.onToast("主持人已确认推进 · 新内容可能已解锁");
+      } else if (data.action === "dismissed") {
+        ctx.onToast("主持人已处理待确认事件");
+      } else if (ctx.getHostConfirmWaiting?.()) {
+        ctx.onToast("剧情推进等待主持人确认");
+      }
+      break;
+    case "room.investigation_completed":
+      await ctx.onRefresh();
       break;
     case "room.voice_message_created":
       if (data.voiceRoomId === ctx.getVoiceRoomId?.()) {
