@@ -3,6 +3,7 @@ import { currentScene, playerProgress, state } from "../state.js";
 import { clueIsRead, clueOwnerLabel, clueShareRoleCount } from "../utils/clues.js";
 import { applyStoryHighlights, sectionHighlights } from "../utils/highlights.js";
 import { renderVoiceCompact, renderVoiceTab } from "./voice.js";
+import { renderRecapTab } from "./recap.js";
 
 function hostConfirmBanner() {
   const hc = state.home?.hostConfirm;
@@ -320,7 +321,8 @@ export function renderGame() {
     ["sections", "分幕", progress.sectionsTotal ? `${progress.sectionsCompleted}/${progress.sectionsTotal}` : ""],
     ["explore", "探索", state.exploration?.scenes?.length || ""],
     ["clues", "线索", progress.clueTotal || ""],
-    ["inventory", "背包", progress.inventoryCount || ""]
+    ["inventory", "背包", progress.inventoryCount || ""],
+    ["recap", "复盘", state.recapLatest ? "●" : ""]
   ];
   let body = "";
   if (state.tab === "home") body = renderGameHome();
@@ -328,6 +330,7 @@ export function renderGame() {
   else if (state.tab === "sections") body = renderSections();
   else if (state.tab === "explore") body = renderExploration();
   else if (state.tab === "clues") body = renderClues();
+  else if (state.tab === "recap") body = renderRecapTab();
   else body = renderInventory();
 
   return `

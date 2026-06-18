@@ -32,4 +32,9 @@ test.describe("玩家端 · 邀请码入房冒烟", () => {
       await expect(nav.getByText("广场")).toBeVisible();
     }
   });
+
+  test("view=plaza URL opens plaza", async ({ page }) => {
+    await page.goto(`${PLAY_URL}/?view=plaza`);
+    await expect(page.locator(".mobile-nav, .play-header").first()).toBeVisible({ timeout: 15_000 });
+  });
 });

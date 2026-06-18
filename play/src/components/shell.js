@@ -1,6 +1,7 @@
 import { renderHeader } from "./header.js";
 import { renderModal } from "./modal.js";
 import { renderMobileNav } from "./mobile-nav.js";
+import { renderVerifyBanner } from "./verify-banner.js";
 import { escapeHtml } from "../security.js";
 import { state } from "../state.js";
 import { renderAuth } from "../views/auth.js";
@@ -27,6 +28,7 @@ function renderMainView() {
 export function renderApp() {
   return `
     ${renderHeader()}
+    ${renderVerifyBanner()}
     <main class="play-main">
       ${state.error ? `<div class="banner error">${escapeHtml(state.error)}<button type="button" data-action="dismiss-error" aria-label="关闭">×</button></div>` : ""}
       ${state.busy ? `<div class="loading-bar" aria-hidden="true"></div>` : ""}

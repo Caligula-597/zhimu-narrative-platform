@@ -67,6 +67,12 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(readerSource, /addNotebookEntry/);
   assert.match(gameSource, /hostConfirmBanner/);
   assert.match(apiSource, /notebook/);
+  assert.match(apiSource, /recap\/latest/);
+  assert.match(apiSource, /forgot-password/);
+  const urlSource = readFileSync(path.join(root, "src", "runtime", "url.js"), "utf8");
+  const recapSource = readFileSync(path.join(root, "src", "views", "recap.js"), "utf8");
+  assert.match(urlSource, /syncPlayUrl/);
+  assert.match(recapSource, /renderRecapTab/);
   assert.match(platformEventsSource, /plaza\.post_created/);
   assert.match(plazaSource, /renderPlaza/);
   assert.match(socialSource, /renderFriends/);

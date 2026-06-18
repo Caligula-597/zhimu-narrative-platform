@@ -26,7 +26,11 @@ const API_ERROR_MESSAGES = {
   GUEST_ACCOUNT_RESTRICTED: "游客账号无法使用社区功能，请先注册登录。",
   EMAIL_NOT_VERIFIED: "请先验证邮箱后再使用社区功能。",
   PLAY_SOCIAL_ACCOUNT_TOO_NEW: "新注册账号需稍等片刻后才能发帖或私聊。",
-  FORBIDDEN: "无权执行此操作。"
+  FORBIDDEN: "无权执行此操作。",
+  RECAP_NOT_GENERATED: "主持人尚未生成复盘报告。",
+  EMAIL_NOT_CONFIGURED: "邮件服务未配置，暂无法发送验证或重置邮件。",
+  PASSWORD_RESET_INVALID: "重置链接无效或已过期，请重新申请。",
+  EMAIL_VERIFICATION_INVALID: "验证链接无效或已过期。"
 };
 
 export function formatApiError(error, fallback = "操作失败") {

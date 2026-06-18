@@ -68,6 +68,11 @@ export const api = {
   login: (email, password) => request("/auth/login", { method: "POST", body: { email, password } }),
   register: (email, displayName, password) =>
     request("/auth/register", { method: "POST", body: { email, displayName, password } }),
+  forgotPassword: (email) => request("/auth/forgot-password", { method: "POST", body: { email } }),
+  resetPassword: (token, password) =>
+    request("/auth/reset-password", { method: "POST", body: { token, password } }),
+  verifyEmail: (token) => request("/auth/verify-email", { method: "POST", body: { token } }),
+  resendVerification: () => request("/auth/resend-verification", { method: "POST", body: {} }),
   oauthStartUrl: (provider, returnOrigin) =>
     request(`/auth/oauth/${provider}/start-url`, {
       method: "POST",
@@ -141,6 +146,8 @@ export const api = {
     }),
   officialExample: () => request("/platform/official-example"),
   joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} }),
+  latestRecap: (roomId) => request(`/rooms/${roomId}/recap/latest`),
+  getRecap: (roomId, recapId) => request(`/rooms/${roomId}/recaps/${recapId}`),
 
   /** SSE room stream — same endpoint as app.getzhimu.com host/player views. */
   streamRoomEvents(roomId, onEvent, signal) {

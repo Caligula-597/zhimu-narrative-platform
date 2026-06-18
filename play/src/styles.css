@@ -2100,3 +2100,100 @@ code {
   }
 }
 
+.verify-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 clamp(16px, 4vw, 40px);
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(167, 120, 61, 0.25);
+  background: var(--brass-soft);
+}
+
+.verify-banner strong {
+  display: block;
+  font-size: 13px;
+}
+
+.verify-banner p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.recap-section {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+}
+
+.recap-section h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.recap-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.recap-timeline-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.recap-timeline-row time {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.recap-rows {
+  display: grid;
+  gap: 10px;
+}
+
+.recap-row {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.recap-row strong {
+  display: block;
+  font-size: 13px;
+}
+
+.recap-row p,
+.recap-row small {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.recap-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.recap-meta {
+  margin: 12px 0;
+}
+
+@media (max-width: 640px) {
+  .recap-timeline-row {
+    grid-template-columns: 1fr;
+  }
+
+  .verify-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+

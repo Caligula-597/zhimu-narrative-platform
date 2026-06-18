@@ -29,12 +29,15 @@ import {
   toggleVoiceMicLive
 } from "./runtime/voice.js";
 import { bindPlayReader } from "./runtime/reader.js";
+import { applyUrlToState, scrollRestoreKey, syncPlayUrl } from "./runtime/url.js";
 import { persistRoom, setBusy, setToast, state } from "./state.js";
 import { setVoiceRenderCallback } from "./voice/livekit-voice.js";
 
 const app = document.getElementById("app");
 
 function render() {
+  const restoreKey = scrollRestoreKey(state);
+  const scrollTop = window.scrollY;
   app.innerHTML = renderApp();
   if (state.view === "dm") {
     const el = document.querySelector("[data-dm-scroll]");
@@ -52,6 +55,10 @@ function render() {
       onToast: (message) => setToast(message, render)
     });
   }
+  if (scrollRestoreKey(state) === restoreKey) {
+    window.scrollTo(0, scrollTop);
+  }
+  syncPlayUrl(state);
 }
 
 setVoiceRenderCallback(render);
@@ -78,9 +85,7 @@ async function loadSessionUser() {
 
 function cleanUrl() {
   const url = new URL(window.location.href);
-  ["oauth_code", "oauth_error", "auth", "join", "invite", "experience"].forEach((key) =>
-    url.searchParams.delete(key)
-  );
+  ["oauth_code", "oauth_error", "auth", "verify"].forEach((key) => url.searchParams.delete(key));
   window.history.replaceState({}, "", url.pathname + url.search + url.hash);
 }
 
@@ -236,6 +241,7 @@ async function refreshHome() {
     state.view = "game";
     state.tab = state.tab || "home";
     syncRoomStream();
+    void loadRecapSummary({ silent: true });
   } catch (error) {
     if (error.status === 401 || error.status === 403 || error.status === 404 || error.status === 409) {
       disconnectRoomEvents(roomEventCtx);
@@ -475,6 +481,7 @@ async function bootstrap() {
   try {
     await Promise.all([loadAuthConfig(), loadPlatform(), loadPublicRooms({ silent: true })]);
     const params = new URLSearchParams(window.location.search);
+    applyUrlToState(state, params);
     const oauthCode = params.get("oauth_code");
     const oauthError = params.get("oauth_error");
     if (oauthError) state.error = `OAuth 登录失败：${oauthError}`;
@@ -485,24 +492,33 @@ async function bootstrap() {
       setToast(`欢迎，${result.user.displayName || "玩家"}`, render);
       cleanUrl();
     }
-    if (params.get("auth") === "login") state.view = "auth";
-    const joinCode = normalizeInviteCode(params.get("join") || params.get("invite") || "");
+    const joinCode = normalizeInviteCode(state.inviteCode || params.get("join") || params.get("invite") || "");
     const wantOfficial = params.get("experience") === "official";
-    if (joinCode) {
-      state.inviteCode = joinCode;
-      state.view = "join";
-      state.joinStep = 1;
-    }
+    if (state.inviteCode) state.inviteCode = joinCode;
     if (state.roomId && !isUuid(state.roomId)) persistRoom("", isUuid);
     await ensureSession();
     await loadSessionUser();
+    if (state.pendingVerifyToken) {
+      try {
+        await handleEmailVerify(state.pendingVerifyToken);
+      } catch (error) {
+        state.error = formatApiError(error, "邮箱验证失败");
+      }
+      state.pendingVerifyToken = "";
+    }
     await loadDmConversations({ silent: true }).catch(() => {});
+    if (state.view === "plaza") await loadPlazaPosts({ silent: true });
+    if (state.view === "friends") await loadFriends({ silent: true });
+    if (state.view === "messages") await loadDmConversations({ silent: true });
+    if (state.view === "plaza-thread" && state.plazaPostId) await loadPlazaThread({ silent: true });
     if (wantOfficial) {
       await handleJoinOfficial({ silent: true });
     } else if (joinCode) {
+      state.inviteCode = joinCode;
       await handleLookupInvite({ silent: true });
-    } else if (state.roomId) {
+    } else if (state.roomId && (state.view === "game" || state.view === "landing")) {
       await refreshHome();
+      if (state.tab === "recap") await loadRecapSummary({ silent: true });
     }
   } catch (error) {
     if (!state.error) state.error = error.message || "加载失败";
@@ -657,6 +673,96 @@ async function handleReadClue(clueId) {
   }
 }
 
+async function loadRecapSummary({ silent = false } = {}) {
+  if (!state.roomId) return;
+  if (!silent) {
+    state.recapLoading = true;
+    state.recapError = "";
+    render();
+  }
+  try {
+    state.recapLatest = await api.latestRecap(state.roomId);
+    state.recapError = "";
+  } catch (error) {
+    if (error.code === "RECAP_NOT_GENERATED") {
+      state.recapLatest = null;
+      state.recapError = "";
+    } else {
+      state.recapError = formatApiError(error, "加载复盘失败");
+    }
+  } finally {
+    state.recapLoading = false;
+    if (!silent || state.tab === "recap") render();
+  }
+}
+
+async function loadRecapDetail() {
+  if (!state.roomId || !state.recapLatest?.id) return;
+  setBusy(true, render);
+  try {
+    state.recapDetail = await api.getRecap(state.roomId, state.recapLatest.id);
+    state.recapId = state.recapDetail.id;
+    render();
+  } catch (error) {
+    setToast(formatApiError(error, "无法打开复盘"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+async function handleEmailVerify(token) {
+  const result = await api.verifyEmail(token);
+  if (result.token) setSessionToken(result.token);
+  state.user = normalizeUser(result.user);
+  cleanUrl();
+  setToast("邮箱已验证，可以使用社区功能了", render);
+}
+
+async function handleForgotSubmit(form) {
+  const email = form.email.value.trim();
+  setBusy(true, render);
+  try {
+    await api.forgotPassword(email);
+    setToast("若该邮箱已注册，重置链接已发送，请查收邮件", render);
+    state.authMode = "login";
+    render();
+  } catch (error) {
+    setToast(formatApiError(error, "发送失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+async function handleResetSubmit(form) {
+  const password = form.password.value;
+  if (!state.resetToken) return setToast("重置链接无效", render);
+  setBusy(true, render);
+  try {
+    await api.resetPassword(state.resetToken, password);
+    state.authMode = "login";
+    state.resetToken = "";
+    cleanUrl();
+    setToast("密码已更新，请使用新密码登录", render);
+    render();
+  } catch (error) {
+    setToast(formatApiError(error, "重置失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+async function handleResendVerification() {
+  setBusy(true, render);
+  try {
+    await api.resendVerification();
+    setToast("验证邮件已发送，请查收", render);
+  } catch (error) {
+    setToast(formatApiError(error, "发送失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
 async function handleAuthSubmit(form) {
   const email = form.email.value.trim();
   const password = form.password.value;
@@ -784,9 +890,23 @@ app.addEventListener("submit", async (event) => {
     return;
   }
   const form = event.target.closest("[data-form='auth']");
-  if (!form) return;
-  event.preventDefault();
-  handleAuthSubmit(form);
+  if (form) {
+    event.preventDefault();
+    handleAuthSubmit(form);
+    return;
+  }
+  const forgotForm = event.target.closest("[data-form='forgot']");
+  if (forgotForm) {
+    event.preventDefault();
+    handleForgotSubmit(forgotForm);
+    return;
+  }
+  const resetForm = event.target.closest("[data-form='reset']");
+  if (resetForm) {
+    event.preventDefault();
+    handleResetSubmit(resetForm);
+    return;
+  }
 });
 
 app.addEventListener("click", async (event) => {
@@ -1114,6 +1234,8 @@ app.addEventListener("click", async (event) => {
         } else {
           render();
         }
+      } else if (state.tab === "recap") {
+        await loadRecapSummary();
       } else {
         render();
       }
@@ -1163,6 +1285,29 @@ app.addEventListener("click", async (event) => {
       state.authMode = state.authMode === "login" ? "register" : "login";
       render();
       break;
+    case "auth-forgot":
+      state.authMode = "forgot";
+      render();
+      break;
+    case "auth-login":
+      state.authMode = "login";
+      state.resetToken = "";
+      render();
+      break;
+    case "resend-verification":
+      await handleResendVerification();
+      break;
+    case "open-recap-detail":
+      await loadRecapDetail();
+      break;
+    case "close-recap-detail":
+      state.recapDetail = null;
+      state.recapId = "";
+      render();
+      break;
+    case "reload-recap":
+      await loadRecapSummary();
+      break;
     case "back-landing":
       await goToLanding();
       break;
@@ -1186,6 +1331,8 @@ app.addEventListener("click", async (event) => {
       disconnectRoomEvents(roomEventCtx);
       persistRoom("", isUuid);
       state.home = null;
+      state.recapLatest = null;
+      state.recapDetail = null;
       state.view = "landing";
       state.tab = "home";
       syncPlatformStream();
