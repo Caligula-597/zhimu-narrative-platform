@@ -159,4 +159,12 @@ if (files.some((f) => /^src\/runtime\/(workspace-store|runtime-store|data)\.js/.
   run("test:runtime-stores", "npm run test:runtime-stores");
 }
 
+if (files.some((f) => f.startsWith("play/"))) {
+  run("test:play", "npm run test:play");
+}
+
+if (files.some((f) => f.startsWith("site/") && /\.(js|mjs|html|css)$/.test(f))) {
+  run("site build", "npm run build --prefix site");
+}
+
 console.log("\n✓ verify-changed passed");
