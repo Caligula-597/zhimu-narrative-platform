@@ -1169,3 +1169,220 @@ code {
   text-align: center;
   color: var(--muted);
 }
+
+.link-btn.is-active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-badge {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  align-items: center;
+  justify-content: center;
+}
+
+.plaza-open {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.plaza-open:hover .plaza-body {
+  color: var(--accent);
+}
+
+.plaza-reply-count {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.plaza-thread .plaza-post-actions,
+.plaza-reply-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.plaza-replies h3 {
+  margin: 0 0 12px;
+}
+
+.plaza-reply-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.plaza-reply {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--surface-2, rgba(0, 0, 0, 0.03));
+}
+
+.plaza-reply.is-nested {
+  margin-left: 16px;
+}
+
+.plaza-reply header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.plaza-reply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.social-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inline-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.inline-form .field {
+  flex: 1;
+}
+
+.player-search-results,
+.friend-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.player-search-results li,
+.friend-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dm-inbox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dm-row {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+}
+
+.dm-row-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.dm-preview {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dm-unread {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dm-chat-head h2 {
+  margin: 8px 0 16px;
+}
+
+.dm-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 240px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface-2, rgba(0, 0, 0, 0.03));
+}
+
+.dm-bubble {
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.dm-bubble.is-mine {
+  align-self: flex-end;
+  background: var(--accent-soft, rgba(99, 102, 241, 0.15));
+}
+
+.dm-bubble.is-theirs {
+  align-self: flex-start;
+  background: var(--card, #fff);
+  border: 1px solid var(--line);
+}
+
+.dm-bubble time {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.dm-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}

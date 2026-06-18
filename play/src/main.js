@@ -8,24 +8,12 @@ import {
 } from "./api.js";
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode } from "./security.js";
 import { connectRoomEvents, disconnectRoomEvents } from "./room-events.js";
+import { connectPlatformEvents, disconnectPlatformEvents } from "./platform-events.js";
 import { formatApiError } from "./errors.js";
 import { renderApp } from "./render.js";
 import { persistRoom, setBusy, setToast, state } from "./state.js";
 
 const app = document.getElementById("app");
-let plazaPollTimer = null;
-
-function syncPlazaPoll(active) {
-  if (plazaPollTimer) {
-    clearInterval(plazaPollTimer);
-    plazaPollTimer = null;
-  }
-  if (!active) return;
-  plazaPollTimer = setInterval(() => {
-    if (state.view !== "plaza") return;
-    loadPlazaPosts({ silent: true });
-  }, 20000);
-}
 
 function render() {
   app.innerHTML = renderApp();
@@ -91,11 +79,48 @@ const roomEventCtx = {
   }
 };
 
+const platformEventCtx = {
+  hasSession: () => Boolean(getSessionToken()),
+  getView: () => state.view,
+  getPlazaPostId: () => state.plazaPostId,
+  getDmConversationId: () => state.dmConversationId,
+  onPlazaRefresh: () => loadPlazaPosts({ silent: true }),
+  onPlazaThreadRefresh: () => loadPlazaThread({ silent: true }),
+  onPlazaThreadClosed: () => {
+    state.view = "plaza";
+    state.plazaPostId = "";
+    state.plazaPostDetail = null;
+    state.plazaReplies = null;
+    loadPlazaPosts({ silent: true });
+    render();
+  },
+  onFriendsRefresh: () => loadFriends({ silent: true }),
+  onMessagesRefresh: () => loadDmConversations({ silent: true }),
+  onDmRefresh: () => loadDmThread({ silent: true }),
+  onToast: (message) => setToast(message, render),
+  setConnected: (connected) => {
+    if (state.platformEventsConnected === connected) return;
+    state.platformEventsConnected = connected;
+    render();
+  }
+};
+
+function syncPlatformStream() {
+  if (state.view === "game") {
+    disconnectPlatformEvents(platformEventCtx);
+    return;
+  }
+  if (getSessionToken()) connectPlatformEvents(platformEventCtx);
+  else disconnectPlatformEvents(platformEventCtx);
+}
+
 function syncRoomStream() {
   if (state.view === "game" && state.roomId && isUuid(state.roomId)) {
     connectRoomEvents(state.roomId, roomEventCtx);
+    disconnectPlatformEvents(platformEventCtx);
   } else {
     disconnectRoomEvents(roomEventCtx);
+    syncPlatformStream();
   }
 }
 
@@ -130,6 +155,158 @@ async function refreshHome() {
       throw error;
     }
     throw error;
+  }
+}
+
+async function loadPlazaThread({ silent = false } = {}) {
+  if (!state.plazaPostId) return;
+  if (!silent) setBusy(true, render);
+  try {
+    const [post, replies] = await Promise.all([
+      api.plazaPost(state.plazaPostId),
+      api.plazaReplies(state.plazaPostId)
+    ]);
+    state.plazaPostDetail = post;
+    state.plazaReplies = replies;
+  } catch (error) {
+    if (!silent) setToast(formatApiError(error, "无法加载帖子"), render);
+    state.view = "plaza";
+    state.plazaPostId = "";
+  } finally {
+    if (!silent) setBusy(false, render);
+    else if (state.view === "plaza-thread") render();
+  }
+}
+
+async function loadFriends({ silent = false } = {}) {
+  if (!silent) setBusy(true, render);
+  try {
+    await ensureSession();
+    state.friendsData = await api.listFriends();
+  } catch {
+    if (!state.friendsData) state.friendsData = { friends: [], incoming: [], outgoing: [] };
+  } finally {
+    if (!silent) setBusy(false, render);
+    else if (state.view === "friends") render();
+  }
+}
+
+async function loadDmConversations({ silent = false } = {}) {
+  if (!silent) setBusy(true, render);
+  try {
+    await ensureSession();
+    state.dmConversations = await api.listDmConversations();
+  } catch {
+    if (!state.dmConversations) state.dmConversations = { items: [] };
+  } finally {
+    if (!silent) setBusy(false, render);
+    else if (state.view === "messages" || state.view === "dm") render();
+  }
+}
+
+async function loadDmThread({ silent = false } = {}) {
+  if (!state.dmConversationId) return;
+  if (!silent) setBusy(true, render);
+  try {
+    state.dmThread = await api.listDmMessages(state.dmConversationId);
+  } catch (error) {
+    if (!silent) setToast(formatApiError(error, "无法加载私信"), render);
+    state.view = "messages";
+    state.dmConversationId = "";
+  } finally {
+    if (!silent) setBusy(false, render);
+    else if (state.view === "dm") render();
+  }
+}
+
+async function openPlazaThread(postId) {
+  state.plazaPostId = postId;
+  state.view = "plaza-thread";
+  render();
+  await loadPlazaThread();
+}
+
+async function openDmConversation(conversationId) {
+  state.dmConversationId = conversationId;
+  state.view = "dm";
+  render();
+  await loadDmThread();
+}
+
+async function openDmWithPeer(peerUserId) {
+  setBusy(true, render);
+  try {
+    await ensureSession();
+    const { conversationId } = await api.openDmConversation(peerUserId);
+    await loadDmConversations({ silent: true });
+    await openDmConversation(conversationId);
+  } catch (error) {
+    setToast(formatApiError(error, "无法打开私信"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+async function handlePlazaReplySubmit(form) {
+  const body = form.body.value.trim();
+  if (!body || !state.plazaPostId) return;
+  setBusy(true, render);
+  try {
+    await ensureSession();
+    await api.createPlazaReply(state.plazaPostId, { body });
+    state.plazaReplyDraft = "";
+    await loadPlazaThread({ silent: true });
+    setToast("评论已发布", render);
+  } catch (error) {
+    setToast(formatApiError(error, "评论失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+async function handlePlayerSearch(form) {
+  const q = form.q.value.trim();
+  state.playerSearchQuery = q;
+  if (q.length < 2) return setToast("请输入至少 2 个字", render);
+  setBusy(true, render);
+  try {
+    await ensureSession();
+    state.playerSearchResults = await api.searchPlayers(q);
+  } catch (error) {
+    setToast(formatApiError(error, "搜索失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+async function handleDmSend(form) {
+  const body = form.body.value.trim();
+  if (!body || !state.dmConversationId) return;
+  setBusy(true, render);
+  try {
+    await ensureSession();
+    await api.sendDmMessage(state.dmConversationId, body);
+    state.dmDraftBody = "";
+    await Promise.all([loadDmThread({ silent: true }), loadDmConversations({ silent: true })]);
+  } catch (error) {
+    setToast(formatApiError(error, "发送失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+async function handlePlazaReport(targetType, targetId) {
+  const reason = window.prompt("请简要说明举报原因（4～200 字）：");
+  if (!reason) return;
+  setBusy(true, render);
+  try {
+    await ensureSession();
+    await api.reportPlaza({ targetType, targetId, reason: reason.trim() });
+    setToast("已提交举报，感谢反馈", render);
+  } catch (error) {
+    setToast(formatApiError(error, "举报失败"), render);
+  } finally {
+    setBusy(false, render);
   }
 }
 
@@ -208,6 +385,7 @@ async function bootstrap() {
     }
     if (state.roomId && !isUuid(state.roomId)) persistRoom("", isUuid);
     await ensureSession();
+    await loadDmConversations({ silent: true }).catch(() => {});
     if (wantOfficial) {
       await handleJoinOfficial({ silent: true });
     } else if (joinCode) {
@@ -223,6 +401,7 @@ async function bootstrap() {
     }
   } finally {
     setBusy(false, render);
+    syncPlatformStream();
   }
 }
 
@@ -383,6 +562,7 @@ async function handleAuthSubmit(form) {
     cleanUrl();
     if (state.roomId) await refreshHome();
     setToast(`欢迎，${result.user.displayName || result.user.email || "玩家"}`, render);
+    syncPlatformStream();
   } catch (error) {
     setToast(error.message || "登录失败", render);
   } finally {
@@ -409,6 +589,7 @@ async function handleOAuth(provider) {
 
 function handleLogout() {
   disconnectRoomEvents(roomEventCtx);
+  disconnectPlatformEvents(platformEventCtx);
   clearSession();
   persistRoom("", isUuid);
   state.home = null;
@@ -422,6 +603,9 @@ app.addEventListener("input", (event) => {
   if (event.target.dataset.bind === "inviteCode") state.inviteCode = event.target.value;
   if (event.target.dataset.bind === "plazaBody") state.plazaDraftBody = event.target.value;
   if (event.target.dataset.bind === "plazaInvite") state.plazaDraftInvite = event.target.value;
+  if (event.target.dataset.bind === "plazaReplyBody") state.plazaReplyDraft = event.target.value;
+  if (event.target.dataset.bind === "playerSearch") state.playerSearchQuery = event.target.value;
+  if (event.target.dataset.bind === "dmBody") state.dmDraftBody = event.target.value;
 });
 
 app.addEventListener("change", (event) => {
@@ -442,6 +626,24 @@ app.addEventListener("submit", (event) => {
     handlePlazaSubmit(plazaForm);
     return;
   }
+  const replyForm = event.target.closest("[data-form='plaza-reply']");
+  if (replyForm) {
+    event.preventDefault();
+    handlePlazaReplySubmit(replyForm);
+    return;
+  }
+  const searchForm = event.target.closest("[data-form='player-search']");
+  if (searchForm) {
+    event.preventDefault();
+    handlePlayerSearch(searchForm);
+    return;
+  }
+  const dmForm = event.target.closest("[data-form='dm-send']");
+  if (dmForm) {
+    event.preventDefault();
+    handleDmSend(dmForm);
+    return;
+  }
   const form = event.target.closest("[data-form='auth']");
   if (!form) return;
   event.preventDefault();
@@ -459,29 +661,125 @@ app.addEventListener("click", async (event) => {
       if (state.view !== "game") return;
       disconnectRoomEvents(roomEventCtx);
       state.view = "landing";
+      syncPlatformStream();
       render();
       break;
     case "go-lobby":
-      syncPlazaPoll(false);
       await loadPublicRooms();
       state.view = "lobby";
+      syncPlatformStream();
       render();
       break;
     case "go-plaza":
       await loadPlazaPosts();
       state.view = "plaza";
-      syncPlazaPoll(true);
+      syncPlatformStream();
+      render();
+      break;
+    case "go-friends":
+      await loadFriends();
+      state.view = "friends";
+      syncPlatformStream();
+      render();
+      break;
+    case "go-messages":
+      await loadDmConversations();
+      state.view = "messages";
+      syncPlatformStream();
       render();
       break;
     case "refresh-plaza":
       await loadPlazaPosts();
+      break;
+    case "plaza-open":
+      await openPlazaThread(button.dataset.postId);
+      break;
+    case "plaza-back":
+      state.view = "plaza";
+      state.plazaPostId = "";
+      state.plazaPostDetail = null;
+      state.plazaReplies = null;
+      render();
+      break;
+    case "plaza-delete-post":
+      if (!window.confirm("确定删除这条帖子？")) return;
+      setBusy(true, render);
+      try {
+        await api.deletePlazaPost(button.dataset.postId);
+        state.view = "plaza";
+        state.plazaPostId = "";
+        await loadPlazaPosts();
+        setToast("帖子已删除", render);
+      } catch (error) {
+        setToast(formatApiError(error, "删除失败"), render);
+      } finally {
+        setBusy(false, render);
+      }
+      break;
+    case "plaza-delete-reply":
+      if (!window.confirm("确定删除这条评论？")) return;
+      setBusy(true, render);
+      try {
+        await api.deletePlazaReply(button.dataset.replyId);
+        await loadPlazaThread({ silent: true });
+        setToast("评论已删除", render);
+      } catch (error) {
+        setToast(formatApiError(error, "删除失败"), render);
+      } finally {
+        setBusy(false, render);
+      }
+      break;
+    case "plaza-report":
+      await handlePlazaReport(button.dataset.targetType, button.dataset.targetId);
+      break;
+    case "friend-request":
+      setBusy(true, render);
+      try {
+        await ensureSession();
+        await api.sendFriendRequest(button.dataset.userId);
+        await loadFriends({ silent: true });
+        setToast("好友请求已发送", render);
+      } catch (error) {
+        setToast(formatApiError(error, "发送失败"), render);
+      } finally {
+        setBusy(false, render);
+      }
+      break;
+    case "friend-accept":
+      setBusy(true, render);
+      try {
+        await api.respondFriendRequest(button.dataset.userId, true);
+        await loadFriends({ silent: true });
+        setToast("已添加好友", render);
+      } catch (error) {
+        setToast(formatApiError(error, "操作失败"), render);
+      } finally {
+        setBusy(false, render);
+      }
+      break;
+    case "friend-decline":
+      setBusy(true, render);
+      try {
+        await api.respondFriendRequest(button.dataset.userId, false);
+        await loadFriends({ silent: true });
+        setToast("已拒绝请求", render);
+      } catch (error) {
+        setToast(formatApiError(error, "操作失败"), render);
+      } finally {
+        setBusy(false, render);
+      }
+      break;
+    case "dm-open":
+      await openDmConversation(button.dataset.conversationId);
+      break;
+    case "dm-open-peer":
+      await openDmWithPeer(button.dataset.userId);
       break;
     case "plaza-filter":
       state.plazaFilter = button.dataset.kind || "all";
       await loadPlazaPosts();
       break;
     case "plaza-join":
-      syncPlazaPoll(false);
       state.inviteCode = normalizeInviteCode(button.dataset.inviteCode || "");
       if (!state.inviteCode) return setToast("邀请码无效", render);
       state.view = "join";
@@ -571,10 +869,10 @@ app.addEventListener("click", async (event) => {
       render();
       break;
     case "back-landing":
-      syncPlazaPoll(false);
       state.view = "landing";
       state.joinPreview = null;
       state.joinStep = 1;
+      syncPlatformStream();
       render();
       break;
     case "join-back-code":
@@ -598,6 +896,7 @@ app.addEventListener("click", async (event) => {
       state.home = null;
       state.view = "landing";
       state.tab = "home";
+      syncPlatformStream();
       render();
       break;
     case "dismiss-error":

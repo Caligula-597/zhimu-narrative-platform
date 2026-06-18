@@ -1767,3 +1767,102 @@ export const createPlazaPostSchema = {
     }
   }
 };
+
+export function uuidParams(name) {
+  return paramsSchema({ [name]: uuid });
+}
+
+export const listPlazaRepliesSchema = {
+  params: paramsSchema({ postId: uuid }),
+  querystring: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      limit: { type: "integer", minimum: 1, maximum: 200 }
+    }
+  }
+};
+
+export const createPlazaReplySchema = {
+  params: paramsSchema({ postId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["body"],
+    properties: {
+      body: { type: "string", minLength: 1, maxLength: 500 },
+      parentReplyId: uuid
+    }
+  }
+};
+
+export const createPlazaReportSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["targetType", "targetId", "reason"],
+    properties: {
+      targetType: { type: "string", enum: ["post", "reply"] },
+      targetId: uuid,
+      reason: { type: "string", minLength: 4, maxLength: 200 }
+    }
+  }
+};
+
+export const playerSearchSchema = {
+  querystring: {
+    type: "object",
+    additionalProperties: false,
+    required: ["q"],
+    properties: {
+      q: { type: "string", minLength: 2, maxLength: 40 },
+      limit: { type: "integer", minimum: 1, maximum: 20 }
+    }
+  }
+};
+
+export const sendFriendRequestSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["targetUserId"],
+    properties: {
+      targetUserId: uuid
+    }
+  }
+};
+
+export const respondFriendSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["targetUserId", "accept"],
+    properties: {
+      targetUserId: uuid,
+      accept: { type: "boolean" }
+    }
+  }
+};
+
+export const openDmSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["peerUserId"],
+    properties: {
+      peerUserId: uuid
+    }
+  }
+};
+
+export const sendDmMessageSchema = {
+  params: paramsSchema({ conversationId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["body"],
+    properties: {
+      body: { type: "string", minLength: 1, maxLength: 1000 }
+    }
+  }
+};

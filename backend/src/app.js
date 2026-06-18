@@ -13,6 +13,7 @@ import { registerSystemRoutes } from "./routes/system-routes.js";
 import { registerOfficialExampleRoutes } from "./routes/official-example-routes.js";
 import { registerPlatformBetaRoutes } from "./routes/platform-beta-routes.js";
 import { registerPlatformSiteRoutes } from "./routes/platform-site-routes.js";
+import { registerPlatformSocialRoutes } from "./routes/platform-social-routes.js";
 import { registerOpsRoutes } from "./routes/ops-routes.js";
 import { registerBillingRoutes } from "./routes/billing-routes.js";
 import { registerRoutes } from "./routes.js";
@@ -191,6 +192,7 @@ export async function createApp(options = {}) {
   await registerSystemRoutes(app);
   await registerOfficialExampleRoutes(app);
   await registerPlatformSiteRoutes(app);
+  await registerPlatformSocialRoutes(app);
   await registerPlatformBetaRoutes(app);
   await registerOpsRoutes(app);
   await registerBillingRoutes(app);

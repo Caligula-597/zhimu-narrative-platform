@@ -42,6 +42,7 @@ export function renderHeader() {
   const roleName = state.home?.role?.name || "";
   const roomName = state.home?.room?.name || "";
   const userLabel = state.user?.displayName || state.user?.email || "";
+  const dmUnread = (state.dmConversations?.items || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0);
   return `
     <header class="play-header">
       <a class="brand" href="/" data-action="go-home">
@@ -52,10 +53,15 @@ export function renderHeader() {
         ${roomName ? `<span class="pill">${escapeHtml(roomName)}</span>` : ""}
         ${roleName ? `<span class="pill accent">${escapeHtml(roleName)}</span>` : ""}
         ${state.roomEventsConnected ? `<span class="pill live">实时</span>` : ""}
+        ${state.platformEventsConnected && !state.roomEventsConnected ? `<span class="pill live">在线</span>` : ""}
         ${userLabel && !roleName ? `<span class="pill">${escapeHtml(userLabel)}</span>` : ""}
       </div>
       <div class="header-actions">
-        ${state.view !== "game" ? `<button class="link-btn quiet" type="button" data-action="go-plaza">广场</button><button class="link-btn quiet" type="button" data-action="go-lobby">找人一起玩</button>` : ""}
+        ${state.view !== "game" ? `
+          <button class="link-btn quiet ${state.view === "plaza" || state.view === "plaza-thread" ? "is-active" : ""}" type="button" data-action="go-plaza">广场</button>
+          <button class="link-btn quiet ${state.view === "friends" ? "is-active" : ""}" type="button" data-action="go-friends">好友</button>
+          <button class="link-btn quiet ${state.view === "messages" || state.view === "dm" ? "is-active" : ""}" type="button" data-action="go-messages">消息${dmUnread ? `<span class="nav-badge">${dmUnread > 99 ? "99+" : dmUnread}</span>` : ""}</button>
+          <button class="link-btn quiet ${state.view === "lobby" ? "is-active" : ""}" type="button" data-action="go-lobby">找人一起玩</button>` : ""}
         <a class="link-btn quiet" href="${appOrigin}/" target="_blank" rel="noopener">创作者入口</a>
         ${getSessionToken() ? `<button class="link-btn quiet" type="button" data-action="logout">退出</button>` : ""}
       </div>
@@ -130,7 +136,7 @@ export function renderPlaza() {
             <input class="field" name="inviteCode" type="text" placeholder="有公开房或熟人局邀请码可填写" value="${escapeHtml(state.plazaDraftInvite || "")}" data-bind="plazaInvite" />
           </label>
           <button class="btn primary" type="submit" ${state.busy ? "disabled" : ""}>发布到广场</button>
-          <p class="hint">登录后即可发言；每小时最多 12 条。请勿发布违规或广告内容。</p>
+          <p class="hint">登录后即可发言；每小时最多 12 条。严禁违禁词、广告、外链与联系方式引流（剧本内内容不受此限）。</p>
         </form>
       </article>
 
@@ -149,7 +155,10 @@ export function renderPlaza() {
               </div>
               <time>${formatPlazaTime(post.createdAt)}</time>
             </header>
-            <p class="plaza-body">${escapeHtml(post.body).replace(/\n/g, "<br>")}</p>
+            <button class="plaza-open" type="button" data-action="plaza-open" data-post-id="${escapeHtml(post.id)}">
+              <p class="plaza-body">${escapeHtml(post.body).replace(/\n/g, "<br>")}</p>
+              ${post.replyCount ? `<span class="plaza-reply-count">${post.replyCount} 条评论</span>` : ""}
+            </button>
             ${post.kind === "recruit" && post.inviteCode ? `
               <div class="plaza-recruit-meta">
                 ${post.worldLabel ? `<span>${escapeHtml(post.worldLabel)} · ${escapeHtml(post.roomLabel || "运行房")}</span>` : `<span>邀请码：${escapeHtml(post.inviteCode)}</span>`}
@@ -162,6 +171,192 @@ export function renderPlaza() {
       </div>
 
       <button class="text-btn" type="button" data-action="back-landing">← 返回首页</button>
+    </section>`;
+}
+
+export function renderPlazaThread() {
+  const post = state.plazaPostDetail;
+  const replies = state.plazaReplies?.items || [];
+  if (!post) {
+    return `
+      <section class="plaza-shell">
+        <p class="hint">加载帖子中…</p>
+        <button class="text-btn" type="button" data-action="plaza-back">← 返回广场</button>
+      </section>`;
+  }
+  return `
+    <section class="plaza-shell plaza-thread">
+      <button class="text-btn" type="button" data-action="plaza-back">← 返回广场</button>
+      <article class="plaza-post card ${post.kind === "recruit" ? "plaza-post-recruit" : ""}">
+        <header class="plaza-post-head">
+          <div>
+            <strong>${escapeHtml(post.authorDisplayName || "玩家")}</strong>
+            <span class="plaza-kind">${post.kind === "recruit" ? "招募队友" : "自由讨论"}</span>
+          </div>
+          <time>${formatPlazaTime(post.createdAt)}</time>
+        </header>
+        <p class="plaza-body">${escapeHtml(post.body).replace(/\n/g, "<br>")}</p>
+        ${post.kind === "recruit" && post.inviteCode ? `
+          <div class="plaza-recruit-meta">
+            ${post.worldLabel ? `<span>${escapeHtml(post.worldLabel)} · ${escapeHtml(post.roomLabel || "运行房")}</span>` : `<span>邀请码：${escapeHtml(post.inviteCode)}</span>`}
+            <button class="btn outline compact" type="button" data-action="plaza-join" data-invite-code="${escapeHtml(post.inviteCode)}">加入这局</button>
+          </div>` : ""}
+        <div class="plaza-post-actions">
+          ${post.isMine ? `<button class="btn quiet compact" type="button" data-action="plaza-delete-post" data-post-id="${escapeHtml(post.id)}">删除帖子</button>` : ""}
+          ${!post.isMine ? `<button class="btn quiet compact" type="button" data-action="plaza-report" data-target-type="post" data-target-id="${escapeHtml(post.id)}">举报</button>` : ""}
+        </div>
+      </article>
+
+      <section class="plaza-replies card">
+        <h3>评论 (${replies.length})</h3>
+        <div class="plaza-reply-list">
+          ${replies.length ? replies.map((reply) => `
+            <article class="plaza-reply ${reply.parentReplyId ? "is-nested" : ""}">
+              <header>
+                <strong>${escapeHtml(reply.authorDisplayName || "玩家")}</strong>
+                <time>${formatPlazaTime(reply.createdAt)}</time>
+              </header>
+              <p>${escapeHtml(reply.body).replace(/\n/g, "<br>")}</p>
+              <div class="plaza-reply-actions">
+                ${reply.isMine ? `<button class="btn quiet compact" type="button" data-action="plaza-delete-reply" data-reply-id="${escapeHtml(reply.id)}">删除</button>` : ""}
+                ${!reply.isMine ? `<button class="btn quiet compact" type="button" data-action="plaza-report" data-target-type="reply" data-target-id="${escapeHtml(reply.id)}">举报</button>` : ""}
+              </div>
+            </article>`).join("") : `<p class="hint muted">还没有评论，来做第一个回复的人吧。</p>`}
+        </div>
+        <form class="plaza-reply-form" data-form="plaza-reply">
+          <textarea class="field" name="body" rows="3" maxlength="500" placeholder="写下你的评论…" required data-bind="plazaReplyBody">${escapeHtml(state.plazaReplyDraft || "")}</textarea>
+          <button class="btn primary" type="submit" ${state.busy ? "disabled" : ""}>发表评论</button>
+        </form>
+      </section>
+    </section>`;
+}
+
+export function renderFriends() {
+  const data = state.friendsData || { friends: [], incoming: [], outgoing: [] };
+  const searchResults = state.playerSearchResults?.items || [];
+  return `
+    <section class="social-shell">
+      <div class="plaza-head">
+        <div>
+          <p class="eyebrow">FRIENDS · 好友</p>
+          <h1>添加好友，方便约局私聊</h1>
+          <p class="lede">搜索玩家昵称发送好友请求；通过后可在「消息」里一对一私聊。</p>
+        </div>
+      </div>
+
+      <article class="card social-search">
+        <h3>搜索玩家</h3>
+        <form class="inline-form" data-form="player-search">
+          <input class="field" name="q" type="search" minlength="2" maxlength="40" placeholder="输入昵称关键词" value="${escapeHtml(state.playerSearchQuery || "")}" data-bind="playerSearch" />
+          <button class="btn outline" type="submit" ${state.busy ? "disabled" : ""}>搜索</button>
+        </form>
+        ${searchResults.length ? `
+          <ul class="player-search-results">
+            ${searchResults.map((player) => `
+              <li>
+                <span>${escapeHtml(player.displayName)}</span>
+                <button class="btn outline compact" type="button" data-action="friend-request" data-user-id="${escapeHtml(player.userId)}">加好友</button>
+              </li>`).join("")}
+          </ul>` : state.playerSearchQuery ? `<p class="hint muted">未找到匹配的玩家。</p>` : ""}
+      </article>
+
+      ${data.incoming?.length ? `
+        <article class="card">
+          <h3>收到的好友请求</h3>
+          <ul class="friend-list">
+            ${data.incoming.map((item) => `
+              <li>
+                <span>${escapeHtml(item.displayName)}</span>
+                <div class="inline-actions">
+                  <button class="btn primary compact" type="button" data-action="friend-accept" data-user-id="${escapeHtml(item.userId)}">接受</button>
+                  <button class="btn quiet compact" type="button" data-action="friend-decline" data-user-id="${escapeHtml(item.userId)}">拒绝</button>
+                </div>
+              </li>`).join("")}
+          </ul>
+        </article>` : ""}
+
+      ${data.outgoing?.length ? `
+        <article class="card">
+          <h3>已发出的请求</h3>
+          <ul class="friend-list muted">
+            ${data.outgoing.map((item) => `<li><span>${escapeHtml(item.displayName)}</span><span class="hint">等待对方回应</span></li>`).join("")}
+          </ul>
+        </article>` : ""}
+
+      <article class="card">
+        <h3>我的好友 (${data.friends?.length || 0})</h3>
+        ${data.friends?.length ? `
+          <ul class="friend-list">
+            ${data.friends.map((item) => `
+              <li>
+                <span>${escapeHtml(item.displayName)}</span>
+                <button class="btn outline compact" type="button" data-action="dm-open-peer" data-user-id="${escapeHtml(item.userId)}">发私信</button>
+              </li>`).join("")}
+          </ul>` : `<p class="hint muted">还没有好友。在广场认识新玩家，或搜索昵称添加吧。</p>`}
+      </article>
+
+      <button class="text-btn" type="button" data-action="back-landing">← 返回首页</button>
+    </section>`;
+}
+
+export function renderMessages() {
+  const items = state.dmConversations?.items || [];
+  return `
+    <section class="social-shell">
+      <div class="plaza-head">
+        <div>
+          <p class="eyebrow">MESSAGES · 私信</p>
+          <h1>与好友一对一私聊</h1>
+          <p class="lede">仅已添加的好友可以互发私信。在好友列表里也可以直接发起会话。</p>
+        </div>
+      </div>
+
+      <div class="dm-inbox">
+        ${items.length ? items.map((conv) => `
+          <button class="dm-row card" type="button" data-action="dm-open" data-conversation-id="${escapeHtml(conv.id)}">
+            <div class="dm-row-head">
+              <strong>${escapeHtml(conv.peerDisplayName)}</strong>
+              <time>${formatPlazaTime(conv.lastMessageAt)}</time>
+            </div>
+            <p class="dm-preview">${conv.lastMessageFromMe ? "我：" : ""}${escapeHtml(conv.lastMessage || "（暂无消息）")}</p>
+            ${conv.unreadCount ? `<span class="dm-unread">${conv.unreadCount}</span>` : ""}
+          </button>`).join("") : `
+          <article class="card plaza-empty">
+            <p>还没有私信会话。添加好友后，在好友页点击「发私信」开始聊天。</p>
+          </article>`}
+      </div>
+
+      <button class="text-btn" type="button" data-action="back-landing">← 返回首页</button>
+    </section>`;
+}
+
+export function renderDm() {
+  const thread = state.dmThread;
+  if (!thread) {
+    return `
+      <section class="social-shell">
+        <p class="hint">加载会话中…</p>
+        <button class="text-btn" type="button" data-action="go-messages">← 返回消息列表</button>
+      </section>`;
+  }
+  const messages = thread.items || [];
+  return `
+    <section class="social-shell dm-chat">
+      <button class="text-btn" type="button" data-action="go-messages">← 返回消息列表</button>
+      <header class="dm-chat-head">
+        <h2>${escapeHtml(thread.peerDisplayName || "玩家")}</h2>
+      </header>
+      <div class="dm-messages">
+        ${messages.length ? messages.map((msg) => `
+          <div class="dm-bubble ${msg.fromMe ? "is-mine" : "is-theirs"}">
+            <p>${escapeHtml(msg.body).replace(/\n/g, "<br>")}</p>
+            <time>${formatPlazaTime(msg.createdAt)}</time>
+          </div>`).join("") : `<p class="hint muted">还没有消息，打个招呼吧。</p>`}
+      </div>
+      <form class="dm-compose" data-form="dm-send">
+        <textarea class="field" name="body" rows="2" maxlength="1000" placeholder="输入私信内容…" required data-bind="dmBody">${escapeHtml(state.dmDraftBody || "")}</textarea>
+        <button class="btn primary" type="submit" ${state.busy ? "disabled" : ""}>发送</button>
+      </form>
     </section>`;
 }
 
@@ -612,6 +807,10 @@ export function renderApp() {
   if (state.view === "auth") main = renderAuth();
   else if (state.view === "lobby") main = renderLobby();
   else if (state.view === "plaza") main = renderPlaza();
+  else if (state.view === "plaza-thread") main = renderPlazaThread();
+  else if (state.view === "friends") main = renderFriends();
+  else if (state.view === "messages") main = renderMessages();
+  else if (state.view === "dm") main = renderDm();
   else if (state.view === "join") main = renderJoin();
   else if (state.view === "game" && state.home) main = renderGame();
   else main = renderLanding();

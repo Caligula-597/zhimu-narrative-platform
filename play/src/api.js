@@ -94,6 +94,31 @@ export const api = {
     return request(`/platform/plaza/posts${qs ? `?${qs}` : ""}`);
   },
   createPlazaPost: (payload) => request("/platform/plaza/posts", { method: "POST", body: payload }),
+  plazaPost: (postId) => request(`/platform/plaza/posts/${postId}`),
+  plazaReplies: (postId, limit = 100) =>
+    request(`/platform/plaza/posts/${postId}/replies?limit=${limit}`),
+  createPlazaReply: (postId, payload) =>
+    request(`/platform/plaza/posts/${postId}/replies`, { method: "POST", body: payload }),
+  deletePlazaPost: (postId) => request(`/platform/plaza/posts/${postId}`, { method: "DELETE" }),
+  deletePlazaReply: (replyId) => request(`/platform/plaza/replies/${replyId}`, { method: "DELETE" }),
+  reportPlaza: (payload) => request("/platform/plaza/reports", { method: "POST", body: payload }),
+  searchPlayers: (q, limit = 10) =>
+    request(`/platform/social/players/search?q=${encodeURIComponent(q)}&limit=${limit}`),
+  listFriends: () => request("/platform/social/friends"),
+  sendFriendRequest: (targetUserId) =>
+    request("/platform/social/friends/request", { method: "POST", body: { targetUserId } }),
+  respondFriendRequest: (targetUserId, accept) =>
+    request("/platform/social/friends/respond", { method: "POST", body: { targetUserId, accept } }),
+  listDmConversations: () => request("/platform/social/dm/conversations"),
+  openDmConversation: (peerUserId) =>
+    request("/platform/social/dm/conversations", { method: "POST", body: { peerUserId } }),
+  listDmMessages: (conversationId) =>
+    request(`/platform/social/dm/conversations/${conversationId}/messages`),
+  sendDmMessage: (conversationId, body) =>
+    request(`/platform/social/dm/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: { body }
+    }),
   officialExample: () => request("/platform/official-example"),
   joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} }),
 
@@ -125,6 +150,44 @@ export const api = {
             const eventId = idLine.slice(4).trim();
             if (eventId) localStorage.setItem(sseCursorKey(roomId), eventId);
           }
+          if (!dataLine) continue;
+          try {
+            const msg = JSON.parse(dataLine.slice(6));
+            if (msg.type === "connected") {
+              onEvent("__connected__", msg);
+              continue;
+            }
+            if (msg.type === "heartbeat") continue;
+            const { type, ...rest } = msg;
+            if (type) onEvent(type, rest);
+          } catch {
+            /* ignore malformed SSE blocks */
+          }
+        }
+      }
+    });
+  },
+
+  /** SSE platform stream — plaza broadcast + personal DM/friend events. */
+  streamPlatformEvents(onEvent, signal) {
+    const headers = { Accept: "text/event-stream", ...authHeaders() };
+    return fetch(`${API_BASE}/platform/events/stream`, { headers, signal }).then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || err.message || `连接平台推送失败（${res.status}）`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buffer.indexOf("\n\n")) >= 0) {
+          const block = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          const dataLine = block.split("\n").find((line) => line.startsWith("data: "));
           if (!dataLine) continue;
           try {
             const msg = JSON.parse(dataLine.slice(6));

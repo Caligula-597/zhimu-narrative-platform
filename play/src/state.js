@@ -18,6 +18,17 @@ export const state = {
   plazaDraftKind: "chat",
   plazaDraftBody: "",
   plazaDraftInvite: "",
+  plazaPostId: "",
+  plazaPostDetail: null,
+  plazaReplies: null,
+  plazaReplyDraft: "",
+  friendsData: null,
+  playerSearchQuery: "",
+  playerSearchResults: null,
+  dmConversations: null,
+  dmConversationId: "",
+  dmThread: null,
+  dmDraftBody: "",
   selectedRoleId: "",
   joinStep: 1,
   view: "landing",
@@ -25,7 +36,8 @@ export const state = {
   busy: false,
   toast: "",
   error: "",
-  roomEventsConnected: false
+  roomEventsConnected: false,
+  platformEventsConnected: false
 };
 
 export function setToast(message, render) {
