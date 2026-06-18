@@ -129,6 +129,17 @@ async function pullRoomData(options = {}) {
       /* voice messages are best-effort on refresh */
     }
   }
+  if (partial) {
+    try {
+      state.recapLatest = await api.latestRecap(state.roomId);
+      state.recapError = "";
+    } catch (error) {
+      if (error.code === "RECAP_NOT_GENERATED") {
+        state.recapLatest = null;
+        state.recapError = "";
+      }
+    }
+  }
   if (partial && patchGameView(state, {
     pullRoomData: (opts) => pullRoomData(opts),
     onToast: (message) => setToast(message, render)

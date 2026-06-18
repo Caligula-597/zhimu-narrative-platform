@@ -1,6 +1,7 @@
 import {
   renderGameTabBar,
   renderGameTabBody,
+  renderGameSidebar,
   renderHostConfirmBannerHtml
 } from "../views/game.js";
 import { bindPlayReader } from "./reader.js";
@@ -28,6 +29,9 @@ export function patchGameView(state, ctx) {
 
   const banner = document.querySelector("[data-game-host-banner]");
   if (banner) banner.innerHTML = renderHostConfirmBannerHtml();
+
+  const sidebar = document.querySelector("[data-game-sidebar]");
+  if (sidebar) sidebar.innerHTML = renderGameSidebar();
 
   const tabBar = document.querySelector("[data-game-tab-bar]");
   if (tabBar) tabBar.innerHTML = renderGameTabBar();

@@ -46,6 +46,24 @@ function renderRoomMembers() {
     </article>`;
 }
 
+export function renderRoomMembersHtml() {
+  return renderRoomMembers();
+}
+
+export function renderGameSidebar() {
+  const role = state.home?.role;
+  return `
+        <article class="role-card-side card">
+          <p class="eyebrow">你的角色</p>
+          <h2>${escapeHtml(role?.name || "未选择")}</h2>
+          <p>${escapeHtml(role?.private_profile || role?.public_profile || "暂无角色资料")}</p>
+        </article>
+        ${renderRoomMembers()}
+        <div class="sidebar-actions">
+          <button class="btn quiet full" type="button" data-action="leave-room">离开房间</button>
+        </div>`;
+}
+
 export function renderGameHome() {
   const home = state.home;
   const progress = playerProgress(home);
@@ -350,20 +368,10 @@ export function renderGameTabBody() {
 }
 
 export function renderGame() {
-  const role = state.home?.role;
-
   return `
     <section class="game-shell">
-      <aside class="game-sidebar">
-        <article class="role-card-side card">
-          <p class="eyebrow">你的角色</p>
-          <h2>${escapeHtml(role?.name || "未选择")}</h2>
-          <p>${escapeHtml(role?.private_profile || role?.public_profile || "暂无角色资料")}</p>
-        </article>
-        ${renderRoomMembers()}
-        <div class="sidebar-actions">
-          <button class="btn quiet full" type="button" data-action="leave-room">离开房间</button>
-        </div>
+      <aside class="game-sidebar" data-game-sidebar>
+        ${renderGameSidebar()}
       </aside>
       <div class="game-main">
         <nav class="tab-bar" data-game-tab-bar aria-label="玩家功能">
