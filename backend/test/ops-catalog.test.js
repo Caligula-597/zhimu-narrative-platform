@@ -58,9 +58,12 @@ test("ops catalog approve and reject lifecycle", async (context) => {
 
   const headers = { "x-ops-token": OPS_TOKEN };
 
-  const list = await app.inject({ method: "GET", url: "/api/ops/catalog/reviews?limit=20", headers });
+  const list = await app.inject({ method: "GET", url: "/api/ops/catalog/reviews?limit=200", headers });
   assert.equal(list.statusCode, 200);
-  assert.ok(list.json().items.some((row) => row.id === pending.id));
+  assert.ok(
+    list.json().items.some((row) => row.id === pending.id),
+    `pending world ${pending.id} not in ops catalog list (total=${list.json().total})`
+  );
 
   const rejectMissingNote = await app.inject({
     method: "POST",

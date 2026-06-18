@@ -72,19 +72,21 @@ export async function assertGuestCreationAllowed(request) {
   const ipHash = hashClientIp(request.ip);
   const hourMax = Number(process.env.GUEST_CREATE_HOUR_MAX ?? 3);
   const dayMax = Number(process.env.GUEST_CREATE_DAY_MAX ?? 8);
+  if (hourMax <= 0 && dayMax <= 0) return;
   const hourCount = await countGuestUsersForIp(ipHash, { windowHours: 1 });
-  if (hourCount >= hourMax) {
+  if (hourMax > 0 && hourCount >= hourMax) {
     throwErr("GUEST_CREATE_RATE_LIMITED", "当前网络创建游客账号过于频繁，请稍后再试或注册登录。");
   }
   const dayCount = await countGuestUsersForIp(ipHash, { windowHours: 24 });
-  if (dayCount >= dayMax) {
+  if (dayMax > 0 && dayCount >= dayMax) {
     throwErr("GUEST_CREATE_RATE_LIMITED", "今日游客账号创建已达上限，请注册登录后继续。");
   }
 }
 
 export async function assertRegistrationAllowed(request) {
-  const ipHash = hashClientIp(request.ip);
   const dayMax = Number(process.env.REGISTER_IP_DAY_MAX ?? 5);
+  if (dayMax <= 0) return;
+  const ipHash = hashClientIp(request.ip);
   const dayCount = await countRegisteredUsersForIp(ipHash, { windowHours: 24 });
   if (dayCount >= dayMax) {
     throwErr("REGISTER_IP_RATE_LIMITED", "当前网络注册过于频繁，请稍后再试。");

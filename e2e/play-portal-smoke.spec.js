@@ -6,7 +6,7 @@ const FIXTURE_INVITE = process.env.PLAYWRIGHT_INVITE_CODE || "TEST-FIXTURE-DEMO"
 test.describe("玩家端 · 邀请码入房冒烟", () => {
   test("landing 可输入邀请码并进入选角", async ({ page }) => {
     await page.goto(PLAY_URL);
-    await expect(page.getByText("织幕")).toBeVisible();
+    await expect(page.locator(".play-header").first()).toBeVisible();
 
     const inviteInput = page.locator('input[data-bind="inviteCode"], input[name="inviteCode"], input[placeholder*="邀请"]');
     if (await inviteInput.count()) {

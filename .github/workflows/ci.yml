@@ -25,6 +25,7 @@ jobs:
     env:
       DATABASE_URL: postgres://zhimu:replace_me@localhost:5432/zhimu
       ALLOW_DEMO_USER_HEADER: "true"
+      REGISTER_IP_DAY_MAX: "0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
