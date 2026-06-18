@@ -21,7 +21,8 @@ export const CAPABILITIES = {
   "asset.upload": { accountKinds: [USER_KIND.REGISTERED] },
   "room.join": { accountKinds: [USER_KIND.REGISTERED, USER_KIND.GUEST] },
   "room.play": { accountKinds: [USER_KIND.REGISTERED, USER_KIND.GUEST] },
-  "room.host": { accountKinds: [USER_KIND.REGISTERED] }
+  "room.host": { accountKinds: [USER_KIND.REGISTERED] },
+  "platform.social.write": { accountKinds: [USER_KIND.REGISTERED] }
 };
 
 export async function fetchUserKind(userId) {

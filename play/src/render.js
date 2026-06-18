@@ -136,7 +136,7 @@ export function renderPlaza() {
             <input class="field" name="inviteCode" type="text" placeholder="有公开房或熟人局邀请码可填写" value="${escapeHtml(state.plazaDraftInvite || "")}" data-bind="plazaInvite" />
           </label>
           <button class="btn primary" type="submit" ${state.busy ? "disabled" : ""}>发布到广场</button>
-          <p class="hint">登录后即可发言；帖子将先经 AI 审核，必要时人工复核。评论与私信仅做基础校验（剧本内内容不受此限）。</p>
+          <p class="hint">发帖、评论、好友与私信需<strong>注册登录</strong>；帖子经 AI 审核，严禁广告。游客可浏览，进本仍可用邀请码。</p>
         </form>
       </article>
 

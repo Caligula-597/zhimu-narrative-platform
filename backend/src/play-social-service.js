@@ -1,6 +1,8 @@
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { publishPlatformUserEvent } from "./platform-event-bus.js";
+import { assertPlayAdFree } from "./play-content-moderation.js";
+import { assertPlaySocialWrite } from "./play-social-guard.js";
 
 const HOURLY_DM_LIMIT = 60;
 
@@ -62,6 +64,7 @@ export async function listFriendships(actorId) {
 }
 
 export async function sendFriendRequest(actorId, targetUserId) {
+  await assertPlaySocialWrite(actorId);
   if (actorId === targetUserId) throwErr("FRIEND_SELF", "不能添加自己为好友。");
   const target = await query(`SELECT id, display_name FROM users WHERE id = $1`, [targetUserId]);
   if (!target.rowCount) throwErr("USER_NOT_FOUND", "找不到该玩家。");
@@ -217,8 +220,10 @@ export async function listDmMessages(actorId, conversationId) {
 }
 
 export async function sendDmMessage(actorId, conversationId, body) {
+  await assertPlaySocialWrite(actorId);
   const text = String(body ?? "").trim();
   if (!text || text.length > 1000) throwErr("DM_MESSAGE_INVALID", "私信内容需为 1～1000 字。");
+  assertPlayAdFree(text);
   const conv = await query(
     `SELECT id, user_low_id, user_high_id FROM play_dm_conversations WHERE id = $1`,
     [conversationId]

@@ -20,6 +20,11 @@ import { registerRoutes } from "./routes.js";
 import { registerStaticFrontend } from "./static-frontend.js";
 import { resolveAllowedCorsOrigins } from "./cors-origins.js";
 
+const guestAuthRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_GUEST_AUTH_MAX ?? 8),
+  routeKey: "auth-guest"
+});
 const authRateLimit = createRateLimiter({
   windowMs: 60_000,
   max: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
@@ -162,6 +167,10 @@ export async function createApp(options = {}) {
     if (url.startsWith("/api/auth/login") || url.startsWith("/api/auth/register")
       || url.startsWith("/api/auth/forgot-password") || url.startsWith("/api/auth/reset-password")) {
       await authRateLimit(request, reply);
+      return;
+    }
+    if (url.startsWith("/api/auth/guest")) {
+      await guestAuthRateLimit(request, reply);
       return;
     }
     if (url.startsWith("/api/platform/beta/apply")) {

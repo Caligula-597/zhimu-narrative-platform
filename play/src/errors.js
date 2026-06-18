@@ -19,10 +19,13 @@ const API_ERROR_MESSAGES = {
   DM_NOT_FOUND: "会话不存在。",
   DM_MESSAGE_INVALID: "私信内容需为 1～1000 字。",
   PLAY_CONTENT_FORBIDDEN: "内容包含违禁词，无法发布。请修改后重试。",
-  PLAY_CONTENT_AD: "内容包含广告或联系方式引流，无法发布。",
+  PLAY_CONTENT_AD: "禁止发布广告、外链、联系方式引流或推广信息。",
   USER_NOT_FOUND: "找不到该玩家。",
   RATE_LIMITED: "操作过于频繁，请稍后再试。",
   AUTH_REQUIRED: "请先登录后再操作。",
+  GUEST_ACCOUNT_RESTRICTED: "游客账号无法使用社区功能，请先注册登录。",
+  EMAIL_NOT_VERIFIED: "请先验证邮箱后再使用社区功能。",
+  PLAY_SOCIAL_ACCOUNT_TOO_NEW: "新注册账号需稍等片刻后才能发帖或私聊。",
   FORBIDDEN: "无权执行此操作。"
 };
 

@@ -1,49 +1,51 @@
-# 玩家广场 / 私信内容审核
+# 玩家广场 / 私信内容审核与账号防刷
 
-## 广场帖子（AI 审核 + 人工复核）
+## 广告拦截（硬性）
 
-玩家发帖流程：
+广场帖子、评论、私信在写入前都会 **硬性拦截广告**（词库 + URL/手机号/微信引流正则），与 AI 审核并行：
 
-1. 提交帖子 → 写入 `review_status = pending`
-2. **DeepSeek AI 审核**（`play-plaza-ai-review.js`）
-   - `approve` → 立即公开展示
-   - `reject` → 返回 `PLAZA_POST_REJECTED` 与 AI 反馈，不展示
-   - `human_review` → 202 响应，等待人工通过
-3. **用户举报** → 帖子转入 `human_review`，并从公开列表隐藏；运维人工复检
+- 帖子：广告拦截 → 再 AI 审核
+- 评论 / 私信：广告拦截即拒绝（`PLAY_CONTENT_AD`）
 
-运维接口（需 `x-ops-token`）：
+## 广场帖子（AI + 人工）
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/ops/plaza/reviews` | 待人工帖 + 未处理举报 |
-| POST | `/api/ops/plaza/posts/:postId/approve` | 人工通过 |
-| POST | `/api/ops/plaza/posts/:postId/reject` | 人工拒审 `{ note }` |
-| POST | `/api/ops/plaza/reports/:reportId/resolve` | 处理举报 `{ dismiss?, note? }` |
+见此前流程：`approve` / `reject` / `human_review`，举报进入运维复检。
+
+## 社区功能账号门槛
+
+| 能力 | 默认要求 |
+|------|----------|
+| 发帖 / 评论 / 加好友 / 发私信 | **注册用户**（游客不可） |
+| 邮箱验证 | 生产环境默认必须验证 |
+| 新号冷却 | 注册后 **10 分钟** 内不可使用社区（可配置） |
 
 环境变量：
 
 ```bash
-# ai（有 DEEPSEEK_API_KEY 时默认）| stub（CI/无 key 时用词库兜底）| off（跳过审核，勿用于生产）
-PLAY_PLAZA_AI_REVIEW=ai
+PLAY_SOCIAL_GUEST_WRITE=false          # 设为 true 才允许游客发社区内容（不推荐）
+PLAY_SOCIAL_REQUIRE_VERIFIED_EMAIL=true # 生产建议 true
+PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN=10
 ```
 
-## 评论
+## 防批量垃圾账号
 
-仅基础校验（长度、频率），不走 AI 审核。
+| 控制点 | 默认 | 环境变量 |
+|--------|------|----------|
+| 游客创建 / IP / 小时 | 3 | `GUEST_CREATE_HOUR_MAX` |
+| 游客创建 / IP / 天 | 8 | `GUEST_CREATE_DAY_MAX` |
+| 游客接口请求 / IP / 分钟 | 8 | `RATE_LIMIT_GUEST_AUTH_MAX` |
+| 注册 / IP / 天 | 5 | `REGISTER_IP_DAY_MAX` |
 
-## 好友私信
+游客仍可 **浏览广场、用邀请码进本**；批量脚本难以通过游客路径刷社区内容。
 
-仅基础校验（长度、频率、好友关系），**不做**违禁词/广告专项管控。
+## 运维
 
-## 词库文件（AI stub 兜底）
-
-`backend/config/play-content-blocklist.json` — 在无 DeepSeek 或 `PLAY_PLAZA_AI_REVIEW=stub` 时供快速拦截明显违规。
-
-追加词条：`PLAY_CONTENT_EXTRA_BLOCK_TERMS=词条甲,词条乙`
+- 帖子人工队列：`GET /api/ops/plaza/reviews`
+- 文档见 `PLAY_PLAZA_AI_REVIEW`、`DEEPSEEK_API_KEY`
 
 ## 相关代码
 
+- `backend/src/play-content-moderation.js` — 广告硬拦截
+- `backend/src/play-social-guard.js` — 社区写权限 + IP 限创号
 - `backend/src/play-plaza-ai-review.js` — AI 审核
-- `backend/src/play-plaza-service.js` — 发帖 / 举报入队
-- `backend/src/play-plaza-ops.js` — 运维人工处理
-- `backend/migrations/038_play_plaza_review.sql` — 审核字段
+- `backend/src/auth.js` — `ip_hash` 会话追踪

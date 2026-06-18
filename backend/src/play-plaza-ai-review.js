@@ -1,5 +1,5 @@
 import { deepseekConfig, requestDeepseekJson } from "./deepseek.js";
-import { scanPlaySocialContent } from "./play-content-moderation.js";
+import { scanPlaySocialAdContent, scanPlaySocialContent } from "./play-content-moderation.js";
 
 function resolvePlazaReviewMode() {
   const explicit = String(process.env.PLAY_PLAZA_AI_REVIEW || "").trim().toLowerCase();
@@ -69,6 +69,15 @@ function stubReview(body) {
  * @returns {Promise<{ decision: 'approve'|'reject'|'human_review', reason: string, feedback: string }>}
  */
 export async function reviewPlazaPostContent({ body, kind }) {
+  const adScan = scanPlaySocialAdContent(body);
+  if (!adScan.ok) {
+    return {
+      decision: "reject",
+      reason: "ad",
+      feedback: "禁止发布广告、外链、联系方式引流或推广信息。"
+    };
+  }
+
   const mode = resolvePlazaReviewMode();
   if (mode === "off") {
     return { decision: "approve", reason: "review_disabled", feedback: "" };

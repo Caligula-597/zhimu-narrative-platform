@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   assertPlaySocialContentAllowed,
   resetPlayContentModerationForTests,
+  scanPlaySocialAdContent,
   scanPlaySocialContent
 } from "../src/play-content-moderation.js";
 
@@ -21,10 +22,15 @@ test("scanPlaySocialContent blocks advertising patterns", () => {
   assert.equal(scanPlaySocialContent("加 v x 私聊").reason, "ad");
 });
 
-test("scanPlaySocialContent blocks forbidden terms", () => {
+test("scanPlaySocialAdContent blocks ads only", () => {
   resetPlayContentModerationForTests();
-  assert.equal(scanPlaySocialContent("这里有赌博平台推荐").reason, "forbidden");
-  assert.equal(scanPlaySocialContent("代开发票联系我").reason, "forbidden");
+  assert.equal(scanPlaySocialAdContent("加微信 abc123").ok, false);
+  assert.equal(scanPlaySocialAdContent("有人一起测本吗？").ok, true);
+});
+
+test("scanPlaySocialContent blocks forbidden terms beyond ads", () => {
+  resetPlayContentModerationForTests();
+  assert.equal(scanPlaySocialContent("网赌平台").reason, "forbidden");
 });
 
 test("assertPlaySocialContentAllowed throws typed errors", () => {

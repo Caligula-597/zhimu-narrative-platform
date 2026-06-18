@@ -105,8 +105,10 @@ export async function registerPlatformSocialRoutes(app) {
         return handleServiceError(reply, error, [
           "PLAZA_POST_INVALID",
           "PLAZA_POST_REJECTED",
-          "PLAY_CONTENT_FORBIDDEN",
-          "PLAY_CONTENT_AD"
+          "PLAY_CONTENT_AD",
+          "GUEST_ACCOUNT_RESTRICTED",
+          "EMAIL_NOT_VERIFIED",
+          "PLAY_SOCIAL_ACCOUNT_TOO_NEW"
         ]);
       }
     }
@@ -130,7 +132,11 @@ export async function registerPlatformSocialRoutes(app) {
         return handleServiceError(reply, error, [
           "PLAZA_POST_NOT_FOUND",
           "PLAZA_REPLY_INVALID",
-          "PLAZA_REPLY_NOT_FOUND"
+          "PLAZA_REPLY_NOT_FOUND",
+          "PLAY_CONTENT_AD",
+          "GUEST_ACCOUNT_RESTRICTED",
+          "EMAIL_NOT_VERIFIED",
+          "PLAY_SOCIAL_ACCOUNT_TOO_NEW"
         ]);
       }
     }
@@ -209,7 +215,15 @@ export async function registerPlatformSocialRoutes(app) {
         const result = await sendFriendRequest(actorId, request.body?.targetUserId);
         return reply.code(201).send(result);
       } catch (error) {
-        return handleServiceError(reply, error, ["FRIEND_SELF", "USER_NOT_FOUND", "FRIEND_ALREADY", "FRIEND_REQUEST_EXISTS"]);
+        return handleServiceError(reply, error, [
+          "FRIEND_SELF",
+          "USER_NOT_FOUND",
+          "FRIEND_ALREADY",
+          "FRIEND_REQUEST_EXISTS",
+          "GUEST_ACCOUNT_RESTRICTED",
+          "EMAIL_NOT_VERIFIED",
+          "PLAY_SOCIAL_ACCOUNT_TOO_NEW"
+        ]);
       }
     }
   );
@@ -272,7 +286,16 @@ export async function registerPlatformSocialRoutes(app) {
         const message = await sendDmMessage(actorId, request.params.conversationId, request.body?.body);
         return reply.code(201).send(message);
       } catch (error) {
-        return handleServiceError(reply, error, ["DM_NOT_FOUND", "FORBIDDEN", "DM_MESSAGE_INVALID", "DM_FRIEND_REQUIRED"]);
+        return handleServiceError(reply, error, [
+          "DM_NOT_FOUND",
+          "FORBIDDEN",
+          "DM_MESSAGE_INVALID",
+          "DM_FRIEND_REQUIRED",
+          "PLAY_CONTENT_AD",
+          "GUEST_ACCOUNT_RESTRICTED",
+          "EMAIL_NOT_VERIFIED",
+          "PLAY_SOCIAL_ACCOUNT_TOO_NEW"
+        ]);
       }
     }
   );

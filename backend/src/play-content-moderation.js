@@ -103,16 +103,6 @@ function includesTerm(compact, term) {
   return compact.includes(term);
 }
 
-function matchesForbidden(compact) {
-  const { forbidden } = getTerms();
-  return forbidden.some((term) => includesTerm(compact, term));
-}
-
-function matchesAdTerms(compact) {
-  const { ad } = getTerms();
-  return ad.some((term) => includesTerm(compact, term));
-}
-
 function matchesAdPatterns(forms) {
   const candidates = [forms.raw, forms.lower, forms.compact, forms.digits];
   for (const pattern of AD_URL_PATTERNS) {
@@ -134,17 +124,47 @@ function matchesAdPatterns(forms) {
   return false;
 }
 
-/**
- * Lightweight keyword scan — used only for plaza AI stub fallback (CI / no API key).
- * Production plaza posts use AI review; DMs use basic length/rate limits only.
- */
-export function scanPlaySocialContent(text) {
+function matchesForbidden(compact) {
+  const { forbidden } = getTerms();
+  return forbidden.some((term) => includesTerm(compact, term));
+}
+
+function matchesAdTerms(compact) {
+  const { ad } = getTerms();
+  return ad.some((term) => includesTerm(compact, term));
+}
+
+function scanAds(text) {
   const trimmed = String(text ?? "").trim();
   if (!trimmed) return { ok: true };
   const forms = buildScanForms(trimmed);
   if (matchesAdTerms(forms.compact) || matchesAdPatterns(forms)) {
     return { ok: false, reason: "ad" };
   }
+  return { ok: true };
+}
+
+/** Hard block advertising / contact spam in plaza, replies, and DMs. */
+export function scanPlaySocialAdContent(text) {
+  return scanAds(text);
+}
+
+export function assertPlayAdFree(text) {
+  const verdict = scanAds(text);
+  if (verdict.ok) return;
+  throwErr("PLAY_CONTENT_AD", "禁止发布广告、外链、联系方式引流或推广信息。");
+}
+
+/**
+ * Full keyword scan — AI stub fallback and optional deep checks.
+ * @returns {{ ok: true } | { ok: false, reason: 'ad' | 'forbidden' }}
+ */
+export function scanPlaySocialContent(text) {
+  const trimmed = String(text ?? "").trim();
+  if (!trimmed) return { ok: true };
+  const ad = scanAds(trimmed);
+  if (!ad.ok) return ad;
+  const forms = buildScanForms(trimmed);
   if (matchesForbidden(forms.compact)) {
     return { ok: false, reason: "forbidden" };
   }

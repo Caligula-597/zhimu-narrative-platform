@@ -42,6 +42,7 @@ import {
 } from "../email-verification-policy.js";
 import { applyInternalBetaPrivileges } from "../internal-accounts.js";
 import { applyApprovedBetaApplicationPrivileges } from "../beta-apply.js";
+import { assertGuestCreationAllowed, assertRegistrationAllowed } from "../play-social-guard.js";
 import { ensureUserPlan, initialPlanForEmail, fetchUserPlanCode, planMeta } from "../plans.js";
 
 const forgotPasswordSchema = {
@@ -143,6 +144,13 @@ export async function registerAuthRoutes(app) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return sendErr(reply, "EMAIL_INVALID");
     if (displayName.length < 2) return sendErr(reply, "DISPLAY_NAME_INVALID");
 
+    try {
+      await assertRegistrationAllowed(request);
+    } catch (error) {
+      if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
+      throw error;
+    }
+
     const verificationRequired = isEmailVerificationRequired();
     if (verificationRequired && !isEmailConfigured()) {
       return sendErr(reply, "EMAIL_NOT_CONFIGURED");
@@ -203,6 +211,12 @@ export async function registerAuthRoutes(app) {
       }
     }
   }, async (request, reply) => {
+    try {
+      await assertGuestCreationAllowed(request);
+    } catch (error) {
+      if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
+      throw error;
+    }
     const displayName = request.body?.displayName?.trim();
     const user = await createGuestUser(displayName || null);
     const session = await createSession(user.id, sessionRequestMeta(request));

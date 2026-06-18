@@ -12,6 +12,8 @@ test("GET /api/platform/plaza/posts returns recent posts", async () => {
 });
 
 test("POST /api/platform/plaza/posts creates chat and recruit posts", async () => {
+  process.env.PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN = "0";
+  process.env.PLAY_SOCIAL_REQUIRE_VERIFIED_EMAIL = "false";
   const app = await createApp();
   const chat = await app.inject({
     method: "POST",
