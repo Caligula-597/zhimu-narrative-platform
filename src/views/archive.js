@@ -155,9 +155,37 @@ function openCreateCheckpointModal(){
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-checkpoint-submit]").onclick=async()=>{try{const values=studioValues();if(!values.checkpointTitle)return showToast("请填写存档名称");await zhimuApi.createCheckpoint({title:values.checkpointTitle,description:values.checkpointDescription});closeModal();await loadCloudData();showToast("运行房存档点已创建")}catch(error){showToast(error.message)}};
 }
 
+function playerRecapModalBody(detail){
+ const snapshot=detail.snapshot||{};
+ return `<div class="host-detail-grid recap-player-modal-body">
+ ${recapRoomSummary(snapshot,"player")}
+ ${recapTimeline(snapshot)}
+ ${recapClueSection(snapshot,"player")}
+ ${recapHostEvents(snapshot)}
+ ${recapNotes(snapshot,"player")}
+ <div class="tutorial-tip"><b>我的视角</b><span>以上内容来自本局真实日志与流转记录，不含 AI 生成内容。</span></div></div>`;
+}
+
+async function openPlayerRecapModal(recapId){
+ if(!activeRuntimeRoom())return showToast("请先选择运行房");
+ try{
+  const detail=await zhimuApi.getRecap(recapId,true);
+  modal.className="modal host-detail-modal recap-player-modal";
+  modal.innerHTML=`<h2>${escapeHtml(detail.label)}</h2><p class="wizard-intro">${escapeHtml(detail.description||"无备注")} · 生成于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p>${playerRecapModalBody(detail)}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-action="player-recap-open-archive">在存档页查看</button></div>`;
+  modalBackdrop.classList.add("show");
+  modal.querySelector("[data-close]").onclick=closeModal;
+  const archiveBtn=modal.querySelector("[data-action=player-recap-open-archive]");
+  if(archiveBtn)archiveBtn.onclick=async()=>{closeModal();await openRecapDetail(recapId,true);};
+ }catch(error){showToast(error.message)}
+}
+
 async function openRecapDetail(recapId,asPlayer=false){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  try{
+  if(asPlayer&&state.view==="player"){
+   await openPlayerRecapModal(recapId);
+   return;
+  }
   if(state.view!=="archive")go("archive");
   const detail=await zhimuApi.getRecap(recapId,asPlayer);
   state.activeRecapId=recapId;
@@ -175,7 +203,7 @@ function closeRecapDetail(){
 async function openPlayerRecapFromBanner(){
  const latest=state.cloudRecapLatest;
  if(!latest)return showToast("主持人尚未生成复盘");
- await openRecapDetail(latest.id,true);
+ await openPlayerRecapModal(latest.id);
 }
 
 function checkpointRestoreHistoryRows(restores = []) {
@@ -247,6 +275,7 @@ function openRestoreCheckpointModal(checkpointId,checkpointLabel){
   viewExports.openRecapDetail = openRecapDetail;
   viewExports.closeRecapDetail = closeRecapDetail;
   viewExports.openPlayerRecapFromBanner = openPlayerRecapFromBanner;
+  viewExports.openPlayerRecapModal = openPlayerRecapModal;
   viewExports.checkpointRestoreHistoryRows = checkpointRestoreHistoryRows;
   viewExports.openCheckpointDetail = openCheckpointDetail;
   viewExports.openRestoreCheckpointModal = openRestoreCheckpointModal;

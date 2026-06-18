@@ -2,6 +2,8 @@ import { test, expect } from "@playwright/test";
 import {
   BASE_URL,
   FIXTURE,
+  dismissModalIfOpen,
+  ensurePendingHostEvent,
   goToView,
   injectHostContext,
   waitForCloudReady
@@ -39,5 +41,22 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
 
   test("玩家实时动态卡片可展开", async ({ page }) => {
     await expect(page.getByText("玩家实时动态")).toBeVisible();
+  });
+
+  test("提醒等待中的玩家可打开并发送", async ({ page }) => {
+    const hasPending = await ensurePendingHostEvent(page);
+    if (!hasPending) {
+      test.skip(true, "fixture 无待确认事件，跳过 nudge UI 测试");
+      return;
+    }
+
+    const nudgeBtn = page.getByRole("button", { name: "提醒等待中的玩家" });
+    await expect(nudgeBtn).toBeVisible();
+    await nudgeBtn.click();
+    await expect(page.locator("#modal-backdrop.show")).toBeVisible();
+    await expect(page.getByRole("button", { name: "发送提醒" })).toBeVisible();
+    await page.locator("[data-nudge-submit]").click();
+    await dismissModalIfOpen(page);
+    await expect(page.locator("#toast.show")).toContainText("已提醒", { timeout: 10_000 });
   });
 });

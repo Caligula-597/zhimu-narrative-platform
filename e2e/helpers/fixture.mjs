@@ -61,6 +61,26 @@ export async function dismissModalIfOpen(page) {
   }
 }
 
+/**
+ * Refresh host events and report whether a pending event exists (for wait-strip / nudge E2E).
+ * @param {Page} page
+ */
+export async function ensurePendingHostEvent(page) {
+  await page.locator('[data-action="refresh-host-events"]').click({ timeout: 5000 }).catch(() => {});
+  await page.waitForFunction(
+    () => (window.zhimuState?.cloudHostEvents || []).some((row) => row.status === "pending"),
+    undefined,
+    { timeout: 15_000 }
+  ).catch(() => {});
+  return page.evaluate(async ({ roomId, hostUserId }) => {
+    const res = await fetch(`/api/rooms/${roomId}/host-events`, {
+      headers: { "x-user-id": hostUserId }
+    });
+    const rows = res.ok ? await res.json() : [];
+    return Array.isArray(rows) && rows.some((row) => row.status === "pending");
+  }, { roomId: FIXTURE.roomId, hostUserId: FIXTURE.hostUserId });
+}
+
 /** @param {Page} page */
 export async function joinRoomViaInviteUi(page, inviteCode = FIXTURE.inviteCode) {
   await page.locator("#preview-btn").click();

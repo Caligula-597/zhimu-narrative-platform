@@ -172,6 +172,15 @@ try {
     ]
   );
 
+  await client.query(
+    `INSERT INTO pending_host_events (room_id, event_key, title, description, actions, status)
+     SELECT $1, 'seed-fixture-pending', '【演示】待确认推进', 'seed 用于主持台演示与 E2E', '[]'::jsonb, 'pending'
+     WHERE NOT EXISTS (
+       SELECT 1 FROM pending_host_events WHERE room_id = $1 AND status = 'pending'
+     )`,
+    [FIXTURE.roomId]
+  );
+
   await client.query("COMMIT");
   console.log(FIXTURE);
 } catch (error) {

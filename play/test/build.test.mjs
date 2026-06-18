@@ -63,6 +63,7 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(mainSource, /patchGameView/);
   const patchSource = readFileSync(path.join(root, "src", "runtime", "patch-game.js"), "utf8");
   assert.match(patchSource, /data-game-tab-body/);
+  assert.match(patchSource, /activeInputIn/);
   assert.match(gameSource, /renderGameTabBody/);
   const highlightsSource = readFileSync(path.join(root, "src", "utils", "highlights.js"), "utf8");
   const readerSource = readFileSync(path.join(root, "src", "runtime", "reader.js"), "utf8");
