@@ -19,6 +19,7 @@ export function getPlatformLinks() {
     appUrl: appUrl || null,
     playUrl: playUrl || null,
     register: appUrl ? `${appUrl}/?auth=register` : null,
+    creatorApp: appUrl ? `${appUrl}/?auth=register` : null,
     login: appUrl ? `${appUrl}/?auth=login` : null,
     playerJoin: playUrl || null,
     officialExample: playUrl ? `${playUrl}/?experience=official` : null,

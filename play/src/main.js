@@ -11,12 +11,60 @@ import { connectRoomEvents, disconnectRoomEvents } from "./room-events.js";
 import { connectPlatformEvents, disconnectPlatformEvents } from "./platform-events.js";
 import { formatApiError } from "./errors.js";
 import { renderApp } from "./render.js";
+import { closeModalState, openModalState } from "./components/modal.js";
+import {
+  connectVoiceLive,
+  disconnectVoiceLive,
+  ensureDefaultVoiceRoom,
+  joinVoiceRoom,
+  openCreateVoiceRoomModal,
+  openInviteVoiceRoomModal,
+  openVoiceRoomPicker,
+  pauseVoiceSession,
+  refreshVoiceMessages,
+  resetVoiceOnLeave,
+  sendVoiceChatMessage,
+  submitCreateVoiceRoom,
+  submitVoiceInvite,
+  toggleVoiceMicLive
+} from "./runtime/voice.js";
 import { persistRoom, setBusy, setToast, state } from "./state.js";
+import { setVoiceRenderCallback } from "./voice/livekit-voice.js";
 
 const app = document.getElementById("app");
 
 function render() {
   app.innerHTML = renderApp();
+  if (state.view === "dm") {
+    const el = document.querySelector("[data-dm-scroll]");
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+  if (state.view === "game" && state.tab === "voice") {
+    const voiceLog = document.querySelector("[data-voice-scroll]");
+    if (voiceLog) voiceLog.scrollTop = voiceLog.scrollHeight;
+  }
+}
+
+setVoiceRenderCallback(render);
+
+function normalizeUser(raw) {
+  if (!raw) return null;
+  return {
+    id: raw.id,
+    email: raw.email,
+    displayName: raw.display_name || raw.displayName,
+    isGuest: raw.isGuest ?? raw.user_kind === "guest",
+    emailVerified: raw.emailVerified ?? Boolean(raw.email_verified_at)
+  };
+}
+
+async function loadSessionUser() {
+  if (!getSessionToken()) return;
+  try {
+    state.user = normalizeUser(await api.me());
+  } catch (error) {
+    if (error.status === 401) clearSession();
+  }
 }
 
 function cleanUrl() {
@@ -32,7 +80,7 @@ async function ensureSession() {
   const guestName = `玩家${Math.floor(Math.random() * 9000 + 1000)}`;
   const result = await api.guest(guestName);
   setSessionToken(result.token);
-  state.user = result.user;
+  state.user = normalizeUser(result.user);
 }
 
 async function loadPlatform() {
@@ -57,6 +105,14 @@ async function pullRoomData() {
   } else if (!state.sectionId && sections.length) {
     state.sectionId = sections.find((section) => !section.completed)?.id || sections[0].id;
   }
+  ensureDefaultVoiceRoom();
+  if (state.tab === "voice" && state.voiceRoomId) {
+    try {
+      await refreshVoiceMessages(render, { silent: true });
+    } catch {
+      /* voice messages are best-effort on refresh */
+    }
+  }
   render();
 }
 
@@ -64,6 +120,15 @@ const roomEventCtx = {
   getView: () => state.view,
   getRoomId: () => state.roomId,
   getRoleId: () => state.home?.role?.id || "",
+  getVoiceRoomId: () => state.voiceRoomId || "",
+  onVoiceRefresh: async () => {
+    try {
+      await refreshVoiceMessages(render, { silent: true });
+      render();
+    } catch {
+      /* SSE voice refresh is best-effort */
+    }
+  },
   onRefresh: async () => {
     try {
       await pullRoomData();
@@ -112,6 +177,24 @@ function syncPlatformStream() {
   }
   if (getSessionToken()) connectPlatformEvents(platformEventCtx);
   else disconnectPlatformEvents(platformEventCtx);
+}
+
+async function goToLanding() {
+  if (state.view === "game") {
+    disconnectRoomEvents(roomEventCtx);
+    await pauseVoiceSession();
+  }
+  state.view = "landing";
+  state.joinPreview = null;
+  state.joinStep = 1;
+  state.plazaPostId = "";
+  state.plazaPostDetail = null;
+  state.plazaReplies = null;
+  state.plazaReplyDraft = "";
+  state.dmConversationId = "";
+  state.dmThread = null;
+  syncPlatformStream();
+  render();
 }
 
 function syncRoomStream() {
@@ -296,12 +379,25 @@ async function handleDmSend(form) {
 }
 
 async function handlePlazaReport(targetType, targetId) {
-  const reason = window.prompt("请简要说明举报原因（4～200 字）：");
-  if (!reason) return;
+  openModalState({
+    kind: "report",
+    title: "举报内容",
+    targetType,
+    targetId
+  });
+  render();
+}
+
+async function submitPlazaReport() {
+  const reason = (state.modalDraft || "").trim();
+  if (reason.length < 4) return setToast("请填写至少 4 个字的举报原因", render);
+  const { targetType, targetId } = state.modal || {};
+  if (!targetType || !targetId) return;
   setBusy(true, render);
   try {
     await ensureSession();
-    await api.reportPlaza({ targetType, targetId, reason: reason.trim() });
+    await api.reportPlaza({ targetType, targetId, reason });
+    closeModalState();
     setToast("已提交举报，感谢反馈", render);
   } catch (error) {
     setToast(formatApiError(error, "举报失败"), render);
@@ -375,7 +471,7 @@ async function bootstrap() {
     else if (oauthCode) {
       const result = await api.oauthComplete(oauthCode);
       setSessionToken(result.token);
-      state.user = result.user;
+      state.user = normalizeUser(result.user);
       setToast(`欢迎，${result.user.displayName || "玩家"}`, render);
       cleanUrl();
     }
@@ -389,6 +485,7 @@ async function bootstrap() {
     }
     if (state.roomId && !isUuid(state.roomId)) persistRoom("", isUuid);
     await ensureSession();
+    await loadSessionUser();
     await loadDmConversations({ silent: true }).catch(() => {});
     if (wantOfficial) {
       await handleJoinOfficial({ silent: true });
@@ -521,7 +618,15 @@ async function handleInvestigate(pointId) {
   try {
     const result = await api.investigate(state.roomId, pointId);
     await pullRoomData();
-    setToast(result.clue ? `获得线索：${result.clue.name}` : "调查完成", render);
+    openModalState({
+      kind: "investigate",
+      title: "调查结果",
+      investigation: {
+        resultText: result.resultText,
+        clueName: result.clue?.name || ""
+      }
+    });
+    render();
   } catch (error) {
     setToast(error.message || "调查失败", render);
   } finally {
@@ -561,7 +666,7 @@ async function handleAuthSubmit(form) {
       result = await api.login(email, password);
     }
     setSessionToken(result.token);
-    state.user = result.user;
+    state.user = normalizeUser(result.user);
     state.view = state.roomId ? "game" : "landing";
     cleanUrl();
     if (state.roomId) await refreshHome();
@@ -591,7 +696,8 @@ async function handleOAuth(provider) {
   }
 }
 
-function handleLogout() {
+async function handleLogout() {
+  await resetVoiceOnLeave();
   disconnectRoomEvents(roomEventCtx);
   disconnectPlatformEvents(platformEventCtx);
   clearSession();
@@ -610,9 +716,21 @@ app.addEventListener("input", (event) => {
   if (event.target.dataset.bind === "plazaReplyBody") state.plazaReplyDraft = event.target.value;
   if (event.target.dataset.bind === "playerSearch") state.playerSearchQuery = event.target.value;
   if (event.target.dataset.bind === "dmBody") state.dmDraftBody = event.target.value;
+  if (event.target.dataset.bind === "modalDraft") state.modalDraft = event.target.value;
+  if (event.target.dataset.bind === "voiceChat") state.voiceChatDraft = event.target.value;
 });
 
 app.addEventListener("change", (event) => {
+  if (event.target.matches("[data-voice-invite]")) {
+    state.voiceInviteUserIds = [...document.querySelectorAll("[data-voice-invite]:checked")]
+      .map((input) => input.value)
+      .filter(Boolean);
+    return;
+  }
+  if (event.target.matches("[data-share-role]")) {
+    state.clueShareRoles = [...document.querySelectorAll("[data-share-role]:checked")].map((input) => input.value);
+    return;
+  }
   if (event.target.dataset.bind === "sectionId") {
     state.sectionId = event.target.value;
     render();
@@ -623,7 +741,14 @@ app.addEventListener("change", (event) => {
   }
 });
 
-app.addEventListener("submit", (event) => {
+app.addEventListener("submit", async (event) => {
+  const voiceForm = event.target.closest("[data-form='voice-send']");
+  if (voiceForm) {
+    event.preventDefault();
+    state.voiceChatDraft = voiceForm.body.value;
+    await sendVoiceChatMessage({ render, setToast });
+    return;
+  }
   const plazaForm = event.target.closest("[data-form='plaza']");
   if (plazaForm) {
     event.preventDefault();
@@ -657,16 +782,19 @@ app.addEventListener("submit", (event) => {
 app.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-action]");
   if (!button) return;
-  if (state.busy && button.dataset.action !== "dismiss-error") return;
+  if (
+    state.busy
+    && !["dismiss-error", "modal-close", "modal-backdrop-close", "voice-room", "voice-join"].includes(
+      button.dataset.action
+    )
+  ) {
+    return;
+  }
   const action = button.dataset.action;
   switch (action) {
     case "go-home":
       event.preventDefault();
-      if (state.view !== "game") return;
-      disconnectRoomEvents(roomEventCtx);
-      state.view = "landing";
-      syncPlatformStream();
-      render();
+      await goToLanding();
       break;
     case "go-lobby":
       await loadPublicRooms();
@@ -706,36 +834,143 @@ app.addEventListener("click", async (event) => {
       render();
       break;
     case "plaza-delete-post":
-      if (!window.confirm("确定删除这条帖子？")) return;
-      setBusy(true, render);
-      try {
-        await api.deletePlazaPost(button.dataset.postId);
-        state.view = "plaza";
-        state.plazaPostId = "";
-        await loadPlazaPosts();
-        setToast("帖子已删除", render);
-      } catch (error) {
-        setToast(formatApiError(error, "删除失败"), render);
-      } finally {
-        setBusy(false, render);
-      }
+      openModalState({
+        kind: "confirm-delete-post",
+        title: "删除帖子",
+        message: "确定删除这条帖子？此操作不可撤销。",
+        postId: button.dataset.postId
+      });
+      render();
       break;
     case "plaza-delete-reply":
-      if (!window.confirm("确定删除这条评论？")) return;
+      openModalState({
+        kind: "confirm-delete-reply",
+        title: "删除评论",
+        message: "确定删除这条评论？",
+        replyId: button.dataset.replyId
+      });
+      render();
+      break;
+    case "plaza-report":
+      handlePlazaReport(button.dataset.targetType, button.dataset.targetId);
+      break;
+    case "modal-close":
+      closeModalState();
+      render();
+      break;
+    case "modal-backdrop-close":
+      if (event.target !== button) return;
+      closeModalState();
+      render();
+      break;
+    case "modal-confirm": {
+      const modal = state.modal;
+      if (modal?.kind === "confirm-delete-post") {
+        setBusy(true, render);
+        try {
+          await api.deletePlazaPost(modal.postId);
+          closeModalState();
+          state.view = "plaza";
+          state.plazaPostId = "";
+          await loadPlazaPosts();
+          setToast("帖子已删除", render);
+        } catch (error) {
+          setToast(formatApiError(error, "删除失败"), render);
+        } finally {
+          setBusy(false, render);
+        }
+      } else if (modal?.kind === "confirm-delete-reply") {
+        setBusy(true, render);
+        try {
+          await api.deletePlazaReply(modal.replyId);
+          closeModalState();
+          await loadPlazaThread({ silent: true });
+          setToast("评论已删除", render);
+        } catch (error) {
+          setToast(formatApiError(error, "删除失败"), render);
+        } finally {
+          setBusy(false, render);
+        }
+      }
+      break;
+    }
+    case "modal-submit-report":
+      await submitPlazaReport();
+      break;
+    case "edit-clue-note": {
+      const clue = (state.home?.clues || []).find((c) => c.id === button.dataset.clueId);
+      if (!clue) return setToast("线索不存在", render);
+      openModalState({
+        kind: "clue-note",
+        title: `我的线索解读 · ${clue.name}`,
+        clueId: clue.id,
+        initialNote: clue.player_note || ""
+      });
+      render();
+      break;
+    }
+    case "share-clue-room": {
+      const clue = (state.home?.clues || []).find((c) => c.id === button.dataset.clueId);
+      if (!clue) return setToast("线索不存在", render);
       setBusy(true, render);
       try {
-        await api.deletePlazaReply(button.dataset.replyId);
-        await loadPlazaThread({ silent: true });
-        setToast("评论已删除", render);
+        const next = !clue.shared_with_room;
+        await api.shareClueToRoom(state.roomId, clue.id, next);
+        await pullRoomData();
+        state.clueId = clue.id;
+        setToast(next ? `已公开「${clue.name}」到全房间` : `已取消公开「${clue.name}」`, render);
       } catch (error) {
-        setToast(formatApiError(error, "删除失败"), render);
+        setToast(formatApiError(error, "操作失败"), render);
       } finally {
         setBusy(false, render);
       }
       break;
-    case "plaza-report":
-      await handlePlazaReport(button.dataset.targetType, button.dataset.targetId);
+    }
+    case "share-clue-roles": {
+      const clue = (state.home?.clues || []).find((c) => c.id === button.dataset.clueId);
+      if (!clue) return setToast("线索不存在", render);
+      openModalState({
+        kind: "clue-share",
+        title: `私享线索 · ${clue.name}`,
+        clueId: clue.id,
+        initialRoles: clue.shared_with_roles || []
+      });
+      render();
       break;
+    }
+    case "modal-save-clue-note": {
+      const clueId = button.dataset.clueId;
+      setBusy(true, render);
+      try {
+        await api.updateCluePlayerNote(state.roomId, clueId, state.modalDraft || "");
+        closeModalState();
+        await pullRoomData();
+        state.clueId = clueId;
+        setToast("线索解读已保存", render);
+      } catch (error) {
+        setToast(formatApiError(error, "保存失败"), render);
+      } finally {
+        setBusy(false, render);
+      }
+      break;
+    }
+    case "modal-save-clue-share": {
+      const clueId = button.dataset.clueId;
+      setBusy(true, render);
+      try {
+        await api.shareClueToRoles(state.roomId, clueId, state.clueShareRoles || []);
+        closeModalState();
+        await pullRoomData();
+        state.clueId = clueId;
+        const count = (state.clueShareRoles || []).length;
+        setToast(count ? `已私享给 ${count} 名玩家` : "已清空私享名单", render);
+      } catch (error) {
+        setToast(formatApiError(error, "保存失败"), render);
+      } finally {
+        setBusy(false, render);
+      }
+      break;
+    }
     case "friend-request":
       setBusy(true, render);
       try {
@@ -862,7 +1097,53 @@ app.addEventListener("click", async (event) => {
       break;
     case "switch-tab":
       state.tab = button.dataset.tab;
-      render();
+      if (state.tab === "voice") {
+        ensureDefaultVoiceRoom();
+        if (state.voiceRoomId) {
+          await refreshVoiceMessages(render).catch(() => render());
+        } else {
+          render();
+        }
+      } else {
+        render();
+      }
+      break;
+    case "voice-room":
+      openVoiceRoomPicker(render);
+      break;
+    case "voice-room-create":
+      openCreateVoiceRoomModal(render);
+      break;
+    case "voice-room-invite":
+      openInviteVoiceRoomModal(button.dataset.voiceId, button.dataset.voiceName, render);
+      break;
+    case "voice-join":
+      await joinVoiceRoom(button.dataset.voiceId, button.dataset.voiceName, { render, setToast });
+      break;
+    case "voice-live-connect":
+      await connectVoiceLive({ render, setToast });
+      break;
+    case "voice-live-disconnect":
+      await disconnectVoiceLive({ render, setToast });
+      break;
+    case "voice-mic-toggle":
+      await toggleVoiceMicLive({ render, setToast });
+      break;
+    case "voice-chat-refresh":
+      try {
+        await refreshVoiceMessages(render);
+      } catch (error) {
+        setToast(formatApiError(error, "刷新失败"), render);
+      }
+      break;
+    case "voice-chat-send":
+      await sendVoiceChatMessage({ render, setToast });
+      break;
+    case "modal-create-voice":
+      await submitCreateVoiceRoom({ render, setBusy, setToast });
+      break;
+    case "modal-voice-invite":
+      await submitVoiceInvite({ render, setBusy, setToast });
       break;
     case "show-auth":
       state.view = "auth";
@@ -873,11 +1154,7 @@ app.addEventListener("click", async (event) => {
       render();
       break;
     case "back-landing":
-      state.view = "landing";
-      state.joinPreview = null;
-      state.joinStep = 1;
-      syncPlatformStream();
-      render();
+      await goToLanding();
       break;
     case "join-back-code":
       state.joinPreview = null;
@@ -892,9 +1169,10 @@ app.addEventListener("click", async (event) => {
       await handleOAuth(button.dataset.provider);
       break;
     case "logout":
-      handleLogout();
+      await handleLogout();
       break;
     case "leave-room":
+      await resetVoiceOnLeave();
       disconnectRoomEvents(roomEventCtx);
       persistRoom("", isUuid);
       state.home = null;

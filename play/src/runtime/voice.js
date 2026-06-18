@@ -1,0 +1,218 @@
+import { api } from "../api.js";
+import { closeModalState, openModalState } from "../components/modal.js";
+import { formatApiError } from "../errors.js";
+import { state } from "../state.js";
+import {
+  connectVoiceRoom,
+  disconnectVoiceRoom,
+  toggleVoiceMic
+} from "../voice/livekit-voice.js";
+
+export function voiceLiveStatusLabel() {
+  if (state.voiceLiveStatus === "error" && state.voiceLiveError) return state.voiceLiveError;
+  return (
+    {
+      idle: "音频未连接",
+      connecting: "正在连接 LiveKit…",
+      connected: "音频已连接",
+      error: "音频连接失败 · 仍可使用文字频道"
+    }[state.voiceLiveStatus] || "音频未连接"
+  );
+}
+
+export function ensureDefaultVoiceRoom() {
+  const rooms = state.home?.voiceRooms || [];
+  if (!rooms.length) {
+    state.voiceRoomId = "";
+    state.voiceRoomName = "";
+    return;
+  }
+  if (state.voiceRoomId && rooms.some((r) => r.id === state.voiceRoomId)) return;
+  const preferred = rooms.find((r) => r.room_type === "public") || rooms[0];
+  state.voiceRoomId = preferred.id;
+  state.voiceRoomName = preferred.name;
+}
+
+export function voiceHubParticipants() {
+  if (state.voiceParticipants?.length) return state.voiceParticipants;
+  return (state.home?.roomMembers || [])
+    .filter((member) => member.online)
+    .map((member) => ({
+      name: member.display_name || member.role_name || "?",
+      micEnabled: null,
+      isLocal: false
+    }));
+}
+
+export async function refreshVoiceMessages(render, { silent = false } = {}) {
+  if (!state.voiceRoomId) return;
+  const rows = await api.getVoiceMessages(state.voiceRoomId);
+  state.voiceMessages = Array.isArray(rows) ? rows : [];
+  if (!silent) render();
+}
+
+export async function joinVoiceRoom(roomId, roomName, { render, setToast, connectAudio = true } = {}) {
+  if (state.voiceRoomId && state.voiceRoomId !== roomId) {
+    await disconnectVoiceRoom();
+  }
+  state.voiceRoomId = roomId;
+  state.voiceRoomName = roomName;
+  state.voiceLiveError = "";
+  closeModalState();
+  render();
+  await refreshVoiceMessages(render);
+
+  if (!connectAudio) return;
+
+  try {
+    const tokenPayload = await api.getVoiceRoomToken(state.roomId, roomId);
+    await connectVoiceRoom(tokenPayload);
+    setToast?.(`已进入 ${roomName} · 音频已连接`, render);
+  } catch (error) {
+    const message = error.message || "音频连接失败";
+    setToast?.(/LiveKit|503|403|未加载|文字频道/.test(message) ? `${message}` : message, render);
+  }
+}
+
+export async function connectVoiceLive({ render, setToast } = {}) {
+  if (!state.voiceRoomId) {
+    setToast?.("请先选择语音房", render);
+    return;
+  }
+  try {
+    state.voiceLiveError = "";
+    const tokenPayload = await api.getVoiceRoomToken(state.roomId, state.voiceRoomId);
+    await connectVoiceRoom(tokenPayload);
+    setToast?.("LiveKit 音频已连接", render);
+  } catch (error) {
+    const message = error.message || "音频连接失败";
+    setToast?.(/LiveKit|503|403|未加载|文字频道/.test(message) ? message : message, render);
+  }
+}
+
+export async function disconnectVoiceLive({ render, setToast } = {}) {
+  await disconnectVoiceRoom();
+  render();
+  setToast?.("已退出音频连接", render);
+}
+
+export async function toggleVoiceMicLive({ render, setToast } = {}) {
+  try {
+    const enabled = await toggleVoiceMic();
+    setToast?.(enabled ? "麦克风已开启" : "麦克风已关闭", render);
+  } catch (error) {
+    setToast?.(error.message || "麦克风切换失败", render);
+  }
+}
+
+export function openVoiceRoomPicker(render) {
+  openModalState({ kind: "voice-pick", title: "选择语音空间" });
+  render();
+}
+
+export function openCreateVoiceRoomModal(render) {
+  state.voiceInviteUserIds = [];
+  openModalState({
+    kind: "voice-create",
+    title: "创建临时密谈",
+    initialName: "临时密谈"
+  });
+  state.modalDraft = "临时密谈";
+  render();
+}
+
+export function openInviteVoiceRoomModal(voiceRoomId, roomName, render) {
+  state.voiceInviteUserIds = [];
+  openModalState({
+    kind: "voice-invite",
+    title: `邀请成员 · ${roomName}`,
+    voiceRoomId,
+    voiceRoomName: roomName
+  });
+  render();
+}
+
+export async function submitCreateVoiceRoom({ render, setBusy, setToast } = {}) {
+  const name = (state.modalDraft || "").trim() || "临时密谈";
+  const inviteUserIds = [...(state.voiceInviteUserIds || [])];
+  setBusy(true, render);
+  try {
+    const created = await api.createVoiceRoom(state.roomId, {
+      name,
+      roomType: "invite_private",
+      inviteUserIds
+    });
+    await pullAndResyncVoice({ render });
+    closeModalState();
+    await joinVoiceRoom(created.id, created.name, { render, setToast, connectAudio: true });
+    setToast?.("临时密谈已创建", render);
+  } catch (error) {
+    setToast?.(formatApiError(error, "创建失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+export async function submitVoiceInvite({ render, setBusy, setToast } = {}) {
+  const voiceRoomId = state.modal?.voiceRoomId;
+  const inviteUserIds = [...(state.voiceInviteUserIds || [])];
+  if (!voiceRoomId) return;
+  if (!inviteUserIds.length) {
+    setToast?.("请至少选择一名已进入房间的玩家", render);
+    return;
+  }
+  setBusy(true, render);
+  try {
+    await api.inviteVoiceRoomMembers(voiceRoomId, inviteUserIds);
+    closeModalState();
+    await pullAndResyncVoice({ render });
+    setToast?.("密谈成员已追加邀请", render);
+  } catch (error) {
+    setToast?.(formatApiError(error, "邀请失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+async function pullAndResyncVoice({ render }) {
+  if (!state.roomId) return;
+  state.home = await api.playerHome(state.roomId);
+  ensureDefaultVoiceRoom();
+  render();
+}
+
+export async function sendVoiceChatMessage({ render, setToast } = {}) {
+  const body = (state.voiceChatDraft || "").trim();
+  if (!body) {
+    setToast?.("请输入聊天内容", render);
+    return;
+  }
+  if (!state.voiceRoomId) {
+    setToast?.("请先选择语音房", render);
+    return;
+  }
+  try {
+    await api.sendVoiceMessage(state.voiceRoomId, body);
+    state.voiceChatDraft = "";
+    await refreshVoiceMessages(render);
+    setToast?.("消息已发送", render);
+  } catch (error) {
+    setToast?.(formatApiError(error, "发送失败"), render);
+  }
+}
+
+export async function pauseVoiceSession() {
+  await disconnectVoiceRoom();
+}
+
+export async function resetVoiceOnLeave() {
+  await disconnectVoiceRoom();
+  state.voiceRoomId = "";
+  state.voiceRoomName = "";
+  state.voiceMessages = [];
+  state.voiceParticipants = [];
+  state.voiceLiveStatus = "idle";
+  state.voiceMicEnabled = false;
+  state.voiceLiveError = "";
+  state.voiceChatDraft = "";
+}

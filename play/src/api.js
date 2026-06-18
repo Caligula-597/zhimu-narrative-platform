@@ -63,6 +63,7 @@ export function clearSession() {
 
 export const api = {
   authConfig: () => request("/auth/config"),
+  me: () => request("/auth/me"),
   guest: (displayName) => request("/auth/guest", { method: "POST", body: { displayName } }),
   login: (email, password) => request("/auth/login", { method: "POST", body: { email, password } }),
   register: (email, displayName, password) =>
@@ -84,6 +85,21 @@ export const api = {
     request(`/rooms/${roomId}/investigation-points/${pointId}/investigate`, { method: "POST", body: {} }),
   readClue: (roomId, clueId) =>
     request(`/rooms/${roomId}/clues/${clueId}/read`, { method: "POST", body: {} }),
+  shareClueToRoom: (roomId, clueId, shared = true) =>
+    request(`/rooms/${roomId}/clues/${clueId}/share-room`, { method: "POST", body: { shared } }),
+  shareClueToRoles: (roomId, clueId, roleSlotIds) =>
+    request(`/rooms/${roomId}/clues/${clueId}/share-roles`, { method: "POST", body: { roleSlotIds } }),
+  updateCluePlayerNote: (roomId, clueId, note) =>
+    request(`/rooms/${roomId}/clues/${clueId}/player-note`, { method: "PATCH", body: { note } }),
+  getVoiceMessages: (voiceRoomId) => request(`/voice-rooms/${voiceRoomId}/messages`),
+  getVoiceRoomToken: (roomId, voiceRoomId) =>
+    request(`/rooms/${roomId}/voice-rooms/${voiceRoomId}/token`, { method: "POST", body: {} }),
+  sendVoiceMessage: (voiceRoomId, body) =>
+    request(`/voice-rooms/${voiceRoomId}/messages`, { method: "POST", body: { body } }),
+  createVoiceRoom: (roomId, payload) =>
+    request(`/rooms/${roomId}/voice-rooms`, { method: "POST", body: payload }),
+  inviteVoiceRoomMembers: (voiceRoomId, inviteUserIds) =>
+    request(`/voice-rooms/${voiceRoomId}/members`, { method: "POST", body: { inviteUserIds } }),
   platformSite: () => request("/platform/site"),
   publicRooms: (limit = 24) => request(`/platform/public-rooms?limit=${limit}`),
   plazaPosts: ({ kind, limit = 40 } = {}) => {

@@ -372,6 +372,25 @@ button {
   margin-top: 30px;
 }
 
+.hero-entry-note {
+  max-width: 640px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.hero-entry-note a {
+  color: var(--green-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.role-entry-link {
+  display: inline-flex;
+  margin-top: 12px;
+}
+
 .signal-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

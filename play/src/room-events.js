@@ -63,6 +63,11 @@ async function handleRoomEvent(type, data, ctx) {
     case "room.host_event_pending":
       if (data.action === "executed") await ctx.onRefresh();
       break;
+    case "room.voice_message_created":
+      if (data.voiceRoomId === ctx.getVoiceRoomId?.()) {
+        await ctx.onVoiceRefresh?.();
+      }
+      break;
     default:
       break;
   }

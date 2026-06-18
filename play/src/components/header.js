@@ -1,0 +1,40 @@
+import { getAppOrigin, getSessionToken } from "../api.js";
+import { escapeHtml } from "../security.js";
+import { state } from "../state.js";
+import { userSessionLabel } from "../utils/user.js";
+
+export function renderHeader() {
+  const appOrigin = getAppOrigin();
+  const roleName = state.home?.role?.name || "";
+  const roomName = state.home?.room?.name || "";
+  const sessionLabel = userSessionLabel(state.user);
+  const dmUnread = (state.dmConversations?.items || []).reduce(
+    (sum, c) => sum + (c.unreadCount || 0),
+    0
+  );
+
+  return `
+    <header class="play-header">
+      <a class="brand" href="/" data-action="go-home">
+        <span class="brand-mark">织</span>
+        <span><strong>织幕</strong><small>玩家端</small></span>
+      </a>
+      <div class="header-meta">
+        ${roomName ? `<span class="pill">${escapeHtml(roomName)}</span>` : ""}
+        ${roleName ? `<span class="pill accent">${escapeHtml(roleName)}</span>` : ""}
+        ${state.roomEventsConnected ? `<span class="pill live">实时</span>` : ""}
+        ${state.platformEventsConnected && !state.roomEventsConnected ? `<span class="pill live">在线</span>` : ""}
+        ${sessionLabel && !roleName ? `<span class="pill ${state.user?.isGuest ? "guest" : "session"}">${escapeHtml(sessionLabel)}</span>` : ""}
+      </div>
+      <div class="header-actions">
+        ${state.view !== "game" && state.view !== "landing" ? `<button class="link-btn quiet" type="button" data-action="go-home">首页</button>` : ""}
+        ${state.view !== "game" ? `
+          <button class="link-btn quiet ${state.view === "plaza" || state.view === "plaza-thread" ? "is-active" : ""}" type="button" data-action="go-plaza">广场</button>
+          <button class="link-btn quiet ${state.view === "friends" ? "is-active" : ""}" type="button" data-action="go-friends">好友</button>
+          <button class="link-btn quiet ${state.view === "messages" || state.view === "dm" ? "is-active" : ""}" type="button" data-action="go-messages">消息${dmUnread ? `<span class="nav-badge">${dmUnread > 99 ? "99+" : dmUnread}</span>` : ""}</button>
+          <button class="link-btn quiet ${state.view === "lobby" ? "is-active" : ""}" type="button" data-action="go-lobby">找人一起玩</button>` : ""}
+        <a class="link-btn quiet" href="${appOrigin}/" target="_blank" rel="noopener">创作者入口</a>
+        ${getSessionToken() ? `<button class="link-btn quiet" type="button" data-action="logout">退出</button>` : ""}
+      </div>
+    </header>`;
+}

@@ -36,8 +36,7 @@
 
       <div class="header-actions">
         <a class="link-button quiet" data-link-play href="https://play.getzhimu.com/">玩家入口</a>
-        <a class="link-button quiet" data-link-login href="https://app.getzhimu.com/?auth=login">登录</a>
-        <a class="link-button solid" data-link-register href="https://app.getzhimu.com/?auth=register">进入应用</a>
+        <a class="link-button solid" data-link-creator href="https://app.getzhimu.com/?auth=register">创作者入口</a>
       </div>
     </header>
 
@@ -55,11 +54,14 @@
           <p class="hero-lede">
             织幕把世界观、章节、线索、规则、玩家进度和主持事件放在同一个叙事状态里。它不是另一个文档库，而是一套给创作者、主持人与玩家协同使用的互动叙事引擎。
           </p>
-          <div class="hero-actions">
-            <a class="link-button solid large" data-link-register href="https://app.getzhimu.com/?auth=register">申请内测</a>
-            <a class="link-button outline large" data-link-play href="https://play.getzhimu.com/?experience=official">玩家加入房间</a>
-            <a class="link-button quiet-on-light large" data-link-official href="https://play.getzhimu.com/?experience=official">体验官方示例</a>
+          <div class="hero-actions hero-entry-split">
+            <a class="link-button solid large" data-link-creator href="https://app.getzhimu.com/?auth=register">我是创作者 · 开始创作</a>
+            <a class="link-button outline large" data-link-play href="https://play.getzhimu.com/">我是玩家 · 输入邀请码</a>
           </div>
+          <p class="hero-entry-note">
+            创作者在应用内编写剧本、开房主持；玩家在 play 端输入邀请码加入房间，也可
+            <a data-link-official href="https://play.getzhimu.com/?experience=official">体验官方示例</a>。
+          </p>
           <dl class="signal-row" aria-label="产品状态">
             <div>
               <dt>核心链路</dt>
@@ -183,6 +185,7 @@
             <p>Creator</p>
             <h3>创作者</h3>
             <span>维护世界设定、剧本结构、素材与协作者。</span>
+            <a class="link-button outline role-entry-link" data-link-creator href="https://app.getzhimu.com/?auth=register">进入创作者端</a>
           </article>
           <article role="listitem">
             <p>Director</p>
@@ -193,7 +196,7 @@
             <p>Player</p>
             <h3>玩家</h3>
             <span>按角色阅读、调查、记录、交流，并接收私密信息。</span>
-            <a class="link-button outline" data-link-play href="https://play.getzhimu.com/" style="margin-top:12px;display:inline-flex">进入玩家端</a>
+            <a class="link-button outline role-entry-link" data-link-play href="https://play.getzhimu.com/">进入玩家端</a>
           </article>
         </div>
       </section>
@@ -206,7 +209,8 @@
             内测期以免费试用和人工扩容为主，暂不提供付费入口。你可以直接注册进入应用，也可以提交申请，方便后续对接运行规模、素材迁移和主持流程。
           </p>
           <div class="beta-actions">
-            <a class="link-button solid large" data-link-register href="https://app.getzhimu.com/?auth=register">直接注册</a>
+            <a class="link-button solid large" data-link-creator href="https://app.getzhimu.com/?auth=register">创作者注册</a>
+            <a class="link-button outline large" data-link-play href="https://play.getzhimu.com/">玩家入口</a>
             <a class="link-button quiet-on-light large" href="mailto:support@getzhimu.com">联系支持</a>
           </div>
         </div>
@@ -261,8 +265,8 @@
       </div>
       <nav aria-label="页脚导航">
         <a data-link-play href="https://play.getzhimu.com/">玩家端</a>
-        <a data-link-login href="https://app.getzhimu.com/?auth=login">登录</a>
-        <a data-link-register href="https://app.getzhimu.com/?auth=register">注册</a>
+        <a data-link-creator href="https://app.getzhimu.com/?auth=register">创作者端</a>
+        <a data-link-login href="https://app.getzhimu.com/?auth=login">创作者登录</a>
         <a href="mailto:support@getzhimu.com">support@getzhimu.com</a>
       </nav>
     </footer>

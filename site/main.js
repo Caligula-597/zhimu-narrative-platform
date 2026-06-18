@@ -13,10 +13,17 @@ function updateHeader() {
 }
 
 function applySiteLinks(links = {}) {
-  if (!links.register && !links.login && !links.officialExample && !links.playerJoin) return;
+  if (!links.register && !links.creatorApp && !links.login && !links.officialExample && !links.playerJoin) {
+    return;
+  }
+
+  const creatorHref = links.creatorApp || links.register;
 
   document.querySelectorAll("[data-link-register]").forEach((node) => {
     if (links.register) node.setAttribute("href", links.register);
+  });
+  document.querySelectorAll("[data-link-creator]").forEach((node) => {
+    if (creatorHref) node.setAttribute("href", creatorHref);
   });
   document.querySelectorAll("[data-link-login]").forEach((node) => {
     if (links.login) node.setAttribute("href", links.login);
