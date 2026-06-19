@@ -119,6 +119,26 @@ try {
     [role.rows[0].id]
   );
 
+  const script2 = await client.query(
+    `INSERT INTO character_scripts (role_slot_id, title)
+     SELECT $1, '角色 B 剧本'
+     WHERE NOT EXISTS (SELECT 1 FROM character_scripts WHERE role_slot_id = $1)
+     RETURNING id`,
+    [role2.rows[0].id]
+  );
+  const script2Id = script2.rowCount
+    ? script2.rows[0].id
+    : (await client.query(`SELECT id FROM character_scripts WHERE role_slot_id = $1 LIMIT 1`, [role2.rows[0].id])).rows[0].id;
+
+  await client.query(
+    `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status)
+     SELECT $1, $2, $3, '段落一', '角色 B 测试段落。', 1, 'testing'
+     WHERE NOT EXISTS (
+       SELECT 1 FROM script_sections WHERE role_slot_id = $2 AND chapter_id = $3 AND sequence = 1
+     )`,
+    [script2Id, role2.rows[0].id, chapter.rows[0].id]
+  );
+
   await client.query(
     `INSERT INTO rooms (id, world_id, host_user_id, name, invite_code, status)
      VALUES ($1, $2, $3, $4, $5, 'testing')

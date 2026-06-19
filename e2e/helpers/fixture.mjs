@@ -11,6 +11,7 @@ export const FIXTURE = {
 };
 
 export const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:4173";
+export const API_BASE = process.env.PLAYWRIGHT_API_URL || "http://localhost:4180";
 
 /**
  * @param {import('@playwright/test').BrowserContext} context
@@ -51,13 +52,17 @@ export async function injectFreshCreatorContext(context) {
 
 export const PLAY_URL = process.env.PLAYWRIGHT_PLAY_URL || "http://localhost:5174";
 
-/** @param {Page} page */
-export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode) {
+/** @param {Page} page @param {string} [inviteCode] @param {string} [roleName] */
+export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, roleName) {
   await page.goto(PLAY_URL);
   await page.getByTestId("invite-code-input").fill(inviteCode);
   await page.getByTestId("start-join").click();
-  await page.locator(".role-card:not([disabled])").first().waitFor({ timeout: 30_000 });
-  await page.locator(".role-card:not([disabled])").first().click();
+  const roleCards = page.locator(".role-card:not([disabled])");
+  await roleCards.first().waitFor({ timeout: 30_000 });
+  const target = roleName
+    ? roleCards.filter({ hasText: roleName }).first()
+    : roleCards.first();
+  await target.click();
   await page.locator('[data-action="confirm-join"]').click();
   await page.locator("[data-game-tab-bar]").waitFor({ state: "visible", timeout: 30_000 });
 }
@@ -70,8 +75,17 @@ export async function waitForCloudReady(page, timeout = 45_000) {
   }, undefined, { timeout });
 }
 
+const ADVANCED_NAV_VIEWS = new Set(["writer", "clues", "rules", "archive"]);
+
 /** @param {Page} page */
 export async function goToView(page, view) {
+  if (ADVANCED_NAV_VIEWS.has(view)) {
+    const advanced = page.locator("#nav-advanced");
+    if (await advanced.getAttribute("hidden").catch(() => null) !== null) {
+      await page.locator('[data-action="toggle-nav-advanced"]').click();
+      await advanced.waitFor({ state: "visible", timeout: 10_000 });
+    }
+  }
   await page.locator(`.nav-item[data-view="${view}"]`).click();
   await page.waitForFunction((v) => window.zhimuState?.view === v, view, { timeout: 15_000 });
 }
@@ -98,13 +112,13 @@ export async function ensurePendingHostEvent(page) {
     undefined,
     { timeout: 15_000 }
   ).catch(() => {});
-  return page.evaluate(async ({ roomId, hostUserId }) => {
-    const res = await fetch(`/api/rooms/${roomId}/host-events`, {
+  return page.evaluate(async ({ roomId, hostUserId, apiBase }) => {
+    const res = await fetch(`${apiBase}/api/rooms/${roomId}/host-events`, {
       headers: { "x-user-id": hostUserId }
     });
     const rows = res.ok ? await res.json() : [];
     return Array.isArray(rows) && rows.some((row) => row.status === "pending");
-  }, { roomId: FIXTURE.roomId, hostUserId: FIXTURE.hostUserId });
+  }, { roomId: FIXTURE.roomId, hostUserId: FIXTURE.hostUserId, apiBase: API_BASE });
 }
 
 /** @param {Page} page */

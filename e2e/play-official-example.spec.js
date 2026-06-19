@@ -29,7 +29,7 @@ test.describe("玩家端 · 官方示例", () => {
     const card = page.getByTestId("join-official");
     if (await card.isVisible().catch(() => false)) {
       await expect(page.getByText(/登录并验证邮箱/)).toBeVisible();
-      await expect(page.getByText(/官方示例|小体验/)).toBeVisible();
+      await expect(page.getByRole("heading", { name: /官方示例/ })).toBeVisible();
     }
   });
 });

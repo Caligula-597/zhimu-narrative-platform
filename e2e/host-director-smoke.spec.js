@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
   BASE_URL,
   FIXTURE,
+  API_BASE,
   dismissModalIfOpen,
   ensurePendingHostEvent,
   goToView,
@@ -24,13 +25,13 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
   });
 
   test("有待确认事件时显示主持-玩家提示条", async ({ page }) => {
-    const hasEvents = await page.evaluate(async (roomId) => {
-      const res = await fetch(`/api/rooms/${roomId}/host-events`, {
-        headers: { "x-user-id": "154aa8a9-9cd2-4098-90f4-c75e56c0cc53" }
+    const hasEvents = await page.evaluate(async ({ roomId, apiBase, hostUserId }) => {
+      const res = await fetch(`${apiBase}/api/rooms/${roomId}/host-events`, {
+        headers: { "x-user-id": hostUserId }
       });
       const rows = await res.json();
       return Array.isArray(rows) && rows.length > 0;
-    }, FIXTURE.roomId);
+    }, { roomId: FIXTURE.roomId, apiBase: API_BASE, hostUserId: FIXTURE.hostUserId });
 
     if (hasEvents) {
       await expect(page.locator(".host-wait-strip")).toBeVisible();
@@ -45,8 +46,11 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
 
   test("提醒等待中的玩家可打开并发送", async ({ page }) => {
     const hasPending = await ensurePendingHostEvent(page);
-    if (!hasPending) {
-      test.skip(true, "fixture 无待确认事件，跳过 nudge UI 测试");
+    const hasJoinedPlayers = await page.evaluate(
+      () => (window.zhimuState?.cloudHostPlayers || []).some((player) => player.joined)
+    );
+    if (!hasPending || !hasJoinedPlayers) {
+      test.skip(true, "fixture 无待确认事件或已入房玩家，跳过 nudge UI 测试");
       return;
     }
 

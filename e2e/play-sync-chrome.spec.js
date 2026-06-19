@@ -4,11 +4,13 @@ const PLAY_URL = process.env.PLAYWRIGHT_PLAY_URL || "http://localhost:5174";
 
 test.describe("玩家端 · 同步与导航", () => {
   test("广场页显示加载或内容区（非白屏）", async ({ page }) => {
-    await page.goto(`${PLAY_URL}/?view=plaza`);
+    await page.goto(PLAY_URL);
+    await page.getByRole("button", { name: "进入广场" }).click();
     await expect(page.locator(".play-header").first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator(".plaza-shell")).toBeVisible({ timeout: 20_000 });
     await expect(
-      page.locator(".plaza-feed, .plaza-shell, .loading-dots, .plaza-post").first()
-    ).toBeVisible({ timeout: 15_000 });
+      page.locator(".plaza-feed, .loading-dots, .plaza-post, .banner.error").first()
+    ).toBeVisible({ timeout: 20_000 });
   });
 
   test("游戏壳 Tab 栏带 role=tablist（入房后）", async ({ page, browserName }) => {

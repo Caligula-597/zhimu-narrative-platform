@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import {
   BASE_URL,
+  FIXTURE,
   goToView,
   injectHostContext,
   joinPlayRoomViaUi,
@@ -15,12 +16,17 @@ test.describe("主持台 · 玩家阅读进度联动", () => {
     const playPage = await playContext.newPage();
 
     try {
-      await joinPlayRoomViaUi(playPage);
+      await joinPlayRoomViaUi(playPage, FIXTURE.inviteCode, "角色 B");
       await playPage.locator('[data-action="switch-tab"][data-tab="sections"]').click();
+      await expect(playPage.locator(".sections-layout, .reader").first()).toBeVisible({ timeout: 20_000 });
       const completeBtn = playPage.locator('[data-action="complete-section"]').first();
-      await expect(completeBtn).toBeVisible({ timeout: 20_000 });
-      await completeBtn.click();
-      await expect(playPage.getByText(/已完成阅读|标记阅读完成/)).toBeVisible({ timeout: 15_000 });
+      const alreadyDone = playPage.locator(".done-note");
+      if (!(await completeBtn.isVisible().catch(() => false))) {
+        await expect(alreadyDone).toBeVisible({ timeout: 5000 });
+      } else {
+        await completeBtn.click();
+        await expect(playPage.getByText(/已完成阅读|标记阅读完成/)).toBeVisible({ timeout: 15_000 });
+      }
 
       await injectHostContext(hostContext);
       await hostPage.goto(BASE_URL);

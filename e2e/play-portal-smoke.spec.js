@@ -28,9 +28,12 @@ test.describe("玩家端 · 邀请码入房冒烟", () => {
 
   test("移动端底部导航在小屏可见", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto(`${PLAY_URL}/?view=plaza`);
+    await page.goto(PLAY_URL);
+    await expect(page.locator(".play-header").first()).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("button", { name: "进入广场" }).click();
+    await expect(page.locator(".plaza-shell")).toBeVisible({ timeout: 20_000 });
     const nav = page.locator(".mobile-nav");
-    await expect(nav).toBeVisible({ timeout: 10_000 });
+    await expect(nav).toBeVisible({ timeout: 15_000 });
     await expect(nav.getByText("广场")).toBeVisible();
   });
 

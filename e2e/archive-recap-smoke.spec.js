@@ -25,6 +25,6 @@ test.describe("存档与复盘 · 主持入口", () => {
     await dismissModalIfOpen(page);
 
     await page.getByRole("button", { name: "生成复盘" }).click();
-    await expect(page.locator("#toast.show, .recap-card, .empty-state")).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator("#toast.show, .recap-list .recap-card").first()).toBeVisible({ timeout: 30_000 });
   });
 });

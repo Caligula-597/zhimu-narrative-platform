@@ -12,6 +12,7 @@
     "dev:restart": "powershell -ExecutionPolicy Bypass -File scripts/restart-dev.ps1",
     "demo:create-cloud-story": "node scripts/create-cloud-demo-story.js",
     "demo:seed-exploration": "node scripts/seed-exploration.js",
+    "e2e:reset-fixture-room": "node scripts/e2e-reset-fixture-room.mjs",
     "assets:purge": "node scripts/purge-deleted-assets.js",
     "assets:cleanup-uploads": "node scripts/cleanup-expired-uploads.js",
     "check": "node scripts/verify-modules.mjs",

@@ -1,6 +1,7 @@
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
 export default {
   testDir: "e2e",
+  globalSetup: "e2e/global-setup.mjs",
   testMatch: "**/*.spec.js",
   timeout: 300_000,
   expect: { timeout: 15_000 },
@@ -19,11 +20,15 @@ export default {
     {
       name: "app",
       testMatch: "**/*.spec.js",
-      testIgnore: ["**/play-portal-smoke.spec.js", "**/play-official-example.spec.js"]
+      testIgnore: [
+        "**/play-portal-smoke.spec.js",
+        "**/play-official-example.spec.js",
+        "**/play-sync-chrome.spec.js"
+      ]
     },
     {
       name: "play",
-      testMatch: /play-(portal-smoke|official-example)\.spec\.js/,
+      testMatch: /play-(portal-smoke|official-example|sync-chrome)\.spec\.js/,
       use: {
         baseURL: process.env.PLAYWRIGHT_PLAY_URL || "http://localhost:5174"
       }
@@ -41,6 +46,10 @@ export default {
           env: {
             ...process.env,
             ALLOW_DEMO_USER_HEADER: "true",
+            REGISTER_IP_DAY_MAX: "0",
+            GUEST_CREATE_HOUR_MAX: "1000",
+            GUEST_CREATE_DAY_MAX: "1000",
+            PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN: "0",
             OFFICIAL_EXAMPLE_WORLD_ID: "33333333-3333-4333-8444-555555550003"
           }
         },
@@ -51,7 +60,8 @@ export default {
           timeout: 60_000
         },
         {
-          command: "npm run build --prefix play && npm run preview --prefix play",
+          command: "npm run dev -- --port 5174 --strictPort",
+          cwd: "play",
           url: "http://localhost:5174/",
           reuseExistingServer: true,
           timeout: 120_000
