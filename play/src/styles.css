@@ -365,6 +365,22 @@ button {
   margin-bottom: 16px;
 }
 
+@media (max-width: 720px) {
+  .tab-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-inline: -4px;
+    padding-inline: 4px;
+  }
+
+  .tab-bar .tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
 .tab {
   padding: 8px 14px;
   border: 1px solid var(--line);

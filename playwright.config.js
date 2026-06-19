@@ -18,7 +18,8 @@ export default {
   projects: [
     {
       name: "app",
-      testMatch: /host-director-smoke\.spec\.js/
+      testMatch: "**/*.spec.js",
+      testIgnore: "**/play-portal-smoke.spec.js"
     },
     {
       name: "play",

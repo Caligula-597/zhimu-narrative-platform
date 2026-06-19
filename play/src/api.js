@@ -35,6 +35,18 @@ async function request(path, { method = "GET", body, timeoutMs = 20000 } = {}) {
       throw err;
     }
     return payload;
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      const err = new Error("请求超时");
+      err.code = "REQUEST_TIMEOUT";
+      throw err;
+    }
+    if (error instanceof TypeError) {
+      const err = new Error("网络错误");
+      err.code = "NETWORK_ERROR";
+      throw err;
+    }
+    throw error;
   } finally {
     clearTimeout(timer);
   }

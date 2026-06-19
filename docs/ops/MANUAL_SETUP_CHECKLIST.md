@@ -10,7 +10,7 @@
 
 | 检查 | 期望 |
 |------|------|
-| `https://app.getzhimu.com/api/health/ready` | `"ready": true` |
+| `https://app.getzhimu.com/api/health/ready` | `"ready": true`；`optionalServices` 列 OAuth/R2/LiveKit 等是否已配 |
 | `https://app.getzhimu.com/` | 织幕应用 HTML |
 | `https://getzhimu.com/` | 营销官网 HTML（**无** `/api`） |
 | OAuth | `oauthDiagnostics.ready: true`（见 [OAUTH_SETUP.md](./OAUTH_SETUP.md)） |

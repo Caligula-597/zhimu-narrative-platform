@@ -1,3 +1,4 @@
+import { getOptionalServicesStatus } from "../optional-services-status.js";
 import { getDatabaseStatus, getReadinessStatus } from "../database-status.js";
 import { getPoolStats } from "../db.js";
 import { renderPrometheusMetrics, setApiReadyGauge } from "../metrics.js";
@@ -30,7 +31,8 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
         migrationsApplied: ready.migrationsApplied
       },
       pool: ready.pool,
-      roomEventBus: bus
+      roomEventBus: bus,
+      optionalServices: getOptionalServicesStatus()
     };
     if (!body.ready) {
       return reply.code(503).send(body);

@@ -36,6 +36,32 @@ export async function injectPlayerPreJoinContext(context) {
   return injectDemoContext(context, { worldId: FIXTURE.worldId, roomId: null });
 }
 
+/** Demo creator with no active world — for wizard / first-run E2E. */
+export async function injectFreshCreatorContext(context) {
+  await context.addInitScript(() => {
+    localStorage.setItem("zhimuDemoMode", "true");
+    localStorage.removeItem("zhimuSessionToken");
+    localStorage.removeItem("zhimuActiveWorldId");
+    localStorage.removeItem("zhimuFirstRunDismissed");
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith("zhimuActiveRoomId:")) localStorage.removeItem(key);
+    }
+  });
+}
+
+export const PLAY_URL = process.env.PLAYWRIGHT_PLAY_URL || "http://localhost:5174";
+
+/** @param {Page} page */
+export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode) {
+  await page.goto(PLAY_URL);
+  await page.getByTestId("invite-code-input").fill(inviteCode);
+  await page.getByTestId("start-join").click();
+  await page.locator(".role-card:not([disabled])").first().waitFor({ timeout: 30_000 });
+  await page.locator(".role-card:not([disabled])").first().click();
+  await page.locator('[data-action="confirm-join"]').click();
+  await page.locator("[data-game-tab-bar]").waitFor({ state: "visible", timeout: 30_000 });
+}
+
 export async function waitForCloudReady(page, timeout = 45_000) {
   await page.waitForFunction(() => {
     const state = window.zhimuState;

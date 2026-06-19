@@ -66,6 +66,13 @@
         window.zhimuOnboarding?.dismiss?.();
         window.zhimuRender?.();
         return true;
+      case "dismiss-first-run":
+        window.zhimuFirstRun?.dismiss?.();
+        window.zhimuRender?.();
+        return true;
+      case "open-play-official":
+        window.open(window.zhimuFirstRun?.playOfficialUrl?.() || "https://play.getzhimu.com/?experience=official", "_blank", "noopener,noreferrer");
+        return true;
       case "toggle-nav-advanced": {
         const panel = document.getElementById("nav-advanced");
         const expanded = panel && panel.hidden;

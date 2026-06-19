@@ -64,6 +64,12 @@ button { cursor: pointer; border: 0; }
 .nav-advanced { display:grid; gap:2px; }
 .nav-advanced[hidden] { display:none !important; }
 .onboarding-strip { margin-bottom:14px; border:1px solid rgba(196,147,77,.22); background:linear-gradient(180deg,#fffdf8,#faf7ef); }
+.first-run-chooser { margin-bottom:14px; border:1px solid rgba(88,127,121,.22); background:linear-gradient(180deg,#f8fbfa,#f3f7f5); }
+.first-run-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:14px; }
+.first-run-card { padding:14px; border:1px solid var(--line,#e8e2d8); border-radius:12px; background:#fff; display:grid; gap:8px; align-content:start; }
+.first-run-card h4 { margin:0; font-size:16px; }
+.first-run-card p { margin:0; font-size:13px; color:#5f5a52; }
+@media (max-width:900px){ .first-run-grid { grid-template-columns:1fr; } }
 .onboarding-steps { list-style:none; margin:12px 0 0; padding:0; display:grid; gap:10px; }
 .onboarding-step { display:grid; grid-template-columns:32px 1fr; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:#fff; }
 .onboarding-step.done { border-color:#b9dcc8; background:#f7fcf9; }

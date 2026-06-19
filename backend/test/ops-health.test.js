@@ -14,6 +14,8 @@ test("GET /api/health/ready returns 200 when database is healthy", async (contex
   assert.ok(body.pool);
   assert.ok(typeof body.pool.total === "number");
   assert.ok(body.roomEventBus);
+  assert.ok(body.optionalServices);
+  assert.equal(typeof body.optionalServices.r2, "boolean");
 });
 
 test("responses include X-Request-Id", async (context) => {

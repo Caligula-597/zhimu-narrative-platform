@@ -119,9 +119,11 @@ function overview() {
         </div>` : hasRooms && !hasActiveRoom ? `
         <p class="invite-hint">已建立 ${rooms.length} 个平行房。请点下方「管理运行房」选中房间，即可查看并复制邀请码。</p>` : "";
   const showCatalogPromo = !loading && !studio && Boolean(localStorage.getItem("zhimuSessionToken"));
-  const onboardingStrip = window.zhimuOnboarding?.renderOnboardingStrip?.() || "";
+  const firstRunChooser = window.zhimuFirstRun?.renderFirstRunChooser?.() || "";
+  const onboardingStrip = firstRunChooser ? "" : (window.zhimuOnboarding?.renderOnboardingStrip?.() || "");
   return `
     ${cloudStatus()}
+    ${firstRunChooser}
     ${onboardingStrip}
     ${studioEmptyBanner}
     ${showCatalogPromo ? U.catalogPromoSection?.() || "" : ""}

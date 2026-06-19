@@ -35,5 +35,20 @@ const API_ERROR_MESSAGES = {
 
 export function formatApiError(error, fallback = "操作失败") {
   if (error?.code && API_ERROR_MESSAGES[error.code]) return API_ERROR_MESSAGES[error.code];
-  return error?.message || fallback;
+  if (error?.name === "AbortError" || error?.code === "REQUEST_TIMEOUT") {
+    return "请求超时，请检查网络连接后重试。";
+  }
+  if (error?.code === "NETWORK_ERROR") {
+    return "无法连接服务器，请检查网络或稍后再试。";
+  }
+  const status = error?.status;
+  if (status === 503) return "服务暂时不可用，请稍后再试。";
+  if (status === 502 || status === 504) return "网关超时，请稍后再试。";
+  if (status >= 500) return "服务器繁忙，请稍后再试。若持续出现请联系主持人。";
+  if (status === 401) return API_ERROR_MESSAGES.AUTH_REQUIRED;
+  if (status === 403) return API_ERROR_MESSAGES.FORBIDDEN;
+  if (status === 429) return API_ERROR_MESSAGES.RATE_LIMITED;
+  const raw = error?.message || "";
+  if (/^请求失败 \(\d+\)$/.test(raw)) return fallback;
+  return raw || fallback;
 }

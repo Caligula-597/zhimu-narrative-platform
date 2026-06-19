@@ -33,17 +33,17 @@
 | ID | 任务 | 域 | 关键文件 / 接口 | 验收标准 | 状态 |
 |----|------|-----|-----------------|----------|------|
 | P0-01 | **官方示例稳定可用** | backend + play | `official-example.js`、`OFFICIAL_EXAMPLE_WORLD_ID`、`play/src/main.js` `handleJoinOfficial` | 生产 env 配置后，play `?experience=official` 一键到选角；失败有中文原因 | 🟡 部分 |
-| P0-02 | **示例前置说明（登录/验证）** | play + site | `play/src/views/landing.js`、`site/index.html` hero 脚注 | 点击前可见「需登录并验证邮箱」；site 链到 play 非 app | 🟡 |
-| P0-03 | **新用户首次路径（3 分钟）** | main app | `onboarding-strip.js`、`overview.js`、`wizard.js` | 注册后首屏三选一：创建测试世界 / 导入 / 体验示例；onboarding 可追踪完成 | 🟡 |
-| P0-04 | **玩家端移动体验** | play | `mobile-nav.js`、`styles.css`、游戏内 Tab | ≤720px 底部导航稳定；游戏内 Tab 不拥挤；无未定义 CSS 变量 | 🟡 部分 |
-| P0-05 | **玩家端友好错误态** | play | `errors.js`、`shell.js` | 500/网络错误显示中文引导，非裸 `请求失败 (500)` | 🔲 |
+| P0-02 | **示例前置说明（登录/验证）** | play + site | `play/src/views/landing.js`、`site/index.html` hero 脚注 | 点击前可见「需登录并验证邮箱」；site 链到 play 非 app | ✅ |
+| P0-03 | **新用户首次路径（3 分钟）** | main app | `first-run-chooser.js`、`onboarding-strip.js`、`overview.js` | 无剧本时首屏三选一：创建 / 导入 / 官方示例 | ✅ |
+| P0-04 | **玩家端移动体验** | play | `mobile-nav.js`、`styles.css`、游戏内 Tab | ≤720px Tab 横向滚动；底部导航已有 | 🟡 |
+| P0-05 | **玩家端友好错误态** | play | `errors.js`、`api.js` | 500/网络/超时显示中文引导 | ✅ |
 | P0-06 | **对外「第一场」手册** | docs + in-app | `docs/FIRST_SESSION_GUIDE_ZH.md`、`creator-guide.js` | 非工程文档；创作者/主持/玩家各 1 页；主应用可打开 | ✅ |
-| P0-07 | **生产就绪健康检查** | backend + ops | `GET /api/health/ready`、`docs/ops/MANUAL_SETUP_CHECKLIST.md` | Railway 探针用 ready；文档列 OAuth/Resend/R2/LiveKit 可选态 | 🟡 |
+| P0-07 | **生产就绪健康检查** | backend + ops | `GET /api/health/ready`、`optional-services-status.js` | ready 含 optionalServices；Railway 探针用 ready | 🟡 |
 | P0-08 | **三域 env 单一清单** | ops | `backend/.env.example`、`docs/ops/LAUNCH_ENV.md` | `APP_PUBLIC_URL` + `PLAY_SITE_*` + `MARKETING_SITE_*` 一处可复制 | ✅ |
-| P0-09 | **E2E：邀请码入房** | e2e | `e2e/play-portal-smoke.spec.js` | `start-join` → 选角可见；稳定 `data-testid` | 🟡 |
-| P0-10 | **E2E：创作→测试房** | e2e | 新 spec + `wizard/bootstrap` | 登录/演示用户 → 向导创建 → 复制邀请码 | 🔲 |
-| P0-11 | **E2E：玩家读分幕→主持进度** | e2e | 新 spec + fixture | 玩家 complete section → director 玩家表更新 | 🔲 |
-| P0-12 | **E2E：存档/复盘** | e2e | 新 spec | checkpoint 创建 + recap 入口可打开 | 🔲 |
+| P0-09 | **E2E：邀请码入房** | e2e | `e2e/play-portal-smoke.spec.js` | `start-join` → 选角可见；稳定 `data-testid` | ✅ |
+| P0-10 | **E2E：创作→测试房** | e2e | `e2e/creator-wizard-smoke.spec.js` | 演示用户 → 向导 → 邀请码弹窗 | ✅ |
+| P0-11 | **E2E：玩家读分幕→主持进度** | e2e | `e2e/player-host-progress.spec.js` | 玩家 complete → director 表更新 | ✅ |
+| P0-12 | **E2E：存档/复盘** | e2e | `e2e/archive-recap-smoke.spec.js` | checkpoint / recap 入口可打开 | ✅ |
 | P0-13 | **文档「当前真相」收口** | docs | 本文件 + `PRODUCT_STATUS` + `ROADMAP_LAUNCH` | 历史数字保留在 RELEASE_NOTES；对外只引用 SECURITY 验收表 | 🟡 |
 
 ### P0 里程碑

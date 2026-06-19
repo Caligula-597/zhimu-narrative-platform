@@ -14,6 +14,7 @@ import "../rule-visual.js";
 import "../src/utils/format.js";
 import "../src/runtime/session-mode.js";
 import "../src/components/onboarding-strip.js";
+import "../src/components/first-run-chooser.js";
 import "../src/runtime/nav-shell.js";
 import "../src/components/service-outage.js";
 import "../src/components/emptyState.js";

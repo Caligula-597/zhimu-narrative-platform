@@ -46,6 +46,8 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/routes/host-helpers", ["test/host-console.test.js", "test/player-host-confirm.test.js"]],
   ["backend/src/routes/player-routes", ["test/player-host-confirm.test.js"]],
   ["backend/src/routes/host-routes", ["test/host-console.test.js"]],
+  ["backend/src/optional-services-status", ["test/ops-health.test.js"]],
+  ["backend/src/routes/system-routes", ["test/ops-health.test.js"]],
   ["backend/src/platform-catalog-preview", ["test/platform-site.test.js"]],
   ["backend/src/cors-origins", ["test/cors-origins.test.js", "test/platform-site.test.js"]],
   ["backend/src/routes/platform-site-routes", ["test/platform-site.test.js"]],
