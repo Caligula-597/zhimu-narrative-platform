@@ -283,8 +283,8 @@
 | 前端 helper 测试 | ✅ | `test:format-helpers` **5** · `test:modal-helpers` **2**（CI 已跑） |
 | 测试数量门禁 | ✅ | `npm run check:tests`（下限 ≥100，`verify-test-count.mjs`） |
 | API smoke | ✅ | `scripts/smoke-api.js` **18 项**真实库（含 checkpoint-restore） |
-| UI smoke | ✅ | `scripts/ui-smoke.js` **41 项**（含 restore/settings/search/assets 回收站接线） |
-| 脚本加载验证 | ✅ | `check:modules` **29 项**（捕获 SyntaxError） |
+| UI smoke | ✅ | `scripts/ui-smoke.js` **44 项**（含 host-audit、restore/settings 等） |
+| 脚本加载验证 | ✅ | `check:modules` **51 项**（捕获 SyntaxError） |
 | 全链路 smoke | ✅ | `npm run verify:full:fresh`（后端测试 + API/UI smoke） |
 | GitHub Actions CI | ✅ | migrate → seed → check → check:boot → **check:tests** → npm test → format/modal helpers → smoke |
 | WebSocket 实时推送 | 🔲 | 未开始（多节点集群场景） |
@@ -1140,7 +1140,7 @@ npm run bootstrap:local   # migrate + seed + exploration
 
 ### 测试扩充（历史记录 · 当时数字）
 
-> **当前验收**见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) §5：**323** 单测 · **56** schema · **18** smoke · **34** UI smoke · **29** modules。
+> **当前验收**见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) 整体验收表：**341** 单测 · **61** schema · **18** smoke · **44** UI smoke · **51** modules · **7** E2E。
 
 | 套件 | 数量（当时） | 新增 |
 |------|------|------|
@@ -1191,9 +1191,9 @@ npm run test:ui             # 需 :4173 + :4180
 | 门禁 | 数量 |
 |------|------|
 | `backend npm test` | **341** |
-| `check:schemas` | **56** |
+| `check:schemas` | **61** |
 | `test:smoke` | **18** |
-| `ui-smoke.js` | **34** |
+| `ui-smoke.js` | **44** |
 | `test:format-helpers` | **5** |
 | `test:modal-helpers` | **2**（已加入 `.github/workflows/ci.yml`） |
 

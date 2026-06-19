@@ -1,8 +1,9 @@
 # 织幕 · 产品功能与工程现状（中文总览）
 
 > **用途**：给团队/新成员的一份「做到哪了、能用什么、不能用什么、怎么验」的**单一长文**。  
-> **更新**：2026-06-17  
+> **更新**：2026-06-18  
 > **阶段**：Alpha → **Beta 过渡**（可内测，**非**生产级 SaaS）  
+> **验收基准**：[SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) · **系统设计**：[DESIGN_ZH.md](./DESIGN_ZH.md)  
 > **更细的逐项说明**：[FEATURE_CATALOG.md](../FEATURE_CATALOG.md) · **实现/缺口表**：[IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) · **交接检查点**：[PROJECT_STATUS.md](./PROJECT_STATUS.md)
 
 ---
@@ -25,7 +26,7 @@
 
 **织幕**是面向线上长线剧本杀的自动化叙事引擎：创作者在云端写世界、编排剧情、配规则；玩家入房阅读、探索、收线索；主持台监控进度、确认事件、手动干预；数据落在 **PostgreSQL** 与 **Cloudflare R2**。
 
-当前状态：**核心运行链路已真实可用**（任意创作者剧本 + 官方示例「小示例」均已验证），前后端主 API 已对齐，**323** 项后端测试 + schema 门禁 + smoke 可复验。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。**内测期免费、无充值入口**（见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)）；Stripe 订阅等商业化能力**正式对外后再做**。
+当前状态：**核心运行链路已真实可用**（任意创作者剧本 + 官方示例「小示例」均已验证），前后端主 API 已对齐，**341** 项后端测试 + **61** 条 schema 门禁 + smoke/E2E 可复验。主持—玩家联动（hostConfirm、nudge、play 复盘/SSE 局部刷新）已落地。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。**内测期免费、无充值入口**（见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)）；Stripe 订阅等商业化能力**正式对外后再做**。
 
 **架构原则**：功能不绑定单一剧本；见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)。
 
@@ -166,41 +167,43 @@
 
 ## 5. 测试体系（分层说明）
 
-**当前验收数字**（2026-06-17）：
+**当前验收数字**（2026-06-18，与 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) 一致）：
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **323** |
-| `npm run check:schemas` | **56** 条路由 |
+| `backend npm test` | **341** |
+| `npm run check:schemas` | **61** 条路由 |
 | `npm run test:smoke` | **18** |
-| `node scripts/ui-smoke.js` | **34** |
+| `node scripts/ui-smoke.js` | **44** |
 | `npm run test:format-helpers` | **5** |
 | `npm run test:modal-helpers` | **2** |
-| `npm run check:modules` | **29** |
+| `npm run check:modules` | **51** |
+| `npm run test:play` | **12** |
+| `npm run test:e2e` | **7** |
 
 ### 5.1 后端单元/集成（`backend npm test`）
 
 - Node test runner，`--test-concurrency=1`（防 PG 池耗尽）。
-- 约 **45** 个 `*.test.js` 文件，覆盖：认证（含 **找回密码**）、规则引擎、主持台、checkpoint/restore E2E、线索私享、物品、SSE/NOTIFY/journal、资产策略、ops 健康、beta-gates、**beta2-ops**、**rate-limit**、**upload-scan**、world-search 等。
+- 约 **94** 个 `*.test.js` 文件，覆盖：认证（含 **找回密码**）、规则引擎、主持台（含 **nudge**）、player-home **hostConfirm**、checkpoint/restore E2E、线索私享、物品、SSE/NOTIFY/journal、资产策略、ops 健康、beta-gates、**register-ip-limit**、**rate-limit**、**upload-scan**、world-search 等。
 - **需要**：`DATABASE_URL` + 已 migrate。
 
 ### 5.2 Schema 门禁（`check:schemas`）
 
-- **56** 条写/改/SSE 路由必须有 Fastify JSON Schema（含 `auth/forgot-password`、`auth/reset-password`、`share-roles`、`host-events/:id/delay`、assets restore）。
+- **61** 条写/改/SSE 路由必须有 Fastify JSON Schema（含 `host/nudge-waiting`、`auth/forgot-password`、`share-roles`、`host-events/:id/delay`、assets restore）。
 - 规则 POST/PUT 另有语义校验 `validateRuleBody`。
 
 ### 5.3 数量与启动门禁
 
 - `check:tests`：测试数 ≥ 100（`verify-test-count.mjs`）。
 - `check:boot`：DB + 启动链。
-- `check:modules`（根）：29 个脚本按 Vite 顺序可加载。
+- `check:modules`（根）：**51** 个脚本按 Vite 顺序可加载。
 
 ### 5.4 API Smoke（`test:smoke`，18 项）
 
 - 需 `localhost:4180` + `bootstrap:local`（测试桩 seed）。
 - 真实 HTTP，覆盖 health、studio、rules、player-home、checkpoint restore、recap、livekit-token 等。
 
-### 5.5 UI Smoke（41 项）
+### 5.5 UI Smoke（44 项）
 
 - 读源码 + 可选 HTTP；验证模块链、接线、数据诚实不变量。
 - **不能**替代 Playwright 点击流。

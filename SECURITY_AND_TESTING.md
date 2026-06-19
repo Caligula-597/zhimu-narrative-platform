@@ -14,7 +14,7 @@
 - 前端检测到正式 session token 后，不再发送 demo `x-user-id`。
 - Fastify 统一 HTTP 安全响应头（`X-Frame-Options`、`nosniff`、生产 HSTS 等）。
 - 资产上传：MIME 白名单 + **扩展名黑名单**（`asset-policy.js`）。
-- **运行/创作写路由** Fastify schema（`check:schemas` **56** 条门禁）。
+- **运行/创作写路由** Fastify schema（`check:schemas` **61** 条门禁）。
 - 玩家完成阅读前，后端会校验分幕属于当前角色，并且处于已发布或已解锁状态。
 - 私密语音房通过 `voice_room_members` 二次授权，未受邀的活跃房间成员仍不能读取消息。
 - SSE 流 `GET /api/rooms/:roomId/events/stream` 需房间成员身份（`requireRoomRole`）。
@@ -112,25 +112,31 @@ npm test
 npm run check:modules
 npm run build
 node scripts/verify-dist-host.mjs   # 需 4173 dist 服务
-node scripts/ui-smoke.js            # 41 项，需 4173 + 4180
+node scripts/ui-smoke.js            # 44 项，需 4173 + 4180
+npm run test:e2e                    # 7 项 Playwright（需 4173 + 4180 + 5174）
+npm run test:play                   # 12 项（play 构建 + 单元）
 npm run test:format-helpers         # 5 项纯函数（format.js）
 npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 ```
 
 `npm run test:smoke`（backend，**18 项**）：需 `localhost:4180` 已启动。
 
-## 整体验收（2026-06-06 收工）
+## 整体验收（2026-06-18 · 当前基准）
+
+> 历史 Release Notes / FEATURE_CATALOG 各 § 内「当时」数字保留作 changelog；**以本表为准**。
 
 | 命令 | 结果 |
 |------|------|
-| `backend npm test` | **341/341** |
-| `npm run check:schemas` | **56** 条路由 |
+| `backend npm test` | **341/341**（94 文件） |
+| `npm run check:schemas` | **61** 条路由 |
 | `npm run test:smoke` | **18/18** |
-| `node scripts/ui-smoke.js` | **41/41** |
+| `node scripts/ui-smoke.js` | **44/44** |
+| `npm run check:modules` | **51/51** |
 | `npm run test:format-helpers` | **5/5** |
 | `npm run test:modal-helpers` | **2/2** |
-| `npm run check:modules` | **29/29** |
-| `npm run verify:full:fresh` | Playwright E2E + 上述门禁 |
+| `npm run test:play` | **12/12** |
+| `npm run test:e2e` | **7/7** |
+| `npm run verify:full:fresh` | 上述 + migrate/seed + 可选 E2E |
 
 **休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)
 

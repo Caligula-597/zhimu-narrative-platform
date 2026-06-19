@@ -208,14 +208,14 @@ npm run test:smoke
 
 完整功能说明见项目根目录 [FEATURE_CATALOG.md](../FEATURE_CATALOG.md)（含 P0-1～P2 变更 §12–§26）。
 
-### 测试规模（2026-06-03）
+### 测试规模（2026-06-18）
 
 | 套件 | 数量 |
 |------|------|
 | `npm run check:tests` + `npm test` | **341** |
 | `npm run test:smoke` | **18** |
-| `node ../scripts/ui-smoke.js` | **34** |
-| `npm run check:modules`（根） | **29** |
+| `node ../scripts/ui-smoke.js` | **44** |
+| `npm run check:modules`（根） | **51** |
 
 产品总览见 [docs/PRODUCT_STATUS_ZH.md](../docs/PRODUCT_STATUS_ZH.md)。
 

@@ -76,7 +76,7 @@ cd .. && npm run dev           # :4173，HMR
 | 命令 | 说明 |
 |------|------|
 | `npm run check:modules` | 模块图与 import 检查 |
-| `node scripts/ui-smoke.js` | 34 项 UI smoke（需 :4173 + :4180） |
+| `node scripts/ui-smoke.js` | 44 项 UI smoke（需 :4173 + :4180） |
 | `node scripts/verify-script-load.mjs` | 按 index 顺序加载脚本 |
 
 后端集成测试与 smoke 使用 **CI 测试桩**（见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)），与前端无耦合。

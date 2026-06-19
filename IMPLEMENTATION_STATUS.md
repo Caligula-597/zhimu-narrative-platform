@@ -177,14 +177,14 @@
 | 项 | 状态 |
 |----|------|
 | `npm test` | **341**（含 stripe-billing、account-entitlements、world-invites-quota、register-ip-limit） |
-| `check:schemas` | **56** 条写/SSE 路由 schema 门禁 |
+| `check:schemas` | **61** 条写/SSE 路由 schema 门禁 |
 | `check:tests` 数量下限 | ≥100 |
 | checkpoint / journal / 幂等 E2E | ✅ 专项测试 |
 | `test:smoke` | **18** 项（需 4180 进程，含 checkpoint-restore） |
-| UI smoke | **41** 项静态（含 clues 删除接线、restore/settings 等） |
+| UI smoke | **44** 项静态（含 host-audit、restore/settings 等） |
 | `test:format-helpers` | **5** 项 |
 | `test:modal-helpers` | **2** 项（CI 已纳入） |
-| `npm run check:modules` | **29** 脚本顺序加载（Vite 入口链） |
+| `npm run check:modules` | **51** 脚本顺序加载（Vite 入口链） |
 | 全链路 smoke | `verify:full:fresh`（后端测试 + API/UI smoke） |
 | 前端构建 | `npm run build` → `dist/`；CI 用 `server.js --dist` |
 

@@ -2,11 +2,13 @@
 
 
 
-> **更新**：2026-06-17  
+> **更新**：2026-06-18  
 
 > **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
 
-> **策略**：**后端与运维优先**；前端功能与 UI 在 backend Beta 门禁达标后再排期。
+> **策略**：**后端与运维优先**；前端功能与 UI 在 backend Beta 门禁达标后再排期。  
+
+> **验收数字**（2026-06-18）：见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) · **341** 单测 · **61** schema · **44** UI smoke · **7** E2E
 
 
 
@@ -124,23 +126,25 @@
 
 |------|------|
 
-| `backend npm test` | **323** |
+| `backend npm test` | **341** |
 
-| `npm run check:schemas` | **56** 条路由 |
+| `npm run check:schemas` | **61** 条路由 |
 
 | `npm run check:tests` | ≥100 |
 
 | API smoke | **18** 项 |
 
-| UI smoke | **41** 项 |
+| UI smoke | **44** 项 |
 
 | `test:format-helpers` | **5** 项 |
 
 | `test:modal-helpers` | **2** 项 |
 
-| Playwright E2E | 可选（无强制 spec） |
+| `npm run test:play` | **12** 项 |
 
-| `npm run check:modules` | **29** 脚本链 |
+| Playwright E2E | **7** 项 |
+
+| `npm run check:modules` | **51** 脚本链 |
 
 | `node scripts/verify-dist-host.mjs` | dist 托管探活 |
 
