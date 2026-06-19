@@ -19,11 +19,11 @@ export default {
     {
       name: "app",
       testMatch: "**/*.spec.js",
-      testIgnore: "**/play-portal-smoke.spec.js"
+      testIgnore: ["**/play-portal-smoke.spec.js", "**/play-official-example.spec.js"]
     },
     {
       name: "play",
-      testMatch: /play-portal-smoke\.spec\.js/,
+      testMatch: /play-(portal-smoke|official-example)\.spec\.js/,
       use: {
         baseURL: process.env.PLAYWRIGHT_PLAY_URL || "http://localhost:5174"
       }
@@ -38,7 +38,11 @@ export default {
           url: "http://localhost:4180/api/health/live",
           reuseExistingServer: true,
           timeout: 60_000,
-          env: { ...process.env, ALLOW_DEMO_USER_HEADER: "true" }
+          env: {
+            ...process.env,
+            ALLOW_DEMO_USER_HEADER: "true",
+            OFFICIAL_EXAMPLE_WORLD_ID: "33333333-3333-4333-8444-555555550003"
+          }
         },
         {
           command: "node server.js --dist",

@@ -677,6 +677,14 @@ button {
   align-items: stretch;
 }
 
+.entry-grid-priority {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.entry-grid-secondary {
+  margin-top: 4px;
+}
+
 @media (max-width: 720px) {
   .entry-grid { grid-template-columns: 1fr; }
 }
@@ -2062,6 +2070,46 @@ code {
 @media (max-width: 720px) {
   body {
     padding-bottom: 72px;
+  }
+
+  .landing-shell {
+    gap: 20px;
+  }
+
+  .landing-hero h1 {
+    font-size: clamp(26px, 7vw, 36px);
+    max-width: none;
+  }
+
+  .flow-grid-compact {
+    display: none;
+  }
+
+  .play-header {
+    gap: 8px;
+    min-height: 56px;
+    padding: 10px 12px;
+  }
+
+  .brand small {
+    display: none;
+  }
+
+  .header-meta {
+    flex: 1;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .header-meta::-webkit-scrollbar {
+    display: none;
+  }
+
+  .header-meta .pill {
+    flex-shrink: 0;
   }
 
   .play-header .header-actions {

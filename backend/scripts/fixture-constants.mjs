@@ -12,5 +12,8 @@ export const FIXTURE = {
 /** @deprecated Legacy platform demo — removed from product. */
 export const REMOVED_FOG_WORLD_ID = "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
 
-/** Official example world (creator-uploaded, e.g. 小示例). */
+/** Official example for local/CI — production uses env on Railway. */
+export const OFFICIAL_EXAMPLE_SEED_WORLD_ID = "33333333-3333-4333-8444-555555550003";
+
+/** @deprecated Use OFFICIAL_EXAMPLE_SEED_WORLD_ID in seed; production env may differ. */
 export const OFFICIAL_EXAMPLE_WORLD_ID = "20725d66-35ec-4d2f-aef8-4794cef6ace1";

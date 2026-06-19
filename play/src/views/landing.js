@@ -41,7 +41,24 @@ export function renderLanding() {
         </div>
       </div>
 
-      <div class="flow-grid" aria-label="玩家流程说明">
+      <div class="entry-grid entry-grid-priority">
+        ${renderOfficialExampleCard()}
+        <article class="entry-card entry-card-primary">
+          <div class="entry-card-head">
+            <p class="eyebrow">我有邀请码</p>
+            <h3>加入主持人开的平行房</h3>
+          </div>
+          <p class="entry-card-lede">输入主持人分享的邀请码，选择你的角色席位，即可进入房间开始游戏。</p>
+          <label class="field-label" for="invite-input">房间邀请码</label>
+          <div class="join-row">
+            <input id="invite-input" class="field" type="text" placeholder="例如：PLAY-ABC12345" value="${escapeHtml(state.inviteCode)}" data-bind="inviteCode" data-testid="invite-code-input" autocomplete="off" />
+            <button class="btn primary" type="button" data-action="start-join" data-testid="start-join" ${state.busy ? "disabled" : ""}>下一步：选角色</button>
+          </div>
+          <p class="hint">也可通过链接直接进入：<code>?join=你的邀请码</code></p>
+        </article>
+      </div>
+
+      <div class="flow-grid flow-grid-compact" aria-label="玩家流程说明">
         ${FLOW_STEPS.map((step) => `
           <article class="flow-card">
             <span class="flow-num">${step.n}</span>
@@ -50,7 +67,7 @@ export function renderLanding() {
           </article>`).join("")}
       </div>
 
-      <div class="entry-grid">
+      <div class="entry-grid entry-grid-secondary">
         <article class="entry-card entry-card-plaza">
           <div class="entry-card-head">
             <p class="eyebrow">无需在局中</p>
@@ -72,22 +89,6 @@ export function renderLanding() {
           </dl>
           <button class="btn primary full" type="button" data-action="go-lobby" ${state.busy ? "disabled" : ""}>浏览公开房间</button>
         </article>
-
-        <article class="entry-card entry-card-primary">
-          <div class="entry-card-head">
-            <p class="eyebrow">我有邀请码</p>
-            <h3>加入主持人开的平行房</h3>
-          </div>
-          <p class="entry-card-lede">输入主持人分享的邀请码，选择你的角色席位，即可进入房间开始游戏。</p>
-          <label class="field-label" for="invite-input">房间邀请码</label>
-          <div class="join-row">
-            <input id="invite-input" class="field" type="text" placeholder="例如：PLAY-ABC12345" value="${escapeHtml(state.inviteCode)}" data-bind="inviteCode" data-testid="invite-code-input" autocomplete="off" />
-            <button class="btn primary" type="button" data-action="start-join" data-testid="start-join" ${state.busy ? "disabled" : ""}>下一步：选角色</button>
-          </div>
-          <p class="hint">也可通过链接直接进入：<code>?join=你的邀请码</code></p>
-        </article>
-
-        ${renderOfficialExampleCard()}
       </div>
 
       <section class="help-panel card">

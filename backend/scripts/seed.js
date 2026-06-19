@@ -1,5 +1,6 @@
 import { pool } from "../src/db.js";
 import { FIXTURE } from "./fixture-constants.mjs";
+import { OFFICIAL_EXAMPLE_FIXTURE, seedOfficialExampleWorld } from "./seed-official-example.mjs";
 
 const client = await pool.connect();
 try {
@@ -181,8 +182,10 @@ try {
     [FIXTURE.roomId]
   );
 
+  await seedOfficialExampleWorld(client);
+
   await client.query("COMMIT");
-  console.log(FIXTURE);
+  console.log({ ...FIXTURE, officialExampleWorldId: OFFICIAL_EXAMPLE_FIXTURE.worldId });
 } catch (error) {
   await client.query("ROLLBACK");
   throw error;

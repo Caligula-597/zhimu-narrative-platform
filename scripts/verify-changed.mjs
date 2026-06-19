@@ -52,7 +52,8 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/cors-origins", ["test/cors-origins.test.js", "test/platform-site.test.js"]],
   ["backend/src/routes/platform-site-routes", ["test/platform-site.test.js"]],
   ["backend/src/routes/platform-beta-routes", ["test/beta-apply.test.js", "test/platform-site.test.js"]],
-  ["backend/src/routes/ops-beta-routes", ["test/beta-apply.test.js"]]
+  ["backend/scripts/seed-official-example", ["test/official-example.test.js"]],
+  ["backend/scripts/seed.js", ["test/official-example.test.js"]],
 ];
 
 function gitLines(cmd) {

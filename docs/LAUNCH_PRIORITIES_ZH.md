@@ -32,10 +32,10 @@
 
 | ID | 任务 | 域 | 关键文件 / 接口 | 验收标准 | 状态 |
 |----|------|-----|-----------------|----------|------|
-| P0-01 | **官方示例稳定可用** | backend + play | `official-example.js`、`OFFICIAL_EXAMPLE_WORLD_ID`、`play/src/main.js` `handleJoinOfficial` | 生产 env 配置后，play `?experience=official` 一键到选角；失败有中文原因 | 🟡 部分 |
+| P0-01 | **官方示例稳定可用** | backend + play | `seed-official-example.mjs`、E2E | seed + env + `play-official-example.spec.js` | ✅ |
 | P0-02 | **示例前置说明（登录/验证）** | play + site | `play/src/views/landing.js`、`site/index.html` hero 脚注 | 点击前可见「需登录并验证邮箱」；site 链到 play 非 app | ✅ |
 | P0-03 | **新用户首次路径（3 分钟）** | main app | `first-run-chooser.js`、`onboarding-strip.js`、`overview.js` | 无剧本时首屏三选一：创建 / 导入 / 官方示例 | ✅ |
-| P0-04 | **玩家端移动体验** | play | `mobile-nav.js`、`styles.css`、游戏内 Tab | ≤720px Tab 横向滚动；底部导航已有 | 🟡 |
+| P0-04 | **玩家端移动体验** | play | `landing.js`、`styles.css` | 首屏优先示例/邀请；顶栏 pill 横滑；Tab 横滑 | 🟡 |
 | P0-05 | **玩家端友好错误态** | play | `errors.js`、`api.js` | 500/网络/超时显示中文引导 | ✅ |
 | P0-06 | **对外「第一场」手册** | docs + in-app | `docs/FIRST_SESSION_GUIDE_ZH.md`、`creator-guide.js` | 非工程文档；创作者/主持/玩家各 1 页；主应用可打开 | ✅ |
 | P0-07 | **生产就绪健康检查** | backend + ops | `GET /api/health/ready`、`optional-services-status.js` | ready 含 optionalServices；Railway 探针用 ready | 🟡 |

@@ -540,7 +540,7 @@ async function bootstrap() {
       if (state.tab === "recap") await loadRecapSummary({ silent: true });
     }
   } catch (error) {
-    if (!state.error) state.error = error.message || "加载失败";
+    if (!state.error) state.error = formatApiError(error, "加载失败");
     if (error.status === 401 || error.status === 403) {
       clearSession();
       persistRoom("", isUuid);
@@ -638,7 +638,7 @@ async function handleJoinOfficial({ silent = false } = {}) {
     } else if (!silent) {
       setToast(error.message || "无法进入示例", render);
     } else {
-      state.error = error.message || "无法进入官方示例";
+      state.error = formatApiError(error, "无法进入官方示例");
     }
   } finally {
     setBusy(false, render);

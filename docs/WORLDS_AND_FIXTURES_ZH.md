@@ -32,7 +32,9 @@
 
 | 项 | 说明 |
 |----|------|
-| 环境变量 | `OFFICIAL_EXAMPLE_WORLD_ID`（生产当前：`20725d66-35ec-4d2f-aef8-4794cef6ace1` · **小示例**） |
+| 环境变量 | `OFFICIAL_EXAMPLE_WORLD_ID` |
+| 本地/CI seed | `33333333-3333-4333-8444-555555550003`（`seed-official-example.mjs`，`npm run db:seed` 自动写入） |
+| 生产示例 | `20725d66-35ec-4d2f-aef8-4794cef6ace1` · **小示例**（Railway env） |
 | 后端模块 | `backend/src/official-example.js` |
 | API | `GET /api/platform/official-example` · `POST /api/platform/official-example/join` |
 | 保护 | `isProtectedPlatformWorldId()` 防止误删/误改官方示例 |
