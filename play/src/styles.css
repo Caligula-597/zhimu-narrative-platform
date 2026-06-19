@@ -129,6 +129,63 @@ button {
   font-size: 11px;
 }
 
+.pill.live.is-reconnecting {
+  border-color: rgba(196, 120, 72, 0.45);
+  background: rgba(196, 120, 72, 0.12);
+  color: var(--accent);
+  animation: tab-pulse 1.4s ease-in-out infinite;
+}
+
+.sync-banner {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.sync-banner.warn {
+  background: rgba(196, 120, 72, 0.1);
+  border-color: rgba(196, 120, 72, 0.35);
+}
+
+.host-nudge-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.inline-retry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toast-host {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 120;
+  pointer-events: none;
+}
+
+.toast-host .toast {
+  pointer-events: auto;
+}
+
+.loading-dots {
+  color: var(--muted);
+}
+
+.sidebar-toggle {
+  display: none;
+}
+
+.game-shell.sidebar-collapsed .game-sidebar {
+  display: none;
+}
+
 .play-main {
   width: var(--content);
   margin: 0 auto;
@@ -341,6 +398,28 @@ button {
 @media (max-width: 860px) {
   .game-shell {
     grid-template-columns: 1fr;
+  }
+
+  .sidebar-toggle {
+    display: block;
+    grid-column: 1 / -1;
+    margin-bottom: 4px;
+  }
+
+  .game-shell .game-main {
+    order: 2;
+  }
+
+  .game-shell .game-sidebar {
+    order: 3;
+  }
+
+  .tab-bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--paper);
+    padding-bottom: 8px;
   }
 }
 
@@ -1038,6 +1117,21 @@ code {
 .tab:not(.is-active) .tab-badge {
   background: rgba(20, 35, 33, 0.08);
   color: var(--ink-soft);
+}
+
+.tab.tab-has-pulse:not(.is-active) {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.tab.tab-has-pulse:not(.is-active) .tab-badge {
+  background: rgba(196, 120, 72, 0.22);
+  color: var(--accent);
+  animation: tab-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes tab-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
 }
 
 .member-list {

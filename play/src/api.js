@@ -9,6 +9,8 @@ function sseCursorKey(roomId) {
   return `zhimuPlaySseCursor:${roomId}`;
 }
 
+const PLATFORM_SSE_CURSOR = "zhimuPlayPlatformSseCursor";
+
 function authHeaders() {
   const token = localStorage.getItem(TOKEN_KEY);
   return token ? { authorization: `Bearer ${token}` } : {};
@@ -170,7 +172,9 @@ export const api = {
     return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal }).then(async (res) => {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || err.message || `连接实时推送失败（${res.status}）`);
+        const error = new Error(err.error || err.message || `连接实时推送失败（${res.status}）`);
+        error.status = res.status;
+        throw error;
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -210,10 +214,15 @@ export const api = {
   /** SSE platform stream — plaza broadcast + personal DM/friend events. */
   streamPlatformEvents(onEvent, signal) {
     const headers = { Accept: "text/event-stream", ...authHeaders() };
+    const cursor = localStorage.getItem(PLATFORM_SSE_CURSOR);
+    if (cursor) headers["Last-Event-ID"] = cursor;
+
     return fetch(`${API_BASE}/platform/events/stream`, { headers, signal }).then(async (res) => {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || err.message || `连接平台推送失败（${res.status}）`);
+        const error = new Error(err.error || err.message || `连接平台推送失败（${res.status}）`);
+        error.status = res.status;
+        throw error;
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -226,7 +235,12 @@ export const api = {
         while ((idx = buffer.indexOf("\n\n")) >= 0) {
           const block = buffer.slice(0, idx);
           buffer = buffer.slice(idx + 2);
+          const idLine = block.split("\n").find((line) => line.startsWith("id: "));
           const dataLine = block.split("\n").find((line) => line.startsWith("data: "));
+          if (idLine) {
+            const eventId = idLine.slice(4).trim();
+            if (eventId) localStorage.setItem(PLATFORM_SSE_CURSOR, eventId);
+          }
           if (!dataLine) continue;
           try {
             const msg = JSON.parse(dataLine.slice(6));

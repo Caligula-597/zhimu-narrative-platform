@@ -113,8 +113,8 @@ npm run check:modules
 npm run build
 node scripts/verify-dist-host.mjs   # 需 4173 dist 服务
 node scripts/ui-smoke.js            # 44 项，需 4173 + 4180
-npm run test:e2e                    # 13 项 Playwright（需 4173 + 4180 + 5174）
-npm run test:play                   # 14 项（play 构建 + 单元）
+npm run test:e2e                    # 15 项 Playwright（需 4173 + 4180 + 5174）
+npm run test:play                   # 23 项（play 构建 + 单元）
 npm run test:format-helpers         # 5 项纯函数（format.js）
 npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 ```
@@ -134,8 +134,8 @@ npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 | `npm run check:modules` | **51/51** |
 | `npm run test:format-helpers` | **5/5** |
 | `npm run test:modal-helpers` | **2/2** |
-| `npm run test:play` | **14/14** |
-| `npm run test:e2e` | **13/13** |
+| `npm run test:play` | **23/23** |
+| `npm run test:e2e` | **15/15** |
 | `npm run verify:full:fresh` | 上述 + migrate/seed + 可选 E2E |
 
 **休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)

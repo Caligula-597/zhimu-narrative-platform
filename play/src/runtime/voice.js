@@ -181,7 +181,7 @@ async function pullAndResyncVoice({ render }) {
   render();
 }
 
-export async function sendVoiceChatMessage({ render, setToast } = {}) {
+export async function sendVoiceChatMessage({ render, setToast, setBusy } = {}) {
   const body = (state.voiceChatDraft || "").trim();
   if (!body) {
     setToast?.("请输入聊天内容", render);
@@ -191,13 +191,18 @@ export async function sendVoiceChatMessage({ render, setToast } = {}) {
     setToast?.("请先选择语音房", render);
     return;
   }
+  if (state.busy) return;
+  setBusy?.(true, render);
   try {
     await api.sendVoiceMessage(state.voiceRoomId, body);
     state.voiceChatDraft = "";
+    state.voiceScrollStickBottom = true;
     await refreshVoiceMessages(render);
     setToast?.("消息已发送", render);
   } catch (error) {
     setToast?.(formatApiError(error, "发送失败"), render);
+  } finally {
+    setBusy?.(false, render);
   }
 }
 

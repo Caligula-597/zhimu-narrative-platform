@@ -56,8 +56,36 @@ export const state = {
   toast: "",
   error: "",
   roomEventsConnected: false,
-  platformEventsConnected: false
+  platformEventsConnected: false,
+  roomEventsStatus: "idle",
+  platformEventsStatus: "idle",
+  explorationError: "",
+  plazaError: "",
+  lobbyError: "",
+  friendsError: "",
+  hostNudge: null,
+  gameSidebarCollapsed: false,
+  pendingRoomRefresh: false,
+  dmScrollStickBottom: false,
+  voiceScrollStickBottom: false,
+  /** Tab ids with unseen multiplayer updates (cleared on visit). */
+  tabPulse: { home: false, sections: false, explore: false, clues: false, inventory: false, voice: false }
 };
+
+export function dmUnreadTotal(stateRef = state) {
+  return (stateRef.dmConversations?.items || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+}
+
+export function bumpTabPulse(tabId) {
+  if (!tabId || state.tab === tabId) return;
+  if (Object.prototype.hasOwnProperty.call(state.tabPulse, tabId)) {
+    state.tabPulse[tabId] = true;
+  }
+}
+
+export function clearTabPulse(tabId) {
+  if (tabId && state.tabPulse[tabId]) state.tabPulse[tabId] = false;
+}
 
 export function setToast(message, render) {
   state.toast = message;

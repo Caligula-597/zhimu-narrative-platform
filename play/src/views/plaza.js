@@ -60,7 +60,11 @@ export function renderPlaza() {
       </nav>
 
       <div class="plaza-feed">
-        ${items.length
+        ${state.plazaPosts === null && !state.plazaError
+          ? `<div class="empty enriched-empty"><span class="loading-dots">加载广场中…</span></div>`
+          : state.plazaError
+            ? `<div class="banner error inline-retry">${escapeHtml(state.plazaError)}<button class="btn outline compact" type="button" data-action="refresh-plaza">重试</button></div>`
+            : items.length
           ? items
               .map(
                 (post) => `

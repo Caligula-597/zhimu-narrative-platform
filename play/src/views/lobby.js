@@ -16,7 +16,11 @@ export function renderLobby() {
         <button class="btn outline" type="button" data-action="refresh-lobby" ${state.busy ? "disabled" : ""}>刷新列表</button>
       </div>
 
-      ${items.length
+      ${listing === null && !state.lobbyError
+        ? `<article class="card lobby-empty enriched-empty"><span class="loading-dots">加载大厅中…</span></article>`
+        : state.lobbyError
+          ? `<div class="banner error inline-retry">${escapeHtml(state.lobbyError)}<button class="btn outline compact" type="button" data-action="refresh-lobby">重试</button></div>`
+          : items.length
         ? `
         <div class="lobby-grid">
           ${items

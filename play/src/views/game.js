@@ -5,6 +5,19 @@ import { applyStoryHighlights, sectionHighlights } from "../utils/highlights.js"
 import { renderVoiceCompact, renderVoiceTab } from "./voice.js";
 import { renderRecapTab } from "./recap.js";
 
+function hostNudgeBanner() {
+  const nudge = state.hostNudge;
+  if (!nudge?.message) return "";
+  return `
+    <div class="banner host-nudge-banner">
+      <div>
+        <strong>主持人提醒</strong>
+        <p>${escapeHtml(nudge.message)}</p>
+      </div>
+      <button class="btn quiet compact" type="button" data-action="dismiss-host-nudge">知道了</button>
+    </div>`;
+}
+
 function hostConfirmBanner() {
   const hc = state.home?.hostConfirm;
   if (!hc?.pendingCount) return "";
@@ -272,6 +285,13 @@ export function renderClues() {
 }
 
 export function renderExploration() {
+  if (state.explorationError) {
+    return `
+      <div class="banner error inline-retry">
+        ${escapeHtml(state.explorationError)}
+        <button class="btn outline compact" type="button" data-action="retry-exploration">重试</button>
+      </div>`;
+  }
   const scenes = state.exploration?.scenes || [];
   if (!scenes.length) {
     return `<div class="empty enriched-empty"><span class="empty-icon">🗺</span>当前还没有开放探索场景。读完分幕并等待主持人解锁后，新地点会出现在这里。</div>`;
@@ -329,7 +349,7 @@ export function renderInventory() {
 }
 
 export function renderHostConfirmBannerHtml() {
-  return hostConfirmBanner();
+  return hostNudgeBanner() + hostConfirmBanner();
 }
 
 function gameTabDefinitions() {
@@ -350,7 +370,7 @@ export function renderGameTabBar() {
   return gameTabDefinitions()
     .map(
       ([id, label, badge]) => `
-            <button type="button" class="tab ${state.tab === id ? "is-active" : ""}" data-action="switch-tab" data-tab="${id}">
+            <button type="button" role="tab" aria-selected="${state.tab === id ? "true" : "false"}" id="play-tab-${id}" class="tab ${state.tab === id ? "is-active" : ""}${state.tabPulse?.[id] ? " tab-has-pulse" : ""}" data-action="switch-tab" data-tab="${id}">
               ${label}${badge ? `<span class="tab-badge">${badge}</span>` : ""}
             </button>`
     )
@@ -369,16 +389,19 @@ export function renderGameTabBody() {
 
 export function renderGame() {
   return `
-    <section class="game-shell">
+    <section class="game-shell ${state.gameSidebarCollapsed ? "sidebar-collapsed" : ""}">
+      <button class="sidebar-toggle btn outline full" type="button" data-action="toggle-sidebar" aria-expanded="${state.gameSidebarCollapsed ? "false" : "true"}">
+        ${state.gameSidebarCollapsed ? "展开角色与成员" : "收起侧栏"}
+      </button>
       <aside class="game-sidebar" data-game-sidebar>
         ${renderGameSidebar()}
       </aside>
       <div class="game-main">
-        <nav class="tab-bar" data-game-tab-bar aria-label="玩家功能">
+        <nav class="tab-bar" data-game-tab-bar aria-label="玩家功能" role="tablist">
           ${renderGameTabBar()}
         </nav>
         <div data-game-host-banner>${renderHostConfirmBannerHtml()}</div>
-        <div class="tab-body" data-game-tab-body>${renderGameTabBody()}</div>
+        <div class="tab-body" data-game-tab-body role="tabpanel" aria-labelledby="play-tab-${state.tab}">${renderGameTabBody()}</div>
       </div>
     </section>`;
 }

@@ -1,17 +1,33 @@
 import { getAppOrigin, getSessionToken } from "../api.js";
 import { escapeHtml } from "../security.js";
-import { state } from "../state.js";
+import { dmUnreadTotal, state } from "../state.js";
 import { userSessionLabel } from "../utils/user.js";
+
+function syncPillLabel() {
+  if (state.roomEventsStatus === "connected") return "实时";
+  if (state.roomEventsStatus === "reconnecting") return "重连中";
+  if (state.roomEventsStatus === "polling") return "轮询";
+  if (state.platformEventsStatus === "connected") return "在线";
+  if (state.platformEventsStatus === "reconnecting") return "重连中";
+  if (state.platformEventsStatus === "polling") return "轮询";
+  return "";
+}
+
+function showSyncPill() {
+  return Boolean(syncPillLabel());
+}
 
 export function renderHeader() {
   const appOrigin = getAppOrigin();
   const roleName = state.home?.role?.name || "";
   const roomName = state.home?.room?.name || "";
   const sessionLabel = userSessionLabel(state.user);
-  const dmUnread = (state.dmConversations?.items || []).reduce(
-    (sum, c) => sum + (c.unreadCount || 0),
-    0
-  );
+  const dmUnread = dmUnreadTotal();
+  const syncLabel = syncPillLabel();
+  const syncReconnect = state.roomEventsStatus === "reconnecting"
+    || state.roomEventsStatus === "polling"
+    || state.platformEventsStatus === "reconnecting"
+    || state.platformEventsStatus === "polling";
 
   return `
     <header class="play-header">
@@ -22,11 +38,15 @@ export function renderHeader() {
       <div class="header-meta">
         ${roomName ? `<span class="pill">${escapeHtml(roomName)}</span>` : ""}
         ${roleName ? `<span class="pill accent">${escapeHtml(roleName)}</span>` : ""}
-        ${state.roomEventsConnected ? `<span class="pill live">实时</span>` : ""}
-        ${state.platformEventsConnected && !state.roomEventsConnected ? `<span class="pill live">在线</span>` : ""}
+        ${showSyncPill() ? `<span class="pill live ${syncReconnect ? "is-reconnecting" : ""}">${escapeHtml(syncLabel)}</span>` : ""}
         ${sessionLabel && !roleName ? `<span class="pill ${state.user?.isGuest ? "guest" : "session"}">${escapeHtml(sessionLabel)}</span>` : ""}
       </div>
       <div class="header-actions">
+        ${state.view === "game"
+          ? `<button class="link-btn quiet" type="button" data-action="go-messages-ingame">消息${dmUnread ? `<span class="nav-badge">${dmUnread > 99 ? "99+" : dmUnread}</span>` : ""}</button>`
+          : state.roomId && state.view !== "landing" && state.view !== "join"
+            ? `<button class="link-btn quiet accent" type="button" data-action="return-game">返回对局</button>`
+            : ""}
         ${state.view !== "game" && state.view !== "landing" ? `<button class="link-btn quiet" type="button" data-action="go-home">首页</button>` : ""}
         ${state.view !== "game" ? `
           <button class="link-btn quiet ${state.view === "plaza" || state.view === "plaza-thread" ? "is-active" : ""}" type="button" data-action="go-plaza">广场</button>

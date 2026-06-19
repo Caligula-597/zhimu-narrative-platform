@@ -13,20 +13,22 @@ function activeInputIn(el) {
   return tag === "INPUT" || tag === "TEXTAREA" || active.isContentEditable;
 }
 
-/**
- * Patch in-game DOM without full app re-render (preserves focus/scroll in tab body).
- * @returns {boolean} true if patch applied
- */
-export function patchGameView(state, ctx) {
+export function isGameInputFocused() {
   const tabBody = document.querySelector("[data-game-tab-body]");
-  if (!tabBody || state.view !== "game") return false;
+  return Boolean(tabBody && activeInputIn(tabBody));
+}
 
-  if (activeInputIn(tabBody)) return false;
+function bindSectionsReader(state, ctx) {
+  if (state.tab !== "sections" || !state.roomId) return;
+  bindPlayReader({
+    roomId: state.roomId,
+    notesSource: () => state.home,
+    onRefresh: async () => ctx.pullRoomData({ partial: true }),
+    onToast: ctx.onToast
+  });
+}
 
-  const tabBodyScroll = tabBody.scrollTop;
-  const voiceLog = state.tab === "voice" ? document.querySelector("[data-voice-scroll]") : null;
-  const voiceScrollTop = voiceLog?.scrollTop ?? null;
-
+function patchGameChrome(state) {
   const banner = document.querySelector("[data-game-host-banner]");
   if (banner) banner.innerHTML = renderHostConfirmBannerHtml();
 
@@ -36,8 +38,47 @@ export function patchGameView(state, ctx) {
   const tabBar = document.querySelector("[data-game-tab-bar]");
   if (tabBar) tabBar.innerHTML = renderGameTabBar();
 
-  tabBody.innerHTML = renderGameTabBody();
+  const shell = document.querySelector(".game-shell");
+  if (shell) {
+    shell.classList.toggle("sidebar-collapsed", Boolean(state.gameSidebarCollapsed));
+  }
+}
 
+/**
+ * Switch in-game tab without full app re-render.
+ * @returns {boolean}
+ */
+export function patchGameTabSwitch(state, ctx) {
+  const tabBody = document.querySelector("[data-game-tab-body]");
+  const tabBar = document.querySelector("[data-game-tab-bar]");
+  if (!tabBody || !tabBar || state.view !== "game") return false;
+
+  tabBar.innerHTML = renderGameTabBar();
+  tabBody.innerHTML = renderGameTabBody();
+  tabBody.setAttribute("aria-labelledby", `play-tab-${state.tab}`);
+
+  if (state.tab === "sections") bindSectionsReader(state, ctx);
+  return true;
+}
+
+/**
+ * Patch in-game DOM without full app re-render (preserves focus/scroll in tab body).
+ * @returns {"full"|"chrome"|false}
+ */
+export function patchGameView(state, ctx) {
+  const tabBody = document.querySelector("[data-game-tab-body]");
+  if (!tabBody || state.view !== "game") return false;
+
+  patchGameChrome(state);
+
+  if (isGameInputFocused()) return "chrome";
+
+  const tabBodyScroll = tabBody.scrollTop;
+  const voiceLog = state.tab === "voice" ? document.querySelector("[data-voice-scroll]") : null;
+  const voiceScrollTop = voiceLog?.scrollTop ?? null;
+
+  tabBody.innerHTML = renderGameTabBody();
+  tabBody.setAttribute("aria-labelledby", `play-tab-${state.tab}`);
   tabBody.scrollTop = tabBodyScroll;
 
   if (voiceScrollTop !== null) {
@@ -45,14 +86,26 @@ export function patchGameView(state, ctx) {
     if (nextVoiceLog) nextVoiceLog.scrollTop = voiceScrollTop;
   }
 
-  if (state.tab === "sections" && state.roomId) {
-    bindPlayReader({
-      roomId: state.roomId,
-      notesSource: () => state.home,
-      onRefresh: async () => ctx.pullRoomData({ partial: false }),
-      onToast: ctx.onToast
-    });
-  }
+  bindSectionsReader(state, ctx);
+  return "full";
+}
 
+/** Patch host/nudge banner only (no tab body). */
+export function patchGameHostBanner() {
+  const banner = document.querySelector("[data-game-host-banner]");
+  if (!banner) return false;
+  banner.innerHTML = renderHostConfirmBannerHtml();
+  return true;
+}
+
+/** Patch sections tab body after optimistic local state change. */
+export function patchGameSectionsTab(state, ctx) {
+  if (state.view !== "game" || state.tab !== "sections") return false;
+  const tabBody = document.querySelector("[data-game-tab-body]");
+  if (!tabBody) return false;
+  const scroll = tabBody.scrollTop;
+  tabBody.innerHTML = renderGameTabBody();
+  tabBody.scrollTop = scroll;
+  bindSectionsReader(state, ctx);
   return true;
 }

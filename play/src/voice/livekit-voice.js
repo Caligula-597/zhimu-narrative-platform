@@ -1,40 +1,21 @@
 /**
- * LiveKit browser client — connect/disconnect voice rooms via server-issued tokens.
+ * LiveKit browser client — lazy-loaded npm bundle (no CDN).
  */
 import { state } from "../state.js";
 
 let room = null;
 let disconnecting = false;
-let livekitLoadPromise = null;
 let renderCallback = () => {};
-
-const LIVEKIT_SCRIPT_URL =
-  "https://cdn.jsdelivr.net/npm/livekit-client@2.15.3/dist/livekit-client.umd.min.js";
+/** @type {Promise<typeof import("livekit-client")> | null} */
+let livekitImport = null;
 
 export function setVoiceRenderCallback(cb) {
   renderCallback = typeof cb === "function" ? cb : () => {};
 }
 
-function liveKitSdk() {
-  return window.LivekitClient || window.LiveKit;
-}
-
-function loadLiveKitScript() {
-  if (liveKitSdk()) return Promise.resolve();
-  if (livekitLoadPromise) return livekitLoadPromise;
-  livekitLoadPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = LIVEKIT_SCRIPT_URL;
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    script.onload = () => resolve();
-    script.onerror = () => {
-      livekitLoadPromise = null;
-      reject(new Error("LiveKit 脚本加载失败"));
-    };
-    document.head.appendChild(script);
-  });
-  return livekitLoadPromise;
+async function loadLiveKit() {
+  if (!livekitImport) livekitImport = import("livekit-client");
+  return livekitImport;
 }
 
 function syncParticipants(activeRoom) {
@@ -104,33 +85,27 @@ export async function disconnectVoiceRoom() {
 }
 
 export async function connectVoiceRoom(tokenPayload) {
-  await loadLiveKitScript();
-  const sdk = liveKitSdk();
-  if (!sdk?.Room) {
-    state.voiceLiveStatus = "error";
-    state.voiceLiveError = "LiveKit 客户端未加载";
-    throw new Error("LiveKit 客户端未加载，请刷新页面后重试");
-  }
   if (!tokenPayload?.url || !tokenPayload?.token) {
     state.voiceLiveStatus = "error";
     state.voiceLiveError = "语音 Token 无效";
     throw new Error("语音 Token 无效，请稍后重试");
   }
+  const { Room, RoomEvent } = await loadLiveKit();
   await disconnectVoiceRoom();
   state.voiceLiveStatus = "connecting";
   state.voiceLiveError = "";
   renderCallback();
 
-  const nextRoom = new sdk.Room({ adaptiveStream: true, dynacast: true });
+  const nextRoom = new Room({ adaptiveStream: true, dynacast: true });
   const rerender = () => {
     syncParticipants(nextRoom);
     renderCallback();
   };
-  nextRoom.on(sdk.RoomEvent.ParticipantConnected, rerender);
-  nextRoom.on(sdk.RoomEvent.ParticipantDisconnected, rerender);
-  nextRoom.on(sdk.RoomEvent.TrackMuted, rerender);
-  nextRoom.on(sdk.RoomEvent.TrackUnmuted, rerender);
-  nextRoom.on(sdk.RoomEvent.Disconnected, () => {
+  nextRoom.on(RoomEvent.ParticipantConnected, rerender);
+  nextRoom.on(RoomEvent.ParticipantDisconnected, rerender);
+  nextRoom.on(RoomEvent.TrackMuted, rerender);
+  nextRoom.on(RoomEvent.TrackUnmuted, rerender);
+  nextRoom.on(RoomEvent.Disconnected, () => {
     if (room === nextRoom) {
       room = null;
       state.voiceLiveStatus = "idle";

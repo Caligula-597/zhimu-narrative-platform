@@ -6,7 +6,7 @@ import {
   getSessionToken,
   setSessionToken
 } from "./api.js";
-import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode } from "./security.js";
+import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode, asArray } from "./security.js";
 import { connectRoomEvents, disconnectRoomEvents } from "./room-events.js";
 import { connectPlatformEvents, disconnectPlatformEvents } from "./platform-events.js";
 import { formatApiError } from "./errors.js";
@@ -29,36 +29,67 @@ import {
   toggleVoiceMicLive
 } from "./runtime/voice.js";
 import { bindPlayReader } from "./runtime/reader.js";
-import { patchGameView } from "./runtime/patch-game.js";
+import { patchGameView, patchGameHostBanner, patchGameTabSwitch, patchGameSectionsTab, isGameInputFocused } from "./runtime/patch-game.js";
+import {
+  createRefreshCoalescer,
+  patchSyncChrome,
+  renderSyncStatusBannerHtml,
+  shouldAutoScrollNearBottom
+} from "./runtime/sync-helpers.js";
 import { applyUrlToState, scrollRestoreKey, syncPlayUrl } from "./runtime/url.js";
-import { persistRoom, setBusy, setToast, state } from "./state.js";
+import {
+  bumpTabPulse,
+  clearTabPulse,
+  dmUnreadTotal,
+  persistRoom,
+  setBusy,
+  setToast,
+  state
+} from "./state.js";
 import { setVoiceRenderCallback } from "./voice/livekit-voice.js";
 
 const app = document.getElementById("app");
+let pullGeneration = 0;
+let lastSyncErrorToastAt = 0;
+let modalFocusReturn = null;
+
+function patchSyncChromeOrRender() {
+  if (patchSyncChrome(state)) return;
+  render();
+}
 
 function render() {
   const restoreKey = scrollRestoreKey(state);
   const scrollTop = window.scrollY;
+  const dmEl = state.view === "dm" ? document.querySelector("[data-dm-scroll]") : null;
+  const dmStickBottom = state.dmScrollStickBottom || shouldAutoScrollNearBottom(dmEl);
+  const voiceLog = state.view === "game" && state.tab === "voice" ? document.querySelector("[data-voice-scroll]") : null;
+  const voiceStickBottom = state.voiceScrollStickBottom || shouldAutoScrollNearBottom(voiceLog);
+
   app.innerHTML = renderApp();
+
   if (state.view === "dm") {
     const el = document.querySelector("[data-dm-scroll]");
-    if (el) el.scrollTop = el.scrollHeight;
+    if (el && dmStickBottom) el.scrollTop = el.scrollHeight;
+    state.dmScrollStickBottom = false;
   }
   if (state.view === "game" && state.tab === "voice") {
-    const voiceLog = document.querySelector("[data-voice-scroll]");
-    if (voiceLog) voiceLog.scrollTop = voiceLog.scrollHeight;
+    const nextVoiceLog = document.querySelector("[data-voice-scroll]");
+    if (nextVoiceLog && voiceStickBottom) nextVoiceLog.scrollTop = nextVoiceLog.scrollHeight;
+    state.voiceScrollStickBottom = false;
   }
   if (state.view === "game" && state.tab === "sections" && state.roomId) {
     bindPlayReader({
       roomId: state.roomId,
       notesSource: () => state.home,
-      onRefresh: async () => pullRoomData(),
+      onRefresh: async () => pullRoomData({ partial: true }),
       onToast: (message) => setToast(message, render)
     });
   }
   if (scrollRestoreKey(state) === restoreKey) {
     window.scrollTo(0, scrollTop);
   }
+  bindModalFocus();
   syncPlayUrl(state);
 }
 
@@ -107,14 +138,67 @@ async function loadPlatform() {
 }
 
 async function loadAuthConfig() {
-  state.authConfig = await api.authConfig();
+  try {
+    state.authConfig = await api.authConfig();
+  } catch {
+    state.authConfig = null;
+  }
+}
+
+async function flushPendingRoomRefresh() {
+  if (!state.pendingRoomRefresh) return;
+  state.pendingRoomRefresh = false;
+  await pullRoomData({ partial: true });
+}
+
+function bindModalFocus() {
+  const backdrop = document.querySelector(".modal-backdrop.is-open");
+  if (!backdrop) {
+    if (modalFocusReturn) {
+      modalFocusReturn.focus?.();
+      modalFocusReturn = null;
+    }
+    return;
+  }
+  const dialog = backdrop.querySelector(".modal");
+  const focusable = dialog?.querySelector("textarea, input:not([type=hidden]), button:not([disabled])");
+  focusable?.focus();
+}
+
+function handleAuthLost() {
+  clearSession();
+  disconnectRoomEvents(roomEventCtx);
+  disconnectPlatformEvents(platformEventCtx);
+  state.user = null;
+  state.home = null;
+  setToast("登录已过期，请重新登录", render);
+  state.view = "auth";
+  render();
 }
 
 async function pullRoomData(options = {}) {
   const { partial = false } = options;
   if (!state.roomId || !isUuid(state.roomId)) return;
-  state.home = await api.playerHome(state.roomId);
-  state.exploration = await api.exploration(state.roomId).catch(() => ({ scenes: [] }));
+  const generation = ++pullGeneration;
+
+  const [home, explorationResult] = await Promise.all([
+    api.playerHome(state.roomId),
+    api.exploration(state.roomId)
+      .then((data) => ({ ok: true, data }))
+      .catch((error) => ({ ok: false, error }))
+  ]);
+  if (generation !== pullGeneration) return;
+
+  state.home = home;
+  if (explorationResult.ok) {
+    state.exploration = explorationResult.data;
+    state.explorationError = "";
+  } else if (!state.exploration?.scenes?.length) {
+    state.exploration = { scenes: [] };
+    state.explorationError = formatApiError(explorationResult.error, "探索数据加载失败");
+  } else {
+    state.explorationError = formatApiError(explorationResult.error, "探索数据刷新失败");
+  }
   const sections = state.home.sections || [];
   if (state.sectionId && !sections.some((section) => section.id === state.sectionId)) {
     state.sectionId = sections.find((section) => !section.completed)?.id || sections[0]?.id || "";
@@ -140,41 +224,68 @@ async function pullRoomData(options = {}) {
       }
     }
   }
-  if (partial && patchGameView(state, {
-    pullRoomData: (opts) => pullRoomData(opts),
-    onToast: (message) => setToast(message, render)
-  })) {
-    return;
+  if (partial) {
+    const patchResult = patchGameView(state, {
+      pullRoomData: (opts) => pullRoomData(opts),
+      onToast: (message) => setToast(message, render)
+    });
+    if (patchResult === "full" || patchResult === "chrome") {
+      patchSyncChrome(state);
+      if (patchResult === "chrome") state.pendingRoomRefresh = true;
+      return;
+    }
   }
   render();
 }
+
+const coalescedPartialRefresh = createRefreshCoalescer(async () => {
+  try {
+    await pullRoomData({ partial: true });
+  } catch (error) {
+    const now = Date.now();
+    if (now - lastSyncErrorToastAt > 8000) {
+      lastSyncErrorToastAt = now;
+      setToast(formatApiError(error, "同步失败，将自动重试"), render);
+    }
+  }
+});
 
 const roomEventCtx = {
   getView: () => state.view,
   getRoomId: () => state.roomId,
   getRoleId: () => state.home?.role?.id || "",
+  getTab: () => state.tab,
   getVoiceRoomId: () => state.voiceRoomId || "",
+  bumpTabPulse,
   onVoiceRefresh: async () => {
     try {
+      state.voiceScrollStickBottom = true;
       await refreshVoiceMessages(render, { silent: true });
-      render();
+      if (patchGameView(state, {
+        pullRoomData: (opts) => pullRoomData(opts),
+        onToast: (message) => setToast(message, render)
+      }) !== "full") render();
     } catch {
       /* SSE voice refresh is best-effort */
     }
   },
-  onRefresh: async () => {
-    try {
-      await pullRoomData({ partial: true });
-    } catch {
-      /* SSE/poll refresh is best-effort */
-    }
-  },
+  onRefresh: () => coalescedPartialRefresh(),
   onToast: (message) => setToast(message, render),
+  onAuthLost: handleAuthLost,
+  setHostNudge: (message) => {
+    state.hostNudge = message ? { message } : null;
+    if (state.view === "game" && !patchGameHostBanner()) render();
+  },
   getHostConfirmWaiting: () => Boolean(state.home?.hostConfirm?.waitingForYou),
+  setStreamStatus: (status) => {
+    if (state.roomEventsStatus === status) return;
+    state.roomEventsStatus = status;
+    patchSyncChromeOrRender();
+  },
   setConnected: (connected) => {
     if (state.roomEventsConnected === connected) return;
     state.roomEventsConnected = connected;
-    render();
+    patchSyncChromeOrRender();
   }
 };
 
@@ -196,19 +307,22 @@ const platformEventCtx = {
   onFriendsRefresh: () => loadFriends({ silent: true }),
   onMessagesRefresh: () => loadDmConversations({ silent: true }),
   onDmRefresh: () => loadDmThread({ silent: true }),
+  onInGameCommRefresh: () => loadDmConversations({ silent: true }),
   onToast: (message) => setToast(message, render),
+  onAuthLost: handleAuthLost,
+  setStreamStatus: (status) => {
+    if (state.platformEventsStatus === status) return;
+    state.platformEventsStatus = status;
+    patchSyncChromeOrRender();
+  },
   setConnected: (connected) => {
     if (state.platformEventsConnected === connected) return;
     state.platformEventsConnected = connected;
-    render();
+    patchSyncChromeOrRender();
   }
 };
 
 function syncPlatformStream() {
-  if (state.view === "game") {
-    disconnectPlatformEvents(platformEventCtx);
-    return;
-  }
   if (getSessionToken()) connectPlatformEvents(platformEventCtx);
   else disconnectPlatformEvents(platformEventCtx);
 }
@@ -234,11 +348,10 @@ async function goToLanding() {
 function syncRoomStream() {
   if (state.view === "game" && state.roomId && isUuid(state.roomId)) {
     connectRoomEvents(state.roomId, roomEventCtx);
-    disconnectPlatformEvents(platformEventCtx);
   } else {
     disconnectRoomEvents(roomEventCtx);
-    syncPlatformStream();
   }
+  syncPlatformStream();
 }
 
 async function refreshHome() {
@@ -261,6 +374,7 @@ async function refreshHome() {
     state.tab = state.tab || "home";
     syncRoomStream();
     void loadRecapSummary({ silent: true });
+    void loadDmConversations({ silent: true });
   } catch (error) {
     if (error.status === 401 || error.status === 403 || error.status === 404 || error.status === 409) {
       disconnectRoomEvents(roomEventCtx);
@@ -301,7 +415,9 @@ async function loadFriends({ silent = false } = {}) {
   try {
     await ensureSession();
     state.friendsData = await api.listFriends();
-  } catch {
+    state.friendsError = "";
+  } catch (error) {
+    state.friendsError = formatApiError(error, "好友列表加载失败");
     if (!state.friendsData) state.friendsData = { friends: [], incoming: [], outgoing: [] };
   } finally {
     if (!silent) setBusy(false, render);
@@ -405,6 +521,7 @@ async function handleDmSend(form) {
     await ensureSession();
     await api.sendDmMessage(state.dmConversationId, body);
     state.dmDraftBody = "";
+    state.dmScrollStickBottom = true;
     await Promise.all([loadDmThread({ silent: true }), loadDmConversations({ silent: true })]);
   } catch (error) {
     setToast(formatApiError(error, "发送失败"), render);
@@ -446,7 +563,9 @@ async function loadPlazaPosts({ silent = false } = {}) {
   try {
     const kind = state.plazaFilter === "all" ? undefined : state.plazaFilter;
     state.plazaPosts = await api.plazaPosts({ kind });
-  } catch {
+    state.plazaError = "";
+  } catch (error) {
+    state.plazaError = formatApiError(error, "广场加载失败");
     if (!state.plazaPosts) state.plazaPosts = { total: 0, items: [] };
   } finally {
     if (!silent) setBusy(false, render);
@@ -487,8 +606,10 @@ async function loadPublicRooms({ silent = false } = {}) {
   if (!silent) setBusy(true, render);
   try {
     state.publicRooms = await api.publicRooms();
-  } catch {
-    state.publicRooms = { total: 0, items: [] };
+    state.lobbyError = "";
+  } catch (error) {
+    state.lobbyError = formatApiError(error, "大厅列表加载失败");
+    if (!state.publicRooms) state.publicRooms = { total: 0, items: [] };
   } finally {
     if (!silent) setBusy(false, render);
     else if (state.view === "landing" || state.view === "lobby") render();
@@ -645,24 +766,64 @@ async function handleJoinOfficial({ silent = false } = {}) {
   }
 }
 
+const gamePatchCtx = {
+  pullRoomData: (opts) => pullRoomData(opts),
+  onToast: (message) => setToast(message, render)
+};
+
 async function handleCompleteSection(sectionId) {
-  setBusy(true, render);
+  const sections = state.home?.sections || [];
+  const target = sections.find((section) => section.id === sectionId);
+  const prevCompleted = target ? { ...target } : null;
+
+  if (target) {
+    target.completed = true;
+    if (state.tab === "sections") {
+      patchGameSectionsTab(state, gamePatchCtx);
+    } else {
+      patchGameView(state, gamePatchCtx);
+    }
+  }
+
   try {
     await api.completeSection(state.roomId, sectionId);
-    await pullRoomData();
+    await pullRoomData({ partial: true });
     setToast("已标记阅读完成", render);
   } catch (error) {
-    setToast(error.message || "操作失败", render);
-  } finally {
-    setBusy(false, render);
+    if (prevCompleted && target) Object.assign(target, prevCompleted);
+    if (state.tab === "sections") patchGameSectionsTab(state, gamePatchCtx);
+    setToast(formatApiError(error, "操作失败"), render);
   }
 }
 
 async function handleInvestigate(pointId) {
-  setBusy(true, render);
+  const scenes = state.exploration?.scenes || [];
+  let pointRef = null;
+  for (const scene of scenes) {
+    const found = asArray(scene.investigation_points).find((p) => p.id === pointId);
+    if (found) {
+      pointRef = found;
+      break;
+    }
+  }
+  const prevInvestigated = pointRef?.investigated;
+  const prevResultText = pointRef?.resultText;
+
+  if (pointRef) {
+    pointRef.investigated = true;
+    pointRef.resultText = "调查中…";
+    if (state.tab === "explore" && patchGameView(state, gamePatchCtx) === "chrome") {
+      render();
+    } else if (state.tab === "explore") {
+      /* patched */
+    }
+  } else {
+    setBusy(true, render);
+  }
+
   try {
     const result = await api.investigate(state.roomId, pointId);
-    await pullRoomData();
+    await pullRoomData({ partial: true });
     openModalState({
       kind: "investigate",
       title: "调查结果",
@@ -673,9 +834,14 @@ async function handleInvestigate(pointId) {
     });
     render();
   } catch (error) {
-    setToast(error.message || "调查失败", render);
+    if (pointRef) {
+      pointRef.investigated = prevInvestigated ?? false;
+      pointRef.resultText = prevInvestigated ? (prevResultText ?? pointRef.resultText) : (prevResultText ?? "");
+      if (state.tab === "explore") patchGameView(state, gamePatchCtx);
+    }
+    setToast(formatApiError(error, "调查失败"), render);
   } finally {
-    setBusy(false, render);
+    if (!pointRef) setBusy(false, render);
   }
 }
 
@@ -683,10 +849,10 @@ async function handleReadClue(clueId) {
   setBusy(true, render);
   try {
     await api.readClue(state.roomId, clueId);
-    await pullRoomData();
+    await pullRoomData({ partial: true });
     state.clueId = clueId;
   } catch (error) {
-    setToast(error.message || "无法阅读线索", render);
+    setToast(formatApiError(error, "无法阅读线索"), render);
   } finally {
     setBusy(false, render);
   }
@@ -808,7 +974,7 @@ async function handleAuthSubmit(form) {
     setToast(`欢迎，${result.user.displayName || result.user.email || "玩家"}`, render);
     syncPlatformStream();
   } catch (error) {
-    setToast(error.message || "登录失败", render);
+    setToast(formatApiError(error, "登录失败"), render);
   } finally {
     setBusy(false, render);
   }
@@ -881,49 +1047,56 @@ app.addEventListener("submit", async (event) => {
   if (voiceForm) {
     event.preventDefault();
     state.voiceChatDraft = voiceForm.body.value;
-    await sendVoiceChatMessage({ render, setToast });
+    await sendVoiceChatMessage({ render, setToast, setBusy });
     return;
   }
   const plazaForm = event.target.closest("[data-form='plaza']");
   if (plazaForm) {
     event.preventDefault();
-    handlePlazaSubmit(plazaForm);
+    if (state.busy) return;
+    await handlePlazaSubmit(plazaForm);
     return;
   }
   const replyForm = event.target.closest("[data-form='plaza-reply']");
   if (replyForm) {
     event.preventDefault();
-    handlePlazaReplySubmit(replyForm);
+    if (state.busy) return;
+    await handlePlazaReplySubmit(replyForm);
     return;
   }
   const searchForm = event.target.closest("[data-form='player-search']");
   if (searchForm) {
     event.preventDefault();
-    handlePlayerSearch(searchForm);
+    if (state.busy) return;
+    await handlePlayerSearch(searchForm);
     return;
   }
   const dmForm = event.target.closest("[data-form='dm-send']");
   if (dmForm) {
     event.preventDefault();
-    handleDmSend(dmForm);
+    if (state.busy) return;
+    await handleDmSend(dmForm);
     return;
   }
   const form = event.target.closest("[data-form='auth']");
   if (form) {
     event.preventDefault();
-    handleAuthSubmit(form);
+    if (state.busy) return;
+    await handleAuthSubmit(form);
     return;
   }
   const forgotForm = event.target.closest("[data-form='forgot']");
   if (forgotForm) {
     event.preventDefault();
-    handleForgotSubmit(forgotForm);
+    if (state.busy) return;
+    await handleForgotSubmit(forgotForm);
     return;
   }
   const resetForm = event.target.closest("[data-form='reset']");
   if (resetForm) {
     event.preventDefault();
-    handleResetSubmit(resetForm);
+    if (state.busy) return;
+    await handleResetSubmit(resetForm);
     return;
   }
 });
@@ -1245,7 +1418,29 @@ app.addEventListener("click", async (event) => {
       await handleInvestigate(button.dataset.pointId);
       break;
     case "switch-tab":
+      await flushPendingRoomRefresh();
       state.tab = button.dataset.tab;
+      clearTabPulse(state.tab);
+      if (state.view === "game" && patchGameTabSwitch(state, gamePatchCtx)) {
+        syncPlayUrl(state);
+        if (state.tab === "voice") {
+          ensureDefaultVoiceRoom();
+          if (state.voiceRoomId) {
+            await refreshVoiceMessages(render, { silent: true }).catch(() => {});
+            patchGameTabSwitch(state, gamePatchCtx);
+          }
+        } else if (state.tab === "recap") {
+          await loadRecapSummary({ silent: true });
+        } else if (state.tab === "sections" && state.roomId) {
+          bindPlayReader({
+            roomId: state.roomId,
+            notesSource: () => state.home,
+            onRefresh: async () => pullRoomData({ partial: true }),
+            onToast: (message) => setToast(message, render)
+          });
+        }
+        break;
+      }
       if (state.tab === "voice") {
         ensureDefaultVoiceRoom();
         if (state.voiceRoomId) {
@@ -1288,7 +1483,7 @@ app.addEventListener("click", async (event) => {
       }
       break;
     case "voice-chat-send":
-      await sendVoiceChatMessage({ render, setToast });
+      await sendVoiceChatMessage({ render, setToast, setBusy });
       break;
     case "modal-create-voice":
       await submitCreateVoiceRoom({ render, setBusy, setToast });
@@ -1361,8 +1556,55 @@ app.addEventListener("click", async (event) => {
       state.error = "";
       render();
       break;
+    case "dismiss-host-nudge":
+      state.hostNudge = null;
+      if (!patchGameHostBanner()) render();
+      break;
+    case "toggle-sidebar":
+      state.gameSidebarCollapsed = !state.gameSidebarCollapsed;
+      render();
+      break;
+    case "go-messages-ingame":
+      await loadDmConversations();
+      state.view = "messages";
+      render();
+      break;
+    case "return-game":
+      if (state.roomId && isUuid(state.roomId)) {
+        await refreshHome();
+      } else {
+        setToast("当前没有进行中的对局", render);
+      }
+      break;
+    case "retry-exploration":
+      setBusy(true, render);
+      try {
+        state.exploration = await api.exploration(state.roomId);
+        state.explorationError = "";
+        render();
+      } catch (error) {
+        state.explorationError = formatApiError(error, "探索数据加载失败");
+        render();
+      } finally {
+        setBusy(false, render);
+      }
+      break;
     default:
       break;
+  }
+});
+
+app.addEventListener("focusout", () => {
+  if (!state.pendingRoomRefresh) return;
+  window.setTimeout(() => {
+    if (!isGameInputFocused()) void flushPendingRoomRefresh();
+  }, 120);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && state.modal) {
+    closeModalState();
+    render();
   }
 });
 

@@ -3,6 +3,7 @@ import { renderModal } from "./modal.js";
 import { renderMobileNav } from "./mobile-nav.js";
 import { renderVerifyBanner } from "./verify-banner.js";
 import { escapeHtml } from "../security.js";
+import { renderSyncStatusBannerHtml } from "../runtime/sync-helpers.js";
 import { state } from "../state.js";
 import { renderAuth } from "../views/auth.js";
 import { renderGame } from "../views/game.js";
@@ -26,15 +27,17 @@ function renderMainView() {
 }
 
 export function renderApp() {
+  const syncBanner = renderSyncStatusBannerHtml(state);
   return `
     ${renderHeader()}
     ${renderVerifyBanner()}
-    <main class="play-main">
+    <main class="play-main" ${state.busy ? 'aria-busy="true"' : ""}>
+      ${syncBanner ? `<div data-sync-banner>${syncBanner}</div>` : ""}
       ${state.error ? `<div class="banner error">${escapeHtml(state.error)}<button type="button" data-action="dismiss-error" aria-label="关闭">×</button></div>` : ""}
-      ${state.busy ? `<div class="loading-bar" aria-hidden="true"></div>` : ""}
+      ${state.busy ? `<div class="loading-bar" role="progressbar" aria-label="加载中"></div>` : ""}
       ${renderMainView()}
     </main>
     ${renderMobileNav()}
-    ${state.toast ? `<div class="toast show" role="status">${escapeHtml(state.toast)}</div>` : ""}
+    <div class="toast-host" aria-live="polite" aria-atomic="true">${state.toast ? `<div class="toast show" role="status">${escapeHtml(state.toast)}</div>` : ""}</div>
     ${renderModal()}`;
 }

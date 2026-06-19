@@ -7,6 +7,7 @@ let streamAbort = null;
 let reconnectTimer = null;
 let pollTimer = null;
 let boundRoomId = "";
+let streamConnected = false;
 
 function clearReconnectTimer() {
   if (reconnectTimer) {
@@ -15,12 +16,17 @@ function clearReconnectTimer() {
   }
 }
 
-function scheduleReconnect(connect) {
+function scheduleReconnect(connect, ctx) {
   if (reconnectTimer || !boundRoomId) return;
+  ctxSetStatus("reconnecting", ctx);
   reconnectTimer = setTimeout(() => {
     reconnectTimer = null;
     connect();
   }, RECONNECT_MS);
+}
+
+function ctxSetStatus(status, ctx) {
+  ctx?.setStreamStatus?.(status);
 }
 
 async function handleRoomEvent(type, data, ctx) {
@@ -33,6 +39,7 @@ async function handleRoomEvent(type, data, ctx) {
   switch (type) {
     case "room.clue_granted":
       if (affectsPlayer || sharedClue) {
+        ctx.bumpTabPulse?.("clues");
         await ctx.onRefresh();
         if (data.clueName) {
           const label = data.source === "shared_room"
@@ -46,6 +53,7 @@ async function handleRoomEvent(type, data, ctx) {
       break;
     case "room.item_granted":
       if (affectsPlayer) {
+        ctx.bumpTabPulse?.("inventory");
         await ctx.onRefresh();
         if (data.itemName) ctx.onToast(`获得物品：${data.itemName}`);
       }
@@ -53,14 +61,18 @@ async function handleRoomEvent(type, data, ctx) {
     case "room.section_unlocked":
     case "room.player_joined":
     case "room.checkpoint_restored":
+      if (type === "room.section_unlocked") ctx.bumpTabPulse?.("sections");
+      if (type === "room.player_joined") ctx.bumpTabPulse?.("home");
       await ctx.onRefresh();
       if (type === "room.section_unlocked") ctx.onToast("新分幕已解锁");
       break;
     case "room.scene_unlocked":
+      ctx.bumpTabPulse?.("explore");
       await ctx.onRefresh();
       ctx.onToast("新场景已开放");
       break;
     case "room.host_event_pending":
+      ctx.bumpTabPulse?.("home");
       await ctx.onRefresh();
       if (data.action === "executed") {
         ctx.onToast("主持人已确认推进 · 新内容可能已解锁");
@@ -74,15 +86,20 @@ async function handleRoomEvent(type, data, ctx) {
       await ctx.onRefresh();
       break;
     case "room.host_nudge": {
-      const roleId = ctx.getRoleId();
       const targets = data.roleSlotIds || [];
       const forMe = !targets.length || targets.some((id) => String(id) === String(roleId));
-      if (forMe) ctx.onToast(data.message || "主持人提醒你稍候");
+      if (forMe) {
+        ctx.setHostNudge?.(data.message || "主持人提醒你稍候");
+        ctx.bumpTabPulse?.("home");
+        ctx.onToast(data.message || "主持人提醒你稍候");
+      }
       break;
     }
     case "room.voice_message_created":
       if (data.voiceRoomId === ctx.getVoiceRoomId?.()) {
-        await ctx.onVoiceRefresh?.();
+        ctx.onVoiceRefresh?.();
+      } else {
+        ctx.bumpTabPulse?.("voice");
       }
       break;
     default:
@@ -101,7 +118,9 @@ export function disconnectRoomEvents(ctx) {
     pollTimer = null;
   }
   boundRoomId = "";
-  if (ctx?.setConnected) ctx.setConnected(false);
+  streamConnected = false;
+  ctxSetStatus("idle", ctx);
+  ctx?.setConnected?.(false);
 }
 
 export function syncRoomPoll(active, ctx) {
@@ -109,7 +128,11 @@ export function syncRoomPoll(active, ctx) {
     clearInterval(pollTimer);
     pollTimer = null;
   }
-  if (!active || !ctx.getRoomId()) return;
+  if (!active || !ctx.getRoomId() || streamConnected) {
+    if (streamConnected) ctxSetStatus("connected", ctx);
+    return;
+  }
+  ctxSetStatus("polling", ctx);
   pollTimer = setInterval(async () => {
     if (ctx.getView() !== "game" || !ctx.getRoomId()) return;
     try {
@@ -130,17 +153,29 @@ export function connectRoomEvents(roomId, ctx) {
     if (streamAbort) streamAbort.abort();
     streamAbort = new AbortController();
     const signal = streamAbort.signal;
+    ctxSetStatus("reconnecting", ctx);
 
     api.streamRoomEvents(roomId, async (type, data) => {
       if (type === "__connected__") {
+        streamConnected = true;
+        syncRoomPoll(false, ctx);
+        ctxSetStatus("connected", ctx);
         ctx.setConnected?.(true);
         return;
       }
       await handleRoomEvent(type, data, ctx);
-    }, signal).catch(() => {}).finally(() => {
+    }, signal).catch((error) => {
+      if (error?.status === 401) ctx.onAuthLost?.();
+    }).finally(() => {
       const shouldReconnect = boundRoomId === roomId && !signal.aborted;
+      streamConnected = false;
       ctx.setConnected?.(false);
-      if (shouldReconnect) scheduleReconnect(connect);
+      if (shouldReconnect) {
+        syncRoomPoll(true, ctx);
+        scheduleReconnect(connect, ctx);
+      } else {
+        ctxSetStatus("idle", ctx);
+      }
     });
   };
 
