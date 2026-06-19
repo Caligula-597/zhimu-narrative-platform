@@ -5,7 +5,16 @@ export default defineConfig({
   publicDir: "public",
   build: {
     outDir: "dist",
-    emptyOutDir: true
+    emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/livekit-client") || id.includes("node_modules/@livekit")) {
+            return "livekit-vendor";
+          }
+        }
+      }
+    }
   },
   server: {
     port: 5174,

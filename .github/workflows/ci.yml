@@ -89,3 +89,31 @@ jobs:
         working-directory: backend
       - name: UI smoke tests
         run: node scripts/ui-smoke.js
+      - name: Install play portal dependencies
+        run: npm ci
+        working-directory: play
+      - name: Reset fixture room for E2E
+        run: npm run e2e:reset-fixture-room
+        working-directory: backend
+      - name: Start play dev for E2E
+        run: npm run dev -- --port 5174 --strictPort &
+        working-directory: play
+      - name: Wait for play dev
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:5174/ >/dev/null && exit 0
+            sleep 1
+          done
+          exit 1
+      - name: Playwright E2E
+        run: npm run test:e2e
+        env:
+          PLAYWRIGHT_SKIP_WEBSERVER: "true"
+          PLAYWRIGHT_INVITE_CODE: TEST-FIXTURE-DEMO
+          PLAYWRIGHT_API_URL: http://localhost:4180
+          PLAYWRIGHT_BASE_URL: http://localhost:4173
+          PLAYWRIGHT_PLAY_URL: http://localhost:5174
+          GUEST_CREATE_HOUR_MAX: "1000"
+          GUEST_CREATE_DAY_MAX: "1000"
+          PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN: "0"
+          OFFICIAL_EXAMPLE_WORLD_ID: "33333333-3333-4333-8444-555555550003"

@@ -95,6 +95,7 @@
 1. `npm run check` + `check:schemas` + `check:boot` + `check:tests` + `npm test`
 2. 根目录 `npm run build` + `check:modules`
 3. `server.js --dist` + API/UI smoke
+4. **`npm run test:e2e`**（Playwright **15** 项，复用已启动的 4173/4180 + play dev 5174）
 
 **健壮性门禁（改 backend 后建议顺序）**：
 
@@ -135,7 +136,7 @@ npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 | `npm run test:format-helpers` | **5/5** |
 | `npm run test:modal-helpers` | **2/2** |
 | `npm run test:play` | **23/23** |
-| `npm run test:e2e` | **15/15** |
+| `npm run test:e2e` | **15/15**（Playwright；CI 与本地均跑；默认邀请码 `TEST-FIXTURE-DEMO`） |
 | `npm run verify:full:fresh` | 上述 + migrate/seed + 可选 E2E |
 
 **休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)

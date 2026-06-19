@@ -46,13 +46,13 @@
 | P0-10 | **E2E：创作→测试房** | e2e | `e2e/creator-wizard-smoke.spec.js` | 演示用户 → 向导 → 邀请码弹窗 | ✅ |
 | P0-11 | **E2E：玩家读分幕→主持进度** | e2e | `e2e/player-host-progress.spec.js` | 玩家 complete → director 表更新 | ✅ |
 | P0-12 | **E2E：存档/复盘** | e2e | `e2e/archive-recap-smoke.spec.js` | checkpoint / recap 入口可打开 | ✅ |
-| P0-13 | **文档「当前真相」收口** | docs | SECURITY + PRODUCT_STATUS 等 | E2E 13 / play 14 已同步 | ✅ |
+| P0-13 | **文档「当前真相」收口** | docs | SECURITY + PRODUCT_STATUS 等 | E2E **15** / play **23** / CI 含 Playwright | ✅ |
 
 ### P0 里程碑
 
 - **M0-A**：P0-01～02 + P0-09 通过 → 玩家可稳定体验示例/邀请码  
 - **M0-B**：P0-03 + P0-06 → 创作者有明确首次路径  
-- **M0-C**：P0-10～12 共 ≥5 条 Playwright → CI 覆盖主链路  
+- **M0-C**：P0-10～12 + CI Playwright **15** 条 → 覆盖主链路  
 - **M0 完成**：M0-A + M0-B + M0-C + P0-07～08 → **宣布内测开放**
 
 ---

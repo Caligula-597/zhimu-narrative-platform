@@ -23,6 +23,7 @@ function run(label, args) {
 }
 
 export default async function globalSetup() {
+  process.env.PLAYWRIGHT_INVITE_CODE ||= "TEST-FIXTURE-DEMO";
   run("db:migrate", ["run", "db:migrate"]);
   run("db:seed", ["run", "db:seed"]);
   run("demo:seed-exploration", ["run", "demo:seed-exploration"]);

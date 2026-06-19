@@ -16,6 +16,12 @@ try {
     [FIXTURE.roomId, FIXTURE.playerUserId]
   );
   await client.query(`DELETE FROM reading_progress WHERE room_id = $1`, [FIXTURE.roomId]);
+  await client.query(
+    `UPDATE room_members
+     SET status = 'active', joined_at = COALESCE(joined_at, now())
+     WHERE room_id = $1 AND user_id = $2 AND member_type = 'player'`,
+    [FIXTURE.roomId, FIXTURE.playerUserId]
+  );
   await client.query("COMMIT");
   console.log(JSON.stringify({ ok: true, roomId: FIXTURE.roomId }, null, 2));
 } catch (error) {

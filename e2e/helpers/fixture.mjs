@@ -59,9 +59,12 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
   await page.getByTestId("start-join").click();
   const roleCards = page.locator(".role-card:not([disabled])");
   await roleCards.first().waitFor({ timeout: 30_000 });
-  const target = roleName
+  let target = roleName
     ? roleCards.filter({ hasText: roleName }).first()
     : roleCards.first();
+  if (roleName && !(await target.isVisible().catch(() => false))) {
+    target = roleCards.first();
+  }
   await target.click();
   await page.locator('[data-action="confirm-join"]').click();
   await page.locator("[data-game-tab-bar]").waitFor({ state: "visible", timeout: 30_000 });
@@ -118,6 +121,28 @@ export async function ensurePendingHostEvent(page) {
     });
     const rows = res.ok ? await res.json() : [];
     return Array.isArray(rows) && rows.some((row) => row.status === "pending");
+  }, { roomId: FIXTURE.roomId, hostUserId: FIXTURE.hostUserId, apiBase: API_BASE });
+}
+
+/** @param {Page} page */
+export async function refreshHostRoomState(page) {
+  await page.locator('[data-action="refresh-host-room"]').click({ timeout: 8000 }).catch(() => {});
+  await page.waitForFunction(
+    () => Array.isArray(window.zhimuState?.cloudHostPlayers),
+    undefined,
+    { timeout: 20_000 }
+  ).catch(() => {});
+}
+
+/** @param {Page} page */
+export async function hasJoinedHostPlayers(page) {
+  return page.evaluate(async ({ roomId, hostUserId, apiBase }) => {
+    const res = await fetch(`${apiBase}/api/rooms/${roomId}/host/players`, {
+      headers: { "x-user-id": hostUserId }
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return (data.players || []).some((player) => player.joined);
   }, { roomId: FIXTURE.roomId, hostUserId: FIXTURE.hostUserId, apiBase: API_BASE });
 }
 
