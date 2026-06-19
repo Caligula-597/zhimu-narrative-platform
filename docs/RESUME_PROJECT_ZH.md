@@ -86,7 +86,7 @@
 | 前端模块 | **50+**（views / runtime / components） |
 | API smoke | 18 项 |
 | UI smoke | 44 项 |
-| Playwright E2E | 7 项 |
+| Playwright E2E | **13** 项 |
 | 全链路 smoke | `verify:full:fresh` |
 
 ---
