@@ -58,15 +58,6 @@ export function renderLanding() {
         </article>
       </div>
 
-      <div class="flow-grid flow-grid-compact" aria-label="玩家流程说明">
-        ${FLOW_STEPS.map((step) => `
-          <article class="flow-card">
-            <span class="flow-num">${step.n}</span>
-            <h3>${step.title}</h3>
-            <p>${step.text}</p>
-          </article>`).join("")}
-      </div>
-
       <div class="entry-grid entry-grid-secondary">
         <article class="entry-card entry-card-plaza">
           <div class="entry-card-head">
@@ -90,6 +81,18 @@ export function renderLanding() {
           <button class="btn primary full" type="button" data-action="go-lobby" ${state.busy ? "disabled" : ""}>浏览公开房间</button>
         </article>
       </div>
+
+      <details class="flow-details card">
+        <summary>玩家流程说明（4 步）</summary>
+        <div class="flow-grid flow-grid-compact" aria-label="玩家流程说明">
+          ${FLOW_STEPS.map((step) => `
+            <article class="flow-card">
+              <span class="flow-num">${step.n}</span>
+              <h3>${step.title}</h3>
+              <p>${step.text}</p>
+            </article>`).join("")}
+        </div>
+      </details>
 
       <section class="help-panel card">
         <h3>邀请码从哪里来？</h3>

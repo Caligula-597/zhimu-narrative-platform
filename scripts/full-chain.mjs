@@ -54,10 +54,12 @@ if (!skipTests) {
   run("format helper tests", process.execPath, ["--test", path.join("scripts", "format-helpers.test.mjs")], { cwd: root });
   run("runtime store tests", process.execPath, ["--test", path.join("scripts", "runtime-stores.test.mjs")], { cwd: root });
   run("pipeline session tests", process.execPath, ["--test", path.join("scripts", "pipeline-wizard-session.test.mjs")], { cwd: root });
+  run("test:play", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:play"], { cwd: root });
 }
 
 const apiUp = await probe("http://localhost:4180/api/health/live");
 const uiUp = await probe("http://localhost:4173/");
+const playUp = await probe("http://localhost:5174/");
 
 if (apiUp) {
   run("API smoke (18)", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:smoke"], { cwd: backend });
@@ -73,9 +75,9 @@ if (uiUp) {
   console.warn("      终端 B: npm run dev");
 }
 
-const e2eReady = apiUp && uiUp && !args.has("--skip-e2e");
+const e2eReady = apiUp && uiUp && playUp && !args.has("--skip-e2e");
 if (e2eReady) {
-  run("Playwright E2E", process.platform === "win32" ? "npx.cmd" : "npx", [
+  run("Playwright E2E (15)", process.platform === "win32" ? "npx.cmd" : "npx", [
     "playwright",
     "test",
     "--config=playwright.config.js"
@@ -84,7 +86,8 @@ if (e2eReady) {
     optional: true
   });
 } else if (!args.has("--skip-e2e") && (apiUp || uiUp)) {
-  console.warn("\nWARN  E2E 需要前后端同时在线 — 跳过 Playwright");
+  console.warn("\nWARN  E2E 需要 4173 + 4180 + 5174（play dev）同时在线 — 跳过 Playwright");
+  console.warn("      终端 C: cd play && npm run dev");
 }
 
 console.log(`

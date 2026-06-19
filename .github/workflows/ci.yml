@@ -71,6 +71,8 @@ jobs:
         run: npm run test:format-helpers
       - name: Modal helper tests
         run: npm run test:modal-helpers
+      - name: Play portal unit tests
+        run: npm run test:play
       - name: Start backend for smoke tests
         run: node src/server.js &
         working-directory: backend

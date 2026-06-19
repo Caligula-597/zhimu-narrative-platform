@@ -65,13 +65,13 @@
 |----|------|-----|------|------|
 | P1-01 | **官网定位收窄** | site | Hero 三用户 + 运行平台表述 | ✅ |
 | P1-02 | **官网转化增强** | site | 产品截图、1 个完整案例、「预约导入一个剧本」CTA | 🔲 |
-| P1-03 | **play 首屏重排** | play | 官方示例 / 邀请码 / 找局 优先级高于流程说明卡片 | 🔲 |
-| P1-04 | **阅读器体验** | play | 分幕阅读区字号/进度/完成反馈 | 🔲 |
+| P1-03 | **play 首屏重排** | play | 官方示例 / 邀请码 / 找局 优先级高于流程说明卡片 | ✅ 入口优先 + 流程折叠 |
+| P1-04 | **阅读器体验** | play | 分幕阅读区字号/进度/完成反馈 | ✅ 进度条 + 完成态卡片 |
 | P1-05 | **新线索/任务强提醒** | play + main | SSE toast + badge；主持 nudge 已有，玩家侧补强 | 🟡 部分 |
 | P1-06 | **房间/剧本封面** | backend + play | 公开房列表缩略图；catalog 封面字段 | 🔲 |
 | P1-07 | **内测 support 流程** | ops | `BETA_APPLICATIONS.md` + 邮件模板 + 人工开通 checklist | 🟡 部分 |
 | P1-08 | **5 团队试点追踪表** | ops | `docs/ops/PILOT_TRACKER.md` | 🟡 模板已建，待填团队 |
-| P1-09 | **导入服务 SOP** | docs | 1 个剧本从 Word/MD → 开房的标准步骤（给运营） | 🔲 |
+| P1-09 | **导入服务 SOP** | docs | 1 个剧本从 Word/MD → 开房的标准步骤（给运营） | ✅ [IMPORT_SCRIPT_SOP_ZH.md](./ops/IMPORT_SCRIPT_SOP_ZH.md) |
 | P1-10 | **fix site/README 链** | site | `officialExample` 指向 play 域 | ✅ |
 
 ### P1 里程碑

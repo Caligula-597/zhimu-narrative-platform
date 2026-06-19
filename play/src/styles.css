@@ -507,6 +507,74 @@ button {
   white-space: nowrap;
 }
 
+.section-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-progress-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.section-progress-bar span {
+  display: block;
+  height: 100%;
+  width: var(--pct, 0%);
+  background: linear-gradient(90deg, var(--green), var(--green-2));
+  border-radius: inherit;
+  transition: width 0.35s ease;
+}
+
+.flow-details {
+  margin-top: 8px;
+}
+
+.flow-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 0;
+  color: var(--muted);
+}
+
+.flow-details[open] summary {
+  margin-bottom: 12px;
+}
+
+.section-complete-btn {
+  margin-top: 8px;
+}
+
+.done-note {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: rgba(46, 160, 110, 0.12);
+  border: 1px solid rgba(46, 160, 110, 0.35);
+  color: var(--green-2);
+}
+
+.done-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .reader-head h3 {
   margin: 0 0 16px;
   font-size: 22px;
@@ -565,7 +633,27 @@ button {
 
 .done-note {
   margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: rgba(46, 160, 110, 0.12);
+  border: 1px solid rgba(46, 160, 110, 0.35);
   color: var(--green-2);
+}
+
+.done-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .split-layout {

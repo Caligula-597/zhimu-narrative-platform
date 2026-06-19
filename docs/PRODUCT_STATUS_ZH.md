@@ -178,8 +178,8 @@
 | `npm run test:format-helpers` | **5** |
 | `npm run test:modal-helpers` | **2** |
 | `npm run check:modules` | **51** |
-| `npm run test:play` | **14** |
-| `npm run test:e2e` | **13** |
+| `npm run test:play` | **23** |
+| `npm run test:e2e` | **15** |
 
 ### 5.1 后端单元/集成（`backend npm test`）
 
@@ -213,20 +213,21 @@
 - `npm run test:format-helpers`（5）— `escapeHtml`、审计文案等。
 - `npm run test:modal-helpers`（2）— `studioField` / `studioOptionsHtml` XSS 与选中值。
 
-### 5.6 浏览器 E2E（13 项）
+### 5.6 浏览器 E2E（15 项）
 
-`npm run test:e2e` — 需 4173 + 4180 + 5174：
+`npm run test:e2e` — 需 4173 + 4180 + 5174（play `npm run dev`）：
 
 | Spec | 覆盖 |
 |------|------|
-| `host-director-smoke` | 主持台、nudge |
+| `host-director-smoke` | 主持台、**nudge 弹窗发送** |
 | `creator-wizard-smoke` | 向导 → 测试房 |
 | `player-host-progress` | 玩家读幕 → 主持进度 |
 | `archive-recap-smoke` | 存档/复盘入口 |
-| `play-portal-smoke` | 邀请码、移动导航 |
+| `play-portal-smoke` | 邀请码、移动导航、广场 |
 | `play-official-example` | 官方示例 |
+| `play-sync-chrome` | 广场非白屏、tablist a11y |
 
-CI 当前**未强制** Playwright；发布前建议本地或 staging 跑全量。
+CI（`.github/workflows/ci.yml`）**强制** Playwright + `test:play`；详见 [e2e/README.md](../e2e/README.md)。
 
 ### 5.7 一键全链路
 
@@ -238,7 +239,7 @@ npm run verify:full:fresh
 
 ### 5.8 CI
 
-`.github/workflows/ci.yml`：push `main` 跑 migrate/seed、backend test、format/modal helpers、前端 build、API/UI smoke（无 Playwright 强制门禁）。
+`.github/workflows/ci.yml`：push `main` 跑 migrate/seed、backend test、format/modal/**play** helpers、前端 build、API/UI smoke、**Playwright E2E 15**。
 
 ---
 

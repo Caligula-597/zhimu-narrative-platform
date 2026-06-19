@@ -147,6 +147,15 @@ export function renderSections() {
         .filter(Boolean)
         .join("")}</div>`
     : `<div class="story-body reader-body" data-reader-body data-section-id="${active?.id || ""}" data-section-title="${escapeHtml(active?.title || "")}">${applyStoryHighlights(body, highlights)}</div><p class="reader-hint muted">${highlightHint} · 点击已高亮文字可取消</p>`;
+  const completedCount = sections.filter((section) => section.completed).length;
+  const progressPct = sections.length ? Math.round((completedCount / sections.length) * 100) : 0;
+  const progressBar =
+    sections.length > 0
+      ? `<div class="section-progress-wrap" aria-label="分幕阅读进度">
+      <div class="section-progress-bar" style="--pct:${progressPct}%"><span></span></div>
+      <span class="section-progress">${completedCount} / ${sections.length} 幕已完成</span>
+    </div>`
+      : "";
   const switcher =
     sections.length > 1
       ? `
@@ -166,12 +175,12 @@ export function renderSections() {
         </select>
       </label>
       <button type="button" class="btn quiet compact" data-action="section-next" ${activeIndex >= sections.length - 1 ? "disabled" : ""} aria-label="下一幕">→</button>
-      <span class="section-progress">${Math.max(activeIndex, 0) + 1} / ${sections.length}</span>
     </div>`
       : "";
   return `
     <div class="sections-layout">
       <article class="reader card reader-full">
+        ${progressBar}
         ${switcher}
         <header class="reader-head">
           <p class="eyebrow">分幕 ${active?.sequence ?? ""}</p>
@@ -188,7 +197,7 @@ export function renderSections() {
               .filter(Boolean)
               .join("")}</div>`
           : ""}
-        ${active && !active.completed ? `<button class="btn primary" type="button" data-action="complete-section" data-section-id="${active.id}" ${state.busy ? "disabled" : ""}>标记阅读完成</button>` : active?.completed ? `<p class="done-note">✓ 已完成阅读 — 主持人会收到进度通知</p>` : ""}
+        ${active && !active.completed ? `<button class="btn primary section-complete-btn" type="button" data-action="complete-section" data-section-id="${active.id}" ${state.busy ? "disabled" : ""}>标记阅读完成</button>` : active?.completed ? `<p class="done-note" role="status"><span class="done-badge">✓</span> 已完成阅读 — 主持人会收到进度通知</p>` : ""}
       </article>
     </div>`;
 }

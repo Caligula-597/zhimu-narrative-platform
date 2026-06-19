@@ -8,7 +8,7 @@
 
 > **策略**：**后端与运维优先**；前端功能与 UI 在 backend Beta 门禁达标后再排期。  
 
-> **验收数字**（2026-06-18）：见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) · **341** 单测 · **61** schema · **44** UI smoke · **7** E2E
+> **验收数字**（2026-06-19）：见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) · **341** 单测 · **61** schema · **44** UI smoke · **15** E2E · **23** play 单测
 
 
 
@@ -140,9 +140,9 @@
 
 | `test:modal-helpers` | **2** 项 |
 
-| `npm run test:play` | **14** 项 |
+| `npm run test:play` | **23** 项 |
 
-| Playwright E2E | **13** 项 |
+| Playwright E2E | **15** 项（CI 强制） |
 
 | `npm run check:modules` | **51** 脚本链 |
 
