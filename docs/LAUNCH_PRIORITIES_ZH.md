@@ -24,6 +24,8 @@
 
 **原则**：P0 完成前不扩功能面；P1 允许人工 ops 补产品缺口；P3 在 P0+P1 验证五个付费问题后再开。
 
+**需你拍板的事项** → [DESIGN_DECISIONS_NEEDED_ZH.md](./DESIGN_DECISIONS_NEEDED_ZH.md)（定价、生产示例剧本、试点团队、官网话术等）。
+
 ---
 
 ## P0 · 内测上线（必须完成）
@@ -35,16 +37,16 @@
 | P0-01 | **官方示例稳定可用** | backend + play | `seed-official-example.mjs`、E2E | seed + env + `play-official-example.spec.js` | ✅ |
 | P0-02 | **示例前置说明（登录/验证）** | play + site | `play/src/views/landing.js`、`site/index.html` hero 脚注 | 点击前可见「需登录并验证邮箱」；site 链到 play 非 app | ✅ |
 | P0-03 | **新用户首次路径（3 分钟）** | main app | `first-run-chooser.js`、`onboarding-strip.js`、`overview.js` | 无剧本时首屏三选一：创建 / 导入 / 官方示例 | ✅ |
-| P0-04 | **玩家端移动体验** | play | `landing.js`、`styles.css` | 首屏优先示例/邀请；顶栏 pill 横滑；Tab 横滑 | 🟡 |
+| P0-04 | **玩家端移动体验** | play | `landing.js`、`styles.css`、reader | 首屏优先；顶栏/Tab 横滑；阅读器 17px | ✅ |
 | P0-05 | **玩家端友好错误态** | play | `errors.js`、`api.js` | 500/网络/超时显示中文引导 | ✅ |
 | P0-06 | **对外「第一场」手册** | docs + in-app | `docs/FIRST_SESSION_GUIDE_ZH.md`、`creator-guide.js` | 非工程文档；创作者/主持/玩家各 1 页；主应用可打开 | ✅ |
-| P0-07 | **生产就绪健康检查** | backend + ops | `GET /api/health/ready`、`optional-services-status.js` | ready 含 optionalServices；Railway 探针用 ready | 🟡 |
+| P0-07 | **生产就绪健康检查** | backend + ops | `check-production-ready.mjs`、`/health/ready` | `npm run check:production-ready` | ✅ |
 | P0-08 | **三域 env 单一清单** | ops | `backend/.env.example`、`docs/ops/LAUNCH_ENV.md` | `APP_PUBLIC_URL` + `PLAY_SITE_*` + `MARKETING_SITE_*` 一处可复制 | ✅ |
 | P0-09 | **E2E：邀请码入房** | e2e | `e2e/play-portal-smoke.spec.js` | `start-join` → 选角可见；稳定 `data-testid` | ✅ |
 | P0-10 | **E2E：创作→测试房** | e2e | `e2e/creator-wizard-smoke.spec.js` | 演示用户 → 向导 → 邀请码弹窗 | ✅ |
 | P0-11 | **E2E：玩家读分幕→主持进度** | e2e | `e2e/player-host-progress.spec.js` | 玩家 complete → director 表更新 | ✅ |
 | P0-12 | **E2E：存档/复盘** | e2e | `e2e/archive-recap-smoke.spec.js` | checkpoint / recap 入口可打开 | ✅ |
-| P0-13 | **文档「当前真相」收口** | docs | 本文件 + `PRODUCT_STATUS` + `ROADMAP_LAUNCH` | 历史数字保留在 RELEASE_NOTES；对外只引用 SECURITY 验收表 | 🟡 |
+| P0-13 | **文档「当前真相」收口** | docs | SECURITY + PRODUCT_STATUS 等 | E2E 13 / play 14 已同步 | ✅ |
 
 ### P0 里程碑
 
@@ -61,14 +63,14 @@
 
 | ID | 任务 | 域 | 说明 | 状态 |
 |----|------|-----|------|------|
-| P1-01 | **官网定位收窄** | site | Hero 改为「线上长线剧本杀运行平台」；目标用户三行（工作室/作者/主持） | 🔲 |
+| P1-01 | **官网定位收窄** | site | Hero 三用户 + 运行平台表述 | ✅ |
 | P1-02 | **官网转化增强** | site | 产品截图、1 个完整案例、「预约导入一个剧本」CTA | 🔲 |
 | P1-03 | **play 首屏重排** | play | 官方示例 / 邀请码 / 找局 优先级高于流程说明卡片 | 🔲 |
 | P1-04 | **阅读器体验** | play | 分幕阅读区字号/进度/完成反馈 | 🔲 |
 | P1-05 | **新线索/任务强提醒** | play + main | SSE toast + badge；主持 nudge 已有，玩家侧补强 | 🟡 部分 |
 | P1-06 | **房间/剧本封面** | backend + play | 公开房列表缩略图；catalog 封面字段 | 🔲 |
 | P1-07 | **内测 support 流程** | ops | `BETA_APPLICATIONS.md` + 邮件模板 + 人工开通 checklist | 🟡 部分 |
-| P1-08 | **5 团队试点追踪表** | ops | Notion/Sheet 或 `docs/ops/PILOT_TRACKER.md` | 🔲 |
+| P1-08 | **5 团队试点追踪表** | ops | `docs/ops/PILOT_TRACKER.md` | 🟡 模板已建，待填团队 |
 | P1-09 | **导入服务 SOP** | docs | 1 个剧本从 Word/MD → 开房的标准步骤（给运营） | 🔲 |
 | P1-10 | **fix site/README 链** | site | `officialExample` 指向 play 域 | ✅ |
 

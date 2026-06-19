@@ -140,9 +140,9 @@
 
 | `test:modal-helpers` | **2** 项 |
 
-| `npm run test:play` | **12** 项 |
+| `npm run test:play` | **14** 项 |
 
-| Playwright E2E | **7** 项 |
+| Playwright E2E | **13** 项 |
 
 | `npm run check:modules` | **51** 脚本链 |
 

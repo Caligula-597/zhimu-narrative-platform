@@ -467,6 +467,11 @@ button {
   color: var(--ink);
 }
 
+.reader-body {
+  font-size: 16px;
+  max-width: 42rem;
+}
+
 .story-pages {
   display: grid;
   gap: 16px;
@@ -493,6 +498,22 @@ button {
 @media (max-width: 720px) {
   .split-layout {
     grid-template-columns: 1fr;
+  }
+
+  .reader-body,
+  .story-body {
+    font-size: 17px;
+    line-height: 1.85;
+  }
+
+  .reader-head h3 {
+    font-size: 20px;
+  }
+
+  .section-switcher {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

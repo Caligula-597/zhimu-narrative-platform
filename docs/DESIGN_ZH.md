@@ -228,7 +228,7 @@ flowchart LR
 | `npm run verify:changed` | 按 git diff 最小检测（日常提交） |
 | `npm run verify:full:fresh` | 迁移 + seed + 全量测试 + smoke + E2E |
 | `cd backend && npm test` | **341** 项单元/集成 |
-| `npm run test:e2e` | Playwright **7** 项（主持 nudge + play 入房） |
+| `npm run test:e2e` | Playwright **13** 项（向导/主持/玩家/存档/play） |
 | `node scripts/ui-smoke.js` | **44** 项前端接线 |
 
 测试桩房间：`TEST-FIXTURE-DEMO`（勿与 E2E 写入房混淆）。见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)。

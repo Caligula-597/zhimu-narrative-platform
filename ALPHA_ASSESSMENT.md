@@ -31,7 +31,7 @@
 | `npm run test:smoke` | **18** 项 | 后端 `4180` 已启动 |
 | `npm run test:ui` | **44** 项 | 前端 `4173` + 后端 `4180` |
 | `npm run test:ui:load` / `check:modules` | **51** 项 | 无（静态解析脚本） |
-| `npm run test:e2e` | **7** 项 | Playwright + 4173/4180/5174 |
+| `npm run test:e2e` | **13** 项 | Playwright + 4173/4180/5174 |
 | `npm run ci` | 组合脚本 | 同 GitHub Actions |
 
 **CI（`.github/workflows/ci.yml`）**：PostgreSQL 17 服务 → `npm ci` → migrate → seed → `check` → `check:boot` → **`check:tests`** → `npm test` → 启动前后端 → API/UI smoke。

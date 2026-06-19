@@ -94,6 +94,10 @@ curl https://app.getzhimu.com/api/platform/site
 
 # 官方示例是否可用
 curl https://app.getzhimu.com/api/platform/official-example
+
+# 本地或生产（可选依赖一览）
+npm run check:production-ready
+# CHECK_BASE_URL=https://app.getzhimu.com npm run check:production-ready
 ```
 
 ---

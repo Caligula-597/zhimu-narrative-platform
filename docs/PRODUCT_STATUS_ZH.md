@@ -178,8 +178,8 @@
 | `npm run test:format-helpers` | **5** |
 | `npm run test:modal-helpers` | **2** |
 | `npm run check:modules` | **51** |
-| `npm run test:play` | **12** |
-| `npm run test:e2e` | **7** |
+| `npm run test:play` | **14** |
+| `npm run test:e2e` | **13** |
 
 ### 5.1 后端单元/集成（`backend npm test`）
 
@@ -213,10 +213,20 @@
 - `npm run test:format-helpers`（5）— `escapeHtml`、审计文案等。
 - `npm run test:modal-helpers`（2）— `studioField` / `studioOptionsHtml` XSS 与选中值。
 
-### 5.6 浏览器 E2E
+### 5.6 浏览器 E2E（13 项）
 
-- 旧「单剧本 Playwright 路线」已移除；功能验收依赖后端集成测试 + API/UI smoke。
-- 可选：`npx playwright test`（`e2e/` 目录，当前无强制 spec）。
+`npm run test:e2e` — 需 4173 + 4180 + 5174：
+
+| Spec | 覆盖 |
+|------|------|
+| `host-director-smoke` | 主持台、nudge |
+| `creator-wizard-smoke` | 向导 → 测试房 |
+| `player-host-progress` | 玩家读幕 → 主持进度 |
+| `archive-recap-smoke` | 存档/复盘入口 |
+| `play-portal-smoke` | 邀请码、移动导航 |
+| `play-official-example` | 官方示例 |
+
+CI 当前**未强制** Playwright；发布前建议本地或 staging 跑全量。
 
 ### 5.7 一键全链路
 
@@ -307,6 +317,8 @@ cd .. && npm run check:modules && npm run build
 | [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md) | 内测免费范围、无付费入口、配额人工扩容 |
 | [LAUNCH_PRIORITIES_ZH.md](./LAUNCH_PRIORITIES_ZH.md) | **商业上线 P0–P3 任务**（当前执行优先级） |
 | [ENGINEERING_PRINCIPLES_ZH.md](./ENGINEERING_PRINCIPLES_ZH.md) | **工程六条核心原则**（小步改动、检测、后端为主） |
+| [DESIGN_DECISIONS_NEEDED_ZH.md](./DESIGN_DECISIONS_NEEDED_ZH.md) | **需产品/你拍板**的清单（定价、示例剧本、试点团队等） |
+| [ops/PILOT_TRACKER.md](./ops/PILOT_TRACKER.md) | 内测 5 团队追踪表 |
 | [FIRST_SESSION_GUIDE_ZH.md](./FIRST_SESSION_GUIDE_ZH.md) | **用户向**「如何跑第一场」（非工程文档） |
 
 **维护约定**：改验收数字时，同步更新 **PROJECT_STATUS §2**、**SECURITY_AND_TESTING 整体验收表**、**本文 §5 表**；`FEATURE_CATALOG` 工程总表（§3 前「工程与测试」）与历史 § 内快照数字可保留「当时」语义，但勿与 PROJECT_STATUS 矛盾。

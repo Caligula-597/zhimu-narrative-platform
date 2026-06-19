@@ -15,6 +15,7 @@
 | `https://getzhimu.com/` | 营销官网 HTML（**无** `/api`） |
 | OAuth | `oauthDiagnostics.ready: true`（见 [OAUTH_SETUP.md](./OAUTH_SETUP.md)） |
 | 监控 | `npm run monitoring:smoke` 全绿 |
+| 就绪脚本 | `npm run check:production-ready`（或 `CHECK_BASE_URL=https://app.getzhimu.com npm run check:production-ready`） |
 
 > **勿**用 `getzhimu.com/api/health` 验 API — 根域走 Pages，会返回营销站 HTML。
 
