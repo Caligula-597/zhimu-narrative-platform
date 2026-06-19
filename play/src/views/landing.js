@@ -18,9 +18,9 @@ function renderOfficialExampleCard() {
         <div><dt>适合</dt><dd>第一次了解织幕的玩家</dd></div>
       </dl>
       ${available
-        ? `<button class="btn primary full" type="button" data-action="join-official" ${state.busy ? "disabled" : ""}>进入示例体验</button>`
+        ? `<button class="btn primary full" type="button" data-action="join-official" data-testid="join-official" ${state.busy ? "disabled" : ""}>进入示例体验</button>`
         : `<p class="hint warn">${escapeHtml(example.unavailableReason || "示例暂不可用")}</p>`}
-      <p class="hint">系统会为你创建独立运行房，再选择角色进入玩家视角。</p>
+      <p class="hint">需<strong>登录并验证邮箱</strong>后，系统会为你创建独立运行房并进入选角。</p>
     </article>`;
 }
 
@@ -81,8 +81,8 @@ export function renderLanding() {
           <p class="entry-card-lede">输入主持人分享的邀请码，选择你的角色席位，即可进入房间开始游戏。</p>
           <label class="field-label" for="invite-input">房间邀请码</label>
           <div class="join-row">
-            <input id="invite-input" class="field" type="text" placeholder="例如：PLAY-ABC12345" value="${escapeHtml(state.inviteCode)}" data-bind="inviteCode" autocomplete="off" />
-            <button class="btn primary" type="button" data-action="start-join" ${state.busy ? "disabled" : ""}>下一步：选角色</button>
+            <input id="invite-input" class="field" type="text" placeholder="例如：PLAY-ABC12345" value="${escapeHtml(state.inviteCode)}" data-bind="inviteCode" data-testid="invite-code-input" autocomplete="off" />
+            <button class="btn primary" type="button" data-action="start-join" data-testid="start-join" ${state.busy ? "disabled" : ""}>下一步：选角色</button>
           </div>
           <p class="hint">也可通过链接直接进入：<code>?join=你的邀请码</code></p>
         </article>

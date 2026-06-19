@@ -1,6 +1,7 @@
 # 上市路线图（后端优先 · 分 Part 推进）
 
-> 官方示例：创作者上传并通过审核的模板剧本（`OFFICIAL_EXAMPLE_WORLD_ID`）。玩家独立端（Part 8）后置。
+> 官方示例：创作者上传并通过审核的模板剧本（`OFFICIAL_EXAMPLE_WORLD_ID`）。  
+> **商业上线任务分级**见 [LAUNCH_PRIORITIES_ZH.md](./LAUNCH_PRIORITIES_ZH.md)（P0–P3，与 Part 编号互补）。
 
 ## 工程标准
 
@@ -15,13 +16,13 @@
 |------|------|----------|------|
 | 0 | 边界冻结 | 文档 | 定位、三用户、不做什么 |
 | 1 | 权限与成员元数据 | **完成** | `membership-labels.js`、中文 403、`GET /worlds` enrich |
-| 2 | 官方示例 + 首次路径 | **部分完成** | `OFFICIAL_EXAMPLE_WORLD_ID`、`/api/platform/official-example` |
+| 2 | 官方示例 + 首次路径 | **部分完成** | `OFFICIAL_EXAMPLE_WORLD_ID`、`/api/platform/official-example`、onboarding strip；见 P0-01～03 |
 | 3 | 创作者闭环 | **完成** | 向导 bootstrap、模板库、发布前检查、公开库就绪门槛 |
 | 4 | 主持工作流 | 待做 | 事件上下文 payload |
 | 5 | 运营审核 | **完成** | `GET/POST /api/ops/catalog/reviews/*` |
 | 6 | 官网内测 | **完成** | 内测申请、Ops 审批、`GET /api/platform/site` 整站 bootstrap |
 | 7 | 法务运维 | 待做 | 监控、上线 checklist |
-| 8 | 玩家端 A/B | 后置 | `/play` 或独立子域 |
+| 8 | 玩家端 | **大部分完成** | 独立 `play/` 子域（5174）；广场/好友/私信/游戏内 SSE；P0-04～05 移动与错误态待收口 |
 
 ## Part 5 · Ops 公开库审核 API
 

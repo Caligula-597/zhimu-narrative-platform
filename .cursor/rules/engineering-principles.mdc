@@ -1,0 +1,21 @@
+---
+description: 织幕工程六条核心原则（小步改动、配套检测、后端为主、健壮性、自动提交、工作区整洁）
+alwaysApply: true
+---
+
+# 工程核心原则
+
+完整说明：[docs/ENGINEERING_PRINCIPLES_ZH.md](../docs/ENGINEERING_PRINCIPLES_ZH.md)
+
+## 六条（必须遵守）
+
+1. **小步改动** — 单次改动，单个文件 diff 不超过该文件总行数约 **10%**；跨文件任务拆多次 commit。大重构须用户明确要求。
+2. **配套检测** — 改代码后跑 `npm run verify:changed`（或用户要求的更全量命令）；后端改动优先补/跑对应 `backend/test/*.test.js`。
+3. **后端为主** — 顺序：迁移 → 路由+schema → 领域逻辑 → 测试 → 前端接线。禁止前端 mock 假数据、禁止无 schema 的写 API。
+4. **健壮性** — 可选依赖缺失时降级不崩；业务失败用 4xx+code；考虑单路径失败不影响启动与其它功能；关键失败路径要有测试。
+5. **自动 commit+push** — `verify:changed` 通过后按 [auto-commit-push-after-checks.mdc](./auto-commit-push-after-checks.mdc) 提交；用 `npm run git:push`；用户说「先别提交」则例外。
+6. **工作区整洁** — 任务结束 `git status` 干净；不提交 `.env`/密钥/临时文件；不 add 无关文件；不留 dead code 与半成品。
+
+## 任务结束回复
+
+简短说明：改了什么、跑了哪些检测、commit hash、工作区是否 clean。

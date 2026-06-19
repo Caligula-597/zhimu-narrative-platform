@@ -305,6 +305,9 @@ cd .. && npm run check:modules && npm run build
 | [PLATFORM_MAP_ZH.md](./PLATFORM_MAP_ZH.md) | 前后端 API ↔ UI 对照 |
 | [PROMPT_ENGINEERING.md](./PROMPT_ENGINEERING.md) | DeepSeek 分层 API 与 prompt |
 | [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md) | 内测免费范围、无付费入口、配额人工扩容 |
+| [LAUNCH_PRIORITIES_ZH.md](./LAUNCH_PRIORITIES_ZH.md) | **商业上线 P0–P3 任务**（当前执行优先级） |
+| [ENGINEERING_PRINCIPLES_ZH.md](./ENGINEERING_PRINCIPLES_ZH.md) | **工程六条核心原则**（小步改动、检测、后端为主） |
+| [FIRST_SESSION_GUIDE_ZH.md](./FIRST_SESSION_GUIDE_ZH.md) | **用户向**「如何跑第一场」（非工程文档） |
 
 **维护约定**：改验收数字时，同步更新 **PROJECT_STATUS §2**、**SECURITY_AND_TESTING 整体验收表**、**本文 §5 表**；`FEATURE_CATALOG` 工程总表（§3 前「工程与测试」）与历史 § 内快照数字可保留「当时」语义，但勿与 PROJECT_STATUS 矛盾。
 

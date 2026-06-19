@@ -19,15 +19,17 @@ npm run build
 
 ## 对接契约
 
-默认 API / CTA 域名：
+默认 API / CTA 域名（本地 dev 无 API 时用静态默认值；**生产以 `GET /api/platform/site` 为准**）：
 
 ```javascript
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || "https://app.getzhimu.com";
+const PLAY_ORIGIN = import.meta.env.VITE_PLAY_ORIGIN || "https://play.getzhimu.com";
 
 const links = {
   register: `${API_ORIGIN}/?auth=register`,
   login: `${API_ORIGIN}/?auth=login`,
-  officialExample: `${API_ORIGIN}/?experience=official`
+  playerJoin: PLAY_ORIGIN,
+  officialExample: `${PLAY_ORIGIN}/?experience=official`
 };
 ```
 

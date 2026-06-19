@@ -83,9 +83,13 @@
     const closeModal = window.zhimuModal?.closeModal;
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";
-    modal.innerHTML = `<h2>创作指引</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-error-guide>查看错误排查手册</button></div>`;
+    modal.innerHTML = `<h2>创作指引</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="text-btn" data-open-first-session>如何跑第一场</button><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-error-guide>查看错误排查手册</button></div>`;
     backdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
+    modal.querySelector("[data-open-first-session]").onclick = () => {
+      closeModal();
+      openFirstSessionGuide();
+    };
     modal.querySelector("[data-open-error-guide]").onclick = () => {
       closeModal();
       openErrorGuide();
@@ -123,6 +127,29 @@
     }
   }
 
-  window.zhimuGuide = { openCreatorGuide, openErrorGuide, renderMarkdown };
+  async function openFirstSessionGuide() {
+    const modal = window.zhimuDom?.modal;
+    const backdrop = window.zhimuDom?.modalBackdrop;
+    const closeModal = window.zhimuModal?.closeModal;
+    if (!modal || !backdrop) return;
+    modal.className = "modal creator-guide-modal";
+    modal.innerHTML = `<h2>如何跑第一场</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-creator-guide>详细创作指引</button></div>`;
+    backdrop.classList.add("show");
+    modal.querySelector("[data-close]").onclick = closeModal;
+    modal.querySelector("[data-open-creator-guide]").onclick = () => {
+      closeModal();
+      openCreatorGuide();
+    };
+    try {
+      const text = await fetchGuide("/docs/FIRST_SESSION_GUIDE_ZH.md");
+      const body = modal.querySelector(".empty-state");
+      body.className = "creator-guide-body";
+      body.innerHTML = renderMarkdown(text);
+    } catch (error) {
+      modal.querySelector(".empty-state").textContent = error.message;
+    }
+  }
+
+  window.zhimuGuide = { openCreatorGuide, openErrorGuide, openFirstSessionGuide, renderMarkdown };
 })(window);
 export {};
