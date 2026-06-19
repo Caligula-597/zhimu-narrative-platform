@@ -7,11 +7,10 @@ import {
   buildUsagePayload,
   fetchUserPlanCode,
   planMeta,
-  PLAN_CATALOG,
   PLAN_DEFAULTS
 } from "./plans.js";
+import { buildPlanUpgradeMeta, buildPublicPlanCards } from "./plan-upgrade-request.js";
 import { storageUsage } from "./routes/world-helpers.js";
-import { throwErr } from "./api-errors.js";
 
 export async function resolveAccountCapabilities(userId) {
   const kind = await fetchUserKind(userId);
@@ -34,6 +33,7 @@ export async function buildAccountEntitlements(userId) {
   ]);
   const meta = planMeta(planCode);
   const planDefaults = PLAN_DEFAULTS[planCode] ?? PLAN_DEFAULTS.free;
+  const upgrade = await buildPlanUpgradeMeta(userId, planCode);
 
   return {
     userKind: access.userKind,
@@ -63,9 +63,8 @@ export async function buildAccountEntitlements(userId) {
       }
     ),
     capabilities: access.capabilities,
-    publicPlans: Object.entries(PLAN_CATALOG)
-      .filter(([code]) => code !== "beta")
-      .map(([code, info]) => ({ code, ...info }))
+    upgrade,
+    publicPlans: buildPublicPlanCards()
   };
 }
 

@@ -214,6 +214,11 @@ h3 { font-size:15px; }
 .upload-zone { display:grid; place-items:center; min-height:126px; padding:16px; margin-top:14px; text-align:center; border:1px dashed rgba(44,107,98,.35); border-radius:12px; background:#f5f8f4; }
 .upload-zone p { margin-top:7px; }.upload-zone input { max-width:100%; margin-top:13px; font-size:11px; }
 .usage-bar { height:7px; margin-top:10px; overflow:hidden; border-radius:8px; background:#e4ebe6; }.usage-bar i { display:block; height:100%; border-radius:8px; background:var(--green-2); }
+.plan-compare-wrap { margin-top:16px; overflow-x:auto; }
+.plan-compare { width:100%; border-collapse:collapse; font-size:11px; }
+.plan-compare th,.plan-compare td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+.plan-compare th { color:var(--muted); font-weight:700; }
+.plan-row-current { background:#edf5ef; }
 .flow-list { display:grid; grid-template-columns:repeat(5,1fr); align-items:center; }
 .flow-node { position:relative; min-height:103px; padding:13px 9px; border-radius:13px; border:1px solid var(--line); background:#fbfcfa; }
 .flow-node:not(:last-child):after { content:"›"; position:absolute; right:-15px; top:38px; z-index:2; color:#94a7a3; font-size:22px; }

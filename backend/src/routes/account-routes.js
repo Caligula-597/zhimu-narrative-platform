@@ -1,7 +1,7 @@
 import { requireActor, bearerToken } from "../request-actor.js";
 import { sendErr } from "../api-errors.js";
 import { buildAccountEntitlements } from "../account-entitlements.js";
-import { PLAN_CATALOG } from "../plans.js";
+import { buildPublicPlanCards, submitPlanUpgradeRequest } from "../plan-upgrade-request.js";
 import { deleteSession } from "../auth.js";
 import {
   assertDeleteConfirmation,
@@ -16,10 +16,31 @@ export async function registerAccountRoutes(app) {
   });
 
   app.get("/api/account/plans", async () => ({
-    plans: Object.entries(PLAN_CATALOG)
-      .filter(([code]) => code !== "beta")
-      .map(([code, meta]) => ({ code, ...meta }))
+    plans: buildPublicPlanCards()
   }));
+
+  app.post("/api/account/plan-upgrade-request", {
+    schema: {
+      body: {
+        type: "object",
+        additionalProperties: false,
+        required: ["desiredPlanCode", "reason"],
+        properties: {
+          desiredPlanCode: { type: "string", enum: ["creator", "studio"] },
+          reason: { type: "string", minLength: 8, maxLength: 4000 },
+          contact: { type: "string", maxLength: 200 }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    const actorId = requireActor(request);
+    try {
+      return await submitPlanUpgradeRequest(actorId, request.body ?? {});
+    } catch (error) {
+      if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
+      throw error;
+    }
+  });
 
   app.get("/api/account/delete/preview", async (request) => {
     const actorId = requireActor(request);

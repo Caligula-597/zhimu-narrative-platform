@@ -110,6 +110,43 @@
     };
   }
 
+  async function openPlanUpgradeModal(desiredPlanCode = "creator") {
+    const modal = window.zhimuDom?.modal;
+    const backdrop = window.zhimuDom?.modalBackdrop;
+    const closeModal = window.zhimuModal?.closeModal;
+    if (!modal || !backdrop) return;
+    const entitlements = state.accountView?.entitlements;
+    const upgrade = entitlements?.upgrade;
+    const targets = upgrade?.availableTargets || [];
+    const options = targets.length
+      ? targets
+      : [{ code: desiredPlanCode, label: desiredPlanCode === "studio" ? "工作室" : "创作者" }];
+    const selectHtml = options
+      .map((plan) => `<option value="${escapeHtml(plan.code)}" ${plan.code === desiredPlanCode ? "selected" : ""}>${escapeHtml(plan.label)}</option>`)
+      .join("");
+    modal.className = "modal auth-modal";
+    modal.innerHTML = `<h2>申请套餐升级</h2><p class="wizard-intro">提交后由 <strong>support@getzhimu.com</strong> 人工审核并开通，暂无在线支付。审核通常 1～3 个工作日。</p><div class="form-group"><label>希望升级至</label><select class="field" data-upgrade-plan>${selectHtml}</select>${studioField("申请说明 · 至少 8 字", "upgradeReason", "textarea", "简要说明你的创作规模、团队人数或为何需要更高配额…")}${studioField("补充联系方式（选填）", "upgradeContact", "input", "")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-upgrade-submit>提交申请</button></div>`;
+    backdrop.classList.add("show");
+    modal.querySelector("[data-close]").onclick = closeModal;
+    modal.querySelector("[data-upgrade-submit]").onclick = async () => {
+      const submit = modal.querySelector("[data-upgrade-submit]");
+      submit.disabled = true;
+      try {
+        const result = await zhimuApi.submitPlanUpgradeRequest({
+          desiredPlanCode: modal.querySelector("[data-upgrade-plan]").value,
+          reason: modal.querySelector('[data-studio-field="upgradeReason"]')?.value || "",
+          contact: modal.querySelector('[data-studio-field="upgradeContact"]')?.value || ""
+        });
+        closeModal();
+        showToast(result.message || "申请已提交");
+        await refreshAccountView({ background: true });
+      } catch (error) {
+        submit.disabled = false;
+        handleApiError(error, showToast);
+      }
+    };
+  }
+
   function accountBodyHtml(data) {
     const me = data.me || {};
     const sessions = data.sessions?.sessions || [];
@@ -119,7 +156,7 @@
     const sessionRows = sessions.map((s) => `<div class="collab-row"><div><b>${escapeHtml(s.deviceLabel || "未知设备")}</b><p>${escapeHtml(s.userAgent || "—")} · 最近 ${formatTime(s.lastSeenAt)}</p></div>${s.isCurrent ? `<span class="cloud-pill">当前</span>` : `<button class="text-btn danger-text" data-revoke-session="${s.id}">下线</button>`}</div>`).join("") || `<div class="empty-state">暂无其他设备记录</div>`;
     const oauthButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">关联 ${escapeHtml(p.label)}</button>`).join("");
     const oauthLoginButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">使用 ${escapeHtml(p.label)} 登录</button>`).join("");
-    const quotaHtml = window.zhimuRuntime?.renderQuotaSection?.(usage) || "";
+    const quotaHtml = window.zhimuRuntime?.renderQuotaSection?.(usage, data.entitlements) || "";
     const guestUpgrade = isGuest
       ? `<section class="form-group"><h3>保存进度 · 注册正式账号</h3>${studioField("邮箱", "upgradeEmail", "input", "")}${studioField("昵称", "upgradeName", "input", me.display_name || "")}${studioField("密码 · 至少 8 位", "upgradePassword", "input", "")}<button type="button" class="primary-btn" data-guest-upgrade>绑定邮箱并注册</button><p class="muted-note">或使用 OAuth 绑定（保留当前房间进度）</p>${oauthLoginButtons ? `<div class="row">${oauthLoginButtons}</div>` : ""}</section>`
       : "";
@@ -156,6 +193,9 @@
   }
 
   function bindAccountPanel(root = document) {
+    root.querySelectorAll("[data-plan-upgrade]").forEach((btn) => {
+      btn.onclick = () => void openPlanUpgradeModal(btn.dataset.planUpgrade);
+    });
     root.querySelector("[data-auth-logout]")?.addEventListener("click", async () => {
       try {
         await zhimuApi.logout();
@@ -228,6 +268,6 @@
     bindAccountPanel(document);
   }
 
-  Object.assign(exports, { accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard });
+  Object.assign(exports, { accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard, openPlanUpgradeModal });
 })(window);
 export {};

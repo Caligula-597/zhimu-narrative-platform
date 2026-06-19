@@ -72,6 +72,7 @@
 | P1-07 | **内测 support 流程** | ops | `BETA_APPLICATIONS.md` + 邮件模板 + 人工开通 checklist | 🟡 部分 |
 | P1-08 | **5 团队试点追踪表** | ops | `docs/ops/PILOT_TRACKER.md` | 🟡 模板已建，待填团队 |
 | P1-09 | **导入服务 SOP** | docs | 1 个剧本从 Word/MD → 开房的标准步骤（给运营） | ✅ [IMPORT_SCRIPT_SOP_ZH.md](./ops/IMPORT_SCRIPT_SOP_ZH.md) |
+| P1-11 | **套餐申请升级** | backend + app | 表单 → support 邮件；人工 ops 开通 creator/studio | ✅ [PLAN_UPGRADE_SOP_ZH.md](./ops/PLAN_UPGRADE_SOP_ZH.md) |
 | P1-10 | **fix site/README 链** | site | `officialExample` 指向 play 域 | ✅ |
 
 ### P1 里程碑

@@ -66,7 +66,7 @@
 |------|------|------|
 | 注册 / 登录 / Bearer Session | ✅ | 找回密码（Resend）；**邮箱验证**（可选强制）；**OAuth** Google/GitHub |
 | 游客 / 多设备 Session | ✅ | `POST /auth/guest`；设备列表与下线 |
-| 套餐与配额 | ✅ | `free/creator/studio/beta`；`GET /account/entitlements` |
+| 套餐与配额 | ✅ | `free/creator/studio/beta`；`GET /account/entitlements`；**申请升级** → support 人工开通 |
 | 世界 CRUD、PATCH、成员角色 | ✅ | **协作者邮件邀请** + `?invite=` 接受 |
 | 平行运行房、邀请码 | ✅ | 房间无合并对比视图 |
 | 世界运行日志 timeline | ✅ | 无导出 |

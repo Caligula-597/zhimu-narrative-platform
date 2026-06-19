@@ -14,6 +14,7 @@ import {
   getAlertWebhookConfig
 } from "../ops-alert-bridge.js";
 import { assignUserPlanByEmail } from "../account-entitlements.js";
+import { listPlanUpgradeRequests } from "../plan-upgrade-request.js";
 import { PLAN_DEFAULTS } from "../plans.js";
 import { sendErr } from "../api-errors.js";
 import { registerOpsCatalogRoutes } from "./ops-catalog-routes.js";
@@ -180,6 +181,29 @@ export async function registerOpsRoutes(app) {
         if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
         throw error;
       }
+    }
+  );
+
+  app.get(
+    "/api/ops/plan-upgrade/requests",
+    {
+      schema: {
+        hide: true,
+        tags: ["system"],
+        querystring: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            status: { type: "string", enum: ["pending", "approved", "rejected"] },
+            limit: { type: "integer", minimum: 1, maximum: 200 },
+            offset: { type: "integer", minimum: 0, maximum: 100_000 }
+          }
+        }
+      }
+    },
+    async (request) => {
+      const { status, limit, offset } = request.query ?? {};
+      return listPlanUpgradeRequests({ status, limit, offset });
     }
   );
 

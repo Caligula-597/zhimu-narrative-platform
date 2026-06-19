@@ -33,6 +33,7 @@ const REQUIRED_SCHEMA_MARKERS = [
   ["auth-routes.js", 'app.post("/api/auth/forgot-password", { schema:'],
   ["auth-routes.js", 'app.post("/api/auth/reset-password", { schema:'],
   ["auth-routes.js", 'app.post("/api/auth/verify-email", { schema:'],
+  ["account-routes.js", 'app.post("/api/account/plan-upgrade-request", { schema:'],
   ["voice-routes.js", 'app.post("/api/rooms/:roomId/voice-rooms", { schema:'],
   ["recap-routes.js", 'app.post("/api/rooms/:roomId/recaps", { schema:'],
   ["room-events-routes.js", 'app.get("/api/rooms/:roomId/events/stream", { schema:'],

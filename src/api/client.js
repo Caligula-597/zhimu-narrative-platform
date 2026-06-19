@@ -145,6 +145,8 @@ window.zhimuApi = {
   resetPassword: (payload) => request("/auth/reset-password", { method: "POST", body: payload }),
   me: () => request("/auth/me"),
   getAccountEntitlements: () => request("/account/entitlements"),
+  submitPlanUpgradeRequest: (payload) =>
+    request("/account/plan-upgrade-request", { method: "POST", body: payload }),
   previewAccountDelete: () => request("/account/delete/preview"),
   deleteAccount: (payload) => request("/account/delete", { method: "POST", body: payload }),
   listPhysicalTokens: (worldId, query = "") =>
