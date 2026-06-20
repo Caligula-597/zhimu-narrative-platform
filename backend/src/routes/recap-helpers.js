@@ -4,7 +4,9 @@ import {
   buildChapterMoments,
   buildChapterSynopsis,
   buildPlotSpineForChapter,
-  buildRevelationTrack
+  buildRevelationTrack,
+  buildTruthConclusion,
+  pickRecapExcerpt
 } from "../recap-narrative.js";
 
 function summarizeRuleConditions(conditions = {}) {
@@ -25,7 +27,7 @@ function summarizeRuleActions(actions = []) {
 export async function buildRoomRecapSnapshot(query, roomId) {
   const roomRow = await query(
     `SELECT r.id, r.name, r.status, r.world_id, r.invite_code, r.created_at,
-            w.name AS world_name, w.summary AS world_summary
+            w.name AS world_name, w.summary AS world_summary, w.settings AS world_settings
      FROM rooms r
      JOIN worlds w ON w.id = r.world_id
      WHERE r.id = $1`,
@@ -133,7 +135,7 @@ export async function buildRoomRecapSnapshot(query, roomId) {
     [roomId]
   );
   const chapterRows = await query(
-    `SELECT ch.id, ch.title, ch.summary, ch.sequence,
+    `SELECT ch.id, ch.title, ch.summary, ch.sequence, ch.metadata,
             (SELECT COUNT(*)::int
              FROM script_sections ss
              JOIN role_slots rs ON rs.id = ss.role_slot_id
@@ -144,7 +146,7 @@ export async function buildRoomRecapSnapshot(query, roomId) {
     [room.world_id]
   );
   const sceneRows = await query(
-    `SELECT s.id, s.name, s.chapter_id, s.public_text, s.host_text,
+    `SELECT s.id, s.name, s.chapter_id, s.public_text, s.host_text, s.metadata,
             ch.sequence AS chapter_sequence, ch.title AS chapter_title
      FROM scenes s
      LEFT JOIN chapters ch ON ch.id = s.chapter_id
@@ -168,6 +170,8 @@ export async function buildRoomRecapSnapshot(query, roomId) {
         chapterId: row.chapter_id,
         publicText: row.public_text,
         hostText: row.host_text,
+        metadata: row.metadata ?? {},
+        recapSummary: row.metadata?.recapSummary ?? "",
         chapterSequence: row.chapter_sequence,
         chapterTitle: row.chapter_title
       }
@@ -256,6 +260,9 @@ export async function buildRoomRecapSnapshot(query, roomId) {
   const firstJoin = players.filter((player) => player.joined_at).map((player) => player.joined_at).sort()[0] ?? null;
   const lastActivity = players.map((player) => player.last_activity_at).filter(Boolean).sort().reverse()[0] ?? null;
 
+  const worldSettings = room.world_settings ?? {};
+  const recapTruthSummary = worldSettings.recapTruthSummary ?? "";
+
   const snapshotCore = {
     generatedAt: new Date().toISOString(),
     room: {
@@ -271,6 +278,7 @@ export async function buildRoomRecapSnapshot(query, roomId) {
     },
     truth: {
       worldSummary: room.world_summary ?? "",
+      recapTruthSummary,
       finalChapter: finalChapter.rowCount
         ? { id: finalChapter.rows[0].id, title: finalChapter.rows[0].title, sequence: finalChapter.rows[0].sequence }
         : null
@@ -346,7 +354,8 @@ export async function buildRoomRecapSnapshot(query, roomId) {
     unlockedScenes: snapshotCore.unlockedScenes,
     stats: snapshotCore.stats,
     worldScenesById,
-    worldCluesById
+    worldCluesById,
+    recapTruthSummary
   });
 
   const rolePerformances = applyRoleRankings(
@@ -492,7 +501,8 @@ function buildStoryNarrative({
   unlockedScenes,
   stats,
   worldScenesById = new Map(),
-  worldCluesById = new Map()
+  worldCluesById = new Map(),
+  recapTruthSummary = ""
 }) {
   const joinedPlayers = players.filter((player) => player.joined);
   const opening = {
@@ -578,7 +588,7 @@ function buildStoryNarrative({
     if (beats.some((event) => event.kind === "host_event")) summaryParts.push("含主持确认节点");
 
     const synopsis = buildChapterSynopsis({
-      chapter,
+      chapter: { ...chapter, summary: pickRecapExcerpt({ recapSummary: chapter.metadata?.recapSummary, summary: chapter.summary, max: 400 }) || chapter.summary },
       chapterReads,
       beats,
       rolesFinished,
@@ -623,12 +633,21 @@ function buildStoryNarrative({
     !chapterActs.some((act) => act.beats.includes(event))
   );
 
+  const truthConclusion = buildTruthConclusion({
+    recapTruthSummary,
+    finalChapter: truth.finalChapter,
+    endingTriggers,
+    hostConfirmedEvents,
+    stats,
+    undiscoveredClues,
+    joinedPlayers: joinedPlayers.length
+  });
+
   const epilogue = {
     phase: "epilogue",
     title: "结局与余波",
-    summary: truth.finalChapter
-      ? `本局最远推进至第 ${truth.finalChapter.sequence} 章《${truth.finalChapter.title}》`
-      : "本局主要推进节点见各章时间线",
+    summary: truthConclusion.summary,
+    truthConclusion,
     finalChapter: truth.finalChapter,
     endingTriggers,
     hostConfirmedEvents,

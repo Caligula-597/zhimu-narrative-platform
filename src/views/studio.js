@@ -190,12 +190,13 @@ function studioNodeEditPanel(data,selected){
  if(!record)return `<p class="wizard-intro">节点数据不可用，请刷新后重试。</p>`;
  const meta=record.metadata||{};
  if(selected.type==="chapter"){
-  return `<div class="studio-edit-panel"><p class="section-kicker">编辑公共章节</p>${studioEditField("章节名称","title","input",record.title)}${studioEditField("章节摘要","summary","textarea",record.summary||"")}<p class="muted-note">发布状态与解锁规则请在「剧本杀创作中心 → 章节发布控制」中设置。</p><button class="primary-btn full-btn" data-action="studio-save-node">保存章节</button></div>`;
+  const chapterMeta=record.metadata||{};
+  return `<div class="studio-edit-panel"><p class="section-kicker">编辑公共章节</p>${studioEditField("章节名称","title","input",record.title)}${studioEditField("章节摘要","summary","textarea",record.summary||"")}${studioEditField("复盘公开摘要（局后展示）","recapSummary","textarea",chapterMeta.recapSummary||"")}<p class="muted-note">发布状态与解锁规则请在「剧本杀创作中心 → 章节发布控制」中设置。</p><button class="primary-btn full-btn" data-action="studio-save-node">保存章节</button></div>`;
  }
  if(selected.type==="scene"){
   const chapters=[{id:"",name:"暂不绑定章节"},...data.chapters];
   const visibleIds=Array.isArray(meta.visibleRoleSlotIds)?meta.visibleRoleSlotIds:[];
-  return `<div class="studio-edit-panel"><p class="section-kicker">编辑场景</p>${studioEditField("场景标题","name","input",record.name)}${studioEditField("场景摘要","summary","textarea",meta.summary||"")}${studioEditField("场景正文 / 描述","publicText","textarea",record.public_text||"")}${studioEditSelect("开放状态","openStatus",[{id:"locked",name:"锁定 · 需规则或主持开放"},{id:"unlocked",name:"已开放 · 初始可见"}],meta.openStatus||"locked")}${studioEditSelect("所属章节","chapterId",chapters.map(chapter=>({id:chapter.id,name:chapter.title})),record.chapter_id||"")}<label>可见角色范围</label><div class="studio-role-checks">${data.roles.map(role=>`<label class="studio-check-row"><input type="checkbox" data-studio-edit-checkbox="visibleRoleSlotIds" value="${role.id}" ${visibleIds.includes(role.id)?"checked":""}> ${escapeHtml(role.name)}</label>`).join("")||`<span class="wizard-intro">请先创建角色席位。</span>`}</div>${studioEditField("主持备注","hostText","textarea",record.host_text||"")}<button class="primary-btn full-btn" data-action="studio-save-node">保存场景</button></div>`;
+  return `<div class="studio-edit-panel"><p class="section-kicker">编辑场景</p>${studioEditField("场景标题","name","input",record.name)}${studioEditField("场景摘要","summary","textarea",meta.summary||"")}${studioEditField("复盘公开摘要（局后展示）","recapSummary","textarea",meta.recapSummary||"")}${studioEditField("场景正文 / 描述","publicText","textarea",record.public_text||"")}${studioEditSelect("开放状态","openStatus",[{id:"locked",name:"锁定 · 需规则或主持开放"},{id:"unlocked",name:"已开放 · 初始可见"}],meta.openStatus||"locked")}${studioEditSelect("所属章节","chapterId",chapters.map(chapter=>({id:chapter.id,name:chapter.title})),record.chapter_id||"")}<label>可见角色范围</label><div class="studio-role-checks">${data.roles.map(role=>`<label class="studio-check-row"><input type="checkbox" data-studio-edit-checkbox="visibleRoleSlotIds" value="${role.id}" ${visibleIds.includes(role.id)?"checked":""}> ${escapeHtml(role.name)}</label>`).join("")||`<span class="wizard-intro">请先创建角色席位。</span>`}</div>${studioEditField("主持备注","hostText","textarea",record.host_text||"")}<button class="primary-btn full-btn" data-action="studio-save-node">保存场景</button></div>`;
  }
  if(selected.type==="clue"){
   const assets=[{id:"",name:"不关联附件"},...(state.cloudAssets||[]).map(asset=>({id:asset.id,name:asset.original_filename}))];
@@ -309,9 +310,9 @@ async function saveSelectedStudioNode(){
  const record=studioNodeRecord(state.cloudStudio,selected.type,selected.id);
  try{
   if(selected.type==="chapter"){
-   await zhimuApi.updateChapter(selected.id,{title:values.title,summary:values.summary,publicationStatus:record?.publication_status||"draft",unlockRules:record?.unlock_rules||{mode:"host_confirm"}});
+   await zhimuApi.updateChapter(selected.id,{title:values.title,summary:values.summary,publicationStatus:record?.publication_status||"draft",unlockRules:record?.unlock_rules||{mode:"host_confirm"},metadata:{...(record?.metadata||{}),recapSummary:values.recapSummary||""}});
   }else if(selected.type==="scene"){
-   await zhimuApi.updateScene(selected.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,chapterId:values.chapterId||null,metadata:{summary:values.summary,openStatus:values.openStatus,visibleRoleSlotIds:values.visibleRoleSlotIds||[]}});
+   await zhimuApi.updateScene(selected.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,chapterId:values.chapterId||null,metadata:{summary:values.summary,recapSummary:values.recapSummary||"",openStatus:values.openStatus,visibleRoleSlotIds:values.visibleRoleSlotIds||[]}});
   }else if(selected.type==="clue"){
    await zhimuApi.updateClue(selected.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,visibility:values.visibility||"role",metadata:{clueType:values.clueType||"text",assetId:values.assetId||null,importance:values.importance||"normal"}});
   }else if(selected.type==="item"){

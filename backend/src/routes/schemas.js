@@ -969,7 +969,8 @@ export const updateChapterSchema = {
       title: { type: "string", minLength: 1, maxLength: 200 },
       summary: { type: "string", maxLength: 4000 },
       publicationStatus,
-      unlockRules: metadataObject
+      unlockRules: metadataObject,
+      metadata: metadataObject
     }
   }
 };

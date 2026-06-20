@@ -4,6 +4,8 @@ import {
   applyRoleRankings,
   buildChapterSynopsis,
   buildRevelationTrack,
+  buildTruthConclusion,
+  pickRecapExcerpt,
   truncateExcerpt
 } from "../src/recap-narrative.js";
 
@@ -60,6 +62,44 @@ test("buildChapterSynopsis weaves readers scenes clues and host nodes", () => {
   assert.match(synopsis, /餐车/);
   assert.match(synopsis, /撕角车票/);
   assert.match(synopsis, /公开第二节/);
+});
+
+test("pickRecapExcerpt prefers creator recapSummary", () => {
+  assert.equal(
+    pickRecapExcerpt({
+      recapSummary: "  局后专用摘要  ",
+      summary: "普通摘要",
+      publicText: "公开正文"
+    }),
+    "局后专用摘要"
+  );
+  assert.equal(
+    pickRecapExcerpt({ summary: "普通摘要", publicText: "公开正文" }),
+    "普通摘要"
+  );
+});
+
+test("buildTruthConclusion merges authored summary with ending rules", () => {
+  const conclusion = buildTruthConclusion({
+    recapTruthSummary: "真凶是车长。",
+    finalChapter: { sequence: 3, title: "终章" },
+    endingTriggers: [{
+      ruleName: "结局A",
+      actionsSummary: "开放复盘"
+    }],
+    hostConfirmedEvents: [{
+      status: "executed",
+      title: "公开真相",
+      description: "可以讨论了"
+    }],
+    stats: { joinedPlayers: 6, cluesDiscovered: 4, investigationsCompleted: 2 },
+    undiscoveredClues: [{ clueName: "隐藏票" }],
+    joinedPlayers: 6
+  });
+  assert.match(conclusion.summary, /真凶是车长/);
+  assert.match(conclusion.summary, /结局A/);
+  assert.equal(conclusion.authoredSummary, "真凶是车长。");
+  assert.ok(conclusion.bullets.some((row) => row.kind === "ending_rule"));
 });
 
 test("applyRoleRankings assigns comparative badges", () => {

@@ -7,6 +7,91 @@ export function truncateExcerpt(text, max = 160) {
   return `${raw.slice(0, max - 1)}…`;
 }
 
+/** Prefer creator-authored recap copy over generic summary/public text. */
+export function pickRecapExcerpt({ recapSummary, summary, publicText, hostText, max = 160 } = {}) {
+  const ordered = [recapSummary, summary, publicText, hostText];
+  for (const candidate of ordered) {
+    const excerpt = truncateExcerpt(candidate, max);
+    if (excerpt) return excerpt;
+  }
+  return "";
+}
+
+const ENDING_RULE_HINT = /结局|终章|复盘|ending|finale|真相/i;
+
+export function isEndingRule(rule = {}) {
+  if (ENDING_RULE_HINT.test(String(rule.ruleName || rule.name || ""))) return true;
+  const actions = rule.actions ?? rule.result?.actions ?? [];
+  return actions.some((action) => ENDING_RULE_HINT.test(String(action.message || action.type || "")));
+}
+
+export function buildTruthConclusion({
+  recapTruthSummary = "",
+  finalChapter = null,
+  endingTriggers = [],
+  hostConfirmedEvents = [],
+  stats = {},
+  undiscoveredClues = [],
+  joinedPlayers = 0
+}) {
+  const bullets = [];
+  const endingRules = endingTriggers.filter(isEndingRule);
+  const otherRules = endingTriggers.filter((rule) => !isEndingRule(rule));
+
+  if (recapTruthSummary) {
+    bullets.push({ kind: "authored", text: truncateExcerpt(recapTruthSummary, 400) });
+  }
+  if (finalChapter?.title) {
+    bullets.push({
+      kind: "progress",
+      text: `故事最远推进至第 ${finalChapter.sequence} 章《${finalChapter.title}》。`
+    });
+  }
+  for (const rule of endingRules) {
+    bullets.push({
+      kind: "ending_rule",
+      text: `结局规则「${rule.ruleName}」已触发：${truncateExcerpt(rule.actionsSummary, 120) || "推进至终局节点"}`
+    });
+  }
+  for (const event of hostConfirmedEvents.filter((row) => row.status === "executed").slice(-3)) {
+    bullets.push({
+      kind: "host",
+      text: `主持确认「${event.title}」${event.description ? `：${truncateExcerpt(event.description, 100)}` : ""}`
+    });
+  }
+  for (const rule of otherRules.slice(-2)) {
+    bullets.push({
+      kind: "rule",
+      text: `规则「${rule.ruleName}」触发：${truncateExcerpt(rule.actionsSummary, 100)}`
+    });
+  }
+  if (joinedPlayers || stats.joinedPlayers) {
+    const count = joinedPlayers || stats.joinedPlayers || 0;
+    bullets.push({
+      kind: "stats",
+      text: `${count} 名玩家参与本局，${stats.cluesDiscovered ?? 0} 条线索进入流转，${stats.investigationsCompleted ?? 0} 次调查完成。`
+    });
+  }
+  if (undiscoveredClues?.length) {
+    bullets.push({
+      kind: "missed",
+      text: `另有 ${undiscoveredClues.length} 条世界线索未在本局被任何角色获得。`
+    });
+  }
+
+  const autoParts = bullets.filter((row) => row.kind !== "authored").map((row) => row.text);
+  const summary = recapTruthSummary
+    ? [truncateExcerpt(recapTruthSummary, 400), autoParts.join(" ")].filter(Boolean).join(" ")
+    : autoParts.join(" ");
+
+  return {
+    summary: truncateExcerpt(summary, 600) || "本局主要推进与揭示见上方时间线与角色表现。",
+    bullets,
+    authoredSummary: recapTruthSummary ? truncateExcerpt(recapTruthSummary, 400) : "",
+    autoSummary: autoParts.join(" ")
+  };
+}
+
 export function buildRevelationTrack({ hostConfirmedEvents = [], endingTriggers = [], clueDiscovery = [], worldCluesById = new Map() }) {
   const rows = [];
   for (const event of hostConfirmedEvents) {
@@ -89,19 +174,30 @@ export function buildPlotSpineForChapter({
 }) {
   const nodes = [];
   const chapterSummary = chapter.summary || chapter.chapter_summary;
-  if (chapterSummary) {
+  const chapterRecap = chapter.metadata?.recapSummary || chapter.recapSummary;
+  const introExcerpt = pickRecapExcerpt({
+    recapSummary: chapterRecap,
+    summary: chapterSummary,
+    max: 240
+  });
+  if (introExcerpt) {
     nodes.push({
       kind: "chapter_intro",
       at: beats[0]?.at ?? null,
       title: chapter.title,
-      excerpt: truncateExcerpt(chapterSummary, 240)
+      excerpt: introExcerpt
     });
   }
   const sortedBeats = [...beats].sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
   for (const beat of sortedBeats) {
     if (beat.kind === "scene_unlock" && beat.sceneId) {
       const scene = worldScenesById.get(beat.sceneId);
-      const excerpt = truncateExcerpt(scene?.publicText || scene?.public_text, 180);
+      const excerpt = pickRecapExcerpt({
+        recapSummary: scene?.metadata?.recapSummary || scene?.recapSummary,
+        summary: scene?.metadata?.summary,
+        publicText: scene?.publicText || scene?.public_text,
+        max: 180
+      });
       if (excerpt) {
         nodes.push({
           kind: "scene_public",

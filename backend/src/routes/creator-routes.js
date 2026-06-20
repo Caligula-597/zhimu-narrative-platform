@@ -170,11 +170,15 @@ export async function registerCreatorRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, chapterId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const { title, summary = "", publicationStatus = "draft", unlockRules = {} } = request.body ?? {};
+    const { title, summary = "", publicationStatus = "draft", unlockRules = {}, metadata = {} } = request.body ?? {};
+    const current = await query(`SELECT metadata FROM chapters WHERE id = $1 AND world_id = $2`, [chapterId, worldId]);
+    if (!current.rowCount) return sendErr(reply, "CHAPTER_NOT_FOUND");
+    const mergedMeta = { ...(current.rows[0].metadata ?? {}), ...metadata };
     const result = await query(
-      `UPDATE chapters SET title = $1, summary = $2, publication_status = $3, unlock_rules = $4::jsonb, updated_at = now()
-       WHERE id = $5 AND world_id = $6 RETURNING *`,
-      [title, summary, publicationStatus, JSON.stringify(unlockRules), chapterId, worldId]
+      `UPDATE chapters SET title = $1, summary = $2, publication_status = $3, unlock_rules = $4::jsonb,
+              metadata = $5::jsonb, updated_at = now()
+       WHERE id = $6 AND world_id = $7 RETURNING *`,
+      [title, summary, publicationStatus, JSON.stringify(unlockRules), JSON.stringify(mergedMeta), chapterId, worldId]
     );
     if (!result.rowCount) return sendErr(reply, "CHAPTER_NOT_FOUND");
     return result.rows[0];

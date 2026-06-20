@@ -50,6 +50,14 @@ function renderRevelationTrack(track) {
   );
 }
 
+function renderTruthConclusion(truthConclusion) {
+  if (!truthConclusion?.summary) return "";
+  return recapSection(
+    "本局结论",
+    `<p class="recap-lede">${escapeHtml(truthConclusion.summary)}</p>`
+  );
+}
+
 function renderStoryNarrative(storyNarrative) {
   if (!storyNarrative) return "";
   const opening = storyNarrative.opening ?? {};
@@ -92,7 +100,7 @@ function renderStoryNarrative(storyNarrative) {
     ? `<p class="muted" style="margin-top:10px">仍有 ${epilogue.undiscoveredClues.length} 条世界线索未被任何角色获得。</p>`
     : "";
 
-  return `${renderRevelationTrack(storyNarrative.revelationTrack)}${recapSection(
+  return `${renderRevelationTrack(storyNarrative.revelationTrack)}${renderTruthConclusion(epilogue.truthConclusion)}${recapSection(
     "全剧脉络 · 上帝视角",
     `<div class="recap-narrative-opening">
       <p class="recap-lede">${escapeHtml(opening.summary || "")}</p>
