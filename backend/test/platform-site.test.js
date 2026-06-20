@@ -47,6 +47,8 @@ test("GET /api/platform/site returns marketing bootstrap without auth", async (c
   assert.ok(body.officialExample);
   assert.ok(body.catalog);
   assert.equal(body.apis.site, "/api/platform/site");
+  assert.ok(body.pricing?.launch?.tiers?.length >= 3);
+  assert.ok(body.pricing?.commercial?.prepared);
   assert.ok(body.fetchedAt);
 });
 

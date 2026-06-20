@@ -191,6 +191,70 @@ export function pilotFollowupEmailHtml({ displayName }) {
   };
 }
 
+/** 人工收款到账确认（工作室版 / 年费） */
+export function paymentReceivedEmailHtml({ displayName, email, planLabel, amount, periodNote }) {
+  const bodyHtml = `<p style="margin:0 0 12px">你好，${escapeHtml(displayName)}，</p>
+<p style="margin:0 0 12px">我们已确认收到你的付款，账号（<strong>${escapeHtml(email)}</strong>）将开通或续期 <strong>${escapeHtml(planLabel)}</strong>。</p>
+<table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px">
+  <tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:${BRAND.muted}">金额</td><td style="padding:8px 12px;border-bottom:1px solid #eee"><strong>${escapeHtml(amount)}</strong></td></tr>
+  <tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:${BRAND.muted}">周期</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${escapeHtml(periodNote || "按合同约定")}</td></tr>
+</table>
+<p style="margin:0;font-size:14px">套餐权限将在 <strong>1 个工作日内</strong>生效；请刷新账号设置查看配额。发票如需另行开具，请回复本邮件说明抬头与税号。</p>`;
+  return {
+    subject: "织幕 · 付款已确认",
+    html: brandedEmailHtml({
+      title: "付款已确认",
+      preview: planLabel,
+      bodyHtml,
+      ctaUrl: appUrl(),
+      ctaLabel: "打开织幕",
+      replyFriendly: true
+    })
+  };
+}
+
+/** 对公汇款 / 账单说明（待付款） */
+export function studioInvoiceEmailHtml({ displayName, planLabel, amount, periodNote, paymentNote }) {
+  const bodyHtml = `<p style="margin:0 0 12px">你好，${escapeHtml(displayName)}，</p>
+<p style="margin:0 0 12px">感谢选择织幕 <strong>${escapeHtml(planLabel)}</strong>。请按下方信息完成付款，我们在确认到账后为你开通账号权限。</p>
+<table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px">
+  <tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:${BRAND.muted}">应付金额</td><td style="padding:8px 12px;border-bottom:1px solid #eee"><strong>${escapeHtml(amount)}</strong></td></tr>
+  <tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:${BRAND.muted}">服务周期</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${escapeHtml(periodNote || "1 年")}</td></tr>
+</table>
+${calloutHtml(paymentNote || "汇款时请备注团队名称与注册邮箱。到账后 1 个工作日内开通。")}
+<p style="margin:0;color:${BRAND.muted};font-size:14px">付款完成后请回复本邮件并附上转账截图，便于我们尽快处理。</p>`;
+  return {
+    subject: `织幕 · ${planLabel} 账单与汇款说明`,
+    html: brandedEmailHtml({
+      title: "账单与汇款说明",
+      preview: amount,
+      bodyHtml,
+      replyFriendly: true
+    })
+  };
+}
+
+/** 报价单（人工发送，不含支付链接） */
+export function planQuoteEmailHtml({ displayName, planLabel, amountMonthly, amountYearly, validUntil }) {
+  const bodyHtml = `<p style="margin:0 0 12px">你好，${escapeHtml(displayName)}，</p>
+<p style="margin:0 0 12px">根据你的团队规模，我们建议 <strong>${escapeHtml(planLabel)}</strong> 档位，权益与官网标价页一致。</p>
+<table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px">
+  <tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:${BRAND.muted}">月付参考</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${escapeHtml(amountMonthly || "—")}</td></tr>
+  <tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:${BRAND.muted}">年付参考</td><td style="padding:8px 12px;border-bottom:1px solid #eee"><strong>${escapeHtml(amountYearly || "—")}</strong></td></tr>
+  <tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:${BRAND.muted}">报价有效期</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${escapeHtml(validUntil || "30 天")}</td></tr>
+</table>
+<p style="margin:0;font-size:14px">内测期仍通过人工开通，暂无在线支付。若确认购买，请回复本邮件，我们将发送汇款说明与合同模板。</p>`;
+  return {
+    subject: `织幕 · ${planLabel} 报价`,
+    html: brandedEmailHtml({
+      title: "套餐报价",
+      preview: planLabel,
+      bodyHtml,
+      replyFriendly: true
+    })
+  };
+}
+
 export const SUPPORT_EMAIL_TEMPLATES = {
   "beta-reject": {
     label: "内测拒审",
@@ -226,5 +290,20 @@ export const SUPPORT_EMAIL_TEMPLATES = {
     label: "首场试跑跟进",
     required: ["displayName"],
     build: pilotFollowupEmailHtml
+  },
+  "payment-received": {
+    label: "付款已确认（人工收款）",
+    required: ["displayName", "email", "planLabel", "amount"],
+    build: paymentReceivedEmailHtml
+  },
+  "studio-invoice": {
+    label: "账单与汇款说明",
+    required: ["displayName", "planLabel", "amount"],
+    build: studioInvoiceEmailHtml
+  },
+  "plan-quote": {
+    label: "套餐报价单",
+    required: ["displayName", "planLabel", "amountYearly"],
+    build: planQuoteEmailHtml
   }
 };

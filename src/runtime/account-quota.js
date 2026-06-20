@@ -4,14 +4,21 @@
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatBytes = F.formatBytes || (() => "");
 
-  function renderPlanComparison(publicPlans, currentPlanCode) {
+  function renderPlanComparison(publicPlans, currentPlanCode, pricing) {
     if (!publicPlans?.length) return "";
+    const showPrices = pricing?.commercial?.public;
+    const prices = pricing?.commercial?.tierPricesByCode || {};
     const rows = publicPlans
       .map((plan) => {
         const isCurrent = plan.code === currentPlanCode;
         const limits = plan.limits || {};
+        const price = prices[plan.code];
+        const priceCell =
+          showPrices && price
+            ? `<br><span class="muted-note">${price.monthly ? `¥${price.monthly}/月` : ""}${price.yearly ? ` · 年付 ¥${price.yearly}` : ""}</span>`
+            : "";
         return `<tr class="${isCurrent ? "plan-row-current" : ""}">
-          <td><strong>${escapeHtml(plan.label)}</strong>${isCurrent ? ` <span class="cloud-pill">当前</span>` : ""}<br><span class="muted-note">${escapeHtml(plan.description || "")}</span></td>
+          <td><strong>${escapeHtml(plan.label)}</strong>${isCurrent ? ` <span class="cloud-pill">当前</span>` : ""}${priceCell}<br><span class="muted-note">${escapeHtml(plan.description || "")}</span></td>
           <td>${limits.maxWorlds ?? "—"} 个</td>
           <td>${formatBytes(limits.maxBytes || 0)}</td>
           <td>${formatBytes(limits.maxSingleFileBytes || 0)}</td>
@@ -19,6 +26,25 @@
       })
       .join("");
     return `<div class="plan-compare-wrap"><table class="plan-compare"><thead><tr><th>档位</th><th>剧本数</th><th>云存储</th><th>单文件</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  function renderLaunchPricingCta(pricing, upgrade) {
+    const launch = pricing?.launch;
+    if (!launch?.active) return "";
+    const support = escapeHtml(upgrade?.supportEmail || pricing?.supportEmail || "support@getzhimu.com");
+    const inApp = launch.cta?.inAppUrl
+      ? `<a class="secondary-btn" href="${escapeHtml(launch.cta.inAppUrl)}" target="_blank" rel="noopener">${escapeHtml(launch.cta.inAppLabel || "登录后申请")}</a>`
+      : "";
+    const email = launch.cta?.emailUrl
+      ? `<a class="secondary-btn" href="${escapeHtml(launch.cta.emailUrl)}">${escapeHtml(launch.cta.emailLabel || "邮件申请")}</a>`
+      : "";
+    return `<div class="plan-launch-cta" style="margin-top:14px;padding:12px 14px;background:#f8f5ee;border-radius:8px"><p class="muted-note" style="margin:0 0 8px"><strong>${escapeHtml(launch.headline || "内测期免费")}</strong> · ${escapeHtml(launch.subline || "")}</p><div class="row" style="gap:8px;flex-wrap:wrap">${inApp}${email}</div><p class="muted-note" style="margin:8px 0 0">也可在上方点击「申请 XX」提交表单，由 ${support} 人工审核（1～3 个工作日）。</p></div>`;
+  }
+
+  function renderCommercialPricingNote(pricing) {
+    const commercial = pricing?.commercial;
+    if (!commercial?.public) return "";
+    return `<p class="muted-note" style="margin-top:12px">标价页已公开（草案）。在线支付尚未开放，购买仍请联系 ${escapeHtml(pricing?.supportEmail || "support@getzhimu.com")}。</p>`;
   }
 
   function renderUpgradeActions(upgrade, currentPlanCode) {
@@ -52,11 +78,15 @@
     }
     const upgrade = entitlements?.upgrade;
     const publicPlans = entitlements?.publicPlans;
+    const pricing = entitlements?.pricing;
     const storagePct = usage.storagePercent ?? (usage.maxBytes ? Math.min(100, Math.round((usage.usedBytes || 0) / usage.maxBytes * 100)) : 0);
     const worldsPct = usage.worldsPercent ?? (usage.maxWorlds ? Math.min(100, Math.round((usage.usedWorlds || 0) / usage.maxWorlds * 100)) : 0);
     const betaNote = usage.isInternalBeta ? `<span class="cloud-pill" style="margin-left:6px">内测</span>` : "";
-    const policyNote = `<p class="muted-note" style="margin-top:12px">暂无在线支付。配额不足可<strong>申请升级</strong>，由 ${escapeHtml(upgrade?.supportEmail || "support@getzhimu.com")} 人工审核开通。</p>`;
-    return `<section class="form-group account-quota-section"><h3>套餐与配额</h3><div class="row" style="align-items:center;gap:8px;margin-bottom:10px"><span class="cloud-pill">${escapeHtml(usage.planLabel || usage.planCode || "免费版")}</span>${betaNote}</div>${usage.planDescription ? `<p class="muted-note" style="margin-bottom:10px">${escapeHtml(usage.planDescription)}</p>` : ""}<p class="muted-note" style="margin-bottom:6px">云存储 · ${formatBytes(usage.usedBytes || 0)} / ${formatBytes(usage.maxBytes || 0)}</p><div class="usage-bar"><i style="width:${storagePct}%"></i></div><div class="status-meta"><span>已用 ${storagePct}%</span><span>剩余 ${formatBytes(usage.remainingBytes ?? 0)}</span></div><p class="muted-note" style="margin-top:14px;margin-bottom:6px">可创建剧本 · ${usage.usedWorlds ?? 0} / ${usage.maxWorlds ?? 0}</p><div class="usage-bar"><i style="width:${worldsPct}%"></i></div><div class="status-meta"><span>已用 ${worldsPct}%</span><span>剩余 ${usage.remainingWorlds ?? 0} 个</span></div><p class="muted-note" style="margin-top:10px">单文件上限 ${formatBytes(usage.maxSingleFileBytes || 0)}</p>${renderPlanComparison(publicPlans, usage.planCode)}${renderUpgradeActions(upgrade, usage.planCode)}${policyNote}</section>`;
+    const policyNote =
+      pricing?.mode === "commercial" && pricing?.commercial?.public
+        ? `<p class="muted-note" style="margin-top:12px">在线支付筹备中。配额升级仍请<strong>申请升级</strong>或邮件 ${escapeHtml(upgrade?.supportEmail || pricing?.supportEmail || "support@getzhimu.com")}。</p>`
+        : `<p class="muted-note" style="margin-top:12px">暂无在线支付。配额不足可<strong>申请升级</strong>，由 ${escapeHtml(upgrade?.supportEmail || pricing?.supportEmail || "support@getzhimu.com")} 人工审核开通。</p>`;
+    return `<section class="form-group account-quota-section"><h3>套餐与配额</h3><div class="row" style="align-items:center;gap:8px;margin-bottom:10px"><span class="cloud-pill">${escapeHtml(usage.planLabel || usage.planCode || "免费版")}</span>${betaNote}</div>${usage.planDescription ? `<p class="muted-note" style="margin-bottom:10px">${escapeHtml(usage.planDescription)}</p>` : ""}<p class="muted-note" style="margin-bottom:6px">云存储 · ${formatBytes(usage.usedBytes || 0)} / ${formatBytes(usage.maxBytes || 0)}</p><div class="usage-bar"><i style="width:${storagePct}%"></i></div><div class="status-meta"><span>已用 ${storagePct}%</span><span>剩余 ${formatBytes(usage.remainingBytes ?? 0)}</span></div><p class="muted-note" style="margin-top:14px;margin-bottom:6px">可创建剧本 · ${usage.usedWorlds ?? 0} / ${usage.maxWorlds ?? 0}</p><div class="usage-bar"><i style="width:${worldsPct}%"></i></div><div class="status-meta"><span>已用 ${worldsPct}%</span><span>剩余 ${usage.remainingWorlds ?? 0} 个</span></div><p class="muted-note" style="margin-top:10px">单文件上限 ${formatBytes(usage.maxSingleFileBytes || 0)}</p>${renderPlanComparison(publicPlans, usage.planCode, pricing)}${renderUpgradeActions(upgrade, usage.planCode)}${renderLaunchPricingCta(pricing, upgrade)}${renderCommercialPricingNote(pricing)}${policyNote}</section>`;
   }
 
   window.zhimuAccountQuota = { renderQuotaSection };

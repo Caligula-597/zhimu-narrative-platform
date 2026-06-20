@@ -46,6 +46,8 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/scripts/render-support-email", ["test/support-templates.test.js"]],
   ["backend/src/world-cover", ["test/world-cover.test.js", "test/platform-site.test.js"]],
   ["backend/src/platform-site", ["test/platform-site.test.js"]],
+  ["backend/src/pricing-pages", ["test/pricing-pages.test.js", "test/platform-site.test.js"]],
+  ["backend/src/account-entitlements", ["test/account-entitlements.test.js", "test/plan-upgrade-request.test.js"]],
   ["backend/src/recap-narrative", ["test/recap-narrative.test.js", "test/recap.test.js"]],
   ["backend/src/routes/recap-helpers", ["test/recap.test.js", "test/recap-narrative.test.js"]],
   ["backend/src/routes/recap-routes", ["test/recap.test.js"]],

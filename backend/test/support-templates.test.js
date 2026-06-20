@@ -31,5 +31,8 @@ test("importDeliveryEmailHtml embeds invite join link", () => {
 test("SUPPORT_EMAIL_TEMPLATES registry covers manual ops templates", () => {
   assert.ok(SUPPORT_EMAIL_TEMPLATES["import-ack"]);
   assert.ok(SUPPORT_EMAIL_TEMPLATES["import-delivery"]);
+  assert.ok(SUPPORT_EMAIL_TEMPLATES["payment-received"]);
+  assert.ok(SUPPORT_EMAIL_TEMPLATES["studio-invoice"]);
+  assert.ok(SUPPORT_EMAIL_TEMPLATES["plan-quote"]);
   assert.equal(SUPPORT_EMAIL_TEMPLATES["beta-reject"].required.includes("note"), true);
 });

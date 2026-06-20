@@ -27,6 +27,18 @@ node backend/scripts/render-support-email.mjs import-delivery \
 # 套餐升级后通知
 node backend/scripts/render-support-email.mjs plan-upgraded \
   --displayName=李四 --email=lisi@example.com --planLabel=创作者版 --out=upgrade.html
+
+# 付款已确认（人工收款）
+node backend/scripts/render-support-email.mjs payment-received \
+  --displayName=李四 --email=lisi@example.com --planLabel=工作室版 --amount=¥2980 --periodNote=2026年度 --out=payment.html
+
+# 账单与汇款说明
+node backend/scripts/render-support-email.mjs studio-invoice \
+  --displayName=某某工作室 --planLabel=工作室版 --amount=¥2980/年 --paymentNote="对公账户信息见附录" --out=invoice.html
+
+# 套餐报价单
+node backend/scripts/render-support-email.mjs plan-quote \
+  --displayName=王五 --planLabel=创作者版 --amountYearly=¥688/年 --amountMonthly=¥68/月 --out=quote.html
 ```
 
 将 `--out` 文件在 Resend「Send email」或邮件客户端以 HTML 发出；主题行以命令输出的 `Subject:` 为准。
@@ -65,6 +77,9 @@ python -m http.server 8765 --directory docs/ops/email-previews
 | `import-delivery` | **导入完成**交付邀请码 | `--displayName` `--worldName` `--inviteCode` |
 | `plan-upgraded` | Ops 改 plan 后通知 | `--displayName` `--email` `--planLabel` |
 | `quota-adjusted` | 临时扩容说明 | `--displayName` `--email` `--note` |
+| `payment-received` | 人工收款到账确认 | `--displayName` `--email` `--planLabel` `--amount` |
+| `studio-invoice` | 账单与汇款说明（待付款） | `--displayName` `--planLabel` `--amount` |
+| `plan-quote` | 套餐报价单 | `--displayName` `--planLabel` `--amountYearly` |
 | `pilot-followup` | 首场试跑后跟进 | `--displayName` |
 
 导入相关为何必须手动 → [IMPORT_EMAIL_AND_NO_API_ZH.md](./IMPORT_EMAIL_AND_NO_API_ZH.md)

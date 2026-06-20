@@ -4,6 +4,7 @@
 import { getBetaApplicationFormConfig } from "./beta-apply.js";
 import { loadOfficialExampleSnapshot } from "./official-example.js";
 import { listPublicCatalogPreview } from "./platform-catalog-preview.js";
+import { buildPricingPayload, getPricingPageMode } from "./pricing-pages.js";
 
 export function getPlatformLinks() {
   const appUrl = (process.env.APP_PUBLIC_URL || "").replace(/\/$/, "");
@@ -35,6 +36,10 @@ export async function loadMarketingSitePayload() {
 
   const links = getPlatformLinks();
   const beta = getBetaApplicationFormConfig();
+  const pricing = buildPricingPayload({
+    appUrl: links.appUrl,
+    marketingUrl: links.marketingSiteUrl
+  });
 
   return {
     fetchedAt: new Date().toISOString(),
@@ -42,10 +47,14 @@ export async function loadMarketingSitePayload() {
       name: "织幕",
       tagline: "线上剧本杀与跑团的自动化叙事引擎",
       stage: "beta",
-      pricingNote: "内测期间免费使用，无订阅或充值入口。"
+      pricingNote:
+        getPricingPageMode() === "commercial"
+          ? "标价页已预备，在线支付尚未开放。"
+          : "内测期间免费使用，无订阅或充值入口。"
     },
     links,
     beta,
+    pricing,
     officialExample,
     catalog,
     apis: {

@@ -1200,3 +1200,117 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+.hidden {
+  display: none !important;
+}
+
+.pricing-section,
+.pricing-commercial-main {
+  width: var(--content);
+  margin: 0 auto;
+  padding: clamp(68px, 9vw, 112px) 0;
+}
+
+.pricing-lead {
+  max-width: 52ch;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-top: 12px;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.pricing-card {
+  padding: 22px 20px;
+  border: 1px solid rgba(20, 35, 33, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.pricing-card-featured {
+  border-color: var(--brass, #a7783d);
+  box-shadow: 0 12px 40px rgba(167, 120, 61, 0.12);
+}
+
+.pricing-card h3 {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+}
+
+.pricing-desc {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.pricing-card ul {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+.pricing-price {
+  margin: 0 0 4px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--ink, #142321);
+}
+
+.pricing-price small {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.pricing-year {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.pricing-price-note {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pricing-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.pricing-foot {
+  margin-top: 18px;
+  font-size: 13px;
+}
+
+.pricing-commercial-banner {
+  margin: 24px auto 0;
+  width: var(--content);
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fff8e8;
+  border: 1px solid #e8d4a8;
+  font-size: 14px;
+}
+
+.pricing-commercial-page .pricing-commercial-main {
+  padding-top: 32px;
+}
+
+@media (max-width: 900px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -36,6 +36,63 @@ function applySiteLinks(links = {}) {
   });
 }
 
+function escapeHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderLaunchPricingTier(tier) {
+  const featured = tier.code === "creator" ? " pricing-card-featured" : "";
+  return `<article class="pricing-card${featured}">
+    <h3>${escapeHtml(tier.label)}</h3>
+    <p class="pricing-desc">${escapeHtml(tier.description || "")}</p>
+    <ul>
+      <li>${escapeHtml(tier.limitsDisplay?.maxWorlds || "")}</li>
+      <li>${escapeHtml(tier.limitsDisplay?.maxBytes || "")} 云存储</li>
+      <li>单文件 ${escapeHtml(tier.limitsDisplay?.maxSingleFileBytes || "")}</li>
+    </ul>
+  </article>`;
+}
+
+function applyPricingBootstrap(pricing = {}) {
+  const launch = pricing.launch;
+  if (!launch) return;
+
+  const lead = document.querySelector("[data-pricing-lead]");
+  if (lead && launch.subline) lead.textContent = launch.subline;
+
+  const tiersEl = document.querySelector("[data-pricing-tiers]");
+  if (tiersEl && launch.tiers?.length) {
+    tiersEl.innerHTML = launch.tiers.map(renderLaunchPricingTier).join("");
+  }
+
+  const inApp = document.querySelector("[data-pricing-in-app]");
+  if (inApp && launch.cta?.inAppUrl) {
+    inApp.setAttribute("href", launch.cta.inAppUrl);
+    if (launch.cta.inAppLabel) inApp.textContent = launch.cta.inAppLabel;
+  }
+
+  const email = document.querySelector("[data-pricing-email]");
+  if (email && launch.cta?.emailUrl) {
+    email.setAttribute("href", launch.cta.emailUrl);
+    if (launch.cta.emailLabel) email.textContent = launch.cta.emailLabel;
+  }
+
+  const commercialNav = document.querySelector("[data-pricing-commercial-nav]");
+  if (commercialNav && pricing.commercial?.public) {
+    commercialNav.classList.remove("hidden");
+    commercialNav.removeAttribute("hidden");
+  }
+
+  const foot = document.querySelector("[data-pricing-footnote]");
+  if (foot && pricing.commercial?.public) {
+    foot.innerHTML = `在线支付筹备中，当前仍通过人工开通。标价详见 <a href="/pricing-commercial.html">定价草案页</a>。`;
+  }
+}
+
 async function loadSiteBootstrap() {
   if (["localhost", "127.0.0.1"].includes(window.location.hostname)) return;
 
@@ -44,6 +101,7 @@ async function loadSiteBootstrap() {
     if (!response.ok) return;
     const payload = await response.json();
     applySiteLinks(payload.links);
+    applyPricingBootstrap(payload.pricing);
     if (payload.beta?.acceptingApplications === false && formStatus) {
       formStatus.textContent = "内测申请暂未开放，可先直接注册体验。";
     }

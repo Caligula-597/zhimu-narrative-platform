@@ -49,6 +49,15 @@ POST https://app.getzhimu.com/api/platform/beta/apply
 | `#workflow` | 四步工作流 | |
 | `#import` | 预约导入剧本 | 邮件 CTA + 链到 `#beta-import` |
 | `#beta` | 内测申请表 | `data-beta-form` → `POST /api/platform/beta/apply` |
+| `#pricing` | **上市套餐**（人工开通） | 静态兜底 + `GET /api/platform/site` → `pricing.launch` |
+| `/pricing-commercial.html` | **标价草案**（未索引） | `pricing-commercial.js` → `pricing.commercial`；`COMMERCIAL_PRICING_PUBLIC=true` 时在首页导航显示链接 |
+
+**定价页模式**（后端 env）：
+
+| 变量 | 默认 | 说明 |
+|------|------|------|
+| `PRICING_PAGE_MODE` | `launch` | `launch` = 上市页（表单/邮件升配额）；`commercial` = 产品文案切到标价模式 |
+| `COMMERCIAL_PRICING_PUBLIC` | 未设/false | `true` 时在官网导航露出「标价（草案）」链接 |
 
 **导入意向预填**：访问 `#beta-import` 时 `main.js` 会预填 `useCase` 并选中「创作+主持」（见 `applyImportIntentPrefill`）。
 

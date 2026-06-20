@@ -10,6 +10,7 @@ import {
   PLAN_DEFAULTS
 } from "./plans.js";
 import { buildPlanUpgradeMeta, buildPublicPlanCards } from "./plan-upgrade-request.js";
+import { buildPricingPayload } from "./pricing-pages.js";
 import { storageUsage } from "./routes/world-helpers.js";
 
 export async function resolveAccountCapabilities(userId) {
@@ -34,6 +35,8 @@ export async function buildAccountEntitlements(userId) {
   const meta = planMeta(planCode);
   const planDefaults = PLAN_DEFAULTS[planCode] ?? PLAN_DEFAULTS.free;
   const upgrade = await buildPlanUpgradeMeta(userId, planCode);
+  const appUrl = (process.env.APP_PUBLIC_URL || "").replace(/\/$/, "");
+  const pricing = buildPricingPayload({ appUrl: appUrl || undefined });
 
   return {
     userKind: access.userKind,
@@ -64,7 +67,8 @@ export async function buildAccountEntitlements(userId) {
     ),
     capabilities: access.capabilities,
     upgrade,
-    publicPlans: buildPublicPlanCards()
+    publicPlans: buildPublicPlanCards(),
+    pricing
   };
 }
 
