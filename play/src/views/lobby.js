@@ -27,6 +27,9 @@ export function renderLobby() {
             .map(
               (room) => `
             <article class="lobby-card card">
+              ${room.worldCoverUrl
+                ? `<div class="lobby-card-cover"><img src="${escapeHtml(room.worldCoverUrl)}" alt="" loading="lazy" decoding="async" /></div>`
+                : `<div class="lobby-card-cover lobby-card-cover-fallback" aria-hidden="true"><span>${escapeHtml((room.worldName || "本")[0])}</span></div>`}
               <div class="lobby-card-head">
                 <p class="eyebrow">${escapeHtml(room.worldName)}</p>
                 <h3>${escapeHtml(room.roomName)}</h3>

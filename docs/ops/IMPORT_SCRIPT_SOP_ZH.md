@@ -7,9 +7,19 @@
 
 ## 0. 前置条件
 
-- 客户已登记于 [PILOT_TRACKER.md](./PILOT_TRACKER.md)
+- 客户已登记于 [PILOT_TRACKER.md](./PILOT_TRACKER.md)（**当前表格为空模板，须运营填写真实团队后再引用**）
 - 支持邮箱已验证的创作者账号（或 ops 代建世界后移交 owner）
 - 本地/预发环境：`DATABASE_URL` + `npm run bootstrap:local`（见 [REMOTE_TESTING.md](./REMOTE_TESTING.md)）
+
+### 0.1 客户从哪来（已实现的入口）
+
+| 来源 | 路径 | 说明 |
+|------|------|------|
+| 官网导入 CTA | `getzhimu.com#import` | 邮件 `support@getzhimu.com` 或 `#beta-import` 表单 |
+| 内测申请 | `POST /api/platform/beta/apply` | 通用内测，非专用导入工单 |
+| 套餐升级 | `POST /api/account/plan-upgrade-request` | 已登录创作者扩容；见 [PLAN_UPGRADE_SOP_ZH.md](./PLAN_UPGRADE_SOP_ZH.md) |
+
+**尚无**独立「导入工单」API；收到邮件/表单后人工在 PILOT_TRACKER 登记并走下文流程。
 
 ---
 

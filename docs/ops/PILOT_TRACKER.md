@@ -1,6 +1,7 @@
 # 内测试点团队追踪（P1-08）
 
 > 由产品/运营维护。可复制到 Notion/飞书；本文件为仓库内备份。  
+> **当前无已登记团队**（下表为空白模板）。官网 `#case-study` 文案为占位，**不得**与本表混用，直至填入真实试点后再同步替换 site。  
 > 决策背景：[DESIGN_DECISIONS_NEEDED_ZH.md](../DESIGN_DECISIONS_NEEDED_ZH.md)
 
 ---

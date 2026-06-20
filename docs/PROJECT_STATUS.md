@@ -8,7 +8,7 @@
 
 > **策略**：**后端与运维优先**；前端功能与 UI 在 backend Beta 门禁达标后再排期。  
 
-> **验收数字**（2026-06-19）：见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) · **341** 单测 · **61** schema · **44** UI smoke · **15** E2E · **23** play 单测
+> **验收数字**（2026-06-20）：见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) · **347** 单测 · **62** schema · **44** UI smoke · **15** E2E · **23** play 单测
 
 
 
@@ -126,9 +126,9 @@
 
 |------|------|
 
-| `backend npm test` | **341** |
+| `backend npm test` | **347** |
 
-| `npm run check:schemas` | **61** 条路由 |
+| `npm run check:schemas` | **62** 条路由 |
 
 | `npm run check:tests` | ≥100 |
 

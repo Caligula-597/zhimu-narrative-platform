@@ -209,6 +209,10 @@
         if (state.view === "director" || state.view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           await R.refreshHostEvents?.(false, true);
+        } else if (state.view === "player" && data.roleSlotId === state.cloudPlayer?.role?.id) {
+          await refreshExploration();
+          await refreshPlayerHome();
+          showToast("调查点已完成 · 请查看探索页", 3200);
         }
         break;
       case "room.scene_unlocked":

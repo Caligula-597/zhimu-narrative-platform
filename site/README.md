@@ -39,6 +39,21 @@ const links = {
 POST https://app.getzhimu.com/api/platform/beta/apply
 ```
 
+## 页面结构（`index.html`）
+
+| 锚点 | 内容 | 说明 |
+|------|------|------|
+| `#product` | 四模块定位 | 创作/编排/主持/玩家 |
+| `#showcase` | 产品界面三栏 | 复用 `site-preview.svg` 示意，**非真实产品截图** |
+| `#case-study` | 试点案例叙事 | **占位文案**，不对应仓库内 PILOT_TRACKER 任何一行；真实案例待运营替换 |
+| `#workflow` | 四步工作流 | |
+| `#import` | 预约导入剧本 | 邮件 CTA + 链到 `#beta-import` |
+| `#beta` | 内测申请表 | `data-beta-form` → `POST /api/platform/beta/apply` |
+
+**导入意向预填**：访问 `#beta-import` 时 `main.js` 会预填 `useCase` 并选中「创作+主持」（见 `applyImportIntentPrefill`）。
+
+**邮件预约导入**：`mailto:support@getzhimu.com?subject=预约导入剧本`（见 `#import` 内 `data-import-mailto`）。
+
 生产环境需要在后端设置：
 
 ```text

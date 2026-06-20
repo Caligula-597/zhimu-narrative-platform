@@ -375,12 +375,25 @@ function gameTabDefinitions() {
   ];
 }
 
+function renderTabBadge(id, badge) {
+  const pulse = state.tabPulse?.[id] && state.tab !== id;
+  const count = state.tabPulseCount?.[id] || 0;
+  const parts = [];
+  if (badge) parts.push(`<span class="tab-badge">${badge}</span>`);
+  if (pulse && count > 0) {
+    parts.push(`<span class="tab-badge tab-badge-new">+${count > 9 ? "9+" : count}</span>`);
+  } else if (pulse) {
+    parts.push(`<span class="tab-pulse-dot" aria-label="有新内容"></span>`);
+  }
+  return parts.join("");
+}
+
 export function renderGameTabBar() {
   return gameTabDefinitions()
     .map(
       ([id, label, badge]) => `
             <button type="button" role="tab" aria-selected="${state.tab === id ? "true" : "false"}" id="play-tab-${id}" class="tab ${state.tab === id ? "is-active" : ""}${state.tabPulse?.[id] ? " tab-has-pulse" : ""}" data-action="switch-tab" data-tab="${id}">
-              ${label}${badge ? `<span class="tab-badge">${badge}</span>` : ""}
+              ${label}${renderTabBadge(id, badge)}
             </button>`
     )
     .join("");

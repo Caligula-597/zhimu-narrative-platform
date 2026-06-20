@@ -1,6 +1,6 @@
 # 安全与测试收口记录
 
-日期：2026-06-18（主持—玩家联动 · **341** 项测试）
+日期：2026-06-20（**347** 项测试 · **62** schema 路由）
 
 > **原则**：测试桩 UUID 仅用于 CI/smoke；产品功能不得硬编码单一剧本。见 [docs/WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)。  
 > **系统设计**：[docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md)
@@ -14,7 +14,7 @@
 - 前端检测到正式 session token 后，不再发送 demo `x-user-id`。
 - Fastify 统一 HTTP 安全响应头（`X-Frame-Options`、`nosniff`、生产 HSTS 等）。
 - 资产上传：MIME 白名单 + **扩展名黑名单**（`asset-policy.js`）。
-- **运行/创作写路由** Fastify schema（`check:schemas` **61** 条门禁）。
+- **运行/创作写路由** Fastify schema（`check:schemas` **62** 条门禁）。
 - 玩家完成阅读前，后端会校验分幕属于当前角色，并且处于已发布或已解锁状态。
 - 私密语音房通过 `voice_room_members` 二次授权，未受邀的活跃房间成员仍不能读取消息。
 - SSE 流 `GET /api/rooms/:roomId/events/stream` 需房间成员身份（`requireRoomRole`）。
@@ -40,7 +40,7 @@
 
 所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
 
-`npm test` 当前覆盖（**341** 项**，94 个测试文件；精确数以 `npm run check:tests` 为准）：
+`npm test` 当前覆盖（**347** 项，96 个测试文件；精确数以 `npm run check:tests` 为准）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -89,6 +89,9 @@
 | `identity-foundation.test.js` | 游客、邮箱验证、session |
 | `oauth.test.js` | OAuth start/complete 流 |
 | `plan-quota.test.js` | 套餐默认值与 beta 内测 |
+| `public-room-listing.test.js` | 公开大厅、`public_listing` PATCH |
+| `world-cover.test.js` | 封面 URL、非公开世界 404 |
+| `plan-upgrade-request.test.js` | 套餐升级申请 |
 
 **CI 门禁**：`.github/workflows/ci.yml`
 
@@ -122,14 +125,14 @@ npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 
 `npm run test:smoke`（backend，**18 项**）：需 `localhost:4180` 已启动。
 
-## 整体验收（2026-06-18 · 当前基准）
+## 整体验收（2026-06-20 · 当前基准）
 
 > 历史 Release Notes / FEATURE_CATALOG 各 § 内「当时」数字保留作 changelog；**以本表为准**。
 
 | 命令 | 结果 |
 |------|------|
-| `backend npm test` | **341/341**（94 文件） |
-| `npm run check:schemas` | **61** 条路由 |
+| `backend npm test` | **347/347**（96 文件） |
+| `npm run check:schemas` | **62** 条路由 |
 | `npm run test:smoke` | **18/18** |
 | `node scripts/ui-smoke.js` | **44/44** |
 | `npm run check:modules` | **51/51** |

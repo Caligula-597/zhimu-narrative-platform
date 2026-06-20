@@ -69,7 +69,9 @@ export const state = {
   dmScrollStickBottom: false,
   voiceScrollStickBottom: false,
   /** Tab ids with unseen multiplayer updates (cleared on visit). */
-  tabPulse: { home: false, sections: false, explore: false, clues: false, inventory: false, voice: false }
+  tabPulse: { home: false, sections: false, explore: false, clues: false, inventory: false, voice: false },
+  /** Unseen update counts shown on tab badges while away from that tab. */
+  tabPulseCount: { home: 0, sections: 0, explore: 0, clues: 0, inventory: 0, voice: 0 }
 };
 
 export function dmUnreadTotal(stateRef = state) {
@@ -78,13 +80,15 @@ export function dmUnreadTotal(stateRef = state) {
 
 export function bumpTabPulse(tabId) {
   if (!tabId || state.tab === tabId) return;
-  if (Object.prototype.hasOwnProperty.call(state.tabPulse, tabId)) {
-    state.tabPulse[tabId] = true;
-  }
+  if (!Object.prototype.hasOwnProperty.call(state.tabPulse, tabId)) return;
+  state.tabPulse[tabId] = true;
+  state.tabPulseCount[tabId] = (state.tabPulseCount[tabId] || 0) + 1;
 }
 
 export function clearTabPulse(tabId) {
-  if (tabId && state.tabPulse[tabId]) state.tabPulse[tabId] = false;
+  if (!tabId) return;
+  if (state.tabPulse[tabId]) state.tabPulse[tabId] = false;
+  if (state.tabPulseCount[tabId]) state.tabPulseCount[tabId] = 0;
 }
 
 export function setToast(message, render) {

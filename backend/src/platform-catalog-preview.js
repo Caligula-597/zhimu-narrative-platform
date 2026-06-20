@@ -2,6 +2,7 @@
  * Public catalog preview for marketing site (no auth).
  */
 import { query } from "./db.js";
+import { resolveWorldCoverUrl } from "./world-cover.js";
 
 export async function listPublicCatalogPreview({ limit = 8 } = {}) {
   const safeLimit = Math.min(Math.max(Number(limit) || 8, 1), 24);
@@ -19,15 +20,20 @@ export async function listPublicCatalogPreview({ limit = 8 } = {}) {
     [safeLimit]
   );
 
-  return {
-    total: result.rowCount,
-    items: result.rows.map((row) => ({
+  const items = await Promise.all(
+    result.rows.map(async (row) => ({
       id: row.id,
       name: row.name,
       summary: row.summary,
       roleCount: row.role_count,
       ownerDisplayName: row.owner_display_name,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
+      coverUrl: await resolveWorldCoverUrl(row.id)
     }))
+  );
+
+  return {
+    total: result.rowCount,
+    items
   };
 }

@@ -73,6 +73,11 @@ async function handleRoomEvent(type, data, ctx) {
       break;
     case "room.host_event_pending":
       ctx.bumpTabPulse?.("home");
+      if (data.action === "executed") {
+        ctx.bumpTabPulse?.("explore");
+        ctx.bumpTabPulse?.("sections");
+        ctx.bumpTabPulse?.("clues");
+      }
       await ctx.onRefresh();
       if (data.action === "executed") {
         ctx.onToast("主持人已确认推进 · 新内容可能已解锁");
@@ -83,7 +88,11 @@ async function handleRoomEvent(type, data, ctx) {
       }
       break;
     case "room.investigation_completed":
-      await ctx.onRefresh();
+      if (affectsPlayer) {
+        ctx.bumpTabPulse?.("explore");
+        await ctx.onRefresh();
+        ctx.onToast("调查点已完成 · 请查看探索页");
+      }
       break;
     case "room.host_nudge": {
       const targets = data.roleSlotIds || [];

@@ -59,12 +59,43 @@ join → playerHome + exploration (并行)
 | 房间成员列表 | `player-home.roomMembers` |
 | 主持待确认条 | `hostConfirm` + SSE `room.host_event_pending` |
 | 主持提醒 | SSE `room.host_nudge` |
-| 线索/分幕/场景解锁 | SSE + Tab 高亮 `tabPulse` |
+| 线索/分幕/场景/物品解锁 | SSE + Tab `tabPulse` + 未读计数 `tabPulseCount`（离开该 Tab 时显示 `+N` 或脉冲点） |
+| 调查完成 | SSE `room.investigation_completed` → 探索 Tab pulse + toast |
+| 主持确认推进 | SSE `room.host_event_pending`（`executed`）→ 多 Tab pulse + toast |
+| 公开大厅封面 | `GET /api/platform/public-rooms` 的 `worldCoverUrl` → 卡片顶图 |
 | 语音房 | LiveKit + 房内文字频道 SSE |
+
+**SSE 事件与玩家侧反馈**（`play/src/room-events.js` · 主应用 `src/runtime/room-events.js` 玩家视图）：
+
+| 事件 | Play 侧 | 主应用 `player` 视图 |
+|------|---------|----------------------|
+| `room.clue_granted` | pulse 线索 + toast | toast + 刷新 home |
+| `room.item_granted` | pulse 背包 + toast | toast + 刷新 |
+| `room.section_unlocked` | pulse 分幕 + toast | toast + 刷新 |
+| `room.scene_unlocked` | pulse 探索 + toast | toast + 刷新 exploration |
+| `room.investigation_completed` | pulse 探索 + toast | toast + 刷新（限本角色） |
+| `room.host_event_pending` | home/explore/sections/clues pulse + toast | 同左（executed 时） |
+| `room.host_nudge` | home pulse + toast | toast |
+
+切换 Tab 时 `clearTabPulse` 清除对应 Tab 的 pulse 与计数（`play/src/state.js`）。
 
 ---
 
-## 5. 本地开发
+## 5. 公开大厅与封面
+
+| API | 说明 |
+|-----|------|
+| `GET /api/platform/public-rooms` | `public_listing=true` 的运行房；每项含 `worldCoverUrl`（有图时） |
+| `GET /api/platform/worlds/:worldId/cover` | 302 到签名下载 URL；仅 **catalog_public** 或存在 **public_listing** 房的世界 |
+| `GET /api/platform/catalog-preview` | 公开剧本库预览；每项含 `coverUrl`（有图时） |
+
+封面解析（`backend/src/world-cover.js`）：优先 `worlds.settings.coverAssetId`，否则该世界首张 `active` 的 `image` 素材。**当前无创作者 UI 设置封面**，需 ops/DB 写 `settings` 或上传图片素材后自动兜底。
+
+Play 大厅 UI：`play/src/views/lobby.js`；无封面时用剧本名首字占位。
+
+---
+
+## 6. 本地开发
 
 ```powershell
 cd backend && npm run dev    # :4180
@@ -74,7 +105,7 @@ npm run test:play              # 构建 + 单元测试
 
 ---
 
-## 6. 后续（主持独立站）
+## 7. 后续（主持独立站）
 
 当 play 体验达标后，可将 `director` 视图拆到 `host/` 子项目（与 play 同构），主应用仅保留创作者链路。
 

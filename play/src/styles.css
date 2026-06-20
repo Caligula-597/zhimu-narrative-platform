@@ -1217,6 +1217,23 @@ code {
   animation: tab-pulse 1.4s ease-in-out infinite;
 }
 
+.tab-badge-new {
+  background: var(--accent) !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.tab-pulse-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+  animation: tab-pulse 1.4s ease-in-out infinite;
+}
+
 @keyframes tab-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
@@ -1295,6 +1312,31 @@ code {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
+}
+
+.lobby-card-cover {
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(43, 107, 97, 0.12), rgba(154, 129, 79, 0.1));
+}
+
+.lobby-card-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lobby-card-cover-fallback {
+  display: grid;
+  place-items: center;
+}
+
+.lobby-card-cover-fallback span {
+  font-size: 42px;
+  font-weight: 600;
+  color: rgba(20, 35, 33, 0.28);
 }
 
 .lobby-card {

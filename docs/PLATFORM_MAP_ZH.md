@@ -1,7 +1,7 @@
 # 织幕 · 平台总览与前后端对照
 
 > **本文档**：产品模块规划 + 后端能力 + 前端入口 + API 客户端方法的一页式索引。  
-> **更新**：2026-06-18 · 测试 **341** 项 · 迁移 **033**  
+> **更新**：2026-06-20 · 测试 **347** 项 · 迁移 **039**  
 > **系统设计**：[DESIGN_ZH.md](./DESIGN_ZH.md) · **维护约定**：新 API 或新视图时同步更新 §3 对照表
 
 ---
@@ -102,6 +102,7 @@
 | `GET .../logs` | `getWorldLogs` | 创作者台 · 运行日志 | ✅ |
 | `GET .../host-audit-log` | `getWorldHostAuditLog` | 世界设置 · 审计 | ✅ |
 | `GET .../search` | `searchWorld` | 全局搜索 | ✅ |
+| `PATCH .../rooms/:roomId/listing` | `updateRoomPublicListing` | 平行房 · 公开到大厅 | ✅ |
 
 ### 3.3 创作与编排
 
@@ -179,8 +180,19 @@
 | 局内 | `views/game.js` | Tab：概览/语音/分幕/探索/线索/背包/复盘 |
 | 局部 SSE | `runtime/patch-game.js` | 更新 tab/侧栏/横幅，保留滚动 |
 | 路由 | `runtime/url.js` | `view` / `tab` / `reset` / `verify` |
-| 社区 | `views/plaza.js` · `social.js` | 广场/好友/私信（需验证邮箱） |
+| 社区 | `views/plaza.js` · `social.js` · `lobby.js` | 广场/好友/私信；**公开大厅** + 封面 |
 | API | `play/src/api.js` | 与主应用同 `/api` 源 |
+
+### 3.10 平台公开读 API（无登录 · `platform-site-routes.js`）
+
+| 后端 API | 响应字段 | 说明 |
+|----------|----------|------|
+| `GET /api/platform/site` | `links` · `beta` · `catalog` | 营销站 bootstrap |
+| `GET /api/platform/public-rooms` | `worldCoverUrl?` | 仅 `rooms.public_listing=true` |
+| `GET /api/platform/catalog-preview` | `coverUrl?` | 仅 `worlds.catalog_public=true` |
+| `GET /api/platform/worlds/:worldId/cover` | 302 → 签名 URL | 世界须公开可见；见 `world-cover.js` |
+
+封面：`settings.coverAssetId` 或首张 `image` 素材；**无创作者 UI**。详 [PLAY_PORTAL_ZH.md](./PLAY_PORTAL_ZH.md) §5。
 
 详 [play/README.md](../play/README.md) · [DESIGN_ZH.md §6.3](./DESIGN_ZH.md#63-玩家端playgetzhimucom)
 
@@ -231,7 +243,7 @@ backend/src/
   room-event-bus.js ← SSE 扇出
   auth.js           ← Session/游客
 migrations/         ← 001–023
-test/*.test.js      ← **341** 项（94 文件）
+test/*.test.js      ← **347** 项（96 文件）
 scripts/
   identity-smoke.mjs
   migrate.js

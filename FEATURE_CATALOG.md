@@ -1265,10 +1265,11 @@ npm run test:ui             # 需 :4173 + :4180
 
 | 项 | 说明 |
 |----|------|
-| 局内 Tab | 含 **复盘**（`latestRecap` + 玩家视角详情） |
+| 局内 Tab | 含 **复盘**（`latestRecap` + 玩家视角详情）；SSE **`tabPulse` / `tabPulseCount`** |
+| 公开大厅 | `views/lobby.js` · `GET /api/platform/public-rooms` · `worldCoverUrl` |
 | URL 路由 | `view` / `tab` / `join` / `reset` / `verify` / `post` |
 | 账号 | 忘记密码、重置、邮箱验证、验证横幅 |
-| SSE | `patch-game.js` 局部刷新 tab/侧栏/横幅/复盘圆点 |
+| SSE | `patch-game.js` 局部刷新；`room-events.js` 线索/调查/主持确认 toast |
 | 阅读 | 分幕高亮、笔记本 API |
 
 ### E2E / Smoke

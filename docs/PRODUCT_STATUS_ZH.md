@@ -26,7 +26,7 @@
 
 **织幕**是面向线上长线剧本杀的自动化叙事引擎：创作者在云端写世界、编排剧情、配规则；玩家入房阅读、探索、收线索；主持台监控进度、确认事件、手动干预；数据落在 **PostgreSQL** 与 **Cloudflare R2**。
 
-当前状态：**核心运行链路已真实可用**（任意创作者剧本 + 官方示例「小示例」均已验证），前后端主 API 已对齐，**341** 项后端测试 + **61** 条 schema 门禁 + smoke/E2E 可复验。主持—玩家联动（hostConfirm、nudge、play 复盘/SSE 局部刷新）已落地。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。**内测期免费、无充值入口**（见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)）；Stripe 订阅等商业化能力**正式对外后再做**。
+当前状态：**核心运行链路已真实可用**（任意创作者剧本 + 官方示例「小示例」均已验证），前后端主 API 已对齐，**347** 项后端测试 + **62** 条 schema 门禁 + smoke/E2E 可复验。主持—玩家联动（hostConfirm、nudge、play 复盘/SSE 局部刷新）已落地。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。**内测期免费、无充值入口**（见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)）；Stripe 订阅等商业化能力**正式对外后再做**。
 
 **架构原则**：功能不绑定单一剧本；见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)。
 
@@ -41,7 +41,7 @@
 | 运行态（阅读/探索/规则/SSE） | ✅ | 自动+主持确认+手动触发 |
 | 主持台 | ✅ | 玩家表、干预、待确认、SSE |
 | 存档/复盘/checkpoint restore | ✅ | scoped 回滚、跨平行房 |
-| 资产 R2 | ✅ | 上传/列表/下载/回收站 |
+| 资产 R2 | ✅ | 上传/列表/下载/回收站；可作世界封面图源（见 `world-cover.js`） |
 | 全局搜索 | ✅ | `GET /worlds/:id/search` + 顶栏 UI |
 | DeepSeek AI | 🟡 | 需 `DEEPSEEK_API_KEY` |
 | LiveKit 语音 | ✅ | Token API + 前端连接/麦克风状态与重试 |
@@ -68,7 +68,7 @@
 | 游客 / 多设备 Session | ✅ | `POST /auth/guest`；设备列表与下线 |
 | 套餐与配额 | ✅ | `free/creator/studio/beta`；`GET /account/entitlements`；**申请升级** → support 人工开通 |
 | 世界 CRUD、PATCH、成员角色 | ✅ | **协作者邮件邀请** + `?invite=` 接受 |
-| 平行运行房、邀请码 | ✅ | 房间无合并对比视图 |
+| 平行运行房、邀请码 | ✅ | 房间无合并对比视图；可 `public_listing` 公开到 play 大厅 |
 | 世界运行日志 timeline | ✅ | 无导出 |
 | 全文搜索 | ✅ | 迁移 014；顶栏搜索 + **图谱/线索页跳转高亮** |
 | 归档世界列表 API | ✅ | 前端可选展示 |
@@ -167,12 +167,12 @@
 
 ## 5. 测试体系（分层说明）
 
-**当前验收数字**（2026-06-18，与 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) 一致）：
+**当前验收数字**（2026-06-20，与 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) 一致）：
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **341** |
-| `npm run check:schemas` | **61** 条路由 |
+| `backend npm test` | **347** |
+| `npm run check:schemas` | **62** 条路由 |
 | `npm run test:smoke` | **18** |
 | `node scripts/ui-smoke.js` | **44** |
 | `npm run test:format-helpers` | **5** |
@@ -184,12 +184,12 @@
 ### 5.1 后端单元/集成（`backend npm test`）
 
 - Node test runner，`--test-concurrency=1`（防 PG 池耗尽）。
-- 约 **94** 个 `*.test.js` 文件，覆盖：认证（含 **找回密码**）、规则引擎、主持台（含 **nudge**）、player-home **hostConfirm**、checkpoint/restore E2E、线索私享、物品、SSE/NOTIFY/journal、资产策略、ops 健康、beta-gates、**register-ip-limit**、**rate-limit**、**upload-scan**、world-search 等。
+- 约 **96** 个 `*.test.js` 文件，覆盖：认证（含 **找回密码**）、规则引擎、主持台（含 **nudge**）、player-home **hostConfirm**、checkpoint/restore E2E、线索私享、物品、SSE/NOTIFY/journal、资产策略、ops 健康、beta-gates、**register-ip-limit**、**rate-limit**、**upload-scan**、world-search、**public-room-listing**、**world-cover** 等。
 - **需要**：`DATABASE_URL` + 已 migrate。
 
 ### 5.2 Schema 门禁（`check:schemas`）
 
-- **61** 条写/改/SSE 路由必须有 Fastify JSON Schema（含 `host/nudge-waiting`、`auth/forgot-password`、`share-roles`、`host-events/:id/delay`、assets restore）。
+- **62** 条写/改/SSE 路由必须有 Fastify JSON Schema（含 `host/nudge-waiting`、`auth/forgot-password`、`share-roles`、`host-events/:id/delay`、assets restore、`account/plan-upgrade-request`）。
 - 规则 POST/PUT 另有语义校验 `validateRuleBody`。
 
 ### 5.3 数量与启动门禁

@@ -79,6 +79,27 @@ window.addEventListener("scroll", updateHeader, { passive: true });
 updateHeader();
 loadSiteBootstrap();
 
+function applyImportIntentPrefill() {
+  const hash = window.location.hash.replace(/^#/, "");
+  if (hash !== "beta-import" && hash !== "beta") return;
+  const useCase = betaForm?.querySelector('[name="useCase"]');
+  const roleIntent = betaForm?.querySelector('[name="roleIntent"]');
+  if (hash === "beta-import" && useCase && !useCase.value) {
+    useCase.value = "希望预约导入一个现有剧本（Word/PDF 等），请协助评估导入周期与首场试跑安排。";
+    if (roleIntent) roleIntent.value = "mixed";
+    document.getElementById("beta")?.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+document.querySelector('[data-action="prefill-import"]')?.addEventListener("click", (event) => {
+  event.preventDefault();
+  window.location.hash = "beta-import";
+  applyImportIntentPrefill();
+});
+
+applyImportIntentPrefill();
+window.addEventListener("hashchange", applyImportIntentPrefill);
+
 if (workflowList && workflowSteps.length) {
   const workflowRevealObserver = new IntersectionObserver(
     (entries) => {

@@ -4,6 +4,7 @@
  */
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
+import { resolveWorldCoverUrl } from "./world-cover.js";
 
 export async function listPublicRooms({ limit = 24 } = {}) {
   const safeLimit = Math.min(Math.max(Number(limit) || 24, 1), 48);
@@ -35,9 +36,8 @@ export async function listPublicRooms({ limit = 24 } = {}) {
     [safeLimit]
   );
 
-  return {
-    total: result.rowCount,
-    items: result.rows.map((row) => ({
+  const items = await Promise.all(
+    result.rows.map(async (row) => ({
       roomId: row.room_id,
       roomName: row.room_name,
       inviteCode: row.invite_code,
@@ -46,11 +46,17 @@ export async function listPublicRooms({ limit = 24 } = {}) {
       worldId: row.world_id,
       worldName: row.world_name,
       worldSummary: row.world_summary,
+      worldCoverUrl: await resolveWorldCoverUrl(row.world_id),
       hostDisplayName: row.host_display_name,
       roleCount: row.role_count,
       joinedPlayers: row.joined_players,
       openSeats: Math.max(row.role_count - row.joined_players, 0)
     }))
+  );
+
+  return {
+    total: result.rowCount,
+    items
   };
 }
 

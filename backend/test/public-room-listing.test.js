@@ -22,6 +22,7 @@ test("GET /api/platform/public-rooms lists only public_listing rooms", async () 
     const listed = body.items.find((item) => item.roomId === roomId);
     assert.equal(listed.inviteCode, room.rows[0].invite_code);
     assert.ok(listed.roleCount >= 1);
+    assert.ok("worldCoverUrl" in listed);
   } finally {
     await query(`DELETE FROM rooms WHERE id = $1`, [roomId]);
   }
