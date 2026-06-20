@@ -22,3 +22,4 @@ backend/.test-*.log
 .DS_Store
 artifacts/
 .tools/
+docs/ops/email-previews/

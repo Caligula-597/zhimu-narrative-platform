@@ -46,7 +46,7 @@ npm run start
 | `npm run check` | 全量 JS 语法、`src/` 下错误 `../` import、**createApp 模块图可加载** |
 | `npm run check:boot` | 环境变量 + 模块图 + **数据库 schema**（与 server 启动前相同校验） |
 | `npm run check:tests` | 测试用例数量下限（≥80，`scripts/verify-test-count.mjs`） |
-| `npm test` | **341** 项集成测试（`--test-concurrency=1 --test-force-exit --import ./test/hooks.mjs`） |
+| `npm test` | **347** 项集成测试（`--test-concurrency=1 --test-force-exit --import ./test/hooks.mjs`） |
 
 后端默认监听 `http://localhost:4180`。
 
@@ -212,7 +212,7 @@ npm run test:smoke
 
 | 套件 | 数量 |
 |------|------|
-| `npm run check:tests` + `npm test` | **341** |
+| `npm run check:tests` + `npm test` | **347** |
 | `npm run test:smoke` | **18** |
 | `node ../scripts/ui-smoke.js` | **44** |
 | `npm run check:modules`（根） | **51** |

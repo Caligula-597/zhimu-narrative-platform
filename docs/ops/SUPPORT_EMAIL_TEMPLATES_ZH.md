@@ -31,6 +31,16 @@ node backend/scripts/render-support-email.mjs plan-upgraded \
 
 将 `--out` 文件在 Resend「Send email」或邮件客户端以 HTML 发出；主题行以命令输出的 `Subject:` 为准。
 
+**本地预览**（目录已 gitignore，需自行生成）：
+
+```bash
+mkdir -p docs/ops/email-previews
+node backend/scripts/render-support-email.mjs beta-reject --displayName=示例 --out=docs/ops/email-previews/beta-reject.html
+node backend/scripts/render-support-email.mjs import-ack --displayName=示例工作室 --out=docs/ops/email-previews/import-ack.html
+# 浏览器打开 docs/ops/email-previews/ 下 HTML，或：
+python -m http.server 8765 --directory docs/ops/email-previews
+```
+
 ---
 
 ## 1. 系统自动发送

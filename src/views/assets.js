@@ -4,7 +4,9 @@
   const zhimuApi = window.zhimuApi;
   const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
+  const U = window.zhimuUi || {};
   const T = window.zhimuToast || {};
+  const canEditWorldContent = U.canEditWorldContent || (() => false);
   const M = window.zhimuModal || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatBytes = F.formatBytes || (() => "");
@@ -34,11 +36,17 @@ function assetsPanelHtml(){
   const listTitle=recycle?"回收站（14 天内可恢复）":"云端附件空间";
   const listHint=recycle?"已删除的附件仍占用配额，恢复后重新出现在列表中。":"图片、音频与文档附件，可在剧情编排中关联到场景或线索";
   const rows=assets.length?assets.map((a)=>{
+   const world=state.cloudStudio?.world;
+   const coverId=world?.settings?.coverAssetId||"";
+   const isCover=Boolean(coverId&&a.id===coverId);
+   const canEdit=canEditWorldContent(world);
    if(recycle){
     const purge=a.purge_after?` · 将于 ${formatTime(a.purge_after)} 永久删除`:"";
     return `<div class="cloud-asset-row"><div><strong>${escapeHtml(a.original_filename)}</strong><p>${escapeHtml(assetKindLabel(a.asset_kind))} · ${formatBytes(a.byte_size)}${purge}</p></div><div class="row"><button class="primary-btn" data-action="restore-asset" data-asset="${a.id}">恢复</button></div></div>`;
    }
-   return `<div class="cloud-asset-row"><div><strong>${escapeHtml(a.original_filename)}</strong><p>${escapeHtml(assetKindLabel(a.asset_kind))} · ${formatBytes(a.byte_size)}</p></div><div class="row"><button class="secondary-btn" data-action="download-asset" data-asset="${a.id}">下载</button><button class="danger-btn" data-action="delete-asset" data-asset="${a.id}">移入回收站</button></div></div>`;
+   const coverBadge=isCover?`<span class="cloud-pill" style="margin-left:8px">封面</span>`:"";
+   const coverActions=canEdit&&a.asset_kind==="image"?`${isCover?`<button class="secondary-btn" data-action="clear-world-cover">取消封面</button>`:`<button class="secondary-btn" data-action="set-world-cover" data-asset="${a.id}">设为封面</button>`}`:"";
+   return `<div class="cloud-asset-row"><div><strong>${escapeHtml(a.original_filename)}${coverBadge}</strong><p>${escapeHtml(assetKindLabel(a.asset_kind))} · ${formatBytes(a.byte_size)}</p></div><div class="row">${coverActions}<button class="secondary-btn" data-action="download-asset" data-asset="${a.id}">下载</button><button class="danger-btn" data-action="delete-asset" data-asset="${a.id}">移入回收站</button></div></div>`;
   }).join(""):`<div class="empty-state enriched-empty">${recycle?"回收站为空。":q||kind?"没有匹配的附件。":"<p><strong>当前世界还没有上传附件</strong></p><p>附件会存储在 Cloudflare R2，可在剧情编排中关联到场景或线索。</p><ul class=\"empty-hints\"><li>支持图片、音频、PDF 等格式</li><li>上传后在编排台节点面板中关联</li><li>删除后进入 14 天回收站，可恢复</li></ul><div class=\"row\"><button class=\"primary-btn\" data-action=\"upload-asset\">↑ 上传首个附件</button><button class=\"secondary-btn\" data-action=\"open-creator-guide\">查看上传说明</button></div>"}</div>`;
   return `<div class="asset-toolbar"><div class="search-box"><span>⌕</span><input id="asset-search-input" placeholder="搜索文件名…" value="${escapeHtml(q)}"></div><div class="row"><button class="secondary-btn" data-action="upload-asset" ${recycle?"disabled":""}>↑ 上传云端附件</button></div></div>
   <article class="card" style="margin-bottom:14px"><div class="section-head"><div><h3>${listTitle}</h3><p>${listHint}</p></div><span class="cloud-pill">R2 · PRIVATE</span></div>${!recycle?`<div class="usage-bar"><i style="width:${pct}%"></i></div><div class="status-meta"><span>${usage?formatBytes(usage.usedBytes):"读取中"} / ${usage?formatBytes(usage.maxBytes):"500 MB"}</span><span>${pct}%</span></div>`:""}<div class="cloud-asset-list">${rows}</div></article>
@@ -104,6 +112,32 @@ async function restoreCloudAsset(assetId){
  }catch(error){showToast(error.message)}
 }
 
+async function setWorldCoverAsset(assetId){
+ const worldId=zhimuApi.context.worldId;
+ if(!worldId||!assetId)return showToast("请先选择图片附件");
+ try{
+  const updated=await zhimuApi.patchWorld({settings:{coverAssetId:assetId}},worldId);
+  if(state.cloudStudio?.world?.id===worldId){
+   state.cloudStudio.world={...state.cloudStudio.world,settings:updated.settings||{coverAssetId:assetId}};
+  }
+  refreshAssetsIfVisible();
+  showToast("封面已更新，公开大厅与剧本库将展示此图");
+ }catch(error){showToast(error.message)}
+}
+
+async function clearWorldCover(){
+ const worldId=zhimuApi.context.worldId;
+ if(!worldId)return;
+ try{
+  const updated=await zhimuApi.patchWorld({settings:{coverAssetId:""}},worldId);
+  if(state.cloudStudio?.world?.id===worldId){
+   state.cloudStudio.world={...state.cloudStudio.world,settings:updated.settings||{}};
+  }
+  refreshAssetsIfVisible();
+  showToast("已取消指定封面，将使用默认图片");
+ }catch(error){showToast(error.message)}
+}
+
 async function deleteCloudAsset(assetId){try{await zhimuApi.deleteAsset(assetId);await reloadAssets();await loadCloudData();refreshAssetsIfVisible();showToast("附件已移入 14 天回收站")}catch(error){showToast(error.message)}}
 
 async function downloadCloudAsset(assetId){
@@ -138,6 +172,8 @@ async function uploadSelectedAsset(){
   viewExports.setAssetFilter = setAssetFilter;
   viewExports.toggleAssetRecycle = toggleAssetRecycle;
   viewExports.restoreCloudAsset = restoreCloudAsset;
+  viewExports.setWorldCoverAsset = setWorldCoverAsset;
+  viewExports.clearWorldCover = clearWorldCover;
   viewExports.deleteCloudAsset = deleteCloudAsset;
   viewExports.downloadCloudAsset = downloadCloudAsset;
   viewExports.openAssetUpload = openAssetUpload;

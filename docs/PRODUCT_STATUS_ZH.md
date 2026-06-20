@@ -318,6 +318,7 @@ cd .. && npm run check:modules && npm run build
 | [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md) | 内测免费范围、无付费入口、配额人工扩容 |
 | [LAUNCH_PRIORITIES_ZH.md](./LAUNCH_PRIORITIES_ZH.md) | **商业上线 P0–P3 任务**（当前执行优先级） |
 | [ENGINEERING_PRINCIPLES_ZH.md](./ENGINEERING_PRINCIPLES_ZH.md) | **工程六条核心原则**（小步改动、检测、后端为主） |
+| [PRICING_DRAFT_ZH.md](./PRICING_DRAFT_ZH.md) | 套餐限额草案（来自 `plans.js`，**标价未定**） |
 | [DESIGN_DECISIONS_NEEDED_ZH.md](./DESIGN_DECISIONS_NEEDED_ZH.md) | **需产品/你拍板**的清单（定价、示例剧本、试点团队等） |
 | [ops/PILOT_TRACKER.md](./ops/PILOT_TRACKER.md) | 内测 5 团队追踪表 |
 | [FIRST_SESSION_GUIDE_ZH.md](./FIRST_SESSION_GUIDE_ZH.md) | **用户向**「如何跑第一场」（非工程文档） |

@@ -42,7 +42,7 @@
 
     WORLD_NOT_FOUND: "世界不存在或你无权访问。",
     WORLD_QUOTA_EXCEEDED: "可创建的世界数量已达上限。",
-    STORAGE_QUOTA_EXCEEDED: "云端空间已满，请先清理附件。",
+    STORAGE_QUOTA_EXCEEDED: "云端空间已满，请先清理附件或联系 support@getzhimu.com 申请扩容。",
     WORLD_INVITE_SELF: "不能邀请自己的邮箱。",
     WORLD_INVITE_INVALID: "协作邀请无效或已过期，请让邀请人重新发送。",
     WORLD_INVITE_EMAIL_MISMATCH: "该邀请不属于当前登录邮箱。",
@@ -235,6 +235,14 @@
     }).join("；");
   }
 
+  function formatQuotaBytes(n) {
+    if (n == null || !Number.isFinite(Number(n))) return "?";
+    const num = Number(n);
+    if (num >= 1_073_741_824) return `${(num / 1_073_741_824).toFixed(1)} GB`;
+    if (num >= 1_048_576) return `${Math.round(num / 1_048_576)} MB`;
+    return `${Math.round(num / 1024)} KB`;
+  }
+
   function friendlyApiError(payload = {}, fallback = "操作失败，请稍后重试") {
     const code = payload.code;
     const details = payload.details;
@@ -244,7 +252,9 @@
     }
     if (code === "STORAGE_QUOTA_EXCEEDED" && details) {
       const plan = details.planLabel || details.planCode || "当前套餐";
-      return `云存储空间不足（${plan}）。请清理附件或移入回收站；也可在账号设置页申请升级。`;
+      const used = formatQuotaBytes(details.usedBytes);
+      const max = formatQuotaBytes(details.maxBytes);
+      return `云存储空间不足（${used}/${max} · ${plan}）。请清理附件或移入回收站；也可在账号设置页申请升级，或联系 support@getzhimu.com。`;
     }
     if (code === "FILE_TOO_LARGE" && details?.maxSingleFileBytes) {
       return `文件超出单文件上限（最大 ${Math.round(details.maxSingleFileBytes / 1048576)} MB）。`;

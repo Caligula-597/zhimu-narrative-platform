@@ -68,7 +68,7 @@
 | P1-03 | **play 首屏重排** | play | 官方示例 / 邀请码 / 找局 优先级高于流程说明卡片 | ✅ 入口优先 + 流程折叠 |
 | P1-04 | **阅读器体验** | play | 分幕阅读区字号/进度/完成反馈 | ✅ 进度条 + 完成态卡片 |
 | P1-05 | **新线索/任务强提醒** | play + main | SSE toast + badge；主持 nudge 已有，玩家侧补强 | ✅ tab 计数 + 调查完成提醒 |
-| P1-06 | **房间/剧本封面** | backend + play | 公开房/库预览缩略图；`GET /api/platform/worlds/:id/cover`；**无设置 UI** | ✅ API + 大厅 |
+| P1-06 | **房间/剧本封面** | backend + play + main | 公开房/库预览缩略图；`GET /api/platform/worlds/:id/cover`；创作者在设置/资产设封面 | ✅ |
 | P1-07 | **内测 support 流程** | ops | [BETA_SUPPORT_SOP_ZH.md](./ops/BETA_SUPPORT_SOP_ZH.md) + 邮件模板 + 开通 checklist | ✅ |
 | P1-08 | **5 团队试点追踪表** | ops | `docs/ops/PILOT_TRACKER.md` | 🟡 模板已建，待填团队 |
 | P1-09 | **导入服务 SOP** | docs | 1 个剧本从 Word/MD → 开房的标准步骤（给运营） | ✅ [IMPORT_SCRIPT_SOP_ZH.md](./ops/IMPORT_SCRIPT_SOP_ZH.md) |
@@ -88,11 +88,11 @@
 
 | ID | 任务 | 域 | 说明 | 状态 |
 |----|------|-----|------|------|
-| P2-01 | **定价与权益草案** | product | 免费 / 创作者 / 工作室 三档；按世界数、房间数、存储、协作者 | 🔲 |
-| P2-02 | **Ops 手动开 plan** | backend | `POST /api/ops/users/plan` 文档化 + 脚本 | 🟡 部分 |
-| P2-03 | **案例页 1 篇** | site | 脱敏真实团队：导入→开房→复盘 | 🔲 |
-| P2-04 | **配额触顶文案** | main + play | 内测期「联系 support」；预留工作室版说明 | 🟡 部分 |
-| P2-05 | **复盘对外展示** | play | recap Tab 作为工作室卖点截图/说明 | 🟡 部分 |
+| P2-01 | **定价与权益草案** | product | 免费 / 创作者 / 工作室 三档；按世界数、房间数、存储、协作者 | 🟡 限额草案见 [PRICING_DRAFT_ZH.md](./PRICING_DRAFT_ZH.md)，**标价未定** |
+| P2-02 | **Ops 手动开 plan** | backend | `POST /api/ops/users/plan` 文档化 + 脚本 | ✅ [PLAN_UPGRADE_SOP_ZH.md](./ops/PLAN_UPGRADE_SOP_ZH.md) |
+| P2-03 | **案例页 1 篇** | site | 脱敏真实团队：导入→开房→复盘 | 🔲 占位叙事已标注，待真实试点 |
+| P2-04 | **配额触顶文案** | main + play | 内测期「联系 support」；预留工作室版说明 | ✅ main `user-messages.js` |
+| P2-05 | **复盘对外展示** | play + site | recap Tab 作为工作室卖点；官网 showcase 第四格（示意占位，待真实截图） | 🟡 |
 | P2-06 | **合同/发票流程** | ops | 人工收款 SOP（可不对接系统） | 🔲 |
 
 ### P2 里程碑

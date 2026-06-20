@@ -1,6 +1,20 @@
 # 织幕 Alpha · Release Notes
 
-**最新增量**：2026-06-18 · 主持—玩家联动 · 设计文档 · **341** 项测试  
+**最新增量**：2026-06-03 · 工程完善（封面 UI、文档 347/62、@fastify/static v9、官网复盘 showcase）  
+**版本标签建议**：`beta-8-2026-06-03`  
+**分支**：`main`
+
+| 域 | 变更 |
+|----|------|
+| 创作者 | 世界设置 + 内容资产：图片可「设为封面」；`settings.coverAssetId` |
+| 文案 | 存储配额触顶与世界数一致，引导 support@ + 账号升级 |
+| 官网 | `#showcase` 四格含 recap · `#case-study` 占位标签 |
+| 依赖 | `@fastify/static` 8→9（audit 0 moderate） |
+| 文档 | [PRICING_DRAFT_ZH.md](./docs/PRICING_DRAFT_ZH.md) · 全库验收数字 **347/62/15 E2E** |
+
+---
+
+**上一增量**：2026-06-18 · 主持—玩家联动 · 设计文档 · **341** 项测试  
 **版本标签建议**：`beta-7-2026-06-18`  
 **分支**：`main`
 
