@@ -21,7 +21,7 @@
 |------|------|
 | 用户提交 | 用户确认 + ops 通知（`BETA_REVIEW_NOTIFY_EMAIL`） |
 | Ops approve | 用户「已通过」+ 注册 CTA |
-| Ops reject | **无** — 须手动发 [拒审模板](./SUPPORT_EMAIL_TEMPLATES_ZH.md#22-拒绝申请必用手动) |
+| Ops reject | 用户 | **自动**（`beta-reject` 品牌 HTML） |
 
 ---
 

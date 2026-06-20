@@ -40,7 +40,8 @@ export function brandedEmailHtml({
   bodyHtml,
   ctaUrl,
   ctaLabel = "打开链接",
-  footerNote = ""
+  footerNote = "",
+  replyFriendly = false
 }) {
   const safeTitle = escapeHtml(title);
   const safePreview = escapeHtml(preview || title);
@@ -57,6 +58,11 @@ export function brandedEmailHtml({
   const extraFooter = footerNote
     ? `<p style="margin:10px 0 0">${escapeHtml(footerNote)}</p>`
     : "";
+
+  const supportEmail = escapeHtml(process.env.SUPPORT_EMAIL?.trim() || "support@getzhimu.com");
+  const footerLead = replyFriendly
+    ? `<p style="margin:0">如有疑问，请<strong>直接回复本邮件</strong>，或写信至 <a href="mailto:${supportEmail}" style="color:${BRAND.greenLight};text-decoration:none">${supportEmail}</a>。</p>`
+    : `<p style="margin:0">此邮件由织幕系统自动发送，请勿直接回复。</p>`;
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -81,7 +87,7 @@ ${bodyHtml}
 ${ctaBlock}
 </td></tr>
 <tr><td style="padding:18px 28px;background:#f8f5ee;border-top:1px solid rgba(20,35,33,.08);font-size:12px;color:${BRAND.muted};line-height:1.6">
-<p style="margin:0">此邮件由织幕系统自动发送，请勿直接回复。</p>
+${footerLead}
 <p style="margin:8px 0 0">应用入口：<a href="${appUrl}" style="color:${BRAND.greenLight};text-decoration:none">${appUrl}</a></p>
 ${extraFooter}
 </td></tr>

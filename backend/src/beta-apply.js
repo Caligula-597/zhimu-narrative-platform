@@ -2,6 +2,7 @@
  * Closed-beta applications from marketing site (Part 6).
  */
 import { sendTransactionalEmail } from "./email/index.js";
+import { betaRejectEmailHtml } from "./email/support-templates.js";
 import { brandedEmailHtml } from "./email/templates.js";
 import { throwErr } from "./api-errors.js";
 import { query } from "./db.js";
@@ -125,6 +126,18 @@ export async function sendBetaApplicationEmails(application) {
     to: application.email,
     subject: "织幕 · 内测申请已收到",
     html: userHtml
+  });
+}
+
+export async function sendBetaRejectionEmail(application, note) {
+  const { subject, html } = betaRejectEmailHtml({
+    displayName: application.display_name,
+    note: String(note || application.review_note || "").trim()
+  });
+  await sendTransactionalEmail({
+    to: application.email,
+    subject,
+    html
   });
 }
 
@@ -337,5 +350,13 @@ export async function rejectBetaApplication(applicationId, note) {
      RETURNING *`,
     [applicationId, reviewNote]
   );
-  return updated.rows[0];
+  const row = updated.rows[0];
+
+  try {
+    await sendBetaRejectionEmail(row, reviewNote);
+  } catch (emailError) {
+    console.error("[beta-apply] rejection email failed:", emailError?.message || emailError);
+  }
+
+  return row;
 }

@@ -12,7 +12,7 @@
 |------|----------|----------|
 | 官网 `#beta` 内测表单 | `POST /api/platform/beta/apply` → `beta_applications` + 自动邮件 | Ops approve/reject |
 | 官网 `#beta-import` | 同上（`useCase` 预填导入意向） | 评估是否转 IMPORT SOP |
-| 官网 `#import` 邮件 CTA | **无 API**；邮件进 support 邮箱 | 手回 §3 模板；PILOT_TRACKER 登记 |
+| 官网 `#import` 邮件 CTA | **无 API**；邮件进 support 邮箱 | 手发 `import-ack` 模板 · 见 [IMPORT_EMAIL_AND_NO_API_ZH.md](./IMPORT_EMAIL_AND_NO_API_ZH.md) |
 | 已登录 · 套餐升级 | `plan_upgrade_requests` + 邮件通知 ops | [PLAN_UPGRADE_SOP_ZH.md](./PLAN_UPGRADE_SOP_ZH.md) |
 | 任意邮件咨询 | — | 模板回复 + 必要时查 DB / 日志 |
 
@@ -27,7 +27,7 @@
 ```
 用户提交 → 自动邮件(用户+ops) → Ops 审 pending 列表
     ├─ approve → 自动邮件(用户) + beta plan（注册时或立即）
-    ├─ reject  → DB 记 note → 【手动】拒审邮件
+    ├─ reject  → 自动拒审邮件 + DB 记 note
     └─ 排队    → 暂不 API → 【手动】说明预计联系时间
 ```
 
@@ -35,7 +35,7 @@
 
 **每单 checklist**：[BETA_ONBOARDING_CHECKLIST_ZH.md](./BETA_ONBOARDING_CHECKLIST_ZH.md)
 
-**邮件文案**：[SUPPORT_EMAIL_TEMPLATES_ZH.md](./SUPPORT_EMAIL_TEMPLATES_ZH.md)
+**邮件文案**：[SUPPORT_EMAIL_TEMPLATES_ZH.md](./SUPPORT_EMAIL_TEMPLATES_ZH.md) · `node backend/scripts/render-support-email.mjs`
 
 ---
 

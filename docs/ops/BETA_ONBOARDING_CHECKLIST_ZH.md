@@ -48,7 +48,7 @@ curl -s -X POST -H "x-ops-token: $OPS_API_TOKEN" \
   "https://app.getzhimu.com/api/ops/beta/applications/<applicationId>/reject"
 ```
 
-- [ ] **手动**发送拒审邮件（系统不自动发）→ [SUPPORT_EMAIL_TEMPLATES_ZH.md §2.2](./SUPPORT_EMAIL_TEMPLATES_ZH.md#22-拒绝申请必用手动)
+- [ ] **reject 后**系统会发拒审邮件（Resend 失败则用手动 `beta-reject` 模板）
 
 ---
 
