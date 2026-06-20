@@ -59,7 +59,7 @@ function hostConfirmBanner(){
 function recapEntryBanner(){
  const latest=state.cloudRecapLatest;
  if(!latest)return "";
- return `<section class="demo-strip recap-entry-strip"><div><span class="cloud-pill">复盘就绪</span><strong>${escapeHtml(latest.label)}</strong><p>主持人已生成复盘 · ${latest.summary?.cluesDiscovered??0} 条线索流转 · ${latest.summary?.investigationsCompleted??0} 次调查</p></div><button class="secondary-btn" data-action="player-view-recap">查看我的复盘</button></section>`;
+ return `<section class="demo-strip recap-entry-strip"><div><span class="cloud-pill">复盘就绪</span><strong>${escapeHtml(latest.label)}</strong><p>主持人已生成局后复盘 · ${latest.summary?.joinedPlayers??0} 人 · ${latest.summary?.cluesDiscovered??0} 条线索流转</p></div><button class="secondary-btn" data-action="player-view-recap">查看局后复盘</button></section>`;
 }
 
 function player(){

@@ -2495,6 +2495,106 @@ code {
   margin: 12px 0;
 }
 
+.recap-narrative-opening .recap-lede {
+  margin: 0 0 12px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.recap-cast {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.recap-chapter-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.recap-chapter-act {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.recap-chapter-head {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.recap-chapter-head strong {
+  font-size: 14px;
+}
+
+.recap-performance-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.recap-performance-card {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.recap-performance-card.is-self {
+  border-color: var(--green-2);
+  box-shadow: 0 0 0 1px rgba(43, 107, 97, 0.12);
+}
+
+.recap-performance-card header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.recap-self-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(43, 107, 97, 0.12);
+  color: var(--green-2);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.recap-performance-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.recap-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.recap-chip {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(20, 35, 33, 0.06);
+  font-size: 11px;
+}
+
+.recap-highlights {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 @media (max-width: 640px) {
   .recap-timeline-row {
     grid-template-columns: 1fr;

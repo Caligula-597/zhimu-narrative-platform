@@ -31,6 +31,9 @@ test("host can generate room recap with logs and clue flow", async (context) => 
   assert.ok(Object.hasOwn(created.snapshot, "endingTriggers"));
   assert.ok(Array.isArray(created.snapshot.notes));
   assert.ok(created.snapshot.room?.worldName);
+  assert.ok(created.snapshot.storyNarrative?.opening);
+  assert.ok(Array.isArray(created.snapshot.storyNarrative?.chapters));
+  assert.ok(Array.isArray(created.snapshot.rolePerformances));
   assert.ok(created.summary);
 
   const list = await app.inject({
@@ -83,14 +86,13 @@ test("player can view own perspective recap", async (context) => {
   });
   assert.equal(playerView.statusCode, 200, playerView.body);
   const payload = playerView.json();
-  assert.equal(payload.perspective, "player");
-  assert.equal(payload.snapshot.perspective, "player");
+  assert.equal(payload.perspective, "postgame");
+  assert.equal(payload.snapshot.perspective, "postgame");
   assert.ok(payload.snapshot.roleSlotId);
-  assert.ok(Array.isArray(payload.snapshot.missedClues));
-  assert.ok(Array.isArray(payload.snapshot.notes));
-  const hostOnlyLogs = (create.json().snapshot.keyTimeline ?? []).length;
-  const playerLogs = (payload.snapshot.keyTimeline ?? []).length;
-  assert.ok(playerLogs <= hostOnlyLogs);
+  assert.ok(payload.snapshot.storyNarrative?.opening);
+  assert.equal(payload.snapshot.rolePerformances?.length, create.json().snapshot.rolePerformances?.length);
+  assert.ok(payload.snapshot.myPerformance?.roleSlotId);
+  assert.ok(Array.isArray(payload.snapshot.personalNotes));
 });
 
 test("host global recap includes full clue discovery order", async (context) => {

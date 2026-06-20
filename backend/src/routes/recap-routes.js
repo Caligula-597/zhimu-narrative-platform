@@ -61,7 +61,7 @@ export async function registerRecapRoutes(app) {
         return sendErr(reply, "PLAYER_ROLE_REQUIRED", "Player role selection required");
       }
       snapshot = filterRecapForPlayer(row.snapshot, membership.role_slot_id);
-      perspective = "player";
+      perspective = "postgame";
     } else {
       snapshot = { ...snapshot, perspective: "host" };
     }
@@ -100,7 +100,7 @@ export async function registerRecapRoutes(app) {
         return sendErr(reply, "PLAYER_ROLE_REQUIRED", "Player role selection required");
       }
       snapshot = filterRecapForPlayer(row.snapshot, membership.role_slot_id);
-      perspective = "player";
+      perspective = "postgame";
     } else {
       snapshot = { ...snapshot, perspective: "host" };
     }

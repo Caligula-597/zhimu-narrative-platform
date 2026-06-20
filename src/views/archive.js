@@ -57,7 +57,7 @@ function archive(){
  return `${cloudStatus()}
  <article class="card"><div class="section-head"><div><h3>房间复盘 · ${escapeHtml(room.name)}</h3><p>基于真实日志、线索流转、调查记录与规则触发，生成可分享的跑团回顾（非 AI 版）。</p></div>${isPlayer?"":`<button class="primary-btn" data-action="create-recap">生成复盘</button>`}</div>
  ${recapListSection(recaps,isPlayer)}
- <div class="tutorial-tip"><b>视角说明</b><span>主持人可查看全局复盘；玩家只能看到自己视角下的时间线、笔记与错过的线索。</span></div></article>
+ <div class="tutorial-tip"><b>视角说明</b><span>局后复盘以<strong>上帝视角</strong>串联全剧章节与各角色表现；玩家端会高亮自己的角色卡片。</span></div></article>
  <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>运行房存档</h3><p>保存当前平行房的玩家进度、线索与开放场景；可将存档恢复到本房或其它平行房（同一世界内）。</p></div>${isPlayer?"":`<button class="primary-btn" data-action="create-checkpoint">＋ 创建存档点</button>`}</div>
  ${checkpoints.length?`<div class="checkpoint-list">${checkpoints.map(item=>`<article class="checkpoint-card"><div class="checkpoint-head"><div><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.description||"无主持备注")}</p></div><span class="status-chip published">可恢复</span></div><div class="checkpoint-meta"><span>创建于 ${formatTime(item.created_at)}</span><span>${escapeHtml(item.created_by_name||"主持人")}</span><span>${item.summary?.joinedPlayers||0} 人已加入 · ${item.summary?.clueCount||0} 条线索 · ${item.summary?.unlockedSceneCount||0} 个开放场景</span></div><div class="row"><button class="secondary-btn" data-action="checkpoint-detail" data-checkpoint="${item.id}">查看详情</button>${isPlayer?"":`<button class="primary-btn" data-action="restore-checkpoint" data-checkpoint="${item.id}">恢复到此状态</button>`}</div></article>`).join("")}</div>`:`<div class="empty-state">${isPlayer?"暂无存档点。":"暂无存档点。主持人可在主持监控台或本页创建第一个运行房快照。"}</div>`}
  <div class="tutorial-tip"><b>与创作版本区分</b><span>checkpoint 只记录运行房状态，不会覆盖编排台中的章节、场景或规则内容。</span></div></article>`;
@@ -67,7 +67,7 @@ function recapListSection(recaps,isPlayer){
  if(isPlayer){
   const latest=state.cloudRecapLatest;
   if(!latest)return `<div class="empty-state">主持人尚未生成本房间的复盘报告。跑团结束后，请让主持人在「存档与复盘」页生成。</div>`;
-  return `<article class="recap-card"><div class="recap-head"><div><strong>${escapeHtml(latest.label)}</strong><p>${escapeHtml(latest.description||"无备注")}</p></div><span class="status-chip published">我的视角</span></div><div class="checkpoint-meta"><span>生成于 ${formatTime(latest.created_at)}</span><span>${escapeHtml(latest.created_by_name||"主持人")}</span><span>${latest.summary?.cluesDiscovered||0} 条线索流转 · ${latest.summary?.investigationsCompleted||0} 次调查</span></div><button class="secondary-btn" data-action="recap-detail" data-recap="${latest.id}" data-player="1">查看我的复盘</button></article>`;
+  return `<article class="recap-card"><div class="recap-head"><div><strong>${escapeHtml(latest.label)}</strong><p>${escapeHtml(latest.description||"无备注")}</p></div><span class="status-chip published">局后复盘</span></div><div class="checkpoint-meta"><span>生成于 ${formatTime(latest.created_at)}</span><span>${escapeHtml(latest.created_by_name||"主持人")}</span><span>${latest.summary?.joinedPlayers||0} 人 · ${latest.summary?.cluesDiscovered||0} 条线索</span></div><button class="secondary-btn" data-action="recap-detail" data-recap="${latest.id}" data-player="1">查看完整复盘</button></article>`;
  }
  if(!recaps.length)return `<div class="empty-state">尚未生成复盘。跑团结束后点击「生成复盘」，系统会从时间线、线索流转、调查记录与规则执行汇总。</div>`;
  return `<div class="recap-list">${recaps.map(item=>`<article class="recap-card"><div class="recap-head"><div><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.description||"无备注")}</p></div><span class="status-chip published">全局复盘</span></div><div class="checkpoint-meta"><span>生成于 ${formatTime(item.created_at)}</span><span>${escapeHtml(item.created_by_name||"主持人")}</span><span>${item.summary?.joinedPlayers||0} 人 · ${item.summary?.cluesDiscovered||0} 条线索 · ${item.summary?.rulesTriggered||0} 条规则触发</span></div><button class="secondary-btn" data-action="recap-detail" data-recap="${item.id}">查看全局复盘</button></article>`).join("")}</div>`;
@@ -77,15 +77,13 @@ function recapDetailView(){
  const detail=state.cloudRecapDetail;
  if(!detail)return `<article class="card"><div class="empty-state">正在加载复盘…</div><button class="secondary-btn" data-action="recap-back">返回列表</button></article>`;
  const snapshot=detail.snapshot||{},perspective=detail.perspective||snapshot.perspective||"host";
- return `<article class="card recap-detail"><div class="section-head"><div><p class="eyebrow">${perspective==="player"?"MY RECAP":"FULL RECAP"}</p><h3>${escapeHtml(detail.label)}</h3><p>${escapeHtml(detail.description||"")} · 生成于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p></div><button class="secondary-btn" data-action="recap-back">返回</button></div>
+ return `<article class="card recap-detail"><div class="section-head"><div><p class="eyebrow">${perspective==="postgame"?"POSTGAME RECAP":"FULL RECAP · 上帝视角"}</p><h3>${escapeHtml(detail.label)}</h3><p>${escapeHtml(detail.description||"")} · 生成于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p></div><button class="secondary-btn" data-action="recap-back">返回</button></div>
  ${recapRoomSummary(snapshot,perspective)}
- ${recapPlayers(snapshot)}
- ${recapTimeline(snapshot)}
- ${recapClueSection(snapshot,perspective)}
- ${recapHostEvents(snapshot)}
- ${recapEndingTriggers(snapshot)}
- ${recapNotes(snapshot,perspective)}
- <div class="tutorial-tip"><b>非 AI 版</b><span>以上内容直接来自数据库日志与流转记录。后续可接入 AI 总结「真相与结局解读」。</span></div></article>`;
+ ${recapStoryNarrative(snapshot)}
+ ${recapRolePerformances(snapshot,perspective==="postgame"?snapshot.highlightRoleSlotId||snapshot.roleSlotId:null)}
+ ${recapPersonalNotes(snapshot,perspective)}
+ ${snapshot.storyNarrative?"":`${recapTimeline(snapshot)}${recapClueSection(snapshot,perspective)}${recapHostEvents(snapshot)}${recapEndingTriggers(snapshot)}${recapNotes(snapshot,perspective)}`}
+ <div class="tutorial-tip"><b>结构化复盘</b><span>按章节串联全剧推进，并汇总各角色阅读、线索、调查与笔记表现；数据来自本局真实日志，非 AI 生成。</span></div></article>`;
 }
 
 function recapRoomSummary(snapshot){
@@ -99,6 +97,34 @@ function recapPlayers(snapshot){
  return `<section class="recap-section"><h4>玩家角色</h4><div class="host-detail-list">${players.map(player=>`<div class="checkpoint-row"><strong>${escapeHtml(player.playerDisplayName||"席位空置")} · ${escapeHtml(player.roleName)}</strong><p>阅读 ${player.completedSections}/${player.totalSections} · 线索 ${player.ownedClues}（已读 ${player.readClues}） · 笔记 ${player.noteCount||0}</p></div>`).join("")}</div></section>`;
 }
 
+function recapStoryNarrative(snapshot){
+ const story=snapshot.storyNarrative;
+ if(!story)return "";
+ const opening=story.opening||{};
+ const cast=(opening.cast||[]).map(row=>`<li><strong>${escapeHtml(row.roleName)}</strong>${row.playerDisplayName?` · ${escapeHtml(row.playerDisplayName)}`:""}</li>`).join("");
+ const chapters=(story.chapters||[]).map(chapter=>`<article class="recap-chapter-act"><div class="recap-chapter-head"><strong>第 ${chapter.sequence} 章 · ${escapeHtml(chapter.title)}</strong><span class="muted-note">${escapeHtml(chapter.narrativeLine||chapter.summary||"")}</span></div>${chapter.beats?.length?`<div class="recap-timeline">${chapter.beats.map(event=>`<div class="recap-timeline-row"><span>${formatTime(event.at)}</span><p>${escapeHtml(event.label||event.message||"")}</p></div>`).join("")}`:`<div class="muted-note">本章暂无推进记录。</div>`}</article>`).join("");
+ const epilogue=story.epilogue||{};
+ const epilogueBeats=(epilogue.beats||[]).length?`<div class="recap-timeline">${epilogue.beats.map(event=>`<div class="recap-timeline-row"><span>${formatTime(event.at)}</span><p>${escapeHtml(event.label||"")}</p></div>`).join("")}`:"";
+ return `<section class="recap-section"><h4>全剧脉络 · 上帝视角</h4><p>${escapeHtml(opening.summary||"")}</p>${cast?`<ul>${cast}</ul>`:""}<div class="recap-chapter-stack">${chapters}</div><article class="recap-chapter-act"><div class="recap-chapter-head"><strong>${escapeHtml(epilogue.title||"结局与余波")}</strong><span class="muted-note">${escapeHtml(epilogue.summary||"")}</span></div>${epilogueBeats}</article></section>`;
+}
+
+function recapRolePerformances(snapshot,highlightRoleSlotId){
+ const roles=snapshot.rolePerformances||[];
+ if(!roles.length)return recapPlayers(snapshot);
+ return `<section class="recap-section"><h4>角色表现</h4><div class="recap-performance-grid">${roles.map(role=>{
+  const isSelf=highlightRoleSlotId&&role.roleSlotId===highlightRoleSlotId;
+  const highlights=(role.highlights||[]).map(line=>`<li>${escapeHtml(line)}</li>`).join("");
+  return `<article class="recap-performance-card${isSelf?" is-self":""}"><header><strong>${escapeHtml(role.roleName)}</strong>${isSelf?`<span class="recap-self-badge">你</span>`:""}<span class="muted-note">${escapeHtml(role.playerDisplayName||"空席")}</span></header><p class="muted-note">阅读 ${role.stats?.completedSections??0}/${role.stats?.totalSections??0} · 线索 ${role.stats?.ownedClues??0} · 调查 ${role.stats?.investigations??0} · 笔记 ${role.stats?.notes??0}</p>${highlights?`<ul class="recap-highlights">${highlights}</ul>`:""}</article>`;
+ }).join("")}</div></section>`;
+}
+
+function recapPersonalNotes(snapshot,perspective){
+ if(perspective!=="postgame")return "";
+ const notes=snapshot.personalNotes||[];
+ if(!notes.length)return "";
+ return `<section class="recap-section"><h4>我的笔记</h4><div class="host-detail-list">${notes.slice(0,12).map(note=>`<div class="checkpoint-row"><strong>${escapeHtml(note.title)}</strong><p>${formatTime(note.createdAt)}</p><small>${escapeHtml((note.body||"").slice(0,160))}</small></div>`).join("")}</div></section>`;
+}
+
 function recapTimeline(snapshot){
  const events=snapshot.keyTimeline||[];
  if(!events.length)return `<section class="recap-section"><h4>关键时间线</h4><div class="empty-state">尚无时间线事件。</div></section>`;
@@ -107,9 +133,9 @@ function recapTimeline(snapshot){
 
 function recapClueSection(snapshot,perspective){
  const discovered=snapshot.clueDiscovery||[];
- const missed=perspective==="player"?(snapshot.missedClues||[]):(snapshot.undiscoveredClues||[]).map(row=>({...row,clueName:row.clueName,masked:false}));
+ const missed=perspective==="postgame"?(snapshot.missedClues||[]):(snapshot.undiscoveredClues||[]).map(row=>({...row,clueName:row.clueName,masked:false}));
  return `<section class="recap-section"><h4>线索发现顺序</h4><div class="host-detail-list">${discovered.length?discovered.map(row=>`<div class="checkpoint-row"><strong>${row.masked?"【未公开线索】":escapeHtml(row.clueName||"未命名线索")}</strong><p>${escapeHtml(row.roleName||"")}${row.playerDisplayName?` · ${escapeHtml(row.playerDisplayName)}`:""} · ${formatTime(row.acquiredAt)}${row.readAt?` · 已读 ${formatTime(row.readAt)}`:""}${row.sharedWithRoom?" · 已公开":""}</p></div>`).join(""):`<div class="empty-state">本局尚无已发放线索。</div>`}</div>
- <h4 style="margin-top:18px">${perspective==="player"?"我错过的线索":"未发现线索"}</h4><div class="host-detail-list">${missed.length?missed.map(row=>`<div class="checkpoint-row"><strong>${row.masked?"某角色持有的未公开线索":escapeHtml(row.clueName||"未命名线索")}</strong><p>${row.acquiredByRoleName?`${escapeHtml(row.acquiredByRoleName)} 已获得 · ${formatTime(row.acquiredAt)}`:"全房间无人获得"}</p></div>`).join(""):`<div class="empty-state">${perspective==="player"?"你没有明显错过的已知线索。":"所有世界线索均已被某角色获得。"}</div>`}</div></section>`;
+ <h4 style="margin-top:18px">${perspective==="postgame"?"局后未获得线索":"未发现线索"}</h4><div class="host-detail-list">${missed.length?missed.map(row=>`<div class="checkpoint-row"><strong>${row.masked?"某角色持有的未公开线索":escapeHtml(row.clueName||"未命名线索")}</strong><p>${row.acquiredByRoleName?`${escapeHtml(row.acquiredByRoleName)} 已获得 · ${formatTime(row.acquiredAt)}`:"全房间无人获得"}</p></div>`).join(""):`<div class="empty-state">${perspective==="postgame"?"仍有线索未被该角色获得。":"所有世界线索均已被某角色获得。"}</div>`}</div></section>`;
 }
 
 function recapHostEvents(snapshot){
@@ -126,7 +152,7 @@ function recapEndingTriggers(snapshot){
 
 function recapNotes(snapshot,perspective){
  const notes=snapshot.notes||[];
- const title=perspective==="player"?"我的笔记精选":"玩家笔记精选";
+ const title=perspective==="postgame"?"我的笔记精选":"玩家笔记精选";
  if(!notes.length)return `<section class="recap-section"><h4>${title}</h4><div class="empty-state">尚无笔记记录。</div></section>`;
  return `<section class="recap-section"><h4>${title}</h4><div class="host-detail-list">${notes.slice(0,12).map(note=>`<div class="checkpoint-row"><strong>${escapeHtml(note.title)}</strong><p>${perspective==="host"?`${escapeHtml(note.roleName||"")} · `:""}${formatTime(note.createdAt)}</p><small>${escapeHtml((note.body||"").slice(0,160))}${(note.body||"").length>160?"…":""}</small></div>`).join("")}</div></section>`;
 }
@@ -145,7 +171,7 @@ function checkpointClueSummary(snapshot={}){
 
 function openCreateRecapModal(){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
- modal.className="modal";modal.innerHTML=`<h2>生成房间复盘</h2><p class="wizard-intro">系统会从时间线、线索流转、调查记录、主持确认事件与自动化规则执行汇总生成结构化复盘。玩家只能查看自己视角。</p><div class="form-group">${studioField("复盘标题","recapTitle","input","例如：第一夜 · 完整复盘")}${studioField("主持备注","recapDescription","textarea","记录本局结局、未解之谜或下次补充说明")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-recap-submit>确认生成</button></div>`;
+ modal.className="modal";modal.innerHTML=`<h2>生成房间复盘</h2><p class="wizard-intro">系统会按章节串联全剧脉络（上帝视角），并汇总各角色阅读、线索、调查与笔记表现。局后玩家与主持均可查看完整复盘。</p><div class="form-group">${studioField("复盘标题","recapTitle","input","例如：第一夜 · 完整复盘")}${studioField("主持备注","recapDescription","textarea","记录本局结局、未解之谜或下次补充说明")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-recap-submit>确认生成</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-recap-submit]").onclick=async()=>{try{const values=studioValues();if(!values.recapTitle)return showToast("请填写复盘标题");const created=await zhimuApi.createRecap({title:values.recapTitle,description:values.recapDescription});closeModal();await loadCloudData();showToast("房间复盘已生成");state.activeRecapId=created.id;state.cloudRecapDetail=created;render()}catch(error){showToast(error.message)}};
 }
 
@@ -158,12 +184,11 @@ function openCreateCheckpointModal(){
 function playerRecapModalBody(detail){
  const snapshot=detail.snapshot||{};
  return `<div class="host-detail-grid recap-player-modal-body">
- ${recapRoomSummary(snapshot,"player")}
- ${recapTimeline(snapshot)}
- ${recapClueSection(snapshot,"player")}
- ${recapHostEvents(snapshot)}
- ${recapNotes(snapshot,"player")}
- <div class="tutorial-tip"><b>我的视角</b><span>以上内容来自本局真实日志与流转记录，不含 AI 生成内容。</span></div></div>`;
+ ${recapRoomSummary(snapshot,"postgame")}
+ ${recapStoryNarrative(snapshot)}
+ ${recapRolePerformances(snapshot,snapshot.highlightRoleSlotId||snapshot.roleSlotId)}
+ ${recapPersonalNotes(snapshot,"postgame")}
+ <div class="tutorial-tip"><b>局后复盘</b><span>全剧上帝视角 + 各角色表现；你的角色卡片会高亮显示。</span></div></div>`;
 }
 
 async function openPlayerRecapModal(recapId){

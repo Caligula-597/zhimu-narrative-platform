@@ -1,7 +1,5 @@
 import { fetchHostPlayers, summarizeHostAction } from "./host-helpers.js";
 
-const PUBLIC_TIMELINE_KINDS = new Set(["scene_unlock", "host_event", "rule_triggered"]);
-
 function summarizeRuleConditions(conditions = {}) {
   const parts = (conditions.all ?? []).map((row) => {
     if (row.type === "reading_completed") return "完成阅读";
@@ -115,15 +113,28 @@ export async function buildRoomRecapSnapshot(query, roomId) {
   );
   const readingCompletions = await query(
     `SELECT rp.completed_at, ss.id AS section_id, ss.title AS section_title, ss.sequence,
+            ss.chapter_id, ch.title AS chapter_title, ch.sequence AS chapter_sequence,
             rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
      FROM reading_progress rp
      JOIN script_sections ss ON ss.id = rp.script_section_id
+     LEFT JOIN chapters ch ON ch.id = ss.chapter_id
      JOIN role_slots rs ON rs.id = rp.role_slot_id
      LEFT JOIN room_members rm ON rm.room_id = rp.room_id AND rm.role_slot_id = rp.role_slot_id AND rm.status = 'active'
      LEFT JOIN users u ON u.id = rm.user_id
      WHERE rp.room_id = $1 AND rp.completed_at IS NOT NULL
      ORDER BY rp.completed_at ASC`,
     [roomId]
+  );
+  const chapterRows = await query(
+    `SELECT ch.id, ch.title, ch.summary, ch.sequence,
+            (SELECT COUNT(*)::int
+             FROM script_sections ss
+             JOIN role_slots rs ON rs.id = ss.role_slot_id
+             WHERE ss.chapter_id = ch.id AND rs.world_id = ch.world_id) AS section_count
+     FROM chapters ch
+     WHERE ch.world_id = $1
+     ORDER BY ch.sequence ASC, ch.created_at ASC`,
+    [room.world_id]
   );
   const finalChapter = await query(
     `SELECT ch.id, ch.title, ch.sequence
@@ -179,10 +190,23 @@ export async function buildRoomRecapSnapshot(query, roomId) {
     timelineLogs: timelineLogs.rows
   });
 
+  const readingCompletionRows = readingCompletions.rows.map((row) => ({
+    completedAt: row.completed_at,
+    sectionId: row.section_id,
+    sectionTitle: row.section_title,
+    sequence: row.sequence,
+    chapterId: row.chapter_id,
+    chapterTitle: row.chapter_title,
+    chapterSequence: row.chapter_sequence,
+    roleSlotId: row.role_slot_id,
+    roleName: row.role_name,
+    playerDisplayName: row.player_display_name
+  }));
+
   const firstJoin = players.filter((player) => player.joined_at).map((player) => player.joined_at).sort()[0] ?? null;
   const lastActivity = players.map((player) => player.last_activity_at).filter(Boolean).sort().reverse()[0] ?? null;
 
-  return {
+  const snapshotCore = {
     generatedAt: new Date().toISOString(),
     room: {
       id: room.id,
@@ -257,6 +281,38 @@ export async function buildRoomRecapSnapshot(query, roomId) {
       notesWritten: notes.rows.length
     }
   };
+
+  const storyNarrative = buildStoryNarrative({
+    room: snapshotCore.room,
+    truth: snapshotCore.truth,
+    chapters: chapterRows.rows,
+    players: snapshotCore.players,
+    readingCompletions: readingCompletionRows,
+    keyTimeline,
+    hostConfirmedEvents,
+    endingTriggers,
+    clueDiscovery,
+    undiscoveredClues: snapshotCore.undiscoveredClues,
+    unlockedScenes: snapshotCore.unlockedScenes,
+    stats: snapshotCore.stats
+  });
+
+  const rolePerformances = buildRolePerformances({
+    players: snapshotCore.players,
+    readingCompletions: readingCompletionRows,
+    clueDiscovery,
+    investigations: snapshotCore.investigations,
+    notes: snapshotCore.notes,
+    keyTimeline,
+    chapters: chapterRows.rows
+  });
+
+  return {
+    ...snapshotCore,
+    readingCompletions: readingCompletionRows,
+    storyNarrative,
+    rolePerformances
+  };
 }
 
 function buildKeyTimeline({ clueDiscovery, investigations, readingCompletions, unlockedScenes, hostConfirmedEvents, endingTriggers, timelineLogs }) {
@@ -270,7 +326,10 @@ function buildKeyTimeline({ clueDiscovery, investigations, readingCompletions, u
       playerDisplayName: row.player_display_name,
       label: `${row.role_name} 完成阅读「${row.section_title}」`,
       sectionTitle: row.section_title,
-      sequence: row.sequence
+      sequence: row.sequence,
+      chapterId: row.chapter_id ?? null,
+      chapterTitle: row.chapter_title ?? null,
+      chapterSequence: row.chapter_sequence ?? null
     });
   }
   for (const row of clueDiscovery) {
@@ -355,77 +414,251 @@ function buildKeyTimeline({ clueDiscovery, investigations, readingCompletions, u
   return events;
 }
 
-export function filterRecapForPlayer(snapshot, roleSlotId) {
-  const ownedClueIds = new Set(
-    (snapshot.clueDiscovery ?? [])
-      .filter((row) => row.roleSlotId === roleSlotId)
-      .map((row) => row.clueId)
-  );
-  const sharedClueIds = new Set(
-    (snapshot.clueDiscovery ?? [])
-      .filter((row) => row.sharedWithRoom)
-      .map((row) => row.clueId)
-  );
-  const visibleClueIds = new Set([...ownedClueIds, ...sharedClueIds]);
+function eventChapterKey(event) {
+  if (event.chapterId) return String(event.chapterId);
+  if (event.chapterSequence != null) return `seq:${event.chapterSequence}`;
+  return null;
+}
 
-  const clueDiscovery = (snapshot.clueDiscovery ?? []).map((row) => {
-    if (row.roleSlotId === roleSlotId || visibleClueIds.has(row.clueId)) return row;
+function chapterKey(chapter) {
+  return chapter?.id ? String(chapter.id) : chapter?.sequence != null ? `seq:${chapter.sequence}` : null;
+}
+
+function buildStoryNarrative({
+  room,
+  truth,
+  chapters,
+  players,
+  readingCompletions,
+  keyTimeline,
+  hostConfirmedEvents,
+  endingTriggers,
+  clueDiscovery,
+  undiscoveredClues,
+  unlockedScenes,
+  stats
+}) {
+  const joinedPlayers = players.filter((player) => player.joined);
+  const opening = {
+    phase: "opening",
+    title: "开本",
+    summary: truth.worldSummary
+      ? `${room.worldName} · ${truth.worldSummary}`
+      : `${room.worldName} · ${room.name}`,
+    cast: joinedPlayers.map((player) => ({
+      roleSlotId: player.roleSlotId,
+      roleName: player.roleName,
+      playerDisplayName: player.playerDisplayName,
+      joinedAt: player.joinedAt
+    })),
+    at: room.firstJoinAt ?? room.createdAt
+  };
+
+  const chapterList = chapters.length
+    ? chapters
+    : [{ id: null, title: "本局推进", summary: "", sequence: 1, section_count: 0 }];
+
+  const chapterActs = chapterList.map((chapter, index) => {
+    const key = chapterKey(chapter);
+    const chapterReads = readingCompletions.filter(
+      (row) => (row.chapterId && String(row.chapterId) === String(chapter.id))
+        || (row.chapterSequence != null && row.chapterSequence === chapter.sequence)
+    );
+    const roleIds = new Set(players.map((player) => player.roleSlotId));
+    const rolesFinished = new Set(chapterReads.map((row) => row.roleSlotId)).size;
+    const beats = keyTimeline.filter((event) => {
+      if (event.kind === "reading_complete") {
+        const eventKey = eventChapterKey(event);
+        if (key && eventKey === key) return true;
+        if (!key && index === 0) return true;
+        return false;
+      }
+      if (["host_event", "rule_triggered", "scene_unlock"].includes(event.kind)) {
+        const at = event.at ? new Date(event.at).getTime() : NaN;
+        const chapterTimes = chapterReads.map((row) => new Date(row.completedAt).getTime()).filter(Number.isFinite);
+        const prevTimes = chapterList.slice(0, index).flatMap((prev) =>
+          readingCompletions
+            .filter((row) => String(row.chapterId) === String(prev.id) || row.chapterSequence === prev.sequence)
+            .map((row) => new Date(row.completedAt).getTime())
+        );
+        const nextTimes = chapterList.slice(index + 1).flatMap((next) =>
+          readingCompletions
+            .filter((row) => String(row.chapterId) === String(next.id) || row.chapterSequence === next.sequence)
+            .map((row) => new Date(row.completedAt).getTime())
+        );
+        const start = prevTimes.length ? Math.max(...prevTimes) : 0;
+        const end = nextTimes.length ? Math.min(...nextTimes) : Number.POSITIVE_INFINITY;
+        if (!Number.isFinite(at)) return index === chapterList.length - 1;
+        if (chapterTimes.length) {
+          const chapterStart = Math.min(...chapterTimes);
+          const chapterEnd = Math.max(...chapterTimes);
+          return at >= Math.min(chapterStart, start) && at <= Math.max(chapterEnd, end);
+        }
+        return index === chapterList.length - 1 && at >= start && at <= end;
+      }
+      if (["clue_acquired", "clue_read", "investigation"].includes(event.kind)) {
+        const eventKey = eventChapterKey(event);
+        if (eventKey && key && eventKey === key) return true;
+        const readInChapter = chapterReads.some((row) => row.roleSlotId === event.roleSlotId);
+        if (!readInChapter) return false;
+        const at = event.at ? new Date(event.at).getTime() : NaN;
+        const chapterTimes = chapterReads
+          .filter((row) => row.roleSlotId === event.roleSlotId)
+          .map((row) => new Date(row.completedAt).getTime());
+        if (!Number.isFinite(at) || !chapterTimes.length) return readInChapter;
+        return at >= Math.min(...chapterTimes) - 600_000;
+      }
+      return false;
+    });
+
+    const cluesInAct = clueDiscovery.filter((row) =>
+      beats.some((event) => event.kind === "clue_acquired" && event.clueId === row.clueId)
+    );
+
+    const summaryParts = [];
+    if (chapter.title) summaryParts.push(`第 ${chapter.sequence ?? index + 1} 章《${chapter.title}》`);
+    summaryParts.push(`${rolesFinished}/${roleIds.size || players.length} 角色完成本分幕阅读`);
+    if (cluesInAct.length) summaryParts.push(`${cluesInAct.length} 条线索在本章流转`);
+    if (beats.some((event) => event.kind === "host_event")) summaryParts.push("含主持确认节点");
+
     return {
-      ...row,
-      clueName: null,
-      masked: true,
-      label: `${row.roleName} 获得了一条未公开线索`
+      phase: "chapter",
+      chapterId: chapter.id,
+      sequence: chapter.sequence ?? index + 1,
+      title: chapter.title || `第 ${index + 1} 章`,
+      summary: chapter.summary || summaryParts.join(" · "),
+      progress: {
+        rolesFinished,
+        roleTotal: roleIds.size || players.length,
+        sectionsCompleted: chapterReads.length,
+        sectionTotal: Number(chapter.section_count) || null
+      },
+      beats,
+      narrativeLine: summaryParts.join(" · ")
     };
   });
 
-  const missedClues = (snapshot.clueDiscovery ?? [])
-    .filter((row) => row.roleSlotId !== roleSlotId && !visibleClueIds.has(row.clueId))
-    .map((row) => ({
-      clueId: row.clueId,
-      clueName: null,
-      acquiredByRoleName: row.roleName,
-      acquiredAt: row.acquiredAt,
-      masked: true
-    }))
-    .concat(
-      (snapshot.undiscoveredClues ?? []).map((row) => ({
-        clueId: row.clueId,
-        clueName: row.clueName,
-        acquiredByRoleName: null,
-        acquiredAt: null,
-        masked: false
-      }))
-    );
+  const epilogueBeats = keyTimeline.filter((event) =>
+    !chapterActs.some((act) => act.beats.includes(event))
+  );
 
-  const keyTimeline = (snapshot.keyTimeline ?? []).filter((event) => {
-    if (PUBLIC_TIMELINE_KINDS.has(event.kind)) return true;
-    if (event.roleSlotId === roleSlotId) return true;
-    if (event.kind === "clue_acquired" || event.kind === "clue_read") {
-      return event.clueId && visibleClueIds.has(event.clueId);
+  const epilogue = {
+    phase: "epilogue",
+    title: "结局与余波",
+    summary: truth.finalChapter
+      ? `本局最远推进至第 ${truth.finalChapter.sequence} 章《${truth.finalChapter.title}》`
+      : "本局主要推进节点见各章时间线",
+    finalChapter: truth.finalChapter,
+    endingTriggers,
+    hostConfirmedEvents,
+    undiscoveredClues,
+    beats: epilogueBeats,
+    stats
+  };
+
+  return {
+    perspective: "omniscient",
+    opening,
+    chapters: chapterActs,
+    epilogue,
+    fullTimeline: keyTimeline
+  };
+}
+
+function buildRolePerformances({
+  players,
+  readingCompletions,
+  clueDiscovery,
+  investigations,
+  notes,
+  keyTimeline,
+  chapters
+}) {
+  return players.map((player) => {
+    const roleSlotId = player.roleSlotId;
+    const reads = readingCompletions.filter((row) => row.roleSlotId === roleSlotId);
+    const clues = clueDiscovery.filter((row) => row.roleSlotId === roleSlotId);
+    const roleInvestigations = investigations.filter((row) => row.roleSlotId === roleSlotId);
+    const roleNotes = notes.filter((row) => row.roleSlotId === roleSlotId);
+    const timeline = keyTimeline.filter((event) => event.roleSlotId === roleSlotId);
+
+    const chapterProgress = (chapters.length ? chapters : [{ id: null, title: "本局", sequence: 1 }]).map((chapter) => {
+      const chapterReads = reads.filter(
+        (row) => String(row.chapterId) === String(chapter.id) || row.chapterSequence === chapter.sequence
+      );
+      return {
+        chapterId: chapter.id,
+        sequence: chapter.sequence,
+        title: chapter.title,
+        sectionsCompleted: chapterReads.length,
+        lastCompletedAt: chapterReads.length
+          ? chapterReads.map((row) => row.completedAt).sort().reverse()[0]
+          : null
+      };
+    });
+
+    const highlights = [];
+    if (!player.joined) highlights.push("未加入本局");
+    else {
+      if (player.completedSections >= player.totalSections && player.totalSections > 0) {
+        highlights.push("完成全部分幕阅读");
+      } else if (player.totalSections > 0) {
+        highlights.push(`阅读进度 ${player.completedSections}/${player.totalSections}`);
+      }
+      if (clues.length) {
+        const unread = clues.filter((row) => !row.readAt).length;
+        highlights.push(unread
+          ? `获得 ${clues.length} 条线索，${unread} 条未读`
+          : `获得并阅读 ${clues.length} 条线索`);
+      }
+      if (roleInvestigations.length) highlights.push(`完成 ${roleInvestigations.length} 次调查`);
+      if (roleNotes.length) highlights.push(`记录 ${roleNotes.length} 条笔记`);
+      const firstRead = reads.map((row) => row.completedAt).sort()[0];
+      if (firstRead) highlights.push(`最早阅读完成于 ${firstRead}`);
     }
-    if (event.kind === "log") {
-      if (event.roleSlotId === roleSlotId) return true;
-      if (event.visibility === "public" || event.visibility === "postgame") return true;
-      return false;
-    }
-    return false;
-  }).map((event) => {
-    if ((event.kind === "clue_acquired" || event.kind === "clue_read") && event.clueId && !visibleClueIds.has(event.clueId)) {
-      return { ...event, clueName: null, masked: true, label: `${event.roleName} 获得/阅读了一条未公开线索` };
-    }
-    return event;
+
+    return {
+      roleSlotId,
+      roleName: player.roleName,
+      playerDisplayName: player.playerDisplayName,
+      joined: player.joined,
+      joinedAt: player.joinedAt,
+      stats: {
+        completedSections: player.completedSections,
+        totalSections: player.totalSections,
+        ownedClues: player.ownedClues,
+        readClues: player.readClues,
+        investigations: roleInvestigations.length,
+        notes: roleNotes.length
+      },
+      chapterProgress,
+      clues,
+      investigations: roleInvestigations,
+      notes: roleNotes,
+      timeline,
+      highlights
+    };
   });
+}
+
+export function filterRecapForPlayer(snapshot, roleSlotId) {
+  const myPerformance = (snapshot.rolePerformances ?? []).find((row) => row.roleSlotId === roleSlotId) ?? null;
+  const personalNotes = (snapshot.notes ?? []).filter((row) => row.roleSlotId === roleSlotId);
 
   return {
     ...snapshot,
-    perspective: "player",
+    perspective: "postgame",
+    highlightRoleSlotId: roleSlotId,
     roleSlotId,
-    clueDiscovery,
-    missedClues,
-    undiscoveredClues: missedClues.filter((row) => !row.acquiredByRoleName),
-    keyTimeline,
+    storyNarrative: snapshot.storyNarrative ?? null,
+    rolePerformances: snapshot.rolePerformances ?? [],
+    myPerformance,
+    personalNotes,
+    clueDiscovery: snapshot.clueDiscovery ?? [],
+    missedClues: snapshot.undiscoveredClues ?? [],
+    keyTimeline: snapshot.keyTimeline ?? [],
     investigations: (snapshot.investigations ?? []).filter((row) => row.roleSlotId === roleSlotId),
-    notes: (snapshot.notes ?? []).filter((row) => row.roleSlotId === roleSlotId),
+    notes: personalNotes,
     hostConfirmedEvents: snapshot.hostConfirmedEvents ?? [],
     endingTriggers: snapshot.endingTriggers ?? []
   };
