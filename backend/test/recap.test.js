@@ -33,6 +33,7 @@ test("host can generate room recap with logs and clue flow", async (context) => 
   assert.ok(created.snapshot.room?.worldName);
   assert.ok(created.snapshot.storyNarrative?.opening);
   assert.ok(Array.isArray(created.snapshot.storyNarrative?.chapters));
+  assert.ok(Array.isArray(created.snapshot.storyNarrative?.revelationTrack));
   assert.ok(Array.isArray(created.snapshot.rolePerformances));
   assert.ok(created.summary);
 

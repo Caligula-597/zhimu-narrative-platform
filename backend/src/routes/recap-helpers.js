@@ -1,4 +1,11 @@
 import { fetchHostPlayers, summarizeHostAction } from "./host-helpers.js";
+import {
+  applyRoleRankings,
+  buildChapterMoments,
+  buildChapterSynopsis,
+  buildPlotSpineForChapter,
+  buildRevelationTrack
+} from "../recap-narrative.js";
 
 function summarizeRuleConditions(conditions = {}) {
   const parts = (conditions.all ?? []).map((row) => {
@@ -135,6 +142,49 @@ export async function buildRoomRecapSnapshot(query, roomId) {
      WHERE ch.world_id = $1
      ORDER BY ch.sequence ASC, ch.created_at ASC`,
     [room.world_id]
+  );
+  const sceneRows = await query(
+    `SELECT s.id, s.name, s.chapter_id, s.public_text, s.host_text,
+            ch.sequence AS chapter_sequence, ch.title AS chapter_title
+     FROM scenes s
+     LEFT JOIN chapters ch ON ch.id = s.chapter_id
+     WHERE s.world_id = $1
+     ORDER BY ch.sequence NULLS LAST, s.created_at ASC`,
+    [room.world_id]
+  );
+  const worldClueRows = await query(
+    `SELECT id, name, public_text, host_text, visibility, metadata
+     FROM clues
+     WHERE world_id = $1
+     ORDER BY created_at ASC`,
+    [room.world_id]
+  );
+  const worldScenesById = new Map(
+    sceneRows.rows.map((row) => [
+      row.id,
+      {
+        id: row.id,
+        name: row.name,
+        chapterId: row.chapter_id,
+        publicText: row.public_text,
+        hostText: row.host_text,
+        chapterSequence: row.chapter_sequence,
+        chapterTitle: row.chapter_title
+      }
+    ])
+  );
+  const worldCluesById = new Map(
+    worldClueRows.rows.map((row) => [
+      row.id,
+      {
+        id: row.id,
+        name: row.name,
+        publicText: row.public_text,
+        hostText: row.host_text,
+        visibility: row.visibility,
+        importance: row.metadata?.importance ?? "normal"
+      }
+    ])
   );
   const finalChapter = await query(
     `SELECT ch.id, ch.title, ch.sequence
@@ -294,18 +344,22 @@ export async function buildRoomRecapSnapshot(query, roomId) {
     clueDiscovery,
     undiscoveredClues: snapshotCore.undiscoveredClues,
     unlockedScenes: snapshotCore.unlockedScenes,
-    stats: snapshotCore.stats
+    stats: snapshotCore.stats,
+    worldScenesById,
+    worldCluesById
   });
 
-  const rolePerformances = buildRolePerformances({
-    players: snapshotCore.players,
-    readingCompletions: readingCompletionRows,
-    clueDiscovery,
-    investigations: snapshotCore.investigations,
-    notes: snapshotCore.notes,
-    keyTimeline,
-    chapters: chapterRows.rows
-  });
+  const rolePerformances = applyRoleRankings(
+    buildRolePerformances({
+      players: snapshotCore.players,
+      readingCompletions: readingCompletionRows,
+      clueDiscovery,
+      investigations: snapshotCore.investigations,
+      notes: snapshotCore.notes,
+      keyTimeline,
+      chapters: chapterRows.rows
+    })
+  );
 
   return {
     ...snapshotCore,
@@ -436,7 +490,9 @@ function buildStoryNarrative({
   clueDiscovery,
   undiscoveredClues,
   unlockedScenes,
-  stats
+  stats,
+  worldScenesById = new Map(),
+  worldCluesById = new Map()
 }) {
   const joinedPlayers = players.filter((player) => player.joined);
   const opening = {
@@ -521,12 +577,30 @@ function buildStoryNarrative({
     if (cluesInAct.length) summaryParts.push(`${cluesInAct.length} 条线索在本章流转`);
     if (beats.some((event) => event.kind === "host_event")) summaryParts.push("含主持确认节点");
 
+    const synopsis = buildChapterSynopsis({
+      chapter,
+      chapterReads,
+      beats,
+      rolesFinished,
+      roleTotal: roleIds.size || players.length,
+      cluesInAct
+    });
+    const plotSpine = buildPlotSpineForChapter({
+      chapter,
+      beats,
+      worldScenesById,
+      worldCluesById,
+      clueDiscovery
+    });
+
     return {
       phase: "chapter",
       chapterId: chapter.id,
       sequence: chapter.sequence ?? index + 1,
       title: chapter.title || `第 ${index + 1} 章`,
       summary: chapter.summary || summaryParts.join(" · "),
+      synopsis,
+      plotSpine,
       progress: {
         rolesFinished,
         roleTotal: roleIds.size || players.length,
@@ -534,8 +608,15 @@ function buildStoryNarrative({
         sectionTotal: Number(chapter.section_count) || null
       },
       beats,
-      narrativeLine: summaryParts.join(" · ")
+      narrativeLine: synopsis || summaryParts.join(" · ")
     };
+  });
+
+  const revelationTrack = buildRevelationTrack({
+    hostConfirmedEvents,
+    endingTriggers,
+    clueDiscovery,
+    worldCluesById
   });
 
   const epilogueBeats = keyTimeline.filter((event) =>
@@ -559,6 +640,7 @@ function buildStoryNarrative({
   return {
     perspective: "omniscient",
     opening,
+    revelationTrack,
     chapters: chapterActs,
     epilogue,
     fullTimeline: keyTimeline
@@ -632,6 +714,13 @@ function buildRolePerformances({
         notes: roleNotes.length
       },
       chapterProgress,
+      chapterMoments: buildChapterMoments({
+        chapters,
+        readingCompletions,
+        clueDiscovery,
+        investigations,
+        roleSlotId
+      }),
       clues,
       investigations: roleInvestigations,
       notes: roleNotes,

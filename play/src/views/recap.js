@@ -13,6 +13,43 @@ function renderBeatRow(event) {
   </div>`;
 }
 
+function renderPlotSpineNode(node) {
+  const labels = {
+    chapter_intro: "章节",
+    scene_public: "场景",
+    host_revelation: "揭示",
+    clue_truth: "线索真相",
+    runtime: "推进"
+  };
+  const tag = labels[node.kind] || "节点";
+  const title = node.title ? `<strong>${escapeHtml(node.title)}</strong>` : "";
+  const excerpt = node.excerpt ? `<p class="recap-spine-excerpt">${escapeHtml(node.excerpt)}</p>` : "";
+  const time = node.at ? `<time>${formatTime(node.at)}</time>` : "";
+  if (node.kind === "runtime" && node.beat) {
+    return renderBeatRow(node.beat);
+  }
+  return `<div class="recap-spine-node recap-spine-${node.kind}">
+    <div class="recap-spine-meta"><span class="recap-spine-tag">${tag}</span>${time}</div>
+    ${title}${excerpt}
+  </div>`;
+}
+
+function renderRevelationTrack(track) {
+  if (!track?.length) return "";
+  return recapSection(
+    "真相揭示顺序",
+    `<div class="recap-revelation-track">${track
+      .map(
+        (row) => `<article class="recap-revelation-item">
+          <div class="recap-spine-meta"><span class="recap-spine-tag">${escapeHtml(row.kind === "clue_revelation" ? "线索" : row.kind === "rule_revelation" ? "规则" : "主持")}</span><time>${formatTime(row.at)}</time></div>
+          <strong>${escapeHtml(row.title || "")}</strong>
+          ${row.excerpt ? `<p class="recap-spine-excerpt">${escapeHtml(row.excerpt)}</p>` : ""}
+        </article>`
+      )
+      .join("")}</div>`
+  );
+}
+
 function renderStoryNarrative(storyNarrative) {
   if (!storyNarrative) return "";
   const opening = storyNarrative.opening ?? {};
@@ -34,12 +71,14 @@ function renderStoryNarrative(storyNarrative) {
         <article class="recap-chapter-act">
           <div class="recap-chapter-head">
             <strong>第 ${chapter.sequence} 章 · ${escapeHtml(chapter.title)}</strong>
-            <span class="muted">${escapeHtml(chapter.narrativeLine || chapter.summary || "")}</span>
+            <p class="recap-chapter-synopsis">${escapeHtml(chapter.synopsis || chapter.narrativeLine || chapter.summary || "")}</p>
           </div>
           ${
-            chapter.beats?.length
-              ? `<div class="recap-timeline">${chapter.beats.map(renderBeatRow).join("")}</div>`
-              : `<p class="muted">本章暂无推进记录。</p>`
+            chapter.plotSpine?.length
+              ? `<div class="recap-plot-spine">${chapter.plotSpine.map(renderPlotSpineNode).join("")}</div>`
+              : chapter.beats?.length
+                ? `<div class="recap-timeline">${chapter.beats.map(renderBeatRow).join("")}</div>`
+                : `<p class="muted">本章暂无推进记录。</p>`
           }
         </article>`
         )
@@ -53,7 +92,7 @@ function renderStoryNarrative(storyNarrative) {
     ? `<p class="muted" style="margin-top:10px">仍有 ${epilogue.undiscoveredClues.length} 条世界线索未被任何角色获得。</p>`
     : "";
 
-  return `${recapSection(
+  return `${renderRevelationTrack(storyNarrative.revelationTrack)}${recapSection(
     "全剧脉络 · 上帝视角",
     `<div class="recap-narrative-opening">
       <p class="recap-lede">${escapeHtml(opening.summary || "")}</p>
@@ -72,34 +111,39 @@ function renderRolePerformances(rolePerformances, highlightRoleSlotId) {
   const cards = rolePerformances
     .map((role) => {
       const isSelf = highlightRoleSlotId && role.roleSlotId === highlightRoleSlotId;
+      const badges = (role.badges ?? [])
+        .map((badge) => `<span class="recap-chip recap-badge">${escapeHtml(badge)}</span>`)
+        .join("");
       const highlights = (role.highlights ?? []).length
         ? `<ul class="recap-highlights">${role.highlights.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`
-        : `<p class="muted">暂无表现摘要。</p>`;
-      const chapterLines = (role.chapterProgress ?? [])
-        .filter((row) => row.sectionsCompleted > 0)
-        .map(
-          (row) =>
-            `<span class="recap-chip">${escapeHtml(row.title || `第${row.sequence}章`)} ${row.sectionsCompleted} 幕</span>`
-        )
-        .join("");
+        : "";
+      const chapterMoments = (role.chapterMoments ?? []).length
+        ? `<div class="recap-chapter-moments">${role.chapterMoments
+            .map(
+              (chapter) => `<div class="recap-chapter-moment"><strong>${escapeHtml(chapter.title || `第${chapter.sequence}章`)}</strong><ul>${chapter.moments.map((m) => `<li>${escapeHtml(m)}</li>`).join("")}</ul></div>`
+            )
+            .join("")}</div>`
+        : "";
       return `<article class="recap-performance-card${isSelf ? " is-self" : ""}">
         <header>
           <strong>${escapeHtml(role.roleName)}</strong>
           ${isSelf ? `<span class="recap-self-badge">你</span>` : ""}
           <span class="muted">${escapeHtml(role.playerDisplayName || (role.joined ? "玩家" : "空席"))}</span>
         </header>
+        ${role.narrativeSummary ? `<p class="recap-role-summary">${escapeHtml(role.narrativeSummary)}</p>` : ""}
         <div class="recap-performance-stats">
           <span>阅读 ${role.stats?.completedSections ?? 0}/${role.stats?.totalSections ?? 0}</span>
           <span>线索 ${role.stats?.ownedClues ?? 0}（已读 ${role.stats?.readClues ?? 0}）</span>
           <span>调查 ${role.stats?.investigations ?? 0}</span>
           <span>笔记 ${role.stats?.notes ?? 0}</span>
         </div>
-        ${chapterLines ? `<div class="recap-chip-row">${chapterLines}</div>` : ""}
+        ${badges ? `<div class="recap-chip-row">${badges}</div>` : ""}
+        ${chapterMoments}
         ${highlights}
       </article>`;
     })
     .join("");
-  return recapSection("角色表现", `<div class="recap-performance-grid">${cards}</div>`);
+  return recapSection("角色表现对照", `<div class="recap-performance-grid">${cards}</div>`);
 }
 
 function renderLegacyTimeline(snapshot) {
@@ -177,6 +221,6 @@ export function renderRecapTab() {
       ${storyBlock}
       ${performanceBlock}
       ${notesBlock}
-      <p class="hint">全剧脉络与角色表现来自本局真实日志；局后复盘以完整剧情串联，并标注各角色阅读、线索与调查表现。</p>
+      <p class="hint">按章节串联剧情骨架与真相揭示，并对照各角色阅读、线索、调查与笔记表现；内容来自本局日志与世界公开/主持文本。</p>
     </article>`;
 }

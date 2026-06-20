@@ -576,6 +576,12 @@ h3 { font-size:15px; }
 .recap-performance-card.is-self { border-color:var(--green-2); box-shadow:0 0 0 1px rgba(43,107,97,.12); }
 .recap-self-badge { padding:2px 8px; border-radius:999px; background:rgba(43,107,97,.12); color:var(--green-2); font-size:10px; font-weight:700; }
 .recap-highlights { margin:8px 0 0; padding-left:18px; font-size:10px; color:var(--muted); }
+.recap-chapter-synopsis { margin:6px 0 0; line-height:1.6; color:var(--muted); font-size:11px; }
+.recap-plot-spine { display:grid; gap:8px; margin-top:8px; }
+.recap-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+.recap-badge { background:rgba(43,107,97,.12); color:var(--green-2); }
+.recap-chapter-moment { margin-top:8px; font-size:10px; color:var(--muted); }
+.recap-chapter-moment ul { margin:4px 0 0; padding-left:18px; }
 .live-label { padding:5px 8px; border-radius:7px; color:#34734f; background:white; font-size:9px; font-weight:700; letter-spacing:1px; }
 .player-list { display:flex; flex-direction:column; gap:10px; }
 .player-row { display:grid; grid-template-columns:38px 1fr auto; align-items:center; gap:9px; padding:10px; border:1px solid var(--line); border-radius:11px; background:white; }
