@@ -71,7 +71,7 @@
 | 4 | 存档页创建 **checkpoint**（首场结束前） |
 | 5 | 首场结束后 **生成复盘** 并脱敏存档（案例素材） |
 
-交付清单邮件模板见 [BETA_APPLICATIONS.md](./BETA_APPLICATIONS.md)。
+交付清单与 follow-up 邮件见 [SUPPORT_EMAIL_TEMPLATES_ZH.md](./SUPPORT_EMAIL_TEMPLATES_ZH.md) §3.1、§6。
 
 ---
 

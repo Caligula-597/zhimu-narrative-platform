@@ -1,32 +1,58 @@
-# 内测申请 · 运营审核
+# 内测申请 · API 与数据
 
-官网表单提交后，申请进入 `beta_applications` 表；运维通过 Ops API 审批。通过后：
+> **运营总流程** → [BETA_SUPPORT_SOP_ZH.md](./BETA_SUPPORT_SOP_ZH.md)  
+> **每单 checklist** → [BETA_ONBOARDING_CHECKLIST_ZH.md](./BETA_ONBOARDING_CHECKLIST_ZH.md)  
+> **邮件模板** → [SUPPORT_EMAIL_TEMPLATES_ZH.md](./SUPPORT_EMAIL_TEMPLATES_ZH.md)
 
-- 若该邮箱**尚未注册**：用户注册/OAuth 时自动获得 `beta` 套餐  
-- 若该邮箱**已有账号**：审批通过时立即升级为 `beta` 套餐  
+官网表单提交后，申请进入 `beta_applications` 表；运维通过 Ops API 审批。
+
+## 审批后账号行为
+
+| 用户状态 | 结果 |
+|----------|------|
+| 尚未注册 | approve 后发邮件；**同一邮箱**注册/OAuth 时自动 `beta` plan |
+| 已有账号 | approve **立即** `setUserPlan(beta)` 并关联 `user_id` |
+
+内测期免费，无订阅入口。更高档位见 [PLAN_UPGRADE_SOP_ZH.md](./PLAN_UPGRADE_SOP_ZH.md)。
+
+## 自动邮件（Resend 等已配置时）
+
+| 事件 | 收件 |
+|------|------|
+| 用户提交 | 用户确认 + ops 通知（`BETA_REVIEW_NOTIFY_EMAIL`） |
+| Ops approve | 用户「已通过」+ 注册 CTA |
+| Ops reject | **无** — 须手动发 [拒审模板](./SUPPORT_EMAIL_TEMPLATES_ZH.md#22-拒绝申请必用手动) |
+
+---
 
 ## 环境变量
 
 | 变量 | 说明 |
 |------|------|
-| `BETA_APPLICATIONS_OPEN` | 默认开放；设为 `false` 关闭新申请 |
-| `BETA_REVIEW_NOTIFY_EMAIL` | 新申请通知邮箱（默认同公开库审核） |
-| `APP_PUBLIC_URL` | 产品 App URL（注册链接、审批邮件 CTA） |
-| `MARKETING_SITE_ORIGIN` | 官网 CORS 域名（逗号分隔） |
-| `MARKETING_SITE_URL` | 官网完整 URL（可选） |
-| `CORS_ORIGIN` | App 域名；与 `MARKETING_SITE_ORIGIN` 合并生效 |
+| `BETA_APPLICATIONS_OPEN` | 默认开放；`false` 关闭新申请 |
+| `BETA_REVIEW_NOTIFY_EMAIL` | 新申请通知（默认同 `CATALOG_REVIEW_NOTIFY_EMAIL` → `SUPPORT_EMAIL`） |
+| `SUPPORT_EMAIL` | 对外 support 地址 |
+| `APP_PUBLIC_URL` | 注册链接、审批邮件 CTA |
+| `PLAY_SITE_URL` | 可选，手册中玩家端链接 |
+| `MARKETING_SITE_ORIGIN` | 官网 CORS |
+| `MARKETING_SITE_URL` | 官网 URL |
+| `CORS_ORIGIN` | App 域名 |
 | `OPS_API_TOKEN` | Ops API 鉴权 |
+| `EMAIL_PROVIDER` / `MAIL_FROM` | 事务邮件 |
 
-## 官网对接 API
+---
+
+## 官网 API
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/platform/site` | **推荐** 一次拉取链接、内测表单、官方示例、公开库预览 |
-| GET | `/api/platform/catalog-preview?limit=8` | 公开库剧本预览（无需登录） |
-| GET | `/api/platform/beta` | 内测表单配置（`site` 已含可单独用） |
-| POST | `/api/platform/beta/apply` | 提交申请（限流：每 IP 每小时 5 次） |
+| GET | `/api/platform/site` | 链接、内测表单、官方示例、公开库 |
+| GET | `/api/platform/beta` | 内测表单配置 |
+| POST | `/api/platform/beta/apply` | 提交（限流：每 IP 每小时 5 次） |
 
-### 提交 body 示例
+官网代码：`site/` · 见 [site/README.md](../../site/README.md)
+
+### 提交 body
 
 ```json
 {
@@ -34,34 +60,76 @@
   "displayName": "张三",
   "roleIntent": "creator",
   "useCase": "已有线下剧本，希望整理成线上可跑的自动化房间……",
-  "referralSource": "朋友推荐",
+  "referralSource": "预计规模：9-30",
   "contact": "wechat-id"
 }
 ```
 
-`roleIntent`：`creator` | `host` | `player` | `mixed` | `other`
+| 字段 | 说明 |
+|------|------|
+| `roleIntent` | `creator` \| `host` \| `player` \| `mixed` \| `other` |
+| `referralSource` | 选填；官网「预计规模」写入此字段 |
+| `contact` | 选填；微信/电话等 |
 
-蜜罐字段（请在前端隐藏，勿填）：`companyWebsite` / `website` — 若被填写则静默成功但不入库。
+蜜罐（前端隐藏，有值则静默成功不入库）：`companyWebsite` / `website`
 
-## 生产环境示例
+表单配置文案（3～5 工作日回复）来自 `getBetaApplicationFormConfig()` in `backend/src/beta-apply.js`。
 
-```bash
-APP_PUBLIC_URL=https://app.getzhimu.com
-MARKETING_SITE_ORIGIN=https://getzhimu.com,https://www.getzhimu.com
-MARKETING_SITE_URL=https://getzhimu.com
-CORS_ORIGIN=https://app.getzhimu.com
-```
+---
 
 ## Ops API
 
-请求头：`x-ops-token: <OPS_API_TOKEN>`
+请求头（二选一）：
+
+```http
+x-ops-token: <OPS_API_TOKEN>
+Authorization: Bearer <OPS_API_TOKEN>
+```
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/ops/beta/applications?status=pending&limit=50` | 申请列表 |
-| POST | `/api/ops/beta/applications/:applicationId/approve` | 通过（body 可选 `note`） |
-| POST | `/api/ops/beta/applications/:applicationId/reject` | 拒绝（body 必填 `note`，至少 4 字） |
+| GET | `/api/ops/beta/applications?status=pending&limit=50` | 列表（`pending` / `approved` / `rejected`） |
+| POST | `/api/ops/beta/applications/:applicationId/approve` | 通过；body 可选 `{ "note": "…" }` |
+| POST | `/api/ops/beta/applications/:applicationId/reject` | 拒绝；body **必填** `{ "note": "至少4字" }` |
 
-## 与官网文件夹约定
+### 示例
 
-官网代码放在本仓库 **`site/`** 子目录（独立 `package.json`），通过 `VITE_API_ORIGIN=https://app.getzhimu.com` 调用上述 API。详见根目录 `site/README.md`（待官网开工时创建）。
+```bash
+export OPS_API_TOKEN=…
+export API=https://app.getzhimu.com
+
+curl -s -H "x-ops-token: $OPS_API_TOKEN" \
+  "$API/api/ops/beta/applications?status=pending"
+
+curl -s -X POST -H "x-ops-token: $OPS_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"note":"欢迎内测"}' \
+  "$API/api/ops/beta/applications/<uuid>/approve"
+
+curl -s -X POST -H "x-ops-token: $OPS_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"note":"请补充角色数与试跑计划"}' \
+  "$API/api/ops/beta/applications/<uuid>/reject"
+```
+
+---
+
+## 生产 env 示例
+
+```bash
+APP_PUBLIC_URL=https://app.getzhimu.com
+PLAY_SITE_URL=https://play.getzhimu.com
+MARKETING_SITE_ORIGIN=https://getzhimu.com,https://www.getzhimu.com
+MARKETING_SITE_URL=https://getzhimu.com
+CORS_ORIGIN=https://app.getzhimu.com
+BETA_REVIEW_NOTIFY_EMAIL=support@getzhimu.com
+SUPPORT_EMAIL=support@getzhimu.com
+```
+
+---
+
+## 相关
+
+- [BETA_SUPPORT_SOP_ZH.md](./BETA_SUPPORT_SOP_ZH.md) — 入口汇总、FAQ  
+- [IMPORT_SCRIPT_SOP_ZH.md](./IMPORT_SCRIPT_SOP_ZH.md) — 导入交付  
+- [PILOT_TRACKER.md](./PILOT_TRACKER.md) — 试点登记

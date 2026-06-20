@@ -26,14 +26,14 @@
 ### 1. 查看待审
 
 ```bash
-curl -s -H "Authorization: Bearer $OPS_API_TOKEN" \
+curl -s -H "x-ops-token: $OPS_API_TOKEN" \
   "https://app.getzhimu.com/api/ops/plan-upgrade/requests?status=pending"
 ```
 
 ### 2. 开通套餐
 
 ```bash
-curl -s -X POST -H "Authorization: Bearer $OPS_API_TOKEN" \
+curl -s -X POST -H "x-ops-token: $OPS_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"email":"creator@example.com","planCode":"creator"}' \
   "https://app.getzhimu.com/api/ops/users/plan"
@@ -50,7 +50,7 @@ node scripts/set-user-plan.mjs creator@example.com creator
 
 ### 3. 回复用户
 
-- 邮件告知已开通，请刷新账号设置页查看配额
+- 邮件告知已开通（模板 [SUPPORT_EMAIL_TEMPLATES_ZH.md](./SUPPORT_EMAIL_TEMPLATES_ZH.md) §4），请刷新账号设置页查看配额
 - （可选）在 DB 将申请标为 `approved`：
 
 ```sql

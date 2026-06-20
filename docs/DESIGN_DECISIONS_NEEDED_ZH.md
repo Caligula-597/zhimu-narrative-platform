@@ -56,7 +56,7 @@
 | 表单提交后 | 仅邮件确认 / 48h 内人工联系 / 自动发 onboarding 文档 |
 | 是否提供 | 「预约导入一个剧本」专属 CTA（需 support 流程） |
 
-**工程现状（2026-06）**：官网 `#import` 已提供邮件 CTA + `#beta-import` 预填表单；运营 SOP 见 [ops/IMPORT_SCRIPT_SOP_ZH.md](./ops/IMPORT_SCRIPT_SOP_ZH.md)。**尚无**独立的导入工单 API。
+**工程现状（2026-06）**：官网 `#import` 已提供邮件 CTA + `#beta-import` 预填表单；运营 [BETA_SUPPORT_SOP_ZH.md](./ops/BETA_SUPPORT_SOP_ZH.md) · [IMPORT_SCRIPT_SOP_ZH.md](./ops/IMPORT_SCRIPT_SOP_ZH.md)。**尚无**独立的导入工单 API。
 
 | 项 | 请你定 |
 |----|--------|

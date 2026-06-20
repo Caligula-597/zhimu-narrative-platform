@@ -32,7 +32,13 @@
 
 | 文档 | 用途 |
 |------|------|
-| [BETA_APPLICATIONS.md](./BETA_APPLICATIONS.md) | 内测申请 Ops 审核 |
+| [BETA_SUPPORT_SOP_ZH.md](./BETA_SUPPORT_SOP_ZH.md) | **内测 support 总流程（P1-07）** |
+| [BETA_APPLICATIONS.md](./BETA_APPLICATIONS.md) | 内测申请 API / env |
+| [BETA_ONBOARDING_CHECKLIST_ZH.md](./BETA_ONBOARDING_CHECKLIST_ZH.md) | 每用户开通 checklist |
+| [SUPPORT_EMAIL_TEMPLATES_ZH.md](./SUPPORT_EMAIL_TEMPLATES_ZH.md) | Support 邮件模板 |
+| [PLAN_UPGRADE_SOP_ZH.md](./PLAN_UPGRADE_SOP_ZH.md) | 套餐升级申请 |
+| [IMPORT_SCRIPT_SOP_ZH.md](./IMPORT_SCRIPT_SOP_ZH.md) | 剧本导入 |
+| [PILOT_TRACKER.md](./PILOT_TRACKER.md) | 试点团队追踪 |
 | [CATALOG_REVIEW.md](./CATALOG_REVIEW.md) | 公开库审核 |
 | [STAGING.md](./STAGING.md) | Docker 预发栈 |
 

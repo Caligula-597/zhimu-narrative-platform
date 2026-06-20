@@ -23,4 +23,4 @@
 - [ ] 玩家端是否顺畅（邀请码 / 读幕）  
 - [ ] 是否愿意第二场  
 
-Support：`support@getzhimu.com` · Ops 扩容见 [BETA_APPLICATIONS.md](./BETA_APPLICATIONS.md)
+Support：`support@getzhimu.com` · 流程 [BETA_SUPPORT_SOP_ZH.md](./BETA_SUPPORT_SOP_ZH.md) · Checklist [BETA_ONBOARDING_CHECKLIST_ZH.md](./BETA_ONBOARDING_CHECKLIST_ZH.md)
