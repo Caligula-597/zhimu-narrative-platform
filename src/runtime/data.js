@@ -50,7 +50,7 @@
     try {
       try {
         await ensureActiveWorld();
-        const hasSession = workspace().isLoggedIn?.() ?? Boolean(localStorage.getItem("zhimuSessionToken"));
+        const hasSession = workspace().isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
         if (hasSession) {
           try {
             state.cloudCatalog = await zhimuApi.getWorldCatalog();
@@ -72,6 +72,7 @@
         } else {
           try {
             state.cloudStudio = await zhimuApi.getStudio();
+            window.zhimuWorldRevision?.trackRevision?.(state.cloudStudio?.world);
             const roles = state.cloudStudio?.roles?.length || 0;
             const sections = state.cloudStudio?.sections?.length || 0;
             if (roles === 0) {
@@ -97,7 +98,7 @@
         if (/Authentication required/i.test(error.message) && window.zhimuConfig?.requireAuth) {
           errors.push("请先登录账号后再继续");
           window.zhimuAuthSession?.promptAuthIfNeeded?.();
-        } else if (/Authentication required/i.test(error.message) && !localStorage.getItem("zhimuSessionToken") && window.zhimuConfig?.demoMode) {
+        } else if (/Authentication required/i.test(error.message) && !window.zhimuSessionAuth?.isAuthenticated?.() && window.zhimuConfig?.demoMode) {
           errors.push("请先登录账号后再继续");
         } else {
           errors.push(error.message);
@@ -169,7 +170,7 @@
       }
 
       void (async () => {
-        if (localStorage.getItem("zhimuSessionToken")) {
+        if (window.zhimuSessionAuth?.isAuthenticated?.()) {
           try {
             const usage = await zhimuApi.getStorageUsage();
             state.storageUsage = usage;

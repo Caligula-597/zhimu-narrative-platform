@@ -4,7 +4,7 @@
   const S = () => window.zhimuSessionMode || {};
 
   function isLoggedIn() {
-    return S().isLoggedIn?.() ?? Boolean(localStorage.getItem("zhimuSessionToken"));
+    return S().isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
   }
 
   function requiresAuth() {

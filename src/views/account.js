@@ -51,7 +51,7 @@
     const modal = window.zhimuDom?.modal;
     const backdrop = window.zhimuDom?.modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
-    if (!modal || !backdrop || !localStorage.getItem("zhimuSessionToken")) {
+    if (!modal || !backdrop || !window.zhimuSessionAuth?.isAuthenticated?.()) {
       showToast("请先登录");
       return window.zhimuRuntime?.openAuth?.();
     }
@@ -90,7 +90,7 @@
       submit.disabled = true;
       try {
         await zhimuApi.deleteAccount({ confirmation: confirmInput.value.trim(), acknowledged: true });
-        localStorage.removeItem("zhimuSessionToken");
+        window.zhimuSessionAuth?.markLoggedOut?.();
         window.zhimuContext?.onSessionLogout?.();
         state.accountView = null;
         closeModal();
@@ -160,7 +160,7 @@
     const guestUpgrade = isGuest
       ? `<section class="form-group"><h3>保存进度 · 注册正式账号</h3>${studioField("邮箱", "upgradeEmail", "input", "")}${studioField("昵称", "upgradeName", "input", me.display_name || "")}${studioField("密码 · 至少 8 位", "upgradePassword", "input", "")}<button type="button" class="primary-btn" data-guest-upgrade>绑定邮箱并注册</button><p class="muted-note">或使用 OAuth 绑定（保留当前房间进度）</p>${oauthLoginButtons ? `<div class="row">${oauthLoginButtons}</div>` : ""}</section>`
       : "";
-    return `${guestUpgrade}${!isGuest ? `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}${oauthDiagHtml(data.config?.oauthDiagnostics)}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section><section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
+    return `${guestUpgrade}${!isGuest ? `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}${oauthDiagHtml(data.config?.oauthDiagnostics)}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section>${!isGuest ? `<section class="form-group"><h3>数据导出</h3><p class="muted-note">下载 JSON 格式的账号元数据（剧本清单、资产清单、会话设备等），不含密码与文件二进制。</p><button type="button" class="secondary-btn" data-export-account>下载我的数据</button><p class="muted-note" style="margin-top:10px"><a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a> · <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/COPYRIGHT_APPEAL_ZH.md" data-legal-title="版权与侵权申诉">版权申诉</a></p></section>` : ""}<section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
   }
 
   async function refreshAccountView(options = {}) {
@@ -199,7 +199,7 @@
     root.querySelector("[data-auth-logout]")?.addEventListener("click", async () => {
       try {
         await zhimuApi.logout();
-        localStorage.removeItem("zhimuSessionToken");
+        window.zhimuSessionAuth?.markLoggedOut?.();
         window.zhimuContext?.onSessionLogout?.();
         showToast("已退出登录");
         await window.zhimuAuthSession?.syncProfile?.();
@@ -242,6 +242,31 @@
     root.querySelector("[data-open-delete-account]")?.addEventListener("click", () => {
       void openDeleteAccountWizard();
     });
+    root.querySelector("[data-export-account]")?.addEventListener("click", async () => {
+      const btn = root.querySelector("[data-export-account]");
+      if (btn) btn.disabled = true;
+      try {
+        const data = await zhimuApi.exportAccountData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `zhimu-account-export-${new Date().toISOString().slice(0, 10)}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast("数据导出已开始下载");
+      } catch (error) {
+        handleApiError(error, showToast);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+    root.querySelectorAll("[data-legal-doc]").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.zhimuGuide?.openLegalDoc?.(link.dataset.legalDoc, link.dataset.legalTitle || "法律文档");
+      });
+    });
     root.querySelectorAll('[data-studio-field$="Password"]').forEach((input) => {
       input.type = "password";
     });
@@ -252,7 +277,7 @@
           displayName: root.querySelector('[data-studio-field="upgradeName"]')?.value,
           password: root.querySelector('[data-studio-field="upgradePassword"]')?.value
         });
-        localStorage.setItem("zhimuSessionToken", result.token);
+        window.zhimuSessionAuth?.markAuthenticated?.();
         showToast("账号已升级");
         await window.zhimuAuthSession?.syncProfile?.();
         await window.zhimuLoadCloudData?.(true, true);

@@ -43,6 +43,13 @@
     const showOutage = outage?.isServiceOutage?.(state.apiError) && !state.cloudLoading;
     content.innerHTML = showOutage ? outage.renderServiceOutage(state.apiError) : views[state.view]();
     R.bindDynamic();
+    if (["settings", "studio", "writer"].includes(state.view)) {
+      queueMicrotask(() => {
+        const scope = window.zhimuWorldRevision?.resolveDraftScope?.();
+        window.zhimuWorldRevision?.watchDirtyInputs?.(document, scope);
+        window.zhimuWorldRevision?.promptDraftRestore?.(document, scope);
+      });
+    }
   }
 
   function go(view) {

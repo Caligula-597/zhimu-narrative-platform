@@ -58,6 +58,12 @@ jobs:
       - name: DB backup smoke
         run: node scripts/pg-backup.mjs --out /tmp/zhimu-ci-backup.sql
         working-directory: backend
+      - name: DB backup restore drill
+        run: npm run db:verify-restore
+        working-directory: backend
+      - name: DB migration upgrade drill
+        run: npm run db:verify-migration-upgrade
+        working-directory: backend
       - name: Syntax and module graph check
         run: npm run check && npm run check:schemas
         working-directory: backend
@@ -119,3 +125,40 @@ jobs:
           GUEST_CREATE_DAY_MAX: "1000"
           PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN: "0"
           OFFICIAL_EXAMPLE_WORLD_ID: "33333333-3333-4333-8444-555555550003"
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            package-lock.json
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+      - name: Install root dependencies
+        run: npm ci
+      - name: npm audit (root, high+)
+        run: npm audit --audit-level=high --omit=dev
+      - name: npm audit (backend, high+)
+        run: npm audit --audit-level=high --omit=dev
+        working-directory: backend
+      - name: innerHTML XSS budget
+        run: npm run audit:innerhtml
+      - name: Generate SBOM (root)
+        run: npm sbom --sbom-format=cyclonedx --omit dev > sbom-root.cdx.json
+      - name: Generate SBOM (backend)
+        run: npm sbom --sbom-format=cyclonedx --omit dev > sbom-backend.cdx.json
+        working-directory: backend
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: |
+            sbom-root.cdx.json
+            backend/sbom-backend.cdx.json
+          retention-days: 30

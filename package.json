@@ -25,6 +25,8 @@
     "oauth:check": "node scripts/check-oauth-config.mjs",
     "monitoring:smoke": "node scripts/monitoring-smoke.mjs",
     "check:production-ready": "node scripts/check-production-ready.mjs",
+    "status:generate": "node scripts/generate-project-status.mjs",
+    "audit:innerhtml": "node scripts/audit-innerhtml.mjs",
     "railway:deploy": "node scripts/railway-deploy.mjs",
     "railway:deploy:web": "node scripts/railway-deploy-web.mjs",
     "staging:seed": "docker compose -p zhimu-staging -f docker-compose.staging.yml --env-file .env.staging exec api node scripts/seed.js",

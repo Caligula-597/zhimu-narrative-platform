@@ -73,6 +73,13 @@ test("registered user can preview and delete account with display name confirmat
 
   const userRow = await query(`SELECT id FROM users WHERE id = $1`, [userId]);
   assert.equal(userRow.rowCount, 0);
+
+  const jobRow = await query(
+    `SELECT status, storage_purged_count FROM account_delete_jobs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1`,
+    [userId]
+  );
+  assert.equal(jobRow.rowCount, 1);
+  assert.equal(jobRow.rows[0].status, "completed");
 });
 
 test("guest account can delete with display name confirmation", async (context) => {

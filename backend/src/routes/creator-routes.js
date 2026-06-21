@@ -23,6 +23,8 @@ import {
   createRoomSchema,
   updateRoomListingSchema
 } from "./schemas.js";
+import { runRevisionMutation } from "../world-revision.js";
+import { throwErr } from "../api-errors.js";
 
 export async function registerCreatorRoutes(app) {
   app.post("/api/worlds/:worldId/documents/parse", { schema: parseDocumentSchema }, async (request) => {
@@ -47,7 +49,7 @@ export async function registerCreatorRoutes(app) {
     }
     const role = await query(`SELECT id FROM role_slots WHERE id = $1 AND world_id = $2`, [roleSlotId, worldId]);
     if (!role.rowCount) return sendErr(reply, "ROLE_SLOT_IMPORT_REQUIRED");
-    const imported = await transaction(async (client) => {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
       const script = await client.query(`INSERT INTO character_scripts (role_slot_id, title) SELECT $1, '角色私人剧本' WHERE NOT EXISTS (SELECT 1 FROM character_scripts WHERE role_slot_id = $1) RETURNING id`, [roleSlotId]);
       const scriptId = script.rows[0]?.id ?? (await client.query(`SELECT id FROM character_scripts WHERE role_slot_id = $1 ORDER BY created_at LIMIT 1`, [roleSlotId])).rows[0].id;
       const max = await client.query(`SELECT COALESCE(MAX(sequence),0)::int AS value FROM script_sections WHERE character_script_id = $1`, [scriptId]);
@@ -58,9 +60,8 @@ export async function registerCreatorRoutes(app) {
           [scriptId, roleSlotId, section.title, section.body, max.rows[0].value + index + 1, JSON.stringify({ source: "document_import", filename: document.filename })]
         );
       }
-      return document.sections.length;
-    });
-    return reply.code(201).send({ target: "role_script", sections: imported });
+      return { target: "role_script", sections: document.sections.length };
+    }, { sendErr, statusCode: 201 });
   });
 
   app.post("/api/worlds/:worldId/documents/import-pages", { schema: importDocumentPagesSchema }, async (request, reply) => {
@@ -121,12 +122,14 @@ export async function registerCreatorRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { name, publicProfile = "", privateProfile = "", sequence } = request.body ?? {};
-    const result = await query(
-      `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [worldId, name, publicProfile, privateProfile, sequence]
-    );
-    return reply.code(201).send(result.rows[0]);
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [worldId, name, publicProfile, privateProfile, sequence]
+      );
+      return result.rows[0];
+    }, { sendErr, statusCode: 201 });
   });
 
   app.put("/api/worlds/:worldId/roles/:roleSlotId", { schema: updateRoleSchema }, async (request, reply) => {
@@ -134,23 +137,27 @@ export async function registerCreatorRoutes(app) {
     const { worldId, roleSlotId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { name, publicProfile = "", privateProfile = "", sequence } = request.body ?? {};
-    const result = await query(
-      `UPDATE role_slots
-       SET name = $1, public_profile = $2, private_profile = $3, sequence = $4
-       WHERE id = $5 AND world_id = $6 RETURNING *`,
-      [name, publicProfile, privateProfile, sequence, roleSlotId, worldId]
-    );
-    if (!result.rowCount) return sendErr(reply, "ROLE_SLOT_NOT_FOUND");
-    return result.rows[0];
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const updated = await client.query(
+        `UPDATE role_slots
+         SET name = $1, public_profile = $2, private_profile = $3, sequence = $4
+         WHERE id = $5 AND world_id = $6 RETURNING *`,
+        [name, publicProfile, privateProfile, sequence, roleSlotId, worldId]
+      );
+      if (!updated.rowCount) throwErr("ROLE_SLOT_NOT_FOUND");
+      return updated.rows[0];
+    }, { sendErr });
   });
 
   app.delete("/api/worlds/:worldId/roles/:roleSlotId", { schema: deleteRoleSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, roleSlotId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const result = await query(`DELETE FROM role_slots WHERE id = $1 AND world_id = $2 RETURNING id`, [roleSlotId, worldId]);
-    if (!result.rowCount) return sendErr(reply, "ROLE_SLOT_NOT_FOUND");
-    return { ok: true };
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(`DELETE FROM role_slots WHERE id = $1 AND world_id = $2 RETURNING id`, [roleSlotId, worldId]);
+      if (!result.rowCount) throwErr("ROLE_SLOT_NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
   });
 
   app.post("/api/worlds/:worldId/chapters", { schema: createChapterSchema }, async (request, reply) => {
@@ -158,12 +165,14 @@ export async function registerCreatorRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { title, summary = "", sequence } = request.body ?? {};
-    const result = await query(
-      `INSERT INTO chapters (world_id, title, summary, sequence)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [worldId, title, summary, sequence]
-    );
-    return reply.code(201).send(result.rows[0]);
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `INSERT INTO chapters (world_id, title, summary, sequence)
+         VALUES ($1, $2, $3, $4) RETURNING *`,
+        [worldId, title, summary, sequence]
+      );
+      return result.rows[0];
+    }, { sendErr, statusCode: 201 });
   });
 
   app.put("/api/worlds/:worldId/chapters/:chapterId", { schema: updateChapterSchema }, async (request, reply) => {
@@ -174,14 +183,16 @@ export async function registerCreatorRoutes(app) {
     const current = await query(`SELECT metadata FROM chapters WHERE id = $1 AND world_id = $2`, [chapterId, worldId]);
     if (!current.rowCount) return sendErr(reply, "CHAPTER_NOT_FOUND");
     const mergedMeta = { ...(current.rows[0].metadata ?? {}), ...metadata };
-    const result = await query(
-      `UPDATE chapters SET title = $1, summary = $2, publication_status = $3, unlock_rules = $4::jsonb,
-              metadata = $5::jsonb, updated_at = now()
-       WHERE id = $6 AND world_id = $7 RETURNING *`,
-      [title, summary, publicationStatus, JSON.stringify(unlockRules), JSON.stringify(mergedMeta), chapterId, worldId]
-    );
-    if (!result.rowCount) return sendErr(reply, "CHAPTER_NOT_FOUND");
-    return result.rows[0];
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const updated = await client.query(
+        `UPDATE chapters SET title = $1, summary = $2, publication_status = $3, unlock_rules = $4::jsonb,
+                metadata = $5::jsonb, updated_at = now()
+         WHERE id = $6 AND world_id = $7 RETURNING *`,
+        [title, summary, publicationStatus, JSON.stringify(unlockRules), JSON.stringify(mergedMeta), chapterId, worldId]
+      );
+      if (!updated.rowCount) throwErr("CHAPTER_NOT_FOUND");
+      return updated.rows[0];
+    }, { sendErr });
   });
 
   app.post("/api/worlds/:worldId/roles/:roleSlotId/sections", { schema: createSectionSchema }, async (request, reply) => {
@@ -189,7 +200,7 @@ export async function registerCreatorRoutes(app) {
     const { worldId, roleSlotId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { title, body, sequence, chapterId = null, publicationStatus = "draft" } = request.body ?? {};
-    const section = await transaction(async (client) => {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
       const script = await client.query(
         `INSERT INTO character_scripts (role_slot_id, title)
          SELECT $1, '角色私人剧本'
@@ -206,8 +217,7 @@ export async function registerCreatorRoutes(app) {
         [scriptId, roleSlotId, chapterId, title, body, sequence, publicationStatus]
       );
       return result.rows[0];
-    });
-    return reply.code(201).send(section);
+    }, { sendErr, statusCode: 201 });
   });
 
   app.put("/api/worlds/:worldId/roles/:roleSlotId/sections/:sectionId", { schema: updateSectionSchema }, async (request, reply) => {
@@ -215,29 +225,33 @@ export async function registerCreatorRoutes(app) {
     const { worldId, roleSlotId, sectionId } = request.params;
     await requireWorldRole(actorId, worldId);
     const { title, body, chapterId = null, publicationStatus = "draft" } = request.body ?? {};
-    const result = await query(
-      `UPDATE script_sections ss SET title = $1, body = $2, chapter_id = $3, publication_status = $4, updated_at = now()
-       FROM role_slots rs
-       WHERE ss.id = $5 AND ss.role_slot_id = $6 AND rs.id = ss.role_slot_id AND rs.world_id = $7
-       RETURNING ss.*`,
-      [title, body, chapterId || null, publicationStatus, sectionId, roleSlotId, worldId]
-    );
-    if (!result.rowCount) return sendErr(reply, "SCRIPT_SECTION_NOT_FOUND");
-    return result.rows[0];
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const updated = await client.query(
+        `UPDATE script_sections ss SET title = $1, body = $2, chapter_id = $3, publication_status = $4, updated_at = now()
+         FROM role_slots rs
+         WHERE ss.id = $5 AND ss.role_slot_id = $6 AND rs.id = ss.role_slot_id AND rs.world_id = $7
+         RETURNING ss.*`,
+        [title, body, chapterId || null, publicationStatus, sectionId, roleSlotId, worldId]
+      );
+      if (!updated.rowCount) throwErr("SECTION_NOT_FOUND");
+      return updated.rows[0];
+    }, { sendErr });
   });
 
   app.delete("/api/worlds/:worldId/roles/:roleSlotId/sections/:sectionId", { schema: deleteSectionSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, roleSlotId, sectionId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const result = await query(
-      `DELETE FROM script_sections ss USING role_slots rs
-       WHERE ss.id = $1 AND ss.role_slot_id = $2 AND rs.id = ss.role_slot_id AND rs.world_id = $3
-       RETURNING ss.id`,
-      [sectionId, roleSlotId, worldId]
-    );
-    if (!result.rowCount) return sendErr(reply, "SCRIPT_SECTION_NOT_FOUND");
-    return { ok: true };
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `DELETE FROM script_sections ss USING role_slots rs
+         WHERE ss.id = $1 AND ss.role_slot_id = $2 AND rs.id = ss.role_slot_id AND rs.world_id = $3
+         RETURNING ss.id`,
+        [sectionId, roleSlotId, worldId]
+      );
+      if (!result.rowCount) throwErr("SCRIPT_SECTION_NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
   });
 
   app.post("/api/worlds/:worldId/rooms", { schema: createRoomSchema }, async (request, reply) => {

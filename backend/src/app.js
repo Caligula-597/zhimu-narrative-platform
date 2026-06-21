@@ -19,6 +19,7 @@ import { registerBillingRoutes } from "./routes/billing-routes.js";
 import { registerRoutes } from "./routes.js";
 import { registerStaticFrontend } from "./static-frontend.js";
 import { resolveAllowedCorsOrigins } from "./cors-origins.js";
+import { applySecurityHeaders } from "./security-headers.js";
 
 const guestAuthRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -125,6 +126,7 @@ export async function createApp(options = {}) {
 
   await app.register(cors, {
     origin: resolveCorsOrigin(options, nodeEnv),
+    credentials: true,
     methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
   });
   await registerOpenApi(app, { nodeEnv });
@@ -147,13 +149,7 @@ export async function createApp(options = {}) {
     });
   });
   app.addHook("onSend", async (_request, reply, payload) => {
-    reply.header("X-Content-Type-Options", "nosniff");
-    reply.header("X-Frame-Options", "DENY");
-    reply.header("Referrer-Policy", "strict-origin-when-cross-origin");
-    reply.header("Permissions-Policy", "camera=(), microphone=(self), geolocation=()");
-    if (nodeEnv === "production") {
-      reply.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-    }
+    applySecurityHeaders(reply, { nodeEnv });
     return payload;
   });
   app.addHook("preHandler", async (request) => {

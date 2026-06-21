@@ -1,12 +1,19 @@
 import { throwErr } from "./api-errors.js";
+import { readSessionCookie } from "./session-cookie.js";
 
 export function bearerToken(request) {
   const authorization = request.headers.authorization;
   return authorization?.startsWith("Bearer ") ? authorization.slice(7) : "";
 }
 
+export function resolveSessionToken(request) {
+  const bearer = bearerToken(request);
+  if (bearer) return bearer;
+  return readSessionCookie(request);
+}
+
 export async function resolveRequestActor(request, { resolveSession, allowDemoUserHeader = false }) {
-  const token = bearerToken(request);
+  const token = resolveSessionToken(request);
   if (token) {
     const ctx = await resolveSession(token);
     const actorId = typeof ctx === "object" && ctx !== null ? ctx.userId : ctx;

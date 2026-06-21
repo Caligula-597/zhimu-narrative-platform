@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { scanUploadedObject } from "../src/upload-scan.js";
+import { resolveScanMode, scanUploadedObject } from "../src/upload-scan.js";
 
-test("scanUploadedObject skips when UPLOAD_SCAN_MODE is none", async () => {
+test("resolveScanMode defaults to builtin in production", () => {
+  assert.equal(resolveScanMode({ NODE_ENV: "production" }), "builtin");
+  assert.equal(resolveScanMode({ NODE_ENV: "development" }), "none");
+  assert.equal(resolveScanMode({ NODE_ENV: "production", UPLOAD_SCAN_MODE: "none" }), "none");
+});
+
+test("scanUploadedObject skips when none", async () => {
   const previous = process.env.UPLOAD_SCAN_MODE;
   process.env.UPLOAD_SCAN_MODE = "none";
   try {

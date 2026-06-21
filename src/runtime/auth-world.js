@@ -60,7 +60,7 @@
  modal.innerHTML=`<h2>验证邮箱</h2><p class="wizard-intro">我们已向 ${escapeHtml(prefillEmail||"你的邮箱")} 发送验证链接（24 小时内有效）。验证通过后即可创建剧本。</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-resend-verify>重新发送验证邮件</button></div>`;
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
- modal.querySelector("[data-auth-resend-verify]").onclick=async()=>{try{if(!localStorage.getItem("zhimuSessionToken"))return showToast("请先登录后再重发验证邮件");await zhimuApi.resendVerification();showToast("验证邮件已发送（含垃圾箱）")}catch(error){showToast(error.message)}};
+ modal.querySelector("[data-auth-resend-verify]").onclick=async()=>{try{if(!window.zhimuSessionAuth?.isAuthenticated?.())return showToast("请先登录后再重发验证邮件");await zhimuApi.resendVerification();showToast("验证邮件已发送（含垃圾箱）")}catch(error){showToast(error.message)}};
 }
 
  function openVerifyEmail(verifyToken){
@@ -68,7 +68,7 @@
  modal.className="modal auth-modal";
  modal.innerHTML=`<h2>正在验证邮箱…</h2><p class="wizard-intro">请稍候。</p>`;
  modalBackdrop.classList.add("show");
- (async()=>{try{const result=await zhimuApi.verifyEmail({token:verifyToken});localStorage.setItem("zhimuSessionToken",result.token);closeModal();showToast("邮箱已验证，已自动登录");await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true);render()}catch(error){showToast(error.message)}}catch(error){modal.innerHTML=`<h2>验证失败</h2><p class="wizard-intro">${escapeHtml(error.message||"链接无效或已过期")}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-open-login>去登录</button></div>`;modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-auth-open-login]").onclick=()=>openAuth()}})();
+ (async()=>{try{const result=await zhimuApi.verifyEmail({token:verifyToken});window.zhimuSessionAuth?.markAuthenticated?.();closeModal();showToast("邮箱已验证，已自动登录");await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true);render()}catch(error){showToast(error.message)}}catch(error){modal.innerHTML=`<h2>验证失败</h2><p class="wizard-intro">${escapeHtml(error.message||"链接无效或已过期")}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-open-login>去登录</button></div>`;modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-auth-open-login]").onclick=()=>openAuth()}})();
 }
 
  function openResetPassword(resetToken){
@@ -78,11 +78,11 @@
  modalBackdrop.classList.add("show");
  modal.querySelectorAll('[data-studio-field$="Password"],[data-studio-field$="Confirm"]').forEach(input=>input.type="password");
  modal.querySelector("[data-close]").onclick=closeModal;
- modal.querySelector("[data-auth-reset-submit]").onclick=async()=>{try{const password=modal.querySelector('[data-studio-field="resetPassword"]').value;const confirm=modal.querySelector('[data-studio-field="resetPasswordConfirm"]').value;if(password.length<8)return showToast("密码至少 8 位");if(password!==confirm)return showToast("两次输入的密码不一致");await zhimuApi.resetPassword({token:resetToken,password});closeModal();localStorage.removeItem("zhimuSessionToken");showToast("密码已更新，请使用新密码登录");openAuth()}catch(error){showToast(error.message)}};
+ modal.querySelector("[data-auth-reset-submit]").onclick=async()=>{try{const password=modal.querySelector('[data-studio-field="resetPassword"]').value;const confirm=modal.querySelector('[data-studio-field="resetPasswordConfirm"]').value;if(password.length<8)return showToast("密码至少 8 位");if(password!==confirm)return showToast("两次输入的密码不一致");await zhimuApi.resetPassword({token:resetToken,password});closeModal();window.zhimuSessionAuth?.markLoggedOut?.();showToast("密码已更新，请使用新密码登录");openAuth()}catch(error){showToast(error.message)}};
 }
 
  function openAuth(){
- const loggedIn=Boolean(localStorage.getItem("zhimuSessionToken"));
+ const loggedIn=Boolean(window.zhimuSessionAuth?.isAuthenticated?.());
  if(loggedIn){window.zhimuRuntime?.go?.("account");return}
  openAuthForm();
 }
@@ -95,13 +95,14 @@ function openAuthForm(){
  const requireAuth=Boolean(window.zhimuConfig?.requireAuth);
  const guestIntro="注册或登录后，可创建剧本、邀请协作者并保存运行数据。";
  modal.className="modal auth-modal";
- modal.innerHTML=`<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div data-oauth-bar class="row" style="margin-bottom:12px"></div><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button><button type="button" class="text-btn" data-auth-forgot style="margin-top:8px">忘记密码？</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+ modal.innerHTML=`<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div data-oauth-bar class="row" style="margin-bottom:12px"></div><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<p class="muted-note auth-legal-note">注册即表示你已阅读并同意 <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> 与 <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a>。</p><button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button><button type="button" class="text-btn" data-auth-forgot style="margin-top:8px">忘记密码？</button><p class="muted-note auth-legal-note"><a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a></p></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
  const resetAccountContext=()=>window.zhimuContext?.resetAccountContext?.();
  const finishAuth=async(label)=>{resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true)}catch(error){showToast(error.message)}render();window.zhimuRuntime?.drainPendingInviteAfterAuth?.();if(!zhimuApi.context.worldId){const hasWorlds=(state.cloudWorlds||[]).length>0;setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400)}};
- modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});if(result.pendingEmailVerification){closeModal();showToast("注册成功，请查收验证邮件");openVerifyPending(modal.querySelector('[data-studio-field="registerEmail"]').value.trim());return}localStorage.setItem("zhimuSessionToken",result.token);await finishAuth("注册成功，已经登录")}catch(error){showToast(error.message)}};
- modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});localStorage.setItem("zhimuSessionToken",result.token);if(result.pendingEmailVerification){closeModal();showToast("登录成功，请先验证邮箱");openVerifyPending(modal.querySelector('[data-studio-field="loginEmail"]').value.trim());return}await finishAuth("登录成功")}catch(error){showToast(error.message)}};
+ modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});if(result.pendingEmailVerification){closeModal();showToast("注册成功，请查收验证邮件");openVerifyPending(modal.querySelector('[data-studio-field="registerEmail"]').value.trim());return}window.zhimuSessionAuth?.markAuthenticated?.();await finishAuth("注册成功，已经登录")}catch(error){showToast(error.message)}};
+ modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});window.zhimuSessionAuth?.markAuthenticated?.();if(result.pendingEmailVerification){closeModal();showToast("登录成功，请先验证邮箱");openVerifyPending(modal.querySelector('[data-studio-field="loginEmail"]').value.trim());return}await finishAuth("登录成功")}catch(error){showToast(error.message)}};
  modal.querySelector("[data-auth-forgot]")?.addEventListener("click",()=>openForgotPassword(modal.querySelector('[data-studio-field="loginEmail"]')?.value||""));
+ modal.querySelectorAll("[data-legal-doc]").forEach((link)=>{link.addEventListener("click",(event)=>{event.preventDefault();window.zhimuGuide?.openLegalDoc?.(link.dataset.legalDoc,link.dataset.legalTitle||"法律文档")})});
  (async()=>{try{const config=await zhimuApi.getAuthConfig();const bar=modal.querySelector("[data-oauth-bar]");if(!bar||!config.oauth?.length)return;bar.innerHTML=config.oauth.map(p=>`<button class="secondary-btn" data-oauth-start="${p.id}">${escapeHtml(p.label)} 登录</button>`).join("");bar.querySelectorAll("[data-oauth-start]").forEach(btn=>btn.onclick=async()=>{try{const {url}=await zhimuApi.oauthStartUrl(btn.dataset.oauthStart);window.location.href=url}catch(error){showToast(error.message)}})}catch{}})();
 }
 
@@ -326,7 +327,7 @@ async function acceptWorldInviteFromUrl(token){
    window.zhimuUserMessages?.handleApiErrorToast?.(error, showToast) || showToast(error.message);
   }
  };
- if(!localStorage.getItem("zhimuSessionToken")){
+ if(!window.zhimuSessionAuth?.isAuthenticated?.()){
   sessionStorage.setItem("zhimuPendingInviteToken", token);
   showToast("请先登录以接受协作邀请");
   openAuthForm();
@@ -337,13 +338,13 @@ async function acceptWorldInviteFromUrl(token){
 
 function drainPendingInviteAfterAuth(){
  const token=sessionStorage.getItem("zhimuPendingInviteToken");
- if(!token||!localStorage.getItem("zhimuSessionToken"))return;
+ if(!token||!window.zhimuSessionAuth?.isAuthenticated?.())return;
  sessionStorage.removeItem("zhimuPendingInviteToken");
  void acceptWorldInviteFromUrl(token);
 }
 
 async function finishOAuthSession(result){
- localStorage.setItem("zhimuSessionToken",result.token);
+ window.zhimuSessionAuth?.markAuthenticated?.();
  window.zhimuContext?.resetAccountContext?.();
  sessionStorage.removeItem("zhimuAuthPrompted");
  closeModal();

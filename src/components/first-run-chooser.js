@@ -17,7 +17,7 @@
   }
 
   function shouldShow() {
-    if (!localStorage.getItem("zhimuSessionToken")) return false;
+    if (!window.zhimuSessionAuth?.isAuthenticated?.()) return false;
     if (isDismissed()) return false;
     const worlds = window.zhimuState?.cloudWorlds || [];
     return worlds.length === 0;

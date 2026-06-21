@@ -338,10 +338,10 @@ export function renderStoryManuscript(snapshot) {
   return lines.join("\n").trim();
 }
 
-export async function syncManuscriptToGraph(worldId, text) {
+export async function syncManuscriptToGraph(worldId, text, existingClient = null) {
   const drafts = classifyStoryDraft(text);
   if (!drafts.length) throwErr("STORY_BLOCKS_EMPTY");
-  return transaction(async (client) => {
+  const work = async (client) => {
     const ids = new Map();
     let currentSceneId = null;
     await client.query(`DELETE FROM story_graph_edges WHERE world_id = $1 AND label LIKE '完整剧情同步%'`, [worldId]);
@@ -411,7 +411,9 @@ export async function syncManuscriptToGraph(worldId, text) {
       edges.push(created.rows[0]);
     }
     return { nodes: drafts.length, edges: edges.length, suggestions: storyDraftSuggestions(drafts) };
-  });
+  };
+  if (existingClient) return work(existingClient);
+  return transaction(work);
 }
 
 export async function importDeepseekProposalWithClient(client, worldId, rawProposal) {

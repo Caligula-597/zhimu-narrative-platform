@@ -1,7 +1,8 @@
 # 安全与测试收口记录
 
-日期：2026-06-20（**347** 项测试 · **62** schema 路由）
+日期：2026-06-21（数字以 `npm run status:generate` → [`docs/GENERATED_PROJECT_STATUS.json`](./docs/GENERATED_PROJECT_STATUS.json) 为准）
 
+> **可信 Beta 收口计划**：[docs/TRUSTED_BETA_ZH.md](./docs/TRUSTED_BETA_ZH.md)  
 > **原则**：测试桩 UUID 仅用于 CI/smoke；产品功能不得硬编码单一剧本。见 [docs/WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)。  
 > **系统设计**：[docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md)
 
@@ -13,6 +14,9 @@
 - Bearer Session 优先于 demo header。
 - 前端检测到正式 session token 后，不再发送 demo `x-user-id`。
 - Fastify 统一 HTTP 安全响应头（`X-Frame-Options`、`nosniff`、生产 HSTS 等）。
+- **生产默认 CSP Report-Only**（`backend/src/security-headers.js`；`CSP_MODE=enforce` 可切换阻断；见 TB-1）。
+- **HttpOnly Session Cookie**（`backend/src/session-cookie.js`；`credentials: include`；Bearer 仍兼容测试/E2E）。
+- **CI 安全门禁**：CodeQL、Dependabot、`npm audit --audit-level=high`、`npm sbom`、`npm run audit:innerhtml`。
 - 资产上传：MIME 白名单 + **扩展名黑名单**（`asset-policy.js`）。
 - **运行/创作写路由** Fastify schema（`check:schemas` **62** 条门禁）。
 - 玩家完成阅读前，后端会校验分幕属于当前角色，并且处于已发布或已解锁状态。
@@ -30,7 +34,9 @@
 
 ## 已拆出的后端边界
 
-- `backend/src/app.js`：Fastify、CORS、安全头、限流、Request ID。
+- `backend/src/app.js`：Fastify、CORS、安全头（含 CSP report-only）、限流、Request ID。
+- `backend/src/security-headers.js`：CSP 策略与 `applySecurityHeaders`。
+- `backend/src/account-delete-job.js`：注销 outbox（DB 优先 → 对象存储重试）。
 - `backend/src/database-status.js`：`/health`、`/health/ready`、池指标。
 - `backend/src/room-event-bus.js`：内存总线 + 可选 Postgres NOTIFY 多实例扇出。
 - `backend/src/routes/schemas.js`：JSON Schema 定义（持续扩展中）。
@@ -40,7 +46,7 @@
 
 所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
 
-`npm test` 当前覆盖（**347** 项，96 个测试文件；精确数以 `npm run check:tests` 为准）：
+`npm test` 当前覆盖（**359** 项，96 个测试文件；精确数以 `npm run check:tests` 为准）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -131,7 +137,7 @@ npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 
 | 命令 | 结果 |
 |------|------|
-| `backend npm test` | **347/347**（96 文件） |
+| `backend npm test` | **359/359**（96 文件） |
 | `npm run check:schemas` | **62** 条路由 |
 | `npm run test:smoke` | **18/18** |
 | `node scripts/ui-smoke.js` | **44/44** |

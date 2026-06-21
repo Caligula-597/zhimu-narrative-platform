@@ -3,6 +3,7 @@ import { deleteWorldChapter, buildWorldSnapshot } from "./world-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
+import { runRevisionMutation } from "../world-revision.js";
 import {
   STUDIO_LAYOUT_MODES,
   STORY_LAYOUT_TABLES,
@@ -113,9 +114,11 @@ export async function registerStudioGraphRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, edgeId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const result = await query(`DELETE FROM story_graph_edges WHERE id = $1 AND world_id = $2 RETURNING id`, [edgeId, worldId]);
-    if (!result.rowCount) return sendErr(reply, "STORY_EDGE_NOT_FOUND");
-    return { ok: true };
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(`DELETE FROM story_graph_edges WHERE id = $1 AND world_id = $2 RETURNING id`, [edgeId, worldId]);
+      if (!result.rowCount) throwErr("STORY_EDGE_NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
   });
 
   app.delete("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId", { schema: deleteStudioNodeSchema }, async (request, reply) => {
@@ -125,20 +128,21 @@ export async function registerStudioGraphRoutes(app) {
     const tables = { chapter: "chapters", scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     const table = tables[nodeType];
     if (!table) return sendErr(reply, "NODE_TYPE_UNSUPPORTED");
-    const result = await transaction(async (client) => {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
       if (nodeType === "chapter") {
         const removed = await deleteWorldChapter(client, worldId, nodeId);
-        return removed ? { rowCount: 1 } : { rowCount: 0 };
+        if (!removed) throwErr("STUDIO_NODE_NOT_FOUND");
+        return { ok: true };
       }
       await client.query(
         `DELETE FROM story_graph_edges
          WHERE world_id = $1 AND ((from_type = $2 AND from_id = $3) OR (to_type = $2 AND to_id = $3))`,
         [worldId, nodeType, nodeId]
       );
-      return client.query(`DELETE FROM ${table} WHERE id = $1 AND world_id = $2 RETURNING id`, [nodeId, worldId]);
-    });
-    if (!result.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
-    return { ok: true };
+      const result = await client.query(`DELETE FROM ${table} WHERE id = $1 AND world_id = $2 RETURNING id`, [nodeId, worldId]);
+      if (!result.rowCount) throwErr("STUDIO_NODE_NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
   });
 
   app.put("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/position", { schema: updateNodePositionSchema }, async (request, reply) => {

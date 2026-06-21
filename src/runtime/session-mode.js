@@ -1,7 +1,7 @@
 /** Unified guest / demo / logged-in session labels for UI copy. */
 (function (window) {
   function isLoggedIn() {
-    return Boolean(localStorage.getItem("zhimuSessionToken"));
+    return window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
   }
 
   function requiresAuth() {

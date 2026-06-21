@@ -1,7 +1,7 @@
 # 织幕 · 平台总览与前后端对照
 
 > **本文档**：产品模块规划 + 后端能力 + 前端入口 + API 客户端方法的一页式索引。  
-> **更新**：2026-06-20 · 测试 **347** 项 · 迁移 **039**  
+> **更新**：2026-06-20 · 测试 **359** 项 · 迁移 **039**  
 > **系统设计**：[DESIGN_ZH.md](./DESIGN_ZH.md) · **维护约定**：新 API 或新视图时同步更新 §3 对照表
 
 ---
@@ -243,7 +243,7 @@ backend/src/
   room-event-bus.js ← SSE 扇出
   auth.js           ← Session/游客
 migrations/         ← 001–023
-test/*.test.js      ← **347** 项（96 文件）
+test/*.test.js      ← **359** 项（96 文件）
 scripts/
   identity-smoke.mjs
   migrate.js

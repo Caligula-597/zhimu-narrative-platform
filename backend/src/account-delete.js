@@ -1,34 +1,16 @@
 import { query, transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { deleteOwnedWorld } from "./world-delete.js";
-import { getObjectStorage } from "./storage/index.js";
 import { isProtectedPlatformWorldId } from "./official-example.js";
-
-async function purgeUserObjectStorage(userId) {
-  const keys = await query(
-    `SELECT af.object_key AS key FROM asset_files af WHERE af.owner_user_id = $1
-     UNION
-     SELECT av.object_key AS key FROM asset_versions av
-     INNER JOIN asset_files af ON af.id = av.asset_file_id
-     WHERE af.owner_user_id = $1`,
-    [userId]
-  );
-  if (!keys.rowCount) return;
-  let storage = null;
-  try {
-    storage = getObjectStorage();
-  } catch {
-    return;
-  }
-  for (const row of keys.rows) {
-    if (!row.key) continue;
-    try {
-      await storage.deleteObject({ key: row.key });
-    } catch {
-      /* best-effort */
-    }
-  }
-}
+import {
+  collectUserObjectKeys,
+  createAccountDeleteJob,
+  markAccountDeleteJobCompleted,
+  markAccountDeleteJobDbDeleted,
+  markAccountDeleteJobFailed,
+  markAccountDeleteJobStoragePending,
+  purgeObjectKeys
+} from "./account-delete-job.js";
 
 export async function buildAccountDeletePreview(userId) {
   const user = await query(
@@ -118,6 +100,33 @@ export function assertDeleteConfirmation(confirmationLabel, confirmation) {
   }
 }
 
+async function deleteUserAccountDb(client, userId) {
+  const owned = await client.query(
+    `SELECT id FROM worlds WHERE owner_user_id = $1`,
+    [userId]
+  );
+  for (const row of owned.rows) {
+    if (isProtectedPlatformWorldId(row.id)) {
+      throwErr("ACCOUNT_DELETE_BLOCKED");
+    }
+    const deleted = await deleteOwnedWorld(client, row.id, userId);
+    if (!deleted) throwErr("WORLD_NOT_FOUND");
+  }
+
+  await client.query(`DELETE FROM checkpoint_restores WHERE requested_by_user_id = $1`, [userId]);
+  await client.query(`DELETE FROM rooms WHERE host_user_id = $1`, [userId]);
+  await client.query(
+    `DELETE FROM deleted_assets
+     WHERE deleted_by_user_id = $1
+        OR asset_file_id IN (SELECT id FROM asset_files WHERE owner_user_id = $1)`,
+    [userId]
+  );
+  await client.query(`DELETE FROM asset_files WHERE owner_user_id = $1`, [userId]);
+
+  const removed = await client.query(`DELETE FROM users WHERE id = $1 RETURNING id`, [userId]);
+  if (!removed.rowCount) throwErr("USER_NOT_FOUND");
+}
+
 export async function deleteUserAccount(userId) {
   const preview = await buildAccountDeletePreview(userId);
   if (!preview.canDelete) {
@@ -127,34 +136,39 @@ export async function deleteUserAccount(userId) {
     throw error;
   }
 
-  await purgeUserObjectStorage(userId);
+  const objectKeys = await collectUserObjectKeys(userId);
+  let jobId = null;
 
-  await transaction(async (client) => {
-    const owned = await client.query(
-      `SELECT id FROM worlds WHERE owner_user_id = $1`,
-      [userId]
-    );
-    for (const row of owned.rows) {
-      if (isProtectedPlatformWorldId(row.id)) {
-        throwErr("ACCOUNT_DELETE_BLOCKED");
+  try {
+    await transaction(async (client) => {
+      jobId = await createAccountDeleteJob(userId, objectKeys, client);
+      await deleteUserAccountDb(client, userId);
+      await markAccountDeleteJobDbDeleted(jobId, client);
+    });
+  } catch (error) {
+    if (jobId) {
+      try {
+        await markAccountDeleteJobFailed(jobId, error);
+      } catch {
+        /* job row may roll back with user */
       }
-      const deleted = await deleteOwnedWorld(client, row.id, userId);
-      if (!deleted) throwErr("WORLD_NOT_FOUND");
     }
+    throw error;
+  }
 
-    await client.query(`DELETE FROM checkpoint_restores WHERE requested_by_user_id = $1`, [userId]);
-    await client.query(`DELETE FROM rooms WHERE host_user_id = $1`, [userId]);
-    await client.query(
-      `DELETE FROM deleted_assets
-       WHERE deleted_by_user_id = $1
-          OR asset_file_id IN (SELECT id FROM asset_files WHERE owner_user_id = $1)`,
-      [userId]
-    );
-    await client.query(`DELETE FROM asset_files WHERE owner_user_id = $1`, [userId]);
+  const { purgedCount, failed } = await purgeObjectKeys(objectKeys);
+  if (failed.length === 0) {
+    await markAccountDeleteJobCompleted(jobId, purgedCount);
+  } else {
+    await markAccountDeleteJobStoragePending(jobId, {
+      purgedCount,
+      error: `${failed.length} object(s) pending retry`
+    });
+  }
 
-    const removed = await client.query(`DELETE FROM users WHERE id = $1 RETURNING id`, [userId]);
-    if (!removed.rowCount) throwErr("USER_NOT_FOUND");
-  });
-
-  return { ok: true, deletedAt: new Date().toISOString() };
+  return {
+    ok: true,
+    deletedAt: new Date().toISOString(),
+    storagePending: failed.length > 0
+  };
 }

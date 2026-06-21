@@ -33,6 +33,20 @@ node scripts/pg-backup.mjs --out ./backups/zhimu-manual.sql
 
 Windows 任务计划程序可等价调度 `node scripts/pg-backup.mjs`。
 
+## 自动恢复演练（季度建议）
+
+验证「备份 → 新库 → 行数一致」：
+
+```bash
+cd backend
+npm run db:verify-restore
+# 保留演练库供人工检查：npm run db:verify-restore -- --keep
+```
+
+脚本会：`pg_dump` → 创建临时库 `zhimu_restore_drill_*` → `psql` 导入 → 对比 `users/worlds/chapters/asset_files/auth_sessions` 行数 → 删除临时库。
+
+**前提**：`DATABASE_URL` 指向的账号需有 `CREATE DATABASE` 权限；本机已安装 `pg_dump` 与 `psql`。
+
 ## 恢复步骤
 
 1. **停写流量**：将 API 从负载均衡摘除，或维护页。
@@ -53,7 +67,20 @@ Windows 任务计划程序可等价调度 `node scripts/pg-backup.mjs`。
 
 ## 对象存储
 
-`asset_files` 元数据在 Postgres，**文件本体在 R2/S3**。备份 Postgres 不会备份对象存储；需单独开启 bucket 版本控制或生命周期复制。
+`asset_files` 元数据在 Postgres，**文件本体在 R2/S3**。备份 Postgres 不会备份对象存储。
+
+### R2 / S3 建议（TB-2.2）
+
+| 措施 | 目的 |
+|------|------|
+| **Bucket 版本控制** | 误删对象可回滚 |
+| **跨区域复制**（可选） | 区域故障时恢复 |
+| **生命周期规则** | 清理未完成 multipart、临时前缀 |
+| **与 DB 一致** | 注销/资产删除走 `account-delete-job` + `assets:purge`；勿单独删 bucket 对象 |
+
+Cloudflare R2：在 bucket 设置中开启 Versioning；生产 bucket 与 staging 分离。
+
+过期会话与 token 清理见 [`DATA_RETENTION.md`](./DATA_RETENTION.md)。
 
 ## 相关
 

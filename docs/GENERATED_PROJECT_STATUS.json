@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-06-21T11:31:31.437Z",
+  "git": {
+    "note": "Run from clean tree; commit hash not embedded to avoid dirty-tree noise."
+  },
+  "backend": {
+    "unitTests": 371,
+    "testFiles": 103,
+    "schemaRouteMarkers": 62,
+    "migrations": 41,
+    "latestMigration": "041_world_content_revision"
+  },
+  "frontend": {
+    "scriptModules": 53
+  },
+  "play": {
+    "unitTests": 23,
+    "testFiles": 4
+  },
+  "docs": {
+    "trustedBetaPlan": "docs/TRUSTED_BETA_ZH.md",
+    "securityTesting": "SECURITY_AND_TESTING.md"
+  }
+}

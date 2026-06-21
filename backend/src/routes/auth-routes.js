@@ -29,6 +29,7 @@ import {
 import { fetchUserKind } from "../capabilities.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { bearerToken, requireActor } from "../request-actor.js";
+import { attachSessionToReply, clearSessionCookie, readSessionCookie } from "../session-cookie.js";
 import {
   getEmailServiceStatus,
   isEmailConfigured,
@@ -118,6 +119,12 @@ async function sendVerificationForUser(userId, email) {
   await sendEmailVerificationEmail({ to: email, verifyToken: token });
 }
 
+function sendAuthSession(reply, session, payload, statusCode) {
+  attachSessionToReply(reply, session);
+  const body = { ...payload, ...session };
+  return statusCode ? reply.code(statusCode).send(body) : body;
+}
+
 export async function registerAuthRoutes(app) {
   app.get("/api/auth/config", async () => ({
     requireEmailVerification: isEmailVerificationRequired(),
@@ -196,7 +203,7 @@ export async function registerAuthRoutes(app) {
     }
 
     const session = await createSession(user.id, sessionRequestMeta(request));
-    return reply.code(201).send({ user: userAuthPayload(user), acceptedInvites, ...session });
+    return sendAuthSession(reply, session, { user: userAuthPayload(user), acceptedInvites }, 201);
   });
 
   app.post("/api/auth/guest", {
@@ -220,7 +227,7 @@ export async function registerAuthRoutes(app) {
     const displayName = request.body?.displayName?.trim();
     const user = await createGuestUser(displayName || null);
     const session = await createSession(user.id, sessionRequestMeta(request));
-    return reply.code(201).send({ user: userAuthPayload(user), ...session });
+    return sendAuthSession(reply, session, { user: userAuthPayload(user) }, 201);
   });
 
   app.post("/api/auth/upgrade", {
@@ -251,11 +258,10 @@ export async function registerAuthRoutes(app) {
     const acceptedInvites = await acceptWorldMemberInvitesForEmail(user.id, email);
     await revokeAllSessions(actorId);
     const session = await createSession(user.id, sessionRequestMeta(request));
-    return reply.code(200).send({
+    return sendAuthSession(reply, session, {
       user: userAuthPayload(user),
-      acceptedInvites,
-      ...session
-    });
+      acceptedInvites
+    }, 200);
   });
 
   app.post("/api/auth/login", { schema: { body: authBodySchema } }, async (request, reply) => {
@@ -273,11 +279,10 @@ export async function registerAuthRoutes(app) {
     await applyInternalBetaPrivileges(row.id, email);
     await applyApprovedBetaApplicationPrivileges(row.id, email);
     const session = await createSession(row.id, sessionRequestMeta(request));
-    return {
+    return sendAuthSession(reply, session, {
       user: userAuthPayload(row),
-      pendingEmailVerification: isEmailVerificationRequired() && !row.email_verified_at,
-      ...session
-    };
+      pendingEmailVerification: isEmailVerificationRequired() && !row.email_verified_at
+    });
   });
 
   app.get("/api/auth/me", async (request) => {
@@ -324,20 +329,30 @@ export async function registerAuthRoutes(app) {
     const ok = await revokeSessionById(actorId, sessionId);
     if (!ok) return sendErr(reply, "SESSION_NOT_FOUND");
     if (sessionId === request.sessionId) {
-      await deleteSession(bearerToken(request));
+      await deleteSession(bearerToken(request) || readSessionCookie(request));
+      clearSessionCookie(reply);
     }
     return reply.code(200).send({ ok: true });
   });
 
-  app.post("/api/auth/logout-all", async (request) => {
+  app.post("/api/auth/logout-all", {
+    schema: {
+      response: { 200: { type: "object", properties: { ok: { type: "boolean" }, currentSessionKept: { type: "boolean" } } } }
+    }
+  }, async (request) => {
     const actorId = requireActor(request);
     const current = request.sessionId ?? null;
     await revokeAllSessions(actorId, current);
     return { ok: true, currentSessionKept: Boolean(current) };
   });
 
-  app.post("/api/auth/logout", async (request) => {
-    await deleteSession(bearerToken(request));
+  app.post("/api/auth/logout", {
+    schema: {
+      response: { 200: { type: "object", properties: { ok: { type: "boolean" } } } }
+    }
+  }, async (request, reply) => {
+    await deleteSession(bearerToken(request) || readSessionCookie(request));
+    clearSessionCookie(reply);
     return { ok: true };
   });
 
@@ -378,17 +393,20 @@ export async function registerAuthRoutes(app) {
     await markUserEmailVerified(userId);
     const session = await createSession(userId, sessionRequestMeta(request));
     const user = await query(
-      `SELECT id, email, display_name, email_verified_at FROM users WHERE id = $1`,
+      `SELECT id, email, display_name, email_verified_at, user_kind FROM users WHERE id = $1`,
       [userId]
     );
-    return reply.code(200).send({
+    return sendAuthSession(reply, session, {
       ok: true,
-      user: userAuthPayload(user.rows[0]),
-      ...session
-    });
+      user: userAuthPayload(user.rows[0])
+    }, 200);
   });
 
-  app.post("/api/auth/resend-verification", async (request, reply) => {
+  app.post("/api/auth/resend-verification", {
+    schema: {
+      response: { 200: { type: "object", additionalProperties: true } }
+    }
+  }, async (request, reply) => {
     if (!isEmailVerificationRequired()) {
       return reply.code(200).send({ ok: true, message: "Email verification is not required." });
     }
@@ -505,11 +523,8 @@ export async function registerAuthRoutes(app) {
     }
   }, async (request, reply) => {
     const result = await completeOAuthLoginCode(request.body.code, sessionRequestMeta(request));
-    return reply.code(200).send({
-      user: userAuthPayload(result.user),
-      token: result.token,
-      expiresAt: result.expiresAt,
-      sessionId: result.sessionId
-    });
+    return sendAuthSession(reply, { token: result.token, expiresAt: result.expiresAt, sessionId: result.sessionId }, {
+      user: userAuthPayload(result.user)
+    }, 200);
   });
 }

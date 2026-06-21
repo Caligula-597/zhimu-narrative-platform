@@ -4,6 +4,7 @@ const API_ORIGIN = import.meta.env.VITE_API_ORIGIN?.replace(/\/$/, "")
 const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : "/api";
 
 const TOKEN_KEY = "zhimuSessionToken";
+let cookieSessionActive = false;
 
 function sseCursorKey(roomId) {
   return `zhimuPlaySseCursor:${roomId}`;
@@ -12,8 +13,24 @@ function sseCursorKey(roomId) {
 const PLATFORM_SSE_CURSOR = "zhimuPlayPlatformSseCursor";
 
 function authHeaders() {
-  const token = localStorage.getItem(TOKEN_KEY);
-  return token ? { authorization: `Bearer ${token}` } : {};
+  const headers = {};
+  const legacy = localStorage.getItem(TOKEN_KEY);
+  if (legacy) headers.authorization = `Bearer ${legacy}`;
+  return headers;
+}
+
+function markAuthenticated() {
+  cookieSessionActive = true;
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+function markLoggedOut() {
+  cookieSessionActive = false;
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+function isAuthenticated() {
+  return cookieSessionActive || Boolean(localStorage.getItem(TOKEN_KEY));
 }
 
 async function request(path, { method = "GET", body, timeoutMs = 20000 } = {}) {
@@ -26,7 +43,8 @@ async function request(path, { method = "GET", body, timeoutMs = 20000 } = {}) {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
-      signal: controller.signal
+      signal: controller.signal,
+      credentials: "include"
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -35,6 +53,9 @@ async function request(path, { method = "GET", body, timeoutMs = 20000 } = {}) {
       err.status = response.status;
       err.details = payload.details;
       throw err;
+    }
+    if (/^\/auth\/(login|register|guest|upgrade|verify-email|oauth\/complete)/.test(path)) {
+      markAuthenticated();
     }
     return payload;
   } catch (error) {
@@ -67,12 +88,16 @@ export function getSessionToken() {
 }
 
 export function setSessionToken(token) {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  else localStorage.removeItem(TOKEN_KEY);
+  if (token) markAuthenticated();
+  else markLoggedOut();
 }
 
 export function clearSession() {
-  localStorage.removeItem(TOKEN_KEY);
+  markLoggedOut();
+}
+
+export function hasSession() {
+  return isAuthenticated();
 }
 
 export const api = {

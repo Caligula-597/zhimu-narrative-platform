@@ -1,9 +1,11 @@
-import { query } from "../db.js";
+import { query, transaction } from "../db.js";
 import { sendErr } from "../api-errors.js";
+import { throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import { validateRuleBody } from "../rule-structure-validator.js";
 import { buildWorldSnapshot, creatorChecks } from "./world-helpers.js";
+import { runRevisionMutation } from "../world-revision.js";
 import {
   worldIdParams,
   createRuleSchema,
@@ -34,12 +36,14 @@ export async function registerRulesRoutes(app) {
       if (!room.rowCount) return sendErr(reply, "RULE_ROOM_WORLD_MISMATCH");
     }
     if (!(await rejectInvalidRuleBody(reply, worldId, conditions, actions))) return;
-    const result = await query(
-      `INSERT INTO automation_rules (world_id, room_id, name, mode, priority, enabled, conditions, actions)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb) RETURNING *`,
-      [worldId, roomId, name, mode, priority, Boolean(enabled), JSON.stringify(conditions), JSON.stringify(actions)]
-    );
-    return reply.code(201).send(result.rows[0]);
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `INSERT INTO automation_rules (world_id, room_id, name, mode, priority, enabled, conditions, actions)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb) RETURNING *`,
+        [worldId, roomId, name, mode, priority, Boolean(enabled), JSON.stringify(conditions), JSON.stringify(actions)]
+      );
+      return result.rows[0];
+    }, { sendErr, statusCode: 201 });
   });
 
   app.get("/api/worlds/:worldId/rules", { schema: { params: worldIdParams } }, async (request) => {
@@ -66,24 +70,28 @@ export async function registerRulesRoutes(app) {
       if (!room.rowCount) return sendErr(reply, "RULE_ROOM_WORLD_MISMATCH");
     }
     if (!(await rejectInvalidRuleBody(reply, worldId, conditions, actions))) return;
-    const result = await query(
-      `UPDATE automation_rules
-       SET room_id = $1, name = $2, mode = $3, priority = $4, enabled = $5,
-           conditions = $6::jsonb, actions = $7::jsonb, updated_at = now()
-       WHERE id = $8 AND world_id = $9 RETURNING *`,
-      [roomId || null, name, mode, Number(priority) || 100, Boolean(enabled), JSON.stringify(conditions), JSON.stringify(actions), ruleId, worldId]
-    );
-    if (!result.rowCount) return sendErr(reply, "RULE_NOT_FOUND");
-    return result.rows[0];
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const updated = await client.query(
+        `UPDATE automation_rules
+         SET room_id = $1, name = $2, mode = $3, priority = $4, enabled = $5,
+             conditions = $6::jsonb, actions = $7::jsonb, updated_at = now()
+         WHERE id = $8 AND world_id = $9 RETURNING *`,
+        [roomId || null, name, mode, Number(priority) || 100, Boolean(enabled), JSON.stringify(conditions), JSON.stringify(actions), ruleId, worldId]
+      );
+      if (!updated.rowCount) throwErr("RULE_NOT_FOUND");
+      return updated.rows[0];
+    }, { sendErr });
   });
 
   app.delete("/api/worlds/:worldId/rules/:ruleId", { schema: deleteRuleSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, ruleId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const result = await query(`DELETE FROM automation_rules WHERE id = $1 AND world_id = $2 RETURNING id`, [ruleId, worldId]);
-    if (!result.rowCount) return sendErr(reply, "RULE_NOT_FOUND");
-    return { ok: true };
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(`DELETE FROM automation_rules WHERE id = $1 AND world_id = $2 RETURNING id`, [ruleId, worldId]);
+      if (!result.rowCount) throwErr("RULE_NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
   });
 
   app.post("/api/worlds/:worldId/rules/validate", { schema: validateRulesSchema }, async (request) => {

@@ -78,20 +78,22 @@ function settings(){
  <aside class="card"><div class="section-head"><div><h3>帮助与数据</h3><p>步骤说明与错误排查</p></div></div><button class="secondary-btn full-btn" data-action="open-creator-guide">创作步骤指引</button><button class="secondary-btn full-btn" data-action="open-error-guide">错误提示与排查</button><button class="secondary-btn full-btn" style="margin-top:10px" data-action="go-writer-export">前往剧本创作 · 导出/导入</button></aside></section>`;
 }
 
-async function saveWorldSettings(){
+ async function saveWorldSettings(){
  const worldId=zhimuApi.context.worldId;
  const name=document.getElementById("settings-world-name")?.value?.trim();
  const summary=document.getElementById("settings-world-summary")?.value?.trim()||"";
  const recapTruthSummary=document.getElementById("settings-recap-truth")?.value?.trim()||"";
  if(!name)return showToast("请填写剧本名称");
+ const revision=window.zhimuWorldRevision?.currentRevision?.(worldId);
  try{
-  await zhimuApi.patchWorld({name,summary,settings:{recapTruthSummary}});
+  const updated=await zhimuApi.patchWorld({name,summary,settings:{recapTruthSummary}},worldId,{revision});
   if(state.cloudStudio?.world?.id===worldId){
    state.cloudStudio.world={
     ...state.cloudStudio.world,
     name,
     summary,
-    settings:{...(state.cloudStudio.world.settings||{}),recapTruthSummary}
+    settings:{...(state.cloudStudio.world.settings||{}),recapTruthSummary},
+    content_revision:updated.content_revision??state.cloudStudio.world.content_revision
    };
   }
   state.cloudWorlds=(state.cloudWorlds||[]).map((w)=>w.id===worldId?{...w,name,summary,settings:{...(w.settings||{}),recapTruthSummary}}:w);
@@ -99,6 +101,8 @@ async function saveWorldSettings(){
   await loadCloudData();
   render();
   showToast("剧本信息已保存");
+  window.zhimuWorldRevision?.clearEditorDirty?.();
+  window.zhimuWorldRevision?.clearDraft?.("settings");
  }catch(error){showToast(error.message)}
 }
 

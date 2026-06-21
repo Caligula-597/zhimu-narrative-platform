@@ -10,8 +10,14 @@ import { runBuiltinScan } from "./upload-scan-builtin.js";
 import { scanWithClamAv } from "./upload-scan-clamav.js";
 import { recordUploadScan } from "./metrics.js";
 
+export function resolveScanMode(env = process.env) {
+  const configured = env.UPLOAD_SCAN_MODE?.trim();
+  if (configured) return configured.toLowerCase();
+  return env.NODE_ENV === "production" ? "builtin" : "none";
+}
+
 function scanMode() {
-  return (process.env.UPLOAD_SCAN_MODE || "none").toLowerCase();
+  return resolveScanMode();
 }
 
 function headMaxBytes() {

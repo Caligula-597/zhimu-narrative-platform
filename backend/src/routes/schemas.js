@@ -1535,6 +1535,20 @@ export const storyManuscriptSyncToGraphSchema = {
   }
 };
 
+export const storyManuscriptSyncFromGraphSchema = {
+  params: worldIdParams,
+  response: {
+    200: {
+      type: "object",
+      properties: {
+        body: { type: "string" },
+        last_sync_direction: { type: "string" },
+        updated_at: { type: "string" }
+      }
+    }
+  }
+};
+
 const physicalTokenContentType = {
   type: "string",
   enum: ["clue", "item", "script_section", "event"]

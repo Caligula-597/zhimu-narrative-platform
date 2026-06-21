@@ -122,6 +122,13 @@ test("player activates clue token once in room", async (context) => {
 });
 
 test("tump-gated token requires external proof", async (context) => {
+  const prev = process.env.TUMP_ACTIVATION_ENABLED;
+  process.env.TUMP_ACTIVATION_ENABLED = "true";
+  context.after(() => {
+    if (prev === undefined) delete process.env.TUMP_ACTIVATION_ENABLED;
+    else process.env.TUMP_ACTIVATION_ENABLED = prev;
+  });
+
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
   const worldId = fixtureWorldId;
@@ -171,6 +178,58 @@ test("tump-gated token requires external proof", async (context) => {
 
   context.after(async () => {
     await query(`DELETE FROM inventory WHERE room_id = $1 AND item_id = $2`, [fixtureRoomId, itemId]);
+    await query(`DELETE FROM physical_tokens WHERE token_code = $1`, [tokenCode]);
+    await query(`DELETE FROM items WHERE id = $1`, [itemId]);
+  });
+});
+
+test("tump-gated token rejects stub proof when integration disabled", async (context) => {
+  const prev = process.env.TUMP_ACTIVATION_ENABLED;
+  delete process.env.TUMP_ACTIVATION_ENABLED;
+  context.after(() => {
+    if (prev === undefined) delete process.env.TUMP_ACTIVATION_ENABLED;
+    else process.env.TUMP_ACTIVATION_ENABLED = prev;
+  });
+
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const worldId = fixtureWorldId;
+  const item = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/items`,
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `tump-off ${Date.now()}`, publicText: "联动关闭测试" }
+  });
+  assert.equal(item.statusCode, 201);
+  const itemId = item.json().id;
+
+  const created = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/physical-tokens`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      contentType: "item",
+      contentId: itemId,
+      tokenCode: "ZHM-DEMTMPPKARD24",
+      activationRule: { externalGate: { provider: "tump", required: true, minAmount: 5 } }
+    }
+  });
+  assert.equal(created.statusCode, 201, created.body);
+  const tokenCode = created.json().tokens[0].tokenCode;
+
+  const blocked = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fixtureRoomId}/physical-tokens/activate`,
+    headers: { "x-user-id": playerUserId },
+    payload: {
+      tokenCode,
+      externalProof: { provider: "tump", transactionId: "fake-tx", amount: 10 }
+    }
+  });
+  assert.equal(blocked.statusCode, 503);
+  assert.equal(blocked.json().code, "TUMP_INTEGRATION_DISABLED");
+
+  context.after(async () => {
     await query(`DELETE FROM physical_tokens WHERE token_code = $1`, [tokenCode]);
     await query(`DELETE FROM items WHERE id = $1`, [itemId]);
   });

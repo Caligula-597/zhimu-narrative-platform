@@ -320,7 +320,10 @@ async function saveSelectedStudioNode(){
   }else{
    await zhimuApi.updateInvestigationPoint(selected.id,{name:values.name,description:values.description,resultText:values.resultText,sceneId:values.sceneId,clueId:values.clueId||null,requiredItemId:values.requiredItemId||null,metadata:{hostConfirmRequired:Boolean(values.hostConfirmRequired),oneTime:values.oneTime!==false,hostNote:values.hostNote||""}});
   }
-  await loadCloudData();showToast("节点已保存");
+  await loadCloudData();
+  window.zhimuWorldRevision?.clearEditorDirty?.();
+  window.zhimuWorldRevision?.clearDraft?.();
+  showToast("节点已保存");
  }catch(error){showToast(error.message)}
 }
 

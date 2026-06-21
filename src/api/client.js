@@ -3,6 +3,7 @@ const API_BASE = runtimeConfig.apiBase || "/api";
 const demoMode = Boolean(runtimeConfig.demoMode);
 const demoUsers = runtimeConfig.demoUsers || {};
 const friendlyApiError = window.zhimuUserMessages?.friendlyApiError || ((payload, fb) => payload.error || fb);
+const sessionAuth = () => window.zhimuSessionAuth || {};
 
 const demoContext = {
   hostUserId: demoUsers.hostUserId || "",
@@ -13,12 +14,43 @@ const demoContext = {
 demoContext.worldId = localStorage.getItem("zhimuActiveWorldId") || "";
 demoContext.roomId = localStorage.getItem(`zhimuActiveRoomId:${demoContext.worldId}`) || "";
 
-function authHeaders(userId) {
-  const headers = {};
-  const sessionToken = localStorage.getItem("zhimuSessionToken");
-  if (sessionToken) headers.authorization = `Bearer ${sessionToken}`;
-  else if (demoMode && userId) headers["x-user-id"] = userId;
-  return headers;
+function authHeaders(userId, extra = {}) {
+  const headers = sessionAuth().authHeaders?.() || {};
+  if (!headers.authorization && demoMode && userId) headers["x-user-id"] = userId;
+  return { ...headers, ...extra };
+}
+
+function markSessionFromResponse(result) {
+  if (result?.token || result?.user?.id) sessionAuth().markAuthenticated?.();
+  return result;
+}
+
+function resolveWorldRevision(worldId, explicit) {
+  if (explicit != null) return explicit;
+  return window.zhimuWorldRevision?.currentRevision?.(worldId) ?? null;
+}
+
+function ifMatchHeaders(worldId, explicitRevision) {
+  const revision = resolveWorldRevision(worldId, explicitRevision);
+  if (revision == null) return {};
+  return { "If-Match": `"${revision}"` };
+}
+
+function trackWorldRevisionResponse(worldId, data) {
+  if (data?.content_revision != null) {
+    window.zhimuWorldRevision?.applySavedRevision?.(worldId, data.content_revision);
+  }
+  return data;
+}
+
+function worldWrite(path, { worldId = demoContext.worldId, userId = demoContext.hostUserId, method = "PATCH", body, revision, ...rest } = {}) {
+  return request(path, {
+    userId,
+    method,
+    body,
+    headers: ifMatchHeaders(worldId, revision),
+    ...rest
+  }).then((data) => trackWorldRevisionResponse(worldId, data));
 }
 
 function createIdempotencyKey() {
@@ -43,8 +75,8 @@ function deepseekRequest(path, opts = {}) {
   return request(path, { ...opts, timeoutMs: opts.timeoutMs ?? defaultTimeout });
 }
 
-async function request(path, { userId, method = "GET", body, timeoutMs = 20000, idempotent = false, idempotencyKey } = {}, authRetry = false) {
-  const headers = authHeaders(userId);
+async function request(path, { userId, method = "GET", body, timeoutMs = 20000, idempotent = false, idempotencyKey, headers: extraHeaders = {} } = {}, authRetry = false) {
+  const headers = authHeaders(userId, extraHeaders);
   if (body !== undefined) headers["content-type"] = "application/json";
   if (idempotent && method !== "GET" && method !== "HEAD") {
     headers["idempotency-key"] = idempotencyKey || createIdempotencyKey();
@@ -56,7 +88,8 @@ async function request(path, { userId, method = "GET", body, timeoutMs = 20000, 
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
-      signal: controller.signal
+      signal: controller.signal,
+      credentials: "include"
     });
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
@@ -73,13 +106,20 @@ async function request(path, { userId, method = "GET", body, timeoutMs = 20000, 
       const err = new Error(friendlyApiError(payload, `${method} ${path} failed`));
       err.code = payload.code;
       err.details = payload.details;
-      if (response.status === 401 && !authRetry && localStorage.getItem("zhimuSessionToken")) {
-        localStorage.removeItem("zhimuSessionToken");
-        return request(path, { userId, method, body, timeoutMs, idempotent, idempotencyKey }, true);
+      if (response.status === 409 && payload.code === "WORLD_VERSION_CONFLICT") {
+        window.zhimuWorldRevision?.showConflict?.(payload.details);
+      }
+      if (response.status === 401 && !authRetry && sessionAuth().isAuthenticated?.()) {
+        sessionAuth().markLoggedOut?.();
+        return request(path, { userId, method, body, timeoutMs, idempotent, idempotencyKey, headers: extraHeaders }, true);
       }
       throw err;
     }
-    return response.json();
+    const data = await response.json();
+    if (/^\/auth\/(login|register|guest|upgrade|verify-email|oauth\/complete)/.test(path)) {
+      markSessionFromResponse(data);
+    }
+    return data;
   } catch (error) {
     if (error.name === "AbortError") {
       const secs = Math.round(timeoutMs / 1000);
@@ -124,7 +164,8 @@ window.zhimuApi = {
   joinWorldCatalog: (worldId) =>
     request(`/worlds/${worldId}/catalog/join`, { userId: demoContext.hostUserId, method: "POST", body: {} }),
   getWorld: (worldId = demoContext.worldId) => request(`/worlds/${worldId}`, { userId: demoContext.hostUserId }),
-  patchWorld: (payload, worldId = demoContext.worldId) => request(`/worlds/${worldId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
+  patchWorld: (payload, worldId = demoContext.worldId, { revision } = {}) =>
+    worldWrite(`/worlds/${worldId}`, { worldId, method: "PATCH", body: payload, revision }),
   patchRoomSettings: (settings, roomId = demoContext.roomId) =>
     request(`/rooms/${roomId}/settings`, { userId: demoContext.hostUserId, method: "PATCH", body: { settings } }),
   deleteWorld: (worldId = demoContext.worldId) => request(`/worlds/${worldId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
@@ -145,6 +186,7 @@ window.zhimuApi = {
   resetPassword: (payload) => request("/auth/reset-password", { method: "POST", body: payload }),
   me: () => request("/auth/me"),
   getAccountEntitlements: () => request("/account/entitlements"),
+  exportAccountData: () => request("/account/export"),
   submitPlanUpgradeRequest: (payload) =>
     request("/account/plan-upgrade-request", { method: "POST", body: payload }),
   previewAccountDelete: () => request("/account/delete/preview"),
@@ -164,11 +206,15 @@ window.zhimuApi = {
       idempotent: true
     }),
   getAccountPlans: () => request("/account/plans"),
-  logout: () => request("/auth/logout", { method: "POST", body: {} }),
+  logout: async () => {
+    const result = await request("/auth/logout", { method: "POST", body: {} });
+    sessionAuth().markLoggedOut?.();
+    return result;
+  },
   async ensurePlayerSession() {
-    if (localStorage.getItem("zhimuSessionToken")) return null;
+    if (sessionAuth().isAuthenticated?.()) return null;
     const result = await this.createGuest({});
-    if (result?.token) localStorage.setItem("zhimuSessionToken", result.token);
+    markSessionFromResponse(result);
     return result;
   },
   getPlayerHome: () => request(`/rooms/${demoContext.roomId}/player-home`, { userId: demoContext.playerUserId }),
@@ -257,18 +303,24 @@ window.zhimuApi = {
       method: "POST",
       body: payload
     }),
-  createChapter: (worldId, payload) => request(`/worlds/${worldId}/chapters`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  createRole: (worldId, payload) => request(`/worlds/${worldId}/roles`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  updateRole: (roleId, payload) => request(`/worlds/${demoContext.worldId}/roles/${roleId}`, { userId: demoContext.hostUserId, method: "PUT", body: payload }),
-  deleteRole: (roleId) => request(`/worlds/${demoContext.worldId}/roles/${roleId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
-  createSection: (worldId, roleId, payload) => request(`/worlds/${worldId}/roles/${roleId}/sections`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  updateSection: (roleId, sectionId, payload) => request(`/worlds/${demoContext.worldId}/roles/${roleId}/sections/${sectionId}`, { userId: demoContext.hostUserId, method: "PUT", body: payload }),
-  deleteSection: (roleId, sectionId) => request(`/worlds/${demoContext.worldId}/roles/${roleId}/sections/${sectionId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
-  updateChapter: (chapterId, payload) => request(`/worlds/${demoContext.worldId}/chapters/${chapterId}`, { userId: demoContext.hostUserId, method: "PUT", body: payload }),
+  createChapter: (worldId, payload) => worldWrite(`/worlds/${worldId}/chapters`, { worldId, method: "POST", body: payload }),
+  createRole: (worldId, payload) => worldWrite(`/worlds/${worldId}/roles`, { worldId, method: "POST", body: payload }),
+  updateRole: (roleId, payload) => worldWrite(`/worlds/${demoContext.worldId}/roles/${roleId}`, { method: "PUT", body: payload }),
+  deleteRole: (roleId) => worldWrite(`/worlds/${demoContext.worldId}/roles/${roleId}`, { method: "DELETE" }),
+  createSection: (worldId, roleId, payload) =>
+    worldWrite(`/worlds/${worldId}/roles/${roleId}/sections`, { worldId, method: "POST", body: payload }),
+  updateSection: (roleId, sectionId, payload) =>
+    worldWrite(`/worlds/${demoContext.worldId}/roles/${roleId}/sections/${sectionId}`, { method: "PUT", body: payload }),
+  deleteSection: (roleId, sectionId) =>
+    worldWrite(`/worlds/${demoContext.worldId}/roles/${roleId}/sections/${sectionId}`, { method: "DELETE" }),
+  updateChapter: (chapterId, payload) =>
+    worldWrite(`/worlds/${demoContext.worldId}/chapters/${chapterId}`, { method: "PUT", body: payload }),
   getCreatorChecks: () => request(`/worlds/${demoContext.worldId}/creator-checks`, { userId: demoContext.hostUserId }),
-  createContentVersion: (payload) => request(`/worlds/${demoContext.worldId}/content-versions`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  restoreContentVersion: (versionId) => request(`/worlds/${demoContext.worldId}/content-versions/${versionId}/restore`, { userId: demoContext.hostUserId, method: "POST", body: {} }),
-  deleteContentVersion: (versionId) => request(`/worlds/${demoContext.worldId}/content-versions/${versionId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
+  createContentVersion: (payload) => worldWrite(`/worlds/${demoContext.worldId}/content-versions`, { method: "POST", body: payload }),
+  restoreContentVersion: (versionId) =>
+    worldWrite(`/worlds/${demoContext.worldId}/content-versions/${versionId}/restore`, { method: "POST", body: {} }),
+  deleteContentVersion: (versionId) =>
+    worldWrite(`/worlds/${demoContext.worldId}/content-versions/${versionId}`, { method: "DELETE" }),
   createRoom: (worldId, payload) => request(`/worlds/${worldId}/rooms`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   updateRoomPublicListing: (worldId, roomId, publicListing) =>
     request(`/worlds/${worldId}/rooms/${roomId}/listing`, {
@@ -277,20 +329,22 @@ window.zhimuApi = {
       body: { publicListing }
     }),
   getStudio: () => request(`/worlds/${demoContext.worldId}/studio`, { userId: demoContext.hostUserId }),
-  createScene: (payload) => request(`/worlds/${demoContext.worldId}/scenes`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  updateScene: (sceneId, payload) => request(`/worlds/${demoContext.worldId}/scenes/${sceneId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
-  createClue: (payload) => request(`/worlds/${demoContext.worldId}/clues`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  updateClue: (clueId, payload) => request(`/worlds/${demoContext.worldId}/clues/${clueId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
-  createItem: (payload) => request(`/worlds/${demoContext.worldId}/items`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  updateItem: (itemId, payload) => request(`/worlds/${demoContext.worldId}/items/${itemId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
-  deleteItem: (itemId) => request(`/worlds/${demoContext.worldId}/items/${itemId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
+  createScene: (payload) => worldWrite(`/worlds/${demoContext.worldId}/scenes`, { method: "POST", body: payload }),
+  updateScene: (sceneId, payload) => worldWrite(`/worlds/${demoContext.worldId}/scenes/${sceneId}`, { body: payload }),
+  createClue: (payload) => worldWrite(`/worlds/${demoContext.worldId}/clues`, { method: "POST", body: payload }),
+  updateClue: (clueId, payload) => worldWrite(`/worlds/${demoContext.worldId}/clues/${clueId}`, { body: payload }),
+  createItem: (payload) => worldWrite(`/worlds/${demoContext.worldId}/items`, { method: "POST", body: payload }),
+  updateItem: (itemId, payload) => worldWrite(`/worlds/${demoContext.worldId}/items/${itemId}`, { body: payload }),
+  deleteItem: (itemId) => worldWrite(`/worlds/${demoContext.worldId}/items/${itemId}`, { method: "DELETE" }),
   hostGrantItem: (payload) =>
     request(`/rooms/${demoContext.roomId}/host/grant-item`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true }),
-  createInvestigationPoint: (sceneId, payload) => request(`/worlds/${demoContext.worldId}/scenes/${sceneId}/investigation-points`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  updateInvestigationPoint: (pointId, payload) => request(`/worlds/${demoContext.worldId}/investigation-points/${pointId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload }),
+  createInvestigationPoint: (sceneId, payload) =>
+    worldWrite(`/worlds/${demoContext.worldId}/scenes/${sceneId}/investigation-points`, { method: "POST", body: payload }),
+  updateInvestigationPoint: (pointId, payload) =>
+    worldWrite(`/worlds/${demoContext.worldId}/investigation-points/${pointId}`, { body: payload }),
   getStudioNodeReferences: (nodeType, nodeId) => request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/references`, { userId: demoContext.hostUserId }),
-  createStudioChapter: (payload) => request(`/worlds/${demoContext.worldId}/chapters`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  createStoryEdge: (payload) => request(`/worlds/${demoContext.worldId}/story-edges`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  createStudioChapter: (payload) => worldWrite(`/worlds/${demoContext.worldId}/chapters`, { method: "POST", body: payload }),
+  createStoryEdge: (payload) => worldWrite(`/worlds/${demoContext.worldId}/story-edges`, { method: "POST", body: payload }),
   analyzeStoryDraft: (text) => request(`/worlds/${demoContext.worldId}/story-assistant/analyze`, { userId: demoContext.hostUserId, method: "POST", body: { text } }),
   importStoryDraft: (text) => request(`/worlds/${demoContext.worldId}/story-assistant/import`, { userId: demoContext.hostUserId, method: "POST", body: { text } }),
   getDeepseekStatus: () => deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/status`, { userId: demoContext.hostUserId }),
@@ -351,26 +405,30 @@ window.zhimuApi = {
   getWorldHostAuditLog: (limit = 50) =>
     request(`/worlds/${demoContext.worldId}/host-audit-log?limit=${limit}`, { userId: demoContext.hostUserId }),
   parseDocument: (payload) => request(`/worlds/${demoContext.worldId}/documents/parse`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  importParsedDocument: (payload) => request(`/worlds/${demoContext.worldId}/documents/import`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  importParsedDocument: (payload) =>
+    worldWrite(`/worlds/${demoContext.worldId}/documents/import`, { method: "POST", body: payload }),
   importDocumentPages: (payload) => request(`/worlds/${demoContext.worldId}/documents/import-pages`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   getStoryManuscript: () => request(`/worlds/${demoContext.worldId}/story-manuscript`, { userId: demoContext.hostUserId }),
   saveStoryManuscript: (body) => request(`/worlds/${demoContext.worldId}/story-manuscript`, { userId: demoContext.hostUserId, method: "PUT", body: { body } }),
   syncStoryManuscriptFromGraph: () => request(`/worlds/${demoContext.worldId}/story-manuscript/sync-from-graph`, { userId: demoContext.hostUserId, method: "POST", body: {} }),
-  syncStoryManuscriptToGraph: (body) => request(`/worlds/${demoContext.worldId}/story-manuscript/sync-to-graph`, { userId: demoContext.hostUserId, method: "POST", body: { body } }),
+  syncStoryManuscriptToGraph: (body) =>
+    worldWrite(`/worlds/${demoContext.worldId}/story-manuscript/sync-to-graph`, { method: "POST", body: { body } }),
   getRules: () => request(`/worlds/${demoContext.worldId}/rules`, { userId: demoContext.hostUserId }),
-  createRule: (payload) => request(`/worlds/${demoContext.worldId}/rules`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  updateRule: (ruleId, payload) => request(`/worlds/${demoContext.worldId}/rules/${ruleId}`, { userId: demoContext.hostUserId, method: "PUT", body: payload }),
-  deleteRule: (ruleId) => request(`/worlds/${demoContext.worldId}/rules/${ruleId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
+  createRule: (payload) => worldWrite(`/worlds/${demoContext.worldId}/rules`, { method: "POST", body: payload }),
+  updateRule: (ruleId, payload) => worldWrite(`/worlds/${demoContext.worldId}/rules/${ruleId}`, { method: "PUT", body: payload }),
+  deleteRule: (ruleId) => worldWrite(`/worlds/${demoContext.worldId}/rules/${ruleId}`, { method: "DELETE" }),
   validateRules: () => request(`/worlds/${demoContext.worldId}/rules/validate`, { userId: demoContext.hostUserId, method: "POST", body: {} }),
   validateRuleBody: (payload) => request(`/worlds/${demoContext.worldId}/rules/validate-body`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   exportContentPackage: () => request(`/worlds/${demoContext.worldId}/content-package`, { userId: demoContext.hostUserId }),
   getContentPackageSummary: () => request(`/worlds/${demoContext.worldId}/content-package/summary`, { userId: demoContext.hostUserId }),
   previewContentPackageImport: (payload) => request(`/worlds/${demoContext.worldId}/content-package/preview`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   previewNewWorldContentPackage: (payload) => request("/content-package/preview-new-world", { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  importContentPackage: (payload) => request(`/worlds/${demoContext.worldId}/content-package/import`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
+  importContentPackage: (payload) =>
+    worldWrite(`/worlds/${demoContext.worldId}/content-package/import`, { method: "POST", body: payload }),
   importContentPackageAsNewWorld: (payload) => request("/worlds/from-content-package", { userId: demoContext.hostUserId, method: "POST", body: payload }),
-  deleteStoryEdge: (edgeId) => request(`/worlds/${demoContext.worldId}/story-edges/${edgeId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
-  deleteStudioNode: (nodeType, nodeId) => request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}`, { userId: demoContext.hostUserId, method: "DELETE" }),
+  deleteStoryEdge: (edgeId) => worldWrite(`/worlds/${demoContext.worldId}/story-edges/${edgeId}`, { method: "DELETE" }),
+  deleteStudioNode: (nodeType, nodeId) =>
+    worldWrite(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}`, { method: "DELETE" }),
   updateStudioNodePosition: (nodeType, nodeId, payload) => request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/position`, { userId: demoContext.hostUserId, method: "PUT", body: payload }),
   updateStudioNodeAnchors: (nodeType, nodeId, anchors) => request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/anchors`, { userId: demoContext.hostUserId, method: "PUT", body: { anchors } }),
   updateStoryLayout: (positions) => request(`/worlds/${demoContext.worldId}/story-layout`, { userId: demoContext.hostUserId, method: "PUT", body: { positions } }),
@@ -419,14 +477,11 @@ window.zhimuApi = {
 
   /** SSE via fetch (supports Bearer / x-user-id). onEvent(type, data); type "__connected__" on open. */
   streamRoomEvents(roomId, onEvent, signal, userId = demoContext.hostUserId) {
-    const headers = { Accept: "text/event-stream" };
-    const sessionToken = localStorage.getItem("zhimuSessionToken");
-    if (sessionToken) headers.authorization = `Bearer ${sessionToken}`;
-    else if (demoMode && userId) headers["x-user-id"] = userId;
+    const headers = { Accept: "text/event-stream", ...authHeaders(userId) };
     const cursor = localStorage.getItem(sseCursorKey(roomId));
     if (cursor) headers["Last-Event-ID"] = cursor;
 
-    return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal }).then(async (res) => {
+    return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(friendlyApiError(err, `连接实时推送失败（${res.status}）`));
@@ -466,4 +521,10 @@ window.zhimuApi = {
     });
   }
 };
+(function probeCookieSession() {
+  const hasCookie = typeof document !== "undefined" && /(?:^|;\s*)zhimu_session=/.test(document.cookie || "");
+  const hasLegacy = sessionAuth().legacyToken?.();
+  if (!hasCookie && !hasLegacy) return;
+  request("/auth/me").then(() => sessionAuth().markAuthenticated?.()).catch(() => sessionAuth().markLoggedOut?.());
+})();
 export {};

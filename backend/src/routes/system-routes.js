@@ -68,4 +68,27 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       return reply.type("text/plain; version=0.0.4; charset=utf-8").send(body);
     }
   );
+
+  app.post("/api/csp-report", {
+    schema: {
+      hide: true,
+      tags: ["system"],
+      body: { type: "object", additionalProperties: true },
+      response: { 204: { type: "null" } }
+    }
+  }, async (request, reply) => {
+    const report = request.body ?? {};
+    request.log.warn(
+      {
+        csp: {
+          documentUri: report["document-uri"] ?? report.documentURI,
+          violatedDirective: report["violated-directive"] ?? report.violatedDirective,
+          blockedUri: report["blocked-uri"] ?? report.blockedURI,
+          sourceFile: report["source-file"] ?? report.sourceFile
+        }
+      },
+      "CSP violation report"
+    );
+    return reply.code(204).send();
+  });
 }

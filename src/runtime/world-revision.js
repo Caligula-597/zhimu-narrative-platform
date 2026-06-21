@@ -1,0 +1,524 @@
+/** Optimistic-lock conflict UI + unsaved editor guard for world content_revision / If-Match. */
+
+(function (window) {
+
+  const F = window.zhimuFormat || {};
+
+  const escapeHtml = F.escapeHtml || ((v = "") => String(v));
+
+  const showToast = window.zhimuToast?.showToast || (() => {});
+
+
+
+  let editorDirty = false;
+
+  let draftTimer = null;
+
+  const DRAFT_DEBOUNCE_MS = 800;
+
+
+
+  const INPUT_SELECTOR = [
+
+    "#settings-world-name",
+
+    "#settings-world-summary",
+
+    "#settings-recap-truth",
+
+    "[data-studio-field]",
+
+    ".studio-inspector textarea",
+
+    ".studio-inspector input.field"
+
+  ].join(",");
+
+
+
+  function markEditorDirty() {
+
+    editorDirty = true;
+
+  }
+
+
+
+  function clearEditorDirty() {
+
+    editorDirty = false;
+
+  }
+
+
+
+  function isEditorDirty() {
+
+    return editorDirty;
+
+  }
+
+
+
+  function activeWorldId(worldId) {
+
+    return worldId || window.zhimuApi?.context?.worldId || "";
+
+  }
+
+
+
+  function resolveDraftScope() {
+
+    const state = window.zhimuState;
+
+    const view = state?.view;
+
+    if (view === "settings") return "settings";
+
+    if (view === "studio" && state.studioSelectedNode) {
+
+      const { type, id } = state.studioSelectedNode;
+
+      return `studio:${type}:${id}`;
+
+    }
+
+    if (view === "writer") return "writer";
+
+    return null;
+
+  }
+
+
+
+  function draftStorageKey(scope) {
+
+    const worldId = activeWorldId();
+
+    if (!worldId || !scope) return null;
+
+    return `zhimu_draft:${worldId}:${scope}`;
+
+  }
+
+
+
+  function collectInputSnapshot(root = document) {
+
+    const snapshot = {};
+
+    root.querySelectorAll(INPUT_SELECTOR).forEach((el) => {
+
+      if (el.readOnly || el.disabled) return;
+
+      const key = el.id || el.dataset.studioField || el.name;
+
+      if (!key) return;
+
+      snapshot[key] = el.type === "checkbox" ? el.checked : el.value;
+
+    });
+
+    return snapshot;
+
+  }
+
+
+
+  function snapshotsMatch(a = {}, b = {}) {
+
+    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+
+    for (const key of keys) {
+
+      if (String(a[key] ?? "") !== String(b[key] ?? "")) return false;
+
+    }
+
+    return true;
+
+  }
+
+
+
+  function persistDraft(scope, root = document) {
+
+    const key = draftStorageKey(scope);
+
+    if (!key) return;
+
+    try {
+
+      localStorage.setItem(
+
+        key,
+
+        JSON.stringify({ savedAt: Date.now(), fields: collectInputSnapshot(root) })
+
+      );
+
+    } catch {
+
+      /* quota or private mode */
+
+    }
+
+  }
+
+
+
+  function scheduleDraftSave(scope, root = document) {
+
+    clearTimeout(draftTimer);
+
+    draftTimer = setTimeout(() => persistDraft(scope, root), DRAFT_DEBOUNCE_MS);
+
+  }
+
+
+
+  function loadDraft(scope) {
+
+    const key = draftStorageKey(scope);
+
+    if (!key) return null;
+
+    try {
+
+      const raw = localStorage.getItem(key);
+
+      return raw ? JSON.parse(raw) : null;
+
+    } catch {
+
+      return null;
+
+    }
+
+  }
+
+
+
+  function clearDraft(scope) {
+
+    const key = draftStorageKey(scope || resolveDraftScope());
+
+    if (key) localStorage.removeItem(key);
+
+  }
+
+
+
+  function restoreDraftToInputs(scope, root = document) {
+
+    const draft = loadDraft(scope);
+
+    if (!draft?.fields) return false;
+
+    Object.entries(draft.fields).forEach(([key, value]) => {
+
+      const byId = root.querySelector(`#${CSS.escape(key)}`);
+
+      const byField = root.querySelector(`[data-studio-field="${CSS.escape(key)}"]`);
+
+      const el = byId || byField;
+
+      if (!el || el.readOnly || el.disabled) return;
+
+      if (el.type === "checkbox") el.checked = Boolean(value);
+
+      else el.value = value;
+
+    });
+
+    markEditorDirty();
+
+    return true;
+
+  }
+
+
+
+  function promptDraftRestore(root = document, scope = resolveDraftScope()) {
+
+    if (!scope) return;
+
+    const draft = loadDraft(scope);
+
+    if (!draft?.fields || !Object.keys(draft.fields).length) return;
+
+    if (snapshotsMatch(draft.fields, collectInputSnapshot(root))) {
+
+      clearDraft(scope);
+
+      return;
+
+    }
+
+    const modal = document.getElementById("modal");
+
+    const backdrop = document.getElementById("modal-backdrop");
+
+    if (!modal || !backdrop) {
+
+      if (window.confirm("检测到未同步的本地草稿，是否恢复？")) {
+
+        restoreDraftToInputs(scope, root);
+
+        showToast("已恢复本地草稿");
+
+      } else {
+
+        clearDraft(scope);
+
+      }
+
+      return;
+
+    }
+
+    modal.innerHTML = `<h2>本地草稿</h2>
+
+<p class="wizard-intro">检测到上次编辑未保存的本地草稿。恢复将覆盖当前表单内容；放弃将删除草稿。</p>
+
+<div class="modal-actions">
+
+  <button type="button" class="secondary-btn" data-draft-discard>放弃草稿</button>
+
+  <button type="button" class="primary-btn" data-draft-restore>恢复草稿</button>
+
+</div>`;
+
+    backdrop.classList.add("show");
+
+    modal.querySelector("[data-draft-discard]").onclick = () => {
+
+      clearDraft(scope);
+
+      clearEditorDirty();
+
+      window.zhimuModal?.closeModal?.();
+
+    };
+
+    modal.querySelector("[data-draft-restore]").onclick = () => {
+
+      restoreDraftToInputs(scope, root);
+
+      window.zhimuModal?.closeModal?.();
+
+      showToast("已恢复本地草稿");
+
+    };
+
+  }
+
+
+
+  function showConflict(details = {}) {
+
+    const modal = document.getElementById("modal");
+
+    const backdrop = document.getElementById("modal-backdrop");
+
+    if (!modal || !backdrop) {
+
+      showToast("保存冲突：其他协作者已更新此剧本，请刷新后重试");
+
+      return;
+
+    }
+
+    const current = details.currentRevision ?? "?";
+
+    const expected = details.expectedRevision ?? "?";
+
+    modal.innerHTML = `<h2>保存冲突</h2>
+
+<p class="wizard-intro">其他编辑者已保存较新版本（当前 revision ${escapeHtml(String(current))}，你持有 ${escapeHtml(String(expected))}）。继续保存会覆盖他人改动。</p>
+
+<div class="modal-actions">
+
+  <button type="button" class="secondary-btn" data-revision-close>取消</button>
+
+  <button type="button" class="primary-btn" data-revision-reload>刷新并重新编辑</button>
+
+</div>`;
+
+    backdrop.classList.add("show");
+
+    modal.querySelector("[data-revision-close]").onclick = () => window.zhimuModal?.closeModal?.();
+
+    modal.querySelector("[data-revision-reload]").onclick = async () => {
+
+      window.zhimuModal?.closeModal?.();
+
+      clearEditorDirty();
+
+      clearDraft();
+
+      try {
+
+        await window.zhimuLoadCloudData?.(true, true);
+
+        window.zhimuRender?.();
+
+        showToast("已刷新剧本数据");
+
+      } catch (error) {
+
+        showToast(error.message || "刷新失败");
+
+      }
+
+    };
+
+  }
+
+
+
+  function trackRevision(world) {
+
+    if (!world || world.content_revision == null) return;
+
+    const state = window.zhimuState;
+
+    const rev = Number(world.content_revision);
+
+    const worldId = world.id || activeWorldId();
+
+    if (state?.cloudStudio?.world?.id === worldId) {
+
+      state.cloudStudio.world.content_revision = rev;
+
+    }
+
+    if (state?.cloudWorld?.id === worldId) {
+
+      state.cloudWorld.content_revision = rev;
+
+    }
+
+  }
+
+
+
+  function currentRevision(worldId) {
+
+    const state = window.zhimuState;
+
+    const id = activeWorldId(worldId);
+
+    if (state?.cloudStudio?.world?.id === id && state.cloudStudio.world.content_revision != null) {
+
+      return Number(state.cloudStudio.world.content_revision);
+
+    }
+
+    if (state?.cloudWorld?.id === id && state.cloudWorld.content_revision != null) {
+
+      return Number(state.cloudWorld.content_revision);
+
+    }
+
+    return null;
+
+  }
+
+
+
+  function applySavedRevision(worldId, revision) {
+
+    if (revision == null) return;
+
+    const state = window.zhimuState;
+
+    const id = activeWorldId(worldId);
+
+    const rev = Number(revision);
+
+    if (state?.cloudStudio?.world?.id === id) {
+
+      state.cloudStudio.world.content_revision = rev;
+
+    }
+
+    if (state?.cloudWorld?.id === id) {
+
+      state.cloudWorld.content_revision = rev;
+
+    }
+
+  }
+
+
+
+  function watchDirtyInputs(root = document, scope = resolveDraftScope()) {
+
+    root.querySelectorAll(INPUT_SELECTOR).forEach((el) => {
+
+      if (el.readOnly || el.disabled || el.dataset.dirtyBound) return;
+
+      el.dataset.dirtyBound = "1";
+
+      const onChange = () => {
+
+        markEditorDirty();
+
+        if (scope) scheduleDraftSave(scope, root);
+
+      };
+
+      el.addEventListener("input", onChange);
+
+      el.addEventListener("change", onChange);
+
+    });
+
+  }
+
+
+
+  window.addEventListener("beforeunload", (event) => {
+
+    if (!editorDirty) return;
+
+    event.preventDefault();
+
+    event.returnValue = "";
+
+  });
+
+
+
+  window.zhimuWorldRevision = {
+
+    showConflict,
+
+    trackRevision,
+
+    currentRevision,
+
+    applySavedRevision,
+
+    markEditorDirty,
+
+    clearEditorDirty,
+
+    isEditorDirty,
+
+    watchDirtyInputs,
+
+    promptDraftRestore,
+
+    clearDraft,
+
+    resolveDraftScope
+
+  };
+
+})(window);
+
+export {};
+

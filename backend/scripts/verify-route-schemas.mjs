@@ -1,8 +1,10 @@
 /**
  * Ensures write routes declare Fastify JSON schemas.
+ * Phase 1: curated markers (regression guard).
+ * Phase 2: dynamic scan of *-routes.js for POST/PUT/PATCH/DELETE without schema.
  * See docs/BACKEND_OPS.md and docs/BACKEND_OPS_BENCHMARK.md.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -79,6 +81,41 @@ const REQUIRED_SCHEMA_MARKERS = [
   ["search-routes.js", 'app.get("/api/worlds/:worldId/search", { schema:']
 ];
 
+/** Dynamic scan allowlist: [file, method, path] */
+const DYNAMIC_SCHEMA_ALLOWLIST = new Set([
+  // Fastify plugin hooks or non-JSON handlers registered in route files
+]);
+
+function collectRegistrationBlock(lines, startIndex) {
+  let block = lines[startIndex];
+  let index = startIndex;
+  while (index + 1 < lines.length && !/,\s*async\s*\(/.test(block) && index - startIndex < 14) {
+    index += 1;
+    block += `\n${lines[index]}`;
+  }
+  return { block, endIndex: index };
+}
+
+function findUnschemaedWriteRoutes(content, file) {
+  const issues = [];
+  const lines = content.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!/app\.(post|put|patch|delete)\(/.test(line)) continue;
+    const methodMatch = line.match(/app\.(post|put|patch|delete)\(/);
+    if (!methodMatch) continue;
+    const method = methodMatch[1];
+    const { block } = collectRegistrationBlock(lines, i);
+    if (/\bschema\s*:/.test(block)) continue;
+    const pathMatch = block.match(/app\.\w+\(\s*("([^"]+)"|'([^']+)')/);
+    const routePath = pathMatch?.[2] || pathMatch?.[3] || "?";
+    const key = `${file}|${method.toUpperCase()}|${routePath}`;
+    if (DYNAMIC_SCHEMA_ALLOWLIST.has(key)) continue;
+    issues.push({ file, line: i + 1, method: method.toUpperCase(), path: routePath });
+  }
+  return issues;
+}
+
 let failed = false;
 for (const [file, marker] of REQUIRED_SCHEMA_MARKERS) {
   const content = readFileSync(join(routesDir, file), "utf8");
@@ -90,8 +127,25 @@ for (const [file, marker] of REQUIRED_SCHEMA_MARKERS) {
   }
 }
 
+const routeFiles = readdirSync(routesDir).filter((name) => name.endsWith("-routes.js"));
+const dynamicIssues = [];
+for (const file of routeFiles) {
+  const content = readFileSync(join(routesDir, file), "utf8");
+  dynamicIssues.push(...findUnschemaedWriteRoutes(content, file));
+}
+
+if (dynamicIssues.length) {
+  failed = true;
+  console.error("\nDynamic scan: write routes missing { schema: ... }:");
+  for (const issue of dynamicIssues) {
+    console.error(`  FAIL  ${issue.file}:${issue.line}  ${issue.method} ${issue.path}`);
+  }
+} else {
+  console.log(`\nDynamic scan: ${routeFiles.length} route files, 0 unschemaed write routes`);
+}
+
 if (failed) {
   process.exit(1);
 }
 
-console.log(`\nverify-route-schemas: ${REQUIRED_SCHEMA_MARKERS.length} routes OK`);
+console.log(`\nverify-route-schemas: ${REQUIRED_SCHEMA_MARKERS.length} markers + dynamic scan OK`);

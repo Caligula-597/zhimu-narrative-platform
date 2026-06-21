@@ -4,7 +4,7 @@
   const zhimuApi = window.zhimuApi;
 
   function isLoggedIn() {
-    return window.zhimuAuthSession?.isLoggedIn?.() ?? Boolean(localStorage.getItem("zhimuSessionToken"));
+    return window.zhimuAuthSession?.isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
   }
 
   function isDemoBrowseMode() {

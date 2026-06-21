@@ -1,7 +1,12 @@
 import { query, transaction } from "../db.js";
+import { sendErr } from "../api-errors.js";
+import {
+  parseIfMatch,
+  setWorldRevisionHeaders,
+  updateWorldContent
+} from "../world-revision.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole } from "./route-guards.js";
-import { sendErr } from "../api-errors.js";
 import { assertWorldCreateQuota, assertStorageBytesQuota, assertSingleFileQuota } from "../quota-guards.js";
 import { parseCreatorDocument } from "../document-parser.js";
 import { deleteOwnedWorld } from "../world-delete.js";
@@ -84,7 +89,7 @@ export async function registerWorldRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor", "host", "viewer"]);
     const result = await query(
-      `SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note, w.settings, w.created_at, w.updated_at,
+      `SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note, w.settings, w.created_at, w.updated_at, w.content_revision,
               wm.role AS membership_role
        FROM worlds w
        JOIN world_members wm ON wm.world_id = w.id AND wm.user_id = $2
@@ -92,7 +97,10 @@ export async function registerWorldRoutes(app) {
       [worldId, actorId]
     );
     if (!result.rowCount) return sendErr(reply, "WORLD_NOT_FOUND");
-    return enrichWorldMembership(result.rows[0]);
+    const world = enrichWorldMembership(result.rows[0]);
+    if (world.content_revision != null) world.content_revision = Number(world.content_revision);
+    setWorldRevisionHeaders(reply, world.content_revision);
+    return world;
   });
 
   app.patch("/api/worlds/:worldId", { schema: updateWorldSchema }, async (request, reply) => {
@@ -100,18 +108,17 @@ export async function registerWorldRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor"]);
     const { name, summary, settings } = request.body ?? {};
-    const result = await query(
-      `UPDATE worlds
-       SET name = COALESCE($2, name),
-           summary = COALESCE($3, summary),
-           settings = CASE WHEN $4::jsonb IS NULL THEN settings ELSE COALESCE(settings, '{}'::jsonb) || $4::jsonb END,
-           updated_at = now()
-       WHERE id = $1
-       RETURNING id, name, summary, status, settings, created_at, updated_at`,
-      [worldId, name ?? null, summary ?? null, settings ? JSON.stringify(settings) : null]
-    );
-    if (!result.rowCount) return sendErr(reply, "WORLD_NOT_FOUND");
-    return result.rows[0];
+    const ifMatch = parseIfMatch(request);
+    try {
+      const row = await transaction(async (client) =>
+        updateWorldContent(client, worldId, { name, summary, settings }, ifMatch)
+      );
+      setWorldRevisionHeaders(reply, row.content_revision);
+      return { ...row, content_revision: Number(row.content_revision) };
+    } catch (error) {
+      if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
+      throw error;
+    }
   });
 
   app.post("/api/worlds", { schema: createWorldSchema }, async (request, reply) => {

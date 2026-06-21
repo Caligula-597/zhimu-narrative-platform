@@ -74,7 +74,8 @@ POST /api/rooms/:roomId/physical-tokens/activate
 
 ## tump 联动（当前阶段）
 
-- `integrations/tump-gate.js`：`externalGate.required === true` 时校验 `externalProof.transactionId` 存在；**尚未**对接链上/账本 API。
+- **默认关闭**：未设置 `TUMP_ACTIVATION_ENABLED=true` 时，带 tump 门控的实体卡**不可激活**（503 `TUMP_INTEGRATION_DISABLED`），避免仅凭 `transactionId` 字符串绕过。
+- 开发/联调：在环境变量显式开启后，`integrations/tump-gate.js` 才接受 stub 凭证；**尚未**对接链上/账本 API。
 - 下一步：在 tump 侧扣款成功后回调或签名验证，替换 stub 校验；可在 `metadata.integration.externalId` 存 tump 商品 ID。
 
 ## 前端

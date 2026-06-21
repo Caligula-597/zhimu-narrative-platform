@@ -28,7 +28,7 @@
 
 ## 我们做得好的（可对外说）
 
-1. **运行域 API 质量高** — 玩家/主持/checkpoint/restore/幂等/SSE 有 E2E 测试（**347** 项后端单测 + **15** 项 Playwright，CI 强制）。
+1. **运行域 API 质量高** — 玩家/主持/checkpoint/restore/幂等/SSE 有 E2E 测试（**359** 项后端单测 + **15** 项 Playwright，CI 强制）。
 2. **错误模型统一** — 注册表 + 前端 friendly 映射；schema 400 先于业务层。
 3. **多实例 SSE 有务实方案** — journal 为真相源 + NOTIFY 扇出，不依赖 Redis 也能水平扩展 API。
 4. **连接池事故已复盘** — checkpoint 快照单 client，readiness 检测池饱和。

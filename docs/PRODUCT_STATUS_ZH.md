@@ -26,7 +26,7 @@
 
 **织幕**是面向线上长线剧本杀的自动化叙事引擎：创作者在云端写世界、编排剧情、配规则；玩家入房阅读、探索、收线索；主持台监控进度、确认事件、手动干预；数据落在 **PostgreSQL** 与 **Cloudflare R2**。
 
-当前状态：**核心运行链路已真实可用**（任意创作者剧本 + 官方示例「小示例」均已验证），前后端主 API 已对齐，**347** 项后端测试 + **62** 条 schema 门禁 + smoke/E2E 可复验。主持—玩家联动（hostConfirm、nudge、play 复盘/SSE 局部刷新）已落地。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。**内测期免费、无充值入口**（见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)）；Stripe 订阅等商业化能力**正式对外后再做**。
+当前状态：**核心运行链路已真实可用**（任意创作者剧本 + 官方示例「小示例」均已验证），前后端主 API 已对齐，**359** 项后端测试 + **62** 条 schema 门禁 + smoke/E2E 可复验。主持—玩家联动（hostConfirm、nudge、play 复盘/SSE 局部刷新）已落地。Beta-1～4 与 **身份底座**（游客/OAuth/邮箱验证/配额/协作者邀请）已落地。**内测期免费、无充值入口**（见 [BETA_SCOPE_ZH.md](./BETA_SCOPE_ZH.md)）；Stripe 订阅等商业化能力**正式对外后再做**。
 
 **架构原则**：功能不绑定单一剧本；见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)。
 
@@ -171,7 +171,7 @@
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **347** |
+| `backend npm test` | **359** |
 | `npm run check:schemas` | **62** 条路由 |
 | `npm run test:smoke` | **18** |
 | `node scripts/ui-smoke.js` | **44** |

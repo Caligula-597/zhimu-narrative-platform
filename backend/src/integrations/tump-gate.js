@@ -1,5 +1,10 @@
 import { throwErr } from "../api-errors.js";
 
+/** Real ledger verification not implemented — off unless explicitly enabled in env. */
+export function isTumpActivationEnabled() {
+  return process.env.TUMP_ACTIVATION_ENABLED === "true";
+}
+
 /**
  * Optional external activation gate for virtual-token partners (e.g. tump).
  * When `activationRule.externalGate.required` is true, callers must pass
@@ -10,6 +15,10 @@ export async function assertTumpActivationGate({ activationRule = {}, metadata =
   if (!gate || gate.provider !== "tump") return;
 
   if (!gate.required) return;
+
+  if (!isTumpActivationEnabled()) {
+    throwErr("TUMP_INTEGRATION_DISABLED");
+  }
 
   const proof = externalProof?.provider === "tump" ? externalProof : null;
   if (!proof?.transactionId || typeof proof.transactionId !== "string") {

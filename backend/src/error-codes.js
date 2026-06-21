@@ -25,6 +25,7 @@ export const API_ERRORS = {
   PLAY_SOCIAL_ACCOUNT_TOO_NEW: { status: 403, message: "Account too new for social features" },
   ACCOUNT_DELETE_BLOCKED: { status: 403, message: "Account cannot be deleted in the current state" },
   ACCOUNT_DELETE_CONFIRMATION_INVALID: { status: 400, message: "Confirmation text does not match your display name" },
+  WORLD_VERSION_CONFLICT: { status: 409, message: "World content was modified by another session" },
   SESSION_NOT_FOUND: { status: 404, message: "Session not found" },
   WORLD_INVITE_INVALID: { status: 400, message: "Collaboration invite is invalid or expired" },
   WORLD_INVITE_EMAIL_MISMATCH: { status: 403, message: "Invite email does not match your account" },
@@ -182,6 +183,7 @@ export const API_ERRORS = {
   PHYSICAL_TOKEN_PLAYER_ROLE_REQUIRED: { status: 403, message: "Activate physical tokens from a player seat with a role" },
   TUMP_PROOF_REQUIRED: { status: 402, message: "tump transaction proof is required to activate this token" },
   TUMP_PROOF_INSUFFICIENT: { status: 402, message: "tump transaction amount is insufficient" },
+  TUMP_INTEGRATION_DISABLED: { status: 503, message: "tump activation is disabled until ledger verification is configured" },
 
   // Rules
   RULE_NOT_FOUND: { status: 404, message: "Rule not found" },

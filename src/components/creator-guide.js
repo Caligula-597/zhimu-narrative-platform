@@ -127,6 +127,25 @@
     }
   }
 
+  async function openLegalDoc(docPath, title = "法律文档") {
+    const modal = window.zhimuDom?.modal;
+    const backdrop = window.zhimuDom?.modalBackdrop;
+    const closeModal = window.zhimuModal?.closeModal;
+    if (!modal || !backdrop) return;
+    modal.className = "modal creator-guide-modal legal-doc-modal";
+    modal.innerHTML = `<h2>${escapeHtml(title)}</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+    backdrop.classList.add("show");
+    modal.querySelector("[data-close]").onclick = closeModal;
+    try {
+      const text = await fetchGuide(`/docs/${String(docPath || "").replace(/^\//, "")}`);
+      const body = modal.querySelector(".empty-state");
+      body.className = "creator-guide-body";
+      body.innerHTML = renderMarkdown(text);
+    } catch (error) {
+      modal.querySelector(".empty-state").textContent = error.message;
+    }
+  }
+
   async function openFirstSessionGuide() {
     const modal = window.zhimuDom?.modal;
     const backdrop = window.zhimuDom?.modalBackdrop;
@@ -150,6 +169,6 @@
     }
   }
 
-  window.zhimuGuide = { openCreatorGuide, openErrorGuide, openFirstSessionGuide, renderMarkdown };
+  window.zhimuGuide = { openCreatorGuide, openErrorGuide, openFirstSessionGuide, openLegalDoc, renderMarkdown, fetchGuide };
 })(window);
 export {};

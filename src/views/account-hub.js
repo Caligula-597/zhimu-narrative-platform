@@ -34,7 +34,7 @@
 
   /** Load account + optional assets data once per navigation — never from accountHub() render. */
   function beginAccountHubLoad() {
-    if (!localStorage.getItem("zhimuSessionToken")) return;
+    if (!window.zhimuSessionAuth?.isAuthenticated?.()) return;
     const loadId = ++state.accountHubLoadId;
     void (async () => {
       await window.zhimuViews?.account?.refreshAccountView?.();
@@ -47,7 +47,7 @@
   }
 
   function accountHub() {
-    if (!localStorage.getItem("zhimuSessionToken")) {
+    if (!window.zhimuSessionAuth?.isAuthenticated?.()) {
       return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>登录后可管理账号、配额、云端附件与会话。</p></div></div><button type="button" class="primary-btn" data-action="open-auth">登录 / 注册</button></article></section>`;
     }
     if (state.accountViewLoading || !state.accountView) {

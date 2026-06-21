@@ -19,6 +19,7 @@ import {
   deepseekConfig,
   normalizeStoryBrief
 } from "../deepseek.js";
+import { runRevisionMutation } from "../world-revision.js";
 import {
   buildWorldSnapshot,
   classifyStoryDraft,
@@ -51,6 +52,7 @@ import {
   storyAssistantAnalyzeSchema,
   storyAssistantImportSchema,
   storyManuscriptPutSchema,
+  storyManuscriptSyncFromGraphSchema,
   storyManuscriptSyncToGraphSchema
 } from "./schemas.js";
 
@@ -256,7 +258,7 @@ export async function registerStoryAssistantRoutes(app) {
     return result.rows[0];
   });
 
-  app.post("/api/worlds/:worldId/story-manuscript/sync-from-graph", async (request) => {
+  app.post("/api/worlds/:worldId/story-manuscript/sync-from-graph", { schema: storyManuscriptSyncFromGraphSchema }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -279,16 +281,18 @@ export async function registerStoryAssistantRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const body = String(request.body?.body ?? "").trim();
     if (!body) return sendErr(reply, "STORY_MANUSCRIPT_REQUIRED");
-    const synced = await syncManuscriptToGraph(worldId, body);
-    await query(
-      `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
-       VALUES ($1,$2,'manuscript_to_graph',$3)
-       ON CONFLICT (world_id) DO UPDATE
-       SET body = EXCLUDED.body, last_sync_direction = 'manuscript_to_graph',
-           updated_by_user_id = EXCLUDED.updated_by_user_id, updated_at = now()`,
-      [worldId, body, actorId]
-    );
-    return reply.code(201).send(synced);
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const synced = await syncManuscriptToGraph(worldId, body, client);
+      await client.query(
+        `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
+         VALUES ($1,$2,'manuscript_to_graph',$3)
+         ON CONFLICT (world_id) DO UPDATE
+         SET body = EXCLUDED.body, last_sync_direction = 'manuscript_to_graph',
+             updated_by_user_id = EXCLUDED.updated_by_user_id, updated_at = now()`,
+        [worldId, body, actorId]
+      );
+      return synced;
+    }, { sendErr, statusCode: 201 });
   });
 
   app.post("/api/worlds/:worldId/story-assistant/import", { schema: storyAssistantImportSchema }, async (request, reply) => {

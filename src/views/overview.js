@@ -62,7 +62,7 @@ function overview() {
   const studio = state.cloudStudio;
   const listedWorld = (state.cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
   const world = studio?.world || listedWorld;
-  const loggedOutDemo=!localStorage.getItem("zhimuSessionToken")&&window.zhimuConfig?.demoMode;
+  const loggedOutDemo=!window.zhimuSessionAuth?.isAuthenticated?.()&&window.zhimuConfig?.demoMode;
   const studioEmpty=!loggedOutDemo&&Boolean(zhimuApi.context.worldId)&&!studio?.roles?.length;
   const studioEmptyBanner=studioEmpty?`<section class="demo-strip" style="margin-bottom:14px;border-color:#e8c4c4;background:#fff8f7"><div><span class="cloud-pill">内容未载入</span><strong style="margin-top:7px">剧本「${escapeHtml(world?.name||"当前")}」暂无角色或分幕</strong><p>${escapeHtml(state.apiError||"请刷新云端数据，或稍后再试。")}</p></div><button class="primary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`:"";
   const loading = state.cloudLoading && !studio?.world;
@@ -118,7 +118,7 @@ function overview() {
           <p class="invite-hint">发给玩家：<a href="${escapeHtml(playJoinUrl)}" target="_blank" rel="noopener">${escapeHtml(playJoinUrl)}</a></p>
         </div>` : hasRooms && !hasActiveRoom ? `
         <p class="invite-hint">已建立 ${rooms.length} 个平行房。请点下方「管理运行房」选中房间，即可查看并复制邀请码。</p>` : "";
-  const showCatalogPromo = !loading && !studio && Boolean(localStorage.getItem("zhimuSessionToken"));
+  const showCatalogPromo = !loading && !studio && Boolean(window.zhimuSessionAuth?.isAuthenticated?.());
   const firstRunChooser = window.zhimuFirstRun?.renderFirstRunChooser?.() || "";
   const onboardingStrip = firstRunChooser ? "" : (window.zhimuOnboarding?.renderOnboardingStrip?.() || "");
   return `

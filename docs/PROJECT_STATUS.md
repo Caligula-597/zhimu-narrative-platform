@@ -1,14 +1,9 @@
 # 织幕 · 项目现状与休息检查点
 
-
-
-> **更新**：2026-06-18  
-
-> **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
-
-> **策略**：**后端与运维优先**；前端功能与 UI 在 backend Beta 门禁达标后再排期。  
-
-> **验收数字**（2026-06-20）：见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) · **347** 单测 · **62** schema · **44** UI smoke · **15** E2E · **23** play 单测
+> **更新**：2026-06-21  
+> **阶段**：Alpha → **可信 Beta 收口**（可内测，非生产 SaaS）  
+> **策略**：**安全 / 恢复 / 协作 / 门禁优先**；新功能面见 [TRUSTED_BETA_ZH.md](./TRUSTED_BETA_ZH.md)。  
+> **验收数字**：以 [`GENERATED_PROJECT_STATUS.json`](./GENERATED_PROJECT_STATUS.json) 为准（`npm run status:generate`）；概览见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md)。
 
 
 
@@ -126,7 +121,7 @@
 
 |------|------|
 
-| `backend npm test` | **347** |
+| `backend npm test` | **359** |
 
 | `npm run check:schemas` | **62** 条路由 |
 

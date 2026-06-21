@@ -109,6 +109,7 @@
     PHYSICAL_TOKEN_PLAYER_ROLE_REQUIRED: "请用玩家身份入房后再激活实体卡。",
     TUMP_PROOF_REQUIRED: "激活此卡需要先完成 tump 代币支付并提交凭证。",
     TUMP_PROOF_INSUFFICIENT: "tump 支付金额不足。",
+    TUMP_INTEGRATION_DISABLED: "tump 联动尚未开放，请联系支持或使用其他激活方式。",
     NODE_TYPE_UNSUPPORTED: "不支持的节点类型。",
     STORY_EDGE_FIELDS_REQUIRED: "请完整填写连线的起点与终点。",
     RELATION_TYPE_INVALID: "关系类型无效。",

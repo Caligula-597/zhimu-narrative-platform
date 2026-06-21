@@ -3,6 +3,7 @@ import { requireActor } from "../request-actor.js";
 import { requireVerifiedEmail } from "../email-verification-policy.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import { buildWorldSnapshot } from "./world-helpers.js";
+import { runRevisionMutation } from "../world-revision.js";
 import {
   worldIdParams,
   contentPackageEnvelopeSchema,
@@ -15,7 +16,7 @@ import {
   validateEnvelope,
   buildImportPreview,
   exportSummaryForWorld,
-  importContentPackage,
+  importContentPackageData,
   createWorldFromContentPackage
 } from "./content-package-helpers.js";
 
@@ -71,8 +72,10 @@ export async function registerContentPackageRoutes(app) {
     try {
       validateEnvelope(request.body);
       const payload = normalizeContentPackagePayload(request.body);
-      const result = await importContentPackage(worldId, payload);
-      return reply.code(201).send({ ok: true, mode: "append", ...result });
+      return runRevisionMutation(request, reply, worldId, async (client) => {
+        const result = await importContentPackageData(client, worldId, payload);
+        return { ok: true, mode: "append", ...result };
+      }, { sendErr, statusCode: 201 });
     } catch (error) {
       return sendErr(reply, error.code ?? "BAD_REQUEST", error.message);
     }
