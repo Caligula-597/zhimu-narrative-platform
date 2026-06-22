@@ -3,7 +3,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "deploy/Dockerfile.fullstack"
-watchPatterns = ["backend/**", "deploy/**", "config/**", "src/**", "frontend/**", "index.html", "package.json"]
+watchPatterns = ["backend/**", "deploy/**", "config/**", "src/**", "frontend/**", "index.html", "package.json", "styles.css", "app.js"]
 
 [deploy]
 startCommand = ""
