@@ -19,15 +19,54 @@ export function hashClientIp(ip) {
   return createHash("sha256").update(String(ip)).digest("hex").slice(0, 32);
 }
 
+export function inferDeviceLabel(userAgent, deviceLabel = null) {
+  const explicit = typeof deviceLabel === "string" ? deviceLabel.trim().slice(0, 80) : "";
+  if (explicit) return explicit;
+  const ua = userAgent || "";
+  let browser = "浏览器";
+  if (/Edg\//i.test(ua)) browser = "Edge";
+  else if (/Chrome\//i.test(ua)) browser = "Chrome";
+  else if (/Firefox\//i.test(ua)) browser = "Firefox";
+  else if (/Safari\//i.test(ua)) browser = "Safari";
+  let os = "";
+  if (/Windows/i.test(ua)) os = "Windows";
+  else if (/Mac OS X|Macintosh/i.test(ua)) os = "macOS";
+  else if (/Android/i.test(ua)) os = "Android";
+  else if (/iPhone|iPad/i.test(ua)) os = "iOS";
+  else if (/Linux/i.test(ua)) os = "Linux";
+  return os ? `${browser} · ${os}` : browser;
+}
+
 export function sessionRequestMeta(request) {
   const bodyLabel = request.body?.deviceLabel;
   const headerLabel = request.headers["x-device-label"];
-  const label = (typeof bodyLabel === "string" ? bodyLabel : headerLabel)?.trim().slice(0, 80) || null;
+  const userAgent = request.headers["user-agent"]?.slice(0, 512) || null;
+  const rawLabel = (typeof bodyLabel === "string" ? bodyLabel : headerLabel)?.trim().slice(0, 80) || null;
   return {
-    deviceLabel: label,
-    userAgent: request.headers["user-agent"]?.slice(0, 512) || null,
+    deviceLabel: rawLabel || inferDeviceLabel(userAgent),
+    userAgent,
     ipHash: hashClientIp(request.ip)
   };
+}
+
+async function revokeMatchingDeviceSessions(userId, meta = {}) {
+  const { deviceLabel, userAgent } = meta;
+  if (deviceLabel) {
+    await query(
+      `UPDATE auth_sessions SET revoked_at = now()
+       WHERE user_id = $1 AND revoked_at IS NULL
+         AND (device_label = $2 OR (device_label IS NULL AND user_agent IS NOT DISTINCT FROM $3))`,
+      [userId, deviceLabel, userAgent ?? null]
+    );
+    return;
+  }
+  if (userAgent) {
+    await query(
+      `UPDATE auth_sessions SET revoked_at = now()
+       WHERE user_id = $1 AND revoked_at IS NULL AND user_agent IS NOT DISTINCT FROM $2`,
+      [userId, userAgent]
+    );
+  }
 }
 
 export async function hashPassword(password) {
@@ -63,6 +102,7 @@ export async function createGuestUser(displayName = null) {
 }
 
 export async function createSession(userId, meta = {}) {
+  await revokeMatchingDeviceSessions(userId, meta);
   const token = randomBytes(32).toString("base64url");
   const ttlMs = meta.ttlMs ?? await sessionTtlForUser(userId);
   const expiresAt = new Date(Date.now() + ttlMs);
@@ -131,7 +171,7 @@ export async function listUserSessions(userId, currentSessionId = null) {
   );
   return result.rows.map((row) => ({
     id: row.id,
-    deviceLabel: row.device_label,
+    deviceLabel: inferDeviceLabel(row.user_agent, row.device_label),
     userAgent: row.user_agent,
     createdAt: row.created_at,
     lastSeenAt: row.last_seen_at,

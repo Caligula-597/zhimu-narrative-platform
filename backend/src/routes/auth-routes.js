@@ -19,7 +19,6 @@ import {
 import { assertCapability } from "../capabilities.js";
 import { acceptWorldMemberInvitesForEmail } from "../world-invites.js";
 import { listEnabledOAuthProviders, oauthFrontendReturnUrl } from "../oauth-providers.js";
-import { getPublicOAuthDiagnostics } from "../oauth-diagnostics.js";
 import {
   buildOAuthAuthorizeUrl,
   completeOAuthLoginCode,
@@ -129,8 +128,7 @@ export async function registerAuthRoutes(app) {
   app.get("/api/auth/config", async () => ({
     requireEmailVerification: isEmailVerificationRequired(),
     email: getEmailServiceStatus(),
-    oauth: listEnabledOAuthProviders(),
-    oauthDiagnostics: getPublicOAuthDiagnostics()
+    oauth: listEnabledOAuthProviders()
   }));
 
   app.post("/api/auth/register", {

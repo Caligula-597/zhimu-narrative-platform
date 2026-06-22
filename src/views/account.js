@@ -14,20 +14,7 @@
   const exports = window.zhimuViews.account = window.zhimuViews.account || {};
 
   function accountShell(body, loading = false) {
-    return `<section class="rules-layout"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号设置</h3><p>登录身份、套餐配额、OAuth 与多设备管理</p></div></div>${loading ? `<p class="muted-note">正在加载账号信息…</p>` : body}</article></section>`;
-  }
-
-  function oauthDiagHtml(diag) {
-    if (!diag?.providers?.length) return "";
-    const rows = diag.providers.map((p) => {
-      const status = p.enabled ? (p.issues?.length ? "待修复" : "已启用") : "未配置";
-      const pill = p.enabled && !p.issues?.length ? "cloud-pill" : "cloud-pill muted";
-      const callback = p.callbackUrl ? `<p class="muted-note" style="margin-top:6px;word-break:break-all">回调：${escapeHtml(p.callbackUrl)}</p>` : "";
-      const issues = (p.issues || []).map((i) => `<li>${escapeHtml(i.message)}</li>`).join("");
-      return `<div class="collab-row"><div><b>${escapeHtml(p.label)}</b><p>${status}</p>${callback}${issues ? `<ul class="muted-note">${issues}</ul>` : ""}</div><span class="${pill}">${p.enabled ? "ON" : "OFF"}</span></div>`;
-    }).join("");
-    const global = (diag.globalIssues || []).map((i) => `<li>${escapeHtml(i.message)}</li>`).join("");
-    return `<section class="form-group" style="margin-top:18px"><h3>OAuth 状态</h3>${global ? `<ul class="muted-note">${global}</ul>` : ""}<div class="collab-list">${rows}</div><p class="muted-note">生产请在 Google/GitHub 控制台登记 <code>app.getzhimu.com</code> 回调 URL，并配置 Railway 环境变量。见 docs/ops/OAUTH_SETUP.md</p></section>`;
+    return `<section class="rules-layout"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号设置</h3><p>登录身份、套餐配额与多设备管理</p></div></div>${loading ? `<p class="muted-note">正在加载账号信息…</p>` : body}</article></section>`;
   }
 
   function formatBytesShort(bytes) {
@@ -153,14 +140,14 @@
     const oauth = data.config?.oauth || [];
     const usage = data.usage;
     const isGuest = Boolean(me.isGuest);
-    const sessionRows = sessions.map((s) => `<div class="collab-row"><div><b>${escapeHtml(s.deviceLabel || "未知设备")}</b><p>${escapeHtml(s.userAgent || "—")} · 最近 ${formatTime(s.lastSeenAt)}</p></div>${s.isCurrent ? `<span class="cloud-pill">当前</span>` : `<button class="text-btn danger-text" data-revoke-session="${s.id}">下线</button>`}</div>`).join("") || `<div class="empty-state">暂无其他设备记录</div>`;
+    const sessionRows = sessions.map((s) => `<div class="collab-row"><div><b>${escapeHtml(s.deviceLabel || "未知设备")}</b><p class="muted-note">最近活跃 ${formatTime(s.lastSeenAt)}</p></div>${s.isCurrent ? `<span class="cloud-pill">当前</span>` : `<button class="text-btn danger-text" data-revoke-session="${s.id}">下线</button>`}</div>`).join("") || `<div class="empty-state">暂无其他设备记录</div>`;
     const oauthButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">关联 ${escapeHtml(p.label)}</button>`).join("");
     const oauthLoginButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">使用 ${escapeHtml(p.label)} 登录</button>`).join("");
     const quotaHtml = window.zhimuRuntime?.renderQuotaSection?.(usage, data.entitlements) || "";
     const guestUpgrade = isGuest
       ? `<section class="form-group"><h3>保存进度 · 注册正式账号</h3>${studioField("邮箱", "upgradeEmail", "input", "")}${studioField("昵称", "upgradeName", "input", me.display_name || "")}${studioField("密码 · 至少 8 位", "upgradePassword", "input", "")}<button type="button" class="primary-btn" data-guest-upgrade>绑定邮箱并注册</button><p class="muted-note">或使用 OAuth 绑定（保留当前房间进度）</p>${oauthLoginButtons ? `<div class="row">${oauthLoginButtons}</div>` : ""}</section>`
       : "";
-    return `${guestUpgrade}${!isGuest ? `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}${oauthDiagHtml(data.config?.oauthDiagnostics)}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section>${!isGuest ? `<section class="form-group"><h3>数据导出</h3><p class="muted-note">下载 JSON 格式的账号元数据（剧本清单、资产清单、会话设备等），不含密码与文件二进制。</p><button type="button" class="secondary-btn" data-export-account>下载我的数据</button><p class="muted-note" style="margin-top:10px"><a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a> · <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/COPYRIGHT_APPEAL_ZH.md" data-legal-title="版权与侵权申诉">版权申诉</a></p></section>` : ""}<section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
+    return `${guestUpgrade}${!isGuest ? `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section>${!isGuest ? `<section class="form-group"><h3>数据导出</h3><p class="muted-note">下载 JSON 格式的账号元数据（剧本清单、资产清单、会话设备等），不含密码与文件二进制。</p><button type="button" class="secondary-btn" data-export-account>下载我的数据</button><p class="muted-note" style="margin-top:10px"><a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a> · <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/COPYRIGHT_APPEAL_ZH.md" data-legal-title="版权与侵权申诉">版权申诉</a></p></section>` : ""}<section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
   }
 
   async function refreshAccountView(options = {}) {

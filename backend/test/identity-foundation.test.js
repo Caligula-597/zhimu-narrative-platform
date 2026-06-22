@@ -170,6 +170,57 @@ test("session list and revoke other device", async (context) => {
   assert.equal(dead.statusCode, 401);
 });
 
+test("login replaces prior session on same device", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: false });
+  context.after(() => app.close());
+
+  const email = `dedup-${Date.now()}@zhimu.local`;
+  const password = "session-dedup-pass-1";
+  const headers = {
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0) ZhimuDedupTest/1.0",
+    "x-device-label": "Chrome · Windows"
+  };
+
+  const registered = await app.inject({
+    method: "POST",
+    url: "/api/auth/register",
+    payload: { email, displayName: "Dedup Test", password },
+    headers
+  });
+  assert.equal(registered.statusCode, 201, registered.body);
+  const tokenA = registered.json().token;
+  const userId = registered.json().user.id;
+  context.after(async () => {
+    await query(`DELETE FROM users WHERE id = $1`, [userId]);
+  });
+
+  const loginAgain = await app.inject({
+    method: "POST",
+    url: "/api/auth/login",
+    payload: { email, password },
+    headers
+  });
+  assert.equal(loginAgain.statusCode, 200);
+  const tokenB = loginAgain.json().token;
+
+  const dead = await app.inject({
+    method: "GET",
+    url: "/api/auth/me",
+    headers: { authorization: `Bearer ${tokenA}` }
+  });
+  assert.equal(dead.statusCode, 401);
+
+  const list = await app.inject({
+    method: "GET",
+    url: "/api/auth/sessions",
+    headers: { authorization: `Bearer ${tokenB}` }
+  });
+  assert.equal(list.statusCode, 200);
+  assert.equal(list.json().sessions.length, 1);
+  assert.equal(list.json().sessions[0].isCurrent, true);
+  assert.equal(list.json().sessions[0].deviceLabel, "Chrome · Windows");
+});
+
 test("unregistered collaborator invite returns pendingInvite token", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());

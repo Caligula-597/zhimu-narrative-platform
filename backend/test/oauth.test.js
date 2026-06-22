@@ -15,8 +15,7 @@ test("auth config exposes oauth provider list", async (context) => {
   const response = await app.inject({ method: "GET", url: "/api/auth/config" });
   assert.equal(response.statusCode, 200);
   assert.ok(Array.isArray(response.json().oauth));
-  assert.ok(response.json().oauthDiagnostics);
-  assert.ok(Array.isArray(response.json().oauthDiagnostics.providers));
+  assert.equal(response.json().oauthDiagnostics, undefined);
   if (listEnabledOAuthProviders().length) {
     assert.ok(response.json().oauth.length >= 1);
   }

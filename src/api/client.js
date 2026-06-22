@@ -14,9 +14,30 @@ const demoContext = {
 demoContext.worldId = localStorage.getItem("zhimuActiveWorldId") || "";
 demoContext.roomId = localStorage.getItem(`zhimuActiveRoomId:${demoContext.worldId}`) || "";
 
+function clientDeviceLabel() {
+  if (typeof navigator === "undefined") return "";
+  const ua = navigator.userAgent || "";
+  let browser = "浏览器";
+  if (/Edg\//i.test(ua)) browser = "Edge";
+  else if (/Chrome\//i.test(ua)) browser = "Chrome";
+  else if (/Firefox\//i.test(ua)) browser = "Firefox";
+  else if (/Safari\//i.test(ua)) browser = "Safari";
+  let os = "";
+  if (/Windows/i.test(ua)) os = "Windows";
+  else if (/Mac OS X|Macintosh/i.test(ua)) os = "macOS";
+  else if (/Android/i.test(ua)) os = "Android";
+  else if (/iPhone|iPad/i.test(ua)) os = "iOS";
+  else if (/Linux/i.test(ua)) os = "Linux";
+  return os ? `${browser} · ${os}` : browser;
+}
+
 function authHeaders(userId, extra = {}) {
   const headers = sessionAuth().authHeaders?.() || {};
   if (!headers.authorization && demoMode && userId) headers["x-user-id"] = userId;
+  const deviceLabel = clientDeviceLabel();
+  if (deviceLabel && !extra["x-device-label"] && !headers["x-device-label"]) {
+    headers["x-device-label"] = deviceLabel;
+  }
   return { ...headers, ...extra };
 }
 
