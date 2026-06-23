@@ -41,8 +41,12 @@ function loadSetup() {
   return env;
 }
 
+function deployToken(env) {
+  return env.RAILWAY_ACCOUNT_TOKEN?.trim() || env.RAILWAY_TOKEN?.trim() || "";
+}
+
 function tryCliDeploy(env) {
-  const token = env.RAILWAY_TOKEN?.trim();
+  const token = env.RAILWAY_PROJECT_TOKEN?.trim();
   const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
   if (!token) return { ok: false, reason: "no-project-token" };
 
@@ -67,7 +71,7 @@ function tryCliDeploy(env) {
 }
 
 async function tryGraphqlRedeploy(env) {
-  const token = env.RAILWAY_ACCOUNT_TOKEN?.trim();
+  const token = deployToken(env);
   if (!token) return { ok: false, reason: "no-account-token" };
 
   const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
@@ -78,22 +82,30 @@ async function tryGraphqlRedeploy(env) {
   return { ok: true, method: "graphql-redeploy" };
 }
 
-async function waitForReady(base) {
-  for (let i = 1; i <= 30; i += 1) {
+async function waitForRelease(base) {
+  for (let i = 1; i <= 40; i += 1) {
     try {
-      const res = await fetch(`${base}/api/health/ready`, { signal: AbortSignal.timeout(12_000) });
-      const body = await res.json().catch(() => ({}));
-      if (res.ok && body.ready === true) {
-        console.log(`[railway-deploy-ci] Ready at ${base}`);
+      const readyRes = await fetch(`${base}/api/health/ready`, { signal: AbortSignal.timeout(12_000) });
+      const readyBody = await readyRes.json().catch(() => ({}));
+      if (!readyRes.ok || readyBody.ready !== true) {
+        console.log(`[railway-deploy-ci] Service not ready (${i}/40)…`);
+        await new Promise((r) => setTimeout(r, 10_000));
+        continue;
+      }
+
+      const configRes = await fetch(`${base}/api/auth/config`, { signal: AbortSignal.timeout(12_000) });
+      const configBody = await configRes.json().catch(() => ({}));
+      if (configRes.ok && configBody.oauthDiagnostics === undefined) {
+        console.log(`[railway-deploy-ci] Release verified at ${base} (no oauthDiagnostics)`);
         return true;
       }
-    } catch {
-      /* retry */
+      console.log(`[railway-deploy-ci] Waiting for new build to roll out (${i}/40)…`);
+    } catch (error) {
+      console.log(`[railway-deploy-ci] Probe failed (${i}/40): ${error.message}`);
     }
-    console.log(`[railway-deploy-ci] Waiting… (${i}/30)`);
-    await new Promise((r) => setTimeout(r, 10_000));
+    await new Promise((r) => setTimeout(r, 15_000));
   }
-  console.warn("[railway-deploy-ci] Health check timed out");
+  console.warn("[railway-deploy-ci] Release verification timed out");
   return false;
 }
 
@@ -113,8 +125,8 @@ async function main() {
   }
 
   if (!result.ok) {
-    if (result.reason === "no-account-token" && !env.RAILWAY_TOKEN?.trim()) {
-      console.log("::notice::Skip deploy — set RAILWAY_ACCOUNT_TOKEN or valid RAILWAY_TOKEN in GitHub Secrets");
+    if (result.reason === "no-account-token" && !deployToken(env)) {
+      console.log("::notice::Skip deploy — set RAILWAY_ACCOUNT_TOKEN (or RAILWAY_TOKEN) in GitHub Secrets");
       process.exit(0);
     }
     if (result.reason === "invalid-project-token") {
@@ -126,15 +138,8 @@ async function main() {
   }
 
   console.log(`[railway-deploy-ci] Deploy triggered via ${result.method}`);
-  const ready = await waitForReady(base);
-  if (!ready) process.exit(1);
-
-  const verify = spawnSync(process.execPath, [path.join(root, "scripts", "verify-production-release.mjs")], {
-    cwd: root,
-    stdio: "inherit",
-    env: { ...env, RAILWAY_PUBLIC_URL: base }
-  });
-  process.exit(verify.status ?? 0);
+  const released = await waitForRelease(base);
+  if (!released) process.exit(1);
 }
 
 main().catch((error) => {
