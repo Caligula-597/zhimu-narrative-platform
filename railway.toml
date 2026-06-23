@@ -3,7 +3,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "deploy/Dockerfile.fullstack"
-watchPatterns = ["backend/**", "deploy/**", "config/**", "src/**", "frontend/**", "index.html", "package.json", "styles.css", "app.js"]
+watchPatterns = ["backend/**", "deploy/**", "config/**", "src/**", "frontend/**", "shared/**", "index.html", "package.json", "styles.css", "app.js"]
 
 [deploy]
 healthcheckPath = "/api/health/live"

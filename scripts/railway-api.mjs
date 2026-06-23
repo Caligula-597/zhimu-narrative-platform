@@ -109,3 +109,36 @@ export async function deployService(token, { serviceId, environmentId, commitSha
   );
   return data.serviceInstanceDeployV2;
 }
+
+export async function listRecentDeployments(token, serviceId, first = 5) {
+  const data = await railwayGraphql(
+    token,
+    `query($serviceId: String!, $first: Int!) {
+      deployments(input: { serviceId: $serviceId }, first: $first) {
+        edges { node { id status createdAt } }
+      }
+    }`,
+    { serviceId, first }
+  );
+  return (data.deployments?.edges ?? []).map((edge) => edge.node);
+}
+
+export async function fetchDeployment(token, deploymentId) {
+  const data = await railwayGraphql(
+    token,
+    `query($id: String!) { deployment(id: $id) { id status createdAt meta } }`,
+    { id: deploymentId }
+  );
+  return data.deployment;
+}
+
+export async function fetchBuildLogs(token, deploymentId, limit = 200) {
+  const data = await railwayGraphql(
+    token,
+    `query($deploymentId: String!, $limit: Int) {
+      buildLogs(deploymentId: $deploymentId, limit: $limit) { timestamp message }
+    }`,
+    { deploymentId, limit }
+  );
+  return data.buildLogs ?? [];
+}

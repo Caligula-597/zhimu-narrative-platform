@@ -13,7 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { deployService, updateServiceInstance } from "./railway-api.mjs";
+import { deployService, updateServiceInstance, listRecentDeployments, fetchDeployment, fetchBuildLogs } from "./railway-api.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const setupPath = path.join(root, ".env.railway.setup");
@@ -117,7 +117,54 @@ async function tryGraphqlRedeploy(env) {
   return { ok: true, method: "graphql-deploy" };
 }
 
-async function waitForRelease(base) {
+async function waitForDeployment(token, serviceId, base, { sinceMs = Date.now() - 60_000 } = {}) {
+  let trackedId = null;
+  for (let i = 1; i <= 60; i += 1) {
+    const recent = await listRecentDeployments(token, serviceId, 6);
+    const candidate =
+      recent.find((d) => d.id === trackedId)
+      ?? recent.find((d) => new Date(d.createdAt).getTime() >= sinceMs)
+      ?? recent[0];
+    if (!candidate) {
+      console.log(`[railway-deploy-ci] Waiting for deployment record (${i}/60)…`);
+      await new Promise((r) => setTimeout(r, 10_000));
+      continue;
+    }
+    trackedId = candidate.id;
+    const detail = await fetchDeployment(token, trackedId);
+    const status = detail?.status ?? candidate.status;
+    console.log(`[railway-deploy-ci] Deployment ${trackedId.slice(0, 8)}… status=${status}`);
+
+    if (status === "SUCCESS") {
+      const configRes = await fetch(`${base}/api/auth/config`, { signal: AbortSignal.timeout(12_000) });
+      const configBody = await configRes.json().catch(() => ({}));
+      if (configRes.ok && configBody.oauthDiagnostics === undefined) {
+        console.log(`[railway-deploy-ci] Release verified at ${base}`);
+        return true;
+      }
+      console.log("[railway-deploy-ci] Service up but release probe still stale — waiting…");
+    } else if (status === "FAILED" || status === "CRASHED") {
+      const logs = await fetchBuildLogs(token, trackedId, 120);
+      const tail = logs.slice(-25).map((l) => l.message).filter(Boolean);
+      console.error(`[railway-deploy-ci] Deployment ${status}. Build log tail:`);
+      for (const line of tail) console.error(line);
+      return false;
+    }
+
+    await new Promise((r) => setTimeout(r, 15_000));
+  }
+  console.warn("[railway-deploy-ci] Deployment wait timed out");
+  return false;
+}
+
+async function waitForRelease(base, env, { sinceMs } = {}) {
+  const token = deployToken(env);
+  const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
+  if (token) return waitForDeployment(token, serviceId, base, { sinceMs: sinceMs ?? Date.now() - 60_000 });
+  return waitForReleaseLegacy(base);
+}
+
+async function waitForReleaseLegacy(base) {
   for (let i = 1; i <= 40; i += 1) {
     try {
       const readyRes = await fetch(`${base}/api/health/ready`, { signal: AbortSignal.timeout(12_000) });
@@ -147,6 +194,7 @@ async function waitForRelease(base) {
 async function main() {
   const env = loadSetup();
   const base = (env.RAILWAY_PUBLIC_URL || "https://app.getzhimu.com").replace(/\/$/, "");
+  const deployStartedAt = Date.now();
 
   let result = tryCliDeploy(env);
   if (!result.ok && (result.reason === "invalid-project-token" || result.reason === "no-project-token" || result.reason === "cli-failed")) {
@@ -173,7 +221,7 @@ async function main() {
   }
 
   console.log(`[railway-deploy-ci] Deploy triggered via ${result.method}`);
-  const released = await waitForRelease(base);
+  const released = await waitForRelease(base, env, { sinceMs: deployStartedAt - 60_000 });
   if (!released) process.exit(1);
 }
 
