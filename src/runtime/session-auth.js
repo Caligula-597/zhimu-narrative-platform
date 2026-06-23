@@ -18,10 +18,11 @@
     cookieSessionActive = true;
   }
 
-  function markLoggedOut() {
-    cookieSessionActive = false;
-    localStorage.removeItem(LEGACY_KEY);
-  }
+function markLoggedOut() {
+  cookieSessionActive = false;
+  localStorage.removeItem(LEGACY_KEY);
+  if (typeof window !== "undefined" && window.zhimuState) window.zhimuState.currentUser = null;
+}
 
   function authHeaders(extra = {}) {
     const headers = { ...extra };

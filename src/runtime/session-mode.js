@@ -1,6 +1,7 @@
 /** Unified guest / demo / logged-in session labels for UI copy. */
 (function (window) {
   function isLoggedIn() {
+    if (window.zhimuState?.currentUser?.id) return true;
     return window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
   }
 

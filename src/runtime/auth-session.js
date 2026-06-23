@@ -4,6 +4,7 @@
   const S = () => window.zhimuSessionMode || {};
 
   function isLoggedIn() {
+    if (state.currentUser?.id) return true;
     return S().isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
   }
 
@@ -60,8 +61,10 @@
       strong.textContent = label;
       small.textContent = me.isGuest ? "游客 · 点击账号与资产" : (me.email || "已登录");
       avatar.textContent = label.slice(0, 1);
+      syncAuthBanner();
     } catch {
-      /* session may have expired — client.js clears token on 401 */
+      state.currentUser = null;
+      syncAuthBanner();
     }
   }
 

@@ -547,6 +547,7 @@ window.zhimuApi = {
 window.zhimuSessionReady = (async () => {
   try {
     const me = await request("/auth/me");
+    if (me?.id && window.zhimuState) window.zhimuState.currentUser = me;
     if (!sessionAuth().legacyToken?.()) sessionAuth().markAuthenticated?.();
     return me;
   } catch {

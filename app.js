@@ -100,12 +100,14 @@
   };
 
   render();
-  window.zhimuAuthSession?.syncProfile?.();
-  window.zhimuAuthSession?.syncAuthBanner?.();
   const startupAuth = R.handleStartupAuthParams?.();
   Promise.resolve(startupAuth)
     .then(() => window.zhimuSessionReady)
-    .then(() => R.loadCloudData())
+    .then(async () => {
+      await window.zhimuAuthSession?.syncProfile?.();
+      window.zhimuAuthSession?.syncAuthBanner?.();
+      return R.loadCloudData();
+    })
     .catch((error) => {
       state.cloudLoading = false;
       state.apiError = error.message || String(error);
