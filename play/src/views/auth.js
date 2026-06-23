@@ -66,6 +66,17 @@ export function renderAuth() {
           ${oauth.map((p) => `<button class="btn outline" type="button" data-action="oauth" data-provider="${p.id}">${escapeHtml(p.label)} 登录</button>`).join("")}
         </div>`
         : ""}
+      ${!isRegister
+        ? `
+        <p class="auth-divider" aria-hidden="true"><span>或</span></p>
+        <form class="auth-form auth-guest-form" data-form="guest">
+          <label>访客称呼（可选）
+            <input class="field" name="displayName" type="text" minlength="2" maxlength="40" placeholder="例如：玩家1234" autocomplete="nickname" />
+          </label>
+          <button class="btn outline full" type="submit" ${state.busy ? "disabled" : ""}>以访客身份进入</button>
+          <p class="hint">无需注册即可加入房间；广场发帖、好友与私信需注册账号。</p>
+        </form>`
+        : ""}
       ${!isRegister ? `<button class="text-btn" type="button" data-action="auth-forgot">忘记密码？</button>` : ""}
       <button class="text-btn" type="button" data-action="toggle-auth-mode">
         ${isRegister ? "已有账号？去登录" : "没有账号？去注册"}

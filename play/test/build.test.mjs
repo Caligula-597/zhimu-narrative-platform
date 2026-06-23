@@ -19,8 +19,11 @@ test("index.html uses module entry without inline scripts", () => {
   assert.doesNotMatch(html, /<script(?![^>]*type="module")[^>]*>/);
 });
 
-test("api client encodes invite codes in path", async () => {
+test("play api persists bearer token for cross-origin session", () => {
   const source = readFileSync(path.join(root, "src", "api.js"), "utf8");
+  assert.match(source, /persistSessionToken/);
+  assert.match(source, /localStorage\.setItem\(TOKEN_KEY/);
+  assert.doesNotMatch(source, /cookieSessionActive/);
   assert.match(source, /encodeURIComponent\(inviteCode\)/);
 });
 

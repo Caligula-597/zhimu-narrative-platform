@@ -948,6 +948,27 @@ async function handleResendVerification() {
   }
 }
 
+async function handleGuestSubmit(form) {
+  const customName = form.displayName?.value?.trim() || "";
+  const displayName = customName || `玩家${Math.floor(Math.random() * 9000 + 1000)}`;
+  setBusy(true, render);
+  try {
+    const result = await api.guest(displayName);
+    setSessionToken(result.token);
+    state.user = normalizeUser(result.user);
+    state.view = state.roomId ? "game" : (state.joinPreview ? "join" : "landing");
+    cleanUrl();
+    if (state.roomId) await refreshHome();
+    else if (state.inviteCode && !state.joinPreview) await handleLookupInvite({ silent: true }).catch(() => {});
+    setToast(`欢迎，${state.user.displayName || "访客"}`, render);
+    syncPlatformStream();
+  } catch (error) {
+    setToast(formatApiError(error, "访客登录失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
 async function handleAuthSubmit(form) {
   const email = form.email.value.trim();
   const password = form.password.value;
@@ -968,9 +989,10 @@ async function handleAuthSubmit(form) {
     }
     setSessionToken(result.token);
     state.user = normalizeUser(result.user);
-    state.view = state.roomId ? "game" : "landing";
+    state.view = state.roomId ? "game" : (state.joinPreview ? "join" : "landing");
     cleanUrl();
     if (state.roomId) await refreshHome();
+    else if (state.inviteCode && !state.joinPreview) await handleLookupInvite({ silent: true }).catch(() => {});
     setToast(`欢迎，${result.user.displayName || result.user.email || "玩家"}`, render);
     syncPlatformStream();
   } catch (error) {
@@ -1097,6 +1119,13 @@ app.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (state.busy) return;
     await handleResetSubmit(resetForm);
+    return;
+  }
+  const guestForm = event.target.closest("[data-form='guest']");
+  if (guestForm) {
+    event.preventDefault();
+    if (state.busy) return;
+    await handleGuestSubmit(guestForm);
     return;
   }
 });
@@ -1531,8 +1560,7 @@ app.addEventListener("click", async (event) => {
       render();
       break;
     case "guest-continue":
-      await ensureSession();
-      setToast("已就绪。输入邀请码或体验官方示例即可开始", render);
+      await handleGuestSubmit({ displayName: { value: "" } });
       break;
     case "oauth":
       await handleOAuth(button.dataset.provider);

@@ -4,8 +4,8 @@ const API_ORIGIN = import.meta.env.VITE_API_ORIGIN?.replace(/\/$/, "")
 const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : "/api";
 
 const TOKEN_KEY = "zhimuSessionToken";
-let cookieSessionActive = false;
 
+/** Play 部署在 play.*，API 在 app.*；SameSite=Lax 的 HttpOnly Cookie 不会随跨站 fetch 发送，故始终用 Bearer。 */
 function sseCursorKey(roomId) {
   return `zhimuPlaySseCursor:${roomId}`;
 }
@@ -14,23 +14,18 @@ const PLATFORM_SSE_CURSOR = "zhimuPlayPlatformSseCursor";
 
 function authHeaders() {
   const headers = {};
-  const legacy = localStorage.getItem(TOKEN_KEY);
-  if (legacy) headers.authorization = `Bearer ${legacy}`;
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) headers.authorization = `Bearer ${token}`;
   return headers;
 }
 
-function markAuthenticated() {
-  cookieSessionActive = true;
-  localStorage.removeItem(TOKEN_KEY);
+function persistSessionToken(token) {
+  if (!token || typeof token !== "string") return;
+  localStorage.setItem(TOKEN_KEY, token);
 }
 
-function markLoggedOut() {
-  cookieSessionActive = false;
+function clearSessionToken() {
   localStorage.removeItem(TOKEN_KEY);
-}
-
-function isAuthenticated() {
-  return cookieSessionActive || Boolean(localStorage.getItem(TOKEN_KEY));
 }
 
 async function request(path, { method = "GET", body, timeoutMs = 20000 } = {}) {
@@ -54,8 +49,8 @@ async function request(path, { method = "GET", body, timeoutMs = 20000 } = {}) {
       err.details = payload.details;
       throw err;
     }
-    if (/^\/auth\/(login|register|guest|upgrade|verify-email|oauth\/complete)/.test(path)) {
-      markAuthenticated();
+    if (/^\/auth\/(login|register|guest|upgrade|verify-email|oauth\/complete)/.test(path) && payload.token) {
+      persistSessionToken(payload.token);
     }
     return payload;
   } catch (error) {
@@ -88,16 +83,16 @@ export function getSessionToken() {
 }
 
 export function setSessionToken(token) {
-  if (token) markAuthenticated();
-  else markLoggedOut();
+  if (token) persistSessionToken(token);
+  else clearSessionToken();
 }
 
 export function clearSession() {
-  markLoggedOut();
+  clearSessionToken();
 }
 
 export function hasSession() {
-  return isAuthenticated();
+  return Boolean(getSessionToken());
 }
 
 export const api = {

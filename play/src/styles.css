@@ -343,6 +343,27 @@ button {
   color: var(--ink-soft);
 }
 
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.auth-guest-form {
+  margin-top: 0;
+}
+
 .text-btn {
   display: block;
   margin-top: 10px;
