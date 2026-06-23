@@ -149,6 +149,12 @@ async function waitForDeployment(token, serviceId, base, { sinceMs = Date.now() 
       console.error(`[railway-deploy-ci] Deployment ${status}. Build log tail:`);
       for (const line of tail) console.error(line);
       return false;
+    } else if (status === "REMOVED") {
+      const newer = recent.find((d) => d.id !== trackedId && d.status !== "REMOVED");
+      if (newer) {
+        trackedId = newer.id;
+        continue;
+      }
     }
 
     await new Promise((r) => setTimeout(r, 15_000));
