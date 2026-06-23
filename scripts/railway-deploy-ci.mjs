@@ -70,16 +70,25 @@ function tryCliDeploy(env) {
   return { ok: true, method: "cli" };
 }
 
+function resolveDeployCommitSha(env) {
+  const explicit = env.RAILWAY_DEPLOY_COMMIT_SHA?.trim() || env.GITHUB_SHA?.trim();
+  if (explicit) return explicit;
+  const rev = spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8", cwd: root });
+  if (rev.status === 0) return rev.stdout.trim();
+  return null;
+}
+
 async function tryGraphqlRedeploy(env) {
   const token = deployToken(env);
   if (!token) return { ok: false, reason: "no-account-token" };
 
   const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
   const environmentId = env.RAILWAY_ENVIRONMENT_ID?.trim() || DEFAULTS.environmentId;
+  const commitSha = resolveDeployCommitSha(env);
 
-  console.log("[railway-deploy-ci] GraphQL serviceInstanceDeployV2 (GitHub source) …");
-  await deployService(token, { serviceId, environmentId });
-  return { ok: true, method: "graphql-redeploy" };
+  console.log(`[railway-deploy-ci] GraphQL serviceInstanceDeployV2${commitSha ? ` commit ${commitSha.slice(0, 7)}` : ""} …`);
+  await deployService(token, { serviceId, environmentId, commitSha });
+  return { ok: true, method: "graphql-deploy" };
 }
 
 async function waitForRelease(base) {

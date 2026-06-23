@@ -99,13 +99,13 @@ export async function updateServiceInstance(token, { serviceId, environmentId, i
   );
 }
 
-export async function deployService(token, { serviceId, environmentId }) {
+export async function deployService(token, { serviceId, environmentId, commitSha = null }) {
   const data = await railwayGraphql(
     token,
-    `mutation($serviceId: String!, $environmentId: String!) {
-      serviceInstanceDeployV2(serviceId: $serviceId, environmentId: $environmentId)
+    `mutation($serviceId: String!, $environmentId: String!, $commitSha: String) {
+      serviceInstanceDeployV2(serviceId: $serviceId, environmentId: $environmentId, commitSha: $commitSha)
     }`,
-    { serviceId, environmentId }
+    { serviceId, environmentId, commitSha: commitSha || null }
   );
   return data.serviceInstanceDeployV2;
 }

@@ -21,6 +21,7 @@ jobs:
         run: npm install -g @railway/cli
       - name: Deploy fullstack (API + frontend, one service)
         env:
+          GITHUB_SHA: ${{ github.sha }}
           RAILWAY_PROJECT_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_ACCOUNT_TOKEN: ${{ secrets.RAILWAY_ACCOUNT_TOKEN }}
           RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
