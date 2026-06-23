@@ -11,6 +11,7 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolvePgTool } from "./pg-bin.mjs";
 import "dotenv/config";
 
 const args = process.argv.slice(2);
@@ -33,7 +34,8 @@ const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 const target = outPath || join(defaultDir, `zhimu-${timestamp}.sql`);
 
 const pgDumpArgs = ["--dbname", databaseUrl, "--no-owner", "--no-acl", "-F", "p", "-f", target];
-const result = spawnSync("pg_dump", pgDumpArgs, { encoding: "utf8", shell: process.platform === "win32" });
+const pgDump = resolvePgTool("pg_dump");
+const result = spawnSync(pgDump, pgDumpArgs, { encoding: "utf8", shell: process.platform === "win32" });
 
 if (result.error) {
   console.error("Failed to run pg_dump:", result.error.message);

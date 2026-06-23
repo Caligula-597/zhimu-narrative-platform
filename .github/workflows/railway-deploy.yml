@@ -22,25 +22,8 @@ jobs:
       - name: Deploy fullstack (API + frontend, one service)
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_ACCOUNT_TOKEN: ${{ secrets.RAILWAY_ACCOUNT_TOKEN }}
           RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
           RAILWAY_PUBLIC_URL: ${{ secrets.RAILWAY_PUBLIC_URL }}
-        run: |
-          if [ -z "$RAILWAY_TOKEN" ] || [ -z "$RAILWAY_SERVICE_ID" ]; then
-            echo "::notice::Skip — 免费版无 Project Token 时，用 Railway 连 GitHub 部署即可"
-            exit 0
-          fi
-          if ! railway whoami >/dev/null 2>&1; then
-            echo "::notice::Skip — RAILWAY_TOKEN 无效；请在 Railway 创建 Project Token 或改用 GitHub 集成"
-            exit 0
-          fi
-          railway up --ci --service "$RAILWAY_SERVICE_ID"
-          BASE="${RAILWAY_PUBLIC_URL:-https://getzhimu.com}"
-          for i in $(seq 1 30); do
-            if curl -sf "$BASE/api/health/ready" | grep -q '"ready":true'; then
-              echo "Ready at $BASE"
-              exit 0
-            fi
-            echo "Waiting… ($i/30)"
-            sleep 10
-          done
-          echo "::warning::Health check timed out"
+        run: node scripts/railway-deploy-ci.mjs

@@ -55,12 +55,19 @@ jobs:
           wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc >/dev/null
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+      - name: Verify pg_dump version
+        run: pg_dump --version | grep -E " 17\\."
       - name: DB backup smoke
         run: node scripts/pg-backup.mjs --out /tmp/zhimu-ci-backup.sql
         working-directory: backend
+        env:
+          PG_CLIENT_BIN_DIR: /usr/lib/postgresql/17/bin
       - name: DB backup restore drill
         run: npm run db:verify-restore
         working-directory: backend
+        env:
+          PG_CLIENT_BIN_DIR: /usr/lib/postgresql/17/bin
       - name: DB migration upgrade drill
         run: npm run db:verify-migration-upgrade
         working-directory: backend

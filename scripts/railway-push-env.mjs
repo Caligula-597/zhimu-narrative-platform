@@ -136,27 +136,43 @@ async function main() {
     console.log(`[push-env] 跳过 Web 服务 ${webService.name}（已改为单服务 fullstack，可在 Railway 删除 web 省费用）`);
   }
 
+  const ghProxyEnv = () => ({
+    ...process.env,
+    HTTP_PROXY: process.env.HTTP_PROXY || "http://127.0.0.1:7890",
+    HTTPS_PROXY: process.env.HTTPS_PROXY || "http://127.0.0.1:7890"
+  });
+
+  const syncGhSecret = (name, value) => {
+    if (!value) return false;
+    const gh = spawnSync(
+      "gh",
+      ["secret", "set", name, "--body", value, "-R", "Caligula-597/zhimu-narrative-platform"],
+      { cwd: root, stdio: "inherit", shell: process.platform === "win32", env: ghProxyEnv() }
+    );
+    return gh.status === 0;
+  };
+
   const projectToken = setup.RAILWAY_PROJECT_TOKEN?.trim()
     ?? parseEnvFile(path.join(root, "backend", ".env")).RAILWAY_PROJECT_TOKEN?.trim();
 
   if (projectToken) {
-    console.log("[push-env] 检测到 RAILWAY_PROJECT_TOKEN，更新 GitHub Secret…");
-    const gh = spawnSync(
-      "gh",
-      ["secret", "set", "RAILWAY_TOKEN", "--body", projectToken, "-R", "Caligula-597/zhimu-narrative-platform"],
-      {
-        cwd: root,
-        stdio: "inherit",
-        shell: process.platform === "win32",
-        env: { ...process.env, HTTP_PROXY: process.env.HTTP_PROXY || "http://127.0.0.1:7890", HTTPS_PROXY: process.env.HTTPS_PROXY || "http://127.0.0.1:7890" }
-      }
-    );
-    if (gh.status !== 0) {
-      console.warn("[push-env] GitHub Secret 更新失败 — 请手动在网页改 RAILWAY_TOKEN");
+    console.log("[push-env] 检测到 RAILWAY_PROJECT_TOKEN，更新 GitHub Secret RAILWAY_TOKEN…");
+    if (!syncGhSecret("RAILWAY_TOKEN", projectToken)) {
+      console.warn("[push-env] GitHub Secret RAILWAY_TOKEN 更新失败 — 请手动在网页修改");
     }
   } else {
-    console.warn("[push-env] 未找到 RAILWAY_PROJECT_TOKEN — GitHub Actions 仍需 Project Token");
+    console.warn("[push-env] 未找到 RAILWAY_PROJECT_TOKEN — Actions 将改用 RAILWAY_ACCOUNT_TOKEN 触发 redeploy");
   }
+
+  const accountToken = setup.RAILWAY_ACCOUNT_TOKEN?.trim() || setup.RAILWAY_TOKEN?.trim();
+  if (accountToken) {
+    console.log("[push-env] 同步 RAILWAY_ACCOUNT_TOKEN → GitHub Secret…");
+    syncGhSecret("RAILWAY_ACCOUNT_TOKEN", accountToken);
+  }
+
+  syncGhSecret("RAILWAY_SERVICE_ID", apiService.id);
+  syncGhSecret("RAILWAY_ENVIRONMENT_ID", production.id);
+  syncGhSecret("RAILWAY_PUBLIC_URL", setup.APP_PUBLIC_URL?.trim() || "https://app.getzhimu.com");
 
   console.log("[push-env] 触发 API 重新部署…");
   try {

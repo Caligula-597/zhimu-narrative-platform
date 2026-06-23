@@ -11,6 +11,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { resolvePgTool } from "./pg-bin.mjs";
 import "dotenv/config";
 
 const TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions"];
@@ -41,10 +42,14 @@ function withDatabase(url, dbName) {
   return parsed.toString();
 }
 
+function pgTool(name) {
+  return resolvePgTool(name);
+}
+
 function countTables(databaseUrl) {
   const counts = {};
   for (const table of TABLES) {
-    const out = run("psql", [databaseUrl, "-t", "-A", "-c", `SELECT COUNT(*) FROM ${table}`]);
+    const out = run(pgTool("psql"), [databaseUrl, "-t", "-A", "-c", `SELECT COUNT(*) FROM ${table}`]);
     counts[table] = Number(out);
   }
   return counts;
@@ -75,8 +80,8 @@ function requireCli(name) {
   }
 }
 
-requireCli("psql");
-requireCli("pg_dump");
+requireCli(pgTool("psql"));
+requireCli(pgTool("pg_dump"));
 
 const drillDb = `zhimu_restore_drill_${Date.now()}`;
 const restoreUrl = withDatabase(sourceUrl, drillDb);
@@ -89,13 +94,13 @@ try {
   console.log(before);
 
   console.log("▶ pg_dump →", dumpPath);
-  run("pg_dump", ["--dbname", sourceUrl, "--no-owner", "--no-acl", "-F", "p", "-f", dumpPath]);
+  run(pgTool("pg_dump"), ["--dbname", sourceUrl, "--no-owner", "--no-acl", "-F", "p", "-f", dumpPath]);
 
   console.log("▶ CREATE DATABASE", drillDb);
-  run("psql", [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `CREATE DATABASE "${drillDb}"`]);
+  run(pgTool("psql"), [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `CREATE DATABASE "${drillDb}"`]);
 
   console.log("▶ psql restore…");
-  run("psql", [restoreUrl, "-v", "ON_ERROR_STOP=1", "-f", dumpPath]);
+  run(pgTool("psql"), [restoreUrl, "-v", "ON_ERROR_STOP=1", "-f", dumpPath]);
 
   console.log("▶ Counting restored tables…");
   const after = countTables(restoreUrl);
@@ -111,7 +116,7 @@ try {
 } finally {
   if (!keep) {
     try {
-      run("psql", [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `DROP DATABASE IF EXISTS "${drillDb}"`]);
+      run(pgTool("psql"), [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `DROP DATABASE IF EXISTS "${drillDb}"`]);
       console.log("▶ dropped", drillDb);
     } catch (error) {
       console.warn("dropdb warning:", error.message);
