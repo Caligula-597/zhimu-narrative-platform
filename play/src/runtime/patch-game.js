@@ -1,3 +1,4 @@
+import { setToast } from "../state.js";
 import {
   renderGameTabBar,
   renderGameTabBody,
@@ -23,8 +24,8 @@ function bindSectionsReader(state, ctx) {
   bindPlayReader({
     roomId: state.roomId,
     notesSource: () => state.home,
-    onRefresh: async () => ctx.pullRoomData({ partial: true }),
-    onToast: ctx.onToast
+    onPatch: () => patchGameSectionsTab(state, ctx),
+    onToast: (message) => setToast(message, ctx.render, { patch: true })
   });
 }
 

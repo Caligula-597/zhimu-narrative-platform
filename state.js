@@ -9,6 +9,7 @@ window.zhimuState = {
   cloudPlayer: null,
   cloudHost: [],
   cloudHostPlayers: [],
+  cloudHostPlayersError: "",
   cloudHostStuckCount: 0,
   cloudExploration: null,
   cloudHostEvents: [],

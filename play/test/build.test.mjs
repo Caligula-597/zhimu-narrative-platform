@@ -74,6 +74,8 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   const readerSource = readFileSync(path.join(root, "src", "runtime", "reader.js"), "utf8");
   assert.match(highlightsSource, /applyStoryHighlights/);
   assert.match(readerSource, /addNotebookEntry/);
+  assert.match(readerSource, /onPatch/);
+  assert.doesNotMatch(readerSource, /onRefresh/);
   assert.match(gameSource, /hostConfirmBanner/);
   assert.match(apiSource, /notebook/);
   assert.match(apiSource, /recap\/latest/);

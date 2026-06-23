@@ -6,6 +6,7 @@
     state.cloudPlayer = null;
     state.cloudHost = [];
     state.cloudHostPlayers = [];
+    state.cloudHostPlayersError = "";
     state.cloudHostStuckCount = 0;
     state.cloudExploration = null;
     state.cloudHostEvents = [];
@@ -34,6 +35,7 @@
   function applyHostPlayersPayload(value) {
     state.cloudHostPlayers = value?.players || [];
     state.cloudHostStuckCount = value?.stuckCount || 0;
+    state.cloudHostPlayersError = "";
     state.cloudHost = state.cloudHostPlayers.map((player) => ({
       role_slot_id: player.role_slot_id,
       name: player.role_name,
@@ -44,10 +46,27 @@
     }));
   }
 
+  function formatHostPlayersLoadError(error) {
+    const friendly = window.zhimuUserMessages?.friendlyApiError;
+    if (typeof friendly === "function") {
+      return friendly({ code: error?.code, error: error?.message }, error?.message || "无法加载玩家进度");
+    }
+    return error?.message || "无法加载玩家进度";
+  }
+
+  function failHostPlayersLoad(error) {
+    state.cloudHostPlayers = [];
+    state.cloudHostStuckCount = 0;
+    state.cloudHost = [];
+    state.cloudHostPlayersError = formatHostPlayersLoadError(error);
+  }
+
   window.zhimuRuntimeStore = {
     clearRuntimeFields,
     clearRuntimeState,
-    applyHostPlayersPayload
+    applyHostPlayersPayload,
+    failHostPlayersLoad,
+    formatHostPlayersLoadError
   };
 })(window);
 export {};

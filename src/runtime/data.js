@@ -135,11 +135,12 @@
           hasRoom ? zhimuApi.getHostAuditLog().catch(() => ({ entries: [] })) : Promise.resolve({ entries: [] })
         ]);
         take(phase2[0], (value) => { state.cloudPlayer = value; }, () => { state.cloudPlayer = null; });
-        take(phase2[1], (value) => applyHostPlayersPayload(value), () => {
-          state.cloudHostPlayers = [];
-          state.cloudHostStuckCount = 0;
-          state.cloudHost = [];
-        });
+        if (phase2[1].status === "fulfilled") {
+          applyHostPlayersPayload(phase2[1].value);
+        } else {
+          failHostPlayersLoad(phase2[1].reason);
+          errors.push(phase2[1].reason?.message || String(phase2[1].reason));
+        }
         take(phase2[2], (value) => { state.cloudExploration = value; }, () => { state.cloudExploration = null; });
         take(phase2[3], (value) => { state.cloudHostEvents = value || []; }, () => { state.cloudHostEvents = []; });
         take(phase2[4], (value) => { state.cloudHostClueMatrix = value; }, () => { state.cloudHostClueMatrix = null; });
@@ -152,6 +153,7 @@
       } else {
         state.cloudPlayer = null;
         state.cloudHostPlayers = [];
+        state.cloudHostPlayersError = "";
         state.cloudHostStuckCount = 0;
         state.cloudHost = [];
         state.cloudExploration = null;
@@ -241,6 +243,10 @@
     runtimeStore().applyHostPlayersPayload?.(value);
   }
 
+  function failHostPlayersLoad(error) {
+    runtimeStore().failHostPlayersLoad?.(error);
+  }
+
   async function refreshHostEvents(withToast = false, silent = false) {
     if (!zhimuApi.context.roomId) {
       if (withToast && !silent) showToast("请先选择运行房");
@@ -266,6 +272,8 @@
       if (state.view === "director" || state.view === "overview") render();
       if (withToast && !silent) showToast(`玩家进度已刷新（${state.cloudHostPlayers.filter((player) => player.joined).length} 人已加入）`);
     } catch (error) {
+      failHostPlayersLoad(error);
+      if (state.view === "director" || state.view === "overview") render();
       if (withToast && !silent) showToast(error.message);
     }
   }
@@ -321,6 +329,8 @@
         showToast(`房间状态已刷新 · 待确认 ${state.cloudHostEvents.length} 条 · 玩家 ${state.cloudHostPlayers.filter((player) => player.joined).length} 人`);
       }
     } catch (error) {
+      failHostPlayersLoad(error);
+      if (state.view === "director" || state.view === "overview") render();
       if (withToast) showToast(error.message);
     }
   }

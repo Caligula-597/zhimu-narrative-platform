@@ -1,3 +1,5 @@
+import { patchPlayToast } from "./runtime/sync-helpers.js";
+
 export const ROOM_KEY = "zhimuPlayActiveRoomId";
 
 export const state = {
@@ -91,14 +93,22 @@ export function clearTabPulse(tabId) {
   if (state.tabPulseCount[tabId]) state.tabPulseCount[tabId] = 0;
 }
 
-export function setToast(message, render) {
+export function setToast(message, render, { patch = false } = {}) {
   state.toast = message;
-  render();
+  if (patch) {
+    if (!patchPlayToast(message)) render?.();
+  } else {
+    render?.();
+  }
   if (message) {
     window.clearTimeout(setToast._timer);
     setToast._timer = window.setTimeout(() => {
       state.toast = "";
-      render();
+      if (patch) {
+        if (!patchPlayToast("")) render?.();
+      } else {
+        render?.();
+      }
     }, 3200);
   }
 }

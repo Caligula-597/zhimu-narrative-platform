@@ -12,6 +12,7 @@
     state.cloudCreatorChecks = [];
     state.cloudHost = [];
     state.cloudHostPlayers = [];
+    state.cloudHostPlayersError = "";
     state.cloudHostStuckCount = 0;
     state.cloudHostEvents = [];
     state.cloudHostAuditLog = [];

@@ -151,3 +151,13 @@ export function patchSyncChrome(state) {
   const bannerOk = patchSyncStatusBanner(state);
   return headerOk || bannerOk;
 }
+
+/** Update toast host without rebuilding the whole app shell. */
+export function patchPlayToast(message) {
+  const host = document.querySelector(".toast-host");
+  if (!host) return false;
+  host.innerHTML = message
+    ? `<div class="toast show" role="status">${escapeHtml(message)}</div>`
+    : "";
+  return true;
+}

@@ -82,8 +82,8 @@ function render() {
     bindPlayReader({
       roomId: state.roomId,
       notesSource: () => state.home,
-      onRefresh: async () => pullRoomData({ partial: true }),
-      onToast: (message) => setToast(message, render)
+      onPatch: () => patchGameSectionsTab(state, gamePatchCtx),
+      onToast: (message) => setToast(message, render, { patch: true })
     });
   }
   if (scrollRestoreKey(state) === restoreKey) {
@@ -768,7 +768,8 @@ async function handleJoinOfficial({ silent = false } = {}) {
 
 const gamePatchCtx = {
   pullRoomData: (opts) => pullRoomData(opts),
-  onToast: (message) => setToast(message, render)
+  onToast: (message) => setToast(message, render),
+  render
 };
 
 async function handleCompleteSection(sectionId) {

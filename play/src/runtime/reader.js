@@ -36,7 +36,7 @@ function showHighlightToolbar(rect, sectionId, sectionTitle, selection, onDone) 
 }
 
 /**
- * @param {{ roomId: string, notes: object[], onRefresh: () => Promise<void>, onToast: (msg: string) => void }} ctx
+ * @param {{ roomId: string, notesSource: () => object, onPatch?: () => void, onToast?: (msg: string) => void }} ctx
  */
 export function bindPlayReader(ctx) {
   const body = document.querySelector("[data-reader-body]");
@@ -90,14 +90,19 @@ async function addStoryHighlight(ctx, sectionId, sectionTitle, selection) {
   });
   if (exists) return ctx.onToast("这段内容已经高亮过了");
   try {
-    await api.addNotebookEntry(ctx.roomId, {
+    const entry = await api.addNotebookEntry(ctx.roomId, {
       sourceType: "script_section",
       sourceId: sectionId,
       title: highlightEntryTitle(sectionTitle, start, end),
       body: snippet
     });
-    await ctx.onRefresh();
-    ctx.onToast("已标记高亮");
+    const home = ctx.notesSource?.();
+    if (home) {
+      if (!Array.isArray(home.notes)) home.notes = [];
+      home.notes.unshift(entry);
+    }
+    ctx.onPatch?.();
+    ctx.onToast?.("已标记高亮");
   } catch (error) {
     ctx.onToast(error.message || "高亮失败");
   }
@@ -106,8 +111,10 @@ async function addStoryHighlight(ctx, sectionId, sectionTitle, selection) {
 async function removeStoryHighlight(ctx, entryId) {
   try {
     await api.deleteNotebookEntry(ctx.roomId, entryId);
-    await ctx.onRefresh();
-    ctx.onToast("已取消高亮");
+    const home = ctx.notesSource?.();
+    if (home?.notes) home.notes = home.notes.filter((note) => note.id !== entryId);
+    ctx.onPatch?.();
+    ctx.onToast?.("已取消高亮");
   } catch (error) {
     ctx.onToast(error.message || "取消高亮失败");
   }

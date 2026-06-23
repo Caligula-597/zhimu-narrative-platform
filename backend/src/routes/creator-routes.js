@@ -299,12 +299,12 @@ export async function registerCreatorRoutes(app) {
     await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);
     const result = await query(
       `SELECT r.id, r.name, r.invite_code, r.status, r.public_listing, r.created_at, r.host_user_id,
-              COUNT(rm.user_id)::int AS member_count,
+              (SELECT COUNT(*)::int FROM room_members rm
+               WHERE rm.room_id = r.id AND rm.status = 'active' AND rm.role_slot_id IS NOT NULL) AS member_count,
+              (SELECT COUNT(*)::int FROM role_slots rs WHERE rs.world_id = r.world_id) AS role_slot_count,
               (r.host_user_id = $2) AS is_mine
        FROM rooms r
-       LEFT JOIN room_members rm ON rm.room_id = r.id AND rm.status = 'active'
        WHERE r.world_id = $1 AND ${ROOMS_VISIBLE_TO_ACTOR_SQL}
-       GROUP BY r.id
        ORDER BY r.created_at DESC`,
       [worldId, actorId]
     );
