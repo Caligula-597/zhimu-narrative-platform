@@ -116,7 +116,7 @@ async function main() {
     await updateServiceInstance(token, {
       serviceId: apiService.id,
       environmentId: production.id,
-      input: { dockerfilePath: FULLSTACK_DOCKERFILE }
+      input: { dockerfilePath: FULLSTACK_DOCKERFILE, railwayConfigFile: "railway.toml", healthcheckPath: "/api/health/live", healthcheckTimeout: 300 }
     });
   } catch (err) {
     console.warn(`[push-env] dockerfilePath 需在 Railway 控制台确认: ${err.message}`);

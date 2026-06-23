@@ -13,7 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { deployService } from "./railway-api.mjs";
+import { deployService, updateServiceInstance } from "./railway-api.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const setupPath = path.join(root, ".env.railway.setup");
@@ -22,6 +22,8 @@ const DEFAULTS = {
   serviceId: "fc78dfb7-98dc-4ca5-8a9e-4cb9a9db80b1",
   environmentId: "e3b187d0-75ba-49a3-ba92-16168dd5fb68"
 };
+
+const FULLSTACK_DOCKERFILE = "deploy/Dockerfile.fullstack";
 
 function loadSetup() {
   const env = { ...process.env };
@@ -78,9 +80,33 @@ function resolveDeployCommitSha(env) {
   return null;
 }
 
+async function ensureFullstackDockerBuild(env) {
+  const token = deployToken(env);
+  if (!token) return;
+  const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
+  const environmentId = env.RAILWAY_ENVIRONMENT_ID?.trim() || DEFAULTS.environmentId;
+  console.log("[railway-deploy-ci] Ensure fullstack Dockerfile via railway.toml…");
+  try {
+    await updateServiceInstance(token, {
+      serviceId,
+      environmentId,
+      input: {
+        dockerfilePath: FULLSTACK_DOCKERFILE,
+        railwayConfigFile: "railway.toml",
+        healthcheckPath: "/api/health/live",
+        healthcheckTimeout: 300
+      }
+    });
+  } catch (error) {
+    console.warn("[railway-deploy-ci] serviceInstanceUpdate warning:", error.message);
+  }
+}
+
 async function tryGraphqlRedeploy(env) {
   const token = deployToken(env);
   if (!token) return { ok: false, reason: "no-account-token" };
+
+  await ensureFullstackDockerBuild(env);
 
   const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
   const environmentId = env.RAILWAY_ENVIRONMENT_ID?.trim() || DEFAULTS.environmentId;

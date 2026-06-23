@@ -6,7 +6,6 @@ dockerfilePath = "deploy/Dockerfile.fullstack"
 watchPatterns = ["backend/**", "deploy/**", "config/**", "src/**", "frontend/**", "index.html", "package.json", "styles.css", "app.js"]
 
 [deploy]
-startCommand = ""
 healthcheckPath = "/api/health/live"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"

@@ -113,7 +113,7 @@ async function main() {
     await updateServiceInstance(token, {
       serviceId: apiService.id,
       environmentId: production.id,
-      input: { dockerfilePath: FULLSTACK_DOCKERFILE }
+      input: { dockerfilePath: FULLSTACK_DOCKERFILE, railwayConfigFile: "railway.toml", healthcheckPath: "/api/health/live", healthcheckTimeout: 300 }
     });
   } catch (err) {
     console.warn(`[bootstrap] API 设置 dockerfilePath 失败: ${err.message}`);
