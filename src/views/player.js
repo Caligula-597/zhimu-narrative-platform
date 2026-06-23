@@ -353,8 +353,39 @@ function bindPlayerReader(){
  }
 }
 
+function patchPlayerReader(){
+ if(state.view!=="player")return false;
+ const current=document.querySelector(".player-view > .reader-card");
+ if(!current)return false;
+ const wrap=document.createElement("template");
+ wrap.innerHTML=reader().trim();
+ const next=wrap.content.firstElementChild;
+ if(!next)return false;
+ current.replaceWith(next);
+ bindPlayerReader();
+ return true;
+}
+
 async function completeCloudReading(sectionId){
- try{await zhimuApi.completeSection(sectionId);await loadCloudData();showToast("已记录阅读进度，可能触发新的剧情解锁。",3200)}catch(error){showToast(error.message)}
+ const sections=state.cloudPlayer?.sections||[];
+ const section=sections.find(item=>item.id===sectionId);
+ const prevCompleted=section?.completed;
+ if(section)section.completed=true;
+ patchPlayerReader();
+ try{
+  const result=await zhimuApi.completeSection(sectionId);
+  if(result?.executedRules?.length){
+    await Promise.all([
+      R.refreshPlayerHome?.(),
+      R.refreshExploration?.()
+    ].filter(Boolean));
+  }
+  showToast("已记录阅读进度，可能触发新的剧情解锁。",3200);
+ }catch(error){
+  if(section&&prevCompleted!==undefined)section.completed=prevCompleted;
+  patchPlayerReader();
+  showToast(error.message);
+ }
 }
 
 async function addStoryHighlight(sectionId,sectionTitle,selection){

@@ -787,13 +787,16 @@ async function handleCompleteSection(sectionId) {
   }
 
   try {
-    await api.completeSection(state.roomId, sectionId);
-    await pullRoomData({ partial: true });
-    setToast("已标记阅读完成", render);
+    const result = await api.completeSection(state.roomId, sectionId);
+    if (result?.executedRules?.length) {
+      void coalescedPartialRefresh();
+    }
+    setToast("已标记阅读完成", render, { patch: true });
   } catch (error) {
     if (prevCompleted && target) Object.assign(target, prevCompleted);
     if (state.tab === "sections") patchGameSectionsTab(state, gamePatchCtx);
-    setToast(formatApiError(error, "操作失败"), render);
+    else patchGameView(state, gamePatchCtx);
+    setToast(formatApiError(error, "操作失败"), render, { patch: true });
   }
 }
 

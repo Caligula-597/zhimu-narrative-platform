@@ -76,6 +76,8 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(readerSource, /addNotebookEntry/);
   assert.match(readerSource, /onPatch/);
   assert.doesNotMatch(readerSource, /onRefresh/);
+  assert.match(mainSource, /executedRules\?\.\length/);
+  assert.match(mainSource, /setToast\("已标记阅读完成", render, \{ patch: true \}/);
   assert.match(gameSource, /hostConfirmBanner/);
   assert.match(apiSource, /notebook/);
   assert.match(apiSource, /recap\/latest/);
