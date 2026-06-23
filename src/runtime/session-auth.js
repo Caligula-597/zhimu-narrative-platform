@@ -1,4 +1,4 @@
-/** Cookie-first session state; legacy localStorage Bearer kept for E2E transition. */
+/** Cookie + localStorage Bearer; HttpOnly cookie is not visible in document.cookie. */
 (function (window) {
   const LEGACY_KEY = "zhimuSessionToken";
   let cookieSessionActive = false;
@@ -8,12 +8,14 @@
   }
 
   function isAuthenticated() {
-    return cookieSessionActive || Boolean(legacyToken());
+    return Boolean(legacyToken()) || cookieSessionActive;
   }
 
-  function markAuthenticated() {
+  function markAuthenticated(token) {
+    if (typeof token === "string" && token.length >= 16) {
+      localStorage.setItem(LEGACY_KEY, token);
+    }
     cookieSessionActive = true;
-    localStorage.removeItem(LEGACY_KEY);
   }
 
   function markLoggedOut() {

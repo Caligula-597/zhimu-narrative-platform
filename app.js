@@ -104,6 +104,7 @@
   window.zhimuAuthSession?.syncAuthBanner?.();
   const startupAuth = R.handleStartupAuthParams?.();
   Promise.resolve(startupAuth)
+    .then(() => window.zhimuSessionReady)
     .then(() => R.loadCloudData())
     .catch((error) => {
       state.cloudLoading = false;

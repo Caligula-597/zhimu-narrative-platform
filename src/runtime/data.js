@@ -141,6 +141,14 @@
           failHostPlayersLoad(phase2[1].reason);
           errors.push(phase2[1].reason?.message || String(phase2[1].reason));
         }
+        const roomMembershipLost = [phase2[0], phase2[1], phase2[2]].some(
+          (result) => result.status === "rejected" && result.reason?.code === "ROOM_MEMBERSHIP_REQUIRED"
+        );
+        if (roomMembershipLost && zhimuApi.context.roomId) {
+          zhimuApi.clearRoom();
+          clearRuntimeState();
+          errors.push("你不是该运行房的成员，已解除本地上次选中的房间。请重新选择或创建平行房。");
+        }
         take(phase2[2], (value) => { state.cloudExploration = value; }, () => { state.cloudExploration = null; });
         take(phase2[3], (value) => { state.cloudHostEvents = value || []; }, () => { state.cloudHostEvents = []; });
         take(phase2[4], (value) => { state.cloudHostClueMatrix = value; }, () => { state.cloudHostClueMatrix = null; });

@@ -42,7 +42,8 @@ function authHeaders(userId, extra = {}) {
 }
 
 function markSessionFromResponse(result) {
-  if (result?.token || result?.user?.id) sessionAuth().markAuthenticated?.();
+  if (result?.token) sessionAuth().markAuthenticated?.(result.token);
+  else if (result?.user?.id) sessionAuth().markAuthenticated?.();
   return result;
 }
 
@@ -138,7 +139,8 @@ async function request(path, { userId, method = "GET", body, timeoutMs = 20000, 
     }
     const data = await response.json();
     if (/^\/auth\/(login|register|guest|upgrade|verify-email|oauth\/complete)/.test(path)) {
-      markSessionFromResponse(data);
+      if (data.token) sessionAuth().markAuthenticated?.(data.token);
+      else markSessionFromResponse(data);
     }
     return data;
   } catch (error) {
@@ -542,10 +544,14 @@ window.zhimuApi = {
     });
   }
 };
-(function probeCookieSession() {
-  const hasCookie = typeof document !== "undefined" && /(?:^|;\s*)zhimu_session=/.test(document.cookie || "");
-  const hasLegacy = sessionAuth().legacyToken?.();
-  if (!hasCookie && !hasLegacy) return;
-  request("/auth/me").then(() => sessionAuth().markAuthenticated?.()).catch(() => sessionAuth().markLoggedOut?.());
+window.zhimuSessionReady = (async () => {
+  try {
+    const me = await request("/auth/me");
+    if (!sessionAuth().legacyToken?.()) sessionAuth().markAuthenticated?.();
+    return me;
+  } catch {
+    if (sessionAuth().legacyToken?.()) sessionAuth().markLoggedOut?.();
+    return null;
+  }
 })();
 export {};

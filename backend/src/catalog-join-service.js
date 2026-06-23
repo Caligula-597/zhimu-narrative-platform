@@ -66,7 +66,7 @@ export async function joinPublicCatalogWorld(actorId, worldId) {
 
     await client.query(
       `INSERT INTO room_members (room_id, user_id, member_type) VALUES ($1, $2, 'host')
-       ON CONFLICT DO NOTHING`,
+       ON CONFLICT (room_id, user_id) DO UPDATE SET status = 'active', member_type = 'host'`,
       [room.id, actorId]
     );
     await client.query(

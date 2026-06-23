@@ -9,8 +9,21 @@ export async function requireRoomRole(actorId, roomId) {
      WHERE rm.room_id = $1 AND rm.user_id = $2 AND rm.status = 'active'`,
     [roomId, actorId]
   );
-  if (!result.rowCount) throwErr("ROOM_MEMBERSHIP_REQUIRED");
-  return result.rows[0];
+  if (result.rowCount) return result.rows[0];
+
+  const room = await query(`SELECT host_user_id FROM rooms WHERE id = $1`, [roomId]);
+  if (room.rowCount && room.rows[0].host_user_id === actorId) {
+    await query(
+      `INSERT INTO room_members (room_id, user_id, member_type)
+       VALUES ($1, $2, 'host')
+       ON CONFLICT (room_id, user_id)
+       DO UPDATE SET status = 'active', member_type = EXCLUDED.member_type`,
+      [roomId, actorId]
+    );
+    return { role_slot_id: null, member_type: "host" };
+  }
+
+  throwErr("ROOM_MEMBERSHIP_REQUIRED");
 }
 
 export const WORLD_EDITOR_ROLES = ["owner", "editor"];
