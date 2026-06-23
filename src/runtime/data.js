@@ -38,14 +38,38 @@
     return loadCloudDataPromise;
   }
 
-  async function loadCloudDataInternal(withToast = false) {
+  function pushUniqueError(errors, message) {
+    if (message && !errors.includes(message)) errors.push(message);
+  }
+
+  function isRoomMembershipError(result) {
+    return result?.status === "rejected" && result.reason?.code === "ROOM_MEMBERSHIP_REQUIRED";
+  }
+
+  async function trySelectOwnedRoom() {
+    if (!zhimuApi.context.worldId || zhimuApi.context.roomId) return false;
+    try {
+      const rooms = await zhimuApi.getWorldRooms();
+      const owned = rooms.find((room) => room.is_mine);
+      if (!owned) return false;
+      zhimuApi.selectRoom(owned.id);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function loadCloudDataInternal(withToast = false, allowRoomRecover = true) {
     state.cloudLoading = true;
     render();
     const errors = [];
     let hasRoom = Boolean(zhimuApi.context.roomId);
-    const take = (result, apply, onError = () => {}) => result.status === "fulfilled"
-      ? apply(result.value)
-      : (onError(), errors.push(result.reason?.message || String(result.reason)));
+    const take = (result, apply, onError = () => {}) => {
+      if (result.status === "fulfilled") return apply(result.value);
+      onError();
+      if (result.reason?.code === "ROOM_MEMBERSHIP_REQUIRED") return;
+      pushUniqueError(errors, result.reason?.message || String(result.reason));
+    };
 
     try {
       try {
@@ -105,7 +129,7 @@
         }
       }
 
-      state.apiError = errors.join(" · ");
+      state.apiError = [...new Set(errors)].join(" · ");
       state.cloudLoading = false;
       render();
 
@@ -121,10 +145,11 @@
       if (worldReady) {
         const logParams = { limit: "20" };
         if (hasRoom) logParams.roomId = zhimuApi.context.roomId;
+        const needsPlayerRuntime = hasRoom && state.view === "player";
         const phase2 = await Promise.allSettled([
-          hasRoom ? zhimuApi.getPlayerHome() : Promise.resolve(null),
+          needsPlayerRuntime ? zhimuApi.getPlayerHome() : Promise.resolve(null),
           hasRoom ? zhimuApi.getHostPlayers() : Promise.resolve(null),
-          hasRoom ? zhimuApi.getExploration() : Promise.resolve(null),
+          needsPlayerRuntime ? zhimuApi.getExploration() : Promise.resolve(null),
           hasRoom ? zhimuApi.getHostEvents() : Promise.resolve(null),
           hasRoom ? zhimuApi.getHostClueMatrix() : Promise.resolve(null),
           hasRoom ? zhimuApi.getCheckpoints().catch(() => []) : Promise.resolve([]),
@@ -134,30 +159,34 @@
           zhimuApi.getRules(),
           hasRoom ? zhimuApi.getHostAuditLog().catch(() => ({ entries: [] })) : Promise.resolve({ entries: [] })
         ]);
-        take(phase2[0], (value) => { state.cloudPlayer = value; }, () => { state.cloudPlayer = null; });
-        if (phase2[1].status === "fulfilled") {
-          applyHostPlayersPayload(phase2[1].value);
-        } else {
-          failHostPlayersLoad(phase2[1].reason);
-          errors.push(phase2[1].reason?.message || String(phase2[1].reason));
-        }
-        const roomMembershipLost = [phase2[0], phase2[1], phase2[2]].some(
-          (result) => result.status === "rejected" && result.reason?.code === "ROOM_MEMBERSHIP_REQUIRED"
-        );
-        if (roomMembershipLost && zhimuApi.context.roomId) {
+        if (hasRoom && isRoomMembershipError(phase2[1])) {
           zhimuApi.clearRoom();
           clearRuntimeState();
-          errors.push("你不是该运行房的成员，已解除本地上次选中的房间。请重新选择或创建平行房。");
+          hasRoom = false;
+          pushUniqueError(errors, "你不是该运行房的成员，已解除本地上次选中的房间。请重新选择或创建平行房。");
+          if (allowRoomRecover && await trySelectOwnedRoom()) {
+            return loadCloudDataInternal(withToast, false);
+          }
+        } else {
+          take(phase2[0], (value) => { state.cloudPlayer = value; }, () => { state.cloudPlayer = null; });
+          if (phase2[1].status === "fulfilled") {
+            applyHostPlayersPayload(phase2[1].value);
+          } else if (phase2[1].status === "rejected") {
+            failHostPlayersLoad(phase2[1].reason);
+            pushUniqueError(errors, phase2[1].reason?.message || String(phase2[1].reason));
+          }
+          take(phase2[2], (value) => { state.cloudExploration = value; }, () => { state.cloudExploration = null; });
         }
-        take(phase2[2], (value) => { state.cloudExploration = value; }, () => { state.cloudExploration = null; });
-        take(phase2[3], (value) => { state.cloudHostEvents = value || []; }, () => { state.cloudHostEvents = []; });
-        take(phase2[4], (value) => { state.cloudHostClueMatrix = value; }, () => { state.cloudHostClueMatrix = null; });
-        take(phase2[5], (value) => { state.cloudCheckpoints = value || []; }, () => { state.cloudCheckpoints = []; });
-        take(phase2[6], (value) => { state.cloudRecaps = value || []; }, () => { state.cloudRecaps = []; });
-        take(phase2[7], (value) => { state.cloudRecapLatest = value; }, () => { state.cloudRecapLatest = null; });
+        if (hasRoom) {
+          take(phase2[3], (value) => { state.cloudHostEvents = value || []; }, () => { state.cloudHostEvents = []; });
+          take(phase2[4], (value) => { state.cloudHostClueMatrix = value; }, () => { state.cloudHostClueMatrix = null; });
+          take(phase2[5], (value) => { state.cloudCheckpoints = value || []; }, () => { state.cloudCheckpoints = []; });
+          take(phase2[6], (value) => { state.cloudRecaps = value || []; }, () => { state.cloudRecaps = []; });
+          take(phase2[7], (value) => { state.cloudRecapLatest = value; }, () => { state.cloudRecapLatest = null; });
+          take(phase2[10], (value) => { state.cloudHostAuditLog = value?.entries || []; }, () => { state.cloudHostAuditLog = []; });
+        }
         take(phase2[8], (value) => { state.cloudWorldLogs = value || []; }, () => { state.cloudWorldLogs = []; });
         take(phase2[9], (value) => { state.cloudRules = value; }, () => { state.cloudRules = []; });
-        take(phase2[10], (value) => { state.cloudHostAuditLog = value?.entries || []; }, () => { state.cloudHostAuditLog = []; });
       } else {
         state.cloudPlayer = null;
         state.cloudHostPlayers = [];
@@ -191,7 +220,7 @@
         }
       })();
 
-      state.apiError = errors.join(" · ");
+      state.apiError = [...new Set(errors)].join(" · ");
       roomEvents().syncDirectorPolling?.();
       if (worldReady) roomEvents().connectRoomEventStream?.();
       render();

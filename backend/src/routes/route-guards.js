@@ -2,6 +2,17 @@ import { query } from "../db.js";
 import { throwErr } from "../api-errors.js";
 export { requireVoiceRoomAccess, resolveVoiceRoomAccess } from "./voice-access.js";
 
+async function healRoomHostMembership(roomId, actorId) {
+  await query(
+    `INSERT INTO room_members (room_id, user_id, member_type)
+     VALUES ($1, $2, 'host')
+     ON CONFLICT (room_id, user_id)
+     DO UPDATE SET status = 'active', member_type = EXCLUDED.member_type`,
+    [roomId, actorId]
+  );
+  return { role_slot_id: null, member_type: "host" };
+}
+
 export async function requireRoomRole(actorId, roomId) {
   const result = await query(
     `SELECT rm.role_slot_id, rm.member_type
@@ -11,16 +22,20 @@ export async function requireRoomRole(actorId, roomId) {
   );
   if (result.rowCount) return result.rows[0];
 
-  const room = await query(`SELECT host_user_id FROM rooms WHERE id = $1`, [roomId]);
-  if (room.rowCount && room.rows[0].host_user_id === actorId) {
-    await query(
-      `INSERT INTO room_members (room_id, user_id, member_type)
-       VALUES ($1, $2, 'host')
-       ON CONFLICT (room_id, user_id)
-       DO UPDATE SET status = 'active', member_type = EXCLUDED.member_type`,
-      [roomId, actorId]
-    );
-    return { role_slot_id: null, member_type: "host" };
+  const room = await query(`SELECT host_user_id, world_id FROM rooms WHERE id = $1`, [roomId]);
+  if (!room.rowCount) throwErr("ROOM_NOT_FOUND");
+
+  if (room.rows[0].host_user_id === actorId) {
+    return healRoomHostMembership(roomId, actorId);
+  }
+
+  const editor = await query(
+    `SELECT role FROM world_members
+     WHERE world_id = $1 AND user_id = $2 AND role IN ('owner', 'editor')`,
+    [room.rows[0].world_id, actorId]
+  );
+  if (editor.rowCount) {
+    return healRoomHostMembership(roomId, actorId);
   }
 
   throwErr("ROOM_MEMBERSHIP_REQUIRED");

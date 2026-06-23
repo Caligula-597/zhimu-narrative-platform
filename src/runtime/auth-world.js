@@ -290,7 +290,10 @@ async function setRoomPublicListing(roomId,publicListing){
 }
 
 async function selectParallelRoom(roomId){
- window.zhimuContext?.prepareRoomSwitch?.(roomId);closeModal();await loadCloudData(true,true);showToast("已切换到独立平行房");
+ let roomName="";
+ try{roomName=(await zhimuApi.getWorldRooms()).find((room)=>room.id===roomId)?.name||""}catch{/* best-effort */}
+ window.zhimuContext?.prepareRoomSwitch?.(roomId);closeModal();await loadCloudData(true,true);
+ showToast(roomName?`已切换到「${roomName}」`:"已切换到独立平行房");
 }
 
 function openCurrentRoomInvite(){
