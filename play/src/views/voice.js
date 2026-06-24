@@ -25,6 +25,7 @@ function renderVoiceHubActions(room, connected, connecting, failed) {
       <div class="voice-hub-btns">
         ${connected
           ? `
+          ${state.voicePlaybackBlocked ? `<button class="btn primary compact" type="button" data-action="voice-playback-unlock">开启扬声器</button>` : ""}
           <button class="btn outline compact" type="button" data-action="voice-mic-toggle">${state.voiceMicEnabled ? "🎙 麦克风开" : "🔇 麦克风关"}</button>
           <button class="btn quiet compact" type="button" data-action="voice-live-disconnect">退出音频</button>`
           : room && !connecting

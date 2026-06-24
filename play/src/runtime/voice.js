@@ -5,11 +5,13 @@ import { state } from "../state.js";
 import {
   connectVoiceRoom,
   disconnectVoiceRoom,
+  startVoicePlayback,
   toggleVoiceMic
 } from "../voice/livekit-voice.js";
 
 export function voiceLiveStatusLabel() {
   if (state.voiceLiveStatus === "error" && state.voiceLiveError) return state.voiceLiveError;
+  if (state.voicePlaybackBlocked) return "音频已连接 · 请点击「开启扬声器」";
   return (
     {
       idle: "音频未连接",
@@ -102,6 +104,16 @@ export async function toggleVoiceMicLive({ render, setToast } = {}) {
     setToast?.(enabled ? "麦克风已开启" : "麦克风已关闭", render);
   } catch (error) {
     setToast?.(error.message || "麦克风切换失败", render);
+  }
+}
+
+export async function unlockVoicePlayback({ render, setToast } = {}) {
+  try {
+    const ok = await startVoicePlayback();
+    setToast?.(ok ? "扬声器已开启" : "仍无法播放，请检查浏览器音量或权限", render);
+    render?.();
+  } catch (error) {
+    setToast?.(error.message || "无法开启扬声器", render);
   }
 }
 
@@ -218,6 +230,7 @@ export async function resetVoiceOnLeave() {
   state.voiceParticipants = [];
   state.voiceLiveStatus = "idle";
   state.voiceMicEnabled = false;
+  state.voicePlaybackBlocked = false;
   state.voiceLiveError = "";
   state.voiceChatDraft = "";
 }

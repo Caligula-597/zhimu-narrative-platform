@@ -81,10 +81,11 @@ function player(){
 
 function voiceLiveStatusLabel(){
  if(state.voiceLiveStatus==="error"&&state.voiceLiveError)return state.voiceLiveError;
+ if(state.voicePlaybackBlocked)return "音频已连接 · 请点击「开启扬声器」";
  return ({idle:"音频未连接",connecting:"正在连接 LiveKit…",connected:"音频已连接",error:"音频连接失败 · 仍可使用文字频道"})[state.voiceLiveStatus]||"音频未连接";
 }
 
-function voiceHub(){const room=(state.cloudPlayer?.voiceRooms||[]).find(item=>item.id===state.voiceRoomId),participants=voiceHubParticipants(),connected=state.voiceLiveStatus==="connected",connecting=state.voiceLiveStatus==="connecting",failed=state.voiceLiveStatus==="error";return `<section class="voice-stack"><section class="voice-hub ${failed?"voice-hub-error":""}"><div class="voice-hub-left"><div class="voice-hub-icon">${connected?"🎙":connecting?"…":"♬"}</div><div><strong>语音空间 · ${escapeHtml(room?.name||"尚未选择")}</strong><p>${room?.room_type==="public"?"所有房间成员可进入":"私密通话 · 仅受邀玩家可见"} · ${voiceLiveStatusLabel()}${connected&&participants.length?` · ${participants.length} 人在线`:""}</p></div></div><div class="row voice-hub-actions"><div class="voice-hub-users">${participants.slice(0,8).map(participant=>`<div class="avatar ${participant.micEnabled===false?"avatar-muted":""}" title="${escapeHtml(participant.name)}">${escapeHtml(String(participant.name)[0])}</div>`).join("")}</div>${connected?`<button class="secondary-btn" data-action="voice-mic-toggle">${state.voiceMicEnabled?"🎙 麦克风开":"🔇 麦克风关"}</button><button class="secondary-btn" data-action="voice-live-disconnect">退出音频</button>`:(room&&!connecting?`<button class="primary-btn" data-action="voice-live-connect">${failed?"重试音频连接":"连接音频"}</button>`:"")}<button class="secondary-btn" data-action="voice-room">切换语音房</button></div></section>${voiceChat()}</section>`}
+function voiceHub(){const room=(state.cloudPlayer?.voiceRooms||[]).find(item=>item.id===state.voiceRoomId),participants=voiceHubParticipants(),connected=state.voiceLiveStatus==="connected",connecting=state.voiceLiveStatus==="connecting",failed=state.voiceLiveStatus==="error";return `<section class="voice-stack"><section class="voice-hub ${failed?"voice-hub-error":""}"><div class="voice-hub-left"><div class="voice-hub-icon">${connected?"🎙":connecting?"…":"♬"}</div><div><strong>语音空间 · ${escapeHtml(room?.name||"尚未选择")}</strong><p>${room?.room_type==="public"?"所有房间成员可进入":"私密通话 · 仅受邀玩家可见"} · ${voiceLiveStatusLabel()}${connected&&participants.length?` · ${participants.length} 人在线`:""}</p></div></div><div class="row voice-hub-actions"><div class="voice-hub-users">${participants.slice(0,8).map(participant=>`<div class="avatar ${participant.micEnabled===false?"avatar-muted":""}" title="${escapeHtml(participant.name)}">${escapeHtml(String(participant.name)[0])}</div>`).join("")}</div>${connected?`${state.voicePlaybackBlocked?`<button class="primary-btn" data-action="voice-playback-unlock">开启扬声器</button>`:""}<button class="secondary-btn" data-action="voice-mic-toggle">${state.voiceMicEnabled?"🎙 麦克风开":"🔇 麦克风关"}</button><button class="secondary-btn" data-action="voice-live-disconnect">退出音频</button>`:(room&&!connecting?`<button class="primary-btn" data-action="voice-live-connect">${failed?"重试音频连接":"连接音频"}</button>`:"")}<button class="secondary-btn" data-action="voice-room">切换语音房</button></div></section>${voiceChat()}</section>`}
 
 function voiceChat(){const messages=state.voiceMessages||[];return `<article class="voice-chat"><div class="voice-chat-head"><div><strong>房内文字频道</strong><p>文字消息与 LiveKit 音频并行；无音频配置时仍可使用文字讨论。</p></div><button class="text-btn" data-action="voice-chat-refresh">刷新</button></div><div class="voice-chat-log">${messages.length?messages.map(message=>`<div class="voice-message"><b>${escapeHtml(message.sender_name||"玩家")}</b><span>${formatTime(message.created_at)}</span><p>${escapeHtml(message.body)}</p></div>`).join(""):`<div class="empty-state">当前语音房还没有消息。</div>`}</div><div class="voice-chat-compose"><input class="field" data-voice-chat-input placeholder="发送给当前语音房成员"><button class="primary-btn" data-action="voice-chat-send">发送</button></div></article>`}
 
@@ -277,6 +278,14 @@ async function toggleVoiceMic(){
  try{
   const enabled=await window.zhimuLiveKitVoice.toggleVoiceMic();
   showToast(enabled?"麦克风已开启":"麦克风已关闭");
+ }catch(error){showToast(error.message)}
+}
+
+async function unlockVoicePlayback(){
+ try{
+  const ok=await window.zhimuLiveKitVoice.startVoicePlayback?.();
+  showToast(ok?"扬声器已开启":"仍无法播放，请检查浏览器音量或权限");
+  render();
  }catch(error){showToast(error.message)}
 }
 
@@ -484,6 +493,7 @@ function openClueNoteModal(clueId){
   viewExports.connectVoiceLive = connectVoiceLive;
   viewExports.disconnectVoiceLive = disconnectVoiceLive;
   viewExports.toggleVoiceMic = toggleVoiceMic;
+  viewExports.unlockVoicePlayback = unlockVoicePlayback;
   viewExports.refreshVoiceMessages = refreshVoiceMessages;
   viewExports.sendVoiceMessage = sendVoiceMessage;
   viewExports.bindPlayerReader = bindPlayerReader;

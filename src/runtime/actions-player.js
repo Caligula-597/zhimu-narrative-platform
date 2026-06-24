@@ -12,6 +12,7 @@
       case "voice-live-connect": P.connectVoiceLive?.(); return true;
       case "voice-live-disconnect": P.disconnectVoiceLive?.(); return true;
       case "voice-mic-toggle": P.toggleVoiceMic?.(); return true;
+      case "voice-playback-unlock": P.unlockVoicePlayback?.(); return true;
       case "voice-chat-refresh": P.refreshVoiceMessages?.(); return true;
       case "voice-chat-send": P.sendVoiceMessage?.(); return true;
       case "read-cloud-next": P.completeCloudReading?.(el?.dataset?.section); return true;

@@ -75,6 +75,7 @@ export const state = {
   voiceLiveStatus: "idle",
   voiceMicEnabled: false,
   voiceParticipants: [],
+  voicePlaybackBlocked: false,
   voiceLiveError: "",
   voiceChatDraft: "",
   voiceInviteUserIds: [],

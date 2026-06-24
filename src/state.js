@@ -41,6 +41,7 @@ window.zhimuState = {
   cluesSelectedId: null,
   cluesBulkSelection: [],
   voiceLiveError: "",
+  voicePlaybackBlocked: false,
   cloudAssets: [],
   assetKindFilter: "",
   assetSearchQuery: "",

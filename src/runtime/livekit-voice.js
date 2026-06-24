@@ -4,6 +4,7 @@
   let room = null;
   let disconnecting = false;
   let livekitLoadPromise = null;
+  let audioRoot = null;
   const LIVEKIT_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/livekit-client@2.15.3/dist/livekit-client.umd.min.js";
 
   function liveKitSdk() {
@@ -61,6 +62,78 @@
     if (state.view === "player") window.zhimuRender?.();
   }
 
+  function ensureAudioRoot() {
+    if (audioRoot?.isConnected) return audioRoot;
+    audioRoot = document.getElementById("zhimu-voice-audio-root");
+    if (!audioRoot) {
+      audioRoot = document.createElement("div");
+      audioRoot.id = "zhimu-voice-audio-root";
+      audioRoot.hidden = true;
+      audioRoot.setAttribute("aria-hidden", "true");
+      document.body.appendChild(audioRoot);
+    }
+    return audioRoot;
+  }
+
+  function clearAudioRoot() {
+    if (audioRoot) audioRoot.replaceChildren();
+  }
+
+  function attachRemoteAudioTrack(track, Track) {
+    if (!track || track.kind !== Track.Kind.Audio) return;
+    const root = ensureAudioRoot();
+    const element = track.attach();
+    if (element && !element.isConnected) root.appendChild(element);
+  }
+
+  function detachRemoteAudioTrack(track) {
+    if (!track) return;
+    for (const element of track.detach()) {
+      element.remove();
+    }
+  }
+
+  function attachExistingRemoteAudio(activeRoom, Track) {
+    for (const participant of activeRoom.remoteParticipants.values()) {
+      for (const publication of participant.trackPublications.values()) {
+        if (publication.track) attachRemoteAudioTrack(publication.track, Track);
+      }
+    }
+  }
+
+  function wireRoomAudioPlayback(activeRoom, sdk) {
+    const { RoomEvent, Track } = sdk;
+    activeRoom.on(RoomEvent.TrackSubscribed, (track) => {
+      attachRemoteAudioTrack(track, Track);
+      renderIfPlayer();
+    });
+    activeRoom.on(RoomEvent.TrackUnsubscribed, (track) => {
+      detachRemoteAudioTrack(track);
+      renderIfPlayer();
+    });
+    activeRoom.on(RoomEvent.AudioPlaybackStatusChanged, () => {
+      state.voicePlaybackBlocked = !activeRoom.canPlaybackAudio;
+      renderIfPlayer();
+    });
+  }
+
+  async function tryStartRoomAudio(activeRoom) {
+    if (!activeRoom?.startAudio) return;
+    try {
+      await activeRoom.startAudio();
+      state.voicePlaybackBlocked = !activeRoom.canPlaybackAudio;
+    } catch {
+      state.voicePlaybackBlocked = true;
+    }
+  }
+
+  async function startVoicePlayback() {
+    if (!room) return false;
+    await tryStartRoomAudio(room);
+    renderIfPlayer();
+    return !state.voicePlaybackBlocked;
+  }
+
   async function disconnectVoiceRoom() {
     if (!room || disconnecting) {
       state.voiceLiveStatus = "idle";
@@ -82,6 +155,8 @@
       state.voiceMicEnabled = false;
       state.voiceParticipants = [];
       state.voiceLiveError = "";
+      state.voicePlaybackBlocked = false;
+      clearAudioRoot();
       renderIfPlayer();
     }
   }
@@ -110,11 +185,13 @@
     await disconnectVoiceRoom();
     state.voiceLiveStatus = "connecting";
     state.voiceLiveError = "";
+    state.voicePlaybackBlocked = false;
     renderIfPlayer();
     const nextRoom = new sdk.Room({
       adaptiveStream: true,
       dynacast: true
     });
+    wireRoomAudioPlayback(nextRoom, sdk);
     nextRoom.on(sdk.RoomEvent.ParticipantConnected, () => {
       syncParticipants(nextRoom);
       renderIfPlayer();
@@ -157,6 +234,8 @@
       state.voiceMicEnabled = false;
       state.voiceLiveError = friendlyConnectError(error);
     }
+    attachExistingRemoteAudio(nextRoom, sdk.Track);
+    await tryStartRoomAudio(nextRoom);
     syncParticipants(nextRoom);
     renderIfPlayer();
     return nextRoom;
@@ -176,6 +255,7 @@
     connectVoiceRoom,
     disconnectVoiceRoom,
     toggleVoiceMic,
+    startVoicePlayback,
     isConnected: () => Boolean(room)
   };
 })(window);

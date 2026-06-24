@@ -63,6 +63,8 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   const gameSource = readFileSync(path.join(root, "src", "views", "game.js"), "utf8");
   assert.match(voiceSource, /renderVoiceTab/);
   assert.match(livekitSource, /connectVoiceRoom/);
+  assert.match(livekitSource, /TrackSubscribed/);
+  assert.match(livekitSource, /startVoicePlayback/);
   assert.match(mainSource, /patchGameView/);
   const patchSource = readFileSync(path.join(root, "src", "runtime", "patch-game.js"), "utf8");
   assert.match(patchSource, /data-game-tab-body/);

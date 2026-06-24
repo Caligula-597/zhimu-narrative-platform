@@ -26,7 +26,8 @@ import {
   sendVoiceChatMessage,
   submitCreateVoiceRoom,
   submitVoiceInvite,
-  toggleVoiceMicLive
+  toggleVoiceMicLive,
+  unlockVoicePlayback
 } from "./runtime/voice.js";
 import { bindPlayReader } from "./runtime/reader.js";
 import { patchGameView, patchGameHostBanner, patchGameTabSwitch, patchGameSectionsTab, isGameInputFocused } from "./runtime/patch-game.js";
@@ -1554,6 +1555,9 @@ app.addEventListener("click", async (event) => {
       break;
     case "voice-mic-toggle":
       await toggleVoiceMicLive({ render, setToast });
+      break;
+    case "voice-playback-unlock":
+      await unlockVoicePlayback({ render, setToast });
       break;
     case "voice-chat-refresh":
       try {
