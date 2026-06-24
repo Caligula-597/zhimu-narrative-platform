@@ -141,6 +141,23 @@
           showToast("有新玩家加入房间", 2800);
         }
         break;
+      case "room.player_kicked":
+        if (state.view === "director" || state.view === "overview") {
+          await R.refreshHostPlayers?.(false, true);
+          showToast("已移出玩家", 2800);
+        } else if (
+          state.view === "player"
+          && data.userId
+          && String(data.userId) === String(zhimuApi.context.playerUserId)
+        ) {
+          state.cloudPlayer = null;
+          showToast(
+            data.roleName ? `你已被移出角色「${data.roleName}」` : "你已被主持人移出房间",
+            3600
+          );
+          window.zhimuRuntime?.go?.("overview");
+        }
+        break;
       case "room.section_completed":
         if (state.view === "director" || state.view === "overview") {
           await R.refreshHostPlayers?.(false, true);

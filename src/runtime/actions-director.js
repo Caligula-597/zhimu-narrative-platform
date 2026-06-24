@@ -11,6 +11,7 @@
       case "delay-event": D.openDelayHostEventModal?.(el?.dataset?.event); return true;
       case "host-event-context": D.openHostEventContext?.(el?.dataset?.event); return true;
       case "host-player-detail": D.openHostPlayerDetail?.(el?.dataset?.role); return true;
+      case "host-kick-player": D.kickHostPlayer?.(el?.dataset?.role); return true;
       case "host-manual-grant-clue": D.openHostGrantClueModal?.(); return true;
       case "host-manual-grant-item": D.openHostGrantItemModal?.(); return true;
       case "host-manual-unlock-section": D.openHostUnlockSectionModal?.(); return true;

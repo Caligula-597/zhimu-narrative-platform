@@ -267,6 +267,8 @@ window.zhimuApi = {
   hostNudgeWaiting: (payload) =>
     request(`/rooms/${demoContext.roomId}/host/nudge-waiting`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   hostSaveNotes: (roleSlotId, notes) => request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}/notes`, { userId: demoContext.hostUserId, method: "PUT", body: { notes } }),
+  hostKickPlayer: (roleSlotId) =>
+    request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}/kick`, { userId: demoContext.hostUserId, method: "POST", idempotent: true }),
   getExploration: () => request(`/rooms/${demoContext.roomId}/exploration`, { userId: demoContext.playerUserId }),
   investigate: (pointId) =>
     request(`/rooms/${demoContext.roomId}/investigation-points/${pointId}/investigate`, { userId: demoContext.playerUserId, method: "POST", idempotent: true }),

@@ -12,6 +12,7 @@ import { listPlayerInventory, consumeItemIfNeeded } from "../inventory-helpers.j
 import { requireRoomRole } from "./route-guards.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { fetchPlayerHostConfirmStatus } from "./host-helpers.js";
+import { prepareRoleSlotForJoin } from "../role-slot-runtime-helpers.js";
 import {
   cluePlayerNoteSchema,
   clueShareRoomSchema,
@@ -127,6 +128,7 @@ export async function registerPlayerRoutes(app) {
           err.code = "ROLE_SLOT_OCCUPIED";
           throw err;
         }
+        await prepareRoleSlotForJoin(client, room.rows[0].id, roleSlotId, actorId);
         await client.query(
           `INSERT INTO room_members (room_id, user_id, member_type, role_slot_id)
            VALUES ($1, $2, 'player', $3)

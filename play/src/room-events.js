@@ -104,6 +104,13 @@ async function handleRoomEvent(type, data, ctx) {
       }
       break;
     }
+    case "room.player_kicked": {
+      const myId = ctx.getUserId?.();
+      if (myId && data.userId && String(data.userId) === String(myId)) {
+        ctx.onKicked?.(data);
+      }
+      break;
+    }
     case "room.voice_message_created":
       if (data.voiceRoomId === ctx.getVoiceRoomId?.()) {
         ctx.onVoiceRefresh?.();

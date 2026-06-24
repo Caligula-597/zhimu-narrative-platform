@@ -42,6 +42,7 @@
       host_grant_clue: "手动发线索",
       host_grant_item: "手动发物品",
       host_event_delayed: "延迟待确认事件",
+      host_kick_player: "踢出玩家",
       checkpoint_restore: "存档点恢复",
       delay_expired: "延迟到期唤醒"
     };
@@ -53,6 +54,7 @@
     if (entry.action === "host_event_delayed") return `延迟 ${meta.delayMinutes ?? "?"} 分钟`;
     if (entry.action === "host_grant_clue") return `发放给 ${(meta.roleSlotIds || []).length} 名玩家`;
     if (entry.action === "host_grant_item") return `发放给 ${meta.roleSlotId ? "1" : "0"} 名玩家`;
+    if (entry.action === "host_kick_player") return meta.displayName ? `移出 ${meta.displayName}` : meta.roleName ? `角色 ${meta.roleName}` : "";
     if (entry.action === "checkpoint_restore") {
       const scope = meta.scope && typeof meta.scope === "object" ? Object.entries(meta.scope).filter(([, v]) => v).map(([k]) => k) : [];
       return scope.length ? `回滚域：${scope.join("、")}${meta.crossRoom ? " · 跨平行房" : ""}` : meta.crossRoom ? "跨平行房恢复" : "已应用恢复";
@@ -75,6 +77,7 @@
       scene_unlocked: "开放场景",
       host_event_executed: "主持确认",
       host_event_dismissed: "主持拒绝",
+      player_kicked: "玩家被移出",
       host_note: "主持备注",
       rule_action: "规则动作",
       clue_read: "线索阅读",

@@ -257,6 +257,7 @@ const roomEventCtx = {
   getView: () => state.view,
   getRoomId: () => state.roomId,
   getRoleId: () => state.home?.role?.id || "",
+  getUserId: () => state.user?.id || "",
   getTab: () => state.tab,
   getVoiceRoomId: () => state.voiceRoomId || "",
   bumpTabPulse,
@@ -275,6 +276,7 @@ const roomEventCtx = {
   onRefresh: () => coalescedPartialRefresh(),
   onToast: (message) => setToast(message, render),
   onAuthLost: handleAuthLost,
+  onKicked: handleKicked,
   setHostNudge: (message) => {
     state.hostNudge = message ? { message } : null;
     if (state.view === "game" && !patchGameHostBanner()) render();
@@ -345,6 +347,21 @@ async function goToLanding() {
   state.dmConversationId = "";
   state.dmThread = null;
   syncPlatformStream();
+  render();
+}
+
+async function handleKicked(data) {
+  disconnectRoomEvents(roomEventCtx);
+  await pauseVoiceSession();
+  persistRoom("", isUuid);
+  state.home = null;
+  state.exploration = null;
+  state.view = "landing";
+  const message = data?.roleName
+    ? `主持人已将你移出角色「${data.roleName}」。同账号重新选角可继承进度。`
+    : "主持人已将你移出房间。同账号重新选角可继承进度。";
+  state.error = message;
+  setToast(message, render);
   render();
 }
 
