@@ -3,6 +3,7 @@ import { patchPlayToast } from "./runtime/sync-helpers.js";
 export const ROOM_KEY = "zhimuPlayActiveRoomId";
 export const GAME_TAB_KEY = "zhimuPlayGameTab";
 export const GAME_SECTION_KEY = "zhimuPlayGameSection";
+export const GAME_SIDEBAR_KEY = "zhimuPlayGameSidebarCollapsed";
 
 const VALID_GAME_TABS = new Set(["home", "voice", "sections", "explore", "clues", "inventory", "recap"]);
 
@@ -13,6 +14,14 @@ function readStoredRoomId() {
 function readStoredGameTab() {
   const tab = localStorage.getItem(GAME_TAB_KEY) || "home";
   return VALID_GAME_TABS.has(tab) ? tab : "home";
+}
+
+/** Default collapsed so players land on the overview tab, not the role sidebar. */
+function readStoredSidebarCollapsed() {
+  const stored = localStorage.getItem(GAME_SIDEBAR_KEY);
+  if (stored === "0") return false;
+  if (stored === "1") return true;
+  return true;
 }
 
 const storedRoomId = readStoredRoomId();
@@ -81,7 +90,7 @@ export const state = {
   lobbyError: "",
   friendsError: "",
   hostNudge: null,
-  gameSidebarCollapsed: false,
+  gameSidebarCollapsed: readStoredSidebarCollapsed(),
   pendingRoomRefresh: false,
   dmScrollStickBottom: false,
   voiceScrollStickBottom: false,
@@ -131,6 +140,10 @@ export function setToast(message, render, { patch = false } = {}) {
 export function setBusy(busy, render) {
   state.busy = busy;
   render();
+}
+
+export function persistGameSidebarCollapsed(collapsed) {
+  localStorage.setItem(GAME_SIDEBAR_KEY, collapsed ? "1" : "0");
 }
 
 export function persistGameSession(stateRef = state) {

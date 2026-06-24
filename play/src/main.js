@@ -43,6 +43,7 @@ import {
   dmUnreadTotal,
   persistRoom,
   persistGameSession,
+  persistGameSidebarCollapsed,
   setBusy,
   setToast,
   state
@@ -1607,6 +1608,7 @@ app.addEventListener("click", async (event) => {
       break;
     case "toggle-sidebar":
       state.gameSidebarCollapsed = !state.gameSidebarCollapsed;
+      persistGameSidebarCollapsed(state.gameSidebarCollapsed);
       render();
       break;
     case "go-messages-ingame":

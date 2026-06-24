@@ -83,7 +83,10 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(headerSource, /data-role-pill="1"/);
   const stateSource = readFileSync(path.join(root, "src", "state.js"), "utf8");
   assert.match(stateSource, /GAME_TAB_KEY/);
-  assert.match(stateSource, /view: storedRoomId \? "game" : "landing"/);
+  assert.match(stateSource, /GAME_SIDEBAR_KEY/);
+  assert.match(stateSource, /readStoredSidebarCollapsed/);
+  const gameViewSource = readFileSync(path.join(root, "src", "views", "game.js"), "utf8");
+  assert.match(gameViewSource, /game-main[\s\S]*game-sidebar/s);
   const shellSource = readFileSync(path.join(root, "src", "components", "shell.js"), "utf8");
   assert.match(shellSource, /renderGameResume/);
   const landingSource = readFileSync(path.join(root, "src", "views", "landing.js"), "utf8");

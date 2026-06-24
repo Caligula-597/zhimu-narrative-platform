@@ -424,9 +424,6 @@ export function renderGame() {
       <button class="sidebar-toggle btn outline full" type="button" data-action="toggle-sidebar" aria-expanded="${state.gameSidebarCollapsed ? "false" : "true"}">
         ${state.gameSidebarCollapsed ? "展开角色与成员" : "收起侧栏"}
       </button>
-      <aside class="game-sidebar" data-game-sidebar>
-        ${renderGameSidebar()}
-      </aside>
       <div class="game-main">
         <nav class="tab-bar" data-game-tab-bar aria-label="玩家功能" role="tablist">
           ${renderGameTabBar()}
@@ -434,5 +431,8 @@ export function renderGame() {
         <div data-game-host-banner>${renderHostConfirmBannerHtml()}</div>
         <div class="tab-body" data-game-tab-body role="tabpanel" aria-labelledby="play-tab-${state.tab}">${renderGameTabBody()}</div>
       </div>
+      <aside class="game-sidebar" data-game-sidebar>
+        ${renderGameSidebar()}
+      </aside>
     </section>`;
 }

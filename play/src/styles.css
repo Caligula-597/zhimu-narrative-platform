@@ -180,10 +180,22 @@ button {
 
 .sidebar-toggle {
   display: none;
+  grid-area: toggle;
 }
 
 .game-shell.sidebar-collapsed .game-sidebar {
   display: none;
+}
+
+.game-shell.sidebar-collapsed {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "toggle"
+    "main";
+}
+
+.game-shell.sidebar-collapsed .sidebar-toggle {
+  display: block;
 }
 
 .play-main {
@@ -412,27 +424,46 @@ button {
 .game-shell {
   display: grid;
   grid-template-columns: minmax(220px, 260px) 1fr;
+  grid-template-areas:
+    "toggle toggle"
+    "sidebar main";
   gap: 20px;
   align-items: start;
+}
+
+.game-sidebar {
+  grid-area: sidebar;
+}
+
+.game-main {
+  grid-area: main;
 }
 
 @media (max-width: 860px) {
   .game-shell {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "toggle"
+      "main"
+      "sidebar";
+  }
+
+  .game-shell.sidebar-collapsed {
+    grid-template-areas:
+      "toggle"
+      "main";
   }
 
   .sidebar-toggle {
     display: block;
-    grid-column: 1 / -1;
-    margin-bottom: 4px;
   }
 
   .game-shell .game-main {
-    order: 2;
+    order: unset;
   }
 
   .game-shell .game-sidebar {
-    order: 3;
+    order: unset;
   }
 
   .tab-bar {
