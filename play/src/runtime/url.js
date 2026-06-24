@@ -39,6 +39,8 @@ export function applyUrlToState(appState, params = new URLSearchParams(window.lo
   if (view && VIEW_KEYS.has(view)) {
     if (view === "game" && !appState.roomId) return;
     appState.view = view;
+  } else if (appState.roomId && appState.view === "landing" && !joinCode) {
+    appState.view = "game";
   }
   const tab = params.get("tab");
   if (tab && GAME_TABS.has(tab) && appState.view === "game") {

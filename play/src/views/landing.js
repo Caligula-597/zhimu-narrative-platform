@@ -4,7 +4,20 @@ import { state } from "../state.js";
 
 function renderOfficialExampleCard() {
   const example = state.platform?.officialExample;
-  if (!example?.configured) return "";
+  if (!example?.configured) {
+    if (state.busy && !state.platform) {
+      return `
+    <article class="entry-card entry-card-demo entry-card-placeholder" aria-busy="true">
+      <div class="entry-card-head">
+        <p class="eyebrow">无需邀请码</p>
+        <h3>官方示例剧本</h3>
+      </div>
+      <p class="entry-card-lede muted">正在加载示例配置…</p>
+      <div class="entry-card-skeleton" aria-hidden="true"></div>
+    </article>`;
+    }
+    return "";
+  }
   const available = example.available;
   return `
     <article class="entry-card entry-card-demo ${available ? "" : "is-disabled"}">

@@ -914,6 +914,19 @@ button {
   background: linear-gradient(165deg, #fffdf8 0%, #f3efe4 100%);
 }
 
+.entry-card-placeholder .entry-card-skeleton {
+  height: 44px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(43, 107, 97, 0.08) 25%, rgba(43, 107, 97, 0.16) 50%, rgba(43, 107, 97, 0.08) 75%);
+  background-size: 200% 100%;
+  animation: landing-skeleton 1.2s ease-in-out infinite;
+}
+
+@keyframes landing-skeleton {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 .entry-card.is-disabled {
   opacity: 0.72;
 }

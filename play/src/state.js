@@ -1,16 +1,31 @@
 import { patchPlayToast } from "./runtime/sync-helpers.js";
 
 export const ROOM_KEY = "zhimuPlayActiveRoomId";
+export const GAME_TAB_KEY = "zhimuPlayGameTab";
+export const GAME_SECTION_KEY = "zhimuPlayGameSection";
+
+const VALID_GAME_TABS = new Set(["home", "voice", "sections", "explore", "clues", "inventory", "recap"]);
+
+function readStoredRoomId() {
+  return localStorage.getItem(ROOM_KEY) || "";
+}
+
+function readStoredGameTab() {
+  const tab = localStorage.getItem(GAME_TAB_KEY) || "home";
+  return VALID_GAME_TABS.has(tab) ? tab : "home";
+}
+
+const storedRoomId = readStoredRoomId();
 
 export const state = {
   user: null,
   authConfig: null,
   platform: null,
-  roomId: localStorage.getItem(ROOM_KEY) || "",
+  roomId: storedRoomId,
   home: null,
   exploration: null,
-  tab: "home",
-  sectionId: "",
+  tab: storedRoomId ? readStoredGameTab() : "home",
+  sectionId: storedRoomId ? (localStorage.getItem(GAME_SECTION_KEY) || "") : "",
   clueId: "",
   inviteCode: "",
   joinPreview: null,
@@ -33,7 +48,7 @@ export const state = {
   dmDraftBody: "",
   selectedRoleId: "",
   joinStep: 1,
-  view: "landing",
+  view: storedRoomId ? "game" : "landing",
   authMode: "login",
   resetToken: "",
   pendingVerifyToken: "",
@@ -118,11 +133,26 @@ export function setBusy(busy, render) {
   render();
 }
 
+export function persistGameSession(stateRef = state) {
+  if (!stateRef.roomId) return;
+  localStorage.setItem(GAME_TAB_KEY, stateRef.tab || "home");
+  if (stateRef.sectionId) localStorage.setItem(GAME_SECTION_KEY, stateRef.sectionId);
+  else localStorage.removeItem(GAME_SECTION_KEY);
+}
+
+export function clearGameSession() {
+  localStorage.removeItem(GAME_TAB_KEY);
+  localStorage.removeItem(GAME_SECTION_KEY);
+}
+
 export function persistRoom(roomId, isUuid) {
   const next = roomId && isUuid(roomId) ? roomId : "";
   state.roomId = next;
   if (next) localStorage.setItem(ROOM_KEY, next);
-  else localStorage.removeItem(ROOM_KEY);
+  else {
+    localStorage.removeItem(ROOM_KEY);
+    clearGameSession();
+  }
 }
 
 export function playerProgress(home) {

@@ -78,6 +78,17 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.doesNotMatch(readerSource, /onRefresh/);
   assert.match(mainSource, /executedRules\?\.\length/);
   assert.match(mainSource, /setToast\("已标记阅读完成", render, \{ patch: true \}/);
+  const headerSource = readFileSync(path.join(root, "src", "components", "header.js"), "utf8");
+  assert.match(headerSource, /data-room-pill="1"/);
+  assert.match(headerSource, /data-role-pill="1"/);
+  const stateSource = readFileSync(path.join(root, "src", "state.js"), "utf8");
+  assert.match(stateSource, /GAME_TAB_KEY/);
+  assert.match(stateSource, /view: storedRoomId \? "game" : "landing"/);
+  const shellSource = readFileSync(path.join(root, "src", "components", "shell.js"), "utf8");
+  assert.match(shellSource, /renderGameResume/);
+  const landingSource = readFileSync(path.join(root, "src", "views", "landing.js"), "utf8");
+  assert.match(landingSource, /entry-card-placeholder/);
+  assert.match(mainSource, /paintLandingAfterBootstrap/);
   assert.match(gameSource, /hostConfirmBanner/);
   assert.match(apiSource, /notebook/);
   assert.match(apiSource, /recap\/latest/);

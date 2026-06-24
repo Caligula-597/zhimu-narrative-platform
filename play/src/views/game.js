@@ -5,6 +5,15 @@ import { applyStoryHighlights, sectionHighlights } from "../utils/highlights.js"
 import { renderVoiceCompact, renderVoiceTab } from "./voice.js";
 import { renderRecapTab } from "./recap.js";
 
+export function renderGameResume() {
+  return `
+    <section class="game-resume card">
+      <p class="eyebrow">恢复对局</p>
+      <h2>正在进入房间…</h2>
+      <p class="muted">读取你的角色、分幕与线索进度</p>
+    </section>`;
+}
+
 function hostNudgeBanner() {
   const nudge = state.hostNudge;
   if (!nudge?.message) return "";

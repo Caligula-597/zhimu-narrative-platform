@@ -81,6 +81,17 @@ export function patchPlayHeaderChrome(state) {
 
   const roomName = state.home?.room?.name || "";
   const roleName = state.home?.role?.name || "";
+
+  meta.querySelectorAll(".pill[data-room-pill]").forEach((pill, index) => {
+    if (index > 0) pill.remove();
+  });
+  meta.querySelectorAll(".pill[data-role-pill]").forEach((pill, index) => {
+    if (index > 0) pill.remove();
+  });
+  meta.querySelectorAll(".pill.live").forEach((pill, index) => {
+    if (index > 0) pill.remove();
+  });
+
   let roomPill = meta.querySelector(".pill[data-room-pill]");
   if (roomName) {
     if (!roomPill) {

@@ -36,8 +36,8 @@ export function renderHeader() {
         <span><strong>织幕</strong><small>玩家端</small></span>
       </a>
       <div class="header-meta">
-        ${roomName ? `<span class="pill">${escapeHtml(roomName)}</span>` : ""}
-        ${roleName ? `<span class="pill accent">${escapeHtml(roleName)}</span>` : ""}
+        ${roomName ? `<span class="pill" data-room-pill="1">${escapeHtml(roomName)}</span>` : ""}
+        ${roleName ? `<span class="pill accent" data-role-pill="1">${escapeHtml(roleName)}</span>` : ""}
         ${showSyncPill() ? `<span class="pill live ${syncReconnect ? "is-reconnecting" : ""}">${escapeHtml(syncLabel)}</span>` : ""}
         ${sessionLabel && !roleName ? `<span class="pill ${state.user?.isGuest ? "guest" : "session"}">${escapeHtml(sessionLabel)}</span>` : ""}
       </div>

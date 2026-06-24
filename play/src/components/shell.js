@@ -6,7 +6,7 @@ import { escapeHtml } from "../security.js";
 import { renderSyncStatusBannerHtml } from "../runtime/sync-helpers.js";
 import { state } from "../state.js";
 import { renderAuth } from "../views/auth.js";
-import { renderGame } from "../views/game.js";
+import { renderGame, renderGameResume } from "../views/game.js";
 import { renderJoin } from "../views/join.js";
 import { renderLanding } from "../views/landing.js";
 import { renderLobby } from "../views/lobby.js";
@@ -22,7 +22,10 @@ function renderMainView() {
   if (state.view === "messages") return renderMessages();
   if (state.view === "dm") return renderDm();
   if (state.view === "join") return renderJoin();
-  if (state.view === "game" && state.home) return renderGame();
+  if (state.view === "game" && state.roomId) {
+    if (state.home) return renderGame();
+    return renderGameResume();
+  }
   return renderLanding();
 }
 

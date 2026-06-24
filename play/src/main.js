@@ -42,6 +42,7 @@ import {
   clearTabPulse,
   dmUnreadTotal,
   persistRoom,
+  persistGameSession,
   setBusy,
   setToast,
   state
@@ -59,6 +60,7 @@ function patchSyncChromeOrRender() {
 }
 
 function render() {
+  if (state.view === "game" && state.roomId) persistGameSession();
   const restoreKey = scrollRestoreKey(state);
   const scrollTop = window.scrollY;
   const dmEl = state.view === "dm" ? document.querySelector("[data-dm-scroll]") : null;
@@ -372,6 +374,7 @@ async function refreshHome() {
     await pullRoomData();
     state.view = "game";
     state.tab = state.tab || "home";
+    persistGameSession();
     syncRoomStream();
     void loadRecapSummary({ silent: true });
     void loadDmConversations({ silent: true });
@@ -617,11 +620,25 @@ async function loadPublicRooms({ silent = false } = {}) {
 }
 
 async function bootstrap() {
-  setBusy(true, render);
+  const params = new URLSearchParams(window.location.search);
+  applyUrlToState(state, params);
+  const joinCode = normalizeInviteCode(state.inviteCode || params.get("join") || params.get("invite") || "");
+  const wantOfficial = params.get("experience") === "official";
+  if (state.inviteCode) state.inviteCode = joinCode;
+  if (state.roomId && !isUuid(state.roomId)) persistRoom("", isUuid);
+  if (state.roomId && isUuid(state.roomId) && !joinCode && !wantOfficial && !params.get("reset")) {
+    const urlView = params.get("view");
+    if (!urlView || urlView === "game") state.view = "game";
+  }
+
+  const paintLandingAfterBootstrap = state.view === "landing";
+  if (paintLandingAfterBootstrap) {
+    state.busy = true;
+  } else {
+    setBusy(true, render);
+  }
   try {
     await Promise.all([loadAuthConfig(), loadPlatform(), loadPublicRooms({ silent: true })]);
-    const params = new URLSearchParams(window.location.search);
-    applyUrlToState(state, params);
     const oauthCode = params.get("oauth_code");
     const oauthError = params.get("oauth_error");
     if (oauthError) state.error = `OAuth 登录失败：${oauthError}`;
@@ -632,10 +649,6 @@ async function bootstrap() {
       setToast(`欢迎，${result.user.displayName || "玩家"}`, render);
       cleanUrl();
     }
-    const joinCode = normalizeInviteCode(state.inviteCode || params.get("join") || params.get("invite") || "");
-    const wantOfficial = params.get("experience") === "official";
-    if (state.inviteCode) state.inviteCode = joinCode;
-    if (state.roomId && !isUuid(state.roomId)) persistRoom("", isUuid);
     await ensureSession();
     await loadSessionUser();
     if (state.pendingVerifyToken) {
@@ -656,7 +669,7 @@ async function bootstrap() {
     } else if (joinCode) {
       state.inviteCode = joinCode;
       await handleLookupInvite({ silent: true });
-    } else if (state.roomId && (state.view === "game" || state.view === "landing")) {
+    } else if (state.roomId && state.view === "game") {
       await refreshHome();
       if (state.tab === "recap") await loadRecapSummary({ silent: true });
     }
