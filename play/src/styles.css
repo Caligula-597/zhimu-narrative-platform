@@ -974,8 +974,22 @@ button {
 
 .landing-actions {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.landing-actions-signed-in {
+  justify-content: center;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(43, 107, 97, 0.06);
+}
+
+.landing-actions-signed-in p {
+  margin: 0;
+  text-align: center;
 }
 
 .hint.warn {

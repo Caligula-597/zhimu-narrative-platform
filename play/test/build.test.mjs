@@ -87,7 +87,8 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   const shellSource = readFileSync(path.join(root, "src", "components", "shell.js"), "utf8");
   assert.match(shellSource, /renderGameResume/);
   const landingSource = readFileSync(path.join(root, "src", "views", "landing.js"), "utf8");
-  assert.match(landingSource, /entry-card-placeholder/);
+  assert.match(landingSource, /renderLandingAuthActions/);
+  assert.match(landingSource, /landing-actions-signed-in/);
   assert.match(mainSource, /paintLandingAfterBootstrap/);
   assert.match(gameSource, /hostConfirmBanner/);
   assert.match(apiSource, /notebook/);

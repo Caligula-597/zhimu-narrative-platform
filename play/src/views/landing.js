@@ -1,6 +1,38 @@
 import { FLOW_STEPS } from "../constants.js";
 import { escapeHtml } from "../security.js";
 import { state } from "../state.js";
+import { isRegisteredUser, userSessionLabel } from "../utils/user.js";
+
+function renderLandingAuthActions() {
+  const label = userSessionLabel(state.user);
+  if (isRegisteredUser(state.user)) {
+    return `
+      <div class="landing-actions landing-actions-signed-in">
+        <p class="muted">当前已登录为 <strong>${escapeHtml(label)}</strong>。可直接输入邀请码、进入广场或浏览公开房间。</p>
+      </div>`;
+  }
+  if (state.user?.isGuest) {
+    return `
+      <div class="landing-actions">
+        <button class="btn outline" type="button" data-action="show-auth">登录 / 注册账号</button>
+        <p class="hint">你正在以访客身份浏览；注册后可发帖、加好友并使用官方示例。</p>
+      </div>`;
+  }
+  return `
+      <div class="landing-actions">
+        <button class="btn outline" type="button" data-action="show-auth">登录 / 注册账号</button>
+        <button class="btn quiet" type="button" data-action="guest-continue" ${state.busy ? "disabled" : ""}>以访客身份继续</button>
+      </div>`;
+}
+
+function renderOfficialExampleHint(example) {
+  if (!example?.available) return "";
+  if (isRegisteredUser(state.user)) {
+    if (state.user.emailVerified) return "";
+    return `<p class="hint">你的账号尚未验证邮箱，验证后即可进入示例体验。</p>`;
+  }
+  return `<p class="hint">需<strong>登录并验证邮箱</strong>后，系统会为你创建独立运行房并进入选角。</p>`;
+}
 
 function renderOfficialExampleCard() {
   const example = state.platform?.officialExample;
@@ -33,7 +65,7 @@ function renderOfficialExampleCard() {
       ${available
         ? `<button class="btn primary full" type="button" data-action="join-official" data-testid="join-official" ${state.busy ? "disabled" : ""}>进入示例体验</button>`
         : `<p class="hint warn">${escapeHtml(example.unavailableReason || "示例暂不可用")}</p>`}
-      <p class="hint">需<strong>登录并验证邮箱</strong>后，系统会为你创建独立运行房并进入选角。</p>
+      ${renderOfficialExampleHint(example)}
     </article>`;
 }
 
@@ -117,9 +149,6 @@ export function renderLanding() {
         ${example?.available ? `<button class="btn outline" type="button" data-action="join-official">还没有邀请码？先体验官方示例</button>` : ""}
       </section>
 
-      <div class="landing-actions">
-        <button class="btn outline" type="button" data-action="show-auth">登录 / 注册账号</button>
-        <button class="btn quiet" type="button" data-action="guest-continue" ${state.busy ? "disabled" : ""}>以访客身份继续</button>
-      </div>
+      ${renderLandingAuthActions()}
     </section>`;
 }
