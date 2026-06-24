@@ -64,6 +64,7 @@
     ROOM_NOT_FOUND: "运行房不存在或你无权访问。",
     PLAYER_ROLE_REQUIRED: "需要以玩家身份入房后才能继续。",
     ROLE_SLOT_OCCUPIED: "该角色席位已被其他玩家占用。",
+    ROLE_ALREADY_BOUND: "你已在该运行房绑定角色，不可更换席位。如需换角请联系主持人。",
     ROLE_SLOT_NOT_FOUND: "角色席位不存在。",
     ROLE_SLOT_WORLD_MISMATCH: "所选角色不属于当前世界的运行房。",
     INVITE_FIELDS_REQUIRED: "请填写邀请码并选择角色席位。",

@@ -49,6 +49,11 @@ export async function registerPlayerRoutes(app) {
       [request.params.inviteCode]
     );
     if (!room.rowCount) return sendErr(reply, "ROOM_NOT_FOUND");
+    const bound = await query(
+      `SELECT role_slot_id FROM room_members
+       WHERE room_id = $1 AND user_id = $2 AND status = 'active' AND role_slot_id IS NOT NULL`,
+      [room.rows[0].id, actorId]
+    );
     const roles = await query(
       `SELECT rs.id, rs.name, rs.public_profile,
               EXISTS (
@@ -68,6 +73,7 @@ export async function registerPlayerRoutes(app) {
     return {
       room: { id: room.rows[0].id, name: room.rows[0].name, status: room.rows[0].status },
       world: { id: room.rows[0].world_id, name: room.rows[0].world_name },
+      current_role_slot_id: bound.rows[0]?.role_slot_id ?? null,
       roles: roles.rows
     };
   });
@@ -95,6 +101,21 @@ export async function registerPlayerRoutes(app) {
           err.code = "ROLE_SLOT_WORLD_MISMATCH";
           throw err;
         }
+        const existing = await client.query(
+          `SELECT role_slot_id FROM room_members
+           WHERE room_id = $1 AND user_id = $2 AND status = 'active'
+           FOR UPDATE`,
+          [room.rows[0].id, actorId]
+        );
+        const boundRoleId = existing.rows[0]?.role_slot_id ?? null;
+        if (boundRoleId) {
+          if (boundRoleId === roleSlotId) {
+            return room.rows[0].id;
+          }
+          const err = new Error("ROLE_ALREADY_BOUND");
+          err.code = "ROLE_ALREADY_BOUND";
+          throw err;
+        }
         const occupied = await client.query(
           `SELECT 1 FROM room_members
            WHERE room_id = $1 AND role_slot_id = $2 AND user_id <> $3 AND status = 'active'
@@ -116,6 +137,9 @@ export async function registerPlayerRoutes(app) {
         return room.rows[0].id;
       });
     } catch (error) {
+      if (error.code === "ROLE_ALREADY_BOUND") {
+        return sendErr(reply, "ROLE_ALREADY_BOUND");
+      }
       if (error.code === "ROLE_SLOT_OCCUPIED" || error.code === "23505") {
         return sendErr(reply, "ROLE_SLOT_OCCUPIED", "该角色席位已被其他玩家占用。");
       }

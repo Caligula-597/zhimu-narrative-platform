@@ -689,7 +689,12 @@ async function bootstrap() {
 async function refreshJoinPreview(code) {
   state.joinPreview = await api.lookupInvite(code);
   state.inviteCode = code;
+  const boundRoleId = state.joinPreview.current_role_slot_id || "";
   const roles = state.joinPreview.roles || [];
+  if (boundRoleId) {
+    state.selectedRoleId = boundRoleId;
+    return state.joinPreview;
+  }
   const selected = roles.find((role) => role.id === state.selectedRoleId);
   if (!selected || (selected.occupied && !selected.occupied_by_current)) {
     state.selectedRoleId = roles.find((role) => !role.occupied || role.occupied_by_current)?.id || "";
@@ -704,6 +709,17 @@ async function handleLookupInvite({ silent = false } = {}) {
   try {
     await ensureSession();
     await refreshJoinPreview(code);
+    const boundRoleId = state.joinPreview?.current_role_slot_id || "";
+    const roomId = state.joinPreview?.room?.id || "";
+    if (boundRoleId && roomId && isUuid(roomId)) {
+      persistRoom(roomId, isUuid);
+      await refreshHome();
+      state.joinPreview = null;
+      state.view = "game";
+      if (!silent) showToast("已回到你绑定的角色", render);
+      else render();
+      return;
+    }
     state.view = "join";
     state.joinStep = 2;
     render();

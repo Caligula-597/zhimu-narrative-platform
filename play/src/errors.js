@@ -1,5 +1,6 @@
 const API_ERROR_MESSAGES = {
   ROLE_SLOT_OCCUPIED: "该角色席位已被其他玩家占用，请选择其他角色。",
+  ROLE_ALREADY_BOUND: "你已在该运行房绑定角色，不可更换席位。如需换角请联系主持人。",
   ROLE_SLOT_WORLD_MISMATCH: "所选角色不属于当前房间。",
   ROOM_NOT_FOUND: "邀请码无效或房间不存在。",
   INVITE_FIELDS_REQUIRED: "请填写邀请码并选择角色席位。",

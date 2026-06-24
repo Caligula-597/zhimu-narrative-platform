@@ -19,7 +19,10 @@ export function renderJoin() {
   }
 
   const roles = preview.roles || [];
-  const availableCount = roles.filter((r) => !r.occupied || r.occupied_by_current).length;
+  const boundRoleId = preview.current_role_slot_id || "";
+  const availableCount = boundRoleId
+    ? 1
+    : roles.filter((r) => !r.occupied || r.occupied_by_current).length;
   const selected = roles.find((r) => r.id === state.selectedRoleId);
 
   return `
@@ -39,13 +42,25 @@ export function renderJoin() {
 
       <div class="panel card">
         <h3>选择你的角色席位</h3>
-        <p class="muted">每个席位对应剧本中的一个角色。已被其他玩家占用的席位无法选择。</p>
+        ${boundRoleId
+          ? `<p class="hint warn">你已在该房间绑定角色，不可更换席位。继续进入将恢复你原来的角色与进度。</p>`
+          : `<p class="muted">每个席位对应剧本中的一个角色。已被其他玩家占用的席位无法选择。</p>`}
         <div class="role-grid">
           ${roles
             .map((role) => {
-              const disabled = role.occupied && !role.occupied_by_current;
+              const disabled = boundRoleId
+                ? role.id !== boundRoleId
+                : role.occupied && !role.occupied_by_current;
               const isSelected = state.selectedRoleId === role.id;
-              const status = disabled ? "已被占用" : role.occupied_by_current ? "你的当前角色" : "可选";
+              const status = boundRoleId && role.id === boundRoleId
+                ? "你已绑定"
+                : boundRoleId
+                  ? "不可更换"
+                  : disabled
+                    ? "已被占用"
+                    : role.occupied_by_current
+                      ? "你的当前角色"
+                      : "可选";
               return `
               <button type="button" class="role-card ${isSelected ? "is-selected" : ""}" data-action="pick-role" data-role-id="${role.id}" ${disabled ? "disabled" : ""}>
                 <span class="role-avatar">${escapeHtml(String(role.name?.[0] || "?"))}</span>

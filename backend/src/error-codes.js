@@ -119,6 +119,7 @@ export const API_ERRORS = {
   ROOM_NOT_FOUND: { status: 404, message: "Room not found" },
   PLAYER_ROLE_REQUIRED: { status: 409, message: "Player role required" },
   ROLE_SLOT_OCCUPIED: { status: 409, message: "Role slot already occupied" },
+  ROLE_ALREADY_BOUND: { status: 409, message: "Player already bound to another role in this room" },
   ROLE_SLOT_NOT_FOUND: { status: 404, message: "Role slot not found" },
   ROLE_SLOT_WORLD_MISMATCH: { status: 400, message: "Role slot not found in room world" },
   INVITE_FIELDS_REQUIRED: { status: 400, message: "inviteCode and roleSlotId are required" },
