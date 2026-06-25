@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Cloudflare Pages: zhimu-site (marketing) + zhimu-play (player).
+ * Cloudflare Pages: marketing, player, and host portals.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -31,6 +31,12 @@ const PAGE_PROJECTS = [
     rootDir: "play",
     domains: [`play.${ROOT_DOMAIN}`],
     dns: [{ type: "CNAME", name: "play", content: "zhimu-play.pages.dev" }]
+  },
+  {
+    name: "zhimu-host",
+    rootDir: "host",
+    domains: [`host.${ROOT_DOMAIN}`],
+    dns: [{ type: "CNAME", name: "host", content: "zhimu-host.pages.dev" }]
   }
 ];
 
@@ -126,7 +132,7 @@ async function main() {
     console.warn(`[dns] zone not found: ${ROOT_DOMAIN} — skip DNS upsert`);
   }
 
-  console.log("✅ Pages sync done (zhimu-site + zhimu-play)");
+  console.log(`✅ Pages sync done (${PAGE_PROJECTS.map((project) => project.name).join(" + ")})`);
 }
 
 main().catch((e) => {

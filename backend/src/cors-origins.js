@@ -15,7 +15,7 @@ export function resolveAllowedCorsOrigins(options, nodeEnv) {
   if (options.corsOrigin !== undefined) return options.corsOrigin;
 
   const collected = [];
-  for (const envKey of ["CORS_ORIGIN", "MARKETING_SITE_ORIGIN", "PLAY_SITE_ORIGIN"]) {
+  for (const envKey of ["CORS_ORIGIN", "MARKETING_SITE_ORIGIN", "PLAY_SITE_ORIGIN", "HOST_SITE_ORIGIN"]) {
     collected.push(...parseOriginList(process.env[envKey]?.trim()));
   }
 

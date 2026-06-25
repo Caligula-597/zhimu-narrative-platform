@@ -72,7 +72,7 @@ function normalizeOrigin(raw) {
 
 export function allowedOAuthReturnOrigins() {
   const allowed = new Set();
-  for (const key of ["APP_PUBLIC_URL", "CORS_ORIGIN", "MARKETING_SITE_ORIGIN", "PLAY_SITE_ORIGIN"]) {
+  for (const key of ["APP_PUBLIC_URL", "CORS_ORIGIN", "MARKETING_SITE_ORIGIN", "PLAY_SITE_ORIGIN", "HOST_SITE_ORIGIN"]) {
     for (const entry of parseOriginList(process.env[key]?.trim())) {
       const origin = normalizeOrigin(entry);
       if (origin) allowed.add(origin);

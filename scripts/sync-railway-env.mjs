@@ -69,6 +69,11 @@ const playOrigins = (process.env.PLAY_SITE_ORIGIN || "https://play.getzhimu.com"
   .map((v) => v.trim())
   .filter(Boolean);
 const playUrl = (process.env.PLAY_SITE_URL || playOrigins[0] || "https://play.getzhimu.com").replace(/\/$/, "");
+const hostOrigins = (process.env.HOST_SITE_ORIGIN || "https://host.getzhimu.com")
+  .split(",")
+  .map((v) => v.trim())
+  .filter(Boolean);
+const hostUrl = (process.env.HOST_SITE_URL || hostOrigins[0] || "https://host.getzhimu.com").replace(/\/$/, "");
 
 if (!fs.existsSync(backendEnvPath)) {
   console.error("sync-railway-env: backend/.env not found");
@@ -121,11 +126,15 @@ env.DATABASE_URL = normalizeDatabaseUrl(local.DATABASE_URL);
 env.DATABASE_SSL = "true";
 env.PGPOOL_MAX = "5";
 env.APP_PUBLIC_URL = publicUrl;
-env.CORS_ORIGIN = publicUrl;
+// Keep the standalone host portal compatible with the currently deployed API,
+// including releases that predate HOST_SITE_ORIGIN-aware CORS resolution.
+env.CORS_ORIGIN = [...new Set([publicUrl, ...hostOrigins])].join(",");
 env.MARKETING_SITE_ORIGIN = marketingOrigins.join(",");
 env.MARKETING_SITE_URL = marketingUrl;
 env.PLAY_SITE_ORIGIN = playOrigins.join(",");
 env.PLAY_SITE_URL = playUrl;
+env.HOST_SITE_ORIGIN = hostOrigins.join(",");
+env.HOST_SITE_URL = hostUrl;
 env.EMAIL_PROVIDER = env.EMAIL_PROVIDER || "resend";
 env.REQUIRE_EMAIL_VERIFICATION = local.REQUIRE_EMAIL_VERIFICATION || "false";
 env.RUN_DB_SEED = "false";
@@ -176,6 +185,8 @@ console.log(`  MARKETING_SITE_ORIGIN=${env.MARKETING_SITE_ORIGIN}`);
 console.log(`  MARKETING_SITE_URL=${env.MARKETING_SITE_URL}`);
 console.log(`  PLAY_SITE_ORIGIN=${env.PLAY_SITE_ORIGIN}`);
 console.log(`  PLAY_SITE_URL=${env.PLAY_SITE_URL}`);
+console.log(`  HOST_SITE_ORIGIN=${env.HOST_SITE_ORIGIN}`);
+console.log(`  HOST_SITE_URL=${env.HOST_SITE_URL}`);
 console.log(`  keys=${Object.keys(env).length}`);
 console.log("  OFFICIAL_EXAMPLE_WORLD_ID=" + env.OFFICIAL_EXAMPLE_WORLD_ID);
 console.log("  SKIP_ENSURE_PLATFORM_CATALOG removed (legacy demo deleted)");

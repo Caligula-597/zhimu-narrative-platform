@@ -1,7 +1,7 @@
 # 织幕 · 系统设计说明
 
 > **文档用途**：解释产品架构、领域边界、三端分工与主持—玩家运行闭环。面向新成员、协作创作者与运维。  
-> **更新**：2026-06-20 · 后端 **359** 项测试 · 路由 schema **62** 条  
+> **更新**：2026-06-25 · 后端 **387** 项测试 · 路由 schema **62** 条
 > **姊妹文档**：[ARCHITECTURE.md](../ARCHITECTURE.md)（数据边界精要）· [PLATFORM_MAP_ZH.md](./PLATFORM_MAP_ZH.md)（API↔UI 对照）· [FEATURE_CATALOG.md](../FEATURE_CATALOG.md)（功能总表）
 
 ---
@@ -227,8 +227,8 @@ flowchart LR
 |------|------|
 | `npm run verify:changed` | 按 git diff 最小检测（日常提交） |
 | `npm run verify:full:fresh` | 迁移 + seed + 全量测试 + smoke + E2E |
-| `cd backend && npm test` | **359** 项单元/集成 |
-| `npm run test:e2e` | Playwright **13** 项（向导/主持/玩家/存档/play） |
+| `cd backend && npm test` | **387** 项单元/集成 |
+| `npm run test:e2e` | Playwright **15** 项（向导/主持/玩家/存档/play） |
 | `node scripts/ui-smoke.js` | **44** 项前端接线 |
 
 测试桩房间：`TEST-FIXTURE-DEMO`（勿与 E2E 写入房混淆）。见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)。

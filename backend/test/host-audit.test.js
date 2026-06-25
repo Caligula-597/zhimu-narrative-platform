@@ -31,7 +31,8 @@ test("GET host audit-log rejects unknown room", async (context) => {
     url: `/api/rooms/${randomUUID()}/host/audit-log`,
     headers: { "x-user-id": hostUserId }
   });
-  assert.equal(response.statusCode, 403);
+  assert.equal(response.statusCode, 404);
+  assert.equal(response.json().code, "ROOM_NOT_FOUND");
 });
 
 test("GET host audit-log clamps limit query between 1 and 200", async (context) => {

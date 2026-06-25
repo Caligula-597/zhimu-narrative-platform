@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>织幕 play · 复盘 Tab 示意</title>
+  <style>
+    :root {
+      --ink: #142321;
+      --ink-soft: #425653;
+      --muted: #76827f;
+      --paper: #f4f1e9;
+      --surface: #fffdf8;
+      --green: #183f3a;
+      --green-2: #2b6b61;
+      --line: rgba(20, 35, 33, 0.13);
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", "MiSans", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #f8f5ee, var(--paper));
+      color: var(--ink);
+      padding: 24px 16px 48px;
+    }
+    .phone {
+      max-width: 420px;
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: 0 24px 64px rgba(18, 45, 41, 0.12);
+    }
+    .top {
+      padding: 14px 16px;
+      background: var(--green);
+      color: #fff;
+      font-size: 14px;
+    }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 8px;
+      overflow-x: auto;
+      background: #ebe5d8;
+      font-size: 12px;
+    }
+    .tab {
+      flex: 0 0 auto;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-soft);
+    }
+    .tab.active {
+      background: var(--surface);
+      color: var(--green);
+      font-weight: 700;
+    }
+    .tab .dot { color: #c76d5c; }
+    .body { padding: 14px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .eyebrow {
+      margin: 0 0 6px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--green-2);
+      text-transform: uppercase;
+    }
+    h1 { margin: 0 0 8px; font-size: 18px; }
+    .muted { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .banner {
+      margin: 12px 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #e9efea;
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+    .section {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: rgba(255, 253, 248, 0.8);
+      border: 1px solid var(--line);
+    }
+    .section h4 { margin: 0 0 10px; font-size: 14px; }
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .timeline-row time { color: var(--muted); }
+    .row {
+      padding: 10px;
+      margin-bottom: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 12px;
+    }
+    .row strong { display: block; margin-bottom: 4px; font-size: 13px; }
+    .hint { margin: 14px 0 0; font-size: 11px; color: var(--muted); }
+    .note {
+      max-width: 420px;
+      margin: 20px auto 0;
+      font-size: 13px;
+      color: var(--ink-soft);
+      line-height: 1.7;
+    }
+    .states { max-width: 900px; margin: 32px auto 0; display: grid; gap: 16px; }
+    @media (min-width: 800px) {
+      .states { grid-template-columns: 1fr 1fr; }
+    }
+    .state-label { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--green); }
+  </style>
+</head>
+<body>
+  <p class="note" style="text-align:center"><strong>play 端「复盘」Tab · 静态示意</strong><br>数据来自主持人生成的 recap snapshot，非 AI 编造。与官网 showcase 第四格（通用 SVG 占位）不是同一张图。</p>
+
+  <div class="states">
+    <div>
+      <p class="state-label">① 尚未生成（常见空状态）</p>
+      <div class="phone">
+        <div class="top">夜行试跑房 · 角色：林记者</div>
+        <div class="tabs">
+          <button class="tab">概览</button><button class="tab">分幕</button><button class="tab">线索</button>
+          <button class="tab active">复盘</button>
+        </div>
+        <div class="body">
+          <div class="card" style="text-align:center;padding:28px 16px">
+            <div style="font-size:28px">📜</div>
+            <p class="muted" style="margin-top:12px">主持人尚未生成本房间的复盘报告。局结束后请让主持人在创作者端「存档与复盘」生成，你即可在此查看<strong>我的视角</strong>回顾。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="state-label">② 摘要卡片 → 点「查看完整复盘」</p>
+      <div class="phone">
+        <div class="top">夜行试跑房 · 角色：林记者</div>
+        <div class="tabs">
+          <button class="tab">概览</button><button class="tab">分幕</button><button class="tab">线索 3</button>
+          <button class="tab active">复盘 <span class="dot">●</span></button>
+        </div>
+        <div class="body">
+          <article class="card">
+            <p class="eyebrow">我的复盘</p>
+            <h1>第一场试跑 · 林记者视角</h1>
+            <p class="muted">局后小结 · 生成于 6月3日 22:10 · 主持人阿宁</p>
+            <div style="display:flex;gap:24px;margin:14px 0;font-size:13px">
+              <div><span class="muted">线索流转</span><br><strong style="font-size:20px">5</strong></div>
+              <div><span class="muted">调查完成</span><br><strong style="font-size:20px">2</strong></div>
+            </div>
+            <button style="width:100%;padding:12px;border:none;border-radius:8px;background:var(--green);color:#fff;font-weight:700">查看完整复盘</button>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="state-label" style="max-width:420px;margin:24px auto 8px">③ 完整复盘（玩家「我的视角」）</p>
+  <div class="phone">
+    <div class="top">夜行试跑房 · 复盘详情</div>
+    <div class="tabs">
+      <button class="tab">概览</button><button class="tab">分幕</button><button class="tab active">复盘 ●</button>
+    </div>
+    <div class="body">
+      <article class="card">
+        <p class="eyebrow">我的视角 · MY RECAP</p>
+        <h1>第一场试跑 · 林记者视角</h1>
+        <p class="muted">6月3日 22:10</p>
+        <div class="banner">架空本《夜行》——六人封闭列车上的身份谜题（示例文案）</div>
+
+        <section class="section">
+          <h4>关键时间线</h4>
+          <div class="timeline-row"><time>21:04</time><p>完成分幕「登车」阅读</p></div>
+          <div class="timeline-row"><time>21:18</time><p>获得线索「撕角车票」</p></div>
+          <div class="timeline-row"><time>21:35</time><p>完成调查「行李架」</p></div>
+        </section>
+
+        <section class="section">
+          <h4>线索发现</h4>
+          <div class="row"><strong>撕角车票</strong>林记者 · 已读 21:18</div>
+          <div class="row"><strong>乘务员记录</strong>林记者 · 已读 21:42</div>
+        </section>
+
+        <section class="section">
+          <h4>我错过的线索</h4>
+          <div class="row"><strong>餐车监控截图</strong>全房间无人获得</div>
+        </section>
+
+        <section class="section">
+          <h4>主持确认事件</h4>
+          <div class="row"><strong>公开第二节真相</strong>已确认执行 · 21:50</div>
+        </section>
+
+        <section class="section">
+          <h4>我的笔记</h4>
+          <div class="row"><strong>怀疑对象</strong><p>6月3日 21:30</p><small>乘务员口供与车票时间对不上…</small></div>
+        </section>
+
+        <p class="hint">以上内容来自真实游戏日志与流转记录，非 AI 生成。</p>
+      </article>
+    </div>
+  </div>
+</body>
+</html>

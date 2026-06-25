@@ -14,22 +14,31 @@ for (const r of records) {
   console.log(`  ${r.type} ${r.name} → ${r.content} (proxied=${r.proxied}) id=${r.id}`);
 }
 
-const appRecords = await listDnsRecords(token, zone.id, { name: "app.getzhimu.com" });
-console.log("\nAPP DNS:");
-for (const r of appRecords) {
-  console.log(`  ${r.type} ${r.name} → ${r.content} (proxied=${r.proxied})`);
+for (const name of ["app", "play", "host"]) {
+  const fqdn = `${name}.getzhimu.com`;
+  const domainRecords = await listDnsRecords(token, zone.id, { name: fqdn });
+  console.log(`\n${name.toUpperCase()} DNS:`);
+  if (!domainRecords.length) console.log("  missing");
+  for (const r of domainRecords) {
+    console.log(`  ${r.type} ${r.name} → ${r.content} (proxied=${r.proxied})`);
+  }
 }
 
 const accounts = await cfRequest(token, "/accounts");
 const accountId = accounts[0]?.id;
 const projects = await cfRequest(token, `/accounts/${accountId}/pages/projects`);
-const site = projects.find((p) => p.name === "zhimu-site");
-if (site) {
-  console.log("\nPAGES zhimu-site:");
-  console.log(`  subdomain: ${site.subdomain}`);
-  console.log(`  latest_deployment: ${site.latest_deployment?.url ?? "none"}`);
+for (const projectName of ["zhimu-site", "zhimu-play", "zhimu-host"]) {
+  const project = projects.find((p) => p.name === projectName);
+  console.log(`\nPAGES ${projectName}:`);
+  if (!project) {
+    console.log("  missing");
+    continue;
+  }
+  console.log(`  subdomain: ${project.subdomain}`);
+  console.log(`  root_dir: ${project.build_config?.root_dir || "?"}`);
+  console.log(`  latest_deployment: ${project.latest_deployment?.url ?? "none"}`);
   try {
-    const domains = await cfRequest(token, `/accounts/${accountId}/pages/projects/zhimu-site/domains`);
+    const domains = await cfRequest(token, `/accounts/${accountId}/pages/projects/${projectName}/domains`);
     for (const d of domains) {
       console.log(`  domain: ${d.name} status=${d.status ?? d.validation_data?.status ?? "?"}`);
     }

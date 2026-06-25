@@ -46,7 +46,7 @@
 
 所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
 
-`npm test` 当前覆盖（**359** 项，96 个测试文件；精确数以 `npm run check:tests` 为准）：
+`npm test` 当前覆盖（**387** 项，109 个测试文件；精确数以 `npm run check:tests` 为准）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -137,7 +137,7 @@ npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
 
 | 命令 | 结果 |
 |------|------|
-| `backend npm test` | **359/359**（96 文件） |
+| `backend npm test` | **387/387**（109 文件） |
 | `npm run check:schemas` | **62** 条路由 |
 | `npm run test:smoke` | **18/18** |
 | `node scripts/ui-smoke.js` | **44/44** |

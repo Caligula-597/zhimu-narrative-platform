@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>织幕 · 线上长线互动叙事引擎 | 创意提案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0a0a0f;
+    --bg-card: #141420;
+    --bg-card-hover: #1a1a2e;
+    --accent-gold: #d4a853;
+    --accent-gold-light: #f0d080;
+    --accent-rose: #c47b8a;
+    --text-primary: #e8e6e0;
+    --text-secondary: #9a9890;
+    --text-muted: #6a6860;
+    --border-subtle: #2a2a3a;
+    --glow-gold: rgba(212, 168, 83, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* 背景纹理 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(212, 168, 83, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(196, 123, 138, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 80% 60%, rgba(100, 120, 200, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* ===== Hero 区域 ===== */
+  .hero {
+    padding: 100px 0 80px;
+    text-align: center;
+    position: relative;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    padding: 8px 24px;
+    border: 1px solid var(--accent-gold);
+    border-radius: 100px;
+    font-size: 14px;
+    color: var(--accent-gold-light);
+    letter-spacing: 4px;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+    animation: fadeInDown 1s ease-out;
+  }
+
+  .hero-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, var(--accent-gold-light) 0%, var(--accent-gold) 40%, var(--accent-rose) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: fadeInUp 1s ease-out 0.2s both;
+  }
+
+  .hero-subtitle {
+    font-size: 20px;
+    color: var(--text-secondary);
+    font-weight: 300;
+    letter-spacing: 2px;
+    margin-bottom: 48px;
+    animation: fadeInUp 1s ease-out 0.4s both;
+  }
+
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+    animation: fadeInUp 1s ease-out 0.6s both;
+  }
+
+  .hero-meta-item {
+    text-align: center;
+  }
+
+  .hero-meta-item .num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent-gold);
+    display: block;
+  }
+
+  .hero-meta-item .label {
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  /* 装饰分割线 */
+  .divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 60px 0;
+    gap: 20px;
+  }
+
+  .divider-line {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  }
+
+  .divider-diamond {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-gold);
+    transform: rotate(45deg);
+    box-shadow: 0 0 20px var(--glow-gold);
+  }
+
+  /* ===== Section 通用样式 ===== */
+  .section {
+    padding: 60px 0;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .section-label {
+    font-size: 13px;
+    color: var(--accent-gold);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 3px;
+    height: 16px;
+    background: var(--accent-gold);
+  }
+
+  .section-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+  }
+
+  .section-desc {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    max-width: 640px;
+  }
+
+  /* ===== 卡片 ===== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .card:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(212, 168, 83, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .card:hover::before {
+    opacity: 1;
+  }
+
+  .card-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-rose));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .card-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+
+  /* ===== 痛点 / 价值 两栏 ===== */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .two-col { grid-template-columns: 1fr; }
+    .hero-title { font-size: 44px; }
+    .hero-subtitle { font-size: 16px; }
+    .section-title { font-size: 28px; }
+    .container { padding: 0 20px; }
+  }
+
+  /* ===== 功能网格 ===== */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .feature-grid { grid-template-columns: 1fr; }
+  }
+
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(212, 168, 83, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .feature-emoji {
+    font-size: 40px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .feature-name {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--accent-gold-light);
+  }
+
+  .feature-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ===== 流程图 ===== */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 40px 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-step {
+    flex: 1;
+    min-width: 140px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 24px 16px;
+    text-align: center;
+    position: relative;
+  }
+
+  .flow-step-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-rose));
+    color: var(--bg-deep);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+
+  .flow-step-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+  }
+
+  .flow-step-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--accent-gold);
+    font-size: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .flow-arrow { display: none; }
+  }
+
+  /* ===== 用户画像 ===== */
+  .persona-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 28px;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .persona-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-rose));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .persona-info h4 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+  }
+
+  .persona-role {
+    font-size: 13px;
+    color: var(--accent-gold);
+    margin-bottom: 12px;
+  }
+
+  .persona-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ===== 价值模块 ===== */
+  .value-highlight {
+    background: linear-gradient(135deg, rgba(212, 168, 83, 0.1), rgba(196, 123, 138, 0.08));
+    border: 1px solid rgba(212, 168, 83, 0.2);
+    border-radius: 20px;
+    padding: 48px;
+    text-align: center;
+    margin: 40px 0;
+  }
+
+  .value-highlight h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 28px;
+    margin-bottom: 24px;
+    color: var(--accent-gold-light);
+  }
+
+  .value-highlight p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.9;
+  }
+
+  /* ===== 技术栈标签 ===== */
+  .tech-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .tech-tag {
+    padding: 6px 16px;
+    background: rgba(212, 168, 83, 0.1);
+    border: 1px solid rgba(212, 168, 83, 0.2);
+    border-radius: 100px;
+    font-size: 13px;
+    color: var(--accent-gold-light);
+  }
+
+  /* ===== Footer ===== */
+  .footer {
+    padding: 80px 0 60px;
+    text-align: center;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: 40px;
+  }
+
+  .footer-quote {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 24px;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+  }
+
+  .footer-quote::before, .footer-quote::after {
+    content: '"';
+    color: var(--accent-gold);
+    font-size: 32px;
+  }
+
+  .footer-info {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ===== 动画 ===== */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-deep);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-gold);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-tag">生活娱乐 · 创意提案</div>
+    <h1 class="hero-title">织&nbsp;幕</h1>
+    <p class="hero-subtitle">线上长线互动叙事引擎</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="num">359+</span>
+        <span class="label">后端测试用例</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="num">41</span>
+        <span class="label">数据库迁移版本</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="num">62</span>
+        <span class="label">API 路由 Schema</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="num">3端</span>
+        <span class="label">创作 / 主持 / 玩家</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- ===== 一、创意介绍 ===== -->
+  <section class="section" id="intro">
+    <div class="section-label">第一章 · 创意缘起</div>
+    <h2 class="section-title">当剧本杀遇到线上长线</h2>
+    <p class="section-desc">我们相信，好的故事不该被物理空间和时间所限制。</p>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon">💡</span>
+        想解决什么问题
+      </div>
+      <div class="card-text">
+        线下剧本杀受限于场地、人数和时间，一场 4-6 小时的体验往往需要提前一周约人。而线上文字跑团又缺乏结构化的内容管理和自动化推进工具，GM 工作量巨大，玩家体验参差不齐。长线剧情难以持续，好故事总是开了头就没了下文。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon">🎯</span>
+        为什么会想到做这个
+      </div>
+      <div class="card-text">
+        源于一群剧本杀爱好者的真实痛点——每次组局都像一场小型项目管理，约人、订场、凑时间，精力花在了故事之外。而那些真正精彩的长线剧情，往往因为主持太累、玩家时间难凑而半途夭折。我们想让创作者专注于讲故事，让玩家随时随地都能沉浸在故事里。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon">🎭</span>
+        大概是什么产品
+      </div>
+      <div class="card-text">
+        <strong>织幕</strong>是一个面向线上长线剧本杀与跑团的<strong>自动化互动叙事引擎平台</strong>（网站 + 移动端适配）。创作者可以在云端编写世界、编排场景与线索、配置自动化规则；主持人开平行运行房、监控进度、确认关键节点；玩家通过邀请码选角，阅读私人分幕、探索场景、收集线索与物品——所有运行态实时同步，故事可以持续数周甚至数月。
+      </div>
+    </div>
+  </section>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- ===== 二、目标用户及痛点 ===== -->
+  <section class="section" id="users">
+    <div class="section-label">第二章 · 谁在用它</div>
+    <h2 class="section-title">目标用户及痛点</h2>
+    <p class="section-desc">三类核心用户，一个共同的热爱。</p>
+
+    <div class="persona-card">
+      <div class="persona-avatar">✍️</div>
+      <div class="persona-info">
+        <h4>剧本创作者 / 写作者</h4>
+        <div class="persona-role">核心用户 · 内容生产者</div>
+        <div class="persona-desc">
+          <strong>场景：</strong>想把自己写的悬疑故事、科幻设定、情感剧本做成可互动的线上体验，但不会编程，找不到好用的工具。<br>
+          <strong>痛点：</strong>现有工具要么太复杂（跑团骰子 Bot 只会掷骰子），要么太简单（文档共享毫无沉浸感）；没法验证自己的剧本逻辑；找不到玩家试玩；辛苦写的本子没法变现。
+        </div>
+      </div>
+    </div>
+
+    <div class="persona-card">
+      <div class="persona-avatar">🎙️</div>
+      <div class="persona-info">
+        <h4>DM / 主持人 / GM</h4>
+        <div class="persona-role">核心用户 · 体验运营者</div>
+        <div class="persona-desc">
+          <strong>场景：</strong>在线上带团主持剧本杀或跑团，每周固定时间开 2-3 车。<br>
+          <strong>痛点：</strong>手动管理每位玩家的进度和线索太繁琐；长线剧情记不住每个人的状态；玩家临时跳车影响全局；缺乏工具辅助推进剧情，全靠脑子记和手发消息，一场下来比玩家还累。
+        </div>
+      </div>
+    </div>
+
+    <div class="persona-card">
+      <div class="persona-avatar">🎮</div>
+      <div class="persona-info">
+        <h4>剧本杀玩家 / 故事爱好者</h4>
+        <div class="persona-role">核心用户 · 内容消费者</div>
+        <div class="persona-desc">
+          <strong>场景：</strong>喜欢剧本杀但没时间/没精力去线下；想体验更长线、更有深度的剧情；和天南海北的朋友一起玩。<br>
+          <strong>痛点：</strong>线下一局太贵且难约人；线上文字群玩体验混乱，翻记录翻到吐；好本难求，玩到烂本浪费时间；没法随时随地碎片化参与。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- ===== 三、产品核心能力 ===== -->
+  <section class="section" id="features">
+    <div class="section-label">第三章 · 产品能力</div>
+    <h2 class="section-title">织幕能做什么</h2>
+    <p class="section-desc">从创作到运行，全链路赋能互动叙事。</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-emoji">📖</span>
+        <div class="feature-name">剧本创作台</div>
+        <div class="feature-desc">角色私人分幕、章节编排、Markdown 编辑器、自动保存与版本快照</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🕸️</span>
+        <div class="feature-name">剧情图谱</div>
+        <div class="feature-desc">可视化场景/线索/调查点编排，拖拽连线构建剧情网络</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">⚙️</span>
+        <div class="feature-name">规则引擎</div>
+        <div class="feature-desc">结构化 JSON 自动化规则，阅读/线索/物品触发剧情推进</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🎛️</span>
+        <div class="feature-name">主持监控台</div>
+        <div class="feature-desc">实时玩家进度、待办事件、手动干预、nudge 提醒、审计日志</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🔍</span>
+        <div class="feature-name">玩家探索</div>
+        <div class="feature-desc">私人分幕阅读、场景探索、线索收集、物品背包、随身笔记</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">📡</span>
+        <div class="feature-name">实时同步</div>
+        <div class="feature-desc">SSE 事件推送，主持与玩家端实时联动，状态秒级同步</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">💾</span>
+        <div class="feature-name">存档复盘</div>
+        <div class="feature-desc">Checkpoint 快照、scoped 回滚、结构化复盘报告生成</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🎤</span>
+        <div class="feature-name">语音房间</div>
+        <div class="feature-desc">LiveKit 集成，公共麦/角色私密麦/受邀语音房</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-emoji">🤖</span>
+        <div class="feature-name">AI 创作助手</div>
+        <div class="feature-desc">DeepSeek 悬疑创作流水线，一键生成完整剧本框架</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- ===== 四、核心闭环 ===== -->
+  <section class="section" id="flow">
+    <div class="section-label">第四章 · 运行闭环</div>
+    <h2 class="section-title">一条故事线如何运转</h2>
+    <p class="section-desc">从创作者下笔到玩家沉浸，织幕让每一环都顺滑。</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-step-num">1</div>
+        <div class="flow-step-title">创作世界</div>
+        <div class="flow-step-desc">作者编写角色、分幕、场景与规则</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">2</div>
+        <div class="flow-step-title">开设房间</div>
+        <div class="flow-step-desc">主持生成邀请码，玩家选角加入</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">3</div>
+        <div class="flow-step-title">推进剧情</div>
+        <div class="flow-step-desc">阅读/探索触发规则，自动解锁新内容</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">4</div>
+        <div class="flow-step-title">主持干预</div>
+        <div class="flow-step-desc">关键节点主持确认，手动发放线索</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">5</div>
+        <div class="flow-step-title">复盘沉淀</div>
+        <div class="flow-step-desc">存档快照 + 复盘报告，故事可回溯</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon">🏗️</span>
+        架构亮点：模板与实例严格分离
+      </div>
+      <div class="card-text">
+        织幕最核心的设计决策——<strong>剧本模板</strong>（世界/章节/角色/规则）与<strong>房间运行实例</strong>（进度/线索/物品/日志）完全隔离。同一个剧本可以开无数个平行房间，每个房间的选择、进度和结局都不会污染模板或其他房间。这意味着好的故事可以被无数次重新演绎，每次都有不同的走向。
+      </div>
+    </div>
+  </section>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- ===== 五、价值与意义 ===== -->
+  <section class="section" id="value">
+    <div class="section-label">第五章 · 价值意义</div>
+    <h2 class="section-title">为什么织幕值得存在</h2>
+    <p class="section-desc">不只是一个工具，更是一种新的娱乐方式。</p>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">
+          <span class="card-icon">💰</span>
+          商业价值
+        </div>
+        <div class="card-text">
+          <ul style="padding-left: 20px; margin-top: 8px;">
+            <li style="margin-bottom: 8px;"><strong>SaaS 订阅模式：</strong>创作者按使用量付费（世界数/房间数/存储），分层定价</li>
+            <li style="margin-bottom: 8px;"><strong>交易抽成：</strong>剧本市集平台，创作者售卖剧本，平台抽成</li>
+            <li style="margin-bottom: 8px;"><strong>增值服务：</strong>AI 创作助手、语音时长、高级分析</li>
+            <li><strong>企业定制：</strong>企业培训/团建/教育场景定制化部署</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span class="card-icon">🌟</span>
+          社会价值
+        </div>
+        <div class="card-text">
+          <ul style="padding-left: 20px; margin-top: 8px;">
+            <li style="margin-bottom: 8px;"><strong>降低娱乐门槛：</strong>随时随地参与，不受地域和时间限制</li>
+            <li style="margin-bottom: 8px;"><strong>赋能创作者：</strong>让写作者有新的内容载体和变现渠道</li>
+            <li style="margin-bottom: 8px;"><strong>社交新方式：</strong>通过共同的故事建立深度连接，而非刷短视频</li>
+            <li><strong>教育潜力：</strong>可用于情景教学、历史沉浸、职业模拟</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="value-highlight">
+      <h3>让好故事，找到它的听众</h3>
+      <p>
+        我们正处在一个内容过剩但好故事稀缺的时代。短视频消耗了我们的注意力，却喂不饱对深度叙事的渴望。织幕想做的，是把互动叙事从线下的小圈子里解放出来，让每一个有故事的人都能轻松创作，让每一个想听故事的人都能随时沉浸。<br><br>
+        这不仅仅是一个工具，而是一种新的娱乐形态——<strong>可持续的、深度的、人与人共同书写的故事体验</strong>。
+      </p>
+    </div>
+  </section>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- ===== 六、技术实现 ===== -->
+  <section class="section" id="tech">
+    <div class="section-label">第六章 · 技术底座</div>
+    <h2 class="section-title">已经实现了什么</h2>
+    <p class="section-desc">不是 PPT，是已经跑起来的代码。</p>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon">⚡</span>
+        当前完成度
+      </div>
+      <div class="card-text">
+        <strong>Alpha → Beta 过渡阶段</strong>，核心链路已全部打通：<br><br>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px;">
+          <div>✅ PostgreSQL 完整数据模型（41 个迁移版本）</div>
+          <div>✅ Session/OAuth 账号体系</div>
+          <div>✅ 玩家/主持 API 完整闭环</div>
+          <div>✅ 结构化规则引擎（幂等保证）</div>
+          <div>✅ SSE 实时事件推送</div>
+          <div>✅ Checkpoint 快照与 scoped 回滚</div>
+          <div>✅ LiveKit 语音房集成</div>
+          <div>✅ 物品/背包/调查系统</div>
+          <div>✅ 内容包导入导出</div>
+          <div>✅ DeepSeek AI 创作流水线</div>
+          <div>✅ 359 项后端测试</div>
+          <div>✅ 15 项 Playwright E2E 测试</div>
+        </div>
+      </div>
+      <div class="tech-tags">
+        <span class="tech-tag">Fastify</span>
+        <span class="tech-tag">PostgreSQL</span>
+        <span class="tech-tag">Vite 6</span>
+        <span class="tech-tag">Cloudflare R2</span>
+        <span class="tech-tag">LiveKit</span>
+        <span class="tech-tag">Stripe</span>
+        <span class="tech-tag">DeepSeek AI</span>
+        <span class="tech-tag">Railway</span>
+        <span class="tech-tag">Playwright</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="footer-quote">每一次幕布升起，都是一个新世界的诞生</div>
+    <div class="footer-info">
+      织幕 Zhimu · 线上长线互动叙事引擎<br>
+      创意提案 · 生活娱乐赛道
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // 滚动动画
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  });
+
+  document.querySelectorAll('.section').forEach(section => {
+    observer.observe(section);
+  });
+</script>
+
+</body>
+</html>

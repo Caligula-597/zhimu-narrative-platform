@@ -130,9 +130,9 @@ W5+    动态门禁、跨浏览器/a11y、性能与故障注入
 
 | 问题 | 处理 |
 |------|------|
-| 文档写 347 测，实际 359 | `npm run status:generate` → `GENERATED_PROJECT_STATUS.json` |
+| 文档测试数字易过期 | `npm run status:generate` → `GENERATED_PROJECT_STATUS.json`（当前 **387**） |
 | schema 61/62 混用 | 以生成器输出为准（当前 **62**） |
-| 迁移文档停在 018，代码到 039 | 生成器统计迁移文件数（当前 **39**） |
+| 迁移文档停在旧版本 | 生成器统计迁移文件数（当前 **41**，latest **041_world_content_revision**） |
 | 封面/实体卡等状态矛盾 | 生成器 + 本表维护 |
 
 ---

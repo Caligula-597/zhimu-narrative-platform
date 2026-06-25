@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-21T11:31:31.437Z",
+  "generatedAt": "2026-06-25T23:18:20.280Z",
   "git": {
     "note": "Run from clean tree; commit hash not embedded to avoid dirty-tree noise."
   },
   "backend": {
-    "unitTests": 371,
-    "testFiles": 103,
+    "unitTests": 387,
+    "testFiles": 109,
     "schemaRouteMarkers": 62,
     "migrations": 41,
     "latestMigration": "041_world_content_revision"
   },
   "frontend": {
-    "scriptModules": 53
+    "scriptModules": 67
   },
   "play": {
     "unitTests": 23,
