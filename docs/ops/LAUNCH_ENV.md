@@ -23,7 +23,7 @@ SESSION_SECRET=<随机 32+ 字符>
 ALLOW_DEMO_USER_HEADER=false
 
 # ── 官方示例（公开库已上架世界 UUID）──
-OFFICIAL_EXAMPLE_WORLD_ID=<your-catalog-world-uuid>  # 本地 seed 默认 33333333-3333-4333-8444-555555550003
+OFFICIAL_EXAMPLE_WORLD_ID=<your-catalog-world-uuid>  # 已审核并公开上架的示例剧本 UUID
 
 # ── 邮件（注册验证 / 找回密码）──
 RESEND_API_KEY=re_...

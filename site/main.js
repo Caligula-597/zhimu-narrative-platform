@@ -13,11 +13,20 @@ function updateHeader() {
 }
 
 function applySiteLinks(links = {}) {
-  if (!links.register && !links.creatorApp && !links.login && !links.officialExample && !links.playerJoin) {
+  if (
+    !links.register &&
+    !links.creatorApp &&
+    !links.login &&
+    !links.officialExample &&
+    !links.playerJoin &&
+    !links.hostConsole &&
+    !links.hostUrl
+  ) {
     return;
   }
 
   const creatorHref = links.creatorApp || links.register;
+  const hostHref = links.hostConsole || links.hostUrl;
 
   document.querySelectorAll("[data-link-register]").forEach((node) => {
     if (links.register) node.setAttribute("href", links.register);
@@ -33,6 +42,9 @@ function applySiteLinks(links = {}) {
   });
   document.querySelectorAll("[data-link-play]").forEach((node) => {
     if (links.playerJoin) node.setAttribute("href", links.playerJoin);
+  });
+  document.querySelectorAll("[data-link-host]").forEach((node) => {
+    if (hostHref) node.setAttribute("href", hostHref);
   });
 }
 

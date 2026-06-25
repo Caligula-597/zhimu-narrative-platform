@@ -87,8 +87,9 @@ function studioCloud() {
    ${data.roles.map(role=>`<div class="tree-item indent">${role.name} · ${data.sections.filter(section=>section.role_slot_id===role.id).length} 段</div>`).join("")}
   </div></aside>
   <div class="story-workspace">
-   <div class="story-toolbar"><div class="story-toolbar-row"><div class="tool-group"><button class="tool" data-action="studio-add-scene">＋ 场景</button><button class="tool" data-action="studio-add-clue">＋ 线索</button><button class="tool" data-action="studio-add-item">＋ 物品</button><button class="tool" data-action="studio-add-point">＋ 调查点</button><button class="tool" data-action="studio-add-chapter">＋ 章节</button></div><div class="tool-group"><button class="tool" data-action="studio-auto-layout-menu">自动排布 ▾</button><button class="tool" data-action="studio-zoom-out">−</button><span class="zoom-label">${Math.round(state.studioZoom*100)}%</span><button class="tool" data-action="studio-zoom-in">＋</button></div></div>
+   <div class="story-toolbar"><div class="story-toolbar-row"><div class="tool-group"><button class="tool" data-action="studio-add-scene">＋ 场景</button><button class="tool" data-action="studio-add-clue">＋ 线索</button><button class="tool" data-action="studio-add-item">＋ 物品</button><button class="tool" data-action="studio-add-point">＋ 调查点</button><button class="tool" data-action="studio-add-chapter">＋ 章节</button></div><div class="tool-group"><button class="tool" data-action="studio-auto-layout-menu">自动排布 ▾</button><button class="tool" data-action="studio-collapse-all-scenes">折叠全部</button><button class="tool" data-action="studio-expand-all-scenes">展开全部</button><button class="tool" data-action="studio-zoom-out">−</button><span class="zoom-label">${Math.round(state.studioZoom*100)}%</span><button class="tool" data-action="studio-zoom-in">＋</button></div></div>
    <div class="story-toolbar-row"><div class="filter-tabs">${studioFilterButton("all","全部节点")}${studioFilterButton("chapter","章节")}${studioFilterButton("scene","场景")}${studioFilterButton("clue","线索")}${studioFilterButton("item","物品")}${studioFilterButton("investigation_point","调查点")}</div><div class="graph-legend"><span><i class="relation-mainline"></i>主线</span><span><i class="relation-parallel"></i>并列</span><span><i class="relation-extension"></i>延伸</span></div></div>${studioCompactSelection(data)}</div>
+   ${studioMobileOutline(data)}
    <div class="node-board"><button class="canvas-add-btn" data-action="studio-add-node-menu">＋ 在画布中新增节点</button><div class="graph-canvas" style="width:${canvas.width}px;min-height:${canvas.height}px;transform:scale(${state.studioZoom})">
       ${studioEdges(data)}${studioNodes(data)}
    </div></div>
@@ -393,10 +394,17 @@ function openStudioConnection(){
 function openStudioDragConnection(from,to){
  studioModal("确认拖拽连线",`<div class="rule-block">${studioNodeName(state.cloudStudio,from.type,from.id)} → ${studioNodeName(state.cloudStudio,to.type,to.id)}</div>`+studioSelect("关系类型","relationType",[{id:"mainline",name:"主线 · 核心推进路径"},{id:"parallel",name:"并列 · 同阶段可同时发生"},{id:"extension",name:"延伸 · 支线或后续补充"}])+studioField("连线备注","label"),"写入云端",async()=>{try{const values=studioValues();await zhimuApi.createStoryEdge({fromType:from.type,fromId:from.id,toType:to.type,toId:to.id,relationType:values.relationType,label:values.label});closeModal();await loadCloudData();showToast("拖拽连线已写入云端")}catch(error){showToast(error.message)}});
 }
+function studioMobileOutline(data){
+ const visible=studioVisibleNodes(data);
+ const rows=visible.slice(0,80).map(node=>`<button type="button" class="studio-mobile-node ${state.studioSelectedNode?.type===node.type&&state.studioSelectedNode?.id===node.id?"selected":""}" data-action="studio-select-node" data-node-type="${node.type}" data-node-id="${node.id}"><span>${escapeHtml(node.badge)}</span><strong>${escapeHtml(node.title)}</strong><small>${escapeHtml(node.desc)}</small></button>`).join("");
+ const extra=visible.length>80?`<p class="muted-note">已显示前 80 个节点；可用上方类型筛选或折叠场景分支继续缩小范围。</p>`:"";
+ return `<section class="studio-mobile-outline"><div class="section-head"><div><h3>节点目录</h3><p>小屏幕下可先从目录定位节点，再进入画布调整连线与位置。</p></div><span class="status-chip draft">${visible.length} 个节点</span></div><div class="studio-mobile-node-list">${rows||`<div class="empty-state">暂无节点</div>`}</div>${extra}</section>`;
+}
   viewExports.studioCloud = studioCloud;
   viewExports.studioNodes = studioNodes;
   viewExports.studioNode = studioNode;
   viewExports.studioNodeList = studioNodeList;
+  viewExports.studioSceneChildCount = studioSceneChildCount;
   viewExports.studioVisibleNodes = studioVisibleNodes;
   viewExports.studioFilterButton = studioFilterButton;
   viewExports.studioCompactSelection = studioCompactSelection;

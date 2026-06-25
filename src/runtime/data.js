@@ -146,20 +146,24 @@
         const logParams = { limit: "20" };
         if (hasRoom) logParams.roomId = zhimuApi.context.roomId;
         const needsPlayerRuntime = hasRoom && state.view === "player";
+        const needsDirectorRuntime = hasRoom && state.view === "director";
+        const needsOverviewRuntime = hasRoom && state.view === "overview";
+        const needsArchiveRuntime = hasRoom && state.view === "archive";
+        const needsRules = ["overview", "rules", "director"].includes(state.view);
         const phase2 = await Promise.allSettled([
           needsPlayerRuntime ? zhimuApi.getPlayerHome() : Promise.resolve(null),
-          hasRoom ? zhimuApi.getHostPlayers() : Promise.resolve(null),
+          needsDirectorRuntime ? zhimuApi.getHostPlayers() : Promise.resolve(null),
           needsPlayerRuntime ? zhimuApi.getExploration() : Promise.resolve(null),
-          hasRoom ? zhimuApi.getHostEvents() : Promise.resolve(null),
-          hasRoom ? zhimuApi.getHostClueMatrix() : Promise.resolve(null),
-          hasRoom ? zhimuApi.getCheckpoints().catch(() => []) : Promise.resolve([]),
-          hasRoom ? zhimuApi.getRecaps().catch(() => []) : Promise.resolve([]),
-          hasRoom ? zhimuApi.getLatestRecap(state.view === "player").catch(() => null) : Promise.resolve(null),
-          zhimuApi.getWorldLogs(logParams),
-          zhimuApi.getRules(),
-          hasRoom ? zhimuApi.getHostAuditLog().catch(() => ({ entries: [] })) : Promise.resolve({ entries: [] })
+          needsDirectorRuntime || needsOverviewRuntime ? zhimuApi.getHostEvents() : Promise.resolve(null),
+          needsDirectorRuntime ? zhimuApi.getHostClueMatrix() : Promise.resolve(null),
+          needsArchiveRuntime ? zhimuApi.getCheckpoints().catch(() => []) : Promise.resolve([]),
+          needsArchiveRuntime ? zhimuApi.getRecaps().catch(() => []) : Promise.resolve([]),
+          needsArchiveRuntime || needsPlayerRuntime ? zhimuApi.getLatestRecap(state.view === "player").catch(() => null) : Promise.resolve(null),
+          state.view === "overview" || state.view === "director" ? zhimuApi.getWorldLogs(logParams) : Promise.resolve([]),
+          needsRules ? zhimuApi.getRules() : Promise.resolve(state.cloudRules || []),
+          needsDirectorRuntime ? zhimuApi.getHostAuditLog().catch(() => ({ entries: [] })) : Promise.resolve({ entries: state.cloudHostAuditLog || [] })
         ]);
-        if (hasRoom && isRoomMembershipError(phase2[1])) {
+        if (hasRoom && phase2.some(isRoomMembershipError)) {
           zhimuApi.clearRoom();
           clearRuntimeState();
           hasRoom = false;
@@ -169,9 +173,9 @@
           }
         } else {
           take(phase2[0], (value) => { state.cloudPlayer = value; }, () => { state.cloudPlayer = null; });
-          if (phase2[1].status === "fulfilled") {
+          if (needsDirectorRuntime && phase2[1].status === "fulfilled") {
             applyHostPlayersPayload(phase2[1].value);
-          } else if (phase2[1].status === "rejected") {
+          } else if (needsDirectorRuntime && phase2[1].status === "rejected") {
             failHostPlayersLoad(phase2[1].reason);
             pushUniqueError(errors, phase2[1].reason?.message || String(phase2[1].reason));
           }
@@ -225,15 +229,19 @@
       if (worldReady) roomEvents().connectRoomEventStream?.();
       render();
 
-      void (async () => {
+      if (["overview", "account", "settings", "writer", "studio", "clues"].includes(state.view)) void (async () => {
         if (!zhimuApi.context.worldId) return;
         const params = {};
         if (state.assetKindFilter) params.kind = state.assetKindFilter;
         if (state.assetSearchQuery) params.q = state.assetSearchQuery;
+        const needsStorageUsage = ["overview", "account", "settings"].includes(state.view);
+        const needsAssets = ["overview", "account", "writer", "studio", "clues"].includes(state.view);
+        const needsCreatorChecks = ["overview", "writer", "settings"].includes(state.view);
+        if (!needsStorageUsage && !needsAssets && !needsCreatorChecks) return;
         const phase3 = await Promise.allSettled([
-          zhimuApi.getStorageUsage(),
-          zhimuApi.getAssets(Object.keys(params).length ? params : {}),
-          zhimuApi.getCreatorChecks()
+          needsStorageUsage ? zhimuApi.getStorageUsage() : Promise.resolve(state.storageUsage),
+          needsAssets ? zhimuApi.getAssets(Object.keys(params).length ? params : {}) : Promise.resolve({ assets: state.cloudAssets, total: state.assetTotal }),
+          needsCreatorChecks ? zhimuApi.getCreatorChecks() : Promise.resolve({ checks: state.cloudCreatorChecks })
         ]);
         take(phase3[0], (value) => { state.storageUsage = value; });
         take(phase3[1], (value) => {
@@ -246,7 +254,7 @@
           }
         });
         take(phase3[2], (value) => { state.cloudCreatorChecks = value.checks; });
-        if (state.view === "overview" || state.view === "account" || state.view === "writer") render();
+        if (state.view === "overview" || state.view === "account" || state.view === "writer" || state.view === "studio" || state.view === "clues") render();
       })();
 
       void (async () => {

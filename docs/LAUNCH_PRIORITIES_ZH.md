@@ -34,7 +34,7 @@
 
 | ID | 任务 | 域 | 关键文件 / 接口 | 验收标准 | 状态 |
 |----|------|-----|-----------------|----------|------|
-| P0-01 | **官方示例稳定可用** | backend + play | `seed-official-example.mjs`、E2E | seed + env + `play-official-example.spec.js` | ✅ |
+| P0-01 | **官方示例稳定可用** | backend + play | `OFFICIAL_EXAMPLE_WORLD_ID`、E2E | 公开库 env + `play-official-example.spec.js` | ✅ |
 | P0-02 | **示例前置说明（登录/验证）** | play + site | `play/src/views/landing.js`、`site/index.html` hero 脚注 | 点击前可见「需登录并验证邮箱」；site 链到 play 非 app | ✅ |
 | P0-03 | **新用户首次路径（3 分钟）** | main app | `first-run-chooser.js`、`onboarding-strip.js`、`overview.js` | 无剧本时首屏三选一：创建 / 导入 / 官方示例 | ✅ |
 | P0-04 | **玩家端移动体验** | play | `landing.js`、`styles.css`、reader | 首屏优先；顶栏/Tab 横滑；阅读器 17px | ✅ |

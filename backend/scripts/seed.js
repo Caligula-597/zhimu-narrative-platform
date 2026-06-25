@@ -1,6 +1,5 @@
 import { pool } from "../src/db.js";
 import { FIXTURE } from "./fixture-constants.mjs";
-import { OFFICIAL_EXAMPLE_FIXTURE, seedOfficialExampleWorld } from "./seed-official-example.mjs";
 
 const client = await pool.connect();
 try {
@@ -26,13 +25,14 @@ try {
   }
 
   await client.query(
-    `INSERT INTO worlds (id, owner_user_id, name, summary, status, catalog_public)
-     VALUES ($1, $2, $3, '后端集成测试用最小剧本。', 'testing', false)
+    `INSERT INTO worlds (id, owner_user_id, name, summary, status, catalog_public, catalog_review_status)
+     VALUES ($1, $2, $3, '后端集成测试用最小剧本。', 'testing', true, 'approved')
      ON CONFLICT (id) DO UPDATE SET
        name = EXCLUDED.name,
        status = EXCLUDED.status,
        summary = EXCLUDED.summary,
-       catalog_public = false`,
+       catalog_public = true,
+       catalog_review_status = 'approved'`,
     [FIXTURE.worldId, FIXTURE.hostUserId, FIXTURE.worldName]
   );
   await client.query(
@@ -202,10 +202,8 @@ try {
     [FIXTURE.roomId]
   );
 
-  await seedOfficialExampleWorld(client);
-
   await client.query("COMMIT");
-  console.log({ ...FIXTURE, officialExampleWorldId: OFFICIAL_EXAMPLE_FIXTURE.worldId });
+  console.log(FIXTURE);
 } catch (error) {
   await client.query("ROLLBACK");
   throw error;

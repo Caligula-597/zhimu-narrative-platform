@@ -35,6 +35,16 @@
         return true;
       case "studio-auto-layout-menu": S.openStudioLayoutMenu?.(); return true;
       case "studio-auto-layout": S.autoLayoutStudio?.(el?.dataset?.layoutMode); return true;
+      case "studio-collapse-all-scenes":
+        state.studioCollapsedScenes = (state.cloudStudio?.scenes || [])
+          .filter((scene) => S.studioSceneChildCount?.(state.cloudStudio, scene.id) > 0)
+          .map((scene) => scene.id);
+        render();
+        return true;
+      case "studio-expand-all-scenes":
+        state.studioCollapsedScenes = [];
+        render();
+        return true;
       case "studio-toggle-scene-children": {
         const sceneId = el?.dataset?.sceneId;
         if (!sceneId) return true;

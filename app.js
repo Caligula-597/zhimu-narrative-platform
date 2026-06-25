@@ -19,7 +19,30 @@
     account: ["账号", "账号与资产"]
   };
 
+  let renderToken = 0;
+
+  function renderViewLoading(title) {
+    return `<section class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>${title}</h3><p>正在加载该功能模块...</p></div></div></section>`;
+  }
+
+  function resolveViewFn(view) {
+    const views = {
+      overview: V.overview?.overview,
+      writer: V.writer?.writer,
+      studio: V.studio?.studioCloud,
+      clues: V.clues?.clues,
+      rules: V.rules?.rules,
+      director: V.director?.director,
+      player: V.player?.player,
+      archive: V.archive?.archive,
+      settings: V.settings?.settings,
+      account: V.accountHub?.accountHub
+    };
+    return views[view];
+  }
+
   function render() {
+    const currentToken = ++renderToken;
     const [eyebrow, title] = viewMeta[state.view];
     window.zhimuNavShell?.syncWorldSwitcher?.();
     window.zhimuNavShell?.syncNavAdvanced?.(state.view);
@@ -27,21 +50,28 @@
     document.querySelector("#page-title").textContent = title;
     document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === state.view));
     T.updateNotifyBadge();
-    const views = {
-      overview: V.overview.overview,
-      writer: V.writer.writer,
-      studio: V.studio.studioCloud,
-      clues: V.clues.clues,
-      rules: V.rules.rules,
-      director: V.director.director,
-      player: V.player.player,
-      archive: V.archive.archive,
-      settings: V.settings.settings,
-      account: V.accountHub.accountHub
-    };
+    const loader = window.zhimuViewLoader;
+    if (loader && !loader.isViewReady?.(state.view)) {
+      const loadingView = state.view;
+      content.innerHTML = renderViewLoading(title);
+      R.bindDynamic();
+      loader.ensureViewModules(loadingView)
+        .then(() => {
+          if (currentToken !== renderToken || state.view !== loadingView) return;
+          if (state.view === "account") window.zhimuAccountHub?.beginAccountHubLoad?.();
+          render();
+        })
+        .catch((error) => {
+          if (currentToken !== renderToken || state.view !== loadingView) return;
+          state.apiError = error.message || String(error);
+          render();
+        });
+      return;
+    }
     const outage = window.zhimuServiceOutage;
     const showOutage = outage?.isServiceOutage?.(state.apiError) && !state.cloudLoading;
-    content.innerHTML = showOutage ? outage.renderServiceOutage(state.apiError) : views[state.view]();
+    const viewFn = resolveViewFn(state.view);
+    content.innerHTML = showOutage ? outage.renderServiceOutage(state.apiError) : (viewFn ? viewFn() : renderViewLoading(title));
     R.bindDynamic();
     if (["settings", "studio", "writer"].includes(state.view)) {
       queueMicrotask(() => {

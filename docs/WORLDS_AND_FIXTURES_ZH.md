@@ -33,11 +33,12 @@
 | 项 | 说明 |
 |----|------|
 | 环境变量 | `OFFICIAL_EXAMPLE_WORLD_ID` |
-| 本地/CI seed | `33333333-3333-4333-8444-555555550003`（`seed-official-example.mjs`，`npm run db:seed` 自动写入） |
-| 生产示例 | `20725d66-35ec-4d2f-aef8-4794cef6ace1` · **小示例**（Railway env） |
+| 生产示例 | `20725d66-35ec-4d2f-aef8-4794cef6ace1` · **小示例**（Caligula 创作，Railway env） |
 | 后端模块 | `backend/src/official-example.js` |
 | API | `GET /api/platform/official-example` · `POST /api/platform/official-example/join` |
 | 保护 | `isProtectedPlatformWorldId()` 防止误删/误改官方示例 |
+
+**决策**：官方示例仅使用 Caligula 创作的「小示例」，不再维护本地 seed 版空壳示例。清理待办见待处理问题文档。
 
 官方示例必须是**创作者上传并通过审核**的真实剧本，可随时替换 ID，无需改代码。
 

@@ -47,6 +47,8 @@
     "test:runtime-stores": "node --test scripts/runtime-stores.test.mjs",
     "test:pipeline-session": "node --test scripts/pipeline-wizard-session.test.mjs",
     "test:play": "npm run build --prefix play && node --test play/test/*.test.mjs",
+    "test:host": "npm run build --prefix host && node --test host/test/*.test.mjs",
+    "dev:host": "npm run dev --prefix host",
     "explore:ai": "node e2e/ai-explore.mjs",
     "explore:ai:llm": "node e2e/ai-explore.mjs --llm --headed",
     "ensure:esm": "node scripts/ensure-esm-exports.mjs",

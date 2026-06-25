@@ -1,5 +1,5 @@
 /**
- * Ensure Postgres has fixture + official example before Playwright webServers start.
+ * Ensure Postgres has the shared test fixture before Playwright webServers start.
  */
 import { spawnSync } from "node:child_process";
 import path from "node:path";
