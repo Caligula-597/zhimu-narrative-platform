@@ -33,6 +33,7 @@
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
   const showToast = T.showToast || (() => {});
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -93,8 +94,8 @@ function bindManuscriptEditor(roleId, section, sections){
  refreshCount();
  modal.querySelectorAll("[data-studio-field]").forEach((field)=>{field.addEventListener("input",()=>{refreshCount();scheduleAutosave()});if(field.tagName==="SELECT")field.addEventListener("change",scheduleAutosave)});
  modal.querySelector("[data-editor-replace-btn]").onclick=()=>{const from=modal.querySelector("[data-editor-search]").value,to=modal.querySelector("[data-editor-replace]").value;if(!from)return showToast("请先填写搜索关键词");body.value=body.value.split(from).join(to);body.dispatchEvent(new Event("input"));showToast("当前分幕已完成替换")};
- modal.querySelector("[data-studio-submit]").onclick=async()=>{try{const values=studioValues();if(!values.chapterId)values.chapterId=null;if(section)await zhimuApi.updateSection(roleId,section.id,values);else await zhimuApi.createSection(zhimuApi.context.worldId,roleId,{...values,sequence:sections.length+1});closeModal();await loadCloudData();showToast("角色分幕已保存")}catch(error){showToast(error.message)}};
- if(section){const actions=modal.querySelector(".modal-actions");actions.insertAdjacentHTML("afterbegin",`<button class="danger-btn" data-delete-section>删除这一幕</button>`);actions.querySelector("[data-delete-section]").onclick=async()=>{try{await zhimuApi.deleteSection(roleId,section.id);closeModal();await loadCloudData();showToast("角色分幕已删除")}catch(error){showToast(error.message)}};}
+ modal.querySelector("[data-studio-submit]").onclick=async()=>{try{const values=studioValues();if(!values.chapterId)values.chapterId=null;if(section)await zhimuApi.updateSection(roleId,section.id,values);else await zhimuApi.createSection(zhimuApi.context.worldId,roleId,{...values,sequence:sections.length+1});closeModal();await loadCloudData();showToast("角色分幕已保存")}catch(error){showError(error)}};
+ if(section){const actions=modal.querySelector(".modal-actions");actions.insertAdjacentHTML("afterbegin",`<button class="danger-btn" data-delete-section>删除这一幕</button>`);actions.querySelector("[data-delete-section]").onclick=async()=>{try{await zhimuApi.deleteSection(roleId,section.id);closeModal();await loadCloudData();showToast("角色分幕已删除")}catch(error){showError(error)}};}
  setTimeout(()=>body?.focus(),60);
 }
 
@@ -107,13 +108,13 @@ function openCreatorSection(roleId,sectionId=""){
 
 function openCreatorRole(roleId=""){
  const data=state.cloudStudio,role=data.roles.find(item=>item.id===roleId);
- studioModal(role?"编辑角色席位":"新增角色席位",studioField("角色名称","name","input",role?.name||"")+studioField("公开身份","publicProfile","textarea",role?.public_profile||"")+studioField("角色秘密","privateProfile","textarea",role?.private_profile||"")+studioField("席位顺序","sequence","input",String(role?.sequence||data.roles.length+1)),role?"保存角色修改":"写入云端",async()=>{try{const values=studioValues(),payload={name:values.name,publicProfile:values.publicProfile,privateProfile:values.privateProfile,sequence:Number(values.sequence)||data.roles.length+1};if(role)await zhimuApi.updateRole(role.id,payload);else await zhimuApi.createRole(zhimuApi.context.worldId,payload);closeModal();await loadCloudData();showToast("角色席位已保存")}catch(error){showToast(error.message)}});
- if(role)modal.querySelector(".modal-actions").insertAdjacentHTML("afterbegin",`<button class="danger-btn" data-delete-role>删除角色</button>`),modal.querySelector("[data-delete-role]").onclick=async()=>{if(data.roles.length<=1)return showToast("至少需要保留一个角色席位");try{await zhimuApi.deleteRole(role.id);closeModal();await loadCloudData();showToast("角色席位及其私人正文已删除")}catch(error){showToast(error.message)}};
+ studioModal(role?"编辑角色席位":"新增角色席位",studioField("角色名称","name","input",role?.name||"")+studioField("公开身份","publicProfile","textarea",role?.public_profile||"")+studioField("角色秘密","privateProfile","textarea",role?.private_profile||"")+studioField("席位顺序","sequence","input",String(role?.sequence||data.roles.length+1)),role?"保存角色修改":"写入云端",async()=>{try{const values=studioValues(),payload={name:values.name,publicProfile:values.publicProfile,privateProfile:values.privateProfile,sequence:Number(values.sequence)||data.roles.length+1};if(role)await zhimuApi.updateRole(role.id,payload);else await zhimuApi.createRole(zhimuApi.context.worldId,payload);closeModal();await loadCloudData();showToast("角色席位已保存")}catch(error){showError(error)}});
+ if(role)modal.querySelector(".modal-actions").insertAdjacentHTML("afterbegin",`<button class="danger-btn" data-delete-role>删除角色</button>`),modal.querySelector("[data-delete-role]").onclick=async()=>{if(data.roles.length<=1)return showToast("至少需要保留一个角色席位");try{await zhimuApi.deleteRole(role.id);closeModal();await loadCloudData();showToast("角色席位及其私人正文已删除")}catch(error){showError(error)}};
 }
 
 function openCreatorChapter(chapterId){
  const chapter=state.cloudStudio.chapters.find(item=>item.id===chapterId);
- studioModal("章节发布控制",studioField("章节名称","title","input",chapter.title)+studioField("章节摘要","summary","textarea",chapter.summary||"")+studioSelect("发布阶段","publicationStatus",[{id:"draft",name:"草稿 · 不对玩家开放"},{id:"testing",name:"测试中 · 用于测试房"},{id:"published",name:"已发布 · 可进入正式房"}],chapter.publication_status||"draft")+studioSelect("解锁方式","unlockMode",[{id:"host_confirm",name:"主持人确认后开放"},{id:"automatic",name:"满足规则后自动开放"},{id:"manual",name:"仅手动开放"}],chapter.unlock_rules?.mode||"host_confirm"),"保存章节设置",async()=>{try{const values=studioValues();await zhimuApi.updateChapter(chapter.id,{title:values.title,summary:values.summary,publicationStatus:values.publicationStatus,unlockRules:{mode:values.unlockMode}});closeModal();await loadCloudData();showToast("章节发布规则已保存")}catch(error){showToast(error.message)}});
+ studioModal("章节发布控制",studioField("章节名称","title","input",chapter.title)+studioField("章节摘要","summary","textarea",chapter.summary||"")+studioSelect("发布阶段","publicationStatus",[{id:"draft",name:"草稿 · 不对玩家开放"},{id:"testing",name:"测试中 · 用于测试房"},{id:"published",name:"已发布 · 可进入正式房"}],chapter.publication_status||"draft")+studioSelect("解锁方式","unlockMode",[{id:"host_confirm",name:"主持人确认后开放"},{id:"automatic",name:"满足规则后自动开放"},{id:"manual",name:"仅手动开放"}],chapter.unlock_rules?.mode||"host_confirm"),"保存章节设置",async()=>{try{const values=studioValues();await zhimuApi.updateChapter(chapter.id,{title:values.title,summary:values.summary,publicationStatus:values.publicationStatus,unlockRules:{mode:values.unlockMode}});closeModal();await loadCloudData();showToast("章节发布规则已保存")}catch(error){showError(error)}});
 }
 
 function chapterDeleteReferenceHint(refs){
@@ -133,21 +134,21 @@ async function deleteCreatorChapter(chapterId){
  if(!chapter)return showToast("未找到章节");
  try{
   const refs=await zhimuApi.getStudioNodeReferences("chapter",chapterId);
-  studioModal("确认删除章节",`${chapterDeleteReferenceHint(refs)}<p>将永久删除「${escapeHtml(chapter.title)}」。</p><p class="muted-note">绑定本章的<strong>私人分幕</strong>与引用这些分幕的<strong>自动化规则</strong>（如「序章读完」）会一并删除；关联场景保留并解除章节绑定。删除后剩余章节序号会自动重排为 1、2、3…</p>`,"确认删除",async()=>{try{await zhimuApi.deleteStudioNode("chapter",chapterId);closeModal();await loadCloudData();showToast(`已删除章节「${chapter.title}」`)}catch(error){showToast(error.message)}});
- }catch(error){showToast(error.message)}
+  studioModal("确认删除章节",`${chapterDeleteReferenceHint(refs)}<p>将永久删除「${escapeHtml(chapter.title)}」。</p><p class="muted-note">绑定本章的<strong>私人分幕</strong>与引用这些分幕的<strong>自动化规则</strong>（如「序章读完」）会一并删除；关联场景保留并解除章节绑定。删除后剩余章节序号会自动重排为 1、2、3…</p>`,"确认删除",async()=>{try{await zhimuApi.deleteStudioNode("chapter",chapterId);closeModal();await loadCloudData();showToast(`已删除章节「${chapter.title}」`)}catch(error){showError(error)}});
+ }catch(error){showError(error)}
 }
 
-async function runCreatorChecks(){try{state.cloudCreatorChecks=(await zhimuApi.getCreatorChecks()).checks;render();showToast("发布检查已完成")}catch(error){showToast(error.message)}}
+async function runCreatorChecks(){try{state.cloudCreatorChecks=(await zhimuApi.getCreatorChecks()).checks;render();showToast("发布检查已完成")}catch(error){showError(error)}}
 
 async function openStoryManuscript(){
  try{
   const manuscript=await zhimuApi.getStoryManuscript();
   modal.className="modal story-manuscript-modal";modal.innerHTML=`<h2>完整剧情母稿</h2><p class="wizard-intro">这是创作者维护的全局剧情文稿，不会替代每位角色的私人剧本。你可以从剧情编排生成一份规范化母稿，也可以把编辑后的母稿拆分成场景、调查点、线索与连接线。</p><div class="assistant-guide"><b>双向同步边界</b><span>“从编排台生成母稿”会覆盖下方文本；“拆分母稿写回编排台”会重建此前由母稿生成的节点，不会删除你手工建立的节点。</span></div><textarea class="field manuscript-draft" rows="20" data-story-manuscript>${escapeHtml(manuscript.body)}</textarea><div class="manuscript-meta" data-manuscript-meta>${storyManuscriptStatus(manuscript)}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-manuscript-save>仅保存母稿</button><button class="secondary-btn" data-manuscript-from-graph>从编排台生成母稿</button><button class="primary-btn" data-manuscript-to-graph>拆分母稿写回编排台</button></div>`;
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const body=()=>modal.querySelector("[data-story-manuscript]").value.trim(),meta=modal.querySelector("[data-manuscript-meta]");
-  modal.querySelector("[data-manuscript-save]").onclick=async()=>{try{const result=await zhimuApi.saveStoryManuscript(body());meta.innerHTML=storyManuscriptStatus(result);showToast("完整剧情母稿已保存")}catch(error){showToast(error.message)}};
-  modal.querySelector("[data-manuscript-from-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptFromGraph();modal.querySelector("[data-story-manuscript]").value=result.body;meta.innerHTML=storyManuscriptStatus(result);showToast("已经从剧情编排生成完整母稿")}catch(error){showToast(error.message)}};
-  modal.querySelector("[data-manuscript-to-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptToGraph(body());closeModal();await loadCloudData();go("studio");showToast(`母稿已拆分为 ${result.nodes} 个节点和 ${result.edges} 条连线`)}catch(error){showToast(error.message)}};
- }catch(error){showToast(error.message)}
+  modal.querySelector("[data-manuscript-save]").onclick=async()=>{try{const result=await zhimuApi.saveStoryManuscript(body());meta.innerHTML=storyManuscriptStatus(result);showToast("完整剧情母稿已保存")}catch(error){showError(error)}};
+  modal.querySelector("[data-manuscript-from-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptFromGraph();modal.querySelector("[data-story-manuscript]").value=result.body;meta.innerHTML=storyManuscriptStatus(result);showToast("已经从剧情编排生成完整母稿")}catch(error){showError(error)}};
+  modal.querySelector("[data-manuscript-to-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptToGraph(body());closeModal();await loadCloudData();go("studio");showToast(`母稿已拆分为 ${result.nodes} 个节点和 ${result.edges} 条连线`)}catch(error){showError(error)}};
+ }catch(error){showError(error)}
 }
 
 function storyManuscriptStatus(manuscript){const label={manual:"手动保存",graph_to_manuscript:"剧情编排 → 完整母稿",manuscript_to_graph:"完整母稿 → 剧情编排"}[manuscript.lastSyncDirection||manuscript.last_sync_direction]||"尚未同步";return `<span>最近同步：${label}</span>${manuscript.updatedAt||manuscript.updated_at?`<span>${formatTime(manuscript.updatedAt||manuscript.updated_at)}</span>`:""}`}
@@ -162,13 +163,13 @@ async function openCollaboration(){
   modal.innerHTML=`<h2>协作权限</h2><p class="wizard-intro">输入邮箱邀请协作者。未注册账号会收到邀请邮件；已注册账号将直接加入。</p><div class="collab-list">${members.map(member=>`<div class="collab-row"><div><b>${escapeHtml(member.display_name)}</b><p>${escapeHtml(member.email||"—")} · ${roleName[member.role]}</p></div>${member.role==="owner"?`<span class="cloud-pill">OWNER</span>`:`<div class="row"><select class="field compact-field" data-member-role="${member.user_id}">${["editor","host","viewer"].map(role=>`<option value="${role}" ${role===member.role?"selected":""}>${roleName[role]}</option>`).join("")}</select><button class="text-btn danger-text" data-remove-member="${member.user_id}">移除</button></div>`}</div>`).join("")}${pendingRows}</div><div class="collab-invite"><h3>邀请协作者</h3><div class="row"><input class="field" data-member-email placeholder="成员邮箱"><select class="field compact-field" data-member-new-role><option value="editor">协作者</option><option value="host">主持人</option><option value="viewer">只读观察者</option></select><button class="primary-btn" data-add-member>发送邀请</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
   modalBackdrop.classList.add("show");
   modal.querySelector("[data-close]").onclick=closeModal;
-  const handleErr=(error)=>window.zhimuUserMessages?.handleApiErrorToast?.(error, showToast)||showToast(error.message);
+  const handleErr=(error)=>window.zhimuUserMessages?.handleApiErrorToast?.(error, showToast)||showError(error);
   modal.querySelector("[data-add-member]").onclick=async()=>{try{const result=await zhimuApi.addWorldMember({email:modal.querySelector("[data-member-email]").value,role:modal.querySelector("[data-member-new-role]").value});closeModal();if(result?.pendingInvite){showToast(result.emailSent?"邀请邮件已发送":result.inviteToken?"邀请已创建（邮件未配置，请手动分享链接）":"邀请已创建");if(result.inviteToken&&navigator.clipboard)try{await navigator.clipboard.writeText(`${location.origin}${location.pathname}?invite=${encodeURIComponent(result.inviteToken)}`);showToast("邀请链接已复制")}catch{}}else showToast("协作成员已加入");openCollaboration()}catch(error){handleErr(error)}};
   modal.querySelectorAll("[data-member-role]").forEach(select=>select.onchange=async()=>{try{await zhimuApi.updateWorldMember(select.dataset.memberRole,select.value);showToast("成员权限已更新")}catch(error){handleErr(error)}});
   modal.querySelectorAll("[data-remove-member]").forEach(button=>button.onclick=async()=>{try{await zhimuApi.deleteWorldMember(button.dataset.removeMember);closeModal();showToast("协作成员已移除");openCollaboration()}catch(error){handleErr(error)}});
   modal.querySelectorAll("[data-resend-invite]").forEach(button=>button.onclick=async()=>{try{const result=await zhimuApi.resendWorldInvite(button.dataset.resendInvite);showToast(result.emailSent?"邀请邮件已重发":"已刷新邀请（请手动分享链接）");openCollaboration()}catch(error){handleErr(error)}});
   modal.querySelectorAll("[data-revoke-invite]").forEach(button=>button.onclick=async()=>{try{await zhimuApi.revokeWorldInvite(button.dataset.revokeInvite);showToast("待接受邀请已撤销");openCollaboration()}catch(error){handleErr(error)}});
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function openWorldLogs(){
@@ -176,7 +177,7 @@ async function openWorldLogs(){
   const draw=async()=>{const params={limit:"100"},eventType=modal.querySelector("[data-log-event]")?.value,keyword=modal.querySelector("[data-log-keyword]")?.value;if(eventType)params.eventType=eventType;if(keyword)params.keyword=keyword;const logs=await zhimuApi.getWorldLogs(params);modal.querySelector("[data-log-list]").innerHTML=logs.map(log=>`<div class="log-row"><div><b>${escapeHtml(log.event_type)}</b><span>${escapeHtml(log.room_name)}</span></div><p>${escapeHtml(log.message)}</p><small>${escapeHtml(log.actor_name||"系统")} · ${formatTime(log.created_at)}</small></div>`).join("")||`<div class="empty-state">没有匹配的运行日志。</div>`};
   modal.className="modal creator-tool-modal";modal.innerHTML=`<h2>世界运行日志</h2><p class="wizard-intro">查看玩家阅读、调查、规则触发与主持操作。筛选只影响当前查看，不会修改历史记录。</p><div class="log-toolbar"><select class="field compact-field" data-log-event><option value="">全部事件</option><option value="reading_completed">阅读完成</option><option value="investigation_completed">调查完成</option><option value="scene_unlocked">场景解锁</option></select><input class="field" data-log-keyword placeholder="搜索日志内容"><button class="secondary-btn" data-log-refresh>筛选</button></div><div class="log-list" data-log-list></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-log-refresh]").onclick=draw;await draw();
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function openDocumentParser(){
@@ -211,7 +212,7 @@ async function openDocumentParser(){
    commit.disabled=parsed.contentMode==="pages"?!roles.length&&!modal.querySelector("[data-document-target]").value.startsWith("manuscript"):false;
    if(parsed.contentMode==="pages"&&modal.querySelector("[data-document-target]").value==="manuscript"){commit.disabled=true;showToast("图片分幕只能导入到角色私人剧本")}
    else showToast(parsed.contentMode==="pages"?"识别为图片文档，确认后将上传各页":"文档解析完成，请复核分段");
-  }catch(error){showToast(error.message)}
+  }catch(error){showError(error)}
  };
  modal.querySelector("[data-document-target]").addEventListener("change",()=>{
   if(parsed?.contentMode==="pages"&&modal.querySelector("[data-document-target]").value==="manuscript"){commit.disabled=true;showToast("图片分幕只能导入到角色私人剧本");}
@@ -228,7 +229,7 @@ async function openDocumentParser(){
    }
    await zhimuApi.importParsedDocument({target:target==="manuscript"?"manuscript":"role_script",roleSlotId:target==="manuscript"?null:target,document:parsed});
    closeModal();await loadCloudData();showToast("文档内容已写入云端");
-  }catch(error){showToast(error.message)}
+  }catch(error){showError(error)}
  };
 }
 
@@ -267,8 +268,8 @@ function pipelinePreviewHtml(session){return PipelineWizard()?.pipelinePreviewHt
 function openStoryAssistant(){
  modal.className="modal story-assistant-modal";modal.innerHTML=`<h2>剧情助手</h2><p class="wizard-intro">粘贴剧情梗概或逐段素材。系统会先识别场景、线索和调查点，再生成建议连线。确认后才会写入剧情编排。</p><div class="assistant-guide"><b>推荐格式</b><span>每段用空行分隔。也可以使用“场景：”“线索：”“调查点：”开头提高识别准确度。</span></div><textarea class="field assistant-draft" rows="14" data-story-draft placeholder="场景：旧灯塔。潮水退去后，塔门露出一枚生锈的锁。&#10;&#10;调查点：检查塔门锁孔，发现内部残留蓝色蜡屑。&#10;&#10;线索：蓝色火漆碎片。它与匿名信上的封蜡一致。"></textarea><div data-assistant-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-assistant-analyze>分析分类</button><button class="primary-btn" data-assistant-import disabled>确认写入剧情编排</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const text=()=>modal.querySelector("[data-story-draft]").value.trim(),preview=modal.querySelector("[data-assistant-preview]"),commit=modal.querySelector("[data-assistant-import]");
- modal.querySelector("[data-assistant-analyze]").onclick=async()=>{try{const result=await zhimuApi.analyzeStoryDraft(text());preview.innerHTML=storyAssistantPreview(result);commit.disabled=!result.nodes.length;showToast(`已识别 ${result.nodes.length} 个剧情节点`)}catch(error){showToast(error.message)}};
- commit.onclick=async()=>{try{commit.disabled=true;const result=await zhimuApi.importStoryDraft(text());closeModal();await loadCloudData();go("studio");showToast(`已生成 ${result.nodes.length} 个节点和 ${result.edges.length} 条连线`)}catch(error){commit.disabled=false;showToast(error.message)}};
+ modal.querySelector("[data-assistant-analyze]").onclick=async()=>{try{const result=await zhimuApi.analyzeStoryDraft(text());preview.innerHTML=storyAssistantPreview(result);commit.disabled=!result.nodes.length;showToast(`已识别 ${result.nodes.length} 个剧情节点`)}catch(error){showError(error)}};
+ commit.onclick=async()=>{try{commit.disabled=true;const result=await zhimuApi.importStoryDraft(text());closeModal();await loadCloudData();go("studio");showToast(`已生成 ${result.nodes.length} 个节点和 ${result.edges.length} 条连线`)}catch(error){commit.disabled=false;showError(error)}};
 }
 
 function storyAssistantPreview(result){const typeName={scene:"场景",clue:"线索",investigation_point:"调查点"};return `<section class="assistant-preview"><div class="section-head"><div><h3>分类预览</h3><p>${result.nodes.length} 个节点 · ${result.edges.length} 条建议连线</p></div></div><div class="assistant-node-grid">${result.nodes.map(node=>`<article><span>${typeName[node.type]}</span><b>${escapeHtml(node.name)}</b><p>${escapeHtml(node.text)}</p></article>`).join("")}</div><div class="assistant-suggestions"><b>写作建议</b>${result.suggestions.map(item=>`<p>· ${escapeHtml(item)}</p>`).join("")}</div></section>`}
@@ -295,8 +296,8 @@ async function openCreatorExport(){
  try{
   const summary=await zhimuApi.getContentPackageSummary();
   modal.className="modal creator-tool-modal";modal.innerHTML=`<h2>导出内容包</h2><p class="wizard-intro">确认摘要后再下载 JSON 备份。可用于备份剧本、复制世界结构或分享给协作者。</p>${contentPackageSummaryHtml(summary)}<div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-export-confirm>确认导出 JSON</button></div>`;
-  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-export-confirm]").onclick=async()=>{try{const payload=await zhimuApi.exportContentPackage(),url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"})),link=document.createElement("a");link.href=url;link.download=`${state.cloudStudio.world.name}-zhimu-backup.json`;link.click();URL.revokeObjectURL(url);closeModal();showToast("内容包已导出")}catch(error){showToast(error.message)}};
- }catch(error){showToast(error.message)}
+  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-export-confirm]").onclick=async()=>{try{const payload=await zhimuApi.exportContentPackage(),url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"})),link=document.createElement("a");link.href=url;link.download=`${state.cloudStudio.world.name}-zhimu-backup.json`;link.click();URL.revokeObjectURL(url);closeModal();showToast("内容包已导出")}catch(error){showError(error)}};
+ }catch(error){showError(error)}
 }
 
 async function exportCreatorPackage(){return openCreatorExport()}
@@ -360,9 +361,9 @@ async function importCreatorPackage(parsedJson=null, previewResult=null){
  }catch(error){showToast(`导入失败：${error.message}`)}
 }
 
-function createCreatorSnapshot(){studioModal("保存创作版本",studioField("版本名称","label","input",`创作快照 ${new Date().toLocaleString("zh-CN")}`),"保存快照",async()=>{try{await zhimuApi.createContentVersion(studioValues());closeModal();await loadCloudData();showToast("创作版本已保存")}catch(error){showToast(error.message)}})}
-async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showToast(error.message)}}
-async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showToast(error.message)}}
+function createCreatorSnapshot(){studioModal("保存创作版本",studioField("版本名称","label","input",`创作快照 ${new Date().toLocaleString("zh-CN")}`),"保存快照",async()=>{try{await zhimuApi.createContentVersion(studioValues());closeModal();await loadCloudData();showToast("创作版本已保存")}catch(error){showError(error)}})}
+async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
+async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
   viewExports.writer = writer;
   viewExports.createCreatorSnapshot = createCreatorSnapshot;
   viewExports.restoreCreatorSnapshot = restoreCreatorSnapshot;

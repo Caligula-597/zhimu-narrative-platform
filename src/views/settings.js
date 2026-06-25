@@ -13,6 +13,7 @@
   const hostAuditActionLabel = F.hostAuditActionLabel || ((a) => a);
   const hostAuditDetail = F.hostAuditDetail || (() => "");
   const showToast = T.showToast || (() => "");
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const activeRuntimeRoom = U.activeRuntimeRoom || (() => null);
   const isWorldOwner = U.isWorldOwner || (() => false);
   const canEditWorldContent = U.canEditWorldContent || (() => false);
@@ -103,7 +104,7 @@ function settings(){
   showToast("剧本信息已保存");
   window.zhimuWorldRevision?.clearEditorDirty?.();
   window.zhimuWorldRevision?.clearDraft?.("settings");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function withdrawCatalogListing(){
@@ -113,7 +114,7 @@ async function withdrawCatalogListing(){
   await loadCloudData(true,true);
   render();
   showToast("已从公开库撤回");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 function openCatalogReviewModal(){
@@ -145,7 +146,7 @@ function openCatalogReviewModal(){
    await loadCloudData(true,true);
    render();
    showToast("申请已提交，请留意注册邮箱");
-  }catch(error){showToast(error.message)}
+  }catch(error){showError(error)}
  };
 }
 
@@ -157,7 +158,7 @@ async function saveRoomSettings(){
   await zhimuApi.patchRoomSettings({hostVoiceListen});
   state.cloudRoomSettings={hostVoiceListen};
   showToast("运行房选项已保存");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 function goWriterExport(){
@@ -180,7 +181,7 @@ async function openWorldAuditModal(){
   modal.innerHTML=`<h2>世界主持审计</h2><p class="wizard-intro">汇总所有平行房的主持敏感操作，最近 ${rows.length} 条。</p><div class="host-detail-list host-audit-list">${body}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
   modalBackdrop.classList.add("show");
   modal.querySelector("[data-close]").onclick=closeModal;
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
   viewExports.settings = settings;

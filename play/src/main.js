@@ -31,6 +31,7 @@ import {
 } from "./runtime/voice.js";
 import { bindPlayReader } from "./runtime/reader.js";
 import { patchGameView, patchGameHostBanner, patchGameTabSwitch, patchGameSectionsTab, isGameInputFocused } from "./runtime/patch-game.js";
+import { normalizeMiniGame } from "./components/mini-games.js";
 import {
   createRefreshCoalescer,
   patchSyncChrome,
@@ -194,6 +195,8 @@ async function pullRoomData(options = {}) {
   if (generation !== pullGeneration) return;
 
   state.home = home;
+  const homeGame = home.currentGame ?? home.current_game ?? home.roomRunningState?.current_game ?? home.room_running_state?.current_game;
+  if (homeGame !== undefined) state.currentGame = normalizeMiniGame(homeGame);
   if (explorationResult.ok) {
     state.exploration = explorationResult.data;
     state.explorationError = "";
@@ -281,6 +284,11 @@ const roomEventCtx = {
   setHostNudge: (message) => {
     state.hostNudge = message ? { message } : null;
     if (state.view === "game" && !patchGameHostBanner()) render();
+  },
+  setCurrentGame: (game) => {
+    state.currentGame = normalizeMiniGame(game);
+    if (state.view === "game" && patchGameView(state, gamePatchCtx) !== "full") return;
+    render();
   },
   getHostConfirmWaiting: () => Boolean(state.home?.hostConfirm?.waitingForYou),
   setStreamStatus: (status) => {
@@ -897,6 +905,33 @@ async function handleInvestigate(pointId) {
   }
 }
 
+async function handleMiniGameSubmit(button) {
+  const game = normalizeMiniGame(state.currentGame);
+  if (!game?.instanceId) return setToast("当前没有可提交的解密机关", render);
+  const root = button.closest("[data-mini-game]");
+  const answer = root?.querySelector("[data-mini-game-answer]")?.value?.trim() || "";
+  if (!answer) return setToast("请输入密码", render);
+  setBusy(true, render);
+  try {
+    const result = await api.submitMiniGame({
+      roomId: state.roomId,
+      instance_id: game.instanceId,
+      instanceId: game.instanceId,
+      answer
+    });
+    state.currentGame = normalizeMiniGame(result.currentGame || result.current_game || result.game || {
+      ...game,
+      status: result.correct ? "success" : "playing",
+      attempts_left: result.attempts_left ?? result.attemptsLeft ?? game.attemptsLeft
+    });
+    setToast(result.correct ? "机关已解开" : "密码不正确", render);
+  } catch (error) {
+    setToast(formatApiError(error, "提交失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
 async function handleReadClue(clueId) {
   setBusy(true, render);
   try {
@@ -1497,6 +1532,9 @@ app.addEventListener("click", async (event) => {
       break;
     case "investigate":
       await handleInvestigate(button.dataset.pointId);
+      break;
+    case "mini-game-submit":
+      await handleMiniGameSubmit(button);
       break;
     case "switch-tab":
       await flushPendingRoomRefresh();

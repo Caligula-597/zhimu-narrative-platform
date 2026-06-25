@@ -5,6 +5,8 @@
   const T = window.zhimuToast || {};
   const showToast = T.showToast || (() => {});
   const updateNotifyBadge = T.updateNotifyBadge || (() => {});
+  const reportError = (error, fallback = "操作失败，请稍后重试") =>
+    showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
 
   const workspace = () => window.zhimuWorkspace || {};
   const runtimeStore = () => window.zhimuRuntimeStore || {};
@@ -303,7 +305,7 @@
       if (state.view === "director" || state.view === "overview") render();
       if (withToast && !silent) showToast(`待确认事件已刷新（${state.cloudHostEvents.length} 条）`);
     } catch (error) {
-      if (withToast && !silent) showToast(error.message);
+      if (withToast && !silent) reportError(error, "刷新待确认事件失败");
     }
   }
 
@@ -319,7 +321,7 @@
     } catch (error) {
       failHostPlayersLoad(error);
       if (state.view === "director" || state.view === "overview") render();
-      if (withToast && !silent) showToast(error.message);
+      if (withToast && !silent) reportError(error, "刷新玩家进度失败");
     }
   }
 
@@ -334,7 +336,7 @@
       if (state.view === "director") render();
       if (withToast && !silent) showToast(`主持审计已刷新（${state.cloudHostAuditLog.length} 条）`);
     } catch (error) {
-      if (withToast && !silent) showToast(error.message);
+      if (withToast && !silent) reportError(error, "刷新主持审计失败");
     }
   }
 
@@ -345,7 +347,7 @@
       if (state.view === "director") render();
       if (withToast && !silent) showToast("线索矩阵已刷新");
     } catch (error) {
-      if (withToast && !silent) showToast(error.message);
+      if (withToast && !silent) reportError(error, "刷新线索矩阵失败");
     }
   }
 
@@ -376,7 +378,7 @@
     } catch (error) {
       failHostPlayersLoad(error);
       if (state.view === "director" || state.view === "overview") render();
-      if (withToast) showToast(error.message);
+      if (withToast) reportError(error, "刷新房间状态失败");
     }
   }
 

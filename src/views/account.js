@@ -9,12 +9,16 @@
   const showToast = T.showToast || (() => "");
   const handleApiError = window.zhimuUserMessages?.handleApiErrorToast || ((err, toast) => toast(err?.message || "操作失败"));
   const studioField = window.zhimuModal?.studioField || (() => "");
+  const Status = () => window.zhimuStatus || {};
 
   window.zhimuViews = window.zhimuViews || {};
   const exports = window.zhimuViews.account = window.zhimuViews.account || {};
 
   function accountShell(body, loading = false) {
-    return `<section class="rules-layout"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号设置</h3><p>登录身份、套餐配额与多设备管理</p></div></div>${loading ? `<p class="muted-note">正在加载账号信息…</p>` : body}</article></section>`;
+    const content = loading
+      ? Status().loading?.("账号设置", "正在加载登录身份、套餐配额与多设备记录。") || `<p class="muted-note">正在加载账号信息…</p>`
+      : body;
+    return `<section class="rules-layout"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号设置</h3><p>登录身份、套餐配额与多设备管理</p></div></div>${content}</article></section>`;
   }
 
   function formatBytesShort(bytes) {
@@ -43,13 +47,13 @@
       return window.zhimuRuntime?.openAuth?.();
     }
     modal.className = "modal auth-modal account-delete-modal";
-    modal.innerHTML = `<h2>注销账号</h2><p class="wizard-intro">正在加载影响范围…</p>`;
+    modal.innerHTML = `<h2>注销账号</h2>${Status().modalLoading?.("正在加载影响范围…") || `<p class="wizard-intro">正在加载影响范围…</p>`}`;
     backdrop.classList.add("show");
     let preview;
     try {
       preview = await zhimuApi.previewAccountDelete();
     } catch (error) {
-      modal.innerHTML = `<h2>无法加载注销信息</h2><p class="wizard-intro">${escapeHtml(error.message || "请稍后重试")}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+      modal.innerHTML = `<h2>无法加载注销信息</h2>${Status().modalError?.(error, "请稍后重试") || `<p class="wizard-intro">${escapeHtml(error.message || "请稍后重试")}</p>`}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
       modal.querySelector("[data-close]").onclick = closeModal;
       return;
     }
@@ -171,7 +175,7 @@
     } catch (error) {
       if (!background) {
         state.accountView = null;
-        showToast(error.message);
+        handleApiError(error, showToast);
       }
     } finally {
       state.accountViewLoading = false;

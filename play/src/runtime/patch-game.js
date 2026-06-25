@@ -5,6 +5,7 @@ import {
   renderGameSidebar,
   renderHostConfirmBannerHtml
 } from "../views/game.js";
+import { renderMiniGamePanel } from "../components/mini-games.js";
 import { bindPlayReader } from "./reader.js";
 
 function activeInputIn(el) {
@@ -16,7 +17,8 @@ function activeInputIn(el) {
 
 export function isGameInputFocused() {
   const tabBody = document.querySelector("[data-game-tab-body]");
-  return Boolean(tabBody && activeInputIn(tabBody));
+  const miniGame = document.querySelector("[data-game-mini-game]");
+  return Boolean((tabBody && activeInputIn(tabBody)) || (miniGame && activeInputIn(miniGame)));
 }
 
 function bindSectionsReader(state, ctx) {
@@ -32,6 +34,9 @@ function bindSectionsReader(state, ctx) {
 function patchGameChrome(state) {
   const banner = document.querySelector("[data-game-host-banner]");
   if (banner) banner.innerHTML = renderHostConfirmBannerHtml();
+
+  const miniGame = document.querySelector("[data-game-mini-game]");
+  if (miniGame && !activeInputIn(miniGame)) miniGame.innerHTML = renderMiniGamePanel(state.currentGame);
 
   const sidebar = document.querySelector("[data-game-sidebar]");
   if (sidebar) sidebar.innerHTML = renderGameSidebar();

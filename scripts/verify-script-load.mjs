@@ -25,6 +25,8 @@ const files = [
   "src/components/onboarding-strip.js",
   "src/components/first-run-chooser.js",
   "src/runtime/nav-shell.js",
+  "src/components/status-ui.js",
+  "src/runtime/dependency-guard.js",
   "src/components/service-outage.js",
   "src/components/emptyState.js",
   "src/components/toast.js",

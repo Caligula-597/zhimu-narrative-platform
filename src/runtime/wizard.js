@@ -32,6 +32,7 @@
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
   const showToast = T.showToast || (() => {});
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -248,7 +249,7 @@ async function finishWizard(){
   closeModal();go("rules");
   const rulesHint=rulesCreated?`已根据向导模板写入 ${rulesCreated} 条起始规则，可在本页继续调整。`:"未启用规则模板，可在「自动化规则」页手动创建。";
   openModal("测试房间已创建",`世界、角色、章节和序章已经真实写入云端。<br><br><strong>邀请码：${escapeHtml(inviteCode)}</strong><br><br>${rulesHint}<br><small>完整步骤见侧栏「创作指引」。</small>`,"查看规则列表");
- }catch(error){button.disabled=false;button.textContent="重新创建测试房间";showToast(error.message)}
+ }catch(error){button.disabled=false;button.textContent="重新创建测试房间";showError(error)}
 }
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openWizard, finishWizard });
 })(window);

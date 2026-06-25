@@ -32,6 +32,7 @@
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
   const showToast = T.showToast || (() => {});
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -239,13 +240,13 @@ function openVoiceRooms(){
 function openCreateVoiceRoom(){
  const seats=state.cloudPlayer?.roomMembers||[],currentUserId=zhimuApi.context.playerUserId;
  modal.className="modal";modal.innerHTML=`<h2>创建临时密谈</h2><p class="wizard-intro">从全部玩家角色中选择受邀者，可以一次邀请多人。你自己会自动进入密谈，无需重复勾选；尚未进入房间的角色会保留席位提示。</p><div class="form-group">${studioField("房间名称","voiceName","input","临时密谈")}<label>邀请其他玩家角色</label><div class="member-picker">${seats.map(member=>{const self=member.user_id===currentUserId,disabled=self||!member.online;return `<label class="${disabled?"member-disabled":""}"><input type="checkbox" data-voice-invite value="${member.user_id||""}" ${disabled?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${self?" · 当前角色，已自动加入":member.online?" · 可邀请":" · 尚未进入房间"}</span></label>`}).join("")||`<div class="empty-state">当前世界尚未建立玩家角色席位。</div>`}</div></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-create-voice-room>创建并进入</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-create-voice-room]").onclick=async()=>{try{const name=modal.querySelector('[data-studio-field="voiceName"]').value.trim(),inviteUserIds=[...modal.querySelectorAll("[data-voice-invite]:checked")].map(input=>input.value),room=await zhimuApi.createVoiceRoom({name,roomType:"invite_private",inviteUserIds});await loadCloudData();await joinVoiceRoom(room.id,room.name);showToast("临时密谈已创建")}catch(error){showToast(error.message)}};
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-create-voice-room]").onclick=async()=>{try{const name=modal.querySelector('[data-studio-field="voiceName"]').value.trim(),inviteUserIds=[...modal.querySelectorAll("[data-voice-invite]:checked")].map(input=>input.value),room=await zhimuApi.createVoiceRoom({name,roomType:"invite_private",inviteUserIds});await loadCloudData();await joinVoiceRoom(room.id,room.name);showToast("临时密谈已创建")}catch(error){showError(error)}};
 }
 
 function openInviteVoiceRoom(roomId,roomName){
  const seats=state.cloudPlayer?.roomMembers||[],currentUserId=zhimuApi.context.playerUserId;
  modal.className="modal";modal.innerHTML=`<h2>邀请成员 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">从已经进入当前平行房的角色中追加邀请。新成员会立即获得这个密谈文字频道的访问权限。</p><div class="member-picker">${seats.map(member=>{const self=member.user_id===currentUserId,disabled=self||!member.online;return `<label class="${disabled?"member-disabled":""}"><input type="checkbox" data-voice-invite value="${member.user_id||""}" ${disabled?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${self?" · 当前角色":member.online?" · 可追加邀请":" · 尚未进入平行房"}</span></label>`}).join("")||`<div class="empty-state">当前平行房尚未建立角色成员。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-invite-submit>发送邀请</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-invite-submit]").onclick=async()=>{const inviteUserIds=[...modal.querySelectorAll("[data-voice-invite]:checked")].map(input=>input.value);if(!inviteUserIds.length)return showToast("请至少选择一名已进入平行房的玩家");try{await zhimuApi.inviteVoiceRoomMembers(roomId,inviteUserIds);closeModal();await loadCloudData();showToast("密谈成员已追加邀请")}catch(error){showToast(error.message)}};
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-invite-submit]").onclick=async()=>{const inviteUserIds=[...modal.querySelectorAll("[data-voice-invite]:checked")].map(input=>input.value);if(!inviteUserIds.length)return showToast("请至少选择一名已进入平行房的玩家");try{await zhimuApi.inviteVoiceRoomMembers(roomId,inviteUserIds);closeModal();await loadCloudData();showToast("密谈成员已追加邀请")}catch(error){showError(error)}};
 }
 
 function voiceHubParticipants(){
@@ -278,7 +279,7 @@ async function toggleVoiceMic(){
  try{
   const enabled=await window.zhimuLiveKitVoice.toggleVoiceMic();
   showToast(enabled?"麦克风已开启":"麦克风已关闭");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function unlockVoicePlayback(){
@@ -286,7 +287,7 @@ async function unlockVoicePlayback(){
   const ok=await window.zhimuLiveKitVoice.startVoicePlayback?.();
   showToast(ok?"扬声器已开启":"仍无法播放，请检查浏览器音量或权限");
   render();
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function joinVoiceRoom(roomId,roomName){
@@ -304,9 +305,9 @@ async function joinVoiceRoom(roomId,roomName){
  }
 }
 
-async function refreshVoiceMessages(){if(!state.voiceRoomId)return;try{state.voiceMessages=await zhimuApi.getVoiceMessages(state.voiceRoomId);render()}catch(error){showToast(error.message)}}
+async function refreshVoiceMessages(){if(!state.voiceRoomId)return;try{state.voiceMessages=await zhimuApi.getVoiceMessages(state.voiceRoomId);render()}catch(error){showError(error)}}
 
-async function sendVoiceMessage(){const input=document.querySelector("[data-voice-chat-input]"),body=input?.value.trim();if(!body)return showToast("请输入聊天内容");try{await zhimuApi.sendVoiceMessage(state.voiceRoomId,body);await refreshVoiceMessages();showToast("消息已发送到当前语音房")}catch(error){showToast(error.message)}}
+async function sendVoiceMessage(){const input=document.querySelector("[data-voice-chat-input]"),body=input?.value.trim();if(!body)return showToast("请输入聊天内容");try{await zhimuApi.sendVoiceMessage(state.voiceRoomId,body);await refreshVoiceMessages();showToast("消息已发送到当前语音房")}catch(error){showError(error)}}
 
 function hideHighlightToolbar(){
  const toolbar=document.querySelector(".highlight-toolbar");
@@ -393,7 +394,7 @@ async function completeCloudReading(sectionId){
  }catch(error){
   if(section&&prevCompleted!==undefined)section.completed=prevCompleted;
   patchPlayerReader();
-  showToast(error.message);
+  showError(error);
  }
 }
 
@@ -409,7 +410,7 @@ async function addStoryHighlight(sectionId,sectionTitle,selection){
   await zhimuApi.addNotebookEntry({sourceType:"script_section",sourceId:sectionId,title:highlightEntryTitle(sectionTitle,start,end),body:snippet});
   await loadCloudData();
   showToast("已标记高亮");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function removeStoryHighlight(entryId){
@@ -417,7 +418,7 @@ async function removeStoryHighlight(entryId){
   await zhimuApi.deleteNotebookEntry(entryId);
   await loadCloudData();
   showToast("已取消高亮");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function investigateCloud(pointId){
@@ -427,7 +428,7 @@ async function investigateCloud(pointId){
   if(result.clue?.name)showToast(`调查完成。你获得了新线索：${result.clue.name}。主持事件可能已触发。`,3600);
   else showToast("调查完成，新的线索或主持事件可能已触发。",3200);
   openModal("调查完成",`${result.resultText}${result.clue?`<br><br><strong>获得线索：${escapeHtml(result.clue.name)}</strong><br>${escapeHtml(result.clue.public_text)}`:""}${result.executedRules?.length?`<br><br><small>已触发 ${result.executedRules.length} 条自动化规则。</small>`:""}`,"继续探索");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function readCloudClue(clueId,isShared=false){
@@ -436,7 +437,7 @@ async function readCloudClue(clueId,isShared=false){
   await zhimuApi.readClue(clueId);
   await loadCloudData();
   showToast(clue?.name?`已阅读线索：${clue.name}`:isShared?"已记录公开线索阅读":"线索阅读状态已保存");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function shareCloudClue(clueId){
@@ -447,7 +448,7 @@ async function shareCloudClue(clueId){
   await zhimuApi.shareClueToRoom(clueId,next);
   await loadCloudData();
   showToast(next?`已公开「${clue.name}」到全房间`:`已取消公开「${clue.name}」`);
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 function openShareClueRolesModal(clueId){
@@ -467,7 +468,7 @@ function openShareClueRolesModal(clueId){
    closeModal();
    await loadCloudData();
    showToast(roleSlotIds.length?`已私享给 ${roleSlotIds.length} 名玩家`:"已清空私享名单");
-  }catch(error){showToast(error.message)}
+  }catch(error){showError(error)}
  };
 }
 
@@ -476,7 +477,7 @@ function openClueNoteModal(clueId){
  if(!clue)return showToast("只能为自己拥有的线索添加解读");
  modal.className="modal";modal.innerHTML=`<h2>我的线索解读 · ${escapeHtml(clue.name)}</h2><p class="wizard-intro">写下你对这条线索的理解。公开线索时，其他玩家也能看到你的解读。</p><textarea class="field" rows="5" data-clue-note>${escapeHtml(clue.player_note||"")}</textarea><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-save-clue-note>保存解读</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
- modal.querySelector("[data-save-clue-note]").onclick=async()=>{try{const note=modal.querySelector("[data-clue-note]").value;await zhimuApi.updateCluePlayerNote(clueId,note);closeModal();await loadCloudData();showToast("线索解读已保存")}catch(error){showToast(error.message)}};
+ modal.querySelector("[data-save-clue-note]").onclick=async()=>{try{const note=modal.querySelector("[data-clue-note]").value;await zhimuApi.updateCluePlayerNote(clueId,note);closeModal();await loadCloudData();showToast("线索解读已保存")}catch(error){showError(error)}};
 }
   viewExports.player = player;
   viewExports.voiceHub = voiceHub;

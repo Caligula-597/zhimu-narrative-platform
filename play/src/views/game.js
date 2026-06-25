@@ -4,6 +4,7 @@ import { clueIsRead, clueOwnerLabel, clueShareRoleCount } from "../utils/clues.j
 import { applyStoryHighlights, sectionHighlights } from "../utils/highlights.js";
 import { renderVoiceCompact, renderVoiceTab } from "./voice.js";
 import { renderRecapTab } from "./recap.js";
+import { renderMiniGamePanel } from "../components/mini-games.js";
 
 export function renderGameResume() {
   return `
@@ -429,6 +430,7 @@ export function renderGame() {
           ${renderGameTabBar()}
         </nav>
         <div data-game-host-banner>${renderHostConfirmBannerHtml()}</div>
+        <div data-game-mini-game>${renderMiniGamePanel(state.currentGame)}</div>
         <div class="tab-body" data-game-tab-body role="tabpanel" aria-labelledby="play-tab-${state.tab}">${renderGameTabBody()}</div>
       </div>
       <aside class="game-sidebar" data-game-sidebar>

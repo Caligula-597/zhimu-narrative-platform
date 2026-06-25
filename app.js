@@ -1,5 +1,8 @@
 /** App bootstrap: routing, render shell, event wiring. View logic lives in src/views/*. */
 (function (window) {
+  const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
+  if (startupMissing.length) return;
+
   const state = window.zhimuState;
   const V = window.zhimuViews;
   const R = window.zhimuRuntime;
@@ -20,9 +23,25 @@
   };
 
   let renderToken = 0;
+  let lastContentHtml = "";
+
+  function setContentHtml(nextHtml) {
+    if (lastContentHtml === nextHtml) return false;
+    content.innerHTML = nextHtml;
+    lastContentHtml = nextHtml;
+    R.bindDynamic();
+    return true;
+  }
 
   function renderViewLoading(title) {
-    return `<section class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>${title}</h3><p>正在加载该功能模块...</p></div></div></section>`;
+    return window.zhimuStatus?.loading?.(title, "正在加载该功能模块，请稍候。", { kicker: "MODULE" }) ||
+      `<section class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>${title}</h3><p>正在加载该功能模块...</p></div></div></section>`;
+  }
+
+  function renderViewError(title, error) {
+    const actions = `<button class="primary-btn" data-action="retry-view-module">重新加载</button><button class="secondary-btn" data-action="open-error-guide">错误排查手册</button>`;
+    return window.zhimuStatus?.error?.(title, error, { kicker: "MODULE ERROR", actions, fallback: "功能模块加载失败，请刷新后重试。" }) ||
+      `<section class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>${title}</h3><p>${error?.message || "功能模块加载失败"}</p></div></div></section>`;
   }
 
   function resolveViewFn(view) {
@@ -53,8 +72,7 @@
     const loader = window.zhimuViewLoader;
     if (loader && !loader.isViewReady?.(state.view)) {
       const loadingView = state.view;
-      content.innerHTML = renderViewLoading(title);
-      R.bindDynamic();
+      setContentHtml(renderViewLoading(title));
       loader.ensureViewModules(loadingView)
         .then(() => {
           if (currentToken !== renderToken || state.view !== loadingView) return;
@@ -63,17 +81,15 @@
         })
         .catch((error) => {
           if (currentToken !== renderToken || state.view !== loadingView) return;
-          state.apiError = error.message || String(error);
-          render();
+          setContentHtml(renderViewError(title, error));
         });
       return;
     }
     const outage = window.zhimuServiceOutage;
     const showOutage = outage?.isServiceOutage?.(state.apiError) && !state.cloudLoading;
     const viewFn = resolveViewFn(state.view);
-    content.innerHTML = showOutage ? outage.renderServiceOutage(state.apiError) : (viewFn ? viewFn() : renderViewLoading(title));
-    R.bindDynamic();
-    if (["settings", "studio", "writer"].includes(state.view)) {
+    const contentChanged = setContentHtml(showOutage ? outage.renderServiceOutage(state.apiError) : (viewFn ? viewFn() : renderViewLoading(title)));
+    if (contentChanged && ["settings", "studio", "writer"].includes(state.view)) {
       queueMicrotask(() => {
         const scope = window.zhimuWorldRevision?.resolveDraftScope?.();
         window.zhimuWorldRevision?.watchDirtyInputs?.(document, scope);

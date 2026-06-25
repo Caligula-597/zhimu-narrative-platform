@@ -8,6 +8,7 @@
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const formatTime = F.formatTime || (() => "");
   const showToast = T.showToast || (() => {});
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const studioValues = M.studioValues || (() => ({}));
   const go = window.zhimuGo;
@@ -608,7 +609,7 @@
           pipelineClearDownstream(session, "roles");
           afterSessionChange({ saveNow: true, editor: true });
           showToast("全部私人本已批量生成 · 请修改后确认");
-        } catch (error) { showToast(error.message); }
+        } catch (error) { showError(error); }
         finally {
           pipelineGenerating = false;
           clearPipelineProgress();
@@ -637,7 +638,7 @@
           pipelineClearDownstream(session, "narrative");
           afterSessionChange({ saveNow: true, editor: true });
           showToast("全部章节已逐章生成 · 请修改后确认");
-        } catch (error) { showToast(error.message); }
+        } catch (error) { showError(error); }
         finally {
           pipelineGenerating = false;
           clearPipelineProgress();
@@ -698,7 +699,7 @@
           forceEditorRefresh(layer);
           afterSessionChange({ saveNow: true, editor: true });
           showToast(`${pipelineStepLabel(layer)} 已生成 · 请修改后确认`);
-        } catch (error) { showToast(error.message); }
+        } catch (error) { showError(error); }
         finally {
           pipelineGenerating = false;
           clearPipelineProgress();
@@ -741,7 +742,7 @@
           if (!session.rolesMeta && !Object.keys(session.sections).length) {
             clearLocalAiDraft(draftKind); closeModal(); go("studio");
           } else importStructure.disabled = false;
-        } catch (error) { importStructure.disabled = false; showToast(error.message); }
+        } catch (error) { importStructure.disabled = false; showError(error); }
         finally { importStructure.textContent = "仅上传编排"; }
       };
       importAll.onclick = async () => {
@@ -762,14 +763,14 @@
           } else {
             showToast(`已上传云端：${result.roles} 角色 · ${result.sections} 分幕`);
           }
-        } catch (error) { importAll.disabled = false; showToast(error.message); }
+        } catch (error) { importAll.disabled = false; showError(error); }
         finally { importAll.textContent = "上传全部到云端"; }
       };
 
       if (existingDraft) showToast("已恢复本机 AI 剧本草稿");
       else if (options.focusLayer === "structure" || options.focusLayer === "sync") showToast("已打开 · 当前步骤：汇总同步");
       renderPipelineUi();
-    } catch (error) { showToast(error.message); }
+    } catch (error) { showError(error); }
   }
 
 

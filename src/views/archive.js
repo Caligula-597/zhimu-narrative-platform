@@ -33,6 +33,7 @@
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
   const showToast = T.showToast || (() => {});
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -176,13 +177,13 @@ function checkpointClueSummary(snapshot={}){
 function openCreateRecapModal(){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  modal.className="modal";modal.innerHTML=`<h2>生成房间复盘</h2><p class="wizard-intro">系统会按章节串联全剧脉络（上帝视角），并汇总各角色阅读、线索、调查与笔记表现。局后玩家与主持均可查看完整复盘。</p><div class="form-group">${studioField("复盘标题","recapTitle","input","例如：第一夜 · 完整复盘")}${studioField("主持备注","recapDescription","textarea","记录本局结局、未解之谜或下次补充说明")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-recap-submit>确认生成</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-recap-submit]").onclick=async()=>{try{const values=studioValues();if(!values.recapTitle)return showToast("请填写复盘标题");const created=await zhimuApi.createRecap({title:values.recapTitle,description:values.recapDescription});closeModal();await loadCloudData();showToast("房间复盘已生成");state.activeRecapId=created.id;state.cloudRecapDetail=created;render()}catch(error){showToast(error.message)}};
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-recap-submit]").onclick=async()=>{try{const values=studioValues();if(!values.recapTitle)return showToast("请填写复盘标题");const created=await zhimuApi.createRecap({title:values.recapTitle,description:values.recapDescription});closeModal();await loadCloudData();showToast("房间复盘已生成");state.activeRecapId=created.id;state.cloudRecapDetail=created;render()}catch(error){showError(error)}};
 }
 
 function openCreateCheckpointModal(){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  modal.className="modal";modal.innerHTML=`<h2>创建运行房存档点</h2><p class="wizard-intro">保存当前玩家进度、线索归属、开放场景与待确认事件。之后可在本页选择要恢复的内容，恢复到当前或其它平行房。</p><div class="form-group">${studioField("存档名称","checkpointTitle","input","例如：第一夜收工")}${studioField("主持备注","checkpointDescription","textarea","记录今晚推进到了哪里、下次从哪里继续")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-checkpoint-submit>确认创建</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-checkpoint-submit]").onclick=async()=>{try{const values=studioValues();if(!values.checkpointTitle)return showToast("请填写存档名称");await zhimuApi.createCheckpoint({title:values.checkpointTitle,description:values.checkpointDescription});closeModal();await loadCloudData();showToast("运行房存档点已创建")}catch(error){showToast(error.message)}};
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-checkpoint-submit]").onclick=async()=>{try{const values=studioValues();if(!values.checkpointTitle)return showToast("请填写存档名称");await zhimuApi.createCheckpoint({title:values.checkpointTitle,description:values.checkpointDescription});closeModal();await loadCloudData();showToast("运行房存档点已创建")}catch(error){showError(error)}};
 }
 
 function playerRecapModalBody(detail){
@@ -205,7 +206,7 @@ async function openPlayerRecapModal(recapId){
   modal.querySelector("[data-close]").onclick=closeModal;
   const archiveBtn=modal.querySelector("[data-action=player-recap-open-archive]");
   if(archiveBtn)archiveBtn.onclick=async()=>{closeModal();await openRecapDetail(recapId,true);};
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function openRecapDetail(recapId,asPlayer=false){
@@ -220,7 +221,7 @@ async function openRecapDetail(recapId,asPlayer=false){
   state.activeRecapId=recapId;
   state.cloudRecapDetail=detail;
   render();
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 function closeRecapDetail(){
@@ -256,7 +257,7 @@ async function openCheckpointDetail(checkpointId){
   modal.className="modal host-detail-modal";modal.innerHTML=`<h2>${escapeHtml(detail.label)}</h2><p class="wizard-intro">${escapeHtml(detail.description||"无主持备注")} · 创建于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p>${snapshot.phase?`<div class="rule-block"><b>最近推进章节</b> · 第 ${snapshot.phase.sequence} 章 · ${escapeHtml(snapshot.phase.chapterTitle||"未命名章节")}</div>`:""}<div class="host-detail-grid"><section><h3>玩家进度摘要</h3><div class="host-detail-list">${checkpointPlayerSummary(snapshot)}</div></section><section><h3>线索摘要</h3><div class="host-detail-list">${checkpointClueSummary(snapshot)}</div></section><section><h3>开放场景 · ${(snapshot.unlockedScenes||[]).length}</h3><div class="host-detail-list">${(snapshot.unlockedScenes||[]).map(scene=>`<div class="checkpoint-row"><strong>${escapeHtml(scene.name)}</strong><p>${formatTime(scene.unlockedAt)}</p></div>`).join("")||`<div class="empty-state">尚无开放场景。</div>`}</div></section><section><h3>待确认事件 · ${(snapshot.pendingEvents||[]).length}</h3><div class="host-detail-list">${(snapshot.pendingEvents||[]).map(event=>`<div class="checkpoint-row"><strong>${escapeHtml(event.title)}</strong><p>${escapeHtml(event.description||"")}</p></div>`).join("")||`<div class="empty-state">快照时没有待确认事件。</div>`}</div></section><section><h3>恢复历史 · ${restores.length}</h3><div class="host-detail-list">${checkpointRestoreHistoryRows(restores)}</div></section></div><div class="tutorial-tip"><b>恢复说明</b><span>恢复只会影响运行进度，不会修改剧本编排或规则内容。建议在恢复前先创建一个新存档点。</span></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-action="restore-checkpoint" data-checkpoint="${checkpointId}">恢复到此状态</button></div>`;
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
   modal.querySelector("[data-action=restore-checkpoint]").onclick=()=>{closeModal();openRestoreCheckpointModal(checkpointId,detail.label)};
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 function roomNameById(roomId){
@@ -291,7 +292,7 @@ function openRestoreCheckpointModal(checkpointId,checkpointLabel){
    showToast(`已恢复到「${targetName}」的存档状态`);
   }catch(error){
    button.disabled=false;button.textContent="确认恢复";
-   showToast(error.message);
+   showError(error);
   }
  };
 }

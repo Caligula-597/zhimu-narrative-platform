@@ -104,6 +104,17 @@ async function handleRoomEvent(type, data, ctx) {
       }
       break;
     }
+    case "room.game_started":
+    case "room.game_updated":
+      ctx.setCurrentGame?.(data.currentGame || data.current_game || data.game || data);
+      ctx.bumpTabPulse?.("home");
+      ctx.onToast(data.title ? `解密机关：${data.title}` : "新的解密机关已开启");
+      break;
+    case "room.game_completed":
+      ctx.setCurrentGame?.(data.currentGame || data.current_game || data.game || { status: "success" });
+      ctx.bumpTabPulse?.("home");
+      ctx.onToast(data.success === false ? "解密机关已结束" : "解密机关已解开");
+      break;
     case "room.player_kicked": {
       const myId = ctx.getUserId?.();
       if (myId && data.userId && String(data.userId) === String(myId)) {

@@ -62,6 +62,9 @@
       case "refresh-cloud":
         window.zhimuLoadCloudData?.(true, true);
         return true;
+      case "retry-view-module":
+        window.zhimuRender?.();
+        return true;
       case "dismiss-onboarding":
         window.zhimuOnboarding?.dismiss?.();
         window.zhimuRender?.();

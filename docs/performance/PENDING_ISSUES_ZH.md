@@ -218,6 +218,9 @@ async function enterConsole() {
 
 ## 问题五：小游戏功能设计与实现
 
+> **处理状态：阶段完成（2026-06-25）**  
+> 已先完成不破坏现有流程的玩家端最小承载层：新增 `play/src/components/mini-games.js`，支持 `zhimu_lock` 数字密码锁运行态渲染；`play/src/views/game.js` 增加局中互动区域；`play/src/runtime/patch-game.js` 将小游戏区域纳入现有局部刷新；`play/src/room-events.js` 预留 `room.game_started` / `room.game_updated` / `room.game_completed` SSE 事件；`play/src/api.js` 预留 `/rooms/game/submit` 提交入口。验证：`node --check` 相关 play 文件、`npm run build --prefix play`。当前后端尚无 `current_game`、`game/submit`、`force-skip` 协议和表结构，因此数据库/API/主持一键跳过闭环需要先确认产品协议后继续实现。
+
 ### 问题描述
 
 需要在织幕中添加小游戏功能（如数字密码锁、道具合成等），丰富剧本杀的互动体验。
@@ -473,6 +476,9 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题八：主应用全局全量重渲染
 
+> **处理状态：阶段完成（2026-06-25）**  
+> 已在 `app.js` 的最终内容写入层增加 `setContentHtml()` 内容缓存，相同 HTML 不再重复替换 `#content.innerHTML`，从而减少重复重绑、输入焦点丢失和无意义 DOM 重建；动态视图加载错误态也复用同一写入路径。验证：`node --check app.js`、`npm run check:modules`。这不是完整虚拟 DOM/局部 patch 重构，后续仍可继续对 studio/clues/director 做视图级局部更新。
+
 ### 问题描述
 
 主应用每次任何状态变化，都是全量替换整个页面的 innerHTML。数据量大的时候（比如几百条线索、几十个场景），切视图、点按钮都会明显卡顿。
@@ -573,6 +579,9 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题十一：主应用 vs Host 端大量代码重复
 
+> **处理状态：阶段完成（2026-06-25）**  
+> 已先收敛主应用主持台与 Host 端最明显的行为差异：`src/views/director.js` 中主持手动操作后的全量 `loadCloudData()` 已迁移为 `refreshHostRoom()` / `refreshHostPlayers()` / `refreshHostClueMatrix()` 局部刷新，与 Host 端策略同步，避免两端在性能和数据刷新粒度上继续分叉。验证：`node --check src/views/director.js`、`npm run check:modules`。代码删除级合并仍需等 Host 端功能覆盖稳定后再做。
+
 ### 问题描述
 
 Host 主持端是从主应用的 director 视图独立出来的，两边的状态管理、API 调用、UI 渲染逻辑有大量重复代码。以后改功能要改两边，很容易不一致。
@@ -615,6 +624,9 @@ Host 主持端是从主应用的 director 视图独立出来的，两边的状�
 
 ## 问题十二：主应用全局变量挂载模式
 
+> **处理状态：阶段完成（2026-06-25）**  
+> 已新增 `src/runtime/dependency-guard.js`，在主应用启动前检查关键 `window.zhimu*` 依赖是否完整，缺失时渲染统一错误态并输出缺失清单；`frontend/main.js` 与 `scripts/verify-script-load.mjs` 已同步入口顺序，`app.js` 启动时调用守卫，降低加载顺序错误导致半初始化的风险。验证：`node --check src/runtime/dependency-guard.js app.js`、`npm run check:modules`。这一步是安全护栏，完整 ES Module 显式 import/export 迁移仍需分批推进。
+
 ### 问题描述
 
 主应用所有模块都挂在 `window.zhimuXxx` 上，没有明确的依赖关系，加载顺序错了就崩。类型安全差，重构风险高。
@@ -643,6 +655,9 @@ Host 主持端是从主应用的 director 视图独立出来的，两边的状�
 ---
 
 ## 问题十三：错误提示和加载状态不统一
+
+> **处理状态：阶段完成（2026-06-25）**  
+> 已新增 `src/components/status-ui.js` 作为统一的 loading / empty / error 状态渲染器，并接入 `frontend/main.js` 与 `scripts/verify-script-load.mjs`；`app.js` 的动态视图模块加载态/加载失败态、`src/components/service-outage.js` 的云端中断页、`src/runtime/global-search.js` 的搜索空态/加载态/错误态、`src/views/account-hub.js` 与 `src/views/account.js` 的账号加载/空/错误态已改为统一组件；`src/runtime/data.js` 的主持运行数据刷新错误 toast 也开始统一走 `zhimuStatus.normalizeError()`。验证：`node --check` 相关文件、`npm run check:modules`、`npm run build`，并实际打开 `http://127.0.0.1:5173/` 检查账号入口和搜索入口，无页面控制台错误。视图内零散空态和 catch 仍需后续批量迁移，因此暂标阶段完成。
 
 ### 问题描述
 
@@ -708,5 +723,5 @@ Host 主持端是从主应用的 director 视图独立出来的，两边的状�
 
 ## 状态
 
-- **当前状态**：部分完成（问题一、二、三、四、六、十已完成并验证；问题七、九、十四阶段完成并验证；问题五、八、十一、十二、十三待处理）
+- **当前状态**：部分完成（问题一、二、三、四、六、十已完成并验证；问题五、七、八、九、十一、十二、十三、十四阶段完成并验证；小游戏后端协议与主持强制跳过闭环待确认后继续）
 - **负责人**：荆湛彭

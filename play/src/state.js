@@ -91,6 +91,7 @@ export const state = {
   lobbyError: "",
   friendsError: "",
   hostNudge: null,
+  currentGame: null,
   gameSidebarCollapsed: readStoredSidebarCollapsed(),
   pendingRoomRefresh: false,
   dmScrollStickBottom: false,

@@ -33,6 +33,7 @@
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
   const showToast = T.showToast || (() => {});
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -229,7 +230,7 @@ function bindStudioDragging(){
   const start={x:event.clientX,y:event.clientY,left:target.offsetLeft,top:target.offsetTop};
   target.classList.add("dragging");target.setPointerCapture?.(event.pointerId);
   const move=moveEvent=>{let x=start.left+(moveEvent.clientX-start.x)/scale,y=start.top+(moveEvent.clientY-start.y)/scale;studioEnsureCanvasRoom(canvas,x,y);({x,y}=studioClampNodePosition(canvas,x,y));target.style.left=`${x}px`;target.style.top=`${y}px`;refreshStudioConnectors(canvas)};
-  const finish=async upEvent=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);target.classList.remove("dragging");const x=Math.round(target.offsetLeft),y=Math.round(target.offsetTop),type=target.dataset.nodeType,id=target.dataset.nodeId;setStudioNodePosition(type,id,{x,y});try{await zhimuApi.updateStudioNodePosition(type,id,{x,y});showToast("节点位置已保存到云端")}catch(error){showToast(error.message)}};
+  const finish=async upEvent=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);target.classList.remove("dragging");const x=Math.round(target.offsetLeft),y=Math.round(target.offsetTop),type=target.dataset.nodeType,id=target.dataset.nodeId;setStudioNodePosition(type,id,{x,y});try{await zhimuApi.updateStudioNodePosition(type,id,{x,y});showToast("节点位置已保存到云端")}catch(error){showError(error)}};
   document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});
  });
  document.querySelectorAll('[data-action="studio-toggle-scene-children"]').forEach(toggle=>{toggle.onclick=event=>{event.stopPropagation();event.preventDefault();window.zhimuRuntime?.handle?.("studio-toggle-scene-children",toggle)}});
@@ -237,7 +238,7 @@ function bindStudioDragging(){
   event.preventDefault();event.stopPropagation();
   const source=handle.closest(".node"),canvas=source.closest(".graph-canvas"),scale=state.studioZoom;
   if(state.studioAnchorEditing&&state.studioSelectedNode?.type===source.dataset.nodeType&&state.studioSelectedNode?.id===source.dataset.nodeId){
-   const start={x:event.clientX,y:event.clientY,left:handle.offsetLeft,top:handle.offsetTop},move=moveEvent=>{const x=Math.max(0,Math.min(156,start.left+(moveEvent.clientX-start.x)/scale)),y=Math.max(0,Math.min(124,start.top+(moveEvent.clientY-start.y)/scale));handle.style.left=`${x}px`;handle.style.top=`${y}px`;refreshStudioConnectors(canvas)},finish=async()=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);const node=studioNodeRecord(state.cloudStudio,source.dataset.nodeType,source.dataset.nodeId),anchors=studioNodeAnchors(node).map(anchor=>anchor.id===handle.dataset.anchorId?{...anchor,x:Math.round(handle.offsetLeft),y:Math.round(handle.offsetTop)}:anchor);setStudioNodeAnchors(source.dataset.nodeType,source.dataset.nodeId,anchors);try{await zhimuApi.updateStudioNodeAnchors(source.dataset.nodeType,source.dataset.nodeId,anchors);showToast("连接点位置已保存")}catch(error){showToast(error.message)}};
+   const start={x:event.clientX,y:event.clientY,left:handle.offsetLeft,top:handle.offsetTop},move=moveEvent=>{const x=Math.max(0,Math.min(156,start.left+(moveEvent.clientX-start.x)/scale)),y=Math.max(0,Math.min(124,start.top+(moveEvent.clientY-start.y)/scale));handle.style.left=`${x}px`;handle.style.top=`${y}px`;refreshStudioConnectors(canvas)},finish=async()=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);const node=studioNodeRecord(state.cloudStudio,source.dataset.nodeType,source.dataset.nodeId),anchors=studioNodeAnchors(node).map(anchor=>anchor.id===handle.dataset.anchorId?{...anchor,x:Math.round(handle.offsetLeft),y:Math.round(handle.offsetTop)}:anchor);setStudioNodeAnchors(source.dataset.nodeType,source.dataset.nodeId,anchors);try{await zhimuApi.updateStudioNodeAnchors(source.dataset.nodeType,source.dataset.nodeId,anchors);showToast("连接点位置已保存")}catch(error){showError(error)}};
    document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});return;
   }
   const start={x:source.offsetLeft+handle.offsetLeft,y:source.offsetTop+handle.offsetTop};
@@ -254,7 +255,7 @@ async function addStudioAnchor(){
  if(anchors.length>=8)return showToast("每个节点最多设置 8 个连接点");
  const presets=[{x:78,y:0},{x:0,y:62},{x:78,y:124},{x:156,y:30},{x:156,y:94},{x:30,y:0},{x:126,y:124}],position=presets[anchors.length-1]||{x:156,y:62},next=[...anchors,{id:`anchor-${Date.now()}`,x:position.x,y:position.y}];
  setStudioNodeAnchors(selected.type,selected.id,next);state.studioAnchorEditing=true;render();
- try{await zhimuApi.updateStudioNodeAnchors(selected.type,selected.id,next);showToast("已添加连接点，可直接拖动圆点调整位置")}catch(error){showToast(error.message)}
+ try{await zhimuApi.updateStudioNodeAnchors(selected.type,selected.id,next);showToast("已添加连接点，可直接拖动圆点调整位置")}catch(error){showError(error)}
 }
 
 async function deleteStudioAnchor(anchorId){
@@ -262,7 +263,7 @@ async function deleteStudioAnchor(anchorId){
  const node=studioNodeRecord(state.cloudStudio,selected.type,selected.id),anchors=studioNodeAnchors(node);
  if(anchors.length<=1)return showToast("每个节点至少保留一个连接点");
  const next=anchors.filter(anchor=>anchor.id!==anchorId);setStudioNodeAnchors(selected.type,selected.id,next);render();
- try{await zhimuApi.updateStudioNodeAnchors(selected.type,selected.id,next);showToast("连接点已删除")}catch(error){showToast(error.message)}
+ try{await zhimuApi.updateStudioNodeAnchors(selected.type,selected.id,next);showToast("连接点已删除")}catch(error){showError(error)}
 }
 
 function refreshStudioConnectors(canvas){
@@ -286,7 +287,7 @@ async function autoLayoutStudio(mode = state.studioLayoutMode || "scene-tree"){
    showToast("服务器尚未更新自动排布接口，请部署最新后端后重试");
    return;
   }
-  showToast(error.message);
+  showError(error);
  }
 }
 
@@ -325,7 +326,7 @@ async function saveSelectedStudioNode(){
   window.zhimuWorldRevision?.clearEditorDirty?.();
   window.zhimuWorldRevision?.clearDraft?.();
   showToast("节点已保存");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function deleteSelectedStudioNode(){
@@ -341,16 +342,16 @@ async function deleteSelectedStudioNode(){
   if(refs.ruleReferenceCount)parts.push(`${refs.ruleReferenceCount} 条规则引用`);
   const detail=parts.length?`<p>检测到 ${parts.join("、")}。</p>`:"";
   const chapterNote=selected.type==="chapter"?`<p>绑定本章的私人分幕与引用这些分幕的自动化规则会一并删除；关联场景保留并解除绑定。剩余章节序号会自动重排。</p>`:"<p>这个节点可能被规则、边或调查点引用。删除后可能影响运行房。</p>";
-  studioModal("确认删除节点",`${detail}${chapterNote}<div class="rule-block"><strong>${escapeHtml(studioNodeName(state.cloudStudio,selected.type,selected.id))}</strong></div>`,"确认删除",async()=>{try{await zhimuApi.deleteStudioNode(selected.type,selected.id);state.studioSelectedNode=null;closeModal();await loadCloudData();showToast(selected.type==="chapter"?"章节已删除":"节点及相关连线已删除")}catch(error){showToast(error.message)}});
- }catch(error){showToast(error.message)}
+  studioModal("确认删除节点",`${detail}${chapterNote}<div class="rule-block"><strong>${escapeHtml(studioNodeName(state.cloudStudio,selected.type,selected.id))}</strong></div>`,"确认删除",async()=>{try{await zhimuApi.deleteStudioNode(selected.type,selected.id);state.studioSelectedNode=null;closeModal();await loadCloudData();showToast(selected.type==="chapter"?"章节已删除":"节点及相关连线已删除")}catch(error){showError(error)}});
+ }catch(error){showError(error)}
 }
 
 async function deleteStudioEdge(edgeId){
- try{await zhimuApi.deleteStoryEdge(edgeId);await loadCloudData();showToast("剧情连线已删除")}catch(error){showToast(error.message)}
+ try{await zhimuApi.deleteStoryEdge(edgeId);await loadCloudData();showToast("剧情连线已删除")}catch(error){showError(error)}
 }
 
 function openStudioChapter(){
- studioModal("新增公共章节",studioField("章节名称","title")+studioField("章节摘要","summary","textarea"),"写入云端",async()=>{try{const values=studioValues();await zhimuApi.createStudioChapter({...values,sequence:(state.cloudStudio?.chapters.length||0)+1});closeModal();await loadCloudData();showToast("公共章节已写入剧情线")}catch(error){showToast(error.message)}});
+ studioModal("新增公共章节",studioField("章节名称","title")+studioField("章节摘要","summary","textarea"),"写入云端",async()=>{try{const values=studioValues();await zhimuApi.createStudioChapter({...values,sequence:(state.cloudStudio?.chapters.length||0)+1});closeModal();await loadCloudData();showToast("公共章节已写入剧情线")}catch(error){showError(error)}});
 }
 
 function openStudioNodeMenu(){
@@ -360,11 +361,11 @@ function openStudioNodeMenu(){
 
 function openStudioScene(){
  const chapters=state.cloudStudio?.chapters||[];
- studioModal("新增公共场景",(chapters.length?studioSelect("所属章节","chapterId",chapters):"")+studioField("场景名称","name")+studioField("玩家可见说明","publicText","textarea")+studioField("主持人备注","hostText","textarea"),"写入云端",async()=>{try{await zhimuApi.createScene(studioValues());closeModal();await loadCloudData();showToast("公共场景已加入剧情线")}catch(error){showToast(error.message)}});
+ studioModal("新增公共场景",(chapters.length?studioSelect("所属章节","chapterId",chapters):"")+studioField("场景名称","name")+studioField("玩家可见说明","publicText","textarea")+studioField("主持人备注","hostText","textarea"),"写入云端",async()=>{try{await zhimuApi.createScene(studioValues());closeModal();await loadCloudData();showToast("公共场景已加入剧情线")}catch(error){showError(error)}});
 }
 
 function openStudioClue(){
- studioModal("新增剧本杀线索",studioField("线索名称","name")+studioField("获得后可见内容","publicText","textarea")+studioField("主持人解释","hostText","textarea"),"写入云端",async()=>{try{await zhimuApi.createClue({...studioValues(),visibility:"role"});closeModal();await loadCloudData();showToast("线索已加入剧情线")}catch(error){showToast(error.message)}});
+ studioModal("新增剧本杀线索",studioField("线索名称","name")+studioField("获得后可见内容","publicText","textarea")+studioField("主持人解释","hostText","textarea"),"写入云端",async()=>{try{await zhimuApi.createClue({...studioValues(),visibility:"role"});closeModal();await loadCloudData();showToast("线索已加入剧情线")}catch(error){showError(error)}});
 }
 
 function openStudioItem(){
@@ -376,23 +377,23 @@ function openStudioItem(){
   `<label class="studio-check-row"><input type="checkbox" data-studio-boolean="consumable"> 是否可消耗（使用后消失）</label>`+
   (assets.length?studioSelect("关联资产","assetId",[{id:"",name:"不关联附件"},...assets.map(asset=>({id:asset.id,name:asset.original_filename}))]):"")+
   studioField("主持备注","hostText","textarea"),
-  "写入云端",async()=>{try{const values=studioValues();document.querySelectorAll("[data-studio-boolean]").forEach(input=>{values[input.dataset.studioBoolean]=input.checked});await zhimuApi.createItem({name:values.name,publicText:values.publicText,hostText:values.hostText,unique:Boolean(values.unique),consumable:Boolean(values.consumable),assetId:values.assetId||null});closeModal();await loadCloudData();showToast("物品已加入剧情线")}catch(error){showToast(error.message)}});
+  "写入云端",async()=>{try{const values=studioValues();document.querySelectorAll("[data-studio-boolean]").forEach(input=>{values[input.dataset.studioBoolean]=input.checked});await zhimuApi.createItem({name:values.name,publicText:values.publicText,hostText:values.hostText,unique:Boolean(values.unique),consumable:Boolean(values.consumable),assetId:values.assetId||null});closeModal();await loadCloudData();showToast("物品已加入剧情线")}catch(error){showError(error)}});
 }
 
 function openStudioPoint(){
  const scenes=state.cloudStudio?.scenes||[], clues=state.cloudStudio?.clues||[], items=state.cloudStudio?.items||[];
  if(!scenes.length)return showToast("请先创建一个公共场景");
- studioModal("新增场景调查点",studioSelect("所属场景","sceneId",scenes)+studioField("调查点名称","name")+studioField("玩家看到的描述","description","textarea")+studioField("调查结果","resultText","textarea")+(clues.length?studioSelect("发现线索","clueId",[{id:"",name:"不发放线索"},...clues]):"")+(items.length?studioSelect("需要物品","requiredItemId",[{id:"",name:"不需要物品"},...items]):""),"写入云端",async()=>{try{const values=studioValues();const sceneId=values.sceneId;delete values.sceneId;if(!values.clueId)delete values.clueId;if(!values.requiredItemId)delete values.requiredItemId;await zhimuApi.createInvestigationPoint(sceneId,values);closeModal();await loadCloudData();showToast("调查点已加入公共场景")}catch(error){showToast(error.message)}});
+ studioModal("新增场景调查点",studioSelect("所属场景","sceneId",scenes)+studioField("调查点名称","name")+studioField("玩家看到的描述","description","textarea")+studioField("调查结果","resultText","textarea")+(clues.length?studioSelect("发现线索","clueId",[{id:"",name:"不发放线索"},...clues]):"")+(items.length?studioSelect("需要物品","requiredItemId",[{id:"",name:"不需要物品"},...items]):""),"写入云端",async()=>{try{const values=studioValues();const sceneId=values.sceneId;delete values.sceneId;if(!values.clueId)delete values.clueId;if(!values.requiredItemId)delete values.requiredItemId;await zhimuApi.createInvestigationPoint(sceneId,values);closeModal();await loadCloudData();showToast("调查点已加入公共场景")}catch(error){showError(error)}});
 }
 
 function openStudioConnection(){
  const selected=state.studioSelectedNode,nodes=studioNodeList(state.cloudStudio).filter(node=>!(node.type===selected.type&&node.id===selected.id));
  if(!nodes.length)return showToast("请先创建另一个场景、线索或调查点");
- studioModal("创建剧情连线",studioSelect("目标节点","target",nodes.map(node=>({id:`${node.type}:${node.id}`,name:node.name})))+studioSelect("关系类型","relationType",[{id:"mainline",name:"主线 · 核心推进路径"},{id:"parallel",name:"并列 · 同阶段可同时发生"},{id:"extension",name:"延伸 · 支线或后续补充"}])+studioField("连线备注","label"),"写入云端",async()=>{try{const values=studioValues(),[toType,toId]=values.target.split(":");await zhimuApi.createStoryEdge({fromType:selected.type,fromId:selected.id,toType,toId,relationType:values.relationType,label:values.label});closeModal();await loadCloudData();showToast("剧情连线已写入云端")}catch(error){showToast(error.message)}});
+ studioModal("创建剧情连线",studioSelect("目标节点","target",nodes.map(node=>({id:`${node.type}:${node.id}`,name:node.name})))+studioSelect("关系类型","relationType",[{id:"mainline",name:"主线 · 核心推进路径"},{id:"parallel",name:"并列 · 同阶段可同时发生"},{id:"extension",name:"延伸 · 支线或后续补充"}])+studioField("连线备注","label"),"写入云端",async()=>{try{const values=studioValues(),[toType,toId]=values.target.split(":");await zhimuApi.createStoryEdge({fromType:selected.type,fromId:selected.id,toType,toId,relationType:values.relationType,label:values.label});closeModal();await loadCloudData();showToast("剧情连线已写入云端")}catch(error){showError(error)}});
 }
 
 function openStudioDragConnection(from,to){
- studioModal("确认拖拽连线",`<div class="rule-block">${studioNodeName(state.cloudStudio,from.type,from.id)} → ${studioNodeName(state.cloudStudio,to.type,to.id)}</div>`+studioSelect("关系类型","relationType",[{id:"mainline",name:"主线 · 核心推进路径"},{id:"parallel",name:"并列 · 同阶段可同时发生"},{id:"extension",name:"延伸 · 支线或后续补充"}])+studioField("连线备注","label"),"写入云端",async()=>{try{const values=studioValues();await zhimuApi.createStoryEdge({fromType:from.type,fromId:from.id,toType:to.type,toId:to.id,relationType:values.relationType,label:values.label});closeModal();await loadCloudData();showToast("拖拽连线已写入云端")}catch(error){showToast(error.message)}});
+ studioModal("确认拖拽连线",`<div class="rule-block">${studioNodeName(state.cloudStudio,from.type,from.id)} → ${studioNodeName(state.cloudStudio,to.type,to.id)}</div>`+studioSelect("关系类型","relationType",[{id:"mainline",name:"主线 · 核心推进路径"},{id:"parallel",name:"并列 · 同阶段可同时发生"},{id:"extension",name:"延伸 · 支线或后续补充"}])+studioField("连线备注","label"),"写入云端",async()=>{try{const values=studioValues();await zhimuApi.createStoryEdge({fromType:from.type,fromId:from.id,toType:to.type,toId:to.id,relationType:values.relationType,label:values.label});closeModal();await loadCloudData();showToast("拖拽连线已写入云端")}catch(error){showError(error)}});
 }
 function studioMobileOutline(data){
  const visible=studioVisibleNodes(data);

@@ -5,6 +5,7 @@
   const showToast = window.zhimuToast?.showToast || (() => {});
   const closeModal = window.zhimuModal?.closeModal || (() => {});
   const go = window.zhimuGo;
+  const Status = () => window.zhimuStatus || {};
 
   const TYPE_LABELS = {
     role: "角色",
@@ -34,7 +35,7 @@
       return;
     }
     modal.className = "modal global-search-modal";
-    modal.innerHTML = `<h2>搜索当前世界</h2><p class="wizard-intro">检索角色、分幕、场景、线索、调查点、规则与物品。结果来自 PostgreSQL 全文索引与模糊匹配。</p><div class="search-box global-search-input"><span>⌕</span><input id="global-search-input" class="field" placeholder="输入关键词，例如：角色名、场景、线索标题…" autofocus></div><div id="global-search-results"><div class="empty-state">输入至少 1 个字符开始搜索。</div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+    modal.innerHTML = `<h2>搜索当前世界</h2><p class="wizard-intro">检索角色、分幕、场景、线索、调查点、规则与物品。结果来自 PostgreSQL 全文索引与模糊匹配。</p><div class="search-box global-search-input"><span>⌕</span><input id="global-search-input" class="field" placeholder="输入关键词，例如：角色名、场景、线索标题…" autofocus></div><div id="global-search-results">${Status().empty?.("输入关键词开始搜索", "输入至少 1 个字符开始搜索。", { compact: true }) || `<div class="empty-state">输入至少 1 个字符开始搜索。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
     modalBackdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
 
@@ -44,15 +45,15 @@
     const runSearch = async () => {
       const q = input.value.trim();
       if (!q) {
-        resultsEl.innerHTML = `<div class="empty-state">输入至少 1 个字符开始搜索。</div>`;
+        resultsEl.innerHTML = Status().empty?.("输入关键词开始搜索", "输入至少 1 个字符开始搜索。", { compact: true }) || `<div class="empty-state">输入至少 1 个字符开始搜索。</div>`;
         return;
       }
-      resultsEl.innerHTML = `<div class="empty-state">正在搜索…</div>`;
+      resultsEl.innerHTML = Status().loading?.("正在搜索", "正在检索当前世界内容…", { compact: true }) || `<div class="empty-state">正在搜索…</div>`;
       try {
         const payload = await window.zhimuApi.searchWorld(q, { limit: 40 });
         const labels = payload.typeLabels || TYPE_LABELS;
         if (!payload.results?.length) {
-          resultsEl.innerHTML = `<div class="empty-state">没有匹配「${escapeHtml(q)}」的内容。试试更短的关键词或到各页面浏览列表。</div>`;
+          resultsEl.innerHTML = Status().empty?.("没有匹配结果", `没有匹配「${q}」的内容。试试更短的关键词或到各页面浏览列表。`, { compact: true }) || `<div class="empty-state">没有匹配「${escapeHtml(q)}」的内容。试试更短的关键词或到各页面浏览列表。</div>`;
           return;
         }
         const queryTerm = payload.query || q;
@@ -77,7 +78,7 @@
           };
         });
       } catch (error) {
-        resultsEl.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        resultsEl.innerHTML = Status().error?.("搜索失败", error, { compact: true, fallback: "搜索暂时不可用，请稍后重试。" }) || `<div class="empty-state">${escapeHtml(error.message)}</div>`;
       }
     };
 

@@ -259,6 +259,58 @@ button {
   background: #fff;
 }
 
+.mini-game-card {
+  margin: 0 0 14px;
+  padding: 18px;
+  border: 1px solid rgba(43, 107, 97, 0.28);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(240, 247, 244, 0.88));
+  box-shadow: var(--shadow-soft);
+}
+
+.mini-game-card.success {
+  border-color: rgba(43, 107, 97, 0.42);
+  background: rgba(43, 107, 97, 0.09);
+}
+
+.mini-game-card.fail {
+  border-color: rgba(196, 120, 72, 0.38);
+  background: rgba(196, 120, 72, 0.1);
+}
+
+.mini-game-head,
+.mini-game-lock-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.mini-game-head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+.mini-game-attempts {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid rgba(167, 120, 61, 0.36);
+  border-radius: 999px;
+  color: var(--brass);
+  background: var(--brass-soft);
+  font-size: 13px;
+}
+
+.mini-game-answer {
+  flex: 0 1 220px;
+  text-align: center;
+  letter-spacing: 0.18em;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
 .hero-actions,
 .row-actions,
 .oauth-row {

@@ -14,6 +14,7 @@
   const studioValues = M.studioValues || (() => ({}));
   const studioModal = M.studioModal || (() => {});
   const showToast = T.showToast || (() => {});
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
@@ -67,12 +68,12 @@
             await loadCloudData();
             showToast("线索已删除");
           } catch (error) {
-            showToast(error.message);
+            showError(error);
           }
         }
       );
     } catch (error) {
-      showToast(error.message);
+      showError(error);
     }
   }
 
@@ -96,7 +97,7 @@
           await loadCloudData();
           showToast(`已删除 ${ids.length} 条线索`);
         } catch (error) {
-          showToast(error.message);
+          showError(error);
         }
       }
     );
@@ -236,7 +237,7 @@
           await loadCloudData();
           showToast(clue ? "线索已更新" : "线索已创建");
         } catch (error) {
-          showToast(error.message);
+          showError(error);
         }
       }
     );

@@ -12,6 +12,7 @@
   const formatBytes = F.formatBytes || (() => "");
   const formatTime = F.formatTime || (() => "");
   const showToast = T.showToast || (() => {});
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const ASSET_KIND_TABS = window.zhimuUserMessages?.ASSET_KIND_TABS || [{ id: "", label: "全部" }];
   const assetKindLabel = window.zhimuUserMessages?.assetKindLabel || ((k) => k);
@@ -86,7 +87,7 @@ async function reloadAssets(){
    state.cloudAssets=result.assets||[];
    state.assetTotal=result.total??state.cloudAssets.length;
   }
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function setAssetFilter(kind){
@@ -109,7 +110,7 @@ async function restoreCloudAsset(assetId){
   await loadCloudData();
   refreshAssetsIfVisible();
   showToast("附件已从回收站恢复");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function setWorldCoverAsset(assetId){
@@ -122,7 +123,7 @@ async function setWorldCoverAsset(assetId){
   }
   refreshAssetsIfVisible();
   showToast("封面已更新，公开大厅与剧本库将展示此图");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 async function clearWorldCover(){
@@ -135,10 +136,10 @@ async function clearWorldCover(){
   }
   refreshAssetsIfVisible();
   showToast("已取消指定封面，将使用默认图片");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
-async function deleteCloudAsset(assetId){try{await zhimuApi.deleteAsset(assetId);await reloadAssets();await loadCloudData();refreshAssetsIfVisible();showToast("附件已移入 14 天回收站")}catch(error){showToast(error.message)}}
+async function deleteCloudAsset(assetId){try{await zhimuApi.deleteAsset(assetId);await reloadAssets();await loadCloudData();refreshAssetsIfVisible();showToast("附件已移入 14 天回收站")}catch(error){showError(error)}}
 
 async function downloadCloudAsset(assetId){
  try{
@@ -151,7 +152,7 @@ async function downloadCloudAsset(assetId){
   if(asset?.original_filename)link.download=asset.original_filename;
   link.click();
   showToast("已打开短期下载链接");
- }catch(error){showToast(error.message)}
+ }catch(error){showError(error)}
 }
 
 function openAssetUpload(){
@@ -162,7 +163,7 @@ function openAssetUpload(){
 async function uploadSelectedAsset(){
  const input=modal.querySelector("#cloud-file-input");const file=input.files[0];if(!file)return showToast("请先选择文件");
  const button=modal.querySelector("#cloud-upload-confirm");button.disabled=true;button.textContent="上传中...";
- try{await zhimuApi.uploadAsset(file);closeModal();await reloadAssets();refreshAssetsIfVisible();showToast("附件已安全上传到云端")}catch(error){button.disabled=false;button.textContent="重新上传";showToast(error.message)}
+ try{await zhimuApi.uploadAsset(file);closeModal();await reloadAssets();refreshAssetsIfVisible();showToast("附件已安全上传到云端")}catch(error){button.disabled=false;button.textContent="重新上传";showError(error)}
 }
 
   viewExports.assetsPanelHtml = assetsPanelHtml;
