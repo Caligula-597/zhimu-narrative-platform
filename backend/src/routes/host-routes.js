@@ -14,12 +14,14 @@ import {
   hostLogSchema,
   hostNudgeWaitingSchema,
   hostNotesSchema,
+  forceCompleteMiniGameSchema,
   hostClueNoteSchema,
   hostUnlockSectionSchema,
   paramsSchema,
   roomIdParams,
   roleSlotRoomParams,
   roomRulesPreviewSchema,
+  startMiniGameSchema,
   triggerManualRuleSchema,
   updateRoomSettingsSchema
 } from "./schemas.js";
@@ -38,6 +40,7 @@ import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { dismissHostEventById, executeHostEventById, batchHostEvents, delayHostEventById } from "./host-event-actions.js";
 import { wakeDueDelayedHostEvents } from "../host-delay-wake.js";
 import { recordRoleSlotLastOccupant } from "../role-slot-runtime-helpers.js";
+import { forceCompleteMiniGame, listRoomMiniGames, startLockMiniGame } from "../room-mini-games.js";
 
 async function requireHostMembership(actorId, roomId) {
   const membership = await requireRoomRole(actorId, roomId);
@@ -108,6 +111,73 @@ export async function registerHostRoutes(app) {
     const limit = Math.min(Math.max(Number(request.query?.limit) || 50, 1), 200);
     const entries = await listHostAuditLog(roomId, { limit });
     return { entries };
+  });
+
+  app.get("/api/rooms/:roomId/host/mini-games", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireHostMembership(actorId, roomId);
+    const games = await listRoomMiniGames(roomId, { limit: 50 });
+    return { games };
+  });
+
+  app.post("/api/rooms/:roomId/host/mini-games", { schema: startMiniGameSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireHostMembership(actorId, roomId);
+
+    return withRoomIdempotency(roomId, request, "host.mini_game_start", async () => {
+      let currentGame;
+      await transactionWithEvents(async (client, queueEvent) => {
+        currentGame = await startLockMiniGame(client, {
+          roomId,
+          actorUserId: actorId,
+          body: request.body ?? {}
+        });
+        await client.query(
+          `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+           VALUES ($1, $2, 'public', 'mini_game_started', $3, jsonb_build_object('gameId', $4::text, 'gameType', $5::text))`,
+          [roomId, actorId, `主持人启动小游戏：${currentGame.title}`, currentGame.id, currentGame.gameType]
+        );
+        queueEvent(roomId, "room.game_started", { currentGame });
+      });
+      await logHostAction({
+        roomId,
+        actorUserId: actorId,
+        action: "mini_game_started",
+        targetType: "mini_game",
+        targetId: currentGame.id,
+        metadata: { gameType: currentGame.gameType, title: currentGame.title }
+      });
+      return { ok: true, currentGame };
+    });
+  });
+
+  app.post("/api/rooms/:roomId/host/mini-games/:gameId/force-complete", { schema: forceCompleteMiniGameSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { roomId, gameId } = request.params;
+    await requireHostMembership(actorId, roomId);
+
+    let currentGame;
+    await transactionWithEvents(async (client, queueEvent) => {
+      currentGame = await forceCompleteMiniGame(client, { roomId, gameId, actorUserId: actorId });
+      if (!currentGame) return;
+      await client.query(
+        `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+         VALUES ($1, $2, 'public', 'mini_game_completed', $3, jsonb_build_object('gameId', $4::text, 'forced', true))`,
+        [roomId, actorId, `主持人结束小游戏：${currentGame.title}`, currentGame.id]
+      );
+      queueEvent(roomId, "room.game_completed", { currentGame, forced: true });
+    });
+    if (!currentGame) return sendErr(reply, "NOT_FOUND", "Mini game not found");
+    await logHostAction({
+      roomId,
+      actorUserId: actorId,
+      action: "mini_game_force_completed",
+      targetType: "mini_game",
+      targetId: currentGame.id
+    });
+    return { ok: true, currentGame };
   });
 
   app.get("/api/rooms/:roomId/rules/preview", { schema: roomRulesPreviewSchema }, async (request) => {

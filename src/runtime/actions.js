@@ -19,13 +19,14 @@
     () => window.zhimuActionsWriter?.handleWriterAction,
     () => window.zhimuActionsRules?.handleRulesAction,
     () => window.zhimuActionsAssets?.handleAssetsAction,
+    () => window.zhimuActionsOps?.handleOpsAction,
     () => window.zhimuActionsClues?.handleCluesAction
   ];
 
   function bindDynamic() {
     enhanceCloudPanels();
     document.querySelectorAll("[data-action]").forEach((el) => {
-      if (el.type === "checkbox") el.onchange = () => handle(el.dataset.action, el);
+      if (el.type === "checkbox" || el.tagName === "SELECT") el.onchange = () => handle(el.dataset.action, el);
       else el.onclick = () => handle(el.dataset.action, el);
     });
     if (state.view === "studio") V.studio?.bindStudioDragging?.();

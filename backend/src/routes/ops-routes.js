@@ -8,6 +8,7 @@ import { getEmailServiceStatus } from "../email.js";
 import { getPublicOAuthDiagnostics } from "../oauth-diagnostics.js";
 import { getStripeBillingStatus } from "../stripe-billing.js";
 import { getUploadScanStatus } from "../upload-scan.js";
+import { resolveCspMode } from "../security-headers.js";
 import {
   buildAlertPayload,
   dispatchAlertWebhook,
@@ -31,6 +32,61 @@ const opsAuditLogQuerySchema = {
     offset: { type: "integer", minimum: 0, maximum: 100_000 }
   }
 };
+
+function productionTrustGates({ features, rateLimits }) {
+  const uploadMode = features.uploadScan?.mode;
+  const cspMode = resolveCspMode(process.env.NODE_ENV ?? "development");
+  const gates = [
+    {
+      key: "secure_sessions",
+      label: "Session cookies + revocation",
+      ok: true,
+      detail: "auth_sessions revocation and HttpOnly cookie restore are enabled"
+    },
+    {
+      key: "csp",
+      label: "CSP enforcement",
+      ok: cspMode === "enforce",
+      detail: `CSP_MODE=${cspMode}`
+    },
+    {
+      key: "upload_scan",
+      label: "Upload malware scan",
+      ok: ["strict", "clamav", "webhook"].includes(uploadMode),
+      detail: `UPLOAD_SCAN_MODE=${uploadMode}`
+    },
+    {
+      key: "telemetry",
+      label: "OpenTelemetry export",
+      ok: Boolean(features.telemetry?.enabled),
+      detail: features.telemetry?.exporter || "none"
+    },
+    {
+      key: "alerts",
+      label: "Alert webhook",
+      ok: Boolean(features.alerts?.configured),
+      detail: features.alerts?.configured ? "configured" : "ALERT_WEBHOOK_URL missing"
+    },
+    {
+      key: "rate_limits",
+      label: "API rate limits",
+      ok: Object.values(rateLimits).every((value) => Number(value) > 0),
+      detail: JSON.stringify(rateLimits)
+    },
+    {
+      key: "ops_token",
+      label: "OPS token gate",
+      ok: Boolean(process.env.OPS_API_TOKEN?.trim()),
+      detail: process.env.OPS_API_TOKEN ? "configured" : "OPS_API_TOKEN missing"
+    }
+  ];
+  return {
+    passed: gates.filter((gate) => gate.ok).length,
+    total: gates.length,
+    ready: gates.every((gate) => gate.ok),
+    gates
+  };
+}
 
 export async function registerOpsRoutes(app) {
   app.addHook("preHandler", async (request) => {
@@ -91,6 +147,23 @@ export async function registerOpsRoutes(app) {
         Promise.resolve(getRoomEventBusStatus())
       ]);
       const sse = getSseConnectionMetrics();
+      const features = {
+        uploadScan: getUploadScanStatus(),
+        alerts: getAlertWebhookConfig(),
+        roomEventsBus: bus.mode,
+        openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production",
+        telemetry: getTelemetryStatus(),
+        email: getEmailServiceStatus(),
+        oauth: getPublicOAuthDiagnostics(),
+        stripe: getStripeBillingStatus()
+      };
+      const rateLimits = {
+        authPerMin: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
+        writePerMin: Number(process.env.RATE_LIMIT_WRITE_MAX ?? 120),
+        readPerMin: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
+        uploadPerMin: Number(process.env.RATE_LIMIT_UPLOAD_MAX ?? 30),
+        aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40)
+      };
       return {
         ok: ready.ready,
         ready: ready.ready,
@@ -105,23 +178,9 @@ export async function registerOpsRoutes(app) {
         pool: getPoolStats(),
         sse: { connections: sse.connections, rooms: sse.rooms },
         roomEventBus: bus,
-        features: {
-          uploadScan: getUploadScanStatus(),
-          alerts: getAlertWebhookConfig(),
-          roomEventsBus: bus.mode,
-          openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production",
-          telemetry: getTelemetryStatus(),
-          email: getEmailServiceStatus(),
-          oauth: getPublicOAuthDiagnostics(),
-          stripe: getStripeBillingStatus()
-        },
-        rateLimits: {
-          authPerMin: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
-          writePerMin: Number(process.env.RATE_LIMIT_WRITE_MAX ?? 120),
-          readPerMin: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
-          uploadPerMin: Number(process.env.RATE_LIMIT_UPLOAD_MAX ?? 30),
-          aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40)
-        }
+        features,
+        rateLimits,
+        productionTrust: productionTrustGates({ features, rateLimits })
       };
     }
   );

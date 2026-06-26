@@ -74,7 +74,7 @@ function director(){
  ${hostClueMatrixCard()}
  ${hostAuditCard()}
  ${collapsibleCard({ id: "director:rules-preview", title: "规则运行预览", subtitle: "查看当前平行房中各条规则的实时状态（不会修改任何数据）", headerExtra: `<button class="secondary-btn" data-action="rules-preview">刷新预览</button>`, body: directorRulesPreview(), defaultOpen: false, style: "margin-top:14px" })}
- ${collapsibleCard({ id: "director:players", title: "玩家运行状态", subtitle: "点击行查看分幕、线索、调查与最近日志；支持手动干预", headerExtra: `<div class="row host-manual-actions"><button class="secondary-btn" data-action="host-manual-grant-clue">手动发线索</button><button class="secondary-btn" data-action="host-manual-grant-item">手动发物品</button><button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button><button class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button></div>`, body: `<div class="host-runtime-table-wrap"><table class="host-runtime-table"><thead><tr><th>玩家 / 角色</th><th>入房</th><th>阅读进度</th><th>线索</th><th>最近操作</th><th>状态</th><th></th></tr></thead><tbody>${hostPlayerTableRows(players)}</tbody></table></div>`, defaultOpen: true, style: "margin-top:14px" })}`;
+ ${collapsibleCard({ id: "director:players", title: "玩家运行状态", subtitle: "点击行查看分幕、线索、调查与最近日志；支持手动干预", headerExtra: `<div class="row host-manual-actions"><button class="secondary-btn" data-action="host-manual-grant-clue">手动发线索</button><button class="secondary-btn" data-action="host-manual-grant-item">手动发物品</button><button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button><button class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button><button class="secondary-btn" data-action="host-mini-game">启动数字锁</button></div>`, body: `<div class="host-runtime-table-wrap"><table class="host-runtime-table"><thead><tr><th>玩家 / 角色</th><th>入房</th><th>阅读进度</th><th>线索</th><th>最近操作</th><th>状态</th><th></th></tr></thead><tbody>${hostPlayerTableRows(players)}</tbody></table></div>`, defaultOpen: true, style: "margin-top:14px" })}`;
 }
 
 function hostPlayerTableRows(players){
@@ -361,6 +361,27 @@ async function triggerManualRuleFromDirector(ruleId){
  }catch(error){showError(error)}
 }
 
+function openHostMiniGameModal(){
+ if(!activeRuntimeRoom())return showToast("请先选择运行房");
+ modal.className="modal";
+ modal.innerHTML=`<h2>启动数字锁小游戏</h2><p class="wizard-intro">玩家端会实时看到机关卡片；答对后自动广播完成事件。</p><div class="form-group"><label>标题</label><input class="field" data-mini-title value="数字密码锁"><label>提示语</label><textarea class="field" rows="2" data-mini-prompt>输入线索中得到的密码。</textarea><label>答案</label><input class="field" data-mini-answer inputmode="numeric" placeholder="例如：2468"><label>尝试次数</label><input class="field" data-mini-attempts type="number" min="1" max="12" value="3"></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-mini-start>启动机关</button></div>`;
+ modalBackdrop.classList.add("show");
+ modal.querySelector("[data-close]").onclick=closeModal;
+ modal.querySelector("[data-mini-start]").onclick=async()=>{
+  const title=modal.querySelector("[data-mini-title]")?.value?.trim()||"数字密码锁";
+  const prompt=modal.querySelector("[data-mini-prompt]")?.value?.trim()||"输入线索中得到的密码。";
+  const answer=modal.querySelector("[data-mini-answer]")?.value?.trim()||"";
+  const maxAttempts=Math.max(1,Math.min(12,Number(modal.querySelector("[data-mini-attempts]")?.value)||3));
+  if(!answer)return showToast("请填写数字锁答案");
+  try{
+   await zhimuApi.hostStartMiniGame({gameType:"zhimu_lock",title,prompt,answer,length:answer.length,maxAttempts});
+   closeModal();
+   await refreshHostRoom(true);
+   showToast("小游戏已启动，玩家端会实时显示");
+  }catch(error){showError(error)}
+ };
+}
+
   viewExports.directorRulesPreview = directorRulesPreview;
   viewExports.refreshRulesPreview = refreshRulesPreview;
   viewExports.triggerManualRuleFromDirector = triggerManualRuleFromDirector;
@@ -380,6 +401,7 @@ async function triggerManualRuleFromDirector(ruleId){
   viewExports.openHostGrantItemModal = openHostGrantItemModal;
   viewExports.openHostUnlockSectionModal = openHostUnlockSectionModal;
   viewExports.openHostUnlockSceneModal = openHostUnlockSceneModal;
+  viewExports.openHostMiniGameModal = openHostMiniGameModal;
   viewExports.openHostLogModal = openHostLogModal;
   viewExports.dismissHostEvent = dismissHostEvent;
   viewExports.executeHostEvent = executeHostEvent;

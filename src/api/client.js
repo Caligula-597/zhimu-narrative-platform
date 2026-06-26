@@ -84,6 +84,16 @@ function sseCursorKey(roomId) {
   return `zhimuSseCursor:${roomId}`;
 }
 
+function opsToken() {
+  return sessionStorage.getItem("zhimuOpsToken") || "";
+}
+
+function opsRequest(path, options = {}) {
+  const token = opsToken();
+  const headers = token ? { "x-ops-token": token } : {};
+  return request(path, { ...options, headers: { ...headers, ...(options.headers || {}) } });
+}
+
 /** 普通 DeepSeek 步骤；须 ≥ 后端单次 DEEPSEEK_TIMEOUT_MS（默认 180s） */
 const DEEPSEEK_TIMEOUT_MS = 180_000;
 /** 逐章总剧情含续写，后端最多 2 轮 × 180s */
@@ -283,6 +293,10 @@ window.zhimuApi = {
   getHostEvents: () => request(`/rooms/${demoContext.roomId}/host-events`, { userId: demoContext.hostUserId }),
   getHostAuditLog: (limit = 50) =>
     request(`/rooms/${demoContext.roomId}/host/audit-log?limit=${limit}`, { userId: demoContext.hostUserId }),
+  hostStartMiniGame: (payload) =>
+    request(`/rooms/${demoContext.roomId}/host/mini-games`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true }),
+  hostForceCompleteMiniGame: (gameId) =>
+    request(`/rooms/${demoContext.roomId}/host/mini-games/${gameId}/force-complete`, { userId: demoContext.hostUserId, method: "POST", body: {} }),
   executeHostEvent: (eventId) =>
     request(`/rooms/${demoContext.roomId}/host-events/${eventId}/execute`, { userId: demoContext.hostUserId, method: "POST", idempotent: true }),
   dismissHostEvent: (eventId) =>
@@ -429,6 +443,31 @@ window.zhimuApi = {
   getWorldLogs: (params = {}) => request(`/worlds/${demoContext.worldId}/logs?${new URLSearchParams(params)}`, { userId: demoContext.hostUserId }),
   getWorldHostAuditLog: (limit = 50) =>
     request(`/worlds/${demoContext.worldId}/host-audit-log?limit=${limit}`, { userId: demoContext.hostUserId }),
+  setOpsToken(token) {
+    const value = String(token || "").trim();
+    if (value) sessionStorage.setItem("zhimuOpsToken", value);
+    else sessionStorage.removeItem("zhimuOpsToken");
+  },
+  hasOpsToken: () => Boolean(opsToken()),
+  getOpsStatus: () => opsRequest("/ops/status"),
+  getOpsAuditLog: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.roomId) query.set("roomId", params.roomId);
+    if (params.action) query.set("action", params.action);
+    if (params.limit) query.set("limit", String(params.limit));
+    if (params.offset) query.set("offset", String(params.offset));
+    const qs = query.toString();
+    return opsRequest(`/ops/audit-log${qs ? `?${qs}` : ""}`);
+  },
+  getOpsPlanUpgradeRequests: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.status) query.set("status", params.status);
+    if (params.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    return opsRequest(`/ops/plan-upgrade/requests${qs ? `?${qs}` : ""}`);
+  },
+  assignOpsPlan: (payload) => opsRequest("/ops/users/plan", { method: "POST", body: payload }),
+  sendOpsTestAlert: () => opsRequest("/ops/alerts/test", { method: "POST", body: {} }),
   parseDocument: (payload) => request(`/worlds/${demoContext.worldId}/documents/parse`, { userId: demoContext.hostUserId, method: "POST", body: payload }),
   importParsedDocument: (payload) =>
     worldWrite(`/worlds/${demoContext.worldId}/documents/import`, { method: "POST", body: payload }),

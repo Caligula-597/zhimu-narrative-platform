@@ -237,7 +237,7 @@
         if (state.assetKindFilter) params.kind = state.assetKindFilter;
         if (state.assetSearchQuery) params.q = state.assetSearchQuery;
         const needsStorageUsage = ["overview", "account", "settings"].includes(state.view);
-        const needsAssets = ["overview", "account", "writer", "studio", "clues"].includes(state.view);
+        const needsAssets = ["overview", "account", "settings", "writer", "studio", "clues"].includes(state.view);
         const needsCreatorChecks = ["overview", "writer", "settings"].includes(state.view);
         if (!needsStorageUsage && !needsAssets && !needsCreatorChecks) return;
         const phase3 = await Promise.allSettled([
@@ -256,7 +256,7 @@
           }
         });
         take(phase3[2], (value) => { state.cloudCreatorChecks = value.checks; });
-        if (state.view === "overview" || state.view === "account" || state.view === "writer" || state.view === "studio" || state.view === "clues") render();
+        if (state.view === "overview" || state.view === "account" || state.view === "settings" || state.view === "writer" || state.view === "studio" || state.view === "clues") render();
       })();
 
       void (async () => {

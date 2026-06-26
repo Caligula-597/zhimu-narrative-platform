@@ -19,7 +19,8 @@
     player: ["玩家体验", "玩家视角"],
     archive: ["历史记录", "存档与复盘"],
     settings: ["世界管理", "世界设置"],
-    account: ["账号", "账号与资产"]
+    account: ["账号", "账号与资产"],
+    ops: ["OPS", "运营控制台"]
   };
 
   let renderToken = 0;
@@ -55,7 +56,8 @@
       player: V.player?.player,
       archive: V.archive?.archive,
       settings: V.settings?.settings,
-      account: V.accountHub?.accountHub
+      account: V.accountHub?.accountHub,
+      ops: V.ops?.ops
     };
     return views[view];
   }

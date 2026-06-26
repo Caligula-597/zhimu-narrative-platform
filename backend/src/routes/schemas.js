@@ -433,6 +433,45 @@ export const updateRoomSettingsSchema = {
   }
 };
 
+export const startMiniGameSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["answer"],
+    properties: {
+      gameType: { type: "string", enum: ["zhimu_lock"] },
+      title: { type: "string", maxLength: 120 },
+      prompt: { type: "string", maxLength: 500 },
+      hint: { type: "string", maxLength: 500 },
+      answer: { type: "string", minLength: 1, maxLength: 32 },
+      length: { type: "integer", minimum: 1, maximum: 12 },
+      maxAttempts: { type: "integer", minimum: 1, maximum: 12 },
+      max_attempts: { type: "integer", minimum: 1, maximum: 12 }
+    }
+  }
+};
+
+export const forceCompleteMiniGameSchema = {
+  params: paramsSchema({ roomId: uuid, gameId: uuid })
+};
+
+export const submitMiniGameSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["roomId", "answer"],
+    properties: {
+      roomId: uuid,
+      instanceId: uuid,
+      instance_id: uuid,
+      gameId: uuid,
+      game_id: uuid,
+      answer: { type: "string", minLength: 1, maxLength: 64 }
+    }
+  }
+};
+
 export const roomRuleIdParams = paramsSchema({ roomId: uuid, ruleId: uuid });
 
 export const triggerManualRuleSchema = {

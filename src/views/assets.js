@@ -16,8 +16,8 @@
   const closeModal = M.closeModal || (() => {});
   const ASSET_KIND_TABS = window.zhimuUserMessages?.ASSET_KIND_TABS || [{ id: "", label: "全部" }];
   const assetKindLabel = window.zhimuUserMessages?.assetKindLabel || ((k) => k);
-  function refreshAssetsIfVisible() {
-    if (state.view === "account" && state.accountHubTab === "assets") window.zhimuRender?.();
+function refreshAssetsIfVisible() {
+    if ((state.view === "account" && state.accountHubTab === "assets") || state.view === "settings") window.zhimuRender?.();
   }
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
@@ -155,15 +155,28 @@ async function downloadCloudAsset(assetId){
  }catch(error){showError(error)}
 }
 
-function openAssetUpload(){
- modal.className="modal";modal.innerHTML=`<h2>上传云端附件</h2><p>文件将直接上传至 Cloudflare R2 私有 Bucket。浏览器只会获得短期上传地址，不会接触永久密钥。</p><div class="upload-zone"><strong>选择线索图片、音频、PDF 或 Word 文档</strong><p>图片 ≤ 10 MB，音频 ≤ 30 MB，文档 ≤ 20 MB</p><input type="file" id="cloud-file-input" accept="image/png,image/jpeg,image/webp,audio/mpeg,audio/ogg,audio/wav,application/pdf,.docx"></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" id="cloud-upload-confirm">开始上传</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("#cloud-upload-confirm").onclick=uploadSelectedAsset;
+function openAssetUpload(options = {}){
+ const coverMode=Boolean(options.setAsCover);
+ const title=coverMode?"上传剧本封面":"上传云端附件";
+ const desc=coverMode?"上传成功后会自动设为当前剧本封面。":"浏览器只会获得短期上传地址，不会接触永久密钥。";
+ const strong=coverMode?"选择一张封面图片":"选择线索图片、音频、PDF 或 Word 文档";
+ const hint=coverMode?"支持 PNG / JPG / WebP，建议横图。":"图片 ≤ 10 MB，音频 ≤ 30 MB，文档 ≤ 20 MB";
+ const accept=coverMode?"image/png,image/jpeg,image/webp":"image/png,image/jpeg,image/webp,audio/mpeg,audio/ogg,audio/wav,application/pdf,.docx";
+ const cta=coverMode?"上传并设为封面":"开始上传";
+ modal.className="modal";
+ modal.dataset.setAsCover=coverMode?"1":"";
+ modal.innerHTML=`<h2>${title}</h2><p>文件将直接上传至 Cloudflare R2 私有 Bucket。${desc}</p><div class="upload-zone"><strong>${strong}</strong><p>${hint}</p><input type="file" id="cloud-file-input" accept="${accept}"></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" id="cloud-upload-confirm">${cta}</button></div>`;
+ modalBackdrop.classList.add("show");
+ modal.querySelector("[data-close]").onclick=closeModal;
+ modal.querySelector("#cloud-upload-confirm").onclick=uploadSelectedAsset;
 }
 
 async function uploadSelectedAsset(){
- const input=modal.querySelector("#cloud-file-input");const file=input.files[0];if(!file)return showToast("请先选择文件");
- const button=modal.querySelector("#cloud-upload-confirm");button.disabled=true;button.textContent="上传中...";
- try{await zhimuApi.uploadAsset(file);closeModal();await reloadAssets();refreshAssetsIfVisible();showToast("附件已安全上传到云端")}catch(error){button.disabled=false;button.textContent="重新上传";showError(error)}
+ const setAsCover=modal.dataset.setAsCover==="1";
+ const input=modal.querySelector("#cloud-file-input");const file=input.files[0];if(!file)return showToast("请选择文件");
+ if(setAsCover&&!/^image\//.test(file.type||""))return showToast("封面只能选择图片文件");
+ const button=modal.querySelector("#cloud-upload-confirm");button.disabled=true;button.textContent=setAsCover?"上传封面中...":"上传中...";
+ try{const asset=await zhimuApi.uploadAsset(file);if(setAsCover&&asset?.id)await setWorldCoverAsset(asset.id);closeModal();await reloadAssets();refreshAssetsIfVisible();showToast(setAsCover?"封面已上传并设置":"附件已安全上传到云端")}catch(error){button.disabled=false;button.textContent=setAsCover?"重新上传封面":"重新上传";showError(error)}
 }
 
   viewExports.assetsPanelHtml = assetsPanelHtml;

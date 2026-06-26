@@ -52,10 +52,11 @@
 
   function worldCoverPanel(world, canEdit) {
     const coverId = world?.settings?.coverAssetId || "";
-    const status = coverId
-      ? "已指定封面图片（在下方「内容资产」中可更换）"
-      : "尚未指定封面；上传图片后在「内容资产」中设为封面，公开大厅会展示";
-    return `<div class="form-group" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line, #ece7df)"><label>剧本封面</label><p class="muted-note">${status}。未指定时使用本世界最早上传的图片。</p><button type="button" class="secondary-btn" data-action="go-account" data-hub-tab="assets" ${canEdit ? "" : "disabled"}>管理封面图片</button></div>`;
+    const images = (state.cloudAssets || []).filter((asset) => asset.asset_kind === "image" && !asset.deleted_at);
+    const current = images.find((asset) => asset.id === coverId);
+    const options = images.map((asset) => `<option value="${escapeHtml(asset.id)}" ${asset.id === coverId ? "selected" : ""}>${escapeHtml(asset.original_filename || asset.id)}</option>`).join("");
+    const preview = current?.download_url || current?.url || current?.public_url || "";
+    return `<div class="form-group" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line, #ece7df)"><label>剧本封面</label><p class="muted-note">公开大厅、公开剧本库和玩家入口会优先展示这里指定的图片；未指定时使用本世界最早上传的图片。</p>${preview ? `<figure class="cover-preview"><img src="${escapeHtml(preview)}" alt="剧本封面预览" loading="lazy"></figure>` : ""}<div class="row" style="align-items:center;gap:10px"><select class="field" style="min-width:240px" data-action="set-world-cover" data-asset-select ${canEdit && images.length ? "" : "disabled"}><option value="">${images.length ? "选择已有图片" : "暂无图片资产"}</option>${options}</select><button type="button" class="secondary-btn" data-action="upload-world-cover" ${canEdit ? "" : "disabled"}>上传封面</button>${coverId ? `<button type="button" class="text-btn" data-action="clear-world-cover" ${canEdit ? "" : "disabled"}>清除封面</button>` : ""}</div><p class="muted-note">仍可在「内容资产」管理附件下载、回收站与其它文件类型。</p></div>`;
   }
 
 function settings(){
@@ -74,7 +75,7 @@ function settings(){
  <section class="rules-layout"><article class="card"><div class="section-head"><div><h3>剧本信息</h3><p>名称与简介会展示在侧栏、总览与玩家入口${roleLabel?` · 你在本剧本的身份：<strong>${escapeHtml(roleLabel)}</strong>`:""}</p></div></div><div class="form-group"><label>剧本名称</label><input class="field" id="settings-world-name" value="${escapeHtml(world?.name||"")}" ${canEditWorld?"":"readonly"} placeholder="例如：午夜列车"><label>剧本简介</label><textarea class="field" id="settings-world-summary" rows="3" ${canEditWorld?"":"readonly"} placeholder="一句话介绍题材与氛围">${escapeHtml(world?.summary||"")}</textarea><label>真相结论（局后复盘）</label><textarea class="field" id="settings-recap-truth" rows="4" ${canEditWorld?"":"readonly"} placeholder="本局结束后向玩家展示的真相总结；留空则根据结局规则与推进记录自动生成">${escapeHtml(world?.settings?.recapTruthSummary||"")}</textarea><p class="muted-note">章节与场景的「复盘公开摘要」请在剧情编排台选中节点编辑。</p><label>角色席位数</label><input class="field" value="${String(state.cloudStudio?.roles?.length||0)}" readonly>${worldCoverPanel(world, canEditWorld)}${editHint}${owner?catalogReviewPanel(world):""}<button class="primary-btn" style="margin-top:14px" data-action="save-world-settings" ${canEditWorld?"":"disabled"}>保存剧本信息</button></div></article>
  <article class="card"><div class="section-head"><div><h3>运行房选项</h3><p>${room?`当前平行房：${escapeHtml(room.name)}`:"请先在总览中选择平行运行房"}</p></div></div><div class="form-group"><label class="check-label"><input type="checkbox" id="settings-host-voice-listen" ${roomSettings.hostVoiceListen?"checked":""} ${room?"":"disabled"}><span><strong>主持人可旁听私密语音房</strong><small>开启后，主持人在未受邀的情况下仍可进入私密语音房旁听（不可发言）。</small></span></label><button class="primary-btn" style="margin-top:14px" data-action="save-room-settings" ${room?"":"disabled"}>保存运行房选项</button></div></article>
  ${canAudit?`<article class="card"><div class="section-head"><div><h3>世界主持审计</h3><p>汇总本剧本所有平行房的主持敏感操作（发线索、延迟事件、存档恢复等）。单房明细见主持监控台。</p></div><button class="secondary-btn" data-action="world-audit">查看审计</button></div></article>`:""}
- <aside class="card"><div class="section-head"><div><h3>账号与内容资产</h3><p>登录、配额、云端附件与会话管理</p></div></div><button class="secondary-btn full-btn" data-go="account">打开账号与资产</button><button class="secondary-btn full-btn" style="margin-top:10px" data-action="go-account" data-hub-tab="assets">管理云端附件</button></aside>
+ <aside class="card"><div class="section-head"><div><h3>账号与内容资产</h3><p>登录、配额、云端附件与会话管理</p></div></div><button class="secondary-btn full-btn" data-action="go-account" data-hub-tab="assets">打开内容资产</button></aside>
  <aside class="card"><div class="section-head"><div><h3>剧本管理</h3><p>切换、创建或删除剧本</p></div></div><button class="secondary-btn full-btn" data-action="world-library">我的剧本 / 切换剧本</button><button class="secondary-btn full-btn" style="margin-top:10px" data-action="open-catalog">打开公开剧本库</button><button class="secondary-btn full-btn" style="margin-top:10px" data-action="open-wizard">＋ 创建新世界</button>${!owner&&canEditWorld?`<p class="muted-note" style="margin-top:12px">你不是主创作者，无法删除此剧本。若需退出协作，请联系剧本 owner 将你移出协作者列表。</p>`:""}</aside>
  <aside class="card"><div class="section-head"><div><h3>帮助与数据</h3><p>步骤说明与错误排查</p></div></div><button class="secondary-btn full-btn" data-action="open-creator-guide">创作步骤指引</button><button class="secondary-btn full-btn" data-action="open-error-guide">错误提示与排查</button><button class="secondary-btn full-btn" style="margin-top:10px" data-action="go-writer-export">前往剧本创作 · 导出/导入</button></aside></section>`;
 }
@@ -169,8 +170,12 @@ function goWriterExport(){
 async function openWorldAuditModal(){
  if(!zhimuApi.context.worldId)return showToast("请先选择剧本");
  try{
-  const payload=await zhimuApi.getWorldHostAuditLog(50);
+  const payload=await zhimuApi.getWorldHostAuditLog(200);
   const rows=payload?.entries||[];
+  const uniqueRooms=new Set(rows.map((entry)=>entry.room_id).filter(Boolean));
+  const uniqueActions=new Set(rows.map((entry)=>entry.action).filter(Boolean));
+  const latest=rows[0]?.created_at?formatRelativeTime(rows[0].created_at):"暂无";
+  const summary=`<div class="stat-grid" style="margin-bottom:12px"><article class="stat-card"><span>审计记录</span><strong>${rows.length}</strong></article><article class="stat-card"><span>涉及房间</span><strong>${uniqueRooms.size}</strong></article><article class="stat-card"><span>操作类型</span><strong>${uniqueActions.size}</strong></article><article class="stat-card"><span>最近操作</span><strong>${escapeHtml(latest)}</strong></article></div>`;
   const body=rows.length?rows.map((entry)=>{
    const actor=entry.actor_name?`${escapeHtml(entry.actor_name)} · `:"";
    const room=entry.room_name?`${escapeHtml(entry.room_name)} · `:"";

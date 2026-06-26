@@ -24,8 +24,10 @@ import {
   deleteNotebookEntrySchema,
   notebookEntrySchema,
   readClueSchema,
-  roomIdParams
+  roomIdParams,
+  submitMiniGameSchema
 } from "./schemas.js";
+import { fetchCurrentMiniGame, submitMiniGameAnswer } from "../room-mini-games.js";
 
 async function playerDisplayName(query, roomId, roleSlotId) {
   const result = await query(
@@ -231,6 +233,7 @@ export async function registerPlayerRoutes(app) {
         roomId,
         membership.role_slot_id
       );
+      const currentGame = await fetchCurrentMiniGame(client.query.bind(client), roomId);
 
       return {
         room: roomInfo.rows[0],
@@ -242,11 +245,49 @@ export async function registerPlayerRoutes(app) {
         voiceRooms: rooms.rows,
         roomMembers: members.rows,
         inventory,
-        hostConfirm
+        hostConfirm,
+        currentGame
       };
     } finally {
       client.release();
     }
+  });
+
+  app.post("/api/rooms/game/submit", { schema: submitMiniGameSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { roomId, answer } = request.body ?? {};
+    const gameId = request.body?.instanceId || request.body?.instance_id || request.body?.gameId || request.body?.game_id;
+    if (!gameId) return sendErr(reply, "BAD_REQUEST", "game id is required");
+    const membership = await requireRoomRole(actorId, roomId);
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
+
+    let result;
+    await transactionWithEvents(async (client, queueEvent) => {
+      result = await submitMiniGameAnswer(client, { roomId, gameId, actorUserId: actorId, answer });
+      if (!result.found) return;
+      const eventType = result.completed ? "room.game_completed" : "room.game_updated";
+      await client.query(
+        `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+         VALUES ($1, $2, 'public', $3, $4, jsonb_build_object('gameId', $5::text, 'correct', $6::boolean))`,
+        [
+          roomId,
+          actorId,
+          result.completed ? "mini_game_completed" : "mini_game_submitted",
+          result.correct ? "玩家解开小游戏机关" : "玩家尝试小游戏机关",
+          gameId,
+          result.correct
+        ]
+      );
+      queueEvent(roomId, eventType, { currentGame: result.game, correct: result.correct });
+    });
+    if (!result?.found) return sendErr(reply, "NOT_FOUND", "Mini game not found");
+    return {
+      ok: true,
+      correct: result.correct,
+      currentGame: result.game,
+      attemptsLeft: result.game?.attemptsLeft ?? null,
+      attempts_left: result.game?.attemptsLeft ?? null
+    };
   });
 
   app.post("/api/rooms/:roomId/sections/:sectionId/complete", { schema: completeSectionSchema }, async (request) => {

@@ -16,6 +16,7 @@
       case "host-manual-grant-item": D.openHostGrantItemModal?.(); return true;
       case "host-manual-unlock-section": D.openHostUnlockSectionModal?.(); return true;
       case "host-manual-unlock-scene": D.openHostUnlockSceneModal?.(); return true;
+      case "host-mini-game": D.openHostMiniGameModal?.(); return true;
       case "host-manual-log": D.openHostLogModal?.(); return true;
       case "host-clue-note": D.openHostClueNote?.(el?.dataset?.clue, el?.dataset?.role); return true;
       case "host-event-toggle": D.toggleHostEventSelection?.(el?.dataset?.event, el?.checked); return true;

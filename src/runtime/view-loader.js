@@ -51,6 +51,10 @@
       () => import("../views/account.js"),
       () => import("../views/account-hub.js"),
       () => import("./actions-assets.js")
+    ],
+    ops: [
+      () => import("../views/ops.js"),
+      () => import("./actions-ops.js")
     ]
   };
 
