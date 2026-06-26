@@ -676,7 +676,8 @@ async function bootstrap() {
       setToast(`欢迎，${result.user.displayName || "玩家"}`, render);
       cleanUrl();
     }
-    await ensureSession();
+    const shouldCreateGuestSession = state.view !== "auth" || Boolean(joinCode) || wantOfficial || Boolean(state.roomId);
+    if (shouldCreateGuestSession) await ensureSession();
     await loadSessionUser();
     if (state.pendingVerifyToken) {
       try {

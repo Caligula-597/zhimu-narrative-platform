@@ -43,6 +43,20 @@
     if (!strong || !small || !avatar) return;
 
     if (!isLoggedIn()) {
+      try {
+        const me = await window.zhimuApi.me();
+        state.currentUser = me;
+        window.zhimuSessionAuth?.markAuthenticated?.();
+        const label = me.display_name || me.email || "已登录";
+        strong.textContent = label;
+        small.textContent = me.isGuest ? "游客 · 点击账号与资产" : (me.email || "已登录");
+        avatar.textContent = label.slice(0, 1);
+        syncAuthBanner();
+        return;
+      } catch {
+        state.currentUser = null;
+        window.zhimuSessionAuth?.markLoggedOut?.();
+      }
       const fallback = S().getSessionModeMeta?.()?.profileFallback || {
         strong: "未登录",
         small: "点击登录或注册",

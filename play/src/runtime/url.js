@@ -24,9 +24,10 @@ export function applyUrlToState(appState, params = new URLSearchParams(window.lo
     appState.resetToken = reset;
     return;
   }
-  if (params.get("auth") === "login") {
+  const authMode = params.get("auth");
+  if (authMode === "login" || authMode === "register") {
     appState.view = "auth";
-    appState.authMode = "login";
+    appState.authMode = authMode;
   }
   const joinCode = (params.get("join") || params.get("invite") || "").trim();
   if (joinCode) {
