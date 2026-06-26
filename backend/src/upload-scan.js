@@ -130,11 +130,15 @@ export async function scanUploadedObject({ key, contentType, byteSize, filename 
 
 export function getUploadScanStatus() {
   const mode = scanMode();
+  const clamAvHost = process.env.UPLOAD_SCAN_CLAMAV_HOST || null;
+  const clamAvPort = process.env.UPLOAD_SCAN_CLAMAV_PORT || null;
   return {
     mode,
     headBytes: headMaxBytes(),
     clamAvMaxBytes: clamAvMaxBytes(),
     webhookConfigured: Boolean(process.env.UPLOAD_SCAN_WEBHOOK_URL),
-    clamAvHost: process.env.UPLOAD_SCAN_CLAMAV_HOST || null
+    clamAvConfigured: Boolean(clamAvHost || clamAvPort),
+    clamAvHost,
+    clamAvPort
   };
 }

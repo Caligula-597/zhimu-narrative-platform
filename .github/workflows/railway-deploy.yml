@@ -28,3 +28,14 @@ jobs:
           RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
           RAILWAY_PUBLIC_URL: ${{ secrets.RAILWAY_PUBLIC_URL }}
         run: node scripts/railway-deploy-ci.mjs
+      - name: Verify production trust gates
+        env:
+          APP_PUBLIC_URL: ${{ secrets.RAILWAY_PUBLIC_URL }}
+          OPS_API_TOKEN: ${{ secrets.OPS_API_TOKEN }}
+        run: npm run check:production-ready
+      - name: Monitoring and alert webhook smoke
+        env:
+          APP_PUBLIC_URL: ${{ secrets.RAILWAY_PUBLIC_URL }}
+          OPS_API_TOKEN: ${{ secrets.OPS_API_TOKEN }}
+          METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }}
+        run: npm run monitoring:smoke -- --alerts

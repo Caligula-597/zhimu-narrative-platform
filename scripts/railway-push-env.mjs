@@ -173,6 +173,8 @@ async function main() {
   syncGhSecret("RAILWAY_SERVICE_ID", apiService.id);
   syncGhSecret("RAILWAY_ENVIRONMENT_ID", production.id);
   syncGhSecret("RAILWAY_PUBLIC_URL", setup.APP_PUBLIC_URL?.trim() || "https://app.getzhimu.com");
+  syncGhSecret("OPS_API_TOKEN", railwayEnv.OPS_API_TOKEN);
+  syncGhSecret("METRICS_TOKEN", railwayEnv.METRICS_TOKEN);
 
   console.log("[push-env] 触发 API 重新部署…");
   try {

@@ -108,7 +108,23 @@ const SECRET_KEYS = [
   "GITHUB_CLIENT_ID",
   "GITHUB_CLIENT_SECRET",
   "OAUTH_CALLBACK_ORIGIN",
-  "CATALOG_REVIEW_NOTIFY_EMAIL"
+  "CATALOG_REVIEW_NOTIFY_EMAIL",
+  "METRICS_TOKEN",
+  "CSP_REPORT_URI",
+  "CSP_CONNECT_SRC",
+  "UPLOAD_SCAN_WEBHOOK_URL",
+  "UPLOAD_SCAN_WEBHOOK_SECRET",
+  "UPLOAD_SCAN_CLAMAV_HOST",
+  "UPLOAD_SCAN_CLAMAV_PORT",
+  "UPLOAD_SCAN_TIMEOUT_MS",
+  "UPLOAD_SCAN_CLAMAV_MAX_BYTES",
+  "ALERT_WEBHOOK_URL",
+  "ALERT_WEBHOOK_SECRET",
+  "ALERT_WEBHOOK_TIMEOUT_MS",
+  "ALERT_CHECK_INTERVAL_MS",
+  "OTEL_EXPORTER_OTLP_ENDPOINT",
+  "OTEL_SERVICE_NAME",
+  "OTEL_EXPORTER_OTLP_HEADERS"
 ];
 
 const env = {};
@@ -145,7 +161,10 @@ env.LOG_LEVEL = "info";
 env.OPENAPI_UI = "false";
 env.SERVE_STATIC = "true";
 env.STATIC_ROOT = "/app/public/dist";
-env.UPLOAD_SCAN_MODE = "none";
+env.CSP_MODE = "enforce";
+env.UPLOAD_SCAN_MODE = "strict";
+env.OTEL_ENABLED = "true";
+env.OTEL_SERVICE_NAME = env.OTEL_SERVICE_NAME || "zhimu-api";
 env.RATE_LIMIT_AUTH_MAX = "20";
 env.RATE_LIMIT_WRITE_MAX = "120";
 env.RATE_LIMIT_READ_MAX = "300";
@@ -165,8 +184,25 @@ if (local.OPS_API_TOKEN?.trim()) {
   env.OPS_API_TOKEN = crypto.randomBytes(24).toString("base64url");
 }
 
-const required = ["DATABASE_URL", "RESEND_API_KEY", "MAIL_FROM", "APP_PUBLIC_URL"];
+if (!env.METRICS_TOKEN?.trim()) {
+  env.METRICS_TOKEN = crypto.randomBytes(24).toString("base64url");
+}
+
+const required = [
+  "DATABASE_URL",
+  "RESEND_API_KEY",
+  "MAIL_FROM",
+  "APP_PUBLIC_URL",
+  "OPS_API_TOKEN",
+  "METRICS_TOKEN",
+  "ALERT_WEBHOOK_URL",
+  "OTEL_EXPORTER_OTLP_ENDPOINT"
+];
 const missing = required.filter((k) => !env[k]?.trim());
+const hasExternalScanner = Boolean(env.UPLOAD_SCAN_WEBHOOK_URL?.trim() || env.UPLOAD_SCAN_CLAMAV_HOST?.trim());
+if (!hasExternalScanner) {
+  missing.push("UPLOAD_SCAN_WEBHOOK_URL or UPLOAD_SCAN_CLAMAV_HOST");
+}
 if (missing.length) {
   console.error(`sync-railway-env: missing in backend/.env: ${missing.join(", ")}`);
   process.exit(1);

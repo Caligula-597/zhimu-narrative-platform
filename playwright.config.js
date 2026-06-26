@@ -1,3 +1,14 @@
+const browsers = (process.env.PLAYWRIGHT_BROWSERS || "chromium,firefox,webkit")
+  .split(",")
+  .map((name) => name.trim())
+  .filter(Boolean);
+
+const appTestIgnore = [
+  "**/play-portal-smoke.spec.js",
+  "**/play-official-example.spec.js",
+  "**/play-sync-chrome.spec.js"
+];
+
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
 export default {
   testDir: "e2e",
@@ -17,22 +28,20 @@ export default {
     video: "retain-on-failure"
   },
   projects: [
-    {
-      name: "app",
+    ...browsers.map((browserName) => ({
+      name: `app-${browserName}`,
+      use: { browserName },
       testMatch: "**/*.spec.js",
-      testIgnore: [
-        "**/play-portal-smoke.spec.js",
-        "**/play-official-example.spec.js",
-        "**/play-sync-chrome.spec.js"
-      ]
-    },
-    {
-      name: "play",
+      testIgnore: appTestIgnore
+    })),
+    ...browsers.map((browserName) => ({
+      name: `play-${browserName}`,
       testMatch: /play-(portal-smoke|official-example|sync-chrome)\.spec\.js/,
       use: {
+        browserName,
         baseURL: process.env.PLAYWRIGHT_PLAY_URL || "http://localhost:5174"
       }
-    }
+    }))
   ],
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined

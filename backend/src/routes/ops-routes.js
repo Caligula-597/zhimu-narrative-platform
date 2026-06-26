@@ -34,7 +34,9 @@ const opsAuditLogQuerySchema = {
 };
 
 function productionTrustGates({ features, rateLimits }) {
-  const uploadMode = features.uploadScan?.mode;
+  const uploadScan = features.uploadScan ?? {};
+  const uploadMode = uploadScan.mode;
+  const hasExternalScanner = Boolean(uploadScan.webhookConfigured || uploadScan.clamAvConfigured);
   const cspMode = resolveCspMode(process.env.NODE_ENV ?? "development");
   const gates = [
     {
@@ -52,14 +54,14 @@ function productionTrustGates({ features, rateLimits }) {
     {
       key: "upload_scan",
       label: "Upload malware scan",
-      ok: ["strict", "clamav", "webhook"].includes(uploadMode),
-      detail: `UPLOAD_SCAN_MODE=${uploadMode}`
+      ok: uploadMode === "webhook" || uploadMode === "clamav" || (uploadMode === "strict" && hasExternalScanner),
+      detail: `UPLOAD_SCAN_MODE=${uploadMode}; external=${hasExternalScanner ? "configured" : "missing"}`
     },
     {
       key: "telemetry",
       label: "OpenTelemetry export",
-      ok: Boolean(features.telemetry?.enabled),
-      detail: features.telemetry?.exporter || "none"
+      ok: Boolean(features.telemetry?.enabled && features.telemetry?.initialized && !features.telemetry?.error),
+      detail: features.telemetry?.error || features.telemetry?.exporter || "none"
     },
     {
       key: "alerts",

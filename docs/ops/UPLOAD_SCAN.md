@@ -17,7 +17,7 @@
 
 ```env
 # 推荐生产（无外部依赖）
-UPLOAD_SCAN_MODE=builtin
+UPLOAD_SCAN_MODE=strict
 UPLOAD_SCAN_HEAD_BYTES=65536
 
 # 外部 webhook（可选，与 builtin 组合请用 strict）

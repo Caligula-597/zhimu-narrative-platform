@@ -40,8 +40,8 @@ jobs:
         working-directory: backend
       - name: Install frontend dependencies
         run: npm ci && npm run ensure:esm
-      - name: Install Playwright Chromium
-        run: npx playwright install chromium --with-deps
+      - name: Install Playwright browsers
+        run: npx playwright install chromium firefox webkit --with-deps
       - name: Build frontend
         run: npm run build
       - name: Frontend module load check
