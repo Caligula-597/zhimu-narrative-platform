@@ -1,160 +1,96 @@
-# 安全与测试收口记录
+# 安全与测试收口
 
-日期：2026-06-21（数字以 `npm run status:generate` → [`docs/GENERATED_PROJECT_STATUS.json`](./docs/GENERATED_PROJECT_STATUS.json) 为准）
+最后更新：2026-06-26
 
-> **可信 Beta 收口计划**：[docs/TRUSTED_BETA_ZH.md](./docs/TRUSTED_BETA_ZH.md)  
-> **原则**：测试桩 UUID 仅用于 CI/smoke；产品功能不得硬编码单一剧本。见 [docs/WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)。  
-> **系统设计**：[docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md)
+## 当前安全基线
 
-## 已落地的 P0 安全项
+| 类别 | 当前状态 |
+|---|---|
+| Demo header | 生产禁止 `ALLOW_DEMO_USER_HEADER=true`，启动校验会拒绝 |
+| Session | HttpOnly cookie + session revocation；Bearer token 仍兼容测试与 E2E |
+| CORS | 由 `CORS_ORIGIN`、`PLAY_SITE_ORIGIN`、`HOST_SITE_ORIGIN`、`MARKETING_SITE_ORIGIN` 推导 |
+| CSP | 生产 env 强制 `CSP_MODE=enforce`；不再以 report-only 作为生产标准 |
+| 上传 | MIME/扩展名策略 + `UPLOAD_SCAN_MODE=strict` + webhook 或 ClamAV |
+| Observability | OpenTelemetry Node SDK + OTLP HTTP exporter；Prometheus `/metrics`；alert webhook |
+| OPS | `/api/ops/*` 需要 `OPS_API_TOKEN`；`/metrics` 建议设置 `METRICS_TOKEN` |
+| Rate limit | auth/read/write/upload/AI 独立限流 |
+| Schema | 写路由必须有 Fastify JSON schema；`npm run check:schemas` 动态扫描 |
 
-- 生产环境强制忽略客户端 `x-user-id`。
-- **`NODE_ENV=production` 且 `ALLOW_DEMO_USER_HEADER=true` 时后端拒绝启动**（`startup-validation.js`）。
-- `ALLOW_DEMO_USER_HEADER=true` 只在非生产环境生效。
-- Bearer Session 优先于 demo header。
-- 前端检测到正式 session token 后，不再发送 demo `x-user-id`。
-- Fastify 统一 HTTP 安全响应头（`X-Frame-Options`、`nosniff`、生产 HSTS 等）。
-- **生产默认 CSP Report-Only**（`backend/src/security-headers.js`；`CSP_MODE=enforce` 可切换阻断；见 TB-1）。
-- **HttpOnly Session Cookie**（`backend/src/session-cookie.js`；`credentials: include`；Bearer 仍兼容测试/E2E）。
-- **CI 安全门禁**：CodeQL、Dependabot、`npm audit --audit-level=high`、`npm sbom`、`npm run audit:innerhtml`。
-- 资产上传：MIME 白名单 + **扩展名黑名单**（`asset-policy.js`）。
-- **运行/创作写路由** Fastify schema（`check:schemas` **62** 条门禁）。
-- 玩家完成阅读前，后端会校验分幕属于当前角色，并且处于已发布或已解锁状态。
-- 私密语音房通过 `voice_room_members` 二次授权，未受邀的活跃房间成员仍不能读取消息。
-- SSE 流 `GET /api/rooms/:roomId/events/stream` 需房间成员身份（`requireRoomRole`）。
-- LiveKit token 仅服务端签发，`LIVEKIT_API_SECRET` 不下发客户端。
-- 生产 CORS 通过 `CORS_ORIGIN` 配置；响应带 `X-Request-Id`。
+## 生产可信门槛
 
-## 已落地的 P0 数据诚实项（前端 · P0-1）
-
-- **`state.js`**：移除运行时假字段；新增 `cloudWorldLogs`、`roomEventsConnected`。
-- **世界总览 / 内容资产 / 存档页**：仅 API 数据或空状态。
-- **scoped restore UI** 已接通。
-- 详见 [FEATURE_CATALOG.md §12](./FEATURE_CATALOG.md#12-近期变更p0-1--2026-06-03)。
-
-## 已拆出的后端边界
-
-- `backend/src/app.js`：Fastify、CORS、安全头（含 CSP report-only）、限流、Request ID。
-- `backend/src/security-headers.js`：CSP 策略与 `applySecurityHeaders`。
-- `backend/src/account-delete-job.js`：注销 outbox（DB 优先 → 对象存储重试）。
-- `backend/src/database-status.js`：`/health`、`/health/ready`、池指标。
-- `backend/src/room-event-bus.js`：内存总线 + 可选 Postgres NOTIFY 多实例扇出。
-- `backend/src/routes/schemas.js`：JSON Schema 定义（持续扩展中）。
-- 其余模块见 [BACKEND_OPS.md](./docs/BACKEND_OPS.md)。
-
-## 自动测试矩阵
-
-所有 API 错误返回 `{ error, code, details? }`，code 注册表见 [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)。
-
-`npm test` 当前覆盖（**387** 项，109 个测试文件；精确数以 `npm run check:tests` 为准）：
-
-| 文件 | 覆盖 |
-|------|------|
-| `app-auth.test.js` | 注册 schema、demo header、session 优先、生产忽略 demo |
-| `auth-password-reset.test.js` | forgot 503/ack、完整重置流、token 一次性 |
-| `asset-policy.test.js` | 文件名黑名单、MIME 校验 |
-| `checkpoint.test.js` | 主持人创建/列表/详情；玩家 403 |
-| `checkpoint-restore-e2e.test.js` | 端到端 scoped restore |
-| `clue-sharing.test.js` | 线索公开、解读、主持矩阵 |
-| `content-package.test.js` | 导入导出、预览、新世界 |
-| `event-journal-e2e.test.js` | API 写操作 → journal 落库 |
-| `host-console.test.js` | 玩家表、手动干预、待确认 |
-| `host-audit.test.js` | 主持审计 API 权限、limit、排序 |
-| `host-event-robustness.test.js` | 延迟调度 schema/404/权限、wake 函数 |
-| `clue-share-robustness.test.js` | 私享边界：未拥有、空列表、跨世界 |
-| `idempotency-coverage.test.js` | 幂等 routeKey 注册表 |
-| `inventory.test.js` | 物品 CRUD、主持发放、调查门槛 |
-| `livekit-voice.test.js` | 公共/私密 token、503 无 env |
-| `ops-health.test.js` | `/health/ready`、Request ID、asset schema 400 |
-| `recap.test.js` | 主持生成复盘、玩家视角 |
-| `room-events.test.js` | 内存总线 pub/sub |
-| `room-event-bus-postgres.test.js` | NOTIFY 模式不重复推送 |
-| `rule-engine.test.js` | 自动执行、主持确认、幂等（CI 测试桩世界） |
-| `rule-structure-validator.test.js` | 规则 JSON 校验 |
-| `runtime-permissions.test.js` | 邀请码、join、语音隔离 |
-| `studio-edit.test.js` | 场景/线索/调查点 PATCH |
-| `startup-validation.test.js` | 启动校验 + 生产 demo header FATAL |
-| `worlds-list.test.js` | 世界列表排除 archived |
-| `schema-migrations.test.js` | 012/013 关键表 |
-| `api-errors.test.js` | 统一错误体 |
-| `world-settings.test.js` | 世界 PATCH、运行房 settings |
-| `world-search.test.js` | 全文搜索 API |
-| `beta-gates.test.js` | 建世界/成员/规则成功路径 |
-| `creator-schema-validation.test.js` | 创作写路由 schema |
-| `room-lifecycle.test.js` | checkpoint restore + 幂等阅读 |
-| `room-event-journal.test.js` | journal 按 id 补发 |
-| `beta2-ops.test.js` | ops status、telemetry、rateLimits |
-| `rate-limit.test.js` | upload/AI 独立限流桶 |
-| `register-ip-limit.test.js` | 生产 IP 注册上限；测试 hooks 默认 `REGISTER_IP_DAY_MAX=0` |
-| `asset-recycle.test.js` | 回收站列表、恢复、404 边界 |
-| `transaction-events.test.js` | commit 后才 publish SSE |
-| `account-entitlements.test.js` | entitlements API、ops 改套餐 |
-| `world-invites-quota.test.js` | 邀请邮件、重发/撤销、配额 details |
-| `oauth-diagnostics.test.js` | OAuth 回调诊断、生产 WARN/FATAL |
-| `permissions-matrix.test.js` | capabilities 矩阵与 guard |
-| `identity-foundation.test.js` | 游客、邮箱验证、session |
-| `oauth.test.js` | OAuth start/complete 流 |
-| `plan-quota.test.js` | 套餐默认值与 beta 内测 |
-| `public-room-listing.test.js` | 公开大厅、`public_listing` PATCH |
-| `world-cover.test.js` | 封面 URL、非公开世界 404 |
-| `plan-upgrade-request.test.js` | 套餐升级申请 |
-
-**CI 门禁**：`.github/workflows/ci.yml`
-
-1. `npm run check` + `check:schemas` + `check:boot` + `check:tests` + `npm test`
-2. 根目录 `npm run build` + `check:modules`
-3. `server.js --dist` + API/UI smoke
-4. **`npm run test:e2e`**（Playwright **15** 项，复用已启动的 4173/4180 + play dev 5174）
-
-**健壮性门禁（改 backend 后建议顺序）**：
+部署后必须通过：
 
 ```powershell
-npm run check
-npm run check:schemas
-npm run check:boot      # 需 Postgres
-npm run check:tests
-npm test
+npm run check:production-ready
+npm run monitoring:smoke -- --alerts
 ```
 
-**前端门禁（项目根）**：
+`check:production-ready` 会检查 `/api/health/ready`，并用 `OPS_API_TOKEN` 拉 `/api/ops/status` 的 `productionTrust`：
+
+1. Session cookies + revocation
+2. CSP enforcement
+3. Upload malware scan
+4. OpenTelemetry export
+5. Alert webhook
+6. API rate limits
+7. OPS token gate
+
+缺任一项即失败。
+
+## 自动化测试矩阵
+
+以后数字以命令输出为准，不再手工维护“绝对总数”。当前本地统计：
+
+| 命令 | 用途 |
+|---|---|
+| `cd backend && npm run check` | 后端模块语法、路径、依赖图 |
+| `cd backend && npm run check:schemas` | 写路由 schema 门禁 |
+| `cd backend && npm run check:boot` | 启动配置、数据库 schema、模块图 |
+| `cd backend && npm run check:tests` | 后端测试数量下限 |
+| `cd backend && npm test` | 后端单元/集成测试 |
+| `npm run check:modules` | 前端模块加载 |
+| `npm run build` | 根目录主应用构建 |
+| `node scripts/ui-smoke.js` | 前端源级/UI smoke |
+| `npm run test:play` | 玩家端构建和单测 |
+| `npm run test:host` | 主持端构建和单测 |
+| `npm run test:e2e` | Playwright 端到端，默认三浏览器 |
+
+Playwright 当前按 `chromium,firefox,webkit` 生成项目：
 
 ```powershell
-npm run check:modules
-npm run build
-node scripts/verify-dist-host.mjs   # 需 4173 dist 服务
-node scripts/ui-smoke.js            # 44 项，需 4173 + 4180
-npm run test:e2e                    # 15 项 Playwright（需 4173 + 4180 + 5174）
-npm run test:play                   # 23 项（play 构建 + 单元）
-npm run test:format-helpers         # 5 项纯函数（format.js）
-npm run test:modal-helpers          # 2 项 modal 转义（modal.js）
+npx playwright test --list
 ```
 
-`npm run test:smoke`（backend，**18 项**）：需 `localhost:4180` 已启动。
+如本地临时只跑 Chromium：
 
-## 整体验收（2026-06-20 · 当前基准）
+```powershell
+$env:PLAYWRIGHT_BROWSERS="chromium"
+npm run test:e2e
+```
 
-> 历史 Release Notes / FEATURE_CATALOG 各 § 内「当时」数字保留作 changelog；**以本表为准**。
+## CI / CD
 
-| 命令 | 结果 |
-|------|------|
-| `backend npm test` | **387/387**（109 文件） |
-| `npm run check:schemas` | **62** 条路由 |
-| `npm run test:smoke` | **18/18** |
-| `node scripts/ui-smoke.js` | **44/44** |
-| `npm run check:modules` | **51/51** |
-| `npm run test:format-helpers` | **5/5** |
-| `npm run test:modal-helpers` | **2/2** |
-| `npm run test:play` | **23/23** |
-| `npm run test:e2e` | **15/15**（Playwright；CI 与本地均跑；默认邀请码 `TEST-FIXTURE-DEMO`） |
-| `npm run verify:full:fresh` | 上述 + migrate/seed + 可选 E2E |
+`.github/workflows/ci.yml`：
 
-**休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)
+- 安装 Chromium、Firefox、WebKit。
+- 构建前端、迁移/seed、后端全套检查。
+- 启动 `4180` API、`4173` 主应用、`5174` 玩家端后跑 smoke/E2E。
 
-## 下一阶段（后端优先）
+`.github/workflows/railway-deploy.yml`：
 
-- 上传病毒扫描
-- Prometheus / OTel SDK
-- Redis 总线（可选，NOTIFY 已可用）
-- LiveKit 语音流、实体卡 NFC
+- 部署 Railway fullstack。
+- 部署后执行 `check:production-ready`。
+- 执行 `monitoring:smoke -- --alerts`，验证 metrics 和告警 webhook。
 
-评估详情：[ALPHA_ASSESSMENT.md](./ALPHA_ASSESSMENT.md) · 表结构：[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) · 实现总览：[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)
+缺口：`site/play/host` 的 Cloudflare Pages 发布和 smoke 还没有进入统一 GitHub Actions。详见 [架构与端口审视](./docs/ARCHITECTURE_PORT_AUDIT_ZH.md)。
+
+## 本地端口注意
+
+| 端口 | 用途 |
+|---|---|
+| `4180` | API |
+| `4173` | 主应用 Vite 或静态 dist |
+| `5174` | 玩家端 |
+| `5175` | 主持端 |
+
+`4173` 同时被 Vite 和 `server.js --dist` 使用，跑测试前确认没有旧进程残留。

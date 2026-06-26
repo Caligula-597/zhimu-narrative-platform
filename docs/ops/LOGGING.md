@@ -1,50 +1,33 @@
-# 日志采集（JSON + Request ID）
+# 日志
 
-织幕后端使用 Fastify 内置 Pino 日志。
+最后更新：2026-06-26
 
-## 生产 JSON 日志
+## 生产日志
 
-当 `NODE_ENV=production` 或 `LOG_FORMAT=json` 时，日志以 **单行 JSON** 输出，便于 Loki / CloudWatch / ELK 采集。
-
-字段示例：
-
-```json
-{
-  "level": "info",
-  "time": "2026-06-03T12:00:00.000Z",
-  "pid": 1,
-  "hostname": "api-1",
-  "service": "zhimu-backend",
-  "req": { "method": "GET", "url": "/api/health/live", "requestId": "..." },
-  "res": { "statusCode": 200 },
-  "msg": "request completed"
-}
+```env
+LOG_FORMAT=json
+LOG_LEVEL=info
 ```
 
-## 关联 ID
+API 会返回/透传：
 
-每个请求自动附带：
+- `X-Request-Id`
+- trace context（如请求带 `traceparent`）
 
-| Header | 说明 |
-|--------|------|
-| `X-Request-Id` | 请求唯一 ID（可客户端传入 `X-Request-Id`） |
-| `X-Trace-Id` | W3C `traceparent` 第二段，或回退为 Request ID |
+## OpenTelemetry
 
-在日志聚合中按 `req.requestId` 或 `traceId` 检索即可串联一次 API 调用。
+真实 OpenTelemetry SDK 已接入，详见 [TRACING.md](./TRACING.md)。
 
-## 环境变量
+生产可信门槛要求：
 
-| 变量 | 默认 | 说明 |
-|------|------|------|
-| `LOG_FORMAT` | 生产自动 `json` | 设为 `json` 强制 JSON |
-| `LOG_LEVEL` | 生产 `info`，开发 `debug` | Pino 级别 |
+- `OTEL_ENABLED=true`
+- `OTEL_EXPORTER_OTLP_ENDPOINT` 已配置
+- SDK 初始化成功
 
-## 可选：OpenTelemetry
+## 告警
 
-完整 OTel SDK 见 [TRACING.md](./TRACING.md)。当前已实现轻量 **Trace ID 透传**，无需额外 Agent 即可在日志中关联。
+readiness 状态变化由 `ops-alert-bridge` 发送 webhook。手动测试：
 
-## 相关
-
-- [BACKUP.md](./BACKUP.md) — 数据库备份
-- [ALERTING.md](./ALERTING.md) — Prometheus 告警
-- [../OPS.md](../OPS.md) — 部署清单
+```powershell
+npm run monitoring:smoke -- --alerts
+```

@@ -1,97 +1,82 @@
-# 织幕 · 前端说明
+# 前端说明
 
-> Vite 6 构建的单页应用，通过 `window.zhimuApi` / `window.zhimuState` 与 Fastify 后端通信。  
-> **更新**：2026-06-18 · 系统设计见 [DESIGN_ZH.md](./DESIGN_ZH.md) · 玩家独立端见 [play/README.md](../play/README.md)
+最后更新：2026-06-26
 
----
+## 应用拆分
 
-## 1. 目录与入口
+| 应用 | 目录 | 本地端口 | 生产域 |
+|---|---|---|---|
+| 主应用 | 根目录 `src/` | `4173` | `app.getzhimu.com` |
+| 玩家端 | `play/` | `5174` | `play.getzhimu.com` |
+| 主持端 | `host/` | `5175` | `host.getzhimu.com` |
+| 官网 | `site/` | Vite 默认/Pages | `getzhimu.com` |
+
+主应用生产由 Railway fullstack 托管；玩家端、主持端和官网按 Cloudflare Pages 分域。
+
+## 主应用
+
+关键目录：
 
 | 路径 | 说明 |
-|------|------|
-| `src/` | 业务模块（api、runtime、views、components） |
-| `index.html` | 入口；按序加载全局脚本 |
-| `config.js` | 运行时配置：`apiBase`、`requireAuth`、`demoMode`、`demoUsers` |
-| `vite.config.js` | 开发代理 `/api` → `localhost:4180` |
-| `dist/` | 生产构建输出（Railway fullstack 同域托管） |
+|---|---|
+| `src/api/client.js` | REST/SSE API client |
+| `src/runtime/` | auth、workspace、data、actions、room events |
+| `src/views/` | account、overview、writer、studio、rules、director、player、archive、assets、ops |
+| `config/vite.config.mjs` | dev server、docs static plugin、生产 build |
+| `server.js` | 本地静态 dist server |
 
 开发：
 
 ```powershell
-cd backend && npm run dev    # :4180
-cd .. && npm run dev           # :4173，HMR
+cd backend
+npm run dev
+
+cd ..
+npm run dev
 ```
 
-生产静态包：`npm run build && npm run start:dist`
+生产构建：
 
----
+```powershell
+npm run build
+```
 
-## 2. 数据边界（重要）
+注意：`npm run start:dist` 只托管静态文件，默认端口 `4173`，不代理 `/api`。
 
-前端 **不硬编码** 任何剧本内容、玩家列表、日志或资产卡片。
+## 数据边界
+
+前端不得硬编码玩家、日志、资产、剧本内容或运行状态。运行数据必须来自 API：
 
 | 数据 | 来源 |
-|------|------|
+|---|---|
 | 世界列表 | `GET /api/worlds` |
-| 当前世界/房间 | `localStorage`（`zhimuActiveWorldId`、`zhimuActiveRoomId:*`） |
-| 总览日志 | `GET /api/worlds/:id/logs` |
-| 资产列表 | `GET /api/worlds/:id/assets` |
-| 官方示例引导 | `GET /api/platform/official-example`（非固定 UUID） |
 | 公开剧本库 | `GET /api/worlds/catalog` |
+| 资产 | `GET /api/worlds/:worldId/assets` |
+| 主持运行态 | host/player/room APIs |
+| 玩家内容 | `GET .../player-home` |
+| OPS | `GET /api/ops/status` |
 
-`config.js` **不含** `demoWorld`。匿名演示模式仅使用 `demoUsers` + `x-user-id`（本地 `ALLOW_DEMO_USER_HEADER=true`）；登录后以会话 Bearer 为准。
+测试 fixture UUID 只允许出现在测试和 seed 中，不能成为产品逻辑。
 
-`workspace-store.js` 的 `ensureActiveWorld()`：优先保留用户已选世界，否则选 API 返回列表第一项。
+## 验证
 
----
+```powershell
+npm run check:modules
+npm run build
+node scripts/ui-smoke.js
+npm run test:e2e
+npm run test:play
+npm run test:host
+```
 
-## 3. 核心模块
+Playwright 默认跨 Chromium/Firefox/WebKit。
 
-| 模块 | 文件 | 职责 |
-|------|------|------|
-| API 客户端 | `src/api/client.js` | REST、SSE、DeepSeek 长超时 |
-| 认证 | `src/runtime/auth-session.js` | 登录、游客、OAuth |
-| 工作区 | `src/runtime/workspace-store.js` | 世界/房间选择 |
-| 路由/视图 | `src/app.js` + `src/views/*` | 侧栏视图切换 |
-| 主持台 | `src/views/host-*` | 玩家表、待确认、SSE |
-| 玩家 | `src/views/player-*` | 阅读、探索、背包 |
-| 创作 | `src/views/writer-*` | 角色、分幕、向导 |
+## 当前前端框架风险
 
-完整 API ↔ UI 对照见 [PLATFORM_MAP_ZH.md](./PLATFORM_MAP_ZH.md)。
+三端重复了部分 session、错误展示、表单和 shell 逻辑。短期保留独立应用，长期建议抽：
 
----
+- `shared-api`
+- `shared-ui-tokens`
+- `shared-session`
 
-## 4. 环境变量（构建时）
-
-| 变量 | 典型值 | 说明 |
-|------|--------|------|
-| `VITE_API_BASE` | `/api` | API 根路径 |
-| `VITE_REQUIRE_AUTH` | `true`（生产） | 强制登录 |
-| `VITE_DEMO_MODE` | `false`（生产） | 关闭匿名 demo 头 |
-
----
-
-## 5. 测试与验收
-
-| 命令 | 说明 |
-|------|------|
-| `npm run check:modules` | 模块图与 import 检查 |
-| `node scripts/ui-smoke.js` | 44 项 UI smoke（需 :4173 + :4180） |
-| `node scripts/verify-script-load.mjs` | 按 index 顺序加载脚本 |
-
-后端集成测试与 smoke 使用 **CI 测试桩**（见 [WORLDS_AND_FIXTURES_ZH.md](./WORLDS_AND_FIXTURES_ZH.md)），与前端无耦合。
-
----
-
-## 6. 部署
-
-- **生产**：`getzhimu.com`（营销站 Cloudflare Pages）+ `app.getzhimu.com`（Railway fullstack）
-- 详见 [ops/SPLIT_DOMAINS.md](./ops/SPLIT_DOMAINS.md)、[ops/DEPLOY.md](./ops/DEPLOY.md)
-
----
-
-## 7. 延伸阅读
-
-- [FRONTEND_MODULE_PLAN.md](../FRONTEND_MODULE_PLAN.md) — 模块拆分规划
-- [CREATOR_GUIDE.md](./CREATOR_GUIDE.md) — 创作者 UI 流程
-- [USER_ERROR_GUIDE.md](./USER_ERROR_GUIDE.md) — 用户可见错误
+详见 [架构与端口审视](./ARCHITECTURE_PORT_AUDIT_ZH.md)。

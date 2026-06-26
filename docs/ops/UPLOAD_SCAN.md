@@ -1,52 +1,61 @@
-# 上传安全扫描（Upload Scan）
+# 上传 AV strict
 
-> **模式**：`UPLOAD_SCAN_MODE` · **默认**：`none`（开发） · **生产建议**：`builtin` 或 `strict`
+最后更新：2026-06-26
 
-## 模式一览
+## 模式
 
-| 模式 | 说明 |
-|------|------|
-| `none` | 跳过扫描（仅依赖 MIME/扩展名策略） |
-| `stub` | 测试用；`UPLOAD_SCAN_STUB_RESULT=infected` 模拟拒绝 |
-| `builtin` | **魔数校验** + 文件名复检 + 可选 EICAR 测试 |
-| `webhook` | POST JSON 到外部扫描服务 |
-| `clamav` | 通过 TCP 连接 `clamd`（INSTREAM） |
-| `strict` | 先 `builtin`，再 webhook（若配置）或 clamav（若配置） |
+| 模式 | 用途 |
+|---|---|
+| `none` | 开发跳过扫描 |
+| `stub` | 测试模拟 |
+| `builtin` | 魔数/文件名/EICAR 基础检查 |
+| `webhook` | 外部扫描服务 |
+| `clamav` | ClamAV TCP `clamd` |
+| `strict` | 先 builtin，再 webhook 或 ClamAV |
 
-## 环境变量
+生产只接受：
 
 ```env
-# 推荐生产（无外部依赖）
 UPLOAD_SCAN_MODE=strict
-UPLOAD_SCAN_HEAD_BYTES=65536
+```
 
-# 外部 webhook（可选，与 builtin 组合请用 strict）
+并且必须配置以下之一：
+
+```env
 UPLOAD_SCAN_WEBHOOK_URL=https://scanner.example/check
 UPLOAD_SCAN_WEBHOOK_SECRET=
-UPLOAD_SCAN_TIMEOUT_MS=30000
+```
 
-# ClamAV sidecar（Docker 3310）
+或：
+
+```env
 UPLOAD_SCAN_CLAMAV_HOST=127.0.0.1
 UPLOAD_SCAN_CLAMAV_PORT=3310
 UPLOAD_SCAN_CLAMAV_MAX_BYTES=36700160
-
-# 测试 EICAR 检测（仅 staging）
-UPLOAD_SCAN_EICAR_TEST=false
 ```
 
-## 触发时机
+## 生产门槛
 
-`POST /api/assets/:assetId/confirm` 在 R2 对象 stat 通过后、写入 `active` 前执行。
+`/api/ops/status` 的 `productionTrust.upload_scan` 只有在以下情况通过：
 
-- 拒绝：`UPLOAD_SCAN_INFECTED` · `UPLOAD_SCAN_SPOOFED` · `UPLOAD_SCAN_FAILED`
-- 感染/伪装文件会 **删除对象** 并标记 `asset_files.status = quarantined`
+- `UPLOAD_SCAN_MODE=webhook`
+- `UPLOAD_SCAN_MODE=clamav`
+- `UPLOAD_SCAN_MODE=strict` 且 webhook/ClamAV 已配置
 
-## Prometheus
+`strict-builtin-only` 不算生产可信。
+
+## 触发点
+
+资产上传流程在 `POST /api/assets/:assetId/confirm` 中执行扫描。扫描失败会拒绝确认，并把对象清理/隔离。
+
+## 指标
 
 - `upload_scans_total{mode,result}`
 - `upload_scans_rejected_total{reason}`
 
-## 相关
+## 验收
 
-- [ALERTING.md](./ALERTING.md)
-- [asset-policy.js](../backend/src/asset-policy.js)
+```powershell
+cd backend
+node --test-concurrency=1 --test-force-exit --import ./test/hooks.mjs --test test/upload-scan.test.js test/upload-scan-builtin.test.js
+```

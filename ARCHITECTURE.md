@@ -1,121 +1,95 @@
-# 织幕 Alpha 架构
+# 织幕架构总览
 
-> **完整系统设计（三端分工、主持—玩家闭环、SSE、内容模型）见 [docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md)。**  
-> API↔UI 对照见 [docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md)。
+最后更新：2026-06-26
 
-## 数据库选择
+## 1. 总体形态
 
-项目从第一天直接使用 PostgreSQL，不提供 SQLite 兼容模式。
-
-原因：
-
-- 长线房间需要可靠事务和并发写入。
-- 规则条件、角色变量、存档快照适合使用 `jsonb`。
-- 时间线日志、阅读进度和线索持有关系需要索引与约束。
-- 后续可以增加全文检索、审计、分区日志和只读副本。
-
-## 最重要的模型边界
-
-系统严格区分两类数据。
-
-### 剧本模板
-
-作者创建并反复编辑：
-
-- `worlds`
-- `chapters`
-- `role_slots`
-- `character_scripts`
-- `script_sections`
-- `scenes`
-- `clues`
-- `items`
-
-### 房间运行实例
-
-每一次正式开团独立保存：
-
-- `rooms`
-- `room_members`
-- `player_states`
-- `reading_progress`
-- `notebook_entries`
-- `clue_ownership`
-- `inventory`
-- `room_content_unlocks`
-- `rule_executions`
-- `timeline_logs`
-- `checkpoints`
-- `voice_rooms`
-
-因此，一个剧本可以创建多个房间。任何一个房间的选择、进度和结局都不会污染模板或其他房间。
-
-## 第一条真实闭环
+织幕由一个 Fastify API 和四个前端应用组成：
 
 ```text
-作者创建世界
-→ 创建角色席位
-→ 编写私人章节
-→ 创建测试房间
-→ 玩家通过邀请码加入并选择角色
-→ 后端只返回该角色已解锁的内容
-→ 玩家标记笔记
-→ 玩家主动完成阅读
-→ PostgreSQL 保存进度
-→ 规则引擎检测结构化条件
-→ 解锁下一段内容
-→ 主持台读取更新后的进度和时间线
+Cloudflare Pages             Railway fullstack                 Cloudflare Pages
+getzhimu.com                 app.getzhimu.com                  play.getzhimu.com
+site/ 官网                   根目录主应用 + /api               play/ 玩家端
+
+                              PostgreSQL
+                              R2 object storage
+                              OTLP / alerts / metrics
+
+Cloudflare Pages
+host.getzhimu.com
+host/ 主持端
 ```
 
-## 权限原则
+本地端口：
 
-- 私人剧情不能依赖前端隐藏。
-- 每一个玩家查询都从 `room_members.role_slot_id` 推导角色。
-- 后端只返回当前角色已解锁的内容。
-- 主持查询必须验证 `host` 或 `cohost` 身份。
-- 正式请求使用 Bearer Session，后端解析后写入只读的 `request.actorId`。
-- 前端 UI 不得硬编码运行态假数据（玩家列表、时间线日志、资产卡片）；总览/资产/存档仅展示 API 或空状态。详见 [FEATURE_CATALOG.md §12](./FEATURE_CATALOG.md#12-近期变更p0-1--2026-06-03)。
-- `x-user-id` 只在本地显式设置 `ALLOW_DEMO_USER_HEADER=true` 时兼容演示身份，生产环境必须保持关闭。
+| 服务 | 命令 | 默认端口 |
+|---|---|---|
+| API | `cd backend && npm run dev` | `4180` |
+| 主应用 Vite | `npm run dev` | `4173` |
+| 主应用静态 dist | `npm run start:dist` | `4173` |
+| 玩家端 | `cd play && npm run dev -- --port 5174 --strictPort` | `5174` |
+| 主持端 | `cd host && npm run dev` | `5175` |
+| Clash 代理 | 仅 GitHub/网络命令需要 | `7890` |
 
-## 规则引擎
+## 2. 数据边界
 
-规则使用结构化 JSON，不执行作者提交的 JavaScript。
+项目从第一天使用 PostgreSQL，不维护 SQLite 模式。
 
-当前支持的基础条件：
+核心边界是“剧本模板”和“房间运行实例”分离：
 
-- 阅读完成
-- 持有线索
-- 持有物品
+| 层 | 代表表 | 说明 |
+|---|---|---|
+| 剧本模板 | `worlds`, `chapters`, `role_slots`, `script_sections`, `scenes`, `clues`, `items`, `automation_rules` | 作者编辑、版本化、公开库审核 |
+| 运行实例 | `rooms`, `room_members`, `player_states`, `reading_progress`, `clue_ownership`, `inventory`, `rule_executions`, `timeline_logs`, `checkpoints`, `recaps` | 每次开团独立保存进度和结局 |
 
-当前支持的基础动作：
+权限不能依赖前端隐藏。玩家可见内容由后端根据 `room_members.role_slot_id`、解锁状态和持有关系推导。
 
-- 解锁私人章节
-- 解锁场景
-- 写入主持时间线
+## 3. 后端框架
 
-所有规则执行都会写入 `rule_executions`，避免重复执行。
+后端目录：`backend/src/`
 
-## 实时推送（已实现）
+| 模块 | 职责 |
+|---|---|
+| `app.js` | Fastify app、CORS、安全头、限流、统一错误、metrics |
+| `server.js` | 启动校验、OpenTelemetry SDK、事件总线、告警 monitor、优雅关闭 |
+| `routes/` | 按领域拆分 HTTP 路由 |
+| `auth.js` / `session-cookie.js` | Session、guest、HttpOnly cookie |
+| `rule-engine.js` | 结构化规则执行，禁止用户 JS |
+| `room-event-bus.js` | SSE + 可选 PostgreSQL NOTIFY |
+| `upload-scan.js` | 上传扫描，生产 strict + webhook/ClamAV |
+| `ops-routes.js` | OPS 状态、生产可信七项、告警测试 |
+| `static-frontend.js` | Railway fullstack 下托管主应用 dist |
 
-房间运行态通过 **SSE**（`GET /api/rooms/:roomId/events/stream`）推送，非 WebSocket。事件写入 `room_event_journal`；多 API 实例使用 `ROOM_EVENTS_BUS=postgres`。主持台与玩家视图（含 `play/`）订阅同一端点。详见 [docs/DESIGN_ZH.md §6–§7](./docs/DESIGN_ZH.md#6-主持玩家运行闭环2026-06-重点)。
+## 4. 前端框架
 
-## 三端部署
+| 应用 | 目录 | 生产域 | 说明 |
+|---|---|---|---|
+| 主应用 | 根目录 `src/` | `app.getzhimu.com` | 创作者、主持过渡视图、资产、OPS |
+| 玩家端 | `play/` | `play.getzhimu.com` | 加房、广场、好友、私信、局内 Tab |
+| 主持端 | `host/` | `host.getzhimu.com` | 独立主持监控台 |
+| 官网 | `site/` | `getzhimu.com` | 营销、公开入口、内测表单 |
 
-| 域名 | 代码 | 角色 |
-|------|------|------|
-| `app.getzhimu.com` | 根目录 Vite 应用 | 创作、主持、存档 |
-| `play.getzhimu.com` | `play/` | 玩家入房与局内 |
-| `getzhimu.com` | `site/` | 营销 |
+目前框架风险：主应用、玩家端、主持端各有自己的 Vite 配置和组件实现，共享层主要靠 API 客户端约定与少量 shared token。后续若继续扩展，应优先抽出 `shared-ui` / `shared-api` 包，避免三端重复修 bug。
 
-## 当前能力状态（2026-06）
+## 5. 生产可信七项
 
-已实现（相对早期路线图）：
+OPS 页面与 `scripts/check-production-ready.mjs` 以 `productionTrust` 为准：
 
-1. PostgreSQL 迁移与种子、Session/OAuth 账号体系。
-2. 玩家/主持 API 闭环、规则引擎、主持待确认与手动干预。
-3. SSE 房间事件 + 主持—玩家联动（待办、nudge、hostConfirm 横幅、复盘）。
-4. Checkpoint 快照与 scoped restore、结构化 recap。
-5. LiveKit 语音客户端（需环境变量）、物品/inventory。
-6. 内容包/script-bundle 导入、DeepSeek 创作流水线（可选 API Key）。
+1. Session cookie + revocation
+2. `CSP_MODE=enforce`
+3. 上传 AV：`UPLOAD_SCAN_MODE=strict` 且 webhook 或 ClamAV 已配置
+4. OpenTelemetry SDK 初始化成功并导出 OTLP HTTP
+5. `ALERT_WEBHOOK_URL` 已配置，可通过 `/api/ops/alerts/test` 探测
+6. API rate limits 全部大于 0
+7. `OPS_API_TOKEN` 已配置
 
-仍待加强：社交深度、规则积木 UX、生产 LiveKit 验收、全文检索。见 [FEATURE_CATALOG.md §9](./FEATURE_CATALOG.md#9-推荐迭代顺序团队协调)。
+Railway env 同步脚本会在缺关键生产配置时失败，不再生成弱生产配置。
+
+## 6. 当前架构/端口问题
+
+详见 [docs/ARCHITECTURE_PORT_AUDIT_ZH.md](./docs/ARCHITECTURE_PORT_AUDIT_ZH.md)。当前优先级最高的是：
+
+- Pages 三站部署和验收没有进入统一 CI/CD。
+- `4173` 同时用于 Vite dev 与静态 dist，容易残留进程占端口。
+- 本地 `play` dev 若不加 `--strictPort` 可能自动换端口，导致 E2E 或手册不一致。
+- 文档历史版本较多，所有当前标准应以 README、ARCHITECTURE、SECURITY_AND_TESTING、docs/ops 为准。

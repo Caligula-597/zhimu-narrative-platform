@@ -1,109 +1,113 @@
-# 三域上线环境变量清单（P0-08）
+# 生产环境变量
 
-> **用途**：Railway / 本地生产模拟时，一次性核对 **官网 · 创作者应用 · 玩家端** 三域配置。  
-> **详细**：OAuth 见 [OAUTH_SETUP.md](./OAUTH_SETUP.md)；分域见 [SPLIT_DOMAINS.md](./SPLIT_DOMAINS.md)。
+最后更新：2026-06-26
 
----
-
-## 最小可运行（内测）
+## 必填核心
 
 ```env
-# ── 数据库 ──
-DATABASE_URL=postgresql://...
-
-# ── 三域公开 URL（HTTPS，无尾斜杠）──
+NODE_ENV=production
 APP_PUBLIC_URL=https://app.getzhimu.com
-PLAY_SITE_URL=https://play.getzhimu.com
-PLAY_SITE_ORIGIN=https://play.getzhimu.com
+CORS_ORIGIN=https://app.getzhimu.com
+DATABASE_URL=
+DATABASE_SSL=true
+
+MARKETING_SITE_ORIGIN=https://getzhimu.com,https://www.getzhimu.com
 MARKETING_SITE_URL=https://getzhimu.com
-MARKETING_SITE_ORIGIN=https://getzhimu.com
-
-# ── Session / 安全 ──
-SESSION_SECRET=<随机 32+ 字符>
-ALLOW_DEMO_USER_HEADER=false
-
-# ── 官方示例（公开库已上架世界 UUID）──
-OFFICIAL_EXAMPLE_WORLD_ID=<your-catalog-world-uuid>  # 已审核并公开上架的示例剧本 UUID
-
-# ── 邮件（注册验证 / 找回密码）──
-RESEND_API_KEY=re_...
-MAIL_FROM=noreply@getzhimu.com
-
-# ── OAuth（可选，不配则隐藏对应按钮）──
-GOOGLE_OAUTH_CLIENT_ID=...
-GOOGLE_OAUTH_CLIENT_SECRET=...
-GITHUB_OAUTH_CLIENT_ID=...
-GITHUB_OAUTH_CLIENT_SECRET=...
-
-# ── 附件 R2 ──
-R2_ACCOUNT_ID=...
-R2_ACCESS_KEY_ID=...
-R2_SECRET_ACCESS_KEY=...
-R2_BUCKET=...
-
-# ── LiveKit 语音（可选）──
-LIVEKIT_URL=wss://...
-LIVEKIT_API_KEY=...
-LIVEKIT_API_SECRET=...
+PLAY_SITE_ORIGIN=https://play.getzhimu.com
+PLAY_SITE_URL=https://play.getzhimu.com
+HOST_SITE_ORIGIN=https://host.getzhimu.com
+HOST_SITE_URL=https://host.getzhimu.com
 ```
 
----
-
-## 健康检查（负载均衡 / Railway）
-
-| 探针 | 路径 | 期望 |
-|------|------|------|
-| Liveness | `GET /api/health/live` | 200 `{ ok: true }` |
-| Readiness | `GET /api/health/ready` | 200 就绪 / **503** 未就绪（DB 迁移、连接池、事件总线） |
-
-可选依赖未配置时，ready 仍可通过；对应功能降级（如无 LiveKit 则语音不可用）。
-
----
-
-## 各域部署对应
-
-| 域 | 构建 | 环境 |
-|----|------|------|
-| API + 主应用静态 | 根目录 Docker / Railway | 上表全部在 **API 服务** |
-| 玩家端 `play/` | `npm run build --prefix play` | 只需 `VITE_*` 若 API 非同源；开发用 proxy |
-| 官网 `site/` | `npm run build --prefix site` | 运行时请求 `GET /api/platform/site` 拿链接 |
-
----
-
-## 内测勿开
+## 安全门槛
 
 ```env
-# 生产必须为 false —— 否则启动 FATAL
 ALLOW_DEMO_USER_HEADER=false
-
-# 内测期可不配 Stripe —— 无前端购买入口
-# STRIPE_SECRET_KEY=
-# STRIPE_WEBHOOK_SECRET=
+CSP_MODE=enforce
+OPENAPI_UI=false
+OPS_API_TOKEN=
+METRICS_TOKEN=
 ```
 
----
+## 上传 AV strict
 
-## 验证命令
+生产必须是 strict，并且必须配置 webhook 或 ClamAV 之一：
+
+```env
+UPLOAD_SCAN_MODE=strict
+UPLOAD_SCAN_WEBHOOK_URL=
+UPLOAD_SCAN_WEBHOOK_SECRET=
+
+# 或
+UPLOAD_SCAN_CLAMAV_HOST=
+UPLOAD_SCAN_CLAMAV_PORT=3310
+```
+
+## 可观测与告警
+
+```env
+OTEL_ENABLED=true
+OTEL_SERVICE_NAME=zhimu-api
+OTEL_EXPORTER_OTLP_ENDPOINT=
+# OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer xxx
+
+ALERT_WEBHOOK_URL=
+ALERT_WEBHOOK_SECRET=
+ALERT_CHECK_INTERVAL_MS=60000
+```
+
+## 邮件、存储、AI、语音
+
+```env
+EMAIL_PROVIDER=resend
+MAIL_FROM=
+RESEND_API_KEY=
+
+OBJECT_STORAGE_PROVIDER=r2
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET=
+R2_PUBLIC_ENDPOINT=
+
+DEEPSEEK_API_KEY=
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
+
+LIVEKIT_URL=
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
+```
+
+## 限流
+
+```env
+RATE_LIMIT_AUTH_MAX=20
+RATE_LIMIT_WRITE_MAX=120
+RATE_LIMIT_READ_MAX=300
+RATE_LIMIT_UPLOAD_MAX=30
+RATE_LIMIT_AI_MAX=40
+```
+
+## 生成与推送
 
 ```powershell
-# API 就绪
-curl https://app.getzhimu.com/api/health/ready
-
-# 整站 bootstrap（链接、官方示例、内测表单）
-curl https://app.getzhimu.com/api/platform/site
-
-# 官方示例是否可用
-curl https://app.getzhimu.com/api/platform/official-example
-
-# 本地或生产（可选依赖一览）
-npm run check:production-ready
-# CHECK_BASE_URL=https://app.getzhimu.com npm run check:production-ready
+npm run railway:sync-env
+npm run railway:push-env
 ```
 
----
+`railway:sync-env` 会阻断缺失项：
 
-## 相关
+- `ALERT_WEBHOOK_URL`
+- `OTEL_EXPORTER_OTLP_ENDPOINT`
+- `UPLOAD_SCAN_WEBHOOK_URL` 或 `UPLOAD_SCAN_CLAMAV_HOST`
 
-- [MANUAL_SETUP_CHECKLIST.md](./MANUAL_SETUP_CHECKLIST.md)  
-- [WORLDS_AND_FIXTURES_ZH.md](../WORLDS_AND_FIXTURES_ZH.md)（fixture vs 官方示例）  
-- [LAUNCH_PRIORITIES_ZH.md](../LAUNCH_PRIORITIES_ZH.md) P0-08
+## 部署后验收
+
+```powershell
+$env:APP_PUBLIC_URL="https://app.getzhimu.com"
+$env:OPS_API_TOKEN="..."
+$env:METRICS_TOKEN="..."
+npm run check:production-ready
+npm run monitoring:smoke -- --alerts
+```

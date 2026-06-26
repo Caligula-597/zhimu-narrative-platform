@@ -1,52 +1,72 @@
 # E2E / 浏览器测试
 
-## Playwright 冒烟（CI + 本地）
+最后更新：2026-06-26
 
-**15** 项，覆盖创作者向导、主持台（含 nudge）、玩家进度、存档/复盘、play 邀请码/广场/官方示例/tablist。
+## Playwright 矩阵
+
+默认浏览器：
+
+```text
+chromium, firefox, webkit
+```
+
+当前项目列表由 `playwright.config.js` 生成：
+
+- `app-chromium`
+- `app-firefox`
+- `app-webkit`
+- `play-chromium`
+- `play-firefox`
+- `play-webkit`
+
+当前 `npx playwright test --list` 显示 45 个用例，覆盖创作者向导、主持台、玩家进度、存档复盘、玩家端广场/邀请码/官方体验/Tab。
+
+## 运行
 
 ```powershell
-# 前置：Postgres + migrate/seed（global-setup 会自动跑）
-cd backend && npm run bootstrap:local
-
-# 一键（自动起 4180 + 4173 + play 5174）
-npm run test:e2e
-
-# 复用已启动服务
-$env:PLAYWRIGHT_SKIP_WEBSERVER="true"
 npm run test:e2e
 ```
 
-| 环境变量 | 默认 |
-|----------|------|
-| `PLAYWRIGHT_INVITE_CODE` | `TEST-FIXTURE-DEMO`（global-setup 注入） |
-| `PLAYWRIGHT_BASE_URL` | `http://localhost:4173` |
-| `PLAYWRIGHT_PLAY_URL` | `http://localhost:5174` |
-| `PLAYWRIGHT_API_URL` | `http://localhost:4180` |
+复用已启动服务：
 
-**注意**：play 端 E2E 必须用 `npm run dev`（带 `/api` 代理），不要用 `preview`。
+```powershell
+$env:PLAYWRIGHT_SKIP_WEBSERVER="true"
+$env:PLAYWRIGHT_API_URL="http://localhost:4180"
+$env:PLAYWRIGHT_BASE_URL="http://localhost:4173"
+$env:PLAYWRIGHT_PLAY_URL="http://localhost:5174"
+npm run test:e2e
+```
+
+临时只跑 Chromium：
+
+```powershell
+$env:PLAYWRIGHT_BROWSERS="chromium"
+npm run test:e2e
+```
+
+## 服务依赖
+
+| 服务 | URL |
+|---|---|
+| API | `http://localhost:4180` |
+| 主应用 | `http://localhost:4173` |
+| 玩家端 | `http://localhost:5174` |
+
+玩家端 E2E 必须使用 Vite dev，因为需要 `/api` proxy。不要用 `vite preview` 替代。
+
+## 主要 spec
 
 | Spec | 覆盖 |
-|------|------|
-| `creator-wizard-smoke` | 演示用户 → 五 step 向导 → 邀请码 |
-| `host-director-smoke` | 待办、wait strip、**nudge 弹窗** |
-| `player-host-progress` | play 读分幕 → 主持台进度 |
-| `archive-recap-smoke` | 存档与复盘（折叠导航「更多创作工具」） |
+|---|---|
+| `creator-wizard-smoke` | 五步向导、测试房、邀请码 |
+| `host-director-smoke` | 待办、等待提示、nudge 弹窗 |
+| `player-host-progress` | 玩家阅读进度同步到主持台 |
+| `archive-recap-smoke` | 存档与复盘 |
 | `play-portal-smoke` | 邀请码、移动导航、广场 deep-link |
-| `play-official-example` | 官方示例卡片与 `?experience=official` |
-| `play-sync-chrome` | 广场非白屏、入房后 `role=tablist` |
+| `play-official-example` | 官方体验入口 |
+| `play-sync-chrome` | 广场非白屏、入房后 tablist；文件名保留历史，测试已跨浏览器 |
 
-辅助：`e2e/helpers/fixture.mjs` · 重置脚本 `backend/scripts/e2e-reset-fixture-room.mjs`
+## 辅助
 
----
-
-## AI 探索（非 CI 门禁）
-
-| 脚本 | 说明 |
-|------|------|
-| `e2e/ai-explore.mjs` | 启发式或 LLM 驱动玩家在 UI 中探索（需 :4173 + :4180） |
-
-```powershell
-node e2e/ai-explore.mjs --headed
-```
-
-不绑定任何具体剧情剧本；与 [WORLDS_AND_FIXTURES_ZH.md](../docs/WORLDS_AND_FIXTURES_ZH.md) 中的 CI 测试桩一致。
+- `e2e/helpers/fixture.mjs`
+- `backend/scripts/e2e-reset-fixture-room.mjs`

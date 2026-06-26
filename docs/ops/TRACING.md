@@ -1,33 +1,68 @@
-# 分布式追踪（轻量 → OpenTelemetry）
+# OpenTelemetry tracing
 
-## 当前实现（P1 轻量）
+最后更新：2026-06-26
 
-- 入站 `traceparent`（W3C）解析为 `X-Trace-Id` 响应头
-- 错误日志携带 `traceId` 字段
-- 与 `X-Request-Id` 并存：Request ID 用于单服务排障，Trace ID 用于跨服务（未来）
+## 当前状态
 
-无需安装 Agent 即可在日志平台按 `traceId` 过滤。
+后端已接入真实 OpenTelemetry Node SDK：
 
-## 升级到 OpenTelemetry（可选）
+- `@opentelemetry/sdk-node`
+- `@opentelemetry/exporter-trace-otlp-http`
+- `@opentelemetry/auto-instrumentations-node`
 
-1. 安装 SDK：
-   ```bash
-   npm install @opentelemetry/sdk-node @opentelemetry/auto-instrumentations-node
-   ```
-2. 在 `server.js` **最顶部**（其他 import 之前）加载 `instrumentation.js`：
-   ```javascript
-   import { NodeSDK } from "@opentelemetry/sdk-node";
-   import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
-   const sdk = new NodeSDK({
-     serviceName: "zhimu-backend",
-     instrumentations: [getNodeAutoInstrumentations()]
-   });
-   sdk.start();
-   ```
-3. 导出至 Jaeger / Tempo / Datadog：`OTEL_EXPORTER_OTLP_ENDPOINT`
+启动入口在 `backend/src/server.js`：
 
-Fastify 5 + `@fastify/swagger` 与 auto-instrumentation 兼容；先在 staging 验证 overhead。
+```js
+await initTelemetry();
+```
 
-## 相关
+关闭时执行：
 
-- [LOGGING.md](./LOGGING.md)
+```js
+await shutdownTelemetry();
+```
+
+## 生产配置
+
+```env
+OTEL_ENABLED=true
+OTEL_SERVICE_NAME=zhimu-api
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway.example/otlp/v1/traces
+# OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer xxx
+```
+
+`OTEL_EXPORTER_OTLP_ENDPOINT` 为空时，生产可信门槛不会通过。
+
+## OPS 状态
+
+`GET /api/ops/status` 返回：
+
+```json
+{
+  "features": {
+    "telemetry": {
+      "enabled": true,
+      "serviceName": "zhimu-api",
+      "exporter": "otlp-http",
+      "endpoint": "...",
+      "initialized": true,
+      "error": null
+    }
+  }
+}
+```
+
+`productionTrust.telemetry` 要求：
+
+- `enabled=true`
+- `initialized=true`
+- `error=null`
+
+## 验收
+
+```powershell
+$env:OPS_API_TOKEN="..."
+npm run check:production-ready
+```
+
+如果 OTLP endpoint 或 headers 错误，`productionTrust` 会失败。

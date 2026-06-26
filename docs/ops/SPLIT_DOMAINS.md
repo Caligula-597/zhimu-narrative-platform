@@ -1,74 +1,69 @@
-# 分域部署：getzhimu.com + app + host + play.getzhimu.com
+# 分域部署
 
-| 域名 | 托管 | 内容 |
-|------|------|------|
-| `getzhimu.com` | **Cloudflare Pages** | 官网 `site/`（营销 + 内测表单） |
-| `app.getzhimu.com` | **Railway** | 织幕 fullstack（创作者 + `/api`） |
-| `host.getzhimu.com` | **Cloudflare Pages** | 主持端 `host/`（监控台） |
-| `play.getzhimu.com` | **Cloudflare Pages** | 玩家端 `play/`（纯玩家视角） |
+最后更新：2026-06-26
 
-## 一键迁移（本机）
+## 当前标准
+
+| 域名 | 托管 | 目录 | 说明 |
+|---|---|---|---|
+| `app.getzhimu.com` | Railway fullstack | 根目录 + `backend/` | 主应用 + `/api` |
+| `play.getzhimu.com` | Cloudflare Pages | `play/` | 玩家端 |
+| `host.getzhimu.com` | Cloudflare Pages | `host/` | 主持端 |
+| `getzhimu.com` | Cloudflare Pages | `site/` | 官网 |
+
+不要把根域 `getzhimu.com` 指向 Railway；根域属于官网 Pages。
+
+## Railway：app + API
+
+| 项 | 值 |
+|---|---|
+| Dockerfile | `deploy/Dockerfile.fullstack` |
+| Healthcheck | `/api/health/live` |
+| 静态目录 | `/app/public/dist` |
+| 自定义域 | `app.getzhimu.com` |
+
+Railway 变量通过：
 
 ```powershell
-# .env.railway.setup 需有：
-#   RAILWAY_ACCOUNT_TOKEN 或 RAILWAY_TOKEN
-#   CLOUDFLARE_API_TOKEN（可选，有则自动改 DNS + Pages）
-npm run migrate:split-domains
+npm run railway:sync-env
+npm run railway:push-env
 ```
 
-仅同步 Cloudflare DNS（Railway 已改好时）：
+当前 `sync-env` 会强制生产门槛；缺 OTLP、alert、AV scanner 时会失败。
 
-```powershell
-node scripts/cloudflare-sync-dns.mjs
-```
-
-## Cloudflare Pages（玩家端）
+## Cloudflare Pages：play
 
 | 项 | 值 |
-|----|-----|
-| 项目名 | `zhimu-play`（建议） |
-| Root directory | **`play`** |
+|---|---|
+| Project | `zhimu-play` |
+| Root directory | `play` |
 | Build command | `npm ci && npm run build` |
-| Output directory | **`dist`** |
-| 自定义域 | `play.getzhimu.com` |
+| Output directory | `dist` |
+| Custom domain | `play.getzhimu.com` |
 
-本地开发见 [play/README.md](../../play/README.md) 与 [host/README.md](../../host/README.md)。
-
-## Cloudflare Pages（主持端）
+## Cloudflare Pages：host
 
 | 项 | 值 |
-|----|-----|
-| 项目名 | `zhimu-host`（建议） |
-| Root directory | **`host`** |
+|---|---|
+| Project | `zhimu-host` |
+| Root directory | `host` |
 | Build command | `npm ci && npm run build` |
-| Output directory | **`dist`** |
-| 自定义域 | `host.getzhimu.com` |
+| Output directory | `dist` |
+| Custom domain | `host.getzhimu.com` |
 
-## Cloudflare Pages（官网）
+## Cloudflare Pages：site
 
 | 项 | 值 |
-|----|-----|
-| 项目名 | `zhimu-site`（建议） |
-| Root directory | **`site`** |
+|---|---|
+| Project | `zhimu-site` |
+| Root directory | `site` |
 | Build command | `npm ci && npm run build` |
-| Output directory | **`dist`** |
-| Deploy command | **留空**（不要用 `npx wrangler deploy` 解析根目录 vite） |
-| 自定义域 | `getzhimu.com`、`www.getzhimu.com` |
+| Output directory | `dist` |
+| Custom domain | `getzhimu.com`, `www.getzhimu.com` |
 
-绑定自定义域后，Cloudflare 会自动把根域 CNAME 指到 `*.pages.dev`。若仍有旧 **A 记录**（如 `69.46.46.114`），请删除以免冲突。
+## 生产 env
 
-## Cloudflare DNS（应用子域）
-
-在 Railway **Networking** 复制 `app.getzhimu.com` 的 CNAME 目标（每次删加域名可能变化）。
-
-| 类型 | 名称 | 值 | 代理 |
-|------|------|-----|------|
-| CNAME | `app` | `*.up.railway.app`（Railway 面板） | Proxied 可 |
-| TXT | `_railway-verify.app` | `railway-verify=...`（Railway 面板） | **DNS only** |
-
-## Railway 环境变量
-
-```text
+```env
 APP_PUBLIC_URL=https://app.getzhimu.com
 CORS_ORIGIN=https://app.getzhimu.com
 MARKETING_SITE_ORIGIN=https://getzhimu.com,https://www.getzhimu.com
@@ -77,51 +72,36 @@ PLAY_SITE_ORIGIN=https://play.getzhimu.com
 PLAY_SITE_URL=https://play.getzhimu.com
 HOST_SITE_ORIGIN=https://host.getzhimu.com
 HOST_SITE_URL=https://host.getzhimu.com
-OFFICIAL_EXAMPLE_WORLD_ID=20725d66-35ec-4d2f-aef8-4794cef6ace1
+
+CSP_MODE=enforce
+UPLOAD_SCAN_MODE=strict
+OTEL_ENABLED=true
 ```
 
-推送：`npm run railway:push-env`（已默认 `app.getzhimu.com`）。
+## OAuth
 
-## OAuth 回调
-
-Google / GitHub 控制台登记 **应用域** 回调（非营销根域 `getzhimu.com`）：
+回调地址固定在应用域：
 
 ```text
 https://app.getzhimu.com/api/auth/oauth/google/callback
 https://app.getzhimu.com/api/auth/oauth/github/callback
 ```
 
-GitHub 还需把 **Homepage URL** 改为 `https://app.getzhimu.com`。逐步说明见 [OAUTH_SETUP.md](./OAUTH_SETUP.md) § GitHub · 本地检查 `npm run oauth:check`
-
-从 **玩家域 / 主持域** 发起 OAuth 时，Google 控制台还需登记 **Authorized JavaScript origins**：
+如果从 `play` 或 `host` 发起 OAuth，Google/GitHub 还要允许这些 origin：
 
 ```text
 https://play.getzhimu.com
 https://host.getzhimu.com
 ```
 
-回调地址仍在应用域（不变）。
-
 ## 验收
 
 ```text
-GET https://getzhimu.com/                     → 官网 HTML（非登录工作区）
-GET https://app.getzhimu.com/                 → 织幕应用（创作者）
-GET https://host.getzhimu.com/                → 主持监控台
-GET https://play.getzhimu.com/                → 玩家端
-GET https://app.getzhimu.com/api/health/ready → ready: true
-POST https://app.getzhimu.com/api/platform/beta/apply  ← 官网内测表单
+GET https://getzhimu.com/
+GET https://app.getzhimu.com/
+GET https://play.getzhimu.com/
+GET https://host.getzhimu.com/
+GET https://app.getzhimu.com/api/health/ready
 ```
 
-## Cloudflare API Token
-
-创建：https://dash.cloudflare.com/profile/api-tokens
-
-权限：**Zone → DNS Edit**、**Account → Cloudflare Pages → Edit**，资源包含 `getzhimu.com`。
-
-写入 `.env.railway.setup`：
-
-```text
-CLOUDFLARE_API_TOKEN=...
-CLOUDFLARE_ACCOUNT_ID=...   # 可选
-```
+缺口：当前 GitHub Actions 只自动部署 Railway app。`site/play/host` 的 Pages 部署与 smoke 仍需补齐。

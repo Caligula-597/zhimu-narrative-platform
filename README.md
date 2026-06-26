@@ -1,63 +1,96 @@
 # 织幕
 
-服务于线上长线剧本杀与跑团的自动化互动叙事引擎第一版。
+织幕是面向线上长线剧本杀 / 跑团的自动化叙事与运营平台。项目采用 PostgreSQL + Fastify 作为唯一后端真相源，前端分为创作者主应用、玩家端、主持端与官网，并通过同一组 `/api` 能力运行。
 
-## 当前工程状态
+## 当前生产标准
 
-- 前端：**Vite 6** 构建（`npm run dev` / `build` / `start:dist`），仍用 `window.*` 全局。
-- `backend/`：PostgreSQL 正式后端。
-- **系统设计（架构与运行闭环）**：[docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md) ← **理解产品必读**
-- **平台总览（前后端对照）**：[docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md) ← **查 API/视图**
-- **剧本/测试桩/官方示例**：[docs/WORLDS_AND_FIXTURES_ZH.md](./docs/WORLDS_AND_FIXTURES_ZH.md)
-- **前端说明**：[docs/FRONTEND_README_ZH.md](./docs/FRONTEND_README_ZH.md)
-- **产品现状（中文总览）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)
-- **休息/交接**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)
-- [RELEASE_NOTES.md](./RELEASE_NOTES.md) P0/P1/P2 发布说明
-- [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) **功能实现状态总览**
-- [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md) **后端运维路线图**（下一步）
-- [docs/OPS.md](./docs/OPS.md) 部署与故障排查
-- [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) 完整功能目录
-- [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) 安全与测试（**387** 项后端测试）
-- [FRONTEND_MODULE_PLAN.md](./FRONTEND_MODULE_PLAN.md) Vite + 模块边界
+| 类别 | 当前标准 |
+|---|---|
+| 后端 | `backend/` Fastify 5 + PostgreSQL；生产只用真实数据库，不提供 SQLite 兼容模式 |
+| 主应用 | 根目录 Vite 应用，生产由 Railway fullstack 镜像同域托管 |
+| 玩家端 | `play/` Vite 应用，本地 `5174`，生产目标 `play.getzhimu.com` |
+| 主持端 | `host/` Vite 应用，本地 `5175`，生产目标 `host.getzhimu.com` |
+| 官网 | `site/` Vite 应用，生产目标 `getzhimu.com` |
+| 生产门槛 | CSP enforce、真实 OTLP、告警 webhook、上传 AV strict + webhook/ClamAV、OPS token、metrics token |
+| 自动化 | 后端模块/schema/boot/单测；UI smoke；Playwright Chromium/Firefox/WebKit 矩阵 |
 
-## 启动
+关键文档：
 
-**开发（推荐）** — Vite HMR，`/api` 代理到后端 4180：
+- [架构总览](./ARCHITECTURE.md)
+- [架构与端口审视](./docs/ARCHITECTURE_PORT_AUDIT_ZH.md)
+- [安全与测试](./SECURITY_AND_TESTING.md)
+- [产品状态](./docs/PRODUCT_STATUS_ZH.md)
+- [分域部署](./docs/ops/SPLIT_DOMAINS.md)
+- [生产环境变量](./docs/ops/LAUNCH_ENV.md)
+- [监控告警](./docs/ops/MONITORING_SETUP.md)
+- [上传 AV strict](./docs/ops/UPLOAD_SCAN.md)
+
+## 本地启动
 
 ```powershell
-cd backend; npm run dev          # 或 node src/server.js
-cd ..; npm run dev               # http://localhost:4173
+cd backend
+npm run dev                 # API: http://localhost:4180
+
+cd ..
+npm run dev                 # 主应用: http://localhost:4173, /api 代理到 4180
+
+cd play
+npm run dev -- --port 5174 --strictPort
+
+cd ../host
+npm run dev                 # 主持端: http://localhost:5175
 ```
 
-**生产静态包**：
+注意：`node server.js --dist` 只是根目录静态 dist 托管，默认也用 `4173`，不代理 `/api`。要测完整产品流，优先使用 Vite dev 或生产 fullstack。
+
+## 生产部署
+
+当前生产拓扑是分域：
+
+| 域名 | 托管 | 内容 |
+|---|---|---|
+| `app.getzhimu.com` | Railway fullstack | 主应用 + `/api` |
+| `play.getzhimu.com` | Cloudflare Pages | 玩家端 |
+| `host.getzhimu.com` | Cloudflare Pages | 主持端 |
+| `getzhimu.com` | Cloudflare Pages | 官网 |
+
+Railway env 生成入口：
 
 ```powershell
+npm run railway:sync-env
+```
+
+现在该命令会强制检查生产门槛。缺少 `ALERT_WEBHOOK_URL`、`OTEL_EXPORTER_OTLP_ENDPOINT`、`UPLOAD_SCAN_WEBHOOK_URL` 或 `UPLOAD_SCAN_CLAMAV_HOST` 时会直接失败。
+
+## 验证
+
+常用验证：
+
+```powershell
+cd backend
+npm run check
+npm run check:schemas
+npm run check:boot
+npm test
+
+cd ..
+npm run check:modules
 npm run build
-npm run start:dist               # 托管 dist/
+npm run test:e2e
+npm run check:production-ready
+npm run monitoring:smoke -- --alerts
 ```
 
-Legacy 无构建：`node server.js`（源码直出，CI 以 Vite build 为准）。
+Playwright 默认按 `chromium,firefox,webkit` 跑。临时缩小矩阵：
 
-- 预发部署：[docs/ops/STAGING.md](./docs/ops/STAGING.md)（Docker Compose，可选）
-- 全链路验收：`npm run verify:full:fresh`（migrate + seed + 后端测试 + smoke）
+```powershell
+$env:PLAYWRIGHT_BROWSERS="chromium"
+npm run test:e2e
+```
 
-**收工前**可停掉本地 4173/4180 进程以释放端口与 DB 连接（见 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) §6）。
+## 仍需关注的架构问题
 
-## 已包含
-
-- 世界总览（仅 API 数据或空状态，无硬编码演示玩家/日志/资产）
-- 可直接处理工作的首页控制台：角色阅读状态、待办入口与能力地图
-- 剧情流程图编辑器
-- 内容资产库（仅 `cloudAssets` 真实附件列表）
-- 自动化规则管理
-- 主持监控台（运行时玩家表、待确认事件、手动干预、**主持↔玩家联动**、SSE 实时推送）
-- 玩家互动视角
-- 角色专属剧情与私密信息
-- 公共麦、角色私密麦和受邀私密语音房（LiveKit 音频 + 文字频道）
-- 五步标准创作教程与测试房间流程
-- 由玩家阅读、调查与线索解读驱动的规则推进（云端持久化）
-- 小说式角色章节、段落重点标记与角色随身笔记本
-- 随行为状态变化的玩家场景、玩家进度和运行日志
-- 存档与复盘（运行房 checkpoint 快照 + scoped restore + 房间复盘报告）
-- 物品系统（创作台定义、主持发放、玩家背包、调查门槛）
-- 世界设置、导入导出和实体卡接口入口
+1. Railway workflow 只覆盖 `app.getzhimu.com`，`site/play/host` 的 Pages 部署还没有纳入同一条 GitHub Actions 发布门禁。
+2. 本地端口较多，`4173` 最容易与 Vite dev / dist server 冲突。
+3. `play` 默认 Vite 配置没有写死 `strictPort`，CI 命令已补 `--strictPort`，本地也建议显式加。
+4. 三个前端应用共享 API，但 UI 组件与设计 token 仍有重复，后续应抽出共享包或明确复制边界。
