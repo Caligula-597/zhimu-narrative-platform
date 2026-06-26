@@ -112,11 +112,13 @@ function normalizeUser(raw) {
 }
 
 async function loadSessionUser() {
-  if (!getSessionToken()) return;
   try {
     state.user = normalizeUser(await api.me());
   } catch (error) {
-    if (error.status === 401) clearSession();
+    if (error.status === 401) {
+      clearSession();
+      state.user = null;
+    }
   }
 }
 
@@ -304,7 +306,7 @@ const roomEventCtx = {
 };
 
 const platformEventCtx = {
-  hasSession: () => Boolean(getSessionToken()),
+  hasSession: () => Boolean(getSessionToken() || state.user?.id),
   getView: () => state.view,
   getPlazaPostId: () => state.plazaPostId,
   getDmConversationId: () => state.dmConversationId,
@@ -337,7 +339,7 @@ const platformEventCtx = {
 };
 
 function syncPlatformStream() {
-  if (getSessionToken()) connectPlatformEvents(platformEventCtx);
+  if (getSessionToken() || state.user?.id) connectPlatformEvents(platformEventCtx);
   else disconnectPlatformEvents(platformEventCtx);
 }
 
@@ -676,9 +678,12 @@ async function bootstrap() {
       setToast(`欢迎，${result.user.displayName || "玩家"}`, render);
       cleanUrl();
     }
-    const shouldCreateGuestSession = state.view !== "auth" || Boolean(joinCode) || wantOfficial || Boolean(state.roomId);
-    if (shouldCreateGuestSession) await ensureSession();
     await loadSessionUser();
+    if (state.user?.id && state.view === "auth" && (state.authMode === "login" || state.authMode === "register")) {
+      state.view = state.roomId ? "game" : (state.joinPreview ? "join" : "landing");
+    }
+    const shouldCreateGuestSession = state.view !== "auth" || Boolean(joinCode) || wantOfficial || Boolean(state.roomId);
+    if (shouldCreateGuestSession && !state.user?.id) await ensureSession();
     if (state.pendingVerifyToken) {
       try {
         await handleEmailVerify(state.pendingVerifyToken);

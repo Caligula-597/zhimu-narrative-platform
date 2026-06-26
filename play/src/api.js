@@ -190,7 +190,7 @@ export const api = {
     const cursor = localStorage.getItem(sseCursorKey(roomId));
     if (cursor) headers["Last-Event-ID"] = cursor;
 
-    return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal }).then(async (res) => {
+    return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         const error = new Error(err.error || err.message || `连接实时推送失败（${res.status}）`);
@@ -238,7 +238,7 @@ export const api = {
     const cursor = localStorage.getItem(PLATFORM_SSE_CURSOR);
     if (cursor) headers["Last-Event-ID"] = cursor;
 
-    return fetch(`${API_BASE}/platform/events/stream`, { headers, signal }).then(async (res) => {
+    return fetch(`${API_BASE}/platform/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         const error = new Error(err.error || err.message || `连接平台推送失败（${res.status}）`);
