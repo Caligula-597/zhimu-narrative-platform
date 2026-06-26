@@ -31,14 +31,21 @@ try {
        name = EXCLUDED.name,
        status = EXCLUDED.status,
        summary = EXCLUDED.summary,
-       catalog_public = true,
-       catalog_review_status = 'approved'`,
+       catalog_public = false,
+       catalog_review_status = 'none'`,
     [FIXTURE.worldId, FIXTURE.hostUserId, FIXTURE.worldName]
   );
   await client.query(
     `INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, 'owner')
      ON CONFLICT (world_id, user_id) DO NOTHING`,
     [FIXTURE.worldId, FIXTURE.hostUserId]
+  );
+  await client.query(
+    `UPDATE worlds
+     SET catalog_public = false,
+         catalog_review_status = 'none'
+     WHERE id = $1`,
+    [FIXTURE.worldId]
   );
 
   const chapter = await client.query(
