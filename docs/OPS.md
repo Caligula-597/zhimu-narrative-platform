@@ -24,6 +24,8 @@
 ## 本地验证顺序
 
 ```powershell
+npm run port:doctor
+
 cd backend
 npm run check
 npm run check:schemas

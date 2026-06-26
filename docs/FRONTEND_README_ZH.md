@@ -80,3 +80,11 @@ Playwright 默认跨 Chromium/Firefox/WebKit。
 - `shared-session`
 
 详见 [架构与端口审视](./ARCHITECTURE_PORT_AUDIT_ZH.md)。
+
+## Pages 发布
+
+`site/play/host` 已接入 `.github/workflows/pages-deploy.yml`。本地 smoke：
+
+```powershell
+npm run pages:smoke
+```

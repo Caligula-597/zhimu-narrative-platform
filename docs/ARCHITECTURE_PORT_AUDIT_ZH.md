@@ -22,21 +22,20 @@
 | 域名 | 当前标准 | 仍需补齐 |
 |---|---|---|
 | `app.getzhimu.com` | Railway fullstack：主应用 + `/api` | 已有 deploy workflow，但部署后依赖真实 secrets 通过生产可信门槛 |
-| `play.getzhimu.com` | Cloudflare Pages：`play/` | 缺 GitHub Actions 统一发布/验收 |
-| `host.getzhimu.com` | Cloudflare Pages：`host/` | 缺 GitHub Actions 统一发布/验收 |
-| `getzhimu.com` | Cloudflare Pages：`site/` | 缺 GitHub Actions 统一发布/验收 |
+| `play.getzhimu.com` | Cloudflare Pages：`play/` | 已接入 Pages deploy workflow，需配置 Cloudflare secrets |
+| `host.getzhimu.com` | Cloudflare Pages：`host/` | 已接入 Pages deploy workflow，需配置 Cloudflare secrets |
+| `getzhimu.com` | Cloudflare Pages：`site/` | 已接入 Pages deploy workflow，需配置 Cloudflare secrets |
 
 ## 框架问题
 
-### P0：Pages 三站缺统一 CI/CD
+### P0：Pages 三站 CI/CD 已接入，等待 secrets 验证
 
-Railway workflow 只部署 `app.getzhimu.com`。`site/play/host` 虽有 Cloudflare 脚本和文档，但没有像 Railway 一样在 push 后自动构建、部署、验收。
+Railway workflow 只部署 `app.getzhimu.com`。现在新增 `.github/workflows/pages-deploy.yml`，负责 `site/play/host` 的构建、Cloudflare Pages deploy 和部署后 smoke。
 
-建议：
+仍需确认 GitHub Secrets：
 
-- 新增 `pages-deploy.yml`，分别构建 `site`、`play`、`host`。
-- 部署后跑三个 URL 的 smoke。
-- 把 `play`/`host` 的 API base 指向 `https://app.getzhimu.com/api`，并校验 CORS。
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
 
 ### P1：多前端共享层不足
 
@@ -55,7 +54,7 @@ Railway workflow 只部署 `app.getzhimu.com`。`site/play/host` 虽有 Cloudfla
 建议：
 
 - 文档统一写 `play` 本地命令为 `npm run dev -- --port 5174 --strictPort`。
-- 增加 `scripts/port-doctor.mjs` 检查 `4173/4180/5174/5175` 占用与服务类型。
+- 已新增 `scripts/port-doctor.mjs` 检查 `4173/4180/5174/5175` 占用与服务类型。
 - UI smoke/E2E 启动前打印实际 URL 和健康检查来源。
 
 ### P1：生产门槛已落地，但真实 secret 仍需人工配置

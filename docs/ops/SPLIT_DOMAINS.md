@@ -104,4 +104,4 @@ GET https://host.getzhimu.com/
 GET https://app.getzhimu.com/api/health/ready
 ```
 
-缺口：当前 GitHub Actions 只自动部署 Railway app。`site/play/host` 的 Pages 部署与 smoke 仍需补齐。
+当前 GitHub Actions 已新增 `pages-deploy.yml` 自动部署 `site/play/host` 并运行 `npm run pages:smoke`。首次运行前需确认 GitHub Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`。

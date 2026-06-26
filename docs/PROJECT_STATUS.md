@@ -18,7 +18,7 @@
 | 核心闭环 | 创作、开房、玩家、主持、规则、存档复盘可跑 |
 | 生产门槛 | CSP/OTEL/alert/AV strict/productionTrust 已接 |
 | 测试 | 后端检查、UI smoke、三浏览器 Playwright |
-| 部署 | Railway app 自动部署；Pages 三站统一部署待补 |
+| 部署 | Railway app 自动部署；Pages 三站 workflow 已新增，待 secrets 验证 |
 | 文档 | 入口级文档已按当前标准重写 |
 
 ## 常用命令
@@ -39,7 +39,6 @@ npm run monitoring:smoke -- --alerts
 
 ## 当前阻断/风险
 
-1. `site/play/host` 缺统一 Pages CI/CD。
+1. GitHub `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` 需要确认。
 2. 真实生产 `ALERT_WEBHOOK_URL`、`OTEL_EXPORTER_OTLP_ENDPOINT`、AV scanner secret 需要配置。
-3. 本地 `4173` 容易被 Vite/dist server 冲突占用。
-4. 多前端共享层需要抽取。
+3. 多前端共享层需要抽取。

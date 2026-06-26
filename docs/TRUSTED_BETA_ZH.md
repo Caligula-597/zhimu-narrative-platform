@@ -29,7 +29,7 @@
 | TB-3.3 | OpenTelemetry | 已完成 SDK 接线，待真实 OTLP endpoint |
 | TB-4.1 | Playwright 浏览器覆盖不足 | 已修正为 Chromium/Firefox/WebKit 矩阵 |
 | TB-4.2 | Railway 部署后健康检查 | 已完成 |
-| TB-4.3 | Pages 三站部署门禁 | 未完成，下一步 |
+| TB-4.3 | Pages 三站部署门禁 | 已新增 workflow，待 Cloudflare secrets 首次验证 |
 
 ## 当前阻断项
 
@@ -46,6 +46,5 @@ UPLOAD_SCAN_WEBHOOK_URL=
 
 ## 下一步
 
-1. `site/play/host` Cloudflare Pages 进入统一 GitHub Actions。
-2. 加 `scripts/port-doctor.mjs`。
-3. 把三端重复的 session/error/api 包装抽成共享层。
+1. 配置 Cloudflare Pages GitHub secrets 并观察首次 workflow。
+2. 把三端重复的 session/error/api 包装抽成共享层。

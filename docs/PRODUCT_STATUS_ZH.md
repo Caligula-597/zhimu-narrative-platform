@@ -48,7 +48,7 @@
 
 | 优先级 | 风险 | 处理建议 |
 |---|---|---|
-| P0 | `play/host/site` Pages 部署未进入统一 CI/CD | 新增 Pages deploy workflow，并部署后 smoke |
+| P0 | `play/host/site` Pages 部署已进入 CI/CD | 等 GitHub Cloudflare secrets 实际跑通 |
 | P1 | 多前端共享层薄 | 抽 `shared-api`、`shared-ui-tokens`，减少三端重复 |
 | P1 | 本地端口易混 | 增加 port doctor；文档统一 strictPort 命令 |
 | P1 | 真实生产 secret 未填时无法推 env | 按 LAUNCH_ENV 补 OTLP、alert、AV webhook/ClamAV |
@@ -73,7 +73,6 @@ npm run monitoring:smoke -- --alerts
 
 ## 下一步
 
-1. 建立 Cloudflare Pages 三站统一 CI/CD。
-2. 给本地开发增加端口诊断脚本。
-3. 抽取共享 API/session/error 层。
-4. 补真实生产 OTLP、alert webhook、AV scanner 配置并重新推 Railway env。
+1. 配置 GitHub `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` 并观察 Pages workflow 首次发布。
+2. 抽取共享 API/session/error 层。
+3. 补真实生产 OTLP、alert webhook、AV scanner 配置并重新推 Railway env。

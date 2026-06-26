@@ -94,3 +94,12 @@ npm run test:e2e
 2. 本地端口较多，`4173` 最容易与 Vite dev / dist server 冲突。
 3. `play` 默认 Vite 配置没有写死 `strictPort`，CI 命令已补 `--strictPort`，本地也建议显式加。
 4. 三个前端应用共享 API，但 UI 组件与设计 token 仍有重复，后续应抽出共享包或明确复制边界。
+
+## 新增发布与诊断
+
+Cloudflare Pages 三站已接入 `.github/workflows/pages-deploy.yml`。本地可先跑：
+
+```powershell
+npm run pages:smoke
+npm run port:doctor
+```

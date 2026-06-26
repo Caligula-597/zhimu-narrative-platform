@@ -25,6 +25,8 @@
     "cloudflare:sync-pages": "node scripts/cloudflare-sync-pages.mjs",
     "oauth:check": "node scripts/check-oauth-config.mjs",
     "monitoring:smoke": "node scripts/monitoring-smoke.mjs",
+    "pages:smoke": "node scripts/pages-smoke.mjs",
+    "port:doctor": "node scripts/port-doctor.mjs",
     "check:production-ready": "node scripts/check-production-ready.mjs",
     "status:generate": "node scripts/generate-project-status.mjs",
     "audit:innerhtml": "node scripts/audit-innerhtml.mjs",

@@ -21,9 +21,9 @@
 
 | 优先级 | 项 | 说明 |
 |---|---|---|
-| P0 | Pages 三站 CI/CD | `site/play/host` 自动部署和 smoke |
+| P0 | Pages 三站 CI/CD | 已新增 workflow；待 GitHub Cloudflare secrets 实际验证 |
 | P0 | 真实生产 secret | OTLP、alert、AV scanner |
-| P1 | 端口诊断脚本 | 检查 `4173/4180/5174/5175` |
+| P1 | 端口诊断脚本 | 已新增 `npm run port:doctor` |
 | P1 | 共享前端层 | API/session/error/tokens |
 | P2 | Runbook 演练 | DB/R2/OTLP/alert/AV 故障 |
 
