@@ -1,0 +1,4 @@
+Contact: mailto:support@getzhimu.com
+Preferred-Languages: zh, en
+Canonical: https://getzhimu.com/.well-known/security.txt
+Expires: 2027-06-27T00:00:00Z
