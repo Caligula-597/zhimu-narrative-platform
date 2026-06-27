@@ -19,13 +19,15 @@ test("index.html uses module entry without inline scripts", () => {
   assert.doesNotMatch(html, /<script(?![^>]*type="module")[^>]*>/);
 });
 
-test("host api uses bearer token and room-scoped host endpoints", () => {
+test("host api uses cookie credentials, bearer fallback and room-scoped host endpoints", () => {
   const apiSource = readFileSync(path.join(root, "src", "api.js"), "utf8");
   const sessionSource = readFileSync(path.join(root, "src", "session.js"), "utf8");
   assert.match(apiSource, /getHostPlayers/);
   assert.match(apiSource, /streamRoomEvents/);
   assert.match(apiSource, /getHostOrigin/);
+  assert.match(apiSource, /credentials:\s*"include"/);
   assert.match(apiSource, /authorization.*Bearer/s);
+  assert.match(apiSource, /createRoom/);
   assert.match(sessionSource, /localStorage\.setItem\(TOKEN_KEY/);
 });
 
@@ -36,9 +38,20 @@ test("main.js wires console, SSE and director actions", () => {
   assert.match(mainSource, /connectRoomEvents/);
   assert.match(mainSource, /executeHostEvent/);
   assert.match(mainSource, /renderApp/);
+  assert.match(mainSource, /api\.me\(\)/);
+  assert.doesNotMatch(mainSource, /if \(!getSessionToken\(\)\) return/);
   assert.match(consoleSource, /renderConsole/);
   assert.match(consoleSource, /host-kick-player/);
   assert.match(eventsSource, /room\.host_event_pending/);
+});
+
+test("landing view exposes room management for authenticated hosts", () => {
+  const landingSource = readFileSync(path.join(root, "src", "views", "landing.js"), "utf8");
+  const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
+  assert.match(landingSource, /data-action="create-room"/);
+  assert.match(landingSource, /data-action="refresh-rooms"/);
+  assert.match(mainSource, /case "create-room"/);
+  assert.match(mainSource, /case "refresh-rooms"/);
 });
 
 test("console render escapes user content", () => {

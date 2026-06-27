@@ -35,6 +35,7 @@ async function request(path, { method = "GET", body, idempotent = false, timeout
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
+      if (response.status === 401) setSessionToken("");
       const err = new Error(payload.error || payload.message || `请求失败 (${response.status})`);
       err.code = payload.code;
       err.status = response.status;
@@ -98,7 +99,14 @@ export const api = {
   oauthComplete: (code) => request("/auth/oauth/complete", { method: "POST", body: { code } }),
 
   getWorlds: () => request("/worlds"),
-  getWorldRooms: (worldId = getWorldId()) => request(`/worlds/${worldId}/rooms`),
+  getWorldRooms: (worldId = getWorldId()) => {
+    if (!worldId) throw Object.assign(new Error("请先选择剧本世界"), { code: "WORLD_REQUIRED" });
+    return request(`/worlds/${worldId}/rooms`);
+  },
+  createRoom: (payload, worldId = getWorldId()) => {
+    if (!worldId) throw Object.assign(new Error("请先选择剧本世界"), { code: "WORLD_REQUIRED" });
+    return request(`/worlds/${worldId}/rooms`, { method: "POST", body: payload });
+  },
   getStudio: (worldId = getWorldId()) => request(`/worlds/${worldId}/studio`),
   getRules: (worldId = getWorldId()) => request(`/worlds/${worldId}/rules`),
   createRule: (payload, worldId = getWorldId()) => request(`/worlds/${worldId}/rules`, { method: "POST", body: payload }),
@@ -151,7 +159,7 @@ export const api = {
     const headers = { ...authHeaders(), accept: "text/event-stream" };
     const cursor = localStorage.getItem(sseCursorKey(roomId));
     if (cursor) headers["last-event-id"] = cursor;
-    return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal }).then(async (res) => {
+    return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
         const err = new Error(payload.message || `SSE ${res.status}`);

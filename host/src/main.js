@@ -105,6 +105,7 @@ function syncHostUrl() {
 }
 
 function normalizeUser(raw) {
+  if (raw?.user?.id) raw = raw.user;
   if (!raw) return null;
   return {
     id: raw.id,
@@ -115,11 +116,11 @@ function normalizeUser(raw) {
 }
 
 async function loadSessionUser() {
-  if (!getSessionToken()) return;
   try {
     state.user = normalizeUser(await api.me());
   } catch (error) {
     if (error.status === 401) clearSession();
+    state.user = null;
   }
 }
 
@@ -163,6 +164,52 @@ async function selectWorld(worldId) {
     render();
   } catch (error) {
     setToast(formatApiError(error, "无法加载平行房"));
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function refreshRoomsList(withToast = false) {
+  const worldId = getWorldId();
+  if (!worldId) return setToast("请先选择剧本世界");
+  setBusy(true);
+  try {
+    state.rooms = await api.getWorldRooms(worldId);
+    state.studio = await api.getStudio(worldId).catch(() => state.studio);
+    state.landingStep = "rooms";
+    render();
+    if (withToast) setToast(`运行房已刷新：${state.rooms.length} 个`);
+  } catch (error) {
+    if (error.status === 401) state.user = null;
+    setToast(formatApiError(error, "无法加载平行房"));
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function createHostRoom() {
+  if (!state.user) {
+    state.view = "auth";
+    render();
+    return setToast("请先登录后再操作");
+  }
+  const worldId = getWorldId();
+  if (!worldId) return setToast("请先选择剧本世界");
+  const defaultName = `测试房 ${new Date().toLocaleDateString("zh-CN")}`;
+  const name = window.prompt("运行房名称", defaultName)?.trim();
+  if (!name) return;
+  setBusy(true);
+  try {
+    const inviteCode = `ROOM-${Date.now().toString(36).toUpperCase()}`;
+    const room = await api.createRoom({ name, inviteCode, publicListing: false }, worldId);
+    state.rooms = await api.getWorldRooms(worldId);
+    setRoomId(worldId, room.id);
+    state.room = state.rooms.find((item) => item.id === room.id) || room;
+    setToast(`运行房已创建：${room.invite_code || inviteCode}`);
+    await enterConsole();
+  } catch (error) {
+    if (error.status === 401) state.user = null;
+    setToast(formatApiError(error, "创建运行房失败"));
   } finally {
     setBusy(false);
   }
@@ -434,6 +481,12 @@ app.addEventListener("click", async (event) => {
       break;
     case "room-select":
       await selectRoom(button.dataset.roomId);
+      break;
+    case "refresh-rooms":
+      await refreshRoomsList(true);
+      break;
+    case "create-room":
+      await createHostRoom();
       break;
     case "landing-back-worlds":
       state.landingStep = "worlds";
