@@ -34,51 +34,70 @@
     banner.dataset.sessionMode = meta.mode;
   }
 
-  async function syncProfile() {
-    const profile = document.querySelector(".profile");
-    if (!profile) return;
-    const strong = profile.querySelector("strong");
-    const small = profile.querySelector("small");
-    const avatar = profile.querySelector(".avatar");
-    if (!strong || !small || !avatar) return;
+  function normalizeUserPayload(payload) {
+    return payload?.user?.id ? payload.user : payload;
+  }
 
-    if (!isLoggedIn()) {
-      try {
-        const me = await window.zhimuApi.me();
-        state.currentUser = me;
-        window.zhimuSessionAuth?.markAuthenticated?.();
-        const label = me.display_name || me.email || "已登录";
-        strong.textContent = label;
-        small.textContent = me.isGuest ? "游客 · 点击账号与资产" : (me.email || "已登录");
-        avatar.textContent = label.slice(0, 1);
-        syncAuthBanner();
-        return;
-      } catch {
-        state.currentUser = null;
-        window.zhimuSessionAuth?.markLoggedOut?.();
-      }
-      const fallback = S().getSessionModeMeta?.()?.profileFallback || {
-        strong: "未登录",
-        small: "点击登录或注册",
-        avatar: "?"
-      };
+  function profileNodes() {
+    const profile = document.querySelector(".profile");
+    if (!profile) return {};
+    return {
+      strong: profile.querySelector("strong"),
+      small: profile.querySelector("small"),
+      avatar: profile.querySelector(".avatar")
+    };
+  }
+
+  function profileFallback() {
+    return S().getSessionModeMeta?.()?.profileFallback || {
+      strong: "未登录",
+      small: "点击登录或注册",
+      avatar: "?"
+    };
+  }
+
+  function updateProfileText(user) {
+    const { strong, small, avatar } = profileNodes();
+    if (!strong || !small || !avatar) return;
+    if (!user?.id) {
+      const fallback = profileFallback();
       strong.textContent = fallback.strong;
       small.textContent = fallback.small;
       avatar.textContent = fallback.avatar;
       return;
     }
+    const label = user.display_name || user.email || "已登录";
+    strong.textContent = label;
+    small.textContent = user.isGuest ? "游客 · 点击账号与资产" : (user.email || "已登录");
+    avatar.textContent = label.slice(0, 1);
+  }
 
+  function applyProfileUser(payload) {
+    const user = normalizeUserPayload(payload);
+    if (!user?.id) return false;
+    state.currentUser = user;
+    window.zhimuSessionAuth?.markAuthenticated?.();
+    updateProfileText(user);
+    syncAuthBanner();
+    return true;
+  }
+
+  async function syncProfile(options = {}) {
+    const rerender = options.rerender !== false;
+    const beforeMode = S().getSessionMode?.();
+    const beforeUserId = state.currentUser?.id || "";
     try {
       const me = await window.zhimuApi.me();
-      state.currentUser = me;
-      const label = me.display_name || me.email || "已登录";
-      strong.textContent = label;
-      small.textContent = me.isGuest ? "游客 · 点击账号与资产" : (me.email || "已登录");
-      avatar.textContent = label.slice(0, 1);
-      syncAuthBanner();
+      if (!applyProfileUser(me)) throw new Error("Invalid auth profile");
+      const afterMode = S().getSessionMode?.();
+      const afterUserId = state.currentUser?.id || "";
+      if (rerender && (beforeMode !== afterMode || beforeUserId !== afterUserId)) window.zhimuRender?.();
     } catch {
       state.currentUser = null;
+      if (window.zhimuSessionAuth?.legacyToken?.()) window.zhimuSessionAuth?.markLoggedOut?.();
+      updateProfileText(null);
       syncAuthBanner();
+      if (rerender && beforeMode === "authenticated") window.zhimuRender?.();
     }
   }
 
@@ -106,6 +125,7 @@
     isDemoBrowseMode,
     syncAuthBanner,
     syncProfile,
+    applyProfileUser,
     promptAuthIfNeeded
   };
 })(window);
