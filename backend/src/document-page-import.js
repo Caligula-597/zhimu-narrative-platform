@@ -114,7 +114,7 @@ export async function importPdfPagesToRoleScript({
     if (layout === "one_section_per_page") {
       for (let index = 0; index < pageAssetIds.length; index += 1) {
         nextSequence += 1;
-        const sectionTitle = pageAssetIds.length > 1 ? `${stem} · 第 ${index + 1} 页` : stem;
+        const sectionTitle = pageAssetIds.length > 1 ? `${stem} - 第 ${index + 1} 页` : stem;
         const metadata = buildPagesSectionMetadata({
           pageAssetIds: [pageAssetIds[index]],
           sourceFilename: filename,

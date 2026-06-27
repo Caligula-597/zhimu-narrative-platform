@@ -7,7 +7,8 @@ const TYPE_LABELS = {
   clue: "线索",
   investigation_point: "调查点",
   rule: "规则",
-  item: "物品"
+  item: "物品",
+  knowledge: "知识块"
 };
 
 const VIEW_BY_TYPE = {
@@ -17,7 +18,8 @@ const VIEW_BY_TYPE = {
   clue: "clues",
   investigation_point: "studio",
   rule: "rules",
-  item: "studio"
+  item: "studio",
+  knowledge: "writer"
 };
 
 function escapeLike(raw) {
@@ -27,12 +29,13 @@ function escapeLike(raw) {
 function snippet(text, max = 120) {
   const clean = String(text || "").replace(/\s+/g, " ").trim();
   if (!clean) return "";
-  return clean.length > max ? `${clean.slice(0, max)}…` : clean;
+  return clean.length > max ? `${clean.slice(0, max)}...` : clean;
 }
 
 function mapRow(type, row) {
   return {
     type,
+    typeLabel: TYPE_LABELS[type] || type,
     id: row.id,
     title: row.title,
     snippet: snippet(row.snippet),
@@ -42,10 +45,10 @@ function mapRow(type, row) {
 }
 
 /**
- * World-scoped full-text search (PostgreSQL to_tsvector + ILIKE fallback for CJK).
- * Returns a unified result shape for the frontend global search UI.
+ * World-scoped search. Owner/editor searches all draft authoring material;
+ * host/viewer searches only non-draft content plus non-author knowledge chunks.
  */
-export async function searchWorldContent(worldId, { q, limit = 30, type = "all" } = {}) {
+export async function searchWorldContent(worldId, { q, limit = 30, type = "all", includeDraftContent = true } = {}) {
   const term = String(q || "").trim();
   if (!term) return { query: "", results: [], total: 0 };
   const capped = Math.min(Math.max(Number(limit) || 30, 1), 50);
@@ -85,8 +88,21 @@ export async function searchWorldContent(worldId, { q, limit = 30, type = "all" 
      FROM script_sections ss
      JOIN role_slots rs ON rs.id = ss.role_slot_id
      WHERE rs.world_id = $1
+       AND (${includeDraftContent ? "true" : "ss.publication_status IN ('testing', 'published')"})
        AND (ss.title ILIKE $2 ESCAPE '\\' OR ss.body ILIKE $2 ESCAPE '\\'
             ${tsParamIndex ? `OR to_tsvector('simple', coalesce(ss.title,'') || ' ' || coalesce(ss.body,'')) @@ plainto_tsquery('simple', $${tsParamIndex})` : ""})`
+  );
+
+  pushBucket(
+    "knowledge",
+    `SELECT kc.id, kc.title, left(COALESCE(kc.body, ''), 240) AS snippet,
+            jsonb_build_object('sourceType', kc.source_type, 'sourceId', kc.source_id, 'roleSlotId', kc.role_slot_id, 'chunkIndex', kc.chunk_index) AS meta,
+            CASE WHEN kc.title ILIKE $2 ESCAPE '\\' THEN 3 WHEN kc.body ILIKE $2 ESCAPE '\\' THEN 2 ELSE 0 END AS rank
+     FROM knowledge_chunks kc
+     WHERE kc.world_id = $1
+       AND (${includeDraftContent ? "true" : "kc.visibility <> 'author'"})
+       AND (kc.title ILIKE $2 ESCAPE '\\' OR kc.body ILIKE $2 ESCAPE '\\'
+            ${tsParamIndex ? `OR to_tsvector('simple', coalesce(kc.title,'') || ' ' || coalesce(kc.body,'')) @@ plainto_tsquery('simple', $${tsParamIndex})` : ""})`
   );
 
   pushBucket(

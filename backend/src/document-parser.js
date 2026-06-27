@@ -22,7 +22,7 @@ export function splitSections(text) {
   const sections = [];
   let current = { title: "导入正文", body: [] };
   for (const line of lines) {
-    const heading = line.match(/^\s*(?:#{1,6}\s+|第[一二三四五六七八九十百0-9]+[章节幕]\s*[：:]?\s*)(.+?)\s*$/);
+    const heading = line.match(/^\s*(?:#{1,6}\s+|(?:第\s*)?[一二三四五六七八九十百千万0-9]+[章节幕场]\s*[：:、.-]?\s*)(.+?)\s*$/);
     if (heading) {
       if (current.body.join("\n").trim()) sections.push({ title: current.title, body: current.body.join("\n").trim() });
       current = { title: heading[1].trim(), body: [] };
@@ -59,7 +59,7 @@ export async function parseCreatorDocument(body) {
       sectionCount: 0,
       extraction: { method: "image_file", pageCount: 1 },
       previewImageBase64: buffer.toString("base64"),
-      warnings: ["图片将按页导入为分幕，玩家在端内直接查看原图。"]
+      warnings: ["图片将按页导入为分幕，玩家端会直接查看原图。"]
     };
   }
 
@@ -84,8 +84,8 @@ export async function parseCreatorDocument(body) {
         extraction: { method: "pdf_pages", pageCount: detected.pageCount },
         previewImageBase64: previewPng.toString("base64"),
         warnings: [
-          "图片型 PDF 将按页导入为分幕图片，玩家在端内直接翻页阅读。",
-          "如需可编辑文字，可在导入时勾选「尝试 OCR 提取文字」。"
+          "图片型 PDF 将按页导入为分幕图片，玩家端会直接翻页阅读。",
+          "如需可编辑文字，可在导入时勾选“尝试 OCR 提取文字”。"
         ]
       };
     }

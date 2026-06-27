@@ -25,7 +25,7 @@ function buildSampleZip() {
     Buffer.from("docx-placeholder", "utf8")
   );
   zip.addFile(
-    "172-水上之谜 (7人开放)/公共.pdf",
+    "172-水上之谜 (7人开放)/公共信息.pdf",
     Buffer.from("%PDF public", "utf8")
   );
   return zip.toBuffer();
@@ -41,7 +41,7 @@ test("classifyBundleEntry recognizes role, clue and host files", () => {
   assert.equal(classifyBundleEntry("水上之谜/人物剧本/卞夫人.pdf").category, "role_script");
   assert.equal(classifyBundleEntry("水上之谜/调查线索/长秋宫1.jpg").category, "clue");
   assert.equal(classifyBundleEntry("水上之谜/组织者手册.docx").category, "host_manual");
-  assert.equal(classifyBundleEntry("水上之谜/公共.pdf").category, "public_script");
+  assert.equal(classifyBundleEntry("水上之谜/公共信息.pdf").category, "public_script");
 });
 
 test("matchRoleSlotByName matches fuzzy role labels", () => {
@@ -75,7 +75,7 @@ test("safeBundleEntryPath rejects traversal segments", () => {
 test("summarizeBundleInventory aggregates categories", () => {
   const items = [
     classifyBundleEntry("a/人物剧本/甲.pdf"),
-    classifyBundleEntry("a/调查线索/卡1.jpg")
+    classifyBundleEntry("a/调查线索/线索卡.jpg")
   ];
   const summary = summarizeBundleInventory(items);
   assert.equal(summary.counts.role_script, 1);

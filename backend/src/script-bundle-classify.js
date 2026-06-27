@@ -1,14 +1,14 @@
 import path from "node:path";
 
-const ROLE_FOLDER = /(?:^|\/)(?:人物剧本|玩家剧本|角色剧本|角色本|私人剧本)(?:\/|$)/i;
-const CLUE_FOLDER = /(?:^|\/)(?:调查线索|线索卡|线索|证据)(?:\/|$)/i;
-const ASSET_FOLDER = /(?:^|\/)(?:游戏及人物封面|人物行动卡|封面|素材|附件|道具)(?:\/|$)/i;
-const HOST_FOLDER = /(?:^|\/)(?:组织者|主持人|dm|复盘)(?:\/|$)/i;
+const ROLE_FOLDER = /(?:^|\/)(?:人物剧本|玩家剧本|角色剧本|角色本|私人剧本|个人剧本|私聊剧本)(?:\/|$)/i;
+const CLUE_FOLDER = /(?:^|\/)(?:调查线索|线索卡|线索|证据|证物)(?:\/|$)/i;
+const ASSET_FOLDER = /(?:^|\/)(?:游戏及人物封面|人物行动卡|封面|素材|附件|道具|图片|音频|视频)(?:\/|$)/i;
+const HOST_FOLDER = /(?:^|\/)(?:组织者|主持人|主持|dm|DM|复盘|真相|答案)(?:\/|$)/i;
 
-const HOST_FILE = /(?:组织者|主持人|手册|复盘|真相|dm|主持流程)/i;
-const PUBLIC_FILE = /(?:公共|先导|收官|序章|背景|序幕)/i;
-const PROFILE_FILE = /(?:人物简介|角色简介|简介|角色介绍)/i;
-const PLAYER_COUNT = /(\d+)\s*人/;
+const HOST_FILE = /(?:组织者|主持人|主持手册|主持流程|主持|复盘|真相|答案|dm|DM)/i;
+const PUBLIC_FILE = /(?:公共|公聊|先导|开场|收官|序章|背景|序幕|世界观|玩家须知)/i;
+const PROFILE_FILE = /(?:人物简介|角色简介|简介|角色介绍|人物介绍)/i;
+const PLAYER_COUNT = /(\d+)\s*(?:人|玩家|位)/;
 
 export function normalizeBundlePath(entryPath) {
   return String(entryPath ?? "")
@@ -32,9 +32,9 @@ export function parseBundleTitleHints(rootFolderName) {
   const playerMatch = raw.match(PLAYER_COUNT);
   const playerCount = playerMatch ? Number(playerMatch[1]) : null;
   let worldName = raw
-    .replace(/^\d+\s*[-_—]\s*/, "")
-    .replace(/\(\s*\d+\s*人[^)]*\)/gi, "")
-    .replace(/\[\s*\d+\s*人[^\]]*\]/gi, "")
+    .replace(/^\d+\s*[-_—\s]*/, "")
+    .replace(/\(\s*\d+\s*(?:人|玩家|位)[^)]*\)/gi, "")
+    .replace(/\[\s*\d+\s*(?:人|玩家|位)[^\]]*\]/gi, "")
     .trim();
   if (!worldName) worldName = raw;
   return { worldName, playerCount };
@@ -51,7 +51,7 @@ export function classifyBundleEntry(relativePath) {
   const stem = filename.replace(/\.[^.]+$/i, "");
   const ext = path.extname(filename).toLowerCase();
   const parentPath = parts.slice(0, -1).join("/");
-  const fullLower = norm.toLowerCase();
+  const fullPath = norm;
 
   const base = {
     relativePath: norm,
@@ -61,16 +61,16 @@ export function classifyBundleEntry(relativePath) {
     confidence: "high"
   };
 
-  if (ROLE_FOLDER.test(`/${parentPath}/`) || ROLE_FOLDER.test(`/${fullLower}/`)) {
-    const roleName = stem.replace(/(剧本|角色本|私人本)$/i, "").trim() || stem;
+  if (ROLE_FOLDER.test(`/${parentPath}/`) || ROLE_FOLDER.test(`/${fullPath}/`)) {
+    const roleName = stem.replace(/(?:剧本|角色本|私人本|个人本|的角色本)$/i, "").trim() || stem;
     return { ...base, category: "role_script", roleName };
   }
 
-  if (CLUE_FOLDER.test(`/${parentPath}/`) || CLUE_FOLDER.test(`/${fullLower}/`)) {
+  if (CLUE_FOLDER.test(`/${parentPath}/`) || CLUE_FOLDER.test(`/${fullPath}/`)) {
     return { ...base, category: "clue", clueName: stem };
   }
 
-  if (ASSET_FOLDER.test(`/${parentPath}/`) || ASSET_FOLDER.test(`/${fullLower}/`)) {
+  if (ASSET_FOLDER.test(`/${parentPath}/`) || ASSET_FOLDER.test(`/${fullPath}/`)) {
     return { ...base, category: "asset", assetName: stem };
   }
 
@@ -87,14 +87,14 @@ export function classifyBundleEntry(relativePath) {
   }
 
   if ([".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(ext)) {
-    if (/线索|证据|卡/.test(stem) || CLUE_FOLDER.test(`/${parentPath}/`)) {
+    if (/线索|证据|证物|卡/.test(stem) || CLUE_FOLDER.test(`/${parentPath}/`)) {
       return { ...base, category: "clue", clueName: stem, confidence: "medium" };
     }
     return { ...base, category: "asset", assetName: stem, confidence: "medium" };
   }
 
   if ([".pdf", ".docx", ".txt", ".md", ".markdown"].includes(ext)) {
-    if (parts.length <= 2 && /^[\u4e00-\u9fa5A-Za-z0-9·]{2,16}$/.test(stem)) {
+    if (parts.length <= 2 && /^[\u4e00-\u9fa5A-Za-z0-9·・._ -]{2,24}$/.test(stem)) {
       return { ...base, category: "role_script", roleName: stem, confidence: "low" };
     }
     return { ...base, category: "unknown", title: stem, confidence: "low" };
@@ -133,7 +133,7 @@ export function matchRoleSlotByName(roleSlots, roleName) {
 export function normalizeRoleLabel(value) {
   return String(value ?? "")
     .replace(/\.[^.]+$/i, "")
-    .replace(/(剧本|角色本|私人本|的角色本)$/i, "")
+    .replace(/(?:剧本|角色本|私人本|个人本|的角色本)$/i, "")
     .replace(/\s+/g, "")
     .trim()
     .toLowerCase();

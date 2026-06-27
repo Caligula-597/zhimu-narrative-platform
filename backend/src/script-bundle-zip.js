@@ -110,7 +110,7 @@ export function analyzeScriptBundleEntries(extracted) {
     warnings.push("部分文件分类置信度较低，导入前请核对预览清单。");
   }
   if (inventory.some((i) => i.category === "unknown")) {
-    warnings.push("存在未识别文件，默认跳过；可在后续版本支持手动映射。");
+    warnings.push("存在未识别文件，默认跳过；后续可支持手动映射。");
   }
 
   return {

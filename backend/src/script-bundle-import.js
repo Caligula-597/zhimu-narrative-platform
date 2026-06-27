@@ -42,7 +42,7 @@ async function nextRoleSequence(client, worldId) {
   return result.rows[0].value + 1;
 }
 
-async function ensureRoleSlot(client, worldId, roleName, { createMissingRoles, publicationStatus }) {
+async function ensureRoleSlot(client, worldId, roleName, { createMissingRoles }) {
   const roles = await listWorldRoles(client, worldId);
   const matched = matchRoleSlotByName(roles, roleName);
   if (matched) return matched;
@@ -108,8 +108,7 @@ async function importSingleBundleFile({
       if (!role) {
         role = await transaction(async (client) =>
           ensureRoleSlot(client, worldId, classification.roleName, {
-            createMissingRoles: options.createMissingRoles !== false,
-            publicationStatus
+            createMissingRoles: options.createMissingRoles !== false
           })
         );
         if (role) roleSlots.push(role);
@@ -204,7 +203,7 @@ async function importSingleBundleFile({
             assetKind: "document"
           });
           await transaction(async (client) =>
-            appendStoryManuscript(client, worldId, actorId, `（${classification.title} · 图片 PDF，已作为素材 ${pageResult.assetId} 保存）`, classification.title)
+            appendStoryManuscript(client, worldId, actorId, `（${classification.title} - 图片 PDF，已作为素材 ${pageResult.assetId} 保存）`, classification.title)
           );
           return { relativePath, status: "imported", category: classification.category, mode: "pdf_asset", ...pageResult };
         }

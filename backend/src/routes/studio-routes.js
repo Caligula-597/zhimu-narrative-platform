@@ -276,15 +276,26 @@ export async function registerStudioRoutes(app) {
          WHERE w.id = $1`,
         [worldId, actorId]
       );
+      const membershipRole = world.rows[0]?.membership_role;
+      const canReadDraftContent = ["owner", "editor"].includes(membershipRole);
       const chapters = await client.query(`SELECT id, title, summary, sequence, publication_status, unlock_rules, metadata FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]);
-      const roles = await client.query(`SELECT id, name, public_profile, private_profile, sequence FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]);
+      const roles = await client.query(
+        `SELECT id, name, public_profile,
+                CASE WHEN $2::boolean THEN private_profile ELSE '' END AS private_profile,
+                sequence
+         FROM role_slots WHERE world_id = $1 ORDER BY sequence`,
+        [worldId, canReadDraftContent]
+      );
       const sections = await client.query(
-        `SELECT ss.id, ss.role_slot_id, ss.chapter_id, ss.title, ss.body, ss.sequence, ss.publication_status, ss.updated_at
+        `SELECT ss.id, ss.role_slot_id, ss.chapter_id, ss.title,
+                CASE WHEN $2::boolean THEN ss.body ELSE '' END AS body,
+                ss.sequence, ss.publication_status, ss.updated_at
          FROM script_sections ss
          JOIN role_slots rs ON rs.id = ss.role_slot_id
          WHERE rs.world_id = $1
+           AND ($2::boolean OR ss.publication_status IN ('testing', 'published'))
          ORDER BY rs.sequence, ss.sequence`,
-        [worldId]
+        [worldId, canReadDraftContent]
       );
       const scenes = await client.query(`SELECT id, chapter_id, name, public_text, host_text, metadata FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]);
       const clues = await client.query(`SELECT id, name, public_text, host_text, visibility, metadata FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]);

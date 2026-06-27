@@ -6,6 +6,7 @@ import { detectPdfContentMode, extractTextFromPdfBuffer } from "./pdf-document.j
 import { buildPagesSectionMetadata, PAGES_BODY_PLACEHOLDER } from "./section-content.js";
 import { uploadWorldAssetFromBuffer } from "./asset-upload-helpers.js";
 import { renderPdfPageBuffers } from "./document-page-import.js";
+import { replaceKnowledgeChunks } from "./knowledge-chunks.js";
 
 function baseName(filename) {
   return String(filename ?? "导入文档").replace(/\.[^.]+$/, "") || "导入文档";
@@ -42,7 +43,7 @@ export async function appendStoryManuscript(client, worldId, actorId, text, sour
   const cleaned = cleanText(text);
   if (!cleaned) return { appended: false };
   const header = sourceLabel ? `## ${sourceLabel}\n\n` : "";
-  await client.query(
+  const result = await client.query(
     `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
      VALUES ($1, $2, 'manual', $3)
      ON CONFLICT (world_id) DO UPDATE
@@ -52,9 +53,18 @@ export async function appendStoryManuscript(client, worldId, actorId, text, sour
          END,
          last_sync_direction = 'manual',
          updated_by_user_id = EXCLUDED.updated_by_user_id,
-         updated_at = now()`,
+         updated_at = now()
+     RETURNING body`,
     [worldId, `${header}${cleaned}`, actorId]
   );
+  await replaceKnowledgeChunks(client, {
+    worldId,
+    sourceType: "story_manuscript",
+    visibility: "author",
+    title: "剧情母稿",
+    text: result.rows[0]?.body ?? `${header}${cleaned}`,
+    metadata: { source: "story_manuscript" }
+  });
   return { appended: true, characters: cleaned.length };
 }
 
@@ -89,6 +99,7 @@ export async function importTextSectionsToRole({
     const created = [];
     for (const [index, section] of sections.entries()) {
       sequence += 1;
+      const sectionTitle = section.title || title || baseName(filename);
       const inserted = await client.query(
         `INSERT INTO script_sections
           (character_script_id, role_slot_id, title, body, sequence, publication_status, metadata)
@@ -97,13 +108,23 @@ export async function importTextSectionsToRole({
         [
           scriptId,
           roleSlotId,
-          section.title || title || baseName(filename),
+          sectionTitle,
           section.body,
           sequence,
           publicationStatus,
           JSON.stringify({ source: "script_bundle", filename, importKey: `${importKey}:section:${index + 1}` })
         ]
       );
+      await replaceKnowledgeChunks(client, {
+        worldId,
+        sourceType: "script_section",
+        sourceId: inserted.rows[0].id,
+        roleSlotId,
+        visibility: "role",
+        title: sectionTitle,
+        text: section.body,
+        metadata: { source: "script_bundle", filename, importKey: `${importKey}:section:${index + 1}` }
+      });
       created.push(inserted.rows[0]);
     }
     return { skipped: false, mode: "text", sections: created, sectionCount: created.length };
@@ -156,7 +177,7 @@ export async function importPdfPagesToRoleWithKey({
     if (layout === "one_section_per_page") {
       for (let index = 0; index < pageAssetIds.length; index += 1) {
         nextSequence += 1;
-        const sectionTitle = pageAssetIds.length > 1 ? `${stem} · 第 ${index + 1} 页` : stem;
+        const sectionTitle = pageAssetIds.length > 1 ? `${stem} - 第 ${index + 1} 页` : stem;
         const metadata = buildPagesSectionMetadata({
           pageAssetIds: [pageAssetIds[index]],
           sourceFilename: filename,
@@ -227,7 +248,7 @@ export async function importClueImageFile({
       [
         worldId,
         clueName || baseName(filename),
-        `（图片线索 · ${filename}）`,
+        `（图片线索 - ${filename}）`,
         JSON.stringify({
           clueType: "image",
           assetId: uploaded.assetId,

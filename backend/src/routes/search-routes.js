@@ -8,7 +8,7 @@ export async function registerSearchRoutes(app) {
   app.get("/api/worlds/:worldId/search", { schema: worldSearchQuerySchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    const membership = await requireWorldReader(actorId, worldId);
 
     const q = String(request.query?.q ?? "").trim();
     if (!q) return sendErr(reply, "BAD_REQUEST");
@@ -16,6 +16,11 @@ export async function registerSearchRoutes(app) {
     const limit = request.query?.limit;
     const type = request.query?.type ?? "all";
 
-    return searchWorldContent(worldId, { q, limit, type });
+    return searchWorldContent(worldId, {
+      q,
+      limit,
+      type,
+      includeDraftContent: ["owner", "editor"].includes(membership.role)
+    });
   });
 }

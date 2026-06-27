@@ -50,7 +50,7 @@ test("POST script-bundle analyze returns inventory", async (context) => {
   assert.ok(body.summary.clue >= 1);
 });
 
-test("POST script-bundle import creates roles clues and manuscript", async (context) => {
+test("POST script-bundle import creates roles clues manuscript and knowledge chunks", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   const worldId = await createIsolatedWorld("import");
   context.after(async () => {
@@ -79,6 +79,13 @@ test("POST script-bundle import creates roles clues and manuscript", async (cont
   assert.ok(role.rowCount, "role 卞夫人 should be created");
   const sections = await query(`SELECT id FROM script_sections WHERE role_slot_id = $1`, [role.rows[0].id]);
   assert.ok(sections.rowCount >= 1);
+
+  const chunks = await query(
+    `SELECT source_type, role_slot_id, body FROM knowledge_chunks WHERE world_id = $1 ORDER BY source_type, chunk_index`,
+    [worldId]
+  );
+  assert.ok(chunks.rows.some((row) => row.source_type === "script_section" && row.role_slot_id === role.rows[0].id && row.body.includes("角色正文")));
+  assert.ok(chunks.rows.some((row) => row.source_type === "story_manuscript" && row.body.includes("主持流程")));
 
   const clues = await query(
     `SELECT id FROM clues WHERE world_id = $1 AND metadata->>'importKey' LIKE 'script-bundle:%长秋宫1.jpg%'`,
