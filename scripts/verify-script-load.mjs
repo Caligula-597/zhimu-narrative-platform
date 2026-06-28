@@ -1,16 +1,20 @@
 /**
  * Verify all frontend scripts load in index.html order without SyntaxError.
- * Catches duplicate const/function declarations that ui-smoke.js misses.
+ *
+ * Migrated from vm.runInNewContext to native dynamic import() so real ES
+ * module files (with `import` / `export function`) are parsed by Node's ESM
+ * loader.  Browser globals are shimmed on globalThis so module-load-time
+ * references to window/document/localStorage don't throw.
  *
  * Usage: node scripts/verify-script-load.mjs
  */
-import fs from "node:fs";
 import path from "node:path";
-import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+// Load order mirrors frontend/main.js.  src/api/index.js transitively imports
+// client.js + all domain modules, so it replaces the old client.js entry.
 const files = [
   "config.js",
   "src/dom.js",
@@ -18,7 +22,7 @@ const files = [
   "src/utils/user-messages.js",
   "src/utils/wizard-automation-templates.js",
   "src/runtime/session-auth.js",
-  "src/api/client.js",
+  "src/api/index.js",
   "src/runtime/ai-draft-store.js",
   "src/utils/format.js",
   "src/runtime/session-mode.js",
@@ -26,6 +30,7 @@ const files = [
   "src/components/first-run-chooser.js",
   "src/runtime/nav-shell.js",
   "src/components/status-ui.js",
+  "src/components/ui-semantics.js",
   "src/runtime/dependency-guard.js",
   "src/components/service-outage.js",
   "src/components/emptyState.js",
@@ -81,8 +86,33 @@ const files = [
   "src/runtime/world-revision.js"
 ];
 
-const sandbox = {
-  window: {
+/* ── Browser global shims ── */
+function setupGlobalShims() {
+  const noop = () => {};
+  const storage = {
+    getItem: () => null,
+    setItem: noop,
+    removeItem: noop,
+    clear: noop
+  };
+
+  const fakeElement = {
+    textContent: "",
+    innerHTML: "",
+    className: "",
+    classList: { add: noop, remove: noop, toggle: noop, contains: () => false },
+    onclick: null,
+    dataset: {},
+    addEventListener: noop,
+    removeEventListener: noop,
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    appendChild: noop,
+    setAttribute: noop,
+    style: {}
+  };
+
+  globalThis.window = {
     zhimuConfig: {
       apiBase: "http://localhost:4180/api",
       demoMode: true,
@@ -92,17 +122,12 @@ const sandbox = {
     zhimuState: null,
     zhimuApi: null,
     zhimuDom: {
-      content: { innerHTML: "", addEventListener() {}, removeEventListener() {} },
-      toast: { textContent: "", classList: { add() {}, remove() {} } },
-      modal: {
-        className: "",
-        innerHTML: "",
-        querySelector: () => ({ onclick: null }),
-        querySelectorAll: () => []
-      },
-      modalBackdrop: { classList: { add() {}, remove() {} }, onclick: null }
+      content: fakeElement,
+      toast: fakeElement,
+      modal: fakeElement,
+      modalBackdrop: fakeElement
     },
-    location: { pathname: "/", search: "", hash: "" },
+    location: { pathname: "/", search: "", hash: "", hostname: "localhost", port: "4173" },
     zhimuFormat: {},
     zhimuUi: {},
     zhimuToast: {},
@@ -111,117 +136,77 @@ const sandbox = {
     zhimuRuntime: {},
     zhimuRuleVisual: {},
     zhimuUserMessages: {
-      friendlyApiError: (p, fb) => p.error || fb,
+      friendlyApiError: (p, fb) => p?.error || fb,
       RESTORE_SCOPE_OPTIONS: [],
       ASSET_KIND_TABS: [],
       assetKindLabel: (k) => k,
       rulePreviewStatusLabel: (s) => s
     },
-    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
-    sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
-    addEventListener() {},
-    removeEventListener() {},
-    crypto: { randomUUID: () => "test-uuid" },
-    fetch: async () => ({ ok: true, json: async () => ({}) })
-  },
-  document: {
+    zhimuSessionAuth: {},
+    zhimuWorldRevision: {},
+    localStorage: storage,
+    sessionStorage: storage,
+    addEventListener: noop,
+    removeEventListener: noop,
+    crypto: { randomUUID: () => "test-uuid" }
+  };
+
+  globalThis.document = {
     getElementById: () => null,
-    querySelector: () => ({
-      textContent: "",
-      innerHTML: "",
-      classList: { toggle() {}, add() {}, remove() {} },
-      onclick: null,
-      addEventListener() {},
-      removeEventListener() {},
-      dataset: {},
-      querySelector: () => null,
-      querySelectorAll: () => [],
-      appendChild: () => {},
-      setAttribute: () => {}
-    }),
-    querySelectorAll: () => []
-  },
-  localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
-  sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
-  fetch: async () => ({
+    querySelector: () => fakeElement,
+    querySelectorAll: () => [],
+    addEventListener: noop,
+    removeEventListener: noop,
+    createElement: () => fakeElement,
+    body: fakeElement,
+    head: fakeElement
+  };
+
+  globalThis.localStorage = storage;
+  globalThis.sessionStorage = storage;
+  globalThis.location = globalThis.window.location;
+  // Node 24 exposes `navigator` as a read-only global; override via defineProperty.
+  const navShim = { userAgent: "node-test", clipboard: { writeText: async () => {} } };
+  try {
+    globalThis.navigator = navShim;
+  } catch {
+    Object.defineProperty(globalThis, "navigator", { value: navShim, writable: true, configurable: true });
+  }
+  globalThis.fetch = async () => ({
     ok: false,
+    status: 599,
     json: async () => ({}),
     body: { getReader: () => ({ read: async () => ({ done: true, value: undefined }) }) }
-  }),
-  setTimeout: () => {},
-  clearTimeout: () => {},
-  clearInterval: () => {},
-  setInterval: () => {},
-  URL: { createObjectURL: () => "", revokeObjectURL: () => {} },
-  URLSearchParams,
-  Blob: function Blob() {},
-  AbortController: class AbortController {
+  });
+  globalThis.URL = URL;
+  globalThis.URLSearchParams = URLSearchParams;
+  globalThis.Blob = class Blob {};
+  globalThis.AbortController = class AbortController {
     constructor() {
       this.signal = {};
     }
     abort() {}
-  },
-  MutationObserver: class MutationObserver {
+  };
+  globalThis.MutationObserver = class MutationObserver {
     observe() {}
     disconnect() {}
     takeRecords() {
       return [];
     }
-  },
-  navigator: { clipboard: { writeText: async () => {} } },
-  location: { hostname: "localhost" },
-  import: { meta: { env: { VITE_API_BASE: "/api" } } },
-  console
-};
-
-const context = {
-  ...sandbox,
-  window: sandbox.window,
-  document: sandbox.document,
-  localStorage: sandbox.localStorage,
-  sessionStorage: sandbox.sessionStorage,
-  fetch: sandbox.fetch,
-  setTimeout: sandbox.setTimeout,
-  clearTimeout: sandbox.clearTimeout,
-  clearInterval: sandbox.clearInterval,
-  setInterval: sandbox.setInterval,
-  URL: sandbox.URL,
-  URLSearchParams: sandbox.URLSearchParams,
-  Blob: sandbox.Blob,
-  AbortController: sandbox.AbortController,
-  MutationObserver: sandbox.MutationObserver,
-  navigator: sandbox.navigator,
-  location: sandbox.location,
-  import: sandbox.import,
-  console
-};
-
-function stripEsmExport(source) {
-  return source.replace(/\nexport\s*\{\s*\}\s*;?\s*$/, "");
+  };
+  globalThis.TextDecoder = TextDecoder;
+  globalThis.TextEncoder = TextEncoder;
 }
 
-function prepareSource(rel, source) {
-  let s = stripEsmExport(source);
-  if (rel === "config.js") {
-    s = s.replace(
-      /const viteEnv = typeof import\.meta[\s\S]*?;\s*\n/,
-      "const viteEnv = { DEV: true, VITE_API_BASE: \"/api\" };\n"
-    );
-  }
-  return s;
-}
+setupGlobalShims();
+
+const fileUrl = (rel) => `file://${path.resolve(root, rel).replace(/\\/g, "/")}`;
 
 let failed = false;
 for (const rel of files) {
-  const filePath = path.join(root, rel);
-  if (!fs.existsSync(filePath)) {
-    console.error(`FAIL  missing  ${rel}`);
-    failed = true;
-    continue;
-  }
   try {
-    const source = prepareSource(rel, fs.readFileSync(filePath, "utf8"));
-    vm.runInNewContext(source, context);
+    // Cache-bust query so re-runs after edits always re-parse.
+    await import(fileUrl(rel) + `?t=${Date.now()}-${rel}`);
     console.log(`OK    ${rel}`);
   } catch (err) {
     console.error(`FAIL  ${rel}  ${err.message}`);
@@ -230,25 +215,36 @@ for (const rel of files) {
   }
 }
 
-if (failed) {
-  process.exit(1);
-}
+if (failed) process.exit(1);
 
-const { zhimuViews, zhimuRuntime } = sandbox.window;
+// Verify critical exports landed on window.* bridges.
+const { zhimuViews, zhimuRuntime, zhimuApi } = globalThis.window;
 const checks = [
-  ["zhimuViews.overview.overview", typeof zhimuViews.overview?.overview],
-  ["zhimuRuntime.render", typeof zhimuRuntime.render],
-  ["zhimuRuntime.go", typeof zhimuRuntime.go],
-  ["zhimuRuntime.handle", typeof zhimuRuntime.handle]
+  ["zhimuViews.overview.overview", typeof zhimuViews?.overview?.overview],
+  ["zhimuRuntime.render", typeof zhimuRuntime?.render],
+  ["zhimuRuntime.go", typeof zhimuRuntime?.go],
+  ["zhimuRuntime.handle", typeof zhimuRuntime?.handle],
+  // Bridge: window.zhimuApi must retain every original method name.
+  ["zhimuApi.getWorld", typeof zhimuApi?.getWorld],
+  ["zhimuApi.createRoom", typeof zhimuApi?.createRoom],
+  ["zhimuApi.getHostProgress", typeof zhimuApi?.getHostProgress],
+  ["zhimuApi.getPlayerHome", typeof zhimuApi?.getPlayerHome],
+  ["zhimuApi.streamRoomEvents", typeof zhimuApi?.streamRoomEvents],
+  ["zhimuApi.uploadAsset", typeof zhimuApi?.uploadAsset],
+  ["zhimuApi.getOpsStatus", typeof zhimuApi?.getOpsStatus],
+  ["zhimuApi.context", typeof zhimuApi?.context],
+  ["zhimuApi.selectWorld", typeof zhimuApi?.selectWorld]
 ];
+
 for (const [name, type] of checks) {
-  if (type !== "function") {
-    console.error(`FAIL  export  ${name} expected function, got ${type}`);
+  if (type !== "function" && type !== "object") {
+    console.error(`FAIL  export  ${name} expected function/object, got ${type}`);
     failed = true;
   }
 }
 
 if (failed) {
+  console.error("\nScript load verify: FAILED");
   process.exit(1);
 }
 

@@ -9,6 +9,7 @@
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
+  const S = window.zhimuUiSemantics || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -32,7 +33,7 @@
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
   const showToast = T.showToast || (() => {});
-  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+  const showError = S.showError || ((error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -63,12 +64,58 @@ function recapEntryBanner(){
  return `<section class="demo-strip recap-entry-strip"><div><span class="cloud-pill">复盘就绪</span><strong>${escapeHtml(latest.label)}</strong><p>主持人已生成局后复盘 · ${latest.summary?.joinedPlayers??0} 人 · ${latest.summary?.cluesDiscovered??0} 条线索流转</p></div><button class="secondary-btn" data-action="player-view-recap">查看局后复盘</button></section>`;
 }
 
+function playerActionAttrs(action){
+ const entries=Object.entries(action.data||{});
+ return [`data-action="${escapeHtml(action.action)}"`,...entries.map(([key,value])=>`data-${escapeHtml(key)}="${escapeHtml(value)}"`)].join(" ");
+}
+
+function playerNextStep(){
+ const home=state.cloudPlayer||{};
+ const sections=home.sections||[];
+ const currentSection=sections.find(section=>!section.completed)||sections[sections.length-1];
+ const scenes=state.cloudExploration?.scenes||[];
+ const points=scenes.flatMap(scene=>(scene.investigation_points||[]).map(point=>({...point,sceneName:scene.name})));
+ const availablePoint=points.find(point=>!point.investigated&&!(point.requiredItemId&&!point.hasRequiredItem));
+ const unreadClue=(home.clues||[]).find(clue=>!clue.read_at);
+ const pending=home.hostConfirm;
+ let action;
+ if(pending?.waitingForYou){
+  action={kicker:"等待主持",title:"剧情推进正在等待主持确认",detail:"你已经触发关键节点。确认后新内容会自动刷新，可以先整理线索或和队友讨论。",action:"voice-room",button:"进入讨论"};
+ }else if(currentSection&&!currentSection.completed){
+  action={kicker:"继续阅读",title:currentSection.title||"阅读当前分幕",detail:"读完后保存进度，可能触发新线索、场景或主持确认。",action:"read-cloud-next",button:"我已读完",data:{section:currentSection.id}};
+ }else if(availablePoint){
+  action={kicker:"去调查",title:`调查：${availablePoint.name}`,detail:`地点：${availablePoint.sceneName||"当前场景"}。调查后可能获得新线索或推进规则。`,action:"investigate-cloud",button:"开始调查",data:{point:availablePoint.id}};
+ }else if(unreadClue){
+  action={kicker:"读线索",title:`阅读线索：${unreadClue.name}`,detail:"标记已读后可以补充自己的解读，或公开/私享给其他玩家。",action:"read-cloud-clue",button:"标记已读",data:{clue:unreadClue.id}};
+ }else if(state.cloudRecapLatest){
+  action={kicker:"查看复盘",title:state.cloudRecapLatest.label||"局后复盘已生成",detail:"回看线索流转、玩家状态和关键节点。",action:"player-view-recap",button:"查看复盘"};
+ }else{
+  action={kicker:"自由行动",title:"整理线索或进入语音讨论",detail:"当前没有必须完成的动作，可以查看背包、线索，或和其他玩家沟通。",action:"voice-room",button:"讨论"};
+ }
+ const progressTotal=sections.length||1;
+ const progressDone=sections.filter(section=>section.completed).length;
+ const clueCount=(home.clues||[]).length;
+ const inventoryCount=(home.inventory||[]).length;
+ return `<section class="player-next-step">
+  <article class="player-next-main">
+   <div><p class="section-kicker">NEXT ACTION</p><h3>${escapeHtml(action.title)}</h3><p>${escapeHtml(action.detail)}</p></div>
+   <button class="primary-btn" ${playerActionAttrs(action)}>${escapeHtml(action.button)} →</button>
+  </article>
+  <div class="player-next-metrics">
+   <span><b>${progressDone}/${progressTotal}</b><small>分幕进度</small></span>
+   <span><b>${clueCount}</b><small>我的线索</small></span>
+   <span><b>${inventoryCount}</b><small>背包物品</small></span>
+   <span><b>${escapeHtml(action.kicker)}</b><small>当前状态</small></span>
+  </div>
+ </section>`;
+}
+
 function player(){
  const room=activeRuntimeRoom(),home=state.cloudPlayer,role=home?.role;
  if(!room)return runtimeEmpty("玩家视角","玩家视角必须来自当前世界中的具体运行房。请先建立平行房，并让玩家通过邀请码选择角色。");
  if(!role)return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">PLAYER ROLE REQUIRED</p><h2>${escapeHtml(room.name)} 尚无可预览角色</h2><p>当前预览账号尚未加入这个运行房，或尚未选择角色席位。玩家加入后，这里才会读取该角色的私人章节、线索和语音空间。</p><button class="primary-btn" data-action="world-rooms">切换平行房</button></article>`;
  const scene=currentCloudScene(),parts=roleParts(role.name);
- return `<section class="player-view">${cloudStatus()}${hostConfirmBanner()}${recapEntryBanner()}${voiceHub()}<article class="player-hero live-flash"><div class="player-hero-copy"><p class="eyebrow">${escapeHtml(parts.name)} · 当前开放场景</p><h2>${escapeHtml(scene.title)}</h2><p>${escapeHtml(scene.text)}</p></div><div class="scene-art">${escapeHtml(scene.art)}</div></article>
+ return `<section class="player-view ${escapeHtml(S.surface?.("player")?.className || "")}">${cloudStatus()}${hostConfirmBanner()}${recapEntryBanner()}${voiceHub()}${playerNextStep()}<article class="player-hero live-flash"><div class="player-hero-copy"><p class="eyebrow">${escapeHtml(parts.name)} · 当前开放场景</p><h2>${escapeHtml(scene.title)}</h2><p>${escapeHtml(scene.text)}</p></div><div class="scene-art">${escapeHtml(scene.art)}</div></article>
  ${reader()}
  <section class="player-layout"><div><article class="card"><div class="section-head"><div><h3>探索当前场景</h3><p>阅读完成后，可以选择地点继续调查</p></div></div>
  ${explorationRows()}
@@ -206,7 +253,7 @@ function cloudClueRows(){
  return clues.map(item=>{
   const roleShareCount=(item.shared_with_roles||[]).length;
   const sharedRoles=roleShareCount>0;
-  return `<div class="clue-row ${item.shared_with_room?"clue-row-public":sharedRoles?"clue-row-private":""}"><div class="clue-row-head"><strong>${escapeHtml(item.name)}</strong>${item.shared_with_room?`<span class="status-chip published">已公开</span>`:""}${sharedRoles?`<span class="status-chip testing">已私享 ${roleShareCount} 人</span>`:""}${item.read_at?`<span class="status-chip testing">已读</span>`:`<span class="status-chip draft">未读</span>`}</div><p>${escapeHtml(item.public_text)}</p>${item.player_note?`<div class="clue-note-box"><b>我的解读</b><p>${escapeHtml(item.player_note)}</p></div>`:""}<div class="row clue-row-actions"><button class="text-btn" data-action="read-cloud-clue" data-clue="${item.id}" ${item.read_at?"disabled":""}>${item.read_at?"已阅读":"标记已读"}</button><button class="text-btn" data-action="edit-clue-note" data-clue="${item.id}">${item.player_note?"修改解读":"添加解读"}</button><button class="text-btn" data-action="share-cloud-clue" data-clue="${item.id}">${item.shared_with_room?"取消公开":"公开到全房间"}</button><button class="text-btn" data-action="share-clue-roles" data-clue="${item.id}">${sharedRoles?"调整私享":"私享给指定玩家"}</button></div></div>`;
+  return `<div class="clue-row ${item.shared_with_room?"clue-row-public":sharedRoles?"clue-row-private":""}"><div class="clue-row-head"><strong>${escapeHtml(item.name)}</strong>${item.shared_with_room?(S.chip?.("clue","public")||`<span class="status-chip published">公开</span>`):""}${sharedRoles?(S.chip?.("clue","shared",{label:`已私享 ${roleShareCount} 人`,tone:"testing"})||`<span class="status-chip testing">已私享 ${roleShareCount} 人</span>`):""}${item.read_at?(S.chip?.("clue","read")||`<span class="status-chip testing">已读</span>`):(S.chip?.("clue","unread")||`<span class="status-chip draft">未读</span>`)}</div><p>${escapeHtml(item.public_text)}</p>${item.player_note?`<div class="clue-note-box"><b>我的解读</b><p>${escapeHtml(item.player_note)}</p></div>`:""}<div class="row clue-row-actions"><button class="text-btn" data-action="read-cloud-clue" data-clue="${item.id}" ${item.read_at?"disabled":""}>${item.read_at?"已阅读":"标记已读"}</button><button class="text-btn" data-action="edit-clue-note" data-clue="${item.id}">${item.player_note?"修改解读":"添加解读"}</button><button class="text-btn" data-action="share-cloud-clue" data-clue="${item.id}">${item.shared_with_room?"取消公开":"公开到全房间"}</button><button class="text-btn" data-action="share-clue-roles" data-clue="${item.id}">${sharedRoles?"调整私享":"私享给指定玩家"}</button></div></div>`;
  }).join("");
 }
 

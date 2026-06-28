@@ -7,6 +7,7 @@
   const U = window.zhimuUi || {};
   const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
+  const S = window.zhimuUiSemantics || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const catalogExperienceBanner = U.catalogExperienceBanner || (() => "");
   const studioField = M.studioField || (() => "");
@@ -14,7 +15,7 @@
   const studioValues = M.studioValues || (() => ({}));
   const studioModal = M.studioModal || (() => {});
   const showToast = T.showToast || (() => {});
-  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+  const showError = S.showError || ((error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback));
   const closeModal = M.closeModal || (() => {});
   const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
@@ -493,7 +494,7 @@
     const tab = state.clueDetailTab === "triggers" ? "triggers" : "detail";
     const detailBody = `<p class="section-kicker">${escapeHtml(meta.type)} · ${escapeHtml(meta.importance)}</p>
         <h3>${escapeHtml(clue.name)}</h3>
-        <div class="clue-detail-tags"><span class="status-chip ${clue.visibility === "public" ? "published" : "draft"}">${VISIBILITY_LABELS[clue.visibility] || clue.visibility || "私密"}</span><span class="cloud-pill">${points.length || 0} 个调查点</span></div>
+        <div class="clue-detail-tags">${clueVisibilityChip(clue)}<span class="cloud-pill">${points.length || 0} 个调查点</span></div>
         <div class="clue-preview-card">
           <div class="clue-preview-image ${asset ? "has-asset" : ""}"><span>${asset ? "关联附件" : "线索预览"}</span></div>
           <strong>线索描述</strong>
@@ -547,13 +548,46 @@
     const withText = list.filter((clue) => String(clue.public_text || "").trim()).length;
     const withRules = list.filter((clue) => (data.edges || []).some((edge) => (edge.from_type === "clue" && edge.from_id === clue.id) || (edge.to_type === "clue" && edge.to_id === clue.id))).length;
     const keyed = list.filter((clue) => clue?.metadata?.importance === "key").length;
+    const total = list.length || 0;
+    const missingText = list.filter((clue) => !String(clue.public_text || "").trim());
+    const unlinked = list.filter((clue) => !linkedPoints(clue.id, data).length);
+    const noRuleLinks = list.filter((clue) => !(data.edges || []).some((edge) => (edge.from_type === "clue" && edge.from_id === clue.id) || (edge.to_type === "clue" && edge.to_id === clue.id)));
+    const nameCounts = list.reduce((acc, clue) => {
+      const key = String(clue.name || "").trim();
+      if (key) acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+    const duplicated = Object.entries(nameCounts).filter(([, count]) => count > 1).map(([name]) => name);
+    const score = total ? Math.round(((withText + linked + withRules) / (total * 3)) * 100) : 0;
     const cards = [
-      { icon: "文", label: "内容审核", value: `${withText}/${list.length || 0}` },
-      { icon: "线", label: "线索平衡", value: `${linked}/${list.length || 0}` },
-      { icon: "规", label: "规则校验", value: `${withRules}/${list.length || 0}` },
-      { icon: "测", label: "体验测试", value: `${keyed}/${Math.max(keyed, 1)}` }
+      { icon: "文", label: "内容审核", value: `${withText}/${total}`, ok: !missingText.length },
+      { icon: "线", label: "调查关联", value: `${linked}/${total}`, ok: !unlinked.length },
+      { icon: "规", label: "触发关联", value: `${withRules}/${total}`, ok: !noRuleLinks.length },
+      { icon: "测", label: "关键线索", value: `${keyed}/${Math.max(keyed, 1)}`, ok: keyed > 0 }
     ];
-    return `<section class="clue-audit-grid">${cards.map((card) => `<article><span>${card.icon}</span><div><strong>${escapeHtml(card.label)}</strong><p>${escapeHtml(card.value)}</p></div><i>✓</i></article>`).join("")}</section>`;
+    const issues = [
+      missingText.length ? { title: "缺少玩家可见正文", detail: missingText.slice(0, 4).map((clue) => clue.name).join("、"), tone: "warn" } : null,
+      unlinked.length ? { title: "未关联调查点", detail: unlinked.slice(0, 4).map((clue) => clue.name).join("、"), tone: "warn" } : null,
+      noRuleLinks.length ? { title: "未接入触发条件或前置线索", detail: noRuleLinks.slice(0, 4).map((clue) => clue.name).join("、"), tone: "warn" } : null,
+      duplicated.length ? { title: "线索名称重复", detail: duplicated.slice(0, 4).join("、"), tone: "danger" } : null,
+      !keyed && total ? { title: "没有标记关键线索", detail: "建议至少标记 1 条用于真相节点或章节推进。", tone: "warn" } : null
+    ].filter(Boolean);
+    const issueRows = issues.length
+      ? issues.map((issue) => `<div class="clue-audit-issue ${issue.tone}"><b>${escapeHtml(issue.title)}</b><p>${escapeHtml(issue.detail)}</p></div>`).join("")
+      : `<div class="clue-audit-issue ok"><b>当前列表无明显审稿问题</b><p>可以进入编排图谱检查章节节奏和真实依赖关系。</p></div>`;
+    return `<section class="clue-audit-report">
+      <div class="section-head"><div><p class="section-kicker">CLUE AUDIT</p><h3>线索审稿报告</h3><p>线索管理负责正文、调查关联、触发条件和证据链检查；完整流程编排仍交给剧情编排图谱。</p></div><div class="clue-audit-score"><strong>${score}%</strong><span>审稿完整度</span></div></div>
+      <div class="clue-audit-grid">${cards.map((card) => `<article class="${card.ok ? "ok" : "warn"}"><span>${card.icon}</span><div><strong>${escapeHtml(card.label)}</strong><p>${escapeHtml(card.value)}</p></div><i>${card.ok ? "✓" : "!"}</i></article>`).join("")}</div>
+      <div class="clue-audit-issues">${issueRows}</div>
+    </section>`;
+  }
+
+  function clueVisibilityChip(clue) {
+    const key = clue.visibility === "public" ? "public" : "private";
+    return S.chip?.("clue", key, {
+      label: VISIBILITY_LABELS[clue.visibility] || clue.visibility || "私密",
+      tone: clue.visibility === "public" ? "published" : "draft"
+    }) || `<span class="status-chip ${clue.visibility === "public" ? "published" : "draft"}">${VISIBILITY_LABELS[clue.visibility] || clue.visibility || "私密"}</span>`;
   }
 
   function clues() {
@@ -595,7 +629,7 @@
     const bulkToolbar = list.length
       ? `<div class="row clues-bulk-toolbar"><label class="check-label"><input type="checkbox" data-action="clues-select-all" ${allVisibleSelected ? "checked" : ""}><span>全选当前列表 (${list.length})</span></label><button class="danger-btn" data-action="clues-batch-delete" ${bulkSelected.size ? "" : "disabled"}>删除所选 (${bulkSelected.size || 0})</button></div>`
       : "";
-    return `${catalogExperienceBanner(data.world)}<section class="clues-page"><div class="section-head"><div><p class="section-kicker">CLUE LIBRARY</p><h2>线索管理</h2><p>共 ${data.clues.length} 条线索 · 勾选后可批量删除测试线索</p></div><div class="row"><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="primary-btn" data-action="clues-add">＋ 新建线索</button></div></div>
+    return `${catalogExperienceBanner(data.world)}<section class="clues-page ${escapeHtml(S.surface?.("creator")?.className || "")}"><div class="section-head"><div><p class="section-kicker">CLUE LIBRARY</p><h2>线索管理</h2><p>共 ${data.clues.length} 条线索 · 勾选后可批量删除测试线索</p></div><div class="row"><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="primary-btn" data-action="clues-add">＋ 新建线索</button></div></div>
     <div class="clues-command-row">
       <div class="search-box clues-search"><span>⌕</span><input id="clues-search-input" class="field" placeholder="搜索线索名称或正文…" value="${escapeHtml(q)}"></div>
       ${bulkToolbar}
@@ -612,7 +646,7 @@
         const points = cluePointCount(clue.id, data);
         const selected = selectedId === clue.id ? " clues-row-selected search-highlight" : "";
         const checked = bulkSelected.has(clue.id) ? " checked" : "";
-        return `<article class="clues-row${selected}" data-clue-row="${clue.id}"><label class="clues-row-select check-label"><input type="checkbox" data-action="clues-toggle-select" data-clue="${clue.id}"${checked}></label><div class="clues-row-main"><div class="clues-row-head"><strong>${highlightQuery(clue.name, q)}</strong><span class="status-chip ${clue.visibility === "public" ? "published" : "draft"}">${VISIBILITY_LABELS[clue.visibility] || clue.visibility || "私密"}</span>${points ? `<span class="cloud-pill">${points} 个调查点</span>` : ""}</div><p>${highlightQuery((clue.public_text || "").slice(0, 160), q)}${(clue.public_text || "").length > 160 ? "…" : ""}</p></div><div class="row clues-row-actions"><button class="text-btn" data-action="clues-edit" data-clue="${clue.id}">编辑</button><button class="text-btn" data-action="clues-open-studio" data-clue="${clue.id}">在图谱中定位</button><button class="text-btn danger-text" data-action="clues-delete" data-clue="${clue.id}">删除</button></div></article>`;
+        return `<article class="clues-row${selected}" data-clue-row="${clue.id}"><label class="clues-row-select check-label"><input type="checkbox" data-action="clues-toggle-select" data-clue="${clue.id}"${checked}></label><div class="clues-row-main"><div class="clues-row-head"><strong>${highlightQuery(clue.name, q)}</strong>${clueVisibilityChip(clue)}${points ? `<span class="cloud-pill">${points} 个调查点</span>` : ""}</div><p>${highlightQuery((clue.public_text || "").slice(0, 160), q)}${(clue.public_text || "").length > 160 ? "…" : ""}</p></div><div class="row clues-row-actions"><button class="text-btn" data-action="clues-edit" data-clue="${clue.id}">编辑</button><button class="text-btn" data-action="clues-open-studio" data-clue="${clue.id}">在图谱中定位</button><button class="text-btn danger-text" data-action="clues-delete" data-clue="${clue.id}">删除</button></div></article>`;
       })
       .join("")}</div></details>
       </main>

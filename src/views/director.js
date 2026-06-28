@@ -9,6 +9,7 @@
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
+  const S = window.zhimuUiSemantics || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -34,7 +35,7 @@
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
   const showToast = T.showToast || (() => {});
-  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+  const showError = S.showError || ((error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -54,6 +55,14 @@
   const collapsibleCard = window.zhimuCollapsePanel?.collapsibleCard || ((opts) => `<article class="card">${opts.body || ""}</article>`);
   window.zhimuViews = window.zhimuViews || {};
   const viewExports = window.zhimuViews.director = window.zhimuViews.director || {};
+function directorConsoleCard(card){
+ return `<div class="director-console-card ${card.hot ? "is-hot" : ""}"><span>${escapeHtml(card.kicker)}</span><strong>${escapeHtml(card.value)}</strong><p>${escapeHtml(card.label)}</p></div>`;
+}
+
+function directorPriorityAction(action){
+ return `<div class="director-priority-action"><span>${escapeHtml(action.index)}</span><div><b>${escapeHtml(action.title)}</b><p>${escapeHtml(action.detail)}</p></div><button type="button" data-action="${escapeHtml(action.action)}"${action.extra || ""}>${escapeHtml(action.button)}</button></div>`;
+}
+
 function director(){
  const room=activeRuntimeRoom(),world=state.cloudStudio?.world;
  if(!room)return runtimeEmpty("主持监控台","请先在总览中选择或创建一个平行运行房。");
@@ -64,7 +73,34 @@ function director(){
  const hostPlayersErrorBanner=hostPlayersError?`<section class="demo-strip" style="margin-bottom:14px;border-color:rgba(167,120,61,0.45);background:var(--brass-soft)"><div><span class="cloud-pill">玩家进度</span><strong style="margin-top:7px">未能加载玩家运行状态</strong><p>${escapeHtml(hostPlayersError)}</p></div><button class="secondary-btn" type="button" data-action="refresh-host-players">重试</button></section>`:"";
  const inviteCode=room.invite_code||"";
  const noPlayerProgressHint=players.length&&!joinedCount?`<section class="demo-strip" style="margin-bottom:14px"><div><span class="cloud-pill">等待玩家入房</span><strong style="margin-top:7px">尚无阅读进度</strong><p>${inviteCode?`邀请码 <code class="invite-code-inline">${escapeHtml(inviteCode)}</code> · 复制后发给玩家，或让他们打开 play.getzhimu.com 输入码。`:"分享运行房邀请码"}读完一幕后本页玩家表会自动更新。</p>${inviteCode?`<div class="row" style="margin-top:8px"><button class="secondary-btn" data-action="copy-invite-code" data-invite-code="${escapeHtml(inviteCode)}">复制邀请码</button><button class="secondary-btn" data-action="copy-play-link" data-invite-code="${escapeHtml(inviteCode)}">复制玩家链接</button><button class="secondary-btn" data-action="room-invite-current">邀请详情</button></div>`:""}</div><button class="secondary-btn" data-action="onboarding-go-player">进入玩家视角</button></section>`:"";
+ const completedSections=players.reduce((sum,player)=>sum+(player.completed_sections||0),0);
+ const totalSections=players.reduce((sum,player)=>sum+(player.total_sections||0),0);
+ const progressPct=totalSections?Math.round(completedSections/totalSections*100):0;
+ const consoleCards=[
+  {kicker:"ROOM",value:S.status?.("room", state.roomEventsConnected?"connected":"polling")?.label || (state.roomEventsConnected?"实时连接":"轮询中"),label:state.roomEventsConnected?"待确认事件与玩家进度会自动推送":"页面会定时刷新房间状态",hot:state.roomEventsConnected},
+  {kicker:"PLAYERS",value:`${joinedCount}/${players.length}`,label:"已加入玩家 / 总席位",hot:joinedCount>0},
+  {kicker:"PROGRESS",value:`${progressPct}%`,label:totalSections?`${completedSections}/${totalSections} 段私人剧情完成`:"暂无可统计分幕",hot:progressPct>=60},
+  {kicker:"PENDING",value:String(pendingEvents.length),label:pendingEvents.length?"需要主持人判断":"暂无人工待办",hot:pendingEvents.length>0}
+ ];
+ const priorityActions=[
+  pendingEvents.length?{title:"先处理待确认事件",detail:`${pendingEvents.length} 条规则或调查触发正在等待确认。`,action:"refresh-host-events",button:"查看待办"}:null,
+  stuckCount?{title:"查看疑似卡关玩家",detail:`${stuckCount} 个席位长时间没有推进，建议查看详情或手动发线索。`,action:"host-nudge-waiting",button:"提醒玩家"}:null,
+  inviteCode&&!joinedCount?{title:"邀请玩家入房",detail:`邀请码 ${inviteCode}，复制后发给玩家开始阅读。`,action:"room-invite-current",button:"邀请详情"}:null,
+  {title:"创建现场存档点",detail:"关键推进后保存房间状态，方便复盘和回滚分析。",action:"create-checkpoint",button:"创建存档"},
+  {title:"记录主持日志",detail:"把线下判断、玩家口述和临时裁定写入运行记录。",action:"host-manual-log",button:"写日志"},
+  {title:"启动数字锁测试",detail:"使用创作者端小游戏模板，给当前房间发一个可验证机关。",action:"host-mini-game",button:"启动机关"}
+ ].filter(Boolean).slice(0,5).map((item,index)=>({...item,index:String(index+1).padStart(2,"0")}));
  return `${cloudStatus()}<div class="director-head"><div><span class="live-label">● LIVE</span><strong>　${escapeHtml(world?.name||"当前世界")} · ${escapeHtml(room.name)}</strong>${inviteCode?`<small class="director-invite-hint">邀请码 ${escapeHtml(inviteCode)}</small>`:""}<small class="director-poll-hint">${state.roomEventsConnected?"实时推送已连接 · 待确认事件与玩家进度会自动更新":"打开本页时每 15 秒自动刷新待确认事件与玩家进度"}</small></div><div class="row director-refresh-row">${inviteCode?`<button class="secondary-btn" data-action="room-invite-current">邀请玩家</button>`:""}<button class="secondary-btn" data-action="refresh-host-room">刷新房间状态</button><button class="secondary-btn" data-action="refresh-host-events">刷新待确认事件</button><button class="secondary-btn" data-action="refresh-host-players">刷新玩家进度</button><button class="secondary-btn" data-action="create-recap">生成复盘</button><button class="secondary-btn" data-action="host-manual-log">＋ 主持日志</button><button class="primary-btn" data-action="create-checkpoint">＋ 创建存档点</button></div></div>
+ <section class="director-console ${escapeHtml(S.surface?.("host")?.className || "")}">
+  <article class="director-console-main">
+   <div class="section-head"><div><p class="section-kicker">RUN CONTROL</p><h3>运行控制台</h3><p>先看房间状态、玩家推进和人工待办，再处理下方细表。</p></div><button class="secondary-btn" data-action="refresh-host-room">刷新现场</button></div>
+   <div class="director-console-grid">${consoleCards.map(directorConsoleCard).join("")}</div>
+  </article>
+  <article class="director-console-main director-priority-panel">
+   <div class="section-head"><div><p class="section-kicker">HOST PRIORITY</p><h3>主持优先动作</h3><p>按当前房间状态给出可直接执行的主持操作。</p></div></div>
+   <div class="director-priority-list">${priorityActions.map(directorPriorityAction).join("")}</div>
+  </article>
+ </section>
  <section class="stats-grid">${stat("♙",String(joinedCount),"已加入玩家",players.length+" 个角色席位")}${stat("⚑",String(stuckCount),"疑似卡关",stuckCount?"超过阈值未推进":"当前无卡关预警")}${stat("◷",String(pendingEvents.length),"待确认事件",pendingEvents.length?"需要主持人判断":events.length?"均已延迟":"当前无需人工介入")}${stat("⌘",String(rules.length),"运行中规则","仅统计当前房和世界模板")}</section>
  ${noPlayerProgressHint}
  ${hostPlayersErrorBanner}
@@ -80,7 +116,7 @@ function director(){
 function hostPlayerTableRows(players){
  if(!players.length)return `<tr><td colspan="7"><div class="empty-state enriched-empty"><p><strong>当前运行房尚无角色席位</strong></p><p>请先在「剧本杀创作」或创建向导中配置角色，再建立平行房。</p><div class="row"><button class="text-btn" data-go="writer">前往剧本创作</button><button class="text-btn" data-action="world-rooms">管理平行房</button></div></div></td></tr>`;
  const waitingIds=pendingEventRoleIds();
- return players.map((player,index)=>{const waiting=waitingIds.has(String(player.role_slot_id));return `<tr class="${player.maybe_stuck?"host-row-warn":""}${waiting?" host-row-waiting":""}"><td><div class="host-player-cell"><div class="avatar small" style="background:${hostPlayerColor(index)}">${(player.player_display_name||player.role_name||"?")[0]}</div><div><strong>${escapeHtml(player.player_display_name||"席位空置")}</strong><p>${escapeHtml(player.role_name)}${waiting?` · <span class="host-wait-tag">待你确认</span>`:""}</p></div></div></td><td>${player.joined?`<span class="status-chip published">已加入</span><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"刚刚"}</small>`:`<span class="status-chip draft">未加入</span>`}</td><td><strong>${player.completed_sections}/${player.total_sections}</strong><small>${escapeHtml(player.last_completed_section_title||"尚无完成分幕")}</small></td><td><strong>${player.clue_count}</strong><small>已读 ${player.read_clue_count}</small></td><td><strong>${escapeHtml(hostOperationLabel(player.last_operation_type,player.last_operation_message))}</strong><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"—"}</small></td><td><span class="status-chip ${player.maybe_stuck?"testing":"published"}">${escapeHtml(player.stuck_label)}</span></td><td><button class="text-btn" data-action="host-player-detail" data-role="${player.role_slot_id}">详情</button>${player.joined?` <button class="text-btn host-kick-btn" data-action="host-kick-player" data-role="${player.role_slot_id}" title="内测：移出房间；同账号重进可继承进度">踢出</button>`:""}</td></tr>`}).join("");
+ return players.map((player,index)=>{const waiting=waitingIds.has(String(player.role_slot_id));const joinChip=player.joined?(S.chip?.("player","joined")||`<span class="status-chip published">已加入</span>`):(S.chip?.("player","offline")||`<span class="status-chip draft">未加入</span>`);const stateChip=player.maybe_stuck?(S.chip?.("player","stuck")||`<span class="status-chip testing">疑似卡关</span>`):(S.chip?.("player","complete",{label:player.stuck_label,tone:"published"})||`<span class="status-chip published">${escapeHtml(player.stuck_label)}</span>`);return `<tr class="${player.maybe_stuck?"host-row-warn":""}${waiting?" host-row-waiting":""}"><td><div class="host-player-cell"><div class="avatar small" style="background:${hostPlayerColor(index)}">${(player.player_display_name||player.role_name||"?")[0]}</div><div><strong>${escapeHtml(player.player_display_name||"席位空置")}</strong><p>${escapeHtml(player.role_name)}${waiting?` · <span class="host-wait-tag">待你确认</span>`:""}</p></div></div></td><td>${joinChip}<small>${player.joined?(player.last_activity_at?formatRelativeTime(player.last_activity_at):"刚刚"):""}</small></td><td><strong>${player.completed_sections}/${player.total_sections}</strong><small>${escapeHtml(player.last_completed_section_title||"尚无完成分幕")}</small></td><td><strong>${player.clue_count}</strong><small>已读 ${player.read_clue_count}</small></td><td><strong>${escapeHtml(hostOperationLabel(player.last_operation_type,player.last_operation_message))}</strong><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"—"}</small></td><td>${stateChip}</td><td><button class="text-btn" data-action="host-player-detail" data-role="${player.role_slot_id}">详情</button>${player.joined?` <button class="text-btn host-kick-btn" data-action="host-kick-player" data-role="${player.role_slot_id}" title="内测：移出房间；同账号重进可继承进度">踢出</button>`:""}</td></tr>`}).join("");
 }
 
 function directorPlayers(){return (state.cloudHostPlayers||[]).map((item,index)=>{const parts=roleParts(item.role_name||item.name||""),pct=item.total_sections?Math.round(item.completed_sections/item.total_sections*100):0;return {...parts,progress:pct,caption:`云端阅读 ${item.completed_sections} / ${item.total_sections}`,scene:item.current_scene_id?"已记录当前场景":"尚未记录当前位置",color:hostPlayerColor(index)}})}

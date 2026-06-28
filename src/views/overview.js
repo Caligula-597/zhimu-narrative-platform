@@ -9,6 +9,7 @@
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
+  const S = window.zhimuUiSemantics || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -32,6 +33,7 @@
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
   const showToast = T.showToast || (() => {});
+  const showError = S.showError || ((error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -56,6 +58,35 @@ function overviewRuntimeProgress() {
   }, { completed: 0, total: 0 });
   const percent = totals.total ? Math.round((totals.completed / totals.total) * 100) : 0;
   return { percent, label: totals.total ? `${totals.completed} / ${totals.total} 段私人剧情已完成` : "暂无玩家进度" };
+}
+
+function overviewProductionItem(item) {
+  const actionAttr = item.action ? ` data-action="${escapeHtml(item.action)}"` : ` data-go="${escapeHtml(item.view || "overview")}"`;
+  return `<div class="production-item ${item.done ? "is-done" : "is-waiting"}">
+    <span class="production-dot">${item.done ? "✓" : "!"}</span>
+    <div>
+      <b>${escapeHtml(item.label)}</b>
+      <strong>${escapeHtml(item.value)}</strong>
+      <p>${escapeHtml(item.detail)}</p>
+    </div>
+    <button type="button"${actionAttr}>${escapeHtml(item.button || "处理")} →</button>
+  </div>`;
+}
+
+function overviewNextAction(item) {
+  const actionAttr = item.action ? ` data-action="${escapeHtml(item.action)}"` : ` data-go="${escapeHtml(item.view || "overview")}"`;
+  return `<div class="next-action-row">
+    <span>${escapeHtml(item.index)}</span>
+    <div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.detail)}</p></div>
+    <button type="button"${actionAttr}>${escapeHtml(item.button || "打开")}</button>
+  </div>`;
+}
+
+function overviewBackendCapability(item) {
+  return `<div class="backend-capability ${item.ready ? "is-ready" : "is-waiting"}">
+    <span>${item.ready ? "✓" : "!"}</span>
+    <div><b>${escapeHtml(item.label)}</b><p>${escapeHtml(item.detail)}</p></div>
+  </div>`;
 }
 
 function overview() {
@@ -106,7 +137,7 @@ function overview() {
   }).join("") || `<div class="empty-state">${hasActiveRoom ? "暂无玩家进度" : "尚未创建角色席位。"}</div>`;
   const statusHead = hasActiveRoom ? "● 运行中" : hasRooms ? "○ 运行房已建立" : "○ 尚未开始运行";
   const statusTitle = hasActiveRoom ? escapeHtml(room.name) : hasRooms ? "请选择一个运行房" : "尚未创建测试房";
-  const statusKicker = hasActiveRoom ? "RUNTIME ACTIVE" : hasRooms ? "ROOMS READY" : "CREATOR MODE";
+  const statusKicker = hasActiveRoom ? S.status?.("room", "active")?.label || "RUNTIME ACTIVE" : hasRooms ? S.status?.("room", "ready")?.label || "ROOMS READY" : S.status?.("room", "empty")?.label || "CREATOR MODE";
   const playJoinUrl = hasActiveRoom && room?.invite_code
     ? (window.zhimuInviteLinks?.playerJoinUrl?.(room.invite_code) || `https://play.getzhimu.com/?join=${encodeURIComponent(room.invite_code)}`)
     : "";
@@ -130,6 +161,35 @@ function overview() {
     { k: "玩家进度", v: `${runtimeProgress.percent}%`, t: runtimeProgress.label },
     { k: "待确认", v: String(pendingEvents), t: pendingEvents ? "需要主持端处理" : "暂无主持待办" },
     { k: "复盘", v: String(state.cloudRecaps?.length || 0), t: "checkpoint 与 recap 归档" }
+  ];
+  const miniGameTemplates = Array.isArray(world?.settings?.miniGameTemplates) ? world.settings.miniGameTemplates.length : 0;
+  const productionItems = [
+    { label: "基础内容", value: `${roleCount} 角色 / ${sectionCount} 分幕`, detail: roleCount && sectionCount ? "角色与私人分幕已经可进入玩家端预览。" : "先补齐角色席位和私人分幕。", done: roleCount > 0 && sectionCount > 0, view: "writer", button: "创作" },
+    { label: "剧情结构", value: `${chapterCount} 章 / ${sceneCount} 场景`, detail: chapterCount && sceneCount ? "公共章节和场景结构已成型。" : "需要补章节、场景和主线推进关系。", done: chapterCount > 0 && sceneCount > 0, view: "studio", button: "编排" },
+    { label: "调查内容", value: `${clueCount} 线索 / ${pointCount} 调查点`, detail: clueCount && pointCount ? "线索和调查点可以支撑玩家行动。" : "线索管理只做审稿与证据链，不再承担完整编排台。", done: clueCount > 0 && pointCount > 0, view: "clues", button: "检查" },
+    { label: "自动化规则", value: `${enabledRules} 条启用`, detail: enabledRules ? "规则可在运行房触发，后续补 debug trace。" : "建议至少配置发线索、开放场景或主持确认规则。", done: enabledRules > 0, view: "rules", button: "配置" },
+    { label: "运行房", value: hasRooms ? `${rooms.length} 个` : "未建立", detail: hasRooms ? "可以进入主持端跑房和测试。" : "建立运行房后才能验证主持端、玩家端和规则触发。", done: hasRooms, action: "world-rooms", button: hasRooms ? "管理" : "建立" },
+    { label: "小游戏测试", value: `${miniGameTemplates} 模板`, detail: miniGameTemplates ? "创作者已保存数字锁模板，可在当前房间测试启动。" : "测试功能：先沉淀数字锁模板，再扩更多玩法。", done: miniGameTemplates > 0, view: "miniGames", button: "设计" }
+  ];
+  const doneProduction = productionItems.filter(item => item.done).length;
+  const productionPercent = Math.round((doneProduction / productionItems.length) * 100);
+  const nextActions = [
+    !roleCount || !sectionCount ? { title: "补齐角色与私人分幕", detail: "玩家端体验从角色席位和私人正文开始。", view: "writer", button: "打开创作台" } : null,
+    !chapterCount || !sceneCount ? { title: "整理章节和场景结构", detail: "让主持端和玩家端知道剧情推进到哪里。", view: "studio", button: "打开编排" } : null,
+    !clueCount || !pointCount ? { title: "补线索和调查点", detail: "线索管理负责审稿、关联、触发条件和证据链检查。", view: "clues", button: "打开线索" } : null,
+    !enabledRules ? { title: "配置至少一条自动化规则", detail: "用已有后端把发线索、开场景、主持确认跑起来。", view: "rules", button: "打开规则" } : null,
+    !miniGameTemplates ? { title: "创建小游戏测试模板", detail: "先做数字锁模板，标注测试功能，给主持端启动。", view: "miniGames", button: "打开小游戏" } : null,
+    !hasRooms ? { title: "建立运行房做端到端测试", detail: "运行房会串起主持端、玩家端、日志、复盘和规则触发。", action: "world-rooms", button: "管理房间" } : null,
+    pendingEvents ? { title: "处理主持待确认事件", detail: `${pendingEvents} 条事件正在等待主持端确认。`, action: "open-host-console", button: "打开主持端" } : null,
+    hasRooms && !pendingEvents ? { title: "进入运行控制台检查现场", detail: "确认玩家状态、房间状态和事件日志是否正常。", action: "open-host-console", button: "打开主持端" } : null
+  ].filter(Boolean).slice(0, 5).map((item, index) => ({ ...item, index: String(index + 1).padStart(2, "0") }));
+  const backendCapabilities = [
+    { label: "云端世界与创作数据", ready: Boolean(studio?.world || listedWorld), detail: "世界、角色、章节、场景、线索和调查点已经从后端读取。" },
+    { label: "运行房与邀请码", ready: hasRooms, detail: hasRooms ? "运行实例和玩家邀请链路可用。" : "创建运行房后启用邀请码和玩家进度。" },
+    { label: "主持事件与玩家进度", ready: hasActiveRoom, detail: hasActiveRoom ? "当前房间可读取待确认事件与角色进度。" : "选中运行房后展示实时运行信号。" },
+    { label: "自动化规则", ready: enabledRules > 0, detail: enabledRules ? "规则引擎已有可启用规则。" : "规则页已有配置入口，缺少当前世界启用项。" },
+    { label: "附件资产", ready: uploadCount > 0, detail: uploadCount ? "云端附件已接入，可服务线索和角色材料。" : "账号资产页可上传后绑定内容。" },
+    { label: "存档与复盘", ready: Boolean(state.cloudRecaps?.length), detail: state.cloudRecaps?.length ? "已有复盘记录可回看。" : "运行房产生 checkpoint/recap 后进入复盘。" }
   ];
   const inviteStrip = hasActiveRoom && room?.invite_code ? `
         <div class="invite-strip">
@@ -168,6 +228,28 @@ function overview() {
         <div class="pulse-line"><i></i><span>${hasActiveRoom ? "运行实例已连接" : hasRooms ? "选择一个运行房以读取运行状态" : "完成检查后可建立测试房"}</span></div>
         ${inviteStrip}
       </article>
+    </section>
+    <section class="production-console ${escapeHtml(S.surface?.("creator")?.className || "")}">
+      <article class="production-panel production-main">
+        <div class="section-head">
+          <div><p class="section-kicker">CREATOR CONTROL</p><h3>制作总控台</h3><p>把已有后端能力翻译成创作者能直接处理的制作状态：内容、规则、运行房、小游戏和复盘都在这里汇总。</p></div>
+          <div class="production-score"><strong>${productionPercent}%</strong><span>${doneProduction}/${productionItems.length} 已完成</span></div>
+        </div>
+        <div class="production-progress"><i style="width:${productionPercent}%"></i></div>
+        <div class="production-grid">${productionItems.map(overviewProductionItem).join("")}</div>
+      </article>
+      <article class="production-panel next-actions-panel">
+        <div class="section-head">
+          <div><p class="section-kicker">NEXT ACTIONS</p><h3>下一步</h3><p>按当前数据自动排序，优先做能推动三端联调的事。</p></div>
+        </div>
+        <div class="next-action-list">${nextActions.length ? nextActions.map(overviewNextAction).join("") : `<div class="empty-state">制作状态已经完整。建议进入运行房做主持端和玩家端联调。</div>`}</div>
+      </article>
+    </section>
+    <section class="backend-console">
+      <div class="section-head">
+        <div><p class="section-kicker">BACKEND PRODUCTIZED</p><h3>后端能力状态</h3><p>只展示创作者现在用得上的能力，后续聚合接口会继续把这些卡片变成真实 summary。</p></div>
+      </div>
+      <div class="backend-capability-list">${backendCapabilities.map(overviewBackendCapability).join("")}</div>
     </section>
     <section class="vision-dashboard">
       <article class="vision-panel vision-map">

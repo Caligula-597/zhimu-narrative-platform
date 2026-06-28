@@ -1,0 +1,197 @@
+/**
+ * World domain — worlds CRUD, catalog, members, invites, logs, templates,
+ * physical tokens, search, chapters/roles/sections, content versions.
+ */
+import { request, worldWrite, demoContext } from "./client.js";
+
+/* ── Worlds ── */
+
+export function getWorlds(includeArchived = false) {
+  return request(`/worlds${includeArchived ? "?includeArchived=true" : ""}`, { userId: demoContext.hostUserId });
+}
+
+export function getWorldCatalog() {
+  return request("/worlds/catalog", { userId: demoContext.hostUserId });
+}
+
+export function patchWorldCatalog(catalogPublic, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/catalog`, { userId: demoContext.hostUserId, method: "PATCH", body: { catalogPublic } });
+}
+
+export function requestCatalogReview(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/catalog/request`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function joinWorldCatalog(worldId) {
+  return request(`/worlds/${worldId}/catalog/join`, { userId: demoContext.hostUserId, method: "POST", body: {} });
+}
+
+export function getWorld(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}`, { userId: demoContext.hostUserId });
+}
+
+export function patchWorld(payload, worldId = demoContext.worldId, { revision } = {}) {
+  return worldWrite(`/worlds/${worldId}`, { worldId, method: "PATCH", body: payload, revision });
+}
+
+export function deleteWorld(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}`, { userId: demoContext.hostUserId, method: "DELETE" });
+}
+
+export function getWorldRooms(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/rooms`, { userId: demoContext.hostUserId });
+}
+
+export function createWorld(payload) {
+  return request("/worlds", { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function bootstrapWorldFromWizard(payload) {
+  return request("/worlds/wizard/bootstrap", { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function getWorldTemplates() {
+  return request("/platform/world-templates", { userId: demoContext.hostUserId });
+}
+
+export function createWorldFromTemplate(templateId, payload = {}) {
+  return request(`/worlds/from-template/${encodeURIComponent(templateId)}`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: payload
+  });
+}
+
+/* ── Members / invites ── */
+
+export async function getWorldMembers() {
+  const payload = await request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId });
+  return Array.isArray(payload) ? payload : payload.members ?? [];
+}
+
+export async function getWorldMemberInvites() {
+  const payload = await request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId });
+  return Array.isArray(payload) ? [] : payload.pendingInvites ?? [];
+}
+
+export function addWorldMember(payload) {
+  return request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function acceptWorldInvite(token) {
+  return request("/worlds/invites/accept", { method: "POST", body: { token } });
+}
+
+export function resendWorldInvite(inviteId) {
+  return request(`/worlds/${demoContext.worldId}/invites/${inviteId}/resend`, { userId: demoContext.hostUserId, method: "POST" });
+}
+
+export function revokeWorldInvite(inviteId) {
+  return request(`/worlds/${demoContext.worldId}/invites/${inviteId}`, { userId: demoContext.hostUserId, method: "DELETE" });
+}
+
+export function updateWorldMember(userId, role) {
+  return request(`/worlds/${demoContext.worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "PUT", body: { role } });
+}
+
+export function deleteWorldMember(userId) {
+  return request(`/worlds/${demoContext.worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "DELETE" });
+}
+
+/* ── Logs / checks ── */
+
+export function getWorldLogs(params = {}) {
+  return request(`/worlds/${demoContext.worldId}/logs?${new URLSearchParams(params)}`, { userId: demoContext.hostUserId });
+}
+
+export function getWorldHostAuditLog(limit = 50) {
+  return request(`/worlds/${demoContext.worldId}/host-audit-log?limit=${limit}`, { userId: demoContext.hostUserId });
+}
+
+export function getCreatorChecks() {
+  return request(`/worlds/${demoContext.worldId}/creator-checks`, { userId: demoContext.hostUserId });
+}
+
+/* ── Physical tokens ── */
+
+export function listPhysicalTokens(worldId, query = "") {
+  return request(`/worlds/${worldId || demoContext.worldId}/physical-tokens${query ? `?${query}` : ""}`, { userId: demoContext.hostUserId });
+}
+
+export function createPhysicalTokens(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/physical-tokens`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function revokePhysicalToken(tokenId, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/physical-tokens/${tokenId}/revoke`, { userId: demoContext.hostUserId, method: "POST" });
+}
+
+export function previewPhysicalToken(tokenCode) {
+  return request(`/physical-tokens/${encodeURIComponent(tokenCode)}/preview`);
+}
+
+export function activatePhysicalToken(roomId, payload) {
+  return request(`/rooms/${roomId || demoContext.roomId}/physical-tokens/activate`, {
+    userId: demoContext.playerUserId,
+    method: "POST",
+    body: payload,
+    idempotent: true
+  });
+}
+
+/* ── Search ── */
+
+export function searchWorld(q, { limit, type } = {}) {
+  const query = new URLSearchParams({ q: String(q).trim() });
+  if (limit) query.set("limit", String(limit));
+  if (type && type !== "all") query.set("type", type);
+  return request(`/worlds/${demoContext.worldId}/search?${query}`, { userId: demoContext.hostUserId });
+}
+
+/* ── Chapters / roles / sections ── */
+
+export function createChapter(worldId, payload) {
+  return worldWrite(`/worlds/${worldId}/chapters`, { worldId, method: "POST", body: payload });
+}
+
+export function createRole(worldId, payload) {
+  return worldWrite(`/worlds/${worldId}/roles`, { worldId, method: "POST", body: payload });
+}
+
+export function updateRole(roleId, payload) {
+  return worldWrite(`/worlds/${demoContext.worldId}/roles/${roleId}`, { method: "PUT", body: payload });
+}
+
+export function deleteRole(roleId) {
+  return worldWrite(`/worlds/${demoContext.worldId}/roles/${roleId}`, { method: "DELETE" });
+}
+
+export function createSection(worldId, roleId, payload) {
+  return worldWrite(`/worlds/${worldId}/roles/${roleId}/sections`, { worldId, method: "POST", body: payload });
+}
+
+export function updateSection(roleId, sectionId, payload) {
+  return worldWrite(`/worlds/${demoContext.worldId}/roles/${roleId}/sections/${sectionId}`, { method: "PUT", body: payload });
+}
+
+export function deleteSection(roleId, sectionId) {
+  return worldWrite(`/worlds/${demoContext.worldId}/roles/${roleId}/sections/${sectionId}`, { method: "DELETE" });
+}
+
+export function updateChapter(chapterId, payload) {
+  return worldWrite(`/worlds/${demoContext.worldId}/chapters/${chapterId}`, { method: "PUT", body: payload });
+}
+
+/* ── Content versions ── */
+
+export function createContentVersion(payload) {
+  return worldWrite(`/worlds/${demoContext.worldId}/content-versions`, { method: "POST", body: payload });
+}
+
+export function restoreContentVersion(versionId) {
+  return worldWrite(`/worlds/${demoContext.worldId}/content-versions/${versionId}/restore`, { method: "POST", body: {} });
+}
+
+export function deleteContentVersion(versionId) {
+  return worldWrite(`/worlds/${demoContext.worldId}/content-versions/${versionId}`, { method: "DELETE" });
+}
