@@ -6,6 +6,11 @@
     const C = views().clues || {};
     switch (action) {
       case "clues-edit": C.openCluesEditor?.(el?.dataset?.clue); return true;
+      case "clues-select": C.selectClue?.(el?.dataset?.clue); return true;
+      case "clue-detail-close": C.closeClueDetail?.(); return true;
+      case "clue-flow-filter": C.setClueFlowFilter?.(el?.dataset?.filter); return true;
+      case "clue-detail-tab": C.setClueDetailTab?.(el?.dataset?.tab); return true;
+      case "clue-flow-zoom": C.adjustClueFlowZoom?.(el?.dataset?.zoom); return true;
       case "clues-open-studio": C.openClueInStudio?.(el?.dataset?.clue); return true;
       case "clues-add": C.openCluesEditor?.(""); return true;
       case "clues-delete": C.confirmDeleteClue?.(el?.dataset?.clue); return true;

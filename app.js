@@ -15,8 +15,7 @@
     studio: ["内容创作", "剧情编排"],
     clues: ["内容创作", "线索管理"],
     rules: ["内容创作", "自动化规则"],
-    director: ["实时运行", "主持监控台"],
-    player: ["玩家体验", "玩家视角"],
+    miniGames: ["内容创作", "小游戏设计"],
     archive: ["历史记录", "存档与复盘"],
     settings: ["世界管理", "世界设置"],
     account: ["账号", "账号与资产"],
@@ -52,8 +51,7 @@
       studio: V.studio?.studioCloud,
       clues: V.clues?.clues,
       rules: V.rules?.rules,
-      director: V.director?.director,
-      player: V.player?.player,
+      miniGames: V.miniGames?.miniGames,
       archive: V.archive?.archive,
       settings: V.settings?.settings,
       account: V.accountHub?.accountHub,
@@ -64,6 +62,7 @@
 
   function render() {
     const currentToken = ++renderToken;
+    if (!viewMeta[state.view]) state.view = "overview";
     const [eyebrow, title] = viewMeta[state.view];
     window.zhimuNavShell?.syncWorldSwitcher?.();
     window.zhimuNavShell?.syncNavAdvanced?.(state.view);
@@ -105,10 +104,18 @@
       state.accountHubTab = "assets";
       view = "account";
     }
+    if (view === "director") {
+      window.open(window.zhimuInviteLinks?.hostConsoleUrl?.(), "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (view === "player") {
+      const room = window.zhimuUi.activeRuntimeRoom?.();
+      window.open(window.zhimuInviteLinks?.playerJoinUrl?.(room?.invite_code), "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (!viewMeta[view]) view = "overview";
     const sameView = state.view === view;
     if (!sameView) {
-      if (view === "player") window.zhimuOnboarding?.markPlayerVisit?.();
-      else if (view === "director") window.zhimuOnboarding?.markDirectorVisit?.();
       state.view = view;
       R.syncDirectorPolling();
       R.connectRoomEventStream();
@@ -130,14 +137,19 @@
   });
 
   document.querySelectorAll(".nav-item[data-view]").forEach((btn) => btn.addEventListener("click", () => go(btn.dataset.view)));
-  document.querySelector("#run-btn").onclick = () => go("director");
-  document.querySelector("#preview-btn").onclick = () => (state.cloudPlayer ? go("player") : R.openJoinRoom());
+  document.querySelector("#run-btn").onclick = () => {
+    window.open(window.zhimuInviteLinks?.hostConsoleUrl?.(), "_blank", "noopener,noreferrer");
+  };
+  document.querySelector("#preview-btn").onclick = () => {
+    const room = window.zhimuUi.activeRuntimeRoom?.();
+    window.open(window.zhimuInviteLinks?.playerJoinUrl?.(room?.invite_code), "_blank", "noopener,noreferrer");
+  };
   document.querySelector("#search-btn").onclick = () => window.zhimuGlobalSearch?.openGlobalSearch?.();
   document.querySelector("#auth-banner-login")?.addEventListener("click", () => R.openAuth());
   document.querySelector("#notify-btn").onclick = () => {
     if (!window.zhimuUi.activeRuntimeRoom()) return T.showToast("请先选择运行房后再查看主持待办");
-    go("director");
-    if (!T.pendingHostEventCount()) T.showToast("当前没有待确认事件，可在此刷新玩家进度");
+    window.open(window.zhimuInviteLinks?.hostConsoleUrl?.(), "_blank", "noopener,noreferrer");
+    if (!T.pendingHostEventCount()) T.showToast("当前没有待确认事件，已为你打开独立主持端");
   };
   document.querySelector("#create-world-btn").onclick = () => R.openWizard();
   document.querySelector("#catalog-world-btn")?.addEventListener("click", () => R.openWorldLibrary("catalog"));

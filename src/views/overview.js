@@ -68,6 +68,10 @@ function overview() {
   const loading = state.cloudLoading && !studio?.world;
   const roleCount = studio?.roles?.length ?? 0, chapterCount = studio?.chapters?.length ?? 0;
   const uploadCount = state.cloudAssets?.length ?? 0;
+  const sceneCount = studio?.scenes?.length ?? 0;
+  const clueCount = studio?.clues?.length ?? 0;
+  const pointCount = studio?.investigationPoints?.length ?? 0;
+  const sectionCount = studio?.sections?.length ?? 0;
   const rooms = studio?.rooms || [], hasRooms = rooms.length > 0;
   const room = activeRuntimeRoom(), hasActiveRoom = Boolean(room);
   const enabledRules = (state.cloudRules || []).filter(rule => rule.enabled).length;
@@ -106,6 +110,27 @@ function overview() {
   const playJoinUrl = hasActiveRoom && room?.invite_code
     ? (window.zhimuInviteLinks?.playerJoinUrl?.(room.invite_code) || `https://play.getzhimu.com/?join=${encodeURIComponent(room.invite_code)}`)
     : "";
+  const hostConsoleUrl = window.zhimuInviteLinks?.hostConsoleUrl?.(room?.id) || "https://host.getzhimu.com";
+  const worldHealth = [
+    { label: "角色席位", value: roleCount, total: Math.max(roleCount, 1), tone: "green" },
+    { label: "私人分幕", value: sectionCount, total: Math.max(roleCount * 2, sectionCount, 1), tone: "brass" },
+    { label: "剧情场景", value: sceneCount, total: Math.max(sceneCount + 2, 6), tone: "plum" },
+    { label: "线索节点", value: clueCount, total: Math.max(clueCount + 3, 8), tone: "clay" }
+  ];
+  const overviewMapNodes = [
+    { label: "世界设定", value: world?.name || "未选择世界", cls: "core" },
+    { label: "角色", value: `${roleCount} 个席位`, cls: "role" },
+    { label: "章节", value: `${chapterCount} 个公共章节`, cls: "chapter" },
+    { label: "场景", value: `${sceneCount} 个场景`, cls: "scene" },
+    { label: "线索", value: `${clueCount} 条线索`, cls: "clue" },
+    { label: "规则", value: `${enabledRules} 条启用`, cls: "rule" }
+  ];
+  const operationCards = [
+    { k: "运行房", v: hasRooms ? `${rooms.length} 个` : "未建立", t: hasActiveRoom ? "已选中当前运行房" : "创建测试房后进入主持端" },
+    { k: "玩家进度", v: `${runtimeProgress.percent}%`, t: runtimeProgress.label },
+    { k: "待确认", v: String(pendingEvents), t: pendingEvents ? "需要主持端处理" : "暂无主持待办" },
+    { k: "复盘", v: String(state.cloudRecaps?.length || 0), t: "checkpoint 与 recap 归档" }
+  ];
   const inviteStrip = hasActiveRoom && room?.invite_code ? `
         <div class="invite-strip">
           <p class="section-kicker">玩家邀请码 · 可随时复制</p>
@@ -114,6 +139,7 @@ function overview() {
             <button type="button" class="secondary-btn compact" data-action="copy-invite-code" data-invite-code="${escapeHtml(room.invite_code)}">复制码</button>
             <button type="button" class="secondary-btn compact" data-action="copy-play-link" data-invite-code="${escapeHtml(room.invite_code)}">复制玩家链接</button>
             <button type="button" class="text-btn" data-action="room-invite-current">详情</button>
+            <button type="button" class="text-btn" data-action="open-player-portal" data-invite-code="${escapeHtml(room.invite_code)}">打开玩家端</button>
           </div>
           <p class="invite-hint">发给玩家：<a href="${escapeHtml(playJoinUrl)}" target="_blank" rel="noopener">${escapeHtml(playJoinUrl)}</a></p>
         </div>` : hasRooms && !hasActiveRoom ? `
@@ -143,6 +169,40 @@ function overview() {
         ${inviteStrip}
       </article>
     </section>
+    <section class="vision-dashboard">
+      <article class="vision-panel vision-map">
+        <div class="section-head">
+          <div><p class="section-kicker">ZHIMU OPERATING VIEW</p><h3>故事运行总览</h3><p>基于当前世界数据重组的创作者视图，用来理解内容、规则和运行状态如何连在一起。</p></div>
+          <button class="secondary-btn" data-go="studio">编辑结构</button>
+        </div>
+        <div class="story-map" aria-label="织幕故事结构图">
+          <i class="map-line line-a"></i><i class="map-line line-b"></i><i class="map-line line-c"></i>
+          ${overviewMapNodes.map((node) => `<div class="map-node ${node.cls}"><small>${escapeHtml(node.label)}</small><strong>${escapeHtml(node.value)}</strong></div>`).join("")}
+        </div>
+        <div class="map-health-row">
+          ${worldHealth.map((item) => {
+            const pct = Math.min(100, Math.round((item.value / item.total) * 100));
+            return `<div class="map-health ${item.tone}"><span>${escapeHtml(item.label)}</span><strong>${item.value}</strong><i><b style="width:${pct}%"></b></i></div>`;
+          }).join("")}
+        </div>
+      </article>
+      <article class="vision-panel vision-ops">
+        <div class="section-head">
+          <div><p class="section-kicker">RUN SIGNALS</p><h3>运行信号</h3><p>创作者端只保留总览和配置；现场处理交给独立主持端，玩家体验交给独立玩家端。</p></div>
+        </div>
+        <div class="operation-card-grid">
+          ${operationCards.map((card) => `<div class="operation-mini"><span>${escapeHtml(card.k)}</span><strong>${escapeHtml(card.v)}</strong><p>${escapeHtml(card.t)}</p></div>`).join("")}
+        </div>
+        <div class="external-entry-grid">
+          <a class="external-entry host-entry" href="${escapeHtml(hostConsoleUrl)}" target="_blank" rel="noopener">
+            <span>HOST</span><strong>打开主持端</strong><small>处理待确认事件、玩家进度与现场干预</small>
+          </a>
+          <a class="external-entry play-entry" href="${escapeHtml(playJoinUrl || window.zhimuInviteLinks?.playSiteOrigin?.() || "https://play.getzhimu.com")}" target="_blank" rel="noopener">
+            <span>PLAY</span><strong>打开玩家端</strong><small>${hasActiveRoom && room?.invite_code ? `邀请码 ${escapeHtml(room.invite_code)}` : "输入邀请码或体验公开入口"}</small>
+          </a>
+        </div>
+      </article>
+    </section>
     <section class="stats-grid">
       ${stat("♙",hasActiveRoom ? String(activePlayers) : "0","有进度角色",hasActiveRoom ? "读取当前运行房玩家" : "尚未建立或选中运行房")}
       ${stat("⌘",String(enabledRules),"已启用规则",enabledRules ? "云端规则已配置" : "尚未为当前世界配置规则")}
@@ -157,13 +217,13 @@ function overview() {
         </div>
       </article>
       <article class="card">
-        <div class="section-head"><div><h3>实时动态</h3><p>最近发生的状态变化</p></div><button class="text-btn" data-go="director">查看全部 →</button></div>
+        <div class="section-head"><div><h3>实时动态</h3><p>最近发生的状态变化</p></div><button class="text-btn" data-go="archive">查看复盘 →</button></div>
         <div class="activity-list">${activities}</div>
       </article>
     </section>
     <section class="workspace-grid">
       <article class="card">
-        <div class="section-head"><div><h3>角色阅读状态</h3><p>玩家主动读完后，系统才会记录状态并判断后续解锁</p></div><button class="text-btn" data-go="player">进入玩家视角 →</button></div>
+        <div class="section-head"><div><h3>角色阅读状态</h3><p>创作者端只展示聚合状态；完整玩家体验请在独立玩家端验证。</p></div><button class="text-btn" data-action="open-player-portal" data-invite-code="${escapeHtml(room?.invite_code || "")}">打开玩家端 →</button></div>
         <div class="reading-list">${roleRows}</div>
       </article>
       <article class="card">
@@ -173,6 +233,7 @@ function overview() {
           ${task("✎","逐角色检查私人剧本",`${roleCount} 个角色席位，共 ${studio?.sections?.length || 0} 段私人正文`,"writer","检查角色稿")}
           ${task("⌘","配置自动化规则",enabledRules ? `当前已有 ${enabledRules} 条启用规则` : "当前世界还没有运行规则","rules","打开规则")}
           ${hasActiveRoom && room?.invite_code ? taskAction("⎘", "邀请玩家入房", `邀请码 ${escapeHtml(room.invite_code)}`, "room-invite-current", "复制/分享") : ""}
+          <div class="task-row"><span class="task-icon">▶</span><div><strong>进入独立主持端</strong><p>${hasActiveRoom ? `当前房间：${escapeHtml(room.name)}` : "创作者端不再内置主持控制台，请在主持端处理现场。"}</p></div><button data-action="open-host-console" data-room-id="${escapeHtml(room?.id || "")}">打开主持端 →</button></div>
           ${taskAction(hasRooms ? "◉" : "＋",hasRooms ? "管理运行房" : "建立运行房",hasRooms ? (rooms.length===1?`当前运行房：${escapeHtml((room||rooms[0])?.name||"运行房")}`:`${rooms.length} 个你可访问的运行房`): "当前世界尚未创建运行实例","world-rooms",hasRooms ? "查看房间" : "创建运行房")}
           ${uploadCount ? taskAction("↑","管理云端附件",`${uploadCount} 个文件已上传`,"go-account","打开资产","assets") : taskAction("↑","上传世界附件","当前世界还没有上传资产。你可以上传线索图、音频、角色图或文档。","go-account","前往上传","assets")}
         </div>

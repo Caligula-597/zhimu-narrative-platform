@@ -40,7 +40,7 @@
           pill: "演示体验",
           pillClass: "session-demo",
           title: "演示体验 · 数据来自公开示例剧本",
-          description: "你可以完整浏览玩家端与主持台；登录后可创建和管理自己的剧本世界。",
+          description: "你可以浏览创作者工作区；玩家体验和主持现场已拆到独立端，登录后可创建和管理自己的剧本世界。",
           profileFallback: { strong: "演示体验", small: "公开示例 · 登录后可创作", avatar: "演" },
           showTopBanner: true,
           showLoginCta: true

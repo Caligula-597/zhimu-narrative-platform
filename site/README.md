@@ -43,10 +43,12 @@ POST https://app.getzhimu.com/api/platform/beta/apply
 
 | 锚点 | 内容 | 说明 |
 |------|------|------|
+| `#top` | 首屏价值主张 | 创作者/主持/玩家三入口 + 真实产品视觉图 |
 | `#product` | 四模块定位 | 创作/编排/主持/玩家 |
-| `#showcase` | 产品界面三栏 | 复用 `site-preview.svg` 示意，**非真实产品截图** |
-| `#case-study` | 试点案例叙事 | **占位文案**，不对应仓库内 PILOT_TRACKER 任何一行；真实案例待运营替换 |
+| `#showcase` | 产品界面四栏 | 创作者端、主持端、玩家端、复盘归档 |
+| `#status` | 当前 Beta 状态 | 核心闭环、已接入能力、仍在推进的上线门槛 |
 | `#workflow` | 四步工作流 | |
+| `#systems` | 系统能力 | 身份协作、实时运行、内容资产、复盘、审计、运维 |
 | `#import` | 预约导入剧本 | 邮件 CTA + 链到 `#beta-import` |
 | `#beta` | 内测申请表 | `data-beta-form` → `POST /api/platform/beta/apply` |
 | `#pricing` | **上市套餐**（人工开通） | 静态兜底 + `GET /api/platform/site` → `pricing.launch` |

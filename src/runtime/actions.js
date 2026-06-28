@@ -18,6 +18,7 @@
     () => window.zhimuActionsStudio?.handleStudioAction,
     () => window.zhimuActionsWriter?.handleWriterAction,
     () => window.zhimuActionsRules?.handleRulesAction,
+    () => window.zhimuActionsMiniGames?.handleMiniGamesAction,
     () => window.zhimuActionsAssets?.handleAssetsAction,
     () => window.zhimuActionsOps?.handleOpsAction,
     () => window.zhimuActionsClues?.handleCluesAction

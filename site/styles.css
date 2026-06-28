@@ -248,10 +248,10 @@ button {
 }
 
 .hero-backdrop img {
-  width: min(900px, 74vw);
-  transform: translate(8vw, 28px) rotate(-2.2deg);
+  width: min(860px, 68vw);
+  transform: translate(20vw, 34px) rotate(-2.2deg);
   filter: drop-shadow(0 28px 60px rgba(27, 50, 46, 0.16));
-  opacity: 0.56;
+  opacity: 0.58;
   animation: heroPanelDrift 12s ease-in-out infinite;
 }
 
@@ -305,10 +305,10 @@ button {
 @keyframes heroPanelDrift {
   0%,
   100% {
-    transform: translate(8vw, 28px) rotate(-2.2deg);
+    transform: translate(20vw, 34px) rotate(-2.2deg);
   }
   50% {
-    transform: translate(8vw, 18px) rotate(-1.8deg);
+    transform: translate(20vw, 22px) rotate(-1.8deg);
   }
 }
 
@@ -351,21 +351,8 @@ button {
   font-weight: 900;
 }
 
-.placeholder-badge {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(167, 120, 61, 0.14);
-  color: var(--brass);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  vertical-align: middle;
-}
-
 .hero h1 {
-  width: min(720px, 100%);
+  width: min(640px, 100%);
   margin: 0;
   font-family: "Songti SC", "SimSun", serif;
   font-size: clamp(44px, 5.4vw, 74px);
@@ -1048,8 +1035,8 @@ button {
 
   .hero-backdrop img {
     width: 860px;
-    transform: translate(18vw, 100px) rotate(-3deg);
-    opacity: 0.38;
+    transform: translate(30vw, 132px) rotate(-3deg);
+    opacity: 0.3;
   }
 
   .story-pulse {
@@ -1125,13 +1112,14 @@ button {
 
   .hero::before {
     background:
-      linear-gradient(90deg, rgba(244, 241, 233, 0.99) 0%, rgba(244, 241, 233, 0.96) 76%, rgba(244, 241, 233, 0.86) 100%),
+      linear-gradient(180deg, rgba(244, 241, 233, 0.995) 0%, rgba(244, 241, 233, 0.99) 56%, rgba(244, 241, 233, 0.86) 76%, rgba(244, 241, 233, 0.96) 100%),
       radial-gradient(circle at 80% 18%, rgba(167, 120, 61, 0.12), transparent 34%);
   }
 
   .hero-backdrop img {
     width: 760px;
-    transform: translate(38vw, 122px) rotate(-4deg);
+    transform: translate(46vw, 322px) rotate(-4deg);
+    opacity: 0.22;
   }
 
   .hero h1 {
@@ -1229,7 +1217,7 @@ button {
 .pricing-card {
   padding: 22px 20px;
   border: 1px solid rgba(20, 35, 33, 0.1);
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.72);
 }
 

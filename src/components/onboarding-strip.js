@@ -1,4 +1,4 @@
-/** First-run 3-minute path: create world → player → read → director sees progress. */
+/** First-run 3-minute path: create world → play portal → host console sees progress. */
 (function (window) {
   const DISMISS_KEY = "zhimuOnboardingDismissed";
 
@@ -54,7 +54,7 @@
 
   function renderOnboardingStrip() {
     if (!shouldShow()) return "";
-    return `<section class="card onboarding-strip" data-onboarding-strip><div class="section-head"><div><p class="section-kicker">首次体验 · 约 3 分钟</p><h3>跑通一条完整链路</h3><p>创建剧本 → 玩家视角读一幕 → 主持台看到推进。</p></div><button type="button" class="text-btn" data-action="dismiss-onboarding">不再显示</button></div><ol class="onboarding-steps">${stepRow("world", 1, "创建或选择剧本", "侧栏「＋ 创建新世界」走完向导，或在「我的剧本」中切换已有剧本。", "open-wizard", "创建剧本")}${stepRow("player", 2, "进入玩家视角", "顶栏「玩家入口」或下方按钮，选角色并开始阅读。", "onboarding-go-player", "进入玩家视角")}${stepRow("read", 3, "读完一幕私人剧情", "在玩家页打开章节并点「确认读完」；系统会记录进度。", "onboarding-go-player", "继续阅读")}${stepRow("director", 4, "主持台查看推进", "顶栏「进入主持台」，在玩家表中看到阅读进度与最近操作。", "onboarding-go-director", "打开主持台")}</ol></section>`;
+    return `<section class="card onboarding-strip" data-onboarding-strip><div class="section-head"><div><p class="section-kicker">首次体验 · 约 3 分钟</p><h3>跑通一条完整链路</h3><p>创作者端创建剧本 → 独立玩家端试读 → 独立主持端看到推进。</p></div><button type="button" class="text-btn" data-action="dismiss-onboarding">不再显示</button></div><ol class="onboarding-steps">${stepRow("world", 1, "创建或选择剧本", "侧栏「＋ 创建新世界」走完向导，或在「我的剧本」中切换已有剧本。", "open-wizard", "创建剧本")}${stepRow("player", 2, "打开独立玩家端", "通过顶部「打开玩家端」或下方按钮，使用邀请码选角色并开始阅读。", "onboarding-go-player", "打开玩家端")}${stepRow("read", 3, "读完一幕私人剧情", "在玩家端打开章节并点「确认读完」；系统会记录进度。", "onboarding-go-player", "继续阅读")}${stepRow("director", 4, "主持端查看推进", "打开独立主持端，在玩家表中看到阅读进度与最近操作。", "onboarding-go-director", "打开主持端")}</ol></section>`;
   }
 
   function markPlayerVisit() {

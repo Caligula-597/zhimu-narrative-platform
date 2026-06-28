@@ -47,6 +47,20 @@
           "玩家链接"
         );
         return true;
+      case "open-player-portal":
+        window.open(
+          window.zhimuInviteLinks?.playerJoinUrl?.(el?.dataset?.inviteCode),
+          "_blank",
+          "noopener,noreferrer"
+        );
+        return true;
+      case "open-host-console":
+        window.open(
+          window.zhimuInviteLinks?.hostConsoleUrl?.(el?.dataset?.roomId),
+          "_blank",
+          "noopener,noreferrer"
+        );
+        return true;
       case "room-join":
         R.openJoinRoom?.(el?.dataset?.inviteCode);
         return true;
@@ -86,12 +100,15 @@
       }
       case "onboarding-go-player":
         window.zhimuOnboarding?.markPlayerVisit?.();
-        if (window.zhimuState?.cloudPlayer) window.zhimuRuntime?.go?.("player");
-        else window.zhimuRuntime?.openJoinRoom?.();
+        window.open(
+          window.zhimuInviteLinks?.playerJoinUrl?.(window.zhimuUi?.activeRuntimeRoom?.()?.invite_code),
+          "_blank",
+          "noopener,noreferrer"
+        );
         return true;
       case "onboarding-go-director":
         window.zhimuOnboarding?.markDirectorVisit?.();
-        window.zhimuRuntime?.go?.("director");
+        window.open(window.zhimuInviteLinks?.hostConsoleUrl?.(), "_blank", "noopener,noreferrer");
         return true;
       case "refresh-host-room":
         R.refreshHostRoom?.(true);

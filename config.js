@@ -7,6 +7,8 @@
   const viteApiBase = viteEnv.VITE_API_BASE;
   const viteDemoMode = viteEnv.VITE_DEMO_MODE;
   const viteRequireAuth = viteEnv.VITE_REQUIRE_AUTH;
+  const vitePlayOrigin = viteEnv.VITE_PLAY_SITE_ORIGIN || viteEnv.VITE_PLAY_ORIGIN;
+  const viteHostOrigin = viteEnv.VITE_HOST_SITE_ORIGIN || viteEnv.VITE_HOST_ORIGIN;
 
   /** Production default API root. */
   function resolveDefaultApiBase() {
@@ -52,6 +54,8 @@
           ? false
           : buildDemoMode
         : storedDemoMode === "true",
+    playSiteOrigin: vitePlayOrigin || (localHost ? "http://127.0.0.1:5174" : "https://play.getzhimu.com"),
+    hostSiteOrigin: viteHostOrigin || (localHost ? "http://127.0.0.1:5175" : "https://host.getzhimu.com"),
     demoUsers: {
       hostUserId: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
       playerUserId: "1d5e8155-a80f-4e7f-99f0-0ae317a35f35"

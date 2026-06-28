@@ -217,7 +217,7 @@ betaForm?.addEventListener("submit", async (event) => {
       const message =
         body.code === "BETA_APPLICATION_PENDING"
           ? "该邮箱已有待审申请，请勿重复提交。"
-          : body.error || `提交失败（${response.status}）`;
+          : body.error || `提交失败：${response.status}`;
       throw new Error(message);
     }
 

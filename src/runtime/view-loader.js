@@ -30,13 +30,9 @@
       () => import("../views/rules.js"),
       () => import("./actions-rules.js")
     ],
-    director: [
-      () => import("../views/director.js"),
-      () => import("./actions-director.js")
-    ],
-    player: [
-      () => import("../views/player.js"),
-      () => import("./actions-player.js")
+    miniGames: [
+      () => import("../views/mini-games.js"),
+      () => import("./actions-mini-games.js")
     ],
     archive: [
       () => import("../views/archive.js"),

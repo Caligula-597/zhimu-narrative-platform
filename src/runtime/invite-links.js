@@ -10,6 +10,12 @@
     return `${playSiteOrigin()}/?join=${encodeURIComponent(code)}`;
   }
 
+  function hostConsoleUrl(roomId) {
+    const base = (window.zhimuConfig?.hostSiteOrigin || "https://host.getzhimu.com").replace(/\/$/, "");
+    const id = String(roomId || window.zhimuApi?.context?.roomId || "").trim();
+    return id ? `${base}/?roomId=${encodeURIComponent(id)}` : base;
+  }
+
   async function copyText(text, label = "内容") {
     const value = String(text || "").trim();
     if (!value) return;
@@ -22,6 +28,6 @@
     }
   }
 
-  window.zhimuInviteLinks = { playSiteOrigin, playerJoinUrl, copyText };
+  window.zhimuInviteLinks = { playSiteOrigin, playerJoinUrl, hostConsoleUrl, copyText };
 })(window);
 export {};

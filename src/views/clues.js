@@ -23,6 +23,32 @@
   const viewExports = window.zhimuViews.clues = window.zhimuViews.clues || {};
 
   const VISIBILITY_LABELS = { role: "私密", public: "房间公开", host: "主持可见" };
+  const CLUE_TYPE_LABELS = {
+    text: "文字",
+    document: "文书",
+    image: "图片",
+    physical: "实物",
+    testimony: "证词",
+    location: "地点",
+    cipher: "密码",
+    timeline: "时间线",
+    relationship: "关系",
+    evidence: "证据",
+    secret: "秘密",
+    audio: "音频",
+    file: "文件"
+  };
+  const CLUE_IMPORTANCE_LABELS = {
+    normal: "普通线索",
+    key: "关键线索",
+    prerequisite: "前置钥匙",
+    truth_piece: "真相碎片",
+    finale_key: "终局关键",
+    optional: "支线补充",
+    red_herring: "烟雾弹"
+  };
+  const CLUE_TYPE_OPTIONS = Object.entries(CLUE_TYPE_LABELS).map(([id, name]) => ({ id, name }));
+  const CLUE_IMPORTANCE_OPTIONS = Object.entries(CLUE_IMPORTANCE_LABELS).map(([id, name]) => ({ id, name }));
 
   function cluePointCount(clueId, data) {
     return (data.investigationPoints || []).filter((point) => point.clue_id === clueId).length;
@@ -47,6 +73,69 @@
   function syncCluesSelectAll(checked, visibleIds) {
     state.cluesBulkSelection = checked ? [...visibleIds] : [];
     render();
+  }
+
+  function selectClue(clueId) {
+    if (!clueId) return;
+    const scroll = captureClueFlowViewport();
+    state.cluesSelectedId = clueId;
+    render();
+    restoreClueFlowViewport(scroll);
+  }
+
+  function closeClueDetail() {
+    const scroll = captureClueFlowViewport();
+    state.cluesSelectedId = "";
+    state.clueDetailTab = "detail";
+    render();
+    restoreClueFlowViewport(scroll);
+  }
+
+  function setClueFlowFilter(filter = "all") {
+    captureClueFlowViewport();
+    state.clueFlowFilter = ["all", "linked", "incomplete"].includes(filter) ? filter : "all";
+    render();
+  }
+
+  function setClueDetailTab(tab = "detail") {
+    captureClueFlowViewport();
+    state.clueDetailTab = tab === "triggers" ? "triggers" : "detail";
+    render();
+  }
+
+  function adjustClueFlowZoom(mode = "reset") {
+    const scroll = captureClueFlowViewport();
+    const current = Number(state.clueFlowZoom || 1);
+    if (mode === "in") state.clueFlowZoom = Math.min(1.45, Math.round((current + 0.1) * 10) / 10);
+    else if (mode === "out") state.clueFlowZoom = Math.max(0.65, Math.round((current - 0.1) * 10) / 10);
+    else state.clueFlowZoom = 1;
+    render();
+    restoreClueFlowViewport(scroll);
+  }
+
+  async function saveClueGraphPosition(clueId, position) {
+    const data = state.cloudStudio;
+    const clue = data?.clues?.find((item) => item.id === clueId);
+    if (!clue || !position) return;
+    const metadata = {
+      ...(clue.metadata || {}),
+      clueGraphPosition: {
+        x: Math.max(80, Math.round(Number(position.x) || 80)),
+        y: Math.max(70, Math.round(Number(position.y) || 70))
+      }
+    };
+    clue.metadata = metadata;
+    try {
+      await zhimuApi.updateClue(clue.id, {
+        name: clue.name,
+        publicText: clue.public_text || "",
+        hostText: clue.host_text || "",
+        visibility: clue.visibility || "role",
+        metadata
+      });
+    } catch (error) {
+      showError(error, "线索位置保存失败，请稍后重试");
+    }
   }
 
   async function confirmDeleteClue(clueId) {
@@ -111,6 +200,362 @@
     return `${escapeHtml(clean.slice(0, idx))}<mark class="search-mark">${escapeHtml(clean.slice(idx, idx + query.length))}</mark>${escapeHtml(clean.slice(idx + query.length))}`;
   }
 
+  function clueMetaLabel(clue) {
+    const meta = clue?.metadata || {};
+    const type = CLUE_TYPE_LABELS[meta.clueType] || CLUE_TYPE_LABELS.text;
+    const importance = CLUE_IMPORTANCE_LABELS[meta.importance] || CLUE_IMPORTANCE_LABELS.normal;
+    return { type, importance };
+  }
+
+  function clueAsset(clue) {
+    const assetId = clue?.metadata?.assetId;
+    return assetId ? (state.cloudAssets || []).find((asset) => asset.id === assetId) : null;
+  }
+
+  function linkedPoints(clueId, data) {
+    return (data.investigationPoints || []).filter((point) => point.clue_id === clueId);
+  }
+
+  function pointScene(point, data) {
+    return (data.scenes || []).find((scene) => scene.id === point?.scene_id);
+  }
+
+  function sceneChapter(scene, data) {
+    return (data.chapters || []).find((chapter) => chapter.id === scene?.chapter_id);
+  }
+
+  function clueChapterSequence(clue, data) {
+    const points = linkedPoints(clue.id, data);
+    const sequences = points
+      .map((point) => sceneChapter(pointScene(point, data), data)?.sequence)
+      .filter((value) => Number.isFinite(Number(value)))
+      .map(Number);
+    return sequences.length ? Math.min(...sequences) : 99;
+  }
+
+  function relationLabel(type) {
+    return ({ mainline: "主线", parallel: "并列", extension: "延伸" })[type] || "关联";
+  }
+
+  function captureClueFlowViewport() {
+    const viewport = document.querySelector("[data-clue-flow-viewport]");
+    if (!viewport) return null;
+    state.clueFlowScroll = { left: viewport.scrollLeft, top: viewport.scrollTop };
+    return state.clueFlowScroll;
+  }
+
+  function restoreClueFlowViewport(scroll = state.clueFlowScroll) {
+    if (!scroll) return;
+    const apply = () => {
+      const viewport = document.querySelector("[data-clue-flow-viewport]");
+      if (!viewport) return;
+      viewport.scrollLeft = scroll.left || 0;
+      viewport.scrollTop = scroll.top || 0;
+    };
+    setTimeout(apply, 0);
+    setTimeout(apply, 80);
+    setTimeout(apply, 260);
+    setTimeout(apply, 520);
+  }
+
+  function collectClueIdsFromRuleNode(node, ids = new Set()) {
+    if (!node || typeof node !== "object") return ids;
+    if (node.clueId) ids.add(node.clueId);
+    for (const key of ["all", "any", "not"]) {
+      const value = node[key];
+      if (Array.isArray(value)) value.forEach((item) => collectClueIdsFromRuleNode(item, ids));
+      else collectClueIdsFromRuleNode(value, ids);
+    }
+    return ids;
+  }
+
+  function clueDependencyEdges(data) {
+    const clueIds = new Set((data.clues || []).map((clue) => clue.id));
+    const sceneToClues = new Map();
+    (data.investigationPoints || []).forEach((point) => {
+      if (!point.scene_id || !point.clue_id || !clueIds.has(point.clue_id)) return;
+      const set = sceneToClues.get(point.scene_id) || new Set();
+      set.add(point.clue_id);
+      sceneToClues.set(point.scene_id, set);
+    });
+    const edges = [];
+    const add = (from, to, kind, label) => {
+      if (!from || !to || from === to || !clueIds.has(from) || !clueIds.has(to)) return;
+      const key = `${from}:${to}:${kind}`;
+      if (edges.some((edge) => edge.key === key)) return;
+      edges.push({ key, from, to, kind, label });
+    };
+    (data.edges || []).forEach((edge) => {
+      if (edge.from_type === "clue" && edge.to_type === "clue") add(edge.from_id, edge.to_id, "story", relationLabel(edge.relation_type));
+      if (edge.to_type === "clue" && edge.from_type === "clue") add(edge.to_id, edge.from_id, "story", relationLabel(edge.relation_type));
+    });
+    const pointsByScene = new Map();
+    (data.investigationPoints || []).forEach((point) => {
+      if (!point.scene_id || !point.clue_id || !clueIds.has(point.clue_id)) return;
+      const list = pointsByScene.get(point.scene_id) || [];
+      list.push(point);
+      pointsByScene.set(point.scene_id, list);
+    });
+    pointsByScene.forEach((points) => {
+      points
+        .slice()
+        .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0) || String(a.name).localeCompare(String(b.name), "zh-CN"))
+        .forEach((point, index, sorted) => {
+          const previous = sorted[index - 1];
+          if (previous?.clue_id) add(previous.clue_id, point.clue_id, "investigation", "调查顺序");
+        });
+    });
+    (state.cloudRules || []).forEach((rule) => {
+      const sources = [...collectClueIdsFromRuleNode(rule.conditions)];
+      if (!sources.length) return;
+      (rule.actions || []).forEach((action) => {
+        if (action.type === "grant_clue" && action.clueId) {
+          sources.forEach((source) => add(source, action.clueId, "rule", rule.name || "规则发放"));
+        }
+        if (action.type === "unlock_scene" && action.sceneId) {
+          (sceneToClues.get(action.sceneId) || new Set()).forEach((target) => {
+            sources.forEach((source) => add(source, target, "scene", rule.name || "解锁场景"));
+          });
+        }
+      });
+    });
+    return edges;
+  }
+
+  function clueGraphMetrics(count, levelCount = 1, maxLevelSize = 1) {
+    const rings = Math.max(1, Math.ceil((count || 1) / 14));
+    return {
+      width: Math.max(1540, 520 + Math.max(levelCount, rings + 1) * 360),
+      height: Math.max(900, 360 + Math.max(maxLevelSize, 4) * 150)
+    };
+  }
+
+  function clueLevels(list, dependencies) {
+    const ids = new Set(list.map((clue) => clue.id));
+    const incoming = new Map(list.map((clue) => [clue.id, []]));
+    dependencies.forEach((edge) => {
+      if (ids.has(edge.from) && ids.has(edge.to)) incoming.get(edge.to)?.push(edge.from);
+    });
+    const levelOf = new Map();
+    const visit = (id, stack = new Set()) => {
+      if (levelOf.has(id)) return levelOf.get(id);
+      if (stack.has(id)) return 0;
+      stack.add(id);
+      const parents = incoming.get(id) || [];
+      const level = parents.length ? Math.max(...parents.map((parent) => visit(parent, stack) + 1)) : 0;
+      stack.delete(id);
+      levelOf.set(id, level);
+      return level;
+    };
+    list.forEach((clue) => visit(clue.id));
+    return levelOf;
+  }
+
+  function clueGraphNodes(list, data, metrics, dependencies) {
+    const sorted = list
+      .slice()
+      .sort((a, b) => clueChapterSequence(a, data) - clueChapterSequence(b, data) || String(a.name).localeCompare(String(b.name), "zh-CN"));
+    const levelOf = clueLevels(sorted, dependencies);
+    const buckets = new Map();
+    sorted.forEach((clue) => {
+      const level = levelOf.get(clue.id) || 0;
+      const bucket = buckets.get(level) || [];
+      bucket.push(clue);
+      buckets.set(level, bucket);
+    });
+    const levels = [...buckets.keys()].sort((a, b) => a - b);
+    const levelIndex = new Map(levels.map((level, index) => [level, index]));
+    return sorted.map((clue) => {
+        const level = levelOf.get(clue.id) || 0;
+        const bucket = buckets.get(level) || [];
+        const row = bucket.findIndex((item) => item.id === clue.id);
+        const saved = clue.metadata?.clueGraphPosition;
+        const x = saved && Number.isFinite(Number(saved.x)) ? Number(saved.x) : 190 + (levelIndex.get(level) || 0) * 330;
+        const gap = Math.max(112, Math.min(170, (metrics.height - 180) / Math.max(bucket.length, 1)));
+        const y = saved && Number.isFinite(Number(saved.y)) ? Number(saved.y) : 110 + row * gap + (level % 2 ? 34 : 0);
+        const points = linkedPoints(clue.id, data);
+        const scene = pointScene(points[0], data);
+        const chapter = sceneChapter(scene, data);
+        const meta = clueMetaLabel(clue);
+        return {
+          clue,
+          x: Math.round(x),
+          y: Math.round(y),
+          chapter,
+          scene,
+          points,
+          meta,
+          locked: clue.visibility !== "public",
+          done: points.length > 0
+        };
+      });
+  }
+
+  function graphConnector(from, to, cls = "") {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const width = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    return `<i class="clue-flow-line ${cls}" style="left:${from.x}px;top:${from.y}px;width:${width}px;transform:rotate(${angle}deg)"></i>`;
+  }
+
+  function clueGraph(list, data, q) {
+    const allDependencies = clueDependencyEdges(data);
+    const visibleIds = new Set(list.map((clue) => clue.id));
+    const dependencies = allDependencies.filter((edge) => visibleIds.has(edge.from) && visibleIds.has(edge.to));
+    const levels = clueLevels(list, dependencies);
+    const levelSizes = [...levels.values()].reduce((map, level) => map.set(level, (map.get(level) || 0) + 1), new Map());
+    const metrics = clueGraphMetrics(list.length, new Set(levels.values()).size || 1, Math.max(1, ...levelSizes.values()));
+    const nodes = clueGraphNodes(list, data, metrics, dependencies);
+    const nodeById = new Map(nodes.map((node) => [node.clue.id, node]));
+    const selectedId = state.cluesSelectedId || "";
+    const center = { x: metrics.width / 2, y: metrics.height / 2 };
+    const zoom = Number(state.clueFlowZoom || 1);
+    const filter = state.clueFlowFilter || "all";
+    const lines = dependencies.length
+      ? dependencies.map((edge) => {
+        const from = nodeById.get(edge.from);
+        const to = nodeById.get(edge.to);
+        return from && to ? graphConnector({ x: from.x, y: from.y }, { x: to.x, y: to.y }, edge.kind) : "";
+      }).join("")
+      : nodes.map((node, index) => graphConnector({ x: node.x, y: node.y }, center, index % 3 === 0 ? "main" : index % 3 === 1 ? "soft" : "dashed")).join("");
+    return `<article class="clue-flow-panel">
+      <div class="clue-flow-head">
+        <div><h3>线索流程图</h3><p>拖动画布移动视野，使用缩放查看完整线索网络。</p></div>
+        <div class="clue-flow-tools">
+          <div class="filter-tabs">
+            <button class="filter-tab ${filter === "all" ? "active" : ""}" data-action="clue-flow-filter" data-filter="all">全部线索</button>
+            <button class="filter-tab ${filter === "linked" ? "active" : ""}" data-action="clue-flow-filter" data-filter="linked">已关联</button>
+            <button class="filter-tab ${filter === "incomplete" ? "active" : ""}" data-action="clue-flow-filter" data-filter="incomplete">待补全</button>
+          </div>
+          <div class="clue-zoom-controls" aria-label="线索图缩放">
+            <button type="button" data-action="clue-flow-zoom" data-zoom="out">-</button>
+            <span>${Math.round(zoom * 100)}%</span>
+            <button type="button" data-action="clue-flow-zoom" data-zoom="in">+</button>
+            <button type="button" data-action="clue-flow-zoom" data-zoom="reset">重置</button>
+          </div>
+        </div>
+      </div>
+      <div class="clue-flow-viewport" data-clue-flow-viewport>
+        <div class="clue-flow-canvas" style="width:${metrics.width}px;height:${metrics.height}px;transform:scale(${zoom});">
+          ${lines}
+          <button type="button" class="clue-truth-node" data-go="studio" style="left:${center.x}px;top:${center.y}px"><span>◇</span><strong>真相节点</strong></button>
+          ${nodes.map((node) => {
+            const selected = node.clue.id === selectedId ? " selected" : "";
+            const tone = node.meta.importance === "关键线索" ? " key" : node.meta.importance === "烟雾弹" ? " decoy" : "";
+            const asset = clueAsset(node.clue);
+            return `<button type="button" tabindex="-1" class="clue-flow-node${selected}${tone}" data-action="clues-select" data-clue="${node.clue.id}" data-x="${node.x}" data-y="${node.y}" style="left:${node.x}px;top:${node.y}px">
+              <span class="clue-thumb">${asset ? "图" : node.meta.type.slice(0, 1)}</span>
+              <span class="clue-node-copy"><strong>${highlightQuery(node.clue.name, q)}</strong><small>${escapeHtml(node.scene?.name || node.chapter?.title || node.meta.importance)}</small></span>
+              <i aria-label="${node.locked ? "私密线索" : "公开线索"}">${node.locked ? "🔒" : "✓"}</i>
+            </button>`;
+          }).join("")}
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function clueTimeline(data) {
+    const chapters = (data.chapters || []).slice().sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)).slice(0, 7);
+    if (!chapters.length) return "";
+    return `<article class="clue-timeline-panel"><h3>剧情时间线</h3><div class="clue-timeline-track">
+      <span>序章</span>
+      ${chapters.map((chapter) => {
+        const chapterScenes = (data.scenes || []).filter((scene) => scene.chapter_id === chapter.id);
+        const chapterClues = linkedChapterClues(chapterScenes, data);
+        return `<button type="button" data-go="studio" title="${escapeHtml(chapter.title)} · ${chapterClues.length} 条线索"><i></i><strong>第 ${chapter.sequence || "?"} 章</strong><small>${escapeHtml(chapter.title)}</small></button>`;
+      }).join("")}
+      <span>终局</span>
+    </div></article>`;
+  }
+
+  function linkedChapterClues(scenes, data) {
+    const sceneIds = new Set(scenes.map((scene) => scene.id));
+    const clueIds = new Set((data.investigationPoints || []).filter((point) => sceneIds.has(point.scene_id) && point.clue_id).map((point) => point.clue_id));
+    return (data.clues || []).filter((clue) => clueIds.has(clue.id));
+  }
+
+  function clueDetailPanel(clue, data) {
+    if (!clue) {
+      return `<aside class="clue-detail-panel"><div class="empty-state">选择一个线索查看详情。</div></aside>`;
+    }
+    const meta = clueMetaLabel(clue);
+    const rawMeta = clue.metadata || {};
+    const asset = clueAsset(clue);
+    const points = linkedPoints(clue.id, data);
+    const scenes = points.map((point) => pointScene(point, data)).filter(Boolean);
+    const edgeRefs = (data.edges || []).filter((edge) => (edge.from_type === "clue" && edge.from_id === clue.id) || (edge.to_type === "clue" && edge.to_id === clue.id));
+    const dependencyRefs = clueDependencyEdges(data);
+    const incomingDeps = dependencyRefs.filter((edge) => edge.to === clue.id);
+    const outgoingDeps = dependencyRefs.filter((edge) => edge.from === clue.id);
+    const clueName = (id) => (data.clues || []).find((item) => item.id === id)?.name || "未知线索";
+    const excerpt = clue.public_text || clue.host_text || "还没有补充线索正文。";
+    const tab = state.clueDetailTab === "triggers" ? "triggers" : "detail";
+    const detailBody = `<p class="section-kicker">${escapeHtml(meta.type)} · ${escapeHtml(meta.importance)}</p>
+        <h3>${escapeHtml(clue.name)}</h3>
+        <div class="clue-detail-tags"><span class="status-chip ${clue.visibility === "public" ? "published" : "draft"}">${VISIBILITY_LABELS[clue.visibility] || clue.visibility || "私密"}</span><span class="cloud-pill">${points.length || 0} 个调查点</span></div>
+        <div class="clue-preview-card">
+          <div class="clue-preview-image ${asset ? "has-asset" : ""}"><span>${asset ? "关联附件" : "线索预览"}</span></div>
+          <strong>线索描述</strong>
+          <p>${escapeHtml(excerpt.slice(0, 220))}${excerpt.length > 220 ? "…" : ""}</p>
+        </div>
+        <div class="clue-related-grid">
+          <div><span>关联角色</span><strong>${escapeHtml(clue.visibility === "public" ? "全员可见" : clue.visibility === "host" ? "主持可见" : "获得者")}</strong></div>
+          <div><span>关联地点</span><strong>${scenes.length || edgeRefs.length}</strong></div>
+        </div>`;
+    const triggerBody = `<p class="section-kicker">TRIGGER CONDITIONS</p>
+        <h3>${escapeHtml(clue.name)}</h3>
+        <div class="clue-trigger-summary">
+          <div><span>前置线索</span><strong>${incomingDeps.length || 0}</strong></div>
+          <div><span>解锁后续</span><strong>${outgoingDeps.length || 0}</strong></div>
+        </div>
+        <div class="clue-unlock-list expanded">
+          ${rawMeta.triggerNote ? `<h4>设计备注</h4><p><span>※</span>${escapeHtml(rawMeta.triggerNote)}</p>` : ""}
+          <h4>前置线索</h4>
+          ${incomingDeps.length ? incomingDeps.map((edge) => `<p><span>←</span><b>${escapeHtml(clueName(edge.from))}</b> · ${escapeHtml(edge.label || relationLabel(edge.kind))}</p>`).join("") : `<p><span>◇</span>当前线索没有其他线索作为前置条件。</p>`}
+          <h4>解锁后续线索</h4>
+          ${outgoingDeps.length ? outgoingDeps.map((edge) => `<p><span>→</span><b>${escapeHtml(clueName(edge.to))}</b> · ${escapeHtml(edge.label || relationLabel(edge.kind))}</p>`).join("") : `<p><span>◇</span>当前线索暂未作为其他线索的前置条件。</p>`}
+          <h4>调查点触发</h4>
+          ${points.length ? points.map((point) => `<p><span>◎</span><b>${escapeHtml(point.name)}</b>${pointScene(point, data) ? ` · ${escapeHtml(pointScene(point, data).name)}` : ""}</p>`).join("") : `<p><span>◇</span>尚未绑定调查点，可在编排图谱中连接。</p>`}
+          <h4>剧情关系</h4>
+          ${edgeRefs.length ? edgeRefs.map((edge) => `<p><span>↔</span>${escapeHtml(relationLabel(edge.relation_type))}：${escapeHtml(edge.from_type)} → ${escapeHtml(edge.to_type)}</p>`).join("") : `<p><span>◇</span>尚未创建与其他节点的剧情连线。</p>`}
+          <h4>可见性规则</h4>
+          <p><span>🔒</span>${escapeHtml(VISIBILITY_LABELS[clue.visibility] || clue.visibility || "私密")} · ${clue.visibility === "public" ? "进入房间即可查看" : clue.visibility === "host" ? "仅主持端使用" : "玩家获得后可见"}</p>
+        </div>`;
+    return `<aside class="clue-detail-panel">
+      <div class="clue-detail-topbar">
+        <div class="clue-detail-tabs"><button class="${tab === "detail" ? "active" : ""}" data-action="clue-detail-tab" data-tab="detail">线索详情</button><button class="${tab === "triggers" ? "active" : ""}" data-action="clue-detail-tab" data-tab="triggers">触发条件</button></div>
+        <button type="button" class="clue-detail-close" data-action="clue-detail-close" aria-label="关闭线索详情">×</button>
+      </div>
+      <div class="clue-detail-body">
+        ${tab === "triggers" ? triggerBody : detailBody}
+        ${tab === "detail" ? `<div class="clue-unlock-list">
+          <h4>解锁条件</h4>
+          ${points.length ? points.slice(0, 4).map((point) => `<p><span>◎</span>完成调查：${escapeHtml(point.name)}${pointScene(point, data) ? ` · ${escapeHtml(pointScene(point, data).name)}` : ""}</p>`).join("") : `<p><span>◇</span>尚未绑定调查点，可在编排图谱中连接。</p>`}
+          ${edgeRefs.slice(0, 3).map((edge) => `<p><span>↔</span>${escapeHtml(relationLabel(edge.relation_type))}：${escapeHtml(edge.from_type)} → ${escapeHtml(edge.to_type)}</p>`).join("")}
+        </div>` : ""}
+        <div class="clue-detail-actions">
+          <button class="primary-btn" data-action="clues-edit" data-clue="${clue.id}">编辑线索</button>
+          <button class="secondary-btn" data-action="clues-open-studio" data-clue="${clue.id}">在图谱中定位</button>
+        </div>
+      </div>
+    </aside>`;
+  }
+
+  function clueAuditCards(list, data) {
+    const linked = list.filter((clue) => linkedPoints(clue.id, data).length).length;
+    const withText = list.filter((clue) => String(clue.public_text || "").trim()).length;
+    const withRules = list.filter((clue) => (data.edges || []).some((edge) => (edge.from_type === "clue" && edge.from_id === clue.id) || (edge.to_type === "clue" && edge.to_id === clue.id))).length;
+    const keyed = list.filter((clue) => clue?.metadata?.importance === "key").length;
+    const cards = [
+      { icon: "文", label: "内容审核", value: `${withText}/${list.length || 0}` },
+      { icon: "线", label: "线索平衡", value: `${linked}/${list.length || 0}` },
+      { icon: "规", label: "规则校验", value: `${withRules}/${list.length || 0}` },
+      { icon: "测", label: "体验测试", value: `${keyed}/${Math.max(keyed, 1)}` }
+    ];
+    return `<section class="clue-audit-grid">${cards.map((card) => `<article><span>${card.icon}</span><div><strong>${escapeHtml(card.label)}</strong><p>${escapeHtml(card.value)}</p></div><i>✓</i></article>`).join("")}</section>`;
+  }
+
   function clues() {
     const data = state.cloudStudio;
     if (!data) {
@@ -125,8 +570,8 @@
       }) || `<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
     }
     const q = state.cluesSearchQuery || "";
-    const selectedId = state.cluesSelectedId;
     let list = data.clues || [];
+    const dependencyRefs = clueDependencyEdges(data);
     if (q) {
       const lower = q.toLowerCase();
       list = list.filter(
@@ -136,27 +581,48 @@
           String(clue.host_text || "").toLowerCase().includes(lower)
       );
     }
+    const flowFilter = state.clueFlowFilter || "all";
+    if (flowFilter === "linked") {
+      list = list.filter((clue) => linkedPoints(clue.id, data).length || dependencyRefs.some((edge) => edge.from === clue.id || edge.to === clue.id));
+    } else if (flowFilter === "incomplete") {
+      list = list.filter((clue) => !String(clue.public_text || "").trim() || (!linkedPoints(clue.id, data).length && !dependencyRefs.some((edge) => edge.from === clue.id || edge.to === clue.id)));
+    }
     const bulkSelected = new Set(state.cluesBulkSelection || []);
     const visibleIds = list.map((clue) => clue.id);
     const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => bulkSelected.has(id));
+    const selectedId = state.cluesSelectedId || "";
+    const selectedClue = selectedId ? (data.clues || []).find((clue) => clue.id === selectedId) || null : null;
     const bulkToolbar = list.length
       ? `<div class="row clues-bulk-toolbar"><label class="check-label"><input type="checkbox" data-action="clues-select-all" ${allVisibleSelected ? "checked" : ""}><span>全选当前列表 (${list.length})</span></label><button class="danger-btn" data-action="clues-batch-delete" ${bulkSelected.size ? "" : "disabled"}>删除所选 (${bulkSelected.size || 0})</button></div>`
       : "";
     return `${catalogExperienceBanner(data.world)}<section class="clues-page"><div class="section-head"><div><p class="section-kicker">CLUE LIBRARY</p><h2>线索管理</h2><p>共 ${data.clues.length} 条线索 · 勾选后可批量删除测试线索</p></div><div class="row"><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="primary-btn" data-action="clues-add">＋ 新建线索</button></div></div>
-    <div class="search-box clues-search"><span>⌕</span><input id="clues-search-input" class="field" placeholder="搜索线索名称或正文…" value="${escapeHtml(q)}"></div>
-    ${bulkToolbar}
-    ${list.length ? `<div class="clues-table">${list
+    <div class="clues-command-row">
+      <div class="search-box clues-search"><span>⌕</span><input id="clues-search-input" class="field" placeholder="搜索线索名称或正文…" value="${escapeHtml(q)}"></div>
+      ${bulkToolbar}
+    </div>
+    ${list.length ? `<div class="clue-workbench${selectedClue ? "" : " no-detail"}">
+      <main class="clue-workbench-main">
+        ${clueGraph(list, data, q)}
+        ${clueTimeline(data)}
+        ${clueAuditCards(list, data)}
+        <details class="clues-list-drawer">
+          <summary>列表管理 · ${list.length} 条线索</summary>
+          <div class="clues-table">${list
       .map((clue) => {
         const points = cluePointCount(clue.id, data);
         const selected = selectedId === clue.id ? " clues-row-selected search-highlight" : "";
         const checked = bulkSelected.has(clue.id) ? " checked" : "";
         return `<article class="clues-row${selected}" data-clue-row="${clue.id}"><label class="clues-row-select check-label"><input type="checkbox" data-action="clues-toggle-select" data-clue="${clue.id}"${checked}></label><div class="clues-row-main"><div class="clues-row-head"><strong>${highlightQuery(clue.name, q)}</strong><span class="status-chip ${clue.visibility === "public" ? "published" : "draft"}">${VISIBILITY_LABELS[clue.visibility] || clue.visibility || "私密"}</span>${points ? `<span class="cloud-pill">${points} 个调查点</span>` : ""}</div><p>${highlightQuery((clue.public_text || "").slice(0, 160), q)}${(clue.public_text || "").length > 160 ? "…" : ""}</p></div><div class="row clues-row-actions"><button class="text-btn" data-action="clues-edit" data-clue="${clue.id}">编辑</button><button class="text-btn" data-action="clues-open-studio" data-clue="${clue.id}">在图谱中定位</button><button class="text-btn danger-text" data-action="clues-delete" data-clue="${clue.id}">删除</button></div></article>`;
       })
-      .join("")}</div>` : (q ? `<div class="empty-state">没有匹配「${escapeHtml(q)}」的线索。</div>` : `<div class="empty-state enriched-empty"><p><strong>尚未创建线索</strong></p><p>线索是玩家调查与规则推进的核心。空列表不代表功能未完成——可在编排图谱批量创建，或在此快速新建。</p><ul class="empty-hints"><li>编排台：筛选「线索」节点 → 拖拽创建并连线到场景/调查点</li><li>调查点完成可自动发放线索；规则页可配置「拥有线索 → 开放场景」</li></ul><div class="row"><button class="primary-btn" data-action="clues-add">＋ 新建线索</button><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="text-btn" data-action="open-creator-guide">阅读线索说明</button></div></div>`)}
+      .join("")}</div></details>
+      </main>
+      ${selectedClue ? clueDetailPanel(selectedClue, data) : ""}
+    </div>` : (q ? `<div class="empty-state">没有匹配「${escapeHtml(q)}」的线索。</div>` : `<div class="empty-state enriched-empty"><p><strong>尚未创建线索</strong></p><p>线索是玩家调查与规则推进的核心。空列表不代表功能未完成——可在编排图谱批量创建，或在此快速新建。</p><ul class="empty-hints"><li>编排台：筛选「线索」节点 → 拖拽创建并连线到场景/调查点</li><li>调查点完成可自动发放线索；规则页可配置「拥有线索 → 开放场景」</li></ul><div class="row"><button class="primary-btn" data-action="clues-add">＋ 新建线索</button><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="text-btn" data-action="open-creator-guide">阅读线索说明</button></div></div>`)}
     </section>`;
   }
 
   function bindCluesSearch() {
+    bindClueFlowPan();
     const input = document.getElementById("clues-search-input");
     if (!input || input.dataset.bound) return;
     input.dataset.bound = "1";
@@ -168,6 +634,110 @@
         render();
         bindCluesSearch();
       }, 280);
+    });
+  }
+
+  function bindClueFlowPan() {
+    const viewport = document.querySelector("[data-clue-flow-viewport]");
+    if (!viewport || viewport.dataset.panBound) return;
+    viewport.dataset.panBound = "1";
+    if (state.clueFlowScroll) {
+      viewport.scrollLeft = state.clueFlowScroll.left || 0;
+      viewport.scrollTop = state.clueFlowScroll.top || 0;
+    } else if (!viewport.scrollLeft && !viewport.scrollTop) {
+      viewport.scrollLeft = Math.max(0, (viewport.scrollWidth - viewport.clientWidth) / 2);
+      viewport.scrollTop = Math.max(0, (viewport.scrollHeight - viewport.clientHeight) / 2);
+    }
+    viewport.addEventListener("scroll", () => {
+      state.clueFlowScroll = { left: viewport.scrollLeft, top: viewport.scrollTop };
+    }, { passive: true });
+    viewport.addEventListener("click", (event) => {
+      const node = event.target.closest(".clue-flow-node");
+      if (!node) {
+        if (event.target.closest(".clue-flow-canvas") && state.cluesSelectedId) closeClueDetail();
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      if (state.clueFlowSuppressClick) {
+        state.clueFlowSuppressClick = false;
+        return;
+      }
+      selectClue(node.dataset.clue);
+    }, true);
+    viewport.addEventListener("pointerdown", (event) => {
+      const node = event.target.closest(".clue-flow-node");
+      if (node) {
+        event.preventDefault();
+        event.stopPropagation();
+        const zoom = Number(state.clueFlowZoom || 1) || 1;
+        const start = {
+          x: event.clientX,
+          y: event.clientY,
+          left: Number.parseFloat(node.dataset.x || node.style.left) || 0,
+          top: Number.parseFloat(node.dataset.y || node.style.top) || 0,
+          moved: false
+        };
+        node.classList.add("dragging");
+        node.setPointerCapture?.(event.pointerId);
+        const move = (moveEvent) => {
+          const dx = (moveEvent.clientX - start.x) / zoom;
+          const dy = (moveEvent.clientY - start.y) / zoom;
+          if (Math.abs(dx) + Math.abs(dy) > 4) start.moved = true;
+          const x = Math.max(72, start.left + dx);
+          const y = Math.max(62, start.top + dy);
+          node.style.left = `${x}px`;
+          node.style.top = `${y}px`;
+          node.dataset.x = String(Math.round(x));
+          node.dataset.y = String(Math.round(y));
+        };
+        const finish = async () => {
+          node.classList.remove("dragging");
+          node.releasePointerCapture?.(event.pointerId);
+          document.removeEventListener("pointermove", move);
+          document.removeEventListener("pointerup", finish);
+          if (!start.moved) {
+            selectClue(node.dataset.clue);
+            return;
+          }
+          state.clueFlowSuppressClick = true;
+          const scroll = captureClueFlowViewport();
+          await saveClueGraphPosition(node.dataset.clue, {
+            x: Number.parseFloat(node.dataset.x || node.style.left),
+            y: Number.parseFloat(node.dataset.y || node.style.top)
+          });
+          render();
+          restoreClueFlowViewport(scroll);
+          setTimeout(() => {
+            state.clueFlowSuppressClick = false;
+          }, 180);
+        };
+        document.addEventListener("pointermove", move);
+        document.addEventListener("pointerup", finish, { once: true });
+        return;
+      }
+      if (event.target.closest("button")) return;
+      viewport.classList.add("panning");
+      const start = {
+        x: event.clientX,
+        y: event.clientY,
+        left: viewport.scrollLeft,
+        top: viewport.scrollTop,
+        moved: false
+      };
+      const move = (moveEvent) => {
+        if (Math.abs(moveEvent.clientX - start.x) + Math.abs(moveEvent.clientY - start.y) > 4) start.moved = true;
+        viewport.scrollLeft = start.left - (moveEvent.clientX - start.x);
+        viewport.scrollTop = start.top - (moveEvent.clientY - start.y);
+      };
+      const finish = () => {
+        viewport.classList.remove("panning");
+        document.removeEventListener("pointermove", move);
+        document.removeEventListener("pointerup", finish);
+        if (!start.moved && state.cluesSelectedId) closeClueDetail();
+      };
+      document.addEventListener("pointermove", move);
+      document.addEventListener("pointerup", finish, { once: true });
     });
   }
 
@@ -192,18 +762,10 @@
           { id: "public", name: "房间公开" },
           { id: "host", name: "主持可见" }
         ], clue?.visibility || "role") +
-        studioSelect("线索类型", "clueType", [
-          { id: "text", name: "文字" },
-          { id: "image", name: "图片" },
-          { id: "file", name: "文件" },
-          { id: "audio", name: "音频" }
-        ], meta.clueType || "text") +
+        studioSelect("线索类型", "clueType", CLUE_TYPE_OPTIONS, meta.clueType || "text") +
         studioSelect("关联资产", "assetId", assets, meta.assetId || "") +
-        studioSelect("重要程度", "importance", [
-          { id: "normal", name: "普通" },
-          { id: "key", name: "关键" },
-          { id: "red_herring", name: "烟雾弹" }
-        ], meta.importance || "normal"),
+        studioSelect("重要程度", "importance", CLUE_IMPORTANCE_OPTIONS, meta.importance || "normal") +
+        studioField("触发条件说明", "triggerNote", "textarea", meta.triggerNote || ""),
       clue ? "保存修改" : "写入云端",
       async () => {
         try {
@@ -215,9 +777,11 @@
               hostText: values.hostText,
               visibility: values.visibility || "role",
               metadata: {
+                ...(clue.metadata || {}),
                 clueType: values.clueType || "text",
                 assetId: values.assetId || null,
-                importance: values.importance || "normal"
+                importance: values.importance || "normal",
+                triggerNote: values.triggerNote || ""
               }
             });
           } else {
@@ -229,7 +793,8 @@
               metadata: {
                 clueType: values.clueType || "text",
                 assetId: values.assetId || null,
-                importance: values.importance || "normal"
+                importance: values.importance || "normal",
+                triggerNote: values.triggerNote || ""
               }
             });
           }
@@ -249,6 +814,11 @@
   }
 
   viewExports.clues = clues;
+  viewExports.selectClue = selectClue;
+  viewExports.closeClueDetail = closeClueDetail;
+  viewExports.setClueFlowFilter = setClueFlowFilter;
+  viewExports.setClueDetailTab = setClueDetailTab;
+  viewExports.adjustClueFlowZoom = adjustClueFlowZoom;
   viewExports.bindCluesSearch = bindCluesSearch;
   viewExports.openClueInStudio = openClueInStudio;
   viewExports.openCluesEditor = openCluesEditor;
