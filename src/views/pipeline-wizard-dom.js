@@ -1,7 +1,6 @@
 /** AI pipeline editor DOM read/write — sync modal fields to session. */
+import { showToast } from "../components/toast.js";
 (function (window) {
-  const T = window.zhimuToast || {};
-  const showToast = T.showToast || (() => {});
   const modal = () => window.zhimuDom?.modal;
   const PB = () => window.zhimuPipelineBrief || {};
   const PS = () => window.zhimuPipelineSession || {};

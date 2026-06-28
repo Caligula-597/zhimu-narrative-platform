@@ -1,6 +1,6 @@
 /**
  * Vite entry — import order mirrors legacy index.html script chain.
- * Each module still attaches to window.*; this file only defines load order.
+ * Modules use ES exports; window.* bridges rebuilt from exports for un-migrated consumers.
  */
 import "../config.js";
 import "../src/dom.js";

@@ -218,22 +218,27 @@ for (const rel of files) {
 if (failed) process.exit(1);
 
 // Verify critical exports landed on window.* bridges.
-const { zhimuViews, zhimuRuntime, zhimuApi } = globalThis.window;
+const { zhimuViews, zhimuRuntime } = globalThis.window;
+
+// API surface: verify via namespace import (window.zhimuApi bridge was removed
+// after all view/runtime/component consumers migrated to `import * as zhimuApi`).
+const apiNamespace = await import(fileUrl("src/api/index.js") + `?t=${Date.now()}-api-ns`);
+
 const checks = [
   ["zhimuViews.overview.overview", typeof zhimuViews?.overview?.overview],
   ["zhimuRuntime.render", typeof zhimuRuntime?.render],
   ["zhimuRuntime.go", typeof zhimuRuntime?.go],
   ["zhimuRuntime.handle", typeof zhimuRuntime?.handle],
-  // Bridge: window.zhimuApi must retain every original method name.
-  ["zhimuApi.getWorld", typeof zhimuApi?.getWorld],
-  ["zhimuApi.createRoom", typeof zhimuApi?.createRoom],
-  ["zhimuApi.getHostProgress", typeof zhimuApi?.getHostProgress],
-  ["zhimuApi.getPlayerHome", typeof zhimuApi?.getPlayerHome],
-  ["zhimuApi.streamRoomEvents", typeof zhimuApi?.streamRoomEvents],
-  ["zhimuApi.uploadAsset", typeof zhimuApi?.uploadAsset],
-  ["zhimuApi.getOpsStatus", typeof zhimuApi?.getOpsStatus],
-  ["zhimuApi.context", typeof zhimuApi?.context],
-  ["zhimuApi.selectWorld", typeof zhimuApi?.selectWorld]
+  // API namespace exports (replaces former window.zhimuApi bridge checks).
+  ["zhimuApi.getWorld", typeof apiNamespace.getWorld],
+  ["zhimuApi.createRoom", typeof apiNamespace.createRoom],
+  ["zhimuApi.getHostProgress", typeof apiNamespace.getHostProgress],
+  ["zhimuApi.getPlayerHome", typeof apiNamespace.getPlayerHome],
+  ["zhimuApi.streamRoomEvents", typeof apiNamespace.streamRoomEvents],
+  ["zhimuApi.uploadAsset", typeof apiNamespace.uploadAsset],
+  ["zhimuApi.getOpsStatus", typeof apiNamespace.getOpsStatus],
+  ["zhimuApi.context", typeof apiNamespace.context],
+  ["zhimuApi.selectWorld", typeof apiNamespace.selectWorld]
 ];
 
 for (const [name, type] of checks) {

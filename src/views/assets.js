@@ -1,17 +1,16 @@
 /* Auto-split from app.js — assets.js */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const canEditWorldContent = U.canEditWorldContent || (() => false);
   const M = window.zhimuModal || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatBytes = F.formatBytes || (() => "");
   const formatTime = F.formatTime || (() => "");
-  const showToast = T.showToast || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const ASSET_KIND_TABS = window.zhimuUserMessages?.ASSET_KIND_TABS || [{ id: "", label: "全部" }];
@@ -21,10 +20,8 @@ function refreshAssetsIfVisible() {
   }
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
-  window.zhimuViews = window.zhimuViews || {};
-  const viewExports = window.zhimuViews.assets = window.zhimuViews.assets || {};
 
-function assetsPanelHtml(){
+export function assetsPanelHtml(){
   const usage=state.storageUsage;
   const pct=usage?Math.min(100,Math.round(usage.usedBytes/usage.maxBytes*100)):0;
   const assets=state.cloudAssets||[];
@@ -54,7 +51,7 @@ function assetsPanelHtml(){
   <div class="tabs">${tabs}${recycleBtn}</div>`;
 }
 
-function bindAssetsPanel(root=document){
+export function bindAssetsPanel(root=document){
  const input=root.querySelector("#asset-search-input");
  if(!input||input.dataset.bound)return;
  input.dataset.bound="1";
@@ -69,11 +66,11 @@ function bindAssetsPanel(root=document){
  });
 }
 
-function bindAssetSearch(){
+export function bindAssetSearch(){
  bindAssetsPanel(document);
 }
 
-async function reloadAssets(){
+export async function reloadAssets(){
  try{
   const params={};
   if(state.assetKindFilter)params.kind=state.assetKindFilter;
@@ -90,20 +87,20 @@ async function reloadAssets(){
  }catch(error){showError(error)}
 }
 
-async function setAssetFilter(kind){
+export async function setAssetFilter(kind){
  state.assetShowRecycle=false;
  state.assetKindFilter=kind||"";
  await reloadAssets();
  refreshAssetsIfVisible();
 }
 
-async function toggleAssetRecycle(){
+export async function toggleAssetRecycle(){
  state.assetShowRecycle=!state.assetShowRecycle;
  await reloadAssets();
  refreshAssetsIfVisible();
 }
 
-async function restoreCloudAsset(assetId){
+export async function restoreCloudAsset(assetId){
  try{
   await zhimuApi.restoreAsset(assetId);
   await reloadAssets();
@@ -113,7 +110,7 @@ async function restoreCloudAsset(assetId){
  }catch(error){showError(error)}
 }
 
-async function setWorldCoverAsset(assetId){
+export async function setWorldCoverAsset(assetId){
  const worldId=zhimuApi.context.worldId;
  if(!worldId||!assetId)return showToast("请先选择图片附件");
  try{
@@ -126,7 +123,7 @@ async function setWorldCoverAsset(assetId){
  }catch(error){showError(error)}
 }
 
-async function clearWorldCover(){
+export async function clearWorldCover(){
  const worldId=zhimuApi.context.worldId;
  if(!worldId)return;
  try{
@@ -139,9 +136,9 @@ async function clearWorldCover(){
  }catch(error){showError(error)}
 }
 
-async function deleteCloudAsset(assetId){try{await zhimuApi.deleteAsset(assetId);await reloadAssets();await loadCloudData();refreshAssetsIfVisible();showToast("附件已移入 14 天回收站")}catch(error){showError(error)}}
+export async function deleteCloudAsset(assetId){try{await zhimuApi.deleteAsset(assetId);await reloadAssets();await loadCloudData();refreshAssetsIfVisible();showToast("附件已移入 14 天回收站")}catch(error){showError(error)}}
 
-async function downloadCloudAsset(assetId){
+export async function downloadCloudAsset(assetId){
  try{
   const ticket=await zhimuApi.getAssetDownloadUrl(assetId);
   const asset=(state.cloudAssets||[]).find((row)=>row.id===assetId);
@@ -155,7 +152,7 @@ async function downloadCloudAsset(assetId){
  }catch(error){showError(error)}
 }
 
-function openAssetUpload(options = {}){
+export function openAssetUpload(options = {}){
  const coverMode=Boolean(options.setAsCover);
  const title=coverMode?"上传剧本封面":"上传云端附件";
  const desc=coverMode?"上传成功后会自动设为当前剧本封面。":"浏览器只会获得短期上传地址，不会接触永久密钥。";
@@ -171,7 +168,7 @@ function openAssetUpload(options = {}){
  modal.querySelector("#cloud-upload-confirm").onclick=uploadSelectedAsset;
 }
 
-async function uploadSelectedAsset(){
+export async function uploadSelectedAsset(){
  const setAsCover=modal.dataset.setAsCover==="1";
  const input=modal.querySelector("#cloud-file-input");const file=input.files[0];if(!file)return showToast("请选择文件");
  if(setAsCover&&!/^image\//.test(file.type||""))return showToast("封面只能选择图片文件");
@@ -179,18 +176,8 @@ async function uploadSelectedAsset(){
  try{const asset=await zhimuApi.uploadAsset(file);if(setAsCover&&asset?.id)await setWorldCoverAsset(asset.id);closeModal();await reloadAssets();refreshAssetsIfVisible();showToast(setAsCover?"封面已上传并设置":"附件已安全上传到云端")}catch(error){button.disabled=false;button.textContent=setAsCover?"重新上传封面":"重新上传";showError(error)}
 }
 
-  viewExports.assetsPanelHtml = assetsPanelHtml;
-  viewExports.bindAssetSearch = bindAssetSearch;
-  viewExports.bindAssetsPanel = bindAssetsPanel;
-  viewExports.reloadAssets = reloadAssets;
-  viewExports.setAssetFilter = setAssetFilter;
-  viewExports.toggleAssetRecycle = toggleAssetRecycle;
-  viewExports.restoreCloudAsset = restoreCloudAsset;
-  viewExports.setWorldCoverAsset = setWorldCoverAsset;
-  viewExports.clearWorldCover = clearWorldCover;
-  viewExports.deleteCloudAsset = deleteCloudAsset;
-  viewExports.downloadCloudAsset = downloadCloudAsset;
-  viewExports.openAssetUpload = openAssetUpload;
-  viewExports.uploadSelectedAsset = uploadSelectedAsset;
-})(window);
-export {};
+
+// Bridge: window.zhimuViews.assets populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.assets = { assetsPanelHtml, bindAssetSearch, bindAssetsPanel, reloadAssets, setAssetFilter, toggleAssetRecycle, restoreCloudAsset, setWorldCoverAsset, clearWorldCover, deleteCloudAsset, downloadCloudAsset, openAssetUpload, uploadSelectedAsset };

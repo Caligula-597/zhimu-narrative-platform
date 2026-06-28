@@ -1,11 +1,10 @@
 /* Global data-action dispatcher — domain handlers live in actions-*.js */
-(function (window) {
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
-  const showToast = T.showToast || (() => {});
   const openModal = M.openModal || (() => {});
   const enhanceCloudPanels = R.enhanceCloudPanels || (() => {});
   const openWizard = R.openWizard || (() => {});
@@ -24,7 +23,7 @@
     () => window.zhimuActionsClues?.handleCluesAction
   ];
 
-  function bindDynamic() {
+export function bindDynamic() {
     enhanceCloudPanels();
     document.querySelectorAll("[data-action]").forEach((el) => {
       if (el.type === "checkbox" || el.tagName === "SELECT") el.onchange = () => handle(el.dataset.action, el);
@@ -37,7 +36,7 @@
     window.zhimuSearchFocus?.applyAfterRender?.();
   }
 
-  function handle(action, el) {
+export function handle(action, el) {
     for (const getFn of dispatchers) {
       const fn = getFn();
       if (typeof fn === "function" && fn(action, el)) return;
@@ -55,6 +54,6 @@
     if (action === "unavailable") return showToast(`${el.dataset.feature || "该功能"}暂不可用`);
   }
 
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { bindDynamic, handle });
-})(window);
-export {};
+// Bridge: window.zhimuRuntime populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { bindDynamic, handle });

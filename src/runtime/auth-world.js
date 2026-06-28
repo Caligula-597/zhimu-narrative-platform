@@ -1,11 +1,11 @@
 /* Auto-split from app.js — auth-world.js */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
@@ -32,7 +32,6 @@
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const showToast = T.showToast || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -47,7 +46,7 @@
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   window.zhimuViews = window.zhimuViews || {};
-  function openForgotPassword(prefillEmail=""){
+export function openForgotPassword(prefillEmail=""){
  modal.className="modal auth-modal";
  modal.innerHTML=`<h2>找回密码</h2><p class="wizard-intro">输入注册邮箱，我们会发送重置链接（1 小时内有效）。</p>${studioField("邮箱","forgotEmail","input",prefillEmail)}<div class="modal-actions"><button class="secondary-btn" data-auth-back-login>返回登录</button><button class="primary-btn" data-auth-forgot-submit>发送重置邮件</button></div>`;
  modalBackdrop.classList.add("show");
@@ -56,7 +55,7 @@
  modal.querySelector("[data-close]")?.remove();
 }
 
- function openVerifyPending(prefillEmail=""){
+export function openVerifyPending(prefillEmail=""){
  modal.className="modal auth-modal";
  modal.innerHTML=`<h2>验证邮箱</h2><p class="wizard-intro">我们已向 ${escapeHtml(prefillEmail||"你的邮箱")} 发送验证链接（24 小时内有效）。验证通过后即可创建剧本。</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-resend-verify>重新发送验证邮件</button></div>`;
  modalBackdrop.classList.add("show");
@@ -64,7 +63,7 @@
  modal.querySelector("[data-auth-resend-verify]").onclick=async()=>{try{if(!window.zhimuSessionAuth?.isAuthenticated?.())return showToast("请先登录后再重发验证邮件");await zhimuApi.resendVerification();showToast("验证邮件已发送（含垃圾箱）")}catch(error){showError(error)}};
 }
 
- function openVerifyEmail(verifyToken){
+export function openVerifyEmail(verifyToken){
  if(!verifyToken)return;
  modal.className="modal auth-modal";
  modal.innerHTML=`<h2>正在验证邮箱…</h2><p class="wizard-intro">请稍候。</p>`;
@@ -72,7 +71,7 @@
  (async()=>{try{const result=await zhimuApi.verifyEmail({token:verifyToken});window.zhimuSessionAuth?.markAuthenticated?.();closeModal();showToast("邮箱已验证，已自动登录");await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true);render()}catch(error){showError(error)}}catch(error){modal.innerHTML=`<h2>验证失败</h2><p class="wizard-intro">${escapeHtml(error.message||"链接无效或已过期")}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-open-login>去登录</button></div>`;modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-auth-open-login]").onclick=()=>openAuth()}})();
 }
 
- function openResetPassword(resetToken){
+export function openResetPassword(resetToken){
  if(!resetToken)return;
  modal.className="modal auth-modal";
  modal.innerHTML=`<h2>设置新密码</h2><p class="wizard-intro">请为账号设置新的登录密码（至少 8 位）。设置成功后需重新登录。</p>${studioField("新密码 · 至少 8 位","resetPassword","input","")}${studioField("确认新密码","resetPasswordConfirm","input","")}<div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-auth-reset-submit>更新密码</button></div>`;
@@ -82,17 +81,17 @@
  modal.querySelector("[data-auth-reset-submit]").onclick=async()=>{try{const password=modal.querySelector('[data-studio-field="resetPassword"]').value;const confirm=modal.querySelector('[data-studio-field="resetPasswordConfirm"]').value;if(password.length<8)return showToast("密码至少 8 位");if(password!==confirm)return showToast("两次输入的密码不一致");await zhimuApi.resetPassword({token:resetToken,password});closeModal();window.zhimuSessionAuth?.markLoggedOut?.();showToast("密码已更新，请使用新密码登录");openAuth()}catch(error){showError(error)}};
 }
 
- function openAuth(){
+export function openAuth(){
  const loggedIn=Boolean(window.zhimuSessionAuth?.isAuthenticated?.());
  if(loggedIn){window.zhimuRuntime?.go?.("account");return}
  openAuthForm();
 }
 
-async function openAccountPanel(){
+export async function openAccountPanel(){
  window.zhimuRuntime?.go?.("account");
 }
 
-function openAuthForm(){
+export function openAuthForm(){
  const requireAuth=Boolean(window.zhimuConfig?.requireAuth);
  const guestIntro="注册或登录后，可创建剧本、邀请协作者并保存运行数据。";
  modal.className="modal auth-modal";
@@ -118,7 +117,7 @@ function applyWorldRename(worldId,name,summary){
  }
 }
 
-function openRenameWorldModal(worldId,worldName="",worldSummary="",reopenLibrary=false){
+export function openRenameWorldModal(worldId,worldName="",worldSummary="",reopenLibrary=false){
  if(!worldId)return showToast("未找到目标剧本");
  modal.className="modal";
  modal.innerHTML=`<h2>重命名剧本</h2><p class="wizard-intro">名称与简介会显示在侧栏、总览与玩家入口。</p><div class="form-group">${studioField("剧本名称","renameWorldName","input",worldName)}<label>剧本简介</label><textarea class="field" data-studio-field="renameWorldSummary" rows="3">${escapeHtml(worldSummary)}</textarea></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-rename-world-submit>保存</button></div>`;
@@ -138,7 +137,7 @@ function openRenameWorldModal(worldId,worldName="",worldSummary="",reopenLibrary
  };
 }
 
-async function joinCatalogWorld(worldId){
+export async function joinCatalogWorld(worldId){
  if(!worldId)return showToast("未找到目标剧本");
  try{
   const result=await zhimuApi.joinWorldCatalog(worldId);
@@ -157,7 +156,7 @@ async function joinCatalogWorld(worldId){
  }catch(error){showError(error)}
 }
 
-async function openWorldLibrary(defaultTab="mine"){
+export async function openWorldLibrary(defaultTab="mine"){
  modal.className="modal world-library-modal";
  modal.innerHTML=`<h2>选择剧本</h2><p class="wizard-intro">「我的剧本」是你创建或被邀请协作的世界；「公开剧本库」可体验主创作者已发布的完整剧本（每人一个自己的运行房，不会重复创建）。</p><div class="world-library-tabs"><button type="button" class="secondary-btn" data-library-tab="mine">我的剧本</button><button type="button" class="secondary-btn" data-library-tab="catalog">公开剧本库</button></div><div data-library-panel="mine"><label class="check-label" style="margin-bottom:12px"><input type="checkbox" id="world-library-archived"><span>显示已归档剧本</span></label></div><div class="world-library-list"><div class="empty-state">正在加载…</div></div><div class="world-library-danger hidden" data-world-library-danger></div><div class="modal-actions"><button class="secondary-btn" data-close disabled>关闭</button><button class="primary-btn" data-open-create-world disabled>＋ 创建新世界</button></div>`;
  modalBackdrop.classList.add("show");
@@ -222,7 +221,7 @@ async function openWorldLibrary(defaultTab="mine"){
  await draw();
 }
 
-async function deleteWorld(worldId,worldName){
+export async function deleteWorld(worldId,worldName){
  if(!worldId)return showToast("未找到要删除的剧本");
  const isCurrent=worldId===zhimuApi.context.worldId;
  const intro=isCurrent?`<p>你正在删除<strong>当前正在使用的剧本</strong>。删除后界面会清空，可再从公开库体验或创建新世界。</p>`:`<p>将永久删除该剧本的角色、章节、平行房与规则数据，且不可恢复。</p>`;
@@ -239,7 +238,7 @@ async function deleteWorld(worldId,worldName){
  });
 }
 
-async function selectWorld(worldId){
+export async function selectWorld(worldId){
  if(!worldId)return showToast("未找到目标剧本");
  if(worldId===zhimuApi.context.worldId){closeModal();return showToast("已经是当前剧本")}
  window.zhimuContext?.prepareWorldSwitch?.(worldId);
@@ -258,7 +257,7 @@ async function selectWorld(worldId){
  }
 }
 
-async function openWorldRooms(){
+export async function openWorldRooms(){
  try{
   const rooms=await zhimuApi.getWorldRooms(),world=state.cloudStudio?.world;
   const roomRows=rooms.map(room=>{
@@ -274,13 +273,13 @@ async function openWorldRooms(){
  }catch(error){showError(error)}
 }
 
-async function createParallelRoom(){
+export async function createParallelRoom(){
  const input=modal.querySelector("[data-room-name]"),name=input.value.trim();if(!name)return showToast("请填写平行房名称");
  const publicListing=Boolean(modal.querySelector("[data-room-public-listing]")?.checked);
  try{const room=await zhimuApi.createRoom(zhimuApi.context.worldId,{name,inviteCode:`ROOM-${Date.now().toString(36).toUpperCase()}`,publicListing});zhimuApi.selectRoom(room.id);closeModal();await loadCloudData(true,true);showToast(publicListing?`平行房已开放并公开到大厅：${room.invite_code}`:`平行房已开放：${room.invite_code}`);openWorldRooms()}catch(error){showError(error)}
 }
 
-async function setRoomPublicListing(roomId,publicListing){
+export async function setRoomPublicListing(roomId,publicListing){
  if(!roomId)return;
  try{
   await zhimuApi.updateRoomPublicListing(zhimuApi.context.worldId,roomId,publicListing);
@@ -290,27 +289,27 @@ async function setRoomPublicListing(roomId,publicListing){
  }catch(error){showError(error)}
 }
 
-async function selectParallelRoom(roomId){
+export async function selectParallelRoom(roomId){
  let roomName="";
  try{roomName=(await zhimuApi.getWorldRooms()).find((room)=>room.id===roomId)?.name||""}catch{/* best-effort */}
  window.zhimuContext?.prepareRoomSwitch?.(roomId);closeModal();await loadCloudData(true,true);
  showToast(roomName?`已切换到「${roomName}」`:"已切换到独立平行房");
 }
 
-function openCurrentRoomInvite(){
+export function openCurrentRoomInvite(){
  const room=activeRuntimeRoom();
  if(!room?.invite_code)return showToast("请先选择运行房");
  openRoomInvite(room.id,room.invite_code,room.name);
 }
 
-function openRoomInvite(roomId,inviteCode,roomName){
+export function openRoomInvite(roomId,inviteCode,roomName){
  const roles=state.cloudStudio?.roles||[];
  const playUrl=window.zhimuInviteLinks?.playerJoinUrl?.(inviteCode)||`https://play.getzhimu.com/?join=${encodeURIComponent(inviteCode)}`;
  modal.className="modal";modal.innerHTML=`<h2>邀请玩家 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">把<strong>邀请码</strong>或<strong>玩家链接</strong>发给参与者。玩家在 <a href="${escapeHtml(playUrl)}" target="_blank" rel="noopener">play.getzhimu.com</a> 输入码并选择角色席位即可入房。</p><div class="tutorial-tip"><b>房间邀请码</b><span class="invite-code">${escapeHtml(inviteCode)}</span></div><div class="tutorial-tip"><b>玩家链接</b><span class="invite-link">${escapeHtml(playUrl)}</span></div><div class="checklist">${roles.map(role=>check(escapeHtml(role.name),"玩家加入时选择这个角色席位")).join("")||`<div class="empty-state">当前剧本尚未建立角色席位。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-copy-invite-code data-invite-code="${escapeHtml(inviteCode)}">复制邀请码</button><button class="secondary-btn" data-copy-play-link data-invite-code="${escapeHtml(inviteCode)}">复制玩家链接</button><button class="primary-btn" data-action="room-join" data-invite-code="${escapeHtml(inviteCode)}">自测加入</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-copy-invite-code]").onclick=()=>window.zhimuInviteLinks?.copyText?.(inviteCode,"邀请码");modal.querySelector("[data-copy-play-link]").onclick=()=>window.zhimuInviteLinks?.copyText?.(playUrl,"玩家链接");modal.querySelector("[data-action]").onclick=()=>openJoinRoom(inviteCode);
 }
 
-function openJoinRoom(inviteCode=""){
+export function openJoinRoom(inviteCode=""){
  let invite=null;
  const draw=()=>{const roles=invite?.roles||[],boundRoleId=invite?.current_role_slot_id||"",available=boundRoleId?roles.filter(role=>role.id===boundRoleId):roles.filter(role=>!role.occupied||role.occupied_by_current);modal.className="modal";modal.innerHTML=`<h2>使用邀请码加入房间</h2><p class="wizard-intro">玩家只需要输入主持人发送的邀请码。系统会读取对应剧本的角色席位，再将玩家加入正确的独立平行房。</p><div class="form-group"><label>房间邀请码</label><div class="row"><input class="field" data-join-code value="${escapeHtml(inviteCode)}" placeholder="输入主持人发送的邀请码"><button class="secondary-btn" data-join-lookup>读取角色席位</button></div>${invite?`<div class="tutorial-tip"><b>${escapeHtml(invite.room.name)}</b><span>${escapeHtml(invite.world.name)} · ${boundRoleId?"你已绑定角色，仅可回到原席位":"选择你的角色后进入房间。"}</span></div>`:""}<label>选择角色席位</label><select class="field" data-join-role ${available.length?"":"disabled"}>${roles.map(role=>{const disabled=boundRoleId?role.id!==boundRoleId:role.occupied&&!role.occupied_by_current;return `<option value="${role.id}" ${disabled?"disabled":""}>${escapeHtml(role.name)}${boundRoleId&&role.id===boundRoleId?" · 你已绑定":role.occupied_by_current?" · 当前角色":role.occupied?" · 已被选择":""}</option>`}).join("")||`<option>请先读取角色席位</option>`}</select></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-join-submit ${available.length?"":"disabled"}>加入并进入玩家视角</button></div>`;
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-join-lookup]").onclick=lookup;modal.querySelector("[data-join-submit]").onclick=submit;
@@ -320,7 +319,7 @@ function openJoinRoom(inviteCode=""){
  draw();if(inviteCode)lookup();
 }
 
-async function acceptWorldInviteFromUrl(token){
+export async function acceptWorldInviteFromUrl(token){
  if(!token)return;
  const finish=async()=>{
   try{
@@ -341,7 +340,7 @@ async function acceptWorldInviteFromUrl(token){
  await finish();
 }
 
-function drainPendingInviteAfterAuth(){
+export function drainPendingInviteAfterAuth(){
  const token=sessionStorage.getItem("zhimuPendingInviteToken");
  if(!token||!window.zhimuSessionAuth?.isAuthenticated?.())return;
  sessionStorage.removeItem("zhimuPendingInviteToken");
@@ -372,7 +371,7 @@ function clearStartupSearchParams(keys){
  window.history.replaceState({},"",`${window.location.pathname}${window.location.hash||""}${qs?`?${qs}`:""}`);
 }
 
-function handleStartupAuthParams(){
+export function handleStartupAuthParams(){
  const params=new URLSearchParams(window.location.search);
  const resetToken=params.get("reset");
  const verifyToken=params.get("verify");
@@ -417,6 +416,6 @@ function handleStartupAuthParams(){
  }
  if(pending.length)return Promise.all(pending);
 }
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, openRenameWorldModal, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, setRoomPublicListing, selectParallelRoom, openRoomInvite, openCurrentRoomInvite, openJoinRoom, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });
-})(window);
-export {};
+// Bridge: window.zhimuRuntime populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, openRenameWorldModal, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, setRoomPublicListing, selectParallelRoom, openRoomInvite, openCurrentRoomInvite, openJoinRoom, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });

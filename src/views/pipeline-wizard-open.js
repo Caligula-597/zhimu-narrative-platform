@@ -1,13 +1,12 @@
 /** AI pipeline wizard modal controller (open + render loop). */
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
 (function (window) {
-  const zhimuApi = window.zhimuApi;
   const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const M = window.zhimuModal || {};
-  const T = window.zhimuToast || {};
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const formatTime = F.formatTime || (() => "");
-  const showToast = T.showToast || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const studioValues = M.studioValues || (() => ({}));

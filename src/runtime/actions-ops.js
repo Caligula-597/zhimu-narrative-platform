@@ -1,9 +1,8 @@
 /** Internal OPS console actions. */
+import * as api from "../api/index.js";
+import { showToast } from "../components/toast.js";
 (function (window) {
   const state = window.zhimuState;
-  const api = window.zhimuApi;
-  const T = window.zhimuToast || {};
-  const showToast = T.showToast || (() => {});
   const showError = (error, fallback = "OPS 操作失败") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   function render() { window.zhimuRender?.(); }
 

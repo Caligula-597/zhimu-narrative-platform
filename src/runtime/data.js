@@ -1,10 +1,8 @@
 /* Cloud data loader — orchestrates workspace, runtime, and room live updates. */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast, updateNotifyBadge } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
-  const T = window.zhimuToast || {};
-  const showToast = T.showToast || (() => {});
-  const updateNotifyBadge = T.updateNotifyBadge || (() => {});
   const reportError = (error, fallback = "操作失败，请稍后重试") =>
     showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
 
@@ -19,11 +17,11 @@
   let loadCloudDataPromise = null;
   let loadCloudDataKey = "";
 
-  async function ensureActiveWorld() {
+export async function ensureActiveWorld() {
     return workspace().ensureActiveWorld?.();
   }
 
-  async function loadCloudData(withToast = false, force = false) {
+export async function loadCloudData(withToast = false, force = false) {
     const key = zhimuApi.loadKey();
     if (force) {
       loadCloudDataPromise = null;
@@ -282,11 +280,11 @@
     }
   }
 
-  function clearRuntimeState() {
+export function clearRuntimeState() {
     runtimeStore().clearRuntimeState?.();
   }
 
-  function applyHostPlayersPayload(value) {
+export function applyHostPlayersPayload(value) {
     runtimeStore().applyHostPlayersPayload?.(value);
   }
 
@@ -294,7 +292,7 @@
     runtimeStore().failHostPlayersLoad?.(error);
   }
 
-  async function refreshHostEvents(withToast = false, silent = false) {
+export async function refreshHostEvents(withToast = false, silent = false) {
     if (!zhimuApi.context.roomId) {
       if (withToast && !silent) showToast("请先选择运行房");
       return;
@@ -309,7 +307,7 @@
     }
   }
 
-  async function refreshHostPlayers(withToast = false, silent = false) {
+export async function refreshHostPlayers(withToast = false, silent = false) {
     if (!zhimuApi.context.roomId) {
       if (withToast && !silent) showToast("请先选择运行房");
       return;
@@ -325,7 +323,7 @@
     }
   }
 
-  async function refreshHostAuditLog(withToast = false, silent = false) {
+export async function refreshHostAuditLog(withToast = false, silent = false) {
     if (!zhimuApi.context.roomId) {
       if (withToast && !silent) showToast("请先选择运行房");
       return;
@@ -340,7 +338,7 @@
     }
   }
 
-  async function refreshHostClueMatrix(withToast = false, silent = false) {
+export async function refreshHostClueMatrix(withToast = false, silent = false) {
     if (!zhimuApi.context.roomId) return;
     try {
       state.cloudHostClueMatrix = await zhimuApi.getHostClueMatrix();
@@ -351,7 +349,7 @@
     }
   }
 
-  async function refreshHostRoom(withToast = false) {
+export async function refreshHostRoom(withToast = false) {
     if (!zhimuApi.context.roomId) {
       if (withToast) showToast("请先选择运行房");
       return;
@@ -382,29 +380,19 @@
     }
   }
 
-  function enhanceCloudPanels() {}
+export function enhanceCloudPanels() {}
 
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, {
-    loadCloudData,
-    ensureActiveWorld,
-    clearRuntimeState,
-    applyHostPlayersPayload,
-    refreshPlayerHome: (...args) => roomEvents().refreshPlayerHome?.(...args),
-    refreshExploration: (...args) => roomEvents().refreshExploration?.(...args),
-    syncDirectorPolling: (...args) => roomEvents().syncDirectorPolling?.(...args),
-    refreshDirectorPoll: (...args) => roomEvents().refreshDirectorPoll?.(...args),
-    refreshHostEvents,
-    refreshHostPlayers,
-    refreshHostClueMatrix,
-    refreshHostAuditLog,
-    refreshHostRoom,
-    disconnectRoomEventStream: (...args) => roomEvents().disconnectRoomEventStream?.(...args),
-    scheduleRoomEventReconnect: (...args) => roomEvents().scheduleRoomEventReconnect?.(...args),
-    connectRoomEventStream: (...args) => roomEvents().connectRoomEventStream?.(...args),
-    handleRoomEvent: (...args) => roomEvents().handleRoomEvent?.(...args),
-    streamUserIdForRoom: (...args) => roomEvents().streamUserIdForRoom?.(...args),
-    enhanceCloudPanels,
-    renderQuotaSection: (...args) => window.zhimuAccountQuota?.renderQuotaSection?.(...args)
-  });
-})(window);
-export {};
+export function refreshPlayerHome(...args) { return roomEvents().refreshPlayerHome?.(...args); }
+export function refreshExploration(...args) { return roomEvents().refreshExploration?.(...args); }
+export function syncDirectorPolling(...args) { return roomEvents().syncDirectorPolling?.(...args); }
+export function refreshDirectorPoll(...args) { return roomEvents().refreshDirectorPoll?.(...args); }
+export function disconnectRoomEventStream(...args) { return roomEvents().disconnectRoomEventStream?.(...args); }
+export function scheduleRoomEventReconnect(...args) { return roomEvents().scheduleRoomEventReconnect?.(...args); }
+export function connectRoomEventStream(...args) { return roomEvents().connectRoomEventStream?.(...args); }
+export function handleRoomEvent(...args) { return roomEvents().handleRoomEvent?.(...args); }
+export function streamUserIdForRoom(...args) { return roomEvents().streamUserIdForRoom?.(...args); }
+export function renderQuotaSection(...args) { return window.zhimuAccountQuota?.renderQuotaSection?.(...args); }
+
+// Bridge: window.zhimuRuntime populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { loadCloudData, ensureActiveWorld, clearRuntimeState, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, syncDirectorPolling, refreshDirectorPoll, refreshHostEvents, refreshHostPlayers, refreshHostClueMatrix, refreshHostAuditLog, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels, renderQuotaSection });

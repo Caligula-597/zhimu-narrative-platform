@@ -1,8 +1,7 @@
 /** Automation rules CRUD actions. */
+import { showToast } from "../components/toast.js";
 (function (window) {
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
-  const showToast = T.showToast || (() => {});
   const openModal = M.openModal || (() => {});
 
   function views() { return window.zhimuViews || {}; }

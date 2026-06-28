@@ -1,11 +1,11 @@
 /* Auto-split from app.js — wizard.js */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
@@ -31,7 +31,6 @@
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const showToast = T.showToast || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -47,7 +46,7 @@
   window.zhimuViews = window.zhimuViews || {};
   const wizardSteps = ["创建方式","角色与席位","章节与内容","自动化规则","测试并发布"];
 
-function openWizard(step=0){
+export function openWizard(step=0){
   state.wizardStep=Math.max(0,Math.min(step,wizardSteps.length-1));
   modal.className="modal wizard-modal";
   modal.innerHTML=`<div class="wizard-shell"><aside class="wizard-side"><p class="eyebrow">CREATOR GUIDE</p><h2>创建你的世界</h2><p>用一套标准流程，把已有剧本整理成可以自动运行的线上房间。</p><div class="wizard-steps">${wizardSteps.map((s,i)=>`<div class="wizard-step ${i===state.wizardStep?"active":i<state.wizardStep?"done":""}"><i>${i<state.wizardStep?"✓":i+1}</i><span>${s}</span></div>`).join("")}</div></aside><main class="wizard-main">${wizardContent(state.wizardStep)}${state.wizardRoleEditor?"":`<footer class="wizard-footer"><span>第 ${state.wizardStep+1} 步，共 ${wizardSteps.length} 步</span><div class="wizard-actions">${state.wizardStep?`<button class="secondary-btn" data-wizard-back>上一步</button>`:`<button class="secondary-btn" data-wizard-close>暂时退出</button>`}<button class="primary-btn" data-wizard-next>${state.wizardStep===wizardSteps.length-1?"创建测试房间":"保存并继续"}</button></div></footer>`}</main></div>`;
@@ -195,7 +194,7 @@ function deleteRoleEditor(){
  currentRoles().splice(state.wizardRoleEditor.index,1);state.wizardRoleEditor=null;openWizard(1);showToast("角色席位已删除");
 }
 
-async function finishWizard(){
+export async function finishWizard(){
  const button=modal.querySelector("[data-wizard-next]");button.disabled=true;button.textContent="正在写入云端...";
  try{
   const d=state.wizardDraft;
@@ -251,6 +250,6 @@ async function finishWizard(){
   openModal("测试房间已创建",`世界、角色、章节和序章已经真实写入云端。<br><br><strong>邀请码：${escapeHtml(inviteCode)}</strong><br><br>${rulesHint}<br><small>完整步骤见侧栏「创作指引」。</small>`,"查看规则列表");
  }catch(error){button.disabled=false;button.textContent="重新创建测试房间";showError(error)}
 }
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openWizard, finishWizard });
-})(window);
-export {};
+// Bridge: window.zhimuRuntime populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openWizard, finishWizard });

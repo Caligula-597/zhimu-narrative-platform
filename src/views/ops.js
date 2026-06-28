@@ -1,14 +1,11 @@
 /** Internal operations console. */
-(function (window) {
+import * as api from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const api = window.zhimuApi;
   const F = window.zhimuFormat || {};
-  const T = window.zhimuToast || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || ((v) => v || "");
-  const showToast = T.showToast || (() => {});
-  window.zhimuViews = window.zhimuViews || {};
-  const viewExports = window.zhimuViews.ops = window.zhimuViews.ops || {};
 
   function featureStatus(features = {}) {
     const rows = [
@@ -36,7 +33,7 @@
     return gates.map((gate) => `<div class="check-result ${gate.ok ? "ok" : "warn"}"><b>${escapeHtml(gate.label)}</b><span>${escapeHtml(gate.detail || "")}</span></div>`).join("") || `<div class="empty-state">暂无生产可信门禁数据。</div>`;
   }
 
-  function ops() {
+export function ops() {
     if (!api.hasOpsToken?.()) {
       return `<section class="rules-layout"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><p class="section-kicker">OPS</p><h3>运营控制台</h3><p>输入内部 Ops Token 后查看生产状态、审计日志与套餐申请。</p></div></div><div class="form-group"><label>Ops Token</label><input class="field" type="password" data-ops-token placeholder="OPS_API_TOKEN"><button class="primary-btn" style="margin-top:12px" data-action="ops-save-token">进入 OPS</button></div></article></section>`;
     }
@@ -50,7 +47,7 @@
     <article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>审计流</h3><p>最近主持敏感操作与后台行为。</p></div></div><div class="host-detail-list">${auditRows(audit)}</div></article></section>`;
   }
 
-  async function loadOpsData() {
+export async function loadOpsData() {
     const [status, plans, audit] = await Promise.all([
       api.getOpsStatus(),
       api.getOpsPlanUpgradeRequests({ status: "pending", limit: 20 }),
@@ -61,7 +58,7 @@
     state.opsAuditLog = audit;
   }
 
-  viewExports.ops = ops;
-  viewExports.loadOpsData = loadOpsData;
-})(window);
-export {};
+// Bridge: window.zhimuViews.ops populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.ops = { ops, loadOpsData };

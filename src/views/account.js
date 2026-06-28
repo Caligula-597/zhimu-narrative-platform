@@ -1,18 +1,14 @@
 /* Account settings page — quota, sessions, OAuth, auth actions. */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const F = window.zhimuFormat || {};
-  const T = window.zhimuToast || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
-  const showToast = T.showToast || (() => "");
   const handleApiError = window.zhimuUserMessages?.handleApiErrorToast || ((err, toast) => toast(err?.message || "操作失败"));
   const studioField = window.zhimuModal?.studioField || (() => "");
   const Status = () => window.zhimuStatus || {};
-
-  window.zhimuViews = window.zhimuViews || {};
-  const exports = window.zhimuViews.account = window.zhimuViews.account || {};
 
   function accountShell(body, loading = false) {
     const content = loading
@@ -38,7 +34,7 @@
     return `<section class="assistant-preview account-delete-preview"><div class="proposal-stats"><span>${(s.ownedWorlds || []).length} 个拥有剧本</span><span>${s.collaboratorWorlds || 0} 个协作剧本</span><span>${s.hostedRooms || 0} 个体验运行房</span><span>${s.assetCount || 0} 个资产 · ${formatBytesShort(s.assetBytes)}</span></div><ul>${worlds || "<li>无拥有剧本</li>"}${extraWorlds}</ul>${(preview.warnings || []).map((line) => `<p class="muted-note">${escapeHtml(line)}</p>`).join("")}</section>`;
   }
 
-  async function openDeleteAccountWizard() {
+  export async function openDeleteAccountWizard() {
     const modal = window.zhimuDom?.modal;
     const backdrop = window.zhimuDom?.modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
@@ -101,7 +97,7 @@
     };
   }
 
-  async function openPlanUpgradeModal(desiredPlanCode = "creator") {
+  export async function openPlanUpgradeModal(desiredPlanCode = "creator") {
     const modal = window.zhimuDom?.modal;
     const backdrop = window.zhimuDom?.modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
@@ -138,7 +134,7 @@
     };
   }
 
-  function accountBodyHtml(data) {
+  export function accountBodyHtml(data) {
     const me = data.me || {};
     const sessions = data.sessions?.sessions || [];
     const oauth = data.config?.oauth || [];
@@ -154,7 +150,7 @@
     return `${guestUpgrade}${!isGuest ? `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section>${!isGuest ? `<section class="form-group"><h3>数据导出</h3><p class="muted-note">下载 JSON 格式的账号元数据（剧本清单、资产清单、会话设备等），不含密码与文件二进制。</p><button type="button" class="secondary-btn" data-export-account>下载我的数据</button><p class="muted-note" style="margin-top:10px"><a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a> · <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/COPYRIGHT_APPEAL_ZH.md" data-legal-title="版权与侵权申诉">版权申诉</a></p></section>` : ""}<section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
   }
 
-  async function refreshAccountView(options = {}) {
+  export async function refreshAccountView(options = {}) {
     const background = Boolean(options.background);
     if (state.accountViewLoading) return;
     const showLoading = !background && !state.accountView;
@@ -183,7 +179,7 @@
     }
   }
 
-  function bindAccountPanel(root = document) {
+  export function bindAccountPanel(root = document) {
     root.querySelectorAll("[data-plan-upgrade]").forEach((btn) => {
       btn.onclick = () => void openPlanUpgradeModal(btn.dataset.planUpgrade);
     });
@@ -280,10 +276,11 @@
     });
   }
 
-  function bindAccountView() {
+  export function bindAccountView() {
     bindAccountPanel(document);
   }
 
-  Object.assign(exports, { accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard, openPlanUpgradeModal });
-})(window);
-export {};
+// Bridge: window.zhimuViews.account populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.account = { accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard, openPlanUpgradeModal };

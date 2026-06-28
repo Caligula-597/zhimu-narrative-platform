@@ -1,11 +1,11 @@
 /* Auto-split from app.js — archive.js */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
@@ -32,7 +32,6 @@
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const showToast = T.showToast || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -46,11 +45,9 @@
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
-  window.zhimuViews = window.zhimuViews || {};
-  const viewExports = window.zhimuViews.archive = window.zhimuViews.archive || {};
   const RESTORE_SCOPE_OPTIONS = window.zhimuUserMessages?.RESTORE_SCOPE_OPTIONS || [];
 
-function archive(){
+export function archive(){
  const room=activeRuntimeRoom(),checkpoints=state.cloudCheckpoints||[],recaps=state.cloudRecaps||[];
  if(!room)return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">RUNTIME REQUIRED</p><h2>存档与复盘需要运行房</h2><p>请先建立或选择一个平行房。运行房存档与创作版本快照是两套独立数据。</p><button class="primary-btn" data-action="world-rooms">管理平行房</button></article>`;
  if(state.activeRecapId)return recapDetailView();
@@ -74,7 +71,7 @@ function recapListSection(recaps,isPlayer){
  return `<div class="recap-list">${recaps.map(item=>`<article class="recap-card"><div class="recap-head"><div><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.description||"无备注")}</p></div><span class="status-chip published">全局复盘</span></div><div class="checkpoint-meta"><span>生成于 ${formatTime(item.created_at)}</span><span>${escapeHtml(item.created_by_name||"主持人")}</span><span>${item.summary?.joinedPlayers||0} 人 · ${item.summary?.cluesDiscovered||0} 条线索 · ${item.summary?.rulesTriggered||0} 条规则触发</span></div><button class="secondary-btn" data-action="recap-detail" data-recap="${item.id}">查看全局复盘</button></article>`).join("")}</div>`;
 }
 
-function recapDetailView(){
+export function recapDetailView(){
  const detail=state.cloudRecapDetail;
  if(!detail)return `<article class="card"><div class="empty-state">正在加载复盘…</div><button class="secondary-btn" data-action="recap-back">返回列表</button></article>`;
  const snapshot=detail.snapshot||{},perspective=detail.perspective||snapshot.perspective||"host";
@@ -162,25 +159,25 @@ function recapNotes(snapshot,perspective){
  return `<section class="recap-section"><h4>${title}</h4><div class="host-detail-list">${notes.slice(0,12).map(note=>`<div class="checkpoint-row"><strong>${escapeHtml(note.title)}</strong><p>${perspective==="host"?`${escapeHtml(note.roleName||"")} · `:""}${formatTime(note.createdAt)}</p><small>${escapeHtml((note.body||"").slice(0,160))}${(note.body||"").length>160?"…":""}</small></div>`).join("")}</div></section>`;
 }
 
-function checkpointPlayerSummary(snapshot={}){
+export function checkpointPlayerSummary(snapshot={}){
  const players=snapshot.players||[];
  if(!players.length)return `<div class="empty-state">快照中尚无角色席位数据。</div>`;
  return players.map(player=>`<div class="checkpoint-row"><strong>${escapeHtml(player.playerDisplayName||"席位空置")} · ${escapeHtml(player.roleName)}</strong><p>阅读 ${player.completedSections}/${player.totalSections} · 线索 ${player.ownedClues}（已读 ${player.readClues}）</p></div>`).join("");
 }
 
-function checkpointClueSummary(snapshot={}){
+export function checkpointClueSummary(snapshot={}){
  const clues=snapshot.clueOwnership||[];
  if(!clues.length)return `<div class="empty-state">快照中尚无已发放线索。</div>`;
  return clues.map(clue=>`<div class="checkpoint-row"><strong>${escapeHtml(clue.clueName)}</strong><p>${escapeHtml(clue.roleName)}${clue.playerDisplayName?` · ${escapeHtml(clue.playerDisplayName)}`:""} · ${formatTime(clue.acquiredAt)}</p></div>`).join("");
 }
 
-function openCreateRecapModal(){
+export function openCreateRecapModal(){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  modal.className="modal";modal.innerHTML=`<h2>生成房间复盘</h2><p class="wizard-intro">系统会按章节串联全剧脉络（上帝视角），并汇总各角色阅读、线索、调查与笔记表现。局后玩家与主持均可查看完整复盘。</p><div class="form-group">${studioField("复盘标题","recapTitle","input","例如：第一夜 · 完整复盘")}${studioField("主持备注","recapDescription","textarea","记录本局结局、未解之谜或下次补充说明")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-recap-submit>确认生成</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-recap-submit]").onclick=async()=>{try{const values=studioValues();if(!values.recapTitle)return showToast("请填写复盘标题");const created=await zhimuApi.createRecap({title:values.recapTitle,description:values.recapDescription});closeModal();await loadCloudData();showToast("房间复盘已生成");state.activeRecapId=created.id;state.cloudRecapDetail=created;render()}catch(error){showError(error)}};
 }
 
-function openCreateCheckpointModal(){
+export function openCreateCheckpointModal(){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  modal.className="modal";modal.innerHTML=`<h2>创建运行房存档点</h2><p class="wizard-intro">保存当前玩家进度、线索归属、开放场景与待确认事件。之后可在本页选择要恢复的内容，恢复到当前或其它平行房。</p><div class="form-group">${studioField("存档名称","checkpointTitle","input","例如：第一夜收工")}${studioField("主持备注","checkpointDescription","textarea","记录今晚推进到了哪里、下次从哪里继续")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-checkpoint-submit>确认创建</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-checkpoint-submit]").onclick=async()=>{try{const values=studioValues();if(!values.checkpointTitle)return showToast("请填写存档名称");await zhimuApi.createCheckpoint({title:values.checkpointTitle,description:values.checkpointDescription});closeModal();await loadCloudData();showToast("运行房存档点已创建")}catch(error){showError(error)}};
@@ -196,7 +193,7 @@ function playerRecapModalBody(detail){
  <div class="tutorial-tip"><b>局后复盘</b><span>全剧上帝视角 + 各角色表现；你的角色卡片会高亮显示。</span></div></div>`;
 }
 
-async function openPlayerRecapModal(recapId){
+export async function openPlayerRecapModal(recapId){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  try{
   const detail=await zhimuApi.getRecap(recapId,true);
@@ -209,7 +206,7 @@ async function openPlayerRecapModal(recapId){
  }catch(error){showError(error)}
 }
 
-async function openRecapDetail(recapId,asPlayer=false){
+export async function openRecapDetail(recapId,asPlayer=false){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  try{
   if(asPlayer&&state.view==="player"){
@@ -224,19 +221,19 @@ async function openRecapDetail(recapId,asPlayer=false){
  }catch(error){showError(error)}
 }
 
-function closeRecapDetail(){
+export function closeRecapDetail(){
  state.activeRecapId=null;
  state.cloudRecapDetail=null;
  render();
 }
 
-async function openPlayerRecapFromBanner(){
+export async function openPlayerRecapFromBanner(){
  const latest=state.cloudRecapLatest;
  if(!latest)return showToast("主持人尚未生成复盘");
  await openPlayerRecapModal(latest.id);
 }
 
-function checkpointRestoreHistoryRows(restores = []) {
+export function checkpointRestoreHistoryRows(restores = []) {
  if(!restores.length)return `<div class="empty-state">此存档点尚未被恢复过。</div>`;
  return restores.map((row)=>{
   const scopeKeys=row.restore_scope&&typeof row.restore_scope==="object"?Object.entries(row.restore_scope).filter(([,v])=>v).map(([k])=>k):[];
@@ -246,7 +243,7 @@ function checkpointRestoreHistoryRows(restores = []) {
  }).join("");
 }
 
-async function openCheckpointDetail(checkpointId){
+export async function openCheckpointDetail(checkpointId){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  try{
   const [detail,restores]=await Promise.all([
@@ -265,7 +262,7 @@ function roomNameById(roomId){
  return rooms.find((row)=>row.id===roomId)?.name||"所选平行房";
 }
 
-function openRestoreCheckpointModal(checkpointId,checkpointLabel){
+export function openRestoreCheckpointModal(checkpointId,checkpointLabel){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  const fromList=state.cloudCheckpoints?.find((row)=>row.id===checkpointId);
  const label=checkpointLabel||fromList?.label||"存档点";
@@ -296,18 +293,8 @@ function openRestoreCheckpointModal(checkpointId,checkpointLabel){
   }
  };
 }
-  viewExports.archive = archive;
-  viewExports.recapDetailView = recapDetailView;
-  viewExports.checkpointPlayerSummary = checkpointPlayerSummary;
-  viewExports.checkpointClueSummary = checkpointClueSummary;
-  viewExports.openCreateRecapModal = openCreateRecapModal;
-  viewExports.openCreateCheckpointModal = openCreateCheckpointModal;
-  viewExports.openRecapDetail = openRecapDetail;
-  viewExports.closeRecapDetail = closeRecapDetail;
-  viewExports.openPlayerRecapFromBanner = openPlayerRecapFromBanner;
-  viewExports.openPlayerRecapModal = openPlayerRecapModal;
-  viewExports.checkpointRestoreHistoryRows = checkpointRestoreHistoryRows;
-  viewExports.openCheckpointDetail = openCheckpointDetail;
-  viewExports.openRestoreCheckpointModal = openRestoreCheckpointModal;
-})(window);
-export {};
+
+// Bridge: window.zhimuViews.archive populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.archive = { archive, recapDetailView, checkpointPlayerSummary, checkpointClueSummary, openCreateRecapModal, openCreateCheckpointModal, openRecapDetail, closeRecapDetail, openPlayerRecapFromBanner, openPlayerRecapModal, checkpointRestoreHistoryRows, openCheckpointDetail, openRestoreCheckpointModal };

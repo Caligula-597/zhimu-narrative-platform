@@ -1,5 +1,11 @@
 /**
- * Remove boilerplate const aliases that duplicate function declarations in the same file.
+ * @deprecated Historical one-time script — DO NOT RE-RUN.
+ * Stripped boilerplate `const zhimuApi = window.zhimuApi;` aliases that
+ * duplicated function declarations in the same file post-split.
+ *
+ * The `slimHeader` template below still embeds the old window-bridge pattern
+ * for traceability only. Modules now use real `import * as zhimuApi from
+ * "../api/index.js"` — re-running this script would regress the migration.
  */
 import fs from "node:fs";
 import path from "node:path";

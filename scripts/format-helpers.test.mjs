@@ -1,26 +1,59 @@
 /**
  * Pure helper robustness tests — run without browser or backend.
  * Usage: node --test scripts/format-helpers.test.mjs
+ *
+ * Migrated from vm.runInNewContext to native dynamic import() because
+ * src/utils/format.js is now a real ES module (imports from shared/security.js).
  */
 import assert from "node:assert/strict";
-import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
-import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-function loadFormat() {
-  const raw = fs.readFileSync(path.join(root, "src/utils/format.js"), "utf8");
-  const code = raw.replace(/\nexport \{\};?\s*$/, "");
-  const sandbox = { window: {} };
-  vm.runInNewContext(code, sandbox);
-  return sandbox.window.zhimuFormat;
-}
+/* ── Browser global shims (format.js IIFE bridge reads window/document) ── */
+const noop = () => {};
+const storage = { getItem: () => null, setItem: noop, removeItem: noop, clear: noop };
+const fakeElement = {
+  textContent: "", innerHTML: "", className: "",
+  classList: { add: noop, remove: noop, toggle: noop, contains: () => false },
+  dataset: {}, addEventListener: noop, removeEventListener: noop,
+  querySelector: () => null, querySelectorAll: () => [], appendChild: noop, setAttribute: noop,
+  style: {}
+};
+globalThis.window = {
+  zhimuConfig: { apiBase: "/api", demoMode: true, demoUsers: {}, demoWorld: {} },
+  zhimuState: null, zhimuApi: null,
+  zhimuDom: { content: fakeElement, toast: fakeElement, modal: fakeElement, modalBackdrop: fakeElement },
+  location: { pathname: "/", search: "", hash: "", hostname: "localhost", port: "4173" },
+  zhimuFormat: null, zhimuUi: {}, zhimuToast: {}, zhimuModal: {},
+  zhimuViews: {}, zhimuRuntime: {}, zhimuRuleVisual: {},
+  zhimuUserMessages: { friendlyApiError: (p, fb) => p?.error || fb },
+  zhimuSessionAuth: {}, zhimuWorldRevision: {},
+  localStorage: storage, sessionStorage: storage,
+  addEventListener: noop, removeEventListener: noop,
+  crypto: { randomUUID: () => "test-uuid" }
+};
+globalThis.document = {
+  getElementById: () => null, querySelector: () => fakeElement, querySelectorAll: () => [],
+  addEventListener: noop, removeEventListener: noop, createElement: () => fakeElement,
+  body: fakeElement, head: fakeElement
+};
+globalThis.localStorage = storage;
+globalThis.sessionStorage = storage;
+globalThis.location = globalThis.window.location;
+const navShim = { userAgent: "node-test", clipboard: { writeText: async () => {} } };
+try { globalThis.navigator = navShim; } catch { Object.defineProperty(globalThis, "navigator", { value: navShim, writable: true, configurable: true }); }
+
+let F;
+test.before(async () => {
+  await import(`file://${path.join(root, "src/utils/format.js").replace(/\\/g, "/")}?t=${Date.now()}`);
+  F = globalThis.window.zhimuFormat;
+  if (!F) throw new Error("zhimuFormat bridge not populated after import");
+});
 
 test("hostAuditActionLabel maps known actions and falls back safely", () => {
-  const F = loadFormat();
   assert.equal(F.hostAuditActionLabel("host_event_delayed"), "延迟待确认事件");
   assert.equal(F.hostAuditActionLabel("checkpoint_restore"), "存档点恢复");
   assert.equal(F.hostAuditActionLabel(""), "主持操作");
@@ -28,7 +61,6 @@ test("hostAuditActionLabel maps known actions and falls back safely", () => {
 });
 
 test("hostAuditDetail renders human summaries for audit metadata", () => {
-  const F = loadFormat();
   assert.match(
     F.hostAuditDetail({ action: "host_event_delayed", metadata: { delayMinutes: 30 } }),
     /30/
@@ -48,19 +80,16 @@ test("hostAuditDetail renders human summaries for audit metadata", () => {
 });
 
 test("checkpointRestoreStatusLabel maps restore statuses", () => {
-  const F = loadFormat();
   assert.equal(F.checkpointRestoreStatusLabel("applied"), "已应用");
   assert.equal(F.checkpointRestoreStatusLabel("failed"), "失败");
 });
 
 test("escapeHtml neutralizes XSS-sensitive characters", () => {
-  const F = loadFormat();
   assert.equal(F.escapeHtml(`<script>"'&</script>`), "&lt;script&gt;&quot;&#39;&amp;&lt;/script&gt;");
   assert.equal(F.escapeHtml(null), "");
 });
 
 test("formatRelativeTime handles empty and recent values", () => {
-  const F = loadFormat();
   assert.equal(F.formatRelativeTime(""), "");
   assert.equal(F.formatRelativeTime(new Date().toISOString()), "刚刚");
 });

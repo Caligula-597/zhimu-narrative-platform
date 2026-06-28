@@ -1,11 +1,11 @@
 /* Auto-split from app.js — modal.js */
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "./toast.js";
 (function (window) {
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
@@ -31,7 +31,6 @@
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const showToast = T.showToast || (() => {});
   const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }

@@ -17,7 +17,7 @@
 
 ## Beta 不开放
 
-- 真实付费订阅 checkout
+- 真实付费订阅 checkout（无付费入口）
 - 大规模公开运营
 - 未配置 AV scanner / OTLP / alert webhook 的生产环境
 

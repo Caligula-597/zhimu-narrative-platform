@@ -2,7 +2,8 @@
  * API client infrastructure — migrated to real ES Modules.
  * Contains only: request plumbing, auth headers, demo context, active-context state.
  * Domain methods live in ./auth.js, ./world.js, etc.
- * Aggregation + window.zhimuApi bridge lives in ./index.js.
+ * Aggregation (re-export of all domain modules) lives in ./index.js — the
+ * `window.zhimuApi` bridge has been removed; consumers import the namespace directly.
  */
 import { friendlyApiError } from "../utils/user-messages.js";
 

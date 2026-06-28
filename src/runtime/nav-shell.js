@@ -1,4 +1,5 @@
 /** Sidebar advanced nav expand/collapse + world switcher labels. */
+import * as zhimuApi from "../api/index.js";
 (function (window) {
   const state = window.zhimuState;
   const ADVANCED_VIEWS = ["writer", "clues", "rules", "miniGames", "archive"];
@@ -17,7 +18,7 @@
     const small = document.querySelector(".world-switcher small");
     if (!icon || !strong || !small) return;
     const studioWorld = state.cloudStudio?.world;
-    const listedWorld = (state.cloudWorlds || []).find((world) => world.id === window.zhimuApi.context.worldId);
+    const listedWorld = (state.cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
     const worldName = studioWorld?.name || listedWorld?.name;
     const bootstrapping = state.cloudLoading;
 
@@ -32,14 +33,14 @@
       const emptyAccount = state.apiError && /还没有可访问的剧本/.test(state.apiError);
       strong.textContent = emptyAccount
         ? "尚无剧本"
-        : window.zhimuApi.context.worldId
+        : zhimuApi.context.worldId
           ? worldSwitcherFailureLabel()
           : "未选择剧本";
       small.textContent = emptyAccount
         ? "点击「＋ 创建新世界」开始"
         : state.apiError && !/params\/|must NOT/i.test(state.apiError)
           ? state.apiError
-          : window.zhimuApi.context.worldId
+          : zhimuApi.context.worldId
             ? "点击切换剧本"
             : "点击选择或创建剧本";
       return;

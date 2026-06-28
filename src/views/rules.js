@@ -1,11 +1,11 @@
 /* Auto-split from app.js — rules.js */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
@@ -31,7 +31,6 @@
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const showToast = T.showToast || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -45,8 +44,6 @@
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
-  window.zhimuViews = window.zhimuViews || {};
-  const viewExports = window.zhimuViews.rules = window.zhimuViews.rules || {};
 
 function canEditRules(){
  const world=state.cloudStudio?.world;
@@ -59,7 +56,7 @@ function rulesEmptyState(studio){
  return `<div class="empty-state enriched-empty"><p><strong>尚未建立自动化规则</strong></p><p>规则会在玩家读完分幕、获得线索或完成调查后自动推进剧情。空列表不代表功能未完成——你可以一键载入示例模板，或从零新建。</p><ul class="empty-hints"><li>示例含：读完记录、主持确认节点、线索/场景占位规则</li><li>载入后可在可视化编辑器里改成真实引用</li></ul><div class="row">${editable?`<button class="primary-btn" data-action="rule-seed-examples">载入示例规则</button>`:""}<button class="secondary-btn" data-action="rule-new">＋ 新建规则</button><button class="text-btn" data-action="open-creator-guide">阅读规则说明</button></div>${!editable?`<p class="muted-note">当前为只读体验；登录并拥有编辑权限后可写入规则。</p>`:""}</div>`;
 }
 
-function rules() {
+export function rules() {
  const data=state.cloudRules||[],modeName={automatic:"自动执行",host_confirm:"主持确认",manual:"仅手动"},studio=state.cloudStudio;
  return `<section class="rules-layout"><div><div class="section-head"><div><h3>规则列表</h3><p>规则已经连接云端数据库。条件满足后，系统执行动作或提交主持人确认。</p></div><div class="row"><button class="secondary-btn" data-action="open-creator-guide">创作指引</button><button class="primary-btn" data-action="rule-new">＋ 新建规则</button></div></div>
  ${data.map(rule=>{const summary=window.zhimuRuleVisual?.summarizeRule(rule.conditions,rule.actions)||{when:JSON.stringify(rule.conditions),then:JSON.stringify(rule.actions)};return `<article class="rule-card"><div class="rule-card-top"><button class="toggle ${rule.enabled?"on":""}" data-action="rule-toggle" data-rule="${rule.id}" title="启用或暂停规则"><i></i></button><h3>${escapeHtml(rule.name)}</h3><span class="mode ${rule.mode==="host_confirm"?"confirm":""}">${modeName[rule.mode]}</span></div><p class="rule-text"><b>当</b> ${escapeHtml(summary.when)}<br><b>则</b> ${escapeHtml(summary.then)}</p><div class="rule-stats"><span>● ${rule.enabled?"已启用":"已暂停"}</span><span>优先级 ${rule.priority}</span><span>${escapeHtml(rule.room_name||"世界模板")}</span></div><div class="row rule-actions"><button class="text-btn" data-action="rule-edit" data-rule="${rule.id}">编辑</button><button class="text-btn danger-text" data-action="rule-delete" data-rule="${rule.id}">删除</button></div></article>`}).join("")||rulesEmptyState(studio)}</div>
@@ -68,9 +65,9 @@ function rules() {
  <button class="secondary-btn full-btn" data-action="rule-validate">运行规则检查</button></aside></section>`;
 }
 
-function rulePayload(rule={}){return {roomId:rule.room_id||"",name:rule.name||"",mode:rule.mode||"automatic",priority:String(rule.priority??100),enabled:rule.enabled!==false,conditions:JSON.stringify(rule.conditions||{all:[{type:"reading_completed",roleSlotId:"",scriptSectionId:""}]},null,2),actions:JSON.stringify(rule.actions||[{type:"unlock_script_section",scriptSectionId:""}],null,2)}}
+export function rulePayload(rule={}){return {roomId:rule.room_id||"",name:rule.name||"",mode:rule.mode||"automatic",priority:String(rule.priority??100),enabled:rule.enabled!==false,conditions:JSON.stringify(rule.conditions||{all:[{type:"reading_completed",roleSlotId:"",scriptSectionId:""}]},null,2),actions:JSON.stringify(rule.actions||[{type:"unlock_script_section",scriptSectionId:""}],null,2)}}
 
-function openRuleEditor(ruleId=""){
+export function openRuleEditor(ruleId=""){
  const rule=state.cloudRules.find(item=>item.id===ruleId),value=rulePayload(rule),rooms=state.cloudStudio?.rooms||[],studio=state.cloudStudio;
  const parsed=window.zhimuRuleVisual.ruleJsonToVisual(rule?.conditions,rule?.actions);
  let editorTab=parsed.compatible===false?"json":"visual";
@@ -130,13 +127,13 @@ function openRuleEditor(ruleId=""){
  };
 }
 
-async function toggleCloudRule(ruleId){const rule=state.cloudRules.find(item=>item.id===ruleId);if(!rule)return;try{await zhimuApi.updateRule(rule.id,{roomId:rule.room_id,name:rule.name,mode:rule.mode,priority:rule.priority,enabled:!rule.enabled,conditions:rule.conditions,actions:rule.actions});await loadCloudData();showToast(rule.enabled?"规则已暂停":"规则已启用")}catch(error){showError(error)}}
+export async function toggleCloudRule(ruleId){const rule=state.cloudRules.find(item=>item.id===ruleId);if(!rule)return;try{await zhimuApi.updateRule(rule.id,{roomId:rule.room_id,name:rule.name,mode:rule.mode,priority:rule.priority,enabled:!rule.enabled,conditions:rule.conditions,actions:rule.actions});await loadCloudData();showToast(rule.enabled?"规则已暂停":"规则已启用")}catch(error){showError(error)}}
 
-async function deleteCloudRule(ruleId){try{await zhimuApi.deleteRule(ruleId);await loadCloudData();showToast("规则已删除")}catch(error){showError(error)}}
+export async function deleteCloudRule(ruleId){try{await zhimuApi.deleteRule(ruleId);await loadCloudData();showToast("规则已删除")}catch(error){showError(error)}}
 
-async function validateCloudRules(){try{const result=await zhimuApi.validateRules();openModal("规则检查完成",result.checks.length?result.checks.map(check=>`<b>${escapeHtml(check.title)}</b><br><span>${escapeHtml(check.detail)}</span>`).join("<br><br>"):`已检查 ${result.totalRules} 条规则，没有发现结构问题。`,"知道了")}catch(error){showError(error)}}
+export async function validateCloudRules(){try{const result=await zhimuApi.validateRules();openModal("规则检查完成",result.checks.length?result.checks.map(check=>`<b>${escapeHtml(check.title)}</b><br><span>${escapeHtml(check.detail)}</span>`).join("<br><br>"):`已检查 ${result.totalRules} 条规则，没有发现结构问题。`,"知道了")}catch(error){showError(error)}}
 
-async function seedExampleRules(){
+export async function seedExampleRules(){
  if(!canEditRules())return showToast("当前为只读体验，登录并拥有编辑权限后可载入示例");
  const studio=state.cloudStudio;
  const roles=studio?.roles||[];
@@ -156,12 +153,8 @@ async function seedExampleRules(){
  showToast(created?`已载入 ${created} 条示例规则，可在列表中编辑引用`:"示例规则载入失败，请稍后重试");
  render();
 }
-  viewExports.rules = rules;
-  viewExports.rulePayload = rulePayload;
-  viewExports.openRuleEditor = openRuleEditor;
-  viewExports.toggleCloudRule = toggleCloudRule;
-  viewExports.deleteCloudRule = deleteCloudRule;
-  viewExports.validateCloudRules = validateCloudRules;
-  viewExports.seedExampleRules = seedExampleRules;
-})(window);
-export {};
+
+// Bridge: window.zhimuViews.rules populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.rules = { rules, rulePayload, openRuleEditor, toggleCloudRule, deleteCloudRule, validateCloudRules, seedExampleRules };

@@ -1,18 +1,17 @@
 /* Auto-split from app.js — settings.js */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const R = window.zhimuRuntime || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const hostAuditActionLabel = F.hostAuditActionLabel || ((a) => a);
   const hostAuditDetail = F.hostAuditDetail || (() => "");
-  const showToast = T.showToast || (() => "");
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const activeRuntimeRoom = U.activeRuntimeRoom || (() => null);
   const isWorldOwner = U.isWorldOwner || (() => false);
@@ -21,8 +20,6 @@
   const closeModal = window.zhimuModal?.closeModal || (() => {});
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
-  window.zhimuViews = window.zhimuViews || {};
-  const viewExports = window.zhimuViews.settings = window.zhimuViews.settings || {};
 
   function catalogReviewPanel(world) {
     const status = world?.catalog_review_status || (world?.catalog_public ? "approved" : "none");
@@ -59,7 +56,7 @@
     return `<div class="form-group" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line, #ece7df)"><label>剧本封面</label><p class="muted-note">公开大厅、公开剧本库和玩家入口会优先展示这里指定的图片；未指定时使用本世界最早上传的图片。</p>${preview ? `<figure class="cover-preview"><img src="${escapeHtml(preview)}" alt="剧本封面预览" loading="lazy"></figure>` : ""}<div class="row" style="align-items:center;gap:10px"><select class="field" style="min-width:240px" data-action="set-world-cover" data-asset-select ${canEdit && images.length ? "" : "disabled"}><option value="">${images.length ? "选择已有图片" : "暂无图片资产"}</option>${options}</select><button type="button" class="secondary-btn" data-action="upload-world-cover" ${canEdit ? "" : "disabled"}>上传封面</button>${coverId ? `<button type="button" class="text-btn" data-action="clear-world-cover" ${canEdit ? "" : "disabled"}>清除封面</button>` : ""}</div><p class="muted-note">仍可在「内容资产」管理附件下载、回收站与其它文件类型。</p></div>`;
   }
 
-function settings(){
+export function settings(){
  const worldId=zhimuApi.context.worldId;
  const studioWorld=state.cloudStudio?.world;
  const listed=(state.cloudWorlds||[]).find((w)=>w.id===worldId);
@@ -80,7 +77,7 @@ function settings(){
  <aside class="card"><div class="section-head"><div><h3>帮助与数据</h3><p>步骤说明与错误排查</p></div></div><button class="secondary-btn full-btn" data-action="open-creator-guide">创作步骤指引</button><button class="secondary-btn full-btn" data-action="open-error-guide">错误提示与排查</button><button class="secondary-btn full-btn" style="margin-top:10px" data-action="go-writer-export">前往剧本创作 · 导出/导入</button></aside></section>`;
 }
 
- async function saveWorldSettings(){
+ export async function saveWorldSettings(){
  const worldId=zhimuApi.context.worldId;
  const name=document.getElementById("settings-world-name")?.value?.trim();
  const summary=document.getElementById("settings-world-summary")?.value?.trim()||"";
@@ -108,7 +105,7 @@ function settings(){
  }catch(error){showError(error)}
 }
 
-async function withdrawCatalogListing(){
+export async function withdrawCatalogListing(){
  if(!confirm("确定从公开剧本库撤回？已体验用户的运行房不会删除，但新用户将无法从公开库加入。"))return;
  try{
   await zhimuApi.patchWorldCatalog(false);
@@ -118,7 +115,7 @@ async function withdrawCatalogListing(){
  }catch(error){showError(error)}
 }
 
-function openCatalogReviewModal(){
+export function openCatalogReviewModal(){
  const worldId=zhimuApi.context.worldId;
  if(!worldId)return showToast("请先选择剧本");
  const studioWorld=state.cloudStudio?.world;
@@ -151,7 +148,7 @@ function openCatalogReviewModal(){
  };
 }
 
-async function saveRoomSettings(){
+export async function saveRoomSettings(){
  const room=activeRuntimeRoom();
  if(!room)return showToast("请先选择平行运行房");
  const hostVoiceListen=Boolean(document.getElementById("settings-host-voice-listen")?.checked);
@@ -162,12 +159,12 @@ async function saveRoomSettings(){
  }catch(error){showError(error)}
 }
 
-function goWriterExport(){
+export function goWriterExport(){
  window.zhimuGo?.("writer");
  showToast("请在剧本创作页使用「导出内容包 / 导入内容包」");
 }
 
-async function openWorldAuditModal(){
+export async function openWorldAuditModal(){
  if(!zhimuApi.context.worldId)return showToast("请先选择剧本");
  try{
   const payload=await zhimuApi.getWorldHostAuditLog(200);
@@ -189,12 +186,8 @@ async function openWorldAuditModal(){
  }catch(error){showError(error)}
 }
 
-  viewExports.settings = settings;
-  viewExports.saveWorldSettings = saveWorldSettings;
-  viewExports.saveRoomSettings = saveRoomSettings;
-  viewExports.goWriterExport = goWriterExport;
-  viewExports.openWorldAuditModal = openWorldAuditModal;
-  viewExports.openCatalogReviewModal = openCatalogReviewModal;
-  viewExports.withdrawCatalogListing = withdrawCatalogListing;
-})(window);
-export {};
+
+// Bridge: window.zhimuViews.settings populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.settings = { settings, saveWorldSettings, saveRoomSettings, goWriterExport, openWorldAuditModal, openCatalogReviewModal, withdrawCatalogListing };

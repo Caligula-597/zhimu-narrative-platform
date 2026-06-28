@@ -1,7 +1,7 @@
 /** World / room selection and workspace domain helpers (demo vs logged-in). */
+import * as zhimuApi from "../api/index.js";
 (function (window) {
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
 
   function isLoggedIn() {
     return window.zhimuAuthSession?.isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;

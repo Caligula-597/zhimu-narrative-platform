@@ -1,3 +1,12 @@
+/**
+ * @deprecated Historical one-time script — DO NOT RE-RUN.
+ * Patched split modules to inject `window.zhimuDom` destructuring and a few
+ * module-specific fixes (toast poll vars, modal shadowing, writer snapshots).
+ *
+ * The `const zhimuApi = window.zhimuApi;` lines referenced below are part of
+ * the old window-bridge pattern. Modules now import via real ES Modules
+ * (`import * as zhimuApi from "../api/index.js"`) — re-running would regress.
+ */
 import fs from "node:fs";
 import path from "node:path";
 

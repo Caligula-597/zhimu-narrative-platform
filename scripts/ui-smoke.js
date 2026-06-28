@@ -21,12 +21,53 @@ async function readSourceBundle(rels) {
   return Object.fromEntries(rels.map((rel) => [rel, readSource(rel)]));
 }
 
+/* ── API bundle helpers ──
+ * After the A1 migration, the original 599-line src/api/client.js was split
+ * into 14 domain modules (client/auth/world/studio/room/host/player/voice/
+ * recap/ai/content/assets/ops/index).  Smoke checks that used to grep a
+ * single file now read the concatenated bundle.
+ */
+const API_DOMAIN_FILES = [
+  "src/api/client.js",
+  "src/api/auth.js",
+  "src/api/world.js",
+  "src/api/studio.js",
+  "src/api/room.js",
+  "src/api/host.js",
+  "src/api/player.js",
+  "src/api/voice.js",
+  "src/api/recap.js",
+  "src/api/ai.js",
+  "src/api/content.js",
+  "src/api/assets.js",
+  "src/api/ops.js",
+  "src/api/index.js"
+];
+
+let apiBundleCache = null;
+function readApiBundle() {
+  if (apiBundleCache) return apiBundleCache;
+  apiBundleCache = API_DOMAIN_FILES.map((rel) => readSource(rel)).join("\n");
+  return apiBundleCache;
+}
+
+/** Matches a method declaration in any of the supported syntaxes:
+ *  - `export function method(`  (new domain modules)
+ *  - `method:`                  (legacy IIFE object literal, kept in client.js bridges)
+ *  - `method =` / `method(`     (assignment or shorthand)
+ */
+function apiHasMethod(bundle, method) {
+  const re = new RegExp(`\\b${method}\\s*[(:=]`);
+  return re.test(bundle);
+}
+
 const requiredModuleScripts = [
   "config.js",
   "src/dom.js",
   "src/state.js",
   "src/utils/user-messages.js",
   "src/api/client.js",
+  "src/api/index.js",
   "rule-visual.js",
   "src/utils/format.js",
   "src/components/emptyState.js",
@@ -58,7 +99,7 @@ const requiredModuleScripts = [
   "src/runtime/actions.js",
   "app.js"
 ];
-const requiredNavViews = ["overview", "writer", "studio", "clues", "rules", "director", "player", "archive", "settings", "account"];
+const requiredNavViews = ["overview", "writer", "studio", "clues", "rules", "miniGames", "archive", "settings", "account", "ops"];
 const requiredDomIds = ["content", "toast", "modal-backdrop", "modal", "page-title", "create-world-btn", "preview-btn", "run-btn"];
 const requiredApiMethods = [
   "getWorlds", "getStudio", "getPlayerHome", "getHostProgress", "getHostPlayers", "getHostPlayerDetail", "getHostAuditLog",
@@ -128,7 +169,7 @@ await check("frontend-served-bundle", async () => {
   return `production bundle ${Math.round(js.length / 1024)}KB`;
 });
 
-for (const script of ["app.js", "src/api/client.js", "src/state.js"]) {
+for (const script of ["app.js", "src/api/client.js", "src/api/index.js", "src/state.js"]) {
   await check(`script-${script.replace(/\//g, "-")}`, async () => {
     const js = readSource(script);
     if (js.length < 50) throw new Error("file too small");
@@ -149,33 +190,46 @@ await check("vite-entry-wired", async () => {
 
 await check("nav-views-match-app", async () => {
   const html = readSource("index.html");
-  const appJs = readSource("app.js");
+  const resolverJs = readSource("src/bootstrap/view-resolver.js");
   const navViews = [...html.matchAll(/data-view="([^"]+)"/g)].map((m) => m[1]);
   const uniqueNav = [...new Set(navViews)];
   for (const view of requiredNavViews) {
     if (!uniqueNav.includes(view)) throw new Error(`nav missing data-view="${view}"`);
   }
-  const viewsMatch = appJs.match(/const views = \{([^}]+)\}/);
-  if (!viewsMatch) throw new Error("views map not found in app.js");
+  const viewsMatch = resolverJs.match(/const views = \{([^}]+)\}/);
+  if (!viewsMatch) throw new Error("views map not found in view-resolver.js");
   for (const view of requiredNavViews) {
-    if (!viewsMatch[0].includes(view)) throw new Error(`app.js views map missing ${view}`);
+    if (!viewsMatch[0].includes(view)) throw new Error(`view-resolver.js views map missing ${view}`);
   }
-  if (!appJs.includes("V.overview.overview") || !appJs.includes("V.studio.studioCloud")) {
-    throw new Error("app.js must delegate to src/views modules");
+  if (!/V\.overview\??\.overview/.test(resolverJs) || !/V\.studio\??\.studioCloud/.test(resolverJs)) {
+    throw new Error("view-resolver.js must delegate to src/views modules");
   }
   return `${uniqueNav.length} nav views wired`;
 });
 
 await check("api-client-surface", async () => {
-  const js = readSource("src/api/client.js");
-  if (!js.includes("window.zhimuApi")) throw new Error("zhimuApi not exported");
-  if (!js.includes("Bearer")) throw new Error("session Bearer auth not present");
-  for (const method of requiredApiMethods) {
-    if (!js.includes(`${method}:`) && !js.includes(`${method}(`)) {
-      throw new Error(`api-client missing ${method}`);
+  const bundle = readApiBundle();
+  const indexJs = readSource("src/api/index.js");
+  // index.js must be a real ES module aggregator re-exporting from every domain module.
+  const expectedDomains = ["client", "auth", "world", "studio", "room", "host", "player", "voice", "recap", "ai", "content", "assets", "ops"];
+  for (const domain of expectedDomains) {
+    if (!indexJs.includes(`from "./${domain}.js"`)) {
+      throw new Error(`index.js missing re-export from ${domain}.js`);
     }
   }
-  return `${requiredApiMethods.length} core API methods declared`;
+  // `context` alias is consumed by `import * as zhimuApi from "../api/index.js"` in views/runtime.
+  if (!indexJs.includes("export { demoContext as context }")) {
+    throw new Error("index.js missing context alias export");
+  }
+  // Bearer auth header is built in session-auth.js; client.js delegates via sessionAuth().authHeaders().
+  const sessionAuthJs = readSource("src/runtime/session-auth.js");
+  if (!sessionAuthJs.includes("Bearer")) throw new Error("session Bearer auth not present in session-auth.js");
+  for (const method of requiredApiMethods) {
+    if (!apiHasMethod(bundle, method)) {
+      throw new Error(`api bundle missing ${method}`);
+    }
+  }
+  return `${requiredApiMethods.length} core API methods declared across ${API_DOMAIN_FILES.length} domain modules`;
 });
 
 await check("state-runtime-boundaries", async () => {
@@ -230,9 +284,9 @@ await check("studio-node-edit-wired", async () => {
   for (const token of ["studioNodeEditPanel", "studio-save-node", "saveSelectedStudioNode"]) {
     if (!studio.includes(token)) throw new Error(`studio view missing token ${token}`);
   }
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const method of ["updateScene", "updateClue", "updateInvestigationPoint", "getStudioNodeReferences"]) {
-    if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
+    if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
   }
   const css = readSource("styles.css");
   if (!css.includes(".studio-edit-panel")) throw new Error("styles missing studio-edit-panel");
@@ -246,9 +300,9 @@ await check("clue-sharing-wired", async () => {
     if (!player.includes(token)) throw new Error(`player view missing clue-sharing token ${token}`);
   }
   if (!director.includes("hostClueMatrixCard")) throw new Error("director view missing hostClueMatrixCard");
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const method of ["shareClueToRoom", "updateCluePlayerNote", "getHostClueMatrix"]) {
-    if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
+    if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
   }
   return "clue sharing wired";
 });
@@ -260,8 +314,8 @@ await check("rule-visual-wired", async () => {
     if (!rules.includes(token)) throw new Error(`rules view missing rule visual token ${token}`);
   }
   if (!ruleJs.includes("visualToRuleJson")) throw new Error("rule-visual.js missing visualToRuleJson");
-  const apiJs = readSource("src/api/client.js");
-  if (!apiJs.includes("validateRuleBody")) throw new Error("api-client missing validateRuleBody");
+  const apiBundle = readApiBundle();
+  if (!apiHasMethod(apiBundle, "validateRuleBody")) throw new Error("api bundle missing validateRuleBody");
   return "rule visual editor wired";
 });
 
@@ -272,8 +326,8 @@ await check("room-events-wired", async () => {
     const bundle = `${dataJs}${roomJs}`;
     if (!bundle.includes(token)) throw new Error(`room events modules missing token ${token}`);
   }
-  const apiJs = readSource("src/api/client.js");
-  if (!apiJs.includes("streamRoomEvents")) throw new Error("api-client missing streamRoomEvents");
+  const apiBundle = readApiBundle();
+  if (!apiHasMethod(apiBundle, "streamRoomEvents")) throw new Error("api bundle missing streamRoomEvents");
   return "SSE room events wired";
 });
 
@@ -303,26 +357,26 @@ await check("host-audit-wired", async () => {
   for (const fn of ["hostAuditActionLabel", "hostAuditDetail"]) {
     if (!formatJs.includes(fn)) throw new Error(`format.js missing ${fn}`);
   }
-  const apiJs = readSource("src/api/client.js");
-  if (!apiJs.includes("getHostAuditLog")) throw new Error("api-client missing getHostAuditLog");
+  const apiBundle = readApiBundle();
+  if (!apiHasMethod(apiBundle, "getHostAuditLog")) throw new Error("api bundle missing getHostAuditLog");
   return "host audit UI + refresh + format helpers wired";
 });
 
 await check("clues-view-wired", async () => {
   const clues = readSource("src/views/clues.js");
-  const appJs = readSource("app.js");
+  const resolverJs = readSource("src/bootstrap/view-resolver.js");
   for (const token of ["cluesSearchQuery", "cluesSelectedId", "cluesBulkSelection", "clues-edit", "clues-add", "clues-delete", "clues-batch-delete", "openCluesEditor", "confirmDeleteClue"]) {
     if (!clues.includes(token)) throw new Error(`clues view missing ${token}`);
   }
-  if (!appJs.includes("V.clues.clues")) throw new Error("app.js must register clues view");
+  if (!/clues:\s*V\.clues\??\.clues/.test(resolverJs)) throw new Error("view-resolver.js must register clues view");
   return "standalone clues management view wired";
 });
 
 await check("clue-share-roles-wired", async () => {
   const player = readSource("src/views/player.js");
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const token of ["share-clue-roles", "shareClueToRoles", "shared_with_roles", "私享线索"]) {
-    const bundle = `${player}${apiJs}`;
+    const bundle = `${player}${apiBundle}`;
     if (!bundle.includes(token)) throw new Error(`clue share-roles wiring missing ${token}`);
   }
   return "player private clue share UI wired";
@@ -330,9 +384,9 @@ await check("clue-share-roles-wired", async () => {
 
 await check("host-delay-wired", async () => {
   const director = readSource("src/views/director.js");
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const token of ["openDelayHostEventModal", "delayHostEvent", "host-event-delayed", "delay_until"]) {
-    const bundle = `${director}${apiJs}`;
+    const bundle = `${director}${apiBundle}`;
     if (!bundle.includes(token)) throw new Error(`host delay wiring missing ${token}`);
   }
   return "host event delay UI wired";
@@ -361,9 +415,9 @@ await check("checkpoint-wired", async () => {
   for (const token of ["openCreateCheckpointModal", "openCheckpointDetail", "openRestoreCheckpointModal", "cloudCheckpoints", "create-checkpoint", "restore-checkpoint", "data-restore-scope", "restore-target-room", "checkpointRestoreHistoryRows", "恢复历史"]) {
     if (!archive.includes(token)) throw new Error(`archive view missing checkpoint token ${token}`);
   }
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const method of ["getCheckpoints", "createCheckpoint", "getCheckpoint", "getCheckpointRestores", "restoreCheckpoint"]) {
-    if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
+    if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
   }
   const userMsg = readSource("src/utils/user-messages.js");
   if (!userMsg.includes("RESTORE_SCOPE_OPTIONS")) throw new Error("user-messages missing RESTORE_SCOPE_OPTIONS");
@@ -378,9 +432,9 @@ await check("checkpoint-wired", async () => {
 await check("world-audit-wired", async () => {
   const settings = readSource("src/views/settings.js");
   const actionsJs = readSource("src/runtime/actions.js");
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const token of ["world-audit", "openWorldAuditModal", "getWorldHostAuditLog", "世界主持审计"]) {
-    const bundle = `${settings}${actionsJs}${apiJs}`;
+    const bundle = `${settings}${actionsJs}${apiBundle}`;
     if (!bundle.includes(token)) throw new Error(`world audit wiring missing ${token}`);
   }
   return "world-level host audit in settings wired";
@@ -391,9 +445,9 @@ await check("settings-world-patch-wired", async () => {
   for (const token of ["save-world-settings", "save-room-settings", "settings-host-voice-listen", "hostVoiceListen"]) {
     if (!settings.includes(token)) throw new Error(`settings view missing ${token}`);
   }
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const method of ["getWorld", "patchWorld", "patchRoomSettings"]) {
-    if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
+    if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
   }
   return "world + room settings PATCH wired";
 });
@@ -403,9 +457,9 @@ await check("rules-preview-wired", async () => {
   for (const token of ["directorRulesPreview", "refreshRulesPreview", "triggerManualRuleFromDirector", "rule-manual-trigger"]) {
     if (!director.includes(token)) throw new Error(`director view missing rules preview token ${token}`);
   }
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const method of ["previewRoomRules", "triggerManualRule"]) {
-    if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
+    if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
   }
   const userMsg = readSource("src/utils/user-messages.js");
   if (!userMsg.includes("rulePreviewStatusLabel")) throw new Error("user-messages missing rulePreviewStatusLabel");
@@ -417,19 +471,21 @@ await check("assets-filter-wired", async () => {
   for (const token of ["assetKindFilter", "assetSearchQuery", "assetShowRecycle", "asset-filter", "asset-recycle-toggle", "restore-asset", "toggleAssetRecycle", "restoreCloudAsset"]) {
     if (!assets.includes(token)) throw new Error(`assets view missing filter token ${token}`);
   }
-  const apiJs = readSource("src/api/client.js");
-  if (!apiJs.includes("getAssets:")) throw new Error("api-client missing getAssets with query params");
-  if (!apiJs.includes("restoreAsset")) throw new Error("api-client missing restoreAsset");
+  const apiBundle = readApiBundle();
+  if (!apiHasMethod(apiBundle, "getAssets")) throw new Error("api bundle missing getAssets");
+  if (!apiHasMethod(apiBundle, "restoreAsset")) throw new Error("api bundle missing restoreAsset");
   return "assets kind/search/recycle filter wired";
 });
 
 await check("friendly-api-errors-wired", async () => {
-  const client = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   const userMsg = readSource("src/utils/user-messages.js");
-  if (!client.includes("friendlyApiError")) throw new Error("api client must use friendlyApiError");
+  // friendlyApiError is imported into client.js from user-messages.js and used in request() error paths.
+  if (!apiBundle.includes("friendlyApiError")) throw new Error("api bundle must use friendlyApiError");
   if (!userMsg.includes("CHECKPOINT_WORLD_MISMATCH")) throw new Error("user-messages must map CHECKPOINT_WORLD_MISMATCH");
-  if (!client.includes("idempotency-key")) throw new Error("idempotent writes must send idempotency-key header");
-  if (!client.includes("Last-Event-ID")) throw new Error("SSE must support Last-Event-ID cursor");
+  if (!apiBundle.includes("idempotency-key")) throw new Error("idempotent writes must send idempotency-key header");
+  // Last-Event-ID SSE cursor now lives in src/api/room.js (streamRoomEvents).
+  if (!apiBundle.includes("Last-Event-ID")) throw new Error("api bundle must support Last-Event-ID SSE cursor");
   return "friendly errors + transparent idempotency/SSE cursor";
 });
 
@@ -446,9 +502,9 @@ await check("inventory-wired", async () => {
   }
   if (!director.includes("host-manual-grant-item")) throw new Error("director missing host grant item");
   if (!roomJs.includes("room.item_granted")) throw new Error("SSE handler missing room.item_granted");
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const method of ["createItem", "updateItem", "deleteItem", "hostGrantItem"]) {
-    if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
+    if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
   }
   return "items/inventory UI + API wired";
 });
@@ -464,8 +520,8 @@ await check("livekit-voice-wired", async () => {
   for (const key of ["voiceLiveStatus", "voiceParticipants"]) {
     if (!stateJs.includes(key)) throw new Error(`state missing ${key}`);
   }
-  const apiJs = readSource("src/api/client.js");
-  if (!apiJs.includes("getVoiceRoomToken")) throw new Error("api-client missing getVoiceRoomToken");
+  const apiBundle = readApiBundle();
+  if (!apiHasMethod(apiBundle, "getVoiceRoomToken")) throw new Error("api bundle missing getVoiceRoomToken");
   return "LiveKit voice client wired";
 });
 
@@ -482,9 +538,9 @@ await check("recap-wired", async () => {
     if (!stateJs.includes(key)) throw new Error(`state missing ${key}`);
   }
   if (!dataJs.includes("getRecaps")) throw new Error("loadCloudData must fetch recaps");
-  const apiJs = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   for (const method of ["getRecaps", "getRecap", "getLatestRecap", "createRecap"]) {
-    if (!apiJs.includes(`${method}:`)) throw new Error(`api-client missing ${method}`);
+    if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
   }
   const css = readSource("styles.css");
   if (!css.includes(".recap-section")) throw new Error("styles missing recap-section");
@@ -529,10 +585,10 @@ await check("cloud-load-staged", async () => {
 });
 
 await check("content-package-p1-4-wired", async () => {
-  const client = readSource("src/api/client.js");
+  const apiBundle = readApiBundle();
   const writer = readSource("src/views/writer.js");
   for (const token of ["getContentPackageSummary", "previewContentPackageImport", "importContentPackageAsNewWorld"]) {
-    if (!client.includes(token)) throw new Error(`${token} missing from api client`);
+    if (!apiBundle.includes(token)) throw new Error(`${token} missing from api bundle`);
   }
   for (const token of ["contentPackageSummaryHtml", "contentPackagePreviewHtml", "openCreatorExport", "解析预览", "创建新世界并导入"]) {
     if (!writer.includes(token)) throw new Error(`${token} missing from writer view`);
@@ -619,11 +675,14 @@ await check("frontend-api-config", async () => {
 
 await check("xss-escapeHtml-used", async () => {
   const formatJs = readSource("src/utils/format.js");
+  const securityJs = readSource("shared/security.js");
   const sources = await fetchFrontendSources();
   const bundle = Object.values(sources).join("\n");
   const innerHtmlCount = (bundle.match(/innerHTML/g) || []).length;
   const escapeCount = (bundle.match(/escapeHtml\(/g) || []).length;
-  if (!formatJs.includes("function escapeHtml")) throw new Error("escapeHtml helper missing in format.js");
+  // escapeHtml canonical home moved to shared/security.js; format.js re-exports it.
+  if (!securityJs.includes("function escapeHtml")) throw new Error("escapeHtml helper missing in shared/security.js");
+  if (!formatJs.includes("escapeHtml")) throw new Error("format.js must re-export escapeHtml");
   if (escapeCount < 10) throw new Error(`only ${escapeCount} escapeHtml calls — XSS risk`);
   return `innerHTML×${innerHtmlCount}, escapeHtml×${escapeCount}`;
 });

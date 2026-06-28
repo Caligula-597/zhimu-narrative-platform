@@ -1,11 +1,11 @@
 /* Auto-split from app.js — overview.js */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
@@ -32,7 +32,6 @@
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const showToast = T.showToast || (() => {});
   const showError = S.showError || ((error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -46,9 +45,8 @@
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
-  window.zhimuViews = window.zhimuViews || {};
-  const viewExports = window.zhimuViews.overview = window.zhimuViews.overview || {};
-function overviewRuntimeProgress() {
+
+export function overviewRuntimeProgress() {
   const host = state.cloudHost || [];
   if (!host.length) return { percent: 0, label: "暂无玩家进度" };
   const totals = host.reduce((acc, item) => {
@@ -89,7 +87,7 @@ function overviewBackendCapability(item) {
   </div>`;
 }
 
-function overview() {
+export function overview() {
   const studio = state.cloudStudio;
   const listedWorld = (state.cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
   const world = studio?.world || listedWorld;
@@ -323,7 +321,8 @@ function overview() {
     </section>
     `;
 }
-  viewExports.overviewRuntimeProgress = overviewRuntimeProgress;
-  viewExports.overview = overview;
-})(window);
-export {};
+
+// Bridge: window.zhimuViews.overview populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.overview = { overviewRuntimeProgress, overview };

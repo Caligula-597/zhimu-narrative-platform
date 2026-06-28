@@ -1,6 +1,13 @@
 /**
- * One-time mechanical split of monolithic app.js into src/ modules.
- * Preserves function bodies verbatim; wraps each module in window.zhimu* IIFE.
+ * @deprecated Historical one-time script — DO NOT RE-RUN.
+ * Mechanically split the monolithic app.js into src/ modules, wrapping each
+ * in `window.zhimu*` IIFEs with `const zhimuApi = window.zhimuApi;` aliases.
+ *
+ * The codebase has since migrated to real ES Modules:
+ *   - src/api/index.js re-exports domain modules (no window.zhimuApi bridge)
+ *   - runtime/components import * as zhimuApi from "../api/index.js"
+ *   - the `window.zhimuApi` templates below are preserved for traceability only
+ *     and no longer reflect the current source shape.
  */
 import fs from "node:fs";
 import path from "node:path";

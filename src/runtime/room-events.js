@@ -1,11 +1,9 @@
 /** Room SSE stream and director/player polling fallback. */
+import * as zhimuApi from "../api/index.js";
+import { showToast, updateNotifyBadge } from "../components/toast.js";
 (function (window) {
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
-  const T = window.zhimuToast || {};
   const V = window.zhimuViews || {};
-  const showToast = T.showToast || (() => {});
-  const updateNotifyBadge = T.updateNotifyBadge || (() => {});
 
   let directorPollTimer = null;
   let playerPollTimer = null;

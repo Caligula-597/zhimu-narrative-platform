@@ -2,9 +2,9 @@
  * Coordinates auth / world / room context resets so demo, login, and runtime state stay in sync.
  * Call these instead of scattering zhimuApi + state mutations across views.
  */
+import * as zhimuApi from "../api/index.js";
 (function (window) {
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
 
   function clearWorldScopedState() {
     state.cloudStudio = null;

@@ -1,11 +1,11 @@
 /* Clue management — list, search, edit without opening the full studio canvas. */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const S = window.zhimuUiSemantics || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
@@ -14,14 +14,11 @@
   const studioSelect = M.studioSelect || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioModal = M.studioModal || (() => {});
-  const showToast = T.showToast || (() => {});
   const showError = S.showError || ((error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback));
   const closeModal = M.closeModal || (() => {});
   const go = window.zhimuGo;
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
-  window.zhimuViews = window.zhimuViews || {};
-  const viewExports = window.zhimuViews.clues = window.zhimuViews.clues || {};
 
   const VISIBILITY_LABELS = { role: "私密", public: "房间公开", host: "主持可见" };
   const CLUE_TYPE_LABELS = {
@@ -63,7 +60,7 @@
     return parts.length ? `<p>检测到 ${parts.join("、")}。删除后运行房可能受影响。</p>` : "";
   }
 
-  function toggleCluesSelection(clueId, checked) {
+  export function toggleCluesSelection(clueId, checked) {
     const set = new Set(state.cluesBulkSelection || []);
     if (checked) set.add(clueId);
     else set.delete(clueId);
@@ -71,12 +68,12 @@
     render();
   }
 
-  function syncCluesSelectAll(checked, visibleIds) {
+  export function syncCluesSelectAll(checked, visibleIds) {
     state.cluesBulkSelection = checked ? [...visibleIds] : [];
     render();
   }
 
-  function selectClue(clueId) {
+  export function selectClue(clueId) {
     if (!clueId) return;
     const scroll = captureClueFlowViewport();
     state.cluesSelectedId = clueId;
@@ -84,7 +81,7 @@
     restoreClueFlowViewport(scroll);
   }
 
-  function closeClueDetail() {
+  export function closeClueDetail() {
     const scroll = captureClueFlowViewport();
     state.cluesSelectedId = "";
     state.clueDetailTab = "detail";
@@ -92,19 +89,19 @@
     restoreClueFlowViewport(scroll);
   }
 
-  function setClueFlowFilter(filter = "all") {
+  export function setClueFlowFilter(filter = "all") {
     captureClueFlowViewport();
     state.clueFlowFilter = ["all", "linked", "incomplete"].includes(filter) ? filter : "all";
     render();
   }
 
-  function setClueDetailTab(tab = "detail") {
+  export function setClueDetailTab(tab = "detail") {
     captureClueFlowViewport();
     state.clueDetailTab = tab === "triggers" ? "triggers" : "detail";
     render();
   }
 
-  function adjustClueFlowZoom(mode = "reset") {
+  export function adjustClueFlowZoom(mode = "reset") {
     const scroll = captureClueFlowViewport();
     const current = Number(state.clueFlowZoom || 1);
     if (mode === "in") state.clueFlowZoom = Math.min(1.45, Math.round((current + 0.1) * 10) / 10);
@@ -139,7 +136,7 @@
     }
   }
 
-  async function confirmDeleteClue(clueId) {
+  export async function confirmDeleteClue(clueId) {
     const data = state.cloudStudio;
     const clue = data?.clues?.find((item) => item.id === clueId);
     if (!clue) return showToast("线索不存在或已删除");
@@ -167,7 +164,7 @@
     }
   }
 
-  async function batchDeleteClues() {
+  export async function batchDeleteClues() {
     const ids = state.cluesBulkSelection || [];
     if (!ids.length) return showToast("请先勾选要删除的线索");
     const data = state.cloudStudio;
@@ -590,7 +587,7 @@
     }) || `<span class="status-chip ${clue.visibility === "public" ? "published" : "draft"}">${VISIBILITY_LABELS[clue.visibility] || clue.visibility || "私密"}</span>`;
   }
 
-  function clues() {
+  export function clues() {
     const data = state.cloudStudio;
     if (!data) {
       return U.creatorWorkspaceEmpty?.({
@@ -655,7 +652,7 @@
     </section>`;
   }
 
-  function bindCluesSearch() {
+  export function bindCluesSearch() {
     bindClueFlowPan();
     const input = document.getElementById("clues-search-input");
     if (!input || input.dataset.bound) return;
@@ -775,12 +772,12 @@
     });
   }
 
-  function openClueInStudio(clueId) {
+  export function openClueInStudio(clueId) {
     state.searchFocus = { view: "studio", type: "clue", id: clueId, nodeType: "clue" };
     go("studio");
   }
 
-  function openCluesEditor(clueId = "") {
+  export function openCluesEditor(clueId = "") {
     const data = state.cloudStudio;
     if (!data) return showToast("请先选择剧本世界");
     const clue = clueId ? data.clues.find((item) => item.id === clueId) : null;
@@ -847,18 +844,8 @@
     }
   }
 
-  viewExports.clues = clues;
-  viewExports.selectClue = selectClue;
-  viewExports.closeClueDetail = closeClueDetail;
-  viewExports.setClueFlowFilter = setClueFlowFilter;
-  viewExports.setClueDetailTab = setClueDetailTab;
-  viewExports.adjustClueFlowZoom = adjustClueFlowZoom;
-  viewExports.bindCluesSearch = bindCluesSearch;
-  viewExports.openClueInStudio = openClueInStudio;
-  viewExports.openCluesEditor = openCluesEditor;
-  viewExports.confirmDeleteClue = confirmDeleteClue;
-  viewExports.batchDeleteClues = batchDeleteClues;
-  viewExports.toggleCluesSelection = toggleCluesSelection;
-  viewExports.syncCluesSelectAll = syncCluesSelectAll;
-})(window);
-export {};
+
+// Bridge: window.zhimuViews.clues populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.clues = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, bindCluesSearch, openClueInStudio, openCluesEditor, confirmDeleteClue, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll };

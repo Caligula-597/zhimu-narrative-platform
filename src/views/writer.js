@@ -1,11 +1,11 @@
 /* Auto-split from app.js — writer.js */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
@@ -32,7 +32,6 @@
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const showToast = T.showToast || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -48,9 +47,8 @@
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
   const collapsibleCard = window.zhimuCollapsePanel?.collapsibleCard || ((opts) => `<article class="card">${opts.body || ""}</article>`);
-  window.zhimuViews = window.zhimuViews || {};
-  const viewExports = window.zhimuViews.writer = window.zhimuViews.writer || {};
-function writer(){
+
+export function writer(){
  const data=state.cloudStudio;
  if(!data)return U.creatorWorkspaceEmpty?.({title:"剧本杀创作中心",kicker:"SCRIPTED MYSTERY CREATOR",intro:"为每位玩家编写私人分幕，并控制公共章节的发布节奏。尚未选择剧本时，可先浏览公开库或创建新世界。",guideTitle:"开始创作",guideItems:[{label:"角色稿",title:"私人分幕正文",text:"每位玩家只看到自己的章节与秘密。",bullets:["按角色席位管理分幕","支持 Markdown","草稿 / 测试中 / 已发布"]},{label:"章节",title:"公共章节",text:"控制玩家何时能看到下一章信息。",bullets:["主持人确认或自动解锁","与规则引擎联动"]},{label:"工具",title:"导入导出与 AI",text:"备份、迁移与辅助生成剧情结构。",bullets:["内容包导入导出","AI 剧本创作向导"]}]})||`<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
  const statusName={draft:"草稿",testing:"测试中",published:"已发布"};
@@ -74,7 +72,7 @@ function writer(){
  ${collapsibleCard({ id: "writer:toolbox", title: "创作者工具箱", subtitle: "协作、日志与文档解析", body: `<div class="placeholder-grid">${creatorTool("协作权限","邀请已注册成员，分配协作者、主持人或只读观察者权限","creator-collaboration","管理成员 →")}${creatorTool("运行日志","筛选阅读、调查、规则触发与主持操作记录","creator-logs","查看日志 →")}${creatorTool("文档解析","解析 TXT、Markdown 或 DOCX，预览后写入母稿或角色私人剧本","creator-document-parser","解析文档 →")}</div>`, defaultOpen: false, className: "card placeholder-hub" })}`;
 }
 
-function creatorTool(title,text,action,label){return `<article class="placeholder-module connected"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p><button class="text-btn" data-action="${escapeHtml(action)}">${escapeHtml(label)}</button></article>`}
+export function creatorTool(title,text,action,label){return `<article class="placeholder-module connected"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p><button class="text-btn" data-action="${escapeHtml(action)}">${escapeHtml(label)}</button></article>`}
 
 function manuscriptEditorHtml(data, role, section){
  const chapters=[{id:"",name:"暂不绑定章节"},...data.chapters];
@@ -99,20 +97,20 @@ function bindManuscriptEditor(roleId, section, sections){
  setTimeout(()=>body?.focus(),60);
 }
 
-function openCreatorSection(roleId,sectionId=""){
+export function openCreatorSection(roleId,sectionId=""){
  const data=state.cloudStudio,role=data.roles.find(item=>item.id===roleId),sections=data.sections.filter(section=>section.role_slot_id===roleId),section=sections.find(item=>item.id===sectionId);
  modal.className="modal manuscript-editor-modal";modal.innerHTML=manuscriptEditorHtml(data,role,section);
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
  bindManuscriptEditor(roleId,section,sections);
 }
 
-function openCreatorRole(roleId=""){
+export function openCreatorRole(roleId=""){
  const data=state.cloudStudio,role=data.roles.find(item=>item.id===roleId);
  studioModal(role?"编辑角色席位":"新增角色席位",studioField("角色名称","name","input",role?.name||"")+studioField("公开身份","publicProfile","textarea",role?.public_profile||"")+studioField("角色秘密","privateProfile","textarea",role?.private_profile||"")+studioField("席位顺序","sequence","input",String(role?.sequence||data.roles.length+1)),role?"保存角色修改":"写入云端",async()=>{try{const values=studioValues(),payload={name:values.name,publicProfile:values.publicProfile,privateProfile:values.privateProfile,sequence:Number(values.sequence)||data.roles.length+1};if(role)await zhimuApi.updateRole(role.id,payload);else await zhimuApi.createRole(zhimuApi.context.worldId,payload);closeModal();await loadCloudData();showToast("角色席位已保存")}catch(error){showError(error)}});
  if(role)modal.querySelector(".modal-actions").insertAdjacentHTML("afterbegin",`<button class="danger-btn" data-delete-role>删除角色</button>`),modal.querySelector("[data-delete-role]").onclick=async()=>{if(data.roles.length<=1)return showToast("至少需要保留一个角色席位");try{await zhimuApi.deleteRole(role.id);closeModal();await loadCloudData();showToast("角色席位及其私人正文已删除")}catch(error){showError(error)}};
 }
 
-function openCreatorChapter(chapterId){
+export function openCreatorChapter(chapterId){
  const chapter=state.cloudStudio.chapters.find(item=>item.id===chapterId);
  studioModal("章节发布控制",studioField("章节名称","title","input",chapter.title)+studioField("章节摘要","summary","textarea",chapter.summary||"")+studioSelect("发布阶段","publicationStatus",[{id:"draft",name:"草稿 · 不对玩家开放"},{id:"testing",name:"测试中 · 用于测试房"},{id:"published",name:"已发布 · 可进入正式房"}],chapter.publication_status||"draft")+studioSelect("解锁方式","unlockMode",[{id:"host_confirm",name:"主持人确认后开放"},{id:"automatic",name:"满足规则后自动开放"},{id:"manual",name:"仅手动开放"}],chapter.unlock_rules?.mode||"host_confirm"),"保存章节设置",async()=>{try{const values=studioValues();await zhimuApi.updateChapter(chapter.id,{title:values.title,summary:values.summary,publicationStatus:values.publicationStatus,unlockRules:{mode:values.unlockMode}});closeModal();await loadCloudData();showToast("章节发布规则已保存")}catch(error){showError(error)}});
 }
@@ -129,7 +127,7 @@ function chapterDeleteReferenceHint(refs){
  return parts.length?`<p>删除前提示：${parts.join("；")}。</p>`:"";
 }
 
-async function deleteCreatorChapter(chapterId){
+export async function deleteCreatorChapter(chapterId){
  const chapter=state.cloudStudio?.chapters?.find(item=>item.id===chapterId);
  if(!chapter)return showToast("未找到章节");
  try{
@@ -138,9 +136,9 @@ async function deleteCreatorChapter(chapterId){
  }catch(error){showError(error)}
 }
 
-async function runCreatorChecks(){try{state.cloudCreatorChecks=(await zhimuApi.getCreatorChecks()).checks;render();showToast("发布检查已完成")}catch(error){showError(error)}}
+export async function runCreatorChecks(){try{state.cloudCreatorChecks=(await zhimuApi.getCreatorChecks()).checks;render();showToast("发布检查已完成")}catch(error){showError(error)}}
 
-async function openStoryManuscript(){
+export async function openStoryManuscript(){
  try{
   const manuscript=await zhimuApi.getStoryManuscript();
   modal.className="modal story-manuscript-modal";modal.innerHTML=`<h2>完整剧情母稿</h2><p class="wizard-intro">这是创作者维护的全局剧情文稿，不会替代每位角色的私人剧本。你可以从剧情编排生成一份规范化母稿，也可以把编辑后的母稿拆分成场景、调查点、线索与连接线。</p><div class="assistant-guide"><b>双向同步边界</b><span>“从编排台生成母稿”会覆盖下方文本；“拆分母稿写回编排台”会重建此前由母稿生成的节点，不会删除你手工建立的节点。</span></div><textarea class="field manuscript-draft" rows="20" data-story-manuscript>${escapeHtml(manuscript.body)}</textarea><div class="manuscript-meta" data-manuscript-meta>${storyManuscriptStatus(manuscript)}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-manuscript-save>仅保存母稿</button><button class="secondary-btn" data-manuscript-from-graph>从编排台生成母稿</button><button class="primary-btn" data-manuscript-to-graph>拆分母稿写回编排台</button></div>`;
@@ -151,9 +149,9 @@ async function openStoryManuscript(){
  }catch(error){showError(error)}
 }
 
-function storyManuscriptStatus(manuscript){const label={manual:"手动保存",graph_to_manuscript:"剧情编排 → 完整母稿",manuscript_to_graph:"完整母稿 → 剧情编排"}[manuscript.lastSyncDirection||manuscript.last_sync_direction]||"尚未同步";return `<span>最近同步：${label}</span>${manuscript.updatedAt||manuscript.updated_at?`<span>${formatTime(manuscript.updatedAt||manuscript.updated_at)}</span>`:""}`}
+export function storyManuscriptStatus(manuscript){const label={manual:"手动保存",graph_to_manuscript:"剧情编排 → 完整母稿",manuscript_to_graph:"完整母稿 → 剧情编排"}[manuscript.lastSyncDirection||manuscript.last_sync_direction]||"尚未同步";return `<span>最近同步：${label}</span>${manuscript.updatedAt||manuscript.updated_at?`<span>${formatTime(manuscript.updatedAt||manuscript.updated_at)}</span>`:""}`}
 
-async function openCollaboration(){
+export async function openCollaboration(){
  try{
   const members=await zhimuApi.getWorldMembers();
   const pending=await zhimuApi.getWorldMemberInvites();
@@ -172,7 +170,7 @@ async function openCollaboration(){
  }catch(error){showError(error)}
 }
 
-async function openWorldLogs(){
+export async function openWorldLogs(){
  try{
   const draw=async()=>{const params={limit:"100"},eventType=modal.querySelector("[data-log-event]")?.value,keyword=modal.querySelector("[data-log-keyword]")?.value;if(eventType)params.eventType=eventType;if(keyword)params.keyword=keyword;const logs=await zhimuApi.getWorldLogs(params);modal.querySelector("[data-log-list]").innerHTML=logs.map(log=>`<div class="log-row"><div><b>${escapeHtml(log.event_type)}</b><span>${escapeHtml(log.room_name)}</span></div><p>${escapeHtml(log.message)}</p><small>${escapeHtml(log.actor_name||"系统")} · ${formatTime(log.created_at)}</small></div>`).join("")||`<div class="empty-state">没有匹配的运行日志。</div>`};
   modal.className="modal creator-tool-modal";modal.innerHTML=`<h2>世界运行日志</h2><p class="wizard-intro">查看玩家阅读、调查、规则触发与主持操作。筛选只影响当前查看，不会修改历史记录。</p><div class="log-toolbar"><select class="field compact-field" data-log-event><option value="">全部事件</option><option value="reading_completed">阅读完成</option><option value="investigation_completed">调查完成</option><option value="scene_unlocked">场景解锁</option></select><input class="field" data-log-keyword placeholder="搜索日志内容"><button class="secondary-btn" data-log-refresh>筛选</button></div><div class="log-list" data-log-list></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
@@ -180,7 +178,7 @@ async function openWorldLogs(){
  }catch(error){showError(error)}
 }
 
-async function openDocumentParser(){
+export async function openDocumentParser(){
  const roles=state.cloudStudio?.roles||[];
  let parsed=null;
  let pendingFile=null;
@@ -233,7 +231,7 @@ async function openDocumentParser(){
  };
 }
 
-function fileToBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.onerror=reject;reader.readAsDataURL(file)})}
+export function fileToBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.onerror=reject;reader.readAsDataURL(file)})}
 
 const AiDraft=()=>window.zhimuAiDraft;
 function aiDraftWorldId(){return zhimuApi.context?.worldId||""}
@@ -247,34 +245,34 @@ function aiLocalDraftActions(kind){return `<button class="text-btn" type="button
 function bindAiDraftClear(kind,onClear){const btn=modal.querySelector("[data-ai-draft-clear]");if(!btn)return;btn.onclick=()=>{clearLocalAiDraft(kind);onClear?.();showToast("已清除本地 AI 草稿")}}
 
 
-async function openDeepseekAssistant(){
+export async function openDeepseekAssistant(){
  return openDeepseekPipeline({focusLayer:"structure",mode:"interactive"});
 }
 
-async function openDeepseekFullMystery(){
+export async function openDeepseekFullMystery(){
  return openDeepseekPipeline({mode:"auto"});
 }
 
-function deepseekProposalPreview(result){const proposal=result.proposal,plan=proposal.writingPlan||{};return `<section class="assistant-preview deepseek-preview"><div class="section-head"><div><p class="section-kicker">${escapeHtml(result.model)}</p><h3>${escapeHtml(proposal.title||"未命名提案")}</h3><p>${escapeHtml(proposal.logline||"")}</p></div><span class="cloud-pill local">本地草稿 · 未上传云端</span></div><div class="proposal-stats"><span>${proposal.chapters.length} 章</span><span>${proposal.scenes.length} 场景</span><span>${proposal.investigationPoints.length} 调查点</span><span>${proposal.clues.length} 线索</span><span>${proposal.edges.length} 连线</span><span>${Number(plan.targetWordCount||result.brief?.targetWordCount||0)} 字建议</span></div><div class="proposal-chapters">${proposal.chapters.map(chapter=>`<article><b>${chapter.sequence}. ${escapeHtml(chapter.title)}</b><p>${escapeHtml(chapter.summary||"")}</p><small>建议字数：${Number((plan.chapterWordBudgets||[]).find(item=>item.chapterKey===chapter.key)?.targetWordCount||0)} 字</small></article>`).join("")}</div><div class="assistant-suggestions"><b>AI 写作建议</b>${proposal.suggestions.map(item=>`<p>· ${escapeHtml(item)}</p>`).join("")}</div></section>`}
+export function deepseekProposalPreview(result){const proposal=result.proposal,plan=proposal.writingPlan||{};return `<section class="assistant-preview deepseek-preview"><div class="section-head"><div><p class="section-kicker">${escapeHtml(result.model)}</p><h3>${escapeHtml(proposal.title||"未命名提案")}</h3><p>${escapeHtml(proposal.logline||"")}</p></div><span class="cloud-pill local">本地草稿 · 未上传云端</span></div><div class="proposal-stats"><span>${proposal.chapters.length} 章</span><span>${proposal.scenes.length} 场景</span><span>${proposal.investigationPoints.length} 调查点</span><span>${proposal.clues.length} 线索</span><span>${proposal.edges.length} 连线</span><span>${Number(plan.targetWordCount||result.brief?.targetWordCount||0)} 字建议</span></div><div class="proposal-chapters">${proposal.chapters.map(chapter=>`<article><b>${chapter.sequence}. ${escapeHtml(chapter.title)}</b><p>${escapeHtml(chapter.summary||"")}</p><small>建议字数：${Number((plan.chapterWordBudgets||[]).find(item=>item.chapterKey===chapter.key)?.targetWordCount||0)} 字</small></article>`).join("")}</div><div class="assistant-suggestions"><b>AI 写作建议</b>${proposal.suggestions.map(item=>`<p>· ${escapeHtml(item)}</p>`).join("")}</div></section>`}
 
 function deepseekMysteryPreview(result){const pkg=result.package||{},roles=pkg.roles||[];return `<section class="assistant-preview deepseek-preview"><div class="section-head"><div><p class="section-kicker">${escapeHtml(result.model||"DeepSeek")} · 整本悬疑包</p><h3>${escapeHtml(pkg.title||"未命名剧本")}</h3><p>${escapeHtml(pkg.summary||"")}</p></div><span class="cloud-pill local">本地草稿 · 未上传云端</span></div><div class="proposal-stats"><span>${roles.length} 角色</span><span>${(result.proposal?.chapters||[]).length} 章结构</span><span>${(result.proposal?.scenes||[]).length} 场景</span><span>${(pkg.overallManuscript||"").length} 字母稿</span></div><div class="proposal-chapters">${roles.slice(0,6).map((role)=>`<article><b>${escapeHtml(role.name)}</b><p>${escapeHtml((role.publicProfile||"").slice(0,120))}</p><small>${(role.sections||[]).length} 段私人正文</small></article>`).join("")}</div><div class="assistant-suggestions"><b>逻辑线说明</b>${(pkg.logicNotes||[]).slice(0,6).map((item)=>`<p>· ${escapeHtml(item)}</p>`).join("")||"<p>· 无</p>"}</div></section>`}
 
 const PipelineWizard=()=>window.zhimuPipelineWizard;
-async function openDeepseekPipeline(options){return PipelineWizard()?.openDeepseekPipeline(options)}
+export async function openDeepseekPipeline(options){return PipelineWizard()?.openDeepseekPipeline(options)}
 function pipelineEvaluationPreview(evaluation){return PipelineWizard()?.pipelineEvaluationPreview(evaluation)||""}
 function pipelineStepLabel(step){return PipelineWizard()?.pipelineStepLabel(step)||step}
 function pipelinePreviewHtml(session){return PipelineWizard()?.pipelinePreviewHtml(session)||""}
 
-function openStoryAssistant(){
+export function openStoryAssistant(){
  modal.className="modal story-assistant-modal";modal.innerHTML=`<h2>剧情助手</h2><p class="wizard-intro">粘贴剧情梗概或逐段素材。系统会先识别场景、线索和调查点，再生成建议连线。确认后才会写入剧情编排。</p><div class="assistant-guide"><b>推荐格式</b><span>每段用空行分隔。也可以使用“场景：”“线索：”“调查点：”开头提高识别准确度。</span></div><textarea class="field assistant-draft" rows="14" data-story-draft placeholder="场景：旧灯塔。潮水退去后，塔门露出一枚生锈的锁。&#10;&#10;调查点：检查塔门锁孔，发现内部残留蓝色蜡屑。&#10;&#10;线索：蓝色火漆碎片。它与匿名信上的封蜡一致。"></textarea><div data-assistant-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-assistant-analyze>分析分类</button><button class="primary-btn" data-assistant-import disabled>确认写入剧情编排</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const text=()=>modal.querySelector("[data-story-draft]").value.trim(),preview=modal.querySelector("[data-assistant-preview]"),commit=modal.querySelector("[data-assistant-import]");
  modal.querySelector("[data-assistant-analyze]").onclick=async()=>{try{const result=await zhimuApi.analyzeStoryDraft(text());preview.innerHTML=storyAssistantPreview(result);commit.disabled=!result.nodes.length;showToast(`已识别 ${result.nodes.length} 个剧情节点`)}catch(error){showError(error)}};
  commit.onclick=async()=>{try{commit.disabled=true;const result=await zhimuApi.importStoryDraft(text());closeModal();await loadCloudData();go("studio");showToast(`已生成 ${result.nodes.length} 个节点和 ${result.edges.length} 条连线`)}catch(error){commit.disabled=false;showError(error)}};
 }
 
-function storyAssistantPreview(result){const typeName={scene:"场景",clue:"线索",investigation_point:"调查点"};return `<section class="assistant-preview"><div class="section-head"><div><h3>分类预览</h3><p>${result.nodes.length} 个节点 · ${result.edges.length} 条建议连线</p></div></div><div class="assistant-node-grid">${result.nodes.map(node=>`<article><span>${typeName[node.type]}</span><b>${escapeHtml(node.name)}</b><p>${escapeHtml(node.text)}</p></article>`).join("")}</div><div class="assistant-suggestions"><b>写作建议</b>${result.suggestions.map(item=>`<p>· ${escapeHtml(item)}</p>`).join("")}</div></section>`}
+export function storyAssistantPreview(result){const typeName={scene:"场景",clue:"线索",investigation_point:"调查点"};return `<section class="assistant-preview"><div class="section-head"><div><h3>分类预览</h3><p>${result.nodes.length} 个节点 · ${result.edges.length} 条建议连线</p></div></div><div class="assistant-node-grid">${result.nodes.map(node=>`<article><span>${typeName[node.type]}</span><b>${escapeHtml(node.name)}</b><p>${escapeHtml(node.text)}</p></article>`).join("")}</div><div class="assistant-suggestions"><b>写作建议</b>${result.suggestions.map(item=>`<p>· ${escapeHtml(item)}</p>`).join("")}</div></section>`}
 
-function openCreatorPreview(){
+export function openCreatorPreview(){
  const data=state.cloudStudio,roles=data.roles;if(!roles.length)return showToast("请先创建角色");
  modal.className="modal preview-modal";modal.innerHTML=`<h2>玩家视角模拟器</h2><p class="wizard-intro">切换角色和章节，核对玩家能读到的私人文本。草稿、测试中和已发布状态会明确标记。</p><div class="preview-controls">${studioSelect("模拟角色","previewRole",roles,roles[0]?.id||"")}${studioSelect("公共章节","previewChapter",[{id:"",name:"全部章节"},...data.chapters],"")}</div><div data-preview-body></div><div class="modal-actions"><button class="primary-btn" data-close>结束模拟</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const draw=()=>{const roleId=modal.querySelector('[data-studio-field="previewRole"]').value,chapterId=modal.querySelector('[data-studio-field="previewChapter"]').value,role=roles.find(item=>item.id===roleId),sections=data.sections.filter(section=>section.role_slot_id===roleId&&(!chapterId||section.chapter_id===chapterId));modal.querySelector("[data-preview-body]").innerHTML=`<article class="preview-role-card"><p class="section-kicker">仅此角色可见</p><h3>${escapeHtml(role.name)}</h3><p>${escapeHtml(role.private_profile||"尚未补充角色秘密")}</p></article>${sections.map(section=>`<article class="preview-section"><span class="status-chip ${section.publication_status}">${section.publication_status}</span><h3>${escapeHtml(section.title)}</h3><div>${escapeHtml(section.body).replace(/\n/g,"<br>")}</div></article>`).join("")||`<div class="empty-state">该筛选条件下没有私人剧情。</div>`}`};modal.querySelectorAll("select").forEach(select=>select.onchange=draw);draw();
@@ -292,7 +290,7 @@ function contentPackagePreviewHtml(preview){
  return `<section class="assistant-preview package-preview"><div class="section-head"><div><p class="section-kicker">${preview.mode==="new_world"?"创建新世界":"追加到当前世界"}</p><h3>${escapeHtml(preview.sourceWorldName)}</h3><p>${escapeHtml(preview.sourceWorldSummary||"无摘要")}</p></div><span class="cloud-pill">仅预览 · 尚未写入</span></div><div class="proposal-stats"><span>${preview.summary.roles} 角色</span><span>${preview.summary.chapters} 章节</span><span>${preview.summary.sections} 分幕</span><span>${preview.summary.scenes} 场景</span><span>${preview.summary.clues} 线索</span><span>${preview.summary.investigationPoints} 调查点</span><span>${preview.summary.rules} 规则</span></div><div class="preview-grid"><article><h4>即将导入的角色</h4><ul>${roleRows}</ul></article><article><h4>即将导入的章节</h4><ul>${chapterRows}</ul></article><article><h4>即将导入的线索</h4><ul>${clueRows}</ul></article></div><div class="section-head" style="margin-top:14px"><div><h4>引用检查与重名提示</h4><p>${preview.targetWorldName?`目标世界：${escapeHtml(preview.targetWorldName)} · `:''}导入不会覆盖已有内容，只会追加新记录。</p></div></div>${warningRows}</section>`;
 }
 
-async function openCreatorExport(){
+export async function openCreatorExport(){
  try{
   const summary=await zhimuApi.getContentPackageSummary();
   modal.className="modal creator-tool-modal";modal.innerHTML=`<h2>导出内容包</h2><p class="wizard-intro">确认摘要后再下载 JSON 备份。可用于备份剧本、复制世界结构或分享给协作者。</p>${contentPackageSummaryHtml(summary)}<div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-export-confirm>确认导出 JSON</button></div>`;
@@ -300,9 +298,9 @@ async function openCreatorExport(){
  }catch(error){showError(error)}
 }
 
-async function exportCreatorPackage(){return openCreatorExport()}
+export async function exportCreatorPackage(){return openCreatorExport()}
 
-function openCreatorImport(){
+export function openCreatorImport(){
  const roles=state.cloudStudio?.roles||[];
  modal.className="modal creator-tool-modal";
  modal.innerHTML=`<h2>导入创作内容</h2><p class="wizard-intro">JSON 内容包会先预览再写入。可选择追加到当前世界，或创建一个新世界。现有内容不会被覆盖。</p><div class="form-group"><label>导入模式</label><select class="field" data-import-mode><option value="append">追加到当前世界</option><option value="new_world">创建新世界并导入</option></select>${roles.length?"":`<div class="tutorial-tip"><b>当前世界尚无角色</b><span>追加模式仍可导入完整内容包；Markdown/TXT 导入需先创建角色席位。</span></div>`}<div data-new-world-fields style="display:none;margin-top:10px">${studioField("新世界名称","newWorldName","input",state.cloudStudio?.world?.name?`${state.cloudStudio.world.name} · 导入副本`:"导入的世界")}${studioField("世界摘要","newWorldSummary","textarea",state.cloudStudio?.world?.summary||"")}</div><label>选择文件</label><input class="field" type="file" accept=".json,.md,.txt" data-creator-import-file>${roles.length?studioSelect("文档写入角色","importRole",roles):""}</div><div data-import-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-import-preview-btn>解析预览</button><button class="primary-btn" data-import-submit disabled>确认导入</button></div>`;
@@ -334,7 +332,7 @@ function openCreatorImport(){
  modal.querySelector("[data-import-submit]").onclick=()=>importCreatorPackage(parsedJson, previewResult);
 }
 
-async function importCreatorPackage(parsedJson=null, previewResult=null){
+export async function importCreatorPackage(parsedJson=null, previewResult=null){
  const file=modal.querySelector("[data-creator-import-file]").files[0];
  if(!file)return showToast("请选择导入文件");
  const mode=modal.querySelector("[data-import-mode]")?.value||"append";
@@ -361,35 +359,11 @@ async function importCreatorPackage(parsedJson=null, previewResult=null){
  }catch(error){showToast(`导入失败：${error.message}`)}
 }
 
-function createCreatorSnapshot(){studioModal("保存创作版本",studioField("版本名称","label","input",`创作快照 ${new Date().toLocaleString("zh-CN")}`),"保存快照",async()=>{try{await zhimuApi.createContentVersion(studioValues());closeModal();await loadCloudData();showToast("创作版本已保存")}catch(error){showError(error)}})}
-async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
-async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
-  viewExports.writer = writer;
-  viewExports.createCreatorSnapshot = createCreatorSnapshot;
-  viewExports.restoreCreatorSnapshot = restoreCreatorSnapshot;
-  viewExports.deleteCreatorSnapshot = deleteCreatorSnapshot;
-  viewExports.creatorTool = creatorTool;
-  viewExports.openCreatorSection = openCreatorSection;
-  viewExports.openCreatorRole = openCreatorRole;
-  viewExports.openCreatorChapter = openCreatorChapter;
-  viewExports.deleteCreatorChapter = deleteCreatorChapter;
-  viewExports.runCreatorChecks = runCreatorChecks;
-  viewExports.openStoryManuscript = openStoryManuscript;
-  viewExports.storyManuscriptStatus = storyManuscriptStatus;
-  viewExports.openCollaboration = openCollaboration;
-  viewExports.openWorldLogs = openWorldLogs;
-  viewExports.openDocumentParser = openDocumentParser;
-  viewExports.fileToBase64 = fileToBase64;
-  viewExports.openDeepseekAssistant = openDeepseekAssistant;
-  viewExports.openDeepseekPipeline = openDeepseekPipeline;
-  viewExports.openDeepseekFullMystery = openDeepseekFullMystery;
-  viewExports.deepseekProposalPreview = deepseekProposalPreview;
-  viewExports.openStoryAssistant = openStoryAssistant;
-  viewExports.storyAssistantPreview = storyAssistantPreview;
-  viewExports.openCreatorPreview = openCreatorPreview;
-  viewExports.openCreatorExport = openCreatorExport;
-  viewExports.exportCreatorPackage = exportCreatorPackage;
-  viewExports.openCreatorImport = openCreatorImport;
-  viewExports.importCreatorPackage = importCreatorPackage;
-})(window);
-export {};
+export function createCreatorSnapshot(){studioModal("保存创作版本",studioField("版本名称","label","input",`创作快照 ${new Date().toLocaleString("zh-CN")}`),"保存快照",async()=>{try{await zhimuApi.createContentVersion(studioValues());closeModal();await loadCloudData();showToast("创作版本已保存")}catch(error){showError(error)}})}
+export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
+export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
+
+// Bridge: window.zhimuViews.writer populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.writer = { writer, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, storyManuscriptStatus, openCollaboration, openWorldLogs, openDocumentParser, fileToBase64, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };

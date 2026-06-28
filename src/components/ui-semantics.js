@@ -1,4 +1,5 @@
 /** Shared UI semantics: status copy, chips, toast/error wrappers, and surface tokens. */
+import { showToast } from "./toast.js";
 (function (window) {
   const escapeHtml = window.zhimuFormat?.escapeHtml || ((value = "") => String(value));
 
@@ -49,12 +50,12 @@
 
   function showError(error, fallback = "操作失败，请稍后重试") {
     const message = window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback;
-    window.zhimuToast?.showToast?.(message);
+    showToast(message);
     return message;
   }
 
   function showSuccess(message) {
-    window.zhimuToast?.showToast?.(message);
+    showToast(message);
     return message;
   }
 

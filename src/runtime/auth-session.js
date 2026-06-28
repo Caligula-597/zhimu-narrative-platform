@@ -1,4 +1,5 @@
 /** Session-first auth UX for staging / internal test builds. */
+import * as zhimuApi from "../api/index.js";
 (function (window) {
   const state = window.zhimuState;
   const S = () => window.zhimuSessionMode || {};
@@ -87,7 +88,7 @@
     const beforeMode = S().getSessionMode?.();
     const beforeUserId = state.currentUser?.id || "";
     try {
-      const me = await window.zhimuApi.me();
+      const me = await zhimuApi.me();
       if (!applyProfileUser(me)) throw new Error("Invalid auth profile");
       const afterMode = S().getSessionMode?.();
       const afterUserId = state.currentUser?.id || "";

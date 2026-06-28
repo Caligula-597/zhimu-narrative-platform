@@ -1,14 +1,12 @@
 /** Optimistic-lock conflict UI + unsaved editor guard for world content_revision / If-Match. */
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
 
 (function (window) {
 
   const F = window.zhimuFormat || {};
 
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
-
-  const showToast = window.zhimuToast?.showToast || (() => {});
-
-
 
   let editorDirty = false;
 
@@ -62,7 +60,7 @@
 
   function activeWorldId(worldId) {
 
-    return worldId || window.zhimuApi?.context?.worldId || "";
+    return worldId || zhimuApi?.context?.worldId || "";
 
   }
 

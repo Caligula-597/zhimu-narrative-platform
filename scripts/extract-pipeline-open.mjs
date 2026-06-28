@@ -1,3 +1,10 @@
+/**
+ * @deprecated Historical one-time script — DO NOT RE-RUN.
+ * Extracted the pipeline-wizard-open.js module from git HEAD at the time of
+ * the pipeline wizard split. The generated header template below still uses
+ * `const zhimuApi = window.zhimuApi;` — the codebase has since migrated to
+ * real ES Module imports, so this template is preserved for traceability only.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";

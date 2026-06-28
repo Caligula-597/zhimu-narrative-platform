@@ -1,10 +1,10 @@
 /* Creator mini-game design — test feature backed by room mini-game runtime. */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const escapeHtml = F.escapeHtml || ((value = "") => String(value));
   const catalogExperienceBanner = U.catalogExperienceBanner || (() => "");
@@ -12,12 +12,9 @@
   const studioValues = M.studioValues || (() => ({}));
   const studioModal = M.studioModal || (() => {});
   const closeModal = M.closeModal || (() => {});
-  const showToast = T.showToast || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   function render() { window.zhimuRender?.(); }
   function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
-  window.zhimuViews = window.zhimuViews || {};
-  const viewExports = window.zhimuViews.miniGames = window.zhimuViews.miniGames || {};
 
   function templates() {
     const world = state.cloudStudio?.world;
@@ -106,7 +103,7 @@
     </aside>`;
   }
 
-  function miniGames() {
+  export function miniGames() {
     const data = state.cloudStudio;
     if (!data) {
       return U.creatorWorkspaceEmpty?.({
@@ -137,7 +134,7 @@
     </section>`;
   }
 
-  function openMiniGameEditor(templateId = "") {
+  export function openMiniGameEditor(templateId = "") {
     const current = templates().map(normalizeTemplate);
     const existing = current.find((item) => item.id === templateId);
     const template = normalizeTemplate(existing || {});
@@ -175,7 +172,7 @@
     );
   }
 
-  async function deleteMiniGameTemplate(templateId) {
+  export async function deleteMiniGameTemplate(templateId) {
     const current = templates().map(normalizeTemplate);
     const next = current.filter((item) => item.id !== templateId);
     try {
@@ -187,7 +184,7 @@
     }
   }
 
-  async function launchMiniGameTemplate(templateId) {
+  export async function launchMiniGameTemplate(templateId) {
     const room = U.activeRuntimeRoom?.();
     if (!room) return showToast("请先在世界总览选择或创建运行房");
     const template = templates().map(normalizeTemplate).find((item) => item.id === templateId);
@@ -201,11 +198,7 @@
     }
   }
 
-  Object.assign(viewExports, {
-    miniGames,
-    openMiniGameEditor,
-    deleteMiniGameTemplate,
-    launchMiniGameTemplate
-  });
-})(window);
-export {};
+// Bridge: window.zhimuViews.miniGames populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.miniGames = { miniGames, openMiniGameEditor, deleteMiniGameTemplate, launchMiniGameTemplate };

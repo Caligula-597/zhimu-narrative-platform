@@ -1,7 +1,7 @@
 /**
  * DOM references — migrated to real ES Modules.
  * Exports element refs for new code; window.zhimuDom bridge kept for un-migrated views.
- * Deferred render/go/handle bridges kept until app.js migrates (it loads last).
+ * Deferred render/go/handle bridges kept — view files still cache window.zhimuRender etc.
  */
 const content = document.querySelector("#content");
 const toast = document.querySelector("#toast");

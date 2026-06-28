@@ -1,13 +1,10 @@
 /** Unified account + content assets page (not modal). */
-(function (window) {
+import * as zhimuApi from "../api/index.js";
+
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const F = window.zhimuFormat || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const Status = () => window.zhimuStatus || {};
-
-  window.zhimuViews = window.zhimuViews || {};
-  const exports = window.zhimuViews.accountHub = window.zhimuViews.accountHub || {};
 
   function activeTab() {
     return state.accountHubTab === "assets" ? "assets" : "account";
@@ -36,7 +33,7 @@
   }
 
   /** Load account + optional assets data once per navigation — never from accountHub() render. */
-  function beginAccountHubLoad() {
+  export function beginAccountHubLoad() {
     if (!window.zhimuSessionAuth?.isAuthenticated?.()) return;
     const loadId = ++state.accountHubLoadId;
     void (async () => {
@@ -49,7 +46,7 @@
     })();
   }
 
-  function accountHub() {
+  export function accountHub() {
     if (!window.zhimuSessionAuth?.isAuthenticated?.()) {
       return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>登录后可管理账号、配额、云端附件与会话。</p></div></div><button type="button" class="primary-btn" data-action="open-auth">登录 / 注册</button></article></section>`;
     }
@@ -63,7 +60,7 @@
     return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>${profileIntro(me)}</p></div></div>${tabButtons(tab)}<div class="account-hub-panels"><section class="account-hub-panel ${tab === "account" ? "" : "hidden"}" data-hub-panel="account" role="tabpanel">${accountHtml}</section><section class="account-hub-panel ${tab === "assets" ? "" : "hidden"}" data-hub-panel="assets" role="tabpanel">${assetsHtml}</section></div></article></section>`;
   }
 
-  async function switchAccountHubTab(tab) {
+  export async function switchAccountHubTab(tab) {
     if (tab !== "account" && tab !== "assets") return;
     if (tab === state.accountHubTab) return;
     state.accountHubTab = tab;
@@ -73,7 +70,7 @@
     window.zhimuRender?.();
   }
 
-  function bindAccountHubView() {
+  export function bindAccountHubView() {
     if (state.view !== "account") return;
     const tab = activeTab();
     const root = document.querySelector(".account-hub-page");
@@ -82,7 +79,7 @@
     if (tab === "assets" && zhimuApi.context.worldId) window.zhimuViews?.assets?.bindAssetsPanel?.(root);
   }
 
-  function goAccountHub(options = {}) {
+  export function goAccountHub(options = {}) {
     state.accountHubTab = options.tab === "assets" ? "assets" : "account";
     window.zhimuRuntime?.go?.("account");
   }
@@ -100,6 +97,8 @@
     openAccountHub: goAccountHub,
     openAccountPanel: goAccountHub
   });
-  Object.assign(exports, { accountHub, bindAccountHubView, switchAccountHubTab, goAccountHub, beginAccountHubLoad });
-})(window);
-export {};
+
+// Bridge: window.zhimuViews.accountHub populated from real exports.
+// Will be removed in Phase 4 when consumers migrate to direct imports.
+window.zhimuViews = window.zhimuViews || {};
+window.zhimuViews.accountHub = { accountHub, bindAccountHubView, switchAccountHubTab, goAccountHub, beginAccountHubLoad };

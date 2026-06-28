@@ -1,8 +1,9 @@
 /** Global world search — unified API surface, single modal entry from topbar. */
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
 (function (window) {
   const { modal, modalBackdrop } = window.zhimuDom;
   const escapeHtml = window.zhimuFormat?.escapeHtml || ((v = "") => String(v));
-  const showToast = window.zhimuToast?.showToast || (() => {});
   const closeModal = window.zhimuModal?.closeModal || (() => {});
   const go = window.zhimuGo;
   const Status = () => window.zhimuStatus || {};
@@ -30,7 +31,7 @@
   let searchTimer = null;
 
   function openGlobalSearch() {
-    if (!window.zhimuApi.context.worldId) {
+    if (!zhimuApi.context.worldId) {
       showToast("请先选择或创建一个剧本世界");
       return;
     }
@@ -50,7 +51,7 @@
       }
       resultsEl.innerHTML = Status().loading?.("正在搜索", "正在检索当前世界内容…", { compact: true }) || `<div class="empty-state">正在搜索…</div>`;
       try {
-        const payload = await window.zhimuApi.searchWorld(q, { limit: 40 });
+        const payload = await zhimuApi.searchWorld(q, { limit: 40 });
         const labels = payload.typeLabels || TYPE_LABELS;
         if (!payload.results?.length) {
           resultsEl.innerHTML = Status().empty?.("没有匹配结果", `没有匹配「${q}」的内容。试试更短的关键词或到各页面浏览列表。`, { compact: true }) || `<div class="empty-state">没有匹配「${escapeHtml(q)}」的内容。试试更短的关键词或到各页面浏览列表。</div>`;

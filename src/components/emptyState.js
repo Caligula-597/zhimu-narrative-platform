@@ -1,11 +1,11 @@
 /* Auto-split from app.js — emptyState.js */
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "./toast.js";
 (function (window) {
   const state = window.zhimuState;
-  const zhimuApi = window.zhimuApi;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const T = window.zhimuToast || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
@@ -19,7 +19,6 @@
   const logActivityType = F.logActivityType || (() => "ok");
   const chapterPublicationLabel = F.chapterPublicationLabel || ((s) => s);
   const chapterFlowClass = F.chapterFlowClass || (() => "");
-  const showToast = T.showToast || (() => {});
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});

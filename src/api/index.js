@@ -1,8 +1,10 @@
 /**
  * API aggregator — single entry point for the main app.
  *
- * Re-exports domain modules so views can `import { getWorld } from "../api/index.js"`.
- * Also rebuilds `window.zhimuApi` so un-migrated IIFE views keep working.
+ * Re-exports domain modules so views can `import { getWorld } from "../api/index.js"`
+ * or `import * as zhimuApi from "../api/index.js"`.  All view/runtime/component
+ * consumers have been migrated to namespace imports — the legacy `window.zhimuApi`
+ * bridge was removed after Layer 3/4 migration completed.
  *
  * Domain split (originally a 599-line src/api/client.js):
  *   client.js  — request plumbing, auth headers, demo context, active-context state
@@ -46,6 +48,11 @@ export {
   clearRoom,
   loadKey
 } from "./client.js";
+
+/* `context` alias — matches the original window.zhimuApi.context shape so that
+ * `import * as zhimuApi from "../api/index.js"` gives views the same surface
+ * they had via `const zhimuApi = window.zhimuApi`. */
+export { demoContext as context } from "./client.js";
 
 /* ── Auth + account ── */
 export {
@@ -282,56 +289,3 @@ export {
   assignOpsPlan,
   sendOpsTestAlert
 } from "./ops.js";
-
-/* ────────────────────────────────────────────────────────────────────────────
- * Backward-compatibility bridge: window.zhimuApi
- *
- * Un-migrated IIFE views read `window.zhimuApi.<method>()`.  We rebuild the
- * exact same surface by importing every domain as a namespace and spreading.
- * `context` and the active-context helpers are mirrored from client.js so the
- * shape matches the original 599-line client.js exactly.
- * ──────────────────────────────────────────────────────────────────────────── */
-import * as client from "./client.js";
-import * as auth from "./auth.js";
-import * as world from "./world.js";
-import * as studio from "./studio.js";
-import * as room from "./room.js";
-import * as host from "./host.js";
-import * as player from "./player.js";
-import * as voice from "./voice.js";
-import * as recap from "./recap.js";
-import * as ai from "./ai.js";
-import * as content from "./content.js";
-import * as assets from "./assets.js";
-import * as ops from "./ops.js";
-
-// Strip re-exports so we don't overwrite domain methods with plumbing aliases.
-const { demoContext: _dc, request: _req, worldWrite: _ww, opsRequest: _opsReq, opsToken: _opsT, ...authRest } = auth;
-const { demoContext: _dc2, ...worldRest } = world;
-const { opsRequest: _opsReq2, opsToken: _opsT2, request: _req2, ...opsRest } = ops;
-
-window.zhimuApi = {
-  // Active context + helpers (originally inline in window.zhimuApi)
-  context: client.demoContext,
-  createIdempotencyKey: client.createIdempotencyKey,
-  selectWorld: client.selectWorld,
-  clearWorld: client.clearWorld,
-  resetActiveWorld: client.resetActiveWorld,
-  selectRoom: client.selectRoom,
-  clearRoom: client.clearRoom,
-  loadKey: client.loadKey,
-
-  // All domain methods
-  ...authRest,
-  ...worldRest,
-  ...studio,
-  ...room,
-  ...host,
-  ...player,
-  ...voice,
-  ...recap,
-  ...ai,
-  ...content,
-  ...assets,
-  ...opsRest
-};

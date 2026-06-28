@@ -73,7 +73,8 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
 export async function waitForCloudReady(page, timeout = 45_000) {
   await page.waitForFunction(() => {
     const state = window.zhimuState;
-    const worldId = window.zhimuApi?.context?.worldId;
+    // `window.zhimuApi` bridge was removed; worldId is read from the loaded studio world.
+    const worldId = state?.cloudStudio?.world?.id;
     return state && !state.cloudLoading && worldId && (state.cloudWorlds?.length || state.cloudStudio?.world);
   }, undefined, { timeout });
 }
