@@ -1,10 +1,9 @@
-// A2 状态分片底座 —— 仅预加载 shard 模块，activateShardBridge() 在 Phase 3 调用
-// window.zhimuState 字面量保留不变（ui-smoke 的 state-runtime-boundaries 检查依赖）
-import "./state/index.js";
+// A2 状态分片 —— Phase 3.1 起激活 Proxy 兼容桥
+// ui 字段已迁至 uiStore；其余字段保留在字面量，Proxy 未命中时 fallback 到此对象
+import { activateShardBridge } from "./state/index.js";
 
 window.zhimuState = {
   currentUser: null,
-  view: "overview",
   voiceRoom: "尚未选择",
   voiceRoomId: null,
   voiceMessages: [],
@@ -40,10 +39,6 @@ window.zhimuState = {
   studioLayoutMode: "scene-tree",
   studioCollapsedScenes: [],
   studioCanvasHeight: 0,
-  searchFocus: null,
-  cluesSearchQuery: "",
-  cluesSelectedId: null,
-  cluesBulkSelection: [],
   voiceLiveError: "",
   voicePlaybackBlocked: false,
   cloudAssets: [],
@@ -55,11 +50,6 @@ window.zhimuState = {
   cloudRoomSettings: { hostVoiceListen: false },
   cloudRulesPreview: null,
   storageUsage: null,
-  panelCollapse: {},
-  accountHubTab: "account",
-  accountView: null,
-  accountViewLoading: false,
-  accountHubLoadId: 0,
   apiError: "",
   roomEventsConnected: false,
   wizardStep: 0,
@@ -111,4 +101,9 @@ window.zhimuState = {
     }
   }
 };
+// 激活 Proxy 兼容桥：window.zhimuState 读/写按字段路由到对应 shard
+// 未在 shard 中的字段 fallback 到上面的字面量对象（legacy）
+// Phase 4 删除此 Proxy + 字面量，所有消费者改直接 import shard
+activateShardBridge();
+
 export {};

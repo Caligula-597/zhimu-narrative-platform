@@ -1,4 +1,5 @@
 /** Workspace / auth / cloud refresh action dispatch — isolated from view-specific handlers. */
+import { uiStore } from "../state/index.js";
 (function (window) {
   function handleWorkspaceAction(action, el) {
     const R = window.zhimuRuntime || {};
@@ -128,11 +129,12 @@
       case "open-account-hub":
       case "go-account": {
         const tab = el?.dataset?.hubTab === "assets" ? "assets" : "account";
-        if (window.zhimuState?.view === "account" && window.zhimuState?.accountHubTab !== tab) {
+        const ui = uiStore.get();
+        if (ui.view === "account" && ui.accountHubTab !== tab) {
           void window.zhimuAccountHub?.switchAccountHubTab?.(tab);
           return true;
         }
-        window.zhimuState.accountHubTab = tab;
+        uiStore.set({ accountHubTab: tab });
         R.go?.("account");
         return true;
       }

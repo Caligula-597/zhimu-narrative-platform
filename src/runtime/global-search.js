@@ -1,6 +1,7 @@
 /** Global world search — unified API surface, single modal entry from topbar. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { uiStore } from "../state/index.js";
 (function (window) {
   const { modal, modalBackdrop } = window.zhimuDom;
   const escapeHtml = window.zhimuFormat?.escapeHtml || ((v = "") => String(v));
@@ -66,13 +67,15 @@ import { showToast } from "../components/toast.js";
         resultsEl.querySelectorAll("[data-search-go]").forEach((btn) => {
           btn.onclick = () => {
             const targetView = btn.dataset.searchGo;
-            window.zhimuState.searchFocus = {
-              view: targetView,
-              type: btn.dataset.searchType,
-              id: btn.dataset.searchId,
-              query: btn.dataset.searchQuery,
-              nodeType: btn.dataset.searchType === "investigation_point" ? "investigation_point" : btn.dataset.searchType
-            };
+            uiStore.set({
+              searchFocus: {
+                view: targetView,
+                type: btn.dataset.searchType,
+                id: btn.dataset.searchId,
+                query: btn.dataset.searchQuery,
+                nodeType: btn.dataset.searchType === "investigation_point" ? "investigation_point" : btn.dataset.searchType
+              }
+            });
             closeModal();
             go(targetView);
             showToast(`已跳转到「${btn.dataset.searchTitle}」`);
