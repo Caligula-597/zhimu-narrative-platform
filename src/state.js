@@ -12,7 +12,6 @@ window.zhimuState = {
   cloudHostEvents: [],
   cloudHostClueMatrix: null,
   cloudHostAuditLog: [],
-  cloudWorldLogs: [],
   cloudCheckpoints: [],
   cloudRecaps: [],
   cloudRecapLatest: null,
@@ -20,11 +19,6 @@ window.zhimuState = {
   activeRecapId: null,
   cloudStudio: null,
   cloudLoading: true,
-  cloudWorlds: [],
-  cloudCatalog: [],
-  cloudCatalogError: "",
-  cloudRules: [],
-  cloudCreatorChecks: [],
   studioSelectedNode: null,
   studioAnchorEditing: false,
   studioFilter: "all",
@@ -33,8 +27,7 @@ window.zhimuState = {
   studioCollapsedScenes: [],
   studioCanvasHeight: 0,
   hostEventSelection: [],
-  cloudRoomSettings: { hostVoiceListen: false },
-  cloudRulesPreview: null
+  cloudRoomSettings: { hostVoiceListen: false }
 };
 // 激活 Proxy 兼容桥：window.zhimuState 读/写按字段路由到对应 shard
 // 未在 shard 中的字段 fallback 到上面的字面量对象（legacy）
