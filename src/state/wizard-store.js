@@ -1,67 +1,7 @@
-// A2 状态分片底座 —— 仅预加载 shard 模块，activateShardBridge() 在 Phase 3 调用
-// window.zhimuState 字面量保留不变（ui-smoke 的 state-runtime-boundaries 检查依赖）
-import "./state/index.js";
+/** World wizard state shard — step, draft, role editor. */
+import { createStore } from "./create-store.js";
 
-window.zhimuState = {
-  currentUser: null,
-  view: "overview",
-  voiceRoom: "尚未选择",
-  voiceRoomId: null,
-  voiceMessages: [],
-  voiceLiveStatus: "idle",
-  voiceMicEnabled: false,
-  voiceParticipants: [],
-  cloudPlayer: null,
-  cloudHost: [],
-  cloudHostPlayers: [],
-  cloudHostPlayersError: "",
-  cloudHostStuckCount: 0,
-  cloudExploration: null,
-  cloudHostEvents: [],
-  cloudHostClueMatrix: null,
-  cloudHostAuditLog: [],
-  cloudWorldLogs: [],
-  cloudCheckpoints: [],
-  cloudRecaps: [],
-  cloudRecapLatest: null,
-  cloudRecapDetail: null,
-  activeRecapId: null,
-  cloudStudio: null,
-  cloudLoading: true,
-  cloudWorlds: [],
-  cloudCatalog: [],
-  cloudCatalogError: "",
-  cloudRules: [],
-  cloudCreatorChecks: [],
-  studioSelectedNode: null,
-  studioAnchorEditing: false,
-  studioFilter: "all",
-  studioZoom: 1,
-  studioLayoutMode: "scene-tree",
-  studioCollapsedScenes: [],
-  studioCanvasHeight: 0,
-  searchFocus: null,
-  cluesSearchQuery: "",
-  cluesSelectedId: null,
-  cluesBulkSelection: [],
-  voiceLiveError: "",
-  voicePlaybackBlocked: false,
-  cloudAssets: [],
-  assetKindFilter: "",
-  assetSearchQuery: "",
-  assetShowRecycle: false,
-  assetTotal: 0,
-  hostEventSelection: [],
-  cloudRoomSettings: { hostVoiceListen: false },
-  cloudRulesPreview: null,
-  storageUsage: null,
-  panelCollapse: {},
-  accountHubTab: "account",
-  accountView: null,
-  accountViewLoading: false,
-  accountHubLoadId: 0,
-  apiError: "",
-  roomEventsConnected: false,
+export const wizardStore = createStore({
   wizardStep: 0,
   wizardRoleEditor: null,
   wizardDraft: {
@@ -110,5 +50,4 @@ window.zhimuState = {
       hint: false
     }
   }
-};
-export {};
+});
