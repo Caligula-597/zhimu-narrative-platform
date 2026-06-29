@@ -1,4 +1,4 @@
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 
 export function normalizeMiniGame(raw) {
   if (!raw) return null;

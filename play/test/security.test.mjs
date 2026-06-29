@@ -8,7 +8,7 @@ import {
   isUuid,
   normalizeInviteCode,
   sanitizeImageUrl
-} from "../src/security.js";
+} from "../../shared/security.js";
 
 test("escapeHtml neutralizes HTML injection", () => {
   assert.equal(escapeHtml('<img src=x onerror="alert(1)">'), "&lt;img src=x onerror=&quot;alert(1)&quot;&gt;");

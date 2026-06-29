@@ -6,7 +6,7 @@ import {
   getSessionToken,
   setSessionToken
 } from "./api.js";
-import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode, asArray } from "./security.js";
+import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode, asArray } from "../../shared/security.js";
 import { connectRoomEvents, disconnectRoomEvents } from "./room-events.js";
 import { connectPlatformEvents, disconnectPlatformEvents } from "./platform-events.js";
 import { formatApiError } from "./errors.js";

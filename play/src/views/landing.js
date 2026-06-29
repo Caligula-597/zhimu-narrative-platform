@@ -1,5 +1,5 @@
 import { FLOW_STEPS } from "../constants.js";
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
 import { isRegisteredUser, userSessionLabel } from "../utils/user.js";
 

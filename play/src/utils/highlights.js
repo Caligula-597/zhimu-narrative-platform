@@ -1,4 +1,4 @@
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 
 const HIGHLIGHT_OFFSET_RE = /#(\d+):(\d+)$/;
 

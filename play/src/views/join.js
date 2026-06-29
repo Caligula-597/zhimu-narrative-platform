@@ -1,5 +1,5 @@
 import { renderStepper } from "../components/stepper.js";
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
 
 export function renderJoin() {

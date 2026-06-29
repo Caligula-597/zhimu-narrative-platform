@@ -1,4 +1,4 @@
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
 import { formatRelativeTime } from "../utils/format.js";
 import { isRegisteredUser } from "../utils/user.js";

@@ -10,7 +10,7 @@ import {
 } from "./api.js";
 import { togglePanelInDom } from "./components/collapse.js";
 import { renderApp } from "./components/shell.js";
-import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid } from "./security.js";
+import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid } from "../../shared/security.js";
 import { formatApiError } from "./errors.js";
 import {
   bindDataContext,

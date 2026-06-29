@@ -1,5 +1,5 @@
 import { renderHeader } from "./header.js";
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
 import { renderAuth } from "../views/auth.js";
 import { renderConsole } from "../views/console.js";

@@ -1,4 +1,4 @@
-import { escapeHtml, ALLOWED_OAUTH_PROVIDERS } from "../security.js";
+import { escapeHtml, ALLOWED_OAUTH_PROVIDERS } from "../../../shared/security.js";
 import { state } from "../state.js";
 
 export function renderAuth() {

@@ -1,4 +1,4 @@
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 
 /**
  * Coalesce rapid refresh calls (SSE bursts) into one pull per window.

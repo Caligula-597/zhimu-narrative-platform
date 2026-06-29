@@ -1,4 +1,4 @@
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { getAppOrigin, getPlayOrigin } from "../api.js";
 import { state } from "../state.js";
 

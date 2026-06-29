@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 
 export function renderVerifyBanner() {
   if (!state.user || state.user.isGuest || state.user.emailVerified) return "";

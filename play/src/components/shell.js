@@ -2,7 +2,7 @@ import { renderHeader } from "./header.js";
 import { renderModal } from "./modal.js";
 import { renderMobileNav } from "./mobile-nav.js";
 import { renderVerifyBanner } from "./verify-banner.js";
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { renderSyncStatusBannerHtml } from "../runtime/sync-helpers.js";
 import { state } from "../state.js";
 import { renderAuth } from "../views/auth.js";

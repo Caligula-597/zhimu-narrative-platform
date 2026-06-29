@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 
 export function isPanelOpen(panelId, defaultOpen = true) {
   if (Object.prototype.hasOwnProperty.call(state.panelCollapse, panelId)) {

@@ -1,4 +1,4 @@
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { formatTime } from "../utils/format.js";
 import { state } from "../state.js";
 

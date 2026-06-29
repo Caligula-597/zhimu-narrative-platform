@@ -1,5 +1,5 @@
 import { getAppOrigin, getSessionToken } from "../api.js";
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { dmUnreadTotal, state } from "../state.js";
 import { userSessionLabel } from "../utils/user.js";
 

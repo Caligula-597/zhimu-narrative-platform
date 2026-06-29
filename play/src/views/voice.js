@@ -1,4 +1,4 @@
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { voiceHubParticipants, voiceLiveStatusLabel } from "../runtime/voice.js";
 import { state } from "../state.js";
 import { formatTime } from "../utils/format.js";

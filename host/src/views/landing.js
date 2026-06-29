@@ -1,4 +1,4 @@
-import { escapeHtml } from "../security.js";
+import { escapeHtml } from "../../../shared/security.js";
 import { getWorldId } from "../session.js";
 import { state } from "../state.js";
 

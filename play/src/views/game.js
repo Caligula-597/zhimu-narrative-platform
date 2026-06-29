@@ -1,4 +1,4 @@
-import { escapeHtml, sanitizeImageUrl, asArray } from "../security.js";
+import { escapeHtml, sanitizeImageUrl, asArray } from "../../../shared/security.js";
 import { currentScene, playerProgress, state } from "../state.js";
 import { clueIsRead, clueOwnerLabel, clueShareRoleCount } from "../utils/clues.js";
 import { applyStoryHighlights, sectionHighlights } from "../utils/highlights.js";
