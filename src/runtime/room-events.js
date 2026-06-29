@@ -1,8 +1,8 @@
 /** Room SSE stream and director/player polling fallback. */
 import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
+import { uiStore, roomStore, userStore, voiceStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
   const V = window.zhimuViews || {};
 
   let directorPollTimer = null;
@@ -22,9 +22,10 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
 
   async function refreshPlayerHome() {
     if (!zhimuApi.context.roomId) return;
+    const view = uiStore.get().view;
     try {
-      state.cloudPlayer = await zhimuApi.getPlayerHome();
-      if (state.view === "player") render();
+      roomStore.set({ cloudPlayer: await zhimuApi.getPlayerHome() });
+      if (view === "player") render();
     } catch {
       /* stream refresh best-effort */
     }
@@ -32,9 +33,10 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
 
   async function refreshExploration() {
     if (!zhimuApi.context.roomId) return;
+    const view = uiStore.get().view;
     try {
-      state.cloudExploration = await zhimuApi.getExploration();
-      if (state.view === "player") render();
+      roomStore.set({ cloudExploration: await zhimuApi.getExploration() });
+      if (view === "player") render();
     } catch {
       /* stream refresh best-effort */
     }
@@ -42,23 +44,24 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
 
   async function refreshDirectorPoll() {
     const R = runtime();
+    const view = uiStore.get().view;
     try {
       await Promise.all([
         R.refreshHostEvents?.(false, true),
         R.refreshHostPlayers?.(false, true),
         R.refreshHostClueMatrix?.(false, true)
       ]);
-      if (state.view === "director") render();
+      if (view === "director") render();
     } catch (error) {
-      state.apiError = error.message;
+      userStore.set({ apiError: error.message });
     }
   }
 
   function syncPlayerPolling() {
-    if (state.view === "player" && zhimuApi.context.roomId) {
+    if (uiStore.get().view === "player" && zhimuApi.context.roomId) {
       if (!playerPollTimer) {
         playerPollTimer = setInterval(async () => {
-          if (state.view !== "player" || !zhimuApi.context.roomId) {
+          if (uiStore.get().view !== "player" || !zhimuApi.context.roomId) {
             clearInterval(playerPollTimer);
             playerPollTimer = null;
             return;
@@ -75,17 +78,19 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
 
   function syncDirectorPolling() {
     syncPlayerPolling();
-    if (state.roomEventsConnected) {
+    const { view } = uiStore.get();
+    const { roomEventsConnected } = roomStore.get();
+    if (roomEventsConnected) {
       if (directorPollTimer) {
         clearInterval(directorPollTimer);
         directorPollTimer = null;
       }
       return;
     }
-    if (state.view === "director" && zhimuApi.context.roomId) {
+    if (view === "director" && zhimuApi.context.roomId) {
       if (!directorPollTimer) {
         directorPollTimer = setInterval(async () => {
-          if (state.view !== "director" || !zhimuApi.context.roomId) {
+          if (uiStore.get().view !== "director" || !zhimuApi.context.roomId) {
             clearInterval(directorPollTimer);
             directorPollTimer = null;
             return;
@@ -108,10 +113,12 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
       roomEventAbort.abort();
       roomEventAbort = null;
     }
-    if (state.roomEventsConnected) {
-      state.roomEventsConnected = false;
+    const { view } = uiStore.get();
+    const { roomEventsConnected } = roomStore.get();
+    if (roomEventsConnected) {
+      roomStore.set({ roomEventsConnected: false });
       syncDirectorPolling();
-      if (state.view === "director") render();
+      if (view === "director") render();
     }
   }
 
@@ -124,7 +131,7 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
   }
 
   function streamUserIdForRoom() {
-    return state.view === "player" && zhimuApi.context.playerUserId
+    return uiStore.get().view === "player" && zhimuApi.context.playerUserId
       ? zhimuApi.context.playerUserId
       : zhimuApi.context.hostUserId;
   }
@@ -132,23 +139,26 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
   async function handleRoomEvent(type, data) {
     if (!zhimuApi.context.roomId) return;
     const R = runtime();
+    const { view } = uiStore.get();
+    const { cloudPlayer } = roomStore.get();
+    const { voiceRoomId } = voiceStore.get();
     switch (type) {
       case "room.player_joined":
-        if (state.view === "director" || state.view === "overview") {
+        if (view === "director" || view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           showToast("有新玩家加入房间", 2800);
         }
         break;
       case "room.player_kicked":
-        if (state.view === "director" || state.view === "overview") {
+        if (view === "director" || view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           showToast("已移出玩家", 2800);
         } else if (
-          state.view === "player"
+          view === "player"
           && data.userId
           && String(data.userId) === String(zhimuApi.context.playerUserId)
         ) {
-          state.cloudPlayer = null;
+          roomStore.set({ cloudPlayer: null });
           showToast(
             data.roleName ? `你已被移出角色「${data.roleName}」` : "你已被主持人移出房间",
             3600
@@ -157,16 +167,16 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
         }
         break;
       case "room.section_completed":
-        if (state.view === "director" || state.view === "overview") {
+        if (view === "director" || view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           await R.refreshHostEvents?.(false, true);
-        } else if (state.view === "player" && data.roleSlotId === state.cloudPlayer?.role?.id) await refreshPlayerHome();
+        } else if (view === "player" && data.roleSlotId === cloudPlayer?.role?.id) await refreshPlayerHome();
         break;
       case "room.clue_granted":
-        if (state.view === "director" || state.view === "overview") {
+        if (view === "director" || view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           await R.refreshHostClueMatrix?.(false, true);
-        } else if (state.view === "player") {
+        } else if (view === "player") {
           await refreshPlayerHome();
           if (data.source === "shared_room") showToast(data.clueName ? `房间内有新公开线索：${data.clueName}` : "有新的公开线索", 2800);
           else if (data.source === "shared_roles") showToast(data.clueName ? `${data.clueName} · 有玩家私享给你` : "有玩家私享线索给你", 2800);
@@ -174,73 +184,73 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
         }
         break;
       case "room.item_granted":
-        if (state.view === "director" || state.view === "overview") await R.refreshHostPlayers?.(false, true);
-        else if (state.view === "player") {
+        if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
+        else if (view === "player") {
           await refreshPlayerHome();
           await refreshExploration();
-          if (data.roleSlotId === state.cloudPlayer?.role?.id) showToast(data.itemName ? `获得物品：${data.itemName}` : "获得新物品", 2800);
+          if (data.roleSlotId === cloudPlayer?.role?.id) showToast(data.itemName ? `获得物品：${data.itemName}` : "获得新物品", 2800);
         }
         break;
       case "room.host_event_pending":
         await R.refreshHostEvents?.(false, true);
-        if (state.view === "director" || state.view === "overview") {
+        if (view === "director" || view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           if (data.action === "executed") {
             showToast("待确认事件已执行 · 玩家端将收到解锁通知", 3200);
           } else if (data.action === "dismissed") {
             showToast("待确认事件已拒绝", 2800);
-          } else if (state.view === "director") {
+          } else if (view === "director") {
             showToast("有新的待确认事件 · 玩家可能在等待", 3200);
           }
-        } else if (state.view === "player") {
+        } else if (view === "player") {
           await refreshPlayerHome();
           if (data.action === "executed") {
             await refreshExploration();
             showToast("主持人已确认推进 · 新内容可能已解锁", 3200);
           } else if (data.action === "dismissed") {
             showToast("主持人已处理待确认事件", 2800);
-          } else if (state.cloudPlayer?.hostConfirm?.waitingForYou) {
+          } else if (cloudPlayer?.hostConfirm?.waitingForYou) {
             showToast("剧情推进等待主持人确认", 3200);
           }
         }
         break;
       case "room.host_nudge": {
-        const roleId = state.cloudPlayer?.role?.id;
+        const roleId = cloudPlayer?.role?.id;
         const targets = data.roleSlotIds || [];
         const forMe = !targets.length || targets.some((id) => String(id) === String(roleId));
-        if (state.view === "player" && forMe) {
+        if (view === "player" && forMe) {
           showToast(data.message || "主持人提醒你稍候", 3600);
         }
         break;
       }
       case "room.section_unlocked":
-        if (state.view === "director" || state.view === "overview") await R.refreshHostPlayers?.(false, true);
-        else if (state.view === "player") {
+        if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
+        else if (view === "player") {
           await refreshPlayerHome();
           showToast("新分幕已解锁", 2800);
         }
         break;
       case "room.investigation_completed":
-        if (state.view === "director" || state.view === "overview") {
+        if (view === "director" || view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           await R.refreshHostEvents?.(false, true);
-        } else if (state.view === "player" && data.roleSlotId === state.cloudPlayer?.role?.id) {
+        } else if (view === "player" && data.roleSlotId === cloudPlayer?.role?.id) {
           await refreshExploration();
           await refreshPlayerHome();
           showToast("调查点已完成 · 请查看探索页", 3200);
         }
         break;
       case "room.scene_unlocked":
-        if (state.view === "player") {
+        if (view === "player") {
           await refreshExploration();
           showToast("新场景已开放", 2800);
-        } else if (state.view === "director" || state.view === "overview") await R.refreshHostPlayers?.(false, true);
+        } else if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
         break;
       case "room.voice_message_created":
-        if (data.voiceRoomId === state.voiceRoomId) await (V.player?.refreshVoiceMessages || (async () => {}))();
+        if (data.voiceRoomId === voiceRoomId) await (V.player?.refreshVoiceMessages || (async () => {}))();
         break;
       case "room.checkpoint_restored":
-        if (state.view === "director" || state.view === "overview" || state.view === "archive") {
+        if (view === "director" || view === "overview" || view === "archive") {
           await R.refreshHostRoom?.(false);
           showToast("房间已从存档恢复", 2800);
         }
@@ -257,15 +267,15 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
     const signal = roomEventAbort.signal;
     zhimuApi.streamRoomEvents(roomId, async (type, data) => {
       if (type === "__connected__") {
-        state.roomEventsConnected = true;
+        roomStore.set({ roomEventsConnected: true });
         syncDirectorPolling();
-        if (state.view === "director") render();
+        if (uiStore.get().view === "director") render();
         return;
       }
       await handleRoomEvent(type, data);
     }, signal, streamUserIdForRoom()).catch(() => {}).finally(() => {
-      const shouldReconnect = state.roomEventsConnected && zhimuApi.context.roomId === boundRoom && !signal.aborted;
-      state.roomEventsConnected = false;
+      const shouldReconnect = roomStore.get().roomEventsConnected && zhimuApi.context.roomId === boundRoom && !signal.aborted;
+      roomStore.set({ roomEventsConnected: false });
       syncDirectorPolling();
       if (shouldReconnect) scheduleRoomEventReconnect();
     });

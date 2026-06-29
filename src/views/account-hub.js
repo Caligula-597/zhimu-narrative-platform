@@ -1,13 +1,13 @@
 /** Unified account + content assets page (not modal). */
 import * as zhimuApi from "../api/index.js";
+import { uiStore } from "../state/index.js";
 
-  const state = window.zhimuState;
   const F = window.zhimuFormat || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const Status = () => window.zhimuStatus || {};
 
   function activeTab() {
-    return state.accountHubTab === "assets" ? "assets" : "account";
+    return uiStore.get().accountHubTab === "assets" ? "assets" : "account";
   }
 
   function profileIntro(me) {
@@ -35,13 +35,13 @@ import * as zhimuApi from "../api/index.js";
   /** Load account + optional assets data once per navigation — never from accountHub() render. */
   export function beginAccountHubLoad() {
     if (!window.zhimuSessionAuth?.isAuthenticated?.()) return;
-    const loadId = ++state.accountHubLoadId;
+    const loadId = uiStore.set({ accountHubLoadId: uiStore.get().accountHubLoadId + 1 }).accountHubLoadId;
     void (async () => {
       await window.zhimuViews?.account?.refreshAccountView?.();
-      if (loadId !== state.accountHubLoadId || state.view !== "account") return;
+      if (loadId !== uiStore.get().accountHubLoadId || uiStore.get().view !== "account") return;
       if (activeTab() === "assets" && zhimuApi.context.worldId) {
         await window.zhimuViews?.assets?.reloadAssets?.();
-        if (loadId === state.accountHubLoadId && state.view === "account") window.zhimuRuntime?.render?.();
+        if (loadId === uiStore.get().accountHubLoadId && uiStore.get().view === "account") window.zhimuRuntime?.render?.();
       }
     })();
   }
@@ -50,20 +50,21 @@ import * as zhimuApi from "../api/index.js";
     if (!window.zhimuSessionAuth?.isAuthenticated?.()) {
       return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>登录后可管理账号、配额、云端附件与会话。</p></div></div><button type="button" class="primary-btn" data-action="open-auth">登录 / 注册</button></article></section>`;
     }
-    if (state.accountViewLoading || !state.accountView) {
+    if (uiStore.get().accountViewLoading || !uiStore.get().accountView) {
       return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1">${Status().loading?.("账号与内容资产", "正在加载账号信息、套餐配额与会话记录。") || `<div class="section-head"><div><h3>账号与内容资产</h3><p>正在加载账号信息…</p></div></div>`}</article></section>`;
     }
     const tab = activeTab();
-    const me = state.accountView.me || {};
-    const accountHtml = window.zhimuViews?.account?.accountBodyHtml?.(state.accountView) || "";
+    const accountView = uiStore.get().accountView;
+    const me = accountView.me || {};
+    const accountHtml = window.zhimuViews?.account?.accountBodyHtml?.(accountView) || "";
     const assetsHtml = tab === "assets" ? assetsPanelContent() : "";
     return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>${profileIntro(me)}</p></div></div>${tabButtons(tab)}<div class="account-hub-panels"><section class="account-hub-panel ${tab === "account" ? "" : "hidden"}" data-hub-panel="account" role="tabpanel">${accountHtml}</section><section class="account-hub-panel ${tab === "assets" ? "" : "hidden"}" data-hub-panel="assets" role="tabpanel">${assetsHtml}</section></div></article></section>`;
   }
 
   export async function switchAccountHubTab(tab) {
     if (tab !== "account" && tab !== "assets") return;
-    if (tab === state.accountHubTab) return;
-    state.accountHubTab = tab;
+    if (tab === uiStore.get().accountHubTab) return;
+    uiStore.set({ accountHubTab: tab });
     if (tab === "assets" && zhimuApi.context.worldId) {
       await window.zhimuViews?.assets?.reloadAssets?.();
     }
@@ -71,7 +72,7 @@ import * as zhimuApi from "../api/index.js";
   }
 
   export function bindAccountHubView() {
-    if (state.view !== "account") return;
+    if (uiStore.get().view !== "account") return;
     const tab = activeTab();
     const root = document.querySelector(".account-hub-page");
     if (!root) return;
@@ -80,7 +81,7 @@ import * as zhimuApi from "../api/index.js";
   }
 
   export function goAccountHub(options = {}) {
-    state.accountHubTab = options.tab === "assets" ? "assets" : "account";
+    uiStore.set({ accountHubTab: options.tab === "assets" ? "assets" : "account" });
     window.zhimuRuntime?.go?.("account");
   }
 
@@ -90,7 +91,7 @@ import * as zhimuApi from "../api/index.js";
     beginAccountHubLoad,
     switchAccountHubTab,
     bindAccountHubView,
-    isActive: () => state.view === "account"
+    isActive: () => uiStore.get().view === "account"
   };
   window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, {
     goAccountHub,

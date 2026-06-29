@@ -1,8 +1,8 @@
 /* Auto-split from app.js — rules.js */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { uiStore, studioStore, worldStore, roomStore } from "../state/index.js";
 
-  const state = window.zhimuState;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -46,7 +46,7 @@ import { showToast } from "../components/toast.js";
   const openJoinRoom = R.openJoinRoom || (() => {});
 
 function canEditRules(){
- const world=state.cloudStudio?.world;
+ const world=studioStore.get().cloudStudio?.world;
  const role=world?.membership_role;
  return role==="owner"||role==="editor";
 }
@@ -57,7 +57,7 @@ function rulesEmptyState(studio){
 }
 
 export function rules() {
- const data=state.cloudRules||[],modeName={automatic:"自动执行",host_confirm:"主持确认",manual:"仅手动"},studio=state.cloudStudio;
+ const data=worldStore.get().cloudRules||[],modeName={automatic:"自动执行",host_confirm:"主持确认",manual:"仅手动"},studio=studioStore.get().cloudStudio;
  return `<section class="rules-layout"><div><div class="section-head"><div><h3>规则列表</h3><p>规则已经连接云端数据库。条件满足后，系统执行动作或提交主持人确认。</p></div><div class="row"><button class="secondary-btn" data-action="open-creator-guide">创作指引</button><button class="primary-btn" data-action="rule-new">＋ 新建规则</button></div></div>
  ${data.map(rule=>{const summary=window.zhimuRuleVisual?.summarizeRule(rule.conditions,rule.actions)||{when:JSON.stringify(rule.conditions),then:JSON.stringify(rule.actions)};return `<article class="rule-card"><div class="rule-card-top"><button class="toggle ${rule.enabled?"on":""}" data-action="rule-toggle" data-rule="${rule.id}" title="启用或暂停规则"><i></i></button><h3>${escapeHtml(rule.name)}</h3><span class="mode ${rule.mode==="host_confirm"?"confirm":""}">${modeName[rule.mode]}</span></div><p class="rule-text"><b>当</b> ${escapeHtml(summary.when)}<br><b>则</b> ${escapeHtml(summary.then)}</p><div class="rule-stats"><span>● ${rule.enabled?"已启用":"已暂停"}</span><span>优先级 ${rule.priority}</span><span>${escapeHtml(rule.room_name||"世界模板")}</span></div><div class="row rule-actions"><button class="text-btn" data-action="rule-edit" data-rule="${rule.id}">编辑</button><button class="text-btn danger-text" data-action="rule-delete" data-rule="${rule.id}">删除</button></div></article>`}).join("")||rulesEmptyState(studio)}</div>
  <aside class="card"><div class="section-head"><div><h3>自动化概览</h3><p>创作阶段规则检查</p></div></div>
@@ -68,24 +68,24 @@ export function rules() {
 export function rulePayload(rule={}){return {roomId:rule.room_id||"",name:rule.name||"",mode:rule.mode||"automatic",priority:String(rule.priority??100),enabled:rule.enabled!==false,conditions:JSON.stringify(rule.conditions||{all:[{type:"reading_completed",roleSlotId:"",scriptSectionId:""}]},null,2),actions:JSON.stringify(rule.actions||[{type:"unlock_script_section",scriptSectionId:""}],null,2)}}
 
 export function openRuleEditor(ruleId=""){
- const rule=state.cloudRules.find(item=>item.id===ruleId),value=rulePayload(rule),rooms=state.cloudStudio?.rooms||[],studio=state.cloudStudio;
+ const rule=worldStore.get().cloudRules.find(item=>item.id===ruleId),value=rulePayload(rule),rooms=studioStore.get().cloudStudio?.rooms||[],studio=studioStore.get().cloudStudio;
  const parsed=window.zhimuRuleVisual.ruleJsonToVisual(rule?.conditions,rule?.actions);
  let editorTab=parsed.compatible===false?"json":"visual";
- let visualState=parsed.compatible?parsed.visual:window.zhimuRuleVisual.defaultVisual();
- const renderVisual=()=>{modal.querySelector("[data-rule-visual-panel]").innerHTML=window.zhimuRuleVisual.renderVisualPanel(visualState,studio,escapeHtml);wireRuleVisualPanel()};
- const syncJsonFromVisual=()=>{const built=window.zhimuRuleVisual.visualToRuleJson(visualState);modal.querySelector('[data-studio-field="conditions"]').value=JSON.stringify(built.conditions,null,2);modal.querySelector('[data-studio-field="actions"]').value=JSON.stringify(built.actions,null,2)};
+ let visualModel=parsed.compatible?parsed.visual:window.zhimuRuleVisual.defaultVisual();
+ const renderVisual=()=>{modal.querySelector("[data-rule-visual-panel]").innerHTML=window.zhimuRuleVisual.renderVisualPanel(visualModel,studio,escapeHtml);wireRuleVisualPanel()};
+ const syncJsonFromVisual=()=>{const built=window.zhimuRuleVisual.visualToRuleJson(visualModel);modal.querySelector('[data-studio-field="conditions"]').value=JSON.stringify(built.conditions,null,2);modal.querySelector('[data-studio-field="actions"]').value=JSON.stringify(built.actions,null,2)};
  const showRuleErrors=(errors=[])=>{const box=modal.querySelector("[data-rule-errors]");if(!errors.length){box.innerHTML="";box.classList.remove("show");return}box.classList.add("show");box.innerHTML=`<strong>请修正以下问题：</strong><ul>${errors.map(item=>`<li>${escapeHtml(item.message)}</li>`).join("")}</ul>`};
  const wireRuleVisualPanel=()=>{
-  modal.querySelectorAll("[data-rule-condition-type]").forEach(select=>select.onchange=()=>{const index=Number(select.dataset.ruleConditionType);visualState.conditions[index]=window.zhimuRuleVisual.emptyCondition(select.value);renderVisual()});
-  modal.querySelectorAll("[data-rule-condition-field]").forEach(el=>{const handler=()=>{const field=el.dataset.ruleConditionField;let val=el.value;if(field==="value")val=Number(el.value);visualState.conditions[Number(el.dataset.ruleConditionIndex)][field]=val;if(field==="roleSlotId")renderVisual()};el.onchange=handler;el.oninput=handler});
-  modal.querySelectorAll("[data-rule-action-type]").forEach(select=>select.onchange=()=>{const index=Number(select.dataset.ruleActionType);visualState.actions[index]=window.zhimuRuleVisual.emptyAction(select.value);renderVisual()});
-  modal.querySelectorAll("[data-rule-action-field]").forEach(field=>{const handler=()=>{const val=field.type==="number"?Number(field.value):field.value;visualState.actions[Number(field.dataset.ruleActionIndex)][field.dataset.ruleActionField]=val};field.onchange=handler;field.oninput=handler});
+  modal.querySelectorAll("[data-rule-condition-type]").forEach(select=>select.onchange=()=>{const index=Number(select.dataset.ruleConditionType);visualModel.conditions[index]=window.zhimuRuleVisual.emptyCondition(select.value);renderVisual()});
+  modal.querySelectorAll("[data-rule-condition-field]").forEach(el=>{const handler=()=>{const field=el.dataset.ruleConditionField;let val=el.value;if(field==="value")val=Number(el.value);visualModel.conditions[Number(el.dataset.ruleConditionIndex)][field]=val;if(field==="roleSlotId")renderVisual()};el.onchange=handler;el.oninput=handler});
+  modal.querySelectorAll("[data-rule-action-type]").forEach(select=>select.onchange=()=>{const index=Number(select.dataset.ruleActionType);visualModel.actions[index]=window.zhimuRuleVisual.emptyAction(select.value);renderVisual()});
+  modal.querySelectorAll("[data-rule-action-field]").forEach(field=>{const handler=()=>{const val=field.type==="number"?Number(field.value):field.value;visualModel.actions[Number(field.dataset.ruleActionIndex)][field.dataset.ruleActionField]=val};field.onchange=handler;field.oninput=handler});
   const logicSelect=modal.querySelector("[data-rule-condition-logic]");
-  if(logicSelect)logicSelect.onchange=()=>{visualState.conditionLogic=logicSelect.value;renderVisual()};
-  modal.querySelector("[data-rule-add-condition]")&&(modal.querySelector("[data-rule-add-condition]").onclick=()=>{visualState.conditions.push(window.zhimuRuleVisual.emptyCondition());renderVisual()});
-  modal.querySelector("[data-rule-add-action]")&&(modal.querySelector("[data-rule-add-action]").onclick=()=>{visualState.actions.push(window.zhimuRuleVisual.emptyAction());renderVisual()});
-  modal.querySelectorAll("[data-rule-remove-condition]").forEach(button=>button.onclick=()=>{visualState.conditions.splice(Number(button.dataset.ruleRemoveCondition),1);if(!visualState.conditions.length)visualState.conditions.push(window.zhimuRuleVisual.emptyCondition());renderVisual()});
-  modal.querySelectorAll("[data-rule-remove-action]").forEach(button=>button.onclick=()=>{visualState.actions.splice(Number(button.dataset.ruleRemoveAction),1);if(!visualState.actions.length)visualState.actions.push(window.zhimuRuleVisual.emptyAction());renderVisual()});
+  if(logicSelect)logicSelect.onchange=()=>{visualModel.conditionLogic=logicSelect.value;renderVisual()};
+  modal.querySelector("[data-rule-add-condition]")&&(modal.querySelector("[data-rule-add-condition]").onclick=()=>{visualModel.conditions.push(window.zhimuRuleVisual.emptyCondition());renderVisual()});
+  modal.querySelector("[data-rule-add-action]")&&(modal.querySelector("[data-rule-add-action]").onclick=()=>{visualModel.actions.push(window.zhimuRuleVisual.emptyAction());renderVisual()});
+  modal.querySelectorAll("[data-rule-remove-condition]").forEach(button=>button.onclick=()=>{visualModel.conditions.splice(Number(button.dataset.ruleRemoveCondition),1);if(!visualModel.conditions.length)visualModel.conditions.push(window.zhimuRuleVisual.emptyCondition());renderVisual()});
+  modal.querySelectorAll("[data-rule-remove-action]").forEach(button=>button.onclick=()=>{visualModel.actions.splice(Number(button.dataset.ruleRemoveAction),1);if(!visualModel.actions.length)visualModel.actions.push(window.zhimuRuleVisual.emptyAction());renderVisual()});
  };
  const setRuleTab=(tab)=>{
   editorTab=tab;
@@ -98,8 +98,8 @@ export function openRuleEditor(ruleId=""){
     const conditions=JSON.parse(modal.querySelector('[data-studio-field="conditions"]').value);
     const actions=JSON.parse(modal.querySelector('[data-studio-field="actions"]').value);
     const next=window.zhimuRuleVisual.ruleJsonToVisual(conditions,actions);
-    if(next.compatible){visualState=next.visual}else showToast(next.reason);
-   }catch(error){/* keep current visualState on first open */}
+    if(next.compatible){visualModel=next.visual}else showToast(next.reason);
+   }catch(error){/* keep current visualModel on first open */}
    renderVisual();
   }
   showRuleErrors([]);
@@ -115,7 +115,7 @@ export function openRuleEditor(ruleId=""){
    showRuleErrors([]);
    const values=studioValues();
    let conditions,actions;
-   if(editorTab==="visual"){({conditions,actions}=window.zhimuRuleVisual.visualToRuleJson(visualState))}else{
+   if(editorTab==="visual"){({conditions,actions}=window.zhimuRuleVisual.visualToRuleJson(visualModel))}else{
     try{conditions=JSON.parse(values.conditions);actions=JSON.parse(values.actions)}catch(error){showRuleErrors([{message:`JSON 格式错误：${error.message}`}]);return}
    }
    const validation=await zhimuApi.validateRuleBody({conditions,actions});
@@ -127,7 +127,7 @@ export function openRuleEditor(ruleId=""){
  };
 }
 
-export async function toggleCloudRule(ruleId){const rule=state.cloudRules.find(item=>item.id===ruleId);if(!rule)return;try{await zhimuApi.updateRule(rule.id,{roomId:rule.room_id,name:rule.name,mode:rule.mode,priority:rule.priority,enabled:!rule.enabled,conditions:rule.conditions,actions:rule.actions});await loadCloudData();showToast(rule.enabled?"规则已暂停":"规则已启用")}catch(error){showError(error)}}
+export async function toggleCloudRule(ruleId){const rule=worldStore.get().cloudRules.find(item=>item.id===ruleId);if(!rule)return;try{await zhimuApi.updateRule(rule.id,{roomId:rule.room_id,name:rule.name,mode:rule.mode,priority:rule.priority,enabled:!rule.enabled,conditions:rule.conditions,actions:rule.actions});await loadCloudData();showToast(rule.enabled?"规则已暂停":"规则已启用")}catch(error){showError(error)}}
 
 export async function deleteCloudRule(ruleId){try{await zhimuApi.deleteRule(ruleId);await loadCloudData();showToast("规则已删除")}catch(error){showError(error)}}
 
@@ -135,7 +135,7 @@ export async function validateCloudRules(){try{const result=await zhimuApi.valid
 
 export async function seedExampleRules(){
  if(!canEditRules())return showToast("当前为只读体验，登录并拥有编辑权限后可载入示例");
- const studio=state.cloudStudio;
+ const studio=studioStore.get().cloudStudio;
  const roles=studio?.roles||[];
  const sections=studio?.sections||[];
  if(!roles.length||!sections.length)return showToast("请先确保当前世界已有角色与分幕");

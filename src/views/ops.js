@@ -1,8 +1,8 @@
 /** Internal operations console. */
 import * as api from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { uiStore } from "../state/index.js";
 
-  const state = window.zhimuState;
   const F = window.zhimuFormat || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || ((v) => v || "");
@@ -37,9 +37,10 @@ export function ops() {
     if (!api.hasOpsToken?.()) {
       return `<section class="rules-layout"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><p class="section-kicker">OPS</p><h3>运营控制台</h3><p>输入内部 Ops Token 后查看生产状态、审计日志与套餐申请。</p></div></div><div class="form-group"><label>Ops Token</label><input class="field" type="password" data-ops-token placeholder="OPS_API_TOKEN"><button class="primary-btn" style="margin-top:12px" data-action="ops-save-token">进入 OPS</button></div></article></section>`;
     }
-    const status = state.opsStatus;
-    const upgrades = state.opsPlanRequests?.items || state.opsPlanRequests?.requests || [];
-    const audit = state.opsAuditLog?.items || [];
+    const ui = uiStore.get();
+    const status = ui.opsStatus;
+    const upgrades = ui.opsPlanRequests?.items || ui.opsPlanRequests?.requests || [];
+    const audit = ui.opsAuditLog?.items || [];
     return `<section class="rules-layout ops-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><p class="section-kicker">OPS</p><h3>运营控制台</h3><p>${status ? `环境 ${escapeHtml(status.nodeEnv)} · uptime ${escapeHtml(status.uptimeSeconds)}s` : "读取内部运营状态。"}</p></div><div class="row"><button class="secondary-btn" data-action="ops-refresh">刷新</button><button class="secondary-btn" data-action="ops-test-alert">测试告警</button><button class="text-btn" data-action="ops-clear-token">退出</button></div></div></article>
     <article class="card"><div class="section-head"><div><h3>生产状态</h3><p>数据库、SSE、特性配置。</p></div><span class="status-chip ${status?.ok ? "published" : "draft"}">${status?.ok ? "READY" : "CHECK"}</span></div>${status ? featureStatus(status.features) : `<div class="empty-state">点击刷新读取状态。</div>`}</article>
     <article class="card"><div class="section-head"><div><h3>生产可信七项</h3><p>当前 ${status?.productionTrust?.passed ?? 0} / ${status?.productionTrust?.total ?? 7} 项通过。</p></div><span class="status-chip ${status?.productionTrust?.ready ? "published" : "testing"}">${status?.productionTrust?.ready ? "TRUSTED" : "ACTION"}</span></div>${trustGates(status?.productionTrust)}</article>
@@ -53,9 +54,7 @@ export async function loadOpsData() {
       api.getOpsPlanUpgradeRequests({ status: "pending", limit: 20 }),
       api.getOpsAuditLog({ limit: 50 })
     ]);
-    state.opsStatus = status;
-    state.opsPlanRequests = plans;
-    state.opsAuditLog = audit;
+    uiStore.set({ opsStatus: status, opsPlanRequests: plans, opsAuditLog: audit });
   }
 
 // Bridge: window.zhimuViews.ops populated from real exports.

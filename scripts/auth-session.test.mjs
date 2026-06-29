@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { userStore } from "../src/state/index.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -30,7 +31,6 @@ function createNode() {
 
 let cookieSessionActive = false;
 let renders = 0;
-const state = { currentUser: null };
 
 const banner = createNode();
 banner.children["[data-session-pill]"] = createNode();
@@ -44,7 +44,7 @@ profile.children.small = createNode();
 profile.children[".avatar"] = createNode();
 
 globalThis.window = {
-  zhimuState: state,
+  zhimuState: {},
   zhimuSessionAuth: {
     isAuthenticated: () => cookieSessionActive,
     markAuthenticated: () => { cookieSessionActive = true; },
@@ -52,10 +52,10 @@ globalThis.window = {
     markLoggedOut: () => { cookieSessionActive = false; }
   },
   zhimuSessionMode: {
-    getSessionMode: () => state.currentUser?.id || cookieSessionActive ? "authenticated" : "auth_required",
+    getSessionMode: () => userStore.get().currentUser?.id || cookieSessionActive ? "authenticated" : "auth_required",
     getSessionModeMeta: () => ({
-      mode: state.currentUser?.id || cookieSessionActive ? "authenticated" : "auth_required",
-      showTopBanner: !(state.currentUser?.id || cookieSessionActive),
+      mode: userStore.get().currentUser?.id || cookieSessionActive ? "authenticated" : "auth_required",
+      showTopBanner: !(userStore.get().currentUser?.id || cookieSessionActive),
       showLoginCta: true,
       pill: "未登录",
       pillClass: "session-auth",
@@ -64,8 +64,7 @@ globalThis.window = {
       profileFallback: { strong: "未登录", small: "点击登录或注册", avatar: "?" }
     })
   },
-  zhimuRender: () => { renders += 1; },
-  zhimuRuntime: {},
+  zhimuRuntime: { render: () => { renders += 1; }, openAuth: noop },
   zhimuConfig: { requireAuth: true },
   localStorage: { getItem: () => null, setItem: () => {} },
   sessionStorage: { getItem: () => null, setItem: () => {} },
@@ -116,7 +115,7 @@ test.before(async () => {
 test.beforeEach(() => {
   cookieSessionActive = false;
   renders = 0;
-  state.currentUser = null;
+  userStore.set({ currentUser: null });
   banner.hidden = false;
   for (const n of Object.values(banner.children)) {
     n.textContent = "";
@@ -131,7 +130,7 @@ test.beforeEach(() => {
 test("syncProfile upgrades stale unauthenticated UI and rerenders content", async () => {
   await zhimuAuthSession.syncProfile();
 
-  assert.equal(state.currentUser.id, "user-1");
+  assert.equal(userStore.get().currentUser?.id, "user-1");
   assert.equal(cookieSessionActive, true);
   assert.equal(profile.children.strong.textContent, "Creator");
   assert.equal(profile.children.small.textContent, "creator@example.com");

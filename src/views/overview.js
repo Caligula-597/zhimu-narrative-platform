@@ -1,8 +1,8 @@
 /* Auto-split from app.js — overview.js */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { uiStore, userStore, worldStore, studioStore, roomStore, assetStore } from "../state/index.js";
 
-  const state = window.zhimuState;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -47,7 +47,8 @@ import { showToast } from "../components/toast.js";
   const openJoinRoom = R.openJoinRoom || (() => {});
 
 export function overviewRuntimeProgress() {
-  const host = state.cloudHost || [];
+  const { cloudHost } = roomStore.get();
+  const host = cloudHost || [];
   if (!host.length) return { percent: 0, label: "暂无玩家进度" };
   const totals = host.reduce((acc, item) => {
     acc.completed += item.completed_sections || 0;
@@ -88,36 +89,41 @@ function overviewBackendCapability(item) {
 }
 
 export function overview() {
-  const studio = state.cloudStudio;
-  const listedWorld = (state.cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
+  const { cloudStudio, cloudLoading } = studioStore.get();
+  const { cloudWorlds, cloudRules, cloudWorldLogs } = worldStore.get();
+  const { cloudAssets } = assetStore.get();
+  const { apiError } = userStore.get();
+  const { cloudHost, cloudHostEvents, cloudRecaps } = roomStore.get();
+  const studio = cloudStudio;
+  const listedWorld = (cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
   const world = studio?.world || listedWorld;
   const loggedOutDemo=!window.zhimuSessionAuth?.isAuthenticated?.()&&window.zhimuConfig?.demoMode;
   const studioEmpty=!loggedOutDemo&&Boolean(zhimuApi.context.worldId)&&!studio?.roles?.length;
-  const studioEmptyBanner=studioEmpty?`<section class="demo-strip" style="margin-bottom:14px;border-color:#e8c4c4;background:#fff8f7"><div><span class="cloud-pill">内容未载入</span><strong style="margin-top:7px">剧本「${escapeHtml(world?.name||"当前")}」暂无角色或分幕</strong><p>${escapeHtml(state.apiError||"请刷新云端数据，或稍后再试。")}</p></div><button class="primary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`:"";
-  const loading = state.cloudLoading && !studio?.world;
+  const studioEmptyBanner=studioEmpty?`<section class="demo-strip" style="margin-bottom:14px;border-color:#e8c4c4;background:#fff8f7"><div><span class="cloud-pill">内容未载入</span><strong style="margin-top:7px">剧本「${escapeHtml(world?.name||"当前")}」暂无角色或分幕</strong><p>${escapeHtml(apiError||"请刷新云端数据，或稍后再试。")}</p></div><button class="primary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`:"";
+  const loading = cloudLoading && !studio?.world;
   const roleCount = studio?.roles?.length ?? 0, chapterCount = studio?.chapters?.length ?? 0;
-  const uploadCount = state.cloudAssets?.length ?? 0;
+  const uploadCount = cloudAssets?.length ?? 0;
   const sceneCount = studio?.scenes?.length ?? 0;
   const clueCount = studio?.clues?.length ?? 0;
   const pointCount = studio?.investigationPoints?.length ?? 0;
   const sectionCount = studio?.sections?.length ?? 0;
   const rooms = studio?.rooms || [], hasRooms = rooms.length > 0;
   const room = activeRuntimeRoom(), hasActiveRoom = Boolean(room);
-  const enabledRules = (state.cloudRules || []).filter(rule => rule.enabled).length;
-  const pendingEvents = hasActiveRoom ? (state.cloudHostEvents || []).length : 0;
+  const enabledRules = (cloudRules || []).filter(rule => rule.enabled).length;
+  const pendingEvents = hasActiveRoom ? (cloudHostEvents || []).length : 0;
   const runtimeProgress = hasActiveRoom ? overviewRuntimeProgress() : { percent: 0, label: "当前未选中运行房" };
-  const activePlayers = hasActiveRoom ? (state.cloudHost || []).filter(item => (item.completed_sections || 0) > 0 || item.current_scene_id).length : 0;
+  const activePlayers = hasActiveRoom ? (cloudHost || []).filter(item => (item.completed_sections || 0) > 0 || item.current_scene_id).length : 0;
   const chapterFlow = studio?.chapters?.map(chapter => flow(
     `第 ${chapter.sequence} 章`,
     escapeHtml(chapter.title),
     chapterPublicationLabel(chapter.publication_status),
     chapterFlowClass(chapter.publication_status)
   )).join("") || `<div class="empty-state">尚未创建公共章节。</div>`;
-  const logs = state.cloudWorldLogs || [];
+  const logs = cloudWorldLogs || [];
   const activities = logs.length
     ? logs.slice(0, 8).map(log => activity(escapeHtml(log.message), formatRelativeTime(log.created_at), logActivityType(log.event_type))).join("")
     : `<div class="empty-state">${hasActiveRoom ? "暂无最近事件" : hasRooms ? "请选择一个运行房以查看该房间的最近事件。" : "暂无运行房。创建测试房后，阅读、调查和规则触发会记录在这里。"}</div>`;
-  const hostByRole = new Map((state.cloudHost || []).map(item => [item.role_slot_id, item]));
+  const hostByRole = new Map((cloudHost || []).map(item => [item.role_slot_id, item]));
   const roleColors = ["#b9795c", "#587f79", "#706b91", "#9a814f", "#76614d", "#657c91"];
   const roleRows = studio?.roles?.map((role, index) => {
     const sections = studio.sections.filter(section => section.role_slot_id === role.id).length;
@@ -158,7 +164,7 @@ export function overview() {
     { k: "运行房", v: hasRooms ? `${rooms.length} 个` : "未建立", t: hasActiveRoom ? "已选中当前运行房" : "创建测试房后进入主持端" },
     { k: "玩家进度", v: `${runtimeProgress.percent}%`, t: runtimeProgress.label },
     { k: "待确认", v: String(pendingEvents), t: pendingEvents ? "需要主持端处理" : "暂无主持待办" },
-    { k: "复盘", v: String(state.cloudRecaps?.length || 0), t: "checkpoint 与 recap 归档" }
+    { k: "复盘", v: String(cloudRecaps?.length || 0), t: "checkpoint 与 recap 归档" }
   ];
   const miniGameTemplates = Array.isArray(world?.settings?.miniGameTemplates) ? world.settings.miniGameTemplates.length : 0;
   const productionItems = [
@@ -187,7 +193,7 @@ export function overview() {
     { label: "主持事件与玩家进度", ready: hasActiveRoom, detail: hasActiveRoom ? "当前房间可读取待确认事件与角色进度。" : "选中运行房后展示实时运行信号。" },
     { label: "自动化规则", ready: enabledRules > 0, detail: enabledRules ? "规则引擎已有可启用规则。" : "规则页已有配置入口，缺少当前世界启用项。" },
     { label: "附件资产", ready: uploadCount > 0, detail: uploadCount ? "云端附件已接入，可服务线索和角色材料。" : "账号资产页可上传后绑定内容。" },
-    { label: "存档与复盘", ready: Boolean(state.cloudRecaps?.length), detail: state.cloudRecaps?.length ? "已有复盘记录可回看。" : "运行房产生 checkpoint/recap 后进入复盘。" }
+    { label: "存档与复盘", ready: Boolean(cloudRecaps?.length), detail: cloudRecaps?.length ? "已有复盘记录可回看。" : "运行房产生 checkpoint/recap 后进入复盘。" }
   ];
   const inviteStrip = hasActiveRoom && room?.invite_code ? `
         <div class="invite-strip">
@@ -214,8 +220,8 @@ export function overview() {
     <section class="hero">
       <article class="hero-card">
         <p class="eyebrow">CURRENT WORLD · ONLINE</p>
-        <h2>${loading ? "正在连接云端…" : escapeHtml((window.zhimuUserMessages?.overviewHeroTitle || (() => "未选择世界"))({ loading, worldName: world?.name, apiError: state.apiError }))}</h2>
-        <p>${loading ? "正在读取世界基础信息与章节结构，通常只需片刻。" : escapeHtml(world?.summary || (window.zhimuUserMessages?.formatCloudPanelError?.(state.apiError, { hasStudio: Boolean(world) }) || "世界基础信息加载完成后会显示在这里。"))}</p>
+        <h2>${loading ? "正在连接云端…" : escapeHtml((window.zhimuUserMessages?.overviewHeroTitle || (() => "未选择世界"))({ loading, worldName: world?.name, apiError }))}</h2>
+        <p>${loading ? "正在读取世界基础信息与章节结构，通常只需片刻。" : escapeHtml(world?.summary || (window.zhimuUserMessages?.formatCloudPanelError?.(apiError, { hasStudio: Boolean(world) }) || "世界基础信息加载完成后会显示在这里。"))}</p>
         <div class="hero-stats"><div><strong>${String(roleCount).padStart(2,"0")}</strong><small>角色席位</small></div><div><strong>${String(chapterCount).padStart(2,"0")}</strong><small>公共章节</small></div><div><strong>${String(uploadCount).padStart(2,"0")}</strong><small>云端附件</small></div></div>
       </article>
       <article class="status-card">

@@ -1,8 +1,7 @@
 /* Auto-split from app.js — archive.js */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
-
-  const state = window.zhimuState;
+import { uiStore, roomStore, worldStore, studioStore } from "../state/index.js";
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -48,10 +47,12 @@ import { showToast } from "../components/toast.js";
   const RESTORE_SCOPE_OPTIONS = window.zhimuUserMessages?.RESTORE_SCOPE_OPTIONS || [];
 
 export function archive(){
- const room=activeRuntimeRoom(),checkpoints=state.cloudCheckpoints||[],recaps=state.cloudRecaps||[];
+ const { view } = uiStore.get();
+ const { cloudCheckpoints, cloudRecaps, activeRecapId } = roomStore.get();
+ const room=activeRuntimeRoom(),checkpoints=cloudCheckpoints||[],recaps=cloudRecaps||[];
  if(!room)return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">RUNTIME REQUIRED</p><h2>存档与复盘需要运行房</h2><p>请先建立或选择一个平行房。运行房存档与创作版本快照是两套独立数据。</p><button class="primary-btn" data-action="world-rooms">管理平行房</button></article>`;
- if(state.activeRecapId)return recapDetailView();
- const isPlayer=state.view==="player";
+ if(activeRecapId)return recapDetailView();
+ const isPlayer=view==="player";
  return `${cloudStatus()}
  <article class="card"><div class="section-head"><div><h3>房间复盘 · ${escapeHtml(room.name)}</h3><p>基于真实日志、线索流转、调查记录与规则触发，生成可分享的跑团回顾（非 AI 版）。</p></div>${isPlayer?"":`<button class="primary-btn" data-action="create-recap">生成复盘</button>`}</div>
  ${recapListSection(recaps,isPlayer)}
@@ -63,7 +64,7 @@ export function archive(){
 
 function recapListSection(recaps,isPlayer){
  if(isPlayer){
-  const latest=state.cloudRecapLatest;
+  const latest=roomStore.get().cloudRecapLatest;
   if(!latest)return `<div class="empty-state">主持人尚未生成本房间的复盘报告。跑团结束后，请让主持人在「存档与复盘」页生成。</div>`;
   return `<article class="recap-card"><div class="recap-head"><div><strong>${escapeHtml(latest.label)}</strong><p>${escapeHtml(latest.description||"无备注")}</p></div><span class="status-chip published">局后复盘</span></div><div class="checkpoint-meta"><span>生成于 ${formatTime(latest.created_at)}</span><span>${escapeHtml(latest.created_by_name||"主持人")}</span><span>${latest.summary?.joinedPlayers||0} 人 · ${latest.summary?.cluesDiscovered||0} 条线索</span></div><button class="secondary-btn" data-action="recap-detail" data-recap="${latest.id}" data-player="1">查看完整复盘</button></article>`;
  }
@@ -72,7 +73,7 @@ function recapListSection(recaps,isPlayer){
 }
 
 export function recapDetailView(){
- const detail=state.cloudRecapDetail;
+ const detail=roomStore.get().cloudRecapDetail;
  if(!detail)return `<article class="card"><div class="empty-state">正在加载复盘…</div><button class="secondary-btn" data-action="recap-back">返回列表</button></article>`;
  const snapshot=detail.snapshot||{},perspective=detail.perspective||snapshot.perspective||"host";
  return `<article class="card recap-detail"><div class="section-head"><div><p class="eyebrow">${perspective==="postgame"?"POSTGAME RECAP":"FULL RECAP · 上帝视角"}</p><h3>${escapeHtml(detail.label)}</h3><p>${escapeHtml(detail.description||"")} · 生成于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p></div><button class="secondary-btn" data-action="recap-back">返回</button></div>
@@ -174,7 +175,7 @@ export function checkpointClueSummary(snapshot={}){
 export function openCreateRecapModal(){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  modal.className="modal";modal.innerHTML=`<h2>生成房间复盘</h2><p class="wizard-intro">系统会按章节串联全剧脉络（上帝视角），并汇总各角色阅读、线索、调查与笔记表现。局后玩家与主持均可查看完整复盘。</p><div class="form-group">${studioField("复盘标题","recapTitle","input","例如：第一夜 · 完整复盘")}${studioField("主持备注","recapDescription","textarea","记录本局结局、未解之谜或下次补充说明")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-recap-submit>确认生成</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-recap-submit]").onclick=async()=>{try{const values=studioValues();if(!values.recapTitle)return showToast("请填写复盘标题");const created=await zhimuApi.createRecap({title:values.recapTitle,description:values.recapDescription});closeModal();await loadCloudData();showToast("房间复盘已生成");state.activeRecapId=created.id;state.cloudRecapDetail=created;render()}catch(error){showError(error)}};
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-recap-submit]").onclick=async()=>{try{const values=studioValues();if(!values.recapTitle)return showToast("请填写复盘标题");const created=await zhimuApi.createRecap({title:values.recapTitle,description:values.recapDescription});closeModal();await loadCloudData();showToast("房间复盘已生成");roomStore.set({ activeRecapId: created.id, cloudRecapDetail: created });render()}catch(error){showError(error)}};
 }
 
 export function openCreateCheckpointModal(){
@@ -209,26 +210,25 @@ export async function openPlayerRecapModal(recapId){
 export async function openRecapDetail(recapId,asPlayer=false){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
  try{
-  if(asPlayer&&state.view==="player"){
+  const { view } = uiStore.get();
+  if(asPlayer&&view==="player"){
    await openPlayerRecapModal(recapId);
    return;
   }
-  if(state.view!=="archive")go("archive");
+  if(view!=="archive")go("archive");
   const detail=await zhimuApi.getRecap(recapId,asPlayer);
-  state.activeRecapId=recapId;
-  state.cloudRecapDetail=detail;
+  roomStore.set({ activeRecapId: recapId, cloudRecapDetail: detail });
   render();
  }catch(error){showError(error)}
 }
 
 export function closeRecapDetail(){
- state.activeRecapId=null;
- state.cloudRecapDetail=null;
+ roomStore.set({ activeRecapId: null, cloudRecapDetail: null });
  render();
 }
 
 export async function openPlayerRecapFromBanner(){
- const latest=state.cloudRecapLatest;
+ const latest=roomStore.get().cloudRecapLatest;
  if(!latest)return showToast("主持人尚未生成复盘");
  await openPlayerRecapModal(latest.id);
 }
@@ -258,15 +258,15 @@ export async function openCheckpointDetail(checkpointId){
 }
 
 function roomNameById(roomId){
- const rooms=state.cloudStudio?.rooms||[];
+ const rooms=studioStore.get().cloudStudio?.rooms||[];
  return rooms.find((row)=>row.id===roomId)?.name||"所选平行房";
 }
 
 export function openRestoreCheckpointModal(checkpointId,checkpointLabel){
  if(!activeRuntimeRoom())return showToast("请先选择运行房");
- const fromList=state.cloudCheckpoints?.find((row)=>row.id===checkpointId);
+ const fromList=roomStore.get().cloudCheckpoints?.find((row)=>row.id===checkpointId);
  const label=checkpointLabel||fromList?.label||"存档点";
- const rooms=(state.cloudStudio?.rooms||[]).filter((row)=>row.id);
+ const rooms=(studioStore.get().cloudStudio?.rooms||[]).filter((row)=>row.id);
  const currentRoomId=zhimuApi.context.roomId;
  const scopeRows=RESTORE_SCOPE_OPTIONS.map((opt)=>`<label class="check-label restore-scope-row"><input type="checkbox" data-restore-scope="${opt.key}" ${opt.default?"checked":""}><span><strong>${escapeHtml(opt.label)}</strong><small>${escapeHtml(opt.hint||"")}</small></span></label>`).join("");
  const targetOptions=rooms.map((row)=>`<option value="${row.id}" ${row.id===currentRoomId?"selected":""}>${escapeHtml(row.name)}${row.id===currentRoomId?"（当前）":""}</option>`).join("");

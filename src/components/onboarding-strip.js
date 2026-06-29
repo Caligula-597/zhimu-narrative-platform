@@ -1,5 +1,6 @@
 /** First-run 3-minute path: create world → play portal → host console sees progress. */
 import * as zhimuApi from "../api/index.js";
+import { studioStore, roomStore, worldStore } from "../state/index.js";
 (function (window) {
   const DISMISS_KEY = "zhimuOnboardingDismissed";
 
@@ -12,11 +13,10 @@ import * as zhimuApi from "../api/index.js";
   }
 
   function stepState(stepId) {
-    const state = window.zhimuState;
-    const studio = state.cloudStudio;
+    const studio = studioStore.get().cloudStudio;
     const hasWorld = Boolean(zhimuApi?.context?.worldId && studio?.world);
     const hasRoom = Boolean(window.zhimuWorkspace?.activeRuntimeRoom?.());
-    const host = state.cloudHost || [];
+    const host = roomStore.get().cloudHost || [];
     const hasProgress = host.some((item) => (item.completed_sections || 0) > 0);
     const visitedPlayer = sessionStorage.getItem("zhimuOnboardingPlayer") === "1";
     const visitedDirector = sessionStorage.getItem("zhimuOnboardingDirector") === "1";
@@ -47,7 +47,7 @@ import * as zhimuApi from "../api/index.js";
   function shouldShow() {
     if (isDismissed()) return false;
     if (window.zhimuSessionMode?.getSessionMode?.() === "authenticated") {
-      const worlds = window.zhimuState?.cloudWorlds || [];
+      const worlds = worldStore.get().cloudWorlds || [];
       if (worlds.length > 1) return false;
     }
     return stepState("director") !== "done";

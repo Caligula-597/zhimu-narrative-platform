@@ -17,5 +17,6 @@ export const roomStore = createStore({
   cloudRecapDetail: null,
   activeRecapId: null,
   cloudRoomSettings: { hostVoiceListen: false },
+  roomEventsConnected: false,
   hostEventSelection: []
 });

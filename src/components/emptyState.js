@@ -1,8 +1,8 @@
 /* Auto-split from app.js — emptyState.js */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "./toast.js";
+import { userStore, studioStore, worldStore, voiceStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -56,7 +56,7 @@ function deleteWorldPanel(world){
 }
 
 function runtimeEmpty(title,description){
- const world=state.cloudStudio?.world;
+ const world=studioStore.get().cloudStudio?.world;
  return `${cloudStatus()}<article class="card runtime-empty"><p class="eyebrow">RUNTIME REQUIRED</p><h2>${title}尚未连接运行房</h2><p>${description}</p><div class="tutorial-tip"><b>${escapeHtml(world?.name||"当前世界")}</b><span>创作内容仍然保留在云端。建立或选择一个平行房后，这里才会显示该房间自己的玩家状态、章节进度和互动数据。</span></div><button class="primary-btn" data-action="world-rooms">管理平行房</button></article>`;
 }
 
@@ -66,17 +66,20 @@ function demoIdentityBanner(){
 
 function cloudStatus(){
  const sessionMode=window.zhimuSessionMode?.getSessionMode?.();
- if(sessionMode&&sessionMode!=="authenticated"&&!state.apiError){
+ const apiError=userStore.get().apiError;
+ const cloudStudio=studioStore.get().cloudStudio;
+ const cloudLoading=studioStore.get().cloudLoading;
+ if(sessionMode&&sessionMode!=="authenticated"&&!apiError){
   const sessionStrip=demoIdentityBanner();
-  if(sessionMode==="demo_browse"&&!state.cloudStudio)return sessionStrip;
+  if(sessionMode==="demo_browse"&&!cloudStudio)return sessionStrip;
  }
- const rooms=state.cloudStudio?.rooms||[];
- const panelMsg=window.zhimuUserMessages?.formatCloudPanelError?.(state.apiError,{hasStudio:Boolean(state.cloudStudio)})||state.apiError||"正在读取云端…";
- const isOutage=state.apiError&&/无法连接|API_UNAVAILABLE|ECONNREFUSED/i.test(state.apiError);
- const isEmptyAccount=state.apiError&&/还没有可访问的剧本/.test(state.apiError);
- const pill=isOutage?"部分运行模块尚未连接":isEmptyAccount?"● 已连接 · 尚无剧本":state.apiError?"部分提示":"● 云端已连接";
+ const rooms=cloudStudio?.rooms||[];
+ const panelMsg=window.zhimuUserMessages?.formatCloudPanelError?.(apiError,{hasStudio:Boolean(cloudStudio)})||apiError||"正在读取云端…";
+ const isOutage=apiError&&/无法连接|API_UNAVAILABLE|ECONNREFUSED/i.test(apiError);
+ const isEmptyAccount=apiError&&/还没有可访问的剧本/.test(apiError);
+ const pill=isOutage?"部分运行模块尚未连接":isEmptyAccount?"● 已连接 · 尚无剧本":apiError?"部分提示":"● 云端已连接";
  const catalogHint=isEmptyAccount&&!isOutage?"可点「公开剧本库」体验示例剧本，或创建你自己的世界。":"";
- return `${sessionMode!=="authenticated"?demoIdentityBanner():""}<section class="demo-strip cloud-status-strip"><div><span class="cloud-pill ${isOutage?"offline":""}">${pill}</span><strong style="margin-top:7px">${escapeHtml(panelMsg)}</strong><p>${state.cloudStudio?(rooms.length?`当前世界已建立 ${rooms.length} 个运行房间。`:"当前世界尚未建立测试房，运行状态为空。"):state.cloudLoading?"正在连接…":catalogHint}</p></div><button class="secondary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`}
+ return `${sessionMode!=="authenticated"?demoIdentityBanner():""}<section class="demo-strip cloud-status-strip"><div><span class="cloud-pill ${isOutage?"offline":""}">${pill}</span><strong style="margin-top:7px">${escapeHtml(panelMsg)}</strong><p>${cloudStudio?(rooms.length?`当前世界已建立 ${rooms.length} 个运行房间。`:"当前世界尚未建立测试房，运行状态为空。"):cloudLoading?"正在连接…":catalogHint}</p></div><button class="secondary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`}
 
 function stat(icon,num,label,sub){return `<article class="stat-card"><div class="stat-icon">${icon}</div><strong>${num}</strong><span>${label} · ${sub}</span></article>`}
 
@@ -93,10 +96,11 @@ function taskAction(icon,title,text,action,label,hubTab=""){const hubAttr=hubTab
 function capability(icon,title,text,view){return `<article class="capability-card"><i>${icon}</i><h3>${title}</h3><p>${text}</p><button ${view==="wizard"?'data-action="open-wizard"':`data-go="${view}"`}>打开功能 →</button></article>`}
 
 function catalogCardsHtml(){
- if(state.cloudCatalogError)return `<div class="empty-state">公开库加载失败：${escapeHtml(state.cloudCatalogError)}</div>`;
- const catalog=state.cloudCatalog||[];
- if(!catalog.length)return `<div class="empty-state">公开库暂无剧本。主创作者可在「世界设置」提交公开库审核申请。</div>`;
- return `<div class="catalog-inline-grid">${catalog.map(world=>`<article class="catalog-inline-card"><div><span class="cloud-pill">公开</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"暂无简介")}</p><small>创作者：${escapeHtml(world.owner_display_name||"未知")} · ${world.role_count||0} 个角色席</small></div><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></article>`).join("")}</div>`;
+ const cloudCatalogError=worldStore.get().cloudCatalogError;
+ const cloudCatalog=worldStore.get().cloudCatalog;
+ if(cloudCatalogError)return `<div class="empty-state">公开库加载失败：${escapeHtml(cloudCatalogError)}</div>`;
+ if(!cloudCatalog.length)return `<div class="empty-state">公开库暂无剧本。主创作者可在「世界设置」提交公开库审核申请。</div>`;
+ return `<div class="catalog-inline-grid">${cloudCatalog.map(world=>`<article class="catalog-inline-card"><div><span class="cloud-pill">公开</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"暂无简介")}</p><small>创作者：${escapeHtml(world.owner_display_name||"未知")} · ${world.role_count||0} 个角色席</small></div><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></article>`).join("")}</div>`;
 }
 
 function catalogPromoSection(){
@@ -104,9 +108,11 @@ function catalogPromoSection(){
 }
 
 function creatorWorkspaceEmpty({title,kicker,intro,guideTitle,guideItems=[]}){
- if(state.cloudLoading)return `${cloudStatus()}<section class="card creator-empty-loading"><p class="section-kicker">${escapeHtml(kicker||"WORKSPACE")}</p><h3>正在连接云端…</h3><p>已登录时会同时读取公开剧本库列表。</p></section>`;
+ const apiError=userStore.get().apiError;
+ const cloudLoading=studioStore.get().cloudLoading;
+ if(cloudLoading)return `${cloudStatus()}<section class="card creator-empty-loading"><p class="section-kicker">${escapeHtml(kicker||"WORKSPACE")}</p><h3>正在连接云端…</h3><p>已登录时会同时读取公开剧本库列表。</p></section>`;
  const noWorld=!zhimuApi.context.worldId;
- const panelMsg=window.zhimuUserMessages?.formatCloudPanelError?.(state.apiError,{hasStudio:false})||state.apiError||"";
+ const panelMsg=window.zhimuUserMessages?.formatCloudPanelError?.(apiError,{hasStudio:false})||apiError||"";
  return `${cloudStatus()}
  <section class="creator-empty-hero card"><p class="section-kicker">${escapeHtml(kicker||"CREATOR WORKSPACE")}</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(intro)}</p>${panelMsg?`<p class="muted-note">${escapeHtml(panelMsg)}</p>`:""}<div class="row creator-empty-actions"><button class="primary-btn" data-action="open-wizard">＋ 创建我的世界</button><button class="secondary-btn" data-action="world-library">我的剧本</button><button class="secondary-btn" data-action="open-catalog">浏览公开剧本库</button></div></section>
  ${noWorld?catalogPromoSection():""}
@@ -116,7 +122,7 @@ function creatorWorkspaceEmpty({title,kicker,intro,guideTitle,guideItems=[]}){
 
 function check(title,status){return `<div class="check-item"><i>✓</i><div><strong>${title}</strong><p>${status}</p></div></div>`}
 
-function voiceOption(icon,title,text,roomId,cls){return `<div class="voice-option ${cls}"><i>${icon}</i><div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></div><div class="row">${cls==="invite_private"?`<button class="secondary-btn" data-action="voice-room-invite" data-room-id="${roomId}" data-room="${escapeHtml(title)}">邀请成员</button>`:""}<button data-action="join-room" data-room-id="${roomId}" data-room="${escapeHtml(title)}">${state.voiceRoomId===roomId?"当前房间":"加入"}</button></div></div>`}
+function voiceOption(icon,title,text,roomId,cls){return `<div class="voice-option ${cls}"><i>${icon}</i><div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></div><div class="row">${cls==="invite_private"?`<button class="secondary-btn" data-action="voice-room-invite" data-room-id="${roomId}" data-room="${escapeHtml(title)}">邀请成员</button>`:""}<button data-action="join-room" data-room-id="${roomId}" data-room="${escapeHtml(title)}">${voiceStore.get().voiceRoomId===roomId?"当前房间":"加入"}</button></div></div>`}
   window.zhimuUi = { activeRuntimeRoom, runtimeEmpty, cloudStatus, catalogPromoSection, creatorWorkspaceEmpty, canEditWorldContent, catalogExperienceBanner, isWorldOwner, deleteWorldPanel, stat, flow, activity, readingRow, task, taskAction, capability, check, voiceOption };
 })(window);
 export {};

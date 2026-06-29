@@ -1,8 +1,8 @@
 /* Clue management — list, search, edit without opening the full studio canvas. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { uiStore, roomStore, studioStore, assetStore, worldStore } from "../state/index.js";
 
-  const state = window.zhimuState;
   const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -61,58 +61,59 @@ import { showToast } from "../components/toast.js";
   }
 
   export function toggleCluesSelection(clueId, checked) {
-    const set = new Set(state.cluesBulkSelection || []);
+    const ui = uiStore.get();
+    const set = new Set(ui.cluesBulkSelection || []);
     if (checked) set.add(clueId);
     else set.delete(clueId);
-    state.cluesBulkSelection = [...set];
+    uiStore.set({ cluesBulkSelection: [...set] });
     render();
   }
 
   export function syncCluesSelectAll(checked, visibleIds) {
-    state.cluesBulkSelection = checked ? [...visibleIds] : [];
+    uiStore.set({ cluesBulkSelection: checked ? [...visibleIds] : [] });
     render();
   }
 
   export function selectClue(clueId) {
     if (!clueId) return;
     const scroll = captureClueFlowViewport();
-    state.cluesSelectedId = clueId;
+    uiStore.set({ cluesSelectedId: clueId });
     render();
     restoreClueFlowViewport(scroll);
   }
 
   export function closeClueDetail() {
     const scroll = captureClueFlowViewport();
-    state.cluesSelectedId = "";
-    state.clueDetailTab = "detail";
+    uiStore.set({ cluesSelectedId: "" });
+    uiStore.set({ clueDetailTab: "detail" });
     render();
     restoreClueFlowViewport(scroll);
   }
 
   export function setClueFlowFilter(filter = "all") {
     captureClueFlowViewport();
-    state.clueFlowFilter = ["all", "linked", "incomplete"].includes(filter) ? filter : "all";
+    uiStore.set({ clueFlowFilter: ["all", "linked", "incomplete"].includes(filter) ? filter : "all" });
     render();
   }
 
   export function setClueDetailTab(tab = "detail") {
     captureClueFlowViewport();
-    state.clueDetailTab = tab === "triggers" ? "triggers" : "detail";
+    uiStore.set({ clueDetailTab: tab === "triggers" ? "triggers" : "detail" });
     render();
   }
 
   export function adjustClueFlowZoom(mode = "reset") {
     const scroll = captureClueFlowViewport();
-    const current = Number(state.clueFlowZoom || 1);
-    if (mode === "in") state.clueFlowZoom = Math.min(1.45, Math.round((current + 0.1) * 10) / 10);
-    else if (mode === "out") state.clueFlowZoom = Math.max(0.65, Math.round((current - 0.1) * 10) / 10);
-    else state.clueFlowZoom = 1;
+    const current = Number(uiStore.get().clueFlowZoom || 1);
+    if (mode === "in") uiStore.set({ clueFlowZoom: Math.min(1.45, Math.round((current + 0.1) * 10) / 10) });
+    else if (mode === "out") uiStore.set({ clueFlowZoom: Math.max(0.65, Math.round((current - 0.1) * 10) / 10) });
+    else uiStore.set({ clueFlowZoom: 1 });
     render();
     restoreClueFlowViewport(scroll);
   }
 
   async function saveClueGraphPosition(clueId, position) {
-    const data = state.cloudStudio;
+    const data = studioStore.get().cloudStudio;
     const clue = data?.clues?.find((item) => item.id === clueId);
     if (!clue || !position) return;
     const metadata = {
@@ -137,7 +138,7 @@ import { showToast } from "../components/toast.js";
   }
 
   export async function confirmDeleteClue(clueId) {
-    const data = state.cloudStudio;
+    const data = studioStore.get().cloudStudio;
     const clue = data?.clues?.find((item) => item.id === clueId);
     if (!clue) return showToast("线索不存在或已删除");
     try {
@@ -149,8 +150,9 @@ import { showToast } from "../components/toast.js";
         async () => {
           try {
             await zhimuApi.deleteStudioNode("clue", clueId);
-            state.cluesBulkSelection = (state.cluesBulkSelection || []).filter((id) => id !== clueId);
-            if (state.cluesSelectedId === clueId) state.cluesSelectedId = null;
+            const ui = uiStore.get();
+            uiStore.set({ cluesBulkSelection: (ui.cluesBulkSelection || []).filter((id) => id !== clueId) });
+            if (ui.cluesSelectedId === clueId) uiStore.set({ cluesSelectedId: null });
             closeModal();
             await loadCloudData();
             showToast("线索已删除");
@@ -165,9 +167,10 @@ import { showToast } from "../components/toast.js";
   }
 
   export async function batchDeleteClues() {
-    const ids = state.cluesBulkSelection || [];
+    const ui = uiStore.get();
+    const ids = ui.cluesBulkSelection || [];
     if (!ids.length) return showToast("请先勾选要删除的线索");
-    const data = state.cloudStudio;
+    const data = studioStore.get().cloudStudio;
     const names = ids.map((id) => data?.clues?.find((item) => item.id === id)?.name || "未命名线索");
     studioModal(
       `确认删除 ${ids.length} 条线索`,
@@ -178,8 +181,8 @@ import { showToast } from "../components/toast.js";
           for (const clueId of ids) {
             await zhimuApi.deleteStudioNode("clue", clueId);
           }
-          state.cluesBulkSelection = [];
-          if (state.cluesSelectedId && ids.includes(state.cluesSelectedId)) state.cluesSelectedId = null;
+          uiStore.set({ cluesBulkSelection: [] });
+          if (ui.cluesSelectedId && ids.includes(ui.cluesSelectedId)) uiStore.set({ cluesSelectedId: null });
           closeModal();
           await loadCloudData();
           showToast(`已删除 ${ids.length} 条线索`);
@@ -207,7 +210,7 @@ import { showToast } from "../components/toast.js";
 
   function clueAsset(clue) {
     const assetId = clue?.metadata?.assetId;
-    return assetId ? (state.cloudAssets || []).find((asset) => asset.id === assetId) : null;
+    return assetId ? (assetStore.get().cloudAssets || []).find((asset) => asset.id === assetId) : null;
   }
 
   function linkedPoints(clueId, data) {
@@ -238,11 +241,12 @@ import { showToast } from "../components/toast.js";
   function captureClueFlowViewport() {
     const viewport = document.querySelector("[data-clue-flow-viewport]");
     if (!viewport) return null;
-    state.clueFlowScroll = { left: viewport.scrollLeft, top: viewport.scrollTop };
-    return state.clueFlowScroll;
+    const scroll = { left: viewport.scrollLeft, top: viewport.scrollTop };
+    uiStore.set({ clueFlowScroll: scroll });
+    return scroll;
   }
 
-  function restoreClueFlowViewport(scroll = state.clueFlowScroll) {
+  function restoreClueFlowViewport(scroll = uiStore.get().clueFlowScroll) {
     if (!scroll) return;
     const apply = () => {
       const viewport = document.querySelector("[data-clue-flow-viewport]");
@@ -303,7 +307,7 @@ import { showToast } from "../components/toast.js";
           if (previous?.clue_id) add(previous.clue_id, point.clue_id, "investigation", "调查顺序");
         });
     });
-    (state.cloudRules || []).forEach((rule) => {
+    (worldStore.get().cloudRules || []).forEach((rule) => {
       const sources = [...collectClueIdsFromRuleNode(rule.conditions)];
       if (!sources.length) return;
       (rule.actions || []).forEach((action) => {
@@ -406,10 +410,10 @@ import { showToast } from "../components/toast.js";
     const metrics = clueGraphMetrics(list.length, new Set(levels.values()).size || 1, Math.max(1, ...levelSizes.values()));
     const nodes = clueGraphNodes(list, data, metrics, dependencies);
     const nodeById = new Map(nodes.map((node) => [node.clue.id, node]));
-    const selectedId = state.cluesSelectedId || "";
+    const selectedId = uiStore.get().cluesSelectedId || "";
     const center = { x: metrics.width / 2, y: metrics.height / 2 };
-    const zoom = Number(state.clueFlowZoom || 1);
-    const filter = state.clueFlowFilter || "all";
+    const zoom = Number(uiStore.get().clueFlowZoom || 1);
+    const filter = uiStore.get().clueFlowFilter || "all";
     const lines = dependencies.length
       ? dependencies.map((edge) => {
         const from = nodeById.get(edge.from);
@@ -488,7 +492,7 @@ import { showToast } from "../components/toast.js";
     const outgoingDeps = dependencyRefs.filter((edge) => edge.from === clue.id);
     const clueName = (id) => (data.clues || []).find((item) => item.id === id)?.name || "未知线索";
     const excerpt = clue.public_text || clue.host_text || "还没有补充线索正文。";
-    const tab = state.clueDetailTab === "triggers" ? "triggers" : "detail";
+    const tab = uiStore.get().clueDetailTab === "triggers" ? "triggers" : "detail";
     const detailBody = `<p class="section-kicker">${escapeHtml(meta.type)} · ${escapeHtml(meta.importance)}</p>
         <h3>${escapeHtml(clue.name)}</h3>
         <div class="clue-detail-tags">${clueVisibilityChip(clue)}<span class="cloud-pill">${points.length || 0} 个调查点</span></div>
@@ -588,7 +592,8 @@ import { showToast } from "../components/toast.js";
   }
 
   export function clues() {
-    const data = state.cloudStudio;
+    const data = studioStore.get().cloudStudio;
+    const ui = uiStore.get();
     if (!data) {
       return U.creatorWorkspaceEmpty?.({
         title: "线索管理",
@@ -600,7 +605,7 @@ import { showToast } from "../components/toast.js";
         ]
       }) || `<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
     }
-    const q = state.cluesSearchQuery || "";
+    const q = ui.cluesSearchQuery || "";
     let list = data.clues || [];
     const dependencyRefs = clueDependencyEdges(data);
     if (q) {
@@ -612,16 +617,16 @@ import { showToast } from "../components/toast.js";
           String(clue.host_text || "").toLowerCase().includes(lower)
       );
     }
-    const flowFilter = state.clueFlowFilter || "all";
+    const flowFilter = ui.clueFlowFilter || "all";
     if (flowFilter === "linked") {
       list = list.filter((clue) => linkedPoints(clue.id, data).length || dependencyRefs.some((edge) => edge.from === clue.id || edge.to === clue.id));
     } else if (flowFilter === "incomplete") {
       list = list.filter((clue) => !String(clue.public_text || "").trim() || (!linkedPoints(clue.id, data).length && !dependencyRefs.some((edge) => edge.from === clue.id || edge.to === clue.id)));
     }
-    const bulkSelected = new Set(state.cluesBulkSelection || []);
+    const bulkSelected = new Set(ui.cluesBulkSelection || []);
     const visibleIds = list.map((clue) => clue.id);
     const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => bulkSelected.has(id));
-    const selectedId = state.cluesSelectedId || "";
+    const selectedId = ui.cluesSelectedId || "";
     const selectedClue = selectedId ? (data.clues || []).find((clue) => clue.id === selectedId) || null : null;
     const bulkToolbar = list.length
       ? `<div class="row clues-bulk-toolbar"><label class="check-label"><input type="checkbox" data-action="clues-select-all" ${allVisibleSelected ? "checked" : ""}><span>全选当前列表 (${list.length})</span></label><button class="danger-btn" data-action="clues-batch-delete" ${bulkSelected.size ? "" : "disabled"}>删除所选 (${bulkSelected.size || 0})</button></div>`
@@ -661,7 +666,7 @@ import { showToast } from "../components/toast.js";
     input.addEventListener("input", () => {
       clearTimeout(timer);
       timer = setTimeout(() => {
-        state.cluesSearchQuery = input.value.trim();
+        uiStore.set({ cluesSearchQuery: input.value.trim() });
         render();
         bindCluesSearch();
       }, 280);
@@ -672,26 +677,27 @@ import { showToast } from "../components/toast.js";
     const viewport = document.querySelector("[data-clue-flow-viewport]");
     if (!viewport || viewport.dataset.panBound) return;
     viewport.dataset.panBound = "1";
-    if (state.clueFlowScroll) {
-      viewport.scrollLeft = state.clueFlowScroll.left || 0;
-      viewport.scrollTop = state.clueFlowScroll.top || 0;
+    const savedScroll = uiStore.get().clueFlowScroll;
+    if (savedScroll) {
+      viewport.scrollLeft = savedScroll.left || 0;
+      viewport.scrollTop = savedScroll.top || 0;
     } else if (!viewport.scrollLeft && !viewport.scrollTop) {
       viewport.scrollLeft = Math.max(0, (viewport.scrollWidth - viewport.clientWidth) / 2);
       viewport.scrollTop = Math.max(0, (viewport.scrollHeight - viewport.clientHeight) / 2);
     }
     viewport.addEventListener("scroll", () => {
-      state.clueFlowScroll = { left: viewport.scrollLeft, top: viewport.scrollTop };
+      uiStore.set({ clueFlowScroll: { left: viewport.scrollLeft, top: viewport.scrollTop } });
     }, { passive: true });
     viewport.addEventListener("click", (event) => {
       const node = event.target.closest(".clue-flow-node");
       if (!node) {
-        if (event.target.closest(".clue-flow-canvas") && state.cluesSelectedId) closeClueDetail();
+        if (event.target.closest(".clue-flow-canvas") && uiStore.get().cluesSelectedId) closeClueDetail();
         return;
       }
       event.preventDefault();
       event.stopPropagation();
-      if (state.clueFlowSuppressClick) {
-        state.clueFlowSuppressClick = false;
+      if (uiStore.get().clueFlowSuppressClick) {
+        uiStore.set({ clueFlowSuppressClick: false });
         return;
       }
       selectClue(node.dataset.clue);
@@ -701,7 +707,7 @@ import { showToast } from "../components/toast.js";
       if (node) {
         event.preventDefault();
         event.stopPropagation();
-        const zoom = Number(state.clueFlowZoom || 1) || 1;
+        const zoom = Number(uiStore.get().clueFlowZoom || 1) || 1;
         const start = {
           x: event.clientX,
           y: event.clientY,
@@ -731,7 +737,7 @@ import { showToast } from "../components/toast.js";
             selectClue(node.dataset.clue);
             return;
           }
-          state.clueFlowSuppressClick = true;
+          uiStore.set({ clueFlowSuppressClick: true });
           const scroll = captureClueFlowViewport();
           await saveClueGraphPosition(node.dataset.clue, {
             x: Number.parseFloat(node.dataset.x || node.style.left),
@@ -740,7 +746,7 @@ import { showToast } from "../components/toast.js";
           render();
           restoreClueFlowViewport(scroll);
           setTimeout(() => {
-            state.clueFlowSuppressClick = false;
+            uiStore.set({ clueFlowSuppressClick: false });
           }, 180);
         };
         document.addEventListener("pointermove", move);
@@ -765,7 +771,7 @@ import { showToast } from "../components/toast.js";
         viewport.classList.remove("panning");
         document.removeEventListener("pointermove", move);
         document.removeEventListener("pointerup", finish);
-        if (!start.moved && state.cluesSelectedId) closeClueDetail();
+        if (!start.moved && uiStore.get().cluesSelectedId) closeClueDetail();
       };
       document.addEventListener("pointermove", move);
       document.addEventListener("pointerup", finish, { once: true });
@@ -773,15 +779,15 @@ import { showToast } from "../components/toast.js";
   }
 
   export function openClueInStudio(clueId) {
-    state.searchFocus = { view: "studio", type: "clue", id: clueId, nodeType: "clue" };
+    uiStore.set({ searchFocus: { view: "studio", type: "clue", id: clueId, nodeType: "clue" } });
     go("studio");
   }
 
   export function openCluesEditor(clueId = "") {
-    const data = state.cloudStudio;
+    const data = studioStore.get().cloudStudio;
     if (!data) return showToast("请先选择剧本世界");
     const clue = clueId ? data.clues.find((item) => item.id === clueId) : null;
-    const assets = [{ id: "", name: "不关联附件" }, ...(state.cloudAssets || []).map((asset) => ({ id: asset.id, name: asset.original_filename }))];
+    const assets = [{ id: "", name: "不关联附件" }, ...(assetStore.get().cloudAssets || []).map((asset) => ({ id: asset.id, name: asset.original_filename }))];
     const meta = clue?.metadata || {};
     studioModal(
       clue ? `编辑线索 · ${clue.name}` : "新建线索",

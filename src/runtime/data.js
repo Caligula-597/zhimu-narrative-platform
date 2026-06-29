@@ -1,8 +1,8 @@
 /* Cloud data loader — orchestrates workspace, runtime, and room live updates. */
 import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
+import { uiStore, worldStore, studioStore, roomStore, assetStore, userStore, voiceStore } from "../state/index.js";
 
-  const state = window.zhimuState;
   const reportError = (error, fallback = "操作失败，请稍后重试") =>
     showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
 
@@ -60,7 +60,7 @@ export async function loadCloudData(withToast = false, force = false) {
   }
 
   async function loadCloudDataInternal(withToast = false, allowRoomRecover = true) {
-    state.cloudLoading = true;
+    studioStore.set({ cloudLoading: true });
     render();
     const errors = [];
     let hasRoom = Boolean(zhimuApi.context.roomId);
@@ -77,33 +77,32 @@ export async function loadCloudData(withToast = false, force = false) {
         const hasSession = workspace().isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
         if (hasSession) {
           try {
-            state.cloudCatalog = await zhimuApi.getWorldCatalog();
-            state.cloudCatalogError = "";
+            worldStore.set({ cloudCatalog: await zhimuApi.getWorldCatalog(), cloudCatalogError: "" });
           } catch (catalogErr) {
-            state.cloudCatalog = [];
-            state.cloudCatalogError = catalogErr.message || String(catalogErr);
-            if (/catalog_public|does not exist/i.test(state.cloudCatalogError)) {
+            const catalogErrorMsg = catalogErr.message || String(catalogErr);
+            worldStore.set({ cloudCatalog: [], cloudCatalogError: catalogErrorMsg });
+            if (/catalog_public|does not exist/i.test(catalogErrorMsg)) {
               errors.push("公开剧本库暂时无法加载，请稍后刷新");
             }
           }
         } else {
-          state.cloudCatalog = [];
-          state.cloudCatalogError = "";
+          worldStore.set({ cloudCatalog: [], cloudCatalogError: "" });
         }
         if (!zhimuApi.context.worldId) {
-          state.cloudStudio = null;
+          studioStore.set({ cloudStudio: null });
           errors.push("当前账号还没有可访问的剧本");
         } else {
           try {
-            state.cloudStudio = await zhimuApi.getStudio();
-            window.zhimuWorldRevision?.trackRevision?.(state.cloudStudio?.world);
-            const roles = state.cloudStudio?.roles?.length || 0;
-            const sections = state.cloudStudio?.sections?.length || 0;
+            const studioData = await zhimuApi.getStudio();
+            studioStore.set({ cloudStudio: studioData });
+            window.zhimuWorldRevision?.trackRevision?.(studioData?.world);
+            const roles = studioData?.roles?.length || 0;
+            const sections = studioData?.sections?.length || 0;
             if (roles === 0) {
               errors.push("当前剧本暂无角色或分幕，请刷新或重新选择剧本。");
             }
           } catch (studioErr) {
-            state.cloudStudio = null;
+            studioStore.set({ cloudStudio: null });
             const msg = studioErr.message || String(studioErr);
             if (studioErr.code === "WORLD_EDITOR_REQUIRED" || /WORLD_EDITOR_REQUIRED/i.test(msg)) {
               errors.push("无法读取剧本正文，请刷新页面后重试。");
@@ -111,14 +110,18 @@ export async function loadCloudData(withToast = false, force = false) {
               errors.push(msg);
             }
           }
-          const listed = (state.cloudWorlds || []).find((w) => w.id === zhimuApi.context.worldId);
-          if (listed && state.cloudStudio?.world) {
-            if (!state.cloudStudio.world.membership_role) state.cloudStudio.world.membership_role = listed.membership_role;
-            if (listed.catalog_public != null) state.cloudStudio.world.catalog_public = listed.catalog_public;
+          const worldSnap = worldStore.get();
+          const studioSnap = studioStore.get();
+          const listed = (worldSnap.cloudWorlds || []).find((w) => w.id === zhimuApi.context.worldId);
+          if (listed && studioSnap.cloudStudio?.world) {
+            const updatedWorld = { ...studioSnap.cloudStudio.world };
+            if (!updatedWorld.membership_role) updatedWorld.membership_role = listed.membership_role;
+            if (listed.catalog_public != null) updatedWorld.catalog_public = listed.catalog_public;
+            studioStore.set({ cloudStudio: { ...studioSnap.cloudStudio, world: updatedWorld } });
           }
         }
       } catch (error) {
-        state.cloudStudio = null;
+        studioStore.set({ cloudStudio: null });
         if (/Authentication required/i.test(error.message) && window.zhimuConfig?.requireAuth) {
           errors.push("请先登录账号后再继续");
           window.zhimuAuthSession?.promptAuthIfNeeded?.();
@@ -129,11 +132,11 @@ export async function loadCloudData(withToast = false, force = false) {
         }
       }
 
-      state.apiError = [...new Set(errors)].join(" · ");
-      state.cloudLoading = false;
+      userStore.set({ apiError: [...new Set(errors)].join(" · ") });
+      studioStore.set({ cloudLoading: false });
       render();
 
-      if (hasRoom && state.cloudStudio && !workspace().roomBelongsToActiveWorld?.()) {
+      if (hasRoom && studioStore.get().cloudStudio && !workspace().roomBelongsToActiveWorld?.()) {
         zhimuApi.clearRoom();
         clearRuntimeState();
         hasRoom = false;
@@ -145,11 +148,12 @@ export async function loadCloudData(withToast = false, force = false) {
       if (worldReady) {
         const logParams = { limit: "20" };
         if (hasRoom) logParams.roomId = zhimuApi.context.roomId;
-        const needsPlayerRuntime = hasRoom && state.view === "player";
-        const needsDirectorRuntime = hasRoom && state.view === "director";
-        const needsOverviewRuntime = hasRoom && state.view === "overview";
-        const needsArchiveRuntime = hasRoom && state.view === "archive";
-        const needsRules = ["overview", "rules", "director"].includes(state.view);
+        const view = uiStore.get().view;
+        const needsPlayerRuntime = hasRoom && view === "player";
+        const needsDirectorRuntime = hasRoom && view === "director";
+        const needsOverviewRuntime = hasRoom && view === "overview";
+        const needsArchiveRuntime = hasRoom && view === "archive";
+        const needsRules = ["overview", "rules", "director"].includes(view);
         const phase2 = await Promise.allSettled([
           needsPlayerRuntime ? zhimuApi.getPlayerHome() : Promise.resolve(null),
           needsDirectorRuntime ? zhimuApi.getHostPlayers() : Promise.resolve(null),
@@ -158,10 +162,10 @@ export async function loadCloudData(withToast = false, force = false) {
           needsDirectorRuntime ? zhimuApi.getHostClueMatrix() : Promise.resolve(null),
           needsArchiveRuntime ? zhimuApi.getCheckpoints().catch(() => []) : Promise.resolve([]),
           needsArchiveRuntime ? zhimuApi.getRecaps().catch(() => []) : Promise.resolve([]),
-          needsArchiveRuntime || needsPlayerRuntime ? zhimuApi.getLatestRecap(state.view === "player").catch(() => null) : Promise.resolve(null),
-          state.view === "overview" || state.view === "director" ? zhimuApi.getWorldLogs(logParams) : Promise.resolve([]),
-          needsRules ? zhimuApi.getRules() : Promise.resolve(state.cloudRules || []),
-          needsDirectorRuntime ? zhimuApi.getHostAuditLog().catch(() => ({ entries: [] })) : Promise.resolve({ entries: state.cloudHostAuditLog || [] })
+          needsArchiveRuntime || needsPlayerRuntime ? zhimuApi.getLatestRecap(view === "player").catch(() => null) : Promise.resolve(null),
+          view === "overview" || view === "director" ? zhimuApi.getWorldLogs(logParams) : Promise.resolve([]),
+          needsRules ? zhimuApi.getRules() : Promise.resolve(worldStore.get().cloudRules || []),
+          needsDirectorRuntime ? zhimuApi.getHostAuditLog().catch(() => ({ entries: [] })) : Promise.resolve({ entries: roomStore.get().cloudHostAuditLog || [] })
         ]);
         if (hasRoom && phase2.some(isRoomMembershipError)) {
           zhimuApi.clearRoom();
@@ -172,109 +176,107 @@ export async function loadCloudData(withToast = false, force = false) {
             return loadCloudDataInternal(withToast, false);
           }
         } else {
-          take(phase2[0], (value) => { state.cloudPlayer = value; }, () => { state.cloudPlayer = null; });
+          take(phase2[0], (value) => { roomStore.set({ cloudPlayer: value }); }, () => { roomStore.set({ cloudPlayer: null }); });
           if (needsDirectorRuntime && phase2[1].status === "fulfilled") {
             applyHostPlayersPayload(phase2[1].value);
           } else if (needsDirectorRuntime && phase2[1].status === "rejected") {
             failHostPlayersLoad(phase2[1].reason);
             pushUniqueError(errors, phase2[1].reason?.message || String(phase2[1].reason));
           }
-          take(phase2[2], (value) => { state.cloudExploration = value; }, () => { state.cloudExploration = null; });
+          take(phase2[2], (value) => { roomStore.set({ cloudExploration: value }); }, () => { roomStore.set({ cloudExploration: null }); });
         }
         if (hasRoom) {
-          take(phase2[3], (value) => { state.cloudHostEvents = value || []; }, () => { state.cloudHostEvents = []; });
-          take(phase2[4], (value) => { state.cloudHostClueMatrix = value; }, () => { state.cloudHostClueMatrix = null; });
-          take(phase2[5], (value) => { state.cloudCheckpoints = value || []; }, () => { state.cloudCheckpoints = []; });
-          take(phase2[6], (value) => { state.cloudRecaps = value || []; }, () => { state.cloudRecaps = []; });
-          take(phase2[7], (value) => { state.cloudRecapLatest = value; }, () => { state.cloudRecapLatest = null; });
-          take(phase2[10], (value) => { state.cloudHostAuditLog = value?.entries || []; }, () => { state.cloudHostAuditLog = []; });
+          take(phase2[3], (value) => { roomStore.set({ cloudHostEvents: value || [] }); }, () => { roomStore.set({ cloudHostEvents: [] }); });
+          take(phase2[4], (value) => { roomStore.set({ cloudHostClueMatrix: value }); }, () => { roomStore.set({ cloudHostClueMatrix: null }); });
+          take(phase2[5], (value) => { roomStore.set({ cloudCheckpoints: value || [] }); }, () => { roomStore.set({ cloudCheckpoints: [] }); });
+          take(phase2[6], (value) => { roomStore.set({ cloudRecaps: value || [] }); }, () => { roomStore.set({ cloudRecaps: [] }); });
+          take(phase2[7], (value) => { roomStore.set({ cloudRecapLatest: value }); }, () => { roomStore.set({ cloudRecapLatest: null }); });
+          take(phase2[10], (value) => { roomStore.set({ cloudHostAuditLog: value?.entries || [] }); }, () => { roomStore.set({ cloudHostAuditLog: [] }); });
         }
-        take(phase2[8], (value) => { state.cloudWorldLogs = value || []; }, () => { state.cloudWorldLogs = []; });
-        take(phase2[9], (value) => { state.cloudRules = value; }, () => { state.cloudRules = []; });
+        take(phase2[8], (value) => { worldStore.set({ cloudWorldLogs: value || [] }); }, () => { worldStore.set({ cloudWorldLogs: [] }); });
+        take(phase2[9], (value) => { worldStore.set({ cloudRules: value }); }, () => { worldStore.set({ cloudRules: [] }); });
       } else {
-        state.cloudPlayer = null;
-        state.cloudHostPlayers = [];
-        state.cloudHostPlayersError = "";
-        state.cloudHostStuckCount = 0;
-        state.cloudHost = [];
-        state.cloudExploration = null;
-        state.cloudHostEvents = [];
-        state.cloudHostClueMatrix = null;
-        state.cloudHostAuditLog = [];
-        state.cloudCheckpoints = [];
-        state.cloudRecaps = [];
-        state.cloudRecapLatest = null;
-        state.cloudWorldLogs = [];
-        state.cloudRules = [];
-        state.cloudAssets = [];
-        state.assetTotal = 0;
-        state.cloudCreatorChecks = [];
-        state.storageUsage = null;
+        roomStore.set({
+          cloudPlayer: null,
+          cloudHostPlayers: [],
+          cloudHostPlayersError: "",
+          cloudHostStuckCount: 0,
+          cloudHost: [],
+          cloudExploration: null,
+          cloudHostEvents: [],
+          cloudHostClueMatrix: null,
+          cloudHostAuditLog: [],
+          cloudCheckpoints: [],
+          cloudRecaps: [],
+          cloudRecapLatest: null
+        });
+        worldStore.set({ cloudWorldLogs: [], cloudRules: [], cloudCreatorChecks: [] });
+        assetStore.set({ cloudAssets: [], assetTotal: 0, storageUsage: null });
       }
 
       void (async () => {
         if (window.zhimuSessionAuth?.isAuthenticated?.()) {
           try {
             const usage = await zhimuApi.getStorageUsage();
-            state.storageUsage = usage;
-            if (state.view === "settings" || state.view === "overview" || state.view === "account") render();
+            assetStore.set({ storageUsage: usage });
+            if (["settings", "overview", "account"].includes(uiStore.get().view)) render();
           } catch {
             /* quota refresh best-effort */
           }
         }
       })();
 
-      state.apiError = [...new Set(errors)].join(" · ");
+      userStore.set({ apiError: [...new Set(errors)].join(" · ") });
       roomEvents().syncDirectorPolling?.();
       if (worldReady) roomEvents().connectRoomEventStream?.();
       render();
 
-      if (["overview", "account", "settings", "writer", "studio", "clues"].includes(state.view)) void (async () => {
+      if (["overview", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view)) void (async () => {
         if (!zhimuApi.context.worldId) return;
+        const assetSnap = assetStore.get();
         const params = {};
-        if (state.assetKindFilter) params.kind = state.assetKindFilter;
-        if (state.assetSearchQuery) params.q = state.assetSearchQuery;
-        const needsStorageUsage = ["overview", "account", "settings"].includes(state.view);
-        const needsAssets = ["overview", "account", "settings", "writer", "studio", "clues"].includes(state.view);
-        const needsCreatorChecks = ["overview", "writer", "settings"].includes(state.view);
+        if (assetSnap.assetKindFilter) params.kind = assetSnap.assetKindFilter;
+        if (assetSnap.assetSearchQuery) params.q = assetSnap.assetSearchQuery;
+        const needsStorageUsage = ["overview", "account", "settings"].includes(uiStore.get().view);
+        const needsAssets = ["overview", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view);
+        const needsCreatorChecks = ["overview", "writer", "settings"].includes(uiStore.get().view);
         if (!needsStorageUsage && !needsAssets && !needsCreatorChecks) return;
         const phase3 = await Promise.allSettled([
-          needsStorageUsage ? zhimuApi.getStorageUsage() : Promise.resolve(state.storageUsage),
-          needsAssets ? zhimuApi.getAssets(Object.keys(params).length ? params : {}) : Promise.resolve({ assets: state.cloudAssets, total: state.assetTotal }),
-          needsCreatorChecks ? zhimuApi.getCreatorChecks() : Promise.resolve({ checks: state.cloudCreatorChecks })
+          needsStorageUsage ? zhimuApi.getStorageUsage() : Promise.resolve(assetStore.get().storageUsage),
+          needsAssets ? zhimuApi.getAssets(Object.keys(params).length ? params : {}) : Promise.resolve({ assets: assetStore.get().cloudAssets, total: assetStore.get().assetTotal }),
+          needsCreatorChecks ? zhimuApi.getCreatorChecks() : Promise.resolve({ checks: worldStore.get().cloudCreatorChecks })
         ]);
-        take(phase3[0], (value) => { state.storageUsage = value; });
+        take(phase3[0], (value) => { assetStore.set({ storageUsage: value }); });
         take(phase3[1], (value) => {
           if (Array.isArray(value)) {
-            state.cloudAssets = value;
-            state.assetTotal = value.length;
+            assetStore.set({ cloudAssets: value, assetTotal: value.length });
           } else {
-            state.cloudAssets = value.assets || [];
-            state.assetTotal = value.total ?? state.cloudAssets.length;
+            assetStore.set({ cloudAssets: value.assets || [], assetTotal: value.total ?? (value.assets || []).length });
           }
         });
-        take(phase3[2], (value) => { state.cloudCreatorChecks = value.checks; });
-        if (state.view === "overview" || state.view === "account" || state.view === "settings" || state.view === "writer" || state.view === "studio" || state.view === "clues") render();
+        take(phase3[2], (value) => { worldStore.set({ cloudCreatorChecks: value.checks }); });
+        if (["overview", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view)) render();
       })();
 
       void (async () => {
-        const voiceRooms = state.cloudPlayer?.voiceRooms || [];
-        const currentRoom = voiceRooms.find((room) => room.id === state.voiceRoomId) || voiceRooms[0];
+        const roomSnap = roomStore.get();
+        const voiceSnap = voiceStore.get();
+        const voiceRooms = roomSnap.cloudPlayer?.voiceRooms || [];
+        const currentRoom = voiceRooms.find((r) => r.id === voiceSnap.voiceRoomId) || voiceRooms[0];
         if (!currentRoom) return;
-        state.voiceRoomId = currentRoom.id;
-        state.voiceRoom = currentRoom.name;
+        voiceStore.set({ voiceRoomId: currentRoom.id, voiceRoom: currentRoom.name });
         try {
-          state.voiceMessages = await zhimuApi.getVoiceMessages(currentRoom.id);
-          if (state.view === "player") render();
+          voiceStore.set({ voiceMessages: await zhimuApi.getVoiceMessages(currentRoom.id) });
+          if (uiStore.get().view === "player") render();
         } catch (error) {
-          state.apiError = [state.apiError, error.message].filter(Boolean).join(" · ");
+          userStore.set({ apiError: [userStore.get().apiError, error.message].filter(Boolean).join(" · ") });
         }
       })();
 
       if (withToast) showToast(errors.length ? `部分运行数据尚未连接：${errors[0]}` : "云端数据已刷新");
     } finally {
-      if (state.cloudLoading) {
-        state.cloudLoading = false;
+      if (studioStore.get().cloudLoading) {
+        studioStore.set({ cloudLoading: false });
         render();
       }
     }
@@ -298,10 +300,11 @@ export async function refreshHostEvents(withToast = false, silent = false) {
       return;
     }
     try {
-      state.cloudHostEvents = await zhimuApi.getHostEvents() || [];
+      const cloudHostEvents = await zhimuApi.getHostEvents() || [];
+      roomStore.set({ cloudHostEvents });
       updateNotifyBadge();
-      if (state.view === "director" || state.view === "overview") render();
-      if (withToast && !silent) showToast(`待确认事件已刷新（${state.cloudHostEvents.length} 条）`);
+      if (["director", "overview"].includes(uiStore.get().view)) render();
+      if (withToast && !silent) showToast(`待确认事件已刷新（${cloudHostEvents.length} 条）`);
     } catch (error) {
       if (withToast && !silent) reportError(error, "刷新待确认事件失败");
     }
@@ -314,11 +317,11 @@ export async function refreshHostPlayers(withToast = false, silent = false) {
     }
     try {
       applyHostPlayersPayload(await zhimuApi.getHostPlayers());
-      if (state.view === "director" || state.view === "overview") render();
-      if (withToast && !silent) showToast(`玩家进度已刷新（${state.cloudHostPlayers.filter((player) => player.joined).length} 人已加入）`);
+      if (["director", "overview"].includes(uiStore.get().view)) render();
+      if (withToast && !silent) showToast(`玩家进度已刷新（${roomStore.get().cloudHostPlayers.filter((player) => player.joined).length} 人已加入）`);
     } catch (error) {
       failHostPlayersLoad(error);
-      if (state.view === "director" || state.view === "overview") render();
+      if (["director", "overview"].includes(uiStore.get().view)) render();
       if (withToast && !silent) reportError(error, "刷新玩家进度失败");
     }
   }
@@ -330,9 +333,10 @@ export async function refreshHostAuditLog(withToast = false, silent = false) {
     }
     try {
       const payload = await zhimuApi.getHostAuditLog();
-      state.cloudHostAuditLog = payload?.entries || [];
-      if (state.view === "director") render();
-      if (withToast && !silent) showToast(`主持审计已刷新（${state.cloudHostAuditLog.length} 条）`);
+      const cloudHostAuditLog = payload?.entries || [];
+      roomStore.set({ cloudHostAuditLog });
+      if (uiStore.get().view === "director") render();
+      if (withToast && !silent) showToast(`主持审计已刷新（${cloudHostAuditLog.length} 条）`);
     } catch (error) {
       if (withToast && !silent) reportError(error, "刷新主持审计失败");
     }
@@ -341,8 +345,8 @@ export async function refreshHostAuditLog(withToast = false, silent = false) {
 export async function refreshHostClueMatrix(withToast = false, silent = false) {
     if (!zhimuApi.context.roomId) return;
     try {
-      state.cloudHostClueMatrix = await zhimuApi.getHostClueMatrix();
-      if (state.view === "director") render();
+      roomStore.set({ cloudHostClueMatrix: await zhimuApi.getHostClueMatrix() });
+      if (uiStore.get().view === "director") render();
       if (withToast && !silent) showToast("线索矩阵已刷新");
     } catch (error) {
       if (withToast && !silent) reportError(error, "刷新线索矩阵失败");
@@ -364,18 +368,20 @@ export async function refreshHostRoom(withToast = false) {
         zhimuApi.getHostAuditLog().catch(() => ({ entries: [] }))
       ]);
       applyHostPlayersPayload(hostPlayers);
-      state.cloudHostEvents = hostEvents || [];
-      state.cloudWorldLogs = worldLogs || [];
-      state.cloudHostClueMatrix = clueMatrix;
-      state.cloudHostAuditLog = auditLog?.entries || [];
+      const cloudHostEvents = hostEvents || [];
+      const cloudWorldLogs = worldLogs || [];
+      const cloudHostClueMatrix = clueMatrix;
+      const cloudHostAuditLog = auditLog?.entries || [];
+      roomStore.set({ cloudHostEvents, cloudHostClueMatrix, cloudHostAuditLog });
+      worldStore.set({ cloudWorldLogs });
       updateNotifyBadge();
-      if (state.view === "director" || state.view === "overview") render();
+      if (["director", "overview"].includes(uiStore.get().view)) render();
       if (withToast) {
-        showToast(`房间状态已刷新 · 待确认 ${state.cloudHostEvents.length} 条 · 玩家 ${state.cloudHostPlayers.filter((player) => player.joined).length} 人`);
+        showToast(`房间状态已刷新 · 待确认 ${cloudHostEvents.length} 条 · 玩家 ${roomStore.get().cloudHostPlayers.filter((player) => player.joined).length} 人`);
       }
     } catch (error) {
       failHostPlayersLoad(error);
-      if (state.view === "director" || state.view === "overview") render();
+      if (["director", "overview"].includes(uiStore.get().view)) render();
       if (withToast) reportError(error, "刷新房间状态失败");
     }
   }

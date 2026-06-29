@@ -1,8 +1,8 @@
 /** Internal OPS console actions. */
 import * as api from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { uiStore, userStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
   const showError = (error, fallback = "OPS 操作失败") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   function render() { window.zhimuRuntime?.render?.(); }
 
@@ -26,9 +26,7 @@ import { showToast } from "../components/toast.js";
       }
       case "ops-clear-token":
         api.setOpsToken("");
-        state.opsStatus = null;
-        state.opsPlanRequests = null;
-        state.opsAuditLog = null;
+        uiStore.set({ opsStatus: null, opsPlanRequests: null, opsAuditLog: null });
         render();
         return true;
       case "ops-refresh":

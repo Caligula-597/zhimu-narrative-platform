@@ -1,6 +1,7 @@
 /** Optimistic-lock conflict UI + unsaved editor guard for world content_revision / If-Match. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { uiStore, worldStore, studioStore } from "../state/index.js";
 
 (function (window) {
 
@@ -68,17 +69,21 @@ import { showToast } from "../components/toast.js";
 
   function resolveDraftScope() {
 
-    const state = window.zhimuState;
-
-    const view = state?.view;
+    const view = uiStore.get().view;
 
     if (view === "settings") return "settings";
 
-    if (view === "studio" && state.studioSelectedNode) {
+    if (view === "studio") {
 
-      const { type, id } = state.studioSelectedNode;
+      const selected = studioStore.get().studioSelectedNode;
 
-      return `studio:${type}:${id}`;
+      if (selected) {
+
+        const { type, id } = selected;
+
+        return `studio:${type}:${id}`;
+
+      }
 
     }
 
@@ -380,21 +385,45 @@ import { showToast } from "../components/toast.js";
 
     if (!world || world.content_revision == null) return;
 
-    const state = window.zhimuState;
-
     const rev = Number(world.content_revision);
 
     const worldId = world.id || activeWorldId();
 
-    if (state?.cloudStudio?.world?.id === worldId) {
+    const studioSnap = studioStore.get();
 
-      state.cloudStudio.world.content_revision = rev;
+    if (studioSnap.cloudStudio?.world?.id === worldId) {
+
+      studioStore.set({
+
+        cloudStudio: {
+
+          ...studioSnap.cloudStudio,
+
+          world: { ...studioSnap.cloudStudio.world, content_revision: rev }
+
+        }
+
+      });
 
     }
 
-    if (state?.cloudWorld?.id === worldId) {
+    const worldSnap = worldStore.get();
 
-      state.cloudWorld.content_revision = rev;
+    const cloudWorlds = worldSnap.cloudWorlds || [];
+
+    const idx = cloudWorlds.findIndex((w) => w.id === worldId);
+
+    if (idx >= 0) {
+
+      worldStore.set({
+
+        cloudWorlds: cloudWorlds.map((w, i) =>
+
+          i === idx ? { ...w, content_revision: rev } : w
+
+        )
+
+      });
 
     }
 
@@ -404,19 +433,23 @@ import { showToast } from "../components/toast.js";
 
   function currentRevision(worldId) {
 
-    const state = window.zhimuState;
-
     const id = activeWorldId(worldId);
 
-    if (state?.cloudStudio?.world?.id === id && state.cloudStudio.world.content_revision != null) {
+    const studioSnap = studioStore.get();
 
-      return Number(state.cloudStudio.world.content_revision);
+    if (studioSnap.cloudStudio?.world?.id === id && studioSnap.cloudStudio.world.content_revision != null) {
+
+      return Number(studioSnap.cloudStudio.world.content_revision);
 
     }
 
-    if (state?.cloudWorld?.id === id && state.cloudWorld.content_revision != null) {
+    const worldSnap = worldStore.get();
 
-      return Number(state.cloudWorld.content_revision);
+    const listed = (worldSnap.cloudWorlds || []).find((w) => w.id === id);
+
+    if (listed && listed.content_revision != null) {
+
+      return Number(listed.content_revision);
 
     }
 
@@ -430,21 +463,45 @@ import { showToast } from "../components/toast.js";
 
     if (revision == null) return;
 
-    const state = window.zhimuState;
-
     const id = activeWorldId(worldId);
 
     const rev = Number(revision);
 
-    if (state?.cloudStudio?.world?.id === id) {
+    const studioSnap = studioStore.get();
 
-      state.cloudStudio.world.content_revision = rev;
+    if (studioSnap.cloudStudio?.world?.id === id) {
+
+      studioStore.set({
+
+        cloudStudio: {
+
+          ...studioSnap.cloudStudio,
+
+          world: { ...studioSnap.cloudStudio.world, content_revision: rev }
+
+        }
+
+      });
 
     }
 
-    if (state?.cloudWorld?.id === id) {
+    const worldSnap = worldStore.get();
 
-      state.cloudWorld.content_revision = rev;
+    const cloudWorlds = worldSnap.cloudWorlds || [];
+
+    const idx = cloudWorlds.findIndex((w) => w.id === id);
+
+    if (idx >= 0) {
+
+      worldStore.set({
+
+        cloudWorlds: cloudWorlds.map((w, i) =>
+
+          i === idx ? { ...w, content_revision: rev } : w
+
+        )
+
+      });
 
     }
 
@@ -519,4 +576,3 @@ import { showToast } from "../components/toast.js";
 })(window);
 
 export {};
-

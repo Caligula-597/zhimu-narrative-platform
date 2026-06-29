@@ -1,6 +1,7 @@
 /** LiveKit browser client — connect/disconnect voice rooms via server-issued tokens. */
+import { uiStore, voiceStore } from "../state/index.js";
+
 (function (window) {
-  const state = window.zhimuState;
   let room = null;
   let disconnecting = false;
   let livekitLoadPromise = null;
@@ -31,7 +32,7 @@
 
   function syncParticipants(activeRoom) {
     if (!activeRoom) {
-      state.voiceParticipants = [];
+      voiceStore.set({ voiceParticipants: [] });
       return;
     }
     const locals = [];
@@ -55,11 +56,11 @@
         micEnabled: local.isMicrophoneEnabled
       });
     }
-    state.voiceParticipants = locals;
+    voiceStore.set({ voiceParticipants: locals });
   }
 
   function renderIfPlayer() {
-    if (state.view === "player") window.zhimuRuntime?.render?.();
+    if (uiStore.get().view === "player") window.zhimuRuntime?.render?.();
   }
 
   function ensureAudioRoot() {
@@ -112,7 +113,7 @@
       renderIfPlayer();
     });
     activeRoom.on(RoomEvent.AudioPlaybackStatusChanged, () => {
-      state.voicePlaybackBlocked = !activeRoom.canPlaybackAudio;
+      voiceStore.set({ voicePlaybackBlocked: !activeRoom.canPlaybackAudio });
       renderIfPlayer();
     });
   }
@@ -121,9 +122,9 @@
     if (!activeRoom?.startAudio) return;
     try {
       await activeRoom.startAudio();
-      state.voicePlaybackBlocked = !activeRoom.canPlaybackAudio;
+      voiceStore.set({ voicePlaybackBlocked: !activeRoom.canPlaybackAudio });
     } catch {
-      state.voicePlaybackBlocked = true;
+      voiceStore.set({ voicePlaybackBlocked: true });
     }
   }
 
@@ -131,15 +132,12 @@
     if (!room) return false;
     await tryStartRoomAudio(room);
     renderIfPlayer();
-    return !state.voicePlaybackBlocked;
+    return !voiceStore.get().voicePlaybackBlocked;
   }
 
   async function disconnectVoiceRoom() {
     if (!room || disconnecting) {
-      state.voiceLiveStatus = "idle";
-      state.voiceMicEnabled = false;
-      state.voiceParticipants = [];
-      state.voiceLiveError = "";
+      voiceStore.set({ voiceLiveStatus: "idle", voiceMicEnabled: false, voiceParticipants: [], voiceLiveError: "" });
       return;
     }
     disconnecting = true;
@@ -151,11 +149,7 @@
       /* best effort */
     } finally {
       disconnecting = false;
-      state.voiceLiveStatus = "idle";
-      state.voiceMicEnabled = false;
-      state.voiceParticipants = [];
-      state.voiceLiveError = "";
-      state.voicePlaybackBlocked = false;
+      voiceStore.set({ voiceLiveStatus: "idle", voiceMicEnabled: false, voiceParticipants: [], voiceLiveError: "", voicePlaybackBlocked: false });
       clearAudioRoot();
       renderIfPlayer();
     }
@@ -173,19 +167,15 @@
     await loadLiveKitScript();
     const sdk = liveKitSdk();
     if (!sdk?.Room) {
-      state.voiceLiveStatus = "error";
-      state.voiceLiveError = "LiveKit 客户端未加载";
+      voiceStore.set({ voiceLiveStatus: "error", voiceLiveError: "LiveKit 客户端未加载" });
       throw new Error("LiveKit 客户端未加载，请刷新页面后重试");
     }
     if (!tokenPayload?.url || !tokenPayload?.token) {
-      state.voiceLiveStatus = "error";
-      state.voiceLiveError = "语音 Token 无效";
+      voiceStore.set({ voiceLiveStatus: "error", voiceLiveError: "语音 Token 无效" });
       throw new Error("语音 Token 无效，请稍后重试");
     }
     await disconnectVoiceRoom();
-    state.voiceLiveStatus = "connecting";
-    state.voiceLiveError = "";
-    state.voicePlaybackBlocked = false;
+    voiceStore.set({ voiceLiveStatus: "connecting", voiceLiveError: "", voicePlaybackBlocked: false });
     renderIfPlayer();
     const nextRoom = new sdk.Room({
       adaptiveStream: true,
@@ -211,28 +201,24 @@
     nextRoom.on(sdk.RoomEvent.Disconnected, () => {
       if (room === nextRoom) {
         room = null;
-        state.voiceLiveStatus = "idle";
-        state.voiceMicEnabled = false;
-        state.voiceParticipants = [];
+        voiceStore.set({ voiceLiveStatus: "idle", voiceMicEnabled: false, voiceParticipants: [] });
         renderIfPlayer();
       }
     });
     try {
       await nextRoom.connect(tokenPayload.url, tokenPayload.token);
     } catch (error) {
-      state.voiceLiveStatus = "error";
-      state.voiceLiveError = friendlyConnectError(error);
+      voiceStore.set({ voiceLiveStatus: "error", voiceLiveError: friendlyConnectError(error) });
       renderIfPlayer();
-      throw new Error(state.voiceLiveError);
+      throw new Error(voiceStore.get().voiceLiveError);
     }
     room = nextRoom;
-    state.voiceLiveStatus = "connected";
+    voiceStore.set({ voiceLiveStatus: "connected" });
     try {
       await nextRoom.localParticipant.setMicrophoneEnabled(true);
-      state.voiceMicEnabled = nextRoom.localParticipant.isMicrophoneEnabled;
+      voiceStore.set({ voiceMicEnabled: nextRoom.localParticipant.isMicrophoneEnabled });
     } catch (error) {
-      state.voiceMicEnabled = false;
-      state.voiceLiveError = friendlyConnectError(error);
+      voiceStore.set({ voiceMicEnabled: false, voiceLiveError: friendlyConnectError(error) });
     }
     attachExistingRemoteAudio(nextRoom, sdk.Track);
     await tryStartRoomAudio(nextRoom);
@@ -245,7 +231,7 @@
     if (!room?.localParticipant) return false;
     const enabled = !room.localParticipant.isMicrophoneEnabled;
     await room.localParticipant.setMicrophoneEnabled(enabled);
-    state.voiceMicEnabled = enabled;
+    voiceStore.set({ voiceMicEnabled: enabled });
     syncParticipants(room);
     renderIfPlayer();
     return enabled;

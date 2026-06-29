@@ -1,7 +1,7 @@
 /* Global data-action dispatcher — domain handlers live in actions-*.js */
 import { showToast } from "../components/toast.js";
+import { uiStore } from "../state/index.js";
 
-  const state = window.zhimuState;
   const R = window.zhimuRuntime || {};
   const V = window.zhimuViews || {};
   const M = window.zhimuModal || {};
@@ -29,10 +29,11 @@ export function bindDynamic() {
       if (el.type === "checkbox" || el.tagName === "SELECT") el.onchange = () => handle(el.dataset.action, el);
       else el.onclick = () => handle(el.dataset.action, el);
     });
-    if (state.view === "studio") V.studio?.bindStudioDragging?.();
-    if (state.view === "clues") V.clues?.bindCluesSearch?.();
-    if (state.view === "account") V.accountHub?.bindAccountHubView?.();
-    if (state.view === "player") V.player?.bindPlayerReader?.();
+    const view = uiStore.get().view;
+    if (view === "studio") V.studio?.bindStudioDragging?.();
+    if (view === "clues") V.clues?.bindCluesSearch?.();
+    if (view === "account") V.accountHub?.bindAccountHubView?.();
+    if (view === "player") V.player?.bindPlayerReader?.();
     window.zhimuSearchFocus?.applyAfterRender?.();
   }
 

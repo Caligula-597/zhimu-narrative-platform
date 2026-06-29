@@ -1,8 +1,8 @@
 /* Auto-split from app.js — assets.js */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { uiStore, assetStore, studioStore } from "../state/index.js";
 
-  const state = window.zhimuState;
   const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -16,25 +16,28 @@ import { showToast } from "../components/toast.js";
   const ASSET_KIND_TABS = window.zhimuUserMessages?.ASSET_KIND_TABS || [{ id: "", label: "全部" }];
   const assetKindLabel = window.zhimuUserMessages?.assetKindLabel || ((k) => k);
 function refreshAssetsIfVisible() {
-    if ((state.view === "account" && state.accountHubTab === "assets") || state.view === "settings") window.zhimuRuntime?.render?.();
+    const ui = uiStore.get();
+    if ((ui.view === "account" && ui.accountHubTab === "assets") || ui.view === "settings") window.zhimuRuntime?.render?.();
   }
   function render() { window.zhimuRuntime?.render?.(); }
   function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
 export function assetsPanelHtml(){
-  const usage=state.storageUsage;
+  const asset = assetStore.get();
+  const usage=asset.storageUsage;
   const pct=usage?Math.min(100,Math.round(usage.usedBytes/usage.maxBytes*100)):0;
-  const assets=state.cloudAssets||[];
-  const total=state.assetTotal||assets.length;
-  const kind=state.assetKindFilter||"";
-  const q=state.assetSearchQuery||"";
-  const recycle=Boolean(state.assetShowRecycle);
+  const assets=asset.cloudAssets||[];
+  const total=asset.assetTotal||assets.length;
+  const kind=asset.assetKindFilter||"";
+  const q=asset.assetSearchQuery||"";
+  const recycle=Boolean(asset.assetShowRecycle);
   const tabs=ASSET_KIND_TABS.map((tab)=>`<button class="tab ${!recycle&&kind===tab.id?"active":""}" data-action="asset-filter" data-kind="${tab.id}">${escapeHtml(tab.label)}${tab.id===""&&!recycle?` ${total}`:""}</button>`).join("");
   const recycleBtn=`<button class="tab ${recycle?"active":""}" data-action="asset-recycle-toggle">${recycle?"← 返回附件":"🗑 回收站"}</button>`;
   const listTitle=recycle?"回收站（14 天内可恢复）":"云端附件空间";
   const listHint=recycle?"已删除的附件仍占用配额，恢复后重新出现在列表中。":"图片、音频与文档附件，可在剧情编排中关联到场景或线索";
   const rows=assets.length?assets.map((a)=>{
-   const world=state.cloudStudio?.world;
+   const studio = studioStore.get().cloudStudio;
+   const world=studio?.world;
    const coverId=world?.settings?.coverAssetId||"";
    const isCover=Boolean(coverId&&a.id===coverId);
    const canEdit=canEditWorldContent(world);
@@ -59,7 +62,7 @@ export function bindAssetsPanel(root=document){
  input.addEventListener("input",()=>{
   clearTimeout(timer);
   timer=setTimeout(async()=>{
-   state.assetSearchQuery=input.value.trim();
+   assetStore.set({ assetSearchQuery: input.value.trim() });
    await reloadAssets();
    refreshAssetsIfVisible();
   },300);
@@ -72,30 +75,30 @@ export function bindAssetSearch(){
 
 export async function reloadAssets(){
  try{
+  const asset = assetStore.get();
   const params={};
-  if(state.assetKindFilter)params.kind=state.assetKindFilter;
-  if(state.assetSearchQuery)params.q=state.assetSearchQuery;
-  if(state.assetShowRecycle)params.recycled=true;
+  if(asset.assetKindFilter)params.kind=asset.assetKindFilter;
+  if(asset.assetSearchQuery)params.q=asset.assetSearchQuery;
+  if(asset.assetShowRecycle)params.recycled=true;
   const result=await zhimuApi.getAssets(params);
   if(Array.isArray(result)){
-   state.cloudAssets=result;
-   state.assetTotal=result.length;
+   assetStore.set({ cloudAssets: result, assetTotal: result.length });
   }else{
-   state.cloudAssets=result.assets||[];
-   state.assetTotal=result.total??state.cloudAssets.length;
+   const cloudAssets=result.assets||[];
+   assetStore.set({ cloudAssets, assetTotal: result.total??cloudAssets.length });
   }
  }catch(error){showError(error)}
 }
 
 export async function setAssetFilter(kind){
- state.assetShowRecycle=false;
- state.assetKindFilter=kind||"";
+ assetStore.set({ assetShowRecycle: false, assetKindFilter: kind||"" });
  await reloadAssets();
  refreshAssetsIfVisible();
 }
 
 export async function toggleAssetRecycle(){
- state.assetShowRecycle=!state.assetShowRecycle;
+ const asset = assetStore.get();
+ assetStore.set({ assetShowRecycle: !asset.assetShowRecycle });
  await reloadAssets();
  refreshAssetsIfVisible();
 }
@@ -115,8 +118,9 @@ export async function setWorldCoverAsset(assetId){
  if(!worldId||!assetId)return showToast("请先选择图片附件");
  try{
   const updated=await zhimuApi.patchWorld({settings:{coverAssetId:assetId}},worldId);
-  if(state.cloudStudio?.world?.id===worldId){
-   state.cloudStudio.world={...state.cloudStudio.world,settings:updated.settings||{coverAssetId:assetId}};
+  const studio = studioStore.get().cloudStudio;
+  if(studio?.world?.id===worldId){
+   studioStore.set({ cloudStudio: { ...studio, world: { ...studio.world, settings: updated.settings||{coverAssetId:assetId} } } });
   }
   refreshAssetsIfVisible();
   showToast("封面已更新，公开大厅与剧本库将展示此图");
@@ -128,8 +132,9 @@ export async function clearWorldCover(){
  if(!worldId)return;
  try{
   const updated=await zhimuApi.patchWorld({settings:{coverAssetId:""}},worldId);
-  if(state.cloudStudio?.world?.id===worldId){
-   state.cloudStudio.world={...state.cloudStudio.world,settings:updated.settings||{}};
+  const studio = studioStore.get().cloudStudio;
+  if(studio?.world?.id===worldId){
+   studioStore.set({ cloudStudio: { ...studio, world: { ...studio.world, settings: updated.settings||{} } } });
   }
   refreshAssetsIfVisible();
   showToast("已取消指定封面，将使用默认图片");
@@ -141,7 +146,7 @@ export async function deleteCloudAsset(assetId){try{await zhimuApi.deleteAsset(a
 export async function downloadCloudAsset(assetId){
  try{
   const ticket=await zhimuApi.getAssetDownloadUrl(assetId);
-  const asset=(state.cloudAssets||[]).find((row)=>row.id===assetId);
+  const asset=(assetStore.get().cloudAssets||[]).find((row)=>row.id===assetId);
   const link=document.createElement("a");
   link.href=ticket.downloadUrl;
   link.target="_blank";

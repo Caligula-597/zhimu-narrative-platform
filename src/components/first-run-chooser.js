@@ -1,4 +1,5 @@
 /** First login: three clear paths — wizard / import / official play demo. */
+import { worldStore } from "../state/index.js";
 (function (window) {
   const DISMISS_KEY = "zhimuFirstRunDismissed";
 
@@ -19,7 +20,7 @@
   function shouldShow() {
     if (!window.zhimuSessionAuth?.isAuthenticated?.()) return false;
     if (isDismissed()) return false;
-    const worlds = window.zhimuState?.cloudWorlds || [];
+    const worlds = worldStore.get().cloudWorlds || [];
     return worlds.length === 0;
   }
 

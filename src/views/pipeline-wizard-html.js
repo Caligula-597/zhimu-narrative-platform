@@ -1,6 +1,6 @@
 /** AI pipeline wizard HTML templates. */
+import { studioStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
   const F = window.zhimuFormat || {};
   const M = window.zhimuModal || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
@@ -87,7 +87,7 @@
   }
 
   function pipelineSetupEditorHtml(session) {
-    const world = state.cloudStudio?.world;
+    const world = studioStore.get().cloudStudio?.world;
     const setting = session.setting || PB().pipelineSettingFromForm?.() || {};
     const synopsis = session.synopsis || PB().pipelineSynopsisFromForm?.() || {};
     const theme = setting.theme || world?.name || "";

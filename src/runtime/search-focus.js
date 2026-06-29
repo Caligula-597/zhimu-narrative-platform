@@ -1,6 +1,7 @@
+import { uiStore, studioStore } from "../state/index.js";
+
 /** Apply global-search navigation focus — select studio nodes, scroll, pulse highlight. */
 (function (window) {
-  const state = window.zhimuState;
   const V = window.zhimuViews || {};
 
   const STUDIO_NODE_TYPES = {
@@ -18,15 +19,15 @@
   }
 
   function applyAfterRender() {
-    const focus = state.searchFocus;
+    const focus = uiStore.get().searchFocus;
     if (!focus) return;
-    state.searchFocus = null;
+    uiStore.set({ searchFocus: null });
 
     requestAnimationFrame(() => {
       if (focus.view === "studio" && focus.id) {
         const nodeType = focus.nodeType || STUDIO_NODE_TYPES[focus.type] || focus.type;
-        state.studioSelectedNode = { type: nodeType, id: focus.id };
-        if (nodeType && nodeType !== "all") state.studioFilter = nodeType;
+        studioStore.set({ studioSelectedNode: { type: nodeType, id: focus.id } });
+        if (nodeType && nodeType !== "all") studioStore.set({ studioFilter: nodeType });
         window.zhimuRuntime?.render?.();
         requestAnimationFrame(() => {
           pulseElement(document.querySelector(`.node[data-node-type="${nodeType}"][data-node-id="${focus.id}"]`));
@@ -36,7 +37,7 @@
 
       if (focus.view === "writer") {
         if (focus.type === "section" && focus.id) {
-          const section = state.cloudStudio?.sections?.find((row) => row.id === focus.id);
+          const section = studioStore.get().cloudStudio?.sections?.find((row) => row.id === focus.id);
           pulseElement(document.querySelector(`[data-section="${focus.id}"]`));
           if (section) V.writer?.openCreatorSection?.(section.role_slot_id, focus.id);
           return;
@@ -48,8 +49,8 @@
       }
 
       if (focus.view === "clues" && focus.id) {
-        state.cluesSelectedId = focus.id;
-        if (focus.query) state.cluesSearchQuery = focus.query;
+        uiStore.set({ cluesSelectedId: focus.id });
+        if (focus.query) uiStore.set({ cluesSearchQuery: focus.query });
         window.zhimuRuntime?.render?.();
         requestAnimationFrame(() => pulseElement(document.querySelector(`[data-clue-row="${focus.id}"]`)));
       }

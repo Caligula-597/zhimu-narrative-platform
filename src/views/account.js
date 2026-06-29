@@ -1,8 +1,7 @@
 /* Account settings page — quota, sessions, OAuth, auth actions. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
-
-  const state = window.zhimuState;
+import { uiStore, userStore, assetStore } from "../state/index.js";
   const F = window.zhimuFormat || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -79,7 +78,7 @@ import { showToast } from "../components/toast.js";
         await zhimuApi.deleteAccount({ confirmation: confirmInput.value.trim(), acknowledged: true });
         window.zhimuSessionAuth?.markLoggedOut?.();
         window.zhimuContext?.onSessionLogout?.();
-        state.accountView = null;
+        uiStore.set({ accountView: null });
         closeModal();
         showToast("账号已永久注销");
         await window.zhimuAuthSession?.syncProfile?.();
@@ -102,7 +101,7 @@ import { showToast } from "../components/toast.js";
     const backdrop = window.zhimuDom?.modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
     if (!modal || !backdrop) return;
-    const entitlements = state.accountView?.entitlements;
+    const entitlements = uiStore.get().accountView?.entitlements;
     const upgrade = entitlements?.upgrade;
     const targets = upgrade?.availableTargets || [];
     const options = targets.length
@@ -152,11 +151,11 @@ import { showToast } from "../components/toast.js";
 
   export async function refreshAccountView(options = {}) {
     const background = Boolean(options.background);
-    if (state.accountViewLoading) return;
-    const showLoading = !background && !state.accountView;
+    if (uiStore.get().accountViewLoading) return;
+    const showLoading = !background && !uiStore.get().accountView;
     if (showLoading) {
-      state.accountViewLoading = true;
-      if (state.view === "account") window.zhimuRuntime?.render?.();
+      uiStore.set({ accountViewLoading: true });
+      if (uiStore.get().view === "account") window.zhimuRuntime?.render?.();
     }
     try {
       const [me, sessions, config, entitlements] = await Promise.all([
@@ -166,16 +165,16 @@ import { showToast } from "../components/toast.js";
         zhimuApi.getAccountEntitlements().catch(() => null)
       ]);
       const usage = entitlements?.usage ?? null;
-      if (usage) state.storageUsage = usage;
-      state.accountView = { me, sessions, config, usage, entitlements };
+      if (usage) assetStore.set({ storageUsage: usage });
+      uiStore.set({ accountView: { me, sessions, config, usage, entitlements } });
     } catch (error) {
       if (!background) {
-        state.accountView = null;
+        uiStore.set({ accountView: null });
         handleApiError(error, showToast);
       }
     } finally {
-      state.accountViewLoading = false;
-      if (state.view === "account") window.zhimuRuntime?.render?.();
+      uiStore.set({ accountViewLoading: false });
+      if (uiStore.get().view === "account") window.zhimuRuntime?.render?.();
     }
   }
 

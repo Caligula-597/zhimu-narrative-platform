@@ -1,11 +1,11 @@
 /** Session-first auth UX for staging / internal test builds. */
 import * as zhimuApi from "../api/index.js";
+import { userStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
   const S = () => window.zhimuSessionMode || {};
 
   function isLoggedIn() {
-    if (state.currentUser?.id) return true;
+    if (userStore.get().currentUser?.id) return true;
     return S().isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
   }
 
@@ -76,7 +76,7 @@ import * as zhimuApi from "../api/index.js";
   function applyProfileUser(payload) {
     const user = normalizeUserPayload(payload);
     if (!user?.id) return false;
-    state.currentUser = user;
+    userStore.set({ currentUser: user });
     window.zhimuSessionAuth?.markAuthenticated?.();
     updateProfileText(user);
     syncAuthBanner();
@@ -86,15 +86,15 @@ import * as zhimuApi from "../api/index.js";
   async function syncProfile(options = {}) {
     const rerender = options.rerender !== false;
     const beforeMode = S().getSessionMode?.();
-    const beforeUserId = state.currentUser?.id || "";
+    const beforeUserId = userStore.get().currentUser?.id || "";
     try {
       const me = await zhimuApi.me();
       if (!applyProfileUser(me)) throw new Error("Invalid auth profile");
       const afterMode = S().getSessionMode?.();
-      const afterUserId = state.currentUser?.id || "";
+      const afterUserId = userStore.get().currentUser?.id || "";
       if (rerender && (beforeMode !== afterMode || beforeUserId !== afterUserId)) window.zhimuRuntime?.render?.();
     } catch {
-      state.currentUser = null;
+      userStore.set({ currentUser: null });
       if (window.zhimuSessionAuth?.legacyToken?.()) window.zhimuSessionAuth?.markLoggedOut?.();
       updateProfileText(null);
       syncAuthBanner();

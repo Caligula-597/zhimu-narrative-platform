@@ -1,8 +1,7 @@
 /* Auto-split from app.js — auth-world.js */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
-
-  const state = window.zhimuState;
+import { uiStore, userStore, worldStore, studioStore } from "../state/index.js";
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -98,7 +97,7 @@ export function openAuthForm(){
  modal.innerHTML=`<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div data-oauth-bar class="row" style="margin-bottom:12px"></div><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<p class="muted-note auth-legal-note">注册即表示你已阅读并同意 <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> 与 <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a>。</p><button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button><button type="button" class="text-btn" data-auth-forgot style="margin-top:8px">忘记密码？</button><p class="muted-note auth-legal-note"><a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a></p></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
  const resetAccountContext=()=>window.zhimuContext?.resetAccountContext?.();
- const finishAuth=async(label)=>{resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true)}catch(error){showError(error)}render();window.zhimuRuntime?.drainPendingInviteAfterAuth?.();if(!zhimuApi.context.worldId){const hasWorlds=(state.cloudWorlds||[]).length>0;setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400)}};
+ const finishAuth=async(label)=>{resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true)}catch(error){showError(error)}render();window.zhimuRuntime?.drainPendingInviteAfterAuth?.();if(!zhimuApi.context.worldId){const hasWorlds=(worldStore.get().cloudWorlds||[]).length>0;setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400)}};
  modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});if(result.pendingEmailVerification){closeModal();showToast("注册成功，请查收验证邮件");openVerifyPending(modal.querySelector('[data-studio-field="registerEmail"]').value.trim());return}window.zhimuSessionAuth?.markAuthenticated?.();await finishAuth("注册成功，已经登录")}catch(error){showError(error)}};
  modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});window.zhimuSessionAuth?.markAuthenticated?.();if(result.pendingEmailVerification){closeModal();showToast("登录成功，请先验证邮箱");openVerifyPending(modal.querySelector('[data-studio-field="loginEmail"]').value.trim());return}await finishAuth("登录成功")}catch(error){showError(error)}};
  modal.querySelector("[data-auth-forgot]")?.addEventListener("click",()=>openForgotPassword(modal.querySelector('[data-studio-field="loginEmail"]')?.value||""));
@@ -107,10 +106,11 @@ export function openAuthForm(){
 }
 
 function applyWorldRename(worldId,name,summary){
- if(state.cloudStudio?.world?.id===worldId){
-  state.cloudStudio.world={...state.cloudStudio.world,name,summary};
+ const cloudStudio = studioStore.get().cloudStudio;
+ if(cloudStudio?.world?.id===worldId){
+  studioStore.set({ cloudStudio: {...cloudStudio, world: {...cloudStudio.world, name, summary}} });
  }
- state.cloudWorlds=(state.cloudWorlds||[]).map((w)=>w.id===worldId?{...w,name,summary}:w);
+ worldStore.set({ cloudWorlds: (worldStore.get().cloudWorlds||[]).map((w)=>w.id===worldId?{...w,name,summary}:w) });
  if(worldId===zhimuApi.context.worldId){
   window.zhimuNavShell?.syncWorldSwitcher?.();
   render();
@@ -145,14 +145,14 @@ export async function joinCatalogWorld(worldId){
   zhimuApi.selectRoom(result.room.id);
   closeModal();
   await loadCloudData(true,true);
-  const roles=state.cloudStudio?.roles?.length||0;
-  const sections=state.cloudStudio?.sections?.length||0;
+  const roles=studioStore.get().cloudStudio?.roles?.length||0;
+  const sections=studioStore.get().cloudStudio?.sections?.length||0;
   if(!roles){
    showToast("已加入剧本，但正文尚未加载完成，请稍后刷新");
   }else{
    showToast(`已加入「${result.worldName}」：${roles} 个角色、${sections} 段分幕。邀请码 ${result.room.invite_code}`);
   }
-  go(state.view==="writer"||state.view==="studio"?state.view:"overview");
+  go(uiStore.get().view==="writer"||uiStore.get().view==="studio"?uiStore.get().view:"overview");
  }catch(error){showError(error)}
 }
 
@@ -171,14 +171,14 @@ export async function openWorldLibrary(defaultTab="mine"){
  const drawMine=async()=>{
   const includeArchived=Boolean(modal.querySelector("#world-library-archived")?.checked);
   const worlds=await zhimuApi.getWorlds(includeArchived);
-  state.cloudWorlds=worlds;
+  worldStore.set({ cloudWorlds: worlds });
   const statusLabel={draft:"草稿",testing:"测试中",published:"已发布",archived:"已归档"};
   const roomCounts=await Promise.allSettled(worlds.map((world)=>zhimuApi.getWorldRooms(world.id).then((rooms)=>rooms.length)));
   return {html:worlds.map((world,index)=>{const count=roomCounts[index].status==="fulfilled"?roomCounts[index].value:"?";const isCurrent=world.id===zhimuApi.context.worldId;const owner=world.membership_role==="owner";const editor=world.membership_role==="editor";const canRename=owner||editor;const roomHint=owner||editor?`${count} 个运行房（全剧本）`:count?`我的运行房 · ${count}`:"尚未建立运行房";return `<article class="world-library-card ${isCurrent?"active":""}"><div><span class="cloud-pill">${escapeHtml(world.membership_role||"member")}</span><span class="status-chip ${world.status||"draft"}">${escapeHtml(statusLabel[world.status]||world.status||"草稿")}</span>${world.catalog_public?`<span class="status-chip published">已公开</span>`:""}<h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充剧本简介")}</p><small>${roomHint}</small></div><div class="row">${canRename?`<button class="text-btn" data-action="world-rename" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}" data-world-summary="${escapeHtml(world.summary||"")}">重命名</button>`:""}${owner?`<button class="text-btn danger-text" data-action="world-delete" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}">${isCurrent?"删除当前剧本":"删除"}</button>`:""}<button class="${isCurrent?"secondary-btn":"primary-btn"}" data-action="world-select" data-world-id="${world.id}">${isCurrent?"当前剧本":"切换剧本"}</button></div></article>`}).join("")||`<div class="empty-state">当前账号还没有可访问的剧本。可点下方「＋ 创建新世界」，或浏览公开剧本库。</div>`,worlds};
  };
  const drawCatalog=async()=>{
   const worlds=await zhimuApi.getWorldCatalog();
-  const err=state.cloudCatalogError;
+  const err=worldStore.get().cloudCatalogError;
   if(err)return `<div class="empty-state">公开库加载失败：${escapeHtml(err)}</div>`;
   return worlds.map(world=>`<article class="world-library-card"><div><span class="cloud-pill">公开</span><span class="status-chip testing">${world.role_count||0} 个角色席</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充剧本简介")}</p><small>创作者：${escapeHtml(world.owner_display_name||"未知")}</small></div><div class="row"><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></div></article>`).join("")||`<div class="empty-state">暂无公开剧本。主创作者可在「世界设置」提交公开库审核申请。</div>`;
  };
@@ -243,15 +243,15 @@ export async function selectWorld(worldId){
  if(worldId===zhimuApi.context.worldId){closeModal();return showToast("已经是当前剧本")}
  window.zhimuContext?.prepareWorldSwitch?.(worldId);
  closeModal();
- state.cloudLoading=true;
+ studioStore.set({ cloudLoading: true });
  render();
  try{
   await loadCloudData(true,true);
-  const name=state.cloudStudio?.world?.name||(state.cloudWorlds||[]).find((world)=>world.id===worldId)?.name||"新剧本";
+  const name=studioStore.get().cloudStudio?.world?.name||(worldStore.get().cloudWorlds||[]).find((world)=>world.id===worldId)?.name||"新剧本";
   showToast(`已切换到「${name}」`);
  }catch(error){
-  state.cloudLoading=false;
-  state.apiError=error.message||String(error);
+  studioStore.set({ cloudLoading: false });
+  userStore.set({ apiError: error.message||String(error) });
   render();
   showToast(error.message||"切换剧本失败");
  }
@@ -259,7 +259,7 @@ export async function selectWorld(worldId){
 
 export async function openWorldRooms(){
  try{
-  const rooms=await zhimuApi.getWorldRooms(),world=state.cloudStudio?.world;
+  const rooms=await zhimuApi.getWorldRooms(),world=studioStore.get().cloudStudio?.world;
   const roomRows=rooms.map(room=>{
     const listingLabel=room.public_listing?`<span class="status-chip published">公开大厅</span>`:`<span class="status-chip draft">仅邀请码</span>`;
     const listingAction=room.public_listing
@@ -303,7 +303,7 @@ export function openCurrentRoomInvite(){
 }
 
 export function openRoomInvite(roomId,inviteCode,roomName){
- const roles=state.cloudStudio?.roles||[];
+ const roles=studioStore.get().cloudStudio?.roles||[];
  const playUrl=window.zhimuInviteLinks?.playerJoinUrl?.(inviteCode)||`https://play.getzhimu.com/?join=${encodeURIComponent(inviteCode)}`;
  modal.className="modal";modal.innerHTML=`<h2>邀请玩家 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">把<strong>邀请码</strong>或<strong>玩家链接</strong>发给参与者。玩家在 <a href="${escapeHtml(playUrl)}" target="_blank" rel="noopener">play.getzhimu.com</a> 输入码并选择角色席位即可入房。</p><div class="tutorial-tip"><b>房间邀请码</b><span class="invite-code">${escapeHtml(inviteCode)}</span></div><div class="tutorial-tip"><b>玩家链接</b><span class="invite-link">${escapeHtml(playUrl)}</span></div><div class="checklist">${roles.map(role=>check(escapeHtml(role.name),"玩家加入时选择这个角色席位")).join("")||`<div class="empty-state">当前剧本尚未建立角色席位。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-copy-invite-code data-invite-code="${escapeHtml(inviteCode)}">复制邀请码</button><button class="secondary-btn" data-copy-play-link data-invite-code="${escapeHtml(inviteCode)}">复制玩家链接</button><button class="primary-btn" data-action="room-join" data-invite-code="${escapeHtml(inviteCode)}">自测加入</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-copy-invite-code]").onclick=()=>window.zhimuInviteLinks?.copyText?.(inviteCode,"邀请码");modal.querySelector("[data-copy-play-link]").onclick=()=>window.zhimuInviteLinks?.copyText?.(playUrl,"玩家链接");modal.querySelector("[data-action]").onclick=()=>openJoinRoom(inviteCode);
@@ -359,7 +359,7 @@ async function finishOAuthSession(result){
  drainPendingInviteAfterAuth();
  render();
  if(!zhimuApi.context.worldId){
-  const hasWorlds=(state.cloudWorlds||[]).length>0;
+  const hasWorlds=(worldStore.get().cloudWorlds||[]).length>0;
   setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400);
  }
 }

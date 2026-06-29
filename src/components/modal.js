@@ -2,7 +2,6 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "./toast.js";
 (function (window) {
-  const state = window.zhimuState;
   const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};

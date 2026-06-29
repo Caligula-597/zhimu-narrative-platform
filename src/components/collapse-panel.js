@@ -1,18 +1,30 @@
 /** Reusable collapsible section panels for long workspace views. */
+import { uiStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
+
+  function getPanelCollapse() {
+    return uiStore.get().panelCollapse;
+  }
+
+  function ensurePanelCollapse() {
+    if (!uiStore.get().panelCollapse) {
+      uiStore.set({ panelCollapse: {} });
+    }
+  }
 
   function isPanelOpen(panelId, defaultOpen = true) {
-    if (!state.panelCollapse) state.panelCollapse = {};
-    if (Object.prototype.hasOwnProperty.call(state.panelCollapse, panelId)) {
-      return state.panelCollapse[panelId];
+    ensurePanelCollapse();
+    const panelCollapse = getPanelCollapse();
+    if (Object.prototype.hasOwnProperty.call(panelCollapse, panelId)) {
+      return panelCollapse[panelId];
     }
     return defaultOpen;
   }
 
   function togglePanel(panelId, defaultOpen = true) {
-    if (!state.panelCollapse) state.panelCollapse = {};
-    state.panelCollapse[panelId] = !isPanelOpen(panelId, defaultOpen);
+    ensurePanelCollapse();
+    const panelCollapse = getPanelCollapse();
+    uiStore.set({ panelCollapse: { ...panelCollapse, [panelId]: !isPanelOpen(panelId, defaultOpen) } });
   }
 
   function applyPanelDomState(panel, open) {

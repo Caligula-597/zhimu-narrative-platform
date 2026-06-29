@@ -1,7 +1,5 @@
-/** Story graph studio editor actions. */
+import { uiStore, studioStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
-
   function render() { window.zhimuRuntime?.render?.(); }
   function views() { return window.zhimuViews || {}; }
 
@@ -15,14 +13,14 @@
       case "studio-add-point": S.openStudioPoint?.(); return true;
       case "studio-add-node-menu": S.openStudioNodeMenu?.(); return true;
       case "studio-select-node":
-        state.studioSelectedNode = { type: el?.dataset?.nodeType, id: el?.dataset?.nodeId };
-        state.studioAnchorEditing = false;
+        studioStore.set({ studioSelectedNode: { type: el?.dataset?.nodeType, id: el?.dataset?.nodeId } });
+        studioStore.set({ studioAnchorEditing: false });
         render();
         return true;
       case "studio-add-anchor": S.addStudioAnchor?.(); return true;
       case "studio-delete-anchor": S.deleteStudioAnchor?.(el?.dataset?.anchorId); return true;
       case "studio-toggle-anchor-edit":
-        state.studioAnchorEditing = !state.studioAnchorEditing;
+        studioStore.set({ studioAnchorEditing: !studioStore.get().studioAnchorEditing });
         render();
         return true;
       case "studio-connect-node": S.openStudioConnection?.(); return true;
@@ -30,37 +28,37 @@
       case "studio-save-node": S.saveSelectedStudioNode?.(); return true;
       case "studio-delete-edge": S.deleteStudioEdge?.(el?.dataset?.edgeId); return true;
       case "studio-filter":
-        state.studioFilter = el?.dataset?.filter;
+        studioStore.set({ studioFilter: el?.dataset?.filter });
         render();
         return true;
       case "studio-auto-layout-menu": S.openStudioLayoutMenu?.(); return true;
       case "studio-auto-layout": S.autoLayoutStudio?.(el?.dataset?.layoutMode); return true;
       case "studio-collapse-all-scenes":
-        state.studioCollapsedScenes = (state.cloudStudio?.scenes || [])
-          .filter((scene) => S.studioSceneChildCount?.(state.cloudStudio, scene.id) > 0)
-          .map((scene) => scene.id);
+        studioStore.set({ studioCollapsedScenes: (studioStore.get().cloudStudio?.scenes || [])
+          .filter((scene) => S.studioSceneChildCount?.(studioStore.get().cloudStudio, scene.id) > 0)
+          .map((scene) => scene.id) });
         render();
         return true;
       case "studio-expand-all-scenes":
-        state.studioCollapsedScenes = [];
+        studioStore.set({ studioCollapsedScenes: [] });
         render();
         return true;
       case "studio-toggle-scene-children": {
         const sceneId = el?.dataset?.sceneId;
         if (!sceneId) return true;
-        const collapsed = new Set(state.studioCollapsedScenes || []);
+        const collapsed = new Set(studioStore.get().studioCollapsedScenes || []);
         if (collapsed.has(sceneId)) collapsed.delete(sceneId);
         else collapsed.add(sceneId);
-        state.studioCollapsedScenes = [...collapsed];
+        studioStore.set({ studioCollapsedScenes: [...collapsed] });
         render();
         return true;
       }
       case "studio-zoom-out":
-        state.studioZoom = Math.max(0.4, state.studioZoom - 0.1);
+        studioStore.set({ studioZoom: Math.max(0.4, studioStore.get().studioZoom - 0.1) });
         render();
         return true;
       case "studio-zoom-in":
-        state.studioZoom = Math.min(1.3, state.studioZoom + 0.1);
+        studioStore.set({ studioZoom: Math.min(1.3, studioStore.get().studioZoom + 0.1) });
         render();
         return true;
       default: return false;

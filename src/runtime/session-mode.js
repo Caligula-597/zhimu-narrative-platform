@@ -1,7 +1,9 @@
 /** Unified guest / demo / logged-in session labels for UI copy. */
+import { userStore } from "../state/index.js";
+
 (function (window) {
   function isLoggedIn() {
-    if (window.zhimuState?.currentUser?.id) return true;
+    if (userStore.get().currentUser?.id) return true;
     return window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
   }
 

@@ -1,6 +1,6 @@
 /* Toast notifications — migrated to real ES Module exports.
- * Depends on window.zhimuState / window.zhimuDom / window.zhimuUi (migrated in A2). */
-const state = window.zhimuState;
+ * Depends on window.zhimuDom / window.zhimuUi (migrated in A2). */
+import { roomStore } from "../state/index.js";
 const { toast } = window.zhimuDom;
 function activeRuntimeRoom() {
   return window.zhimuUi?.activeRuntimeRoom?.() ?? window.zhimuWorkspace?.activeRuntimeRoom?.() ?? null;
@@ -13,7 +13,7 @@ export function showToast(text, duration = 2200) {
 }
 
 export function pendingHostEventCount() {
-  return activeRuntimeRoom() ? (state.cloudHostEvents || []).length : 0;
+  return activeRuntimeRoom() ? (roomStore.get().cloudHostEvents || []).length : 0;
 }
 
 export function updateNotifyBadge() {

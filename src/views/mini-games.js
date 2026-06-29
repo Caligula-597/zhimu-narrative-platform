@@ -1,8 +1,8 @@
 /* Creator mini-game design — test feature backed by room mini-game runtime. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { studioStore, worldStore } from "../state/index.js";
 
-  const state = window.zhimuState;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
@@ -17,7 +17,7 @@ import { showToast } from "../components/toast.js";
   function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
   function templates() {
-    const world = state.cloudStudio?.world;
+    const world = studioStore.get().cloudStudio?.world;
     const saved = world?.settings?.miniGameTemplates;
     if (Array.isArray(saved)) return saved;
     return [];
@@ -40,15 +40,23 @@ import { showToast } from "../components/toast.js";
   }
 
   async function saveTemplates(nextTemplates) {
-    const world = state.cloudStudio?.world;
+    const studio = studioStore.get().cloudStudio;
+    const world = studio?.world;
     if (!world || !zhimuApi.context.worldId) return showToast("请先选择剧本世界");
     const revision = world.content_revision;
     const settings = { ...(world.settings || {}), miniGameTemplates: nextTemplates.map(normalizeTemplate) };
     const updated = await zhimuApi.patchWorld({ settings }, zhimuApi.context.worldId, { revision });
-    state.cloudStudio.world = { ...world, settings: updated.settings || settings, content_revision: updated.content_revision ?? world.content_revision };
-    state.cloudWorlds = (state.cloudWorlds || []).map((item) =>
-      item.id === zhimuApi.context.worldId ? { ...item, settings: updated.settings || settings } : item
-    );
+    studioStore.set({
+      cloudStudio: {
+        ...studio,
+        world: { ...world, settings: updated.settings || settings, content_revision: updated.content_revision ?? world.content_revision }
+      }
+    });
+    worldStore.set({
+      cloudWorlds: (worldStore.get().cloudWorlds || []).map((item) =>
+        item.id === zhimuApi.context.worldId ? { ...item, settings: updated.settings || settings } : item
+      )
+    });
   }
 
   function templatePayload(template) {
@@ -104,7 +112,7 @@ import { showToast } from "../components/toast.js";
   }
 
   export function miniGames() {
-    const data = state.cloudStudio;
+    const data = studioStore.get().cloudStudio;
     if (!data) {
       return U.creatorWorkspaceEmpty?.({
         title: "小游戏设计",

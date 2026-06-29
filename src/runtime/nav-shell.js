@@ -1,11 +1,11 @@
 /** Sidebar advanced nav expand/collapse + world switcher labels. */
 import * as zhimuApi from "../api/index.js";
+import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
   const ADVANCED_VIEWS = ["writer", "clues", "rules", "miniGames", "archive"];
 
-  function worldSwitcherFailureLabel() {
-    const err = state.apiError || "";
+  function worldSwitcherFailureLabel(apiError) {
+    const err = apiError || "";
     if (/Authentication|401|登录|Email or password/i.test(err)) return "登录已失效";
     if (/permission|403|权限/i.test(err)) return "无权访问该剧本";
     if (/fetch|超时|Failed|network|Network|ECONNREFUSED/i.test(err)) return "无法连接后端";
@@ -13,14 +13,17 @@ import * as zhimuApi from "../api/index.js";
   }
 
   function syncWorldSwitcher() {
+    const { apiError } = userStore.get();
+    const { cloudStudio, cloudLoading } = studioStore.get();
+    const { cloudWorlds } = worldStore.get();
     const icon = document.querySelector(".world-switcher .world-icon");
     const strong = document.querySelector(".world-switcher strong");
     const small = document.querySelector(".world-switcher small");
     if (!icon || !strong || !small) return;
-    const studioWorld = state.cloudStudio?.world;
-    const listedWorld = (state.cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
+    const studioWorld = cloudStudio?.world;
+    const listedWorld = (cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
     const worldName = studioWorld?.name || listedWorld?.name;
-    const bootstrapping = state.cloudLoading;
+    const bootstrapping = cloudLoading;
 
     if (bootstrapping) {
       icon.textContent = "…";
@@ -30,16 +33,16 @@ import * as zhimuApi from "../api/index.js";
     }
     if (!worldName) {
       icon.textContent = "云";
-      const emptyAccount = state.apiError && /还没有可访问的剧本/.test(state.apiError);
+      const emptyAccount = apiError && /还没有可访问的剧本/.test(apiError);
       strong.textContent = emptyAccount
         ? "尚无剧本"
         : zhimuApi.context.worldId
-          ? worldSwitcherFailureLabel()
+          ? worldSwitcherFailureLabel(apiError)
           : "未选择剧本";
       small.textContent = emptyAccount
         ? "点击「＋ 创建新世界」开始"
-        : state.apiError && !/params\/|must NOT/i.test(state.apiError)
-          ? state.apiError
+        : apiError && !/params\/|must NOT/i.test(apiError)
+          ? apiError
           : zhimuApi.context.worldId
             ? "点击切换剧本"
             : "点击选择或创建剧本";
@@ -47,13 +50,13 @@ import * as zhimuApi from "../api/index.js";
     }
     icon.textContent = worldName.slice(0, 1);
     strong.textContent = worldName;
-    const chapterCount = state.cloudStudio?.chapters?.length;
+    const chapterCount = cloudStudio?.chapters?.length;
     small.textContent = typeof chapterCount === "number"
       ? `剧本杀创作 · ${chapterCount} 个公共章节`
       : "剧本杀创作 · 正在同步章节";
   }
 
-  function syncNavAdvanced(view = window.zhimuState?.view) {
+  function syncNavAdvanced(view = uiStore.get().view) {
     const panel = document.getElementById("nav-advanced");
     const toggle = document.querySelector("[data-action=toggle-nav-advanced]");
     if (!panel || !toggle) return;

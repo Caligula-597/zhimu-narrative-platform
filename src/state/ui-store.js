@@ -7,9 +7,17 @@ export const uiStore = createStore({
   cluesSearchQuery: "",
   cluesSelectedId: null,
   cluesBulkSelection: [],
+  clueDetailTab: "detail",
+  clueFlowFilter: "all",
+  clueFlowZoom: 1,
+  clueFlowScroll: null,
+  clueFlowSuppressClick: false,
   panelCollapse: {},
   accountHubTab: "account",
   accountView: null,
   accountViewLoading: false,
-  accountHubLoadId: 0
+  accountHubLoadId: 0,
+  opsStatus: null,
+  opsPlanRequests: null,
+  opsAuditLog: null
 });
