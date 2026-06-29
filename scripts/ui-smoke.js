@@ -233,13 +233,23 @@ await check("api-client-surface", async () => {
 });
 
 await check("state-runtime-boundaries", async () => {
-  const js = readSource("src/state.js");
-  if (!js.includes("window.zhimuState")) throw new Error("zhimuState not defined");
-  for (const key of ["cloudStudio", "cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostStuckCount", "cloudHostAuditLog", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest", "cloudWorldLogs", "voiceRoomId", "voiceLiveStatus"]) {
-    if (!js.includes(key)) throw new Error(`state missing ${key}`);
-  }
+  const stateJs = readSource("src/state.js");
+  if (!stateJs.includes("activateShardBridge")) throw new Error("shard bridge not activated in state.js");
   for (const removed of ["players:", "logs:", "demoStep:"]) {
-    if (js.includes(removed)) throw new Error(`state still has demo runtime field ${removed}`);
+    if (stateJs.includes(removed)) throw new Error(`state still has demo runtime field ${removed}`);
+  }
+  // 12 个关键字段已迁至 shard 文件，检查 shard 包含这些字段
+  const shardFieldChecks = [
+    { shard: "src/state/voice-store.js", fields: ["voiceRoomId", "voiceLiveStatus"] },
+    { shard: "src/state/world-store.js", fields: ["cloudWorldLogs"] },
+    { shard: "src/state/studio-store.js", fields: ["cloudStudio"] },
+    { shard: "src/state/room-store.js", fields: ["cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostStuckCount", "cloudHostAuditLog", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest"] }
+  ];
+  for (const { shard, fields } of shardFieldChecks) {
+    const js = readSource(shard);
+    for (const f of fields) {
+      if (!js.includes(f)) throw new Error(`${shard} missing ${f}`);
+    }
   }
   const dataJs = readSource("src/runtime/data.js");
   const runtimeStoreJs = readSource("src/runtime/runtime-store.js");
@@ -512,13 +522,12 @@ await check("inventory-wired", async () => {
 await check("livekit-voice-wired", async () => {
   const player = readSource("src/views/player.js");
   const livekit = readSource("src/runtime/livekit-voice.js");
-  const stateJs = readSource("src/state.js");
   for (const token of ["voice-live-connect", "voice-live-disconnect", "voiceMicEnabled", "getVoiceRoomToken"]) {
     const bundle = `${player}${livekit}`;
     if (!bundle.includes(token)) throw new Error(`livekit voice missing token ${token}`);
   }
   for (const key of ["voiceLiveStatus", "voiceParticipants"]) {
-    if (!stateJs.includes(key)) throw new Error(`state missing ${key}`);
+    if (!readSource("src/state/voice-store.js").includes(key)) throw new Error(`voice-store missing ${key}`);
   }
   const apiBundle = readApiBundle();
   if (!apiHasMethod(apiBundle, "getVoiceRoomToken")) throw new Error("api bundle missing getVoiceRoomToken");
@@ -529,13 +538,12 @@ await check("recap-wired", async () => {
   const archive = readSource("src/views/archive.js");
   const director = readSource("src/views/director.js");
   const dataJs = readSource("src/runtime/data.js");
-  const stateJs = readSource("src/state.js");
   for (const token of ["openCreateRecapModal", "openRecapDetail", "recapDetailView", "create-recap", "recap-detail"]) {
     if (!archive.includes(token)) throw new Error(`archive view missing recap token ${token}`);
   }
   if (!director.includes("create-recap")) throw new Error("director missing create-recap action");
   for (const key of ["cloudRecaps", "cloudRecapLatest", "cloudRecapDetail"]) {
-    if (!stateJs.includes(key)) throw new Error(`state missing ${key}`);
+    if (!readSource("src/state/room-store.js").includes(key)) throw new Error(`room-store missing ${key}`);
   }
   if (!dataJs.includes("getRecaps")) throw new Error("loadCloudData must fetch recaps");
   const apiBundle = readApiBundle();
@@ -577,10 +585,9 @@ await check("world-switch-sync", async () => {
 
 await check("cloud-load-staged", async () => {
   const dataJs = readSource("src/runtime/data.js");
-  const stateJs = readSource("src/state.js");
   if (dataJs.includes("loadCloudData();")) throw new Error("data.js must not auto-call loadCloudData on import");
   if (!dataJs.includes("loadCloudDataInternal")) throw new Error("staged loadCloudData missing");
-  if (!stateJs.includes("cloudLoading")) throw new Error("cloudLoading flag missing from state");
+  if (!readSource("src/state/studio-store.js").includes("cloudLoading")) throw new Error("cloudLoading flag missing from studio-store");
   return "staged cloud load wired";
 });
 

@@ -3,12 +3,6 @@
 import { activateShardBridge } from "./state/index.js";
 
 window.zhimuState = {
-  voiceRoom: "尚未选择",
-  voiceRoomId: null,
-  voiceMessages: [],
-  voiceLiveStatus: "idle",
-  voiceMicEnabled: false,
-  voiceParticipants: [],
   cloudPlayer: null,
   cloudHost: [],
   cloudHostPlayers: [],
@@ -38,8 +32,6 @@ window.zhimuState = {
   studioLayoutMode: "scene-tree",
   studioCollapsedScenes: [],
   studioCanvasHeight: 0,
-  voiceLiveError: "",
-  voicePlaybackBlocked: false,
   cloudAssets: [],
   assetKindFilter: "",
   assetSearchQuery: "",
