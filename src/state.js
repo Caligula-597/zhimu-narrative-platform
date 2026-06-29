@@ -3,7 +3,6 @@
 import { activateShardBridge } from "./state/index.js";
 
 window.zhimuState = {
-  currentUser: null,
   voiceRoom: "尚未选择",
   voiceRoomId: null,
   voiceMessages: [],
@@ -50,8 +49,6 @@ window.zhimuState = {
   cloudRoomSettings: { hostVoiceListen: false },
   cloudRulesPreview: null,
   storageUsage: null,
-  apiError: "",
-  roomEventsConnected: false,
   wizardStep: 0,
   wizardRoleEditor: null,
   wizardDraft: {

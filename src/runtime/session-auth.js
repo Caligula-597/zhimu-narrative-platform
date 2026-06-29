@@ -1,4 +1,5 @@
 /** Cookie + localStorage Bearer; HttpOnly cookie is not visible in document.cookie. */
+import { userStore } from "../state/index.js";
 (function (window) {
   const LEGACY_KEY = "zhimuSessionToken";
   let cookieSessionActive = false;
@@ -21,7 +22,7 @@
 function markLoggedOut() {
   cookieSessionActive = false;
   localStorage.removeItem(LEGACY_KEY);
-  if (typeof window !== "undefined" && window.zhimuState) window.zhimuState.currentUser = null;
+  if (typeof window !== "undefined") userStore.set({ currentUser: null });
 }
 
   function authHeaders(extra = {}) {

@@ -6,6 +6,7 @@
  * `window.zhimuApi` bridge has been removed; consumers import the namespace directly.
  */
 import { friendlyApiError } from "../utils/user-messages.js";
+import { userStore } from "../state/index.js";
 
 const runtimeConfig = window.zhimuConfig || {};
 const API_BASE = runtimeConfig.apiBase || "/api";
@@ -216,7 +217,7 @@ export function loadKey() {
 window.zhimuSessionReady = (async () => {
   try {
     const me = await request("/auth/me");
-    if (me?.id && window.zhimuState) window.zhimuState.currentUser = me;
+    if (me?.id) userStore.set({ currentUser: me });
     if (!sessionAuth().legacyToken?.()) sessionAuth().markAuthenticated?.();
     return me;
   } catch {
