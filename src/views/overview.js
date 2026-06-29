@@ -39,9 +39,9 @@ import { showToast } from "../components/toast.js";
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = window.zhimuGo;
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
+  const go = (view) => window.zhimuRuntime?.go?.(view);
+  function render() { window.zhimuRuntime?.render?.(); }
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});

@@ -42,9 +42,9 @@ import { showToast } from "../components/toast.js";
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
   const studioOptionsHtml = M.studioOptionsHtml || (() => "");
-  const go = window.zhimuGo;
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
+  const go = (view) => window.zhimuRuntime?.go?.(view);
+  function render() { window.zhimuRuntime?.render?.(); }
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
   function refreshHostRoom(...args) { return R.refreshHostRoom?.(...args) || loadCloudData(...args); }
   function refreshHostPlayers(...args) { return R.refreshHostPlayers?.(...args) || refreshHostRoom(...args); }
   function refreshHostClueMatrix(...args) { return R.refreshHostClueMatrix?.(...args) || refreshHostRoom(...args); }

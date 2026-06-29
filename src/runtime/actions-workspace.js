@@ -75,18 +75,18 @@ import { uiStore } from "../state/index.js";
         R.setRoomPublicListing?.(el?.dataset?.roomId, false);
         return true;
       case "refresh-cloud":
-        window.zhimuLoadCloudData?.(true, true);
+        window.zhimuRuntime?.loadCloudData?.(true, true);
         return true;
       case "retry-view-module":
-        window.zhimuRender?.();
+        window.zhimuRuntime?.render?.();
         return true;
       case "dismiss-onboarding":
         window.zhimuOnboarding?.dismiss?.();
-        window.zhimuRender?.();
+        window.zhimuRuntime?.render?.();
         return true;
       case "dismiss-first-run":
         window.zhimuFirstRun?.dismiss?.();
-        window.zhimuRender?.();
+        window.zhimuRuntime?.render?.();
         return true;
       case "open-play-official":
         window.open(window.zhimuFirstRun?.playOfficialUrl?.() || "https://play.getzhimu.com/?experience=official", "_blank", "noopener,noreferrer");

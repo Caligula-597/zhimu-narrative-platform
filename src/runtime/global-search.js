@@ -6,7 +6,7 @@ import { uiStore } from "../state/index.js";
   const { modal, modalBackdrop } = window.zhimuDom;
   const escapeHtml = window.zhimuFormat?.escapeHtml || ((v = "") => String(v));
   const closeModal = window.zhimuModal?.closeModal || (() => {});
-  const go = window.zhimuGo;
+  const go = (view) => window.zhimuRuntime?.go?.(view);
   const Status = () => window.zhimuStatus || {};
 
   const TYPE_LABELS = {

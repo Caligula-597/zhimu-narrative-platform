@@ -16,9 +16,9 @@ import { showToast } from "../components/toast.js";
   const studioModal = M.studioModal || (() => {});
   const showError = S.showError || ((error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback));
   const closeModal = M.closeModal || (() => {});
-  const go = window.zhimuGo;
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
+  const go = (view) => window.zhimuRuntime?.go?.(view);
+  function render() { window.zhimuRuntime?.render?.(); }
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
   const VISIBILITY_LABELS = { role: "私密", public: "房间公开", host: "主持可见" };
   const CLUE_TYPE_LABELS = {

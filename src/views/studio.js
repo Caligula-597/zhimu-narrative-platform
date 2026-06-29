@@ -39,12 +39,12 @@ import { showToast } from "../components/toast.js";
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = window.zhimuGo;
+  const go = (view) => window.zhimuRuntime?.go?.(view);
   const ST = window.zhimuStudioSceneTree || {};
   const buildStudioSceneOwnership = ST.buildStudioSceneOwnership || (() => ({ owner: new Map(), children: new Map() }));
   const sortSceneChildNodes = ST.sortSceneChildNodes || ((items) => items);
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
+  function render() { window.zhimuRuntime?.render?.(); }
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});

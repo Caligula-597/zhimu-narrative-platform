@@ -115,7 +115,7 @@ const appEntry = (function (window) {
     .catch((error) => {
       state.cloudLoading = false;
       state.apiError = error.message || String(error);
-      window.zhimuRender();
+      render();
     })
     .finally(() => {
       if (!window.zhimuAuthSession?.isLoggedIn?.()) {

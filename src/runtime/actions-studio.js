@@ -2,7 +2,7 @@
 (function (window) {
   const state = window.zhimuState;
 
-  function render() { window.zhimuRender?.(); }
+  function render() { window.zhimuRuntime?.render?.(); }
   function views() { return window.zhimuViews || {}; }
 
   function handleStudioAction(action, el) {

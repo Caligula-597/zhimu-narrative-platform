@@ -358,9 +358,9 @@ import { showToast } from "../components/toast.js";
 
       try {
 
-        await window.zhimuLoadCloudData?.(true, true);
+        await window.zhimuRuntime?.loadCloudData?.(true, true);
 
-        window.zhimuRender?.();
+        window.zhimuRuntime?.render?.();
 
         showToast("已刷新剧本数据");
 

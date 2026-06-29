@@ -92,13 +92,13 @@ import * as zhimuApi from "../api/index.js";
       if (!applyProfileUser(me)) throw new Error("Invalid auth profile");
       const afterMode = S().getSessionMode?.();
       const afterUserId = state.currentUser?.id || "";
-      if (rerender && (beforeMode !== afterMode || beforeUserId !== afterUserId)) window.zhimuRender?.();
+      if (rerender && (beforeMode !== afterMode || beforeUserId !== afterUserId)) window.zhimuRuntime?.render?.();
     } catch {
       state.currentUser = null;
       if (window.zhimuSessionAuth?.legacyToken?.()) window.zhimuSessionAuth?.markLoggedOut?.();
       updateProfileText(null);
       syncAuthBanner();
-      if (rerender && beforeMode === "authenticated") window.zhimuRender?.();
+      if (rerender && beforeMode === "authenticated") window.zhimuRuntime?.render?.();
     }
   }
 

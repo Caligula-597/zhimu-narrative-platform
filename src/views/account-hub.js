@@ -41,7 +41,7 @@ import * as zhimuApi from "../api/index.js";
       if (loadId !== state.accountHubLoadId || state.view !== "account") return;
       if (activeTab() === "assets" && zhimuApi.context.worldId) {
         await window.zhimuViews?.assets?.reloadAssets?.();
-        if (loadId === state.accountHubLoadId && state.view === "account") window.zhimuRender?.();
+        if (loadId === state.accountHubLoadId && state.view === "account") window.zhimuRuntime?.render?.();
       }
     })();
   }
@@ -67,7 +67,7 @@ import * as zhimuApi from "../api/index.js";
     if (tab === "assets" && zhimuApi.context.worldId) {
       await window.zhimuViews?.assets?.reloadAssets?.();
     }
-    window.zhimuRender?.();
+    window.zhimuRuntime?.render?.();
   }
 
   export function bindAccountHubView() {

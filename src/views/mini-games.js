@@ -13,8 +13,8 @@ import { showToast } from "../components/toast.js";
   const studioModal = M.studioModal || (() => {});
   const closeModal = M.closeModal || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
+  function render() { window.zhimuRuntime?.render?.(); }
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
   function templates() {
     const world = state.cloudStudio?.world;

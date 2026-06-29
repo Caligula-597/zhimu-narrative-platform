@@ -16,10 +16,10 @@ import { showToast } from "../components/toast.js";
   const ASSET_KIND_TABS = window.zhimuUserMessages?.ASSET_KIND_TABS || [{ id: "", label: "全部" }];
   const assetKindLabel = window.zhimuUserMessages?.assetKindLabel || ((k) => k);
 function refreshAssetsIfVisible() {
-    if ((state.view === "account" && state.accountHubTab === "assets") || state.view === "settings") window.zhimuRender?.();
+    if ((state.view === "account" && state.accountHubTab === "assets") || state.view === "settings") window.zhimuRuntime?.render?.();
   }
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
+  function render() { window.zhimuRuntime?.render?.(); }
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
 export function assetsPanelHtml(){
   const usage=state.storageUsage;

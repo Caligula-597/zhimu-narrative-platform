@@ -4,7 +4,7 @@ import { showToast } from "../components/toast.js";
 (function (window) {
   const state = window.zhimuState;
   const showError = (error, fallback = "OPS 操作失败") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
-  function render() { window.zhimuRender?.(); }
+  function render() { window.zhimuRuntime?.render?.(); }
 
   async function refresh() {
     try {

@@ -10,8 +10,8 @@ import { showToast } from "../components/toast.js";
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const studioValues = M.studioValues || (() => ({}));
-  const go = window.zhimuGo;
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
+  const go = (view) => window.zhimuRuntime?.go?.(view);
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
   const AiDraft = () => window.zhimuAiDraft;
   const PS = () => window.zhimuPipelineSession || {};

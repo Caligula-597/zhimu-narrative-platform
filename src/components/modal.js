@@ -31,9 +31,9 @@ import { showToast } from "./toast.js";
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const go = window.zhimuGo;
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
+  const go = (view) => window.zhimuRuntime?.go?.(view);
+  function render() { window.zhimuRuntime?.render?.(); }
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});

@@ -85,11 +85,11 @@ import { showToast } from "../components/toast.js";
         await window.zhimuAuthSession?.syncProfile?.();
         window.zhimuAuthSession?.syncAuthBanner?.();
         try {
-          await window.zhimuLoadCloudData?.(true, true);
+          await window.zhimuRuntime?.loadCloudData?.(true, true);
         } catch {
           /* logged out */
         }
-        window.zhimuRender?.();
+        window.zhimuRuntime?.render?.();
       } catch (error) {
         submit.disabled = false;
         handleApiError(error, showToast);
@@ -156,7 +156,7 @@ import { showToast } from "../components/toast.js";
     const showLoading = !background && !state.accountView;
     if (showLoading) {
       state.accountViewLoading = true;
-      if (state.view === "account") window.zhimuRender?.();
+      if (state.view === "account") window.zhimuRuntime?.render?.();
     }
     try {
       const [me, sessions, config, entitlements] = await Promise.all([
@@ -175,7 +175,7 @@ import { showToast } from "../components/toast.js";
       }
     } finally {
       state.accountViewLoading = false;
-      if (state.view === "account") window.zhimuRender?.();
+      if (state.view === "account") window.zhimuRuntime?.render?.();
     }
   }
 
@@ -191,7 +191,7 @@ import { showToast } from "../components/toast.js";
         showToast("已退出登录");
         await window.zhimuAuthSession?.syncProfile?.();
         window.zhimuAuthSession?.syncAuthBanner?.();
-        window.zhimuRender?.();
+        window.zhimuRuntime?.render?.();
       } catch (error) {
         handleApiError(error, showToast);
       }
@@ -267,9 +267,9 @@ import { showToast } from "../components/toast.js";
         window.zhimuSessionAuth?.markAuthenticated?.();
         showToast("账号已升级");
         await window.zhimuAuthSession?.syncProfile?.();
-        await window.zhimuLoadCloudData?.(true, true);
+        await window.zhimuRuntime?.loadCloudData?.(true, true);
         await refreshAccountView();
-        window.zhimuRender?.();
+        window.zhimuRuntime?.render?.();
       } catch (error) {
         handleApiError(error, showToast);
       }

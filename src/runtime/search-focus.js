@@ -27,7 +27,7 @@
         const nodeType = focus.nodeType || STUDIO_NODE_TYPES[focus.type] || focus.type;
         state.studioSelectedNode = { type: nodeType, id: focus.id };
         if (nodeType && nodeType !== "all") state.studioFilter = nodeType;
-        window.zhimuRender?.();
+        window.zhimuRuntime?.render?.();
         requestAnimationFrame(() => {
           pulseElement(document.querySelector(`.node[data-node-type="${nodeType}"][data-node-id="${focus.id}"]`));
         });
@@ -50,7 +50,7 @@
       if (focus.view === "clues" && focus.id) {
         state.cluesSelectedId = focus.id;
         if (focus.query) state.cluesSearchQuery = focus.query;
-        window.zhimuRender?.();
+        window.zhimuRuntime?.render?.();
         requestAnimationFrame(() => pulseElement(document.querySelector(`[data-clue-row="${focus.id}"]`)));
       }
     });

@@ -555,17 +555,17 @@ await check("recap-wired", async () => {
   return "room recap UI + API wired";
 });
 
-await check("deferred-render", async () => {
+await check("runtime-bridge-direct", async () => {
   const domJs = readSource("src/dom.js");
   const dataJs = readSource("src/runtime/data.js");
   const authJs = readSource("src/runtime/auth-world.js");
-  if (!domJs.includes("window.zhimuRender")) throw new Error("zhimuRender helper missing from dom.js");
-  if (!domJs.includes("window.zhimuLoadCloudData")) throw new Error("zhimuLoadCloudData helper missing from dom.js");
-  if (!domJs.includes("window.zhimuHandle")) throw new Error("zhimuHandle helper missing from dom.js");
-  if (dataJs.includes("const render = R.render")) throw new Error("data.js still captures stale render reference");
-  if (authJs.includes("const loadCloudData = R.loadCloudData")) throw new Error("auth-world.js still captures stale loadCloudData");
-  if (authJs.includes("const handle = R.handle")) throw new Error("auth-world.js still captures stale handle");
-  return "deferred runtime bridge wired";
+  if (domJs.includes("window.zhimuRender")) throw new Error("dom.js still defines zhimuRender hack");
+  if (domJs.includes("window.zhimuLoadCloudData")) throw new Error("dom.js still defines zhimuLoadCloudData hack");
+  if (domJs.includes("window.zhimuHandle")) throw new Error("dom.js still defines zhimuHandle hack");
+  if (!dataJs.includes("window.zhimuRuntime?.render")) throw new Error("data.js not calling zhimuRuntime?.render directly");
+  if (!authJs.includes("window.zhimuRuntime?.loadCloudData")) throw new Error("auth-world.js not calling zhimuRuntime?.loadCloudData directly");
+  if (!authJs.includes("window.zhimuRuntime?.handle")) throw new Error("auth-world.js not calling zhimuRuntime?.handle directly");
+  return "runtime bridge called directly";
 });
 
 await check("world-switch-sync", async () => {

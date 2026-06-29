@@ -17,7 +17,7 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
   }
 
   function render() {
-    window.zhimuRender?.();
+    window.zhimuRuntime?.render?.();
   }
 
   async function refreshPlayerHome() {

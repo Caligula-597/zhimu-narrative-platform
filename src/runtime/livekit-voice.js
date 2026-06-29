@@ -59,7 +59,7 @@
   }
 
   function renderIfPlayer() {
-    if (state.view === "player") window.zhimuRender?.();
+    if (state.view === "player") window.zhimuRuntime?.render?.();
   }
 
   function ensureAudioRoot() {

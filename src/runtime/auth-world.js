@@ -39,10 +39,10 @@ import { showToast } from "../components/toast.js";
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = window.zhimuGo;
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
-  function handle(action, el) { return window.zhimuHandle(action, el); }
+  const go = (view) => window.zhimuRuntime?.go?.(view);
+  function render() { window.zhimuRuntime?.render?.(); }
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
+  function handle(action, el) { return window.zhimuRuntime?.handle?.(action, el); }
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   window.zhimuViews = window.zhimuViews || {};

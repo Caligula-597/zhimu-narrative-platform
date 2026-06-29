@@ -11,7 +11,7 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
   const roomEvents = () => window.zhimuRoomEvents || {};
 
   function render() {
-    window.zhimuRender?.();
+    window.zhimuRuntime?.render?.();
   }
 
   let loadCloudDataPromise = null;

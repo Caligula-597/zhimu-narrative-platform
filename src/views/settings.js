@@ -18,8 +18,8 @@ import { showToast } from "../components/toast.js";
   const canEditWorldContent = U.canEditWorldContent || (() => false);
   const deleteWorldPanel = U.deleteWorldPanel || (() => "");
   const closeModal = window.zhimuModal?.closeModal || (() => {});
-  function render() { window.zhimuRender?.(); }
-  function loadCloudData(...args) { return window.zhimuLoadCloudData(...args); }
+  function render() { window.zhimuRuntime?.render?.(); }
+  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
   function catalogReviewPanel(world) {
     const status = world?.catalog_review_status || (world?.catalog_public ? "approved" : "none");
@@ -160,7 +160,7 @@ export async function saveRoomSettings(){
 }
 
 export function goWriterExport(){
- window.zhimuGo?.("writer");
+ window.zhimuRuntime?.go?.("writer");
  showToast("请在剧本创作页使用「导出内容包 / 导入内容包」");
 }
 
