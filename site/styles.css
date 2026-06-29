@@ -247,7 +247,18 @@ button {
   z-index: 1;
 }
 
+.hero-backdrop picture {
+  display: block;
+  width: min(860px, 68vw);
+}
+
 .hero-backdrop img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero-backdrop picture {
   width: min(860px, 68vw);
   transform: translate(20vw, 34px) rotate(-2.2deg);
   filter: drop-shadow(0 28px 60px rgba(27, 50, 46, 0.16));
@@ -749,10 +760,14 @@ button {
   border-top: 3px solid var(--green-2);
 }
 
+.showcase-frame picture,
 .showcase-frame img {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.showcase-frame img {
   object-fit: cover;
   object-position: center top;
 }
@@ -1033,7 +1048,7 @@ button {
     justify-content: center;
   }
 
-  .hero-backdrop img {
+  .hero-backdrop picture {
     width: 860px;
     transform: translate(30vw, 132px) rotate(-3deg);
     opacity: 0.3;
@@ -1116,7 +1131,7 @@ button {
       radial-gradient(circle at 80% 18%, rgba(167, 120, 61, 0.12), transparent 34%);
   }
 
-  .hero-backdrop img {
+  .hero-backdrop picture {
     width: 760px;
     transform: translate(46vw, 322px) rotate(-4deg);
     opacity: 0.22;

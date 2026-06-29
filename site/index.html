@@ -16,7 +16,14 @@
     <meta name="theme-color" content="#f4f1e9" />
     <title>织幕 | 长线互动叙事引擎</title>
     <link rel="icon" href="/assets/favicon.svg" />
-    <link rel="preload" as="image" href="/assets/zhimu-product-hero.png" />
+    <link
+      rel="preload"
+      as="image"
+      href="/assets/zhimu-product-hero.webp"
+      type="image/webp"
+      imagesrcset="/assets/zhimu-product-hero-760.webp 760w, /assets/zhimu-product-hero.webp 1200w"
+      imagesizes="(max-width: 720px) 96vw, 68vw"
+    />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -54,7 +61,21 @@
     <main id="top">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-backdrop" aria-hidden="true">
-          <img src="/assets/zhimu-product-hero.png" alt="" />
+          <picture>
+            <source
+              type="image/webp"
+              srcset="/assets/zhimu-product-hero-760.webp 760w, /assets/zhimu-product-hero.webp 1200w"
+              sizes="(max-width: 720px) 96vw, 68vw"
+            />
+            <img
+              src="/assets/zhimu-product-hero.png"
+              alt=""
+              width="1586"
+              height="992"
+              decoding="async"
+              fetchpriority="high"
+            />
+          </picture>
           <div class="story-pulse story-pulse-a"></div>
           <div class="story-pulse story-pulse-b"></div>
           <div class="story-pulse story-pulse-c"></div>
@@ -133,7 +154,10 @@
         <div class="showcase-grid">
           <figure class="showcase-panel">
             <div class="showcase-frame">
-              <img src="/assets/zhimu-product-hero.png" alt="织幕创作者端界面：世界、分幕与规则编排" loading="lazy" />
+              <picture>
+                <source type="image/webp" srcset="/assets/zhimu-product-hero-760.webp 760w, /assets/zhimu-product-hero.webp 1200w" sizes="(max-width: 720px) 92vw, 40vw" />
+                <img src="/assets/zhimu-product-hero.png" alt="织幕创作者端界面：世界、分幕与规则编排" loading="lazy" decoding="async" width="1586" height="992" />
+              </picture>
             </div>
             <figcaption>
               <strong>创作者端</strong>
@@ -151,7 +175,10 @@
           </figure>
           <figure class="showcase-panel">
             <div class="showcase-frame showcase-frame-warm">
-              <img src="/assets/zhimu-product-hero.png" alt="织幕玩家端界面：分屏阅读与探索记录" loading="lazy" />
+              <picture>
+                <source type="image/webp" srcset="/assets/zhimu-product-hero-760.webp 760w, /assets/zhimu-product-hero.webp 1200w" sizes="(max-width: 720px) 92vw, 40vw" />
+                <img src="/assets/zhimu-product-hero.png" alt="织幕玩家端界面：分屏阅读与探索记录" loading="lazy" decoding="async" width="1586" height="992" />
+              </picture>
             </div>
             <figcaption>
               <strong>玩家端</strong>
