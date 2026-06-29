@@ -1,8 +1,7 @@
 /** World / room selection and workspace domain helpers (demo vs logged-in). */
 import * as zhimuApi from "../api/index.js";
+import { worldStore, studioStore, roomStore, userStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
-
   function isLoggedIn() {
     return window.zhimuAuthSession?.isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
   }
@@ -12,20 +11,25 @@ import * as zhimuApi from "../api/index.js";
   }
 
   function activeRuntimeRoom() {
-    return (state.cloudStudio?.rooms || []).find((room) => room.id === zhimuApi.context.roomId)
-      || (state.cloudPlayer?.room?.id === zhimuApi.context.roomId ? state.cloudPlayer.room : null)
+    const studio = studioStore.get();
+    const room = roomStore.get();
+    return (studio.cloudStudio?.rooms || []).find((roomObj) => roomObj.id === zhimuApi.context.roomId)
+      || (room.cloudPlayer?.room?.id === zhimuApi.context.roomId ? room.cloudPlayer.room : null)
       || null;
   }
 
   function isWorldOwner(worldId) {
     const id = worldId || zhimuApi.context.worldId;
     if (!id) return false;
-    const studioWorld = state.cloudStudio?.world;
+    const studio = studioStore.get();
+    const studioWorld = studio.cloudStudio?.world;
     if (studioWorld?.id === id) {
       if (studioWorld.membership_role === "owner") return true;
-      if (state.currentUser?.id && studioWorld.owner_user_id === state.currentUser.id) return true;
+      const user = userStore.get();
+      if (user.currentUser?.id && studioWorld.owner_user_id === user.currentUser.id) return true;
     }
-    const listed = (state.cloudWorlds || []).find((w) => w.id === id);
+    const world = worldStore.get();
+    const listed = (world.cloudWorlds || []).find((w) => w.id === id);
     return listed?.membership_role === "owner";
   }
 
@@ -39,14 +43,13 @@ import * as zhimuApi from "../api/index.js";
     try {
       worlds = await zhimuApi.getWorlds();
     } catch (error) {
-      state.cloudWorlds = [];
+      worldStore.set({ cloudWorlds: [] });
       throw error;
     }
-    state.cloudWorlds = worlds;
+    worldStore.set({ cloudWorlds: worlds });
     const hasSession = isLoggedIn();
     const current = zhimuApi.context.worldId;
 
-    // Logged-in users must not keep a demo-world id from prior anonymous browsing.
     if (hasSession && current && !worlds.some((world) => world.id === current)) {
       zhimuApi.clearWorld();
       zhimuApi.clearRoom();

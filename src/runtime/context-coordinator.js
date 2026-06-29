@@ -3,37 +3,35 @@
  * Call these instead of scattering zhimuApi + state mutations across views.
  */
 import * as zhimuApi from "../api/index.js";
+import { studioStore, worldStore, roomStore, assetStore, userStore, uiStore } from "../state/index.js";
 (function (window) {
-  const state = window.zhimuState;
-
   function clearWorldScopedState() {
-    state.cloudStudio = null;
-    state.cloudRules = [];
-    state.cloudCreatorChecks = [];
-    state.cloudHost = [];
-    state.cloudHostPlayers = [];
-    state.cloudHostPlayersError = "";
-    state.cloudHostStuckCount = 0;
-    state.cloudHostEvents = [];
-    state.cloudHostAuditLog = [];
-    state.cloudCheckpoints = [];
-    state.cloudRecaps = [];
-    state.cloudRecapLatest = null;
-    state.cloudRecapDetail = null;
-    state.activeRecapId = null;
-    state.cloudWorldLogs = [];
-    state.cloudPlayer = null;
-    state.cloudExploration = null;
-    state.cloudAssets = [];
-    state.storageUsage = null;
-    state.apiError = "";
+    studioStore.set({ cloudStudio: null });
+    worldStore.set({ cloudRules: [], cloudCreatorChecks: [], cloudWorldLogs: [] });
+    roomStore.set({
+      cloudHost: [],
+      cloudHostPlayers: [],
+      cloudHostPlayersError: "",
+      cloudHostStuckCount: 0,
+      cloudHostEvents: [],
+      cloudHostAuditLog: [],
+      cloudCheckpoints: [],
+      cloudRecaps: [],
+      cloudRecapLatest: null,
+      cloudRecapDetail: null,
+      activeRecapId: null,
+      cloudPlayer: null,
+      cloudExploration: null
+    });
+    assetStore.set({ cloudAssets: [], storageUsage: null });
+    userStore.set({ apiError: "" });
   }
 
   /** After login / register / OAuth — drop demo world pointer and in-memory account cache. */
   function resetAccountContext() {
     zhimuApi.resetActiveWorld?.();
-    state.cloudStudio = null;
-    state.accountView = null;
+    studioStore.set({ cloudStudio: null });
+    uiStore.set({ accountView: null });
     window.zhimuRuntimeStore?.clearRuntimeState?.();
   }
 
@@ -55,8 +53,8 @@ import * as zhimuApi from "../api/index.js";
   /** Logout — token cleared by caller; resets workspace + session UI flags. */
   function onSessionLogout() {
     zhimuApi.resetActiveWorld?.();
-    state.cloudStudio = null;
-    state.accountView = null;
+    studioStore.set({ cloudStudio: null });
+    uiStore.set({ accountView: null });
     sessionStorage.removeItem("zhimuAuthPrompted");
     window.zhimuRuntimeStore?.clearRuntimeState?.();
   }
@@ -65,7 +63,7 @@ import * as zhimuApi from "../api/index.js";
   function onCurrentWorldDeleted() {
     zhimuApi.clearWorld();
     zhimuApi.clearRoom();
-    state.cloudStudio = null;
+    studioStore.set({ cloudStudio: null });
     window.zhimuRuntimeStore?.clearRuntimeState?.();
   }
 

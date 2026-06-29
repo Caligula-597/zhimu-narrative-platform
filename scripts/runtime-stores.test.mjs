@@ -2,14 +2,9 @@
  * Runtime store / context coordinator robustness — no browser or backend required.
  * Usage: node --test scripts/runtime-stores.test.mjs
  *
- * Migrated from vm.runInNewContext to native dynamic import() because
- * context-coordinator.js and workspace-store.js are now real ES modules
- * (import * as zhimuApi from "../api/index.js"). vm.runInNewContext cannot
- * handle `import` statements, so we use dynamic import() + globalThis shims.
- *
- * Assertion strategy: instead of tracking apiCalls on a mock zhimuApi, we
- * verify effects on the real demoContext live binding (zhimuApi.context) and
- * the shared state object captured by the runtime IIFEs.
+ * Migrated to direct shard assertions: runtime-store.js / workspace-store.js /
+ * context-coordinator.js now import shards directly instead of capturing
+ * window.zhimuState. Tests reset and assert via shard.get() / shard.set().
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -39,40 +34,7 @@ const sessionStorage = createMemoryStorage();
 const runtimeDisconnects = [];
 const livekitDisconnects = [];
 
-const state = {
-  cloudWorlds: [],
-  cloudStudio: null,
-  cloudPlayer: null,
-  cloudRules: [{ id: "r1" }],
-  cloudCreatorChecks: [{ id: "c1" }],
-  cloudHost: [{ name: "h" }],
-  cloudHostPlayers: [{ joined: true }],
-  cloudHostStuckCount: 2,
-  cloudHostEvents: [{ id: "e1" }],
-  cloudHostAuditLog: [{ id: "a1" }],
-  cloudCheckpoints: [{ id: "cp1" }],
-  cloudRecaps: [{ id: "rc1" }],
-  cloudRecapLatest: { id: "latest" },
-  cloudRecapDetail: { id: "detail" },
-  activeRecapId: "recap-1",
-  cloudWorldLogs: [{ id: "log1" }],
-  cloudExploration: { scenes: [] },
-  cloudAssets: [{ id: "asset1" }],
-  storageUsage: { usedBytes: 1 },
-  accountView: { me: {} },
-  apiError: "old error",
-  voiceRoomId: "voice-1",
-  voiceRoom: "测试房",
-  voiceMessages: [{ id: "m1" }],
-  voiceLiveStatus: "connected",
-  voiceMicEnabled: true,
-  voiceParticipants: [{ id: "p1" }],
-  voiceLiveError: "err",
-  currentUser: null
-};
-
 globalThis.window = {
-  zhimuState: state,
   zhimuConfig: {
     apiBase: "/api",
     demoMode: true,
@@ -116,11 +78,9 @@ try { globalThis.navigator = navShim; } catch { Object.defineProperty(globalThis
 let nextWorlds = [];
 globalThis.fetch = async (url, opts) => {
   const urlStr = String(url);
-  // /auth/me fires on module load (zhimuSessionReady IIFE) — fail gracefully.
   if (urlStr === "/api/auth/me") {
     throw new TypeError("no backend in test");
   }
-  // getWorlds() -> request("/worlds") -> fetch("/api/worlds")
   if (urlStr === "/api/worlds" || urlStr.startsWith("/api/worlds?")) {
     return { ok: true, status: 200, json: async () => nextWorlds };
   }
@@ -133,17 +93,24 @@ let demoContext;
 let zhimuRuntimeStore;
 let zhimuContext;
 let zhimuWorkspace;
+let userStore, worldStore, roomStore, studioStore, assetStore, voiceStore, uiStore;
 
 test.before(async () => {
   const fileUrl = (rel) => `file://${path.join(root, rel).replace(/\\/g, "/")}?t=${Date.now()}`;
 
-  // Load API bundle first — we need the demoContext live binding for assertions.
-  // context-coordinator.js and workspace-store.js will resolve their own imports.
   zhimuApi = await import(fileUrl("src/api/index.js"));
   demoContext = zhimuApi.context;
   if (!demoContext) throw new Error("zhimuApi.context (demoContext) live binding missing");
 
-  // Load runtime modules — they assign window.zhimuRuntimeStore/zhimuContext/zhimuWorkspace.
+  const stateIndex = await import(fileUrl("src/state/index.js"));
+  userStore = stateIndex.userStore;
+  worldStore = stateIndex.worldStore;
+  roomStore = stateIndex.roomStore;
+  studioStore = stateIndex.studioStore;
+  assetStore = stateIndex.assetStore;
+  voiceStore = stateIndex.voiceStore;
+  uiStore = stateIndex.uiStore;
+
   await import(fileUrl("src/runtime/runtime-store.js"));
   await import(fileUrl("src/runtime/context-coordinator.js"));
   await import(fileUrl("src/runtime/workspace-store.js"));
@@ -156,45 +123,57 @@ test.before(async () => {
   if (!zhimuWorkspace) throw new Error("zhimuWorkspace bridge not populated");
 });
 
-const defaultState = {
-  cloudWorlds: [],
-  cloudStudio: null,
-  cloudPlayer: null,
-  cloudRules: [{ id: "r1" }],
-  cloudCreatorChecks: [{ id: "c1" }],
-  cloudHost: [{ name: "h" }],
-  cloudHostPlayers: [{ joined: true }],
-  cloudHostStuckCount: 2,
-  cloudHostEvents: [{ id: "e1" }],
-  cloudHostAuditLog: [{ id: "a1" }],
-  cloudCheckpoints: [{ id: "cp1" }],
-  cloudRecaps: [{ id: "rc1" }],
-  cloudRecapLatest: { id: "latest" },
-  cloudRecapDetail: { id: "detail" },
-  activeRecapId: "recap-1",
-  cloudWorldLogs: [{ id: "log1" }],
-  cloudExploration: { scenes: [] },
-  cloudAssets: [{ id: "asset1" }],
-  storageUsage: { usedBytes: 1 },
-  accountView: { me: {} },
-  apiError: "old error",
-  voiceRoomId: "voice-1",
-  voiceRoom: "测试房",
-  voiceMessages: [{ id: "m1" }],
-  voiceLiveStatus: "connected",
-  voiceMicEnabled: true,
-  voiceParticipants: [{ id: "p1" }],
-  voiceLiveError: "err",
-  currentUser: null
-};
-
 function resetState(overrides = {}) {
-  // Mutate state in place — runtime IIFEs captured `state` by reference at import.
-  for (const key of Object.keys(state)) {
-    if (!(key in defaultState) && !(key in overrides)) delete state[key];
-  }
-  for (const [key, value] of Object.entries({ ...defaultState, ...overrides })) {
-    state[key] = value;
+  worldStore.set({
+    cloudWorlds: [],
+    cloudRules: [{ id: "r1" }],
+    cloudCreatorChecks: [{ id: "c1" }],
+    cloudWorldLogs: [{ id: "log1" }]
+  });
+  studioStore.set({ cloudStudio: null });
+  roomStore.set({
+    cloudPlayer: null,
+    cloudHost: [{ name: "h" }],
+    cloudHostPlayers: [{ joined: true }],
+    cloudHostPlayersError: "",
+    cloudHostStuckCount: 2,
+    cloudHostEvents: [{ id: "e1" }],
+    cloudHostAuditLog: [{ id: "a1" }],
+    cloudCheckpoints: [{ id: "cp1" }],
+    cloudRecaps: [{ id: "rc1" }],
+    cloudRecapLatest: { id: "latest" },
+    cloudRecapDetail: { id: "detail" },
+    activeRecapId: "recap-1",
+    cloudExploration: { scenes: [] }
+  });
+  assetStore.set({ cloudAssets: [{ id: "asset1" }], storageUsage: { usedBytes: 1 } });
+  uiStore.set({ accountView: { me: {} } });
+  userStore.set({ apiError: "old error", currentUser: null });
+  voiceStore.set({
+    voiceRoomId: "voice-1",
+    voiceRoom: "测试房",
+    voiceMessages: [{ id: "m1" }],
+    voiceLiveStatus: "connected",
+    voiceMicEnabled: true,
+    voiceParticipants: [{ id: "p1" }],
+    voiceLiveError: "err"
+  });
+  // apply overrides per shard by field name
+  const allShards = [
+    [userStore, ["currentUser", "apiError", "roomEventsConnected"]],
+    [worldStore, ["cloudWorlds", "cloudCatalog", "cloudCatalogError", "cloudCreatorChecks", "cloudRules", "cloudRulesPreview", "cloudWorldLogs"]],
+    [roomStore, ["cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostPlayersError", "cloudHostStuckCount", "cloudExploration", "cloudHostEvents", "cloudHostClueMatrix", "cloudHostAuditLog", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest", "cloudRecapDetail", "activeRecapId", "cloudRoomSettings", "hostEventSelection"]],
+    [studioStore, ["cloudStudio", "studioSelectedNode", "studioAnchorEditing", "studioFilter", "studioZoom", "studioLayoutMode", "studioCollapsedScenes", "studioCanvasHeight", "cloudLoading"]],
+    [assetStore, ["cloudAssets", "assetKindFilter", "assetSearchQuery", "assetShowRecycle", "assetTotal", "storageUsage"]],
+    [voiceStore, ["voiceRoom", "voiceRoomId", "voiceMessages", "voiceLiveStatus", "voiceMicEnabled", "voiceParticipants", "voiceLiveError", "voicePlaybackBlocked"]],
+    [uiStore, ["view", "searchFocus", "cluesSearchQuery", "cluesSelectedId", "cluesBulkSelection", "panelCollapse", "accountHubTab", "accountView", "accountViewLoading", "accountHubLoadId"]]
+  ];
+  for (const [store, keys] of allShards) {
+    const patch = {};
+    for (const k of keys) {
+      if (k in overrides) patch[k] = overrides[k];
+    }
+    if (Object.keys(patch).length) store.set(patch);
   }
 }
 
@@ -214,11 +193,11 @@ test.beforeEach(() => {
 test("runtime-store clearRuntimeFields resets in-room payload only", () => {
   zhimuRuntimeStore.clearRuntimeFields();
 
-  assert.equal(state.cloudPlayer, null);
-  assert.equal(state.cloudHostEvents.length, 0);
-  assert.equal(state.cloudHostAuditLog.length, 0);
-  assert.equal(state.voiceLiveStatus, "idle");
-  assert.equal(state.cloudRules.length, 1, "world-scoped rules must survive runtime-only clear");
+  assert.equal(roomStore.get().cloudPlayer, null);
+  assert.equal(roomStore.get().cloudHostEvents.length, 0);
+  assert.equal(roomStore.get().cloudHostAuditLog.length, 0);
+  assert.equal(voiceStore.get().voiceLiveStatus, "idle");
+  assert.equal(worldStore.get().cloudRules.length, 1, "world-scoped rules must survive runtime-only clear");
   assert.equal(runtimeDisconnects.length, 0);
 });
 
@@ -242,10 +221,11 @@ test("runtime-store applyHostPlayersPayload maps host table rows", () => {
     }]
   });
 
-  assert.equal(state.cloudHostStuckCount, 3);
-  assert.equal(state.cloudHostPlayers.length, 1);
-  assert.equal(state.cloudHost[0].name, "记者");
-  assert.equal(state.cloudHost[0].completed_sections, 2);
+  const room = roomStore.get();
+  assert.equal(room.cloudHostStuckCount, 3);
+  assert.equal(room.cloudHostPlayers.length, 1);
+  assert.equal(room.cloudHost[0].name, "记者");
+  assert.equal(room.cloudHost[0].completed_sections, 2);
 });
 
 /* ── context-coordinator tests ── */
@@ -257,11 +237,10 @@ test("context-coordinator resetAccountContext clears demo workspace pointer", ()
 
   zhimuContext.resetAccountContext();
 
-  // Effect of resetActiveWorld(): both worldId and roomId cleared on demoContext.
   assert.equal(demoContext.worldId, "");
   assert.equal(demoContext.roomId, "");
-  assert.equal(state.cloudStudio, null);
-  assert.equal(state.accountView, null);
+  assert.equal(studioStore.get().cloudStudio, null);
+  assert.equal(uiStore.get().accountView, null);
   assert.equal(runtimeDisconnects.length, 1);
 });
 
@@ -271,14 +250,13 @@ test("context-coordinator prepareWorldSwitch selects world and clears scoped cac
 
   zhimuContext.prepareWorldSwitch("new-world");
 
-  // Effect: selectWorld("new-world") then clearRoom() — worldId set, roomId cleared.
   assert.equal(demoContext.worldId, "new-world");
   assert.equal(demoContext.roomId, "");
-  assert.equal(state.cloudStudio, null);
-  assert.equal(state.cloudRules.length, 0);
-  assert.equal(state.cloudHostAuditLog.length, 0);
-  assert.equal(state.storageUsage, null);
-  assert.equal(state.apiError, "");
+  assert.equal(studioStore.get().cloudStudio, null);
+  assert.equal(worldStore.get().cloudRules.length, 0);
+  assert.equal(roomStore.get().cloudHostAuditLog.length, 0);
+  assert.equal(assetStore.get().storageUsage, null);
+  assert.equal(userStore.get().apiError, "");
 });
 
 test("context-coordinator onSessionLogout removes auth prompt flag", () => {
@@ -331,20 +309,20 @@ test("workspace ensureActiveWorld returns null and clears pointers when no world
 test("workspace activeRuntimeRoom resolves from studio rooms or player payload", () => {
   demoContext.roomId = "room-a";
 
-  state.cloudStudio = { rooms: [{ id: "room-a", name: "Studio Room" }] };
+  studioStore.set({ cloudStudio: { rooms: [{ id: "room-a", name: "Studio Room" }] } });
   assert.equal(zhimuWorkspace.activeRuntimeRoom()?.name, "Studio Room");
 
-  state.cloudStudio = { rooms: [] };
-  state.cloudPlayer = { room: { id: "room-a", name: "Player Room" } };
+  studioStore.set({ cloudStudio: { rooms: [] } });
+  roomStore.set({ cloudPlayer: { room: { id: "room-a", name: "Player Room" } } });
   assert.equal(zhimuWorkspace.activeRuntimeRoom()?.name, "Player Room");
 
-  state.cloudPlayer = null;
+  roomStore.set({ cloudPlayer: null });
   assert.equal(zhimuWorkspace.activeRuntimeRoom(), null);
 });
 
 test("workspace roomBelongsToActiveWorld is false when room id is orphan", () => {
   demoContext.roomId = "orphan-room";
-  state.cloudStudio = { rooms: [{ id: "other-room" }] };
+  studioStore.set({ cloudStudio: { rooms: [{ id: "other-room" }] } });
 
   assert.equal(zhimuWorkspace.roomBelongsToActiveWorld(), false);
 });
@@ -352,18 +330,18 @@ test("workspace roomBelongsToActiveWorld is false when room id is orphan", () =>
 test("workspace isWorldOwner checks membership_role and owner_user_id", () => {
   demoContext.worldId = "w1";
 
-  state.cloudStudio = { world: { id: "w1", membership_role: "editor" } };
+  studioStore.set({ cloudStudio: { world: { id: "w1", membership_role: "editor" } } });
   assert.equal(zhimuWorkspace.isWorldOwner("w1"), false);
 
-  state.cloudStudio = { world: { id: "w1", membership_role: "owner" } };
+  studioStore.set({ cloudStudio: { world: { id: "w1", membership_role: "owner" } } });
   assert.equal(zhimuWorkspace.isWorldOwner("w1"), true);
 
-  state.cloudStudio = { world: { id: "w1", owner_user_id: "user-9" } };
-  state.currentUser = { id: "user-9" };
+  studioStore.set({ cloudStudio: { world: { id: "w1", owner_user_id: "user-9" } } });
+  userStore.set({ currentUser: { id: "user-9" } });
   assert.equal(zhimuWorkspace.isWorldOwner("w1"), true);
 
-  state.cloudStudio = null;
-  state.cloudWorlds = [{ id: "w2", membership_role: "owner" }];
+  studioStore.set({ cloudStudio: null });
+  worldStore.set({ cloudWorlds: [{ id: "w2", membership_role: "owner" }] });
   assert.equal(zhimuWorkspace.isWorldOwner("w2"), true);
 });
 
