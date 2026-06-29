@@ -32,15 +32,9 @@ window.zhimuState = {
   studioLayoutMode: "scene-tree",
   studioCollapsedScenes: [],
   studioCanvasHeight: 0,
-  cloudAssets: [],
-  assetKindFilter: "",
-  assetSearchQuery: "",
-  assetShowRecycle: false,
-  assetTotal: 0,
   hostEventSelection: [],
   cloudRoomSettings: { hostVoiceListen: false },
-  cloudRulesPreview: null,
-  storageUsage: null
+  cloudRulesPreview: null
 };
 // 激活 Proxy 兼容桥：window.zhimuState 读/写按字段路由到对应 shard
 // 未在 shard 中的字段 fallback 到上面的字面量对象（legacy）
