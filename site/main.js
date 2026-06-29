@@ -7,6 +7,21 @@ const betaForm = document.querySelector("[data-beta-form]");
 const formStatus = document.querySelector("[data-form-status]");
 const workflowList = document.querySelector("[data-workflow-list]");
 const workflowSteps = [...document.querySelectorAll("[data-workflow-step]")];
+const externalEntrySelector = [
+  "[data-link-creator]",
+  "[data-link-login]",
+  "[data-link-official]",
+  "[data-link-play]",
+  "[data-link-host]",
+  "[data-pricing-in-app]"
+].join(",");
+
+function applyExternalEntryBehavior() {
+  document.querySelectorAll(externalEntrySelector).forEach((node) => {
+    node.setAttribute("target", "_blank");
+    node.setAttribute("rel", "noopener noreferrer");
+  });
+}
 
 function updateHeader() {
   header?.classList.toggle("is-scrolled", window.scrollY > 10);
@@ -46,6 +61,7 @@ function applySiteLinks(links = {}) {
   document.querySelectorAll("[data-link-host]").forEach((node) => {
     if (hostHref) node.setAttribute("href", hostHref);
   });
+  applyExternalEntryBehavior();
 }
 
 function escapeHtml(value = "") {
@@ -85,6 +101,7 @@ function applyPricingBootstrap(pricing = {}) {
   if (inApp && launch.cta?.inAppUrl) {
     inApp.setAttribute("href", launch.cta.inAppUrl);
     if (launch.cta.inAppLabel) inApp.textContent = launch.cta.inAppLabel;
+    applyExternalEntryBehavior();
   }
 
   const email = document.querySelector("[data-pricing-email]");
@@ -147,6 +164,7 @@ nav?.addEventListener("click", () => {
 
 window.addEventListener("scroll", updateHeader, { passive: true });
 updateHeader();
+applyExternalEntryBehavior();
 loadSiteBootstrap();
 
 function applyImportIntentPrefill() {

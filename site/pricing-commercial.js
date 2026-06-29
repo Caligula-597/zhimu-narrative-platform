@@ -1,5 +1,12 @@
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || "https://app.getzhimu.com";
 
+function applyExternalEntryBehavior() {
+  document.querySelectorAll("[data-link-creator]").forEach((node) => {
+    node.setAttribute("target", "_blank");
+    node.setAttribute("rel", "noopener noreferrer");
+  });
+}
+
 function escapeHtml(value = "") {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -61,6 +68,7 @@ async function bootstrap() {
       document.querySelectorAll("[data-link-creator]").forEach((node) => {
         node.setAttribute("href", payload.links.creatorApp);
       });
+      applyExternalEntryBehavior();
     }
 
     if (launch?.cta?.inAppUrl) {
@@ -74,4 +82,5 @@ async function bootstrap() {
   }
 }
 
+applyExternalEntryBehavior();
 bootstrap();
