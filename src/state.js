@@ -17,15 +17,6 @@ window.zhimuState = {
   cloudRecapLatest: null,
   cloudRecapDetail: null,
   activeRecapId: null,
-  cloudStudio: null,
-  cloudLoading: true,
-  studioSelectedNode: null,
-  studioAnchorEditing: false,
-  studioFilter: "all",
-  studioZoom: 1,
-  studioLayoutMode: "scene-tree",
-  studioCollapsedScenes: [],
-  studioCanvasHeight: 0,
   hostEventSelection: [],
   cloudRoomSettings: { hostVoiceListen: false }
 };
