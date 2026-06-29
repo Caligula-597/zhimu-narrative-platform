@@ -10,6 +10,16 @@ import path from "node:path";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+// Hard-disabled: this historical one-time script's template still uses the
+// pre-migration `window.zhimuGo` / `window.zhimuLoadCloudData` bridges.
+// Re-running it would overwrite the now-migrated src/views/pipeline-wizard-open.js
+// with a stale bridge version. Kept for traceability only.
+throw new Error(
+  "extract-pipeline-open.mjs is deprecated and disabled. " +
+  "Its template predates the zhimuRuntime direct-call migration. " +
+  "Do not re-run; edit src/views/pipeline-wizard-open.js directly instead."
+);
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const src = execSync("git show HEAD:src/views/pipeline-wizard.js", { encoding: "utf8", cwd: root });
 
