@@ -1,9 +1,8 @@
 import { uiStore, studioStore } from "../state/index.js";
+import { render } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 
 (function (window) {
-  function render() { window.zhimuRuntime?.render?.(); }
-
   function handleStudioAction(action, el) {
     switch (action) {
       case "studio-add-chapter": callView("studio", "openStudioChapter"); return true;

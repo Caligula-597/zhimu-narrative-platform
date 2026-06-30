@@ -1,12 +1,12 @@
 /* Auto-split from app.js — modal.js */
 import * as zhimuApi from "../api/index.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { showToast } from "./toast.js";
 (function (window) {
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
-  const R = window.zhimuRuntime || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -29,12 +29,6 @@ import { showToast } from "./toast.js";
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const go = (view) => window.zhimuRuntime?.go?.(view);
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
-  const bindDynamic = R.bindDynamic || (() => {});
-  const openWizard = R.openWizard || (() => {});
-  const openJoinRoom = R.openJoinRoom || (() => {});
   let modalScrollY = 0;
 
   function elementCanScrollVertically(el) {

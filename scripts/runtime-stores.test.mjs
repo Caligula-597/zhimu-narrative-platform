@@ -545,3 +545,23 @@ test("phase V4 does not expose a new zhimuViewRegistry window bridge", () => {
   assert.doesNotMatch(registryJs, /window\.zhimuViewRegistry/);
   assert.match(verifyScript, /viewRegistryModule\.viewRegistrySnapshot\(\)/);
 });
+
+test("A1 runtime facade centralizes low-risk runtime consumers", () => {
+  const facade = fs.readFileSync(path.join(root, "src/runtime/runtime-facade.js"), "utf8");
+  assert.match(facade, /export function callRuntime/);
+  assert.match(facade, /window\.zhimuRuntime \|\| \{\}/);
+
+  for (const rel of [
+    "src/components/emptyState.js",
+    "src/components/modal.js",
+    "src/runtime/actions-ops.js",
+    "src/runtime/actions-studio.js",
+    "src/runtime/actions-workspace.js",
+    "src/runtime/global-search.js"
+  ]) {
+    const source = fs.readFileSync(path.join(root, rel), "utf8");
+    assert.match(source, /runtime-facade\.js/);
+    assert.doesNotMatch(source, /const R = window\.zhimuRuntime/);
+    assert.doesNotMatch(source, /window\.zhimuRuntime\?\./);
+  }
+});

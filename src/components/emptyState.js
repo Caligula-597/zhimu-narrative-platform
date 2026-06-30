@@ -1,13 +1,13 @@
 /* Auto-split from app.js — emptyState.js */
 import * as zhimuApi from "../api/index.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { showToast } from "./toast.js";
 import { userStore, studioStore, worldStore, voiceStore } from "../state/index.js";
 (function (window) {
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
-  const R = window.zhimuRuntime || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -24,12 +24,6 @@ import { userStore, studioStore, worldStore, voiceStore } from "../state/index.j
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = (view) => window.zhimuRuntime?.go?.(view);
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
-  const bindDynamic = R.bindDynamic || (() => {});
-  const openWizard = R.openWizard || (() => {});
-  const openJoinRoom = R.openJoinRoom || (() => {});
   function activeRuntimeRoom() {
     return window.zhimuWorkspace?.activeRuntimeRoom?.() ?? null;
   }

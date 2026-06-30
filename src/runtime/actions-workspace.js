@@ -1,43 +1,42 @@
 /** Workspace / auth / cloud refresh action dispatch — isolated from view-specific handlers. */
 import { uiStore } from "../state/index.js";
+import { callRuntime, go, loadCloudData, render } from "./runtime-facade.js";
 (function (window) {
   function handleWorkspaceAction(action, el) {
-    const R = window.zhimuRuntime || {};
-
     switch (action) {
       case "account":
       case "open-auth":
-        R.openAuth?.();
+        callRuntime("openAuth");
         return true;
       case "world-library":
-        R.openWorldLibrary?.();
+        callRuntime("openWorldLibrary");
         return true;
       case "open-catalog":
-        R.openWorldLibrary?.("catalog");
+        callRuntime("openWorldLibrary", "catalog");
         return true;
       case "catalog-join":
-        R.joinCatalogWorld?.(el?.dataset?.worldId);
+        callRuntime("joinCatalogWorld", el?.dataset?.worldId);
         return true;
       case "world-rooms":
-        R.openWorldRooms?.();
+        callRuntime("openWorldRooms");
         return true;
       case "world-select":
-        R.selectWorld?.(el?.dataset?.worldId);
+        callRuntime("selectWorld", el?.dataset?.worldId);
         return true;
       case "world-delete":
-        R.deleteWorld?.(el?.dataset?.worldId, el?.dataset?.worldName);
+        callRuntime("deleteWorld", el?.dataset?.worldId, el?.dataset?.worldName);
         return true;
       case "world-rename":
-        R.openRenameWorldModal?.(el?.dataset?.worldId, el?.dataset?.worldName, el?.dataset?.worldSummary, true);
+        callRuntime("openRenameWorldModal", el?.dataset?.worldId, el?.dataset?.worldName, el?.dataset?.worldSummary, true);
         return true;
       case "room-select":
-        R.selectParallelRoom?.(el?.dataset?.roomId);
+        callRuntime("selectParallelRoom", el?.dataset?.roomId);
         return true;
       case "room-invite":
-        R.openRoomInvite?.(el?.dataset?.roomId, el?.dataset?.inviteCode, el?.dataset?.roomName);
+        callRuntime("openRoomInvite", el?.dataset?.roomId, el?.dataset?.inviteCode, el?.dataset?.roomName);
         return true;
       case "room-invite-current":
-        R.openCurrentRoomInvite?.();
+        callRuntime("openCurrentRoomInvite");
         return true;
       case "copy-invite-code":
         window.zhimuInviteLinks?.copyText?.(el?.dataset?.inviteCode, "邀请码");
@@ -63,30 +62,30 @@ import { uiStore } from "../state/index.js";
         );
         return true;
       case "room-join":
-        R.openJoinRoom?.(el?.dataset?.inviteCode);
+        callRuntime("openJoinRoom", el?.dataset?.inviteCode);
         return true;
       case "room-create":
-        R.createParallelRoom?.();
+        callRuntime("createParallelRoom");
         return true;
       case "room-listing-on":
-        R.setRoomPublicListing?.(el?.dataset?.roomId, true);
+        callRuntime("setRoomPublicListing", el?.dataset?.roomId, true);
         return true;
       case "room-listing-off":
-        R.setRoomPublicListing?.(el?.dataset?.roomId, false);
+        callRuntime("setRoomPublicListing", el?.dataset?.roomId, false);
         return true;
       case "refresh-cloud":
-        window.zhimuRuntime?.loadCloudData?.(true, true);
+        loadCloudData(true, true);
         return true;
       case "retry-view-module":
-        window.zhimuRuntime?.render?.();
+        render();
         return true;
       case "dismiss-onboarding":
         window.zhimuOnboarding?.dismiss?.();
-        window.zhimuRuntime?.render?.();
+        render();
         return true;
       case "dismiss-first-run":
         window.zhimuFirstRun?.dismiss?.();
-        window.zhimuRuntime?.render?.();
+        render();
         return true;
       case "open-play-official":
         window.open(window.zhimuFirstRun?.playOfficialUrl?.() || "https://play.getzhimu.com/?experience=official", "_blank", "noopener,noreferrer");
@@ -112,19 +111,19 @@ import { uiStore } from "../state/index.js";
         window.open(window.zhimuInviteLinks?.hostConsoleUrl?.(), "_blank", "noopener,noreferrer");
         return true;
       case "refresh-host-room":
-        R.refreshHostRoom?.(true);
+        callRuntime("refreshHostRoom", true);
         return true;
       case "refresh-host-events":
-        R.refreshHostEvents?.(true);
+        callRuntime("refreshHostEvents", true);
         return true;
       case "refresh-host-players":
-        R.refreshHostPlayers?.(true);
+        callRuntime("refreshHostPlayers", true);
         return true;
       case "refresh-host-clue-matrix":
-        R.refreshHostClueMatrix?.(true);
+        callRuntime("refreshHostClueMatrix", true);
         return true;
       case "refresh-host-audit":
-        R.refreshHostAuditLog?.(true);
+        callRuntime("refreshHostAuditLog", true);
         return true;
       case "open-account-hub":
       case "go-account": {
@@ -135,7 +134,7 @@ import { uiStore } from "../state/index.js";
           return true;
         }
         uiStore.set({ accountHubTab: tab });
-        R.go?.("account");
+        go("account");
         return true;
       }
       case "account-hub-tab":

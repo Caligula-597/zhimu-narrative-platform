@@ -295,5 +295,6 @@ case "clues-edit":
 - Phase V4 第一批已落地：`src/` 与 `app.js` 已移除 `window.zhimuViews` 旧桥写入、初始化和 registry fallback；`dependency-guard` 不再要求 `zhimuViews`；`verify-script-load` 改为检查 `zhimuViewRegistry`。
 - Phase V4 第二批已落地：`resolveViewFn()` 改为只解析当前 view；`frontend/main.js` 入口注释已同步；`window.zhimuViewRegistry` 诊断桥已移除，测试改为直接 import registry snapshot；带旧 `zhimuViews` 模板的历史迁移脚本已硬禁用。
 - 备注：`backend/test/script-bundle-import.test.js` 的 clues fallback 属于前序提交中的后端测试健壮性改进，不属于本轮 view registry 逻辑；后续提交继续保持前后端边界更清晰。
+- A1 runtime 收尾第一批已落地：新增 `src/runtime/runtime-facade.js`，`modal/emptyState/actions-ops/actions-studio/actions-workspace/global-search` 已改为通过 facade 调用 `go/render/loadCloudData/callRuntime`，不再直接读取 `window.zhimuRuntime`。
 
-下一步进入 A1 收尾的下一个项目任务：继续清理 `window.zhimuRuntime / zhimuDom` 消费者，优先选择低风险组件或 runtime shell adapter。
+下一步继续 A1 runtime 收尾：迁移 `auth-session/livekit-voice/search-focus/world-revision` 等 runtime 辅助模块，再逐步处理大型 view 文件中的 `render/go/loadCloudData`。

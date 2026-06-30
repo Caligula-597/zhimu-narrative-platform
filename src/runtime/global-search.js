@@ -3,10 +3,10 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
 import { uiStore } from "../state/index.js";
+import { go } from "./runtime-facade.js";
 (function (window) {
   const escapeHtml = window.zhimuFormat?.escapeHtml || ((v = "") => String(v));
   const closeModal = window.zhimuModal?.closeModal || (() => {});
-  const go = (view) => window.zhimuRuntime?.go?.(view);
   const Status = () => window.zhimuStatus || {};
 
   const TYPE_LABELS = {
