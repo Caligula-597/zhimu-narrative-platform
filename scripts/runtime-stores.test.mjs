@@ -421,7 +421,8 @@ test("view registry is introduced without disabling lazy view loading", () => {
   assert.match(registryJs, /export function getView/);
   assert.doesNotMatch(registryJs, /window\.zhimuViews/);
   assert.match(resolverJs, /import \{ getView \} from "\.\.\/runtime\/view-registry\.js"/);
-  assert.match(resolverJs, /overview: getView\("overview"\)\.overview/);
+  assert.match(resolverJs, /case "overview": return getView\("overview"\)\.overview/);
+  assert.doesNotMatch(resolverJs, /const views = \{/);
   assert.doesNotMatch(appJs, /const V = window\.zhimuViews/);
   assert.doesNotMatch(actionsJs, /const V = window\.zhimuViews/);
   assert.match(actionsJs, /callView\("studio", "bindStudioDragging"\)/);
@@ -535,4 +536,12 @@ test("phase V4 removes zhimuViews from startup requirements and src", () => {
     assert.doesNotMatch(source, /window\.zhimuViews/);
     assert.doesNotMatch(source, /\bzhimuViews\b/);
   }
+});
+
+test("phase V4 does not expose a new zhimuViewRegistry window bridge", () => {
+  const registryJs = fs.readFileSync(path.join(root, "src/runtime/view-registry.js"), "utf8");
+  const verifyScript = fs.readFileSync(path.join(root, "scripts/verify-script-load.mjs"), "utf8");
+  assert.match(registryJs, /export function viewRegistrySnapshot/);
+  assert.doesNotMatch(registryJs, /window\.zhimuViewRegistry/);
+  assert.match(verifyScript, /viewRegistryModule\.viewRegistrySnapshot\(\)/);
 });

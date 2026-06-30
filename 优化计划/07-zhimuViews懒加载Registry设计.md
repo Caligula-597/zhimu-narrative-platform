@@ -293,5 +293,7 @@ case "clues-edit":
 - Phase V3 第一批已落地：`account-hub` 对 `account/assets` 的跨 view 读取已改用 `callView()`；`modal/emptyState` 已移除未使用的 `window.zhimuViews` 捕获，同时保留兼容初始化。
 - Phase V3 第二批已落地：`room-events/search-focus` 的真实跨 view 调用已补 `ensureViewModules()` 并改用 `callView()`；`archive/director/overview/player/rules/studio/writer/auth-world/wizard` 中未使用的 `const V = window.zhimuViews` 已清理。
 - Phase V4 第一批已落地：`src/` 与 `app.js` 已移除 `window.zhimuViews` 旧桥写入、初始化和 registry fallback；`dependency-guard` 不再要求 `zhimuViews`；`verify-script-load` 改为检查 `zhimuViewRegistry`。
+- Phase V4 第二批已落地：`resolveViewFn()` 改为只解析当前 view；`frontend/main.js` 入口注释已同步；`window.zhimuViewRegistry` 诊断桥已移除，测试改为直接 import registry snapshot；带旧 `zhimuViews` 模板的历史迁移脚本已硬禁用。
+- 备注：`backend/test/script-bundle-import.test.js` 的 clues fallback 属于前序提交中的后端测试健壮性改进，不属于本轮 view registry 逻辑；后续提交继续保持前后端边界更清晰。
 
-下一步进入 Phase V4 收尾：清理历史脚本和旧优化文档里的 `zhimuViews` 示例/模板描述，或将其标注为历史记录；再评估是否把 `zhimuViewRegistry` 诊断入口也收窄为 dev-only。
+下一步进入 A1 收尾的下一个项目任务：继续清理 `window.zhimuRuntime / zhimuDom` 消费者，优先选择低风险组件或 runtime shell adapter。

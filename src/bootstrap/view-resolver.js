@@ -19,17 +19,17 @@ export function getViewMeta(view) {
 }
 
 export function resolveViewFn(view) {
-  const views = {
-    overview: getView("overview").overview,
-    writer: getView("writer").writer,
-    studio: getView("studio").studioCloud,
-    clues: getView("clues").clues,
-    rules: getView("rules").rules,
-    miniGames: getView("miniGames").miniGames,
-    archive: getView("archive").archive,
-    settings: getView("settings").settings,
-    account: getView("accountHub").accountHub,
-    ops: getView("ops").ops
-  };
-  return views[view];
+  switch (view) {
+    case "overview": return getView("overview").overview;
+    case "writer": return getView("writer").writer;
+    case "studio": return getView("studio").studioCloud;
+    case "clues": return getView("clues").clues;
+    case "rules": return getView("rules").rules;
+    case "miniGames": return getView("miniGames").miniGames;
+    case "archive": return getView("archive").archive;
+    case "settings": return getView("settings").settings;
+    case "account": return getView("accountHub").accountHub;
+    case "ops": return getView("ops").ops;
+    default: return undefined;
+  }
 }

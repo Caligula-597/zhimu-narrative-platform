@@ -23,5 +23,3 @@ export function callView(namespace, method, ...args) {
 export function viewRegistrySnapshot() {
   return Object.fromEntries(registry.entries());
 }
-
-window.zhimuViewRegistry = { registerView, getView, hasView, callView, viewRegistrySnapshot };

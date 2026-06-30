@@ -7,6 +7,8 @@
  * for traceability only. Modules now use real `import * as zhimuApi from
  * "../api/index.js"` — re-running this script would regress the migration.
  */
+throw new Error("Deprecated one-time migration script is disabled. Do not re-run after the ES module/view-registry migration.");
+
 import fs from "node:fs";
 import path from "node:path";
 

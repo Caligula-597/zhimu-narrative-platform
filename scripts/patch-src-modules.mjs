@@ -7,6 +7,8 @@
  * the old window-bridge pattern. Modules now import via real ES Modules
  * (`import * as zhimuApi from "../api/index.js"`) — re-running would regress.
  */
+throw new Error("Deprecated one-time migration script is disabled. Do not re-run after the ES module/view-registry migration.");
+
 import fs from "node:fs";
 import path from "node:path";
 

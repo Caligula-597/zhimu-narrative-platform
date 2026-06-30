@@ -216,16 +216,17 @@ for (const rel of files) {
 
 if (failed) process.exit(1);
 
-// Verify critical exports landed on the remaining runtime bridges/registries.
-const { zhimuRuntime, zhimuViewRegistry } = globalThis.window;
-const viewRegistry = zhimuViewRegistry?.viewRegistrySnapshot?.() || {};
+// Verify critical exports landed on the remaining runtime bridge and the ESM registry.
+const { zhimuRuntime } = globalThis.window;
+const viewRegistryModule = await import(fileUrl("src/runtime/view-registry.js"));
+const viewRegistry = viewRegistryModule.viewRegistrySnapshot();
 
 // API surface: verify via namespace import (window.zhimuApi bridge was removed
 // after all view/runtime/component consumers migrated to `import * as zhimuApi`).
 const apiNamespace = await import(fileUrl("src/api/index.js") + `?t=${Date.now()}-api-ns`);
 
 const checks = [
-  ["zhimuViewRegistry.overview.overview", typeof viewRegistry.overview?.overview],
+  ["viewRegistry.overview.overview", typeof viewRegistry.overview?.overview],
   ["zhimuRuntime.render", typeof zhimuRuntime?.render],
   ["zhimuRuntime.go", typeof zhimuRuntime?.go],
   ["zhimuRuntime.handle", typeof zhimuRuntime?.handle],
