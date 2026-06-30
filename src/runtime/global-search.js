@@ -1,9 +1,9 @@
 /** Global world search — unified API surface, single modal entry from topbar. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { modal, modalBackdrop } from "../dom.js";
 import { uiStore } from "../state/index.js";
 (function (window) {
-  const { modal, modalBackdrop } = window.zhimuDom;
   const escapeHtml = window.zhimuFormat?.escapeHtml || ((v = "") => String(v));
   const closeModal = window.zhimuModal?.closeModal || (() => {});
   const go = (view) => window.zhimuRuntime?.go?.(view);

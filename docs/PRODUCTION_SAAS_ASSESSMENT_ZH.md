@@ -29,7 +29,7 @@
 |---|---:|---|---|
 | 产品闭环 | 78 | 创作、玩家、主持、官网、公开库、线索、规则、复盘已形成闭环 | 新用户自助引导和反馈闭环还不够完整 |
 | 后端与领域建模 | 84 | `backend/src` 约 172 个源文件，路由按领域拆分，规则/存档/导入/账单/OPS 较全 | 聚合接口和 UI 友好摘要仍需补强 |
-| 前端与 UI 产品化 | 68 | 主应用、play、host、site 均已成形，近期已在做总控台/运行台/下一步行动 | `window.zhimuRuntime / zhimuViews / zhimuDom` 兼容桥仍多，三端共享层薄 |
+| 前端与 UI 产品化 | 68 | 主应用、play、host、site 均已成形，近期已在做总控台/运行台/下一步行动 | `window.zhimuRuntime / zhimuViews` 兼容桥仍多，三端共享层薄 |
 | 安全与权限 | 76 | Session、CSP、上传扫描、限流、schema、OPS token、统一错误已建立 | 生产环境还需真实验证和权限矩阵抽查 |
 | 测试与质量门禁 | 80 | 静态扫描约 187 个测试/验证文件，约 514 个测试声明，后端覆盖丰富 | E2E 仍需更稳定覆盖完整用户旅程 |
 | 运维与可观测 | 74 | health、ready、metrics、OTEL、alert、OPS 状态和生产可信七项已接线 | 告警值班、恢复演练、事故处理记录不足 |
@@ -73,7 +73,7 @@
 
 ### 1. 主应用前端复杂度偏高
 
-`zhimuState` 消费者已经完成分片迁移，根目录旧 `state.js` 也已删除；当前主应用的主要前端复杂度来自 `window.zhimuRuntime`、`window.zhimuViews`、`window.zhimuDom` 等剩余桥接。这不是产品设计导致的“冗余”，更多是早期快速把功能跑通后留下的演进成本。
+`zhimuState` 消费者已经完成分片迁移，根目录旧 `state.js` 也已删除；`window.zhimuDom` 业务消费者也已收口到显式 import。当前主应用的主要前端复杂度来自 `window.zhimuRuntime`、`window.zhimuViews` 等剩余桥接。这不是产品设计导致的“冗余”，更多是早期快速把功能跑通后留下的演进成本。
 
 这类问题在大项目里常见，但必须继续清理。否则后续每次改 UI、状态、弹窗、toast、页面切换，都可能牵动隐性依赖。
 
@@ -107,7 +107,7 @@
 
 ### P0：先把可信内测打稳
 
-- 完成 A1 剩余 `zhimuRuntime / zhimuViews / zhimuDom` 桥接收口。
+- 完成 A1 剩余 `zhimuRuntime / zhimuViews` 桥接收口。
 - 固化关键 E2E：创作、开房、玩家加入、主持推进、线索发放、复盘。
 - 跑通真实生产门槛：CSP、OTLP、alert、AV strict、OPS token、metrics token。
 - 做一次数据库备份恢复演练和一次上传扫描故障演练。

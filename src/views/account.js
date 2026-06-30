@@ -1,6 +1,7 @@
 /* Account settings page — quota, sessions, OAuth, auth actions. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { modal, modalBackdrop } from "../dom.js";
 import { uiStore, userStore, assetStore } from "../state/index.js";
   const F = window.zhimuFormat || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
@@ -34,8 +35,7 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
   }
 
   export async function openDeleteAccountWizard() {
-    const modal = window.zhimuDom?.modal;
-    const backdrop = window.zhimuDom?.modalBackdrop;
+    const backdrop = modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
     if (!modal || !backdrop || !window.zhimuSessionAuth?.isAuthenticated?.()) {
       showToast("请先登录");
@@ -97,8 +97,7 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
   }
 
   export async function openPlanUpgradeModal(desiredPlanCode = "creator") {
-    const modal = window.zhimuDom?.modal;
-    const backdrop = window.zhimuDom?.modalBackdrop;
+    const backdrop = modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
     if (!modal || !backdrop) return;
     const entitlements = uiStore.get().accountView?.entitlements;

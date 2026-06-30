@@ -1,12 +1,13 @@
-/* Toast notifications — migrated to real ES Module exports.
- * Depends on window.zhimuDom / window.zhimuUi (migrated in A2). */
+/* Toast notifications — migrated to real ES Module exports. */
+import { getToast } from "../dom.js";
 import { roomStore } from "../state/index.js";
-const { toast } = window.zhimuDom;
 function activeRuntimeRoom() {
   return window.zhimuUi?.activeRuntimeRoom?.() ?? window.zhimuWorkspace?.activeRuntimeRoom?.() ?? null;
 }
 
 export function showToast(text, duration = 2200) {
+  const toast = getToast();
+  if (!toast) return;
   toast.textContent = text;
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), duration);

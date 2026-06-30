@@ -1,4 +1,5 @@
 /** Fetch and show in-app markdown guides for creators. */
+import { modal, modalBackdrop } from "../dom.js";
 (function (window) {
   const escapeHtml = window.zhimuFormat?.escapeHtml || ((v = "") => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"));
 
@@ -78,8 +79,7 @@
   }
 
   async function openCreatorGuide() {
-    const modal = window.zhimuDom?.modal;
-    const backdrop = window.zhimuDom?.modalBackdrop;
+    const backdrop = modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";
@@ -105,8 +105,7 @@
   }
 
   async function openErrorGuide() {
-    const modal = window.zhimuDom?.modal;
-    const backdrop = window.zhimuDom?.modalBackdrop;
+    const backdrop = modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";
@@ -128,8 +127,7 @@
   }
 
   async function openLegalDoc(docPath, title = "法律文档") {
-    const modal = window.zhimuDom?.modal;
-    const backdrop = window.zhimuDom?.modalBackdrop;
+    const backdrop = modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal legal-doc-modal";
@@ -147,8 +145,7 @@
   }
 
   async function openFirstSessionGuide() {
-    const modal = window.zhimuDom?.modal;
-    const backdrop = window.zhimuDom?.modalBackdrop;
+    const backdrop = modalBackdrop;
     const closeModal = window.zhimuModal?.closeModal;
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";

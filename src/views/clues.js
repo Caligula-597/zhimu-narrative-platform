@@ -1,9 +1,9 @@
 /* Clue management — list, search, edit without opening the full studio canvas. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { modal, modalBackdrop } from "../dom.js";
 import { uiStore, roomStore, studioStore, assetStore, worldStore } from "../state/index.js";
 
-  const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};

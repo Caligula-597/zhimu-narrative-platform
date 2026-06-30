@@ -1,8 +1,8 @@
 /** AI pipeline wizard modal controller (open + render loop). */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { modal, modalBackdrop } from "../dom.js";
 (function (window) {
-  const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const M = window.zhimuModal || {};
   const formatRelativeTime = F.formatRelativeTime || (() => "");

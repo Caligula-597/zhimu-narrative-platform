@@ -2,6 +2,7 @@
 import { updateNotifyBadge } from "./src/components/toast.js";
 import { getViewMeta, resolveViewFn } from "./src/bootstrap/view-resolver.js";
 import { initEvents } from "./src/bootstrap/events.js";
+import { content, modalBackdrop } from "./src/dom.js";
 import { uiStore, studioStore, userStore } from "./src/state/index.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
@@ -9,7 +10,6 @@ const appEntry = (function (window) {
 
   const V = window.zhimuViews;
   const R = window.zhimuRuntime;
-  const { content, modalBackdrop } = window.zhimuDom;
 
   let renderToken = 0;
   let lastContentHtml = "";

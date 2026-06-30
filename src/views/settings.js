@@ -1,10 +1,10 @@
 /* Auto-split from app.js — settings.js */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { modal, modalBackdrop } from "../dom.js";
 import { uiStore, userStore, worldStore, studioStore, roomStore, assetStore } from "../state/index.js";
 
 
-  const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const R = window.zhimuRuntime || {};

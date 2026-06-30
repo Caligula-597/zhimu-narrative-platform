@@ -1,9 +1,9 @@
 /* Auto-split from app.js — assets.js */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { modal, modalBackdrop } from "../dom.js";
 import { uiStore, assetStore, studioStore } from "../state/index.js";
 
-  const { modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const canEditWorldContent = U.canEditWorldContent || (() => false);

@@ -1,9 +1,9 @@
 /* Auto-split from app.js — wizard.js */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { content, toast, modal, modalBackdrop } from "../dom.js";
 import { uiStore, wizardStore } from "../state/index.js";
 
-  const { content, toast, modal, modalBackdrop } = window.zhimuDom;
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
