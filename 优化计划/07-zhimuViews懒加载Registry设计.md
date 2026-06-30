@@ -291,5 +291,6 @@ case "clues-edit":
 - Phase V2 action 消费者收尾已落地：`miniGames / ops` 已注册 registry；`actions-mini-games.js`、`actions-ops.js` 已改用 `callView()`。
 - Phase V3 前置清理已开始：`account / accountHub` 已注册 registry；`actions.js` 的渲染后绑定已改用 `callView()`。
 - Phase V3 第一批已落地：`account-hub` 对 `account/assets` 的跨 view 读取已改用 `callView()`；`modal/emptyState` 已移除未使用的 `window.zhimuViews` 捕获，同时保留兼容初始化。
+- Phase V3 第二批已落地：`room-events/search-focus` 的真实跨 view 调用已补 `ensureViewModules()` 并改用 `callView()`；`archive/director/overview/player/rules/studio/writer/auth-world/wizard` 中未使用的 `const V = window.zhimuViews` 已清理。
 
-下一步继续 Phase V3：收敛 `archive/director/overview/player/rules/studio/writer` 以及 `auth-world/room-events/search-focus/wizard` 等剩余跨 view 读取点；这些位置可能涉及加载时序，需要逐个判断是否补 `ensureViewModules`。
+下一步进入 Phase V4 准备：先盘点剩余 `window.zhimuViews.xxx = api` 旧桥写入和 `dependency-guard` 对 `zhimuViews` 的启动依赖，确认没有外部入口仍依赖旧桥后，再分批删除写入。

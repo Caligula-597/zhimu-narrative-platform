@@ -487,3 +487,34 @@ test("phase V3 component shells no longer capture unused zhimuViews handles", ()
     assert.doesNotMatch(source, /const V = window\.zhimuViews \|\| \{\};/);
   }
 });
+
+test("phase V3 runtime cross-view calls go through loader and registry", () => {
+  const roomEvents = fs.readFileSync(path.join(root, "src/runtime/room-events.js"), "utf8");
+  const searchFocus = fs.readFileSync(path.join(root, "src/runtime/search-focus.js"), "utf8");
+  assert.match(roomEvents, /import \{ callView \} from "\.\/view-registry\.js"/);
+  assert.match(roomEvents, /ensureViewModules\?\.\("player"\)/);
+  assert.match(roomEvents, /callView\("player", "refreshVoiceMessages"\)/);
+  assert.match(searchFocus, /import \{ callView \} from "\.\/view-registry\.js"/);
+  assert.match(searchFocus, /ensureViewModules\?\.\("writer"\)/);
+  assert.match(searchFocus, /callView\("writer", "openCreatorSection"/);
+});
+
+test("phase V3 removes stale zhimuViews read handles", () => {
+  for (const rel of [
+    "src/views/archive.js",
+    "src/views/director.js",
+    "src/views/overview.js",
+    "src/views/player.js",
+    "src/views/rules.js",
+    "src/views/studio.js",
+    "src/views/writer.js",
+    "src/runtime/auth-world.js",
+    "src/runtime/room-events.js",
+    "src/runtime/search-focus.js",
+    "src/runtime/wizard.js"
+  ]) {
+    const source = fs.readFileSync(path.join(root, rel), "utf8");
+    assert.doesNotMatch(source, /const V = window\.zhimuViews \|\| \{\};/);
+    assert.doesNotMatch(source, /\bV\.[a-zA-Z_$]/);
+  }
+});

@@ -9,7 +9,6 @@ import { uiStore, userStore, worldStore, studioStore, roomStore, assetStore } fr
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
-  const V = window.zhimuViews || {};
   const S = window.zhimuUiSemantics || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");

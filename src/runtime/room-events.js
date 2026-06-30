@@ -2,9 +2,8 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
 import { uiStore, roomStore, userStore, voiceStore } from "../state/index.js";
+import { callView } from "./view-registry.js";
 (function (window) {
-  const V = window.zhimuViews || {};
-
   let directorPollTimer = null;
   let playerPollTimer = null;
   const DIRECTOR_POLL_MS = 15000;
@@ -247,7 +246,10 @@ import { uiStore, roomStore, userStore, voiceStore } from "../state/index.js";
         } else if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
         break;
       case "room.voice_message_created":
-        if (data.voiceRoomId === voiceRoomId) await (V.player?.refreshVoiceMessages || (async () => {}))();
+        if (data.voiceRoomId === voiceRoomId) {
+          await window.zhimuViewLoader?.ensureViewModules?.("player");
+          await callView("player", "refreshVoiceMessages");
+        }
         break;
       case "room.checkpoint_restored":
         if (view === "director" || view === "overview" || view === "archive") {

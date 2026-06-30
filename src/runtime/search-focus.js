@@ -1,9 +1,8 @@
 import { uiStore, studioStore } from "../state/index.js";
+import { callView } from "./view-registry.js";
 
 /** Apply global-search navigation focus — select studio nodes, scroll, pulse highlight. */
 (function (window) {
-  const V = window.zhimuViews || {};
-
   const STUDIO_NODE_TYPES = {
     scene: "scene",
     clue: "clue",
@@ -23,7 +22,7 @@ import { uiStore, studioStore } from "../state/index.js";
     if (!focus) return;
     uiStore.set({ searchFocus: null });
 
-    requestAnimationFrame(() => {
+    requestAnimationFrame(async () => {
       if (focus.view === "studio" && focus.id) {
         const nodeType = focus.nodeType || STUDIO_NODE_TYPES[focus.type] || focus.type;
         studioStore.set({ studioSelectedNode: { type: nodeType, id: focus.id } });
@@ -39,7 +38,10 @@ import { uiStore, studioStore } from "../state/index.js";
         if (focus.type === "section" && focus.id) {
           const section = studioStore.get().cloudStudio?.sections?.find((row) => row.id === focus.id);
           pulseElement(document.querySelector(`[data-section="${focus.id}"]`));
-          if (section) V.writer?.openCreatorSection?.(section.role_slot_id, focus.id);
+          if (section) {
+            await window.zhimuViewLoader?.ensureViewModules?.("writer");
+            callView("writer", "openCreatorSection", section.role_slot_id, focus.id);
+          }
           return;
         }
         if (focus.type === "role" && focus.id) {
