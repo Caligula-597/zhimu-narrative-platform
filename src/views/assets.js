@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore, assetStore, studioStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -184,5 +185,7 @@ export async function uploadSelectedAsset(){
 
 // Bridge: window.zhimuViews.assets populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const assetsViewApi = { assetsPanelHtml, bindAssetSearch, bindAssetsPanel, reloadAssets, setAssetFilter, toggleAssetRecycle, restoreCloudAsset, setWorldCoverAsset, clearWorldCover, deleteCloudAsset, downloadCloudAsset, openAssetUpload, uploadSelectedAsset };
+registerView("assets", assetsViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.assets = { assetsPanelHtml, bindAssetSearch, bindAssetsPanel, reloadAssets, setAssetFilter, toggleAssetRecycle, restoreCloudAsset, setWorldCoverAsset, clearWorldCover, deleteCloudAsset, downloadCloudAsset, openAssetUpload, uploadSelectedAsset };
+window.zhimuViews.assets = assetsViewApi;

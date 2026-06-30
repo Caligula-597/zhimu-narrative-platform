@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore, roomStore, voiceStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -555,5 +556,7 @@ export function openClueNoteModal(clueId){
 
 // Bridge: window.zhimuViews.player populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const playerViewApi = { hostConfirmBanner, player, voiceHub, voiceChat, currentCloudScene, reader, explorationRows, cloudClueRows, sharedClueSection, openVoiceRooms, openCreateVoiceRoom, openInviteVoiceRoom, joinVoiceRoom, connectVoiceLive, disconnectVoiceLive, toggleVoiceMic, unlockVoicePlayback, refreshVoiceMessages, sendVoiceMessage, bindPlayerReader, completeCloudReading, addStoryHighlight, removeStoryHighlight, investigateCloud, readCloudClue, shareCloudClue, openShareClueRolesModal, openClueNoteModal };
+registerView("player", playerViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.player = { hostConfirmBanner, player, voiceHub, voiceChat, currentCloudScene, reader, explorationRows, cloudClueRows, sharedClueSection, openVoiceRooms, openCreateVoiceRoom, openInviteVoiceRoom, joinVoiceRoom, connectVoiceLive, disconnectVoiceLive, toggleVoiceMic, unlockVoicePlayback, refreshVoiceMessages, sendVoiceMessage, bindPlayerReader, completeCloudReading, addStoryHighlight, removeStoryHighlight, investigateCloud, readCloudClue, shareCloudClue, openShareClueRolesModal, openClueNoteModal };
+window.zhimuViews.player = playerViewApi;

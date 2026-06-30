@@ -1,5 +1,6 @@
 /** Unified account + content assets page (not modal). */
 import * as zhimuApi from "../api/index.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -101,5 +102,7 @@ import { uiStore } from "../state/index.js";
 
 // Bridge: window.zhimuViews.accountHub populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const accountHubViewApi = { accountHub, bindAccountHubView, switchAccountHubTab, goAccountHub, beginAccountHubLoad };
+registerView("accountHub", accountHubViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.accountHub = { accountHub, bindAccountHubView, switchAccountHubTab, goAccountHub, beginAccountHubLoad };
+window.zhimuViews.accountHub = accountHubViewApi;

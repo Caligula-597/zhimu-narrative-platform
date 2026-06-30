@@ -1,14 +1,13 @@
 /* Actions for creator mini-game design test feature. */
-(function (window) {
-  function views() { return window.zhimuViews || {}; }
+import { callView } from "./view-registry.js";
 
+(function (window) {
   function handleMiniGamesAction(action, el) {
-    const M = views().miniGames || {};
     switch (action) {
-      case "mini-game-new": M.openMiniGameEditor?.(""); return true;
-      case "mini-game-edit": M.openMiniGameEditor?.(el?.dataset?.template); return true;
-      case "mini-game-delete": M.deleteMiniGameTemplate?.(el?.dataset?.template); return true;
-      case "mini-game-launch": M.launchMiniGameTemplate?.(el?.dataset?.template); return true;
+      case "mini-game-new": callView("miniGames", "openMiniGameEditor", ""); return true;
+      case "mini-game-edit": callView("miniGames", "openMiniGameEditor", el?.dataset?.template); return true;
+      case "mini-game-delete": callView("miniGames", "deleteMiniGameTemplate", el?.dataset?.template); return true;
+      case "mini-game-launch": callView("miniGames", "launchMiniGameTemplate", el?.dataset?.template); return true;
       default: return false;
     }
   }

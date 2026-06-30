@@ -1,6 +1,7 @@
 /** Internal operations console. */
 import * as api from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -59,5 +60,7 @@ export async function loadOpsData() {
 
 // Bridge: window.zhimuViews.ops populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const opsViewApi = { ops, loadOpsData };
+registerView("ops", opsViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.ops = { ops, loadOpsData };
+window.zhimuViews.ops = opsViewApi;

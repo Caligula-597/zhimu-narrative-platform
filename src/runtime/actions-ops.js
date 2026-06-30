@@ -2,13 +2,15 @@
 import * as api from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { uiStore, userStore } from "../state/index.js";
+import { callView } from "./view-registry.js";
+
 (function (window) {
   const showError = (error, fallback = "OPS 操作失败") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   function render() { window.zhimuRuntime?.render?.(); }
 
   async function refresh() {
     try {
-      await window.zhimuViews?.ops?.loadOpsData?.();
+      await callView("ops", "loadOpsData");
       render();
       showToast("OPS 数据已刷新");
     } catch (error) {

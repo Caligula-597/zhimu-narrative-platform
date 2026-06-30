@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore, studioStore, worldStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -365,5 +366,7 @@ export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.delete
 
 // Bridge: window.zhimuViews.writer populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const writerViewApi = { writer, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, storyManuscriptStatus, openCollaboration, openWorldLogs, openDocumentParser, fileToBase64, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+registerView("writer", writerViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.writer = { writer, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, storyManuscriptStatus, openCollaboration, openWorldLogs, openDocumentParser, fileToBase64, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+window.zhimuViews.writer = writerViewApi;

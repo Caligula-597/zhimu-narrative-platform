@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore, userStore, worldStore, studioStore, roomStore, assetStore } from "../state/index.js";
 
 
@@ -198,5 +199,7 @@ export async function openWorldAuditModal(){
 
 // Bridge: window.zhimuViews.settings populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const settingsViewApi = { settings, saveWorldSettings, saveRoomSettings, goWriterExport, openWorldAuditModal, openCatalogReviewModal, withdrawCatalogListing };
+registerView("settings", settingsViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.settings = { settings, saveWorldSettings, saveRoomSettings, goWriterExport, openWorldAuditModal, openCatalogReviewModal, withdrawCatalogListing };
+window.zhimuViews.settings = settingsViewApi;

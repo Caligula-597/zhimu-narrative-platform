@@ -1,9 +1,9 @@
 /* Global data-action dispatcher — domain handlers live in actions-*.js */
 import { showToast } from "../components/toast.js";
 import { uiStore } from "../state/index.js";
+import { callView } from "./view-registry.js";
 
   const R = window.zhimuRuntime || {};
-  const V = window.zhimuViews || {};
   const M = window.zhimuModal || {};
   const openModal = M.openModal || (() => {});
   const enhanceCloudPanels = R.enhanceCloudPanels || (() => {});
@@ -30,10 +30,10 @@ export function bindDynamic() {
       else el.onclick = () => handle(el.dataset.action, el);
     });
     const view = uiStore.get().view;
-    if (view === "studio") V.studio?.bindStudioDragging?.();
-    if (view === "clues") V.clues?.bindCluesSearch?.();
-    if (view === "account") V.accountHub?.bindAccountHubView?.();
-    if (view === "player") V.player?.bindPlayerReader?.();
+    if (view === "studio") callView("studio", "bindStudioDragging");
+    if (view === "clues") callView("clues", "bindCluesSearch");
+    if (view === "account") callView("accountHub", "bindAccountHubView");
+    if (view === "player") callView("player", "bindPlayerReader");
     window.zhimuSearchFocus?.applyAfterRender?.();
   }
 

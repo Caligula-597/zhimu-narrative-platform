@@ -1,4 +1,6 @@
 /** View metadata and resolution — extracted from app.js bootstrap. */
+import { getView } from "../runtime/view-registry.js";
+
 const viewMeta = {
   overview: ["世界工作区", "世界总览"],
   writer: ["剧本杀创作", "创作者工作台"],
@@ -16,18 +18,18 @@ export function getViewMeta(view) {
   return viewMeta[view];
 }
 
-export function resolveViewFn(view, V) {
+export function resolveViewFn(view) {
   const views = {
-    overview: V.overview?.overview,
-    writer: V.writer?.writer,
-    studio: V.studio?.studioCloud,
-    clues: V.clues?.clues,
-    rules: V.rules?.rules,
-    miniGames: V.miniGames?.miniGames,
-    archive: V.archive?.archive,
-    settings: V.settings?.settings,
-    account: V.accountHub?.accountHub,
-    ops: V.ops?.ops
+    overview: getView("overview").overview,
+    writer: getView("writer").writer,
+    studio: getView("studio").studioCloud,
+    clues: getView("clues").clues,
+    rules: getView("rules").rules,
+    miniGames: getView("miniGames").miniGames,
+    archive: getView("archive").archive,
+    settings: getView("settings").settings,
+    account: getView("accountHub").accountHub,
+    ops: getView("ops").ops
   };
   return views[view];
 }

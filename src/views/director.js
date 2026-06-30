@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore, roomStore, worldStore, studioStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -447,5 +448,7 @@ export function openHostMiniGameModal(){
 
 // Bridge: window.zhimuViews.director populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const directorViewApi = { director, hostPlayerTableRows, directorPlayers, hostEventRows, hostActionSummary, directorRulesPreview, refreshRulesPreview, triggerManualRuleFromDirector, hostEventBatchToolbar, toggleHostEventSelection, syncHostEventSelectAll, batchHostEventsAction, hostClueMatrixLabel, hostClueMatrixCard, hostAuditCard, openHostPlayerDetail, kickHostPlayer, openHostClueNote, openHostEventContext, openHostGrantClueModal, openDelayHostEventModal, openHostGrantItemModal, openHostUnlockSectionModal, openHostUnlockSceneModal, openHostMiniGameModal, openHostLogModal, dismissHostEvent, executeHostEvent, openHostNudgeWaitingModal, hostPlayerWaitStrip, hostLiveFeed };
+registerView("director", directorViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.director = { director, hostPlayerTableRows, directorPlayers, hostEventRows, hostActionSummary, directorRulesPreview, refreshRulesPreview, triggerManualRuleFromDirector, hostEventBatchToolbar, toggleHostEventSelection, syncHostEventSelectAll, batchHostEventsAction, hostClueMatrixLabel, hostClueMatrixCard, hostAuditCard, openHostPlayerDetail, kickHostPlayer, openHostClueNote, openHostEventContext, openHostGrantClueModal, openDelayHostEventModal, openHostGrantItemModal, openHostUnlockSectionModal, openHostUnlockSceneModal, openHostMiniGameModal, openHostLogModal, dismissHostEvent, executeHostEvent, openHostNudgeWaitingModal, hostPlayerWaitStrip, hostLiveFeed };
+window.zhimuViews.director = directorViewApi;

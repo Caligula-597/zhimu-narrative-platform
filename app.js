@@ -8,7 +8,6 @@ const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
   if (startupMissing.length) return { render: () => {}, go: () => {} };
 
-  const V = window.zhimuViews;
   const R = window.zhimuRuntime;
 
   let renderToken = 0;
@@ -62,7 +61,7 @@ const appEntry = (function (window) {
     }
     const outage = window.zhimuServiceOutage;
     const showOutage = outage?.isServiceOutage?.(userStore.get().apiError) && !studioStore.get().cloudLoading;
-    const viewFn = resolveViewFn(uiStore.get().view, V);
+    const viewFn = resolveViewFn(uiStore.get().view);
     const contentChanged = setContentHtml(showOutage ? outage.renderServiceOutage(userStore.get().apiError) : (viewFn ? viewFn() : renderViewLoading(title)));
     if (contentChanged && ["settings", "studio", "writer"].includes(uiStore.get().view)) {
       queueMicrotask(() => {

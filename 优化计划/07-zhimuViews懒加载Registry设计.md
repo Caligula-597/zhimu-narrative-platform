@@ -275,3 +275,20 @@ case "clues-edit":
 4. 跑完整状态验收。
 
 如果 V1 稳定，再进入 actions 的分批迁移。
+
+## 执行状态
+
+2026-06-30 更新：
+
+- Phase V1 已落地：新增 `src/runtime/view-registry.js`。
+- `src/bootstrap/view-resolver.js` 已改为 registry 优先读取 view function。
+- `app.js` 已移除 `const V = window.zhimuViews` 的直接入口依赖。
+- `overview / clues / settings` 三个试点 view 已同时注册 registry 和旧桥。
+- 已补充 `scripts/runtime-stores.test.mjs` source-inspection 覆盖，防止后续误回退。
+- Phase V2 第一批已落地：`actions-clues.js`、`actions-rules.js` 已改用 `callView()`，不再直接读取 `window.zhimuViews`。
+- Phase V2 第二批已落地：`assets / archive / player` 三个 view 已注册 registry；`actions-assets.js`、`actions-archive.js`、`actions-player.js` 已改用 `callView()`。
+- Phase V2 第三批已落地：`director / studio / writer` 三个 view 已注册 registry；`actions-director.js`、`actions-studio.js`、`actions-writer.js` 已改用 `callView()`。
+- Phase V2 action 消费者收尾已落地：`miniGames / ops` 已注册 registry；`actions-mini-games.js`、`actions-ops.js` 已改用 `callView()`。
+- Phase V3 前置清理已开始：`account / accountHub` 已注册 registry；`actions.js` 的渲染后绑定已改用 `callView()`。
+
+下一步继续 Phase V3：收敛 `modal/emptyState`、`account-hub` 等跨 view 读取点；这些位置可能涉及加载时序，需要逐个判断是否补 `ensureViewModules`。

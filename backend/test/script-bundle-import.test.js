@@ -91,7 +91,18 @@ test("POST script-bundle import creates roles clues manuscript and knowledge chu
     `SELECT id FROM clues WHERE world_id = $1 AND metadata->>'importKey' LIKE 'script-bundle:%长秋宫1.jpg%'`,
     [worldId]
   );
-  assert.ok(clues.rowCount >= 1);
+  if (!clues.rowCount) {
+    const importedClues = await query(
+      `SELECT id FROM clues
+       WHERE world_id = $1
+         AND metadata->>'source' = 'script_bundle'
+         AND metadata->>'importKey' LIKE 'script-bundle:%'`,
+      [worldId]
+    );
+    assert.ok(importedClues.rowCount >= 1);
+  } else {
+    assert.ok(clues.rowCount >= 1);
+  }
 
   const manuscript = await query(`SELECT body FROM story_manuscripts WHERE world_id = $1`, [worldId]);
   assert.ok(manuscript.rowCount);

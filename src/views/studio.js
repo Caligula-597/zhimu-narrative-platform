@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore, studioStore, worldStore, assetStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -443,5 +444,7 @@ function studioMobileOutline(data){
 
 // Bridge: window.zhimuViews.studio populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const studioViewApi = { studioCloud, studioNodes, studioNode, studioNodeList, studioSceneChildCount, studioVisibleNodes, studioFilterButton, studioCompactSelection, studioDefaultPositions, studioNodePosition, studioNodeRecord, studioNodeAnchors, setStudioNodePosition, setStudioNodeAnchors, closestStudioAnchorPair, studioNodeName, studioEdges, studioSelection, studioEditField, studioEditSelect, studioEditValues, studioNodeEditPanel, bindStudioDragging, addStudioAnchor, deleteStudioAnchor, refreshStudioConnectors, autoLayoutStudio, openStudioLayoutMenu, saveSelectedStudioNode, deleteSelectedStudioNode, deleteStudioEdge, openStudioChapter, openStudioNodeMenu, openStudioScene, openStudioClue, openStudioItem, openStudioPoint, openStudioConnection, openStudioDragConnection };
+registerView("studio", studioViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.studio = { studioCloud, studioNodes, studioNode, studioNodeList, studioSceneChildCount, studioVisibleNodes, studioFilterButton, studioCompactSelection, studioDefaultPositions, studioNodePosition, studioNodeRecord, studioNodeAnchors, setStudioNodePosition, setStudioNodeAnchors, closestStudioAnchorPair, studioNodeName, studioEdges, studioSelection, studioEditField, studioEditSelect, studioEditValues, studioNodeEditPanel, bindStudioDragging, addStudioAnchor, deleteStudioAnchor, refreshStudioConnectors, autoLayoutStudio, openStudioLayoutMenu, saveSelectedStudioNode, deleteSelectedStudioNode, deleteStudioEdge, openStudioChapter, openStudioNodeMenu, openStudioScene, openStudioClue, openStudioItem, openStudioPoint, openStudioConnection, openStudioDragConnection };
+window.zhimuViews.studio = studioViewApi;

@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore, roomStore, worldStore, studioStore } from "../state/index.js";
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -296,5 +297,7 @@ export function openRestoreCheckpointModal(checkpointId,checkpointLabel){
 
 // Bridge: window.zhimuViews.archive populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const archiveViewApi = { archive, recapDetailView, checkpointPlayerSummary, checkpointClueSummary, openCreateRecapModal, openCreateCheckpointModal, openRecapDetail, closeRecapDetail, openPlayerRecapFromBanner, openPlayerRecapModal, checkpointRestoreHistoryRows, openCheckpointDetail, openRestoreCheckpointModal };
+registerView("archive", archiveViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.archive = { archive, recapDetailView, checkpointPlayerSummary, checkpointClueSummary, openCreateRecapModal, openCreateCheckpointModal, openRecapDetail, closeRecapDetail, openPlayerRecapFromBanner, openPlayerRecapModal, checkpointRestoreHistoryRows, openCheckpointDetail, openRestoreCheckpointModal };
+window.zhimuViews.archive = archiveViewApi;

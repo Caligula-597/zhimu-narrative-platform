@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore, userStore, assetStore } from "../state/index.js";
   const F = window.zhimuFormat || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
@@ -280,5 +281,7 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
 
 // Bridge: window.zhimuViews.account populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const accountViewApi = { accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard, openPlanUpgradeModal };
+registerView("account", accountViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.account = { accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard, openPlanUpgradeModal };
+window.zhimuViews.account = accountViewApi;

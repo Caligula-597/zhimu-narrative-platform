@@ -1,6 +1,7 @@
 /* Creator mini-game design — test feature backed by room mini-game runtime. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { registerView } from "../runtime/view-registry.js";
 import { studioStore, worldStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -208,5 +209,7 @@ import { studioStore, worldStore } from "../state/index.js";
 
 // Bridge: window.zhimuViews.miniGames populated from real exports.
 // Will be removed in Phase 4 when consumers migrate to direct imports.
+export const miniGamesViewApi = { miniGames, openMiniGameEditor, deleteMiniGameTemplate, launchMiniGameTemplate };
+registerView("miniGames", miniGamesViewApi);
 window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.miniGames = { miniGames, openMiniGameEditor, deleteMiniGameTemplate, launchMiniGameTemplate };
+window.zhimuViews.miniGames = miniGamesViewApi;

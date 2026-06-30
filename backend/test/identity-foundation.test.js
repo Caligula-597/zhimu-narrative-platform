@@ -305,13 +305,18 @@ test("register auto-accepts pending world invite for same email", async (context
 test("plan code raises effective storage limits", async () => {
   const row = await query(`SELECT id FROM users WHERE user_kind = 'registered' LIMIT 1`);
   const userId = row.rows[0].id;
-  const before = await effectiveStorageLimits(userId);
-  await setUserPlan(userId, "creator");
-  const upgraded = await effectiveStorageLimits(userId);
-  assert.equal(upgraded.planCode, "creator");
-  assert.ok(upgraded.max_worlds >= before.max_worlds);
-  assert.ok(upgraded.max_worlds >= 10);
-  await setUserPlan(userId, before.planCode);
+  const original = await effectiveStorageLimits(userId);
+  try {
+    await setUserPlan(userId, "free");
+    const before = await effectiveStorageLimits(userId);
+    await setUserPlan(userId, "creator");
+    const upgraded = await effectiveStorageLimits(userId);
+    assert.equal(upgraded.planCode, "creator");
+    assert.ok(upgraded.max_worlds >= before.max_worlds);
+    assert.ok(upgraded.max_worlds >= 10);
+  } finally {
+    await setUserPlan(userId, original.planCode);
+  }
 });
 
 test("assertCapability rejects guest for world.create", async (context) => {

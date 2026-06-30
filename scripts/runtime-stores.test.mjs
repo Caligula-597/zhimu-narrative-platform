@@ -409,3 +409,64 @@ test("main.js loads store modules before auth-world and data.js", () => {
   const dataIdx = mainJs.indexOf("runtime/data.js");
   assert.ok(workspaceIdx > -1 && authWorldIdx > workspaceIdx && dataIdx > authWorldIdx);
 });
+
+test("view registry is introduced without disabling lazy view loading", () => {
+  const registryJs = fs.readFileSync(path.join(root, "src/runtime/view-registry.js"), "utf8");
+  const resolverJs = fs.readFileSync(path.join(root, "src/bootstrap/view-resolver.js"), "utf8");
+  const loaderJs = fs.readFileSync(path.join(root, "src/runtime/view-loader.js"), "utf8");
+  const appJs = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  const actionsJs = fs.readFileSync(path.join(root, "src/runtime/actions.js"), "utf8");
+
+  assert.match(registryJs, /export function registerView/);
+  assert.match(registryJs, /export function getView/);
+  assert.match(registryJs, /window\.zhimuViews\?\.\[namespace\]/);
+  assert.match(resolverJs, /import \{ getView \} from "\.\.\/runtime\/view-registry\.js"/);
+  assert.match(resolverJs, /overview: getView\("overview"\)\.overview/);
+  assert.doesNotMatch(appJs, /const V = window\.zhimuViews/);
+  assert.doesNotMatch(actionsJs, /const V = window\.zhimuViews/);
+  assert.match(actionsJs, /callView\("studio", "bindStudioDragging"\)/);
+  assert.match(loaderJs, /\(\) => import\("\.\.\/views\/clues\.js"\)/);
+});
+
+test("phase V1 view pilots register APIs while preserving the old bridge", () => {
+  for (const [rel, namespace] of [
+    ["src/views/overview.js", "overview"],
+    ["src/views/clues.js", "clues"],
+    ["src/views/settings.js", "settings"],
+    ["src/views/assets.js", "assets"],
+    ["src/views/archive.js", "archive"],
+    ["src/views/player.js", "player"],
+    ["src/views/director.js", "director"],
+    ["src/views/studio.js", "studio"],
+    ["src/views/writer.js", "writer"],
+    ["src/views/mini-games.js", "miniGames"],
+    ["src/views/ops.js", "ops"],
+    ["src/views/account-hub.js", "accountHub"],
+    ["src/views/account.js", "account"]
+  ]) {
+    const source = fs.readFileSync(path.join(root, rel), "utf8");
+    assert.match(source, /import \{ registerView \} from "\.\.\/runtime\/view-registry\.js"/);
+    assert.match(source, new RegExp(`registerView\\("${namespace}", ${namespace}ViewApi\\)`));
+    assert.match(source, new RegExp(`window\\.zhimuViews\\.${namespace} = ${namespace}ViewApi`));
+  }
+});
+
+test("phase V2 action pilots consume view registry instead of zhimuViews", () => {
+  for (const rel of [
+    "src/runtime/actions-clues.js",
+    "src/runtime/actions-rules.js",
+    "src/runtime/actions-assets.js",
+    "src/runtime/actions-archive.js",
+    "src/runtime/actions-player.js",
+    "src/runtime/actions-director.js",
+    "src/runtime/actions-studio.js",
+    "src/runtime/actions-writer.js",
+    "src/runtime/actions-mini-games.js",
+    "src/runtime/actions-ops.js"
+  ]) {
+    const source = fs.readFileSync(path.join(root, rel), "utf8");
+    assert.match(source, /import \{ callView \} from "\.\/view-registry\.js"/);
+    assert.match(source, /callView\("/);
+    assert.doesNotMatch(source, /function views\(\) \{ return window\.zhimuViews \|\| \{\}; \}/);
+  }
+});
