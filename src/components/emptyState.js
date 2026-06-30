@@ -8,7 +8,6 @@ import { userStore, studioStore, worldStore, voiceStore } from "../state/index.j
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
   const R = window.zhimuRuntime || {};
-  const V = window.zhimuViews || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");

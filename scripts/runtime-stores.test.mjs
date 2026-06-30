@@ -445,7 +445,7 @@ test("phase V1 view pilots register APIs while preserving the old bridge", () =>
     ["src/views/account.js", "account"]
   ]) {
     const source = fs.readFileSync(path.join(root, rel), "utf8");
-    assert.match(source, /import \{ registerView \} from "\.\.\/runtime\/view-registry\.js"/);
+    assert.match(source, /import \{[^}]*registerView[^}]*\} from "\.\.\/runtime\/view-registry\.js"/);
     assert.match(source, new RegExp(`registerView\\("${namespace}", ${namespace}ViewApi\\)`));
     assert.match(source, new RegExp(`window\\.zhimuViews\\.${namespace} = ${namespace}ViewApi`));
   }
@@ -468,5 +468,22 @@ test("phase V2 action pilots consume view registry instead of zhimuViews", () =>
     assert.match(source, /import \{ callView \} from "\.\/view-registry\.js"/);
     assert.match(source, /callView\("/);
     assert.doesNotMatch(source, /function views\(\) \{ return window\.zhimuViews \|\| \{\}; \}/);
+  }
+});
+
+test("phase V3 account hub consumes registry for cross-view calls", () => {
+  const source = fs.readFileSync(path.join(root, "src/views/account-hub.js"), "utf8");
+  assert.match(source, /import \{[^}]*callView[^}]*registerView[^}]*\} from "\.\.\/runtime\/view-registry\.js"/);
+  assert.match(source, /callView\("account", "refreshAccountView"\)/);
+  assert.match(source, /callView\("assets", "reloadAssets"\)/);
+  assert.match(source, /callView\("account", "accountBodyHtml", accountView\)/);
+  assert.doesNotMatch(source, /window\.zhimuViews\?\.account/);
+  assert.doesNotMatch(source, /window\.zhimuViews\?\.assets/);
+});
+
+test("phase V3 component shells no longer capture unused zhimuViews handles", () => {
+  for (const rel of ["src/components/modal.js", "src/components/emptyState.js"]) {
+    const source = fs.readFileSync(path.join(root, rel), "utf8");
+    assert.doesNotMatch(source, /const V = window\.zhimuViews \|\| \{\};/);
   }
 });

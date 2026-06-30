@@ -290,5 +290,6 @@ case "clues-edit":
 - Phase V2 第三批已落地：`director / studio / writer` 三个 view 已注册 registry；`actions-director.js`、`actions-studio.js`、`actions-writer.js` 已改用 `callView()`。
 - Phase V2 action 消费者收尾已落地：`miniGames / ops` 已注册 registry；`actions-mini-games.js`、`actions-ops.js` 已改用 `callView()`。
 - Phase V3 前置清理已开始：`account / accountHub` 已注册 registry；`actions.js` 的渲染后绑定已改用 `callView()`。
+- Phase V3 第一批已落地：`account-hub` 对 `account/assets` 的跨 view 读取已改用 `callView()`；`modal/emptyState` 已移除未使用的 `window.zhimuViews` 捕获，同时保留兼容初始化。
 
-下一步继续 Phase V3：收敛 `modal/emptyState`、`account-hub` 等跨 view 读取点；这些位置可能涉及加载时序，需要逐个判断是否补 `ensureViewModules`。
+下一步继续 Phase V3：收敛 `archive/director/overview/player/rules/studio/writer` 以及 `auth-world/room-events/search-focus/wizard` 等剩余跨 view 读取点；这些位置可能涉及加载时序，需要逐个判断是否补 `ensureViewModules`。

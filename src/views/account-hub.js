@@ -1,6 +1,6 @@
 /** Unified account + content assets page (not modal). */
 import * as zhimuApi from "../api/index.js";
-import { registerView } from "../runtime/view-registry.js";
+import { callView, registerView } from "../runtime/view-registry.js";
 import { uiStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -30,7 +30,7 @@ import { uiStore } from "../state/index.js";
         actions: `<button type="button" class="primary-btn" data-action="world-library">选择剧本</button>`
       }) || `<div class="empty-state enriched-empty"><p><strong>尚未选择剧本</strong></p><p>内容资产按剧本隔离存储。请先在侧栏切换或创建剧本，再上传附件。</p><button type="button" class="primary-btn" data-action="world-library">选择剧本</button></div>`;
     }
-    return window.zhimuViews?.assets?.assetsPanelHtml?.() || "";
+    return callView("assets", "assetsPanelHtml") || "";
   }
 
   /** Load account + optional assets data once per navigation — never from accountHub() render. */
@@ -38,10 +38,10 @@ import { uiStore } from "../state/index.js";
     if (!window.zhimuSessionAuth?.isAuthenticated?.()) return;
     const loadId = uiStore.set({ accountHubLoadId: uiStore.get().accountHubLoadId + 1 }).accountHubLoadId;
     void (async () => {
-      await window.zhimuViews?.account?.refreshAccountView?.();
+      await callView("account", "refreshAccountView");
       if (loadId !== uiStore.get().accountHubLoadId || uiStore.get().view !== "account") return;
       if (activeTab() === "assets" && zhimuApi.context.worldId) {
-        await window.zhimuViews?.assets?.reloadAssets?.();
+        await callView("assets", "reloadAssets");
         if (loadId === uiStore.get().accountHubLoadId && uiStore.get().view === "account") window.zhimuRuntime?.render?.();
       }
     })();
@@ -57,7 +57,7 @@ import { uiStore } from "../state/index.js";
     const tab = activeTab();
     const accountView = uiStore.get().accountView;
     const me = accountView.me || {};
-    const accountHtml = window.zhimuViews?.account?.accountBodyHtml?.(accountView) || "";
+    const accountHtml = callView("account", "accountBodyHtml", accountView) || "";
     const assetsHtml = tab === "assets" ? assetsPanelContent() : "";
     return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>${profileIntro(me)}</p></div></div>${tabButtons(tab)}<div class="account-hub-panels"><section class="account-hub-panel ${tab === "account" ? "" : "hidden"}" data-hub-panel="account" role="tabpanel">${accountHtml}</section><section class="account-hub-panel ${tab === "assets" ? "" : "hidden"}" data-hub-panel="assets" role="tabpanel">${assetsHtml}</section></div></article></section>`;
   }
@@ -67,7 +67,7 @@ import { uiStore } from "../state/index.js";
     if (tab === uiStore.get().accountHubTab) return;
     uiStore.set({ accountHubTab: tab });
     if (tab === "assets" && zhimuApi.context.worldId) {
-      await window.zhimuViews?.assets?.reloadAssets?.();
+      await callView("assets", "reloadAssets");
     }
     window.zhimuRuntime?.render?.();
   }
@@ -77,8 +77,8 @@ import { uiStore } from "../state/index.js";
     const tab = activeTab();
     const root = document.querySelector(".account-hub-page");
     if (!root) return;
-    if (tab === "account") window.zhimuViews?.account?.bindAccountPanel?.(root);
-    if (tab === "assets" && zhimuApi.context.worldId) window.zhimuViews?.assets?.bindAssetsPanel?.(root);
+    if (tab === "account") callView("account", "bindAccountPanel", root);
+    if (tab === "assets" && zhimuApi.context.worldId) callView("assets", "bindAssetsPanel", root);
   }
 
   export function goAccountHub(options = {}) {
