@@ -30,7 +30,6 @@ import { userStore, studioStore, worldStore, voiceStore } from "../state/index.j
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
-  window.zhimuViews = window.zhimuViews || {};
   function activeRuntimeRoom() {
     return window.zhimuWorkspace?.activeRuntimeRoom?.() ?? null;
   }

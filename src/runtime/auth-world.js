@@ -43,7 +43,6 @@ import { uiStore, userStore, worldStore, studioStore } from "../state/index.js";
   function handle(action, el) { return window.zhimuRuntime?.handle?.(action, el); }
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
-  window.zhimuViews = window.zhimuViews || {};
 export function openForgotPassword(prefillEmail=""){
  modal.className="modal auth-modal";
  modal.innerHTML=`<h2>找回密码</h2><p class="wizard-intro">输入注册邮箱，我们会发送重置链接（1 小时内有效）。</p>${studioField("邮箱","forgotEmail","input",prefillEmail)}<div class="modal-actions"><button class="secondary-btn" data-auth-back-login>返回登录</button><button class="primary-btn" data-auth-forgot-submit>发送重置邮件</button></div>`;

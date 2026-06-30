@@ -197,9 +197,5 @@ export async function openWorldAuditModal(){
 }
 
 
-// Bridge: window.zhimuViews.settings populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const settingsViewApi = { settings, saveWorldSettings, saveRoomSettings, goWriterExport, openWorldAuditModal, openCatalogReviewModal, withdrawCatalogListing };
 registerView("settings", settingsViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.settings = settingsViewApi;

@@ -58,9 +58,5 @@ export async function loadOpsData() {
     uiStore.set({ opsStatus: status, opsPlanRequests: plans, opsAuditLog: audit });
   }
 
-// Bridge: window.zhimuViews.ops populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const opsViewApi = { ops, loadOpsData };
 registerView("ops", opsViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.ops = opsViewApi;

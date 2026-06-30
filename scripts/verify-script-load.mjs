@@ -132,7 +132,6 @@ function setupGlobalShims() {
     zhimuUi: {},
     zhimuToast: {},
     zhimuModal: {},
-    zhimuViews: {},
     zhimuRuntime: {},
     zhimuRuleVisual: {},
     zhimuUserMessages: {
@@ -217,15 +216,16 @@ for (const rel of files) {
 
 if (failed) process.exit(1);
 
-// Verify critical exports landed on window.* bridges.
-const { zhimuViews, zhimuRuntime } = globalThis.window;
+// Verify critical exports landed on the remaining runtime bridges/registries.
+const { zhimuRuntime, zhimuViewRegistry } = globalThis.window;
+const viewRegistry = zhimuViewRegistry?.viewRegistrySnapshot?.() || {};
 
 // API surface: verify via namespace import (window.zhimuApi bridge was removed
 // after all view/runtime/component consumers migrated to `import * as zhimuApi`).
 const apiNamespace = await import(fileUrl("src/api/index.js") + `?t=${Date.now()}-api-ns`);
 
 const checks = [
-  ["zhimuViews.overview.overview", typeof zhimuViews?.overview?.overview],
+  ["zhimuViewRegistry.overview.overview", typeof viewRegistry.overview?.overview],
   ["zhimuRuntime.render", typeof zhimuRuntime?.render],
   ["zhimuRuntime.go", typeof zhimuRuntime?.go],
   ["zhimuRuntime.handle", typeof zhimuRuntime?.handle],

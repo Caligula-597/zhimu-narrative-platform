@@ -328,9 +328,5 @@ export function overview() {
     `;
 }
 
-// Bridge: window.zhimuViews.overview populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const overviewViewApi = { overviewRuntimeProgress, overview };
 registerView("overview", overviewViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.overview = overviewViewApi;

@@ -1,7 +1,6 @@
 /** Startup guard for legacy window-attached modules. */
 const requiredAppGlobals = [
   "zhimuState",
-  "zhimuViews",
   "zhimuRuntime",
   "zhimuDom.content",
   "zhimuDom.modalBackdrop",

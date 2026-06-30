@@ -294,9 +294,5 @@ export function openRestoreCheckpointModal(checkpointId,checkpointLabel){
  };
 }
 
-// Bridge: window.zhimuViews.archive populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const archiveViewApi = { archive, recapDetailView, checkpointPlayerSummary, checkpointClueSummary, openCreateRecapModal, openCreateCheckpointModal, openRecapDetail, closeRecapDetail, openPlayerRecapFromBanner, openPlayerRecapModal, checkpointRestoreHistoryRows, openCheckpointDetail, openRestoreCheckpointModal };
 registerView("archive", archiveViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.archive = archiveViewApi;

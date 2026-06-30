@@ -445,9 +445,5 @@ export function openHostMiniGameModal(){
  };
 }
 
-// Bridge: window.zhimuViews.director populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const directorViewApi = { director, hostPlayerTableRows, directorPlayers, hostEventRows, hostActionSummary, directorRulesPreview, refreshRulesPreview, triggerManualRuleFromDirector, hostEventBatchToolbar, toggleHostEventSelection, syncHostEventSelectAll, batchHostEventsAction, hostClueMatrixLabel, hostClueMatrixCard, hostAuditCard, openHostPlayerDetail, kickHostPlayer, openHostClueNote, openHostEventContext, openHostGrantClueModal, openDelayHostEventModal, openHostGrantItemModal, openHostUnlockSectionModal, openHostUnlockSceneModal, openHostMiniGameModal, openHostLogModal, dismissHostEvent, executeHostEvent, openHostNudgeWaitingModal, hostPlayerWaitStrip, hostLiveFeed };
 registerView("director", directorViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.director = directorViewApi;

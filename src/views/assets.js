@@ -183,9 +183,5 @@ export async function uploadSelectedAsset(){
 }
 
 
-// Bridge: window.zhimuViews.assets populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const assetsViewApi = { assetsPanelHtml, bindAssetSearch, bindAssetsPanel, reloadAssets, setAssetFilter, toggleAssetRecycle, restoreCloudAsset, setWorldCoverAsset, clearWorldCover, deleteCloudAsset, downloadCloudAsset, openAssetUpload, uploadSelectedAsset };
 registerView("assets", assetsViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.assets = assetsViewApi;

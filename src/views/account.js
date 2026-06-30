@@ -279,9 +279,5 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
     bindAccountPanel(document);
   }
 
-// Bridge: window.zhimuViews.account populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const accountViewApi = { accountBodyHtml, refreshAccountView, bindAccountView, bindAccountPanel, openDeleteAccountWizard, openPlanUpgradeModal };
 registerView("account", accountViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.account = accountViewApi;

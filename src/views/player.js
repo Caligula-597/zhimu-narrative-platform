@@ -553,9 +553,5 @@ export function openClueNoteModal(clueId){
  modal.querySelector("[data-save-clue-note]").onclick=async()=>{try{const note=modal.querySelector("[data-clue-note]").value;await zhimuApi.updateCluePlayerNote(clueId,note);closeModal();await loadCloudData();showToast("线索解读已保存")}catch(error){showError(error)}};
 }
 
-// Bridge: window.zhimuViews.player populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const playerViewApi = { hostConfirmBanner, player, voiceHub, voiceChat, currentCloudScene, reader, explorationRows, cloudClueRows, sharedClueSection, openVoiceRooms, openCreateVoiceRoom, openInviteVoiceRoom, joinVoiceRoom, connectVoiceLive, disconnectVoiceLive, toggleVoiceMic, unlockVoicePlayback, refreshVoiceMessages, sendVoiceMessage, bindPlayerReader, completeCloudReading, addStoryHighlight, removeStoryHighlight, investigateCloud, readCloudClue, shareCloudClue, openShareClueRolesModal, openClueNoteModal };
 registerView("player", playerViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.player = playerViewApi;

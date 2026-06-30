@@ -419,7 +419,7 @@ test("view registry is introduced without disabling lazy view loading", () => {
 
   assert.match(registryJs, /export function registerView/);
   assert.match(registryJs, /export function getView/);
-  assert.match(registryJs, /window\.zhimuViews\?\.\[namespace\]/);
+  assert.doesNotMatch(registryJs, /window\.zhimuViews/);
   assert.match(resolverJs, /import \{ getView \} from "\.\.\/runtime\/view-registry\.js"/);
   assert.match(resolverJs, /overview: getView\("overview"\)\.overview/);
   assert.doesNotMatch(appJs, /const V = window\.zhimuViews/);
@@ -428,7 +428,7 @@ test("view registry is introduced without disabling lazy view loading", () => {
   assert.match(loaderJs, /\(\) => import\("\.\.\/views\/clues\.js"\)/);
 });
 
-test("phase V1 view pilots register APIs while preserving the old bridge", () => {
+test("phase V4 view APIs register without writing the old zhimuViews bridge", () => {
   for (const [rel, namespace] of [
     ["src/views/overview.js", "overview"],
     ["src/views/clues.js", "clues"],
@@ -442,12 +442,13 @@ test("phase V1 view pilots register APIs while preserving the old bridge", () =>
     ["src/views/mini-games.js", "miniGames"],
     ["src/views/ops.js", "ops"],
     ["src/views/account-hub.js", "accountHub"],
-    ["src/views/account.js", "account"]
+    ["src/views/account.js", "account"],
+    ["src/views/rules.js", "rules"]
   ]) {
     const source = fs.readFileSync(path.join(root, rel), "utf8");
     assert.match(source, /import \{[^}]*registerView[^}]*\} from "\.\.\/runtime\/view-registry\.js"/);
     assert.match(source, new RegExp(`registerView\\("${namespace}", ${namespace}ViewApi\\)`));
-    assert.match(source, new RegExp(`window\\.zhimuViews\\.${namespace} = ${namespace}ViewApi`));
+    assert.doesNotMatch(source, /window\.zhimuViews/);
   }
 });
 
@@ -516,5 +517,22 @@ test("phase V3 removes stale zhimuViews read handles", () => {
     const source = fs.readFileSync(path.join(root, rel), "utf8");
     assert.doesNotMatch(source, /const V = window\.zhimuViews \|\| \{\};/);
     assert.doesNotMatch(source, /\bV\.[a-zA-Z_$]/);
+  }
+});
+
+test("phase V4 removes zhimuViews from startup requirements and src", () => {
+  const dependencyGuard = fs.readFileSync(path.join(root, "src/runtime/dependency-guard.js"), "utf8");
+  assert.doesNotMatch(dependencyGuard, /"zhimuViews"/);
+
+  const sourceFiles = [
+    ...fs.readdirSync(path.join(root, "src/views")).filter((name) => name.endsWith(".js")).map((name) => `src/views/${name}`),
+    ...fs.readdirSync(path.join(root, "src/runtime")).filter((name) => name.endsWith(".js")).map((name) => `src/runtime/${name}`),
+    ...fs.readdirSync(path.join(root, "src/components")).filter((name) => name.endsWith(".js")).map((name) => `src/components/${name}`),
+    "app.js"
+  ];
+  for (const rel of sourceFiles) {
+    const source = fs.readFileSync(path.join(root, rel), "utf8");
+    assert.doesNotMatch(source, /window\.zhimuViews/);
+    assert.doesNotMatch(source, /\bzhimuViews\b/);
   }
 });

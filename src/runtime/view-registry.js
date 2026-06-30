@@ -7,11 +7,11 @@ export function registerView(namespace, exports) {
 }
 
 export function getView(namespace) {
-  return registry.get(namespace) || window.zhimuViews?.[namespace] || {};
+  return registry.get(namespace) || {};
 }
 
 export function hasView(namespace) {
-  return registry.has(namespace) || Boolean(window.zhimuViews?.[namespace]);
+  return registry.has(namespace);
 }
 
 export function callView(namespace, method, ...args) {
@@ -24,5 +24,4 @@ export function viewRegistrySnapshot() {
   return Object.fromEntries(registry.entries());
 }
 
-// Temporary diagnostics bridge while window.zhimuViews consumers are migrated.
 window.zhimuViewRegistry = { registerView, getView, hasView, callView, viewRegistrySnapshot };

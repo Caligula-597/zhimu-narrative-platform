@@ -852,9 +852,5 @@ import { uiStore, roomStore, studioStore, assetStore, worldStore } from "../stat
   }
 
 
-// Bridge: window.zhimuViews.clues populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, bindCluesSearch, openClueInStudio, openCluesEditor, confirmDeleteClue, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll };
 registerView("clues", cluesViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.clues = cluesViewApi;

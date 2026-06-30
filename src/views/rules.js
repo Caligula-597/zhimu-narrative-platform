@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { registerView } from "../runtime/view-registry.js";
 import { uiStore, studioStore, worldStore, roomStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
@@ -153,7 +154,5 @@ export async function seedExampleRules(){
  render();
 }
 
-// Bridge: window.zhimuViews.rules populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.rules = { rules, rulePayload, openRuleEditor, toggleCloudRule, deleteCloudRule, validateCloudRules, seedExampleRules };
+export const rulesViewApi = { rules, rulePayload, openRuleEditor, toggleCloudRule, deleteCloudRule, validateCloudRules, seedExampleRules };
+registerView("rules", rulesViewApi);

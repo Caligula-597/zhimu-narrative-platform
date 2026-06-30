@@ -100,9 +100,5 @@ import { uiStore } from "../state/index.js";
     openAccountPanel: goAccountHub
   });
 
-// Bridge: window.zhimuViews.accountHub populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const accountHubViewApi = { accountHub, bindAccountHubView, switchAccountHubTab, goAccountHub, beginAccountHubLoad };
 registerView("accountHub", accountHubViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.accountHub = accountHubViewApi;

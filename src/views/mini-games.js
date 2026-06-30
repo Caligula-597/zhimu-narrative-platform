@@ -207,9 +207,5 @@ import { studioStore, worldStore } from "../state/index.js";
     }
   }
 
-// Bridge: window.zhimuViews.miniGames populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
 export const miniGamesViewApi = { miniGames, openMiniGameEditor, deleteMiniGameTemplate, launchMiniGameTemplate };
 registerView("miniGames", miniGamesViewApi);
-window.zhimuViews = window.zhimuViews || {};
-window.zhimuViews.miniGames = miniGamesViewApi;

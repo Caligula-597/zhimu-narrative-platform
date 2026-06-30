@@ -35,8 +35,6 @@ import { showToast } from "./toast.js";
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
-  window.zhimuViews = window.zhimuViews || {};
-
   let modalScrollY = 0;
 
   function elementCanScrollVertically(el) {

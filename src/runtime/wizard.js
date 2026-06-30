@@ -42,7 +42,6 @@ import { uiStore, wizardStore } from "../state/index.js";
   function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
-  window.zhimuViews = window.zhimuViews || {};
   const wizardSteps = ["创建方式","角色与席位","章节与内容","自动化规则","测试并发布"];
 
 export function openWizard(step=0){
