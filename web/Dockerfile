@@ -7,7 +7,7 @@ COPY config ./config
 COPY src ./src
 COPY docs ./docs
 COPY frontend ./frontend
-COPY index.html app.js config.js state.js styles.css rule-visual.js server.js ./
+COPY index.html app.js config.js styles.css rule-visual.js server.js ./
 
 RUN npm ci
 

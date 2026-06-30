@@ -1,7 +1,7 @@
 // A2 状态分片聚合器
 // 8 个领域 shard：user / world / room / studio / asset / voice / wizard / ui
-// Phase 2 仅创建底座，activateShardBridge() 不被调用 —— window.zhimuState 仍是 state.js 的字面量对象
-// Phase 3 起逐 shard 激活：shard 字段从 state.js 移除时调用 activateShardBridge() 接管读取/写入
+// Phase 4 已完成消费者迁移；src/state.js 激活 Proxy 仅保留给 E2E 读取 window.zhimuState。
+// 新代码应直接 import 对应 shard，不再通过 window.zhimuState 读写。
 
 import { userStore } from "./user-store.js";
 import { worldStore } from "./world-store.js";
