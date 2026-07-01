@@ -2,13 +2,13 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
+import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, userStore, worldStore, studioStore, roomStore, assetStore } from "../state/index.js";
 
 
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
-  const R = window.zhimuRuntime || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatRelativeTime = F.formatRelativeTime || (() => "");
@@ -20,8 +20,6 @@ import { uiStore, userStore, worldStore, studioStore, roomStore, assetStore } fr
   const canEditWorldContent = U.canEditWorldContent || (() => false);
   const deleteWorldPanel = U.deleteWorldPanel || (() => "");
   const closeModal = window.zhimuModal?.closeModal || (() => {});
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
   function catalogReviewPanel(world) {
     const status = world?.catalog_review_status || (world?.catalog_public ? "approved" : "none");
@@ -170,7 +168,7 @@ export async function saveRoomSettings(){
 }
 
 export function goWriterExport(){
- window.zhimuRuntime?.go?.("writer");
+ go("writer");
  showToast("请在剧本创作页使用「导出内容包 / 导入内容包」");
 }
 

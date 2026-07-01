@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
+import { loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, assetStore, studioStore } from "../state/index.js";
 
@@ -18,10 +19,8 @@ import { uiStore, assetStore, studioStore } from "../state/index.js";
   const assetKindLabel = window.zhimuUserMessages?.assetKindLabel || ((k) => k);
 function refreshAssetsIfVisible() {
     const ui = uiStore.get();
-    if ((ui.view === "account" && ui.accountHubTab === "assets") || ui.view === "settings") window.zhimuRuntime?.render?.();
+    if ((ui.view === "account" && ui.accountHubTab === "assets") || ui.view === "settings") render();
   }
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
 export function assetsPanelHtml(){
   const asset = assetStore.get();

@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
+import { go, loadCloudData } from "../runtime/runtime-facade.js";
 (function (window) {
   const F = window.zhimuFormat || {};
   const M = window.zhimuModal || {};
@@ -10,8 +11,6 @@ import { modal, modalBackdrop } from "../dom.js";
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
   const closeModal = M.closeModal || (() => {});
   const studioValues = M.studioValues || (() => ({}));
-  const go = (view) => window.zhimuRuntime?.go?.(view);
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
   const AiDraft = () => window.zhimuAiDraft;
   const PS = () => window.zhimuPipelineSession || {};

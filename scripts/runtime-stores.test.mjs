@@ -562,7 +562,11 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
     "src/runtime/livekit-voice.js",
     "src/runtime/room-events.js",
     "src/runtime/search-focus.js",
-    "src/runtime/world-revision.js"
+    "src/runtime/world-revision.js",
+    "src/views/assets.js",
+    "src/views/mini-games.js",
+    "src/views/pipeline-wizard-open.js",
+    "src/views/settings.js"
   ]) {
     const source = fs.readFileSync(path.join(root, rel), "utf8");
     assert.match(source, /runtime-facade\.js/);

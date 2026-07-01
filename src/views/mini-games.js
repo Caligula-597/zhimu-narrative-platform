@@ -1,6 +1,7 @@
 /* Creator mini-game design — test feature backed by room mini-game runtime. */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import { render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { studioStore, worldStore } from "../state/index.js";
 
@@ -14,8 +15,6 @@ import { studioStore, worldStore } from "../state/index.js";
   const studioModal = M.studioModal || (() => {});
   const closeModal = M.closeModal || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
   function templates() {
     const world = studioStore.get().cloudStudio?.world;
