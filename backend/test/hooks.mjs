@@ -12,6 +12,7 @@ process.env.REGISTER_IP_DAY_MAX ??= "0";
 process.env.GUEST_CREATE_HOUR_MAX ??= "1000";
 process.env.GUEST_CREATE_DAY_MAX ??= "1000";
 process.env.PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN ??= "0";
+process.env.OBJECT_STORAGE_PROVIDER ??= "memory";
 
 await pool.query(
   `INSERT INTO storage_quotas (user_id, max_worlds, max_bytes, max_single_file_bytes)
