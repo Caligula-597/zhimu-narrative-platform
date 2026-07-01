@@ -56,7 +56,7 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
     await expect(nudgeBtn).toBeVisible();
     await waitForHostIdle(page);
     await nudgeBtn.click();
-    await expect(page.locator("#modal-backdrop.show")).toBeVisible();
+    await expect(page.locator(".modal-backdrop.show")).toBeVisible();
     await expect(page.getByRole("button", { name: "发送提醒" })).toBeVisible();
     await page.locator("[data-nudge-submit]").click();
     await dismissModalIfOpen(page);

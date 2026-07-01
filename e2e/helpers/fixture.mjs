@@ -114,11 +114,11 @@ export async function goToView(page, view) {
 
 /** @param {Page} page */
 export async function dismissModalIfOpen(page) {
-  const backdrop = page.locator("#modal-backdrop.show");
+  const backdrop = page.locator("#modal-backdrop.show, .modal-backdrop.show").first();
   if (await backdrop.isVisible().catch(() => false)) {
-    const primary = page.locator("#modal .primary-btn").first();
+    const primary = page.locator("#modal .primary-btn, .modal .primary-btn").first();
     if (await primary.isVisible().catch(() => false)) await primary.click();
-    else await page.locator("#modal [data-close]").first().click();
+    else await page.locator("#modal [data-close], .modal [data-close]").first().click();
     await backdrop.waitFor({ state: "hidden", timeout: 10_000 }).catch(() => {});
   }
 }
