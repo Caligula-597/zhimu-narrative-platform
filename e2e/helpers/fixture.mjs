@@ -48,6 +48,7 @@ export async function injectHostAppContext(context) {
 export async function gotoHostConsole(page) {
   await page.goto(`${HOST_URL}/?room=${encodeURIComponent(FIXTURE.roomId)}`);
   await page.locator(".host-console, .host-shell").first().waitFor({ state: "visible", timeout: 45_000 });
+  await waitForHostIdle(page);
 }
 
 export async function injectPlayerPreJoinContext(context) {
@@ -122,12 +123,18 @@ export async function dismissModalIfOpen(page) {
   }
 }
 
+/** @param {Page} page */
+export async function waitForHostIdle(page, timeout = 20_000) {
+  await page.locator('.host-main[aria-busy="true"]').waitFor({ state: "detached", timeout }).catch(() => {});
+}
+
 /**
  * Refresh host events and report whether a pending event exists (for wait-strip / nudge E2E).
  * @param {Page} page
  */
 export async function ensurePendingHostEvent(page) {
   await page.locator('[data-action="refresh-host-events"]').click({ timeout: 5000 }).catch(() => {});
+  await waitForHostIdle(page);
   await page.waitForFunction(
     () => (window.zhimuState?.cloudHostEvents || []).some((row) => row.status === "pending"),
     undefined,
@@ -145,6 +152,7 @@ export async function ensurePendingHostEvent(page) {
 /** @param {Page} page */
 export async function refreshHostRoomState(page) {
   await page.locator('[data-action="refresh-host-room"]').click({ timeout: 8000 }).catch(() => {});
+  await waitForHostIdle(page);
   await page.waitForFunction(
     () => Array.isArray(window.zhimuState?.cloudHostPlayers),
     undefined,
