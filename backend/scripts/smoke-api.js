@@ -108,7 +108,7 @@ const results = await Promise.all([
     const detail = await request(`/rooms/${roomId}/recaps/${created.id}`, hostUserId);
     const playerView = await request(`/rooms/${roomId}/recaps/${created.id}`, playerUserId);
     if (detail.perspective !== "host") throw new Error("host recap perspective must be host");
-    if (playerView.perspective !== "player") throw new Error("player recap perspective must be player");
+    if (playerView.perspective !== "postgame") throw new Error("player recap perspective must be postgame");
     return `list=${list.length}, timeline=${detail.snapshot.keyTimeline?.length ?? 0}`;
   }),
   check("items-crud", async () => {
