@@ -24,8 +24,9 @@ test.describe("创作者 · 向导创建测试房", () => {
       if (step < 4) await expect(page.locator(".wizard-shell")).toBeVisible();
     }
 
+    const modal = page.locator("#modal");
     await expect(page.locator("#modal-backdrop.show")).toBeVisible({ timeout: 90_000 });
-    await expect(page.getByText(/邀请码 TEST-/)).toBeVisible({ timeout: 10_000 });
+    await expect(modal.getByText(/邀请码[:：]\s*TEST-/)).toBeVisible({ timeout: 10_000 });
     await dismissModalIfOpen(page);
   });
 });
