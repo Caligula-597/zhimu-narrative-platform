@@ -196,13 +196,12 @@ await check("nav-views-match-app", async () => {
   for (const view of requiredNavViews) {
     if (!uniqueNav.includes(view)) throw new Error(`nav missing data-view="${view}"`);
   }
-  const viewsMatch = resolverJs.match(/const views = \{([^}]+)\}/);
-  if (!viewsMatch) throw new Error("views map not found in view-resolver.js");
   for (const view of requiredNavViews) {
-    if (!viewsMatch[0].includes(view)) throw new Error(`view-resolver.js views map missing ${view}`);
+    if (!resolverJs.includes(`${view}: [`)) throw new Error(`view-resolver.js metadata missing ${view}`);
+    if (!resolverJs.includes(`case "${view}"`)) throw new Error(`view-resolver.js resolver missing ${view}`);
   }
-  if (!/V\.overview\??\.overview/.test(resolverJs) || !/V\.studio\??\.studioCloud/.test(resolverJs)) {
-    throw new Error("view-resolver.js must delegate to src/views modules");
+  if (!/getView\("overview"\)\.overview/.test(resolverJs) || !/getView\("studio"\)\.studioCloud/.test(resolverJs)) {
+    throw new Error("view-resolver.js must delegate through view registry");
   }
   return `${uniqueNav.length} nav views wired`;
 });
@@ -378,7 +377,7 @@ await check("clues-view-wired", async () => {
   for (const token of ["cluesSearchQuery", "cluesSelectedId", "cluesBulkSelection", "clues-edit", "clues-add", "clues-delete", "clues-batch-delete", "openCluesEditor", "confirmDeleteClue"]) {
     if (!clues.includes(token)) throw new Error(`clues view missing ${token}`);
   }
-  if (!/clues:\s*V\.clues\??\.clues/.test(resolverJs)) throw new Error("view-resolver.js must register clues view");
+  if (!/case "clues": return getView\("clues"\)\.clues/.test(resolverJs)) throw new Error("view-resolver.js must resolve clues view through registry");
   return "standalone clues management view wired";
 });
 
