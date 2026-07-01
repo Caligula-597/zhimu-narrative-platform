@@ -1,5 +1,6 @@
 /** Unified account + content assets page (not modal). */
 import * as zhimuApi from "../api/index.js";
+import { go, render } from "../runtime/runtime-facade.js";
 import { callView, registerView } from "../runtime/view-registry.js";
 import { uiStore } from "../state/index.js";
 
@@ -42,7 +43,7 @@ import { uiStore } from "../state/index.js";
       if (loadId !== uiStore.get().accountHubLoadId || uiStore.get().view !== "account") return;
       if (activeTab() === "assets" && zhimuApi.context.worldId) {
         await callView("assets", "reloadAssets");
-        if (loadId === uiStore.get().accountHubLoadId && uiStore.get().view === "account") window.zhimuRuntime?.render?.();
+        if (loadId === uiStore.get().accountHubLoadId && uiStore.get().view === "account") render();
       }
     })();
   }
@@ -69,7 +70,7 @@ import { uiStore } from "../state/index.js";
     if (tab === "assets" && zhimuApi.context.worldId) {
       await callView("assets", "reloadAssets");
     }
-    window.zhimuRuntime?.render?.();
+    render();
   }
 
   export function bindAccountHubView() {
@@ -83,7 +84,7 @@ import { uiStore } from "../state/index.js";
 
   export function goAccountHub(options = {}) {
     uiStore.set({ accountHubTab: options.tab === "assets" ? "assets" : "account" });
-    window.zhimuRuntime?.go?.("account");
+    go("account");
   }
 
   window.zhimuAccountHub = {

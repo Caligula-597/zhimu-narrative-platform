@@ -1,6 +1,6 @@
 # 产品状态
 
-最后更新：2026-06-30
+最后更新：2026-07-01
 
 ## 总体结论
 
@@ -47,7 +47,7 @@
 
 | 优先级 | 风险 | 影响 | 处理建议 |
 |---|---|---|---|
-| P0 | 主应用仍有 `window.zhimuRuntime / zhimuViews` 兼容桥 | 调用链仍带历史桥接，长期维护和回归风险较高；`zhimuDom` 业务消费者已收口 | 继续 A1 收尾，按模块把 runtime/view 消费者迁移到显式 import |
+| P0 | 主应用仍有 `window.zhimuRuntime` 兼容桥 | `zhimuViews` 已收口；`zhimuRuntime` 已新增 facade 并迁移一批低风险消费者，剩余生产者桥和重页面消费者仍需继续收口 | 继续 A1 收尾，按模块把 runtime 消费者迁移到显式 import |
 | P0 | 生产门槛需要真实环境跑通 | 本地通过不等于生产可信 | 补齐真实 OTLP、alert、AV scanner、OPS/METRICS token 后跑 `check:production-ready` |
 | P0 | 关键业务 E2E 需要稳定绿线 | 内测问题定位成本高 | 固化创作、开房、玩家加入、主持推进、线索发放、复盘的最小端到端链路 |
 | P1 | 三端共享层仍薄 | API、错误处理、状态语言、toast、视觉 token 容易重复修 | 继续抽 `shared-api`、错误处理、session、toast、status chip、tokens |

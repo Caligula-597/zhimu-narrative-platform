@@ -1,6 +1,6 @@
 # 项目状态
 
-最后更新：2026-06-30
+最后更新：2026-07-01
 
 ## 当前真相源
 
@@ -43,6 +43,6 @@ npm run monitoring:smoke -- --alerts
 
 1. GitHub `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` 需要确认。
 2. 真实生产 `ALERT_WEBHOOK_URL`、`OTEL_EXPORTER_OTLP_ENDPOINT`、AV scanner secret 需要配置。
-3. 主应用 `window.*` 兼容桥需要继续按模块迁移。
+3. 主应用 `window.*` 兼容桥需要继续按模块迁移；`zhimuViews` 已收口，`zhimuRuntime` 已新增 facade 并迁移一批低风险消费者（user-messages / account-hub / clues 等）。
 4. 多前端共享层需要抽取。
 5. 备份恢复、告警响应、上传扫描故障和部署回滚需要真实演练记录。

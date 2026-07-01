@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
+import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, roomStore, studioStore, assetStore, worldStore } from "../state/index.js";
 
@@ -17,9 +18,6 @@ import { uiStore, roomStore, studioStore, assetStore, worldStore } from "../stat
   const studioModal = M.studioModal || (() => {});
   const showError = S.showError || ((error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback));
   const closeModal = M.closeModal || (() => {});
-  const go = (view) => window.zhimuRuntime?.go?.(view);
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
 
   const VISIBILITY_LABELS = { role: "私密", public: "房间公开", host: "主持可见" };
   const CLUE_TYPE_LABELS = {

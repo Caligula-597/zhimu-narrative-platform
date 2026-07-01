@@ -4,6 +4,8 @@
  * window.zhimuUserMessages bridge kept for un-migrated code.
  */
 
+import { go } from "../runtime/runtime-facade.js";
+
 export {
   API_ERROR_MESSAGES,
   RESTORE_SCOPE_OPTIONS,
@@ -314,7 +316,7 @@ function handleApiErrorToast(error, showToast) {
   showToast(error?.message || "操作失败");
   if (isQuotaExceededError(error)) {
     setTimeout(() => {
-      if (window.zhimuRuntime?.go) window.zhimuRuntime.go("account");
+      go("account");
     }, 400);
   }
 }
