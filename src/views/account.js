@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
+import { callRuntime, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, userStore, assetStore } from "../state/index.js";
   const F = window.zhimuFormat || {};
@@ -40,7 +41,7 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
     const closeModal = window.zhimuModal?.closeModal;
     if (!modal || !backdrop || !window.zhimuSessionAuth?.isAuthenticated?.()) {
       showToast("请先登录");
-      return window.zhimuRuntime?.openAuth?.();
+      return callRuntime("openAuth");
     }
     modal.className = "modal auth-modal account-delete-modal";
     modal.innerHTML = `<h2>注销账号</h2>${Status().modalLoading?.("正在加载影响范围…") || `<p class="wizard-intro">正在加载影响范围…</p>`}`;
@@ -85,11 +86,11 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
         await window.zhimuAuthSession?.syncProfile?.();
         window.zhimuAuthSession?.syncAuthBanner?.();
         try {
-          await window.zhimuRuntime?.loadCloudData?.(true, true);
+          await loadCloudData(true, true);
         } catch {
           /* logged out */
         }
-        window.zhimuRuntime?.render?.();
+        render();
       } catch (error) {
         submit.disabled = false;
         handleApiError(error, showToast);
@@ -142,7 +143,7 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
     const sessionRows = sessions.map((s) => `<div class="collab-row"><div><b>${escapeHtml(s.deviceLabel || "未知设备")}</b><p class="muted-note">最近活跃 ${formatTime(s.lastSeenAt)}</p></div>${s.isCurrent ? `<span class="cloud-pill">当前</span>` : `<button class="text-btn danger-text" data-revoke-session="${s.id}">下线</button>`}</div>`).join("") || `<div class="empty-state">暂无其他设备记录</div>`;
     const oauthButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">关联 ${escapeHtml(p.label)}</button>`).join("");
     const oauthLoginButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">使用 ${escapeHtml(p.label)} 登录</button>`).join("");
-    const quotaHtml = window.zhimuRuntime?.renderQuotaSection?.(usage, data.entitlements) || "";
+    const quotaHtml = callRuntime("renderQuotaSection", usage, data.entitlements) || "";
     const guestUpgrade = isGuest
       ? `<section class="form-group"><h3>保存进度 · 注册正式账号</h3>${studioField("邮箱", "upgradeEmail", "input", "")}${studioField("昵称", "upgradeName", "input", me.display_name || "")}${studioField("密码 · 至少 8 位", "upgradePassword", "input", "")}<button type="button" class="primary-btn" data-guest-upgrade>绑定邮箱并注册</button><p class="muted-note">或使用 OAuth 绑定（保留当前房间进度）</p>${oauthLoginButtons ? `<div class="row">${oauthLoginButtons}</div>` : ""}</section>`
       : "";
@@ -155,7 +156,7 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
     const showLoading = !background && !uiStore.get().accountView;
     if (showLoading) {
       uiStore.set({ accountViewLoading: true });
-      if (uiStore.get().view === "account") window.zhimuRuntime?.render?.();
+      if (uiStore.get().view === "account") render();
     }
     try {
       const [me, sessions, config, entitlements] = await Promise.all([
@@ -174,7 +175,7 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
       }
     } finally {
       uiStore.set({ accountViewLoading: false });
-      if (uiStore.get().view === "account") window.zhimuRuntime?.render?.();
+      if (uiStore.get().view === "account") render();
     }
   }
 
@@ -190,7 +191,7 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
         showToast("已退出登录");
         await window.zhimuAuthSession?.syncProfile?.();
         window.zhimuAuthSession?.syncAuthBanner?.();
-        window.zhimuRuntime?.render?.();
+        render();
       } catch (error) {
         handleApiError(error, showToast);
       }
@@ -266,9 +267,9 @@ import { uiStore, userStore, assetStore } from "../state/index.js";
         window.zhimuSessionAuth?.markAuthenticated?.();
         showToast("账号已升级");
         await window.zhimuAuthSession?.syncProfile?.();
-        await window.zhimuRuntime?.loadCloudData?.(true, true);
+        await loadCloudData(true, true);
         await refreshAccountView();
-        window.zhimuRuntime?.render?.();
+        render();
       } catch (error) {
         handleApiError(error, showToast);
       }

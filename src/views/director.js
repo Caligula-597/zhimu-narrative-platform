@@ -2,13 +2,14 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { getRuntime, go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, roomStore, worldStore, studioStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
-  const R = window.zhimuRuntime || {};
+  const R = getRuntime();
   const S = window.zhimuUiSemantics || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -42,9 +43,6 @@ import { uiStore, roomStore, worldStore, studioStore } from "../state/index.js";
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
   const studioOptionsHtml = M.studioOptionsHtml || (() => "");
-  const go = (view) => window.zhimuRuntime?.go?.(view);
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
   function refreshHostRoom(...args) { return R.refreshHostRoom?.(...args) || loadCloudData(...args); }
   function refreshHostPlayers(...args) { return R.refreshHostPlayers?.(...args) || refreshHostRoom(...args); }
   function refreshHostClueMatrix(...args) { return R.refreshHostClueMatrix?.(...args) || refreshHostRoom(...args); }

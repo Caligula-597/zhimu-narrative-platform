@@ -2,13 +2,14 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
+import { callRuntime, getRuntime, go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, studioStore, worldStore, assetStore } from "../state/index.js";
 
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
-  const R = window.zhimuRuntime || {};
+  const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -39,12 +40,9 @@ import { uiStore, studioStore, worldStore, assetStore } from "../state/index.js"
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = (view) => window.zhimuRuntime?.go?.(view);
   const ST = window.zhimuStudioSceneTree || {};
   const buildStudioSceneOwnership = ST.buildStudioSceneOwnership || (() => ({ owner: new Map(), children: new Map() }));
   const sortSceneChildNodes = ST.sortSceneChildNodes || ((items) => items);
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
@@ -261,7 +259,7 @@ export function bindStudioDragging(){
   const finish=async upEvent=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);target.classList.remove("dragging");const x=Math.round(target.offsetLeft),y=Math.round(target.offsetTop),type=target.dataset.nodeType,id=target.dataset.nodeId;setStudioNodePosition(type,id,{x,y});try{await zhimuApi.updateStudioNodePosition(type,id,{x,y});showToast("节点位置已保存到云端")}catch(error){showError(error)}};
   document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});
  });
- document.querySelectorAll('[data-action="studio-toggle-scene-children"]').forEach(toggle=>{toggle.onclick=event=>{event.stopPropagation();event.preventDefault();window.zhimuRuntime?.handle?.("studio-toggle-scene-children",toggle)}});
+ document.querySelectorAll('[data-action="studio-toggle-scene-children"]').forEach(toggle=>{toggle.onclick=event=>{event.stopPropagation();event.preventDefault();callRuntime("handle","studio-toggle-scene-children",toggle)}});
  document.querySelectorAll(".node-link-handle").forEach(handle=>handle.onpointerdown=event=>{
   event.preventDefault();event.stopPropagation();
   const { studioZoom, studioAnchorEditing, studioSelectedNode } = studioStore.get();
