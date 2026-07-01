@@ -1,5 +1,6 @@
 /** LiveKit browser client — connect/disconnect voice rooms via server-issued tokens. */
 import { uiStore, voiceStore } from "../state/index.js";
+import { render } from "./runtime-facade.js";
 
 (function (window) {
   let room = null;
@@ -60,7 +61,7 @@ import { uiStore, voiceStore } from "../state/index.js";
   }
 
   function renderIfPlayer() {
-    if (uiStore.get().view === "player") window.zhimuRuntime?.render?.();
+    if (uiStore.get().view === "player") render();
   }
 
   function ensureAudioRoot() {

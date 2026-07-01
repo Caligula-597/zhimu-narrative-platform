@@ -1,4 +1,5 @@
 import { uiStore, studioStore } from "../state/index.js";
+import { render } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 
 /** Apply global-search navigation focus — select studio nodes, scroll, pulse highlight. */
@@ -27,7 +28,7 @@ import { callView } from "./view-registry.js";
         const nodeType = focus.nodeType || STUDIO_NODE_TYPES[focus.type] || focus.type;
         studioStore.set({ studioSelectedNode: { type: nodeType, id: focus.id } });
         if (nodeType && nodeType !== "all") studioStore.set({ studioFilter: nodeType });
-        window.zhimuRuntime?.render?.();
+        render();
         requestAnimationFrame(() => {
           pulseElement(document.querySelector(`.node[data-node-type="${nodeType}"][data-node-id="${focus.id}"]`));
         });
@@ -53,7 +54,7 @@ import { callView } from "./view-registry.js";
       if (focus.view === "clues" && focus.id) {
         uiStore.set({ cluesSelectedId: focus.id });
         if (focus.query) uiStore.set({ cluesSearchQuery: focus.query });
-        window.zhimuRuntime?.render?.();
+        render();
         requestAnimationFrame(() => pulseElement(document.querySelector(`[data-clue-row="${focus.id}"]`)));
       }
     });

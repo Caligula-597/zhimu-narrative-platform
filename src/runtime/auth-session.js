@@ -1,6 +1,7 @@
 /** Session-first auth UX for staging / internal test builds. */
 import * as zhimuApi from "../api/index.js";
 import { userStore } from "../state/index.js";
+import { callRuntime, render } from "./runtime-facade.js";
 (function (window) {
   const S = () => window.zhimuSessionMode || {};
 
@@ -92,13 +93,13 @@ import { userStore } from "../state/index.js";
       if (!applyProfileUser(me)) throw new Error("Invalid auth profile");
       const afterMode = S().getSessionMode?.();
       const afterUserId = userStore.get().currentUser?.id || "";
-      if (rerender && (beforeMode !== afterMode || beforeUserId !== afterUserId)) window.zhimuRuntime?.render?.();
+      if (rerender && (beforeMode !== afterMode || beforeUserId !== afterUserId)) render();
     } catch {
       userStore.set({ currentUser: null });
       if (window.zhimuSessionAuth?.legacyToken?.()) window.zhimuSessionAuth?.markLoggedOut?.();
       updateProfileText(null);
       syncAuthBanner();
-      if (rerender && beforeMode === "authenticated") window.zhimuRuntime?.render?.();
+      if (rerender && beforeMode === "authenticated") render();
     }
   }
 
@@ -111,7 +112,7 @@ import { userStore } from "../state/index.js";
     const key = "zhimuAuthPrompted";
     if (force || !sessionStorage.getItem(key)) {
       sessionStorage.setItem(key, "1");
-      window.zhimuRuntime?.openAuth?.();
+      callRuntime("openAuth");
     }
     return true;
   }

@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { uiStore, worldStore, studioStore } from "../state/index.js";
+import { loadCloudData, render } from "./runtime-facade.js";
 
 (function (window) {
 
@@ -363,9 +364,9 @@ import { uiStore, worldStore, studioStore } from "../state/index.js";
 
       try {
 
-        await window.zhimuRuntime?.loadCloudData?.(true, true);
+        await loadCloudData(true, true);
 
-        window.zhimuRuntime?.render?.();
+        render();
 
         showToast("已刷新剧本数据");
 

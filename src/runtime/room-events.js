@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
 import { uiStore, roomStore, userStore, voiceStore } from "../state/index.js";
+import { getRuntime, go, render } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 (function (window) {
   let directorPollTimer = null;
@@ -12,11 +13,7 @@ import { callView } from "./view-registry.js";
   let roomEventReconnectTimer = null;
 
   function runtime() {
-    return window.zhimuRuntime || {};
-  }
-
-  function render() {
-    window.zhimuRuntime?.render?.();
+    return getRuntime();
   }
 
   async function refreshPlayerHome() {
@@ -162,7 +159,7 @@ import { callView } from "./view-registry.js";
             data.roleName ? `你已被移出角色「${data.roleName}」` : "你已被主持人移出房间",
             3600
           );
-          window.zhimuRuntime?.go?.("overview");
+          go("overview");
         }
         break;
       case "room.section_completed":
