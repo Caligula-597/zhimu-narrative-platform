@@ -557,6 +557,7 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
     "src/runtime/actions.js",
     "src/runtime/auth-session.js",
     "src/runtime/auth-world.js",
+    "src/runtime/data.js",
     "src/runtime/actions-ops.js",
     "src/runtime/actions-studio.js",
     "src/runtime/actions-workspace.js",

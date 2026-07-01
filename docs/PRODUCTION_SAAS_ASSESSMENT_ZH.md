@@ -73,7 +73,7 @@
 
 ### 1. 主应用前端复杂度偏高
 
-`zhimuState` 消费者已经完成分片迁移，根目录旧 `state.js` 也已删除；`window.zhimuDom` 业务消费者也已收口到显式 import；`zhimuViews` 已删除；`zhimuRuntime` 的主要页面消费者以及 `actions`、`wizard`、`auth-world` 已迁移到 facade。当前主应用的主要前端复杂度来自剩余 runtime 生产者桥与 `data.js` 兜底。这不是产品设计导致的“冗余”，更多是早期快速把功能跑通后留下的演进成本。
+`zhimuState` 消费者已经完成分片迁移，根目录旧 `state.js` 也已删除；`window.zhimuDom` 业务消费者也已收口到显式 import；`zhimuViews` 已删除；`zhimuRuntime` 的主要页面消费者以及 `actions`、`wizard`、`auth-world`、`data.js` 渲染通知已迁移到 facade。当前主应用的主要前端复杂度来自剩余 runtime 生产者桥。这不是产品设计导致的“冗余”，更多是早期快速把功能跑通后留下的演进成本。
 
 这类问题在大项目里常见，但必须继续清理。否则后续每次改 UI、状态、弹窗、toast、页面切换，都可能牵动隐性依赖。
 

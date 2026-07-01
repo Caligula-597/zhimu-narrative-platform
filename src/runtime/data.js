@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
 import { uiStore, worldStore, studioStore, roomStore, assetStore, userStore, voiceStore } from "../state/index.js";
+import { render as runtimeRender } from "./runtime-facade.js";
 
   const reportError = (error, fallback = "操作失败，请稍后重试") =>
     showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
@@ -11,7 +12,7 @@ import { uiStore, worldStore, studioStore, roomStore, assetStore, userStore, voi
   const roomEvents = () => window.zhimuRoomEvents || {};
 
   function render() {
-    window.zhimuRuntime?.render?.();
+    runtimeRender();
   }
 
   let loadCloudDataPromise = null;
