@@ -1,11 +1,9 @@
 import { test, expect } from "@playwright/test";
 import {
-  BASE_URL,
   FIXTURE,
-  goToView,
-  injectHostContext,
+  gotoHostConsole,
+  injectHostAppContext,
   joinPlayRoomViaUi,
-  waitForCloudReady
 } from "./helpers/fixture.mjs";
 
 test.describe("主持台 · 玩家阅读进度联动", () => {
@@ -28,10 +26,8 @@ test.describe("主持台 · 玩家阅读进度联动", () => {
         await expect(playPage.getByText(/已完成阅读|标记阅读完成/)).toBeVisible({ timeout: 15_000 });
       }
 
-      await injectHostContext(hostContext);
-      await hostPage.goto(BASE_URL);
-      await waitForCloudReady(hostPage);
-      await goToView(hostPage, "director");
+      await injectHostAppContext(hostContext);
+      await gotoHostConsole(hostPage);
       await hostPage.locator('[data-action="refresh-host-room"]').click({ timeout: 5000 }).catch(() => {});
 
       await expect(hostPage.locator(".host-runtime-table")).toContainText(/1\/|已完成|阅读/, {

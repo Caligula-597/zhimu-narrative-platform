@@ -16,6 +16,10 @@ function authHeaders() {
   const headers = {};
   const token = getSessionToken();
   if (token) headers.authorization = `Bearer ${token}`;
+  if (import.meta.env.DEV && localStorage.getItem("zhimuDemoMode") === "true") {
+    const demoUserId = localStorage.getItem("zhimuDemoUserId");
+    if (demoUserId) headers["x-user-id"] = demoUserId;
+  }
   return headers;
 }
 

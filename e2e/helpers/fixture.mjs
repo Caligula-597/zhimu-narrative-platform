@@ -12,6 +12,7 @@ export const FIXTURE = {
 
 export const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:4173";
 export const API_BASE = process.env.PLAYWRIGHT_API_URL || "http://localhost:4180";
+export const HOST_URL = process.env.PLAYWRIGHT_HOST_URL || "http://localhost:5175";
 
 /**
  * @param {import('@playwright/test').BrowserContext} context
@@ -31,6 +32,22 @@ export async function injectDemoContext(context, overrides = {}) {
 
 export async function injectHostContext(context) {
   return injectDemoContext(context, { worldId: FIXTURE.worldId, roomId: FIXTURE.roomId });
+}
+
+export async function injectHostAppContext(context) {
+  await context.addInitScript(({ worldId, roomId, hostUserId }) => {
+    localStorage.setItem("zhimuDemoMode", "true");
+    localStorage.setItem("zhimuDemoUserId", hostUserId);
+    localStorage.removeItem("zhimuSessionToken");
+    localStorage.setItem("zhimuHostWorldId", worldId);
+    localStorage.setItem(`zhimuHostRoomId:${worldId}`, roomId);
+  }, { worldId: FIXTURE.worldId, roomId: FIXTURE.roomId, hostUserId: FIXTURE.hostUserId });
+}
+
+/** @param {Page} page */
+export async function gotoHostConsole(page) {
+  await page.goto(`${HOST_URL}/?room=${encodeURIComponent(FIXTURE.roomId)}`);
+  await page.locator(".host-console, .host-shell").first().waitFor({ state: "visible", timeout: 45_000 });
 }
 
 export async function injectPlayerPreJoinContext(context) {

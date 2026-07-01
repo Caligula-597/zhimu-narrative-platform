@@ -1,23 +1,19 @@
 import { test, expect } from "@playwright/test";
 import {
-  BASE_URL,
   FIXTURE,
   API_BASE,
   dismissModalIfOpen,
   ensurePendingHostEvent,
-  goToView,
+  gotoHostConsole,
+  injectHostAppContext,
   hasJoinedHostPlayers,
-  injectHostContext,
-  refreshHostRoomState,
-  waitForCloudReady
+  refreshHostRoomState
 } from "./helpers/fixture.mjs";
 
 test.describe("主持监控台 · 主持-玩家联动", () => {
   test.beforeEach(async ({ context, page }) => {
-    await injectHostContext(context);
-    await page.goto(BASE_URL);
-    await waitForCloudReady(page);
-    await goToView(page, "director");
+    await injectHostAppContext(context);
+    await gotoHostConsole(page);
   });
 
   test("待确认事件区与玩家表同时可见", async ({ page }) => {
