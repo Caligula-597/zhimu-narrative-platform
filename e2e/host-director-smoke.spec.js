@@ -19,7 +19,7 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
   test("待确认事件区与玩家表同时可见", async ({ page }) => {
     await expect(page.locator(".host-events-card")).toBeVisible();
     await expect(page.locator(".host-runtime-table")).toBeVisible();
-    await expect(page.getByRole("button", { name: "刷新待确认事件" })).toBeVisible();
+    await expect(page.locator('[data-action="refresh-host-room"]').first()).toBeVisible();
   });
 
   test("有待确认事件时显示主持-玩家提示条", async ({ page }) => {
