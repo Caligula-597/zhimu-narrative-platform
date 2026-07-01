@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { PLAY_URL } from "./helpers/fixture.mjs";
+import { PLAY_URL, injectVerifiedPlayContext } from "./helpers/fixture.mjs";
+
+test.beforeEach(async ({ context }) => {
+  await injectVerifiedPlayContext(context);
+});
 
 test.describe("玩家端 · 官方示例", () => {
   test("?experience=official 可进入选角", async ({ page }) => {

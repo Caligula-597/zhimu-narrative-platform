@@ -6,13 +6,21 @@ try {
   await client.query("BEGIN");
 
   await client.query(
-    `INSERT INTO users (id, email, display_name) VALUES ($1, $2, $3)
-     ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, display_name = EXCLUDED.display_name`,
+    `INSERT INTO users (id, email, display_name, user_kind, email_verified_at) VALUES ($1, $2, $3, 'registered', now())
+     ON CONFLICT (id) DO UPDATE SET
+       email = EXCLUDED.email,
+       display_name = EXCLUDED.display_name,
+       user_kind = 'registered',
+       email_verified_at = COALESCE(users.email_verified_at, now())`,
     [FIXTURE.hostUserId, "host@zhimu.local", "沈舟"]
   );
   await client.query(
-    `INSERT INTO users (id, email, display_name) VALUES ($1, $2, $3)
-     ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, display_name = EXCLUDED.display_name`,
+    `INSERT INTO users (id, email, display_name, user_kind, email_verified_at) VALUES ($1, $2, $3, 'registered', now())
+     ON CONFLICT (id) DO UPDATE SET
+       email = EXCLUDED.email,
+       display_name = EXCLUDED.display_name,
+       user_kind = 'registered',
+       email_verified_at = COALESCE(users.email_verified_at, now())`,
     [FIXTURE.playerUserId, "player@zhimu.local", "顾言"]
   );
 

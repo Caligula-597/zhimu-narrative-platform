@@ -16,6 +16,8 @@ function authHeaders() {
   const headers = {};
   const token = localStorage.getItem(TOKEN_KEY);
   if (token) headers.authorization = `Bearer ${token}`;
+  const demoUserId = localStorage.getItem("zhimuDemoUserId");
+  if (demoUserId) headers["x-user-id"] = demoUserId;
   return headers;
 }
 

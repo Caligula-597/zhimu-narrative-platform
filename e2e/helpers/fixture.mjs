@@ -55,6 +55,14 @@ export async function injectPlayerPreJoinContext(context) {
   return injectDemoContext(context, { worldId: FIXTURE.worldId, roomId: null });
 }
 
+export async function injectVerifiedPlayContext(context) {
+  await context.addInitScript(({ playerUserId }) => {
+    localStorage.setItem("zhimuDemoMode", "true");
+    localStorage.setItem("zhimuDemoUserId", playerUserId);
+    localStorage.removeItem("zhimuSessionToken");
+  }, { playerUserId: FIXTURE.playerUserId });
+}
+
 /** Demo creator with no active world — for wizard / first-run E2E. */
 export async function injectFreshCreatorContext(context) {
   await context.addInitScript(() => {
@@ -115,13 +123,21 @@ export async function goToView(page, view) {
 /** @param {Page} page */
 export async function dismissModalIfOpen(page) {
   const backdrop = page.locator("#modal-backdrop.show, .modal-backdrop.show").first();
-  if (await backdrop.isVisible().catch(() => false)) {
+  if (!(await backdrop.isVisible().catch(() => false))) return;
+
+  await backdrop.waitFor({ state: "hidden", timeout: 1000 }).catch(() => {});
+  if (!(await backdrop.isVisible().catch(() => false))) return;
+
+  const close = page.locator("#modal [data-close], .modal [data-close]").first();
+  if (await close.isVisible().catch(() => false)) {
+    await close.click({ timeout: 2000 }).catch(() => {});
+  } else {
     const primary = page.locator("#modal .primary-btn, .modal .primary-btn").first();
-    const close = page.locator("#modal [data-close], .modal [data-close]").first();
-    if (await primary.isVisible().catch(() => false)) await primary.click();
-    else if (await close.isVisible().catch(() => false)) await close.click();
-    await backdrop.waitFor({ state: "hidden", timeout: 10_000 }).catch(() => {});
+    if (await primary.isVisible().catch(() => false)) {
+      await primary.click({ timeout: 2000 }).catch(() => {});
+    }
   }
+  await backdrop.waitFor({ state: "hidden", timeout: 10_000 }).catch(() => {});
 }
 
 /** @param {Page} page */
