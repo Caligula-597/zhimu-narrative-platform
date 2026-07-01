@@ -6,7 +6,7 @@ import {
   ensurePendingHostEvent,
   gotoHostConsole,
   injectHostAppContext,
-  hasJoinedHostPlayers,
+  hasJoinedWaitingHostPlayers,
   refreshHostRoomState
 } from "./helpers/fixture.mjs";
 
@@ -45,9 +45,9 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
   test("提醒等待中的玩家可打开并发送", async ({ page }) => {
     await refreshHostRoomState(page);
     const hasPending = await ensurePendingHostEvent(page);
-    const hasJoinedPlayers = await hasJoinedHostPlayers(page);
-    if (!hasPending || !hasJoinedPlayers) {
-      test.skip(true, "fixture 无待确认事件或已入房玩家，跳过 nudge UI 测试");
+    const hasWaitingPlayers = await hasJoinedWaitingHostPlayers(page);
+    if (!hasPending || !hasWaitingPlayers) {
+      test.skip(true, "fixture 无待确认事件或已加入且等待确认的玩家，跳过 nudge UI 测试");
       return;
     }
 

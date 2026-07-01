@@ -153,14 +153,32 @@ export async function refreshHostRoomState(page) {
 }
 
 /** @param {Page} page */
-export async function hasJoinedHostPlayers(page) {
+export async function hasJoinedWaitingHostPlayers(page) {
   return page.evaluate(async ({ roomId, hostUserId, apiBase }) => {
-    const res = await fetch(`${apiBase}/api/rooms/${roomId}/host/players`, {
-      headers: { "x-user-id": hostUserId }
-    });
-    if (!res.ok) return false;
-    const data = await res.json();
-    return (data.players || []).some((player) => player.joined);
+    const headers = { "x-user-id": hostUserId };
+    const [eventsRes, playersRes] = await Promise.all([
+      fetch(`${apiBase}/api/rooms/${roomId}/host-events`, { headers }),
+      fetch(`${apiBase}/api/rooms/${roomId}/host/players`, { headers })
+    ]);
+    if (!eventsRes.ok || !playersRes.ok) return false;
+    const events = await eventsRes.json();
+    const playersPayload = await playersRes.json();
+    const pending = Array.isArray(events) ? events.filter((row) => row.status === "pending") : [];
+    const players = Array.isArray(playersPayload?.players) ? playersPayload.players : [];
+    const joined = players.filter((player) => player.joined);
+    if (!pending.length || !joined.length) return false;
+    const waitingIds = new Set();
+    for (const event of pending) {
+      for (const roleId of event.trigger_players || []) waitingIds.add(String(roleId));
+      for (const action of event.actions || []) {
+        const roleId = action.roleSlotId ?? action.role_slot_id;
+        if (roleId) waitingIds.add(String(roleId));
+        for (const item of action.roleSlotIds || action.role_slot_ids || []) waitingIds.add(String(item));
+      }
+    }
+    return waitingIds.size
+      ? joined.some((player) => waitingIds.has(String(player.role_slot_id)))
+      : joined.length > 0;
   }, { roomId: FIXTURE.roomId, hostUserId: FIXTURE.hostUserId, apiBase: API_BASE });
 }
 
