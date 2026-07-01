@@ -60,6 +60,6 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
     await expect(page.getByRole("button", { name: "发送提醒" })).toBeVisible();
     await page.locator("[data-nudge-submit]").click();
     await dismissModalIfOpen(page);
-    await expect(page.locator("#toast.show")).toContainText("已提醒", { timeout: 10_000 });
+    await expect(page.locator("#toast.show, .toast-host .toast.show")).toContainText("已提醒", { timeout: 10_000 });
   });
 });
