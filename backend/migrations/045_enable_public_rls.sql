@@ -1,0 +1,80 @@
+-- Supabase/PostgREST exposes public schema tables unless RLS is enabled.
+-- Enabling RLS without permissive policies blocks direct anonymous table access,
+-- while backend owner/service-role connections continue to work.
+DO $$
+DECLARE
+  target_table text;
+  rls_tables text[] := ARRAY[
+    'account_delete_jobs',
+    'asset_files',
+    'asset_versions',
+    'auth_sessions',
+    'automation_rules',
+    'beta_applications',
+    'chapters',
+    'character_scripts',
+    'checkpoint_restores',
+    'checkpoints',
+    'clue_ownership',
+    'clue_read_receipts',
+    'clues',
+    'content_versions',
+    'deleted_assets',
+    'email_verification_tokens',
+    'host_audit_log',
+    'inventory',
+    'investigation_points',
+    'investigation_records',
+    'items',
+    'knowledge_chunks',
+    'notebook_entries',
+    'oauth_accounts',
+    'oauth_login_codes',
+    'oauth_states',
+    'password_reset_tokens',
+    'pending_host_events',
+    'physical_tokens',
+    'plan_upgrade_requests',
+    'play_dm_conversations',
+    'play_dm_messages',
+    'play_friendships',
+    'play_plaza_posts',
+    'play_plaza_replies',
+    'play_plaza_reports',
+    'player_states',
+    'reading_progress',
+    'role_slots',
+    'room_content_unlocks',
+    'room_event_journal',
+    'room_members',
+    'room_mini_games',
+    'room_recaps',
+    'rooms',
+    'rule_executions',
+    'scenes',
+    'script_sections',
+    'storage_quotas',
+    'story_graph_edges',
+    'story_manuscripts',
+    'stripe_billing_customers',
+    'stripe_billing_subscriptions',
+    'stripe_webhook_events',
+    'timeline_logs',
+    'upload_sessions',
+    'user_plans',
+    'users',
+    'voice_room_members',
+    'voice_room_messages',
+    'voice_rooms',
+    'world_member_invites',
+    'world_members',
+    'worlds',
+    'write_idempotency'
+  ];
+BEGIN
+  FOREACH target_table IN ARRAY rls_tables LOOP
+    IF to_regclass(format('public.%I', target_table)) IS NOT NULL THEN
+      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', target_table);
+    END IF;
+  END LOOP;
+END $$;

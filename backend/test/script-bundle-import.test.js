@@ -7,10 +7,24 @@ import { fixtureWorldId } from "./helpers/fixture-ids.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
+function tinyPngBuffer() {
+  return Buffer.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+    0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
+    0x89, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x44, 0x41,
+    0x54, 0x78, 0x9c, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
+    0x00, 0x03, 0x01, 0x01, 0x00, 0x18, 0xdd, 0x8d,
+    0xb0, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e,
+    0x44, 0xae, 0x42, 0x60, 0x82
+  ]);
+}
+
 function buildSampleZip() {
   const zip = new AdmZip();
   zip.addFile("172-水上之谜 (7人开放)/人物剧本/卞夫人.txt", Buffer.from("第一幕\n角色正文", "utf8"));
-  zip.addFile("172-水上之谜 (7人开放)/调查线索/长秋宫1.jpg", Buffer.from("fake-jpeg", "utf8"));
+  zip.addFile("172-水上之谜 (7人开放)/调查线索/长秋宫1.png", tinyPngBuffer());
   zip.addFile("172-水上之谜 (7人开放)/组织者手册.txt", Buffer.from("主持流程", "utf8"));
   return zip.toBuffer();
 }
@@ -74,6 +88,11 @@ test("POST script-bundle import creates roles clues manuscript and knowledge chu
   const body = response.json();
   assert.equal(body.ok, true);
   assert.ok(body.summary.imported >= 2);
+  assert.deepEqual(
+    body.results.filter((item) => item.status === "failed"),
+    [],
+    `script bundle import failures: ${JSON.stringify(body.results)}`
+  );
 
   const role = await query(`SELECT id, name FROM role_slots WHERE world_id = $1 AND name = '卞夫人'`, [worldId]);
   assert.ok(role.rowCount, "role 卞夫人 should be created");
@@ -88,7 +107,7 @@ test("POST script-bundle import creates roles clues manuscript and knowledge chu
   assert.ok(chunks.rows.some((row) => row.source_type === "story_manuscript" && row.body.includes("主持流程")));
 
   const clues = await query(
-    `SELECT id FROM clues WHERE world_id = $1 AND metadata->>'importKey' LIKE 'script-bundle:%长秋宫1.jpg%'`,
+    `SELECT id FROM clues WHERE world_id = $1 AND metadata->>'importKey' LIKE 'script-bundle:%长秋宫1.png%'`,
     [worldId]
   );
   if (!clues.rowCount) {
