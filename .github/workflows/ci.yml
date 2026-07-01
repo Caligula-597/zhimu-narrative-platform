@@ -121,9 +121,11 @@ jobs:
           done
           exit 1
       - name: Playwright E2E
+        timeout-minutes: 20
         run: npm run test:e2e
         env:
           PLAYWRIGHT_SKIP_WEBSERVER: "true"
+          PLAYWRIGHT_BROWSERS: chromium
           PLAYWRIGHT_INVITE_CODE: TEST-FIXTURE-DEMO
           PLAYWRIGHT_API_URL: http://localhost:4180
           PLAYWRIGHT_BASE_URL: http://localhost:4173
