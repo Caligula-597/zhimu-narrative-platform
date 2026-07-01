@@ -562,9 +562,10 @@ await check("runtime-bridge-direct", async () => {
   if (domJs.includes("window.zhimuLoadCloudData")) throw new Error("dom.js still defines zhimuLoadCloudData hack");
   if (domJs.includes("window.zhimuHandle")) throw new Error("dom.js still defines zhimuHandle hack");
   if (!dataJs.includes("window.zhimuRuntime?.render")) throw new Error("data.js not calling zhimuRuntime?.render directly");
-  if (!authJs.includes("window.zhimuRuntime?.loadCloudData")) throw new Error("auth-world.js not calling zhimuRuntime?.loadCloudData directly");
-  if (!authJs.includes("window.zhimuRuntime?.handle")) throw new Error("auth-world.js not calling zhimuRuntime?.handle directly");
-  return "runtime bridge called directly";
+  if (!authJs.includes("runtime-facade.js")) throw new Error("auth-world.js must consume runtime facade");
+  if (!authJs.includes('callRuntime("handle"')) throw new Error("auth-world.js must dispatch handle through runtime facade");
+  if (!authJs.includes('callRuntime("drainPendingInviteAfterAuth"')) throw new Error("auth-world.js must drain pending invites through runtime facade");
+  return "runtime bridge direct fallback limited to data producer";
 });
 
 await check("world-switch-sync", async () => {

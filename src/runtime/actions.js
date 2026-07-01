@@ -1,13 +1,13 @@
 /* Global data-action dispatcher — domain handlers live in actions-*.js */
 import { showToast } from "../components/toast.js";
 import { uiStore } from "../state/index.js";
+import { callRuntime } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 
-  const R = window.zhimuRuntime || {};
   const M = window.zhimuModal || {};
   const openModal = M.openModal || (() => {});
-  const enhanceCloudPanels = R.enhanceCloudPanels || (() => {});
-  const openWizard = R.openWizard || (() => {});
+  const enhanceCloudPanels = () => callRuntime("enhanceCloudPanels");
+  const openWizard = () => callRuntime("openWizard");
 
   const dispatchers = [
     () => window.zhimuActionsWorkspace?.handleWorkspaceAction,

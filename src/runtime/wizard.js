@@ -3,11 +3,11 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
 import { uiStore, wizardStore } from "../state/index.js";
+import { go, loadCloudData } from "./runtime-facade.js";
 
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
-  const R = window.zhimuRuntime || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -37,11 +37,6 @@ import { uiStore, wizardStore } from "../state/index.js";
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = (view) => window.zhimuRuntime?.go?.(view);
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
-  const bindDynamic = R.bindDynamic || (() => {});
-  const openJoinRoom = R.openJoinRoom || (() => {});
   const wizardSteps = ["创建方式","角色与席位","章节与内容","自动化规则","测试并发布"];
 
 export function openWizard(step=0){

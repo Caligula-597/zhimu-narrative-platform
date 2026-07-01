@@ -554,7 +554,9 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
   for (const rel of [
     "src/components/emptyState.js",
     "src/components/modal.js",
+    "src/runtime/actions.js",
     "src/runtime/auth-session.js",
+    "src/runtime/auth-world.js",
     "src/runtime/actions-ops.js",
     "src/runtime/actions-studio.js",
     "src/runtime/actions-workspace.js",
@@ -562,6 +564,7 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
     "src/runtime/livekit-voice.js",
     "src/runtime/room-events.js",
     "src/runtime/search-focus.js",
+    "src/runtime/wizard.js",
     "src/runtime/world-revision.js",
     "src/utils/user-messages.js",
     "src/views/account.js",

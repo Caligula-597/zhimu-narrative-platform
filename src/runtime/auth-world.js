@@ -3,10 +3,10 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
 import { uiStore, userStore, worldStore, studioStore } from "../state/index.js";
+import { callRuntime, go, loadCloudData, render } from "./runtime-facade.js";
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
-  const R = window.zhimuRuntime || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -37,12 +37,8 @@ import { uiStore, userStore, worldStore, studioStore } from "../state/index.js";
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
-  const go = (view) => window.zhimuRuntime?.go?.(view);
-  function render() { window.zhimuRuntime?.render?.(); }
-  function loadCloudData(...args) { return window.zhimuRuntime?.loadCloudData?.(...args); }
-  function handle(action, el) { return window.zhimuRuntime?.handle?.(action, el); }
-  const bindDynamic = R.bindDynamic || (() => {});
-  const openWizard = R.openWizard || (() => {});
+  function handle(action, el) { return callRuntime("handle", action, el); }
+  const openWizard = () => callRuntime("openWizard");
 export function openForgotPassword(prefillEmail=""){
  modal.className="modal auth-modal";
  modal.innerHTML=`<h2>找回密码</h2><p class="wizard-intro">输入注册邮箱，我们会发送重置链接（1 小时内有效）。</p>${studioField("邮箱","forgotEmail","input",prefillEmail)}<div class="modal-actions"><button class="secondary-btn" data-auth-back-login>返回登录</button><button class="primary-btn" data-auth-forgot-submit>发送重置邮件</button></div>`;
@@ -80,12 +76,12 @@ export function openResetPassword(resetToken){
 
 export function openAuth(){
  const loggedIn=Boolean(window.zhimuSessionAuth?.isAuthenticated?.());
- if(loggedIn){window.zhimuRuntime?.go?.("account");return}
+ if(loggedIn){go("account");return}
  openAuthForm();
 }
 
 export async function openAccountPanel(){
- window.zhimuRuntime?.go?.("account");
+ go("account");
 }
 
 export function openAuthForm(){
@@ -95,7 +91,7 @@ export function openAuthForm(){
  modal.innerHTML=`<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div data-oauth-bar class="row" style="margin-bottom:12px"></div><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<p class="muted-note auth-legal-note">注册即表示你已阅读并同意 <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> 与 <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a>。</p><button class="primary-btn" data-auth-register>创建账号</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button><button type="button" class="text-btn" data-auth-forgot style="margin-top:8px">忘记密码？</button><p class="muted-note auth-legal-note"><a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a></p></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
  const resetAccountContext=()=>window.zhimuContext?.resetAccountContext?.();
- const finishAuth=async(label)=>{resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true)}catch(error){showError(error)}render();window.zhimuRuntime?.drainPendingInviteAfterAuth?.();if(!zhimuApi.context.worldId){const hasWorlds=(worldStore.get().cloudWorlds||[]).length>0;setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400)}};
+ const finishAuth=async(label)=>{resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true)}catch(error){showError(error)}render();callRuntime("drainPendingInviteAfterAuth");if(!zhimuApi.context.worldId){const hasWorlds=(worldStore.get().cloudWorlds||[]).length>0;setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400)}};
  modal.querySelector("[data-auth-register]").onclick=async()=>{try{const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email:modal.querySelector('[data-studio-field="registerEmail"]').value,password:modal.querySelector('[data-studio-field="registerPassword"]').value});if(result.pendingEmailVerification){closeModal();showToast("注册成功，请查收验证邮件");openVerifyPending(modal.querySelector('[data-studio-field="registerEmail"]').value.trim());return}window.zhimuSessionAuth?.markAuthenticated?.();await finishAuth("注册成功，已经登录")}catch(error){showError(error)}};
  modal.querySelector("[data-auth-login]").onclick=async()=>{try{const result=await zhimuApi.login({email:modal.querySelector('[data-studio-field="loginEmail"]').value,password:modal.querySelector('[data-studio-field="loginPassword"]').value});window.zhimuSessionAuth?.markAuthenticated?.();if(result.pendingEmailVerification){closeModal();showToast("登录成功，请先验证邮箱");openVerifyPending(modal.querySelector('[data-studio-field="loginEmail"]').value.trim());return}await finishAuth("登录成功")}catch(error){showError(error)}};
  modal.querySelector("[data-auth-forgot]")?.addEventListener("click",()=>openForgotPassword(modal.querySelector('[data-studio-field="loginEmail"]')?.value||""));

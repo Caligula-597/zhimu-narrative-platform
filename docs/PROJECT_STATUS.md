@@ -22,6 +22,7 @@
 | 测试 | 后端检查、UI smoke、三浏览器 Playwright |
 | 部署 | Railway app 自动部署；Pages 三站 workflow 已新增，待 secrets 验证 |
 | 文档 | 入口级文档已按当前标准重写 |
+| 前端桥接收口 | `zhimuViews` 已删除；`zhimuRuntime` 页面级消费者、`actions`、`wizard`、`auth-world` 已迁移到 facade，剩余生产者桥与 `data.js` 渲染兜底 |
 
 ## 常用命令
 
@@ -43,6 +44,6 @@ npm run monitoring:smoke -- --alerts
 
 1. GitHub `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` 需要确认。
 2. 真实生产 `ALERT_WEBHOOK_URL`、`OTEL_EXPORTER_OTLP_ENDPOINT`、AV scanner secret 需要配置。
-3. 主应用 `window.*` 兼容桥需要继续按模块迁移；`zhimuViews` 已收口，`zhimuRuntime` 已新增 facade，主要 `src/views/*` 页面级消费者已迁移，剩余重点是 runtime 生产者桥与认证/启动模块内部调用。
+3. 主应用 `window.*` 兼容桥需要继续按模块迁移；`zhimuViews` 已收口，`zhimuRuntime` 已新增 facade，主要 `src/views/*` 页面级消费者以及 `actions`、`wizard`、`auth-world` 已迁移，剩余重点是 runtime 生产者桥与 `data.js` 渲染兜底。
 4. 多前端共享层需要抽取。
 5. 备份恢复、告警响应、上传扫描故障和部署回滚需要真实演练记录。
