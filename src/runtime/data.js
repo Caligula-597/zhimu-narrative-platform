@@ -2,7 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
 import { uiStore, worldStore, studioStore, roomStore, assetStore, userStore, voiceStore } from "../state/index.js";
-import { render as runtimeRender } from "./runtime-facade.js";
+import { registerRuntime, render as runtimeRender } from "./runtime-facade.js";
 
   const reportError = (error, fallback = "操作失败，请稍后重试") =>
     showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
@@ -400,6 +400,4 @@ export function handleRoomEvent(...args) { return roomEvents().handleRoomEvent?.
 export function streamUserIdForRoom(...args) { return roomEvents().streamUserIdForRoom?.(...args); }
 export function renderQuotaSection(...args) { return window.zhimuAccountQuota?.renderQuotaSection?.(...args); }
 
-// Bridge: window.zhimuRuntime populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
-window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { loadCloudData, ensureActiveWorld, clearRuntimeState, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, syncDirectorPolling, refreshDirectorPoll, refreshHostEvents, refreshHostPlayers, refreshHostClueMatrix, refreshHostAuditLog, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels, renderQuotaSection });
+registerRuntime({ loadCloudData, ensureActiveWorld, clearRuntimeState, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, syncDirectorPolling, refreshDirectorPoll, refreshHostEvents, refreshHostPlayers, refreshHostClueMatrix, refreshHostAuditLog, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels, renderQuotaSection });

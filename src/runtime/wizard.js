@@ -3,7 +3,7 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
 import { uiStore, wizardStore } from "../state/index.js";
-import { go, loadCloudData } from "./runtime-facade.js";
+import { go, loadCloudData, registerRuntime } from "./runtime-facade.js";
 
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -262,6 +262,4 @@ export async function finishWizard(){
   openModal("测试房间已创建",`世界、角色、章节和序章已经真实写入云端。<br><br><strong>邀请码：${escapeHtml(inviteCode)}</strong><br><br>${rulesHint}<br><small>完整步骤见侧栏「创作指引」。</small>`,"查看规则列表");
  }catch(error){button.disabled=false;button.textContent="重新创建测试房间";showError(error)}
 }
-// Bridge: window.zhimuRuntime populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
-window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openWizard, finishWizard });
+registerRuntime({ openWizard, finishWizard });

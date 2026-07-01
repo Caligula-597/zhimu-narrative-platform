@@ -548,8 +548,12 @@ test("phase V4 does not expose a new zhimuViewRegistry window bridge", () => {
 
 test("A1 runtime facade centralizes low-risk runtime consumers", () => {
   const facade = fs.readFileSync(path.join(root, "src/runtime/runtime-facade.js"), "utf8");
+  const appJs = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  assert.match(facade, /export function registerRuntime/);
   assert.match(facade, /export function callRuntime/);
-  assert.match(facade, /window\.zhimuRuntime \|\| \{\}/);
+  assert.doesNotMatch(facade, /window\.zhimuRuntime(?!Store)/);
+  assert.doesNotMatch(appJs, /window\.zhimuRuntime(?!Store)/);
+  assert.match(appJs, /registerRuntime\(\{ render, go \}\)/);
 
   for (const rel of [
     "src/components/emptyState.js",
@@ -587,5 +591,21 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
     assert.match(source, /runtime-facade\.js/);
     assert.doesNotMatch(source, /const R = window\.zhimuRuntime/);
     assert.doesNotMatch(source, /window\.zhimuRuntime\?\./);
+    assert.doesNotMatch(source, /window\.zhimuRuntime = Object\.assign/);
+  }
+});
+
+test("A1 runtime producers use facade registry instead of window zhimuRuntime", () => {
+  for (const rel of [
+    "app.js",
+    "src/runtime/actions.js",
+    "src/runtime/auth-world.js",
+    "src/runtime/data.js",
+    "src/runtime/wizard.js",
+    "src/views/account-hub.js"
+  ]) {
+    const source = fs.readFileSync(path.join(root, rel), "utf8");
+    assert.match(source, /registerRuntime/);
+    assert.doesNotMatch(source, /window\.zhimuRuntime(?!Store)/);
   }
 });

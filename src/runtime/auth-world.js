@@ -3,7 +3,7 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
 import { uiStore, userStore, worldStore, studioStore } from "../state/index.js";
-import { callRuntime, go, loadCloudData, render } from "./runtime-facade.js";
+import { callRuntime, go, loadCloudData, registerRuntime, render } from "./runtime-facade.js";
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
@@ -410,6 +410,4 @@ export function handleStartupAuthParams(){
  }
  if(pending.length)return Promise.all(pending);
 }
-// Bridge: window.zhimuRuntime populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
-window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, openRenameWorldModal, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, setRoomPublicListing, selectParallelRoom, openRoomInvite, openCurrentRoomInvite, openJoinRoom, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });
+registerRuntime({ openAuth, openAccountPanel, openAuthForm, openForgotPassword, openResetPassword, openVerifyEmail, openVerifyPending, openWorldLibrary, openRenameWorldModal, joinCatalogWorld, selectWorld, deleteWorld, openWorldRooms, createParallelRoom, setRoomPublicListing, selectParallelRoom, openRoomInvite, openCurrentRoomInvite, openJoinRoom, acceptWorldInviteFromUrl, drainPendingInviteAfterAuth, handleStartupAuthParams });

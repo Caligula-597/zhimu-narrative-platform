@@ -1,6 +1,6 @@
 /**
  * Vite entry — import order mirrors legacy index.html script chain.
- * Modules use ES exports; remaining window.* assignments are runtime shell adapters only.
+ * Modules use ES exports; startup order keeps diagnostic globals and registries available.
  */
 import "../config.js";
 import "../src/dom.js";

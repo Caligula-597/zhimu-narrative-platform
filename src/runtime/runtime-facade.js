@@ -1,6 +1,13 @@
-/** Centralized access to the remaining runtime shell adapter. */
+/** Centralized runtime shell registry. */
+const runtimeRegistry = {};
+
+export function registerRuntime(api = {}) {
+  Object.assign(runtimeRegistry, api);
+  return runtimeRegistry;
+}
+
 export function getRuntime() {
-  return window.zhimuRuntime || {};
+  return runtimeRegistry;
 }
 
 export function callRuntime(method, ...args) {

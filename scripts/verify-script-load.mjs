@@ -119,20 +119,13 @@ function setupGlobalShims() {
       demoUsers: {},
       demoWorld: {}
     },
-    zhimuState: null,
+    __ZHIMU_ENABLE_TEST_STATE__: true,
     zhimuApi: null,
-    zhimuDom: {
-      content: fakeElement,
-      toast: fakeElement,
-      modal: fakeElement,
-      modalBackdrop: fakeElement
-    },
     location: { pathname: "/", search: "", hash: "", hostname: "localhost", port: "4173" },
     zhimuFormat: {},
     zhimuUi: {},
     zhimuToast: {},
     zhimuModal: {},
-    zhimuRuntime: {},
     zhimuRuleVisual: {},
     zhimuUserMessages: {
       friendlyApiError: (p, fb) => p?.error || fb,
@@ -216,10 +209,11 @@ for (const rel of files) {
 
 if (failed) process.exit(1);
 
-// Verify critical exports landed on the remaining runtime bridge and the ESM registry.
-const { zhimuRuntime } = globalThis.window;
+// Verify critical exports landed on the ESM registries.
 const viewRegistryModule = await import(fileUrl("src/runtime/view-registry.js"));
 const viewRegistry = viewRegistryModule.viewRegistrySnapshot();
+const runtimeModule = await import(fileUrl("src/runtime/runtime-facade.js"));
+const runtimeRegistry = runtimeModule.getRuntime();
 
 // API surface: verify via namespace import (window.zhimuApi bridge was removed
 // after all view/runtime/component consumers migrated to `import * as zhimuApi`).
@@ -227,9 +221,9 @@ const apiNamespace = await import(fileUrl("src/api/index.js") + `?t=${Date.now()
 
 const checks = [
   ["viewRegistry.overview.overview", typeof viewRegistry.overview?.overview],
-  ["zhimuRuntime.render", typeof zhimuRuntime?.render],
-  ["zhimuRuntime.go", typeof zhimuRuntime?.go],
-  ["zhimuRuntime.handle", typeof zhimuRuntime?.handle],
+  ["runtimeRegistry.render", typeof runtimeRegistry?.render],
+  ["runtimeRegistry.go", typeof runtimeRegistry?.go],
+  ["runtimeRegistry.handle", typeof runtimeRegistry?.handle],
   // API namespace exports (replaces former window.zhimuApi bridge checks).
   ["zhimuApi.getWorld", typeof apiNamespace.getWorld],
   ["zhimuApi.createRoom", typeof apiNamespace.createRoom],

@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { registerRuntime } from "../src/runtime/runtime-facade.js";
 import { userStore } from "../src/state/index.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -64,7 +65,6 @@ globalThis.window = {
       profileFallback: { strong: "未登录", small: "点击登录或注册", avatar: "?" }
     })
   },
-  zhimuRuntime: { render: () => { renders += 1; }, openAuth: noop },
   zhimuConfig: { requireAuth: true },
   localStorage: { getItem: () => null, setItem: () => {} },
   sessionStorage: { getItem: () => null, setItem: () => {} },
@@ -102,6 +102,7 @@ globalThis.fetch = async (url) => {
 let zhimuAuthSession;
 
 test.before(async () => {
+  registerRuntime({ render: () => { renders += 1; }, openAuth: noop });
   const fileUrl = (rel) => `file://${path.join(root, rel).replace(/\\/g, "/")}?t=${Date.now()}`;
   await import(fileUrl("src/runtime/auth-session.js"));
   // 等 client.js 的 zhimuSessionReady IIFE 完成，避免干扰测试

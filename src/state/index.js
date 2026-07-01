@@ -1,7 +1,6 @@
-// A2 状态分片聚合器
-// 8 个领域 shard：user / world / room / studio / asset / voice / wizard / ui
-// Phase 4 已完成消费者迁移；src/state.js 激活 Proxy 仅保留给 E2E 读取 window.zhimuState。
-// 新代码应直接 import 对应 shard，不再通过 window.zhimuState 读写。
+// State shard aggregator.
+// New code imports shard stores directly; src/state.js may expose a test-only
+// window.zhimuState proxy when demo/test diagnostics explicitly opt in.
 
 import { userStore } from "./user-store.js";
 import { worldStore } from "./world-store.js";
@@ -17,11 +16,8 @@ export { userStore, worldStore, roomStore, studioStore, assetStore, voiceStore, 
 const shards = [userStore, worldStore, roomStore, studioStore, assetStore, voiceStore, wizardStore, uiStore];
 
 /**
- * 激活 Proxy 兼容桥：将 window.zhimuState 替换为 Proxy，
- * 读/写按字段路由到对应 shard；未在 shard 中的字段 fallback 到 legacy 字面量对象。
- *
- * 注意：只能调用一次。调用后所有 `window.zhimuState.xxx = ...` 的旧式写入
- * 会同步进入对应 shard（如果字段属于 shard），未声明的字段进入 legacy 容器。
+ * Activates the test-only Proxy compatibility bridge. Reads and writes route
+ * by field name into the owning shard; unknown fields stay in a legacy bucket.
  */
 export function activateShardBridge() {
   if (typeof window === "undefined") return;

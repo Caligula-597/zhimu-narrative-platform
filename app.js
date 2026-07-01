@@ -3,12 +3,13 @@ import { updateNotifyBadge } from "./src/components/toast.js";
 import { getViewMeta, resolveViewFn } from "./src/bootstrap/view-resolver.js";
 import { initEvents } from "./src/bootstrap/events.js";
 import { content, modalBackdrop } from "./src/dom.js";
+import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
 import { uiStore, studioStore, userStore } from "./src/state/index.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
   if (startupMissing.length) return { render: () => {}, go: () => {} };
 
-  const R = window.zhimuRuntime;
+  const R = getRuntime();
 
   let renderToken = 0;
   let lastContentHtml = "";
@@ -99,7 +100,7 @@ const appEntry = (function (window) {
     if (view === "account") render();
   }
 
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { render, go });
+  registerRuntime({ render, go });
 
   initEvents({ content, modalBackdrop, R, go });
 

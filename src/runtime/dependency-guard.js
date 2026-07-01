@@ -1,9 +1,7 @@
-/** Startup guard for legacy window-attached modules. */
+/** Startup guard for shell dependencies. */
+import { getContent, getModalBackdrop } from "../dom.js";
+
 const requiredAppGlobals = [
-  "zhimuState",
-  "zhimuRuntime",
-  "zhimuDom.content",
-  "zhimuDom.modalBackdrop",
   "zhimuFormat",
   "zhimuUserMessages"
 ];
@@ -16,7 +14,7 @@ function missingGlobals(paths = requiredAppGlobals) {
   return paths.filter((path) => !hasPath(path));
 }
 
-function renderMissingGlobals(missing, target = window.zhimuDom?.content) {
+function renderMissingGlobals(missing, target = getContent()) {
   const details = missing.map((name) => `Missing ${name}`);
   const fallback = `<section class="unified-state unified-state-error">
     <h3>页面初始化失败</h3>
@@ -39,6 +37,8 @@ function renderMissingGlobals(missing, target = window.zhimuDom?.content) {
 
 function assertAppReady() {
   const missing = missingGlobals();
+  if (!getContent()) missing.push("dom.content");
+  if (!getModalBackdrop()) missing.push("dom.modalBackdrop");
   if (missing.length) renderMissingGlobals(missing);
   return missing;
 }

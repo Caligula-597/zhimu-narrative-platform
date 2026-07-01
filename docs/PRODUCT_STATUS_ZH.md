@@ -47,7 +47,7 @@
 
 | 优先级 | 风险 | 影响 | 处理建议 |
 |---|---|---|---|
-| P0 | 主应用仍有 `window.zhimuRuntime` 兼容桥 | `zhimuViews` 已收口；`zhimuRuntime` 已新增 facade，主要页面级消费者以及 `actions`、`wizard`、`auth-world`、`data.js` 渲染通知已迁移，剩余生产者桥仍需继续收口 | 继续 A1 收尾，按模块把 runtime 消费者迁移到显式 import |
+| P0 | 主应用 legacy 窗口桥仍需继续收口 | `zhimuViews` 已删除；`zhimuRuntime` shell 已迁移到 ESM registry；`zhimuDom` 窗口桥已删除；`zhimuState` 仅在测试/演示诊断下暴露 | 继续按模块收口其它 UI/格式/会话类窗口服务，并优先保持验收绿线 |
 | P0 | 生产门槛需要真实环境跑通 | 本地通过不等于生产可信 | 补齐真实 OTLP、alert、AV scanner、OPS/METRICS token 后跑 `check:production-ready` |
 | P0 | 关键业务 E2E 需要稳定绿线 | 内测问题定位成本高 | 固化创作、开房、玩家加入、主持推进、线索发放、复盘的最小端到端链路 |
 | P1 | 三端共享层仍薄 | API、错误处理、状态语言、toast、视觉 token 容易重复修 | 继续抽 `shared-api`、错误处理、session、toast、status chip、tokens |
@@ -108,7 +108,7 @@ npm run test:e2e
 
 ## 下一步
 
-1. 完成主应用 `zhimuRuntime / zhimuViews` 桥接收口，降低 `window.*` bridge 风险。
+1. 继续完成主应用剩余窗口服务收口，降低 `window.*` bridge 风险。
 2. 跑通一套真实 staging/production 门槛：OTLP、alert、上传扫描、OPS token、metrics token。
 3. 固化关键 E2E：创作、开房、玩家加入、主持推进、线索发放、复盘。
 4. 把创作者制作总控台、主持运行控制台、玩家下一步行动、clue audit、rule debug trace 继续产品化。

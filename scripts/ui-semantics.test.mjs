@@ -21,7 +21,6 @@ const fakeToast = {
 
 globalThis.window = {
   zhimuState: { cloudHostEvents: [] },
-  zhimuDom: { toast: fakeToast },
   zhimuUi: {},
   zhimuWorkspace: {},
   zhimuFormat: {
@@ -39,7 +38,7 @@ globalThis.window = {
 };
 
 globalThis.document = {
-  querySelector: () => null,
+  querySelector: (selector) => selector === "#toast" ? fakeToast : null,
   createElement: () => ({ className: "", textContent: "", style: {}, classList: { add: noop, remove: noop } })
 };
 

@@ -1,7 +1,7 @@
 /* Global data-action dispatcher — domain handlers live in actions-*.js */
 import { showToast } from "../components/toast.js";
 import { uiStore } from "../state/index.js";
-import { callRuntime } from "./runtime-facade.js";
+import { callRuntime, registerRuntime } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 
   const M = window.zhimuModal || {};
@@ -55,6 +55,4 @@ export function handle(action, el) {
     if (action === "unavailable") return showToast(`${el.dataset.feature || "该功能"}暂不可用`);
   }
 
-// Bridge: window.zhimuRuntime populated from real exports.
-// Will be removed in Phase 4 when consumers migrate to direct imports.
-window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, { bindDynamic, handle });
+registerRuntime({ bindDynamic, handle });

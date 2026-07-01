@@ -555,12 +555,20 @@ await check("recap-wired", async () => {
 });
 
 await check("runtime-bridge-direct", async () => {
+  const appJs = readSource("app.js");
   const domJs = readSource("src/dom.js");
   const dataJs = readSource("src/runtime/data.js");
   const authJs = readSource("src/runtime/auth-world.js");
+  const facadeJs = readSource("src/runtime/runtime-facade.js");
   if (domJs.includes("window.zhimuRender")) throw new Error("dom.js still defines zhimuRender hack");
   if (domJs.includes("window.zhimuLoadCloudData")) throw new Error("dom.js still defines zhimuLoadCloudData hack");
   if (domJs.includes("window.zhimuHandle")) throw new Error("dom.js still defines zhimuHandle hack");
+  if (domJs.includes("window.zhimuDom")) throw new Error("dom.js still exposes zhimuDom bridge");
+  if (appJs.includes("window.zhimuRuntime")) throw new Error("app.js still reads or registers zhimuRuntime bridge");
+  if (!facadeJs.includes("registerRuntime")) throw new Error("runtime facade missing registerRuntime");
+  for (const [label, source] of [["data.js", dataJs], ["auth-world.js", authJs]]) {
+    if (source.includes("window.zhimuRuntime = Object.assign")) throw new Error(`${label} still registers zhimuRuntime bridge`);
+  }
   if (!dataJs.includes("runtime-facade.js")) throw new Error("data.js must consume runtime facade");
   if (!dataJs.includes("runtimeRender()")) throw new Error("data.js must notify render through runtime facade");
   if (!authJs.includes("runtime-facade.js")) throw new Error("auth-world.js must consume runtime facade");

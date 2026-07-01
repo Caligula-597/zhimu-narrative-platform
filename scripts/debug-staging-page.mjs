@@ -21,18 +21,11 @@ await page.waitForTimeout(3000);
 
 const diagnostics = await page.evaluate(() => {
   const cfg = window.zhimuConfig;
-  const rt = window.zhimuRuntime;
-  const views = window.zhimuViews;
-  const dom = window.zhimuDom;
   const content = document.querySelector("#content");
   const shell = document.querySelector(".app-shell");
   const styles = shell ? getComputedStyle(shell) : null;
   return {
     zhimuConfig: cfg ? { apiBase: cfg.apiBase, requireAuth: cfg.requireAuth, demoMode: cfg.demoMode } : null,
-    hasRuntimeRender: typeof rt?.render === "function",
-    hasRuntimeGo: typeof rt?.go === "function",
-    viewKeys: views ? Object.keys(views) : null,
-    overviewFn: typeof views?.overview?.overview === "function",
     contentExists: Boolean(content),
     contentInnerLen: content?.innerHTML?.length ?? 0,
     contentText: (content?.textContent || "").slice(0, 200),

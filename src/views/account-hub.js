@@ -1,6 +1,6 @@
 /** Unified account + content assets page (not modal). */
 import * as zhimuApi from "../api/index.js";
-import { go, render } from "../runtime/runtime-facade.js";
+import { go, registerRuntime, render } from "../runtime/runtime-facade.js";
 import { callView, registerView } from "../runtime/view-registry.js";
 import { uiStore } from "../state/index.js";
 
@@ -95,7 +95,7 @@ import { uiStore } from "../state/index.js";
     bindAccountHubView,
     isActive: () => uiStore.get().view === "account"
   };
-  window.zhimuRuntime = Object.assign(window.zhimuRuntime || {}, {
+  registerRuntime({
     goAccountHub,
     openAccountHub: goAccountHub,
     openAccountPanel: goAccountHub

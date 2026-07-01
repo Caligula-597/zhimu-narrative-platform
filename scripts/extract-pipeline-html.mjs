@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+throw new Error("Deprecated one-time migration script is disabled. Do not re-run after the ES module/view-registry migration.");
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const src = fs.readFileSync(path.join(root, "src/views/pipeline-wizard.js"), "utf8");
 const start = src.indexOf("function pipelineEvaluationPreview");
