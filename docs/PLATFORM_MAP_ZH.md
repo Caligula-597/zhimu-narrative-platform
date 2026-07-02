@@ -1,6 +1,6 @@
 # 平台地图
 
-最后更新：2026-06-26
+最后更新：2026-07-02
 
 ## 产品模块
 
@@ -40,8 +40,16 @@
 | 主持端本地 | Vite proxy 到 `http://127.0.0.1:4180` |
 | 主持端生产 | `https://app.getzhimu.com/api` |
 
+## 已完成收口
+
+| 项 | 状态 |
+|---|---|
+| A1 桥接清理 | 完成：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` |
+| A2 状态分片 | 完成：8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js` 已落地；`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活 |
+| 后端 RLS | `backend/migrations/045_enable_public_rls.sql` 已为 44 张表启用 Row-Level Security |
+
 ## 当前差距
 
-- Pages 三站 CI/CD 未统一。
+- Pages 三站 CI/CD workflow 已新增，待 secrets 验证。
 - 三端共享层不足。
-- 端口诊断工具缺失。
+- 端口诊断工具：已新增 `npm run port:doctor`。

@@ -1,8 +1,10 @@
 # 织幕待处理问题清单
 
+最后更新：2026-07-02
+
 ## 问题一：进入监控台卡顿
 
-> **处理状态：已完成（2026-06-25）**  
+> **处理状态：已完成（2026-06-25）**
 > 已将 `host/src/main.js` 的 console 视图切换前移，进入监控台后立即展示控制台壳与加载状态；`host/src/runtime/data.js` 在加载开始/结束时主动渲染，避免只停留在 landing + 顶部 loading。验证：`npm run build --prefix host`、`npm test --prefix host`。
 
 ### 问题描述
@@ -73,7 +75,7 @@ async function enterConsole() {
 
 ## 问题二：手动操作卡顿
 
-> **处理状态：已完成（2026-06-25）**  
+> **处理状态：已完成（2026-06-25）**
 > 已将 `host/src/views/console.js` 和 `host/src/runtime/invite.js` 中手动操作后的 `loadHostData()` 全量刷新替换为 `refreshHostRoom()` / `refreshHostPlayers()` / `refreshHostClueMatrix()` 等运行时粒度刷新，不再重复拉取 studio/rules/rooms。验证：`npm run build --prefix host`、`npm test --prefix host`。
 
 ### 问题描述
@@ -149,7 +151,7 @@ async function enterConsole() {
 
 ## 问题三：官方示例 seed 空壳待清理
 
-> **处理状态：已完成（2026-06-25）**  
+> **处理状态：已完成（2026-06-25）**
 > 已删除 `backend/scripts/seed-official-example.mjs`，移除 `backend/scripts/seed.js` 对该 seed 的调用；本地/CI 使用普通测试桩覆盖 E2E 入口链路，生产/预发继续由 `OFFICIAL_EXAMPLE_WORLD_ID` 指向已审核公开库示例。同步更新了 `backend/.env.example`、`playwright.config.js`、`e2e/global-setup.mjs`、`docs/ops/LAUNCH_ENV.md`、`docs/LAUNCH_PRIORITIES_ZH.md` 与 `docs/DESIGN_DECISIONS_NEEDED_ZH.md`。验证：`node --check backend/scripts/seed.js`、`npm run check --prefix backend`、`node --test-concurrency=1 --test-force-exit --import ./test/hooks.mjs --test test/official-example.test.js test/platform-site.test.js`。
 
 ### 问题描述
@@ -185,7 +187,7 @@ async function enterConsole() {
 
 ## 问题四：自动化规则部分同步到主持端
 
-> **处理状态：已完成（2026-06-25）**  
+> **处理状态：已完成（2026-06-25）**
 > 已在 Host 主持端接入规则管理闭环：`host/src/api.js` 同步后端规则 CRUD 与校验接口，`host/src/views/console.js` 在「规则运行与管理」卡片中提供新建、编辑、启停、删除、全量检查和 JSON 结构校验，`host/src/main.js` 补齐动作分发，`host/src/styles.css` 补齐弹窗与错误态样式。复杂可视化编排仍保留在创作者端，主持端提供轻量 JSON 管理以降低现场操作风险。验证：`npm run build --prefix host`、`npm test --prefix host`、实际打开 `http://127.0.0.1:5176/` 桌面/移动页面，无控制台错误。
 
 ### 问题描述
@@ -218,7 +220,7 @@ async function enterConsole() {
 
 ## 问题五：小游戏功能设计与实现
 
-> **处理状态：阶段完成（2026-06-25）**  
+> **处理状态：阶段完成（2026-06-25）**
 > 已先完成不破坏现有流程的玩家端最小承载层：新增 `play/src/components/mini-games.js`，支持 `zhimu_lock` 数字密码锁运行态渲染；`play/src/views/game.js` 增加局中互动区域；`play/src/runtime/patch-game.js` 将小游戏区域纳入现有局部刷新；`play/src/room-events.js` 预留 `room.game_started` / `room.game_updated` / `room.game_completed` SSE 事件；`play/src/api.js` 预留 `/rooms/game/submit` 提交入口。验证：`node --check` 相关 play 文件、`npm run build --prefix play`。当前后端尚无 `current_game`、`game/submit`、`force-skip` 协议和表结构，因此数据库/API/主持一键跳过闭环需要先确认产品协议后继续实现。
 
 ### 问题描述
@@ -297,7 +299,7 @@ window.zhimuUi.miniGames = {
   renderLock: function(config, onSubmit) {
     const wrapper = document.createElement('div');
     wrapper.className = 'mini-game-lock-container';
-    
+
     // 使用原生模板字符串生成 HTML，契合你们的模式
     wrapper.innerHTML = `
       <div class="game-header"><h3>${window.zhimuFormat.escapeHtml(config.title)}</h3></div>
@@ -336,11 +338,11 @@ play/src/runtime/game.js 当状态发生改变（通过 SSE 触发或点击 UI �
 function updateGameView() {
   const gameState = window.zhimuState.current_game;
   const container = document.getElementById('game-interaction-zone');
-  
+
   if (gameState && gameState.status === 'playing') {
     // 1. 隐藏常规剧本/对话框
     document.getElementById('story-reader-zone').style.display = 'none';
-    
+
     // 2. 根据类型动态渲染小游戏
     if (gameState.game_type === 'zhimu_lock') {
       const lockConfig = gameState.config; // 后端下发的配置
@@ -355,7 +357,7 @@ function updateGameView() {
           }
         });
       });
-      
+
       container.innerHTML = '';
       container.appendChild(gameDom);
     }
@@ -397,7 +399,7 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题六：官网接入主持人入口
 
-> **处理状态：已完成（2026-06-25）**  
+> **处理状态：已完成（2026-06-25）**
 > 已在 `site/index.html` 的顶部导航、Hero 行动区、三种视角卡片、内测 CTA 和页脚加入主持端入口，并在 `site/main.js` 支持后端 bootstrap 返回的 `hostConsole` / `hostUrl` 覆盖静态链接。验证：`npm run build --prefix site`、`node --test-concurrency=1 --test-force-exit --import ./test/hooks.mjs --test test/platform-site.test.js`。
 
 ### 问题描述
@@ -433,7 +435,7 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题七：主应用（创作者端）全量加载
 
-> **处理状态：阶段完成（2026-06-25）**  
+> **处理状态：阶段完成（2026-06-25）**
 > 已将 `src/runtime/data.js` 的运行态与资源态接口按当前视图收窄：玩家页只拉玩家/探索/最新复盘，主持页才拉玩家进度、线索矩阵和审计，归档页才拉 checkpoint/recap，资源/配额/创作者检查只在需要的视图启动；房间成员权限错误也从单一接口扩展到所有实际调用的房间接口，避免跳过主持接口时无法自动恢复。验证：`node --check src/runtime/data.js`、`npm run build`、`npm run check:modules`、实际打开 `http://127.0.0.1:5173/` 桌面/移动页面，无控制台错误。仍保留基础世界/studio 数据的首屏加载，后续可结合问题十做按需模块与按需数据进一步拆分。
 
 ### 问题描述
@@ -476,7 +478,7 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题八：主应用全局全量重渲染
 
-> **处理状态：阶段完成（2026-06-25）**  
+> **处理状态：阶段完成（2026-06-25）**
 > 已在 `app.js` 的最终内容写入层增加 `setContentHtml()` 内容缓存，相同 HTML 不再重复替换 `#content.innerHTML`，从而减少重复重绑、输入焦点丢失和无意义 DOM 重建；动态视图加载错误态也复用同一写入路径。验证：`node --check app.js`、`npm run check:modules`。这不是完整虚拟 DOM/局部 patch 重构，后续仍可继续对 studio/clues/director 做视图级局部更新。
 
 ### 问题描述
@@ -513,7 +515,7 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题九：编排台（studio）图谱 DOM 节点过多
 
-> **处理状态：阶段完成（2026-06-25）**  
+> **处理状态：阶段完成（2026-06-25）**
 > 已在 `src/views/studio.js` / `src/runtime/actions-studio.js` 增加「折叠全部 / 展开全部」场景分支控制，复用现有场景子节点统计，支持创作者快速减少可见节点和连线数量；移动端还新增节点目录，最多展示前 80 个可见节点，配合筛选和折叠降低小屏 DOM 压力。验证：`node --check src/views/studio.js`、`npm run build`、`npm run check:modules`。这不是 canvas/虚拟化重构，超大型图谱后续仍建议继续推进局部渲染或画布化。
 
 ### 问题描述
@@ -549,7 +551,7 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题十：主应用首屏模块加载过多
 
-> **处理状态：已完成（2026-06-25）**  
+> **处理状态：已完成（2026-06-25）**
 > 已新增 `src/runtime/view-loader.js`，将 writer/studio/clues/rules/director/player/archive/settings/account 等普通功能页与对应动作处理器改为按视图动态加载；`frontend/main.js` 只保留首屏总览、认证、数据、导航、弹窗、向导等核心模块；`app.js` 增加视图模块加载态和加载失败兜底；`scripts/verify-script-load.mjs` 改为先验证核心首包，再验证懒加载模块。验证：`npm run check:modules`、`npm run build`，入口 JS 从约 506KB 降到约 189KB，Vite 500KB chunk 警告已消失；实际打开 `http://127.0.0.1:5173/` 并切换剧情编排、玩家视角、账号与资产，页面无控制台错误。
 
 ### 问题描述
@@ -579,7 +581,7 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题十一：主应用 vs Host 端大量代码重复
 
-> **处理状态：阶段完成（2026-06-25）**  
+> **处理状态：阶段完成（2026-06-25）**
 > 已先收敛主应用主持台与 Host 端最明显的行为差异：`src/views/director.js` 中主持手动操作后的全量 `loadCloudData()` 已迁移为 `refreshHostRoom()` / `refreshHostPlayers()` / `refreshHostClueMatrix()` 局部刷新，与 Host 端策略同步，避免两端在性能和数据刷新粒度上继续分叉。验证：`node --check src/views/director.js`、`npm run check:modules`。代码删除级合并仍需等 Host 端功能覆盖稳定后再做。
 
 ### 问题描述
@@ -615,17 +617,17 @@ Host 主持端是从主应用的 director 视图独立出来的，两边的状�
 #### 后续计划
 
 > **待负责人验收 Host 端功能完整后，考虑删除主应用的 director 视图及相关重复代码。**
-> 
+>
 > 验收标准：Host 端功能 100% 覆盖主应用 director 视图，且稳定运行一段时间。
-> 
+>
 > 删除范围：`src/views/director.js`、`src/runtime/actions-director.js`、以及 data.js / state.js 中仅 director 用的字段和逻辑。
 
 ---
 
 ## 问题十二：主应用全局变量挂载模式
 
-> **处理状态：阶段完成（2026-06-25）**  
-> 已新增 `src/runtime/dependency-guard.js`，在主应用启动前检查关键 `window.zhimu*` 依赖是否完整，缺失时渲染统一错误态并输出缺失清单；`frontend/main.js` 与 `scripts/verify-script-load.mjs` 已同步入口顺序，`app.js` 启动时调用守卫，降低加载顺序错误导致半初始化的风险。验证：`node --check src/runtime/dependency-guard.js app.js`、`npm run check:modules`。这一步是安全护栏，完整 ES Module 显式 import/export 迁移仍需分批推进。
+> **处理状态：三大桥已全部清除，A1/A2 完成（2026-07-02）**
+> A1：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js`（视图注册表）与 `src/runtime/runtime-facade.js`（运行时门面）。A2：`window.zhimuState` 已分片为 8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js`，`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活，生产路径走显式 store。此前已新增 `src/runtime/dependency-guard.js` 作为安全护栏，启动前检查关键 `window.zhimu*` 依赖。剩余 `zhimuFormat`/`zhimuUi`/`zhimuModal` 等小桥仍按模块继续收口，完整 ES Module 显式 import/export 迁移分批推进。
 
 ### 问题描述
 
@@ -656,7 +658,7 @@ Host 主持端是从主应用的 director 视图独立出来的，两边的状�
 
 ## 问题十三：错误提示和加载状态不统一
 
-> **处理状态：阶段完成（2026-06-25）**  
+> **处理状态：阶段完成（2026-06-25）**
 > 已新增 `src/components/status-ui.js` 作为统一的 loading / empty / error 状态渲染器，并接入 `frontend/main.js` 与 `scripts/verify-script-load.mjs`；`app.js` 的动态视图模块加载态/加载失败态、`src/components/service-outage.js` 的云端中断页、`src/runtime/global-search.js` 的搜索空态/加载态/错误态、`src/views/account-hub.js` 与 `src/views/account.js` 的账号加载/空/错误态已改为统一组件；`src/runtime/data.js` 的主持运行数据刷新错误 toast 也开始统一走 `zhimuStatus.normalizeError()`。验证：`node --check` 相关文件、`npm run check:modules`、`npm run build`，并实际打开 `http://127.0.0.1:5173/` 检查账号入口和搜索入口，无页面控制台错误。视图内零散空态和 catch 仍需后续批量迁移，因此暂标阶段完成。
 
 ### 问题描述
@@ -691,7 +693,7 @@ Host 主持端是从主应用的 director 视图独立出来的，两边的状�
 
 ## 问题十四：编排台移动端适配问题
 
-> **处理状态：阶段完成（2026-06-25）**  
+> **处理状态：阶段完成（2026-06-25）**
 > 已在 Studio 中加入移动端节点目录、窄屏工具栏换行、画布高度约束和节点目录样式；小屏下保留画布但先提供目录定位能力，避免固定宽画布成为唯一入口。验证：`npm run build`、`npm run check:modules`，并实际打开 `http://127.0.0.1:5173/` 后切换到 390×844 视口，页面无横向溢出、无控制台错误。当前本地未连接后端真实世界数据，因此只能验证断点壳层与错误降级，真实大图谱手感仍需接入测试世界后复测。
 
 ### 问题描述
@@ -723,5 +725,5 @@ Host 主持端是从主应用的 director 视图独立出来的，两边的状�
 
 ## 状态
 
-- **当前状态**：部分完成（问题一、二、三、四、六、十已完成并验证；问题五、七、八、九、十一、十二、十三、十四阶段完成并验证；小游戏后端协议与主持强制跳过闭环待确认后继续）
+- **当前状态**：部分完成（问题一、二、三、四、六、十已完成并验证；问题十二三大桥已清除、A1/A2 完成；问题五、七、八、九、十一、十三、十四阶段完成并验证；小游戏后端协议与主持强制跳过闭环待确认后继续）
 - **负责人**：荆湛彭

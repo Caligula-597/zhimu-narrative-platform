@@ -1,6 +1,6 @@
 # 产品状态
 
-最后更新：2026-07-01
+最后更新：2026-07-02
 
 ## 总体结论
 
@@ -41,13 +41,16 @@
 | 三端产品 | 主应用、独立玩家端、独立主持端、官网均已存在并接入对应能力 |
 | OPS 产品化 | 生产可信七项、catalog/plaza/用户套餐、告警测试、metrics 已进入 OPS 或脚本 |
 | 安全基线 | CSP、上传扫描、限流、schema 门禁、OPS token、统一错误格式已落地 |
-| 测试体系 | 当前静态扫描约 187 个测试/验证文件，约 514 个 `test/it` 声明，覆盖后端、脚本、play、host、e2e |
+| 测试体系 | 约 260+ 个测试/验证文件，约 600+ 个 `test/it` 声明（仅后端就有 100 个测试文件、355 个声明），覆盖后端、脚本、play、host、e2e |
+| 前端桥接清理（A1） | `zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` |
+| 状态分片（A2） | 8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js` 已落地；`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活 |
+| 后端 RLS | `backend/migrations/045_enable_public_rls.sql` 已为 44 张表启用 Row-Level Security；测试用 `backend/src/storage/memory-storage.js` 已落地 |
 
 ## 当前主要风险
 
 | 优先级 | 风险 | 影响 | 处理建议 |
 |---|---|---|---|
-| P0 | 主应用 legacy 窗口桥仍需继续收口 | `zhimuViews` 已删除；`zhimuRuntime` shell 已迁移到 ESM registry；`zhimuDom` 窗口桥已删除；`zhimuState` 仅在测试/演示诊断下暴露 | 继续按模块收口其它 UI/格式/会话类窗口服务，并优先保持验收绿线 |
+| P0 | 主应用 legacy 窗口桥仍需继续收口 | A1 完成：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已清除，替换为 `view-registry.js` + `runtime-facade.js`；`zhimuState` 仅在测试/演示诊断下暴露 | 继续按模块收口其它 UI/格式/会话类窗口服务，并优先保持验收绿线 |
 | P0 | 生产门槛需要真实环境跑通 | 本地通过不等于生产可信 | 补齐真实 OTLP、alert、AV scanner、OPS/METRICS token 后跑 `check:production-ready` |
 | P0 | 关键业务 E2E 需要稳定绿线 | 内测问题定位成本高 | 固化创作、开房、玩家加入、主持推进、线索发放、复盘的最小端到端链路 |
 | P1 | 三端共享层仍薄 | API、错误处理、状态语言、toast、视觉 token 容易重复修 | 继续抽 `shared-api`、错误处理、session、toast、status chip、tokens |

@@ -3,12 +3,12 @@ import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
 import { uiStore, worldStore, studioStore, roomStore, assetStore, userStore, voiceStore } from "../state/index.js";
 import { registerRuntime, render as runtimeRender } from "./runtime-facade.js";
+import * as workspaceStore from "./workspace-store.js";
+import * as runtimeStore from "./runtime-store.js";
 
   const reportError = (error, fallback = "操作失败，请稍后重试") =>
     showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
 
-  const workspace = () => window.zhimuWorkspace || {};
-  const runtimeStore = () => window.zhimuRuntimeStore || {};
   const roomEvents = () => window.zhimuRoomEvents || {};
 
   function render() {
@@ -19,7 +19,7 @@ import { registerRuntime, render as runtimeRender } from "./runtime-facade.js";
   let loadCloudDataKey = "";
 
 export async function ensureActiveWorld() {
-    return workspace().ensureActiveWorld?.();
+    return workspaceStore.ensureActiveWorld();
   }
 
 export async function loadCloudData(withToast = false, force = false) {
@@ -75,7 +75,7 @@ export async function loadCloudData(withToast = false, force = false) {
     try {
       try {
         await ensureActiveWorld();
-        const hasSession = workspace().isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
+        const hasSession = workspaceStore.isLoggedIn();
         if (hasSession) {
           try {
             worldStore.set({ cloudCatalog: await zhimuApi.getWorldCatalog(), cloudCatalogError: "" });
@@ -137,7 +137,7 @@ export async function loadCloudData(withToast = false, force = false) {
       studioStore.set({ cloudLoading: false });
       render();
 
-      if (hasRoom && studioStore.get().cloudStudio && !workspace().roomBelongsToActiveWorld?.()) {
+      if (hasRoom && studioStore.get().cloudStudio && !workspaceStore.roomBelongsToActiveWorld()) {
         zhimuApi.clearRoom();
         clearRuntimeState();
         hasRoom = false;
@@ -284,15 +284,15 @@ export async function loadCloudData(withToast = false, force = false) {
   }
 
 export function clearRuntimeState() {
-    runtimeStore().clearRuntimeState?.();
+    runtimeStore.clearRuntimeState();
   }
 
 export function applyHostPlayersPayload(value) {
-    runtimeStore().applyHostPlayersPayload?.(value);
+    runtimeStore.applyHostPlayersPayload(value);
   }
 
   function failHostPlayersLoad(error) {
-    runtimeStore().failHostPlayersLoad?.(error);
+    runtimeStore.failHostPlayersLoad(error);
   }
 
 export async function refreshHostEvents(withToast = false, silent = false) {

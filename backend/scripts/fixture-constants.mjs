@@ -4,11 +4,11 @@ export const FIXTURE = {
   playerUserId: "1d5e8155-a80f-4e7f-99f0-0ae317a35f35",
   worldId: "11111111-2222-4333-8444-555555550001",
   roomId: "11111111-2222-4333-8444-555555550002",
+  officialExampleWorldId: "33333333-3333-4333-8444-555555550003",
   worldName: "后端集成测试世界",
   roomName: "集成测试 · 运行房",
   inviteCode: "TEST-FIXTURE-DEMO"
 };
 
-/** @deprecated Legacy platform demo — removed from product. */
+/** @deprecated Legacy platform demo removed from product. */
 export const REMOVED_FOG_WORLD_ID = "08646748-e4ae-446a-a5e7-ce59ca23ffc3";
-

@@ -111,16 +111,14 @@ test.before(async () => {
   voiceStore = stateIndex.voiceStore;
   uiStore = stateIndex.uiStore;
 
-  await import(fileUrl("src/runtime/runtime-store.js"));
+  zhimuRuntimeStore = await import(fileUrl("src/runtime/runtime-store.js"));
   await import(fileUrl("src/runtime/context-coordinator.js"));
-  await import(fileUrl("src/runtime/workspace-store.js"));
+  zhimuWorkspace = await import(fileUrl("src/runtime/workspace-store.js"));
 
-  zhimuRuntimeStore = globalThis.window.zhimuRuntimeStore;
   zhimuContext = globalThis.window.zhimuContext;
-  zhimuWorkspace = globalThis.window.zhimuWorkspace;
-  if (!zhimuRuntimeStore) throw new Error("zhimuRuntimeStore bridge not populated");
+  if (typeof zhimuRuntimeStore.clearRuntimeState !== "function") throw new Error("runtime-store exports missing");
   if (!zhimuContext) throw new Error("zhimuContext bridge not populated");
-  if (!zhimuWorkspace) throw new Error("zhimuWorkspace bridge not populated");
+  if (typeof zhimuWorkspace.ensureActiveWorld !== "function") throw new Error("workspace-store exports missing");
 });
 
 function resetState(overrides = {}) {
@@ -357,8 +355,8 @@ test("auth-world and account views delegate session context to zhimuContext", ()
 
 test("data.js delegates ensureActiveWorld and clearRuntimeState to stores", () => {
   const dataJs = fs.readFileSync(path.join(root, "src/runtime/data.js"), "utf8");
-  assert.match(dataJs, /zhimuWorkspace/);
-  assert.match(dataJs, /zhimuRuntimeStore/);
+  assert.match(dataJs, /workspace-store\.js/);
+  assert.match(dataJs, /runtime-store\.js/);
   assert.match(dataJs, /zhimuRoomEvents/);
   assert.match(dataJs, /function ensureActiveWorld/);
   assert.match(dataJs, /function clearRuntimeState/);

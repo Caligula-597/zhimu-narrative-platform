@@ -1,8 +1,9 @@
 /* Toast notifications — migrated to real ES Module exports. */
 import { getToast } from "../dom.js";
 import { roomStore } from "../state/index.js";
+import { activeRuntimeRoom as workspaceActiveRuntimeRoom } from "../runtime/workspace-store.js";
 function activeRuntimeRoom() {
-  return window.zhimuUi?.activeRuntimeRoom?.() ?? window.zhimuWorkspace?.activeRuntimeRoom?.() ?? null;
+  return window.zhimuUi?.activeRuntimeRoom?.() ?? workspaceActiveRuntimeRoom() ?? null;
 }
 
 export function showToast(text, duration = 2200) {

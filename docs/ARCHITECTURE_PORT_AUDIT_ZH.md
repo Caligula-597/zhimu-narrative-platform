@@ -1,10 +1,10 @@
 # 架构与端口审视
 
-最后更新：2026-06-26
+最后更新：2026-07-02
 
 ## 结论
 
-当前核心业务框架可继续生产化：Fastify + PostgreSQL 的领域边界清楚，Railway fullstack 承载主应用和 API，玩家端/主持端/官网按 Cloudflare Pages 分域。主要风险不在“业务模型”，而在部署闭环、端口约束和多前端共享层。
+当前核心业务框架可继续生产化：Fastify + PostgreSQL 的领域边界清楚，Railway fullstack 承载主应用和 API，玩家端/主持端/官网按 Cloudflare Pages 分域。主要风险不在“业务模型”，而在部署闭环、端口约束、多前端共享层与剩余 legacy 小桥收口。A1（`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥接清理）与 A2（`window.zhimuState` 拆分为 8 个 shard）已完成，详见下文「框架问题」。
 
 ## 端口表
 
@@ -37,15 +37,16 @@ Railway workflow 只部署 `app.getzhimu.com`。现在新增 `.github/workflows/
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-### P1：多前端共享层不足
+### P1：多前端共享层不足（A1/A2 桥接收口后仍需推进）
 
-主应用、玩家端、主持端分别维护 UI、状态和路由。短期可接受，长期会导致登录态、错误展示、按钮/表单行为重复修。
+A1/A2 已完成主应用三大桥（`zhimuViews`/`zhimuRuntime`/`zhimuDom`）清除与 `window.zhimuState` 分片，但主应用、玩家端、主持端仍分别维护 UI、状态和路由。短期可接受，长期会导致登录态、错误展示、按钮/表单行为重复修。
 
 建议：
 
-- 抽出 `shared/api`：错误映射、session restore、fetch 包装。
+- 继续抽 `shared/api`：错误映射、session restore、fetch 包装（`shared/security.js` 已落地）。
 - 抽出 `shared/ui-tokens`：颜色、spacing、按钮尺寸、表单控件标准。
 - 对玩家端/主持端保留独立业务视图，不强行合并应用。
+- 剩余 `zhimuFormat`/`zhimuUi`/`zhimuModal` 等小桥按模块继续收口。
 
 ### P1：本地端口体验易混乱
 

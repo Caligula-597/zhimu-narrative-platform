@@ -1,6 +1,6 @@
 # 项目状态
 
-最后更新：2026-07-01
+最后更新：2026-07-02
 
 ## 当前真相源
 
@@ -22,7 +22,9 @@
 | 测试 | 后端检查、UI smoke、三浏览器 Playwright |
 | 部署 | Railway app 自动部署；Pages 三站 workflow 已新增，待 secrets 验证 |
 | 文档 | 入口级文档已按当前标准重写 |
-| 前端桥接收口 | `zhimuViews` 已删除；`zhimuRuntime` shell 生产者/消费者已迁移到 ESM registry；`zhimuDom` 窗口桥已删除；`zhimuState` 仅在显式测试/演示诊断下暴露 |
+| 前端桥接收口 | A1 完成：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js`；`zhimuState` 仅在显式测试/演示诊断下暴露 |
+| 状态分片 | A2 完成：8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js` 已落地；`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活 |
+| 后端 RLS | `backend/migrations/045_enable_public_rls.sql` 已为 44 张表启用 Row-Level Security；测试用 `backend/src/storage/memory-storage.js` 已落地 |
 
 ## 常用命令
 

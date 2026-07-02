@@ -1,6 +1,6 @@
 # zhimuViews 懒加载 Registry 设计
 
-最后更新：2026-06-30
+最后更新：2026-07-02
 
 ## 结论
 
@@ -297,4 +297,4 @@ case "clues-edit":
 - 备注：`backend/test/script-bundle-import.test.js` 的 clues fallback 属于前序提交中的后端测试健壮性改进，不属于本轮 view registry 逻辑；后续提交继续保持前后端边界更清晰。
 - A1 runtime 收尾第一批已落地：新增 `src/runtime/runtime-facade.js`，`modal/emptyState/actions-ops/actions-studio/actions-workspace/global-search` 已改为通过 facade 调用 `go/render/loadCloudData/callRuntime`，不再直接读取 `window.zhimuRuntime`。
 
-下一步继续 A1 runtime 收尾：迁移 `auth-session/livekit-voice/search-focus/world-revision` 等 runtime 辅助模块，再逐步处理大型 view 文件中的 `render/go/loadCloudData`。
+auth-session/livekit-voice/search-focus/world-revision 等已迁移完成；A1 runtime 收尾已基本完成，三大桥已全部清除。

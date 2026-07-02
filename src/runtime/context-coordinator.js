@@ -4,6 +4,7 @@
  */
 import * as zhimuApi from "../api/index.js";
 import { studioStore, worldStore, roomStore, assetStore, userStore, uiStore } from "../state/index.js";
+import { clearRuntimeState } from "./runtime-store.js";
 (function (window) {
   function clearWorldScopedState() {
     studioStore.set({ cloudStudio: null });
@@ -32,7 +33,7 @@ import { studioStore, worldStore, roomStore, assetStore, userStore, uiStore } fr
     zhimuApi.resetActiveWorld?.();
     studioStore.set({ cloudStudio: null });
     uiStore.set({ accountView: null });
-    window.zhimuRuntimeStore?.clearRuntimeState?.();
+    clearRuntimeState();
   }
 
   /** User switched to another world — keep session, clear room + world-scoped cloud cache. */
@@ -47,7 +48,7 @@ import { studioStore, worldStore, roomStore, assetStore, userStore, uiStore } fr
   function prepareRoomSwitch(roomId) {
     if (!roomId) return;
     zhimuApi.selectRoom(roomId);
-    window.zhimuRuntimeStore?.clearRuntimeState?.();
+    clearRuntimeState();
   }
 
   /** Logout — token cleared by caller; resets workspace + session UI flags. */
@@ -56,7 +57,7 @@ import { studioStore, worldStore, roomStore, assetStore, userStore, uiStore } fr
     studioStore.set({ cloudStudio: null });
     uiStore.set({ accountView: null });
     sessionStorage.removeItem("zhimuAuthPrompted");
-    window.zhimuRuntimeStore?.clearRuntimeState?.();
+    clearRuntimeState();
   }
 
   /** Current world deleted — drop pointers and runtime. */
@@ -64,7 +65,7 @@ import { studioStore, worldStore, roomStore, assetStore, userStore, uiStore } fr
     zhimuApi.clearWorld();
     zhimuApi.clearRoom();
     studioStore.set({ cloudStudio: null });
-    window.zhimuRuntimeStore?.clearRuntimeState?.();
+    clearRuntimeState();
   }
 
   window.zhimuContext = {

@@ -1,6 +1,6 @@
 # 生产级 SaaS 评估
 
-最后更新：2026-06-30
+最后更新：2026-07-02
 
 ## 结论
 
@@ -28,10 +28,10 @@
 | 维度 | 分数 | 依据 | 主要扣分点 |
 |---|---:|---|---|
 | 产品闭环 | 78 | 创作、玩家、主持、官网、公开库、线索、规则、复盘已形成闭环 | 新用户自助引导和反馈闭环还不够完整 |
-| 后端与领域建模 | 84 | `backend/src` 约 172 个源文件，路由按领域拆分，规则/存档/导入/账单/OPS 较全 | 聚合接口和 UI 友好摘要仍需补强 |
-| 前端与 UI 产品化 | 70 | 主应用、play、host、site 均已成形，`zhimuViews` / `zhimuRuntime` shell / `zhimuDom` 已完成关键收口 | 三端共享层仍薄，其它窗口服务还需继续模块化 |
-| 安全与权限 | 76 | Session、CSP、上传扫描、限流、schema、OPS token、统一错误已建立 | 生产环境还需真实验证和权限矩阵抽查 |
-| 测试与质量门禁 | 80 | 静态扫描约 187 个测试/验证文件，约 514 个测试声明，后端覆盖丰富 | E2E 仍需更稳定覆盖完整用户旅程 |
+| 后端与领域建模 | 84 | `backend/src` 约 173 个源文件，路由按领域拆分，规则/存档/导入/账单/OPS 较全 | 聚合接口和 UI 友好摘要仍需补强 |
+| 前端与 UI 产品化 | 70 | 主应用、play、host、site 均已成形，A1 完成：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` | 三端共享层仍薄，其它窗口服务还需继续模块化 |
+| 安全与权限 | 76 | Session、CSP、上传扫描、限流、schema、OPS token、统一错误已建立；`backend/migrations/045_enable_public_rls.sql` 已为 44 张表启用 RLS | 生产环境还需真实验证和权限矩阵抽查 |
+| 测试与质量门禁 | 80 | 约 260+ 个测试/验证文件，约 600+ 个测试声明（仅后端就有 100 个测试文件、355 个声明），后端覆盖丰富 | E2E 仍需更稳定覆盖完整用户旅程 |
 | 运维与可观测 | 74 | health、ready、metrics、OTEL、alert、OPS 状态和生产可信七项已接线 | 告警值班、恢复演练、事故处理记录不足 |
 | CI/CD 与发布 | 70 | `ci.yml`、`railway-deploy.yml`、`pages-deploy.yml`、CodeQL 已存在 | Pages 三站和 Railway 的统一 smoke/回滚还需压实 |
 | 数据治理与恢复 | 66 | 备份、恢复、删除、导出、数据保留已有脚本和文档 | 缺定期演练记录和对外可解释的数据政策入口 |
@@ -73,7 +73,7 @@
 
 ### 1. 主应用前端复杂度偏高
 
-`zhimuState` 消费者已经完成分片迁移，`window.zhimuState` 仅在测试/演示诊断下暴露；`window.zhimuDom` 窗口桥已删除；`zhimuViews` 已删除；`zhimuRuntime` shell 的生产者和消费者已迁移到 ESM registry。当前主应用的主要前端复杂度来自其它 UI/格式/会话类窗口服务和三端共享层偏薄。这不是产品设计导致的“冗余”，更多是早期快速把功能跑通后留下的演进成本。
+A1 已完成：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js`；A2 状态分片已完成，8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js` 已落地，`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活。当前主应用的主要前端复杂度来自其它 UI/格式/会话类窗口服务和三端共享层偏薄。这不是产品设计导致的“冗余”，更多是早期快速把功能跑通后留下的演进成本。
 
 这类问题在大项目里常见，但必须继续清理。否则后续每次改 UI、状态、弹窗、toast、页面切换，都可能牵动隐性依赖。
 

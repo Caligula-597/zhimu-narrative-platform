@@ -96,6 +96,11 @@ jobs:
       - name: Start backend for smoke tests
         run: node src/server.js &
         working-directory: backend
+        env:
+          OFFICIAL_EXAMPLE_WORLD_ID: "33333333-3333-4333-8444-555555550003"
+          GUEST_CREATE_HOUR_MAX: "1000"
+          GUEST_CREATE_DAY_MAX: "1000"
+          PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN: "0"
       - name: Start frontend for UI smoke
         run: node server.js --dist &
         working-directory: .

@@ -83,6 +83,20 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
   await page.goto(PLAY_URL);
   await page.getByTestId("invite-code-input").fill(inviteCode);
   await page.getByTestId("start-join").click();
+  const codeStepInput = page.locator('.join-row input[data-bind="inviteCode"]').first();
+  if (await codeStepInput.isVisible().catch(() => false)) {
+    await codeStepInput.fill(inviteCode);
+    const rolesReady = await page.locator(".role-card:not([disabled])").first().waitFor({ state: "visible", timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!rolesReady) {
+      await page.waitForFunction(() => {
+        const button = document.querySelector('[data-action="lookup-invite"]');
+        return Boolean(button && !button.disabled);
+      }, undefined, { timeout: 10_000 });
+      await page.locator('[data-action="lookup-invite"]').first().evaluate((button) => button.click());
+    }
+  }
   const roleCards = page.locator(".role-card:not([disabled])");
   await roleCards.first().waitFor({ timeout: 30_000 });
   let target = roleName
@@ -92,7 +106,11 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
     target = roleCards.first();
   }
   await target.click();
-  await page.locator('[data-action="confirm-join"]').click();
+  await page.waitForFunction(() => {
+    const button = document.querySelector('[data-action="confirm-join"]');
+    return Boolean(button && !button.disabled);
+  }, undefined, { timeout: 10_000 });
+  await page.locator('[data-action="confirm-join"]').first().evaluate((button) => button.click());
   await page.locator("[data-game-tab-bar]").waitFor({ state: "visible", timeout: 30_000 });
 }
 

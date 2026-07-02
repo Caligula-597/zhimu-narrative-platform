@@ -1,5 +1,7 @@
 # 上市路线图（后端优先 · 分 Part 推进）
 
+最后更新：2026-07-02
+
 > 官方示例：创作者上传并通过审核的模板剧本（`OFFICIAL_EXAMPLE_WORLD_ID`）。  
 > **商业上线任务分级**见 [LAUNCH_PRIORITIES_ZH.md](./LAUNCH_PRIORITIES_ZH.md)（P0–P3，与 Part 编号互补）。
 
@@ -23,6 +25,18 @@
 | 6 | 官网内测 | **完成** | 内测申请、Ops 审批、`GET /api/platform/site` 整站 bootstrap |
 | 7 | 法务运维 | 待做 | 监控、上线 checklist |
 | 8 | 玩家端 | **大部分完成** | 独立 `play/` 子域（5174）；广场/好友/私信/游戏内 SSE；P0-04～05 移动与错误态待收口 |
+
+## 架构治理（横切，A1–A4 + RLS）
+
+与 Part 分期并行的横切架构治理，统一在此跟踪：
+
+| 项 | 状态 | 说明 |
+|----|------|------|
+| A1 桥接清理 | **完成** | `zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` |
+| A2 状态分片 | **完成** | 8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js`；`window.zhimuState` Proxy 仅测试/demo 模式条件激活 |
+| A3 API 拆分 | **完成** | 后端按域拆分（account/asset/billing/checkpoint/host/player/rules/studio/world 等） |
+| A4 共享层 | **进行中** | `shared/security.js` 已落地；`shared/api`、`shared/ui-tokens` 待继续抽 |
+| 后端 RLS | **完成** | `backend/migrations/045_enable_public_rls.sql` 为 44 张表启用 Row-Level Security；测试用 `backend/src/storage/memory-storage.js` |
 
 ## Part 5 · Ops 公开库审核 API
 

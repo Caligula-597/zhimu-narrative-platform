@@ -4,6 +4,7 @@ import { content, toast, modal, modalBackdrop } from "../dom.js";
 import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { showToast } from "./toast.js";
 import { userStore, studioStore, worldStore, voiceStore } from "../state/index.js";
+import { activeRuntimeRoom as workspaceActiveRuntimeRoom, isWorldOwner as workspaceIsWorldOwner } from "../runtime/workspace-store.js";
 (function (window) {
   const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
@@ -25,7 +26,7 @@ import { userStore, studioStore, worldStore, voiceStore } from "../state/index.j
   const studioValues = M.studioValues || (() => ({}));
   const studioSelect = M.studioSelect || (() => "");
   function activeRuntimeRoom() {
-    return window.zhimuWorkspace?.activeRuntimeRoom?.() ?? null;
+    return workspaceActiveRuntimeRoom();
   }
 
 function canEditWorldContent(world){
@@ -39,7 +40,7 @@ function catalogExperienceBanner(world){
 }
 
 function isWorldOwner(worldId) {
- return window.zhimuWorkspace?.isWorldOwner?.(worldId) ?? false;
+ return workspaceIsWorldOwner(worldId);
 }
 
 function deleteWorldPanel(world){

@@ -5,6 +5,12 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const noop = () => {};
+const storage = {
+  getItem: () => null,
+  setItem: noop,
+  removeItem: noop,
+  clear: noop
+};
 
 let toasts = [];
 const fakeToast = {
@@ -34,8 +40,13 @@ globalThis.window = {
   },
   zhimuStatus: {
     normalizeError: (error, fallback) => error?.message || fallback
-  }
+  },
+  localStorage: storage,
+  sessionStorage: storage,
+  location: { hostname: "localhost", port: "4173" }
 };
+globalThis.localStorage = storage;
+globalThis.sessionStorage = storage;
 
 globalThis.document = {
   querySelector: (selector) => selector === "#toast" ? fakeToast : null,

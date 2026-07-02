@@ -1,7 +1,7 @@
 # 织幕 · 工程核心原则
 
-> **状态**：当前团队/AI 协作的**最高优先级约定**（暂时生效，后续可修订）。  
-> **更新**：2026-06-18  
+> **状态**：当前团队/AI 协作的**最高优先级约定**（暂时生效，后续可修订）。
+> **更新**：2026-07-02
 > **关联**：[SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) · [LAUNCH_PRIORITIES_ZH.md](./LAUNCH_PRIORITIES_ZH.md) · [DESIGN_ZH.md](./DESIGN_ZH.md)
 
 ---
@@ -18,8 +18,8 @@
 
 ### 为什么要这样
 
-- 大 diff 难以 review，容易混入无关修改  
-- 出问题时可快速定位、回滚  
+- 大 diff 难以 review，容易混入无关修改
+- 出问题时可快速定位、回滚
 - 与「后端为主 + 配套检测」配合，每次只验证一小块
 
 ### 怎么做
@@ -81,22 +81,22 @@ npm run verify:full:fresh   # 或分项 smoke / E2E
 
 ### 顺序
 
-1. **数据与迁移** — PostgreSQL migration，jsonb 规则/快照结构  
-2. **路由 + Schema** — Fastify JSON Schema + 统一 `{ error, code }`  
-3. **领域逻辑** — `backend/src/*.js`，按域拆分，不单文件堆功能  
-4. **测试** — `backend/test/*.test.js`，覆盖 happy path + 关键 4xx  
-5. **前端接线** — 主应用 / play / site 只做真实 API 绑定  
+1. **数据与迁移** — PostgreSQL migration，jsonb 规则/快照结构
+2. **路由 + Schema** — Fastify JSON Schema + 统一 `{ error, code }`
+3. **领域逻辑** — `backend/src/*.js`，按域拆分，不单文件堆功能
+4. **测试** — `backend/test/*.test.js`，覆盖 happy path + 关键 4xx
+5. **前端接线** — 主应用 / play / site 只做真实 API 绑定
 6. **文档** — 更新 [IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) 或本任务相关 doc
 
 ### 不做
 
-- 在后端未稳定时做大量前端交互或视觉  
-- 前端 mock 假数据冒充已接通（P0-1 数据诚实）  
-- 跳过 schema 门禁新增写接口  
+- 在后端未稳定时做大量前端交互或视觉
+- 前端 mock 假数据冒充已接通（P0-1 数据诚实）
+- 跳过 schema 门禁新增写接口
 
 ### 参考
 
-- 架构：[DESIGN_ZH.md](./DESIGN_ZH.md)  
+- 架构：[DESIGN_ZH.md](./DESIGN_ZH.md)
 - 上市任务优先级：[LAUNCH_PRIORITIES_ZH.md](./LAUNCH_PRIORITIES_ZH.md)（P0 后端项优先）
 
 ---
@@ -117,14 +117,14 @@ npm run verify:full:fresh   # 或分项 smoke / E2E
 
 ### 每次改动额外自问
 
-- 新分支有没有 **early return** 而不是 throw 到顶层？  
-- 新 env 是 **required 还是 optional**？生产缺了会怎样？  
+- 新分支有没有 **early return** 而不是 throw 到顶层？
+- 新 env 是 **required 还是 optional**？生产缺了会怎样？
 - 是否增加了 **至少一条** 失败路径测试（400/403/409/503）？
 
 ### 健壮性相关测试入口
 
-- 后端：`robustness-fixes.test.js`、`ops-health.test.js`、`register-ip-limit.test.js` 等  
-- 健康检查：`GET /api/health/live`、`GET /api/health/ready`  
+- 后端：`robustness-fixes.test.js`、`ops-health.test.js`、`register-ip-limit.test.js` 等
+- 健康检查：`GET /api/health/live`、`GET /api/health/ready`
 - 内测前全量：`SECURITY_AND_TESTING.md` §整体验收
 
 ---
@@ -135,17 +135,17 @@ npm run verify:full:fresh   # 或分项 smoke / E2E
 
 ### 流程
 
-1. `git status` / `git diff` — 不得含 `.env`、密钥、大二进制  
-2. `npm run verify:changed` — 必须通过  
-3. `git add` — **仅**本次相关文件  
-4. `git commit` — 1～2 句，说明 **why**  
+1. `git status` / `git diff` — 不得含 `.env`、密钥、大二进制
+2. `npm run verify:changed` — 必须通过
+3. `git add` — **仅**本次相关文件
+4. `git commit` — 1～2 句，说明 **why**
 5. `npm run git:push` — 经 Clash 代理推送（见 [git-clash-proxy.mdc](../.cursor/rules/git-clash-proxy.mdc)）
 
 ### 禁止自动提交的情况
 
-- 检测失败  
-- 含疑似密钥或 `.env`  
-- 用户本轮明确说「先别提交 / 不要 push」  
+- 检测失败
+- 含疑似密钥或 `.env`
+- 用户本轮明确说「先别提交 / 不要 push」
 - **禁止** `git push --force` 到 `main`/`master`
 
 ### Cursor 规则
@@ -160,17 +160,17 @@ npm run verify:full:fresh   # 或分项 smoke / E2E
 
 ### 结束前检查清单
 
-- [ ] `git status` — 无未跟踪的临时文件、截图、debug 脚本  
-- [ ] 无 `_backup`、`.tmp`、`test-output`、误提交的 `dist/`  
-- [ ] 文档数字与 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) 一致（若改了验收相关）  
-- [ ] 未改动的文件不要出现在 `git add` 里  
-- [ ] 新建文件有明确用途；实验性代码不入 `main` 或须标注删除计划  
+- [ ] `git status` — 无未跟踪的临时文件、截图、debug 脚本
+- [ ] 无 `_backup`、`.tmp`、`test-output`、误提交的 `dist/`
+- [ ] 文档数字与 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) 一致（若改了验收相关）
+- [ ] 未改动的文件不要出现在 `git add` 里
+- [ ] 新建文件有明确用途；实验性代码不入 `main` 或须标注删除计划
 
 ### 不要留下
 
-- 注释掉的大段 dead code「以后 maybe 用」  
-- 与任务无关的格式化整个仓库  
-- 未使用的 import / 半成品 feature flag 默认开启  
+- 注释掉的大段 dead code「以后 maybe 用」
+- 与任务无关的格式化整个仓库
+- 未使用的 import / 半成品 feature flag 默认开启
 
 ---
 

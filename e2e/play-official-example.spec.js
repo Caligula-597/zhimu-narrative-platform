@@ -13,7 +13,11 @@ test.describe("玩家端 · 官方示例", () => {
     const joinOfficial = page.getByTestId("join-official");
     const roleCard = page.locator(".role-card:not([disabled])").first();
 
-    await expect(joinOfficial.or(roleCard)).toBeVisible({ timeout: 30_000 });
+    await page.waitForFunction(() => {
+      const role = document.querySelector(".role-card:not([disabled])");
+      const official = document.querySelector('[data-testid="join-official"]');
+      return Boolean(role || (official && !official.disabled));
+    }, undefined, { timeout: 30_000 });
 
     if (await roleCard.isVisible().catch(() => false)) {
       await roleCard.click();
@@ -22,7 +26,7 @@ test.describe("玩家端 · 官方示例", () => {
       return;
     }
 
-    if (await joinOfficial.isVisible()) {
+    if (await joinOfficial.isEnabled().catch(() => false)) {
       await joinOfficial.click();
       await expect(page.locator(".role-card:not([disabled])").first()).toBeVisible({ timeout: 30_000 });
     }

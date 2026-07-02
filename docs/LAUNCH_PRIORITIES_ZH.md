@@ -1,6 +1,6 @@
 # 上线优先级
 
-最后更新：2026-06-26
+最后更新：2026-07-02
 
 ## 已完成
 
@@ -16,6 +16,10 @@
 | Upload AV strict | 完成代码门槛，待真实 scanner |
 | 三浏览器 Playwright | 完成 |
 | 文档当前真相收口 | 完成 |
+| A1 桥接清理 | 完成：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` |
+| A2 状态分片 | 完成：8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js` 已落地；`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活 |
+| 后端 RLS | 完成：`backend/migrations/045_enable_public_rls.sql` 已为 44 张表启用 Row-Level Security |
+| CI/E2E 修复 | 完成：25+ commit 修复 CI 门禁、E2E selector、host console 流程等 |
 
 ## 最高优先级
 

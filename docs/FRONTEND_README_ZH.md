@@ -1,6 +1,6 @@
 # 前端说明
 
-最后更新：2026-06-26
+最后更新：2026-07-02
 
 ## 应用拆分
 
@@ -21,6 +21,9 @@
 |---|---|
 | `src/api/client.js` | REST/SSE API client |
 | `src/runtime/` | auth、workspace、data、actions、room events |
+| `src/runtime/view-registry.js` | 视图注册表（替代 `zhimuViews` 窗口桥） |
+| `src/runtime/runtime-facade.js` | 运行时门面（替代 `zhimuRuntime`/`zhimuDom` 窗口桥） |
+| `src/state/` | 8 个状态 shard + `create-store.js`（替代 `zhimuState` 窗口桥） |
 | `src/views/` | account、overview、writer、studio、rules、director、player、archive、assets、ops |
 | `config/vite.config.mjs` | dev server、docs static plugin、生产 build |
 | `server.js` | 本地静态 dist server |
@@ -70,6 +73,13 @@ npm run test:host
 ```
 
 Playwright 默认跨 Chromium/Firefox/WebKit。
+
+## 桥接与状态收口进展
+
+| 项 | 状态 |
+|---|---|
+| A1 桥接清理 | 完成：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` |
+| A2 状态分片 | 完成：8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js` 已落地；`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活 |
 
 ## 当前前端框架风险
 
