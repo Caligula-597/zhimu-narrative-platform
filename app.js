@@ -5,6 +5,7 @@ import { initEvents } from "./src/bootstrap/events.js";
 import { content, modalBackdrop } from "./src/dom.js";
 import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
 import { uiStore, studioStore, userStore } from "./src/state/index.js";
+import { loading as renderLoading, error as renderError } from "./src/components/status-ui.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
   if (startupMissing.length) return { render: () => {}, go: () => {} };
@@ -23,14 +24,12 @@ const appEntry = (function (window) {
   }
 
   function renderViewLoading(title) {
-    return window.zhimuStatus?.loading?.(title, "正在加载该功能模块，请稍候。", { kicker: "MODULE" }) ||
-      `<section class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>${title}</h3><p>正在加载该功能模块...</p></div></div></section>`;
+    return renderLoading(title, "正在加载该功能模块，请稍候。", { kicker: "MODULE" });
   }
 
   function renderViewError(title, error) {
     const actions = `<button class="primary-btn" data-action="retry-view-module">重新加载</button><button class="secondary-btn" data-action="open-error-guide">错误排查手册</button>`;
-    return window.zhimuStatus?.error?.(title, error, { kicker: "MODULE ERROR", actions, fallback: "功能模块加载失败，请刷新后重试。" }) ||
-      `<section class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>${title}</h3><p>${error?.message || "功能模块加载失败"}</p></div></div></section>`;
+    return renderError(title, error, { kicker: "MODULE ERROR", actions, fallback: "功能模块加载失败，请刷新后重试。" });
   }
 
   function render() {

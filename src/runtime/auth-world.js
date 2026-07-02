@@ -7,6 +7,8 @@ import { callRuntime, go, loadCloudData, registerRuntime, render } from "./runti
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
+import { normalizeError } from "../components/status-ui.js";
+import { handleApiErrorToast, friendlyApiError } from "../utils/user-messages.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -30,7 +32,7 @@ import * as U from "../components/emptyState.js";
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -322,7 +324,7 @@ export async function acceptWorldInviteFromUrl(token){
    await loadCloudData(true,true);
    render();
   }catch(error){
-   window.zhimuUserMessages?.handleApiErrorToast?.(error, showToast) || showError(error);
+   handleApiErrorToast(error, showToast);
   }
  };
  if(!window.zhimuSessionAuth?.isAuthenticated?.()){
@@ -385,7 +387,7 @@ export function handleStartupAuthParams(){
  }
  if(oauthError){
   clearStartupSearchParams(["oauth_error"]);
-  const friendly=window.zhimuUserMessages?.friendlyApiError?.({ code: oauthError, error: oauthError }, oauthError);
+  const friendly=friendlyApiError({ code: oauthError, error: oauthError }, oauthError);
   showToast(friendly||`OAuth 登录失败：${oauthError}`);
  }
  if(authMode==="login"||authMode==="register"){

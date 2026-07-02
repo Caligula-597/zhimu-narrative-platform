@@ -10,6 +10,7 @@ import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import * as S from "../components/ui-semantics.js";
 import { collapsibleCard } from "../components/collapse-panel.js";
+import { rulePreviewStatusLabel } from "../utils/user-messages.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -397,7 +398,7 @@ export function directorRulesPreview(){
  const preview=cloudRulesPreview;
  if(!preview)return `<div class="empty-state">点击「刷新预览」查看当前房间中启用规则的条件评估结果。</div>`;
  if(!preview.length)return `<div class="empty-state">当前平行房没有启用的运行规则。</div>`;
- const statusLabel=window.zhimuUserMessages?.rulePreviewStatusLabel||((s)=>s);
+ const statusLabel=rulePreviewStatusLabel;
  return `<div class="host-detail-list">${preview.map((row)=>`<div class="checkpoint-row"><strong>${escapeHtml(row.name)}</strong><p>${escapeHtml(statusLabel(row.status))}${row.conditionsMet===false?" · 条件未满足":""}</p>${row.status==="manual_ready"?`<button class="text-btn" data-action="rule-manual-trigger" data-rule="${row.id}">立即触发</button>`:""}</div>`).join("")}</div>`;
 }
 

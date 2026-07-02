@@ -4,8 +4,8 @@ import { go, registerRuntime, render } from "../runtime/runtime-facade.js";
 import { callView, registerView } from "../runtime/view-registry.js";
 import { uiStore } from "../state/index.js";
 import * as F from "../utils/format.js";
+import * as Status from "../components/status-ui.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
-  const Status = () => window.zhimuStatus || {};
 
   function activeTab() {
     return uiStore.get().accountHubTab === "assets" ? "assets" : "account";
@@ -26,7 +26,7 @@ import * as F from "../utils/format.js";
 
   function assetsPanelContent() {
     if (!zhimuApi.context.worldId) {
-      return Status().empty?.("尚未选择剧本", "内容资产按剧本隔离存储。请先在侧栏切换或创建剧本，再上传附件。", {
+      return Status.empty?.("尚未选择剧本", "内容资产按剧本隔离存储。请先在侧栏切换或创建剧本，再上传附件。", {
         actions: `<button type="button" class="primary-btn" data-action="world-library">选择剧本</button>`
       }) || `<div class="empty-state enriched-empty"><p><strong>尚未选择剧本</strong></p><p>内容资产按剧本隔离存储。请先在侧栏切换或创建剧本，再上传附件。</p><button type="button" class="primary-btn" data-action="world-library">选择剧本</button></div>`;
     }
@@ -52,7 +52,7 @@ import * as F from "../utils/format.js";
       return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>登录后可管理账号、配额、云端附件与会话。</p></div></div><button type="button" class="primary-btn" data-action="open-auth">登录 / 注册</button></article></section>`;
     }
     if (uiStore.get().accountViewLoading || !uiStore.get().accountView) {
-      return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1">${Status().loading?.("账号与内容资产", "正在加载账号信息、套餐配额与会话记录。") || `<div class="section-head"><div><h3>账号与内容资产</h3><p>正在加载账号信息…</p></div></div>`}</article></section>`;
+      return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1">${Status.loading?.("账号与内容资产", "正在加载账号信息、套餐配额与会话记录。") || `<div class="section-head"><div><h3>账号与内容资产</h3><p>正在加载账号信息…</p></div></div>`}</article></section>`;
     }
     const tab = activeTab();
     const accountView = uiStore.get().accountView;

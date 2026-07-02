@@ -8,14 +8,14 @@ import { uiStore, assetStore, studioStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
+import { normalizeError } from "../components/status-ui.js";
+import { ASSET_KIND_TABS, assetKindLabel } from "../utils/user-messages.js";
   const canEditWorldContent = U.canEditWorldContent || (() => false);
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatBytes = F.formatBytes || (() => "");
   const formatTime = F.formatTime || (() => "");
-  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
   const closeModal = M.closeModal || (() => {});
-  const ASSET_KIND_TABS = window.zhimuUserMessages?.ASSET_KIND_TABS || [{ id: "", label: "全部" }];
-  const assetKindLabel = window.zhimuUserMessages?.assetKindLabel || ((k) => k);
 function refreshAssetsIfVisible() {
     const ui = uiStore.get();
     if ((ui.view === "account" && ui.accountHubTab === "assets") || ui.view === "settings") render();

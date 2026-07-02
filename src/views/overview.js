@@ -9,6 +9,7 @@ import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import * as S from "../components/ui-semantics.js";
+import { overviewHeroTitle, formatCloudPanelError } from "../utils/user-messages.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -85,12 +86,30 @@ function overviewBackendCapability(item) {
   </div>`;
 }
 
+function overviewRiskItem(item) {
+  const cls = item.level === "error" ? "risk-error" : "risk-warning";
+  const icon = item.level === "error" ? "✕" : "!";
+  const actionAttr = item.action
+    ? ` data-action="${escapeHtml(item.action)}"`
+    : item.view
+    ? ` data-go="${escapeHtml(item.view)}"`
+    : "";
+  const button = item.action || item.view
+    ? `<button type="button"${actionAttr}>${escapeHtml(item.button || "处理")} →</button>`
+    : "";
+  return `<div class="risk-item ${cls}">
+    <span class="risk-icon">${icon}</span>
+    <div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.detail)}</p></div>
+    ${button}
+  </div>`;
+}
+
 export function overview() {
   const { cloudStudio, cloudLoading } = studioStore.get();
-  const { cloudWorlds, cloudRules, cloudWorldLogs } = worldStore.get();
-  const { cloudAssets } = assetStore.get();
+  const { cloudWorlds, cloudRules, cloudWorldLogs, cloudCreatorChecks } = worldStore.get();
+  const { cloudAssets, storageUsage } = assetStore.get();
   const { apiError } = userStore.get();
-  const { cloudHost, cloudHostEvents, cloudRecaps } = roomStore.get();
+  const { cloudHost, cloudHostEvents, cloudHostStuckCount, cloudRecaps, cloudCheckpoints } = roomStore.get();
   const studio = cloudStudio;
   const listedWorld = (cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
   const world = studio?.world || listedWorld;
@@ -157,11 +176,13 @@ export function overview() {
     { label: "线索", value: `${clueCount} 条线索`, cls: "clue" },
     { label: "规则", value: `${enabledRules} 条启用`, cls: "rule" }
   ];
+  const storageQuotaPct = storageUsage && storageUsage.maxBytes ? Math.round((storageUsage.usedBytes / storageUsage.maxBytes) * 100) : null;
   const operationCards = [
     { k: "运行房", v: hasRooms ? `${rooms.length} 个` : "未建立", t: hasActiveRoom ? "已选中当前运行房" : "创建测试房后进入主持端" },
     { k: "玩家进度", v: `${runtimeProgress.percent}%`, t: runtimeProgress.label },
     { k: "待确认", v: String(pendingEvents), t: pendingEvents ? "需要主持端处理" : "暂无主持待办" },
-    { k: "复盘", v: String(cloudRecaps?.length || 0), t: "checkpoint 与 recap 归档" }
+    { k: "复盘", v: String(cloudRecaps?.length || 0), t: "checkpoint 与 recap 归档" },
+    ...(storageQuotaPct !== null ? [{ k: "云存储", v: `${storageQuotaPct}%`, t: `${formatBytes(storageUsage.usedBytes)} / ${formatBytes(storageUsage.maxBytes)}` }] : [])
   ];
   const miniGameTemplates = Array.isArray(world?.settings?.miniGameTemplates) ? world.settings.miniGameTemplates.length : 0;
   const productionItems = [
@@ -174,7 +195,39 @@ export function overview() {
   ];
   const doneProduction = productionItems.filter(item => item.done).length;
   const productionPercent = Math.round((doneProduction / productionItems.length) * 100);
+  const creatorChecks = cloudCreatorChecks || [];
+  const checkErrors = creatorChecks.filter(c => c.level === "error");
+  const checkWarnings = creatorChecks.filter(c => c.level === "warning");
+  const checkRisks = [...checkErrors, ...checkWarnings].map(check => ({ level: check.level, title: check.title, detail: check.detail }));
+  const runtimeRisks = [];
+  if (pendingEvents > 5) {
+    runtimeRisks.push({ level: "warning", title: "待确认事件积压", detail: `${pendingEvents} 条事件等待主持端处理，可能影响玩家体验。`, action: "open-host-console", button: "打开主持端" });
+  }
+  if (cloudHostStuckCount > 0) {
+    runtimeRisks.push({ level: "warning", title: `${cloudHostStuckCount} 名玩家疑似卡关`, detail: "玩家长时间未推进剧情，建议主持端主动干预或发放线索。", action: "open-host-console", button: "打开主持端" });
+  }
+  if (hasActiveRoom && !cloudCheckpoints?.length) {
+    runtimeRisks.push({ level: "warning", title: "运行房尚未存档", detail: "当前运行进度没有存档点，意外中断后无法恢复。", action: "create-checkpoint", button: "创建存档" });
+  }
+  const quotaRisks = [];
+  if (storageUsage && storageUsage.maxBytes) {
+    const quotaPct = storageUsage.usedBytes / storageUsage.maxBytes;
+    if (quotaPct > 0.8) {
+      quotaRisks.push({ level: quotaPct > 0.95 ? "error" : "warning", title: "云存储空间不足", detail: `已用 ${Math.round(quotaPct * 100)}%（${formatBytes(storageUsage.usedBytes)} / ${formatBytes(storageUsage.maxBytes)}）。请清理附件或申请扩容。`, action: "go-account", button: "管理资产" });
+    }
+  }
+  const riskItems = [...checkRisks, ...runtimeRisks, ...quotaRisks];
+  const riskErrorCount = riskItems.filter(r => r.level === "error").length;
+  const riskWarningCount = riskItems.filter(r => r.level === "warning").length;
+  const hasRisks = riskItems.length > 0;
+  const readyForPlaytest = checkErrors.length === 0 && roleCount > 0 && sectionCount > 0 && chapterCount > 0;
+  const readyForCatalog = readyForPlaytest && checkWarnings.length === 0 && hasRooms;
+  const readinessLabel = readyForCatalog ? "可申请公开库" : readyForPlaytest ? "可内测测试" : "尚未就绪";
+  const readinessTone = readyForCatalog ? "published" : readyForPlaytest ? "testing" : "draft";
   const nextActions = [
+    riskErrorCount ? { title: "处理发布阻塞项", detail: `${riskErrorCount} 项阻塞问题阻止剧本进入内测，请先在风险面板处理。`, action: "creator-check", button: "运行发布检查" } : null,
+    cloudHostStuckCount > 0 ? { title: "干预卡关玩家", detail: `${cloudHostStuckCount} 名玩家长时间未推进剧情，建议主动发放线索或引导。`, action: "open-host-console", button: "打开主持端" } : null,
+    hasActiveRoom && !cloudCheckpoints?.length ? { title: "为当前运行房创建存档", detail: "运行进度没有存档点，意外中断后无法恢复。", action: "create-checkpoint", button: "创建存档" } : null,
     !roleCount || !sectionCount ? { title: "补齐角色与私人分幕", detail: "玩家端体验从角色席位和私人正文开始。", view: "writer", button: "打开创作台" } : null,
     !chapterCount || !sceneCount ? { title: "整理章节和场景结构", detail: "让主持端和玩家端知道剧情推进到哪里。", view: "studio", button: "打开编排" } : null,
     !clueCount || !pointCount ? { title: "补线索和调查点", detail: "线索管理负责审稿、关联、触发条件和证据链检查。", view: "clues", button: "打开线索" } : null,
@@ -182,7 +235,7 @@ export function overview() {
     !miniGameTemplates ? { title: "创建小游戏测试模板", detail: "先做数字锁模板，标注测试功能，给主持端启动。", view: "miniGames", button: "打开小游戏" } : null,
     !hasRooms ? { title: "建立运行房做端到端测试", detail: "运行房会串起主持端、玩家端、日志、复盘和规则触发。", action: "world-rooms", button: "管理房间" } : null,
     pendingEvents ? { title: "处理主持待确认事件", detail: `${pendingEvents} 条事件正在等待主持端确认。`, action: "open-host-console", button: "打开主持端" } : null,
-    hasRooms && !pendingEvents ? { title: "进入运行控制台检查现场", detail: "确认玩家状态、房间状态和事件日志是否正常。", action: "open-host-console", button: "打开主持端" } : null
+    hasRooms && !pendingEvents && !riskErrorCount ? { title: "进入运行控制台检查现场", detail: "确认玩家状态、房间状态和事件日志是否正常。", action: "open-host-console", button: "打开主持端" } : null
   ].filter(Boolean).slice(0, 5).map((item, index) => ({ ...item, index: String(index + 1).padStart(2, "0") }));
   const backendCapabilities = [
     { label: "云端世界与创作数据", ready: Boolean(studio?.world || listedWorld), detail: "世界、角色、章节、场景、线索和调查点已经从后端读取。" },
@@ -217,8 +270,8 @@ export function overview() {
     <section class="hero">
       <article class="hero-card">
         <p class="eyebrow">CURRENT WORLD · ONLINE</p>
-        <h2>${loading ? "正在连接云端…" : escapeHtml((window.zhimuUserMessages?.overviewHeroTitle || (() => "未选择世界"))({ loading, worldName: world?.name, apiError }))}</h2>
-        <p>${loading ? "正在读取世界基础信息与章节结构，通常只需片刻。" : escapeHtml(world?.summary || (window.zhimuUserMessages?.formatCloudPanelError?.(apiError, { hasStudio: Boolean(world) }) || "世界基础信息加载完成后会显示在这里。"))}</p>
+        <h2>${loading ? "正在连接云端…" : escapeHtml(overviewHeroTitle({ loading, worldName: world?.name, apiError }))}</h2>
+        <p>${loading ? "正在读取世界基础信息与章节结构，通常只需片刻。" : escapeHtml(world?.summary || (formatCloudPanelError(apiError, { hasStudio: Boolean(world) }) || "世界基础信息加载完成后会显示在这里。"))}</p>
         <div class="hero-stats"><div><strong>${String(roleCount).padStart(2,"0")}</strong><small>角色席位</small></div><div><strong>${String(chapterCount).padStart(2,"0")}</strong><small>公共章节</small></div><div><strong>${String(uploadCount).padStart(2,"0")}</strong><small>云端附件</small></div></div>
       </article>
       <article class="status-card">
@@ -234,7 +287,7 @@ export function overview() {
       <article class="production-panel production-main">
         <div class="section-head">
           <div><p class="section-kicker">CREATOR CONTROL</p><h3>制作总控台</h3><p>把已有后端能力翻译成创作者能直接处理的制作状态：内容、规则、运行房、小游戏和复盘都在这里汇总。</p></div>
-          <div class="production-score"><strong>${productionPercent}%</strong><span>${doneProduction}/${productionItems.length} 已完成</span></div>
+          <div class="production-score"><span class="status-chip ${readinessTone}">${readinessLabel}</span><strong>${productionPercent}%</strong><span>${doneProduction}/${productionItems.length} 已完成</span></div>
         </div>
         <div class="production-progress"><i style="width:${productionPercent}%"></i></div>
         <div class="production-grid">${productionItems.map(overviewProductionItem).join("")}</div>
@@ -245,6 +298,18 @@ export function overview() {
         </div>
         <div class="next-action-list">${nextActions.length ? nextActions.map(overviewNextAction).join("") : `<div class="empty-state">制作状态已经完整。建议进入运行房做主持端和玩家端联调。</div>`}</div>
       </article>
+    </section>
+    <section class="risk-console">
+      <div class="section-head">
+        <div><p class="section-kicker">RISKS &amp; ALERTS</p><h3>风险与问题</h3><p>发布检查、运行时异常和配额预警统一汇总在这里。阻塞项必须处理，警告项建议尽快处理。</p></div>
+        <div class="risk-summary">
+          ${riskErrorCount ? `<span class="risk-count risk-error">${riskErrorCount} 阻塞</span>` : ""}
+          ${riskWarningCount ? `<span class="risk-count risk-warning">${riskWarningCount} 警告</span>` : ""}
+          ${!hasRisks ? `<span class="risk-count risk-ok">✓ 无风险</span>` : ""}
+        </div>
+      </div>
+      <div class="risk-list">${hasRisks ? riskItems.map(overviewRiskItem).join("") : `<div class="empty-state">当前没有需要处理的风险。点击「运行发布检查」可重新检测发布就绪度。</div>`}</div>
+      <button class="secondary-btn" data-action="creator-check">运行发布检查</button>
     </section>
     <section class="backend-console">
       <div class="section-head">

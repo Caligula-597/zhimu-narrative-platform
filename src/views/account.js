@@ -7,15 +7,15 @@ import { registerView } from "../runtime/view-registry.js";
 import { uiStore, userStore, assetStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import { closeModal, studioField } from "../components/modal.js";
+import * as Status from "../components/status-ui.js";
+import { handleApiErrorToast } from "../utils/user-messages.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
-  const handleApiError = window.zhimuUserMessages?.handleApiErrorToast || ((err, toast) => toast(err?.message || "操作失败"));
-
-  const Status = () => window.zhimuStatus || {};
+  const handleApiError = handleApiErrorToast;
 
   function accountShell(body, loading = false) {
     const content = loading
-      ? Status().loading?.("账号设置", "正在加载登录身份、套餐配额与多设备记录。") || `<p class="muted-note">正在加载账号信息…</p>`
+      ? Status.loading?.("账号设置", "正在加载登录身份、套餐配额与多设备记录。") || `<p class="muted-note">正在加载账号信息…</p>`
       : body;
     return `<section class="rules-layout"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号设置</h3><p>登录身份、套餐配额与多设备管理</p></div></div>${content}</article></section>`;
   }
@@ -45,13 +45,13 @@ import { closeModal, studioField } from "../components/modal.js";
       return callRuntime("openAuth");
     }
     modal.className = "modal auth-modal account-delete-modal";
-    modal.innerHTML = `<h2>注销账号</h2>${Status().modalLoading?.("正在加载影响范围…") || `<p class="wizard-intro">正在加载影响范围…</p>`}`;
+    modal.innerHTML = `<h2>注销账号</h2>${Status.modalLoading?.("正在加载影响范围…") || `<p class="wizard-intro">正在加载影响范围…</p>`}`;
     backdrop.classList.add("show");
     let preview;
     try {
       preview = await zhimuApi.previewAccountDelete();
     } catch (error) {
-      modal.innerHTML = `<h2>无法加载注销信息</h2>${Status().modalError?.(error, "请稍后重试") || `<p class="wizard-intro">${escapeHtml(error.message || "请稍后重试")}</p>`}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+      modal.innerHTML = `<h2>无法加载注销信息</h2>${Status.modalError?.(error, "请稍后重试") || `<p class="wizard-intro">${escapeHtml(error.message || "请稍后重试")}</p>`}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
       modal.querySelector("[data-close]").onclick = closeModal;
       return;
     }

@@ -1,6 +1,7 @@
 /** Shared UI semantics: status copy, chips, toast/error wrappers, and surface tokens. */
 import { showToast } from "./toast.js";
 import { escapeHtml } from "../utils/format.js";
+import { normalizeError } from "./status-ui.js";
 
   const SURFACES = {
     creator: { label: "创作者端", className: "surface-creator", accent: "var(--green)" },
@@ -48,7 +49,7 @@ import { escapeHtml } from "../utils/format.js";
   }
 
   function showError(error, fallback = "操作失败，请稍后重试") {
-    const message = window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback;
+    const message = normalizeError(error, fallback);
     showToast(message);
     return message;
   }

@@ -46,7 +46,6 @@ globalThis.window = {
   },
   zhimuSessionAuth: {},
   zhimuWorldRevision: {},
-  zhimuUserMessages: { friendlyApiError: (p, fb) => p?.error || fb },
   zhimuRoomEvents: {
     disconnectRoomEventStream: () => runtimeDisconnects.push("room-events")
   },

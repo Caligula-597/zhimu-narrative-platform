@@ -25,9 +25,6 @@ const fakeToast = {
 globalThis.window = {
   zhimuState: { cloudHostEvents: [] },
   zhimuWorkspace: {},
-  zhimuStatus: {
-    normalizeError: (error, fallback) => error?.message || fallback
-  },
   localStorage: storage,
   sessionStorage: storage,
   location: { hostname: "localhost", port: "4173" }

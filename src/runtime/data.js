@@ -5,9 +5,10 @@ import { uiStore, worldStore, studioStore, roomStore, assetStore, userStore, voi
 import { registerRuntime, render as runtimeRender } from "./runtime-facade.js";
 import * as workspaceStore from "./workspace-store.js";
 import * as runtimeStore from "./runtime-store.js";
+import { normalizeError } from "../components/status-ui.js";
 
   const reportError = (error, fallback = "操作失败，请稍后重试") =>
-    showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+    showToast(normalizeError(error, fallback));
 
   const roomEvents = () => window.zhimuRoomEvents || {};
 

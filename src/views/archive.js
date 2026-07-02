@@ -8,6 +8,8 @@ import { uiStore, roomStore, worldStore, studioStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
+import { normalizeError } from "../components/status-ui.js";
+import { RESTORE_SCOPE_OPTIONS } from "../utils/user-messages.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -32,7 +34,7 @@ import * as U from "../components/emptyState.js";
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
   const voiceOption = U.voiceOption || (() => "");
-  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
   const studioModal = M.studioModal || (() => {});
@@ -42,7 +44,6 @@ import * as U from "../components/emptyState.js";
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
-  const RESTORE_SCOPE_OPTIONS = window.zhimuUserMessages?.RESTORE_SCOPE_OPTIONS || [];
 
 export function archive(){
  const { view } = uiStore.get();

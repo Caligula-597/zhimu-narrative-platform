@@ -247,7 +247,7 @@ if (failed) {
 
 // Anti-regression: no business code under src/ may read removed window bridges.
 import fs from "node:fs";
-const banned = ["zhimuUiSemantics", "zhimuCollapsePanel"];
+const banned = ["zhimuUiSemantics", "zhimuCollapsePanel", "zhimuStatus", "zhimuUserMessages"];
 const srcDir = path.resolve(root, "src");
 for (const entry of fs.readdirSync(srcDir, { withFileTypes: true, recursive: true })) {
   if (!entry.isFile() || !entry.name.endsWith(".js")) continue;

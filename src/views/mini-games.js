@@ -7,13 +7,14 @@ import { studioStore, worldStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
+import { normalizeError } from "../components/status-ui.js";
   const escapeHtml = F.escapeHtml || ((value = "") => String(value));
   const catalogExperienceBanner = U.catalogExperienceBanner || (() => "");
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioModal = M.studioModal || (() => {});
   const closeModal = M.closeModal || (() => {});
-  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
 
   function templates() {
     const world = studioStore.get().cloudStudio?.world;

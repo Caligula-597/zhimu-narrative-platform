@@ -1,5 +1,6 @@
 /** In-room runtime payload (player, host, exploration, voice) cleared on room/world/auth changes. */
 import { roomStore, voiceStore } from "../state/index.js";
+import { friendlyApiError } from "../utils/user-messages.js";
 
 export function clearRuntimeFields() {
   roomStore.set({
@@ -53,11 +54,7 @@ export function applyHostPlayersPayload(value) {
 }
 
 export function formatHostPlayersLoadError(error) {
-  const friendly = window.zhimuUserMessages?.friendlyApiError;
-  if (typeof friendly === "function") {
-    return friendly({ code: error?.code, error: error?.message }, error?.message || "无法加载玩家进度");
-  }
-  return error?.message || "无法加载玩家进度";
+  return friendlyApiError({ code: error?.code, error: error?.message }, error?.message || "无法加载玩家进度");
 }
 
 export function failHostPlayersLoad(error) {

@@ -1,7 +1,7 @@
 /**
  * User-facing copy — migrated to real ES Modules.
  * Hides raw API codes and backend maintenance terms behind friendly Chinese strings.
- * window.zhimuUserMessages bridge kept for un-migrated code.
+ * Pure ES Module — no window bridge.
  */
 
 import { go } from "../runtime/runtime-facade.js";
@@ -313,12 +313,17 @@ function isQuotaExceededError(error) {
 }
 
 function handleApiErrorToast(error, showToast) {
-  showToast(error?.message || "操作失败");
+  showToast(friendlyApiError({
+    code: error?.code,
+    error: error?.message || error?.error,
+    details: error?.details
+  }, error?.message || "操作失败"));
   if (isQuotaExceededError(error)) {
     setTimeout(() => {
       go("account");
     }, 400);
   }
+  return true;
 }
 
 /** Strip Fastify noise; classify empty-account vs real outage for top banners. */
@@ -357,22 +362,4 @@ function assetKindLabel(kind) {
 
 function rulePreviewStatusLabel(status) {
   return RULE_PREVIEW_STATUS[status] || "—";
-}
-
-/** Bridge: un-migrated code still reads window.zhimuUserMessages. */
-if (typeof window !== "undefined") {
-  window.zhimuUserMessages = {
-    API_ERROR_MESSAGES,
-    RESTORE_SCOPE_OPTIONS,
-    RULE_PREVIEW_STATUS,
-    ASSET_KIND_TABS,
-    ASSET_KIND_LABELS,
-    friendlyApiError,
-    formatCloudPanelError,
-    overviewHeroTitle,
-    assetKindLabel,
-    rulePreviewStatusLabel,
-    isQuotaExceededError,
-    handleApiErrorToast
-  };
 }

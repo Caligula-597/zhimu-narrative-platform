@@ -8,12 +8,13 @@ import { uiStore, userStore, worldStore, studioStore, roomStore, assetStore } fr
 import * as F from "../utils/format.js";
 import { closeModal } from "../components/modal.js";
 import * as U from "../components/emptyState.js";
+import { normalizeError } from "../components/status-ui.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const hostAuditActionLabel = F.hostAuditActionLabel || ((a) => a);
   const hostAuditDetail = F.hostAuditDetail || (() => "");
-  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+  const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
   const activeRuntimeRoom = U.activeRuntimeRoom || (() => null);
   const isWorldOwner = U.isWorldOwner || (() => false);
   const canEditWorldContent = U.canEditWorldContent || (() => false);

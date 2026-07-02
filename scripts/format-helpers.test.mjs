@@ -29,7 +29,6 @@ globalThis.window = {
   location: { pathname: "/", search: "", hash: "", hostname: "localhost", port: "4173" },
   zhimuToast: {},
   zhimuViews: {}, zhimuRuntime: {}, zhimuRuleVisual: {},
-  zhimuUserMessages: { friendlyApiError: (p, fb) => p?.error || fb },
   zhimuSessionAuth: {}, zhimuWorldRevision: {},
   localStorage: storage, sessionStorage: storage,
   addEventListener: noop, removeEventListener: noop,

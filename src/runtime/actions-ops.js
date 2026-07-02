@@ -4,9 +4,10 @@ import { showToast } from "../components/toast.js";
 import { uiStore, userStore } from "../state/index.js";
 import { render } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
+import { normalizeError } from "../components/status-ui.js";
 
 (function (window) {
-  const showError = (error, fallback = "OPS 操作失败") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);
+  const showError = (error, fallback = "OPS 操作失败") => showToast(normalizeError(error, fallback));
 
   async function refresh() {
     try {

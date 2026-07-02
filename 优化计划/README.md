@@ -2,7 +2,7 @@
 
 最后更新：2026-07-02
 
-本目录是基于 2026-06-28 完整代码通读 + 主应用 dev 预览（`http://localhost:4173/`）得出的产品、架构、代码、性能、安全、宣传六位一体优化计划；2026-06-30 同步当前执行进度。
+本目录是基于 2026-06-28 完整代码通读 + 主应用 dev 预览（`http://localhost:4173/`）得出的产品、架构、代码、性能、安全、宣传六位一体优化计划；2026-07-02 已按当前代码治理进度重新同步。
 
 > 原则：**不动业务行为、不改数据库真相源、不引入重型框架**。所有改动都向项目已有的最佳实践（`play/`、`host/` 的真 ES Modules 模式）对齐，而不是另起炉灶。
 
@@ -20,15 +20,15 @@
 
 ## 一句话结论
 
-织幕目前是**「可信 Beta 末期、产品闭环已具备、但主应用前端背着历史包袱」**的状态。
+织幕目前是**「可信 Beta 后期、产品闭环已具备、公开 Beta 前冲刺」**的状态。
 
 - **后端**：健康，路由按领域拆分，安全门禁扎实，知识块/内容检索已超前于前端。
 - **三端前端**（`play/` `host/` `site/`）：已迁移到真 ES Modules，结构清晰。
-- **主应用**（根 `src/`）：`api/client.js` 已按领域拆分为 `src/api/*.js`，`src/state/` 已拆为 8 个领域 shard + `createStore`；**Phase 4 状态分片迁移已全部完成**（所有消费者直接 import shard，`app.js` 已迁移，根 `state.js` 已删除）；`window.zhimuViews` 旧桥已移除，`window.zhimuRuntime` 已通过 `runtime-facade` 收口，三大 window 桥（zhimuViews/zhimuRuntime/zhimuDom）已全部清除，替换为 view-registry.js 和 runtime-facade.js；zhimuWorkspace / zhimuRuntimeStore / zhimuFormat / zhimuUi / zhimuModal / zhimuUiSemantics 小桥已完成迁移，下一批拆分处理 zhimuStatus 与 zhimuUserMessages。
+- **主应用**（根 `src/`）：`api/client.js` 已按领域拆分为 `src/api/*.js`，`src/state/` 已拆为 8 个领域 shard + `createStore`；**Phase 4 状态分片迁移已全部完成**；三大 window 桥（zhimuViews/zhimuRuntime/zhimuDom）已清除；zhimuWorkspace / zhimuRuntimeStore / zhimuFormat / zhimuUi / zhimuModal / zhimuUiSemantics / zhimuCollapsePanel / zhimuStatus / zhimuUserMessages 小桥已迁移为 ES Module。
 - **共享层**：`shared/tokens.css`、`shared/security.js`、`shared/api-error.js`、`shared/sse.js`、`shared/components/collapse.js` 已落地；三端 Vite alias 已配置；`shared/api-fetch`、`shared/session-token`、`shared/url-validators` 与更多 shared components 后续按收益推进。
 - **官网与宣传**：内容完整但偏功能罗列，缺故事化与案例化；创意提案 HTML 与官网未对齐。
 
-**最高优先级**：把主应用向 `play/host` 的模块化模式对齐，同时抽出 `shared-api` / `shared-security` 共享层，一举消除三端重复 + 主应用架构债。
+**最高优先级**：停止把精力继续投向大规模架构清理，转向 L1-03 生产门槛、备份恢复演练、权限矩阵复查和公开 Beta 自助闭环。
 
 ## 不在本计划范围内的事
 

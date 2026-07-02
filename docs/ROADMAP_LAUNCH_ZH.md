@@ -35,7 +35,7 @@
 | A1 桥接清理 | **完成** | `zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` |
 | A2 状态分片 | **完成** | 8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js`；`window.zhimuState` Proxy 仅测试/demo 模式条件激活 |
 | A3 API 拆分 | **完成** | 后端按域拆分（account/asset/billing/checkpoint/host/player/rules/studio/world 等） |
-| A4 共享层 | **进行中** | `shared/security.js` 已落地；`shared/api`、`shared/ui-tokens` 待继续抽 |
+| A4 共享层 | **进行中，阶段 5 完成一批** | `shared/security.js`、`shared/api-error.js`、`shared/sse.js`、`shared/components/collapse.js` 已落地；api-fetch/session-token/tokens 待继续抽 |
 | 后端 RLS | **完成** | `backend/migrations/045_enable_public_rls.sql` 为 44 张表启用 Row-Level Security；测试用 `backend/src/storage/memory-storage.js` |
 
 ## Part 5 · Ops 公开库审核 API

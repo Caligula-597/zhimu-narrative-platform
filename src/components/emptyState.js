@@ -7,6 +7,7 @@ import { userStore, studioStore, worldStore, voiceStore } from "../state/index.j
 import { activeRuntimeRoom as workspaceActiveRuntimeRoom, isWorldOwner as workspaceIsWorldOwner } from "../runtime/workspace-store.js";
 import * as F from "../utils/format.js";
 import * as M from "./modal.js";
+import { formatCloudPanelError } from "../utils/user-messages.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -59,7 +60,7 @@ export function cloudStatus(){
   if(sessionMode==="demo_browse"&&!cloudStudio)return sessionStrip;
  }
  const rooms=cloudStudio?.rooms||[];
- const panelMsg=window.zhimuUserMessages?.formatCloudPanelError?.(apiError,{hasStudio:Boolean(cloudStudio)})||apiError||"正在读取云端…";
+ const panelMsg=formatCloudPanelError(apiError,{hasStudio:Boolean(cloudStudio)})||apiError||"正在读取云端…";
  const isOutage=apiError&&/无法连接|API_UNAVAILABLE|ECONNREFUSED/i.test(apiError);
  const isEmptyAccount=apiError&&/还没有可访问的剧本/.test(apiError);
  const pill=isOutage?"部分运行模块尚未连接":isEmptyAccount?"● 已连接 · 尚无剧本":apiError?"部分提示":"● 云端已连接";
@@ -88,7 +89,7 @@ export function creatorWorkspaceEmpty({title,kicker,intro,guideTitle,guideItems=
  const cloudLoading=studioStore.get().cloudLoading;
  if(cloudLoading)return `${cloudStatus()}<section class="card creator-empty-loading"><p class="section-kicker">${escapeHtml(kicker||"WORKSPACE")}</p><h3>正在连接云端…</h3><p>已登录时会同时读取公开剧本库列表。</p></section>`;
  const noWorld=!zhimuApi.context.worldId;
- const panelMsg=window.zhimuUserMessages?.formatCloudPanelError?.(apiError,{hasStudio:false})||apiError||"";
+ const panelMsg=formatCloudPanelError(apiError,{hasStudio:false})||apiError||"";
  return `${cloudStatus()}
  <section class="creator-empty-hero card"><p class="section-kicker">${escapeHtml(kicker||"CREATOR WORKSPACE")}</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(intro)}</p>${panelMsg?`<p class="muted-note">${escapeHtml(panelMsg)}</p>`:""}<div class="row creator-empty-actions"><button class="primary-btn" data-action="open-wizard">＋ 创建我的世界</button><button class="secondary-btn" data-action="world-library">我的剧本</button><button class="secondary-btn" data-action="open-catalog">浏览公开剧本库</button></div></section>
  ${noWorld?catalogPromoSection():""}
