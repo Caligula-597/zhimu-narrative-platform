@@ -102,6 +102,11 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       emptyOutDir: true,
       sourcemap: true
+    },
+    resolve: {
+      alias: {
+        shared: path.resolve(root, "shared")
+      }
     }
   };
 });

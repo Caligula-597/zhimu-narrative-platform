@@ -8,6 +8,7 @@ import { uiStore, studioStore, worldStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
+import { collapsibleCard } from "../components/collapse-panel.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -43,7 +44,6 @@ import * as U from "../components/emptyState.js";
   const bindDynamic = R.bindDynamic || (() => {});
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
-  const collapsibleCard = window.zhimuCollapsePanel?.collapsibleCard || ((opts) => `<article class="card">${opts.body || ""}</article>`);
 
 export function writer(){
  const data=studioStore.get().cloudStudio;

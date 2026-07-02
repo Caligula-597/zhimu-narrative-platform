@@ -1,4 +1,5 @@
 import { getRoomId, getSessionToken, getWorldId, setSessionToken } from "./session.js";
+import { consumeSseStream } from "../../shared/sse.js";
 
 export { getSessionToken, setSessionToken };
 
@@ -161,7 +162,8 @@ export const api = {
 
   streamRoomEvents(roomId, onEvent, signal) {
     const headers = { ...authHeaders(), accept: "text/event-stream" };
-    const cursor = localStorage.getItem(sseCursorKey(roomId));
+    const cursorKey = sseCursorKey(roomId);
+    const cursor = localStorage.getItem(cursorKey);
     if (cursor) headers["last-event-id"] = cursor;
     return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
       if (!res.ok) {
@@ -170,35 +172,11 @@ export const api = {
         err.status = res.status;
         throw err;
       }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
       onEvent("__connected__", {});
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const blocks = buffer.split("\n\n");
-        buffer = blocks.pop() || "";
-        for (const block of blocks) {
-          let eventType = "message";
-          let data = "";
-          let eventId = "";
-          for (const line of block.split("\n")) {
-            if (line.startsWith("event:")) eventType = line.slice(6).trim();
-            else if (line.startsWith("data:")) data += line.slice(5).trim();
-            else if (line.startsWith("id:")) eventId = line.slice(3).trim();
-          }
-          if (eventId) localStorage.setItem(sseCursorKey(roomId), eventId);
-          if (data) {
-            try {
-              onEvent(eventType, JSON.parse(data));
-            } catch {
-              /* ignore malformed SSE */
-            }
-          }
-        }
-      }
+      return consumeSseStream(res, {
+        cursorKey,
+        onEvent: (eventType, data) => onEvent(eventType, data)
+      });
     });
   }
 };

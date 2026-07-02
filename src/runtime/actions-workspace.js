@@ -2,6 +2,7 @@
 import { uiStore } from "../state/index.js";
 import { callRuntime, go, loadCloudData, render } from "./runtime-facade.js";
 import { activeRuntimeRoom } from "../components/emptyState.js";
+import { togglePanelInDom } from "../components/collapse-panel.js";
 (function (window) {
   function handleWorkspaceAction(action, el) {
     switch (action) {
@@ -145,7 +146,7 @@ import { activeRuntimeRoom } from "../components/emptyState.js";
         const panelId = el?.dataset?.panelId;
         if (!panelId) return true;
         const defaultOpen = el?.dataset?.defaultOpen !== "0";
-        window.zhimuCollapsePanel?.togglePanelInDom?.(panelId, defaultOpen, el);
+        togglePanelInDom(panelId, defaultOpen, el);
         return true;
       }
       default:

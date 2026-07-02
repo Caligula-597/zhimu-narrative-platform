@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { escapeHtml } from "../../../shared/security.js";
+import { renderCollapsibleCard } from "../../../shared/components/collapse.js";
 
 export function isPanelOpen(panelId, defaultOpen = true) {
   if (Object.prototype.hasOwnProperty.call(state.panelCollapse, panelId)) {
@@ -34,17 +34,5 @@ export function collapsibleCard({
   style = ""
 } = {}) {
   const open = isPanelOpen(id, defaultOpen);
-  return `<article class="${className} collapse-panel${open ? " is-open" : " is-collapsed"}" data-collapse-panel="${escapeHtml(id)}" style="${style}">
-    <div class="collapse-panel-head">
-      <button type="button" class="collapse-panel-toggle" data-action="toggle-collapse-panel" data-panel-id="${escapeHtml(id)}" data-default-open="${defaultOpen ? "1" : "0"}" aria-expanded="${open}">
-        <span class="collapse-panel-chevron" aria-hidden="true">${open ? "▾" : "▸"}</span>
-        <div class="collapse-panel-titles">
-          <h3>${title}</h3>
-          ${subtitle ? `<p>${subtitle}</p>` : ""}
-        </div>
-      </button>
-      ${headerExtra ? `<div class="collapse-panel-actions">${headerExtra}</div>` : ""}
-    </div>
-    <div class="collapse-panel-body">${body}</div>
-  </article>`;
+  return renderCollapsibleCard({ id, title, subtitle, body, headerExtra, defaultOpen, open, className, style });
 }

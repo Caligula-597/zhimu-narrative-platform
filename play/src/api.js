@@ -1,3 +1,5 @@
+import { consumeSseStream } from "../../shared/sse.js";
+
 const APP_ORIGIN = (import.meta.env.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN?.replace(/\/$/, "")
   ?? (import.meta.env.DEV ? "" : APP_ORIGIN);
@@ -189,9 +191,9 @@ export const api = {
   /** SSE room stream — same endpoint as app.getzhimu.com host/player views. */
   streamRoomEvents(roomId, onEvent, signal) {
     const headers = { Accept: "text/event-stream", ...authHeaders() };
-    const cursor = localStorage.getItem(sseCursorKey(roomId));
+    const cursorKey = sseCursorKey(roomId);
+    const cursor = localStorage.getItem(cursorKey);
     if (cursor) headers["Last-Event-ID"] = cursor;
-
     return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -199,38 +201,15 @@ export const api = {
         error.status = res.status;
         throw error;
       }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let idx;
-        while ((idx = buffer.indexOf("\n\n")) >= 0) {
-          const block = buffer.slice(0, idx);
-          buffer = buffer.slice(idx + 2);
-          const idLine = block.split("\n").find((line) => line.startsWith("id: "));
-          const dataLine = block.split("\n").find((line) => line.startsWith("data: "));
-          if (idLine) {
-            const eventId = idLine.slice(4).trim();
-            if (eventId) localStorage.setItem(sseCursorKey(roomId), eventId);
-          }
-          if (!dataLine) continue;
-          try {
-            const msg = JSON.parse(dataLine.slice(6));
-            if (msg.type === "connected") {
-              onEvent("__connected__", msg);
-              continue;
-            }
-            if (msg.type === "heartbeat") continue;
-            const { type, ...rest } = msg;
-            if (type) onEvent(type, rest);
-          } catch {
-            /* ignore malformed SSE blocks */
-          }
+      return consumeSseStream(res, {
+        cursorKey,
+        onEvent: (eventType, msg) => {
+          if (msg.type === "connected") { onEvent("__connected__", msg); return; }
+          if (msg.type === "heartbeat") return;
+          const { type, ...rest } = msg;
+          if (type) onEvent(type, rest);
         }
-      }
+      });
     });
   },
 
@@ -239,7 +218,6 @@ export const api = {
     const headers = { Accept: "text/event-stream", ...authHeaders() };
     const cursor = localStorage.getItem(PLATFORM_SSE_CURSOR);
     if (cursor) headers["Last-Event-ID"] = cursor;
-
     return fetch(`${API_BASE}/platform/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -247,38 +225,15 @@ export const api = {
         error.status = res.status;
         throw error;
       }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let idx;
-        while ((idx = buffer.indexOf("\n\n")) >= 0) {
-          const block = buffer.slice(0, idx);
-          buffer = buffer.slice(idx + 2);
-          const idLine = block.split("\n").find((line) => line.startsWith("id: "));
-          const dataLine = block.split("\n").find((line) => line.startsWith("data: "));
-          if (idLine) {
-            const eventId = idLine.slice(4).trim();
-            if (eventId) localStorage.setItem(PLATFORM_SSE_CURSOR, eventId);
-          }
-          if (!dataLine) continue;
-          try {
-            const msg = JSON.parse(dataLine.slice(6));
-            if (msg.type === "connected") {
-              onEvent("__connected__", msg);
-              continue;
-            }
-            if (msg.type === "heartbeat") continue;
-            const { type, ...rest } = msg;
-            if (type) onEvent(type, rest);
-          } catch {
-            /* ignore malformed SSE blocks */
-          }
+      return consumeSseStream(res, {
+        cursorKey: PLATFORM_SSE_CURSOR,
+        onEvent: (eventType, msg) => {
+          if (msg.type === "connected") { onEvent("__connected__", msg); return; }
+          if (msg.type === "heartbeat") return;
+          const { type, ...rest } = msg;
+          if (type) onEvent(type, rest);
         }
-      }
+      });
     });
   }
 };

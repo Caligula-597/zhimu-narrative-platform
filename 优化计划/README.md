@@ -25,7 +25,7 @@
 - **后端**：健康，路由按领域拆分，安全门禁扎实，知识块/内容检索已超前于前端。
 - **三端前端**（`play/` `host/` `site/`）：已迁移到真 ES Modules，结构清晰。
 - **主应用**（根 `src/`）：`api/client.js` 已按领域拆分为 `src/api/*.js`，`src/state/` 已拆为 8 个领域 shard + `createStore`；**Phase 4 状态分片迁移已全部完成**（所有消费者直接 import shard，`app.js` 已迁移，根 `state.js` 已删除）；`window.zhimuViews` 旧桥已移除，`window.zhimuRuntime` 已通过 `runtime-facade` 收口，三大 window 桥（zhimuViews/zhimuRuntime/zhimuDom）已全部清除，替换为 view-registry.js 和 runtime-facade.js；zhimuWorkspace / zhimuRuntimeStore / zhimuFormat / zhimuUi / zhimuModal / zhimuUiSemantics 小桥已完成迁移，下一批拆分处理 zhimuStatus 与 zhimuUserMessages。
-- **共享层**：`shared/tokens.css` 已存在，`shared/security.js` 已抽取并替换 play/host 的本地重复实现；`shared/api-fetch` / `shared/components` 等待阶段 5 推进。
+- **共享层**：`shared/tokens.css`、`shared/security.js`、`shared/api-error.js`、`shared/sse.js`、`shared/components/collapse.js` 已落地；三端 Vite alias 已配置；`shared/api-fetch`、`shared/session-token`、`shared/url-validators` 与更多 shared components 后续按收益推进。
 - **官网与宣传**：内容完整但偏功能罗列，缺故事化与案例化；创意提案 HTML 与官网未对齐。
 
 **最高优先级**：把主应用向 `play/host` 的模块化模式对齐，同时抽出 `shared-api` / `shared-security` 共享层，一举消除三端重复 + 主应用架构债。
