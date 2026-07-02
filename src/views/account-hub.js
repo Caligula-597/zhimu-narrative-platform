@@ -3,8 +3,7 @@ import * as zhimuApi from "../api/index.js";
 import { go, registerRuntime, render } from "../runtime/runtime-facade.js";
 import { callView, registerView } from "../runtime/view-registry.js";
 import { uiStore } from "../state/index.js";
-
-  const F = window.zhimuFormat || {};
+import * as F from "../utils/format.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const Status = () => window.zhimuStatus || {};
 

@@ -5,7 +5,7 @@ import { modal, modalBackdrop } from "../dom.js";
 import { callRuntime, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, userStore, assetStore } from "../state/index.js";
-  const F = window.zhimuFormat || {};
+import * as F from "../utils/format.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const handleApiError = window.zhimuUserMessages?.handleApiErrorToast || ((err, toast) => toast(err?.message || "操作失败"));

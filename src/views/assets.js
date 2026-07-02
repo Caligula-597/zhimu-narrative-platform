@@ -5,8 +5,7 @@ import { modal, modalBackdrop } from "../dom.js";
 import { loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, assetStore, studioStore } from "../state/index.js";
-
-  const F = window.zhimuFormat || {};
+import * as F from "../utils/format.js";
   const U = window.zhimuUi || {};
   const canEditWorldContent = U.canEditWorldContent || (() => false);
   const M = window.zhimuModal || {};

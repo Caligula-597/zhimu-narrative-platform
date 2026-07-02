@@ -3,10 +3,9 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { uiStore, worldStore, studioStore } from "../state/index.js";
 import { loadCloudData, render } from "./runtime-facade.js";
+import * as F from "../utils/format.js";
 
 (function (window) {
-
-  const F = window.zhimuFormat || {};
 
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
 

@@ -2,7 +2,6 @@
 import { getContent, getModalBackdrop } from "../dom.js";
 
 const requiredAppGlobals = [
-  "zhimuFormat",
   "zhimuUserMessages"
 ];
 

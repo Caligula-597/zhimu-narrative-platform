@@ -1,7 +1,7 @@
 /** Fetch and show in-app markdown guides for creators. */
 import { modal, modalBackdrop } from "../dom.js";
+import { escapeHtml } from "../utils/format.js";
 (function (window) {
-  const escapeHtml = window.zhimuFormat?.escapeHtml || ((v = "") => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"));
 
   function renderMarkdown(text) {
     const lines = String(text || "").split("\n");

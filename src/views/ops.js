@@ -3,8 +3,7 @@ import * as api from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore } from "../state/index.js";
-
-  const F = window.zhimuFormat || {};
+import * as F from "../utils/format.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || ((v) => v || "");
 

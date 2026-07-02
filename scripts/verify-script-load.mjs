@@ -122,7 +122,6 @@ function setupGlobalShims() {
     __ZHIMU_ENABLE_TEST_STATE__: true,
     zhimuApi: null,
     location: { pathname: "/", search: "", hash: "", hostname: "localhost", port: "4173" },
-    zhimuFormat: {},
     zhimuUi: {},
     zhimuToast: {},
     zhimuModal: {},

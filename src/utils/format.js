@@ -1,7 +1,6 @@
 /**
  * Format helpers — migrated to real ES Modules.
  * escapeHtml now re-exported from shared/security.js (canonical home).
- * window.zhimuFormat bridge kept for un-migrated views.
  */
 import { escapeHtml } from "../../shared/security.js";
 
@@ -119,23 +118,4 @@ function chapterFlowClass(status) {
   if (status === "published") return "ok";
   if (status === "testing") return "live";
   return "locked";
-}
-
-/** Bridge: un-migrated views still read window.zhimuFormat. */
-if (typeof window !== "undefined") {
-  window.zhimuFormat = {
-    formatRelativeTime,
-    formatTime,
-    formatBytes,
-    escapeHtml,
-    roleParts,
-    hostAuditActionLabel,
-    hostAuditDetail,
-    checkpointRestoreStatusLabel,
-    hostOperationLabel,
-    hostPlayerColor,
-    logActivityType,
-    chapterPublicationLabel,
-    chapterFlowClass
-  };
 }

@@ -5,8 +5,8 @@ import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { showToast } from "./toast.js";
 import { userStore, studioStore, worldStore, voiceStore } from "../state/index.js";
 import { activeRuntimeRoom as workspaceActiveRuntimeRoom, isWorldOwner as workspaceIsWorldOwner } from "../runtime/workspace-store.js";
+import * as F from "../utils/format.js";
 (function (window) {
-  const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));

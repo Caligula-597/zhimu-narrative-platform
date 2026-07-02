@@ -1,7 +1,7 @@
 /** AI pipeline wizard HTML templates. */
 import { studioStore } from "../state/index.js";
+import * as F from "../utils/format.js";
 (function (window) {
-  const F = window.zhimuFormat || {};
   const M = window.zhimuModal || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const studioField = M.studioField || (() => "");

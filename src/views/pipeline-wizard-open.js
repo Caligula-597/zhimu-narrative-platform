@@ -3,8 +3,8 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
 import { go, loadCloudData } from "../runtime/runtime-facade.js";
+import * as F from "../utils/format.js";
 (function (window) {
-  const F = window.zhimuFormat || {};
   const M = window.zhimuModal || {};
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const formatTime = F.formatTime || (() => "");

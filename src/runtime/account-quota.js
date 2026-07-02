@@ -1,6 +1,6 @@
+import * as F from "../utils/format.js";
 /** Account quota display — shared by auth modal and account settings page. */
 (function (window) {
-  const F = window.zhimuFormat || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatBytes = F.formatBytes || (() => "");
 

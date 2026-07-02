@@ -2,17 +2,17 @@
  * Pure helper robustness tests — run without browser or backend.
  * Usage: node --test scripts/format-helpers.test.mjs
  *
- * Migrated from vm.runInNewContext to native dynamic import() because
- * src/utils/format.js is now a real ES module (imports from shared/security.js).
+ * Tests import src/utils/format.js directly; no window bridge is expected.
  */
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-/* ── Browser global shims (format.js IIFE bridge reads window/document) ── */
+/* ── Browser global shims for transitive browser-only assumptions ── */
 const noop = () => {};
 const storage = { getItem: () => null, setItem: noop, removeItem: noop, clear: noop };
 const fakeElement = {
@@ -27,7 +27,7 @@ globalThis.window = {
   zhimuState: null, zhimuApi: null,
   zhimuDom: { content: fakeElement, toast: fakeElement, modal: fakeElement, modalBackdrop: fakeElement },
   location: { pathname: "/", search: "", hash: "", hostname: "localhost", port: "4173" },
-  zhimuFormat: null, zhimuUi: {}, zhimuToast: {}, zhimuModal: {},
+  zhimuUi: {}, zhimuToast: {}, zhimuModal: {},
   zhimuViews: {}, zhimuRuntime: {}, zhimuRuleVisual: {},
   zhimuUserMessages: { friendlyApiError: (p, fb) => p?.error || fb },
   zhimuSessionAuth: {}, zhimuWorldRevision: {},
@@ -48,9 +48,8 @@ try { globalThis.navigator = navShim; } catch { Object.defineProperty(globalThis
 
 let F;
 test.before(async () => {
-  await import(`file://${path.join(root, "src/utils/format.js").replace(/\\/g, "/")}?t=${Date.now()}`);
-  F = globalThis.window.zhimuFormat;
-  if (!F) throw new Error("zhimuFormat bridge not populated after import");
+  F = await import(`file://${path.join(root, "src/utils/format.js").replace(/\\/g, "/")}?t=${Date.now()}`);
+  if (typeof F.escapeHtml !== "function") throw new Error("format helper exports missing");
 });
 
 test("hostAuditActionLabel maps known actions and falls back safely", () => {
@@ -92,4 +91,20 @@ test("escapeHtml neutralizes XSS-sensitive characters", () => {
 test("formatRelativeTime handles empty and recent values", () => {
   assert.equal(F.formatRelativeTime(""), "");
   assert.equal(F.formatRelativeTime(new Date().toISOString()), "刚刚");
+});
+
+test("src no longer consumes or publishes zhimuFormat window bridge", () => {
+  const files = [];
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.isFile() && entry.name.endsWith(".js")) files.push(full);
+    }
+  };
+  walk(path.join(root, "src"));
+  for (const file of files) {
+    const source = fs.readFileSync(file, "utf8");
+    assert.doesNotMatch(source, /window\.zhimuFormat|const F = window\.zhimuFormat/, path.relative(root, file));
+  }
 });

@@ -29,15 +29,6 @@ globalThis.window = {
   zhimuState: { cloudHostEvents: [] },
   zhimuUi: {},
   zhimuWorkspace: {},
-  zhimuFormat: {
-    escapeHtml: (value = "") => String(value).replace(/[&<>"']/g, (ch) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      "\"": "&quot;",
-      "'": "&#39;"
-    })[ch])
-  },
   zhimuStatus: {
     normalizeError: (error, fallback) => error?.message || fallback
   },

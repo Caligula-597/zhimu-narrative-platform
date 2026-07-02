@@ -4,8 +4,8 @@ import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
 import { uiStore } from "../state/index.js";
 import { go } from "./runtime-facade.js";
+import { escapeHtml } from "../utils/format.js";
 (function (window) {
-  const escapeHtml = window.zhimuFormat?.escapeHtml || ((v = "") => String(v));
   const closeModal = window.zhimuModal?.closeModal || (() => {});
   const Status = () => window.zhimuStatus || {};
 

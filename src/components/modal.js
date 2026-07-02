@@ -3,8 +3,8 @@ import * as zhimuApi from "../api/index.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
 import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { showToast } from "./toast.js";
+import * as F from "../utils/format.js";
 (function (window) {
-  const F = window.zhimuFormat || {};
   const U = window.zhimuUi || {};
   const M = window.zhimuModal || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));

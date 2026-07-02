@@ -32,7 +32,6 @@ globalThis.window = {
     modal: { className: "", innerHTML: "", querySelector: () => null, querySelectorAll: () => [] },
     modalBackdrop: { classList: { contains: () => false, add: noop, remove: noop }, addEventListener: noop }
   },
-  zhimuFormat: null,
   zhimuUi: {}, zhimuToast: {}, zhimuModal: {},
   zhimuRuntime: {}, zhimuViews: {},
   zhimuGo: noop, zhimuRender: noop, zhimuLoadCloudData: async () => {},
@@ -58,8 +57,6 @@ try { globalThis.navigator = navShim; } catch { Object.defineProperty(globalThis
 
 let M;
 test.before(async () => {
-  // format.js must load first — modal.js reads window.zhimuFormat at IIFE execution.
-  await import(`file://${path.join(root, "src/utils/format.js").replace(/\\/g, "/")}?t=${Date.now()}`);
   await import(`file://${path.join(root, "src/components/modal.js").replace(/\\/g, "/")}?t=${Date.now()}`);
   M = globalThis.window.zhimuModal;
   if (!M) throw new Error("zhimuModal bridge not populated after import");

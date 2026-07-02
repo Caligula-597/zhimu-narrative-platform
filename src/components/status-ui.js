@@ -1,6 +1,6 @@
+import { escapeHtml } from "../utils/format.js";
 /** Shared loading / empty / error state renderers. */
 (function (window) {
-  const escapeHtml = window.zhimuFormat?.escapeHtml || ((value = "") => String(value));
 
   function normalizeError(error, fallback = "操作失败，请稍后重试。") {
     if (!error) return fallback;

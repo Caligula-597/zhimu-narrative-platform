@@ -5,9 +5,7 @@ import { modal, modalBackdrop } from "../dom.js";
 import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, userStore, worldStore, studioStore, roomStore, assetStore } from "../state/index.js";
-
-
-  const F = window.zhimuFormat || {};
+import * as F from "../utils/format.js";
   const U = window.zhimuUi || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
