@@ -1,9 +1,9 @@
 /** Automation rules CRUD actions. */
 import { showToast } from "../components/toast.js";
 import { callView } from "./view-registry.js";
+import * as M from "../components/modal.js";
 
 (function (window) {
-  const M = window.zhimuModal || {};
   const openModal = M.openModal || (() => {});
 
   function handleRulesAction(action, el) {

@@ -4,8 +4,8 @@ import { showToast } from "../components/toast.js";
 import { modal, modalBackdrop } from "../dom.js";
 import { go, loadCloudData } from "../runtime/runtime-facade.js";
 import * as F from "../utils/format.js";
+import * as M from "../components/modal.js";
 (function (window) {
-  const M = window.zhimuModal || {};
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const formatTime = F.formatTime || (() => "");
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback);

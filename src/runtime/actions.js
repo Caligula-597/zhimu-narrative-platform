@@ -3,8 +3,7 @@ import { showToast } from "../components/toast.js";
 import { uiStore } from "../state/index.js";
 import { callRuntime, registerRuntime } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
-
-  const M = window.zhimuModal || {};
+import * as M from "../components/modal.js";
   const openModal = M.openModal || (() => {});
   const enhanceCloudPanels = () => callRuntime("enhanceCloudPanels");
   const openWizard = () => callRuntime("openWizard");

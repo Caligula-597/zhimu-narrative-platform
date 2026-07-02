@@ -1,7 +1,8 @@
 /** AI pipeline creative input — setting + synopsis + derived config. */
 import { showToast } from "../components/toast.js";
+import { studioValues } from "../components/modal.js";
 (function (window) {
-  const studioValues = () => window.zhimuModal?.studioValues?.() || {};
+
 
   function pipelineLinesToArray(text) {
     return String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);

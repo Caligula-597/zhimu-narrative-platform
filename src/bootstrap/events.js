@@ -1,5 +1,6 @@
 /** DOM event wiring — extracted from app.js bootstrap. */
 import { showToast, pendingHostEventCount } from "../components/toast.js";
+import { closeModal } from "../components/modal.js";
 
 export function initEvents({ content, modalBackdrop, R, go }) {
   content.addEventListener("click", (event) => {
@@ -28,6 +29,6 @@ export function initEvents({ content, modalBackdrop, R, go }) {
   document.querySelector(".world-switcher").onclick = () => R.openWorldLibrary();
   document.querySelector(".profile").onclick = () => R.openAuth();
   modalBackdrop.onclick = (e) => {
-    if (e.target === modalBackdrop) window.zhimuModal.closeModal();
+    if (e.target === modalBackdrop) closeModal();
   };
 }

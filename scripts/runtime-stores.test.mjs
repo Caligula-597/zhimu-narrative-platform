@@ -555,7 +555,6 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
 
   for (const rel of [
     "src/components/emptyState.js",
-    "src/components/modal.js",
     "src/runtime/actions.js",
     "src/runtime/auth-session.js",
     "src/runtime/auth-world.js",
@@ -591,6 +590,8 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
     assert.doesNotMatch(source, /window\.zhimuRuntime\?\./);
     assert.doesNotMatch(source, /window\.zhimuRuntime = Object\.assign/);
   }
+  const modalJs = fs.readFileSync(path.join(root, "src/components/modal.js"), "utf8");
+  assert.doesNotMatch(modalJs, /window\.zhimuRuntime|const R = window\.zhimuRuntime/);
 });
 
 test("A1 runtime producers use facade registry instead of window zhimuRuntime", () => {

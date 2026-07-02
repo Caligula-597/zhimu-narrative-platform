@@ -6,6 +6,7 @@ import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, userStore, worldStore, studioStore, roomStore, assetStore } from "../state/index.js";
 import * as F from "../utils/format.js";
+import { closeModal } from "../components/modal.js";
   const U = window.zhimuUi || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -17,7 +18,7 @@ import * as F from "../utils/format.js";
   const isWorldOwner = U.isWorldOwner || (() => false);
   const canEditWorldContent = U.canEditWorldContent || (() => false);
   const deleteWorldPanel = U.deleteWorldPanel || (() => "");
-  const closeModal = window.zhimuModal?.closeModal || (() => {});
+
 
   function catalogReviewPanel(world) {
     const status = world?.catalog_review_status || (world?.catalog_public ? "approved" : "none");

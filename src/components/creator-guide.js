@@ -1,6 +1,7 @@
 /** Fetch and show in-app markdown guides for creators. */
 import { modal, modalBackdrop } from "../dom.js";
 import { escapeHtml } from "../utils/format.js";
+import { closeModal } from "./modal.js";
 (function (window) {
 
   function renderMarkdown(text) {
@@ -80,7 +81,7 @@ import { escapeHtml } from "../utils/format.js";
 
   async function openCreatorGuide() {
     const backdrop = modalBackdrop;
-    const closeModal = window.zhimuModal?.closeModal;
+
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";
     modal.innerHTML = `<h2>创作指引</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="text-btn" data-open-first-session>如何跑第一场</button><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-error-guide>查看错误排查手册</button></div>`;
@@ -106,7 +107,7 @@ import { escapeHtml } from "../utils/format.js";
 
   async function openErrorGuide() {
     const backdrop = modalBackdrop;
-    const closeModal = window.zhimuModal?.closeModal;
+
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";
     modal.innerHTML = `<h2>错误提示与排查</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-creator-guide>返回创作指引</button></div>`;
@@ -128,7 +129,7 @@ import { escapeHtml } from "../utils/format.js";
 
   async function openLegalDoc(docPath, title = "法律文档") {
     const backdrop = modalBackdrop;
-    const closeModal = window.zhimuModal?.closeModal;
+
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal legal-doc-modal";
     modal.innerHTML = `<h2>${escapeHtml(title)}</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
@@ -146,7 +147,7 @@ import { escapeHtml } from "../utils/format.js";
 
   async function openFirstSessionGuide() {
     const backdrop = modalBackdrop;
-    const closeModal = window.zhimuModal?.closeModal;
+
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";
     modal.innerHTML = `<h2>如何跑第一场</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-creator-guide>详细创作指引</button></div>`;

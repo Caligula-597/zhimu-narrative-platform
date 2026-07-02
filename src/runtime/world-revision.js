@@ -4,6 +4,7 @@ import { showToast } from "../components/toast.js";
 import { uiStore, worldStore, studioStore } from "../state/index.js";
 import { loadCloudData, render } from "./runtime-facade.js";
 import * as F from "../utils/format.js";
+import { closeModal } from "../components/modal.js";
 
 (function (window) {
 
@@ -301,7 +302,7 @@ import * as F from "../utils/format.js";
 
       clearEditorDirty();
 
-      window.zhimuModal?.closeModal?.();
+      closeModal();
 
     };
 
@@ -309,7 +310,7 @@ import * as F from "../utils/format.js";
 
       restoreDraftToInputs(scope, root);
 
-      window.zhimuModal?.closeModal?.();
+      closeModal();
 
       showToast("已恢复本地草稿");
 
@@ -351,11 +352,11 @@ import * as F from "../utils/format.js";
 
     backdrop.classList.add("show");
 
-    modal.querySelector("[data-revision-close]").onclick = () => window.zhimuModal?.closeModal?.();
+    modal.querySelector("[data-revision-close]").onclick = () => closeModal();
 
     modal.querySelector("[data-revision-reload]").onclick = async () => {
 
-      window.zhimuModal?.closeModal?.();
+      closeModal();
 
       clearEditorDirty();
 

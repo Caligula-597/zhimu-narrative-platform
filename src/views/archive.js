@@ -6,8 +6,8 @@ import { getRuntime, go, loadCloudData, render } from "../runtime/runtime-facade
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, roomStore, worldStore, studioStore } from "../state/index.js";
 import * as F from "../utils/format.js";
+import * as M from "../components/modal.js";
   const U = window.zhimuUi || {};
-  const M = window.zhimuModal || {};
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");

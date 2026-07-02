@@ -6,10 +6,11 @@ import { callRuntime, loadCloudData, render } from "../runtime/runtime-facade.js
 import { registerView } from "../runtime/view-registry.js";
 import { uiStore, userStore, assetStore } from "../state/index.js";
 import * as F from "../utils/format.js";
+import { closeModal, studioField } from "../components/modal.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const handleApiError = window.zhimuUserMessages?.handleApiErrorToast || ((err, toast) => toast(err?.message || "操作失败"));
-  const studioField = window.zhimuModal?.studioField || (() => "");
+
   const Status = () => window.zhimuStatus || {};
 
   function accountShell(body, loading = false) {
@@ -38,7 +39,7 @@ import * as F from "../utils/format.js";
 
   export async function openDeleteAccountWizard() {
     const backdrop = modalBackdrop;
-    const closeModal = window.zhimuModal?.closeModal;
+
     if (!modal || !backdrop || !window.zhimuSessionAuth?.isAuthenticated?.()) {
       showToast("请先登录");
       return callRuntime("openAuth");
@@ -100,7 +101,7 @@ import * as F from "../utils/format.js";
 
   export async function openPlanUpgradeModal(desiredPlanCode = "creator") {
     const backdrop = modalBackdrop;
-    const closeModal = window.zhimuModal?.closeModal;
+
     if (!modal || !backdrop) return;
     const entitlements = uiStore.get().accountView?.entitlements;
     const upgrade = entitlements?.upgrade;

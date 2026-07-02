@@ -124,7 +124,6 @@ function setupGlobalShims() {
     location: { pathname: "/", search: "", hash: "", hostname: "localhost", port: "4173" },
     zhimuUi: {},
     zhimuToast: {},
-    zhimuModal: {},
     zhimuRuleVisual: {},
     zhimuUserMessages: {
       friendlyApiError: (p, fb) => p?.error || fb,

@@ -6,9 +6,9 @@ import { showToast } from "./toast.js";
 import { userStore, studioStore, worldStore, voiceStore } from "../state/index.js";
 import { activeRuntimeRoom as workspaceActiveRuntimeRoom, isWorldOwner as workspaceIsWorldOwner } from "../runtime/workspace-store.js";
 import * as F from "../utils/format.js";
+import * as M from "./modal.js";
 (function (window) {
   const U = window.zhimuUi || {};
-  const M = window.zhimuModal || {};
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
