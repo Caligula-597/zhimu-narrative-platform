@@ -245,4 +245,23 @@ if (failed) {
   process.exit(1);
 }
 
+// Anti-regression: no business code under src/ may read window.zhimuUiSemantics.
+import fs from "node:fs";
+const banned = "zhimuUiSemantics";
+const srcDir = path.resolve(root, "src");
+for (const entry of fs.readdirSync(srcDir, { withFileTypes: true, recursive: true })) {
+  if (!entry.isFile() || !entry.name.endsWith(".js")) continue;
+  const fp = path.join(entry.parentPath, entry.name);
+  const text = fs.readFileSync(fp, "utf8");
+  if (text.includes(banned)) {
+    console.error(`FAIL  anti-regression  ${path.relative(root, fp)} references ${banned}`);
+    failed = true;
+  }
+}
+
+if (failed) {
+  console.error("\nAnti-regression check: FAILED");
+  process.exit(1);
+}
+
 console.log("\nScript load verify: all passed");

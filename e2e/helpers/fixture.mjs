@@ -114,10 +114,15 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
   await page.locator("[data-game-tab-bar]").waitFor({ state: "visible", timeout: 30_000 });
 }
 
-export async function waitForCloudReady(page, timeout = 45_000) {
+export async function waitForCloudReady(page, timeout = 30_000) {
+  // Fail fast if the state bridge is missing (config/demoMode issue).
+  await page.waitForFunction(
+    () => typeof window.zhimuState === "object" && window.zhimuState !== null,
+    undefined,
+    { timeout: 10_000 }
+  );
   await page.waitForFunction(() => {
     const state = window.zhimuState;
-    // `window.zhimuApi` bridge was removed; worldId is read from the loaded studio world.
     const worldId = state?.cloudStudio?.world?.id;
     return state && !state.cloudLoading && worldId && (state.cloudWorlds?.length || state.cloudStudio?.world);
   }, undefined, { timeout });
@@ -136,6 +141,21 @@ export async function goToView(page, view) {
   }
   await page.locator(`.nav-item[data-view="${view}"]`).click();
   await page.waitForFunction((v) => window.zhimuState?.view === v, view, { timeout: 15_000 });
+}
+
+/** @param {Page} page — only use on the main app (localhost:4173) where the state bridge is active. */
+export async function joinRoomViaInviteUi(page, inviteCode = FIXTURE.inviteCode) {
+  await page.locator("#preview-btn").click();
+  await page.locator("#modal-backdrop.show").waitFor({ state: "visible", timeout: 10_000 });
+  await page.locator("[data-join-code]").fill(inviteCode);
+  await page.locator("[data-join-lookup]").click();
+  await page.waitForFunction(() => {
+    const select = document.querySelector("[data-join-role]");
+    return select && !select.disabled && select.value;
+  }, undefined, { timeout: 20_000 });
+  await page.locator("[data-join-submit]").click();
+  await page.waitForFunction(() => window.zhimuState?.view === "player", undefined, { timeout: 20_000 });
+  await waitForCloudReady(page);
 }
 
 /** @param {Page} page */
@@ -165,16 +185,12 @@ export async function waitForHostIdle(page, timeout = 20_000) {
 
 /**
  * Refresh host events and report whether a pending event exists (for wait-strip / nudge E2E).
+ * Uses DOM-based idle detection instead of window.zhimuState (host app does not expose it).
  * @param {Page} page
  */
 export async function ensurePendingHostEvent(page) {
   await page.locator('[data-action="refresh-host-events"]').click({ timeout: 5000 }).catch(() => {});
   await waitForHostIdle(page);
-  await page.waitForFunction(
-    () => (window.zhimuState?.cloudHostEvents || []).some((row) => row.status === "pending"),
-    undefined,
-    { timeout: 15_000 }
-  ).catch(() => {});
   return page.evaluate(async ({ roomId, hostUserId, apiBase }) => {
     const res = await fetch(`${apiBase}/api/rooms/${roomId}/host-events`, {
       headers: { "x-user-id": hostUserId }
@@ -188,11 +204,6 @@ export async function ensurePendingHostEvent(page) {
 export async function refreshHostRoomState(page) {
   await page.locator('[data-action="refresh-host-room"]').click({ timeout: 8000 }).catch(() => {});
   await waitForHostIdle(page);
-  await page.waitForFunction(
-    () => Array.isArray(window.zhimuState?.cloudHostPlayers),
-    undefined,
-    { timeout: 20_000 }
-  ).catch(() => {});
 }
 
 /** @param {Page} page */
@@ -223,19 +234,4 @@ export async function hasJoinedWaitingHostPlayers(page) {
       ? joined.some((player) => waitingIds.has(String(player.role_slot_id)))
       : joined.length > 0;
   }, { roomId: FIXTURE.roomId, hostUserId: FIXTURE.hostUserId, apiBase: API_BASE });
-}
-
-/** @param {Page} page */
-export async function joinRoomViaInviteUi(page, inviteCode = FIXTURE.inviteCode) {
-  await page.locator("#preview-btn").click();
-  await page.locator("#modal-backdrop.show").waitFor({ state: "visible", timeout: 10_000 });
-  await page.locator("[data-join-code]").fill(inviteCode);
-  await page.locator("[data-join-lookup]").click();
-  await page.waitForFunction(() => {
-    const select = document.querySelector("[data-join-role]");
-    return select && !select.disabled && select.value;
-  }, undefined, { timeout: 20_000 });
-  await page.locator("[data-join-submit]").click();
-  await page.waitForFunction(() => window.zhimuState?.view === "player", undefined, { timeout: 20_000 });
-  await waitForCloudReady(page);
 }

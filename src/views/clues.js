@@ -8,14 +8,14 @@ import { uiStore, roomStore, studioStore, assetStore, worldStore } from "../stat
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
-  const S = window.zhimuUiSemantics || {};
+import * as S from "../components/ui-semantics.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const catalogExperienceBanner = U.catalogExperienceBanner || (() => "");
   const studioField = M.studioField || (() => "");
   const studioSelect = M.studioSelect || (() => "");
   const studioValues = M.studioValues || (() => ({}));
   const studioModal = M.studioModal || (() => {});
-  const showError = S.showError || ((error, fallback = "操作失败，请稍后重试") => showToast(window.zhimuStatus?.normalizeError?.(error, fallback) || error?.message || fallback));
+  const showError = S.showError;
   const closeModal = M.closeModal || (() => {});
 
   const VISIBILITY_LABELS = { role: "私密", public: "房间公开", host: "主持可见" };

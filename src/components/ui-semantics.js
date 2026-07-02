@@ -1,7 +1,6 @@
 /** Shared UI semantics: status copy, chips, toast/error wrappers, and surface tokens. */
 import { showToast } from "./toast.js";
 import { escapeHtml } from "../utils/format.js";
-(function (window) {
 
   const SURFACES = {
     creator: { label: "创作者端", className: "surface-creator", accent: "var(--green)" },
@@ -76,6 +75,4 @@ import { escapeHtml } from "../utils/format.js";
     }
   }
 
-  window.zhimuUiSemantics = { SURFACES, STATUS, surface, status, chip, showError, showSuccess, apiCall };
-})(window);
-export {};
+export { SURFACES, STATUS, surface, status, chip, showError, showSuccess, apiCall };

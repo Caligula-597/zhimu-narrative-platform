@@ -14,7 +14,7 @@ export default {
   testDir: "e2e",
   globalSetup: "e2e/global-setup.mjs",
   testMatch: "**/*.spec.js",
-  timeout: 300_000,
+  timeout: 120_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
   workers: 1,
@@ -59,7 +59,7 @@ export default {
             GUEST_CREATE_HOUR_MAX: "1000",
             GUEST_CREATE_DAY_MAX: "1000",
             PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN: "0",
-            OFFICIAL_EXAMPLE_WORLD_ID: "11111111-2222-4333-8444-555555550001"
+            OFFICIAL_EXAMPLE_WORLD_ID: "33333333-3333-4333-8444-555555550003"
           }
         },
         {
@@ -72,6 +72,13 @@ export default {
           command: "npm run dev -- --port 5174 --strictPort",
           cwd: "play",
           url: "http://localhost:5174/",
+          reuseExistingServer: true,
+          timeout: 120_000
+        },
+        {
+          command: "npm run dev -- --port 5175 --strictPort",
+          cwd: "host",
+          url: "http://localhost:5175/",
           reuseExistingServer: true,
           timeout: 120_000
         }
