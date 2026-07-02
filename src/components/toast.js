@@ -3,7 +3,7 @@ import { getToast } from "../dom.js";
 import { roomStore } from "../state/index.js";
 import { activeRuntimeRoom as workspaceActiveRuntimeRoom } from "../runtime/workspace-store.js";
 function activeRuntimeRoom() {
-  return window.zhimuUi?.activeRuntimeRoom?.() ?? workspaceActiveRuntimeRoom() ?? null;
+  return workspaceActiveRuntimeRoom() ?? null;
 }
 
 export function showToast(text, duration = 2200) {

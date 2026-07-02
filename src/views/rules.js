@@ -7,7 +7,7 @@ import { registerView } from "../runtime/view-registry.js";
 import { uiStore, studioStore, worldStore, roomStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
-  const U = window.zhimuUi || {};
+import * as U from "../components/emptyState.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");

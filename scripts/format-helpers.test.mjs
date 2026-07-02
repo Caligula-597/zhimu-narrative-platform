@@ -27,7 +27,7 @@ globalThis.window = {
   zhimuState: null, zhimuApi: null,
   zhimuDom: { content: fakeElement, toast: fakeElement, modal: fakeElement, modalBackdrop: fakeElement },
   location: { pathname: "/", search: "", hash: "", hostname: "localhost", port: "4173" },
-  zhimuUi: {}, zhimuToast: {},
+  zhimuToast: {},
   zhimuViews: {}, zhimuRuntime: {}, zhimuRuleVisual: {},
   zhimuUserMessages: { friendlyApiError: (p, fb) => p?.error || fb },
   zhimuSessionAuth: {}, zhimuWorldRevision: {},

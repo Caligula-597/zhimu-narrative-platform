@@ -27,7 +27,6 @@ const fakeToast = {
 
 globalThis.window = {
   zhimuState: { cloudHostEvents: [] },
-  zhimuUi: {},
   zhimuWorkspace: {},
   zhimuStatus: {
     normalizeError: (error, fallback) => error?.message || fallback

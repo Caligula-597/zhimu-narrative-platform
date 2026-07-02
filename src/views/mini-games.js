@@ -6,7 +6,7 @@ import { registerView } from "../runtime/view-registry.js";
 import { studioStore, worldStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
-  const U = window.zhimuUi || {};
+import * as U from "../components/emptyState.js";
   const escapeHtml = F.escapeHtml || ((value = "") => String(value));
   const catalogExperienceBanner = U.catalogExperienceBanner || (() => "");
   const studioField = M.studioField || (() => "");

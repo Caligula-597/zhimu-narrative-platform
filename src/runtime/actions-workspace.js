@@ -1,6 +1,7 @@
 /** Workspace / auth / cloud refresh action dispatch — isolated from view-specific handlers. */
 import { uiStore } from "../state/index.js";
 import { callRuntime, go, loadCloudData, render } from "./runtime-facade.js";
+import { activeRuntimeRoom } from "../components/emptyState.js";
 (function (window) {
   function handleWorkspaceAction(action, el) {
     switch (action) {
@@ -101,7 +102,7 @@ import { callRuntime, go, loadCloudData, render } from "./runtime-facade.js";
       case "onboarding-go-player":
         window.zhimuOnboarding?.markPlayerVisit?.();
         window.open(
-          window.zhimuInviteLinks?.playerJoinUrl?.(window.zhimuUi?.activeRuntimeRoom?.()?.invite_code),
+          window.zhimuInviteLinks?.playerJoinUrl?.(activeRuntimeRoom()?.invite_code),
           "_blank",
           "noopener,noreferrer"
         );

@@ -33,7 +33,7 @@ globalThis.window = {
     modal: { className: "", innerHTML: "", querySelector: () => null, querySelectorAll: () => [] },
     modalBackdrop: { classList: { contains: () => false, add: noop, remove: noop }, addEventListener: noop }
   },
-  zhimuUi: {}, zhimuToast: {},
+  zhimuToast: {},
   zhimuRuntime: {}, zhimuViews: {},
   zhimuGo: noop, zhimuRender: noop, zhimuLoadCloudData: async () => {},
   zhimuSessionAuth: {}, zhimuWorldRevision: {},
@@ -91,5 +91,21 @@ test("src no longer consumes or publishes zhimuModal window bridge", () => {
   for (const file of files) {
     const source = fs.readFileSync(file, "utf8");
     assert.doesNotMatch(source, /window\.zhimuModal|const M = window\.zhimuModal/, path.relative(root, file));
+  }
+});
+
+test("src no longer consumes or publishes zhimuUi window bridge", () => {
+  const files = [];
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.isFile() && entry.name.endsWith(".js")) files.push(full);
+    }
+  };
+  walk(path.join(root, "src"));
+  for (const file of files) {
+    const source = fs.readFileSync(file, "utf8");
+    assert.doesNotMatch(source, /window\.zhimuUi(?!Semantics)|const U = window\.zhimuUi/, path.relative(root, file));
   }
 });

@@ -23,6 +23,7 @@
     "migrate:split-domains": "node scripts/migrate-split-domains.mjs",
     "migrate:format-bridge": "node scripts/migrate-format-bridge.mjs",
     "migrate:modal-bridge": "node scripts/migrate-modal-bridge.mjs",
+    "migrate:ui-bridge": "node scripts/migrate-ui-bridge.mjs",
     "cloudflare:sync-dns": "node scripts/cloudflare-sync-dns.mjs",
     "cloudflare:sync-security": "node scripts/cloudflare-sync-security.mjs",
     "cloudflare:sync-pages": "node scripts/cloudflare-sync-pages.mjs",
