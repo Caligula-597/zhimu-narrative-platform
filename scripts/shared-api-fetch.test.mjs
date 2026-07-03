@@ -35,6 +35,29 @@ test("createApiFetch maps HTTP errors", async () => {
   }
 });
 
+test("createApiFetch preserves custom mapped HTTP status", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: false,
+    status: 401,
+    json: async () => ({ error: "auth required", code: "AUTH_REQUIRED" })
+  });
+  try {
+    const { request } = createApiFetch({
+      baseUrl: "http://test/api",
+      mapHttpError(response, payload) {
+        const err = new Error(payload.error);
+        err.code = payload.code;
+        err.status = response.status;
+        return err;
+      }
+    });
+    await assert.rejects(request("/me"), (err) => err.code === "AUTH_REQUIRED" && err.status === 401);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("extractAuthToken reads login token", () => {
   assert.equal(extractAuthToken("/auth/login", { token: "abc" }), "abc");
   assert.equal(extractAuthToken("/worlds", { token: "abc" }), undefined);

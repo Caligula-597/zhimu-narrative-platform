@@ -1,6 +1,6 @@
 # 项目状态
 
-最后更新：2026-07-02
+最后更新：2026-07-03
 
 ## 当前真相源
 
@@ -9,44 +9,58 @@
 - [安全与测试](../SECURITY_AND_TESTING.md)
 - [产品状态](./PRODUCT_STATUS_ZH.md)
 - [生产级 SaaS 评估](./PRODUCTION_SAAS_ASSESSMENT_ZH.md)
-- [架构与端口审视](./ARCHITECTURE_PORT_AUDIT_ZH.md)
+- [L1 验收更新](../优化计划/08-L1验收更新.md)
+- [公开 Beta 与商业试点优化计划](../优化计划/09-公开Beta与商业试点优化计划.md)
 - [ops 文档索引](./ops/README.md)
 
 ## 当前状态
 
 | 领域 | 状态 |
 |---|---|
-| 生产级评分 | 78 / 100：可信 Beta 后期 / 公开 Beta 前冲刺期 |
-| 核心闭环 | 创作、开房、玩家、主持、规则、存档复盘可跑 |
-| 生产门槛 | CSP/OTEL/alert/AV strict/productionTrust 已接 |
-| 测试 | 后端检查、UI smoke、三浏览器 Playwright |
-| 部署 | Railway app 自动部署；Pages 三站 workflow 已新增，待 secrets 验证 |
-| 文档 | 入口级文档已按当前标准重写 |
-| 前端桥接收口 | A1 完成：三大桥已清除；`zhimuWorkspace`、`zhimuRuntimeStore`、`zhimuFormat`、`zhimuUi`、`zhimuModal`、`zhimuUiSemantics`、`zhimuCollapsePanel`、`zhimuStatus`、`zhimuUserMessages` 小桥已迁移为 ES Module |
-| 状态分片 | A2 完成：8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js` 已落地；`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活 |
-| 共享层 | A4 阶段 5 完成一批：`shared/security.js`、`shared/api-error.js`、`shared/sse.js`、`shared/components/collapse.js` 和三端 Vite alias 已落地 |
-| 后端 RLS | `backend/migrations/045_enable_public_rls.sql` 已为 44 张表启用 Row-Level Security；测试用 `backend/src/storage/memory-storage.js` 已落地 |
+| 生产级评分 | 84 / 100：公开 Beta 前夜，可小流量开放；商业试点需人工陪跑 |
+| 核心闭环 | 创作、导入、开房、玩家阅读/调查、主持推进、规则、线索、存档、复盘、反馈可跑 |
+| 生产门槛 | L1-03 已完成：真实生产 `productionTrust 7/7` |
+| 运维演练 | L1-04/05/06/07 已形成记录：备份恢复、权限矩阵、Support、staging 隔离；值班演练 6/6 |
+| 测试 | 模块加载、构建、shared、play、host、关键后端测试、site screenshot 测试均有门禁 |
+| 部署 | Railway fullstack + Cloudflare Pages 三站；Ops Bridge 承接告警、上传扫描、OTLP |
+| 官网 | hero 与四端 showcase 已换真实截图；pilot 案例仍需补 |
+| 前端治理 | A1/A2/A3 完成；A4 Phase 6 共享层已包含 api-fetch/session-token/toast/status-chip/tokens |
+| 后端能力 | clue audit API、rule debug trace、feedback/ops 处理、权限矩阵测试已落地 |
+| 数据恢复 | managed schema clone 核心表恢复演练通过；全量 pg_dump/R2 恢复承诺待补 |
+| 商业化 | 套餐、Beta、OPS 开通、反馈和人工扩容已有；支付/订单/发票/SLA/客户成功仍偏人工 |
 
 ## 常用命令
 
 ```powershell
+npm run check:modules
+npm run build
+npm run test:shared
+npm run test:play
+npm run test:host
+npm run test:site-screenshots
+npm run verify:changed
+
 cd backend
 npm run check
 npm run check:schemas
 npm run check:boot
 npm test
-
-cd ..
-npm run build
-npm run test:e2e
-npm run check:production-ready
-npm run monitoring:smoke -- --alerts
 ```
 
 ## 当前阻断/风险
 
-1. GitHub `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` 需要确认。
-2. 真实生产 `ALERT_WEBHOOK_URL`、`OTEL_EXPORTER_OTLP_ENDPOINT`、AV scanner secret 需要配置。
-3. 剩余 `window.*` 主要集中在 session、invite、pipeline、rule visual、LiveKit、nav/search 等运行服务，风险低于已清理的状态/UI/格式桥，但仍需按收益继续收口。
-4. 多前端共享层还可继续抽 `api-fetch`、`session-token`、toast/status chip/tokens。
-5. 备份恢复、告警响应、上传扫描故障和部署回滚需要真实演练记录。
+1. 全量 `pg_dump -> restore` / Docker 恢复演练仍需补跑，managed schema clone 只能算 Beta 级证据。
+2. R2 附件恢复或索引重建策略需要抽样验证并形成客户可理解承诺。
+3. 官网 pilot 案例和匿名试点故事缺失，陌生用户信任感还可提升。
+4. 商业试点流程仍偏人工，需要订单/开通/发票/SLA/客户成功 SOP。
+5. creator dashboard、host dashboard 等聚合摘要仍可继续沉到后端 API，减少前端拼装。
+
+## 下一步
+
+优先执行 [09-公开Beta与商业试点优化计划](../优化计划/09-公开Beta与商业试点优化计划.md)：
+
+1. B0-01 pilot 案例与官网信任页。
+2. B0-02 首场路径文案。
+3. B0-03 全量备份恢复补演练。
+4. B1-01 creator dashboard 聚合 API。
+5. B1-02 商业试点 SOP。

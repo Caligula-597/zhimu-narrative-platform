@@ -4,6 +4,13 @@ import { createApp } from "../src/app.js";
 import { resetMetricsForTests } from "../src/metrics.js";
 
 test("GET /metrics returns Prometheus text", async (context) => {
+  const previousToken = process.env.METRICS_TOKEN;
+  delete process.env.METRICS_TOKEN;
+  context.after(() => {
+    if (previousToken === undefined) delete process.env.METRICS_TOKEN;
+    else process.env.METRICS_TOKEN = previousToken;
+  });
+
   resetMetricsForTests();
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());

@@ -102,15 +102,18 @@ const apiClient = createApiFetch({
     if (response.status === 504) {
       const err = new Error("AI 生成超时（服务器等待过久）。请改用「分步参与」逐层生成，或减少章节/角色/场景数量。");
       err.code = payload.code || "GATEWAY_TIMEOUT";
+      err.status = response.status;
       return err;
     }
     if (response.status === 502 || response.status === 503) {
       const err = new Error(friendlyApiError(payload, "无法连接服务器，请稍后重试。"));
       err.code = payload.code || "API_UNAVAILABLE";
+      err.status = response.status;
       return err;
     }
     const err = new Error(friendlyApiError(payload, `${method} ${path} failed`));
     err.code = payload.code;
+    err.status = response.status;
     err.details = payload.details;
     if (response.status === 409 && payload.code === "WORLD_VERSION_CONFLICT") {
       window.zhimuWorldRevision?.showConflict?.(payload.details);
