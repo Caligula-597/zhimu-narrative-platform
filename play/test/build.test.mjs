@@ -21,8 +21,11 @@ test("index.html uses module entry without inline scripts", () => {
 
 test("play api persists bearer token for cross-origin session", () => {
   const source = readFileSync(path.join(root, "src", "api.js"), "utf8");
-  assert.match(source, /persistSessionToken/);
-  assert.match(source, /localStorage\.setItem\(TOKEN_KEY/);
+  const sharedToken = readFileSync(path.join(root, "..", "shared", "session-token.js"), "utf8");
+  assert.match(source, /createSessionTokenStore/);
+  assert.match(source, /sessionToken\.set/);
+  assert.match(source, /bearerHeaders\(\)/);
+  assert.match(sharedToken, /setItem\(key, token\)/);
   assert.doesNotMatch(source, /cookieSessionActive/);
   assert.match(source, /encodeURIComponent\(inviteCode\)/);
 });

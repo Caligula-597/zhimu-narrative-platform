@@ -7,6 +7,7 @@
  */
 import { friendlyApiError } from "../utils/user-messages.js";
 import { userStore } from "../state/index.js";
+import { createApiFetch, createIdempotencyKey as sharedCreateIdempotencyKey } from "../../shared/api-fetch.js";
 
 const runtimeConfig = window.zhimuConfig || {};
 const API_BASE = runtimeConfig.apiBase || "/api";
@@ -87,9 +88,60 @@ export function worldWrite(path, { worldId = demoContext.worldId, userId = demoC
 }
 
 export function createIdempotencyKey() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
-  return `idem-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return sharedCreateIdempotencyKey();
 }
+
+const apiClient = createApiFetch({
+  baseUrl: API_BASE,
+  getHeaders({ options }) {
+    const { userId, headers: extraHeaders = {} } = options;
+    return authHeaders(userId, extraHeaders);
+  },
+  mapHttpError(response, payload, { method, path }) {
+    if (response.status === 504) {
+      const err = new Error("AI 生成超时（服务器等待过久）。请改用「分步参与」逐层生成，或减少章节/角色/场景数量。");
+      err.code = payload.code || "GATEWAY_TIMEOUT";
+      return err;
+    }
+    if (response.status === 502 || response.status === 503) {
+      const err = new Error(friendlyApiError(payload, "无法连接服务器，请稍后重试。"));
+      err.code = payload.code || "API_UNAVAILABLE";
+      return err;
+    }
+    const err = new Error(friendlyApiError(payload, `${method} ${path} failed`));
+    err.code = payload.code;
+    err.details = payload.details;
+    if (response.status === 409 && payload.code === "WORLD_VERSION_CONFLICT") {
+      window.zhimuWorldRevision?.showConflict?.(payload.details);
+    }
+    return err;
+  },
+  mapTransportError(error, { timeoutMs }) {
+    if (error.name === "AbortError") {
+      const secs = Math.round(timeoutMs / 1000);
+      return new Error(`请求超时（已等待 ${secs} 秒）。AI 生成较慢，请重试或减少章节/角色规模。`);
+    }
+    if (error instanceof TypeError) {
+      return new Error("无法连接服务器，请稍后重试。");
+    }
+    return error;
+  },
+  afterSuccess(path, payload) {
+    if (/^\/auth\/(login|register|guest|upgrade|verify-email|oauth\/complete)/.test(path)) {
+      if (payload.token) sessionAuth().markAuthenticated?.(payload.token);
+      else markSessionFromResponse(payload);
+    }
+  },
+  async onHttpError(path, options, err, attempt) {
+    if (err.status === 401 && attempt === 0 && sessionAuth().isAuthenticated?.()) {
+      sessionAuth().markLoggedOut?.();
+      return apiClient.request(path, options, attempt + 1);
+    }
+    return null;
+  }
+});
+
+export const request = apiClient.request;
 
 export function sseCursorKey(roomId) {
   return `zhimuSseCursor:${roomId}`;
@@ -116,66 +168,6 @@ export function deepseekRequest(path, opts = {}) {
   const isChapterNarrative = /\/narrative\/chapter$/.test(path);
   const defaultTimeout = isChapterNarrative ? DEEPSEEK_CHAPTER_NARRATIVE_TIMEOUT_MS : DEEPSEEK_TIMEOUT_MS;
   return request(path, { ...opts, timeoutMs: opts.timeoutMs ?? defaultTimeout });
-}
-
-export async function request(path, { userId, method = "GET", body, timeoutMs = 20000, idempotent = false, idempotencyKey, headers: extraHeaders = {} } = {}, authRetry = false) {
-  const headers = authHeaders(userId, extraHeaders);
-  if (body !== undefined) headers["content-type"] = "application/json";
-  if (idempotent && method !== "GET" && method !== "HEAD") {
-    headers["idempotency-key"] = idempotencyKey || createIdempotencyKey();
-  }
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(`${API_BASE}${path}`, {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: controller.signal,
-      credentials: "include"
-    });
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      if (response.status === 504) {
-        const err = new Error("AI 生成超时（服务器等待过久）。请改用「分步参与」逐层生成，或减少章节/角色/场景数量。");
-        err.code = payload.code || "GATEWAY_TIMEOUT";
-        throw err;
-      }
-      if (response.status === 502 || response.status === 503) {
-        const err = new Error(friendlyApiError(payload, "无法连接服务器，请稍后重试。"));
-        err.code = payload.code || "API_UNAVAILABLE";
-        throw err;
-      }
-      const err = new Error(friendlyApiError(payload, `${method} ${path} failed`));
-      err.code = payload.code;
-      err.details = payload.details;
-      if (response.status === 409 && payload.code === "WORLD_VERSION_CONFLICT") {
-        window.zhimuWorldRevision?.showConflict?.(payload.details);
-      }
-      if (response.status === 401 && !authRetry && sessionAuth().isAuthenticated?.()) {
-        sessionAuth().markLoggedOut?.();
-        return request(path, { userId, method, body, timeoutMs, idempotent, idempotencyKey, headers: extraHeaders }, true);
-      }
-      throw err;
-    }
-    const data = await response.json();
-    if (/^\/auth\/(login|register|guest|upgrade|verify-email|oauth\/complete)/.test(path)) {
-      if (data.token) sessionAuth().markAuthenticated?.(data.token);
-      else markSessionFromResponse(data);
-    }
-    return data;
-  } catch (error) {
-    if (error.name === "AbortError") {
-      const secs = Math.round(timeoutMs / 1000);
-      throw new Error(`请求超时（已等待 ${secs} 秒）。AI 生成较慢，请重试或减少章节/角色规模。`);
-    }
-    if (error instanceof TypeError) {
-      throw new Error("无法连接服务器，请稍后重试。");
-    }
-    throw error;
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 /* ── Active context state (not API calls) ── */

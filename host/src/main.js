@@ -71,8 +71,10 @@ import {
   kickHostPlayer
 } from "./views/console.js";
 
+import { createToastTimer } from "../../shared/toast.js";
+
 const app = document.getElementById("app");
-let toastTimer = null;
+const hostToastTimer = createToastTimer(3200);
 
 function setBusy(busy) {
   state.busy = busy;
@@ -82,12 +84,13 @@ function setBusy(busy) {
 function setToast(message, ms = 3200) {
   state.toast = message;
   render();
-  if (toastTimer) clearTimeout(toastTimer);
   if (message) {
-    toastTimer = setTimeout(() => {
+    hostToastTimer.schedule(() => {
       state.toast = "";
       render();
     }, ms);
+  } else {
+    hostToastTimer.clear();
   }
 }
 

@@ -2,6 +2,7 @@
 import { showToast } from "./toast.js";
 import { escapeHtml } from "../utils/format.js";
 import { normalizeError } from "./status-ui.js";
+import { renderStatusChip } from "../../shared/components/status-chip.js";
 
   const SURFACES = {
     creator: { label: "创作者端", className: "surface-creator", accent: "var(--green)" },
@@ -45,7 +46,7 @@ import { normalizeError } from "./status-ui.js";
 
   function chip(kind, key, fallback) {
     const item = status(kind, key, fallback);
-    return `<span class="status-chip ${escapeHtml(item.tone)}">${escapeHtml(item.label)}</span>`;
+    return renderStatusChip({ tone: item.tone, label: item.label });
   }
 
   function showError(error, fallback = "操作失败，请稍后重试") {

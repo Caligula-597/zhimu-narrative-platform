@@ -1,4 +1,5 @@
 import { escapeHtml } from "../../../shared/security.js";
+import { renderStatusChip } from "../../../shared/components/status-chip.js";
 import { getWorldId } from "../session.js";
 import { state } from "../state.js";
 
@@ -15,7 +16,7 @@ export function renderLanding() {
           (world) => `<button type="button" class="pick-card" data-action="world-select" data-world-id="${escapeHtml(world.id)}">
             <span class="pick-card-mark" aria-hidden="true">${escapeHtml((world.name || "剧").slice(0, 1))}</span>
             <span class="pick-card-copy"><strong>${escapeHtml(world.name)}</strong><small>${escapeHtml(world.summary || "尚未填写剧本简介")}</small></span>
-            <span class="status-chip ${worldId === world.id ? "published" : "draft"}">${worldId === world.id ? "当前" : "进入"}</span>
+            ${renderStatusChip({ tone: worldId === world.id ? "published" : "draft", label: worldId === world.id ? "当前" : "进入" })}
           </button>`
         )
         .join("")

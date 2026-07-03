@@ -1,11 +1,13 @@
 import { consumeSseStream } from "../../shared/sse.js";
+import { createApiFetch, extractAuthToken } from "../../shared/api-fetch.js";
+import { createSessionTokenStore } from "../../shared/session-token.js";
 
 const APP_ORIGIN = (import.meta.env.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN?.replace(/\/$/, "")
   ?? (import.meta.env.DEV ? "" : APP_ORIGIN);
 const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : "/api";
 
-const TOKEN_KEY = "zhimuSessionToken";
+const sessionToken = createSessionTokenStore("zhimuSessionToken");
 
 /** Play 部署在 play.*，API 在 app.*；SameSite=Lax 的 HttpOnly Cookie 不会随跨站 fetch 发送，故始终用 Bearer。 */
 function sseCursorKey(roomId) {
@@ -14,65 +16,26 @@ function sseCursorKey(roomId) {
 
 const PLATFORM_SSE_CURSOR = "zhimuPlayPlatformSseCursor";
 
-function authHeaders() {
-  const headers = {};
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (token) headers.authorization = `Bearer ${token}`;
-  const demoUserId = localStorage.getItem("zhimuDemoUserId");
-  if (demoUserId) headers["x-user-id"] = demoUserId;
-  return headers;
-}
-
-function persistSessionToken(token) {
-  if (!token || typeof token !== "string") return;
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-function clearSessionToken() {
-  localStorage.removeItem(TOKEN_KEY);
-}
-
-async function request(path, { method = "GET", body, timeoutMs = 20000 } = {}) {
-  const headers = { ...authHeaders() };
-  if (body !== undefined) headers["content-type"] = "application/json";
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(`${API_BASE}${path}`, {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: controller.signal,
-      credentials: "include"
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      const err = new Error(payload.error || payload.message || `请求失败 (${response.status})`);
-      err.code = payload.code;
-      err.status = response.status;
-      err.details = payload.details;
-      throw err;
-    }
-    if (/^\/auth\/(login|register|guest|upgrade|verify-email|oauth\/complete)/.test(path) && payload.token) {
-      persistSessionToken(payload.token);
-    }
-    return payload;
-  } catch (error) {
-    if (error?.name === "AbortError") {
-      const err = new Error("请求超时");
-      err.code = "REQUEST_TIMEOUT";
-      throw err;
-    }
-    if (error instanceof TypeError) {
-      const err = new Error("网络错误");
-      err.code = "NETWORK_ERROR";
-      throw err;
-    }
-    throw error;
-  } finally {
-    clearTimeout(timer);
+const { request } = createApiFetch({
+  baseUrl: API_BASE,
+  getHeaders() {
+    const headers = { ...sessionToken.bearerHeaders() };
+    const demoUserId = localStorage.getItem("zhimuDemoUserId");
+    if (demoUserId) headers["x-user-id"] = demoUserId;
+    return headers;
+  },
+  mapHttpError(response, payload) {
+    const err = new Error(payload.error || payload.message || `请求失败 (${response.status})`);
+    err.code = payload.code;
+    err.status = response.status;
+    err.details = payload.details;
+    return err;
+  },
+  afterSuccess(path, payload) {
+    const token = extractAuthToken(path, payload);
+    if (token) sessionToken.set(token);
   }
-}
+});
 
 export function getAppOrigin() {
   return APP_ORIGIN;
@@ -83,20 +46,20 @@ export function getPlayOrigin() {
 }
 
 export function getSessionToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return sessionToken.get();
 }
 
 export function setSessionToken(token) {
-  if (token) persistSessionToken(token);
-  else clearSessionToken();
+  if (token) sessionToken.set(token);
+  else sessionToken.clear();
 }
 
 export function clearSession() {
-  clearSessionToken();
+  sessionToken.clear();
 }
 
 export function hasSession() {
-  return Boolean(getSessionToken());
+  return Boolean(sessionToken.get());
 }
 
 export const api = {

@@ -1,22 +1,8 @@
+@import "../shared/tokens.css";
+@import "../shared/styles/status-chip.css";
+@import "../shared/styles/toast.css";
+
 :root {
-  --ink: #142321;
-  --ink-soft: #425653;
-  --muted: #76827f;
-  --paper: #f4f1e9;
-  --paper-deep: #ebe5d8;
-  --surface: #fffdf8;
-  --surface-soft: rgba(255, 253, 248, 0.72);
-  --green: #183f3a;
-  --green-2: #2b6b61;
-  --brass: #a7783d;
-  --clay: #a85f54;
-  --plum: #62516a;
-  --blue: #3f6070;
-  --line: rgba(20, 35, 33, 0.13);
-  --line-strong: rgba(20, 35, 33, 0.2);
-  --shadow-soft: 0 18px 48px rgba(18, 45, 41, 0.08);
-  --shadow-lift: 0 28px 80px rgba(18, 45, 41, 0.12);
-  --radius: 8px;
   --content: min(1180px, calc(100vw - 40px));
 }
 

@@ -22,13 +22,18 @@ test("index.html uses module entry without inline scripts", () => {
 test("host api uses cookie credentials, bearer fallback and room-scoped host endpoints", () => {
   const apiSource = readFileSync(path.join(root, "src", "api.js"), "utf8");
   const sessionSource = readFileSync(path.join(root, "src", "session.js"), "utf8");
+  const sharedFetchSource = readFileSync(path.join(root, "..", "shared", "api-fetch.js"), "utf8");
+  const sharedTokenSource = readFileSync(path.join(root, "..", "shared", "session-token.js"), "utf8");
   assert.match(apiSource, /getHostPlayers/);
   assert.match(apiSource, /streamRoomEvents/);
   assert.match(apiSource, /getHostOrigin/);
-  assert.match(apiSource, /credentials:\s*"include"/);
-  assert.match(apiSource, /authorization.*Bearer/s);
+  assert.match(apiSource, /createApiFetch/);
+  assert.match(apiSource, /bearerHeaders\(\)/);
+  assert.match(apiSource, /defaultSessionTokenStore/);
   assert.match(apiSource, /createRoom/);
-  assert.match(sessionSource, /localStorage\.setItem\(TOKEN_KEY/);
+  assert.match(sharedFetchSource, /credentials = "include"/);
+  assert.match(sharedTokenSource, /setItem\(key, token\)/);
+  assert.match(sessionSource, /defaultSessionTokenStore/);
 });
 
 test("main.js wires console, SSE and director actions", () => {

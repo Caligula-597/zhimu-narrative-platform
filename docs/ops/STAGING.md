@@ -63,6 +63,8 @@ Postgres ← api (migrate on boot)
 | `LIVEKIT_*` / `DEEPSEEK_*` / `R2_*` | 可选；与本地 dev 相同 Key 即可 |
 | `R2_BUCKET` | **必须与生产不同**（`npm run staging:sync-env` 默认 `${prod}-staging`） |
 
+**502 排查**：API 容器刚启动时 nginx 可能缓存失败 upstream；执行 `npm run staging:down` 后再 `staging:up`，或 `docker compose ... restart web`。
+
 ## 隔离验收（L1-07）
 
 ```powershell

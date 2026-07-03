@@ -7,6 +7,7 @@
  *   node scripts/run-l1-drills.mjs --skip-beta
  *   node scripts/run-l1-drills.mjs --skip-backup
  *   node scripts/run-l1-drills.mjs --skip-staging
+ *   node scripts/run-l1-drills.mjs --skip-oncall
  */
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -18,6 +19,7 @@ const args = process.argv.slice(2);
 const skipBeta = args.includes("--skip-beta");
 const skipBackup = args.includes("--skip-backup");
 const skipStaging = args.includes("--skip-staging");
+const skipOncall = args.includes("--skip-oncall");
 
 function runStep(label, command, commandArgs, cwd = root) {
   console.log(`\n=== ${label} ===\n`);
@@ -53,6 +55,10 @@ if (!skipBackup) {
 
 if (!skipStaging) {
   tryStep("L1-07 Staging isolation smoke", process.execPath, ["scripts/staging-isolation-smoke.mjs"], root);
+}
+
+if (!skipOncall) {
+  tryStep("L2-08 Monitoring on-call drill", process.execPath, ["scripts/monitoring-oncall-drill.mjs"], root);
 }
 
 console.log(process.exitCode ? "\nDrills finished with failures." : "\n✓ All required drills passed.");

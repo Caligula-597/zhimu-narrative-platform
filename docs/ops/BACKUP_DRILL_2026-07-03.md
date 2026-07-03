@@ -35,14 +35,24 @@
 - **托管库限制**：Supabase 不允许 `CREATE DATABASE`；本机未安装 `pg_dump`/`psql`，Docker Desktop 守护进程未运行。
 - **本次演练验证**：逻辑备份所依赖的核心业务表可完整读出并写回（schema 级克隆等价于「恢复后行数一致」）。
 - **完整 pg_dump 演练**（推荐季度一次）：
-  - 启动 Docker Desktop 后：`cd backend && npm run db:verify-restore:docker`
+  - `cd backend && npm run db:verify-restore:docker`
   - 或安装 PostgreSQL 客户端后：`npm run db:verify-restore`（需具备 CREATE DATABASE 权限的库）
 - **对象存储**：R2 附件未包含在 Postgres 备份内；见 [BACKUP.md](./BACKUP.md) R2 小节。
+
+## Docker pg_dump 演练（2026-07-03 补跑）
+
+| 项 | 结果 |
+|---|---|
+| 脚本 | `npm run db:verify-restore:docker` |
+| dump | **148 MB** |
+| 行数 | users 1004 / worlds 348 / chapters 197 / asset_files 1 / auth_sessions 949 — **源与恢复一致** |
+| 耗时 | ~62s |
+| 修复 | Windows 下 `docker exec` 须 `shell: false`，否则 SQL 被拆断导致计数为 0 |
 
 ## 后续
 
 - [x] 2026-07-03 第二次演练（`npm run drill:l1` bundle）— 行数仍一致
-- [ ] Docker 可用时补跑 `db:verify-restore:docker`（全量 pg_dump → 本地容器）
+- [x] Docker pg_dump →  ephemeral Postgres 全量恢复 — **通过**
 - [ ] 确认 Supabase 控制台自动备份保留期 ≥ 7 天（Beta）/ 30 天（生产建议）
 
 ## 联合演练命令

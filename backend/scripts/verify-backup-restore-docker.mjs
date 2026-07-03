@@ -13,6 +13,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import pg from "pg";
 import "dotenv/config";
 
 const TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions"];
@@ -22,7 +23,7 @@ const keep = process.argv.includes("--keep");
 function run(cmd, args, opts = {}) {
   const result = spawnSync(cmd, args, {
     encoding: "utf8",
-    shell: process.platform === "win32",
+    shell: false,
     ...opts
   });
   if (result.error) throw result.error;
@@ -37,50 +38,47 @@ function docker(args, opts = {}) {
 }
 
 function requireDocker() {
-  const probe = spawnSync("docker", ["info"], { encoding: "utf8", shell: process.platform === "win32" });
+  const probe = spawnSync("docker", ["info"], { encoding: "utf8", shell: false });
   if (probe.error || probe.status !== 0) {
     console.error("Docker is required for verify-backup-restore-docker.mjs");
     process.exit(1);
   }
 }
 
-function countTables(databaseUrl, containerName = null) {
+function countTablesInContainer(containerName) {
   const counts = {};
   for (const table of TABLES) {
-    const sql = `SELECT COUNT(*) FROM ${table}`;
-    let out;
-    if (containerName) {
-      out = docker([
-        "exec",
-        containerName,
-        "psql",
-        "-U",
-        "postgres",
-        "-d",
-        "postgres",
-        "-t",
-        "-A",
-        "-c",
-        sql
-      ]);
-    } else {
-      out = docker([
-        "run",
-        "--rm",
-        "-e",
-        `DATABASE_URL=${databaseUrl}`,
-        PG_IMAGE,
-        "psql",
-        databaseUrl,
-        "-t",
-        "-A",
-        "-c",
-        sql
-      ]);
-    }
+    const out = docker([
+      "exec",
+      containerName,
+      "psql",
+      "-U",
+      "postgres",
+      "-d",
+      "postgres",
+      "-t",
+      "-A",
+      "-c",
+      `SELECT COUNT(*) FROM public.${table}`
+    ]);
     counts[table] = Number(out);
   }
   return counts;
+}
+
+async function countSourceTables(databaseUrl) {
+  const client = new pg.Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
+  await client.connect();
+  try {
+    const counts = {};
+    for (const table of TABLES) {
+      const result = await client.query(`SELECT COUNT(*)::int AS n FROM public.${table}`);
+      counts[table] = result.rows[0].n;
+    }
+    return counts;
+  } finally {
+    await client.end();
+  }
 }
 
 function waitForPostgres(containerName, attempts = 30) {
@@ -88,7 +86,7 @@ function waitForPostgres(containerName, attempts = 30) {
     const probe = spawnSync(
       "docker",
       ["exec", containerName, "pg_isready", "-U", "postgres"],
-      { encoding: "utf8", shell: process.platform === "win32" }
+      { encoding: "utf8", shell: false }
     );
     if (probe.status === 0) return;
     spawnSync("powershell", ["-Command", "Start-Sleep -Seconds 1"], { shell: true });
@@ -110,8 +108,8 @@ const dumpPath = join(workDir, "backup.sql");
 const startedAt = new Date().toISOString();
 
 try {
-  console.log("▶ Counting source tables (remote via Docker psql)…");
-  const before = countTables(sourceUrl);
+  console.log("▶ Counting source tables (remote via pg)…");
+  const before = await countSourceTables(sourceUrl);
   console.log(before);
 
   console.log("▶ pg_dump remote →", dumpPath);
@@ -155,14 +153,14 @@ try {
   const restore = spawnSync(
     "docker",
     ["exec", "-i", containerName, "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=0"],
-    { input: dumpSql, encoding: "utf8", shell: process.platform === "win32" }
+    { input: dumpSql, encoding: "utf8", shell: false }
   );
   if (restore.status !== 0 && !/ERROR/.test(restore.stderr || "")) {
     throw new Error((restore.stderr || restore.stdout || "restore failed").trim());
   }
 
   console.log("▶ Counting restored tables…");
-  const after = countTables(null, containerName);
+  const after = countTablesInContainer(containerName);
   console.log(after);
 
   const mismatches = TABLES.filter((table) => before[table] !== after[table]).map((table) => ({
@@ -192,7 +190,7 @@ try {
   console.log(JSON.stringify(record, null, 2));
 } finally {
   if (!keep) {
-    spawnSync("docker", ["rm", "-f", containerName], { encoding: "utf8", shell: process.platform === "win32" });
+    spawnSync("docker", ["rm", "-f", containerName], { encoding: "utf8", shell: false });
     console.log("▶ removed container", containerName);
   } else {
     console.log(`--keep: container ${containerName} and ${dumpPath} left for inspection`);

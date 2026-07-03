@@ -1,5 +1,7 @@
 import { getRoomId, getSessionToken, getWorldId, setSessionToken } from "./session.js";
 import { consumeSseStream } from "../../shared/sse.js";
+import { createApiFetch, extractAuthToken } from "../../shared/api-fetch.js";
+import { defaultSessionTokenStore } from "../../shared/session-token.js";
 
 export { getSessionToken, setSessionToken };
 
@@ -13,59 +15,28 @@ function sseCursorKey(roomId) {
   return `zhimuHostSseCursor:${roomId}`;
 }
 
-function authHeaders() {
-  const headers = {};
-  const token = getSessionToken();
-  if (token) headers.authorization = `Bearer ${token}`;
-  if (import.meta.env.DEV && localStorage.getItem("zhimuDemoMode") === "true") {
-    const demoUserId = localStorage.getItem("zhimuDemoUserId");
-    if (demoUserId) headers["x-user-id"] = demoUserId;
+const { request } = createApiFetch({
+  baseUrl: API_BASE,
+  getHeaders() {
+    const headers = { ...defaultSessionTokenStore.bearerHeaders() };
+    if (import.meta.env.DEV && localStorage.getItem("zhimuDemoMode") === "true") {
+      const demoUserId = localStorage.getItem("zhimuDemoUserId");
+      if (demoUserId) headers["x-user-id"] = demoUserId;
+    }
+    return headers;
+  },
+  mapHttpError(response, payload) {
+    if (response.status === 401) defaultSessionTokenStore.clear();
+    const err = new Error(payload.error || payload.message || `请求失败 (${response.status})`);
+    err.code = payload.code;
+    err.status = response.status;
+    return err;
+  },
+  afterSuccess(path, payload) {
+    const token = extractAuthToken(path, payload);
+    if (token) defaultSessionTokenStore.set(token);
   }
-  return headers;
-}
-
-async function request(path, { method = "GET", body, idempotent = false, timeoutMs = 20000 } = {}) {
-  const headers = { ...authHeaders() };
-  if (body !== undefined) headers["content-type"] = "application/json";
-  if (idempotent) headers["idempotency-key"] = crypto.randomUUID();
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(`${API_BASE}${path}`, {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: controller.signal,
-      credentials: "include"
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      if (response.status === 401) setSessionToken("");
-      const err = new Error(payload.error || payload.message || `请求失败 (${response.status})`);
-      err.code = payload.code;
-      err.status = response.status;
-      throw err;
-    }
-    if (/^\/auth\/(login|register|guest|oauth\/complete)/.test(path) && payload.token) {
-      setSessionToken(payload.token);
-    }
-    return payload;
-  } catch (error) {
-    if (error?.name === "AbortError") {
-      const err = new Error("请求超时");
-      err.code = "REQUEST_TIMEOUT";
-      throw err;
-    }
-    if (error instanceof TypeError) {
-      const err = new Error("网络错误");
-      err.code = "NETWORK_ERROR";
-      throw err;
-    }
-    throw error;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+});
 
 function roomPath(suffix) {
   const roomId = getRoomId();

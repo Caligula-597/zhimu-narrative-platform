@@ -1,4 +1,7 @@
 import { patchPlayToast } from "./runtime/sync-helpers.js";
+import { createToastTimer } from "../../shared/toast.js";
+
+const playToastTimer = createToastTimer(3200);
 
 export const ROOM_KEY = "zhimuPlayActiveRoomId";
 export const GAME_TAB_KEY = "zhimuPlayGameTab";
@@ -127,8 +130,7 @@ export function setToast(message, render, { patch = false } = {}) {
     render?.();
   }
   if (message) {
-    window.clearTimeout(setToast._timer);
-    setToast._timer = window.setTimeout(() => {
+    playToastTimer.schedule(() => {
       state.toast = "";
       if (patch) {
         if (!patchPlayToast("")) render?.();
@@ -136,6 +138,8 @@ export function setToast(message, render, { patch = false } = {}) {
         render?.();
       }
     }, 3200);
+  } else {
+    playToastTimer.clear();
   }
 }
 

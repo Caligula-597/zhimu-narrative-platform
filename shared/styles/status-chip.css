@@ -1,0 +1,60 @@
+/**
+ * Shared status chip styles — import after shared/tokens.css.
+ */
+.status-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line, rgba(20, 35, 33, 0.13));
+  background: var(--surface, #fffdf8);
+  color: var(--muted, #76827f);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.status-chip.published {
+  border-color: rgba(43, 107, 97, 0.35);
+  color: var(--green-2, #2b6b61);
+  background: var(--accent-soft, rgba(43, 107, 97, 0.12));
+}
+
+.status-chip.testing {
+  border-color: rgba(167, 120, 61, 0.35);
+  color: var(--brass, #a7783d);
+  background: var(--brass-soft, #f3ebe0);
+}
+
+.status-chip.draft {
+  border-color: rgba(125, 114, 93, 0.35);
+  color: #7d725d;
+  background: #eee9df;
+}
+
+.status-chip.danger {
+  border-color: rgba(168, 95, 84, 0.35);
+  color: var(--clay, #a85f54);
+  background: rgba(168, 95, 84, 0.1);
+}
+
+.status-chip.ok {
+  border-color: rgba(43, 107, 97, 0.35);
+  color: var(--green-2, #2b6b61);
+  background: var(--accent-soft, rgba(43, 107, 97, 0.12));
+}
+
+/* Creator pipeline compact chip */
+.pipeline-status-chip {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 9px;
+}

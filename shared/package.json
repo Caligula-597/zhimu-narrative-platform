@@ -10,6 +10,12 @@
     "./api-error.js": "./api-error.js",
     "./sse.js": "./sse.js",
     "./components/collapse.js": "./components/collapse.js",
-    "./tokens.css": "./tokens.css"
+    "./components/status-chip.js": "./components/status-chip.js",
+    "./api-fetch.js": "./api-fetch.js",
+    "./session-token.js": "./session-token.js",
+    "./toast.js": "./toast.js",
+    "./tokens.css": "./tokens.css",
+    "./styles/status-chip.css": "./styles/status-chip.css",
+    "./styles/toast.css": "./styles/toast.css"
   }
 }

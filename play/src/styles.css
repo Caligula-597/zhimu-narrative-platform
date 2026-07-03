@@ -1,4 +1,6 @@
 @import "../../shared/tokens.css";
+@import "../../shared/styles/status-chip.css";
+@import "../../shared/styles/toast.css";
 
 * {
   box-sizing: border-box;
@@ -163,15 +165,15 @@ button {
 }
 
 .toast-host {
-  position: fixed;
-  right: 16px;
+  left: 50%;
+  right: auto;
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
   z-index: 120;
-  pointer-events: none;
 }
 
 .toast-host .toast {
-  pointer-events: auto;
+  border-radius: 999px;
 }
 
 .loading-dots {
@@ -873,19 +875,6 @@ button {
   border: 0;
   background: none;
   font-size: 18px;
-}
-
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  padding: 12px 18px;
-  border-radius: 999px;
-  background: var(--green);
-  color: #fff;
-  box-shadow: var(--shadow-soft);
-  z-index: 30;
 }
 
 .loading-bar {
@@ -2040,45 +2029,6 @@ code {
   margin-bottom: 12px;
 }
 
-.status-chips {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.status-chip {
-  display: inline-flex;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--muted);
-}
-
-.status-chip.published {
-  border-color: rgba(43, 107, 97, 0.35);
-  color: var(--green-2);
-  background: var(--accent-soft);
-}
-
-.status-chip.testing {
-  border-color: rgba(98, 81, 106, 0.35);
-  color: var(--plum);
-  background: rgba(98, 81, 106, 0.08);
-}
-
-.status-chip.draft {
-  border-color: rgba(167, 120, 61, 0.35);
-  color: var(--brass);
-}
-
-.status-chip.ok {
-  border-color: rgba(43, 107, 97, 0.35);
-  color: var(--green-2);
-}
-
 .clue-note-box {
   margin: 14px 0;
   padding: 12px 14px;
@@ -2151,15 +2101,6 @@ code {
 
 .accent-line {
   color: var(--green-2);
-}
-
-.toast.show {
-  animation: toast-in 0.22s ease;
-}
-
-@keyframes toast-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 /* ── Voice (aligned with creator player view) ── */

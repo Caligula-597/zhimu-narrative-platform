@@ -54,6 +54,15 @@ npm run monitoring:smoke -- --alerts
 - alert webhook 未配置或发送失败
 - `productionTrust` 未通过
 
+## 值班与演练
+
+内测 / Beta 告警响应流程见 [ONCALL_DUTY_ZH.md](./ONCALL_DUTY_ZH.md)。
+
+```powershell
+npm run drill:oncall
+npm run monitoring:smoke -- --alerts
+```
+
 ## Prometheus 抓取
 
 如果设置了 `METRICS_TOKEN`，请求需要：

@@ -7,8 +7,8 @@
 | 日期 | 2026-07-03 |
 | 脚本 | `npm run staging:isolation-smoke` |
 | 配置隔离 | **通过** — 8/8 |
-| 功能 smoke | **待补** — Docker daemon 未运行，staging 栈未启动 |
-| R2 修复 | `sync-staging-env` 已改为 `zhimu-assets-alpha-staging`（与生产 bucket 分离） |
+| 功能 smoke | **通过** — 11/11（含 `staging-smoke` 8/8） |
+| R2 | `zhimu-assets-alpha-staging`（与生产分离） |
 
 ## 隔离检查项
 
@@ -22,33 +22,30 @@
 | 6 | 前端认证 | — | `VITE_REQUIRE_AUTH=true`, `VITE_DEMO_MODE=false` | ✓ |
 | 7 | 本地 PG 密码 | — | `.env.staging` 已设 | ✓ |
 
-## 功能 smoke（待 Docker）
-
-配置通过后，需在本机启动 Docker Desktop，再执行：
+## 功能 smoke（2026-07-03 补跑）
 
 ```powershell
 npm run staging:sync-env
 npm run staging:up
+# 若 /api 返回 502，重启 web：docker compose ... restart web
 npm run staging:isolation-smoke
-# 或仅功能：npm run staging:smoke
 ```
 
-预期：`staging-smoke.mjs` 8/8（health、注册登录、demo 头拒绝、catalog、找回密码、创建世界）。
+| 步骤 | 结果 |
+|------|------|
+| health live / ready | ✓ migrations=46 |
+| 注册登录 | ✓ |
+| demo 头拒绝 | ✓ 401 |
+| catalog / forgot-password / create world | ✓ |
 
 ## 说明
 
-- **共享凭证**：DeepSeek / LiveKit / Resend 可与 dev 共用 Key；**数据库与 R2 bucket 必须分离**。
-- **R2 staging bucket**：若 Cloudflare 尚未创建 `zhimu-assets-alpha-staging`，配置隔离仍成立；首次上传附件前需在 R2 控制台创建 bucket。
-- 联合演练：`npm run drill:l1` 会在 L1-04/L1-06 之后**可选**跑 L1-07（栈未起则 SKIP，不阻断 bundle）。
+- API 先于 nginx 就绪时可能出现 **502**；`docker compose ... restart web` 即可。
+- 联合演练：`npm run drill:l1` 含 L1-07（栈未起则 SKIP）。
 
 ## 命令
 
 ```powershell
-npm run staging:isolation-smoke -- --config-only   # 仅配置
-npm run staging:isolation-smoke                    # 配置 + 功能（需 staging:up）
+npm run staging:isolation-smoke -- --config-only
+npm run staging:isolation-smoke
 ```
-
-## 相关
-
-- [STAGING.md](./STAGING.md)
-- [06-上市与运维准备路线图.md](../../优化计划/06-上市与运维准备路线图.md) L1-07

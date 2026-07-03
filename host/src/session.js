@@ -1,14 +1,14 @@
-const TOKEN_KEY = "zhimuSessionToken";
+import { defaultSessionTokenStore } from "../../shared/session-token.js";
+
 const WORLD_KEY = "zhimuHostWorldId";
 const ROOM_PREFIX = "zhimuHostRoomId:";
 
 export function getSessionToken() {
-  return localStorage.getItem(TOKEN_KEY) || "";
+  return defaultSessionTokenStore.get();
 }
 
 export function setSessionToken(token) {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  else localStorage.removeItem(TOKEN_KEY);
+  defaultSessionTokenStore.set(token || "");
 }
 
 export function getWorldId() {

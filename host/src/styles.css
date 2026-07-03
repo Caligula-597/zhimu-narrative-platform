@@ -1199,16 +1199,8 @@ textarea:focus-visible {
 }
 
 .toast-host {
-  position: fixed;
-  z-index: 100;
   right: 20px;
   bottom: 20px;
-  pointer-events: none;
-}
-
-.toast-host .toast {
-  position: static;
-  max-width: min(420px, calc(100vw - 40px));
 }
 
 @media (max-width: 1180px) {

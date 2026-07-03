@@ -1,0 +1,96 @@
+/**
+ * Shared toast styles — import after shared/tokens.css.
+ */
+
+.toast-host {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.toast-host--bottom-right {
+  right: 26px;
+  bottom: 24px;
+}
+
+.toast-host--bottom-center {
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+}
+
+.toast-host .toast {
+  position: static;
+  max-width: min(420px, calc(100vw - 40px));
+  pointer-events: auto;
+}
+
+.toast {
+  padding: 12px 15px;
+  color: #fff;
+  background: var(--green, #183f3a);
+  border-radius: 10px;
+  box-shadow: var(--shadow-soft, 0 18px 48px rgba(18, 45, 41, 0.08));
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.toast-with-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 14px;
+}
+
+.toast.toast-with-action .toast-action {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.toast.toast-with-action .toast-action:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.toast.toast-with-action .toast-dismiss {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 0;
+  padding: 2px 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.toast.toast-with-action .toast-dismiss:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes zhimu-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast-host .toast.show {
+  animation: zhimu-toast-in 0.22s ease;
+}

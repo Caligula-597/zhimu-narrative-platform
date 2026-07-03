@@ -9,6 +9,7 @@
 | [SPLIT_DOMAINS.md](./SPLIT_DOMAINS.md) | 分域部署、DNS、Pages/Railway 边界 |
 | [LAUNCH_ENV.md](./LAUNCH_ENV.md) | 生产环境变量 |
 | [MONITORING_SETUP.md](./MONITORING_SETUP.md) | metrics、告警、production-ready |
+| [ONCALL_DUTY_ZH.md](./ONCALL_DUTY_ZH.md) | 告警值班、响应 SLA、Runbook |
 | [TRACING.md](./TRACING.md) | OpenTelemetry SDK / OTLP |
 | [UPLOAD_SCAN.md](./UPLOAD_SCAN.md) | 上传 AV strict |
 | [RAILWAY.md](./RAILWAY.md) | Railway fullstack |

@@ -1,26 +1,24 @@
 # 生产级 SaaS 评估
 
-最后更新：2026-07-02
+最后更新：2026-07-03
 
 ## 结论
 
-织幕当前评分：**78 / 100**。
+织幕当前评分：**80 / 100**。
 
-这已经是一个接近公开 Beta 的生产化项目，不再是 demo 或功能样机。后端领域模型、三端产品形态、权限、安全门槛、测试、OPS、监控和文档体系都已经比较扎实。最近完成的 A1 小桥收口、A4 共享层抽取、`zhimuStatus` / `zhimuUserMessages` 迁移，明显降低了主应用前端维护风险。
+这已经是一个接近公开 Beta 的生产化项目，不再是 demo 或功能样机。L1 阶段（生产门槛 7/7、备份恢复、权限矩阵、内测 Support、staging 隔离、值班演练）已完成并有记录；A4 Phase 6（P1-07）三端共享层（api-fetch、session-token、toast、status-chip、tokens）已落地。
 
-但如果按“陌生用户可自助进入、规模化公开商用、团队能稳定运维”的标准，仍然不能给到 85 分以上。主要缺口已经从“代码架构债”转移到“生产环境证据”：
+距 85 分主要缺口：
 
-- L1-03 生产门槛还需要真实跑通：CSP enforce、上传扫描、OTLP、告警 webhook、OPS/METRICS token。
-- 数据备份恢复、上传扫描故障、告警响应、部署回滚还缺真实演练记录。
-- 公开 Beta 的用户自助闭环、反馈入口、官网真实截图和案例仍需补强。
-- 商业化支持体系仍偏人工，SLA、客户成功和订单/开通记录还需要产品化。
+- **L2-06** 官网真实三端截图与 pilot 案例（仍用占位 hero 图）。
+- 聚合接口（creator dashboard）可继续产品化。
+- 商业化支持（支付/SLA/客户成功）仍偏人工。
 
 建议定位：
 
 ```text
-可进入小规模真实内测和人工陪跑商业试点；
-接近公开 Beta，但上线前必须补齐生产门槛和运维演练；
-暂不建议直接大规模公开收费。
+可信 Beta 后期 → 可进入公开 Beta 内测；
+L1 运维证据已齐；下一步优先官网真实资产与 stranger 首次体验。
 ```
 
 ## 评分总表
@@ -29,12 +27,12 @@
 |---|---:|---|---|
 | 产品闭环 | 81 | 创作者、主持、玩家、官网、公开库、线索、规则、复盘形成闭环；创作者总控台已有风险和下一步表达 | 新用户自助引导、反馈闭环、真实截图仍需补齐 |
 | 后端与领域建模 | 86 | 后端按 account、asset、billing、checkpoint、content、creator、host、player、rules、studio、world、OPS 等领域拆分，RLS 和权限测试基础较好 | 聚合接口还可继续产品化，部分前端仍在拼摘要 |
-| 前端与 UI 产品化 | 78 | A1 三大桥已清除，小桥 `zhimuFormat/Ui/Modal/UiSemantics/CollapsePanel/Status/UserMessages` 已迁移；A4 共享层已有 security/api-error/sse/collapse | 仍有 session、pipeline、rule visual、LiveKit、nav/search 等窗口服务，公开 Beta UI 还需打磨 |
-| 安全与权限 | 78 | Session、CSP、上传扫描、限流、schema、OPS token、RLS、统一错误和权限边界已有 | 生产环境需真实验证，权限矩阵仍需人工抽查 |
-| 测试与质量门禁 | 82 | 后端、脚本、play、host、E2E 入口齐全；`check:modules/build/test:play/test:host/runtime/ui` 最近持续通过 | 关键业务 E2E 仍需稳定成为主线门禁 |
-| 运维与可观测 | 75 | health、ready、metrics、OTEL、alert、OPS status、productionTrust 已接线 | 缺真实 webhook/OTLP/扫描器配置和演练记录 |
-| CI/CD 与发布 | 73 | Railway、Pages、CI、CodeQL、smoke 体系已存在 | Pages secrets、统一 smoke、失败回滚演练仍需压实 |
-| 数据治理与恢复 | 68 | 备份、恢复、删除、导出、数据保留、RLS 文档和脚本已有 | 缺定期恢复演练记录和客户可理解的数据恢复承诺 |
+| 前端与 UI 产品化 | 82 | P1-07：shared api-fetch / session-token / toast / status-chip / tokens 四端统一 | pipeline、rule visual、LiveKit 等运行服务桥 |
+| 安全与权限 | 82 | productionTrust 7/7；L1-05 权限矩阵；RLS 045 | 新 API 持续抽查 |
+| 测试与质量门禁 | 82 | 后端、play、host、E2E；`npm run test:shared` 14 项 | 关键 E2E 主线门禁 |
+| 运维与可观测 | 82 | L1 演练 + productionTrust 7/7 + drill:oncall | 上传扫描故障、回滚演练可补 |
+| CI/CD 与发布 | 73 | Railway、Pages、CI、smoke 体系已存在 | Pages secrets、回滚演练 |
+| 数据治理与恢复 | 80 | managed + docker pg_dump 演练通过 | R2 附件恢复、客户承诺文案 |
 | 商业化与客户支持 | 64 | 定价草案、套餐、Beta、OPS 开通、人工扩容和申请流程已有 | 支付/订单/发票/SLA/客户成功仍未形成标准闭环 |
 | 文档与团队运维 | 82 | 架构、安全、OPS、路线图、产品愿景、状态文档较全 | 历史文档多，需要持续维护“当前真相源” |
 
@@ -45,7 +43,7 @@
 | Demo | 能演示核心想法 | 已超过 |
 | Alpha | 核心功能可跑，但依赖开发陪跑 | 已超过 |
 | 可信 Beta | 小范围真实用户可用，有人工支持 | 已达到 |
-| 公开 Beta | 陌生用户可自助完成首次体验 | 接近，需要补反馈、真实截图、生产门槛 |
+| 公开 Beta | 陌生用户可自助完成首次体验 | 接近 — 补 L2-06 官网真实截图 |
 | 商业试点 | 可承接少量付费/企业试用 | 有基础，建议人工陪跑 |
 | 标准商用 SaaS | 可规模化获客、计费、支持、运维 | 未达到 |
 
@@ -120,27 +118,25 @@ A1 已完成三大桥清除，A2 状态分片已完成，A3 API 拆分已完成�
 
 ## 下一步优先级
 
-### P0：上市前必须完成
+### P0：上市前必须完成（均已达成 2026-07-03）
 
 | ID | 任务 | 验收 |
 |---|---|---|
-| L1-03 | 生产门槛真实可过 | `npm run check:production-ready` 显示 productionTrust 7/7 |
-| L1-04 | 备份恢复演练 | 形成一次 Postgres 恢复到新库 + 附件策略记录 |
-| L1-05 | 权限矩阵复查 | world/room/role/catalog/ops/asset 权限测试和人工抽查通过 |
-| L1-06 | 内测支持闭环 | 反馈、审批、人工扩容、邮件模板、处理记录可执行 |
-| L1-07 | staging/production 隔离 | staging smoke 通过，数据库和 bucket 不混用 |
+| L1-03 | 生产门槛真实可过 | productionTrust **7/7** |
+| L1-04 | 备份恢复演练 | managed + docker pg_dump 通过 |
+| L1-05 | 权限矩阵复查 | 27 项测试 + 审计文档 |
+| L1-06 | 内测支持闭环 | beta drill 10/10 |
+| L1-07 | staging/production 隔离 | isolation smoke 11/11 |
 
 ### P1：公开 Beta 前完成
 
 | ID | 任务 | 验收 |
 |---|---|---|
-| L2-01 | 创作者制作总控台收尾 | 新用户知道下一步做什么，风险卡片可处理 |
-| L2-02 | 主持运行控制台收尾 | 主持人 30 秒内掌握玩家、待确认、线索、日志 |
-| L2-03 | 玩家下一步行动 | 玩家不依赖主持口头解释即可继续 |
-| L2-04 | clue audit 产品化 | 能发现孤立线索、缺条件、缺归属 |
-| L2-05 | rule debug trace | 规则为什么触发/不触发可解释 |
-| L2-06 | 官网真实截图和案例 | 官网不再依赖愿景图 |
-| L2-07 | 反馈与故障入口 | 用户能提交问题，运营能追踪处理 |
+| L2-01～03 | 三端下一步行动 | 已完成 |
+| L2-04～05 | clue audit + rule trace | 已完成 |
+| L2-07～08 | 反馈入口 + 值班 | 已完成 |
+| **P1-07** | **shared 视觉与状态语言** | **已完成** — `npm run test:shared` |
+| L2-06 | 官网真实截图和案例 | 待做 |
 
 ### P2：商业试点前完成
 
@@ -153,18 +149,16 @@ A1 已完成三大桥清除，A2 状态分片已完成，A3 API 拆分已完成�
 
 ## 最终判断
 
-为什么升到 78：
+为什么升到 80：
 
-- 主应用前端桥接治理显著推进。
-- A4 共享层已有实质收益。
-- 三端构建和测试路径更稳定。
-- 后端和 OPS 底座仍然强。
+- L1 生产门槛与运维演练证据已齐（7/7、备份、权限、Support、staging、值班）。
+- P1-07 三端共享层 Phase 6 完成，API / token / toast / status-chip 统一。
+- 阶段 2 产品闭环（总控台、主持台、玩家行动、反馈、clue audit）已落地。
 
 为什么还不到 85：
 
-- 生产门槛还缺真实环境证据。
-- 运维演练和客户支持闭环还不够。
-- 公开 Beta 的自助体验和官网真实案例不足。
+- L2-06 官网仍用占位 hero 图，陌生用户第一印象不足。
+- Creator dashboard 聚合 API 仍可减前端拼装。
 - 商业化支持仍偏人工。
 
-因此，**78 / 100** 是当前比较合理的生产级 SaaS 分数：已经值得进入上市冲刺，但下一阶段应少堆功能，多补生产证据、运维演练和用户自助闭环。
+因此，**80 / 100** 是当前合理的生产级 SaaS 分数：L1 已验收，可推进公开 Beta；下一优先 **L2-06 官网真实资产**。

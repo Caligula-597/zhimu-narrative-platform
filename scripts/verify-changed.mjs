@@ -186,6 +186,10 @@ if (files.some((f) => /^scripts\/(format-helpers|modal-helpers)/.test(f))) {
   run("test:modal-helpers", "npm run test:modal-helpers");
 }
 
+if (files.some((f) => /^shared\//.test(f) || /^scripts\/shared-/.test(f))) {
+  run("test:shared", "npm run test:shared");
+}
+
 if (files.some((f) => /^src\/runtime\/(workspace-store|runtime-store|data)\.js/.test(f))) {
   run("test:runtime-stores", "npm run test:runtime-stores");
 }
