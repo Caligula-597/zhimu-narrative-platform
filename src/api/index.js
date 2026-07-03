@@ -242,6 +242,13 @@ export {
   deepseekPipelineNarrativeRoleScript,
   deepseekPipelineNarrativeRoles,
   deepseekPipelineNarrativeExtractStructure,
+  deepseekPipelineMatrixTruth,
+  deepseekPipelineMatrixCharacters,
+  deepseekPipelineMatrixInfoMatrix,
+  deepseekPipelineMatrixHostRunbook,
+  deepseekPipelineMatrixPlayerScript,
+  deepseekPipelineMatrixEvaluate,
+  deepseekPipelineMatrixSyncPreview,
   proposeFullMysteryWithDeepseek,
   importFullMysteryWithDeepseek
 } from "./ai.js";

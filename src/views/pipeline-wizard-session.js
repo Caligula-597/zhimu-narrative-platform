@@ -1,54 +1,64 @@
-/** AI pipeline session model — 5-step flow (no DOM). */
+/** AI pipeline session model — matrix-first 8-step flow (no DOM). */
 (function (window) {
-  const PIPELINE_LAYER_ORDER = ["setup", "narrative", "roles", "evaluate", "sync"];
+  const PIPELINE_LAYER_ORDER = ["setup", "truth", "characters", "matrix", "host", "scripts", "evaluate", "sync"];
   const PIPELINE_LAYER_LABEL = {
     setup: "创作立项",
-    narrative: "逐章总剧情",
-    roles: "角色私人本",
-    evaluate: "AI 评判",
-    sync: "汇总同步",
+    truth: "真相档案",
+    characters: "角色档案",
+    matrix: "信息矩阵",
+    host: "主持手册",
+    scripts: "逐幕剧本",
+    evaluate: "矩阵评判",
+    sync: "机械入库",
+    narrative: "逐幕剧本",
+    roles: "逐幕剧本",
     spec: "创作立项",
-    structure: "汇总同步",
-    matrix: "角色私人本",
-    section: "角色私人本"
+    structure: "机械入库",
+    matrix_legacy: "信息矩阵",
+    section: "逐幕剧本"
   };
   const PIPELINE_LAYER_DEPS = {
     setup: [],
-    narrative: ["setup"],
-    roles: ["setup", "narrative"],
-    evaluate: ["setup", "narrative", "roles"],
-    sync: ["setup", "narrative", "roles", "evaluate"]
+    truth: ["setup"],
+    characters: ["setup", "truth"],
+    matrix: ["setup", "truth", "characters"],
+    host: ["setup", "truth", "matrix"],
+    scripts: ["setup", "truth", "characters", "matrix"],
+    evaluate: ["setup", "truth", "characters", "matrix", "scripts"],
+    sync: ["setup", "truth", "characters", "matrix", "scripts", "evaluate"]
   };
 
-  function narrativeMinChars(session) {
-    const target = session.setting?.wordsPerChapter
-      || session.config?.targetWordCount / Math.max(session.config?.chapterCount || 1, 1)
-      || 8000;
-    return Math.max(2000, Math.floor(Number(target) * 0.45));
+  function pipelineWordTargets(session) {
+    const tier = session?.setting?.volumeTier || "standard";
+    const map = {
+      demo: { perScript: 800, minScript: 400 },
+      standard: { perScript: 1500, minScript: 600 },
+      epic: { perScript: 4000, minScript: 2000 }
+    };
+    return map[tier] || map.standard;
   }
 
-  function sectionMinWords(session) {
-    return session.config?.wordsPerSectionMin || Math.min(800, Math.max(400, Math.floor((session.setting?.wordsPerChapter || 8000) / 8)));
+  function scriptMinWords(session) {
+    return session?.config?.wordsPerSectionMin || pipelineWordTargets(session).minScript;
   }
 
-  function countRoleScriptSections(session) {
-    const roles = session.rolesMeta?.roles || [];
-    const chapterKeys = session.config?.chapterKeys || [];
-    const min = sectionMinWords(session);
+  function countMatrixScripts(session) {
+    const roles = session.characterArchives?.roles || [];
+    const keys = session.config?.chapterKeys || [];
+    const min = scriptMinWords(session);
     let done = 0;
-    const total = roles.length * chapterKeys.length;
+    const total = roles.length * keys.length;
     for (const role of roles) {
-      for (const chapterKey of chapterKeys) {
-        const body = session.sections?.[role.key]?.[chapterKey]?.body || "";
+      for (const actKey of keys) {
+        const body = session.scripts?.[role.key]?.[actKey]?.body || "";
         if (body.length >= min) done += 1;
       }
     }
     return { done, total, min };
   }
 
-  function isRoleScriptSectionComplete(session, roleKey, chapterKey) {
-    const min = sectionMinWords(session);
-    return (session.sections?.[roleKey]?.[chapterKey]?.body || "").length >= min;
+  function isMatrixScriptComplete(session, roleKey, actKey) {
+    return (session.scripts?.[roleKey]?.[actKey]?.body || "").length >= scriptMinWords(session);
   }
 
   function defaultPipelineSession() {
@@ -56,9 +66,11 @@
       setting: null,
       synopsis: null,
       config: null,
-      narrativeChapters: {},
-      rolesMeta: null,
-      sections: {},
+      truthBible: null,
+      characterArchives: null,
+      infoMatrix: null,
+      hostRunbooks: null,
+      scripts: {},
       evaluation: null,
       proposal: null,
       locks: {},
@@ -70,14 +82,25 @@
   function migrateLegacySession(raw) {
     if (!raw || typeof raw !== "object") return raw;
     const next = { ...raw };
-    if (!next.config && next.spec) next.config = next.spec;
-    if (!next.rolesMeta && next.roleMatrix) next.rolesMeta = next.roleMatrix;
-    if (next.activeLayer === "spec") next.activeLayer = "setup";
+    if (next.narrativeChapters && !next.truthBible) {
+      next.truthBible = null;
+      next.characterArchives = null;
+      next.infoMatrix = null;
+      next.hostRunbooks = null;
+      next.scripts = {};
+      next.evaluation = null;
+      next.proposal = null;
+      next.locks = { setup: next.locks?.setup || false };
+    }
+    if (next.sections && !next.scripts) next.scripts = next.sections;
+    if (next.rolesMeta && !next.characterArchives) next.characterArchives = null;
+    if (next.activeLayer === "spec" || next.activeLayer === "narrative") next.activeLayer = "truth";
+    if (next.activeLayer === "roles" || next.activeLayer === "section" || next.activeLayer === "matrix_legacy") next.activeLayer = "scripts";
     if (next.activeLayer === "structure") next.activeLayer = "sync";
-    if (next.activeLayer === "matrix" || next.activeLayer === "section") next.activeLayer = "roles";
     if (next.locks?.spec && !next.locks.setup) next.locks.setup = next.locks.spec;
+    if (next.locks?.narrative && !next.locks.truth) next.locks.truth = false;
+    if (next.locks?.roles && !next.locks.scripts) next.locks.scripts = false;
     if (next.locks?.structure && !next.locks.sync) next.locks.sync = next.locks.structure;
-    if (next.locks?.matrix && !next.locks.roles) next.locks.roles = next.locks.matrix;
     return next;
   }
 
@@ -89,103 +112,79 @@
       setting: migrated.setting ?? null,
       synopsis: migrated.synopsis ?? null,
       config: migrated.config ?? null,
-      narrativeChapters: migrated.narrativeChapters || {},
-      rolesMeta: migrated.rolesMeta ?? null,
-      sections: migrated.sections || {},
+      truthBible: migrated.truthBible ?? null,
+      characterArchives: migrated.characterArchives ?? null,
+      infoMatrix: migrated.infoMatrix ?? null,
+      hostRunbooks: migrated.hostRunbooks ?? null,
+      scripts: migrated.scripts || {},
       evaluation: migrated.evaluation ?? null,
       proposal: migrated.proposal ?? null,
       locks: migrated.locks || {},
-      activeLayer: migrated.activeLayer || "setup",
+      activeLayer: PIPELINE_LAYER_ORDER.includes(migrated.activeLayer) ? migrated.activeLayer : "setup",
       _editorRev: migrated._editorRev || {}
     });
-    if (!raw?.locks) {
-      if (session.setting && session.synopsis && session.config) {
-        session.locks.setup = pipelineLayerHasData(session, "narrative");
-      }
-      if (pipelineLayerHasData(session, "narrative")) {
-        session.locks.narrative = Boolean(session.rolesMeta?.roles?.length);
-      }
-      if (session.rolesMeta?.roles?.length) {
-        session.locks.roles = Object.values(session.sections || {}).some(
-          (chapters) => Object.keys(chapters || {}).length
-        );
-      }
-      if (session.proposal) session.locks.sync = Boolean(session.evaluation);
-      if (session.evaluation && session.locks.sync) session.locks.evaluate = true;
-    }
     return session;
   }
 
   function pipelineChaptersForSession(session) {
     if (session.proposal?.chapters?.length) return session.proposal.chapters;
     const keys = session.config?.chapterKeys || [];
-    return keys.map((key, index) => {
-      const narrative = session.narrativeChapters?.[key];
-      return {
-        key,
-        title: narrative?.title || `第 ${index + 1} 章`,
-        summary: narrative?.summary || "",
-        sequence: index + 1
-      };
-    });
-  }
-
-  function pipelineNarrativeChapterList(session) {
-    const keys = session.config?.chapterKeys || [];
-    return keys.map((key) => session.narrativeChapters?.[key] || null).filter(Boolean);
-  }
-
-  function pipelineStubProposal(session, title = "") {
-    const chapters = pipelineChaptersForSession(session);
-    const scenes = chapters.map((chapter, index) => ({
-      key: `scene-${index + 1}`,
-      chapterKey: chapter.key,
-      name: chapter.title || `场景 ${index + 1}`,
-      publicText: chapter.summary || "待从总剧情抽取",
-      hostText: ""
+    return keys.map((key, index) => ({
+      key,
+      title: session.infoMatrix?.actTitles?.[key] || `第 ${index + 1} 幕`,
+      summary: session.infoMatrix?.actSummaries?.[key] || "",
+      sequence: index + 1
     }));
-    return {
-      title: title || session.config?.title || session.setting?.theme || "剧本",
-      logline: "",
-      chapters,
-      scenes,
-      investigationPoints: [],
-      clues: [],
-      edges: [],
-      suggestions: []
-    };
   }
 
   function pipelineLayerHasData(session, layer) {
-    const normalized = layer === "spec" ? "setup" : layer === "structure" ? "sync" : layer === "matrix" || layer === "section" ? "roles" : layer;
-    if (normalized === "setup") return Boolean(session.setting?.theme && session.synopsis?.body && session.config?.chapterKeys?.length);
-    if (normalized === "narrative") {
-      const keys = session.config?.chapterKeys || [];
-      const min = narrativeMinChars(session);
-      return keys.length > 0 && keys.every((key) => (session.narrativeChapters?.[key]?.narrativeBody || "").length >= min);
+    const normalized = normalizeLayerName(layer);
+    if (normalized === "setup") {
+      return Boolean(session.setting?.theme && session.synopsis?.body && session.config?.chapterKeys?.length);
     }
-    if (normalized === "roles") {
-      return Boolean(session.rolesMeta?.roles?.length)
-        && Object.values(session.sections || {}).some((chapters) => Object.keys(chapters || {}).length);
+    if (normalized === "truth") {
+      return Boolean(session.truthBible?.summary && session.truthBible?.killer && session.truthBible?.method);
+    }
+    if (normalized === "characters") {
+      return Boolean(session.characterArchives?.roles?.length === session.config?.playerCount);
+    }
+    if (normalized === "matrix") {
+      return Boolean(session.infoMatrix?.clues?.length && session.infoMatrix?.rows?.length);
+    }
+    if (normalized === "host") {
+      const keys = session.config?.chapterKeys || [];
+      return Boolean(session.hostRunbooks?.length >= keys.length);
+    }
+    if (normalized === "scripts") {
+      const progress = countMatrixScripts(session);
+      return progress.total > 0 && progress.done === progress.total;
     }
     if (normalized === "evaluate") return Boolean(session.evaluation);
     if (normalized === "sync") return Boolean(session.proposal);
     return false;
   }
 
+  function normalizeLayerName(layer) {
+    if (layer === "spec") return "setup";
+    if (layer === "narrative") return "truth";
+    if (layer === "roles" || layer === "section" || layer === "matrix_legacy") return "scripts";
+    if (layer === "structure") return "sync";
+    return layer;
+  }
+
   function pipelineLayerStatus(session, layer) {
-    const normalized = layer === "spec" ? "setup" : layer === "structure" ? "sync" : layer === "matrix" || layer === "section" ? "roles" : layer;
+    const normalized = normalizeLayerName(layer);
     if (!pipelineLayerHasData(session, normalized)) return "empty";
     return session.locks?.[normalized] ? "locked" : "draft";
   }
 
   function pipelineDepsLocked(session, layer) {
-    const normalized = layer === "spec" ? "setup" : layer === "structure" ? "sync" : layer === "matrix" || layer === "section" ? "roles" : layer;
+    const normalized = normalizeLayerName(layer);
     return (PIPELINE_LAYER_DEPS[normalized] || []).every((dep) => session.locks?.[dep]);
   }
 
   function pipelineClearDownstream(session, fromLayer) {
-    const normalized = fromLayer === "spec" ? "setup" : fromLayer === "structure" ? "sync" : fromLayer === "matrix" || fromLayer === "section" ? "roles" : fromLayer;
+    const normalized = normalizeLayerName(fromLayer);
     const idx = PIPELINE_LAYER_ORDER.indexOf(normalized);
     if (idx < 0) return;
     if (session._editorRev) {
@@ -197,23 +196,35 @@
     for (let i = idx + 1; i < PIPELINE_LAYER_ORDER.length; i++) {
       const layer = PIPELINE_LAYER_ORDER[i];
       session.locks[layer] = false;
-      if (layer === "roles") {
-        session.sections = {};
-        session.rolesMeta = null;
-      } else if (layer === "evaluate") session.evaluation = null;
+      if (layer === "characters") session.characterArchives = null;
+      else if (layer === "matrix") session.infoMatrix = null;
+      else if (layer === "host") session.hostRunbooks = null;
+      else if (layer === "scripts") session.scripts = {};
+      else if (layer === "evaluate") session.evaluation = null;
       else if (layer === "sync") session.proposal = null;
-      else if (layer === "narrative") session.narrativeChapters = {};
+      else if (layer === "truth") {
+        session.truthBible = null;
+        session.characterArchives = null;
+        session.infoMatrix = null;
+        session.hostRunbooks = null;
+        session.scripts = {};
+        session.evaluation = null;
+        session.proposal = null;
+      }
     }
   }
 
   function pipelineStepLabel(step) {
-    const normalized = step === "spec" ? "setup" : step === "structure" ? "sync" : step === "matrix" || step === "section" ? "roles" : step;
+    const normalized = normalizeLayerName(step);
     return ({
       setup: "① 创作立项",
-      narrative: "② 逐章总剧情",
-      roles: "③ 角色私人本",
-      evaluate: "④ AI 评判",
-      sync: "⑤ 汇总同步"
+      truth: "② 真相档案",
+      characters: "③ 角色档案",
+      matrix: "④ 信息矩阵",
+      host: "⑤ 主持手册",
+      scripts: "⑥ 逐幕剧本",
+      evaluate: "⑦ 矩阵评判",
+      sync: "⑧ 机械入库"
     })[normalized] || step;
   }
 
@@ -223,25 +234,39 @@
     return space >= 0 ? label.slice(space + 1) : label;
   }
 
+  function pipelinePayload(session) {
+    return {
+      setting: session.setting,
+      synopsis: session.synopsis,
+      config: session.config,
+      truthBible: session.truthBible,
+      characterArchives: session.characterArchives,
+      infoMatrix: session.infoMatrix,
+      hostRunbooks: session.hostRunbooks,
+      scripts: session.scripts,
+      proposal: session.proposal
+    };
+  }
+
   window.zhimuPipelineSession = {
     PIPELINE_LAYER_ORDER,
     PIPELINE_LAYER_LABEL,
     PIPELINE_LAYER_DEPS,
-    narrativeMinChars,
-    sectionMinWords,
-    countRoleScriptSections,
-    isRoleScriptSectionComplete,
+    pipelineWordTargets,
+    scriptMinWords,
+    countMatrixScripts,
+    isMatrixScriptComplete,
     defaultPipelineSession,
     normalizePipelineSession,
     pipelineChaptersForSession,
-    pipelineNarrativeChapterList,
-    pipelineStubProposal,
     pipelineLayerHasData,
     pipelineLayerStatus,
     pipelineDepsLocked,
     pipelineClearDownstream,
     pipelineStepLabel,
-    pipelineStepName
+    pipelineStepName,
+    pipelinePayload,
+    normalizeLayerName
   };
 })(window);
 export {};

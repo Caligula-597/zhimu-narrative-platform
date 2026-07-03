@@ -15,15 +15,19 @@ import { studioValues } from "../components/modal.js";
   function pipelineSettingFromForm() {
     const values = studioValues();
     const chapterCount = Math.max(3, Math.min(5, Number(values.aiChapterCount) || 5));
-    const wordsPerChapter = Math.max(2000, Math.min(12000, Number(values.aiWordsPerChapter) || 8000));
     const playerCount = Math.max(4, Math.min(8, Number(values.aiPlayerCount) || 6));
+    const volumeTier = ["demo", "standard", "epic"].includes(values.aiVolumeTier) ? values.aiVolumeTier : "standard";
     return {
       theme: String(values.aiTheme || values.aiTitle || "").trim(),
       playerCount,
       chapterCount,
-      wordsPerChapter,
+      wordsPerChapter: Math.max(2000, Math.min(12000, Number(values.aiWordsPerChapter) || 8000)),
       extraConflicts: String(values.aiConflicts || "").trim(),
-      tone: String(values.aiTone || "").trim()
+      tone: String(values.aiTone || "").trim(),
+      volumeTier,
+      pov: values.aiPov === "first" ? "first" : "second",
+      styleAnchor: String(values.aiStyleAnchor || "").trim(),
+      forbiddenPhrases: String(values.aiForbiddenPhrases || "").trim()
     };
   }
 
@@ -41,19 +45,24 @@ import { studioValues } from "../components/modal.js";
     const chapterCount = setting.chapterCount;
     const chapterKeys = Array.from({ length: chapterCount }, (_, i) => `ch${i + 1}`);
     const conflicts = pipelineLinesToArray(setting.extraConflicts);
-    const sectionMin = Math.min(800, Math.max(400, Math.floor(setting.wordsPerChapter / 8)));
+    const tierMap = {
+      demo: { perScript: 800, minScript: 400, label: "示范档" },
+      standard: { perScript: 1500, minScript: 600, label: "标准档" },
+      epic: { perScript: 4000, minScript: 2000, label: "完整档" }
+    };
+    const targets = tierMap[setting.volumeTier] || tierMap.standard;
     return {
       title: setting.theme,
       playerCount: setting.playerCount,
       chapterCount,
-      targetWordCount: chapterCount * setting.wordsPerChapter,
-      wordsPerSectionMin: sectionMin,
+      targetWordCount: chapterCount * targets.perScript,
+      wordsPerSectionMin: targets.minScript,
       sceneCount: Math.max(chapterCount * 2, 6),
       investigationPointCount: Math.max(chapterCount * 3, 8),
       clueCount: Math.max(chapterCount * 3, 8),
       chapterKeys,
       constraints: conflicts,
-      notes: [`每章总剧情目标约 ${setting.wordsPerChapter} 字`]
+      notes: [`矩阵流水线 · ${targets.label} · 每幕私人本约 ${targets.perScript} 字`]
     };
   }
 

@@ -19,6 +19,16 @@ import {
   deepseekConfig,
   normalizeStoryBrief
 } from "../deepseek.js";
+import {
+  buildPipelineImportPackage,
+  createPipelineCharacterArchives,
+  createPipelineHostRunbook,
+  createPipelineHostRunbooksAll,
+  createPipelineInfoMatrix,
+  createPipelineMatrixEvaluation,
+  createPipelineMatrixPlayerScript,
+  createPipelineTruthBible
+} from "../pipeline-matrix-deepseek.js";
 import { runRevisionMutation } from "../world-revision.js";
 import {
   buildWorldSnapshot,
@@ -43,6 +53,13 @@ import {
   deepseekPipelineNarrativeRoleScriptSchema,
   deepseekPipelineImportSchema,
   deepseekPipelineManuscriptSchema,
+  deepseekPipelineMatrixCharactersSchema,
+  deepseekPipelineMatrixEvaluateSchema,
+  deepseekPipelineMatrixHostSchema,
+  deepseekPipelineMatrixInfoSchema,
+  deepseekPipelineMatrixPlayerScriptSchema,
+  deepseekPipelineMatrixSyncPreviewSchema,
+  deepseekPipelineMatrixTruthSchema,
   deepseekPipelineOutlineSchema,
   deepseekPipelineRoleMatrixSchema,
   deepseekPipelineSectionSchema,
@@ -164,10 +181,14 @@ export async function registerStoryAssistantRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const body = request.body ?? {};
+    if (body.truthBible && body.infoMatrix) {
+      return createPipelineMatrixEvaluation(body);
+    }
     const narrativeChapters = Array.isArray(body.narrativeChapters) ? body.narrativeChapters : [];
     const hasSections = body.sections && typeof body.sections === "object" && Object.keys(body.sections).length > 0;
-    if (!narrativeChapters.length && !hasSections) {
-      throwErr("VALIDATION_ERROR", "评判需要至少一章总剧情或角色私人本，请先完成 ② 总剧情与 ③ 私人本");
+    const hasScripts = body.scripts && typeof body.scripts === "object" && Object.keys(body.scripts).length > 0;
+    if (!narrativeChapters.length && !hasSections && !hasScripts) {
+      throwErr("VALIDATION_ERROR", "评判需要矩阵产物或旧版总剧情/私人本，请先完成上游步骤");
     }
     const firstSection = body.sampleSection || Object.entries(body.sections || {}).flatMap(([roleKey, chapters]) =>
       Object.entries(chapters || {}).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey }))
@@ -221,6 +242,57 @@ export async function registerStoryAssistantRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     return createDeepseekStructureFromNarrative(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/truth", { schema: deepseekPipelineMatrixTruthSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createPipelineTruthBible(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/characters", { schema: deepseekPipelineMatrixCharactersSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createPipelineCharacterArchives(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/info-matrix", { schema: deepseekPipelineMatrixInfoSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createPipelineInfoMatrix(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/host-runbook", { schema: deepseekPipelineMatrixHostSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const body = request.body ?? {};
+    if (body.allActs) return createPipelineHostRunbooksAll(body);
+    return createPipelineHostRunbook(body);
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/player-script", { schema: deepseekPipelineMatrixPlayerScriptSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createPipelineMatrixPlayerScript(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/evaluate", { schema: deepseekPipelineMatrixEvaluateSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return createPipelineMatrixEvaluation(request.body ?? {});
+  });
+
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/sync-preview", { schema: deepseekPipelineMatrixSyncPreviewSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return buildPipelineImportPackage(request.body ?? {});
   });
 
   app.get("/api/worlds/:worldId/story-manuscript", async (request) => {

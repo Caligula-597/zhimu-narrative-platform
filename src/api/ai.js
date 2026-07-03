@@ -78,6 +78,39 @@ export function deepseekPipelineEvaluate(payload) {
   });
 }
 
+export function deepseekPipelineMatrixTruth(payload) {
+  return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/truth`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 240_000 });
+}
+
+export function deepseekPipelineMatrixCharacters(payload) {
+  return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/characters`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 240_000 });
+}
+
+export function deepseekPipelineMatrixInfoMatrix(payload) {
+  return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/info-matrix`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 240_000 });
+}
+
+export function deepseekPipelineMatrixHostRunbook(payload) {
+  return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/host-runbook`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 180_000 });
+}
+
+export function deepseekPipelineMatrixPlayerScript(payload) {
+  return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/player-script`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: payload,
+    timeoutMs: 240_000
+  });
+}
+
+export function deepseekPipelineMatrixEvaluate(payload) {
+  return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/evaluate`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 240_000 });
+}
+
+export function deepseekPipelineMatrixSyncPreview(payload) {
+  return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/sync-preview`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 120_000 });
+}
+
 export function deepseekPipelineNarrativeChapter(payload) {
   return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/narrative/chapter`, { userId: demoContext.hostUserId, method: "POST", body: payload });
 }

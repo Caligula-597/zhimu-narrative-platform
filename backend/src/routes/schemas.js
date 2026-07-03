@@ -1231,7 +1231,11 @@ const creativeSettingBody = {
     chapterCount: { type: "integer", minimum: 3, maximum: 5 },
     wordsPerChapter: { type: "integer", minimum: 2000, maximum: 12_000 },
     extraConflicts: { type: "string", maxLength: 3000 },
-    tone: { type: "string", maxLength: 800 }
+    tone: { type: "string", maxLength: 800 },
+    volumeTier: { type: "string", enum: ["demo", "standard", "epic"] },
+    pov: { type: "string", enum: ["second", "first"] },
+    styleAnchor: { type: "string", maxLength: 2000 },
+    forbiddenPhrases: { type: "string", maxLength: 1000 }
   }
 };
 
@@ -1370,8 +1374,73 @@ export const deepseekPipelineEvaluateSchema = {
       rolesMeta: optionalNullableJsonObject,
       sections: optionalNullableJsonObject,
       sampleSection: optionalNullableJsonObject,
-      narrativeChapters: { type: "array", maxItems: 12, items: deepseekJsonObject }
+      narrativeChapters: { type: "array", maxItems: 12, items: deepseekJsonObject },
+      truthBible: optionalNullableJsonObject,
+      characterArchives: optionalNullableJsonObject,
+      infoMatrix: optionalNullableJsonObject,
+      scripts: optionalNullableJsonObject,
+      hostRunbooks: optionalNullableJsonObject
     }
+  }
+};
+
+const matrixPipelineBody = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    ...creativePipelineFields,
+    truthBible: optionalNullableJsonObject,
+    characterArchives: optionalNullableJsonObject,
+    infoMatrix: optionalNullableJsonObject,
+    scripts: optionalNullableJsonObject,
+    hostRunbooks: optionalNullableJsonObject,
+    actKey: { type: "string", maxLength: 40 },
+    roleKey: { type: "string", maxLength: 40 },
+    deAiPass: { type: "boolean" }
+  }
+};
+
+export const deepseekPipelineMatrixTruthSchema = {
+  params: worldIdParams,
+  body: matrixPipelineBody
+};
+
+export const deepseekPipelineMatrixCharactersSchema = {
+  params: worldIdParams,
+  body: { ...matrixPipelineBody, required: ["truthBible"] }
+};
+
+export const deepseekPipelineMatrixInfoSchema = {
+  params: worldIdParams,
+  body: { ...matrixPipelineBody, required: ["truthBible", "characterArchives"] }
+};
+
+export const deepseekPipelineMatrixHostSchema = {
+  params: worldIdParams,
+  body: { ...matrixPipelineBody, required: ["truthBible", "infoMatrix"] }
+};
+
+export const deepseekPipelineMatrixPlayerScriptSchema = {
+  params: worldIdParams,
+  body: {
+    ...matrixPipelineBody,
+    required: ["truthBible", "characterArchives", "infoMatrix", "roleKey", "actKey"]
+  }
+};
+
+export const deepseekPipelineMatrixEvaluateSchema = {
+  params: worldIdParams,
+  body: {
+    ...matrixPipelineBody,
+    required: ["truthBible", "infoMatrix"]
+  }
+};
+
+export const deepseekPipelineMatrixSyncPreviewSchema = {
+  params: worldIdParams,
+  body: {
+    ...matrixPipelineBody,
+    required: ["truthBible", "characterArchives", "infoMatrix"]
   }
 };
 

@@ -19,82 +19,80 @@ function loadPipelineSession() {
   return sandbox.window.zhimuPipelineSession;
 }
 
-test("normalizePipelineSession infers locks from nested content", () => {
+test("migrateLegacySession clears narrative downstream into matrix flow", () => {
   const PS = loadPipelineSession();
   const session = PS.normalizePipelineSession({
-    setting: { theme: "测试", playerCount: 4, chapterCount: 1, wordsPerChapter: 8000 },
+    setting: { theme: "测试", playerCount: 4, chapterCount: 1, volumeTier: "standard" },
     synopsis: { body: "纲要" },
     config: { playerCount: 4, chapterKeys: ["ch1"] },
     narrativeChapters: { ch1: { chapterKey: "ch1", narrativeBody: "x".repeat(4000) } },
     rolesMeta: { roles: [{ key: "a", name: "A" }] },
     sections: { a: { ch1: { body: "x".repeat(260) } } },
-    proposal: { chapters: [{ key: "ch1", title: "T" }] }
+    proposal: { chapters: [{ key: "ch1", title: "T" }] },
+    locks: { setup: true, narrative: true, roles: true }
   });
-  assert.equal(session.locks.setup, true);
-  assert.equal(session.locks.narrative, true);
-  assert.equal(session.locks.roles, true);
+  assert.equal(Object.keys(session.scripts).length, 0);
+  assert.equal(session.truthBible, null);
+  assert.equal(session.characterArchives, null);
+  assert.equal(session.activeLayer, "setup");
 });
 
-test("pipelineClearDownstream clears narrative when setup is edited", () => {
+test("pipelineClearDownstream clears truth when setup is edited", () => {
   const PS = loadPipelineSession();
   const session = PS.normalizePipelineSession({
-    setting: { theme: "测试", playerCount: 4, chapterCount: 1, wordsPerChapter: 8000 },
+    setting: { theme: "测试", playerCount: 4, chapterCount: 1 },
     synopsis: { body: "纲要" },
     config: { playerCount: 4, chapterKeys: ["ch1"] },
-    narrativeChapters: { ch1: { chapterKey: "ch1", narrativeBody: "x".repeat(4000) } },
-    locks: { setup: true, narrative: true }
+    truthBible: { summary: "x".repeat(220), killer: "甲", method: "毒" },
+    locks: { setup: true, truth: true }
   });
   PS.pipelineClearDownstream(session, "setup");
-  assert.equal(session.narrativeChapters.ch1, undefined);
-  assert.equal(session.locks.narrative, false);
+  assert.equal(session.truthBible, null);
+  assert.equal(session.locks.truth, false);
 });
 
-test("pipelineDepsLocked requires setup before narrative", () => {
+test("pipelineDepsLocked requires setup before truth", () => {
   const PS = loadPipelineSession();
   const session = PS.defaultPipelineSession();
   session.locks = { setup: false };
-  assert.equal(PS.pipelineDepsLocked(session, "narrative"), false);
+  assert.equal(PS.pipelineDepsLocked(session, "truth"), false);
   session.locks.setup = true;
-  assert.equal(PS.pipelineDepsLocked(session, "narrative"), true);
+  assert.equal(PS.pipelineDepsLocked(session, "truth"), true);
 });
 
 test("pipelineStepName strips numbered prefix without breaking CJK", () => {
   const PS = loadPipelineSession();
   assert.equal(PS.pipelineStepName("setup"), "创作立项");
-  assert.equal(PS.pipelineStepLabel("narrative"), "② 逐章总剧情");
-  assert.equal(PS.pipelineStepLabel("roles"), "③ 角色私人本");
+  assert.equal(PS.pipelineStepLabel("truth"), "② 真相档案");
+  assert.equal(PS.pipelineStepLabel("scripts"), "⑥ 逐幕剧本");
 });
 
-test("pipelineClearDownstream clears roles when narrative is edited", () => {
+test("countMatrixScripts tracks per-cell completion", () => {
   const PS = loadPipelineSession();
   const session = PS.normalizePipelineSession({
-    setting: { theme: "测试", playerCount: 4, chapterCount: 1, wordsPerChapter: 8000 },
-    synopsis: { body: "纲要" },
-    config: { playerCount: 4, chapterKeys: ["ch1"] },
-    narrativeChapters: { ch1: { chapterKey: "ch1", narrativeBody: "x".repeat(4000) } },
-    rolesMeta: { roles: [{ key: "a", name: "A" }] },
-    locks: { setup: true, narrative: true }
+    setting: { theme: "测试", volumeTier: "demo" },
+    config: { playerCount: 2, chapterKeys: ["act1", "act2"] },
+    characterArchives: { roles: [{ key: "r1", name: "甲" }, { key: "r2", name: "乙" }] },
+    scripts: { r1: { act1: { body: "x".repeat(500) } } }
   });
-  PS.pipelineClearDownstream(session, "narrative");
-  assert.ok(session.narrativeChapters.ch1);
-  assert.equal(session.rolesMeta, null);
-  assert.equal(session.locks.roles, false);
-});
-
-test("pipelineDepsLocked requires narrative before roles", () => {
-  const PS = loadPipelineSession();
-  const session = PS.defaultPipelineSession();
-  session.locks = { setup: true, narrative: false };
-  assert.equal(PS.pipelineDepsLocked(session, "roles"), false);
-  session.locks.narrative = true;
-  assert.equal(PS.pipelineDepsLocked(session, "roles"), true);
+  const progress = PS.countMatrixScripts(session);
+  assert.equal(progress.total, 4);
+  assert.equal(progress.done, 1);
+  assert.equal(progress.min, 400);
 });
 
 test("pipelineDepsLocked requires evaluate before sync", () => {
   const PS = loadPipelineSession();
   const session = PS.defaultPipelineSession();
-  session.locks = { setup: true, narrative: true, roles: true, evaluate: false };
+  session.locks = { setup: true, truth: true, characters: true, matrix: true, scripts: true, evaluate: false };
   assert.equal(PS.pipelineDepsLocked(session, "sync"), false);
   session.locks.evaluate = true;
   assert.equal(PS.pipelineDepsLocked(session, "sync"), true);
+});
+
+test("normalizeLayerName maps legacy layer ids", () => {
+  const PS = loadPipelineSession();
+  assert.equal(PS.normalizeLayerName("narrative"), "truth");
+  assert.equal(PS.normalizeLayerName("roles"), "scripts");
+  assert.equal(PS.normalizeLayerName("structure"), "sync");
 });

@@ -4,13 +4,18 @@ export function validateCreativeSetting(raw) {
   const value = raw && typeof raw === "object" ? raw : {};
   const chapterCount = Math.max(3, Math.min(5, Number(value.chapterCount) || 5));
   const wordsPerChapter = Math.max(2000, Math.min(12000, Number(value.wordsPerChapter) || 8000));
+  const volumeTier = ["demo", "standard", "epic"].includes(value.volumeTier) ? value.volumeTier : "standard";
   return {
     theme: cleanText(value.theme, 120),
     playerCount: Math.max(4, Math.min(8, Number(value.playerCount) || 6)),
     chapterCount,
     wordsPerChapter,
     extraConflicts: cleanText(value.extraConflicts, 3000),
-    tone: cleanText(value.tone, 800)
+    tone: cleanText(value.tone, 800),
+    volumeTier,
+    pov: value.pov === "first" ? "first" : "second",
+    styleAnchor: cleanText(value.styleAnchor, 2000),
+    forbiddenPhrases: cleanText(value.forbiddenPhrases, 1000)
   };
 }
 
@@ -31,6 +36,10 @@ export function formatCreativeSettingBlock(setting) {
     `章节数量：${setting.chapterCount}`,
     `每章节目标字数：${setting.wordsPerChapter}`,
     setting.tone ? `场景基调：${setting.tone}` : null,
+    setting.volumeTier ? `体量档位：${setting.volumeTier}` : null,
+    setting.pov ? `叙述视角：${setting.pov === "first" ? "第一人称" : "第二人称"}` : null,
+    setting.styleAnchor ? `文风锚点：\n${setting.styleAnchor}` : null,
+    setting.forbiddenPhrases ? `禁用词：\n${setting.forbiddenPhrases}` : null,
     setting.extraConflicts ? `额外的矛盾冲突：\n${setting.extraConflicts}` : null
   ].filter(Boolean);
   return lines.join("\n");

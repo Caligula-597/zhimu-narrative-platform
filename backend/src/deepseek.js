@@ -13,6 +13,7 @@ import { buildRolesMetaFromNarrativeMessages } from "./prompts/roles-meta-from-n
 import { buildRoleScriptFromNarrativeMessages } from "./prompts/role-script-from-narrative.js";
 import { validateCreativeSetting, validateSynopsisInput } from "./prompts/creative-input.js";
 import { clampInteger, cleanText } from "./prompts/shared.js";
+import { pipelineWordTargets } from "./pipeline-matrix-model.js";
 
 const DEFAULT_BASE_URL = "https://api.deepseek.com";
 const DEFAULT_MODEL = "deepseek-v4-flash";
@@ -619,20 +620,21 @@ export { validateCreativeSetting, validateSynopsisInput };
 
 function buildConfigFromSetting(setting) {
   const chapterKeys = Array.from({ length: setting.chapterCount }, (_, i) => `ch${i + 1}`);
+  const targets = pipelineWordTargets(setting);
   return {
     title: setting.theme,
     playerCount: setting.playerCount,
     chapterCount: setting.chapterCount,
     chapterKeys,
-    targetWordCount: setting.chapterCount * setting.wordsPerChapter,
-    wordsPerSectionMin: Math.min(800, Math.max(400, Math.floor(setting.wordsPerChapter / 8))),
+    targetWordCount: setting.chapterCount * targets.perScript,
+    wordsPerSectionMin: targets.minScript,
     sceneCount: Math.max(setting.chapterCount * 2, 6),
     investigationPointCount: Math.max(setting.chapterCount * 3, 8),
     clueCount: Math.max(setting.chapterCount * 3, 8),
     constraints: setting.extraConflicts
       ? setting.extraConflicts.split(/\n/).map((line) => line.trim()).filter(Boolean)
       : [],
-    notes: [`每章总剧情目标约 ${setting.wordsPerChapter} 字`]
+    notes: [`矩阵流水线 · ${targets.label} · 每幕私人本约 ${targets.perScript} 字`]
   };
 }
 
