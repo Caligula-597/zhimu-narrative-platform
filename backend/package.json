@@ -23,6 +23,8 @@
     "check:schemas": "node scripts/verify-route-schemas.mjs",
     "db:backup": "node scripts/pg-backup.mjs",
     "db:verify-restore": "node scripts/verify-backup-restore.mjs",
+    "db:verify-restore:docker": "node scripts/verify-backup-restore-docker.mjs",
+    "db:verify-restore:managed": "node scripts/verify-backup-restore-managed.mjs",
     "db:verify-migration-upgrade": "node scripts/verify-migration-upgrade.mjs",
     "data:purge-expired": "node scripts/purge-expired-data.mjs",
     "test": "node --test-concurrency=1 --test-force-exit --import ./test/hooks.mjs --test test/*.test.js",

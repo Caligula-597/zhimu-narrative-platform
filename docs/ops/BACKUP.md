@@ -35,7 +35,27 @@ Windows 任务计划程序可等价调度 `node scripts/pg-backup.mjs`。
 
 ## 自动恢复演练（季度建议）
 
-验证「备份 → 新库 → 行数一致」：
+### 托管库（Supabase / Railway，无 CREATE DATABASE）
+
+```bash
+cd backend
+npm run db:verify-restore:managed
+```
+
+在**同一库**内创建临时 schema，克隆 5 张核心表并对比行数，然后删除 schema。仅需 `DATABASE_URL` 与 Node `pg`，无需 `pg_dump`。
+
+最近记录：[BACKUP_DRILL_2026-07-03.md](./BACKUP_DRILL_2026-07-03.md)（2026-07-03 通过）。
+
+### Docker 全量 dump → 本地容器恢复
+
+```bash
+cd backend
+npm run db:verify-restore:docker
+```
+
+`pg_dump` 远程库 → 导入 ephemeral Docker Postgres → 对比行数。需 Docker 守护进程运行。
+
+### 自管 Postgres（有 CREATE DATABASE + pg 客户端）
 
 ```bash
 cd backend
