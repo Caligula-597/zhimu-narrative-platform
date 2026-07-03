@@ -59,6 +59,7 @@
     "test:ui-semantics": "node --test scripts/ui-semantics.test.mjs",
     "test:runtime-stores": "node --test scripts/runtime-stores.test.mjs",
     "test:pipeline-session": "node --test scripts/pipeline-wizard-session.test.mjs",
+    "generate:matrix-pilot": "node backend/scripts/generate-matrix-pilot-example.mjs",
     "test:play": "npm run build --prefix play && node --test play/test/*.test.mjs",
     "test:host": "npm run build --prefix host && node --test host/test/*.test.mjs",
     "test:permissions-matrix": "npm run test:permissions-matrix --prefix backend",
