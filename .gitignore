@@ -13,6 +13,7 @@ backend/.env.*
 !backend/.env.example
 !backend/.env.production.example
 config/clash-proxy.env
+config/ops-bridge.env.generated
 test-results/
 playwright-report/
 backend/test-output.txt

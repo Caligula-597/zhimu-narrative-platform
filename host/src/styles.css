@@ -1098,6 +1098,17 @@ textarea:focus-visible {
   line-height: 1.55;
 }
 
+.rule-trace-list {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  color: var(--host-clay, #8b4513);
+  font-size: 12px;
+}
+
+.rule-trace-fail {
+  margin: 2px 0;
+}
+
 .rule-editor-modal {
   width: min(820px, 94vw);
 }

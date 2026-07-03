@@ -77,3 +77,29 @@ test("GET /api/worlds/:id/creator-checks includes summary", async (context) => {
   assert.ok(response.json().summary?.counts);
   assert.ok(Array.isArray(response.json().checks));
 });
+
+test("GET /api/worlds/:id/clue-audit returns audit report", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const worlds = await app.inject({
+    method: "GET",
+    url: "/api/worlds",
+    headers: { "x-user-id": hostUserId }
+  });
+  const worldId = worlds.json()[0]?.id;
+  assert.ok(worldId, "host should have a world");
+
+  const response = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${worldId}/clue-audit`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(response.statusCode, 200);
+  const body = response.json();
+  assert.equal(body.worldId, worldId);
+  assert.ok(Array.isArray(body.cards));
+  assert.ok(Array.isArray(body.issues));
+  assert.ok(body.summary);
+  assert.equal(typeof body.score, "number");
+});

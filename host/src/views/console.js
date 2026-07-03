@@ -461,12 +461,19 @@ export function openHostNudgeWaitingModal(){
  modalEl.backdrop.classList.add("show");modalEl.root.querySelector("[data-close]").onclick=closeModal;modalEl.root.querySelector("[data-nudge-submit]").onclick=async()=>{try{const message=modalEl.root.querySelector("[data-nudge-message]").value;const roleSlotIds=[...modalEl.root.querySelectorAll("[data-nudge-role]:checked")].map((el)=>el.value);if(!roleSlotIds.length)return showToast("请至少选择一名玩家");const result=await api.hostNudgeWaiting({message,roleSlotIds});closeModal();showToast(`已提醒 ${result.notifiedCount} 名玩家`)}catch(error){showToast(error.message)}};
 }
 
+function rulePreviewTraceRows(row) {
+  if (row.conditionsMet !== false || !row.failedConditions?.length) return "";
+  return `<ul class="rule-trace-list">${row.failedConditions
+    .map((leaf) => `<li class="rule-trace-fail">${escapeHtml(leaf.label || leaf.type || "条件未满足")}</li>`)
+    .join("")}</ul>`;
+}
+
 function directorRulesPreview(){
  const preview=state.cloudRulesPreview;
  if(!preview)return `<div class="empty-state">点击「刷新预览」查看当前房间中启用规则的条件评估结果。</div>`;
  if(!preview.length)return `<div class="empty-state">当前平行房没有启用的运行规则。</div>`;
  const statusLabel=rulePreviewStatusLabel;
- return `<div class="host-detail-list">${preview.map((row)=>`<div class="checkpoint-row"><strong>${escapeHtml(row.name)}</strong><p>${escapeHtml(statusLabel(row.status))}${row.conditionsMet===false?" · 条件未满足":""}</p>${row.status==="manual_ready"?`<button class="text-btn" data-action="rule-manual-trigger" data-rule="${row.id}">立即触发</button>`:""}</div>`).join("")}</div>`;
+ return `<div class="host-detail-list">${preview.map((row)=>`<div class="checkpoint-row"><strong>${escapeHtml(row.name)}</strong><p>${escapeHtml(statusLabel(row.status))}${row.conditionsMet===false?" · 条件未满足":""}</p>${rulePreviewTraceRows(row)}${row.status==="manual_ready"?`<button class="text-btn" data-action="rule-manual-trigger" data-rule="${row.id}">立即触发</button>`:""}</div>`).join("")}</div>`;
 }
 
 export async function refreshRulesPreview(){

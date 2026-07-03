@@ -3,7 +3,7 @@ import { throwErr } from "./api-errors.js";
 import { transaction } from "./db.js";
 import { transactionWithEvents } from "./transaction-events.js";
 import { grantItemToInventory } from "./inventory-helpers.js";
-import { evaluateConditions } from "./rule-condition-evaluator.js";
+import { collectFailedConditionLeaves, evaluateConditions, traceConditions } from "./rule-condition-evaluator.js";
 async function executeAction(client, roomId, action) {
   if (action.type === "unlock_script_section") {
     await client.query(
@@ -115,7 +115,10 @@ export async function previewRoomRules(roomId) {
   const preview = [];
 
   for (const rule of rules.rows) {
-    const conditionsMet = await evaluateConditions(dbClient, roomId, rule.conditions ?? {});
+    const conditions = rule.conditions ?? {};
+    const conditionsMet = await evaluateConditions(dbClient, roomId, conditions);
+    const conditionTrace = await traceConditions(dbClient, roomId, conditions);
+    const failedLeaves = collectFailedConditionLeaves(conditionTrace);
     let status = "waiting";
     if (rule.mode === "manual") {
       status = conditionsMet ? "manual_ready" : "conditions_unmet";
@@ -137,7 +140,13 @@ export async function previewRoomRules(roomId) {
       conditionsMet,
       alreadyExecuted: rule.already_executed,
       pendingHostEvent: rule.pending_host_event,
-      status
+      status,
+      conditionTrace,
+      failedConditions: failedLeaves.map((leaf) => ({
+        type: leaf.type,
+        label: leaf.label,
+        refs: leaf.refs
+      }))
     });
   }
 

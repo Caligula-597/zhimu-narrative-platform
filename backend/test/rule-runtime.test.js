@@ -149,6 +149,8 @@ test("previewRoomRules reports would_execute without writes", async (context) =>
   const preview = await previewRoomRules(fx.roomId);
   assert.equal(preview.length, 1);
   assert.equal(preview[0].status, "would_execute");
+  assert.ok(preview[0].conditionTrace);
+  assert.equal(preview[0].failedConditions.length, 0);
 
   const logsBefore = await query(`SELECT 1 FROM timeline_logs WHERE room_id = $1 AND message = 'preview probe'`, [fx.roomId]);
   assert.equal(logsBefore.rowCount, 0);

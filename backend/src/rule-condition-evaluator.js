@@ -80,6 +80,110 @@ async function leafConditionSatisfied(client, roomId, condition) {
   return false;
 }
 
+function describeLeafCondition(condition) {
+  if (condition.type === "reading_completed") {
+    return "角色读完指定分幕";
+  }
+  if (condition.type === "clue_owned") {
+    return "角色拥有指定线索";
+  }
+  if (condition.type === "item_owned") {
+    return "角色拥有指定物品";
+  }
+  if (condition.type === "investigation_completed") {
+    return "完成指定调查点";
+  }
+  if (condition.type === "variable_compare") {
+    return `变量 ${condition.key || "?"} ${condition.operator || "eq"} ${condition.value ?? "?"}`;
+  }
+  return condition.type || "未知条件";
+}
+
+/** Explain why each leaf passes or fails (P1-05 rule debug trace). */
+export async function traceConditions(client, roomId, node) {
+  if (!node || typeof node !== "object") {
+    return { kind: "empty", satisfied: true, label: "无条件" };
+  }
+
+  if (node.not != null) {
+    const child = await traceConditions(client, roomId, node.not);
+    return {
+      kind: "not",
+      satisfied: !child.satisfied,
+      label: "取反",
+      children: [child]
+    };
+  }
+
+  if (Array.isArray(node.all)) {
+    const children = [];
+    let satisfied = true;
+    for (const child of node.all) {
+      const traced = await traceConditions(client, roomId, child);
+      children.push(traced);
+      if (!traced.satisfied) satisfied = false;
+    }
+    return {
+      kind: "all",
+      satisfied,
+      label: "全部满足",
+      children
+    };
+  }
+
+  if (Array.isArray(node.any)) {
+    const children = [];
+    let satisfied = false;
+    for (const child of node.any) {
+      const traced = await traceConditions(client, roomId, child);
+      children.push(traced);
+      if (traced.satisfied) satisfied = true;
+    }
+    if (!node.any.length) {
+      return { kind: "any", satisfied: false, label: "任一满足（空列表）", children: [] };
+    }
+    return {
+      kind: "any",
+      satisfied,
+      label: "任一满足",
+      children
+    };
+  }
+
+  if (node.type) {
+    const satisfied = await leafConditionSatisfied(client, roomId, node);
+    return {
+      kind: "leaf",
+      type: node.type,
+      satisfied,
+      label: describeLeafCondition(node),
+      refs: {
+        roleSlotId: node.roleSlotId ?? null,
+        scriptSectionId: node.scriptSectionId ?? null,
+        clueId: node.clueId ?? null,
+        itemId: node.itemId ?? null,
+        investigationPointId: node.investigationPointId ?? null,
+        key: node.key ?? null
+      }
+    };
+  }
+
+  return { kind: "unknown", satisfied: true, label: "未知结构" };
+}
+
+/** Flatten trace tree into failed leaf nodes for UI summaries. */
+export function collectFailedConditionLeaves(trace, out = []) {
+  if (!trace) return out;
+  if (trace.kind === "leaf" && !trace.satisfied) {
+    out.push(trace);
+    return out;
+  }
+  for (const child of trace.children ?? []) {
+    collectFailedConditionLeaves(child, out);
+  }
+  return out;
+}
+
 /** Evaluate nested conditions: leaf, { all }, { any }, { not }. */
 export async function evaluateConditions(client, roomId, node) {
   if (!node || typeof node !== "object") return true;

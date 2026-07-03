@@ -853,6 +853,8 @@ h3 { font-size:15px; }
 .checkpoint-meta { display:flex; flex-wrap:wrap; gap:10px; color:var(--muted); font-size:10px; margin-bottom:10px; }
 .checkpoint-row { padding:8px; border:1px solid var(--line); border-radius:8px; background:#fff; margin-bottom:8px; }
 .checkpoint-row p { margin-top:4px; color:var(--muted); font-size:9px; }
+.rule-trace-list { margin:6px 0 0; padding-left:16px; color:var(--clay); font-size:9px; }
+.rule-trace-fail { margin:2px 0; }
 .recap-list { display:grid; gap:12px; }
 .recap-card { padding:14px; border:1px solid var(--line); border-radius:12px; background:#f7faf8; }
 .recap-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:8px; }

@@ -11,9 +11,10 @@
 | 玩家端基础闭环 | 完成 |
 | OPS 产品化 | 完成 |
 | CSP enforce | 完成 |
-| OpenTelemetry SDK / OTLP | 完成代码接线，待真实 endpoint |
-| Alert webhook | 完成代码接线，待真实 webhook |
-| Upload AV strict | 完成代码门槛，待真实 scanner |
+| OpenTelemetry SDK / OTLP | 完成（Ops Bridge `ops.getzhimu.com` + Railway sync） |
+| Alert webhook | 完成（Ops Bridge + Resend 邮件转发） |
+| Upload AV strict | 完成（strict + CF Worker upload-scan 回调） |
+| productionTrust 7/7 | 完成（2026-07-03 生产验证） |
 | 三浏览器 Playwright | 完成 |
 | 文档当前真相收口 | 完成 |
 | A1 桥接清理 | 完成：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` |
@@ -28,7 +29,7 @@
 | 优先级 | 项 | 说明 |
 |---|---|---|
 | P0 | Pages 三站 CI/CD | 已新增 workflow；待 GitHub Cloudflare secrets 实际验证 |
-| P0 | 真实生产 secret | OTLP、alert、AV scanner |
+| P0 | 真实生产 secret | **已完成**（Ops Bridge + Railway，productionTrust 7/7） |
 | P1 | 端口诊断脚本 | 已新增 `npm run port:doctor` |
 | P1 | 公开 Beta 自助闭环 | 反馈入口、真实截图、onboarding、支持追踪 |
 | P1 | 共享前端层 | 继续抽 api-fetch/session-token/toast/status chip/tokens |
