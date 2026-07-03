@@ -39,6 +39,9 @@
 
 **邮件文案**：[SUPPORT_EMAIL_TEMPLATES_ZH.md](./SUPPORT_EMAIL_TEMPLATES_ZH.md) · `node backend/scripts/render-support-email.mjs`
 
+**自动化演练**（L1-06）：`npm run drill:beta-support` · 记录见 [BETA_SUPPORT_DRILL_2026-07-03.md](./BETA_SUPPORT_DRILL_2026-07-03.md)  
+与备份恢复一并：`npm run drill:l1`
+
 ---
 
 ## 3. 导入剧本路径

@@ -97,6 +97,12 @@ test("POST /api/feedback defaults kind to feedback when omitted", async (context
 });
 
 test("GET /api/ops/feedback requires OPS_API_TOKEN", async (context) => {
+  const prev = process.env.OPS_API_TOKEN;
+  delete process.env.OPS_API_TOKEN;
+  context.after(() => {
+    if (prev === undefined) delete process.env.OPS_API_TOKEN;
+    else process.env.OPS_API_TOKEN = prev;
+  });
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
 

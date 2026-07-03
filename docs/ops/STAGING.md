@@ -61,8 +61,18 @@ Postgres ← api (migrate on boot)
 | `RESEND_API_KEY` / `MAIL_FROM` | 与 `backend/.env` 相同；找回密码必需 |
 | `APP_PUBLIC_URL` | 与浏览器访问 URL 一致（如 `http://localhost:8080`） |
 | `LIVEKIT_*` / `DEEPSEEK_*` / `R2_*` | 可选；与本地 dev 相同 Key 即可 |
+| `R2_BUCKET` | **必须与生产不同**（`npm run staging:sync-env` 默认 `${prod}-staging`） |
 
-## VPS / 公网
+## 隔离验收（L1-07）
+
+```powershell
+npm run staging:sync-env
+npm run staging:isolation-smoke -- --config-only   # 仅配置检查
+npm run staging:up
+npm run staging:isolation-smoke                    # 配置 + functional smoke
+```
+
+记录见 `docs/ops/STAGING_ISOLATION_DRILL_*.md`。
 
 1. 将 `CORS_ORIGIN` 改为 `https://staging.example.com`
 2. 在 VPS 前加 TLS（Caddy / Certbot + nginx）

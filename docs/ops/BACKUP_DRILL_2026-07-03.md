@@ -41,15 +41,13 @@
 
 ## 后续
 
-- [ ] 下一季度重复 managed 或 docker 演练
-- [ ] Docker 可用时补跑 `db:verify-restore:docker` 并追加记录
+- [x] 2026-07-03 第二次演练（`npm run drill:l1` bundle）— 行数仍一致
+- [ ] Docker 可用时补跑 `db:verify-restore:docker`（全量 pg_dump → 本地容器）
 - [ ] 确认 Supabase 控制台自动备份保留期 ≥ 7 天（Beta）/ 30 天（生产建议）
 
-## 命令
+## 联合演练命令
 
 ```powershell
-cd backend
-npm run db:verify-restore:managed
-# 可选：Docker 全量 dump → 本地容器恢复
-npm run db:verify-restore:docker
+# 内测 Support + 托管库备份恢复（推荐）
+npm run drill:l1
 ```

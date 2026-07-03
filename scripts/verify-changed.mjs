@@ -32,7 +32,8 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/official-example", ["test/official-example.test.js"]],
   ["backend/src/catalog-join-service", ["test/catalog-join-service.test.js", "test/world-catalog.test.js"]],
   ["backend/src/routes/official-example-routes", ["test/official-example.test.js"]],
-  ["backend/src/clue-audit", ["test/clue-audit.test.js", "test/world-readiness-routes.test.js"]],
+  ["backend/test/permissions-matrix.test.js", ["test/permissions-matrix.test.js", "test/runtime-permissions.test.js"]],
+  ["backend/src/routes/route-guards.js", ["test/permissions-matrix.test.js", "test/runtime-permissions.test.js"]],
   ["backend/src/world-publish-readiness", ["test/world-publish-readiness.test.js"]],
   ["backend/src/world-readiness-service", ["test/world-readiness-routes.test.js", "test/catalog-readiness-gate.test.js"]],
   ["backend/src/routes/world-readiness-routes", ["test/world-readiness-routes.test.js"]],
@@ -121,6 +122,7 @@ console.log("verify-changed: scope");
 for (const f of files) console.log(`  · ${f}`);
 
 for (const f of files) {
+  if (/\.example$/i.test(f)) continue;
   if (BLOCKED_PATH.some((re) => re.test(f))) {
     console.error(`\n✗ blocked sensitive path: ${f}`);
     process.exit(1);

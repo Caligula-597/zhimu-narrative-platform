@@ -32,7 +32,6 @@ const COPY_KEYS = [
   "R2_ACCOUNT_ID",
   "R2_ACCESS_KEY_ID",
   "R2_SECRET_ACCESS_KEY",
-  "R2_BUCKET",
   "R2_PUBLIC_ENDPOINT",
   "DEEPSEEK_API_KEY",
   "DEEPSEEK_BASE_URL",
@@ -54,6 +53,18 @@ if (!staging.POSTGRES_PASSWORD) {
 
 for (const key of COPY_KEYS) {
   if (backend[key]) staging[key] = backend[key];
+}
+
+const prodBucket = (backend.R2_BUCKET || "").trim();
+const explicitStagingBucket = (staging.R2_BUCKET_STAGING || backend.R2_BUCKET_STAGING || "").trim();
+if (explicitStagingBucket) {
+  staging.R2_BUCKET = explicitStagingBucket;
+} else if (staging.R2_BUCKET && prodBucket && staging.R2_BUCKET !== prodBucket) {
+  /* keep user override */
+} else if (prodBucket) {
+  staging.R2_BUCKET = `${prodBucket}-staging`;
+} else {
+  staging.R2_BUCKET = staging.R2_BUCKET || "zhimu-assets-staging";
 }
 
 staging.COMPOSE_PROJECT_NAME = staging.COMPOSE_PROJECT_NAME || "zhimu-staging";
@@ -112,4 +123,6 @@ const lines = [
 ];
 
 fs.writeFileSync(stagingPath, `${lines.join("\n")}\n`, "utf8");
-console.log("sync-staging-env: wrote .env.staging (keys merged, APP_PUBLIC_URL=http://localhost:8080)");
+console.log(
+  `sync-staging-env: wrote .env.staging (APP_PUBLIC_URL=http://localhost:8080, R2_BUCKET=${staging.R2_BUCKET})`
+);
