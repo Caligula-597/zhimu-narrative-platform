@@ -14,7 +14,8 @@ export async function registerOpenApi(app, { nodeEnv }) {
         { name: "system", description: "Health and ops" },
         { name: "auth", description: "Authentication" },
         { name: "worlds", description: "Worlds and studio" },
-        { name: "rooms", description: "Runtime rooms and players" }
+        { name: "rooms", description: "Runtime rooms and players" },
+        { name: "platform", description: "Public-facing platform endpoints (feedback, beta, catalog)" }
       ],
       components: {
         securitySchemes: {

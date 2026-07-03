@@ -59,6 +59,8 @@
 | 配额满了 | 先建议清理资产；beta 仍不够 → creator/studio 或调 quota |
 | 玩家进不了房 | 邀请码、邮箱验证、play 域；见 [USER_ERROR_GUIDE.md](../USER_ERROR_GUIDE.md) |
 | 要付费/发票 | 内测期说明无自助付费；P2 人工收款 SOP 未建 → 如实告知暂缓 |
+| 反馈提交返回 429 | 公开反馈接口限流（`RATE_LIMIT_FEEDBACK_MAX`/小时/IP）；告知用户稍后重试或通过 support 邮箱 |
+| Ops 控制台 401 | `OPS_API_TOKEN` 未配置或令牌过短（生产 ≥ 16 字符）；检查 `GET /api/ops/status` → `productionTrust` |
 
 ---
 
@@ -72,7 +74,11 @@
 | `PLAN_UPGRADE_NOTIFY_EMAIL` | 套餐升级通知 |
 | `APP_PUBLIC_URL` | 邮件内注册/登录链接 |
 | `PLAY_SITE_URL` | 玩家端链接 |
-| `OPS_API_TOKEN` | Ops API |
+| `OPS_API_TOKEN` | Ops API 鉴权令牌（生产环境要求 ≥ 16 字符，否则 `productionTrust` 不通过） |
+| `METRICS_TOKEN` | `/metrics` 端点鉴权令牌（生产环境要求 ≥ 16 字符） |
+| `SENTRY_DSN` | Sentry 错误上报 DSN（可选；未设置时所有 Sentry 函数 no-op，不影响运行） |
+| `SENTRY_TRACES_SAMPLE_RATE` | Sentry 事务采样率（默认 0.1） |
+| `RATE_LIMIT_FEEDBACK_MAX` | 公开反馈接口每 IP 每小时提交上限（默认 10） |
 | `EMAIL_PROVIDER` + `MAIL_FROM` | 事务邮件必配，否则 approve 邮件失败 |
 
 见 [LAUNCH_ENV.md](./LAUNCH_ENV.md) · [COMMERCIAL_EXTERNAL_SERVICES.md](./COMMERCIAL_EXTERNAL_SERVICES.md)

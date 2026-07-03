@@ -17,6 +17,7 @@ import {
 import { assignUserPlanByEmail } from "../account-entitlements.js";
 import { listPlanUpgradeRequests } from "../plan-upgrade-request.js";
 import { PLAN_DEFAULTS } from "../plans.js";
+import { getSentryStatus } from "../sentry.js";
 import { sendErr } from "../api-errors.js";
 import { listFeedback, getFeedbackStats, updateFeedbackStatus } from "../feedback.js";
 import { registerOpsCatalogRoutes } from "./ops-catalog-routes.js";
@@ -79,8 +80,13 @@ function productionTrustGates({ features, rateLimits }) {
     {
       key: "ops_token",
       label: "OPS token gate",
-      ok: Boolean(process.env.OPS_API_TOKEN?.trim()),
-      detail: process.env.OPS_API_TOKEN ? "configured" : "OPS_API_TOKEN missing"
+      ok: Boolean(process.env.OPS_API_TOKEN?.trim())
+        && (process.env.NODE_ENV !== "production" || process.env.OPS_API_TOKEN.trim().length >= 16),
+      detail: !process.env.OPS_API_TOKEN
+        ? "OPS_API_TOKEN missing"
+        : process.env.OPS_API_TOKEN.trim().length < 16
+          ? "OPS_API_TOKEN too weak (< 16 chars)"
+          : "configured"
     }
   ];
   return {
@@ -154,11 +160,12 @@ export async function registerOpsRoutes(app) {
         tags: ["system"],
         querystring: {
           type: "object",
+          additionalProperties: false,
           properties: {
             status: { type: "string", enum: ["new", "seen", "resolved"] },
             kind: { type: "string", enum: ["feedback", "bug", "feature"] },
             limit: { type: "integer", minimum: 1, maximum: 200 },
-            offset: { type: "integer", minimum: 0 }
+            offset: { type: "integer", minimum: 0, maximum: 100_000 }
           }
         },
         response: {
@@ -185,10 +192,13 @@ export async function registerOpsRoutes(app) {
         tags: ["system"],
         params: {
           type: "object",
+          additionalProperties: false,
+          required: ["id"],
           properties: { id: { type: "string", format: "uuid" } }
         },
         body: {
           type: "object",
+          additionalProperties: false,
           required: ["status"],
           properties: { status: { type: "string", enum: ["new", "seen", "resolved"] } }
         },
@@ -228,6 +238,7 @@ export async function registerOpsRoutes(app) {
         roomEventsBus: bus.mode,
         openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production",
         telemetry: getTelemetryStatus(),
+        sentry: getSentryStatus(),
         email: getEmailServiceStatus(),
         oauth: getPublicOAuthDiagnostics(),
         stripe: getStripeBillingStatus()
@@ -237,7 +248,8 @@ export async function registerOpsRoutes(app) {
         writePerMin: Number(process.env.RATE_LIMIT_WRITE_MAX ?? 120),
         readPerMin: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
         uploadPerMin: Number(process.env.RATE_LIMIT_UPLOAD_MAX ?? 30),
-        aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40)
+        aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40),
+        feedbackPerHour: Number(process.env.RATE_LIMIT_FEEDBACK_MAX ?? 10)
       };
       return {
         ok: ready.ready,

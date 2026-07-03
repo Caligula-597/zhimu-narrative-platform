@@ -66,11 +66,16 @@ import { normalizeError } from "../components/status-ui.js";
           showToast("缺少反馈 ID");
           return true;
         }
+        if (el) {
+          el.disabled = true;
+          el.textContent = "更新中…";
+        }
         try {
           await api.updateOpsFeedbackStatus(id, status);
           showToast("反馈状态已更新");
           await refresh();
         } catch (error) {
+          if (el) el.disabled = false;
           showError(error, "反馈状态更新失败");
         }
         return true;

@@ -14,15 +14,19 @@ const FEEDBACK_KINDS = [
 let buttonEl = null;
 
 export function openFeedbackForm(prefillKind = "feedback", prefillSubject = "", prefillBody = "") {
+  const selectedKind = FEEDBACK_KINDS.some((kind) => kind.id === prefillKind) ? prefillKind : "feedback";
   const kindOptions = FEEDBACK_KINDS
-    .map((k) => `<option value="${k.id}"${k.id === prefillKind ? " selected" : ""}>${escapeHtml(k.label)}</option>`)
+    .map((k) => `<option value="${k.id}"${k.id === selectedKind ? " selected" : ""}>${escapeHtml(k.label)}</option>`)
     .join("");
   const subjectValue = escapeHtml(prefillSubject);
   const bodyValue = escapeHtml(prefillBody);
 
   modal.className = "modal feedback-modal";
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "feedback-title");
   modal.innerHTML = `
-    <h2>提交反馈</h2>
+    <h2 id="feedback-title">提交反馈</h2>
     <p class="muted">遇到问题或有想法？告诉我们，我们会认真对待每一条。</p>
     <div class="form-group">
       <label for="feedback-kind">类型</label>
@@ -39,6 +43,7 @@ export function openFeedbackForm(prefillKind = "feedback", prefillSubject = "", 
   modalBackdrop.classList.add("show");
 
   modal.querySelector("[data-close]").onclick = closeModal;
+  modal.querySelector("[data-feedback-field='subject']")?.focus();
   modal.querySelector("[data-feedback-submit]").onclick = async () => {
     const fields = Object.fromEntries(
       Array.from(modal.querySelectorAll("[data-feedback-field]")).map((el) => [el.dataset.feedbackField, el.value.trim()])
@@ -49,6 +54,7 @@ export function openFeedbackForm(prefillKind = "feedback", prefillSubject = "", 
     }
     const submitBtn = modal.querySelector("[data-feedback-submit]");
     submitBtn.disabled = true;
+    submitBtn.setAttribute("aria-busy", "true");
     submitBtn.textContent = "提交中…";
     try {
       await request("/feedback", {
@@ -65,6 +71,7 @@ export function openFeedbackForm(prefillKind = "feedback", prefillSubject = "", 
       showToast("反馈已提交，感谢你的支持");
     } catch (err) {
       submitBtn.disabled = false;
+      submitBtn.removeAttribute("aria-busy");
       submitBtn.textContent = "提交";
       showToast("提交失败，请稍后重试");
     }
@@ -77,7 +84,8 @@ export function mountFeedbackButton() {
   buttonEl.className = "feedback-fab";
   buttonEl.type = "button";
   buttonEl.setAttribute("aria-label", "提交反馈");
-  buttonEl.textContent = "反馈";
+  buttonEl.dataset.feedbackMounted = "true";
+  buttonEl.innerHTML = `<span aria-hidden="true">?</span><b>反馈</b>`;
   buttonEl.onclick = () => openFeedbackForm();
   document.body.appendChild(buttonEl);
 }

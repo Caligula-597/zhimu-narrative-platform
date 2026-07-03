@@ -10,6 +10,6 @@
     "check": "npm run build && npm test"
   },
   "devDependencies": {
-    "vite": "^6.3.5"
+    "vite": "^8.1.3"
   }
 }

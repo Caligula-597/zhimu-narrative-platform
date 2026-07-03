@@ -1,0 +1,15 @@
+{
+  "name": "@zhimu/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cross-client utilities for zhimu main, play, and host apps",
+  "exports": {
+    ".": "./index.js",
+    "./security.js": "./security.js",
+    "./api-error.js": "./api-error.js",
+    "./sse.js": "./sse.js",
+    "./components/collapse.js": "./components/collapse.js",
+    "./tokens.css": "./tokens.css"
+  }
+}

@@ -242,6 +242,7 @@ export const API_ERRORS = {
   // Ops / metrics
   OPS_NOT_CONFIGURED: { status: 503, message: "Ops API is not configured (set OPS_API_TOKEN)" },
   OPS_TOKEN_REQUIRED: { status: 401, message: "Valid ops token required" },
+  OPS_TOKEN_TOO_WEAK: { status: 503, message: "OPS_API_TOKEN is too weak (minimum 16 characters in production)" },
   METRICS_TOKEN_REQUIRED: { status: 401, message: "Valid metrics token required" },
   METRICS_NOT_CONFIGURED: { status: 503, message: "Metrics endpoint is not configured (set METRICS_TOKEN in production)" },
 

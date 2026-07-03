@@ -8,6 +8,7 @@ import { createRateLimiter } from "./rate-limit.js";
 import { buildFastifyLoggerOptions } from "./logger-config.js";
 import { recordHttpRequest, resolveMetricRoute } from "./metrics.js";
 import { registerOpenApi } from "./openapi.js";
+import { captureException } from "./sentry.js";
 import { registerAuthRoutes } from "./routes/auth-routes.js";
 import { registerSystemRoutes } from "./routes/system-routes.js";
 import { registerOfficialExampleRoutes } from "./routes/official-example-routes.js";
@@ -35,6 +36,11 @@ const betaApplyRateLimit = createRateLimiter({
   windowMs: 3_600_000,
   max: Number(process.env.RATE_LIMIT_BETA_APPLY_MAX ?? 5),
   routeKey: "beta-apply"
+});
+const feedbackRateLimit = createRateLimiter({
+  windowMs: 3_600_000,
+  max: Number(process.env.RATE_LIMIT_FEEDBACK_MAX ?? 10),
+  routeKey: "feedback"
 });
 const apiWriteRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -173,6 +179,10 @@ export async function createApp(options = {}) {
       await betaApplyRateLimit(request, reply);
       return;
     }
+    if (url === "/api/feedback" && request.method === "POST") {
+      await feedbackRateLimit(request, reply);
+      return;
+    }
     if (!url.startsWith("/api/")) return;
 
     const method = request.method;
@@ -211,8 +221,12 @@ export async function createApp(options = {}) {
   }, "Auth configuration loaded");
   app.setErrorHandler((error, request, reply) => {
     const statusCode = error.statusCode ?? (error.validation ? 400 : 500);
-    if (statusCode >= 500) request.log.error({ err: error, traceId: request.traceId }, error.message);
-    else request.log.info({ err: error, code: error.code, traceId: request.traceId }, error.message);
+    if (statusCode >= 500) {
+      request.log.error({ err: error, traceId: request.traceId }, error.message);
+      captureException(error, { tags: { statusCode }, extra: { traceId: request.traceId, url: request.url } });
+    } else {
+      request.log.info({ err: error, code: error.code, traceId: request.traceId }, error.message);
+    }
     reply.code(statusCode).send(formatErrorBody(error, statusCode));
   });
   if (process.env.SERVE_STATIC !== "true" && process.env.SERVE_STATIC !== "1") {

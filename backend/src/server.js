@@ -6,9 +6,11 @@ import { startRoomEventBus, stopRoomEventBus } from "./room-event-bus.js";
 import { startHostDelayWakeInterval } from "./host-delay-wake.js";
 import { startOpsAlertMonitor } from "./ops-alert-bridge.js";
 import { initTelemetry, shutdownTelemetry } from "./telemetry.js";
+import { initSentry, shutdownSentry } from "./sentry.js";
 
 await runStartupValidation();
 await initTelemetry();
+initSentry();
 
 const app = await createApp();
 await startRoomEventBus();
@@ -22,6 +24,7 @@ async function shutdown(signal) {
   stopAlertMonitor();
   await stopRoomEventBus();
   await app.close();
+  await shutdownSentry();
   await shutdownTelemetry();
   await pool.end();
   process.exit(0);
@@ -41,6 +44,7 @@ try {
   } else {
     app.log.error(error);
   }
+  await shutdownSentry();
   await shutdownTelemetry();
   await pool.end();
   process.exit(1);

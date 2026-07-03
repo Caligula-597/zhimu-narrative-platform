@@ -45,6 +45,7 @@
     "@opentelemetry/auto-instrumentations-node": "^0.77.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.219.0",
     "@opentelemetry/sdk-node": "^0.219.0",
+    "@sentry/node": "^8.47.0",
     "adm-zip": "^0.5.17",
     "dotenv": "^16.6.1",
     "fastify": "^5.6.1",

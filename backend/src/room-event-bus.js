@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { appendRoomEventJournal } from "./room-event-journal.js";
 import { pool, query } from "./db.js";
+import { validateRoomEvent } from "./room-event-schemas.js";
 
 const PG_CHANNEL = "zhimu_room_events";
 const INSTANCE_ID = randomUUID();
@@ -113,6 +114,10 @@ export async function stopRoomEventBus() {
 
 /** Publish after journal write so SSE subscribers receive stable journal ids. */
 export async function publishRoomEvent(roomId, type, data = {}) {
+  const { ok, errors } = validateRoomEvent(type, data);
+  if (!ok) {
+    throw new Error(`Invalid room event: ${errors.join("; ")}`);
+  }
   const event = {
     type,
     roomId,
