@@ -140,7 +140,7 @@ env.NODE_ENV = "production";
 env.ALLOW_DEMO_USER_HEADER = "false";
 env.DATABASE_URL = normalizeDatabaseUrl(local.DATABASE_URL);
 env.DATABASE_SSL = "true";
-env.PGPOOL_MAX = "5";
+env.PGPOOL_MAX = local.PGPOOL_MAX?.trim() || "15";
 env.APP_PUBLIC_URL = publicUrl;
 // Keep the standalone host portal compatible with the currently deployed API,
 // including releases that predate HOST_SITE_ORIGIN-aware CORS resolution.
