@@ -63,10 +63,14 @@ export default {
           }
         },
         {
-          command: "node server.js --dist",
+          command: "npm run dev",
           url: "http://localhost:4173/",
-          reuseExistingServer: true,
-          timeout: 60_000
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+          env: {
+            ...process.env,
+            VITE_API_PROXY_TARGET: process.env.VITE_API_PROXY_TARGET || "http://127.0.0.1:4180"
+          }
         },
         {
           command: "npm run dev -- --port 5174 --strictPort",

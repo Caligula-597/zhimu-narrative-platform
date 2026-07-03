@@ -204,6 +204,7 @@ if (files.some((f) => f.startsWith("host/"))) {
 
 if (files.some((f) => f.startsWith("site/") && /\.(js|mjs|html|css)$/.test(f))) {
   run("site build", "npm run build --prefix site");
+  run("test:site-screenshots", "npm run test:site-screenshots");
 }
 
 console.log("\n✓ verify-changed passed");

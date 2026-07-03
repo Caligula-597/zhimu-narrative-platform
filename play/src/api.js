@@ -153,7 +153,9 @@ export const api = {
 
   /** SSE room stream — same endpoint as app.getzhimu.com host/player views. */
   streamRoomEvents(roomId, onEvent, signal) {
-    const headers = { Accept: "text/event-stream", ...authHeaders() };
+    const headers = { Accept: "text/event-stream", ...sessionToken.bearerHeaders() };
+    const demoUserId = localStorage.getItem("zhimuDemoUserId");
+    if (demoUserId) headers["x-user-id"] = demoUserId;
     const cursorKey = sseCursorKey(roomId);
     const cursor = localStorage.getItem(cursorKey);
     if (cursor) headers["Last-Event-ID"] = cursor;
@@ -178,7 +180,9 @@ export const api = {
 
   /** SSE platform stream — plaza broadcast + personal DM/friend events. */
   streamPlatformEvents(onEvent, signal) {
-    const headers = { Accept: "text/event-stream", ...authHeaders() };
+    const headers = { Accept: "text/event-stream", ...sessionToken.bearerHeaders() };
+    const demoUserId = localStorage.getItem("zhimuDemoUserId");
+    if (demoUserId) headers["x-user-id"] = demoUserId;
     const cursor = localStorage.getItem(PLATFORM_SSE_CURSOR);
     if (cursor) headers["Last-Event-ID"] = cursor;
     return fetch(`${API_BASE}/platform/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {

@@ -23,6 +23,7 @@ export async function injectDemoContext(context, overrides = {}) {
   const roomId = overrides.roomId === undefined ? FIXTURE.roomId : overrides.roomId;
   await context.addInitScript(({ worldId, roomId }) => {
     localStorage.setItem("zhimuDemoMode", "true");
+    localStorage.setItem("zhimuFirstRunDismissed", "1");
     localStorage.removeItem("zhimuSessionToken");
     localStorage.setItem("zhimuActiveWorldId", worldId);
     if (roomId) localStorage.setItem(`zhimuActiveRoomId:${worldId}`, roomId);
@@ -114,7 +115,7 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
   await page.locator("[data-game-tab-bar]").waitFor({ state: "visible", timeout: 30_000 });
 }
 
-export async function waitForCloudReady(page, timeout = 30_000) {
+export async function waitForCloudReady(page, timeout = 60_000) {
   // Fail fast if the state bridge is missing (config/demoMode issue).
   await page.waitForFunction(
     () => typeof window.zhimuState === "object" && window.zhimuState !== null,

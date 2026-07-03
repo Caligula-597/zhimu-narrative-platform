@@ -4,13 +4,13 @@
 
 ## 结论
 
-织幕当前评分：**80 / 100**。
+织幕当前评分：**82 / 100**。
 
-这已经是一个接近公开 Beta 的生产化项目，不再是 demo 或功能样机。L1 阶段（生产门槛 7/7、备份恢复、权限矩阵、内测 Support、staging 隔离、值班演练）已完成并有记录；A4 Phase 6（P1-07）三端共享层（api-fetch、session-token、toast、status-chip、tokens）已落地。
+这已经是一个接近公开 Beta 的生产化项目，不再是 demo 或功能样机。L1 阶段（生产门槛 7/7、备份恢复、权限矩阵、内测 Support、staging 隔离、值班演练）已完成并有记录；A4 Phase 6（P1-07）三端共享层（api-fetch、session-token、toast、status-chip、tokens）已落地；**L2-06** 官网 hero 与四端 showcase 已换真实 Playwright 截图。
 
 距 85 分主要缺口：
 
-- **L2-06** 官网真实三端截图与 pilot 案例（仍用占位 hero 图）。
+- 官网 **pilot 案例** 文案/匿名试点故事（截图已完成）。
 - 聚合接口（creator dashboard）可继续产品化。
 - 商业化支持（支付/SLA/客户成功）仍偏人工。
 
@@ -43,7 +43,7 @@ L1 运维证据已齐；下一步优先官网真实资产与 stranger 首次体�
 | Demo | 能演示核心想法 | 已超过 |
 | Alpha | 核心功能可跑，但依赖开发陪跑 | 已超过 |
 | 可信 Beta | 小范围真实用户可用，有人工支持 | 已达到 |
-| 公开 Beta | 陌生用户可自助完成首次体验 | 接近 — 补 L2-06 官网真实截图 |
+| 公开 Beta | 陌生用户可自助完成首次体验 | 接近 — L2-06 截图已齐，可补 pilot 案例 |
 | 商业试点 | 可承接少量付费/企业试用 | 有基础，建议人工陪跑 |
 | 标准商用 SaaS | 可规模化获客、计费、支持、运维 | 未达到 |
 
@@ -136,7 +136,7 @@ A1 已完成三大桥清除，A2 状态分片已完成，A3 API 拆分已完成�
 | L2-04～05 | clue audit + rule trace | 已完成 |
 | L2-07～08 | 反馈入口 + 值班 | 已完成 |
 | **P1-07** | **shared 视觉与状态语言** | **已完成** — `npm run test:shared` |
-| L2-06 | 官网真实截图和案例 | 待做 |
+| L2-06 | 官网真实截图和案例 | **截图已完成** — `npm run test:site-screenshots`；pilot 案例可选 |
 
 ### P2：商业试点前完成
 
@@ -149,16 +149,17 @@ A1 已完成三大桥清除，A2 状态分片已完成，A3 API 拆分已完成�
 
 ## 最终判断
 
-为什么升到 80：
+为什么升到 82：
 
 - L1 生产门槛与运维演练证据已齐（7/7、备份、权限、Support、staging、值班）。
 - P1-07 三端共享层 Phase 6 完成，API / token / toast / status-chip 统一。
 - 阶段 2 产品闭环（总控台、主持台、玩家行动、反馈、clue audit）已落地。
+- L2-06 官网 hero + 四端 showcase 已换真实截图（Playwright 采集 + `test:site-screenshots` 门禁）。
 
 为什么还不到 85：
 
-- L2-06 官网仍用占位 hero 图，陌生用户第一印象不足。
+- 官网 pilot 案例/匿名试点故事仍可加强 stranger 信任感。
 - Creator dashboard 聚合 API 仍可减前端拼装。
 - 商业化支持仍偏人工。
 
-因此，**80 / 100** 是当前合理的生产级 SaaS 分数：L1 已验收，可推进公开 Beta；下一优先 **L2-06 官网真实资产**。
+因此，**82 / 100** 是当前合理的生产级 SaaS 分数：L1 已验收、官网视觉资产已真实化；下一优先 **pilot 案例** 与 creator 聚合 API。

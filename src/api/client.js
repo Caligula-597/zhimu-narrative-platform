@@ -94,7 +94,8 @@ export function createIdempotencyKey() {
 const apiClient = createApiFetch({
   baseUrl: API_BASE,
   getHeaders({ options }) {
-    const { userId, headers: extraHeaders = {} } = options;
+    const { userId: explicitUserId, headers: extraHeaders = {} } = options;
+    const userId = explicitUserId ?? (demoMode ? demoContext.hostUserId : undefined);
     return authHeaders(userId, extraHeaders);
   },
   mapHttpError(response, payload, { method, path }) {
@@ -208,9 +209,11 @@ export function loadKey() {
 
 window.zhimuSessionReady = (async () => {
   try {
-    const me = await request("/auth/me");
-    if (me?.id) userStore.set({ currentUser: me });
-    if (!sessionAuth().legacyToken?.()) sessionAuth().markAuthenticated?.();
+    const me = await request("/auth/me", demoMode ? { userId: demoContext.hostUserId } : {});
+    if (me?.id) {
+      userStore.set({ currentUser: me });
+      if (!sessionAuth().legacyToken?.()) sessionAuth().markAuthenticated?.();
+    }
     return me;
   } catch {
     if (sessionAuth().legacyToken?.()) sessionAuth().markLoggedOut?.();

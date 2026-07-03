@@ -132,7 +132,11 @@ export const api = {
   createRecap: (payload) => request(roomPath("/recaps"), { method: "POST", body: payload }),
 
   streamRoomEvents(roomId, onEvent, signal) {
-    const headers = { ...authHeaders(), accept: "text/event-stream" };
+    const headers = { ...defaultSessionTokenStore.bearerHeaders(), accept: "text/event-stream" };
+    if (import.meta.env.DEV && localStorage.getItem("zhimuDemoMode") === "true") {
+      const demoUserId = localStorage.getItem("zhimuDemoUserId");
+      if (demoUserId) headers["x-user-id"] = demoUserId;
+    }
     const cursorKey = sseCursorKey(roomId);
     const cursor = localStorage.getItem(cursorKey);
     if (cursor) headers["last-event-id"] = cursor;

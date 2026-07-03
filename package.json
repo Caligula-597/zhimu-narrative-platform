@@ -69,6 +69,8 @@
     "explore:ai": "node e2e/ai-explore.mjs",
     "explore:ai:llm": "node e2e/ai-explore.mjs --llm --headed",
     "ensure:esm": "node scripts/ensure-esm-exports.mjs",
+    "capture:site-screenshots": "playwright test e2e/capture-site-screenshots.spec.js --project=app-chromium",
+    "test:site-screenshots": "node --test scripts/site-screenshots.test.mjs",
     "git:push": "node scripts/git-push.mjs"
   },
   "devDependencies": {
