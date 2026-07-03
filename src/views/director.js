@@ -59,6 +59,14 @@ function directorPriorityAction(action){
  return `<div class="director-priority-action"><span>${escapeHtml(action.index)}</span><div><b>${escapeHtml(action.title)}</b><p>${escapeHtml(action.detail)}</p></div><button type="button" data-action="${escapeHtml(action.action)}"${action.extra || ""}>${escapeHtml(action.button)}</button></div>`;
 }
 
+function directorRiskItem(item){
+ const cls=item.level==="error"?"risk-error":"risk-warning";
+ const icon=item.level==="error"?"✕":"!";
+ const actionAttr=item.action?` data-action="${escapeHtml(item.action)}"`:"";
+ const button=item.action?`<button type="button"${actionAttr}>${escapeHtml(item.button||"处理")} →</button>`:"";
+ return `<div class="risk-item ${cls}"><span class="risk-icon">${icon}</span><div><b>${escapeHtml(item.title)}</b><p>${escapeHtml(item.detail)}</p></div>${button}</div>`;
+}
+
 export function director(){
  const room=activeRuntimeRoom();
  const studio=studioStore.get().cloudStudio;
@@ -82,6 +90,18 @@ export function director(){
   {kicker:"PROGRESS",value:`${progressPct}%`,label:totalSections?`${completedSections}/${totalSections} 段私人剧情完成`:"暂无可统计分幕",hot:progressPct>=60},
   {kicker:"PENDING",value:String(pendingEvents.length),label:pendingEvents.length?"需要主持人判断":"暂无人工待办",hot:pendingEvents.length>0}
  ];
+ const directorRisks=[];
+ if(hostPlayersError){directorRisks.push({level:"error",title:"玩家运行状态加载失败",detail:hostPlayersError,action:"refresh-host-players",button:"重试"});}
+ if(!roomEventsConnected){directorRisks.push({level:"warning",title:"实时推送未连接",detail:"当前依赖定时轮询，待确认事件与玩家进度可能有延迟。",action:"refresh-host-room",button:"刷新连接"});}
+ if(pendingEvents.length>5){directorRisks.push({level:"warning",title:"待确认事件积压",detail:`${pendingEvents.length} 条事件等待处理，可能影响玩家体验。`,action:"refresh-host-events",button:"查看待办"});}
+ if(stuckCount>0){directorRisks.push({level:"warning",title:`${stuckCount} 名玩家疑似卡关`,detail:"玩家长时间未推进剧情，建议主动干预或发放线索。",action:"host-nudge-waiting",button:"提醒玩家"});}
+ if(!rules.length){directorRisks.push({level:"warning",title:"当前房间无启用规则",detail:"自动化规则（发线索、开场景、主持确认）尚未配置，全部依赖手动操作。",action:"rules-preview",button:"查看规则"});}
+ const directorRiskErrorCount=directorRisks.filter(r=>r.level==="error").length;
+ const directorRiskWarningCount=directorRisks.filter(r=>r.level==="warning").length;
+ const directorHasRisks=directorRisks.length>0;
+ const roomReady=!hostPlayersError&&roomEventsConnected&&joinedCount>0;
+ const roomReadyLabel=roomReady?"运行就绪":!joinedCount?"等待玩家入房":!roomEventsConnected?"连接中":"初始化中";
+ const roomReadyTone=roomReady?"published":!joinedCount?"draft":"testing";
  const priorityActions=[
   pendingEvents.length?{title:"先处理待确认事件",detail:`${pendingEvents.length} 条规则或调查触发正在等待确认。`,action:"refresh-host-events",button:"查看待办"}:null,
   stuckCount?{title:"查看疑似卡关玩家",detail:`${stuckCount} 个席位长时间没有推进，建议查看详情或手动发线索。`,action:"host-nudge-waiting",button:"提醒玩家"}:null,
@@ -93,13 +113,24 @@ export function director(){
  return `${cloudStatus()}<div class="director-head"><div><span class="live-label">● LIVE</span><strong>　${escapeHtml(world?.name||"当前世界")} · ${escapeHtml(room.name)}</strong>${inviteCode?`<small class="director-invite-hint">邀请码 ${escapeHtml(inviteCode)}</small>`:""}<small class="director-poll-hint">${roomEventsConnected?"实时推送已连接 · 待确认事件与玩家进度会自动更新":"打开本页时每 15 秒自动刷新待确认事件与玩家进度"}</small></div><div class="row director-refresh-row">${inviteCode?`<button class="secondary-btn" data-action="room-invite-current">邀请玩家</button>`:""}<button class="secondary-btn" data-action="refresh-host-room">刷新房间状态</button><button class="secondary-btn" data-action="refresh-host-events">刷新待确认事件</button><button class="secondary-btn" data-action="refresh-host-players">刷新玩家进度</button><button class="secondary-btn" data-action="create-recap">生成复盘</button><button class="secondary-btn" data-action="host-manual-log">＋ 主持日志</button><button class="primary-btn" data-action="create-checkpoint">＋ 创建存档点</button></div></div>
  <section class="director-console ${escapeHtml(S.surface?.("host")?.className || "")}">
   <article class="director-console-main">
-   <div class="section-head"><div><p class="section-kicker">RUN CONTROL</p><h3>运行控制台</h3><p>先看房间状态、玩家推进和人工待办，再处理下方细表。</p></div><button class="secondary-btn" data-action="refresh-host-room">刷新现场</button></div>
+   <div class="section-head"><div><p class="section-kicker">RUN CONTROL</p><h3>运行控制台</h3><p>先看房间状态、玩家推进和人工待办，再处理下方细表。</p></div><div class="row"><span class="status-chip ${roomReadyTone}">${roomReadyLabel}</span><button class="secondary-btn" data-action="refresh-host-room">刷新现场</button></div></div>
    <div class="director-console-grid">${consoleCards.map(directorConsoleCard).join("")}</div>
   </article>
   <article class="director-console-main director-priority-panel">
    <div class="section-head"><div><p class="section-kicker">HOST PRIORITY</p><h3>主持优先动作</h3><p>按当前房间状态给出可直接执行的主持操作。</p></div></div>
    <div class="director-priority-list">${priorityActions.map(directorPriorityAction).join("")}</div>
   </article>
+ </section>
+ <section class="risk-console">
+  <div class="section-head">
+   <div><p class="section-kicker">RISKS &amp; ALERTS</p><h3>风险与问题</h3><p>开场前 30 秒检查：连接状态、玩家加载、事件积压、卡关和规则配置。阻塞项必须先处理。</p></div>
+   <div class="risk-summary">
+    ${directorRiskErrorCount?`<span class="risk-count risk-error">${directorRiskErrorCount} 阻塞</span>`:""}
+    ${directorRiskWarningCount?`<span class="risk-count risk-warning">${directorRiskWarningCount} 警告</span>`:""}
+    ${!directorHasRisks?`<span class="risk-count risk-ok">✓ 无风险</span>`:""}
+   </div>
+  </div>
+  <div class="risk-list">${directorHasRisks?directorRisks.map(directorRiskItem).join(""):`<div class="empty-state">房间运行正常，无阻塞或警告项。</div>`}</div>
  </section>
  <section class="stats-grid">${stat("♙",String(joinedCount),"已加入玩家",players.length+" 个角色席位")}${stat("⚑",String(stuckCount),"疑似卡关",stuckCount?"超过阈值未推进":"当前无卡关预警")}${stat("◷",String(pendingEvents.length),"待确认事件",pendingEvents.length?"需要主持人判断":events.length?"均已延迟":"当前无需人工介入")}${stat("⌘",String(rules.length),"运行中规则","仅统计当前房和世界模板")}</section>
  ${noPlayerProgressHint}

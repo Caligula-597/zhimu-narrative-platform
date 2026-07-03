@@ -18,6 +18,7 @@ import { assignUserPlanByEmail } from "../account-entitlements.js";
 import { listPlanUpgradeRequests } from "../plan-upgrade-request.js";
 import { PLAN_DEFAULTS } from "../plans.js";
 import { sendErr } from "../api-errors.js";
+import { listFeedback, getFeedbackStats, updateFeedbackStatus } from "../feedback.js";
 import { registerOpsCatalogRoutes } from "./ops-catalog-routes.js";
 import { registerOpsBetaRoutes } from "./ops-beta-routes.js";
 import { registerOpsPlazaRoutes } from "./ops-plaza-routes.js";
@@ -126,6 +127,78 @@ export async function registerOpsRoutes(app) {
         limit: limit != null ? Number(limit) : 50,
         offset: offset != null ? Number(offset) : 0
       });
+    }
+  );
+
+  app.get(
+    "/api/ops/feedback/stats",
+    {
+      schema: {
+        hide: true,
+        tags: ["system"],
+        response: {
+          200: { type: "array", items: { type: "object", additionalProperties: true } }
+        }
+      }
+    },
+    async () => {
+      return getFeedbackStats();
+    }
+  );
+
+  app.get(
+    "/api/ops/feedback",
+    {
+      schema: {
+        hide: true,
+        tags: ["system"],
+        querystring: {
+          type: "object",
+          properties: {
+            status: { type: "string", enum: ["new", "seen", "resolved"] },
+            kind: { type: "string", enum: ["feedback", "bug", "feature"] },
+            limit: { type: "integer", minimum: 1, maximum: 200 },
+            offset: { type: "integer", minimum: 0 }
+          }
+        },
+        response: {
+          200: { type: "object", additionalProperties: true }
+        }
+      }
+    },
+    async (request) => {
+      const { status, kind, limit, offset } = request.query;
+      return listFeedback({
+        status,
+        kind,
+        limit: limit != null ? Number(limit) : 50,
+        offset: offset != null ? Number(offset) : 0
+      });
+    }
+  );
+
+  app.patch(
+    "/api/ops/feedback/:id",
+    {
+      schema: {
+        hide: true,
+        tags: ["system"],
+        params: {
+          type: "object",
+          properties: { id: { type: "string", format: "uuid" } }
+        },
+        body: {
+          type: "object",
+          required: ["status"],
+          properties: { status: { type: "string", enum: ["new", "seen", "resolved"] } }
+        },
+        response: {
+          200: { type: "object", additionalProperties: true }
+        }
+      }
+    },
+    async (request) => {
+      return updateFeedbackStatus(request.params.id, request.body.status);
     }
   );
 

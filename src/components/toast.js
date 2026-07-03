@@ -6,12 +6,59 @@ function activeRuntimeRoom() {
   return workspaceActiveRuntimeRoom() ?? null;
 }
 
+let toastTimer = null;
+function clearToastTimer() {
+  if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+}
+
 export function showToast(text, duration = 2200) {
   const toast = getToast();
   if (!toast) return;
+  toast.className = "toast";
   toast.textContent = text;
   toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), duration);
+  clearToastTimer();
+  toastTimer = setTimeout(() => toast.classList.remove("show"), duration);
+}
+
+/**
+ * Show a toast with an optional action button (e.g. "上报故障").
+ * Decoupled from feedback-button.js — caller passes the onAction callback,
+ * so no circular import is introduced.
+ * @param {string} text
+ * @param {{ actionLabel?: string, onAction?: () => void, duration?: number }} [opts]
+ */
+export function showToastWithAction(text, { actionLabel, onAction, duration = 6000 } = {}) {
+  const toast = getToast();
+  if (!toast) return;
+  toast.className = "toast toast-with-action";
+  toast.innerHTML = "";
+  const msg = document.createElement("span");
+  msg.className = "toast-message";
+  msg.textContent = text;
+  toast.appendChild(msg);
+  if (actionLabel && typeof onAction === "function") {
+    const btn = document.createElement("button");
+    btn.className = "toast-action";
+    btn.type = "button";
+    btn.textContent = actionLabel;
+    btn.onclick = () => {
+      clearToastTimer();
+      toast.classList.remove("show");
+      try { onAction(); } catch (_) { /* ignore callback errors */ }
+    };
+    toast.appendChild(btn);
+  }
+  const dismiss = document.createElement("button");
+  dismiss.className = "toast-dismiss";
+  dismiss.type = "button";
+  dismiss.setAttribute("aria-label", "关闭");
+  dismiss.textContent = "×";
+  dismiss.onclick = () => { clearToastTimer(); toast.classList.remove("show"); };
+  toast.appendChild(dismiss);
+  toast.classList.add("show");
+  clearToastTimer();
+  toastTimer = setTimeout(() => toast.classList.remove("show"), duration);
 }
 
 export function pendingHostEventCount() {

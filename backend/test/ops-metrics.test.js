@@ -50,3 +50,48 @@ test("responses include X-Trace-Id", async (context) => {
   });
   assert.equal(response.headers["x-trace-id"], "4bf92f3577b34da6a3ce929d0e0e4736");
 });
+
+test("GET /metrics rejects with 503 when METRICS_TOKEN is missing in production", async (context) => {
+  const previousToken = process.env.METRICS_TOKEN;
+  const previousNodeEnv = process.env.NODE_ENV;
+  delete process.env.METRICS_TOKEN;
+  process.env.NODE_ENV = "production";
+  context.after(() => {
+    if (previousToken === undefined) delete process.env.METRICS_TOKEN;
+    else process.env.METRICS_TOKEN = previousToken;
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  });
+
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const denied = await app.inject({ method: "GET", url: "/metrics" });
+  assert.equal(denied.statusCode, 503);
+});
+
+test("GET /metrics accepts valid token using constant-time comparison", async (context) => {
+  const previous = process.env.METRICS_TOKEN;
+  process.env.METRICS_TOKEN = "test-metrics-secret";
+  context.after(() => {
+    if (previous === undefined) delete process.env.METRICS_TOKEN;
+    else process.env.METRICS_TOKEN = previous;
+  });
+
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const allowed = await app.inject({
+    method: "GET",
+    url: "/metrics",
+    headers: { "x-metrics-token": "test-metrics-secret" }
+  });
+  assert.equal(allowed.statusCode, 200);
+
+  const wrongLength = await app.inject({
+    method: "GET",
+    url: "/metrics",
+    headers: { "x-metrics-token": "test-metrics-secret-extra" }
+  });
+  assert.equal(wrongLength.statusCode, 401);
+});

@@ -6,6 +6,7 @@ import { content, modalBackdrop } from "./src/dom.js";
 import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
 import { uiStore, studioStore, userStore } from "./src/state/index.js";
 import { loading as renderLoading, error as renderError } from "./src/components/status-ui.js";
+import { mountFeedbackButton } from "./src/components/feedback-button.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
   if (startupMissing.length) return { render: () => {}, go: () => {} };
@@ -103,6 +104,7 @@ const appEntry = (function (window) {
 
   initEvents({ content, modalBackdrop, R, go });
 
+  mountFeedbackButton();
   render();
   const startupAuth = R.handleStartupAuthParams?.();
   Promise.resolve(startupAuth)

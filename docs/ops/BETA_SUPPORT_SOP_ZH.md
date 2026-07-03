@@ -14,9 +14,11 @@
 | 官网 `#beta-import` | 同上（`useCase` 预填导入意向） | 评估是否转 IMPORT SOP |
 | 官网 `#import` 邮件 CTA | **无 API**；邮件进 support 邮箱 | 手发 `import-ack` 模板 · 见 [IMPORT_EMAIL_AND_NO_API_ZH.md](./IMPORT_EMAIL_AND_NO_API_ZH.md) |
 | 已登录 · 套餐升级 | `plan_upgrade_requests` + 邮件通知 ops | [PLAN_UPGRADE_SOP_ZH.md](./PLAN_UPGRADE_SOP_ZH.md) |
+| 产品内「反馈」按钮 | `POST /api/feedback` → `feedback`，自动记录页面与浏览器 | Ops 控制台查看，按 `new → seen → resolved` 处理 |
+| 故障页「上报故障」 | 预填 Bug 类型、页面 URL 与错误信息后提交 `feedback` | 优先确认生产状态、告警与用户可恢复路径 |
 | 任意邮件咨询 | — | 模板回复 + 必要时查 DB / 日志 |
 
-**尚无**：独立工单系统、导入 ticket API、Slack 机器人。
+**尚无**：独立工单系统、导入 ticket API、Slack 机器人。产品内反馈目前先由 Ops 控制台人工处理。
 
 ---
 

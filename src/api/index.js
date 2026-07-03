@@ -286,6 +286,9 @@ export {
   getOpsStatus,
   getOpsAuditLog,
   getOpsPlanUpgradeRequests,
+  getOpsFeedback,
+  getOpsFeedbackStats,
+  updateOpsFeedbackStatus,
   assignOpsPlan,
   sendOpsTestAlert
 } from "./ops.js";

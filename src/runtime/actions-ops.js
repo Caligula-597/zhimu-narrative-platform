@@ -19,7 +19,7 @@ import { normalizeError } from "../components/status-ui.js";
     }
   }
 
-  async function handleOpsAction(action) {
+  async function handleOpsAction(action, el) {
     switch (action) {
       case "ops-save-token": {
         const token = document.querySelector("[data-ops-token]")?.value || "";
@@ -29,7 +29,7 @@ import { normalizeError } from "../components/status-ui.js";
       }
       case "ops-clear-token":
         api.setOpsToken("");
-        uiStore.set({ opsStatus: null, opsPlanRequests: null, opsAuditLog: null });
+        uiStore.set({ opsStatus: null, opsPlanRequests: null, opsAuditLog: null, opsFeedback: null, opsFeedbackStats: null });
         render();
         return true;
       case "ops-refresh":
@@ -56,6 +56,22 @@ import { normalizeError } from "../components/status-ui.js";
           await refresh();
         } catch (error) {
           showError(error, "套餐更新失败");
+        }
+        return true;
+      }
+      case "ops-feedback-status": {
+        const id = el?.dataset?.feedbackId;
+        const status = el?.dataset?.feedbackStatus || "seen";
+        if (!id) {
+          showToast("缺少反馈 ID");
+          return true;
+        }
+        try {
+          await api.updateOpsFeedbackStatus(id, status);
+          showToast("反馈状态已更新");
+          await refresh();
+        } catch (error) {
+          showError(error, "反馈状态更新失败");
         }
         return true;
       }

@@ -91,6 +91,27 @@ function playerNextStep(){
  const progressDone=sections.filter(section=>section.completed).length;
  const clueCount=(home.clues||[]).length;
  const inventoryCount=(home.inventory||[]).length;
+ const unreadSections=sections.filter(section=>!section.completed);
+ const unreadClues=(home.clues||[]).filter(clue=>!clue.read_at);
+ const unreadSharedClues=(home.sharedClues||[]).filter(clue=>!clue.read_by_me);
+ const availablePoints=points.filter(point=>!point.investigated&&point.hasRequiredItem);
+ const blockedPoints=points.filter(point=>!point.investigated&&!point.hasRequiredItem&&point.requiredItemId);
+ const readList=[
+  ...unreadSections.slice(0,3).map(section=>({title:section.title||`第 ${section.sequence} 幕`,hint:"未读分幕",action:"read-cloud-next",data:{section:section.id}})),
+  ...unreadClues.slice(0,2).map(clue=>({title:clue.name,hint:"未读线索",action:"read-cloud-clue",data:{clue:clue.id}})),
+  ...unreadSharedClues.slice(0,2).map(clue=>({title:clue.name,hint:"未读共享线索",action:"read-cloud-clue",data:{clue:clue.id}}))
+ ];
+ const exploreList=[
+  ...availablePoints.slice(0,3).map(point=>({title:point.name,hint:`可调查 · ${point.sceneName||"当前场景"}`,action:"investigate-cloud",data:{point:point.id}})),
+  ...blockedPoints.slice(0,2).map(point=>({title:point.name,hint:`需要 ${point.requiredItemName||"特定物品"}`,action:"switch-tab-explore",data:{}}))
+ ];
+ const waitList=[];
+ if(pending?.pendingCount&&!pending.waitingForYou){waitList.push({title:`主持人处理 ${pending.pendingCount} 条待确认`,hint:"确认后新内容自动推送"});}
+ if(!scenes.length){waitList.push({title:"等待主持人开放场景",hint:"完成阅读或由主持人推进规则后解锁"});}
+ if(!unreadSections.length&&!availablePoints.length&&!pending?.pendingCount){waitList.push({title:"当前无紧急待办",hint:"可查看线索、背包或进入语音讨论"});}
+ const readHtml=readList.length?readList.map(item=>`<button class="next-list-item" data-action="${escapeHtml(item.action)}"${Object.entries(item.data||{}).map(([k,v])=>` data-${escapeHtml(k)}="${escapeHtml(v)}"`).join("")}><span>${escapeHtml(item.hint)}</span><b>${escapeHtml(item.title)}</b></button>`).join(""):`<p class="muted">暂无未读内容。</p>`;
+ const exploreHtml=exploreList.length?exploreList.map(item=>`<button class="next-list-item" data-action="${escapeHtml(item.action)}"${Object.entries(item.data||{}).map(([k,v])=>` data-${escapeHtml(k)}="${escapeHtml(v)}"`).join("")}><span>${escapeHtml(item.hint)}</span><b>${escapeHtml(item.title)}</b></button>`).join(""):`<p class="muted">当前无可调查点。</p>`;
+ const waitHtml=waitList.length?waitList.map(item=>`<div class="next-list-item is-static"><span>${escapeHtml(item.hint)}</span><b>${escapeHtml(item.title)}</b></div>`).join(""):`<p class="muted">暂无等待项。</p>`;
  return `<section class="player-next-step">
   <article class="player-next-main">
    <div><p class="section-kicker">NEXT ACTION</p><h3>${escapeHtml(action.title)}</h3><p>${escapeHtml(action.detail)}</p></div>
@@ -101,6 +122,11 @@ function playerNextStep(){
    <span><b>${clueCount}</b><small>我的线索</small></span>
    <span><b>${inventoryCount}</b><small>背包物品</small></span>
    <span><b>${escapeHtml(action.kicker)}</b><small>当前状态</small></span>
+  </div>
+  <div class="player-next-lists">
+   <div class="next-list"><p class="section-kicker">READ · 读什么</p>${readHtml}</div>
+   <div class="next-list"><p class="section-kicker">EXPLORE · 查什么</p>${exploreHtml}</div>
+   <div class="next-list"><p class="section-kicker">WAIT · 等什么</p>${waitHtml}</div>
   </div>
  </section>`;
 }

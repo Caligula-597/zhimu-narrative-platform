@@ -42,6 +42,9 @@ export function validateStartupEnvironment() {
     if (!process.env.OPS_API_TOKEN?.trim()) {
       console.warn("WARN: OPS_API_TOKEN is empty — /api/ops/* endpoints reject all requests in production.");
     }
+    if (!process.env.METRICS_TOKEN?.trim()) {
+      console.warn("WARN: METRICS_TOKEN is empty — /metrics endpoint rejects all requests in production.");
+    }
 
     const oauth = validateOAuthProductionConfig();
     for (const warning of oauth.warnings) console.warn(`WARN: ${warning}`);

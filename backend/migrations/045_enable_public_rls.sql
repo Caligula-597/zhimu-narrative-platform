@@ -21,6 +21,7 @@ DECLARE
     'content_versions',
     'deleted_assets',
     'email_verification_tokens',
+    'feedback',
     'host_audit_log',
     'inventory',
     'investigation_points',

@@ -18,6 +18,7 @@ import { registerAssetRoutes } from "./routes/asset-routes.js";
 import { registerAccountRoutes } from "./routes/account-routes.js";
 import { registerPhysicalTokenRoutes } from "./routes/physical-token-routes.js";
 import { registerSearchRoutes } from "./routes/search-routes.js";
+import { registerFeedbackRoutes } from "./routes/feedback-routes.js";
 
 export async function registerRoutes(app) {
   await registerWorldRoutes(app);
@@ -40,4 +41,5 @@ export async function registerRoutes(app) {
   await registerAssetRoutes(app);
   await registerAccountRoutes(app);
   await registerPhysicalTokenRoutes(app);
+  await registerFeedbackRoutes(app);
 }

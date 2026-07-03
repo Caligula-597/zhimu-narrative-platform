@@ -243,6 +243,14 @@ export const API_ERRORS = {
   OPS_NOT_CONFIGURED: { status: 503, message: "Ops API is not configured (set OPS_API_TOKEN)" },
   OPS_TOKEN_REQUIRED: { status: 401, message: "Valid ops token required" },
   METRICS_TOKEN_REQUIRED: { status: 401, message: "Valid metrics token required" },
+  METRICS_NOT_CONFIGURED: { status: 503, message: "Metrics endpoint is not configured (set METRICS_TOKEN in production)" },
+
+  // Feedback
+  FEEDBACK_KIND_INVALID: { status: 400, message: "Kind must be one of: feedback, bug, feature" },
+  FEEDBACK_SUBJECT_REQUIRED: { status: 400, message: "Subject is required" },
+  FEEDBACK_BODY_REQUIRED: { status: 400, message: "Body is required" },
+  FEEDBACK_STATUS_INVALID: { status: 400, message: "Status must be one of: new, seen, resolved" },
+  FEEDBACK_NOT_FOUND: { status: 404, message: "Feedback not found" },
 
   // Story assistant & documents
   STORY_TEXT_REQUIRED: { status: 400, message: "Story draft text is required" },

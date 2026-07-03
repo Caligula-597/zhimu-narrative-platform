@@ -1,5 +1,6 @@
 /* Global data-action dispatcher — domain handlers live in actions-*.js */
 import { showToast } from "../components/toast.js";
+import { openFeedbackForm } from "../components/feedback-button.js";
 import { uiStore } from "../state/index.js";
 import { callRuntime, registerRuntime } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
@@ -51,6 +52,11 @@ export function handle(action, el) {
     if (action === "open-wizard") return openWizard();
     if (action === "open-creator-guide") return window.zhimuGuide?.openCreatorGuide?.();
     if (action === "open-error-guide") return window.zhimuGuide?.openErrorGuide?.();
+    if (action === "report-issue") {
+      const subject = el?.dataset?.reportSubject || "";
+      const body = el?.dataset?.reportBody || "";
+      return openFeedbackForm("bug", subject, body);
+    }
     if (action === "unavailable") return showToast(`${el.dataset.feature || "该功能"}暂不可用`);
   }
 

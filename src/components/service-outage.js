@@ -1,6 +1,7 @@
 /** Full-page service outage UI when API is unreachable. */
 import { renderState } from "./status-ui.js";
 import { formatCloudPanelError } from "../utils/user-messages.js";
+import { escapeHtml } from "../../shared/security.js";
 (function (window) {
   function isServiceOutage(apiError) {
     if (!apiError) return false;
@@ -10,7 +11,8 @@ import { formatCloudPanelError } from "../utils/user-messages.js";
   function renderServiceOutage(apiError) {
     if (!isServiceOutage(apiError)) return "";
     const detail = formatCloudPanelError(apiError, { hasStudio: false }) || apiError;
-    const actions = `<button class="primary-btn" data-action="refresh-cloud">重新连接</button><button class="secondary-btn" data-action="open-error-guide">错误排查手册</button><a class="text-btn" href="/errors/offline.html" target="_blank" rel="noopener">打开离线说明页</a>`;
+    const reportBody = `无法连接云端。\n错误信息：${apiError || "未知错误"}\n页面：${window.location.href}\n\n请补充你当时在做什么：`;
+    const actions = `<button class="primary-btn" data-action="refresh-cloud">重新连接</button><button class="secondary-btn" data-action="open-error-guide">错误排查手册</button><button class="secondary-btn" data-action="report-issue" data-report-subject="云端连接故障" data-report-body="${escapeHtml(reportBody)}">上报故障</button><a class="text-btn" href="/errors/offline.html" target="_blank" rel="noopener">打开离线说明页</a>`;
     const body = renderState({
       tone: "error",
       kicker: "503",

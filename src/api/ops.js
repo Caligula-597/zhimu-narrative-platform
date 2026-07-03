@@ -35,6 +35,27 @@ export function getOpsPlanUpgradeRequests(params = {}) {
   return opsRequest(`/ops/plan-upgrade/requests${qs ? `?${qs}` : ""}`);
 }
 
+export function getOpsFeedback(params = {}) {
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.kind) query.set("kind", params.kind);
+  if (params.limit) query.set("limit", String(params.limit));
+  if (params.offset) query.set("offset", String(params.offset));
+  const qs = query.toString();
+  return opsRequest(`/ops/feedback${qs ? `?${qs}` : ""}`);
+}
+
+export function getOpsFeedbackStats() {
+  return opsRequest("/ops/feedback/stats");
+}
+
+export function updateOpsFeedbackStatus(id, status) {
+  return opsRequest(`/ops/feedback/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: { status }
+  });
+}
+
 export function assignOpsPlan(payload) {
   return opsRequest("/ops/users/plan", { method: "POST", body: payload });
 }
