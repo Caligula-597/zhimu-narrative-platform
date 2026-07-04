@@ -112,6 +112,16 @@ export function getCreatorChecks() {
   return request(`/worlds/${demoContext.worldId}/creator-checks`, { userId: demoContext.hostUserId });
 }
 
+export function getCreatorDashboard({ roomId, worldId } = {}) {
+  const params = new URLSearchParams();
+  if (roomId) params.set("roomId", roomId);
+  const query = params.toString();
+  const wid = worldId || demoContext.worldId;
+  return request(`/worlds/${wid}/creator-dashboard${query ? `?${query}` : ""}`, {
+    userId: demoContext.hostUserId
+  });
+}
+
 /* ── Physical tokens ── */
 
 export function listPhysicalTokens(worldId, query = "") {

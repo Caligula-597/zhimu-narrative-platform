@@ -6,6 +6,7 @@ export const worldStore = createStore({
   cloudCatalog: [],
   cloudCatalogError: "",
   cloudCreatorChecks: [],
+  cloudCreatorDashboard: null,
   cloudRules: [],
   cloudRulesPreview: null,
   cloudWorldLogs: []

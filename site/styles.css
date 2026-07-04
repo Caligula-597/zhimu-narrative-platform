@@ -543,6 +543,73 @@ button {
   line-height: 1.75;
 }
 
+.first-session-section {
+  width: 100%;
+  padding: 56px max(20px, calc((100vw - 1180px) / 2));
+  background: linear-gradient(180deg, #fffdf8, #f7f3ea);
+  border-block: 1px solid var(--line);
+}
+
+.first-session-section .section-lede {
+  max-width: 640px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.first-session-path {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.first-session-path li {
+  padding: 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.first-session-path span {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background: rgba(88, 127, 121, 0.12);
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.first-session-path strong {
+  display: block;
+  font-size: 17px;
+}
+
+.first-session-path p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.first-session-path code {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.first-session-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
 .workflow-section {
   width: 100%;
   padding-left: max(20px, calc((100vw - 1180px) / 2));
@@ -1053,6 +1120,7 @@ button {
   .systems-grid,
   .role-table,
   .beta-section,
+  .first-session-path,
   .workflow-list {
     grid-template-columns: 1fr;
   }
@@ -1081,6 +1149,7 @@ button {
   }
 
   .beta-section,
+  .first-session-section,
   .workflow-section {
     padding-left: 16px;
     padding-right: 16px;

@@ -41,13 +41,17 @@ import { togglePanelInDom } from "../components/collapse-panel.js";
         callRuntime("openCurrentRoomInvite");
         return true;
       case "copy-invite-code":
+        window.zhimuOnboarding?.markInviteSent?.();
         window.zhimuInviteLinks?.copyText?.(el?.dataset?.inviteCode, "邀请码");
+        render();
         return true;
       case "copy-play-link":
+        window.zhimuOnboarding?.markInviteSent?.();
         window.zhimuInviteLinks?.copyText?.(
           window.zhimuInviteLinks?.playerJoinUrl?.(el?.dataset?.inviteCode),
           "玩家链接"
         );
+        render();
         return true;
       case "open-player-portal":
         window.open(
@@ -107,10 +111,22 @@ import { togglePanelInDom } from "../components/collapse-panel.js";
           "_blank",
           "noopener,noreferrer"
         );
+        render();
         return true;
-      case "onboarding-go-director":
-        window.zhimuOnboarding?.markDirectorVisit?.();
-        window.open(window.zhimuInviteLinks?.hostConsoleUrl?.(), "_blank", "noopener,noreferrer");
+      case "onboarding-copy-invite": {
+        const room = activeRuntimeRoom();
+        if (!room?.invite_code) {
+          callRuntime("openWorldRooms");
+          return true;
+        }
+        window.zhimuOnboarding?.markInviteSent?.();
+        window.zhimuInviteLinks?.copyText?.(room.invite_code, "邀请码");
+        render();
+        return true;
+      }
+      case "onboarding-go-archive":
+        window.zhimuOnboarding?.markRecapVisit?.();
+        go("archive");
         return true;
       case "refresh-host-room":
         callRuntime("refreshHostRoom", true);

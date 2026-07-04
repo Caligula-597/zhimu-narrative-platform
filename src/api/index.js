@@ -107,6 +107,7 @@ export {
   getWorldLogs,
   getWorldHostAuditLog,
   getCreatorChecks,
+  getCreatorDashboard,
   listPhysicalTokens,
   createPhysicalTokens,
   revokePhysicalToken,

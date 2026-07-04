@@ -57,6 +57,25 @@ export function overviewRuntimeProgress() {
   return { percent, label: totals.total ? `${totals.completed} / ${totals.total} 段私人剧情已完成` : "暂无玩家进度" };
 }
 
+function refToUiFields(ref) {
+  if (!ref) return {};
+  if (ref.type === "action") return { action: ref.action };
+  if (ref.type === "view") return { view: ref.view };
+  return {};
+}
+
+function overviewNextActionFromDashboard(item, index) {
+  return { ...refToUiFields(item.ref), title: item.title, detail: item.detail, button: item.button, index: String(index + 1).padStart(2, "0") };
+}
+
+function overviewRiskFromDashboard(item) {
+  return { level: item.level, title: item.title, detail: item.detail, ...refToUiFields(item.ref), button: item.button };
+}
+
+function overviewProductionFromDashboard(item) {
+  return { label: item.label, value: item.value, detail: item.detail, done: item.done, ...refToUiFields(item.ref), button: item.button };
+}
+
 function overviewProductionItem(item) {
   const actionAttr = item.action ? ` data-action="${escapeHtml(item.action)}"` : ` data-go="${escapeHtml(item.view || "overview")}"`;
   return `<div class="production-item ${item.done ? "is-done" : "is-waiting"}">
@@ -106,7 +125,7 @@ function overviewRiskItem(item) {
 
 export function overview() {
   const { cloudStudio, cloudLoading } = studioStore.get();
-  const { cloudWorlds, cloudRules, cloudWorldLogs, cloudCreatorChecks } = worldStore.get();
+  const { cloudWorlds, cloudRules, cloudWorldLogs, cloudCreatorChecks, cloudCreatorDashboard } = worldStore.get();
   const { cloudAssets, storageUsage } = assetStore.get();
   const { apiError } = userStore.get();
   const { cloudHost, cloudHostEvents, cloudHostStuckCount, cloudRecaps, cloudCheckpoints } = roomStore.get();
@@ -184,8 +203,11 @@ export function overview() {
     { k: "复盘", v: String(cloudRecaps?.length || 0), t: "checkpoint 与 recap 归档" },
     ...(storageQuotaPct !== null ? [{ k: "云存储", v: `${storageQuotaPct}%`, t: `${formatBytes(storageUsage.usedBytes)} / ${formatBytes(storageUsage.maxBytes)}` }] : [])
   ];
+  const creatorChecks = cloudCreatorDashboard?.checks ?? cloudCreatorChecks ?? [];
+  const checkErrors = creatorChecks.filter(c => c.level === "error");
+  const checkWarnings = creatorChecks.filter(c => c.level === "warning");
   const miniGameTemplates = Array.isArray(world?.settings?.miniGameTemplates) ? world.settings.miniGameTemplates.length : 0;
-  const productionItems = [
+  const clientProductionItems = [
     { label: "基础内容", value: `${roleCount} 角色 / ${sectionCount} 分幕`, detail: roleCount && sectionCount ? "角色与私人分幕已经可进入玩家端预览。" : "先补齐角色席位和私人分幕。", done: roleCount > 0 && sectionCount > 0, view: "writer", button: "创作" },
     { label: "剧情结构", value: `${chapterCount} 章 / ${sceneCount} 场景`, detail: chapterCount && sceneCount ? "公共章节和场景结构已成型。" : "需要补章节、场景和主线推进关系。", done: chapterCount > 0 && sceneCount > 0, view: "studio", button: "编排" },
     { label: "调查内容", value: `${clueCount} 线索 / ${pointCount} 调查点`, detail: clueCount && pointCount ? "线索和调查点可以支撑玩家行动。" : "线索管理只做审稿与证据链，不再承担完整编排台。", done: clueCount > 0 && pointCount > 0, view: "clues", button: "检查" },
@@ -193,38 +215,37 @@ export function overview() {
     { label: "运行房", value: hasRooms ? `${rooms.length} 个` : "未建立", detail: hasRooms ? "可以进入主持端跑房和测试。" : "建立运行房后才能验证主持端、玩家端和规则触发。", done: hasRooms, action: "world-rooms", button: hasRooms ? "管理" : "建立" },
     { label: "小游戏测试", value: `${miniGameTemplates} 模板`, detail: miniGameTemplates ? "创作者已保存数字锁模板，可在当前房间测试启动。" : "测试功能：先沉淀数字锁模板，再扩更多玩法。", done: miniGameTemplates > 0, view: "miniGames", button: "设计" }
   ];
+  const productionItems = cloudCreatorDashboard?.production?.map(overviewProductionFromDashboard) ?? clientProductionItems;
   const doneProduction = productionItems.filter(item => item.done).length;
-  const productionPercent = Math.round((doneProduction / productionItems.length) * 100);
-  const creatorChecks = cloudCreatorChecks || [];
-  const checkErrors = creatorChecks.filter(c => c.level === "error");
-  const checkWarnings = creatorChecks.filter(c => c.level === "warning");
-  const checkRisks = [...checkErrors, ...checkWarnings].map(check => ({ level: check.level, title: check.title, detail: check.detail }));
-  const runtimeRisks = [];
+  const productionPercent = cloudCreatorDashboard?.readiness?.productionPercent ?? Math.round((doneProduction / productionItems.length) * 100);
+  const clientCheckRisks = [...checkErrors, ...checkWarnings].map(check => ({ level: check.level, title: check.title, detail: check.detail }));
+  const clientRuntimeRisks = [];
   if (pendingEvents > 5) {
-    runtimeRisks.push({ level: "warning", title: "待确认事件积压", detail: `${pendingEvents} 条事件等待主持端处理，可能影响玩家体验。`, action: "open-host-console", button: "打开主持端" });
+    clientRuntimeRisks.push({ level: "warning", title: "待确认事件积压", detail: `${pendingEvents} 条事件等待主持端处理，可能影响玩家体验。`, action: "open-host-console", button: "打开主持端" });
   }
   if (cloudHostStuckCount > 0) {
-    runtimeRisks.push({ level: "warning", title: `${cloudHostStuckCount} 名玩家疑似卡关`, detail: "玩家长时间未推进剧情，建议主持端主动干预或发放线索。", action: "open-host-console", button: "打开主持端" });
+    clientRuntimeRisks.push({ level: "warning", title: `${cloudHostStuckCount} 名玩家疑似卡关`, detail: "玩家长时间未推进剧情，建议主持端主动干预或发放线索。", action: "open-host-console", button: "打开主持端" });
   }
   if (hasActiveRoom && !cloudCheckpoints?.length) {
-    runtimeRisks.push({ level: "warning", title: "运行房尚未存档", detail: "当前运行进度没有存档点，意外中断后无法恢复。", action: "create-checkpoint", button: "创建存档" });
+    clientRuntimeRisks.push({ level: "warning", title: "运行房尚未存档", detail: "当前运行进度没有存档点，意外中断后无法恢复。", action: "create-checkpoint", button: "创建存档" });
   }
-  const quotaRisks = [];
+  const clientQuotaRisks = [];
   if (storageUsage && storageUsage.maxBytes) {
     const quotaPct = storageUsage.usedBytes / storageUsage.maxBytes;
     if (quotaPct > 0.8) {
-      quotaRisks.push({ level: quotaPct > 0.95 ? "error" : "warning", title: "云存储空间不足", detail: `已用 ${Math.round(quotaPct * 100)}%（${formatBytes(storageUsage.usedBytes)} / ${formatBytes(storageUsage.maxBytes)}）。请清理附件或申请扩容。`, action: "go-account", button: "管理资产" });
+      clientQuotaRisks.push({ level: quotaPct > 0.95 ? "error" : "warning", title: "云存储空间不足", detail: `已用 ${Math.round(quotaPct * 100)}%（${formatBytes(storageUsage.usedBytes)} / ${formatBytes(storageUsage.maxBytes)}）。请清理附件或申请扩容。`, action: "go-account", button: "管理资产" });
     }
   }
-  const riskItems = [...checkRisks, ...runtimeRisks, ...quotaRisks];
-  const riskErrorCount = riskItems.filter(r => r.level === "error").length;
-  const riskWarningCount = riskItems.filter(r => r.level === "warning").length;
-  const hasRisks = riskItems.length > 0;
-  const readyForPlaytest = checkErrors.length === 0 && roleCount > 0 && sectionCount > 0 && chapterCount > 0;
-  const readyForCatalog = readyForPlaytest && checkWarnings.length === 0 && hasRooms;
-  const readinessLabel = readyForCatalog ? "可申请公开库" : readyForPlaytest ? "可内测测试" : "尚未就绪";
-  const readinessTone = readyForCatalog ? "published" : readyForPlaytest ? "testing" : "draft";
-  const nextActions = [
+  const riskItems = cloudCreatorDashboard?.risks?.map(overviewRiskFromDashboard)
+    ?? [...clientCheckRisks, ...clientRuntimeRisks, ...clientQuotaRisks];
+  const riskErrorCount = cloudCreatorDashboard?.riskSummary?.errorCount ?? riskItems.filter(r => r.level === "error").length;
+  const riskWarningCount = cloudCreatorDashboard?.riskSummary?.warningCount ?? riskItems.filter(r => r.level === "warning").length;
+  const hasRisks = cloudCreatorDashboard?.riskSummary?.hasRisks ?? riskItems.length > 0;
+  const readyForPlaytest = cloudCreatorDashboard?.readiness?.readyForPlaytest ?? (checkErrors.length === 0 && roleCount > 0 && sectionCount > 0 && chapterCount > 0);
+  const readyForCatalog = cloudCreatorDashboard?.readiness?.readyForCatalog ?? (readyForPlaytest && checkWarnings.length === 0 && hasRooms);
+  const readinessLabel = cloudCreatorDashboard?.readiness?.label ?? (readyForCatalog ? "可申请公开库" : readyForPlaytest ? "可内测测试" : "尚未就绪");
+  const readinessTone = cloudCreatorDashboard?.readiness?.tone ?? (readyForCatalog ? "published" : readyForPlaytest ? "testing" : "draft");
+  const clientNextActions = [
     riskErrorCount ? { title: "处理发布阻塞项", detail: `${riskErrorCount} 项阻塞问题阻止剧本进入内测，请先在风险面板处理。`, action: "creator-check", button: "运行发布检查" } : null,
     cloudHostStuckCount > 0 ? { title: "干预卡关玩家", detail: `${cloudHostStuckCount} 名玩家长时间未推进剧情，建议主动发放线索或引导。`, action: "open-host-console", button: "打开主持端" } : null,
     hasActiveRoom && !cloudCheckpoints?.length ? { title: "为当前运行房创建存档", detail: "运行进度没有存档点，意外中断后无法恢复。", action: "create-checkpoint", button: "创建存档" } : null,
@@ -237,6 +258,8 @@ export function overview() {
     pendingEvents ? { title: "处理主持待确认事件", detail: `${pendingEvents} 条事件正在等待主持端确认。`, action: "open-host-console", button: "打开主持端" } : null,
     hasRooms && !pendingEvents && !riskErrorCount ? { title: "进入运行控制台检查现场", detail: "确认玩家状态、房间状态和事件日志是否正常。", action: "open-host-console", button: "打开主持端" } : null
   ].filter(Boolean).slice(0, 5).map((item, index) => ({ ...item, index: String(index + 1).padStart(2, "0") }));
+  const nextActions = cloudCreatorDashboard?.nextActions?.map(overviewNextActionFromDashboard)
+    ?? clientNextActions;
   const backendCapabilities = [
     { label: "云端世界与创作数据", ready: Boolean(studio?.world || listedWorld), detail: "世界、角色、章节、场景、线索和调查点已经从后端读取。" },
     { label: "运行房与邀请码", ready: hasRooms, detail: hasRooms ? "运行实例和玩家邀请链路可用。" : "创建运行房后启用邀请码和玩家进度。" },
@@ -313,7 +336,7 @@ export function overview() {
     </section>
     <section class="backend-console">
       <div class="section-head">
-        <div><p class="section-kicker">BACKEND PRODUCTIZED</p><h3>后端能力状态</h3><p>只展示创作者现在用得上的能力，后续聚合接口会继续把这些卡片变成真实 summary。</p></div>
+        <div><p class="section-kicker">BACKEND PRODUCTIZED</p><h3>后端能力状态</h3><p>制作总控台风险与下一步已由 <code>creator-dashboard</code> 聚合 API 提供；其余卡片仍来自创作/运行数据。</p></div>
       </div>
       <div class="backend-capability-list">${backendCapabilities.map(overviewBackendCapability).join("")}</div>
     </section>

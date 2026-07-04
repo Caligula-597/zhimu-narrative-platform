@@ -32,7 +32,7 @@ import { worldStore } from "../state/index.js";
         <div>
           <p class="section-kicker">欢迎 · 从这里开始</p>
           <h3>选择你的第一条路径</h3>
-          <p>约 3 分钟可跑通「创建 → 开房 → 玩家加入 → 主持看见进度」。</p>
+          <p>跑通首场只需四步：<strong>创建剧本 → 开房 → 邀请玩家 → 复盘</strong>（约 10 分钟）。</p>
         </div>
         <button type="button" class="text-btn" data-action="dismiss-first-run">稍后再说</button>
       </div>

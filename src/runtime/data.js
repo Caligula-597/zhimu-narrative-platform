@@ -241,12 +241,18 @@ export async function loadCloudData(withToast = false, force = false) {
         if (assetSnap.assetSearchQuery) params.q = assetSnap.assetSearchQuery;
         const needsStorageUsage = ["overview", "account", "settings"].includes(uiStore.get().view);
         const needsAssets = ["overview", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view);
-        const needsCreatorChecks = ["overview", "writer", "settings"].includes(uiStore.get().view);
-        if (!needsStorageUsage && !needsAssets && !needsCreatorChecks) return;
+        const needsCreatorDashboard = uiStore.get().view === "overview";
+        const needsCreatorChecks = ["writer", "settings"].includes(uiStore.get().view);
+        if (!needsStorageUsage && !needsAssets && !needsCreatorDashboard && !needsCreatorChecks) return;
+        const activeRoomId = zhimuApi.context.roomId || null;
         const phase3 = await Promise.allSettled([
           needsStorageUsage ? zhimuApi.getStorageUsage() : Promise.resolve(assetStore.get().storageUsage),
           needsAssets ? zhimuApi.getAssets(Object.keys(params).length ? params : {}) : Promise.resolve({ assets: assetStore.get().cloudAssets, total: assetStore.get().assetTotal }),
-          needsCreatorChecks ? zhimuApi.getCreatorChecks() : Promise.resolve({ checks: worldStore.get().cloudCreatorChecks })
+          needsCreatorDashboard
+            ? zhimuApi.getCreatorDashboard(activeRoomId ? { roomId: activeRoomId } : {})
+            : needsCreatorChecks
+              ? zhimuApi.getCreatorChecks()
+              : Promise.resolve({ checks: worldStore.get().cloudCreatorChecks })
         ]);
         take(phase3[0], (value) => { assetStore.set({ storageUsage: value }); });
         take(phase3[1], (value) => {
@@ -256,7 +262,13 @@ export async function loadCloudData(withToast = false, force = false) {
             assetStore.set({ cloudAssets: value.assets || [], assetTotal: value.total ?? (value.assets || []).length });
           }
         });
-        take(phase3[2], (value) => { worldStore.set({ cloudCreatorChecks: value.checks }); });
+        take(phase3[2], (value) => {
+          if (value?.production) {
+            worldStore.set({ cloudCreatorDashboard: value, cloudCreatorChecks: value.checks || [] });
+          } else {
+            worldStore.set({ cloudCreatorChecks: value.checks || value });
+          }
+        });
         if (["overview", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view)) render();
       })();
 

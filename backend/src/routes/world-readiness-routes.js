@@ -82,4 +82,38 @@ export async function registerWorldReadinessRoutes(app) {
       }
     }
   );
+
+  app.get(
+    "/api/worlds/:worldId/creator-dashboard",
+    {
+      schema: {
+        params: worldIdParams,
+        querystring: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            roomId: { type: "string", minLength: 36, maxLength: 36 }
+          }
+        }
+      }
+    },
+    async (request, reply) => {
+      const actorId = requireActor(request);
+      const { worldId } = request.params;
+      const { roomId = null } = request.query ?? {};
+      await requireWorldReader(actorId, worldId);
+      try {
+        const { buildCreatorDashboard } = await import("../creator-dashboard.js");
+        return await buildCreatorDashboard({ worldId, actorId, roomId: roomId || null });
+      } catch (error) {
+        if (error.code && error.statusCode) {
+          return reply.code(error.statusCode).send({
+            error: error.message,
+            code: error.code
+          });
+        }
+        throw error;
+      }
+    }
+  );
 }

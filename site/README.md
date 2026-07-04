@@ -46,8 +46,9 @@ POST https://app.getzhimu.com/api/platform/beta/apply
 | `#top` | 首屏价值主张 | 创作者/主持/玩家三入口 + 真实产品视觉图 |
 | `#product` | 四模块定位 | 创作/编排/主持/玩家 |
 | `#showcase` | 产品界面四栏 | 创作者端、主持端、玩家端、复盘归档 |
+| `#first-session` | **首场路径** | 创建剧本 → 开房 → 邀请玩家 → 复盘（B0-02） |
+| `#workflow` | 完整工作流 | 建立世界 → 编排 → 开房 → 存档复盘 |
 | `#status` | 当前 Beta 状态 | 核心闭环、已接入能力、仍在推进的上线门槛 |
-| `#workflow` | 四步工作流 | |
 | `#systems` | 系统能力 | 身份协作、实时运行、内容资产、复盘、审计、运维 |
 | `#import` | 预约导入剧本 | 邮件 CTA + 链到 `#beta-import` |
 | `#beta` | 内测申请表 | `data-beta-form` → `POST /api/platform/beta/apply` |

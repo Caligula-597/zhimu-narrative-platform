@@ -8,7 +8,7 @@ import { clearRuntimeState } from "./runtime-store.js";
 (function (window) {
   function clearWorldScopedState() {
     studioStore.set({ cloudStudio: null });
-    worldStore.set({ cloudRules: [], cloudCreatorChecks: [], cloudWorldLogs: [] });
+    worldStore.set({ cloudRules: [], cloudCreatorChecks: [], cloudCreatorDashboard: null, cloudWorldLogs: [] });
     roomStore.set({
       cloudHost: [],
       cloudHostPlayers: [],

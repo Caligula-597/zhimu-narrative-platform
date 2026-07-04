@@ -135,7 +135,7 @@ export async function deleteCreatorChapter(chapterId){
  }catch(error){showError(error)}
 }
 
-export async function runCreatorChecks(){try{worldStore.set({ cloudCreatorChecks: (await zhimuApi.getCreatorChecks()).checks });render();showToast("发布检查已完成")}catch(error){showError(error)}}
+export async function runCreatorChecks(){try{const roomId=zhimuApi.context.roomId||null;const dash=await zhimuApi.getCreatorDashboard(roomId?{roomId}:{});worldStore.set({cloudCreatorDashboard:dash,cloudCreatorChecks:dash.checks||[]});render();showToast("发布检查已完成")}catch(error){showError(error)}}
 
 export async function openStoryManuscript(){
  try{
