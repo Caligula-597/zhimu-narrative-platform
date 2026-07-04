@@ -3,6 +3,7 @@ import { sendViaMailgun } from "./providers/mailgun.js";
 import { sendViaResend } from "./providers/resend.js";
 import { sendViaSendGrid } from "./providers/sendgrid.js";
 import { worldInviteEmailHtml, passwordResetEmailHtml, emailVerificationHtml } from "./templates.js";
+import { enterpriseEmailSummary } from "../enterprise-emails.js";
 
 function isDeliveryStubbed() {
   return process.env.EMAIL_DELIVERY_STUB === "1" || process.env.PASSWORD_RESET_EMAIL_STUB === "1";
@@ -73,7 +74,8 @@ export function getEmailServiceStatus() {
     provider,
     configured: isEmailConfigured(),
     requireVerification: process.env.REQUIRE_EMAIL_VERIFICATION === "true",
-    publicAppUrl: publicAppUrl() || null
+    publicAppUrl: publicAppUrl() || null,
+    addresses: enterpriseEmailSummary()
   };
 }
 

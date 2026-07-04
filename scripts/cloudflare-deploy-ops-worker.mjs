@@ -117,7 +117,7 @@ async function main() {
     { type: "plain_text", name: "BRIDGE_SECRET", text: bridgeSecret },
     { type: "plain_text", name: "RESEND_API_KEY", text: backendEnv.RESEND_API_KEY || "" },
     { type: "plain_text", name: "MAIL_FROM", text: backendEnv.MAIL_FROM || "织幕 <noreply@mail.getzhimu.com>" },
-    { type: "plain_text", name: "ALERT_EMAIL", text: backendEnv.MAIL_REPLY_TO || "support@getzhimu.com" }
+    { type: "plain_text", name: "ALERT_EMAIL", text: backendEnv.ALERT_EMAIL || backendEnv.ADMIN_EMAIL || "admin@getzhimu.com" }
   ];
 
   console.log("[cf-ops-bridge] deploying worker…");

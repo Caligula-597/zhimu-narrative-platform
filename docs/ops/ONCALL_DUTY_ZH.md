@@ -39,7 +39,7 @@
 | **Secondary** | Primary 30 分钟内无响应时接手 | 1 |
 | **Engineering** | 需要改代码 / 迁移 / 回滚时介入 | 按需 |
 
-内测期可 **Primary = Secondary = 同一人**；公开 Beta 前必须拆角色并在下方登记表留联系方式。
+内测期可 **Primary = Secondary = 同一人**；公开 Beta 前必须拆角色并在 [ONCALL_CONTACTS.template.md](./ONCALL_CONTACTS.template.md)（团队内副本，勿提交真实号码）留联系方式。
 
 ### 登记表（请维护）
 
@@ -48,6 +48,14 @@
 | Primary | _填写_ | _飞书/微信/电话_ | UTC+8 |
 | Secondary | _填写_ | _同上_ | UTC+8 |
 | Engineering | _填写_ | _GitHub @_ | UTC+8 |
+
+### 告警送达验证（B0-05 · 每季度）
+
+1. 运行 `npm run drill:oncall` → 应 **6/6** 通过。
+2. 确认 Primary **实际收到** `POST /api/ops/alerts/test` 触发的 webhook（不仅 API 返回 ok）。
+3. 记录见 `docs/ops/MONITORING_ONCALL_DRILL_*.md`；联系人模板见 `ONCALL_CONTACTS.template.md`。
+
+最近：`MONITORING_ONCALL_DRILL_2026-07-04.md`（2026-07-04，6/6 API 通过；人工收 webhook 待勾选）。
 
 ---
 

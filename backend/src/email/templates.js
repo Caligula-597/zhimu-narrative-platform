@@ -2,6 +2,7 @@
  * Branded transactional email HTML for 织幕.
  * Visual language aligned with marketing site (site/styles.css).
  */
+import { enterpriseEmails } from "../enterprise-emails.js";
 
 const BRAND = {
   green: "#183f3a",
@@ -59,7 +60,7 @@ export function brandedEmailHtml({
     ? `<p style="margin:10px 0 0">${escapeHtml(footerNote)}</p>`
     : "";
 
-  const supportEmail = escapeHtml(process.env.SUPPORT_EMAIL?.trim() || "support@getzhimu.com");
+  const supportEmail = escapeHtml(enterpriseEmails().support);
   const footerLead = replyFriendly
     ? `<p style="margin:0">如有疑问，请<strong>直接回复本邮件</strong>，或写信至 <a href="mailto:${supportEmail}" style="color:${BRAND.greenLight};text-decoration:none">${supportEmail}</a>。</p>`
     : `<p style="margin:0">此邮件由织幕系统自动发送，请勿直接回复。</p>`;

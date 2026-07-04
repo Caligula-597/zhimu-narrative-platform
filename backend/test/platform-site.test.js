@@ -50,6 +50,10 @@ test("GET /api/platform/site returns marketing bootstrap without auth", async (c
   assert.ok(body.pricing?.launch?.tiers?.length >= 3);
   assert.ok(body.pricing?.commercial?.prepared);
   assert.ok(body.fetchedAt);
+  assert.equal(body.supportEmail, "support@getzhimu.com");
+  assert.equal(body.helloEmail, "hello@getzhimu.com");
+  assert.equal(body.adminEmail, "admin@getzhimu.com");
+  assert.equal(body.contactEmails?.userSupport, "support@getzhimu.com");
 });
 
 test("GET /api/platform/catalog-preview is public", async (context) => {

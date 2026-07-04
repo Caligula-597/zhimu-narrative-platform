@@ -135,6 +135,14 @@ for (const key of SECRET_KEYS) {
 // Resend: plain "Name <email>" — no nested JSON quotes (Railway misparses those)
 const mailFrom = (local.MAIL_FROM || "").replace(/^["']|["']$/g, "").trim();
 env.MAIL_FROM = mailFrom.includes("@") ? mailFrom : "织幕 <noreply@mail.getzhimu.com>";
+env.SUPPORT_EMAIL = local.SUPPORT_EMAIL?.trim() || "support@getzhimu.com";
+env.HELLO_EMAIL = local.HELLO_EMAIL?.trim() || "hello@getzhimu.com";
+env.ADMIN_EMAIL = local.ADMIN_EMAIL?.trim() || "admin@getzhimu.com";
+env.MAIL_REPLY_TO = local.MAIL_REPLY_TO?.trim() || env.SUPPORT_EMAIL;
+env.BETA_REVIEW_NOTIFY_EMAIL = local.BETA_REVIEW_NOTIFY_EMAIL?.trim() || env.ADMIN_EMAIL;
+env.CATALOG_REVIEW_NOTIFY_EMAIL = local.CATALOG_REVIEW_NOTIFY_EMAIL?.trim() || env.ADMIN_EMAIL;
+env.PLAN_UPGRADE_NOTIFY_EMAIL = local.PLAN_UPGRADE_NOTIFY_EMAIL?.trim() || env.ADMIN_EMAIL;
+env.ALERT_EMAIL = local.ALERT_EMAIL?.trim() || env.ADMIN_EMAIL;
 
 env.NODE_ENV = "production";
 env.ALLOW_DEMO_USER_HEADER = "false";

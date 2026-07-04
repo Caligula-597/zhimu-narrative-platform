@@ -33,9 +33,9 @@
 |---|---|---|---|
 | B0-01 | 官网 pilot 案例 | `site/` 案例区 + 匿名试点故事 | 至少 1 个真实/匿名案例；**依赖矩阵示例达标或人工定稿**（⏸ 见 `MATRIX_PILOT_BACKLOG.md`） |
 | B0-02 | 第一场路径文案 | ✅ 官网 `#first-session` + 产品内 onboarding | 用户知道创建→开房→邀请→复盘 |
-| B0-03 | 全量备份恢复补演练 | `docs/ops/BACKUP_DRILL_*.md` 新记录 | `pg_dump -> restore` 或 Docker 等价恢复通过 |
-| B0-04 | R2 附件恢复策略 | `docs/ops/BACKUP.md` 更新 | 抽样对象恢复或索引重建路径清楚 |
-| B0-05 | 值班联系人登记 | `ONCALL_DUTY_ZH.md` 更新 | Primary/Secondary + 告警渠道真实送达确认 |
+| B0-03 | 全量备份恢复补演练 | ✅ [BACKUP_DRILL_2026-07-04.md](./BACKUP_DRILL_2026-07-04.md) | managed clone 通过；Docker 待季度补跑 |
+| B0-04 | R2 附件恢复策略 | ✅ [R2_RESTORE_SOP_ZH.md](./R2_RESTORE_SOP_ZH.md) | 单对象/DB 恢复/孤儿 key 路径清楚 |
+| B0-05 | 值班联系人登记 | ✅ 模板 + 告警演练 | [ONCALL_CONTACTS.template.md](./ONCALL_CONTACTS.template.md)；`drill:oncall` 6/6 |
 
 推荐命令：
 
@@ -177,5 +177,5 @@ npm run monitoring:smoke -- --alerts
 1. 允许公开 Beta 小流量开放，但保留申请/人工审核节奏。
 2. 商业试点可以启动，但只承接少量团队并人工陪跑。
 3. **矩阵示例剧本（雾港回声）暂停迭代** — 🔴 backlog 见 `docs/MATRIX_PILOT_BACKLOG.md`。
-4. **Beta-1 与 B0-02 已完成**；下一批：**B0-03**，再往后 **B2-01 / B2-02**。
+4. **Beta-0（B0-02～B0-05）文档与演练已完成**；下一批：**Beta-2**（B2-01 计费 / B2-02 E2E）。
 5. 暂缓大规模重构，把工程注意力放到“证据、承诺、交付”上。

@@ -6,6 +6,7 @@ import { sendTransactionalEmail } from "./email/index.js";
 import { brandedEmailHtml } from "./email/templates.js";
 import { throwErr } from "./api-errors.js";
 import { query } from "./db.js";
+import { enterpriseEmails } from "./enterprise-emails.js";
 import {
   PLAN_CATALOG,
   PLAN_DEFAULTS,
@@ -24,11 +25,7 @@ export const PLAN_RANK = {
 };
 
 export function planUpgradeNotifyEmail() {
-  return (
-    process.env.PLAN_UPGRADE_NOTIFY_EMAIL?.trim()
-    || process.env.SUPPORT_EMAIL?.trim()
-    || "support@getzhimu.com"
-  );
+  return enterpriseEmails().planUpgradeNotify;
 }
 
 function sanitizeText(value = "", maxLength = 4000) {

@@ -5,14 +5,11 @@ import { sendTransactionalEmail } from "./email/index.js";
 import { brandedEmailHtml } from "./email/templates.js";
 import { throwErr } from "./api-errors.js";
 import { query } from "./db.js";
+import { enterpriseEmails } from "./enterprise-emails.js";
 import { loadWorldPublishReadiness } from "./world-readiness-service.js";
 
 export function catalogReviewNotifyEmail() {
-  return (
-    process.env.CATALOG_REVIEW_NOTIFY_EMAIL?.trim()
-    || process.env.SUPPORT_EMAIL?.trim()
-    || "support@getzhimu.com"
-  );
+  return enterpriseEmails().catalogReviewNotify;
 }
 
 function escapeHtml(value = "") {

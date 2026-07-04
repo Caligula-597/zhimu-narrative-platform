@@ -2,6 +2,7 @@
  * Marketing site bootstrap payload — single GET for getzhimu.com.
  */
 import { getBetaApplicationFormConfig } from "./beta-apply.js";
+import { enterpriseEmails, enterpriseEmailSummary } from "./enterprise-emails.js";
 import { loadOfficialExampleSnapshot } from "./official-example.js";
 import { listPublicCatalogPreview } from "./platform-catalog-preview.js";
 import { buildPricingPayload, getPricingPageMode } from "./pricing-pages.js";
@@ -71,6 +72,9 @@ export async function loadMarketingSitePayload() {
       plazaPosts: "/api/platform/plaza/posts",
       healthLive: "/api/health/live"
     },
-    supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@getzhimu.com"
+    supportEmail: enterpriseEmails().support,
+    helloEmail: enterpriseEmails().hello,
+    adminEmail: enterpriseEmails().admin,
+    contactEmails: enterpriseEmailSummary()
   };
 }

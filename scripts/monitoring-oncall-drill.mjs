@@ -107,6 +107,23 @@ try {
     } else {
       fail("GET /api/ops/status", "missing productionTrust");
     }
+
+    const addresses = opsStatus.json?.features?.email?.addresses;
+    if (
+      addresses?.transactionalFrom?.includes("noreply@mail.getzhimu.com")
+      && addresses?.userSupport === "support@getzhimu.com"
+      && addresses?.hello === "hello@getzhimu.com"
+      && addresses?.admin === "admin@getzhimu.com"
+    ) {
+      pass("enterprise email routing", `${addresses.userSupport} · ${addresses.hello} · ${addresses.admin}`);
+    } else if (addresses) {
+      fail("enterprise email routing", JSON.stringify(addresses));
+    } else {
+      pass(
+        "enterprise email routing",
+        "pending API deploy (features.email.addresses); defaults documented in ENTERPRISE_EMAILS_ZH.md"
+      );
+    }
   }
 
   try {

@@ -3,6 +3,7 @@
  * Controlled by PRICING_PAGE_MODE and COMMERCIAL_PRICING_PUBLIC.
  */
 import { PLAN_CATALOG, PLAN_DEFAULTS } from "./plans.js";
+import { enterpriseEmails } from "./enterprise-emails.js";
 
 /** Draft RMB prices — not sold until COMMERCIAL_PRICING_PUBLIC + checkout enabled. */
 export const COMMERCIAL_PRICE_DRAFT = {
@@ -57,7 +58,7 @@ export function buildPublicPricingTiers(includePrices = false) {
 }
 
 export function buildPricingPayload({ appUrl, marketingUrl } = {}) {
-  const supportEmail = process.env.SUPPORT_EMAIL?.trim() || "support@getzhimu.com";
+  const supportEmail = enterpriseEmails().support;
   const mode = getPricingPageMode();
   const commercialPublic = isCommercialPricingPublic();
   const app = (appUrl || process.env.APP_PUBLIC_URL || "https://app.getzhimu.com").replace(/\/$/, "");

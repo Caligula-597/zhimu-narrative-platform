@@ -122,6 +122,36 @@ function applyPricingBootstrap(pricing = {}) {
   }
 }
 
+function applyContactEmails(payload) {
+  const support = payload?.supportEmail || payload?.contactEmails?.userSupport || "support@getzhimu.com";
+  const hello = payload?.helloEmail || payload?.contactEmails?.hello || "hello@getzhimu.com";
+
+  document.querySelectorAll("[data-support-email]").forEach((el) => {
+    el.textContent = support;
+    if (el.tagName === "A") el.setAttribute("href", `mailto:${support}`);
+  });
+
+  document.querySelectorAll("[data-hello-email]").forEach((el) => {
+    el.textContent = hello;
+    if (el.tagName === "A") el.setAttribute("href", `mailto:${hello}`);
+  });
+
+  document.querySelectorAll("[data-import-mailto]").forEach((el) => {
+    if (el.tagName === "A" && !el.dataset.importMailtoBound) {
+      el.dataset.importMailtoBound = "1";
+      const subject = encodeURIComponent("预约导入剧本");
+      el.setAttribute("href", `mailto:${support}?subject=${subject}`);
+    }
+  });
+
+  document.querySelectorAll("[data-pricing-email]").forEach((el) => {
+    if (el.tagName === "A") {
+      const subject = encodeURIComponent("织幕 · 申请套餐升级");
+      el.setAttribute("href", `mailto:${support}?subject=${subject}`);
+    }
+  });
+}
+
 async function loadSiteBootstrap() {
   if (["localhost", "127.0.0.1"].includes(window.location.hostname)) return;
 
@@ -131,6 +161,7 @@ async function loadSiteBootstrap() {
     const payload = await response.json();
     applySiteLinks(payload.links);
     applyPricingBootstrap(payload.pricing);
+    applyContactEmails(payload);
     if (payload.beta?.acceptingApplications === false && formStatus) {
       formStatus.textContent = "内测申请暂未开放，可先直接注册体验。";
     }

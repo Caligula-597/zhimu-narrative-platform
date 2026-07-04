@@ -6,6 +6,7 @@ import { betaRejectEmailHtml } from "./email/support-templates.js";
 import { brandedEmailHtml } from "./email/templates.js";
 import { throwErr } from "./api-errors.js";
 import { query } from "./db.js";
+import { enterpriseEmails } from "./enterprise-emails.js";
 import { setUserPlan, fetchUserPlanCode } from "./plans.js";
 
 export const BETA_ROLE_OPTIONS = [
@@ -17,12 +18,7 @@ export const BETA_ROLE_OPTIONS = [
 ];
 
 export function betaReviewNotifyEmail() {
-  return (
-    process.env.BETA_REVIEW_NOTIFY_EMAIL?.trim()
-    || process.env.CATALOG_REVIEW_NOTIFY_EMAIL?.trim()
-    || process.env.SUPPORT_EMAIL?.trim()
-    || "support@getzhimu.com"
-  );
+  return enterpriseEmails().betaReviewNotify;
 }
 
 export function isBetaApplicationsOpen() {
@@ -43,7 +39,7 @@ export function getBetaApplicationFormConfig() {
     description: "内测期间免费使用，无订阅或充值入口。我们会在 3～5 个工作日内邮件回复。",
     roleOptions: BETA_ROLE_OPTIONS,
     minUseCaseLength: 16,
-    supportEmail: process.env.SUPPORT_EMAIL?.trim() || "support@getzhimu.com",
+    supportEmail: enterpriseEmails().support,
     registerUrl: appUrl ? `${appUrl}/?auth=register` : null,
     marketingSiteUrl: marketingUrl || null,
     applyApiPath: "/api/platform/beta/apply"

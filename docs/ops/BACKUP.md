@@ -44,7 +44,7 @@ npm run db:verify-restore:managed
 
 在**同一库**内创建临时 schema，克隆 5 张核心表并对比行数，然后删除 schema。仅需 `DATABASE_URL` 与 Node `pg`，无需 `pg_dump`。
 
-最近记录：[BACKUP_DRILL_2026-07-03.md](./BACKUP_DRILL_2026-07-03.md)（2026-07-03 通过）。
+最近记录：[BACKUP_DRILL_2026-07-04.md](./BACKUP_DRILL_2026-07-04.md)（2026-07-04 managed 通过）；[BACKUP_DRILL_2026-07-03.md](./BACKUP_DRILL_2026-07-03.md)（含 Docker pg_dump）。
 
 ### Docker 全量 dump → 本地容器恢复
 
@@ -89,7 +89,9 @@ npm run db:verify-restore
 
 `asset_files` 元数据在 Postgres，**文件本体在 R2/S3**。备份 Postgres 不会备份对象存储。
 
-### R2 / S3 建议（TB-2.2）
+**恢复 Runbook**：[R2_RESTORE_SOP_ZH.md](./R2_RESTORE_SOP_ZH.md)（误删单对象、DB 恢复后一致性抽查、孤儿 key 处理）。
+
+### R2 / S3 建议
 
 | 措施 | 目的 |
 |------|------|
