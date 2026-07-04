@@ -6,10 +6,11 @@
  *   node backend/scripts/generate-matrix-pilot-example.mjs
  *   node backend/scripts/generate-matrix-pilot-example.mjs --offline   # skip API, write curated fixture
  */
-import { mkdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deepseekConfig, resolveCreativePipeline } from "../src/deepseek.js";
+import { renderHumanReviewFiles } from "./matrix-pilot-review-render.mjs";
 import {
   buildPipelineImportPackage,
   createPipelineCharacterArchives,
@@ -366,6 +367,14 @@ async function generateOnline() {
 
 function persistAll(payload, source) {
   mkdirSync(outDir, { recursive: true });
+  for (const sub of ["scripts", "scripts-by-role", "truth", "tasks", "layers/06-scripts"]) {
+    const p = join(outDir, sub);
+    if (existsSync(p)) {
+      for (const f of readdirSync(p)) {
+        if (f.endsWith(".md") || f.endsWith(".json")) unlinkSync(join(p, f));
+      }
+    }
+  }
   writeJson("layers/01-setup.json", { setting: payload.setting, synopsis: payload.synopsis, config: payload.config });
   writeJson("layers/02-truth-bible.json", payload.truthBible);
   writeJson("layers/03-character-archives.json", payload.characterArchives);
@@ -374,10 +383,9 @@ function persistAll(payload, source) {
   for (const [roleKey, acts] of Object.entries(payload.scripts || {})) {
     for (const [actKey, script] of Object.entries(acts || {})) {
       writeJson(`layers/06-scripts/${roleKey}_${actKey}.json`, script);
-      const name = payload.characterArchives?.roles?.find((r) => r.key === roleKey)?.name || roleKey;
-      writeText(`scripts/${name}_${actKey}.md`, `# ${script.title}\n\n${script.body}\n`);
     }
   }
+  renderHumanReviewFiles(payload, writeText);
   if (payload.evaluation) writeJson("layers/07-evaluation.json", payload.evaluation);
 
   const session = {
@@ -422,6 +430,9 @@ function persistAll(payload, source) {
     chapterKeys: payload.config.chapterKeys,
     volumeTier: payload.setting.volumeTier,
     notPublished: true,
+    promptVersion: "matrix-v5-structured-log",
+    compareBaseline: "../雾港回声-对比基准",
+    previousVersion: "../雾港回声-v2",
     note: "未写入 OFFICIAL_EXAMPLE_WORLD_ID / 公开剧本库，需人工审核后再导入世界"
   });
   writeText(
@@ -437,8 +448,13 @@ function persistAll(payload, source) {
 | \`manifest.json\` | 元数据与审核状态 |
 | \`session.json\` | 完整矩阵瀑布流 session（可回填 AI 向导草稿） |
 | \`import-package.json\` | \`buildPipelineImportPackage\` 输出，审核通过后用于 \`importDeepseekPipeline\` |
-| \`layers/\` | 分层 JSON（真相 / 角色 / 矩阵 / 主持 / 剧本） |
-| \`scripts/*.md\` | 人类可读的逐幕私人本 |
+| \`truth/TRUTH-god-view.md\` | **上帝视角**真相总览（时间线/凶手/误导/剧透门禁） |
+| \`truth/HOST-runbook.md\` | 主持分幕流程 + 每幕 hostTruth |
+| \`tasks/TASKS-all-roles.md\` | 全员分幕任务一览 |
+| \`layers/02-truth-bible.json\` | 真相 Bible 结构化源数据 |
+| \`layers/05-host-runbooks.json\` | 主持手册 JSON 源数据 |
+| \`scripts-by-role/*-连贯本.md\` | **同角色 ch1→ch3 串联**（demo 连续阅读） |
+| \`scripts/*.md\` | 单幕私人本（正文 + 末尾任务） |
 
 ## 审核通过后如何入库
 
@@ -470,7 +486,8 @@ async function main() {
     persistAll(payload, offline ? "offline-curated" : "offline-fallback");
     return;
   }
-  console.log(`Matrix pilot example · model=${config.model} · out=${outDir}`);
+  console.log(`Matrix pilot example · model=${config.model} · out=${outDir} · prompt=v5-structured-log`);
+  console.log("提示：如需保留旧版，生成前请手动复制 examples/pending-review/雾港回声 → 雾港回声-v2");
   mkdirSync(outDir, { recursive: true });
   const payload = await generateOnline();
   persistAll(payload, "deepseek-matrix-pipeline");

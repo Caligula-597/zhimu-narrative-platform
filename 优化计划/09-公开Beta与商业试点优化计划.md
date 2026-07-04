@@ -21,7 +21,7 @@
 | P1 产品闭环 | 已完成：创作者风险总控、主持风险台、玩家下一步、反馈入口、clue audit、rule trace |
 | 共享层 | A4 Phase 6 完成：api-fetch、session-token、toast、status-chip、tokens |
 | 官网资产 | hero + 四端 showcase 已换真实截图 |
-| 主要缺口 | pilot 案例、全量 pg_dump/R2 恢复、商业化 SOP/SLA、creator 聚合 API |
+| 主要缺口 | pilot 案例（示例暂停）、全量 pg_dump/R2 恢复、**Beta-2 计费/E2E** |
 
 ## 阶段目标
 
@@ -31,8 +31,8 @@
 
 | ID | 任务 | 交付物 | 验收 |
 |---|---|---|---|
-| B0-01 | 官网 pilot 案例 | `site/` 案例区 + 匿名试点故事 | 至少 1 个真实/匿名案例，不再只有功能截图 |
-| B0-02 | 第一场路径文案 | 官网/产品内 onboarding 文案 | 用户知道“创建剧本 -> 开房 -> 邀请玩家 -> 复盘” |
+| B0-01 | 官网 pilot 案例 | `site/` 案例区 + 匿名试点故事 | 至少 1 个真实/匿名案例；**依赖矩阵示例达标或人工定稿**（⏸ 见 `MATRIX_PILOT_BACKLOG.md`） |
+| B0-02 | 第一场路径文案 | ✅ 官网 `#first-session` + 产品内 onboarding | 用户知道创建→开房→邀请→复盘 |
 | B0-03 | 全量备份恢复补演练 | `docs/ops/BACKUP_DRILL_*.md` 新记录 | `pg_dump -> restore` 或 Docker 等价恢复通过 |
 | B0-04 | R2 附件恢复策略 | `docs/ops/BACKUP.md` 更新 | 抽样对象恢复或索引重建路径清楚 |
 | B0-05 | 值班联系人登记 | `ONCALL_DUTY_ZH.md` 更新 | Primary/Secondary + 告警渠道真实送达确认 |
@@ -55,11 +55,11 @@ npm run drill:l1
 
 | ID | 任务 | 交付物 | 验收 |
 |---|---|---|---|
-| B1-01 | creator dashboard 聚合 API | 后端聚合端点 + 主应用消费 | 总控台减少多端点拼装，风险卡片字段稳定 |
-| B1-02 | 商业试点 SOP | `docs/ops/COMMERCIAL_PILOT_SOP_ZH.md` | 从线索、报价、开通、交付、复盘到续约有 checklist |
-| B1-03 | 人工订单/开通记录 | OPS 文档或轻量表结构 | 每个试点有订单号/开通人/套餐/有效期/发票状态 |
-| B1-04 | SLA 与维护窗口 | `docs/ops/SLA_DRAFT_ZH.md` | 对外可解释，对内有响应等级 |
-| B1-05 | 客户交付包 | 模板邮件 + 导入/导出/复盘说明 | 支持团队可按文档交付，不依赖工程口述 |
+| B1-01 | creator dashboard 聚合 API | ✅ `creator-dashboard.js` + overview 消费 | 总控台单次请求获取 risks/production/nextActions |
+| B1-02 | 商业试点 SOP | ✅ `docs/ops/COMMERCIAL_PILOT_SOP_ZH.md` | 线索→开通→陪跑→续约 checklist |
+| B1-03 | 人工订单/开通记录 | ✅ `docs/ops/PILOT_ORDER_LOG.md` | 订单号 PO-YYYYMMDD-NNN |
+| B1-04 | SLA 与维护窗口 | ✅ `docs/ops/SLA_DRAFT_ZH.md` | P0–P3 响应等级 + RPO/RTO 草案 |
+| B1-05 | 客户交付包 | ✅ `docs/ops/PILOT_DELIVERY_PACK_ZH.md` | 开通/导入/复盘邮件模板 |
 
 推荐门禁：
 
@@ -176,5 +176,6 @@ npm run monitoring:smoke -- --alerts
 
 1. 允许公开 Beta 小流量开放，但保留申请/人工审核节奏。
 2. 商业试点可以启动，但只承接少量团队并人工陪跑。
-3. 下一批工程工作优先排 B0-02、B0-03、B1-01。
-4. 暂缓大规模重构，把工程注意力放到“证据、承诺、交付”上。
+3. **矩阵示例剧本（雾港回声）暂停迭代** — 🔴 backlog 见 `docs/MATRIX_PILOT_BACKLOG.md`。
+4. **Beta-1 与 B0-02 已完成**；下一批：**B0-03**，再往后 **B2-01 / B2-02**。
+5. 暂缓大规模重构，把工程注意力放到“证据、承诺、交付”上。

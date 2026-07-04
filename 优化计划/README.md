@@ -1,6 +1,6 @@
 # 织幕优化计划
 
-最后更新：2026-07-02
+最后更新：2026-07-03
 
 本目录是基于 2026-06-28 完整代码通读 + 主应用 dev 预览（`http://localhost:4173/`）得出的产品、架构、代码、性能、安全、宣传六位一体优化计划；2026-07-02 已按当前代码治理进度重新同步。
 
@@ -27,9 +27,10 @@
 - **三端前端**（`play/` `host/` `site/`）：已迁移到真 ES Modules，结构清晰。
 - **主应用**（根 `src/`）：`api/client.js` 已按领域拆分为 `src/api/*.js`，`src/state/` 已拆为 8 个领域 shard + `createStore`；**Phase 4 状态分片迁移已全部完成**；三大 window 桥（zhimuViews/zhimuRuntime/zhimuDom）已清除；zhimuWorkspace / zhimuRuntimeStore / zhimuFormat / zhimuUi / zhimuModal / zhimuUiSemantics / zhimuCollapsePanel / zhimuStatus / zhimuUserMessages 小桥已迁移为 ES Module。
 - **共享层**：`shared/tokens.css`、`shared/security.js`、`shared/api-error.js`、`shared/sse.js`、`shared/components/collapse.js`、`shared/api-fetch.js`、`shared/session-token.js`、`shared/toast.js`、`shared/components/status-chip.js` 已落地。
-- **官网与宣传**：hero + 四端 showcase 已换真实截图；下一步补 pilot 案例与试点故事。
+- **官网与宣传**：hero + 四端 showcase 已换真实截图；pilot 案例待示例达标或人工定稿。
+- **矩阵示例剧本**：⏸ **暂停**（雾港回声 Gen5 overall 6.5）— 🔴 恢复清单 [`docs/MATRIX_PILOT_BACKLOG.md`](../docs/MATRIX_PILOT_BACKLOG.md)。
 
-**最高优先级**：停止把精力继续投向大规模架构清理，转向 pilot 案例、全量备份恢复/R2 承诺、商业试点 SOP、creator dashboard 聚合 API。
+**最高优先级**：B0-02 首场路径、B0-03 全量备份恢复、B1-01 creator dashboard 聚合 API、商业试点 SOP。**不含**示例剧本重新生成。
 
 ## 不在本计划范围内的事
 

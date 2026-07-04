@@ -9,8 +9,13 @@
 | `manifest.json` | 元数据与审核状态 |
 | `session.json` | 完整矩阵瀑布流 session（可回填 AI 向导草稿） |
 | `import-package.json` | `buildPipelineImportPackage` 输出，审核通过后用于 `importDeepseekPipeline` |
-| `layers/` | 分层 JSON（真相 / 角色 / 矩阵 / 主持 / 剧本） |
-| `scripts/*.md` | 人类可读的逐幕私人本 |
+| `truth/TRUTH-god-view.md` | **上帝视角**真相总览（时间线/凶手/误导/剧透门禁） |
+| `truth/HOST-runbook.md` | 主持分幕流程 + 每幕 hostTruth |
+| `tasks/TASKS-all-roles.md` | 全员分幕任务一览 |
+| `layers/02-truth-bible.json` | 真相 Bible 结构化源数据 |
+| `layers/05-host-runbooks.json` | 主持手册 JSON 源数据 |
+| `scripts-by-role/*-连贯本.md` | **同角色 ch1→ch3 串联**（demo 连续阅读） |
+| `scripts/*.md` | 单幕私人本（正文 + 末尾任务） |
 
 ## 审核通过后如何入库
 
