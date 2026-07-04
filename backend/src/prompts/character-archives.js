@@ -7,9 +7,10 @@ export function buildCharacterArchivesMessages({ setting, synopsis, config, trut
 ${PRODUCT_BOUNDARY}
 
 【任务】
-- 输出恰好 ${config.playerCount} 位角色，key 为 role-1 … role-N。
-- 每位角色必须有：publicIdentity、hiddenIdentity、motive、relationships、timelineActions、lies（3 条）、innerConflict、voiceHints、actTasks（每幕任务）。
-- 不得泄露其他角色 mustHide 内容；不得写与本幕 spoilerGates 冲突的信息。
+- 输出恰好 ${config.playerCount} 位角色，key 为 role-1 … role-N；name 格式「姓名 · 身份」。
+- 每位角色必须有：publicIdentity、hiddenIdentity、motive、relationships、timelineActions、lies（3 条）、innerConflict、voiceHints、actTasks（每幕 2～3 条 tasks + tips）。
+- actTasks.tasks 必须可执行、可公聊；禁止写「找出真凶」这类终局任务放在第一幕。
+- 不得泄露 spoilerGates 中本幕 forbiddenFacts；真凶角色的 actTasks 不得含「认罪」。
 
 【输出 schema】
 {

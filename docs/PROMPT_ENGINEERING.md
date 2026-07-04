@@ -190,10 +190,49 @@
 
 ---
 
+## 矩阵瀑布流 · 提示词工程（2026-07）
+
+> 实现：`backend/src/prompts/matrix-prompt-engine.js`（剧透/公平契约）+ 各层 `truth-bible` / `info-matrix` / `matrix-player-script` / `host-runbook` / `matrix-evaluate`
+
+### 两个核心契约
+
+| 契约 | 注入位置 | 作用 |
+|------|----------|------|
+| **spoilerContract** | 写剧本、去 AI 腔、主持手册 | 按幕 `spoilerGates` + 误导收束 + 真凶位防守 |
+| **fairnessContract** | 写剧本、信息矩阵 | 禁止独家关键事实；推理信息必须来自 clue 卡 / 公聊 / 可观察行为 |
+
+### 写剧本时的独特上下文（`buildMatrixScriptPromptBundle`）
+
+1. **roleRoster** — 固定四人姓名，禁止 AI 自创新名
+2. **roleContinuity** — 同角色前序幕全文/尾部（demo 传全文便于 ch1→ch3 衔接）
+3. **spoilerContract** — 本幕 forbiddenFacts + 分幕叙事规则（ch1 禁止指凶）
+3. **fairnessContract** — newClueIds + 公平规则
+4. **misdirectionPreservation** — 每层误导在本幕是否可写穿
+5. **clueLedger** — 本幕及之前可出现的线索卡
+6. **peerScriptDigest** — 已生成其它格的摘要（避免重复发明独占目击）
+7. **authoritativeTasks** — 强制与 matrixRow.tasks 一致（代码层也会覆盖）
+
+### 上游约束
+
+- **truth-bible**：killer 必须为 `role-N`；禁止 summary 内自杀/他杀矛盾
+- **info-matrix**：推理必需事实必须挂 clue；forbidden 对齐 spoilerGates
+- **host-runbook**：hostTruth 遵守本幕剧透门禁；clueGrants 仅本幕线索
+
+### 评判
+
+`matrix-evaluate` 传入**全部剧本**全文（截断 1200 字/格），并按 checklist 判 spoilerSafety / fairness。
+
+### 示例剧本（雾港回声）— ⏸ 暂停
+
+五代生成未达进库门槛（overall 6.5）。**暂停 prompt/门禁迭代**；恢复时见 [`MATRIX_PILOT_BACKLOG.md`](./MATRIX_PILOT_BACKLOG.md) Gen5.1 清单。
+
+---
+
 ## 本地测试
 
 ```bash
 cd backend
 npm test -- test/deepseek-pipeline.test.js
+node --test test/matrix-prompt-engine.test.js test/pipeline-matrix-model.test.js
 node --test scripts/pipeline-wizard-session.test.mjs
 ```

@@ -6,17 +6,25 @@ export function buildTruthBibleMessages({ setting, synopsis, config, styleCard }
 
 ${PRODUCT_BOUNDARY}
 
-【任务】
-- 设计一起适合 ${config.playerCount} 人、${config.chapterCount} 幕的密室/本格案件。
-- 核心诡计必须利用物理或心理错觉，至少三层误导（misdirections）。
-- 输出 timeline、spoilerGates（每幕禁止泄露的事实）、hostNotes。
-- 中文；JSON 无 Markdown 围栏。
+【逻辑要求 — 必须自洽】
+- summary / method / timeline 只能描述**一种**最终真相，禁止「死者自杀」与「真凶他杀」并存。
+- killer 字段必须是 role-N（如 role-3），与 characterArchives 后续 key 对齐。
+- 手法必须可被线索链 + 公聊推理还原；禁止超自然。
+
+【剧透门禁 spoilerGates】
+- 为每一幕列出 forbiddenFacts：该幕玩家私人本**绝对不可写**的结论性事实。
+- 第 1 幕最严：不得含凶手身份、核心机关全貌、真实死亡时刻的精确结论。
+- 最后一幕可放宽；前一幕 forbidden 必须是后一幕的超集或子集关系。
+
+【误导 misdirections】
+- 至少 3 层；每层 surface / misleading / resolution 清晰。
+- resolution 是收束后的真相，不是玩家本可直接写出的内容。
 
 【输出 schema】
 {
-  "summary": "300～800 字真相摘要（含案件全貌，host 向）",
+  "summary": "300～800 字真相摘要（主持/上帝视角，逻辑自洽）",
   "victim": "死者",
-  "killer": "凶手角色 key 或身份说明",
+  "killer": "role-N",
   "method": "手法",
   "motive": "动机",
   "timeline": [{"id":"t-1","time":"…","event":"…","participants":["role-1"]}],
