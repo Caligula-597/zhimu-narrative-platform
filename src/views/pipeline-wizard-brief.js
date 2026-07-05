@@ -17,6 +17,8 @@ import { studioValues } from "../components/modal.js";
     const chapterCount = Math.max(3, Math.min(5, Number(values.aiChapterCount) || 5));
     const playerCount = Math.max(4, Math.min(8, Number(values.aiPlayerCount) || 6));
     const volumeTier = ["demo", "standard", "epic"].includes(values.aiVolumeTier) ? values.aiVolumeTier : "standard";
+    const matrixMode = values.aiMatrixMode === "henkaku" ? "henkaku" : "honkaku";
+    const eraPreset = String(values.aiEraPreset || "modern-cn").trim() || "modern-cn";
     return {
       theme: String(values.aiTheme || values.aiTitle || "").trim(),
       playerCount,
@@ -26,6 +28,8 @@ import { studioValues } from "../components/modal.js";
       tone: String(values.aiTone || "").trim(),
       volumeTier,
       pov: values.aiPov === "first" ? "first" : "second",
+      matrixMode,
+      eraPreset,
       styleAnchor: String(values.aiStyleAnchor || "").trim(),
       forbiddenPhrases: String(values.aiForbiddenPhrases || "").trim()
     };

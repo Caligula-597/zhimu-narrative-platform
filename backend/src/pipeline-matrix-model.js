@@ -3,6 +3,7 @@
  */
 import { throwErr } from "./api-errors.js";
 import { cleanText } from "./prompts/shared.js";
+import { buildEntityUnlockSchedule, serializeEntitySchedule } from "./prompts/matrix-entity-unlock.js";
 
 const MAX_PLAYERS = 8;
 
@@ -42,12 +43,22 @@ export function pipelineScriptMinWords(session) {
 export function validateTruthBible(raw, config) {
   const value = raw && typeof raw === "object" ? raw : {};
   const chapterKeys = config?.chapterKeys || [];
-  const timeline = assertArray(value.timeline ?? [], "timeline").slice(0, 24).map((row, index) => ({
-    id: cleanText(row.id, 40) || `t-${index + 1}`,
-    time: cleanText(row.time, 120),
-    event: cleanText(row.event, 800),
-    participants: assertArray(row.participants ?? [], "timeline.participants").slice(0, 8).map((p) => cleanText(p, 80))
-  }));
+  const physicalTimeline = assertArray(value.physicalTimeline ?? value.timeline ?? [], "physicalTimeline")
+    .slice(0, 24)
+    .map((row, index) => ({
+      id: cleanText(row.id, 40) || `t-${index + 1}`,
+      time: cleanText(row.time, 120),
+      event: cleanText(row.event, 800),
+      participants: assertArray(row.participants ?? [], "timeline.participants").slice(0, 8).map((p) => cleanText(p, 80))
+    }));
+  const timeline = physicalTimeline;
+  const supernaturalRules = assertArray(value.supernaturalRules ?? [], "supernaturalRules")
+    .slice(0, 8)
+    .map((row) => ({
+      rule: cleanText(row.rule, 600),
+      visibility: cleanText(row.visibility, 32) || "HOST_ONLY",
+      observableEffect: cleanText(row.observableEffect, 300)
+    }));
   const misdirections = assertArray(value.misdirections ?? [], "misdirections").slice(0, 5).map((row, index) => ({
     layer: Number(row.layer) || index + 1,
     surface: cleanText(row.surface, 600),
@@ -58,10 +69,16 @@ export function validateTruthBible(raw, config) {
     actKey: chapterKeys.includes(row.actKey) ? row.actKey : chapterKeys[0],
     forbiddenFacts: assertArray(row.forbiddenFacts ?? [], "forbiddenFacts").slice(0, 12).map((f) => cleanText(f, 300))
   }));
-  const summary = cleanText(value.summary, 4000);
+  let summary = cleanText(value.summary, 4000);
   const killer = cleanText(value.killer, 200);
   const method = cleanText(value.method, 1200);
   const motive = cleanText(value.motive, 1200);
+  if (summary.length < 200) {
+    summary = cleanText(
+      [value.summary, motive, method, timeline.map((t) => t.event).join("；")].filter(Boolean).join("\n"),
+      4000
+    );
+  }
   if (summary.length < 200) throwErr("DEEPSEEK_OUTPUT_INVALID", "真相档案摘要过短（至少 200 字）");
   if (!killer || !method) throwErr("DEEPSEEK_OUTPUT_INVALID", "真相档案需包含凶手与手法");
   return {
@@ -71,6 +88,8 @@ export function validateTruthBible(raw, config) {
     motive,
     victim: cleanText(value.victim, 200),
     timeline,
+    physicalTimeline,
+    supernaturalRules,
     misdirections,
     spoilerGates,
     hostNotes: cleanText(value.hostNotes, 3000),
@@ -122,7 +141,31 @@ export function validateInfoMatrix(raw, config, characterArchives) {
     clue.description = cleanText(clue.description || clue.summary, 800);
     clue.actKey = chapterKeys.includes(clue.actKey) ? clue.actKey : chapterKeys[0];
     clue.grantMode = ["auto", "host_confirm", "explore"].includes(clue.grantMode) ? clue.grantMode : "auto";
+    clue.source = cleanText(clue.source, 48) || "ClueCard";
   }
+  const publicEnvironmentByAct =
+    value.publicEnvironmentByAct && typeof value.publicEnvironmentByAct === "object"
+      ? Object.fromEntries(
+          chapterKeys.map((key) => [key, cleanText(value.publicEnvironmentByAct[key], 800)])
+        )
+      : {};
+  const scenes = assertArray(value.scenes ?? [], "scenes")
+    .slice(0, 24)
+    .map((s, index) => ({
+      key: cleanText(s.key, 40) || `scene-${index + 1}`,
+      name: cleanText(s.name, 80),
+      actKey: chapterKeys.includes(s.actKey) ? s.actKey : chapterKeys[0],
+      clueIds: assertArray(s.clueIds ?? [], "scene.clueIds").slice(0, 8).map((id) => cleanText(id, 40))
+    }));
+  const mechanicalTriggers = assertArray(value.mechanicalTriggers ?? [], "mechanicalTriggers")
+    .slice(0, 16)
+    .map((t, index) => ({
+      key: cleanText(t.key, 40) || `trigger-${index + 1}`,
+      actKey: chapterKeys.includes(t.actKey) ? t.actKey : chapterKeys[0],
+      if: cleanText(t.if, 200),
+      then: cleanText(t.then, 200),
+      hostNote: cleanText(t.hostNote, 300)
+    }));
   const rows = assertArray(value.rows ?? [], "rows").slice(0, 120);
   const clueKeys = new Set(clues.map((c) => c.key));
   for (const row of rows) {
@@ -141,6 +184,9 @@ export function validateInfoMatrix(raw, config, characterArchives) {
   return {
     clues,
     rows,
+    publicEnvironmentByAct,
+    scenes,
+    mechanicalTriggers,
     actTitles: Object.fromEntries(chapterKeys.map((key) => [key, cleanText(actTitles[key], 120) || `第 ${chapterKeys.indexOf(key) + 1} 幕`])),
     actSummaries: Object.fromEntries(chapterKeys.map((key) => [key, cleanText(actSummaries[key], 600)])),
     suggestions: assertArray(value.suggestions ?? [], "suggestions").slice(0, 12).map((s) => cleanText(s, 500))
@@ -183,7 +229,8 @@ export function validateMatrixPlayerScript(raw, roleKey, actKey, minWords) {
     title: cleanText(value.title, 160) || `${actKey} · 私人本`,
     body,
     tasks: assertArray(value.tasks ?? [], "tasks").slice(0, 6).map((t) => cleanText(t, 300)),
-    closingHook: cleanText(value.closingHook, 400)
+    closingHook: cleanText(value.closingHook, 400),
+    ...(value.structured && typeof value.structured === "object" ? { structured: value.structured } : {})
   };
 }
 
@@ -216,44 +263,100 @@ export function characterArchivesToRolesMeta(characterArchives, infoMatrix, conf
 export function buildProposalFromMatrix({ setting, config, truthBible, infoMatrix }) {
   const chapterKeys = config?.chapterKeys || [];
   const title = config?.title || setting?.theme || "剧本";
+  const entitySchedule = serializeEntitySchedule(buildEntityUnlockSchedule(infoMatrix, config));
+
   const chapters = chapterKeys.map((key, index) => ({
     key,
     title: infoMatrix?.actTitles?.[key] || `第 ${index + 1} 幕`,
-    summary: infoMatrix?.actSummaries?.[key] || cleanText(truthBible?.summary, 300),
-    sequence: index + 1
+    summary: [infoMatrix?.publicEnvironmentByAct?.[key], infoMatrix?.actSummaries?.[key]].filter(Boolean).join("\n\n"),
+    sequence: index + 1,
+    metadata: {
+      matrixActKey: key,
+      actSequence: index + 1,
+      publicEnvironment: infoMatrix?.publicEnvironmentByAct?.[key] || ""
+    }
   }));
-  const scenes = chapterKeys.map((key, index) => ({
-    key: `scene-${index + 1}`,
-    chapterKey: key,
-    name: infoMatrix?.actTitles?.[key] || `场景 ${index + 1}`,
-    publicText: infoMatrix?.actSummaries?.[key] || "",
-    hostText: (truthBible?.hostNotes || "").slice(0, 800)
+
+  const sceneRows =
+    infoMatrix?.scenes?.length > 0
+      ? infoMatrix.scenes
+      : chapterKeys.map((key, index) => ({
+          key: `scene-${index + 1}`,
+          name: infoMatrix?.actTitles?.[key] || `场景 ${index + 1}`,
+          actKey: key,
+          clueIds: (infoMatrix?.clues || []).filter((c) => c.actKey === key).map((c) => c.key)
+        }));
+
+  const scenes = sceneRows.map((scene) => ({
+    key: scene.key,
+    chapterKey: scene.actKey,
+    name: scene.name,
+    publicText: infoMatrix?.publicEnvironmentByAct?.[scene.actKey] || infoMatrix?.actSummaries?.[scene.actKey] || "",
+    hostText: cleanText(truthBible?.hostNotes, 800),
+    metadata: {
+      matrixActKey: scene.actKey,
+      matrixSceneKey: scene.key,
+      clueIds: scene.clueIds || [],
+      publicEnvironment: infoMatrix?.publicEnvironmentByAct?.[scene.actKey] || ""
+    }
   }));
-  const clues = (infoMatrix?.clues || []).map((clue, index) => {
-    const sceneIndex = Math.max(0, chapterKeys.indexOf(clue.actKey));
+
+  const cluesSorted = [...(infoMatrix?.clues || [])].sort(
+    (a, b) => chapterKeys.indexOf(a.actKey) - chapterKeys.indexOf(b.actKey)
+  );
+
+  const clues = cluesSorted.map((clue, index) => {
+    const scene =
+      sceneRows.find((s) => (s.clueIds || []).includes(clue.key)) ||
+      sceneRows.find((s) => s.actKey === clue.actKey) ||
+      sceneRows[0];
+    const actSeq = Math.max(0, chapterKeys.indexOf(clue.actKey));
     return {
       key: clue.key || `clue-${index + 1}`,
       name: clue.name || `线索 ${index + 1}`,
       description: clue.description || "",
-      sceneKey: `scene-${sceneIndex + 1}`,
-      visibility: "private",
-      metadata: { grantMode: clue.grantMode || "auto", actKey: clue.actKey }
+      publicText: clue.description || "",
+      hostText: clue.grantMode === "host_confirm" ? "主持确认后发放" : "",
+      sceneKey: scene?.key || `scene-${actSeq + 1}`,
+      visibility: clue.grantMode === "auto" ? "public" : "role",
+      metadata: {
+        grantMode: clue.grantMode || "auto",
+        actKey: clue.actKey,
+        actSequence: actSeq + 1,
+        source: clue.source || "ClueCard",
+        matrixSceneKey: scene?.key,
+        unlockOrder: index + 1,
+        triggerNote: `${clue.actKey} · ${clue.grantMode === "host_confirm" ? "主持确认" : "自动发放"}`,
+        entitySchedule: entitySchedule.filter((e) => e.clueKeys?.includes(clue.key))
+      }
     };
   });
+
   const investigationPoints = clues.map((clue, index) => ({
     key: `point-${index + 1}`,
     sceneKey: clue.sceneKey,
-    name: clue.name,
+    name: `调查 · ${clue.name}`,
     clueKey: clue.key,
-    description: clue.description
+    description: clue.description,
+    resultText: clue.publicText
   }));
-  const edges = clues.map((clue, index) => ({
-    fromType: "scene",
-    fromKey: clue.sceneKey,
-    toType: "clue",
-    toKey: clue.key,
-    relationType: index === 0 ? "mainline" : "parallel"
-  }));
+
+  const edges = [];
+  for (const scene of scenes) {
+    for (const clue of clues.filter((c) => c.sceneKey === scene.key)) {
+      edges.push({ fromType: "scene", fromKey: scene.key, toType: "clue", toKey: clue.key, relationType: "mainline" });
+    }
+  }
+  for (let i = 1; i < clues.length; i += 1) {
+    edges.push({
+      fromType: "clue",
+      fromKey: clues[i - 1].key,
+      toType: "clue",
+      toKey: clues[i].key,
+      relationType: "mainline"
+    });
+  }
+
   return {
     title,
     logline: cleanText(truthBible?.summary, 600),
@@ -262,6 +365,12 @@ export function buildProposalFromMatrix({ setting, config, truthBible, infoMatri
     investigationPoints,
     clues,
     edges,
+    matrixSync: {
+      matrixMode: setting?.matrixMode || "honkaku",
+      publicEnvironmentByAct: infoMatrix?.publicEnvironmentByAct || {},
+      entityUnlockSchedule: entitySchedule,
+      mechanicalTriggers: infoMatrix?.mechanicalTriggers || []
+    },
     suggestions: infoMatrix?.suggestions || []
   };
 }

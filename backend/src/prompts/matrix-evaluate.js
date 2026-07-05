@@ -1,5 +1,6 @@
 import { PRODUCT_BOUNDARY, untrustedUserPayload } from "./shared.js";
 import { creativeInputUserBlocks } from "./creative-input.js";
+import { buildMatrixModeProfile, formatMatrixModeBlock } from "./matrix-2-mode.js";
 
 function buildScriptCorpus(scripts, config) {
   const keys = config?.chapterKeys || [];
@@ -15,7 +16,17 @@ function buildScriptCorpus(scripts, config) {
         bodyLength: script.body.length,
         body: String(script.body).slice(0, 6000),
         tasks: script.tasks,
-        closingHook: script.closingHook
+        closingHook: script.closingHook,
+        structured: script.structured
+          ? {
+              actionLen: script.structured.actionLog?.narrative?.length || 0,
+              dialogueLen: script.structured.dialogueLog?.narrative?.length || 0,
+              feelings: [
+                ...(script.structured.feelingsPack?.puzzles || []),
+                ...(script.structured.feelingsPack?.emotions || [])
+              ]
+            }
+          : null
       });
     }
   }
@@ -23,29 +34,48 @@ function buildScriptCorpus(scripts, config) {
 }
 
 export function buildMatrixEvaluationMessages(pipeline) {
-  const system = `你是剧本杀「矩阵一致性」质检编辑。重点查信息泄露、公平性、矩阵与正文一致性。
+  const modeProfile = buildMatrixModeProfile(pipeline.setting || {});
+  const modeBlock = formatMatrixModeBlock(modeProfile);
+  const isHenkaku = modeProfile.key === "henkaku";
+
+  const system = `你是剧本杀「Matrix 2.0 质检编辑」。评判多人私人本 + 信息矩阵是否可玩、可推理。
 
 ${PRODUCT_BOUNDARY}
 
-【剧透安全 checklist】
-- 各幕正文是否违反 spoilerGates.forbiddenFacts（含同义改写）？
-- 第一幕是否指认真凶或写穿核心手法？
-- misdirections 是否在收束幕之前被写穿？
+${modeBlock}
 
-【公平推理 checklist】
-- 是否存在「仅某一角色剧本出现、且其它角色无法通过线索/公聊获得」的关键事实？
-- 角色名是否与档案一致？
+【勿误扣分】
+- 私人本心理描写、相对时间 — 正常，不扣分。
+- 本格不因「前期误导」扣沉浸分；变格可因误导设计加分。
+- 真凶自知私人内心 — 不扣 spoiler（别人看不见）。
 
-【评判维度】（1-10）
-matrixConsistency · spoilerSafety · fairness · taskCompleteness · importReady
+【Matrix 2.0 评判维度】（1-10，须全部输出）
+- logicalCoherence：L1 物理${isHenkaku ? "+超自然" : ""}是否自洽？
+- informationSymmetry：关键推理是否可经 L2 公共锚点 + 多角色 L3 拼接？（允许 secret/误导，但须可圆）
+- immersiveMisdirection：${isHenkaku ? "幻觉/机制误导是否在揭晓时合理？" : "红鲱鱼是否可解释且未提前写穿真凶？"}
+- mechanismRunnable：${isHenkaku ? "L4 触发器是否清晰可主持？" : "主持流程+公共环境是否可跑？"}
+- roleBehaviorEntropy：每幕是否有可观察行为/对质空间（非单线任务）？
+- readability：私人本可读性、沉浸感。
 
-【targetLayer 只能是】setup | truth | characters | matrix | host | scripts | sync | evaluate
+【兼容字段 — 同时输出 legacy scores】
+matrixConsistency≈logicalCoherence；fairness≈informationSymmetry；spoilerSafety：本格查 forbiddenFacts，变格查过早写穿 resolution；taskCompleteness≈roleBehaviorEntropy；importReady≈mechanismRunnable。
+
+【readyForSync】
+本格：informationSymmetry≥7 且 logicalCoherence≥8 且无明显 L2 独占核心真相。
+变格：另需 mechanismRunnable≥7。
 
 【输出 schema】
 {
   "overallScore": 7.5,
   "verdict": "一句话总评",
+  "matrixMode": "${modeProfile.key}",
   "scores": {
+    "logicalCoherence": 8,
+    "informationSymmetry": 7,
+    "immersiveMisdirection": 8,
+    "mechanismRunnable": 8,
+    "roleBehaviorEntropy": 8,
+    "readability": 8,
     "matrixConsistency": 8,
     "spoilerSafety": 8,
     "fairness": 7,
@@ -54,12 +84,12 @@ matrixConsistency · spoilerSafety · fairness · taskCompleteness · importRead
   },
   "issues": [{"severity":"high|medium|low","area":"…","detail":"…"}],
   "revisions": [{
-    "targetLayer": "scripts",
+    "targetLayer": "scripts|matrix|truth|host",
     "targetKey": "role-1_ch1",
     "priority": "must_fix|should_fix|optional",
     "problem": "…",
     "direction": "…",
-    "promptHint": "下轮生成提示"
+    "promptHint": "…"
   }],
   "readyForSync": false,
   "suggestions": []
@@ -74,9 +104,11 @@ ${untrustedUserPayload("真相 Bible", {
   misdirections: pipeline.truthBible?.misdirections,
   spoilerGates: pipeline.truthBible?.spoilerGates
 })}
-${untrustedUserPayload("信息矩阵", {
+${untrustedUserPayload("信息矩阵 · L2", {
   actTitles: pipeline.infoMatrix?.actTitles,
+  publicEnvironmentByAct: pipeline.infoMatrix?.publicEnvironmentByAct,
   clueCount: pipeline.infoMatrix?.clues?.length,
+  mechanicalTriggers: pipeline.infoMatrix?.mechanicalTriggers?.length,
   rows: (pipeline.infoMatrix?.rows || []).map((r) => ({
     roleKey: r.roleKey,
     actKey: r.actKey,
@@ -87,9 +119,7 @@ ${untrustedUserPayload("信息矩阵", {
 })}
 ${untrustedUserPayload("全部剧本", buildScriptCorpus(pipeline.scripts, pipeline.config))}
 
-readyForSync 仅当 spoilerSafety≥8 且 fairness≥7 且无明显 matrix 矛盾时为 true。
-
-若真凶位 ch1/ch2 使用 innocent_witness + 规则注入破绽模式，应检查：① 无内心认罪 ② 无 forbiddenFacts ③ 破绽为行为/措辞矛盾而非手法自白。
+readyForSync 标准见上。**勿**因正常心理描写或缺少精确钟点而设 readyForSync=false。
 
 只返回 JSON。`;
   return [{ role: "system", content: system }, { role: "user", content: user }];

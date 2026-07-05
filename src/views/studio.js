@@ -216,7 +216,7 @@ export function studioNodeEditPanel(data,selected){
  const meta=record.metadata||{};
  if(selected.type==="chapter"){
   const chapterMeta=record.metadata||{};
-  return `<div class="studio-edit-panel"><p class="section-kicker">编辑公共章节</p>${studioEditField("章节名称","title","input",record.title)}${studioEditField("章节摘要","summary","textarea",record.summary||"")}${studioEditField("复盘公开摘要（局后展示）","recapSummary","textarea",chapterMeta.recapSummary||"")}<p class="muted-note">发布状态与解锁规则请在「剧本杀创作中心 → 章节发布控制」中设置。</p><button class="primary-btn full-btn" data-action="studio-save-node">保存章节</button></div>`;
+  return `<div class="studio-edit-panel"><p class="section-kicker">编辑公共章节</p>${studioEditField("章节名称","title","input",record.title)}${studioEditField("章节摘要","summary","textarea",record.summary||"")}${studioEditField("公共环境（L2 · publicEnvironment）","publicEnvironment","textarea",chapterMeta.publicEnvironment||"")}${studioEditField("Matrix 幕键（如 ch1）","matrixActKey","input",chapterMeta.matrixActKey||"")}${studioEditField("复盘公开摘要（局后展示）","recapSummary","textarea",chapterMeta.recapSummary||"")}<p class="muted-note">公共环境会同步到主持台「公共环境与分幕」卡片。发布状态与解锁规则请在「剧本杀创作中心 → 章节发布控制」中设置。</p><button class="primary-btn full-btn" data-action="studio-save-node">保存章节</button></div>`;
  }
  if(selected.type==="scene"){
   const chapters=[{id:"",name:"暂不绑定章节"},...data.chapters];
@@ -226,7 +226,7 @@ export function studioNodeEditPanel(data,selected){
  if(selected.type==="clue"){
   const { cloudAssets } = assetStore.get();
   const assets=[{id:"",name:"不关联附件"},...(cloudAssets||[]).map(asset=>({id:asset.id,name:asset.original_filename}))];
-  return `<div class="studio-edit-panel"><p class="section-kicker">编辑线索</p>${studioEditField("线索标题","name","input",record.name)}${studioEditField("线索正文","publicText","textarea",record.public_text||"")}${studioEditSelect("线索类型","clueType",[{id:"text",name:"文字"},{id:"image",name:"图片"},{id:"file",name:"文件"},{id:"audio",name:"音频"}],meta.clueType||"text")}${studioEditSelect("关联资产","assetId",assets,meta.assetId||"")}${studioEditSelect("默认可见性","visibility",[{id:"role",name:"私密 · 仅获得角色可见"},{id:"public",name:"房间公开"},{id:"host",name:"主持可见"}],record.visibility||"role")}${studioEditSelect("重要程度","importance",[{id:"normal",name:"普通"},{id:"key",name:"关键"},{id:"red_herring",name:"烟雾弹"}],meta.importance||"normal")}${studioEditField("主持提示","hostText","textarea",record.host_text||"")}<button class="primary-btn full-btn" data-action="studio-save-node">保存线索</button></div>`;
+  return `<div class="studio-edit-panel"><p class="section-kicker">编辑线索</p>${studioEditField("线索标题","name","input",record.name)}${studioEditField("线索正文","publicText","textarea",record.public_text||"")}${studioEditSelect("发放模式","grantMode",[{id:"auto",name:"自动发放"},{id:"host_confirm",name:"主持确认后发放"},{id:"explore",name:"探索调查获得"}],meta.grantMode||"auto")}${studioEditSelect("线索类型","clueType",[{id:"text",name:"文字"},{id:"image",name:"图片"},{id:"file",name:"文件"},{id:"audio",name:"音频"}],meta.clueType||"text")}${studioEditSelect("关联资产","assetId",assets,meta.assetId||"")}${studioEditSelect("默认可见性","visibility",[{id:"role",name:"私密 · 仅获得角色可见"},{id:"public",name:"房间公开"},{id:"host",name:"主持可见"}],record.visibility||"role")}${studioEditSelect("重要程度","importance",[{id:"normal",name:"普通"},{id:"key",name:"关键"},{id:"red_herring",name:"烟雾弹"}],meta.importance||"normal")}${studioEditField("解锁说明 / 面包屑","triggerNote","textarea",meta.triggerNote||"")}${studioEditField("主持提示","hostText","textarea",record.host_text||"")}<button class="primary-btn full-btn" data-action="studio-save-node">保存线索</button></div>`;
  }
  if(selected.type==="item"){
   const { cloudAssets } = assetStore.get();
@@ -341,11 +341,11 @@ export async function saveSelectedStudioNode(){
  const record=studioNodeRecord(cloudStudio,studioSelectedNode.type,studioSelectedNode.id);
  try{
   if(studioSelectedNode.type==="chapter"){
-   await zhimuApi.updateChapter(studioSelectedNode.id,{title:values.title,summary:values.summary,publicationStatus:record?.publication_status||"draft",unlockRules:record?.unlock_rules||{mode:"host_confirm"},metadata:{...(record?.metadata||{}),recapSummary:values.recapSummary||""}});
+   await zhimuApi.updateChapter(studioSelectedNode.id,{title:values.title,summary:values.summary,publicationStatus:record?.publication_status||"draft",unlockRules:record?.unlock_rules||{mode:"host_confirm"},metadata:{...(record?.metadata||{}),recapSummary:values.recapSummary||"",publicEnvironment:values.publicEnvironment||"",matrixActKey:values.matrixActKey||""}});
   }else if(studioSelectedNode.type==="scene"){
    await zhimuApi.updateScene(studioSelectedNode.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,chapterId:values.chapterId||null,metadata:{summary:values.summary,recapSummary:values.recapSummary||"",openStatus:values.openStatus,visibleRoleSlotIds:values.visibleRoleSlotIds||[]}});
   }else if(studioSelectedNode.type==="clue"){
-   await zhimuApi.updateClue(studioSelectedNode.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,visibility:values.visibility||"role",metadata:{clueType:values.clueType||"text",assetId:values.assetId||null,importance:values.importance||"normal"}});
+   await zhimuApi.updateClue(studioSelectedNode.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,visibility:values.visibility||"role",metadata:{...(record?.metadata||{}),clueType:values.clueType||"text",assetId:values.assetId||null,importance:values.importance||"normal",grantMode:values.grantMode||"auto",triggerNote:values.triggerNote||""}});
   }else if(studioSelectedNode.type==="item"){
    await zhimuApi.updateItem(studioSelectedNode.id,{name:values.name,publicText:values.publicText,hostText:values.hostText,unique:Boolean(values.unique),consumable:Boolean(values.consumable),assetId:values.assetId||null});
   }else{

@@ -463,13 +463,27 @@ export async function importDeepseekProposalWithClient(client, worldId, rawPropo
     const existingId = await resolveChapterId(chapter.key, chapter);
     if (existingId) {
       chapterIds.set(chapter.key, existingId);
+      if (chapter.metadata && Object.keys(chapter.metadata).length) {
+        await client.query(
+          `UPDATE chapters SET metadata = metadata || $1::jsonb WHERE id = $2`,
+          [
+            JSON.stringify({ source: sourceTag, proposalKey: chapter.key, ...chapter.metadata }),
+            existingId
+          ]
+        );
+      }
       continue;
     }
     nextSequence += 1;
+    const chapterMetadata = {
+      source: sourceTag,
+      proposalKey: chapter.key,
+      ...(chapter.metadata || {})
+    };
     const created = await client.query(
-      `INSERT INTO chapters (world_id, title, summary, sequence)
-       VALUES ($1,$2,$3,$4) RETURNING id`,
-      [worldId, chapter.title, chapter.summary ?? "", nextSequence]
+      `INSERT INTO chapters (world_id, title, summary, sequence, metadata)
+       VALUES ($1,$2,$3,$4,$5::jsonb) RETURNING id`,
+      [worldId, chapter.title, chapter.summary ?? "", nextSequence, JSON.stringify(chapterMetadata)]
     );
     chapterIds.set(chapter.key, created.rows[0].id);
   }
@@ -482,8 +496,15 @@ export async function importDeepseekProposalWithClient(client, worldId, rawPropo
     }
     const created = await client.query(
       `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
-       VALUES ($1,$2,$3,$4,'role',$5::jsonb) RETURNING id`,
-      [worldId, clue.name, clue.publicText ?? "", clue.hostText ?? "", JSON.stringify({ source: sourceTag, proposalKey: clue.key })]
+       VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
+      [
+        worldId,
+        clue.name,
+        clue.publicText ?? clue.description ?? "",
+        clue.hostText ?? "",
+        clue.visibility === "public" ? "public" : clue.visibility === "host" ? "host" : "role",
+        JSON.stringify({ source: sourceTag, proposalKey: clue.key, ...(clue.metadata || {}) })
+      ]
     );
     clueIds.set(clue.key, created.rows[0].id);
   }
@@ -503,7 +524,12 @@ export async function importDeepseekProposalWithClient(client, worldId, rawPropo
         scene.name,
         scene.publicText ?? "",
         scene.hostText ?? "",
-        JSON.stringify({ source: sourceTag, proposalKey: scene.key, chapterKey: scene.chapterKey })
+        JSON.stringify({
+          source: sourceTag,
+          proposalKey: scene.key,
+          chapterKey: scene.chapterKey,
+          ...(scene.metadata || {})
+        })
       ]
     );
     sceneIds.set(scene.key, created.rows[0].id);
@@ -555,6 +581,73 @@ export async function importDeepseekProposalWithClient(client, worldId, rawPropo
       edges: edgeCount
     }
   };
+}
+
+/** Create per-role reading_completed → unlock next act rules after matrix pipeline import. */
+export async function materializePipelineReadingUnlockRules(client, worldId, options = {}) {
+  const matrixMode = options.matrixMode || "honkaku";
+  const betweenActMode = matrixMode === "henkaku" ? "automatic" : "host_confirm";
+  const { rows } = await client.query(
+    `SELECT ss.id, ss.sequence, ss.metadata->>'chapterKey' AS chapter_key,
+            ss.metadata->>'roleKey' AS role_key, ss.role_slot_id,
+            rs.name AS role_name, rs.sequence AS role_sequence
+     FROM script_sections ss
+     JOIN role_slots rs ON rs.id = ss.role_slot_id
+     WHERE rs.world_id = $1
+       AND ss.metadata->>'chapterKey' IS NOT NULL
+     ORDER BY rs.sequence, ss.sequence`,
+    [worldId]
+  );
+  const byRole = new Map();
+  for (const row of rows) {
+    const key = row.role_key || row.role_slot_id;
+    if (!byRole.has(key)) byRole.set(key, []);
+    byRole.get(key).push(row);
+  }
+  let rulesCreated = 0;
+  for (const sections of byRole.values()) {
+    sections.sort((a, b) => Number(a.sequence) - Number(b.sequence));
+    for (let i = 0; i < sections.length - 1; i++) {
+      const from = sections[i];
+      const to = sections[i + 1];
+      const fromAct = from.chapter_key || `幕${from.sequence}`;
+      const toAct = to.chapter_key || `幕${to.sequence}`;
+      const ruleName = `${from.role_name} · ${fromAct} 读完 → ${toAct}`;
+      const exists = await client.query(
+        `SELECT 1 FROM automation_rules WHERE world_id = $1 AND room_id IS NULL AND name = $2 LIMIT 1`,
+        [worldId, ruleName]
+      );
+      if (exists.rowCount) continue;
+      await client.query(
+        `INSERT INTO automation_rules (world_id, name, mode, priority, enabled, conditions, actions)
+         VALUES ($1, $2, $3, $4, true, $5::jsonb, $6::jsonb)`,
+        [
+          worldId,
+          ruleName,
+          betweenActMode,
+          10 + Number(from.role_sequence || 1) * 10 + Number(from.sequence || i + 1),
+          JSON.stringify({
+            all: [
+              {
+                type: "reading_completed",
+                roleSlotId: from.role_slot_id,
+                scriptSectionId: from.id
+              }
+            ]
+          }),
+          JSON.stringify([
+            { type: "unlock_script_section", scriptSectionId: to.id },
+            {
+              type: "timeline_log",
+              message: `${from.role_name} 完成 ${fromAct} 阅读；主持确认后开放 ${toAct}。`
+            }
+          ])
+        ]
+      );
+      rulesCreated += 1;
+    }
+  }
+  return { rulesCreated, ruleMode: betweenActMode };
 }
 
 export async function importDeepseekProposal(worldId, rawProposal) {
@@ -674,11 +767,34 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
           [worldId, manuscript]
         );
       }
+      const matrixSync =
+        proposal.matrixSync ||
+        pipeline.matrixSync ||
+        (pipeline.infoMatrix
+          ? {
+              matrixMode: pipeline.setting?.matrixMode || "honkaku",
+              publicEnvironmentByAct: pipeline.infoMatrix.publicEnvironmentByAct || {},
+              entityUnlockSchedule: proposal.entityUnlockSchedule || {},
+              mechanicalTriggers: pipeline.infoMatrix.mechanicalTriggers || []
+            }
+          : null);
+      if (matrixSync && typeof matrixSync === "object") {
+        await client.query(
+          `UPDATE worlds SET settings = COALESCE(settings, '{}'::jsonb) || $1::jsonb, updated_at = now() WHERE id = $2`,
+          [JSON.stringify({ matrixSync }), worldId]
+        );
+      }
+      const unlockRules = await materializePipelineReadingUnlockRules(client, worldId, {
+        matrixMode: pipeline.setting?.matrixMode || matrixSync?.matrixMode || "honkaku"
+      });
       return {
         ...graph.summary,
         roles: roles.length,
         sections: sectionCount,
-        manuscriptCharacters: manuscript?.length || 0
+        manuscriptCharacters: manuscript?.length || 0,
+        matrixSyncStored: Boolean(matrixSync),
+        unlockRulesCreated: unlockRules.rulesCreated,
+        unlockRuleMode: unlockRules.ruleMode
       };
     });
   } catch (error) {

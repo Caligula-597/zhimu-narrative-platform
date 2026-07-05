@@ -222,9 +222,12 @@
 
 `matrix-evaluate` 传入**全部剧本**全文（截断 1200 字/格），并按 checklist 判 spoilerSafety / fairness。
 
-### 示例剧本（雾港回声）— ⏸ 暂停
+### 示例剧本（雾港回声）— 整理中
 
-五代生成未达进库门槛（overall 6.5）。**暂停 prompt/门禁迭代**；恢复时见 [`MATRIX_PILOT_BACKLOG.md`](./MATRIX_PILOT_BACKLOG.md) Gen5.1 清单。
+剧情各代产物已删除。提示词与打分标准见：
+
+- `examples/pending-review/雾港回声/PROMPTS_ZH.md`
+- `examples/pending-review/雾港回声/SCORING_ZH.md`
 
 ---
 

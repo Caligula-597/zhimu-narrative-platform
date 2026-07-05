@@ -347,7 +347,25 @@ export function overview() {
           <button class="secondary-btn" data-go="studio">编辑结构</button>
         </div>
         <div class="story-map" aria-label="织幕故事结构图">
-          <i class="map-line line-a"></i><i class="map-line line-b"></i><i class="map-line line-c"></i>
+          <svg class="story-map-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="story-map-link-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="0">
+                <stop offset="0%" stop-color="rgba(88,127,121,.42)" />
+                <stop offset="50%" stop-color="rgba(196,147,77,.55)" />
+                <stop offset="100%" stop-color="rgba(112,107,145,.42)" />
+              </linearGradient>
+            </defs>
+            <path class="map-link" d="M 50 16 V 28" />
+            <path class="map-link" d="M 16.7 28 H 83.3" />
+            <path class="map-link" d="M 16.7 28 V 40" />
+            <path class="map-link" d="M 50 28 V 40" />
+            <path class="map-link" d="M 83.3 28 V 40" />
+            <path class="map-link" d="M 50 40 V 54" />
+            <path class="map-link" d="M 33.3 54 H 50" />
+            <path class="map-link" d="M 33.3 54 V 68" />
+            <path class="map-link" d="M 83.3 40 V 68" />
+            <path class="map-link" d="M 33.3 68 H 83.3" />
+          </svg>
           ${overviewMapNodes.map((node) => `<div class="map-node ${node.cls}"><small>${escapeHtml(node.label)}</small><strong>${escapeHtml(node.value)}</strong></div>`).join("")}
         </div>
         <div class="map-health-row">

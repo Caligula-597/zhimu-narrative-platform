@@ -3,7 +3,8 @@
  * NOT imported to OFFICIAL_EXAMPLE_WORLD_ID — for author review only.
  *
  * Usage:
- *   node backend/scripts/generate-matrix-pilot-example.mjs
+ *   node backend/scripts/generate-matrix-pilot-example.mjs [slug]
+ *   node backend/scripts/generate-matrix-pilot-example.mjs 停雪公馆
  *   node backend/scripts/generate-matrix-pilot-example.mjs --offline   # skip API, write curated fixture
  */
 import { mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync, unlinkSync } from "node:fs";
@@ -18,15 +19,82 @@ import {
   createPipelineInfoMatrix,
   createPipelineMatrixEvaluation,
   createPipelineMatrixPlayerScript,
+  createPipelineReasoningNovel,
+  createPipelineActOutline,
+  createPipelineTruthReconstruction,
+  createPipelineInnocentScriptsTruthInference,
   createPipelineTruthBible
 } from "../src/pipeline-matrix-deepseek.js";
+import { renderInnocentInferenceMarkdown } from "../src/prompts/matrix-innocent-inference.js";
 import { buildProposalFromMatrix } from "../src/pipeline-matrix-model.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const backendRoot = join(root, "backend");
-const slug = "雾港回声";
-const outDir = join(root, "examples", "pending-review", slug);
+const cliArgs = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+const slug = cliArgs[0] || "雾港回声";
 
+const PILOT_CONFIGS = {
+  雾港回声: {
+    setting: {
+      theme: "雾港回声",
+      playerCount: 4,
+      chapterCount: 3,
+      wordsPerChapter: 2400,
+      volumeTier: "demo",
+      pov: "second",
+      literaryStyle: "cinematic",
+      mysteryStyle: "christie-holmes",
+      matrixMode: "honkaku",
+      eraPreset: "lighthouse-industrial",
+      killerAwareness: "self-aware",
+      forbiddenPhrases: "不禁\n不由得\n原来如此\n真相大白\n细思极恐",
+      extraConflicts: "四人彼此有旧怨，但都不是冲动型凶手；禁止超自然解释。"
+    },
+    synopsis: {
+      body:
+        "暴雨夜，离岸灯塔「回声站」与大陆失联。值守员周沉在灯室被发现坠亡，门从内反锁。四名临时登岛者各持登岛理由：补给员、气象记录员、电台检修工、遗产律师。潮声掩盖了作案时间，而真正的手法藏在灯塔旋转机构与旧日志之间。",
+      charactersSketch:
+        "周沉（死者）与律师有未结遗嘱；检修工曾与死者争执频率干扰；记录员掌握一份被涂改的气象表；补给员携带多余的一枚钥匙胚。",
+      truthSketch: "凶手利用灯体旋转间隙制造「不可能坠点」，并非推落而是诱使死者自行踏入检修暗格。",
+      redHerringsSketch: "碎裂的护目镜、被撕页的气象日志、错误的潮位表。"
+    }
+  },
+  停雪公馆: {
+    setting: {
+      theme: "停雪公馆",
+      playerCount: 6,
+      chapterCount: 3,
+      wordsPerChapter: 2400,
+      volumeTier: "demo",
+      pov: "second",
+      literaryStyle: "chunqiu",
+      mysteryStyle: "christie-holmes",
+      matrixMode: "honkaku",
+      eraPreset: "republic-cn",
+      killerAwareness: "self-aware",
+      forbiddenPhrases: "不禁\n不由得\n原来如此\n真相大白\n细思极恐",
+      extraConflicts:
+        "六人各怀秘密但皆非冲动型；禁止超自然与现代刑侦术语；推理靠物证链与交叉对质，终幕禁止天降指纹/DNA。"
+    },
+    synopsis: {
+      body:
+        "民国廿三年冬，大雪封山，电报线断。六位客人困在沈家山顶公馆「停雪公馆」：侄孙女、留洋医生、老管家、账房、家庭教师、来修线路的电报工。馆主沈伯安在书斋内中毒身亡，门从内闩死，窗栅自内扣上——典型的密室。众人各持登馆理由，遗嘱、账册、药箱与一座停摆的落地钟，都可能是凶器，也可能是红鲱鱼。",
+      charactersSketch:
+        "沈念（侄孙女，继承权）；宋岚（医生，曾开错药被沈伯安要挟）；吴福（老管家，掌握沈家旧账）；顾衡（账房，账目有假）；白澍（家庭教师，与沈念私情）；韩铁（电报工，撞见深夜有人摆弄落地钟）。",
+      truthSketch:
+        "真凶利用落地钟配重绳与窗栅联动机关，在死者自内闩门后仍可从外解除窗栅并投毒撤离；非超自然，纯机械诡计。",
+      redHerringsSketch: "撕角的遗嘱、失踪的玉印、医生药箱里的氰化物标签、教师与侄孙女的私会。"
+    }
+  }
+};
+
+if (!PILOT_CONFIGS[slug]) {
+  console.error(`未知 slug「${slug}」，可用：${Object.keys(PILOT_CONFIGS).join("、")}`);
+  process.exit(1);
+}
+
+const outDir = join(root, "examples", "pending-review", slug);
+const baseInput = PILOT_CONFIGS[slug];
 for (const file of [join(backendRoot, ".env"), join(root, ".env"), join(root, ".env.staging")]) {
   if (!existsSync(file)) continue;
   for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
@@ -36,29 +104,7 @@ for (const file of [join(backendRoot, ".env"), join(root, ".env"), join(root, ".
 }
 
 const offline = process.argv.includes("--offline");
-
-const baseInput = {
-  setting: {
-    theme: "雾港回声",
-    playerCount: 4,
-    chapterCount: 3,
-    wordsPerChapter: 2400,
-    volumeTier: "demo",
-    pov: "second",
-    tone: "潮湿、克制、本格推理；少形容词堆砌",
-    styleAnchor:
-      "你推开那扇漆皮起皱的门，盐雾立刻灌进肺里。走廊尽头有人低声说话，你听不清内容，只看见灯芯在风里抖。\n\n他把证物袋放在桌上，没有急着开口。你注意到他指节发白——不是紧张，是冻的。",
-    forbiddenPhrases: "不禁\n不由得\n原来如此\n真相大白\n细思极恐",
-    extraConflicts: "四人彼此有旧怨，但都不是冲动型凶手；禁止超自然解释。"
-  },
-  synopsis: {
-    body:
-      "暴雨夜，离岸灯塔「回声站」与大陆失联。值守员周沉在灯室被发现坠亡，门从内反锁。四名临时登岛者各持登岛理由：补给员、气象记录员、电台检修工、遗产律师。潮声掩盖了作案时间，而真正的手法藏在灯塔旋转机构与旧日志之间。",
-    charactersSketch: "周沉（死者）与律师有未结遗嘱；检修工曾与死者争执频率干扰；记录员掌握一份被涂改的气象表；补给员携带多余的一枚钥匙胚。",
-    truthSketch: "凶手利用灯体旋转间隙制造「不可能坠点」，并非推落而是诱使死者自行踏入检修暗格。",
-    redHerringsSketch: "碎裂的护目镜、被撕页的气象日志、错误的潮位表。"
-  }
-};
+const skipAudit = process.argv.includes("--skip-audit") || !process.argv.includes("--with-audit");
 
 function writeJson(rel, data) {
   const path = join(outDir, rel);
@@ -333,34 +379,88 @@ async function generateOnline() {
   payload.infoMatrix = matrixResult.infoMatrix;
   writeJson("layers/04-info-matrix.json", payload.infoMatrix);
 
-  const hostResult = await step("⑤ 主持手册", () => createPipelineHostRunbooksAll({ ...payload, allActs: true }));
-  payload.hostRunbooks = hostResult.runbooks;
-  writeJson("layers/05-host-runbooks.json", payload.hostRunbooks);
+  const novelResult = await step("⑤ 推理长篇", () => createPipelineReasoningNovel(payload));
+  payload.reasoningNovel = novelResult.reasoningNovel;
+  writeJson("layers/05-reasoning-novel.json", payload.reasoningNovel);
 
-  payload.scripts = {};
+  const hostResult = await step("⑥ 主持手册", () => createPipelineHostRunbooksAll({ ...payload, allActs: true }));
+  payload.hostRunbooks = hostResult.runbooks;
+  writeJson("layers/06-host-runbooks.json", payload.hostRunbooks);
+
+  payload.actOutlines = {};
   const roles = payload.characterArchives.roles;
   const keys = payload.config.chapterKeys;
+  let outlineN = 0;
+  const outlineTotal = roles.length * keys.length;
+  for (const role of roles) {
+    payload.actOutlines[role.key] = {};
+    for (const actKey of keys) {
+      outlineN += 1;
+      const label = `⑦ 大纲 ${outlineN}/${outlineTotal} · ${role.name}/${actKey}`;
+      const outlineResult = await step(label, () =>
+        createPipelineActOutline({ ...payload, roleKey: role.key, actKey })
+      );
+      payload.actOutlines[role.key][actKey] = outlineResult.actOutline;
+      writeJson(`layers/07-outlines/${role.key}_${actKey}.json`, outlineResult.actOutline);
+    }
+  }
+
+  try {
+    if (!skipAudit) {
+      const auditResult = await step("⑧ 真相还原审计", () => createPipelineTruthReconstruction(payload));
+      payload.truthReconstruction = auditResult;
+      writeJson("layers/08-truth-reconstruction.json", auditResult);
+      if (!auditResult.passed) {
+        console.warn(`\n⚠ 真相审计未通过: verdict=${auditResult.reconstruction.verdict}`);
+      }
+    } else {
+      console.log("\n▶ ⑧ 真相还原审计 … 跳过 (--skip-audit)");
+    }
+  } catch (error) {
+    console.warn(`\n⚠ 真相审计跳过: ${error.message}`);
+  }
+
+  payload.scripts = {};
   let n = 0;
   const total = roles.length * keys.length;
   for (const role of roles) {
     payload.scripts[role.key] = {};
     for (const actKey of keys) {
       n += 1;
-      const label = `⑥ 剧本 ${n}/${total} · ${role.name}/${actKey}`;
+      const label = `⑨ 剧本 ${n}/${total} · ${role.name}/${actKey}`;
       const scriptResult = await step(label, () =>
-        createPipelineMatrixPlayerScript({ ...payload, roleKey: role.key, actKey, deAiPass: true })
+        createPipelineMatrixPlayerScript({
+          ...payload,
+          roleKey: role.key,
+          actKey,
+          actOutline: payload.actOutlines[role.key][actKey],
+          deAiPass: false
+        })
       );
       payload.scripts[role.key][actKey] = scriptResult.script;
-      writeJson(`layers/06-scripts/${role.key}_${actKey}.json`, scriptResult.script);
+      writeJson(`layers/09-scripts/${role.key}_${actKey}.json`, scriptResult.script);
     }
   }
 
-  try {
-    const evalResult = await step("⑦ 矩阵评判", () => createPipelineMatrixEvaluation(payload));
-    payload.evaluation = evalResult.evaluation;
-    writeJson("layers/07-evaluation.json", payload.evaluation);
-  } catch (error) {
-    console.warn(`\n⚠ 评判跳过: ${error.message}`);
+  const innocentResult = await step("⑩ 非凶手推真相", () => createPipelineInnocentScriptsTruthInference(payload));
+  payload.innocentInference = innocentResult;
+  writeJson("layers/11-innocent-inference.json", innocentResult);
+  if (!innocentResult.passed) {
+    console.warn(
+      `\n⚠ 非凶手推真相未通过: killerMatch=${innocentResult.mechanical.killerMatch} fairness=${innocentResult.comparison.fairnessVerdict}`
+    );
+  }
+
+  if (!skipAudit) {
+    try {
+      const evalResult = await step("⑪ 矩阵评判", () => createPipelineMatrixEvaluation(payload));
+      payload.evaluation = evalResult.evaluation;
+      writeJson("layers/10-evaluation.json", payload.evaluation);
+    } catch (error) {
+      console.warn(`\n⚠ 评判跳过: ${error.message}`);
+    }
+  } else {
+    console.log("\n▶ ⑪ 矩阵评判 … 跳过 (--skip-audit)");
   }
   return payload;
 }
@@ -386,6 +486,18 @@ function persistAll(payload, source) {
     }
   }
   renderHumanReviewFiles(payload, writeText);
+  if (payload.innocentInference) {
+    writeText(
+      "truth/INFERENCE-FROM-INNOCENTS.md",
+      renderInnocentInferenceMarkdown({
+        inference: payload.innocentInference.inference,
+        comparison: payload.innocentInference.comparison,
+        mechanical: payload.innocentInference.mechanical,
+        killerRoleKey: payload.innocentInference.killerRoleKey,
+        characterArchives: payload.characterArchives
+      })
+    );
+  }
   if (payload.evaluation) writeJson("layers/07-evaluation.json", payload.evaluation);
 
   const session = {
@@ -398,6 +510,7 @@ function persistAll(payload, source) {
     hostRunbooks: payload.hostRunbooks,
     scripts: payload.scripts,
     evaluation: payload.evaluation || null,
+    innocentInference: payload.innocentInference || null,
     proposal: null,
     locks: {
       setup: true,
@@ -407,6 +520,7 @@ function persistAll(payload, source) {
       host: true,
       scripts: true,
       evaluate: Boolean(payload.evaluation),
+      innocentInference: Boolean(payload.innocentInference?.passed),
       sync: false
     },
     activeLayer: "sync"
@@ -417,6 +531,7 @@ function persistAll(payload, source) {
     truthBible: payload.truthBible,
     infoMatrix: payload.infoMatrix
   });
+  if (session.proposal?.matrixSync) writeJson("layers/matrix-sync.json", session.proposal.matrixSync);
   const importPackage = buildPipelineImportPackage(session);
   writeJson("session.json", session);
   writeJson("import-package.json", importPackage);
@@ -430,9 +545,9 @@ function persistAll(payload, source) {
     chapterKeys: payload.config.chapterKeys,
     volumeTier: payload.setting.volumeTier,
     notPublished: true,
-    promptVersion: "matrix-v5-structured-log",
-    compareBaseline: "../雾港回声-对比基准",
-    previousVersion: "../雾港回声-v2",
+    promptVersion: "matrix-2.0",
+    compareBaseline: slug === "停雪公馆" ? "../雾港回声" : null,
+    previousVersion: null,
     note: "未写入 OFFICIAL_EXAMPLE_WORLD_ID / 公开剧本库，需人工审核后再导入世界"
   });
   writeText(
@@ -449,6 +564,7 @@ function persistAll(payload, source) {
 | \`session.json\` | 完整矩阵瀑布流 session（可回填 AI 向导草稿） |
 | \`import-package.json\` | \`buildPipelineImportPackage\` 输出，审核通过后用于 \`importDeepseekPipeline\` |
 | \`truth/TRUTH-god-view.md\` | **上帝视角**真相总览（时间线/凶手/误导/剧透门禁） |
+| \`truth/INFERENCE-FROM-INNOCENTS.md\` | **非凶手推真相审计**（未读 truth bible，排除凶手本） |
 | \`truth/HOST-runbook.md\` | 主持分幕流程 + 每幕 hostTruth |
 | \`tasks/TASKS-all-roles.md\` | 全员分幕任务一览 |
 | \`layers/02-truth-bible.json\` | 真相 Bible 结构化源数据 |
@@ -486,8 +602,10 @@ async function main() {
     persistAll(payload, offline ? "offline-curated" : "offline-fallback");
     return;
   }
-  console.log(`Matrix pilot example · model=${config.model} · out=${outDir} · prompt=v5-structured-log`);
-  console.log("提示：如需保留旧版，生成前请手动复制 examples/pending-review/雾港回声 → 雾港回声-v2");
+  console.log(`Matrix pilot example · slug=${slug} · model=${config.model} · out=${outDir} · prompt=matrix-2.0`);
+  if (slug === "雾港回声") {
+    console.log("提示：如需保留旧版，生成前请手动复制 examples/pending-review/雾港回声 → 雾港回声-v2");
+  }
   mkdirSync(outDir, { recursive: true });
   const payload = await generateOnline();
   persistAll(payload, "deepseek-matrix-pipeline");

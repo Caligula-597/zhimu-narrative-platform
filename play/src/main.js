@@ -786,7 +786,9 @@ async function handleJoinRoom() {
     state.joinPreview = null;
     cleanUrl();
     await refreshHome();
-    state.tab = "home";
+    const sections = state.home?.sections || [];
+    const hasIncomplete = sections.some((section) => !section.completed);
+    state.tab = hasIncomplete && sections.length ? "sections" : "home";
     setToast("已加入房间，欢迎来到故事现场", render);
   } catch (error) {
     state.joinStep = 2;

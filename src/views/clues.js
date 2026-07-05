@@ -199,6 +199,36 @@ import * as S from "../components/ui-semantics.js";
     return `${escapeHtml(clean.slice(0, idx))}<mark class="search-mark">${escapeHtml(clean.slice(idx, idx + query.length))}</mark>${escapeHtml(clean.slice(idx + query.length))}`;
   }
 
+  function grantModeLabel(mode) {
+    return { auto: "自动发放", host_confirm: "主持确认", explore: "探索获得" }[mode] || "";
+  }
+
+  function clueActBadge(clue) {
+    const meta = clue?.metadata || {};
+    const actKey = meta.actKey || meta.matrixActKey;
+    const seq = meta.actSequence || meta.unlockOrder;
+    if (!actKey && !seq) return "";
+    return `<span class="cloud-pill">${seq ? `第 ${seq} 幕` : ""}${actKey ? ` · ${escapeHtml(actKey)}` : ""}</span>`;
+  }
+
+  function clueGrantModeBadge(clue) {
+    const mode = clue?.metadata?.grantMode;
+    if (!mode || mode === "auto") return "";
+    return `<span class="cloud-pill">${escapeHtml(grantModeLabel(mode))}</span>`;
+  }
+
+  function clueSceneLabel(clue, data) {
+    const meta = clue?.metadata || {};
+    const sceneKey = meta.matrixSceneKey;
+    if (sceneKey) {
+      const scene = (data.scenes || []).find((s) => s.metadata?.matrixSceneKey === sceneKey || s.metadata?.proposalKey === sceneKey);
+      if (scene) return scene.name;
+    }
+    const points = linkedPoints(clue.id, data);
+    const scene = pointScene(points[0], data);
+    return scene?.name || "";
+  }
+
   function clueMetaLabel(clue) {
     const meta = clue?.metadata || {};
     const type = CLUE_TYPE_LABELS[meta.clueType] || CLUE_TYPE_LABELS.text;
@@ -458,12 +488,16 @@ import * as S from "../components/ui-semantics.js";
   function clueTimeline(data) {
     const chapters = (data.chapters || []).slice().sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)).slice(0, 7);
     if (!chapters.length) return "";
-    return `<article class="clue-timeline-panel"><h3>剧情时间线</h3><div class="clue-timeline-track">
+    return `<article class="clue-timeline-panel"><h3>剧情时间线 · 与编排联动</h3><p class="wizard-intro">按章节顺序展示公共环境与线索解锁；点击跳转剧情编排。</p><div class="clue-timeline-track">
       <span>序章</span>
       ${chapters.map((chapter) => {
         const chapterScenes = (data.scenes || []).filter((scene) => scene.chapter_id === chapter.id);
         const chapterClues = linkedChapterClues(chapterScenes, data);
-        return `<button type="button" data-go="studio" title="${escapeHtml(chapter.title)} · ${chapterClues.length} 条线索"><i></i><strong>第 ${chapter.sequence || "?"} 章</strong><small>${escapeHtml(chapter.title)}</small></button>`;
+        const env =
+          chapter.metadata?.publicEnvironment ||
+          chapterScenes.map((s) => s.metadata?.publicEnvironment).find(Boolean) ||
+          "";
+        return `<button type="button" data-go="studio" title="${escapeHtml(chapter.title)} · ${chapterClues.length} 条线索${env ? " · 含公共环境" : ""}"><i></i><strong>第 ${chapter.sequence || "?"} 章</strong><small>${escapeHtml(chapter.title)}${env ? ` · ${escapeHtml(env.slice(0, 36))}${env.length > 36 ? "…" : ""}` : ""}</small></button>`;
       }).join("")}
       <span>终局</span>
     </div></article>`;
@@ -493,7 +527,8 @@ import * as S from "../components/ui-semantics.js";
     const tab = uiStore.get().clueDetailTab === "triggers" ? "triggers" : "detail";
     const detailBody = `<p class="section-kicker">${escapeHtml(meta.type)} · ${escapeHtml(meta.importance)}</p>
         <h3>${escapeHtml(clue.name)}</h3>
-        <div class="clue-detail-tags">${clueVisibilityChip(clue)}<span class="cloud-pill">${points.length || 0} 个调查点</span></div>
+        <div class="clue-detail-tags">${clueVisibilityChip(clue)}${clueActBadge(clue)}${clueGrantModeBadge(clue)}<span class="cloud-pill">${points.length || 0} 个调查点</span></div>
+        ${rawMeta.triggerNote ? `<p class="wizard-intro">解锁：${escapeHtml(rawMeta.triggerNote)}${clueSceneLabel(clue, data) ? ` · 场景 ${escapeHtml(clueSceneLabel(clue, data))}` : ""}</p>` : ""}
         <div class="clue-preview-card">
           <div class="clue-preview-image ${asset ? "has-asset" : ""}"><span>${asset ? "关联附件" : "线索预览"}</span></div>
           <strong>线索描述</strong>
@@ -646,7 +681,7 @@ import * as S from "../components/ui-semantics.js";
         const points = cluePointCount(clue.id, data);
         const selected = selectedId === clue.id ? " clues-row-selected search-highlight" : "";
         const checked = bulkSelected.has(clue.id) ? " checked" : "";
-        return `<article class="clues-row${selected}" data-clue-row="${clue.id}"><label class="clues-row-select check-label"><input type="checkbox" data-action="clues-toggle-select" data-clue="${clue.id}"${checked}></label><div class="clues-row-main"><div class="clues-row-head"><strong>${highlightQuery(clue.name, q)}</strong>${clueVisibilityChip(clue)}${points ? `<span class="cloud-pill">${points} 个调查点</span>` : ""}</div><p>${highlightQuery((clue.public_text || "").slice(0, 160), q)}${(clue.public_text || "").length > 160 ? "…" : ""}</p></div><div class="row clues-row-actions"><button class="text-btn" data-action="clues-edit" data-clue="${clue.id}">编辑</button><button class="text-btn" data-action="clues-open-studio" data-clue="${clue.id}">在图谱中定位</button><button class="text-btn danger-text" data-action="clues-delete" data-clue="${clue.id}">删除</button></div></article>`;
+        return `<article class="clues-row${selected}" data-clue-row="${clue.id}"><label class="clues-row-select check-label"><input type="checkbox" data-action="clues-toggle-select" data-clue="${clue.id}"${checked}></label><div class="clues-row-main"><div class="clues-row-head"><strong>${highlightQuery(clue.name, q)}</strong>${clueActBadge(clue)}${clueVisibilityChip(clue)}${points ? `<span class="cloud-pill">${points} 个调查点</span>` : ""}</div><p>${highlightQuery((clue.public_text || "").slice(0, 160), q)}${(clue.public_text || "").length > 160 ? "…" : ""}</p></div><div class="row clues-row-actions"><button class="text-btn" data-action="clues-edit" data-clue="${clue.id}">编辑</button><button class="text-btn" data-action="clues-open-studio" data-clue="${clue.id}">在图谱中定位</button><button class="text-btn danger-text" data-action="clues-delete" data-clue="${clue.id}">删除</button></div></article>`;
       })
       .join("")}</div></details>
       </main>
@@ -797,6 +832,11 @@ import * as S from "../components/ui-semantics.js";
           { id: "public", name: "房间公开" },
           { id: "host", name: "主持可见" }
         ], clue?.visibility || "role") +
+        studioSelect("发放模式", "grantMode", [
+          { id: "auto", name: "自动发放" },
+          { id: "host_confirm", name: "主持确认后发放" },
+          { id: "explore", name: "探索调查获得" }
+        ], meta.grantMode || "auto") +
         studioSelect("线索类型", "clueType", CLUE_TYPE_OPTIONS, meta.clueType || "text") +
         studioSelect("关联资产", "assetId", assets, meta.assetId || "") +
         studioSelect("重要程度", "importance", CLUE_IMPORTANCE_OPTIONS, meta.importance || "normal") +
@@ -816,6 +856,7 @@ import * as S from "../components/ui-semantics.js";
                 clueType: values.clueType || "text",
                 assetId: values.assetId || null,
                 importance: values.importance || "normal",
+                grantMode: values.grantMode || "auto",
                 triggerNote: values.triggerNote || ""
               }
             });
@@ -829,6 +870,7 @@ import * as S from "../components/ui-semantics.js";
                 clueType: values.clueType || "text",
                 assetId: values.assetId || null,
                 importance: values.importance || "normal",
+                grantMode: values.grantMode || "auto",
                 triggerNote: values.triggerNote || ""
               }
             });
@@ -843,6 +885,7 @@ import * as S from "../components/ui-semantics.js";
     );
     if (clue) {
       modal.querySelector('[data-studio-field="visibility"]').value = clue.visibility || "role";
+      modal.querySelector('[data-studio-field="grantMode"]').value = meta.grantMode || "auto";
       modal.querySelector('[data-studio-field="clueType"]').value = meta.clueType || "text";
       modal.querySelector('[data-studio-field="importance"]').value = meta.importance || "normal";
     }

@@ -31,20 +31,29 @@ import {
   applyStructuredGates,
   buildPublicActionBrief,
   fillFeelingPack,
+  sanitizeMatrixRowForStructured,
   stitchStructuredScript,
   validateActionLog,
   validateDialogueLog
 } from "./pipeline-matrix-structured-script.js";
+import { buildLiteraryStyleCard } from "./prompts/matrix-literary-styles.js";
+import { buildReasoningNovelMessages, validateReasoningNovel } from "./prompts/matrix-reasoning-novel.js";
+import { buildActOutlineMessages, validateActOutline } from "./prompts/matrix-act-outline.js";
+import {
+  buildTruthReconstructionMessages,
+  mechanicalTruthCompare,
+  validateTruthReconstruction
+} from "./prompts/matrix-truth-reconstruction.js";
+import {
+  buildInnocentInferenceCompareMessages,
+  buildInnocentScriptsInferenceMessages,
+  mechanicalInnocentInferenceCompare,
+  validateInnocentInferenceCompare,
+  validateInnocentScriptsInference
+} from "./prompts/matrix-innocent-inference.js";
 
 function styleCardFromInput(input) {
-  const setting = input.setting || {};
-  return {
-    volumeTier: setting.volumeTier || "standard",
-    pov: setting.pov === "first" ? "first" : "second",
-    tone: setting.tone || "",
-    styleAnchor: cleanText(setting.styleAnchor, 2000),
-    forbiddenPhrases: cleanText(setting.forbiddenPhrases, 1000)
-  };
+  return buildLiteraryStyleCard(input.setting || {});
 }
 
 function validateMatrixEvaluation(raw) {
@@ -148,6 +157,130 @@ export async function createPipelineHostRunbooksAll(input) {
   return { provider: "deepseek", runbooks: validateHostRunbooks({ runbooks }, config).runbooks };
 }
 
+/** Layer ②b — god-view reasoning novel from truth bible (source for outline extraction). */
+export async function createPipelineReasoningNovel(input) {
+  const { setting, synopsis, config } = resolveCreativePipeline(input);
+  const truthBible = validateTruthBible(input.truthBible, config);
+  const characterArchives = input.characterArchives
+    ? validateCharacterArchives(input.characterArchives, config)
+    : null;
+  const styleCard = styleCardFromInput(input);
+  const result = await requestDeepseekJson(
+    buildReasoningNovelMessages({ setting, synopsis, config, truthBible, styleCard, characterArchives }),
+    { maxTokens: 16000, temperature: 0.48, phase: "pipeline.reasoning_novel" }
+  );
+  return {
+    provider: "deepseek",
+    model: result.model,
+    reasoningNovel: validateReasoningNovel(result.value, config),
+    styleCard
+  };
+}
+
+/** Layer ⑥b — POV-limited act outline extracted from reasoning novel. */
+export async function createPipelineActOutline(input) {
+  const { setting, synopsis, config } = resolveCreativePipeline(input);
+  const truthBible = validateTruthBible(input.truthBible, config);
+  const characterArchives = validateCharacterArchives(input.characterArchives, config);
+  const infoMatrix = validateInfoMatrix(input.infoMatrix, config, characterArchives);
+  const reasoningNovel = input.reasoningNovel;
+  if (!reasoningNovel?.acts?.length) throwErr("VALIDATION_ERROR", "reasoningNovel 缺失");
+  const roleKey = String(input.roleKey || "");
+  const actKey = String(input.actKey || "");
+  const characterArchive = characterArchives.roles.find((r) => r.key === roleKey);
+  const matrixRow = infoMatrix.rows.find((r) => r.roleKey === roleKey && r.actKey === actKey);
+  if (!characterArchive || !matrixRow) throwErr("VALIDATION_ERROR", "roleKey 或 actKey 在矩阵中不存在");
+  const styleCard = styleCardFromInput(input);
+  const bundle = buildMatrixScriptPromptBundle({
+    truthBible,
+    infoMatrix,
+    characterArchives,
+    config,
+    actKey,
+    roleKey,
+    matrixRow,
+    existingScripts: input.scripts || {},
+    setting
+  });
+  const result = await requestDeepseekJson(
+    buildActOutlineMessages({
+      setting,
+      reasoningNovel,
+      characterArchive,
+      matrixRow,
+      roleKey,
+      actKey,
+      styleCard,
+      spoilerContract: bundle.spoilerContract,
+      fairnessContract: bundle.fairnessContract,
+      clueLedger: bundle.clueLedger,
+      killerAwarenessContract: bundle.spoilerContract.killerAwarenessContract,
+      publicEnvironment: infoMatrix?.publicEnvironmentByAct?.[actKey] || null
+    }),
+    { maxTokens: 4000, temperature: 0.38, phase: "pipeline.act_outline", context: { roleKey, actKey } }
+  );
+  return {
+    provider: "deepseek",
+    model: result.model,
+    actOutline: validateActOutline(result.value, roleKey, actKey, setting)
+  };
+}
+
+/** Layer ⑥c — reconstruct truth from all outlines and compare with truth bible. */
+export async function createPipelineTruthReconstruction(input) {
+  const { config } = resolveCreativePipeline(input);
+  const truthBible = validateTruthBible(input.truthBible, config);
+  const characterArchives = validateCharacterArchives(input.characterArchives, config);
+  const actOutlines = input.actOutlines || {};
+  if (!Object.keys(actOutlines).length) throwErr("VALIDATION_ERROR", "actOutlines 缺失");
+  const result = await requestDeepseekJson(
+    buildTruthReconstructionMessages({ truthBible, actOutlines, config, characterArchives }),
+    { maxTokens: 6000, temperature: 0.32, phase: "pipeline.truth_reconstruction" }
+  );
+  const reconstruction = validateTruthReconstruction(result.value);
+  const mechanical = mechanicalTruthCompare(reconstruction, truthBible);
+  return {
+    provider: "deepseek",
+    model: result.model,
+    reconstruction,
+    mechanical,
+    passed: mechanical.passed && reconstruction.verdict === "pass"
+  };
+}
+
+/** Layer ⑥d — infer truth from innocent scripts only (no truth bible in inference call). */
+export async function createPipelineInnocentScriptsTruthInference(input) {
+  const { config } = resolveCreativePipeline(input);
+  const truthBible = validateTruthBible(input.truthBible, config);
+  const characterArchives = validateCharacterArchives(input.characterArchives, config);
+  const scripts = input.scripts || {};
+  if (!Object.keys(scripts).length) throwErr("VALIDATION_ERROR", "scripts 缺失");
+  const killerRoleKey = resolveKillerRoleKey(truthBible, characterArchives);
+
+  const inferResult = await requestDeepseekJson(
+    buildInnocentScriptsInferenceMessages({ scripts, config, characterArchives, killerRoleKey }),
+    { maxTokens: 8000, temperature: 0.35, phase: "pipeline.innocent_inference" }
+  );
+  const inference = validateInnocentScriptsInference(inferResult.value);
+  const mechanical = mechanicalInnocentInferenceCompare(inference, truthBible);
+
+  const compareResult = await requestDeepseekJson(
+    buildInnocentInferenceCompareMessages({ inference, truthBible, killerRoleKey }),
+    { maxTokens: 4000, temperature: 0.28, phase: "pipeline.innocent_inference_compare" }
+  );
+  const comparison = validateInnocentInferenceCompare(compareResult.value);
+
+  return {
+    provider: "deepseek",
+    model: inferResult.model,
+    killerRoleKey,
+    inference,
+    comparison,
+    mechanical,
+    passed: mechanical.killerMatch && comparison.fairnessVerdict === "pass"
+  };
+}
+
 export async function createPipelineMatrixPlayerScript(input) {
   const mode = input.scriptGenerationMode ?? "structured";
   if (mode === "structured") {
@@ -170,6 +303,15 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
   const minWords = config.wordsPerSectionMin || targets.minScript;
   const targetWords = targets.perScript;
   const actIdx = actIndex(config, actKey);
+  const finalIdx = Math.max(0, (config.chapterKeys?.length || 1) - 1);
+  const killerKey = resolveKillerRoleKey(truthBible, characterArchives);
+  const isKiller = killerKey === roleKey;
+  const safeMatrixRow = sanitizeMatrixRowForStructured({
+    matrixRow,
+    isKiller,
+    actIndex: actIdx,
+    finalActIndex: finalIdx
+  });
 
   const bundle = buildMatrixScriptPromptBundle({
     truthBible,
@@ -185,16 +327,28 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
   const spoilerContract = bundle.spoilerContract;
   const publicActionBrief = buildPublicActionBrief({
     characterArchive,
-    matrixRow,
+    matrixRow: safeMatrixRow,
     actKey,
-    actIndex: actIdx
+    actIndex: actIdx,
+    actOutline: input.actOutline || input.actOutlines?.[roleKey]?.[actKey]
   });
-  const feelingsPack = fillFeelingPack({ matrixRow, characterArchive, actKey });
+  const feelingsPack = fillFeelingPack({
+    matrixRow: safeMatrixRow,
+    characterArchive,
+    actKey,
+    isKiller,
+    actIndex: actIdx,
+    finalActIndex: finalIdx,
+    killerAwareness: setting?.killerAwareness || "self-aware"
+  });
 
   let model;
   let script;
   let structuredGates;
   const maxAttempts = 2;
+
+  const killerAwareness = setting?.killerAwareness || "self-aware";
+  const styleCard = styleCardFromInput(input);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const actionResult = await requestDeepseekJson(
@@ -204,7 +358,13 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
         actKey,
         targetWords,
         spoilerContract,
-        roleRoster: bundle.roleRoster
+        roleRoster: bundle.roleRoster,
+        entityUnlockContract: bundle.entityUnlockContract,
+        isKiller,
+        actIndex: actIdx,
+        finalActIndex: finalIdx,
+        styleCard,
+        killerAwareness
       }),
       {
         maxTokens: 6000,
@@ -225,7 +385,13 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
         spoilerContract,
         roleRoster: bundle.roleRoster,
         clueLedger: bundle.clueLedger,
-        peerScriptDigest: bundle.peerScriptDigest
+        entityUnlockContract: bundle.entityUnlockContract,
+        peerScriptDigest: bundle.peerScriptDigest,
+        isKiller,
+        actIndex: actIdx,
+        finalActIndex: finalIdx,
+        styleCard,
+        killerAwareness
       }),
       {
         maxTokens: 6000,
@@ -243,9 +409,14 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
       roleKey,
       characterArchives,
       infoMatrix,
-      matrixRow,
+      matrixRow: safeMatrixRow,
       actKey,
-      config
+      config,
+      isKiller,
+      actIndex: actIdx,
+      finalActIndex: finalIdx,
+      minWords,
+      killerAwareness: setting?.killerAwareness || "self-aware"
     });
     structuredGates = gated.gates;
 
@@ -260,8 +431,8 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
       actKey,
       title: `${actKey} · ${characterArchive.name.split("·")[0].trim()}记录`,
       body,
-      tasks: matrixRow.tasks?.length ? [...matrixRow.tasks] : [],
-      closingHook: cleanText(matrixRow.suspicion, 200) || "还有几处时间对不上。",
+      tasks: safeMatrixRow.tasks?.length ? [...safeMatrixRow.tasks] : [],
+      closingHook: cleanText(safeMatrixRow.suspicion, 200) || "还有几处时间对不上。",
       structured: {
         actionLog: gated.actionLog,
         feelingsPack: gated.feelingsPack,
@@ -328,7 +499,8 @@ async function createPipelineMatrixNarrativePlayerScript(input) {
     actKey,
     roleKey,
     characterArchives,
-    matrixRow
+    matrixRow,
+    setting
   });
 
   const innocentAlibi = killerInnocentMode
@@ -373,7 +545,7 @@ async function createPipelineMatrixNarrativePlayerScript(input) {
     script = validateMatrixPlayerScript(result.value, roleKey, actKey, minWords);
     if (matrixRow.tasks?.length) script = { ...script, tasks: [...matrixRow.tasks] };
 
-    if (!killerInnocentMode && input.deAiPass !== false && styleCard.styleAnchor) {
+    if (!killerInnocentMode && input.deAiPass !== false && styleCard.literaryStyle) {
       const polish = await requestDeepseekJson(
         buildMatrixDeAiPassMessages({ body: script.body, styleCard, targetWords, spoilerContract }),
         { maxTokens: Math.min(12000, targetWords * 3), temperature: 0.35, phase: "pipeline.script.deai", context: { roleKey, actKey } }

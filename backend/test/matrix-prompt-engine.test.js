@@ -67,7 +67,7 @@ test("buildFairnessContract references row clue ids", () => {
     config
   });
   assert.deepEqual(f.thisRowClueIds, ["clue-1"]);
-  assert.ok(f.fairnessRules.some((r) => r.includes("newClueIds")));
+  assert.ok(f.fairnessRules.some((r) => r.includes("L2") || r.includes("clueLedger")));
 });
 
 test("buildPeerScriptDigest excludes current cell", () => {

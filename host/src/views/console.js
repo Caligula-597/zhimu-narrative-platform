@@ -105,8 +105,56 @@ export function renderConsole(){
       ${collapsibleCard({ id: "director:rules-preview", title: "规则运行与管理", subtitle: "当前房间的条件评估与自动化规则管理", headerExtra: `<button class="secondary-btn" data-action="rules-preview">刷新预览</button><button class="secondary-btn" data-action="host-rule-new">新建</button><button class="secondary-btn" data-action="host-rule-validate">检查</button>`, body: `${directorRulesPreview()}${hostRulesManager()}`, defaultOpen: false })}
     </aside>
   </div>
+  ${hostPublicEnvironmentCard()}
   ${hostClueMatrixCard()}
  </section>`;
+}
+
+function grantModeLabel(mode) {
+  return { auto: "自动发放", host_confirm: "主持确认", explore: "探索获得" }[mode] || "";
+}
+
+function studioClueGrantHint(clueId) {
+  const clue = (state.studio?.clues || []).find((item) => item.id === clueId);
+  const mode = clue?.metadata?.grantMode;
+  if (!mode || mode === "auto") return "";
+  return grantModeLabel(mode);
+}
+
+function hostPublicEnvironmentCard() {
+  const chapters = (state.studio?.chapters || []).slice().sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+  const rows = chapters
+    .map((chapter) => {
+      const env = String(chapter.metadata?.publicEnvironment || "").trim();
+      if (!env) return "";
+      const actKey = chapter.metadata?.matrixActKey;
+      return `<article class="host-env-row"><div class="row" style="align-items:center;gap:8px;margin-bottom:6px"><h4 style="margin:0">${escapeHtml(chapter.title)}</h4>${actKey ? `<span class="cloud-pill">${escapeHtml(actKey)}</span>` : ""}</div><p class="wizard-intro">${escapeHtml(env)}</p></article>`;
+    })
+    .filter(Boolean)
+    .join("");
+  const matrixSync = state.studio?.world?.settings?.matrixSync;
+  const triggers = (matrixSync?.mechanicalTriggers || [])
+    .map(
+      (trigger) =>
+        `<li><b>${escapeHtml(trigger.actKey || "—")}</b> · ${escapeHtml(trigger.if || "—")} → ${escapeHtml(trigger.then || "—")}${trigger.hostNote ? ` <span class="muted-note">（${escapeHtml(trigger.hostNote)}）</span>` : ""}</li>`
+    )
+    .join("");
+  const triggerBlock = triggers
+    ? `<div class="host-mechanical-triggers" style="margin-top:12px"><p class="section-kicker">L4 变格触发（设计参考）</p><ul class="wizard-intro">${triggers}</ul></div>`
+    : "";
+  const body =
+    rows || triggerBlock
+      ? `${rows || `<div class="empty-state">章节尚未填写 publicEnvironment，可在编排台章节节点编辑。</div>`}${triggerBlock}`
+      : `<div class="empty-state">当前世界章节未配置公共环境文案。Matrix 导入或编排台「编辑公共章节 → 公共环境（L2）」可补充。</div>`;
+  return collapsibleCard({
+    id: "director:public-env",
+    title: "公共环境与分幕",
+    subtitle: "与 Matrix L2 publicEnvironment 一致 · 可向玩家口头播报",
+    body,
+    defaultOpen: true,
+    className: "card host-public-env-card",
+    style: "margin-top:14px"
+  });
 }
 
 export function hostPlayerTableRows(players){
@@ -234,8 +282,9 @@ function hostClueMatrixCard(){
  if(!clues.length)return collapsibleCard({ id: "director:clue-matrix", title: "线索掌握矩阵", subtitle: "当前世界尚无线索节点，请先在编排台创建。", body: "", defaultOpen: false, className: "card host-clue-matrix-card", style: "margin-top:14px" });
  const head=players.map(player=>`<th>${escapeHtml(player.player_display_name||player.role_name)}</th>`).join("");
  const body=clues.map(clue=>{
+  const grantHint=studioClueGrantHint(clue.id);
   const cells=players.map(player=>{const cell=matrix.cells?.[clue.id]?.[player.role_slot_id]||{};const owned=cell.owned;return `<td>${owned?`<button type="button" class="clue-matrix-cell-btn ${cell.sharedWithRoom?"public":""}" data-action="host-clue-note" data-clue="${clue.id}" data-role="${player.role_slot_id}" title="点击编辑主持备注">${hostClueMatrixLabel(cell)}</button>`:`<span class="clue-matrix-cell">${hostClueMatrixLabel(cell)}</span>`}</td>`}).join("");
-  return `<tr><th class="clue-matrix-clue">${escapeHtml(clue.name)}</th>${cells}</tr>`;
+  return `<tr><th class="clue-matrix-clue">${escapeHtml(clue.name)}${grantHint?` <span class="cloud-pill">${escapeHtml(grantHint)}</span>`:""}</th>${cells}</tr>`;
  }).join("");
  const summaries=(matrix.summaries||[]).map(item=>`<div class="clue-matrix-summary"><strong>${escapeHtml(item.clueName)}</strong><p>${escapeHtml(item.summary)}</p></div>`).join("");
  return collapsibleCard({ id: "director:clue-matrix", title: "线索掌握矩阵", subtitle: "查看谁拥有、读过或公开过每条线索", headerExtra: `<button class="secondary-btn" data-action="refresh-host-clue-matrix">刷新矩阵</button>`, body: `<div class="host-clue-matrix-wrap"><table class="host-clue-matrix"><thead><tr><th>线索 \\ 玩家</th>${head}</tr></thead><tbody>${body}</tbody></table></div><div class="clue-matrix-summaries">${summaries}</div>`, defaultOpen: false, className: "card host-clue-matrix-card", style: "margin-top:14px" });
@@ -393,7 +442,8 @@ export function openHostGrantClueModal(){
  const players=(state.cloudHostPlayers||[]).filter(player=>player.joined),clues=state.studio?.clues||[];
  if(!players.length)return showToast("当前没有已加入的玩家");
  if(!clues.length)return showToast("当前世界尚未创建线索");
- mountModal(); modalEl.root.className="modal";modalEl.root.innerHTML=`<h2>手动发放线索</h2><p class="wizard-intro">可一次发给多名玩家；每人独立获得 clue_ownership，不会默认公开给全房间。</p><div class="form-group">${studioSelect("线索","grantClue",clues.map(clue=>({id:clue.id,name:clue.name})))}<label>目标角色（可多选）</label><div class="member-picker">${players.map(player=>`<label><input type="checkbox" data-grant-role value="${player.role_slot_id}"> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}</span></label>`).join("")}</div>${studioField("日志说明","grantMessage","input","主持人手动发放线索")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-grant-submit>确认发放</button></div>`;
+ const clueOptions=clues.map(clue=>{const mode=clue.metadata?.grantMode;const suffix=mode&&mode!=="auto"?` · ${grantModeLabel(mode)}`:"";return {id:clue.id,name:`${clue.name}${suffix}`}});
+ mountModal(); modalEl.root.className="modal";modalEl.root.innerHTML=`<h2>手动发放线索</h2><p class="wizard-intro">可一次发给多名玩家；每人独立获得 clue_ownership，不会默认公开给全房间。标注「主持确认」的线索通常由规则触发，此处为手动 override。</p><div class="form-group">${studioSelect("线索","grantClue",clueOptions)}<label>目标角色（可多选）</label><div class="member-picker">${players.map(player=>`<label><input type="checkbox" data-grant-role value="${player.role_slot_id}"> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}</span></label>`).join("")}</div>${studioField("日志说明","grantMessage","input","主持人手动发放线索")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-grant-submit>确认发放</button></div>`;
  modalEl.backdrop.classList.add("show");modalEl.root.querySelector("[data-close]").onclick=closeModal;modalEl.root.querySelector("[data-host-grant-submit]").onclick=async()=>{try{const values=studioValues();const roleSlotIds=[...modalEl.root.querySelectorAll("[data-grant-role]:checked")].map(el=>el.value);if(!roleSlotIds.length)return showToast("请至少选择一名玩家");await api.hostGrantClue({roleSlotIds,clueId:values.grantClue,message:values.grantMessage});closeModal();await refreshHostRoom();showToast(`线索已发放给 ${roleSlotIds.length} 名玩家`)}catch(error){showToast(error.message)}};
 }
 

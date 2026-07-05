@@ -3,6 +3,10 @@
  * Pure functions; no API calls.
  */
 import { cleanText } from "./shared.js";
+import { resolveKillerAwareness, buildKillerAwarenessContract } from "./matrix-killer-awareness.js";
+import { buildPersonalSignatureGuidance } from "./matrix-fairness-model.js";
+import { buildMatrixModeProfile } from "./matrix-2-mode.js";
+import { buildEntityUnlockContract } from "./matrix-entity-unlock.js";
 
 export function actIndex(config, actKey) {
   const keys = config?.chapterKeys || [];
@@ -133,11 +137,21 @@ export function buildSpoilerContract({
   actKey,
   roleKey,
   characterArchives,
-  matrixRow
+  matrixRow,
+  setting
 }) {
   const idx = actIndex(config, actKey);
   const gate = spoilerGateForAct(truthBible, actKey);
   const killerKey = resolveKillerRoleKey(truthBible, characterArchives);
+  const killerAwareness = resolveKillerAwareness(setting);
+  const finalIdx = Math.max(0, (config?.chapterKeys?.length || 1) - 1);
+  const awareness = buildKillerAwarenessContract({
+    killerAwareness,
+    roleKey,
+    killerRoleKey: killerKey,
+    actIndex: idx,
+    finalActIndex: finalIdx
+  });
   const forbidden = [
     ...new Set([
       ...(gate.forbiddenFacts || []),
@@ -164,45 +178,93 @@ export function buildSpoilerContract({
   }
 
   if (killerKey && killerKey === roleKey && idx < (config?.chapterKeys?.length || 1) - 1) {
-    rules.push(
-      "你是真凶位：本幕不得自白或内心承认作案，只能防守性隐瞒或转移怀疑。",
-      "真凶位禁止在回忆/内心独白中写作案动作（设置机关、改频走私、配钥匙作案、推/杀/灭口、用细线反锁等）。",
-      "真凶位回忆与死者冲突时：只写「争吵/被威胁/情绪失控」，不得写导致死亡的具体动作或机关细节。",
-      "真凶位可写：对外撒谎、掩饰紧张、把怀疑引向他人、隐瞒与案件无关的小秘密。",
-      "真凶位禁止「担心杀人败露」式内心独白；改为「担心被怀疑与死者有过节」等模糊焦虑。"
-    );
+    if (killerAwareness === "self-aware") {
+      rules.push(
+        "你是真凶位且**自知**：私人本（心理/规定情绪）可直白写「我是凶手、必须瞒住」— 仅本人可见，**不**作剧透门禁重点。",
+        "对外段落（公聊台词）仍禁止向其他玩家公开自白；forbiddenFacts 手法名词仍禁。"
+      );
+    } else {
+      rules.push(
+        "你是真凶位但**不自知**：与无辜者相同标准，禁止任何作案确证式内心或回忆。",
+        "禁止担心杀人败露；只允许担心被怀疑与死者有过节。",
+        "不得写碰凶器、设置机关等 forbiddenFacts。"
+      );
+    }
   }
+
+  rules.push(...awareness.rules);
 
   if (killerKey && idx < 2) {
     forbidden.push(`明确指认 ${killerKey} 为凶手`);
   }
 
-  return { actKey, actIndex: idx, forbiddenFacts: forbidden, narrativeRules: rules, killerRoleKey: killerKey };
+  return {
+    actKey,
+    actIndex: idx,
+    forbiddenFacts: forbidden,
+    narrativeRules: rules,
+    killerRoleKey: killerKey,
+    killerAwareness,
+    killerAwarenessContract: awareness
+  };
 }
 
-/** Fairness contract — no exclusive inference-critical facts in one private script. */
-export function buildFairnessContract({ infoMatrix, actKey, matrixRow, config }) {
+/** Fairness — clue cards + mandatory personal signature beats per script. */
+export function buildFairnessContract({
+  infoMatrix,
+  actKey,
+  matrixRow,
+  config,
+  setting,
+  characterArchives,
+  truthBible,
+  roleKey
+}) {
   const idx = actIndex(config, actKey);
+  const killerAwareness = resolveKillerAwareness(setting);
+  const modeProfile = buildMatrixModeProfile(setting);
   const actClues = (infoMatrix?.clues || []).filter((c) => c.actKey === actKey);
   const myClueIds = matrixRow?.newClueIds || [];
+  const characterArchive = (characterArchives?.roles || []).find((r) => r.key === roleKey);
+  const personalSignature = buildPersonalSignatureGuidance({ roleKey, characterArchive });
+
   const rules = [
-    "公平推理：玩家本只能包含「本角色亲身经历」+「本幕已发放线索卡（newClueIds）」+「公开讨论中已知的信息」。",
-    "禁止写入仅本角色知道、且其它玩家永远无法通过线索/公聊获得的「关键物理事实」（如独家目击核心机关、独家目击真凶动作）。",
-    "若需暗示某线索，用感官细节（听见金属声、闻到柴油）而非直接命名机关或结论；完整线索由主持发放 clue 卡。",
-    "对他人的怀疑必须基于可观察行为（说谎、时间对不上、情绪异常），禁止写「你明知他是凶手」。",
-    "tasks 必须与 matrixRow.tasks 完全一致（可微调措辞，不得增删条目）。"
+    "【Matrix 2.0 · 信息分工】",
+    "L2 公共池（clueLedger + publicEnvironment）：推理主路径；主持可发线索卡。",
+    "L3 个人本：时间线声称 + 1～2 条特色线索/secret；玩家自行决定是否公聊。",
+    "L5 表层任务：对质/公开/辩护；**禁止**在 tasks 中独家发放推理必需事实。",
+    "他人 secret/误导须可圆（动机/时间线/物证）；禁止凭空栽赃。",
+    "【公平红线】仅当核心真相只锁一人本且永远无法经 L2/L3 交叉获得 — 才算违规。",
+    "tasks 须与 matrixRow.tasks（表层目标）一致，可微调措辞。"
   ];
 
+  if (modeProfile.key === "henkaku") {
+    rules.push("变格：L3 幻觉 reliability 可低，但定罪须 L2 或多视角交叉；L4 触发器不得被 task 替代。");
+  } else {
+    rules.push("本格：L3 仅 Personal_Secret / Subjective_Misread；禁止不可解释超自然。");
+  }
+
+  if (killerAwareness === "self-aware") {
+    const killerKey = resolveKillerRoleKey(truthBible, characterArchives);
+    if (killerKey && matrixRow?.roleKey !== killerKey) {
+      rules.push("非凶位：除 clue 卡外，须有本角色**读剧本才能发现**的特色细节；并可含指向嫌疑人的表象矛盾。");
+    }
+    if (killerKey && matrixRow?.roleKey === killerKey) {
+      rules.push("真凶自知：私人本可直白写隐瞒任务与作案者内心；**不**因「只有凶手本知道自己是凶手」扣 fairness。");
+    }
+  } else {
+    rules.push("凶手不自知：私人本与其他人同标准；禁止内心确证「我是凶手」。");
+  }
+
   if (idx >= 1) {
-    rules.push(
-      "第二幕起：若正文提到某条线索，必须在 newClueIds 中或明确为「听他人转述/看到公开线索卡」。"
-    );
+    rules.push("第二幕起：若提到共享线索卡内容，须在 newClueIds 中或标注为听他人转述/已公开。");
   }
 
   return {
     actKey,
     thisRowClueIds: myClueIds,
     cluesThisAct: actClues.map((c) => ({ key: c.key, name: c.name, grantMode: c.grantMode })),
+    personalSignature,
     fairnessRules: rules
   };
 }
@@ -244,6 +306,8 @@ export function buildMatrixScriptPromptBundle(input) {
 
   return {
     roleRoster: buildRoleRosterBlock(characterArchives),
+    matrixModeProfile: buildMatrixModeProfile(setting),
+    entityUnlockContract: buildEntityUnlockContract(infoMatrix, actKey, config),
     roleContinuity: buildSameRoleContinuity(existingScripts, roleKey, actKey, config, input.setting),
     spoilerContract: buildSpoilerContract({
       truthBible,
@@ -251,9 +315,19 @@ export function buildMatrixScriptPromptBundle(input) {
       actKey,
       roleKey,
       characterArchives,
-      matrixRow
+      matrixRow,
+      setting
     }),
-    fairnessContract: buildFairnessContract({ infoMatrix, actKey, matrixRow, config }),
+    fairnessContract: buildFairnessContract({
+      infoMatrix,
+      actKey,
+      matrixRow,
+      config,
+      setting,
+      characterArchives,
+      truthBible,
+      roleKey
+    }),
     misdirectionPreservation: buildMisdirectionPreservationBlock(truthBible, config, actKey),
     clueLedger: buildClueLedger(infoMatrix, actKey),
     peerScriptDigest: buildPeerScriptDigest(existingScripts, actKey, roleKey, config),

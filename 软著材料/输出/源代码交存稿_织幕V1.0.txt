@@ -1,0 +1,3185 @@
+织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料
+生成时间：2026-07-04T12:12:18.622Z
+纳入文件数：402
+纳入目录：backend/src、src、play/src、host/src、shared、backend/migrations
+说明：本文件为软著普通交存源程序摘录稿，包含前 30 页和后 30 页，每页 50 行。
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 1 页 =====
+
+01: // ===== 文件：backend/src/account-delete-job.js =====
+02: import { query } from "./db.js";
+03: import { getObjectStorage } from "./storage/index.js";
+04: 
+05: export async function collectUserObjectKeys(userId, client = null) {
+06:   const run = client ? client.query.bind(client) : query;
+07:   const keys = await run(
+08:     `SELECT af.object_key AS key FROM asset_files af WHERE af.owner_user_id = $1 AND af.object_key IS NOT NULL
+09:      UNION
+10:      SELECT av.object_key AS key FROM asset_versions av
+11:      INNER JOIN asset_files af ON af.id = av.asset_file_id
+12:      WHERE af.owner_user_id = $1 AND av.object_key IS NOT NULL`,
+13:     [userId]
+14:   );
+15:   return keys.rows.map((row) => row.key).filter(Boolean);
+16: }
+17: 
+18: export async function createAccountDeleteJob(userId, objectKeys, client = null) {
+19:   const run = client ? client.query.bind(client) : query;
+20:   const inserted = await run(
+21:     `INSERT INTO account_delete_jobs (user_id, status, object_keys)
+22:      VALUES ($1, 'pending', $2::jsonb)
+23:      RETURNING id`,
+24:     [userId, JSON.stringify(objectKeys)]
+25:   );
+26:   return inserted.rows[0].id;
+27: }
+28: 
+29: export async function markAccountDeleteJobDbDeleted(jobId, client = null) {
+30:   const run = client ? client.query.bind(client) : query;
+31:   await run(
+32:     `UPDATE account_delete_jobs
+33:      SET status = 'db_deleted', updated_at = now(), attempt_count = attempt_count + 1
+34:      WHERE id = $1`,
+35:     [jobId]
+36:   );
+37: }
+38: 
+39: export async function markAccountDeleteJobCompleted(jobId, purgedCount, client = null) {
+40:   const run = client ? client.query.bind(client) : query;
+41:   await run(
+42:     `UPDATE account_delete_jobs
+43:      SET status = 'completed',
+44:          storage_purged_count = $2,
+45:          updated_at = now(),
+46:          completed_at = now(),
+47:          last_error = NULL
+48:      WHERE id = $1`,
+49:     [jobId, purgedCount]
+50:   );
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 2 页 =====
+
+01: }
+02: 
+03: export async function markAccountDeleteJobStoragePending(jobId, { purgedCount, error }, client = null) {
+04:   const run = client ? client.query.bind(client) : query;
+05:   await run(
+06:     `UPDATE account_delete_jobs
+07:      SET status = 'storage_pending',
+08:          storage_purged_count = $2,
+09:          last_error = $3,
+10:          updated_at = now(),
+11:          attempt_count = attempt_count + 1
+12:      WHERE id = $1`,
+13:     [jobId, purgedCount, String(error?.message || error || "storage purge failed").slice(0, 2000)]
+14:   );
+15: }
+16: 
+17: export async function markAccountDeleteJobFailed(jobId, error, client = null) {
+18:   const run = client ? client.query.bind(client) : query;
+19:   await run(
+20:     `UPDATE account_delete_jobs
+21:      SET status = 'failed',
+22:          last_error = $2,
+23:          updated_at = now(),
+24:          attempt_count = attempt_count + 1
+25:      WHERE id = $1`,
+26:     [jobId, String(error?.message || error || "delete failed").slice(0, 2000)]
+27:   );
+28: }
+29: 
+30: export async function purgeObjectKeys(objectKeys) {
+31:   if (!objectKeys.length) return { purgedCount: 0, failed: [] };
+32: 
+33:   let storage = null;
+34:   try {
+35:     storage = getObjectStorage();
+36:   } catch {
+37:     return { purgedCount: 0, failed: objectKeys.slice() };
+38:   }
+39: 
+40:   let purgedCount = 0;
+41:   const failed = [];
+42:   for (const key of objectKeys) {
+43:     try {
+44:       await storage.deleteObject({ key });
+45:       purgedCount += 1;
+46:     } catch {
+47:       failed.push(key);
+48:     }
+49:   }
+50:   return { purgedCount, failed };
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 3 页 =====
+
+01: }
+02: 
+03: /** Retry storage purge for jobs where DB delete already succeeded. */
+04: export async function processPendingAccountDeleteJobs({ limit = 20 } = {}) {
+05:   const pending = await query(
+06:     `SELECT id, object_keys
+07:      FROM account_delete_jobs
+08:      WHERE status IN ('db_deleted', 'storage_pending')
+09:      ORDER BY updated_at ASC
+10:      LIMIT $1`,
+11:     [limit]
+12:   );
+13: 
+14:   const results = [];
+15:   for (const row of pending.rows) {
+16:     const keys = Array.isArray(row.object_keys) ? row.object_keys : [];
+17:     const { purgedCount, failed } = await purgeObjectKeys(keys);
+18:     if (failed.length === 0) {
+19:       await markAccountDeleteJobCompleted(row.id, purgedCount);
+20:       results.push({ jobId: row.id, status: "completed", purgedCount });
+21:     } else {
+22:       await markAccountDeleteJobStoragePending(row.id, {
+23:         purgedCount,
+24:         error: `${failed.length} object(s) still pending`
+25:       });
+26:       results.push({ jobId: row.id, status: "storage_pending", purgedCount, pendingObjects: failed.length });
+27:     }
+28:   }
+29:   return results;
+30: }
+31: 
+32: // ===== 文件结束：backend/src/account-delete-job.js =====
+33: 
+34: // ===== 文件：backend/src/account-delete.js =====
+35: import { query, transaction } from "./db.js";
+36: import { throwErr } from "./api-errors.js";
+37: import { deleteOwnedWorld } from "./world-delete.js";
+38: import { isProtectedPlatformWorldId } from "./official-example.js";
+39: import {
+40:   collectUserObjectKeys,
+41:   createAccountDeleteJob,
+42:   markAccountDeleteJobCompleted,
+43:   markAccountDeleteJobDbDeleted,
+44:   markAccountDeleteJobFailed,
+45:   markAccountDeleteJobStoragePending,
+46:   purgeObjectKeys
+47: } from "./account-delete-job.js";
+48: 
+49: export async function buildAccountDeletePreview(userId) {
+50:   const user = await query(
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 4 页 =====
+
+01:     `SELECT id, display_name, email, user_kind FROM users WHERE id = $1`,
+02:     [userId]
+03:   );
+04:   if (!user.rowCount) throwErr("USER_NOT_FOUND");
+05: 
+06:   const ownedWorlds = await query(
+07:     `SELECT id, name, catalog_public, status
+08:      FROM worlds
+09:      WHERE owner_user_id = $1 AND status <> 'archived'
+10:      ORDER BY updated_at DESC`,
+11:     [userId]
+12:   );
+13:   const collaboratorWorlds = await query(
+14:     `SELECT COUNT(*)::int AS count
+15:      FROM world_members wm
+16:      INNER JOIN worlds w ON w.id = wm.world_id
+17:      WHERE wm.user_id = $1 AND wm.role <> 'owner' AND w.status <> 'archived'`,
+18:     [userId]
+19:   );
+20:   const hostedRooms = await query(
+21:     `SELECT COUNT(*)::int AS count
+22:      FROM rooms r
+23:      INNER JOIN worlds w ON w.id = r.world_id
+24:      WHERE r.host_user_id = $1 AND w.owner_user_id <> $1`,
+25:     [userId]
+26:   );
+27:   const assets = await query(
+28:     `SELECT COUNT(*)::int AS count, COALESCE(SUM(byte_size), 0)::bigint AS bytes
+29:      FROM asset_files
+30:      WHERE owner_user_id = $1 AND status <> 'deleted'`,
+31:     [userId]
+32:   );
+33:   const oauth = await query(
+34:     `SELECT provider FROM oauth_accounts WHERE user_id = $1 ORDER BY provider`,
+35:     [userId]
+36:   );
+37: 
+38:   const blockers = [];
+39:   if (ownedWorlds.rows.some((row) => isProtectedPlatformWorldId(row.id))) {
+40:     blockers.push({
+41:       code: "ACCOUNT_DELETE_BLOCKED",
+42:       title: "无法注销",
+43:       detail: "该账号拥有平台示范剧本的主创作者权限，请联系支持处理。"
+44:     });
+45:   }
+46: 
+47:   const displayName = user.rows[0].display_name?.trim() || "";
+48:   if (!displayName) {
+49:     blockers.push({
+50:       code: "ACCOUNT_DELETE_BLOCKED",
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 5 页 =====
+
+01:       title: "无法注销",
+02:       detail: "账号缺少显示名，请先在账号设置中补充昵称后再试。"
+03:     });
+04:   }
+05: 
+06:   return {
+07:     canDelete: blockers.length === 0,
+08:     blockers,
+09:     confirmationLabel: displayName,
+10:     summary: {
+11:       ownedWorlds: ownedWorlds.rows.map((row) => ({
+12:         id: row.id,
+13:         name: row.name,
+14:         catalogPublic: Boolean(row.catalog_public)
+15:       })),
+16:       collaboratorWorlds: collaboratorWorlds.rows[0]?.count ?? 0,
+17:       hostedRooms: hostedRooms.rows[0]?.count ?? 0,
+18:       assetCount: assets.rows[0]?.count ?? 0,
+19:       assetBytes: Number(assets.rows[0]?.bytes ?? 0),
+20:       oauthProviders: oauth.rows.map((row) => row.provider)
+21:     },
+22:     warnings: [
+23:       "注销会永久删除你拥有的剧本、资产与 OAuth 绑定；协作剧本仅解除你的成员关系。",
+24:       "这与「退出登录」不同：退出后账号仍在，注销后无法恢复。"
+25:     ]
+26:   };
+27: }
+28: 
+29: export function assertDeleteConfirmation(confirmationLabel, confirmation) {
+30:   const expected = String(confirmationLabel ?? "").trim();
+31:   const actual = String(confirmation ?? "").trim();
+32:   if (!expected || actual !== expected) {
+33:     throwErr("ACCOUNT_DELETE_CONFIRMATION_INVALID");
+34:   }
+35: }
+36: 
+37: async function deleteUserAccountDb(client, userId) {
+38:   const owned = await client.query(
+39:     `SELECT id FROM worlds WHERE owner_user_id = $1`,
+40:     [userId]
+41:   );
+42:   for (const row of owned.rows) {
+43:     if (isProtectedPlatformWorldId(row.id)) {
+44:       throwErr("ACCOUNT_DELETE_BLOCKED");
+45:     }
+46:     const deleted = await deleteOwnedWorld(client, row.id, userId);
+47:     if (!deleted) throwErr("WORLD_NOT_FOUND");
+48:   }
+49: 
+50:   await client.query(`DELETE FROM checkpoint_restores WHERE requested_by_user_id = $1`, [userId]);
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 6 页 =====
+
+01:   await client.query(`DELETE FROM rooms WHERE host_user_id = $1`, [userId]);
+02:   await client.query(
+03:     `DELETE FROM deleted_assets
+04:      WHERE deleted_by_user_id = $1
+05:         OR asset_file_id IN (SELECT id FROM asset_files WHERE owner_user_id = $1)`,
+06:     [userId]
+07:   );
+08:   await client.query(`DELETE FROM asset_files WHERE owner_user_id = $1`, [userId]);
+09: 
+10:   const removed = await client.query(`DELETE FROM users WHERE id = $1 RETURNING id`, [userId]);
+11:   if (!removed.rowCount) throwErr("USER_NOT_FOUND");
+12: }
+13: 
+14: export async function deleteUserAccount(userId) {
+15:   const preview = await buildAccountDeletePreview(userId);
+16:   if (!preview.canDelete) {
+17:     const error = new Error(preview.blockers[0]?.detail || "Account deletion blocked");
+18:     error.code = "ACCOUNT_DELETE_BLOCKED";
+19:     error.statusCode = 403;
+20:     throw error;
+21:   }
+22: 
+23:   const objectKeys = await collectUserObjectKeys(userId);
+24:   let jobId = null;
+25: 
+26:   try {
+27:     await transaction(async (client) => {
+28:       jobId = await createAccountDeleteJob(userId, objectKeys, client);
+29:       await deleteUserAccountDb(client, userId);
+30:       await markAccountDeleteJobDbDeleted(jobId, client);
+31:     });
+32:   } catch (error) {
+33:     if (jobId) {
+34:       try {
+35:         await markAccountDeleteJobFailed(jobId, error);
+36:       } catch {
+37:         /* job row may roll back with user */
+38:       }
+39:     }
+40:     throw error;
+41:   }
+42: 
+43:   const { purgedCount, failed } = await purgeObjectKeys(objectKeys);
+44:   if (failed.length === 0) {
+45:     await markAccountDeleteJobCompleted(jobId, purgedCount);
+46:   } else {
+47:     await markAccountDeleteJobStoragePending(jobId, {
+48:       purgedCount,
+49:       error: `${failed.length} object(s) pending retry`
+50:     });
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 7 页 =====
+
+01:   }
+02: 
+03:   return {
+04:     ok: true,
+05:     deletedAt: new Date().toISOString(),
+06:     storagePending: failed.length > 0
+07:   };
+08: }
+09: 
+10: // ===== 文件结束：backend/src/account-delete.js =====
+11: 
+12: // ===== 文件：backend/src/account-entitlements.js =====
+13: /**
+14:  * Account entitlements — plan, quota usage, and capability flags for the current user.
+15:  */
+16: import { CAPABILITIES, fetchUserKind } from "./capabilities.js";
+17: import { isEmailVerificationRequired, isUserEmailVerified } from "./email-verification-policy.js";
+18: import {
+19:   buildUsagePayload,
+20:   fetchUserPlanCode,
+21:   planMeta,
+22:   PLAN_DEFAULTS
+23: } from "./plans.js";
+24: import { buildPlanUpgradeMeta, buildPublicPlanCards } from "./plan-upgrade-request.js";
+25: import { buildPricingPayload } from "./pricing-pages.js";
+26: import { storageUsage } from "./routes/world-helpers.js";
+27: 
+28: export async function resolveAccountCapabilities(userId) {
+29:   const kind = await fetchUserKind(userId);
+30:   const capabilities = {};
+31:   for (const [key, spec] of Object.entries(CAPABILITIES)) {
+32:     let allowed = spec.accountKinds.includes(kind);
+33:     if (allowed && spec.requireVerifiedEmail && isEmailVerificationRequired()) {
+34:       allowed = await isUserEmailVerified(userId);
+35:     }
+36:     capabilities[key] = allowed;
+37:   }
+38:   return { userKind: kind, capabilities };
+39: }
+40: 
+41: export async function buildAccountEntitlements(userId) {
+42:   const [usageRow, planCode, access] = await Promise.all([
+43:     storageUsage(userId),
+44:     fetchUserPlanCode(userId),
+45:     resolveAccountCapabilities(userId)
+46:   ]);
+47:   const meta = planMeta(planCode);
+48:   const planDefaults = PLAN_DEFAULTS[planCode] ?? PLAN_DEFAULTS.free;
+49:   const upgrade = await buildPlanUpgradeMeta(userId, planCode);
+50:   const appUrl = (process.env.APP_PUBLIC_URL || "").replace(/\/$/, "");
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 8 页 =====
+
+01:   const pricing = buildPricingPayload({ appUrl: appUrl || undefined });
+02: 
+03:   return {
+04:     userKind: access.userKind,
+05:     isGuest: access.userKind === "guest",
+06:     plan: {
+07:       code: planCode,
+08:       label: meta.label,
+09:       tier: meta.tier,
+10:       description: meta.description,
+11:       isInternalBeta: planCode === "beta",
+12:       limits: {
+13:         maxWorlds: planDefaults.max_worlds,
+14:         maxBytes: planDefaults.max_bytes,
+15:         maxSingleFileBytes: planDefaults.max_single_file_bytes
+16:       }
+17:     },
+18:     usage: buildUsagePayload(
+19:       {
+20:         planCode,
+21:         max_bytes: usageRow.max_bytes,
+22:         max_worlds: usageRow.max_worlds,
+23:         max_single_file_bytes: usageRow.max_single_file_bytes
+24:       },
+25:       {
+26:         usedBytes: Number(usageRow.used_bytes),
+27:         usedWorlds: Number(usageRow.used_worlds)
+28:       }
+29:     ),
+30:     capabilities: access.capabilities,
+31:     upgrade,
+32:     publicPlans: buildPublicPlanCards(),
+33:     pricing
+34:   };
+35: }
+36: 
+37: export async function assignUserPlanByEmail(email, planCode) {
+38:   const { query } = await import("./db.js");
+39:   const { setUserPlan } = await import("./plans.js");
+40:   const { applyInternalBetaPrivileges } = await import("./internal-accounts.js");
+41: 
+42:   const normalized = email.trim().toLowerCase();
+43:   const row = await query(
+44:     `SELECT id FROM users WHERE lower(email) = $1 AND user_kind = 'registered'`,
+45:     [normalized]
+46:   );
+47:   if (!row.rowCount) throwErr("USER_NOT_FOUND");
+48:   const userId = row.rows[0].id;
+49:   await setUserPlan(userId, planCode);
+50:   if (planCode === "beta") {
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 9 页 =====
+
+01:     await applyInternalBetaPrivileges(userId, normalized);
+02:   }
+03:   return { userId, email: normalized, planCode };
+04: }
+05: 
+06: // ===== 文件结束：backend/src/account-entitlements.js =====
+07: 
+08: // ===== 文件：backend/src/account-export.js =====
+09: /**
+10:  * GDPR-style account data export — metadata JSON (no passwords, tokens, or binary blobs).
+11:  */
+12: import { query } from "./db.js";
+13: import { throwErr } from "./api-errors.js";
+14: import { buildAccountEntitlements } from "./account-entitlements.js";
+15: 
+16: export async function buildAccountExport(userId) {
+17:   const user = await query(
+18:     `SELECT id, display_name, email, user_kind, email_verified_at, created_at, updated_at
+19:      FROM users WHERE id = $1`,
+20:     [userId]
+21:   );
+22:   if (!user.rowCount) throwErr("USER_NOT_FOUND");
+23: 
+24:   const [oauth, sessions, ownedWorlds, collaboratorWorlds, assets, hostedRooms, entitlements] =
+25:     await Promise.all([
+26:       query(`SELECT provider, email, created_at, updated_at FROM oauth_accounts WHERE user_id = $1 ORDER BY provider`, [userId]),
+27:       query(
+28:         `SELECT id, device_label, user_agent, created_at, last_seen_at, expires_at
+29:          FROM auth_sessions WHERE user_id = $1 ORDER BY last_seen_at DESC NULLS LAST`,
+30:         [userId]
+31:       ),
+32:       query(
+33:         `SELECT id, name, summary, status, catalog_public, created_at, updated_at, content_revision
+34:          FROM worlds WHERE owner_user_id = $1 AND status <> 'archived' ORDER BY updated_at DESC`,
+35:         [userId]
+36:       ),
+37:       query(
+38:         `SELECT w.id AS world_id, w.name AS world_name, wm.role, wm.created_at
+39:          FROM world_members wm
+40:          INNER JOIN worlds w ON w.id = wm.world_id
+41:          WHERE wm.user_id = $1 AND wm.role <> 'owner' AND w.status <> 'archived'
+42:          ORDER BY w.name`,
+43:         [userId]
+44:       ),
+45:       query(
+46:         `SELECT id, original_filename, content_type, byte_size, world_id, created_at, updated_at, status
+47:          FROM asset_files WHERE owner_user_id = $1 AND status <> 'deleted' ORDER BY created_at DESC`,
+48:         [userId]
+49:       ),
+50:       query(
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 10 页 =====
+
+01:         `SELECT COUNT(*)::int AS count
+02:          FROM rooms r INNER JOIN worlds w ON w.id = r.world_id
+03:          WHERE r.host_user_id = $1 AND w.owner_user_id <> $1`,
+04:         [userId]
+05:       ),
+06:       buildAccountEntitlements(userId)
+07:     ]);
+08: 
+09:   const profile = user.rows[0];
+10:   return {
+11:     exportedAt: new Date().toISOString(),
+12:     formatVersion: 1,
+13:     note:
+14:       "此导出包含账号元数据与资产清单，不含密码、会话令牌或对象存储二进制内容。如需批量下载资产文件请联系支持。",
+15:     profile: {
+16:       id: profile.id,
+17:       displayName: profile.display_name,
+18:       email: profile.email,
+19:       userKind: profile.user_kind,
+20:       emailVerifiedAt: profile.email_verified_at,
+21:       createdAt: profile.created_at,
+22:       updatedAt: profile.updated_at
+23:     },
+24:     plan: entitlements.plan,
+25:     usage: entitlements.usage,
+26:     oauthAccounts: oauth.rows.map((row) => ({
+27:       provider: row.provider,
+28:       email: row.email,
+29:       linkedAt: row.created_at,
+30:       updatedAt: row.updated_at
+31:     })),
+32:     sessions: sessions.rows.map((row) => ({
+33:       id: row.id,
+34:       deviceLabel: row.device_label,
+35:       userAgent: row.user_agent,
+36:       createdAt: row.created_at,
+37:       lastSeenAt: row.last_seen_at,
+38:       expiresAt: row.expires_at
+39:     })),
+40:     ownedWorlds: ownedWorlds.rows.map((row) => ({
+41:       id: row.id,
+42:       name: row.name,
+43:       summary: row.summary,
+44:       status: row.status,
+45:       catalogPublic: Boolean(row.catalog_public),
+46:       contentRevision: Number(row.content_revision),
+47:       createdAt: row.created_at,
+48:       updatedAt: row.updated_at
+49:     })),
+50:     collaboratorWorlds: collaboratorWorlds.rows.map((row) => ({
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 11 页 =====
+
+01:       worldId: row.world_id,
+02:       worldName: row.world_name,
+03:       role: row.role,
+04:       joinedAt: row.created_at
+05:     })),
+06:     assets: assets.rows.map((row) => ({
+07:       id: row.id,
+08:       fileName: row.original_filename,
+09:       mimeType: row.content_type,
+10:       byteSize: Number(row.byte_size),
+11:       worldId: row.world_id,
+12:       status: row.status,
+13:       createdAt: row.created_at,
+14:       updatedAt: row.updated_at
+15:     })),
+16:     hostedRoomsOnOthersWorlds: hostedRooms.rows[0]?.count ?? 0
+17:   };
+18: }
+19: 
+20: // ===== 文件结束：backend/src/account-export.js =====
+21: 
+22: // ===== 文件：backend/src/api-errors.js =====
+23: /** Unified API error shape: { error, code, details? } */
+24: 
+25: import { API_ERRORS, errorMeta } from "./error-codes.js";
+26: 
+27: const STATUS_DEFAULT_CODES = {
+28:   400: "BAD_REQUEST",
+29:   401: "AUTH_REQUIRED",
+30:   403: "FORBIDDEN",
+31:   404: "NOT_FOUND",
+32:   409: "CONFLICT",
+33:   413: "PAYLOAD_TOO_LARGE",
+34:   415: "UNSUPPORTED_MEDIA_TYPE",
+35:   422: "UNPROCESSABLE",
+36:   429: "RATE_LIMITED",
+37:   500: "INTERNAL_ERROR",
+38:   502: "UPSTREAM_ERROR",
+39:   503: "UNAVAILABLE",
+40:   504: "GATEWAY_TIMEOUT"
+41: };
+42: 
+43: export { API_ERRORS };
+44: 
+45: export function httpError(statusCode, message, code, details) {
+46:   const err = Object.assign(new Error(message), {
+47:     statusCode,
+48:     code: code ?? STATUS_DEFAULT_CODES[statusCode] ?? "INTERNAL_ERROR"
+49:   });
+50:   if (details !== undefined) err.details = details;
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 12 页 =====
+
+01:   return err;
+02: }
+03: 
+04: /** Throw using a registered API error code (optional message override). */
+05: export function throwErr(code, message, details) {
+06:   const meta = errorMeta(code);
+07:   if (!meta) throw new Error(`Unknown API error code: ${code}`);
+08:   const err = Object.assign(new Error(message ?? meta.message), {
+09:     statusCode: meta.status,
+10:     code
+11:   });
+12:   if (details !== undefined) err.details = details;
+13:   throw err;
+14: }
+15: 
+16: /** Reply using a registered API error code (optional message override). */
+17: export function sendErr(reply, code, message, details) {
+18:   const meta = errorMeta(code);
+19:   if (!meta) {
+20:     return sendApiError(reply, 500, message ?? "Internal error", "INTERNAL_ERROR", details);
+21:   }
+22:   return sendApiError(reply, meta.status, message ?? meta.message, code, details);
+23: }
+24: 
+25: export function resolveErrorCode(error, statusCode) {
+26:   if (error.code && typeof error.code === "string") return error.code;
+27:   if (error.validation) return "VALIDATION_ERROR";
+28:   return STATUS_DEFAULT_CODES[statusCode] ?? "INTERNAL_ERROR";
+29: }
+30: 
+31: export function formatErrorBody(error, statusCode) {
+32:   const code = resolveErrorCode(error, statusCode);
+33:   const body = {
+34:     error: error.message || "Request failed",
+35:     code
+36:   };
+37:   if (error.details !== undefined) body.details = error.details;
+38:   if (error.validation) {
+39:     body.details = { validation: error.validation };
+40:   }
+41:   return body;
+42: }
+43: 
+44: export function sendApiError(reply, statusCode, message, code, details) {
+45:   const body = { error: message, code: code ?? STATUS_DEFAULT_CODES[statusCode] ?? "INTERNAL_ERROR" };
+46:   if (details !== undefined) body.details = details;
+47:   return reply.code(statusCode).send(body);
+48: }
+49: 
+50: // ===== 文件结束：backend/src/api-errors.js =====
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 13 页 =====
+
+01: 
+02: // ===== 文件：backend/src/app.js =====
+03: import Fastify from "fastify";
+04: import cors from "@fastify/cors";
+05: import { randomUUID } from "node:crypto";
+06: import { resolveSessionContext } from "./auth.js";
+07: import { resolveRequestActor } from "./request-actor.js";
+08: import { formatErrorBody } from "./api-errors.js";
+09: import { createRateLimiter } from "./rate-limit.js";
+10: import { buildFastifyLoggerOptions } from "./logger-config.js";
+11: import { recordHttpRequest, resolveMetricRoute } from "./metrics.js";
+12: import { registerOpenApi } from "./openapi.js";
+13: import { captureException } from "./sentry.js";
+14: import { registerAuthRoutes } from "./routes/auth-routes.js";
+15: import { registerSystemRoutes } from "./routes/system-routes.js";
+16: import { registerOfficialExampleRoutes } from "./routes/official-example-routes.js";
+17: import { registerPlatformBetaRoutes } from "./routes/platform-beta-routes.js";
+18: import { registerPlatformSiteRoutes } from "./routes/platform-site-routes.js";
+19: import { registerPlatformSocialRoutes } from "./routes/platform-social-routes.js";
+20: import { registerOpsRoutes } from "./routes/ops-routes.js";
+21: import { registerBillingRoutes } from "./routes/billing-routes.js";
+22: import { registerRoutes } from "./routes.js";
+23: import { registerStaticFrontend } from "./static-frontend.js";
+24: import { resolveAllowedCorsOrigins } from "./cors-origins.js";
+25: import { applySecurityHeaders } from "./security-headers.js";
+26: 
+27: const guestAuthRateLimit = createRateLimiter({
+28:   windowMs: 60_000,
+29:   max: Number(process.env.RATE_LIMIT_GUEST_AUTH_MAX ?? 8),
+30:   routeKey: "auth-guest"
+31: });
+32: const authRateLimit = createRateLimiter({
+33:   windowMs: 60_000,
+34:   max: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
+35:   routeKey: "auth"
+36: });
+37: const betaApplyRateLimit = createRateLimiter({
+38:   windowMs: 3_600_000,
+39:   max: Number(process.env.RATE_LIMIT_BETA_APPLY_MAX ?? 5),
+40:   routeKey: "beta-apply"
+41: });
+42: const feedbackRateLimit = createRateLimiter({
+43:   windowMs: 3_600_000,
+44:   max: Number(process.env.RATE_LIMIT_FEEDBACK_MAX ?? 10),
+45:   routeKey: "feedback"
+46: });
+47: const apiWriteRateLimit = createRateLimiter({
+48:   windowMs: 60_000,
+49:   max: Number(process.env.RATE_LIMIT_WRITE_MAX ?? 120),
+50:   routeKey: "api-write"
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 14 页 =====
+
+01: });
+02: const apiReadRateLimit = createRateLimiter({
+03:   windowMs: 60_000,
+04:   max: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
+05:   routeKey: "api-read"
+06: });
+07: const uploadRateLimit = createRateLimiter({
+08:   windowMs: 60_000,
+09:   max: Number(process.env.RATE_LIMIT_UPLOAD_MAX ?? 30),
+10:   routeKey: "api-upload"
+11: });
+12: const aiRateLimit = createRateLimiter({
+13:   windowMs: 60_000,
+14:   max: Number(process.env.RATE_LIMIT_AI_MAX ?? 40),
+15:   routeKey: "api-ai"
+16: });
+17: 
+18: function isUploadRoute(url, method) {
+19:   if (method !== "POST") return false;
+20:   return url === "/api/assets/upload-url" || /^\/api\/assets\/[^/]+\/confirm$/.test(url);
+21: }
+22: 
+23: function isAiRoute(url, method) {
+24:   if (method !== "POST") return false;
+25:   return url.includes("/story-assistant/") || url.includes("/deepseek/");
+26: }
+27: 
+28: function shouldSkipReadRateLimit(url) {
+29:   return url.includes("/events/stream");
+30: }
+31: 
+32: function shouldSkipRateLimit(url) {
+33:   return (
+34:     url === "/metrics" ||
+35:     url === "/api/openapi.json" ||
+36:     url.startsWith("/api/docs") ||
+37:     url === "/api/billing/stripe/webhook" ||
+38:     url === "/api/platform/site" ||
+39:     url === "/api/platform/beta" ||
+40:     url === "/api/platform/catalog-preview" ||
+41:     url === "/api/platform/official-example" ||
+42:     url === "/api/platform/import-guide" ||
+43:     url === "/api/platform/world-templates" ||
+44:     url === "/api/health/live"
+45:   );
+46: }
+47: 
+48: function isPlatformReadRoute(url, method) {
+49:   return (
+50:     (method === "GET" || method === "HEAD") &&
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 15 页 =====
+
+01:     url.startsWith("/api/platform/") &&
+02:     !url.startsWith("/api/platform/beta/apply")
+03:   );
+04: }
+05: 
+06: function resolveCorsOrigin(options, nodeEnv) {
+07:   return resolveAllowedCorsOrigins(options, nodeEnv);
+08: }
+09: 
+10: function resolveTraceId(request) {
+11:   const traceparent = request.headers.traceparent;
+12:   if (typeof traceparent === "string") {
+13:     const parts = traceparent.split("-");
+14:     if (parts.length >= 2 && parts[1]) return parts[1];
+15:   }
+16:   const legacy = request.headers["x-trace-id"];
+17:   if (typeof legacy === "string" && legacy.trim()) return legacy.trim();
+18:   return request.id;
+19: }
+20: 
+21: export async function createApp(options = {}) {
+22:   const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV ?? "development";
+23:   const app = Fastify({
+24:     logger: buildFastifyLoggerOptions({
+25:       nodeEnv,
+26:       loggerOption: options.logger ?? true
+27:     }),
+28:     genReqId: (request) => request.headers["x-request-id"] || randomUUID()
+29:   });
+30:   const allowDemoUserHeader = nodeEnv === "production"
+31:     ? false
+32:     : (options.allowDemoUserHeader ?? process.env.ALLOW_DEMO_USER_HEADER === "true");
+33:   const rateLimitEnabled = options.rateLimit ?? nodeEnv === "production";
+34: 
+35:   await app.register(cors, {
+36:     origin: resolveCorsOrigin(options, nodeEnv),
+37:     credentials: true,
+38:     methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+39:   });
+40:   await registerOpenApi(app, { nodeEnv });
+41: 
+42:   app.addHook("onRequest", async (request, reply) => {
+43:     request.traceId = resolveTraceId(request);
+44:     reply.header("X-Request-Id", request.id);
+45:     reply.header("X-Trace-Id", request.traceId);
+46:     request._metricsStart = process.hrtime.bigint();
+47:   });
+48:   app.addHook("onResponse", async (request, reply) => {
+49:     const started = request._metricsStart;
+50:     if (started == null) return;
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 16 页 =====
+
+01:     const durationMs = Number(process.hrtime.bigint() - started) / 1e6;
+02:     recordHttpRequest({
+03:       method: request.method,
+04:       route: resolveMetricRoute(request),
+05:       statusCode: reply.statusCode,
+06:       durationMs
+07:     });
+08:   });
+09:   app.addHook("onSend", async (_request, reply, payload) => {
+10:     applySecurityHeaders(reply, { nodeEnv });
+11:     return payload;
+12:   });
+13:   app.addHook("preHandler", async (request) => {
+14:     await resolveRequestActor(request, { resolveSession: resolveSessionContext, allowDemoUserHeader });
+15:   });
+16:   app.addHook("preHandler", async (request, reply) => {
+17:     if (!rateLimitEnabled) return;
+18: 
+19:     const url = request.url.split("?")[0];
+20:     if (shouldSkipRateLimit(url)) return;
+21:     if (url.startsWith("/api/auth/login") || url.startsWith("/api/auth/register")
+22:       || url.startsWith("/api/auth/forgot-password") || url.startsWith("/api/auth/reset-password")) {
+23:       await authRateLimit(request, reply);
+24:       return;
+25:     }
+26:     if (url.startsWith("/api/auth/guest")) {
+27:       await guestAuthRateLimit(request, reply);
+28:       return;
+29:     }
+30:     if (url.startsWith("/api/platform/beta/apply")) {
+31:       await betaApplyRateLimit(request, reply);
+32:       return;
+33:     }
+34:     if (url === "/api/feedback" && request.method === "POST") {
+35:       await feedbackRateLimit(request, reply);
+36:       return;
+37:     }
+38:     if (!url.startsWith("/api/")) return;
+39: 
+40:     const method = request.method;
+41:     if (isUploadRoute(url, method)) {
+42:       await uploadRateLimit(request, reply);
+43:       return;
+44:     }
+45:     if (isAiRoute(url, method)) {
+46:       await aiRateLimit(request, reply);
+47:       return;
+48:     }
+49:     if (method === "GET" || method === "HEAD") {
+50:       if (!shouldSkipReadRateLimit(url) && !isPlatformReadRoute(url, method)) {
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 17 页 =====
+
+01:         await apiReadRateLimit(request, reply);
+02:       }
+03:       return;
+04:     }
+05:     if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+06:       await apiWriteRateLimit(request, reply);
+07:     }
+08:   });
+09:   await registerSystemRoutes(app);
+10:   await registerOfficialExampleRoutes(app);
+11:   await registerPlatformSiteRoutes(app);
+12:   await registerPlatformSocialRoutes(app);
+13:   await registerPlatformBetaRoutes(app);
+14:   await registerOpsRoutes(app);
+15:   await registerBillingRoutes(app);
+16:   await registerAuthRoutes(app);
+17:   await registerRoutes(app);
+18:   await registerStaticFrontend(app);
+19:   app.log.info({
+20:     demoUserHeader: allowDemoUserHeader,
+21:     nodeEnv,
+22:     rateLimitEnabled
+23:   }, "Auth configuration loaded");
+24:   app.setErrorHandler((error, request, reply) => {
+25:     const statusCode = error.statusCode ?? (error.validation ? 400 : 500);
+26:     if (statusCode >= 500) {
+27:       request.log.error({ err: error, traceId: request.traceId }, error.message);
+28:       captureException(error, { tags: { statusCode }, extra: { traceId: request.traceId, url: request.url } });
+29:     } else {
+30:       request.log.info({ err: error, code: error.code, traceId: request.traceId }, error.message);
+31:     }
+32:     reply.code(statusCode).send(formatErrorBody(error, statusCode));
+33:   });
+34:   if (process.env.SERVE_STATIC !== "true" && process.env.SERVE_STATIC !== "1") {
+35:     app.setNotFoundHandler((request, reply) => {
+36:       reply.code(404).send({ error: "Route not found", code: "NOT_FOUND" });
+37:     });
+38:   }
+39:   return app;
+40: }
+41: 
+42: // ===== 文件结束：backend/src/app.js =====
+43: 
+44: // ===== 文件：backend/src/asset-list-helpers.js =====
+45: export const ASSET_KINDS = ["image", "audio", "video", "document", "archive"];
+46: export const ASSET_VISIBILITIES = ["author", "host", "role", "public"];
+47: 
+48: export function parseAssetListQuery(query = {}) {
+49:   const kind = query.kind?.trim() || null;
+50:   const q = query.q?.trim() || null;
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 18 页 =====
+
+01:   const visibility = query.visibility?.trim() || null;
+02:   const recycled = query.recycled === "1" || query.recycled === "true";
+03:   const limit = Math.min(Math.max(Number(query.limit) || 100, 1), 200);
+04:   const offset = Math.max(Number(query.offset) || 0, 0);
+05:   const envelope =
+06:     recycled ||
+07:     kind != null ||
+08:     q != null ||
+09:     visibility != null ||
+10:     query.limit != null ||
+11:     query.offset != null;
+12: 
+13:   return { kind, q, visibility, recycled, limit, offset, envelope };
+14: }
+15: 
+16: export function buildAssetListQuery(worldId, filters, { actorId = null } = {}) {
+17:   if (filters.recycled) {
+18:     const conditions = ["af.world_id = $1", "af.status = 'deleted'", "da.purge_after > now()"];
+19:     const params = [worldId];
+20:     let paramIndex = 2;
+21:     if (actorId) {
+22:       conditions.push(`af.owner_user_id = $${paramIndex++}`);
+23:       params.push(actorId);
+24:     }
+25:     if (filters.kind) {
+26:       conditions.push(`af.asset_kind = $${paramIndex++}`);
+27:       params.push(filters.kind);
+28:     }
+29:     if (filters.q) {
+30:       conditions.push(`af.original_filename ILIKE $${paramIndex++}`);
+31:       params.push(`%${filters.q}%`);
+32:     }
+33:     const where = conditions.join(" AND ");
+34:     const listSql = `SELECT af.id, af.asset_kind, af.original_filename, af.content_type, af.byte_size, af.visibility, af.status,
+35:                             af.created_at, af.deleted_at, da.purge_after
+36:        FROM asset_files af
+37:        JOIN deleted_assets da ON da.asset_file_id = af.id
+38:        WHERE ${where}
+39:        ORDER BY af.deleted_at DESC NULLS LAST
+40:        LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+41:     const countSql = `SELECT COUNT(*)::int AS total
+42:        FROM asset_files af
+43:        JOIN deleted_assets da ON da.asset_file_id = af.id
+44:        WHERE ${where}`;
+45:     return {
+46:       listSql,
+47:       countSql,
+48:       params: [...params, filters.limit, filters.offset],
+49:       countParams: params
+50:     };
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 19 页 =====
+
+01:   }
+02: 
+03:   const conditions = ["world_id = $1", "status = 'active'"];
+04:   const params = [worldId];
+05:   let paramIndex = 2;
+06: 
+07:   if (filters.kind) {
+08:     conditions.push(`asset_kind = $${paramIndex++}`);
+09:     params.push(filters.kind);
+10:   }
+11:   if (filters.visibility) {
+12:     conditions.push(`visibility = $${paramIndex++}`);
+13:     params.push(filters.visibility);
+14:   }
+15:   if (filters.q) {
+16:     conditions.push(`original_filename ILIKE $${paramIndex++}`);
+17:     params.push(`%${filters.q}%`);
+18:   }
+19: 
+20:   const where = conditions.join(" AND ");
+21:   const listSql = `SELECT id, asset_kind, original_filename, content_type, byte_size, visibility, status, created_at
+22:      FROM asset_files
+23:      WHERE ${where}
+24:      ORDER BY created_at DESC
+25:      LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+26:   const countSql = `SELECT COUNT(*)::int AS total FROM asset_files WHERE ${where}`;
+27: 
+28:   return {
+29:     listSql,
+30:     countSql,
+31:     params: [...params, filters.limit, filters.offset],
+32:     countParams: params
+33:   };
+34: }
+35: 
+36: // ===== 文件结束：backend/src/asset-list-helpers.js =====
+37: 
+38: // ===== 文件：backend/src/asset-policy.js =====
+39: import path from "node:path";
+40: 
+41: export const allowedContentTypes = new Map([
+42:   ["image/jpeg", { kind: "image", maxBytes: 10 * 1024 * 1024 }],
+43:   ["image/png", { kind: "image", maxBytes: 10 * 1024 * 1024 }],
+44:   ["image/webp", { kind: "image", maxBytes: 10 * 1024 * 1024 }],
+45:   ["audio/mpeg", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
+46:   ["audio/ogg", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
+47:   ["audio/wav", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
+48:   ["application/pdf", { kind: "document", maxBytes: 20 * 1024 * 1024 }],
+49:   ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", { kind: "document", maxBytes: 20 * 1024 * 1024 }]
+50: ]);
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 20 页 =====
+
+01: 
+02: /** Executable, script, archive, and markup extensions blocked regardless of Content-Type. */
+03: export const blockedExtensions = new Set([
+04:   ".exe", ".bat", ".cmd", ".com", ".msi", ".scr", ".ps1", ".vbs", ".js", ".mjs", ".cjs",
+05:   ".html", ".htm", ".svg", ".php", ".jsp", ".asp", ".aspx", ".jar", ".zip", ".rar", ".7z",
+06:   ".dll", ".so", ".dylib", ".app", ".deb", ".rpm"
+07: ]);
+08: 
+09: export function validateFilename(filename) {
+10:   const name = String(filename ?? "").trim();
+11:   if (!name || name.length > 255) {
+12:     const error = new Error("Invalid filename");
+13:     error.statusCode = 400;
+14:     throw error;
+15:   }
+16:   if (name.includes("\0") || /[/\\]/.test(name) || name.includes("..")) {
+17:     const error = new Error("Invalid filename");
+18:     error.statusCode = 400;
+19:     throw error;
+20:   }
+21:   const ext = path.extname(name).toLowerCase();
+22:   if (blockedExtensions.has(ext)) {
+23:     const error = new Error("File extension not allowed");
+24:     error.statusCode = 415;
+25:     throw error;
+26:   }
+27:   return name;
+28: }
+29: 
+30: export function validateUpload({ contentType, byteSize }) {
+31:   const policy = allowedContentTypes.get(contentType);
+32:   if (!policy) {
+33:     const error = new Error("Unsupported file type");
+34:     error.statusCode = 415;
+35:     throw error;
+36:   }
+37:   if (!Number.isInteger(byteSize) || byteSize <= 0 || byteSize > policy.maxBytes) {
+38:     const error = new Error(`File size exceeds ${policy.maxBytes} byte limit for ${contentType}`);
+39:     error.statusCode = 413;
+40:     throw error;
+41:   }
+42:   return policy;
+43: }
+44: 
+45: // ===== 文件结束：backend/src/asset-policy.js =====
+46: 
+47: // ===== 文件：backend/src/asset-upload-helpers.js =====
+48: import { randomUUID } from "node:crypto";
+49: import { getObjectStorage } from "./storage/index.js";
+50: import { scanUploadedObject } from "./upload-scan.js";
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 21 页 =====
+
+01: import { throwErr } from "./api-errors.js";
+02: 
+03: /**
+04:  * Server-side upload (import pipeline) — bypasses presigned client PUT.
+05:  */
+06: export async function uploadWorldAssetFromBuffer(
+07:   client,
+08:   {
+09:     actorId,
+10:     worldId,
+11:     roleSlotId = null,
+12:     roomId = null,
+13:     filename,
+14:     buffer,
+15:     contentType,
+16:     visibility = "role",
+17:     assetKind = "image"
+18:   }
+19: ) {
+20:   if (!buffer?.length) throwErr("UPLOAD_FIELDS_REQUIRED");
+21:   const objectKey = `users/${actorId}/worlds/${worldId}/assets/${randomUUID()}`;
+22:   const storage = getObjectStorage();
+23:   await storage.putObject({ key: objectKey, body: buffer, contentType });
+24:   const stat = await storage.statObject({ key: objectKey });
+25:   try {
+26:     await scanUploadedObject({
+27:       key: objectKey,
+28:       contentType: stat.contentType,
+29:       byteSize: stat.byteSize,
+30:       filename
+31:     });
+32:   } catch (error) {
+33:     await storage.deleteObject({ key: objectKey }).catch(() => {});
+34:     throw error;
+35:   }
+36: 
+37:   const file = await client.query(
+38:     `INSERT INTO asset_files
+39:       (owner_user_id, world_id, room_id, asset_kind, visibility, role_slot_id, object_key, original_filename, content_type, byte_size, status)
+40:      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'active')
+41:      RETURNING id, object_key, original_filename`,
+42:     [actorId, worldId, roomId, assetKind, visibility, roleSlotId, objectKey, filename, contentType, stat.byteSize]
+43:   );
+44:   const assetId = file.rows[0].id;
+45:   await client.query(
+46:     `INSERT INTO asset_versions (asset_file_id, version_number, object_key, byte_size)
+47:      VALUES ($1, 1, $2, $3)`,
+48:     [assetId, objectKey, stat.byteSize]
+49:   );
+50:   return { assetId, byteSize: stat.byteSize, objectKey };
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 22 页 =====
+
+01: }
+02: 
+03: export async function fetchActiveAssetsByIds(client, assetIds) {
+04:   if (!assetIds?.length) return [];
+05:   const result = await client.query(
+06:     `SELECT id, object_key, original_filename, content_type, byte_size, visibility, role_slot_id
+07:      FROM asset_files
+08:      WHERE id = ANY($1::uuid[]) AND status = 'active'
+09:      ORDER BY array_position($1::uuid[], id)`,
+10:     [assetIds]
+11:   );
+12:   return result.rows;
+13: }
+14: 
+15: export async function signedUrlsForAssetRows(assetRows, options = {}) {
+16:   const ttl = options.expiresIn ?? Number(process.env.SIGNED_DOWNLOAD_TTL_SECONDS ?? 300);
+17:   const storage = getObjectStorage();
+18:   const urls = [];
+19:   for (const row of assetRows) {
+20:     const downloadUrl = await storage.createDownloadUrl({ key: row.object_key, expiresIn: ttl });
+21:     urls.push({
+22:       assetId: row.id,
+23:       url: downloadUrl,
+24:       filename: row.original_filename,
+25:       contentType: row.content_type,
+26:       expiresIn: ttl
+27:     });
+28:   }
+29:   return urls;
+30: }
+31: 
+32: // ===== 文件结束：backend/src/asset-upload-helpers.js =====
+33: 
+34: // ===== 文件：backend/src/audit-log.js =====
+35: import { query } from "./db.js";
+36: 
+37: export async function logHostAction({ roomId, actorUserId, action, targetType = null, targetId = null, metadata = {} }) {
+38:   try {
+39:     await query(
+40:       `INSERT INTO host_audit_log (room_id, actor_user_id, action, target_type, target_id, metadata)
+41:        VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
+42:       [roomId, actorUserId, action, targetType, targetId, JSON.stringify(metadata)]
+43:     );
+44:   } catch {
+45:     /* audit is best-effort; must not break primary flow */
+46:   }
+47: }
+48: 
+49: export async function listHostAuditLog(roomId, { limit = 50 } = {}) {
+50:   const result = await query(
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 23 页 =====
+
+01:     `SELECT hal.id, hal.action, hal.target_type, hal.target_id, hal.metadata, hal.created_at,
+02:             u.display_name AS actor_name
+03:      FROM host_audit_log hal
+04:      LEFT JOIN users u ON u.id = hal.actor_user_id
+05:      WHERE hal.room_id = $1
+06:      ORDER BY hal.created_at DESC
+07:      LIMIT $2`,
+08:     [roomId, limit]
+09:   );
+10:   return result.rows;
+11: }
+12: 
+13: export async function listWorldHostAuditLog(worldId, { limit = 50 } = {}) {
+14:   const result = await query(
+15:     `SELECT hal.id, hal.room_id, hal.action, hal.target_type, hal.target_id, hal.metadata, hal.created_at,
+16:             u.display_name AS actor_name, r.name AS room_name
+17:      FROM host_audit_log hal
+18:      JOIN rooms r ON r.id = hal.room_id
+19:      LEFT JOIN users u ON u.id = hal.actor_user_id
+20:      WHERE r.world_id = $1
+21:      ORDER BY hal.created_at DESC
+22:      LIMIT $2`,
+23:     [worldId, limit]
+24:   );
+25:   return result.rows;
+26: }
+27: 
+28: export async function listAuditLogOps({ limit = 50, offset = 0, roomId, action } = {}) {
+29:   const params = [];
+30:   const where = [];
+31:   if (roomId) {
+32:     params.push(roomId);
+33:     where.push(`hal.room_id = $${params.length}`);
+34:   }
+35:   if (action) {
+36:     params.push(action);
+37:     where.push(`hal.action = $${params.length}`);
+38:   }
+39:   const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+40:   params.push(limit, offset);
+41:   const limitIdx = params.length - 1;
+42:   const offsetIdx = params.length;
+43: 
+44:   const [rows, countResult] = await Promise.all([
+45:     query(
+46:       `SELECT hal.id, hal.room_id, hal.action, hal.target_type, hal.target_id, hal.metadata,
+47:               hal.created_at, hal.actor_user_id, u.display_name AS actor_name
+48:        FROM host_audit_log hal
+49:        LEFT JOIN users u ON u.id = hal.actor_user_id
+50:        ${whereClause}
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 24 页 =====
+
+01:        ORDER BY hal.created_at DESC
+02:        LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+03:       params
+04:     ),
+05:     query(
+06:       `SELECT COUNT(*)::int AS total FROM host_audit_log hal ${whereClause}`,
+07:       params.slice(0, -2)
+08:     )
+09:   ]);
+10: 
+11:   return {
+12:     items: rows.rows,
+13:     limit,
+14:     offset,
+15:     total: countResult.rows[0]?.total ?? 0
+16:   };
+17: }
+18: 
+19: // ===== 文件结束：backend/src/audit-log.js =====
+20: 
+21: // ===== 文件：backend/src/auth.js =====
+22: import { randomBytes, scrypt as scryptCallback, timingSafeEqual, createHash } from "node:crypto";
+23: import { promisify } from "node:util";
+24: import { query } from "./db.js";
+25: import { throwErr } from "./api-errors.js";
+26: import { USER_KIND } from "./capabilities.js";
+27: import { ensureUserPlan, initialPlanForEmail } from "./plans.js";
+28: 
+29: const scrypt = promisify(scryptCallback);
+30: 
+31: const REGISTERED_SESSION_MS = (Number(process.env.SESSION_TTL_DAYS) || 30) * 24 * 60 * 60 * 1000;
+32: const GUEST_SESSION_MS = (Number(process.env.GUEST_SESSION_TTL_DAYS) || 7) * 24 * 60 * 60 * 1000;
+33: 
+34: function tokenHash(token) {
+35:   return createHash("sha256").update(token).digest("hex");
+36: }
+37: 
+38: export function hashClientIp(ip) {
+39:   if (!ip) return null;
+40:   return createHash("sha256").update(String(ip)).digest("hex").slice(0, 32);
+41: }
+42: 
+43: export function inferDeviceLabel(userAgent, deviceLabel = null) {
+44:   const explicit = typeof deviceLabel === "string" ? deviceLabel.trim().slice(0, 80) : "";
+45:   if (explicit) return explicit;
+46:   const ua = userAgent || "";
+47:   let browser = "浏览器";
+48:   if (/Edg\//i.test(ua)) browser = "Edge";
+49:   else if (/Chrome\//i.test(ua)) browser = "Chrome";
+50:   else if (/Firefox\//i.test(ua)) browser = "Firefox";
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 25 页 =====
+
+01:   else if (/Safari\//i.test(ua)) browser = "Safari";
+02:   let os = "";
+03:   if (/Windows/i.test(ua)) os = "Windows";
+04:   else if (/Mac OS X|Macintosh/i.test(ua)) os = "macOS";
+05:   else if (/Android/i.test(ua)) os = "Android";
+06:   else if (/iPhone|iPad/i.test(ua)) os = "iOS";
+07:   else if (/Linux/i.test(ua)) os = "Linux";
+08:   return os ? `${browser} · ${os}` : browser;
+09: }
+10: 
+11: export function sessionRequestMeta(request) {
+12:   const bodyLabel = request.body?.deviceLabel;
+13:   const headerLabel = request.headers["x-device-label"];
+14:   const userAgent = request.headers["user-agent"]?.slice(0, 512) || null;
+15:   const rawLabel = (typeof bodyLabel === "string" ? bodyLabel : headerLabel)?.trim().slice(0, 80) || null;
+16:   return {
+17:     deviceLabel: rawLabel || inferDeviceLabel(userAgent),
+18:     userAgent,
+19:     ipHash: hashClientIp(request.ip)
+20:   };
+21: }
+22: 
+23: async function revokeMatchingDeviceSessions(userId, meta = {}) {
+24:   const { deviceLabel, userAgent } = meta;
+25:   if (deviceLabel) {
+26:     await query(
+27:       `UPDATE auth_sessions SET revoked_at = now()
+28:        WHERE user_id = $1 AND revoked_at IS NULL
+29:          AND (device_label = $2 OR (device_label IS NULL AND user_agent IS NOT DISTINCT FROM $3))`,
+30:       [userId, deviceLabel, userAgent ?? null]
+31:     );
+32:     return;
+33:   }
+34:   if (userAgent) {
+35:     await query(
+36:       `UPDATE auth_sessions SET revoked_at = now()
+37:        WHERE user_id = $1 AND revoked_at IS NULL AND user_agent IS NOT DISTINCT FROM $2`,
+38:       [userId, userAgent]
+39:     );
+40:   }
+41: }
+42: 
+43: export async function hashPassword(password) {
+44:   const salt = randomBytes(16).toString("hex");
+45:   const derived = await scrypt(password, salt, 64);
+46:   return { passwordHash: Buffer.from(derived).toString("hex"), passwordSalt: salt };
+47: }
+48: 
+49: export async function verifyPassword(password, passwordHash, passwordSalt) {
+50:   if (!passwordHash || !passwordSalt) return false;
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 26 页 =====
+
+01:   const derived = Buffer.from(await scrypt(password, passwordSalt, 64));
+02:   const expected = Buffer.from(passwordHash, "hex");
+03:   return derived.length === expected.length && timingSafeEqual(derived, expected);
+04: }
+05: 
+06: async function sessionTtlForUser(userId) {
+07:   const result = await query(`SELECT user_kind FROM users WHERE id = $1`, [userId]);
+08:   return result.rows[0]?.user_kind === USER_KIND.GUEST ? GUEST_SESSION_MS : REGISTERED_SESSION_MS;
+09: }
+10: 
+11: export async function createGuestUser(displayName = null) {
+12:   const suffix = randomBytes(3).toString("hex");
+13:   const name = (displayName?.trim() || `游客-${suffix}`).slice(0, 40);
+14:   const created = await query(
+15:     `INSERT INTO users (display_name, user_kind, email)
+16:      VALUES ($1, 'guest', NULL)
+17:      RETURNING id, display_name, user_kind, email, email_verified_at`,
+18:     [name]
+19:   );
+20:   const user = created.rows[0];
+21:   await ensureUserPlan(user.id, initialPlanForEmail(null));
+22:   return user;
+23: }
+24: 
+25: export async function createSession(userId, meta = {}) {
+26:   await revokeMatchingDeviceSessions(userId, meta);
+27:   const token = randomBytes(32).toString("base64url");
+28:   const ttlMs = meta.ttlMs ?? await sessionTtlForUser(userId);
+29:   const expiresAt = new Date(Date.now() + ttlMs);
+30:   const result = await query(
+31:     `INSERT INTO auth_sessions (user_id, token_hash, expires_at, device_label, user_agent, ip_hash)
+32:      VALUES ($1, $2, $3, $4, $5, $6)
+33:      RETURNING id`,
+34:     [
+35:       userId,
+36:       tokenHash(token),
+37:       expiresAt,
+38:       meta.deviceLabel ?? null,
+39:       meta.userAgent ?? null,
+40:       meta.ipHash ?? null
+41:     ]
+42:   );
+43:   return { token, expiresAt, sessionId: result.rows[0].id };
+44: }
+45: 
+46: export async function resolveSession(token) {
+47:   const ctx = await resolveSessionContext(token);
+48:   return ctx?.userId ?? null;
+49: }
+50: 
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 27 页 =====
+
+01: export async function resolveSessionContext(token) {
+02:   if (!token) return null;
+03:   const result = await query(
+04:     `UPDATE auth_sessions SET last_seen_at = now()
+05:      WHERE token_hash = $1
+06:        AND expires_at > now()
+07:        AND revoked_at IS NULL
+08:      RETURNING user_id, id AS session_id`,
+09:     [tokenHash(token)]
+10:   );
+11:   const row = result.rows[0];
+12:   if (!row) return null;
+13:   return { userId: row.user_id, sessionId: row.session_id };
+14: }
+15: 
+16: export async function deleteSession(token) {
+17:   if (token) {
+18:     await query(`DELETE FROM auth_sessions WHERE token_hash = $1`, [tokenHash(token)]);
+19:   }
+20: }
+21: 
+22: export async function revokeSessionById(userId, sessionId, { allowCurrent = true } = {}) {
+23:   const result = await query(
+24:     `UPDATE auth_sessions SET revoked_at = now()
+25:      WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL
+26:      RETURNING id`,
+27:     [sessionId, userId]
+28:   );
+29:   if (!result.rowCount) return false;
+30:   if (!allowCurrent) return true;
+31:   return true;
+32: }
+33: 
+34: export async function listUserSessions(userId, currentSessionId = null) {
+35:   const result = await query(
+36:     `SELECT id, device_label, user_agent, created_at, last_seen_at, expires_at,
+37:             (id = $2) AS is_current
+38:      FROM auth_sessions
+39:      WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > now()
+40:      ORDER BY last_seen_at DESC`,
+41:     [userId, currentSessionId]
+42:   );
+43:   return result.rows.map((row) => ({
+44:     id: row.id,
+45:     deviceLabel: inferDeviceLabel(row.user_agent, row.device_label),
+46:     userAgent: row.user_agent,
+47:     createdAt: row.created_at,
+48:     lastSeenAt: row.last_seen_at,
+49:     expiresAt: row.expires_at,
+50:     isCurrent: row.is_current
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 28 页 =====
+
+01:   }));
+02: }
+03: 
+04: export async function revokeAllSessions(userId, exceptSessionId = null) {
+05:   if (exceptSessionId) {
+06:     await query(
+07:       `UPDATE auth_sessions SET revoked_at = now()
+08:        WHERE user_id = $1 AND revoked_at IS NULL AND id <> $2`,
+09:       [userId, exceptSessionId]
+10:     );
+11:     return;
+12:   }
+13:   await query(`DELETE FROM auth_sessions WHERE user_id = $1`, [userId]);
+14: }
+15: 
+16: export async function createPasswordResetToken(userId) {
+17:   const token = randomBytes(32).toString("base64url");
+18:   const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+19:   await query(
+20:     `UPDATE password_reset_tokens SET used_at = now()
+21:      WHERE user_id = $1 AND used_at IS NULL`,
+22:     [userId]
+23:   );
+24:   await query(
+25:     `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES ($1,$2,$3)`,
+26:     [userId, tokenHash(token), expiresAt]
+27:   );
+28:   return { token, expiresAt };
+29: }
+30: 
+31: export async function consumePasswordResetToken(token) {
+32:   const result = await query(
+33:     `UPDATE password_reset_tokens SET used_at = now()
+34:      WHERE token_hash = $1 AND expires_at > now() AND used_at IS NULL
+35:      RETURNING user_id`,
+36:     [tokenHash(token)]
+37:   );
+38:   return result.rows[0]?.user_id ?? null;
+39: }
+40: 
+41: export async function updateUserPassword(userId, password) {
+42:   const { passwordHash, passwordSalt } = await hashPassword(password);
+43:   await query(
+44:     `UPDATE users SET password_hash = $1, password_salt = $2, user_kind = 'registered' WHERE id = $3`,
+45:     [passwordHash, passwordSalt, userId]
+46:   );
+47: }
+48: 
+49: export async function upgradeGuestToRegistered(userId, { email, displayName, password }) {
+50:   const existing = await query(
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 29 页 =====
+
+01:     `SELECT id, user_kind FROM users WHERE id = $1`,
+02:     [userId]
+03:   );
+04:   if (!existing.rowCount) throwErr("USER_NOT_FOUND");
+05:   if (existing.rows[0].user_kind !== USER_KIND.GUEST) {
+06:     throwErr("ACCOUNT_ALREADY_REGISTERED");
+07:   }
+08: 
+09:   const emailTaken = await query(
+10:     `SELECT 1 FROM users WHERE lower(email) = lower($1) AND id <> $2 AND user_kind = 'registered'`,
+11:     [email, userId]
+12:   );
+13:   if (emailTaken.rowCount) throwErr("EMAIL_ALREADY_REGISTERED");
+14: 
+15:   const { passwordHash, passwordSalt } = await hashPassword(password);
+16:   const updated = await query(
+17:     `UPDATE users
+18:      SET email = $2,
+19:          display_name = $3,
+20:          password_hash = $4,
+21:          password_salt = $5,
+22:          user_kind = 'registered',
+23:          email_verified_at = COALESCE(email_verified_at, now()),
+24:          updated_at = now()
+25:      WHERE id = $1 AND user_kind = 'guest'
+26:      RETURNING id, email, display_name, user_kind, email_verified_at`,
+27:     [userId, email.trim().toLowerCase(), displayName.trim(), passwordHash, passwordSalt]
+28:   );
+29:   if (!updated.rowCount) throwErr("GUEST_UPGRADE_FAILED");
+30:   await query(
+31:     `INSERT INTO storage_quotas (user_id) VALUES ($1)
+32:      ON CONFLICT (user_id) DO NOTHING`,
+33:     [userId]
+34:   );
+35:   return updated.rows[0];
+36: }
+37: 
+38: export async function createEmailVerificationToken(userId) {
+39:   const token = randomBytes(32).toString("base64url");
+40:   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+41:   await query(
+42:     `UPDATE email_verification_tokens SET used_at = now()
+43:      WHERE user_id = $1 AND used_at IS NULL`,
+44:     [userId]
+45:   );
+46:   await query(
+47:     `INSERT INTO email_verification_tokens (user_id, token_hash, expires_at) VALUES ($1,$2,$3)`,
+48:     [userId, tokenHash(token), expiresAt]
+49:   );
+50:   return { token, expiresAt };
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 前30页 第 30 页 =====
+
+01: }
+02: 
+03: export async function consumeEmailVerificationToken(token) {
+04:   const result = await query(
+05:     `UPDATE email_verification_tokens SET used_at = now()
+06:      WHERE token_hash = $1 AND expires_at > now() AND used_at IS NULL
+07:      RETURNING user_id`,
+08:     [tokenHash(token)]
+09:   );
+10:   return result.rows[0]?.user_id ?? null;
+11: }
+12: 
+13: // ===== 文件结束：backend/src/auth.js =====
+14: 
+15: // ===== 文件：backend/src/beta-apply.js =====
+16: /**
+17:  * Closed-beta applications from marketing site (Part 6).
+18:  */
+19: import { sendTransactionalEmail } from "./email/index.js";
+20: import { betaRejectEmailHtml } from "./email/support-templates.js";
+21: import { brandedEmailHtml } from "./email/templates.js";
+22: import { throwErr } from "./api-errors.js";
+23: import { query } from "./db.js";
+24: import { enterpriseEmails } from "./enterprise-emails.js";
+25: import { setUserPlan, fetchUserPlanCode } from "./plans.js";
+26: 
+27: export const BETA_ROLE_OPTIONS = [
+28:   { id: "creator", label: "创作者", description: "编写剧本、编排剧情与规则" },
+29:   { id: "host", label: "主持", description: "开团、监控进度、确认关键事件" },
+30:   { id: "player", label: "玩家", description: "受邀入房体验阅读与搜证" },
+31:   { id: "mixed", label: "创作 + 主持", description: "自己写本并带队测试" },
+32:   { id: "other", label: "其他", description: "社团、发行或技术合作等" }
+33: ];
+34: 
+35: export function betaReviewNotifyEmail() {
+36:   return enterpriseEmails().betaReviewNotify;
+37: }
+38: 
+39: export function isBetaApplicationsOpen() {
+40:   const flag = process.env.BETA_APPLICATIONS_OPEN?.trim().toLowerCase();
+41:   if (flag === "false" || flag === "0") return false;
+42:   return true;
+43: }
+44: 
+45: export function getBetaApplicationFormConfig() {
+46:   const appUrl = (process.env.APP_PUBLIC_URL || "").replace(/\/$/, "");
+47:   const marketingUrl = (process.env.MARKETING_SITE_URL || process.env.MARKETING_SITE_ORIGIN || "").replace(
+48:     /\/$/,
+49:     ""
+50:   );
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 31 页 =====
+
+01:   function showWithAction(text, { actionLabel, onAction, duration = 6000 } = {}) {
+02:     const el = getElement();
+03:     if (!el) return;
+04:     el.className = "toast toast-with-action";
+05:     el.replaceChildren();
+06:     const msg = document.createElement("span");
+07:     msg.className = "toast-message";
+08:     msg.textContent = text;
+09:     el.appendChild(msg);
+10:     if (actionLabel && typeof onAction === "function") {
+11:       const btn = document.createElement("button");
+12:       btn.className = "toast-action";
+13:       btn.type = "button";
+14:       btn.textContent = actionLabel;
+15:       btn.onclick = () => {
+16:         timer.clear();
+17:         el.classList.remove("show");
+18:         try {
+19:           onAction();
+20:         } catch {
+21:           /* ignore */
+22:         }
+23:       };
+24:       el.appendChild(btn);
+25:     }
+26:     const dismiss = document.createElement("button");
+27:     dismiss.className = "toast-dismiss";
+28:     dismiss.type = "button";
+29:     dismiss.setAttribute("aria-label", "关闭");
+30:     dismiss.textContent = "×";
+31:     dismiss.onclick = () => {
+32:       timer.clear();
+33:       el.classList.remove("show");
+34:     };
+35:     el.appendChild(dismiss);
+36:     el.classList.add("show");
+37:     timer.schedule(() => el.classList.remove("show"), duration);
+38:   }
+39: 
+40:   return { show, showWithAction, clear: () => timer.clear() };
+41: }
+42: 
+43: /**
+44:  * @param {string} message
+45:  * @param {number} [durationMs=3200]
+46:  */
+47: export function renderToastHostHtml(message, durationMs = 3200) {
+48:   if (!message) return "";
+49:   return `<div class="toast-host" aria-live="polite" aria-atomic="true"><div class="toast show" role="status">${escapeToastText(message)}</div></div>`;
+50: }
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 32 页 =====
+
+01: 
+02: function escapeToastText(text) {
+03:   return String(text)
+04:     .replace(/&/g, "&amp;")
+05:     .replace(/</g, "&lt;")
+06:     .replace(/>/g, "&gt;")
+07:     .replace(/"/g, "&quot;");
+08: }
+09: 
+10: // ===== 文件结束：shared/toast.js =====
+11: 
+12: // ===== 文件：shared/tokens.css =====
+13: /**
+14:  * Shared design tokens — site, play portal, and creator app alignment.
+15:  * Import in each frontend entry stylesheet.
+16:  */
+17: :root {
+18:   --ink: #142321;
+19:   --ink-soft: #425653;
+20:   --muted: #76827f;
+21:   --paper: #f4f1e9;
+22:   --paper-deep: #ebe5d8;
+23:   --surface: #fffdf8;
+24:   --surface-soft: rgba(255, 253, 248, 0.72);
+25:   --green: #183f3a;
+26:   --green-2: #2b6b61;
+27:   --sage: #dce7df;
+28:   --sage-2: #eef4ef;
+29:   --brass: #a7783d;
+30:   --brass-soft: #f3ebe0;
+31:   --clay: #a85f54;
+32:   --plum: #62516a;
+33:   --blue: #3f6070;
+34:   --accent: var(--green-2);
+35:   --accent-soft: rgba(43, 107, 97, 0.12);
+36:   --line: rgba(20, 35, 33, 0.13);
+37:   --line-strong: rgba(20, 35, 33, 0.2);
+38:   --shadow-soft: 0 18px 48px rgba(18, 45, 41, 0.08);
+39:   --shadow-lift: 0 28px 80px rgba(18, 45, 41, 0.12);
+40:   --radius: 8px;
+41:   --radius-lg: 12px;
+42:   --content: min(1120px, calc(100vw - 32px));
+43:   --content-wide: min(1180px, calc(100vw - 32px));
+44:   --font-ui: "Inter", "MiSans", "Microsoft YaHei", system-ui, sans-serif;
+45:   --font-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+46: }
+47: 
+48: // ===== 文件结束：shared/tokens.css =====
+49: 
+50: // ===== 文件：backend/migrations/001_initial.sql =====
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 33 页 =====
+
+01: CREATE EXTENSION IF NOT EXISTS pgcrypto;
+02: 
+03: CREATE TYPE world_status AS ENUM ('draft', 'testing', 'published', 'archived');
+04: CREATE TYPE member_role AS ENUM ('owner', 'editor', 'host', 'viewer');
+05: CREATE TYPE room_status AS ENUM ('draft', 'testing', 'active', 'paused', 'completed', 'archived');
+06: CREATE TYPE room_member_type AS ENUM ('host', 'cohost', 'player', 'spectator');
+07: CREATE TYPE room_member_status AS ENUM ('invited', 'active', 'left', 'removed');
+08: CREATE TYPE visibility_scope AS ENUM ('author', 'host', 'role', 'faction', 'public', 'postgame');
+09: CREATE TYPE rule_mode AS ENUM ('automatic', 'host_confirm', 'manual');
+10: CREATE TYPE voice_room_type AS ENUM ('public', 'role_private', 'invite_private');
+11: CREATE TYPE token_status AS ENUM ('issued', 'activated', 'revoked');
+12: 
+13: CREATE TABLE users (
+14:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+15:   email text UNIQUE,
+16:   display_name text NOT NULL,
+17:   avatar_url text,
+18:   created_at timestamptz NOT NULL DEFAULT now(),
+19:   updated_at timestamptz NOT NULL DEFAULT now()
+20: );
+21: 
+22: CREATE TABLE worlds (
+23:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+24:   owner_user_id uuid NOT NULL REFERENCES users(id),
+25:   name text NOT NULL,
+26:   summary text NOT NULL DEFAULT '',
+27:   status world_status NOT NULL DEFAULT 'draft',
+28:   settings jsonb NOT NULL DEFAULT '{}'::jsonb,
+29:   created_at timestamptz NOT NULL DEFAULT now(),
+30:   updated_at timestamptz NOT NULL DEFAULT now()
+31: );
+32: 
+33: CREATE TABLE world_members (
+34:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+35:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+36:   role member_role NOT NULL,
+37:   created_at timestamptz NOT NULL DEFAULT now(),
+38:   PRIMARY KEY (world_id, user_id)
+39: );
+40: 
+41: CREATE TABLE chapters (
+42:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+43:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+44:   title text NOT NULL,
+45:   summary text NOT NULL DEFAULT '',
+46:   sequence integer NOT NULL CHECK (sequence > 0),
+47:   created_at timestamptz NOT NULL DEFAULT now(),
+48:   UNIQUE (world_id, sequence)
+49: );
+50: 
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 34 页 =====
+
+01: CREATE TABLE role_slots (
+02:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+03:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+04:   name text NOT NULL,
+05:   public_profile text NOT NULL DEFAULT '',
+06:   private_profile text NOT NULL DEFAULT '',
+07:   faction_key text,
+08:   sequence integer NOT NULL CHECK (sequence > 0),
+09:   settings jsonb NOT NULL DEFAULT '{}'::jsonb,
+10:   created_at timestamptz NOT NULL DEFAULT now(),
+11:   UNIQUE (world_id, sequence)
+12: );
+13: 
+14: CREATE TABLE character_scripts (
+15:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+16:   role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
+17:   title text NOT NULL,
+18:   created_at timestamptz NOT NULL DEFAULT now()
+19: );
+20: 
+21: CREATE TABLE script_sections (
+22:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+23:   character_script_id uuid NOT NULL REFERENCES character_scripts(id) ON DELETE CASCADE,
+24:   role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
+25:   chapter_id uuid REFERENCES chapters(id) ON DELETE SET NULL,
+26:   title text NOT NULL,
+27:   body text NOT NULL,
+28:   sequence integer NOT NULL CHECK (sequence > 0),
+29:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+30:   created_at timestamptz NOT NULL DEFAULT now(),
+31:   UNIQUE (character_script_id, sequence)
+32: );
+33: 
+34: CREATE TABLE scenes (
+35:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+36:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+37:   chapter_id uuid REFERENCES chapters(id) ON DELETE SET NULL,
+38:   name text NOT NULL,
+39:   public_text text NOT NULL DEFAULT '',
+40:   host_text text NOT NULL DEFAULT '',
+41:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+42:   created_at timestamptz NOT NULL DEFAULT now()
+43: );
+44: 
+45: CREATE TABLE clues (
+46:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+47:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+48:   name text NOT NULL,
+49:   public_text text NOT NULL DEFAULT '',
+50:   host_text text NOT NULL DEFAULT '',
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 35 页 =====
+
+01:   visibility visibility_scope NOT NULL DEFAULT 'role',
+02:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+03:   created_at timestamptz NOT NULL DEFAULT now()
+04: );
+05: 
+06: CREATE TABLE items (
+07:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+08:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+09:   name text NOT NULL,
+10:   public_text text NOT NULL DEFAULT '',
+11:   host_text text NOT NULL DEFAULT '',
+12:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+13:   created_at timestamptz NOT NULL DEFAULT now()
+14: );
+15: 
+16: CREATE TABLE rooms (
+17:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+18:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE RESTRICT,
+19:   host_user_id uuid NOT NULL REFERENCES users(id),
+20:   name text NOT NULL,
+21:   invite_code text NOT NULL UNIQUE,
+22:   status room_status NOT NULL DEFAULT 'draft',
+23:   settings jsonb NOT NULL DEFAULT '{}'::jsonb,
+24:   started_at timestamptz,
+25:   completed_at timestamptz,
+26:   created_at timestamptz NOT NULL DEFAULT now(),
+27:   updated_at timestamptz NOT NULL DEFAULT now()
+28: );
+29: 
+30: CREATE TABLE room_members (
+31:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+32:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+33:   member_type room_member_type NOT NULL,
+34:   role_slot_id uuid REFERENCES role_slots(id) ON DELETE SET NULL,
+35:   status room_member_status NOT NULL DEFAULT 'active',
+36:   joined_at timestamptz NOT NULL DEFAULT now(),
+37:   PRIMARY KEY (room_id, user_id),
+38:   UNIQUE (room_id, role_slot_id)
+39: );
+40: 
+41: CREATE TABLE player_states (
+42:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+43:   role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
+44:   current_scene_id uuid REFERENCES scenes(id) ON DELETE SET NULL,
+45:   variables jsonb NOT NULL DEFAULT '{}'::jsonb,
+46:   updated_at timestamptz NOT NULL DEFAULT now(),
+47:   PRIMARY KEY (room_id, role_slot_id)
+48: );
+49: 
+50: CREATE TABLE reading_progress (
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 36 页 =====
+
+01:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+02:   role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
+03:   script_section_id uuid NOT NULL REFERENCES script_sections(id) ON DELETE CASCADE,
+04:   started_at timestamptz,
+05:   completed_at timestamptz,
+06:   PRIMARY KEY (room_id, role_slot_id, script_section_id)
+07: );
+08: 
+09: CREATE TABLE notebook_entries (
+10:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+11:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+12:   role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
+13:   created_by_user_id uuid NOT NULL REFERENCES users(id),
+14:   source_type text NOT NULL CHECK (source_type IN ('script_section', 'clue', 'manual')),
+15:   source_id uuid,
+16:   title text NOT NULL,
+17:   body text NOT NULL,
+18:   created_at timestamptz NOT NULL DEFAULT now()
+19: );
+20: 
+21: CREATE TABLE clue_ownership (
+22:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+23:   role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
+24:   clue_id uuid NOT NULL REFERENCES clues(id) ON DELETE CASCADE,
+25:   acquired_at timestamptz NOT NULL DEFAULT now(),
+26:   read_at timestamptz,
+27:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+28:   PRIMARY KEY (room_id, role_slot_id, clue_id)
+29: );
+30: 
+31: CREATE TABLE inventory (
+32:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+33:   role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
+34:   item_id uuid NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+35:   quantity integer NOT NULL DEFAULT 1 CHECK (quantity >= 0),
+36:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+37:   PRIMARY KEY (room_id, role_slot_id, item_id)
+38: );
+39: 
+40: CREATE TABLE room_content_unlocks (
+41:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+42:   content_type text NOT NULL CHECK (content_type IN ('script_section', 'scene', 'clue', 'item', 'event')),
+43:   content_id uuid NOT NULL,
+44:   unlocked_at timestamptz NOT NULL DEFAULT now(),
+45:   unlocked_by_rule_id uuid,
+46:   PRIMARY KEY (room_id, content_type, content_id)
+47: );
+48: 
+49: CREATE TABLE automation_rules (
+50:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 37 页 =====
+
+01:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+02:   room_id uuid REFERENCES rooms(id) ON DELETE CASCADE,
+03:   name text NOT NULL,
+04:   mode rule_mode NOT NULL DEFAULT 'automatic',
+05:   priority integer NOT NULL DEFAULT 100,
+06:   enabled boolean NOT NULL DEFAULT true,
+07:   conditions jsonb NOT NULL,
+08:   actions jsonb NOT NULL,
+09:   created_at timestamptz NOT NULL DEFAULT now(),
+10:   updated_at timestamptz NOT NULL DEFAULT now()
+11: );
+12: 
+13: CREATE TABLE rule_executions (
+14:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+15:   rule_id uuid NOT NULL REFERENCES automation_rules(id) ON DELETE CASCADE,
+16:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+17:   result jsonb NOT NULL DEFAULT '{}'::jsonb,
+18:   executed_at timestamptz NOT NULL DEFAULT now()
+19: );
+20: 
+21: CREATE TABLE timeline_logs (
+22:   id bigserial PRIMARY KEY,
+23:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+24:   actor_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+25:   visibility visibility_scope NOT NULL DEFAULT 'host',
+26:   event_type text NOT NULL,
+27:   message text NOT NULL,
+28:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+29:   created_at timestamptz NOT NULL DEFAULT now()
+30: );
+31: 
+32: CREATE TABLE checkpoints (
+33:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+34:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+35:   created_by_user_id uuid NOT NULL REFERENCES users(id),
+36:   label text NOT NULL,
+37:   snapshot jsonb NOT NULL,
+38:   created_at timestamptz NOT NULL DEFAULT now()
+39: );
+40: 
+41: CREATE TABLE voice_rooms (
+42:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+43:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+44:   name text NOT NULL,
+45:   room_type voice_room_type NOT NULL,
+46:   status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'closed')),
+47:   provider_room_key text,
+48:   created_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+49:   created_at timestamptz NOT NULL DEFAULT now()
+50: );
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 38 页 =====
+
+01: 
+02: CREATE TABLE voice_room_members (
+03:   voice_room_id uuid NOT NULL REFERENCES voice_rooms(id) ON DELETE CASCADE,
+04:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+05:   invited_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+06:   joined_at timestamptz,
+07:   PRIMARY KEY (voice_room_id, user_id)
+08: );
+09: 
+10: CREATE TABLE physical_tokens (
+11:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+12:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+13:   token_code text NOT NULL UNIQUE,
+14:   content_type text NOT NULL CHECK (content_type IN ('clue', 'item', 'script_section', 'event')),
+15:   content_id uuid NOT NULL,
+16:   status token_status NOT NULL DEFAULT 'issued',
+17:   activation_rule jsonb NOT NULL DEFAULT '{}'::jsonb,
+18:   activated_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+19:   activated_in_room_id uuid REFERENCES rooms(id) ON DELETE SET NULL,
+20:   activated_at timestamptz,
+21:   created_at timestamptz NOT NULL DEFAULT now()
+22: );
+23: 
+24: CREATE INDEX idx_script_sections_role_sequence ON script_sections(role_slot_id, sequence);
+25: CREATE INDEX idx_room_members_user ON room_members(user_id, room_id);
+26: CREATE INDEX idx_reading_progress_room ON reading_progress(room_id, role_slot_id);
+27: CREATE INDEX idx_notebook_entries_role ON notebook_entries(room_id, role_slot_id, created_at DESC);
+28: CREATE INDEX idx_clue_ownership_role ON clue_ownership(room_id, role_slot_id);
+29: CREATE INDEX idx_timeline_logs_room_created ON timeline_logs(room_id, created_at DESC);
+30: CREATE INDEX idx_rules_room_enabled ON automation_rules(room_id, enabled, priority);
+31: 
+32: ALTER TABLE room_content_unlocks
+33:   ADD CONSTRAINT fk_room_content_unlock_rule
+34:   FOREIGN KEY (unlocked_by_rule_id) REFERENCES automation_rules(id) ON DELETE SET NULL;
+35: 
+36: // ===== 文件结束：backend/migrations/001_initial.sql =====
+37: 
+38: // ===== 文件：backend/migrations/002_cloud_assets.sql =====
+39: CREATE TYPE asset_status AS ENUM ('pending_upload', 'active', 'quarantined', 'deleted');
+40: CREATE TYPE upload_status AS ENUM ('created', 'uploaded', 'confirmed', 'expired', 'cancelled');
+41: 
+42: CREATE TABLE storage_quotas (
+43:   user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+44:   max_bytes bigint NOT NULL DEFAULT 524288000 CHECK (max_bytes >= 0),
+45:   max_worlds integer NOT NULL DEFAULT 2 CHECK (max_worlds >= 0),
+46:   max_single_file_bytes bigint NOT NULL DEFAULT 31457280 CHECK (max_single_file_bytes > 0),
+47:   updated_at timestamptz NOT NULL DEFAULT now()
+48: );
+49: 
+50: CREATE TABLE asset_files (
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 39 页 =====
+
+01:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+02:   owner_user_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+03:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+04:   room_id uuid REFERENCES rooms(id) ON DELETE SET NULL,
+05:   asset_kind text NOT NULL CHECK (asset_kind IN ('image', 'audio', 'video', 'document', 'archive')),
+06:   visibility visibility_scope NOT NULL DEFAULT 'author',
+07:   role_slot_id uuid REFERENCES role_slots(id) ON DELETE SET NULL,
+08:   object_key text NOT NULL UNIQUE,
+09:   original_filename text NOT NULL,
+10:   content_type text NOT NULL,
+11:   byte_size bigint NOT NULL CHECK (byte_size >= 0),
+12:   sha256 text,
+13:   storage_provider text NOT NULL DEFAULT 'r2',
+14:   status asset_status NOT NULL DEFAULT 'pending_upload',
+15:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+16:   created_at timestamptz NOT NULL DEFAULT now(),
+17:   updated_at timestamptz NOT NULL DEFAULT now(),
+18:   deleted_at timestamptz
+19: );
+20: 
+21: CREATE TABLE upload_sessions (
+22:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+23:   asset_file_id uuid NOT NULL REFERENCES asset_files(id) ON DELETE CASCADE,
+24:   owner_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+25:   object_key text NOT NULL,
+26:   expected_content_type text NOT NULL,
+27:   expected_byte_size bigint NOT NULL CHECK (expected_byte_size > 0),
+28:   status upload_status NOT NULL DEFAULT 'created',
+29:   expires_at timestamptz NOT NULL,
+30:   created_at timestamptz NOT NULL DEFAULT now(),
+31:   confirmed_at timestamptz
+32: );
+33: 
+34: CREATE TABLE asset_versions (
+35:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+36:   asset_file_id uuid NOT NULL REFERENCES asset_files(id) ON DELETE CASCADE,
+37:   version_number integer NOT NULL CHECK (version_number > 0),
+38:   object_key text NOT NULL UNIQUE,
+39:   byte_size bigint NOT NULL CHECK (byte_size >= 0),
+40:   sha256 text,
+41:   created_at timestamptz NOT NULL DEFAULT now(),
+42:   UNIQUE (asset_file_id, version_number)
+43: );
+44: 
+45: CREATE TABLE deleted_assets (
+46:   asset_file_id uuid PRIMARY KEY REFERENCES asset_files(id) ON DELETE CASCADE,
+47:   deleted_by_user_id uuid NOT NULL REFERENCES users(id),
+48:   reason text NOT NULL DEFAULT '',
+49:   purge_after timestamptz NOT NULL,
+50:   created_at timestamptz NOT NULL DEFAULT now()
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 40 页 =====
+
+01: );
+02: 
+03: CREATE INDEX idx_asset_files_owner_status ON asset_files(owner_user_id, status);
+04: CREATE INDEX idx_asset_files_world_status ON asset_files(world_id, status);
+05: CREATE INDEX idx_upload_sessions_expiry ON upload_sessions(status, expires_at);
+06: CREATE INDEX idx_deleted_assets_purge_after ON deleted_assets(purge_after);
+07: 
+08: INSERT INTO storage_quotas (user_id)
+09: SELECT id FROM users
+10: ON CONFLICT (user_id) DO NOTHING;
+11: 
+12: // ===== 文件结束：backend/migrations/002_cloud_assets.sql =====
+13: 
+14: // ===== 文件：backend/migrations/003_exploration.sql =====
+15: CREATE TABLE IF NOT EXISTS investigation_points (
+16:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+17:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+18:   scene_id uuid NOT NULL REFERENCES scenes(id) ON DELETE CASCADE,
+19:   name text NOT NULL,
+20:   description text NOT NULL DEFAULT '',
+21:   interaction_text text NOT NULL DEFAULT '',
+22:   result_text text NOT NULL DEFAULT '',
+23:   clue_id uuid REFERENCES clues(id) ON DELETE SET NULL,
+24:   required_item_id uuid REFERENCES items(id) ON DELETE SET NULL,
+25:   required_role_slot_id uuid REFERENCES role_slots(id) ON DELETE SET NULL,
+26:   sequence integer NOT NULL DEFAULT 0,
+27:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+28:   created_at timestamptz NOT NULL DEFAULT now()
+29: );
+30: 
+31: CREATE INDEX IF NOT EXISTS investigation_points_scene_idx
+32:   ON investigation_points(scene_id, sequence, created_at);
+33: 
+34: CREATE TABLE IF NOT EXISTS investigation_records (
+35:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+36:   investigation_point_id uuid NOT NULL REFERENCES investigation_points(id) ON DELETE CASCADE,
+37:   role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
+38:   result jsonb NOT NULL DEFAULT '{}'::jsonb,
+39:   investigated_at timestamptz NOT NULL DEFAULT now(),
+40:   PRIMARY KEY (room_id, investigation_point_id, role_slot_id)
+41: );
+42: 
+43: CREATE TABLE IF NOT EXISTS pending_host_events (
+44:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+45:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+46:   rule_id uuid REFERENCES automation_rules(id) ON DELETE CASCADE,
+47:   event_key text NOT NULL,
+48:   title text NOT NULL,
+49:   description text NOT NULL DEFAULT '',
+50:   actions jsonb NOT NULL DEFAULT '[]'::jsonb,
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 41 页 =====
+
+01:   status text NOT NULL DEFAULT 'pending'
+02:     CHECK (status IN ('pending', 'executed', 'dismissed', 'delayed')),
+03:   created_at timestamptz NOT NULL DEFAULT now(),
+04:   resolved_at timestamptz,
+05:   resolved_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL
+06: );
+07: 
+08: CREATE UNIQUE INDEX IF NOT EXISTS pending_host_events_room_rule_idx
+09:   ON pending_host_events(room_id, rule_id)
+10:   WHERE rule_id IS NOT NULL;
+11: 
+12: CREATE INDEX IF NOT EXISTS pending_host_events_room_status_idx
+13:   ON pending_host_events(room_id, status, created_at);
+14: 
+15: CREATE UNIQUE INDEX IF NOT EXISTS rule_executions_rule_room_idx
+16:   ON rule_executions(rule_id, room_id);
+17: 
+18: // ===== 文件结束：backend/migrations/003_exploration.sql =====
+19: 
+20: // ===== 文件：backend/migrations/004_story_graph.sql =====
+21: CREATE TABLE IF NOT EXISTS story_graph_edges (
+22:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+23:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+24:   from_type text NOT NULL CHECK (from_type IN ('chapter', 'scene', 'clue', 'investigation_point')),
+25:   from_id uuid NOT NULL,
+26:   to_type text NOT NULL CHECK (to_type IN ('chapter', 'scene', 'clue', 'investigation_point')),
+27:   to_id uuid NOT NULL,
+28:   relation_type text NOT NULL CHECK (relation_type IN ('mainline', 'parallel', 'extension')),
+29:   label text NOT NULL DEFAULT '',
+30:   created_at timestamptz NOT NULL DEFAULT now(),
+31:   UNIQUE (world_id, from_type, from_id, to_type, to_id, relation_type)
+32: );
+33: 
+34: CREATE INDEX IF NOT EXISTS story_graph_edges_world_idx
+35:   ON story_graph_edges(world_id, created_at);
+36: 
+37: // ===== 文件结束：backend/migrations/004_story_graph.sql =====
+38: 
+39: // ===== 文件：backend/migrations/005_creator_workspace.sql =====
+40: ALTER TABLE chapters
+41:   ADD COLUMN IF NOT EXISTS publication_status text NOT NULL DEFAULT 'draft'
+42:     CHECK (publication_status IN ('draft', 'testing', 'published')),
+43:   ADD COLUMN IF NOT EXISTS unlock_rules jsonb NOT NULL DEFAULT '{}'::jsonb,
+44:   ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+45: 
+46: ALTER TABLE script_sections
+47:   ADD COLUMN IF NOT EXISTS publication_status text NOT NULL DEFAULT 'draft'
+48:     CHECK (publication_status IN ('draft', 'testing', 'published')),
+49:   ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+50: 
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 42 页 =====
+
+01: CREATE TABLE IF NOT EXISTS content_versions (
+02:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+03:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+04:   created_by_user_id uuid NOT NULL REFERENCES users(id),
+05:   label text NOT NULL,
+06:   snapshot jsonb NOT NULL,
+07:   created_at timestamptz NOT NULL DEFAULT now()
+08: );
+09: 
+10: CREATE INDEX IF NOT EXISTS content_versions_world_created_idx
+11:   ON content_versions(world_id, created_at DESC);
+12: 
+13: // ===== 文件结束：backend/migrations/005_creator_workspace.sql =====
+14: 
+15: // ===== 文件：backend/migrations/006_publish_existing_creator_content.sql =====
+16: UPDATE chapters SET publication_status = 'testing' WHERE publication_status = 'draft';
+17: UPDATE script_sections SET publication_status = 'testing' WHERE publication_status = 'draft';
+18: 
+19: // ===== 文件结束：backend/migrations/006_publish_existing_creator_content.sql =====
+20: 
+21: // ===== 文件：backend/migrations/007_voice_chat.sql =====
+22: CREATE TABLE voice_room_messages (
+23:   id bigserial PRIMARY KEY,
+24:   voice_room_id uuid NOT NULL REFERENCES voice_rooms(id) ON DELETE CASCADE,
+25:   sender_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+26:   body text NOT NULL CHECK (char_length(body) BETWEEN 1 AND 1000),
+27:   created_at timestamptz NOT NULL DEFAULT now()
+28: );
+29: 
+30: CREATE INDEX idx_voice_room_messages_created
+31:   ON voice_room_messages(voice_room_id, created_at DESC);
+32: 
+33: // ===== 文件结束：backend/migrations/007_voice_chat.sql =====
+34: 
+35: // ===== 文件：backend/migrations/008_story_manuscripts.sql =====
+36: CREATE TABLE IF NOT EXISTS story_manuscripts (
+37:   world_id uuid PRIMARY KEY REFERENCES worlds(id) ON DELETE CASCADE,
+38:   body text NOT NULL DEFAULT '',
+39:   last_sync_direction text NOT NULL DEFAULT 'manual'
+40:     CHECK (last_sync_direction IN ('manual', 'graph_to_manuscript', 'manuscript_to_graph')),
+41:   updated_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+42:   updated_at timestamptz NOT NULL DEFAULT now()
+43: );
+44: 
+45: // ===== 文件结束：backend/migrations/008_story_manuscripts.sql =====
+46: 
+47: // ===== 文件：backend/migrations/009_auth_and_collaboration.sql =====
+48: ALTER TABLE users
+49:   ADD COLUMN IF NOT EXISTS password_hash text,
+50:   ADD COLUMN IF NOT EXISTS password_salt text;
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 43 页 =====
+
+01: 
+02: CREATE TABLE IF NOT EXISTS auth_sessions (
+03:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+04:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+05:   token_hash text NOT NULL UNIQUE,
+06:   expires_at timestamptz NOT NULL,
+07:   created_at timestamptz NOT NULL DEFAULT now(),
+08:   last_seen_at timestamptz NOT NULL DEFAULT now()
+09: );
+10: 
+11: CREATE INDEX IF NOT EXISTS auth_sessions_token_expiry_idx
+12:   ON auth_sessions(token_hash, expires_at);
+13: 
+14: // ===== 文件结束：backend/migrations/009_auth_and_collaboration.sql =====
+15: 
+16: // ===== 文件：backend/migrations/010_clue_sharing.sql =====
+17: ALTER TABLE clue_ownership
+18:   ADD COLUMN IF NOT EXISTS shared_with_room boolean NOT NULL DEFAULT false,
+19:   ADD COLUMN IF NOT EXISTS shared_with_roles uuid[] NOT NULL DEFAULT '{}',
+20:   ADD COLUMN IF NOT EXISTS player_note text NOT NULL DEFAULT '',
+21:   ADD COLUMN IF NOT EXISTS host_note text NOT NULL DEFAULT '',
+22:   ADD COLUMN IF NOT EXISTS shared_at timestamptz;
+23: 
+24: CREATE TABLE IF NOT EXISTS clue_read_receipts (
+25:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+26:   clue_id uuid NOT NULL REFERENCES clues(id) ON DELETE CASCADE,
+27:   role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
+28:   read_at timestamptz NOT NULL DEFAULT now(),
+29:   PRIMARY KEY (room_id, clue_id, role_slot_id)
+30: );
+31: 
+32: CREATE INDEX IF NOT EXISTS idx_clue_ownership_shared ON clue_ownership(room_id, shared_with_room)
+33:   WHERE shared_with_room = true;
+34: 
+35: // ===== 文件结束：backend/migrations/010_clue_sharing.sql =====
+36: 
+37: // ===== 文件：backend/migrations/011_room_recaps.sql =====
+38: CREATE TABLE IF NOT EXISTS room_recaps (
+39:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+40:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+41:   created_by_user_id uuid NOT NULL REFERENCES users(id),
+42:   label text NOT NULL DEFAULT '房间复盘',
+43:   snapshot jsonb NOT NULL,
+44:   created_at timestamptz NOT NULL DEFAULT now()
+45: );
+46: 
+47: CREATE INDEX IF NOT EXISTS idx_room_recaps_room_created ON room_recaps(room_id, created_at DESC);
+48: 
+49: // ===== 文件结束：backend/migrations/011_room_recaps.sql =====
+50: 
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 44 页 =====
+
+01: // ===== 文件：backend/migrations/012_runtime_foundation.sql =====
+02: -- Runtime foundation: checkpoint restore audit, durable event journal, query indexes.
+03: 
+04: ALTER TABLE checkpoints
+05:   ADD COLUMN IF NOT EXISTS schema_version integer NOT NULL DEFAULT 2;
+06: 
+07: DO $$
+08: BEGIN
+09:   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'checkpoint_restore_status') THEN
+10:     CREATE TYPE checkpoint_restore_status AS ENUM ('pending', 'applied', 'failed', 'cancelled');
+11:   END IF;
+12: END $$;
+13: 
+14: CREATE TABLE IF NOT EXISTS checkpoint_restores (
+15:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+16:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+17:   checkpoint_id uuid NOT NULL REFERENCES checkpoints(id) ON DELETE CASCADE,
+18:   requested_by_user_id uuid NOT NULL REFERENCES users(id),
+19:   status checkpoint_restore_status NOT NULL DEFAULT 'pending',
+20:   restore_scope jsonb NOT NULL DEFAULT '{
+21:     "readingProgress": true,
+22:     "clueOwnership": true,
+23:     "inventory": true,
+24:     "contentUnlocks": true,
+25:     "pendingHostEvents": true,
+26:     "ruleExecutions": false
+27:   }'::jsonb,
+28:   before_snapshot jsonb,
+29:   result jsonb NOT NULL DEFAULT '{}'::jsonb,
+30:   error_message text,
+31:   applied_at timestamptz,
+32:   created_at timestamptz NOT NULL DEFAULT now()
+33: );
+34: 
+35: CREATE INDEX IF NOT EXISTS idx_checkpoint_restores_room_created
+36:   ON checkpoint_restores(room_id, created_at DESC);
+37: 
+38: CREATE INDEX IF NOT EXISTS idx_checkpoint_restores_checkpoint
+39:   ON checkpoint_restores(checkpoint_id, created_at DESC);
+40: 
+41: CREATE TABLE IF NOT EXISTS room_event_journal (
+42:   id bigserial PRIMARY KEY,
+43:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+44:   event_type text NOT NULL,
+45:   payload jsonb NOT NULL,
+46:   created_at timestamptz NOT NULL DEFAULT now()
+47: );
+48: 
+49: CREATE INDEX IF NOT EXISTS idx_room_event_journal_room_id
+50:   ON room_event_journal(room_id, id DESC);
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 45 页 =====
+
+01: 
+02: CREATE INDEX IF NOT EXISTS idx_inventory_room_role
+03:   ON inventory(room_id, role_slot_id);
+04: 
+05: CREATE INDEX IF NOT EXISTS idx_items_world_id
+06:   ON items(world_id);
+07: 
+08: CREATE INDEX IF NOT EXISTS idx_clues_world_id
+09:   ON clues(world_id);
+10: 
+11: CREATE INDEX IF NOT EXISTS idx_scenes_world_id
+12:   ON scenes(world_id);
+13: 
+14: CREATE INDEX IF NOT EXISTS idx_checkpoints_room_created
+15:   ON checkpoints(room_id, created_at DESC);
+16: 
+17: // ===== 文件结束：backend/migrations/012_runtime_foundation.sql =====
+18: 
+19: // ===== 文件：backend/migrations/013_host_audit_and_idempotency.sql =====
+20: -- Host audit trail and idempotency for sensitive write paths.
+21: 
+22: CREATE TABLE IF NOT EXISTS host_audit_log (
+23:   id bigserial PRIMARY KEY,
+24:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+25:   actor_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+26:   action text NOT NULL,
+27:   target_type text,
+28:   target_id text,
+29:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+30:   created_at timestamptz NOT NULL DEFAULT now()
+31: );
+32: 
+33: CREATE INDEX IF NOT EXISTS idx_host_audit_log_room_created
+34:   ON host_audit_log(room_id, created_at DESC);
+35: 
+36: CREATE TABLE IF NOT EXISTS write_idempotency (
+37:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+38:   idempotency_key text NOT NULL,
+39:   route_key text NOT NULL,
+40:   response jsonb NOT NULL,
+41:   created_at timestamptz NOT NULL DEFAULT now(),
+42:   PRIMARY KEY (room_id, idempotency_key)
+43: );
+44: 
+45: CREATE INDEX IF NOT EXISTS idx_write_idempotency_created
+46:   ON write_idempotency(created_at);
+47: 
+48: // ===== 文件结束：backend/migrations/013_host_audit_and_idempotency.sql =====
+49: 
+50: // ===== 文件：backend/migrations/014_world_search.sql =====
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 46 页 =====
+
+01: -- Accelerate world content search (pg_trgm). Search also works without these indexes via ILIKE.
+02: CREATE EXTENSION IF NOT EXISTS pg_trgm;
+03: 
+04: CREATE INDEX IF NOT EXISTS idx_role_slots_world_name_trgm ON role_slots USING gin (name gin_trgm_ops);
+05: CREATE INDEX IF NOT EXISTS idx_scenes_world_name_trgm ON scenes USING gin (name gin_trgm_ops);
+06: CREATE INDEX IF NOT EXISTS idx_clues_world_name_trgm ON clues USING gin (name gin_trgm_ops);
+07: 
+08: DO $$
+09: BEGIN
+10:   IF to_regclass('public.automation_rules') IS NOT NULL THEN
+11:     CREATE INDEX IF NOT EXISTS idx_automation_rules_world_name_trgm ON automation_rules USING gin (name gin_trgm_ops);
+12:   END IF;
+13: END $$;
+14: 
+15: // ===== 文件结束：backend/migrations/014_world_search.sql =====
+16: 
+17: // ===== 文件：backend/migrations/015_world_catalog.sql =====
+18: ALTER TABLE worlds
+19:   ADD COLUMN IF NOT EXISTS catalog_public boolean NOT NULL DEFAULT false;
+20: 
+21: CREATE INDEX IF NOT EXISTS idx_worlds_catalog_public
+22:   ON worlds (catalog_public, updated_at DESC)
+23:   WHERE catalog_public = true AND status <> 'archived';
+24: 
+25: -- 平台示例剧本《测试桩剧本》（与 seed / E2E fixture 同 ID）
+26: UPDATE worlds
+27: SET catalog_public = true
+28: WHERE id = '11111111-2222-4333-8444-555555550001';
+29: 
+30: // ===== 文件结束：backend/migrations/015_world_catalog.sql =====
+31: 
+32: // ===== 文件：backend/migrations/016_catalog_seed_fog.sql =====
+33: UPDATE worlds
+34: SET catalog_public = true
+35: WHERE id = '11111111-2222-4333-8444-555555550001';
+36: 
+37: // ===== 文件结束：backend/migrations/016_catalog_seed_fog.sql =====
+38: 
+39: // ===== 文件：backend/migrations/017_rooms_world_cascade.sql =====
+40: -- Allow deleting a world after its parallel rooms are removed (or cascade from world delete).
+41: ALTER TABLE rooms DROP CONSTRAINT IF EXISTS rooms_world_id_fkey;
+42: ALTER TABLE rooms
+43:   ADD CONSTRAINT rooms_world_id_fkey
+44:   FOREIGN KEY (world_id) REFERENCES worlds(id) ON DELETE CASCADE;
+45: 
+46: // ===== 文件结束：backend/migrations/017_rooms_world_cascade.sql =====
+47: 
+48: // ===== 文件：backend/migrations/018_host_event_delay_until.sql =====
+49: ALTER TABLE pending_host_events
+50:   ADD COLUMN IF NOT EXISTS delay_until timestamptz;
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 47 页 =====
+
+01: 
+02: CREATE INDEX IF NOT EXISTS idx_pending_host_events_delayed_wake
+03:   ON pending_host_events (delay_until)
+04:   WHERE status = 'delayed' AND delay_until IS NOT NULL;
+05: 
+06: // ===== 文件结束：backend/migrations/018_host_event_delay_until.sql =====
+07: 
+08: // ===== 文件：backend/migrations/019_password_reset_tokens.sql =====
+09: CREATE TABLE IF NOT EXISTS password_reset_tokens (
+10:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+11:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+12:   token_hash text NOT NULL UNIQUE,
+13:   expires_at timestamptz NOT NULL,
+14:   used_at timestamptz,
+15:   created_at timestamptz NOT NULL DEFAULT now()
+16: );
+17: 
+18: CREATE INDEX IF NOT EXISTS password_reset_tokens_user_idx
+19:   ON password_reset_tokens(user_id, created_at DESC);
+20: 
+21: CREATE INDEX IF NOT EXISTS password_reset_tokens_hash_expiry_idx
+22:   ON password_reset_tokens(token_hash, expires_at);
+23: 
+24: // ===== 文件结束：backend/migrations/019_password_reset_tokens.sql =====
+25: 
+26: // ===== 文件：backend/migrations/020_email_verification.sql =====
+27: ALTER TABLE users
+28:   ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
+29: 
+30: UPDATE users SET email_verified_at = COALESCE(email_verified_at, created_at, now())
+31:   WHERE email_verified_at IS NULL;
+32: 
+33: CREATE TABLE IF NOT EXISTS email_verification_tokens (
+34:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+35:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+36:   token_hash text NOT NULL UNIQUE,
+37:   expires_at timestamptz NOT NULL,
+38:   used_at timestamptz,
+39:   created_at timestamptz NOT NULL DEFAULT now()
+40: );
+41: 
+42: CREATE INDEX IF NOT EXISTS email_verification_tokens_user_idx
+43:   ON email_verification_tokens(user_id, created_at DESC);
+44: 
+45: CREATE INDEX IF NOT EXISTS email_verification_tokens_hash_expiry_idx
+46:   ON email_verification_tokens(token_hash, expires_at);
+47: 
+48: // ===== 文件结束：backend/migrations/020_email_verification.sql =====
+49: 
+50: // ===== 文件：backend/migrations/021_identity_foundation.sql =====
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 48 页 =====
+
+01: -- Identity foundation: guest accounts, session devices, plans, collaborator invites.
+02: 
+03: CREATE TYPE user_kind AS ENUM ('registered', 'guest');
+04: 
+05: ALTER TABLE users
+06:   ADD COLUMN IF NOT EXISTS user_kind user_kind NOT NULL DEFAULT 'registered';
+07: 
+08: UPDATE users SET user_kind = 'registered' WHERE user_kind IS NULL;
+09: 
+10: ALTER TABLE auth_sessions
+11:   ADD COLUMN IF NOT EXISTS device_label text,
+12:   ADD COLUMN IF NOT EXISTS user_agent text,
+13:   ADD COLUMN IF NOT EXISTS ip_hash text,
+14:   ADD COLUMN IF NOT EXISTS revoked_at timestamptz;
+15: 
+16: CREATE INDEX IF NOT EXISTS auth_sessions_user_active_idx
+17:   ON auth_sessions (user_id)
+18:   WHERE revoked_at IS NULL;
+19: 
+20: CREATE TABLE IF NOT EXISTS user_plans (
+21:   user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+22:   plan_code text NOT NULL DEFAULT 'free' CHECK (plan_code IN ('free', 'creator', 'studio')),
+23:   updated_at timestamptz NOT NULL DEFAULT now()
+24: );
+25: 
+26: INSERT INTO user_plans (user_id)
+27: SELECT id FROM users
+28: ON CONFLICT (user_id) DO NOTHING;
+29: 
+30: CREATE TABLE IF NOT EXISTS world_member_invites (
+31:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+32:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+33:   email text NOT NULL,
+34:   role member_role NOT NULL CHECK (role <> 'owner'),
+35:   token_hash text NOT NULL UNIQUE,
+36:   invited_by_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+37:   expires_at timestamptz NOT NULL,
+38:   accepted_at timestamptz,
+39:   accepted_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+40:   created_at timestamptz NOT NULL DEFAULT now(),
+41:   UNIQUE (world_id, email)
+42: );
+43: 
+44: CREATE INDEX IF NOT EXISTS world_member_invites_email_idx
+45:   ON world_member_invites (lower(email))
+46:   WHERE accepted_at IS NULL;
+47: 
+48: // ===== 文件结束：backend/migrations/021_identity_foundation.sql =====
+49: 
+50: // ===== 文件：backend/migrations/022_oauth_accounts.sql =====
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 49 页 =====
+
+01: CREATE TABLE IF NOT EXISTS oauth_accounts (
+02:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+03:   provider text NOT NULL CHECK (provider IN ('google', 'github')),
+04:   provider_user_id text NOT NULL,
+05:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+06:   email text,
+07:   profile jsonb NOT NULL DEFAULT '{}'::jsonb,
+08:   created_at timestamptz NOT NULL DEFAULT now(),
+09:   updated_at timestamptz NOT NULL DEFAULT now(),
+10:   UNIQUE (provider, provider_user_id)
+11: );
+12: 
+13: CREATE INDEX IF NOT EXISTS oauth_accounts_user_idx ON oauth_accounts (user_id);
+14: 
+15: CREATE TABLE IF NOT EXISTS oauth_states (
+16:   state_hash text PRIMARY KEY,
+17:   provider text NOT NULL,
+18:   guest_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+19:   expires_at timestamptz NOT NULL,
+20:   created_at timestamptz NOT NULL DEFAULT now()
+21: );
+22: 
+23: CREATE TABLE IF NOT EXISTS oauth_login_codes (
+24:   code_hash text PRIMARY KEY,
+25:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+26:   expires_at timestamptz NOT NULL,
+27:   created_at timestamptz NOT NULL DEFAULT now()
+28: );
+29: 
+30: CREATE INDEX IF NOT EXISTS oauth_login_codes_expiry_idx ON oauth_login_codes (expires_at);
+31: 
+32: // ===== 文件结束：backend/migrations/022_oauth_accounts.sql =====
+33: 
+34: // ===== 文件：backend/migrations/023_plan_beta.sql =====
+35: -- Allow internal beta plan tier (elevated quotas for closed testing).
+36: 
+37: ALTER TABLE user_plans DROP CONSTRAINT IF EXISTS user_plans_plan_code_check;
+38: ALTER TABLE user_plans ADD CONSTRAINT user_plans_plan_code_check
+39:   CHECK (plan_code IN ('free', 'creator', 'studio', 'beta'));
+40: 
+41: -- Dev fixture accounts and *.zhimu.local get beta by default.
+42: UPDATE user_plans up
+43: SET plan_code = 'beta', updated_at = now()
+44: FROM users u
+45: WHERE u.id = up.user_id
+46:   AND (
+47:     u.email LIKE '%@zhimu.local'
+48:     OR u.email IN ('host@zhimu.local', 'player@zhimu.local')
+49:   );
+50: 
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 50 页 =====
+
+01: // ===== 文件结束：backend/migrations/023_plan_beta.sql =====
+02: 
+03: // ===== 文件：backend/migrations/024_stripe_billing.sql =====
+04: -- Stripe subscription billing (checkout + webhook sync to user_plans).
+05: 
+06: CREATE TABLE IF NOT EXISTS stripe_billing_customers (
+07:   user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+08:   stripe_customer_id text NOT NULL UNIQUE,
+09:   created_at timestamptz NOT NULL DEFAULT now(),
+10:   updated_at timestamptz NOT NULL DEFAULT now()
+11: );
+12: 
+13: CREATE TABLE IF NOT EXISTS stripe_billing_subscriptions (
+14:   stripe_subscription_id text PRIMARY KEY,
+15:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+16:   stripe_customer_id text NOT NULL,
+17:   plan_code text NOT NULL CHECK (plan_code IN ('creator', 'studio')),
+18:   status text NOT NULL,
+19:   stripe_price_id text,
+20:   current_period_end timestamptz,
+21:   created_at timestamptz NOT NULL DEFAULT now(),
+22:   updated_at timestamptz NOT NULL DEFAULT now()
+23: );
+24: 
+25: CREATE INDEX IF NOT EXISTS stripe_billing_subscriptions_user_idx
+26:   ON stripe_billing_subscriptions (user_id);
+27: 
+28: CREATE TABLE IF NOT EXISTS stripe_webhook_events (
+29:   event_id text PRIMARY KEY,
+30:   event_type text NOT NULL,
+31:   processed_at timestamptz NOT NULL DEFAULT now()
+32: );
+33: 
+34: // ===== 文件结束：backend/migrations/024_stripe_billing.sql =====
+35: 
+36: // ===== 文件：backend/migrations/025_catalog_review.sql =====
+37: -- Public catalog: manual review before catalog_public = true
+38: ALTER TABLE worlds
+39:   ADD COLUMN IF NOT EXISTS catalog_review_status text NOT NULL DEFAULT 'none',
+40:   ADD COLUMN IF NOT EXISTS catalog_review_submitted_at timestamptz,
+41:   ADD COLUMN IF NOT EXISTS catalog_review_note text;
+42: 
+43: ALTER TABLE worlds DROP CONSTRAINT IF EXISTS worlds_catalog_review_status_check;
+44: ALTER TABLE worlds
+45:   ADD CONSTRAINT worlds_catalog_review_status_check
+46:   CHECK (catalog_review_status IN ('none', 'pending', 'approved', 'rejected'));
+47: 
+48: UPDATE worlds
+49: SET catalog_review_status = 'approved'
+50: WHERE catalog_public = true AND catalog_review_status = 'none';
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 51 页 =====
+
+01: 
+02: // ===== 文件结束：backend/migrations/025_catalog_review.sql =====
+03: 
+04: // ===== 文件：backend/migrations/026_chapter_graph_metadata.sql =====
+05: -- Persist story-graph canvas coordinates on public chapters (same pattern as scenes/clues).
+06: 
+07: ALTER TABLE chapters
+08:   ADD COLUMN IF NOT EXISTS metadata jsonb NOT NULL DEFAULT '{}'::jsonb;
+09: 
+10: // ===== 文件结束：backend/migrations/026_chapter_graph_metadata.sql =====
+11: 
+12: // ===== 文件：backend/migrations/027_physical_tokens_integration.sql =====
+13: -- Physical token extensions: creator labels, integration metadata (e.g. tump), expiry.
+14: 
+15: ALTER TABLE physical_tokens
+16:   ADD COLUMN IF NOT EXISTS label text NOT NULL DEFAULT '',
+17:   ADD COLUMN IF NOT EXISTS metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+18:   ADD COLUMN IF NOT EXISTS created_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+19:   ADD COLUMN IF NOT EXISTS expires_at timestamptz;
+20: 
+21: CREATE INDEX IF NOT EXISTS idx_physical_tokens_world_status
+22:   ON physical_tokens(world_id, status);
+23: 
+24: CREATE INDEX IF NOT EXISTS idx_physical_tokens_world_content
+25:   ON physical_tokens(world_id, content_type, content_id);
+26: 
+27: // ===== 文件结束：backend/migrations/027_physical_tokens_integration.sql =====
+28: 
+29: // ===== 文件：backend/migrations/028_unlist_platform_demo.sql =====
+30: -- Stop listing the legacy platform demo world in the public catalog.
+31: UPDATE worlds
+32: SET catalog_public = false,
+33:     catalog_review_status = 'none',
+34:     updated_at = now()
+35: WHERE id = '11111111-2222-4333-8444-555555550001';
+36: 
+37: // ===== 文件结束：backend/migrations/028_unlist_platform_demo.sql =====
+38: 
+39: // ===== 文件：backend/migrations/029_beta_applications.sql =====
+40: -- Website closed-beta application queue (Part 6)
+41: 
+42: CREATE TABLE IF NOT EXISTS beta_applications (
+43:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+44:   email text NOT NULL,
+45:   display_name text NOT NULL,
+46:   role_intent text NOT NULL DEFAULT 'creator',
+47:   use_case text NOT NULL,
+48:   referral_source text,
+49:   contact text,
+50:   status text NOT NULL DEFAULT 'pending',
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 52 页 =====
+
+01:   review_note text,
+02:   reviewed_at timestamptz,
+03:   user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+04:   created_at timestamptz NOT NULL DEFAULT now(),
+05:   updated_at timestamptz NOT NULL DEFAULT now(),
+06:   CONSTRAINT beta_applications_status_check
+07:     CHECK (status IN ('pending', 'approved', 'rejected')),
+08:   CONSTRAINT beta_applications_role_intent_check
+09:     CHECK (role_intent IN ('creator', 'host', 'player', 'mixed', 'other'))
+10: );
+11: 
+12: CREATE INDEX IF NOT EXISTS beta_applications_status_created_idx
+13:   ON beta_applications (status, created_at DESC);
+14: 
+15: CREATE INDEX IF NOT EXISTS beta_applications_email_lower_idx
+16:   ON beta_applications (lower(email));
+17: 
+18: CREATE UNIQUE INDEX IF NOT EXISTS beta_applications_one_pending_per_email
+19:   ON beta_applications (lower(email))
+20:   WHERE status = 'pending';
+21: 
+22: // ===== 文件结束：backend/migrations/029_beta_applications.sql =====
+23: 
+24: // ===== 文件：backend/migrations/030_reunlist_platform_demo.sql =====
+25: -- Re-unlist legacy platform demo; idempotent guard against seed/tests re-listing.
+26: UPDATE worlds
+27: SET catalog_public = false,
+28:     catalog_review_status = 'none',
+29:     summary = CASE WHEN summary = 'updated-by-test' THEN '海雾将旧日的来信送回港口。' ELSE summary END,
+30:     updated_at = now()
+31: WHERE id = '11111111-2222-4333-8444-555555550001'
+32:   AND catalog_public = true;
+33: 
+34: // ===== 文件结束：backend/migrations/030_reunlist_platform_demo.sql =====
+35: 
+36: // ===== 文件：backend/migrations/031_remove_fog_world.sql =====
+37: -- Remove legacy platform demo world (雾港来信) and related E2E rooms.
+38: DELETE FROM rooms WHERE invite_code IN ('FOG-HARBOR-DEMO', 'FOG-E2E-AUTO');
+39: DELETE FROM worlds WHERE id = '08646748-e4ae-446a-a5e7-ce59ca23ffc3';
+40: 
+41: // ===== 文件结束：backend/migrations/031_remove_fog_world.sql =====
+42: 
+43: // ===== 文件：backend/migrations/032_purge_fog_content.sql =====
+44: -- Purge any remaining 雾港来信 rows (world, rooms, invite codes).
+45: DELETE FROM rooms WHERE invite_code IN ('FOG-HARBOR-DEMO', 'FOG-E2E-AUTO') OR name ILIKE '%雾港%';
+46: DELETE FROM worlds WHERE id = '08646748-e4ae-446a-a5e7-ce59ca23ffc3' OR name = '雾港来信';
+47: 
+48: // ===== 文件结束：backend/migrations/032_purge_fog_content.sql =====
+49: 
+50: // ===== 文件：backend/migrations/033_fix_fixture_summary.sql =====
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 53 页 =====
+
+01: -- Normalize CI fixture world summary (remove legacy fog demo text).
+02: UPDATE worlds
+03: SET summary = '后端集成测试用最小剧本。',
+04:     updated_at = now()
+05: WHERE id = '11111111-2222-4333-8444-555555550001'
+06:   AND summary IN (
+07:     'updated-by-test',
+08:     '海雾将旧日的来信送回港口。',
+09:     '海雾将旧日的来信送回港口'
+10:   );
+11: 
+12: // ===== 文件结束：backend/migrations/033_fix_fixture_summary.sql =====
+13: 
+14: // ===== 文件：backend/migrations/034_oauth_return_origin.sql =====
+15: -- Optional post-OAuth redirect origin (play.getzhimu.com vs app.getzhimu.com)
+16: ALTER TABLE oauth_states
+17:   ADD COLUMN IF NOT EXISTS return_origin text;
+18: 
+19: // ===== 文件结束：backend/migrations/034_oauth_return_origin.sql =====
+20: 
+21: // ===== 文件：backend/migrations/035_room_public_listing.sql =====
+22: -- Public lobby: hosts may list a parallel room on play.getzhimu.com for strangers to discover.
+23: -- Distinct from world catalog_public (approved script library) and invite-only rooms.
+24: 
+25: ALTER TABLE rooms
+26:   ADD COLUMN IF NOT EXISTS public_listing boolean NOT NULL DEFAULT false;
+27: 
+28: COMMENT ON COLUMN rooms.public_listing IS
+29:   'When true, room is visible in the player portal public lobby (invite code still required to join).';
+30: 
+31: CREATE INDEX IF NOT EXISTS idx_rooms_public_listing_active
+32:   ON rooms (updated_at DESC)
+33:   WHERE public_listing = true;
+34: 
+35: // ===== 文件结束：backend/migrations/035_room_public_listing.sql =====
+36: 
+37: // ===== 文件：backend/migrations/036_play_plaza.sql =====
+38: -- Player plaza: platform-wide chat & recruit board (outside any running room).
+39: 
+40: CREATE TABLE play_plaza_posts (
+41:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+42:   author_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+43:   author_display_name text NOT NULL,
+44:   kind text NOT NULL CHECK (kind IN ('chat', 'recruit')),
+45:   body text NOT NULL CHECK (char_length(body) BETWEEN 1 AND 500),
+46:   invite_code text,
+47:   room_label text,
+48:   world_label text,
+49:   created_at timestamptz NOT NULL DEFAULT now()
+50: );
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 54 页 =====
+
+01: 
+02: CREATE INDEX idx_play_plaza_posts_created ON play_plaza_posts (created_at DESC);
+03: CREATE INDEX idx_play_plaza_posts_kind ON play_plaza_posts (kind, created_at DESC);
+04: 
+05: // ===== 文件结束：backend/migrations/036_play_plaza.sql =====
+06: 
+07: // ===== 文件：backend/migrations/037_play_social.sql =====
+08: -- Forum replies, moderation reports, friendships, and private messages for play portal.
+09: 
+10: ALTER TABLE play_plaza_posts
+11:   ADD COLUMN IF NOT EXISTS deleted_at timestamptz,
+12:   ADD COLUMN IF NOT EXISTS reply_count int NOT NULL DEFAULT 0;
+13: 
+14: CREATE TABLE play_plaza_replies (
+15:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+16:   post_id uuid NOT NULL REFERENCES play_plaza_posts(id) ON DELETE CASCADE,
+17:   author_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+18:   author_display_name text NOT NULL,
+19:   body text NOT NULL CHECK (char_length(body) BETWEEN 1 AND 500),
+20:   parent_reply_id uuid REFERENCES play_plaza_replies(id) ON DELETE SET NULL,
+21:   deleted_at timestamptz,
+22:   created_at timestamptz NOT NULL DEFAULT now()
+23: );
+24: 
+25: CREATE INDEX idx_play_plaza_replies_post ON play_plaza_replies (post_id, created_at);
+26: 
+27: CREATE TABLE play_plaza_reports (
+28:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+29:   reporter_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+30:   target_type text NOT NULL CHECK (target_type IN ('post', 'reply')),
+31:   target_id uuid NOT NULL,
+32:   reason text NOT NULL CHECK (char_length(reason) BETWEEN 4 AND 200),
+33:   created_at timestamptz NOT NULL DEFAULT now(),
+34:   UNIQUE (reporter_user_id, target_type, target_id)
+35: );
+36: 
+37: CREATE TABLE play_friendships (
+38:   user_low_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+39:   user_high_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+40:   requested_by_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+41:   status text NOT NULL CHECK (status IN ('pending', 'accepted', 'declined')),
+42:   created_at timestamptz NOT NULL DEFAULT now(),
+43:   updated_at timestamptz NOT NULL DEFAULT now(),
+44:   PRIMARY KEY (user_low_id, user_high_id),
+45:   CHECK (user_low_id <> user_high_id)
+46: );
+47: 
+48: CREATE INDEX idx_play_friendships_status ON play_friendships (status, updated_at DESC);
+49: 
+50: CREATE TABLE play_dm_conversations (
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 55 页 =====
+
+01:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+02:   user_low_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+03:   user_high_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+04:   last_message_at timestamptz NOT NULL DEFAULT now(),
+05:   UNIQUE (user_low_id, user_high_id),
+06:   CHECK (user_low_id <> user_high_id)
+07: );
+08: 
+09: CREATE TABLE play_dm_messages (
+10:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+11:   conversation_id uuid NOT NULL REFERENCES play_dm_conversations(id) ON DELETE CASCADE,
+12:   sender_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+13:   body text NOT NULL CHECK (char_length(body) BETWEEN 1 AND 1000),
+14:   created_at timestamptz NOT NULL DEFAULT now(),
+15:   read_at timestamptz
+16: );
+17: 
+18: CREATE INDEX idx_play_dm_messages_conv ON play_dm_messages (conversation_id, created_at DESC);
+19: 
+20: // ===== 文件结束：backend/migrations/037_play_social.sql =====
+21: 
+22: // ===== 文件：backend/migrations/038_play_plaza_review.sql =====
+23: -- AI / human review for plaza posts; report queue for manual follow-up.
+24: 
+25: ALTER TABLE play_plaza_posts
+26:   ADD COLUMN IF NOT EXISTS review_status text NOT NULL DEFAULT 'approved',
+27:   ADD COLUMN IF NOT EXISTS ai_review_note text,
+28:   ADD COLUMN IF NOT EXISTS ai_reviewed_at timestamptz,
+29:   ADD COLUMN IF NOT EXISTS published_at timestamptz;
+30: 
+31: UPDATE play_plaza_posts
+32: SET review_status = 'approved',
+33:     published_at = COALESCE(published_at, created_at)
+34: WHERE published_at IS NULL;
+35: 
+36: ALTER TABLE play_plaza_posts DROP CONSTRAINT IF EXISTS play_plaza_posts_review_status_check;
+37: ALTER TABLE play_plaza_posts
+38:   ADD CONSTRAINT play_plaza_posts_review_status_check
+39:   CHECK (review_status IN ('pending', 'approved', 'rejected', 'human_review'));
+40: 
+41: CREATE INDEX IF NOT EXISTS idx_play_plaza_posts_review ON play_plaza_posts (review_status, created_at DESC);
+42: 
+43: ALTER TABLE play_plaza_reports
+44:   ADD COLUMN IF NOT EXISTS human_review_status text NOT NULL DEFAULT 'open',
+45:   ADD COLUMN IF NOT EXISTS ops_note text,
+46:   ADD COLUMN IF NOT EXISTS resolved_at timestamptz;
+47: 
+48: ALTER TABLE play_plaza_reports DROP CONSTRAINT IF EXISTS play_plaza_reports_human_review_status_check;
+49: ALTER TABLE play_plaza_reports
+50:   ADD CONSTRAINT play_plaza_reports_human_review_status_check
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 56 页 =====
+
+01:   CHECK (human_review_status IN ('open', 'resolved', 'dismissed'));
+02: 
+03: CREATE INDEX IF NOT EXISTS idx_play_plaza_reports_open ON play_plaza_reports (human_review_status, created_at DESC);
+04: 
+05: // ===== 文件结束：backend/migrations/038_play_plaza_review.sql =====
+06: 
+07: // ===== 文件：backend/migrations/039_plan_upgrade_requests.sql =====
+08: CREATE TABLE IF NOT EXISTS plan_upgrade_requests (
+09:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+10:   user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+11:   email text NOT NULL,
+12:   display_name text NOT NULL DEFAULT '',
+13:   current_plan_code text NOT NULL,
+14:   desired_plan_code text NOT NULL,
+15:   reason text NOT NULL DEFAULT '',
+16:   contact text,
+17:   status text NOT NULL DEFAULT 'pending'
+18:     CHECK (status IN ('pending', 'approved', 'rejected')),
+19:   review_note text,
+20:   created_at timestamptz NOT NULL DEFAULT now(),
+21:   reviewed_at timestamptz,
+22:   updated_at timestamptz NOT NULL DEFAULT now()
+23: );
+24: 
+25: CREATE UNIQUE INDEX IF NOT EXISTS plan_upgrade_requests_one_pending_per_user
+26:   ON plan_upgrade_requests (user_id)
+27:   WHERE status = 'pending';
+28: 
+29: CREATE INDEX IF NOT EXISTS plan_upgrade_requests_status_created_idx
+30:   ON plan_upgrade_requests (status, created_at DESC);
+31: 
+32: // ===== 文件结束：backend/migrations/039_plan_upgrade_requests.sql =====
+33: 
+34: // ===== 文件：backend/migrations/040_account_delete_jobs.sql =====
+35: CREATE TABLE IF NOT EXISTS account_delete_jobs (
+36:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+37:   user_id uuid NOT NULL,
+38:   status text NOT NULL DEFAULT 'pending'
+39:     CHECK (status IN ('pending', 'db_deleted', 'storage_pending', 'completed', 'failed')),
+40:   object_keys jsonb NOT NULL DEFAULT '[]'::jsonb,
+41:   storage_purged_count int NOT NULL DEFAULT 0,
+42:   last_error text,
+43:   attempt_count int NOT NULL DEFAULT 0,
+44:   created_at timestamptz NOT NULL DEFAULT now(),
+45:   updated_at timestamptz NOT NULL DEFAULT now(),
+46:   completed_at timestamptz
+47: );
+48: 
+49: CREATE UNIQUE INDEX IF NOT EXISTS account_delete_jobs_one_active_per_user
+50:   ON account_delete_jobs (user_id)
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 57 页 =====
+
+01:   WHERE status IN ('pending', 'db_deleted', 'storage_pending');
+02: 
+03: CREATE INDEX IF NOT EXISTS account_delete_jobs_status_updated_idx
+04:   ON account_delete_jobs (status, updated_at ASC);
+05: 
+06: // ===== 文件结束：backend/migrations/040_account_delete_jobs.sql =====
+07: 
+08: // ===== 文件：backend/migrations/041_world_content_revision.sql =====
+09: ALTER TABLE worlds
+10:   ADD COLUMN IF NOT EXISTS content_revision bigint NOT NULL DEFAULT 1;
+11: 
+12: // ===== 文件结束：backend/migrations/041_world_content_revision.sql =====
+13: 
+14: // ===== 文件：backend/migrations/042_remove_legacy_official_example.sql =====
+15: -- Remove the legacy fixture-backed official example from public catalog data.
+16: -- The production official example is configured via OFFICIAL_EXAMPLE_WORLD_ID
+17: -- and currently points at the creator-owned production sample world.
+18: DELETE FROM rooms
+19: WHERE world_id = '33333333-3333-4333-8444-555555550003';
+20: 
+21: DELETE FROM worlds
+22: WHERE id = '33333333-3333-4333-8444-555555550003';
+23: 
+24: UPDATE worlds
+25: SET catalog_public = false,
+26:     catalog_review_status = 'none',
+27:     updated_at = now()
+28: WHERE id = '11111111-2222-4333-8444-555555550001';
+29: 
+30: // ===== 文件结束：backend/migrations/042_remove_legacy_official_example.sql =====
+31: 
+32: // ===== 文件：backend/migrations/043_room_mini_games.sql =====
+33: CREATE TABLE IF NOT EXISTS room_mini_games (
+34:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+35:   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+36:   game_type text NOT NULL DEFAULT 'zhimu_lock',
+37:   title text NOT NULL DEFAULT 'Mini game',
+38:   public_config jsonb NOT NULL DEFAULT '{}'::jsonb,
+39:   private_config jsonb NOT NULL DEFAULT '{}'::jsonb,
+40:   state jsonb NOT NULL DEFAULT '{}'::jsonb,
+41:   status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'failed', 'skipped')),
+42:   created_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+43:   completed_by_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+44:   completed_at timestamptz,
+45:   created_at timestamptz NOT NULL DEFAULT now(),
+46:   updated_at timestamptz NOT NULL DEFAULT now()
+47: );
+48: 
+49: CREATE UNIQUE INDEX IF NOT EXISTS idx_room_mini_games_one_active
+50:   ON room_mini_games(room_id)
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 58 页 =====
+
+01:   WHERE status = 'active';
+02: 
+03: CREATE INDEX IF NOT EXISTS idx_room_mini_games_room_updated
+04:   ON room_mini_games(room_id, updated_at DESC);
+05: 
+06: // ===== 文件结束：backend/migrations/043_room_mini_games.sql =====
+07: 
+08: // ===== 文件：backend/migrations/044_knowledge_chunks.sql =====
+09: CREATE TABLE IF NOT EXISTS knowledge_chunks (
+10:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+11:   world_id uuid NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+12:   source_type text NOT NULL CHECK (source_type IN ('story_manuscript', 'script_section', 'clue', 'scene', 'asset')),
+13:   source_id uuid,
+14:   role_slot_id uuid REFERENCES role_slots(id) ON DELETE SET NULL,
+15:   visibility visibility_scope NOT NULL DEFAULT 'author',
+16:   chunk_index integer NOT NULL CHECK (chunk_index >= 0),
+17:   title text NOT NULL DEFAULT '',
+18:   body text NOT NULL,
+19:   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+20:   created_at timestamptz NOT NULL DEFAULT now(),
+21:   updated_at timestamptz NOT NULL DEFAULT now(),
+22:   UNIQUE (world_id, source_type, source_id, role_slot_id, chunk_index)
+23: );
+24: 
+25: CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_world_source
+26:   ON knowledge_chunks(world_id, source_type, source_id);
+27: 
+28: CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_world_role_visibility
+29:   ON knowledge_chunks(world_id, role_slot_id, visibility);
+30: 
+31: CREATE INDEX IF NOT EXISTS idx_knowledge_chunks_body_trgm
+32:   ON knowledge_chunks USING gin (body gin_trgm_ops);
+33: 
+34: // ===== 文件结束：backend/migrations/044_knowledge_chunks.sql =====
+35: 
+36: // ===== 文件：backend/migrations/045_enable_public_rls.sql =====
+37: -- Supabase/PostgREST exposes public schema tables unless RLS is enabled.
+38: -- Enabling RLS without permissive policies blocks direct anonymous table access,
+39: -- while backend owner/service-role connections continue to work.
+40: DO $$
+41: DECLARE
+42:   target_table text;
+43:   rls_tables text[] := ARRAY[
+44:     'account_delete_jobs',
+45:     'asset_files',
+46:     'asset_versions',
+47:     'auth_sessions',
+48:     'automation_rules',
+49:     'beta_applications',
+50:     'chapters',
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 59 页 =====
+
+01:     'character_scripts',
+02:     'checkpoint_restores',
+03:     'checkpoints',
+04:     'clue_ownership',
+05:     'clue_read_receipts',
+06:     'clues',
+07:     'content_versions',
+08:     'deleted_assets',
+09:     'email_verification_tokens',
+10:     'feedback',
+11:     'host_audit_log',
+12:     'inventory',
+13:     'investigation_points',
+14:     'investigation_records',
+15:     'items',
+16:     'knowledge_chunks',
+17:     'notebook_entries',
+18:     'oauth_accounts',
+19:     'oauth_login_codes',
+20:     'oauth_states',
+21:     'password_reset_tokens',
+22:     'pending_host_events',
+23:     'physical_tokens',
+24:     'plan_upgrade_requests',
+25:     'play_dm_conversations',
+26:     'play_dm_messages',
+27:     'play_friendships',
+28:     'play_plaza_posts',
+29:     'play_plaza_replies',
+30:     'play_plaza_reports',
+31:     'player_states',
+32:     'reading_progress',
+33:     'role_slots',
+34:     'room_content_unlocks',
+35:     'room_event_journal',
+36:     'room_members',
+37:     'room_mini_games',
+38:     'room_recaps',
+39:     'rooms',
+40:     'rule_executions',
+41:     'scenes',
+42:     'script_sections',
+43:     'storage_quotas',
+44:     'story_graph_edges',
+45:     'story_manuscripts',
+46:     'stripe_billing_customers',
+47:     'stripe_billing_subscriptions',
+48:     'stripe_webhook_events',
+49:     'timeline_logs',
+50:     'upload_sessions',
+
+===== 织幕长线剧本杀自动化叙事与运营平台软件 V1.0 源程序鉴别材料 后30页 第 60 页 =====
+
+01:     'user_plans',
+02:     'users',
+03:     'voice_room_members',
+04:     'voice_room_messages',
+05:     'voice_rooms',
+06:     'world_member_invites',
+07:     'world_members',
+08:     'worlds',
+09:     'write_idempotency'
+10:   ];
+11: BEGIN
+12:   FOREACH target_table IN ARRAY rls_tables LOOP
+13:     IF to_regclass(format('public.%I', target_table)) IS NOT NULL THEN
+14:       EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', target_table);
+15:     END IF;
+16:   END LOOP;
+17: END $$;
+18: 
+19: // ===== 文件结束：backend/migrations/045_enable_public_rls.sql =====
+20: 
+21: // ===== 文件：backend/migrations/046_feedback.sql =====
+22: -- User feedback / bug reports / feature requests (P1 公开 Beta 自助闭环)
+23: 
+24: CREATE TABLE IF NOT EXISTS feedback (
+25:   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+26:   user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+27:   kind text NOT NULL DEFAULT 'feedback',
+28:   subject text NOT NULL,
+29:   body text NOT NULL,
+30:   page_url text,
+31:   user_agent text,
+32:   status text NOT NULL DEFAULT 'new',
+33:   created_at timestamptz NOT NULL DEFAULT now(),
+34:   updated_at timestamptz NOT NULL DEFAULT now(),
+35:   CONSTRAINT feedback_kind_check
+36:     CHECK (kind IN ('feedback', 'bug', 'feature')),
+37:   CONSTRAINT feedback_status_check
+38:     CHECK (status IN ('new', 'seen', 'resolved'))
+39: );
+40: 
+41: CREATE INDEX IF NOT EXISTS feedback_status_created_idx
+42:   ON feedback (status, created_at DESC);
+43: 
+44: CREATE INDEX IF NOT EXISTS feedback_kind_created_idx
+45:   ON feedback (kind, created_at DESC);
+46: 
+47: ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
+48: 
+49: // ===== 文件结束：backend/migrations/046_feedback.sql =====
+50: 
