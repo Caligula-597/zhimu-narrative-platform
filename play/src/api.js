@@ -84,6 +84,12 @@ export const api = {
   joinRoom: (inviteCode, roleSlotId) =>
     request("/rooms/join", { method: "POST", body: { inviteCode, roleSlotId } }),
   playerHome: (roomId) => request(`/rooms/${roomId}/player-home`),
+  playerVotes: (roomId) => request(`/rooms/${roomId}/votes`),
+  submitVoteBallot: (roomId, voteId, payload) =>
+    request(`/rooms/${roomId}/votes/${voteId}/ballots`, { method: "POST", body: payload }),
+  privateActions: (roomId) => request(`/rooms/${roomId}/private-actions`),
+  createPrivateAction: (roomId, payload) =>
+    request(`/rooms/${roomId}/private-actions`, { method: "POST", body: payload }),
   completeSection: (roomId, sectionId) =>
     request(`/rooms/${roomId}/sections/${sectionId}/complete`, { method: "POST", body: {} }),
   exploration: (roomId) => request(`/rooms/${roomId}/exploration`),
@@ -102,6 +108,7 @@ export const api = {
     request(`/rooms/${roomId}/notebook`, { method: "POST", body: entry }),
   deleteNotebookEntry: (roomId, entryId) =>
     request(`/rooms/${roomId}/notebook/${entryId}`, { method: "DELETE" }),
+  myTimeline: (roomId) => request(`/rooms/${roomId}/my-timeline`),
   getVoiceMessages: (voiceRoomId) => request(`/voice-rooms/${voiceRoomId}/messages`),
   getVoiceRoomToken: (roomId, voiceRoomId) =>
     request(`/rooms/${roomId}/voice-rooms/${voiceRoomId}/token`, { method: "POST", body: {} }),
@@ -150,6 +157,22 @@ export const api = {
   joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} }),
   latestRecap: (roomId) => request(`/rooms/${roomId}/recap/latest`),
   getRecap: (roomId, recapId) => request(`/rooms/${roomId}/recaps/${recapId}`),
+  completePlayerTask: (roomId, taskId) =>
+    request(`/rooms/${roomId}/player-tasks/${taskId}/complete`, { method: "POST", body: {} }),
+  setSuspicion: (roomId, targetRoleSlotId, payload) =>
+    request(`/rooms/${roomId}/suspicions/${targetRoleSlotId}`, { method: "PUT", body: payload }),
+  submitTestimony: (roomId, payload) =>
+    request(`/rooms/${roomId}/testimonies`, { method: "POST", body: payload }),
+  submitSatisfaction: (payload) =>
+    request("/feedback", {
+      method: "POST",
+      body: {
+        kind: "satisfaction",
+        subject: payload.subject,
+        body: payload.body,
+        roomId: payload.roomId
+      }
+    }),
 
   /** SSE room stream — same endpoint as app.getzhimu.com host/player views. */
   streamRoomEvents(roomId, onEvent, signal) {

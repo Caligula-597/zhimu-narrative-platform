@@ -57,6 +57,64 @@ export function overviewRuntimeProgress() {
   return { percent, label: totals.total ? `${totals.completed} / ${totals.total} 段私人剧情已完成` : "暂无玩家进度" };
 }
 
+/** 加载段落完成率聚合数据（A2）— 镜像 runCreatorChecks 的加载模式 */
+export async function loadSegmentCompletion() {
+  const roomId = zhimuApi.context.roomId || null;
+  try {
+    const data = await zhimuApi.getSegmentCompletion(roomId ? { roomId } : {});
+    worldStore.set({ cloudSegmentCompletion: data });
+    render();
+    showToast("段落完成率已刷新");
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function overviewSegmentCompletionPanel() {
+  const { cloudSegmentCompletion: data } = worldStore.get();
+  if (!data) {
+    return `<section class="segment-completion-panel">
+      <div class="section-head">
+        <div><p class="section-kicker">SEGMENT COMPLETION</p><h3>段落完成率</h3><p>按角色与分幕统计玩家阅读完成情况，定位卡关段落。</p></div>
+        <button class="secondary-btn" data-action="load-segment-completion">加载完成率</button>
+      </div>
+      <div class="empty-state">点击「加载完成率」从云端拉取当前世界/运行房的分幕完成统计。</div>
+    </section>`;
+  }
+  const scopeLabel = data.scope === "room" ? "当前运行房" : `全世界 · ${data.totalRooms} 个运行房`;
+  const roleGroups = data.roleGroups || [];
+  const roleRows = roleGroups.length
+    ? roleGroups.map((group) => {
+        const sectionRows = (group.sections || [])
+          .map((section) => {
+            const pct = section.completionRate || 0;
+            const tone = pct >= 80 ? "published" : pct >= 40 ? "testing" : "draft";
+            return `<div class="segment-row">
+              <div class="segment-row-head"><strong>${escapeHtml(section.title)}</strong><span class="status-chip ${tone}">${pct}%</span></div>
+              <div class="segment-row-meta"><span>${escapeHtml(section.label || "")}</span>${section.averageMinutes != null ? `<span class="muted-note">平均 ${Math.round(section.averageMinutes)} 分钟</span>` : ""}</div>
+              <div class="progress"><i style="width:${pct}%"></i></div>
+            </div>`;
+          })
+          .join("");
+        return `<details class="segment-role-group" open>
+          <summary><strong>${escapeHtml(group.roleName)}</strong><span class="muted-note">${group.sectionCount} 段 · 平均 ${group.averageCompletion}%</span></summary>
+          <div class="segment-role-body">${sectionRows || '<div class="empty-state">该角色暂无分幕。</div>'}</div>
+        </details>`;
+      }).join("")
+    : `<div class="empty-state">暂无分幕数据。先在创作台创建角色与私人分幕，再让玩家进入运行房阅读。</div>`;
+  return `<section class="segment-completion-panel">
+    <div class="section-head">
+      <div><p class="section-kicker">SEGMENT COMPLETION</p><h3>段落完成率</h3><p>按角色与分幕统计玩家阅读完成情况，定位卡关段落。</p></div>
+      <div class="row">
+        <span class="status-chip ${data.averageCompletion >= 80 ? "published" : data.averageCompletion >= 40 ? "testing" : "draft"}">${scopeLabel} · 平均 ${data.averageCompletion}%</span>
+        <button class="secondary-btn" data-action="load-segment-completion">刷新</button>
+      </div>
+    </div>
+    <div class="segment-summary">${escapeHtml(data.summary?.label || "")}</div>
+    <div class="segment-role-list">${roleRows}</div>
+  </section>`;
+}
+
 function refToUiFields(ref) {
   if (!ref) return {};
   if (ref.type === "action") return { action: ref.action };
@@ -340,6 +398,7 @@ export function overview() {
       </div>
       <div class="backend-capability-list">${backendCapabilities.map(overviewBackendCapability).join("")}</div>
     </section>
+    ${overviewSegmentCompletionPanel()}
     <section class="vision-dashboard">
       <article class="vision-panel vision-map">
         <div class="section-head">
@@ -431,5 +490,5 @@ export function overview() {
     `;
 }
 
-export const overviewViewApi = { overviewRuntimeProgress, overview };
+export const overviewViewApi = { overviewRuntimeProgress, overview, loadSegmentCompletion };
 registerView("overview", overviewViewApi);

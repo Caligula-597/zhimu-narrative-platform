@@ -3,6 +3,7 @@ import { uiStore } from "../state/index.js";
 import { callRuntime, go, loadCloudData, render } from "./runtime-facade.js";
 import { activeRuntimeRoom } from "../components/emptyState.js";
 import { togglePanelInDom } from "../components/collapse-panel.js";
+import { callView } from "./view-registry.js";
 (function (window) {
   function handleWorkspaceAction(action, el) {
     switch (action) {
@@ -12,6 +13,12 @@ import { togglePanelInDom } from "../components/collapse-panel.js";
         return true;
       case "world-library":
         callRuntime("openWorldLibrary");
+        return true;
+      case "load-segment-completion":
+        callView("overview", "loadSegmentCompletion");
+        return true;
+      case "load-clue-hit-rate":
+        callView("clues", "loadClueHitRate");
         return true;
       case "open-catalog":
         callRuntime("openWorldLibrary", "catalog");

@@ -99,3 +99,43 @@ export function previewRoomRules(roomId = demoContext.roomId) {
 export function triggerManualRule(ruleId, roomId = demoContext.roomId) {
   return request(`/rooms/${roomId}/rules/${ruleId}/trigger`, { userId: demoContext.hostUserId, method: "POST", idempotent: true });
 }
+
+export function getHostVotes(roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/host/votes`, { userId: demoContext.hostUserId });
+}
+
+export function hostCreateVote(payload, roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/host/votes`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function hostUpdateVoteStatus(voteId, status, roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/host/votes/${voteId}`, {
+    userId: demoContext.hostUserId,
+    method: "PATCH",
+    body: { status }
+  });
+}
+
+export function getHostPrivateActions(roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/host/private-actions`, { userId: demoContext.hostUserId });
+}
+
+export function hostUpdatePrivateAction(actionId, payload, roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/host/private-actions/${actionId}`, {
+    userId: demoContext.hostUserId,
+    method: "PATCH",
+    body: payload
+  });
+}
+
+export function hostUpdateRoleState(roleSlotId, payload, roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/host/players/${roleSlotId}/state`, {
+    userId: demoContext.hostUserId,
+    method: "PATCH",
+    body: payload
+  });
+}
+
+export function getRoomRunReport(roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/run-report`, { userId: demoContext.hostUserId });
+}

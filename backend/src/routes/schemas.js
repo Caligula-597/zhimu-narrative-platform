@@ -433,6 +433,231 @@ export const updateRoomSettingsSchema = {
   }
 };
 
+const contentMetadataObject = { type: "object", additionalProperties: true };
+const contentOptionalUuid = { anyOf: [uuid, { type: "null" }] };
+const contentVisibility = { type: "string", enum: ["author", "host", "role", "faction", "public", "postgame"] };
+
+const segmentPayload = {
+  type: "object",
+  additionalProperties: false,
+  required: ["segmentKey", "title"],
+  properties: {
+    segmentKey: { type: "string", minLength: 1, maxLength: 120 },
+    title: { type: "string", minLength: 1, maxLength: 200 },
+    sequence: { type: "integer", minimum: 1, maximum: 999 },
+    chapterId: contentOptionalUuid,
+    story: contentMetadataObject,
+    mechanics: contentMetadataObject,
+    operations: contentMetadataObject,
+    quality: contentMetadataObject,
+    metadata: contentMetadataObject,
+    refs: {
+      type: "array",
+      maxItems: 200,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["refType", "refId"],
+        properties: {
+          refType: { type: "string", enum: ["chapter", "script_section", "scene", "clue", "item", "rule", "truth_claim"] },
+          refId: uuid,
+          roleSlotId: contentOptionalUuid,
+          metadata: contentMetadataObject
+        }
+      }
+    }
+  }
+};
+
+export const createSegmentSchema = {
+  params: worldIdParams,
+  body: segmentPayload
+};
+
+export const segmentIdParams = paramsSchema({ worldId: uuid, segmentId: uuid });
+
+export const updateSegmentSchema = {
+  params: segmentIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    minProperties: 1,
+    properties: {
+      segmentKey: { type: "string", minLength: 1, maxLength: 120 },
+      title: { type: "string", minLength: 1, maxLength: 200 },
+      sequence: { type: "integer", minimum: 1, maximum: 999 },
+      chapterId: contentOptionalUuid,
+      story: contentMetadataObject,
+      mechanics: contentMetadataObject,
+      operations: contentMetadataObject,
+      quality: contentMetadataObject,
+      metadata: contentMetadataObject,
+      refs: segmentPayload.properties.refs
+    }
+  }
+};
+
+export const createTruthClaimSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["title", "claim"],
+    properties: {
+      claimKey: { type: "string", maxLength: 120 },
+      title: { type: "string", minLength: 1, maxLength: 200 },
+      claim: { type: "string", minLength: 1, maxLength: 12000 },
+      revealStage: { type: "string", maxLength: 120 },
+      confidence: { type: "string", enum: ["canon", "inferred", "misdirection", "unknown"] },
+      evidence: { type: "array", maxItems: 100, items: contentMetadataObject },
+      contradictions: { type: "array", maxItems: 100, items: contentMetadataObject },
+      roleVisibility: contentMetadataObject,
+      metadata: contentMetadataObject
+    }
+  }
+};
+
+export const createRoleRelationshipSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["fromRoleSlotId", "toRoleSlotId"],
+    properties: {
+      fromRoleSlotId: uuid,
+      toRoleSlotId: uuid,
+      relationType: { type: "string", minLength: 1, maxLength: 80 },
+      label: { type: "string", maxLength: 200 },
+      strength: { type: "integer", minimum: -10, maximum: 10 },
+      visibility: contentVisibility,
+      metadata: contentMetadataObject
+    }
+  }
+};
+
+export const createRoomVoteSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["title"],
+    properties: {
+      segmentId: contentOptionalUuid,
+      title: { type: "string", minLength: 1, maxLength: 200 },
+      prompt: { type: "string", maxLength: 2000 },
+      voteType: { type: "string", enum: ["accusation", "choice", "rating", "custom"] },
+      visibility: { type: "string", enum: ["secret", "public", "secret_until_published"] },
+      settings: contentMetadataObject,
+      options: {
+        type: "array",
+        minItems: 1,
+        maxItems: 80,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["label"],
+          properties: {
+            roleSlotId: contentOptionalUuid,
+            label: { type: "string", minLength: 1, maxLength: 200 },
+            description: { type: "string", maxLength: 2000 },
+            sequence: { type: "integer", minimum: 1, maximum: 999 },
+            metadata: contentMetadataObject
+          }
+        }
+      }
+    }
+  }
+};
+
+export const voteIdParams = paramsSchema({ roomId: uuid, voteId: uuid });
+
+export const submitVoteBallotSchema = {
+  params: voteIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      optionId: contentOptionalUuid,
+      freeText: { type: "string", maxLength: 2000 },
+      evidence: { type: "array", maxItems: 50, items: contentMetadataObject },
+      metadata: contentMetadataObject
+    }
+  }
+};
+
+export const updateRoomVoteStatusSchema = {
+  params: voteIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["status"],
+    properties: {
+      status: { type: "string", enum: ["open", "closed", "published", "cancelled"] }
+    }
+  }
+};
+
+export const createPrivateActionSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["actionType", "title"],
+    properties: {
+      segmentId: contentOptionalUuid,
+      targetRoleSlotId: contentOptionalUuid,
+      actionType: { type: "string", enum: ["ask_host", "secret_action", "trade", "promise", "accusation_note"] },
+      title: { type: "string", minLength: 1, maxLength: 200 },
+      body: { type: "string", maxLength: 4000 },
+      payload: contentMetadataObject,
+      visibility: { type: "string", enum: ["actor_host", "actor_target_host", "host_only", "postgame"] }
+    }
+  }
+};
+
+export const privateActionIdParams = paramsSchema({ roomId: uuid, actionId: uuid });
+
+export const updatePrivateActionSchema = {
+  params: privateActionIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["status"],
+    properties: {
+      status: { type: "string", enum: ["seen", "accepted", "rejected", "resolved", "cancelled"] },
+      hostResponse: { type: "string", maxLength: 4000 }
+    }
+  }
+};
+
+export const updateRoleStateSchema = {
+  params: roleSlotRoomParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      factionKey: { type: "string", maxLength: 120 },
+      publicAlias: { type: "string", maxLength: 120 },
+      hiddenIdentity: { type: "string", maxLength: 500 },
+      variables: contentMetadataObject
+    }
+  }
+};
+
+export const updateSuspicionSchema = {
+  params: paramsSchema({ roomId: uuid, targetRoleSlotId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["level"],
+    properties: {
+      level: { type: "integer", minimum: 0, maximum: 5 },
+      reason: { type: "string", maxLength: 2000 },
+      evidence: { type: "array", maxItems: 50, items: contentMetadataObject }
+    }
+  }
+};
+
 export const startMiniGameSchema = {
   params: roomIdParams,
   body: {
@@ -1998,6 +2223,98 @@ export const sendDmMessageSchema = {
     required: ["body"],
     properties: {
       body: { type: "string", minLength: 1, maxLength: 1000 }
+    }
+  }
+};
+
+/** B-batch route param schemas */
+export const roomPlayerTaskParams = paramsSchema({ roomId: uuid, taskId: uuid });
+export const roomSuspicionTargetParams = paramsSchema({ roomId: uuid, targetRoleSlotId: uuid });
+export const roomTestimonyIdParams = paramsSchema({ roomId: uuid, testimonyId: uuid });
+export const roomSegmentRemedyParams = paramsSchema({ roomId: uuid, remedyId: uuid });
+export const worldSegmentRemedyParams = paramsSchema({ worldId: uuid, remedyId: uuid });
+
+export const upsertPlayerSuspicionSchema = {
+  params: roomSuspicionTargetParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      level: { type: "integer", minimum: 0, maximum: 5 },
+      reason: { type: "string", maxLength: 500 }
+    }
+  }
+};
+
+export const submitTestimonySchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["body"],
+    properties: {
+      actKey: { type: "string", maxLength: 40 },
+      act_key: { type: "string", maxLength: 40 },
+      body: { type: "string", minLength: 1, maxLength: 4000 }
+    }
+  }
+};
+
+export const reviewTestimonySchema = {
+  params: roomTestimonyIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      hostFlag: { type: "string", enum: ["noted", "contradiction"] },
+      host_flag: { type: "string", enum: ["noted", "contradiction"] },
+      hostNote: { type: "string", maxLength: 1000 },
+      host_note: { type: "string", maxLength: 1000 }
+    }
+  }
+};
+
+export const replaceWorldTagsSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      tags: {
+        type: "array",
+        maxItems: 50,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            tagKey: { type: "string", maxLength: 32 },
+            tag_key: { type: "string", maxLength: 32 },
+            key: { type: "string", maxLength: 32 },
+            tagValue: { type: "string", maxLength: 64 },
+            tag_value: { type: "string", maxLength: 64 },
+            value: { type: "string", maxLength: 64 }
+          }
+        }
+      }
+    }
+  }
+};
+
+export const createSegmentRemedySchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["segmentKey", "title", "hostScript"],
+    properties: {
+      segmentKey: { type: "string", minLength: 1, maxLength: 40 },
+      segment_key: { type: "string", minLength: 1, maxLength: 40 },
+      title: { type: "string", minLength: 1, maxLength: 200 },
+      hostScript: { type: "string", minLength: 1, maxLength: 4000 },
+      host_script: { type: "string", minLength: 1, maxLength: 4000 },
+      triggerHint: { type: "string", maxLength: 500 },
+      trigger_hint: { type: "string", maxLength: 500 },
+      sequence: { type: "integer", minimum: 1, maximum: 999 }
     }
   }
 };

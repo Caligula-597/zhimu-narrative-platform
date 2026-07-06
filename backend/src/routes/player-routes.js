@@ -27,6 +27,9 @@ import {
   roomIdParams,
   submitMiniGameSchema
 } from "./schemas.js";
+import { resolveCurrentActKey, fetchPlayerTasksForRoom } from "../player-tasks.js";
+import { fetchPlayerSuspicions } from "../player-suspicions.js";
+import { fetchMyTestimonies } from "../testimonies.js";
 import { fetchCurrentMiniGame, submitMiniGameAnswer } from "../room-mini-games.js";
 
 async function playerDisplayName(query, roomId, roleSlotId) {
@@ -234,6 +237,70 @@ export async function registerPlayerRoutes(app) {
         membership.role_slot_id
       );
       const currentGame = await fetchCurrentMiniGame(client.query.bind(client), roomId);
+      const currentActKey = resolveCurrentActKey(enrichedSections);
+      const tasks = await fetchPlayerTasksForRoom(
+        client.query.bind(client),
+        roomId,
+        membership.role_slot_id,
+        currentActKey
+      );
+      const suspicions = await fetchPlayerSuspicions(
+        client.query.bind(client),
+        roomId,
+        membership.role_slot_id
+      );
+      const testimonies = await fetchMyTestimonies(
+        client.query.bind(client),
+        roomId,
+        membership.role_slot_id
+      );
+      const activeVotes = await client.query(
+        `SELECT rv.id, rv.title, rv.prompt, rv.vote_type, rv.visibility, rv.status,
+                COALESCE(json_agg(jsonb_build_object(
+                  'id', rvo.id,
+                  'roleSlotId', rvo.role_slot_id,
+                  'label', rvo.label,
+                  'description', rvo.description,
+                  'sequence', rvo.sequence
+                ) ORDER BY rvo.sequence) FILTER (WHERE rvo.id IS NOT NULL), '[]'::json) AS options,
+                MAX(rvb.submitted_at) AS submitted_at
+         FROM room_votes rv
+         LEFT JOIN room_vote_options rvo ON rvo.vote_id = rv.id
+         LEFT JOIN room_vote_ballots rvb ON rvb.vote_id = rv.id AND rvb.role_slot_id = $2
+         WHERE rv.room_id = $1 AND rv.status IN ('open', 'closed', 'published')
+         GROUP BY rv.id
+         ORDER BY rv.created_at DESC`,
+        [roomId, membership.role_slot_id]
+      );
+      const privateActions = await client.query(
+        `SELECT id, segment_id, target_role_slot_id, action_type, title, body, payload,
+                status, host_response, visibility, created_at, updated_at
+         FROM room_private_actions
+         WHERE room_id = $1 AND (
+           actor_role_slot_id = $2
+           OR (visibility = 'actor_target_host' AND target_role_slot_id = $2)
+         )
+         ORDER BY created_at DESC
+         LIMIT 50`,
+        [roomId, membership.role_slot_id]
+      );
+      const roleState = await client.query(
+        `SELECT faction_key, public_alias, hidden_identity, variables, updated_at
+         FROM room_role_states
+         WHERE room_id = $1 AND role_slot_id = $2`,
+        [roomId, membership.role_slot_id]
+      );
+      const segments = await client.query(
+        `SELECT ws.id, ws.segment_key, ws.title, ws.sequence,
+                ws.story->'playerTasks' AS player_tasks,
+                ws.mechanics->'endCondition' AS end_condition,
+                ws.operations->'playerTips' AS player_tips
+         FROM world_segments ws
+         JOIN rooms r ON r.world_id = ws.world_id
+         WHERE r.id = $1
+         ORDER BY ws.sequence, ws.created_at`,
+        [roomId]
+      );
 
       return {
         room: roomInfo.rows[0],
@@ -246,7 +313,15 @@ export async function registerPlayerRoutes(app) {
         roomMembers: members.rows,
         inventory,
         hostConfirm,
-        currentGame
+        currentGame,
+        currentActKey,
+        tasks,
+        suspicions,
+        testimonies,
+        activeVotes: activeVotes.rows,
+        privateActions: privateActions.rows,
+        roleState: roleState.rows[0] ?? null,
+        segments: segments.rows
       };
     } finally {
       client.release();
@@ -368,6 +443,28 @@ export async function registerPlayerRoutes(app) {
     );
     if (!result.rowCount) return sendErr(reply, "NOTEBOOK_ENTRY_NOT_FOUND");
     return { ok: true };
+  });
+
+  app.get("/api/rooms/:roomId/my-timeline", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const membership = await requireRoomRole(actorId, roomId);
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
+    const rows = await query(
+      `SELECT id, event_type, message, metadata, visibility, created_at,
+              (actor_user_id = $2) AS is_self
+       FROM timeline_logs
+       WHERE room_id = $1
+         AND (visibility IN ('public', 'player') OR actor_user_id = $2)
+       ORDER BY created_at DESC
+       LIMIT 60`,
+      [roomId, actorId]
+    );
+    return {
+      roomId,
+      roleSlotId: membership.role_slot_id,
+      items: rows.rows
+    };
   });
 
   app.get("/api/rooms/:roomId/exploration", { schema: { params: roomIdParams } }, async (request) => {

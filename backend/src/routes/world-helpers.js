@@ -1,6 +1,7 @@
 import { pool, query, transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
 import { validateDeepseekProposal } from "../deepseek.js";
+import { seedPlayerTasksFromArchives } from "../player-tasks.js";
 
 async function nextRoleSlotSequence(client, worldId) {
   const row = await client.query(
@@ -714,8 +715,11 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
     return await transaction(async (client) => {
       const graph = await importDeepseekProposalWithClient(client, worldId, proposal);
       let sectionCount = 0;
+      const roleKeyToSlotId = new Map();
       for (const [roleIndex, role] of roles.entries()) {
         const { roleSlotId, roleKey } = await resolveOrCreateDeepseekRoleSlot(client, worldId, role, roleIndex);
+        roleKeyToSlotId.set(roleKey, roleSlotId);
+        if (role.key) roleKeyToSlotId.set(role.key, roleSlotId);
         const scriptId = await ensureCharacterScript(client, roleSlotId, role.name || roleKey);
         if (!scriptId) continue;
 
@@ -787,6 +791,15 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
       const unlockRules = await materializePipelineReadingUnlockRules(client, worldId, {
         matrixMode: pipeline.setting?.matrixMode || matrixSync?.matrixMode || "honkaku"
       });
+      let playerTasksSeeded = 0;
+      if (pipeline.characterArchives?.roles?.length) {
+        playerTasksSeeded = await seedPlayerTasksFromArchives(
+          client,
+          worldId,
+          pipeline.characterArchives,
+          roleKeyToSlotId
+        );
+      }
       return {
         ...graph.summary,
         roles: roles.length,
@@ -794,7 +807,8 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
         manuscriptCharacters: manuscript?.length || 0,
         matrixSyncStored: Boolean(matrixSync),
         unlockRulesCreated: unlockRules.rulesCreated,
-        unlockRuleMode: unlockRules.ruleMode
+        unlockRuleMode: unlockRules.ruleMode,
+        playerTasksSeeded
       };
     });
   } catch (error) {

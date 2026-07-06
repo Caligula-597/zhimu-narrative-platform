@@ -24,6 +24,7 @@ import {
 import { acceptWorldMemberInviteToken } from "../world-invites.js";
 import { submitCatalogReviewRequest } from "../catalog-review.js";
 import { joinPublicCatalogWorld } from "../catalog-join-service.js";
+import { attachTagsToWorldRows, buildCatalogTagFilterSql, parseCatalogTagFilters } from "../world-tags.js";
 import { enrichWorldMembership, enrichWorldMembershipList } from "../membership-labels.js";
 import {
   updateWorldSchema,
@@ -70,6 +71,9 @@ export async function registerWorldRoutes(app) {
 
   app.get("/api/worlds/catalog", async (request) => {
     requireActor(request);
+    const tagFilters = parseCatalogTagFilters(request.query || {});
+    const { sql: tagSql, params: tagParams } = buildCatalogTagFilterSql(tagFilters, 1);
+    const whereTags = tagSql ? ` AND ${tagSql}` : "";
     const result = await query(
       `SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.updated_at,
               u.display_name AS owner_display_name,
@@ -78,10 +82,11 @@ export async function registerWorldRoutes(app) {
        JOIN users u ON u.id = w.owner_user_id
        WHERE w.catalog_public = true
          AND w.status <> 'archived'
-         AND EXISTS (SELECT 1 FROM role_slots rs WHERE rs.world_id = w.id)
-       ORDER BY w.updated_at DESC`
+         AND EXISTS (SELECT 1 FROM role_slots rs WHERE rs.world_id = w.id)${whereTags}
+       ORDER BY w.updated_at DESC`,
+      tagParams
     );
-    return result.rows;
+    return attachTagsToWorldRows(result.rows);
   });
 
   app.get("/api/worlds/:worldId", { schema: { params: worldIdParams } }, async (request, reply) => {

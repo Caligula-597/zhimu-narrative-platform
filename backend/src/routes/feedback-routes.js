@@ -6,7 +6,7 @@ const feedbackResponseSchema = {
   required: ["id", "kind", "subject", "status", "created_at"],
   properties: {
     id: { type: "string", format: "uuid" },
-    kind: { type: "string", enum: ["feedback", "bug", "feature"] },
+    kind: { type: "string", enum: ["feedback", "bug", "feature", "satisfaction"] },
     subject: { type: "string" },
     status: { type: "string", enum: ["new", "seen", "resolved"] },
     created_at: { type: "string", format: "date-time" }
@@ -28,11 +28,12 @@ export async function registerFeedbackRoutes(app) {
           additionalProperties: false,
           required: ["subject", "body"],
           properties: {
-            kind: { type: "string", enum: ["feedback", "bug", "feature"], default: "feedback" },
+            kind: { type: "string", enum: ["feedback", "bug", "feature", "satisfaction"], default: "feedback" },
             subject: { type: "string", minLength: 1, maxLength: 200 },
             body: { type: "string", minLength: 1, maxLength: 4000 },
             pageUrl: { type: "string", maxLength: 500 },
-            userAgent: { type: "string", maxLength: 500 }
+            userAgent: { type: "string", maxLength: 500 },
+            roomId: { type: "string", format: "uuid" }
           }
         },
         response: {

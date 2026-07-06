@@ -95,6 +95,13 @@ export {
 export {
   getWorlds,
   getWorldCatalog,
+  getCatalogTagFacets,
+  getWorldTags,
+  putWorldTags,
+  getSegmentRemedies,
+  createSegmentRemedy,
+  updateSegmentRemedy,
+  deleteSegmentRemedy,
   patchWorldCatalog,
   requestCatalogReview,
   joinWorldCatalog,
@@ -118,6 +125,14 @@ export {
   getWorldHostAuditLog,
   getCreatorChecks,
   getCreatorDashboard,
+  getWorldSegments,
+  createWorldSegment,
+  updateWorldSegment,
+  getTruthClaims,
+  createTruthClaim,
+  getRoleRelationships,
+  createRoleRelationship,
+  getCreatorAnalytics,
   listPhysicalTokens,
   createPhysicalTokens,
   revokePhysicalToken,
@@ -134,7 +149,9 @@ export {
   updateChapter,
   createContentVersion,
   restoreContentVersion,
-  deleteContentVersion
+  deleteContentVersion,
+  getSegmentCompletion,
+  getClueHitRate
 } from "./world.js";
 
 /* ── Studio ── */
@@ -192,7 +209,14 @@ export {
   delayHostEvent,
   batchHostEvents,
   previewRoomRules,
-  triggerManualRule
+  triggerManualRule,
+  getHostVotes,
+  hostCreateVote,
+  hostUpdateVoteStatus,
+  getHostPrivateActions,
+  hostUpdatePrivateAction,
+  hostUpdateRoleState,
+  getRoomRunReport
 } from "./host.js";
 
 /* ── Player ── */
@@ -208,7 +232,12 @@ export {
   readClue,
   shareClueToRoom,
   shareClueToRoles,
-  updateCluePlayerNote
+  updateCluePlayerNote,
+  getPlayerVotes,
+  submitVoteBallot,
+  getPrivateActions,
+  createPrivateAction,
+  updateSuspicion
 } from "./player.js";
 
 /* ── Voice ── */

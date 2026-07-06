@@ -9,5 +9,7 @@ export const worldStore = createStore({
   cloudCreatorDashboard: null,
   cloudRules: [],
   cloudRulesPreview: null,
-  cloudWorldLogs: []
+  cloudWorldLogs: [],
+  cloudSegmentCompletion: null,
+  cloudClueHitRate: null
 });

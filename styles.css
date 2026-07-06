@@ -1219,3 +1219,259 @@ body.modal-scroll-lock { position:fixed; width:100%; left:0; right:0; }
   font-size: 11px;
 }
 
+/* ===== A2 段落完成率面板 ===== */
+.segment-completion-panel {
+  margin-top: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffdf8, #faf7ef);
+  box-shadow: 0 12px 32px rgba(43, 58, 49, 0.05);
+}
+.segment-completion-panel .section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.segment-completion-panel .section-head h3 {
+  margin: 4px 0 0;
+  font-size: 18px;
+}
+.segment-completion-panel .section-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+  max-width: 560px;
+}
+.segment-completion-panel .row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.segment-summary {
+  margin: 12px 0 6px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.segment-role-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+.segment-role-group {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  overflow: hidden;
+}
+.segment-role-group > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+}
+.segment-role-group > summary::-webkit-details-marker { display: none; }
+.segment-role-group > summary::before {
+  content: "▾";
+  color: var(--muted);
+  font-size: 10px;
+  transition: transform 0.18s ease;
+}
+.segment-role-group[open] > summary::before { transform: rotate(180deg); }
+.segment-role-group > summary strong {
+  font-size: 14px;
+  color: var(--ink);
+}
+.segment-role-body {
+  display: grid;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+.segment-row {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fffdf8;
+}
+.segment-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.segment-row-head strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+.segment-row-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 5px 0 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.segment-row .progress {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(196, 147, 77, 0.14);
+  overflow: hidden;
+}
+.segment-row .progress i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #587f79, #79c19a);
+  border-radius: 999px;
+  transition: width 0.32s ease;
+}
+
+/* ===== A3 线索命中率面板 ===== */
+.clue-hit-rate-panel {
+  margin-bottom: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffdf8, #faf7ef);
+  box-shadow: 0 12px 32px rgba(43, 58, 49, 0.05);
+}
+.clue-hit-rate-panel .section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.clue-hit-rate-panel .section-head h3 {
+  margin: 4px 0 0;
+  font-size: 18px;
+}
+.clue-hit-rate-panel .section-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+  max-width: 560px;
+}
+.clue-hit-rate-panel .row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.hit-rate-summary {
+  margin: 12px 0 6px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.hit-rate-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 10px 0 12px;
+}
+.hit-rate-insight {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid var(--line);
+}
+.hit-rate-insight.risk-error { border-color: rgba(184, 98, 79, 0.32); background: #fff5f2; }
+.hit-rate-insight.risk-warning { border-color: rgba(196, 147, 77, 0.36); background: #fffdf6; }
+.hit-rate-insight .section-kicker {
+  margin: 0 0 6px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+.hit-rate-insight ul {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 4px;
+}
+.hit-rate-insight li b {
+  font-size: 12px;
+  color: var(--ink);
+}
+.hit-rate-insight li span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.hit-rate-clue-list {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.74);
+}
+.hit-rate-clue-list > summary {
+  padding: 11px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  list-style: none;
+}
+.hit-rate-clue-list > summary::-webkit-details-marker { display: none; }
+.hit-rate-clue-list > summary::before {
+  content: "▾";
+  margin-right: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.hit-rate-clue-list[open] > summary::before { content: "▴"; }
+.hit-rate-clue-rows {
+  display: grid;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+.hit-rate-row {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fffdf8;
+}
+.hit-rate-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.hit-rate-row-head strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+.hit-rate-row-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 5px 0 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.hit-rate-row .progress {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(196, 147, 77, 0.14);
+  overflow: hidden;
+}
+.hit-rate-row .progress i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #c4934d, #e5b86b);
+  border-radius: 999px;
+  transition: width 0.32s ease;
+}
+

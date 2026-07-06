@@ -1233,6 +1233,11 @@ textarea:focus-visible {
   .host-console-side > :last-child:nth-child(odd) {
     grid-column: 1 / -1;
   }
+
+  .host-pace-timer-card,
+  .host-runbook-card {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 820px) {
@@ -1441,4 +1446,150 @@ textarea:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── 主持手册（Runbook）卡片 ── */
+.host-runbook-card .host-runbook-act {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line, rgba(20,35,33,0.13));
+}
+.host-runbook-card .host-runbook-act:last-child {
+  border-bottom: none;
+}
+.host-runbook-card h4 {
+  font-size: 14px;
+  color: var(--ink, #142321);
+}
+.host-runbook-block {
+  margin-top: 10px;
+}
+.host-runbook-block .section-kicker {
+  margin: 0 0 4px;
+  font-size: 9px;
+}
+.host-runbook-block .wizard-intro {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink, #142321);
+}
+.host-runbook-truth .wizard-intro {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(167, 120, 61, 0.08);
+  border: 1px solid rgba(167, 120, 61, 0.18);
+}
+.host-runbook-grants,
+.host-runbook-fallbacks {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.host-runbook-grants li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink, #142321);
+}
+.host-runbook-grants code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(44, 107, 98, 0.1);
+  color: #2b6b61;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.host-runbook-fallbacks li {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted, #76827f);
+  padding-left: 12px;
+  position: relative;
+}
+.host-runbook-fallbacks li::before {
+  content: "•";
+  position: absolute;
+  left: 2px;
+  color: var(--muted, #76827f);
+}
+
+/* ── 节奏计时器卡片 ── */
+.host-pace-timer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.host-pace-clock-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(44, 107, 98, 0.08), rgba(196, 147, 77, 0.06));
+  border: 1px solid rgba(44, 107, 98, 0.16);
+}
+.host-pace-clock {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--ink, #142321);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.host-pace-clock-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.host-pace-clock-meta .muted-note {
+  font-size: 10px;
+  color: var(--muted, #76827f);
+}
+.host-pace-modes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.host-pace-mode-btn {
+  padding: 6px 8px;
+  border: 1px solid var(--line, rgba(20,35,33,0.13));
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted, #76827f);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.host-pace-mode-btn:hover {
+  border-color: rgba(44, 107, 98, 0.3);
+  color: var(--ink, #142321);
+}
+.host-pace-mode-btn.is-active {
+  background: rgba(44, 107, 98, 0.12);
+  border-color: rgba(44, 107, 98, 0.4);
+  color: #2b6b61;
+}
+.host-pace-actions {
+  display: flex;
+  gap: 8px;
+}
+.host-pace-actions .primary-btn,
+.host-pace-actions .secondary-btn {
+  flex: 1;
+}
+.host-pace-hint {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted, #76827f);
 }

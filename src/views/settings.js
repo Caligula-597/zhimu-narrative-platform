@@ -71,6 +71,8 @@ export function settings(){
  return `${deleteWorldPanel(world)}
  <section class="rules-layout"><article class="card"><div class="section-head"><div><h3>剧本信息</h3><p>名称与简介会展示在侧栏、总览与玩家入口${roleLabel?` · 你在本剧本的身份：<strong>${escapeHtml(roleLabel)}</strong>`:""}</p></div></div><div class="form-group"><label>剧本名称</label><input class="field" id="settings-world-name" value="${escapeHtml(world?.name||"")}" ${canEditWorld?"":"readonly"} placeholder="例如：午夜列车"><label>剧本简介</label><textarea class="field" id="settings-world-summary" rows="3" ${canEditWorld?"":"readonly"} placeholder="一句话介绍题材与氛围">${escapeHtml(world?.summary||"")}</textarea><label>真相结论（局后复盘）</label><textarea class="field" id="settings-recap-truth" rows="4" ${canEditWorld?"":"readonly"} placeholder="本局结束后向玩家展示的真相总结；留空则根据结局规则与推进记录自动生成">${escapeHtml(world?.settings?.recapTruthSummary||"")}</textarea><p class="muted-note">章节与场景的「复盘公开摘要」请在剧情编排台选中节点编辑。</p><label>角色席位数</label><input class="field" value="${String(studioStore.get().cloudStudio?.roles?.length||0)}" readonly>${worldCoverPanel(world, canEditWorld)}${editHint}${owner?catalogReviewPanel(world):""}<button class="primary-btn" style="margin-top:14px" data-action="save-world-settings" ${canEditWorld?"":"disabled"}>保存剧本信息</button></div></article>
  <article class="card"><div class="section-head"><div><h3>运行房选项</h3><p>${room?`当前平行房：${escapeHtml(room.name)}`:"请先在总览中选择平行运行房"}</p></div></div><div class="form-group"><label class="check-label"><input type="checkbox" id="settings-host-voice-listen" ${roomSettings.hostVoiceListen?"checked":""} ${room?"":"disabled"}><span><strong>主持人可旁听私密语音房</strong><small>开启后，主持人在未受邀的情况下仍可进入私密语音房旁听（不可发言）。</small></span></label><button class="primary-btn" style="margin-top:14px" data-action="save-room-settings" ${room?"":"disabled"}>保存运行房选项</button></div></article>
+ ${canEditWorld?`<article class="card"><div class="section-head"><div><h3>内容标签</h3><p>公开剧本库 faceted 筛选（人数、难度等），上架后玩家可按标签浏览。</p></div><button class="secondary-btn" data-action="open-world-tags">编辑标签</button></div></article>
+ <article class="card"><div class="section-head"><div><h3>段落补救模板</h3><p>主持人在玩家卡关时可一键播报预设话术（按章节/段落）。</p></div><button class="secondary-btn" data-action="open-segment-remedies">管理模板</button></div></article>`:""}
  ${canAudit?`<article class="card"><div class="section-head"><div><h3>世界主持审计</h3><p>汇总本剧本所有平行房的主持敏感操作（发线索、延迟事件、存档恢复等）。单房明细见独立主持端。</p></div><button class="secondary-btn" data-action="world-audit">查看审计</button></div></article>`:""}
  <aside class="card"><div class="section-head"><div><h3>账号与内容资产</h3><p>登录、配额、云端附件与会话管理</p></div></div><button class="secondary-btn full-btn" data-action="go-account" data-hub-tab="assets">打开内容资产</button></aside>
  <aside class="card"><div class="section-head"><div><h3>剧本管理</h3><p>切换、创建或删除剧本</p></div></div><button class="secondary-btn full-btn" data-action="world-library">我的剧本 / 切换剧本</button><button class="secondary-btn full-btn" style="margin-top:10px" data-action="open-catalog">打开公开剧本库</button><button class="secondary-btn full-btn" style="margin-top:10px" data-action="open-wizard">＋ 创建新世界</button>${!owner&&canEditWorld?`<p class="muted-note" style="margin-top:12px">你不是主创作者，无法删除此剧本。若需退出协作，请联系剧本 owner 将你移出协作者列表。</p>`:""}</aside>
@@ -194,6 +196,103 @@ export async function openWorldAuditModal(){
  }catch(error){showError(error)}
 }
 
+const TAG_PRESETS = [
+  { key: "players", label: "人数", placeholder: "例如 6" },
+  { key: "difficulty", label: "难度", placeholder: "easy / medium / hard" },
+  { key: "duration", label: "时长", placeholder: "例如 3h" },
+  { key: "theme", label: "题材", placeholder: "例如 民国悬疑" }
+];
 
-export const settingsViewApi = { settings, saveWorldSettings, saveRoomSettings, goWriterExport, openWorldAuditModal, openCatalogReviewModal, withdrawCatalogListing };
+function renderTagRows(tags = []) {
+  const byKey = new Map((tags || []).map((t) => [t.tag_key || t.tagKey, t.tag_value || t.tagValue]));
+  return TAG_PRESETS.map((preset) => {
+    const value = byKey.get(preset.key) || "";
+    return `<div class="form-group" style="margin-bottom:10px"><label>${escapeHtml(preset.label)} <code>${preset.key}</code></label><input class="field" data-tag-key="${preset.key}" value="${escapeHtml(value)}" placeholder="${escapeHtml(preset.placeholder)}"></div>`;
+  }).join("");
+}
+
+export async function openWorldTagsModal() {
+  const worldId = zhimuApi.context.worldId;
+  if (!worldId) return showToast("请先选择剧本");
+  try {
+    const payload = await zhimuApi.getWorldTags(worldId);
+    const tags = payload?.tags || [];
+    modal.className = "modal world-tags-modal";
+    modal.innerHTML = `<h2>内容标签</h2><p class="wizard-intro">用于公开剧本库筛选。仅对已上架（catalog_public）的剧本计入 facet 统计。</p><div class="form-group">${renderTagRows(tags)}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-save-world-tags>保存标签</button></div>`;
+    modalBackdrop.classList.add("show");
+    modal.querySelector("[data-close]").onclick = closeModal;
+    modal.querySelector("[data-save-world-tags]").onclick = async () => {
+      const nextTags = TAG_PRESETS.map((preset) => {
+        const value = modal.querySelector(`[data-tag-key="${preset.key}"]`)?.value?.trim() || "";
+        return value ? { tagKey: preset.key, tagValue: value } : null;
+      }).filter(Boolean);
+      try {
+        await zhimuApi.putWorldTags(nextTags, worldId);
+        closeModal();
+        showToast("标签已保存");
+      } catch (error) {
+        showError(error);
+      }
+    };
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function renderRemedyRow(item) {
+  return `<article class="checkpoint-row" data-remedy-id="${escapeHtml(item.id)}"><strong>${escapeHtml(item.segment_key)} · ${escapeHtml(item.title)}</strong><p>${escapeHtml(item.trigger_hint || "无触发提示")}</p><p class="muted-note">${escapeHtml((item.host_script || "").slice(0, 120))}${(item.host_script || "").length > 120 ? "…" : ""}</p><button type="button" class="text-btn danger-text" data-delete-remedy="${escapeHtml(item.id)}">删除</button></article>`;
+}
+
+export async function openSegmentRemediesModal() {
+  const worldId = zhimuApi.context.worldId;
+  if (!worldId) return showToast("请先选择剧本");
+  const draw = async () => {
+    const payload = await zhimuApi.getSegmentRemedies(worldId);
+    const items = payload?.items || [];
+    const list = items.length ? items.map(renderRemedyRow).join("") : `<div class="empty-state">尚无补救模板，可在下方添加。</div>`;
+    modal.querySelector("[data-remedy-list]").innerHTML = list;
+    modal.querySelectorAll("[data-delete-remedy]").forEach((btn) => {
+      btn.onclick = async () => {
+        if (!confirm("确定删除该补救模板？")) return;
+        try {
+          await zhimuApi.deleteSegmentRemedy(btn.dataset.deleteRemedy, worldId);
+          showToast("已删除");
+          await draw();
+        } catch (error) {
+          showError(error);
+        }
+      };
+    });
+  };
+  try {
+    modal.className = "modal segment-remedies-modal";
+    modal.innerHTML = `<h2>段落补救模板</h2><p class="wizard-intro">主持人在独立主持端可对卡关段落一键执行话术。segment_key 通常与章节键一致（如 ch1）。</p><div class="host-detail-list" data-remedy-list><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增模板</label><input class="field" data-remedy-field="segmentKey" placeholder="段落键 ch1"><input class="field" data-remedy-field="title" placeholder="标题（主持端显示）"><textarea class="field" data-remedy-field="hostScript" rows="3" placeholder="主持播报话术"></textarea><input class="field" data-remedy-field="triggerHint" placeholder="触发提示（选填）"></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-remedy>添加模板</button></div>`;
+    modalBackdrop.classList.add("show");
+    modal.querySelector("[data-close]").onclick = closeModal;
+    modal.querySelector("[data-add-remedy]").onclick = async () => {
+      const val = (key) => modal.querySelector(`[data-remedy-field="${key}"]`)?.value?.trim() || "";
+      const segmentKey = val("segmentKey");
+      const title = val("title");
+      const hostScript = val("hostScript");
+      if (!segmentKey || !title || !hostScript) return showToast("请填写段落键、标题与话术");
+      try {
+        await zhimuApi.createSegmentRemedy({ segmentKey, title, hostScript, triggerHint: val("triggerHint") || undefined }, worldId);
+        ["segmentKey", "title", "hostScript", "triggerHint"].forEach((key) => {
+          const el = modal.querySelector(`[data-remedy-field="${key}"]`);
+          if (el) el.value = "";
+        });
+        showToast("模板已添加");
+        await draw();
+      } catch (error) {
+        showError(error);
+      }
+    };
+    await draw();
+  } catch (error) {
+    showError(error);
+  }
+}
+
+
+export const settingsViewApi = { settings, saveWorldSettings, saveRoomSettings, goWriterExport, openWorldAuditModal, openCatalogReviewModal, withdrawCatalogListing, openWorldTagsModal, openSegmentRemediesModal };
 registerView("settings", settingsViewApi);

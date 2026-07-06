@@ -16,6 +16,8 @@ import { callView } from "./view-registry.js";
       case "open-catalog-review": callView("settings", "openCatalogReviewModal"); return true;
       case "catalog-withdraw": callView("settings", "withdrawCatalogListing"); return true;
       case "world-audit": callView("settings", "openWorldAuditModal"); return true;
+      case "open-world-tags": callView("settings", "openWorldTagsModal"); return true;
+      case "open-segment-remedies": callView("settings", "openSegmentRemediesModal"); return true;
       case "go-writer-export": callView("settings", "goWriterExport"); return true;
       default: return false;
     }

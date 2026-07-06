@@ -187,6 +187,46 @@ const EVENT_SCHEMAS = {
       pointId: uuidLike,
       roleSlotId: uuidLike
     }
+  },
+  "room.vote_created": {
+    required: ["voteId", "title", "status"],
+    optional: [],
+    types: {
+      voteId: uuidLike,
+      title: nonEmptyString,
+      status: { type: "string", enum: ["draft", "open", "closed", "published", "cancelled"] }
+    }
+  },
+  "room.vote_updated": {
+    required: ["voteId", "action"],
+    optional: [],
+    types: {
+      voteId: uuidLike,
+      action: { type: "string", minLength: 1, maxLength: 80 }
+    }
+  },
+  "room.private_action_submitted": {
+    required: ["actionId", "actionType"],
+    optional: [],
+    types: {
+      actionId: uuidLike,
+      actionType: { type: "string", enum: ["ask_host", "secret_action", "trade", "promise", "accusation_note"] }
+    }
+  },
+  "room.private_action_updated": {
+    required: ["actionId", "status"],
+    optional: [],
+    types: {
+      actionId: uuidLike,
+      status: { type: "string", enum: ["seen", "accepted", "rejected", "resolved", "cancelled"] }
+    }
+  },
+  "room.role_state_updated": {
+    required: ["roleSlotId"],
+    optional: [],
+    types: {
+      roleSlotId: uuidLike
+    }
   }
 };
 

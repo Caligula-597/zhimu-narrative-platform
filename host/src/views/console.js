@@ -100,14 +100,154 @@ export function renderConsole(){
       ${collapsibleCard({ id: "director:players", title: "玩家运行状态", subtitle: "查看阅读、线索与最近操作，并进行手动干预", headerExtra: `<div class="row host-manual-actions"><button class="secondary-btn" data-action="host-manual-grant-clue">发线索</button><button class="secondary-btn" data-action="host-manual-grant-item">发物品</button><button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button><button class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button></div>`, body: `<div class="host-runtime-table-wrap"><table class="host-runtime-table"><thead><tr><th>玩家 / 角色</th><th>入房</th><th>阅读进度</th><th>线索</th><th>最近操作</th><th>状态</th><th></th></tr></thead><tbody>${hostPlayerTableRows(players)}</tbody></table></div>`, defaultOpen: true })}
     </div>
     <aside class="host-console-side">
+      ${hostPaceTimerCard()}
       ${hostLiveFeed()}
       ${hostAuditCard()}
       ${collapsibleCard({ id: "director:rules-preview", title: "规则运行与管理", subtitle: "当前房间的条件评估与自动化规则管理", headerExtra: `<button class="secondary-btn" data-action="rules-preview">刷新预览</button><button class="secondary-btn" data-action="host-rule-new">新建</button><button class="secondary-btn" data-action="host-rule-validate">检查</button>`, body: `${directorRulesPreview()}${hostRulesManager()}`, defaultOpen: false })}
     </aside>
   </div>
   ${hostPublicEnvironmentCard()}
+  ${hostRunbookCard()}
   ${hostClueMatrixCard()}
+  ${hostTestimoniesCard()}
+  ${hostVotesCard()}
+  ${hostPrivateActionsCard()}
+  ${hostRunReportCard()}
+  ${hostSegmentRemediesCard()}
  </section>`;
+}
+
+function hostTestimoniesCard() {
+  const items = state.cloudHostTestimonies || [];
+  const body = items.length
+    ? items
+        .map(
+          (row) => `<article class="host-testimony-row">
+        <div><strong>${escapeHtml(row.role_name)}</strong> · ${escapeHtml(row.act_key || "—")} · <time>${formatRelativeTime(row.submitted_at)}</time></div>
+        <p>${escapeHtml(row.body)}</p>
+        ${row.host_flag ? `<span class="status-chip ${row.host_flag === "contradiction" ? "draft" : "published"}">${row.host_flag === "contradiction" ? "矛盾" : "已阅"}</span>` : ""}
+        <div class="row">
+          <button class="text-btn" type="button" data-action="host-review-testimony" data-testimony="${row.id}" data-flag="noted">标记已阅</button>
+          <button class="text-btn danger-text" type="button" data-action="host-review-testimony" data-testimony="${row.id}" data-flag="contradiction">标记矛盾</button>
+        </div>
+      </article>`
+        )
+        .join("")
+    : `<div class="empty-state">暂无玩家口供。玩家在「任务」Tab 提交后会出现在这里。</div>`;
+  return collapsibleCard({
+    id: "director:testimonies",
+    title: "玩家口供",
+    subtitle: "审查陈述并标记矛盾点",
+    headerExtra: `<button class="secondary-btn" data-action="refresh-host-room">刷新</button>`,
+    body,
+    defaultOpen: false,
+    style: "margin-top:14px"
+  });
+}
+
+function hostVotesCard() {
+  const votes = state.cloudHostVotes || [];
+  const body = votes.length
+    ? votes
+        .map((vote) => {
+          const ballots = vote.ballots || [];
+          const tally = ballots.length ? `${ballots.length} 票已投` : "尚无选票";
+          return `<article class="host-vote-row">
+        <div><strong>${escapeHtml(vote.title)}</strong> · <span class="status-chip ${vote.status === "open" ? "testing" : vote.status === "published" ? "published" : "draft"}">${escapeHtml(vote.status)}</span> · ${escapeHtml(tally)}</div>
+        ${vote.prompt ? `<p class="muted-note">${escapeHtml(vote.prompt)}</p>` : ""}
+        <div class="row">
+          ${vote.status === "open" ? `<button class="text-btn" type="button" data-action="host-vote-status" data-vote-id="${vote.id}" data-status="closed">关闭投票</button>` : ""}
+          ${vote.status === "closed" ? `<button class="text-btn" type="button" data-action="host-vote-status" data-vote-id="${vote.id}" data-status="published">公布结果</button>` : ""}
+        </div>
+      </article>`;
+        })
+        .join("")
+    : `<div class="empty-state">暂无投票。点击下方开启指认/投票。</div>`;
+  return collapsibleCard({
+    id: "director:votes",
+    title: "投票 / 指认",
+    subtitle: "开启投票、关闭并公布结果",
+    headerExtra: `<button class="secondary-btn" data-action="host-create-vote">开启投票</button>`,
+    body,
+    defaultOpen: false,
+    style: "margin-top:14px"
+  });
+}
+
+function hostPrivateActionsCard() {
+  const items = state.cloudHostPrivateActions || [];
+  const body = items.length
+    ? items
+        .map(
+          (row) => `<article class="host-private-action-row">
+        <div><strong>${escapeHtml(row.actor_role_name || "玩家")}</strong> · ${escapeHtml(row.action_type || "")} · <time>${formatRelativeTime(row.created_at)}</time></div>
+        <p><strong>${escapeHtml(row.title)}</strong></p>
+        <p>${escapeHtml(row.body || "")}</p>
+        <div class="row">
+          <button class="text-btn" type="button" data-action="host-review-private-action" data-action-id="${row.id}" data-status="seen">已阅</button>
+          <button class="text-btn" type="button" data-action="host-review-private-action" data-action-id="${row.id}" data-status="accepted">接受</button>
+          <button class="text-btn danger-text" type="button" data-action="host-review-private-action" data-action-id="${row.id}" data-status="rejected">拒绝</button>
+        </div>
+      </article>`
+        )
+        .join("")
+    : `<div class="empty-state">暂无秘密行动。玩家在「博弈」Tab 提交后会出现在这里。</div>`;
+  return collapsibleCard({
+    id: "director:private-actions",
+    title: "秘密行动",
+    subtitle: "处理玩家的询问、交易与秘密行动",
+    headerExtra: `<button class="secondary-btn" data-action="refresh-host-room">刷新</button>`,
+    body,
+    defaultOpen: false,
+    style: "margin-top:14px"
+  });
+}
+
+function hostRunReportCard() {
+  const report = state.cloudRunReport;
+  const body = report
+    ? `<div class="host-run-report">
+        <p class="muted-note">分幕 ${(report.reading || []).length} 条 · 线索 ${(report.clues || []).length} 条 · 建议 ${(report.suggestions || []).length} 条</p>
+        ${(report.suggestions || [])
+          .slice(0, 5)
+          .map((s) => `<div class="checkpoint-row"><strong>${escapeHtml(s.title)}</strong><p>${escapeHtml(s.detail || "")}</p></div>`)
+          .join("")}
+      </div>`
+    : `<div class="empty-state">点击「生成本场报告」汇总阅读、线索与投票数据，用于复盘与改本。</div>`;
+  return collapsibleCard({
+    id: "director:run-report",
+    title: "本场运行报告",
+    subtitle: "单房 playtest 数据与改进建议",
+    headerExtra: `<button class="secondary-btn" data-action="host-load-run-report">${report ? "刷新报告" : "生成报告"}</button>`,
+    body,
+    defaultOpen: false,
+    style: "margin-top:14px"
+  });
+}
+
+function hostSegmentRemediesCard() {
+  const items = state.cloudHostSegmentRemedies || [];
+  const body = items.length
+    ? items
+        .map(
+          (row) => `<article class="host-remedy-row">
+        <div><strong>${escapeHtml(row.title)}</strong> · ${escapeHtml(row.segment_key)}</div>
+        <p>${escapeHtml(row.host_script)}</p>
+        ${row.trigger_hint ? `<small>${escapeHtml(row.trigger_hint)}</small>` : ""}
+        <button class="secondary-btn" type="button" data-action="host-apply-remedy" data-remedy="${row.id}">执行补救</button>
+      </article>`
+        )
+        .join("")
+    : `<div class="empty-state">暂无段落补救模板。在创作者端「世界设置」中配置 segment remedies。</div>`;
+  return collapsibleCard({
+    id: "director:segment-remedies",
+    title: "段落补救包",
+    subtitle: "一键播报主持话术并写入时间线",
+    headerExtra: `<button class="secondary-btn" data-action="refresh-host-room">刷新</button>`,
+    body,
+    defaultOpen: false,
+    style: "margin-top:14px"
+  });
 }
 
 function grantModeLabel(mode) {
@@ -119,6 +259,211 @@ function studioClueGrantHint(clueId) {
   const mode = clue?.metadata?.grantMode;
   if (!mode || mode === "auto") return "";
   return grantModeLabel(mode);
+}
+
+function hostRunbookCard() {
+  const matrixSync = state.studio?.world?.settings?.matrixSync;
+  const worldSettings = state.studio?.world?.settings || {};
+  const runbooks = matrixSync?.hostRunbooks || worldSettings.hostRunbooks || null;
+  const chapters = (state.studio?.chapters || []).slice().sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+  const chapterByActKey = new Map();
+  for (const chapter of chapters) {
+    const actKey = chapter.metadata?.matrixActKey;
+    if (actKey) chapterByActKey.set(actKey, chapter);
+  }
+  let body;
+  if (Array.isArray(runbooks) && runbooks.length) {
+    body = runbooks
+      .map((book) => {
+        const actKey = book.actKey || "";
+        const chapter = actKey ? chapterByActKey.get(actKey) : null;
+        const title = book.title || chapter?.title || actKey || "未命名分幕";
+        const flow = String(book.flow || "").trim();
+        const hostTruth = String(book.hostTruth || "").trim();
+        const grants = Array.isArray(book.clueGrants) ? book.clueGrants : [];
+        const fallbacks = Array.isArray(book.fallbacks) ? book.fallbacks : [];
+        const grantList = grants.length
+          ? `<ul class="host-runbook-grants">${grants.map((g) => `<li><code>${escapeHtml(g.clueId || "—")}</code><span>${escapeHtml(g.when || "")}</span></li>`).join("")}</ul>`
+          : "";
+        const fallbackList = fallbacks.length
+          ? `<ul class="host-runbook-fallbacks">${fallbacks.map((f) => `<li>${escapeHtml(String(f))}</li>`).join("")}</ul>`
+          : "";
+        return `<article class="host-runbook-act">
+          <div class="row" style="align-items:center;gap:8px;margin-bottom:6px">
+            <h4 style="margin:0">${escapeHtml(title)}</h4>
+            ${actKey ? `<span class="cloud-pill">${escapeHtml(actKey)}</span>` : ""}
+          </div>
+          ${flow ? `<div class="host-runbook-block"><p class="section-kicker">流程</p><p class="wizard-intro">${escapeHtml(flow)}</p></div>` : ""}
+          ${hostTruth ? `<div class="host-runbook-block host-runbook-truth"><p class="section-kicker">本幕上帝视角</p><p class="wizard-intro">${escapeHtml(hostTruth)}</p></div>` : ""}
+          ${grantList ? `<div class="host-runbook-block"><p class="section-kicker">线索发放</p>${grantList}</div>` : ""}
+          ${fallbackList ? `<div class="host-runbook-block"><p class="section-kicker">冷场兜底</p>${fallbackList}</div>` : ""}
+        </article>`;
+      })
+      .join("");
+  } else {
+    body = `<div class="empty-state">当前世界尚未生成主持手册。Matrix 流水线导入或在创作者端「DeepSeek 流水线 → 主持手册层」生成后会自动展示在这里。每幕包含流程、上帝视角、线索发放时机和冷场兜底话术。</div>`;
+  }
+  return collapsibleCard({
+    id: "director:host-runbook",
+    title: "主持手册（Runbook）",
+    subtitle: "Matrix L5 hostRunbook · 每幕流程、真相、线索发放与兜底话术",
+    body,
+    defaultOpen: false,
+    className: "card host-runbook-card",
+    style: "margin-top:14px"
+  });
+}
+
+function hostPaceTimerCard() {
+  const pace = state.paceTimer || { mode: "count-up", running: false, startedAt: null, elapsedMs: 0, targetMs: 0 };
+  const modes = [
+    { id: "count-up", label: "正计时" },
+    { id: "countdown-30", label: "30 分钟", ms: 30 * 60 * 1000 },
+    { id: "countdown-45", label: "45 分钟", ms: 45 * 60 * 1000 },
+    { id: "countdown-60", label: "60 分钟", ms: 60 * 60 * 1000 }
+  ];
+  const modeButtons = modes
+    .map((m) => {
+      const active = pace.mode === m.id ? " is-active" : "";
+      return `<button type="button" class="host-pace-mode-btn${active}" data-action="host-pace-switch-mode" data-mode="${m.id}" data-target-ms="${m.ms || 0}">${escapeHtml(m.label)}</button>`;
+    })
+    .join("");
+  const running = Boolean(pace.running);
+  const primaryLabel = running ? "暂停" : pace.elapsedMs > 0 || pace.startedAt ? "继续" : "开始";
+  const body = `<div class="host-pace-timer" data-host-pace-timer>
+    <div class="host-pace-clock-row">
+      <div class="host-pace-clock" data-host-pace-clock>${formatPaceClock(pace)}</div>
+      <div class="host-pace-clock-meta">
+        <span class="status-chip ${running ? "published" : "draft"}">${running ? "运行中" : "已暂停"}</span>
+        <span class="muted-note">${pace.mode === "count-up" ? "正计时模式" : "倒计时模式"}</span>
+      </div>
+    </div>
+    <div class="host-pace-modes">${modeButtons}</div>
+    <div class="host-pace-actions">
+      <button type="button" class="primary-btn" data-action="host-pace-toggle" data-running="${running ? "1" : "0"}">${primaryLabel}</button>
+      <button type="button" class="secondary-btn" data-action="host-pace-reset">重置</button>
+    </div>
+    <p class="muted-note host-pace-hint">用于把控每幕节奏：开场播报、调查、公聊、复盘。计时器状态保存在本地，不会同步给玩家。</p>
+  </div>`;
+  return collapsibleCard({
+    id: "director:pace-timer",
+    title: "节奏计时器",
+    subtitle: "把控每幕时长 · 仅供主持人本地使用",
+    body,
+    defaultOpen: false,
+    className: "card host-pace-timer-card",
+    style: "margin-top:14px"
+  });
+}
+
+function formatPaceClock(pace) {
+  let elapsed = pace.elapsedMs || 0;
+  if (pace.running && pace.startedAt) {
+    elapsed += Date.now() - pace.startedAt;
+  }
+  if (pace.mode === "count-up") {
+    return formatPaceDuration(elapsed);
+  }
+  const target = pace.targetMs || 0;
+  const remaining = Math.max(0, target - elapsed);
+  return formatPaceDuration(remaining);
+}
+
+function formatPaceDuration(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const pad = (n) => String(n).padStart(2, "0");
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+
+const PACE_TIMER_KEY = "zhimuHostPaceTimerState";
+
+function loadPaceState() {
+  try {
+    const raw = localStorage.getItem(PACE_TIMER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      // 跨页面加载时如果之前在运行，把 startedAt 之前累积到 elapsedMs，避免时间错乱
+      if (parsed.running && parsed.startedAt) {
+        parsed.elapsedMs = (parsed.elapsedMs || 0) + (Date.now() - parsed.startedAt);
+        parsed.startedAt = Date.now();
+      }
+      return parsed;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function savePaceState(pace) {
+  try {
+    localStorage.setItem(PACE_TIMER_KEY, JSON.stringify(pace));
+  } catch (_) {}
+}
+
+function initPaceState() {
+  const stored = loadPaceState();
+  if (stored) {
+    state.paceTimer = stored;
+    return stored;
+  }
+  const fresh = { mode: "count-up", running: false, startedAt: null, elapsedMs: 0, targetMs: 0 };
+  state.paceTimer = fresh;
+  savePaceState(fresh);
+  return fresh;
+}
+
+export function bootstrapPaceTimer() {
+  initPaceState();
+}
+
+export function togglePaceTimer() {
+  const pace = state.paceTimer || initPaceState();
+  if (pace.running) {
+    // 暂停：把已运行时间累积到 elapsedMs
+    if (pace.startedAt) {
+      pace.elapsedMs = (pace.elapsedMs || 0) + (Date.now() - pace.startedAt);
+      pace.startedAt = null;
+    }
+    pace.running = false;
+  } else {
+    // 开始/继续
+    pace.startedAt = Date.now();
+    pace.running = true;
+  }
+  state.paceTimer = { ...pace };
+  savePaceState(state.paceTimer);
+  render();
+}
+
+export function resetPaceTimer() {
+  const fresh = { mode: state.paceTimer?.mode || "count-up", running: false, startedAt: null, elapsedMs: 0, targetMs: state.paceTimer?.targetMs || 0 };
+  state.paceTimer = fresh;
+  savePaceState(fresh);
+  render();
+}
+
+export function switchPaceMode(modeId, targetMs = 0) {
+  const pace = state.paceTimer || initPaceState();
+  pace.mode = modeId;
+  pace.targetMs = targetMs;
+  pace.running = false;
+  pace.startedAt = null;
+  pace.elapsedMs = 0;
+  state.paceTimer = { ...pace };
+  savePaceState(state.paceTimer);
+  render();
+}
+
+/** 每秒由 main.js 的 setInterval 调用：直接更新 DOM 避免触发全量 render */
+export function tickPaceTimer() {
+  const pace = state.paceTimer;
+  if (!pace) return;
+  const el = document.querySelector("[data-host-pace-clock]");
+  if (!el) return;
+  el.textContent = formatPaceClock(pace);
 }
 
 function hostPublicEnvironmentCard() {

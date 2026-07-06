@@ -10,8 +10,38 @@ export function getWorlds(includeArchived = false) {
   return request(`/worlds${includeArchived ? "?includeArchived=true" : ""}`, { userId: demoContext.hostUserId });
 }
 
-export function getWorldCatalog() {
-  return request("/worlds/catalog", { userId: demoContext.hostUserId });
+export function getWorldCatalog(tagQuery = "") {
+  const qs = tagQuery ? (tagQuery.startsWith("?") ? tagQuery : `?${tagQuery}`) : "";
+  return request(`/worlds/catalog${qs}`, { userId: demoContext.hostUserId });
+}
+
+export function getCatalogTagFacets() {
+  return request("/worlds/catalog/tag-facets", { userId: demoContext.hostUserId });
+}
+
+export function getWorldTags(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/tags`, { userId: demoContext.hostUserId });
+}
+
+export function putWorldTags(tags, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/tags`, { worldId, method: "PUT", body: { tags } });
+}
+
+export function getSegmentRemedies(worldId = demoContext.worldId, segmentKey = "") {
+  const qs = segmentKey ? `?segmentKey=${encodeURIComponent(segmentKey)}` : "";
+  return request(`/worlds/${worldId}/segment-remedies${qs}`, { userId: demoContext.hostUserId });
+}
+
+export function createSegmentRemedy(payload, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/segment-remedies`, { worldId, method: "POST", body: payload });
+}
+
+export function updateSegmentRemedy(remedyId, payload, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/segment-remedies/${remedyId}`, { worldId, method: "PATCH", body: payload });
+}
+
+export function deleteSegmentRemedy(remedyId, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/segment-remedies/${remedyId}`, { worldId, method: "DELETE" });
 }
 
 export function patchWorldCatalog(catalogPublic, worldId = demoContext.worldId) {
@@ -118,6 +148,58 @@ export function getCreatorDashboard({ roomId, worldId } = {}) {
   const query = params.toString();
   const wid = worldId || demoContext.worldId;
   return request(`/worlds/${wid}/creator-dashboard${query ? `?${query}` : ""}`, {
+    userId: demoContext.hostUserId
+  });
+}
+
+export function getWorldSegments(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/segments`, { userId: demoContext.hostUserId });
+}
+
+export function createWorldSegment(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/segments`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function updateWorldSegment(segmentId, payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/segments/${segmentId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload });
+}
+
+export function getTruthClaims(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/truth-claims`, { userId: demoContext.hostUserId });
+}
+
+export function createTruthClaim(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/truth-claims`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function getRoleRelationships(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/role-relationships`, { userId: demoContext.hostUserId });
+}
+
+export function createRoleRelationship(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/role-relationships`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function getCreatorAnalytics(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/creator-analytics`, { userId: demoContext.hostUserId });
+}
+
+export function getSegmentCompletion({ roomId, worldId } = {}) {
+  const params = new URLSearchParams();
+  if (roomId) params.set("roomId", roomId);
+  const query = params.toString();
+  const wid = worldId || demoContext.worldId;
+  return request(`/worlds/${wid}/segment-completion${query ? `?${query}` : ""}`, {
+    userId: demoContext.hostUserId
+  });
+}
+
+export function getClueHitRate({ roomId, worldId } = {}) {
+  const params = new URLSearchParams();
+  if (roomId) params.set("roomId", roomId);
+  const query = params.toString();
+  const wid = worldId || demoContext.worldId;
+  return request(`/worlds/${wid}/clue-hit-rate${query ? `?${query}` : ""}`, {
     userId: demoContext.hostUserId
   });
 }

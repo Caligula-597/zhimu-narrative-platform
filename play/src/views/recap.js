@@ -193,8 +193,29 @@ export function renderRecapTab() {
   if (!latest) {
     return `<div class="empty enriched-empty"><span class="empty-icon">📜</span>主持人尚未生成本房间的复盘报告。局结束后请让主持人在创作者端「存档与复盘」生成，你即可在此查看<strong>全剧脉络与各角色表现</strong>。</div>`;
   }
+  const satisfactionBlock =
+    state.satisfactionSubmitted
+      ? `<p class="muted-note">你已提交本局满意度问卷，感谢反馈。</p>`
+      : `<article class="card satisfaction-card">
+      <p class="eyebrow">本局体验问卷</p>
+      <label>整体满意度（1–5）
+        <select class="field" data-satisfaction-rating>
+          <option value="">请选择</option>
+          <option value="5">5 · 非常满意</option>
+          <option value="4">4 · 满意</option>
+          <option value="3">3 · 一般</option>
+          <option value="2">2 · 不满意</option>
+          <option value="1">1 · 很差</option>
+        </select>
+      </label>
+      <label>补充说明（选填）
+        <textarea class="field" rows="3" data-satisfaction-comment placeholder="代入感、推理公平性、节奏…"></textarea>
+      </label>
+      <button class="btn outline" type="button" data-action="submit-satisfaction">提交问卷</button>
+    </article>`;
   if (!state.recapDetail || state.recapDetail.id !== latest.id) {
     return `
+      ${satisfactionBlock}
       <article class="card recap-card">
         <p class="eyebrow">局后复盘</p>
         <h3>${escapeHtml(latest.label)}</h3>

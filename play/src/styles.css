@@ -2392,6 +2392,182 @@ code {
   background: var(--brass-soft);
 }
 
+/* ===== A4 个人时间线 Tab ===== */
+.timeline-panel {
+  display: grid;
+  gap: 10px;
+}
+.timeline-panel > .eyebrow {
+  margin: 0;
+}
+.timeline-panel > .muted.small {
+  margin: 0 0 6px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.timeline-list {
+  display: grid;
+  gap: 8px;
+}
+.timeline-item {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 253, 248, 0.7);
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.timeline-item.is-self {
+  border-color: rgba(88, 127, 121, 0.32);
+  background: rgba(231, 242, 233, 0.45);
+}
+.timeline-item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.timeline-event-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--green-2);
+  background: var(--sage-2);
+}
+.timeline-item.is-self .timeline-event-tag {
+  color: #fff;
+  background: var(--green);
+}
+.timeline-self {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--brass);
+}
+.timeline-time {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-family: ui-monospace, Consolas, monospace;
+}
+.timeline-message {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* ===== A5 推理笔记 Tab ===== */
+.notes-panel {
+  display: grid;
+  gap: 10px;
+}
+.notes-panel > .eyebrow {
+  margin: 0;
+}
+.notes-panel > .muted.small {
+  margin: 0 0 6px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.notes-editor {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+}
+.notes-editor .input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fffdf8;
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+.notes-editor .input:focus {
+  outline: 2px solid rgba(88, 127, 121, 0.35);
+  outline-offset: 1px;
+}
+.notes-editor-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.notes-list {
+  display: grid;
+  gap: 8px;
+}
+.notes-item {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 253, 248, 0.7);
+  display: grid;
+  gap: 6px;
+}
+.notes-item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.notes-item-head strong {
+  font-size: 14px;
+  color: var(--ink);
+}
+.notes-source {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--sage-2);
+}
+.notes-time {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-family: ui-monospace, Consolas, monospace;
+}
+.notes-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.notes-item .btn.quiet.compact {
+  justify-self: start;
+  font-size: 11px;
+}
+
+.social-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.social-section h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.social-section .vote-card,
+.social-section .notes-editor {
+  margin-bottom: 10px;
+}
+
+.vote-options.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .host-wait-banner.soft {
   border-color: rgba(43, 107, 97, 0.22);
   background: var(--sage-2);

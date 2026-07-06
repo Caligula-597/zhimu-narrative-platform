@@ -50,3 +50,35 @@ export function shareClueToRoles(clueId, roleSlotIds) {
 export function updateCluePlayerNote(clueId, note) {
   return request(`/rooms/${demoContext.roomId}/clues/${clueId}/player-note`, { userId: demoContext.playerUserId, method: "PATCH", body: { note } });
 }
+
+export function getPlayerVotes(roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/votes`, { userId: demoContext.playerUserId });
+}
+
+export function submitVoteBallot(voteId, payload, roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/votes/${voteId}/ballots`, {
+    userId: demoContext.playerUserId,
+    method: "POST",
+    body: payload
+  });
+}
+
+export function getPrivateActions(roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/private-actions`, { userId: demoContext.playerUserId });
+}
+
+export function createPrivateAction(payload, roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/private-actions`, {
+    userId: demoContext.playerUserId,
+    method: "POST",
+    body: payload
+  });
+}
+
+export function updateSuspicion(targetRoleSlotId, payload, roomId = demoContext.roomId) {
+  return request(`/rooms/${roomId}/suspicions/${targetRoleSlotId}`, {
+    userId: demoContext.playerUserId,
+    method: "PUT",
+    body: { level: payload?.level, reason: payload?.reason ?? "" }
+  });
+}

@@ -8,7 +8,7 @@ export const GAME_TAB_KEY = "zhimuPlayGameTab";
 export const GAME_SECTION_KEY = "zhimuPlayGameSection";
 export const GAME_SIDEBAR_KEY = "zhimuPlayGameSidebarCollapsed";
 
-const VALID_GAME_TABS = new Set(["home", "voice", "sections", "explore", "clues", "inventory", "recap"]);
+const VALID_GAME_TABS = new Set(["home", "voice", "sections", "tasks", "suspicions", "social", "explore", "clues", "inventory", "recap", "timeline", "notes"]);
 
 function readStoredRoomId() {
   return localStorage.getItem(ROOM_KEY) || "";
@@ -67,8 +67,16 @@ export const state = {
   recapLatest: null,
   recapDetail: null,
   recapLoading: false,
+  satisfactionSubmitted: false,
   recapError: "",
   recapId: "",
+  /** A4 个人时间线 — 由 my-timeline API 返回，仅在 timeline Tab 中展示 */
+  myTimeline: null,
+  myTimelineLoading: false,
+  myTimelineError: "",
+  /** A5 推理笔记草稿 — 笔记列表来自 home.notes，写入用 notebook API */
+  notesDraft: "",
+  notesDraftTitle: "",
   modal: null,
   modalDraft: "",
   clueShareRoles: [],
@@ -100,9 +108,9 @@ export const state = {
   dmScrollStickBottom: false,
   voiceScrollStickBottom: false,
   /** Tab ids with unseen multiplayer updates (cleared on visit). */
-  tabPulse: { home: false, sections: false, explore: false, clues: false, inventory: false, voice: false },
+  tabPulse: { home: false, sections: false, tasks: false, suspicions: false, social: false, explore: false, clues: false, inventory: false, voice: false, timeline: false, notes: false },
   /** Unseen update counts shown on tab badges while away from that tab. */
-  tabPulseCount: { home: 0, sections: 0, explore: 0, clues: 0, inventory: 0, voice: 0 }
+  tabPulseCount: { home: 0, sections: 0, tasks: 0, suspicions: 0, social: 0, explore: 0, clues: 0, inventory: 0, voice: 0, timeline: 0, notes: 0 }
 };
 
 export function dmUnreadTotal(stateRef = state) {

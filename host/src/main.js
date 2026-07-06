@@ -68,13 +68,24 @@ import {
   triggerManualRuleFromDirector,
   deleteHostRule,
   validateHostRules,
-  kickHostPlayer
+  kickHostPlayer,
+  togglePaceTimer,
+  resetPaceTimer,
+  switchPaceMode,
+  tickPaceTimer,
+  bootstrapPaceTimer
 } from "./views/console.js";
 
 import { createToastTimer } from "../../shared/toast.js";
 
 const app = document.getElementById("app");
 const hostToastTimer = createToastTimer(3200);
+
+// 节奏计时器：从 localStorage 恢复状态，并启动每秒 DOM 直更（避免触发全量 render）
+bootstrapPaceTimer();
+setInterval(() => {
+  if (state.view === "console") tickPaceTimer();
+}, 1000);
 
 function setBusy(busy) {
   state.busy = busy;
@@ -426,8 +437,90 @@ function handleDirectorAction(action, el) {
     case "refresh-host-audit":
       refreshHostAuditLog(true);
       return true;
+    case "host-review-testimony":
+      (async () => {
+        try {
+          await api.reviewHostTestimony(button.dataset.testimony, { hostFlag: button.dataset.flag });
+          showToast("口供已更新");
+          await loadHostData(false, true);
+        } catch (error) {
+          showToast(formatApiError(error, "更新失败"));
+        }
+      })();
+      return true;
+    case "host-apply-remedy":
+      (async () => {
+        try {
+          await api.applyHostSegmentRemedy(button.dataset.remedy);
+          showToast("补救话术已执行");
+          await loadHostData(false, true);
+        } catch (error) {
+          showToast(formatApiError(error, "执行失败"));
+        }
+      })();
+      return true;
+    case "host-create-vote": {
+      const title = window.prompt("投票标题（如：指认凶手）");
+      if (!title?.trim()) return true;
+      (async () => {
+        try {
+          await api.hostCreateVote({
+            title: title.trim(),
+            voteType: "accusation",
+            prompt: "请选择你认为的嫌疑人"
+          });
+          showToast("投票已开启");
+          await loadHostData(false, true);
+        } catch (error) {
+          showToast(formatApiError(error, "开启失败"));
+        }
+      })();
+      return true;
+    }
+    case "host-vote-status":
+      (async () => {
+        try {
+          await api.hostUpdateVoteStatus(button.dataset.voteId, button.dataset.status);
+          showToast("投票状态已更新");
+          await loadHostData(false, true);
+        } catch (error) {
+          showToast(formatApiError(error, "更新失败"));
+        }
+      })();
+      return true;
+    case "host-review-private-action":
+      (async () => {
+        try {
+          await api.hostUpdatePrivateAction(button.dataset.actionId, { status: button.dataset.status });
+          showToast("秘密行动已处理");
+          await loadHostData(false, true);
+        } catch (error) {
+          showToast(formatApiError(error, "处理失败"));
+        }
+      })();
+      return true;
+    case "host-load-run-report":
+      (async () => {
+        try {
+          state.cloudRunReport = await api.getRoomRunReport();
+          showToast("本场报告已生成");
+          render();
+        } catch (error) {
+          showToast(formatApiError(error, "生成失败"));
+        }
+      })();
+      return true;
     case "refresh-host-data":
       loadHostData(true, true);
+      return true;
+    case "host-pace-toggle":
+      togglePaceTimer();
+      return true;
+    case "host-pace-reset":
+      resetPaceTimer();
+      return true;
+    case "host-pace-switch-mode":
+      switchPaceMode(el?.dataset?.mode || "count-up", Number(el?.dataset?.targetMs || 0));
       return true;
     case "onboarding-go-player": {
       const code = state.room?.invite_code || "";

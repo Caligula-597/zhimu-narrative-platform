@@ -69,7 +69,11 @@ async function loadHostDataInternal(withToast = false) {
         api.getHostEvents(),
         api.getWorldLogs(logParams),
         api.getHostClueMatrix(),
-        api.getHostAuditLog().catch(() => ({ entries: [] }))
+        api.getHostAuditLog().catch(() => ({ entries: [] })),
+        api.getHostTestimonies().catch(() => ({ items: [] })),
+        api.getHostSegmentRemedies().catch(() => ({ items: [] })),
+        api.getHostVotes().catch(() => ({ votes: [] })),
+        api.getHostPrivateActions().catch(() => ({ actions: [] }))
       ]);
       if (results[0].status === "fulfilled") applyHostPlayersPayload(results[0].value);
       else {
@@ -81,12 +85,21 @@ async function loadHostDataInternal(withToast = false) {
       if (results[2].status === "fulfilled") state.cloudWorldLogs = results[2].value || [];
       if (results[3].status === "fulfilled") state.cloudHostClueMatrix = results[3].value;
       if (results[4].status === "fulfilled") state.cloudHostAuditLog = results[4].value?.entries || [];
+      if (results[5].status === "fulfilled") state.cloudHostTestimonies = results[5].value?.items || [];
+      if (results[6].status === "fulfilled") state.cloudHostSegmentRemedies = results[6].value?.items || [];
+      if (results[7].status === "fulfilled") state.cloudHostVotes = results[7].value?.votes || [];
+      if (results[8].status === "fulfilled") state.cloudHostPrivateActions = results[8].value?.actions || [];
     } else {
       state.cloudHostPlayers = [];
       state.cloudHostEvents = [];
       state.cloudWorldLogs = [];
       state.cloudHostClueMatrix = null;
       state.cloudHostAuditLog = [];
+      state.cloudHostTestimonies = [];
+      state.cloudHostSegmentRemedies = [];
+      state.cloudHostVotes = [];
+      state.cloudHostPrivateActions = [];
+      state.cloudRunReport = null;
     }
 
     state.apiError = [...new Set(errors)].join(" · ");

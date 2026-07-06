@@ -102,6 +102,16 @@ export const api = {
   getHostEvents: () => request(roomPath("/host-events")),
   getHostClueMatrix: () => request(roomPath("/host/clue-matrix")),
   getHostAuditLog: (limit = 50) => request(`${roomPath("/host/audit-log")}?limit=${limit}`),
+  getHostVotes: () => request(roomPath("/host/votes")),
+  hostCreateVote: (payload) => request(roomPath("/host/votes"), { method: "POST", body: payload }),
+  hostUpdateVoteStatus: (voteId, status) =>
+    request(roomPath(`/host/votes/${voteId}`), { method: "PATCH", body: { status } }),
+  getHostPrivateActions: () => request(roomPath("/host/private-actions")),
+  hostUpdatePrivateAction: (actionId, payload) =>
+    request(roomPath(`/host/private-actions/${actionId}`), { method: "PATCH", body: payload }),
+  hostUpdateRoleState: (roleSlotId, payload) =>
+    request(roomPath(`/host/players/${roleSlotId}/state`), { method: "PATCH", body: payload }),
+  getRoomRunReport: () => request(roomPath("/run-report")),
   previewRoomRules: () => request(roomPath("/rules/preview")),
   triggerManualRule: (ruleId) => request(roomPath(`/rules/${ruleId}/trigger`), { method: "POST", idempotent: true }),
 
@@ -130,6 +140,17 @@ export const api = {
 
   createCheckpoint: (payload) => request(roomPath("/checkpoints"), { method: "POST", body: payload }),
   createRecap: (payload) => request(roomPath("/recaps"), { method: "POST", body: payload }),
+
+  getHostTestimonies: () => request(roomPath("/host/testimonies")),
+  reviewHostTestimony: (testimonyId, payload) =>
+    request(roomPath(`/host/testimonies/${testimonyId}`), { method: "PATCH", body: payload }),
+  getHostSuspicions: () => request(roomPath("/host/suspicions")),
+  getHostSegmentRemedies: (segmentKey) => {
+    const qs = segmentKey ? `?segmentKey=${encodeURIComponent(segmentKey)}` : "";
+    return request(roomPath(`/host/segment-remedies${qs}`));
+  },
+  applyHostSegmentRemedy: (remedyId) =>
+    request(roomPath(`/host/segment-remedies/${remedyId}/apply`), { method: "POST", body: {} }),
 
   streamRoomEvents(roomId, onEvent, signal) {
     const headers = { ...defaultSessionTokenStore.bearerHeaders(), accept: "text/event-stream" };

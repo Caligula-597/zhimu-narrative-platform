@@ -154,14 +154,16 @@ export async function joinCatalogWorld(worldId){
 
 export async function openWorldLibrary(defaultTab="mine"){
  modal.className="modal world-library-modal";
- modal.innerHTML=`<h2>选择剧本</h2><p class="wizard-intro">「我的剧本」是你创建或被邀请协作的世界；「公开剧本库」可体验主创作者已发布的完整剧本（每人一个自己的运行房，不会重复创建）。</p><div class="world-library-tabs"><button type="button" class="secondary-btn" data-library-tab="mine">我的剧本</button><button type="button" class="secondary-btn" data-library-tab="catalog">公开剧本库</button></div><div data-library-panel="mine"><label class="check-label" style="margin-bottom:12px"><input type="checkbox" id="world-library-archived"><span>显示已归档剧本</span></label></div><div class="world-library-list"><div class="empty-state">正在加载…</div></div><div class="world-library-danger hidden" data-world-library-danger></div><div class="modal-actions"><button class="secondary-btn" data-close disabled>关闭</button><button class="primary-btn" data-open-create-world disabled>＋ 创建新世界</button></div>`;
+ modal.innerHTML=`<h2>选择剧本</h2><p class="wizard-intro">「我的剧本」是你创建或被邀请协作的世界；「公开剧本库」可体验主创作者已发布的完整剧本（每人一个自己的运行房，不会重复创建）。</p><div class="world-library-tabs"><button type="button" class="secondary-btn" data-library-tab="mine">我的剧本</button><button type="button" class="secondary-btn" data-library-tab="catalog">公开剧本库</button></div><div data-library-panel="mine"><label class="check-label" style="margin-bottom:12px"><input type="checkbox" id="world-library-archived"><span>显示已归档剧本</span></label></div><div data-library-panel="catalog" class="hidden" data-catalog-filters></div><div class="world-library-list"><div class="empty-state">正在加载…</div></div><div class="world-library-danger hidden" data-world-library-danger></div><div class="modal-actions"><button class="secondary-btn" data-close disabled>关闭</button><button class="primary-btn" data-open-create-world disabled>＋ 创建新世界</button></div>`;
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  let activeTab=defaultTab;
+ const catalogTagFilters={};
  const setTab=tab=>{
   activeTab=tab;
   modal.querySelectorAll("[data-library-tab]").forEach(btn=>{btn.classList.toggle("primary-btn",btn.dataset.libraryTab===tab);btn.classList.toggle("secondary-btn",btn.dataset.libraryTab!==tab)});
   modal.querySelector("[data-library-panel='mine']")?.classList.toggle("hidden",tab!=="mine");
+  modal.querySelector("[data-library-panel='catalog']")?.classList.toggle("hidden",tab!=="catalog");
  };
  modal.querySelectorAll("[data-library-tab]").forEach(btn=>btn.onclick=()=>{setTab(btn.dataset.libraryTab);draw()});
  const drawMine=async()=>{
@@ -173,10 +175,37 @@ export async function openWorldLibrary(defaultTab="mine"){
   return {html:worlds.map((world,index)=>{const count=roomCounts[index].status==="fulfilled"?roomCounts[index].value:"?";const isCurrent=world.id===zhimuApi.context.worldId;const owner=world.membership_role==="owner";const editor=world.membership_role==="editor";const canRename=owner||editor;const roomHint=owner||editor?`${count} 个运行房（全剧本）`:count?`我的运行房 · ${count}`:"尚未建立运行房";return `<article class="world-library-card ${isCurrent?"active":""}"><div><span class="cloud-pill">${escapeHtml(world.membership_role||"member")}</span><span class="status-chip ${world.status||"draft"}">${escapeHtml(statusLabel[world.status]||world.status||"草稿")}</span>${world.catalog_public?`<span class="status-chip published">已公开</span>`:""}<h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充剧本简介")}</p><small>${roomHint}</small></div><div class="row">${canRename?`<button class="text-btn" data-action="world-rename" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}" data-world-summary="${escapeHtml(world.summary||"")}">重命名</button>`:""}${owner?`<button class="text-btn danger-text" data-action="world-delete" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}">${isCurrent?"删除当前剧本":"删除"}</button>`:""}<button class="${isCurrent?"secondary-btn":"primary-btn"}" data-action="world-select" data-world-id="${world.id}">${isCurrent?"当前剧本":"切换剧本"}</button></div></article>`}).join("")||`<div class="empty-state">当前账号还没有可访问的剧本。可点下方「＋ 创建新世界」，或浏览公开剧本库。</div>`,worlds};
  };
  const drawCatalog=async()=>{
-  const worlds=await zhimuApi.getWorldCatalog();
+  const qs=Object.entries(catalogTagFilters).filter(([,v])=>v).map(([k,v])=>`tag_${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&");
+  const worlds=await zhimuApi.getWorldCatalog(qs);
   const err=worldStore.get().cloudCatalogError;
   if(err)return `<div class="empty-state">公开库加载失败：${escapeHtml(err)}</div>`;
-  return worlds.map(world=>`<article class="world-library-card"><div><span class="cloud-pill">公开</span><span class="status-chip testing">${world.role_count||0} 个角色席</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充剧本简介")}</p><small>创作者：${escapeHtml(world.owner_display_name||"未知")}</small></div><div class="row"><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></div></article>`).join("")||`<div class="empty-state">暂无公开剧本。主创作者可在「世界设置」提交公开库审核申请。</div>`;
+  const tagBits=(world)=>Array.isArray(world.tags)&&world.tags.length?`<small>${world.tags.map((t)=>`${escapeHtml(t.tagKey||t.tag_key)}:${escapeHtml(t.tagValue||t.tag_value)}`).join(" · ")}</small>`:"";
+  return worlds.map(world=>`<article class="world-library-card"><div><span class="cloud-pill">公开</span><span class="status-chip testing">${world.role_count||0} 个角色席</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充剧本简介")}</p>${tagBits(world)}<small>创作者：${escapeHtml(world.owner_display_name||"未知")}</small></div><div class="row"><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></div></article>`).join("")||`<div class="empty-state">暂无符合筛选的公开剧本。主创作者可在「世界设置」提交公开库审核申请。</div>`;
+ };
+ const renderCatalogFilters=async()=>{
+  const panel=modal.querySelector("[data-catalog-filters]");
+  if(!panel)return;
+  try{
+   const payload=await zhimuApi.getCatalogTagFacets();
+   const facets=payload?.facets||{};
+   const keys=Object.keys(facets);
+   if(!keys.length){panel.innerHTML="";return;}
+   const chips=keys.flatMap((key)=>facets[key].map((row)=>{
+    const active=catalogTagFilters[key]===row.value;
+    return `<button type="button" class="${active?"primary-btn":"secondary-btn"}" style="margin:0 6px 6px 0" data-catalog-tag="${key}" data-catalog-value="${escapeHtml(row.value)}">${escapeHtml(key)}:${escapeHtml(row.value)} (${row.worldCount})</button>`;
+   })).join("");
+   panel.innerHTML=`<p class="muted-note" style="margin:0 0 8px">按标签筛选（再点取消）</p><div class="row" style="flex-wrap:wrap">${chips}<button type="button" class="text-btn" data-catalog-clear>清除筛选</button></div>`;
+   panel.querySelectorAll("[data-catalog-tag]").forEach((btn)=>{
+    btn.onclick=()=>{
+     const key=btn.dataset.catalogTag;
+     const value=btn.dataset.catalogValue;
+     if(catalogTagFilters[key]===value)delete catalogTagFilters[key];
+     else catalogTagFilters[key]=value;
+     draw();
+    };
+   });
+   panel.querySelector("[data-catalog-clear]")?.addEventListener("click",()=>{Object.keys(catalogTagFilters).forEach((k)=>delete catalogTagFilters[k]);draw()});
+  }catch(_){panel.innerHTML="";}
  };
  const draw=async()=>{
   const list=modal.querySelector(".world-library-list");
@@ -184,6 +213,7 @@ export async function openWorldLibrary(defaultTab="mine"){
   try{
    const danger=modal.querySelector("[data-world-library-danger]");
    if(activeTab==="catalog"){
+    await renderCatalogFilters();
     list.innerHTML=await drawCatalog();
     danger?.classList.add("hidden");
     danger&&(danger.innerHTML="");

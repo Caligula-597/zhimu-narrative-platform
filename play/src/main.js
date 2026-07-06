@@ -836,6 +836,53 @@ const gamePatchCtx = {
   render
 };
 
+async function handleCompletePlayerTask(taskId) {
+  try {
+    await api.completePlayerTask(state.roomId, taskId);
+    await pullRoomData({ partial: true });
+    setToast("任务已标记完成", render, { patch: true });
+  } catch (error) {
+    setToast(formatApiError(error, "操作失败"), render, { patch: true });
+  }
+}
+
+async function handleSubmitTestimony() {
+  const textarea = document.querySelector("[data-testimony-body]");
+  const body = textarea?.value?.trim();
+  if (!body) {
+    setToast("请填写口供内容", render);
+    return;
+  }
+  try {
+    await api.submitTestimony(state.roomId, { actKey: state.home?.currentActKey, body });
+    if (textarea) textarea.value = "";
+    await pullRoomData({ partial: true });
+    setToast("口供已提交给主持人", render);
+  } catch (error) {
+    setToast(formatApiError(error, "提交失败"), render);
+  }
+}
+
+async function handleSubmitSatisfaction() {
+  const rating = document.querySelector("[data-satisfaction-rating]")?.value;
+  const comment = document.querySelector("[data-satisfaction-comment]")?.value?.trim() || "";
+  if (!rating) {
+    setToast("请选择满意度评分", render);
+    return;
+  }
+  try {
+    await api.submitSatisfaction({
+      roomId: state.roomId,
+      subject: `满意度 ${rating}/5`,
+      body: comment || `玩家评分：${rating}/5`
+    });
+    state.satisfactionSubmitted = true;
+    setToast("感谢你的反馈", render);
+  } catch (error) {
+    setToast(formatApiError(error, "提交失败"), render);
+  }
+}
+
 async function handleCompleteSection(sectionId) {
   const sections = state.home?.sections || [];
   const target = sections.find((section) => section.id === sectionId);
@@ -990,6 +1037,65 @@ async function loadRecapDetail() {
   }
 }
 
+async function loadMyTimeline({ silent = false } = {}) {
+  if (!state.roomId) return;
+  if (!silent) {
+    state.myTimelineLoading = true;
+    state.myTimelineError = "";
+    render();
+  }
+  try {
+    state.myTimeline = await api.myTimeline(state.roomId);
+    state.myTimelineError = "";
+  } catch (error) {
+    state.myTimelineError = formatApiError(error, "加载时间线失败");
+  } finally {
+    state.myTimelineLoading = false;
+    if (!silent || state.tab === "timeline") render();
+  }
+}
+
+async function handleAddNotebookEntry() {
+  if (!state.roomId) return;
+  const title = (state.notesDraftTitle || "").trim();
+  const body = (state.notesDraft || "").trim();
+  if (!title || !body) {
+    setToast("请填写标题和正文", render);
+    return;
+  }
+  setBusy(true, render);
+  try {
+    await api.addNotebookEntry(state.roomId, {
+      sourceType: "free",
+      sourceId: null,
+      title,
+      body
+    });
+    state.notesDraft = "";
+    state.notesDraftTitle = "";
+    await pullRoomData({ partial: true });
+    setToast("笔记已保存", render);
+  } catch (error) {
+    setToast(formatApiError(error, "保存失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
+async function handleDeleteNotebookEntry(entryId) {
+  if (!state.roomId || !entryId) return;
+  setBusy(true, render);
+  try {
+    await api.deleteNotebookEntry(state.roomId, entryId);
+    await pullRoomData({ partial: true });
+    setToast("笔记已删除", render);
+  } catch (error) {
+    setToast(formatApiError(error, "删除失败"), render);
+  } finally {
+    setBusy(false, render);
+  }
+}
+
 async function handleEmailVerify(token) {
   const result = await api.verifyEmail(token);
   if (result.token) setSessionToken(result.token);
@@ -1136,6 +1242,8 @@ app.addEventListener("input", (event) => {
   if (event.target.dataset.bind === "dmBody") state.dmDraftBody = event.target.value;
   if (event.target.dataset.bind === "modalDraft") state.modalDraft = event.target.value;
   if (event.target.dataset.bind === "voiceChat") state.voiceChatDraft = event.target.value;
+  if (event.target.dataset.bind === "notesTitle") state.notesDraftTitle = event.target.value;
+  if (event.target.dataset.bind === "notesBody") state.notesDraft = event.target.value;
 });
 
 app.addEventListener("change", (event) => {
@@ -1535,6 +1643,62 @@ app.addEventListener("click", async (event) => {
     case "complete-section":
       await handleCompleteSection(button.dataset.sectionId);
       break;
+    case "complete-player-task":
+      await handleCompletePlayerTask(button.dataset.taskId);
+      break;
+    case "submit-testimony":
+      await handleSubmitTestimony();
+      break;
+    case "submit-satisfaction":
+      await handleSubmitSatisfaction();
+      break;
+    case "save-suspicion": {
+      const card = button.closest(".suspicion-card");
+      const level = Number(card?.querySelector("[data-suspicion-level]")?.value || 0);
+      const reason = card?.querySelector("[data-suspicion-reason]")?.value || "";
+      try {
+        await api.setSuspicion(state.roomId, button.dataset.targetRole, { level, reason });
+        await pullRoomData({ partial: true });
+        setToast("怀疑度已保存", render, { patch: true });
+      } catch (error) {
+        setToast(formatApiError(error, "保存失败"), render, { patch: true });
+      }
+      break;
+    }
+    case "submit-vote-ballot": {
+      const voteId = button.dataset.voteId;
+      const optionId = button.dataset.optionId;
+      if (!voteId || !optionId) break;
+      try {
+        await api.submitVoteBallot(state.roomId, voteId, { optionId });
+        await pullRoomData({ partial: true });
+        setToast("投票已提交", render, { patch: true });
+      } catch (error) {
+        setToast(formatApiError(error, "提交失败"), render, { patch: true });
+      }
+      break;
+    }
+    case "submit-private-action": {
+      const title = document.querySelector("[data-private-action-title]")?.value?.trim();
+      const body = document.querySelector("[data-private-action-body]")?.value?.trim() || "";
+      const actionType = document.querySelector("[data-private-action-type]")?.value || "ask_host";
+      if (!title) {
+        setToast("请填写标题", render, { patch: true });
+        break;
+      }
+      try {
+        await api.createPrivateAction(state.roomId, { actionType, title, body });
+        const titleEl = document.querySelector("[data-private-action-title]");
+        const bodyEl = document.querySelector("[data-private-action-body]");
+        if (titleEl) titleEl.value = "";
+        if (bodyEl) bodyEl.value = "";
+        await pullRoomData({ partial: true });
+        setToast("已提交给主持人", render, { patch: true });
+      } catch (error) {
+        setToast(formatApiError(error, "提交失败"), render, { patch: true });
+      }
+      break;
+    }
     case "read-clue":
       await handleReadClue(button.dataset.clueId);
       break;
@@ -1565,6 +1729,9 @@ app.addEventListener("click", async (event) => {
             onRefresh: async () => pullRoomData({ partial: true }),
             onToast: (message) => setToast(message, render)
           });
+        } else if (state.tab === "timeline" && state.roomId) {
+          await loadMyTimeline({ silent: true });
+          patchGameTabSwitch(state, gamePatchCtx);
         }
         break;
       }
@@ -1577,6 +1744,8 @@ app.addEventListener("click", async (event) => {
         }
       } else if (state.tab === "recap") {
         await loadRecapSummary();
+      } else if (state.tab === "timeline" && state.roomId) {
+        await loadMyTimeline();
       } else {
         render();
       }
@@ -1718,6 +1887,17 @@ app.addEventListener("click", async (event) => {
       } finally {
         setBusy(false, render);
       }
+      break;
+    case "add-notebook-entry":
+      await handleAddNotebookEntry();
+      break;
+    case "delete-notebook-entry":
+      await handleDeleteNotebookEntry(button.dataset.noteId);
+      break;
+    case "clear-notes-draft":
+      state.notesDraft = "";
+      state.notesDraftTitle = "";
+      render();
       break;
     default:
       break;
