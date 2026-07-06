@@ -186,7 +186,7 @@ export async function openTruthClaimsModal() {
   }
 }
 
-function renderRelationshipGraph(roles, relationships) {
+export function renderRelationshipGraph(roles, relationships) {
   if (!roles.length) return `<div class="empty-state">请先创建角色席位。</div>`;
   const n = roles.length;
   const nodes = roles.map((role, i) => {

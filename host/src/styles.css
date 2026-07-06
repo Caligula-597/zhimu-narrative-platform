@@ -949,6 +949,230 @@ textarea:focus-visible {
   border-radius: 8px;
 }
 
+.host-command-center {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.host-command-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: minmax(260px, 1.25fr) minmax(220px, 0.9fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--host-line);
+  border-radius: var(--host-radius);
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: var(--host-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.host-topbar-room,
+.host-topbar-meta,
+.host-topbar-timer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.host-topbar-room h1 {
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: var(--host-green);
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.host-topbar-meta {
+  flex-wrap: wrap;
+  color: var(--host-muted);
+  font-size: 12px;
+}
+
+.host-topbar-timer {
+  justify-content: flex-end;
+}
+
+.host-topbar-timer strong {
+  min-width: 74px;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 20px;
+  color: var(--host-ink);
+  text-align: right;
+}
+
+.host-command-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.1fr) minmax(360px, 1.15fr) minmax(280px, 0.85fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.host-command-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--host-line);
+  border-radius: var(--host-radius);
+  background: var(--host-surface);
+  box-shadow: var(--host-shadow-soft);
+}
+
+.host-command-card > .section-head {
+  margin-bottom: 12px;
+}
+
+.host-command-player-table {
+  max-height: 620px;
+}
+
+.host-act-tabs {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+}
+
+.host-act-tab {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid var(--host-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--host-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.host-act-tab.is-active {
+  border-color: var(--host-green);
+  background: rgba(43, 107, 97, 0.1);
+  color: var(--host-green);
+}
+
+.host-current-runbook,
+.host-current-grid,
+.host-current-list {
+  display: grid;
+  gap: 10px;
+}
+
+.host-current-runbook section,
+.host-current-item,
+.host-current-empty {
+  padding: 10px;
+  border: 1px solid var(--host-line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.host-current-runbook p,
+.host-current-item p,
+.host-current-empty {
+  color: var(--host-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.host-current-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 12px;
+}
+
+.host-queue-list {
+  display: grid;
+  gap: 9px;
+  max-height: 680px;
+  overflow: auto;
+}
+
+.host-queue-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--host-line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.host-queue-type {
+  align-self: start;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(43, 107, 97, 0.1);
+  color: var(--host-green);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.host-queue-item strong,
+.host-queue-item p,
+.host-queue-item small {
+  display: block;
+}
+
+.host-queue-item p,
+.host-queue-item small {
+  margin-top: 3px;
+  color: var(--host-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.host-queue-actions {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.host-support-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.host-session-toolbar {
+  margin-bottom: 14px;
+}
+
+.host-session-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.host-support-dual {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1180px) {
+  .host-command-topbar,
+  .host-command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .host-topbar-timer {
+    justify-content: flex-start;
+  }
+
+  .host-current-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .host-support-dual {
+    grid-template-columns: 1fr;
+  }
+}
+
 .host-event-batch-toolbar {
   flex-wrap: wrap;
   justify-content: flex-end;

@@ -84,6 +84,7 @@ export const api = {
     return request(`/worlds/${worldId}/rooms`, { method: "POST", body: payload });
   },
   getStudio: (worldId = getWorldId()) => request(`/worlds/${worldId}/studio`),
+  getWorldSegments: (worldId = getWorldId()) => request(`/worlds/${worldId}/segments`),
   getRules: (worldId = getWorldId()) => request(`/worlds/${worldId}/rules`),
   createRule: (payload, worldId = getWorldId()) => request(`/worlds/${worldId}/rules`, { method: "POST", body: payload }),
   updateRule: (ruleId, payload, worldId = getWorldId()) =>

@@ -8,6 +8,7 @@
  * segment remedies) live in batch-b-routes.js — see docs/CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md.
  */
 import { query, transaction } from "../db.js";
+import { syncWorldSegmentsFromChapters } from "../world-segments-seed.js";
 import { transactionWithEvents } from "../transaction-events.js";
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole, requireWorldRole, requireWorldReader } from "./route-guards.js";
@@ -184,6 +185,14 @@ export async function registerContentPlatformRoutes(app) {
       [worldId]
     );
     return { segments: result.rows.map(segmentRow) };
+  });
+
+  app.post("/api/worlds/:worldId/segments/sync-from-graph", { schema: { params: worldIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const segmentsSynced = await transaction((client) => syncWorldSegmentsFromChapters(client, worldId));
+    return { segmentsSynced };
   });
 
   app.post("/api/worlds/:worldId/segments", { schema: createSegmentSchema }, async (request, reply) => {

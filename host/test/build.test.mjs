@@ -26,6 +26,7 @@ test("host api uses cookie credentials, bearer fallback and room-scoped host end
   const sharedTokenSource = readFileSync(path.join(root, "..", "shared", "session-token.js"), "utf8");
   assert.match(apiSource, /getHostPlayers/);
   assert.match(apiSource, /streamRoomEvents/);
+  assert.match(apiSource, /getWorldSegments/);
   assert.match(apiSource, /getHostOrigin/);
   assert.match(apiSource, /createApiFetch/);
   assert.match(apiSource, /bearerHeaders\(\)/);
@@ -39,15 +40,35 @@ test("host api uses cookie credentials, bearer fallback and room-scoped host end
 test("main.js wires console, SSE and director actions", () => {
   const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
+  const dataSource = readFileSync(path.join(root, "src", "runtime", "data.js"), "utf8");
   const eventsSource = readFileSync(path.join(root, "src", "runtime", "room-events.js"), "utf8");
   assert.match(mainSource, /connectRoomEvents/);
   assert.match(mainSource, /executeHostEvent/);
+  assert.match(mainSource, /case "host-select-act"/);
+  assert.match(mainSource, /el\?\.dataset\?\.actKey/);
+  assert.doesNotMatch(mainSource, /button\.dataset\.(?:testimony|flag|remedy|voteId|status|actionId|actKey)/);
   assert.match(mainSource, /renderApp/);
   assert.match(mainSource, /api\.me\(\)/);
   assert.doesNotMatch(mainSource, /if \(!getSessionToken\(\)\) return/);
   assert.match(consoleSource, /renderConsole/);
   assert.match(consoleSource, /host-kick-player/);
+  assert.match(dataSource, /api\.getWorldSegments\(worldId\)/);
   assert.match(eventsSource, /room\.host_event_pending/);
+});
+
+test("host command center uses segment runbooks and five critical queue actions", () => {
+  const layoutSource = readFileSync(path.join(root, "src", "views", "host-layout.js"), "utf8");
+  const stylesSource = readFileSync(path.join(root, "src", "styles.css"), "utf8");
+  assert.match(layoutSource, /state\.cloudWorldSegments/);
+  assert.match(layoutSource, /export function hostRunbooks/);
+  assert.match(layoutSource, /metadata\?\.proposalKey/);
+  assert.match(layoutSource, /renderHostCommandCenter/);
+  assert.match(layoutSource, /data-action="host-select-act"/);
+  for (const action of ["host-apply-remedy", "host-vote-status", "host-review-private-action", "host-review-testimony"]) {
+    assert.match(layoutSource, new RegExp(`data-action=["']${action}["']`), `missing command center action: ${action}`);
+  }
+  assert.match(stylesSource, /host-command-center/);
+  assert.match(stylesSource, /@media \(max-width: 1180px\)/);
 });
 
 test("landing view exposes room management for authenticated hosts", () => {
@@ -66,7 +87,9 @@ test("console render escapes user content", () => {
 
 test("standalone console keeps the full host monitoring action surface", () => {
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
+  const layoutSource = readFileSync(path.join(root, "src", "views", "host-layout.js"), "utf8");
   const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
+  const hostSurface = `${consoleSource}\n${layoutSource}`;
   const actions = [
     "batch-dismiss-host-events",
     "batch-execute-host-events",
@@ -101,7 +124,7 @@ test("standalone console keeps the full host monitoring action surface", () => {
   ];
 
   for (const action of actions) {
-    assert.match(consoleSource, new RegExp(`data-action=["']${action}["']`), `missing console action: ${action}`);
+    assert.match(hostSurface, new RegExp(`data-action=["']${action}["']`), `missing host action: ${action}`);
     assert.match(mainSource, new RegExp(`["']${action}["']`), `missing action handler: ${action}`);
   }
 });
@@ -121,6 +144,7 @@ test("host shell exposes dedicated responsive workspace structure", () => {
   const stylesSource = readFileSync(path.join(root, "src", "styles.css"), "utf8");
   assert.match(shellSource, /host-app-shell/);
   assert.match(headerSource, /host-header-inner/);
-  assert.match(stylesSource, /host-console-grid/);
+  assert.doesNotMatch(stylesSource, /\.host-console > \.director-head/);
+  assert.match(stylesSource, /host-support-grid/);
   assert.match(stylesSource, /@media \(max-width: 520px\)/);
 });

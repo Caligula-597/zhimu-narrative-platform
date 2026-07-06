@@ -2,6 +2,7 @@ import { pool, query, transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
 import { validateDeepseekProposal } from "../deepseek.js";
 import { seedPlayerTasksFromArchives } from "../player-tasks.js";
+import { seedWorldSegmentsFromPipeline, syncWorldSegmentsFromChapters } from "../world-segments-seed.js";
 
 async function nextRoleSlotSequence(client, worldId) {
   const row = await client.query(
@@ -574,6 +575,9 @@ export async function importDeepseekProposalWithClient(client, worldId, rawPropo
   }
   return {
     chapterIds,
+    sceneIds,
+    clueIds,
+    pointIds,
     summary: {
       chapters: chapterIds.size,
       scenes: sceneIds.size,
@@ -706,6 +710,8 @@ export async function importDeepseekMysteryPackage(worldId, mystery) {
   }
 }
 
+export { syncWorldSegmentsFromChapters } from "../world-segments-seed.js";
+
 export async function importDeepseekPipelinePackage(worldId, pipeline) {
   const proposal = validateDeepseekProposal(pipeline.proposal);
   const roles = pipeline.roleMatrix?.roles || pipeline.package?.roles || [];
@@ -800,6 +806,7 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
           roleKeyToSlotId
         );
       }
+      const segmentsSeeded = await seedWorldSegmentsFromPipeline(client, worldId, pipeline, graph);
       return {
         ...graph.summary,
         roles: roles.length,
@@ -808,7 +815,8 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
         matrixSyncStored: Boolean(matrixSync),
         unlockRulesCreated: unlockRules.rulesCreated,
         unlockRuleMode: unlockRules.ruleMode,
-        playerTasksSeeded
+        playerTasksSeeded,
+        segmentsSeeded
       };
     });
   } catch (error) {

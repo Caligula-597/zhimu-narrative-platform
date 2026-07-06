@@ -3,7 +3,17 @@
   const loaded = new Set(["overview"]);
   const loading = new Map();
 
+  const creatorWorkspaceModules = [
+    () => import("../views/creator-workspaces.js"),
+    () => import("./actions-creator-workspaces.js")
+  ];
+
   const modulesByView = {
+    production: creatorWorkspaceModules,
+    structure: creatorWorkspaceModules,
+    truth: creatorWorkspaceModules,
+    publish: creatorWorkspaceModules,
+    insights: creatorWorkspaceModules,
     writer: [
       () => import("../views/pipeline-wizard-session.js"),
       () => import("../views/pipeline-wizard-brief.js"),

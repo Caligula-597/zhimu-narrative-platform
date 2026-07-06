@@ -13,6 +13,7 @@ export const state = {
   rooms: [],
   room: null,
   studio: null,
+  cloudWorldSegments: [],
   rules: [],
   cloudWorldLogs: [],
 
@@ -29,6 +30,7 @@ export const state = {
   cloudRunReport: null,
   cloudRulesPreview: null,
   hostEventSelection: [],
+  hostSelectedActKey: "",
   panelCollapse: {},
 
   roomEventsConnected: false,

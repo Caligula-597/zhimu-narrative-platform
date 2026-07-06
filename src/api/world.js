@@ -164,6 +164,10 @@ export function updateWorldSegment(segmentId, payload, worldId = demoContext.wor
   return request(`/worlds/${worldId}/segments/${segmentId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload });
 }
 
+export function syncWorldSegmentsFromGraph(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/segments/sync-from-graph`, { userId: demoContext.hostUserId, method: "POST", body: {} });
+}
+
 export function getTruthClaims(worldId = demoContext.worldId) {
   return request(`/worlds/${worldId}/truth-claims`, { userId: demoContext.hostUserId });
 }

@@ -128,6 +128,7 @@ export {
   getWorldSegments,
   createWorldSegment,
   updateWorldSegment,
+  syncWorldSegmentsFromGraph,
   getTruthClaims,
   createTruthClaim,
   getRoleRelationships,

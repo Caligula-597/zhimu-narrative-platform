@@ -11,6 +11,7 @@ import * as M from "../components/modal.js";
 
   const dispatchers = [
     () => window.zhimuActionsWorkspace?.handleWorkspaceAction,
+    () => window.zhimuActionsCreatorWorkspaces?.handleCreatorWorkspacesAction,
     () => window.zhimuActionsArchive?.handleArchiveAction,
     () => window.zhimuActionsPlayer?.handlePlayerAction,
     () => window.zhimuActionsDirector?.handleDirectorAction,
@@ -34,6 +35,8 @@ export function bindDynamic() {
     if (view === "clues") callView("clues", "bindCluesSearch");
     if (view === "account") callView("accountHub", "bindAccountHubView");
     if (view === "player") callView("player", "bindPlayerReader");
+    if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
+    window.zhimuActionsCreatorWorkspaces?.maybeAutoLoadWorkspace?.(view);
     window.zhimuSearchFocus?.applyAfterRender?.();
   }
 

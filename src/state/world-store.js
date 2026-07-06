@@ -13,5 +13,9 @@ export const worldStore = createStore({
   cloudSegmentCompletion: null,
   cloudClueHitRate: null,
   cloudCreatorAnalytics: null,
-  cloudQualityReports: null
+  cloudQualityReports: null,
+  cloudSegments: null,
+  cloudSelectedSegmentId: null,
+  cloudTruthClaims: null,
+  cloudRoleRelationships: null
 });

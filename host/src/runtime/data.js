@@ -46,10 +46,17 @@ async function loadHostDataInternal(withToast = false) {
       errors.push("请先选择剧本世界");
     } else {
       try {
-        state.studio = await api.getStudio(worldId);
-        state.rules = await api.getRules(worldId);
+        const [studio, rules, segments] = await Promise.all([
+          api.getStudio(worldId),
+          api.getRules(worldId),
+          api.getWorldSegments(worldId).catch(() => ({ segments: [] }))
+        ]);
+        state.studio = studio;
+        state.rules = rules;
+        state.cloudWorldSegments = segments?.segments || [];
       } catch (error) {
         state.studio = null;
+        state.cloudWorldSegments = [];
         errors.push(formatApiError(error, "无法加载剧本数据"));
       }
       try {
@@ -92,6 +99,7 @@ async function loadHostDataInternal(withToast = false) {
     } else {
       state.cloudHostPlayers = [];
       state.cloudHostEvents = [];
+      state.cloudWorldSegments = [];
       state.cloudWorldLogs = [];
       state.cloudHostClueMatrix = null;
       state.cloudHostAuditLog = [];

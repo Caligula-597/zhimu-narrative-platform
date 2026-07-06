@@ -440,7 +440,7 @@ function handleDirectorAction(action, el) {
     case "host-review-testimony":
       (async () => {
         try {
-          await api.reviewHostTestimony(button.dataset.testimony, { hostFlag: button.dataset.flag });
+          await api.reviewHostTestimony(el?.dataset?.testimony, { hostFlag: el?.dataset?.flag });
           showToast("口供已更新");
           await loadHostData(false, true);
         } catch (error) {
@@ -451,7 +451,7 @@ function handleDirectorAction(action, el) {
     case "host-apply-remedy":
       (async () => {
         try {
-          await api.applyHostSegmentRemedy(button.dataset.remedy);
+          await api.applyHostSegmentRemedy(el?.dataset?.remedy);
           showToast("补救话术已执行");
           await loadHostData(false, true);
         } catch (error) {
@@ -480,7 +480,7 @@ function handleDirectorAction(action, el) {
     case "host-vote-status":
       (async () => {
         try {
-          await api.hostUpdateVoteStatus(button.dataset.voteId, button.dataset.status);
+          await api.hostUpdateVoteStatus(el?.dataset?.voteId, el?.dataset?.status);
           showToast("投票状态已更新");
           await loadHostData(false, true);
         } catch (error) {
@@ -491,7 +491,7 @@ function handleDirectorAction(action, el) {
     case "host-review-private-action":
       (async () => {
         try {
-          await api.hostUpdatePrivateAction(button.dataset.actionId, { status: button.dataset.status });
+          await api.hostUpdatePrivateAction(el?.dataset?.actionId, { status: el?.dataset?.status });
           showToast("秘密行动已处理");
           await loadHostData(false, true);
         } catch (error) {
@@ -509,6 +509,10 @@ function handleDirectorAction(action, el) {
           showToast(formatApiError(error, "生成失败"));
         }
       })();
+      return true;
+    case "host-select-act":
+      state.hostSelectedActKey = el?.dataset?.actKey || "";
+      render();
       return true;
     case "refresh-host-data":
       loadHostData(true, true);

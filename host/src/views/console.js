@@ -1,7 +1,7 @@
 import { api } from "../api.js";
 import { state } from "../state.js";
 import { collapsibleCard } from "../components/collapse.js";
-import { activeRuntimeRoom, cloudStatus, runtimeEmpty, stat, activity } from "../components/ui.js";
+import { activeRuntimeRoom, cloudStatus, runtimeEmpty, activity } from "../components/ui.js";
 import {
   closeModal,
   modalEl,
@@ -28,6 +28,7 @@ import {
   refreshHostPlayers,
   refreshHostRoom
 } from "../runtime/data.js";
+import { renderHostCommandCenter } from "./host-layout.js";
 
 let renderRef = () => {};
 let showToastRef = (_msg) => {};
@@ -59,9 +60,6 @@ export function renderConsole(){
  const hostRiskErrorCount=hostRisks.filter(r=>r.level==="error").length;
  const hostRiskWarningCount=hostRisks.filter(r=>r.level==="warning").length;
  const hostHasRisks=hostRisks.length>0;
- const roomReady=!hostPlayersError&&state.roomEventsConnected&&joinedCount>0;
- const roomReadyLabel=roomReady?"运行就绪":!joinedCount?"等待玩家入房":!state.roomEventsConnected?"连接中":"初始化中";
- const roomReadyTone=roomReady?"published":!joinedCount?"draft":"testing";
  const hostPriorityActions=[
   pendingEvents.length?{title:"先处理待确认事件",detail:`${pendingEvents.length} 条规则或调查触发正在等待确认。`,action:"refresh-host-events",button:"查看待办"}:null,
   stuckCount?{title:"查看疑似卡关玩家",detail:`${stuckCount} 个席位长时间没有推进，建议查看详情或手动发线索。`,action:"host-nudge-waiting",button:"提醒玩家"}:null,
@@ -82,125 +80,46 @@ export function renderConsole(){
  </section>`;
  return `<section class="host-console">
   <div class="host-console-status">${cloudStatus()}</div>
-  <section class="director-head">
-    <div class="director-room-copy"><span class="live-label"><i></i>LIVE</span><div><p class="eyebrow">${escapeHtml(world?.name||"当前世界")}</p><h1>${escapeHtml(room.name)}</h1><div class="director-room-meta">${inviteCode?`<span>邀请码 <code class="invite-code-inline">${escapeHtml(inviteCode)}</code></span>`:""}<span>${state.roomEventsConnected?"实时推送已连接":"每 15 秒自动刷新"}</span></div></div></div>
-    <div class="director-command-groups">
-      <div class="director-command-group"><span>房间</span>${inviteCode?`<button class="secondary-btn" data-action="room-invite-current">邀请玩家</button>`:""}<button class="secondary-btn" data-action="refresh-host-room">刷新状态</button></div>
-      <div class="director-command-group"><span>记录</span><button class="secondary-btn" data-action="create-recap">生成复盘</button><button class="secondary-btn" data-action="host-manual-log">主持日志</button><button class="primary-btn" data-action="create-checkpoint">创建存档点</button></div>
-    </div>
-  </section>
-  <section class="stats-grid">${stat("♙",String(joinedCount),"已加入玩家",players.length+" 个角色席位")}${stat("⚑",String(stuckCount),"疑似卡关",stuckCount?"超过阈值未推进":"当前无卡关预警")}${stat("◷",String(pendingEvents.length),"待确认事件",pendingEvents.length?"需要主持人判断":events.length?"均已延迟":"当前无需人工介入")}${stat("⌘",String(rules.length),"运行中规则","当前房与世界模板")}<div class="stat-card stat-ready"><span>房间状态</span><strong><span class="status-chip ${roomReadyTone}">${roomReadyLabel}</span></strong></div></section>
+  ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows })}
   ${hostRiskPanel}
   ${noPlayerProgressHint}
   ${hostPlayersErrorBanner}
-  <div class="host-console-grid">
-    <div class="host-console-primary">
-      ${hostPlayerWaitStrip()}
-      ${collapsibleCard({ id: "director:host-events", title: "待确认事件", subtitle: "规则或调查触发的关键节点，确认后立即写入当前房间状态", headerExtra: hostEventBatchToolbar(), body: hostEventRows(), defaultOpen: true, className: "card host-events-card" })}
-      ${collapsibleCard({ id: "director:players", title: "玩家运行状态", subtitle: "查看阅读、线索与最近操作，并进行手动干预", headerExtra: `<div class="row host-manual-actions"><button class="secondary-btn" data-action="host-manual-grant-clue">发线索</button><button class="secondary-btn" data-action="host-manual-grant-item">发物品</button><button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button><button class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button></div>`, body: `<div class="host-runtime-table-wrap"><table class="host-runtime-table"><thead><tr><th>玩家 / 角色</th><th>入房</th><th>阅读进度</th><th>线索</th><th>最近操作</th><th>状态</th><th></th></tr></thead><tbody>${hostPlayerTableRows(players)}</tbody></table></div>`, defaultOpen: true })}
-    </div>
-    <aside class="host-console-side">
-      ${hostPaceTimerCard()}
-      ${hostLiveFeed()}
-      ${hostAuditCard()}
-      ${collapsibleCard({ id: "director:rules-preview", title: "规则运行与管理", subtitle: "当前房间的条件评估与自动化规则管理", headerExtra: `<button class="secondary-btn" data-action="rules-preview">刷新预览</button><button class="secondary-btn" data-action="host-rule-new">新建</button><button class="secondary-btn" data-action="host-rule-validate">检查</button>`, body: `${directorRulesPreview()}${hostRulesManager()}`, defaultOpen: false })}
-    </aside>
-  </div>
-  ${hostPublicEnvironmentCard()}
-  ${hostRunbookCard()}
-  ${hostClueMatrixCard()}
-  ${hostTestimoniesCard()}
-  ${hostVotesCard()}
-  ${hostPrivateActionsCard()}
-  ${hostRunReportCard()}
-  ${hostSegmentRemediesCard()}
+  ${hostSessionToolbar(inviteCode)}
+  ${hostSupportPanels(events)}
  </section>`;
 }
 
-function hostTestimoniesCard() {
-  const items = state.cloudHostTestimonies || [];
-  const body = items.length
-    ? items
-        .map(
-          (row) => `<article class="host-testimony-row">
-        <div><strong>${escapeHtml(row.role_name)}</strong> · ${escapeHtml(row.act_key || "—")} · <time>${formatRelativeTime(row.submitted_at)}</time></div>
-        <p>${escapeHtml(row.body)}</p>
-        ${row.host_flag ? `<span class="status-chip ${row.host_flag === "contradiction" ? "draft" : "published"}">${row.host_flag === "contradiction" ? "矛盾" : "已阅"}</span>` : ""}
-        <div class="row">
-          <button class="text-btn" type="button" data-action="host-review-testimony" data-testimony="${row.id}" data-flag="noted">标记已阅</button>
-          <button class="text-btn danger-text" type="button" data-action="host-review-testimony" data-testimony="${row.id}" data-flag="contradiction">标记矛盾</button>
-        </div>
-      </article>`
-        )
-        .join("")
-    : `<div class="empty-state">暂无玩家口供。玩家在「任务」Tab 提交后会出现在这里。</div>`;
-  return collapsibleCard({
-    id: "director:testimonies",
-    title: "玩家口供",
-    subtitle: "审查陈述并标记矛盾点",
-    headerExtra: `<button class="secondary-btn" data-action="refresh-host-room">刷新</button>`,
-    body,
-    defaultOpen: false,
-    style: "margin-top:14px"
-  });
+function hostSessionToolbar(inviteCode) {
+  return `<section class="host-session-toolbar card">
+    <div class="section-head compact"><div><p class="section-kicker">SESSION</p><h3>房间操作</h3></div></div>
+    <div class="row host-session-actions">
+      ${inviteCode ? `<button type="button" class="secondary-btn" data-action="room-invite-current">邀请玩家</button><button type="button" class="secondary-btn" data-action="copy-invite-code" data-invite-code="${escapeHtml(inviteCode)}">复制邀请码</button><button type="button" class="secondary-btn" data-action="copy-play-link" data-invite-code="${escapeHtml(inviteCode)}">复制玩家链接</button>` : ""}
+      <button type="button" class="secondary-btn" data-action="refresh-host-room">刷新状态</button>
+      <button type="button" class="secondary-btn" data-action="create-recap">生成复盘</button>
+      <button type="button" class="secondary-btn" data-action="host-manual-log">主持日志</button>
+      <button type="button" class="primary-btn" data-action="create-checkpoint">创建存档点</button>
+      <button type="button" class="secondary-btn" data-action="host-create-vote">开启投票</button>
+      <button type="button" class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button>
+      <button type="button" class="secondary-btn" data-action="host-nudge-waiting">提醒卡关玩家</button>
+      <button type="button" class="secondary-btn" data-action="onboarding-go-player">进入玩家视角</button>
+    </div>
+  </section>`;
 }
 
-function hostVotesCard() {
-  const votes = state.cloudHostVotes || [];
-  const body = votes.length
-    ? votes
-        .map((vote) => {
-          const ballots = vote.ballots || [];
-          const tally = ballots.length ? `${ballots.length} 票已投` : "尚无选票";
-          return `<article class="host-vote-row">
-        <div><strong>${escapeHtml(vote.title)}</strong> · <span class="status-chip ${vote.status === "open" ? "testing" : vote.status === "published" ? "published" : "draft"}">${escapeHtml(vote.status)}</span> · ${escapeHtml(tally)}</div>
-        ${vote.prompt ? `<p class="muted-note">${escapeHtml(vote.prompt)}</p>` : ""}
-        <div class="row">
-          ${vote.status === "open" ? `<button class="text-btn" type="button" data-action="host-vote-status" data-vote-id="${vote.id}" data-status="closed">关闭投票</button>` : ""}
-          ${vote.status === "closed" ? `<button class="text-btn" type="button" data-action="host-vote-status" data-vote-id="${vote.id}" data-status="published">公布结果</button>` : ""}
-        </div>
-      </article>`;
-        })
-        .join("")
-    : `<div class="empty-state">暂无投票。点击下方开启指认/投票。</div>`;
-  return collapsibleCard({
-    id: "director:votes",
-    title: "投票 / 指认",
-    subtitle: "开启投票、关闭并公布结果",
-    headerExtra: `<button class="secondary-btn" data-action="host-create-vote">开启投票</button>`,
-    body,
-    defaultOpen: false,
-    style: "margin-top:14px"
-  });
-}
-
-function hostPrivateActionsCard() {
-  const items = state.cloudHostPrivateActions || [];
-  const body = items.length
-    ? items
-        .map(
-          (row) => `<article class="host-private-action-row">
-        <div><strong>${escapeHtml(row.actor_role_name || "玩家")}</strong> · ${escapeHtml(row.action_type || "")} · <time>${formatRelativeTime(row.created_at)}</time></div>
-        <p><strong>${escapeHtml(row.title)}</strong></p>
-        <p>${escapeHtml(row.body || "")}</p>
-        <div class="row">
-          <button class="text-btn" type="button" data-action="host-review-private-action" data-action-id="${row.id}" data-status="seen">已阅</button>
-          <button class="text-btn" type="button" data-action="host-review-private-action" data-action-id="${row.id}" data-status="accepted">接受</button>
-          <button class="text-btn danger-text" type="button" data-action="host-review-private-action" data-action-id="${row.id}" data-status="rejected">拒绝</button>
-        </div>
-      </article>`
-        )
-        .join("")
-    : `<div class="empty-state">暂无秘密行动。玩家在「博弈」Tab 提交后会出现在这里。</div>`;
-  return collapsibleCard({
-    id: "director:private-actions",
-    title: "秘密行动",
-    subtitle: "处理玩家的询问、交易与秘密行动",
-    headerExtra: `<button class="secondary-btn" data-action="refresh-host-room">刷新</button>`,
-    body,
-    defaultOpen: false,
-    style: "margin-top:14px"
-  });
+function hostSupportPanels(events) {
+  return `<section class="host-support-grid">
+    ${hostPlayerWaitStrip()}
+    ${collapsibleCard({ id: "director:host-events", title: "待确认事件（批量）", subtitle: "完整列表与批量确认/延后", headerExtra: hostEventBatchToolbar(), body: hostEventRows(), defaultOpen: Boolean(events.filter((e) => e.status !== "delayed").length), className: "card host-events-card" })}
+    ${collapsibleCard({ id: "director:rules-preview", title: "规则运行与管理", subtitle: "当前房间的条件评估与自动化规则", headerExtra: `<button class="secondary-btn" data-action="rules-preview">刷新预览</button><button class="secondary-btn" data-action="host-rule-new">新建</button><button class="secondary-btn" data-action="host-rule-validate">检查</button>`, body: `${directorRulesPreview()}${hostRulesManager()}`, defaultOpen: false })}
+    <div class="host-support-dual">
+      ${hostLiveFeed()}
+      ${hostAuditCard()}
+    </div>
+    ${hostPaceTimerCard()}
+    ${hostPublicEnvironmentCard()}
+    ${hostClueMatrixCard()}
+    ${hostRunReportCard()}
+  </section>`;
 }
 
 function hostRunReportCard() {
@@ -225,31 +144,6 @@ function hostRunReportCard() {
   });
 }
 
-function hostSegmentRemediesCard() {
-  const items = state.cloudHostSegmentRemedies || [];
-  const body = items.length
-    ? items
-        .map(
-          (row) => `<article class="host-remedy-row">
-        <div><strong>${escapeHtml(row.title)}</strong> · ${escapeHtml(row.segment_key)}</div>
-        <p>${escapeHtml(row.host_script)}</p>
-        ${row.trigger_hint ? `<small>${escapeHtml(row.trigger_hint)}</small>` : ""}
-        <button class="secondary-btn" type="button" data-action="host-apply-remedy" data-remedy="${row.id}">执行补救</button>
-      </article>`
-        )
-        .join("")
-    : `<div class="empty-state">暂无段落补救模板。在创作者端「世界设置」中配置 segment remedies。</div>`;
-  return collapsibleCard({
-    id: "director:segment-remedies",
-    title: "段落补救包",
-    subtitle: "一键播报主持话术并写入时间线",
-    headerExtra: `<button class="secondary-btn" data-action="refresh-host-room">刷新</button>`,
-    body,
-    defaultOpen: false,
-    style: "margin-top:14px"
-  });
-}
-
 function grantModeLabel(mode) {
   return { auto: "自动发放", host_confirm: "主持确认", explore: "探索获得" }[mode] || "";
 }
@@ -259,59 +153,6 @@ function studioClueGrantHint(clueId) {
   const mode = clue?.metadata?.grantMode;
   if (!mode || mode === "auto") return "";
   return grantModeLabel(mode);
-}
-
-function hostRunbookCard() {
-  const matrixSync = state.studio?.world?.settings?.matrixSync;
-  const worldSettings = state.studio?.world?.settings || {};
-  const runbooks = matrixSync?.hostRunbooks || worldSettings.hostRunbooks || null;
-  const chapters = (state.studio?.chapters || []).slice().sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
-  const chapterByActKey = new Map();
-  for (const chapter of chapters) {
-    const actKey = chapter.metadata?.matrixActKey;
-    if (actKey) chapterByActKey.set(actKey, chapter);
-  }
-  let body;
-  if (Array.isArray(runbooks) && runbooks.length) {
-    body = runbooks
-      .map((book) => {
-        const actKey = book.actKey || "";
-        const chapter = actKey ? chapterByActKey.get(actKey) : null;
-        const title = book.title || chapter?.title || actKey || "未命名分幕";
-        const flow = String(book.flow || "").trim();
-        const hostTruth = String(book.hostTruth || "").trim();
-        const grants = Array.isArray(book.clueGrants) ? book.clueGrants : [];
-        const fallbacks = Array.isArray(book.fallbacks) ? book.fallbacks : [];
-        const grantList = grants.length
-          ? `<ul class="host-runbook-grants">${grants.map((g) => `<li><code>${escapeHtml(g.clueId || "—")}</code><span>${escapeHtml(g.when || "")}</span></li>`).join("")}</ul>`
-          : "";
-        const fallbackList = fallbacks.length
-          ? `<ul class="host-runbook-fallbacks">${fallbacks.map((f) => `<li>${escapeHtml(String(f))}</li>`).join("")}</ul>`
-          : "";
-        return `<article class="host-runbook-act">
-          <div class="row" style="align-items:center;gap:8px;margin-bottom:6px">
-            <h4 style="margin:0">${escapeHtml(title)}</h4>
-            ${actKey ? `<span class="cloud-pill">${escapeHtml(actKey)}</span>` : ""}
-          </div>
-          ${flow ? `<div class="host-runbook-block"><p class="section-kicker">流程</p><p class="wizard-intro">${escapeHtml(flow)}</p></div>` : ""}
-          ${hostTruth ? `<div class="host-runbook-block host-runbook-truth"><p class="section-kicker">本幕上帝视角</p><p class="wizard-intro">${escapeHtml(hostTruth)}</p></div>` : ""}
-          ${grantList ? `<div class="host-runbook-block"><p class="section-kicker">线索发放</p>${grantList}</div>` : ""}
-          ${fallbackList ? `<div class="host-runbook-block"><p class="section-kicker">冷场兜底</p>${fallbackList}</div>` : ""}
-        </article>`;
-      })
-      .join("");
-  } else {
-    body = `<div class="empty-state">当前世界尚未生成主持手册。Matrix 流水线导入或在创作者端「DeepSeek 流水线 → 主持手册层」生成后会自动展示在这里。每幕包含流程、上帝视角、线索发放时机和冷场兜底话术。</div>`;
-  }
-  return collapsibleCard({
-    id: "director:host-runbook",
-    title: "主持手册（Runbook）",
-    subtitle: "Matrix L5 hostRunbook · 每幕流程、真相、线索发放与兜底话术",
-    body,
-    defaultOpen: false,
-    className: "card host-runbook-card",
-    style: "margin-top:14px"
-  });
 }
 
 function hostPaceTimerCard() {

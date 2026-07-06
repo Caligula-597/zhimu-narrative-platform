@@ -120,6 +120,20 @@ test("world segment create and list", async (context) => {
   });
 });
 
+test("world segments sync-from-graph", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const worldId = await fixtureWorldId();
+
+  const res = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/segments/sync-from-graph`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(res.statusCode, 200);
+  assert.ok(res.json().segmentsSynced >= 0);
+});
+
 test("room run report for host", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
