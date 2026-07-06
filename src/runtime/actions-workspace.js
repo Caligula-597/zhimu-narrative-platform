@@ -17,6 +17,15 @@ import { callView } from "./view-registry.js";
       case "load-segment-completion":
         callView("overview", "loadSegmentCompletion");
         return true;
+      case "load-creator-analytics":
+        callView("platformRuntime", "loadCreatorAnalytics");
+        return true;
+      case "load-quality-reports":
+        callView("platformRuntime", "loadQualityReports");
+        return true;
+      case "record-quality-report":
+        callView("platformRuntime", "recordQualityReportSnapshot");
+        return true;
       case "load-clue-hit-rate":
         callView("clues", "loadClueHitRate");
         return true;

@@ -1279,6 +1279,70 @@ body.modal-scroll-lock { position:fixed; width:100%; left:0; right:0; }
   list-style: none;
   font-size: 13px;
 }
+
+.creator-analytics-panel,
+.quality-reports-panel {
+  margin-top: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffdf8, #faf7ef);
+}
+.creator-analytics-panel .section-head,
+.quality-reports-panel .section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.insight-list,
+.quality-report-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.insight-row {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.85);
+}
+.insight-feedback-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.relationship-graph {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.relationship-graph .rel-edge {
+  stroke: rgba(88, 127, 121, 0.55);
+  stroke-width: 0.6;
+}
+.relationship-graph .rel-label {
+  font-size: 3px;
+  fill: var(--muted, #6b6560);
+}
+.relationship-graph .rel-node circle {
+  fill: #587f79;
+}
+.relationship-graph .rel-node text {
+  font-size: 3.5px;
+  fill: var(--ink, #2a2520);
+}
+.rel-graph-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
 .segment-role-group > summary::-webkit-details-marker { display: none; }
 .segment-role-group > summary::before {
   content: "▾";

@@ -535,6 +535,21 @@ export const createRoleRelationshipSchema = {
   }
 };
 
+export const createQualityReportSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      source: { type: "string", enum: ["manual", "matrix", "publish_readiness", "playtest"] },
+      promptVersion: { type: "string", maxLength: 80 },
+      report: contentMetadataObject,
+      issueCount: { type: "integer", minimum: 0, maximum: 9999 },
+      score: { type: "number", minimum: 0, maximum: 100 }
+    }
+  }
+};
+
 export const createRoomVoteSchema = {
   params: roomIdParams,
   body: {

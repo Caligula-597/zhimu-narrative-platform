@@ -1,3 +1,12 @@
+/**
+ * Content platform runtime routes — world/room structural models.
+ *
+ * Scope: world_segments, truth claims, role relationships, room votes/ballots,
+ * private actions, role state, creator analytics, quality reports, run reports.
+ *
+ * Player-facing experience features (tasks, suspicions, testimonies, tags,
+ * segment remedies) live in batch-b-routes.js — see docs/CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md.
+ */
 import { query, transaction } from "../db.js";
 import { transactionWithEvents } from "../transaction-events.js";
 import { requireActor } from "../request-actor.js";
@@ -10,6 +19,7 @@ import {
   createRoomVoteSchema,
   createSegmentSchema,
   createTruthClaimSchema,
+  createQualityReportSchema,
   privateActionIdParams,
   roomIdParams,
   segmentIdParams,
@@ -18,11 +28,9 @@ import {
   updateRoleStateSchema,
   updateRoomVoteStatusSchema,
   updateSegmentSchema,
-  upsertPlayerSuspicionSchema,
   voteIdParams,
   worldIdParams
 } from "./schemas.js";
-import { upsertPlayerSuspicion } from "../player-suspicions.js";
 
 async function requireHostMembership(actorId, roomId) {
   const membership = await requireRoomRole(actorId, roomId);
@@ -409,6 +417,68 @@ export async function registerContentPlatformRoutes(app) {
     };
   });
 
+  app.get("/api/worlds/:worldId/quality-reports", { schema: { params: worldIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const result = await query(
+      `SELECT id, world_id, source, prompt_version, report, issue_count, score, created_at
+       FROM world_quality_reports
+       WHERE world_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [worldId]
+    );
+    return {
+      reports: result.rows.map((row) => ({
+        id: row.id,
+        worldId: row.world_id,
+        source: row.source,
+        promptVersion: row.prompt_version,
+        report: row.report ?? {},
+        issueCount: row.issue_count,
+        score: row.score,
+        createdAt: row.created_at
+      }))
+    };
+  });
+
+  app.post("/api/worlds/:worldId/quality-reports", { schema: createQualityReportSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const body = request.body ?? {};
+    const issueCount = body.issueCount ?? (Array.isArray(body.report?.issues) ? body.report.issues.length : 0);
+    const result = await query(
+      `INSERT INTO world_quality_reports
+        (world_id, source, prompt_version, report, issue_count, score, created_by_user_id)
+       VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7)
+       RETURNING id, world_id, source, prompt_version, report, issue_count, score, created_at`,
+      [
+        worldId,
+        body.source ?? "manual",
+        body.promptVersion ?? null,
+        JSON.stringify(body.report ?? {}),
+        issueCount,
+        body.score ?? null,
+        actorId
+      ]
+    );
+    const row = result.rows[0];
+    return reply.code(201).send({
+      report: {
+        id: row.id,
+        worldId: row.world_id,
+        source: row.source,
+        promptVersion: row.prompt_version,
+        report: row.report ?? {},
+        issueCount: row.issue_count,
+        score: row.score,
+        createdAt: row.created_at
+      }
+    });
+  });
+
   app.get("/api/rooms/:roomId/votes", { schema: { params: roomIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;
@@ -605,22 +675,6 @@ export async function registerContentPlatformRoutes(app) {
       queueEvent(roomId, "room.private_action_submitted", { actionId: action.id, actionType: body.actionType });
     });
     return reply.code(201).send({ action });
-  });
-
-  /** @deprecated Use PUT /api/rooms/:roomId/suspicions/:targetRoleSlotId — kept for legacy clients */
-  app.patch("/api/rooms/:roomId/suspicion/:targetRoleSlotId", { schema: upsertPlayerSuspicionSchema }, async (request) => {
-    const actorId = requireActor(request);
-    const { roomId, targetRoleSlotId } = request.params;
-    const membership = await requireRoomPlayer(actorId, roomId);
-    const body = request.body ?? {};
-    const row = await upsertPlayerSuspicion(query, {
-      roomId,
-      observerRoleSlotId: membership.role_slot_id,
-      targetRoleSlotId,
-      level: body.level,
-      reason: body.reason ?? ""
-    });
-    return { suspicion: row };
   });
 
   app.get("/api/rooms/:roomId/host/private-actions", { schema: { params: roomIdParams } }, async (request) => {

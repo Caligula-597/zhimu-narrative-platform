@@ -133,6 +133,8 @@ export {
   getRoleRelationships,
   createRoleRelationship,
   getCreatorAnalytics,
+  getQualityReports,
+  createQualityReport,
   listPhysicalTokens,
   createPhysicalTokens,
   revokePhysicalToken,

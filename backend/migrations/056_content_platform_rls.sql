@@ -1,7 +1,4 @@
--- Align 047 content-platform tables with B-batch RLS style.
--- Drop deprecated room_suspicion_marks (superseded by player_suspicions / 050).
-
-DROP TABLE IF EXISTS room_suspicion_marks;
+-- RLS for content platform runtime tables (049).
 
 ALTER TABLE world_segments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE world_segment_refs ENABLE ROW LEVEL SECURITY;

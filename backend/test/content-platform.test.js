@@ -133,3 +133,30 @@ test("room run report for host", async (context) => {
   assert.ok(Array.isArray(res.json().reading));
   assert.ok(Array.isArray(res.json().clues));
 });
+
+test("quality report list and create", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const worldId = await fixtureWorldId();
+
+  const created = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/quality-reports`,
+    headers: { "x-user-id": hostUserId },
+    payload: { source: "manual", report: { note: "test" }, issueCount: 1, score: 88 }
+  });
+  assert.equal(created.statusCode, 201);
+  const reportId = created.json().report.id;
+
+  const list = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${worldId}/quality-reports`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(list.statusCode, 200);
+  assert.ok(list.json().reports.some((r) => r.id === reportId));
+
+  context.after(async () => {
+    await query(`DELETE FROM world_quality_reports WHERE id = $1`, [reportId]);
+  });
+});

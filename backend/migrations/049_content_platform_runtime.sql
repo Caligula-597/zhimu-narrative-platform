@@ -1,6 +1,7 @@
--- Content platform runtime primitives:
+-- Content platform runtime primitives (049, after credits/LLM):
 -- Segment aggregation, vote/accusation, private action/trade, truth chain,
 -- role relationship graph, and playtest analytics artifacts.
+-- Player suspicion uses player_suspicions (051), not a separate room table.
 
 CREATE TABLE IF NOT EXISTS world_segments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -163,17 +164,6 @@ CREATE INDEX IF NOT EXISTS room_private_actions_room_status_idx
 
 CREATE INDEX IF NOT EXISTS room_private_actions_actor_idx
   ON room_private_actions(room_id, actor_role_slot_id, created_at DESC);
-
-CREATE TABLE IF NOT EXISTS room_suspicion_marks (
-  room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
-  role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
-  target_role_slot_id uuid NOT NULL REFERENCES role_slots(id) ON DELETE CASCADE,
-  level integer NOT NULL DEFAULT 0 CHECK (level >= 0 AND level <= 5),
-  reason text NOT NULL DEFAULT '',
-  evidence jsonb NOT NULL DEFAULT '[]'::jsonb,
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (room_id, role_slot_id, target_role_slot_id)
-);
 
 CREATE TABLE IF NOT EXISTS world_quality_reports (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

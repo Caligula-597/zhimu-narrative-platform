@@ -10,6 +10,7 @@ import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import * as S from "../components/ui-semantics.js";
 import { overviewHeroTitle, formatCloudPanelError } from "../utils/user-messages.js";
+import { callView } from "../runtime/view-registry.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -399,6 +400,8 @@ export function overview() {
       <div class="backend-capability-list">${backendCapabilities.map(overviewBackendCapability).join("")}</div>
     </section>
     ${overviewSegmentCompletionPanel()}
+    ${callView("platformRuntime", "renderCreatorAnalyticsPanel") || ""}
+    ${callView("platformRuntime", "renderQualityReportsPanel") || ""}
     <section class="vision-dashboard">
       <article class="vision-panel vision-map">
         <div class="section-head">

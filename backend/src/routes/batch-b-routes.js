@@ -1,5 +1,9 @@
 /**
- * B-batch routes: player tasks, suspicions, testimonies, world tags, segment remedies.
+ * B-batch routes — in-room player experience features.
+ *
+ * Scope: player tasks, suspicions, testimonies, world tags, segment remedies.
+ * Platform runtime models (segments, votes, truth chain) are in content-platform-routes.js.
+ * See docs/CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md.
  */
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole, requireWorldRole } from "./route-guards.js";

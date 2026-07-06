@@ -129,6 +129,14 @@ async function handleRoomEvent(type, data, ctx) {
         ctx.bumpTabPulse?.("voice");
       }
       break;
+    case "room.vote_created":
+    case "room.vote_updated":
+    case "room.private_action_submitted":
+    case "room.private_action_updated":
+      ctx.bumpTabPulse?.("social");
+      await ctx.onRefresh();
+      if (type === "room.vote_created") ctx.onToast("主持人开启了投票/指认");
+      break;
     default:
       break;
   }

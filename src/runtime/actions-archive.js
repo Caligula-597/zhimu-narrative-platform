@@ -18,6 +18,9 @@ import { callView } from "./view-registry.js";
       case "world-audit": callView("settings", "openWorldAuditModal"); return true;
       case "open-world-tags": callView("settings", "openWorldTagsModal"); return true;
       case "open-segment-remedies": callView("settings", "openSegmentRemediesModal"); return true;
+      case "open-world-segments": callView("platformRuntime", "openWorldSegmentsModal"); return true;
+      case "open-truth-claims": callView("platformRuntime", "openTruthClaimsModal"); return true;
+      case "open-role-relationships": callView("platformRuntime", "openRoleRelationshipsModal"); return true;
       case "go-writer-export": callView("settings", "goWriterExport"); return true;
       default: return false;
     }

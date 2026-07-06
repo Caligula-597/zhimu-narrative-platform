@@ -184,6 +184,14 @@ export function getCreatorAnalytics(worldId = demoContext.worldId) {
   return request(`/worlds/${worldId}/creator-analytics`, { userId: demoContext.hostUserId });
 }
 
+export function getQualityReports(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/quality-reports`, { userId: demoContext.hostUserId });
+}
+
+export function createQualityReport(payload, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/quality-reports`, { worldId, method: "POST", body: payload });
+}
+
 export function getSegmentCompletion({ roomId, worldId } = {}) {
   const params = new URLSearchParams();
   if (roomId) params.set("roomId", roomId);

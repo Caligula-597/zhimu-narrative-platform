@@ -25,6 +25,7 @@ import "../src/components/modal.js";
 import "../src/components/creator-guide.js";
 import "../src/components/collapse-panel.js";
 import "../src/views/overview.js";
+import "../src/views/platform-runtime.js";
 import "../src/runtime/wizard.js";
 import "../src/runtime/auth-session.js";
 import "../src/runtime/workspace-store.js";
