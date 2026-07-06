@@ -1,5 +1,6 @@
 import { setToast } from "../state.js";
 import {
+  gameTabPanelLabelId,
   renderGameTabBar,
   renderGameTabBody,
   renderGameSidebar,
@@ -61,7 +62,7 @@ export function patchGameTabSwitch(state, ctx) {
 
   tabBar.innerHTML = renderGameTabBar();
   tabBody.innerHTML = renderGameTabBody();
-  tabBody.setAttribute("aria-labelledby", `play-tab-${state.tab}`);
+  tabBody.setAttribute("aria-labelledby", gameTabPanelLabelId(state.tab));
 
   if (state.tab === "sections") bindSectionsReader(state, ctx);
   return true;
@@ -84,7 +85,7 @@ export function patchGameView(state, ctx) {
   const voiceScrollTop = voiceLog?.scrollTop ?? null;
 
   tabBody.innerHTML = renderGameTabBody();
-  tabBody.setAttribute("aria-labelledby", `play-tab-${state.tab}`);
+  tabBody.setAttribute("aria-labelledby", gameTabPanelLabelId(state.tab));
   tabBody.scrollTop = tabBodyScroll;
 
   if (voiceScrollTop !== null) {

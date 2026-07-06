@@ -6,6 +6,44 @@ import { renderVoiceCompact, renderVoiceTab } from "./voice.js";
 import { renderRecapTab } from "./recap.js";
 import { renderMiniGamePanel } from "../components/mini-games.js";
 
+const PRIMARY_TAB_GROUPS = {
+  home: ["home", "voice"],
+  story: ["sections"],
+  investigation: ["explore", "clues", "inventory"],
+  play: ["tasks", "suspicions", "social"],
+  recap: ["recap", "timeline", "notes"]
+};
+
+const PRIMARY_TAB_DEFAULTS = {
+  home: "home",
+  story: "sections",
+  investigation: "explore",
+  play: "tasks",
+  recap: "recap"
+};
+
+const LEGACY_TAB_TO_PRIMARY = Object.entries(PRIMARY_TAB_GROUPS).reduce((acc, [primary, ids]) => {
+  for (const id of ids) acc[id] = primary;
+  return acc;
+}, {});
+
+export function primaryTabFor(tabId = state.tab) {
+  return LEGACY_TAB_TO_PRIMARY[tabId] || (PRIMARY_TAB_DEFAULTS[tabId] ? tabId : "home");
+}
+
+export function defaultGameTabFor(tabId = "home") {
+  return PRIMARY_TAB_DEFAULTS[tabId] || tabId || "home";
+}
+
+export function tabGroupFor(tabId = state.tab) {
+  const primary = primaryTabFor(tabId);
+  return PRIMARY_TAB_GROUPS[primary] || [tabId || "home"];
+}
+
+export function gameTabPanelLabelId(tabId = state.tab) {
+  return `play-tab-${primaryTabFor(tabId)}`;
+}
+
 export function renderGameResume() {
   return `
     <section class="game-resume card">
@@ -124,33 +162,44 @@ export function renderGameHome() {
 
 function renderPlayerActionsHub(home, nextSection) {
   const sections = home?.sections || [];
+  const tasks = asArray(home?.tasks);
   const clues = home?.clues || [];
   const sharedClues = home?.sharedClues || [];
   const scenes = state.exploration?.scenes || [];
   const points = scenes.flatMap((s) => (s.investigation_points || []).map((p) => ({ ...p, sceneName: s.name })));
   const pending = home?.hostConfirm;
   const currentGame = state.currentGame;
+  const votes = asArray(home?.activeVotes);
 
+  const pendingTasks = tasks.filter((task) => task.status !== "completed");
+  const openVotes = votes.filter((vote) => vote.status === "open" && !vote.submitted_at);
   const unreadSections = sections.filter((s) => !s.completed);
   const unreadClues = clues.filter((c) => !clueIsRead(c, { owned: true }));
   const unreadShared = sharedClues.filter((c) => !clueIsRead(c, { owned: false }));
+  const unreadAllClues = [...unreadClues, ...unreadShared];
   const availablePoints = points.filter((p) => !p.investigated && p.hasRequiredItem);
   const blockedPoints = points.filter((p) => !p.investigated && !p.hasRequiredItem && p.requiredItemName);
 
   let primary;
-  if (pending?.waitingForYou) {
+  if (pendingTasks.length) {
+    primary = { title: pendingTasks[0].body || "完成本幕任务", detail: pendingTasks[0].tips || "先处理未完成任务，再推进调查和讨论。", action: "switch-tab", data: 'data-tab="tasks"', button: "处理任务" };
+  } else if (openVotes.length) {
+    primary = { title: openVotes[0].title || "参与投票 / 指认", detail: openVotes[0].prompt || "主持人已开启投票，请先完成你的选择。", action: "switch-tab", data: 'data-tab="social"', button: "去投票" };
+  } else if (pending?.waitingForYou) {
     primary = { title: "剧情推进等待主持确认", detail: "你已经触发关键节点。确认后新内容会自动刷新。", action: "switch-tab", data: 'data-tab="voice"', button: "进入讨论" };
+  } else if (unreadAllClues.length) {
+    primary = { title: `阅读线索：${unreadAllClues[0].name}`, detail: "标记已读后可补充解读、公开或私享给指定玩家。", action: "switch-tab", data: 'data-tab="clues"', button: "查看线索" };
   } else if (nextSection && !nextSection.completed) {
     primary = { title: nextSection.title || "阅读当前分幕", detail: `第 ${nextSection.sequence} 幕 · 尚未读完`, action: "goto-section", data: `data-section-id="${escapeHtml(nextSection.id)}"`, button: "继续阅读" };
   } else if (availablePoints.length) {
     primary = { title: `调查：${availablePoints[0].name}`, detail: `地点：${availablePoints[0].sceneName || "当前场景"}`, action: "switch-tab", data: 'data-tab="explore"', button: "去探索" };
-  } else if (unreadClues.length) {
-    primary = { title: `阅读线索：${unreadClues[0].name}`, detail: "标记已读后可补充解读或分享", action: "switch-tab", data: 'data-tab="clues"', button: "查看线索" };
   } else {
     primary = { title: "整理线索或进入语音讨论", detail: "当前没有必须完成的动作", action: "switch-tab", data: 'data-tab="voice"', button: "讨论" };
   }
 
   const readItems = [
+    ...pendingTasks.slice(0, 2).map((t) => ({ label: "未完成任务", title: t.body, action: "switch-tab", data: 'data-tab="tasks"' })),
+    ...openVotes.slice(0, 2).map((v) => ({ label: "待投票", title: v.title, action: "switch-tab", data: 'data-tab="social"' })),
     ...unreadSections.slice(0, 3).map((s) => ({ label: "未读分幕", title: s.title || `第 ${s.sequence} 幕`, action: "goto-section", data: `data-section-id="${escapeHtml(s.id)}"` })),
     ...unreadClues.slice(0, 2).map((c) => ({ label: "未读线索", title: c.name, action: "switch-tab", data: 'data-tab="clues"' })),
     ...unreadShared.slice(0, 2).map((c) => ({ label: "未读共享", title: c.name, action: "switch-tab", data: 'data-tab="clues"' }))
@@ -675,35 +724,78 @@ export function renderHostConfirmBannerHtml() {
   return hostNudgeBanner() + hostConfirmBanner();
 }
 
+function sectionBlock(title, subtitle, body, action = "") {
+  return `<section class="merged-tab-section card">
+    <div class="section-head">
+      <div><h3>${escapeHtml(title)}</h3>${subtitle ? `<p>${escapeHtml(subtitle)}</p>` : ""}</div>
+      ${action}
+    </div>
+    ${body}
+  </section>`;
+}
+
+function renderStoryTab() {
+  const role = state.home?.role;
+  const roleCard = `<article class="role-story-card">
+    <p class="eyebrow">你的角色</p>
+    <h2>${escapeHtml(role?.name || "未选择")}</h2>
+    <p>${escapeHtml(role?.private_profile || role?.public_profile || "暂无角色资料")}</p>
+  </article>`;
+  return `<div class="merged-tab-layout story-tab-layout">
+    ${roleCard}
+    ${renderSections()}
+  </div>`;
+}
+
+function renderInvestigationTab() {
+  return `<div class="merged-tab-layout investigation-tab-layout">
+    ${sectionBlock("探索", "当前开放场景与可调查点", renderExploration())}
+    ${sectionBlock("线索", "我的线索、公开线索与私享线索", renderClues())}
+    ${sectionBlock("背包", "调查获得的道具与可用物品", renderInventory())}
+  </div>`;
+}
+
+function renderPlayTab() {
+  return `<div class="merged-tab-layout play-tab-layout">
+    ${sectionBlock("任务与口供", "本幕目标、可选任务和提交给主持人的陈述", renderTasksTab())}
+    ${sectionBlock("怀疑", "仅自己可见的角色怀疑度与理由", renderSuspicionsTab())}
+    ${sectionBlock("投票 / 私密行动", "指认、投票、秘密交易和询问主持", renderSocialTab())}
+  </div>`;
+}
+
+function renderRecapMergedTab() {
+  return `<div class="merged-tab-layout recap-tab-layout">
+    ${sectionBlock("复盘", "本局结论、揭示轨迹和满意度反馈", renderRecapTab())}
+    ${sectionBlock("时间线", "你在本房间可见的最近事件", renderTimelineTab())}
+    ${sectionBlock("笔记", "只对自己可见的推理记录", renderNotesTab())}
+  </div>`;
+}
+
 function gameTabDefinitions() {
   const progress = playerProgress(state.home);
   const voiceLive = state.voiceLiveStatus === "connected" ? "live" : "";
   const pendingTasks = (state.home?.tasks || []).filter((t) => t.status !== "completed").length;
   const openVotes = (state.home?.activeVotes || []).filter((v) => v.status === "open" && !v.submitted_at).length;
   const notesCount = state.home?.notes?.length || 0;
+  const primary = primaryTabFor(state.tab);
+  const groupPulse = (id) => tabGroupFor(id).reduce((sum, child) => sum + (state.tabPulseCount?.[child] || 0), 0);
+  const investigationCount = (state.exploration?.scenes?.length || 0) + progress.clueTotal + progress.inventoryCount;
+  const playCount = pendingTasks + openVotes;
   return [
-    ["home", "概览", ""],
-    ["voice", "语音", voiceLive ? "●" : ""],
-    ["sections", "分幕", progress.sectionsTotal ? `${progress.sectionsCompleted}/${progress.sectionsTotal}` : ""],
-    ["tasks", "任务", pendingTasks || ""],
-    ["suspicions", "怀疑", ""],
-    ["social", "博弈", openVotes || ""],
-    ["explore", "探索", state.exploration?.scenes?.length || ""],
-    ["clues", "线索", progress.clueTotal || ""],
-    ["inventory", "背包", progress.inventoryCount || ""],
-    ["timeline", "时间线", ""],
-    ["notes", "笔记", notesCount || ""],
-    ["recap", "复盘", state.recapLatest ? "●" : ""]
+    { id: "home", target: "home", label: "现在", badge: voiceLive ? "●" : "", active: primary === "home", pulse: groupPulse("home") },
+    { id: "story", target: "sections", label: "剧情", badge: progress.sectionsTotal ? `${progress.sectionsCompleted}/${progress.sectionsTotal}` : "", active: primary === "story", pulse: groupPulse("story") },
+    { id: "investigation", target: "explore", label: "调查", badge: investigationCount || "", active: primary === "investigation", pulse: groupPulse("investigation") },
+    { id: "play", target: "tasks", label: "博弈", badge: playCount || "", active: primary === "play", pulse: groupPulse("play") },
+    { id: "recap", target: "recap", label: "复盘", badge: state.recapLatest ? "●" : notesCount || "", active: primary === "recap", pulse: groupPulse("recap") }
   ];
 }
 
-function renderTabBadge(id, badge) {
-  const pulse = state.tabPulse?.[id] && state.tab !== id;
-  const count = state.tabPulseCount?.[id] || 0;
+function renderTabBadge(id, badge, pulseCount = 0) {
+  const pulse = pulseCount > 0 && primaryTabFor(state.tab) !== id;
   const parts = [];
   if (badge) parts.push(`<span class="tab-badge">${badge}</span>`);
-  if (pulse && count > 0) {
-    parts.push(`<span class="tab-badge tab-badge-new">+${count > 9 ? "9+" : count}</span>`);
+  if (pulse && pulseCount > 0) {
+    parts.push(`<span class="tab-badge tab-badge-new">+${pulseCount > 9 ? "9+" : pulseCount}</span>`);
   } else if (pulse) {
     parts.push(`<span class="tab-pulse-dot" aria-label="有新内容"></span>`);
   }
@@ -713,9 +805,9 @@ function renderTabBadge(id, badge) {
 export function renderGameTabBar() {
   return gameTabDefinitions()
     .map(
-      ([id, label, badge]) => `
-            <button type="button" role="tab" aria-selected="${state.tab === id ? "true" : "false"}" id="play-tab-${id}" class="tab ${state.tab === id ? "is-active" : ""}${state.tabPulse?.[id] ? " tab-has-pulse" : ""}" data-action="switch-tab" data-tab="${id}">
-              ${label}${renderTabBadge(id, badge)}
+      ({ id, target, label, badge, active, pulse }) => `
+            <button type="button" role="tab" aria-selected="${active ? "true" : "false"}" id="play-tab-${id}" class="tab ${active ? "is-active" : ""}${pulse ? " tab-has-pulse" : ""}" data-action="switch-tab" data-tab="${target}" data-primary-tab="${id}">
+              ${label}${renderTabBadge(id, badge, pulse)}
             </button>`
     )
     .join("");
@@ -724,6 +816,10 @@ export function renderGameTabBar() {
 export function renderGameTabBody() {
   if (state.tab === "home") return renderGameHome();
   if (state.tab === "voice") return renderVoiceTab();
+  if (primaryTabFor(state.tab) === "story") return renderStoryTab();
+  if (primaryTabFor(state.tab) === "investigation") return renderInvestigationTab();
+  if (primaryTabFor(state.tab) === "play") return renderPlayTab();
+  if (primaryTabFor(state.tab) === "recap") return renderRecapMergedTab();
   if (state.tab === "sections") return renderSections();
   if (state.tab === "tasks") return renderTasksTab();
   if (state.tab === "suspicions") return renderSuspicionsTab();
@@ -748,7 +844,7 @@ export function renderGame() {
         </nav>
         <div data-game-host-banner>${renderHostConfirmBannerHtml()}</div>
         <div data-game-mini-game>${renderMiniGamePanel(state.currentGame)}</div>
-        <div class="tab-body" data-game-tab-body role="tabpanel" aria-labelledby="play-tab-${state.tab}">${renderGameTabBody()}</div>
+        <div class="tab-body" data-game-tab-body role="tabpanel" aria-labelledby="${gameTabPanelLabelId(state.tab)}">${renderGameTabBody()}</div>
       </div>
       <aside class="game-sidebar" data-game-sidebar>
         ${renderGameSidebar()}

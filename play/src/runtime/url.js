@@ -12,7 +12,7 @@ const VIEW_KEYS = new Set([
   "recap"
 ]);
 
-const GAME_TABS = new Set(["home", "voice", "sections", "explore", "clues", "inventory", "recap"]);
+const GAME_TABS = new Set(["home", "voice", "sections", "tasks", "suspicions", "social", "explore", "clues", "inventory", "recap", "timeline", "notes"]);
 
 /** @param {import("../state.js").state} appState */
 export function applyUrlToState(appState, params = new URLSearchParams(window.location.search)) {

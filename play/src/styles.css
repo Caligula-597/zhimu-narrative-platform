@@ -527,6 +527,14 @@ button {
     background: var(--paper);
     padding-bottom: 8px;
   }
+
+  .story-tab-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .role-story-card {
+    position: static;
+  }
 }
 
 .card {
@@ -577,6 +585,51 @@ button {
   background: var(--green);
   border-color: var(--green);
   color: #fff;
+}
+
+.merged-tab-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.merged-tab-section {
+  display: grid;
+  gap: 14px;
+}
+
+.merged-tab-section > .section-head {
+  margin-bottom: 0;
+}
+
+.story-tab-layout {
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.role-story-card {
+  position: sticky;
+  top: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.role-story-card h2 {
+  margin: 4px 0 8px;
+  color: var(--green);
+}
+
+.role-story-card p:last-child {
+  margin-bottom: 0;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.investigation-tab-layout,
+.play-tab-layout,
+.recap-tab-layout {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .sections-layout {
@@ -2986,4 +3039,3 @@ code {
     align-items: stretch;
   }
 }
-
