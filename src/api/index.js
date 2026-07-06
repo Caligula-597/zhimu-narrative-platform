@@ -81,6 +81,16 @@ export {
   getAccountPlans
 } from "./auth.js";
 
+export {
+  getAccountLlm,
+  updateAccountLlmPreferences,
+  createAccountLlmConnection,
+  updateAccountLlmConnection,
+  deleteAccountLlmConnection,
+  activateAccountLlmConnection,
+  testAccountLlmConnection
+} from "./llm.js";
+
 /* ── World ── */
 export {
   getWorlds,

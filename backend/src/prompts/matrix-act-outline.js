@@ -44,10 +44,14 @@ ${outlineInstructions}
 
 【摘取规则】
 1. matrix20.publicAnchors 须与 L2 线索卡/公共环境一致，不得超出 clueLedger。
-2. matrix20.characterPerception = L3；特色线索放 signatureClues 与 perception 呼应。
-3. 推理必需事实不得只出现在本角色 perception 且 reliability<0.5 且无 L2 交叉。
-4. 遵守 spoilerContract；误导须可解释。
-5. tasksHint / surfaceObjectives 禁止「收集线索」式表述。
+2. **视角限制（最高优先级）**：你是 ${roleKey} 的私人本，不是上帝。publicAnchors 只写**本角色在场且可能注意到**的公共锚点，禁止逐人罗列全场（「A哭B取C翻D…」）。
+3. matrix20.characterPerception = L3；特色线索放 signatureClues 与 perception 呼应。
+4. **unknowns 必填**：列出本角色本幕**明确不知道 / 未亲见 / 仅听说**的事（至少 2 条）——任务靠错位视角完成，不是全知。
+5. knowledgeSources 每条 fact 须标注来源；无来源的不得写入 outline。
+6. 推理必需事实不得只出现在本角色 perception 且 reliability<0.5 且无 L2 交叉。
+7. 遵守 spoilerContract；误导须可解释。
+8. tasksHint / surfaceObjectives 禁止「收集线索」式表述。
+9. outline 300～450 字：**可玩纲要体**（场景顺序 + 关键对白/动作 + 任务 + 误解），不追求文学篇幅；勿扩成全场摘要。
 
 【输出 schema 示例】
 ${JSON.stringify(schemaExample, null, 2)}`;
@@ -98,6 +102,9 @@ export function validateActOutline(raw, roleKey, actKey, setting) {
           source: cleanText(k.source, 80),
           clueId: k.clueId ? cleanText(k.clueId, 32) : null
         }))
+      : [],
+    unknowns: Array.isArray(value.unknowns)
+      ? value.unknowns.slice(0, 8).map((u) => cleanText(u, 200))
       : [],
     observableBehaviors:
       matrix20.observableBehaviors.length > 0

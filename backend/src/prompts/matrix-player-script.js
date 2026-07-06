@@ -6,6 +6,7 @@ import {
   formatPromptBlock,
   resolveKillerRoleKey
 } from "./matrix-prompt-engine.js";
+import { buildDeAiRewriteRubric } from "./matrix-speech-style.js";
 
 export function buildMatrixPlayerScriptMessages({
   setting,
@@ -253,19 +254,37 @@ ${styleCard ? untrustedUserPayload("风格卡", styleCard) : ""}
   return [{ role: "system", content: system }, { role: "user", content: user }];
 }
 
-export function buildMatrixDeAiPassMessages({ body, styleCard, targetWords, spoilerContract }) {
-  const system = `你是中文剧本杀文字编辑。对 AI 腔进行改写，不改变情节事实与信息边界。
+export function buildMatrixDeAiPassMessages({
+  body,
+  styleCard,
+  targetWords,
+  spoilerContract,
+  characterArchive = null,
+  isKiller = false,
+  actIndex = 0,
+  finalActIndex = 0
+}) {
+  const rubric = buildDeAiRewriteRubric({
+    styleCard,
+    eraCard: styleCard?.era,
+    characterArchive,
+    isKiller,
+    actIndex,
+    finalActIndex
+  });
+  const system = `你是中文剧本杀文字编辑。执行「感官替心」文学喷漆：删心中X、改感官动作，不改变情节事实与信息边界。
 
 ${PRODUCT_BOUNDARY}
 
-- 保持长度约 ${targetWords} 字。
-- 缩短句长；减少「然而、不禁、内心深处、这一刻、原来如此」等套话。
-- **不得新增** forbiddenFacts 中的信息；不得新增独家关键事实。
-- 输出 JSON：{"body":"改写后正文","suggestions":[]}`;
-  const user = `请去 AI 腔改写以下正文：
+${rubric}
+
+- 保持长度约 ${targetWords} 字（±10%）。
+- 输出 JSON：{"body":"改写后正文","removedPhrases":["删掉的套话"],"suggestions":[]}`;
+  const user = `请去 AI 腔、口语化公聊对白，改写以下正文：
 
 ${untrustedUserPayload("正文", { body: cleanText(body, 12000) })}
 ${spoilerContract ? formatPromptBlock("spoilerContract（改写时仍须遵守）", spoilerContract) : ""}
+${characterArchive ? untrustedUserPayload("角色声线", { voiceHints: characterArchive.voiceHints, name: characterArchive.name }) : ""}
 ${styleCard ? untrustedUserPayload("风格卡", styleCard) : ""}
 
 只返回 JSON。`;

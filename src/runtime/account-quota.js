@@ -72,6 +72,20 @@ import * as F from "../utils/format.js";
     return `<div class="plan-upgrade-actions" style="margin-top:14px"><p class="muted-note">${escapeHtml(upgrade.note || "")}</p><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">${buttons}</div></div>`;
   }
 
+  function renderCreditsSection(credits) {
+    if (!credits?.uiVisible) return "";
+    const balance = Number(credits.balance ?? 0);
+    const monthly = Number(credits.monthlyGrant ?? 0);
+    const pct = monthly > 0 ? Math.min(100, Math.round((balance / (monthly * 2)) * 100)) : 0;
+    const packs = (credits.packs || [])
+      .map(
+        (pack) =>
+          `<div class="credit-pack-card"><strong>${escapeHtml(pack.label)}</strong><p>${pack.credits} 积分 · ¥${pack.priceCny}</p><span class="muted-note">${escapeHtml(pack.note || "")}</span></div>`
+      )
+      .join("");
+    return `<section class="form-group account-credits-section"><h3>织幕积分</h3><p class="muted-note">${escapeHtml(credits.note || "")}</p><div class="row" style="align-items:center;gap:8px;margin:10px 0"><span class="cloud-pill">${balance} 积分</span><span class="muted-note">每月赠送 ${monthly} · AI 单次约 ${credits.aiCost ?? 5} 积分</span></div><div class="usage-bar"><i style="width:${pct}%"></i></div><div class="credit-pack-grid">${packs}</div><p class="muted-note" style="margin-top:10px">完成首场复盘、持续创作等行为可获得额外积分奖励。在线充值筹备中，请联系 support 人工开通套餐。</p></section>`;
+  }
+
   function renderQuotaSection(usage, entitlements) {
     if (!usage) {
       return `<section class="form-group"><h3>套餐与配额</h3><p class="muted-note">配额信息加载中…</p></section>`;
@@ -79,6 +93,7 @@ import * as F from "../utils/format.js";
     const upgrade = entitlements?.upgrade;
     const publicPlans = entitlements?.publicPlans;
     const pricing = entitlements?.pricing;
+    const credits = entitlements?.credits;
     const storagePct = usage.storagePercent ?? (usage.maxBytes ? Math.min(100, Math.round((usage.usedBytes || 0) / usage.maxBytes * 100)) : 0);
     const worldsPct = usage.worldsPercent ?? (usage.maxWorlds ? Math.min(100, Math.round((usage.usedWorlds || 0) / usage.maxWorlds * 100)) : 0);
     const betaNote = usage.isInternalBeta ? `<span class="cloud-pill" style="margin-left:6px">内测</span>` : "";
@@ -86,9 +101,9 @@ import * as F from "../utils/format.js";
       pricing?.mode === "commercial" && pricing?.commercial?.public
         ? `<p class="muted-note" style="margin-top:12px">在线支付筹备中。配额升级仍请<strong>申请升级</strong>或邮件 ${escapeHtml(upgrade?.supportEmail || pricing?.supportEmail || "support@getzhimu.com")}。</p>`
         : `<p class="muted-note" style="margin-top:12px">暂无订阅或充值入口。配额不足可<strong>申请升级</strong>，由 ${escapeHtml(upgrade?.supportEmail || pricing?.supportEmail || "support@getzhimu.com")} 人工审核开通。</p>`;
-    return `<section class="form-group account-quota-section"><h3>套餐与配额</h3><div class="row" style="align-items:center;gap:8px;margin-bottom:10px"><span class="cloud-pill">${escapeHtml(usage.planLabel || usage.planCode || "免费版")}</span>${betaNote}</div>${usage.planDescription ? `<p class="muted-note" style="margin-bottom:10px">${escapeHtml(usage.planDescription)}</p>` : ""}<p class="muted-note" style="margin-bottom:6px">云存储 · ${formatBytes(usage.usedBytes || 0)} / ${formatBytes(usage.maxBytes || 0)}</p><div class="usage-bar"><i style="width:${storagePct}%"></i></div><div class="status-meta"><span>已用 ${storagePct}%</span><span>剩余 ${formatBytes(usage.remainingBytes ?? 0)}</span></div><p class="muted-note" style="margin-top:14px;margin-bottom:6px">可创建剧本 · ${usage.usedWorlds ?? 0} / ${usage.maxWorlds ?? 0}</p><div class="usage-bar"><i style="width:${worldsPct}%"></i></div><div class="status-meta"><span>已用 ${worldsPct}%</span><span>剩余 ${usage.remainingWorlds ?? 0} 个</span></div><p class="muted-note" style="margin-top:10px">单文件上限 ${formatBytes(usage.maxSingleFileBytes || 0)}</p>${renderPlanComparison(publicPlans, usage.planCode, pricing)}${renderUpgradeActions(upgrade, usage.planCode)}${renderLaunchPricingCta(pricing, upgrade)}${renderCommercialPricingNote(pricing)}${policyNote}</section>`;
+    return `<section class="form-group account-quota-section"><h3>套餐与配额</h3><div class="row" style="align-items:center;gap:8px;margin-bottom:10px"><span class="cloud-pill">${escapeHtml(usage.planLabel || usage.planCode || "免费版")}</span>${betaNote}</div>${usage.planDescription ? `<p class="muted-note" style="margin-bottom:10px">${escapeHtml(usage.planDescription)}</p>` : ""}<p class="muted-note" style="margin-bottom:6px">云存储 · ${formatBytes(usage.usedBytes || 0)} / ${formatBytes(usage.maxBytes || 0)}</p><div class="usage-bar"><i style="width:${storagePct}%"></i></div><div class="status-meta"><span>已用 ${storagePct}%</span><span>剩余 ${formatBytes(usage.remainingBytes ?? 0)}</span></div><p class="muted-note" style="margin-top:14px;margin-bottom:6px">可创建剧本 · ${usage.usedWorlds ?? 0} / ${usage.maxWorlds ?? 0}</p><div class="usage-bar"><i style="width:${worldsPct}%"></i></div><div class="status-meta"><span>已用 ${worldsPct}%</span><span>剩余 ${usage.remainingWorlds ?? 0} 个</span></div><p class="muted-note" style="margin-top:10px">单文件上限 ${formatBytes(usage.maxSingleFileBytes || 0)}</p>${renderCreditsSection(credits)}${renderPlanComparison(publicPlans, usage.planCode, pricing)}${renderUpgradeActions(upgrade, usage.planCode)}${renderLaunchPricingCta(pricing, upgrade)}${renderCommercialPricingNote(pricing)}${policyNote}</section>`;
   }
 
-  window.zhimuAccountQuota = { renderQuotaSection };
+  window.zhimuAccountQuota = { renderQuotaSection, renderCreditsSection };
 })(window);
 export {};

@@ -311,8 +311,18 @@ import * as M from "../components/modal.js";
 
   function pipelineWizardFrameHtml(status, session, pipelineMode) {
     const statusClass = status.configured ? "ready" : "missing";
-    const statusText = status.configured ? `${escapeHtml(status.model)} · 180s/步` : "请配置 DEEPSEEK_API_KEY";
-    return `<div class="pipeline-wizard-frame"><header class="pipeline-wizard-header"><div class="pipeline-wizard-title-row"><div><h2>AI 剧本创作</h2><p class="pipeline-wizard-hint">矩阵瀑布流：① 立项 → ② 真相 → ③ 角色 → ④ 信息矩阵 → ⑤ 主持 → ⑥ 逐幕剧本 → ⑦ 评判 → ⑧ 机械入库</p></div><div class="deepseek-status pipeline-status-chip ${statusClass}"><b>${status.configured ? "DeepSeek 已连接" : "未配置"}</b><span>${statusText}</span></div></div>${pipelineLocationBarHtml(session)}</header><div class="pipeline-wizard-body"><aside class="pipeline-wizard-side"><p class="pipeline-side-kicker">创作步骤</p><nav class="pipeline-ladder" data-pipeline-ladder aria-label="创作层级"></nav>${pipelineBriefFieldsHtml()}</aside><main class="pipeline-wizard-main"><div class="pipeline-layer-head" data-pipeline-layer-head></div><div class="pipeline-layer-editor" data-pipeline-layer-editor></div><footer class="pipeline-layer-bar"><div class="pipeline-layer-actions row" data-pipeline-layer-actions></div><div class="pipeline-summary" data-pipeline-summary></div></footer></main></div><footer class="pipeline-wizard-footer"><div class="pipeline-wizard-footer-left">${aiLocalDraftActions()}</div><div class="pipeline-wizard-footer-right"><button class="secondary-btn" type="button" data-close>关闭</button><button class="secondary-btn" type="button" data-pipeline-apply-hints disabled>应用评判提示</button><button class="secondary-btn" type="button" data-pipeline-import-structure disabled>仅上传编排</button><button class="primary-btn" type="button" data-pipeline-import-all disabled>上传全部到云端</button></div></footer></div>`;
+    const sourceLabel =
+      status.source === "user"
+        ? "自备 API"
+        : status.source === "platform"
+          ? "平台额度"
+          : "未配置";
+    const nameSuffix = status.connectionName ? ` · ${escapeHtml(status.connectionName)}` : "";
+    const statusTitle = status.configured ? `${sourceLabel} 已连接` : "AI 未就绪";
+    const statusText = status.configured
+      ? `${escapeHtml(status.model || "")}${nameSuffix} · 180s/步`
+      : "请在账号设置添加 API 连接，或等待平台额度开放";
+    return `<div class="pipeline-wizard-frame"><header class="pipeline-wizard-header"><div class="pipeline-wizard-title-row"><div><h2>AI 剧本创作</h2><p class="pipeline-wizard-hint">矩阵瀑布流：① 立项 → ② 真相 → ③ 角色 → ④ 信息矩阵 → ⑤ 主持 → ⑥ 逐幕剧本 → ⑦ 评判 → ⑧ 机械入库</p></div><div class="deepseek-status pipeline-status-chip ${statusClass}"><b>${statusTitle}</b><span>${statusText}</span></div></div>${pipelineLocationBarHtml(session)}</header><div class="pipeline-wizard-body"><aside class="pipeline-wizard-side"><p class="pipeline-side-kicker">创作步骤</p><nav class="pipeline-ladder" data-pipeline-ladder aria-label="创作层级"></nav>${pipelineBriefFieldsHtml()}</aside><main class="pipeline-wizard-main"><div class="pipeline-layer-head" data-pipeline-layer-head></div><div class="pipeline-layer-editor" data-pipeline-layer-editor></div><footer class="pipeline-layer-bar"><div class="pipeline-layer-actions row" data-pipeline-layer-actions></div><div class="pipeline-summary" data-pipeline-summary></div></footer></main></div><footer class="pipeline-wizard-footer"><div class="pipeline-wizard-footer-left">${aiLocalDraftActions()}</div><div class="pipeline-wizard-footer-right"><button class="secondary-btn" type="button" data-close>关闭</button><button class="secondary-btn" type="button" data-pipeline-apply-hints disabled>应用评判提示</button><button class="secondary-btn" type="button" data-pipeline-import-structure disabled>仅上传编排</button><button class="primary-btn" type="button" data-pipeline-import-all disabled>上传全部到云端</button></div></footer></div>`;
   }
 
   window.zhimuPipelineHtml = {

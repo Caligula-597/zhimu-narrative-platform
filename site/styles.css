@@ -610,6 +610,56 @@ button {
   margin-top: 24px;
 }
 
+.case-study-section {
+  width: 100%;
+  padding: 56px max(20px, calc((100vw - 1180px) / 2));
+  background: #f8f5ee;
+}
+
+.case-study-card {
+  max-width: 720px;
+  margin-top: 20px;
+  padding: 20px 22px;
+  border: 1px solid rgba(25, 68, 61, 0.12);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(25, 68, 61, 0.06);
+}
+
+.case-study-card header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.case-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green);
+  background: rgba(44, 107, 98, 0.1);
+}
+
+.case-study-card ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+
+.case-study-card li + li {
+  margin-top: 8px;
+}
+
+.case-study-card .muted-note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .workflow-section {
   width: 100%;
   padding-left: max(20px, calc((100vw - 1180px) / 2));

@@ -1,10 +1,12 @@
 /**
  * Structured script generation — three isolated channels stitched mechanically.
  * Pure functions + validators; LLM prompts live in matrix-structured-script.js.
- * v5.4: spoiler-only hard gates; psychology allowed; relative time not clock stamps.
+ * v5.5: spoiler-only hard gates; psychology allowed; relative time; AI cliche advisory.
  */
 import { cleanText } from "./prompts/shared.js";
 import { buildAuthorizedClueNames } from "./pipeline-matrix-script-gates.js";
+import { scanAiClicheAdvisory, scanHeartVerbAdvisory, scanMontageAdvisory } from "./prompts/matrix-speech-style.js";
+import { scanKnowledgeLeakHeuristic } from "./prompts/matrix-knowledge-audit.js";
 import {
   buildEntityUnlockSchedule,
   scanDialogueEntities,
@@ -16,7 +18,7 @@ import { killerPrivateScriptSpoilerExempt } from "./prompts/matrix-fairness-mode
 export const FEELING_PREFIX_PUZZLE = "[规定疑惑]";
 export const FEELING_PREFIX_EMOTION = "[规定情绪]";
 
-export const PROMPT_VERSION_STRUCTURED = "matrix-v5.4-player-script";
+export const PROMPT_VERSION_STRUCTURED = "matrix-v5.6-expressive";
 
 /** 剧透级表述 — 正常心理描写（感到/心想/紧张）不在此列 */
 const SPOILER_LEAK_IN_NARRATIVE =
@@ -154,12 +156,14 @@ export function buildPublicActionBrief({ characterArchive, matrixRow, actKey, ac
     voiceHints: cleanText(characterArchive?.voiceHints, 160),
     scheduledTasks: tasks,
     outwardStatements: lies,
-    rule: "写本幕经历：相对顺序（随后/这时），勿每句死钟点；心理描写主要在公聊段，但可短句点缀。禁止剧透与未授权物证专名。"
+    rule: "写本幕经历：相对顺序（随后/这时），勿每句死钟点；心理描写主要在公聊段，但可短句点缀。禁止剧透与未授权物证专名。禁止群像快剪——先写本角色，再顺带他人；勿把 L2 公共池逐人罗列成一段。"
   };
   if (actOutline?.outline) {
     brief.actOutline = cleanText(actOutline.outline, 800);
     brief.knowledgeSources = (actOutline.knowledgeSources || []).slice(0, 8);
-    brief.rule += " 严格按 actOutline 摘取，不得超出 knowledgeSources 所列来源。";
+    brief.unknowns = (actOutline.unknowns || []).slice(0, 6);
+    brief.rule +=
+      " actOutline 是可玩纲要：只扩写 knowledgeSources 中的事实；unknowns 中的内容不得写穿；勿把 outline 改成全场群像摘要。";
   }
   return brief;
 }
@@ -301,7 +305,10 @@ export function applyStructuredGates({
   actIndex = 0,
   finalActIndex = 0,
   minWords = 0,
-  killerAwareness = "self-aware"
+  killerAwareness = "self-aware",
+  actOutline = null,
+  priorKnowledgeFacts = [],
+  priorScriptBodies = []
 }) {
   const spoilerCtx = { isKiller, killerAwareness, actIndex, finalActIndex };
   const authorized = buildAuthorizedClueNames(infoMatrix, matrixRow, actKey, config);
@@ -329,6 +336,18 @@ export function applyStructuredGates({
     channel: "dialogue"
   });
   const clockAdvisory = scanRigidClockTimestamps(`${actionNarrative}\n${dialogueNarrative}`);
+  const aiClicheAdvisory = scanAiClicheAdvisory(`${actionNarrative}\n${dialogueNarrative}`);
+  const heartVerbAdvisory = scanHeartVerbAdvisory(`${actionNarrative}\n${dialogueNarrative}`);
+  const rosterNames = (characterArchives?.roles || []).map((r) => r.name).filter(Boolean);
+  const montageAdvisory = scanMontageAdvisory(`${actionNarrative}\n${dialogueNarrative}`.slice(0, 500), {
+    roleRosterNames: rosterNames
+  });
+  const knowledgeLeakHeuristic = scanKnowledgeLeakHeuristic(`${actionNarrative}\n${dialogueNarrative}`, {
+    actOutline,
+    priorKnowledgeFacts,
+    priorScriptBodies,
+    isKiller
+  });
   const persona = scanPersonaBleed(
     `${actionNarrative}\n${dialogueNarrative}`,
     roleKey,
@@ -346,6 +365,10 @@ export function applyStructuredGates({
     innocentFalseConfession: innocentConfession,
     dialogueEntities: dialogueEnt,
     clockTimestampAdvisory: clockAdvisory,
+    aiClicheAdvisory,
+    heartVerbAdvisory,
+    montageAdvisory,
+    knowledgeLeakHeuristic,
     personaBleed: persona,
     channelLength: { passed: lengthOk, minChannel, actionLen: actionNarrative.length, dialogueLen: dialogueNarrative.length },
     feelingsPack: {

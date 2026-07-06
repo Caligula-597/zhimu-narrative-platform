@@ -489,6 +489,11 @@ h3 { font-size:15px; }
 .plan-compare { width:100%; border-collapse:collapse; font-size:11px; }
 .plan-compare th,.plan-compare td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
 .plan-compare th { color:var(--muted); font-weight:700; }
+.credit-pack-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+.credit-pack-card { padding:12px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+.credit-pack-card strong { display:block; margin-bottom:6px; font-size:13px; }
+.credit-pack-card p { margin:0 0 4px; font-size:12px; color:var(--ink); }
+@media (max-width:720px) { .credit-pack-grid { grid-template-columns:1fr; } }
 .plan-row-current { background:#edf5ef; }
 .flow-list { display:grid; grid-template-columns:repeat(5,1fr); align-items:center; }
 .flow-node { position:relative; min-height:103px; padding:13px 9px; border-radius:13px; border:1px solid var(--line); background:#fbfcfa; }

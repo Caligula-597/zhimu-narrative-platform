@@ -76,6 +76,8 @@ export const API_ERRORS = {
   UPSTREAM_ERROR: { status: 502, message: "Upstream service error" },
   /** DeepSeek chat/completions HTTP or quota failure */
   DEEPSEEK_API_ERROR: { status: 502, message: "DeepSeek API request failed" },
+  /** 织幕积分不足，无法继续 AI 辅助 */
+  CREDITS_EXHAUSTED: { status: 402, message: "织幕积分不足，请等待月度赠送或联系 support 扩容" },
   /** Empty body, truncated JSON, or other unparseable model output */
   DEEPSEEK_RESPONSE_INVALID: { status: 502, message: "DeepSeek API returned invalid response" },
   /** Model output parsed but failed schema / length / consistency checks */
@@ -259,6 +261,10 @@ export const API_ERRORS = {
   STORY_BLOCKS_EMPTY: { status: 400, message: "No story blocks detected" },
   DEEPSEEK_PACKAGE_REQUIRED: { status: 400, message: "DeepSeek mystery package is required" },
   DEEPSEEK_NOT_CONFIGURED: { status: 503, message: "DeepSeek API 尚未配置。请在 backend/.env 中填写 DEEPSEEK_API_KEY。" },
+  LLM_CREDENTIALS_NOT_CONFIGURED: { status: 503, message: "服务器尚未配置 API Key 加密，暂无法保存自备连接" },
+  LLM_USER_NOT_CONFIGURED: { status: 403, message: "请先在账号设置中配置 AI API 连接" },
+  LLM_NOT_AVAILABLE: { status: 503, message: "AI 暂不可用：请配置自备 API 或联系 support" },
+  LLM_PROBE_FAILED: { status: 502, message: "AI 连接测试失败" },
   DOCUMENT_SIZE_INVALID: { status: 413, message: "Document must contain between 1 byte and 5 MB" },
   DOCUMENT_TYPE_UNSUPPORTED: { status: 415, message: "Only TXT, Markdown, DOCX, PDF and image documents can be parsed" },
   DOCUMENT_EMPTY: { status: 422, message: "Document does not contain readable text" },

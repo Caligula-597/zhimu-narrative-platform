@@ -9,6 +9,7 @@ import * as F from "../utils/format.js";
 import { closeModal, studioField } from "../components/modal.js";
 import * as Status from "../components/status-ui.js";
 import { handleApiErrorToast } from "../utils/user-messages.js";
+import { bindAccountLlmPanel, renderAccountLlmSection, stashLlmPresets } from "../components/account-llm.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const handleApiError = handleApiErrorToast;
@@ -145,10 +146,11 @@ import { handleApiErrorToast } from "../utils/user-messages.js";
     const oauthButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">关联 ${escapeHtml(p.label)}</button>`).join("");
     const oauthLoginButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">使用 ${escapeHtml(p.label)} 登录</button>`).join("");
     const quotaHtml = callRuntime("renderQuotaSection", usage, data.entitlements) || "";
+    const llmHtml = !isGuest ? renderAccountLlmSection(data.llm) : "";
     const guestUpgrade = isGuest
       ? `<section class="form-group"><h3>保存进度 · 注册正式账号</h3>${studioField("邮箱", "upgradeEmail", "input", "")}${studioField("昵称", "upgradeName", "input", me.display_name || "")}${studioField("密码 · 至少 8 位", "upgradePassword", "input", "")}<button type="button" class="primary-btn" data-guest-upgrade>绑定邮箱并注册</button><p class="muted-note">或使用 OAuth 绑定（保留当前房间进度）</p>${oauthLoginButtons ? `<div class="row">${oauthLoginButtons}</div>` : ""}</section>`
       : "";
-    return `${guestUpgrade}${!isGuest ? `${quotaHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section>${!isGuest ? `<section class="form-group"><h3>数据导出</h3><p class="muted-note">下载 JSON 格式的账号元数据（剧本清单、资产清单、会话设备等），不含密码与文件二进制。</p><button type="button" class="secondary-btn" data-export-account>下载我的数据</button><p class="muted-note" style="margin-top:10px"><a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a> · <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/COPYRIGHT_APPEAL_ZH.md" data-legal-title="版权与侵权申诉">版权申诉</a></p></section>` : ""}<section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
+    return `${guestUpgrade}${!isGuest ? `${quotaHtml}${llmHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section>${!isGuest ? `<section class="form-group"><h3>数据导出</h3><p class="muted-note">下载 JSON 格式的账号元数据（剧本清单、资产清单、会话设备等），不含密码与文件二进制。</p><button type="button" class="secondary-btn" data-export-account>下载我的数据</button><p class="muted-note" style="margin-top:10px"><a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a> · <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/COPYRIGHT_APPEAL_ZH.md" data-legal-title="版权与侵权申诉">版权申诉</a></p></section>` : ""}<section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
   }
 
   export async function refreshAccountView(options = {}) {
@@ -160,15 +162,17 @@ import { handleApiErrorToast } from "../utils/user-messages.js";
       if (uiStore.get().view === "account") render();
     }
     try {
-      const [me, sessions, config, entitlements] = await Promise.all([
+      const [me, sessions, config, entitlements, llm] = await Promise.all([
         zhimuApi.me(),
         zhimuApi.listSessions().catch(() => ({ sessions: [] })),
         zhimuApi.getAuthConfig(),
-        zhimuApi.getAccountEntitlements().catch(() => null)
+        zhimuApi.getAccountEntitlements().catch(() => null),
+        zhimuApi.getAccountLlm().catch(() => null)
       ]);
+      stashLlmPresets(llm);
       const usage = entitlements?.usage ?? null;
       if (usage) assetStore.set({ storageUsage: usage });
-      uiStore.set({ accountView: { me, sessions, config, usage, entitlements } });
+      uiStore.set({ accountView: { me, sessions, config, usage, entitlements, llm } });
     } catch (error) {
       if (!background) {
         uiStore.set({ accountView: null });
@@ -257,6 +261,11 @@ import { handleApiErrorToast } from "../utils/user-messages.js";
     });
     root.querySelectorAll('[data-studio-field$="Password"]').forEach((input) => {
       input.type = "password";
+    });
+    bindAccountLlmPanel(root, zhimuApi, {
+      onRefresh: () => refreshAccountView({ background: true }),
+      showToast,
+      handleApiError
     });
     root.querySelector("[data-guest-upgrade]")?.addEventListener("click", async () => {
       try {

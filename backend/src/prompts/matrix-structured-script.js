@@ -2,6 +2,8 @@ import { PRODUCT_BOUNDARY, untrustedUserPayload } from "./shared.js";
 import { formatPromptBlock } from "./matrix-prompt-engine.js";
 import { buildWritingStyleBlock } from "./matrix-writing-style.js";
 import { formatLiteraryStyleBlock } from "./matrix-literary-styles.js";
+import { formatEraSettingBlock } from "./matrix-era-setting.js";
+import { buildCombinedSpeechBlock, buildAntiMontageBlock, buildKnowledgeBoundaryBlock } from "./matrix-speech-style.js";
 
 export function buildActionLogMessages({
   publicActionBrief,
@@ -15,21 +17,33 @@ export function buildActionLogMessages({
   actIndex = 0,
   finalActIndex = 0,
   styleCard = null,
-  killerAwareness = "self-aware"
+  killerAwareness = "self-aware",
+  actOutline = null,
+  characterArchive = null
 }) {
   const styleBlock = buildWritingStyleBlock({
     channel: "action",
     isKiller,
     actIndex,
     finalActIndex,
-    killerAwareness
+    killerAwareness,
+    characterArchive
   });
   const literaryBlock = styleCard ? formatLiteraryStyleBlock(styleCard) : "";
+  const eraBlock = styleCard?.era ? formatEraSettingBlock(styleCard.era) : "";
+  const knowledgeBlock = buildKnowledgeBoundaryBlock({
+    knowledgeSources: actOutline?.knowledgeSources,
+    unknowns: actOutline?.unknowns,
+    volumeTier: styleCard?.volumeTier
+  });
   const system = `你是剧本杀「私人本 · 经历段」主笔。写本幕**你经历了什么**（第二人称「你」），像可读的玩家剧本，不是监控日志。
 
 ${PRODUCT_BOUNDARY}
 
 ${literaryBlock}
+${eraBlock}
+
+${knowledgeBlock}
 
 ${styleBlock}
 
@@ -82,21 +96,42 @@ export function buildDialogueLogMessages({
   actIndex = 0,
   finalActIndex = 0,
   styleCard = null,
-  killerAwareness = "self-aware"
+  killerAwareness = "self-aware",
+  characterArchive = null,
+  actOutline = null
 }) {
   const styleBlock = buildWritingStyleBlock({
     channel: "dialogue",
     isKiller,
     actIndex,
     finalActIndex,
-    killerAwareness
+    killerAwareness,
+    characterArchive
   });
   const literaryBlock = styleCard ? formatLiteraryStyleBlock(styleCard) : "";
+  const eraBlock = styleCard?.era ? formatEraSettingBlock(styleCard.era) : "";
+  const speechBlock = buildCombinedSpeechBlock({
+    styleCard,
+    eraCard: styleCard?.era,
+    characterArchive
+  });
+  const knowledgeBlock = buildKnowledgeBoundaryBlock({
+    knowledgeSources: actOutline?.knowledgeSources,
+    unknowns: actOutline?.unknowns,
+    volumeTier: styleCard?.volumeTier
+  });
   const system = `你是剧本杀「私人本 · 公聊与心理段」主笔。写公开对话 + **你的心思** — 多人向私人本有心理描写很正常。
 
 ${PRODUCT_BOUNDARY}
 
 ${literaryBlock}
+${eraBlock}
+
+${speechBlock}
+
+${knowledgeBlock}
+
+${buildAntiMontageBlock()}
 
 ${styleBlock}
 
@@ -108,6 +143,7 @@ ${entityUnlockContract?.promptBlock || ""}
 - 禁止写死「X 就是凶手」的定论（第三幕前）
 
 【允许 — 私人本常态】
+- 对话（引号）须**像真人说话**：短、有省略、角色间腔调不同（见 voiceHints）
 - 对话（引号）+ 你听见后的想法、怀疑、不安、误判
 - 对他人的观察与推理疑问；相对时间（「刚才」「回大厅后」）
 
@@ -120,6 +156,7 @@ ${entityUnlockContract?.promptBlock || ""}
 
   const user = `角色 ${roleKey} / ${actKey} 公聊与心理段。
 
+${characterArchive ? untrustedUserPayload("角色档案（voiceHints 必用于对白）", { name: characterArchive.name, voiceHints: characterArchive.voiceHints }) : ""}
 ${formatPromptBlock("publicActionBrief", publicActionBrief)}
 ${formatPromptBlock("spoilerContract", spoilerContract)}
 ${formatPromptBlock("roleRoster", roleRoster)}

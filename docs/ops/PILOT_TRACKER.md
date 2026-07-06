@@ -1,7 +1,7 @@
 # 内测试点团队追踪（P1-08）
 
 > 由产品/运营维护。可复制到 Notion/飞书；本文件为仓库内备份。  
-> **当前已登记 1 个试点团队**（2026-07-04）。官网 `#case-study` 文案仍为占位，待首场跑通后再同步 site。  
+> **当前已登记 2 个试点团队**（2026-07-06）。官网 `#case-study` 已同步匿名摘要 · [PILOT_CASE_STUDY_ZH.md](./PILOT_CASE_STUDY_ZH.md)
 > 决策背景：[DESIGN_DECISIONS_NEEDED_ZH.md](../DESIGN_DECISIONS_NEEDED_ZH.md)
 
 ---

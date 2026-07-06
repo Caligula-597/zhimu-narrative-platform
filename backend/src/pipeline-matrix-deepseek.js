@@ -15,7 +15,12 @@ import { buildHostRunbookMessages } from "./prompts/host-runbook.js";
 import { buildInfoMatrixMessages } from "./prompts/info-matrix.js";
 import { buildMatrixDeAiPassMessages, buildMatrixInnocentKillerScriptMessages, buildMatrixKillerSanitizeMessages, buildMatrixPlayerScriptMessages } from "./prompts/matrix-player-script.js";
 import { buildActionLogMessages, buildDialogueLogMessages } from "./prompts/matrix-structured-script.js";
-import { buildMatrixEvaluationMessages } from "./prompts/matrix-evaluate.js";
+import {
+  buildKnowledgeBoundaryAuditMessages,
+  collectPriorRoleKnowledge,
+  scanKnowledgeLeakHeuristic,
+  validateKnowledgeBoundaryAudit
+} from "./prompts/matrix-knowledge-audit.js";
 import {
   actIndex,
   buildMatrixScriptPromptBundle,
@@ -364,7 +369,9 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
         actIndex: actIdx,
         finalActIndex: finalIdx,
         styleCard,
-        killerAwareness
+        killerAwareness,
+        characterArchive,
+        actOutline: input.actOutline || input.actOutlines?.[roleKey]?.[actKey]
       }),
       {
         maxTokens: 6000,
@@ -391,7 +398,9 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
         actIndex: actIdx,
         finalActIndex: finalIdx,
         styleCard,
-        killerAwareness
+        killerAwareness,
+        characterArchive,
+        actOutline: input.actOutline || input.actOutlines?.[roleKey]?.[actKey]
       }),
       {
         maxTokens: 6000,
@@ -426,11 +435,35 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
       dialogueLog: gated.dialogueLog
     });
 
+    let finalBody = body;
+    if (input.deAiPass !== false && styleCard.literaryStyle) {
+      const polish = await requestDeepseekJson(
+        buildMatrixDeAiPassMessages({
+          body,
+          styleCard,
+          targetWords,
+          spoilerContract,
+          characterArchive,
+          isKiller,
+          actIndex: actIdx,
+          finalActIndex: finalIdx
+        }),
+        {
+          maxTokens: Math.min(12000, targetWords * 3),
+          temperature: 0.32,
+          phase: "pipeline.script.deai",
+          context: { roleKey, actKey, attempt: attempt + 1 }
+        }
+      );
+      const polishedBody = cleanText(polish.value?.body, 12000);
+      if (polishedBody.length >= minWords) finalBody = polishedBody;
+    }
+
     script = {
       roleKey,
       actKey,
       title: `${actKey} · ${characterArchive.name.split("·")[0].trim()}记录`,
-      body,
+      body: finalBody,
       tasks: safeMatrixRow.tasks?.length ? [...safeMatrixRow.tasks] : [],
       closingHook: cleanText(safeMatrixRow.suspicion, 200) || "还有几处时间对不上。",
       structured: {
@@ -440,7 +473,7 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
       }
     };
 
-    const finalGates = applyScriptQualityGates(body, {
+    const finalGates = applyScriptQualityGates(finalBody, {
       spoilerContract,
       infoMatrix,
       matrixRow,
@@ -453,7 +486,7 @@ async function createPipelineMatrixStructuredPlayerScript(input) {
     });
     script.body = finalGates.body;
 
-    if (body.length >= minWords && gated.passed && finalGates.passed) break;
+    if (script.body.length >= minWords && gated.passed && finalGates.passed) break;
   }
 
   if (script.body.length >= minWords) {
@@ -547,7 +580,16 @@ async function createPipelineMatrixNarrativePlayerScript(input) {
 
     if (!killerInnocentMode && input.deAiPass !== false && styleCard.literaryStyle) {
       const polish = await requestDeepseekJson(
-        buildMatrixDeAiPassMessages({ body: script.body, styleCard, targetWords, spoilerContract }),
+        buildMatrixDeAiPassMessages({
+          body: script.body,
+          styleCard,
+          targetWords,
+          spoilerContract,
+          characterArchive,
+          isKiller,
+          actIndex: actIdx,
+          finalActIndex: finalIdx
+        }),
         { maxTokens: Math.min(12000, targetWords * 3), temperature: 0.35, phase: "pipeline.script.deai", context: { roleKey, actKey } }
       );
       const polishedBody = cleanText(polish.value?.body, 12000);
@@ -647,6 +689,119 @@ export async function createPipelineMatrixEvaluation(input) {
     provider: "deepseek",
     model: result.model,
     evaluation: validateMatrixEvaluation(result.value)
+  };
+}
+
+/** Holistic readthrough — all scripts to LLM, no matrix/truth/mechanical scoring. */
+export async function createPipelineMatrixScriptReadthroughEvaluation(input) {
+  const { setting, synopsis, config } = resolveCreativePipeline(input);
+  const result = await requestDeepseekJson(
+    buildMatrixScriptReadthroughMessages({
+      setting,
+      synopsis,
+      config,
+      characterArchives: input.characterArchives,
+      scripts: input.scripts
+    }),
+    { maxTokens: 12000, temperature: 0.35, phase: "pipeline.evaluate.readthrough" }
+  );
+  return {
+    provider: "deepseek",
+    model: result.model,
+    evaluation: validateMatrixScriptReadthroughEvaluation(result.value)
+  };
+}
+
+/** Per-cell knowledge boundary audit — truth timeline × outline × prior scripts. */
+export async function createPipelineKnowledgeBoundaryAudit(input) {
+  const { config } = resolveCreativePipeline(input);
+  const truthBible = validateTruthBible(input.truthBible, config);
+  const characterArchives = validateCharacterArchives(input.characterArchives, config);
+  const infoMatrix = validateInfoMatrix(input.infoMatrix, config, characterArchives);
+  const roleKey = String(input.roleKey || "");
+  const actKey = String(input.actKey || "");
+  const characterArchive = characterArchives.roles.find((r) => r.key === roleKey);
+  const matrixRow = infoMatrix.rows.find((r) => r.roleKey === roleKey && r.actKey === actKey);
+  const actOutlines = input.actOutlines || {};
+  const actOutline = input.actOutline || actOutlines[roleKey]?.[actKey];
+  const priorKnowledge = collectPriorRoleKnowledge(actOutlines, roleKey, actKey, config);
+  const keys = config.chapterKeys || [];
+  const idx = keys.indexOf(actKey);
+  const priorScriptBodies = [];
+  if (idx > 0 && input.scripts?.[roleKey]) {
+    for (const k of keys.slice(0, idx)) {
+      const b = input.scripts[roleKey][k]?.body;
+      if (b) priorScriptBodies.push(b);
+    }
+  }
+  const killerKey = resolveKillerRoleKey(truthBible, characterArchives);
+  const isKiller = killerKey === roleKey;
+  const scriptBody = input.scriptBody || input.scripts?.[roleKey]?.[actKey]?.body || "";
+
+  const heuristic = scanKnowledgeLeakHeuristic(scriptBody, {
+    actOutline,
+    priorKnowledgeFacts: priorKnowledge.facts,
+    priorScriptBodies,
+    isKiller
+  });
+
+  const result = await requestDeepseekJson(
+    buildKnowledgeBoundaryAuditMessages({
+      roleKey,
+      actKey,
+      characterArchive,
+      actOutline,
+      priorKnowledge,
+      priorScriptBodies,
+      truthBible,
+      infoMatrix,
+      matrixRow,
+      scriptBody,
+      isKiller
+    }),
+    { maxTokens: 4500, temperature: 0.2, phase: "pipeline.audit.knowledge", context: { roleKey, actKey } }
+  );
+  const audit = validateKnowledgeBoundaryAudit(result.value);
+  return {
+    provider: "deepseek",
+    model: result.model,
+    cell: `${roleKey}_${actKey}`,
+    heuristic,
+    audit
+  };
+}
+
+/** Batch knowledge audit for all script cells in a session. */
+export async function createPipelineKnowledgeBoundaryAuditBatch(input) {
+  const { config } = resolveCreativePipeline(input);
+  const characterArchives = validateCharacterArchives(input.characterArchives, config);
+  const cells = [];
+  for (const role of characterArchives.roles) {
+    for (const actKey of config.chapterKeys || []) {
+      const row = await createPipelineKnowledgeBoundaryAudit({
+        ...input,
+        roleKey: role.key,
+        actKey
+      });
+      cells.push(row);
+    }
+  }
+  const highLeaks = cells.flatMap((c) =>
+    c.audit.leaks
+      .filter((l) => l.severity === "high")
+      .map((l) => ({ cell: c.cell, ...l }))
+  );
+  const heuristicHits = cells.filter((c) => !c.heuristic.passed);
+  return {
+    cells,
+    passed: cells.every((c) => c.audit.passed) && heuristicHits.length === 0,
+    summary: {
+      totalCells: cells.length,
+      auditFailed: cells.filter((c) => !c.audit.passed).length,
+      heuristicFlagged: heuristicHits.length,
+      highLeakCount: highLeaks.length,
+      highLeaks: highLeaks.slice(0, 12)
+    }
   };
 }
 

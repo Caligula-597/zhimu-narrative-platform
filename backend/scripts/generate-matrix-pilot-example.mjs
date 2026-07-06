@@ -67,7 +67,7 @@ const PILOT_CONFIGS = {
       wordsPerChapter: 2400,
       volumeTier: "demo",
       pov: "second",
-      literaryStyle: "chunqiu",
+      literaryStyle: "luxun",
       mysteryStyle: "christie-holmes",
       matrixMode: "honkaku",
       eraPreset: "republic-cn",

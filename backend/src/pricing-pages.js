@@ -4,12 +4,13 @@
  */
 import { PLAN_CATALOG, PLAN_DEFAULTS } from "./plans.js";
 import { enterpriseEmails } from "./enterprise-emails.js";
+import { CREDIT_PACKS, isCreditsUiVisible } from "./credits.js";
 
 /** Draft RMB prices — not sold until COMMERCIAL_PRICING_PUBLIC + checkout enabled. */
 export const COMMERCIAL_PRICE_DRAFT = {
-  free: { monthly: 0, yearly: 0, currency: "CNY", billingNote: "永久免费" },
-  creator: { monthly: 68, yearly: 688, currency: "CNY", billingNote: "草案标价 · 月付/年付" },
-  studio: { monthly: 298, yearly: 2980, currency: "CNY", billingNote: "草案标价 · 月付/年付" }
+  free: { monthly: 0, yearly: 0, currency: "CNY", billingNote: "永久免费 · 含 300 织幕积分/月" },
+  creator: { monthly: 68, yearly: 688, currency: "CNY", billingNote: "独立作者 · 含 3000 积分/月" },
+  studio: { monthly: 298, yearly: 2980, currency: "CNY", billingNote: "工作室 · 含 12000 积分/月" }
 };
 
 const PUBLIC_TIER_CODES = ["free", "creator", "studio"];
@@ -27,6 +28,11 @@ export function getPricingPageMode() {
 
 export function isCommercialPricingPublic() {
   return process.env.COMMERCIAL_PRICING_PUBLIC === "true";
+}
+
+/** 套餐/积分购买 UI — 首月默认隐藏，见 CREDITS_UI_VISIBLE_AFTER */
+export function isCommercialUiVisible() {
+  return isCommercialPricingPublic() || isCreditsUiVisible();
 }
 
 function buildTierCard(code, { includePrices = false } = {}) {
@@ -91,16 +97,18 @@ export function buildPricingPayload({ appUrl, marketingUrl } = {}) {
     commercial: {
       prepared: true,
       public: commercialPublic,
+      uiVisible: isCommercialUiVisible(),
       draft: true,
       pagePath: "/pricing-commercial.html",
       headline: "工作室版定价（草案）",
       disclaimer:
-        "以下为产品草案标价，实测与试点验证完成前不开放在线支付；开通仍由 support 人工确认。",
+        "以下为产品草案标价。首月内测不展示在线购买入口；积分与订阅界面将在稳定后开放。",
       tiers: buildPublicPricingTiers(true),
       tierPricesByCode: { ...COMMERCIAL_PRICE_DRAFT },
+      creditPacks: CREDIT_PACKS,
       checkout: {
         enabled: false,
-        note: "Stripe 结账接入后将在此开放；国内支付另行公告。"
+        note: "Stripe / 积分充值接入后开放；首月请仍走人工开通或 support 邮件。"
       }
     }
   };

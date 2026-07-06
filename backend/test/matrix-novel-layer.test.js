@@ -54,6 +54,7 @@ test("buildLiteraryStyleCard replaces tone/styleAnchor", () => {
   assert.equal(card.literaryStyle, "horror");
   assert.equal(card.mysteryStyle, "holmes");
   assert.ok(card.anchor.includes("福尔摩斯"));
+  assert.ok(card.dialogueGuide?.register);
   assert.equal(card.tone, "");
   assert.equal(card.styleAnchor, "");
 });

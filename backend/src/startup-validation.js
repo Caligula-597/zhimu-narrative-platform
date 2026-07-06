@@ -42,6 +42,9 @@ export function validateStartupEnvironment() {
     if (!process.env.OPS_API_TOKEN?.trim()) {
       console.warn("WARN: OPS_API_TOKEN is empty — /api/ops/* endpoints reject all requests in production.");
     }
+    if (!process.env.LLM_CREDENTIALS_SECRET?.trim() && !process.env.OPS_API_TOKEN?.trim()) {
+      console.warn("WARN: LLM_CREDENTIALS_SECRET is empty — users cannot save BYOK API keys until configured.");
+    }
     if (!process.env.METRICS_TOKEN?.trim()) {
       console.warn("WARN: METRICS_TOKEN is empty — /metrics endpoint rejects all requests in production.");
     }

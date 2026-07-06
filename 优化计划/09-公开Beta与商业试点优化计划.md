@@ -1,6 +1,6 @@
 # 公开 Beta 与商业试点优化计划
 
-最后更新：2026-07-03
+最后更新：2026-07-06
 
 ## 一句话结论
 
@@ -21,7 +21,7 @@
 | P1 产品闭环 | 已完成：创作者风险总控、主持风险台、玩家下一步、反馈入口、clue audit、rule trace |
 | 共享层 | A4 Phase 6 完成：api-fetch、session-token、toast、status-chip、tokens |
 | 官网资产 | hero + 四端 showcase 已换真实截图 |
-| 主要缺口 | pilot 案例（示例暂停）、全量 pg_dump/R2 恢复、**Beta-2 计费/E2E** |
+| 主要缺口 | ~~pilot 案例~~ 已补匿名摘要；pg_dump **CI 已有**；R2 抽样脚本已有；**Beta-2 计费 UI 上线**（积分后端已就绪，首月隐藏） |
 
 ## 阶段目标
 
@@ -75,8 +75,8 @@ npm run monitoring:smoke -- --alerts
 
 | ID | 任务 | 交付物 | 验收 |
 |---|---|---|---|
-| B2-01 | 自动化计费闭环 | Stripe/订单/套餐/发票状态统一 | 套餐、配额、账单、OPS 一致 |
-| B2-02 | 关键 E2E 主线化 | CI 主链路 E2E | 创建世界 -> 开房 -> 玩家加入 -> 主持推进 -> 复盘稳定 |
+| B2-01 | 自动化计费闭环 | Stripe/订单/套餐/积分 · **后端已就绪，UI 首月隐藏** | `CREDITS_UI_VISIBLE_AFTER` 到期后开放 |
+| B2-02 | 关键 E2E 主线化 | `e2e/full-chain.spec.js` | fixture 全链路 + 向导入房 |
 | B2-03 | 数据恢复承诺 | RPO/RTO 文档 | 客户能理解保留期、恢复时限和限制 |
 | B2-04 | 客户成功看板 | 试点 tracker 产品化或半产品化 | 团队、房间、反馈、风险、处理状态可追踪 |
 

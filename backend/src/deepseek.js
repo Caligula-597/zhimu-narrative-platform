@@ -1,4 +1,6 @@
 import { throwErr } from "./api-errors.js";
+import { chargeAiCredits, isCreditsDebitAiEnabled, isCreditsSystemEnabled } from "./credits.js";
+import { getLlmRuntime } from "./llm-runtime.js";
 import { buildStorySpecMessages } from "./prompts/spec.js";
 import { buildStoryOutlineMessages } from "./prompts/outline.js";
 import { buildStructureMessages } from "./prompts/structure.js";
@@ -561,10 +563,30 @@ export function validateManuscriptSynopsis(raw, proposal) {
   };
 }
 
-export async function requestDeepseekJson(messages, { maxTokens = 8000, temperature = 0.5, timeoutMs, phase, context = {}, retryOnJsonParse = true } = {}) {
-  const config = deepseekConfig();
-  if (!config.configured) throwErr("DEEPSEEK_NOT_CONFIGURED");
-  const callTimeoutMs = timeoutMs ?? config.timeoutMs;
+function llmNotConfiguredError(runtime) {
+  if (runtime.source === "user") throwErr("LLM_USER_NOT_CONFIGURED");
+  if (runtime.source === "platform") throwErr("DEEPSEEK_NOT_CONFIGURED");
+  throwErr("LLM_NOT_AVAILABLE");
+}
+
+function buildChatCompletionBody(runtime, { messages, maxTokens, temperature }) {
+  const body = {
+    model: runtime.model,
+    messages,
+    response_format: { type: "json_object" },
+    temperature,
+    max_tokens: maxTokens
+  };
+  if (runtime.provider === "deepseek" || String(runtime.baseUrl).includes("deepseek")) {
+    body.thinking = { type: "disabled" };
+  }
+  return body;
+}
+
+export async function requestDeepseekJson(messages, { maxTokens = 8000, temperature = 0.5, timeoutMs, phase, context = {}, retryOnJsonParse = true, idempotencyKey = null } = {}) {
+  const runtime = getLlmRuntime();
+  if (!runtime.configured || !runtime.apiKey) llmNotConfiguredError(runtime);
+  const callTimeoutMs = timeoutMs ?? runtime.timeoutMs ?? deepseekConfig().timeoutMs;
   const attempts = retryOnJsonParse ? 2 : 1;
   let lastSyntaxError = null;
 
@@ -572,17 +594,10 @@ export async function requestDeepseekJson(messages, { maxTokens = 8000, temperat
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), callTimeoutMs);
     try {
-      const response = await fetch(`${config.baseUrl}/chat/completions`, {
+      const response = await fetch(`${runtime.baseUrl.replace(/\/$/, "")}/chat/completions`, {
         method: "POST",
-        headers: { authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
-        body: JSON.stringify({
-          model: config.model,
-          messages,
-          response_format: { type: "json_object" },
-          thinking: { type: "disabled" },
-          temperature,
-          max_tokens: maxTokens
-        }),
+        headers: { authorization: `Bearer ${runtime.apiKey}`, "content-type": "application/json" },
+        body: JSON.stringify(buildChatCompletionBody(runtime, { messages, maxTokens, temperature })),
         signal: controller.signal
       });
       const payload = await response.json().catch(() => ({}));
@@ -592,13 +607,20 @@ export async function requestDeepseekJson(messages, { maxTokens = 8000, temperat
         if (status === 429) {
           throwErr("RATE_LIMITED", `AI 服务请求过于频繁，请稍后再试。（${upstreamMsg}）`, { phase, attempt, ...context });
         }
-        throwErr("DEEPSEEK_API_ERROR", `AI 服务请求失败：${upstreamMsg}`, { phase, attempt, status, ...context });
+        throwErr("DEEPSEEK_API_ERROR", `AI 服务请求失败：${upstreamMsg}`, { phase, attempt, status, source: runtime.source, ...context });
       }
       const content = payload.choices?.[0]?.message?.content;
       if (!content) {
         throwErr("DEEPSEEK_RESPONSE_INVALID", "AI 返回了空内容，请重试。", { phase, attempt, ...context });
       }
-      return { model: config.model, value: JSON.parse(content) };
+      if (runtime.billPlatform && runtime.userId && isCreditsSystemEnabled() && isCreditsDebitAiEnabled()) {
+        await chargeAiCredits(runtime.userId, {
+          refType: "ai",
+          refId: phase || null,
+          idempotencyKey: idempotencyKey || (phase ? `ai:${runtime.userId}:${phase}:${attempt}` : null)
+        });
+      }
+      return { model: runtime.model, provider: runtime.source, value: JSON.parse(content) };
     } catch (error) {
       if (error.name === "AbortError") {
         throwErr("GATEWAY_TIMEOUT", `AI 请求超时（已等待 ${Math.round(callTimeoutMs / 1000)} 秒），请稍后重试。`, { phase, attempt, timeoutMs: callTimeoutMs, ...context });

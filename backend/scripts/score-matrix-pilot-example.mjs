@@ -1,15 +1,22 @@
 /**
- * Re-score a matrix pilot folder with current v5.4 gates + optional LLM evaluate.
+ * Re-score a matrix pilot folder.
  *
  * Usage:
  *   node backend/scripts/score-matrix-pilot-example.mjs
+ *   node backend/scripts/score-matrix-pilot-example.mjs 停雪公馆 --readthrough
  *   node backend/scripts/score-matrix-pilot-example.mjs 雾港回声 --no-llm
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deepseekConfig } from "../src/deepseek.js";
-import { createPipelineMatrixEvaluation, createPipelineInnocentScriptsTruthInference } from "../src/pipeline-matrix-deepseek.js";
+import {
+  createPipelineMatrixEvaluation,
+  createPipelineMatrixScriptReadthroughEvaluation,
+  createPipelineKnowledgeBoundaryAuditBatch,
+  createPipelineInnocentScriptsTruthInference
+} from "../src/pipeline-matrix-deepseek.js";
+import { collectPriorRoleKnowledge } from "../src/prompts/matrix-knowledge-audit.js";
 import { renderInnocentInferenceMarkdown } from "../src/prompts/matrix-innocent-inference.js";
 import { pipelineWordTargets } from "../src/pipeline-matrix-model.js";
 import { resolveKillerRoleKey, actIndex } from "../src/prompts/matrix-prompt-engine.js";
@@ -25,6 +32,8 @@ const args = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const slug = args[0] || "雾港回声";
 const pilotDir = join(root, "examples", "pending-review", slug);
 const noLlm = process.argv.includes("--no-llm");
+const readthrough = process.argv.includes("--readthrough");
+const knowledgeAudit = process.argv.includes("--knowledge-audit") || readthrough;
 
 for (const file of [join(root, "backend", ".env"), join(root, ".env")]) {
   if (!existsSync(file)) continue;
@@ -36,6 +45,19 @@ for (const file of [join(root, "backend", ".env"), join(root, ".env")]) {
 
 function loadJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
+}
+
+function loadActOutlinesFromDir() {
+  const actOutlines = {};
+  const dir = join(pilotDir, "layers", "07-outlines");
+  if (!existsSync(dir)) return actOutlines;
+  for (const f of readdirSync(dir)) {
+    if (!f.endsWith(".json")) continue;
+    const [roleKey, actKey] = f.replace(".json", "").split("_");
+    actOutlines[roleKey] = actOutlines[roleKey] || {};
+    actOutlines[roleKey][actKey] = loadJson(join(dir, f));
+  }
+  return actOutlines;
 }
 
 function loadScriptsFromDir(session) {
@@ -69,6 +91,7 @@ async function main() {
   const infoMatrixPath = join(pilotDir, "layers", "04-info-matrix.json");
   const infoMatrix = existsSync(infoMatrixPath) ? loadJson(infoMatrixPath) : session.infoMatrix;
   const scripts = loadScriptsFromDir(session);
+  const actOutlines = loadActOutlinesFromDir();
 
   const killerKey = resolveKillerRoleKey(truthBible, characterArchives);
   const targets = pipelineWordTargets(setting);
@@ -79,6 +102,7 @@ async function main() {
   const cellReports = [];
   const gateFailCounts = {};
 
+  if (!readthrough) {
   for (const [roleKey, acts] of Object.entries(scripts)) {
     for (const [actKey, script] of Object.entries(acts || {})) {
       const matrixRow = infoMatrix.rows.find((r) => r.roleKey === roleKey && r.actKey === actKey);
@@ -88,6 +112,17 @@ async function main() {
       const actionLog = structured?.actionLog || validateActionLog({ narrative: script.body?.slice(0, 2000) || "" });
       const dialogueLog = structured?.dialogueLog || validateDialogueLog({ narrative: "" });
       const feelingsPack = structured?.feelingsPack || { puzzles: [], emotions: [] };
+
+      const priorKnowledge = collectPriorRoleKnowledge(actOutlines, roleKey, actKey, config);
+      const keys = config.chapterKeys || [];
+      const actIdxNum = keys.indexOf(actKey);
+      const priorScriptBodies = [];
+      if (actIdxNum > 0) {
+        for (const k of keys.slice(0, actIdxNum)) {
+          const b = acts?.[k]?.body;
+          if (b) priorScriptBodies.push(b);
+        }
+      }
 
       const gated = applyStructuredGates({
         actionLog,
@@ -103,7 +138,10 @@ async function main() {
         actIndex: actIdx,
         finalActIndex: finalIdx,
         minWords,
-        killerAwareness
+        killerAwareness,
+        actOutline: actOutlines[roleKey]?.[actKey],
+        priorKnowledgeFacts: priorKnowledge.facts,
+        priorScriptBodies
       });
 
       const clock = scanRigidClockTimestamps(script.body || "");
@@ -138,6 +176,7 @@ async function main() {
       });
     }
   }
+  }
 
   const outlineReports = [];
   const outlinesDir = join(pilotDir, "layers", "07-outlines");
@@ -164,7 +203,7 @@ async function main() {
   const mechTotal = cellReports.length;
 
   let innocentInference = null;
-  if (!noLlm && deepseekConfig().configured && Object.keys(scripts).length) {
+  if (!noLlm && !readthrough && deepseekConfig().configured && Object.keys(scripts).length) {
     console.log("▶ 非凶手推真相（未读 truth bible）…");
     innocentInference = await createPipelineInnocentScriptsTruthInference({
       setting,
@@ -193,38 +232,91 @@ async function main() {
 
   let llmEvaluation = null;
   if (!noLlm && deepseekConfig().configured) {
-    console.log("▶ LLM 评判（v5.4 prompt）…");
-    const result = await createPipelineMatrixEvaluation({
+    if (readthrough) {
+      console.log("▶ LLM 通读评判（全部角色剧本，无机制/矩阵）…");
+      const result = await createPipelineMatrixScriptReadthroughEvaluation({
+        setting,
+        synopsis,
+        config,
+        characterArchives,
+        scripts
+      });
+      llmEvaluation = result.evaluation;
+    } else {
+      console.log("▶ LLM 评判（v5.4 prompt）…");
+      const result = await createPipelineMatrixEvaluation({
+        setting,
+        synopsis,
+        config,
+        truthBible,
+        infoMatrix,
+        scripts
+      });
+      llmEvaluation = result.evaluation;
+    }
+  }
+
+  let knowledgeBoundaryAudit = null;
+  if (!noLlm && knowledgeAudit && deepseekConfig().configured && Object.keys(scripts).length) {
+    console.log("▶ 知识边界审计（真相×纲要×前幕铺垫）…");
+    knowledgeBoundaryAudit = await createPipelineKnowledgeBoundaryAuditBatch({
       setting,
       synopsis,
       config,
       truthBible,
+      characterArchives,
       infoMatrix,
-      scripts
+      scripts,
+      actOutlines
     });
-    llmEvaluation = result.evaluation;
+    const auditPath = join(pilotDir, "layers", "12-knowledge-audit.json");
+    mkdirSync(dirname(auditPath), { recursive: true });
+    writeFileSync(
+      auditPath,
+      `${JSON.stringify(
+        {
+          slug,
+          auditedAt: new Date().toISOString(),
+          ...knowledgeBoundaryAudit.summary,
+          cells: knowledgeBoundaryAudit.cells.map((c) => ({
+            cell: c.cell,
+            passed: c.audit.passed,
+            verdict: c.audit.verdict,
+            heuristic: c.heuristic,
+            leaks: c.audit.leaks
+          }))
+        },
+        null,
+        2
+      )}\n`,
+      "utf8"
+    );
   }
 
   const report = {
     slug,
     scoredAt: new Date().toISOString(),
-    scoringStandard: "matrix-2.0",
+    scoringStandard: readthrough ? "script-readthrough" : "matrix-2.0",
     killerKey,
     killerAwareness,
-    mechanical: {
-      passedCells: mechPassed,
-      totalCells: mechTotal,
-      passRatePct: mechTotal ? Math.round((mechPassed / mechTotal) * 100) : 0,
-      gateFailCounts,
-      clockHeavyCells: cellReports.filter((c) => c.clockAdvisory).length
-    },
-    outlines: {
-      withSignature: outlineReports.filter((o) => o.hasSignature).length,
-      total: outlineReports.length,
-      clockHeavyOutlines: outlineReports.filter((o) => o.clockInOutline >= 5).length
-    },
-    cells: cellReports,
-    outlineCells: outlineReports,
+    mechanical: readthrough
+      ? null
+      : {
+          passedCells: mechPassed,
+          totalCells: mechTotal,
+          passRatePct: mechTotal ? Math.round((mechPassed / mechTotal) * 100) : 0,
+          gateFailCounts,
+          clockHeavyCells: cellReports.filter((c) => c.clockAdvisory).length
+        },
+    outlines: readthrough
+      ? null
+      : {
+          withSignature: outlineReports.filter((o) => o.hasSignature).length,
+          total: outlineReports.length,
+          clockHeavyOutlines: outlineReports.filter((o) => o.clockInOutline >= 5).length
+        },
+    cells: readthrough ? undefined : cellReports,
+    outlineCells: readthrough ? undefined : outlineReports,
     innocentInference: innocentInference
       ? {
           killerMatch: innocentInference.mechanical.killerMatch,
@@ -235,14 +327,25 @@ async function main() {
           passed: innocentInference.passed
         }
       : null,
-    llmEvaluation
+    llmEvaluation,
+    knowledgeBoundaryAudit: knowledgeBoundaryAudit
+      ? {
+          passed: knowledgeBoundaryAudit.passed,
+          ...knowledgeBoundaryAudit.summary
+        }
+      : null
   };
 
-  const outPath = join(pilotDir, "layers", "10-score-v54-retro.json");
+  const outPath = join(
+    pilotDir,
+    "layers",
+    readthrough ? "10-readthrough-evaluation.json" : "10-score-v54-retro.json"
+  );
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 
-  console.log(`\n=== ${slug} · v5.4 回溯评分 ===\n`);
+  console.log(`\n=== ${slug} · ${readthrough ? "通读评分" : "v5.4 回溯评分"} ===\n`);
+  if (!readthrough) {
   console.log(`机械门禁：${mechPassed}/${mechTotal} 格通过 (${report.mechanical.passRatePct}%)`);
   console.log(`钟点过密 advisory：${report.mechanical.clockHeavyCells}/${mechTotal} 格`);
   console.log(`大纲含特色/个人来源：${report.outlines.withSignature}/${report.outlines.total} 格`);
@@ -252,6 +355,7 @@ async function main() {
   for (const c of cellReports.filter((x) => !x.mechanicalPassed)) {
     console.log(`  ✗ ${c.cell}: ${c.fails.join(", ")}`);
   }
+  }
   if (innocentInference) {
     console.log(
       `\n非凶手推真相：killerMatch=${innocentInference.mechanical.killerMatch} (${innocentInference.mechanical.inferredKiller} vs ${innocentInference.mechanical.truthKiller}) fairness=${innocentInference.comparison.fairnessVerdict}`
@@ -260,7 +364,23 @@ async function main() {
   if (llmEvaluation) {
     console.log(`\nLLM overallScore: ${llmEvaluation.overallScore}`);
     console.log("  scores:", JSON.stringify(llmEvaluation.scores));
-    console.log(`  readyForSync: ${llmEvaluation.readyForSync}`);
+    if (readthrough) {
+      console.log(`  readyForPlayers: ${llmEvaluation.readyForPlayers}`);
+      if (llmEvaluation.weakCells?.length) {
+        console.log("  weakCells (top 5):");
+        for (const w of llmEvaluation.weakCells.slice(0, 5)) {
+          console.log(`    ${w.cell}: ${w.why}`);
+        }
+      }
+      if (llmEvaluation.standoutCells?.length) {
+        console.log("  standoutCells:");
+        for (const s of llmEvaluation.standoutCells.slice(0, 3)) {
+          console.log(`    ${s.cell}: ${s.why}`);
+        }
+      }
+    } else {
+      console.log(`  readyForSync: ${llmEvaluation.readyForSync}`);
+    }
     console.log(`  verdict: ${llmEvaluation.verdict}`);
     if (llmEvaluation.issues?.length) {
       console.log("  issues (top 5):");
@@ -270,6 +390,14 @@ async function main() {
     }
   } else {
     console.log(noLlm ? "\n（--no-llm，未跑 LLM）" : "\n（DEEPSEEK 未配置，未跑 LLM）");
+  }
+  if (knowledgeBoundaryAudit) {
+    console.log(
+      `\n知识边界审计：passed=${knowledgeBoundaryAudit.passed} highLeaks=${knowledgeBoundaryAudit.summary.highLeakCount} heuristic=${knowledgeBoundaryAudit.summary.heuristicFlagged}`
+    );
+    for (const h of knowledgeBoundaryAudit.summary.highLeaks.slice(0, 5)) {
+      console.log(`  [high] ${h.cell}: ${h.claim || h.reason} — ${h.excerpt?.slice(0, 60)}`);
+    }
   }
   console.log(`\n完整报告：${outPath}`);
 }

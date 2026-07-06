@@ -4,6 +4,7 @@ import { requireActor } from "../request-actor.js";
 import { requireRoomRole } from "./route-guards.js";
 import { buildRoomRecapSnapshot, filterRecapForPlayer, summarizeRecap } from "./recap-helpers.js";
 import { createRecapSchema, recapIdParams, roomIdParams } from "./schemas.js";
+import { rewardFirstRecap } from "../credits.js";
 
 async function requireHostMembership(actorId, roomId) {
   const membership = await requireRoomRole(actorId, roomId);
@@ -131,6 +132,7 @@ export async function registerRecapRoutes(app) {
       [roomId, actorId, title.trim(), JSON.stringify(snapshot)]
     );
     const row = result.rows[0];
+    const creditReward = await rewardFirstRecap(actorId, row.id);
     return reply.code(201).send({
       id: row.id,
       label: row.label,
@@ -138,7 +140,14 @@ export async function registerRecapRoutes(app) {
       created_at: row.created_at,
       perspective: "host",
       snapshot: { ...row.snapshot, perspective: "host" },
-      summary: summarizeRecap(row.snapshot)
+      summary: summarizeRecap(row.snapshot),
+      creditReward: creditReward
+        ? {
+            granted: true,
+            amount: creditReward.amount,
+            note: "首场复盘奖励已记入织幕积分（界面开放后可查看）"
+          }
+        : null
     });
   });
 }

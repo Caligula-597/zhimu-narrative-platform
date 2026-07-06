@@ -175,7 +175,12 @@ export function formatMatrixOutlineInstructions(profile) {
   }
   blocks.push(
     "5. personalTimeline：本角色本幕时间线声称（可含对外谎言；相对顺序，少 HH:MM）。",
-    "6. surfaceObjectives（L5 表层）：对质/公开/辩护类，禁止「找 N 条线索」。"
+    "6. surfaceObjectives（L5 表层）：对质/公开/辩护类，禁止「找 N 条线索」。",
+    "",
+    "【知识边界 · 纲要必写】",
+    "- 每位角色只知道 L2 公共池 + 本幕 L3；**精力有限，不可能同步掌握所有细节**。",
+    "- 分幕 outline 须显式列出 unknowns（未亲见/未核实/故意隐瞒不说的他人行动）。",
+    "- 玩家任务靠**错位视角**在公聊中拼齐，不是单人本写全。"
   );
   if (profile.layers.L5?.allowHiddenObjective) {
     blocks.push("7. hiddenObjective（L5 深层，HOST_ONLY 摘要）：仅一句，不对玩家正文直写。");
@@ -214,7 +219,8 @@ export function buildMatrix20OutlineSchema(profile, roleKey, actKey) {
     },
     outline: "300～450 字串联 narrative（从 matrix20 四段提炼，POV 限制）",
     signatureClues: [{ detail: "特色线索", whyPersonal: "为何独有" }],
-    knowledgeSources: [{ fact: "…", source: "亲眼所见|对话|线索卡|私人专有条目|推断", clueId: null }],
+    knowledgeSources: [{ fact: "…", source: "亲眼所见|对话|线索卡|私人专有条目|推断|听说(未核实)", clueId: null }],
+    unknowns: ["本幕尚未知/未亲见：…", "仅听说未核实：…"],
     tasksHint: ["与 surfaceObjectives 呼应"]
   };
   return schema;

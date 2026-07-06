@@ -1,11 +1,24 @@
 /**
  * Matrix structured script — writing rubrics for multiplayer private scripts.
- * v5.4: psychology allowed; relative time sequence, not clock timestamps.
+ * v5.5: psychology allowed; relative time; speech naturalness via matrix-speech-style.
  */
-export const WRITING_STYLE_VERSION = "v5.4-player-script";
+import {
+  buildAntiAiNarrationBlock,
+  buildAntiMontageBlock,
+  buildKillerChaosPovBlock,
+  buildSensoryExpressionBlock
+} from "./matrix-speech-style.js";
 
-export function buildActionStyleBlock() {
-  return `【写作风格 · 经历段 · 先后叙述】
+export const WRITING_STYLE_VERSION = "v5.6-expressive";
+
+export function buildActionStyleBlock(characterArchive = null) {
+  return `${buildAntiMontageBlock()}
+
+${buildSensoryExpressionBlock(characterArchive)}
+
+${buildAntiAiNarrationBlock()}
+
+【写作风格 · 经历段 · 先后叙述】
 私人本需要沉浸感：写「发生了什么」，用**相对顺序**串联，不要写成监控日志。
 
 时间：用「随后 / 这时 / 讨论开始前 / 入夜后 / 风暴稍歇时」— **禁止**每句一个精确钟点（❌ 21:05…21:06…21:07…）。
@@ -38,24 +51,31 @@ export function buildKillerStandInStyleBlock({ actIndex, finalActIndex, killerAw
   }
   if (killerAwareness === "self-unaware") {
     return `【真凶位 · 不自知（ch1/ch2）】
-心理描写照常；禁止：作案确证、碰凶器、担心杀人败露、内心承认「我杀了他」。
+心理用感官写紧张；禁止：作案确证、碰凶器、担心杀人败露、内心承认「我杀了他」。
 可与无辜者一样被误导、怀疑他人。`;
   }
-  return `【真凶位 · 自知（ch1/ch2）· 私人本】
-只有本人读这份剧本：可以**很直白** — 「我是凶手」「必须瞒住」「我清楚自己做了什么」。
-这不是剧透重点（别人看不见你的本）。
-
-对外（公聊台词）：仍撒谎、辩解、甩锅；forbiddenFacts 手法名词勿写进「会被别人听到的」段落。`;
+  return `【真凶位 · 自知（ch1/ch2）· 混沌非报告】
+只有本人读这份剧本：可以知道自己**做了亏心事**，但写法是**当下慌乱**——手抖、记不清钟点、不敢确认物证。
+禁止写成事后结案：「我确实试图毒死他但未成功」「我清楚自己做了什么」。
+对外（公聊台词）：仍撒谎、辩解、甩锅；forbiddenFacts 手法名词勿写进会被听到的段落。`;
 }
 
-export function buildWritingStyleBlock({ channel, isKiller, actIndex = 0, finalActIndex = 0, killerAwareness = "self-aware" }) {
+export function buildWritingStyleBlock({
+  channel,
+  isKiller,
+  actIndex = 0,
+  finalActIndex = 0,
+  killerAwareness = "self-aware",
+  characterArchive = null
+}) {
   if (channel === "action") {
-    return buildActionStyleBlock();
+    return buildActionStyleBlock(characterArchive);
   }
   if (channel === "dialogue") {
-    const parts = [buildDialogueStyleBlock()];
+    const parts = [buildDialogueStyleBlock(), buildSensoryExpressionBlock(characterArchive)];
     if (isKiller && actIndex < finalActIndex) {
       parts.push(buildKillerStandInStyleBlock({ actIndex, finalActIndex, killerAwareness }));
+      parts.push(buildKillerChaosPovBlock({ actIndex, finalActIndex }));
     }
     return parts.join("\n\n");
   }

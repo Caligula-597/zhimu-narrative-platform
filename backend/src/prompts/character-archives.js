@@ -9,6 +9,7 @@ ${PRODUCT_BOUNDARY}
 【任务】
 - 输出恰好 ${config.playerCount} 位角色，key 为 role-1 … role-N；name 格式「姓名 · 身份」。
 - 每位角色必须有：publicIdentity、hiddenIdentity、motive、relationships、timelineActions、lies（3 条）、innerConflict、voiceHints、actTasks（每幕 2～3 条 tasks + tips）。
+- voiceHints 须写清**说话与感官**（5 行以内）：register（ blunt/文绉/快嘴等）、taboos（绝不说的话）、catchphrases（1～2 个口癖）、sampleLine（一句典型台词）、sensoryFilter（写心理时常用的职业感官，如「满手机油」「账本纸边」「玻璃瓶壁打滑」）。不同角色 register 与 sensoryFilter 必须互不相同。
 - actTasks.tasks 必须可执行、可公聊；禁止写「找出真凶」这类终局任务放在第一幕。
 - 不得泄露 spoilerGates 中本幕 forbiddenFacts；真凶角色的 actTasks 不得含「认罪」。
 
@@ -24,7 +25,7 @@ ${PRODUCT_BOUNDARY}
     "timelineActions": "案件时间线上的真实行动",
     "lies": ["谎言1","谎言2","谎言3"],
     "innerConflict": "性格深层矛盾",
-    "voiceHints": "说话习惯/禁忌",
+    "voiceHints": "register: …\\ntaboos: …\\ncatchphrases: …\\nsampleLine: 「…」\\nsensoryFilter: …",
     "actTasks": [{"actKey":"ch1","tasks":["本幕任务"],"tips":"【提示】可选"}]
   }],
   "suggestions": ["写作注意"]
