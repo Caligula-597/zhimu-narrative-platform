@@ -369,6 +369,73 @@ button {
   margin-top: 30px;
 }
 
+.hero-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  width: min(980px, 100%);
+  margin-top: 32px;
+}
+
+.hero-entry-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 132px;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 2px);
+  color: inherit;
+  background: rgba(255, 253, 248, 0.82);
+  box-shadow: 0 14px 36px rgba(20, 35, 33, 0.06);
+  backdrop-filter: blur(12px);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.hero-entry-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(24, 63, 58, 0.28);
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: var(--shadow-soft);
+}
+
+.hero-entry-kicker {
+  color: var(--brass);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.hero-entry-card strong {
+  font-family: "Songti SC", "SimSun", serif;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.hero-entry-card small {
+  margin-top: auto;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.hero-entry-creator {
+  border-top: 3px solid var(--green-2);
+}
+
+.hero-entry-host {
+  border-top: 3px solid var(--plum);
+}
+
+.hero-entry-play {
+  border-top: 3px solid var(--clay);
+}
+
+.hero-entry-demo {
+  border-top: 3px solid var(--blue);
+}
+
 .hero-entry-note {
   max-width: 640px;
   margin: 14px 0 0;
@@ -541,6 +608,96 @@ button {
   margin: 14px 0 0;
   color: var(--muted);
   line-height: 1.75;
+}
+
+.pillar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pillar-card {
+  min-height: 280px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  box-shadow: 0 14px 40px rgba(20, 35, 33, 0.045);
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.pillar-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(24, 63, 58, 0.24);
+  background: rgba(255, 253, 248, 0.92);
+  box-shadow: var(--shadow-soft);
+}
+
+.pillar-index {
+  display: inline-grid;
+  width: 36px;
+  height: 30px;
+  place-items: center;
+  margin-bottom: 28px;
+  border-radius: 7px;
+  color: white;
+  background: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pillar-card:nth-child(2) .pillar-index {
+  background: var(--plum);
+}
+
+.pillar-card:nth-child(3) .pillar-index {
+  background: var(--clay);
+}
+
+.pillar-card:nth-child(4) .pillar-index {
+  background: var(--blue);
+}
+
+.pillar-card h3 {
+  margin: 0;
+  font-family: "Songti SC", "SimSun", serif;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.pillar-card > p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.pillar-features {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.pillar-features li {
+  position: relative;
+  padding-left: 14px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.pillar-features li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green-2);
+  opacity: 0.75;
 }
 
 .first-session-section {
@@ -795,9 +952,17 @@ button {
   gap: 12px;
 }
 
+.role-table-four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .role-table article {
   padding: 24px;
   min-height: 230px;
+}
+
+.role-table-four article {
+  min-height: 248px;
 }
 
 .role-table article:nth-child(1) {
@@ -809,6 +974,10 @@ button {
 }
 
 .role-table article:nth-child(3) {
+  border-top: 4px solid var(--clay);
+}
+
+.role-table-four article:nth-child(4) {
   border-top: 4px solid var(--blue);
 }
 
@@ -1163,16 +1332,23 @@ button {
 
   .section-heading,
   .module-grid,
+  .pillar-grid,
+  .hero-entry-grid,
   .showcase-grid,
   .case-layout,
   .case-stats,
   .import-layout,
   .systems-grid,
   .role-table,
+  .role-table-four,
   .beta-section,
   .first-session-path,
   .workflow-list {
     grid-template-columns: 1fr;
+  }
+
+  .hero-entry-grid {
+    gap: 10px;
   }
 
   .workflow-list li {
