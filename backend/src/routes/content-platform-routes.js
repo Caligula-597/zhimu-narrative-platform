@@ -13,6 +13,7 @@ import { transactionWithEvents } from "../transaction-events.js";
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole, requireWorldRole, requireWorldReader } from "./route-guards.js";
 import { sendErr, throwErr } from "../api-errors.js";
+import { normalizeSegmentOperations } from "../segment-contract.js";
 import { logHostAction } from "../audit-log.js";
 import {
   createPrivateActionSchema,
@@ -104,7 +105,7 @@ function segmentRow(row) {
     chapterId: row.chapter_id,
     story: row.story ?? {},
     mechanics: row.mechanics ?? {},
-    operations: row.operations ?? {},
+    operations: normalizeSegmentOperations(row.operations ?? {}),
     quality: row.quality ?? {},
     metadata: row.metadata ?? {},
     refs: row.refs ?? []
@@ -214,7 +215,7 @@ export async function registerContentPlatformRoutes(app) {
           body.chapterId ?? null,
           JSON.stringify(body.story ?? {}),
           JSON.stringify(body.mechanics ?? {}),
-          JSON.stringify(body.operations ?? {}),
+          JSON.stringify(normalizeSegmentOperations(body.operations ?? {})),
           JSON.stringify(body.quality ?? {}),
           JSON.stringify(body.metadata ?? {})
         ]
@@ -257,7 +258,7 @@ export async function registerContentPlatformRoutes(app) {
           body.chapterId === undefined ? next.chapter_id : body.chapterId,
           JSON.stringify(body.story ?? next.story ?? {}),
           JSON.stringify(body.mechanics ?? next.mechanics ?? {}),
-          JSON.stringify(body.operations ?? next.operations ?? {}),
+          JSON.stringify(normalizeSegmentOperations(body.operations ?? next.operations ?? {})),
           JSON.stringify(body.quality ?? next.quality ?? {}),
           JSON.stringify(body.metadata ?? next.metadata ?? {})
         ]

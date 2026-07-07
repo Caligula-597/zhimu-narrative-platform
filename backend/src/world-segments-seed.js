@@ -1,3 +1,5 @@
+import { normalizeSegmentOperations, resolveChapterSegmentKey } from "./segment-contract.js";
+
 /**
  * World segment seeding — compile Matrix pipeline / chapter graph into world_segments.
  */
@@ -103,7 +105,14 @@ async function buildSegmentRefs(client, worldId, actKey, { chapterId, runbook, c
      FROM script_sections ss
      JOIN role_slots rs ON rs.id = ss.role_slot_id
      WHERE rs.world_id = $1
-       AND (ss.metadata->>'chapterKey' = $2 OR ss.chapter_id = $3)`,
+       AND (
+         ss.metadata->>'segmentKey' = $2
+         OR ss.metadata->>'proposalKey' = $2
+         OR ss.metadata->>'matrixActKey' = $2
+         OR ss.metadata->>'actKey' = $2
+         OR ss.metadata->>'chapterKey' = $2
+         OR ss.chapter_id = $3
+       )`,
     [worldId, actKey, chapterId]
   );
   for (const row of sections.rows) {
@@ -142,6 +151,25 @@ async function buildSegmentRefs(client, worldId, actKey, { chapterId, runbook, c
   return refs;
 }
 
+function playerTasksForAct(characterArchives, ...actKeys) {
+  const keys = new Set(actKeys.filter(Boolean));
+  const tasks = [];
+  const seen = new Set();
+  for (const role of characterArchives?.roles || []) {
+    for (const actTask of role.actTasks || []) {
+      const key = actTask.actKey || actTask.act_key;
+      if (!keys.has(key)) continue;
+      for (const item of actTask.tasks || []) {
+        const body = sanitizeText(item, 800);
+        if (!body || seen.has(body)) continue;
+        seen.add(body);
+        tasks.push(body);
+      }
+    }
+  }
+  return tasks;
+}
+
 /**
  * Compile Matrix pipeline acts into world_segments (idempotent upsert by segment_key).
  */
@@ -150,6 +178,7 @@ export async function seedWorldSegmentsFromPipeline(client, worldId, pipeline, g
   if (!chapters.length) return 0;
 
   const hostRunbooks = Array.isArray(pipeline.hostRunbooks) ? pipeline.hostRunbooks : [];
+  const characterArchives = pipeline.characterArchives || {};
   const infoMatrix = pipeline.infoMatrix || {};
   const runbookByAct = new Map(hostRunbooks.map((row) => [row.actKey, row]));
   const chapterIds = graph?.chapterIds || new Map();
@@ -157,23 +186,24 @@ export async function seedWorldSegmentsFromPipeline(client, worldId, pipeline, g
 
   let count = 0;
   for (const [index, chapter] of chapters.entries()) {
-    const actKey = chapter.key;
-    const chapterId = chapterIds.get(actKey) || null;
-    const runbook = runbookByAct.get(actKey);
+    const actKey = resolveChapterSegmentKey(chapter, index + 1);
+    const sourceKey = chapter.key || actKey;
+    const chapterId = chapterIds.get(actKey) || chapterIds.get(sourceKey) || null;
+    const runbook = runbookByAct.get(actKey) || runbookByAct.get(sourceKey);
     const story = {
-      summary: sanitizeText(chapter.summary || infoMatrix.actSummaries?.[actKey] || "", 4000),
-      publicEnvironment: infoMatrix.publicEnvironmentByAct?.[actKey] || null,
-      actTitle: sanitizeText(infoMatrix.actTitles?.[actKey] || chapter.title || actKey, 200)
+      summary: sanitizeText(chapter.summary || infoMatrix.actSummaries?.[actKey] || infoMatrix.actSummaries?.[sourceKey] || "", 4000),
+      publicEnvironment: infoMatrix.publicEnvironmentByAct?.[actKey] || infoMatrix.publicEnvironmentByAct?.[sourceKey] || null,
+      actTitle: sanitizeText(infoMatrix.actTitles?.[actKey] || infoMatrix.actTitles?.[sourceKey] || chapter.title || actKey, 200)
     };
-    const operations = runbook
-      ? {
-          title: sanitizeText(runbook.title, 200),
-          flow: sanitizeText(runbook.flow, 4000),
-          hostTruth: sanitizeText(runbook.hostTruth, 4000),
-          clueGrants: runbook.clueGrants || [],
-          fallbacks: runbook.fallbacks || []
-        }
-      : {};
+    const playerTasks = playerTasksForAct(characterArchives, actKey, sourceKey);
+    const operations = normalizeSegmentOperations({
+      title: runbook?.title,
+      flow: runbook?.flow,
+      hostTruth: runbook?.hostTruth,
+      clueGrants: runbook?.clueGrants || [],
+      fallbacks: runbook?.fallbacks || [],
+      playerTasks
+    });
     const refs = await buildSegmentRefs(client, worldId, actKey, { chapterId, runbook, clueIds });
 
     await upsertWorldSegment(client, worldId, {
@@ -205,10 +235,7 @@ export async function syncWorldSegmentsFromChapters(client, worldId) {
 
   let count = 0;
   for (const chapter of chapters.rows) {
-    const actKey =
-      chapter.metadata?.proposalKey ||
-      chapter.metadata?.matrixActKey ||
-      `ch${chapter.sequence || count + 1}`;
+    const actKey = resolveChapterSegmentKey(chapter, count + 1);
     const refs = await buildSegmentRefs(client, worldId, actKey, {
       chapterId: chapter.id,
       runbook: null,

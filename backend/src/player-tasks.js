@@ -3,6 +3,7 @@
  */
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
+import { resolveSectionSegmentKey } from "./segment-contract.js";
 
 function sanitizeText(value = "", max = 2000) {
   return String(value ?? "")
@@ -11,14 +12,22 @@ function sanitizeText(value = "", max = 2000) {
     .slice(0, max);
 }
 
-export function resolveCurrentActKey(sections = []) {
-  const keyed = sections.map((section) => ({
-    completed: Boolean(section.completed),
-    actKey: section.metadata?.chapterKey || `ch${section.sequence || 1}`
-  }));
+export function resolveCurrentActKey(sections = [], segments = []) {
+  const segmentByKey = new Map(segments.map((segment) => [segment.segment_key || segment.segmentKey, segment]));
+  const segmentByChapterId = new Map(
+    segments.filter((segment) => segment.chapter_id || segment.chapterId).map((segment) => [segment.chapter_id || segment.chapterId, segment])
+  );
+  const keyed = sections.map((section, index) => {
+    const fallbackKey = resolveSectionSegmentKey(section, section.sequence || index + 1);
+    const segment = segmentByChapterId.get(section.chapter_id || section.chapterId) || segmentByKey.get(fallbackKey);
+    return {
+      completed: Boolean(section.completed),
+      actKey: segment?.segment_key || segment?.segmentKey || fallbackKey
+    };
+  });
   const incomplete = keyed.find((row) => !row.completed);
   if (incomplete) return incomplete.actKey;
-  return keyed[keyed.length - 1]?.actKey || "ch1";
+  return keyed[keyed.length - 1]?.actKey || segments[0]?.segment_key || segments[0]?.segmentKey || "ch1";
 }
 
 export async function seedPlayerTasksFromArchives(client, worldId, characterArchives, roleKeyToSlotId) {

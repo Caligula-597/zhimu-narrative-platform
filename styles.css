@@ -1571,6 +1571,30 @@ body.modal-scroll-lock { position:fixed; width:100%; left:0; right:0; }
 .segment-list-item small { font-size: 11px; color: var(--muted, #5c6664); }
 .segment-create-inline { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 .segment-editor .field { margin-bottom: 10px; }
+.segment-ops-editor {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.64);
+}
+.segment-ops-editor .section-head { margin-bottom: 2px; }
+.segment-advanced-json {
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.segment-advanced-json summary {
+  cursor: pointer;
+  color: var(--muted, #5c6664);
+  font-size: 12px;
+  font-weight: 700;
+}
+.monospace-field {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
 .segment-refs-panel h4 { margin: 0 0 8px; font-size: 13px; }
 .segment-ref-list { margin: 0 0 12px; padding-left: 18px; font-size: 12px; }
 .segment-quick-links { display: flex; flex-wrap: wrap; gap: 8px; }

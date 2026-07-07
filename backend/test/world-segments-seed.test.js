@@ -30,13 +30,14 @@ test("importDeepseekPipelinePackage seeds world_segments from Matrix", async (t)
   assert.equal(imported.segmentsSeeded, 2);
 
   const segments = await pool.query(
-    `SELECT segment_key, title, operations->>'flow' AS flow
+    `SELECT segment_key, title, operations->>'flow' AS flow, operations->'playerTasks' AS player_tasks
      FROM world_segments WHERE world_id = $1 ORDER BY sequence`,
     [worldId]
   );
   assert.equal(segments.rowCount, 2);
   assert.equal(segments.rows[0].segment_key, "ch1");
   assert.match(segments.rows[0].flow || "", /宣读背景/);
+  assert.ok((segments.rows[0].player_tasks || []).length >= 1);
 
   const refs = await pool.query(
     `SELECT ref_type FROM world_segment_refs wsr

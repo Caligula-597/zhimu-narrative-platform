@@ -103,7 +103,13 @@ test("world segment create and list", async (context) => {
     method: "POST",
     url: `/api/worlds/${worldId}/segments`,
     headers: { "x-user-id": hostUserId },
-    payload: { segmentKey: key, title: "测试段落", sequence: 99, story: { playerTasks: ["调查"] } }
+    payload: {
+      segmentKey: key,
+      title: "测试段落",
+      sequence: 99,
+      story: { playerTasks: ["调查"] },
+      operations: { title: "主持提示", clueGrants: [{ clue_id: "legacy-clue", timing: "开场后" }], playerTips: "先读背景" }
+    }
   });
   assert.equal(created.statusCode, 201);
   const segmentId = created.json().segment.id;
@@ -113,7 +119,11 @@ test("world segment create and list", async (context) => {
     url: `/api/worlds/${worldId}/segments`,
     headers: { "x-user-id": hostUserId }
   });
-  assert.ok(list.json().segments.some((s) => s.id === segmentId));
+  const listed = list.json().segments.find((s) => s.id === segmentId);
+  assert.ok(listed);
+  assert.equal(listed.operations.schemaVersion, 1);
+  assert.equal(listed.operations.clueGrants[0].clueId, "legacy-clue");
+  assert.deepEqual(listed.operations.playerTips, ["先读背景"]);
 
   context.after(async () => {
     await query(`DELETE FROM world_segments WHERE id = $1`, [segmentId]);

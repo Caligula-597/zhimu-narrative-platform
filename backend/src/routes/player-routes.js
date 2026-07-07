@@ -177,7 +177,7 @@ export async function registerPlayerRoutes(app) {
       const roomInfo = await client.query(`SELECT id, name, invite_code, status FROM rooms WHERE id = $1`, [roomId]);
       const role = await client.query(`SELECT id, name, public_profile, private_profile FROM role_slots WHERE id = $1`, [membership.role_slot_id]);
       const sections = await client.query(
-        `SELECT ss.id, ss.title, ss.body, ss.sequence, ss.metadata,
+        `SELECT ss.id, ss.title, ss.body, ss.sequence, ss.chapter_id, ss.metadata,
                 rp.started_at, rp.completed_at,
                 (rp.completed_at IS NOT NULL) AS completed
          FROM script_sections ss
@@ -231,13 +231,24 @@ export async function registerPlayerRoutes(app) {
       );
       const inventory = await listPlayerInventory(client, roomId, membership.role_slot_id);
       const enrichedSections = await enrichPlayerSectionsWithPages(client, sections.rows);
+      const segments = await client.query(
+        `SELECT ws.id, ws.segment_key, ws.title, ws.sequence, ws.chapter_id,
+                ws.story->'playerTasks' AS player_tasks,
+                ws.mechanics->'endCondition' AS end_condition,
+                ws.operations->'playerTips' AS player_tips
+         FROM world_segments ws
+         JOIN rooms r ON r.world_id = ws.world_id
+         WHERE r.id = $1
+         ORDER BY ws.sequence, ws.created_at`,
+        [roomId]
+      );
       const hostConfirm = await fetchPlayerHostConfirmStatus(
         client.query.bind(client),
         roomId,
         membership.role_slot_id
       );
       const currentGame = await fetchCurrentMiniGame(client.query.bind(client), roomId);
-      const currentActKey = resolveCurrentActKey(enrichedSections);
+      const currentActKey = resolveCurrentActKey(enrichedSections, segments.rows);
       const tasks = await fetchPlayerTasksForRoom(
         client.query.bind(client),
         roomId,
@@ -290,18 +301,6 @@ export async function registerPlayerRoutes(app) {
          WHERE room_id = $1 AND role_slot_id = $2`,
         [roomId, membership.role_slot_id]
       );
-      const segments = await client.query(
-        `SELECT ws.id, ws.segment_key, ws.title, ws.sequence,
-                ws.story->'playerTasks' AS player_tasks,
-                ws.mechanics->'endCondition' AS end_condition,
-                ws.operations->'playerTips' AS player_tips
-         FROM world_segments ws
-         JOIN rooms r ON r.world_id = ws.world_id
-         WHERE r.id = $1
-         ORDER BY ws.sequence, ws.created_at`,
-        [roomId]
-      );
-
       return {
         room: roomInfo.rows[0],
         role: role.rows[0],

@@ -1,5 +1,6 @@
 import { state } from "../state.js";
 import { escapeHtml, formatRelativeTime } from "../utils/format.js";
+import { resolveChapterSegmentKey, segmentRunbookFromOperations } from "../../../shared/segment-contract.js";
 
 function paceClock(pace = {}) {
   let elapsed = pace.elapsedMs || 0;
@@ -20,19 +21,7 @@ function legacyRunbooks() {
 
 function segmentRunbooks() {
   return (state.cloudWorldSegments || [])
-    .map((segment) => {
-      const key = segment.segmentKey || segment.segment_key || segment.key || "";
-      const operations = segment.operations || {};
-      if (!key || !Object.keys(operations).length) return null;
-      return {
-        ...operations,
-        actKey: operations.actKey || operations.segmentKey || key,
-        segmentKey: key,
-        title: operations.title || segment.title || key,
-        sequence: segment.sequence || 0,
-        source: "segment"
-      };
-    })
+    .map((segment) => segmentRunbookFromOperations(segment))
     .filter(Boolean);
 }
 
@@ -49,7 +38,7 @@ export function hostRunbooks() {
 }
 
 export function hostChapterActKey(chapter) {
-  return chapter?.metadata?.proposalKey || chapter?.metadata?.matrixActKey || chapter?.metadata?.actKey || `ch${chapter?.sequence || 1}`;
+  return resolveChapterSegmentKey(chapter);
 }
 
 function hostActs() {
@@ -136,11 +125,20 @@ function renderClueGrants(act) {
 }
 
 function renderRemedies(act) {
+  const fallbacks = Array.isArray(act?.runbook?.fallbacks) ? act.runbook.fallbacks : [];
   const items = (state.cloudHostSegmentRemedies || []).filter((row) => !act?.key || row.segment_key === act.key);
-  if (!items.length) {
+  if (!fallbacks.length && !items.length) {
     return `<div class="host-current-empty">当前幕没有补救话术。卡关时可先用主持日志或手动发线索。</div>`;
   }
   return `<div class="host-current-list">
+    ${fallbacks
+      .map(
+        (text, index) => `<article class="host-current-item">
+          <strong>主持手册兜底 ${index + 1}</strong>
+          <p>${escapeHtml(text)}</p>
+        </article>`
+      )
+      .join("")}
     ${items
       .map(
         (row) => `<article class="host-current-item">

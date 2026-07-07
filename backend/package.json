@@ -31,7 +31,7 @@
     "drill:beta-support": "node scripts/beta-support-drill.mjs",
     "db:verify-migration-upgrade": "node scripts/verify-migration-upgrade.mjs",
     "data:purge-expired": "node scripts/purge-expired-data.mjs",
-    "test": "node --test-concurrency=1 --test-force-exit --import ./test/hooks.mjs --test test/*.test.js",
+    "test": "node --test-concurrency=1 --test-force-exit --import ./test/hooks.mjs --test test/*.test.js test/*.test.mjs",
     "test:permissions-matrix": "node --test-concurrency=1 --test-force-exit --import ./test/hooks.mjs --test test/permissions-matrix.test.js test/runtime-permissions.test.js test/ops-catalog.test.js test/ops-audit.test.js test/feedback.test.js",
     "test:smoke": "node scripts/smoke-api.js",
     "test:deepseek-pipeline": "node scripts/test-deepseek-pipeline.mjs",

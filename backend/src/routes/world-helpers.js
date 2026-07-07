@@ -162,10 +162,11 @@ export async function buildWorldSnapshot(worldId, client = null) {
   const edges = await client.query(`SELECT * FROM story_graph_edges WHERE world_id = $1 ORDER BY created_at`, [worldId]);
   const rules = await client.query(`SELECT * FROM automation_rules WHERE world_id = $1 ORDER BY priority, created_at`, [worldId]);
   const rooms = await client.query(`SELECT id, name, status, invite_code FROM rooms WHERE world_id = $1 ORDER BY created_at DESC`, [worldId]);
+  const segments = await client.query(`SELECT * FROM world_segments WHERE world_id = $1 ORDER BY sequence, created_at`, [worldId]);
   return {
     world: world.rows[0], chapters: chapters.rows, roles: roles.rows, sections: sections.rows,
     scenes: scenes.rows, clues: clues.rows, investigationPoints: points.rows, items: items.rows, edges: edges.rows,
-    rules: rules.rows, rooms: rooms.rows
+    rules: rules.rows, rooms: rooms.rows, segments: segments.rows
   };
 }
 

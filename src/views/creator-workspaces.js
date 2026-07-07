@@ -3,6 +3,7 @@
  * truth & relations, publish lab, and post-play insights.
  */
 import * as zhimuApi from "../api/index.js";
+import { normalizeSegmentOperations } from "shared/segment-contract.js";
 import { showToast } from "../components/toast.js";
 import { getRuntime, go, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
@@ -92,6 +93,47 @@ function segmentListItem(segment, selectedId) {
     <span>${escapeHtml(segment.title)}</span>
     <small>顺序 ${segment.sequence}</small>
   </button>`;
+}
+
+function linesFromList(items = []) {
+  return (items || []).filter(Boolean).join("\n");
+}
+
+function listFromLines(value = "") {
+  return String(value || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function clueGrantsToText(grants = []) {
+  return (grants || [])
+    .map((grant) => [grant.clueId || grant.clue_id || "", grant.when || grant.timing || "", grant.roleKey || grant.role_key || ""].filter(Boolean).join(" | "))
+    .filter(Boolean)
+    .join("\n");
+}
+
+function clueGrantsFromText(value = "") {
+  return listFromLines(value).map((line) => {
+    const [clueId = "", when = "", roleKey = ""] = line.split("|").map((part) => part.trim());
+    return { clueId, when, roleKey };
+  }).filter((grant) => grant.clueId);
+}
+
+function renderSegmentOperationsEditor(operations = {}) {
+  const ops = normalizeSegmentOperations(operations);
+  const advancedJson = JSON.stringify(operations || {}, null, 2);
+  return `<section class="segment-ops-editor">
+    <div class="section-head compact"><div><h3>主持运行信息</h3><p class="muted-note">常用字段会写入 Segment.operations，供主持端当前幕读取。</p></div></div>
+    <label>主持流程 flow</label><textarea class="field" name="opsFlow" rows="4">${escapeHtml(ops.flow)}</textarea>
+    <label>主持真相 hostTruth</label><textarea class="field" name="opsHostTruth" rows="4">${escapeHtml(ops.hostTruth)}</textarea>
+    <label>应发线索 clueGrants</label><textarea class="field monospace-field" name="opsClueGrants" rows="4" placeholder="clueId | 发放时机 | roleKey">${escapeHtml(clueGrantsToText(ops.clueGrants))}</textarea>
+    <label>补救话术 fallbacks</label><textarea class="field" name="opsFallbacks" rows="3">${escapeHtml(linesFromList(ops.fallbacks))}</textarea>
+    <details class="segment-advanced-json">
+      <summary>高级 JSON</summary>
+      <textarea class="field monospace-field" name="operationsAdvanced" rows="6">${escapeHtml(advancedJson)}</textarea>
+    </details>
+  </section>`;
 }
 
 const REF_TYPE_LABELS = {
@@ -191,14 +233,13 @@ export function structure() {
     : `<div class="empty-state">尚无 Segment。点击下方创建，或从 Matrix 导入后绑定。</div>`;
   const current = selectedSegment(segments || [], selectedId);
   const storyJson = current?.story ? JSON.stringify(current.story, null, 2) : "{}";
-  const opsJson = current?.operations ? JSON.stringify(current.operations, null, 2) : "{}";
   const editor = current
     ? `<form class="segment-editor" data-segment-editor="${escapeHtml(current.id)}">
         <label>段落键</label><input class="field" name="segmentKey" value="${escapeHtml(current.segmentKey || "")}" readonly>
         <label>标题</label><input class="field" name="title" value="${escapeHtml(current.title || "")}">
         <label>顺序</label><input class="field" name="sequence" type="number" min="1" value="${Number(current.sequence) || 1}">
         <label>story（JSON）</label><textarea class="field" name="story" rows="5">${escapeHtml(storyJson)}</textarea>
-        <label>operations / 主持提示（JSON）</label><textarea class="field" name="operations" rows="4">${escapeHtml(opsJson)}</textarea>
+        ${renderSegmentOperationsEditor(current.operations || {})}
         <div class="row"><button type="button" class="primary-btn" data-action="save-structure-segment" data-segment-id="${escapeHtml(current.id)}">保存段落</button></div>
       </form>`
     : `<div class="empty-state">选择或创建一个 Segment 开始编辑。</div>`;
@@ -266,7 +307,14 @@ export async function saveStructureSegment(segmentId) {
   let operations = {};
   try {
     story = JSON.parse(form.querySelector('[name="story"]')?.value || "{}");
-    operations = JSON.parse(form.querySelector('[name="operations"]')?.value || "{}");
+    const advanced = JSON.parse(form.querySelector('[name="operationsAdvanced"]')?.value || "{}");
+    operations = normalizeSegmentOperations({
+      ...advanced,
+      flow: form.querySelector('[name="opsFlow"]')?.value || "",
+      hostTruth: form.querySelector('[name="opsHostTruth"]')?.value || "",
+      clueGrants: clueGrantsFromText(form.querySelector('[name="opsClueGrants"]')?.value || ""),
+      fallbacks: listFromLines(form.querySelector('[name="opsFallbacks"]')?.value || "")
+    });
   } catch {
     return showToast("JSON 格式无效");
   }

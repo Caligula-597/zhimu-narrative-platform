@@ -12,10 +12,26 @@ function minimalSnapshot(overrides = {}) {
         role_slot_id: "r1",
         title: "第一幕",
         body: "正文内容",
+        sequence: 1,
+        metadata: { chapterKey: "ch1" },
         publication_status: "testing"
       }
     ],
-    chapters: [{ id: "c1", title: "序章", sequence: 1 }],
+    chapters: [{ id: "c1", title: "序章", sequence: 1, metadata: { proposalKey: "ch1" } }],
+    segments: [
+      {
+        id: "seg1",
+        segment_key: "ch1",
+        title: "序章",
+        sequence: 1,
+        operations: {
+          schemaVersion: 1,
+          flow: "主持流程",
+          hostTruth: "主持真相",
+          clueGrants: [{ clueId: "cl1", when: "开场后" }]
+        }
+      }
+    ],
     scenes: [{ id: "sc1", name: "起始场景" }],
     clues: [{ id: "cl1", name: "线索A" }],
     investigationPoints: [{ id: "p1", name: "调查点", clue_id: "cl1", result_text: "发现线索" }],
@@ -70,4 +86,15 @@ test("evaluateWorldPublishReadiness flags unreachable clues", () => {
     })
   );
   assert.ok(result.checks.some((item) => item.id === "clues.cl1.unreachable"));
+});
+
+test("evaluateWorldPublishReadiness flags segment gaps", () => {
+  const result = evaluateWorldPublishReadiness(
+    minimalSnapshot({
+      segments: [{ id: "seg1", segment_key: "other", title: "错位段落", sequence: 1, operations: {} }]
+    })
+  );
+  assert.ok(result.checks.some((item) => item.id === "segments.ch1.chapter_unlinked"));
+  assert.ok(result.checks.some((item) => item.id === "segments.ch1.section_unlinked"));
+  assert.ok(result.checks.some((item) => item.id === "segments.other.runbook_missing"));
 });

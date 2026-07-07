@@ -61,7 +61,9 @@ test("host command center uses segment runbooks and five critical queue actions"
   const stylesSource = readFileSync(path.join(root, "src", "styles.css"), "utf8");
   assert.match(layoutSource, /state\.cloudWorldSegments/);
   assert.match(layoutSource, /export function hostRunbooks/);
-  assert.match(layoutSource, /metadata\?\.proposalKey/);
+  assert.match(layoutSource, /resolveChapterSegmentKey/);
+  assert.match(layoutSource, /segmentRunbookFromOperations/);
+  assert.match(layoutSource, /runbook\?\.fallbacks/);
   assert.match(layoutSource, /renderHostCommandCenter/);
   assert.match(layoutSource, /data-action="host-select-act"/);
   for (const action of ["host-apply-remedy", "host-vote-status", "host-review-private-action", "host-review-testimony"]) {

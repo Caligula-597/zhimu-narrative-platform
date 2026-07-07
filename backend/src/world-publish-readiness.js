@@ -1,6 +1,7 @@
 /**
  * Pre-publish / playtest readiness evaluation for a world snapshot.
  */
+import { normalizeSegmentOperations, resolveChapterSegmentKey, resolveSectionSegmentKey } from "./segment-contract.js";
 
 function add(checks, { id, level, title, detail, target = null }) {
   checks.push({ id, level, title, detail, ...(target ? { target } : {}) });
@@ -21,6 +22,7 @@ export function evaluateWorldPublishReadiness(snapshot) {
   const rules = snapshot.rules ?? [];
   const edges = snapshot.edges ?? [];
   const rooms = snapshot.rooms ?? [];
+  const segments = snapshot.segments ?? [];
   const world = snapshot.world ?? {};
 
   if (!String(world.name ?? "").trim()) {
@@ -81,6 +83,71 @@ export function evaluateWorldPublishReadiness(snapshot) {
       detail: "请先建立故事章节结构。",
       target: { kind: "chapters" }
     });
+  }
+
+  const segmentByKey = new Map(segments.map((segment) => [segment.segment_key || segment.segmentKey, segment]));
+  const chapterKeys = chapters.map((chapter, index) => resolveChapterSegmentKey(chapter, index + 1));
+  if (!segments.length) {
+    add(checks, {
+      id: "segments.missing",
+      level: "error",
+      title: "尚未生成 Segment",
+      detail: "请先从章节同步 Segment，或通过 Matrix 导入生成 Segment 主轴。",
+      target: { kind: "segments" }
+    });
+  }
+  for (const key of chapterKeys) {
+    if (!segmentByKey.has(key)) {
+      add(checks, {
+        id: `segments.${key}.chapter_unlinked`,
+        level: "error",
+        title: `章节 ${key} 没有对应 Segment`,
+        detail: "Segment key 需要与章节 proposalKey / matrixActKey / chapterKey 对齐。",
+        target: { kind: "segments", segmentKey: key }
+      });
+    }
+  }
+  sections.forEach((section, index) => {
+    const key = resolveSectionSegmentKey(section, section.sequence || index + 1);
+    if (segments.length && !segmentByKey.has(key)) {
+      add(checks, {
+        id: `segments.${key}.section_unlinked`,
+        level: "error",
+        title: `${section.title || "分幕"} 没有对应 Segment`,
+        detail: "玩家分幕 metadata.segmentKey / chapterKey 需要能解析到 Segment。",
+        target: { kind: "segments", segmentKey: key, sectionId: section.id }
+      });
+    }
+  });
+  for (const segment of segments) {
+    const key = segment.segment_key || segment.segmentKey;
+    const operations = normalizeSegmentOperations(segment.operations ?? {});
+    if (!operations.flow && !operations.hostTruth) {
+      add(checks, {
+        id: `segments.${key}.runbook_missing`,
+        level: "error",
+        title: `${segment.title || key || "Segment"} 缺少主持 runbook`,
+        detail: "至少补齐 operations.flow 或 operations.hostTruth，主持端才能按幕控场。",
+        target: { kind: "segments", segmentKey: key }
+      });
+    } else if (!operations.flow || !operations.hostTruth) {
+      add(checks, {
+        id: `segments.${key}.runbook_incomplete`,
+        level: "warning",
+        title: `${segment.title || key || "Segment"} 主持 runbook 不完整`,
+        detail: "建议同时补齐 flow 与 hostTruth，避免主持端只有流程或只有真相。",
+        target: { kind: "segments", segmentKey: key }
+      });
+    }
+    if (!operations.clueGrants.length) {
+      add(checks, {
+        id: `segments.${key}.clue_grants_missing`,
+        level: "warning",
+        title: `${segment.title || key || "Segment"} 没有应发线索`,
+        detail: "建议在 operations.clueGrants 标注本幕线索发放时机。",
+        target: { kind: "segments", segmentKey: key }
+      });
+    }
   }
 
   if (!scenes.length) {
@@ -326,7 +393,8 @@ export function evaluateWorldPublishReadiness(snapshot) {
         clues: clues.length,
         investigationPoints: points.length,
         rules: rules.length,
-        rooms: rooms.length
+        rooms: rooms.length,
+        segments: segments.length
       }
     }
   };
