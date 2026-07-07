@@ -369,7 +369,11 @@ function handleDirectorAction(action, el) {
       kickHostPlayer(el?.dataset?.role);
       return true;
     case "host-manual-grant-clue":
-      openHostGrantClueModal();
+      openHostGrantClueModal({
+        actKey: el?.dataset?.actKey,
+        clueId: el?.dataset?.clueId,
+        roleKey: el?.dataset?.roleKey
+      });
       return true;
     case "host-manual-grant-item":
       openHostGrantItemModal();

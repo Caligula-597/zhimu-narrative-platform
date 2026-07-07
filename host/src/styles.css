@@ -1080,6 +1080,47 @@ textarea:focus-visible {
   line-height: 1.6;
 }
 
+.host-current-item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.host-current-item-head strong {
+  min-width: 0;
+  color: var(--host-ink);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.host-clue-grant-item .status-chip {
+  flex: 0 0 auto;
+}
+
+.host-grant-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.host-grant-meta span {
+  min-width: 0;
+  padding: 3px 7px;
+  border: 1px solid rgba(25, 68, 61, 0.12);
+  border-radius: 999px;
+  background: rgba(249, 250, 247, 0.88);
+  color: var(--host-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.host-grant-now-btn {
+  width: 100%;
+  margin-top: 9px;
+}
+
 .host-current-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 12px;

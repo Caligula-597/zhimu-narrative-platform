@@ -46,6 +46,8 @@ test("main.js wires console, SSE and director actions", () => {
   assert.match(mainSource, /executeHostEvent/);
   assert.match(mainSource, /case "host-select-act"/);
   assert.match(mainSource, /el\?\.dataset\?\.actKey/);
+  assert.match(mainSource, /clueId:\s*el\?\.dataset\?\.clueId/);
+  assert.match(mainSource, /roleKey:\s*el\?\.dataset\?\.roleKey/);
   assert.doesNotMatch(mainSource, /button\.dataset\.(?:testimony|flag|remedy|voteId|status|actionId|actKey)/);
   assert.match(mainSource, /renderApp/);
   assert.match(mainSource, /api\.me\(\)/);
@@ -64,12 +66,17 @@ test("host command center uses segment runbooks and five critical queue actions"
   assert.match(layoutSource, /resolveChapterSegmentKey/);
   assert.match(layoutSource, /segmentRunbookFromOperations/);
   assert.match(layoutSource, /runbook\?\.fallbacks/);
+  assert.match(layoutSource, /state\.cloudHostClueMatrix/);
+  assert.match(layoutSource, /function grantStatus/);
+  assert.match(layoutSource, /data-clue-id/);
+  assert.match(layoutSource, /data-role-key/);
   assert.match(layoutSource, /renderHostCommandCenter/);
   assert.match(layoutSource, /data-action="host-select-act"/);
   for (const action of ["host-apply-remedy", "host-vote-status", "host-review-private-action", "host-review-testimony"]) {
     assert.match(layoutSource, new RegExp(`data-action=["']${action}["']`), `missing command center action: ${action}`);
   }
   assert.match(stylesSource, /host-command-center/);
+  assert.match(stylesSource, /host-clue-grant-item/);
   assert.match(stylesSource, /@media \(max-width: 1180px\)/);
 });
 
@@ -85,6 +92,9 @@ test("landing view exposes room management for authenticated hosts", () => {
 test("console render escapes user content", () => {
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
   assert.match(consoleSource, /escapeHtml\(/);
+  assert.match(consoleSource, /hostActClueIds/);
+  assert.match(consoleSource, /selectedClueId/);
+  assert.match(consoleSource, /checkedRoleIds/);
 });
 
 test("standalone console keeps the full host monitoring action surface", () => {

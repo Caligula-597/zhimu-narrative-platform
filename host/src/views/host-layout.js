@@ -83,6 +83,50 @@ function clueName(clueId) {
   return clue?.name || clueId || "未指定线索";
 }
 
+function clueById(clueId) {
+  return (
+    (state.cloudHostClueMatrix?.clues || []).find((item) => String(item.id) === String(clueId)) ||
+    (state.studio?.clues || []).find((item) => String(item.id) === String(clueId)) ||
+    null
+  );
+}
+
+function grantModeLabel(mode) {
+  return { auto: "自动发放", host_confirm: "主持确认", explore: "探索获得" }[mode] || mode || "未标注";
+}
+
+function roleLabel(roleKey) {
+  if (!roleKey) return "全场";
+  const players = state.cloudHostClueMatrix?.players || state.cloudHostPlayers || [];
+  const match = players.find((player) =>
+    [player.role_key, player.roleKey, player.role_slot_id, player.role_name, player.name]
+      .filter(Boolean)
+      .some((value) => String(value) === String(roleKey))
+  );
+  return match?.role_name || match?.name || roleKey;
+}
+
+function grantStatus(grant) {
+  const clueId = grant.clueId || grant.clue_id;
+  const roleKey = grant.roleKey || grant.role_key;
+  const matrix = state.cloudHostClueMatrix;
+  if (!matrix?.cells || !clueId) return { label: "待核对", tone: "draft" };
+  const players = matrix.players || [];
+  const targetPlayers = roleKey
+    ? players.filter((player) =>
+        [player.role_key, player.roleKey, player.role_slot_id, player.role_name, player.name]
+          .filter(Boolean)
+          .some((value) => String(value) === String(roleKey))
+      )
+    : players.filter((player) => player.joined);
+  const roleSlotIds = targetPlayers.map((player) => player.role_slot_id).filter(Boolean);
+  if (!roleSlotIds.length) return { label: "待匹配角色", tone: "testing" };
+  const ownedCount = roleSlotIds.filter((roleSlotId) => matrix.cells?.[clueId]?.[roleSlotId]?.owned).length;
+  if (ownedCount === roleSlotIds.length) return { label: "已发放", tone: "published" };
+  if (ownedCount > 0) return { label: `${ownedCount}/${roleSlotIds.length} 已发`, tone: "testing" };
+  return { label: "待发放", tone: "draft" };
+}
+
 function actSelector(acts, current) {
   if (!acts.length) return "";
   return `<div class="host-act-tabs" role="tablist" aria-label="选择当前幕">
@@ -114,12 +158,24 @@ function renderClueGrants(act) {
   }
   return `<div class="host-current-list">
     ${grants
-      .map(
-        (grant) => `<article class="host-current-item">
-          <strong>${escapeHtml(clueName(grant.clueId || grant.clue_id))}</strong>
+      .map((grant) => {
+        const clueId = grant.clueId || grant.clue_id;
+        const clue = clueById(clueId);
+        const status = grantStatus(grant);
+        const grantMode = clue?.metadata?.grantMode || clue?.grantMode || "auto";
+        return `<article class="host-current-item host-clue-grant-item">
+          <div class="host-current-item-head">
+            <strong>${escapeHtml(clue?.name || clueName(clueId))}</strong>
+            <span class="status-chip ${escapeHtml(status.tone)}">${escapeHtml(status.label)}</span>
+          </div>
           <p>${escapeHtml(grant.when || grant.timing || "未标注发放时机")}</p>
+          <div class="host-grant-meta">
+            <span>${escapeHtml(roleLabel(grant.roleKey || grant.role_key))}</span>
+            <span>${escapeHtml(grantModeLabel(grantMode))}</span>
+          </div>
+          <button class="secondary-btn host-grant-now-btn" type="button" data-action="host-manual-grant-clue" data-act-key="${escapeHtml(act?.key || "")}" data-clue-id="${escapeHtml(clueId || "")}" data-role-key="${escapeHtml(grant.roleKey || grant.role_key || "")}">发放这条</button>
         </article>`
-      )
+      })
       .join("")}
   </div>`;
 }
@@ -255,7 +311,7 @@ function renderCurrentActColumn() {
     ${actSelector(acts, act)}
     ${renderRunbook(act)}
     <div class="host-current-grid">
-      <section><div class="section-head compact"><div><h3>应发线索</h3></div><button class="secondary-btn" data-action="host-manual-grant-clue">手动发线索</button></div>${renderClueGrants(act)}</section>
+      <section><div class="section-head compact"><div><h3>应发线索</h3></div><button class="secondary-btn" data-action="host-manual-grant-clue" data-act-key="${escapeHtml(act?.key || "")}">手动发线索</button></div>${renderClueGrants(act)}</section>
       <section><div class="section-head compact"><div><h3>补救话术</h3></div></div>${renderRemedies(act)}</section>
     </div>
   </section>`;

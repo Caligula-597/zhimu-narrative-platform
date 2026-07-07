@@ -28,7 +28,7 @@ import {
   refreshHostPlayers,
   refreshHostRoom
 } from "../runtime/data.js";
-import { renderHostCommandCenter } from "./host-layout.js";
+import { hostRunbooks, renderHostCommandCenter } from "./host-layout.js";
 
 let renderRef = () => {};
 let showToastRef = (_msg) => {};
@@ -153,6 +153,19 @@ function studioClueGrantHint(clueId) {
   const mode = clue?.metadata?.grantMode;
   if (!mode || mode === "auto") return "";
   return grantModeLabel(mode);
+}
+
+function grantTargetMatchesPlayer(player, roleKey) {
+  if (!roleKey) return true;
+  return [player.role_key, player.roleKey, player.role_slot_id, player.role_name, player.name]
+    .filter(Boolean)
+    .some((value) => String(value) === String(roleKey));
+}
+
+function hostActClueIds(actKey) {
+  if (!actKey) return [];
+  const book = hostRunbooks().find((item) => [item.actKey, item.segmentKey, item.key].filter(Boolean).some((value) => String(value) === String(actKey)));
+  return (book?.clueGrants || []).map((grant) => grant.clueId || grant.clue_id).filter(Boolean);
 }
 
 function hostPaceTimerCard() {
@@ -624,13 +637,26 @@ export function openHostEventContext(eventId){
  openModal("待确认事件上下文",`<div class="rule-block"><b>来源</b> · ${escapeHtml(event.source_label||"系统")}<br><b>规则</b> · ${escapeHtml(event.rule_name||"—")}<br><b>触发条件</b><br>${escapeHtml(JSON.stringify(event.rule_conditions||{},null,2))}<br><br><b>将执行动作</b><br>${escapeHtml(JSON.stringify(event.actions||[],null,2))}</div>`,"关闭");
 }
 
-export function openHostGrantClueModal(){
+export function openHostGrantClueModal(options = {}){
  const players=(state.cloudHostPlayers||[]).filter(player=>player.joined),clues=state.studio?.clues||[];
  if(!players.length)return showToast("当前没有已加入的玩家");
  if(!clues.length)return showToast("当前世界尚未创建线索");
- const clueOptions=clues.map(clue=>{const mode=clue.metadata?.grantMode;const suffix=mode&&mode!=="auto"?` · ${grantModeLabel(mode)}`:"";return {id:clue.id,name:`${clue.name}${suffix}`}});
- mountModal(); modalEl.root.className="modal";modalEl.root.innerHTML=`<h2>手动发放线索</h2><p class="wizard-intro">可一次发给多名玩家；每人独立获得 clue_ownership，不会默认公开给全房间。标注「主持确认」的线索通常由规则触发，此处为手动 override。</p><div class="form-group">${studioSelect("线索","grantClue",clueOptions)}<label>目标角色（可多选）</label><div class="member-picker">${players.map(player=>`<label><input type="checkbox" data-grant-role value="${player.role_slot_id}"> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}</span></label>`).join("")}</div>${studioField("日志说明","grantMessage","input","主持人手动发放线索")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-grant-submit>确认发放</button></div>`;
- modalEl.backdrop.classList.add("show");modalEl.root.querySelector("[data-close]").onclick=closeModal;modalEl.root.querySelector("[data-host-grant-submit]").onclick=async()=>{try{const values=studioValues();const roleSlotIds=[...modalEl.root.querySelectorAll("[data-grant-role]:checked")].map(el=>el.value);if(!roleSlotIds.length)return showToast("请至少选择一名玩家");await api.hostGrantClue({roleSlotIds,clueId:values.grantClue,message:values.grantMessage});closeModal();await refreshHostRoom();showToast(`线索已发放给 ${roleSlotIds.length} 名玩家`)}catch(error){showToast(error.message)}};
+ const actClueIds=hostActClueIds(options.actKey),actClueSet=new Set(actClueIds.map(String));
+ const selectedClueId=options.clueId||actClueIds[0]||clues[0]?.id||"";
+ const clueOptions=clues
+  .slice()
+  .sort((a,b)=>(actClueSet.has(String(b.id))-actClueSet.has(String(a.id)))||String(a.name||"").localeCompare(String(b.name||"")))
+  .map(clue=>{const mode=clue.metadata?.grantMode;const suffix=mode&&mode!=="auto"?` · ${grantModeLabel(mode)}`:"";const prefix=actClueSet.has(String(clue.id))?"本幕 · ":"";return {id:clue.id,name:`${prefix}${clue.name}${suffix}`}});
+ const roleKey=options.roleKey||"";
+ const checkedRoleIds=new Set(players.filter(player=>grantTargetMatchesPlayer(player,roleKey)).map(player=>String(player.role_slot_id)));
+ const message=options.actKey?"主持人按当前幕手册发放线索":"主持人手动发放线索";
+ mountModal(); modalEl.root.className="modal";modalEl.root.innerHTML=`<h2>手动发放线索</h2><p class="wizard-intro">${options.actKey?"已按当前幕预选线索与目标；":"可一次发给多名玩家；"}每人独立获得 clue_ownership，不会默认公开给全房间。标注「主持确认」的线索通常由规则触发，此处为手动 override。</p><div class="form-group">${studioSelect("线索","grantClue",clueOptions)}<label>目标角色（可多选）</label><div class="member-picker">${players.map(player=>`<label><input type="checkbox" data-grant-role value="${player.role_slot_id}" ${checkedRoleIds.has(String(player.role_slot_id))?"checked":""}> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}</span></label>`).join("")}</div>${studioField("日志说明","grantMessage","input",message)}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-grant-submit>确认发放</button></div>`;
+ modalEl.backdrop.classList.add("show");
+ const clueSelect=modalEl.root.querySelector('[data-studio-field="grantClue"]');
+ const messageInput=modalEl.root.querySelector('[data-studio-field="grantMessage"]');
+ if(clueSelect&&selectedClueId)clueSelect.value=selectedClueId;
+ if(messageInput)messageInput.value=message;
+ modalEl.root.querySelector("[data-close]").onclick=closeModal;modalEl.root.querySelector("[data-host-grant-submit]").onclick=async()=>{try{const values=studioValues();const roleSlotIds=[...modalEl.root.querySelectorAll("[data-grant-role]:checked")].map(el=>el.value);if(!roleSlotIds.length)return showToast("请至少选择一名玩家");await api.hostGrantClue({roleSlotIds,clueId:values.grantClue,message:values.grantMessage});closeModal();await refreshHostRoom();showToast(`线索已发放给 ${roleSlotIds.length} 名玩家`)}catch(error){showToast(error.message)}};
 }
 
 export function openDelayHostEventModal(eventId){
