@@ -69,6 +69,8 @@ test("host command center uses segment runbooks and five critical queue actions"
   assert.match(layoutSource, /runbook\?\.fallbacks/);
   assert.match(layoutSource, /state\.cloudHostClueMatrix/);
   assert.match(layoutSource, /function grantStatus/);
+  assert.match(layoutSource, /renderPlayerTasks/);
+  assert.match(layoutSource, /runbook\?\.playerTasks/);
   assert.match(layoutSource, /data-clue-id/);
   assert.match(layoutSource, /data-role-key/);
   assert.match(layoutSource, /解锁本幕分幕/);
@@ -79,6 +81,7 @@ test("host command center uses segment runbooks and five critical queue actions"
   }
   assert.match(stylesSource, /host-command-center/);
   assert.match(stylesSource, /host-clue-grant-item/);
+  assert.match(stylesSource, /host-task-item/);
   assert.match(stylesSource, /@media \(max-width: 1180px\)/);
 });
 
