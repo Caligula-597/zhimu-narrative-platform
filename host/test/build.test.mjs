@@ -48,6 +48,7 @@ test("main.js wires console, SSE and director actions", () => {
   assert.match(mainSource, /el\?\.dataset\?\.actKey/);
   assert.match(mainSource, /clueId:\s*el\?\.dataset\?\.clueId/);
   assert.match(mainSource, /roleKey:\s*el\?\.dataset\?\.roleKey/);
+  assert.match(mainSource, /openHostUnlockSectionModal\(\{\s*actKey:\s*el\?\.dataset\?\.actKey\s*\}\)/);
   assert.doesNotMatch(mainSource, /button\.dataset\.(?:testimony|flag|remedy|voteId|status|actionId|actKey)/);
   assert.match(mainSource, /renderApp/);
   assert.match(mainSource, /api\.me\(\)/);
@@ -70,6 +71,7 @@ test("host command center uses segment runbooks and five critical queue actions"
   assert.match(layoutSource, /function grantStatus/);
   assert.match(layoutSource, /data-clue-id/);
   assert.match(layoutSource, /data-role-key/);
+  assert.match(layoutSource, /解锁本幕分幕/);
   assert.match(layoutSource, /renderHostCommandCenter/);
   assert.match(layoutSource, /data-action="host-select-act"/);
   for (const action of ["host-apply-remedy", "host-vote-status", "host-review-private-action", "host-review-testimony"]) {
@@ -93,6 +95,8 @@ test("console render escapes user content", () => {
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
   assert.match(consoleSource, /escapeHtml\(/);
   assert.match(consoleSource, /hostActClueIds/);
+  assert.match(consoleSource, /resolveSectionSegmentKey/);
+  assert.match(consoleSource, /sectionOptionsForRole/);
   assert.match(consoleSource, /selectedClueId/);
   assert.match(consoleSource, /checkedRoleIds/);
 });

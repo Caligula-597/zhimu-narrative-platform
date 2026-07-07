@@ -29,6 +29,7 @@ import {
   refreshHostRoom
 } from "../runtime/data.js";
 import { hostRunbooks, renderHostCommandCenter } from "./host-layout.js";
+import { resolveSectionSegmentKey } from "../../../shared/segment-contract.js";
 
 let renderRef = () => {};
 let showToastRef = (_msg) => {};
@@ -166,6 +167,22 @@ function hostActClueIds(actKey) {
   if (!actKey) return [];
   const book = hostRunbooks().find((item) => [item.actKey, item.segmentKey, item.key].filter(Boolean).some((value) => String(value) === String(actKey)));
   return (book?.clueGrants || []).map((grant) => grant.clueId || grant.clue_id).filter(Boolean);
+}
+
+function sectionMatchesAct(section, actKey) {
+  if (!actKey) return false;
+  return String(resolveSectionSegmentKey(section, section.sequence || 1)) === String(actKey);
+}
+
+function sectionOptionsForRole(sections, roleId, actKey) {
+  return sections
+    .filter((section) => String(section.role_slot_id) === String(roleId))
+    .slice()
+    .sort((a, b) => Number(sectionMatchesAct(b, actKey)) - Number(sectionMatchesAct(a, actKey)) || (a.sequence || 0) - (b.sequence || 0))
+    .map((section) => ({
+      id: section.id,
+      name: `${sectionMatchesAct(section, actKey) ? "本幕 · " : ""}${section.sequence}. ${section.title}`
+    }));
 }
 
 function hostPaceTimerCard() {
@@ -674,11 +691,14 @@ export function openHostGrantItemModal(){
  modalEl.backdrop.classList.add("show");modalEl.root.querySelector("[data-close]").onclick=closeModal;modalEl.root.querySelector("[data-host-grant-item-submit]").onclick=async()=>{try{const values=studioValues();await api.hostGrantItem({roleSlotId:values.grantRole,itemId:values.grantItem,quantity:Math.max(1,Number(values.grantQuantity)||1),message:values.grantMessage});closeModal();await refreshHostRoom();showToast("物品已发放")}catch(error){showToast(error.message)}};
 }
 
-export function openHostUnlockSectionModal(){
+export function openHostUnlockSectionModal(options = {}){
  const players=(state.cloudHostPlayers||[]).filter(player=>player.joined);if(!players.length)return showToast("当前没有已加入的玩家");
  const sections=(state.studio?.sections||[]);
- mountModal(); modalEl.root.className="modal";modalEl.root.innerHTML=`<h2>手动解锁分幕</h2><p class="wizard-intro">解锁后，对应玩家即可阅读该私人分幕。</p><div class="form-group">${studioSelect("目标角色","unlockRole",players.map(player=>({id:player.role_slot_id,name:`${player.player_display_name||"玩家"} · ${player.role_name}`})))}${studioSelect("分幕","unlockSection",sections.filter(section=>section.role_slot_id===players[0].role_slot_id).map(section=>({id:section.id,name:`${section.sequence}. ${section.title}`})))}${studioField("日志说明","unlockMessage","input","主持人手动解锁分幕")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-unlock-submit>确认解锁</button></div>`;
- modalEl.backdrop.classList.add("show");modalEl.root.querySelector("[data-close]").onclick=closeModal;const roleSelect=modalEl.root.querySelector('[data-studio-field="unlockRole"]'),sectionSelect=modalEl.root.querySelector('[data-studio-field="unlockSection"]');const refreshSections=()=>{const roleId=roleSelect.value;const options=sections.filter(section=>section.role_slot_id===roleId).map(section=>({id:section.id,name:`${section.sequence}. ${section.title}`}));sectionSelect.innerHTML=options.length?studioOptionsHtml(options,""):'<option value="">该角色尚无分幕</option>'};roleSelect.onchange=refreshSections;refreshSections();modalEl.root.querySelector("[data-host-unlock-submit]").onclick=async()=>{try{const values=studioValues();await api.hostUnlockSection({roleSlotId:values.unlockRole,scriptSectionId:values.unlockSection,message:values.unlockMessage});closeModal();await refreshHostRoom();showToast("分幕已解锁")}catch(error){showToast(error.message)}};
+ const actKey=options.actKey||"";
+ const firstRoleId=players.find((player)=>sections.some((section)=>String(section.role_slot_id)===String(player.role_slot_id)&&sectionMatchesAct(section,actKey)))?.role_slot_id||players[0].role_slot_id;
+ const message=actKey?"主持人按当前幕手动解锁分幕":"主持人手动解锁分幕";
+ mountModal(); modalEl.root.className="modal";modalEl.root.innerHTML=`<h2>手动解锁分幕</h2><p class="wizard-intro">${actKey?"已按当前幕优先展示对应分幕；":"解锁后，对应玩家即可阅读该私人分幕。"}</p><div class="form-group">${studioSelect("目标角色","unlockRole",players.map(player=>({id:player.role_slot_id,name:`${player.player_display_name||"玩家"} · ${player.role_name}`})))}${studioSelect("分幕","unlockSection",sectionOptionsForRole(sections,firstRoleId,actKey))}${studioField("日志说明","unlockMessage","input",message)}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-unlock-submit>确认解锁</button></div>`;
+ modalEl.backdrop.classList.add("show");modalEl.root.querySelector("[data-close]").onclick=closeModal;const roleSelect=modalEl.root.querySelector('[data-studio-field="unlockRole"]'),sectionSelect=modalEl.root.querySelector('[data-studio-field="unlockSection"]'),messageInput=modalEl.root.querySelector('[data-studio-field="unlockMessage"]');if(roleSelect)roleSelect.value=firstRoleId;if(messageInput)messageInput.value=message;const refreshSections=()=>{const roleId=roleSelect.value;const sectionOptions=sectionOptionsForRole(sections,roleId,actKey);sectionSelect.innerHTML=sectionOptions.length?studioOptionsHtml(sectionOptions,sectionOptions[0]?.id||""):'<option value="">该角色尚无分幕</option>'};roleSelect.onchange=refreshSections;refreshSections();modalEl.root.querySelector("[data-host-unlock-submit]").onclick=async()=>{try{const values=studioValues();if(!values.unlockSection)return showToast("请选择要解锁的分幕");await api.hostUnlockSection({roleSlotId:values.unlockRole,scriptSectionId:values.unlockSection,message:values.unlockMessage});closeModal();await refreshHostRoom();showToast("分幕已解锁")}catch(error){showToast(error.message)}};
 }
 
 export function openHostUnlockSceneModal(){

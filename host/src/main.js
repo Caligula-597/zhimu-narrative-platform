@@ -379,7 +379,7 @@ function handleDirectorAction(action, el) {
       openHostGrantItemModal();
       return true;
     case "host-manual-unlock-section":
-      openHostUnlockSectionModal();
+      openHostUnlockSectionModal({ actKey: el?.dataset?.actKey });
       return true;
     case "host-manual-unlock-scene":
       openHostUnlockSceneModal();

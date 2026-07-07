@@ -180,6 +180,24 @@ function renderClueGrants(act) {
   </div>`;
 }
 
+function renderPlayerTasks(act) {
+  const tasks = Array.isArray(act?.runbook?.playerTasks) ? act.runbook.playerTasks.filter(Boolean) : [];
+  if (!tasks.length) return "";
+  return `<section class="host-current-tasks">
+    <div class="section-head compact"><div><h3>玩家任务</h3><p>${tasks.length} 项来自当前 Segment</p></div></div>
+    <div class="host-current-list">
+      ${tasks
+        .map(
+          (task, index) => `<article class="host-current-item host-task-item">
+            <span>${String(index + 1).padStart(2, "0")}</span>
+            <p>${escapeHtml(task)}</p>
+          </article>`
+        )
+        .join("")}
+    </div>
+  </section>`;
+}
+
 function renderRemedies(act) {
   const fallbacks = Array.isArray(act?.runbook?.fallbacks) ? act.runbook.fallbacks : [];
   const items = (state.cloudHostSegmentRemedies || []).filter((row) => !act?.key || row.segment_key === act.key);
@@ -310,9 +328,13 @@ function renderCurrentActColumn() {
     </div>
     ${actSelector(acts, act)}
     ${renderRunbook(act)}
+    ${renderPlayerTasks(act)}
     <div class="host-current-grid">
       <section><div class="section-head compact"><div><h3>应发线索</h3></div><button class="secondary-btn" data-action="host-manual-grant-clue" data-act-key="${escapeHtml(act?.key || "")}">手动发线索</button></div>${renderClueGrants(act)}</section>
       <section><div class="section-head compact"><div><h3>补救话术</h3></div></div>${renderRemedies(act)}</section>
+    </div>
+    <div class="host-current-actions">
+      <button class="secondary-btn" data-action="host-manual-unlock-section" data-act-key="${escapeHtml(act?.key || "")}">解锁本幕分幕</button>
     </div>
   </section>`;
 }

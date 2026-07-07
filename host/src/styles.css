@@ -1121,6 +1121,40 @@ textarea:focus-visible {
   margin-top: 9px;
 }
 
+.host-current-tasks {
+  margin-top: 12px;
+}
+
+.host-task-item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.host-task-item span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(43, 107, 97, 0.1);
+  color: var(--host-green);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.host-task-item p {
+  margin: 0;
+  min-width: 0;
+}
+
+.host-current-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
 .host-current-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 12px;
