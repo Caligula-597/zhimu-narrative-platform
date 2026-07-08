@@ -3,6 +3,7 @@ import { throwErr } from "../api-errors.js";
 import { validateDeepseekProposal } from "../deepseek.js";
 import { seedPlayerTasksFromArchives } from "../player-tasks.js";
 import { seedWorldSegmentsFromPipeline, syncWorldSegmentsFromChapters } from "../world-segments-seed.js";
+import { seedBibleFromPipeline } from "../creator-bible.js";
 
 async function nextRoleSlotSequence(client, worldId) {
   const row = await client.query(
@@ -808,6 +809,7 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
         );
       }
       const segmentsSeeded = await seedWorldSegmentsFromPipeline(client, worldId, pipeline, graph);
+      const bibleSeeded = await seedBibleFromPipeline(client, worldId, pipeline, roleKeyToSlotId);
       return {
         ...graph.summary,
         roles: roles.length,
@@ -817,7 +819,8 @@ export async function importDeepseekPipelinePackage(worldId, pipeline) {
         unlockRulesCreated: unlockRules.rulesCreated,
         unlockRuleMode: unlockRules.ruleMode,
         playerTasksSeeded,
-        segmentsSeeded
+        segmentsSeeded,
+        bibleSeeded
       };
     });
   } catch (error) {

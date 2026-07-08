@@ -233,7 +233,7 @@ export async function loadCloudData(withToast = false, force = false) {
       if (worldReady) roomEvents().connectRoomEventStream?.();
       render();
 
-      if (["overview", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view)) void (async () => {
+        if (["overview", "creatorCockpit", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view)) void (async () => {
         if (!zhimuApi.context.worldId) return;
         const assetSnap = assetStore.get();
         const params = {};
@@ -241,8 +241,9 @@ export async function loadCloudData(withToast = false, force = false) {
         if (assetSnap.assetSearchQuery) params.q = assetSnap.assetSearchQuery;
         const needsStorageUsage = ["overview", "account", "settings"].includes(uiStore.get().view);
         const needsAssets = ["overview", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view);
-        const needsCreatorDashboard = uiStore.get().view === "overview";
-        const needsCreatorChecks = ["writer", "settings"].includes(uiStore.get().view);
+        const view = uiStore.get().view;
+        const needsCreatorDashboard = view === "overview" || view === "creatorCockpit";
+        const needsCreatorChecks = ["writer", "settings", "creatorCockpit"].includes(view);
         if (!needsStorageUsage && !needsAssets && !needsCreatorDashboard && !needsCreatorChecks) return;
         const activeRoomId = zhimuApi.context.roomId || null;
         const phase3 = await Promise.allSettled([
@@ -269,7 +270,7 @@ export async function loadCloudData(withToast = false, force = false) {
             worldStore.set({ cloudCreatorChecks: value.checks || value });
           }
         });
-        if (["overview", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view)) render();
+        if (["overview", "creatorCockpit", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view)) render();
       })();
 
       void (async () => {

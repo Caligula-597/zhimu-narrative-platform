@@ -17,5 +17,11 @@ export const worldStore = createStore({
   cloudSegments: null,
   cloudSelectedSegmentId: null,
   cloudTruthClaims: null,
-  cloudRoleRelationships: null
+  cloudRoleRelationships: null,
+  cloudBibleSummary: null,
+  cloudCoreTrick: null,
+  cloudForeshadowBeats: null,
+  cloudTimelineEvents: null,
+  cloudRoleArchives: null,
+  truthBibleTab: "claims"
 });

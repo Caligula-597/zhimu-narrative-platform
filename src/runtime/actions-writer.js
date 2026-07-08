@@ -25,6 +25,11 @@ import { callView } from "./view-registry.js";
       case "creator-snapshot": callView("writer", "createCreatorSnapshot"); return true;
       case "creator-restore": callView("writer", "restoreCreatorSnapshot", el?.dataset?.version); return true;
       case "creator-delete-version": callView("writer", "deleteCreatorSnapshot", el?.dataset?.version); return true;
+      case "save-role-archive":
+        return window.zhimuActionsBible?.handleBibleAction?.(action, el) || false;
+      case "load-writer-archives":
+        void callView("writer", "loadWriterRoleArchives");
+        return true;
       default: return false;
     }
   }

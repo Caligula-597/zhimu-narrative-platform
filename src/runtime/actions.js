@@ -10,6 +10,8 @@ import * as M from "../components/modal.js";
   const openWizard = () => callRuntime("openWizard");
 
   const dispatchers = [
+    () => window.zhimuActionsCreatorCockpit?.handleCreatorCockpitAction,
+    () => window.zhimuActionsBible?.handleBibleAction,
     () => window.zhimuActionsWorkspace?.handleWorkspaceAction,
     () => window.zhimuActionsCreatorWorkspaces?.handleCreatorWorkspacesAction,
     () => window.zhimuActionsArchive?.handleArchiveAction,
@@ -36,6 +38,8 @@ export function bindDynamic() {
     if (view === "account") callView("accountHub", "bindAccountHubView");
     if (view === "player") callView("player", "bindPlayerReader");
     if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
+    if (view === "writer") void callView("writer", "loadWriterRoleArchives");
+    window.zhimuActionsCreatorCockpit?.maybeAutoLoadCockpit?.(view);
     window.zhimuActionsCreatorWorkspaces?.maybeAutoLoadWorkspace?.(view);
     window.zhimuSearchFocus?.applyAfterRender?.();
   }

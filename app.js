@@ -36,7 +36,7 @@ const appEntry = (function (window) {
   function render() {
     const currentToken = ++renderToken;
     const currentView = uiStore.get().view;
-    if (!getViewMeta(currentView)) { uiStore.set({ view: "overview" }); return render(); }
+    if (!getViewMeta(currentView)) { uiStore.set({ view: "creatorCockpit" }); return render(); }
     const [eyebrow, title] = getViewMeta(uiStore.get().view);
     window.zhimuNavShell?.syncWorldSwitcher?.();
     window.zhimuNavShell?.syncNavAdvanced?.(uiStore.get().view);
@@ -61,7 +61,7 @@ const appEntry = (function (window) {
       return;
     }
     const outage = window.zhimuServiceOutage;
-    const showOutage = outage?.isServiceOutage?.(userStore.get().apiError) && !studioStore.get().cloudLoading;
+    const showOutage = currentView !== "creatorCockpit" && outage?.isServiceOutage?.(userStore.get().apiError) && !studioStore.get().cloudLoading;
     const viewFn = resolveViewFn(uiStore.get().view);
     const contentChanged = setContentHtml(showOutage ? outage.renderServiceOutage(userStore.get().apiError) : (viewFn ? viewFn() : renderViewLoading(title)));
     if (contentChanged && ["settings", "studio", "writer"].includes(uiStore.get().view)) {

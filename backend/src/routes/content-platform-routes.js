@@ -21,6 +21,8 @@ import {
   createRoomVoteSchema,
   createSegmentSchema,
   createTruthClaimSchema,
+  patchTruthClaimSchema,
+  truthClaimIdParams,
   createQualityReportSchema,
   privateActionIdParams,
   roomIdParams,
@@ -305,6 +307,55 @@ export async function registerContentPlatformRoutes(app) {
       ]
     );
     return reply.code(201).send({ claim: result.rows[0] });
+  });
+
+  app.patch("/api/worlds/:worldId/truth-claims/:claimId", { schema: patchTruthClaimSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, claimId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const body = request.body ?? {};
+    const result = await query(
+      `UPDATE world_truth_claims SET
+         claim_key = COALESCE($3, claim_key),
+         title = COALESCE($4, title),
+         claim = COALESCE($5, claim),
+         reveal_stage = COALESCE($6, reveal_stage),
+         confidence = COALESCE($7, confidence),
+         evidence = COALESCE($8::jsonb, evidence),
+         contradictions = COALESCE($9::jsonb, contradictions),
+         role_visibility = COALESCE($10::jsonb, role_visibility),
+         metadata = COALESCE($11::jsonb, metadata),
+         updated_at = now()
+       WHERE id = $1 AND world_id = $2
+       RETURNING *`,
+      [
+        claimId,
+        worldId,
+        body.claimKey,
+        body.title,
+        body.claim,
+        body.revealStage,
+        body.confidence,
+        body.evidence != null ? JSON.stringify(body.evidence) : null,
+        body.contradictions != null ? JSON.stringify(body.contradictions) : null,
+        body.roleVisibility != null ? JSON.stringify(body.roleVisibility) : null,
+        body.metadata != null ? JSON.stringify(body.metadata) : null
+      ]
+    );
+    if (!result.rowCount) return sendErr(reply, "NOT_FOUND");
+    return { claim: result.rows[0] };
+  });
+
+  app.delete("/api/worlds/:worldId/truth-claims/:claimId", { schema: { params: truthClaimIdParams } }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, claimId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const result = await query(
+      `DELETE FROM world_truth_claims WHERE id = $1 AND world_id = $2 RETURNING id`,
+      [claimId, worldId]
+    );
+    if (!result.rowCount) return sendErr(reply, "NOT_FOUND");
+    return reply.code(204).send();
   });
 
   app.get("/api/worlds/:worldId/role-relationships", { schema: { params: worldIdParams } }, async (request) => {

@@ -3,7 +3,7 @@
  * truth & relations, publish lab, and post-play insights.
  */
 import * as zhimuApi from "../api/index.js";
-import { normalizeSegmentOperations } from "shared/segment-contract.js";
+import { normalizeBeatPlan, normalizeSegmentOperations } from "shared/segment-contract.js";
 import { showToast } from "../components/toast.js";
 import { getRuntime, go, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
@@ -19,6 +19,7 @@ import {
   renderQualityReportsPanel,
   renderRelationshipGraph
 } from "./platform-runtime.js";
+import { renderTruthBiblePage, loadTruthBibleTab } from "./truth-bible.js";
 
 const escapeHtml = F.escapeHtml || ((v = "") => String(v));
 const activeRuntimeRoom = U.activeRuntimeRoom || (() => null);
@@ -75,7 +76,7 @@ export function production() {
     <button type="button" class="workspace-action-card" data-action="story-manuscript"><strong>完整剧情</strong><span>母稿与章节总览</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>Word / Markdown / 内容包</span></button>
     <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>${roleCount} 角色 · ${sectionCount} 分幕</span></button>
-    <button type="button" class="workspace-action-card" data-action="creator-export"><strong>导出备份</strong><span>内容包与版本快照</span></button>
+    <button type="button" class="workspace-action-card" data-action="creator-export"><strong>交付包导出</strong><span>玩家本 · 线索清单 · 主持手册 · JSON</span></button>
     <button type="button" class="workspace-action-card" data-action="story-assistant"><strong>规则分类器</strong><span>从母稿提取结构化规则</span></button>
   </section>
   <section class="card" style="margin-top:14px"><div class="section-head"><div><h3>下一步</h3><p>内容就绪后绑定运行态段落。</p></div><button class="secondary-btn" data-go="structure">打开 Segment 工作台 →</button></div></section>`;
@@ -118,6 +119,32 @@ function clueGrantsFromText(value = "") {
     const [clueId = "", when = "", roleKey = ""] = line.split("|").map((part) => part.trim());
     return { clueId, when, roleKey };
   }).filter((grant) => grant.clueId);
+}
+
+function beatPlanFromForm(form) {
+  return normalizeBeatPlan({
+    goal: form.querySelector('[name="beatGoal"]')?.value,
+    playerContent: form.querySelector('[name="beatPlayerContent"]')?.value,
+    dmTasks: form.querySelector('[name="beatDmTasks"]')?.value,
+    openClues: form.querySelector('[name="beatOpenClues"]')?.value,
+    privateChatHints: form.querySelector('[name="beatPrivateChat"]')?.value,
+    estimatedMinutes: form.querySelector('[name="beatMinutes"]')?.value,
+    advanceCondition: form.querySelector('[name="beatAdvance"]')?.value
+  });
+}
+
+function renderBeatPlanEditor(beatPlan = {}) {
+  const beat = normalizeBeatPlan(beatPlan);
+  return `<section class="segment-beat-editor">
+    <div class="section-head compact"><div><h3>分幕流程 beatPlan</h3><p class="muted-note">写入 segment.story.beatPlan，描述本幕目标、时长与推进条件。</p></div></div>
+    <label>本幕目标</label><textarea class="field" name="beatGoal" rows="2">${escapeHtml(beat.goal)}</textarea>
+    <label>玩家可读内容摘要</label><textarea class="field" name="beatPlayerContent" rows="2">${escapeHtml(beat.playerContent)}</textarea>
+    <label>DM 任务</label><textarea class="field" name="beatDmTasks" rows="2">${escapeHtml(beat.dmTasks)}</textarea>
+    <label>可开放线索/地图</label><textarea class="field" name="beatOpenClues" rows="2">${escapeHtml(beat.openClues)}</textarea>
+    <label>私聊建议</label><textarea class="field" name="beatPrivateChat" rows="2">${escapeHtml(beat.privateChatHints)}</textarea>
+    <label>预计时长（分钟）</label><input class="field" name="beatMinutes" type="number" min="0" max="999" value="${beat.estimatedMinutes ?? ""}" placeholder="例如 45">
+    <label>推进条件</label><textarea class="field" name="beatAdvance" rows="2">${escapeHtml(beat.advanceCondition)}</textarea>
+  </section>`;
 }
 
 function renderSegmentOperationsEditor(operations = {}) {
@@ -232,13 +259,19 @@ export function structure() {
     ? segments.map((s) => segmentListItem(s, selectedId || segments[0]?.id)).join("")
     : `<div class="empty-state">尚无 Segment。点击下方创建，或从 Matrix 导入后绑定。</div>`;
   const current = selectedSegment(segments || [], selectedId);
-  const storyJson = current?.story ? JSON.stringify(current.story, null, 2) : "{}";
+  const storyExtra = { ...(current?.story || {}) };
+  delete storyExtra.beatPlan;
+  const storyAdvancedJson = Object.keys(storyExtra).length ? JSON.stringify(storyExtra, null, 2) : "{}";
   const editor = current
     ? `<form class="segment-editor" data-segment-editor="${escapeHtml(current.id)}">
         <label>段落键</label><input class="field" name="segmentKey" value="${escapeHtml(current.segmentKey || "")}" readonly>
         <label>标题</label><input class="field" name="title" value="${escapeHtml(current.title || "")}">
         <label>顺序</label><input class="field" name="sequence" type="number" min="1" value="${Number(current.sequence) || 1}">
-        <label>story（JSON）</label><textarea class="field" name="story" rows="5">${escapeHtml(storyJson)}</textarea>
+        ${renderBeatPlanEditor(current?.story?.beatPlan || {})}
+        <details class="segment-advanced-json">
+          <summary>story 扩展字段（JSON）</summary>
+          <textarea class="field monospace-field" name="storyAdvanced" rows="4">${escapeHtml(storyAdvancedJson)}</textarea>
+        </details>
         ${renderSegmentOperationsEditor(current.operations || {})}
         <div class="row"><button type="button" class="primary-btn" data-action="save-structure-segment" data-segment-id="${escapeHtml(current.id)}">保存段落</button></div>
       </form>`
@@ -306,7 +339,8 @@ export async function saveStructureSegment(segmentId) {
   let story = {};
   let operations = {};
   try {
-    story = JSON.parse(form.querySelector('[name="story"]')?.value || "{}");
+    const storyExtra = JSON.parse(form.querySelector('[name="storyAdvanced"]')?.value || "{}");
+    story = { ...storyExtra, beatPlan: beatPlanFromForm(form) };
     const advanced = JSON.parse(form.querySelector('[name="operationsAdvanced"]')?.value || "{}");
     operations = normalizeSegmentOperations({
       ...advanced,
@@ -398,21 +432,8 @@ export function bindSegmentRefTypeSelect() {
 }
 
 export async function refreshTruthWorkspace() {
-  const worldId = zhimuApi.context.worldId;
-  if (!worldId) return showToast("请先选择剧本");
-  try {
-    const [claimsPayload, relPayload] = await Promise.all([
-      zhimuApi.getTruthClaims(worldId),
-      zhimuApi.getRoleRelationships(worldId)
-    ]);
-    worldStore.set({
-      cloudTruthClaims: claimsPayload?.claims || [],
-      cloudRoleRelationships: relPayload?.relationships || []
-    });
-    render();
-  } catch (error) {
-    showError(error);
-  }
+  const tab = worldStore.get().truthBibleTab || "claims";
+  await loadTruthBibleTab(tab);
 }
 
 export async function addTruthClaimInline() {
@@ -449,48 +470,9 @@ export async function addRelationshipInline() {
   }
 }
 
-/** 真相与关系 — full page */
+/** 真相与关系 — professional bible view */
 export function truth() {
-  const studio = studioStore.get().cloudStudio;
-  const roles = studio?.roles || [];
-  const claims = worldStore.get().cloudTruthClaims;
-  const relationships = worldStore.get().cloudRoleRelationships;
-  const claimsBody = claims === null
-    ? `<div class="empty-state">点击「加载真相链」拉取数据。</div>`
-    : claims.length
-      ? claims.map((c) => `<article class="truth-claim-row"><div class="row"><strong>${escapeHtml(c.title)}</strong><span class="status-chip">${escapeHtml(c.confidence || "canon")}</span></div><p>${escapeHtml(c.claim || "")}</p></article>`).join("")
-      : `<div class="empty-state">尚无真相断言。下方添加第一条。</div>`;
-  const relList = relationships === null
-    ? ""
-    : relationships.length
-      ? relationships.map((r) => `<article class="checkpoint-row"><strong>${escapeHtml(r.label || r.relation_type || "关系")}</strong><p class="muted-note">${escapeHtml(r.from_role_name || "")} → ${escapeHtml(r.to_role_name || "")}</p></article>`).join("")
-      : `<div class="empty-state">尚无关系边。</div>`;
-  return `${workspaceHero("TRUTH & RELATIONS", "真相与关系", "结构化真相链与角色关系图，供 QA、主持 runbook 与局后复盘引用——不是玩家可见正文。")}
-  <section class="truth-workspace-grid">
-    <article class="card truth-claims-panel">
-      <div class="section-head"><div><h3>真相链</h3></div><button type="button" class="secondary-btn" data-action="refresh-truth-workspace">加载 / 刷新</button></div>
-      <div class="truth-claim-list">${claimsBody}</div>
-      <div class="form-group truth-add-form">
-        <label>新增断言</label>
-        <input class="field" data-truth-field="title" placeholder="标题">
-        <textarea class="field" data-truth-field="claim" rows="3" placeholder="断言内容"></textarea>
-        <select class="field" data-truth-field="confidence"><option value="canon">canon</option><option value="inferred">inferred</option><option value="misdirection">misdirection</option><option value="unknown">unknown</option></select>
-        <button type="button" class="primary-btn" data-action="add-truth-claim-inline">添加断言</button>
-      </div>
-    </article>
-    <article class="card truth-relations-panel">
-      <div class="section-head"><div><h3>角色关系图</h3></div></div>
-      <div class="rel-graph-wrap">${relationships === null ? `<div class="empty-state">加载后显示关系图</div>` : renderRelationshipGraph(roles, relationships)}</div>
-      <div class="truth-rel-list">${relList}</div>
-      ${roles.length ? `<div class="form-group truth-add-form">
-        <label>新增关系</label>
-        <select class="field" data-rel-field="from">${roleOptions(roles)}</select>
-        <select class="field" data-rel-field="to">${roleOptions(roles)}</select>
-        <input class="field" data-rel-field="label" placeholder="关系标签">
-        <button type="button" class="primary-btn" data-action="add-relationship-inline">添加关系</button>
-      </div>` : `<p class="muted-note">请先在内容生产创建角色席位。</p>`}
-    </article>
-  </section>`;
+  return renderTruthBiblePage();
 }
 
 /** 测试与发布 */
@@ -523,7 +505,7 @@ function renderSegmentCompletionPanel() {
   if (!data) {
     return `<section class="segment-completion-panel card">
       <div class="section-head">
-        <div><p class="section-kicker">SEGMENT COMPLETION</p><h3>段落完成率</h3><p>按角色与分幕统计玩家阅读完成情况，定位卡关段落。</p></div>
+        <div><p class="section-kicker">SEGMENT COMPLETION</p><h3>段落完成率</h3><p>按角色与分幕统计玩家阅读完成情况。</p></div>
         <button type="button" class="secondary-btn" data-action="load-segment-completion">加载完成率</button>
       </div>
       <div class="empty-state">点击「加载完成率」从云端拉取当前世界/运行房的分幕完成统计。</div>
@@ -536,9 +518,8 @@ function renderSegmentCompletionPanel() {
         const sectionRows = (group.sections || [])
           .map((section) => {
             const pct = section.completionRate || 0;
-            const tone = pct >= 80 ? "published" : pct >= 40 ? "testing" : "draft";
             return `<div class="segment-row">
-              <div class="segment-row-head"><strong>${escapeHtml(section.title)}</strong><span class="status-chip ${tone}">${pct}%</span></div>
+              <div class="segment-row-head"><strong>${escapeHtml(section.title)}</strong><span class="status-chip neutral">${pct}%</span></div>
               <div class="segment-row-meta"><span>${escapeHtml(section.label || "")}</span>${section.averageMinutes != null ? `<span class="muted-note">平均 ${Math.round(section.averageMinutes)} 分钟</span>` : ""}</div>
               <div class="progress"><i style="width:${pct}%"></i></div>
             </div>`;
@@ -552,10 +533,12 @@ function renderSegmentCompletionPanel() {
     : `<div class="empty-state">暂无分幕数据。先在创作台创建角色与私人分幕，再让玩家进入运行房阅读。</div>`;
   return `<section class="segment-completion-panel card">
     <div class="section-head">
-      <div><p class="section-kicker">SEGMENT COMPLETION</p><h3>段落完成率</h3><p>按角色与分幕统计玩家阅读完成情况，定位卡关段落。</p></div>
+      <div><p class="section-kicker">SEGMENT COMPLETION</p><h3>段落完成率</h3><p>按角色与分幕统计玩家阅读完成情况。</p></div>
       <div class="row">
-        <span class="status-chip ${data.averageCompletion >= 80 ? "published" : data.averageCompletion >= 40 ? "testing" : "draft"}">${scopeLabel} · 平均 ${data.averageCompletion}%</span>
+        <span class="status-chip neutral">${scopeLabel} · 平均 ${data.averageCompletion}%</span>
         <button type="button" class="secondary-btn" data-action="load-segment-completion">刷新</button>
+        <button type="button" class="text-btn" data-go="writer">编辑分幕 →</button>
+        <button type="button" class="text-btn" data-go="structure">Segment 工作台 →</button>
       </div>
     </div>
     <div class="segment-summary">${escapeHtml(data.summary?.label || "")}</div>
@@ -581,9 +564,8 @@ function renderClueHitRatePanel() {
         .sort((a, b) => (b.hitRate || 0) - (a.hitRate || 0))
         .map((clue) => {
           const pct = clue.hitRate || 0;
-          const tone = pct >= 80 ? "published" : pct >= 40 ? "testing" : "draft";
           return `<div class="hit-rate-row">
-            <div class="hit-rate-row-head"><strong>${escapeHtml(clue.name)}</strong><span class="status-chip ${tone}">${pct}%</span></div>
+            <div class="hit-rate-row-head"><strong>${escapeHtml(clue.name)}</strong><span class="status-chip neutral">${pct}%</span></div>
             <div class="hit-rate-row-meta"><span>${escapeHtml(clue.label || "")}</span></div>
             <div class="progress"><i style="width:${pct}%"></i></div>
           </div>`;
@@ -592,10 +574,11 @@ function renderClueHitRatePanel() {
     : `<div class="empty-state">暂无线索数据。</div>`;
   return `<section class="clue-hit-rate-panel card">
     <div class="section-head">
-      <div><p class="section-kicker">CLUE HIT RATE</p><h3>线索命中率</h3><p>统计每条线索在运行房中的获得、已读与分享情况，定位冷门线索。</p></div>
+      <div><p class="section-kicker">CLUE HIT RATE</p><h3>线索命中率</h3><p>统计每条线索在运行房中的获得、已读与分享情况。</p></div>
       <div class="row">
-        <span class="status-chip ${(data.averageHitRate || 0) >= 80 ? "published" : (data.averageHitRate || 0) >= 40 ? "testing" : "draft"}">${scopeLabel} · 平均 ${data.averageHitRate ?? "—"}%</span>
+        <span class="status-chip neutral">${scopeLabel} · 平均 ${data.averageHitRate ?? "—"}%</span>
         <button type="button" class="secondary-btn" data-action="load-clue-hit-rate">刷新</button>
+        <button type="button" class="text-btn" data-go="clues">线索库 →</button>
       </div>
     </div>
     <div class="hit-rate-summary">${escapeHtml(data.summary?.label || "")}</div>
@@ -614,14 +597,18 @@ export function insights() {
   const clueHint = cloudClueHitRate
     ? `线索命中 ${cloudClueHitRate.summary?.hitRate ?? cloudClueHitRate.averageHitRate ?? "—"}%`
     : "尚未加载线索命中率";
-  return `${workspaceHero("REVISION INSIGHTS", "复盘改本", "用运行数据回答「下一场该怎么改」：完成率、卡关、线索冷门、投票与主持干预。")}
+  return `${workspaceHero("REVISION INSIGHTS", "复盘改本", "运行数据：段落完成率、线索命中率与玩后统计。可按数据回到对应创作阶段继续编辑。")}
   <section class="insights-toolbar card">
     <div class="row">
       <span class="muted-note">段落：${escapeHtml(completionHint)}</span>
       <span class="muted-note">线索：${escapeHtml(clueHint)}</span>
     </div>
     <div class="row" style="margin-top:12px">
-      <button type="button" class="text-btn" data-go="archive">存档 / checkpoint / recap 明细 →</button>
+      <button type="button" class="text-btn" data-go="writer">角色私人剧本 →</button>
+      <button type="button" class="text-btn" data-go="structure">Segment 工作台 →</button>
+      <button type="button" class="text-btn" data-go="clues">线索库 →</button>
+      <button type="button" class="text-btn" data-go="truth">真相与关系 →</button>
+      <button type="button" class="text-btn" data-go="archive">存档明细 →</button>
     </div>
   </section>
   ${renderSegmentCompletionPanel()}

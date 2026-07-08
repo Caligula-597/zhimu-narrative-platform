@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  normalizeBeatPlan,
   normalizeSegmentOperations,
   resolveChapterSegmentKey,
   resolveSectionSegmentKey,
@@ -14,6 +15,21 @@ test("segment contract resolves stable keys from proposal metadata", () => {
   assert.equal(resolveChapterSegmentKey({ sequence: 2, metadata: { matrixActKey: "matrix-2" } }), "matrix-2");
   assert.equal(resolveSectionSegmentKey({ sequence: 3, metadata: { chapterKey: "ch3" } }), "ch3");
   assert.equal(resolveSectionSegmentKey({ sequence: 4, metadata: {} }), "ch4");
+});
+
+test("beatPlan normalizes segment story flow fields", () => {
+  const beatPlan = normalizeBeatPlan({
+    goal: "破冰",
+    playerContent: "宣读背景",
+    dmTasks: "引导自我介绍",
+    openClues: "clue-1",
+    privateChatHints: "观察表情",
+    estimatedMinutes: "45",
+    advanceCondition: "全员读完第一幕"
+  });
+  assert.equal(beatPlan.goal, "破冰");
+  assert.equal(beatPlan.estimatedMinutes, 45);
+  assert.equal(normalizeBeatPlan({ estimatedMinutes: "" }).estimatedMinutes, null);
 });
 
 test("segment operations normalize to the runtime runbook shape", () => {

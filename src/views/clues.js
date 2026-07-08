@@ -43,7 +43,16 @@ import * as S from "../components/ui-semantics.js";
     optional: "支线补充",
     red_herring: "烟雾弹"
   };
+  const CLUE_KIND_LABELS = {
+    general: "一般线索",
+    deep: "深入线索",
+    verify: "验证线索",
+    misdirect: "误导线索",
+    emotion: "情感线索",
+    mechanic: "机制线索"
+  };
   const CLUE_TYPE_OPTIONS = Object.entries(CLUE_TYPE_LABELS).map(([id, name]) => ({ id, name }));
+  const CLUE_KIND_OPTIONS = Object.entries(CLUE_KIND_LABELS).map(([id, name]) => ({ id, name }));
   const CLUE_IMPORTANCE_OPTIONS = Object.entries(CLUE_IMPORTANCE_LABELS).map(([id, name]) => ({ id, name }));
 
   function cluePointCount(clueId, data) {
@@ -229,11 +238,17 @@ import * as S from "../components/ui-semantics.js";
     return scene?.name || "";
   }
 
+  function clueKindBadge(clue) {
+    const kind = clue?.clue_kind || clue?.clueKind || "general";
+    return `<span class="cloud-pill">${escapeHtml(CLUE_KIND_LABELS[kind] || CLUE_KIND_LABELS.general)}</span>`;
+  }
+
   function clueMetaLabel(clue) {
     const meta = clue?.metadata || {};
     const type = CLUE_TYPE_LABELS[meta.clueType] || CLUE_TYPE_LABELS.text;
     const importance = CLUE_IMPORTANCE_LABELS[meta.importance] || CLUE_IMPORTANCE_LABELS.normal;
-    return { type, importance };
+    const kind = CLUE_KIND_LABELS[clue?.clue_kind || clue?.clueKind || "general"] || CLUE_KIND_LABELS.general;
+    return { type, importance, kind };
   }
 
   function clueAsset(clue) {
@@ -525,9 +540,9 @@ import * as S from "../components/ui-semantics.js";
     const clueName = (id) => (data.clues || []).find((item) => item.id === id)?.name || "未知线索";
     const excerpt = clue.public_text || clue.host_text || "还没有补充线索正文。";
     const tab = uiStore.get().clueDetailTab === "triggers" ? "triggers" : "detail";
-    const detailBody = `<p class="section-kicker">${escapeHtml(meta.type)} · ${escapeHtml(meta.importance)}</p>
+    const detailBody = `<p class="section-kicker">${escapeHtml(meta.type)} · ${escapeHtml(meta.kind)} · ${escapeHtml(meta.importance)}</p>
         <h3>${escapeHtml(clue.name)}</h3>
-        <div class="clue-detail-tags">${clueVisibilityChip(clue)}${clueActBadge(clue)}${clueGrantModeBadge(clue)}<span class="cloud-pill">${points.length || 0} 个调查点</span></div>
+        <div class="clue-detail-tags">${clueKindBadge(clue)}${clueVisibilityChip(clue)}${clueActBadge(clue)}${clueGrantModeBadge(clue)}<span class="cloud-pill">${points.length || 0} 个调查点</span></div>
         ${rawMeta.triggerNote ? `<p class="wizard-intro">解锁：${escapeHtml(rawMeta.triggerNote)}${clueSceneLabel(clue, data) ? ` · 场景 ${escapeHtml(clueSceneLabel(clue, data))}` : ""}</p>` : ""}
         <div class="clue-preview-card">
           <div class="clue-preview-image ${asset ? "has-asset" : ""}"><span>${asset ? "关联附件" : "线索预览"}</span></div>
@@ -752,7 +767,7 @@ import * as S from "../components/ui-semantics.js";
         const points = cluePointCount(clue.id, data);
         const selected = selectedId === clue.id ? " clues-row-selected search-highlight" : "";
         const checked = bulkSelected.has(clue.id) ? " checked" : "";
-        return `<article class="clues-row${selected}" data-clue-row="${clue.id}"><label class="clues-row-select check-label"><input type="checkbox" data-action="clues-toggle-select" data-clue="${clue.id}"${checked}></label><div class="clues-row-main"><div class="clues-row-head"><strong>${highlightQuery(clue.name, q)}</strong>${clueActBadge(clue)}${clueVisibilityChip(clue)}${points ? `<span class="cloud-pill">${points} 个调查点</span>` : ""}</div><p>${highlightQuery((clue.public_text || "").slice(0, 160), q)}${(clue.public_text || "").length > 160 ? "…" : ""}</p></div><div class="row clues-row-actions"><button class="text-btn" data-action="clues-edit" data-clue="${clue.id}">编辑</button><button class="text-btn" data-action="clues-open-studio" data-clue="${clue.id}">在图谱中定位</button><button class="text-btn danger-text" data-action="clues-delete" data-clue="${clue.id}">删除</button></div></article>`;
+        return `<article class="clues-row${selected}" data-clue-row="${clue.id}"><label class="clues-row-select check-label"><input type="checkbox" data-action="clues-toggle-select" data-clue="${clue.id}"${checked}></label><div class="clues-row-main"><div class="clues-row-head"><strong>${highlightQuery(clue.name, q)}</strong>${clueKindBadge(clue)}${clueActBadge(clue)}${clueVisibilityChip(clue)}${points ? `<span class="cloud-pill">${points} 个调查点</span>` : ""}</div><p>${highlightQuery((clue.public_text || "").slice(0, 160), q)}${(clue.public_text || "").length > 160 ? "…" : ""}</p></div><div class="row clues-row-actions"><button class="text-btn" data-action="clues-edit" data-clue="${clue.id}">编辑</button><button class="text-btn" data-action="clues-open-studio" data-clue="${clue.id}">在图谱中定位</button><button class="text-btn danger-text" data-action="clues-delete" data-clue="${clue.id}">删除</button></div></article>`;
       })
       .join("")}</div></details>
       </main>
@@ -908,7 +923,8 @@ import * as S from "../components/ui-semantics.js";
           { id: "host_confirm", name: "主持确认后发放" },
           { id: "explore", name: "探索调查获得" }
         ], meta.grantMode || "auto") +
-        studioSelect("线索类型", "clueType", CLUE_TYPE_OPTIONS, meta.clueType || "text") +
+        studioSelect("线索形态", "clueType", CLUE_TYPE_OPTIONS, meta.clueType || "text") +
+        studioSelect("线索类型", "clueKind", CLUE_KIND_OPTIONS, clue?.clue_kind || clue?.clueKind || "general") +
         studioSelect("关联资产", "assetId", assets, meta.assetId || "") +
         studioSelect("重要程度", "importance", CLUE_IMPORTANCE_OPTIONS, meta.importance || "normal") +
         studioField("触发条件说明", "triggerNote", "textarea", meta.triggerNote || ""),
@@ -922,6 +938,7 @@ import * as S from "../components/ui-semantics.js";
               publicText: values.publicText,
               hostText: values.hostText,
               visibility: values.visibility || "role",
+              clueKind: values.clueKind || "general",
               metadata: {
                 ...(clue.metadata || {}),
                 clueType: values.clueType || "text",
@@ -937,6 +954,7 @@ import * as S from "../components/ui-semantics.js";
               publicText: values.publicText,
               hostText: values.hostText,
               visibility: values.visibility || "role",
+              clueKind: values.clueKind || "general",
               metadata: {
                 clueType: values.clueType || "text",
                 assetId: values.assetId || null,
@@ -958,6 +976,7 @@ import * as S from "../components/ui-semantics.js";
       modal.querySelector('[data-studio-field="visibility"]').value = clue.visibility || "role";
       modal.querySelector('[data-studio-field="grantMode"]').value = meta.grantMode || "auto";
       modal.querySelector('[data-studio-field="clueType"]').value = meta.clueType || "text";
+      modal.querySelector('[data-studio-field="clueKind"]').value = clue.clue_kind || clue.clueKind || "general";
       modal.querySelector('[data-studio-field="importance"]').value = meta.importance || "normal";
     }
   }

@@ -28,6 +28,15 @@ test("importDeepseekPipelinePackage seeds world_segments from Matrix", async (t)
 
   const imported = await importDeepseekPipelinePackage(worldId, pipeline);
   assert.equal(imported.segmentsSeeded, 2);
+  assert.ok(imported.bibleSeeded);
+  assert.equal(imported.bibleSeeded.roleArchives, 1);
+
+  const archives = await pool.query(
+    `SELECT public_identity FROM world_role_archives WHERE world_id = $1`,
+    [worldId]
+  );
+  assert.equal(archives.rowCount, 1);
+  assert.equal(archives.rows[0].public_identity, "客人");
 
   const segments = await pool.query(
     `SELECT segment_key, title, operations->>'flow' AS flow, operations->'playerTasks' AS player_tasks

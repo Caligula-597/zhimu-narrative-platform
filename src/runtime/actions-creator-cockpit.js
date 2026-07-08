@@ -1,0 +1,362 @@
+/** Creator cockpit actions — native CRUD, navigation, refresh. */
+import * as zhimuApi from "../api/index.js";
+import { showToast } from "../components/toast.js";
+import { normalizeError } from "../components/status-ui.js";
+import { studioStore, worldStore } from "../state/index.js";
+import { LOGLINE_TEMPLATE, newSparkId } from "../views/creator-cockpit-model.js";
+import { clueGrantsFromText } from "../views/creator-cockpit-segment.js";
+import { normalizeSegmentOperations } from "shared/segment-contract.js";
+import { callView } from "./view-registry.js";
+
+const showError = (error, fallback = "操作失败") => showToast(normalizeError(error, fallback));
+
+(function (window) {
+  function cockpitRoot() {
+    return document.querySelector(".creator-cockpit");
+  }
+
+  function field(name, attr = "data-cockpit-truth") {
+    return cockpitRoot()?.querySelector(`[${attr}="${name}"]`)?.value?.trim?.() ?? cockpitRoot()?.querySelector(`[${attr}="${name}"]`)?.value ?? "";
+  }
+
+  async function reloadStudio() {
+    const studioData = await zhimuApi.getStudio();
+    studioStore.set({ cloudStudio: studioData });
+  }
+
+  async function reloadTruthAndSegments() {
+    const worldId = zhimuApi.context.worldId;
+    const [truthPayload, relPayload, segmentsPayload] = await Promise.all([
+      zhimuApi.getTruthClaims(worldId),
+      zhimuApi.getRoleRelationships(worldId),
+      zhimuApi.getWorldSegments(worldId)
+    ]);
+    worldStore.set({
+      cloudTruthClaims: truthPayload?.claims || [],
+      cloudRoleRelationships: relPayload?.relationships || [],
+      cloudSegments: segmentsPayload?.segments || []
+    });
+  }
+
+  function maybeAutoLoadCockpit(view) {
+    if (view !== "creatorCockpit") return;
+    void callView("creatorCockpit", "refreshCockpitData");
+  }
+
+  async function handleCreatorCockpitAction(action, el) {
+    const worldId = zhimuApi.context.worldId;
+    if (!worldId && action !== "cockpit-refresh") {
+      showToast("请先选择剧本");
+      return true;
+    }
+
+    switch (action) {
+      case "cockpit-refresh":
+        void callView("creatorCockpit", "refreshCockpitData");
+        return true;
+
+      case "cockpit-goto-target":
+        callView("creatorCockpit", "navigateCockpit", { target: el?.dataset?.cockpitTarget });
+        return true;
+
+      case "cockpit-fill-logline-template": {
+        callView("creatorCockpit", "patchCockpitDraft", {
+          logline: LOGLINE_TEMPLATE,
+          activeCanvas: "logline",
+          activeItem: "logline"
+        });
+        callView("creatorCockpit", "scheduleSummarySave");
+        callView("creatorCockpit", "rerenderCockpit");
+        return true;
+      }
+
+      case "cockpit-add-spark": {
+        const draft = callView("creatorCockpit", "getCockpitDraft") || {};
+        const text = String(draft.sparkDraft || "").trim();
+        if (!text) return showToast("先写一句灵感"), true;
+        const sparks = [...(draft.sparks || []), { id: newSparkId(), text, tag: draft.sparkTag || "灵感", at: Date.now() }];
+        callView("creatorCockpit", "patchCockpitDraft", { sparks, sparkDraft: "" });
+        callView("creatorCockpit", "scheduleBriefSave");
+        callView("creatorCockpit", "rerenderCockpit");
+        showToast("灵感已记录");
+        return true;
+      }
+
+      case "cockpit-remove-spark": {
+        const draft = callView("creatorCockpit", "getCockpitDraft") || {};
+        const sparks = (draft.sparks || []).filter((s) => s.id !== el?.dataset?.sparkId);
+        callView("creatorCockpit", "patchCockpitDraft", { sparks });
+        callView("creatorCockpit", "scheduleBriefSave");
+        callView("creatorCockpit", "rerenderCockpit");
+        return true;
+      }
+
+      case "cockpit-adopt-spark": {
+        const draft = callView("creatorCockpit", "getCockpitDraft") || {};
+        const spark = (draft.sparks || []).find((s) => s.id === el?.dataset?.sparkId);
+        if (!spark) return true;
+        const logline = draft.logline?.trim() ? `${draft.logline.trim()}\n${spark.text}` : spark.text;
+        callView("creatorCockpit", "patchCockpitDraft", { logline, activeStage: "concept", activeItem: "logline", activeCanvas: "logline" });
+        callView("creatorCockpit", "scheduleSummarySave");
+        callView("creatorCockpit", "rerenderCockpit");
+        showToast("已写入梗概");
+        return true;
+      }
+
+      case "cockpit-add-truth-claim": {
+        const title = field("title");
+        const claim = field("claim");
+        const confidence = cockpitRoot()?.querySelector('[data-cockpit-truth="confidence"]')?.value || "canon";
+        if (!title || !claim) return showToast("请填写标题与断言"), true;
+        try {
+          await zhimuApi.createTruthClaim({ title, claim, confidence }, worldId);
+          await reloadTruthAndSegments();
+          void callView("creatorCockpit", "refreshCockpitData");
+          showToast("断言已添加");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "cockpit-add-relationship": {
+        const from = field("from", "data-cockpit-rel");
+        const to = field("to", "data-cockpit-rel");
+        const label = field("label", "data-cockpit-rel");
+        const strengthRaw = cockpitRoot()?.querySelector('[data-cockpit-rel="strength"]')?.value;
+        if (!from || !to || from === to) return showToast("请选择两个不同角色"), true;
+        try {
+          await zhimuApi.createRoleRelationship({
+            fromRoleSlotId: from,
+            toRoleSlotId: to,
+            label,
+            strength: strengthRaw === "" || strengthRaw == null ? undefined : Number(strengthRaw)
+          }, worldId);
+          await reloadTruthAndSegments();
+          void callView("creatorCockpit", "refreshCockpitData");
+          showToast("关系已添加");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "cockpit-add-chapter": {
+        const title = field("title", "data-cockpit-chapter");
+        const summary = cockpitRoot()?.querySelector('[data-cockpit-chapter="summary"]')?.value?.trim() || "";
+        if (!title) return showToast("请填写章节标题"), true;
+        const chapters = studioStore.get().cloudStudio?.chapters || [];
+        try {
+          await zhimuApi.createChapter(worldId, { title, summary, sequence: chapters.length + 1 });
+          await reloadStudio();
+          void callView("creatorCockpit", "refreshCockpitData");
+          showToast("章节已添加");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "cockpit-add-role": {
+        const name = field("name", "data-cockpit-role");
+        if (!name) return showToast("请填写角色名"), true;
+        const roles = studioStore.get().cloudStudio?.roles || [];
+        try {
+          await zhimuApi.createRole(worldId, { name, sequence: roles.length + 1 });
+          await reloadStudio();
+          void callView("creatorCockpit", "refreshCockpitData");
+          showToast("角色已添加");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "cockpit-add-section": {
+        const roleId = cockpitRoot()?.querySelector('[data-cockpit-section="role"]')?.value;
+        const chapterId = cockpitRoot()?.querySelector('[data-cockpit-section="chapter"]')?.value;
+        const title = field("title", "data-cockpit-section");
+        if (!roleId || !chapterId || !title) return showToast("请选择角色、章节并填写分幕标题"), true;
+        try {
+          await zhimuApi.createSection(worldId, roleId, {
+            title,
+            chapterId,
+            body: `# ${title}\n\n（在此撰写私人分幕正文）`,
+            sequence: (studioStore.get().cloudStudio?.sections || []).filter((s) => s.role_slot_id === roleId).length + 1
+          });
+          await reloadStudio();
+          void callView("creatorCockpit", "refreshCockpitData");
+          showToast("分幕已添加，可在创作台编辑正文");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "cockpit-sync-segments":
+        try {
+          await zhimuApi.syncWorldSegmentsFromGraph(worldId);
+          await reloadTruthAndSegments();
+          void callView("creatorCockpit", "refreshCockpitData");
+          showToast("已从章节同步 Segment");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+
+      case "cockpit-save-segment": {
+        const segmentId = el?.dataset?.segmentId;
+        const segment = (worldStore.get().cloudSegments || []).find((s) => s.id === segmentId);
+        if (!segmentId || !segment) return showToast("请选择 Segment"), true;
+        const root = cockpitRoot()?.querySelector(`[data-cockpit-segment-editor="${segmentId}"]`);
+        if (!root) return true;
+        const flow = root.querySelector('[data-cockpit-seg="flow"]')?.value || "";
+        const hostTruth = root.querySelector('[data-cockpit-seg="hostTruth"]')?.value || "";
+        const clueGrants = clueGrantsFromText(root.querySelector('[data-cockpit-seg="clueGrants"]')?.value || "");
+        const operations = normalizeSegmentOperations({
+          ...(segment.operations || {}),
+          flow,
+          hostTruth,
+          clueGrants
+        });
+        try {
+          await zhimuApi.updateWorldSegment(segmentId, {
+            title: segment.title,
+            sequence: segment.sequence,
+            story: segment.story || {},
+            operations
+          }, worldId);
+          await reloadTruthAndSegments();
+          void callView("creatorCockpit", "refreshCockpitData");
+          showToast("Segment runbook 已保存");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "cockpit-add-clue": {
+        const name = field("name", "data-cockpit-clue");
+        const publicText = cockpitRoot()?.querySelector('[data-cockpit-clue="publicText"]')?.value?.trim() || "";
+        if (!name) return showToast("请填写线索名称"), true;
+        try {
+          await zhimuApi.createClue({ name, publicText: publicText || undefined });
+          await reloadStudio();
+          void callView("creatorCockpit", "refreshCockpitData");
+          showToast("线索已添加");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "cockpit-save-chapter-summary": {
+        const chapterId = el?.dataset?.chapterId;
+        const summary = cockpitRoot()?.querySelector(`[data-cockpit-chapter-summary="${chapterId}"]`)?.value?.trim() || "";
+        if (!chapterId) return true;
+        const chapter = studioStore.get().cloudStudio?.chapters?.find((c) => c.id === chapterId);
+        if (!chapter) return true;
+        try {
+          await zhimuApi.updateChapter(chapterId, {
+            title: chapter.title,
+            summary
+          });
+          await reloadStudio();
+          void callView("creatorCockpit", "refreshCockpitData");
+          showToast("章节摘要已保存");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "cockpit-analyze-draft": {
+        const draft = callView("creatorCockpit", "getCockpitDraft") || {};
+        const text = String(draft.copilotQuery || draft.logline || "").trim();
+        if (!text) return showToast("请先输入或粘贴文本"), true;
+        try {
+          const result = await zhimuApi.analyzeStoryDraft(text);
+          callView("creatorCockpit", "patchCockpitDraft", { lastAnalysis: result, lastAiNote: "" });
+          callView("creatorCockpit", "rerenderCockpit");
+          showToast(`结构识别完成 · ${result.nodes?.length || 0} 个节点`);
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "cockpit-ai-suggest": {
+        const draft = callView("creatorCockpit", "getCockpitDraft") || {};
+        const studio = studioStore.get().cloudStudio;
+        const text = String(draft.copilotQuery || draft.logline || "").trim();
+        if (!text) return showToast("请先输入或粘贴文本"), true;
+        try {
+          const status = await zhimuApi.getDeepseekStatus?.().catch(() => ({ configured: false }));
+          if (!status?.configured) {
+            showToast("尚未配置 LLM，请先在账号中连接 API Key");
+            return true;
+          }
+          showToast("AI 正在生成…");
+          const result = await zhimuApi.proposeWithDeepseek({
+            title: studio?.world?.name || "当前剧本",
+            premise: draft.logline || text,
+            requirements: `${text}\n\n当前阶段关注：${draft.activeStage || "concept"}`,
+            skipOutline: true
+          });
+          const note = result?.proposal?.chapters?.[0]?.summary
+            || result?.proposal?.scenes?.[0]?.publicText
+            || result?.proposal?.logline
+            || JSON.stringify(result?.proposal || {}).slice(0, 600);
+          callView("creatorCockpit", "patchCockpitDraft", { lastAiNote: String(note) });
+          callView("creatorCockpit", "rerenderCockpit");
+          showToast("AI 输出已生成");
+        } catch (error) {
+          showError(error, "AI 续写失败");
+        }
+        return true;
+      }
+
+      default:
+        return false;
+    }
+  }
+
+  async function handleSectionStatusChange(selectEl) {
+    const roleId = selectEl?.dataset?.roleId;
+    const sectionId = selectEl?.dataset?.sectionId;
+    const publicationStatus = selectEl?.value;
+    const studio = studioStore.get().cloudStudio;
+    const section = studio?.sections?.find((s) => s.id === sectionId);
+    if (!roleId || !sectionId || !section) return;
+    try {
+      await zhimuApi.updateSection(roleId, sectionId, {
+        title: section.title,
+        body: section.body,
+        chapterId: section.chapter_id || section.chapterId || null,
+        sequence: section.sequence,
+        publicationStatus
+      });
+      await reloadStudio();
+      void callView("creatorCockpit", "refreshCockpitData");
+      showToast("分幕状态已更新");
+    } catch (error) {
+      showError(error);
+    }
+  }
+
+  document.addEventListener("change", (event) => {
+    const selectEl = event.target.closest(".creator-cockpit select[data-section-id]");
+    if (!selectEl) return;
+    void handleSectionStatusChange(selectEl);
+  });
+
+  window.zhimuActionsCreatorCockpit = { handleCreatorCockpitAction, maybeAutoLoadCockpit };
+})(window);
+
+export function maybeAutoLoadCockpit(view) {
+  window.zhimuActionsCreatorCockpit?.maybeAutoLoadCockpit?.(view);
+}
+
+export function handleCreatorCockpitAction(action, el) {
+  return window.zhimuActionsCreatorCockpit?.handleCreatorCockpitAction?.(action, el) || false;
+}

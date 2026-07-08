@@ -535,6 +535,119 @@ export const createRoleRelationshipSchema = {
   }
 };
 
+export const bibleRoleSlotParams = paramsSchema({ worldId: uuid, roleSlotId: uuid });
+export const bibleBeatIdParams = paramsSchema({ worldId: uuid, beatId: uuid });
+export const bibleEventIdParams = paramsSchema({ worldId: uuid, eventId: uuid });
+export const truthClaimIdParams = paramsSchema({ worldId: uuid, claimId: uuid });
+
+export const patchCoreTrickSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      summary: { type: "string", maxLength: 12000 },
+      killerRoleSlotId: contentOptionalUuid,
+      method: { type: "string", maxLength: 12000 },
+      motive: { type: "string", maxLength: 12000 },
+      victim: { type: "string", maxLength: 500 },
+      hostNotes: { type: "string", maxLength: 12000 },
+      metadata: contentMetadataObject
+    }
+  }
+};
+
+export const patchRoleArchiveSchema = {
+  params: bibleRoleSlotParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      publicIdentity: { type: "string", maxLength: 4000 },
+      hiddenIdentity: { type: "string", maxLength: 8000 },
+      externalGoal: { type: "string", maxLength: 4000 },
+      internalNeed: { type: "string", maxLength: 4000 },
+      secret: { type: "string", maxLength: 8000 },
+      actionLine: { type: "string", maxLength: 8000 },
+      innerConflict: { type: "string", maxLength: 4000 },
+      voiceHints: { type: "string", maxLength: 4000 },
+      arc: contentMetadataObject,
+      lies: { type: "array", maxItems: 12, items: { type: "string", maxLength: 2000 } },
+      actTasks: { type: "array", maxItems: 24, items: contentMetadataObject },
+      metadata: contentMetadataObject
+    }
+  }
+};
+
+export const postForeshadowBeatSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      title: { type: "string", maxLength: 200 },
+      plantSummary: { type: "string", maxLength: 4000 },
+      surfaceMeaning: { type: "string", maxLength: 4000 },
+      trueMeaning: { type: "string", maxLength: 4000 },
+      payoffSummary: { type: "string", maxLength: 4000 },
+      sequence: { type: "integer", minimum: 1, maximum: 999 },
+      plantChapterId: contentOptionalUuid,
+      payoffChapterId: contentOptionalUuid,
+      plantSectionId: contentOptionalUuid,
+      payoffSectionId: contentOptionalUuid,
+      clueId: contentOptionalUuid,
+      metadata: contentMetadataObject
+    }
+  }
+};
+
+export const patchForeshadowBeatSchema = {
+  params: bibleBeatIdParams,
+  body: postForeshadowBeatSchema.body
+};
+
+export const postTimelineEventSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      timeLabel: { type: "string", maxLength: 120 },
+      eventSummary: { type: "string", maxLength: 4000 },
+      sequence: { type: "integer", minimum: 1, maximum: 999 },
+      chapterId: contentOptionalUuid,
+      sceneId: contentOptionalUuid,
+      participantRoleIds: { type: "array", maxItems: 16, items: uuid },
+      alibiNotes: { type: "string", maxLength: 4000 },
+      metadata: contentMetadataObject
+    }
+  }
+};
+
+export const patchTimelineEventSchema = {
+  params: bibleEventIdParams,
+  body: postTimelineEventSchema.body
+};
+
+export const patchTruthClaimSchema = {
+  params: truthClaimIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      claimKey: { type: "string", maxLength: 120 },
+      title: { type: "string", minLength: 1, maxLength: 200 },
+      claim: { type: "string", minLength: 1, maxLength: 12000 },
+      revealStage: { type: "string", maxLength: 120 },
+      confidence: { type: "string", enum: ["canon", "inferred", "misdirection", "unknown"] },
+      evidence: { type: "array", maxItems: 100, items: contentMetadataObject },
+      contradictions: { type: "array", maxItems: 100, items: contentMetadataObject },
+      roleVisibility: contentMetadataObject,
+      metadata: contentMetadataObject
+    }
+  }
+};
+
 export const createQualityReportSchema = {
   params: worldIdParams,
   body: {
@@ -819,6 +932,7 @@ export const createClueSchema = {
       publicText: { type: "string", maxLength: 20_000 },
       hostText: { type: "string", maxLength: 20_000 },
       visibility: clueVisibility,
+      clueKind: { type: "string", enum: ["general", "deep", "verify", "misdirect", "emotion", "mechanic"] },
       metadata: metadataObject
     }
   }
@@ -851,6 +965,7 @@ export const patchClueSchema = {
       publicText: { type: "string", maxLength: 20_000 },
       hostText: { type: "string", maxLength: 20_000 },
       visibility: clueVisibility,
+      clueKind: { type: "string", enum: ["general", "deep", "verify", "misdirect", "emotion", "mechanic"] },
       metadata: metadataObject
     }
   }
@@ -1367,7 +1482,8 @@ export const createRuleSchema = {
       priority: { type: "integer", minimum: 0, maximum: 9999 },
       enabled: { type: "boolean" },
       conditions: ruleJsonObject,
-      actions: ruleActionsArray
+      actions: ruleActionsArray,
+      metadata: metadataObject
     }
   }
 };
@@ -1385,7 +1501,8 @@ export const updateRuleSchema = {
       priority: { type: "integer", minimum: 0, maximum: 9999 },
       enabled: { type: "boolean" },
       conditions: ruleJsonObject,
-      actions: ruleActionsArray
+      actions: ruleActionsArray,
+      metadata: metadataObject
     }
   }
 };
@@ -1400,7 +1517,8 @@ export const validateRuleBodySchema = {
     required: ["conditions", "actions"],
     properties: {
       conditions: ruleJsonObject,
-      actions: ruleActionsArray
+      actions: ruleActionsArray,
+      metadata: metadataObject
     }
   }
 };

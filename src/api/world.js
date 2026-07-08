@@ -184,6 +184,95 @@ export function createRoleRelationship(payload, worldId = demoContext.worldId) {
   return request(`/worlds/${worldId}/role-relationships`, { userId: demoContext.hostUserId, method: "POST", body: payload });
 }
 
+export function getBibleSummary(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/summary`, { userId: demoContext.hostUserId });
+}
+
+export function getCoreTrick(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/core-trick`, { userId: demoContext.hostUserId });
+}
+
+export function patchCoreTrick(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/core-trick`, { userId: demoContext.hostUserId, method: "PATCH", body: payload });
+}
+
+export function getRoleArchives(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/role-archives`, { userId: demoContext.hostUserId });
+}
+
+export function getRoleArchive(roleSlotId, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/role-archives/${roleSlotId}`, { userId: demoContext.hostUserId });
+}
+
+export function patchRoleArchive(roleSlotId, payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/role-archives/${roleSlotId}`, {
+    userId: demoContext.hostUserId,
+    method: "PATCH",
+    body: payload
+  });
+}
+
+export function getForeshadowBeats(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/foreshadow-beats`, { userId: demoContext.hostUserId });
+}
+
+export function createForeshadowBeat(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/foreshadow-beats`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function patchForeshadowBeat(beatId, payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/foreshadow-beats/${beatId}`, {
+    userId: demoContext.hostUserId,
+    method: "PATCH",
+    body: payload
+  });
+}
+
+export function deleteForeshadowBeat(beatId, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/foreshadow-beats/${beatId}`, {
+    userId: demoContext.hostUserId,
+    method: "DELETE"
+  });
+}
+
+export function getTimelineEvents(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/timeline-events`, { userId: demoContext.hostUserId });
+}
+
+export function createTimelineEvent(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/timeline-events`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function patchTimelineEvent(eventId, payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/timeline-events/${eventId}`, {
+    userId: demoContext.hostUserId,
+    method: "PATCH",
+    body: payload
+  });
+}
+
+export function deleteTimelineEvent(eventId, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/timeline-events/${eventId}`, {
+    userId: demoContext.hostUserId,
+    method: "DELETE"
+  });
+}
+
+export function patchTruthClaim(claimId, payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/truth-claims/${claimId}`, {
+    userId: demoContext.hostUserId,
+    method: "PATCH",
+    body: payload
+  });
+}
+
+export function deleteTruthClaim(claimId, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/truth-claims/${claimId}`, {
+    userId: demoContext.hostUserId,
+    method: "DELETE"
+  });
+}
+
 export function getCreatorAnalytics(worldId = demoContext.worldId) {
   return request(`/worlds/${worldId}/creator-analytics`, { userId: demoContext.hostUserId });
 }

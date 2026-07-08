@@ -71,6 +71,22 @@ export function normalizeSegmentOperations(operations = {}) {
   };
 }
 
+export function normalizeBeatPlan(beatPlan = {}) {
+  const source = beatPlan && typeof beatPlan === "object" ? beatPlan : {};
+  const minutesRaw = source.estimatedMinutes;
+  const estimatedMinutes =
+    minutesRaw === "" || minutesRaw == null ? null : Math.max(0, Math.min(999, Number(minutesRaw) || 0));
+  return {
+    goal: text(source.goal, 2000),
+    playerContent: text(source.playerContent, 4000),
+    dmTasks: text(source.dmTasks, 4000),
+    openClues: text(source.openClues, 2000),
+    privateChatHints: text(source.privateChatHints, 2000),
+    estimatedMinutes,
+    advanceCondition: text(source.advanceCondition, 2000)
+  };
+}
+
 export function segmentRunbookFromOperations(segment = {}) {
   const key = normalizeSegmentKey(segment.segmentKey || segment.segment_key || segment.key, segment.sequence || 1);
   const operations = normalizeSegmentOperations(segment.operations || {});

@@ -418,7 +418,8 @@ test("view registry is introduced without disabling lazy view loading", () => {
   assert.match(registryJs, /export function getView/);
   assert.doesNotMatch(registryJs, /window\.zhimuViews/);
   assert.match(resolverJs, /import \{ getView \} from "\.\.\/runtime\/view-registry\.js"/);
-  assert.match(resolverJs, /case "overview": return getView\("overview"\)\.overview/);
+  assert.match(resolverJs, /case "overview": return getView\("creatorCockpit"\)\.creatorCockpit/);
+  assert.match(resolverJs, /case "creatorCockpit": return getView\("creatorCockpit"\)\.creatorCockpit/);
   assert.doesNotMatch(resolverJs, /const views = \{/);
   assert.doesNotMatch(appJs, /const V = window\.zhimuViews/);
   assert.doesNotMatch(actionsJs, /const V = window\.zhimuViews/);

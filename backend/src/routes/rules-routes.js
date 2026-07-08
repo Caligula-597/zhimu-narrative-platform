@@ -30,7 +30,7 @@ export async function registerRulesRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const { roomId = null, name, mode = "automatic", priority = 100, enabled = true, conditions, actions } = request.body ?? {};
+    const { roomId = null, name, mode = "automatic", priority = 100, enabled = true, conditions, actions, metadata = {} } = request.body ?? {};
     if (roomId) {
       const room = await query(`SELECT 1 FROM rooms WHERE id = $1 AND world_id = $2`, [roomId, worldId]);
       if (!room.rowCount) return sendErr(reply, "RULE_ROOM_WORLD_MISMATCH");
@@ -38,9 +38,9 @@ export async function registerRulesRoutes(app) {
     if (!(await rejectInvalidRuleBody(reply, worldId, conditions, actions))) return;
     return runRevisionMutation(request, reply, worldId, async (client) => {
       const result = await client.query(
-        `INSERT INTO automation_rules (world_id, room_id, name, mode, priority, enabled, conditions, actions)
-         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb) RETURNING *`,
-        [worldId, roomId, name, mode, priority, Boolean(enabled), JSON.stringify(conditions), JSON.stringify(actions)]
+        `INSERT INTO automation_rules (world_id, room_id, name, mode, priority, enabled, conditions, actions, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9::jsonb) RETURNING *`,
+        [worldId, roomId, name, mode, priority, Boolean(enabled), JSON.stringify(conditions), JSON.stringify(actions), JSON.stringify(metadata)]
       );
       return result.rows[0];
     }, { sendErr, statusCode: 201 });
@@ -64,7 +64,7 @@ export async function registerRulesRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, ruleId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const { roomId = null, name, mode = "automatic", priority = 100, enabled = true, conditions, actions } = request.body ?? {};
+    const { roomId = null, name, mode = "automatic", priority = 100, enabled = true, conditions, actions, metadata = {} } = request.body ?? {};
     if (roomId) {
       const room = await query(`SELECT 1 FROM rooms WHERE id = $1 AND world_id = $2`, [roomId, worldId]);
       if (!room.rowCount) return sendErr(reply, "RULE_ROOM_WORLD_MISMATCH");
@@ -74,9 +74,10 @@ export async function registerRulesRoutes(app) {
       const updated = await client.query(
         `UPDATE automation_rules
          SET room_id = $1, name = $2, mode = $3, priority = $4, enabled = $5,
-             conditions = $6::jsonb, actions = $7::jsonb, updated_at = now()
-         WHERE id = $8 AND world_id = $9 RETURNING *`,
-        [roomId || null, name, mode, Number(priority) || 100, Boolean(enabled), JSON.stringify(conditions), JSON.stringify(actions), ruleId, worldId]
+             conditions = $6::jsonb, actions = $7::jsonb,
+             metadata = COALESCE(metadata, '{}'::jsonb) || $8::jsonb, updated_at = now()
+         WHERE id = $9 AND world_id = $10 RETURNING *`,
+        [roomId || null, name, mode, Number(priority) || 100, Boolean(enabled), JSON.stringify(conditions), JSON.stringify(actions), JSON.stringify(metadata), ruleId, worldId]
       );
       if (!updated.rowCount) throwErr("RULE_NOT_FOUND");
       return updated.rows[0];

@@ -41,12 +41,12 @@ export async function registerStudioRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const { name, publicText = "", hostText = "", visibility = "role", metadata = {} } = request.body ?? {};
+    const { name, publicText = "", hostText = "", visibility = "role", clueKind = "general", metadata = {} } = request.body ?? {};
     return runRevisionMutation(request, reply, worldId, async (client) => {
       const result = await client.query(
-        `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
-         VALUES ($1, $2, $3, $4, $5, $6::jsonb) RETURNING *`,
-        [worldId, name, publicText, hostText, visibility, JSON.stringify(metadata)]
+        `INSERT INTO clues (world_id, name, public_text, host_text, visibility, clue_kind, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb) RETURNING *`,
+        [worldId, name, publicText, hostText, visibility, clueKind, JSON.stringify(metadata)]
       );
       return result.rows[0];
     }, { sendErr, statusCode: 201 });
@@ -87,7 +87,7 @@ export async function registerStudioRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, clueId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const { name, publicText, hostText, visibility, metadata = {} } = request.body ?? {};
+    const { name, publicText, hostText, visibility, clueKind, metadata = {} } = request.body ?? {};
     if (name !== undefined && !String(name).trim()) return sendErr(reply, "NAME_EMPTY");
     return runRevisionMutation(request, reply, worldId, async (client) => {
       const updated = await client.query(
@@ -96,9 +96,10 @@ export async function registerStudioRoutes(app) {
              public_text = COALESCE($4, public_text),
              host_text = COALESCE($5, host_text),
              visibility = COALESCE($6, visibility),
-             metadata = COALESCE(metadata, '{}'::jsonb) || $7::jsonb
+             clue_kind = COALESCE($7, clue_kind),
+             metadata = COALESCE(metadata, '{}'::jsonb) || $8::jsonb
          WHERE id = $1 AND world_id = $2
-         RETURNING id, name, public_text, host_text, visibility, metadata`,
+         RETURNING id, name, public_text, host_text, visibility, clue_kind, metadata`,
         [
           clueId,
           worldId,
@@ -106,6 +107,7 @@ export async function registerStudioRoutes(app) {
           publicText ?? null,
           hostText ?? null,
           visibility ?? null,
+          clueKind ?? null,
           JSON.stringify(metadata)
         ]
       );
@@ -298,7 +300,7 @@ export async function registerStudioRoutes(app) {
         [worldId, canReadDraftContent]
       );
       const scenes = await client.query(`SELECT id, chapter_id, name, public_text, host_text, metadata FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]);
-      const clues = await client.query(`SELECT id, name, public_text, host_text, visibility, metadata FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+      const clues = await client.query(`SELECT id, name, public_text, host_text, visibility, clue_kind, metadata FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]);
       const points = await client.query(
         `SELECT ip.id, ip.scene_id, ip.name, ip.description, ip.interaction_text, ip.result_text,
                 ip.clue_id, ip.required_item_id, ip.required_role_slot_id, ip.sequence, ip.metadata

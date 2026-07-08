@@ -39,6 +39,12 @@
   background: #eee9df;
 }
 
+.status-chip.neutral {
+  border-color: rgba(20, 35, 33, 0.18);
+  color: var(--ink, #24312e);
+  background: var(--surface, #fffdf8);
+}
+
 .status-chip.danger {
   border-color: rgba(168, 95, 84, 0.35);
   color: var(--clay, #a85f54);

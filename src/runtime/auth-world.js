@@ -148,7 +148,7 @@ export async function joinCatalogWorld(worldId){
   }else{
    showToast(`已加入「${result.worldName}」：${roles} 个角色、${sections} 段分幕。邀请码 ${result.room.invite_code}`);
   }
-  go(uiStore.get().view==="writer"||uiStore.get().view==="studio"?uiStore.get().view:"overview");
+  go(uiStore.get().view==="writer"||uiStore.get().view==="studio"?uiStore.get().view:"creatorCockpit");
  }catch(error){showError(error)}
 }
 
