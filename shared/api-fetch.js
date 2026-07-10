@@ -2,6 +2,7 @@
  * Shared fetch wrapper — timeout, JSON body, transport errors.
  * Used by main / play / host API clients via createApiFetch().
  */
+import { traceRequestHeaders } from "./trace-context.js";
 
 /**
  * @param {Response} response
@@ -64,7 +65,11 @@ export function createApiFetch(config) {
   async function request(path, options = {}, attempt = 0) {
     const method = options.method || "GET";
     const timeoutMs = options.timeoutMs ?? defaultTimeoutMs;
-    const headers = { ...getHeaders({ method, path, body: options.body, options }), ...(options.headers || {}) };
+    const headers = {
+      ...traceRequestHeaders(),
+      ...getHeaders({ method, path, body: options.body, options }),
+      ...(options.headers || {})
+    };
     if (options.body !== undefined) headers["content-type"] = "application/json";
     if (options.idempotent && method !== "GET" && method !== "HEAD") {
       headers["idempotency-key"] = options.idempotencyKey || createIdempotencyKey();

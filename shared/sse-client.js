@@ -1,4 +1,5 @@
 import { consumeSseStream } from "./sse.js";
+import { traceRequestHeaders } from "./trace-context.js";
 
 /** Shared authenticated SSE transport for app, host and play clients. */
 export async function openSseStream({
@@ -12,7 +13,7 @@ export async function openSseStream({
   stripFields = ["at", "roomId"],
   mapHttpError
 }) {
-  const requestHeaders = { Accept: "text/event-stream", ...headers };
+  const requestHeaders = { Accept: "text/event-stream", ...traceRequestHeaders(), ...headers };
   const cursor = cursorKey ? storage?.getItem?.(cursorKey) : null;
   if (cursor) requestHeaders["Last-Event-ID"] = cursor;
 

@@ -61,6 +61,16 @@ export const completeSectionSchema = {
   params: paramsSchema({ roomId: uuid, sectionId: uuid })
 };
 
+export const sectionProgressResponseSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    startedAt: { type: "string", format: "date-time" },
+    completedAt: { anyOf: [{ type: "string", format: "date-time" }, { type: "null" }] }
+  },
+  required: ["startedAt"]
+};
+
 export const notebookEntrySchema = {
   params: roomIdParams,
   body: {

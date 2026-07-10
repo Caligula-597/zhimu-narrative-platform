@@ -22,6 +22,7 @@
     "check:tests": "node scripts/verify-test-count.mjs",
     "check:schemas": "node scripts/verify-route-schemas.mjs",
     "contracts:generate": "node scripts/generate-contract-types.mjs",
+    "db:pg-stat-report": "node scripts/pg-stat-report.mjs",
     "db:backup": "node scripts/pg-backup.mjs",
     "db:verify-restore": "node scripts/verify-backup-restore.mjs",
     "db:verify-restore:docker": "node scripts/verify-backup-restore-docker.mjs",

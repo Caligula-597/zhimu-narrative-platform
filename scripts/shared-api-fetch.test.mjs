@@ -5,6 +5,28 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createApiFetch, extractAuthToken, createIdempotencyKey } from "../shared/api-fetch.js";
 
+test("createApiFetch sends trace headers", async () => {
+  const original = globalThis.fetch;
+  let capturedHeaders;
+  globalThis.sessionStorage = {
+    getItem: () => null,
+    setItem: () => {}
+  };
+  globalThis.fetch = async (_url, init) => {
+    capturedHeaders = init.headers;
+    return { ok: true, json: async () => ({ ok: true }) };
+  };
+  try {
+    const { request } = createApiFetch({ baseUrl: "http://test/api" });
+    await request("/ping");
+    assert.ok(capturedHeaders["X-Trace-Id"]);
+    assert.equal(capturedHeaders["X-Request-Id"], capturedHeaders["X-Trace-Id"]);
+  } finally {
+    globalThis.fetch = original;
+    delete globalThis.sessionStorage;
+  }
+});
+
 test("createApiFetch returns JSON on success", async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async () => ({

@@ -1,7 +1,7 @@
 import { getOptionalServicesStatus } from "../optional-services-status.js";
 import { getDatabaseStatus, getReadinessStatus } from "../database-status.js";
 import { getPoolStats } from "../db.js";
-import { renderPrometheusMetrics, setApiReadyGauge } from "../metrics.js";
+import { renderPrometheusMetrics, setApiReadyGauge, recordWebVital } from "../metrics.js";
 import { requireMetricsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
 
@@ -89,6 +89,31 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       },
       "CSP violation report"
     );
+    return reply.code(204).send();
+  });
+
+  app.post("/api/metrics/web-vitals", {
+    schema: {
+      hide: true,
+      tags: ["system"],
+      body: {
+        type: "object",
+        additionalProperties: false,
+        required: ["name", "value", "id"],
+        properties: {
+          name: { type: "string", enum: ["LCP", "CLS", "INP", "FCP", "TTFB"] },
+          value: { type: "number" },
+          rating: { type: "string", maxLength: 20 },
+          id: { type: "string", maxLength: 120 },
+          path: { type: "string", maxLength: 500 },
+          app: { type: "string", maxLength: 40 }
+        }
+      },
+      response: { 204: { type: "null" } }
+    }
+  }, async (request, reply) => {
+    const body = request.body ?? {};
+    recordWebVital({ name: body.name, app: body.app, rating: body.rating || "unknown" });
     return reply.code(204).send();
   });
 }

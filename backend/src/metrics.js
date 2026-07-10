@@ -9,6 +9,7 @@ const durationBuckets = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
 const httpDuration = new Map();
 const uploadScans = new Map();
 const uploadScanRejected = new Map();
+const webVitals = new Map();
 let apiReadyGauge = 1;
 
 function routeKey(method, route) {
@@ -38,6 +39,11 @@ export function recordUploadScan({ mode = "none", result = "clean", reason = "" 
   if (result === "rejected" || result === "error") {
     inc(uploadScanRejected, reason || result);
   }
+}
+
+export function recordWebVital({ name, app = "unknown", rating = "unknown" } = {}) {
+  if (!name) return;
+  inc(webVitals, `${app}:${name}:${rating}`);
 }
 
 export function setApiReadyGauge(value) {
@@ -95,6 +101,7 @@ export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, uptimeS
     renderCounter("http_errors_5xx_total", "HTTP 5xx responses", httpErrors5xx),
     renderCounter("upload_scans_total", "Upload malware scans by mode and result", uploadScans),
     renderCounter("upload_scans_rejected_total", "Rejected or errored upload scans by reason", uploadScanRejected),
+    renderCounter("web_vitals_total", "Frontend Core Web Vitals beacons by app/name/rating", webVitals),
     renderHistogram("http_request_duration_ms", "HTTP request duration in milliseconds"),
     `# HELP api_ready 1 when last readiness check passed`,
     `# TYPE api_ready gauge`,
@@ -131,5 +138,6 @@ export function resetMetricsForTests() {
   httpDuration.clear();
   uploadScans.clear();
   uploadScanRejected.clear();
+  webVitals.clear();
   apiReadyGauge = 1;
 }

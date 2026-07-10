@@ -11,6 +11,7 @@ import {
 import { togglePanelInDom } from "./components/collapse.js";
 import { renderApp } from "./components/shell.js";
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid } from "../../shared/security.js";
+import { initWebVitalsReporting } from "../../shared/web-vitals.js";
 import { formatApiError } from "./errors.js";
 import {
   bindDataContext,
@@ -239,6 +240,7 @@ async function selectRoom(roomId) {
 }
 
 async function bootstrap() {
+  initWebVitalsReporting({ app: "host", endpoint: "/api/metrics/web-vitals" });
   const params = new URLSearchParams(window.location.search);
   const deepRoom = params.get("room");
   bindConsoleContext({ render, showToast: setToast });

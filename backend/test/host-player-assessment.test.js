@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { assessPlayerProgress, computeMaybeStuck } from "../src/routes/host-helpers.js";
+import { assessPlayerProgress, computeMaybeStuck } from "../src/player-progress-assessment.js";
 
 const now = Date.parse("2026-07-10T12:00:00.000Z");
 const minutesAgo = (minutes) => new Date(now - minutes * 60_000).toISOString();

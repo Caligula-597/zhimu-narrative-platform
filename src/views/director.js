@@ -11,6 +11,7 @@ import * as U from "../components/emptyState.js";
 import * as S from "../components/ui-semantics.js";
 import { collapsibleCard } from "../components/collapse-panel.js";
 import { rulePreviewStatusLabel } from "../utils/user-messages.js";
+import { resolveHostStuckIntervention } from "../../shared/host-stuck-intervention.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -380,10 +381,9 @@ export function openHostUnlockSectionModal(options = {}){
 
 export function openHostStuckIntervention(roleSlotId=""){
  const { cloudHostPlayers } = roomStore.get();
- const players=(cloudHostPlayers||[]).filter((player)=>player.joined&&player.maybe_stuck&&(!roleSlotId||String(player.role_slot_id)===String(roleSlotId)));
- if(!players.length)return showToast("当前没有需要干预的卡关玩家");
- const target=players[0];
- const action=target.recommended_action||"nudge";
+ const resolved=resolveHostStuckIntervention(cloudHostPlayers||[], roleSlotId);
+ if(!resolved.ok)return showToast(resolved.reason||"当前没有需要干预的卡关玩家");
+ const { action, target }=resolved;
  if(action==="unlock_section")return openHostUnlockSectionModal({ roleSlotId: target.role_slot_id });
  if(action==="inspect")return openHostPlayerDetail(target.role_slot_id);
  if(action==="invite")return showToast("该席位尚未有玩家加入，请分享邀请链接");

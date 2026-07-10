@@ -33,6 +33,7 @@ import { bindPlayReader } from "./runtime/reader.js";
 import { patchGameView, patchGameHostBanner, patchGameTabSwitch, patchGameSectionsTab, isGameInputFocused } from "./runtime/patch-game.js";
 import { normalizeMiniGame } from "./components/mini-games.js";
 import { defaultGameTabFor, primaryTabFor, tabGroupFor } from "./views/game.js";
+import { initWebVitalsReporting } from "../../shared/web-vitals.js";
 import {
   createRefreshCoalescer,
   patchSyncChrome,
@@ -588,6 +589,7 @@ async function loadPublicRooms({ silent = false } = {}) {
 }
 
 async function bootstrap() {
+  initWebVitalsReporting({ app: "play", endpoint: "/api/metrics/web-vitals" });
   return runPlayStartup({
     state, api, render, setBusy, setToast, formatApiError, normalizeUser,
     setSessionToken, clearSession, cleanAuthUrl, loadSessionUser, ensureSession,

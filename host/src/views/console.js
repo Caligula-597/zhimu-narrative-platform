@@ -30,6 +30,7 @@ import {
 } from "../runtime/data.js";
 import { hostRunbooks, renderHostCommandCenter } from "./host-layout.js";
 import { resolveSectionSegmentKey } from "../../../shared/segment-contract.js";
+import { resolveHostStuckIntervention } from "../../../shared/host-stuck-intervention.js";
 
 let renderRef = () => {};
 let showToastRef = (_msg) => {};
@@ -736,11 +737,9 @@ export async function executeHostEvent(eventId){
 }
 
 export function openHostStuckIntervention(roleSlotId=""){
- const allPlayers=(state.cloudHostPlayers||[]).filter((player)=>player.joined);
- const players=allPlayers.filter((player)=>player.maybe_stuck&&(!roleSlotId||String(player.role_slot_id)===String(roleSlotId)));
- if(!players.length)return showToast("当前没有需要干预的卡关玩家");
- const target=players[0];
- const action=target.recommended_action||"nudge";
+ const resolved=resolveHostStuckIntervention(state.cloudHostPlayers||[], roleSlotId);
+ if(!resolved.ok)return showToast(resolved.reason||"当前没有需要干预的卡关玩家");
+ const { action, target }=resolved;
  if(action==="unlock_section")return openHostUnlockSectionModal({ roleSlotId: target.role_slot_id });
  if(action==="inspect")return openHostPlayerDetail(target.role_slot_id);
  if(action==="invite")return showToast("该席位尚未有玩家加入，请分享邀请链接");

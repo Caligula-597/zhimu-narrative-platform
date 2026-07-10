@@ -9,6 +9,7 @@ import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import * as S from "../components/ui-semantics.js";
+import { bindSectionStartOnReader } from "../../shared/player-reader.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -430,24 +431,15 @@ function showHighlightToolbar(rect,sectionId,sectionTitle,selection){
 
 const sectionStartRequests=new Set();
 
-function markSectionStarted(body){
- const sectionId=body?.dataset?.sectionId;
- if(!sectionId||!zhimuApi.context.roomId)return;
- const section=(roomStore.get().cloudPlayer?.sections||[]).find((row)=>row.id===sectionId);
- if(!section||section.started_at||section.startedAt||section.completed)return;
- const key=`${zhimuApi.context.roomId}:${sectionId}`;
- if(sectionStartRequests.has(key))return;
- sectionStartRequests.add(key);
- zhimuApi.startSection(sectionId)
-  .then((progress)=>{section.started_at=progress.startedAt||new Date().toISOString();})
-  .catch(()=>{})
-  .finally(()=>sectionStartRequests.delete(key));
-}
-
 export function bindPlayerReader(){
  const body=document.querySelector("[data-reader-body]");
  if(!body)return;
- markSectionStarted(body);
+ bindSectionStartOnReader({
+  roomId: zhimuApi.context.roomId,
+  sectionsSource: () => roomStore.get().cloudPlayer,
+  startSection: (sectionId) => zhimuApi.startSection(sectionId),
+  inFlight: sectionStartRequests
+ });
  hideHighlightToolbar();
  body.onmouseup=(event)=>{
   if(event.target.closest?.(".highlight-toolbar"))return;

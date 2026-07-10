@@ -57,7 +57,8 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/routes/player-access-routes", ["test/player-host-confirm.test.js"]],
   ["backend/src/routes/player-progress-routes", ["test/player-host-confirm.test.js"]],
   ["backend/src/routes/player-exploration-routes", ["test/player-host-confirm.test.js"]],
-  ["backend/src/routes/host-routes", ["test/host-console.test.js"]],
+  ["backend/src/routes/host-routes", ["test/host-console.test.js", "test/host-player-assessment.test.js"]],
+  ["backend/src/player-progress-assessment.js", ["test/host-player-assessment.test.js"]],
   ["backend/src/rule-condition-evaluator", ["test/rule-runtime.test.js", "test/rule-engine.test.js"]],
   ["backend/src/rule-engine", ["test/rule-runtime.test.js", "test/rule-engine.test.js"]],
   ["backend/src/optional-services-status", ["test/ops-health.test.js"]],
@@ -162,7 +163,7 @@ if (files.some((f) =>
   run("backend contracts:generate", "npm run contracts:generate", backendRoot);
   run(
     "backend contracts drift",
-    "git diff --exit-code -- backend/generated/api-contracts.d.ts",
+    "git diff --exit-code -- backend/generated/api-contracts.d.ts shared/generated/api-contracts.d.ts",
     root
   );
 }
@@ -221,6 +222,10 @@ if (files.some((f) => f.startsWith("host/"))) {
 if (files.some((f) => f.startsWith("site/") && /\.(js|mjs|html|css)$/.test(f))) {
   run("site build", "npm run build --prefix site");
   run("test:site-screenshots", "npm run test:site-screenshots");
+}
+
+if (files.some((f) => f.startsWith("backend/src/routes/"))) {
+  run("check layer boundaries", "node --test scripts/check-layer-boundaries.mjs");
 }
 
 console.log("\n✓ verify-changed passed");
