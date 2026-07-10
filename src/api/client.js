@@ -7,7 +7,8 @@
  */
 import { friendlyApiError } from "../utils/user-messages.js";
 import { userStore } from "../state/index.js";
-import { createApiFetch, createIdempotencyKey as sharedCreateIdempotencyKey } from "../../shared/api-fetch.js";
+import { createPortalApiClient } from "../../shared/api-client.js";
+import { createIdempotencyKey as sharedCreateIdempotencyKey } from "../../shared/api-fetch.js";
 
 const runtimeConfig = window.zhimuConfig || {};
 const API_BASE = runtimeConfig.apiBase || "/api";
@@ -91,7 +92,7 @@ export function createIdempotencyKey() {
   return sharedCreateIdempotencyKey();
 }
 
-const apiClient = createApiFetch({
+const apiClient = createPortalApiClient({
   baseUrl: API_BASE,
   getHeaders({ options }) {
     const { userId: explicitUserId, headers: extraHeaders = {} } = options;

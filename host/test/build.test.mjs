@@ -29,11 +29,11 @@ test("host api uses cookie credentials, bearer fallback and room-scoped host end
   assert.match(apiSource, /streamRoomEvents/);
   assert.match(apiSource, /getWorldSegments/);
   assert.match(apiSource, /getHostOrigin/);
-  assert.match(apiSource, /createApiFetch/);
-  assert.match(apiSource, /bearerHeaders\(\)/);
+  assert.match(apiSource, /createPortalApiClient/);
   assert.match(apiSource, /defaultSessionTokenStore/);
   assert.match(apiSource, /createRoom/);
-  assert.match(apiSource, /openSseStream/);
+  assert.match(apiSource, /streamRoomEvents/);
+  assert.match(sharedSseSource, /openSseStream/);
   assert.match(sharedSseSource, /message\?\.type === "connected"/);
   assert.match(sharedSseSource, /message\?\.type === "heartbeat"/);
   assert.match(sharedSseSource, /Last-Event-ID/);

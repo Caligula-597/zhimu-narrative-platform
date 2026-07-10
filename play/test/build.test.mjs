@@ -22,9 +22,11 @@ test("index.html uses module entry without inline scripts", () => {
 test("play api persists bearer token for cross-origin session", () => {
   const source = readFileSync(path.join(root, "src", "api.js"), "utf8");
   const sharedToken = readFileSync(path.join(root, "..", "shared", "session-token.js"), "utf8");
+  const portalClient = readFileSync(path.join(root, "..", "shared", "api-client.js"), "utf8");
+  assert.match(source, /createPortalApiClient/);
   assert.match(source, /createSessionTokenStore/);
   assert.match(source, /sessionToken\.set/);
-  assert.match(source, /bearerHeaders\(\)/);
+  assert.match(portalClient, /buildBearerAuthHeaders/);
   assert.match(sharedToken, /setItem\(key, token\)/);
   assert.doesNotMatch(source, /cookieSessionActive/);
   assert.match(source, /encodeURIComponent\(inviteCode\)/);
@@ -57,7 +59,7 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(apiSource, /\/auth\/me/);
   assert.match(apiSource, /share-room/);
   assert.match(apiSource, /voice-rooms/);
-  assert.match(apiSource, /platform\/events\/stream/);
+  assert.match(apiSource, /streamPlatformEvents/);
   assert.match(eventsSource, /room\.clue_granted/);
   assert.match(eventsSource, /room\.voice_message_created/);
   assert.match(eventsSource, /room\.host_event_pending/);

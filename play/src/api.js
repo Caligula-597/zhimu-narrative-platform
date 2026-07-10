@@ -1,11 +1,16 @@
-import { openSseStream } from "../../shared/sse-client.js";
-import { createApiFetch, extractAuthToken } from "../../shared/api-fetch.js";
+import {
+  createPortalApiClient,
+  createPortalJsonError,
+  resolveVitePortalApiBase
+} from "../../shared/api-client.js";
 import { createSessionTokenStore } from "../../shared/session-token.js";
 
 const APP_ORIGIN = (import.meta.env.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
-const API_ORIGIN = import.meta.env.VITE_API_ORIGIN?.replace(/\/$/, "")
-  ?? (import.meta.env.DEV ? "" : APP_ORIGIN);
-const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : "/api";
+const API_BASE = resolveVitePortalApiBase({
+  viteAppOrigin: APP_ORIGIN,
+  viteApiOrigin: import.meta.env.VITE_API_ORIGIN,
+  dev: import.meta.env.DEV
+});
 
 const sessionToken = createSessionTokenStore("zhimuSessionToken");
 
@@ -16,26 +21,14 @@ function sseCursorKey(roomId) {
 
 const PLATFORM_SSE_CURSOR = "zhimuPlayPlatformSseCursor";
 
-const { request } = createApiFetch({
+const portal = createPortalApiClient({
   baseUrl: API_BASE,
-  getHeaders() {
-    const headers = { ...sessionToken.bearerHeaders() };
-    const demoUserId = localStorage.getItem("zhimuDemoUserId");
-    if (demoUserId) headers["x-user-id"] = demoUserId;
-    return headers;
-  },
-  mapHttpError(response, payload) {
-    const err = new Error(payload.error || payload.message || `请求失败 (${response.status})`);
-    err.code = payload.code;
-    err.status = response.status;
-    err.details = payload.details;
-    return err;
-  },
-  afterSuccess(path, payload) {
-    const token = extractAuthToken(path, payload);
-    if (token) sessionToken.set(token);
-  }
+  tokenStore: sessionToken,
+  getDemoUserId: () => localStorage.getItem("zhimuDemoUserId"),
+  mapHttpError: createPortalJsonError
 });
+
+const { request } = portal;
 
 export function getAppOrigin() {
   return APP_ORIGIN;
@@ -176,30 +169,11 @@ export const api = {
       }
     }),
 
-  /** SSE room stream shared with the main and host clients. */
   streamRoomEvents(roomId, onEvent, signal) {
-    const headers = { ...sessionToken.bearerHeaders() };
-    const demoUserId = localStorage.getItem("zhimuDemoUserId");
-    if (demoUserId) headers["x-user-id"] = demoUserId;
-    return openSseStream({
-      url: `${API_BASE}/rooms/${roomId}/events/stream`,
-      headers,
-      signal,
-      cursorKey: sseCursorKey(roomId),
-      onEvent
-    });
+    return portal.streamRoomEvents({ roomId, onEvent, signal, cursorKey: sseCursorKey(roomId) });
   },
 
   streamPlatformEvents(onEvent, signal) {
-    const headers = { ...sessionToken.bearerHeaders() };
-    const demoUserId = localStorage.getItem("zhimuDemoUserId");
-    if (demoUserId) headers["x-user-id"] = demoUserId;
-    return openSseStream({
-      url: `${API_BASE}/platform/events/stream`,
-      headers,
-      signal,
-      cursorKey: PLATFORM_SSE_CURSOR,
-      onEvent
-    });
+    return portal.streamPlatformEvents({ onEvent, signal, cursorKey: PLATFORM_SSE_CURSOR });
   }
 };

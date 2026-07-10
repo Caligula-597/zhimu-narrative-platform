@@ -1,42 +1,35 @@
 import { getRoomId, getSessionToken, getWorldId, setSessionToken } from "./session.js";
-import { openSseStream } from "../../shared/sse-client.js";
-import { createApiFetch, extractAuthToken } from "../../shared/api-fetch.js";
+import {
+  createPortalApiClient,
+  createPortalJsonError,
+  resolveDemoUserId,
+  resolveVitePortalApiBase
+} from "../../shared/api-client.js";
 import { defaultSessionTokenStore } from "../../shared/session-token.js";
 
 export { getSessionToken, setSessionToken };
 
 const APP_ORIGIN = (import.meta.env.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
 const PLAY_ORIGIN = (import.meta.env.VITE_PLAY_ORIGIN || "https://play.getzhimu.com").replace(/\/$/, "");
-const API_ORIGIN = import.meta.env.VITE_API_ORIGIN?.replace(/\/$/, "")
-  ?? (import.meta.env.DEV ? "" : APP_ORIGIN);
-const API_BASE = API_ORIGIN ? `${API_ORIGIN}/api` : "/api";
+const API_BASE = resolveVitePortalApiBase({
+  viteAppOrigin: APP_ORIGIN,
+  viteApiOrigin: import.meta.env.VITE_API_ORIGIN,
+  dev: import.meta.env.DEV
+});
 
 function sseCursorKey(roomId) {
   return `zhimuHostSseCursor:${roomId}`;
 }
 
-const { request } = createApiFetch({
+const portal = createPortalApiClient({
   baseUrl: API_BASE,
-  getHeaders() {
-    const headers = { ...defaultSessionTokenStore.bearerHeaders() };
-    if (import.meta.env.DEV && localStorage.getItem("zhimuDemoMode") === "true") {
-      const demoUserId = localStorage.getItem("zhimuDemoUserId");
-      if (demoUserId) headers["x-user-id"] = demoUserId;
-    }
-    return headers;
-  },
-  mapHttpError(response, payload) {
-    if (response.status === 401) defaultSessionTokenStore.clear();
-    const err = new Error(payload.error || payload.message || `请求失败 (${response.status})`);
-    err.code = payload.code;
-    err.status = response.status;
-    return err;
-  },
-  afterSuccess(path, payload) {
-    const token = extractAuthToken(path, payload);
-    if (token) defaultSessionTokenStore.set(token);
-  }
+  tokenStore: defaultSessionTokenStore,
+  getDemoUserId: () => resolveDemoUserId(localStorage, { requireDemoFlag: import.meta.env.DEV }),
+  mapHttpError: createPortalJsonError,
+  clearTokenOn401: true
 });
+
+const { request } = portal;
 
 function roomPath(suffix) {
   const roomId = getRoomId();
@@ -154,18 +147,12 @@ export const api = {
     request(roomPath(`/host/segment-remedies/${remedyId}/apply`), { method: "POST", body: {} }),
 
   streamRoomEvents(roomId, onEvent, signal) {
-    const headers = { ...defaultSessionTokenStore.bearerHeaders() };
-    if (import.meta.env.DEV && localStorage.getItem("zhimuDemoMode") === "true") {
-      const demoUserId = localStorage.getItem("zhimuDemoUserId");
-      if (demoUserId) headers["x-user-id"] = demoUserId;
-    }
-    return openSseStream({
-      url: `${API_BASE}/rooms/${roomId}/events/stream`,
-      headers,
+    return portal.streamRoomEvents({
+      roomId,
+      onEvent,
       signal,
       cursorKey: sseCursorKey(roomId),
-      connectedOnOpen: true,
-      onEvent
+      connectedOnOpen: true
     });
   }
 };

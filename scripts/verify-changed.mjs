@@ -228,4 +228,12 @@ if (files.some((f) => f.startsWith("backend/src/routes/"))) {
   run("check layer boundaries", "node --test scripts/check-layer-boundaries.mjs");
 }
 
+if (files.some((f) => /^scripts\/guardian-/.test(f))) {
+  run("guardian product probes test", "node --test scripts/guardian-product-probes.test.mjs");
+}
+
+if (files.some((f) => f.startsWith("backend/migrations/063"))) {
+  run("backend db:migrate", "npm run db:migrate", backendRoot);
+}
+
 console.log("\n✓ verify-changed passed");

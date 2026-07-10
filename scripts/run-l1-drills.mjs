@@ -61,4 +61,6 @@ if (!skipOncall) {
   tryStep("L2-08 Monitoring on-call drill", process.execPath, ["scripts/monitoring-oncall-drill.mjs"], root);
 }
 
+tryStep("Guardian product probes", process.execPath, ["scripts/guardian-poll.mjs", "--product-probes"], root);
+
 console.log(process.exitCode ? "\nDrills finished with failures." : "\n✓ All required drills passed.");

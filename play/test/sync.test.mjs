@@ -66,8 +66,10 @@ test("platform-events has poll fallback when SSE down", () => {
 test("api platform stream persists Last-Event-ID cursor", () => {
   const source = readFileSync(path.join(root, "src", "api.js"), "utf8");
   const transport = readFileSync(path.join(root, "..", "shared", "sse-client.js"), "utf8");
+  const portalClient = readFileSync(path.join(root, "..", "shared", "api-client.js"), "utf8");
   assert.match(source, /PLATFORM_SSE_CURSOR/);
-  assert.match(source, /openSseStream/);
+  assert.match(source, /streamPlatformEvents/);
+  assert.match(portalClient, /openSseStream/);
   assert.match(transport, /Last-Event-ID/);
 });
 

@@ -1,0 +1,52 @@
+name: Guardian Poll
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "API base URL (no trailing slash)"
+        required: false
+        default: "https://app.getzhimu.com"
+
+jobs:
+  guardian-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      APP_PUBLIC_URL: ${{ github.event.inputs.target_url || 'https://app.getzhimu.com' }}
+      METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }}
+      OPS_API_TOKEN: ${{ secrets.OPS_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Guardian poll (health + metrics + product probes)
+        run: node scripts/guardian-poll.mjs --product-probes --web-vitals
+      - name: Guardian poll with alerts (optional)
+        if: env.OPS_API_TOKEN != ''
+        run: node scripts/guardian-poll.mjs --product-probes --alerts
+        continue-on-error: true
+
+  guardian-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: vars.STAGING_APP_URL != ''
+    env:
+      APP_PUBLIC_URL: ${{ vars.STAGING_APP_URL }}
+      METRICS_TOKEN: ${{ secrets.STAGING_METRICS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Guardian poll (staging)
+        run: node scripts/guardian-poll.mjs --product-probes --web-vitals
