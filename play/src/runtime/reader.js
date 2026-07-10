@@ -3,6 +3,25 @@ import { highlightEntryTitle, getReaderSelectionOffsets } from "../utils/highlig
 
 let toolbarEl = null;
 let docBound = false;
+const startRequests = new Set();
+
+function markSectionStarted(ctx, body) {
+  const sectionId = body?.dataset?.sectionId;
+  if (!sectionId || !ctx.roomId) return;
+  const section = ctx.notesSource?.()?.sections?.find((row) => row.id === sectionId);
+  if (!section || section.started_at || section.startedAt) return;
+  const key = `${ctx.roomId}:${sectionId}`;
+  if (startRequests.has(key)) return;
+  startRequests.add(key);
+  api.startSection(ctx.roomId, sectionId)
+    .then((progress) => {
+      section.started_at = progress.startedAt || new Date().toISOString();
+    })
+    .catch(() => {
+      // Product analytics are best-effort; a transient failure must not block reading.
+    })
+    .finally(() => startRequests.delete(key));
+}
 
 function ensureToolbar() {
   if (toolbarEl) return toolbarEl;
@@ -41,6 +60,7 @@ function showHighlightToolbar(rect, sectionId, sectionTitle, selection, onDone) 
 export function bindPlayReader(ctx) {
   const body = document.querySelector("[data-reader-body]");
   if (!body) return;
+  markSectionStarted(ctx, body);
   hideHighlightToolbar();
   body.onmouseup = (event) => {
     if (event.target.closest?.(".highlight-toolbar")) return;

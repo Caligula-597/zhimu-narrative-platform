@@ -1,5 +1,6 @@
 import { query } from "./db.js";
 import { publishRoomEvent } from "./room-event-bus.js";
+import { startNonOverlappingInterval } from "./non-overlapping-interval.js";
 
 /** Flip delayed host events back to pending when delay_until has passed. */
 export async function wakeDueDelayedHostEvents(runQuery = query) {
@@ -21,9 +22,9 @@ export async function wakeDueDelayedHostEvents(runQuery = query) {
 }
 
 export function startHostDelayWakeInterval(intervalMs = 30_000) {
-  const tick = () => {
-    wakeDueDelayedHostEvents().catch(() => {});
-  };
-  tick();
-  return setInterval(tick, intervalMs);
+  return startNonOverlappingInterval(
+    wakeDueDelayedHostEvents,
+    intervalMs,
+    { immediate: true }
+  ).stop;
 }

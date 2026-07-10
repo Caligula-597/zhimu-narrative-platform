@@ -104,6 +104,8 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(startupSource, /state\.view === "landing"/);
   assert.match(gameSource, /hostConfirmBanner/);
   assert.match(apiSource, /notebook/);
+  assert.match(apiSource, /sections\/\$\{sectionId\}\/start/);
+  assert.match(readerSource, /api\.startSection/);
   assert.match(apiSource, /recap\/latest/);
   assert.match(apiSource, /forgot-password/);
   const urlSource = readFileSync(path.join(root, "src", "runtime", "url.js"), "utf8");

@@ -244,6 +244,7 @@ export {
   getRoomInvite,
   joinRoom,
   completeSection,
+  startSection,
   addNotebookEntry,
   deleteNotebookEntry,
   getExploration,

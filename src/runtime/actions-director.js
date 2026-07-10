@@ -25,6 +25,7 @@ import { callView } from "./view-registry.js";
       case "execute-host-event": callView("director", "executeHostEvent", el?.dataset?.event); return true;
       case "dismiss-host-event": callView("director", "dismissHostEvent", el?.dataset?.event); return true;
       case "host-nudge-waiting": callView("director", "openHostNudgeWaitingModal"); return true;
+      case "host-stuck-intervene": callView("director", "openHostStuckIntervention", el?.dataset?.role || ""); return true;
       default: return false;
     }
   }

@@ -136,7 +136,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
             arc
           }, worldId);
           showToast("角色档案已保存");
-          void callView("writer", "loadWriterRoleArchives");
+          void callView("writer", "loadWriterRoleArchives", { force: true });
         } catch (error) {
           showError(error);
         }

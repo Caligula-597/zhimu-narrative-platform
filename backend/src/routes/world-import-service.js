@@ -297,6 +297,11 @@ export async function materializePipelineReadingUnlockRules(client, worldId, opt
     if (!byRole.has(key)) byRole.set(key, []);
     byRole.get(key).push(row);
   }
+  const existingRules = await client.query(
+    `SELECT name FROM automation_rules WHERE world_id = $1 AND room_id IS NULL`,
+    [worldId]
+  );
+  const existingRuleNames = new Set(existingRules.rows.map((row) => row.name));
   let rulesCreated = 0;
   for (const sections of byRole.values()) {
     sections.sort((a, b) => Number(a.sequence) - Number(b.sequence));
@@ -306,11 +311,7 @@ export async function materializePipelineReadingUnlockRules(client, worldId, opt
       const fromAct = from.chapter_key || `幕${from.sequence}`;
       const toAct = to.chapter_key || `幕${to.sequence}`;
       const ruleName = `${from.role_name} · ${fromAct} 读完 → ${toAct}`;
-      const exists = await client.query(
-        `SELECT 1 FROM automation_rules WHERE world_id = $1 AND room_id IS NULL AND name = $2 LIMIT 1`,
-        [worldId, ruleName]
-      );
-      if (exists.rowCount) continue;
+      if (existingRuleNames.has(ruleName)) continue;
       await client.query(
         `INSERT INTO automation_rules (world_id, name, mode, priority, enabled, conditions, actions)
          VALUES ($1, $2, $3, $4, true, $5::jsonb, $6::jsonb)`,
@@ -337,6 +338,7 @@ export async function materializePipelineReadingUnlockRules(client, worldId, opt
           ])
         ]
       );
+      existingRuleNames.add(ruleName);
       rulesCreated += 1;
     }
   }

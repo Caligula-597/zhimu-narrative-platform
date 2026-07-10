@@ -1,15 +1,111 @@
 const STUCK_IDLE_MS = 45 * 60 * 1000;
 const STUCK_OPENING_MS = 30 * 60 * 1000;
+const STUCK_NO_CONTENT_MS = 5 * 60 * 1000;
+
+function timestamp(value) {
+  const parsed = value ? new Date(value).getTime() : NaN;
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function assessPlayerProgress(player, now = Date.now()) {
+  if (!player.joined) {
+    return { maybeStuck: false, code: "empty", label: "席位空置", detail: "等待玩家加入", recommendedAction: "invite" };
+  }
+  if (!["active", "testing"].includes(player.room_status || "active")) {
+    const paused = player.room_status === "paused";
+    return {
+      maybeStuck: false,
+      code: paused ? "room_paused" : "room_inactive",
+      label: paused ? "房间暂停" : "本局已结束",
+      detail: paused ? "暂停期间不计入卡关" : "无需现场干预",
+      recommendedAction: "none"
+    };
+  }
+
+  const total = Number(player.total_sections) || 0;
+  const available = player.available_sections == null ? total : Number(player.available_sections) || 0;
+  const completed = Number(player.completed_sections) || 0;
+  const started = Number(player.started_sections) || 0;
+  const unreadClues = Math.max(0, (Number(player.clue_count) || 0) - (Number(player.read_clue_count) || 0));
+  const joinedAt = timestamp(player.joined_at);
+  const lastAt = timestamp(player.last_activity_at) ?? joinedAt;
+  const joinedFor = joinedAt == null ? 0 : now - joinedAt;
+  const idleFor = lastAt == null ? 0 : now - lastAt;
+
+  if (total > 0 && completed >= total) {
+    return { maybeStuck: false, code: "complete", label: "阅读完成", detail: "全部分幕已完成", recommendedAction: "none" };
+  }
+  if (available === 0 && joinedFor >= STUCK_NO_CONTENT_MS) {
+    return {
+      maybeStuck: true,
+      code: "no_content",
+      label: "无可读内容",
+      detail: "入房后仍没有角色分幕",
+      recommendedAction: "unlock_section",
+      suggestedNudge: "正在为你准备角色内容，请稍候；主持人会尽快确认分幕配置。"
+    };
+  }
+  if (available > 0 && available < total && completed >= available && idleFor >= STUCK_IDLE_MS) {
+    return {
+      maybeStuck: true,
+      code: "waiting_unlock",
+      label: "等待新分幕",
+      detail: `已完成当前 ${available} 个可读分幕，仍有内容尚未解锁`,
+      recommendedAction: "unlock_section",
+      suggestedNudge: "你已完成当前开放内容，主持人正在确认下一阶段；新分幕解锁后会自动出现。"
+    };
+  }
+  if (completed === 0 && started === 0 && joinedFor >= STUCK_OPENING_MS) {
+    return {
+      maybeStuck: true,
+      code: "opening_not_started",
+      label: "尚未开始首幕",
+      detail: "入房超过 30 分钟仍未开始阅读",
+      recommendedAction: "nudge",
+      suggestedNudge: "可以先打开「剧情」阅读第一幕；如果看不到内容，请告诉主持人。"
+    };
+  }
+  if (completed === 0 && started > 0 && idleFor >= STUCK_IDLE_MS) {
+    return {
+      maybeStuck: true,
+      code: "opening_abandoned",
+      label: "首幕阅读停滞",
+      detail: "已开始首幕，但超过 45 分钟没有推进",
+      recommendedAction: "inspect",
+      suggestedNudge: "第一幕还没有读完；如果角色目标或文本不清楚，可以直接告诉主持人。"
+    };
+  }
+  if (total > completed && idleFor >= STUCK_IDLE_MS) {
+    if (unreadClues > 0) {
+      return {
+        maybeStuck: true,
+        code: "unread_clues",
+        label: "有未读线索",
+        detail: `${unreadClues} 条线索尚未阅读，且超过 45 分钟未推进`,
+        recommendedAction: "nudge",
+        suggestedNudge: "你有新的未读线索，可以先到「调查 → 线索」查看，再决定下一步。"
+      };
+    }
+    return {
+      maybeStuck: true,
+      code: "progress_idle",
+      label: "剧情推进停滞",
+      detail: "超过 45 分钟没有新的阅读、调查或笔记",
+      recommendedAction: "inspect",
+      suggestedNudge: "当前剧情似乎停住了；可以查看「现在」页的建议下一步，或联系主持人获取提示。"
+    };
+  }
+  return {
+    maybeStuck: false,
+    code: "active",
+    label: completed || started ? "进行中" : "刚加入",
+    detail: completed || started ? "最近仍有有效推进" : "尚在开场缓冲期",
+    recommendedAction: "none"
+  };
+}
 
 export function computeMaybeStuck(player, now = Date.now()) {
-  if (!player.joined) return false;
-  const joinedAt = player.joined_at ? new Date(player.joined_at).getTime() : null;
-  const lastAt = player.last_activity_at ? new Date(player.last_activity_at).getTime() : joinedAt;
-  if (player.completed_sections === 0 && joinedAt && now - joinedAt > STUCK_OPENING_MS) return true;
-  if (player.total_sections > 0 && player.completed_sections < player.total_sections && lastAt && now - lastAt > STUCK_IDLE_MS) {
-    return true;
-  }
-  return false;
+  return assessPlayerProgress(player, now).maybeStuck;
 }
 
 export function summarizeHostAction(action) {
@@ -79,9 +175,20 @@ export async function fetchHostPlayers(query, roomId) {
             u.display_name AS player_display_name,
             rm.joined_at,
             (rm.user_id IS NOT NULL) AS joined,
+            r.status AS room_status,
             ps.current_scene_id,
             COALESCE((ps.variables->>'hostNotes')::text, '') AS host_notes,
             COUNT(DISTINCT ss.id)::int AS total_sections,
+            COUNT(DISTINCT ss.id) FILTER (WHERE
+              (ss.publication_status = 'published' OR (r.status = 'testing' AND ss.publication_status = 'testing'))
+              AND (
+                ss.sequence = 1 OR EXISTS (
+                  SELECT 1 FROM room_content_unlocks rcu
+                  WHERE rcu.room_id = r.id AND rcu.content_type = 'script_section' AND rcu.content_id = ss.id
+                )
+              )
+            )::int AS available_sections,
+            COUNT(DISTINCT rp.script_section_id) FILTER (WHERE rp.started_at IS NOT NULL)::int AS started_sections,
             COUNT(DISTINCT rp.script_section_id) FILTER (WHERE rp.completed_at IS NOT NULL)::int AS completed_sections,
             (
               SELECT ss2.title
@@ -105,9 +212,10 @@ export async function fetchHostPlayers(query, roomId) {
             ) AS note_count,
             GREATEST(
               rm.joined_at,
-              (SELECT MAX(rp3.completed_at) FROM reading_progress rp3 WHERE rp3.room_id = $1 AND rp3.role_slot_id = rs.id),
-              (SELECT MAX(co2.acquired_at) FROM clue_ownership co2 WHERE co2.room_id = $1 AND co2.role_slot_id = rs.id),
-              (SELECT MAX(ir.investigated_at) FROM investigation_records ir WHERE ir.room_id = $1 AND ir.role_slot_id = rs.id)
+              MAX(GREATEST(rp.started_at, rp.completed_at)),
+              (SELECT MAX(GREATEST(co2.acquired_at, co2.read_at)) FROM clue_ownership co2 WHERE co2.room_id = $1 AND co2.role_slot_id = rs.id),
+              (SELECT MAX(ir.investigated_at) FROM investigation_records ir WHERE ir.room_id = $1 AND ir.role_slot_id = rs.id),
+              (SELECT MAX(ne.created_at) FROM notebook_entries ne WHERE ne.room_id = $1 AND ne.role_slot_id = rs.id)
             ) AS last_activity_at,
             (
               SELECT tl.message
@@ -142,18 +250,22 @@ export async function fetchHostPlayers(query, roomId) {
      LEFT JOIN reading_progress rp
        ON rp.script_section_id = ss.id AND rp.room_id = r.id AND rp.role_slot_id = rs.id
      WHERE r.id = $1
-     GROUP BY rs.id, rs.name, rs.public_profile, rs.private_profile,
+     GROUP BY rs.id, rs.name, rs.public_profile, rs.private_profile, r.status,
               rm.user_id, u.display_name, rm.joined_at, rm.status,
               ps.current_scene_id, ps.variables
      ORDER BY rs.sequence, rs.created_at`,
     [roomId]
   );
   return result.rows.map((row) => {
-    const maybe_stuck = computeMaybeStuck(row);
+    const assessment = assessPlayerProgress(row);
     return {
       ...row,
-      maybe_stuck,
-      stuck_label: maybe_stuck ? "可能卡关" : "状态正常",
+      maybe_stuck: assessment.maybeStuck,
+      stuck_code: assessment.code,
+      stuck_label: assessment.label,
+      stuck_detail: assessment.detail,
+      recommended_action: assessment.recommendedAction,
+      suggested_nudge: assessment.suggestedNudge || null,
       join_label: row.joined ? "已加入" : "席位空置"
     };
   });
@@ -163,6 +275,7 @@ export async function fetchHostPlayerDetail(query, roomId, roleSlotId) {
   const role = await query(
     `SELECT rs.id, rs.name, rs.public_profile, rs.private_profile,
             rm.user_id, u.display_name AS player_display_name, rm.joined_at,
+            r.status AS room_status,
             ps.current_scene_id, COALESCE(ps.variables->>'hostNotes', '') AS host_notes
      FROM role_slots rs
      JOIN rooms r ON r.world_id = rs.world_id
@@ -247,7 +360,9 @@ export async function fetchHostPlayerDetail(query, roomId, roleSlotId) {
     role_slot_id: roleSlotId,
     joined: Boolean(role.rows[0].user_id),
     joined_at: role.rows[0].joined_at,
+    room_status: role.rows[0].room_status,
     total_sections: sections.rows.length,
+    started_sections: sections.rows.filter((section) => section.started_at).length,
     completed_sections: sections.rows.filter((section) => section.completed).length
   };
 

@@ -5,6 +5,7 @@ import { uiStore } from "../state/index.js";
 import { callRuntime, registerRuntime } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 import * as M from "../components/modal.js";
+import { dispatchActionHandlers } from "../../shared/action-dispatch.js";
   const openModal = M.openModal || (() => {});
   const enhanceCloudPanels = () => callRuntime("enhanceCloudPanels");
   const openWizard = () => callRuntime("openWizard");
@@ -40,11 +41,9 @@ export function bindDynamic() {
     window.zhimuSearchFocus?.applyAfterRender?.();
   }
 
-export function handle(action, el) {
-    for (const getFn of dispatchers) {
-      const fn = getFn();
-      if (typeof fn === "function" && fn(action, el)) return;
-    }
+export async function handle(action, el) {
+    const handled = await dispatchActionHandlers(dispatchers.map((getFn) => getFn()), action, el);
+    if (handled) return;
     if (action === "save-node" || action === "save-settings") return showToast("配置已保存");
     if (action === "explore") {
       return openModal("调查进行中", `你开始调查「${el.dataset.place}」。系统将根据角色状态、持有物品和已解读线索展示可发现的内容。`, "确认调查");

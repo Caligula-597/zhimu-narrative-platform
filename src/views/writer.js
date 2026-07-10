@@ -48,16 +48,37 @@ import { renderRoleArchiveFields, archiveMapFromList } from "./role-archive-pane
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
 
-export async function loadWriterRoleArchives() {
+let roleArchivesRequest = null;
+
+export async function loadWriterRoleArchives({ force = false } = {}) {
   const worldId = zhimuApi.context.worldId;
   if (!worldId) return;
-  try {
-    const payload = await zhimuApi.getRoleArchives(worldId);
-    worldStore.set({ cloudRoleArchives: payload?.archives || [] });
-    render();
-  } catch (error) {
-    showError(error);
-  }
+  const cached = worldStore.get();
+  if (!force && cached.cloudRoleArchivesWorldId === worldId && Array.isArray(cached.cloudRoleArchives)) return;
+  if (roleArchivesRequest?.worldId === worldId) return roleArchivesRequest.promise;
+  const promise = (async () => {
+    try {
+      const payload = await zhimuApi.getRoleArchives(worldId);
+      if (zhimuApi.context.worldId !== worldId) return;
+      worldStore.set({
+        cloudRoleArchives: payload?.archives || [],
+        cloudRoleArchivesWorldId: worldId,
+        cloudRoleArchivesError: ""
+      });
+      if (uiStore.get().view === "writer") render();
+    } catch (error) {
+      worldStore.set({
+        cloudRoleArchives: [],
+        cloudRoleArchivesWorldId: worldId,
+        cloudRoleArchivesError: normalizeError(error, "角色档案加载失败")
+      });
+      showError(error);
+    }
+  })().finally(() => {
+    if (roleArchivesRequest?.promise === promise) roleArchivesRequest = null;
+  });
+  roleArchivesRequest = { worldId, promise };
+  return promise;
 }
 
 export function writer(){

@@ -129,3 +129,14 @@ test("openSseStream resumes the cursor and normalizes lifecycle events", async (
     { type: "room.updated", payload: { value: 2 } }
   ]);
 });
+
+test("consumeSseStream does not advance cursor when async handling fails", async () => {
+  await assert.rejects(
+    consumeSseStream(sseResponse(['id: 42\ndata: {"ok":true}\n\n']), {
+      cursorKey: "cursor:retry",
+      onEvent: async () => { throw new Error("handler failed"); }
+    }),
+    /handler failed/
+  );
+  assert.equal(localStorage.getItem("cursor:retry"), null);
+});

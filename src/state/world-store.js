@@ -23,5 +23,7 @@ export const worldStore = createStore({
   cloudForeshadowBeats: null,
   cloudTimelineEvents: null,
   cloudRoleArchives: null,
+  cloudRoleArchivesWorldId: null,
+  cloudRoleArchivesError: "",
   truthBibleTab: "claims"
 });

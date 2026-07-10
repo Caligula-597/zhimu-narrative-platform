@@ -2631,6 +2631,28 @@ body.modal-scroll-lock { position:fixed; width:100%; left:0; right:0; }
   gap: 8px;
   margin-top: 10px;
 }
+.insight-funnel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.insight-funnel article {
+  display: grid;
+  gap: 3px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+}
+.insight-funnel span,
+.insight-funnel small {
+  color: var(--muted);
+}
+.insight-funnel strong {
+  font-size: 22px;
+  line-height: 1.15;
+}
 .relationship-graph {
   width: 100%;
   max-width: 420px;

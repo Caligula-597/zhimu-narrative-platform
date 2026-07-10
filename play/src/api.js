@@ -90,6 +90,8 @@ export const api = {
   privateActions: (roomId) => request(`/rooms/${roomId}/private-actions`),
   createPrivateAction: (roomId, payload) =>
     request(`/rooms/${roomId}/private-actions`, { method: "POST", body: payload }),
+  startSection: (roomId, sectionId) =>
+    request(`/rooms/${roomId}/sections/${sectionId}/start`, { method: "POST", body: {} }),
   completeSection: (roomId, sectionId) =>
     request(`/rooms/${roomId}/sections/${sectionId}/complete`, { method: "POST", body: {} }),
   exploration: (roomId) => request(`/rooms/${roomId}/exploration`),

@@ -57,6 +57,7 @@ import {
   openHostGrantItemModal,
   openHostLogModal,
   openHostNudgeWaitingModal,
+  openHostStuckIntervention,
   openHostPlayerDetail,
   openHostRuleEditor,
   openHostUnlockSceneModal,
@@ -410,6 +411,9 @@ function handleDirectorAction(action, el) {
       return true;
     case "host-nudge-waiting":
       openHostNudgeWaitingModal();
+      return true;
+    case "host-stuck-intervene":
+      openHostStuckIntervention(el?.dataset?.role || "");
       return true;
     case "create-checkpoint":
       openCreateCheckpointModal();

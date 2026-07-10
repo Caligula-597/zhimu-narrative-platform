@@ -28,6 +28,11 @@ export function initEvents({ content, modalBackdrop, R, go }) {
     if (action && content.contains(action)) R.handle?.(action.dataset.action, action);
   });
 
+  const mainNav = document.querySelector(".main-nav");
+  mainNav?.addEventListener("click", (event) => {
+    dispatchDelegatedAction(event, mainNav);
+  });
+
   document.querySelectorAll(".nav-item[data-view]").forEach((btn) => btn.addEventListener("click", () => go(btn.dataset.view)));
   document.querySelector("#run-btn").onclick = () => window.open(window.zhimuInviteLinks?.hostConsoleUrl?.(), "_blank", "noopener,noreferrer");
   document.querySelector("#preview-btn").onclick = () => {

@@ -6,6 +6,7 @@ const RECONNECT_MS = 5000;
 let streamAbort = null;
 let reconnectTimer = null;
 let pollTimer = null;
+let pollInFlight = false;
 let boundRoomId = "";
 let streamConnected = false;
 
@@ -169,11 +170,14 @@ export function syncRoomPoll(active, ctx) {
   }
   ctxSetStatus("polling", ctx);
   pollTimer = setInterval(async () => {
-    if (ctx.getView() !== "game" || !ctx.getRoomId()) return;
+    if (ctx.getView() !== "game" || !ctx.getRoomId() || pollInFlight) return;
+    pollInFlight = true;
     try {
       await ctx.onRefresh();
     } catch {
       /* polling is best-effort */
+    } finally {
+      pollInFlight = false;
     }
   }, POLL_MS);
 }

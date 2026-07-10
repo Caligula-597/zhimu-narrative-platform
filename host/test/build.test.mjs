@@ -62,6 +62,9 @@ test("main.js wires console, SSE and director actions", () => {
   assert.match(consoleSource, /host-kick-player/);
   assert.match(dataSource, /api\.getWorldSegments\(worldId\)/);
   assert.match(eventsSource, /room\.host_event_pending/);
+  assert.match(eventsSource, /directorPollInFlight/);
+  assert.match(eventsSource, /state\.view === "console" && getRoomId\(\) === boundRoom && !signal\.aborted/);
+  assert.doesNotMatch(eventsSource, /state\.roomEventsConnected && getRoomId\(\) === boundRoom/);
 });
 
 test("host command center uses segment runbooks and five critical queue actions", () => {
@@ -135,6 +138,7 @@ test("standalone console keeps the full host monitoring action surface", () => {
     "host-manual-unlock-scene",
     "host-manual-unlock-section",
     "host-nudge-waiting",
+    "host-stuck-intervene",
     "host-player-detail",
     "onboarding-go-player",
     "refresh-host-audit",

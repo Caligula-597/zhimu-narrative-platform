@@ -60,6 +60,7 @@ test("platform-events has poll fallback when SSE down", () => {
   const source = readFileSync(path.join(root, "src", "platform-events.js"), "utf8");
   assert.match(source, /syncPlatformPoll/);
   assert.match(source, /onInGameCommRefresh/);
+  assert.match(source, /pollInFlight/);
 });
 
 test("api platform stream persists Last-Event-ID cursor", () => {

@@ -6,6 +6,7 @@ const POLL_MS = 20000;
 let streamAbort = null;
 let reconnectTimer = null;
 let pollTimer = null;
+let pollInFlight = false;
 let active = false;
 let streamConnected = false;
 
@@ -42,11 +43,14 @@ function syncPlatformPoll(activePoll, ctx) {
   }
   setStreamStatus("polling");
   pollTimer = setInterval(async () => {
-    if (!active) return;
+    if (!active || pollInFlight) return;
+    pollInFlight = true;
     try {
       await runPlatformPoll(ctx);
     } catch {
       /* polling is best-effort */
+    } finally {
+      pollInFlight = false;
     }
   }, POLL_MS);
 }

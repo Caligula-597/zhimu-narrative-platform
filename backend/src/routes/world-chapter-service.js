@@ -72,17 +72,33 @@ export async function pruneBrokenAutomationRules(worldId, client = null) {
 }
 
 export async function compactChapterSequences(client, worldId) {
-  const remaining = await client.query(
-    `SELECT id FROM chapters WHERE world_id = $1 ORDER BY sequence, created_at`,
+  const shifted = await client.query(
+    `WITH bounds AS (
+       SELECT COALESCE(MAX(sequence), 0)::int + 1 AS offset
+       FROM chapters
+       WHERE world_id = $1
+     )
+     UPDATE chapters c
+     SET sequence = c.sequence + bounds.offset
+     FROM bounds
+     WHERE c.world_id = $1
+     RETURNING c.id`,
     [worldId]
   );
-  for (const [index, row] of remaining.rows.entries()) {
-    await client.query(
-      `UPDATE chapters SET sequence = $1, updated_at = now() WHERE id = $2 AND world_id = $3`,
-      [index + 1, row.id, worldId]
-    );
-  }
-  return remaining.rowCount;
+  if (!shifted.rowCount) return 0;
+  await client.query(
+    `WITH ranked AS (
+       SELECT id, ROW_NUMBER() OVER (ORDER BY sequence, created_at)::int AS new_sequence
+       FROM chapters
+       WHERE world_id = $1
+     )
+     UPDATE chapters c
+     SET sequence = ranked.new_sequence, updated_at = now()
+     FROM ranked
+     WHERE c.id = ranked.id`,
+    [worldId]
+  );
+  return shifted.rowCount;
 }
 
 export function chapterSequencesNeedRepair(chapterRows) {

@@ -7,6 +7,8 @@ import { callView } from "./view-registry.js";
 (function (window) {
   let directorPollTimer = null;
   let playerPollTimer = null;
+  let directorPollInFlight = false;
+  let playerPollInFlight = false;
   const DIRECTOR_POLL_MS = 15000;
   const PLAYER_POLL_MS = 15000;
   let roomEventAbort = null;
@@ -63,8 +65,14 @@ import { callView } from "./view-registry.js";
             playerPollTimer = null;
             return;
           }
-          await refreshPlayerHome();
-          await refreshExploration();
+          if (playerPollInFlight) return;
+          playerPollInFlight = true;
+          try {
+            await refreshPlayerHome();
+            await refreshExploration();
+          } finally {
+            playerPollInFlight = false;
+          }
         }, PLAYER_POLL_MS);
       }
     } else if (playerPollTimer) {
@@ -92,7 +100,13 @@ import { callView } from "./view-registry.js";
             directorPollTimer = null;
             return;
           }
-          await refreshDirectorPoll();
+          if (directorPollInFlight) return;
+          directorPollInFlight = true;
+          try {
+            await refreshDirectorPoll();
+          } finally {
+            directorPollInFlight = false;
+          }
         }, DIRECTOR_POLL_MS);
       }
     } else if (directorPollTimer) {
@@ -281,7 +295,7 @@ import { callView } from "./view-registry.js";
       await handleRoomEvent(type, data);
     }, signal, streamUserId).catch(() => {}).finally(() => {
       if (roomEventStreamKey !== boundStreamKey) return;
-      const shouldReconnect = roomStore.get().roomEventsConnected && zhimuApi.context.roomId === boundRoom && !signal.aborted;
+      const shouldReconnect = zhimuApi.context.roomId === boundRoom && !signal.aborted;
       roomEventAbort = null;
       roomEventStreamKey = "";
       roomStore.set({ roomEventsConnected: false });

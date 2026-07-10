@@ -2,6 +2,7 @@ const browsers = (process.env.PLAYWRIGHT_BROWSERS || "chromium,firefox,webkit")
   .split(",")
   .map((name) => name.trim())
   .filter(Boolean);
+const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined;
 
 const appTestIgnore = [
   "**/play-portal-smoke.spec.js",
@@ -23,6 +24,7 @@ export default {
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:4173",
     locale: "zh-CN",
+    launchOptions: executablePath ? { executablePath } : undefined,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure"

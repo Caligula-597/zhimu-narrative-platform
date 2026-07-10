@@ -94,7 +94,7 @@ export function director(){
  if(hostPlayersError){directorRisks.push({level:"error",title:"玩家运行状态加载失败",detail:hostPlayersError,action:"refresh-host-players",button:"重试"});}
  if(!roomEventsConnected){directorRisks.push({level:"warning",title:"实时推送未连接",detail:"当前依赖定时轮询，待确认事件与玩家进度可能有延迟。",action:"refresh-host-room",button:"刷新连接"});}
  if(pendingEvents.length>5){directorRisks.push({level:"warning",title:"待确认事件积压",detail:`${pendingEvents.length} 条事件等待处理，可能影响玩家体验。`,action:"refresh-host-events",button:"查看待办"});}
- if(stuckCount>0){directorRisks.push({level:"warning",title:`${stuckCount} 名玩家疑似卡关`,detail:"玩家长时间未推进剧情，建议主动干预或发放线索。",action:"host-nudge-waiting",button:"提醒玩家"});}
+ if(stuckCount>0){directorRisks.push({level:"warning",title:`${stuckCount} 名玩家疑似卡关`,detail:"已识别具体停滞原因，可逐人查看并发送针对性提醒。",action:"host-stuck-intervene",button:"处理卡点"});}
  if(!rules.length){directorRisks.push({level:"warning",title:"当前房间无启用规则",detail:"自动化规则（发线索、开场景、主持确认）尚未配置，全部依赖手动操作。",action:"rules-preview",button:"查看规则"});}
  const directorRiskErrorCount=directorRisks.filter(r=>r.level==="error").length;
  const directorRiskWarningCount=directorRisks.filter(r=>r.level==="warning").length;
@@ -104,7 +104,7 @@ export function director(){
  const roomReadyTone=roomReady?"published":!joinedCount?"draft":"testing";
  const priorityActions=[
   pendingEvents.length?{title:"先处理待确认事件",detail:`${pendingEvents.length} 条规则或调查触发正在等待确认。`,action:"refresh-host-events",button:"查看待办"}:null,
-  stuckCount?{title:"查看疑似卡关玩家",detail:`${stuckCount} 个席位长时间没有推进，建议查看详情或手动发线索。`,action:"host-nudge-waiting",button:"提醒玩家"}:null,
+  stuckCount?{title:"处理疑似卡关玩家",detail:`${stuckCount} 个席位需要干预，已按卡点原因生成建议。`,action:"host-stuck-intervene",button:"处理卡点"}:null,
   inviteCode&&!joinedCount?{title:"邀请玩家入房",detail:`邀请码 ${inviteCode}，复制后发给玩家开始阅读。`,action:"room-invite-current",button:"邀请详情"}:null,
   {title:"创建现场存档点",detail:"关键推进后保存房间状态，方便复盘和回滚分析。",action:"create-checkpoint",button:"创建存档"},
   {title:"记录主持日志",detail:"把线下判断、玩家口述和临时裁定写入运行记录。",action:"host-manual-log",button:"写日志"},
@@ -147,7 +147,7 @@ export function director(){
 export function hostPlayerTableRows(players){
  if(!players.length)return `<tr><td colspan="7"><div class="empty-state enriched-empty"><p><strong>当前运行房尚无角色席位</strong></p><p>请先在「剧本杀创作」或创建向导中配置角色，再建立平行房。</p><div class="row"><button class="text-btn" data-go="writer">前往剧本创作</button><button class="text-btn" data-action="world-rooms">管理平行房</button></div></div></td></tr>`;
  const waitingIds=pendingEventRoleIds();
- return players.map((player,index)=>{const waiting=waitingIds.has(String(player.role_slot_id));const joinChip=player.joined?(S.chip?.("player","joined")||`<span class="status-chip published">已加入</span>`):(S.chip?.("player","offline")||`<span class="status-chip draft">未加入</span>`);const stateChip=player.maybe_stuck?(S.chip?.("player","stuck")||`<span class="status-chip testing">疑似卡关</span>`):(S.chip?.("player","complete",{label:player.stuck_label,tone:"published"})||`<span class="status-chip published">${escapeHtml(player.stuck_label)}</span>`);return `<tr class="${player.maybe_stuck?"host-row-warn":""}${waiting?" host-row-waiting":""}"><td><div class="host-player-cell"><div class="avatar small" style="background:${hostPlayerColor(index)}">${(player.player_display_name||player.role_name||"?")[0]}</div><div><strong>${escapeHtml(player.player_display_name||"席位空置")}</strong><p>${escapeHtml(player.role_name)}${waiting?` · <span class="host-wait-tag">待你确认</span>`:""}</p></div></div></td><td>${joinChip}<small>${player.joined?(player.last_activity_at?formatRelativeTime(player.last_activity_at):"刚刚"):""}</small></td><td><strong>${player.completed_sections}/${player.total_sections}</strong><small>${escapeHtml(player.last_completed_section_title||"尚无完成分幕")}</small></td><td><strong>${player.clue_count}</strong><small>已读 ${player.read_clue_count}</small></td><td><strong>${escapeHtml(hostOperationLabel(player.last_operation_type,player.last_operation_message))}</strong><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"—"}</small></td><td>${stateChip}</td><td><button class="text-btn" data-action="host-player-detail" data-role="${player.role_slot_id}">详情</button>${player.joined?` <button class="text-btn host-kick-btn" data-action="host-kick-player" data-role="${player.role_slot_id}" title="内测：移出房间；同账号重进可继承进度">踢出</button>`:""}</td></tr>`}).join("");
+ return players.map((player,index)=>{const waiting=waitingIds.has(String(player.role_slot_id));const joinChip=player.joined?(S.chip?.("player","joined")||`<span class="status-chip published">已加入</span>`):(S.chip?.("player","offline")||`<span class="status-chip draft">未加入</span>`);const stateChip=player.maybe_stuck?(S.chip?.("player","stuck",{label:player.stuck_label})||`<span class="status-chip testing">${escapeHtml(player.stuck_label||"疑似卡关")}</span>`):(S.chip?.("player","complete",{label:player.stuck_label,tone:"published"})||`<span class="status-chip published">${escapeHtml(player.stuck_label)}</span>`);return `<tr class="${player.maybe_stuck?"host-row-warn":""}${waiting?" host-row-waiting":""}"><td><div class="host-player-cell"><div class="avatar small" style="background:${hostPlayerColor(index)}">${(player.player_display_name||player.role_name||"?")[0]}</div><div><strong>${escapeHtml(player.player_display_name||"席位空置")}</strong><p>${escapeHtml(player.role_name)}${waiting?` · <span class="host-wait-tag">待你确认</span>`:""}</p></div></div></td><td>${joinChip}<small>${player.joined?(player.last_activity_at?formatRelativeTime(player.last_activity_at):"刚刚"):""}</small></td><td><strong>${player.completed_sections}/${player.total_sections}</strong><small>${escapeHtml(player.last_completed_section_title||"尚无完成分幕")}</small></td><td><strong>${player.clue_count}</strong><small>已读 ${player.read_clue_count}</small></td><td><strong>${escapeHtml(hostOperationLabel(player.last_operation_type,player.last_operation_message))}</strong><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"—"}</small></td><td>${stateChip}<small>${escapeHtml(player.stuck_detail||"")}</small></td><td>${player.maybe_stuck?`<button class="text-btn" data-action="host-stuck-intervene" data-role="${player.role_slot_id}">处理</button> `:""}<button class="text-btn" data-action="host-player-detail" data-role="${player.role_slot_id}">详情</button>${player.joined?` <button class="text-btn host-kick-btn" data-action="host-kick-player" data-role="${player.role_slot_id}" title="内测：移出房间；同账号重进可继承进度">踢出</button>`:""}</td></tr>`}).join("");
 }
 
 export function directorPlayers(){
@@ -368,13 +368,26 @@ export function openHostGrantItemModal(){
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-host-grant-item-submit]").onclick=async()=>{try{const values=studioValues();await zhimuApi.hostGrantItem({roleSlotId:values.grantRole,itemId:values.grantItem,quantity:Math.max(1,Number(values.grantQuantity)||1),message:values.grantMessage});closeModal();await refreshHostRoom();showToast("物品已发放")}catch(error){showError(error)}};
 }
 
-export function openHostUnlockSectionModal(){
+export function openHostUnlockSectionModal(options = {}){
  const { cloudHostPlayers } = roomStore.get();
  const studio=studioStore.get().cloudStudio;
  const players=(cloudHostPlayers||[]).filter(player=>player.joined);if(!players.length)return showToast("当前没有已加入的玩家");
  const sections=(studio?.sections||[]);
- modal.className="modal";modal.innerHTML=`<h2>手动解锁分幕</h2><p class="wizard-intro">解锁后，对应玩家即可阅读该私人分幕。</p><div class="form-group">${studioSelect("目标角色","unlockRole",players.map(player=>({id:player.role_slot_id,name:`${player.player_display_name||"玩家"} · ${player.role_name}`})))}${studioSelect("分幕","unlockSection",sections.filter(section=>section.role_slot_id===players[0].role_slot_id).map(section=>({id:section.id,name:`${section.sequence}. ${section.title}`})))}${studioField("日志说明","unlockMessage","input","主持人手动解锁分幕")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-unlock-submit>确认解锁</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const roleSelect=modal.querySelector('[data-studio-field="unlockRole"]'),sectionSelect=modal.querySelector('[data-studio-field="unlockSection"]');const refreshSections=()=>{const roleId=roleSelect.value;const options=sections.filter(section=>section.role_slot_id===roleId).map(section=>({id:section.id,name:`${section.sequence}. ${section.title}`}));sectionSelect.innerHTML=options.length?studioOptionsHtml(options,""):'<option value="">该角色尚无分幕</option>'};roleSelect.onchange=refreshSections;refreshSections();modal.querySelector("[data-host-unlock-submit]").onclick=async()=>{try{const values=studioValues();await zhimuApi.hostUnlockSection({roleSlotId:values.unlockRole,scriptSectionId:values.unlockSection,message:values.unlockMessage});closeModal();await refreshHostRoom();showToast("分幕已解锁")}catch(error){showError(error)}};
+ const firstRoleId=options.roleSlotId||players[0].role_slot_id;
+ modal.className="modal";modal.innerHTML=`<h2>手动解锁分幕</h2><p class="wizard-intro">解锁后，对应玩家即可阅读该私人分幕。</p><div class="form-group">${studioSelect("目标角色","unlockRole",players.map(player=>({id:player.role_slot_id,name:`${player.player_display_name||"玩家"} · ${player.role_name}`})))}${studioSelect("分幕","unlockSection",sections.filter(section=>section.role_slot_id===firstRoleId).map(section=>({id:section.id,name:`${section.sequence}. ${section.title}`})))}${studioField("日志说明","unlockMessage","input","主持人手动解锁分幕")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-unlock-submit>确认解锁</button></div>`;
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const roleSelect=modal.querySelector('[data-studio-field="unlockRole"]'),sectionSelect=modal.querySelector('[data-studio-field="unlockSection"]');if(roleSelect)roleSelect.value=firstRoleId;const refreshSections=()=>{const roleId=roleSelect.value;const options=sections.filter(section=>section.role_slot_id===roleId).map(section=>({id:section.id,name:`${section.sequence}. ${section.title}`}));sectionSelect.innerHTML=options.length?studioOptionsHtml(options,""):'<option value="">该角色尚无分幕</option>'};roleSelect.onchange=refreshSections;refreshSections();modal.querySelector("[data-host-unlock-submit]").onclick=async()=>{try{const values=studioValues();await zhimuApi.hostUnlockSection({roleSlotId:values.unlockRole,scriptSectionId:values.unlockSection,message:values.unlockMessage});closeModal();await refreshHostRoom();showToast("分幕已解锁")}catch(error){showError(error)}};
+}
+
+export function openHostStuckIntervention(roleSlotId=""){
+ const { cloudHostPlayers } = roomStore.get();
+ const players=(cloudHostPlayers||[]).filter((player)=>player.joined&&player.maybe_stuck&&(!roleSlotId||String(player.role_slot_id)===String(roleSlotId)));
+ if(!players.length)return showToast("当前没有需要干预的卡关玩家");
+ const target=players[0];
+ const action=target.recommended_action||"nudge";
+ if(action==="unlock_section")return openHostUnlockSectionModal({ roleSlotId: target.role_slot_id });
+ if(action==="inspect")return openHostPlayerDetail(target.role_slot_id);
+ if(action==="invite")return showToast("该席位尚未有玩家加入，请分享邀请链接");
+ return openHostNudgeWaitingModal(roleSlotId,"stuck");
 }
 
 export function openHostUnlockSceneModal(){
@@ -415,12 +428,15 @@ export async function executeHostEvent(eventId){
  }catch(error){showError(error)}
 }
 
-export function openHostNudgeWaitingModal(){
+export function openHostNudgeWaitingModal(roleSlotId="", mode="waiting"){
  const waitingIds=pendingEventRoleIds();
  const { cloudHostPlayers } = roomStore.get();
- const players=(cloudHostPlayers||[]).filter((player)=>player.joined&&(!waitingIds.size||waitingIds.has(String(player.role_slot_id))));
- if(!players.length)return showToast("当前没有已入房且可能在等待的玩家");
- modal.className="modal";modal.innerHTML=`<h2>提醒等待中的玩家</h2><p class="wizard-intro">消息会通过实时推送送达 play 端与玩家视角，不会发送站外私信。</p><div class="form-group"><label>提醒内容</label><textarea class="field" rows="3" data-nudge-message>主持人正在处理待确认事件，请稍候 — 确认后新内容会自动解锁。</textarea><label>通知对象（默认已选可能在等待的玩家）</label><div class="member-picker">${players.map((player)=>`<label><input type="checkbox" data-nudge-role value="${player.role_slot_id}" checked> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}</span></label>`).join("")}</div></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-nudge-submit>发送提醒</button></div>`;
+ const allPlayers=(cloudHostPlayers||[]).filter((player)=>player.joined);
+ const isStuck=mode==="stuck";
+ const players=isStuck?allPlayers.filter((player)=>player.maybe_stuck&&(!roleSlotId||String(player.role_slot_id)===String(roleSlotId))):allPlayers.filter((player)=>!waitingIds.size||waitingIds.has(String(player.role_slot_id)));
+ if(!players.length)return showToast(isStuck?"当前没有需要干预的卡关玩家":"当前没有已入房且可能在等待的玩家");
+ const defaultMessage=isStuck?(players[0]?.suggested_nudge||"当前剧情似乎停住了，可以查看「现在」页的建议下一步，或联系主持人获取提示。") : "主持人正在处理待确认事件，请稍候 — 确认后新内容会自动解锁。";
+ modal.className="modal";modal.innerHTML=`<h2>${isStuck?"帮助卡关玩家":"提醒等待中的玩家"}</h2><p class="wizard-intro">${isStuck?"系统已根据玩家进度生成建议话术，发送前可以修改。":"消息会通过实时推送送达 play 端与玩家视角，不会发送站外私信。"}</p><div class="form-group"><label>提醒内容</label><textarea class="field" rows="3" data-nudge-message>${escapeHtml(defaultMessage)}</textarea><label>通知对象</label><div class="member-picker">${players.map((player)=>`<label><input type="checkbox" data-nudge-role value="${player.role_slot_id}" checked> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}${player.stuck_label?` · ${escapeHtml(player.stuck_label)}`:""}</span></label>`).join("")}</div></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-nudge-submit>发送提醒</button></div>`;
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-nudge-submit]").onclick=async()=>{try{const message=modal.querySelector("[data-nudge-message]").value;const roleSlotIds=[...modal.querySelectorAll("[data-nudge-role]:checked")].map((el)=>el.value);if(!roleSlotIds.length)return showToast("请至少选择一名玩家");const result=await zhimuApi.hostNudgeWaiting({message,roleSlotIds});closeModal();showToast(`已提醒 ${result.notifiedCount} 名玩家`)}catch(error){showError(error)}};
 }
 
@@ -481,5 +497,5 @@ export function openHostMiniGameModal(){
  };
 }
 
-export const directorViewApi = { director, hostPlayerTableRows, directorPlayers, hostEventRows, hostActionSummary, directorRulesPreview, refreshRulesPreview, triggerManualRuleFromDirector, hostEventBatchToolbar, toggleHostEventSelection, syncHostEventSelectAll, batchHostEventsAction, hostClueMatrixLabel, hostClueMatrixCard, hostAuditCard, openHostPlayerDetail, kickHostPlayer, openHostClueNote, openHostEventContext, openHostGrantClueModal, openDelayHostEventModal, openHostGrantItemModal, openHostUnlockSectionModal, openHostUnlockSceneModal, openHostMiniGameModal, openHostLogModal, dismissHostEvent, executeHostEvent, openHostNudgeWaitingModal, hostPlayerWaitStrip, hostLiveFeed };
+export const directorViewApi = { director, hostPlayerTableRows, directorPlayers, hostEventRows, hostActionSummary, directorRulesPreview, refreshRulesPreview, triggerManualRuleFromDirector, hostEventBatchToolbar, toggleHostEventSelection, syncHostEventSelectAll, batchHostEventsAction, hostClueMatrixLabel, hostClueMatrixCard, hostAuditCard, openHostPlayerDetail, kickHostPlayer, openHostClueNote, openHostEventContext, openHostGrantClueModal, openDelayHostEventModal, openHostGrantItemModal, openHostUnlockSectionModal, openHostUnlockSceneModal, openHostMiniGameModal, openHostLogModal, dismissHostEvent, executeHostEvent, openHostNudgeWaitingModal, openHostStuckIntervention, hostPlayerWaitStrip, hostLiveFeed };
 registerView("director", directorViewApi);

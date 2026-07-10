@@ -19,6 +19,10 @@ export function completeSection(sectionId) {
   return request(`/rooms/${demoContext.roomId}/sections/${sectionId}/complete`, { userId: demoContext.playerUserId, method: "POST", idempotent: true });
 }
 
+export function startSection(sectionId) {
+  return request(`/rooms/${demoContext.roomId}/sections/${sectionId}/start`, { userId: demoContext.playerUserId, method: "POST", idempotent: true });
+}
+
 export function addNotebookEntry(entry) {
   return request(`/rooms/${demoContext.roomId}/notebook`, { userId: demoContext.playerUserId, method: "POST", body: entry });
 }

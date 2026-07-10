@@ -60,11 +60,27 @@ export function renderCreatorAnalyticsPanel() {
   const feedbackRows = (data.feedback || []).length
     ? data.feedback.map((f) => `<span class="status-chip">${escapeHtml(f.kind)} · ${escapeHtml(f.status)} × ${f.count}</span>`).join(" ")
     : `<span class="muted-note">尚无满意度/反馈记录</span>`;
+  const funnel = data.firstSessionFunnel;
+  const percent = (value) => value == null ? "—" : `${value}%`;
+  const duration = funnel?.medianSecondsToOpeningComplete == null
+    ? "—"
+    : funnel.medianSecondsToOpeningComplete < 60
+      ? `${funnel.medianSecondsToOpeningComplete} 秒`
+      : `${Math.round(funnel.medianSecondsToOpeningComplete / 60)} 分钟`;
+  const funnelHtml = funnel ? `<div class="insight-funnel" aria-label="首次体验漏斗">
+    <article><span>加入玩家</span><strong>${funnel.joinedPlayers}</strong><small>${funnel.roomsWithPlayers} 个有效房间</small></article>
+    <article><span>开始阅读</span><strong>${funnel.startedReading}</strong><small>${percent(funnel.startRate)} / 加入</small></article>
+    <article><span>完成首幕</span><strong>${funnel.completedOpening}</strong><small>${percent(funnel.openingCompletionRate)} / 加入</small></article>
+    <article><span>进入调查</span><strong>${funnel.investigated}</strong><small>${percent(funnel.investigationRate)} / 加入</small></article>
+    <article><span>读过线索</span><strong>${funnel.readClue}</strong><small>${percent(funnel.clueReadRate)} / 加入</small></article>
+    <article><span>首幕中位耗时</span><strong>${duration}</strong><small>从加入到完成</small></article>
+  </div>` : "";
   return `<section class="creator-analytics-panel">
     <div class="section-head">
       <div><p class="section-kicker">PLAYTEST INSIGHTS</p><h3>玩后洞察</h3><p>基于全剧本运行房聚合；选中单个运行房时段落完成率见上方卡片。</p></div>
       <button class="secondary-btn" data-action="load-creator-analytics">刷新</button>
     </div>
+    ${funnelHtml}
     <div class="insight-feedback-row">${feedbackRows}</div>
     <div class="insight-list">${suggestionRows}</div>
   </section>`;

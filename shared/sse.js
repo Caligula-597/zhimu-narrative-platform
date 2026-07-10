@@ -37,17 +37,24 @@ export async function consumeSseStream(response, { onEvent, cursorKey } = {}) {
       else if (line.startsWith("data:")) dataLines.push(fieldValue(line, "data"));
       else if (line.startsWith("id:")) eventId = fieldValue(line, "id").trim();
     }
-    if (eventId && cursorKey) globalThis.localStorage?.setItem(cursorKey, eventId);
-    if (!dataLines.length) return;
+    const persistCursor = () => {
+      if (eventId && cursorKey) globalThis.localStorage?.setItem(cursorKey, eventId);
+    };
+    if (!dataLines.length) {
+      persistCursor();
+      return;
+    }
     const data = dataLines.join("\n");
     let parsed;
     try {
       parsed = JSON.parse(data);
     } catch {
       /* ignore malformed SSE */
+      persistCursor();
       return;
     }
     await onEvent?.(eventType, parsed);
+    persistCursor();
   }
 
   async function drainBuffer({ final = false } = {}) {

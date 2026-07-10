@@ -5,9 +5,10 @@
 import { getReadinessStatus } from "./database-status.js";
 import { getPoolStats } from "./db.js";
 import { getSseConnectionMetrics } from "./room-event-bus.js";
+import { startNonOverlappingInterval } from "./non-overlapping-interval.js";
 
 let lastReady = null;
-let monitorTimer = null;
+let stopMonitor = null;
 
 export function getAlertWebhookConfig() {
   const url = process.env.ALERT_WEBHOOK_URL?.trim();
@@ -87,23 +88,28 @@ async function pollReadiness(log) {
 }
 
 export function startOpsAlertMonitor({ log, intervalMs } = {}) {
+  stopMonitor?.();
+  stopMonitor = null;
   const config = getAlertWebhookConfig();
   if (!config.configured) {
     return () => {};
   }
   const ms = intervalMs ?? config.intervalMs;
-  pollReadiness(log);
-  monitorTimer = setInterval(() => pollReadiness(log), ms);
-  if (typeof monitorTimer.unref === "function") monitorTimer.unref();
+  const monitor = startNonOverlappingInterval(
+    () => pollReadiness(log),
+    ms,
+    { immediate: true }
+  );
+  stopMonitor = monitor.stop;
   log?.info?.({ intervalMs: ms }, "Ops alert monitor started");
   return () => {
-    if (monitorTimer) clearInterval(monitorTimer);
-    monitorTimer = null;
+    stopMonitor?.();
+    stopMonitor = null;
   };
 }
 
 export function resetAlertMonitorForTests() {
   lastReady = null;
-  if (monitorTimer) clearInterval(monitorTimer);
-  monitorTimer = null;
+  stopMonitor?.();
+  stopMonitor = null;
 }

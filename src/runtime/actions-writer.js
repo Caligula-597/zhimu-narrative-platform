@@ -28,7 +28,7 @@ import { callView } from "./view-registry.js";
       case "save-role-archive":
         return window.zhimuActionsBible?.handleBibleAction?.(action, el) || false;
       case "load-writer-archives":
-        void callView("writer", "loadWriterRoleArchives");
+        void callView("writer", "loadWriterRoleArchives", { force: true });
         return true;
       default: return false;
     }

@@ -14,6 +14,29 @@ import {
 } from "./schemas.js";
 import { submitMiniGameAnswer } from "../room-mini-games.js";
 
+async function requireReadableSection(roomId, sectionId, roleSlotId) {
+  const section = await query(
+    `SELECT ss.id
+     FROM script_sections ss
+     JOIN rooms room ON room.id = $1
+     WHERE ss.id = $2
+       AND ss.role_slot_id = $3
+       AND (
+         ss.publication_status = 'published'
+         OR (room.status = 'testing' AND ss.publication_status = 'testing')
+       )
+       AND (
+         ss.sequence = 1 OR EXISTS (
+           SELECT 1 FROM room_content_unlocks rcu
+           WHERE rcu.room_id = $1 AND rcu.content_type = 'script_section' AND rcu.content_id = ss.id
+         )
+       )`,
+    [roomId, sectionId, roleSlotId]
+  );
+  if (!section.rowCount) throwErr("SECTION_LOCKED");
+  return section.rows[0];
+}
+
 export async function registerPlayerProgressRoutes(app) {
   app.post("/api/rooms/game/submit", { schema: submitMiniGameSchema }, async (request, reply) => {
     const actorId = requireActor(request);
@@ -52,30 +75,34 @@ export async function registerPlayerProgressRoutes(app) {
     };
   });
 
+  app.post("/api/rooms/:roomId/sections/:sectionId/start", { schema: completeSectionSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId, sectionId } = request.params;
+    const membership = await requireRoomRole(actorId, roomId);
+    if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
+    await requireReadableSection(roomId, sectionId, membership.role_slot_id);
+
+    const progress = await query(
+      `INSERT INTO reading_progress (room_id, role_slot_id, script_section_id, started_at)
+       VALUES ($1, $2, $3, now())
+       ON CONFLICT (room_id, role_slot_id, script_section_id)
+       DO UPDATE SET started_at = COALESCE(reading_progress.started_at, EXCLUDED.started_at)
+       RETURNING started_at, completed_at`,
+      [roomId, membership.role_slot_id, sectionId]
+    );
+    return {
+      ok: true,
+      startedAt: progress.rows[0].started_at,
+      completedAt: progress.rows[0].completed_at
+    };
+  });
+
   app.post("/api/rooms/:roomId/sections/:sectionId/complete", { schema: completeSectionSchema }, async (request) => {
     const actorId = requireActor(request);
     const { roomId, sectionId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
     if (!membership.role_slot_id) throwErr("PLAYER_ROLE_REQUIRED");
-    const section = await query(
-      `SELECT ss.id
-       FROM script_sections ss
-       JOIN rooms room ON room.id = $1
-       WHERE ss.id = $2
-         AND ss.role_slot_id = $3
-         AND (
-           ss.publication_status = 'published'
-           OR (room.status = 'testing' AND ss.publication_status = 'testing')
-         )
-         AND (
-           ss.sequence = 1 OR EXISTS (
-             SELECT 1 FROM room_content_unlocks rcu
-             WHERE rcu.room_id = $1 AND rcu.content_type = 'script_section' AND rcu.content_id = ss.id
-           )
-         )`,
-      [roomId, sectionId, membership.role_slot_id]
-    );
-    if (!section.rowCount) throwErr("SECTION_LOCKED");
+    await requireReadableSection(roomId, sectionId, membership.role_slot_id);
 
     return withRoomIdempotency(roomId, request, "sections.complete", async () => {
       await transactionWithEvents(async (client, queueEvent) => {

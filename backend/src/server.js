@@ -14,13 +14,13 @@ initSentry();
 
 const app = await createApp();
 await startRoomEventBus();
-const hostDelayWakeTimer = startHostDelayWakeInterval();
+const stopHostDelayWake = startHostDelayWakeInterval();
 const stopAlertMonitor = startOpsAlertMonitor({ log: app.log });
 const port = Number(process.env.PORT ?? 4180);
 
 async function shutdown(signal) {
   app.log.info({ signal }, "shutting down");
-  clearInterval(hostDelayWakeTimer);
+  stopHostDelayWake();
   stopAlertMonitor();
   await stopRoomEventBus();
   await app.close();

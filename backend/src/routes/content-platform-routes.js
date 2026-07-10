@@ -16,6 +16,8 @@ import { sendErr, throwErr } from "../api-errors.js";
 import { normalizeSegmentOperations } from "../segment-contract.js";
 import { logHostAction } from "../audit-log.js";
 import { runRevisionMutation } from "../world-revision.js";
+import { fetchCreatorAnalyticsData } from "../creator-analytics-repository.js";
+import { buildCreatorAnalytics } from "../creator-analytics-service.js";
 import {
   createPrivateActionSchema,
   createRoleRelationshipSchema,
@@ -420,71 +422,8 @@ export async function registerContentPlatformRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const sections = await query(
-      `SELECT ss.id, ss.title, rs.name AS role_name,
-              count(rp.*)::int AS started_count,
-              count(rp.completed_at)::int AS completed_count
-       FROM script_sections ss
-       JOIN role_slots rs ON rs.id = ss.role_slot_id
-       LEFT JOIN rooms r ON r.world_id = rs.world_id
-       LEFT JOIN reading_progress rp ON rp.room_id = r.id AND rp.script_section_id = ss.id
-       WHERE rs.world_id = $1
-       GROUP BY ss.id, ss.title, rs.name
-       ORDER BY completed_count ASC, started_count DESC
-       LIMIT 50`,
-      [worldId]
-    );
-    const clues = await query(
-      `SELECT c.id, c.name,
-              count(co.*)::int AS acquired_count,
-              count(co.read_at)::int AS read_count
-       FROM clues c
-       LEFT JOIN rooms r ON r.world_id = c.world_id
-       LEFT JOIN clue_ownership co ON co.room_id = r.id AND co.clue_id = c.id
-       WHERE c.world_id = $1
-       GROUP BY c.id, c.name
-       ORDER BY acquired_count ASC, read_count ASC
-       LIMIT 50`,
-      [worldId]
-    );
-    const feedback = await query(
-      `SELECT f.kind, f.status, count(*)::int AS count
-       FROM feedback f
-       JOIN rooms r ON r.id = f.room_id
-       WHERE r.world_id = $1
-       GROUP BY f.kind, f.status
-       ORDER BY f.kind, f.status`,
-      [worldId]
-    );
-    const suggestions = [];
-    for (const row of sections.rows) {
-      if (row.started_count > 0 && row.completed_count === 0) {
-        suggestions.push({
-          type: "section_completion",
-          severity: "medium",
-          title: `分幕「${row.title}」有开始但无人完成`,
-          detail: "建议检查文本长度、任务提示或解锁顺序。",
-          ref: { sectionId: row.id, roleName: row.role_name }
-        });
-      }
-    }
-    for (const row of clues.rows) {
-      if (row.acquired_count === 0) {
-        suggestions.push({
-          type: "clue_hit_rate",
-          severity: "medium",
-          title: `线索「${row.name}」尚无获取记录`,
-          detail: "建议检查线索发放规则、调查点或主持手动发放路径。",
-          ref: { clueId: row.id }
-        });
-      }
-    }
-    return {
-      sections: sections.rows,
-      clues: clues.rows,
-      feedback: feedback.rows,
-      suggestions: suggestions.slice(0, 20)
-    };
+    const data = await fetchCreatorAnalyticsData(query, worldId);
+    return buildCreatorAnalytics(data);
   });
 
   app.get("/api/worlds/:worldId/quality-reports", { schema: { params: worldIdParams } }, async (request) => {

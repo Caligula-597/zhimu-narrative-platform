@@ -428,9 +428,26 @@ function showHighlightToolbar(rect,sectionId,sectionTitle,selection){
  };
 }
 
+const sectionStartRequests=new Set();
+
+function markSectionStarted(body){
+ const sectionId=body?.dataset?.sectionId;
+ if(!sectionId||!zhimuApi.context.roomId)return;
+ const section=(roomStore.get().cloudPlayer?.sections||[]).find((row)=>row.id===sectionId);
+ if(!section||section.started_at||section.startedAt||section.completed)return;
+ const key=`${zhimuApi.context.roomId}:${sectionId}`;
+ if(sectionStartRequests.has(key))return;
+ sectionStartRequests.add(key);
+ zhimuApi.startSection(sectionId)
+  .then((progress)=>{section.started_at=progress.startedAt||new Date().toISOString();})
+  .catch(()=>{})
+  .finally(()=>sectionStartRequests.delete(key));
+}
+
 export function bindPlayerReader(){
  const body=document.querySelector("[data-reader-body]");
  if(!body)return;
+ markSectionStarted(body);
  hideHighlightToolbar();
  body.onmouseup=(event)=>{
   if(event.target.closest?.(".highlight-toolbar"))return;

@@ -10,6 +10,7 @@ import {
 
 const DIRECTOR_POLL_MS = 15000;
 let directorPollTimer = null;
+let directorPollInFlight = false;
 let roomEventAbort = null;
 let roomEventReconnectTimer = null;
 
@@ -58,7 +59,13 @@ export function syncDirectorPolling() {
           directorPollTimer = null;
           return;
         }
-        await refreshDirectorPoll();
+        if (directorPollInFlight) return;
+        directorPollInFlight = true;
+        try {
+          await refreshDirectorPoll();
+        } finally {
+          directorPollInFlight = false;
+        }
       }, DIRECTOR_POLL_MS);
     }
   } else if (directorPollTimer) {
@@ -157,7 +164,7 @@ export function connectRoomEvents() {
     }, signal)
     .catch(() => {})
     .finally(() => {
-      const shouldReconnect = state.roomEventsConnected && getRoomId() === boundRoom && !signal.aborted;
+      const shouldReconnect = state.view === "console" && getRoomId() === boundRoom && !signal.aborted;
       state.roomEventsConnected = false;
       state.roomEventsStatus = shouldReconnect ? "reconnecting" : "idle";
       syncDirectorPolling();

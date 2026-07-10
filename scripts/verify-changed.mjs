@@ -97,7 +97,8 @@ function gitLines(cmd) {
 function changedFiles() {
   const all = [
     ...gitLines("git diff --name-only"),
-    ...gitLines("git diff --name-only --cached")
+    ...gitLines("git diff --name-only --cached"),
+    ...gitLines("git ls-files --others --exclude-standard")
   ];
   return [...new Set(all)].filter((f) => fs.existsSync(path.join(root, f)));
 }

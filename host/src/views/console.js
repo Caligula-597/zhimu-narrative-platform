@@ -56,14 +56,14 @@ export function renderConsole(){
  if(hostPlayersError){hostRisks.push({level:"error",title:"玩家运行状态加载失败",detail:hostPlayersError,action:"refresh-host-players",button:"重试"});}
  if(!state.roomEventsConnected){hostRisks.push({level:"warning",title:"实时推送未连接",detail:"当前依赖定时轮询，待确认事件与玩家进度可能有延迟。",action:"refresh-host-room",button:"刷新连接"});}
  if(pendingEvents.length>5){hostRisks.push({level:"warning",title:"待确认事件积压",detail:`${pendingEvents.length} 条事件等待处理，可能影响玩家体验。`,action:"refresh-host-events",button:"查看待办"});}
- if(stuckCount>0){hostRisks.push({level:"warning",title:`${stuckCount} 名玩家疑似卡关`,detail:"玩家长时间未推进剧情，建议主动干预或发放线索。",action:"host-nudge-waiting",button:"提醒玩家"});}
+ if(stuckCount>0){hostRisks.push({level:"warning",title:`${stuckCount} 名玩家疑似卡关`,detail:"已识别具体停滞原因，可逐人查看并发送针对性提醒。",action:"host-stuck-intervene",button:"处理卡点"});}
  if(!rules.length){hostRisks.push({level:"warning",title:"当前房间无启用规则",detail:"自动化规则尚未配置，全部依赖手动操作。",action:"rules-preview",button:"查看规则"});}
  const hostRiskErrorCount=hostRisks.filter(r=>r.level==="error").length;
  const hostRiskWarningCount=hostRisks.filter(r=>r.level==="warning").length;
  const hostHasRisks=hostRisks.length>0;
  const hostPriorityActions=[
   pendingEvents.length?{title:"先处理待确认事件",detail:`${pendingEvents.length} 条规则或调查触发正在等待确认。`,action:"refresh-host-events",button:"查看待办"}:null,
-  stuckCount?{title:"查看疑似卡关玩家",detail:`${stuckCount} 个席位长时间没有推进，建议查看详情或手动发线索。`,action:"host-nudge-waiting",button:"提醒玩家"}:null,
+  stuckCount?{title:"处理疑似卡关玩家",detail:`${stuckCount} 个席位需要干预，已按卡点原因生成建议。`,action:"host-stuck-intervene",button:"处理卡点"}:null,
   inviteCode&&!joinedCount?{title:"邀请玩家入房",detail:`邀请码 ${inviteCode}，复制后发给玩家开始阅读。`,action:"room-invite-current",button:"邀请详情"}:null,
   {title:"创建现场存档点",detail:"关键推进后保存房间状态，方便复盘和回滚分析。",action:"create-checkpoint",button:"创建存档"}
  ].filter(Boolean).slice(0,4).map((item,index)=>({...item,index:String(index+1).padStart(2,"0")}));
@@ -376,7 +376,7 @@ function hostPublicEnvironmentCard() {
 export function hostPlayerTableRows(players){
  if(!players.length)return `<tr><td colspan="7"><div class="empty-state enriched-empty"><p><strong>当前运行房尚无角色席位</strong></p><p>请先在「剧本杀创作」或创建向导中配置角色，再建立平行房。</p><div class="row"><button class="text-btn" data-action="open-creator">前往创作者端</button><button class="text-btn" data-action="go-pick-room">选择平行房</button></div></div></td></tr>`;
  const waitingIds=pendingEventRoleIds();
- return players.map((player,index)=>{const waiting=waitingIds.has(String(player.role_slot_id));return `<tr class="${player.maybe_stuck?"host-row-warn":""}${waiting?" host-row-waiting":""}"><td><div class="host-player-cell"><div class="avatar small" style="background:${hostPlayerColor(index)}">${(player.player_display_name||player.role_name||"?")[0]}</div><div><strong>${escapeHtml(player.player_display_name||"席位空置")}</strong><p>${escapeHtml(player.role_name)}${waiting?` · <span class="host-wait-tag">待你确认</span>`:""}</p></div></div></td><td>${player.joined?`<span class="status-chip published">已加入</span><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"刚刚"}</small>`:`<span class="status-chip draft">未加入</span>`}</td><td><strong>${player.completed_sections}/${player.total_sections}</strong><small>${escapeHtml(player.last_completed_section_title||"尚无完成分幕")}</small></td><td><strong>${player.clue_count}</strong><small>已读 ${player.read_clue_count}</small></td><td><strong>${escapeHtml(hostOperationLabel(player.last_operation_type,player.last_operation_message))}</strong><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"—"}</small></td><td><span class="status-chip ${player.maybe_stuck?"testing":"published"}">${escapeHtml(player.stuck_label)}</span></td><td><button class="text-btn" data-action="host-player-detail" data-role="${player.role_slot_id}">详情</button>${player.joined?` <button class="text-btn host-kick-btn" data-action="host-kick-player" data-role="${player.role_slot_id}" title="内测：移出房间；同账号重进可继承进度">踢出</button>`:""}</td></tr>`}).join("");
+ return players.map((player,index)=>{const waiting=waitingIds.has(String(player.role_slot_id));return `<tr class="${player.maybe_stuck?"host-row-warn":""}${waiting?" host-row-waiting":""}"><td><div class="host-player-cell"><div class="avatar small" style="background:${hostPlayerColor(index)}">${(player.player_display_name||player.role_name||"?")[0]}</div><div><strong>${escapeHtml(player.player_display_name||"席位空置")}</strong><p>${escapeHtml(player.role_name)}${waiting?` · <span class="host-wait-tag">待你确认</span>`:""}</p></div></div></td><td>${player.joined?`<span class="status-chip published">已加入</span><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"刚刚"}</small>`:`<span class="status-chip draft">未加入</span>`}</td><td><strong>${player.completed_sections}/${player.total_sections}</strong><small>${escapeHtml(player.last_completed_section_title||"尚无完成分幕")}</small></td><td><strong>${player.clue_count}</strong><small>已读 ${player.read_clue_count}</small></td><td><strong>${escapeHtml(hostOperationLabel(player.last_operation_type,player.last_operation_message))}</strong><small>${player.last_activity_at?formatRelativeTime(player.last_activity_at):"—"}</small></td><td><span class="status-chip ${player.maybe_stuck?"testing":"published"}">${escapeHtml(player.stuck_label)}</span><small>${escapeHtml(player.stuck_detail||"")}</small></td><td>${player.maybe_stuck?`<button class="text-btn" data-action="host-stuck-intervene" data-role="${player.role_slot_id}">处理</button> `:""}<button class="text-btn" data-action="host-player-detail" data-role="${player.role_slot_id}">详情</button>${player.joined?` <button class="text-btn host-kick-btn" data-action="host-kick-player" data-role="${player.role_slot_id}" title="内测：移出房间；同账号重进可继承进度">踢出</button>`:""}</td></tr>`}).join("");
 }
 
 function hostEventBatchToolbar(){
@@ -735,11 +735,28 @@ export async function executeHostEvent(eventId){
  }catch(error){showToast(error.message)}
 }
 
-export function openHostNudgeWaitingModal(){
+export function openHostStuckIntervention(roleSlotId=""){
+ const allPlayers=(state.cloudHostPlayers||[]).filter((player)=>player.joined);
+ const players=allPlayers.filter((player)=>player.maybe_stuck&&(!roleSlotId||String(player.role_slot_id)===String(roleSlotId)));
+ if(!players.length)return showToast("当前没有需要干预的卡关玩家");
+ const target=players[0];
+ const action=target.recommended_action||"nudge";
+ if(action==="unlock_section")return openHostUnlockSectionModal({ roleSlotId: target.role_slot_id });
+ if(action==="inspect")return openHostPlayerDetail(target.role_slot_id);
+ if(action==="invite")return showToast("该席位尚未有玩家加入，请分享邀请链接");
+ return openHostNudgeWaitingModal(roleSlotId,"stuck");
+}
+
+export function openHostNudgeWaitingModal(roleSlotId="", mode="waiting"){
+ const allPlayers=(state.cloudHostPlayers||[]).filter((player)=>player.joined);
  const waitingIds=pendingEventRoleIds();
- const players=(state.cloudHostPlayers||[]).filter((player)=>player.joined&&(!waitingIds.size||waitingIds.has(String(player.role_slot_id))));
- if(!players.length)return showToast("当前没有已入房且可能在等待的玩家");
- mountModal(); modalEl.root.className="modal";modalEl.root.innerHTML=`<h2>提醒等待中的玩家</h2><p class="wizard-intro">消息会通过实时推送送达 play 端与玩家视角，不会发送站外私信。</p><div class="form-group"><label>提醒内容</label><textarea class="field" rows="3" data-nudge-message>主持人正在处理待确认事件，请稍候 — 确认后新内容会自动解锁。</textarea><label>通知对象（默认已选可能在等待的玩家）</label><div class="member-picker">${players.map((player)=>`<label><input type="checkbox" data-nudge-role value="${player.role_slot_id}" checked> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}</span></label>`).join("")}</div></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-nudge-submit>发送提醒</button></div>`;
+ const isStuck=mode==="stuck";
+ const players=isStuck
+  ? allPlayers.filter((player)=>player.maybe_stuck&&(!roleSlotId||String(player.role_slot_id)===String(roleSlotId)))
+  : allPlayers.filter((player)=>!waitingIds.size||waitingIds.has(String(player.role_slot_id)));
+ if(!players.length)return showToast(isStuck?"当前没有需要干预的卡关玩家":"当前没有已入房且可能在等待的玩家");
+ const defaultMessage=isStuck?(players[0]?.suggested_nudge||"当前剧情似乎停住了，可以查看「现在」页的建议下一步，或联系主持人获取提示。") : "主持人正在处理待确认事件，请稍候 — 确认后新内容会自动解锁。";
+ mountModal(); modalEl.root.className="modal";modalEl.root.innerHTML=`<h2>${isStuck?"帮助卡关玩家":"提醒等待中的玩家"}</h2><p class="wizard-intro">${isStuck?"系统已根据玩家进度生成建议话术，发送前可以修改。":"消息会通过实时推送送达 play 端与玩家视角，不会发送站外私信。"}</p><div class="form-group"><label>提醒内容</label><textarea class="field" rows="3" data-nudge-message>${escapeHtml(defaultMessage)}</textarea><label>通知对象</label><div class="member-picker">${players.map((player)=>`<label><input type="checkbox" data-nudge-role value="${player.role_slot_id}" checked> <span><b>${escapeHtml(player.player_display_name||"玩家")}</b> · ${escapeHtml(player.role_name)}${player.stuck_label?` · ${escapeHtml(player.stuck_label)}`:""}</span></label>`).join("")}</div></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-nudge-submit>发送提醒</button></div>`;
  modalEl.backdrop.classList.add("show");modalEl.root.querySelector("[data-close]").onclick=closeModal;modalEl.root.querySelector("[data-nudge-submit]").onclick=async()=>{try{const message=modalEl.root.querySelector("[data-nudge-message]").value;const roleSlotIds=[...modalEl.root.querySelectorAll("[data-nudge-role]:checked")].map((el)=>el.value);if(!roleSlotIds.length)return showToast("请至少选择一名玩家");const result=await api.hostNudgeWaiting({message,roleSlotIds});closeModal();showToast(`已提醒 ${result.notifiedCount} 名玩家`)}catch(error){showToast(error.message)}};
 }
 

@@ -237,6 +237,16 @@ function queueItems() {
       actions: `<button class="primary-btn" data-action="execute-host-event" data-event="${escapeHtml(event.id)}">确认</button><button class="secondary-btn" data-action="delay-host-event" data-event="${escapeHtml(event.id)}">延后</button>`
     });
   }
+  for (const player of (state.cloudHostPlayers || []).filter((row) => row.maybe_stuck)) {
+    items.push({
+      type: "stuck",
+      priority: 15,
+      time: player.last_activity_at || player.joined_at,
+      title: `${player.player_display_name || player.role_name || "玩家"} · ${player.stuck_label || "疑似卡关"}`,
+      detail: player.stuck_detail || "长时间没有有效推进",
+      actions: `<button class="primary-btn" data-action="host-stuck-intervene" data-role="${escapeHtml(player.role_slot_id)}">精准提醒</button><button class="secondary-btn" data-action="host-player-detail" data-role="${escapeHtml(player.role_slot_id)}">查看详情</button>`
+    });
+  }
   for (const vote of state.cloudHostVotes || []) {
     if (!["open", "closed"].includes(vote.status)) continue;
     const ballots = vote.ballots?.length || 0;
@@ -282,7 +292,7 @@ function renderQueuePanel() {
   if (!items.length) {
     return `<section class="host-command-card host-queue-panel">
       <div class="section-head"><div><p class="section-kicker">QUEUE</p><h3>待处理队列</h3></div></div>
-      <div class="empty-state">当前没有需要立即处理的投票、事件、私密行动或口供。</div>
+      <div class="empty-state">当前没有需要立即处理的卡点、投票、事件、私密行动或口供。</div>
     </section>`;
   }
   return `<section class="host-command-card host-queue-panel">
