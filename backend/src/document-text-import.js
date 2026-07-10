@@ -6,10 +6,15 @@ import { detectPdfContentMode, extractTextFromPdfBuffer } from "./pdf-document.j
 import { buildPagesSectionMetadata, PAGES_BODY_PLACEHOLDER } from "./section-content.js";
 import { uploadWorldAssetFromBuffer } from "./asset-upload-helpers.js";
 import { renderPdfPageBuffers } from "./document-page-import.js";
+import { resolveClueKind } from "./clue-kind.js";
 import { replaceKnowledgeChunks } from "./knowledge-chunks.js";
 
 function baseName(filename) {
   return String(filename ?? "导入文档").replace(/\.[^.]+$/, "") || "导入文档";
+}
+
+function runWithClient(client, work) {
+  return client ? work(client) : transaction(work);
 }
 
 async function ensureCharacterScriptId(client, roleSlotId) {
@@ -76,14 +81,15 @@ export async function importTextSectionsToRole({
   buffer,
   title = null,
   publicationStatus = "draft",
-  importKey
+  importKey,
+  client: existingClient = null
 }) {
   const text = await extractDocumentText(buffer, filename);
   if (!text) return { mode: "needs_pages", skipped: false };
   const sections = splitSections(text).slice(0, 80);
   if (!sections.length) throwErr("DOCUMENT_EMPTY");
 
-  return transaction(async (client) => {
+  return runWithClient(existingClient, async (client) => {
     const existing = await client.query(
       `SELECT id FROM script_sections WHERE role_slot_id = $1 AND metadata->>'importKey' = $2 LIMIT 1`,
       [roleSlotId, importKey]
@@ -140,9 +146,10 @@ export async function importPdfPagesToRoleWithKey({
   title = null,
   publicationStatus = "draft",
   layout = "single_section",
-  importKey
+  importKey,
+  client: existingClient = null
 }) {
-  return transaction(async (client) => {
+  return runWithClient(existingClient, async (client) => {
     const existing = await client.query(
       `SELECT id FROM script_sections WHERE role_slot_id = $1 AND metadata->>'importKey' = $2 LIMIT 1`,
       [roleSlotId, importKey]
@@ -222,9 +229,10 @@ export async function importClueImageFile({
   filename,
   buffer,
   contentType,
-  importKey
+  importKey,
+  client: existingClient = null
 }) {
-  return transaction(async (client) => {
+  return runWithClient(existingClient, async (client) => {
     const existing = await client.query(
       `SELECT id FROM clues WHERE world_id = $1 AND metadata->>'importKey' = $2 LIMIT 1`,
       [worldId, importKey]
@@ -242,13 +250,19 @@ export async function importClueImageFile({
     });
 
     const inserted = await client.query(
-      `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
-       VALUES ($1, $2, $3, '', 'role', $4::jsonb)
+      `INSERT INTO clues (world_id, name, public_text, host_text, visibility, clue_kind, metadata)
+       VALUES ($1, $2, $3, '', 'role', $4, $5::jsonb)
        RETURNING id, name`,
       [
         worldId,
         clueName || baseName(filename),
         `（图片线索 - ${filename}）`,
+        resolveClueKind({
+          name: clueName || baseName(filename),
+          text: filename,
+          clueType: "image",
+          metadata: { source: "document_import", clueType: "image" }
+        }),
         JSON.stringify({
           clueType: "image",
           assetId: uploaded.assetId,
@@ -269,9 +283,10 @@ export async function importBundleAssetFile({
   contentType,
   importKey,
   label,
-  assetKind = "image"
+  assetKind = "image",
+  client: existingClient = null
 }) {
-  return transaction(async (client) => {
+  return runWithClient(existingClient, async (client) => {
     const existing = await client.query(
       `SELECT id FROM asset_files WHERE world_id = $1 AND metadata->>'importKey' = $2 AND status = 'active' LIMIT 1`,
       [worldId, importKey]

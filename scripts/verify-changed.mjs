@@ -54,6 +54,9 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/routes/recap-helpers", ["test/recap.test.js", "test/recap-narrative.test.js"]],
   ["backend/src/routes/recap-routes", ["test/recap.test.js"]],
   ["backend/src/routes/player-routes", ["test/player-host-confirm.test.js"]],
+  ["backend/src/routes/player-access-routes", ["test/player-host-confirm.test.js"]],
+  ["backend/src/routes/player-progress-routes", ["test/player-host-confirm.test.js"]],
+  ["backend/src/routes/player-exploration-routes", ["test/player-host-confirm.test.js"]],
   ["backend/src/routes/host-routes", ["test/host-console.test.js"]],
   ["backend/src/rule-condition-evaluator", ["test/rule-runtime.test.js", "test/rule-engine.test.js"]],
   ["backend/src/rule-engine", ["test/rule-runtime.test.js", "test/rule-engine.test.js"]],
@@ -149,6 +152,18 @@ for (const f of files) {
 
 if (files.some((f) => f.startsWith("backend/src/routes/schemas") || f === "backend/src/routes.js")) {
   run("backend check:schemas", "npm run check:schemas", backendRoot);
+}
+
+if (files.some((f) =>
+  f.startsWith("backend/src/routes/schemas") ||
+  f === "backend/scripts/generate-contract-types.mjs"
+)) {
+  run("backend contracts:generate", "npm run contracts:generate", backendRoot);
+  run(
+    "backend contracts drift",
+    "git diff --exit-code -- backend/generated/api-contracts.d.ts",
+    root
+  );
 }
 
 for (const t of backendTests) {

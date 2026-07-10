@@ -138,6 +138,62 @@ test("append import remaps ids and does not overwrite existing rows", async (con
   assert.equal(roleCountAfter.rows[0].count, 1, "re-import must not duplicate roles");
 });
 
+test("append import normalizes unsafe enum fields from packages", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const created = await app.inject({
+    method: "POST",
+    url: "/api/worlds",
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `Package unsafe enums ${Date.now()}`, summary: "test" }
+  });
+  assert.equal(created.statusCode, 201);
+  const worldId = created.json().id;
+  context.after(async () => {
+    await query(`DELETE FROM worlds WHERE id = $1`, [worldId]);
+  });
+
+  const pkg = miniPackage({
+    chapters: [{ ...miniPackage().data.chapters[0], publication_status: "bad-status", sequence: "bad" }],
+    sections: [{ ...miniPackage().data.sections[0], publication_status: "bad-status", sequence: "bad" }],
+    clues: [{ ...miniPackage().data.clues[0], visibility: "everyone" }],
+    edges: [{ ...miniPackage().data.edges[0], relation_type: "sideways" }],
+    rules: [{ ...miniPackage().data.rules[0], mode: "always", priority: "bad" }]
+  });
+
+  const response = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/content-package/import`,
+    headers: { "x-user-id": hostUserId },
+    payload: pkg
+  });
+  assert.equal(response.statusCode, 201);
+
+  const chapter = await query(`SELECT publication_status, sequence FROM chapters WHERE world_id = $1 LIMIT 1`, [worldId]);
+  assert.equal(chapter.rows[0].publication_status, "draft");
+  assert.equal(chapter.rows[0].sequence, 1);
+
+  const section = await query(
+    `SELECT ss.publication_status, ss.sequence
+     FROM script_sections ss JOIN role_slots rs ON rs.id = ss.role_slot_id
+     WHERE rs.world_id = $1 LIMIT 1`,
+    [worldId]
+  );
+  assert.equal(section.rows[0].publication_status, "draft");
+  assert.equal(section.rows[0].sequence, 1);
+
+  const clue = await query(`SELECT visibility FROM clues WHERE world_id = $1 LIMIT 1`, [worldId]);
+  assert.equal(clue.rows[0].visibility, "role");
+
+  const edge = await query(`SELECT relation_type FROM story_graph_edges WHERE world_id = $1 LIMIT 1`, [worldId]);
+  assert.equal(edge.rows[0].relation_type, "mainline");
+
+  const rule = await query(`SELECT mode, priority FROM automation_rules WHERE world_id = $1 LIMIT 1`, [worldId]);
+  assert.equal(rule.rows[0].mode, "automatic");
+  assert.equal(rule.rows[0].priority, 100);
+});
+
 test("new world import creates isolated world with remapped content", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());

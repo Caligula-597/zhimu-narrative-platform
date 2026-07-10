@@ -20,30 +20,58 @@ export async function consumeSseStream(response, { onEvent, cursorKey } = {}) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
+
+  function fieldValue(line, field) {
+    let value = line.slice(field.length + 1);
+    if (value.startsWith(" ")) value = value.slice(1);
+    return value;
+  }
+
+  async function dispatchBlock(block) {
+    let eventType = "message";
+    const dataLines = [];
+    let eventId = "";
+    for (const line of block.split("\n")) {
+      if (!line || line.startsWith(":")) continue;
+      if (line.startsWith("event:")) eventType = fieldValue(line, "event");
+      else if (line.startsWith("data:")) dataLines.push(fieldValue(line, "data"));
+      else if (line.startsWith("id:")) eventId = fieldValue(line, "id").trim();
+    }
+    if (eventId && cursorKey) globalThis.localStorage?.setItem(cursorKey, eventId);
+    if (!dataLines.length) return;
+    const data = dataLines.join("\n");
+    let parsed;
+    try {
+      parsed = JSON.parse(data);
+    } catch {
+      /* ignore malformed SSE */
+      return;
+    }
+    await onEvent?.(eventType, parsed);
+  }
+
+  async function drainBuffer({ final = false } = {}) {
+    buffer = buffer.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     let idx;
     while ((idx = buffer.indexOf("\n\n")) >= 0) {
       const block = buffer.slice(0, idx);
       buffer = buffer.slice(idx + 2);
-      let eventType = "message";
-      let data = "";
-      let eventId = "";
-      for (const line of block.split("\n")) {
-        if (line.startsWith("event:")) eventType = line.slice(6).trim();
-        else if (line.startsWith("data:")) data += line.slice(5).trim();
-        else if (line.startsWith("id:")) eventId = line.slice(3).trim();
-      }
-      if (eventId && cursorKey) localStorage.setItem(cursorKey, eventId);
-      if (data) {
-        try {
-          onEvent?.(eventType, JSON.parse(data));
-        } catch {
-          /* ignore malformed SSE */
-        }
-      }
+      await dispatchBlock(block);
     }
+    if (final && buffer.trim()) {
+      await dispatchBlock(buffer);
+      buffer = "";
+    }
+  }
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      buffer += decoder.decode();
+      await drainBuffer({ final: true });
+      break;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    await drainBuffer();
   }
 }

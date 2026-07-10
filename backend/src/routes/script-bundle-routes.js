@@ -5,8 +5,9 @@ import { requireWorldRole } from "./route-guards.js";
 import {
   analyzeScriptBundle,
   createWorldFromScriptBundle,
-  importScriptBundleToWorld
+  importScriptBundleToWorldWithClient
 } from "../script-bundle-import.js";
+import { runRevisionMutation } from "../world-revision.js";
 import {
   scriptBundleAnalyzeSchema,
   scriptBundleImportSchema,
@@ -30,8 +31,9 @@ export async function registerScriptBundleRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     try {
-      const result = await importScriptBundleToWorld(worldId, actorId, request.body ?? {}, request.body ?? {});
-      return reply.code(201).send(result);
+      return runRevisionMutation(request, reply, worldId, async (client) => {
+        return importScriptBundleToWorldWithClient(client, worldId, actorId, request.body ?? {}, request.body ?? {});
+      }, { sendErr, statusCode: 201 });
     } catch (error) {
       return sendErr(reply, error.code ?? "BAD_REQUEST", error.message);
     }

@@ -157,15 +157,15 @@ export function getWorldSegments(worldId = demoContext.worldId) {
 }
 
 export function createWorldSegment(payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/segments`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return worldWrite(`/worlds/${worldId}/segments`, { worldId, method: "POST", body: payload });
 }
 
 export function updateWorldSegment(segmentId, payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/segments/${segmentId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload });
+  return worldWrite(`/worlds/${worldId}/segments/${segmentId}`, { worldId, method: "PATCH", body: payload });
 }
 
 export function syncWorldSegmentsFromGraph(worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/segments/sync-from-graph`, { userId: demoContext.hostUserId, method: "POST", body: {} });
+  return worldWrite(`/worlds/${worldId}/segments/sync-from-graph`, { worldId, method: "POST", body: {} });
 }
 
 export function getTruthClaims(worldId = demoContext.worldId) {
@@ -173,7 +173,7 @@ export function getTruthClaims(worldId = demoContext.worldId) {
 }
 
 export function createTruthClaim(payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/truth-claims`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return worldWrite(`/worlds/${worldId}/truth-claims`, { worldId, method: "POST", body: payload });
 }
 
 export function getRoleRelationships(worldId = demoContext.worldId) {
@@ -181,7 +181,7 @@ export function getRoleRelationships(worldId = demoContext.worldId) {
 }
 
 export function createRoleRelationship(payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/role-relationships`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return worldWrite(`/worlds/${worldId}/role-relationships`, { worldId, method: "POST", body: payload });
 }
 
 export function getBibleSummary(worldId = demoContext.worldId) {
@@ -193,7 +193,7 @@ export function getCoreTrick(worldId = demoContext.worldId) {
 }
 
 export function patchCoreTrick(payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/bible/core-trick`, { userId: demoContext.hostUserId, method: "PATCH", body: payload });
+  return worldWrite(`/worlds/${worldId}/bible/core-trick`, { worldId, method: "PATCH", body: payload });
 }
 
 export function getRoleArchives(worldId = demoContext.worldId) {
@@ -205,11 +205,7 @@ export function getRoleArchive(roleSlotId, worldId = demoContext.worldId) {
 }
 
 export function patchRoleArchive(roleSlotId, payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/bible/role-archives/${roleSlotId}`, {
-    userId: demoContext.hostUserId,
-    method: "PATCH",
-    body: payload
-  });
+  return worldWrite(`/worlds/${worldId}/bible/role-archives/${roleSlotId}`, { worldId, method: "PATCH", body: payload });
 }
 
 export function getForeshadowBeats(worldId = demoContext.worldId) {
@@ -217,22 +213,15 @@ export function getForeshadowBeats(worldId = demoContext.worldId) {
 }
 
 export function createForeshadowBeat(payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/bible/foreshadow-beats`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return worldWrite(`/worlds/${worldId}/bible/foreshadow-beats`, { worldId, method: "POST", body: payload });
 }
 
 export function patchForeshadowBeat(beatId, payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/bible/foreshadow-beats/${beatId}`, {
-    userId: demoContext.hostUserId,
-    method: "PATCH",
-    body: payload
-  });
+  return worldWrite(`/worlds/${worldId}/bible/foreshadow-beats/${beatId}`, { worldId, method: "PATCH", body: payload });
 }
 
 export function deleteForeshadowBeat(beatId, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/bible/foreshadow-beats/${beatId}`, {
-    userId: demoContext.hostUserId,
-    method: "DELETE"
-  });
+  return worldWrite(`/worlds/${worldId}/bible/foreshadow-beats/${beatId}`, { worldId, method: "DELETE" });
 }
 
 export function getTimelineEvents(worldId = demoContext.worldId) {
@@ -240,37 +229,23 @@ export function getTimelineEvents(worldId = demoContext.worldId) {
 }
 
 export function createTimelineEvent(payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/bible/timeline-events`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return worldWrite(`/worlds/${worldId}/bible/timeline-events`, { worldId, method: "POST", body: payload });
 }
 
 export function patchTimelineEvent(eventId, payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/bible/timeline-events/${eventId}`, {
-    userId: demoContext.hostUserId,
-    method: "PATCH",
-    body: payload
-  });
+  return worldWrite(`/worlds/${worldId}/bible/timeline-events/${eventId}`, { worldId, method: "PATCH", body: payload });
 }
 
 export function deleteTimelineEvent(eventId, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/bible/timeline-events/${eventId}`, {
-    userId: demoContext.hostUserId,
-    method: "DELETE"
-  });
+  return worldWrite(`/worlds/${worldId}/bible/timeline-events/${eventId}`, { worldId, method: "DELETE" });
 }
 
 export function patchTruthClaim(claimId, payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/truth-claims/${claimId}`, {
-    userId: demoContext.hostUserId,
-    method: "PATCH",
-    body: payload
-  });
+  return worldWrite(`/worlds/${worldId}/truth-claims/${claimId}`, { worldId, method: "PATCH", body: payload });
 }
 
 export function deleteTruthClaim(claimId, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/truth-claims/${claimId}`, {
-    userId: demoContext.hostUserId,
-    method: "DELETE"
-  });
+  return worldWrite(`/worlds/${worldId}/truth-claims/${claimId}`, { worldId, method: "DELETE" });
 }
 
 export function getCreatorAnalytics(worldId = demoContext.worldId) {

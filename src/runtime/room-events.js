@@ -11,6 +11,7 @@ import { callView } from "./view-registry.js";
   const PLAYER_POLL_MS = 15000;
   let roomEventAbort = null;
   let roomEventReconnectTimer = null;
+  let roomEventStreamKey = "";
 
   function runtime() {
     return getRuntime();
@@ -109,6 +110,7 @@ import { callView } from "./view-registry.js";
       roomEventAbort.abort();
       roomEventAbort = null;
     }
+    roomEventStreamKey = "";
     const { view } = uiStore.get();
     const { roomEventsConnected } = roomStore.get();
     if (roomEventsConnected) {
@@ -258,10 +260,15 @@ import { callView } from "./view-registry.js";
   }
 
   function connectRoomEventStream() {
-    disconnectRoomEventStream();
     const roomId = zhimuApi.context.roomId;
     if (!roomId) return;
+    const streamUserId = streamUserIdForRoom();
+    const nextStreamKey = `${roomId}:${streamUserId || ""}`;
+    if (roomEventAbort && roomEventStreamKey === nextStreamKey) return;
+    disconnectRoomEventStream();
     const boundRoom = roomId;
+    const boundStreamKey = nextStreamKey;
+    roomEventStreamKey = nextStreamKey;
     roomEventAbort = new AbortController();
     const signal = roomEventAbort.signal;
     zhimuApi.streamRoomEvents(roomId, async (type, data) => {
@@ -272,8 +279,11 @@ import { callView } from "./view-registry.js";
         return;
       }
       await handleRoomEvent(type, data);
-    }, signal, streamUserIdForRoom()).catch(() => {}).finally(() => {
+    }, signal, streamUserId).catch(() => {}).finally(() => {
+      if (roomEventStreamKey !== boundStreamKey) return;
       const shouldReconnect = roomStore.get().roomEventsConnected && zhimuApi.context.roomId === boundRoom && !signal.aborted;
+      roomEventAbort = null;
+      roomEventStreamKey = "";
       roomStore.set({ roomEventsConnected: false });
       syncDirectorPolling();
       if (shouldReconnect) scheduleRoomEventReconnect();

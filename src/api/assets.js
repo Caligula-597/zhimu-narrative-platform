@@ -1,7 +1,7 @@
 /**
  * Assets domain — storage usage, asset CRUD, upload, search.
  */
-import { demoContext, request } from "./client.js";
+import { demoContext, request, worldWrite } from "./client.js";
 
 export function getStorageUsage() {
   return request("/storage/usage", { userId: demoContext.hostUserId });
@@ -17,11 +17,11 @@ export function getAssets(params = {}) {
 }
 
 export function deleteAsset(assetId) {
-  return request(`/assets/${assetId}`, { userId: demoContext.hostUserId, method: "DELETE" });
+  return worldWrite(`/assets/${assetId}`, { method: "DELETE" });
 }
 
 export function restoreAsset(assetId) {
-  return request(`/assets/${assetId}/restore`, { userId: demoContext.hostUserId, method: "POST" });
+  return worldWrite(`/assets/${assetId}/restore`, { method: "POST" });
 }
 
 export function getAssetDownloadUrl(assetId) {
@@ -46,8 +46,7 @@ export async function uploadAsset(file) {
     body: file
   });
   if (!upload.ok) throw new Error("上传失败，请检查网络或存储配置");
-  return request(`/assets/${ticket.assetId}/confirm`, {
-    userId: demoContext.hostUserId,
+  return worldWrite(`/assets/${ticket.assetId}/confirm`, {
     method: "POST"
   });
 }

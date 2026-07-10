@@ -1,4 +1,4 @@
-import { query, transaction } from "../db.js";
+import { query } from "../db.js";
 import { deleteWorldChapter, buildWorldSnapshot } from "./world-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { sendErr, throwErr } from "../api-errors.js";
@@ -152,14 +152,16 @@ export async function registerStudioGraphRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const table = STORY_LAYOUT_TABLES[nodeType];
     if (!table) return sendErr(reply, "NODE_TYPE_DRAG_UNSUPPORTED");
-    const result = await query(
-      `UPDATE ${table}
-       SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{graphPosition}', $1::jsonb, true)
-       WHERE id = $2 AND world_id = $3 RETURNING id, metadata`,
-      [JSON.stringify({ x: Math.round(x), y: Math.round(y) }), nodeId, worldId]
-    );
-    if (!result.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
-    return result.rows[0];
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `UPDATE ${table}
+         SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{graphPosition}', $1::jsonb, true)
+         WHERE id = $2 AND world_id = $3 RETURNING id, metadata`,
+        [JSON.stringify({ x: Math.round(x), y: Math.round(y) }), nodeId, worldId]
+      );
+      if (!result.rowCount) throwErr("STUDIO_NODE_NOT_FOUND");
+      return result.rows[0];
+    }, { sendErr });
   });
 
   app.put("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/anchors", { schema: updateNodeAnchorsSchema }, async (request, reply) => {
@@ -170,20 +172,22 @@ export async function registerStudioGraphRoutes(app) {
     const tables = { scene: "scenes", clue: "clues", investigation_point: "investigation_points", item: "items" };
     const table = tables[nodeType];
     if (!table) return sendErr(reply, "NODE_TYPE_DRAG_UNSUPPORTED");
-    const normalized = anchors.map((anchor) => {
-      if (!anchor?.id || typeof anchor.id !== "string" || !Number.isFinite(anchor.x) || !Number.isFinite(anchor.y)) {
-        throwErr("ANCHOR_FIELDS_INVALID");
-      }
-      return { id: anchor.id.slice(0, 80), x: Math.round(Math.max(0, Math.min(156, anchor.x))), y: Math.round(Math.max(0, Math.min(124, anchor.y))) };
-    });
-    const result = await query(
-      `UPDATE ${table}
-       SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{graphAnchors}', $1::jsonb, true)
-       WHERE id = $2 AND world_id = $3 RETURNING id, metadata`,
-      [JSON.stringify(normalized), nodeId, worldId]
-    );
-    if (!result.rowCount) return sendErr(reply, "STUDIO_NODE_NOT_FOUND");
-    return result.rows[0];
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const normalized = anchors.map((anchor) => {
+        if (!anchor?.id || typeof anchor.id !== "string" || !Number.isFinite(anchor.x) || !Number.isFinite(anchor.y)) {
+          throwErr("ANCHOR_FIELDS_INVALID");
+        }
+        return { id: anchor.id.slice(0, 80), x: Math.round(Math.max(0, Math.min(156, anchor.x))), y: Math.round(Math.max(0, Math.min(124, anchor.y))) };
+      });
+      const result = await client.query(
+        `UPDATE ${table}
+         SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{graphAnchors}', $1::jsonb, true)
+         WHERE id = $2 AND world_id = $3 RETURNING id, metadata`,
+        [JSON.stringify(normalized), nodeId, worldId]
+      );
+      if (!result.rowCount) throwErr("STUDIO_NODE_NOT_FOUND");
+      return result.rows[0];
+    }, { sendErr });
   });
 
   app.put("/api/worlds/:worldId/story-layout", { schema: updateStoryLayoutSchema }, async (request, reply) => {
@@ -191,10 +195,10 @@ export async function registerStudioGraphRoutes(app) {
     const { worldId } = request.params;
     const { positions = [] } = request.body ?? {};
     await requireWorldRole(actorId, worldId);
-    await transaction(async (client) => {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
       await persistStoryLayoutPositions(client, worldId, positions);
-    });
-    return { ok: true, updated: positions.length };
+      return { ok: true, updated: positions.length };
+    }, { sendErr });
   });
 
   app.post("/api/worlds/:worldId/story-layout/auto", { schema: autoStoryLayoutSchema }, async (request, reply) => {
@@ -202,18 +206,18 @@ export async function registerStudioGraphRoutes(app) {
     const { worldId } = request.params;
     const mode = request.body?.mode ?? "scene-tree";
     await requireWorldRole(actorId, worldId);
-    const snapshot = await buildWorldSnapshot(worldId);
-    const positions = computeStoryLayout(snapshot, mode);
-    await transaction(async (client) => {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const snapshot = await buildWorldSnapshot(worldId, client);
+      const positions = computeStoryLayout(snapshot, mode);
       await persistStoryLayoutPositions(client, worldId, positions);
-    });
-    const preset = STUDIO_LAYOUT_MODES[mode];
-    return {
-      ok: true,
-      mode,
-      label: preset?.label ?? mode,
-      updated: positions.length,
-      positions
-    };
+      const preset = STUDIO_LAYOUT_MODES[mode];
+      return {
+        ok: true,
+        mode,
+        label: preset?.label ?? mode,
+        updated: positions.length,
+        positions
+      };
+    }, { sendErr });
   });
 }

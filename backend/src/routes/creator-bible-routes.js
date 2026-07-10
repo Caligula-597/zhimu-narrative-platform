@@ -3,9 +3,13 @@
  */
 import {
   normalizeCoreTrickBody,
+  normalizeCoreTrickPatch,
   normalizeForeshadowBody,
+  normalizeForeshadowPatch,
   normalizeRoleArchiveBody,
-  normalizeTimelineEventBody
+  normalizeRoleArchivePatch,
+  normalizeTimelineEventBody,
+  normalizeTimelineEventPatch
 } from "../creator-bible-contract.js";
 import {
   createForeshadowBeat,
@@ -23,9 +27,10 @@ import {
   upsertCoreTrick,
   upsertRoleArchive
 } from "../creator-bible.js";
-import { sendErr } from "../api-errors.js";
+import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldReader, requireWorldRole } from "./route-guards.js";
+import { runRevisionMutation } from "../world-revision.js";
 import {
   bibleBeatIdParams,
   bibleEventIdParams,
@@ -58,9 +63,11 @@ export async function registerCreatorBibleRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const body = normalizeCoreTrickBody(request.body ?? {});
-    const coreTrick = await upsertCoreTrick(worldId, body);
-    return reply.send({ coreTrick });
+    const body = normalizeCoreTrickPatch(request.body ?? {});
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const coreTrick = await upsertCoreTrick(worldId, body, { patch: true, client });
+      return { coreTrick };
+    }, { sendErr });
   });
 
   app.get("/api/worlds/:worldId/bible/role-archives", { schema: { params: worldIdParams } }, async (request) => {
@@ -83,9 +90,11 @@ export async function registerCreatorBibleRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, roleSlotId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const body = normalizeRoleArchiveBody(request.body ?? {});
-    const archive = await upsertRoleArchive(worldId, roleSlotId, body);
-    return reply.send({ archive });
+    const body = normalizeRoleArchivePatch(request.body ?? {});
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const archive = await upsertRoleArchive(worldId, roleSlotId, body, { patch: true, client });
+      return { archive };
+    }, { sendErr });
   });
 
   app.get("/api/worlds/:worldId/bible/foreshadow-beats", { schema: { params: worldIdParams } }, async (request) => {
@@ -100,27 +109,33 @@ export async function registerCreatorBibleRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const body = normalizeForeshadowBody(request.body ?? {});
-    const beat = await createForeshadowBeat(worldId, body);
-    return reply.code(201).send({ beat });
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const beat = await createForeshadowBeat(worldId, body, client);
+      return { beat };
+    }, { sendErr, statusCode: 201 });
   });
 
   app.patch("/api/worlds/:worldId/bible/foreshadow-beats/:beatId", { schema: patchForeshadowBeatSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, beatId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const body = normalizeForeshadowBody(request.body ?? {});
-    const beat = await updateForeshadowBeat(worldId, beatId, body);
-    if (!beat) return sendErr(reply, "NOT_FOUND");
-    return { beat };
+    const patch = normalizeForeshadowPatch(request.body ?? {});
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const beat = await updateForeshadowBeat(worldId, beatId, patch, client);
+      if (!beat) throwErr("NOT_FOUND");
+      return { beat };
+    }, { sendErr });
   });
 
   app.delete("/api/worlds/:worldId/bible/foreshadow-beats/:beatId", { schema: { params: bibleBeatIdParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, beatId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const ok = await deleteForeshadowBeat(worldId, beatId);
-    if (!ok) return sendErr(reply, "NOT_FOUND");
-    return reply.code(204).send();
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const ok = await deleteForeshadowBeat(worldId, beatId, client);
+      if (!ok) throwErr("NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
   });
 
   app.get("/api/worlds/:worldId/bible/timeline-events", { schema: { params: worldIdParams } }, async (request) => {
@@ -135,26 +150,32 @@ export async function registerCreatorBibleRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const body = normalizeTimelineEventBody(request.body ?? {});
-    const event = await createTimelineEvent(worldId, body);
-    return reply.code(201).send({ event });
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const event = await createTimelineEvent(worldId, body, client);
+      return { event };
+    }, { sendErr, statusCode: 201 });
   });
 
   app.patch("/api/worlds/:worldId/bible/timeline-events/:eventId", { schema: patchTimelineEventSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, eventId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const body = normalizeTimelineEventBody(request.body ?? {});
-    const event = await updateTimelineEvent(worldId, eventId, body);
-    if (!event) return sendErr(reply, "NOT_FOUND");
-    return { event };
+    const patch = normalizeTimelineEventPatch(request.body ?? {});
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const event = await updateTimelineEvent(worldId, eventId, patch, client);
+      if (!event) throwErr("NOT_FOUND");
+      return { event };
+    }, { sendErr });
   });
 
   app.delete("/api/worlds/:worldId/bible/timeline-events/:eventId", { schema: { params: bibleEventIdParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, eventId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const ok = await deleteTimelineEvent(worldId, eventId);
-    if (!ok) return sendErr(reply, "NOT_FOUND");
-    return reply.code(204).send();
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const ok = await deleteTimelineEvent(worldId, eventId, client);
+      if (!ok) throwErr("NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
   });
 }

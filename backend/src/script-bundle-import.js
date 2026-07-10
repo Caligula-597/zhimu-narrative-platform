@@ -1,4 +1,4 @@
-import { query, transaction } from "./db.js";
+import { transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { assertWorldCreateQuota } from "./quota-guards.js";
 import { parseDocumentPayloadBase64 } from "./section-content.js";
@@ -80,6 +80,7 @@ export function analyzeScriptBundle(body) {
 }
 
 async function importSingleBundleFile({
+  client,
   worldId,
   actorId,
   file,
@@ -106,11 +107,9 @@ async function importSingleBundleFile({
       const mappedRoleId = roleMappings?.[classification.roleName] ?? roleMappings?.[normalizeRoleLabel(classification.roleName)];
       let role = mappedRoleId ? roleSlots.find((item) => item.id === mappedRoleId) : matchRoleSlotByName(roleSlots, classification.roleName);
       if (!role) {
-        role = await transaction(async (client) =>
-          ensureRoleSlot(client, worldId, classification.roleName, {
-            createMissingRoles: options.createMissingRoles !== false
-          })
-        );
+        role = await ensureRoleSlot(client, worldId, classification.roleName, {
+          createMissingRoles: options.createMissingRoles !== false
+        });
         if (role) roleSlots.push(role);
       }
       if (!role) {
@@ -129,7 +128,8 @@ async function importSingleBundleFile({
             title: classification.roleName,
             publicationStatus,
             layout: pdfLayout,
-            importKey
+            importKey,
+            client
           });
           return { relativePath, status: result.skipped ? "duplicate" : "imported", category: "role_script", mode: "pages", roleName: role.name, ...result };
         }
@@ -143,7 +143,8 @@ async function importSingleBundleFile({
         buffer,
         title: classification.roleName,
         publicationStatus,
-        importKey
+        importKey,
+        client
       });
       if (textResult.mode === "needs_pages") {
         const pageResult = await importPdfPagesToRoleWithKey({
@@ -155,7 +156,8 @@ async function importSingleBundleFile({
           title: classification.roleName,
           publicationStatus,
           layout: pdfLayout,
-          importKey
+          importKey,
+          client
         });
         return { relativePath, status: pageResult.skipped ? "duplicate" : "imported", category: "role_script", mode: "pages", roleName: role.name, ...pageResult };
       }
@@ -170,7 +172,8 @@ async function importSingleBundleFile({
         filename: classification.filename,
         buffer,
         contentType: imageContentType(extension),
-        importKey
+        importKey,
+        client
       });
       return { relativePath, status: result.skipped ? "duplicate" : "imported", category: "clue", ...result };
     }
@@ -183,7 +186,8 @@ async function importSingleBundleFile({
         buffer,
         contentType: imageContentType(extension),
         importKey,
-        label: classification.assetName || classification.label
+        label: classification.assetName || classification.label,
+        client
       });
       return { relativePath, status: result.skipped ? "duplicate" : "imported", category: "asset", ...result };
     }
@@ -200,18 +204,17 @@ async function importSingleBundleFile({
             contentType: "application/pdf",
             importKey,
             label: classification.title,
-            assetKind: "document"
+            assetKind: "document",
+            client
           });
-          await transaction(async (client) =>
+          await (async () =>
             appendStoryManuscript(client, worldId, actorId, `（${classification.title} - 图片 PDF，已作为素材 ${pageResult.assetId} 保存）`, classification.title)
-          );
+          )();
           return { relativePath, status: "imported", category: classification.category, mode: "pdf_asset", ...pageResult };
         }
       }
       const text = await extractDocumentText(buffer, classification.filename);
-      await transaction(async (client) => {
-        await appendStoryManuscript(client, worldId, actorId, text, classification.title || classification.label);
-      });
+      await appendStoryManuscript(client, worldId, actorId, text, classification.title || classification.label);
       return { relativePath, status: "imported", category: classification.category, mode: "manuscript_text" };
     }
 
@@ -226,12 +229,12 @@ async function importSingleBundleFile({
   }
 }
 
-export async function importScriptBundleToWorld(worldId, actorId, body, options = {}) {
+export async function importScriptBundleToWorldWithClient(client, worldId, actorId, body, options = {}) {
   const buffer = loadScriptBundleBuffer(body);
   const extracted = extractScriptBundleZip(buffer);
   const analysis = analyzeScriptBundleBuffer(buffer);
 
-  const roleSlots = await query(`SELECT id, name, sequence, public_profile FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]).then(
+  const roleSlots = await client.query(`SELECT id, name, sequence, public_profile FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]).then(
     (result) => result.rows
   );
 
@@ -239,6 +242,7 @@ export async function importScriptBundleToWorld(worldId, actorId, body, options 
   for (const file of extracted.files) {
     results.push(
       await importSingleBundleFile({
+        client,
         worldId,
         actorId,
         file,
@@ -255,7 +259,7 @@ export async function importScriptBundleToWorld(worldId, actorId, body, options 
   const failed = results.filter((item) => item.status === "failed");
   const skipped = results.filter((item) => item.status === "skipped");
 
-  await query(
+  await client.query(
     `UPDATE worlds
      SET settings = COALESCE(settings, '{}'::jsonb) || jsonb_build_object(
        'lastScriptBundleImportAt', to_jsonb(now()),
@@ -284,6 +288,10 @@ export async function importScriptBundleToWorld(worldId, actorId, body, options 
     warnings: analysis.warnings,
     results
   };
+}
+
+export async function importScriptBundleToWorld(worldId, actorId, body, options = {}) {
+  return transaction((client) => importScriptBundleToWorldWithClient(client, worldId, actorId, body, options));
 }
 
 export async function createWorldFromScriptBundle(actorId, body, options = {}) {

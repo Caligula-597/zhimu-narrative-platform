@@ -23,9 +23,10 @@ function createdPublicTables(sql) {
 }
 
 function rlsMigrationTables(sql) {
-  const migration = sql.match(/rls_tables\s+text\[\]\s*:=\s*ARRAY\[(?<body>[\s\S]*?)\];/i)?.groups?.body ?? "";
   const tables = [];
-  for (const match of migration.matchAll(/'([a-zA-Z_][a-zA-Z0-9_]*)'/g)) tables.push(match[1]);
+  for (const block of sql.matchAll(/rls_tables\s+text\[\]\s*:=\s*ARRAY\[([\s\S]*?)\];/gi)) {
+    for (const match of block[1].matchAll(/'([a-zA-Z_][a-zA-Z0-9_]*)'/g)) tables.push(match[1]);
+  }
   return [...new Set(tables)].sort();
 }
 

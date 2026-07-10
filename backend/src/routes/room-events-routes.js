@@ -5,8 +5,14 @@ import { requireRoomRole } from "./route-guards.js";
 import { roomIdParams } from "./schemas.js";
 
 function writeSseEvent(raw, { id, payload }) {
-  if (id !== undefined && id !== null) raw.write(`id: ${id}\n`);
-  raw.write(`data: ${payload}\n\n`);
+  try {
+    if (raw.destroyed || raw.writableEnded) return false;
+    if (id !== undefined && id !== null) raw.write(`id: ${id}\n`);
+    raw.write(`data: ${payload}\n\n`);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function registerRoomEventsRoutes(app) {
@@ -28,10 +34,10 @@ export async function registerRoomEventsRoutes(app) {
       try {
         const replay = await fetchJournalEventsAfter(roomId, lastEventId);
         for (const row of replay) {
-          writeSseEvent(reply.raw, {
+          if (!writeSseEvent(reply.raw, {
             id: row.id,
             payload: JSON.stringify(row.payload)
-          });
+          })) break;
         }
       } catch {
         /* replay failure should not block live stream */
@@ -42,20 +48,25 @@ export async function registerRoomEventsRoutes(app) {
       payload: JSON.stringify({ type: "connected", roomId, at: new Date().toISOString() })
     });
 
-    const unsubscribe = subscribeRoomEvents(roomId, (message) => {
-      const envelope = typeof message === "string" ? { payload: message } : message;
-      writeSseEvent(reply.raw, envelope);
-    });
-    const heartbeat = setInterval(() => {
-      writeSseEvent(reply.raw, {
-        payload: JSON.stringify({ type: "heartbeat", roomId, at: new Date().toISOString() })
-      });
-    }, 25000);
-
+    let closed = false;
+    let unsubscribe = () => {};
     const cleanup = () => {
+      if (closed) return;
+      closed = true;
       clearInterval(heartbeat);
       unsubscribe();
     };
+
+    unsubscribe = subscribeRoomEvents(roomId, (message) => {
+      const envelope = typeof message === "string" ? { payload: message } : message;
+      if (!writeSseEvent(reply.raw, envelope)) cleanup();
+    });
+    const heartbeat = setInterval(() => {
+      if (!writeSseEvent(reply.raw, {
+        payload: JSON.stringify({ type: "heartbeat", roomId, at: new Date().toISOString() })
+      })) cleanup();
+    }, 25000);
+    heartbeat.unref?.();
 
     request.raw.on("close", cleanup);
     request.raw.on("error", cleanup);

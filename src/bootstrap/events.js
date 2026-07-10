@@ -4,12 +4,28 @@ import { closeModal } from "../components/modal.js";
 import { activeRuntimeRoom } from "../components/emptyState.js";
 
 export function initEvents({ content, modalBackdrop, R, go }) {
-  content.addEventListener("click", (event) => {
+  function dispatchDelegatedAction(event, root) {
     const nav = event.target.closest("[data-go]");
-    if (nav) {
+    if (nav && root.contains(nav)) {
       event.preventDefault();
       go(nav.dataset.go);
+      return true;
     }
+    const action = event.target.closest("[data-action]");
+    if (action && root.contains(action)) {
+      event.preventDefault();
+      R.handle?.(action.dataset.action, action);
+      return true;
+    }
+    return false;
+  }
+
+  content.addEventListener("click", (event) => {
+    dispatchDelegatedAction(event, content);
+  });
+  content.addEventListener("change", (event) => {
+    const action = event.target.closest("[data-action]");
+    if (action && content.contains(action)) R.handle?.(action.dataset.action, action);
   });
 
   document.querySelectorAll(".nav-item[data-view]").forEach((btn) => btn.addEventListener("click", () => go(btn.dataset.view)));
@@ -29,7 +45,12 @@ export function initEvents({ content, modalBackdrop, R, go }) {
   document.querySelector("#catalog-world-btn")?.addEventListener("click", () => R.openWorldLibrary("catalog"));
   document.querySelector(".world-switcher").onclick = () => R.openWorldLibrary();
   document.querySelector(".profile").onclick = () => R.openAuth();
-  modalBackdrop.onclick = (e) => {
-    if (e.target === modalBackdrop) closeModal();
+  modalBackdrop.onclick = (event) => {
+    if (dispatchDelegatedAction(event, modalBackdrop)) return;
+    if (event.target === modalBackdrop) closeModal();
   };
+  modalBackdrop.addEventListener("change", (event) => {
+    const action = event.target.closest("[data-action]");
+    if (action && modalBackdrop.contains(action)) R.handle?.(action.dataset.action, action);
+  });
 }

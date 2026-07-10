@@ -77,11 +77,9 @@ function renderHistogram(name, help) {
     const [method, ...routeParts] = key.split(" ");
     const route = routeParts.join(" ");
     const baseLabels = { method, route };
-    let cumulative = 0;
     for (let i = 0; i < durationBuckets.length; i++) {
-      cumulative += entry.buckets[i];
       lines.push(
-        `${name}_bucket${formatLabels({ ...baseLabels, le: String(durationBuckets[i]) })} ${cumulative}`
+        `${name}_bucket${formatLabels({ ...baseLabels, le: String(durationBuckets[i]) })} ${entry.buckets[i]}`
       );
     }
     lines.push(`${name}_bucket${formatLabels({ ...baseLabels, le: "+Inf" })} ${entry.count}`);

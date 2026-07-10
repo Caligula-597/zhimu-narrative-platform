@@ -2,6 +2,27 @@
  * Creator bible — row mappers and summary aggregation for structural story objects.
  */
 import { query } from "./db.js";
+import { throwErr } from "./api-errors.js";
+import {
+  assertRoleSlotInWorld,
+  validateCoreTrickRefs,
+  validateForeshadowPatch,
+  validateForeshadowRefs,
+  validateTimelinePatch,
+  validateTimelineRefs
+} from "./creator-bible-guards.js";
+import {
+  mergeCoreTrickPatch,
+  mergeRoleArchivePatch,
+  normalizeCoreTrickBody,
+  normalizeForeshadowBody,
+  normalizeRoleArchiveBody,
+  normalizeTimelineEventBody
+} from "./creator-bible-contract.js";
+
+function run(client) {
+  return client?.query ? client.query.bind(client) : query;
+}
 
 function coreTrickRow(row) {
   if (!row) return null;
@@ -19,6 +40,7 @@ function coreTrickRow(row) {
 }
 
 function roleArchiveRow(row) {
+  if (!row) return null;
   return {
     id: row.id,
     worldId: row.world_id,
@@ -41,6 +63,7 @@ function roleArchiveRow(row) {
 }
 
 function foreshadowRow(row) {
+  if (!row) return null;
   return {
     id: row.id,
     worldId: row.world_id,
@@ -62,6 +85,7 @@ function foreshadowRow(row) {
 }
 
 function timelineEventRow(row) {
+  if (!row) return null;
   return {
     id: row.id,
     worldId: row.world_id,
@@ -134,13 +158,17 @@ export async function loadBibleSummary(worldId) {
   };
 }
 
-export async function getCoreTrick(worldId) {
-  const result = await query(`SELECT * FROM world_core_tricks WHERE world_id = $1`, [worldId]);
+export async function getCoreTrick(worldId, client = null) {
+  const db = run(client);
+  const result = await db(`SELECT * FROM world_core_tricks WHERE world_id = $1`, [worldId]);
   return coreTrickRow(result.rows[0]);
 }
 
-export async function upsertCoreTrick(worldId, body) {
-  const result = await query(
+export async function upsertCoreTrick(worldId, body, { patch = false, client = null } = {}) {
+  const db = run(client);
+  const payload = patch ? mergeCoreTrickPatch(await getCoreTrick(worldId, client), body) : normalizeCoreTrickBody(body);
+  await validateCoreTrickRefs(worldId, payload, client);
+  const result = await db(
     `INSERT INTO world_core_tricks
       (world_id, summary, killer_role_slot_id, method, motive, victim, host_notes, metadata, updated_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, now())
@@ -156,13 +184,13 @@ export async function upsertCoreTrick(worldId, body) {
      RETURNING *`,
     [
       worldId,
-      body.summary || "",
-      body.killerRoleSlotId || null,
-      body.method || "",
-      body.motive || "",
-      body.victim || "",
-      body.hostNotes || "",
-      JSON.stringify(body.metadata || {})
+      payload.summary || "",
+      payload.killerRoleSlotId || null,
+      payload.method || "",
+      payload.motive || "",
+      payload.victim || "",
+      payload.hostNotes || "",
+      JSON.stringify(payload.metadata || {})
     ]
   );
   return coreTrickRow(result.rows[0]);
@@ -180,8 +208,9 @@ export async function listRoleArchives(worldId) {
   return result.rows.map(roleArchiveRow);
 }
 
-export async function getRoleArchive(worldId, roleSlotId) {
-  const result = await query(
+export async function getRoleArchive(worldId, roleSlotId, client = null) {
+  const db = run(client);
+  const result = await db(
     `SELECT wra.*, rs.name AS role_name
      FROM world_role_archives wra
      JOIN role_slots rs ON rs.id = wra.role_slot_id
@@ -191,13 +220,19 @@ export async function getRoleArchive(worldId, roleSlotId) {
   return roleArchiveRow(result.rows[0]);
 }
 
-export async function upsertRoleArchive(worldId, roleSlotId, body) {
-  const result = await query(
+export async function upsertRoleArchive(worldId, roleSlotId, body, { patch = false, client = null } = {}) {
+  const db = run(client);
+  await assertRoleSlotInWorld(worldId, roleSlotId, client);
+  const payload = patch
+    ? mergeRoleArchivePatch(await getRoleArchive(worldId, roleSlotId, client), body)
+    : normalizeRoleArchiveBody(body);
+  const result = await db(
     `INSERT INTO world_role_archives
       (world_id, role_slot_id, public_identity, hidden_identity, external_goal, internal_need,
        secret, action_line, inner_conflict, voice_hints, arc, lies, act_tasks, metadata, updated_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12::jsonb, $13::jsonb, $14::jsonb, now())
      ON CONFLICT (role_slot_id) DO UPDATE SET
+       world_id = EXCLUDED.world_id,
        public_identity = EXCLUDED.public_identity,
        hidden_identity = EXCLUDED.hidden_identity,
        external_goal = EXCLUDED.external_goal,
@@ -211,26 +246,28 @@ export async function upsertRoleArchive(worldId, roleSlotId, body) {
        act_tasks = EXCLUDED.act_tasks,
        metadata = EXCLUDED.metadata,
        updated_at = now()
+     WHERE world_role_archives.world_id = EXCLUDED.world_id
      RETURNING *`,
     [
       worldId,
       roleSlotId,
-      body.publicIdentity || "",
-      body.hiddenIdentity || "",
-      body.externalGoal || "",
-      body.internalNeed || "",
-      body.secret || "",
-      body.actionLine || "",
-      body.innerConflict || "",
-      body.voiceHints || "",
-      JSON.stringify(body.arc || {}),
-      JSON.stringify(body.lies || []),
-      JSON.stringify(body.actTasks || []),
-      JSON.stringify(body.metadata || {})
+      payload.publicIdentity || "",
+      payload.hiddenIdentity || "",
+      payload.externalGoal || "",
+      payload.internalNeed || "",
+      payload.secret || "",
+      payload.actionLine || "",
+      payload.innerConflict || "",
+      payload.voiceHints || "",
+      JSON.stringify(payload.arc || {}),
+      JSON.stringify(payload.lies || []),
+      JSON.stringify(payload.actTasks || []),
+      JSON.stringify(payload.metadata || {})
     ]
   );
+  if (!result.rowCount) throwErr("ROLE_SLOT_WORLD_MISMATCH");
   const row = result.rows[0];
-  const nameResult = await query(`SELECT name FROM role_slots WHERE id = $1`, [roleSlotId]);
+  const nameResult = await db(`SELECT name FROM role_slots WHERE id = $1`, [roleSlotId]);
   row.role_name = nameResult.rows[0]?.name;
   return roleArchiveRow(row);
 }
@@ -243,8 +280,11 @@ export async function listForeshadowBeats(worldId) {
   return result.rows.map(foreshadowRow);
 }
 
-export async function createForeshadowBeat(worldId, body) {
-  const result = await query(
+export async function createForeshadowBeat(worldId, body, client = null) {
+  const db = run(client);
+  const payload = normalizeForeshadowBody(body);
+  await validateForeshadowRefs(worldId, payload, client);
+  const result = await db(
     `INSERT INTO world_foreshadow_beats
       (world_id, title, plant_summary, surface_meaning, true_meaning, payoff_summary, sequence,
        plant_chapter_id, payoff_chapter_id, plant_section_id, payoff_section_id, clue_id, metadata)
@@ -252,25 +292,27 @@ export async function createForeshadowBeat(worldId, body) {
      RETURNING *`,
     [
       worldId,
-      body.title || "",
-      body.plantSummary || "",
-      body.surfaceMeaning || "",
-      body.trueMeaning || "",
-      body.payoffSummary || "",
-      body.sequence || 1,
-      body.plantChapterId || null,
-      body.payoffChapterId || null,
-      body.plantSectionId || null,
-      body.payoffSectionId || null,
-      body.clueId || null,
-      JSON.stringify(body.metadata || {})
+      payload.title || "",
+      payload.plantSummary || "",
+      payload.surfaceMeaning || "",
+      payload.trueMeaning || "",
+      payload.payoffSummary || "",
+      payload.sequence || 1,
+      payload.plantChapterId || null,
+      payload.payoffChapterId || null,
+      payload.plantSectionId || null,
+      payload.payoffSectionId || null,
+      payload.clueId || null,
+      JSON.stringify(payload.metadata || {})
     ]
   );
   return foreshadowRow(result.rows[0]);
 }
 
-export async function updateForeshadowBeat(worldId, beatId, body) {
-  const result = await query(
+export async function updateForeshadowBeat(worldId, beatId, patch, client = null) {
+  const db = run(client);
+  await validateForeshadowPatch(worldId, patch, client);
+  const result = await db(
     `UPDATE world_foreshadow_beats SET
        title = COALESCE($3, title),
        plant_summary = COALESCE($4, plant_summary),
@@ -278,11 +320,11 @@ export async function updateForeshadowBeat(worldId, beatId, body) {
        true_meaning = COALESCE($6, true_meaning),
        payoff_summary = COALESCE($7, payoff_summary),
        sequence = COALESCE($8, sequence),
-       plant_chapter_id = COALESCE($9, plant_chapter_id),
-       payoff_chapter_id = COALESCE($10, payoff_chapter_id),
-       plant_section_id = COALESCE($11, plant_section_id),
-       payoff_section_id = COALESCE($12, payoff_section_id),
-       clue_id = COALESCE($13, clue_id),
+       plant_chapter_id = CASE WHEN $15 THEN $9 ELSE plant_chapter_id END,
+       payoff_chapter_id = CASE WHEN $16 THEN $10 ELSE payoff_chapter_id END,
+       plant_section_id = CASE WHEN $17 THEN $11 ELSE plant_section_id END,
+       payoff_section_id = CASE WHEN $18 THEN $12 ELSE payoff_section_id END,
+       clue_id = CASE WHEN $19 THEN $13 ELSE clue_id END,
        metadata = COALESCE($14::jsonb, metadata),
        updated_at = now()
      WHERE id = $1 AND world_id = $2
@@ -290,25 +332,31 @@ export async function updateForeshadowBeat(worldId, beatId, body) {
     [
       beatId,
       worldId,
-      body.title,
-      body.plantSummary,
-      body.surfaceMeaning,
-      body.trueMeaning,
-      body.payoffSummary,
-      body.sequence,
-      body.plantChapterId,
-      body.payoffChapterId,
-      body.plantSectionId,
-      body.payoffSectionId,
-      body.clueId,
-      body.metadata != null ? JSON.stringify(body.metadata) : null
+      patch.title,
+      patch.plantSummary,
+      patch.surfaceMeaning,
+      patch.trueMeaning,
+      patch.payoffSummary,
+      patch.sequence,
+      patch.plantChapterId,
+      patch.payoffChapterId,
+      patch.plantSectionId,
+      patch.payoffSectionId,
+      patch.clueId,
+      patch.metadata !== undefined ? JSON.stringify(patch.metadata) : null,
+      Object.hasOwn(patch, "plantChapterId"),
+      Object.hasOwn(patch, "payoffChapterId"),
+      Object.hasOwn(patch, "plantSectionId"),
+      Object.hasOwn(patch, "payoffSectionId"),
+      Object.hasOwn(patch, "clueId")
     ]
   );
   return foreshadowRow(result.rows[0]);
 }
 
-export async function deleteForeshadowBeat(worldId, beatId) {
-  const result = await query(
+export async function deleteForeshadowBeat(worldId, beatId, client = null) {
+  const db = run(client);
+  const result = await db(
     `DELETE FROM world_foreshadow_beats WHERE id = $1 AND world_id = $2 RETURNING id`,
     [beatId, worldId]
   );
@@ -323,35 +371,40 @@ export async function listTimelineEvents(worldId) {
   return result.rows.map(timelineEventRow);
 }
 
-export async function createTimelineEvent(worldId, body) {
-  const result = await query(
+export async function createTimelineEvent(worldId, body, client = null) {
+  const db = run(client);
+  const payload = normalizeTimelineEventBody(body);
+  await validateTimelineRefs(worldId, payload, client);
+  const result = await db(
     `INSERT INTO world_timeline_events
       (world_id, time_label, event_summary, sequence, chapter_id, scene_id, participant_role_ids, alibi_notes, metadata)
      VALUES ($1,$2,$3,$4,$5,$6,$7::uuid[],$8,$9::jsonb)
      RETURNING *`,
     [
       worldId,
-      body.timeLabel || "",
-      body.eventSummary || "",
-      body.sequence || 1,
-      body.chapterId || null,
-      body.sceneId || null,
-      body.participantRoleIds || [],
-      body.alibiNotes || "",
-      JSON.stringify(body.metadata || {})
+      payload.timeLabel || "",
+      payload.eventSummary || "",
+      payload.sequence || 1,
+      payload.chapterId || null,
+      payload.sceneId || null,
+      payload.participantRoleIds || [],
+      payload.alibiNotes || "",
+      JSON.stringify(payload.metadata || {})
     ]
   );
   return timelineEventRow(result.rows[0]);
 }
 
-export async function updateTimelineEvent(worldId, eventId, body) {
-  const result = await query(
+export async function updateTimelineEvent(worldId, eventId, patch, client = null) {
+  const db = run(client);
+  await validateTimelinePatch(worldId, patch, client);
+  const result = await db(
     `UPDATE world_timeline_events SET
        time_label = COALESCE($3, time_label),
        event_summary = COALESCE($4, event_summary),
        sequence = COALESCE($5, sequence),
-       chapter_id = COALESCE($6, chapter_id),
-       scene_id = COALESCE($7, scene_id),
+       chapter_id = CASE WHEN $11 THEN $6 ELSE chapter_id END,
+       scene_id = CASE WHEN $12 THEN $7 ELSE scene_id END,
        participant_role_ids = COALESCE($8::uuid[], participant_role_ids),
        alibi_notes = COALESCE($9, alibi_notes),
        metadata = COALESCE($10::jsonb, metadata),
@@ -361,21 +414,24 @@ export async function updateTimelineEvent(worldId, eventId, body) {
     [
       eventId,
       worldId,
-      body.timeLabel,
-      body.eventSummary,
-      body.sequence,
-      body.chapterId,
-      body.sceneId,
-      body.participantRoleIds,
-      body.alibiNotes,
-      body.metadata != null ? JSON.stringify(body.metadata) : null
+      patch.timeLabel,
+      patch.eventSummary,
+      patch.sequence,
+      patch.chapterId,
+      patch.sceneId,
+      patch.participantRoleIds,
+      patch.alibiNotes,
+      patch.metadata !== undefined ? JSON.stringify(patch.metadata) : null,
+      Object.hasOwn(patch, "chapterId"),
+      Object.hasOwn(patch, "sceneId")
     ]
   );
   return timelineEventRow(result.rows[0]);
 }
 
-export async function deleteTimelineEvent(worldId, eventId) {
-  const result = await query(
+export async function deleteTimelineEvent(worldId, eventId, client = null) {
+  const db = run(client);
+  const result = await db(
     `DELETE FROM world_timeline_events WHERE id = $1 AND world_id = $2 RETURNING id`,
     [eventId, worldId]
   );

@@ -16,6 +16,10 @@ function baseName(filename) {
   return String(filename ?? "导入文档").replace(/\.[^.]+$/, "") || "导入文档";
 }
 
+function runWithClient(client, work) {
+  return client ? work(client) : transaction(work);
+}
+
 export async function detectPdfImportMode(buffer) {
   const doc = await loadPdfDocument(buffer);
   const textResult = await extractPdfTextFromDocument(doc);
@@ -49,10 +53,12 @@ export async function importPdfPagesToRoleScript({
   buffer,
   title = null,
   publicationStatus = "draft",
-  layout = "single_section"
+  layout = "single_section",
+  renderedPages = null,
+  client: existingClient = null
 }) {
   if (!buffer?.length || buffer.length > MAX_DOCUMENT_BYTES) throwErr("DOCUMENT_SIZE_INVALID");
-  const role = await transaction(async (client) => {
+  const role = await runWithClient(existingClient, async (client) => {
     const roleRow = await client.query(
       `SELECT rs.id, rs.name FROM role_slots rs WHERE rs.id = $1 AND rs.world_id = $2`,
       [roleSlotId, worldId]
@@ -61,11 +67,11 @@ export async function importPdfPagesToRoleScript({
     return roleRow.rows[0];
   });
 
-  const { pageCount, pages } = await renderPdfPageBuffers(buffer);
+  const { pageCount, pages } = renderedPages ?? await renderPdfPageBuffers(buffer);
   const stem = baseName(filename);
   const importKey = `pdf-pages:${stem}:${pageCount}:${buffer.length}`;
 
-  return transaction(async (client) => {
+  return runWithClient(existingClient, async (client) => {
     const existing = await client.query(
       `SELECT ss.id FROM script_sections ss
        WHERE ss.role_slot_id = $1 AND ss.metadata->>'importKey' = $2
@@ -168,13 +174,14 @@ export async function importImageFileToRoleSection({
   buffer,
   contentType,
   title = null,
-  publicationStatus = "draft"
+  publicationStatus = "draft",
+  client: existingClient = null
 }) {
   if (!buffer?.length || buffer.length > MAX_DOCUMENT_BYTES) throwErr("DOCUMENT_SIZE_INVALID");
   const stem = baseName(filename);
   const importKey = `image-page:${stem}:${buffer.length}`;
 
-  return transaction(async (client) => {
+  return runWithClient(existingClient, async (client) => {
     const roleRow = await client.query(
       `SELECT rs.id, rs.name FROM role_slots rs WHERE rs.id = $1 AND rs.world_id = $2`,
       [roleSlotId, worldId]

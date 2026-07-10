@@ -1,4 +1,4 @@
-import { query, transaction } from "../db.js";
+import { query } from "../db.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole, requireWorldReader } from "./route-guards.js";
@@ -35,14 +35,15 @@ import { runRevisionMutation } from "../world-revision.js";
 import {
   buildWorldSnapshot,
   classifyStoryDraft,
-  importDeepseekMysteryPackage,
-  importDeepseekPipelinePackage,
-  importDeepseekProposal,
+  importDeepseekMysteryPackageWithClient,
+  importDeepseekPipelinePackageWithClient,
+  importDeepseekProposalWithClient,
   renderStoryManuscript,
   storyDraftEdges,
   storyDraftSuggestions,
   syncManuscriptToGraph
 } from "./world-helpers.js";
+import { resolveClueKind } from "../clue-kind.js";
 import {
   deepseekImportSchema,
   deepseekMysteryImportSchema,
@@ -115,8 +116,9 @@ export async function registerStoryAssistantRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const result = await importDeepseekProposal(worldId, request.body?.proposal);
-    return reply.code(201).send(result);
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      return (await importDeepseekProposalWithClient(client, worldId, request.body?.proposal)).summary;
+    }, { sendErr, statusCode: 201 });
   });
 
   app.post("/api/worlds/:worldId/story-assistant/deepseek/full-mystery/propose", { schema: deepseekMysteryProposeSchema, preHandler: llmPreHandler }, async (request) => {
@@ -132,8 +134,9 @@ export async function registerStoryAssistantRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const mystery = request.body?.mystery;
     if (!mystery?.proposal || !mystery?.package) return sendErr(reply, "DEEPSEEK_PACKAGE_REQUIRED");
-    const result = await importDeepseekMysteryPackage(worldId, mystery);
-    return reply.code(201).send(result);
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      return importDeepseekMysteryPackageWithClient(client, worldId, mystery);
+    }, { sendErr, statusCode: 201 });
   });
 
   app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/spec", { schema: deepseekPipelineSpecSchema, preHandler: llmPreHandler }, async (request) => {
@@ -184,8 +187,9 @@ export async function registerStoryAssistantRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const pipeline = request.body?.pipeline;
     if (!pipeline?.proposal) return sendErr(reply, "DEEPSEEK_PACKAGE_REQUIRED");
-    const result = await importDeepseekPipelinePackage(worldId, pipeline);
-    return reply.code(201).send(result);
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      return importDeepseekPipelinePackageWithClient(client, worldId, pipeline);
+    }, { sendErr, statusCode: 201 });
   });
 
   app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/evaluate", { schema: deepseekPipelineEvaluateSchema, preHandler: llmPreHandler }, async (request) => {
@@ -330,33 +334,37 @@ export async function registerStoryAssistantRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const body = String(request.body?.body ?? "").trim();
     if (!body) return sendErr(reply, "STORY_MANUSCRIPT_REQUIRED");
-    const result = await query(
-      `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
-       VALUES ($1,$2,'manual',$3)
-       ON CONFLICT (world_id) DO UPDATE
-       SET body = EXCLUDED.body, last_sync_direction = 'manual',
-           updated_by_user_id = EXCLUDED.updated_by_user_id, updated_at = now()
-       RETURNING body, last_sync_direction, updated_at`,
-      [worldId, body, actorId]
-    );
-    return result.rows[0];
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
+         VALUES ($1,$2,'manual',$3)
+         ON CONFLICT (world_id) DO UPDATE
+         SET body = EXCLUDED.body, last_sync_direction = 'manual',
+             updated_by_user_id = EXCLUDED.updated_by_user_id, updated_at = now()
+         RETURNING body, last_sync_direction, updated_at`,
+        [worldId, body, actorId]
+      );
+      return result.rows[0];
+    }, { sendErr });
   });
 
-  app.post("/api/worlds/:worldId/story-manuscript/sync-from-graph", { schema: storyManuscriptSyncFromGraphSchema }, async (request) => {
+  app.post("/api/worlds/:worldId/story-manuscript/sync-from-graph", { schema: storyManuscriptSyncFromGraphSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const body = renderStoryManuscript(await buildWorldSnapshot(worldId));
-    const result = await query(
-      `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
-       VALUES ($1,$2,'graph_to_manuscript',$3)
-       ON CONFLICT (world_id) DO UPDATE
-       SET body = EXCLUDED.body, last_sync_direction = 'graph_to_manuscript',
-           updated_by_user_id = EXCLUDED.updated_by_user_id, updated_at = now()
-       RETURNING body, last_sync_direction, updated_at`,
-      [worldId, body, actorId]
-    );
-    return result.rows[0];
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const body = renderStoryManuscript(await buildWorldSnapshot(worldId, client));
+      const result = await client.query(
+        `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
+         VALUES ($1,$2,'graph_to_manuscript',$3)
+         ON CONFLICT (world_id) DO UPDATE
+         SET body = EXCLUDED.body, last_sync_direction = 'graph_to_manuscript',
+             updated_by_user_id = EXCLUDED.updated_by_user_id, updated_at = now()
+         RETURNING body, last_sync_direction, updated_at`,
+        [worldId, body, actorId]
+      );
+      return result.rows[0];
+    }, { sendErr });
   });
 
   app.post("/api/worlds/:worldId/story-manuscript/sync-to-graph", { schema: storyManuscriptSyncToGraphSchema }, async (request, reply) => {
@@ -387,7 +395,7 @@ export async function registerStoryAssistantRoutes(app) {
     if (!text) return sendErr(reply, "STORY_TEXT_REQUIRED");
     const drafts = classifyStoryDraft(text);
     if (!drafts.length) return sendErr(reply, "STORY_BLOCKS_EMPTY");
-    const result = await transaction(async (client) => {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
       const nodes = [], ids = new Map();
       let currentSceneId = null;
       for (const draft of drafts) {
@@ -401,9 +409,21 @@ export async function registerStoryAssistantRoutes(app) {
           ids.set(draft.key, { type: "scene", id: currentSceneId });
         } else if (draft.type === "clue") {
           const created = await client.query(
-            `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
-             VALUES ($1, $2, $3, $4, 'role', $5::jsonb) RETURNING id`,
-            [worldId, draft.name, draft.text, "剧情助手自动分类，等待创作者复核。", JSON.stringify({ source: "story_assistant" })]
+            `INSERT INTO clues (world_id, name, public_text, host_text, visibility, clue_kind, metadata)
+             VALUES ($1, $2, $3, $4, 'role', $5, $6::jsonb) RETURNING id`,
+            [
+              worldId,
+              draft.name,
+              draft.text,
+              "剧情助手自动分类，等待创作者复核。",
+              resolveClueKind({
+                draftType: draft.type,
+                name: draft.name,
+                text: draft.text,
+                metadata: { source: "story_assistant" }
+              }),
+              JSON.stringify({ source: "story_assistant" })
+            ]
           );
           ids.set(draft.key, { type: "clue", id: created.rows[0].id });
         } else {
@@ -444,8 +464,7 @@ export async function registerStoryAssistantRoutes(app) {
         if (created.rowCount) edges.push({ ...edge, id: created.rows[0].id });
       }
       return { nodes, edges, suggestions: storyDraftSuggestions(drafts) };
-    });
-    return reply.code(201).send(result);
+    }, { sendErr, statusCode: 201 });
   });
 
 }

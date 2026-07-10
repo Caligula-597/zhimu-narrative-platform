@@ -21,6 +21,25 @@ import {
   createStoryEdgeSchema
 } from "./schemas.js";
 
+const STUDIO_NODE_TABLES = {
+  chapter: "chapters",
+  scene: "scenes",
+  clue: "clues",
+  investigation_point: "investigation_points"
+};
+
+async function assertWorldEntity(client, table, id, worldId, code) {
+  if (!id) return;
+  const result = await client.query(`SELECT 1 FROM ${table} WHERE id = $1 AND world_id = $2`, [id, worldId]);
+  if (!result.rowCount) throwErr(code);
+}
+
+async function assertStoryEdgeEndpoint(client, worldId, type, id) {
+  const table = STUDIO_NODE_TABLES[type];
+  if (!table) throwErr("NODE_TYPE_UNSUPPORTED");
+  await assertWorldEntity(client, table, id, worldId, "STUDIO_NODE_NOT_FOUND");
+}
+
 export async function registerStudioRoutes(app) {
   app.post("/api/worlds/:worldId/scenes", { schema: createSceneSchema }, async (request, reply) => {
     const actorId = requireActor(request);
@@ -28,6 +47,7 @@ export async function registerStudioRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const { name, publicText = "", hostText = "", chapterId = null, metadata = {} } = request.body ?? {};
     return runRevisionMutation(request, reply, worldId, async (client) => {
+      await assertWorldEntity(client, "chapters", chapterId, worldId, "CHAPTER_NOT_FOUND");
       const result = await client.query(
         `INSERT INTO scenes (world_id, chapter_id, name, public_text, host_text, metadata)
          VALUES ($1, $2, $3, $4, $5, $6::jsonb) RETURNING *`,
@@ -59,6 +79,7 @@ export async function registerStudioRoutes(app) {
     const { name, publicText, hostText, chapterId, metadata = {} } = request.body ?? {};
     if (name !== undefined && !String(name).trim()) return sendErr(reply, "NAME_EMPTY");
     return runRevisionMutation(request, reply, worldId, async (client) => {
+      if (chapterId) await assertWorldEntity(client, "chapters", chapterId, worldId, "CHAPTER_NOT_FOUND");
       const updated = await client.query(
         `UPDATE scenes
          SET name = COALESCE($3, name),
@@ -133,6 +154,14 @@ export async function registerStudioRoutes(app) {
       const clue = await query(`SELECT 1 FROM clues WHERE id = $1 AND world_id = $2`, [clueId, worldId]);
       if (!clue.rowCount) return sendErr(reply, "CLUE_WORLD_MISMATCH");
     }
+    if (requiredItemId) {
+      const item = await query(`SELECT 1 FROM items WHERE id = $1 AND world_id = $2`, [requiredItemId, worldId]);
+      if (!item.rowCount) return sendErr(reply, "ITEM_NOT_FOUND");
+    }
+    if (requiredRoleSlotId) {
+      const role = await query(`SELECT 1 FROM role_slots WHERE id = $1 AND world_id = $2`, [requiredRoleSlotId, worldId]);
+      if (!role.rowCount) return sendErr(reply, "ROLE_SLOT_WORLD_MISMATCH");
+    }
     return runRevisionMutation(request, reply, worldId, async (client) => {
       const updated = await client.query(
         `UPDATE investigation_points
@@ -180,6 +209,9 @@ export async function registerStudioRoutes(app) {
       requiredItemId = null, requiredRoleSlotId = null, sequence = 0, metadata = {}
     } = request.body ?? {};
     return runRevisionMutation(request, reply, worldId, async (client) => {
+      await assertWorldEntity(client, "clues", clueId, worldId, "CLUE_WORLD_MISMATCH");
+      await assertWorldEntity(client, "items", requiredItemId, worldId, "ITEM_NOT_FOUND");
+      await assertWorldEntity(client, "role_slots", requiredRoleSlotId, worldId, "ROLE_SLOT_WORLD_MISMATCH");
       const result = await client.query(
         `INSERT INTO investigation_points
           (world_id, scene_id, name, description, interaction_text, result_text, clue_id,
@@ -409,6 +441,8 @@ export async function registerStudioRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const { fromType, fromId, toType, toId, relationType = "mainline", label = "" } = request.body ?? {};
     return runRevisionMutation(request, reply, worldId, async (client) => {
+      await assertStoryEdgeEndpoint(client, worldId, fromType, fromId);
+      await assertStoryEdgeEndpoint(client, worldId, toType, toId);
       const result = await client.query(
         `INSERT INTO story_graph_edges (world_id, from_type, from_id, to_type, to_id, relation_type, label)
          VALUES ($1, $2, $3, $4, $5, $6, $7)

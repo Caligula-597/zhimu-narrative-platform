@@ -18,6 +18,11 @@ import { normalizeError } from "../components/status-ui.js";
 
   let loadCloudDataPromise = null;
   let loadCloudDataKey = "";
+  let hostEventsRefreshSeq = 0;
+  let hostPlayersRefreshSeq = 0;
+  let hostAuditRefreshSeq = 0;
+  let hostClueMatrixRefreshSeq = 0;
+  let hostRoomRefreshSeq = 0;
 
 export async function ensureActiveWorld() {
     return workspaceStore.ensureActiveWorld();
@@ -25,13 +30,14 @@ export async function ensureActiveWorld() {
 
 export async function loadCloudData(withToast = false, force = false) {
     const key = zhimuApi.loadKey();
+    if (force && loadCloudDataPromise && loadCloudDataKey === key) return loadCloudDataPromise;
     if (force) {
       loadCloudDataPromise = null;
       loadCloudDataKey = "";
     }
     if (loadCloudDataPromise && loadCloudDataKey === key) return loadCloudDataPromise;
     loadCloudDataKey = key;
-    loadCloudDataPromise = loadCloudDataInternal(withToast).finally(() => {
+    loadCloudDataPromise = loadCloudDataInternal(withToast, true, key).finally(() => {
       if (loadCloudDataKey === key) {
         loadCloudDataPromise = null;
         loadCloudDataKey = "";
@@ -61,7 +67,11 @@ export async function loadCloudData(withToast = false, force = false) {
     }
   }
 
-  async function loadCloudDataInternal(withToast = false, allowRoomRecover = true) {
+  function isCurrentLoad(loadKey) {
+    return !loadKey || zhimuApi.loadKey() === loadKey;
+  }
+
+  async function loadCloudDataInternal(withToast = false, allowRoomRecover = true, activeLoadKey = zhimuApi.loadKey()) {
     studioStore.set({ cloudLoading: true });
     render();
     const errors = [];
@@ -175,7 +185,7 @@ export async function loadCloudData(withToast = false, force = false) {
           hasRoom = false;
           pushUniqueError(errors, "你不是该运行房的成员，已解除本地上次选中的房间。请重新选择或创建平行房。");
           if (allowRoomRecover && await trySelectOwnedRoom()) {
-            return loadCloudDataInternal(withToast, false);
+            return loadCloudDataInternal(withToast, false, zhimuApi.loadKey());
           }
         } else {
           take(phase2[0], (value) => { roomStore.set({ cloudPlayer: value }); }, () => { roomStore.set({ cloudPlayer: null }); });
@@ -217,9 +227,11 @@ export async function loadCloudData(withToast = false, force = false) {
       }
 
       void (async () => {
-        if (window.zhimuSessionAuth?.isAuthenticated?.()) {
+        const viewAtStart = uiStore.get().view;
+        if (window.zhimuSessionAuth?.isAuthenticated?.() && !["overview", "account", "settings"].includes(viewAtStart)) {
           try {
             const usage = await zhimuApi.getStorageUsage();
+            if (!isCurrentLoad(activeLoadKey)) return;
             assetStore.set({ storageUsage: usage });
             if (["settings", "overview", "account"].includes(uiStore.get().view)) render();
           } catch {
@@ -255,6 +267,7 @@ export async function loadCloudData(withToast = false, force = false) {
               ? zhimuApi.getCreatorChecks()
               : Promise.resolve({ checks: worldStore.get().cloudCreatorChecks })
         ]);
+        if (!isCurrentLoad(activeLoadKey)) return;
         take(phase3[0], (value) => { assetStore.set({ storageUsage: value }); });
         take(phase3[1], (value) => {
           if (Array.isArray(value)) {
@@ -281,7 +294,9 @@ export async function loadCloudData(withToast = false, force = false) {
         if (!currentRoom) return;
         voiceStore.set({ voiceRoomId: currentRoom.id, voiceRoom: currentRoom.name });
         try {
-          voiceStore.set({ voiceMessages: await zhimuApi.getVoiceMessages(currentRoom.id) });
+          const messages = await zhimuApi.getVoiceMessages(currentRoom.id);
+          if (!isCurrentLoad(activeLoadKey)) return;
+          voiceStore.set({ voiceMessages: messages });
           if (uiStore.get().view === "player") render();
         } catch (error) {
           userStore.set({ apiError: [userStore.get().apiError, error.message].filter(Boolean).join(" · ") });
@@ -314,13 +329,17 @@ export async function refreshHostEvents(withToast = false, silent = false) {
       if (withToast && !silent) showToast("请先选择运行房");
       return;
     }
+    const refreshSeq = ++hostEventsRefreshSeq;
+    const refreshKey = zhimuApi.loadKey();
     try {
       const cloudHostEvents = await zhimuApi.getHostEvents() || [];
+      if (refreshSeq !== hostEventsRefreshSeq || !isCurrentLoad(refreshKey)) return;
       roomStore.set({ cloudHostEvents });
       updateNotifyBadge();
       if (["director", "overview"].includes(uiStore.get().view)) render();
       if (withToast && !silent) showToast(`待确认事件已刷新（${cloudHostEvents.length} 条）`);
     } catch (error) {
+      if (refreshSeq !== hostEventsRefreshSeq || !isCurrentLoad(refreshKey)) return;
       if (withToast && !silent) reportError(error, "刷新待确认事件失败");
     }
   }
@@ -330,11 +349,16 @@ export async function refreshHostPlayers(withToast = false, silent = false) {
       if (withToast && !silent) showToast("请先选择运行房");
       return;
     }
+    const refreshSeq = ++hostPlayersRefreshSeq;
+    const refreshKey = zhimuApi.loadKey();
     try {
-      applyHostPlayersPayload(await zhimuApi.getHostPlayers());
+      const payload = await zhimuApi.getHostPlayers();
+      if (refreshSeq !== hostPlayersRefreshSeq || !isCurrentLoad(refreshKey)) return;
+      applyHostPlayersPayload(payload);
       if (["director", "overview"].includes(uiStore.get().view)) render();
       if (withToast && !silent) showToast(`玩家进度已刷新（${roomStore.get().cloudHostPlayers.filter((player) => player.joined).length} 人已加入）`);
     } catch (error) {
+      if (refreshSeq !== hostPlayersRefreshSeq || !isCurrentLoad(refreshKey)) return;
       failHostPlayersLoad(error);
       if (["director", "overview"].includes(uiStore.get().view)) render();
       if (withToast && !silent) reportError(error, "刷新玩家进度失败");
@@ -346,24 +370,33 @@ export async function refreshHostAuditLog(withToast = false, silent = false) {
       if (withToast && !silent) showToast("请先选择运行房");
       return;
     }
+    const refreshSeq = ++hostAuditRefreshSeq;
+    const refreshKey = zhimuApi.loadKey();
     try {
       const payload = await zhimuApi.getHostAuditLog();
+      if (refreshSeq !== hostAuditRefreshSeq || !isCurrentLoad(refreshKey)) return;
       const cloudHostAuditLog = payload?.entries || [];
       roomStore.set({ cloudHostAuditLog });
       if (uiStore.get().view === "director") render();
       if (withToast && !silent) showToast(`主持审计已刷新（${cloudHostAuditLog.length} 条）`);
     } catch (error) {
+      if (refreshSeq !== hostAuditRefreshSeq || !isCurrentLoad(refreshKey)) return;
       if (withToast && !silent) reportError(error, "刷新主持审计失败");
     }
   }
 
 export async function refreshHostClueMatrix(withToast = false, silent = false) {
     if (!zhimuApi.context.roomId) return;
+    const refreshSeq = ++hostClueMatrixRefreshSeq;
+    const refreshKey = zhimuApi.loadKey();
     try {
-      roomStore.set({ cloudHostClueMatrix: await zhimuApi.getHostClueMatrix() });
+      const cloudHostClueMatrix = await zhimuApi.getHostClueMatrix();
+      if (refreshSeq !== hostClueMatrixRefreshSeq || !isCurrentLoad(refreshKey)) return;
+      roomStore.set({ cloudHostClueMatrix });
       if (uiStore.get().view === "director") render();
       if (withToast && !silent) showToast("线索矩阵已刷新");
     } catch (error) {
+      if (refreshSeq !== hostClueMatrixRefreshSeq || !isCurrentLoad(refreshKey)) return;
       if (withToast && !silent) reportError(error, "刷新线索矩阵失败");
     }
   }
@@ -373,6 +406,8 @@ export async function refreshHostRoom(withToast = false) {
       if (withToast) showToast("请先选择运行房");
       return;
     }
+    const refreshSeq = ++hostRoomRefreshSeq;
+    const refreshKey = zhimuApi.loadKey();
     try {
       const logParams = { limit: "20", roomId: zhimuApi.context.roomId };
       const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog] = await Promise.all([
@@ -382,6 +417,7 @@ export async function refreshHostRoom(withToast = false) {
         zhimuApi.getHostClueMatrix(),
         zhimuApi.getHostAuditLog().catch(() => ({ entries: [] }))
       ]);
+      if (refreshSeq !== hostRoomRefreshSeq || !isCurrentLoad(refreshKey)) return;
       applyHostPlayersPayload(hostPlayers);
       const cloudHostEvents = hostEvents || [];
       const cloudWorldLogs = worldLogs || [];
@@ -395,6 +431,7 @@ export async function refreshHostRoom(withToast = false) {
         showToast(`房间状态已刷新 · 待确认 ${cloudHostEvents.length} 条 · 玩家 ${roomStore.get().cloudHostPlayers.filter((player) => player.joined).length} 人`);
       }
     } catch (error) {
+      if (refreshSeq !== hostRoomRefreshSeq || !isCurrentLoad(refreshKey)) return;
       failHostPlayersLoad(error);
       if (["director", "overview"].includes(uiStore.get().view)) render();
       if (withToast) reportError(error, "刷新房间状态失败");

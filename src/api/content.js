@@ -14,7 +14,7 @@ export function importParsedDocument(payload) {
 }
 
 export function importDocumentPages(payload) {
-  return request(`/worlds/${demoContext.worldId}/documents/import-pages`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return worldWrite(`/worlds/${demoContext.worldId}/documents/import-pages`, { method: "POST", body: payload });
 }
 
 /* ── Story manuscript ── */
@@ -24,11 +24,11 @@ export function getStoryManuscript() {
 }
 
 export function saveStoryManuscript(body) {
-  return request(`/worlds/${demoContext.worldId}/story-manuscript`, { userId: demoContext.hostUserId, method: "PUT", body: { body } });
+  return worldWrite(`/worlds/${demoContext.worldId}/story-manuscript`, { method: "PUT", body: { body } });
 }
 
 export function syncStoryManuscriptFromGraph() {
-  return request(`/worlds/${demoContext.worldId}/story-manuscript/sync-from-graph`, { userId: demoContext.hostUserId, method: "POST", body: {} });
+  return worldWrite(`/worlds/${demoContext.worldId}/story-manuscript/sync-from-graph`, { method: "POST", body: {} });
 }
 
 export function syncStoryManuscriptToGraph(body) {

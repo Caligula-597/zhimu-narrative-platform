@@ -13,15 +13,15 @@ export function formatWorldEtag(revision) {
   return `"${revision}"`;
 }
 
-export async function loadWorldRevision(worldId, client = null) {
+export async function loadWorldRevision(worldId, client = null, { forUpdate = false } = {}) {
   const run = client ? client.query.bind(client) : query;
-  const result = await run(`SELECT content_revision FROM worlds WHERE id = $1`, [worldId]);
+  const result = await run(`SELECT content_revision FROM worlds WHERE id = $1${forUpdate ? " FOR UPDATE" : ""}`, [worldId]);
   if (!result.rowCount) return null;
   return Number(result.rows[0].content_revision);
 }
 
 export async function assertWorldRevisionMatch(worldId, expectedRevision, client = null) {
-  const current = await loadWorldRevision(worldId, client);
+  const current = await loadWorldRevision(worldId, client, { forUpdate: Boolean(client) });
   if (current == null) throwErr("WORLD_NOT_FOUND");
   if (expectedRevision == null) return current;
   if (current !== expectedRevision) {

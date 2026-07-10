@@ -23,6 +23,7 @@ test("host api uses cookie credentials, bearer fallback and room-scoped host end
   const apiSource = readFileSync(path.join(root, "src", "api.js"), "utf8");
   const sessionSource = readFileSync(path.join(root, "src", "session.js"), "utf8");
   const sharedFetchSource = readFileSync(path.join(root, "..", "shared", "api-fetch.js"), "utf8");
+  const sharedSseSource = readFileSync(path.join(root, "..", "shared", "sse-client.js"), "utf8");
   const sharedTokenSource = readFileSync(path.join(root, "..", "shared", "session-token.js"), "utf8");
   assert.match(apiSource, /getHostPlayers/);
   assert.match(apiSource, /streamRoomEvents/);
@@ -32,6 +33,10 @@ test("host api uses cookie credentials, bearer fallback and room-scoped host end
   assert.match(apiSource, /bearerHeaders\(\)/);
   assert.match(apiSource, /defaultSessionTokenStore/);
   assert.match(apiSource, /createRoom/);
+  assert.match(apiSource, /openSseStream/);
+  assert.match(sharedSseSource, /message\?\.type === "connected"/);
+  assert.match(sharedSseSource, /message\?\.type === "heartbeat"/);
+  assert.match(sharedSseSource, /Last-Event-ID/);
   assert.match(sharedFetchSource, /credentials = "include"/);
   assert.match(sharedTokenSource, /setItem\(key, token\)/);
   assert.match(sessionSource, /defaultSessionTokenStore/);

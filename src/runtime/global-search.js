@@ -16,7 +16,8 @@ import * as Status from "../components/status-ui.js";
     clue: "线索",
     investigation_point: "调查点",
     rule: "规则",
-    item: "物品"
+    item: "物品",
+    knowledge: "知识块"
   };
 
   function highlightText(text, query) {
@@ -43,8 +44,10 @@ import * as Status from "../components/status-ui.js";
 
     const input = modal.querySelector("#global-search-input");
     const resultsEl = modal.querySelector("#global-search-results");
+    let searchSeq = 0;
 
     const runSearch = async () => {
+      const requestSeq = ++searchSeq;
       const q = input.value.trim();
       if (!q) {
         resultsEl.innerHTML = Status.empty?.("输入关键词开始搜索", "输入至少 1 个字符开始搜索。", { compact: true }) || `<div class="empty-state">输入至少 1 个字符开始搜索。</div>`;
@@ -53,6 +56,7 @@ import * as Status from "../components/status-ui.js";
       resultsEl.innerHTML = Status.loading?.("正在搜索", "正在检索当前世界内容…", { compact: true }) || `<div class="empty-state">正在搜索…</div>`;
       try {
         const payload = await zhimuApi.searchWorld(q, { limit: 40 });
+        if (requestSeq !== searchSeq) return;
         const labels = payload.typeLabels || TYPE_LABELS;
         if (!payload.results?.length) {
           resultsEl.innerHTML = Status.empty?.("没有匹配结果", `没有匹配「${q}」的内容。试试更短的关键词或到各页面浏览列表。`, { compact: true }) || `<div class="empty-state">没有匹配「${escapeHtml(q)}」的内容。试试更短的关键词或到各页面浏览列表。</div>`;
@@ -82,6 +86,7 @@ import * as Status from "../components/status-ui.js";
           };
         });
       } catch (error) {
+        if (requestSeq !== searchSeq) return;
         resultsEl.innerHTML = Status.error?.("搜索失败", error, { compact: true, fallback: "搜索暂时不可用，请稍后重试。" }) || `<div class="empty-state">${escapeHtml(error.message)}</div>`;
       }
     };

@@ -1,6 +1,6 @@
 /** View-level code splitting for the legacy window.* frontend. */
 (function (window) {
-  const loaded = new Set(["overview"]);
+  const loaded = new Set(["creatorCockpit"]);
   const loading = new Map();
 
   const creatorWorkspaceModules = [
@@ -9,6 +9,7 @@
   ];
 
   const modulesByView = {
+    overview: creatorWorkspaceModules,
     production: creatorWorkspaceModules,
     structure: creatorWorkspaceModules,
     truth: creatorWorkspaceModules,

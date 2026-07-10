@@ -104,6 +104,91 @@ test("creator can patch scene clue and investigation point", async (context) => 
   });
 });
 
+test("studio writes reject references from another world", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const worldA = await app.inject({
+    method: "POST",
+    url: "/api/worlds",
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `Studio scope A ${Date.now()}`, summary: "a" }
+  });
+  const worldB = await app.inject({
+    method: "POST",
+    url: "/api/worlds",
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `Studio scope B ${Date.now()}`, summary: "b" }
+  });
+  assert.equal(worldA.statusCode, 201, worldA.body);
+  assert.equal(worldB.statusCode, 201, worldB.body);
+  const worldAId = worldA.json().id;
+  const worldBId = worldB.json().id;
+  context.after(async () => {
+    await query(`DELETE FROM worlds WHERE id = ANY($1::uuid[])`, [[worldAId, worldBId]]);
+  });
+
+  const foreignChapter = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldBId}/chapters`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: "Foreign chapter", summary: "", sequence: 1 }
+  });
+  assert.equal(foreignChapter.statusCode, 201, foreignChapter.body);
+
+  const badScene = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldAId}/scenes`,
+    headers: { "x-user-id": hostUserId },
+    payload: { name: "Bad scene", chapterId: foreignChapter.json().id }
+  });
+  assert.equal(badScene.statusCode, 404, badScene.body);
+  assert.equal(badScene.json().code, "CHAPTER_NOT_FOUND");
+
+  const scene = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldAId}/scenes`,
+    headers: { "x-user-id": hostUserId },
+    payload: { name: "Local scene" }
+  });
+  assert.equal(scene.statusCode, 201, scene.body);
+
+  const foreignClue = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldBId}/clues`,
+    headers: { "x-user-id": hostUserId },
+    payload: { name: "Foreign clue", publicText: "x" }
+  });
+  assert.equal(foreignClue.statusCode, 201, foreignClue.body);
+
+  const badPoint = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldAId}/scenes/${scene.json().id}/investigation-points`,
+    headers: { "x-user-id": hostUserId },
+    payload: { name: "Bad point", clueId: foreignClue.json().id }
+  });
+  assert.equal(badPoint.statusCode, 404, badPoint.body);
+  assert.equal(badPoint.json().code, "CLUE_WORLD_MISMATCH");
+
+  const badEdge = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldAId}/story-edges`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      fromType: "scene",
+      fromId: scene.json().id,
+      toType: "clue",
+      toId: foreignClue.json().id,
+      relationType: "extension"
+    }
+  });
+  assert.equal(badEdge.statusCode, 404, badEdge.body);
+  assert.equal(badEdge.json().code, "STUDIO_NODE_NOT_FOUND");
+
+  const badRows = await query(`SELECT id FROM story_graph_edges WHERE world_id = $1`, [worldAId]);
+  assert.equal(badRows.rowCount, 0);
+});
+
 test("creator can delete chapter and unbind linked scenes", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());

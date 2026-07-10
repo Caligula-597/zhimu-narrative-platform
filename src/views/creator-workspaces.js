@@ -47,7 +47,7 @@ function workspaceLinkCard(view, icon, title, detail) {
 
 export function creatorWorkspaceHub() {
   return `<section class="workspace-hub-grid" aria-label="六大工作区">
-    ${workspaceLinkCard("overview", "⌂", "项目总控", "健康度、阻塞项、运行房与下一步")}
+    ${workspaceLinkCard("creatorCockpit", "⌂", "创作驾驶舱", "六阶段字段完成度与深链")}
     ${workspaceLinkCard("production", "✎", "内容生产", "AI/Matrix、角色分屏、导入导出")}
     ${workspaceLinkCard("structure", "◇", "结构编排", "Segment 工作台与编排入口")}
     ${workspaceLinkCard("truth", "◈", "真相与关系", "真相链、关系图、误导线")}

@@ -52,90 +52,42 @@ import {
   state
 } from "./state.js";
 import { setVoiceRenderCallback } from "./voice/livekit-voice.js";
+import { createSessionController } from "./runtime/session-controller.js";
+import { resolveInitialRoute } from "./runtime/router.js";
+import { runPlayStartup } from "./runtime/startup.js";
+import { createPlayViewController } from "./runtime/view-controller.js";
 
 const app = document.getElementById("app");
 let pullGeneration = 0;
 let lastSyncErrorToastAt = 0;
-let modalFocusReturn = null;
 
 function patchSyncChromeOrRender() {
   if (patchSyncChrome(state)) return;
   render();
 }
 
-function render() {
-  if (state.view === "game" && state.roomId) persistGameSession();
-  const restoreKey = scrollRestoreKey(state);
-  const scrollTop = window.scrollY;
-  const dmEl = state.view === "dm" ? document.querySelector("[data-dm-scroll]") : null;
-  const dmStickBottom = state.dmScrollStickBottom || shouldAutoScrollNearBottom(dmEl);
-  const voiceLog = state.view === "game" && state.tab === "voice" ? document.querySelector("[data-voice-scroll]") : null;
-  const voiceStickBottom = state.voiceScrollStickBottom || shouldAutoScrollNearBottom(voiceLog);
-
-  app.innerHTML = renderApp();
-
-  if (state.view === "dm") {
-    const el = document.querySelector("[data-dm-scroll]");
-    if (el && dmStickBottom) el.scrollTop = el.scrollHeight;
-    state.dmScrollStickBottom = false;
-  }
-  if (state.view === "game" && state.tab === "voice") {
-    const nextVoiceLog = document.querySelector("[data-voice-scroll]");
-    if (nextVoiceLog && voiceStickBottom) nextVoiceLog.scrollTop = nextVoiceLog.scrollHeight;
-    state.voiceScrollStickBottom = false;
-  }
-  if (state.view === "game" && state.tab === "sections" && state.roomId) {
-    bindPlayReader({
-      roomId: state.roomId,
-      notesSource: () => state.home,
-      onPatch: () => patchGameSectionsTab(state, gamePatchCtx),
-      onToast: (message) => setToast(message, render, { patch: true })
-    });
-  }
-  if (scrollRestoreKey(state) === restoreKey) {
-    window.scrollTo(0, scrollTop);
-  }
-  bindModalFocus();
-  syncPlayUrl(state);
-}
+const { render } = createPlayViewController({
+  app,
+  state,
+  renderApp,
+  persistGameSession,
+  scrollRestoreKey,
+  shouldAutoScrollNearBottom,
+  bindPlayReader,
+  patchGameSectionsTab,
+  getGamePatchCtx: () => gamePatchCtx,
+  setToast,
+  syncPlayUrl
+});
 
 setVoiceRenderCallback(render);
 
-function normalizeUser(raw) {
-  if (!raw) return null;
-  return {
-    id: raw.id,
-    email: raw.email,
-    displayName: raw.display_name || raw.displayName,
-    isGuest: raw.isGuest ?? raw.user_kind === "guest",
-    emailVerified: raw.emailVerified ?? Boolean(raw.email_verified_at)
-  };
-}
-
-async function loadSessionUser() {
-  try {
-    state.user = normalizeUser(await api.me());
-  } catch (error) {
-    if (error.status === 401) {
-      clearSession();
-      state.user = null;
-    }
-  }
-}
-
-function cleanUrl() {
-  const url = new URL(window.location.href);
-  ["oauth_code", "oauth_error", "auth", "verify"].forEach((key) => url.searchParams.delete(key));
-  window.history.replaceState({}, "", url.pathname + url.search + url.hash);
-}
-
-async function ensureSession() {
-  if (getSessionToken()) return;
-  const guestName = `玩家${Math.floor(Math.random() * 9000 + 1000)}`;
-  const result = await api.guest(guestName);
-  setSessionToken(result.token);
-  state.user = normalizeUser(result.user);
-}
+const {
+  cleanAuthUrl,
+  ensureSession,
+  loadSessionUser,
+  normalizeUser
+} = createSessionController({ api, state, clearSession, getSessionToken, setSessionToken });
 
 async function loadPlatform() {
   try {
@@ -157,20 +109,6 @@ async function flushPendingRoomRefresh() {
   if (!state.pendingRoomRefresh) return;
   state.pendingRoomRefresh = false;
   await pullRoomData({ partial: true });
-}
-
-function bindModalFocus() {
-  const backdrop = document.querySelector(".modal-backdrop.is-open");
-  if (!backdrop) {
-    if (modalFocusReturn) {
-      modalFocusReturn.focus?.();
-      modalFocusReturn = null;
-    }
-    return;
-  }
-  const dialog = backdrop.querySelector(".modal");
-  const focusable = dialog?.querySelector("textarea, input:not([type=hidden]), button:not([disabled])");
-  focusable?.focus();
 }
 
 function handleAuthLost() {
@@ -650,73 +588,14 @@ async function loadPublicRooms({ silent = false } = {}) {
 }
 
 async function bootstrap() {
-  const params = new URLSearchParams(window.location.search);
-  applyUrlToState(state, params);
-  const joinCode = normalizeInviteCode(state.inviteCode || params.get("join") || params.get("invite") || "");
-  const wantOfficial = params.get("experience") === "official";
-  if (state.inviteCode) state.inviteCode = joinCode;
-  if (state.roomId && !isUuid(state.roomId)) persistRoom("", isUuid);
-  if (state.roomId && isUuid(state.roomId) && !joinCode && !wantOfficial && !params.get("reset")) {
-    const urlView = params.get("view");
-    if (!urlView || urlView === "game") state.view = "game";
-  }
-
-  const paintLandingAfterBootstrap = state.view === "landing";
-  if (paintLandingAfterBootstrap) {
-    state.busy = true;
-  } else {
-    setBusy(true, render);
-  }
-  try {
-    await Promise.all([loadAuthConfig(), loadPlatform(), loadPublicRooms({ silent: true })]);
-    const oauthCode = params.get("oauth_code");
-    const oauthError = params.get("oauth_error");
-    if (oauthError) state.error = `OAuth 登录失败：${oauthError}`;
-    else if (oauthCode) {
-      const result = await api.oauthComplete(oauthCode);
-      setSessionToken(result.token);
-      state.user = normalizeUser(result.user);
-      setToast(`欢迎，${result.user.displayName || "玩家"}`, render);
-      cleanUrl();
-    }
-    await loadSessionUser();
-    if (state.user?.id && state.view === "auth" && (state.authMode === "login" || state.authMode === "register")) {
-      state.view = state.roomId ? "game" : (state.joinPreview ? "join" : "landing");
-    }
-    const shouldCreateGuestSession = state.view !== "auth" || Boolean(joinCode) || wantOfficial || Boolean(state.roomId);
-    if (shouldCreateGuestSession && !state.user?.id) await ensureSession();
-    if (state.pendingVerifyToken) {
-      try {
-        await handleEmailVerify(state.pendingVerifyToken);
-      } catch (error) {
-        state.error = formatApiError(error, "邮箱验证失败");
-      }
-      state.pendingVerifyToken = "";
-    }
-    await loadDmConversations({ silent: true }).catch(() => {});
-    if (state.view === "plaza") await loadPlazaPosts({ silent: true });
-    if (state.view === "friends") await loadFriends({ silent: true });
-    if (state.view === "messages") await loadDmConversations({ silent: true });
-    if (state.view === "plaza-thread" && state.plazaPostId) await loadPlazaThread({ silent: true });
-    if (wantOfficial) {
-      await handleJoinOfficial({ silent: true });
-    } else if (joinCode) {
-      state.inviteCode = joinCode;
-      await handleLookupInvite({ silent: true });
-    } else if (state.roomId && state.view === "game") {
-      await refreshHome();
-      if (state.tab === "recap") await loadRecapSummary({ silent: true });
-    }
-  } catch (error) {
-    if (!state.error) state.error = formatApiError(error, "加载失败");
-    if (error.status === 401 || error.status === 403) {
-      clearSession();
-      persistRoom("", isUuid);
-    }
-  } finally {
-    setBusy(false, render);
-    syncPlatformStream();
-  }
+  return runPlayStartup({
+    state, api, render, setBusy, setToast, formatApiError, normalizeUser,
+    setSessionToken, clearSession, cleanAuthUrl, loadSessionUser, ensureSession,
+    loadAuthConfig, loadPlatform, loadPublicRooms, loadDmConversations,
+    loadPlazaPosts, loadFriends, loadPlazaThread, handleJoinOfficial,
+    handleLookupInvite, refreshHome, loadRecapSummary, syncPlatformStream,
+    handleEmailVerify, normalizeInviteCode, isUuid, persistRoom, resolveInitialRoute
+  });
 }
 
 async function refreshJoinPreview(code) {
@@ -785,7 +664,7 @@ async function handleJoinRoom() {
     const result = await api.joinRoom(code, state.selectedRoleId);
     persistRoom(result.roomId, isUuid);
     state.joinPreview = null;
-    cleanUrl();
+    cleanAuthUrl();
     await refreshHome();
     const sections = state.home?.sections || [];
     const hasIncomplete = sections.some((section) => !section.completed);
@@ -813,7 +692,7 @@ async function handleJoinOfficial({ silent = false } = {}) {
     const result = await api.joinOfficialExample();
     state.inviteCode = result.room?.invite_code || "";
     if (!state.inviteCode) throw new Error("示例房间创建失败");
-    cleanUrl();
+    cleanAuthUrl();
     await handleLookupInvite({ silent: true });
     if (!silent) setToast("已创建示例运行房，请选择角色", render);
   } catch (error) {
@@ -1101,7 +980,7 @@ async function handleEmailVerify(token) {
   const result = await api.verifyEmail(token);
   if (result.token) setSessionToken(result.token);
   state.user = normalizeUser(result.user);
-  cleanUrl();
+  cleanAuthUrl();
   setToast("邮箱已验证，可以使用社区功能了", render);
 }
 
@@ -1128,7 +1007,7 @@ async function handleResetSubmit(form) {
     await api.resetPassword(state.resetToken, password);
     state.authMode = "login";
     state.resetToken = "";
-    cleanUrl();
+    cleanAuthUrl();
     setToast("密码已更新，请使用新密码登录", render);
     render();
   } catch (error) {
@@ -1159,7 +1038,7 @@ async function handleGuestSubmit(form) {
     setSessionToken(result.token);
     state.user = normalizeUser(result.user);
     state.view = state.roomId ? "game" : (state.joinPreview ? "join" : "landing");
-    cleanUrl();
+    cleanAuthUrl();
     if (state.roomId) await refreshHome();
     else if (state.inviteCode && !state.joinPreview) await handleLookupInvite({ silent: true }).catch(() => {});
     setToast(`欢迎，${state.user.displayName || "访客"}`, render);
@@ -1192,7 +1071,7 @@ async function handleAuthSubmit(form) {
     setSessionToken(result.token);
     state.user = normalizeUser(result.user);
     state.view = state.roomId ? "game" : (state.joinPreview ? "join" : "landing");
-    cleanUrl();
+    cleanAuthUrl();
     if (state.roomId) await refreshHome();
     else if (state.inviteCode && !state.joinPreview) await handleLookupInvite({ silent: true }).catch(() => {});
     setToast(`欢迎，${result.user.displayName || result.user.email || "玩家"}`, render);

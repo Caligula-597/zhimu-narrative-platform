@@ -4,7 +4,7 @@
  */
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
-import { resolveWorldCoverUrl } from "./world-cover.js";
+import { worldCoverApiPath } from "./world-cover.js";
 
 export async function listPublicRooms({ limit = 24 } = {}) {
   const safeLimit = Math.min(Math.max(Number(limit) || 24, 1), 48);
@@ -23,7 +23,15 @@ export async function listPublicRooms({ limit = 24 } = {}) {
              FROM room_members rm
              WHERE rm.room_id = r.id
                AND rm.role_slot_id IS NOT NULL
-               AND rm.status = 'active') AS joined_players
+               AND rm.status = 'active') AS joined_players,
+            EXISTS (
+              SELECT 1
+              FROM asset_files af
+              WHERE af.world_id = w.id
+                AND af.status = 'active'
+                AND af.asset_kind = 'image'
+                AND af.deleted_at IS NULL
+            ) AS has_cover
      FROM rooms r
      JOIN worlds w ON w.id = r.world_id
      JOIN users u ON u.id = r.host_user_id
@@ -36,23 +44,21 @@ export async function listPublicRooms({ limit = 24 } = {}) {
     [safeLimit]
   );
 
-  const items = await Promise.all(
-    result.rows.map(async (row) => ({
-      roomId: row.room_id,
-      roomName: row.room_name,
-      inviteCode: row.invite_code,
-      roomStatus: row.room_status,
-      updatedAt: row.updated_at,
-      worldId: row.world_id,
-      worldName: row.world_name,
-      worldSummary: row.world_summary,
-      worldCoverUrl: await resolveWorldCoverUrl(row.world_id),
-      hostDisplayName: row.host_display_name,
-      roleCount: row.role_count,
-      joinedPlayers: row.joined_players,
-      openSeats: Math.max(row.role_count - row.joined_players, 0)
-    }))
-  );
+  const items = result.rows.map((row) => ({
+    roomId: row.room_id,
+    roomName: row.room_name,
+    inviteCode: row.invite_code,
+    roomStatus: row.room_status,
+    updatedAt: row.updated_at,
+    worldId: row.world_id,
+    worldName: row.world_name,
+    worldSummary: row.world_summary,
+    worldCoverUrl: row.has_cover ? worldCoverApiPath(row.world_id) : null,
+    hostDisplayName: row.host_display_name,
+    roleCount: row.role_count,
+    joinedPlayers: row.joined_players,
+    openSeats: Math.max(row.role_count - row.joined_players, 0)
+  }));
 
   return {
     total: result.rowCount,

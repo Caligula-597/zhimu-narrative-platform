@@ -28,10 +28,6 @@ import * as M from "../components/modal.js";
 
 export function bindDynamic() {
     enhanceCloudPanels();
-    document.querySelectorAll("[data-action]").forEach((el) => {
-      if (el.type === "checkbox" || el.tagName === "SELECT") el.onchange = () => handle(el.dataset.action, el);
-      else el.onclick = () => handle(el.dataset.action, el);
-    });
     const view = uiStore.get().view;
     if (view === "studio") callView("studio", "bindStudioDragging");
     if (view === "clues") callView("clues", "bindCluesSearch");

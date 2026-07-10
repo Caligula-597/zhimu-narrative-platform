@@ -21,6 +21,7 @@
     "check:boot": "node scripts/verify-boot.mjs",
     "check:tests": "node scripts/verify-test-count.mjs",
     "check:schemas": "node scripts/verify-route-schemas.mjs",
+    "contracts:generate": "node scripts/generate-contract-types.mjs",
     "db:backup": "node scripts/pg-backup.mjs",
     "db:verify-restore": "node scripts/verify-backup-restore.mjs",
     "db:verify-restore:docker": "node scripts/verify-backup-restore-docker.mjs",
@@ -52,7 +53,7 @@
     "@opentelemetry/auto-instrumentations-node": "^0.77.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.219.0",
     "@opentelemetry/sdk-node": "^0.219.0",
-    "@sentry/node": "^8.47.0",
+    "@sentry/node": "^10.65.0",
     "adm-zip": "^0.5.17",
     "dotenv": "^16.6.1",
     "fastify": "^5.6.1",
@@ -61,5 +62,8 @@
     "pdfjs-dist": "^6.0.227",
     "pg": "^8.16.3",
     "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "json-schema-to-typescript": "^15.0.4"
   }
 }

@@ -253,6 +253,71 @@ test("pipeline import allocates next role sequence when world already has roles"
   assert.equal(seqRow.rows[0].sequence, 2);
 });
 
+test("pipeline import normalizes unsafe AI role and proposal fields", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const created = await app.inject({
+    method: "POST",
+    url: "/api/worlds",
+    headers: { "x-user-id": hostUserId },
+    payload: { name: `Pipeline normalize ${Date.now()}`, summary: "test" }
+  });
+  assert.equal(created.statusCode, 201);
+  const worldId = created.json().id;
+  context.after(async () => {
+    await query(`DELETE FROM worlds WHERE id = $1`, [worldId]);
+  });
+
+  const longSummary = "s".repeat(5000);
+  const response = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/story-assistant/deepseek/pipeline/import`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      pipeline: {
+        proposal: {
+          title: "Normalize probe",
+          logline: "probe",
+          chapters: [{ key: "ch-normalize", title: "", summary: longSummary }],
+          scenes: [{ key: "sc-normalize", chapterKey: "ch-normalize", name: "", publicText: "scene" }],
+          investigationPoints: [{ key: "pt-normalize", sceneKey: "sc-normalize", name: "", clueKey: "cl-normalize" }],
+          clues: [{ key: "cl-normalize", name: "", publicText: "clue", visibility: "everyone" }],
+          edges: []
+        },
+        roleMatrix: {
+          roles: [{ name: "", publicProfile: " public ".repeat(1000), privateProfile: " private ".repeat(2000) }]
+        },
+        sections: {
+          "pipeline-role-1": {
+            "ch-normalize": { title: "", body: "body".repeat(100) }
+          }
+        },
+        synopsis: { summary: "synopsis".repeat(1000), overallManuscript: "manuscript" }
+      }
+    }
+  });
+  assert.equal(response.statusCode, 201, response.body);
+
+  const role = await query(
+    `SELECT name, public_profile, private_profile FROM role_slots WHERE world_id = $1 AND settings->>'deepseekRoleKey' = 'pipeline-role-1'`,
+    [worldId]
+  );
+  assert.equal(role.rowCount, 1);
+  assert.equal(role.rows[0].name, "Role 1");
+  assert.ok(role.rows[0].public_profile.length <= 4000);
+  assert.ok(role.rows[0].private_profile.length <= 8000);
+
+  const clue = await query(`SELECT name, visibility FROM clues WHERE world_id = $1 AND metadata->>'proposalKey' = 'cl-normalize'`, [worldId]);
+  assert.equal(clue.rowCount, 1);
+  assert.equal(clue.rows[0].name, "Clue 1");
+  assert.equal(clue.rows[0].visibility, "role");
+
+  const chapter = await query(`SELECT title, length(summary) AS summary_len FROM chapters WHERE world_id = $1 AND metadata->>'proposalKey' = 'ch-normalize'`, [worldId]);
+  assert.equal(chapter.rows[0].title, "Chapter 1");
+  assert.equal(Number(chapter.rows[0].summary_len), 2000);
+});
+
 test("buildRoomCheckpointSnapshot returns schema v2 without pg client overlap", async () => {
   const snapshot = await buildRoomCheckpointSnapshot(fixtureRoomId);
   assert.ok(snapshot);

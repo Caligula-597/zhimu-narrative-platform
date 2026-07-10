@@ -87,6 +87,49 @@ test("POST assets restore moves file back to active list", async (context) => {
   assert.ok(!recycled.json().assets.some((row) => row.id === assetId));
 });
 
+test("asset delete and restore participate in world revision conflicts", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const worldId = fixtureWorldId;
+  const assetId = await insertActiveAsset(worldId);
+  context.after(async () => {
+    await query(`DELETE FROM deleted_assets WHERE asset_file_id = $1`, [assetId]);
+    await query(`DELETE FROM asset_files WHERE id = $1`, [assetId]);
+  });
+
+  const world = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${worldId}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  const revision = Number(world.json().content_revision);
+
+  const deleted = await app.inject({
+    method: "DELETE",
+    url: `/api/assets/${assetId}`,
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision}"` }
+  });
+  assert.equal(deleted.statusCode, 200, deleted.body);
+  assert.equal(Number(deleted.json().content_revision), revision + 1);
+
+  const staleRestore = await app.inject({
+    method: "POST",
+    url: `/api/assets/${assetId}/restore`,
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision}"` }
+  });
+  assert.equal(staleRestore.statusCode, 409, staleRestore.body);
+  assert.equal(staleRestore.json().code, "WORLD_VERSION_CONFLICT");
+
+  const restored = await app.inject({
+    method: "POST",
+    url: `/api/assets/${assetId}/restore`,
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision + 1}"` }
+  });
+  assert.equal(restored.statusCode, 200, restored.body);
+  assert.equal(Number(restored.json().content_revision), revision + 2);
+});
+
 test("POST assets restore rejects non-deleted asset", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());

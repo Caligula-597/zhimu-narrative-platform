@@ -2,6 +2,8 @@ import { transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { assertCapability } from "./capabilities.js";
 import { assertWorldCreateQuota } from "./quota-guards.js";
+import { resolveClueKind } from "./clue-kind.js";
+import { syncWorldSegmentsFromChapters } from "./world-segments-seed.js";
 import { buildWizardAutomationRules } from "./wizard-automation-templates.js";
 
 function makeTestInviteCode() {
@@ -72,8 +74,8 @@ export async function bootstrapWorldFromWizard(actorId, payload) {
     ]);
 
     const chapterResult = await client.query(
-      `INSERT INTO chapters (world_id, title, summary, sequence) VALUES ($1, $2, $3, 1) RETURNING *`,
-      [worldId, chapterTitle, chapterSummary]
+      `INSERT INTO chapters (world_id, title, summary, sequence, metadata) VALUES ($1, $2, $3, 1, $4::jsonb) RETURNING *`,
+      [worldId, chapterTitle, chapterSummary, JSON.stringify({ proposalKey: "ch1", source: "wizard_bootstrap" })]
     );
     const chapter = chapterResult.rows[0];
 
@@ -100,9 +102,17 @@ export async function bootstrapWorldFromWizard(actorId, payload) {
         "待补充正文。";
 
       const sectionResult = await client.query(
-        `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status)
-         VALUES ($1, $2, $3, $4, $5, 1, $6) RETURNING *`,
-        [scriptId, role.id, chapter.id, sectionTitle, sectionBody, publicationStatus]
+        `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
+         VALUES ($1, $2, $3, $4, $5, 1, $6, $7::jsonb) RETURNING *`,
+        [
+          scriptId,
+          role.id,
+          chapter.id,
+          sectionTitle,
+          sectionBody,
+          publicationStatus,
+          JSON.stringify({ segmentKey: "ch1", source: "wizard_bootstrap" })
+        ]
       );
 
       createdRoles.push({
@@ -129,13 +139,14 @@ export async function bootstrapWorldFromWizard(actorId, payload) {
       const scene = sceneResult.rows[0];
 
       const clueResult = await client.query(
-        `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
-         VALUES ($1, $2, $3, $4, 'public', $5::jsonb) RETURNING *`,
+        `INSERT INTO clues (world_id, name, public_text, host_text, visibility, clue_kind, metadata)
+         VALUES ($1, $2, $3, $4, 'public', $5, $6::jsonb) RETURNING *`,
         [
           worldId,
           "关键线索",
           "一份值得深入调查的发现。",
           "可在创作台调整线索文本与可见性。",
+          resolveClueKind({ importance: "key" }),
           JSON.stringify({ source: "wizard_bootstrap" })
         ]
       );
@@ -189,6 +200,24 @@ export async function bootstrapWorldFromWizard(actorId, payload) {
 
     let room = null;
     if (createTestRoom) {
+      await syncWorldSegmentsFromChapters(client, worldId);
+      const clueGrant = starterGraph?.clue?.id
+        ? [{ clueId: starterGraph.clue.id, when: "搜证后", roleKey: "" }]
+        : [];
+      await client.query(
+        `UPDATE world_segments
+         SET operations = $3::jsonb, updated_at = now()
+         WHERE world_id = $1 AND segment_key = $2`,
+        [
+          worldId,
+          "ch1",
+          JSON.stringify({
+            flow: "向导测试房：阅读分幕后进入起始场景搜证。",
+            hostTruth: "本幕为向导生成的默认主持信息，可在 Segment 工作台补充。",
+            clueGrants: clueGrant
+          })
+        ]
+      );
       const inviteCode = String(payload?.inviteCode || "").trim() || makeTestInviteCode();
       const roomResult = await client.query(
         `INSERT INTO rooms (world_id, host_user_id, name, invite_code, status)

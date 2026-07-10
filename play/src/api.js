@@ -1,4 +1,4 @@
-import { consumeSseStream } from "../../shared/sse.js";
+import { openSseStream } from "../../shared/sse-client.js";
 import { createApiFetch, extractAuthToken } from "../../shared/api-fetch.js";
 import { createSessionTokenStore } from "../../shared/session-token.js";
 
@@ -174,56 +174,30 @@ export const api = {
       }
     }),
 
-  /** SSE room stream — same endpoint as app.getzhimu.com host/player views. */
+  /** SSE room stream shared with the main and host clients. */
   streamRoomEvents(roomId, onEvent, signal) {
-    const headers = { Accept: "text/event-stream", ...sessionToken.bearerHeaders() };
+    const headers = { ...sessionToken.bearerHeaders() };
     const demoUserId = localStorage.getItem("zhimuDemoUserId");
     if (demoUserId) headers["x-user-id"] = demoUserId;
-    const cursorKey = sseCursorKey(roomId);
-    const cursor = localStorage.getItem(cursorKey);
-    if (cursor) headers["Last-Event-ID"] = cursor;
-    return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const error = new Error(err.error || err.message || `连接实时推送失败（${res.status}）`);
-        error.status = res.status;
-        throw error;
-      }
-      return consumeSseStream(res, {
-        cursorKey,
-        onEvent: (eventType, msg) => {
-          if (msg.type === "connected") { onEvent("__connected__", msg); return; }
-          if (msg.type === "heartbeat") return;
-          const { type, ...rest } = msg;
-          if (type) onEvent(type, rest);
-        }
-      });
+    return openSseStream({
+      url: `${API_BASE}/rooms/${roomId}/events/stream`,
+      headers,
+      signal,
+      cursorKey: sseCursorKey(roomId),
+      onEvent
     });
   },
 
-  /** SSE platform stream — plaza broadcast + personal DM/friend events. */
   streamPlatformEvents(onEvent, signal) {
-    const headers = { Accept: "text/event-stream", ...sessionToken.bearerHeaders() };
+    const headers = { ...sessionToken.bearerHeaders() };
     const demoUserId = localStorage.getItem("zhimuDemoUserId");
     if (demoUserId) headers["x-user-id"] = demoUserId;
-    const cursor = localStorage.getItem(PLATFORM_SSE_CURSOR);
-    if (cursor) headers["Last-Event-ID"] = cursor;
-    return fetch(`${API_BASE}/platform/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const error = new Error(err.error || err.message || `连接平台推送失败（${res.status}）`);
-        error.status = res.status;
-        throw error;
-      }
-      return consumeSseStream(res, {
-        cursorKey: PLATFORM_SSE_CURSOR,
-        onEvent: (eventType, msg) => {
-          if (msg.type === "connected") { onEvent("__connected__", msg); return; }
-          if (msg.type === "heartbeat") return;
-          const { type, ...rest } = msg;
-          if (type) onEvent(type, rest);
-        }
-      });
+    return openSseStream({
+      url: `${API_BASE}/platform/events/stream`,
+      headers,
+      signal,
+      cursorKey: PLATFORM_SSE_CURSOR,
+      onEvent
     });
   }
 };

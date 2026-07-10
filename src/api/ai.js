@@ -14,7 +14,7 @@ export function analyzeStoryDraft(text) {
 }
 
 export function importStoryDraft(text) {
-  return request(`/worlds/${demoContext.worldId}/story-assistant/import`, { userId: demoContext.hostUserId, method: "POST", body: { text } });
+  return worldWrite(`/worlds/${demoContext.worldId}/story-assistant/import`, { method: "POST", body: { text } });
 }
 
 export function getDeepseekStatus() {
@@ -26,8 +26,7 @@ export function proposeWithDeepseek(payload) {
 }
 
 export function importDeepseekProposal(proposal) {
-  return request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/import`, {
-    userId: demoContext.hostUserId,
+  return worldWrite(`/worlds/${demoContext.worldId}/story-assistant/deepseek/import`, {
     method: "POST",
     body: { proposal },
     timeoutMs: PIPELINE_IMPORT_TIMEOUT_MS,
@@ -60,8 +59,7 @@ export function deepseekPipelineManuscriptSynopsis(payload) {
 }
 
 export function importDeepseekPipeline(pipeline) {
-  return request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/import`, {
-    userId: demoContext.hostUserId,
+  return worldWrite(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/import`, {
     method: "POST",
     body: { pipeline },
     timeoutMs: PIPELINE_IMPORT_TIMEOUT_MS,
@@ -141,5 +139,5 @@ export function proposeFullMysteryWithDeepseek(payload) {
 }
 
 export function importFullMysteryWithDeepseek(mystery) {
-  return request(`/worlds/${demoContext.worldId}/story-assistant/deepseek/full-mystery/import`, { userId: demoContext.hostUserId, method: "POST", body: { mystery } });
+  return worldWrite(`/worlds/${demoContext.worldId}/story-assistant/deepseek/full-mystery/import`, { method: "POST", body: { mystery } });
 }

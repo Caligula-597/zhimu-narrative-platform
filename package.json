@@ -54,7 +54,7 @@
     "test:e2e:ui": "playwright test --headed",
     "test:format-helpers": "node --test scripts/format-helpers.test.mjs",
     "test:shared-status-chip": "node --test scripts/shared-status-chip.test.mjs",
-    "test:shared": "node --test scripts/shared-status-chip.test.mjs scripts/shared-api-fetch.test.mjs scripts/shared-session-token.test.mjs scripts/shared-toast.test.mjs",
+    "test:shared": "node --test scripts/shared-status-chip.test.mjs scripts/shared-api-fetch.test.mjs scripts/shared-session-token.test.mjs scripts/shared-toast.test.mjs scripts/shared-sse.test.mjs",
     "test:modal-helpers": "node --test scripts/modal-helpers.test.mjs",
     "test:ui-semantics": "node --test scripts/ui-semantics.test.mjs",
     "test:runtime-stores": "node --test scripts/runtime-stores.test.mjs",

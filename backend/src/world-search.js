@@ -52,6 +52,7 @@ export async function searchWorldContent(worldId, { q, limit = 30, type = "all",
   const term = String(q || "").trim();
   if (!term) return { query: "", results: [], total: 0 };
   const capped = Math.min(Math.max(Number(limit) || 30, 1), 50);
+  const bucketLimit = type && type !== "all" ? capped : Math.min(Math.max(capped * 2, 20), 100);
   const like = `%${escapeLike(term)}%`;
   const useTs = term.length >= 2;
   const params = [worldId, like];
@@ -161,7 +162,10 @@ export async function searchWorldContent(worldId, { q, limit = 30, type = "all",
   for (const { bucketType, sql } of buckets) {
     try {
       const part = await query(
-        `SELECT '${bucketType}' AS result_type, id, title, snippet, meta, rank FROM (${sql}) AS bucket_rows`,
+        `SELECT '${bucketType}' AS result_type, id, title, snippet, meta, rank
+         FROM (${sql}) AS bucket_rows
+         ORDER BY rank DESC, title
+         LIMIT ${bucketLimit}`,
         params
       );
       for (const row of part.rows) {

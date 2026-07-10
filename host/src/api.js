@@ -1,5 +1,5 @@
 import { getRoomId, getSessionToken, getWorldId, setSessionToken } from "./session.js";
-import { consumeSseStream } from "../../shared/sse.js";
+import { openSseStream } from "../../shared/sse-client.js";
 import { createApiFetch, extractAuthToken } from "../../shared/api-fetch.js";
 import { defaultSessionTokenStore } from "../../shared/session-token.js";
 
@@ -154,26 +154,18 @@ export const api = {
     request(roomPath(`/host/segment-remedies/${remedyId}/apply`), { method: "POST", body: {} }),
 
   streamRoomEvents(roomId, onEvent, signal) {
-    const headers = { ...defaultSessionTokenStore.bearerHeaders(), accept: "text/event-stream" };
+    const headers = { ...defaultSessionTokenStore.bearerHeaders() };
     if (import.meta.env.DEV && localStorage.getItem("zhimuDemoMode") === "true") {
       const demoUserId = localStorage.getItem("zhimuDemoUserId");
       if (demoUserId) headers["x-user-id"] = demoUserId;
     }
-    const cursorKey = sseCursorKey(roomId);
-    const cursor = localStorage.getItem(cursorKey);
-    if (cursor) headers["last-event-id"] = cursor;
-    return fetch(`${API_BASE}/rooms/${roomId}/events/stream`, { headers, signal, credentials: "include" }).then(async (res) => {
-      if (!res.ok) {
-        const payload = await res.json().catch(() => ({}));
-        const err = new Error(payload.message || `SSE ${res.status}`);
-        err.status = res.status;
-        throw err;
-      }
-      onEvent("__connected__", {});
-      return consumeSseStream(res, {
-        cursorKey,
-        onEvent: (eventType, data) => onEvent(eventType, data)
-      });
+    return openSseStream({
+      url: `${API_BASE}/rooms/${roomId}/events/stream`,
+      headers,
+      signal,
+      cursorKey: sseCursorKey(roomId),
+      connectedOnOpen: true,
+      onEvent
     });
   }
 };

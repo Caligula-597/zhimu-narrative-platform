@@ -1,7 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { resetMetricsForTests } from "../src/metrics.js";
+import { recordHttpRequest, renderPrometheusMetrics, resetMetricsForTests } from "../src/metrics.js";
+
+test("HTTP duration histogram exports cumulative buckets exactly once", () => {
+  resetMetricsForTests();
+  recordHttpRequest({ method: "GET", route: "/api/example", statusCode: 200, durationMs: 4 });
+  recordHttpRequest({ method: "GET", route: "/api/example", statusCode: 200, durationMs: 20 });
+
+  const metrics = renderPrometheusMetrics();
+  assert.match(metrics, /http_request_duration_ms_bucket\{method="GET",route="\/api\/example",le="5"\} 1/);
+  assert.match(metrics, /http_request_duration_ms_bucket\{method="GET",route="\/api\/example",le="10"\} 1/);
+  assert.match(metrics, /http_request_duration_ms_bucket\{method="GET",route="\/api\/example",le="25"\} 2/);
+  assert.match(metrics, /http_request_duration_ms_count\{method="GET",route="\/api\/example"\} 2/);
+});
 
 test("GET /metrics returns Prometheus text", async (context) => {
   const previousToken = process.env.METRICS_TOKEN;

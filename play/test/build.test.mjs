@@ -46,6 +46,7 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   const plazaSource = readFileSync(path.join(root, "src", "views", "plaza.js"), "utf8");
   const socialSource = readFileSync(path.join(root, "src", "views", "social.js"), "utf8");
   const lobbySource = readFileSync(path.join(root, "src", "views", "lobby.js"), "utf8");
+  const startupSource = readFileSync(path.join(root, "src", "runtime", "startup.js"), "utf8");
   assert.match(mainSource, /connectRoomEvents/);
   assert.match(mainSource, /connectPlatformEvents/);
   assert.match(mainSource, /loadPlazaPosts/);
@@ -99,7 +100,8 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(landingSource, /renderLandingAuthActions/);
   assert.match(errorsSource, /ROLE_ALREADY_BOUND/);
   assert.match(landingSource, /landing-actions-signed-in/);
-  assert.match(mainSource, /paintLandingAfterBootstrap/);
+  assert.match(mainSource, /runPlayStartup/);
+  assert.match(startupSource, /state\.view === "landing"/);
   assert.match(gameSource, /hostConfirmBanner/);
   assert.match(apiSource, /notebook/);
   assert.match(apiSource, /recap\/latest/);

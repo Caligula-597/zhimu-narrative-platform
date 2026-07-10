@@ -15,6 +15,7 @@ import { requireRoomRole, requireWorldRole, requireWorldReader } from "./route-g
 import { sendErr, throwErr } from "../api-errors.js";
 import { normalizeSegmentOperations } from "../segment-contract.js";
 import { logHostAction } from "../audit-log.js";
+import { runRevisionMutation } from "../world-revision.js";
 import {
   createPrivateActionSchema,
   createRoleRelationshipSchema,
@@ -190,12 +191,14 @@ export async function registerContentPlatformRoutes(app) {
     return { segments: result.rows.map(segmentRow) };
   });
 
-  app.post("/api/worlds/:worldId/segments/sync-from-graph", { schema: { params: worldIdParams } }, async (request) => {
+  app.post("/api/worlds/:worldId/segments/sync-from-graph", { schema: { params: worldIdParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const segmentsSynced = await transaction((client) => syncWorldSegmentsFromChapters(client, worldId));
-    return { segmentsSynced };
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const segmentsSynced = await syncWorldSegmentsFromChapters(client, worldId);
+      return { segmentsSynced };
+    }, { sendErr });
   });
 
   app.post("/api/worlds/:worldId/segments", { schema: createSegmentSchema }, async (request, reply) => {
@@ -203,7 +206,7 @@ export async function registerContentPlatformRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const body = request.body ?? {};
-    const created = await transaction(async (client) => {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
       const result = await client.query(
         `INSERT INTO world_segments
           (world_id, segment_key, title, sequence, chapter_id, story, mechanics, operations, quality, metadata)
@@ -223,20 +226,19 @@ export async function registerContentPlatformRoutes(app) {
         ]
       );
       await replaceSegmentRefs(client, result.rows[0].id, body.refs ?? []);
-      return result.rows[0];
-    });
-    return reply.code(201).send({ segment: segmentRow({ ...created, refs: request.body?.refs ?? [] }) });
+      return { segment: segmentRow({ ...result.rows[0], refs: request.body?.refs ?? [] }) };
+    }, { sendErr, statusCode: 201 });
   });
 
   app.patch("/api/worlds/:worldId/segments/:segmentId", { schema: updateSegmentSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, segmentId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const existing = await query(`SELECT * FROM world_segments WHERE id = $1 AND world_id = $2`, [segmentId, worldId]);
-    if (!existing.rowCount) return sendErr(reply, "NOT_FOUND", "Segment not found");
-    const next = { ...existing.rows[0] };
     const body = request.body ?? {};
-    const updated = await transaction(async (client) => {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const existing = await client.query(`SELECT * FROM world_segments WHERE id = $1 AND world_id = $2`, [segmentId, worldId]);
+      if (!existing.rowCount) throwErr("NOT_FOUND", "Segment not found");
+      const next = { ...existing.rows[0] };
       const result = await client.query(
         `UPDATE world_segments SET
            segment_key = $3,
@@ -266,10 +268,9 @@ export async function registerContentPlatformRoutes(app) {
         ]
       );
       if (body.refs) await replaceSegmentRefs(client, segmentId, body.refs);
-      return result.rows[0];
-    });
-    const refs = body.refs ?? (await fetchSegmentRefs(query, segmentId));
-    return { segment: segmentRow({ ...updated, refs }) };
+      const refs = body.refs ?? (await fetchSegmentRefs(client, segmentId));
+      return { segment: segmentRow({ ...result.rows[0], refs }) };
+    }, { sendErr });
   });
 
   app.get("/api/worlds/:worldId/truth-claims", { schema: { params: worldIdParams } }, async (request) => {
@@ -288,25 +289,27 @@ export async function registerContentPlatformRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const body = request.body ?? {};
-    const result = await query(
-      `INSERT INTO world_truth_claims
-        (world_id, claim_key, title, claim, reveal_stage, confidence, evidence, contradictions, role_visibility, metadata)
-       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9::jsonb, $10::jsonb)
-       RETURNING *`,
-      [
-        worldId,
-        body.claimKey ?? null,
-        body.title,
-        body.claim,
-        body.revealStage ?? null,
-        body.confidence ?? "canon",
-        JSON.stringify(body.evidence ?? []),
-        JSON.stringify(body.contradictions ?? []),
-        JSON.stringify(body.roleVisibility ?? {}),
-        JSON.stringify(body.metadata ?? {})
-      ]
-    );
-    return reply.code(201).send({ claim: result.rows[0] });
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `INSERT INTO world_truth_claims
+          (world_id, claim_key, title, claim, reveal_stage, confidence, evidence, contradictions, role_visibility, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9::jsonb, $10::jsonb)
+         RETURNING *`,
+        [
+          worldId,
+          body.claimKey ?? null,
+          body.title,
+          body.claim,
+          body.revealStage ?? null,
+          body.confidence ?? "canon",
+          JSON.stringify(body.evidence ?? []),
+          JSON.stringify(body.contradictions ?? []),
+          JSON.stringify(body.roleVisibility ?? {}),
+          JSON.stringify(body.metadata ?? {})
+        ]
+      );
+      return { claim: result.rows[0] };
+    }, { sendErr, statusCode: 201 });
   });
 
   app.patch("/api/worlds/:worldId/truth-claims/:claimId", { schema: patchTruthClaimSchema }, async (request, reply) => {
@@ -314,48 +317,52 @@ export async function registerContentPlatformRoutes(app) {
     const { worldId, claimId } = request.params;
     await requireWorldRole(actorId, worldId);
     const body = request.body ?? {};
-    const result = await query(
-      `UPDATE world_truth_claims SET
-         claim_key = COALESCE($3, claim_key),
-         title = COALESCE($4, title),
-         claim = COALESCE($5, claim),
-         reveal_stage = COALESCE($6, reveal_stage),
-         confidence = COALESCE($7, confidence),
-         evidence = COALESCE($8::jsonb, evidence),
-         contradictions = COALESCE($9::jsonb, contradictions),
-         role_visibility = COALESCE($10::jsonb, role_visibility),
-         metadata = COALESCE($11::jsonb, metadata),
-         updated_at = now()
-       WHERE id = $1 AND world_id = $2
-       RETURNING *`,
-      [
-        claimId,
-        worldId,
-        body.claimKey,
-        body.title,
-        body.claim,
-        body.revealStage,
-        body.confidence,
-        body.evidence != null ? JSON.stringify(body.evidence) : null,
-        body.contradictions != null ? JSON.stringify(body.contradictions) : null,
-        body.roleVisibility != null ? JSON.stringify(body.roleVisibility) : null,
-        body.metadata != null ? JSON.stringify(body.metadata) : null
-      ]
-    );
-    if (!result.rowCount) return sendErr(reply, "NOT_FOUND");
-    return { claim: result.rows[0] };
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `UPDATE world_truth_claims SET
+           claim_key = COALESCE($3, claim_key),
+           title = COALESCE($4, title),
+           claim = COALESCE($5, claim),
+           reveal_stage = COALESCE($6, reveal_stage),
+           confidence = COALESCE($7, confidence),
+           evidence = COALESCE($8::jsonb, evidence),
+           contradictions = COALESCE($9::jsonb, contradictions),
+           role_visibility = COALESCE($10::jsonb, role_visibility),
+           metadata = COALESCE($11::jsonb, metadata),
+           updated_at = now()
+         WHERE id = $1 AND world_id = $2
+         RETURNING *`,
+        [
+          claimId,
+          worldId,
+          body.claimKey,
+          body.title,
+          body.claim,
+          body.revealStage,
+          body.confidence,
+          body.evidence != null ? JSON.stringify(body.evidence) : null,
+          body.contradictions != null ? JSON.stringify(body.contradictions) : null,
+          body.roleVisibility != null ? JSON.stringify(body.roleVisibility) : null,
+          body.metadata != null ? JSON.stringify(body.metadata) : null
+        ]
+      );
+      if (!result.rowCount) throwErr("NOT_FOUND");
+      return { claim: result.rows[0] };
+    }, { sendErr });
   });
 
   app.delete("/api/worlds/:worldId/truth-claims/:claimId", { schema: { params: truthClaimIdParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, claimId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const result = await query(
-      `DELETE FROM world_truth_claims WHERE id = $1 AND world_id = $2 RETURNING id`,
-      [claimId, worldId]
-    );
-    if (!result.rowCount) return sendErr(reply, "NOT_FOUND");
-    return reply.code(204).send();
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `DELETE FROM world_truth_claims WHERE id = $1 AND world_id = $2 RETURNING id`,
+        [claimId, worldId]
+      );
+      if (!result.rowCount) throwErr("NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
   });
 
   app.get("/api/worlds/:worldId/role-relationships", { schema: { params: worldIdParams } }, async (request) => {
@@ -379,32 +386,34 @@ export async function registerContentPlatformRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     const body = request.body ?? {};
-    const roles = await query(
-      `SELECT count(*)::int AS count FROM role_slots
-       WHERE world_id = $1 AND id = ANY($2::uuid[])`,
-      [worldId, [body.fromRoleSlotId, body.toRoleSlotId]]
-    );
-    if (roles.rows[0].count !== 2) return sendErr(reply, "ROLE_SLOT_WORLD_MISMATCH");
-    const result = await query(
-      `INSERT INTO world_role_relationships
-        (world_id, from_role_slot_id, to_role_slot_id, relation_type, label, strength, visibility, metadata)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
-       ON CONFLICT (world_id, from_role_slot_id, to_role_slot_id, relation_type)
-       DO UPDATE SET label = EXCLUDED.label, strength = EXCLUDED.strength,
-                     visibility = EXCLUDED.visibility, metadata = EXCLUDED.metadata, updated_at = now()
-       RETURNING *`,
-      [
-        worldId,
-        body.fromRoleSlotId,
-        body.toRoleSlotId,
-        body.relationType ?? "relationship",
-        body.label ?? "",
-        body.strength ?? null,
-        body.visibility ?? "host",
-        JSON.stringify(body.metadata ?? {})
-      ]
-    );
-    return reply.code(201).send({ relationship: result.rows[0] });
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const roles = await client.query(
+        `SELECT count(*)::int AS count FROM role_slots
+         WHERE world_id = $1 AND id = ANY($2::uuid[])`,
+        [worldId, [body.fromRoleSlotId, body.toRoleSlotId]]
+      );
+      if (roles.rows[0].count !== 2) throwErr("ROLE_SLOT_WORLD_MISMATCH");
+      const result = await client.query(
+        `INSERT INTO world_role_relationships
+          (world_id, from_role_slot_id, to_role_slot_id, relation_type, label, strength, visibility, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
+         ON CONFLICT (world_id, from_role_slot_id, to_role_slot_id, relation_type)
+         DO UPDATE SET label = EXCLUDED.label, strength = EXCLUDED.strength,
+                       visibility = EXCLUDED.visibility, metadata = EXCLUDED.metadata, updated_at = now()
+         RETURNING *`,
+        [
+          worldId,
+          body.fromRoleSlotId,
+          body.toRoleSlotId,
+          body.relationType ?? "relationship",
+          body.label ?? "",
+          body.strength ?? null,
+          body.visibility ?? "host",
+          JSON.stringify(body.metadata ?? {})
+        ]
+      );
+      return { relationship: result.rows[0] };
+    }, { sendErr, statusCode: 201 });
   });
 
   app.get("/api/worlds/:worldId/creator-analytics", { schema: { params: worldIdParams } }, async (request) => {
@@ -510,34 +519,36 @@ export async function registerContentPlatformRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const body = request.body ?? {};
     const issueCount = body.issueCount ?? (Array.isArray(body.report?.issues) ? body.report.issues.length : 0);
-    const result = await query(
-      `INSERT INTO world_quality_reports
-        (world_id, source, prompt_version, report, issue_count, score, created_by_user_id)
-       VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7)
-       RETURNING id, world_id, source, prompt_version, report, issue_count, score, created_at`,
-      [
-        worldId,
-        body.source ?? "manual",
-        body.promptVersion ?? null,
-        JSON.stringify(body.report ?? {}),
-        issueCount,
-        body.score ?? null,
-        actorId
-      ]
-    );
-    const row = result.rows[0];
-    return reply.code(201).send({
-      report: {
-        id: row.id,
-        worldId: row.world_id,
-        source: row.source,
-        promptVersion: row.prompt_version,
-        report: row.report ?? {},
-        issueCount: row.issue_count,
-        score: row.score,
-        createdAt: row.created_at
-      }
-    });
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `INSERT INTO world_quality_reports
+          (world_id, source, prompt_version, report, issue_count, score, created_by_user_id)
+         VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7)
+         RETURNING id, world_id, source, prompt_version, report, issue_count, score, created_at`,
+        [
+          worldId,
+          body.source ?? "manual",
+          body.promptVersion ?? null,
+          JSON.stringify(body.report ?? {}),
+          issueCount,
+          body.score ?? null,
+          actorId
+        ]
+      );
+      const row = result.rows[0];
+      return {
+        report: {
+          id: row.id,
+          worldId: row.world_id,
+          source: row.source,
+          promptVersion: row.prompt_version,
+          report: row.report ?? {},
+          issueCount: row.issue_count,
+          score: row.score,
+          createdAt: row.created_at
+        }
+      };
+    }, { sendErr, statusCode: 201 });
   });
 
   app.get("/api/rooms/:roomId/votes", { schema: { params: roomIdParams } }, async (request) => {

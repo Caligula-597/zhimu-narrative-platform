@@ -2,6 +2,7 @@ import { query, transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
 import { buildWorldSnapshot, creatorChecks, storageUsage } from "./world-helpers.js";
 import { assertWorldCreateQuota } from "../quota-guards.js";
+import { resolveClueKind } from "../clue-kind.js";
 
 export const PACKAGE_FORMAT = "zhimu-world-package";
 export const PACKAGE_VERSION = 1;
@@ -24,6 +25,20 @@ export function validateEnvelope(body) {
   if (body?.version && Number(body.version) !== PACKAGE_VERSION) {
     throwErr("CONTENT_PACKAGE_VERSION_INVALID", `Unsupported package version: ${body.version}`);
   }
+}
+
+const VALID_VISIBILITY = new Set(["author", "host", "role", "faction", "public", "postgame"]);
+const VALID_PUBLICATION_STATUS = new Set(["draft", "testing", "published"]);
+const VALID_RULE_MODES = new Set(["automatic", "host_confirm", "manual"]);
+const VALID_EDGE_RELATIONS = new Set(["mainline", "parallel", "extension"]);
+
+function oneOf(value, valid, fallback) {
+  return valid.has(String(value)) ? String(value) : fallback;
+}
+
+function positiveInt(value, fallback = 1) {
+  const num = Number(value);
+  return Number.isInteger(num) && num > 0 ? num : fallback;
 }
 
 export async function assetSummaryForWorld(worldId, client = { query }) {
@@ -341,11 +356,18 @@ export async function importContentPackageData(client, worldId, payload) {
       chapterIds.set(chapter.id, existingChapterId);
       continue;
     }
-    const sequence = chapterOffset + (chapter.sequence ?? chapterIds.size + 1);
+    const sequence = chapterOffset + positiveInt(chapter.sequence, chapterIds.size + 1);
     const result = await client.query(
       `INSERT INTO chapters (world_id, title, summary, sequence, publication_status, unlock_rules)
        VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
-      [worldId, chapter.title, chapter.summary ?? "", sequence, chapter.publication_status ?? "draft", JSON.stringify(chapter.unlock_rules ?? {})]
+      [
+        worldId,
+        chapter.title,
+        chapter.summary ?? "",
+        sequence,
+        oneOf(chapter.publication_status, VALID_PUBLICATION_STATUS, "draft"),
+        JSON.stringify(chapter.unlock_rules ?? {})
+      ]
     );
     chapterIds.set(chapter.id, result.rows[0].id);
   }
@@ -356,7 +378,7 @@ export async function importContentPackageData(client, worldId, payload) {
       roleIds.set(role.id, existingId);
       continue;
     }
-    const sequence = roleOffset + (role.sequence ?? roleIds.size + 1);
+    const sequence = roleOffset + positiveInt(role.sequence, roleIds.size + 1);
     const result = await client.query(
       `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
        VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
@@ -391,12 +413,21 @@ export async function importContentPackageData(client, worldId, payload) {
       warnings.push({ level: "warning", title: `分幕「${section.title}」未绑定章节`, detail: "原章节引用无法在目标世界中解析。" });
     }
     const sectionOffset = sectionOffsetByRole.get(roleId) ?? 0;
-    const sequence = sectionOffset + (section.sequence ?? 1);
+    const sequence = sectionOffset + positiveInt(section.sequence, 1);
     sectionOffsetByRole.set(roleId, sequence);
     const result = await client.query(
       `INSERT INTO script_sections (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb) RETURNING id`,
-      [scriptId, roleId, chapterId, section.title, section.body ?? "", sequence, section.publication_status ?? "draft", JSON.stringify({ packageSourceId: section.id })]
+      [
+        scriptId,
+        roleId,
+        chapterId,
+        section.title,
+        section.body ?? "",
+        sequence,
+        oneOf(section.publication_status, VALID_PUBLICATION_STATUS, "draft"),
+        JSON.stringify({ packageSourceId: section.id })
+      ]
     );
     sectionIds.set(section.id, result.rows[0].id);
     sectionsImported += 1;
@@ -427,9 +458,17 @@ export async function importContentPackageData(client, worldId, payload) {
       continue;
     }
     const result = await client.query(
-      `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
-       VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
-      [worldId, clue.name, clue.public_text ?? "", clue.host_text ?? "", clue.visibility ?? "role", JSON.stringify({ ...(clue.metadata ?? {}), packageSourceId: clue.id })]
+      `INSERT INTO clues (world_id, name, public_text, host_text, visibility, clue_kind, metadata)
+       VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb) RETURNING id`,
+      [
+        worldId,
+        clue.name,
+        clue.public_text ?? "",
+        clue.host_text ?? "",
+        oneOf(clue.visibility, VALID_VISIBILITY, "role"),
+        resolveClueKind(clue),
+        JSON.stringify({ ...(clue.metadata ?? {}), packageSourceId: clue.id })
+      ]
     );
     clueIds.set(clue.id, result.rows[0].id);
   }
@@ -453,7 +492,17 @@ export async function importContentPackageData(client, worldId, payload) {
     const result = await client.query(
       `INSERT INTO investigation_points (world_id, scene_id, name, description, interaction_text, result_text, clue_id, sequence, metadata)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb) RETURNING id`,
-      [worldId, sceneId, point.name, point.description ?? "", point.interaction_text ?? "", point.result_text ?? "", clueId, point.sequence ?? 0, JSON.stringify({ ...(point.metadata ?? {}), packageSourceId: point.id })]
+      [
+        worldId,
+        sceneId,
+        point.name,
+        point.description ?? "",
+        point.interaction_text ?? "",
+        point.result_text ?? "",
+        clueId,
+        Math.max(0, Number(point.sequence) || 0),
+        JSON.stringify({ ...(point.metadata ?? {}), packageSourceId: point.id })
+      ]
     );
     pointIds.set(point.id, result.rows[0].id);
     pointsImported += 1;
@@ -465,7 +514,7 @@ export async function importContentPackageData(client, worldId, payload) {
     const fromId = edgeMaps[edge.from_type]?.get(edge.from_id);
     const toId = edgeMaps[edge.to_type]?.get(edge.to_id);
     if (!fromId || !toId) continue;
-    const relationType = edge.relation_type ?? "mainline";
+    const relationType = oneOf(edge.relation_type, VALID_EDGE_RELATIONS, "mainline");
     const existingEdge = await client.query(
       `SELECT id FROM story_graph_edges
        WHERE world_id = $1 AND from_type = $2 AND from_id = $3 AND to_type = $4 AND to_id = $5 AND relation_type = $6
@@ -496,7 +545,15 @@ export async function importContentPackageData(client, worldId, payload) {
     await client.query(
       `INSERT INTO automation_rules (world_id, name, mode, priority, enabled, conditions, actions)
        VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb)`,
-      [worldId, rule.name, rule.mode ?? "automatic", rule.priority ?? 100, rule.enabled !== false, JSON.stringify(conditions), JSON.stringify(remapRuleValue(rule.actions ?? [], maps))]
+      [
+        worldId,
+        rule.name,
+        oneOf(rule.mode, VALID_RULE_MODES, "automatic"),
+        Math.max(0, Number(rule.priority) || 100),
+        rule.enabled !== false,
+        JSON.stringify(conditions),
+        JSON.stringify(remapRuleValue(rule.actions ?? [], maps))
+      ]
     );
     rulesImported += 1;
   }

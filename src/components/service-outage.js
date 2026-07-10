@@ -24,6 +24,20 @@ import { escapeHtml } from "../../shared/security.js";
     return `<section class="service-outage-page"><article class="service-outage-card">${body}</article></section>`;
   }
 
-  window.zhimuServiceOutage = { isServiceOutage, renderServiceOutage };
+  function renderScopedOutageBanner(apiError) {
+    if (!isServiceOutage(apiError)) return "";
+    const detail = formatCloudPanelError(apiError, { hasStudio: false }) || apiError;
+    return `<section class="service-outage-banner card" role="alert">
+      <p class="section-kicker">SERVICE STATUS</p>
+      <strong>云端连接异常</strong>
+      <p class="muted-note">${escapeHtml(detail)}</p>
+      <div class="row" style="margin-top:10px">
+        <button class="secondary-btn" type="button" data-action="refresh-cloud">重新连接</button>
+        <button class="secondary-btn" type="button" data-action="open-error-guide">错误排查手册</button>
+      </div>
+    </section>`;
+  }
+
+  window.zhimuServiceOutage = { isServiceOutage, renderServiceOutage, renderScopedOutageBanner };
 })(window);
 export {};

@@ -12,15 +12,18 @@ export async function appendRoomEventJournal(roomId, event) {
 
 export async function fetchJournalEventsAfter(roomId, afterJournalId, limit = 200) {
   const params = [roomId];
+  const cappedLimit = Math.min(Math.max(Number(limit) || 200, 1), 500);
   let sql = `
     SELECT id, event_type, payload, created_at
     FROM room_event_journal
     WHERE room_id = $1`;
-  if (afterJournalId) {
-    params.push(Number(afterJournalId));
+  if (afterJournalId != null && afterJournalId !== "") {
+    const parsedAfterId = Number(afterJournalId);
+    if (!Number.isSafeInteger(parsedAfterId) || parsedAfterId < 0) return [];
+    params.push(parsedAfterId);
     sql += ` AND id > $2`;
   }
-  params.push(limit);
+  params.push(cappedLimit);
   sql += ` ORDER BY id ASC LIMIT $${params.length}`;
   const result = await query(sql, params);
   return result.rows;

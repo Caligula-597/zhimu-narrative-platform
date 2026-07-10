@@ -61,9 +61,15 @@ const appEntry = (function (window) {
       return;
     }
     const outage = window.zhimuServiceOutage;
-    const showOutage = currentView !== "creatorCockpit" && outage?.isServiceOutage?.(userStore.get().apiError) && !studioStore.get().cloudLoading;
+    const apiError = userStore.get().apiError;
+    const isOutage = outage?.isServiceOutage?.(apiError) && !studioStore.get().cloudLoading;
+    const showFullOutage = isOutage && currentView !== "creatorCockpit";
     const viewFn = resolveViewFn(uiStore.get().view);
-    const contentChanged = setContentHtml(showOutage ? outage.renderServiceOutage(userStore.get().apiError) : (viewFn ? viewFn() : renderViewLoading(title)));
+    let html = showFullOutage ? outage.renderServiceOutage(apiError) : (viewFn ? viewFn() : renderViewLoading(title));
+    if (isOutage && currentView === "creatorCockpit") {
+      html = (outage.renderScopedOutageBanner?.(apiError) || "") + html;
+    }
+    const contentChanged = setContentHtml(html);
     if (contentChanged && ["settings", "studio", "writer"].includes(uiStore.get().view)) {
       queueMicrotask(() => {
         const scope = window.zhimuWorldRevision?.resolveDraftScope?.();

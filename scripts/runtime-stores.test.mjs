@@ -359,10 +359,14 @@ test("data.js delegates ensureActiveWorld and clearRuntimeState to stores", () =
   assert.match(dataJs, /zhimuRoomEvents/);
   assert.match(dataJs, /function ensureActiveWorld/);
   assert.match(dataJs, /function clearRuntimeState/);
+  assert.match(dataJs, /force && loadCloudDataPromise && loadCloudDataKey === key/);
+  assert.match(dataJs, /function isCurrentLoad/);
+  assert.match(dataJs, /if \(!isCurrentLoad\(activeLoadKey\)\) return/);
 });
 
 test("actions.js delegates to domain action modules", () => {
   const actionsJs = fs.readFileSync(path.join(root, "src/runtime/actions.js"), "utf8");
+  const eventsJs = fs.readFileSync(path.join(root, "src/bootstrap/events.js"), "utf8");
   const modules = [
     "zhimuActionsWorkspace",
     "zhimuActionsArchive",
@@ -377,6 +381,10 @@ test("actions.js delegates to domain action modules", () => {
   for (const name of modules) {
     assert.match(actionsJs, new RegExp(name));
   }
+  assert.doesNotMatch(actionsJs, /querySelectorAll\("\[data-action\]"\)/);
+  assert.match(eventsJs, /function dispatchDelegatedAction/);
+  assert.match(eventsJs, /modalBackdrop\.onclick/);
+  assert.match(eventsJs, /dispatchDelegatedAction\(event, modalBackdrop\)/);
   assert.ok(actionsJs.split("\n").length < 80, "actions.js should stay a thin dispatcher");
 });
 
@@ -418,7 +426,7 @@ test("view registry is introduced without disabling lazy view loading", () => {
   assert.match(registryJs, /export function getView/);
   assert.doesNotMatch(registryJs, /window\.zhimuViews/);
   assert.match(resolverJs, /import \{ getView \} from "\.\.\/runtime\/view-registry\.js"/);
-  assert.match(resolverJs, /case "overview": return getView\("creatorCockpit"\)\.creatorCockpit/);
+  assert.match(resolverJs, /case "overview": return getView\("overview"\)\.overview/);
   assert.match(resolverJs, /case "creatorCockpit": return getView\("creatorCockpit"\)\.creatorCockpit/);
   assert.doesNotMatch(resolverJs, /const views = \{/);
   assert.doesNotMatch(appJs, /const V = window\.zhimuViews/);
@@ -494,6 +502,9 @@ test("phase V3 runtime cross-view calls go through loader and registry", () => {
   assert.match(roomEvents, /import \{ callView \} from "\.\/view-registry\.js"/);
   assert.match(roomEvents, /ensureViewModules\?\.\("player"\)/);
   assert.match(roomEvents, /callView\("player", "refreshVoiceMessages"\)/);
+  assert.match(roomEvents, /roomEventStreamKey/);
+  assert.match(roomEvents, /roomEventAbort && roomEventStreamKey === nextStreamKey/);
+  assert.match(roomEvents, /if \(roomEventStreamKey !== boundStreamKey\) return/);
   assert.match(searchFocus, /import \{ callView \} from "\.\/view-registry\.js"/);
   assert.match(searchFocus, /ensureViewModules\?\.\("writer"\)/);
   assert.match(searchFocus, /callView\("writer", "openCreatorSection"/);

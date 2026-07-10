@@ -3,7 +3,7 @@ import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { parseCreatorDocument } from "../document-parser.js";
 import { parseDocumentPayloadBase64 } from "../section-content.js";
-import { importPdfPagesToRoleScript, importImageFileToRoleSection } from "../document-page-import.js";
+import { importPdfPagesToRoleScript, importImageFileToRoleSection, renderPdfPageBuffers } from "../document-page-import.js";
 import { requireWorldRole } from "./route-guards.js";
 import { ROOMS_VISIBLE_TO_ACTOR_SQL } from "./world-helpers.js";
 import { setRoomPublicListing } from "../public-room-listing.js";
@@ -39,13 +39,15 @@ export async function registerCreatorRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const { target = "manuscript", roleSlotId = null, document } = request.body ?? {};
     if (target === "manuscript") {
-      await query(
-        `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
-         VALUES ($1,$2,'manual',$3) ON CONFLICT (world_id) DO UPDATE
-         SET body = EXCLUDED.body, last_sync_direction = 'manual', updated_by_user_id = EXCLUDED.updated_by_user_id, updated_at = now()`,
-        [worldId, document.text, actorId]
-      );
-      return reply.code(201).send({ target, sections: document.sections.length });
+      return runRevisionMutation(request, reply, worldId, async (client) => {
+        await client.query(
+          `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
+           VALUES ($1,$2,'manual',$3) ON CONFLICT (world_id) DO UPDATE
+           SET body = EXCLUDED.body, last_sync_direction = 'manual', updated_by_user_id = EXCLUDED.updated_by_user_id, updated_at = now()`,
+          [worldId, document.text, actorId]
+        );
+        return { target, sections: document.sections.length };
+      }, { sendErr, statusCode: 201 });
     }
     const role = await query(`SELECT id FROM role_slots WHERE id = $1 AND world_id = $2`, [roleSlotId, worldId]);
     if (!role.rowCount) return sendErr(reply, "ROLE_SLOT_IMPORT_REQUIRED");
@@ -81,40 +83,53 @@ export async function registerCreatorRoutes(app) {
       ? body.publicationStatus
       : "draft";
 
-    let result;
     if (extension === ".pdf") {
-      result = await importPdfPagesToRoleScript({
-        worldId,
-        actorId,
-        roleSlotId,
-        filename,
-        buffer,
-        title: body.title,
-        publicationStatus,
-        layout
-      });
+      const renderedPages = await renderPdfPageBuffers(buffer);
+      return runRevisionMutation(request, reply, worldId, async (client) => {
+        const result = await importPdfPagesToRoleScript({
+          worldId,
+          actorId,
+          roleSlotId,
+          filename,
+          buffer,
+          title: body.title,
+          publicationStatus,
+          layout,
+          renderedPages,
+          client
+        });
+        return {
+          target: "role_script_pages",
+          skipped: result.skipped,
+          pageCount: result.pageCount,
+          sections: result.sections,
+          layout: result.layout ?? "single_section"
+        };
+      }, { sendErr, statusCode: 201 });
     } else if ([".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(extension)) {
-      result = await importImageFileToRoleSection({
-        worldId,
-        actorId,
-        roleSlotId,
-        filename,
-        buffer,
-        contentType: body.contentType || "image/jpeg",
-        title: body.title,
-        publicationStatus
-      });
+      return runRevisionMutation(request, reply, worldId, async (client) => {
+        const result = await importImageFileToRoleSection({
+          worldId,
+          actorId,
+          roleSlotId,
+          filename,
+          buffer,
+          contentType: body.contentType || "image/jpeg",
+          title: body.title,
+          publicationStatus,
+          client
+        });
+        return {
+          target: "role_script_pages",
+          skipped: result.skipped,
+          pageCount: result.pageCount,
+          sections: result.sections,
+          layout: result.layout ?? "single_section"
+        };
+      }, { sendErr, statusCode: 201 });
     } else {
       return sendErr(reply, "DOCUMENT_TYPE_UNSUPPORTED");
     }
-
-    return reply.code(201).send({
-      target: "role_script_pages",
-      skipped: result.skipped,
-      pageCount: result.pageCount,
-      sections: result.sections,
-      layout: result.layout ?? "single_section"
-    });
   });
 
   app.post("/api/worlds/:worldId/roles", { schema: createRoleSchema }, async (request, reply) => {

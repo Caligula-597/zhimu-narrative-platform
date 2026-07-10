@@ -12,6 +12,7 @@ import { requireWorldRole, requireWorldReader } from "./route-guards.js";
 import { requireAssetRead, storageUsage } from "./world-helpers.js";
 import { buildUsagePayload } from "../plans.js";
 import { assetUploadUrlSchema, confirmAssetSchema, deleteAssetSchema, restoreAssetSchema, worldIdParams } from "./schemas.js";
+import { runRevisionMutation } from "../world-revision.js";
 
 export async function registerAssetRoutes(app) {
   app.get("/api/storage/usage", async (request) => {
@@ -114,11 +115,11 @@ export async function registerAssetRoutes(app) {
     });
   });
 
-  app.post("/api/assets/:assetId/confirm", { schema: confirmAssetSchema }, async (request) => {
+  app.post("/api/assets/:assetId/confirm", { schema: confirmAssetSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { assetId } = request.params;
     const session = await query(
-      `SELECT us.*, a.object_key, a.original_filename FROM upload_sessions us
+      `SELECT us.*, a.object_key, a.original_filename, a.world_id FROM upload_sessions us
        JOIN asset_files a ON a.id = us.asset_file_id
        WHERE us.asset_file_id = $1 AND us.owner_user_id = $2 AND us.status = 'created' AND us.expires_at > now()`,
       [assetId, actorId]
@@ -149,7 +150,7 @@ export async function registerAssetRoutes(app) {
       }
       throw error;
     }
-    await transaction(async (client) => {
+    return runRevisionMutation(request, reply, session.rows[0].world_id, async (client) => {
       await client.query(`UPDATE asset_files SET status = 'active', updated_at = now() WHERE id = $1`, [assetId]);
       await client.query(`UPDATE upload_sessions SET status = 'confirmed', confirmed_at = now() WHERE id = $1`, [session.rows[0].id]);
       await client.query(
@@ -157,8 +158,8 @@ export async function registerAssetRoutes(app) {
          VALUES ($1, 1, $2, $3)`,
         [assetId, session.rows[0].object_key, stat.byteSize]
       );
-    });
-    return { ok: true, assetId };
+      return { ok: true, assetId };
+    }, { sendErr });
   });
 
   app.get("/api/assets/:assetId/download-url", async (request) => {
@@ -169,12 +170,12 @@ export async function registerAssetRoutes(app) {
     return { downloadUrl, expiresIn: ttl };
   });
 
-  app.delete("/api/assets/:assetId", { schema: deleteAssetSchema }, async (request) => {
+  app.delete("/api/assets/:assetId", { schema: deleteAssetSchema }, async (request, reply) => {
     const actorId = requireActor(request);
-    const asset = await query(`SELECT id FROM asset_files WHERE id = $1 AND owner_user_id = $2 AND status <> 'deleted'`, [request.params.assetId, actorId]);
+    const asset = await query(`SELECT id, world_id FROM asset_files WHERE id = $1 AND owner_user_id = $2 AND status <> 'deleted'`, [request.params.assetId, actorId]);
     if (!asset.rowCount) throwErr("ASSET_NOT_FOUND");
     const recycleDays = Number(process.env.RECYCLE_BIN_DAYS ?? 14);
-    await transaction(async (client) => {
+    return runRevisionMutation(request, reply, asset.rows[0].world_id, async (client) => {
       await client.query(`UPDATE asset_files SET status = 'deleted', deleted_at = now(), updated_at = now() WHERE id = $1`, [request.params.assetId]);
       await client.query(
         `INSERT INTO deleted_assets (asset_file_id, deleted_by_user_id, purge_after)
@@ -182,27 +183,27 @@ export async function registerAssetRoutes(app) {
          ON CONFLICT (asset_file_id) DO UPDATE SET purge_after = EXCLUDED.purge_after`,
         [request.params.assetId, actorId, recycleDays]
       );
-    });
-    return { ok: true, purgeAfterDays: recycleDays };
+      return { ok: true, purgeAfterDays: recycleDays };
+    }, { sendErr });
   });
 
   app.post("/api/assets/:assetId/restore", { schema: restoreAssetSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { assetId } = request.params;
     const row = await query(
-      `SELECT af.id FROM asset_files af
+      `SELECT af.id, af.world_id FROM asset_files af
        JOIN deleted_assets da ON da.asset_file_id = af.id
        WHERE af.id = $1 AND af.owner_user_id = $2 AND af.status = 'deleted' AND da.purge_after > now()`,
       [assetId, actorId]
     );
     if (!row.rowCount) return sendErr(reply, "ASSET_NOT_IN_RECYCLE");
-    await transaction(async (client) => {
+    return runRevisionMutation(request, reply, row.rows[0].world_id, async (client) => {
       await client.query(
         `UPDATE asset_files SET status = 'active', deleted_at = NULL, updated_at = now() WHERE id = $1`,
         [assetId]
       );
       await client.query(`DELETE FROM deleted_assets WHERE asset_file_id = $1`, [assetId]);
-    });
-    return { ok: true, assetId };
+      return { ok: true, assetId };
+    }, { sendErr });
   });
 }

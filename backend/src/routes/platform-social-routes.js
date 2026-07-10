@@ -39,7 +39,13 @@ import {
 } from "./schemas.js";
 
 function writeSseEvent(raw, payload) {
-  raw.write(`data: ${JSON.stringify(payload)}\n\n`);
+  try {
+    if (raw.destroyed || raw.writableEnded) return false;
+    raw.write(`data: ${JSON.stringify(payload)}\n\n`);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function handleServiceError(reply, error, codes = []) {
@@ -311,23 +317,30 @@ export async function registerPlatformSocialRoutes(app) {
     });
     writeSseEvent(reply.raw, { type: "connected", userId: actorId, at: new Date().toISOString() });
 
-    const send = (payload) => {
-      try {
-        writeSseEvent(reply.raw, JSON.parse(payload));
-      } catch {
-        writeSseEvent(reply.raw, { type: "message", raw: payload });
-      }
-    };
-    const unsubUser = subscribePlatformUserEvents(actorId, send);
-    const unsubBroadcast = subscribePlatformBroadcast(send);
-    const heartbeat = setInterval(() => {
-      writeSseEvent(reply.raw, { type: "heartbeat", at: new Date().toISOString() });
-    }, 25000);
+    let closed = false;
+    let unsubUser = () => {};
+    let unsubBroadcast = () => {};
+    let heartbeat = null;
     const cleanup = () => {
-      clearInterval(heartbeat);
+      if (closed) return;
+      closed = true;
+      if (heartbeat) clearInterval(heartbeat);
       unsubUser();
       unsubBroadcast();
     };
+    const send = (payload) => {
+      try {
+        if (!writeSseEvent(reply.raw, JSON.parse(payload))) cleanup();
+      } catch {
+        if (!writeSseEvent(reply.raw, { type: "message", raw: payload })) cleanup();
+      }
+    };
+    unsubUser = subscribePlatformUserEvents(actorId, send);
+    unsubBroadcast = subscribePlatformBroadcast(send);
+    heartbeat = setInterval(() => {
+      if (!writeSseEvent(reply.raw, { type: "heartbeat", at: new Date().toISOString() })) cleanup();
+    }, 25000);
+    heartbeat.unref?.();
     request.raw.on("close", cleanup);
     request.raw.on("error", cleanup);
   });

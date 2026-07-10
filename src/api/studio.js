@@ -65,17 +65,17 @@ export function deleteStudioNode(nodeType, nodeId) {
 }
 
 export function updateStudioNodePosition(nodeType, nodeId, payload) {
-  return request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/position`, { userId: demoContext.hostUserId, method: "PUT", body: payload });
+  return worldWrite(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/position`, { method: "PUT", body: payload });
 }
 
 export function updateStudioNodeAnchors(nodeType, nodeId, anchors) {
-  return request(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/anchors`, { userId: demoContext.hostUserId, method: "PUT", body: { anchors } });
+  return worldWrite(`/worlds/${demoContext.worldId}/studio-nodes/${nodeType}/${nodeId}/anchors`, { method: "PUT", body: { anchors } });
 }
 
 export function updateStoryLayout(positions) {
-  return request(`/worlds/${demoContext.worldId}/story-layout`, { userId: demoContext.hostUserId, method: "PUT", body: { positions } });
+  return worldWrite(`/worlds/${demoContext.worldId}/story-layout`, { method: "PUT", body: { positions } });
 }
 
 export function autoStoryLayout(mode = "scene-tree") {
-  return request(`/worlds/${demoContext.worldId}/story-layout/auto`, { userId: demoContext.hostUserId, method: "POST", body: { mode } });
+  return worldWrite(`/worlds/${demoContext.worldId}/story-layout/auto`, { method: "POST", body: { mode } });
 }
