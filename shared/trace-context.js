@@ -9,7 +9,7 @@ export function getOrCreateTraceId() {
 }
 
 /**
- * Persist trace id for the browser session so API + SSE share one correlation id.
+ * Persist correlation id for the browser session so API + SSE share one Trace-Id.
  * @returns {string}
  */
 export function currentTraceId() {
@@ -22,11 +22,15 @@ export function currentTraceId() {
   return traceId;
 }
 
-/** @returns {Record<string, string>} */
+/**
+ * Headers for outbound API/SSE calls.
+ * - X-Trace-Id: stable session correlation id (maps to request.traceId)
+ * - X-Request-Id: unique per request (maps to Fastify request.id)
+ * @returns {Record<string, string>}
+ */
 export function traceRequestHeaders() {
-  const traceId = currentTraceId();
   return {
-    "X-Trace-Id": traceId,
-    "X-Request-Id": traceId
+    "X-Trace-Id": currentTraceId(),
+    "X-Request-Id": getOrCreateTraceId()
   };
 }

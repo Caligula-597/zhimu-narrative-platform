@@ -3,6 +3,7 @@
  * Used by main / play / host API clients via createApiFetch().
  */
 import { traceRequestHeaders } from "./trace-context.js";
+import { isKnownApiErrorCode } from "./contracts/error-codes.js";
 
 /**
  * @param {Response} response
@@ -131,6 +132,7 @@ export function defaultHttpError(response, payload, method, path) {
   err.code = payload.code;
   err.status = response.status;
   err.details = payload.details;
+  err.known = isKnownApiErrorCode(payload.code);
   return err;
 }
 

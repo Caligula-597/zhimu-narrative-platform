@@ -9,6 +9,11 @@ on:
         description: "API base URL (no trailing slash)"
         required: false
         default: "https://app.getzhimu.com"
+      product_probes:
+        description: "Run fixture product probes (local/staging only; needs demo headers)"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   guardian-production:
@@ -26,11 +31,16 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
-      - name: Guardian poll (health + metrics + product probes)
-        run: node scripts/guardian-poll.mjs --product-probes --web-vitals
+      - name: Guardian poll (health + metrics + web-vitals)
+        # Production: no product probes — demo user headers are disabled there.
+        run: node scripts/guardian-poll.mjs --web-vitals
       - name: Guardian poll with alerts (optional)
         if: env.OPS_API_TOKEN != ''
-        run: node scripts/guardian-poll.mjs --product-probes --alerts
+        run: node scripts/guardian-poll.mjs --alerts
+        continue-on-error: true
+      - name: Product probes (manual opt-in only)
+        if: github.event.inputs.product_probes == 'true'
+        run: node scripts/guardian-poll.mjs --product-probes
         continue-on-error: true
 
   guardian-staging:
@@ -48,5 +58,6 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
-      - name: Guardian poll (staging)
-        run: node scripts/guardian-poll.mjs --product-probes --web-vitals
+      - name: Guardian poll (staging health + metrics + product probes)
+        # Staging may enable ALLOW_DEMO_USER_HEADER for fixture probes.
+        run: node scripts/guardian-poll.mjs --web-vitals --product-probes

@@ -103,7 +103,7 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
         properties: {
           name: { type: "string", enum: ["LCP", "CLS", "INP", "FCP", "TTFB"] },
           value: { type: "number" },
-          rating: { type: "string", maxLength: 20 },
+          rating: { type: "string", enum: ["good", "needs-improvement", "poor", "unknown"], maxLength: 20 },
           id: { type: "string", maxLength: 120 },
           path: { type: "string", maxLength: 500 },
           app: { type: "string", maxLength: 40 }
@@ -113,7 +113,12 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
     }
   }, async (request, reply) => {
     const body = request.body ?? {};
-    recordWebVital({ name: body.name, app: body.app, rating: body.rating || "unknown" });
+    recordWebVital({
+      name: body.name,
+      app: body.app,
+      rating: body.rating || "unknown",
+      value: body.value
+    });
     return reply.code(204).send();
   });
 }

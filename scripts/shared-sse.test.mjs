@@ -109,7 +109,7 @@ test("openSseStream resumes the cursor and normalizes lifecycle events", async (
   let sentHeaders;
   globalThis.fetch = async (_url, options) => {
     sentHeaders = options.headers;
-    return new Response('data: {"type":"connected"}\n\ndata: {"type":"room.updated","roomId":"r1","at":"now","value":2}\n\n', {
+    return new Response('data: {"type":"connected"}\n\ndata: {"type":"room.host_nudge","roomId":"r1","at":"now","message":"hi","roleSlotIds":["a"]}\n\n', {
       status: 200,
       headers: { "content-type": "text/event-stream" }
     });
@@ -126,7 +126,24 @@ test("openSseStream resumes the cursor and normalizes lifecycle events", async (
   assert.equal(sentHeaders.Accept, "text/event-stream");
   assert.deepEqual(events, [
     { type: "__connected__", payload: { type: "connected" } },
-    { type: "room.updated", payload: { value: 2 } }
+    { type: "room.host_nudge", payload: { message: "hi", roleSlotIds: ["a"] } }
+  ]);
+});
+
+test("openSseStream drops unknown room.* event types by contract", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(
+    'data: {"type":"room.not_a_real_event","roomId":"r1"}\n\ndata: {"type":"room.player_joined","roleSlotId":"a","roleName":"A"}\n\n',
+    { status: 200, headers: { "content-type": "text/event-stream" } }
+  );
+  const events = [];
+  await openSseStream({
+    url: "/api/events",
+    onEvent: async (type, payload) => events.push({ type, payload })
+  });
+  assert.deepEqual(events, [
+    { type: "room.player_joined", payload: { roleSlotId: "a", roleName: "A" } }
   ]);
 });
 

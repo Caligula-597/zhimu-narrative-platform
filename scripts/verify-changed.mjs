@@ -62,7 +62,9 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/rule-condition-evaluator", ["test/rule-runtime.test.js", "test/rule-engine.test.js"]],
   ["backend/src/rule-engine", ["test/rule-runtime.test.js", "test/rule-engine.test.js"]],
   ["backend/src/optional-services-status", ["test/ops-health.test.js"]],
-  ["backend/src/routes/system-routes", ["test/ops-health.test.js", "test/security-headers.test.js"]],
+  ["backend/src/routes/system-routes", ["test/ops-health.test.js", "test/security-headers.test.js", "test/web-vitals-metrics.test.js"]],
+  ["backend/src/metrics.js", ["test/web-vitals-metrics.test.js"]],
+  ["backend/scripts/pg-stat-report.mjs", ["test/pg-stat-statements.test.js"]],
   ["backend/src/security-headers", ["test/security-headers.test.js", "test/app-auth.test.js"]],
   ["backend/src/session-cookie", ["test/session-cookie.test.js", "test/app-auth.test.js"]],
   ["backend/src/world-revision", ["test/world-revision.test.js", "test/world-settings.test.js", "test/studio-edit.test.js"]],
@@ -166,6 +168,14 @@ if (files.some((f) =>
     "git diff --exit-code -- backend/generated/api-contracts.d.ts shared/generated/api-contracts.d.ts",
     root
   );
+}
+
+if (files.some((f) =>
+  f.startsWith("shared/contracts/") ||
+  f === "backend/src/room-event-schemas.js" ||
+  f === "scripts/check-contracts-drift.mjs"
+)) {
+  run("check contracts drift", "npm run check:contracts");
 }
 
 for (const t of backendTests) {

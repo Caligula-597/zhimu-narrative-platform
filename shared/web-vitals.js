@@ -1,31 +1,55 @@
 /**
  * Lightweight Core Web Vitals observer for app / play / host shells.
- * Reports via callback and optional beacon to backend metrics endpoint.
+ * Computes rating thresholds and reports value + rating to the backend.
  */
 
-/** @typedef {{ name: string, value: number, rating?: string, id: string, path?: string }} WebVitalMetric */
+/** @typedef {{ name: string, value: number, rating: string, id: string, path?: string }} WebVitalMetric */
+
+/** Web Vitals thresholds (ms for LCP/INP/FCP/TTFB; unitless for CLS). */
+export const WEB_VITAL_THRESHOLDS = Object.freeze({
+  LCP: { good: 2500, poor: 4000 },
+  INP: { good: 200, poor: 500 },
+  CLS: { good: 0.1, poor: 0.25 },
+  FCP: { good: 1800, poor: 3000 },
+  TTFB: { good: 800, poor: 1800 }
+});
 
 /**
- * @param {WebVitalMetric} metric
+ * @param {string} name
+ * @param {number} value
+ * @returns {"good"|"needs-improvement"|"poor"|"unknown"}
+ */
+export function rateWebVital(name, value) {
+  const thresholds = WEB_VITAL_THRESHOLDS[name];
+  if (!thresholds || !Number.isFinite(value)) return "unknown";
+  if (value <= thresholds.good) return "good";
+  if (value <= thresholds.poor) return "needs-improvement";
+  return "poor";
+}
+
+/**
+ * @param {Omit<WebVitalMetric, "rating"> & { rating?: string }} metric
  * @param {{ endpoint?: string, app?: string, debug?: boolean, onMetric?: (metric: WebVitalMetric) => void }} [options]
  */
 export function reportWebVital(metric, options = {}) {
-  options.onMetric?.(metric);
+  const rating = metric.rating || rateWebVital(metric.name, metric.value);
+  const enriched = { ...metric, rating };
+  options.onMetric?.(enriched);
   if (options.debug && typeof console !== "undefined") {
-    console.info(`[web-vitals] ${metric.name}=${metric.value}`, metric);
+    console.info(`[web-vitals] ${enriched.name}=${enriched.value} (${enriched.rating})`, enriched);
   }
   const endpoint = options.endpoint;
   if (!endpoint || typeof navigator === "undefined") return;
   const body = JSON.stringify({
-    name: metric.name,
-    value: metric.value,
-    rating: metric.rating,
-    id: metric.id,
-    path: metric.path || globalThis.location?.pathname || "/",
+    name: enriched.name,
+    value: enriched.value,
+    rating: enriched.rating,
+    id: enriched.id,
+    path: enriched.path || globalThis.location?.pathname || "/",
     app: options.app || "unknown"
   });
   if (navigator.sendBeacon) {
-    navigator.sendBeacon(endpoint, body);
+    navigator.sendBeacon(endpoint, new Blob([body], { type: "application/json" }));
     return;
   }
   fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});

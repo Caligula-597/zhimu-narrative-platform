@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 /**
- * Guardian periodic poll — health, metrics, product probes, optional pg_stat + web-vitals.
+ * Guardian periodic poll — health, metrics, optional product probes / pg_stat / web-vitals.
+ *
+ * Defaults are safe for production: health + metrics only.
+ * Product probes require demo-user headers and fixture data — use only on local/staging.
  *
  * Usage:
  *   npm run guardian:poll
  *   npm run guardian:poll -- --url https://app.getzhimu.com
- *   npm run guardian:poll -- --product-probes --pg-stat
+ *   npm run guardian:poll -- --url http://localhost:4180 --product-probes --web-vitals
  *   npm run guardian:poll -- --json
  *
  * Env:
@@ -26,9 +29,10 @@ function argValue(flag, fallback = "") {
 
 const baseUrl = (argValue("--url") || process.env.APP_PUBLIC_URL || "http://localhost:4180").replace(/\/$/, "");
 const jsonOut = args.includes("--json");
-const productProbes = args.includes("--product-probes") || !args.includes("--skip-product-probes");
+/** Product probes are opt-in — they need ALLOW_DEMO_USER_HEADER + fixture IDs. */
+const productProbes = args.includes("--product-probes");
 const pgStat = args.includes("--pg-stat");
-const webVitals = args.includes("--web-vitals") || productProbes;
+const webVitals = args.includes("--web-vitals");
 const testAlerts = args.includes("--alerts");
 const metricsToken = process.env.METRICS_TOKEN?.trim();
 const opsToken = process.env.OPS_API_TOKEN?.trim();
@@ -73,7 +77,8 @@ async function runMetricsCheck() {
   const response = await fetch(`${baseUrl}/metrics`, { headers });
   const text = await response.text();
   if (response.ok && text.includes("http_requests_total")) {
-    record("/metrics", true, text.includes("web_vitals_total") ? "web_vitals present" : "basic metrics");
+    const hasValueHist = text.includes("web_vital_value");
+    record("/metrics", true, hasValueHist ? "web_vital_value present" : "basic metrics");
     return;
   }
   if (response.status === 401) {
@@ -87,7 +92,13 @@ async function runWebVitalsProbe() {
   const response = await fetch(`${baseUrl}/api/metrics/web-vitals`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ name: "LCP", value: 1200, id: `guardian-${Date.now()}`, app: "guardian" })
+    body: JSON.stringify({
+      name: "LCP",
+      value: 1200,
+      rating: "good",
+      id: `guardian-${Date.now()}`,
+      app: "guardian"
+    })
   });
   record("web-vitals beacon", response.status === 204, String(response.status));
 }
@@ -117,7 +128,11 @@ function runPgStatReport() {
     encoding: "utf8",
     env: process.env
   });
-  record("pg_stat_statements report", result.status === 0, result.status === 0 ? "top queries printed" : result.stderr?.slice(0, 120) || `exit ${result.status}`);
+  record(
+    "pg_stat_statements report",
+    result.status === 0,
+    result.status === 0 ? "top queries printed" : result.stderr?.slice(0, 160) || result.stdout?.slice(0, 160) || `exit ${result.status}`
+  );
 }
 
 async function main() {

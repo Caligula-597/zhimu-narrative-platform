@@ -10,6 +10,16 @@ const httpDuration = new Map();
 const uploadScans = new Map();
 const uploadScanRejected = new Map();
 const webVitals = new Map();
+/** Histogram buckets by metric name (ms for LCP/INP/FCP/TTFB; unitless×1000 for CLS stored as raw). */
+const webVitalBuckets = {
+  LCP: [1000, 2500, 4000, 8000, 15000],
+  INP: [100, 200, 500, 1000, 2000],
+  FCP: [1000, 1800, 3000, 6000, 10000],
+  TTFB: [200, 800, 1800, 3000, 8000],
+  CLS: [0.05, 0.1, 0.25, 0.5, 1]
+};
+/** @type {Map<string, { buckets: number[], sum: number, count: number, le: number[] }>} */
+const webVitalValues = new Map();
 let apiReadyGauge = 1;
 
 function routeKey(method, route) {
@@ -41,9 +51,23 @@ export function recordUploadScan({ mode = "none", result = "clean", reason = "" 
   }
 }
 
-export function recordWebVital({ name, app = "unknown", rating = "unknown" } = {}) {
+export function recordWebVital({ name, app = "unknown", rating = "unknown", value } = {}) {
   if (!name) return;
-  inc(webVitals, `${app}:${name}:${rating}`);
+  const safeRating = rating || "unknown";
+  inc(webVitals, `${app}:${name}:${safeRating}`);
+  if (!Number.isFinite(value)) return;
+  const le = webVitalBuckets[name];
+  if (!le) return;
+  const key = `${app}:${name}`;
+  if (!webVitalValues.has(key)) {
+    webVitalValues.set(key, { buckets: le.map(() => 0), sum: 0, count: 0, le: [...le] });
+  }
+  const entry = webVitalValues.get(key);
+  for (let i = 0; i < entry.le.length; i++) {
+    if (value <= entry.le[i]) entry.buckets[i]++;
+  }
+  entry.sum += value;
+  entry.count++;
 }
 
 export function setApiReadyGauge(value) {
@@ -68,24 +92,28 @@ function formatLabels(labels) {
   return parts.length ? `{${parts.join(",")}}` : "";
 }
 
-function renderCounter(name, help, map) {
+function renderCounter(name, help, map, labelParser = null) {
   const lines = [`# HELP ${name} ${help}`, `# TYPE ${name} counter`];
   for (const [key, value] of map) {
-    const [method, ...routeParts] = key.split(" ");
-    lines.push(`${name}${formatLabels({ method, route: routeParts.join(" ") })} ${value}`);
+    const labels = labelParser
+      ? labelParser(key)
+      : (() => {
+          const [method, ...routeParts] = key.split(" ");
+          return { method, route: routeParts.join(" ") };
+        })();
+    lines.push(`${name}${formatLabels(labels)} ${value}`);
   }
   return lines.join("\n");
 }
 
-function renderHistogram(name, help) {
+function renderHistogram(name, help, map, labelParser) {
   const lines = [`# HELP ${name} ${help}`, `# TYPE ${name} histogram`];
-  for (const [key, entry] of httpDuration) {
-    const [method, ...routeParts] = key.split(" ");
-    const route = routeParts.join(" ");
-    const baseLabels = { method, route };
-    for (let i = 0; i < durationBuckets.length; i++) {
+  for (const [key, entry] of map) {
+    const baseLabels = labelParser(key);
+    const leValues = entry.le || durationBuckets;
+    for (let i = 0; i < leValues.length; i++) {
       lines.push(
-        `${name}_bucket${formatLabels({ ...baseLabels, le: String(durationBuckets[i]) })} ${entry.buckets[i]}`
+        `${name}_bucket${formatLabels({ ...baseLabels, le: String(leValues[i]) })} ${entry.buckets[i]}`
       );
     }
     lines.push(`${name}_bucket${formatLabels({ ...baseLabels, le: "+Inf" })} ${entry.count}`);
@@ -95,14 +123,30 @@ function renderHistogram(name, help) {
   return lines.join("\n");
 }
 
+function parseHttpDurationKey(key) {
+  const [method, ...routeParts] = key.split(" ");
+  return { method, route: routeParts.join(" ") };
+}
+
+function parseWebVitalCountKey(key) {
+  const [app, name, rating] = key.split(":");
+  return { app, name, rating };
+}
+
+function parseWebVitalKey(key) {
+  const [app, name] = key.split(":");
+  return { app, name };
+}
+
 export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, uptimeSeconds = 0, readyOk = apiReadyGauge } = {}) {
   const sections = [
     renderCounter("http_requests_total", "Total HTTP requests", httpRequests),
     renderCounter("http_errors_5xx_total", "HTTP 5xx responses", httpErrors5xx),
     renderCounter("upload_scans_total", "Upload malware scans by mode and result", uploadScans),
     renderCounter("upload_scans_rejected_total", "Rejected or errored upload scans by reason", uploadScanRejected),
-    renderCounter("web_vitals_total", "Frontend Core Web Vitals beacons by app/name/rating", webVitals),
-    renderHistogram("http_request_duration_ms", "HTTP request duration in milliseconds"),
+    renderCounter("web_vitals_total", "Frontend Core Web Vitals beacons by app/name/rating", webVitals, parseWebVitalCountKey),
+    renderHistogram("http_request_duration_ms", "HTTP request duration in milliseconds", httpDuration, parseHttpDurationKey),
+    renderHistogram("web_vital_value", "Frontend Core Web Vitals observed values by app/name", webVitalValues, parseWebVitalKey),
     `# HELP api_ready 1 when last readiness check passed`,
     `# TYPE api_ready gauge`,
     `api_ready ${readyOk ? 1 : 0}`,
@@ -139,5 +183,6 @@ export function resetMetricsForTests() {
   uploadScans.clear();
   uploadScanRejected.clear();
   webVitals.clear();
+  webVitalValues.clear();
   apiReadyGauge = 1;
 }

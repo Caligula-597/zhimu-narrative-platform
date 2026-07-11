@@ -1,5 +1,6 @@
 import { consumeSseStream } from "./sse.js";
 import { traceRequestHeaders } from "./trace-context.js";
+import { isRoomEventType } from "./contracts/room-events.js";
 
 /** Shared authenticated SSE transport for app, host and play clients. */
 export async function openSseStream({
@@ -11,7 +12,9 @@ export async function openSseStream({
   onEvent,
   connectedOnOpen = false,
   stripFields = ["at", "roomId"],
-  mapHttpError
+  mapHttpError,
+  /** When true, skip unknown room.* event types (still deliver non-room lifecycle). */
+  validateRoomEvents = true
 }) {
   const requestHeaders = { Accept: "text/event-stream", ...traceRequestHeaders(), ...headers };
   const cursor = cursorKey ? storage?.getItem?.(cursorKey) : null;
@@ -45,7 +48,11 @@ export async function openSseStream({
       const type = payload.type;
       delete payload.type;
       for (const field of stripFields) delete payload[field];
-      if (type) await onEvent?.(type, payload);
+      if (!type) return;
+      if (validateRoomEvents && type.startsWith("room.") && !isRoomEventType(type)) {
+        return;
+      }
+      await onEvent?.(type, payload);
     }
   });
 }

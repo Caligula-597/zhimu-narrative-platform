@@ -20,7 +20,8 @@ test("createApiFetch sends trace headers", async () => {
     const { request } = createApiFetch({ baseUrl: "http://test/api" });
     await request("/ping");
     assert.ok(capturedHeaders["X-Trace-Id"]);
-    assert.equal(capturedHeaders["X-Request-Id"], capturedHeaders["X-Trace-Id"]);
+    assert.ok(capturedHeaders["X-Request-Id"]);
+    assert.notEqual(capturedHeaders["X-Request-Id"], capturedHeaders["X-Trace-Id"]);
   } finally {
     globalThis.fetch = original;
     delete globalThis.sessionStorage;
