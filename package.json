@@ -82,6 +82,8 @@
     "git:push": "node scripts/git-push.mjs"
   },
   "devDependencies": {
+    "@emnapi/core": "1.11.2",
+    "@emnapi/runtime": "1.11.2",
     "@playwright/test": "^1.52.0",
     "vite": "^8.1.3"
   }
