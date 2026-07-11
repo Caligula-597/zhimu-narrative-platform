@@ -11,6 +11,8 @@ test("pg_stat_statements migration exists", () => {
   assert.ok(fs.existsSync(file));
   const sql = fs.readFileSync(file, "utf8");
   assert.match(sql, /CREATE EXTENSION IF NOT EXISTS pg_stat_statements/i);
+  assert.match(sql, /EXCEPTION/i);
+  assert.match(sql, /insufficient_privilege/i);
 });
 
 test("classifyPgStatError maps permission denied", () => {

@@ -40,6 +40,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
 
   function maybeAutoLoadCockpit(view) {
     if (view !== "creatorCockpit") return;
+    // Enter-once load; refreshCockpitData no-ops when already loaded for this world.
     void callView("creatorCockpit", "refreshCockpitData");
   }
 
@@ -52,7 +53,8 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
 
     switch (action) {
       case "cockpit-refresh":
-        void callView("creatorCockpit", "refreshCockpitData");
+        callView("creatorCockpit", "invalidateCockpitData");
+        void callView("creatorCockpit", "refreshCockpitData", { force: true });
         return true;
 
       case "cockpit-goto-target":

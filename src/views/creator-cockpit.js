@@ -41,6 +41,14 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
 let cockpit = defaultDraft(null);
 let saveSummaryTimer = null;
 let saveBriefTimer = null;
+/** Prevent bindDynamic → refresh → render → bindDynamic request amplification. */
+let loadedWorldId = null;
+let inFlightPromise = null;
+let loadSeq = 0;
+
+export function invalidateCockpitData() {
+  loadedWorldId = null;
+}
 
 function loadDraft(worldId, studio) {
   try {
@@ -113,34 +121,49 @@ export function navigateCockpit({ stage, item, canvas, target } = {}) {
   render();
 }
 
-export async function refreshCockpitData() {
+export async function refreshCockpitData({ force = false } = {}) {
   const worldId = zhimuApi.context.worldId;
-  if (!worldId) return;
-  syncDraftForWorld();
-  try {
-    const [dash, bibleSummary, segmentsPayload, truthPayload, relPayload] = await Promise.all([
-      zhimuApi.getCreatorDashboard({ worldId }),
-      zhimuApi.getBibleSummary(worldId),
-      worldStore.get().cloudSegments === null ? zhimuApi.getWorldSegments(worldId) : Promise.resolve(null),
-      worldStore.get().cloudTruthClaims === null ? zhimuApi.getTruthClaims(worldId) : Promise.resolve(null),
-      worldStore.get().cloudRoleRelationships === null ? zhimuApi.getRoleRelationships(worldId) : Promise.resolve(null)
-    ]);
-    const patch = {
-      cloudCreatorDashboard: dash,
-      cloudCreatorChecks: dash?.checks || [],
-      cloudBibleSummary: bibleSummary
-    };
-    if (segmentsPayload) patch.cloudSegments = segmentsPayload.segments || [];
-    if (truthPayload) patch.cloudTruthClaims = truthPayload.claims || [];
-    if (relPayload) patch.cloudRoleRelationships = relPayload.relationships || [];
-    worldStore.set(patch);
-    if (cockpit.activeCanvas === "feedback") {
-      await prefetchFeedbackInsights();
-    }
-    render();
-  } catch (error) {
-    showError(error);
+  if (!worldId) {
+    loadedWorldId = null;
+    return;
   }
+  if (!force && loadedWorldId === worldId) return;
+  if (!force && inFlightPromise) return inFlightPromise;
+
+  const seq = ++loadSeq;
+  syncDraftForWorld();
+  inFlightPromise = (async () => {
+    try {
+      const [dash, bibleSummary, segmentsPayload, truthPayload, relPayload] = await Promise.all([
+        zhimuApi.getCreatorDashboard({ worldId }),
+        zhimuApi.getBibleSummary(worldId),
+        worldStore.get().cloudSegments === null ? zhimuApi.getWorldSegments(worldId) : Promise.resolve(null),
+        worldStore.get().cloudTruthClaims === null ? zhimuApi.getTruthClaims(worldId) : Promise.resolve(null),
+        worldStore.get().cloudRoleRelationships === null ? zhimuApi.getRoleRelationships(worldId) : Promise.resolve(null)
+      ]);
+      if (seq !== loadSeq) return;
+      const patch = {
+        cloudCreatorDashboard: dash,
+        cloudCreatorChecks: dash?.checks || [],
+        cloudBibleSummary: bibleSummary
+      };
+      if (segmentsPayload) patch.cloudSegments = segmentsPayload.segments || [];
+      if (truthPayload) patch.cloudTruthClaims = truthPayload.claims || [];
+      if (relPayload) patch.cloudRoleRelationships = relPayload.relationships || [];
+      worldStore.set(patch);
+      if (cockpit.activeCanvas === "feedback") {
+        await prefetchFeedbackInsights();
+      }
+      if (seq !== loadSeq) return;
+      loadedWorldId = worldId;
+      render();
+    } catch (error) {
+      if (seq === loadSeq) showError(error);
+    } finally {
+      if (seq === loadSeq) inFlightPromise = null;
+    }
+  })();
+  return inFlightPromise;
 }
 
 export function scheduleBriefSave() {
@@ -360,6 +383,7 @@ bindCockpitEvents();
 registerView("creatorCockpit", {
   creatorCockpit,
   refreshCockpitData,
+  invalidateCockpitData,
   navigateCockpit,
   selectCockpitSegment,
   getCockpitDraft,
