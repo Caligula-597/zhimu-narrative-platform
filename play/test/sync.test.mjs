@@ -50,10 +50,12 @@ test("renderSyncStatusBannerHtml surfaces reconnect and poll states", () => {
 
 test("main.js uses pull generation and partial refresh paths", () => {
   const main = readFileSync(path.join(root, "src", "main.js"), "utf8");
+  const social = readFileSync(path.join(root, "src", "runtime", "social-controller.js"), "utf8");
   assert.match(main, /pullGeneration/);
   assert.match(main, /pendingRoomRefresh/);
   assert.match(main, /isGameInputFocused/);
-  assert.match(main, /dmScrollStickBottom/);
+  assert.match(main, /createSocialController/);
+  assert.match(social, /dmScrollStickBottom/);
 });
 
 test("platform-events has poll fallback when SSE down", () => {

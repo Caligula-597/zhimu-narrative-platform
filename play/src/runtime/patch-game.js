@@ -1,3 +1,4 @@
+import { setHtml } from "../../../shared/safe-dom.js";
 import { setToast } from "../state.js";
 import {
   gameTabPanelLabelId,
@@ -34,16 +35,16 @@ function bindSectionsReader(state, ctx) {
 
 function patchGameChrome(state) {
   const banner = document.querySelector("[data-game-host-banner]");
-  if (banner) banner.innerHTML = renderHostConfirmBannerHtml();
+  if (banner) setHtml(banner, renderHostConfirmBannerHtml());
 
   const miniGame = document.querySelector("[data-game-mini-game]");
-  if (miniGame && !activeInputIn(miniGame)) miniGame.innerHTML = renderMiniGamePanel(state.currentGame);
+  if (miniGame && !activeInputIn(miniGame)) setHtml(miniGame, renderMiniGamePanel(state.currentGame));
 
   const sidebar = document.querySelector("[data-game-sidebar]");
-  if (sidebar) sidebar.innerHTML = renderGameSidebar();
+  if (sidebar) setHtml(sidebar, renderGameSidebar());
 
   const tabBar = document.querySelector("[data-game-tab-bar]");
-  if (tabBar) tabBar.innerHTML = renderGameTabBar();
+  if (tabBar) setHtml(tabBar, renderGameTabBar());
 
   const shell = document.querySelector(".game-shell");
   if (shell) {
@@ -60,8 +61,8 @@ export function patchGameTabSwitch(state, ctx) {
   const tabBar = document.querySelector("[data-game-tab-bar]");
   if (!tabBody || !tabBar || state.view !== "game") return false;
 
-  tabBar.innerHTML = renderGameTabBar();
-  tabBody.innerHTML = renderGameTabBody();
+  setHtml(tabBar, renderGameTabBar());
+  setHtml(tabBody, renderGameTabBody());
   tabBody.setAttribute("aria-labelledby", gameTabPanelLabelId(state.tab));
 
   if (state.tab === "sections") bindSectionsReader(state, ctx);
@@ -84,7 +85,7 @@ export function patchGameView(state, ctx) {
   const voiceLog = state.tab === "voice" ? document.querySelector("[data-voice-scroll]") : null;
   const voiceScrollTop = voiceLog?.scrollTop ?? null;
 
-  tabBody.innerHTML = renderGameTabBody();
+  setHtml(tabBody, renderGameTabBody());
   tabBody.setAttribute("aria-labelledby", gameTabPanelLabelId(state.tab));
   tabBody.scrollTop = tabBodyScroll;
 
@@ -101,7 +102,7 @@ export function patchGameView(state, ctx) {
 export function patchGameHostBanner() {
   const banner = document.querySelector("[data-game-host-banner]");
   if (!banner) return false;
-  banner.innerHTML = renderHostConfirmBannerHtml();
+  setHtml(banner, renderHostConfirmBannerHtml());
   return true;
 }
 
@@ -111,7 +112,7 @@ export function patchGameSectionsTab(state, ctx) {
   const tabBody = document.querySelector("[data-game-tab-body]");
   if (!tabBody) return false;
   const scroll = tabBody.scrollTop;
-  tabBody.innerHTML = renderGameTabBody();
+  setHtml(tabBody, renderGameTabBody());
   tabBody.scrollTop = scroll;
   bindSectionsReader(state, ctx);
   return true;
