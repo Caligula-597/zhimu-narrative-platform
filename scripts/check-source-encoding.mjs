@@ -13,7 +13,8 @@ import { TextDecoder } from "node:util";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const srcRoot = path.join(root, "src");
+const sourceRoots = ["src", "host/src", "play/src", "shared"]
+  .map((entry) => path.join(root, entry));
 const decoder = new TextDecoder("utf-8", { fatal: true });
 
 function walk(dir) {
@@ -27,7 +28,10 @@ function walk(dir) {
 }
 
 const failures = [];
-const files = walk(srcRoot);
+const files = [
+  ...sourceRoots.flatMap((sourceRoot) => walk(sourceRoot)),
+  path.join(root, "app.js")
+];
 for (const file of files) {
   try {
     decoder.decode(fs.readFileSync(file));
@@ -46,4 +50,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`source encoding check: OK (${files.length} src js files)`);
+console.log(`source encoding check: OK (${files.length} three-surface/shared js files)`);

@@ -1,0 +1,103 @@
+name: Release Acceptance
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: zhimu
+          POSTGRES_USER: zhimu
+          POSTGRES_PASSWORD: replace_me
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U zhimu -d zhimu"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgres://zhimu:replace_me@localhost:5432/zhimu
+      ALLOW_DEMO_USER_HEADER: "true"
+      NODE_ENV: test
+      PGPOOL_MAX: "10"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            play/package-lock.json
+      - run: npm ci
+      - run: npm ci
+        working-directory: backend
+      - run: npm ci
+        working-directory: play
+      - run: npm ci
+        working-directory: host
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+      - name: Three isolated full verification runs
+        run: npm run verify:full:3
+      - name: Install acceptance browser
+        run: npx playwright install --with-deps chromium
+      - name: Main and Host critical E2E
+        run: >-
+          npx playwright test
+          e2e/trusted-types-enforce.spec.js
+          e2e/creator-role-archive.spec.js
+          e2e/creator-wizard-smoke.spec.js
+          e2e/host-director-smoke.spec.js
+          --project=app-chromium
+      - name: Play critical E2E
+        run: >-
+          npx playwright test
+          e2e/play-portal-smoke.spec.js
+          e2e/play-sync-chrome.spec.js
+          --project=play-chromium
+      - name: Seed performance database
+        run: npm run db:migrate && npm run db:seed && npm run demo:seed-exploration
+        working-directory: backend
+      - name: Start API
+        run: node src/server.js > /tmp/zhimu-api.log 2>&1 &
+        working-directory: backend
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:4180/api/health/live && exit 0; sleep 1; done
+          cat /tmp/zhimu-api.log
+          exit 1
+      - name: Create multi-player performance fixture
+        run: npm run perf:player-home:fixture -- --out=../artifacts/performance/player-home-users.json
+        working-directory: backend
+      - name: Player home P95/P99 evidence
+        run: npm run perf:player-home -- --concurrency=20 --requests=200 --out=../artifacts/performance/player-home-ci-c20.json
+        working-directory: backend
+      - name: Player home first-paint core evidence
+        run: npm run perf:player-home -- --concurrency=20 --requests=200 --path=/api/rooms/11111111-2222-4333-8444-555555550002/player-home/core --out=../artifacts/performance/player-home-core-ci-c20.json
+        working-directory: backend
+      - name: Backup restore and rollback drill
+        run: npm run db:verify-rollback
+        working-directory: backend
+      - name: Cleanup performance fixture
+        if: always()
+        run: npm run perf:player-home:fixture:cleanup
+        working-directory: backend
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-acceptance-evidence
+          path: |
+            artifacts/performance/*.json
+            /tmp/zhimu-api.log
+          if-no-files-found: warn
+          retention-days: 30

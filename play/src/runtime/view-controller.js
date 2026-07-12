@@ -1,3 +1,5 @@
+import { setHtml } from "../../../shared/safe-dom.js";
+
 export function createPlayViewController({
   app,
   state,
@@ -38,7 +40,7 @@ export function createPlayViewController({
       : null;
     const voiceStickBottom = state.voiceScrollStickBottom || shouldAutoScrollNearBottom(voiceLog);
 
-    app.innerHTML = renderApp();
+    setHtml(app, renderApp());
     if (state.view === "dm") {
       const element = document.querySelector("[data-dm-scroll]");
       if (element && dmStickBottom) element.scrollTop = element.scrollHeight;

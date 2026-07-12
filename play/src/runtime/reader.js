@@ -1,6 +1,7 @@
 import { api } from "../api.js";
 import { bindSectionStartOnReader } from "../../../shared/player-reader.js";
 import { highlightEntryTitle, getReaderSelectionOffsets } from "../utils/highlights.js";
+import { setHtml } from "../../../shared/safe-dom.js";
 
 let toolbarEl = null;
 let docBound = false;
@@ -11,7 +12,7 @@ function ensureToolbar() {
   toolbarEl = document.createElement("div");
   toolbarEl.className = "highlight-toolbar";
   toolbarEl.hidden = true;
-  toolbarEl.innerHTML = `<button type="button" class="btn quiet compact" data-highlight-add>高亮</button>`;
+  setHtml(toolbarEl, `<button type="button" class="btn quiet compact" data-highlight-add>高亮</button>`);
   document.body.appendChild(toolbarEl);
   return toolbarEl;
 }

@@ -1,4 +1,5 @@
 import { escapeHtml } from "../../../shared/security.js";
+import { setHtml } from "../../../shared/safe-dom.js";
 
 export const modalEl = { root: null, backdrop: null };
 
@@ -14,13 +15,13 @@ export function mountModal() {
 
 export function closeModal() {
   modalEl.backdrop?.classList.remove("show");
-  if (modalEl.root) modalEl.root.innerHTML = "";
+  if (modalEl.root) setHtml(modalEl.root, "");
 }
 
 export function openModal(title, bodyHtml, closeLabel = "关闭") {
   mountModal();
   modalEl.root.className = "modal";
-  modalEl.root.innerHTML = `<h2>${escapeHtml(title)}</h2>${bodyHtml}<div class="modal-actions"><button class="secondary-btn" data-close>${escapeHtml(closeLabel)}</button></div>`;
+  setHtml(modalEl.root, `<h2>${escapeHtml(title)}</h2>${bodyHtml}<div class="modal-actions"><button class="secondary-btn" data-close>${escapeHtml(closeLabel)}</button></div>`);
   modalEl.backdrop.classList.add("show");
   modalEl.root.querySelector("[data-close]").onclick = closeModal;
 }

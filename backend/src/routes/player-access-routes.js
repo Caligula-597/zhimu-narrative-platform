@@ -6,7 +6,20 @@ import { requireRoomRole } from "./route-guards.js";
 import { sendErr } from "../api-errors.js";
 import { prepareRoleSlotForJoin } from "../role-slot-runtime-helpers.js";
 import { inviteLookupSchema, joinRoomSchema, roomIdParams } from "./schemas.js";
-import { loadPlayerHomePayload } from "./player-home-service.js";
+import {
+  loadAuthorizedPlayerHomeCore,
+  loadPlayerHomeCore,
+  loadPlayerHomePayload,
+  loadPlayerHomeSupplemental
+} from "./player-home-service.js";
+
+const playerHomeSocialQuery = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    currentActKey: { type: "string", minLength: 1, maxLength: 80, pattern: "^[a-zA-Z0-9_.:-]+$" }
+  }
+};
 
 export async function registerPlayerAccessRoutes(app) {
 
@@ -139,6 +152,41 @@ export async function registerPlayerAccessRoutes(app) {
       roomId,
       roleSlotId: membership.role_slot_id,
       actorId
+    });
+  });
+
+  app.get("/api/rooms/:roomId/player-home/core", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const core = await loadAuthorizedPlayerHomeCore({ roomId, actorId });
+    if (core) return core;
+    // Preserve legacy missing-room, host-healing and membership error semantics on the cold/error path.
+    const membership = await requireRoomRole(actorId, roomId);
+    if (!membership.role_slot_id) {
+      const error = new Error("Player role selection required");
+      error.statusCode = 409;
+      throw error;
+    }
+    return loadPlayerHomeCore({ roomId, roleSlotId: membership.role_slot_id });
+  });
+
+  app.get("/api/rooms/:roomId/player-home/social", {
+    schema: { params: roomIdParams, querystring: playerHomeSocialQuery }
+  }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const membership = await requireRoomRole(actorId, roomId);
+    if (!membership.role_slot_id) {
+      const error = new Error("Player role selection required");
+      error.statusCode = 409;
+      throw error;
+    }
+    const currentActKey = String(request.query?.currentActKey || "ch1").slice(0, 80);
+    return loadPlayerHomeSupplemental({
+      roomId,
+      roleSlotId: membership.role_slot_id,
+      actorId,
+      currentActKey
     });
   });
 }

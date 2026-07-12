@@ -9,6 +9,7 @@ import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
+import { setHtml } from "../../shared/safe-dom.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -328,7 +329,7 @@ export function openStudioLayoutMenu(){
  ];
  const { studioLayoutMode } = studioStore.get();
  modal.className="modal";
- modal.innerHTML=`<h2>自动排布板式</h2><p class="wizard-intro">根据场景归属与连线重新整理坐标并保存。推荐使用「场景分支」，线索不再与场景平级叠在一起。</p><div class="node-type-grid">${modes.map(mode=>`<button type="button" data-layout-mode="${mode.id}" class="${studioLayoutMode===mode.id?"layout-mode-active":""}"><b>${escapeHtml(mode.title)}</b><span>${escapeHtml(mode.desc)}</span></button>`).join("")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button></div>`;
+ setHtml(modal, `<h2>自动排布板式</h2><p class="wizard-intro">根据场景归属与连线重新整理坐标并保存。推荐使用「场景分支」，线索不再与场景平级叠在一起。</p><div class="node-type-grid">${modes.map(mode=>`<button type="button" data-layout-mode="${mode.id}" class="${studioLayoutMode===mode.id?"layout-mode-active":""}"><b>${escapeHtml(mode.title)}</b><span>${escapeHtml(mode.desc)}</span></button>`).join("")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button></div>`);
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  modal.querySelectorAll("[data-layout-mode]").forEach(button=>{button.onclick=async()=>{closeModal();await autoLayoutStudio(button.dataset.layoutMode)}});
@@ -386,7 +387,7 @@ export function openStudioChapter(){
 }
 
 export function openStudioNodeMenu(){
- modal.className="modal";modal.innerHTML=`<h2>在画布中新增节点</h2><p>先选择节点类型，再填写内容。新增后节点会直接进入当前剧情画布。</p><div class="node-type-grid"><button data-node-create="scene"><b>场景节点</b><span>公开地点、房间或可进入区域</span></button><button data-node-create="clue"><b>线索节点</b><span>玩家获得后可阅读的证据</span></button><button data-node-create="item"><b>物品节点</b><span>钥匙、证件、道具等可发放物品</span></button><button data-node-create="point"><b>调查点节点</b><span>场景内可点击搜证的位置</span></button><button data-node-create="chapter"><b>章节</b><span>公共剧情阶段与发布单位</span></button></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button></div>`;
+ modal.className="modal";setHtml(modal, `<h2>在画布中新增节点</h2><p>先选择节点类型，再填写内容。新增后节点会直接进入当前剧情画布。</p><div class="node-type-grid"><button data-node-create="scene"><b>场景节点</b><span>公开地点、房间或可进入区域</span></button><button data-node-create="clue"><b>线索节点</b><span>玩家获得后可阅读的证据</span></button><button data-node-create="item"><b>物品节点</b><span>钥匙、证件、道具等可发放物品</span></button><button data-node-create="point"><b>调查点节点</b><span>场景内可点击搜证的位置</span></button><button data-node-create="chapter"><b>章节</b><span>公共剧情阶段与发布单位</span></button></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button></div>`);
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelectorAll("[data-node-create]").forEach(button=>button.onclick=()=>{closeModal();({scene:openStudioScene,clue:openStudioClue,item:openStudioItem,point:openStudioPoint,chapter:openStudioChapter})[button.dataset.nodeCreate]()});
 }
 

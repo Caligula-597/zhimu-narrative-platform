@@ -1,4 +1,6 @@
-export { assessPlayerProgress, computeMaybeStuck } from "../player-progress-assessment.js";
+import { assessPlayerProgress, computeMaybeStuck } from "../player-progress-assessment.js";
+
+export { assessPlayerProgress, computeMaybeStuck };
 
 export function summarizeHostAction(action) {
   if (!action?.type) return "未知动作";

@@ -157,16 +157,25 @@ async function pullRoomData(options = {}) {
   if (!state.roomId || !isUuid(state.roomId)) return;
   const generation = ++pullGeneration;
 
-  const [home, explorationResult] = await Promise.all([
-    api.playerHome(state.roomId),
+  const [homeCore, explorationResult] = await Promise.all([
+    loadPlayerHomeCoreCompat(state.roomId),
     api.exploration(state.roomId)
       .then((data) => ({ ok: true, data }))
       .catch((error) => ({ ok: false, error }))
   ]);
   if (generation !== pullGeneration) return;
 
-  state.home = home;
-  const homeGame = home.currentGame ?? home.current_game ?? home.roomRunningState?.current_game ?? home.room_running_state?.current_game;
+  const previousSocial = state.home ? {
+    notes: state.home.notes || [],
+    clues: state.home.clues || [],
+    sharedClues: state.home.sharedClues || [],
+    roomMembers: state.home.roomMembers || [],
+    suspicions: state.home.suspicions || [],
+    testimonies: state.home.testimonies || [],
+    privateActions: state.home.privateActions || []
+  } : null;
+  state.home = previousSocial ? { ...homeCore, ...previousSocial } : homeCore;
+  const homeGame = homeCore.currentGame ?? homeCore.current_game ?? homeCore.roomRunningState?.current_game ?? homeCore.room_running_state?.current_game;
   if (homeGame !== undefined) state.currentGame = normalizeMiniGame(homeGame);
   if (explorationResult.ok) {
     state.exploration = explorationResult.data;
@@ -210,10 +219,39 @@ async function pullRoomData(options = {}) {
     if (patchResult === "full" || patchResult === "chrome") {
       patchSyncChrome(state);
       if (patchResult === "chrome") state.pendingRoomRefresh = true;
+      void refreshPlayerHomeSocial(generation, partial);
       return;
     }
   }
   render();
+  void refreshPlayerHomeSocial(generation, partial);
+}
+
+async function loadPlayerHomeCoreCompat(roomId) {
+  try {
+    return await api.playerHomeCore(roomId);
+  } catch (error) {
+    if (error?.status === 404) return api.playerHome(roomId);
+    throw error;
+  }
+}
+
+async function refreshPlayerHomeSocial(generation, partial) {
+  try {
+    const social = await api.playerHomeSocial(state.roomId, state.home.currentActKey);
+    if (generation !== pullGeneration || !state.home) return;
+    state.home = { ...state.home, ...social };
+    if (partial) {
+      const patchResult = patchGameView(state, {
+        pullRoomData: (opts) => pullRoomData(opts),
+        onToast: (message) => setToast(message, render)
+      });
+      if (patchResult !== "full") return;
+    }
+    render();
+  } catch {
+    // Core data remains usable; social data is best-effort and retries on the next sync.
+  }
 }
 
 const coalescedPartialRefresh = createRefreshCoalescer(async () => {

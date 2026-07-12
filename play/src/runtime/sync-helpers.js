@@ -1,4 +1,7 @@
 import { escapeHtml } from "../../../shared/security.js";
+import { setHtml } from "../../../shared/safe-dom.js";
+
+const syncBannerHtml = new WeakMap();
 
 /**
  * Coalesce rapid refresh calls (SSE bursts) into one pull per window.
@@ -129,6 +132,7 @@ export function patchSyncStatusBanner(state) {
   let banner = main.querySelector("[data-sync-banner]");
   const html = renderSyncStatusBannerHtml(state);
   if (!html) {
+    if (banner) syncBannerHtml.delete(banner);
     banner?.remove();
     return true;
   }
@@ -137,7 +141,10 @@ export function patchSyncStatusBanner(state) {
     banner.dataset.syncBanner = "1";
     main.insertBefore(banner, main.firstChild);
   }
-  if (banner.innerHTML !== html) banner.innerHTML = html;
+  if (syncBannerHtml.get(banner) !== html) {
+    setHtml(banner, html);
+    syncBannerHtml.set(banner, html);
+  }
   return true;
 }
 
@@ -167,8 +174,8 @@ export function patchSyncChrome(state) {
 export function patchPlayToast(message) {
   const host = document.querySelector(".toast-host");
   if (!host) return false;
-  host.innerHTML = message
+  setHtml(host, message
     ? `<div class="toast show" role="status">${escapeHtml(message)}</div>`
-    : "";
+    : "");
   return true;
 }

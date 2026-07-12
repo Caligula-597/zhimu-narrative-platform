@@ -10,6 +10,7 @@ const httpDuration = new Map();
 const uploadScans = new Map();
 const uploadScanRejected = new Map();
 const webVitals = new Map();
+const cspViolations = new Map();
 /** Histogram buckets by metric name (ms for LCP/INP/FCP/TTFB; unitless×1000 for CLS stored as raw). */
 const webVitalBuckets = {
   LCP: [1000, 2500, 4000, 8000, 15000],
@@ -68,6 +69,10 @@ export function recordWebVital({ name, app = "unknown", rating = "unknown", valu
   }
   entry.sum += value;
   entry.count++;
+}
+
+export function recordCspViolation({ directive = "unknown", disposition = "report" } = {}) {
+  inc(cspViolations, `${disposition}:${directive}`);
 }
 
 export function setApiReadyGauge(value) {
@@ -138,6 +143,14 @@ function parseWebVitalKey(key) {
   return { app, name };
 }
 
+function parseCspViolationKey(key) {
+  const separator = key.indexOf(":");
+  return {
+    disposition: separator < 0 ? "report" : key.slice(0, separator),
+    directive: separator < 0 ? key : key.slice(separator + 1)
+  };
+}
+
 export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, uptimeSeconds = 0, readyOk = apiReadyGauge } = {}) {
   const sections = [
     renderCounter("http_requests_total", "Total HTTP requests", httpRequests),
@@ -145,6 +158,7 @@ export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, uptimeS
     renderCounter("upload_scans_total", "Upload malware scans by mode and result", uploadScans),
     renderCounter("upload_scans_rejected_total", "Rejected or errored upload scans by reason", uploadScanRejected),
     renderCounter("web_vitals_total", "Frontend Core Web Vitals beacons by app/name/rating", webVitals, parseWebVitalCountKey),
+    renderCounter("csp_violations_total", "CSP and Trusted Types violations by disposition/directive", cspViolations, parseCspViolationKey),
     renderHistogram("http_request_duration_ms", "HTTP request duration in milliseconds", httpDuration, parseHttpDurationKey),
     renderHistogram("web_vital_value", "Frontend Core Web Vitals observed values by app/name", webVitalValues, parseWebVitalKey),
     `# HELP api_ready 1 when last readiness check passed`,
@@ -183,6 +197,7 @@ export function resetMetricsForTests() {
   uploadScans.clear();
   uploadScanRejected.clear();
   webVitals.clear();
+  cspViolations.clear();
   webVitalValues.clear();
   apiReadyGauge = 1;
 }

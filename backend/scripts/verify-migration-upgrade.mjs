@@ -9,6 +9,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import "dotenv/config";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.join(here, "..", "migrations");
@@ -30,8 +31,8 @@ function run(cmd, args, opts = {}) {
 function requireCli(name) {
   const probe = spawnSync(name, ["--version"], { encoding: "utf8", shell: process.platform === "win32" });
   if (probe.error || probe.status !== 0) {
-    console.warn(`skip: ${name} not on PATH`);
-    process.exit(0);
+    console.error(`${name} not on PATH — migration evidence cannot be produced`);
+    process.exit(1);
   }
 }
 

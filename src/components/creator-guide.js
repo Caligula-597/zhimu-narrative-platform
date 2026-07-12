@@ -1,6 +1,7 @@
 /** Fetch and show in-app markdown guides for creators. */
 import { modal, modalBackdrop } from "../dom.js";
 import { escapeHtml } from "../utils/format.js";
+import { setHtml } from "../../shared/safe-dom.js";
 import { closeModal } from "./modal.js";
 (function (window) {
 
@@ -84,7 +85,7 @@ import { closeModal } from "./modal.js";
 
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";
-    modal.innerHTML = `<h2>创作指引</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="text-btn" data-open-first-session>如何跑第一场</button><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-error-guide>查看错误排查手册</button></div>`;
+    setHtml(modal, `<h2>创作指引</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="text-btn" data-open-first-session>如何跑第一场</button><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-error-guide>查看错误排查手册</button></div>`);
     backdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-open-first-session]").onclick = () => {
@@ -99,7 +100,7 @@ import { closeModal } from "./modal.js";
       const text = await fetchGuide("/docs/CREATOR_GUIDE.md");
       const body = modal.querySelector(".empty-state");
       body.className = "creator-guide-body";
-      body.innerHTML = renderMarkdown(text);
+      setHtml(body, renderMarkdown(text));
     } catch (error) {
       modal.querySelector(".empty-state").textContent = error.message;
     }
@@ -110,7 +111,7 @@ import { closeModal } from "./modal.js";
 
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";
-    modal.innerHTML = `<h2>错误提示与排查</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-creator-guide>返回创作指引</button></div>`;
+    setHtml(modal, `<h2>错误提示与排查</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-creator-guide>返回创作指引</button></div>`);
     backdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-open-creator-guide]").onclick = () => {
@@ -121,7 +122,7 @@ import { closeModal } from "./modal.js";
       const text = await fetchGuide("/docs/USER_ERROR_GUIDE.md");
       const body = modal.querySelector(".empty-state");
       body.className = "creator-guide-body";
-      body.innerHTML = renderMarkdown(text);
+      setHtml(body, renderMarkdown(text));
     } catch (error) {
       modal.querySelector(".empty-state").textContent = error.message;
     }
@@ -132,14 +133,14 @@ import { closeModal } from "./modal.js";
 
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal legal-doc-modal";
-    modal.innerHTML = `<h2>${escapeHtml(title)}</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+    setHtml(modal, `<h2>${escapeHtml(title)}</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`);
     backdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     try {
       const text = await fetchGuide(`/docs/${String(docPath || "").replace(/^\//, "")}`);
       const body = modal.querySelector(".empty-state");
       body.className = "creator-guide-body";
-      body.innerHTML = renderMarkdown(text);
+      setHtml(body, renderMarkdown(text));
     } catch (error) {
       modal.querySelector(".empty-state").textContent = error.message;
     }
@@ -150,7 +151,7 @@ import { closeModal } from "./modal.js";
 
     if (!modal || !backdrop) return;
     modal.className = "modal creator-guide-modal";
-    modal.innerHTML = `<h2>如何跑第一场</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-creator-guide>详细创作指引</button></div>`;
+    setHtml(modal, `<h2>如何跑第一场</h2><div class="empty-state">正在加载…</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-open-creator-guide>详细创作指引</button></div>`);
     backdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-open-creator-guide]").onclick = () => {
@@ -161,7 +162,7 @@ import { closeModal } from "./modal.js";
       const text = await fetchGuide("/docs/FIRST_SESSION_GUIDE_ZH.md");
       const body = modal.querySelector(".empty-state");
       body.className = "creator-guide-body";
-      body.innerHTML = renderMarkdown(text);
+      setHtml(body, renderMarkdown(text));
     } catch (error) {
       modal.querySelector(".empty-state").textContent = error.message;
     }

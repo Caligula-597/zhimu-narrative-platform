@@ -1,6 +1,7 @@
 /** Startup guard for shell dependencies. */
 import { getContent, getModalBackdrop } from "../dom.js";
 import { renderState } from "../components/status-ui.js";
+import { setHtml } from "../../shared/safe-dom.js";
 
 const requiredAppGlobals = [];
 
@@ -21,7 +22,7 @@ function renderMissingGlobals(missing, target = getContent()) {
     details
   });
   if (target) {
-    target.innerHTML = html;
+    setHtml(target, html);
   } else {
     window.console?.error?.("Zhimu startup dependencies missing:", missing);
   }

@@ -9,6 +9,7 @@ import {
 } from "../components/modal.js";
 import { escapeHtml } from "../utils/format.js";
 import { refreshHostRoom } from "../runtime/data.js";
+import { setHtml } from "../../../shared/safe-dom.js";
 
 let renderRef = () => {};
 let showToastRef = (_msg) => {};
@@ -40,7 +41,7 @@ export function openCreateRecapModal() {
   if (!activeRuntimeRoom()) return showToast("请先选择运行房");
   mountModal();
   modalEl.root.className = "modal";
-  modalEl.root.innerHTML = `<h2>生成房间复盘</h2><p class="wizard-intro">系统会按章节串联全剧脉络（上帝视角），并汇总各角色阅读、线索、调查与笔记表现。</p><div class="form-group">${studioField("复盘标题", "recapTitle", "input", "例如：第一夜 · 完整复盘")}${studioField("主持备注", "recapDescription", "textarea", "记录本局结局、未解之谜或下次补充说明")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-recap-submit>确认生成</button></div>`;
+  setHtml(modalEl.root, `<h2>生成房间复盘</h2><p class="wizard-intro">系统会按章节串联全剧脉络（上帝视角），并汇总各角色阅读、线索、调查与笔记表现。</p><div class="form-group">${studioField("复盘标题", "recapTitle", "input", "例如：第一夜 · 完整复盘")}${studioField("主持备注", "recapDescription", "textarea", "记录本局结局、未解之谜或下次补充说明")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-recap-submit>确认生成</button></div>`);
   modalEl.backdrop.classList.add("show");
   modalEl.root.querySelector("[data-close]").onclick = closeModal;
   modalEl.root.querySelector("[data-recap-submit]").onclick = async () => {
@@ -62,7 +63,7 @@ export function openCreateCheckpointModal() {
   if (!activeRuntimeRoom()) return showToast("请先选择运行房");
   mountModal();
   modalEl.root.className = "modal";
-  modalEl.root.innerHTML = `<h2>创建运行房存档点</h2><p class="wizard-intro">保存当前玩家进度、线索归属、开放场景与待确认事件。</p><div class="form-group">${studioField("存档名称", "checkpointTitle", "input", "例如：第一夜收工")}${studioField("主持备注", "checkpointDescription", "textarea", "记录今晚推进到了哪里、下次从哪里继续")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-checkpoint-submit>确认创建</button></div>`;
+  setHtml(modalEl.root, `<h2>创建运行房存档点</h2><p class="wizard-intro">保存当前玩家进度、线索归属、开放场景与待确认事件。</p><div class="form-group">${studioField("存档名称", "checkpointTitle", "input", "例如：第一夜收工")}${studioField("主持备注", "checkpointDescription", "textarea", "记录今晚推进到了哪里、下次从哪里继续")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-checkpoint-submit>确认创建</button></div>`);
   modalEl.backdrop.classList.add("show");
   modalEl.root.querySelector("[data-close]").onclick = closeModal;
   modalEl.root.querySelector("[data-checkpoint-submit]").onclick = async () => {
@@ -85,7 +86,7 @@ export function openRoomInviteModal() {
   const code = room.invite_code || "";
   mountModal();
   modalEl.root.className = "modal";
-  modalEl.root.innerHTML = `<h2>邀请玩家</h2><p class="wizard-intro">${escapeHtml(room.name)} · 邀请码 <code>${escapeHtml(code)}</code></p><div class="modal-actions"><button class="secondary-btn" data-copy-code>复制邀请码</button><button class="secondary-btn" data-copy-link>复制玩家链接</button><button class="secondary-btn" data-close>关闭</button></div>`;
+  setHtml(modalEl.root, `<h2>邀请玩家</h2><p class="wizard-intro">${escapeHtml(room.name)} · 邀请码 <code>${escapeHtml(code)}</code></p><div class="modal-actions"><button class="secondary-btn" data-copy-code>复制邀请码</button><button class="secondary-btn" data-copy-link>复制玩家链接</button><button class="secondary-btn" data-close>关闭</button></div>`);
   modalEl.backdrop.classList.add("show");
   modalEl.root.querySelector("[data-close]").onclick = closeModal;
   modalEl.root.querySelector("[data-copy-code]").onclick = () => copyText(code, "邀请码");

@@ -4,6 +4,7 @@ import { modal, modalBackdrop } from "../dom.js";
 import { escapeHtml } from "../utils/format.js";
 import { closeModal } from "./modal.js";
 import { showToast } from "./toast.js";
+import { setHtml } from "../../shared/safe-dom.js";
 
 const FEEDBACK_KINDS = [
   { id: "feedback", label: "反馈" },
@@ -25,7 +26,7 @@ export function openFeedbackForm(prefillKind = "feedback", prefillSubject = "", 
   modal.setAttribute("role", "dialog");
   modal.setAttribute("aria-modal", "true");
   modal.setAttribute("aria-labelledby", "feedback-title");
-  modal.innerHTML = `
+  setHtml(modal, `
     <h2 id="feedback-title">提交反馈</h2>
     <p class="muted">遇到问题或有想法？告诉我们，我们会认真对待每一条。</p>
     <div class="form-group">
@@ -39,7 +40,7 @@ export function openFeedbackForm(prefillKind = "feedback", prefillSubject = "", 
     <div class="modal-actions">
       <button class="secondary-btn" data-close>取消</button>
       <button class="primary-btn" data-feedback-submit>提交</button>
-    </div>`;
+    </div>`);
   modalBackdrop.classList.add("show");
 
   modal.querySelector("[data-close]").onclick = closeModal;
@@ -85,7 +86,7 @@ export function mountFeedbackButton() {
   buttonEl.type = "button";
   buttonEl.setAttribute("aria-label", "提交反馈");
   buttonEl.dataset.feedbackMounted = "true";
-  buttonEl.innerHTML = `<span aria-hidden="true">?</span><b>反馈</b>`;
+  setHtml(buttonEl, `<span aria-hidden="true">?</span><b>反馈</b>`);
   buttonEl.onclick = () => openFeedbackForm();
   document.body.appendChild(buttonEl);
 }

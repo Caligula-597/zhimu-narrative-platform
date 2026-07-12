@@ -18,6 +18,7 @@ const backend = path.join(root, "backend");
 const args = new Set(process.argv.slice(2));
 const fresh = args.has("--fresh");
 const skipTests = args.has("--skip-tests");
+const allowOffline = args.has("--allow-offline");
 
 function run(label, command, commandArgs, { cwd = root, optional = false } = {}) {
   console.log(`\n>> ${label}`);
@@ -51,10 +52,14 @@ if (fresh) {
 if (!skipTests) {
   run("check:schemas", process.execPath, [path.join("scripts", "verify-route-schemas.mjs")], { cwd: backend });
   run("backend npm test", process.platform === "win32" ? "npm.cmd" : "npm", ["test"], { cwd: backend });
+  run("innerHTML audit", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "audit:innerhtml"], { cwd: root });
+  run("shared tests", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:shared"], { cwd: root });
+  run("main production build", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], { cwd: root });
   run("format helper tests", process.execPath, ["--test", path.join("scripts", "format-helpers.test.mjs")], { cwd: root });
   run("runtime store tests", process.execPath, ["--test", path.join("scripts", "runtime-stores.test.mjs")], { cwd: root });
   run("pipeline session tests", process.execPath, ["--test", path.join("scripts", "pipeline-wizard-session.test.mjs")], { cwd: root });
   run("test:play", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:play"], { cwd: root });
+  run("test:host", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:host"], { cwd: root });
 }
 
 const apiUp = await probe("http://localhost:4180/api/health/live");
@@ -82,8 +87,7 @@ if (e2eReady) {
     "test",
     "--config=playwright.config.js"
   ], {
-    cwd: root,
-    optional: true
+    cwd: root
   });
 } else if (!args.has("--skip-e2e") && (apiUp || uiUp)) {
   console.warn("\nWARN  E2E 需要 4173 + 4180 + 5174（play dev）同时在线 — 跳过 Playwright");
@@ -100,6 +104,6 @@ console.log(`
 ════════════════════════════════════════════════════════
 `);
 
-if (!apiUp || !uiUp) {
+if ((!apiUp || !uiUp) && !allowOffline) {
   process.exitCode = 1;
 }

@@ -9,6 +9,7 @@ import * as F from "../utils/format.js";
 import { closeModal } from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
+import { setHtml } from "../../shared/safe-dom.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatRelativeTime = F.formatRelativeTime || (() => "");
@@ -133,7 +134,7 @@ export function openCatalogReviewModal(){
  const listed=(worldStore.get().cloudWorlds||[]).find((w)=>w.id===worldId);
  const world=studioWorld?.id===worldId?{...listed,...studioWorld}:listed||studioWorld;
  modal.className="modal catalog-review-modal";
- modal.innerHTML=`<h2>公开剧本库 · 审核申请</h2><p class="wizard-intro">提交后将邮件通知运营团队（<strong>support@getzhimu.com</strong>），审核通过后剧本会出现在公开库。</p><div class="form-group"><p class="muted-note"><strong>${escapeHtml(world?.name||"当前剧本")}</strong><br>世界 ID：<code>${escapeHtml(worldId)}</code></p><label>自测情况（必填）</label><textarea class="field" data-review-field="playtestNotes" rows="3" placeholder="几人测过、能否「开始体验」跑通、有无阻塞 bug…"></textarea><label>题材与合规说明（必填）</label><textarea class="field" data-review-field="themeNotes" rows="3" placeholder="题材类型；是否含暴力/色情/真实人物/政治等；你认为需要审核员重点看的部分…"></textarea><label>审核备注（选填）</label><textarea class="field" data-review-field="sampleNotes" rows="2" placeholder="例如：请重点看角色 A 的第一幕"></textarea><label>联系方式（选填）</label><input class="field" data-review-field="contact" placeholder="微信 / 手机，仅审核联系用"><label class="check-label" style="margin-top:12px"><input type="checkbox" data-review-field="agreed"><span>我确认内容合法、不侵犯他人权益，同意公开库展示规则。</span></label></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-submit-catalog-review>提交申请</button></div>`;
+ setHtml(modal, `<h2>公开剧本库 · 审核申请</h2><p class="wizard-intro">提交后将邮件通知运营团队（<strong>support@getzhimu.com</strong>），审核通过后剧本会出现在公开库。</p><div class="form-group"><p class="muted-note"><strong>${escapeHtml(world?.name||"当前剧本")}</strong><br>世界 ID：<code>${escapeHtml(worldId)}</code></p><label>自测情况（必填）</label><textarea class="field" data-review-field="playtestNotes" rows="3" placeholder="几人测过、能否「开始体验」跑通、有无阻塞 bug…"></textarea><label>题材与合规说明（必填）</label><textarea class="field" data-review-field="themeNotes" rows="3" placeholder="题材类型；是否含暴力/色情/真实人物/政治等；你认为需要审核员重点看的部分…"></textarea><label>审核备注（选填）</label><textarea class="field" data-review-field="sampleNotes" rows="2" placeholder="例如：请重点看角色 A 的第一幕"></textarea><label>联系方式（选填）</label><input class="field" data-review-field="contact" placeholder="微信 / 手机，仅审核联系用"><label class="check-label" style="margin-top:12px"><input type="checkbox" data-review-field="agreed"><span>我确认内容合法、不侵犯他人权益，同意公开库展示规则。</span></label></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-submit-catalog-review>提交申请</button></div>`);
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  modal.querySelector("[data-submit-catalog-review]").onclick=async()=>{
@@ -191,7 +192,7 @@ export async function openWorldAuditModal(){
    return `<div class="checkpoint-row"><strong>${room}${actor}${escapeHtml(hostAuditActionLabel(entry.action))}</strong><p>${detail?`${escapeHtml(detail)} · `:""}${formatRelativeTime(entry.created_at)}</p></div>`;
   }).join(""):`<div class="empty-state">本剧本尚无主持审计记录。</div>`;
   modal.className="modal host-detail-modal";
-  modal.innerHTML=`<h2>世界主持审计</h2><p class="wizard-intro">汇总所有平行房的主持敏感操作，最近 ${rows.length} 条。</p><div class="host-detail-list host-audit-list">${body}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+  setHtml(modal, `<h2>世界主持审计</h2><p class="wizard-intro">汇总所有平行房的主持敏感操作，最近 ${rows.length} 条。</p><div class="host-detail-list host-audit-list">${body}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`);
   modalBackdrop.classList.add("show");
   modal.querySelector("[data-close]").onclick=closeModal;
  }catch(error){showError(error)}
@@ -219,7 +220,7 @@ export async function openWorldTagsModal() {
     const payload = await zhimuApi.getWorldTags(worldId);
     const tags = payload?.tags || [];
     modal.className = "modal world-tags-modal";
-    modal.innerHTML = `<h2>内容标签</h2><p class="wizard-intro">用于公开剧本库筛选。仅对已上架（catalog_public）的剧本计入 facet 统计。</p><div class="form-group">${renderTagRows(tags)}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-save-world-tags>保存标签</button></div>`;
+    setHtml(modal, `<h2>内容标签</h2><p class="wizard-intro">用于公开剧本库筛选。仅对已上架（catalog_public）的剧本计入 facet 统计。</p><div class="form-group">${renderTagRows(tags)}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-save-world-tags>保存标签</button></div>`);
     modalBackdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-save-world-tags]").onclick = async () => {
@@ -251,7 +252,7 @@ export async function openSegmentRemediesModal() {
     const payload = await zhimuApi.getSegmentRemedies(worldId);
     const items = payload?.items || [];
     const list = items.length ? items.map(renderRemedyRow).join("") : `<div class="empty-state">尚无补救模板，可在下方添加。</div>`;
-    modal.querySelector("[data-remedy-list]").innerHTML = list;
+    setHtml(modal.querySelector("[data-remedy-list]"), list);
     modal.querySelectorAll("[data-delete-remedy]").forEach((btn) => {
       btn.onclick = async () => {
         if (!confirm("确定删除该补救模板？")) return;
@@ -267,7 +268,7 @@ export async function openSegmentRemediesModal() {
   };
   try {
     modal.className = "modal segment-remedies-modal";
-    modal.innerHTML = `<h2>段落补救模板</h2><p class="wizard-intro">主持人在独立主持端可对卡关段落一键执行话术。segment_key 通常与章节键一致（如 ch1）。</p><div class="host-detail-list" data-remedy-list><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增模板</label><input class="field" data-remedy-field="segmentKey" placeholder="段落键 ch1"><input class="field" data-remedy-field="title" placeholder="标题（主持端显示）"><textarea class="field" data-remedy-field="hostScript" rows="3" placeholder="主持播报话术"></textarea><input class="field" data-remedy-field="triggerHint" placeholder="触发提示（选填）"></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-remedy>添加模板</button></div>`;
+    setHtml(modal, `<h2>段落补救模板</h2><p class="wizard-intro">主持人在独立主持端可对卡关段落一键执行话术。segment_key 通常与章节键一致（如 ch1）。</p><div class="host-detail-list" data-remedy-list><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增模板</label><input class="field" data-remedy-field="segmentKey" placeholder="段落键 ch1"><input class="field" data-remedy-field="title" placeholder="标题（主持端显示）"><textarea class="field" data-remedy-field="hostScript" rows="3" placeholder="主持播报话术"></textarea><input class="field" data-remedy-field="triggerHint" placeholder="触发提示（选填）"></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-remedy>添加模板</button></div>`);
     modalBackdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-add-remedy]").onclick = async () => {

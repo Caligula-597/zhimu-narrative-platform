@@ -8,6 +8,7 @@ import { uiStore, studioStore, userStore } from "./src/state/index.js";
 import { loading as renderLoading, error as renderError } from "./src/components/status-ui.js";
 import { mountFeedbackButton } from "./src/components/feedback-button.js";
 import { initWebVitalsReporting } from "./shared/web-vitals.js";
+import { setHtml } from "./shared/safe-dom.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
   if (startupMissing.length) return { render: () => {}, go: () => {} };
@@ -19,7 +20,7 @@ const appEntry = (function (window) {
 
   function setContentHtml(nextHtml) {
     if (lastContentHtml === nextHtml) return false;
-    content.innerHTML = nextHtml;
+    setHtml(content, nextHtml);
     lastContentHtml = nextHtml;
     R.bindDynamic();
     return true;

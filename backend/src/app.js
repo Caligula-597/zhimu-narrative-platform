@@ -125,6 +125,18 @@ export async function createApp(options = {}) {
     }),
     genReqId: (request) => request.headers["x-request-id"] || randomUUID()
   });
+  app.addContentTypeParser(
+    ["application/csp-report", "application/reports+json"],
+    { parseAs: "string" },
+    (_request, body, done) => {
+      try {
+        done(null, body ? JSON.parse(body) : {});
+      } catch (error) {
+        error.statusCode = 400;
+        done(error);
+      }
+    }
+  );
   const allowDemoUserHeader = nodeEnv === "production"
     ? false
     : (options.allowDemoUserHeader ?? process.env.ALLOW_DEMO_USER_HEADER === "true");

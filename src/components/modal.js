@@ -1,6 +1,7 @@
 /* Modal helpers shared by creator views and runtime actions. */
 import { modal, modalBackdrop } from "../dom.js";
 import { escapeHtml } from "../utils/format.js";
+import { setHtml } from "../../shared/safe-dom.js";
 
 let modalScrollY = 0;
 
@@ -63,14 +64,14 @@ export function closeModal() {
 
 export function openModal(title, text, confirm) {
   modal.className = "modal";
-  modal.innerHTML = `<h2>${escapeHtml(title)}</h2><p>${escapeHtml(text)}</p><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-close>${escapeHtml(confirm)}</button></div>`;
+  setHtml(modal, `<h2>${escapeHtml(title)}</h2><p>${escapeHtml(text)}</p><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-close>${escapeHtml(confirm)}</button></div>`);
   modalBackdrop.classList.add("show");
   modal.querySelectorAll("[data-close]").forEach((button) => (button.onclick = closeModal));
 }
 
 export function studioModal(title, fields, confirm, submit) {
   modal.className = "modal";
-  modal.innerHTML = `<h2>${escapeHtml(title)}</h2><div class="form-group">${fields}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-studio-submit>${escapeHtml(confirm)}</button></div>`;
+  setHtml(modal, `<h2>${escapeHtml(title)}</h2><div class="form-group">${fields}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-studio-submit>${escapeHtml(confirm)}</button></div>`);
   modalBackdrop.classList.add("show");
   modal.querySelector("[data-close]").onclick = closeModal;
   modal.querySelector("[data-studio-submit]").onclick = submit;

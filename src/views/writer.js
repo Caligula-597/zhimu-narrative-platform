@@ -12,6 +12,20 @@ import { collapsibleCard } from "../components/collapse-panel.js";
 import { normalizeError } from "../components/status-ui.js";
 import { handleApiErrorToast } from "../utils/user-messages.js";
 import { renderRoleArchiveFields, archiveMapFromList } from "./role-archive-panel.js";
+import { setHtml } from "../../shared/safe-dom.js";
+import {
+  creatorPreviewModalHtml,
+  creatorPreviewBodyHtml,
+  creatorImportModalHtml,
+  deliveryExportModalHtml,
+  documentParserModalHtml,
+  documentPreviewHtml,
+  plainTextImportPreviewHtml,
+  storyAssistantModalHtml,
+  storyManuscriptModalHtml,
+  collaborationModalHtml,
+  worldLogModalHtml
+} from "./writer-modal-templates.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -129,13 +143,13 @@ function bindManuscriptEditor(roleId, section, sections){
  modal.querySelectorAll("[data-studio-field]").forEach((field)=>{field.addEventListener("input",()=>{refreshCount();scheduleAutosave()});if(field.tagName==="SELECT")field.addEventListener("change",scheduleAutosave)});
  modal.querySelector("[data-editor-replace-btn]").onclick=()=>{const from=modal.querySelector("[data-editor-search]").value,to=modal.querySelector("[data-editor-replace]").value;if(!from)return showToast("请先填写搜索关键词");body.value=body.value.split(from).join(to);body.dispatchEvent(new Event("input"));showToast("当前分幕已完成替换")};
  modal.querySelector("[data-studio-submit]").onclick=async()=>{try{const values=studioValues();if(!values.chapterId)values.chapterId=null;if(section)await zhimuApi.updateSection(roleId,section.id,values);else await zhimuApi.createSection(zhimuApi.context.worldId,roleId,{...values,sequence:sections.length+1});closeModal();await loadCloudData();showToast("角色分幕已保存")}catch(error){showError(error)}};
- if(section){const actions=modal.querySelector(".modal-actions");actions.insertAdjacentHTML("afterbegin",`<button class="danger-btn" data-delete-section>删除这一幕</button>`);actions.querySelector("[data-delete-section]").onclick=async()=>{try{await zhimuApi.deleteSection(roleId,section.id);closeModal();await loadCloudData();showToast("角色分幕已删除")}catch(error){showError(error)}};}
+ if(section){const actions=modal.querySelector(".modal-actions"),button=document.createElement("button");button.className="danger-btn";button.dataset.deleteSection="";button.textContent="删除这一幕";actions.prepend(button);button.onclick=async()=>{try{await zhimuApi.deleteSection(roleId,section.id);closeModal();await loadCloudData();showToast("角色分幕已删除")}catch(error){showError(error)}};}
  setTimeout(()=>body?.focus(),60);
 }
 
 export function openCreatorSection(roleId,sectionId=""){
  const data=studioStore.get().cloudStudio,role=data.roles.find(item=>item.id===roleId),sections=data.sections.filter(section=>section.role_slot_id===roleId),section=sections.find(item=>item.id===sectionId);
- modal.className="modal manuscript-editor-modal";modal.innerHTML=manuscriptEditorHtml(data,role,section);
+ modal.className="modal manuscript-editor-modal";setHtml(modal,manuscriptEditorHtml(data,role,section));
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
  bindManuscriptEditor(roleId,section,sections);
 }
@@ -143,7 +157,7 @@ export function openCreatorSection(roleId,sectionId=""){
 export function openCreatorRole(roleId=""){
  const data=studioStore.get().cloudStudio,role=data.roles.find(item=>item.id===roleId);
  studioModal(role?"编辑角色席位":"新增角色席位",studioField("角色名称","name","input",role?.name||"")+studioField("公开身份","publicProfile","textarea",role?.public_profile||"")+studioField("角色秘密","privateProfile","textarea",role?.private_profile||"")+studioField("席位顺序","sequence","input",String(role?.sequence||data.roles.length+1)),role?"保存角色修改":"写入云端",async()=>{try{const values=studioValues(),payload={name:values.name,publicProfile:values.publicProfile,privateProfile:values.privateProfile,sequence:Number(values.sequence)||data.roles.length+1};if(role)await zhimuApi.updateRole(role.id,payload);else await zhimuApi.createRole(zhimuApi.context.worldId,payload);closeModal();await loadCloudData();showToast("角色席位已保存")}catch(error){showError(error)}});
- if(role)modal.querySelector(".modal-actions").insertAdjacentHTML("afterbegin",`<button class="danger-btn" data-delete-role>删除角色</button>`),modal.querySelector("[data-delete-role]").onclick=async()=>{if(data.roles.length<=1)return showToast("至少需要保留一个角色席位");try{await zhimuApi.deleteRole(role.id);closeModal();await loadCloudData();showToast("角色席位及其私人正文已删除")}catch(error){showError(error)}};
+ if(role){const actions=modal.querySelector(".modal-actions"),button=document.createElement("button");button.className="danger-btn";button.dataset.deleteRole="";button.textContent="删除角色";actions.prepend(button);button.onclick=async()=>{if(data.roles.length<=1)return showToast("至少需要保留一个角色席位");try{await zhimuApi.deleteRole(role.id);closeModal();await loadCloudData();showToast("角色席位及其私人正文已删除")}catch(error){showError(error)}};}
 }
 
 export function openCreatorChapter(chapterId){
@@ -177,10 +191,10 @@ export async function runCreatorChecks(){try{const roomId=zhimuApi.context.roomI
 export async function openStoryManuscript(){
  try{
   const manuscript=await zhimuApi.getStoryManuscript();
-  modal.className="modal story-manuscript-modal";modal.innerHTML=`<h2>完整剧情母稿</h2><p class="wizard-intro">这是创作者维护的全局剧情文稿，不会替代每位角色的私人剧本。你可以从剧情编排生成一份规范化母稿，也可以把编辑后的母稿拆分成场景、调查点、线索与连接线。</p><div class="assistant-guide"><b>双向同步边界</b><span>“从编排台生成母稿”会覆盖下方文本；“拆分母稿写回编排台”会重建此前由母稿生成的节点，不会删除你手工建立的节点。</span></div><textarea class="field manuscript-draft" rows="20" data-story-manuscript>${escapeHtml(manuscript.body)}</textarea><div class="manuscript-meta" data-manuscript-meta>${storyManuscriptStatus(manuscript)}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-manuscript-save>仅保存母稿</button><button class="secondary-btn" data-manuscript-from-graph>从编排台生成母稿</button><button class="primary-btn" data-manuscript-to-graph>拆分母稿写回编排台</button></div>`;
+  modal.className="modal story-manuscript-modal";setHtml(modal,storyManuscriptModalHtml({bodyHtml:escapeHtml(manuscript.body),statusHtml:storyManuscriptStatus(manuscript)}));
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const body=()=>modal.querySelector("[data-story-manuscript]").value.trim(),meta=modal.querySelector("[data-manuscript-meta]");
-  modal.querySelector("[data-manuscript-save]").onclick=async()=>{try{const result=await zhimuApi.saveStoryManuscript(body());meta.innerHTML=storyManuscriptStatus(result);showToast("完整剧情母稿已保存")}catch(error){showError(error)}};
-  modal.querySelector("[data-manuscript-from-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptFromGraph();modal.querySelector("[data-story-manuscript]").value=result.body;meta.innerHTML=storyManuscriptStatus(result);showToast("已经从剧情编排生成完整母稿")}catch(error){showError(error)}};
+  modal.querySelector("[data-manuscript-save]").onclick=async()=>{try{const result=await zhimuApi.saveStoryManuscript(body());setHtml(meta,storyManuscriptStatus(result));showToast("完整剧情母稿已保存")}catch(error){showError(error)}};
+  modal.querySelector("[data-manuscript-from-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptFromGraph();modal.querySelector("[data-story-manuscript]").value=result.body;setHtml(meta,storyManuscriptStatus(result));showToast("已经从剧情编排生成完整母稿")}catch(error){showError(error)}};
   modal.querySelector("[data-manuscript-to-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptToGraph(body());closeModal();await loadCloudData();go("studio");showToast(`母稿已拆分为 ${result.nodes} 个节点和 ${result.edges} 条连线`)}catch(error){showError(error)}};
  }catch(error){showError(error)}
 }
@@ -194,7 +208,8 @@ export async function openCollaboration(){
   const roleName={owner:"主创作者",editor:"协作者",host:"主持人",viewer:"只读观察者"};
   const pendingRows=pending.map(invite=>`<div class="collab-row pending"><div><b>${escapeHtml(invite.email)}</b><p>待接受 · ${roleName[invite.role]} · 过期 ${formatTime(invite.expires_at)}</p></div><div class="row"><button class="text-btn" data-resend-invite="${invite.id}">重发邮件</button><button class="text-btn danger-text" data-revoke-invite="${invite.id}">撤销</button></div></div>`).join("");
   modal.className="modal creator-tool-modal";
-  modal.innerHTML=`<h2>协作权限</h2><p class="wizard-intro">输入邮箱邀请协作者。未注册账号会收到邀请邮件；已注册账号将直接加入。</p><div class="collab-list">${members.map(member=>`<div class="collab-row"><div><b>${escapeHtml(member.display_name)}</b><p>${escapeHtml(member.email||"—")} · ${roleName[member.role]}</p></div>${member.role==="owner"?`<span class="cloud-pill">OWNER</span>`:`<div class="row"><select class="field compact-field" data-member-role="${member.user_id}">${["editor","host","viewer"].map(role=>`<option value="${role}" ${role===member.role?"selected":""}>${roleName[role]}</option>`).join("")}</select><button class="text-btn danger-text" data-remove-member="${member.user_id}">移除</button></div>`}</div>`).join("")}${pendingRows}</div><div class="collab-invite"><h3>邀请协作者</h3><div class="row"><input class="field" data-member-email placeholder="成员邮箱"><select class="field compact-field" data-member-new-role><option value="editor">协作者</option><option value="host">主持人</option><option value="viewer">只读观察者</option></select><button class="primary-btn" data-add-member>发送邀请</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+  const memberRows=members.map(member=>`<div class="collab-row"><div><b>${escapeHtml(member.display_name)}</b><p>${escapeHtml(member.email||"—")} · ${roleName[member.role]}</p></div>${member.role==="owner"?`<span class="cloud-pill">OWNER</span>`:`<div class="row"><select class="field compact-field" data-member-role="${member.user_id}">${["editor","host","viewer"].map(role=>`<option value="${role}" ${role===member.role?"selected":""}>${roleName[role]}</option>`).join("")}</select><button class="text-btn danger-text" data-remove-member="${member.user_id}">移除</button></div>`}</div>`).join("");
+  setHtml(modal,collaborationModalHtml({memberRowsHtml:memberRows,pendingRowsHtml:pendingRows}));
   modalBackdrop.classList.add("show");
   modal.querySelector("[data-close]").onclick=closeModal;
   const handleErr=(error)=>handleApiErrorToast(error, showToast);
@@ -208,8 +223,8 @@ export async function openCollaboration(){
 
 export async function openWorldLogs(){
  try{
-  const draw=async()=>{const params={limit:"100"},eventType=modal.querySelector("[data-log-event]")?.value,keyword=modal.querySelector("[data-log-keyword]")?.value;if(eventType)params.eventType=eventType;if(keyword)params.keyword=keyword;const logs=await zhimuApi.getWorldLogs(params);modal.querySelector("[data-log-list]").innerHTML=logs.map(log=>`<div class="log-row"><div><b>${escapeHtml(log.event_type)}</b><span>${escapeHtml(log.room_name)}</span></div><p>${escapeHtml(log.message)}</p><small>${escapeHtml(log.actor_name||"系统")} · ${formatTime(log.created_at)}</small></div>`).join("")||`<div class="empty-state">没有匹配的运行日志。</div>`};
-  modal.className="modal creator-tool-modal";modal.innerHTML=`<h2>世界运行日志</h2><p class="wizard-intro">查看玩家阅读、调查、规则触发与主持操作。筛选只影响当前查看，不会修改历史记录。</p><div class="log-toolbar"><select class="field compact-field" data-log-event><option value="">全部事件</option><option value="reading_completed">阅读完成</option><option value="investigation_completed">调查完成</option><option value="scene_unlocked">场景解锁</option></select><input class="field" data-log-keyword placeholder="搜索日志内容"><button class="secondary-btn" data-log-refresh>筛选</button></div><div class="log-list" data-log-list></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+  const draw=async()=>{const params={limit:"100"},eventType=modal.querySelector("[data-log-event]")?.value,keyword=modal.querySelector("[data-log-keyword]")?.value;if(eventType)params.eventType=eventType;if(keyword)params.keyword=keyword;const logs=await zhimuApi.getWorldLogs(params);setHtml(modal.querySelector("[data-log-list]"),logs.map(log=>`<div class="log-row"><div><b>${escapeHtml(log.event_type)}</b><span>${escapeHtml(log.room_name)}</span></div><p>${escapeHtml(log.message)}</p><small>${escapeHtml(log.actor_name||"系统")} · ${formatTime(log.created_at)}</small></div>`).join("")||`<div class="empty-state">没有匹配的运行日志。</div>`)};
+  modal.className="modal creator-tool-modal";setHtml(modal,worldLogModalHtml());
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-log-refresh]").onclick=draw;await draw();
  }catch(error){showError(error)}
 }
@@ -219,7 +234,7 @@ export async function openDocumentParser(){
  let parsed=null;
  let pendingFile=null;
  modal.className="modal creator-tool-modal";
- modal.innerHTML=`<h2>文档解析与导入</h2><p class="wizard-intro">支持 TXT / Markdown / DOCX / PDF / 图片。文本型文档提取文字；图片型 PDF 与 JPG/PNG 将<strong>按页导入为分幕图片</strong>，玩家在端内直接翻页阅读。可选 OCR 提取可编辑文字（需复核）。</p><div class="form-group"><label>选择文档</label><input class="field" type="file" accept=".txt,.md,.markdown,.docx,.pdf,.jpg,.jpeg,.png,.webp" data-document-file><label>写入目标</label><select class="field" data-document-target><option value="manuscript">完整剧情母稿</option>${roles.map(role=>`<option value="${role.id}">角色私人剧本 · ${escapeHtml(role.name)}</option>`).join("")}</select><label class="checkbox-line" style="margin-top:10px"><input type="checkbox" data-document-allow-ocr> 图片型 PDF 尝试 OCR 为文字（较慢，需复核）</label><label>PDF 图片导入布局（仅图片模式）</label><select class="field" data-document-page-layout><option value="single_section">整份 PDF 合并为一个分幕</option><option value="one_section_per_page">每页单独一个分幕</option></select></div><div data-document-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-document-parse>解析预览</button><button class="primary-btn" data-document-import disabled>确认导入</button></div>`;
+ setHtml(modal,documentParserModalHtml(roles.map(role=>`<option value="${role.id}">角色私人剧本 · ${escapeHtml(role.name)}</option>`).join("")));
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  const commit=modal.querySelector("[data-document-import]");
@@ -242,7 +257,7 @@ export async function openDocumentParser(){
    const modeLabel=extractionLabel(parsed.extraction,parsed.contentMode);
    const previewImg=parsed.previewImageBase64?`<figure class="document-page-preview"><img alt="预览" src="data:image/png;base64,${parsed.previewImageBase64}"></figure>`:"";
    const sectionPreview=parsed.contentMode==="pages"?"":parsed.sections.slice(0,8).map(section=>`<article><strong>${escapeHtml(section.title)}</strong><span>${escapeHtml(section.body.slice(0,120))}${section.body.length>120?"...":""}</span></article>`).join("");
-   modal.querySelector("[data-document-preview]").innerHTML=`<section class="document-preview"><b>${escapeHtml(parsed.filename)}</b><p>${parsed.contentMode==="pages"?`${parsed.pageCount||0} 页图片分幕`:parsed.characterCount+" 字符 · "+parsed.sectionCount+" 个分段"}${modeLabel?" · "+escapeHtml(modeLabel):""}</p>${warnHtml}${previewImg}${sectionPreview}</section>`;
+   setHtml(modal.querySelector("[data-document-preview]"),documentPreviewHtml({filenameHtml:escapeHtml(parsed.filename),summaryHtml:`${parsed.contentMode==="pages"?`${parsed.pageCount||0} 页图片分幕`:parsed.characterCount+" 字符 · "+parsed.sectionCount+" 个分段"}${modeLabel?" · "+escapeHtml(modeLabel):""}`,extraHtml:`${warnHtml}${previewImg}${sectionPreview}`}));
    commit.disabled=parsed.contentMode==="pages"?!roles.length&&!modal.querySelector("[data-document-target]").value.startsWith("manuscript"):false;
    if(parsed.contentMode==="pages"&&modal.querySelector("[data-document-target]").value==="manuscript"){commit.disabled=true;showToast("图片分幕只能导入到角色私人剧本")}
    else showToast(parsed.contentMode==="pages"?"识别为图片文档，确认后将上传各页":"文档解析完成，请复核分段");
@@ -300,9 +315,9 @@ function pipelineStepLabel(step){return PipelineWizard()?.pipelineStepLabel(step
 function pipelinePreviewHtml(session){return PipelineWizard()?.pipelinePreviewHtml(session)||""}
 
 export function openStoryAssistant(){
- modal.className="modal story-assistant-modal";modal.innerHTML=`<h2>剧情助手</h2><p class="wizard-intro">粘贴剧情梗概或逐段素材。系统会先识别场景、线索和调查点，再生成建议连线。确认后才会写入剧情编排。</p><div class="assistant-guide"><b>推荐格式</b><span>每段用空行分隔。也可以使用“场景：”“线索：”“调查点：”开头提高识别准确度。</span></div><textarea class="field assistant-draft" rows="14" data-story-draft placeholder="场景：旧灯塔。潮水退去后，塔门露出一枚生锈的锁。&#10;&#10;调查点：检查塔门锁孔，发现内部残留蓝色蜡屑。&#10;&#10;线索：蓝色火漆碎片。它与匿名信上的封蜡一致。"></textarea><div data-assistant-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-assistant-analyze>分析分类</button><button class="primary-btn" data-assistant-import disabled>确认写入剧情编排</button></div>`;
+ modal.className="modal story-assistant-modal";setHtml(modal,storyAssistantModalHtml());
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const text=()=>modal.querySelector("[data-story-draft]").value.trim(),preview=modal.querySelector("[data-assistant-preview]"),commit=modal.querySelector("[data-assistant-import]");
- modal.querySelector("[data-assistant-analyze]").onclick=async()=>{try{const result=await zhimuApi.analyzeStoryDraft(text());preview.innerHTML=storyAssistantPreview(result);commit.disabled=!result.nodes.length;showToast(`已识别 ${result.nodes.length} 个剧情节点`)}catch(error){showError(error)}};
+ modal.querySelector("[data-assistant-analyze]").onclick=async()=>{try{const result=await zhimuApi.analyzeStoryDraft(text());setHtml(preview,storyAssistantPreview(result));commit.disabled=!result.nodes.length;showToast(`已识别 ${result.nodes.length} 个剧情节点`)}catch(error){showError(error)}};
  commit.onclick=async()=>{try{commit.disabled=true;const result=await zhimuApi.importStoryDraft(text());closeModal();await loadCloudData();go("studio");showToast(`已生成 ${result.nodes.length} 个节点和 ${result.edges.length} 条连线`)}catch(error){commit.disabled=false;showError(error)}};
 }
 
@@ -310,8 +325,8 @@ export function storyAssistantPreview(result){const typeName={scene:"场景",clu
 
 export function openCreatorPreview(){
  const data=studioStore.get().cloudStudio,roles=data.roles;if(!roles.length)return showToast("请先创建角色");
- modal.className="modal preview-modal";modal.innerHTML=`<h2>玩家视角模拟器</h2><p class="wizard-intro">切换角色和章节，核对玩家能读到的私人文本。草稿、测试中和已发布状态会明确标记。</p><div class="preview-controls">${studioSelect("模拟角色","previewRole",roles,roles[0]?.id||"")}${studioSelect("公共章节","previewChapter",[{id:"",name:"全部章节"},...data.chapters],"")}</div><div data-preview-body></div><div class="modal-actions"><button class="primary-btn" data-close>结束模拟</button></div>`;
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const draw=()=>{const roleId=modal.querySelector('[data-studio-field="previewRole"]').value,chapterId=modal.querySelector('[data-studio-field="previewChapter"]').value,role=roles.find(item=>item.id===roleId),sections=data.sections.filter(section=>section.role_slot_id===roleId&&(!chapterId||section.chapter_id===chapterId));modal.querySelector("[data-preview-body]").innerHTML=`<article class="preview-role-card"><p class="section-kicker">仅此角色可见</p><h3>${escapeHtml(role.name)}</h3><p>${escapeHtml(role.private_profile||"尚未补充角色秘密")}</p></article>${sections.map(section=>`<article class="preview-section"><span class="status-chip ${section.publication_status}">${section.publication_status}</span><h3>${escapeHtml(section.title)}</h3><div>${escapeHtml(section.body).replace(/\n/g,"<br>")}</div></article>`).join("")||`<div class="empty-state">该筛选条件下没有私人剧情。</div>`}`};modal.querySelectorAll("select").forEach(select=>select.onchange=draw);draw();
+ modal.className="modal preview-modal";setHtml(modal,creatorPreviewModalHtml(`${studioSelect("模拟角色","previewRole",roles,roles[0]?.id||"")}${studioSelect("公共章节","previewChapter",[{id:"",name:"全部章节"},...data.chapters],"")}`));
+ modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const draw=()=>{const roleId=modal.querySelector('[data-studio-field="previewRole"]').value,chapterId=modal.querySelector('[data-studio-field="previewChapter"]').value,role=roles.find(item=>item.id===roleId),sections=data.sections.filter(section=>section.role_slot_id===roleId&&(!chapterId||section.chapter_id===chapterId));const sectionRows=sections.map(section=>`<article class="preview-section"><span class="status-chip ${section.publication_status}">${section.publication_status}</span><h3>${escapeHtml(section.title)}</h3><div>${escapeHtml(section.body).replace(/\n/g,"<br>")}</div></article>`).join("");setHtml(modal.querySelector("[data-preview-body]"),creatorPreviewBodyHtml({roleNameHtml:escapeHtml(role.name),privateProfileHtml:escapeHtml(role.private_profile||"尚未补充角色秘密"),sectionRowsHtml:sectionRows}))};modal.querySelectorAll("select").forEach(select=>select.onchange=draw);draw();
 }
 
 function contentPackageSummaryHtml(summary){
@@ -433,9 +448,9 @@ export async function openCreatorExport(){
   let step=1;
   const selections={json:true,roleScripts:false,clueCards:false,hostRunbook:false,snapshot:false};
   const worldName=studio?.world?.name||"zhimu-backup";
-  const redraw=()=>{modal.querySelector("[data-delivery-body]").innerHTML=deliveryExportStepHtml(step,summary,studio,segments,selections);modal.querySelector("[data-delivery-back]").style.display=step>1?"inline-flex":"none";modal.querySelector("[data-delivery-next]").style.display=step<2?"inline-flex":"none";modal.querySelector("[data-delivery-run]").style.display=step===2?"inline-flex":"none";};
+  const redraw=()=>{setHtml(modal.querySelector("[data-delivery-body]"),deliveryExportStepHtml(step,summary,studio,segments,selections));modal.querySelector("[data-delivery-back]").style.display=step>1?"inline-flex":"none";modal.querySelector("[data-delivery-next]").style.display=step<2?"inline-flex":"none";modal.querySelector("[data-delivery-run]").style.display=step===2?"inline-flex":"none";};
   modal.className="modal creator-tool-modal delivery-export-modal";
-  modal.innerHTML=`<h2>交付包导出</h2><p class="wizard-intro">分步选择交付物：内容包备份、玩家本、线索清单、主持手册与版本快照。</p><div data-delivery-body></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-delivery-back style="display:none">上一步</button><button class="secondary-btn" data-delivery-next>下一步</button><button class="primary-btn" data-delivery-run style="display:none">开始导出</button></div>`;
+  setHtml(modal,deliveryExportModalHtml());
   modalBackdrop.classList.add("show");
   modal.querySelector("[data-close]").onclick=closeModal;
   modal.querySelector("[data-delivery-body]").addEventListener("change",(event)=>{
@@ -469,7 +484,7 @@ export async function exportCreatorPackage(){return openCreatorExport()}
 export function openCreatorImport(){
  const roles=studioStore.get().cloudStudio?.roles||[];
  modal.className="modal creator-tool-modal";
- modal.innerHTML=`<h2>导入创作内容</h2><p class="wizard-intro">JSON 内容包会先预览再写入。可选择追加到当前世界，或创建一个新世界。现有内容不会被覆盖。</p><div class="form-group"><label>导入模式</label><select class="field" data-import-mode><option value="append">追加到当前世界</option><option value="new_world">创建新世界并导入</option></select>${roles.length?"":`<div class="tutorial-tip"><b>当前世界尚无角色</b><span>追加模式仍可导入完整内容包；Markdown/TXT 导入需先创建角色席位。</span></div>`}<div data-new-world-fields style="display:none;margin-top:10px">${studioField("新世界名称","newWorldName","input",studioStore.get().cloudStudio?.world?.name?`${studioStore.get().cloudStudio.world.name} · 导入副本`:"导入的世界")}${studioField("世界摘要","newWorldSummary","textarea",studioStore.get().cloudStudio?.world?.summary||"")}</div><label>选择文件</label><input class="field" type="file" accept=".json,.md,.txt" data-creator-import-file>${roles.length?studioSelect("文档写入角色","importRole",roles):""}</div><div data-import-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-import-preview-btn>解析预览</button><button class="primary-btn" data-import-submit disabled>确认导入</button></div>`;
+ setHtml(modal,creatorImportModalHtml({emptyRoleHintHtml:roles.length?"":`<div class="tutorial-tip"><b>当前世界尚无角色</b><span>追加模式仍可导入完整内容包；Markdown/TXT 导入需先创建角色席位。</span></div>`,newWorldFieldsHtml:`${studioField("新世界名称","newWorldName","input",studioStore.get().cloudStudio?.world?.name?`${studioStore.get().cloudStudio.world.name} · 导入副本`:"导入的世界")}${studioField("世界摘要","newWorldSummary","textarea",studioStore.get().cloudStudio?.world?.summary||"")}`,roleSelectHtml:roles.length?studioSelect("文档写入角色","importRole",roles):""}));
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  let parsedJson=null, previewResult=null;
@@ -477,7 +492,7 @@ export function openCreatorImport(){
  const newWorldFields=modal.querySelector("[data-new-world-fields]");
  const previewBtn=modal.querySelector("[data-import-preview-btn]");
  const commitBtn=modal.querySelector("[data-import-submit]");
- const redrawMode=()=>{newWorldFields.style.display=modeSelect.value==="new_world"?"block":"none";parsedJson=null;previewResult=null;commitBtn.disabled=true;modal.querySelector("[data-import-preview]").innerHTML=""};
+ const redrawMode=()=>{newWorldFields.style.display=modeSelect.value==="new_world"?"block":"none";parsedJson=null;previewResult=null;commitBtn.disabled=true;setHtml(modal.querySelector("[data-import-preview]"),"")};
  modeSelect.onchange=redrawMode; redrawMode();
  previewBtn.onclick=async()=>{
   const file=modal.querySelector("[data-creator-import-file]").files[0];
@@ -485,12 +500,12 @@ export function openCreatorImport(){
   try{
    if(!/\.json$/i.test(file.name)){
     parsedJson=null;previewResult=null;commitBtn.disabled=false;
-    modal.querySelector("[data-import-preview]").innerHTML=`<section class="assistant-preview"><p>Markdown / TXT 将直接写入指定角色的新分幕，无需 JSON 预览。</p></section>`;
+    setHtml(modal.querySelector("[data-import-preview]"),plainTextImportPreviewHtml());
     return;
    }
    parsedJson=JSON.parse(await file.text());
    previewResult=modeSelect.value==="new_world"?await zhimuApi.previewNewWorldContentPackage(parsedJson):await zhimuApi.previewContentPackageImport(parsedJson);
-   modal.querySelector("[data-import-preview]").innerHTML=contentPackagePreviewHtml(previewResult);
+   setHtml(modal.querySelector("[data-import-preview]"),contentPackagePreviewHtml(previewResult));
    commitBtn.disabled=false;
    showToast("内容包预览已生成，请确认后导入");
   }catch(error){showToast(`预览失败：${error.message}`)}

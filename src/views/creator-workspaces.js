@@ -11,6 +11,7 @@ import { studioStore, worldStore, roomStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
+import { setHtml } from "../../shared/safe-dom.js";
 import {
   loadCreatorAnalytics,
   loadQualityReports,
@@ -427,7 +428,7 @@ export function bindSegmentRefTypeSelect() {
   const studio = studioStore.get().cloudStudio;
   typeSelect.onchange = () => {
     const options = refResourceOptions(studio, typeSelect.value);
-    idSelect.innerHTML = options || `<option value="">暂无可选资源</option>`;
+    setHtml(idSelect, options || `<option value="">暂无可选资源</option>`);
   };
 }
 

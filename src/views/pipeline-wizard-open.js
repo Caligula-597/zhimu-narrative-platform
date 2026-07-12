@@ -6,6 +6,7 @@ import { go, loadCloudData } from "../runtime/runtime-facade.js";
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import { normalizeError } from "../components/status-ui.js";
+import { setHtml } from "../../shared/safe-dom.js";
 (function (window) {
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const formatTime = F.formatTime || (() => "");
@@ -147,7 +148,7 @@ import { normalizeError } from "../components/status-ui.js";
 
       modal.className = "modal deepseek-modal pipeline-modal pipeline-wizard-modal";
       modal.dataset.referenceManuscript = manuscript.body || "";
-      modal.innerHTML = pipelineWizardFrameHtml(status, session, pipelineMode);
+      setHtml(modal, pipelineWizardFrameHtml(status, session, pipelineMode));
       modalBackdrop.classList.add("show");
       modal.querySelectorAll("[data-close]").forEach((btn) => { btn.onclick = () => { flushDraftSave(); uiAbort.abort(); closeModal(); }; });
       if (existingDraft?.payload?.form) restoreAiFormFields(migrateAiFormFields(existingDraft.payload.form));
@@ -257,7 +258,7 @@ import { normalizeError } from "../components/status-ui.js";
           return;
         }
         lastLadderStatusFp = fp;
-        ladder.innerHTML = pipelineLadderHtml(session, session.activeLayer);
+        setHtml(ladder, pipelineLadderHtml(session, session.activeLayer));
       };
 
       const updateLocationBar = () => {
@@ -371,7 +372,7 @@ import { normalizeError } from "../components/status-ui.js";
           sync: "确认并准备上传"
         }[layer] || "确认本层并继续";
         const lockBtn = hasData ? `<button class="primary-btn" type="button" data-pipeline-lock>${lockLabel}</button>` : "";
-        layerActions.innerHTML = `${generateBtn}${generateAllScriptsBtn}${saveBtn}${lockBtn}`;
+        setHtml(layerActions, `${generateBtn}${generateAllScriptsBtn}${saveBtn}${lockBtn}`);
       };
 
       const patchSectionEditor = () => {
@@ -390,7 +391,7 @@ import { normalizeError } from "../components/status-ui.js";
         if (tasksEl) tasksEl.value = (section?.tasks || []).join("\n");
         if (hookEl) hookEl.value = section?.closingHook || "";
         const listHost = layerEditor.querySelector("[data-pipeline-section-list-host]");
-        if (listHost) listHost.innerHTML = PH().pipelineSectionListHtml?.(session) || "";
+        if (listHost) setHtml(listHost, PH().pipelineSectionListHtml?.(session) || "");
         return true;
       };
 
@@ -400,7 +401,7 @@ import { normalizeError } from "../components/status-ui.js";
         const headFp = `${session.activeLayer}:${pipelineLayerStatus(session, session.activeLayer)}`;
         if (headFp !== lastHeadFp) {
           lastHeadFp = headFp;
-          layerHead.innerHTML = pipelineLayerHeadHtml(session.activeLayer, session);
+          setHtml(layerHead, pipelineLayerHeadHtml(session.activeLayer, session));
         }
         if (editor) {
           const editorKey = editorRenderKey();
@@ -408,12 +409,12 @@ import { normalizeError } from "../components/status-ui.js";
             const prevLayer = lastEditorKey.split(":")[0];
             const canPatchSection = session.activeLayer === "scripts" && prevLayer === "scripts" && patchSectionEditor();
             if (!canPatchSection) {
-              layerEditor.innerHTML = pipelineLayerEditorHtml(session.activeLayer, session, ctx);
+              setHtml(layerEditor, pipelineLayerEditorHtml(session.activeLayer, session, ctx));
             }
             lastEditorKey = editorKey;
           }
         }
-        summaryEl.innerHTML = (draftSavedAt ? aiLocalDraftNote(draftSavedAt) : "") + pipelinePreviewHtml(session);
+        setHtml(summaryEl, (draftSavedAt ? aiLocalDraftNote(draftSavedAt) : "") + pipelinePreviewHtml(session));
         importStructure.disabled = !session.proposal;
         importAll.disabled = !session.proposal;
         applyHints.disabled = !(session.evaluation?.revisions || []).some((rev) => rev.promptHint);

@@ -98,7 +98,7 @@ async function runSnapshotQueries(queryFn, roomId) {
   return parts;
 }
 
-/** Build snapshot; uses pool connections in parallel unless a transaction client is supplied. */
+/** Build a consistent snapshot; queries stay sequential when sharing a transaction client. */
 export async function buildRoomCheckpointSnapshot(roomId, options = {}) {
   const client = options.client ?? null;
   const queryFn = client

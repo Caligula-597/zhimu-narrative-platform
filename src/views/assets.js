@@ -10,6 +10,7 @@ import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
 import { ASSET_KIND_TABS, assetKindLabel } from "../utils/user-messages.js";
+import { setHtml } from "../../shared/safe-dom.js";
   const canEditWorldContent = U.canEditWorldContent || (() => false);
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatBytes = F.formatBytes || (() => "");
@@ -166,7 +167,7 @@ export function openAssetUpload(options = {}){
  const cta=coverMode?"上传并设为封面":"开始上传";
  modal.className="modal";
  modal.dataset.setAsCover=coverMode?"1":"";
- modal.innerHTML=`<h2>${title}</h2><p>文件将直接上传至 Cloudflare R2 私有 Bucket。${desc}</p><div class="upload-zone"><strong>${strong}</strong><p>${hint}</p><input type="file" id="cloud-file-input" accept="${accept}"></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" id="cloud-upload-confirm">${cta}</button></div>`;
+ setHtml(modal, `<h2>${title}</h2><p>文件将直接上传至 Cloudflare R2 私有 Bucket。${desc}</p><div class="upload-zone"><strong>${strong}</strong><p>${hint}</p><input type="file" id="cloud-file-input" accept="${accept}"></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" id="cloud-upload-confirm">${cta}</button></div>`);
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  modal.querySelector("#cloud-upload-confirm").onclick=uploadSelectedAsset;

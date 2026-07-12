@@ -8,6 +8,7 @@ import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
+import { setHtml } from "../../shared/safe-dom.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -44,7 +45,7 @@ export function openWizard(step=0){
   const currentStep = wizardStore.get().wizardStep;
   const roleEditor = wizardStore.get().wizardRoleEditor;
   modal.className="modal wizard-modal";
-  modal.innerHTML=`<div class="wizard-shell"><aside class="wizard-side"><p class="eyebrow">CREATOR GUIDE</p><h2>创建你的世界</h2><p>用一套标准流程，把已有剧本整理成可以自动运行的线上房间。</p><div class="wizard-steps">${wizardSteps.map((s,i)=>`<div class="wizard-step ${i===currentStep?"active":i<currentStep?"done":""}"><i>${i<currentStep?"✓":i+1}</i><span>${s}</span></div>`).join("")}</div></aside><main class="wizard-main">${wizardContent(currentStep)}${roleEditor?"":`<footer class="wizard-footer"><span>第 ${currentStep+1} 步，共 ${wizardSteps.length} 步</span><div class="wizard-actions">${currentStep?`<button class="secondary-btn" data-wizard-back>上一步</button>`:`<button class="secondary-btn" data-wizard-close>暂时退出</button>`}<button class="primary-btn" data-wizard-next>${currentStep===wizardSteps.length-1?"创建测试房间":"保存并继续"}</button></div></footer>`}</main></div>`;
+  setHtml(modal, `<div class="wizard-shell"><aside class="wizard-side"><p class="eyebrow">CREATOR GUIDE</p><h2>创建你的世界</h2><p>用一套标准流程，把已有剧本整理成可以自动运行的线上房间。</p><div class="wizard-steps">${wizardSteps.map((s,i)=>`<div class="wizard-step ${i===currentStep?"active":i<currentStep?"done":""}"><i>${i<currentStep?"✓":i+1}</i><span>${s}</span></div>`).join("")}</div></aside><main class="wizard-main">${wizardContent(currentStep)}${roleEditor?"":`<footer class="wizard-footer"><span>第 ${currentStep+1} 步，共 ${wizardSteps.length} 步</span><div class="wizard-actions">${currentStep?`<button class="secondary-btn" data-wizard-back>上一步</button>`:`<button class="secondary-btn" data-wizard-close>暂时退出</button>`}<button class="primary-btn" data-wizard-next>${currentStep===wizardSteps.length-1?"创建测试房间":"保存并继续"}</button></div></footer>`}</main></div>`);
   modalBackdrop.classList.add("show");
   modal.querySelector("[data-wizard-next]")?.addEventListener("click",()=>{collectWizardDraft();const s=wizardStore.get().wizardStep;return s===wizardSteps.length-1?finishWizard():openWizard(s+1)});
   modal.querySelector("[data-wizard-back]")?.addEventListener("click",()=>{collectWizardDraft();openWizard(wizardStore.get().wizardStep-1)});

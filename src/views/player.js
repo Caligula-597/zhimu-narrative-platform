@@ -10,6 +10,7 @@ import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import * as S from "../components/ui-semantics.js";
 import { bindSectionStartOnReader } from "../../shared/player-reader.js";
+import { setHtml } from "../../shared/safe-dom.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -309,21 +310,21 @@ function sharedClueRow(item,chipClass,chipLabel){
 
 export function openVoiceRooms(){
  const rooms=roomStore.get().cloudPlayer?.voiceRooms||[];
- modal.className="modal"; modal.innerHTML=`<h2>选择语音空间</h2><p>公共讨论与私密房相互隔离。房内文字消息也只对有权限的成员开放。</p><div class="voice-modal-list">
+ modal.className="modal"; setHtml(modal, `<h2>选择语音空间</h2><p>公共讨论与私密房相互隔离。房内文字消息也只对有权限的成员开放。</p><div class="voice-modal-list">
  ${rooms.map(room=>voiceOption(room.room_type==="public"?"♬":"♙",room.name,room.room_type==="public"?"全体房间成员均可加入":"仅受邀玩家可见",room.id,room.room_type)).join("")||`<div class="empty-state">当前没有可加入的语音房。</div>`}
- </div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-action="voice-room-create">＋ 创建临时密谈</button></div>`;
+ </div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-action="voice-room-create">＋ 创建临时密谈</button></div>`);
  modalBackdrop.classList.add("show"); modal.querySelector("[data-close]").onclick=closeModal; modal.querySelectorAll("[data-action]").forEach(btn=>btn.onclick=()=>handle(btn.dataset.action,btn));
 }
 
 export function openCreateVoiceRoom(){
  const seats=roomStore.get().cloudPlayer?.roomMembers||[],currentUserId=zhimuApi.context.playerUserId;
- modal.className="modal";modal.innerHTML=`<h2>创建临时密谈</h2><p class="wizard-intro">从全部玩家角色中选择受邀者，可以一次邀请多人。你自己会自动进入密谈，无需重复勾选；尚未进入房间的角色会保留席位提示。</p><div class="form-group">${studioField("房间名称","voiceName","input","临时密谈")}<label>邀请其他玩家角色</label><div class="member-picker">${seats.map(member=>{const self=member.user_id===currentUserId,disabled=self||!member.online;return `<label class="${disabled?"member-disabled":""}"><input type="checkbox" data-voice-invite value="${member.user_id||""}" ${disabled?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${self?" · 当前角色，已自动加入":member.online?" · 可邀请":" · 尚未进入房间"}</span></label>`}).join("")||`<div class="empty-state">当前世界尚未建立玩家角色席位。</div>`}</div></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-create-voice-room>创建并进入</button></div>`;
+ modal.className="modal";setHtml(modal, `<h2>创建临时密谈</h2><p class="wizard-intro">从全部玩家角色中选择受邀者，可以一次邀请多人。你自己会自动进入密谈，无需重复勾选；尚未进入房间的角色会保留席位提示。</p><div class="form-group">${studioField("房间名称","voiceName","input","临时密谈")}<label>邀请其他玩家角色</label><div class="member-picker">${seats.map(member=>{const self=member.user_id===currentUserId,disabled=self||!member.online;return `<label class="${disabled?"member-disabled":""}"><input type="checkbox" data-voice-invite value="${member.user_id||""}" ${disabled?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${self?" · 当前角色，已自动加入":member.online?" · 可邀请":" · 尚未进入房间"}</span></label>`}).join("")||`<div class="empty-state">当前世界尚未建立玩家角色席位。</div>`}</div></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-create-voice-room>创建并进入</button></div>`);
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-create-voice-room]").onclick=async()=>{try{const name=modal.querySelector('[data-studio-field="voiceName"]').value.trim(),inviteUserIds=[...modal.querySelectorAll("[data-voice-invite]:checked")].map(input=>input.value),room=await zhimuApi.createVoiceRoom({name,roomType:"invite_private",inviteUserIds});await loadCloudData();await joinVoiceRoom(room.id,room.name);showToast("临时密谈已创建")}catch(error){showError(error)}};
 }
 
 export function openInviteVoiceRoom(roomId,roomName){
  const seats=roomStore.get().cloudPlayer?.roomMembers||[],currentUserId=zhimuApi.context.playerUserId;
- modal.className="modal";modal.innerHTML=`<h2>邀请成员 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">从已经进入当前平行房的角色中追加邀请。新成员会立即获得这个密谈文字频道的访问权限。</p><div class="member-picker">${seats.map(member=>{const self=member.user_id===currentUserId,disabled=self||!member.online;return `<label class="${disabled?"member-disabled":""}"><input type="checkbox" data-voice-invite value="${member.user_id||""}" ${disabled?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${self?" · 当前角色":member.online?" · 可追加邀请":" · 尚未进入平行房"}</span></label>`}).join("")||`<div class="empty-state">当前平行房尚未建立角色成员。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-invite-submit>发送邀请</button></div>`;
+ modal.className="modal";setHtml(modal, `<h2>邀请成员 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">从已经进入当前平行房的角色中追加邀请。新成员会立即获得这个密谈文字频道的访问权限。</p><div class="member-picker">${seats.map(member=>{const self=member.user_id===currentUserId,disabled=self||!member.online;return `<label class="${disabled?"member-disabled":""}"><input type="checkbox" data-voice-invite value="${member.user_id||""}" ${disabled?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${self?" · 当前角色":member.online?" · 可追加邀请":" · 尚未进入平行房"}</span></label>`}).join("")||`<div class="empty-state">当前平行房尚未建立角色成员。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-invite-submit>发送邀请</button></div>`);
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-invite-submit]").onclick=async()=>{const inviteUserIds=[...modal.querySelectorAll("[data-voice-invite]:checked")].map(input=>input.value);if(!inviteUserIds.length)return showToast("请至少选择一名已进入平行房的玩家");try{await zhimuApi.inviteVoiceRoomMembers(roomId,inviteUserIds);closeModal();await loadCloudData();showToast("密谈成员已追加邀请")}catch(error){showError(error)}};
 }
 
@@ -414,7 +415,7 @@ function showHighlightToolbar(rect,sectionId,sectionTitle,selection){
  const toolbar=document.createElement("div");
  toolbar.className="highlight-toolbar";
  const preview=selection.text.length>28?`${selection.text.slice(0,28)}…`:selection.text;
- toolbar.innerHTML=`<button type="button" class="primary-btn highlight-toolbar-btn" data-highlight-add>高亮</button><span class="highlight-toolbar-preview">「${escapeHtml(preview)}」</span>`;
+ setHtml(toolbar, `<button type="button" class="primary-btn highlight-toolbar-btn" data-highlight-add>高亮</button><span class="highlight-toolbar-preview">「${escapeHtml(preview)}」</span>`);
  document.body.appendChild(toolbar);
  const left=Math.min(Math.max(rect.left+rect.width/2,80),window.innerWidth-80);
  const top=Math.max(rect.top,56);
@@ -471,7 +472,7 @@ function patchPlayerReader(){
  const current=document.querySelector(".player-view > .reader-card");
  if(!current)return false;
  const wrap=document.createElement("template");
- wrap.innerHTML=reader().trim();
+ setHtml(wrap, reader().trim());
  const next=wrap.content.firstElementChild;
  if(!next)return false;
  current.replaceWith(next);
@@ -563,7 +564,7 @@ export function openShareClueRolesModal(clueId){
  const seats=(cloudPlayer?.roomMembers||[]).filter(member=>member.role_slot_id!==myRoleId);
  const selected=new Set(clue.shared_with_roles||[]);
  modal.className="modal";
- modal.innerHTML=`<h2>私享线索 · ${escapeHtml(clue.name)}</h2><p class="wizard-intro">选择可以查看这条线索的玩家角色。私享不会进入全房间讨论区；保存私享时会取消「公开到全房间」状态。</p><div class="member-picker">${seats.map(member=>{const disabled=!member.online&&!selected.has(member.role_slot_id);return `<label class="${disabled&&!selected.has(member.role_slot_id)?"member-disabled":""}"><input type="checkbox" data-share-role value="${member.role_slot_id}" ${selected.has(member.role_slot_id)?"checked":""} ${disabled&&!selected.has(member.role_slot_id)?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${member.online?" · 已入房":" · 尚未入房"}</span></label>`}).join("")||`<div class="empty-state">当前世界没有其他角色席位。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-share-roles-submit>保存私享</button></div>`;
+ setHtml(modal, `<h2>私享线索 · ${escapeHtml(clue.name)}</h2><p class="wizard-intro">选择可以查看这条线索的玩家角色。私享不会进入全房间讨论区；保存私享时会取消「公开到全房间」状态。</p><div class="member-picker">${seats.map(member=>{const disabled=!member.online&&!selected.has(member.role_slot_id);return `<label class="${disabled&&!selected.has(member.role_slot_id)?"member-disabled":""}"><input type="checkbox" data-share-role value="${member.role_slot_id}" ${selected.has(member.role_slot_id)?"checked":""} ${disabled&&!selected.has(member.role_slot_id)?"disabled":""}> <span><b>${escapeHtml(member.role_name||"未命名角色")}</b>${member.display_name?` · ${escapeHtml(member.display_name)}`:""}${member.online?" · 已入房":" · 尚未入房"}</span></label>`}).join("")||`<div class="empty-state">当前世界没有其他角色席位。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-share-roles-submit>保存私享</button></div>`);
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  modal.querySelector("[data-share-roles-submit]").onclick=async()=>{
@@ -580,7 +581,7 @@ export function openShareClueRolesModal(clueId){
 export function openClueNoteModal(clueId){
  const clue=(roomStore.get().cloudPlayer?.clues||[]).find(item=>item.id===clueId);
  if(!clue)return showToast("只能为自己拥有的线索添加解读");
- modal.className="modal";modal.innerHTML=`<h2>我的线索解读 · ${escapeHtml(clue.name)}</h2><p class="wizard-intro">写下你对这条线索的理解。公开线索时，其他玩家也能看到你的解读。</p><textarea class="field" rows="5" data-clue-note>${escapeHtml(clue.player_note||"")}</textarea><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-save-clue-note>保存解读</button></div>`;
+ modal.className="modal";setHtml(modal, `<h2>我的线索解读 · ${escapeHtml(clue.name)}</h2><p class="wizard-intro">写下你对这条线索的理解。公开线索时，其他玩家也能看到你的解读。</p><textarea class="field" rows="5" data-clue-note>${escapeHtml(clue.player_note||"")}</textarea><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-save-clue-note>保存解读</button></div>`);
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
  modal.querySelector("[data-save-clue-note]").onclick=async()=>{try{const note=modal.querySelector("[data-clue-note]").value;await zhimuApi.updateCluePlayerNote(clueId,note);closeModal();await loadCloudData();showToast("线索解读已保存")}catch(error){showError(error)}};
 }

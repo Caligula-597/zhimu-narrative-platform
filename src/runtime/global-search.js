@@ -7,6 +7,7 @@ import { go } from "./runtime-facade.js";
 import { escapeHtml } from "../utils/format.js";
 import { closeModal } from "../components/modal.js";
 import * as Status from "../components/status-ui.js";
+import { setHtml } from "../../shared/safe-dom.js";
 (function (window) {
 
   const TYPE_LABELS = {
@@ -38,7 +39,7 @@ import * as Status from "../components/status-ui.js";
       return;
     }
     modal.className = "modal global-search-modal";
-    modal.innerHTML = `<h2>搜索当前世界</h2><p class="wizard-intro">检索角色、分幕、场景、线索、调查点、规则与物品。结果来自 PostgreSQL 全文索引与模糊匹配。</p><div class="search-box global-search-input"><span>⌕</span><input id="global-search-input" class="field" placeholder="输入关键词，例如：角色名、场景、线索标题…" autofocus></div><div id="global-search-results">${Status.empty?.("输入关键词开始搜索", "输入至少 1 个字符开始搜索。", { compact: true }) || `<div class="empty-state">输入至少 1 个字符开始搜索。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+    setHtml(modal, `<h2>搜索当前世界</h2><p class="wizard-intro">检索角色、分幕、场景、线索、调查点、规则与物品。结果来自 PostgreSQL 全文索引与模糊匹配。</p><div class="search-box global-search-input"><span>⌕</span><input id="global-search-input" class="field" placeholder="输入关键词，例如：角色名、场景、线索标题…" autofocus></div><div id="global-search-results">${Status.empty?.("输入关键词开始搜索", "输入至少 1 个字符开始搜索。", { compact: true }) || `<div class="empty-state">输入至少 1 个字符开始搜索。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`);
     modalBackdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
 
@@ -50,24 +51,24 @@ import * as Status from "../components/status-ui.js";
       const requestSeq = ++searchSeq;
       const q = input.value.trim();
       if (!q) {
-        resultsEl.innerHTML = Status.empty?.("输入关键词开始搜索", "输入至少 1 个字符开始搜索。", { compact: true }) || `<div class="empty-state">输入至少 1 个字符开始搜索。</div>`;
+        setHtml(resultsEl, Status.empty?.("输入关键词开始搜索", "输入至少 1 个字符开始搜索。", { compact: true }) || `<div class="empty-state">输入至少 1 个字符开始搜索。</div>`);
         return;
       }
-      resultsEl.innerHTML = Status.loading?.("正在搜索", "正在检索当前世界内容…", { compact: true }) || `<div class="empty-state">正在搜索…</div>`;
+      setHtml(resultsEl, Status.loading?.("正在搜索", "正在检索当前世界内容…", { compact: true }) || `<div class="empty-state">正在搜索…</div>`);
       try {
         const payload = await zhimuApi.searchWorld(q, { limit: 40 });
         if (requestSeq !== searchSeq) return;
         const labels = payload.typeLabels || TYPE_LABELS;
         if (!payload.results?.length) {
-          resultsEl.innerHTML = Status.empty?.("没有匹配结果", `没有匹配「${q}」的内容。试试更短的关键词或到各页面浏览列表。`, { compact: true }) || `<div class="empty-state">没有匹配「${escapeHtml(q)}」的内容。试试更短的关键词或到各页面浏览列表。</div>`;
+          setHtml(resultsEl, Status.empty?.("没有匹配结果", `没有匹配「${q}」的内容。试试更短的关键词或到各页面浏览列表。`, { compact: true }) || `<div class="empty-state">没有匹配「${escapeHtml(q)}」的内容。试试更短的关键词或到各页面浏览列表。</div>`);
           return;
         }
         const queryTerm = payload.query || q;
-        resultsEl.innerHTML = `<p class="muted-note" style="margin-bottom:10px">共 ${payload.total} 条结果</p><div class="global-search-list">${payload.results
+        setHtml(resultsEl, `<p class="muted-note" style="margin-bottom:10px">共 ${payload.total} 条结果</p><div class="global-search-list">${payload.results
           .map(
             (row) => `<button type="button" class="global-search-row" data-search-go="${escapeHtml(row.view)}" data-search-type="${escapeHtml(row.type)}" data-search-id="${escapeHtml(row.id)}" data-search-title="${escapeHtml(row.title)}" data-search-query="${escapeHtml(queryTerm)}"><span class="cloud-pill">${escapeHtml(labels[row.type] || row.type)}</span><strong>${highlightText(row.title, queryTerm)}</strong><p>${highlightText(row.snippet || "无摘要", queryTerm)}</p></button>`
           )
-          .join("")}</div>`;
+          .join("")}</div>`);
         resultsEl.querySelectorAll("[data-search-go]").forEach((btn) => {
           btn.onclick = () => {
             const targetView = btn.dataset.searchGo;
@@ -87,7 +88,7 @@ import * as Status from "../components/status-ui.js";
         });
       } catch (error) {
         if (requestSeq !== searchSeq) return;
-        resultsEl.innerHTML = Status.error?.("搜索失败", error, { compact: true, fallback: "搜索暂时不可用，请稍后重试。" }) || `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        setHtml(resultsEl, Status.error?.("搜索失败", error, { compact: true, fallback: "搜索暂时不可用，请稍后重试。" }) || `<div class="empty-state">${escapeHtml(error.message)}</div>`);
       }
     };
 

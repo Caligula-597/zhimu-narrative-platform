@@ -10,6 +10,7 @@ import { closeModal, studioField } from "../components/modal.js";
 import * as Status from "../components/status-ui.js";
 import { handleApiErrorToast } from "../utils/user-messages.js";
 import { bindAccountLlmPanel, renderAccountLlmSection, stashLlmPresets } from "../components/account-llm.js";
+import { setHtml } from "../../shared/safe-dom.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const handleApiError = handleApiErrorToast;
@@ -46,13 +47,13 @@ import { bindAccountLlmPanel, renderAccountLlmSection, stashLlmPresets } from ".
       return callRuntime("openAuth");
     }
     modal.className = "modal auth-modal account-delete-modal";
-    modal.innerHTML = `<h2>注销账号</h2>${Status.modalLoading?.("正在加载影响范围…") || `<p class="wizard-intro">正在加载影响范围…</p>`}`;
+    setHtml(modal, `<h2>注销账号</h2>${Status.modalLoading?.("正在加载影响范围…") || `<p class="wizard-intro">正在加载影响范围…</p>`}`);
     backdrop.classList.add("show");
     let preview;
     try {
       preview = await zhimuApi.previewAccountDelete();
     } catch (error) {
-      modal.innerHTML = `<h2>无法加载注销信息</h2>${Status.modalError?.(error, "请稍后重试") || `<p class="wizard-intro">${escapeHtml(error.message || "请稍后重试")}</p>`}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+      setHtml(modal, `<h2>无法加载注销信息</h2>${Status.modalError?.(error, "请稍后重试") || `<p class="wizard-intro">${escapeHtml(error.message || "请稍后重试")}</p>`}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`);
       modal.querySelector("[data-close]").onclick = closeModal;
       return;
     }
@@ -60,12 +61,12 @@ import { bindAccountLlmPanel, renderAccountLlmSection, stashLlmPresets } from ".
       const blockers = (preview.blockers || [])
         .map((item) => `<div class="check-result error"><b>${escapeHtml(item.title)}</b><span>${escapeHtml(item.detail)}</span></div>`)
         .join("");
-      modal.innerHTML = `<h2>暂时无法注销</h2>${blockers}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
+      setHtml(modal, `<h2>暂时无法注销</h2>${blockers}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`);
       modal.querySelector("[data-close]").onclick = closeModal;
       return;
     }
     const label = preview.confirmationLabel || "";
-    modal.innerHTML = `<h2>注销账号</h2><p class="wizard-intro"><strong>与「退出登录」不同：</strong>注销会永久删除账号数据，无法恢复。退出登录仅在本设备结束会话，账号仍保留。</p>${deleteAccountSummaryHtml(preview)}<div class="form-group"><label>请输入你的昵称以确认（区分大小写）</label><input class="field" data-delete-confirm placeholder="${escapeHtml(label)}"><label class="check-label" style="margin-top:10px"><input type="checkbox" data-delete-ack><span>我已知晓注销不可恢复</span></label></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="danger-btn" data-delete-submit disabled>永久注销账号</button></div>`;
+    setHtml(modal, `<h2>注销账号</h2><p class="wizard-intro"><strong>与「退出登录」不同：</strong>注销会永久删除账号数据，无法恢复。退出登录仅在本设备结束会话，账号仍保留。</p>${deleteAccountSummaryHtml(preview)}<div class="form-group"><label>请输入你的昵称以确认（区分大小写）</label><input class="field" data-delete-confirm placeholder="${escapeHtml(label)}"><label class="check-label" style="margin-top:10px"><input type="checkbox" data-delete-ack><span>我已知晓注销不可恢复</span></label></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="danger-btn" data-delete-submit disabled>永久注销账号</button></div>`);
     modal.querySelector("[data-close]").onclick = closeModal;
     const confirmInput = modal.querySelector("[data-delete-confirm]");
     const ack = modal.querySelector("[data-delete-ack]");
@@ -114,7 +115,7 @@ import { bindAccountLlmPanel, renderAccountLlmSection, stashLlmPresets } from ".
       .map((plan) => `<option value="${escapeHtml(plan.code)}" ${plan.code === desiredPlanCode ? "selected" : ""}>${escapeHtml(plan.label)}</option>`)
       .join("");
     modal.className = "modal auth-modal";
-    modal.innerHTML = `<h2>申请套餐升级</h2><p class="wizard-intro">提交后由 <strong>support@getzhimu.com</strong> 人工审核并开通，暂无在线支付。审核通常 1～3 个工作日。</p><div class="form-group"><label>希望升级至</label><select class="field" data-upgrade-plan>${selectHtml}</select>${studioField("申请说明 · 至少 8 字", "upgradeReason", "textarea", "简要说明你的创作规模、团队人数或为何需要更高配额…")}${studioField("补充联系方式（选填）", "upgradeContact", "input", "")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-upgrade-submit>提交申请</button></div>`;
+    setHtml(modal, `<h2>申请套餐升级</h2><p class="wizard-intro">提交后由 <strong>support@getzhimu.com</strong> 人工审核并开通，暂无在线支付。审核通常 1～3 个工作日。</p><div class="form-group"><label>希望升级至</label><select class="field" data-upgrade-plan>${selectHtml}</select>${studioField("申请说明 · 至少 8 字", "upgradeReason", "textarea", "简要说明你的创作规模、团队人数或为何需要更高配额…")}${studioField("补充联系方式（选填）", "upgradeContact", "input", "")}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-upgrade-submit>提交申请</button></div>`);
     backdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-upgrade-submit]").onclick = async () => {

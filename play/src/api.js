@@ -77,6 +77,9 @@ export const api = {
   joinRoom: (inviteCode, roleSlotId) =>
     request("/rooms/join", { method: "POST", body: { inviteCode, roleSlotId } }),
   playerHome: (roomId) => request(`/rooms/${roomId}/player-home`),
+  playerHomeCore: (roomId) => request(`/rooms/${roomId}/player-home/core`),
+  playerHomeSocial: (roomId, currentActKey = "ch1") =>
+    request(`/rooms/${roomId}/player-home/social?currentActKey=${encodeURIComponent(currentActKey)}`),
   playerVotes: (roomId) => request(`/rooms/${roomId}/votes`),
   submitVoteBallot: (roomId, voteId, payload) =>
     request(`/rooms/${roomId}/votes/${voteId}/ballots`, { method: "POST", body: payload }),

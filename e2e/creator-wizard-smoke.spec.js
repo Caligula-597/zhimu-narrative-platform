@@ -2,7 +2,6 @@ import { test, expect } from "@playwright/test";
 import {
   BASE_URL,
   dismissModalIfOpen,
-  goToView,
   injectHostContext,
   waitForCloudReady
 } from "./helpers/fixture.mjs";
@@ -15,8 +14,7 @@ test.describe("创作者 · 向导创建测试房", () => {
   });
 
   test("向导走完五 step 后显示邀请码", async ({ page }) => {
-    await goToView(page, "overview");
-    await page.locator('[data-action="open-wizard"]').first().click();
+    await page.locator("#create-world-btn").click();
     await expect(page.locator(".wizard-shell")).toBeVisible();
 
     for (let step = 0; step < 5; step += 1) {

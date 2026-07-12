@@ -1,9 +1,10 @@
 import { getOptionalServicesStatus } from "../optional-services-status.js";
 import { getDatabaseStatus, getReadinessStatus } from "../database-status.js";
 import { getPoolStats } from "../db.js";
-import { renderPrometheusMetrics, setApiReadyGauge, recordWebVital } from "../metrics.js";
+import { renderPrometheusMetrics, setApiReadyGauge, recordCspViolation, recordWebVital } from "../metrics.js";
 import { requireMetricsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
+import { normalizeCspReport, noteCspViolationForAlert } from "../csp-reports.js";
 
 const processStartedAt = Date.now();
 
@@ -70,24 +71,31 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
   );
 
   app.post("/api/csp-report", {
+    bodyLimit: 16 * 1024,
     schema: {
       hide: true,
       tags: ["system"],
-      body: { type: "object", additionalProperties: true },
+      body: {
+        anyOf: [
+          { type: "object", additionalProperties: true },
+          { type: "array", minItems: 1, maxItems: 20, items: { type: "object", additionalProperties: true } }
+        ]
+      },
       response: { 204: { type: "null" } }
     }
   }, async (request, reply) => {
-    const report = request.body ?? {};
-    request.log.warn(
+    const report = normalizeCspReport(request.body ?? {});
+    recordCspViolation({ directive: report.violatedDirective, disposition: report.disposition });
+    const alertState = noteCspViolationForAlert(report);
+    const log = alertState.alert ? request.log.error.bind(request.log) : request.log.warn.bind(request.log);
+    log(
       {
-        csp: {
-          documentUri: report["document-uri"] ?? report.documentURI,
-          violatedDirective: report["violated-directive"] ?? report.violatedDirective,
-          blockedUri: report["blocked-uri"] ?? report.blockedURI,
-          sourceFile: report["source-file"] ?? report.sourceFile
-        }
+        csp: report,
+        alert: alertState.alert,
+        violationsInMinute: alertState.count,
+        threshold: alertState.threshold
       },
-      "CSP violation report"
+      alertState.alert ? "CSP violation threshold reached" : "CSP violation report"
     );
     return reply.code(204).send();
   });

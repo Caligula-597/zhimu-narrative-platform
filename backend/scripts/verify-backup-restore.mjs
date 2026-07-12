@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { resolvePgTool } from "./pg-bin.mjs";
 import "dotenv/config";
 
-const TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions"];
+const REQUIRED_TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions", "schema_migrations"];
 
 function run(cmd, args, opts = {}) {
   const result = spawnSync(cmd, args, {
@@ -46,10 +46,17 @@ function pgTool(name) {
   return resolvePgTool(name);
 }
 
-function countTables(databaseUrl) {
+function listTables(databaseUrl) {
+  const out = run(pgTool("psql"), [databaseUrl, "-t", "-A", "-c",
+    "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename"]);
+  return out.split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
+}
+
+function countTables(databaseUrl, tables) {
   const counts = {};
-  for (const table of TABLES) {
-    const out = run(pgTool("psql"), [databaseUrl, "-t", "-A", "-c", `SELECT COUNT(*) FROM ${table}`]);
+  for (const table of tables) {
+    if (!/^[a-z_][a-z0-9_]*$/.test(table)) throw new Error(`Unsafe table identifier: ${table}`);
+    const out = run(pgTool("psql"), [databaseUrl, "-t", "-A", "-c", `SELECT COUNT(*) FROM "${table}"`]);
     counts[table] = Number(out);
   }
   return counts;
@@ -57,7 +64,7 @@ function countTables(databaseUrl) {
 
 function compareCounts(source, restored) {
   const mismatches = [];
-  for (const table of TABLES) {
+  for (const table of Object.keys(source)) {
     if (source[table] !== restored[table]) {
       mismatches.push({ table, source: source[table], restored: restored[table] });
     }
@@ -75,8 +82,8 @@ if (!sourceUrl) {
 function requireCli(name) {
   const probe = spawnSync(name, ["--version"], { encoding: "utf8", shell: process.platform === "win32" });
   if (probe.error || probe.status !== 0) {
-    console.warn(`skip: ${name} not on PATH — install PostgreSQL client tools to run restore drill`);
-    process.exit(0);
+    console.error(`${name} not on PATH — restore evidence cannot be produced`);
+    process.exit(1);
   }
 }
 
@@ -90,7 +97,10 @@ const dumpPath = join(workDir, "backup.sql");
 
 try {
   console.log("▶ Counting source tables…");
-  const before = countTables(sourceUrl);
+  const tables = listTables(sourceUrl);
+  const missing = REQUIRED_TABLES.filter((table) => !tables.includes(table));
+  if (missing.length) throw new Error(`Source database missing required tables: ${missing.join(", ")}`);
+  const before = countTables(sourceUrl, tables);
   console.log(before);
 
   console.log("▶ pg_dump →", dumpPath);
@@ -103,7 +113,11 @@ try {
   run(pgTool("psql"), [restoreUrl, "-v", "ON_ERROR_STOP=1", "-f", dumpPath]);
 
   console.log("▶ Counting restored tables…");
-  const after = countTables(restoreUrl);
+  const restoredTables = listTables(restoreUrl);
+  if (JSON.stringify(restoredTables) !== JSON.stringify(tables)) {
+    throw new Error("Restored public table inventory does not match source");
+  }
+  const after = countTables(restoreUrl, tables);
   console.log(after);
 
   const mismatches = compareCounts(before, after);

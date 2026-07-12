@@ -12,6 +12,7 @@ import { togglePanelInDom } from "./components/collapse.js";
 import { renderApp } from "./components/shell.js";
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid } from "../../shared/security.js";
 import { initWebVitalsReporting } from "../../shared/web-vitals.js";
+import { setHtml } from "../../shared/safe-dom.js";
 import { formatApiError } from "./errors.js";
 import {
   bindDataContext,
@@ -108,7 +109,7 @@ function setToast(message, ms = 3200) {
 }
 
 function render() {
-  app.innerHTML = renderApp();
+  setHtml(app, renderApp());
   syncHostUrl();
 }
 

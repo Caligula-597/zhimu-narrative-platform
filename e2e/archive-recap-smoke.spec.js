@@ -25,6 +25,7 @@ test.describe("存档与复盘 · 主持入口", () => {
     await page.locator('[data-studio-field="checkpointTitle"]').fill(`E2E 存档 ${Date.now()}`);
     await page.locator('[data-studio-field="checkpointDescription"]').fill("E2E archive smoke checkpoint");
     await page.locator("[data-checkpoint-submit]").click();
+    await expect(page.locator("#modal-backdrop.show")).toBeHidden({ timeout: 30_000 });
     await expect(page.locator("#toast.show, .checkpoint-list .checkpoint-card").first()).toBeVisible({ timeout: 30_000 });
 
     await page.getByRole("button", { name: "生成复盘" }).click();

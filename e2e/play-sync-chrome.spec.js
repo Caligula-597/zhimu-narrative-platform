@@ -16,8 +16,8 @@ test.describe("玩家端 同步与导航", () => {
     const invite = process.env.PLAYWRIGHT_INVITE_CODE || FIXTURE.inviteCode;
     await joinPlayRoomViaUi(page, invite);
     await expect(page.locator('[role="tablist"]').first()).toBeVisible({ timeout: 30_000 });
-    const cluesTab = page.locator('[data-action="switch-tab"][data-tab="clues"]');
-    await cluesTab.click();
-    await expect(cluesTab).toHaveAttribute("aria-selected", "true");
+    const investigationTab = page.locator('[data-primary-tab="investigation"]');
+    await investigationTab.click();
+    await expect(investigationTab).toHaveAttribute("aria-selected", "true");
   });
 });

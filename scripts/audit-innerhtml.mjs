@@ -1,17 +1,29 @@
 /**
  * Track innerHTML usage for XSS audit (Trusted Beta TB-1).
  * Usage: npm run audit:innerhtml
- * Fails when count exceeds AUDIT_INNERHTML_MAX (default 120).
+ * Fails when count exceeds AUDIT_INNERHTML_MAX (default 0).
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SCAN_DIRS = ["src", "play/src", "frontend", "app.js"].map((p) => join(root, p));
+const SCAN_DIRS = ["src", "host/src", "play/src", "frontend", "app.js"].map((p) => join(root, p));
 const ASSIGN_RE = /\.innerHTML\s*=/g;
 const READ_RE = /\.innerHTML(?!\s*=)/g;
-const MAX = Number(process.env.AUDIT_INNERHTML_MAX || 120);
+const MAX = Number(process.env.AUDIT_INNERHTML_MAX || 0);
+const FILE_MAX = new Map([
+  ["src\\views\\writer.js", 0],
+  ["src\\views\\director.js", 0],
+  ["src\\components\\creator-guide.js", 0],
+  ["src\\runtime\\global-search.js", 0],
+  ["src\\views\\pipeline-wizard-open.js", 0],
+  ["src\\views\\platform-runtime.js", 0],
+  ["src\\views\\player.js", 0],
+  ["src\\views\\account.js", 0],
+  ["src\\views\\archive.js", 0],
+  ["src\\views\\settings.js", 0]
+]);
 
 function walkFiles(path, out = []) {
   try {
@@ -59,6 +71,14 @@ console.log(`innerHTML audit: ${assignTotal} assignments, ${readTotal} reads (${
 console.log("Top hotspots:");
 for (const row of hotspots.slice(0, 12)) {
   console.log(`  ${row.total}\t${row.file} (${row.assigns} assign, ${row.reads} read)`);
+}
+
+for (const row of hotspots) {
+  const limit = FILE_MAX.get(row.file);
+  if (limit != null && row.total > limit) {
+    console.error(`\ninnerHTML hotspot ${row.file}=${row.total} exceeds file budget ${limit}`);
+    process.exit(1);
+  }
 }
 
 if (assignTotal + readTotal > MAX) {
