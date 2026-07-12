@@ -35,7 +35,7 @@ test.describe("运行时主链路 · 发线索与开放场景", () => {
       await waitForHostIdle(hostPage);
 
       await expect(playPage.getByText(/获得线索：测试线索|测试线索/)).toBeVisible({ timeout: 20_000 });
-      await playPage.locator('[data-action="switch-tab"][data-tab="clues"]').click();
+      await playPage.locator('[data-primary-tab="investigation"]').click();
       await expect(playPage.locator(".clues-layout, .clues-sidebar").first()).toBeVisible({ timeout: 10_000 });
       await expect(playPage.getByText("测试线索").first()).toBeVisible();
 
@@ -47,11 +47,14 @@ test.describe("运行时主链路 · 发线索与开放场景", () => {
       await hostPage.locator("[data-host-scene-submit]").click();
       await waitForHostIdle(hostPage);
 
-      await playPage.locator('[data-action="switch-tab"][data-tab="explore"]').click();
+      await playPage.locator('[data-primary-tab="investigation"]').click();
       await expect(playPage.getByText("场景 B").first()).toBeVisible({ timeout: 25_000 });
     } finally {
-      await hostContext.close();
-      await playContext.close();
+      // Both applications keep SSE connections open. Close their pages first so
+      // context disposal does not wait on long-lived network activity, and do
+      // not let cleanup hide the result of the business-flow assertions.
+      await Promise.allSettled([hostPage.close(), playPage.close()]);
+      await Promise.allSettled([hostContext.close(), playContext.close()]);
     }
   });
 });

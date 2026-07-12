@@ -1,10 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { POLICY_NAME, setHtml, setText } from "../shared/safe-dom.js";
+import {
+  POLICY_NAME,
+  assertSafeProductHtml,
+  resetTrustedHtmlPolicyForTests,
+  setHtml,
+  setText
+} from "../shared/safe-dom.js";
 
 test("setHtml uses the named Trusted Types policy when available", () => {
   const previous = globalThis.trustedTypes;
+  resetTrustedHtmlPolicyForTests();
   const calls = [];
   globalThis.trustedTypes = {
     createPolicy(name, rules) {
@@ -19,7 +26,33 @@ test("setHtml uses the named Trusted Types policy when available", () => {
     assert.deepEqual(calls, ["<b>audited</b>"]);
   } finally {
     globalThis.trustedTypes = previous;
+    resetTrustedHtmlPolicyForTests();
   }
+});
+
+test("setHtml refuses fail-open when Trusted Types API exists without a usable policy", () => {
+  const previous = globalThis.trustedTypes;
+  resetTrustedHtmlPolicyForTests();
+  globalThis.trustedTypes = {
+    createPolicy() {
+      throw new Error("policy denied");
+    }
+  };
+  try {
+    const node = { innerHTML: "keep" };
+    assert.throws(() => setHtml(node, "<b>x</b>"), /policy unavailable/);
+    assert.equal(node.innerHTML, "keep");
+  } finally {
+    globalThis.trustedTypes = previous;
+    resetTrustedHtmlPolicyForTests();
+  }
+});
+
+test("assertSafeProductHtml blocks executable vectors", () => {
+  assert.equal(assertSafeProductHtml("<p>ok</p>"), "<p>ok</p>");
+  assert.throws(() => assertSafeProductHtml('<img src=x onerror="alert(1)">'), /event handler/);
+  assert.throws(() => assertSafeProductHtml("<script>alert(1)</script>"), /script/);
+  assert.throws(() => assertSafeProductHtml('<a href="javascript:alert(1)">x</a>'), /javascript/);
 });
 
 test("setText never invokes the HTML sink", () => {
@@ -50,7 +83,9 @@ test("migrated public entry points do not bypass the audited HTML sink", () => {
     "src/views/studio.js",
     "play/src/runtime/sync-helpers.js",
     "play/src/runtime/reader.js",
-    "play/src/runtime/view-controller.js"
+    "play/src/runtime/view-controller.js",
+    "host/src/main.js",
+    "host/src/components/modal.js"
   ]) {
     const source = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
     assert.doesNotMatch(source, /\.innerHTML\s*=|insertAdjacentHTML\s*\(/, file);

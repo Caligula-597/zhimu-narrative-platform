@@ -1,0 +1,33 @@
+name: Periodic quick audit
+
+on:
+  schedule:
+    - cron: "30 21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quick-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install root dependencies
+        run: npm ci
+      - name: Run quick security audit and generate logs
+        run: npm run audit:periodic:security
+      - name: Upload audit logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: periodic-audit-${{ github.run_id }}
+          path: artifacts/periodic-checks/
+          if-no-files-found: error
+          retention-days: 90

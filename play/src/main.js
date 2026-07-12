@@ -58,6 +58,18 @@ import { createSocialController } from "./runtime/social-controller.js";
 import { resolveInitialRoute } from "./runtime/router.js";
 import { runPlayStartup } from "./runtime/startup.js";
 import { createPlayViewController } from "./runtime/view-controller.js";
+import { bindPlayDomEvents } from "./runtime/dom-event-controller.js";
+import { bindPlayFormEvents } from "./runtime/form-controller.js";
+import { handlePlayStateAction } from "./runtime/state-action-controller.js";
+import { handlePlayVoiceAction } from "./runtime/voice-action-controller.js";
+import { handlePlaySocialAction } from "./runtime/social-action-controller.js";
+import { handlePlayGameAction } from "./runtime/game-action-controller.js";
+import { handlePlayClueAction } from "./runtime/clue-action-controller.js";
+import { handlePlayTabAction } from "./runtime/tab-action-controller.js";
+import { handlePlaySessionAction } from "./runtime/session-action-controller.js";
+import { handlePlayContentAction } from "./runtime/content-action-controller.js";
+import { createAuthFlowController } from "./runtime/auth-flow-controller.js";
+import { createPlayerGameController } from "./runtime/player-game-controller.js";
 
 const app = document.getElementById("app");
 let pullGeneration = 0;
@@ -573,169 +585,19 @@ const gamePatchCtx = {
   render
 };
 
-async function handleCompletePlayerTask(taskId) {
-  try {
-    await api.completePlayerTask(state.roomId, taskId);
-    await pullRoomData({ partial: true });
-    setToast("任务已标记完成", render, { patch: true });
-  } catch (error) {
-    setToast(formatApiError(error, "操作失败"), render, { patch: true });
-  }
-}
-
-async function handleSubmitTestimony() {
-  const textarea = document.querySelector("[data-testimony-body]");
-  const body = textarea?.value?.trim();
-  if (!body) {
-    setToast("请填写口供内容", render);
-    return;
-  }
-  try {
-    await api.submitTestimony(state.roomId, { actKey: state.home?.currentActKey, body });
-    if (textarea) textarea.value = "";
-    await pullRoomData({ partial: true });
-    setToast("口供已提交给主持人", render);
-  } catch (error) {
-    setToast(formatApiError(error, "提交失败"), render);
-  }
-}
-
-async function handleSubmitSatisfaction() {
-  const rating = document.querySelector("[data-satisfaction-rating]")?.value;
-  const comment = document.querySelector("[data-satisfaction-comment]")?.value?.trim() || "";
-  if (!rating) {
-    setToast("请选择满意度评分", render);
-    return;
-  }
-  try {
-    await api.submitSatisfaction({
-      roomId: state.roomId,
-      subject: `满意度 ${rating}/5`,
-      body: comment || `玩家评分：${rating}/5`
-    });
-    state.satisfactionSubmitted = true;
-    setToast("感谢你的反馈", render);
-  } catch (error) {
-    setToast(formatApiError(error, "提交失败"), render);
-  }
-}
-
-async function handleCompleteSection(sectionId) {
-  const sections = state.home?.sections || [];
-  const target = sections.find((section) => section.id === sectionId);
-  const prevCompleted = target ? { ...target } : null;
-
-  if (target) {
-    target.completed = true;
-    if (state.tab === "sections") {
-      patchGameSectionsTab(state, gamePatchCtx);
-    } else {
-      patchGameView(state, gamePatchCtx);
-    }
-  }
-
-  try {
-    const result = await api.completeSection(state.roomId, sectionId);
-    if (result?.executedRules?.length) {
-      void coalescedPartialRefresh();
-    }
-    setToast("已标记阅读完成", render, { patch: true });
-  } catch (error) {
-    if (prevCompleted && target) Object.assign(target, prevCompleted);
-    if (state.tab === "sections") patchGameSectionsTab(state, gamePatchCtx);
-    else patchGameView(state, gamePatchCtx);
-    setToast(formatApiError(error, "操作失败"), render, { patch: true });
-  }
-}
-
-async function handleInvestigate(pointId) {
-  const scenes = state.exploration?.scenes || [];
-  let pointRef = null;
-  for (const scene of scenes) {
-    const found = asArray(scene.investigation_points).find((p) => p.id === pointId);
-    if (found) {
-      pointRef = found;
-      break;
-    }
-  }
-  const prevInvestigated = pointRef?.investigated;
-  const prevResultText = pointRef?.resultText;
-
-  if (pointRef) {
-    pointRef.investigated = true;
-    pointRef.resultText = "调查中…";
-    if (state.tab === "explore" && patchGameView(state, gamePatchCtx) === "chrome") {
-      render();
-    } else if (state.tab === "explore") {
-      /* patched */
-    }
-  } else {
-    setBusy(true, render);
-  }
-
-  try {
-    const result = await api.investigate(state.roomId, pointId);
-    await pullRoomData({ partial: true });
-    openModalState({
-      kind: "investigate",
-      title: "调查结果",
-      investigation: {
-        resultText: result.resultText,
-        clueName: result.clue?.name || ""
-      }
-    });
-    render();
-  } catch (error) {
-    if (pointRef) {
-      pointRef.investigated = prevInvestigated ?? false;
-      pointRef.resultText = prevInvestigated ? (prevResultText ?? pointRef.resultText) : (prevResultText ?? "");
-      if (state.tab === "explore") patchGameView(state, gamePatchCtx);
-    }
-    setToast(formatApiError(error, "调查失败"), render);
-  } finally {
-    if (!pointRef) setBusy(false, render);
-  }
-}
-
-async function handleMiniGameSubmit(button) {
-  const game = normalizeMiniGame(state.currentGame);
-  if (!game?.instanceId) return setToast("当前没有可提交的解密机关", render);
-  const root = button.closest("[data-mini-game]");
-  const answer = root?.querySelector("[data-mini-game-answer]")?.value?.trim() || "";
-  if (!answer) return setToast("请输入密码", render);
-  setBusy(true, render);
-  try {
-    const result = await api.submitMiniGame({
-      roomId: state.roomId,
-      instance_id: game.instanceId,
-      instanceId: game.instanceId,
-      answer
-    });
-    state.currentGame = normalizeMiniGame(result.currentGame || result.current_game || result.game || {
-      ...game,
-      status: result.correct ? "success" : "playing",
-      attempts_left: result.attempts_left ?? result.attemptsLeft ?? game.attemptsLeft
-    });
-    setToast(result.correct ? "机关已解开" : "密码不正确", render);
-  } catch (error) {
-    setToast(formatApiError(error, "提交失败"), render);
-  } finally {
-    setBusy(false, render);
-  }
-}
-
-async function handleReadClue(clueId) {
-  setBusy(true, render);
-  try {
-    await api.readClue(state.roomId, clueId);
-    await pullRoomData({ partial: true });
-    state.clueId = clueId;
-  } catch (error) {
-    setToast(formatApiError(error, "无法阅读线索"), render);
-  } finally {
-    setBusy(false, render);
-  }
-}
+const {
+  handleCompletePlayerTask,
+  handleSubmitTestimony,
+  handleSubmitSatisfaction,
+  handleCompleteSection,
+  handleInvestigate,
+  handleMiniGameSubmit,
+  handleReadClue
+} = createPlayerGameController({
+  api, state, render, setBusy, setToast, formatApiError, pullRoomData,
+  patchGameView, patchGameSectionsTab, gamePatchCtx, coalescedPartialRefresh,
+  openModalState, normalizeMiniGame, asArray
+});
 
 async function loadRecapSummary({ silent = false } = {}) {
   if (!state.roomId) return;
@@ -833,241 +695,48 @@ async function handleDeleteNotebookEntry(entryId) {
   }
 }
 
-async function handleEmailVerify(token) {
-  const result = await api.verifyEmail(token);
-  if (result.token) setSessionToken(result.token);
-  state.user = normalizeUser(result.user);
-  cleanAuthUrl();
-  setToast("邮箱已验证，可以使用社区功能了", render);
-}
-
-async function handleForgotSubmit(form) {
-  const email = form.email.value.trim();
-  setBusy(true, render);
-  try {
-    await api.forgotPassword(email);
-    setToast("若该邮箱已注册，重置链接已发送，请查收邮件", render);
-    state.authMode = "login";
-    render();
-  } catch (error) {
-    setToast(formatApiError(error, "发送失败"), render);
-  } finally {
-    setBusy(false, render);
-  }
-}
-
-async function handleResetSubmit(form) {
-  const password = form.password.value;
-  if (!state.resetToken) return setToast("重置链接无效", render);
-  setBusy(true, render);
-  try {
-    await api.resetPassword(state.resetToken, password);
-    state.authMode = "login";
-    state.resetToken = "";
-    cleanAuthUrl();
-    setToast("密码已更新，请使用新密码登录", render);
-    render();
-  } catch (error) {
-    setToast(formatApiError(error, "重置失败"), render);
-  } finally {
-    setBusy(false, render);
-  }
-}
-
-async function handleResendVerification() {
-  setBusy(true, render);
-  try {
-    await api.resendVerification();
-    setToast("验证邮件已发送，请查收", render);
-  } catch (error) {
-    setToast(formatApiError(error, "发送失败"), render);
-  } finally {
-    setBusy(false, render);
-  }
-}
-
-async function handleGuestSubmit(form) {
-  const customName = form.displayName?.value?.trim() || "";
-  const displayName = customName || `玩家${Math.floor(Math.random() * 9000 + 1000)}`;
-  setBusy(true, render);
-  try {
-    const result = await api.guest(displayName);
-    setSessionToken(result.token);
-    state.user = normalizeUser(result.user);
-    state.view = state.roomId ? "game" : (state.joinPreview ? "join" : "landing");
-    cleanAuthUrl();
-    if (state.roomId) await refreshHome();
-    else if (state.inviteCode && !state.joinPreview) await handleLookupInvite({ silent: true }).catch(() => {});
-    setToast(`欢迎，${state.user.displayName || "访客"}`, render);
-    syncPlatformStream();
-  } catch (error) {
-    setToast(formatApiError(error, "访客登录失败"), render);
-  } finally {
-    setBusy(false, render);
-  }
-}
-
-async function handleAuthSubmit(form) {
-  const email = form.email.value.trim();
-  const password = form.password.value;
-  const displayName = form.displayName?.value?.trim() || "";
-  setBusy(true, render);
-  try {
-    let result;
-    if (state.authMode === "register") {
-      result = await api.register(email, displayName, password);
-      if (result.pendingEmailVerification && !result.token) {
-        setToast(result.message || "注册成功，请先验证邮箱后再登录", render);
-        state.authMode = "login";
-        render();
-        return;
-      }
-    } else {
-      result = await api.login(email, password);
-    }
-    setSessionToken(result.token);
-    state.user = normalizeUser(result.user);
-    state.view = state.roomId ? "game" : (state.joinPreview ? "join" : "landing");
-    cleanAuthUrl();
-    if (state.roomId) await refreshHome();
-    else if (state.inviteCode && !state.joinPreview) await handleLookupInvite({ silent: true }).catch(() => {});
-    setToast(`欢迎，${result.user.displayName || result.user.email || "玩家"}`, render);
-    syncPlatformStream();
-  } catch (error) {
-    setToast(formatApiError(error, "登录失败"), render);
-  } finally {
-    setBusy(false, render);
-  }
-}
-
-async function handleOAuth(provider) {
-  if (!ALLOWED_OAUTH_PROVIDERS.has(provider)) {
-    setToast("不支持的登录方式", render);
-    return;
-  }
-  setBusy(true, render);
-  try {
-    await ensureSession();
-    const { url } = await api.oauthStartUrl(provider, getPlayOrigin());
-    if (!isSafeOAuthRedirectUrl(url)) throw new Error("OAuth 跳转地址无效");
-    window.location.assign(url);
-  } catch (error) {
-    setToast(error.message || "OAuth 暂不可用", render);
-    setBusy(false, render);
-  }
-}
-
-async function handleLogout() {
-  await resetVoiceOnLeave();
-  disconnectRoomEvents(roomEventCtx);
-  disconnectPlatformEvents(platformEventCtx);
-  clearSession();
-  persistRoom("", isUuid);
-  state.home = null;
-  state.user = null;
-  state.view = "landing";
-  render();
-  ensureSession().catch(() => {});
-}
-
-app.addEventListener("input", (event) => {
-  if (event.target.dataset.bind === "inviteCode") state.inviteCode = event.target.value;
-  if (event.target.dataset.bind === "plazaBody") state.plazaDraftBody = event.target.value;
-  if (event.target.dataset.bind === "plazaInvite") state.plazaDraftInvite = event.target.value;
-  if (event.target.dataset.bind === "plazaReplyBody") state.plazaReplyDraft = event.target.value;
-  if (event.target.dataset.bind === "playerSearch") state.playerSearchQuery = event.target.value;
-  if (event.target.dataset.bind === "dmBody") state.dmDraftBody = event.target.value;
-  if (event.target.dataset.bind === "modalDraft") state.modalDraft = event.target.value;
-  if (event.target.dataset.bind === "voiceChat") state.voiceChatDraft = event.target.value;
-  if (event.target.dataset.bind === "notesTitle") state.notesDraftTitle = event.target.value;
-  if (event.target.dataset.bind === "notesBody") state.notesDraft = event.target.value;
+const {
+  handleEmailVerify,
+  handleForgotSubmit,
+  handleResetSubmit,
+  handleResendVerification,
+  handleGuestSubmit,
+  handleAuthSubmit,
+  handleOAuth,
+  handleLogout
+} = createAuthFlowController({
+  api, state, render, setBusy, setToast, formatApiError, setSessionToken,
+  clearSession, cleanAuthUrl, normalizeUser, refreshHome, handleLookupInvite,
+  syncPlatformStream, ensureSession, getPlayOrigin, isSafeOAuthRedirectUrl,
+  allowedOAuthProviders: ALLOWED_OAUTH_PROVIDERS, resetVoiceOnLeave,
+  disconnectRoomEvents, disconnectPlatformEvents, roomEventCtx, platformEventCtx,
+  persistRoom, isUuid
 });
 
-app.addEventListener("change", (event) => {
-  if (event.target.matches("[data-voice-invite]")) {
-    state.voiceInviteUserIds = [...document.querySelectorAll("[data-voice-invite]:checked")]
-      .map((input) => input.value)
-      .filter(Boolean);
-    return;
-  }
-  if (event.target.matches("[data-share-role]")) {
-    state.clueShareRoles = [...document.querySelectorAll("[data-share-role]:checked")].map((input) => input.value);
-    return;
-  }
-  if (event.target.dataset.bind === "sectionId") {
-    state.sectionId = event.target.value;
-    render();
-  }
-  if (event.target.dataset.bind === "plazaKind") {
-    state.plazaDraftKind = event.target.value === "recruit" ? "recruit" : "chat";
-    render();
-  }
+bindPlayDomEvents({
+  app,
+  state,
+  render,
+  closeModalState,
+  flushPendingRoomRefresh,
+  isGameInputFocused
 });
 
-app.addEventListener("submit", async (event) => {
-  const voiceForm = event.target.closest("[data-form='voice-send']");
-  if (voiceForm) {
-    event.preventDefault();
-    state.voiceChatDraft = voiceForm.body.value;
-    await sendVoiceChatMessage({ render, setToast, setBusy });
-    return;
-  }
-  const plazaForm = event.target.closest("[data-form='plaza']");
-  if (plazaForm) {
-    event.preventDefault();
-    if (state.busy) return;
-    await handlePlazaSubmit(plazaForm);
-    return;
-  }
-  const replyForm = event.target.closest("[data-form='plaza-reply']");
-  if (replyForm) {
-    event.preventDefault();
-    if (state.busy) return;
-    await handlePlazaReplySubmit(replyForm);
-    return;
-  }
-  const searchForm = event.target.closest("[data-form='player-search']");
-  if (searchForm) {
-    event.preventDefault();
-    if (state.busy) return;
-    await handlePlayerSearch(searchForm);
-    return;
-  }
-  const dmForm = event.target.closest("[data-form='dm-send']");
-  if (dmForm) {
-    event.preventDefault();
-    if (state.busy) return;
-    await handleDmSend(dmForm);
-    return;
-  }
-  const form = event.target.closest("[data-form='auth']");
-  if (form) {
-    event.preventDefault();
-    if (state.busy) return;
-    await handleAuthSubmit(form);
-    return;
-  }
-  const forgotForm = event.target.closest("[data-form='forgot']");
-  if (forgotForm) {
-    event.preventDefault();
-    if (state.busy) return;
-    await handleForgotSubmit(forgotForm);
-    return;
-  }
-  const resetForm = event.target.closest("[data-form='reset']");
-  if (resetForm) {
-    event.preventDefault();
-    if (state.busy) return;
-    await handleResetSubmit(resetForm);
-    return;
-  }
-  const guestForm = event.target.closest("[data-form='guest']");
-  if (guestForm) {
-    event.preventDefault();
-    if (state.busy) return;
-    await handleGuestSubmit(guestForm);
-    return;
-  }
+bindPlayFormEvents({
+  app,
+  state,
+  render,
+  setToast,
+  setBusy,
+  sendVoiceChatMessage,
+  handlePlazaSubmit,
+  handlePlazaReplySubmit,
+  handlePlayerSearch,
+  handleDmSend,
+  handleAuthSubmit,
+  handleForgotSubmit,
+  handleResetSubmit,
+  handleGuestSubmit
 });
 
 app.addEventListener("click", async (event) => {
@@ -1082,581 +751,109 @@ app.addEventListener("click", async (event) => {
     return;
   }
   const action = button.dataset.action;
-  switch (action) {
-    case "go-home":
-      event.preventDefault();
-      await goToLanding();
-      break;
-    case "go-lobby":
-      await loadPublicRooms();
-      state.view = "lobby";
-      syncPlatformStream();
-      render();
-      break;
-    case "go-plaza":
-      await loadPlazaPosts();
-      state.view = "plaza";
-      syncPlatformStream();
-      render();
-      break;
-    case "go-friends":
-      await loadFriends();
-      state.view = "friends";
-      syncPlatformStream();
-      render();
-      break;
-    case "go-messages":
-      await loadDmConversations();
-      state.view = "messages";
-      syncPlatformStream();
-      render();
-      break;
-    case "refresh-plaza":
-      await loadPlazaPosts();
-      break;
-    case "plaza-open":
-      await openPlazaThread(button.dataset.postId);
-      break;
-    case "plaza-back":
-      state.view = "plaza";
-      state.plazaPostId = "";
-      state.plazaPostDetail = null;
-      state.plazaReplies = null;
-      render();
-      break;
-    case "plaza-delete-post":
-      openModalState({
-        kind: "confirm-delete-post",
-        title: "删除帖子",
-        message: "确定删除这条帖子？此操作不可撤销。",
-        postId: button.dataset.postId
-      });
-      render();
-      break;
-    case "plaza-delete-reply":
-      openModalState({
-        kind: "confirm-delete-reply",
-        title: "删除评论",
-        message: "确定删除这条评论？",
-        replyId: button.dataset.replyId
-      });
-      render();
-      break;
-    case "plaza-report":
-      handlePlazaReport(button.dataset.targetType, button.dataset.targetId);
-      break;
-    case "modal-close":
-      closeModalState();
-      render();
-      break;
-    case "modal-backdrop-close":
-      if (event.target !== button) return;
-      closeModalState();
-      render();
-      break;
-    case "modal-confirm": {
-      const modal = state.modal;
-      if (modal?.kind === "confirm-delete-post") {
-        setBusy(true, render);
-        try {
-          await api.deletePlazaPost(modal.postId);
-          closeModalState();
-          state.view = "plaza";
-          state.plazaPostId = "";
-          await loadPlazaPosts();
-          setToast("帖子已删除", render);
-        } catch (error) {
-          setToast(formatApiError(error, "删除失败"), render);
-        } finally {
-          setBusy(false, render);
-        }
-      } else if (modal?.kind === "confirm-delete-reply") {
-        setBusy(true, render);
-        try {
-          await api.deletePlazaReply(modal.replyId);
-          closeModalState();
-          await loadPlazaThread({ silent: true });
-          setToast("评论已删除", render);
-        } catch (error) {
-          setToast(formatApiError(error, "删除失败"), render);
-        } finally {
-          setBusy(false, render);
-        }
-      }
-      break;
-    }
-    case "modal-submit-report":
-      await submitPlazaReport();
-      break;
-    case "edit-clue-note": {
-      const clue = (state.home?.clues || []).find((c) => c.id === button.dataset.clueId);
-      if (!clue) return setToast("线索不存在", render);
-      openModalState({
-        kind: "clue-note",
-        title: `我的线索解读 · ${clue.name}`,
-        clueId: clue.id,
-        initialNote: clue.player_note || ""
-      });
-      render();
-      break;
-    }
-    case "share-clue-room": {
-      const clue = (state.home?.clues || []).find((c) => c.id === button.dataset.clueId);
-      if (!clue) return setToast("线索不存在", render);
-      setBusy(true, render);
-      try {
-        const next = !clue.shared_with_room;
-        await api.shareClueToRoom(state.roomId, clue.id, next);
-        await pullRoomData();
-        state.clueId = clue.id;
-        setToast(next ? `已公开「${clue.name}」到全房间` : `已取消公开「${clue.name}」`, render);
-      } catch (error) {
-        setToast(formatApiError(error, "操作失败"), render);
-      } finally {
-        setBusy(false, render);
-      }
-      break;
-    }
-    case "share-clue-roles": {
-      const clue = (state.home?.clues || []).find((c) => c.id === button.dataset.clueId);
-      if (!clue) return setToast("线索不存在", render);
-      openModalState({
-        kind: "clue-share",
-        title: `私享线索 · ${clue.name}`,
-        clueId: clue.id,
-        initialRoles: clue.shared_with_roles || []
-      });
-      render();
-      break;
-    }
-    case "modal-save-clue-note": {
-      const clueId = button.dataset.clueId;
-      setBusy(true, render);
-      try {
-        await api.updateCluePlayerNote(state.roomId, clueId, state.modalDraft || "");
-        closeModalState();
-        await pullRoomData();
-        state.clueId = clueId;
-        setToast("线索解读已保存", render);
-      } catch (error) {
-        setToast(formatApiError(error, "保存失败"), render);
-      } finally {
-        setBusy(false, render);
-      }
-      break;
-    }
-    case "modal-save-clue-share": {
-      const clueId = button.dataset.clueId;
-      setBusy(true, render);
-      try {
-        await api.shareClueToRoles(state.roomId, clueId, state.clueShareRoles || []);
-        closeModalState();
-        await pullRoomData();
-        state.clueId = clueId;
-        const count = (state.clueShareRoles || []).length;
-        setToast(count ? `已私享给 ${count} 名玩家` : "已清空私享名单", render);
-      } catch (error) {
-        setToast(formatApiError(error, "保存失败"), render);
-      } finally {
-        setBusy(false, render);
-      }
-      break;
-    }
-    case "friend-request":
-      setBusy(true, render);
-      try {
-        await ensureSession();
-        await api.sendFriendRequest(button.dataset.userId);
-        await loadFriends({ silent: true });
-        setToast("好友请求已发送", render);
-      } catch (error) {
-        setToast(formatApiError(error, "发送失败"), render);
-      } finally {
-        setBusy(false, render);
-      }
-      break;
-    case "friend-accept":
-      setBusy(true, render);
-      try {
-        await api.respondFriendRequest(button.dataset.userId, true);
-        await loadFriends({ silent: true });
-        setToast("已添加好友", render);
-      } catch (error) {
-        setToast(formatApiError(error, "操作失败"), render);
-      } finally {
-        setBusy(false, render);
-      }
-      break;
-    case "friend-decline":
-      setBusy(true, render);
-      try {
-        await api.respondFriendRequest(button.dataset.userId, false);
-        await loadFriends({ silent: true });
-        setToast("已拒绝请求", render);
-      } catch (error) {
-        setToast(formatApiError(error, "操作失败"), render);
-      } finally {
-        setBusy(false, render);
-      }
-      break;
-    case "dm-open":
-      await openDmConversation(button.dataset.conversationId);
-      break;
-    case "dm-open-peer":
-      await openDmWithPeer(button.dataset.userId);
-      break;
-    case "plaza-filter":
-      state.plazaFilter = button.dataset.kind || "all";
-      await loadPlazaPosts();
-      break;
-    case "plaza-join":
-      state.inviteCode = normalizeInviteCode(button.dataset.inviteCode || "");
-      if (!state.inviteCode) return setToast("邀请码无效", render);
-      state.view = "join";
-      state.joinStep = 1;
-      await handleLookupInvite();
-      break;
-    case "refresh-lobby":
-      await loadPublicRooms();
-      break;
-    case "lobby-join":
-      state.inviteCode = normalizeInviteCode(button.dataset.inviteCode || "");
-      if (!state.inviteCode) return setToast("房间无效", render);
-      state.view = "join";
-      state.joinStep = 1;
-      await handleLookupInvite();
-      break;
-    case "start-join":
-      if (!normalizeInviteCode(state.inviteCode)) {
-        state.view = "join";
-        state.joinStep = 1;
-        render();
-        return;
-      }
-      state.view = "join";
-      state.joinStep = 1;
-      await handleLookupInvite();
-      break;
-    case "lookup-invite":
-      await handleLookupInvite();
-      break;
-    case "confirm-join":
-      await handleJoinRoom();
-      break;
-    case "join-official":
-      await handleJoinOfficial();
-      break;
-    case "pick-role":
-      state.selectedRoleId = button.dataset.roleId;
-      render();
-      break;
-    case "section-prev": {
-      const sections = state.home?.sections || [];
-      const index = sections.findIndex((section) => section.id === state.sectionId);
-      if (index > 0) state.sectionId = sections[index - 1].id;
-      render();
-      break;
-    }
-    case "section-next": {
-      const sections = state.home?.sections || [];
-      const index = sections.findIndex((section) => section.id === state.sectionId);
-      if (index >= 0 && index < sections.length - 1) state.sectionId = sections[index + 1].id;
-      render();
-      break;
-    }
-    case "pick-section":
-      state.sectionId = button.dataset.sectionId;
-      render();
-      break;
-    case "pick-clue":
-      state.clueId = button.dataset.clueId;
-      render();
-      break;
-    case "goto-section":
-      state.sectionId = button.dataset.sectionId;
-      state.tab = "sections";
-      render();
-      break;
-    case "complete-section":
-      await handleCompleteSection(button.dataset.sectionId);
-      break;
-    case "complete-player-task":
-      await handleCompletePlayerTask(button.dataset.taskId);
-      break;
-    case "submit-testimony":
-      await handleSubmitTestimony();
-      break;
-    case "submit-satisfaction":
-      await handleSubmitSatisfaction();
-      break;
-    case "save-suspicion": {
-      const card = button.closest(".suspicion-card");
-      const level = Number(card?.querySelector("[data-suspicion-level]")?.value || 0);
-      const reason = card?.querySelector("[data-suspicion-reason]")?.value || "";
-      try {
-        await api.setSuspicion(state.roomId, button.dataset.targetRole, { level, reason });
-        await pullRoomData({ partial: true });
-        setToast("怀疑度已保存", render, { patch: true });
-      } catch (error) {
-        setToast(formatApiError(error, "保存失败"), render, { patch: true });
-      }
-      break;
-    }
-    case "submit-vote-ballot": {
-      const voteId = button.dataset.voteId;
-      const optionId = button.dataset.optionId;
-      if (!voteId || !optionId) break;
-      try {
-        await api.submitVoteBallot(state.roomId, voteId, { optionId });
-        await pullRoomData({ partial: true });
-        setToast("投票已提交", render, { patch: true });
-      } catch (error) {
-        setToast(formatApiError(error, "提交失败"), render, { patch: true });
-      }
-      break;
-    }
-    case "submit-private-action": {
-      const title = document.querySelector("[data-private-action-title]")?.value?.trim();
-      const body = document.querySelector("[data-private-action-body]")?.value?.trim() || "";
-      const actionType = document.querySelector("[data-private-action-type]")?.value || "ask_host";
-      if (!title) {
-        setToast("请填写标题", render, { patch: true });
-        break;
-      }
-      try {
-        await api.createPrivateAction(state.roomId, { actionType, title, body });
-        const titleEl = document.querySelector("[data-private-action-title]");
-        const bodyEl = document.querySelector("[data-private-action-body]");
-        if (titleEl) titleEl.value = "";
-        if (bodyEl) bodyEl.value = "";
-        await pullRoomData({ partial: true });
-        setToast("已提交给主持人", render, { patch: true });
-      } catch (error) {
-        setToast(formatApiError(error, "提交失败"), render, { patch: true });
-      }
-      break;
-    }
-    case "read-clue":
-      await handleReadClue(button.dataset.clueId);
-      break;
-    case "investigate":
-      await handleInvestigate(button.dataset.pointId);
-      break;
-    case "mini-game-submit":
-      await handleMiniGameSubmit(button);
-      break;
-    case "switch-tab":
-      await flushPendingRoomRefresh();
-      state.tab = defaultGameTabFor(button.dataset.primaryTab || button.dataset.tab);
-      for (const tabId of tabGroupFor(state.tab)) clearTabPulse(tabId);
-      const primaryTab = primaryTabFor(state.tab);
-      if (state.view === "game" && patchGameTabSwitch(state, gamePatchCtx)) {
-        syncPlayUrl(state);
-        if (state.tab === "voice") {
-          ensureDefaultVoiceRoom();
-          if (state.voiceRoomId) {
-            await refreshVoiceMessages(render, { silent: true }).catch(() => {});
-            patchGameTabSwitch(state, gamePatchCtx);
-          }
-        } else if (primaryTab === "recap") {
-          await loadRecapSummary({ silent: true });
-          if (state.roomId) await loadMyTimeline({ silent: true });
-          patchGameTabSwitch(state, gamePatchCtx);
-        } else if (primaryTab === "story" && state.roomId) {
-          bindPlayReader({
-            roomId: state.roomId,
-            notesSource: () => state.home,
-            onRefresh: async () => pullRoomData({ partial: true }),
-            onToast: (message) => setToast(message, render)
-          });
-        } else if (state.tab === "timeline" && state.roomId) {
-          await loadMyTimeline({ silent: true });
-          patchGameTabSwitch(state, gamePatchCtx);
-        }
-        break;
-      }
-      if (state.tab === "voice") {
-        ensureDefaultVoiceRoom();
-        if (state.voiceRoomId) {
-          await refreshVoiceMessages(render).catch(() => render());
-        } else {
-          render();
-        }
-      } else if (primaryTab === "recap") {
-        await loadRecapSummary();
-        if (state.roomId) await loadMyTimeline({ silent: true });
-      } else if (state.tab === "timeline" && state.roomId) {
-        await loadMyTimeline();
-      } else {
-        render();
-      }
-      break;
-    case "voice-room":
-      openVoiceRoomPicker(render);
-      break;
-    case "voice-room-create":
-      openCreateVoiceRoomModal(render);
-      break;
-    case "voice-room-invite":
-      openInviteVoiceRoomModal(button.dataset.voiceId, button.dataset.voiceName, render);
-      break;
-    case "voice-join":
-      await joinVoiceRoom(button.dataset.voiceId, button.dataset.voiceName, { render, setToast });
-      break;
-    case "voice-live-connect":
-      await connectVoiceLive({ render, setToast });
-      break;
-    case "voice-live-disconnect":
-      await disconnectVoiceLive({ render, setToast });
-      break;
-    case "voice-mic-toggle":
-      await toggleVoiceMicLive({ render, setToast });
-      break;
-    case "voice-playback-unlock":
-      await unlockVoicePlayback({ render, setToast });
-      break;
-    case "voice-chat-refresh":
-      try {
-        await refreshVoiceMessages(render);
-      } catch (error) {
-        setToast(formatApiError(error, "刷新失败"), render);
-      }
-      break;
-    case "voice-chat-send":
-      await sendVoiceChatMessage({ render, setToast, setBusy });
-      break;
-    case "modal-create-voice":
-      await submitCreateVoiceRoom({ render, setBusy, setToast });
-      break;
-    case "modal-voice-invite":
-      await submitVoiceInvite({ render, setBusy, setToast });
-      break;
-    case "show-auth":
-      state.view = "auth";
-      render();
-      break;
-    case "toggle-auth-mode":
-      state.authMode = state.authMode === "login" ? "register" : "login";
-      render();
-      break;
-    case "auth-forgot":
-      state.authMode = "forgot";
-      render();
-      break;
-    case "auth-login":
-      state.authMode = "login";
-      state.resetToken = "";
-      render();
-      break;
-    case "resend-verification":
-      await handleResendVerification();
-      break;
-    case "open-recap-detail":
-      await loadRecapDetail();
-      break;
-    case "close-recap-detail":
-      state.recapDetail = null;
-      state.recapId = "";
-      render();
-      break;
-    case "reload-recap":
-      await loadRecapSummary();
-      break;
-    case "back-landing":
-      await goToLanding();
-      break;
-    case "join-back-code":
-      state.joinPreview = null;
-      state.joinStep = 1;
-      render();
-      break;
-    case "guest-continue":
-      await handleGuestSubmit({ displayName: { value: "" } });
-      break;
-    case "oauth":
-      await handleOAuth(button.dataset.provider);
-      break;
-    case "logout":
-      await handleLogout();
-      break;
-    case "leave-room":
-      await resetVoiceOnLeave();
-      disconnectRoomEvents(roomEventCtx);
-      persistRoom("", isUuid);
-      state.home = null;
-      state.recapLatest = null;
-      state.recapDetail = null;
-      state.view = "landing";
-      state.tab = "home";
-      syncPlatformStream();
-      render();
-      break;
-    case "dismiss-error":
-      state.error = "";
-      render();
-      break;
-    case "dismiss-host-nudge":
-      state.hostNudge = null;
-      if (!patchGameHostBanner()) render();
-      break;
-    case "toggle-sidebar":
-      state.gameSidebarCollapsed = !state.gameSidebarCollapsed;
-      persistGameSidebarCollapsed(state.gameSidebarCollapsed);
-      render();
-      break;
-    case "go-messages-ingame":
-      await loadDmConversations();
-      state.view = "messages";
-      render();
-      break;
-    case "return-game":
-      if (state.roomId && isUuid(state.roomId)) {
-        await refreshHome();
-      } else {
-        setToast("当前没有进行中的对局", render);
-      }
-      break;
-    case "retry-exploration":
-      setBusy(true, render);
-      try {
-        state.exploration = await api.exploration(state.roomId);
-        state.explorationError = "";
-        render();
-      } catch (error) {
-        state.explorationError = formatApiError(error, "探索数据加载失败");
-        render();
-      } finally {
-        setBusy(false, render);
-      }
-      break;
-    case "add-notebook-entry":
-      await handleAddNotebookEntry();
-      break;
-    case "delete-notebook-entry":
-      await handleDeleteNotebookEntry(button.dataset.noteId);
-      break;
-    case "clear-notes-draft":
-      state.notesDraft = "";
-      state.notesDraftTitle = "";
-      render();
-      break;
-    default:
-      break;
-  }
-});
-
-app.addEventListener("focusout", () => {
-  if (!state.pendingRoomRefresh) return;
-  window.setTimeout(() => {
-    if (!isGameInputFocused()) void flushPendingRoomRefresh();
-  }, 120);
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && state.modal) {
-    closeModalState();
-    render();
-  }
+  if (handlePlayStateAction({
+    action,
+    button,
+    event,
+    state,
+    render,
+    closeModalState,
+    persistGameSidebarCollapsed
+  })) return;
+  if (await handlePlayVoiceAction({
+    action,
+    button,
+    render,
+    setBusy,
+    setToast,
+    formatApiError,
+    openVoiceRoomPicker,
+    openCreateVoiceRoomModal,
+    openInviteVoiceRoomModal,
+    joinVoiceRoom,
+    connectVoiceLive,
+    disconnectVoiceLive,
+    toggleVoiceMicLive,
+    unlockVoicePlayback,
+    refreshVoiceMessages,
+    sendVoiceChatMessage,
+    submitCreateVoiceRoom,
+    submitVoiceInvite
+  })) return;
+  if (await handlePlaySocialAction({
+    action,
+    button,
+    state,
+    render,
+    api,
+    setBusy,
+    setToast,
+    formatApiError,
+    openModalState,
+    closeModalState,
+    normalizeInviteCode,
+    syncPlatformStream,
+    loadPublicRooms,
+    loadPlazaPosts,
+    openPlazaThread,
+    handlePlazaReport,
+    submitPlazaReport,
+    loadPlazaThread,
+    loadFriends,
+    loadDmConversations,
+    openDmConversation,
+    openDmWithPeer,
+    ensureSession,
+    handleLookupInvite
+  })) return;
+  if (await handlePlayGameAction({
+    action,
+    button,
+    state,
+    api,
+    render,
+    setToast,
+    formatApiError,
+    pullRoomData,
+    handleCompleteSection,
+    handleCompletePlayerTask,
+    handleSubmitTestimony,
+    handleSubmitSatisfaction,
+    handleReadClue,
+    handleInvestigate,
+    handleMiniGameSubmit
+  })) return;
+  if (await handlePlayClueAction({
+    action,
+    button,
+    state,
+    api,
+    render,
+    setBusy,
+    setToast,
+    formatApiError,
+    openModalState,
+    closeModalState,
+    pullRoomData
+  })) return;
+  if (await handlePlayTabAction({
+    action, button, state, render, gamePatchCtx, flushPendingRoomRefresh,
+    defaultGameTabFor, tabGroupFor, clearTabPulse, primaryTabFor,
+    patchGameTabSwitch, syncPlayUrl, ensureDefaultVoiceRoom, refreshVoiceMessages,
+    loadRecapSummary, loadMyTimeline, bindPlayReader, pullRoomData, setToast
+  })) return;
+  if (await handlePlaySessionAction({
+    action, button, event, state, render, normalizeInviteCode, handleLookupInvite,
+    handleJoinRoom, handleJoinOfficial, handleResendVerification, goToLanding,
+    handleGuestSubmit, handleOAuth, handleLogout, resetVoiceOnLeave,
+    disconnectRoomEvents, roomEventCtx, persistRoom, isUuid, syncPlatformStream,
+    refreshHome, setToast
+  })) return;
+  await handlePlayContentAction({
+    action, button, state, api, render, setBusy, setToast, formatApiError,
+    loadRecapDetail, loadRecapSummary, patchGameHostBanner,
+    handleAddNotebookEntry, handleDeleteNotebookEntry
+  });
 });
 
 bootstrap();

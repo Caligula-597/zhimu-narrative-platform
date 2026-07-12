@@ -49,6 +49,7 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   const socialSource = readFileSync(path.join(root, "src", "views", "social.js"), "utf8");
   const lobbySource = readFileSync(path.join(root, "src", "views", "lobby.js"), "utf8");
   const startupSource = readFileSync(path.join(root, "src", "runtime", "startup.js"), "utf8");
+  const voiceActionSource = readFileSync(path.join(root, "src", "runtime", "voice-action-controller.js"), "utf8");
   assert.match(mainSource, /connectRoomEvents/);
   assert.match(mainSource, /connectPlatformEvents/);
   assert.match(mainSource, /loadPlazaPosts/);
@@ -63,7 +64,8 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(eventsSource, /room\.clue_granted/);
   assert.match(eventsSource, /room\.voice_message_created/);
   assert.match(eventsSource, /room\.host_event_pending/);
-  assert.match(mainSource, /voice-live-connect/);
+  assert.match(mainSource, /handlePlayVoiceAction/);
+  assert.match(voiceActionSource, /voice-live-connect/);
   const voiceSource = readFileSync(path.join(root, "src", "views", "voice.js"), "utf8");
   const livekitSource = readFileSync(path.join(root, "src", "voice", "livekit-voice.js"), "utf8");
   const gameSource = readFileSync(path.join(root, "src", "views", "game.js"), "utf8");
@@ -80,12 +82,14 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(gameSource, /renderGameTabBody/);
   const highlightsSource = readFileSync(path.join(root, "src", "utils", "highlights.js"), "utf8");
   const readerSource = readFileSync(path.join(root, "src", "runtime", "reader.js"), "utf8");
+  const playerGameSource = readFileSync(path.join(root, "src", "runtime", "player-game-controller.js"), "utf8");
   assert.match(highlightsSource, /applyStoryHighlights/);
   assert.match(readerSource, /addNotebookEntry/);
   assert.match(readerSource, /onPatch/);
   assert.doesNotMatch(readerSource, /onRefresh/);
-  assert.match(mainSource, /executedRules\?\.\length/);
-  assert.match(mainSource, /setToast\("已标记阅读完成", render, \{ patch: true \}/);
+  assert.match(mainSource, /createPlayerGameController/);
+  assert.match(playerGameSource, /executedRules\?\.\length/);
+  assert.match(playerGameSource, /setToast\("已标记阅读完成", render, \{ patch: true \}/);
   const headerSource = readFileSync(path.join(root, "src", "components", "header.js"), "utf8");
   assert.match(headerSource, /data-room-pill="1"/);
   assert.match(headerSource, /data-role-pill="1"/);

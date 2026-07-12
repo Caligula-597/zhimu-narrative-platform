@@ -28,7 +28,15 @@ export const pool = new Pool({
   connectionString: resolveDatabaseUrl(),
   ssl: resolveDatabaseSsl(),
   max: Number(process.env.PGPOOL_MAX ?? 10),
-  idleTimeoutMillis: Number(process.env.PGPOOL_IDLE_MS ?? 30_000)
+  idleTimeoutMillis: Number(process.env.PGPOOL_IDLE_MS ?? 30_000),
+  keepAlive: true
+});
+
+// pg emits idle-client failures on the pool rather than through a query
+// promise. Always attach a listener so a transient network disconnect cannot
+// become an uncaughtException; pg removes that failed client from the pool.
+pool.on("error", (error) => {
+  console.error("[database] idle client error:", error?.message || error);
 });
 
 export function getPoolStats() {
@@ -46,15 +54,22 @@ export async function query(text, params = []) {
 
 export async function transaction(work) {
   const client = await pool.connect();
+  let releaseError;
   try {
     await client.query("BEGIN");
     const result = await work(client);
     await client.query("COMMIT");
     return result;
   } catch (error) {
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch (rollbackError) {
+      // Passing the connection failure to release() makes pg destroy the
+      // poisoned client instead of returning it to the reusable pool.
+      releaseError = rollbackError;
+    }
     throw error;
   } finally {
-    client.release();
+    client.release(releaseError);
   }
 }

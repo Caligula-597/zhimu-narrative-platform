@@ -21,6 +21,7 @@ const BLOCKED_PATH = [
 ];
 
 const BACKEND_PREFIX_TESTS = [
+  ["backend/src/db.js", ["test/creator-bible.test.js", "test/transaction-events.test.js"]],
   ["backend/src/script-bundle", ["test/script-bundle.test.js", "test/script-bundle-import.test.js"]],
   ["backend/src/pdf-document", ["test/pdf-document.test.js"]],
   ["backend/src/document-parser", ["test/pdf-document.test.js"]],
