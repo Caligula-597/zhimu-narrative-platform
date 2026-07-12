@@ -78,14 +78,41 @@ export function trackWorldRevisionResponse(worldId, data) {
   return data;
 }
 
+/** Serialize writes per world so rapid studio drags don't race the same If-Match. */
+const worldWriteQueues = new Map();
+
 export function worldWrite(path, { worldId = demoContext.worldId, userId = demoContext.hostUserId, method = "PATCH", body, revision, ...rest } = {}) {
-  return request(path, {
-    userId,
-    method,
-    body,
-    headers: ifMatchHeaders(worldId, revision),
-    ...rest
-  }).then((data) => trackWorldRevisionResponse(worldId, data));
+  if (window.zhimuWorldRevision?.isConflictBlocked?.()) {
+    const err = new Error("剧本版本冲突未解决：请先刷新再保存");
+    err.code = "WORLD_VERSION_CONFLICT_BLOCKED";
+    err.status = 409;
+    return Promise.reject(err);
+  }
+  const queueKey = worldId || "__none__";
+  const prev = worldWriteQueues.get(queueKey) || Promise.resolve();
+  const next = prev
+    .catch(() => {})
+    .then(() => {
+      if (window.zhimuWorldRevision?.isConflictBlocked?.()) {
+        const err = new Error("剧本版本冲突未解决：请先刷新再保存");
+        err.code = "WORLD_VERSION_CONFLICT_BLOCKED";
+        err.status = 409;
+        throw err;
+      }
+      const { headers: extraHeaders, ...other } = rest;
+      return request(path, {
+        userId,
+        method,
+        body,
+        headers: { ...ifMatchHeaders(worldId, revision), ...(extraHeaders || {}) },
+        ...other
+      }).then((data) => trackWorldRevisionResponse(worldId, data));
+    })
+    .finally(() => {
+      if (worldWriteQueues.get(queueKey) === next) worldWriteQueues.delete(queueKey);
+    });
+  worldWriteQueues.set(queueKey, next);
+  return next;
 }
 
 export function createIdempotencyKey() {

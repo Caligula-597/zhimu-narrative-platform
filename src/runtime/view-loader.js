@@ -4,6 +4,7 @@
   const loading = new Map();
 
   const creatorWorkspaceModules = [
+    () => import("./world-revision.js"),
     () => import("../views/creator-workspaces.js"),
     () => import("./actions-creator-workspaces.js")
   ];
@@ -33,15 +34,18 @@
       () => import("./actions-studio.js")
     ],
     clues: [
+      () => import("./world-revision.js"),
       () => import("../views/clues.js"),
       () => import("./actions-clues.js")
     ],
     rules: [
+      () => import("./world-revision.js"),
       () => import("../../rule-visual.js"),
       () => import("../views/rules.js"),
       () => import("./actions-rules.js")
     ],
     miniGames: [
+      () => import("./world-revision.js"),
       () => import("../views/mini-games.js"),
       () => import("./actions-mini-games.js")
     ],

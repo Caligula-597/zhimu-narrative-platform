@@ -5,12 +5,16 @@ import { uiStore, worldStore, studioStore } from "../state/index.js";
 import { loadCloudData, render } from "./runtime-facade.js";
 import * as F from "../utils/format.js";
 import { closeModal } from "../components/modal.js";
+import { setHtml } from "../../shared/safe-dom.js";
 
 (function (window) {
 
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
 
   let editorDirty = false;
+
+  /** After a version conflict, block writes until the user refreshes. */
+  let conflictBlocked = false;
 
   let draftTimer = null;
 
@@ -282,7 +286,7 @@ import { closeModal } from "../components/modal.js";
 
     }
 
-    modal.innerHTML = `<h2>本地草稿</h2>
+    setHtml(modal, `<h2>本地草稿</h2>
 
 <p class="wizard-intro">检测到上次编辑未保存的本地草稿。恢复将覆盖当前表单内容；放弃将删除草稿。</p>
 
@@ -292,7 +296,7 @@ import { closeModal } from "../components/modal.js";
 
   <button type="button" class="primary-btn" data-draft-restore>恢复草稿</button>
 
-</div>`;
+      </div>`);
 
     backdrop.classList.add("show");
 
@@ -338,21 +342,29 @@ import { closeModal } from "../components/modal.js";
 
     const expected = details.expectedRevision ?? "?";
 
-    modal.innerHTML = `<h2>保存冲突</h2>
+    conflictBlocked = true;
 
-<p class="wizard-intro">其他编辑者已保存较新版本（当前 revision ${escapeHtml(String(current))}，你持有 ${escapeHtml(String(expected))}）。继续保存会覆盖他人改动。</p>
+    setHtml(modal, `<h2>保存冲突</h2>
+
+<p class="wizard-intro">剧本已有较新版本（当前 revision ${escapeHtml(String(current))}，你持有 ${escapeHtml(String(expected))}）。请刷新后再编辑；关闭弹窗后仍会阻止保存，直到刷新成功。</p>
 
 <div class="modal-actions">
 
-  <button type="button" class="secondary-btn" data-revision-close>取消</button>
+  <button type="button" class="secondary-btn" data-revision-close>稍后刷新</button>
 
   <button type="button" class="primary-btn" data-revision-reload>刷新并重新编辑</button>
 
-</div>`;
+      </div>`);
 
     backdrop.classList.add("show");
 
-    modal.querySelector("[data-revision-close]").onclick = () => closeModal();
+    modal.querySelector("[data-revision-close]").onclick = () => {
+
+      closeModal();
+
+      showToast("已暂停保存：请点「刷新并重新编辑」后再改");
+
+    };
 
     modal.querySelector("[data-revision-reload]").onclick = async () => {
 
@@ -366,6 +378,8 @@ import { closeModal } from "../components/modal.js";
 
         await loadCloudData(true, true);
 
+        conflictBlocked = false;
+
         render();
 
         showToast("已刷新剧本数据");
@@ -377,6 +391,18 @@ import { closeModal } from "../components/modal.js";
       }
 
     };
+
+  }
+
+  function isConflictBlocked() {
+
+    return conflictBlocked;
+
+  }
+
+  function clearConflictBlock() {
+
+    conflictBlocked = false;
 
   }
 
@@ -551,6 +577,10 @@ import { closeModal } from "../components/modal.js";
   window.zhimuWorldRevision = {
 
     showConflict,
+
+    isConflictBlocked,
+
+    clearConflictBlock,
 
     trackRevision,
 
