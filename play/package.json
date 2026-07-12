@@ -8,7 +8,7 @@
     "preview": "vite preview --host 0.0.0.0 --port 5174 --strictPort"
   },
   "dependencies": {
-    "livekit-client": "^2.15.3"
+    "livekit-client": "^2.20.1"
   },
   "devDependencies": {
     "@emnapi/core": "1.11.2",
