@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import {
+  allowCspReportFromClient,
   normalizeCspReport,
   noteCspViolationForAlert,
   resetCspReportWindowsForTests
@@ -24,6 +25,15 @@ test("normalizeCspReport supports legacy envelope and redacts URL secrets", () =
   assert.equal(report.violatedDirective, "require-trusted-types-for");
   assert.equal(report.lineNumber, 42);
   assert.doesNotMatch(JSON.stringify(report), /secret|user:pass/);
+});
+
+test("normalizeCspReport buckets unknown directives as other", () => {
+  const report = normalizeCspReport({
+    "csp-report": {
+      "effective-directive": "totally-made-up-directive 'unsafe-inline'"
+    }
+  });
+  assert.equal(report.violatedDirective, "other");
 });
 
 test("normalizeCspReport supports Reporting API body", () => {
@@ -53,6 +63,21 @@ test("CSP alert threshold fires once when the minute threshold is reached", () =
   } finally {
     if (previous === undefined) delete process.env.CSP_ALERT_THRESHOLD_PER_MINUTE;
     else process.env.CSP_ALERT_THRESHOLD_PER_MINUTE = previous;
+  }
+});
+
+test("CSP client rate limit soft-drops excess reports in the same minute", () => {
+  const previous = process.env.CSP_REPORT_RATE_LIMIT_PER_MINUTE;
+  process.env.CSP_REPORT_RATE_LIMIT_PER_MINUTE = "2";
+  resetCspReportWindowsForTests();
+  try {
+    assert.equal(allowCspReportFromClient("10.0.0.1", 60_001), true);
+    assert.equal(allowCspReportFromClient("10.0.0.1", 60_002), true);
+    assert.equal(allowCspReportFromClient("10.0.0.1", 60_003), false);
+    assert.equal(allowCspReportFromClient("10.0.0.2", 60_003), true);
+  } finally {
+    if (previous === undefined) delete process.env.CSP_REPORT_RATE_LIMIT_PER_MINUTE;
+    else process.env.CSP_REPORT_RATE_LIMIT_PER_MINUTE = previous;
   }
 });
 
@@ -100,4 +125,24 @@ test("POST /api/csp-report accepts Reporting API arrays", async (context) => {
   });
   assert.equal(response.statusCode, 204);
   assert.match(renderPrometheusMetrics(), /directive="script-src-elem"/);
+});
+
+test("POST /api/csp-report buckets attacker-controlled directives", async (context) => {
+  resetMetricsForTests();
+  resetCspReportWindowsForTests();
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const response = await app.inject({
+    method: "POST",
+    url: "/api/csp-report",
+    headers: { "content-type": "application/csp-report" },
+    payload: {
+      "csp-report": {
+        "effective-directive": "attacker-controlled-key"
+      }
+    }
+  });
+  assert.equal(response.statusCode, 204);
+  assert.match(renderPrometheusMetrics(), /directive="other"/);
+  assert.doesNotMatch(renderPrometheusMetrics(), /attacker-controlled-key/);
 });

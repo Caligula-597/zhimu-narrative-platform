@@ -13,17 +13,21 @@ const ASSIGN_RE = /\.innerHTML\s*=/g;
 const READ_RE = /\.innerHTML(?!\s*=)/g;
 const MAX = Number(process.env.AUDIT_INNERHTML_MAX || 0);
 const FILE_MAX = new Map([
-  ["src\\views\\writer.js", 0],
-  ["src\\views\\director.js", 0],
-  ["src\\components\\creator-guide.js", 0],
-  ["src\\runtime\\global-search.js", 0],
-  ["src\\views\\pipeline-wizard-open.js", 0],
-  ["src\\views\\platform-runtime.js", 0],
-  ["src\\views\\player.js", 0],
-  ["src\\views\\account.js", 0],
-  ["src\\views\\archive.js", 0],
-  ["src\\views\\settings.js", 0]
+  ["src/views/writer.js", 0],
+  ["src/views/director.js", 0],
+  ["src/components/creator-guide.js", 0],
+  ["src/runtime/global-search.js", 0],
+  ["src/views/pipeline-wizard-open.js", 0],
+  ["src/views/platform-runtime.js", 0],
+  ["src/views/player.js", 0],
+  ["src/views/account.js", 0],
+  ["src/views/archive.js", 0],
+  ["src/views/settings.js", 0]
 ]);
+
+function toPosixRel(file) {
+  return relative(root, file).replace(/\\/g, "/");
+}
 
 function walkFiles(path, out = []) {
   try {
@@ -62,7 +66,7 @@ for (const file of files) {
   if (!total) continue;
   assignTotal += assigns;
   readTotal += reads;
-  hotspots.push({ file: relative(root, file), assigns, reads, total });
+  hotspots.push({ file: toPosixRel(file), assigns, reads, total });
 }
 
 hotspots.sort((a, b) => b.total - a.total);

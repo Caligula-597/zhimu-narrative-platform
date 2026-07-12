@@ -12,6 +12,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { resolvePgTool } from "./pg-bin.mjs";
+import { assertSafeDatabaseUrlForDestructiveOps } from "./lib/assert-safe-database-url.mjs";
 import "dotenv/config";
 
 const REQUIRED_TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions", "schema_migrations"];
@@ -78,6 +79,7 @@ if (!sourceUrl) {
   console.error("DATABASE_URL is required");
   process.exit(1);
 }
+assertSafeDatabaseUrlForDestructiveOps(sourceUrl, { opName: "verify-backup-restore" });
 
 function requireCli(name) {
   const probe = spawnSync(name, ["--version"], { encoding: "utf8", shell: process.platform === "win32" });

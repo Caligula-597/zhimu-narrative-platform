@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import pg from "pg";
 import "dotenv/config";
+import { assertSafeDatabaseUrlForDestructiveOps } from "./lib/assert-safe-database-url.mjs";
 
 const separator = process.argv.indexOf("--");
 const command = separator >= 0 ? process.argv[separator + 1] : null;
@@ -11,6 +12,10 @@ if (!command || !process.env.DATABASE_URL) {
   console.error("Usage: DATABASE_URL=... node scripts/with-isolated-database.mjs -- <command> [...args]");
   process.exit(2);
 }
+
+assertSafeDatabaseUrlForDestructiveOps(process.env.DATABASE_URL, {
+  opName: "with-isolated-database"
+});
 
 const source = new URL(process.env.DATABASE_URL);
 const dbName = `zhimu_verify_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;

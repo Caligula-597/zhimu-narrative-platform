@@ -4,7 +4,11 @@ import { getPoolStats } from "../db.js";
 import { renderPrometheusMetrics, setApiReadyGauge, recordCspViolation, recordWebVital } from "../metrics.js";
 import { requireMetricsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
-import { normalizeCspReport, noteCspViolationForAlert } from "../csp-reports.js";
+import {
+  allowCspReportFromClient,
+  normalizeCspReport,
+  noteCspViolationForAlert
+} from "../csp-reports.js";
 
 const processStartedAt = Date.now();
 
@@ -84,6 +88,10 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       response: { 204: { type: "null" } }
     }
   }, async (request, reply) => {
+    const clientKey = String(request.ip || request.headers["x-forwarded-for"] || "unknown");
+    if (!allowCspReportFromClient(clientKey)) {
+      return reply.code(204).send();
+    }
     const report = normalizeCspReport(request.body ?? {});
     recordCspViolation({ directive: report.violatedDirective, disposition: report.disposition });
     const alertState = noteCspViolationForAlert(report);
