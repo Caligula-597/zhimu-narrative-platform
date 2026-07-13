@@ -22,7 +22,4 @@ CREATE INDEX IF NOT EXISTS idx_platform_event_journal_user
 CREATE INDEX IF NOT EXISTS idx_platform_event_journal_created_at
   ON platform_event_journal(created_at);
 
-CREATE INDEX IF NOT EXISTS idx_room_event_journal_created_at
-  ON room_event_journal(created_at);
-
 ALTER TABLE platform_event_journal ENABLE ROW LEVEL SECURITY;

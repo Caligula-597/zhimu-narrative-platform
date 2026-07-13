@@ -1,10 +1,10 @@
 /** Durable platform SSE bus with optional PostgreSQL NOTIFY fan-out. */
 
 import { randomUUID } from "node:crypto";
-import { query } from "./db.js";
 import { appendPlatformEventJournal } from "./platform-event-journal.js";
 import { recordSseEventOperation } from "./metrics.js";
 import { createPostgresEventListener } from "./postgres-event-listener.js";
+import { safePostgresNotify } from "./postgres-notify.js";
 import { isPlatformEventType } from "./platform-event-schemas.js";
 
 const PG_CHANNEL = "zhimu_platform_events";
@@ -75,7 +75,11 @@ async function fanOutToOtherInstances({ audienceType, userId, envelope }) {
     recordSseEventOperation({ bus: "platform", outcome: "notify_oversize" });
     return;
   }
-  await query(`SELECT pg_notify($1, $2)`, [PG_CHANNEL, notifyPayload]);
+  await safePostgresNotify({
+    channel: PG_CHANNEL,
+    payload: notifyPayload,
+    onError: () => recordSseEventOperation({ bus: "platform", outcome: "notify_failed" })
+  });
 }
 
 function handlePostgresNotification(message) {

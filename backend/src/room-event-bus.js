@@ -2,10 +2,10 @@
 
 import { randomUUID } from "node:crypto";
 import { appendRoomEventJournal } from "./room-event-journal.js";
-import { query } from "./db.js";
 import { validateRoomEvent } from "./room-event-schemas.js";
 import { recordSseEventOperation } from "./metrics.js";
 import { createPostgresEventListener } from "./postgres-event-listener.js";
+import { safePostgresNotify } from "./postgres-notify.js";
 
 const PG_CHANNEL = "zhimu_room_events";
 const INSTANCE_ID = randomUUID();
@@ -81,7 +81,11 @@ async function fanOutToOtherInstances(roomId, envelope) {
     recordSseEventOperation({ bus: "room", outcome: "notify_oversize" });
     return;
   }
-  await query(`SELECT pg_notify($1, $2)`, [PG_CHANNEL, notifyPayload]);
+  await safePostgresNotify({
+    channel: PG_CHANNEL,
+    payload: notifyPayload,
+    onError: () => recordSseEventOperation({ bus: "room", outcome: "notify_failed" })
+  });
 }
 
 function handlePostgresNotification(msg) {

@@ -49,6 +49,11 @@ function withDatabase(url, dbName) {
 }
 
 async function applyMigration(client, filename, sql) {
+  if (/^\s*--\s*migrate:no-transaction\b/im.test(sql)) {
+    await client.query(sql);
+    await client.query("INSERT INTO schema_migrations (filename) VALUES ($1)", [filename]);
+    return;
+  }
   await client.query("BEGIN");
   try {
     await client.query(sql);

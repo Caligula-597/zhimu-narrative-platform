@@ -45,6 +45,13 @@ try {
     const applied = await client.query("SELECT 1 FROM schema_migrations WHERE filename = $1", [filename]);
     if (applied.rowCount) continue;
     const sql = await fs.readFile(path.join(migrationsDir, filename), "utf8");
+    const nonTransactional = /^\s*--\s*migrate:no-transaction\b/im.test(sql);
+    if (nonTransactional) {
+      await client.query(sql);
+      await client.query("INSERT INTO schema_migrations (filename) VALUES ($1)", [filename]);
+      console.log(`Applied ${filename} (non-transactional)`);
+      continue;
+    }
     await client.query("BEGIN");
     try {
       await client.query(sql);

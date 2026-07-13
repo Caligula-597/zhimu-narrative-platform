@@ -75,3 +75,17 @@ test("checkpoint restore status enum exists", async () => {
   );
   assert.equal(result.rowCount, 1);
 });
+
+test("event journal retention index migration is applied", async () => {
+  const migration = await query(
+    `SELECT 1 FROM schema_migrations WHERE filename = '066_room_event_journal_retention_index.sql'`
+  );
+  const index = await query(
+    `SELECT 1 FROM pg_indexes
+     WHERE schemaname = 'public'
+       AND tablename = 'room_event_journal'
+       AND indexname = 'idx_room_event_journal_created_at'`
+  );
+  assert.equal(migration.rowCount, 1);
+  assert.equal(index.rowCount, 1);
+});

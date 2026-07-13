@@ -20,22 +20,32 @@ export function createReplaySubscription({
   send,
   beforeLive = () => true,
   onReplayError = () => {},
-  pageSize = 200
+  pageSize = 200,
+  dedupeWindow = 2000
 }) {
   let phase = "buffering";
   let buffered = [];
   let closed = false;
   let unsubscribed = false;
-  const replayedIds = new Set();
+  const deliveredIds = new Set();
   let unsubscribeLive = () => {};
+
+  const rememberId = (id) => {
+    if (id == null) return;
+    deliveredIds.add(id);
+    while (deliveredIds.size > dedupeWindow) {
+      deliveredIds.delete(deliveredIds.values().next().value);
+    }
+  };
 
   const deliver = (message) => {
     if (closed) return false;
     const envelope = normalizeEnvelope(message);
     const id = numericId(envelope);
-    if (id != null && replayedIds.has(id)) return true;
+    if (id != null && deliveredIds.has(id)) return true;
     const ok = send(envelope);
     if (!ok) unsubscribe();
+    else rememberId(id);
     return ok;
   };
 
@@ -69,7 +79,7 @@ export function createReplaySubscription({
               unsubscribe();
               break;
             }
-            replayedIds.add(id);
+            rememberId(id);
             cursor = id;
           }
           if (rows.length < pageSize) break;
@@ -89,8 +99,14 @@ export function createReplaySubscription({
       }
     }
     if (!closed && beforeLive() === false) unsubscribe();
-    replayedIds.clear();
+    // Flip to live first so concurrent notifications deliver immediately, then
+    // drain anything buffered in the gap before the phase change.
+    const late = buffered;
+    buffered = [];
     phase = "live";
+    for (const message of late) {
+      if (!deliver(message)) break;
+    }
     return !closed;
   })();
 
