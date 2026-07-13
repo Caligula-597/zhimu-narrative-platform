@@ -16,7 +16,7 @@
  *   cursorKey?: string
  * }} [options]
  */
-export async function consumeSseStream(response, { onEvent, cursorKey } = {}) {
+export async function consumeSseStream(response, { onEvent, cursorKey, storage = globalThis.localStorage } = {}) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
@@ -38,7 +38,10 @@ export async function consumeSseStream(response, { onEvent, cursorKey } = {}) {
       else if (line.startsWith("id:")) eventId = fieldValue(line, "id").trim();
     }
     const persistCursor = () => {
-      if (eventId && cursorKey) globalThis.localStorage?.setItem(cursorKey, eventId);
+      const numericId = Number(eventId);
+      if (eventId && cursorKey && /^\d+$/.test(eventId) && Number.isSafeInteger(numericId)) {
+        storage?.setItem?.(cursorKey, eventId);
+      }
     };
     if (!dataLines.length) {
       persistCursor();

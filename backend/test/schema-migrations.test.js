@@ -17,6 +17,7 @@ const REQUIRED_TABLES = [
   "checkpoint_restores",
   "room_recaps",
   "room_event_journal",
+  "platform_event_journal",
   "host_audit_log",
   "write_idempotency",
   "automation_rules",

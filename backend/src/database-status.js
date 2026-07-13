@@ -11,12 +11,12 @@ export async function getDatabaseStatus() {
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema = 'public'
          AND table_name = ANY($1::text[])`,
-      [["host_audit_log", "write_idempotency", "room_event_journal", "checkpoint_restores"]]
+      [["host_audit_log", "write_idempotency", "room_event_journal", "platform_event_journal", "checkpoint_restores"]]
     ).catch(() => ({ rows: [] }))
   ]);
   const latencyMs = Date.now() - started;
 
-  const requiredTables = ["host_audit_log", "write_idempotency", "room_event_journal", "checkpoint_restores"];
+  const requiredTables = ["host_audit_log", "write_idempotency", "room_event_journal", "platform_event_journal", "checkpoint_restores"];
   const present = new Set(tables.rows.map((row) => row.table_name));
   const missingTables = requiredTables.filter((name) => !present.has(name));
 

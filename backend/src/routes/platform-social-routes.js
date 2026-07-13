@@ -4,6 +4,8 @@ import {
   subscribePlatformBroadcast,
   subscribePlatformUserEvents
 } from "../platform-event-bus.js";
+import { fetchPlatformEventsAfter, getLatestPlatformEventId } from "../platform-event-journal.js";
+import { createReplaySubscription } from "../sse-replay-subscription.js";
 import {
   createPlazaPost,
   createPlazaReply,
@@ -38,10 +40,11 @@ import {
   uuidParams
 } from "./schemas.js";
 
-function writeSseEvent(raw, payload) {
+function writeSseEvent(raw, envelope) {
   try {
     if (raw.destroyed || raw.writableEnded) return false;
-    raw.write(`data: ${JSON.stringify(payload)}\n\n`);
+    if (envelope.id !== undefined && envelope.id !== null) raw.write(`id: ${envelope.id}\n`);
+    raw.write(`data: ${envelope.payload}\n\n`);
     return true;
   } catch {
     return false;
@@ -315,33 +318,46 @@ export async function registerPlatformSocialRoutes(app) {
       Connection: "keep-alive",
       "X-Accel-Buffering": "no"
     });
-    writeSseEvent(reply.raw, { type: "connected", userId: actorId, at: new Date().toISOString() });
-
     let closed = false;
-    let unsubUser = () => {};
-    let unsubBroadcast = () => {};
+    let unsubscribe = () => {};
     let heartbeat = null;
     const cleanup = () => {
       if (closed) return;
       closed = true;
       if (heartbeat) clearInterval(heartbeat);
-      unsubUser();
-      unsubBroadcast();
+      unsubscribe();
     };
-    const send = (payload) => {
-      try {
-        if (!writeSseEvent(reply.raw, JSON.parse(payload))) cleanup();
-      } catch {
-        if (!writeSseEvent(reply.raw, { type: "message", raw: payload })) cleanup();
-      }
-    };
-    unsubUser = subscribePlatformUserEvents(actorId, send);
-    unsubBroadcast = subscribePlatformBroadcast(send);
-    heartbeat = setInterval(() => {
-      if (!writeSseEvent(reply.raw, { type: "heartbeat", at: new Date().toISOString() })) cleanup();
-    }, 25000);
-    heartbeat.unref?.();
+
     request.raw.on("close", cleanup);
     request.raw.on("error", cleanup);
+
+    const subscription = createReplaySubscription({
+      lastEventId: request.headers["last-event-id"],
+      subscribe(send) {
+        const unsubUser = subscribePlatformUserEvents(actorId, send);
+        const unsubBroadcast = subscribePlatformBroadcast(send);
+        return () => {
+          unsubUser();
+          unsubBroadcast();
+        };
+      },
+      getLatestId: () => getLatestPlatformEventId(actorId),
+      fetchAfter: (afterId, options) => fetchPlatformEventsAfter(actorId, afterId, options),
+      send: (envelope) => writeSseEvent(reply.raw, envelope),
+      beforeLive: () => writeSseEvent(reply.raw, {
+        payload: JSON.stringify({ type: "connected", userId: actorId, at: new Date().toISOString() })
+      }),
+      onReplayError: (error) => request.log.warn({ err: error, actorId }, "platform SSE replay failed")
+    });
+    unsubscribe = subscription.unsubscribe;
+    const streamReady = await subscription.ready;
+    if (!streamReady || closed) return;
+
+    heartbeat = setInterval(() => {
+      if (!writeSseEvent(reply.raw, {
+        payload: JSON.stringify({ type: "heartbeat", at: new Date().toISOString() })
+      })) cleanup();
+    }, 25000);
+    heartbeat.unref?.();
   });
 }

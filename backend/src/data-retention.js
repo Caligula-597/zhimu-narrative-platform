@@ -11,7 +11,8 @@ const DEFAULT_RETENTION_DAYS = {
   passwordResetTokens: 14,
   emailVerificationTokens: 30,
   completedDeleteJobs: 90,
-  expiredUploadSessions: 30
+  expiredUploadSessions: 30,
+  eventJournals: 30
 };
 
 export function resolveRetentionDays(env = process.env) {
@@ -27,7 +28,8 @@ export function resolveRetentionDays(env = process.env) {
     passwordResetTokens: read("RETENTION_PASSWORD_RESET_DAYS", DEFAULT_RETENTION_DAYS.passwordResetTokens),
     emailVerificationTokens: read("RETENTION_EMAIL_VERIFICATION_DAYS", DEFAULT_RETENTION_DAYS.emailVerificationTokens),
     completedDeleteJobs: read("RETENTION_DELETE_JOBS_DAYS", DEFAULT_RETENTION_DAYS.completedDeleteJobs),
-    expiredUploadSessions: read("RETENTION_UPLOAD_SESSIONS_DAYS", DEFAULT_RETENTION_DAYS.expiredUploadSessions)
+    expiredUploadSessions: read("RETENTION_UPLOAD_SESSIONS_DAYS", DEFAULT_RETENTION_DAYS.expiredUploadSessions),
+    eventJournals: read("RETENTION_EVENT_JOURNALS_DAYS", DEFAULT_RETENTION_DAYS.eventJournals)
   };
 }
 
@@ -128,6 +130,22 @@ export async function purgeExpiredData(options = {}) {
          OR status IN ('expired', 'cancelled')`,
     params: [days.expiredUploadSessions]
   });
+
+  for (const [key, table] of [
+    ["roomEventJournal", "room_event_journal"],
+    ["platformEventJournal", "platform_event_journal"]
+  ]) {
+    await purgeTable({
+      dryRun,
+      summary,
+      key,
+      countSql: `SELECT COUNT(*)::int AS count FROM ${table}
+        WHERE created_at < now() - ($1::text || ' days')::interval`,
+      deleteSql: `DELETE FROM ${table}
+        WHERE created_at < now() - ($1::text || ' days')::interval`,
+      params: [days.eventJournals]
+    });
+  }
 
   return summary;
 }

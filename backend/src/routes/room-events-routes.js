@@ -1,6 +1,7 @@
 import { requireActor } from "../request-actor.js";
 import { subscribeRoomEvents } from "../room-event-bus.js";
-import { fetchJournalEventsAfter } from "../room-event-journal.js";
+import { fetchJournalEventsAfter, getLatestRoomEventId } from "../room-event-journal.js";
+import { createReplaySubscription } from "../sse-replay-subscription.js";
 import { requireRoomRole } from "./route-guards.js";
 import { roomIdParams } from "./schemas.js";
 
@@ -29,46 +30,39 @@ export async function registerRoomEventsRoutes(app) {
       "X-Accel-Buffering": "no"
     });
 
-    const lastEventId = request.headers["last-event-id"];
-    if (lastEventId) {
-      try {
-        const replay = await fetchJournalEventsAfter(roomId, lastEventId);
-        for (const row of replay) {
-          if (!writeSseEvent(reply.raw, {
-            id: row.id,
-            payload: JSON.stringify(row.payload)
-          })) break;
-        }
-      } catch {
-        /* replay failure should not block live stream */
-      }
-    }
-
-    writeSseEvent(reply.raw, {
-      payload: JSON.stringify({ type: "connected", roomId, at: new Date().toISOString() })
-    });
-
     let closed = false;
     let unsubscribe = () => {};
+    let heartbeat = null;
     const cleanup = () => {
       if (closed) return;
       closed = true;
-      clearInterval(heartbeat);
+      if (heartbeat) clearInterval(heartbeat);
       unsubscribe();
     };
 
-    unsubscribe = subscribeRoomEvents(roomId, (message) => {
-      const envelope = typeof message === "string" ? { payload: message } : message;
-      if (!writeSseEvent(reply.raw, envelope)) cleanup();
+    request.raw.on("close", cleanup);
+    request.raw.on("error", cleanup);
+
+    const subscription = createReplaySubscription({
+      lastEventId: request.headers["last-event-id"],
+      subscribe: (send) => subscribeRoomEvents(roomId, send),
+      getLatestId: () => getLatestRoomEventId(roomId),
+      fetchAfter: (afterId, options) => fetchJournalEventsAfter(roomId, afterId, options),
+      send: (envelope) => writeSseEvent(reply.raw, envelope),
+      beforeLive: () => writeSseEvent(reply.raw, {
+        payload: JSON.stringify({ type: "connected", roomId, at: new Date().toISOString() })
+      }),
+      onReplayError: (error) => request.log.warn({ err: error, roomId }, "room SSE replay failed")
     });
-    const heartbeat = setInterval(() => {
+    unsubscribe = subscription.unsubscribe;
+    const streamReady = await subscription.ready;
+    if (!streamReady || closed) return;
+
+    heartbeat = setInterval(() => {
       if (!writeSseEvent(reply.raw, {
         payload: JSON.stringify({ type: "heartbeat", roomId, at: new Date().toISOString() })
       })) cleanup();
     }, 25000);
     heartbeat.unref?.();
-
-    request.raw.on("close", cleanup);
-    request.raw.on("error", cleanup);
   });
 }

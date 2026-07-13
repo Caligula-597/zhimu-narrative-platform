@@ -63,9 +63,10 @@ test("main.js uses pull generation and partial refresh paths", () => {
 
 test("platform-events has poll fallback when SSE down", () => {
   const source = readFileSync(path.join(root, "src", "platform-events.js"), "utf8");
-  assert.match(source, /syncPlatformPoll/);
+  assert.match(source, /createSseLifecycle/);
   assert.match(source, /onInGameCommRefresh/);
-  assert.match(source, /pollInFlight/);
+  assert.match(source, /poll:\s*\(\) => runPlatformPoll/);
+  assert.match(source, /reconcile:\s*\(\) => runPlatformPoll/);
 });
 
 test("api platform stream persists Last-Event-ID cursor", () => {

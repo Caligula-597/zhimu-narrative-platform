@@ -4,6 +4,7 @@ import { getPoolStats } from "../db.js";
 import { renderPrometheusMetrics, setApiReadyGauge, recordCspViolation, recordWebVital } from "../metrics.js";
 import { requireMetricsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
+import { getPlatformEventBusStatus } from "../platform-event-bus.js";
 import {
   allowCspReportFromClient,
   normalizeCspReport,
@@ -19,16 +20,22 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
   app.get("/api/health/live", async () => ({ ok: true }));
 
   app.get("/api/health/ready", async (_request, reply) => {
-    const [ready, bus] = await Promise.all([
+    const [ready, bus, platformBus] = await Promise.all([
       getReadinessStatus(),
-      Promise.resolve(getRoomEventBusStatus())
+      Promise.resolve(getRoomEventBusStatus()),
+      Promise.resolve(getPlatformEventBusStatus())
     ]);
+    const production = process.env.NODE_ENV === "production";
+    const roomEventBusReady = bus.mode === "postgres" ? bus.listening : !production;
+    const platformEventBusReady = platformBus.mode === "postgres" ? platformBus.listening : !production;
+    const allReady = ready.ready && roomEventBusReady && platformEventBusReady;
     const body = {
-      ok: ready.ready,
-      ready: ready.ready,
+      ok: allReady,
+      ready: allReady,
       checks: {
         ...ready.checks,
-        roomEventBus: bus.mode === "postgres" ? bus.listening : true
+        roomEventBus: roomEventBusReady,
+        platformEventBus: platformEventBusReady
       },
       database: {
         latencyMs: ready.latencyMs,
@@ -37,6 +44,7 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       },
       pool: ready.pool,
       roomEventBus: bus,
+      platformEventBus: platformBus,
       optionalServices: getOptionalServicesStatus()
     };
     if (!body.ready) {
@@ -58,8 +66,16 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       requireMetricsToken(request);
       const pool = getPoolStats();
       const sse = getSseConnectionMetrics();
+      const roomBus = getRoomEventBusStatus();
+      const platformBus = getPlatformEventBusStatus();
       const ready = await getReadinessStatus();
-      setApiReadyGauge(ready.ready);
+      const production = process.env.NODE_ENV === "production";
+      const eventBusesReady = production
+        ? roomBus.mode === "postgres" && roomBus.listening
+          && platformBus.mode === "postgres" && platformBus.listening
+        : true;
+      const allReady = ready.ready && eventBusesReady;
+      setApiReadyGauge(allReady);
       const body = renderPrometheusMetrics({
         poolStats: {
           totalCount: pool.total,
@@ -67,8 +83,9 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
           waitingCount: pool.waiting
         },
         sseStats: sse,
+        platformSseStats: { connections: platformBus.broadcastConnections },
         uptimeSeconds: Math.floor((Date.now() - processStartedAt) / 1000),
-        readyOk: ready.ready ? 1 : 0
+        readyOk: allReady ? 1 : 0
       });
       return reply.type("text/plain; version=0.0.4; charset=utf-8").send(body);
     }

@@ -205,7 +205,7 @@ export async function createPlazaPost({ actorId, kind, body, inviteCode }) {
     [postId, verdict.reason, reviewedAt]
   );
   const post = mapPost(approved.rows[0], actorId);
-  publishPlatformBroadcast("plaza.post_created", { postId: post.id });
+  await publishPlatformBroadcast("plaza.post_created", { postId: post.id });
   return post;
 }
 
@@ -245,7 +245,7 @@ export async function createPlazaReply({ actorId, postId, body, parentReplyId = 
     [postId]
   );
   const reply = mapReply(inserted.rows[0], actorId);
-  publishPlatformBroadcast("plaza.reply_created", { postId, replyId: reply.id });
+  await publishPlatformBroadcast("plaza.reply_created", { postId, replyId: reply.id });
   return reply;
 }
 
@@ -257,7 +257,7 @@ export async function deletePlazaPost(actorId, postId) {
     [postId, actorId]
   );
   if (!result.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "只能删除自己的帖子。");
-  publishPlatformBroadcast("plaza.post_deleted", { postId });
+  await publishPlatformBroadcast("plaza.post_deleted", { postId });
   return { ok: true };
 }
 
@@ -278,7 +278,7 @@ export async function deletePlazaReply(actorId, replyId) {
     `UPDATE play_plaza_posts SET reply_count = GREATEST(reply_count - 1, 0) WHERE id = $1`,
     [updated.rows[0].post_id]
   );
-  publishPlatformBroadcast("plaza.reply_deleted", { postId: updated.rows[0].post_id, replyId });
+  await publishPlatformBroadcast("plaza.reply_deleted", { postId: updated.rows[0].post_id, replyId });
   return { ok: true };
 }
 
@@ -322,7 +322,7 @@ export async function reportPlazaTarget({ actorId, targetType, targetId, reason 
        WHERE id = $1 AND deleted_at IS NULL AND review_status = 'approved'`,
       [targetId]
     );
-    publishPlatformBroadcast("plaza.post_deleted", { postId: targetId, reason: "reported" });
+    await publishPlatformBroadcast("plaza.post_deleted", { postId: targetId, reason: "reported" });
   }
 
   return { ok: true, message: "举报已提交，我们将进行人工复核。" };

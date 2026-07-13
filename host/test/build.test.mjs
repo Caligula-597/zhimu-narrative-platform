@@ -68,8 +68,9 @@ test("main.js wires console, SSE and director actions", () => {
   assert.match(consoleSource, /host-kick-player/);
   assert.match(dataSource, /api\.getWorldSegments\(worldId\)/);
   assert.match(eventsSource, /room\.host_event_pending/);
-  assert.match(eventsSource, /directorPollInFlight/);
-  assert.match(eventsSource, /state\.view === "console" && getRoomId\(\) === boundRoom && !signal\.aborted/);
+  assert.match(eventsSource, /createSseLifecycle/);
+  assert.match(eventsSource, /reconcile:\s*\(\) => refreshDirectorPoll\(\)/);
+  assert.match(eventsSource, /onAuthLost/);
   assert.doesNotMatch(eventsSource, /state\.roomEventsConnected && getRoomId\(\) === boundRoom/);
 });
 

@@ -5,6 +5,7 @@ import { state } from "../state.js";
 
 let loadPromise = null;
 let loadKey = "";
+let roomRefreshGeneration = 0;
 
 export function applyHostPlayersPayload(value) {
   state.cloudHostPlayers = value?.players || [];
@@ -210,22 +211,28 @@ export async function refreshHostRoom(withToast = false) {
     if (withToast) toastRef("请先选择运行房");
     return;
   }
+  const generation = ++roomRefreshGeneration;
   try {
     const logParams = { limit: "20", roomId: getRoomId() };
-    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames] = await Promise.all([
+    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions] = await Promise.all([
       api.getHostPlayers(),
       api.getHostEvents(),
       api.getWorldLogs(logParams),
       api.getHostClueMatrix(),
       api.getHostAuditLog().catch(() => ({ entries: [] })),
-      api.getHostMiniGames().catch(() => ({ games: [] }))
+      api.getHostMiniGames().catch(() => ({ games: [] })),
+      api.getHostVotes().catch(() => ({ votes: [] })),
+      api.getHostPrivateActions().catch(() => ({ actions: [] }))
     ]);
+    if (generation !== roomRefreshGeneration) return;
     applyHostPlayersPayload(hostPlayers);
     state.cloudHostEvents = hostEvents || [];
     state.cloudWorldLogs = worldLogs || [];
     state.cloudHostClueMatrix = clueMatrix;
     state.cloudHostAuditLog = auditLog?.entries || [];
     applyHostMiniGamesPayload(miniGames);
+    state.cloudHostVotes = votes?.votes || [];
+    state.cloudHostPrivateActions = privateActions?.actions || [];
     if (state.view === "console") renderRef();
     if (withToast) {
       toastRef(
@@ -233,6 +240,7 @@ export async function refreshHostRoom(withToast = false) {
       );
     }
   } catch (error) {
+    if (generation !== roomRefreshGeneration) return;
     failHostPlayersLoad(error);
     if (state.view === "console") renderRef();
     if (withToast) toastRef(formatApiError(error, "刷新失败"));

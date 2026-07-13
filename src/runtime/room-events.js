@@ -4,16 +4,12 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
 import { uiStore, roomStore, userStore, voiceStore } from "../state/index.js";
 import { getRuntime, go, render } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
+import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
 (function (window) {
-  let directorPollTimer = null;
-  let playerPollTimer = null;
-  let directorPollInFlight = false;
-  let playerPollInFlight = false;
   const DIRECTOR_POLL_MS = 15000;
   const PLAYER_POLL_MS = 15000;
-  let roomEventAbort = null;
-  let roomEventReconnectTimer = null;
   let roomEventStreamKey = "";
+  let roomEventLifecycle = null;
 
   function runtime() {
     return getRuntime();
@@ -57,73 +53,16 @@ import { callView } from "./view-registry.js";
   }
 
   function syncPlayerPolling() {
-    if (uiStore.get().view === "player" && zhimuApi.context.roomId) {
-      if (!playerPollTimer) {
-        playerPollTimer = setInterval(async () => {
-          if (uiStore.get().view !== "player" || !zhimuApi.context.roomId) {
-            clearInterval(playerPollTimer);
-            playerPollTimer = null;
-            return;
-          }
-          if (playerPollInFlight) return;
-          playerPollInFlight = true;
-          try {
-            await refreshPlayerHome();
-            await refreshExploration();
-          } finally {
-            playerPollInFlight = false;
-          }
-        }, PLAYER_POLL_MS);
-      }
-    } else if (playerPollTimer) {
-      clearInterval(playerPollTimer);
-      playerPollTimer = null;
-    }
+    // Polling is owned by the shared SSE lifecycle; retained as a compatibility hook.
   }
 
   function syncDirectorPolling() {
     syncPlayerPolling();
-    const { view } = uiStore.get();
-    const { roomEventsConnected } = roomStore.get();
-    if (roomEventsConnected) {
-      if (directorPollTimer) {
-        clearInterval(directorPollTimer);
-        directorPollTimer = null;
-      }
-      return;
-    }
-    if (view === "director" && zhimuApi.context.roomId) {
-      if (!directorPollTimer) {
-        directorPollTimer = setInterval(async () => {
-          if (uiStore.get().view !== "director" || !zhimuApi.context.roomId) {
-            clearInterval(directorPollTimer);
-            directorPollTimer = null;
-            return;
-          }
-          if (directorPollInFlight) return;
-          directorPollInFlight = true;
-          try {
-            await refreshDirectorPoll();
-          } finally {
-            directorPollInFlight = false;
-          }
-        }, DIRECTOR_POLL_MS);
-      }
-    } else if (directorPollTimer) {
-      clearInterval(directorPollTimer);
-      directorPollTimer = null;
-    }
   }
 
   function disconnectRoomEventStream() {
-    if (roomEventReconnectTimer) {
-      clearTimeout(roomEventReconnectTimer);
-      roomEventReconnectTimer = null;
-    }
-    if (roomEventAbort) {
-      roomEventAbort.abort();
-      roomEventAbort = null;
-    }
+    roomEventLifecycle?.stop();
+    roomEventLifecycle = null;
     roomEventStreamKey = "";
     const { view } = uiStore.get();
     const { roomEventsConnected } = roomStore.get();
@@ -135,11 +74,7 @@ import { callView } from "./view-registry.js";
   }
 
   function scheduleRoomEventReconnect() {
-    if (roomEventReconnectTimer || !zhimuApi.context.roomId) return;
-    roomEventReconnectTimer = setTimeout(() => {
-      roomEventReconnectTimer = null;
-      connectRoomEventStream();
-    }, 5000);
+    roomEventLifecycle?.reconnect();
   }
 
   function streamUserIdForRoom() {
@@ -270,6 +205,19 @@ import { callView } from "./view-registry.js";
           showToast("房间已从存档恢复", 2800);
         }
         break;
+      case "room.game_started":
+      case "room.game_updated":
+      case "room.game_completed":
+      case "room.vote_created":
+      case "room.vote_updated":
+      case "room.private_action_submitted":
+      case "room.private_action_updated":
+      case "room.role_state_updated":
+      case "room.physical_token_activated":
+      case "room.physical_token_event":
+        if (view === "director" || view === "overview") await refreshDirectorPoll();
+        else if (view === "player") await refreshPlayerHome();
+        break;
     }
   }
 
@@ -278,30 +226,46 @@ import { callView } from "./view-registry.js";
     if (!roomId) return;
     const streamUserId = streamUserIdForRoom();
     const nextStreamKey = `${roomId}:${streamUserId || ""}`;
-    if (roomEventAbort && roomEventStreamKey === nextStreamKey) return;
+    if (roomEventLifecycle && roomEventStreamKey === nextStreamKey) return;
     disconnectRoomEventStream();
-    const boundRoom = roomId;
-    const boundStreamKey = nextStreamKey;
     roomEventStreamKey = nextStreamKey;
-    roomEventAbort = new AbortController();
-    const signal = roomEventAbort.signal;
-    zhimuApi.streamRoomEvents(roomId, async (type, data) => {
-      if (type === "__connected__") {
-        roomStore.set({ roomEventsConnected: true });
-        syncDirectorPolling();
-        if (uiStore.get().view === "director") render();
-        return;
+    roomEventLifecycle = createSseLifecycle({
+      pollMs: Math.min(DIRECTOR_POLL_MS, PLAYER_POLL_MS),
+      open: ({ signal, onConnected }) => zhimuApi.streamRoomEvents(roomId, async (type, data) => {
+        if (type === "__connected__") return onConnected(data);
+        await handleRoomEvent(type, data);
+      }, signal, streamUserId),
+      poll: async () => {
+        const view = uiStore.get().view;
+        if (view === "director") await refreshDirectorPoll();
+        else if (view === "player") {
+          await refreshPlayerHome();
+          await refreshExploration();
+        }
+      },
+      reconcile: async () => {
+        const view = uiStore.get().view;
+        if (view === "director") await refreshDirectorPoll();
+        else if (view === "player") {
+          await refreshPlayerHome();
+          await refreshExploration();
+        }
+      },
+      onConnected: () => roomStore.set({ roomEventsConnected: true }),
+      onDisconnected: () => roomStore.set({ roomEventsConnected: false }),
+      onStatus: () => {
+        if (["director", "player"].includes(uiStore.get().view)) render();
+      },
+      onAuthLost: () => {
+        window.zhimuSessionAuth?.markLoggedOut?.();
+        showToast("登录已过期，请重新登录", 3200);
+        go("overview");
+      },
+      onError: (error, meta) => {
+        if (meta?.phase === "stream") userStore.set({ apiError: `实时同步异常：${error.message}` });
       }
-      await handleRoomEvent(type, data);
-    }, signal, streamUserId).catch(() => {}).finally(() => {
-      if (roomEventStreamKey !== boundStreamKey) return;
-      const shouldReconnect = zhimuApi.context.roomId === boundRoom && !signal.aborted;
-      roomEventAbort = null;
-      roomEventStreamKey = "";
-      roomStore.set({ roomEventsConnected: false });
-      syncDirectorPolling();
-      if (shouldReconnect) scheduleRoomEventReconnect();
     });
+    roomEventLifecycle.start();
   }
 
   window.zhimuRoomEvents = {

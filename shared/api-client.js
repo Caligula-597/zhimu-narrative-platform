@@ -3,6 +3,7 @@
  */
 import { createApiFetch, extractAuthToken } from "./api-fetch.js";
 import { openSseStream } from "./sse-client.js";
+import { isPlatformEventType } from "./contracts/platform-events.js";
 
 /**
  * Resolve `/api` base for Vite portals (play.* / host.* → app.* in prod).
@@ -127,6 +128,11 @@ export function createPortalApiClient(config) {
     }
   });
 
+  function mapStreamHttpError(response, payload) {
+    if (clearTokenOn401 && response.status === 401) tokenStore?.clear?.();
+    return mapHttpError(response, payload, { path: response.url, options: { method: "GET" } });
+  }
+
   return {
     request: client.request,
     streamRoomEvents({ roomId, onEvent, signal, cursorKey, connectedOnOpen = false, headers = {} }) {
@@ -136,7 +142,8 @@ export function createPortalApiClient(config) {
         signal,
         cursorKey,
         connectedOnOpen,
-        onEvent
+        onEvent,
+        mapHttpError: mapStreamHttpError
       });
     },
     streamPlatformEvents({ onEvent, signal, cursorKey, headers = {} }) {
@@ -145,7 +152,9 @@ export function createPortalApiClient(config) {
         headers: { ...resolveHeaders({ headers: {} }), ...headers },
         signal,
         cursorKey,
-        onEvent
+        onEvent,
+        eventTypeValidator: isPlatformEventType,
+        mapHttpError: mapStreamHttpError
       });
     }
   };

@@ -1,59 +1,15 @@
 import { api } from "./api.js";
+import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
 
-const RECONNECT_MS = 5000;
 const POLL_MS = 20000;
 
-let streamAbort = null;
-let reconnectTimer = null;
-let pollTimer = null;
-let pollInFlight = false;
-let active = false;
-let streamConnected = false;
-
-function clearReconnectTimer() {
-  if (reconnectTimer) {
-    clearTimeout(reconnectTimer);
-    reconnectTimer = null;
-  }
-}
-
-function scheduleReconnect(connect) {
-  if (reconnectTimer || !active) return;
-  setStreamStatus("reconnecting");
-  reconnectTimer = setTimeout(() => {
-    reconnectTimer = null;
-    connect();
-  }, RECONNECT_MS);
-}
+let lifecycle = null;
 
 function setStreamStatus(status) {
   platformCtxRef?.setStreamStatus?.(status);
 }
 
 let platformCtxRef = null;
-
-function syncPlatformPoll(activePoll, ctx) {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
-  if (!activePoll || !ctx.hasSession?.() || streamConnected) {
-    if (streamConnected) setStreamStatus("connected");
-    return;
-  }
-  setStreamStatus("polling");
-  pollTimer = setInterval(async () => {
-    if (!active || pollInFlight) return;
-    pollInFlight = true;
-    try {
-      await runPlatformPoll(ctx);
-    } catch {
-      /* polling is best-effort */
-    } finally {
-      pollInFlight = false;
-    }
-  }, POLL_MS);
-}
 
 async function runPlatformPoll(ctx) {
   const view = ctx.getView();
@@ -114,18 +70,9 @@ async function handlePlatformEvent(type, data, ctx) {
 }
 
 export function disconnectPlatformEvents(ctx) {
-  active = false;
+  lifecycle?.stop();
+  lifecycle = null;
   platformCtxRef = null;
-  clearReconnectTimer();
-  if (streamAbort) {
-    streamAbort.abort();
-    streamAbort = null;
-  }
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
-  streamConnected = false;
   ctx?.setStreamStatus?.("idle");
   ctx?.setConnected?.(false);
 }
@@ -133,40 +80,20 @@ export function disconnectPlatformEvents(ctx) {
 export function connectPlatformEvents(ctx) {
   disconnectPlatformEvents(ctx);
   if (!ctx.hasSession?.()) return;
-  active = true;
   platformCtxRef = ctx;
-
-  const connect = () => {
-    if (!active) return;
-    if (streamAbort) streamAbort.abort();
-    streamAbort = new AbortController();
-    const signal = streamAbort.signal;
-    setStreamStatus("reconnecting");
-
-    api.streamPlatformEvents(async (type, data) => {
-      if (type === "__connected__") {
-        streamConnected = true;
-        syncPlatformPoll(false, ctx);
-        setStreamStatus("connected");
-        ctx.setConnected?.(true);
-        return;
-      }
+  lifecycle = createSseLifecycle({
+    pollMs: POLL_MS,
+    open: ({ signal, onConnected }) => api.streamPlatformEvents(async (type, data) => {
+      if (type === "__connected__") return onConnected(data);
       await handlePlatformEvent(type, data, ctx);
-    }, signal).catch((error) => {
-      if (error?.status === 401) ctx.onAuthLost?.();
-    }).finally(() => {
-      const shouldReconnect = active && !signal.aborted;
-      streamConnected = false;
-      ctx.setConnected?.(false);
-      if (shouldReconnect) {
-        syncPlatformPoll(true, ctx);
-        scheduleReconnect(connect);
-      } else {
-        setStreamStatus("idle");
-      }
-    });
-  };
-
-  connect();
-  syncPlatformPoll(true, ctx);
+    }, signal),
+    poll: () => runPlatformPoll(ctx),
+    reconcile: () => runPlatformPoll(ctx),
+    onStatus: setStreamStatus,
+    onConnected: () => ctx.setConnected?.(true),
+    onDisconnected: () => ctx.setConnected?.(false),
+    onAuthLost: () => ctx.onAuthLost?.(),
+    onError: (error, meta) => ctx.onStreamError?.(error, meta)
+  });
+  lifecycle.start();
 }

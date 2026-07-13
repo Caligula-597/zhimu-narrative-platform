@@ -90,7 +90,7 @@ export async function sendFriendRequest(actorId, targetUserId) {
       [low, high, actorId]
     );
   }
-  publishPlatformUserEvent(targetUserId, "social.friend_request", {
+  await publishPlatformUserEvent(targetUserId, "social.friend_request", {
     fromUserId: actorId
   });
   return { ok: true };
@@ -113,7 +113,7 @@ export async function respondFriendRequest(actorId, targetUserId, accept) {
      WHERE user_low_id = $2 AND user_high_id = $3`,
     [status, low, high]
   );
-  publishPlatformUserEvent(targetUserId, accept ? "social.friend_accepted" : "social.friend_declined", {
+  await publishPlatformUserEvent(targetUserId, accept ? "social.friend_accepted" : "social.friend_declined", {
     fromUserId: actorId
   });
   return { ok: true, status };
@@ -248,7 +248,7 @@ export async function sendDmMessage(actorId, conversationId, body) {
     [conversationId, actorId, text]
   );
   await query(`UPDATE play_dm_conversations SET last_message_at = now() WHERE id = $1`, [conversationId]);
-  publishPlatformUserEvent(peerId, "dm.message_created", { conversationId, messageId: inserted.rows[0].id });
+  await publishPlatformUserEvent(peerId, "dm.message_created", { conversationId, messageId: inserted.rows[0].id });
   return {
     id: inserted.rows[0].id,
     body: inserted.rows[0].body,

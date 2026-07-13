@@ -2,16 +2,19 @@
 
 import { randomUUID } from "node:crypto";
 import { appendRoomEventJournal } from "./room-event-journal.js";
-import { pool, query } from "./db.js";
+import { query } from "./db.js";
 import { validateRoomEvent } from "./room-event-schemas.js";
+import { recordSseEventOperation } from "./metrics.js";
+import { createPostgresEventListener } from "./postgres-event-listener.js";
 
 const PG_CHANNEL = "zhimu_room_events";
 const INSTANCE_ID = randomUUID();
-const busMode = process.env.ROOM_EVENTS_BUS === "postgres" ? "postgres" : "memory";
+function postgresEnabled() {
+  if (process.env.ROOM_EVENTS_BUS === "memory") return false;
+  return process.env.ROOM_EVENTS_BUS === "postgres" || process.env.NODE_ENV === "production";
+}
 
 const subscribers = new Map();
-let listenerClient = null;
-let listening = false;
 
 export function getSseConnectionMetrics() {
   let connections = 0;
@@ -27,9 +30,9 @@ export function getSseConnectionMetrics() {
 export function getRoomEventBusStatus() {
   const sse = getSseConnectionMetrics();
   return {
-    mode: busMode,
+    mode: postgresEnabled() ? "postgres" : "memory",
     instanceId: INSTANCE_ID,
-    listening: busMode === "postgres" ? listening : null,
+    listening: postgresEnabled() ? postgresListener.isListening() : null,
     subscriberRooms: sse.rooms,
     sseConnections: sse.connections
   };
@@ -67,14 +70,17 @@ function deliverToSubscribers(roomId, message) {
 }
 
 async function fanOutToOtherInstances(roomId, envelope) {
-  if (busMode !== "postgres") return;
+  if (!postgresEnabled()) return;
   const notifyPayload = JSON.stringify({
     sourceInstanceId: INSTANCE_ID,
     roomId,
     id: envelope.id ?? null,
     payload: envelope.payload
   });
-  if (notifyPayload.length > 7900) return;
+  if (Buffer.byteLength(notifyPayload, "utf8") >= 7900) {
+    recordSseEventOperation({ bus: "room", outcome: "notify_oversize" });
+    return;
+  }
   await query(`SELECT pg_notify($1, $2)`, [PG_CHANNEL, notifyPayload]);
 }
 
@@ -92,25 +98,19 @@ function handlePostgresNotification(msg) {
 }
 
 export async function startRoomEventBus() {
-  if (busMode !== "postgres" || listenerClient) return;
-  listenerClient = await pool.connect();
-  listenerClient.on("notification", handlePostgresNotification);
-  await listenerClient.query(`LISTEN ${PG_CHANNEL}`);
-  listening = true;
+  if (!postgresEnabled()) return;
+  await postgresListener.start();
 }
 
 export async function stopRoomEventBus() {
-  if (!listenerClient) return;
-  try {
-    await listenerClient.query(`UNLISTEN ${PG_CHANNEL}`);
-  } catch {
-    /* ignore shutdown races */
-  }
-  listenerClient.removeListener("notification", handlePostgresNotification);
-  listenerClient.release();
-  listenerClient = null;
-  listening = false;
+  await postgresListener.stop();
 }
+
+const postgresListener = createPostgresEventListener({
+  channel: PG_CHANNEL,
+  onNotification: handlePostgresNotification,
+  onError: () => recordSseEventOperation({ bus: "room", outcome: "listener_error" })
+});
 
 /** Publish after journal write so SSE subscribers receive stable journal ids. */
 export async function publishRoomEvent(roomId, type, data = {}) {
@@ -131,10 +131,12 @@ export async function publishRoomEvent(roomId, type, data = {}) {
     journalId = row?.id;
   } catch {
     /* journal is best-effort for non-uuid test rooms */
+    recordSseEventOperation({ bus: "room", outcome: "journal_failed" });
   }
   const envelope = journalId != null ? { id: journalId, payload } : { payload };
   deliverToSubscribers(roomId, envelope);
   await fanOutToOtherInstances(roomId, envelope);
+  recordSseEventOperation({ bus: "room", outcome: "published" });
   return { ...event, journalId };
 }
 

@@ -13,6 +13,7 @@ export async function openSseStream({
   connectedOnOpen = false,
   stripFields = ["at", "roomId"],
   mapHttpError,
+  eventTypeValidator,
   /** When true, skip unknown room.* event types (still deliver non-room lifecycle). */
   validateRoomEvents = true
 }) {
@@ -38,6 +39,7 @@ export async function openSseStream({
   if (connectedOnOpen) await onEvent?.("__connected__", {});
   return consumeSseStream(response, {
     cursorKey,
+    storage,
     onEvent: async (_eventType, message) => {
       if (message?.type === "heartbeat") return;
       if (message?.type === "connected") {
@@ -52,6 +54,7 @@ export async function openSseStream({
       if (validateRoomEvents && type.startsWith("room.") && !isRoomEventType(type)) {
         return;
       }
+      if (eventTypeValidator && !eventTypeValidator(type)) return;
       await onEvent?.(type, payload);
     }
   });

@@ -47,7 +47,7 @@ export async function opsApprovePlazaPost(postId, { note = "" } = {}) {
     [postId, String(note || "").trim().slice(0, 500)]
   );
   if (!updated.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "帖子不存在或不在待审状态。");
-  publishPlatformBroadcast("plaza.post_created", { postId });
+  await publishPlatformBroadcast("plaza.post_created", { postId });
   return { ok: true, postId };
 }
 
@@ -64,7 +64,7 @@ export async function opsRejectPlazaPost(postId, { note = "" } = {}) {
     [postId, text.slice(0, 500)]
   );
   if (!updated.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "帖子不存在。");
-  publishPlatformBroadcast("plaza.post_deleted", { postId });
+  await publishPlatformBroadcast("plaza.post_deleted", { postId });
   return { ok: true, postId };
 }
 

@@ -158,8 +158,7 @@ export const api = {
       roomId,
       onEvent,
       signal,
-      cursorKey: sseCursorKey(roomId),
-      connectedOnOpen: true
+      cursorKey: sseCursorKey(roomId)
     });
   }
 };

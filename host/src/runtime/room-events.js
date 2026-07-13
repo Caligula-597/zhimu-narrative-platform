@@ -1,6 +1,7 @@
-import { api } from "../api.js";
+import { api, clearSession } from "../api.js";
 import { getRoomId } from "../session.js";
 import { state } from "../state.js";
+import { createSseLifecycle } from "../../../shared/sse-lifecycle.js";
 import {
   refreshHostClueMatrix,
   refreshHostEvents,
@@ -10,10 +11,7 @@ import {
 import { applyHostMiniGameEvent } from "./host-mini-game-controller.js";
 
 const DIRECTOR_POLL_MS = 15000;
-let directorPollTimer = null;
-let directorPollInFlight = false;
-let roomEventAbort = null;
-let roomEventReconnectTimer = null;
+let lifecycle = null;
 
 let renderRef = () => {};
 let showToastRef = (_msg, _ms) => {};
@@ -33,11 +31,7 @@ function showToast(message, ms) {
 
 async function refreshDirectorPoll() {
   try {
-    await Promise.all([
-      refreshHostEvents(false, true),
-      refreshHostPlayers(false, true),
-      refreshHostClueMatrix(false, true)
-    ]);
+    await refreshHostRoom(false);
     if (state.view === "console") render();
   } catch (error) {
     state.apiError = error.message;
@@ -45,58 +39,17 @@ async function refreshDirectorPoll() {
 }
 
 export function syncDirectorPolling() {
-  if (state.roomEventsConnected) {
-    if (directorPollTimer) {
-      clearInterval(directorPollTimer);
-      directorPollTimer = null;
-    }
-    return;
-  }
-  if (state.view === "console" && getRoomId()) {
-    if (!directorPollTimer) {
-      directorPollTimer = setInterval(async () => {
-        if (state.view !== "console" || !getRoomId()) {
-          clearInterval(directorPollTimer);
-          directorPollTimer = null;
-          return;
-        }
-        if (directorPollInFlight) return;
-        directorPollInFlight = true;
-        try {
-          await refreshDirectorPoll();
-        } finally {
-          directorPollInFlight = false;
-        }
-      }, DIRECTOR_POLL_MS);
-    }
-  } else if (directorPollTimer) {
-    clearInterval(directorPollTimer);
-    directorPollTimer = null;
-  }
+  if (state.view === "console" && getRoomId() && !lifecycle) connectRoomEvents();
+  if ((state.view !== "console" || !getRoomId()) && lifecycle) disconnectRoomEvents();
 }
 
 export function disconnectRoomEvents() {
-  if (roomEventReconnectTimer) {
-    clearTimeout(roomEventReconnectTimer);
-    roomEventReconnectTimer = null;
-  }
-  if (roomEventAbort) {
-    roomEventAbort.abort();
-    roomEventAbort = null;
-  }
+  lifecycle?.stop();
+  lifecycle = null;
   if (state.roomEventsConnected) {
     state.roomEventsConnected = false;
-    syncDirectorPolling();
     if (state.view === "console") render();
   }
-}
-
-function scheduleRoomEventReconnect() {
-  if (roomEventReconnectTimer || !getRoomId()) return;
-  roomEventReconnectTimer = setTimeout(() => {
-    roomEventReconnectTimer = null;
-    connectRoomEvents();
-  }, 5000);
 }
 
 async function handleRoomEvent(type, data) {
@@ -155,6 +108,17 @@ async function handleRoomEvent(type, data) {
       await refreshHostRoom(false);
       showToast("房间已从存档恢复", 2800);
       break;
+    case "room.vote_created":
+    case "room.vote_updated":
+    case "room.private_action_submitted":
+    case "room.private_action_updated":
+    case "room.role_state_updated":
+    case "room.physical_token_activated":
+    case "room.physical_token_event":
+    case "room.voice_message_created":
+    case "room.host_nudge":
+      await refreshHostRoom(false);
+      break;
     default:
       break;
   }
@@ -164,28 +128,39 @@ export function connectRoomEvents() {
   disconnectRoomEvents();
   const roomId = getRoomId();
   if (!roomId) return;
-  const boundRoom = roomId;
-  roomEventAbort = new AbortController();
-  const signal = roomEventAbort.signal;
-  api
-    .streamRoomEvents(roomId, async (type, payload) => {
-      if (type === "__connected__") {
-        state.roomEventsConnected = true;
-        state.roomEventsStatus = "live";
-        syncDirectorPolling();
-        if (state.view === "console") render();
-        return;
-      }
+  lifecycle = createSseLifecycle({
+    pollMs: DIRECTOR_POLL_MS,
+    open: ({ signal, onConnected }) => api.streamRoomEvents(roomId, async (type, payload) => {
+      if (type === "__connected__") return onConnected(payload);
       await handleRoomEvent(type, payload);
-    }, signal)
-    .catch(() => {})
-    .finally(() => {
-      const shouldReconnect = state.view === "console" && getRoomId() === boundRoom && !signal.aborted;
+    }, signal),
+    poll: () => state.view === "console" && getRoomId() === roomId ? refreshDirectorPoll() : undefined,
+    reconcile: () => refreshDirectorPoll(),
+    onStatus: (status) => {
+      state.roomEventsStatus = status === "connected" ? "live" : status;
+      if (state.view === "console") render();
+    },
+    onConnected: () => {
+      state.roomEventsConnected = true;
+      if (state.view === "console") render();
+    },
+    onDisconnected: () => {
       state.roomEventsConnected = false;
-      state.roomEventsStatus = shouldReconnect ? "reconnecting" : "idle";
-      syncDirectorPolling();
-      if (shouldReconnect) scheduleRoomEventReconnect();
-    });
+      if (state.view === "console") render();
+    },
+    onAuthLost: () => {
+      clearSession();
+      state.user = null;
+      state.authStatus = "anonymous";
+      state.view = "auth";
+      showToast("登录已过期，请重新登录", 3200);
+      render();
+    },
+    onError: (error, meta) => {
+      state.apiError = meta?.phase === "stream" ? `实时同步异常：${error.message}` : state.apiError;
+    }
+  });
+  lifecycle.start();
 }
 
 export function syncRoomStream() {

@@ -77,7 +77,7 @@ test("consumeSseStream ignores malformed events without stopping stream", async 
   });
 
   assert.deepEqual(events, [{ type: "message", data: { ok: true } }]);
-  assert.equal(localStorage.getItem("cursor:room-2"), "bad-json");
+  assert.equal(localStorage.getItem("cursor:room-2"), null);
 });
 
 test("consumeSseStream applies backpressure to async event handlers", async () => {

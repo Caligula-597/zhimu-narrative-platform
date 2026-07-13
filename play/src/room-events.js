@@ -1,30 +1,9 @@
 import { api } from "./api.js";
+import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
 
 const POLL_MS = 15000;
-const RECONNECT_MS = 5000;
-
-let streamAbort = null;
-let reconnectTimer = null;
-let pollTimer = null;
-let pollInFlight = false;
 let boundRoomId = "";
-let streamConnected = false;
-
-function clearReconnectTimer() {
-  if (reconnectTimer) {
-    clearTimeout(reconnectTimer);
-    reconnectTimer = null;
-  }
-}
-
-function scheduleReconnect(connect, ctx) {
-  if (reconnectTimer || !boundRoomId) return;
-  ctxSetStatus("reconnecting", ctx);
-  reconnectTimer = setTimeout(() => {
-    reconnectTimer = null;
-    connect();
-  }, RECONNECT_MS);
-}
+let lifecycle = null;
 
 function ctxSetStatus(status, ctx) {
   ctx?.setStreamStatus?.(status);
@@ -66,6 +45,13 @@ export async function handleRoomEvent(type, data, ctx) {
       if (type === "room.player_joined") ctx.bumpTabPulse?.("home");
       await ctx.onRefresh();
       if (type === "room.section_unlocked") ctx.onToast("新分幕已解锁");
+      break;
+    case "room.section_completed":
+    case "room.role_state_updated":
+    case "room.physical_token_activated":
+    case "room.physical_token_event":
+      ctx.bumpTabPulse?.("home");
+      await ctx.onRefresh();
       break;
     case "room.scene_unlocked":
       ctx.bumpTabPulse?.("explore");
@@ -153,42 +139,16 @@ export async function handleRoomEvent(type, data, ctx) {
 }
 
 export function disconnectRoomEvents(ctx) {
-  clearReconnectTimer();
-  if (streamAbort) {
-    streamAbort.abort();
-    streamAbort = null;
-  }
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
+  lifecycle?.stop();
+  lifecycle = null;
   boundRoomId = "";
-  streamConnected = false;
   ctxSetStatus("idle", ctx);
   ctx?.setConnected?.(false);
 }
 
 export function syncRoomPoll(active, ctx) {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
-  if (!active || !ctx.getRoomId() || streamConnected) {
-    if (streamConnected) ctxSetStatus("connected", ctx);
-    return;
-  }
-  ctxSetStatus("polling", ctx);
-  pollTimer = setInterval(async () => {
-    if (ctx.getView() !== "game" || !ctx.getRoomId() || pollInFlight) return;
-    pollInFlight = true;
-    try {
-      await ctx.onRefresh();
-    } catch {
-      /* polling is best-effort */
-    } finally {
-      pollInFlight = false;
-    }
-  }, POLL_MS);
+  if (!active) lifecycle?.stop();
+  else if (!lifecycle && ctx.getRoomId()) connectRoomEvents(ctx.getRoomId(), ctx);
 }
 
 export function connectRoomEvents(roomId, ctx) {
@@ -196,37 +156,22 @@ export function connectRoomEvents(roomId, ctx) {
   if (!roomId) return;
   boundRoomId = roomId;
 
-  const connect = () => {
-    if (!boundRoomId || boundRoomId !== roomId) return;
-    if (streamAbort) streamAbort.abort();
-    streamAbort = new AbortController();
-    const signal = streamAbort.signal;
-    ctxSetStatus("reconnecting", ctx);
-
-    api.streamRoomEvents(roomId, async (type, data) => {
-      if (type === "__connected__") {
-        streamConnected = true;
-        syncRoomPoll(false, ctx);
-        ctxSetStatus("connected", ctx);
-        ctx.setConnected?.(true);
-        return;
-      }
+  lifecycle = createSseLifecycle({
+    pollMs: POLL_MS,
+    open: ({ signal, onConnected }) => api.streamRoomEvents(roomId, async (type, data) => {
+      if (type === "__connected__") return onConnected(data);
       await handleRoomEvent(type, data, ctx);
-    }, signal).catch((error) => {
-      if (error?.status === 401) ctx.onAuthLost?.();
-    }).finally(() => {
-      const shouldReconnect = boundRoomId === roomId && !signal.aborted;
-      streamConnected = false;
-      ctx.setConnected?.(false);
-      if (shouldReconnect) {
-        syncRoomPoll(true, ctx);
-        scheduleReconnect(connect, ctx);
-      } else {
-        ctxSetStatus("idle", ctx);
-      }
-    });
-  };
-
-  connect();
-  syncRoomPoll(true, ctx);
+    }, signal),
+    poll: () => {
+      if (ctx.getView() !== "game" || ctx.getRoomId() !== roomId) return;
+      return ctx.onRefresh();
+    },
+    reconcile: () => ctx.onRefresh(),
+    onStatus: (status) => ctxSetStatus(status, ctx),
+    onConnected: () => ctx.setConnected?.(true),
+    onDisconnected: () => ctx.setConnected?.(false),
+    onAuthLost: () => ctx.onAuthLost?.(),
+    onError: (error, meta) => ctx.onStreamError?.(error, meta)
+  });
+  lifecycle.start();
 }

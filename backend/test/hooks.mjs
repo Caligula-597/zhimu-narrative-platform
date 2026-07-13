@@ -5,6 +5,7 @@
 import { after } from "node:test";
 import { pool } from "../src/db.js";
 import { stopRoomEventBus } from "../src/room-event-bus.js";
+import { stopPlatformEventBus } from "../src/platform-event-bus.js";
 import { hostUserId } from "./helpers/fixture-ids.js";
 
 /** Hundreds of tests register from 127.0.0.1; disable IP caps unless a test overrides. */
@@ -26,5 +27,6 @@ await pool.query(
 
 after(async () => {
   await stopRoomEventBus().catch(() => {});
+  await stopPlatformEventBus().catch(() => {});
   await pool.end().catch(() => {});
 });

@@ -21,6 +21,12 @@ const BLOCKED_PATH = [
 ];
 
 const BACKEND_PREFIX_TESTS = [
+  ["backend/src/room-event-bus", ["test/room-events.test.js", "test/room-event-bus-postgres.test.js"]],
+  ["backend/src/room-event-journal", ["test/room-event-journal.test.js"]],
+  ["backend/src/platform-event-bus", ["test/platform-event-bus-postgres.test.js", "test/platform-event-journal.test.js"]],
+  ["backend/src/platform-event-journal", ["test/platform-event-journal.test.js"]],
+  ["backend/src/postgres-event-listener", ["test/room-event-bus-postgres.test.js", "test/platform-event-bus-postgres.test.js"]],
+  ["backend/src/sse-replay-subscription", ["test/sse-replay-subscription.test.js"]],
   ["backend/src/db.js", ["test/creator-bible.test.js", "test/transaction-events.test.js"]],
   ["backend/src/script-bundle", ["test/script-bundle.test.js", "test/script-bundle-import.test.js"]],
   ["backend/src/pdf-document", ["test/pdf-document.test.js"]],
