@@ -34,7 +34,10 @@ test("play api persists bearer token for cross-origin session", () => {
 
 test("render layer escapes user content", () => {
   const renderSource = readFileSync(path.join(root, "src", "render.js"), "utf8");
-  const gameSource = readFileSync(path.join(root, "src", "views", "game.js"), "utf8");
+  const gameSource = [
+    "game-home-views.js", "game-section-view.js", "game-investigation-views.js",
+    "game-play-views.js", "game-recap-views.js", "game-shell-view.js"
+  ].map((file) => readFileSync(path.join(root, "src", "views", file), "utf8")).join("\n");
   assert.match(renderSource, /views\/game/);
   assert.match(gameSource, /escapeHtml\(/);
   assert.match(gameSource, /sanitizeImageUrl\(/);
@@ -97,7 +100,7 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(stateSource, /GAME_TAB_KEY/);
   assert.match(stateSource, /GAME_SIDEBAR_KEY/);
   assert.match(stateSource, /readStoredSidebarCollapsed/);
-  const gameViewSource = readFileSync(path.join(root, "src", "views", "game.js"), "utf8");
+  const gameViewSource = readFileSync(path.join(root, "src", "views", "game-shell-view.js"), "utf8");
   assert.match(gameViewSource, /game-main[\s\S]*game-sidebar/s);
   const shellSource = readFileSync(path.join(root, "src", "components", "shell.js"), "utf8");
   assert.match(shellSource, /renderGameResume/);
@@ -108,7 +111,8 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(landingSource, /landing-actions-signed-in/);
   assert.match(mainSource, /runPlayStartup/);
   assert.match(startupSource, /state\.view === "landing"/);
-  assert.match(gameSource, /hostConfirmBanner/);
+  const gameHomeSource = readFileSync(path.join(root, "src", "views", "game-home-views.js"), "utf8");
+  assert.match(gameHomeSource, /hostConfirmBanner/);
   assert.match(apiSource, /notebook/);
   assert.match(apiSource, /sections\/\$\{sectionId\}\/start/);
   assert.match(readerSource, /api\.startSection/);

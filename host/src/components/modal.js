@@ -33,8 +33,8 @@ export function studioField(label, key, type = "input", placeholder = "") {
   return `<label>${escapeHtml(label)}<input class="field" data-studio-field="${escapeHtml(key)}" placeholder="${escapeHtml(placeholder)}"></label>`;
 }
 
-export function studioSelect(label, key, options = []) {
-  return `<label>${escapeHtml(label)}<select class="field" data-studio-field="${escapeHtml(key)}">${studioOptionsHtml(options)}</select></label>`;
+export function studioSelect(label, key, options = [], selected = "") {
+  return `<label>${escapeHtml(label)}<select class="field" data-studio-field="${escapeHtml(key)}">${studioOptionsHtml(options, selected)}</select></label>`;
 }
 
 export function studioOptionsHtml(options, selected = "") {

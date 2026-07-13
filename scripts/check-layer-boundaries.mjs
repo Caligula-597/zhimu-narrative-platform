@@ -7,7 +7,12 @@ import path from "node:path";
 import test from "node:test";
 
 const routesDir = path.join(import.meta.dirname, "../backend/src/routes");
-const routeAggregators = new Set(["player-routes.js", "ops-routes.js", "account-routes.js"]);
+const routeAggregators = new Set([
+  "player-routes.js",
+  "ops-routes.js",
+  "account-routes.js",
+  "content-platform-routes.js"
+]);
 const allowedRouteImports = [
   /^\.\/schemas\.js$/,
   /^\.\/schemas\//,

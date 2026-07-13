@@ -117,8 +117,9 @@ const appEntry = (function (window) {
   render();
   const startupAuth = R.handleStartupAuthParams?.();
   Promise.resolve(startupAuth)
-    .then(() => window.zhimuSessionReady)
     .then(async () => {
+      // Keep startup to one authoritative auth probe. A former module-load
+      // probe raced this call and could overwrite a successful result.
       await window.zhimuAuthSession?.syncProfile?.();
       window.zhimuAuthSession?.syncAuthBanner?.();
       return R.loadCloudData();

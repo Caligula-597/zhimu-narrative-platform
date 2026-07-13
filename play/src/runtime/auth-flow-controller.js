@@ -1,3 +1,5 @@
+import { revokeSessionForLogout } from "../../../shared/auth-state.js";
+
 export function createAuthFlowController(ctx) {
   const {
     api, state, render, setBusy, setToast, formatApiError, setSessionToken,
@@ -99,6 +101,12 @@ export function createAuthFlowController(ctx) {
   }
 
   async function handleLogout() {
+    try {
+      await revokeSessionForLogout(api.logout);
+    } catch (error) {
+      setToast(formatApiError(error, "退出登录失败，请检查网络后重试"), render);
+      return;
+    }
     await resetVoiceOnLeave();
     disconnectRoomEvents(roomEventCtx);
     disconnectPlatformEvents(platformEventCtx);
@@ -108,7 +116,6 @@ export function createAuthFlowController(ctx) {
     state.user = null;
     state.view = "landing";
     render();
-    ensureSession().catch(() => {});
   }
 
   async function runBusy(operation, fallback) {

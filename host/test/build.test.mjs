@@ -44,20 +44,26 @@ test("host api uses cookie credentials, bearer fallback and room-scoped host end
 
 test("main.js wires console, SSE and director actions", () => {
   const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
+  const directorSource = readFileSync(path.join(root, "src", "runtime", "director-actions.js"), "utf8");
+  const lifecycleSource = readFileSync(path.join(root, "src", "runtime", "host-lifecycle-controller.js"), "utf8");
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
   const dataSource = readFileSync(path.join(root, "src", "runtime", "data.js"), "utf8");
   const eventsSource = readFileSync(path.join(root, "src", "runtime", "room-events.js"), "utf8");
-  assert.match(mainSource, /connectRoomEvents/);
-  assert.match(mainSource, /executeHostEvent/);
-  assert.match(mainSource, /case "host-select-act"/);
-  assert.match(mainSource, /el\?\.dataset\?\.actKey/);
-  assert.match(mainSource, /clueId:\s*el\?\.dataset\?\.clueId/);
-  assert.match(mainSource, /roleKey:\s*el\?\.dataset\?\.roleKey/);
-  assert.match(mainSource, /openHostUnlockSectionModal\(\{\s*actKey:\s*el\?\.dataset\?\.actKey\s*\}\)/);
-  assert.doesNotMatch(mainSource, /button\.dataset\.(?:testimony|flag|remedy|voteId|status|actionId|actKey)/);
+  assert.match(eventsSource, /connectRoomEvents/);
+  assert.match(directorSource, /executeHostEvent/);
+  assert.match(directorSource, /case "host-select-act"/);
+  assert.match(directorSource, /el\?\.dataset\?\.actKey/);
+  assert.match(directorSource, /clueId:\s*el\?\.dataset\?\.clueId/);
+  assert.match(directorSource, /roleKey:\s*el\?\.dataset\?\.roleKey/);
+  assert.match(directorSource, /openHostUnlockSectionModal\(\{\s*actKey:\s*el\?\.dataset\?\.actKey\s*\}\)/);
+  assert.doesNotMatch(`${mainSource}\n${directorSource}`, /button\.dataset\.(?:testimony|flag|remedy|voteId|status|actionId|actKey)/);
   assert.match(mainSource, /renderApp/);
-  assert.match(mainSource, /api\.me\(\)/);
-  assert.doesNotMatch(mainSource, /if \(!getSessionToken\(\)\) return/);
+  assert.match(lifecycleSource, /requestMe:\s*api\.me/);
+  assert.doesNotMatch(`${mainSource}\n${lifecycleSource}`, /if \(!getSessionToken\(\)\) return/);
+  assert.match(mainSource, /createDirectorActionHandler\(\{ render, showToast: setToast \}\)/);
+  assert.match(mainSource, /createHostLifecycleController\(\{ render, setBusy, showToast: setToast \}\)/);
+  assert.match(directorSource, /createDirectorActionHandler\(\{ render, showToast \}\)/);
+  assert.doesNotMatch(directorSource, /\bsetToast\(/);
   assert.match(consoleSource, /renderConsole/);
   assert.match(consoleSource, /host-kick-player/);
   assert.match(dataSource, /api\.getWorldSegments\(worldId\)/);
@@ -95,28 +101,32 @@ test("host command center uses segment runbooks and five critical queue actions"
 
 test("landing view exposes room management for authenticated hosts", () => {
   const landingSource = readFileSync(path.join(root, "src", "views", "landing.js"), "utf8");
-  const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
+  const lifecycleSource = readFileSync(path.join(root, "src", "runtime", "host-lifecycle-controller.js"), "utf8");
   assert.match(landingSource, /data-action="create-room"/);
   assert.match(landingSource, /data-action="refresh-rooms"/);
-  assert.match(mainSource, /case "create-room"/);
-  assert.match(mainSource, /case "refresh-rooms"/);
+  assert.match(lifecycleSource, /case "create-room"/);
+  assert.match(lifecycleSource, /case "refresh-rooms"/);
 });
 
 test("console render escapes user content", () => {
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
+  const interventionSource = readFileSync(path.join(root, "src", "runtime", "host-intervention-controller.js"), "utf8");
   assert.match(consoleSource, /escapeHtml\(/);
-  assert.match(consoleSource, /hostActClueIds/);
-  assert.match(consoleSource, /resolveSectionSegmentKey/);
-  assert.match(consoleSource, /sectionOptionsForRole/);
-  assert.match(consoleSource, /selectedClueId/);
-  assert.match(consoleSource, /checkedRoleIds/);
+  assert.match(interventionSource, /hostActClueIds/);
+  assert.match(interventionSource, /resolveSectionSegmentKey/);
+  assert.match(interventionSource, /sectionOptionsForRole/);
+  assert.match(interventionSource, /selectedClueId/);
+  assert.match(interventionSource, /checkedRoleIds/);
 });
 
 test("standalone console keeps the full host monitoring action surface", () => {
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
   const layoutSource = readFileSync(path.join(root, "src", "views", "host-layout.js"), "utf8");
-  const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
-  const hostSurface = `${consoleSource}\n${layoutSource}`;
+  const directorSource = readFileSync(path.join(root, "src", "runtime", "director-actions.js"), "utf8");
+  const eventSource = readFileSync(path.join(root, "src", "runtime", "host-event-queue.js"), "utf8");
+  const ruleSource = readFileSync(path.join(root, "src", "runtime", "host-rules-controller.js"), "utf8");
+  const interventionSource = readFileSync(path.join(root, "src", "runtime", "host-intervention-controller.js"), "utf8");
+  const hostSurface = `${consoleSource}\n${layoutSource}\n${eventSource}\n${ruleSource}\n${interventionSource}`;
   const actions = [
     "batch-dismiss-host-events",
     "batch-execute-host-events",
@@ -153,7 +163,7 @@ test("standalone console keeps the full host monitoring action surface", () => {
 
   for (const action of actions) {
     assert.match(hostSurface, new RegExp(`data-action=["']${action}["']`), `missing host action: ${action}`);
-    assert.match(mainSource, new RegExp(`["']${action}["']`), `missing action handler: ${action}`);
+    assert.match(directorSource, new RegExp(`["']${action}["']`), `missing action handler: ${action}`);
   }
 });
 

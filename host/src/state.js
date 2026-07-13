@@ -1,6 +1,8 @@
 export const state = {
   view: "landing",
   user: null,
+  authStatus: "checking",
+  authError: "",
   authMode: "login",
   authConfig: null,
   busy: false,
@@ -27,6 +29,7 @@ export const state = {
   cloudHostSegmentRemedies: [],
   cloudHostVotes: [],
   cloudHostPrivateActions: [],
+  cloudHostMiniGames: [],
   cloudRunReport: null,
   cloudRulesPreview: null,
   hostEventSelection: [],

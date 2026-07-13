@@ -5,11 +5,12 @@ import {
 } from "../../shared/api-client.js";
 import { createSessionTokenStore } from "../../shared/session-token.js";
 
-const APP_ORIGIN = (import.meta.env.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
+const viteEnv = import.meta.env || {};
+const APP_ORIGIN = (viteEnv.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
 const API_BASE = resolveVitePortalApiBase({
   viteAppOrigin: APP_ORIGIN,
-  viteApiOrigin: import.meta.env.VITE_API_ORIGIN,
-  dev: import.meta.env.DEV
+  viteApiOrigin: viteEnv.VITE_API_ORIGIN,
+  dev: viteEnv.DEV
 });
 
 const sessionToken = createSessionTokenStore("zhimuSessionToken");
@@ -58,6 +59,7 @@ export function hasSession() {
 export const api = {
   authConfig: () => request("/auth/config"),
   me: () => request("/auth/me"),
+  logout: () => request("/auth/logout", { method: "POST", body: {} }),
   guest: (displayName) => request("/auth/guest", { method: "POST", body: { displayName } }),
   login: (email, password) => request("/auth/login", { method: "POST", body: { email, password } }),
   register: (email, displayName, password) =>

@@ -349,7 +349,11 @@ export async function registerAuthRoutes(app) {
       response: { 200: { type: "object", properties: { ok: { type: "boolean" } } } }
     }
   }, async (request, reply) => {
-    await deleteSession(bearerToken(request) || readSessionCookie(request));
+    const presentedTokens = new Set([
+      bearerToken(request),
+      readSessionCookie(request)
+    ].filter(Boolean));
+    await Promise.all([...presentedTokens].map((token) => deleteSession(token)));
     clearSessionCookie(reply);
     return { ok: true };
   });

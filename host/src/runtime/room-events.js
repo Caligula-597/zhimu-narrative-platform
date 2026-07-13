@@ -7,6 +7,7 @@ import {
   refreshHostPlayers,
   refreshHostRoom
 } from "./data.js";
+import { applyHostMiniGameEvent } from "./host-mini-game-controller.js";
 
 const DIRECTOR_POLL_MS = 15000;
 let directorPollTimer = null;
@@ -134,6 +135,21 @@ async function handleRoomEvent(type, data) {
     case "room.investigation_completed":
       await refreshHostPlayers(false, true);
       await refreshHostEvents(false, true);
+      break;
+    case "room.game_started":
+      applyHostMiniGameEvent(type, data);
+      showToast("小游戏已同步到玩家端", 2800);
+      render();
+      break;
+    case "room.game_updated":
+      applyHostMiniGameEvent(type, data);
+      showToast(data.correct ? "玩家已解开小游戏" : "玩家提交了答案，剩余次数已更新", 2400);
+      render();
+      break;
+    case "room.game_completed":
+      applyHostMiniGameEvent(type, data);
+      showToast(data.correct === false ? "小游戏尝试次数已耗尽" : "小游戏已完成", 2800);
+      render();
       break;
     case "room.checkpoint_restored":
       await refreshHostRoom(false);

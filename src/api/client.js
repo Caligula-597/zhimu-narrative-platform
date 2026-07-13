@@ -6,7 +6,6 @@
  * `window.zhimuApi` bridge has been removed; consumers import the namespace directly.
  */
 import { friendlyApiError } from "../utils/user-messages.js";
-import { userStore } from "../state/index.js";
 import { createPortalApiClient } from "../../shared/api-client.js";
 import { createIdempotencyKey as sharedCreateIdempotencyKey } from "../../shared/api-fetch.js";
 
@@ -235,19 +234,3 @@ export function clearRoom() {
 export function loadKey() {
   return `${demoContext.worldId}:${demoContext.roomId}`;
 }
-
-/* ── Session bootstrap (runs on module load) ── */
-
-window.zhimuSessionReady = (async () => {
-  try {
-    const me = await request("/auth/me", demoMode ? { userId: demoContext.hostUserId } : {});
-    if (me?.id) {
-      userStore.set({ currentUser: me });
-      if (!sessionAuth().legacyToken?.()) sessionAuth().markAuthenticated?.();
-    }
-    return me;
-  } catch {
-    if (sessionAuth().legacyToken?.()) sessionAuth().markLoggedOut?.();
-    return null;
-  }
-})();

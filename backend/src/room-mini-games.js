@@ -59,7 +59,9 @@ export function publicMiniGame(row) {
     attemptsLeft: state.attempts_left ?? null,
     attempts_left: state.attempts_left ?? null,
     completedAt: row.completed_at ?? null,
-    completed_at: row.completed_at ?? null
+    completed_at: row.completed_at ?? null,
+    createdAt: row.created_at ?? null,
+    updatedAt: row.updated_at ?? null
   };
 }
 

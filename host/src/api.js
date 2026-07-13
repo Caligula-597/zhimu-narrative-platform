@@ -9,12 +9,13 @@ import { defaultSessionTokenStore } from "../../shared/session-token.js";
 
 export { getSessionToken, setSessionToken };
 
-const APP_ORIGIN = (import.meta.env.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
-const PLAY_ORIGIN = (import.meta.env.VITE_PLAY_ORIGIN || "https://play.getzhimu.com").replace(/\/$/, "");
+const viteEnv = import.meta.env || {};
+const APP_ORIGIN = (viteEnv.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
+const PLAY_ORIGIN = (viteEnv.VITE_PLAY_ORIGIN || "https://play.getzhimu.com").replace(/\/$/, "");
 const API_BASE = resolveVitePortalApiBase({
   viteAppOrigin: APP_ORIGIN,
-  viteApiOrigin: import.meta.env.VITE_API_ORIGIN,
-  dev: import.meta.env.DEV
+  viteApiOrigin: viteEnv.VITE_API_ORIGIN,
+  dev: viteEnv.DEV
 });
 
 function sseCursorKey(roomId) {
@@ -24,7 +25,7 @@ function sseCursorKey(roomId) {
 const portal = createPortalApiClient({
   baseUrl: API_BASE,
   tokenStore: defaultSessionTokenStore,
-  getDemoUserId: () => resolveDemoUserId(localStorage, { requireDemoFlag: import.meta.env.DEV }),
+  getDemoUserId: () => resolveDemoUserId(localStorage, { requireDemoFlag: viteEnv.DEV }),
   mapHttpError: createPortalJsonError,
   clearTokenOn401: true
 });
@@ -56,6 +57,7 @@ export function clearSession() {
 export const api = {
   authConfig: () => request("/auth/config"),
   me: () => request("/auth/me"),
+  logout: () => request("/auth/logout", { method: "POST", body: {} }),
   login: (email, password) => request("/auth/login", { method: "POST", body: { email, password } }),
   register: (email, displayName, password) =>
     request("/auth/register", { method: "POST", body: { email, displayName, password } }),
@@ -101,6 +103,11 @@ export const api = {
   hostUpdateVoteStatus: (voteId, status) =>
     request(roomPath(`/host/votes/${voteId}`), { method: "PATCH", body: { status } }),
   getHostPrivateActions: () => request(roomPath("/host/private-actions")),
+  getHostMiniGames: () => request(roomPath("/host/mini-games")),
+  startHostMiniGame: (payload) =>
+    request(roomPath("/host/mini-games"), { method: "POST", body: payload, idempotent: true }),
+  forceCompleteHostMiniGame: (gameId) =>
+    request(roomPath(`/host/mini-games/${gameId}/force-complete`), { method: "POST", body: {}, idempotent: true }),
   hostUpdatePrivateAction: (actionId, payload) =>
     request(roomPath(`/host/private-actions/${actionId}`), { method: "PATCH", body: payload }),
   hostUpdateRoleState: (roleSlotId, payload) =>

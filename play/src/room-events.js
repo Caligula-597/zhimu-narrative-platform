@@ -30,7 +30,7 @@ function ctxSetStatus(status, ctx) {
   ctx?.setStreamStatus?.(status);
 }
 
-async function handleRoomEvent(type, data, ctx) {
+export async function handleRoomEvent(type, data, ctx) {
   if (ctx.getView() !== "game" || !ctx.getRoomId()) return;
   const roleId = ctx.getRoleId();
   const affectsPlayer = !data.roleSlotId || data.roleSlotId === roleId;
@@ -105,8 +105,17 @@ async function handleRoomEvent(type, data, ctx) {
       }
       break;
     }
+    case "room.game_updated": {
+      const game = data.currentGame || data.current_game || data.game || data;
+      ctx.setCurrentGame?.(game);
+      ctx.bumpTabPulse?.("home");
+      const attempts = game.attemptsLeft ?? game.attempts_left;
+      ctx.onToast(data.correct
+        ? "机关已解开"
+        : attempts == null ? "答案不正确" : `答案不正确，剩余 ${attempts} 次`);
+      break;
+    }
     case "room.game_started":
-    case "room.game_updated":
       ctx.setCurrentGame?.(data.currentGame || data.current_game || data.game || data);
       ctx.bumpTabPulse?.("home");
       ctx.onToast(data.title ? `解密机关：${data.title}` : "新的解密机关已开启");
@@ -114,7 +123,7 @@ async function handleRoomEvent(type, data, ctx) {
     case "room.game_completed":
       ctx.setCurrentGame?.(data.currentGame || data.current_game || data.game || { status: "success" });
       ctx.bumpTabPulse?.("home");
-      ctx.onToast(data.success === false ? "解密机关已结束" : "解密机关已解开");
+      ctx.onToast(data.correct === false || data.success === false ? "机关尝试次数已耗尽" : "机关已解开");
       break;
     case "room.player_kicked": {
       const myId = ctx.getUserId?.();

@@ -3,6 +3,7 @@ import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
 import { fixtureRoomId, hostUserId, playerUserId } from "./helpers/fixture-ids.js";
+import { subscribeRoomEvents } from "../src/room-event-bus.js";
 
 test("mini game loop starts, submits, and completes for player home", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
@@ -12,6 +13,11 @@ test("mini game loop starts, submits, and completes for player home", async (con
   });
 
   await query(`DELETE FROM room_mini_games WHERE room_id = $1`, [fixtureRoomId]);
+  const roomEvents = [];
+  const unsubscribe = subscribeRoomEvents(fixtureRoomId, ({ payload }) => {
+    roomEvents.push(JSON.parse(payload));
+  });
+  context.after(unsubscribe);
 
   const started = await app.inject({
     method: "POST",
@@ -31,6 +37,8 @@ test("mini game loop starts, submits, and completes for player home", async (con
   assert.equal(startBody.currentGame.gameType, "zhimu_lock");
   assert.equal(startBody.currentGame.attemptsLeft, 2);
   assert.equal(startBody.currentGame.config.answer_hash, undefined);
+  assert.equal(roomEvents.at(-1).type, "room.game_started");
+  assert.equal(roomEvents.at(-1).currentGame.instanceId, startBody.currentGame.instanceId);
 
   const home = await app.inject({
     method: "GET",
@@ -54,6 +62,8 @@ test("mini game loop starts, submits, and completes for player home", async (con
   assert.equal(wrong.json().correct, false);
   assert.equal(wrong.json().currentGame.status, "playing");
   assert.equal(wrong.json().attemptsLeft, 1);
+  assert.equal(roomEvents.at(-1).type, "room.game_updated");
+  assert.equal(roomEvents.at(-1).currentGame.attemptsLeft, 1);
 
   const correct = await app.inject({
     method: "POST",
@@ -68,6 +78,8 @@ test("mini game loop starts, submits, and completes for player home", async (con
   assert.equal(correct.statusCode, 200, correct.body);
   assert.equal(correct.json().correct, true);
   assert.equal(correct.json().currentGame.status, "success");
+  assert.equal(roomEvents.at(-1).type, "room.game_completed");
+  assert.equal(roomEvents.at(-1).currentGame.status, "success");
 
   const afterHome = await app.inject({
     method: "GET",

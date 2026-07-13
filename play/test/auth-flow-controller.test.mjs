@@ -47,3 +47,32 @@ test("unsupported OAuth provider is rejected before network access", async () =>
   await controller.handleOAuth("unknown");
   assert.deepEqual(calls[0], ["toast", "不支持的登录方式"]);
 });
+
+test("logout revokes the backend session before clearing local state", async () => {
+  const order = [];
+  const { controller, state } = setup(
+    { logout: async () => { order.push("remote"); } },
+    {
+      clearSession: () => order.push("local"),
+      resetVoiceOnLeave: async () => order.push("voice")
+    }
+  );
+  state.user = { id: "user-1" };
+  await controller.handleLogout();
+  assert.deepEqual(order, ["remote", "voice", "local"]);
+  assert.equal(state.user, null);
+  assert.equal(state.view, "landing");
+});
+
+test("logout keeps the visible session when the server cannot revoke it", async () => {
+  let cleared = false;
+  const { controller, state, calls } = setup(
+    { logout: async () => { throw Object.assign(new Error("offline"), { status: 503 }); } },
+    { clearSession: () => { cleared = true; } }
+  );
+  state.user = { id: "user-1" };
+  await controller.handleLogout();
+  assert.equal(cleared, false);
+  assert.equal(state.user.id, "user-1");
+  assert.ok(calls.some(([kind, message]) => kind === "toast" && message.includes("退出登录失败")));
+});

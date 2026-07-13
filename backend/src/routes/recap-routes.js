@@ -2,7 +2,8 @@ import { query } from "../db.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole } from "./route-guards.js";
-import { buildRoomRecapSnapshot, filterRecapForPlayer, summarizeRecap } from "./recap-helpers.js";
+import { buildRoomRecapSnapshot } from "./recap-helpers.js";
+import { filterRecapForPlayer, summarizeRecap } from "../recap-projection-service.js";
 import { createRecapSchema, recapIdParams, roomIdParams } from "./schemas.js";
 import { rewardFirstRecap } from "../credits.js";
 

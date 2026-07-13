@@ -2,7 +2,7 @@
  * Per-request LLM runtime (user BYOK vs platform pool) via AsyncLocalStorage.
  */
 import { AsyncLocalStorage } from "node:async_hooks";
-import { deepseekConfig } from "./deepseek.js";
+import { deepseekConfig } from "./deepseek-config.js";
 
 export const llmRuntimeStorage = new AsyncLocalStorage();
 

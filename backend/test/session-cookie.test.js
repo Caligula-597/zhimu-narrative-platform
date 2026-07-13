@@ -52,3 +52,40 @@ test("logout clears session cookie", async (context) => {
   assert.equal(logout.statusCode, 200);
   assert.match(String(logout.headers["set-cookie"] || ""), /Max-Age=0/i);
 });
+
+test("logout revokes both bearer and cookie sessions when both are presented", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: false });
+  context.after(() => app.close());
+
+  const bearerLogin = await app.inject({
+    method: "POST",
+    url: "/api/auth/guest",
+    payload: { displayName: "Bearer logout" }
+  });
+  const cookieLogin = await app.inject({
+    method: "POST",
+    url: "/api/auth/guest",
+    payload: { displayName: "Cookie logout" }
+  });
+  const bearerToken = bearerLogin.json().token;
+  const cookieToken = cookieLogin.json().token;
+
+  const logout = await app.inject({
+    method: "POST",
+    url: "/api/auth/logout",
+    headers: {
+      authorization: `Bearer ${bearerToken}`,
+      cookie: `zhimu_session=${encodeURIComponent(cookieToken)}`
+    }
+  });
+  assert.equal(logout.statusCode, 200);
+
+  for (const token of [bearerToken, cookieToken]) {
+    const me = await app.inject({
+      method: "GET",
+      url: "/api/auth/me",
+      headers: { authorization: `Bearer ${token}` }
+    });
+    assert.equal(me.statusCode, 401);
+  }
+});

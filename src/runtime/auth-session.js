@@ -2,8 +2,15 @@
 import * as zhimuApi from "../api/index.js";
 import { userStore } from "../state/index.js";
 import { callRuntime, render } from "./runtime-facade.js";
+import {
+  authProbeFailureStatus,
+  isSessionRejection,
+  normalizeAuthenticatedUser
+} from "../../shared/auth-state.js";
 (function (window) {
   const S = () => window.zhimuSessionMode || {};
+  let authStatus = "checking";
+  let lastAuthError = null;
 
   function isLoggedIn() {
     if (userStore.get().currentUser?.id) return true;
@@ -37,7 +44,7 @@ import { callRuntime, render } from "./runtime-facade.js";
   }
 
   function normalizeUserPayload(payload) {
-    return payload?.user?.id ? payload.user : payload;
+    return normalizeAuthenticatedUser(payload);
   }
 
   function profileNodes() {
@@ -78,6 +85,8 @@ import { callRuntime, render } from "./runtime-facade.js";
     const user = normalizeUserPayload(payload);
     if (!user?.id) return false;
     userStore.set({ currentUser: user });
+    authStatus = "authenticated";
+    lastAuthError = null;
     window.zhimuSessionAuth?.markAuthenticated?.();
     updateProfileText(user);
     syncAuthBanner();
@@ -88,19 +97,35 @@ import { callRuntime, render } from "./runtime-facade.js";
     const rerender = options.rerender !== false;
     const beforeMode = S().getSessionMode?.();
     const beforeUserId = userStore.get().currentUser?.id || "";
+    authStatus = "checking";
+    lastAuthError = null;
     try {
       const me = await zhimuApi.me();
       if (!applyProfileUser(me)) throw new Error("Invalid auth profile");
       const afterMode = S().getSessionMode?.();
       const afterUserId = userStore.get().currentUser?.id || "";
       if (rerender && (beforeMode !== afterMode || beforeUserId !== afterUserId)) render();
-    } catch {
-      userStore.set({ currentUser: null });
-      if (window.zhimuSessionAuth?.legacyToken?.()) window.zhimuSessionAuth?.markLoggedOut?.();
-      updateProfileText(null);
-      syncAuthBanner();
-      if (rerender && beforeMode === "authenticated") render();
+      return { status: authStatus, user: normalizeUserPayload(me), error: null };
+    } catch (error) {
+      authStatus = authProbeFailureStatus(error);
+      lastAuthError = error;
+      if (isSessionRejection(error)) {
+        userStore.set({ currentUser: null });
+        window.zhimuSessionAuth?.markLoggedOut?.();
+        updateProfileText(null);
+        syncAuthBanner();
+        if (rerender && beforeMode === "authenticated") render();
+      }
+      return { status: authStatus, user: userStore.get().currentUser, error };
     }
+  }
+
+  function getAuthStatus() {
+    return {
+      status: authStatus,
+      user: userStore.get().currentUser,
+      error: lastAuthError
+    };
   }
 
   function promptAuthIfNeeded(force = false) {
@@ -127,6 +152,7 @@ import { callRuntime, render } from "./runtime-facade.js";
     isDemoBrowseMode,
     syncAuthBanner,
     syncProfile,
+    getAuthStatus,
     applyProfileUser,
     promptAuthIfNeeded
   };

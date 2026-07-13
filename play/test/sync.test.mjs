@@ -51,8 +51,11 @@ test("renderSyncStatusBannerHtml surfaces reconnect and poll states", () => {
 test("main.js uses pull generation and partial refresh paths", () => {
   const main = readFileSync(path.join(root, "src", "main.js"), "utf8");
   const social = readFileSync(path.join(root, "src", "runtime", "social-controller.js"), "utf8");
-  assert.match(main, /pullGeneration/);
-  assert.match(main, /pendingRoomRefresh/);
+  const playerHome = readFileSync(path.join(root, "src", "runtime", "player-home-controller.js"), "utf8");
+  assert.match(main, /createPlayerHomeController/);
+  assert.match(playerHome, /currentGeneration !== generation/);
+  assert.match(playerHome, /pendingRoomRefresh/);
+  assert.match(playerHome, /Promise\.allSettled/);
   assert.match(main, /isGameInputFocused/);
   assert.match(main, /createSocialController/);
   assert.match(social, /dmScrollStickBottom/);
