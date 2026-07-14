@@ -41,8 +41,13 @@ const client = await pool.connect();
 let migrationLockAcquired = false;
 
 try {
-  const lock = await client.query(`SELECT pg_try_advisory_lock(hashtext($1)) AS acquired`, [MIGRATION_LOCK_KEY]);
-  migrationLockAcquired = lock.rows[0]?.acquired === true;
+  for (let attempt = 1; attempt <= 30; attempt += 1) {
+    const lock = await client.query(`SELECT pg_try_advisory_lock(hashtext($1)) AS acquired`, [MIGRATION_LOCK_KEY]);
+    migrationLockAcquired = lock.rows[0]?.acquired === true;
+    if (migrationLockAcquired) break;
+    console.warn(`[migrate] deployment lock busy (${attempt}/30); waiting 2s…`);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
   if (!migrationLockAcquired) {
     throw new Error("Another migration runner currently holds the deployment lock");
   }
