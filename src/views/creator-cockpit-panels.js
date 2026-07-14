@@ -253,7 +253,7 @@ export function renderManuscriptCanvas(ctx, cockpit) {
   }
   return `<section class="cockpit-panel"><div class="panel-heading"><div><p>内容生产</p><h3>${counts.sections || 0} 分幕 · ${counts.chapters || 0} 章节</h3></div></div>
     <div class="workspace-action-grid" style="margin-top:12px">
-      <button type="button" class="workspace-action-card primary" data-action="deepseek-pipeline"><strong>AI 悬疑创作</strong><span>Matrix 向导</span></button>
+      <button type="button" class="workspace-action-card primary" data-action="deepseek-pipeline"><strong>AI 悬疑创作</strong><span>八层生成流程</span></button>
       <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>Markdown 分幕</span></button>
       <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>Word / Markdown</span></button>
     </div></section>`;

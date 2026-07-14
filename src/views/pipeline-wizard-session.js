@@ -1,6 +1,11 @@
 /** AI pipeline session model — matrix-first 8-step flow (no DOM). */
 (function (window) {
   const PIPELINE_LAYER_ORDER = ["setup", "truth", "characters", "matrix", "host", "scripts", "evaluate", "sync"];
+  /** Canonical product copy for entry points and wizard chrome (doc §9.2). */
+  const PIPELINE_FLOW_SUMMARY =
+    "八层生成流程：立项 → 真相 → 角色 → 信息矩阵 → 主持手册 → 逐幕剧本 → 评判 → 入库";
+  const PIPELINE_FLOW_ESTIMATE =
+    "分步可中断；已锁定层可复用。完整跑通约 8～20 次模型调用，视幕数与角色数而定（通常十几到数十分钟）。";
   const PIPELINE_LAYER_LABEL = {
     setup: "创作立项",
     truth: "真相档案",
@@ -252,6 +257,8 @@
     PIPELINE_LAYER_ORDER,
     PIPELINE_LAYER_LABEL,
     PIPELINE_LAYER_DEPS,
+    PIPELINE_FLOW_SUMMARY,
+    PIPELINE_FLOW_ESTIMATE,
     pipelineWordTargets,
     scriptMinWords,
     countMatrixScripts,
