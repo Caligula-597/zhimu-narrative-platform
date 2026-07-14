@@ -10,6 +10,10 @@ export function creatorPreviewModalHtml(controlsHtml) {
   return `<h2>玩家视角模拟器</h2><p class="wizard-intro">切换角色和章节，核对玩家能读到的私人文本。草稿、测试中和已发布状态会明确标记。</p><div class="preview-controls">${controlsHtml}</div><div data-preview-body></div><div class="modal-actions"><button class="primary-btn" data-close>结束模拟</button></div>`;
 }
 
+export function publishImpactModalHtml(controlsHtml) {
+  return `<h2>发布影响预览</h2><p class="wizard-intro">选择角色与房间类型，查看该玩家此刻按发布状态能看到的章节、分幕、场景、线索与任务，以及不可见原因。不含运行中解锁/持有态（解锁与授予另计）。</p><div class="preview-controls">${controlsHtml}</div><div data-impact-body></div><div class="modal-actions"><button class="primary-btn" data-close>关闭</button></div>`;
+}
+
 export function deliveryExportModalHtml() {
   return `<h2>交付包导出</h2><p class="wizard-intro">分步选择交付物：内容包备份、玩家本、线索清单、主持手册与版本快照。</p><div data-delivery-body></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-delivery-back style="display:none">上一步</button><button class="secondary-btn" data-delivery-next>下一步</button><button class="primary-btn" data-delivery-run style="display:none">开始导出</button></div>`;
 }

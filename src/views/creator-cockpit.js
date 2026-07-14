@@ -10,6 +10,7 @@ import { registerView } from "../runtime/view-registry.js";
 import { studioStore, worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { normalizeError } from "../components/status-ui.js";
+import { contentLayerMapHtml } from "../components/content-layer-map.js";
 import {
   CANVAS_LABELS,
   CANVAS_MODES,
@@ -277,7 +278,7 @@ export function creatorCockpit() {
       kicker: "CREATOR COCKPIT",
       intro: "按真实创作流程组织：概念 → 架构 → 人物 → 流程 → 文稿 → 测试。请先选择或创建剧本。",
       guideTitle: "开始",
-      guideItems: [{ label: "流程", title: "六阶段工作台", text: "左清单、中画布、右副驾；多数操作可在驾驶舱内完成。", bullets: ["灵感池、真相链、章节、角色均可快速添加", "专业编辑器仍可从深链打开"] }]
+      guideItems: [{ label: "流程", title: "六阶段主流程", text: "驾驶舱是唯一创作顺序；左清单、中画布、右副驾完成多数工作。", bullets: ["灵感池、真相链、章节、角色均可快速添加", "复杂编辑打开侧栏「精细编辑器」"] }]
     }) || `<section class="card"><h3>尚未选择剧本</h3></section>`;
   }
   syncDraftForWorld();
@@ -295,6 +296,7 @@ export function creatorCockpit() {
       <div>
         <p class="eyebrow">CREATOR COCKPIT · ${escapeHtml(worldName)}</p>
         <h2>创作驾驶舱</h2>
+        <p class="cockpit-hero-lede">六阶段是唯一主流程。侧栏「精细编辑器」用于复杂专业页；「工作模式」只是按任务类型切换视图。</p>
         <span>字段完成 <strong>${dash?.readiness?.productionPercent ?? "—"}%</strong> · 系统检查 <strong>${(dash?.checks || []).length}</strong> 条 · error ${(dash?.checks || []).filter((c) => c.level === "error").length} · warning ${(dash?.checks || []).filter((c) => c.level === "warning").length}</span>
       </div>
       <div class="cockpit-hero-actions">
@@ -304,6 +306,7 @@ export function creatorCockpit() {
       </div>
     </header>
     <div class="cockpit-stage-strip">${renderStageTabs(stages)}</div>
+    ${contentLayerMapHtml({ open: false })}
     ${dash?.production?.length ? renderProductionStrip(dash.production) : ""}
     <div class="cockpit-workbench">
       <aside class="cockpit-nav-band">

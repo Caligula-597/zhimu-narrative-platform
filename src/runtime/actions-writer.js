@@ -10,6 +10,7 @@ import { callView } from "./view-registry.js";
       case "creator-delete-chapter": callView("writer", "deleteCreatorChapter", el?.dataset?.chapter); return true;
       case "creator-check": callView("writer", "runCreatorChecks"); return true;
       case "creator-preview": callView("writer", "openCreatorPreview"); return true;
+      case "publish-impact-preview": callView("writer", "openPublishImpactPreview"); return true;
       case "creator-collaboration": callView("writer", "openCollaboration"); return true;
       case "creator-logs": callView("writer", "openWorldLogs"); return true;
       case "creator-document-parser": callView("writer", "openDocumentParser"); return true;

@@ -144,6 +144,14 @@ button { cursor: pointer; border: 0; }
   line-height: 1.55;
 }
 
+.cockpit-hero-lede {
+  margin-top: 6px !important;
+  max-width: 640px;
+  color: #665f55;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .cockpit-hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2028,6 +2036,7 @@ h3 { font-size:15px; }
 .pipeline-wizard-title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
 .pipeline-wizard-title-row h2 { margin:0; font-size:20px; }
 .pipeline-wizard-hint { margin-top:4px; color:var(--muted); font-size:10px; line-height:1.5; }
+.pipeline-wizard-estimate { margin:4px 0 0; color:var(--muted); font-size:10px; line-height:1.45; opacity:.88; }
 .pipeline-wizard-body { display:grid; grid-template-columns:220px minmax(0,1fr); min-height:0; overflow:hidden; }
 .pipeline-wizard-side { display:flex; flex-direction:column; gap:8px; min-height:0; min-width:0; padding:16px 14px; color:#e9f1ee; background:linear-gradient(165deg,#153f3c,#102f2e); overflow:hidden; }
 .pipeline-side-kicker { margin:4px 0 0; color:rgba(255,255,255,.45); font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
@@ -2881,7 +2890,92 @@ body.modal-scroll-lock { position:fixed; width:100%; left:0; right:0; }
 /* Creator six-workspace IA */
 .workspace-hero { margin-bottom: 16px; }
 .workspace-hero .workspace-lede { margin: 8px 0 0; color: var(--muted, #5c6664); line-height: 1.55; }
+.workspace-mode-intro {
+  margin: 16px 0 0;
+  padding: 16px 18px;
+}
+.workspace-mode-intro h2 { margin: 4px 0 8px; font-size: 22px; }
+.workspace-mode-intro p { margin: 0; color: #665f55; line-height: 1.55; max-width: 720px; }
 .workspace-hub-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0 4px; }
+
+.content-layer-map {
+  margin: 12px 0 4px;
+  padding: 0;
+}
+.content-layer-map > summary {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+.content-layer-map > summary::-webkit-details-marker { display: none; }
+.content-layer-map > summary .section-kicker { margin: 0; }
+.content-layer-summary-hint {
+  color: #665f55;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.content-layer-lede {
+  margin: 0;
+  padding: 0 16px 10px;
+  color: #665f55;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 780px;
+}
+.content-layer-steps {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0 16px 14px;
+  list-style: none;
+}
+.content-layer-step {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+.content-layer-index {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #2f2a22;
+  color: #fbfaf6;
+  font-size: 11px;
+  line-height: 20px;
+  text-align: center;
+}
+.content-layer-step strong { font-size: 13px; }
+.content-layer-step small { color: #665f55; line-height: 1.4; font-size: 11px; }
+@media (max-width: 1100px) {
+  .content-layer-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .content-layer-steps { grid-template-columns: 1fr 1fr; }
+}
+
+.publish-impact-summary { margin: 8px 0 12px; color: #665f55; }
+.publish-impact-group { margin: 0 0 14px; }
+.publish-impact-group h4 { margin: 0 0 8px; font-size: 13px; }
+.publish-impact-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.publish-impact-row strong { display: block; font-size: 13px; }
+.publish-impact-row small { display: block; margin-top: 2px; color: #665f55; line-height: 1.4; }
+.publish-impact-row.is-hidden { opacity: .78; }
 .workspace-link-card {
   display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 16px;
   border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,.78);

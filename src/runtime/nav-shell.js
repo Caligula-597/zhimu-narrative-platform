@@ -63,7 +63,7 @@ import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
     const expanded = localStorage.getItem("zhimuNavAdvanced") === "1" || ADVANCED_VIEWS.includes(view);
     panel.hidden = !expanded;
     toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-    toggle.textContent = expanded ? "⋯ 收起创作工具" : "⋯ 更多创作工具";
+    toggle.textContent = expanded ? "⋯ 收起精细编辑器" : "⋯ 精细编辑器";
   }
 
   window.zhimuNavShell = { syncNavAdvanced, syncWorldSwitcher, ADVANCED_VIEWS };

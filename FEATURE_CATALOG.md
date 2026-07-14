@@ -1,6 +1,7 @@
 # 织幕 · 完整功能目录（Alpha）
 
 > **文档用途**：团队协调用的功能总表。每个功能标明已实现、部分实现、未实现与已知局限。  
+> **详尽产品流程、三端同步与首次使用者评审**：[docs/PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md](./docs/PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md)
 > **产品现状（中文长文，推荐先读）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **一张表总览（后端/前端/未接通/缺陷）**：[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)  
 > **更新日期**：2026-06-20（主持—玩家联动 · **347** 测试 · **62** schema · **44** UI smoke · **15** E2E）  

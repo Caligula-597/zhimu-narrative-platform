@@ -21,6 +21,7 @@ import {
   renderRelationshipGraph
 } from "./platform-runtime.js";
 import { renderTruthBiblePage, loadTruthBibleTab } from "./truth-bible.js";
+import { contentLayerMapHtml } from "../components/content-layer-map.js";
 
 const escapeHtml = F.escapeHtml || ((v = "") => String(v));
 const activeRuntimeRoom = U.activeRuntimeRoom || (() => null);
@@ -47,9 +48,14 @@ function workspaceLinkCard(view, icon, title, detail) {
 }
 
 export function creatorWorkspaceHub() {
-  return `<section class="workspace-hub-grid" aria-label="六大工作区">
-    ${workspaceLinkCard("creatorCockpit", "⌂", "创作驾驶舱", "六阶段字段完成度与深链")}
-    ${workspaceLinkCard("production", "✎", "内容生产", "AI/Matrix、角色分屏、导入导出")}
+  return `<section class="workspace-mode-intro card">
+    <p class="section-kicker">WORK MODE</p>
+    <h2>工作模式</h2>
+    <p>下面是按<strong>工作类型</strong>切换的入口，不是第二套创作顺序。日常请以侧栏<strong>创作驾驶舱六阶段</strong>为主流程；需要啃大编辑器时再进「精细编辑器」。</p>
+  </section>
+  <section class="workspace-hub-grid" aria-label="工作模式">
+    ${workspaceLinkCard("creatorCockpit", "⌂", "创作驾驶舱", "六阶段主流程 · 完成度与深链")}
+    ${workspaceLinkCard("production", "✎", "内容生产", "AI、母稿、角色分幕、导入导出")}
     ${workspaceLinkCard("structure", "◇", "结构编排", "Segment 工作台与编排入口")}
     ${workspaceLinkCard("truth", "◈", "真相与关系", "真相链、关系图、误导线")}
     ${workspaceLinkCard("publish", "▶", "测试与发布", "发布检查、质量报告、试跑")}
@@ -72,6 +78,7 @@ export function production() {
   const roleCount = data.roles?.length || 0;
   const sectionCount = data.sections?.length || 0;
   return `${workspaceHero("CONTENT PRODUCTION", "内容生产", "合并 AI 剧本创作、完整剧情、角色私人分幕与内容包导入导出。写本完成后进入 <strong>结构编排</strong> 绑定 Segment。")}
+  ${contentLayerMapHtml({ open: false })}
   <section class="workspace-action-grid">
     <button type="button" class="workspace-action-card primary" data-action="deepseek-pipeline"><strong>AI 悬疑创作</strong><span>八层生成 · 立项到入库</span></button>
     <button type="button" class="workspace-action-card" data-action="story-manuscript"><strong>完整剧情</strong><span>母稿与章节总览</span></button>
@@ -278,6 +285,7 @@ export function structure() {
       </form>`
     : `<div class="empty-state">选择或创建一个 Segment 开始编辑。</div>`;
   return `${workspaceHero("SEGMENT WORKBENCH", "结构编排", "Segment 是章节、分幕、任务与主持 runbook 的<strong>聚合层</strong>，不替换 script_sections。左选段落，中编辑本幕，右跳转关联资源。")}
+  ${contentLayerMapHtml({ open: false })}
   <section class="segment-workbench">
     <aside class="segment-workbench-list card">
       <div class="section-head"><div><h3>段落列表</h3></div><div class="row"><button type="button" class="secondary-btn" data-action="sync-structure-segments">从章节同步</button><button type="button" class="secondary-btn" data-action="refresh-structure-segments">刷新</button></div></div>
@@ -491,8 +499,9 @@ export function publishLab() {
       <div class="row" style="margin-top:12px"><button type="button" class="secondary-btn" data-action="record-quality-report">存档为质量报告</button><button type="button" class="secondary-btn" data-action="world-rooms">${room ? "管理运行房" : "创建测试房"}</button></div>
     </article>
     <article class="card publish-preview-card">
-      <div class="section-head"><div><h3>视角模拟</h3></div></div>
-      <button type="button" class="secondary-btn full-btn" data-action="creator-preview">玩家视角预览（私人分幕）</button>
+      <div class="section-head"><div><h3>视角与发布影响</h3><p>先看“现在玩家能看到什么”，再进端试跑。</p></div></div>
+      <button type="button" class="primary-btn full-btn" data-action="publish-impact-preview">发布影响预览</button>
+      <button type="button" class="secondary-btn full-btn" style="margin-top:8px" data-action="creator-preview">玩家视角预览（私人分幕正文）</button>
       <button type="button" class="secondary-btn full-btn" style="margin-top:8px" data-go="player">打开独立玩家端</button>
       <button type="button" class="secondary-btn full-btn" style="margin-top:8px" data-action="open-host-console">打开主持端试跑</button>
     </article>
