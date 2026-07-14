@@ -3,6 +3,7 @@ import { getReadinessStatus } from "../database-status.js";
 import { getPoolStats } from "../db.js";
 import { requireOpsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
+import { getEventOutboxStatus } from "../event-outbox-dispatcher.js";
 import { getTelemetryStatus } from "../telemetry.js";
 import { getEmailServiceStatus } from "../email.js";
 import { getPublicOAuthDiagnostics } from "../oauth-diagnostics.js";
@@ -236,6 +237,7 @@ export async function registerOpsRoutes(app) {
         uploadScan: getUploadScanStatus(),
         alerts: getAlertWebhookConfig(),
         roomEventsBus: bus.mode,
+        eventOutbox: getEventOutboxStatus(),
         openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production",
         telemetry: getTelemetryStatus(),
         sentry: getSentryStatus(),

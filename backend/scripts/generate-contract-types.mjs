@@ -35,6 +35,15 @@ import {
   submitBetaApplicationSchema
 } from "../src/routes/schemas/platform.js";
 import { playerProgressAssessmentSchema } from "../src/player-progress-assessment.js";
+import { PLATFORM_EVENT_SCHEMAS } from "../src/platform-event-schemas.js";
+import { ROOM_EVENT_SCHEMAS } from "../src/room-event-schemas.js";
+
+function eventContractName(type) {
+  return `${type.split(/[^a-zA-Z0-9]+/).map((part) => part[0].toUpperCase() + part.slice(1)).join("")}Data`;
+}
+
+const roomEventContracts = Object.entries(ROOM_EVENT_SCHEMAS)
+  .map(([type, schema]) => [eventContractName(type), schema]);
 
 const contracts = [
   ["InviteLookupParams", inviteLookupSchema.params],
@@ -62,7 +71,16 @@ const contracts = [
   ["DeepseekPipelineSpecBody", deepseekPipelineSpecSchema.body],
   ["CreatePhysicalTokensBody", createPhysicalTokensSchema.body],
   ["SubmitBetaApplicationBody", submitBetaApplicationSchema.body],
-  ["CreatePlazaPostBody", createPlazaPostSchema.body]
+  ["CreatePlazaPostBody", createPlazaPostSchema.body],
+  ["PlatformPlazaPostCreatedData", PLATFORM_EVENT_SCHEMAS["plaza.post_created"]],
+  ["PlatformPlazaPostDeletedData", PLATFORM_EVENT_SCHEMAS["plaza.post_deleted"]],
+  ["PlatformPlazaReplyCreatedData", PLATFORM_EVENT_SCHEMAS["plaza.reply_created"]],
+  ["PlatformPlazaReplyDeletedData", PLATFORM_EVENT_SCHEMAS["plaza.reply_deleted"]],
+  ["PlatformSocialFriendRequestData", PLATFORM_EVENT_SCHEMAS["social.friend_request"]],
+  ["PlatformSocialFriendAcceptedData", PLATFORM_EVENT_SCHEMAS["social.friend_accepted"]],
+  ["PlatformSocialFriendDeclinedData", PLATFORM_EVENT_SCHEMAS["social.friend_declined"]],
+  ["PlatformDmMessageCreatedData", PLATFORM_EVENT_SCHEMAS["dm.message_created"]],
+  ...roomEventContracts
 ];
 
 const sections = [];

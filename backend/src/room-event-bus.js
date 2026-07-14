@@ -1,8 +1,6 @@
 /** In-memory room event bus with optional PostgreSQL NOTIFY fan-out for multi-instance SSE. */
 
 import { randomUUID } from "node:crypto";
-import { appendRoomEventJournal } from "./room-event-journal.js";
-import { validateRoomEvent } from "./room-event-schemas.js";
 import { recordSseEventOperation } from "./metrics.js";
 import { createPostgresEventListener } from "./postgres-event-listener.js";
 import { safePostgresNotify } from "./postgres-notify.js";
@@ -117,26 +115,9 @@ const postgresListener = createPostgresEventListener({
 });
 
 /** Publish after journal write so SSE subscribers receive stable journal ids. */
-export async function publishRoomEvent(roomId, type, data = {}) {
-  const { ok, errors } = validateRoomEvent(type, data);
-  if (!ok) {
-    throw new Error(`Invalid room event: ${errors.join("; ")}`);
-  }
-  const event = {
-    type,
-    roomId,
-    at: new Date().toISOString(),
-    ...data
-  };
+export async function publishPersistedRoomEvent(event, journalId) {
+  const roomId = event.roomId;
   const payload = JSON.stringify(event);
-  let journalId;
-  try {
-    const row = await appendRoomEventJournal(roomId, event);
-    journalId = row?.id;
-  } catch {
-    /* journal is best-effort for non-uuid test rooms */
-    recordSseEventOperation({ bus: "room", outcome: "journal_failed" });
-  }
   const envelope = journalId != null ? { id: journalId, payload } : { payload };
   deliverToSubscribers(roomId, envelope);
   await fanOutToOtherInstances(roomId, envelope);

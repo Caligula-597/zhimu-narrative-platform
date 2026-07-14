@@ -1,5 +1,5 @@
-import { query, transaction } from "../db.js";
-import { publishRoomEvent } from "../room-event-bus.js";
+import { query } from "../db.js";
+import { transactionWithEvents } from "../transaction-events.js";
 import { requireActor } from "../request-actor.js";
 import { assertCapability } from "../capabilities.js";
 import { requireRoomRole } from "./route-guards.js";
@@ -68,7 +68,7 @@ export async function registerPlayerAccessRoutes(app) {
     if (!inviteCode || !roleSlotId) return sendErr(reply, "INVITE_FIELDS_REQUIRED");
     let roomId;
     try {
-      roomId = await transaction(async (client) => {
+      roomId = await transactionWithEvents(async (client, queueEvent) => {
         const room = await client.query(`SELECT id, world_id FROM rooms WHERE invite_code = $1`, [inviteCode]);
         if (!room.rowCount) {
           const err = new Error("ROOM_NOT_FOUND");
@@ -76,7 +76,7 @@ export async function registerPlayerAccessRoutes(app) {
           throw err;
         }
         const role = await client.query(
-          `SELECT 1 FROM role_slots WHERE id = $1 AND world_id = $2`,
+          `SELECT name FROM role_slots WHERE id = $1 AND world_id = $2`,
           [roleSlotId, room.rows[0].world_id]
         );
         if (!role.rowCount) {
@@ -118,6 +118,10 @@ export async function registerPlayerAccessRoutes(app) {
            DO UPDATE SET role_slot_id = EXCLUDED.role_slot_id, status = 'active'`,
           [room.rows[0].id, actorId, roleSlotId]
         );
+        queueEvent(room.rows[0].id, "room.player_joined", {
+          roleSlotId,
+          roleName: role.rows[0]?.name ?? "玩家角色"
+        });
         return room.rows[0].id;
       });
     } catch (error) {
@@ -131,11 +135,6 @@ export async function registerPlayerAccessRoutes(app) {
       if (error.code === "ROLE_SLOT_WORLD_MISMATCH") return sendErr(reply, "ROLE_SLOT_WORLD_MISMATCH");
       throw error;
     }
-    const roleInfo = await query(`SELECT name FROM role_slots WHERE id = $1`, [roleSlotId]);
-    publishRoomEvent(roomId, "room.player_joined", {
-      roleSlotId,
-      roleName: roleInfo.rows[0]?.name ?? "玩家角色"
-    }).catch(() => {});
     return { ok: true, roomId };
   });
 

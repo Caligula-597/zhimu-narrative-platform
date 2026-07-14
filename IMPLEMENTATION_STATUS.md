@@ -161,7 +161,7 @@
 |------|--------|------|
 | Demo header 本地调试 | 中 | `ALLOW_DEMO_USER_HEADER=true` 时固定 UUID 可冒充用户；**生产必须关**；`NODE_ENV=production` 且开启时启动 **FATAL** |
 | 单节点 SSE | — | 默认 memory；**多实例可用 `ROOM_EVENTS_BUS=postgres`** |
-| journal 异步写入 | 低 | 已改为 `await appendRoomEventJournal` 后再推送 SSE；journal 失败时仍推送但可能无 `id` |
+| journal / SSE 一致性 | 低 | 已改为事务 outbox；dispatcher 原子写 journal 后携带稳定游标推送 SSE，失败进入重试 |
 | 前端无 `code` 分支 | 低 | 已通过 `friendlyApiError` 映射常见错误码；未映射时仍显示 `error` 字符串 |
 | 前端 Idempotency-Key | — | 写操作已透明发送；用户界面不展示 |
 | UI smoke 静态检查 | 中 | 不执行浏览器 JS；SyntaxError 用 `npm run check:modules` 捕获 |

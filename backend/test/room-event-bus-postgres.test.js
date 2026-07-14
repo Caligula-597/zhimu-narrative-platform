@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  publishRoomEvent,
+  publishPersistedRoomEvent,
   resetRoomEventBusForTests,
   startRoomEventBus,
   stopRoomEventBus,
@@ -32,7 +32,12 @@ test("postgres bus mode delivers exactly once to local subscribers", async (cont
 
   const received = [];
   subscribeRoomEvents("room-bus-test", (message) => received.push(parsePayload(message)));
-  await publishRoomEvent("room-bus-test", "room.test_bus", { probe: true });
+  await publishPersistedRoomEvent({
+    type: "room.test_bus",
+    roomId: "room-bus-test",
+    at: new Date().toISOString(),
+    probe: true
+  }, 990);
   assert.equal(received.length, 1);
   assert.equal(received[0].type, "room.test_bus");
 });

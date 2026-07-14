@@ -88,7 +88,10 @@ test("host delay rejects dismissed events", async (context) => {
 });
 
 test("wakeDueDelayedHostEvents returns zero when no rows are due", async () => {
-  const count = await wakeDueDelayedHostEvents(async () => ({ rowCount: 0, rows: [] }));
+  const count = await wakeDueDelayedHostEvents(async (work) => work(
+    { query: async () => ({ rowCount: 0, rows: [] }) },
+    () => { throw new Error("no event should be queued"); }
+  ));
   assert.equal(count, 0);
 });
 

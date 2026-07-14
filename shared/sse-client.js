@@ -1,6 +1,6 @@
 import { consumeSseStream } from "./sse.js";
 import { traceRequestHeaders } from "./trace-context.js";
-import { isRoomEventType } from "./contracts/room-events.js";
+import { validateRoomEvent } from "./contracts/room-events.js";
 
 /** Shared authenticated SSE transport for app, host and play clients. */
 export async function openSseStream({
@@ -51,10 +51,10 @@ export async function openSseStream({
       delete payload.type;
       for (const field of stripFields) delete payload[field];
       if (!type) return;
-      if (validateRoomEvents && type.startsWith("room.") && !isRoomEventType(type)) {
+      if (validateRoomEvents && type.startsWith("room.") && !validateRoomEvent(type, payload).ok) {
         return;
       }
-      if (eventTypeValidator && !eventTypeValidator(type)) return;
+      if (eventTypeValidator && !eventTypeValidator(type, payload)) return;
       await onEvent?.(type, payload);
     }
   });

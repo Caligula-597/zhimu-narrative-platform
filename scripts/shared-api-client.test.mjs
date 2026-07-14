@@ -67,3 +67,30 @@ test("buildBearerAuthHeaders merges demo user id", () => {
   const headers = buildBearerAuthHeaders({ bearerHeaders: () => ({ authorization: "Bearer x" }) }, { demoUserId: "u" });
   assert.equal(headers["x-user-id"], "u");
 });
+
+test("platform SSE transport drops events with invalid contract payloads", async (context) => {
+  const originalFetch = globalThis.fetch;
+  const originalStorage = globalThis.localStorage;
+  context.after(() => {
+    globalThis.fetch = originalFetch;
+    globalThis.localStorage = originalStorage;
+  });
+  globalThis.localStorage = { getItem: () => null, setItem() {} };
+  globalThis.fetch = async () => new Response(
+    [
+      'data: {"type":"plaza.post_created","at":"now"}\n\n',
+      'data: {"type":"plaza.post_created","postId":"post-1","at":"now"}\n\n'
+    ].join(""),
+    { status: 200, headers: { "content-type": "text/event-stream" } }
+  );
+  const events = [];
+  const client = createPortalApiClient({ baseUrl: "http://test/api" });
+
+  await client.streamPlatformEvents({
+    onEvent: async (type, payload) => events.push({ type, payload })
+  });
+
+  assert.deepEqual(events, [
+    { type: "plaza.post_created", payload: { postId: "post-1" } }
+  ]);
+});

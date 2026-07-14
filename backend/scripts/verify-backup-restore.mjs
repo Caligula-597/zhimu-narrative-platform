@@ -15,7 +15,17 @@ import { resolvePgTool } from "./pg-bin.mjs";
 import { assertSafeDatabaseUrlForDestructiveOps } from "./lib/assert-safe-database-url.mjs";
 import "dotenv/config";
 
-const REQUIRED_TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions", "schema_migrations"];
+const REQUIRED_TABLES = [
+  "users",
+  "worlds",
+  "chapters",
+  "asset_files",
+  "auth_sessions",
+  "room_event_journal",
+  "platform_event_journal",
+  "event_outbox",
+  "schema_migrations"
+];
 
 function run(cmd, args, opts = {}) {
   const result = spawnSync(cmd, args, {

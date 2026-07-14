@@ -118,7 +118,7 @@ users ──┬── world_members ── worlds ──┬── role_slots ─
 ### `room_event_journal`（012）
 
  durable 事件日志，供 SSE 补发与 future 多节点消费。  
-`publishRoomEvent` 在事务 **commit 后** best-effort 写入；rollback 不写（见 `event-journal-e2e.test.js`）。
+Room 事件由 `transactionWithEvents` 在业务事务内写入 `event_outbox`，提交后由 dispatcher 持久化到 journal 并推送 SSE；rollback 不产生 outbox。
 
 ### `write_idempotency`（013）
 

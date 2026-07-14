@@ -161,7 +161,7 @@ function parseSseEventOperationKey(key) {
   return { bus, outcome };
 }
 
-export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, platformSseStats = {}, uptimeSeconds = 0, readyOk = apiReadyGauge } = {}) {
+export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, platformSseStats = {}, eventOutboxStats = {}, uptimeSeconds = 0, readyOk = apiReadyGauge } = {}) {
   const sections = [
     renderCounter("http_requests_total", "Total HTTP requests", httpRequests),
     renderCounter("http_errors_5xx_total", "HTTP 5xx responses", httpErrors5xx),
@@ -195,7 +195,25 @@ export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, platfor
     `sse_rooms_with_subscribers ${sseStats.rooms ?? 0}`,
     `# HELP platform_sse_connections_active Active platform SSE subscriber connections`,
     `# TYPE platform_sse_connections_active gauge`,
-    `platform_sse_connections_active ${platformSseStats.connections ?? 0}`
+    `platform_sse_connections_active ${platformSseStats.connections ?? 0}`,
+    `# HELP event_outbox_pending Events waiting for durable dispatch`,
+    `# TYPE event_outbox_pending gauge`,
+    `event_outbox_pending ${eventOutboxStats.pending ?? 0}`,
+    `# HELP event_outbox_dead Events exhausted after durable dispatch retries`,
+    `# TYPE event_outbox_dead gauge`,
+    `event_outbox_dead ${eventOutboxStats.dead ?? 0}`,
+    `# HELP event_outbox_oldest_pending_seconds Age of the oldest pending event`,
+    `# TYPE event_outbox_oldest_pending_seconds gauge`,
+    `event_outbox_oldest_pending_seconds ${eventOutboxStats.oldestPendingSeconds ?? 0}`,
+    `# HELP event_outbox_processed_total Events durably dispatched by this process`,
+    `# TYPE event_outbox_processed_total counter`,
+    `event_outbox_processed_total ${eventOutboxStats.processed ?? 0}`,
+    `# HELP event_outbox_failed_total Event dispatch attempts failed in this process`,
+    `# TYPE event_outbox_failed_total counter`,
+    `event_outbox_failed_total ${eventOutboxStats.failed ?? 0}`,
+    `# HELP event_outbox_discarded_total Events safely discarded because their audience was deleted`,
+    `# TYPE event_outbox_discarded_total counter`,
+    `event_outbox_discarded_total ${eventOutboxStats.discarded ?? 0}`
   ];
   return `${sections.filter(Boolean).join("\n")}\n`;
 }

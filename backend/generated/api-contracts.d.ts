@@ -272,3 +272,260 @@ export interface CreatePlazaPostBody {
   body: string;
   inviteCode?: string;
 }
+
+export interface PlatformPlazaPostCreatedData {
+  postId: string;
+  [k: string]: unknown;
+}
+
+export interface PlatformPlazaPostDeletedData {
+  postId: string;
+  reason?: string;
+  [k: string]: unknown;
+}
+
+export interface PlatformPlazaReplyCreatedData {
+  postId: string;
+  replyId: string;
+  [k: string]: unknown;
+}
+
+export interface PlatformPlazaReplyDeletedData {
+  postId: string;
+  replyId: string;
+  [k: string]: unknown;
+}
+
+export interface PlatformSocialFriendRequestData {
+  fromUserId: string;
+  [k: string]: unknown;
+}
+
+export interface PlatformSocialFriendAcceptedData {
+  fromUserId: string;
+  [k: string]: unknown;
+}
+
+export interface PlatformSocialFriendDeclinedData {
+  fromUserId: string;
+  [k: string]: unknown;
+}
+
+export interface PlatformDmMessageCreatedData {
+  conversationId: string;
+  messageId: string;
+  [k: string]: unknown;
+}
+
+export interface RoomHostEventPendingData {
+  eventId: string;
+  action?: "delay_expired" | "dismissed" | "executed" | "delayed";
+  delayMinutes?: number;
+  title?: string;
+  source?: string;
+  [k: string]: unknown;
+}
+
+export interface RoomHostNudgeData {
+  message: string;
+  /**
+   * @maxItems 100
+   */
+  roleSlotIds: string[];
+  [k: string]: unknown;
+}
+
+export interface RoomPlayerJoinedData {
+  roleSlotId: string;
+  roleName: string;
+  [k: string]: unknown;
+}
+
+export interface RoomPlayerKickedData {
+  roleSlotId: string;
+  userId: string;
+  roleName: string;
+  [k: string]: unknown;
+}
+
+export interface RoomVoiceMessageCreatedData {
+  voiceRoomId: string;
+  messageId: string;
+  [k: string]: unknown;
+}
+
+export interface RoomPhysicalTokenEventData {
+  tokenId: string;
+  tokenCode: string;
+  message: string;
+  [k: string]: unknown;
+}
+
+export interface RoomPhysicalTokenActivatedData {
+  tokenId: string;
+  tokenCode: string;
+  contentType: "clue" | "item" | "script_section" | "event";
+  contentId: string;
+  roleSlotId: string;
+  effect: {
+    [k: string]: unknown;
+  };
+  [k: string]: unknown;
+}
+
+export interface RoomSceneUnlockedData {
+  sceneId: string;
+  sceneName?: string;
+  source:
+    | "rule"
+    | "manual_rule"
+    | "host_manual"
+    | "host_event"
+    | "investigation"
+    | "shared_room"
+    | "shared_roles"
+    | "physical_token";
+  [k: string]: unknown;
+}
+
+export interface RoomSectionUnlockedData {
+  scriptSectionId: string;
+  roleSlotId?: string;
+  source:
+    | "rule"
+    | "manual_rule"
+    | "host_manual"
+    | "host_event"
+    | "investigation"
+    | "shared_room"
+    | "shared_roles"
+    | "physical_token";
+  [k: string]: unknown;
+}
+
+export interface RoomSectionCompletedData {
+  sectionId: string;
+  roleSlotId: string;
+  [k: string]: unknown;
+}
+
+export interface RoomClueGrantedData {
+  clueId: string;
+  roleSlotId?: string;
+  source?:
+    | "rule"
+    | "manual_rule"
+    | "host_manual"
+    | "host_event"
+    | "investigation"
+    | "shared_room"
+    | "shared_roles"
+    | "physical_token";
+  clueName?: string;
+  pointId?: string;
+  ownerRoleSlotId?: string;
+  [k: string]: unknown;
+}
+
+export interface RoomItemGrantedData {
+  itemId: string;
+  roleSlotId: string;
+  source:
+    | "rule"
+    | "manual_rule"
+    | "host_manual"
+    | "host_event"
+    | "investigation"
+    | "shared_room"
+    | "shared_roles"
+    | "physical_token";
+  itemName?: string;
+  [k: string]: unknown;
+}
+
+export interface RoomGameStartedData {
+  currentGame: {
+    [k: string]: unknown;
+  };
+  [k: string]: unknown;
+}
+
+export interface RoomGameCompletedData {
+  currentGame: {
+    [k: string]: unknown;
+  };
+  forced?: boolean;
+  correct?: boolean;
+  [k: string]: unknown;
+}
+
+export interface RoomGameUpdatedData {
+  currentGame: {
+    [k: string]: unknown;
+  };
+  correct: boolean;
+  [k: string]: unknown;
+}
+
+export interface RoomCheckpointRestoredData {
+  checkpointId: string;
+  restoreId: string;
+  sourceRoomId: string;
+  crossRoom: boolean;
+  [k: string]: unknown;
+}
+
+export interface RoomInvestigationCompletedData {
+  pointId: string;
+  roleSlotId: string;
+  [k: string]: unknown;
+}
+
+export interface RoomVoteCreatedData {
+  voteId: string;
+  title: string;
+  status: "draft" | "open" | "closed" | "published" | "cancelled";
+  [k: string]: unknown;
+}
+
+export interface RoomVoteUpdatedData {
+  voteId: string;
+  action: string;
+  [k: string]: unknown;
+}
+
+export interface RoomPrivateActionSubmittedData {
+  actionId: string;
+  actionType: "ask_host" | "secret_action" | "trade" | "promise" | "accusation_note";
+  [k: string]: unknown;
+}
+
+export interface RoomPrivateActionUpdatedData {
+  actionId: string;
+  status: "seen" | "accepted" | "rejected" | "resolved" | "cancelled";
+  [k: string]: unknown;
+}
+
+export interface RoomRoleStateUpdatedData {
+  roleSlotId: string;
+  [k: string]: unknown;
+}
+
+export interface RoomPlayerTaskCompletedData {
+  taskId: string;
+  roleSlotId: string;
+  [k: string]: unknown;
+}
+
+export interface RoomTestimonySubmittedData {
+  testimonyId: string;
+  roleSlotId: string;
+  [k: string]: unknown;
+}
+
+export interface RoomSegmentRemedyAppliedData {
+  remedyId: string;
+  segmentKey: string;
+  title: string;
+  [k: string]: unknown;
+}

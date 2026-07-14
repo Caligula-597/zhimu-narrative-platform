@@ -2,13 +2,20 @@ import assert from "node:assert/strict";
 import { fixtureRoomId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { query } from "../src/db.js";
-import { appendRoomEventJournal, fetchJournalEventsAfter } from "../src/room-event-journal.js";
+import { fetchJournalEventsAfter } from "../src/room-event-journal.js";
 
-
+async function insertJournalEvent(event) {
+  const result = await query(
+    `INSERT INTO room_event_journal (room_id, event_type, payload)
+     VALUES ($1, $2, $3::jsonb) RETURNING id, created_at`,
+    [fixtureRoomId, event.type, JSON.stringify(event)]
+  );
+  return result.rows[0];
+}
 
 test("room event journal supports ordered replay after id", async (context) => {
-  const first = await appendRoomEventJournal(fixtureRoomId, { type: "room.test_event", roomId: fixtureRoomId, n: 1 });
-  const second = await appendRoomEventJournal(fixtureRoomId, { type: "room.test_event", roomId: fixtureRoomId, n: 2 });
+  const first = await insertJournalEvent({ type: "room.test_event", roomId: fixtureRoomId, n: 1 });
+  const second = await insertJournalEvent({ type: "room.test_event", roomId: fixtureRoomId, n: 2 });
 
   const replay = await fetchJournalEventsAfter(fixtureRoomId, first.id);
   assert.equal(replay.length, 1);
@@ -28,8 +35,8 @@ test("room event journal rejects malformed replay cursor without querying invali
 
 test("room event journal caps replay limit", async (context) => {
   const marker = `room.test_limit_${Date.now()}`;
-  const first = await appendRoomEventJournal(fixtureRoomId, { type: marker, roomId: fixtureRoomId, n: 1 });
-  await appendRoomEventJournal(fixtureRoomId, { type: marker, roomId: fixtureRoomId, n: 2 });
+  const first = await insertJournalEvent({ type: marker, roomId: fixtureRoomId, n: 1 });
+  await insertJournalEvent({ type: marker, roomId: fixtureRoomId, n: 2 });
 
   const replay = await fetchJournalEventsAfter(fixtureRoomId, first.id - 1, 1);
   assert.equal(replay.length, 1);

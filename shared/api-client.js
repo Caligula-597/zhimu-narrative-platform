@@ -3,7 +3,7 @@
  */
 import { createApiFetch, extractAuthToken } from "./api-fetch.js";
 import { openSseStream } from "./sse-client.js";
-import { isPlatformEventType } from "./contracts/platform-events.js";
+import { validatePlatformEvent } from "./contracts/platform-events.js";
 
 /**
  * Resolve `/api` base for Vite portals (play.* / host.* → app.* in prod).
@@ -153,7 +153,7 @@ export function createPortalApiClient(config) {
         signal,
         cursorKey,
         onEvent,
-        eventTypeValidator: isPlatformEventType,
+        eventTypeValidator: (type, payload) => validatePlatformEvent(type, payload).ok,
         mapHttpError: mapStreamHttpError
       });
     }

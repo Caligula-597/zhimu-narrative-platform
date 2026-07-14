@@ -1,11 +1,9 @@
 /** Durable platform SSE bus with optional PostgreSQL NOTIFY fan-out. */
 
 import { randomUUID } from "node:crypto";
-import { appendPlatformEventJournal } from "./platform-event-journal.js";
 import { recordSseEventOperation } from "./metrics.js";
 import { createPostgresEventListener } from "./postgres-event-listener.js";
 import { safePostgresNotify } from "./postgres-notify.js";
-import { isPlatformEventType } from "./platform-event-schemas.js";
 
 const PG_CHANNEL = "zhimu_platform_events";
 const INSTANCE_ID = randomUUID();
@@ -110,37 +108,13 @@ const postgresListener = createPostgresEventListener({
   onError: () => recordSseEventOperation({ bus: "platform", outcome: "listener_error" })
 });
 
-async function publish({ audienceType, userId = null, type, data }) {
-  if (!isPlatformEventType(type)) throw new Error(`Invalid platform event: ${type}`);
-  const event = {
-    type,
-    at: new Date().toISOString(),
-    ...(userId ? { userId } : {}),
-    ...data
-  };
+export async function publishPersistedPlatformEvent({ audienceType, userId = null, event, journalId }) {
   const payload = JSON.stringify(event);
-  let journalId;
-  try {
-    const row = await appendPlatformEventJournal({ audienceType, userId, event });
-    journalId = row.id;
-  } catch {
-    // The authoritative write has already committed in the calling service.
-    // Keep live fan-out available and let snapshot polling reconcile the state.
-    recordSseEventOperation({ bus: "platform", outcome: "journal_failed" });
-  }
   const envelope = journalId != null ? { id: journalId, payload } : { payload };
   deliverAudience(audienceType, userId, envelope);
   await fanOutToOtherInstances({ audienceType, userId, envelope });
   recordSseEventOperation({ bus: "platform", outcome: "published" });
   return { ...event, journalId };
-}
-
-export function publishPlatformUserEvent(userId, type, data = {}) {
-  return publish({ audienceType: "user", userId, type, data });
-}
-
-export function publishPlatformBroadcast(type, data = {}) {
-  return publish({ audienceType: "broadcast", type, data });
 }
 
 export function resetPlatformEventBusForTests() {

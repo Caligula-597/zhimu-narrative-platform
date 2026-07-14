@@ -10,6 +10,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import "dotenv/config";
+import { migrationChecksum, validateMigrationFilenames } from "./migration-integrity.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.join(here, "..", "migrations");
@@ -49,15 +50,16 @@ function withDatabase(url, dbName) {
 }
 
 async function applyMigration(client, filename, sql) {
+  const checksum = migrationChecksum(sql);
   if (/^\s*--\s*migrate:no-transaction\b/im.test(sql)) {
     await client.query(sql);
-    await client.query("INSERT INTO schema_migrations (filename) VALUES ($1)", [filename]);
+    await client.query("INSERT INTO schema_migrations (filename, checksum) VALUES ($1, $2)", [filename, checksum]);
     return;
   }
   await client.query("BEGIN");
   try {
     await client.query(sql);
-    await client.query("INSERT INTO schema_migrations (filename) VALUES ($1)", [filename]);
+    await client.query("INSERT INTO schema_migrations (filename, checksum) VALUES ($1, $2)", [filename, checksum]);
     await client.query("COMMIT");
   } catch (error) {
     await client.query("ROLLBACK");
@@ -73,6 +75,14 @@ async function columnExists(client, table, column) {
   return result.rowCount > 0;
 }
 
+async function tableExists(client, table) {
+  const result = await client.query(
+    `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = $1`,
+    [table]
+  );
+  return result.rowCount > 0;
+}
+
 const sourceUrl = process.env.DATABASE_URL;
 if (!sourceUrl) {
   console.error("DATABASE_URL is required");
@@ -82,6 +92,7 @@ if (!sourceUrl) {
 requireCli("psql");
 
 const files = (await fs.readdir(migrationsDir)).filter((f) => f.endsWith(".sql")).sort();
+validateMigrationFilenames(files);
 if (files.length < 2) {
   console.error("Need at least 2 migrations for upgrade drill");
   process.exit(1);
@@ -102,7 +113,8 @@ try {
     await client.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
         filename text PRIMARY KEY,
-        applied_at timestamptz NOT NULL DEFAULT now()
+        applied_at timestamptz NOT NULL DEFAULT now(),
+        checksum text NOT NULL
       )
     `);
 
@@ -118,6 +130,9 @@ try {
         throw new Error(`Expected worlds.content_revision missing before ${latest}`);
       }
     }
+    if (latest.includes("event_outbox") && await tableExists(client, "event_outbox")) {
+      throw new Error(`Expected event_outbox missing before ${latest}`);
+    }
 
     console.log(`▶ Apply final migration ${latest}`);
     const latestSql = await fs.readFile(path.join(migrationsDir, latest), "utf8");
@@ -126,6 +141,9 @@ try {
     if (latest.includes("content_revision")) {
       const hasRevision = await columnExists(client, "worlds", "content_revision");
       if (!hasRevision) throw new Error("worlds.content_revision missing after final migration");
+    }
+    if (latest.includes("event_outbox") && !(await tableExists(client, "event_outbox"))) {
+      throw new Error("event_outbox missing after final migration");
     }
 
     console.log("✓ Migration upgrade drill passed");

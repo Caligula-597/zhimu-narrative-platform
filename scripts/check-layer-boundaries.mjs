@@ -11,13 +11,17 @@ const routeAggregators = new Set([
   "player-routes.js",
   "ops-routes.js",
   "account-routes.js",
-  "content-platform-routes.js"
+  "content-platform-routes.js",
+  "auth-routes.js",
+  "host-routes.js",
+  "creator-routes.js",
+  "studio-routes.js"
 ]);
 const allowedRouteImports = [
   /^\.\/schemas\.js$/,
   /^\.\/schemas\//,
   /^\.\/route-guards\.js$/,
-  /^\.\/[\w-]+-(helpers|service|hook|actions|access)\.js$/,
+  /^\.\/[\w-]+-(helpers|service|hook|actions|access|shared|guards)\.js$/,
   /^\.\/content-package-helpers\.js$/,
   /^\.\/world-helpers\.js$/,
   /^\.\.\/[\w-]+\.js$/

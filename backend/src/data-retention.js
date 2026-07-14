@@ -147,5 +147,18 @@ export async function purgeExpiredData(options = {}) {
     });
   }
 
+  await purgeTable({
+    dryRun,
+    summary,
+    key: "eventOutbox",
+    countSql: `SELECT COUNT(*)::int AS count FROM event_outbox
+      WHERE status IN ('published', 'dead')
+        AND COALESCE(published_at, updated_at) < now() - ($1::text || ' days')::interval`,
+    deleteSql: `DELETE FROM event_outbox
+      WHERE status IN ('published', 'dead')
+        AND COALESCE(published_at, updated_at) < now() - ($1::text || ' days')::interval`,
+    params: [days.eventJournals]
+  });
+
   return summary;
 }

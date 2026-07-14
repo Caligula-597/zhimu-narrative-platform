@@ -147,6 +147,23 @@ test("openSseStream drops unknown room.* event types by contract", async (contex
   ]);
 });
 
+test("openSseStream drops known room events with invalid payload contracts", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(
+    'data: {"type":"room.player_joined","roleSlotId":"a"}\n\ndata: {"type":"room.player_joined","roleSlotId":"a","roleName":"A"}\n\n',
+    { status: 200, headers: { "content-type": "text/event-stream" } }
+  );
+  const events = [];
+  await openSseStream({
+    url: "/api/events",
+    onEvent: async (type, payload) => events.push({ type, payload })
+  });
+  assert.deepEqual(events, [
+    { type: "room.player_joined", payload: { roleSlotId: "a", roleName: "A" } }
+  ]);
+});
+
 test("consumeSseStream does not advance cursor when async handling fails", async () => {
   await assert.rejects(
     consumeSseStream(sseResponse(['id: 42\ndata: {"ok":true}\n\n']), {

@@ -1,6 +1,6 @@
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
-import { publishPlatformUserEvent } from "./platform-event-bus.js";
+import { transactionWithPlatformEvents } from "./transaction-events.js";
 import { assertPlayAdFree } from "./play-content-moderation.js";
 import { assertPlaySocialWrite } from "./play-social-guard.js";
 
@@ -66,62 +66,76 @@ export async function listFriendships(actorId) {
 export async function sendFriendRequest(actorId, targetUserId) {
   await assertPlaySocialWrite(actorId);
   if (actorId === targetUserId) throwErr("FRIEND_SELF", "不能添加自己为好友。");
-  const target = await query(`SELECT id, display_name FROM users WHERE id = $1`, [targetUserId]);
-  if (!target.rowCount) throwErr("USER_NOT_FOUND", "找不到该玩家。");
   const [low, high] = canonicalUserPair(actorId, targetUserId);
-  const existing = await query(
-    `SELECT status, requested_by_user_id FROM play_friendships WHERE user_low_id = $1 AND user_high_id = $2`,
-    [low, high]
-  );
-  if (existing.rowCount) {
-    const row = existing.rows[0];
-    if (row.status === "accepted") throwErr("FRIEND_ALREADY", "你们已经是好友。");
-    if (row.status === "pending") throwErr("FRIEND_REQUEST_EXISTS", "好友请求已存在。");
-    await query(
-      `UPDATE play_friendships
-       SET status = 'pending', requested_by_user_id = $1, updated_at = now()
-       WHERE user_low_id = $2 AND user_high_id = $3`,
-      [actorId, low, high]
+  await transactionWithPlatformEvents(async (client, events) => {
+    const target = await client.query(`SELECT id FROM users WHERE id = $1`, [targetUserId]);
+    if (!target.rowCount) throwErr("USER_NOT_FOUND", "找不到该玩家。");
+    const existing = await client.query(
+      `SELECT status, requested_by_user_id FROM play_friendships
+       WHERE user_low_id = $1 AND user_high_id = $2 FOR UPDATE`,
+      [low, high]
     );
-  } else {
-    await query(
-      `INSERT INTO play_friendships (user_low_id, user_high_id, requested_by_user_id, status)
-       VALUES ($1, $2, $3, 'pending')`,
-      [low, high, actorId]
-    );
-  }
-  await publishPlatformUserEvent(targetUserId, "social.friend_request", {
-    fromUserId: actorId
+    if (existing.rowCount) {
+      const row = existing.rows[0];
+      if (row.status === "accepted") throwErr("FRIEND_ALREADY", "你们已经是好友。");
+      if (row.status === "pending") throwErr("FRIEND_REQUEST_EXISTS", "好友请求已存在。");
+      await client.query(
+        `UPDATE play_friendships
+         SET status = 'pending', requested_by_user_id = $1, updated_at = now()
+         WHERE user_low_id = $2 AND user_high_id = $3`,
+        [actorId, low, high]
+      );
+    } else {
+      const inserted = await client.query(
+        `INSERT INTO play_friendships (user_low_id, user_high_id, requested_by_user_id, status)
+         VALUES ($1, $2, $3, 'pending')
+         ON CONFLICT (user_low_id, user_high_id) DO NOTHING
+         RETURNING status`,
+        [low, high, actorId]
+      );
+      if (!inserted.rowCount) {
+        const raced = await client.query(
+          `SELECT status FROM play_friendships
+           WHERE user_low_id = $1 AND user_high_id = $2 FOR UPDATE`,
+          [low, high]
+        );
+        if (raced.rows[0]?.status === "accepted") throwErr("FRIEND_ALREADY", "你们已经是好友。");
+        throwErr("FRIEND_REQUEST_EXISTS", "好友请求已存在。");
+      }
+    }
+    events.queueUser(targetUserId, "social.friend_request", { fromUserId: actorId });
   });
   return { ok: true };
 }
 
 export async function respondFriendRequest(actorId, targetUserId, accept) {
   const [low, high] = canonicalUserPair(actorId, targetUserId);
-  const row = await query(
-    `SELECT status, requested_by_user_id FROM play_friendships
-     WHERE user_low_id = $1 AND user_high_id = $2`,
-    [low, high]
-  );
-  if (!row.rowCount || row.rows[0].status !== "pending") throwErr("FRIEND_REQUEST_NOT_FOUND", "没有待处理的好友请求。");
-  if (row.rows[0].requested_by_user_id === actorId) {
-    throwErr("FRIEND_REQUEST_NOT_FOUND", "不能回应自己发出的请求。");
-  }
   const status = accept ? "accepted" : "declined";
-  await query(
-    `UPDATE play_friendships SET status = $1, updated_at = now()
-     WHERE user_low_id = $2 AND user_high_id = $3`,
-    [status, low, high]
-  );
-  await publishPlatformUserEvent(targetUserId, accept ? "social.friend_accepted" : "social.friend_declined", {
-    fromUserId: actorId
+  await transactionWithPlatformEvents(async (client, events) => {
+    const row = await client.query(
+      `SELECT status, requested_by_user_id FROM play_friendships
+       WHERE user_low_id = $1 AND user_high_id = $2 FOR UPDATE`,
+      [low, high]
+    );
+    if (!row.rowCount || row.rows[0].status !== "pending") throwErr("FRIEND_REQUEST_NOT_FOUND", "没有待处理的好友请求。");
+    if (row.rows[0].requested_by_user_id === actorId) {
+      throwErr("FRIEND_REQUEST_NOT_FOUND", "不能回应自己发出的请求。");
+    }
+    await client.query(
+      `UPDATE play_friendships SET status = $1, updated_at = now()
+       WHERE user_low_id = $2 AND user_high_id = $3`,
+      [status, low, high]
+    );
+    events.queueUser(targetUserId, accept ? "social.friend_accepted" : "social.friend_declined", {
+      fromUserId: actorId
+    });
   });
   return { ok: true, status };
 }
 
-async function requireFriendship(actorId, otherUserId) {
+async function requireFriendship(actorId, otherUserId, runQuery = query) {
   const [low, high] = canonicalUserPair(actorId, otherUserId);
-  const row = await query(
+  const row = await runQuery(
     `SELECT 1 FROM play_friendships WHERE user_low_id = $1 AND user_high_id = $2 AND status = 'accepted'`,
     [low, high]
   );
@@ -224,31 +238,32 @@ export async function sendDmMessage(actorId, conversationId, body) {
   const text = String(body ?? "").trim();
   if (!text || text.length > 1000) throwErr("DM_MESSAGE_INVALID", "私信内容需为 1～1000 字。");
   assertPlayAdFree(text);
-  const conv = await query(
-    `SELECT id, user_low_id, user_high_id FROM play_dm_conversations WHERE id = $1`,
-    [conversationId]
-  );
-  if (!conv.rowCount) throwErr("DM_NOT_FOUND", "会话不存在。");
-  const row = conv.rows[0];
-  if (row.user_low_id !== actorId && row.user_high_id !== actorId) throwErr("FORBIDDEN", "无权在该会话发言。");
-  const peerId = row.user_low_id === actorId ? row.user_high_id : row.user_low_id;
-  await requireFriendship(actorId, peerId);
-
-  const recent = await query(
-    `SELECT COUNT(*)::int AS count FROM play_dm_messages
-     WHERE sender_user_id = $1 AND created_at > now() - interval '1 hour'`,
-    [actorId]
-  );
-  if (recent.rows[0].count >= HOURLY_DM_LIMIT) throwErr("RATE_LIMITED", "私信发送过于频繁，请稍后再试。");
-
-  const inserted = await query(
-    `INSERT INTO play_dm_messages (conversation_id, sender_user_id, body)
-     VALUES ($1, $2, $3)
-     RETURNING id, body, created_at`,
-    [conversationId, actorId, text]
-  );
-  await query(`UPDATE play_dm_conversations SET last_message_at = now() WHERE id = $1`, [conversationId]);
-  await publishPlatformUserEvent(peerId, "dm.message_created", { conversationId, messageId: inserted.rows[0].id });
+  const inserted = await transactionWithPlatformEvents(async (client, events) => {
+    const conv = await client.query(
+      `SELECT id, user_low_id, user_high_id FROM play_dm_conversations WHERE id = $1 FOR UPDATE`,
+      [conversationId]
+    );
+    if (!conv.rowCount) throwErr("DM_NOT_FOUND", "会话不存在。");
+    const row = conv.rows[0];
+    if (row.user_low_id !== actorId && row.user_high_id !== actorId) throwErr("FORBIDDEN", "无权在该会话发言。");
+    const peerId = row.user_low_id === actorId ? row.user_high_id : row.user_low_id;
+    await requireFriendship(actorId, peerId, client.query.bind(client));
+    const recent = await client.query(
+      `SELECT COUNT(*)::int AS count FROM play_dm_messages
+       WHERE sender_user_id = $1 AND created_at > now() - interval '1 hour'`,
+      [actorId]
+    );
+    if (recent.rows[0].count >= HOURLY_DM_LIMIT) throwErr("RATE_LIMITED", "私信发送过于频繁，请稍后再试。");
+    const result = await client.query(
+      `INSERT INTO play_dm_messages (conversation_id, sender_user_id, body)
+       VALUES ($1, $2, $3)
+       RETURNING id, body, created_at`,
+      [conversationId, actorId, text]
+    );
+    await client.query(`UPDATE play_dm_conversations SET last_message_at = now() WHERE id = $1`, [conversationId]);
+    events.queueUser(peerId, "dm.message_created", { conversationId, messageId: result.rows[0].id });
+    return result;
+  });
   return {
     id: inserted.rows[0].id,
     body: inserted.rows[0].body,

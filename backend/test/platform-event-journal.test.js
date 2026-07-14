@@ -1,20 +1,28 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  appendPlatformEventJournal,
   fetchPlatformEventsAfter,
   getLatestPlatformEventId
 } from "../src/platform-event-journal.js";
 import { query } from "../src/db.js";
 import { hostUserId } from "./helpers/fixture-ids.js";
 
+async function insertJournalEvent({ audienceType, userId = null, event }) {
+  const result = await query(
+    `INSERT INTO platform_event_journal (audience_type, audience_user_id, event_type, payload)
+     VALUES ($1, $2, $3, $4::jsonb) RETURNING id, created_at`,
+    [audienceType, userId, event.type, JSON.stringify(event)]
+  );
+  return result.rows[0];
+}
+
 test("platform journal replays merged broadcast and user events in order", async (context) => {
   const marker = `journal-${Date.now()}`;
-  const broadcast = await appendPlatformEventJournal({
+  const broadcast = await insertJournalEvent({
     audienceType: "broadcast",
     event: { type: "plaza.post_created", marker }
   });
-  const personal = await appendPlatformEventJournal({
+  const personal = await insertJournalEvent({
     audienceType: "user",
     userId: hostUserId,
     event: { type: "dm.message_created", marker }

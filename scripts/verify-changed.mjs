@@ -198,6 +198,14 @@ if (files.some((f) => f.startsWith("backend/"))) {
   run("backend security audit (high+)", "npm audit --audit-level=high --omit=dev", backendRoot);
 }
 
+if (files.some((f) => f.startsWith("backend/migrations/") || f.startsWith("backend/scripts/migrat"))) {
+  run(
+    "migration integrity unit tests",
+    "node --test test/migration-integrity.test.mjs",
+    backendRoot
+  );
+}
+
 const frontendChanged = files.some((f) =>
   /^(src\/|app\.js|index\.html|frontend\/|styles\.css|rule-visual\.js|config\.js)/.test(f)
 );

@@ -1,6 +1,6 @@
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
-import { publishPlatformBroadcast } from "./platform-event-bus.js";
+import { transactionWithPlatformEvents } from "./transaction-events.js";
 import { reviewPlazaPostContent } from "./play-plaza-ai-review.js";
 import { assertPlayAdFree } from "./play-content-moderation.js";
 import { assertPlaySocialWrite } from "./play-social-guard.js";
@@ -193,19 +193,22 @@ export async function createPlazaPost({ actorId, kind, body, inviteCode }) {
     };
   }
 
-  const approved = await query(
-    `UPDATE play_plaza_posts
-     SET review_status = 'approved',
-         ai_review_note = $2,
-         ai_reviewed_at = $3,
-         published_at = now()
-     WHERE id = $1
-     RETURNING id, author_user_id, author_display_name, kind, body, invite_code, room_label, world_label,
-               reply_count, review_status, ai_review_note, published_at, created_at`,
-    [postId, verdict.reason, reviewedAt]
-  );
+  const approved = await transactionWithPlatformEvents(async (client, events) => {
+    const result = await client.query(
+      `UPDATE play_plaza_posts
+       SET review_status = 'approved',
+           ai_review_note = $2,
+           ai_reviewed_at = $3,
+           published_at = now()
+       WHERE id = $1
+       RETURNING id, author_user_id, author_display_name, kind, body, invite_code, room_label, world_label,
+                 reply_count, review_status, ai_review_note, published_at, created_at`,
+      [postId, verdict.reason, reviewedAt]
+    );
+    events.queueBroadcast("plaza.post_created", { postId });
+    return result;
+  });
   const post = mapPost(approved.rows[0], actorId);
-  await publishPlatformBroadcast("plaza.post_created", { postId: post.id });
   return post;
 }
 
@@ -234,30 +237,32 @@ export async function createPlazaReply({ actorId, postId, body, parentReplyId = 
   const user = await query(`SELECT display_name FROM users WHERE id = $1`, [actorId]);
   const authorName = user.rows[0]?.display_name || "玩家";
 
-  const inserted = await query(
-    `INSERT INTO play_plaza_replies (post_id, author_user_id, author_display_name, body, parent_reply_id)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, post_id, parent_reply_id, author_user_id, author_display_name, body, created_at`,
-    [postId, actorId, authorName.slice(0, 40), text, parentReplyId || null]
-  );
-  await query(
-    `UPDATE play_plaza_posts SET reply_count = reply_count + 1 WHERE id = $1`,
-    [postId]
-  );
+  const inserted = await transactionWithPlatformEvents(async (client, events) => {
+    const result = await client.query(
+      `INSERT INTO play_plaza_replies (post_id, author_user_id, author_display_name, body, parent_reply_id)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, post_id, parent_reply_id, author_user_id, author_display_name, body, created_at`,
+      [postId, actorId, authorName.slice(0, 40), text, parentReplyId || null]
+    );
+    await client.query(`UPDATE play_plaza_posts SET reply_count = reply_count + 1 WHERE id = $1`, [postId]);
+    events.queueBroadcast("plaza.reply_created", { postId, replyId: result.rows[0].id });
+    return result;
+  });
   const reply = mapReply(inserted.rows[0], actorId);
-  await publishPlatformBroadcast("plaza.reply_created", { postId, replyId: reply.id });
   return reply;
 }
 
 export async function deletePlazaPost(actorId, postId) {
-  const result = await query(
-    `UPDATE play_plaza_posts SET deleted_at = now()
-     WHERE id = $1 AND author_user_id = $2 AND deleted_at IS NULL
-     RETURNING id`,
-    [postId, actorId]
-  );
-  if (!result.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "只能删除自己的帖子。");
-  await publishPlatformBroadcast("plaza.post_deleted", { postId });
+  await transactionWithPlatformEvents(async (client, events) => {
+    const result = await client.query(
+      `UPDATE play_plaza_posts SET deleted_at = now()
+       WHERE id = $1 AND author_user_id = $2 AND deleted_at IS NULL
+       RETURNING id`,
+      [postId, actorId]
+    );
+    if (!result.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "只能删除自己的帖子。");
+    events.queueBroadcast("plaza.post_deleted", { postId });
+  });
   return { ok: true };
 }
 
@@ -267,18 +272,20 @@ export async function deletePlazaReply(actorId, replyId) {
     [replyId]
   );
   if (!row.rowCount) throwErr("PLAZA_REPLY_NOT_FOUND", "评论不存在。");
-  const updated = await query(
-    `UPDATE play_plaza_replies SET deleted_at = now()
-     WHERE id = $1 AND author_user_id = $2 AND deleted_at IS NULL
-     RETURNING id, post_id`,
-    [replyId, actorId]
-  );
-  if (!updated.rowCount) throwErr("FORBIDDEN", "只能删除自己的评论。");
-  await query(
-    `UPDATE play_plaza_posts SET reply_count = GREATEST(reply_count - 1, 0) WHERE id = $1`,
-    [updated.rows[0].post_id]
-  );
-  await publishPlatformBroadcast("plaza.reply_deleted", { postId: updated.rows[0].post_id, replyId });
+  await transactionWithPlatformEvents(async (client, events) => {
+    const updated = await client.query(
+      `UPDATE play_plaza_replies SET deleted_at = now()
+       WHERE id = $1 AND author_user_id = $2 AND deleted_at IS NULL
+       RETURNING id, post_id`,
+      [replyId, actorId]
+    );
+    if (!updated.rowCount) throwErr("FORBIDDEN", "只能删除自己的评论。");
+    await client.query(
+      `UPDATE play_plaza_posts SET reply_count = GREATEST(reply_count - 1, 0) WHERE id = $1`,
+      [updated.rows[0].post_id]
+    );
+    events.queueBroadcast("plaza.reply_deleted", { postId: updated.rows[0].post_id, replyId });
+  });
   return { ok: true };
 }
 
@@ -303,27 +310,28 @@ export async function reportPlazaTarget({ actorId, targetType, targetId, reason 
     if (reply.rows[0].author_user_id === actorId) throwErr("PLAZA_REPORT_SELF", "不能举报自己的内容。");
   }
 
-  await query(
-    `INSERT INTO play_plaza_reports (reporter_user_id, target_type, target_id, reason, human_review_status)
-     VALUES ($1, $2, $3, $4, 'open')
-     ON CONFLICT (reporter_user_id, target_type, target_id) DO UPDATE
-       SET reason = EXCLUDED.reason,
-           human_review_status = 'open',
-           created_at = now(),
-           resolved_at = NULL,
-           ops_note = NULL`,
-    [actorId, normalizedType, targetId, text]
-  );
-
-  if (normalizedType === "post") {
-    await query(
-      `UPDATE play_plaza_posts
-       SET review_status = 'human_review'
-       WHERE id = $1 AND deleted_at IS NULL AND review_status = 'approved'`,
-      [targetId]
+  await transactionWithPlatformEvents(async (client, events) => {
+    await client.query(
+      `INSERT INTO play_plaza_reports (reporter_user_id, target_type, target_id, reason, human_review_status)
+       VALUES ($1, $2, $3, $4, 'open')
+       ON CONFLICT (reporter_user_id, target_type, target_id) DO UPDATE
+         SET reason = EXCLUDED.reason,
+             human_review_status = 'open',
+             created_at = now(),
+             resolved_at = NULL,
+             ops_note = NULL`,
+      [actorId, normalizedType, targetId, text]
     );
-    await publishPlatformBroadcast("plaza.post_deleted", { postId: targetId, reason: "reported" });
-  }
+    if (normalizedType === "post") {
+      await client.query(
+        `UPDATE play_plaza_posts
+         SET review_status = 'human_review'
+         WHERE id = $1 AND deleted_at IS NULL AND review_status = 'approved'`,
+        [targetId]
+      );
+      events.queueBroadcast("plaza.post_deleted", { postId: targetId, reason: "reported" });
+    }
+  });
 
   return { ok: true, message: "举报已提交，我们将进行人工复核。" };
 }

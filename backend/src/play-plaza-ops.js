@@ -1,6 +1,17 @@
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
-import { publishPlatformBroadcast } from "./platform-event-bus.js";
+import { transactionWithPlatformEvents } from "./transaction-events.js";
+
+async function rejectPlazaPost(client, postId, text) {
+  const updated = await client.query(
+    `UPDATE play_plaza_posts
+     SET review_status = 'rejected', ai_review_note = $2, ai_reviewed_at = now()
+     WHERE id = $1 AND deleted_at IS NULL
+     RETURNING id`,
+    [postId, text.slice(0, 500)]
+  );
+  if (!updated.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "帖子不存在。");
+}
 
 export async function listPlazaHumanReviewQueue({ limit = 50, offset = 0 } = {}) {
   const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
@@ -36,35 +47,30 @@ export async function listPlazaHumanReviewQueue({ limit = 50, offset = 0 } = {})
 }
 
 export async function opsApprovePlazaPost(postId, { note = "" } = {}) {
-  const updated = await query(
-    `UPDATE play_plaza_posts
-     SET review_status = 'approved',
-         ai_review_note = COALESCE(NULLIF($2, ''), ai_review_note),
-         ai_reviewed_at = now(),
-         published_at = COALESCE(published_at, now())
-     WHERE id = $1 AND deleted_at IS NULL AND review_status IN ('human_review', 'pending', 'rejected')
-     RETURNING id`,
-    [postId, String(note || "").trim().slice(0, 500)]
-  );
-  if (!updated.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "帖子不存在或不在待审状态。");
-  await publishPlatformBroadcast("plaza.post_created", { postId });
+  await transactionWithPlatformEvents(async (client, events) => {
+    const updated = await client.query(
+      `UPDATE play_plaza_posts
+       SET review_status = 'approved',
+           ai_review_note = COALESCE(NULLIF($2, ''), ai_review_note),
+           ai_reviewed_at = now(),
+           published_at = COALESCE(published_at, now())
+       WHERE id = $1 AND deleted_at IS NULL AND review_status IN ('human_review', 'pending', 'rejected')
+       RETURNING id`,
+      [postId, String(note || "").trim().slice(0, 500)]
+    );
+    if (!updated.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "帖子不存在或不在待审状态。");
+    events.queueBroadcast("plaza.post_created", { postId });
+  });
   return { ok: true, postId };
 }
 
 export async function opsRejectPlazaPost(postId, { note = "" } = {}) {
   const text = String(note || "").trim();
   if (text.length < 4) throwErr("PLAZA_OPS_NOTE_REQUIRED", "拒审说明至少 4 个字。");
-  const updated = await query(
-    `UPDATE play_plaza_posts
-     SET review_status = 'rejected',
-         ai_review_note = $2,
-         ai_reviewed_at = now()
-     WHERE id = $1 AND deleted_at IS NULL
-     RETURNING id`,
-    [postId, text.slice(0, 500)]
-  );
-  if (!updated.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "帖子不存在。");
-  await publishPlatformBroadcast("plaza.post_deleted", { postId });
+  await transactionWithPlatformEvents(async (client, events) => {
+    await rejectPlazaPost(client, postId, text);
+    events.queueBroadcast("plaza.post_deleted", { postId });
+  });
   return { ok: true, postId };
 }
 
@@ -72,18 +78,19 @@ export async function opsResolvePlazaReport(reportId, { dismiss = false, note = 
   const text = String(note || "").trim();
   const status = dismiss ? "dismissed" : "resolved";
   if (!dismiss && text.length < 4) throwErr("PLAZA_OPS_NOTE_REQUIRED", "处理说明至少 4 个字。");
-  const row = await query(
-    `UPDATE play_plaza_reports
-     SET human_review_status = $2,
-         ops_note = $3,
-         resolved_at = now()
-     WHERE id = $1 AND human_review_status = 'open'
-     RETURNING id, target_type, target_id`,
-    [reportId, status, text.slice(0, 500)]
-  );
-  if (!row.rowCount) throwErr("PLAZA_REPORT_NOT_FOUND", "举报记录不存在或已处理。");
-  if (!dismiss && row.rows[0].target_type === "post") {
-    await opsRejectPlazaPost(row.rows[0].target_id, { note: text || "经举报复核未通过。" });
-  }
+  await transactionWithPlatformEvents(async (client, events) => {
+    const row = await client.query(
+      `UPDATE play_plaza_reports
+       SET human_review_status = $2, ops_note = $3, resolved_at = now()
+       WHERE id = $1 AND human_review_status = 'open'
+       RETURNING id, target_type, target_id`,
+      [reportId, status, text.slice(0, 500)]
+    );
+    if (!row.rowCount) throwErr("PLAZA_REPORT_NOT_FOUND", "举报记录不存在或已处理。");
+    if (!dismiss && row.rows[0].target_type === "post") {
+      await rejectPlazaPost(client, row.rows[0].target_id, text || "经举报复核未通过。");
+      events.queueBroadcast("plaza.post_deleted", { postId: row.rows[0].target_id });
+    }
+  });
   return { ok: true, reportId, status };
 }

@@ -18,6 +18,7 @@ const REQUIRED_TABLES = [
   "room_recaps",
   "room_event_journal",
   "platform_event_journal",
+  "event_outbox",
   "host_audit_log",
   "write_idempotency",
   "automation_rules",
@@ -88,4 +89,33 @@ test("event journal retention index migration is applied", async () => {
   );
   assert.equal(migration.rowCount, 1);
   assert.equal(index.rowCount, 1);
+});
+
+test("every applied migration has an immutable checksum", async () => {
+  const metadata = await query(
+    `SELECT is_nullable
+     FROM information_schema.columns
+     WHERE table_schema = 'public'
+       AND table_name = 'schema_migrations'
+       AND column_name = 'checksum'`
+  );
+  const missing = await query(
+    `SELECT filename FROM schema_migrations WHERE checksum IS NULL OR checksum !~ '^[0-9a-f]{64}$'`
+  );
+  assert.equal(metadata.rows[0]?.is_nullable, "NO", "schema_migrations.checksum must be NOT NULL");
+  assert.deepEqual(missing.rows, [], "all applied migrations must have a SHA-256 checksum");
+});
+
+test("transactional event outbox migration and dispatch index are present", async () => {
+  const migration = await query(
+    `SELECT 1 FROM schema_migrations WHERE filename = '067_transactional_event_outbox.sql'`
+  );
+  const dispatchIndex = await query(
+    `SELECT 1 FROM pg_indexes
+     WHERE schemaname = 'public'
+       AND tablename = 'event_outbox'
+       AND indexname = 'idx_event_outbox_dispatch'`
+  );
+  assert.equal(migration.rowCount, 1);
+  assert.equal(dispatchIndex.rowCount, 1);
 });

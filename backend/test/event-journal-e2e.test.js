@@ -50,12 +50,16 @@ test("complete section appends room.section_completed to journal after commit", 
   });
   assert.equal(complete.statusCode, 200);
 
-  const journal = await query(
-    `SELECT event_type, payload FROM room_event_journal
-     WHERE room_id = $1 AND id > $2 AND event_type = 'room.section_completed'
-     ORDER BY id DESC LIMIT 1`,
-    [fixtureRoomId, beforeId]
-  );
+  let journal = { rowCount: 0, rows: [] };
+  for (let attempt = 0; attempt < 40 && journal.rowCount === 0; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    journal = await query(
+      `SELECT event_type, payload FROM room_event_journal
+       WHERE room_id = $1 AND id > $2 AND event_type = 'room.section_completed'
+       ORDER BY id DESC LIMIT 1`,
+      [fixtureRoomId, beforeId]
+    );
+  }
   assert.ok(journal.rowCount >= 1, "journal should contain room.section_completed after API commit");
   assert.equal(journal.rows[0].payload.sectionId, sectionId);
 });
@@ -79,6 +83,19 @@ test("transactionWithEvents appends journal only after successful commit", async
     );
   }
   assert.ok(committed.rowCount >= 1);
+
+  const outbox = await query(
+    `SELECT status, journal_id
+     FROM event_outbox
+     WHERE event_scope = 'room'
+       AND audience_id = $1
+       AND event_type = 'room.test_journal_commit'
+       AND id > 0
+     ORDER BY id DESC LIMIT 1`,
+    [fixtureRoomId]
+  );
+  assert.equal(outbox.rows[0]?.status, "published");
+  assert.ok(outbox.rows[0]?.journal_id, "published outbox row must reference its durable journal entry");
 });
 
 test("transactionWithEvents does not append journal when transaction rolls back", async () => {

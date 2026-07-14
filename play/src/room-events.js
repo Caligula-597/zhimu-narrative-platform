@@ -47,6 +47,7 @@ export async function handleRoomEvent(type, data, ctx) {
       if (type === "room.section_unlocked") ctx.onToast("新分幕已解锁");
       break;
     case "room.section_completed":
+    case "room.player_task_completed":
     case "room.role_state_updated":
     case "room.physical_token_activated":
     case "room.physical_token_event":
@@ -129,6 +130,8 @@ export async function handleRoomEvent(type, data, ctx) {
     case "room.vote_updated":
     case "room.private_action_submitted":
     case "room.private_action_updated":
+    case "room.testimony_submitted":
+    case "room.segment_remedy_applied":
       ctx.bumpTabPulse?.("social");
       await ctx.onRefresh();
       if (type === "room.vote_created") ctx.onToast("主持人开启了投票/指认");

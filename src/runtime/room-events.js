@@ -213,6 +213,9 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
       case "room.private_action_submitted":
       case "room.private_action_updated":
       case "room.role_state_updated":
+      case "room.player_task_completed":
+      case "room.testimony_submitted":
+      case "room.segment_remedy_applied":
       case "room.physical_token_activated":
       case "room.physical_token_event":
         if (view === "director" || view === "overview") await refreshDirectorPoll();

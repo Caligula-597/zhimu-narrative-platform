@@ -3,7 +3,8 @@ import test from "node:test";
 import {
   validateRoomEvent,
   listRegisteredEventTypes,
-  getRoomEventSchema
+  getRoomEventSchema,
+  ROOM_EVENT_SCHEMAS
 } from "../src/room-event-schemas.js";
 
 test("accepts a known event type with all required fields", () => {
@@ -131,6 +132,19 @@ test("accepts room.clue_granted with all optional fields", () => {
   assert.equal(result.ok, true);
 });
 
+test("accepts durable batch-B event contracts and rejects missing identifiers", () => {
+  for (const [type, payload, requiredField] of [
+    ["room.player_task_completed", { taskId: "task-1", roleSlotId: "role-1" }, "taskId"],
+    ["room.testimony_submitted", { testimonyId: "testimony-1", roleSlotId: "role-1" }, "testimonyId"],
+    ["room.segment_remedy_applied", { remedyId: "remedy-1", segmentKey: "ch1", title: "补救" }, "remedyId"]
+  ]) {
+    assert.equal(validateRoomEvent(type, payload).ok, true, type);
+    const invalid = { ...payload };
+    delete invalid[requiredField];
+    assert.equal(validateRoomEvent(type, invalid).ok, false, `${type} requires ${requiredField}`);
+  }
+});
+
 test("listRegisteredEventTypes returns sorted array of known types", () => {
   const types = listRegisteredEventTypes();
   assert.ok(Array.isArray(types));
@@ -153,8 +167,24 @@ test("getRoomEventSchema returns null for unknown type", () => {
   assert.equal(getRoomEventSchema("room.nonexistent"), null);
 });
 
+test("all production room contracts remain JSON-Schema-shaped and additive", () => {
+  assert.equal(Object.keys(ROOM_EVENT_SCHEMAS).length, 25);
+  for (const schema of Object.values(ROOM_EVENT_SCHEMAS)) {
+    assert.equal(schema.type, "object");
+    assert.equal(schema.additionalProperties, true);
+    assert.ok(Array.isArray(schema.required));
+    assert.equal(typeof schema.properties, "object");
+  }
+});
+
+test("room contract validates array item types", () => {
+  const result = validateRoomEvent("room.host_nudge", { message: "hi", roleSlotIds: [123] });
+  assert.equal(result.ok, false);
+  assert.match(result.errors[0], /roleSlotIds\[0\].*string/);
+});
+
 test("accepts null data for test-prefixed type (default empty object)", () => {
-  // publishRoomEvent defaults data to {}; validateRoomEvent receives the default
+  // Transaction producers default event data to an empty object.
   const result = validateRoomEvent("room.test_probe", {});
   assert.equal(result.ok, true);
 });

@@ -8,6 +8,7 @@ import { startHostDelayWakeInterval } from "./host-delay-wake.js";
 import { startOpsAlertMonitor } from "./ops-alert-bridge.js";
 import { initTelemetry, shutdownTelemetry } from "./telemetry.js";
 import { initSentry, shutdownSentry } from "./sentry.js";
+import { startEventOutboxDispatcher } from "./event-outbox-dispatcher.js";
 
 await runStartupValidation();
 await initTelemetry();
@@ -16,6 +17,7 @@ initSentry();
 const app = await createApp();
 await startRoomEventBus();
 await startPlatformEventBus();
+const stopEventOutbox = startEventOutboxDispatcher({ log: app.log });
 const stopHostDelayWake = startHostDelayWakeInterval();
 const stopAlertMonitor = startOpsAlertMonitor({ log: app.log });
 const port = Number(process.env.PORT ?? 4180);
@@ -24,6 +26,7 @@ async function shutdown(signal) {
   app.log.info({ signal }, "shutting down");
   stopHostDelayWake();
   stopAlertMonitor();
+  stopEventOutbox();
   await stopRoomEventBus();
   await stopPlatformEventBus();
   await app.close();

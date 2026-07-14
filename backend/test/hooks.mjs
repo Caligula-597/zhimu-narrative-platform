@@ -4,6 +4,7 @@
  */
 import { after } from "node:test";
 import { pool } from "../src/db.js";
+import { waitForScheduledEventOutbox } from "../src/event-outbox-dispatcher.js";
 import { stopRoomEventBus } from "../src/room-event-bus.js";
 import { stopPlatformEventBus } from "../src/platform-event-bus.js";
 import { hostUserId } from "./helpers/fixture-ids.js";
@@ -26,6 +27,7 @@ await pool.query(
 );
 
 after(async () => {
+  await waitForScheduledEventOutbox().catch(() => {});
   await stopRoomEventBus().catch(() => {});
   await stopPlatformEventBus().catch(() => {});
   await pool.end().catch(() => {});

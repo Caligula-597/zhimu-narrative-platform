@@ -13,6 +13,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const backendRoot = path.join(here, "..");
 const srcRoot = path.join(backendRoot, "src");
+const sharedRoot = path.resolve(backendRoot, "../shared");
 
 async function collectJsFiles(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -35,12 +36,42 @@ function checkImportPaths(filePath, source) {
   while ((match = importRe.exec(source))) {
     const spec = match[1];
     if (!spec.startsWith("../")) continue;
+    const resolved = path.resolve(path.dirname(filePath), spec);
+    const sharedRelative = path.relative(sharedRoot, resolved);
+    if (sharedRelative && !sharedRelative.startsWith("..") && !path.isAbsolute(sharedRelative)) {
+      continue;
+    }
     const upCount = (spec.match(/\.\.\//g) ?? []).length;
     if (depth === 0 && upCount >= 1) {
       issues.push(`Suspicious import "${spec}" in src/${rel} — use ./ for siblings under src/`);
     }
     if (depth === 1 && upCount >= 2) {
       issues.push(`Suspicious import "${spec}" in src/${rel} — use ../ for src/ modules`);
+    }
+  }
+  return issues;
+}
+
+function checkEventOutboxBoundary(filePath, source) {
+  const rel = path.relative(srcRoot, filePath).replaceAll("\\", "/");
+  const issues = [];
+  for (const symbol of [
+    "publishRoomEvent",
+    "publishQueuedEvents",
+    "publishPlatformUserEvent",
+    "publishPlatformBroadcast",
+    "appendRoomEventJournal",
+    "appendPlatformEventJournal"
+  ]) {
+    if (new RegExp(`\\b${symbol}\\b`).test(source)) {
+      issues.push(`Forbidden direct event API "${symbol}"; use transactionWithEvents/transactionWithPlatformEvents`);
+    }
+  }
+  if (rel !== "event-outbox-repository.js") {
+    for (const table of ["room_event_journal", "platform_event_journal"]) {
+      if (new RegExp(`INSERT\\s+INTO\\s+${table}`, "i").test(source)) {
+        issues.push(`Direct INSERT into ${table}; journal writes belong in event-outbox-repository.js`);
+      }
     }
   }
   return issues;
@@ -90,7 +121,7 @@ if (syntaxFailures.length) {
 const pathIssues = [];
 for (const file of srcFiles) {
   const source = await fs.readFile(file, "utf8");
-  for (const issue of checkImportPaths(file, source)) {
+  for (const issue of [...checkImportPaths(file, source), ...checkEventOutboxBoundary(file, source)]) {
     pathIssues.push({ file, issue });
   }
 }

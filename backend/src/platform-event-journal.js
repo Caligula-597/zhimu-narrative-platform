@@ -1,15 +1,5 @@
 import { query } from "./db.js";
 
-export async function appendPlatformEventJournal({ audienceType, userId = null, event }) {
-  const result = await query(
-    `INSERT INTO platform_event_journal (audience_type, audience_user_id, event_type, payload)
-     VALUES ($1, $2, $3, $4::jsonb)
-     RETURNING id, created_at`,
-    [audienceType, userId, event.type, JSON.stringify(event)]
-  );
-  return result.rows[0];
-}
-
 export async function getLatestPlatformEventId(userId) {
   const result = await query(
     `SELECT COALESCE(MAX(id), 0) AS id

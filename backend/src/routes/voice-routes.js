@@ -1,6 +1,6 @@
 import { query, transaction } from "../db.js";
 import { sendErr, throwErr } from "../api-errors.js";
-import { publishRoomEvent } from "../room-event-bus.js";
+import { transactionWithEvents } from "../transaction-events.js";
 import { createVoiceRoomToken, isLiveKitConfigured } from "../livekit.js";
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole } from "./route-guards.js";
@@ -75,20 +75,21 @@ export async function registerVoiceRoutes(app) {
     await requireVoiceRoomAccess(actorId, voiceRoomId);
     const body = String(request.body?.body ?? "").trim();
     if (!body || body.length > 1000) return sendErr(reply, "VOICE_MESSAGE_INVALID");
-    const result = await query(
-      `INSERT INTO voice_room_messages (voice_room_id, sender_user_id, body)
-       VALUES ($1, $2, $3)
-       RETURNING id, body, created_at, voice_room_id`,
-      [voiceRoomId, actorId, body]
-    );
-    const row = result.rows[0];
-    const room = await query(`SELECT room_id FROM voice_rooms WHERE id = $1`, [voiceRoomId]);
-    if (room.rowCount) {
-      publishRoomEvent(room.rows[0].room_id, "room.voice_message_created", {
+    const row = await transactionWithEvents(async (client, queueEvent) => {
+      const result = await client.query(
+        `INSERT INTO voice_room_messages (voice_room_id, sender_user_id, body)
+         VALUES ($1, $2, $3)
+         RETURNING id, body, created_at, voice_room_id`,
+        [voiceRoomId, actorId, body]
+      );
+      const message = result.rows[0];
+      const room = await client.query(`SELECT room_id FROM voice_rooms WHERE id = $1`, [voiceRoomId]);
+      if (room.rowCount) queueEvent(room.rows[0].room_id, "room.voice_message_created", {
         voiceRoomId,
-        messageId: row.id
+        messageId: message.id
       });
-    }
+      return message;
+    });
     return reply.code(201).send({ id: row.id, body: row.body, created_at: row.created_at });
   });
 

@@ -9,7 +9,7 @@ import { requireActor } from "../request-actor.js";
 import { requireRoomRole, requireWorldRole } from "./route-guards.js";
 import { throwErr } from "../api-errors.js";
 import { query } from "../db.js";
-import { publishRoomEvent } from "../room-event-bus.js";
+import { transactionWithEvents } from "../transaction-events.js";
 import {
   roomIdParams,
   worldIdParams,
@@ -68,12 +68,15 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { roomId, taskId } = request.params;
     const membership = await requirePlayerRoleSlot(actorId, roomId);
-    const progress = await completePlayerTask(query, {
-      roomId,
-      roleSlotId: membership.role_slot_id,
-      taskId
+    const progress = await transactionWithEvents(async (client, queueEvent) => {
+      const row = await completePlayerTask(client.query.bind(client), {
+        roomId,
+        roleSlotId: membership.role_slot_id,
+        taskId
+      });
+      queueEvent(roomId, "room.player_task_completed", { taskId, roleSlotId: membership.role_slot_id });
+      return row;
     });
-    publishRoomEvent(roomId, "room.player_task_completed", { taskId, roleSlotId: membership.role_slot_id }).catch(() => {});
     return { ok: true, progress };
   });
 
@@ -95,16 +98,19 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requirePlayerRoleSlot(actorId, roomId);
-    const testimony = await submitTestimony(query, {
-      roomId,
-      roleSlotId: membership.role_slot_id,
-      actKey: request.body?.actKey ?? request.body?.act_key,
-      body: request.body?.body
+    const testimony = await transactionWithEvents(async (client, queueEvent) => {
+      const row = await submitTestimony(client.query.bind(client), {
+        roomId,
+        roleSlotId: membership.role_slot_id,
+        actKey: request.body?.actKey ?? request.body?.act_key,
+        body: request.body?.body
+      });
+      queueEvent(roomId, "room.testimony_submitted", {
+        testimonyId: row.id,
+        roleSlotId: membership.role_slot_id
+      });
+      return row;
     });
-    publishRoomEvent(roomId, "room.testimony_submitted", {
-      testimonyId: testimony.id,
-      roleSlotId: membership.role_slot_id
-    }).catch(() => {});
     return { ok: true, testimony };
   });
 
@@ -207,12 +213,15 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { roomId, remedyId } = request.params;
     await requireHostMembership(actorId, roomId);
-    const remedy = await applySegmentRemedy(query, { roomId, remedyId, hostUserId: actorId });
-    publishRoomEvent(roomId, "room.segment_remedy_applied", {
-      remedyId: remedy.id,
-      segmentKey: remedy.segment_key,
-      title: remedy.title
-    }).catch(() => {});
+    const remedy = await transactionWithEvents(async (client, queueEvent) => {
+      const row = await applySegmentRemedy(client.query.bind(client), { roomId, remedyId, hostUserId: actorId });
+      queueEvent(roomId, "room.segment_remedy_applied", {
+        remedyId: row.id,
+        segmentKey: row.segment_key,
+        title: row.title
+      });
+      return row;
+    });
     return { ok: true, remedy };
   });
 }

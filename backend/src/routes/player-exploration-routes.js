@@ -1,7 +1,6 @@
 import { query, transaction } from "../db.js";
 import { evaluateRoomRules } from "../rule-engine.js";
 import { transactionWithEvents } from "../transaction-events.js";
-import { publishRoomEvent } from "../room-event-bus.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { assertRolesInRoomWorld } from "./clue-share-helpers.js";

@@ -624,7 +624,7 @@ node scripts/verify-script-load.mjs
 
 - **`room-event-bus.js`** — 单节点内存 pub/sub（按 `roomId` 订阅）
 - **`GET /api/rooms/:roomId/events/stream`** — SSE；25s heartbeat；需房间成员身份
-- **事件类型**（写入时 `publishRoomEvent`）：
+- **事件类型**（业务事务内写入 `event_outbox`）：
   - `room.player_joined` — 玩家入房
   - `room.section_completed` — 阅读完成
   - `room.clue_granted` — 调查/规则/主持发线索
@@ -1084,7 +1084,7 @@ cd backend && node --test test/recap.test.js
 
 ### 事件与 journal 一致性
 
-- `transactionWithEvents`：DB **COMMIT 成功后**才 `publishRoomEvent`（SSE + best-effort 写 `room_event_journal`）。
+- `transactionWithEvents`：业务写入与 outbox 原子提交；dispatcher 负责 journal、SSE 与跨实例通知。
 - rollback 时不发布 SSE、不写 journal。
 - 验收：`event-journal-e2e.test.js` · `transaction-events.test.js`
 

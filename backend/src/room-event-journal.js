@@ -1,15 +1,5 @@
 import { query } from "./db.js";
 
-export async function appendRoomEventJournal(roomId, event) {
-  const result = await query(
-    `INSERT INTO room_event_journal (room_id, event_type, payload)
-     VALUES ($1, $2, $3::jsonb)
-     RETURNING id, created_at`,
-    [roomId, event.type, JSON.stringify(event)]
-  );
-  return result.rows[0];
-}
-
 export async function getLatestRoomEventId(roomId) {
   const result = await query(
     `SELECT COALESCE(MAX(id), 0) AS id FROM room_event_journal WHERE room_id = $1`,

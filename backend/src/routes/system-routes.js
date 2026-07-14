@@ -5,6 +5,7 @@ import { renderPrometheusMetrics, setApiReadyGauge, recordCspViolation, recordWe
 import { requireMetricsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
 import { getPlatformEventBusStatus } from "../platform-event-bus.js";
+import { getEventOutboxStatus } from "../event-outbox-dispatcher.js";
 import {
   allowCspReportFromClient,
   normalizeCspReport,
@@ -28,14 +29,17 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
     const production = process.env.NODE_ENV === "production";
     const roomEventBusReady = bus.mode === "postgres" ? bus.listening : !production;
     const platformEventBusReady = platformBus.mode === "postgres" ? platformBus.listening : !production;
-    const allReady = ready.ready && roomEventBusReady && platformEventBusReady;
+    const outbox = getEventOutboxStatus();
+    const outboxReady = production ? outbox.started : true;
+    const allReady = ready.ready && roomEventBusReady && platformEventBusReady && outboxReady;
     const body = {
       ok: allReady,
       ready: allReady,
       checks: {
         ...ready.checks,
         roomEventBus: roomEventBusReady,
-        platformEventBus: platformEventBusReady
+        platformEventBus: platformEventBusReady,
+        eventOutbox: outboxReady
       },
       database: {
         latencyMs: ready.latencyMs,
@@ -45,6 +49,7 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       pool: ready.pool,
       roomEventBus: bus,
       platformEventBus: platformBus,
+      eventOutbox: outbox,
       optionalServices: getOptionalServicesStatus()
     };
     if (!body.ready) {
@@ -68,13 +73,15 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       const sse = getSseConnectionMetrics();
       const roomBus = getRoomEventBusStatus();
       const platformBus = getPlatformEventBusStatus();
+      const eventOutbox = getEventOutboxStatus();
       const ready = await getReadinessStatus();
       const production = process.env.NODE_ENV === "production";
       const eventBusesReady = production
         ? roomBus.mode === "postgres" && roomBus.listening
           && platformBus.mode === "postgres" && platformBus.listening
         : true;
-      const allReady = ready.ready && eventBusesReady;
+      const outboxReady = production ? eventOutbox.started : true;
+      const allReady = ready.ready && eventBusesReady && outboxReady;
       setApiReadyGauge(allReady);
       const body = renderPrometheusMetrics({
         poolStats: {
@@ -84,6 +91,7 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
         },
         sseStats: sse,
         platformSseStats: { connections: platformBus.broadcastConnections },
+        eventOutboxStats: eventOutbox,
         uptimeSeconds: Math.floor((Date.now() - processStartedAt) / 1000),
         readyOk: allReady ? 1 : 0
       });

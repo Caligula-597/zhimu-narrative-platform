@@ -4,6 +4,7 @@ import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
 import { fixtureRoomId, hostUserId, playerUserId } from "./helpers/fixture-ids.js";
 import { subscribeRoomEvents } from "../src/room-event-bus.js";
+import { waitForScheduledEventOutbox } from "../src/event-outbox-dispatcher.js";
 
 test("mini game loop starts, submits, and completes for player home", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
@@ -33,6 +34,7 @@ test("mini game loop starts, submits, and completes for player home", async (con
     }
   });
   assert.equal(started.statusCode, 200, started.body);
+  await waitForScheduledEventOutbox();
   const startBody = started.json();
   assert.equal(startBody.currentGame.gameType, "zhimu_lock");
   assert.equal(startBody.currentGame.attemptsLeft, 2);
@@ -59,6 +61,7 @@ test("mini game loop starts, submits, and completes for player home", async (con
     }
   });
   assert.equal(wrong.statusCode, 200, wrong.body);
+  await waitForScheduledEventOutbox();
   assert.equal(wrong.json().correct, false);
   assert.equal(wrong.json().currentGame.status, "playing");
   assert.equal(wrong.json().attemptsLeft, 1);
@@ -76,6 +79,7 @@ test("mini game loop starts, submits, and completes for player home", async (con
     }
   });
   assert.equal(correct.statusCode, 200, correct.body);
+  await waitForScheduledEventOutbox();
   assert.equal(correct.json().correct, true);
   assert.equal(correct.json().currentGame.status, "success");
   assert.equal(roomEvents.at(-1).type, "room.game_completed");
