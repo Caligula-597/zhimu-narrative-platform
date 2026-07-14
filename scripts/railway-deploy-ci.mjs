@@ -13,7 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { deployService, updateServiceInstance, listRecentDeployments, fetchDeployment, fetchBuildLogs } from "./railway-api.mjs";
+import { deployService, updateServiceInstance, listRecentDeployments, fetchDeployment, fetchBuildLogs, fetchRuntimeLogs } from "./railway-api.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const setupPath = path.join(root, ".env.railway.setup");
@@ -148,6 +148,14 @@ async function waitForDeployment(token, serviceId, base, { sinceMs = Date.now() 
       const tail = logs.slice(-25).map((l) => l.message).filter(Boolean);
       console.error(`[railway-deploy-ci] Deployment ${status}. Build log tail:`);
       for (const line of tail) console.error(line);
+      try {
+        const runtime = await fetchRuntimeLogs(token, trackedId, 80);
+        const runtimeTail = runtime.map((l) => l.message).filter(Boolean);
+        console.error(`[railway-deploy-ci] Runtime log tail (${runtimeTail.length}):`);
+        for (const line of runtimeTail) console.error(line);
+      } catch (error) {
+        console.error(`[railway-deploy-ci] Runtime logs unavailable: ${error.message}`);
+      }
       return false;
     } else if (status === "REMOVED") {
       const newer = recent.find((d) => d.id !== trackedId && d.status !== "REMOVED");

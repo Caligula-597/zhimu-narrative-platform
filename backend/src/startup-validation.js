@@ -94,6 +94,13 @@ export async function validateDatabaseSchema({ strict = true } = {}) {
 
 export async function runStartupValidation() {
   validateStartupEnvironment();
-  await validateApplicationGraph();
+  // Full Fastify graph boot is validated in CI (`check:modules` / backend tests).
+  // Doing it again in Docker duplicates memory and delays /api/health/live past Railway's window.
+  const skipGraph =
+    process.env.SKIP_STARTUP_APP_GRAPH === "true"
+    || (process.env.NODE_ENV === "production" && process.env.SERVE_STATIC === "true");
+  if (!skipGraph) {
+    await validateApplicationGraph();
+  }
   await validateDatabaseSchema({ strict: true });
 }

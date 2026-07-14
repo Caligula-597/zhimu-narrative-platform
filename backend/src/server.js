@@ -15,12 +15,11 @@ await initTelemetry();
 initSentry();
 
 const app = await createApp();
-await startRoomEventBus();
-await startPlatformEventBus();
-const stopEventOutbox = startEventOutboxDispatcher({ log: app.log });
-const stopHostDelayWake = startHostDelayWakeInterval();
-const stopAlertMonitor = startOpsAlertMonitor({ log: app.log });
 const port = Number(process.env.PORT ?? 4180);
+
+let stopEventOutbox = () => {};
+let stopHostDelayWake = () => {};
+let stopAlertMonitor = () => {};
 
 async function shutdown(signal) {
   app.log.info({ signal }, "shutting down");
@@ -40,6 +39,8 @@ process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 try {
+  // Bind health endpoints before optional buses so Railway healthcheck can pass
+  // even when LISTEN/NOTIFY or outbox wake-up is slow under cold start.
   await app.listen({ host: "0.0.0.0", port });
   app.log.info(`Backend ready at http://127.0.0.1:${port}/api/health`);
 } catch (error) {
@@ -54,4 +55,14 @@ try {
   await shutdownTelemetry();
   await pool.end();
   process.exit(1);
+}
+
+try {
+  await startRoomEventBus();
+  await startPlatformEventBus();
+  stopEventOutbox = startEventOutboxDispatcher({ log: app.log });
+  stopHostDelayWake = startHostDelayWakeInterval();
+  stopAlertMonitor = startOpsAlertMonitor({ log: app.log });
+} catch (error) {
+  app.log.error({ err: error }, "background bus startup failed; HTTP stays up for healthchecks");
 }

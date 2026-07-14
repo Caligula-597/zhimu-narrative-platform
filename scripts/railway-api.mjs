@@ -142,3 +142,15 @@ export async function fetchBuildLogs(token, deploymentId, limit = 200) {
   );
   return data.buildLogs ?? [];
 }
+
+export async function fetchRuntimeLogs(token, deploymentId, limit = 200) {
+  const data = await railwayGraphql(
+    token,
+    `query($deploymentId: String!) {
+      deploymentLogs(deploymentId: $deploymentId) { timestamp message }
+    }`,
+    { deploymentId }
+  );
+  const lines = data.deploymentLogs ?? [];
+  return limit > 0 ? lines.slice(-limit) : lines;
+}

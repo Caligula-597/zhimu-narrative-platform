@@ -2,7 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
 (function (window) {
-  const ADVANCED_VIEWS = ["writer", "studio", "clues", "rules", "miniGames", "archive"];
+  const ADVANCED_VIEWS = ["writer", "truth", "studio", "clues", "rules", "miniGames", "archive"];
 
   function worldSwitcherFailureLabel(apiError) {
     const err = apiError || "";
@@ -60,7 +60,11 @@ import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
     const panel = document.getElementById("nav-advanced");
     const toggle = document.querySelector("[data-action=toggle-nav-advanced]");
     if (!panel || !toggle) return;
-    const expanded = localStorage.getItem("zhimuNavAdvanced") === "1" || ADVANCED_VIEWS.includes(view);
+    // Respect explicit collapse ("0"). Being on an advanced page must NOT force-reopen
+    // after the user clicks 收起 — that caused UI stutter / snap-back.
+    const stored = localStorage.getItem("zhimuNavAdvanced");
+    const expanded =
+      stored === "1" || (stored !== "0" && ADVANCED_VIEWS.includes(view));
     panel.hidden = !expanded;
     toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
     toggle.textContent = expanded ? "⋯ 收起精细编辑器" : "⋯ 精细编辑器";
