@@ -33,7 +33,7 @@ jobs:
             public-url: https://host.getzhimu.com
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
@@ -63,7 +63,7 @@ jobs:
     needs: pages
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
       - name: Smoke deployed Pages
