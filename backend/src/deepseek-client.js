@@ -2,6 +2,7 @@ import { throwErr } from "./api-errors.js";
 import { chargeAiCredits, isCreditsDebitAiEnabled, isCreditsSystemEnabled } from "./credits.js";
 import { deepseekConfig } from "./deepseek-config.js";
 import { getLlmRuntime } from "./llm-runtime.js";
+import { assertSafeOutboundHttpsUrl } from "./outbound-url-policy.js";
 
 function throwNotConfigured(runtime) {
   if (runtime.source === "user") throwErr("LLM_USER_NOT_CONFIGURED");
@@ -34,6 +35,7 @@ export async function requestDeepseekJson(messages, {
 } = {}) {
   const runtime = getLlmRuntime();
   if (!runtime.configured || !runtime.apiKey) throwNotConfigured(runtime);
+  if (runtime.source === "user") await assertSafeOutboundHttpsUrl(runtime.baseUrl);
   const callTimeoutMs = timeoutMs ?? runtime.timeoutMs ?? deepseekConfig().timeoutMs;
   const attempts = retryOnJsonParse ? 2 : 1;
   let lastSyntaxError = null;
@@ -46,7 +48,8 @@ export async function requestDeepseekJson(messages, {
         method: "POST",
         headers: { authorization: `Bearer ${runtime.apiKey}`, "content-type": "application/json" },
         body: JSON.stringify(buildChatCompletionBody(runtime, { messages, maxTokens, temperature })),
-        signal: controller.signal
+        signal: controller.signal,
+        redirect: "manual"
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {

@@ -1,7 +1,24 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { resetRateLimitersForTests } from "../src/rate-limit.js";
+import { createRateLimiter, getRateLimiterStats, resetRateLimitersForTests } from "../src/rate-limit.js";
+
+test("rate limiter isolates authenticated actors and emits standard headers", async () => {
+  resetRateLimitersForTests();
+  const limiter = createRateLimiter({ windowMs: 10_000, max: 1, routeKey: "unit" });
+  const headers = {};
+  const reply = { header(name, value) { headers[name] = value; } };
+  await limiter({ actorId: "actor-a", ip: "127.0.0.1", headers: {} }, reply);
+  await limiter({ actorId: "actor-b", ip: "127.0.0.1", headers: {} }, reply);
+  await assert.rejects(
+    () => limiter({ actorId: "actor-a", ip: "127.0.0.1", headers: {} }, reply),
+    (error) => error.code === "RATE_LIMITED"
+  );
+  assert.equal(headers["RateLimit-Limit"], "1");
+  assert.equal(headers["RateLimit-Remaining"], "0");
+  assert.equal(getRateLimiterStats().buckets, 2);
+  resetRateLimitersForTests();
+});
 
 test("auth routes return RATE_LIMITED after threshold", async (context) => {
   resetRateLimitersForTests();

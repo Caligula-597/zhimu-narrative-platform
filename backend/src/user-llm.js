@@ -9,6 +9,7 @@ import { assertAiCredits, isCreditsSystemEnabled } from "./credits.js";
 import { deepseekConfig } from "./deepseek.js";
 import { platformLlmRuntime, bindLlmRuntime } from "./llm-runtime.js";
 import { canEncryptSecrets, decryptSecret, encryptSecret, maskApiKeyHint } from "./secret-crypto.js";
+import { parseSafeOutboundHttpsUrl } from "./outbound-url-policy.js";
 
 export const LLM_PROVIDER_PRESETS = {
   deepseek: {
@@ -31,8 +32,11 @@ export const LLM_PROVIDER_PRESETS = {
 function normalizeBaseUrl(url) {
   const trimmed = String(url || "").trim().replace(/\/$/, "");
   if (!trimmed) throwErr("VALIDATION_ERROR", "baseUrl is required");
-  if (!/^https:\/\//i.test(trimmed)) throwErr("VALIDATION_ERROR", "baseUrl must use HTTPS");
-  return trimmed;
+  const parsed = parseSafeOutboundHttpsUrl(trimmed, {
+    allowCustomPorts: process.env.LLM_ALLOW_CUSTOM_PORTS === "true"
+  });
+  if (parsed.search || parsed.hash) throwErr("LLM_BASE_URL_UNSAFE");
+  return parsed.toString().replace(/\/$/, "");
 }
 
 function normalizeModel(model) {

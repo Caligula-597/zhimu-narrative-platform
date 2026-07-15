@@ -20,15 +20,31 @@ export function createReplaySubscription({
   send,
   beforeLive = () => true,
   onReplayError = () => {},
+  onClose = () => {},
   pageSize = 200,
-  dedupeWindow = 2000
+  dedupeWindow = 2000,
+  maxBufferedEvents = 2000
 }) {
+  const bufferedEventLimit = Number.isInteger(Number(maxBufferedEvents))
+    && Number(maxBufferedEvents) >= 1
+    && Number(maxBufferedEvents) <= 100_000
+    ? Number(maxBufferedEvents)
+    : 2000;
   let phase = "buffering";
   let buffered = [];
   let closed = false;
   let unsubscribed = false;
   const deliveredIds = new Set();
   let unsubscribeLive = () => {};
+
+  function unsubscribe() {
+    if (unsubscribed) return;
+    unsubscribed = true;
+    closed = true;
+    buffered = [];
+    unsubscribeLive();
+    onClose();
+  }
 
   const rememberId = (id) => {
     if (id == null) return;
@@ -51,17 +67,16 @@ export function createReplaySubscription({
 
   unsubscribeLive = subscribe((message) => {
     if (closed) return;
-    if (phase !== "live") buffered.push(normalizeEnvelope(message));
+    if (phase !== "live") {
+      if (buffered.length >= bufferedEventLimit) {
+        unsubscribe();
+        return;
+      }
+      buffered.push(normalizeEnvelope(message));
+    }
     else deliver(message);
   });
-
-  const unsubscribe = () => {
-    if (unsubscribed) return;
-    unsubscribed = true;
-    closed = true;
-    buffered = [];
-    unsubscribeLive();
-  };
+  if (closed) unsubscribeLive();
 
   const ready = (async () => {
     try {

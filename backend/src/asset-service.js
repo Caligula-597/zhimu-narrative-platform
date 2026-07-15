@@ -3,6 +3,7 @@ import { throwErr } from "./api-errors.js";
 import { validateFilename, validateUpload } from "./asset-policy.js";
 import { assertStorageBytesQuota, assertSingleFileQuota } from "./quota-guards.js";
 import {
+  cancelPendingAssetUpload,
   createPendingAssetUpload,
   findPendingUploadSession,
   quarantineUpload,
@@ -50,7 +51,13 @@ export async function prepareAssetUpload(actorId, input) {
     byteSize,
     expiresAt
   });
-  const uploadUrl = await getObjectStorage().createUploadUrl({ key: objectKey, contentType, expiresIn: ttl });
+  let uploadUrl;
+  try {
+    uploadUrl = await getObjectStorage().createUploadUrl({ key: objectKey, contentType, expiresIn: ttl });
+  } catch (error) {
+    await cancelPendingAssetUpload(pending.asset.id, pending.uploadSessionId).catch(() => {});
+    throw error;
+  }
   return {
     assetId: pending.asset.id,
     uploadSessionId: pending.uploadSessionId,

@@ -117,9 +117,10 @@ export function createPostgresEventListener({ channel, onNotification, onError =
       await connect();
       await listenChannel(channel);
     } catch (error) {
-      registration.active = false;
-      registrations.get(channel)?.delete(registration);
-      if (registrations.get(channel)?.size === 0) registrations.delete(channel);
+      // Keep the registration active: a transient cold-start failure must heal
+      // without requiring a process restart.
+      registration.onError(error);
+      scheduleReconnect();
       throw error;
     }
   }

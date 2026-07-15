@@ -2,11 +2,13 @@
  * Lightweight LLM connectivity probe for account settings.
  */
 import { throwErr } from "./api-errors.js";
+import { assertSafeOutboundHttpsUrl } from "./outbound-url-policy.js";
 
 export async function probeLlmConnection(runtime) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Math.min(runtime.timeoutMs || 30000, 30000));
   try {
+    await assertSafeOutboundHttpsUrl(runtime.baseUrl);
     const url = `${runtime.baseUrl.replace(/\/$/, "")}/chat/completions`;
     const response = await fetch(url, {
       method: "POST",
@@ -20,7 +22,8 @@ export async function probeLlmConnection(runtime) {
         max_tokens: 16,
         temperature: 0
       }),
-      signal: controller.signal
+      signal: controller.signal,
+      redirect: "manual"
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {

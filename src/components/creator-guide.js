@@ -70,7 +70,7 @@ import { closeModal } from "./modal.js";
   }
 
   async function fetchGuide(path) {
-    const response = await fetch(path);
+    const response = await fetch(path, { signal: AbortSignal.timeout(15_000) });
     if (!response.ok) throw new Error("指引文档暂时无法加载，请确认前端服务已启动。");
     const text = await response.text();
     const contentType = response.headers.get("content-type") || "";

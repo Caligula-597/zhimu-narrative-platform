@@ -50,6 +50,19 @@ export function createPendingAssetUpload({
   });
 }
 
+export function cancelPendingAssetUpload(assetId, uploadSessionId) {
+  return transaction(async (client) => {
+    await client.query(
+      `DELETE FROM upload_sessions WHERE id = $1 AND asset_file_id = $2 AND status = 'created'`,
+      [uploadSessionId, assetId]
+    );
+    await client.query(
+      `DELETE FROM asset_files WHERE id = $1 AND status = 'pending_upload'`,
+      [assetId]
+    );
+  });
+}
+
 export async function findPendingUploadSession(assetId, actorId) {
   const result = await query(
     `SELECT us.*, a.object_key, a.original_filename, a.world_id FROM upload_sessions us
@@ -74,11 +87,15 @@ export async function quarantineUpload(assetId, uploadSessionId, scanCode) {
 }
 
 export async function confirmUploadedAsset(client, { assetId, uploadSessionId, objectKey, byteSize }) {
-  await client.query(`UPDATE asset_files SET status = 'active', updated_at = now() WHERE id = $1`, [assetId]);
-  await client.query(
-    `UPDATE upload_sessions SET status = 'confirmed', confirmed_at = now() WHERE id = $1`,
-    [uploadSessionId]
+  const claimed = await client.query(
+    `UPDATE upload_sessions
+     SET status = 'confirmed', confirmed_at = now()
+     WHERE id = $1 AND asset_file_id = $2 AND status = 'created'
+     RETURNING id`,
+    [uploadSessionId, assetId]
   );
+  if (!claimed.rowCount) return null;
+  await client.query(`UPDATE asset_files SET status = 'active', updated_at = now() WHERE id = $1`, [assetId]);
   await client.query(
     `INSERT INTO asset_versions (asset_file_id, version_number, object_key, byte_size)
      VALUES ($1, 1, $2, $3)`,

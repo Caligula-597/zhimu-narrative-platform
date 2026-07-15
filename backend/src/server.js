@@ -20,23 +20,38 @@ const port = Number(process.env.PORT ?? 4180);
 let stopEventOutbox = () => {};
 let stopHostDelayWake = () => {};
 let stopAlertMonitor = () => {};
+let shutdownPromise = null;
 
-async function shutdown(signal) {
-  app.log.info({ signal }, "shutting down");
-  stopHostDelayWake();
-  stopAlertMonitor();
-  stopEventOutbox();
-  await stopRoomEventBus();
-  await stopPlatformEventBus();
-  await app.close();
-  await shutdownSentry();
-  await shutdownTelemetry();
-  await pool.end();
-  process.exit(0);
+function shutdown(signal, exitCode = 0) {
+  if (shutdownPromise) return shutdownPromise;
+  shutdownPromise = (async () => {
+    app.log.info({ signal }, "shutting down");
+    const background = await Promise.allSettled([
+      stopHostDelayWake(),
+      stopAlertMonitor(),
+      stopEventOutbox()
+    ]);
+    for (const result of background) {
+      if (result.status === "rejected") app.log.error({ err: result.reason }, "background drain failed");
+    }
+    const services = await Promise.allSettled([
+      stopRoomEventBus(),
+      stopPlatformEventBus(),
+      app.close(),
+      shutdownSentry(),
+      shutdownTelemetry()
+    ]);
+    for (const result of services) {
+      if (result.status === "rejected") app.log.error({ err: result.reason }, "service shutdown failed");
+    }
+    await pool.end().catch((error) => app.log.error({ err: error }, "database pool shutdown failed"));
+    process.exitCode = exitCode;
+  })();
+  return shutdownPromise;
 }
 
-process.on("SIGINT", () => shutdown("SIGINT"));
-process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.once("SIGINT", () => { void shutdown("SIGINT"); });
+process.once("SIGTERM", () => { void shutdown("SIGTERM"); });
 
 try {
   // Bind health endpoints before optional buses so Railway healthcheck can pass
@@ -51,18 +66,33 @@ try {
   } else {
     app.log.error(error);
   }
-  await shutdownSentry();
-  await shutdownTelemetry();
-  await pool.end();
-  process.exit(1);
+  await shutdown("startup_failure", 1);
+}
+
+const busStarts = await Promise.allSettled([
+  startRoomEventBus(),
+  startPlatformEventBus()
+]);
+for (const result of busStarts) {
+  if (result.status === "rejected") {
+    app.log.error({ err: result.reason }, "background event bus startup failed; reconnect scheduled");
+  }
 }
 
 try {
-  await startRoomEventBus();
-  await startPlatformEventBus();
   stopEventOutbox = startEventOutboxDispatcher({ log: app.log });
-  stopHostDelayWake = startHostDelayWakeInterval();
+} catch (error) {
+  app.log.error({ err: error }, "event outbox dispatcher startup failed");
+}
+try {
+  stopHostDelayWake = startHostDelayWakeInterval(30_000, (error) => {
+    app.log.error({ err: error }, "host delay wake tick failed");
+  });
+} catch (error) {
+  app.log.error({ err: error }, "host delay wake startup failed");
+}
+try {
   stopAlertMonitor = startOpsAlertMonitor({ log: app.log });
 } catch (error) {
-  app.log.error({ err: error }, "background bus startup failed; HTTP stays up for healthchecks");
+  app.log.error({ err: error }, "ops alert monitor startup failed");
 }

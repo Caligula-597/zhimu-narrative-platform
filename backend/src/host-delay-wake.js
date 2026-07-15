@@ -22,10 +22,10 @@ export async function wakeDueDelayedHostEvents(runTransaction = transactionWithE
   });
 }
 
-export function startHostDelayWakeInterval(intervalMs = 30_000) {
+export function startHostDelayWakeInterval(intervalMs = 30_000, onError = () => {}) {
   return startNonOverlappingInterval(
     wakeDueDelayedHostEvents,
     intervalMs,
-    { immediate: true }
+    { immediate: true, onError }
   ).stop;
 }

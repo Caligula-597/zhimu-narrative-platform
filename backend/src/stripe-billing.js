@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { fetchUserPlanCode, setUserPlan } from "./plans.js";
+import { fetchUpstream, resolveUpstreamTimeoutMs } from "./upstream-fetch.js";
 
 const STRIPE_API = "https://api.stripe.com/v1";
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
@@ -93,7 +94,9 @@ async function stripeRequest(method, path, form = null) {
   };
   if (form) init.body = form;
 
-  const response = await fetch(`${STRIPE_API}${path}`, init);
+  const response = await fetchUpstream(`${STRIPE_API}${path}`, init, {
+    timeoutMs: resolveUpstreamTimeoutMs(process.env.STRIPE_REQUEST_TIMEOUT_MS)
+  });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = body?.error?.message || `Stripe API ${response.status}`;

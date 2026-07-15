@@ -1,5 +1,5 @@
 /**
- * Creator bible routes â€?structural story objects (summary + CRUD).
+ * Creator bible routes â€”structural story objects (summary + CRUD).
  */
 import {
   normalizeCoreTrickBody,

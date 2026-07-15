@@ -23,6 +23,8 @@ const checks = [
   { name: "contract-drift", command: npmCommand, args: [...npmPrefixArgs, "run", "check:contracts"], cwd: root },
   { name: "world-write-contracts", command: npmCommand, args: [...npmPrefixArgs, "run", "check:world-writes"], cwd: root },
   { name: "domain-boundaries", command: npmCommand, args: [...npmPrefixArgs, "run", "check:architecture"], cwd: root },
+  { name: "nonfunctional-guardrails", command: npmCommand, args: [...npmPrefixArgs, "run", "audit:nonfunctional"], cwd: root },
+  { name: "bundle-budgets", command: npmCommand, args: [...npmPrefixArgs, "run", "check:bundle-budgets"], cwd: root },
   { name: "sse-fault-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:sse-matrix"], cwd: root },
   { name: "auth-failure-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:auth-matrix"], cwd: root },
   { name: "trusted-types-contract", command: npmCommand, args: [...npmPrefixArgs, "run", "test:trusted-types"], cwd: root },
@@ -61,7 +63,7 @@ for (const check of checks) {
     durationMs: Date.now() - checkStarted,
     output: output.slice(-8000)
   });
-  process.stdout.write(`${result.status === 0 ? "✓" : "✗"} ${check.name}\n`);
+  process.stdout.write(`${result.status === 0 ? "PASS" : "FAIL"} ${check.name}\n`);
 }
 
 const finishedAt = new Date();

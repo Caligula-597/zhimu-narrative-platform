@@ -17,11 +17,24 @@ function resolveDocsRoot(staticRoot) {
   return path.resolve(__dirname, "..", "..", "docs");
 }
 
+export function resolveFileWithinRoot(root, relPath) {
+  let decoded;
+  try {
+    decoded = decodeURIComponent(String(relPath || ""));
+  } catch {
+    return null;
+  }
+  const normalized = decoded.replace(/^[/\\]+/, "");
+  if (!normalized || normalized.includes("\0")) return null;
+  const file = path.resolve(root, normalized);
+  const relative = path.relative(root, file);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) return null;
+  return file;
+}
+
 function readDocFile(docsRoot, relPath) {
-  const normalized = decodeURIComponent(String(relPath || "")).replace(/^\//, "");
-  if (!normalized || normalized.includes("..")) return null;
-  const file = path.join(docsRoot, normalized);
-  if (!file.startsWith(docsRoot) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return null;
+  const file = resolveFileWithinRoot(docsRoot, relPath);
+  if (!file || !fs.existsSync(file) || !fs.statSync(file).isFile()) return null;
   return file;
 }
 
@@ -73,14 +86,15 @@ export async function registerStaticFrontend(app) {
     if (request.method === "GET" && !url.startsWith("/api")) {
       const notFoundPage = path.join(root, "errors", "404.html");
       if (url.startsWith("/errors/")) {
-        const page = path.join(root, url.slice(1));
-        if (fs.existsSync(page)) {
+        const page = resolveFileWithinRoot(root, url);
+        if (page && fs.existsSync(page) && fs.statSync(page).isFile()) {
           const code = url.includes("503") ? 503 : 404;
           return reply.code(code).type("text/html; charset=utf-8").send(fs.readFileSync(page, "utf8"));
         }
       }
-      if (path.extname(url) && fs.existsSync(path.join(root, url.slice(1)))) {
-        return reply.sendFile(url.slice(1), root);
+      const staticFile = resolveFileWithinRoot(root, url);
+      if (path.extname(url) && staticFile && fs.existsSync(staticFile) && fs.statSync(staticFile).isFile()) {
+        return reply.sendFile(path.relative(root, staticFile).replace(/\\/g, "/"), root);
       }
       if (fs.existsSync(notFoundPage) && path.extname(url)) {
         return reply.code(404).type("text/html; charset=utf-8").send(fs.readFileSync(notFoundPage, "utf8"));

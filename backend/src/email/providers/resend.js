@@ -1,9 +1,11 @@
+import { fetchUpstream, resolveUpstreamTimeoutMs } from "../../upstream-fetch.js";
+
 export async function sendViaResend({ to, subject, html }) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
     throw Object.assign(new Error("RESEND_API_KEY is not configured"), { code: "EMAIL_NOT_CONFIGURED" });
   }
-  const response = await fetch("https://api.resend.com/emails", {
+  const response = await fetchUpstream("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -15,7 +17,7 @@ export async function sendViaResend({ to, subject, html }) {
       subject,
       html
     })
-  });
+  }, { timeoutMs: resolveUpstreamTimeoutMs(process.env.EMAIL_REQUEST_TIMEOUT_MS) });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     throw Object.assign(new Error("Resend API rejected the message"), {

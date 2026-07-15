@@ -75,12 +75,16 @@ export async function registerAssetRoutes(app) {
       request,
       reply,
       session.world_id,
-      (client) => confirmUploadedAsset(client, {
-        assetId,
-        uploadSessionId: session.id,
-        objectKey: session.object_key,
-        byteSize: stat.byteSize
-      }),
+      async (client) => {
+        const confirmed = await confirmUploadedAsset(client, {
+          assetId,
+          uploadSessionId: session.id,
+          objectKey: session.object_key,
+          byteSize: stat.byteSize
+        });
+        if (!confirmed) throwErr("UPLOAD_SESSION_NOT_FOUND");
+        return confirmed;
+      },
       { sendErr }
     );
   });

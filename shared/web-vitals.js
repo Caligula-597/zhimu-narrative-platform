@@ -52,7 +52,13 @@ export function reportWebVital(metric, options = {}) {
     navigator.sendBeacon(endpoint, new Blob([body], { type: "application/json" }));
     return;
   }
-  fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});
+  fetch(endpoint, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body,
+    keepalive: true,
+    signal: AbortSignal.timeout(10_000)
+  }).catch(() => {});
 }
 
 /**

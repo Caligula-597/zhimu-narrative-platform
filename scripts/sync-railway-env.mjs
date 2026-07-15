@@ -151,6 +151,13 @@ env.DATABASE_SSL = "true";
 // Session pooler capacity is 15 on the current plan. Keep a two-instance
 // rolling deploy (6 + 6) below that ceiling and reserve three ops slots.
 env.PGPOOL_MAX = local.PGPOOL_MAX?.trim() || "6";
+env.PGPOOL_IDLE_MS = local.PGPOOL_IDLE_MS?.trim() || "30000";
+env.PGPOOL_CONNECTION_TIMEOUT_MS = local.PGPOOL_CONNECTION_TIMEOUT_MS?.trim() || "10000";
+env.PGPOOL_MAX_LIFETIME_SECONDS = local.PGPOOL_MAX_LIFETIME_SECONDS?.trim() || "1800";
+env.TRUST_PROXY_HOPS = local.TRUST_PROXY_HOPS?.trim() || "1";
+env.HTTP_REQUEST_TIMEOUT_MS = local.HTTP_REQUEST_TIMEOUT_MS?.trim() || "120000";
+env.SESSION_LAST_SEEN_TOUCH_SECONDS = local.SESSION_LAST_SEEN_TOUCH_SECONDS?.trim() || "300";
+env.SSE_MAX_BUFFERED_BYTES = local.SSE_MAX_BUFFERED_BYTES?.trim() || "1048576";
 env.APP_PUBLIC_URL = publicUrl;
 // Keep the standalone host portal compatible with the currently deployed API,
 // including releases that predate HOST_SITE_ORIGIN-aware CORS resolution.
@@ -181,6 +188,10 @@ env.RATE_LIMIT_WRITE_MAX = "120";
 env.RATE_LIMIT_READ_MAX = "300";
 env.RATE_LIMIT_UPLOAD_MAX = "30";
 env.RATE_LIMIT_AI_MAX = "40";
+env.EMAIL_REQUEST_TIMEOUT_MS = local.EMAIL_REQUEST_TIMEOUT_MS?.trim() || "15000";
+env.OAUTH_REQUEST_TIMEOUT_MS = local.OAUTH_REQUEST_TIMEOUT_MS?.trim() || "15000";
+env.STRIPE_REQUEST_TIMEOUT_MS = local.STRIPE_REQUEST_TIMEOUT_MS?.trim() || "15000";
+env.ALERT_WEBHOOK_TIMEOUT_MS = local.ALERT_WEBHOOK_TIMEOUT_MS?.trim() || "15000";
 
 if (local.REQUIRE_OAUTH_IN_PRODUCTION?.trim()) {
   env.REQUIRE_OAUTH_IN_PRODUCTION = local.REQUIRE_OAUTH_IN_PRODUCTION.trim();

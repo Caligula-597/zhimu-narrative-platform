@@ -1,9 +1,11 @@
+import { fetchUpstream, resolveUpstreamTimeoutMs } from "../../upstream-fetch.js";
+
 export async function sendViaSendGrid({ to, subject, html }) {
   const apiKey = process.env.SENDGRID_API_KEY?.trim();
   if (!apiKey) {
     throw Object.assign(new Error("SENDGRID_API_KEY is not configured"), { code: "EMAIL_NOT_CONFIGURED" });
   }
-  const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+  const response = await fetchUpstream("https://api.sendgrid.com/v3/mail/send", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -15,7 +17,7 @@ export async function sendViaSendGrid({ to, subject, html }) {
       subject,
       content: [{ type: "text/html", value: html }]
     })
-  });
+  }, { timeoutMs: resolveUpstreamTimeoutMs(process.env.EMAIL_REQUEST_TIMEOUT_MS) });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     throw Object.assign(new Error("SendGrid API rejected the message"), {

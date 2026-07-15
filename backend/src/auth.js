@@ -6,6 +6,8 @@ import { USER_KIND } from "./capabilities.js";
 import { ensureUserPlan, initialPlanForEmail } from "./plans.js";
 
 const scrypt = promisify(scryptCallback);
+const DUMMY_PASSWORD_SALT = "00000000000000000000000000000000";
+const DUMMY_PASSWORD_HASH = "a79be277f4164331643603688348e47bf86ce3900a63b8bc1a837c090f25b555cda39a106f0a1b8766ca7678fda8c3615c23c3b3b0c6b71e24b5628cb8f99a07";
 
 const REGISTERED_SESSION_MS = (Number(process.env.SESSION_TTL_DAYS) || 30) * 24 * 60 * 60 * 1000;
 const GUEST_SESSION_MS = (Number(process.env.GUEST_SESSION_TTL_DAYS) || 7) * 24 * 60 * 60 * 1000;
@@ -76,10 +78,11 @@ export async function hashPassword(password) {
 }
 
 export async function verifyPassword(password, passwordHash, passwordSalt) {
-  if (!passwordHash || !passwordSalt) return false;
-  const derived = Buffer.from(await scrypt(password, passwordSalt, 64));
-  const expected = Buffer.from(passwordHash, "hex");
-  return derived.length === expected.length && timingSafeEqual(derived, expected);
+  const hasStoredCredential = Boolean(passwordHash && passwordSalt);
+  const derived = Buffer.from(await scrypt(password, passwordSalt || DUMMY_PASSWORD_SALT, 64));
+  const expected = Buffer.from(passwordHash || DUMMY_PASSWORD_HASH, "hex");
+  const matches = derived.length === expected.length && timingSafeEqual(derived, expected);
+  return hasStoredCredential && matches;
 }
 
 async function sessionTtlForUser(userId) {
@@ -129,17 +132,33 @@ export async function resolveSession(token) {
 
 export async function resolveSessionContext(token) {
   if (!token) return null;
+  const touchSeconds = resolveSessionTouchIntervalSeconds();
   const result = await query(
-    `UPDATE auth_sessions SET last_seen_at = now()
-     WHERE token_hash = $1
-       AND expires_at > now()
-       AND revoked_at IS NULL
-     RETURNING user_id, id AS session_id`,
-    [tokenHash(token)]
+    `WITH valid AS MATERIALIZED (
+       SELECT user_id, id, last_seen_at
+       FROM auth_sessions
+       WHERE token_hash = $1
+         AND expires_at > now()
+         AND revoked_at IS NULL
+     ), touched AS (
+       UPDATE auth_sessions target
+       SET last_seen_at = now()
+       FROM valid
+       WHERE target.id = valid.id
+         AND COALESCE(valid.last_seen_at, '-infinity'::timestamptz) < now() - ($2::int * interval '1 second')
+       RETURNING target.id
+     )
+     SELECT user_id, id AS session_id FROM valid`,
+    [tokenHash(token), touchSeconds]
   );
   const row = result.rows[0];
   if (!row) return null;
   return { userId: row.user_id, sessionId: row.session_id };
+}
+
+export function resolveSessionTouchIntervalSeconds(raw = process.env.SESSION_LAST_SEEN_TOUCH_SECONDS) {
+  const value = Number(raw ?? 300);
+  return Number.isInteger(value) && value >= 30 && value <= 24 * 60 * 60 ? value : 300;
 }
 
 export async function deleteSession(token) {

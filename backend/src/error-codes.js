@@ -262,6 +262,7 @@ export const API_ERRORS = {
   DEEPSEEK_PACKAGE_REQUIRED: { status: 400, message: "DeepSeek mystery package is required" },
   DEEPSEEK_NOT_CONFIGURED: { status: 503, message: "DeepSeek API 尚未配置。请在 backend/.env 中填写 DEEPSEEK_API_KEY。" },
   LLM_CREDENTIALS_NOT_CONFIGURED: { status: 503, message: "服务器尚未配置 API Key 加密，暂无法保存自备连接" },
+  LLM_BASE_URL_UNSAFE: { status: 400, message: "AI baseUrl must use a public HTTPS endpoint" },
   LLM_USER_NOT_CONFIGURED: { status: 403, message: "请先在账号设置中配置 AI API 连接" },
   LLM_NOT_AVAILABLE: { status: 503, message: "AI 暂不可用：请配置自备 API 或联系 support" },
   LLM_PROBE_FAILED: { status: 502, message: "AI 连接测试失败" },

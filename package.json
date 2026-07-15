@@ -66,6 +66,8 @@
     "check:contracts": "node scripts/check-contracts-drift.mjs",
     "check:world-writes": "node scripts/verify-world-write-contracts.mjs",
     "check:architecture": "node scripts/audit-domain-boundaries.mjs",
+    "audit:nonfunctional": "node scripts/audit-nonfunctional.mjs",
+    "check:bundle-budgets": "node scripts/audit-bundle-budgets.mjs --build",
     "test:modal-helpers": "node --test scripts/modal-helpers.test.mjs",
     "test:ui-semantics": "node --test scripts/ui-semantics.test.mjs",
     "test:runtime-stores": "node --test scripts/runtime-stores.test.mjs",

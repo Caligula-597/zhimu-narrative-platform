@@ -67,3 +67,30 @@ test("replay subscription paginates beyond one replay page", async () => {
   assert.deepEqual(sent, [1, 2, 3, 4, 5, 6, 7]);
   subscription.unsubscribe();
 });
+
+test("replay subscription disconnects when the live race buffer reaches its ceiling", async () => {
+  let liveSend;
+  let releaseLatest;
+  let unsubscribed = 0;
+  let closed = 0;
+  const latestGate = new Promise((resolve) => { releaseLatest = resolve; });
+  const subscription = createReplaySubscription({
+    lastEventId: "0",
+    subscribe(send) {
+      liveSend = send;
+      return () => { unsubscribed += 1; };
+    },
+    getLatestId: () => latestGate,
+    fetchAfter: async () => [],
+    send: () => true,
+    onClose: () => { closed += 1; },
+    maxBufferedEvents: 2
+  });
+  liveSend(envelope(1));
+  liveSend(envelope(2));
+  liveSend(envelope(3));
+  releaseLatest(0);
+  assert.equal(await subscription.ready, false);
+  assert.equal(unsubscribed, 1);
+  assert.equal(closed, 1);
+});

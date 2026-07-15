@@ -21,7 +21,8 @@ export function buildFastifyLoggerOptions({ nodeEnv, loggerOption }) {
       req(request) {
         return {
           method: request.method,
-          url: request.url,
+          // Query strings can contain OAuth codes, reset tokens and invite codes.
+          url: String(request.url || "").split("?")[0],
           requestId: request.id
         };
       },

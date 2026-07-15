@@ -6,6 +6,7 @@ import {
 } from "../platform-event-bus.js";
 import { fetchPlatformEventsAfter, getLatestPlatformEventId } from "../platform-event-journal.js";
 import { createReplaySubscription } from "../sse-replay-subscription.js";
+import { writeSseEvent } from "../sse-response.js";
 import {
   createPlazaPost,
   createPlazaReply,
@@ -39,17 +40,6 @@ import {
   sendFriendRequestSchema,
   uuidParams
 } from "./schemas.js";
-
-function writeSseEvent(raw, envelope) {
-  try {
-    if (raw.destroyed || raw.writableEnded) return false;
-    if (envelope.id !== undefined && envelope.id !== null) raw.write(`id: ${envelope.id}\n`);
-    raw.write(`data: ${envelope.payload}\n\n`);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 function handleServiceError(reply, error, codes = []) {
   if (error.code && codes.includes(error.code)) {
@@ -321,11 +311,12 @@ export async function registerPlatformSocialRoutes(app) {
     let closed = false;
     let unsubscribe = () => {};
     let heartbeat = null;
-    const cleanup = () => {
+    const cleanup = (endResponse = false) => {
       if (closed) return;
       closed = true;
       if (heartbeat) clearInterval(heartbeat);
       unsubscribe();
+      if (endResponse && !reply.raw.destroyed && !reply.raw.writableEnded) reply.raw.end();
     };
 
     request.raw.on("close", cleanup);
@@ -347,6 +338,7 @@ export async function registerPlatformSocialRoutes(app) {
       beforeLive: () => writeSseEvent(reply.raw, {
         payload: JSON.stringify({ type: "connected", userId: actorId, at: new Date().toISOString() })
       }),
+      onClose: () => cleanup(true),
       onReplayError: (error) => request.log.warn({ err: error, actorId }, "platform SSE replay failed")
     });
     unsubscribe = subscription.unsubscribe;

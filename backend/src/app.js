@@ -106,25 +106,46 @@ function resolveCorsOrigin(options, nodeEnv) {
   return resolveAllowedCorsOrigins(options, nodeEnv);
 }
 
+export function resolveTrustProxy(value = process.env.TRUST_PROXY_HOPS) {
+  if (value === false || value == null || value === "") return false;
+  if (value === true) return true;
+  const hops = Number(value);
+  return Number.isInteger(hops) && hops >= 1 && hops <= 5 ? hops : false;
+}
+
+export function resolveHttpRequestTimeoutMs(value = process.env.HTTP_REQUEST_TIMEOUT_MS) {
+  const timeout = Number(value ?? 120_000);
+  return Number.isInteger(timeout) && timeout >= 10_000 && timeout <= 10 * 60_000
+    ? timeout
+    : 120_000;
+}
+
+export function safeCorrelationId(value) {
+  const candidate = typeof value === "string" ? value.trim() : "";
+  return /^[A-Za-z0-9._:-]{1,128}$/.test(candidate) ? candidate : null;
+}
+
 function resolveTraceId(request) {
   const traceparent = request.headers.traceparent;
   if (typeof traceparent === "string") {
     const parts = traceparent.split("-");
-    if (parts.length >= 2 && parts[1]) return parts[1];
+    if (parts.length >= 2 && /^[a-f0-9]{32}$/i.test(parts[1] || "")) return parts[1];
   }
-  const legacy = request.headers["x-trace-id"];
-  if (typeof legacy === "string" && legacy.trim()) return legacy.trim();
+  const legacy = safeCorrelationId(request.headers["x-trace-id"]);
+  if (legacy) return legacy;
   return request.id;
 }
 
 export async function createApp(options = {}) {
   const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV ?? "development";
   const app = Fastify({
+    trustProxy: resolveTrustProxy(options.trustProxy ?? process.env.TRUST_PROXY_HOPS),
+    requestTimeout: resolveHttpRequestTimeoutMs(options.requestTimeout ?? process.env.HTTP_REQUEST_TIMEOUT_MS),
     logger: buildFastifyLoggerOptions({
       nodeEnv,
       loggerOption: options.logger ?? true
     }),
-    genReqId: (request) => request.headers["x-request-id"] || randomUUID()
+    genReqId: (request) => safeCorrelationId(request.headers["x-request-id"]) || randomUUID()
   });
   app.addContentTypeParser(
     ["application/csp-report", "application/reports+json"],
@@ -237,7 +258,10 @@ export async function createApp(options = {}) {
     const statusCode = databaseBusy ? 503 : (error.statusCode ?? (error.validation ? 400 : 500));
     if (statusCode >= 500) {
       request.log.error({ err: error, traceId: request.traceId }, error.message);
-      captureException(error, { tags: { statusCode }, extra: { traceId: request.traceId, url: request.url } });
+      captureException(error, {
+        tags: { statusCode },
+        extra: { traceId: request.traceId, url: request.url.split("?")[0] }
+      });
     } else {
       request.log.info({ err: error, code: error.code, traceId: request.traceId }, error.message);
     }

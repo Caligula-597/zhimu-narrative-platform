@@ -2,6 +2,13 @@
  * Assets domain — storage usage, asset CRUD, upload, search.
  */
 import { demoContext, request, worldWrite } from "./client.js";
+import { createAbortTimer } from "../../shared/api-fetch.js";
+
+export function resolveAssetUploadTimeoutMs(byteSize) {
+  const size = Math.max(0, Number(byteSize) || 0);
+  const estimatedMs = 30_000 + Math.ceil(size / (128 * 1024)) * 1000;
+  return Math.min(15 * 60_000, Math.max(60_000, estimatedMs));
+}
 
 export function getStorageUsage() {
   return request("/storage/usage", { userId: demoContext.hostUserId });
@@ -40,11 +47,25 @@ export async function uploadAsset(file) {
       visibility: "author"
     }
   });
-  const upload = await fetch(ticket.uploadUrl, {
-    method: "PUT",
-    headers: ticket.requiredHeaders,
-    body: file
-  });
+  const timer = createAbortTimer(resolveAssetUploadTimeoutMs(file.size));
+  let upload;
+  try {
+    upload = await fetch(ticket.uploadUrl, {
+      method: "PUT",
+      headers: ticket.requiredHeaders,
+      body: file,
+      signal: timer.signal
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw Object.assign(new Error("Upload timed out; please check the network and retry"), {
+        code: "UPLOAD_TIMEOUT"
+      });
+    }
+    throw error;
+  } finally {
+    timer.clear();
+  }
   if (!upload.ok) throw new Error("上传失败，请检查网络或存储配置");
   return worldWrite(`/assets/${ticket.assetId}/confirm`, {
     method: "POST"

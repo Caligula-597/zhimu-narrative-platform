@@ -17,7 +17,7 @@ test("startNonOverlappingInterval skips a tick while the task is running", async
   assert.equal(runs, 1);
   release();
   assert.equal(await first, true);
-  interval.stop();
+  await interval.stop();
 });
 
 test("startNonOverlappingInterval reports errors without rejecting the timer", async () => {
@@ -30,5 +30,25 @@ test("startNonOverlappingInterval reports errors without rejecting the timer", a
 
   assert.equal(await interval.runNow(), false);
   assert.match(captured.message, /maintenance failed/);
-  interval.stop();
+  await interval.stop();
+});
+
+test("stop drains the active task and prevents future runs", async () => {
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const interval = startNonOverlappingInterval(() => gate, 60_000);
+  const active = interval.runNow();
+  let stopped = false;
+  const draining = interval.stop().then(() => { stopped = true; });
+  await Promise.resolve();
+  assert.equal(stopped, false);
+  release();
+  await draining;
+  assert.equal(await active, true);
+  assert.equal(await interval.runNow(), false);
+});
+
+test("invalid short intervals fail fast instead of creating a hot loop", () => {
+  assert.throws(() => startNonOverlappingInterval(() => {}, 0), /intervalMs/);
+  assert.throws(() => startNonOverlappingInterval(() => {}, "invalid"), /intervalMs/);
 });

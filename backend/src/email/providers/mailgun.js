@@ -1,3 +1,5 @@
+import { fetchUpstream, resolveUpstreamTimeoutMs } from "../../upstream-fetch.js";
+
 export async function sendViaMailgun({ to, subject, html }) {
   const apiKey = process.env.MAILGUN_API_KEY?.trim();
   const domain = process.env.MAILGUN_DOMAIN?.trim();
@@ -12,14 +14,14 @@ export async function sendViaMailgun({ to, subject, html }) {
     subject,
     html
   });
-  const response = await fetch(`${base}/v3/${domain}/messages`, {
+  const response = await fetchUpstream(`${base}/v3/${domain}/messages`, {
     method: "POST",
     headers: {
       Authorization: `Basic ${Buffer.from(`api:${apiKey}`).toString("base64")}`,
       "Content-Type": "application/x-www-form-urlencoded"
     },
     body
-  });
+  }, { timeoutMs: resolveUpstreamTimeoutMs(process.env.EMAIL_REQUEST_TIMEOUT_MS) });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     throw Object.assign(new Error("Mailgun API rejected the message"), {

@@ -12,9 +12,14 @@ import {
   oauthProviderConfig,
   resolveOAuthReturnOrigin
 } from "./oauth-providers.js";
+import { fetchUpstream, resolveUpstreamTimeoutMs } from "./upstream-fetch.js";
 
 const STATE_TTL_MS = 10 * 60 * 1000;
 const LOGIN_CODE_TTL_MS = 2 * 60 * 1000;
+
+function oauthTimeoutMs() {
+  return resolveUpstreamTimeoutMs(process.env.OAUTH_REQUEST_TIMEOUT_MS);
+}
 
 function hash(value) {
   return createHash("sha256").update(String(value)).digest("hex");
@@ -86,14 +91,14 @@ async function exchangeAuthorizationCode(providerId, code) {
     grant_type: "authorization_code"
   });
 
-  const response = await fetch(config.tokenUrl, {
+  const response = await fetchUpstream(config.tokenUrl, {
     method: "POST",
     headers: {
       accept: "application/json",
       "content-type": "application/x-www-form-urlencoded"
     },
     body
-  });
+  }, { timeoutMs: oauthTimeoutMs() });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.access_token) {
     throwErr("OAUTH_EXCHANGE_FAILED");
@@ -109,7 +114,7 @@ async function fetchOAuthProfile(providerId, accessToken) {
     "user-agent": "zhimu-narrative-platform"
   };
 
-  const profileRes = await fetch(config.profileUrl, { headers });
+  const profileRes = await fetchUpstream(config.profileUrl, { headers }, { timeoutMs: oauthTimeoutMs() });
   const profile = await profileRes.json().catch(() => ({}));
   if (!profileRes.ok) throwErr("OAUTH_EXCHANGE_FAILED");
 
@@ -126,7 +131,7 @@ async function fetchOAuthProfile(providerId, accessToken) {
   let email = profile.email?.trim().toLowerCase() || null;
   let emailVerified = false;
   if (!email && config.emailUrl) {
-    const emailsRes = await fetch(config.emailUrl, { headers });
+    const emailsRes = await fetchUpstream(config.emailUrl, { headers }, { timeoutMs: oauthTimeoutMs() });
     const emails = await emailsRes.json().catch(() => []);
     const primary = Array.isArray(emails)
       ? emails.find((row) => row.primary && row.verified) || emails.find((row) => row.verified)

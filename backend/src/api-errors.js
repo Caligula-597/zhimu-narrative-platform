@@ -51,18 +51,22 @@ export function sendErr(reply, code, message, details) {
 }
 
 export function resolveErrorCode(error, statusCode) {
-  if (error.code && typeof error.code === "string") return error.code;
+  if (error.code && typeof error.code === "string" && errorMeta(error.code)) return error.code;
   if (error.validation) return "VALIDATION_ERROR";
   return STATUS_DEFAULT_CODES[statusCode] ?? "INTERNAL_ERROR";
 }
 
 export function formatErrorBody(error, statusCode) {
   const code = resolveErrorCode(error, statusCode);
+  const meta = errorMeta(code);
+  const exposeDetails = statusCode < 500;
   const body = {
-    error: error.message || "Request failed",
+    error: statusCode >= 500
+      ? (meta?.message || "Internal server error")
+      : (error.message || meta?.message || "Request failed"),
     code
   };
-  if (error.details !== undefined) body.details = error.details;
+  if (exposeDetails && error.details !== undefined) body.details = error.details;
   if (error.validation) {
     body.details = { validation: error.validation };
   }

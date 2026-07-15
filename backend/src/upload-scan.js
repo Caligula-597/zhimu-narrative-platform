@@ -9,6 +9,7 @@ import { getObjectStorage } from "./storage/index.js";
 import { runBuiltinScan } from "./upload-scan-builtin.js";
 import { scanWithClamAv } from "./upload-scan-clamav.js";
 import { recordUploadScan } from "./metrics.js";
+import { fetchUpstream, resolveUpstreamTimeoutMs } from "./upstream-fetch.js";
 
 export function resolveScanMode(env = process.env) {
   const configured = env.UPLOAD_SCAN_MODE?.trim();
@@ -46,14 +47,15 @@ async function runWebhookScan({ key, contentType, byteSize, filename }) {
     throwErr("UPLOAD_SCAN_NOT_CONFIGURED");
   }
   const secret = process.env.UPLOAD_SCAN_WEBHOOK_SECRET || "";
-  const response = await fetch(url, {
+  const response = await fetchUpstream(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(secret ? { Authorization: `Bearer ${secret}` } : {})
     },
-    body: JSON.stringify({ key, contentType, byteSize, filename }),
-    signal: AbortSignal.timeout(Number(process.env.UPLOAD_SCAN_TIMEOUT_MS || 30000))
+    body: JSON.stringify({ key, contentType, byteSize, filename })
+  }, {
+    timeoutMs: resolveUpstreamTimeoutMs(process.env.UPLOAD_SCAN_TIMEOUT_MS, 30_000)
   });
   if (!response.ok) {
     throwErr("UPLOAD_SCAN_FAILED");

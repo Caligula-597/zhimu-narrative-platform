@@ -4,17 +4,7 @@ import { fetchJournalEventsAfter, getLatestRoomEventId } from "../room-event-jou
 import { createReplaySubscription } from "../sse-replay-subscription.js";
 import { requireRoomRole } from "./route-guards.js";
 import { roomIdParams } from "./schemas.js";
-
-function writeSseEvent(raw, { id, payload }) {
-  try {
-    if (raw.destroyed || raw.writableEnded) return false;
-    if (id !== undefined && id !== null) raw.write(`id: ${id}\n`);
-    raw.write(`data: ${payload}\n\n`);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { writeSseEvent } from "../sse-response.js";
 
 export async function registerRoomEventsRoutes(app) {
   app.get("/api/rooms/:roomId/events/stream", { schema: { params: roomIdParams } }, async (request, reply) => {
@@ -33,11 +23,12 @@ export async function registerRoomEventsRoutes(app) {
     let closed = false;
     let unsubscribe = () => {};
     let heartbeat = null;
-    const cleanup = () => {
+    const cleanup = (endResponse = false) => {
       if (closed) return;
       closed = true;
       if (heartbeat) clearInterval(heartbeat);
       unsubscribe();
+      if (endResponse && !reply.raw.destroyed && !reply.raw.writableEnded) reply.raw.end();
     };
 
     request.raw.on("close", cleanup);
@@ -52,6 +43,7 @@ export async function registerRoomEventsRoutes(app) {
       beforeLive: () => writeSseEvent(reply.raw, {
         payload: JSON.stringify({ type: "connected", roomId, at: new Date().toISOString() })
       }),
+      onClose: () => cleanup(true),
       onReplayError: (error) => request.log.warn({ err: error, roomId }, "room SSE replay failed")
     });
     unsubscribe = subscription.unsubscribe;

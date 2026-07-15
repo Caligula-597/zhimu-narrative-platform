@@ -30,6 +30,22 @@ export function resolvePoolMax(raw = process.env.PGPOOL_MAX) {
   return Number.isInteger(value) && value > 0 && value <= 100 ? value : DEFAULT_POOL_MAX;
 }
 
+export function resolvePoolTimeoutMs(raw, fallback) {
+  const fallbackNumber = Number(fallback);
+  const safeFallback = Number.isInteger(fallbackNumber) && fallbackNumber >= 1_000
+    ? fallbackNumber
+    : 10_000;
+  const value = Number(raw ?? safeFallback);
+  return Number.isInteger(value) && value >= 1_000 && value <= 10 * 60_000
+    ? value
+    : safeFallback;
+}
+
+export function resolvePoolLifetimeSeconds(raw = process.env.PGPOOL_MAX_LIFETIME_SECONDS) {
+  const value = Number(raw ?? 1800);
+  return Number.isInteger(value) && value >= 60 && value <= 24 * 60 * 60 ? value : 1800;
+}
+
 export function isDatabaseCapacityError(error) {
   const code = String(error?.code || "").toUpperCase();
   const message = String(error?.message || "");
@@ -44,7 +60,9 @@ export const pool = new Pool({
   // Supabase session poolers commonly cap a project at 15 clients. Six per
   // instance permits a two-instance rolling deploy plus migration/ops headroom.
   max: resolvePoolMax(),
-  idleTimeoutMillis: Number(process.env.PGPOOL_IDLE_MS ?? 30_000),
+  idleTimeoutMillis: resolvePoolTimeoutMs(process.env.PGPOOL_IDLE_MS, 30_000),
+  connectionTimeoutMillis: resolvePoolTimeoutMs(process.env.PGPOOL_CONNECTION_TIMEOUT_MS, 10_000),
+  maxLifetimeSeconds: resolvePoolLifetimeSeconds(),
   keepAlive: true
 });
 

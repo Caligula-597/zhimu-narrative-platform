@@ -12,6 +12,28 @@ test("formatErrorBody includes code and validation details", () => {
   assert.ok(body.details?.validation);
 });
 
+test("formatErrorBody does not expose unexpected 5xx messages or details", () => {
+  const internal = Object.assign(new Error('relation "private_table" does not exist'), {
+    code: "42P01",
+    details: { sql: "SELECT secret FROM private_table" }
+  });
+  assert.deepEqual(formatErrorBody(internal, 500), {
+    error: "Internal error",
+    code: "INTERNAL_ERROR"
+  });
+});
+
+test("formatErrorBody uses registered safe messages for known 5xx codes", () => {
+  const upstream = Object.assign(new Error("provider leaked diagnostics"), {
+    code: "UPSTREAM_ERROR",
+    details: { providerResponse: "secret" }
+  });
+  assert.deepEqual(formatErrorBody(upstream, 502), {
+    error: "Upstream service error",
+    code: "UPSTREAM_ERROR"
+  });
+});
+
 test("httpError carries custom code", () => {
   const err = httpError(409, "Conflict", "ROLE_TAKEN", { roleSlotId: "x" });
   assert.equal(err.code, "ROLE_TAKEN");
@@ -41,6 +63,10 @@ test("API returns unified error shape for unauthenticated requests", async (cont
 });
 
 test("join unknown invite returns ROOM_NOT_FOUND", async (context) => {
+  if (!process.env.DATABASE_URL) {
+    context.skip("DATABASE_URL is required for the integration assertion");
+    return;
+  }
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
   const response = await app.inject({

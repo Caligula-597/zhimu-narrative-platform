@@ -6,6 +6,7 @@ import { getReadinessStatus } from "./database-status.js";
 import { getPoolStats } from "./db.js";
 import { getSseConnectionMetrics } from "./room-event-bus.js";
 import { startNonOverlappingInterval } from "./non-overlapping-interval.js";
+import { fetchUpstream, resolveUpstreamTimeoutMs } from "./upstream-fetch.js";
 
 let lastReady = null;
 let stopMonitor = null;
@@ -48,15 +49,14 @@ export async function dispatchAlertWebhook(payload) {
   const url = process.env.ALERT_WEBHOOK_URL?.trim();
   if (!url) return { sent: false, reason: "not_configured" };
   const secret = process.env.ALERT_WEBHOOK_SECRET?.trim();
-  const response = await fetch(url, {
+  const response = await fetchUpstream(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(secret ? { Authorization: `Bearer ${secret}` } : {})
     },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(Number(process.env.ALERT_WEBHOOK_TIMEOUT_MS || 15_000))
-  });
+    body: JSON.stringify(payload)
+  }, { timeoutMs: resolveUpstreamTimeoutMs(process.env.ALERT_WEBHOOK_TIMEOUT_MS) });
   if (!response.ok) {
     const text = await response.text().catch(() => "");
     throw new Error(`Alert webhook HTTP ${response.status}: ${text.slice(0, 200)}`);
@@ -102,9 +102,10 @@ export function startOpsAlertMonitor({ log, intervalMs } = {}) {
   );
   stopMonitor = monitor.stop;
   log?.info?.({ intervalMs: ms }, "Ops alert monitor started");
-  return () => {
-    stopMonitor?.();
+  return async () => {
+    const stop = stopMonitor;
     stopMonitor = null;
+    await stop?.();
   };
 }
 

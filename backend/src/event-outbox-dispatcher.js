@@ -121,8 +121,8 @@ export function startEventOutboxDispatcher({ log = console, intervalMs = Number(
       }
     }
   );
-  return () => {
-    controller.stop();
+  return async () => {
+    await controller.stop();
     status.started = false;
   };
 }
