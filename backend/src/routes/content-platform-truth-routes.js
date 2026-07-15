@@ -2,7 +2,7 @@ import { query } from "../db.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { runRevisionMutation } from "../world-revision.js";
-import { requireWorldReader, requireWorldRole } from "./route-guards.js";
+import { requireWorldRole } from "./route-guards.js";
 import {
   createTruthClaimSchema, patchTruthClaimSchema, truthClaimIdParams, worldIdParams
 } from "./schemas.js";
@@ -11,7 +11,7 @@ export async function registerContentPlatformTruthRoutes(app) {
   app.get("/api/worlds/:worldId/truth-claims", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     const result = await query(
       `SELECT * FROM world_truth_claims WHERE world_id = $1 ORDER BY created_at DESC`,
       [worldId]

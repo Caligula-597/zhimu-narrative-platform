@@ -66,7 +66,7 @@ export async function consumeItemIfNeeded(client, { roomId, roleSlotId, itemId }
 export async function listPlayerInventory(client, roomId, roleSlotId) {
   const run = client?.query ? client.query.bind(client) : query;
   const result = await run(
-    `SELECT i.id AS item_id, i.name, i.public_text, i.host_text, i.metadata,
+    `SELECT i.id AS item_id, i.name, i.public_text, i.metadata,
             inv.quantity, inv.metadata AS inventory_metadata
      FROM inventory inv
      JOIN items i ON i.id = inv.item_id

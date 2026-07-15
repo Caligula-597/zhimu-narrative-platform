@@ -1,10 +1,11 @@
 /**
  * Join a world listed in the public catalog — creates or reuses personal runtime room.
+ * World membership stays at viewer (play experience); never elevates to world host/editor.
  */
 import { query, transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 
-const ROLE_RANK = { viewer: 0, host: 1, editor: 2, owner: 3 };
+const PLAY_MEMBERSHIP_ROLE = "viewer";
 
 function catalogInviteCode() {
   return `PLAY-${Date.now().toString(36).toUpperCase().slice(-8)}`;
@@ -31,17 +32,12 @@ export async function joinPublicCatalogWorld(actorId, worldId) {
     let membershipRole = membership.rows[0]?.role;
     if (!membershipRole) {
       await client.query(
-        `INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, 'host')`,
-        [worldId, actorId]
+        `INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, $3)`,
+        [worldId, actorId, PLAY_MEMBERSHIP_ROLE]
       );
-      membershipRole = "host";
-    } else if (ROLE_RANK[membershipRole] < ROLE_RANK.host) {
-      await client.query(
-        `UPDATE world_members SET role = 'host' WHERE world_id = $1 AND user_id = $2`,
-        [worldId, actorId]
-      );
-      membershipRole = "host";
+      membershipRole = PLAY_MEMBERSHIP_ROLE;
     }
+    // Preserve existing collaborator roles — never promote viewer → host.
 
     const existingRoom = await client.query(
       `SELECT id, name, invite_code FROM rooms
@@ -69,11 +65,17 @@ export async function joinPublicCatalogWorld(actorId, worldId) {
        ON CONFLICT (room_id, user_id) DO UPDATE SET status = 'active', member_type = 'host'`,
       [room.id, actorId]
     );
-    await client.query(
-      `INSERT INTO voice_rooms (room_id, name, room_type, created_by_user_id)
-       VALUES ($1, '公共讨论房', 'public', $2)`,
-      [room.id, actorId]
+    const voiceExisting = await client.query(
+      `SELECT 1 FROM voice_rooms WHERE room_id = $1 AND room_type = 'public' LIMIT 1`,
+      [room.id]
     );
+    if (!voiceExisting.rowCount) {
+      await client.query(
+        `INSERT INTO voice_rooms (room_id, name, room_type, created_by_user_id)
+         VALUES ($1, '公共讨论房', 'public', $2)`,
+        [room.id, actorId]
+      );
+    }
 
     return { membershipRole, room };
   });

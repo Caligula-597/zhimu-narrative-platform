@@ -4,19 +4,19 @@ import { requireActor } from "../request-actor.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { logHostAction } from "../audit-log.js";
 import { runRevisionMutation } from "../world-revision.js";
-import { requireWorldReader, requireWorldRole } from "./route-guards.js";
+import { requireWorldRole } from "./route-guards.js";
 import {
   assertRoleInRoomWorld, requireHostMembership
 } from "./content-platform-room-access.js";
 import {
-  createRoleRelationshipSchema, updateRoleStateSchema, worldIdParams
+  createRoleRelationshipSchema, roleRelationshipIdParams, updateRoleStateSchema, worldIdParams
 } from "./schemas.js";
 
 export async function registerContentPlatformRoleRoutes(app) {
   app.get("/api/worlds/:worldId/role-relationships", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     const result = await query(
       `SELECT wrr.*, fr.name AS from_role_name, tr.name AS to_role_name
        FROM world_role_relationships wrr
@@ -55,6 +55,22 @@ export async function registerContentPlatformRoleRoutes(app) {
       );
       return { relationship: result.rows[0] };
     }, { sendErr, statusCode: 201 });
+  });
+
+  app.delete("/api/worlds/:worldId/role-relationships/:relationshipId", { schema: { params: roleRelationshipIdParams } }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, relationshipId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const result = await client.query(
+        `DELETE FROM world_role_relationships
+         WHERE id = $1 AND world_id = $2
+         RETURNING id`,
+        [relationshipId, worldId]
+      );
+      if (!result.rowCount) throwErr("NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
   });
 
   app.patch("/api/rooms/:roomId/host/players/:roleSlotId/state", { schema: updateRoleStateSchema }, async (request) => {

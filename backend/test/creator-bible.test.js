@@ -155,6 +155,67 @@ test("timeline events and truth claim patch delete", async (context) => {
   assert.equal(delEvent.json().ok, true);
 });
 
+test("role relationship can be created and deleted only inside its world", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const worldId = await fixtureWorldId();
+  const fromRoleId = randomUUID();
+  const toRoleId = randomUUID();
+  const otherWorldId = randomUUID();
+
+  await query(
+    `INSERT INTO worlds (id, owner_user_id, name, summary, status)
+     VALUES ($1, $2, $3, '', 'testing')`,
+    [otherWorldId, hostUserId, `关系隔离测试-${otherWorldId.slice(0, 6)}`]
+  );
+  await query(
+    `INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, 'owner')`,
+    [otherWorldId, hostUserId]
+  );
+  await query(
+    `INSERT INTO role_slots (id, world_id, name, sequence)
+     VALUES ($1, $3, $4, 901), ($2, $3, $5, 902)`,
+    [fromRoleId, toRoleId, worldId, `关系测试甲-${fromRoleId.slice(0, 6)}`, `关系测试乙-${toRoleId.slice(0, 6)}`]
+  );
+  context.after(async () => {
+    await query(`DELETE FROM role_slots WHERE id = ANY($1::uuid[])`, [[fromRoleId, toRoleId]]);
+    await query(`DELETE FROM worlds WHERE id = $1`, [otherWorldId]);
+  });
+
+  const created = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/role-relationships`,
+    headers: { "x-user-id": hostUserId },
+    payload: { fromRoleSlotId: fromRoleId, toRoleSlotId: toRoleId, label: "互相怀疑", strength: -4 }
+  });
+  assert.equal(created.statusCode, 201, created.body);
+  const relationshipId = created.json().relationship.id;
+
+  const wrongWorld = await app.inject({
+    method: "DELETE",
+    url: `/api/worlds/${otherWorldId}/role-relationships/${relationshipId}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(wrongWorld.statusCode, 404, wrongWorld.body);
+  const stillExists = await query(`SELECT 1 FROM world_role_relationships WHERE id = $1`, [relationshipId]);
+  assert.equal(stillExists.rowCount, 1);
+
+  const deleted = await app.inject({
+    method: "DELETE",
+    url: `/api/worlds/${worldId}/role-relationships/${relationshipId}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(deleted.statusCode, 200, deleted.body);
+  assert.equal(deleted.json().ok, true);
+
+  const deletedAgain = await app.inject({
+    method: "DELETE",
+    url: `/api/worlds/${worldId}/role-relationships/${relationshipId}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(deletedAgain.statusCode, 404, deletedAgain.body);
+});
+
 test("missing role archive returns 404 not 500", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());

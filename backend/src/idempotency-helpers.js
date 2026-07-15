@@ -27,7 +27,15 @@ export async function withRoomIdempotency(roomId, request, routeKey, handler) {
 
   try {
     const response = await handler();
-    await completeIdempotencySlot(roomId, idempotencyKey, response);
+    try {
+      await completeIdempotencySlot(roomId, idempotencyKey, response);
+    } catch (completeError) {
+      // Domain write already succeeded — do not flip the client to failure / force a re-execute.
+      console.error(
+        "[idempotency] complete after success failed:",
+        completeError?.message || completeError
+      );
+    }
     return response;
   } catch (error) {
     await failIdempotencySlot(roomId, idempotencyKey, {

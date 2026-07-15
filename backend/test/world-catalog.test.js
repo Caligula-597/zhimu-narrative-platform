@@ -161,7 +161,7 @@ test("POST /worlds/:id/catalog/request stays pending when notify email fails", a
   assert.equal(response.json().catalog_review_status, "pending");
 });
 
-test("POST /worlds/:id/catalog/join grants host membership and a personal room", async (context) => {
+test("POST /worlds/:id/catalog/join grants viewer membership and a personal room", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
   const worldId = await createCatalogReadyWorld(app, `join-${Date.now()}`);
@@ -184,7 +184,7 @@ test("POST /worlds/:id/catalog/join grants host membership and a personal room",
     const payload = join.json();
     assert.equal(payload.worldId, worldId);
     assert.equal(payload.worldName, worldName);
-    assert.equal(payload.membershipRole, "host");
+    assert.equal(payload.membershipRole, "viewer");
     assert.ok(payload.room?.invite_code);
     const firstRoomId = payload.room.id;
 
@@ -200,7 +200,7 @@ test("POST /worlds/:id/catalog/join grants host membership and a personal room",
       `SELECT role FROM world_members WHERE world_id = $1 AND user_id = $2`,
       [worldId, user.id]
     );
-    assert.equal(membership.rows[0].role, "host");
+    assert.equal(membership.rows[0].role, "viewer");
 
     const studio = await app.inject({
       method: "GET",
@@ -210,8 +210,12 @@ test("POST /worlds/:id/catalog/join grants host membership and a personal room",
     assert.equal(studio.statusCode, 200, studio.body);
     const studioBody = studio.json();
     assert.equal(studioBody.world.name, worldName);
-    assert.ok(studioBody.roles.length >= 1, "roles should be visible to catalog host");
+    assert.ok(studioBody.roles.length >= 1, "roles should be visible to catalog viewer");
     assert.ok(studioBody.chapters.length >= 1, "chapters should be visible");
     assert.ok(studioBody.sections.length >= 1, "sections should be visible");
+    assert.equal(studioBody.roles[0].private_profile, "", "viewer must not see private_profile");
+    for (const scene of studioBody.scenes || []) {
+      assert.equal(scene.host_text, "", "viewer must not see scene host_text");
+    }
   });
 });

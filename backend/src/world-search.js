@@ -83,15 +83,25 @@ export async function searchWorldContent(worldId, { q, limit = 30, type = "all",
 
   pushBucket(
     "section",
-    `SELECT ss.id, ss.title, left(COALESCE(ss.body, ''), 240) AS snippet,
+    `SELECT ss.id, ss.title,
+            CASE WHEN ${includeDraftContent ? "true" : "false"}
+              THEN left(COALESCE(ss.body, ''), 240)
+              ELSE '' END AS snippet,
             jsonb_build_object('roleSlotId', ss.role_slot_id, 'sequence', ss.sequence) AS meta,
-            CASE WHEN ss.title ILIKE $2 ESCAPE '\\' THEN 2 WHEN ss.body ILIKE $2 ESCAPE '\\' THEN 1 ELSE 0 END AS rank
+            CASE WHEN ss.title ILIKE $2 ESCAPE '\\' THEN 2
+                 WHEN ${includeDraftContent ? "true" : "false"} AND ss.body ILIKE $2 ESCAPE '\\' THEN 1
+                 ELSE 0 END AS rank
      FROM script_sections ss
      JOIN role_slots rs ON rs.id = ss.role_slot_id
      WHERE rs.world_id = $1
        AND (${includeDraftContent ? "true" : "ss.publication_status IN ('testing', 'published')"})
-       AND (ss.title ILIKE $2 ESCAPE '\\' OR ss.body ILIKE $2 ESCAPE '\\'
-            ${tsParamIndex ? `OR to_tsvector('simple', coalesce(ss.title,'') || ' ' || coalesce(ss.body,'')) @@ plainto_tsquery('simple', $${tsParamIndex})` : ""})`
+       AND (ss.title ILIKE $2 ESCAPE '\\'
+            ${includeDraftContent ? "OR ss.body ILIKE $2 ESCAPE '\\'" : ""}
+            ${tsParamIndex && includeDraftContent
+              ? `OR to_tsvector('simple', coalesce(ss.title,'') || ' ' || coalesce(ss.body,'')) @@ plainto_tsquery('simple', $${tsParamIndex})`
+              : tsParamIndex
+                ? `OR to_tsvector('simple', coalesce(ss.title,'')) @@ plainto_tsquery('simple', $${tsParamIndex})`
+                : ""})`
   );
 
   pushBucket(

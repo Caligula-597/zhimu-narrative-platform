@@ -89,3 +89,36 @@ test("extractAuthToken reads login token", () => {
 test("createIdempotencyKey returns string", () => {
   assert.ok(createIdempotencyKey().length > 8);
 });
+
+test("idempotent requests sticky-reuse the same key for identical payload", async () => {
+  const seen = [];
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, init) => {
+    seen.push(init.headers["idempotency-key"]);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true })
+    };
+  };
+  try {
+    const { request } = createApiFetch({
+      baseUrl: "http://example.test",
+      getHeaders: () => ({})
+    });
+    await request("/api/rooms/r1/host/grant-item", {
+      method: "POST",
+      body: { roleSlotId: "a", itemId: "b", quantity: 1 },
+      idempotent: true
+    });
+    await request("/api/rooms/r1/host/grant-item", {
+      method: "POST",
+      body: { roleSlotId: "a", itemId: "b", quantity: 1 },
+      idempotent: true
+    });
+    assert.equal(seen.length, 2);
+    assert.equal(seen[0], seen[1]);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});

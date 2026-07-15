@@ -1,5 +1,5 @@
 /**
- * Creator bible routes â€” structural story objects (summary + CRUD).
+ * Creator bible routes â€?structural story objects (summary + CRUD).
  */
 import {
   normalizeCoreTrickBody,
@@ -29,7 +29,7 @@ import {
 } from "../creator-bible.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
-import { requireWorldReader, requireWorldRole } from "./route-guards.js";
+import { requireWorldRole } from "./route-guards.js";
 import { runRevisionMutation } from "../world-revision.js";
 import {
   bibleBeatIdParams,
@@ -48,14 +48,14 @@ export async function registerCreatorBibleRoutes(app) {
   app.get("/api/worlds/:worldId/bible/summary", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     return loadBibleSummary(worldId);
   });
 
   app.get("/api/worlds/:worldId/bible/core-trick", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     return { coreTrick: await getCoreTrick(worldId) };
   });
 
@@ -73,14 +73,14 @@ export async function registerCreatorBibleRoutes(app) {
   app.get("/api/worlds/:worldId/bible/role-archives", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     return { archives: await listRoleArchives(worldId) };
   });
 
   app.get("/api/worlds/:worldId/bible/role-archives/:roleSlotId", { schema: { params: bibleRoleSlotParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, roleSlotId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     const archive = await getRoleArchive(worldId, roleSlotId);
     if (!archive) return sendErr(reply, "NOT_FOUND");
     return { archive };
@@ -100,7 +100,7 @@ export async function registerCreatorBibleRoutes(app) {
   app.get("/api/worlds/:worldId/bible/foreshadow-beats", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     return { beats: await listForeshadowBeats(worldId) };
   });
 
@@ -141,7 +141,7 @@ export async function registerCreatorBibleRoutes(app) {
   app.get("/api/worlds/:worldId/bible/timeline-events", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     return { events: await listTimelineEvents(worldId) };
   });
 

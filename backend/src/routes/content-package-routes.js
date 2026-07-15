@@ -1,7 +1,7 @@
 import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireVerifiedEmail } from "../email-verification-policy.js";
-import { requireWorldRole, requireWorldReader } from "./route-guards.js";
+import { requireWorldRole } from "./route-guards.js";
 import { buildWorldSnapshot } from "./world-helpers.js";
 import { runRevisionMutation } from "../world-revision.js";
 import {
@@ -24,14 +24,14 @@ export async function registerContentPackageRoutes(app) {
   app.get("/api/worlds/:worldId/content-package/summary", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     return exportSummaryForWorld(worldId);
   });
 
   app.get("/api/worlds/:worldId/content-package", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     return {
       format: PACKAGE_FORMAT,
       version: PACKAGE_VERSION,

@@ -28,7 +28,8 @@ export async function registerPlayerExplorationRoutes(app) {
               COALESCE(json_agg(
                 json_build_object(
                   'id', ip.id, 'name', ip.name, 'description', ip.description,
-                  'interactionText', ip.interaction_text, 'resultText', ip.result_text,
+                  'interactionText', ip.interaction_text,
+                  'resultText', CASE WHEN ir.investigated_at IS NOT NULL THEN ip.result_text ELSE NULL END,
                   'requiredItemId', ip.required_item_id,
                   'requiredItemName', req_item.name,
                   'hasRequiredItem', CASE

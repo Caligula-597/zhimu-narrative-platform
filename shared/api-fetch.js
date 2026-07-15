@@ -73,7 +73,7 @@ export function createApiFetch(config) {
     };
     if (options.body !== undefined) headers["content-type"] = "application/json";
     if (options.idempotent && method !== "GET" && method !== "HEAD") {
-      headers["idempotency-key"] = options.idempotencyKey || createIdempotencyKey();
+      headers["idempotency-key"] = options.idempotencyKey || resolveStickyIdempotencyKey(method, path, options.body);
     }
 
     const timer = createAbortTimer(timeoutMs);
@@ -117,6 +117,35 @@ export function createApiFetch(config) {
 export function createIdempotencyKey(prefix = "idem") {
   if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+/** Sticky keys so double-click / short retries reuse the same claim window. */
+const stickyIdempotencyKeys = new Map();
+const STICKY_IDEMPOTENCY_MS = 30_000;
+
+function resolveStickyIdempotencyKey(method, path, body) {
+  const fingerprint = `${method}:${path}:${stableBodyFingerprint(body)}`;
+  const now = Date.now();
+  const existing = stickyIdempotencyKeys.get(fingerprint);
+  if (existing && now - existing.at < STICKY_IDEMPOTENCY_MS) return existing.key;
+  const key = createIdempotencyKey();
+  stickyIdempotencyKeys.set(fingerprint, { key, at: now });
+  if (stickyIdempotencyKeys.size > 200) {
+    for (const [k, v] of stickyIdempotencyKeys) {
+      if (now - v.at >= STICKY_IDEMPOTENCY_MS) stickyIdempotencyKeys.delete(k);
+    }
+  }
+  return key;
+}
+
+function stableBodyFingerprint(body) {
+  if (body == null) return "";
+  if (typeof body === "string") return body;
+  try {
+    return JSON.stringify(body);
+  } catch {
+    return String(body);
+  }
 }
 
 /**

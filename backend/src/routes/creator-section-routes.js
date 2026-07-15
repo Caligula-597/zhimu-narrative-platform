@@ -1,4 +1,5 @@
 import { sendErr, throwErr } from "../api-errors.js";
+import { assertRoleSlotInWorld, assertChapterInWorld } from "../creator-bible-guards.js";
 import { requireActor } from "../request-actor.js";
 import { runRevisionMutation } from "../world-revision.js";
 import { requireWorldRole } from "./route-guards.js";
@@ -11,6 +12,8 @@ export async function registerCreatorSectionRoutes(app) {
     await requireWorldRole(actorId, worldId);
     const { title, body, sequence, chapterId = null, publicationStatus = "draft" } = request.body ?? {};
     return runRevisionMutation(request, reply, worldId, async (client) => {
+      await assertRoleSlotInWorld(worldId, roleSlotId, client);
+      await assertChapterInWorld(worldId, chapterId, client);
       const script = await client.query(
         `INSERT INTO character_scripts (role_slot_id, title)
          SELECT $1, '角色私人剧本'

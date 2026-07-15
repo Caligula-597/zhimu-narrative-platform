@@ -206,6 +206,7 @@ export const bibleRoleSlotParams = paramsSchema({ worldId: uuid, roleSlotId: uui
 export const bibleBeatIdParams = paramsSchema({ worldId: uuid, beatId: uuid });
 export const bibleEventIdParams = paramsSchema({ worldId: uuid, eventId: uuid });
 export const truthClaimIdParams = paramsSchema({ worldId: uuid, claimId: uuid });
+export const roleRelationshipIdParams = paramsSchema({ worldId: uuid, relationshipId: uuid });
 
 export const patchCoreTrickSchema = {
   params: worldIdParams,

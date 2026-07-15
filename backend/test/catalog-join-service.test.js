@@ -22,7 +22,7 @@ test("joinPublicCatalogWorld rejects non-public worlds", async () => {
   }
 });
 
-test("joinPublicCatalogWorld promotes viewer to host and provisions room", async () => {
+test("joinPublicCatalogWorld keeps viewer membership and provisions room", async () => {
   const suffix = `promote-${Date.now()}`;
   const world = await query(
     `INSERT INTO worlds (owner_user_id, name, summary, status, catalog_public, catalog_review_status)
@@ -44,14 +44,14 @@ test("joinPublicCatalogWorld promotes viewer to host and provisions room", async
 
   try {
     const result = await joinPublicCatalogWorld(playerUserId, world.rows[0].id);
-    assert.equal(result.membershipRole, "host");
+    assert.equal(result.membershipRole, "viewer");
     assert.ok(result.room?.id);
 
     const role = await query(
       `SELECT role FROM world_members WHERE world_id = $1 AND user_id = $2`,
       [world.rows[0].id, playerUserId]
     );
-    assert.equal(role.rows[0].role, "host");
+    assert.equal(role.rows[0].role, "viewer");
   } finally {
     await query(`DELETE FROM voice_rooms WHERE room_id IN (SELECT id FROM rooms WHERE world_id = $1)`, [
       world.rows[0].id

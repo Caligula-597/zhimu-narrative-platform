@@ -4,7 +4,7 @@ import { requireActor } from "../request-actor.js";
 import { normalizeSegmentOperations } from "../segment-contract.js";
 import { syncWorldSegmentsFromChapters } from "../world-segments-seed.js";
 import { runRevisionMutation } from "../world-revision.js";
-import { requireWorldReader, requireWorldRole } from "./route-guards.js";
+import { requireWorldRole } from "./route-guards.js";
 import {
   createSegmentSchema, updateSegmentSchema, worldIdParams
 } from "./schemas.js";
@@ -51,7 +51,7 @@ export async function registerContentPlatformSegmentRoutes(app) {
   app.get("/api/worlds/:worldId/segments", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId);
     const result = await query(
       `SELECT ws.*,
               COALESCE(json_agg(jsonb_build_object(

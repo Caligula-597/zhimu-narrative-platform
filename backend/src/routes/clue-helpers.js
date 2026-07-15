@@ -12,7 +12,7 @@ export function formatClueCellLabel(cell) {
 export async function fetchPlayerClues(query, roomId, roleSlotId) {
   const owned = await query(
     `SELECT c.id, c.name, c.public_text, co.acquired_at, co.read_at,
-            co.shared_with_room, co.shared_with_roles, co.player_note, co.host_note, co.shared_at,
+            co.shared_with_room, co.shared_with_roles, co.player_note, co.shared_at,
             true AS is_owner, co.role_slot_id AS owner_role_slot_id,
             rs.name AS owner_role_name, u.display_name AS owner_player_name
      FROM clue_ownership co

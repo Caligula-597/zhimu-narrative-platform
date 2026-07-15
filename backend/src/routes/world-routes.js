@@ -207,7 +207,7 @@ export async function registerWorldRoutes(app) {
   app.get("/api/worlds/:worldId/members", async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);
+    await requireWorldRole(actorId, worldId, ["owner", "editor"]);
     const [members, pendingInvites] = await Promise.all([
       query(
         `SELECT wm.user_id, u.email, u.display_name, wm.role, wm.created_at

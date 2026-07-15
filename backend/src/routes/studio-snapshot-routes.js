@@ -31,14 +31,29 @@ export async function registerStudioSnapshotRoutes(app) {
          WHERE rs.world_id = $1 AND ($2::boolean OR ss.publication_status IN ('testing', 'published'))
          ORDER BY rs.sequence, ss.sequence`, [worldId, canReadDraftContent]
       );
-      const scenes = await client.query(`SELECT id, chapter_id, name, public_text, host_text, metadata FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]);
-      const clues = await client.query(`SELECT id, name, public_text, host_text, visibility, clue_kind, metadata FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]);
-      const points = await client.query(
-        `SELECT id, scene_id, name, description, interaction_text, result_text, clue_id,
-                required_item_id, required_role_slot_id, sequence, metadata
-         FROM investigation_points WHERE world_id = $1 ORDER BY scene_id, sequence, created_at`, [worldId]
+      const scenes = await client.query(
+        `SELECT id, chapter_id, name, public_text,
+                CASE WHEN $2::boolean THEN host_text ELSE '' END AS host_text, metadata
+         FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId, canReadDraftContent]
       );
-      const items = await client.query(`SELECT id, name, public_text, host_text, metadata FROM items WHERE world_id = $1 ORDER BY created_at`, [worldId]);
+      const clues = await client.query(
+        `SELECT id, name, public_text,
+                CASE WHEN $2::boolean THEN host_text ELSE '' END AS host_text,
+                visibility, clue_kind, metadata
+         FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId, canReadDraftContent]
+      );
+      const points = await client.query(
+        `SELECT id, scene_id, name, description, interaction_text,
+                CASE WHEN $2::boolean THEN result_text ELSE '' END AS result_text,
+                clue_id, required_item_id, required_role_slot_id, sequence, metadata
+         FROM investigation_points WHERE world_id = $1 ORDER BY scene_id, sequence, created_at`,
+        [worldId, canReadDraftContent]
+      );
+      const items = await client.query(
+        `SELECT id, name, public_text,
+                CASE WHEN $2::boolean THEN host_text ELSE '' END AS host_text, metadata
+         FROM items WHERE world_id = $1 ORDER BY created_at`, [worldId, canReadDraftContent]
+      );
       const edges = await client.query(`SELECT id, from_type, from_id, to_type, to_id, relation_type, label FROM story_graph_edges WHERE world_id = $1 ORDER BY created_at`, [worldId]);
       const versions = await client.query(`SELECT id, label, created_at FROM content_versions WHERE world_id = $1 ORDER BY created_at DESC LIMIT 12`, [worldId]);
       const rooms = await client.query(
