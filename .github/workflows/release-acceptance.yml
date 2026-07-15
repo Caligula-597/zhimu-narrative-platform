@@ -92,7 +92,7 @@ jobs:
         if: always()
         run: npm run perf:player-home:fixture:cleanup
         working-directory: backend
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: release-acceptance-evidence
