@@ -32,6 +32,7 @@ import "../src/views/platform-runtime.js";
 import "../src/runtime/wizard.js";
 import "../src/runtime/auth-session.js";
 import "../src/runtime/workspace-store.js";
+import "../src/runtime/studio-loader.js";
 import "../src/runtime/runtime-store.js";
 import "../src/runtime/context-coordinator.js";
 import "../src/runtime/account-quota.js";

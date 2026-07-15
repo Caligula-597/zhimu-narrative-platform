@@ -5,10 +5,12 @@
 import * as zhimuApi from "../api/index.js";
 import { studioStore, worldStore, roomStore, assetStore, userStore, uiStore } from "../state/index.js";
 import { clearRuntimeState } from "./runtime-store.js";
+import { invalidateStudioSnapshot } from "./studio-loader.js";
 (function (window) {
   function clearWorldScopedState() {
-    studioStore.set({ cloudStudio: null });
-    worldStore.set({ cloudRules: [], cloudCreatorChecks: [], cloudCreatorDashboard: null, cloudWorldLogs: [] });
+    invalidateStudioSnapshot({ clear: true });
+    studioStore.set({ cloudStudio: null, studioLoading: false, studioError: "" });
+    worldStore.set({ cloudRules: [], cloudCreatorChecks: [], cloudCreatorDashboard: null, cloudWorkspacePreview: null, cloudWorldLogs: [] });
     roomStore.set({
       cloudHost: [],
       cloudHostPlayers: [],
@@ -31,7 +33,9 @@ import { clearRuntimeState } from "./runtime-store.js";
   /** After login / register / OAuth — drop demo world pointer and in-memory account cache. */
   function resetAccountContext() {
     zhimuApi.resetActiveWorld?.();
-    studioStore.set({ cloudStudio: null });
+    invalidateStudioSnapshot({ clear: true });
+    studioStore.set({ cloudStudio: null, studioLoading: false, studioError: "" });
+    worldStore.set({ cloudWorkspacePreview: null });
     uiStore.set({ accountView: null });
     clearRuntimeState();
   }
@@ -54,7 +58,9 @@ import { clearRuntimeState } from "./runtime-store.js";
   /** Logout — token cleared by caller; resets workspace + session UI flags. */
   function onSessionLogout() {
     zhimuApi.resetActiveWorld?.();
-    studioStore.set({ cloudStudio: null });
+    invalidateStudioSnapshot({ clear: true });
+    studioStore.set({ cloudStudio: null, studioLoading: false, studioError: "" });
+    worldStore.set({ cloudWorkspacePreview: null });
     uiStore.set({ accountView: null });
     sessionStorage.removeItem("zhimuAuthPrompted");
     clearRuntimeState();
@@ -64,7 +70,9 @@ import { clearRuntimeState } from "./runtime-store.js";
   function onCurrentWorldDeleted() {
     zhimuApi.clearWorld();
     zhimuApi.clearRoom();
-    studioStore.set({ cloudStudio: null });
+    invalidateStudioSnapshot({ clear: true });
+    studioStore.set({ cloudStudio: null, studioLoading: false, studioError: "" });
+    worldStore.set({ cloudWorkspacePreview: null });
     clearRuntimeState();
   }
 

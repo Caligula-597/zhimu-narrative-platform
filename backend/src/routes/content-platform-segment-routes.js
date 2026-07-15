@@ -2,6 +2,7 @@ import { query } from "../db.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { normalizeSegmentOperations } from "../segment-contract.js";
+import { loadWorldSegments, toSegmentDto } from "../world-segment-read-service.js";
 import { syncWorldSegmentsFromChapters } from "../world-segments-seed.js";
 import { runRevisionMutation } from "../world-revision.js";
 import { requireWorldRole } from "./route-guards.js";
@@ -37,35 +38,14 @@ async function fetchSegmentRefs(client, segmentId) {
   }));
 }
 
-export function toSegmentDto(row) {
-  return {
-    id: row.id, worldId: row.world_id, segmentKey: row.segment_key,
-    title: row.title, sequence: row.sequence, chapterId: row.chapter_id,
-    story: row.story ?? {}, mechanics: row.mechanics ?? {},
-    operations: normalizeSegmentOperations(row.operations ?? {}),
-    quality: row.quality ?? {}, metadata: row.metadata ?? {}, refs: row.refs ?? []
-  };
-}
+export { toSegmentDto };
 
 export async function registerContentPlatformSegmentRoutes(app) {
   app.get("/api/worlds/:worldId/segments", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const result = await query(
-      `SELECT ws.*,
-              COALESCE(json_agg(jsonb_build_object(
-                'refType', wsr.ref_type, 'refId', wsr.ref_id,
-                'roleSlotId', wsr.role_slot_id, 'metadata', wsr.metadata
-              ) ORDER BY wsr.created_at) FILTER (WHERE wsr.id IS NOT NULL), '[]'::json) AS refs
-       FROM world_segments ws
-       LEFT JOIN world_segment_refs wsr ON wsr.segment_id = ws.id
-       WHERE ws.world_id = $1
-       GROUP BY ws.id
-       ORDER BY ws.sequence, ws.created_at`,
-      [worldId]
-    );
-    return { segments: result.rows.map(toSegmentDto) };
+    return { segments: await loadWorldSegments(worldId) };
   });
 
   app.post("/api/worlds/:worldId/segments/sync-from-graph", { schema: { params: worldIdParams } }, async (request, reply) => {

@@ -75,12 +75,14 @@ try { globalThis.navigator = navShim; } catch { Object.defineProperty(globalThis
 
 /* ── Fetch mock: tests set `nextWorlds` to control getWorlds() response ── */
 let nextWorlds = [];
+let worldFetchCount = 0;
 globalThis.fetch = async (url, opts) => {
   const urlStr = String(url);
   if (urlStr === "/api/auth/me") {
     throw new TypeError("no backend in test");
   }
   if (urlStr === "/api/worlds" || urlStr.startsWith("/api/worlds?")) {
+    worldFetchCount += 1;
     return { ok: true, status: 200, json: async () => nextWorlds };
   }
   return { ok: true, status: 200, json: async () => ({}) };
@@ -121,6 +123,7 @@ test.before(async () => {
 });
 
 function resetState(overrides = {}) {
+  worldFetchCount = 0;
   worldStore.set({
     cloudWorlds: [],
     cloudRules: [{ id: "r1" }],
@@ -303,6 +306,17 @@ test("workspace ensureActiveWorld returns null and clears pointers when no world
   assert.equal(demoContext.roomId, "");
 });
 
+test("workspace ensureActiveWorld consumes one prefetched worlds request", async () => {
+  nextWorlds = [{ id: "prefetched-world", name: "Prefetched" }];
+
+  const pending = zhimuWorkspace.prefetchWorlds();
+  const id = await zhimuWorkspace.ensureActiveWorld();
+
+  assert.equal(await pending.then((worlds) => worlds[0].id), "prefetched-world");
+  assert.equal(id, "prefetched-world");
+  assert.equal(worldFetchCount, 1);
+});
+
 test("workspace activeRuntimeRoom resolves from studio rooms or player payload", () => {
   demoContext.roomId = "room-a";
 
@@ -358,10 +372,52 @@ test("data.js delegates ensureActiveWorld and clearRuntimeState to stores", () =
   assert.match(dataJs, /runtime-store\.js/);
   assert.match(dataJs, /zhimuRoomEvents/);
   assert.match(dataJs, /function ensureActiveWorld/);
+  assert.match(dataJs, /function prefetchWorlds/);
   assert.match(dataJs, /function clearRuntimeState/);
   assert.match(dataJs, /force && loadCloudDataPromise && loadCloudDataKey === key/);
   assert.match(dataJs, /function isCurrentLoad/);
   assert.match(dataJs, /if \(!isCurrentLoad\(activeLoadKey\)\) return/);
+  assert.match(dataJs, /if \(cockpitHydrationPromise\) await cockpitHydrationPromise/);
+});
+
+test("startup overlaps auth and world membership before cloud hydration", () => {
+  const appJs = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  const profileIndex = appJs.indexOf("const profilePromise = window.zhimuAuthSession?.syncProfile?.()");
+  const prefetchIndex = appJs.indexOf("R.prefetchWorlds?.()");
+  const awaitProfileIndex = appJs.indexOf("await profilePromise");
+  const hydrateIndex = appJs.indexOf("return R.loadCloudData()");
+
+  assert.ok(profileIndex >= 0);
+  assert.ok(prefetchIndex > profileIndex);
+  assert.ok(awaitProfileIndex > prefetchIndex);
+  assert.ok(hydrateIndex > awaitProfileIndex);
+});
+
+test("creator cockpit uses preview while detailed views lazy-load Studio", () => {
+  const appJs = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  const dataJs = fs.readFileSync(path.join(root, "src/runtime/data.js"), "utf8");
+  const cockpitJs = fs.readFileSync(path.join(root, "src/views/creator-cockpit.js"), "utf8");
+  const studioLoaderJs = fs.readFileSync(path.join(root, "src/runtime/studio-loader.js"), "utf8");
+
+  assert.match(cockpitJs, /cloudWorkspacePreview/);
+  assert.doesNotMatch(dataJs, /await zhimuApi\.getStudio\(\)/);
+  assert.match(dataJs, /viewRequiresStudio\(activeView\)/);
+  assert.match(studioLoaderJs, /export function ensureStudioSnapshot/);
+  assert.match(studioLoaderJs, /inFlightPromise && inFlightWorldId === worldId/);
+  assert.match(studioLoaderJs, /"writer"/);
+  assert.match(studioLoaderJs, /"studio"/);
+  assert.match(studioLoaderJs, /"clues"/);
+  assert.match(appJs, /R\.viewRequiresStudio/);
+  assert.match(appJs, /R\.ensureStudioSnapshot/);
+});
+
+test("saved world revisions invalidate and refresh the creator cockpit preview", () => {
+  const revisionSource = fs.readFileSync(path.join(root, "src/runtime/world-revision.js"), "utf8");
+  const appSource = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  const cockpitSource = fs.readFileSync(path.join(root, "src/views/creator-cockpit.js"), "utf8");
+  assert.match(revisionSource, /callView\("creatorCockpit", "invalidateCockpitData"\)/);
+  assert.match(appSource, /callView\("creatorCockpit", "refreshCockpitData"\)/);
+  assert.match(cockpitSource, /inFlightPromise && loadedWorldId !== zhimuApi\.context\.worldId/);
 });
 
 test("actions.js delegates to domain action modules", () => {
@@ -503,8 +559,9 @@ test("phase V3 runtime cross-view calls go through loader and registry", () => {
   assert.match(roomEvents, /ensureViewModules\?\.\("player"\)/);
   assert.match(roomEvents, /callView\("player", "refreshVoiceMessages"\)/);
   assert.match(roomEvents, /roomEventStreamKey/);
-  assert.match(roomEvents, /roomEventAbort && roomEventStreamKey === nextStreamKey/);
-  assert.match(roomEvents, /if \(roomEventStreamKey !== boundStreamKey\) return/);
+  assert.match(roomEvents, /createSseLifecycle/);
+  assert.match(roomEvents, /roomEventLifecycle && roomEventStreamKey === nextStreamKey/);
+  assert.match(roomEvents, /roomEventLifecycle\?\.stop\(\)/);
   assert.match(searchFocus, /import \{ callView \} from "\.\/view-registry\.js"/);
   assert.match(searchFocus, /ensureViewModules\?\.\("writer"\)/);
   assert.match(searchFocus, /callView\("writer", "openCreatorSection"/);
@@ -584,7 +641,6 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
     "src/views/account-hub.js",
     "src/views/archive.js",
     "src/views/assets.js",
-    "src/views/clues.js",
     "src/views/director.js",
     "src/views/mini-games.js",
     "src/views/overview.js",

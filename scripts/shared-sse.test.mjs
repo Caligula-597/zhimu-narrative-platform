@@ -174,3 +174,74 @@ test("consumeSseStream does not advance cursor when async handling fails", async
   );
   assert.equal(localStorage.getItem("cursor:retry"), null);
 });
+
+test("consumeSseStream drops duplicates but still delivers unique out-of-order event ids", async () => {
+  localStorage.setItem("cursor:ordered", "40");
+  const events = [];
+  await consumeSseStream(sseResponse([
+    'id: 42\ndata: {"sequence":42}\n\n',
+    'id: 42\ndata: {"sequence":420}\n\n',
+    'id: 41\ndata: {"sequence":41}\n\n',
+    'id: 43\ndata: {"sequence":43}\n\n'
+  ]), {
+    cursorKey: "cursor:ordered",
+    onEvent: (_type, data) => events.push(data.sequence)
+  });
+
+  assert.deepEqual(events, [42, 41, 43]);
+  assert.equal(localStorage.getItem("cursor:ordered"), "43");
+});
+
+test("consumeSseStream keeps a stream-local cursor when another tab advances shared storage", async () => {
+  localStorage.setItem("cursor:tabs", "40");
+  const events = [];
+  await consumeSseStream(sseResponse([
+    'id: 41\ndata: {"sequence":41}\n\n',
+    'id: 42\ndata: {"sequence":42}\n\n'
+  ]), {
+    cursorKey: "cursor:tabs",
+    initialCursor: "40",
+    onEvent: (_type, data) => {
+      events.push(data.sequence);
+      if (data.sequence === 41) localStorage.setItem("cursor:tabs", "50");
+    }
+  });
+
+  assert.deepEqual(events, [41, 42]);
+  assert.equal(localStorage.getItem("cursor:tabs"), "50");
+});
+
+test("consumeSseStream does not acknowledge malformed numeric events", async () => {
+  await consumeSseStream(sseResponse([
+    "id: 51\ndata: not-json\n\n"
+  ]), { cursorKey: "cursor:malformed", onEvent: () => {} });
+  assert.equal(localStorage.getItem("cursor:malformed"), null);
+});
+
+test("openSseStream ignores an invalid persisted cursor", async (context) => {
+  localStorage.setItem("cursor:invalid", "41\r\nInjected: yes");
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  let sentHeaders;
+  globalThis.fetch = async (_url, options) => {
+    sentHeaders = options.headers;
+    return new Response('data: {"type":"connected"}\n\n', { status: 200 });
+  };
+
+  await openSseStream({ url: "/api/events", cursorKey: "cursor:invalid", onEvent: () => {} });
+  assert.equal("Last-Event-ID" in sentHeaders, false);
+});
+
+test("consumeSseStream continues when cursor storage is unavailable", async () => {
+  const events = [];
+  const unavailableStorage = {
+    getItem() { throw new Error("storage denied"); },
+    setItem() { throw new Error("storage denied"); }
+  };
+  await consumeSseStream(sseResponse(['id: 61\ndata: {"ok":true}\n\n']), {
+    cursorKey: "cursor:denied",
+    storage: unavailableStorage,
+    onEvent: (_type, data) => events.push(data)
+  });
+  assert.deepEqual(events, [{ ok: true }]);
+});

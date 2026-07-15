@@ -4,7 +4,8 @@ import {
   clearSession,
   getPlayOrigin,
   getSessionToken,
-  setSessionToken
+  setSessionToken,
+  subscribeSessionToken
 } from "./api.js";
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode, asArray } from "../../shared/security.js";
 import { connectRoomEvents, disconnectRoomEvents } from "./room-events.js";
@@ -172,7 +173,8 @@ const {
   roomEventCtx,
   platformEventCtx,
   syncPlatformStream,
-  syncRoomStream
+  syncRoomStream,
+  handleAuthLost
 } = createPlayStreamController({
   state, render, getSessionToken, clearSession, connectRoomEvents,
   disconnectRoomEvents, connectPlatformEvents, disconnectPlatformEvents,
@@ -390,6 +392,21 @@ app.addEventListener("click", async (event) => {
     loadRecapDetail, loadRecapSummary, patchGameHostBanner,
     handleAddNotebookEntry, handleDeleteNotebookEntry
   });
+});
+
+let externalSessionGeneration = 0;
+subscribeSessionToken(async (change) => {
+  if (change.source !== "storage") return;
+  const generation = ++externalSessionGeneration;
+  if (!change.token) {
+    handleAuthLost();
+    return;
+  }
+  await loadSessionUser();
+  if (generation !== externalSessionGeneration || !state.user) return;
+  syncPlatformStream();
+  syncRoomStream();
+  render();
 });
 
 bootstrap();

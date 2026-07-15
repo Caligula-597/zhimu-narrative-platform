@@ -48,15 +48,15 @@ import { setHtml } from "../../shared/safe-dom.js";
   const openWizard = R.openWizard || (() => {});
   const openJoinRoom = R.openJoinRoom || (() => {});
 
-const STUDIO_NODE_W=172;
-const STUDIO_NODE_H=140;
+const STUDIO_NODE_W=156;
+const STUDIO_NODE_H=124;
 const STUDIO_PAD=16;
-const STUDIO_CANVAS_MIN={width:1200,height:1600};
+const STUDIO_CANVAS_MIN={width:1000,height:760};
 const STUDIO_CANVAS_MAX={width:2800,height:8000};
 
 function studioCanvasMetrics(data){
  let maxX=STUDIO_CANVAS_MIN.width,maxY=STUDIO_CANVAS_MIN.height;
- studioNodeList(data).forEach(node=>{const pos=studioNodePosition(node,data);maxX=Math.max(maxX,pos.x+STUDIO_NODE_W+100);maxY=Math.max(maxY,pos.y+STUDIO_NODE_H+140)});
+ studioVisibleNodes(data).forEach(node=>{const pos=studioNodePosition(node,data);maxX=Math.max(maxX,pos.x+STUDIO_NODE_W+100);maxY=Math.max(maxY,pos.y+STUDIO_NODE_H+100)});
  const extra=Number(studioStore.get().studioCanvasHeight)||0;
  return {width:Math.min(STUDIO_CANVAS_MAX.width,maxX),height:Math.min(STUDIO_CANVAS_MAX.height,Math.max(maxY,extra,STUDIO_CANVAS_MIN.height))};
 }
@@ -71,6 +71,8 @@ function studioEnsureCanvasRoom(canvas,x,y){
  const needW=Math.min(STUDIO_CANVAS_MAX.width,x+STUDIO_NODE_W+120),needH=Math.min(STUDIO_CANVAS_MAX.height,y+STUDIO_NODE_H+160);
  if(needW>canvas.offsetWidth)canvas.style.width=`${needW}px`;
  if(needH>canvas.offsetHeight){canvas.style.minHeight=`${needH}px`;studioStore.set({ studioCanvasHeight: needH });}
+ const stage=canvas.closest(".graph-canvas-stage"),scale=studioStore.get().studioZoom;
+ if(stage){stage.style.width=`${Math.max(canvas.offsetWidth,needW)*scale}px`;stage.style.height=`${Math.max(canvas.offsetHeight,needH)*scale}px`;}
 }
 
 export function studioCloud() {
@@ -86,12 +88,12 @@ export function studioCloud() {
    ${data.roles.map(role=>`<div class="tree-item indent">${role.name} · ${data.sections.filter(section=>section.role_slot_id===role.id).length} 段</div>`).join("")}
   </div></aside>
   <div class="story-workspace">
-   <div class="story-toolbar"><div class="story-toolbar-row"><div class="tool-group"><button class="tool" data-action="studio-add-scene">＋ 场景</button><button class="tool" data-action="studio-add-clue">＋ 线索</button><button class="tool" data-action="studio-add-item">＋ 物品</button><button class="tool" data-action="studio-add-point">＋ 调查点</button><button class="tool" data-action="studio-add-chapter">＋ 章节</button></div><div class="tool-group"><button class="tool" data-action="studio-auto-layout-menu">自动排布 ▾</button><button class="tool" data-action="studio-collapse-all-scenes">折叠全部</button><button class="tool" data-action="studio-expand-all-scenes">展开全部</button><button class="tool" data-action="studio-zoom-out">−</button><span class="zoom-label">${Math.round(studioZoom*100)}%</span><button class="tool" data-action="studio-zoom-in">＋</button></div></div>
+   <div class="story-toolbar"><div class="story-toolbar-row"><div class="tool-group"><button class="tool" data-action="studio-add-scene">＋ 场景</button><button class="tool" data-action="studio-add-clue">＋ 线索</button><button class="tool" data-action="studio-add-item">＋ 物品</button><button class="tool" data-action="studio-add-point">＋ 调查点</button><button class="tool" data-action="studio-add-chapter">＋ 章节</button></div><div class="tool-group"><button class="tool" data-action="studio-auto-layout-menu">自动排布 ▾</button><button class="tool" data-action="studio-fit-view">适应视图</button><button class="tool" data-action="studio-focus-selected" ${studioStore.get().studioSelectedNode?"":"disabled"}>定位选中</button><button class="tool" data-action="studio-collapse-all-scenes">折叠</button><button class="tool" data-action="studio-expand-all-scenes">展开</button><button class="tool" data-action="studio-zoom-out" aria-label="缩小画布">−</button><span class="zoom-label">${Math.round(studioZoom*100)}%</span><button class="tool" data-action="studio-zoom-in" aria-label="放大画布">＋</button></div></div>
    <div class="story-toolbar-row"><div class="filter-tabs">${studioFilterButton("all","全部节点")}${studioFilterButton("chapter","章节")}${studioFilterButton("scene","场景")}${studioFilterButton("clue","线索")}${studioFilterButton("item","物品")}${studioFilterButton("investigation_point","调查点")}</div><div class="graph-legend"><span><i class="relation-mainline"></i>主线</span><span><i class="relation-parallel"></i>并列</span><span><i class="relation-extension"></i>延伸</span></div></div>${studioCompactSelection(data)}</div>
    ${studioMobileOutline(data)}
-   <div class="node-board"><button class="canvas-add-btn" data-action="studio-add-node-menu">＋ 在画布中新增节点</button><div class="graph-canvas" style="width:${canvas.width}px;min-height:${canvas.height}px;transform:scale(${studioZoom})">
+   <div class="node-board" data-canvas-width="${canvas.width}" data-canvas-height="${canvas.height}"><div class="canvas-floatbar"><button class="canvas-add-btn" data-action="studio-add-node-menu">＋ 新增节点</button><span>拖动画布空白处平移 · 拖节点顶部手柄调整位置</span></div><div class="graph-canvas-stage" style="width:${canvas.width*studioZoom}px;height:${canvas.height*studioZoom}px"><div class="graph-canvas" style="width:${canvas.width}px;min-height:${canvas.height}px;transform:scale(${studioZoom})">
       ${studioEdges(data)}${studioNodes(data)}
-   </div></div>
+   </div></div></div>
   </div>
   <aside class="panel inspector"><div class="panel-title">节点编辑</div><div class="inspector-body">
    <p class="section-kicker">SCRIPTED WORLD</p><h3 style="margin-top:7px">${data.world.name}</h3>
@@ -115,7 +117,7 @@ export function studioNodes(data){
 export function studioNode(x,y,type,id,badge,title,desc,cls,metadata={},extras={}){
  const { studioSelectedNode, studioAnchorEditing } = studioStore.get();
  const selected=studioSelectedNode?.type===type&&studioSelectedNode?.id===id,anchors=studioNodeAnchors({metadata});
- return `<button class="node ${cls} ${selected?"selected":""} ${extras.childOfScene?"node-scene-child":""}" style="left:${x}px;top:${y}px;text-align:left" data-action="studio-select-node" data-node-type="${type}" data-node-id="${id}">${extras.branchToggle||""}<span class="node-drag-handle">⠿ 拖动</span>${anchors.map(anchor=>`<span class="node-link-handle ${studioAnchorEditing&&selected?"anchor-editing":""}" style="left:${anchor.x}px;top:${anchor.y}px" data-anchor-id="${anchor.id}" title="${studioAnchorEditing&&selected?"拖动调整连接点位置":"拖到其他节点创建连线"}"></span>`).join("")}<span class="badge">${escapeHtml(badge)}</span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(desc)}</small></button>`}
+ return `<button class="node node-${type} ${cls} ${selected?"selected":""} ${extras.childOfScene?"node-scene-child":""}" style="left:${x}px;top:${y}px;text-align:left" data-action="studio-select-node" data-node-type="${type}" data-node-id="${id}">${extras.branchToggle||""}<span class="node-drag-handle" title="拖动调整节点位置">⠿</span>${anchors.map(anchor=>`<span class="node-link-handle ${studioAnchorEditing&&selected?"anchor-editing":""}" style="left:${anchor.x}px;top:${anchor.y}px" data-anchor-id="${anchor.id}" title="${studioAnchorEditing&&selected?"拖动调整连接点位置":"拖到其他节点创建连线"}"></span>`).join("")}<span class="badge">${escapeHtml(badge)}</span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(desc)}</small></button>`}
 
 export function studioNodeList(data){
  const chapterNodes=(data.chapters||[]).map((chapter,index)=>({type:"chapter",id:chapter.id,name:`章节 · ${chapter.title}`,title:chapter.title,badge:"公共章节",desc:chapter.summary||"公共剧情阶段",cls:"chapter",metadata:chapter.metadata||{}}));
@@ -242,7 +244,7 @@ export function studioNodeEditPanel(data,selected){
 export function bindStudioDragging(){
  const board=document.querySelector(".node-board");
  if(board) board.onpointerdown=event=>{
-  if(event.target!==board&&event.target.closest(".node"))return;
+  if(event.target.closest("button,input,select,textarea")||event.target.closest(".node"))return;
   const start={x:event.clientX,y:event.clientY,left:board.scrollLeft,top:board.scrollTop};
   board.classList.add("panning");
   const move=moveEvent=>{board.scrollLeft=start.left-(moveEvent.clientX-start.x);board.scrollTop=start.top-(moveEvent.clientY-start.y)};
@@ -250,7 +252,7 @@ export function bindStudioDragging(){
   document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});
  };
  document.querySelectorAll(".node").forEach(target=>target.onpointerdown=event=>{
-  if(event.target.closest(".node-link-handle")||event.target.closest(".node-branch-toggle"))return;
+  if(!event.target.closest(".node-drag-handle"))return;
   event.preventDefault();event.stopPropagation();
   const { studioZoom } = studioStore.get();
   const canvas=target.closest(".graph-canvas"),scale=studioZoom;
@@ -275,6 +277,28 @@ export function bindStudioDragging(){
   const finish=upEvent=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);preview.remove();source.classList.remove("linking");const target=document.elementFromPoint(upEvent.clientX,upEvent.clientY)?.closest(".node");document.querySelectorAll(".node.link-target").forEach(node=>node.classList.remove("link-target"));if(target&&target!==source)openStudioDragConnection({type:source.dataset.nodeType,id:source.dataset.nodeId},{type:target.dataset.nodeType,id:target.dataset.nodeId})};
   document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});
  });
+}
+
+export function fitStudioView(){
+ const board=document.querySelector(".node-board"),canvas=board?.querySelector(".graph-canvas");
+ if(!board||!canvas)return;
+ const nodes=[...canvas.querySelectorAll(".node[data-node-type]")];
+ if(!nodes.length){studioStore.set({studioZoom:1});render();return;}
+ const minX=Math.min(...nodes.map((node)=>node.offsetLeft)),minY=Math.min(...nodes.map((node)=>node.offsetTop));
+ const maxX=Math.max(...nodes.map((node)=>node.offsetLeft+node.offsetWidth)),maxY=Math.max(...nodes.map((node)=>node.offsetTop+node.offsetHeight));
+ const contentWidth=Math.max(1,maxX-minX+80),contentHeight=Math.max(1,maxY-minY+80);
+ const nextZoom=Math.max(.4,Math.min(1,Math.floor(Math.min((board.clientWidth-32)/contentWidth,(board.clientHeight-32)/contentHeight)*10)/10));
+ studioStore.set({studioZoom:nextZoom});render();
+ requestAnimationFrame(()=>{const nextBoard=document.querySelector(".node-board");if(!nextBoard)return;nextBoard.scrollLeft=Math.max(0,(minX-40)*nextZoom);nextBoard.scrollTop=Math.max(0,(minY-40)*nextZoom)});
+}
+
+export function focusSelectedStudioNode(){
+ const {studioSelectedNode,studioZoom}=studioStore.get();
+ if(!studioSelectedNode)return;
+ const board=document.querySelector(".node-board"),node=board?.querySelector(`[data-node-type="${studioSelectedNode.type}"][data-node-id="${studioSelectedNode.id}"]`);
+ if(!board||!node)return showToast("当前筛选或折叠状态下看不到这个节点");
+ board.scrollTo({left:Math.max(0,(node.offsetLeft+node.offsetWidth/2)*studioZoom-board.clientWidth/2),top:Math.max(0,(node.offsetTop+node.offsetHeight/2)*studioZoom-board.clientHeight/2),behavior:"smooth"});
+ node.focus({preventScroll:true});
 }
 
 export async function addStudioAnchor(){
@@ -440,5 +464,5 @@ function studioMobileOutline(data){
  return `<section class="studio-mobile-outline"><div class="section-head"><div><h3>节点目录</h3><p>小屏幕下可先从目录定位节点，再进入画布调整连线与位置。</p></div><span class="status-chip draft">${visible.length} 个节点</span></div><div class="studio-mobile-node-list">${rows||`<div class="empty-state">暂无节点</div>`}</div>${extra}</section>`;
 }
 
-export const studioViewApi = { studioCloud, studioNodes, studioNode, studioNodeList, studioSceneChildCount, studioVisibleNodes, studioFilterButton, studioCompactSelection, studioDefaultPositions, studioNodePosition, studioNodeRecord, studioNodeAnchors, setStudioNodePosition, setStudioNodeAnchors, closestStudioAnchorPair, studioNodeName, studioEdges, studioSelection, studioEditField, studioEditSelect, studioEditValues, studioNodeEditPanel, bindStudioDragging, addStudioAnchor, deleteStudioAnchor, refreshStudioConnectors, autoLayoutStudio, openStudioLayoutMenu, saveSelectedStudioNode, deleteSelectedStudioNode, deleteStudioEdge, openStudioChapter, openStudioNodeMenu, openStudioScene, openStudioClue, openStudioItem, openStudioPoint, openStudioConnection, openStudioDragConnection };
+export const studioViewApi = { studioCloud, studioNodes, studioNode, studioNodeList, studioSceneChildCount, studioVisibleNodes, studioFilterButton, studioCompactSelection, studioDefaultPositions, studioNodePosition, studioNodeRecord, studioNodeAnchors, setStudioNodePosition, setStudioNodeAnchors, closestStudioAnchorPair, studioNodeName, studioEdges, studioSelection, studioEditField, studioEditSelect, studioEditValues, studioNodeEditPanel, bindStudioDragging, fitStudioView, focusSelectedStudioNode, addStudioAnchor, deleteStudioAnchor, refreshStudioConnectors, autoLayoutStudio, openStudioLayoutMenu, saveSelectedStudioNode, deleteSelectedStudioNode, deleteStudioEdge, openStudioChapter, openStudioNodeMenu, openStudioScene, openStudioClue, openStudioItem, openStudioPoint, openStudioConnection, openStudioDragConnection };
 registerView("studio", studioViewApi);

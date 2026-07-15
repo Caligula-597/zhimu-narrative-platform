@@ -32,6 +32,8 @@ import { callView } from "./view-registry.js";
         return true;
       case "studio-auto-layout-menu": callView("studio", "openStudioLayoutMenu"); return true;
       case "studio-auto-layout": callView("studio", "autoLayoutStudio", el?.dataset?.layoutMode); return true;
+      case "studio-fit-view": callView("studio", "fitStudioView"); return true;
+      case "studio-focus-selected": callView("studio", "focusSelectedStudioNode"); return true;
       case "studio-collapse-all-scenes":
         studioStore.set({ studioCollapsedScenes: (studioStore.get().cloudStudio?.scenes || [])
           .filter((scene) => callView("studio", "studioSceneChildCount", studioStore.get().cloudStudio, scene.id) > 0)

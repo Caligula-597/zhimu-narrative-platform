@@ -21,6 +21,11 @@ const checks = [
   { name: "source-encoding", command: npmCommand, args: [...npmPrefixArgs, "run", "check:source-encoding"], cwd: root },
   { name: "innerhtml-budget", command: npmCommand, args: [...npmPrefixArgs, "run", "audit:innerhtml"], cwd: root },
   { name: "contract-drift", command: npmCommand, args: [...npmPrefixArgs, "run", "check:contracts"], cwd: root },
+  { name: "world-write-contracts", command: npmCommand, args: [...npmPrefixArgs, "run", "check:world-writes"], cwd: root },
+  { name: "domain-boundaries", command: npmCommand, args: [...npmPrefixArgs, "run", "check:architecture"], cwd: root },
+  { name: "sse-fault-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:sse-matrix"], cwd: root },
+  { name: "auth-failure-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:auth-matrix"], cwd: root },
+  { name: "trusted-types-contract", command: npmCommand, args: [...npmPrefixArgs, "run", "test:trusted-types"], cwd: root },
   {
     name: "code-diff-whitespace",
     command: "git",

@@ -94,6 +94,13 @@ export function createPortalApiClient(config) {
     defaultTimeoutMs,
     clearTokenOn401 = false
   } = config;
+  let authInvalidated = false;
+
+  function invalidateRejectedToken() {
+    if (!clearTokenOn401 || authInvalidated) return;
+    authInvalidated = true;
+    tokenStore?.clear?.();
+  }
 
   function resolveHeaders(options = {}) {
     const extra = options.headers || {};
@@ -114,7 +121,7 @@ export function createPortalApiClient(config) {
       return resolveHeaders(options);
     },
     mapHttpError(response, payload, ctx) {
-      if (clearTokenOn401 && response.status === 401) tokenStore?.clear?.();
+      if (response.status === 401) invalidateRejectedToken();
       return mapHttpError(response, payload, ctx);
     },
     mapTransportError,
@@ -122,14 +129,17 @@ export function createPortalApiClient(config) {
     afterSuccess(path, payload, response) {
       if (tokenStore) {
         const token = extractAuthToken(path, payload);
-        if (token) tokenStore.set(token);
+        if (token) {
+          tokenStore.set(token);
+          authInvalidated = false;
+        }
       }
       afterSuccess?.(path, payload, response);
     }
   });
 
   function mapStreamHttpError(response, payload) {
-    if (clearTokenOn401 && response.status === 401) tokenStore?.clear?.();
+    if (response.status === 401) invalidateRejectedToken();
     return mapHttpError(response, payload, { path: response.url, options: { method: "GET" } });
   }
 

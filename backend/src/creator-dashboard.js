@@ -4,13 +4,13 @@
  */
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
+import { buildCreatorReadinessSnapshot } from "./creator-readiness-snapshot.js";
 import {
-  buildWorldSnapshot,
   ROOMS_VISIBLE_TO_ACTOR_SQL,
   storageUsage
 } from "./routes/world-helpers.js";
 import { fetchHostPlayers } from "./routes/host-helpers.js";
-import { loadWorldPublishReadiness } from "./world-readiness-service.js";
+import { evaluateWorldPublishReadiness } from "./world-publish-readiness.js";
 
 function actionRef(action, button) {
   return { type: "action", action, ...(button ? { button } : {}) };
@@ -351,12 +351,22 @@ async function loadRoomRuntimeSignals(worldId, roomId, actorId) {
   };
 }
 
-export async function buildCreatorDashboard({ worldId, actorId, roomId = null }) {
-  const [readiness, snapshot, storage] = await Promise.all([
-    loadWorldPublishReadiness(worldId),
-    buildWorldSnapshot(worldId),
-    storageUsage(actorId)
+export async function buildCreatorDashboard({
+  worldId,
+  actorId,
+  roomId = null,
+  snapshot: providedSnapshot = null,
+  storage: providedStorage = null
+}) {
+  const [snapshot, storage] = await Promise.all([
+    providedSnapshot ?? buildCreatorReadinessSnapshot(worldId),
+    providedStorage ?? storageUsage(actorId)
   ]);
+  if (!snapshot.world) throwErr("WORLD_NOT_FOUND");
+  // The dashboard is read-only: evaluate the same snapshot it uses for cards.
+  // Calling loadWorldPublishReadiness here previously ran repair work and built
+  // an export-grade snapshot multiple times. This path uses a smaller projection.
+  const readiness = evaluateWorldPublishReadiness(snapshot);
 
   const enabledRules = snapshot.rules.filter((rule) => rule.enabled).length;
   const miniGameTemplates = Array.isArray(snapshot.world?.settings?.miniGameTemplates)

@@ -132,14 +132,39 @@ test("world tags and catalog filter", async (context) => {
     await query(`DELETE FROM world_tags WHERE world_id = $1`, [worldId]);
   });
 
+  const world = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${worldId}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  const revision = Number(world.json().content_revision);
+
   const put = await app.inject({
     method: "PUT",
     url: `/api/worlds/${worldId}/tags`,
-    headers: { "x-user-id": hostUserId },
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision}"` },
     payload: { tags: [{ tagKey: "players", tagValue: "6" }, { tagKey: "difficulty", tagValue: "medium" }] }
   });
   assert.equal(put.statusCode, 200);
   assert.equal(put.json().tags.length, 2);
+  assert.equal(Number(put.json().content_revision), revision + 1);
+
+  const stalePut = await app.inject({
+    method: "PUT",
+    url: `/api/worlds/${worldId}/tags`,
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision}"` },
+    payload: { tags: [{ tagKey: "players", tagValue: "7" }] }
+  });
+  assert.equal(stalePut.statusCode, 409);
+  assert.equal(stalePut.json().code, "WORLD_VERSION_CONFLICT");
+
+  const tagsAfterConflict = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${worldId}/tags`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.ok(tagsAfterConflict.json().tags.some((tag) => tag.tag_key === "players" && tag.tag_value === "6"));
+  assert.equal(tagsAfterConflict.json().tags.some((tag) => tag.tag_value === "7"), false);
 
   const facets = await app.inject({
     method: "GET",
@@ -155,10 +180,17 @@ test("segment remedy create and host apply", async (context) => {
   context.after(() => app.close());
   const worldId = await fixtureWorldId();
 
+  const world = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${worldId}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  const revision = Number(world.json().content_revision);
+
   const created = await app.inject({
     method: "POST",
     url: `/api/worlds/${worldId}/segment-remedies`,
-    headers: { "x-user-id": hostUserId },
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision}"` },
     payload: {
       segmentKey: "ch1",
       title: "暗示去书房",
@@ -167,7 +199,26 @@ test("segment remedy create and host apply", async (context) => {
     }
   });
   assert.equal(created.statusCode, 201);
+  assert.equal(Number(created.json().content_revision), revision + 1);
   const remedyId = created.json().item.id;
+
+  const stalePatch = await app.inject({
+    method: "PATCH",
+    url: `/api/worlds/${worldId}/segment-remedies/${remedyId}`,
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision}"` },
+    payload: { title: "stale update" }
+  });
+  assert.equal(stalePatch.statusCode, 409);
+  assert.equal(stalePatch.json().code, "WORLD_VERSION_CONFLICT");
+
+  const patched = await app.inject({
+    method: "PATCH",
+    url: `/api/worlds/${worldId}/segment-remedies/${remedyId}`,
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision + 1}"` },
+    payload: { title: "Revision-aware remedy" }
+  });
+  assert.equal(patched.statusCode, 200);
+  assert.equal(Number(patched.json().content_revision), revision + 2);
 
   const apply = await app.inject({
     method: "POST",
@@ -175,6 +226,14 @@ test("segment remedy create and host apply", async (context) => {
     headers: { "x-user-id": hostUserId }
   });
   assert.equal(apply.statusCode, 200);
+
+  const deleted = await app.inject({
+    method: "DELETE",
+    url: `/api/worlds/${worldId}/segment-remedies/${remedyId}`,
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision + 2}"` }
+  });
+  assert.equal(deleted.statusCode, 200);
+  assert.equal(Number(deleted.json().content_revision), revision + 3);
 
   context.after(async () => {
     await query(`DELETE FROM segment_remedies WHERE id = $1`, [remedyId]);

@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import test from "node:test";
+import { htmlFragment } from "../shared/safe-dom.js";
 import {
   creatorPreviewModalHtml,
+  documentParserModalHtml,
   publishImpactModalHtml,
   deliveryExportModalHtml,
   plainTextImportPreviewHtml,
@@ -13,10 +15,15 @@ import {
 test("writer modal templates preserve required interaction hooks", () => {
   assert.match(worldLogModalHtml(), /data-log-refresh/);
   assert.match(storyAssistantModalHtml(), /data-assistant-analyze/);
-  assert.match(creatorPreviewModalHtml("<select data-safe-control></select>"), /data-preview-body/);
-  assert.match(publishImpactModalHtml("<select data-safe-control></select>"), /data-impact-body/);
+  assert.match(creatorPreviewModalHtml(htmlFragment("<select data-safe-control></select>")), /data-preview-body/);
+  assert.match(publishImpactModalHtml(htmlFragment("<select data-safe-control></select>")), /data-impact-body/);
   assert.match(deliveryExportModalHtml(), /data-delivery-run/);
   assert.match(plainTextImportPreviewHtml(), /Markdown \/ TXT/);
+});
+
+test("writer template fragment slots reject unreviewed raw strings", () => {
+  assert.throws(() => creatorPreviewModalHtml("<select></select>"), /htmlFragment/);
+  assert.throws(() => documentParserModalHtml("<option>role</option>"), /htmlFragment/);
 });
 
 test("Writer view has no direct HTML sinks", async () => {

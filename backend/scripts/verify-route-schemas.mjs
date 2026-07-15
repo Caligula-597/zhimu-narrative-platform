@@ -81,6 +81,16 @@ const REQUIRED_SCHEMA_MARKERS = [
   ["search-routes.js", 'app.get("/api/worlds/:worldId/search", { schema:']
 ];
 
+/** Creator writes consumed through frontend worldWrite must stay revision-aware. */
+const REQUIRED_REVISION_ROUTES = [
+  ["batch-b-routes.js", 'app.put("/api/worlds/:worldId/tags"'],
+  ["batch-b-routes.js", 'app.post("/api/worlds/:worldId/segment-remedies"'],
+  ["batch-b-routes.js", 'app.patch("/api/worlds/:worldId/segment-remedies/:remedyId"'],
+  ["batch-b-routes.js", 'app.delete("/api/worlds/:worldId/segment-remedies/:remedyId"'],
+  ["physical-token-routes.js", 'app.post("/api/worlds/:worldId/physical-tokens"'],
+  ["physical-token-routes.js", 'app.post("/api/worlds/:worldId/physical-tokens/:tokenId/revoke"']
+];
+
 /** Dynamic scan allowlist: [file, method, path] */
 const DYNAMIC_SCHEMA_ALLOWLIST = new Set([
   // Fastify plugin hooks or non-JSON handlers registered in route files
@@ -127,6 +137,19 @@ for (const [file, marker] of REQUIRED_SCHEMA_MARKERS) {
   }
 }
 
+for (const [file, marker] of REQUIRED_REVISION_ROUTES) {
+  const content = readFileSync(join(routesDir, file), "utf8");
+  const start = content.indexOf(marker);
+  const nextRoute = start < 0 ? -1 : content.indexOf("\n  app.", start + marker.length);
+  const routeBlock = start < 0 ? "" : content.slice(start, nextRoute < 0 ? content.length : nextRoute);
+  if (!routeBlock.includes("runRevisionMutation")) {
+    console.error(`FAIL  ${file}  missing revision mutation wrapper: ${marker}`);
+    failed = true;
+  } else {
+    console.log(`REV   ${file}  ${marker.split('"')[1]}`);
+  }
+}
+
 const routeFiles = readdirSync(routesDir).filter((name) => name.endsWith("-routes.js"));
 const dynamicIssues = [];
 for (const file of routeFiles) {
@@ -148,4 +171,4 @@ if (failed) {
   process.exit(1);
 }
 
-console.log(`\nverify-route-schemas: ${REQUIRED_SCHEMA_MARKERS.length} markers + dynamic scan OK`);
+console.log(`\nverify-route-schemas: ${REQUIRED_SCHEMA_MARKERS.length} schema markers + ${REQUIRED_REVISION_ROUTES.length} revision markers + dynamic scan OK`);

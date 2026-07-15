@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import test from "node:test";
+import { htmlFragment } from "../shared/safe-dom.js";
 import {
   delayHostEventModalHtml,
   hostGrantClueModalHtml,
@@ -22,12 +23,17 @@ test("director modal templates escape dynamic content", () => {
 });
 
 test("director operation templates preserve action hooks", () => {
-  assert.match(hostGrantClueModalHtml({ clueSelectHtml: "", memberRowsHtml: "", messageFieldHtml: "" }), /data-host-grant-submit/);
-  assert.match(hostGrantItemModalHtml({ roleSelectHtml: "", itemSelectHtml: "", quantityFieldHtml: "", messageFieldHtml: "" }), /data-host-grant-item-submit/);
-  assert.match(hostUnlockSectionModalHtml({ roleSelectHtml: "", sectionSelectHtml: "", messageFieldHtml: "" }), /data-host-unlock-submit/);
-  assert.match(hostUnlockSceneModalHtml(""), /data-host-scene-submit/);
-  assert.match(hostLogModalHtml({ roleSelectHtml: "", messageFieldHtml: "" }), /data-host-log-submit/);
-  assert.match(hostNudgeModalHtml({ title: "<x>", intro: "<y>", messageHtml: "", memberRowsHtml: "" }), /&lt;x&gt;|data-nudge-submit/);
+  const empty = htmlFragment("");
+  assert.match(hostGrantClueModalHtml({ clueSelectHtml: empty, memberRowsHtml: empty, messageFieldHtml: empty }), /data-host-grant-submit/);
+  assert.match(hostGrantItemModalHtml({ roleSelectHtml: empty, itemSelectHtml: empty, quantityFieldHtml: empty, messageFieldHtml: empty }), /data-host-grant-item-submit/);
+  assert.match(hostUnlockSectionModalHtml({ roleSelectHtml: empty, sectionSelectHtml: empty, messageFieldHtml: empty }), /data-host-unlock-submit/);
+  assert.match(hostUnlockSceneModalHtml(empty), /data-host-scene-submit/);
+  assert.match(hostLogModalHtml({ roleSelectHtml: empty, messageFieldHtml: empty }), /data-host-log-submit/);
+  assert.match(hostNudgeModalHtml({ title: "<x>", intro: "<y>", messageHtml: empty, memberRowsHtml: empty }), /&lt;x&gt;|data-nudge-submit/);
+});
+
+test("director template fragment slots reject unreviewed raw strings", () => {
+  assert.throws(() => hostUnlockSceneModalHtml("<option>x</option>"), /htmlFragment/);
 });
 
 test("Director view has no direct HTML sinks", async () => {

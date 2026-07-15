@@ -8,24 +8,89 @@ const DEFAULT_KEY = "zhimuSessionToken";
  * @param {string} [key=zhimuSessionToken]
  * @param {Storage|null} [storage=localStorage]
  */
-export function createSessionTokenStore(key = DEFAULT_KEY, storage = typeof localStorage !== "undefined" ? localStorage : null) {
-  const safeStorage = storage || createMemoryStorage();
+export function createSessionTokenStore(
+  key = DEFAULT_KEY,
+  storage = typeof localStorage !== "undefined" ? localStorage : null,
+  eventTarget = typeof window !== "undefined" ? window : null
+) {
+  const fallbackStorage = createMemoryStorage();
+  const listeners = new Set();
+
+  function read() {
+    try {
+      const value = storage?.getItem?.(key);
+      if (value !== null && value !== undefined) {
+        fallbackStorage.setItem(key, value);
+        return String(value);
+      }
+      fallbackStorage.removeItem(key);
+      return "";
+    } catch {
+      return fallbackStorage.getItem(key) || "";
+    }
+  }
+
+  function notify(token, previousToken, source) {
+    if (token === previousToken) return;
+    for (const listener of listeners) {
+      try {
+        listener({ token, previousToken, source });
+      } catch {
+        // Session propagation must not be broken by an observer.
+      }
+    }
+  }
+
+  function write(token, source = "local") {
+    const normalized = token ? String(token) : "";
+    const previousToken = read();
+    if (normalized) fallbackStorage.setItem(key, normalized);
+    else fallbackStorage.removeItem(key);
+    try {
+      if (normalized) storage?.setItem?.(key, normalized);
+      else storage?.removeItem?.(key);
+    } catch {
+      // Keep an in-memory token when browser storage is unavailable.
+    }
+    notify(normalized, previousToken, source);
+  }
+
+  function handleStorage(event) {
+    if (event?.key !== key) return;
+    const previousToken = event.oldValue || "";
+    const token = event.newValue || "";
+    if (token) fallbackStorage.setItem(key, token);
+    else fallbackStorage.removeItem(key);
+    notify(token, previousToken, "storage");
+  }
+
+  let storageListening = false;
+  function ensureStorageListener() {
+    if (storageListening || !eventTarget?.addEventListener) return;
+    eventTarget.addEventListener("storage", handleStorage);
+    storageListening = true;
+  }
 
   return {
     key,
     get() {
-      return safeStorage.getItem(key) || "";
+      return read();
     },
     set(token) {
-      if (token) safeStorage.setItem(key, token);
-      else safeStorage.removeItem(key);
+      write(token);
     },
     clear() {
-      safeStorage.removeItem(key);
+      write("");
     },
     bearerHeaders() {
-      const token = safeStorage.getItem(key);
+      const token = read();
       return token ? { authorization: `Bearer ${token}` } : {};
+    },
+    subscribe(listener) {
+      if (typeof listener !== "function") return () => {};
+      listeners.add(listener);
+      ensureStorageListener();
+      return () => listeners.delete(listener);
     }
   };
 }

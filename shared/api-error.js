@@ -10,7 +10,8 @@
 export const COMMON_API_ERROR_MESSAGES = {
   AUTH_REQUIRED: "请先登录后再操作。",
   FORBIDDEN: "无权执行此操作。",
-  RATE_LIMITED: "操作过于频繁，请稍后再试。"
+  RATE_LIMITED: "操作过于频繁，请稍后再试。",
+  DATABASE_BUSY: "服务连接繁忙，请稍后重试。"
 };
 
 /**

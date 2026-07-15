@@ -5,11 +5,11 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import * as U from "../components/emptyState.js";
 import { content } from "../dom.js";
-import { render } from "../runtime/runtime-facade.js";
+import { callRuntime, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { studioStore, worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
-import { normalizeError } from "../components/status-ui.js";
+import { loading as renderLoading, normalizeError } from "../components/status-ui.js";
 import { contentLayerMapHtml } from "../components/content-layer-map.js";
 import {
   CANVAS_LABELS,
@@ -67,11 +67,11 @@ function saveDraft() {
 }
 
 function syncDraftForWorld() {
-  cockpit = loadDraft(zhimuApi.context.worldId, studioStore.get().cloudStudio);
+  cockpit = loadDraft(zhimuApi.context.worldId, worldStore.get().cloudWorkspacePreview);
 }
 
 function buildContext() {
-  const studio = studioStore.get().cloudStudio;
+  const studio = worldStore.get().cloudWorkspacePreview;
   const dash = worldStore.get().cloudCreatorDashboard;
   return {
     studio,
@@ -122,6 +122,34 @@ export function navigateCockpit({ stage, item, canvas, target } = {}) {
   render();
 }
 
+async function loadCockpitBootstrap(worldId) {
+  try {
+    return await zhimuApi.getCreatorBootstrap({
+      worldId,
+      roomId: zhimuApi.context.roomId || null
+    });
+  } catch (error) {
+    // Allow a frontend deployment to roll out before the matching backend.
+    if (error?.status !== 404) throw error;
+    const [dashboard, bibleSummary, segments, truthClaims, roleRelationships, workspacePreview] = await Promise.all([
+      zhimuApi.getCreatorDashboard({ worldId }),
+      zhimuApi.getBibleSummary(worldId),
+      zhimuApi.getWorldSegments(worldId),
+      zhimuApi.getTruthClaims(worldId),
+      zhimuApi.getRoleRelationships(worldId),
+      zhimuApi.getStudio()
+    ]);
+    return {
+      dashboard,
+      workspacePreview,
+      bibleSummary,
+      segments: segments?.segments || [],
+      truthClaims: truthClaims?.claims || [],
+      roleRelationships: roleRelationships?.relationships || []
+    };
+  }
+}
+
 export async function refreshCockpitData({ force = false } = {}) {
   const worldId = zhimuApi.context.worldId;
   if (!worldId) {
@@ -135,23 +163,18 @@ export async function refreshCockpitData({ force = false } = {}) {
   syncDraftForWorld();
   inFlightPromise = (async () => {
     try {
-      const [dash, bibleSummary, segmentsPayload, truthPayload, relPayload] = await Promise.all([
-        zhimuApi.getCreatorDashboard({ worldId }),
-        zhimuApi.getBibleSummary(worldId),
-        worldStore.get().cloudSegments === null ? zhimuApi.getWorldSegments(worldId) : Promise.resolve(null),
-        worldStore.get().cloudTruthClaims === null ? zhimuApi.getTruthClaims(worldId) : Promise.resolve(null),
-        worldStore.get().cloudRoleRelationships === null ? zhimuApi.getRoleRelationships(worldId) : Promise.resolve(null)
-      ]);
+      const bootstrap = await loadCockpitBootstrap(worldId);
       if (seq !== loadSeq) return;
-      const patch = {
-        cloudCreatorDashboard: dash,
-        cloudCreatorChecks: dash?.checks || [],
-        cloudBibleSummary: bibleSummary
-      };
-      if (segmentsPayload) patch.cloudSegments = segmentsPayload.segments || [];
-      if (truthPayload) patch.cloudTruthClaims = truthPayload.claims || [];
-      if (relPayload) patch.cloudRoleRelationships = relPayload.relationships || [];
-      worldStore.set(patch);
+      worldStore.set({
+        cloudCreatorDashboard: bootstrap.dashboard,
+        cloudWorkspacePreview: bootstrap.workspacePreview || null,
+        cloudCreatorChecks: bootstrap.dashboard?.checks || [],
+        cloudBibleSummary: bootstrap.bibleSummary,
+        cloudSegments: bootstrap.segments || [],
+        cloudTruthClaims: bootstrap.truthClaims || [],
+        cloudRoleRelationships: bootstrap.roleRelationships || []
+      });
+      syncDraftForWorld();
       if (cockpit.activeCanvas === "feedback") {
         await prefetchFeedbackInsights();
       }
@@ -174,10 +197,16 @@ export function scheduleBriefSave() {
     if (!worldId) return;
     try {
       await zhimuApi.patchWorld({ settings: briefSettingsPatch(cockpit) }, worldId);
-      const studio = studioStore.get().cloudStudio;
-      if (studio?.world) {
-        studio.world.settings = { ...(studio.world.settings || {}), ...briefSettingsPatch(cockpit) };
+      const preview = worldStore.get().cloudWorkspacePreview;
+      if (preview?.world) {
+        worldStore.set({
+          cloudWorkspacePreview: {
+            ...preview,
+            world: { ...preview.world, settings: { ...(preview.world.settings || {}), ...briefSettingsPatch(cockpit) } }
+          }
+        });
       }
+      callRuntime("invalidateStudioSnapshot", { clear: true });
     } catch (error) {
       showError(error, "概念草稿保存失败");
     }
@@ -197,8 +226,11 @@ export function scheduleSummarySave() {
     if (!worldId || !summary) return;
     try {
       await zhimuApi.patchWorld({ summary }, worldId);
-      const studio = studioStore.get().cloudStudio;
-      if (studio?.world) studio.world.summary = summary;
+      const preview = worldStore.get().cloudWorkspacePreview;
+      if (preview?.world) {
+        worldStore.set({ cloudWorkspacePreview: { ...preview, world: { ...preview.world, summary } } });
+      }
+      callRuntime("invalidateStudioSnapshot", { clear: true });
     } catch (error) {
       showError(error, "梗概保存失败");
     }
@@ -271,14 +303,20 @@ function renderCanvas(ctx, stage) {
 }
 
 export function creatorCockpit() {
-  const studio = studioStore.get().cloudStudio;
-  if (!studio && !studioStore.get().cloudLoading) {
+  const studio = worldStore.get().cloudWorkspacePreview;
+  if (inFlightPromise && loadedWorldId !== zhimuApi.context.worldId) {
+    return renderLoading("创作驾驶舱", "正在同步最新作品摘要，请稍候。", { kicker: "CREATOR COCKPIT" });
+  }
+  if (!studio && studioStore.get().cloudLoading) {
+    return renderLoading("创作驾驶舱", "正在读取创作者首屏数据，请稍候。", { kicker: "CREATOR COCKPIT" });
+  }
+  if (!studio) {
     return U.creatorWorkspaceEmpty?.({
       title: "创作驾驶舱",
       kicker: "CREATOR COCKPIT",
       intro: "按真实创作流程组织：概念 → 架构 → 人物 → 流程 → 文稿 → 测试。请先选择或创建剧本。",
       guideTitle: "开始",
-      guideItems: [{ label: "流程", title: "六阶段主流程", text: "驾驶舱是唯一创作顺序；左清单、中画布、右副驾完成多数工作。", bullets: ["灵感池、真相链、章节、角色均可快速添加", "复杂编辑打开侧栏「精细编辑器」"] }]
+      guideItems: [{ label: "流程", title: "六阶段主流程", text: "驾驶舱是唯一创作顺序；左清单、中画布、右副驾完成多数工作。", bullets: ["灵感池、核心事实、章节、角色均可快速添加", "复杂编辑打开侧栏「精细编辑器」"] }]
     }) || `<section class="card"><h3>尚未选择剧本</h3></section>`;
   }
   syncDraftForWorld();

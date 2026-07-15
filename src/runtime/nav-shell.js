@@ -15,12 +15,12 @@ import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
   function syncWorldSwitcher() {
     const { apiError } = userStore.get();
     const { cloudStudio, cloudLoading } = studioStore.get();
-    const { cloudWorlds } = worldStore.get();
+    const { cloudWorlds, cloudWorkspacePreview } = worldStore.get();
     const icon = document.querySelector(".world-switcher .world-icon");
     const strong = document.querySelector(".world-switcher strong");
     const small = document.querySelector(".world-switcher small");
     if (!icon || !strong || !small) return;
-    const studioWorld = cloudStudio?.world;
+    const studioWorld = cloudStudio?.world || cloudWorkspacePreview?.world;
     const listedWorld = (cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
     const worldName = studioWorld?.name || listedWorld?.name;
     const bootstrapping = cloudLoading;
@@ -50,7 +50,7 @@ import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
     }
     icon.textContent = worldName.slice(0, 1);
     strong.textContent = worldName;
-    const chapterCount = cloudStudio?.chapters?.length;
+    const chapterCount = (cloudStudio || cloudWorkspacePreview)?.chapters?.length;
     small.textContent = typeof chapterCount === "number"
       ? `剧本杀创作 · ${chapterCount} 个公共章节`
       : "剧本杀创作 · 正在同步章节";

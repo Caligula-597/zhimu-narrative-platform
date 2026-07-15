@@ -52,10 +52,39 @@ export function toggleCluesSelection(clueId, checked) {
     const scroll = captureClueFlowViewport();
     const current = Number(uiStore.get().clueFlowZoom || 1);
     if (mode === "in") uiStore.set({ clueFlowZoom: Math.min(1.45, Math.round((current + 0.1) * 10) / 10) });
-    else if (mode === "out") uiStore.set({ clueFlowZoom: Math.max(0.65, Math.round((current - 0.1) * 10) / 10) });
+    else if (mode === "out") uiStore.set({ clueFlowZoom: Math.max(0.5, Math.round((current - 0.1) * 10) / 10) });
     else uiStore.set({ clueFlowZoom: 1 });
     render();
     restoreClueFlowViewport(scroll);
+  }
+
+  export function fitClueFlow() {
+    const viewport = document.querySelector("[data-clue-flow-viewport]");
+    const canvas = viewport?.querySelector(".clue-flow-canvas");
+    if (!viewport || !canvas) return;
+    const width = Number(canvas.dataset.canvasWidth) || canvas.offsetWidth || 1;
+    const height = Number(canvas.dataset.canvasHeight) || canvas.offsetHeight || 1;
+    const availableWidth = Math.max(1, viewport.clientWidth - 24);
+    const availableHeight = Math.max(1, viewport.clientHeight - 24);
+    const zoom = Math.max(0.5, Math.min(1, Math.floor(Math.min(availableWidth / width, availableHeight / height) * 10) / 10));
+    const scroll = { left: 0, top: 0 };
+    uiStore.set({ clueFlowZoom: zoom, clueFlowScroll: scroll });
+    render();
+    restoreClueFlowViewport(scroll);
+  }
+
+  export function focusSelectedClue() {
+    const clueId = uiStore.get().cluesSelectedId;
+    const viewport = document.querySelector("[data-clue-flow-viewport]");
+    if (!clueId || !viewport) return;
+    const node = [...viewport.querySelectorAll(".clue-flow-node")].find((item) => item.dataset.clue === clueId);
+    if (!node) return;
+    const zoom = Number(uiStore.get().clueFlowZoom || 1) || 1;
+    const left = Math.max(0, (Number(node.dataset.x) || node.offsetLeft) * zoom - viewport.clientWidth / 2);
+    const top = Math.max(0, (Number(node.dataset.y) || node.offsetTop) * zoom - viewport.clientHeight / 2);
+    viewport.scrollTo({ left, top, behavior: "smooth" });
+    uiStore.set({ clueFlowScroll: { left, top } });
+    node.focus({ preventScroll: true });
   }
 
   async function saveClueGraphPosition(clueId, position) {
@@ -81,6 +110,28 @@ export function toggleCluesSelection(clueId, checked) {
     } catch (error) {
       showError(error, "线索位置保存失败，请稍后重试");
     }
+  }
+
+  function refreshClueFlowLines(canvas) {
+    if (!canvas) return;
+    const nodes = new Map(
+      [...canvas.querySelectorAll(".clue-flow-node")].map((node) => [node.dataset.clue, node])
+    );
+    canvas.querySelectorAll(".clue-flow-line[data-from][data-to]").forEach((line) => {
+      const from = nodes.get(line.dataset.from);
+      const to = nodes.get(line.dataset.to);
+      if (!from || !to) return;
+      const fromX = Number(from.dataset.x) || from.offsetLeft;
+      const fromY = Number(from.dataset.y) || from.offsetTop;
+      const toX = Number(to.dataset.x) || to.offsetLeft;
+      const toY = Number(to.dataset.y) || to.offsetTop;
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+      line.style.left = `${fromX}px`;
+      line.style.top = `${fromY}px`;
+      line.style.width = `${Math.sqrt(dx * dx + dy * dy)}px`;
+      line.style.transform = `rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg)`;
+    });
   }
 
 export function bindCluesSearch() {
@@ -115,6 +166,12 @@ export function bindCluesSearch() {
       uiStore.set({ clueFlowScroll: { left: viewport.scrollLeft, top: viewport.scrollTop } });
     }, { passive: true });
     viewport.addEventListener("click", (event) => {
+      if (uiStore.get().clueFlowSuppressClick) {
+        event.preventDefault();
+        event.stopPropagation();
+        uiStore.set({ clueFlowSuppressClick: false });
+        return;
+      }
       const node = event.target.closest(".clue-flow-node");
       if (!node) {
         if (event.target.closest(".clue-flow-canvas") && uiStore.get().cluesSelectedId) closeClueDetail();
@@ -122,18 +179,18 @@ export function bindCluesSearch() {
       }
       event.preventDefault();
       event.stopPropagation();
-      if (uiStore.get().clueFlowSuppressClick) {
-        uiStore.set({ clueFlowSuppressClick: false });
-        return;
-      }
       selectClue(node.dataset.clue);
     }, true);
     viewport.addEventListener("pointerdown", (event) => {
-      const node = event.target.closest(".clue-flow-node");
-      if (node) {
+      const dragHandle = event.target.closest(".clue-node-drag-handle");
+      const node = dragHandle?.closest(".clue-flow-node");
+      if (node && dragHandle) {
         event.preventDefault();
         event.stopPropagation();
         const zoom = Number(uiStore.get().clueFlowZoom || 1) || 1;
+        const canvas = node.closest(".clue-flow-canvas");
+        const canvasWidth = Number(canvas?.dataset.canvasWidth) || 3600;
+        const canvasHeight = Number(canvas?.dataset.canvasHeight) || 5000;
         const start = {
           x: event.clientX,
           y: event.clientY,
@@ -147,18 +204,20 @@ export function bindCluesSearch() {
           const dx = (moveEvent.clientX - start.x) / zoom;
           const dy = (moveEvent.clientY - start.y) / zoom;
           if (Math.abs(dx) + Math.abs(dy) > 4) start.moved = true;
-          const x = Math.max(72, start.left + dx);
-          const y = Math.max(62, start.top + dy);
+          const x = Math.min(canvasWidth - 90, Math.max(90, start.left + dx));
+          const y = Math.min(canvasHeight - 46, Math.max(46, start.top + dy));
           node.style.left = `${x}px`;
           node.style.top = `${y}px`;
           node.dataset.x = String(Math.round(x));
           node.dataset.y = String(Math.round(y));
+          refreshClueFlowLines(canvas);
         };
         const finish = async () => {
           node.classList.remove("dragging");
           node.releasePointerCapture?.(event.pointerId);
           document.removeEventListener("pointermove", move);
           document.removeEventListener("pointerup", finish);
+          document.removeEventListener("pointercancel", finish);
           if (!start.moved) {
             selectClue(node.dataset.clue);
             return;
@@ -177,9 +236,12 @@ export function bindCluesSearch() {
         };
         document.addEventListener("pointermove", move);
         document.addEventListener("pointerup", finish, { once: true });
+        document.addEventListener("pointercancel", finish, { once: true });
         return;
       }
+      if (event.target.closest(".clue-flow-node")) return;
       if (event.target.closest("button")) return;
+      event.preventDefault();
       viewport.classList.add("panning");
       const start = {
         x: event.clientX,
@@ -197,9 +259,14 @@ export function bindCluesSearch() {
         viewport.classList.remove("panning");
         document.removeEventListener("pointermove", move);
         document.removeEventListener("pointerup", finish);
-        if (!start.moved && uiStore.get().cluesSelectedId) closeClueDetail();
+        document.removeEventListener("pointercancel", finish);
+        if (start.moved) {
+          uiStore.set({ clueFlowSuppressClick: true });
+          setTimeout(() => uiStore.set({ clueFlowSuppressClick: false }), 180);
+        }
       };
       document.addEventListener("pointermove", move);
       document.addEventListener("pointerup", finish, { once: true });
+      document.addEventListener("pointercancel", finish, { once: true });
     });
   }

@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   POLICY_NAME,
   assertSafeProductHtml,
+  htmlFragment,
   resetTrustedHtmlPolicyForTests,
   setHtml,
   setText
@@ -52,7 +53,12 @@ test("assertSafeProductHtml blocks executable vectors", () => {
   assert.equal(assertSafeProductHtml("<p>ok</p>"), "<p>ok</p>");
   assert.throws(() => assertSafeProductHtml('<img src=x onerror="alert(1)">'), /event handler/);
   assert.throws(() => assertSafeProductHtml("<script>alert(1)</script>"), /script/);
-  assert.throws(() => assertSafeProductHtml('<a href="javascript:alert(1)">x</a>'), /javascript/);
+  assert.throws(() => assertSafeProductHtml('<a href="javascript:alert(1)">x</a>'), /scheme/);
+  assert.throws(() => assertSafeProductHtml('<a href="java&#x73;cript:alert(1)">x</a>'), /scheme/);
+  assert.throws(() => assertSafeProductHtml('<img src="data:image/svg+xml,<svg></svg>">'), /scheme/);
+  assert.throws(() => assertSafeProductHtml('<iframe srcdoc="<p>x</p>"></iframe>'), /iframe|srcdoc/);
+  assert.throws(() => assertSafeProductHtml('<svg><foreignObject><p>x</p></foreignObject></svg>'), /active document/);
+  assert.throws(() => htmlFragment('<meta http-equiv="refresh" content="0">'), /active document/);
 });
 
 test("setText never invokes the HTML sink", () => {

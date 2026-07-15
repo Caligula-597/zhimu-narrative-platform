@@ -21,6 +21,7 @@ import { registerRoutes } from "./routes.js";
 import { registerStaticFrontend } from "./static-frontend.js";
 import { resolveAllowedCorsOrigins } from "./cors-origins.js";
 import { applySecurityHeaders } from "./security-headers.js";
+import { isDatabaseCapacityError } from "./db.js";
 
 const guestAuthRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -232,12 +233,19 @@ export async function createApp(options = {}) {
     rateLimitEnabled
   }, "Auth configuration loaded");
   app.setErrorHandler((error, request, reply) => {
-    const statusCode = error.statusCode ?? (error.validation ? 400 : 500);
+    const databaseBusy = isDatabaseCapacityError(error);
+    const statusCode = databaseBusy ? 503 : (error.statusCode ?? (error.validation ? 400 : 500));
     if (statusCode >= 500) {
       request.log.error({ err: error, traceId: request.traceId }, error.message);
       captureException(error, { tags: { statusCode }, extra: { traceId: request.traceId, url: request.url } });
     } else {
       request.log.info({ err: error, code: error.code, traceId: request.traceId }, error.message);
+    }
+    if (databaseBusy) {
+      reply.header("Retry-After", "1");
+      const publicError = Object.assign(new Error("数据库连接繁忙，请稍后重试。"), { code: "DATABASE_BUSY" });
+      reply.code(statusCode).send(formatErrorBody(publicError, statusCode));
+      return;
     }
     reply.code(statusCode).send(formatErrorBody(error, statusCode));
   });

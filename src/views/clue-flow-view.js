@@ -124,7 +124,6 @@ export function highlightQuery(text, query) {
     };
     (data.edges || []).forEach((edge) => {
       if (edge.from_type === "clue" && edge.to_type === "clue") add(edge.from_id, edge.to_id, "story", relationLabel(edge.relation_type));
-      if (edge.to_type === "clue" && edge.from_type === "clue") add(edge.to_id, edge.from_id, "story", relationLabel(edge.relation_type));
     });
     const pointsByScene = new Map();
     (data.investigationPoints || []).forEach((point) => {
@@ -134,12 +133,14 @@ export function highlightQuery(text, query) {
       pointsByScene.set(point.scene_id, list);
     });
     pointsByScene.forEach((points) => {
-      points
+      const sequenced = points
+        .filter((point) => point.sequence !== null && point.sequence !== "" && Number.isFinite(Number(point.sequence)))
         .slice()
-        .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0) || String(a.name).localeCompare(String(b.name), "zh-CN"))
+        .sort((a, b) => Number(a.sequence) - Number(b.sequence) || String(a.name).localeCompare(String(b.name), "zh-CN"));
+      sequenced
         .forEach((point, index, sorted) => {
           const previous = sorted[index - 1];
-          if (previous?.clue_id) add(previous.clue_id, point.clue_id, "investigation", "调查顺序");
+          if (previous?.clue_id && Number(previous.sequence) < Number(point.sequence)) add(previous.clue_id, point.clue_id, "investigation", "调查顺序");
         });
     });
     (worldStore.get().cloudRules || []).forEach((rule) => {
@@ -159,11 +160,10 @@ export function highlightQuery(text, query) {
     return edges;
   }
 
-  export function clueGraphMetrics(count, levelCount = 1, maxLevelSize = 1) {
-    const rings = Math.max(1, Math.ceil((count || 1) / 14));
+  export function clueGraphMetrics(count, columnCount = 1, maxRows = 1) {
     return {
-      width: Math.max(1540, 520 + Math.max(levelCount, rings + 1) * 360),
-      height: Math.max(900, 360 + Math.max(maxLevelSize, 4) * 150)
+      width: Math.max(1080, 300 + Math.max(columnCount, Math.ceil((count || 1) / 6)) * 290),
+      height: Math.max(720, 240 + Math.max(Math.min(maxRows, 6), 4) * 132)
     };
   }
 
@@ -189,6 +189,7 @@ export function highlightQuery(text, query) {
   }
 
   function clueGraphNodes(list, data, metrics, dependencies) {
+    const maxRowsPerColumn = 6;
     const sorted = list
       .slice()
       .sort((a, b) => clueChapterSequence(a, data) - clueChapterSequence(b, data) || String(a.name).localeCompare(String(b.name), "zh-CN"));
@@ -201,15 +202,21 @@ export function highlightQuery(text, query) {
       buckets.set(level, bucket);
     });
     const levels = [...buckets.keys()].sort((a, b) => a - b);
-    const levelIndex = new Map(levels.map((level, index) => [level, index]));
+    const levelStartColumn = new Map();
+    let columnCursor = 0;
+    levels.forEach((level) => {
+      levelStartColumn.set(level, columnCursor);
+      columnCursor += Math.max(1, Math.ceil((buckets.get(level)?.length || 1) / maxRowsPerColumn));
+    });
     return sorted.map((clue) => {
         const level = levelOf.get(clue.id) || 0;
         const bucket = buckets.get(level) || [];
         const row = bucket.findIndex((item) => item.id === clue.id);
         const saved = clue.metadata?.clueGraphPosition;
-        const x = saved && Number.isFinite(Number(saved.x)) ? Number(saved.x) : 190 + (levelIndex.get(level) || 0) * 330;
-        const gap = Math.max(112, Math.min(170, (metrics.height - 180) / Math.max(bucket.length, 1)));
-        const y = saved && Number.isFinite(Number(saved.y)) ? Number(saved.y) : 110 + row * gap + (level % 2 ? 34 : 0);
+        const bucketColumn = Math.floor(row / maxRowsPerColumn);
+        const bucketRow = row % maxRowsPerColumn;
+        const x = saved && Number.isFinite(Number(saved.x)) ? Math.min(3400, Math.max(100, Number(saved.x))) : 170 + ((levelStartColumn.get(level) || 0) + bucketColumn) * 290;
+        const y = saved && Number.isFinite(Number(saved.y)) ? Math.min(4800, Math.max(80, Number(saved.y))) : 110 + bucketRow * 132 + (level % 2 ? 30 : 0);
         const points = linkedPoints(clue.id, data);
         const scene = pointScene(points[0], data);
         const chapter = sceneChapter(scene, data);
@@ -228,12 +235,12 @@ export function highlightQuery(text, query) {
       });
   }
 
-  function graphConnector(from, to, cls = "") {
+  function graphConnector(from, to, edge) {
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const width = Math.sqrt(dx * dx + dy * dy);
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-    return `<i class="clue-flow-line ${cls}" style="left:${from.x}px;top:${from.y}px;width:${width}px;transform:rotate(${angle}deg)"></i>`;
+    return `<i class="clue-flow-line ${escapeHtml(edge.kind || "")}" data-from="${escapeHtml(edge.from)}" data-to="${escapeHtml(edge.to)}" title="${escapeHtml(edge.label || "线索依赖")}" style="left:${from.x}px;top:${from.y}px;width:${width}px;transform:rotate(${angle}deg)"></i>`;
   }
 
   export function clueGraph(list, data, q) {
@@ -242,23 +249,29 @@ export function highlightQuery(text, query) {
     const dependencies = allDependencies.filter((edge) => visibleIds.has(edge.from) && visibleIds.has(edge.to));
     const levels = clueLevels(list, dependencies);
     const levelSizes = [...levels.values()].reduce((map, level) => map.set(level, (map.get(level) || 0) + 1), new Map());
-    const metrics = clueGraphMetrics(list.length, new Set(levels.values()).size || 1, Math.max(1, ...levelSizes.values()));
-    const nodes = clueGraphNodes(list, data, metrics, dependencies);
+    const layoutColumns = [...levelSizes.values()].reduce((total, size) => total + Math.max(1, Math.ceil(size / 6)), 0) || 1;
+    const baseMetrics = clueGraphMetrics(list.length, layoutColumns, Math.max(1, ...levelSizes.values()));
+    const nodes = clueGraphNodes(list, data, baseMetrics, dependencies);
+    const metrics = {
+      width: Math.min(3600, Math.max(baseMetrics.width, ...nodes.map((node) => node.x + 190))),
+      height: Math.min(5000, Math.max(baseMetrics.height, ...nodes.map((node) => node.y + 120)))
+    };
     const nodeById = new Map(nodes.map((node) => [node.clue.id, node]));
     const selectedId = uiStore.get().cluesSelectedId || "";
-    const center = { x: metrics.width / 2, y: metrics.height / 2 };
     const zoom = Number(uiStore.get().clueFlowZoom || 1);
     const filter = uiStore.get().clueFlowFilter || "all";
-    const lines = dependencies.length
-      ? dependencies.map((edge) => {
+    const lines = dependencies.map((edge) => {
         const from = nodeById.get(edge.from);
         const to = nodeById.get(edge.to);
-        return from && to ? graphConnector({ x: from.x, y: from.y }, { x: to.x, y: to.y }, edge.kind) : "";
-      }).join("")
-      : nodes.map((node, index) => graphConnector({ x: node.x, y: node.y }, center, index % 3 === 0 ? "main" : index % 3 === 1 ? "soft" : "dashed")).join("");
+        return from && to ? graphConnector({ x: from.x, y: from.y }, { x: to.x, y: to.y }, edge) : "";
+      }).join("");
+    const relationIds = new Set(dependencies.flatMap((edge) => [edge.from, edge.to]));
+    const connectedIds = relationIds;
+    const unlinkedCount = Math.max(0, list.length - connectedIds.size);
+    const hiddenRelationCount = Math.max(0, allDependencies.length - dependencies.length);
     return `<article class="clue-flow-panel">
       <div class="clue-flow-head">
-        <div><h3>线索流程图</h3><p>拖动画布移动视野，使用缩放查看完整线索网络。</p></div>
+        <div><h3>线索流程图</h3><p>只绘制真实剧情连线、明确调查顺序和自动化规则依赖，不再自动臆造关系。</p></div>
         <div class="clue-flow-tools">
           <div class="filter-tabs">
             <button class="filter-tab ${filter === "all" ? "active" : ""}" data-action="clue-flow-filter" data-filter="all">全部线索</button>
@@ -269,25 +282,29 @@ export function highlightQuery(text, query) {
             <button type="button" data-action="clue-flow-zoom" data-zoom="out">-</button>
             <span>${Math.round(zoom * 100)}%</span>
             <button type="button" data-action="clue-flow-zoom" data-zoom="in">+</button>
-            <button type="button" data-action="clue-flow-zoom" data-zoom="reset">重置</button>
+            <button type="button" data-action="clue-flow-fit">适应视图</button>
+            <button type="button" data-action="clue-flow-focus" ${selectedId && visibleIds.has(selectedId) ? "" : "disabled"}>定位选中</button>
           </div>
+          <button type="button" class="text-btn" data-go="truth">打开核心事实</button>
         </div>
       </div>
+      <div class="clue-flow-summary"><span><b>${list.length}</b> 当前显示</span><span><b>${dependencies.length}</b> 真实依赖</span><span class="${unlinkedCount ? "warn" : "ok"}"><b>${unlinkedCount}</b> 无路径线索</span>${hiddenRelationCount ? `<span><b>${hiddenRelationCount}</b> 条关系被筛选隐藏</span>` : ""}<div class="clue-flow-legend"><i class="story"></i>剧情连线<i class="investigation"></i>调查顺序<i class="rule"></i>规则发放<i class="scene"></i>场景解锁</div></div>
       <div class="clue-flow-viewport" data-clue-flow-viewport>
-        <div class="clue-flow-canvas" style="width:${metrics.width}px;height:${metrics.height}px;transform:scale(${zoom});">
-          ${lines}
-          <button type="button" class="clue-truth-node" data-go="studio" style="left:${center.x}px;top:${center.y}px"><span>◇</span><strong>真相节点</strong></button>
+        <div class="clue-flow-stage" style="width:${metrics.width * zoom}px;height:${metrics.height * zoom}px"><div class="clue-flow-canvas" data-canvas-width="${metrics.width}" data-canvas-height="${metrics.height}" style="width:${metrics.width}px;height:${metrics.height}px;transform:scale(${zoom});">
+          ${lines}${dependencies.length ? "" : `<div class="clue-flow-no-relations"><strong>当前没有可验证的线索依赖</strong><span>全部 ${list.length} 条线索仍完整显示；可在剧情编排或自动化规则中建立真实关系。</span></div>`}
           ${nodes.map((node) => {
             const selected = node.clue.id === selectedId ? " selected" : "";
             const tone = node.meta.importance === "关键线索" ? " key" : node.meta.importance === "烟雾弹" ? " decoy" : "";
+            const orphan = connectedIds.has(node.clue.id) ? "" : " orphan";
             const asset = clueAsset(node.clue);
-            return `<button type="button" tabindex="-1" class="clue-flow-node${selected}${tone}" data-action="clues-select" data-clue="${node.clue.id}" data-x="${node.x}" data-y="${node.y}" style="left:${node.x}px;top:${node.y}px">
+            return `<button type="button" class="clue-flow-node${selected}${tone}${orphan}" data-action="clues-select" data-clue="${node.clue.id}" data-x="${node.x}" data-y="${node.y}" style="left:${node.x}px;top:${node.y}px">
+              <span class="clue-node-drag-handle" title="拖动调整线索位置">⠿</span>
               <span class="clue-thumb">${asset ? "图" : node.meta.type.slice(0, 1)}</span>
               <span class="clue-node-copy"><strong>${highlightQuery(node.clue.name, q)}</strong><small>${escapeHtml(node.scene?.name || node.chapter?.title || node.meta.importance)}</small></span>
               <i aria-label="${node.locked ? "私密线索" : "公开线索"}">${node.locked ? "🔒" : "✓"}</i>
             </button>`;
           }).join("")}
-        </div>
+        </div></div>
       </div>
     </article>`;
   }

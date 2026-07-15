@@ -10,5 +10,7 @@ export const studioStore = createStore({
   studioLayoutMode: "scene-tree",
   studioCollapsedScenes: [],
   studioCanvasHeight: 0,
-  cloudLoading: true
+  cloudLoading: true,
+  studioLoading: false,
+  studioError: ""
 });

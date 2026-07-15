@@ -4,6 +4,7 @@ import { getViewMeta, resolveViewFn } from "./src/bootstrap/view-resolver.js";
 import { initEvents } from "./src/bootstrap/events.js";
 import { content, modalBackdrop } from "./src/dom.js";
 import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
+import { callView } from "./src/runtime/view-registry.js";
 import { uiStore, studioStore, userStore } from "./src/state/index.js";
 import { loading as renderLoading, error as renderError } from "./src/components/status-ui.js";
 import { mountFeedbackButton } from "./src/components/feedback-button.js";
@@ -30,6 +31,10 @@ const appEntry = (function (window) {
     return renderLoading(title, "正在加载该功能模块，请稍候。", { kicker: "MODULE" });
   }
 
+  function renderStudioLoading(title) {
+    return renderLoading(title, "正在按需读取完整创作数据，请稍候。", { kicker: "WORKSPACE" });
+  }
+
   function renderViewError(title, error) {
     const actions = `<button class="primary-btn" data-action="retry-view-module">重新加载</button><button class="secondary-btn" data-action="open-error-guide">错误排查手册</button>`;
     return renderError(title, error, { kicker: "MODULE ERROR", actions, fallback: "功能模块加载失败，请刷新后重试。" });
@@ -40,6 +45,16 @@ const appEntry = (function (window) {
     const currentView = uiStore.get().view;
     if (!getViewMeta(currentView)) { uiStore.set({ view: "creatorCockpit" }); return render(); }
     const [eyebrow, title] = getViewMeta(uiStore.get().view);
+    const needsStudio = Boolean(R.viewRequiresStudio?.(currentView));
+    const studioState = studioStore.get();
+    if (needsStudio && !studioState.cloudStudio && !studioState.studioLoading && !studioState.studioError) {
+      const loadingView = currentView;
+      Promise.resolve(R.ensureStudioSnapshot?.())
+        .catch(() => {})
+        .finally(() => {
+          if (currentToken === renderToken && uiStore.get().view === loadingView) render();
+        });
+    }
     window.zhimuNavShell?.syncWorldSwitcher?.();
     window.zhimuNavShell?.syncNavAdvanced?.(uiStore.get().view);
     document.querySelector("#page-eyebrow").textContent = eyebrow;
@@ -60,6 +75,11 @@ const appEntry = (function (window) {
           if (currentToken !== renderToken || uiStore.get().view !== loadingView) return;
           setContentHtml(renderViewError(title, error));
         });
+      return;
+    }
+    if (needsStudio && !studioStore.get().cloudStudio) {
+      const studioError = studioStore.get().studioError;
+      setContentHtml(studioError ? renderViewError(title, studioError) : renderStudioLoading(title));
       return;
     }
     const outage = window.zhimuServiceOutage;
@@ -102,6 +122,7 @@ const appEntry = (function (window) {
       R.syncDirectorPolling();
       R.connectRoomEventStream();
       if (view === "account") window.zhimuAccountHub?.beginAccountHubLoad?.();
+      if (view === "creatorCockpit") callView("creatorCockpit", "refreshCockpitData");
       render();
       return;
     }
@@ -120,7 +141,12 @@ const appEntry = (function (window) {
     .then(async () => {
       // Keep startup to one authoritative auth probe. A former module-load
       // probe raced this call and could overwrite a successful result.
-      await window.zhimuAuthSession?.syncProfile?.();
+      // World membership is authorized by the same session cookie and can be
+      // fetched while /auth/me resolves. The result is not applied until the
+      // authoritative profile probe has completed.
+      const profilePromise = window.zhimuAuthSession?.syncProfile?.();
+      R.prefetchWorlds?.();
+      await profilePromise;
       window.zhimuAuthSession?.syncAuthBanner?.();
       return R.loadCloudData();
     })

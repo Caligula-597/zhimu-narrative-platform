@@ -148,7 +148,9 @@ env.NODE_ENV = "production";
 env.ALLOW_DEMO_USER_HEADER = "false";
 env.DATABASE_URL = normalizeDatabaseUrl(local.DATABASE_URL);
 env.DATABASE_SSL = "true";
-env.PGPOOL_MAX = local.PGPOOL_MAX?.trim() || "15";
+// Session pooler capacity is 15 on the current plan. Keep a two-instance
+// rolling deploy (6 + 6) below that ceiling and reserve three ops slots.
+env.PGPOOL_MAX = local.PGPOOL_MAX?.trim() || "6";
 env.APP_PUBLIC_URL = publicUrl;
 // Keep the standalone host portal compatible with the currently deployed API,
 // including releases that predate HOST_SITE_ORIGIN-aware CORS resolution.

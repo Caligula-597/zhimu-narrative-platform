@@ -42,13 +42,16 @@ export function normalizeHostUser(raw) {
   };
 }
 
-export async function loadHostSessionUser({ requestMe, stateRef, clear }) {
+export async function loadHostSessionUser({ requestMe, stateRef, clear, isCurrent = () => true }) {
   stateRef.authStatus = "checking";
   stateRef.authError = "";
   try {
-    stateRef.user = normalizeHostUser(await requestMe());
+    const user = normalizeHostUser(await requestMe());
+    if (!isCurrent()) return stateRef.authStatus;
+    stateRef.user = user;
     stateRef.authStatus = stateRef.user ? "authenticated" : "unavailable";
   } catch (error) {
+    if (!isCurrent()) return stateRef.authStatus;
     stateRef.authStatus = authProbeFailureStatus(error);
     stateRef.authError = error.message || "";
     if (isSessionRejection(error)) {
@@ -60,14 +63,56 @@ export async function loadHostSessionUser({ requestMe, stateRef, clear }) {
 }
 
 export function createHostLifecycleController({ render, setBusy, showToast }) {
+  let sessionProbePromise = null;
+  let sessionProbeToken = null;
+  let sessionGeneration = 0;
   function cleanOAuthUrl() {
     const url = new URL(window.location.href);
     ["oauth_code", "oauth_error", "auth"].forEach((key) => url.searchParams.delete(key));
     window.history.replaceState({}, "", url.pathname + url.search + url.hash);
   }
 
-  async function loadSessionUser() {
-    return loadHostSessionUser({ requestMe: api.me, stateRef: state, clear: clearSession });
+  function loadSessionUser() {
+    const tokenAtStart = getSessionToken();
+    if (sessionProbePromise) {
+      if (sessionProbeToken === tokenAtStart) return sessionProbePromise;
+      return sessionProbePromise.finally(() => loadSessionUser());
+    }
+    sessionProbeToken = tokenAtStart;
+    const generationAtStart = sessionGeneration;
+    sessionProbePromise = loadHostSessionUser({
+      requestMe: api.me,
+      stateRef: state,
+      clear: clearSession,
+      isCurrent: () => generationAtStart === sessionGeneration && tokenAtStart === getSessionToken()
+    }).finally(() => {
+      sessionProbePromise = null;
+      sessionProbeToken = null;
+    });
+    return sessionProbePromise;
+  }
+
+  async function handleExternalSessionChange(token) {
+    sessionGeneration += 1;
+    if (!token) {
+      disconnectRoomEvents();
+      state.user = null;
+      state.authStatus = "anonymous";
+      state.authError = "";
+      state.view = "auth";
+      render();
+      return;
+    }
+    await loadSessionUser();
+    if (!state.user) return;
+    if (state.view === "auth") state.view = "landing";
+    if (state.view === "console") {
+      syncRoomStream();
+      syncDirectorPolling();
+    } else {
+      await loadWorldsList().catch(() => {});
+    }
+    render();
   }
 
   async function enterConsole() {
@@ -320,5 +365,5 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     }
   }
 
-  return { bootstrap, handleAction, handleAuthSubmit };
+  return { bootstrap, handleAction, handleAuthSubmit, handleExternalSessionChange };
 }

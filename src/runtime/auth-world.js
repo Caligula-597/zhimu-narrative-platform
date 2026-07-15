@@ -107,6 +107,10 @@ function applyWorldRename(worldId,name,summary){
  if(cloudStudio?.world?.id===worldId){
   studioStore.set({ cloudStudio: {...cloudStudio, world: {...cloudStudio.world, name, summary}} });
  }
+ const preview=worldStore.get().cloudWorkspacePreview;
+ if(preview?.world?.id===worldId){
+  worldStore.set({cloudWorkspacePreview:{...preview,world:{...preview.world,name,summary}}});
+ }
  worldStore.set({ cloudWorlds: (worldStore.get().cloudWorlds||[]).map((w)=>w.id===worldId?{...w,name,summary}:w) });
  if(worldId===zhimuApi.context.worldId){
   window.zhimuNavShell?.syncWorldSwitcher?.();
@@ -142,8 +146,8 @@ export async function joinCatalogWorld(worldId){
   zhimuApi.selectRoom(result.room.id);
   closeModal();
   await loadCloudData(true,true);
-  const roles=studioStore.get().cloudStudio?.roles?.length||0;
-  const sections=studioStore.get().cloudStudio?.sections?.length||0;
+  const roles=worldStore.get().cloudWorkspacePreview?.roles?.length||0;
+  const sections=worldStore.get().cloudWorkspacePreview?.sections?.length||0;
   if(!roles){
    showToast("已加入剧本，但正文尚未加载完成，请稍后刷新");
   }else{
@@ -274,7 +278,7 @@ export async function selectWorld(worldId){
  render();
  try{
   await loadCloudData(true,true);
-  const name=studioStore.get().cloudStudio?.world?.name||(worldStore.get().cloudWorlds||[]).find((world)=>world.id===worldId)?.name||"新剧本";
+  const name=studioStore.get().cloudStudio?.world?.name||worldStore.get().cloudWorkspacePreview?.world?.name||(worldStore.get().cloudWorlds||[]).find((world)=>world.id===worldId)?.name||"新剧本";
   showToast(`已切换到「${name}」`);
  }catch(error){
   studioStore.set({ cloudLoading: false });
@@ -286,7 +290,7 @@ export async function selectWorld(worldId){
 
 export async function openWorldRooms(){
  try{
-  const rooms=await zhimuApi.getWorldRooms(),world=studioStore.get().cloudStudio?.world;
+  const rooms=await zhimuApi.getWorldRooms(),world=studioStore.get().cloudStudio?.world||worldStore.get().cloudWorkspacePreview?.world;
   const roomRows=rooms.map(room=>{
     const listingLabel=room.public_listing?`<span class="status-chip published">公开大厅</span>`:`<span class="status-chip draft">仅邀请码</span>`;
     const listingAction=room.public_listing
@@ -330,7 +334,7 @@ export function openCurrentRoomInvite(){
 }
 
 export function openRoomInvite(roomId,inviteCode,roomName){
- const roles=studioStore.get().cloudStudio?.roles||[];
+ const roles=studioStore.get().cloudStudio?.roles||worldStore.get().cloudWorkspacePreview?.roles||[];
  const playUrl=window.zhimuInviteLinks?.playerJoinUrl?.(inviteCode)||`https://play.getzhimu.com/?join=${encodeURIComponent(inviteCode)}`;
  modal.className="modal";setHtml(modal, `<h2>邀请玩家 · ${escapeHtml(roomName)}</h2><p class="wizard-intro">把<strong>邀请码</strong>或<strong>玩家链接</strong>发给参与者。玩家在 <a href="${escapeHtml(playUrl)}" target="_blank" rel="noopener">play.getzhimu.com</a> 输入码并选择角色席位即可入房。</p><div class="tutorial-tip"><b>房间邀请码</b><span class="invite-code">${escapeHtml(inviteCode)}</span></div><div class="tutorial-tip"><b>玩家链接</b><span class="invite-link">${escapeHtml(playUrl)}</span></div><div class="checklist">${roles.map(role=>check(escapeHtml(role.name),"玩家加入时选择这个角色席位")).join("")||`<div class="empty-state">当前剧本尚未建立角色席位。</div>`}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-copy-invite-code data-invite-code="${escapeHtml(inviteCode)}">复制邀请码</button><button class="secondary-btn" data-copy-play-link data-invite-code="${escapeHtml(inviteCode)}">复制玩家链接</button><button class="primary-btn" data-action="room-join" data-invite-code="${escapeHtml(inviteCode)}">自测加入</button></div>`);
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-copy-invite-code]").onclick=()=>window.zhimuInviteLinks?.copyText?.(inviteCode,"邀请码");modal.querySelector("[data-copy-play-link]").onclick=()=>window.zhimuInviteLinks?.copyText?.(playUrl,"玩家链接");modal.querySelector("[data-action]").onclick=()=>openJoinRoom(inviteCode);

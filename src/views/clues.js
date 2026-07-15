@@ -14,7 +14,8 @@ import { openClueInStudio, openCluesEditor } from "./clues-editor.js";
 import { loadClueHitRate, renderClueHitRatePanel } from "./clues-hit-rate.js";
 import {
   adjustClueFlowZoom, bindCluesSearch, closeClueDetail, selectClue,
-  setClueDetailTab, setClueFlowFilter, syncCluesSelectAll, toggleCluesSelection
+  fitClueFlow, focusSelectedClue, setClueDetailTab, setClueFlowFilter,
+  syncCluesSelectAll, toggleCluesSelection
 } from "./clues-interactions.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const catalogExperienceBanner = U.catalogExperienceBanner || (() => "");
@@ -92,5 +93,5 @@ import {
 
 
 
-export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, bindCluesSearch, openClueInStudio, openCluesEditor, confirmDeleteClue, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, loadClueHitRate };
+export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, fitClueFlow, focusSelectedClue, bindCluesSearch, openClueInStudio, openCluesEditor, confirmDeleteClue, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, loadClueHitRate };
 registerView("clues", cluesViewApi);

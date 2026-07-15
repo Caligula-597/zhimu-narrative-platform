@@ -3,8 +3,10 @@ import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
 import { uiStore, worldStore, studioStore, roomStore, assetStore, userStore, voiceStore } from "../state/index.js";
 import { registerRuntime, render as runtimeRender } from "./runtime-facade.js";
+import { callView } from "./view-registry.js";
 import * as workspaceStore from "./workspace-store.js";
 import * as runtimeStore from "./runtime-store.js";
+import { ensureStudioSnapshot, viewRequiresStudio } from "./studio-loader.js";
 import { normalizeError } from "../components/status-ui.js";
 
   const reportError = (error, fallback = "操作失败，请稍后重试") =>
@@ -26,6 +28,10 @@ import { normalizeError } from "../components/status-ui.js";
 
 export async function ensureActiveWorld() {
     return workspaceStore.ensureActiveWorld();
+  }
+
+export function prefetchWorlds() {
+    return workspaceStore.prefetchWorlds();
   }
 
 export async function loadCloudData(withToast = false, force = false) {
@@ -87,7 +93,7 @@ export async function loadCloudData(withToast = false, force = false) {
       try {
         await ensureActiveWorld();
         const hasSession = workspaceStore.isLoggedIn();
-        if (hasSession) {
+        if (hasSession && !zhimuApi.context.worldId) {
           try {
             worldStore.set({ cloudCatalog: await zhimuApi.getWorldCatalog(), cloudCatalogError: "" });
           } catch (catalogErr) {
@@ -101,27 +107,35 @@ export async function loadCloudData(withToast = false, force = false) {
           worldStore.set({ cloudCatalog: [], cloudCatalogError: "" });
         }
         if (!zhimuApi.context.worldId) {
-          studioStore.set({ cloudStudio: null });
+          studioStore.set({ cloudStudio: null, studioLoading: false, studioError: "" });
+          worldStore.set({ cloudWorkspacePreview: null });
           errors.push("当前账号还没有可访问的剧本");
         } else {
-          try {
-            const studioData = await zhimuApi.getStudio();
-            studioStore.set({ cloudStudio: studioData });
-            window.zhimuWorldRevision?.trackRevision?.(studioData?.world);
-            const roles = studioData?.roles?.length || 0;
-            const sections = studioData?.sections?.length || 0;
-            if (roles === 0) {
-              errors.push("当前剧本暂无角色或分幕，请刷新或重新选择剧本。");
-            }
-          } catch (studioErr) {
-            studioStore.set({ cloudStudio: null });
-            const msg = studioErr.message || String(studioErr);
-            if (studioErr.code === "WORLD_EDITOR_REQUIRED" || /WORLD_EDITOR_REQUIRED/i.test(msg)) {
-              errors.push("无法读取剧本正文，请刷新页面后重试。");
-            } else {
-              errors.push(msg);
+          const activeView = uiStore.get().view;
+          const cockpitHydrationPromise = activeView === "creatorCockpit"
+            ? Promise.resolve(callView("creatorCockpit", "refreshCockpitData"))
+            : null;
+          if (viewRequiresStudio(activeView)) {
+            try {
+              const studioData = await ensureStudioSnapshot({ force: true });
+              studioStore.set({ cloudStudio: studioData });
+              window.zhimuWorldRevision?.trackRevision?.(studioData?.world);
+              const roles = studioData?.roles?.length || 0;
+              const sections = studioData?.sections?.length || 0;
+              if (roles === 0) {
+                errors.push("当前剧本暂无角色或分幕，请刷新或重新选择剧本。");
+              }
+            } catch (studioErr) {
+              studioStore.set({ cloudStudio: null });
+              const msg = studioErr.message || String(studioErr);
+              if (studioErr.code === "WORLD_EDITOR_REQUIRED" || /WORLD_EDITOR_REQUIRED/i.test(msg)) {
+                errors.push("无法读取剧本正文，请刷新页面后重试。");
+              } else {
+                errors.push(msg);
+              }
             }
           }
+          if (cockpitHydrationPromise) await cockpitHydrationPromise;
           const worldSnap = worldStore.get();
           const studioSnap = studioStore.get();
           const listed = (worldSnap.cloudWorlds || []).find((w) => w.id === zhimuApi.context.worldId);
@@ -134,6 +148,7 @@ export async function loadCloudData(withToast = false, force = false) {
         }
       } catch (error) {
         studioStore.set({ cloudStudio: null });
+        worldStore.set({ cloudWorkspacePreview: null });
         if (/Authentication required/i.test(error.message) && window.zhimuConfig?.requireAuth) {
           errors.push("请先登录账号后再继续");
           window.zhimuAuthSession?.promptAuthIfNeeded?.();
@@ -228,7 +243,7 @@ export async function loadCloudData(withToast = false, force = false) {
 
       void (async () => {
         const viewAtStart = uiStore.get().view;
-        if (window.zhimuSessionAuth?.isAuthenticated?.() && !["overview", "account", "settings"].includes(viewAtStart)) {
+        if (window.zhimuSessionAuth?.isAuthenticated?.() && !["overview", "creatorCockpit", "account", "settings"].includes(viewAtStart)) {
           try {
             const usage = await zhimuApi.getStorageUsage();
             if (!isCurrentLoad(activeLoadKey)) return;
@@ -242,7 +257,9 @@ export async function loadCloudData(withToast = false, force = false) {
 
       userStore.set({ apiError: [...new Set(errors)].join(" · ") });
       roomEvents().syncDirectorPolling?.();
-      if (worldReady) roomEvents().connectRoomEventStream?.();
+      if (worldReady && hasRoom && ["overview", "director", "player", "archive"].includes(uiStore.get().view)) {
+        roomEvents().connectRoomEventStream?.();
+      }
       render();
 
         if (["overview", "creatorCockpit", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view)) void (async () => {
@@ -254,8 +271,8 @@ export async function loadCloudData(withToast = false, force = false) {
         const needsStorageUsage = ["overview", "account", "settings"].includes(uiStore.get().view);
         const needsAssets = ["overview", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view);
         const view = uiStore.get().view;
-        const needsCreatorDashboard = view === "overview" || view === "creatorCockpit";
-        const needsCreatorChecks = ["writer", "settings", "creatorCockpit"].includes(view);
+        const needsCreatorDashboard = view === "overview";
+        const needsCreatorChecks = ["writer", "settings"].includes(view);
         if (!needsStorageUsage && !needsAssets && !needsCreatorDashboard && !needsCreatorChecks) return;
         const activeRoomId = zhimuApi.context.roomId || null;
         const phase3 = await Promise.allSettled([
@@ -451,4 +468,4 @@ export function handleRoomEvent(...args) { return roomEvents().handleRoomEvent?.
 export function streamUserIdForRoom(...args) { return roomEvents().streamUserIdForRoom?.(...args); }
 export function renderQuotaSection(...args) { return window.zhimuAccountQuota?.renderQuotaSection?.(...args); }
 
-registerRuntime({ loadCloudData, ensureActiveWorld, clearRuntimeState, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, syncDirectorPolling, refreshDirectorPoll, refreshHostEvents, refreshHostPlayers, refreshHostClueMatrix, refreshHostAuditLog, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels, renderQuotaSection });
+registerRuntime({ loadCloudData, ensureActiveWorld, prefetchWorlds, clearRuntimeState, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, syncDirectorPolling, refreshDirectorPoll, refreshHostEvents, refreshHostPlayers, refreshHostClueMatrix, refreshHostAuditLog, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels, renderQuotaSection });

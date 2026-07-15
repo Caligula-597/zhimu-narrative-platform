@@ -3,6 +3,7 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { uiStore, worldStore, studioStore } from "../state/index.js";
 import { loadCloudData, render } from "./runtime-facade.js";
+import { callView } from "./view-registry.js";
 import * as F from "../utils/format.js";
 import { closeModal } from "../components/modal.js";
 import { setHtml } from "../../shared/safe-dom.js";
@@ -493,6 +494,14 @@ import { setHtml } from "../../shared/safe-dom.js";
     const id = activeWorldId(worldId);
 
     const rev = Number(revision);
+
+    const previewWorld = worldStore.get().cloudWorkspacePreview?.world;
+
+    if (previewWorld?.id === id && Number(previewWorld.content_revision) !== rev) {
+
+      callView("creatorCockpit", "invalidateCockpitData");
+
+    }
 
     const studioSnap = studioStore.get();
 

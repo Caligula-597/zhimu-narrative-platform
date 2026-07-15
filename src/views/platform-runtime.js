@@ -145,7 +145,7 @@ export async function openWorldSegmentsModal() {
   };
   try {
     modal.className = "modal world-segments-modal";
-    setHtml(modal, `<h2>运行态段落</h2><p class="wizard-intro">Segment 是章节/分幕/任务的聚合层，不替换 script_sections。</p><div class="host-detail-list" data-segment-list><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增段落</label><input class="field" data-seg-field="segmentKey" placeholder="键 ch1"><input class="field" data-seg-field="title" placeholder="标题"><input class="field" data-seg-field="sequence" type="number" min="1" value="1" placeholder="顺序"></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-segment>添加</button></div>`);
+    setHtml(modal, `<h2>主持运行段落</h2><p class="wizard-intro">把章节、私人分幕和任务聚合成一幕可主持流程，不会替换原始正文。</p><div class="host-detail-list" data-segment-list><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增段落</label><input class="field" data-seg-field="segmentKey" placeholder="段落标识，例如 ch1"><input class="field" data-seg-field="title" placeholder="标题"><input class="field" data-seg-field="sequence" type="number" min="1" value="1" placeholder="顺序"></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-segment>添加</button></div>`);
     modalBackdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-add-segment]").onclick = async () => {
@@ -175,20 +175,20 @@ export async function openTruthClaimsModal() {
     const payload = await zhimuApi.getTruthClaims(worldId);
     const items = payload?.claims || payload?.truthClaims || [];
     const list = items.length
-      ? items.map((c) => `<article class="checkpoint-row"><strong>${escapeHtml(c.title)}</strong><span class="status-chip">${escapeHtml(c.confidence || "canon")}</span><p>${escapeHtml((c.claim || "").slice(0, 160))}${(c.claim || "").length > 160 ? "…" : ""}</p></article>`).join("")
-      : `<div class="empty-state">尚无真相断言。添加后可对接复盘与 QA。</div>`;
+      ? items.map((c) => `<article class="checkpoint-row"><strong>${escapeHtml(c.title)}</strong><span class="status-chip">${escapeHtml(({ canon: "已确认", inferred: "推定", misdirection: "误导信息", unknown: "待确认" })[c.confidence] || "已确认")}</span><p>${escapeHtml((c.claim || "").slice(0, 160))}${(c.claim || "").length > 160 ? "…" : ""}</p></article>`).join("")
+      : `<div class="empty-state">尚未记录核心事实。</div>`;
     setHtml(modal.querySelector("[data-claim-list]"), list);
   };
   try {
     modal.className = "modal truth-claims-modal";
-    setHtml(modal, `<h2>真相链</h2><p class="wizard-intro">结构化真相断言，供 QA 与局后复盘引用（非玩家可见剧本文本）。</p><div class="host-detail-list" data-claim-list><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增断言</label><input class="field" data-claim-field="title" placeholder="标题"><textarea class="field" data-claim-field="claim" rows="3" placeholder="断言内容"></textarea><select class="field" data-claim-field="confidence"><option value="canon">canon</option><option value="inferred">inferred</option><option value="misdirection">misdirection</option><option value="unknown">unknown</option></select></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-claim>添加</button></div>`);
+    setHtml(modal, `<h2>核心事实</h2><p class="wizard-intro">作者内部的事实台账。当前用于完整性统计和运行段落关联，不会自动改写正文或复盘。</p><div class="host-detail-list" data-claim-list><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增核心事实</label><input class="field" data-claim-field="title" placeholder="事实标题"><textarea class="field" data-claim-field="claim" rows="3" placeholder="事实内容及成立依据"></textarea><select class="field" data-claim-field="confidence"><option value="canon">已确认</option><option value="inferred">推定</option><option value="misdirection">误导信息</option><option value="unknown">待确认</option></select></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-claim>添加</button></div>`);
     modalBackdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-add-claim]").onclick = async () => {
       const val = (k) => modal.querySelector(`[data-claim-field="${k}"]`)?.value?.trim() || "";
       const title = val("title");
       const claim = val("claim");
-      if (!title || !claim) return showToast("请填写标题与断言");
+      if (!title || !claim) return showToast("请填写事实标题与内容");
       try {
         await zhimuApi.createTruthClaim({ title, claim, confidence: val("confidence") || "canon" }, worldId);
         showToast("断言已添加");
@@ -241,7 +241,7 @@ export async function openRoleRelationshipsModal() {
   };
   try {
     modal.className = "modal role-relationships-modal";
-    setHtml(modal, `<h2>角色关系图</h2><p class="wizard-intro">主持 runbook 与 QA 用的结构化关系数据（非编排台连线）。</p><div class="rel-graph-wrap" data-rel-graph></div><div class="host-detail-list" data-rel-list style="margin-top:12px"><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增关系</label><select class="field" data-rel-field="from">${roleOptions(roles)}</select><select class="field" data-rel-field="to">${roleOptions(roles)}</select><input class="field" data-rel-field="label" placeholder="关系标签，如 师生/仇敌"><input class="field" data-rel-field="strength" type="number" min="-10" max="10" placeholder="强度 -10～10（选填）"></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-rel>添加</button></div>`);
+    setHtml(modal, `<h2>角色关系图</h2><p class="wizard-intro">供创作者和主持人理解人物关系的结构化数据，不等同于剧情编排连线，也不会自动向玩家公开。</p><div class="rel-graph-wrap" data-rel-graph></div><div class="host-detail-list" data-rel-list style="margin-top:12px"><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增关系</label><select class="field" data-rel-field="from">${roleOptions(roles)}</select><select class="field" data-rel-field="to">${roleOptions(roles)}</select><input class="field" data-rel-field="label" placeholder="关系名称，例如：师生、仇敌"><input class="field" data-rel-field="strength" type="number" min="-10" max="10" placeholder="强度 -10～10（选填）"></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-rel>添加</button></div>`);
     modalBackdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-add-rel]").onclick = async () => {

@@ -13,31 +13,39 @@ export const ROOMS_VISIBLE_TO_ACTOR_SQL = `(
   )
 )`;
 
-import { effectiveStorageLimits, countOwnedWorlds } from "../plans.js";
+import { PLAN_DEFAULTS } from "../plans.js";
 
-export async function storageUsage(userId) {
-  const limits = await effectiveStorageLimits(userId);
-  const usage = await query(
-    `SELECT COALESCE(SUM(a.byte_size) FILTER (WHERE a.status IN ('pending_upload', 'active')), 0)::bigint AS used_bytes
-     FROM asset_files a
-     WHERE a.owner_user_id = $1`,
-    [userId]
-  );
-  const used = Number(usage.rows[0]?.used_bytes ?? 0);
-  const usedWorlds = await countOwnedWorlds(userId);
-  await query(
-    `INSERT INTO storage_quotas (user_id, max_bytes, max_worlds, max_single_file_bytes)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT (user_id) DO UPDATE SET updated_at = storage_quotas.updated_at`,
-    [userId, limits.max_bytes, limits.max_worlds, limits.max_single_file_bytes]
-  );
+export const STORAGE_USAGE_SQL = `
+  SELECT
+    COALESCE((
+      SELECT plan_code FROM user_plans WHERE user_id = $1
+    ), 'free') AS plan_code,
+    (SELECT max_bytes FROM storage_quotas WHERE user_id = $1) AS stored_max_bytes,
+    (SELECT max_worlds FROM storage_quotas WHERE user_id = $1) AS stored_max_worlds,
+    (SELECT max_single_file_bytes FROM storage_quotas WHERE user_id = $1) AS stored_max_single_file_bytes,
+    COALESCE((
+      SELECT SUM(byte_size) FILTER (WHERE status IN ('pending_upload', 'active'))
+      FROM asset_files WHERE owner_user_id = $1
+    ), 0)::bigint AS used_bytes,
+    (SELECT COUNT(*)::int FROM worlds
+      WHERE owner_user_id = $1 AND status <> 'archived') AS used_worlds`;
+
+export async function storageUsage(userId, client = null) {
+  const db = client?.query ? client.query.bind(client) : query;
+  const result = await db(STORAGE_USAGE_SQL, [userId]);
+  const row = result.rows[0] ?? {};
+  const planCode = PLAN_DEFAULTS[row.plan_code] ? row.plan_code : "free";
+  const defaults = PLAN_DEFAULTS[planCode];
   return {
-    max_bytes: limits.max_bytes,
-    max_worlds: limits.max_worlds,
-    max_single_file_bytes: limits.max_single_file_bytes,
-    used_bytes: used,
-    used_worlds: usedWorlds,
-    plan_code: limits.planCode
+    max_bytes: Math.max(defaults.max_bytes, Number(row.stored_max_bytes ?? 0)),
+    max_worlds: Math.max(defaults.max_worlds, Number(row.stored_max_worlds ?? 0)),
+    max_single_file_bytes: Math.max(
+      defaults.max_single_file_bytes,
+      Number(row.stored_max_single_file_bytes ?? 0)
+    ),
+    used_bytes: Number(row.used_bytes ?? 0),
+    used_worlds: Number(row.used_worlds ?? 0),
+    plan_code: planCode
   };
 }
 

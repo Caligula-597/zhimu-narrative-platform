@@ -7,7 +7,7 @@ import { createDirectorActionHandler } from "./runtime/director-actions.js";
 import { createHostLifecycleController } from "./runtime/host-lifecycle-controller.js";
 import { createHostMiniGameActionHandler } from "./runtime/host-mini-game-controller.js";
 import { bootstrapPaceTimer, tickPaceTimer } from "./runtime/host-pace-timer.js";
-import { getRoomId } from "./session.js";
+import { getRoomId, subscribeSessionToken } from "./session.js";
 import { state } from "./state.js";
 
 const app = document.getElementById("app");
@@ -78,6 +78,10 @@ app.addEventListener("click", async (event) => {
       button
     );
   }
+});
+
+subscribeSessionToken((change) => {
+  if (change.source === "storage") void lifecycle.handleExternalSessionChange(change.token);
 });
 
 void lifecycle.bootstrap();

@@ -2,6 +2,7 @@ import pg from "pg";
 import "dotenv/config";
 
 const { Pool } = pg;
+export const DEFAULT_POOL_MAX = 6;
 
 /** Strip sslmode from URL — pg v8+ treats require as verify-full and breaks Supabase pooler on Railway. */
 export function resolveDatabaseUrl(raw = process.env.DATABASE_URL) {
@@ -24,10 +25,25 @@ export function resolveDatabaseSsl() {
   return process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false;
 }
 
+export function resolvePoolMax(raw = process.env.PGPOOL_MAX) {
+  const value = Number(raw ?? DEFAULT_POOL_MAX);
+  return Number.isInteger(value) && value > 0 && value <= 100 ? value : DEFAULT_POOL_MAX;
+}
+
+export function isDatabaseCapacityError(error) {
+  const code = String(error?.code || "").toUpperCase();
+  const message = String(error?.message || "");
+  return code === "EMAXCONNSESSION"
+    || code === "53300"
+    || /max clients reached|too many (?:database )?clients|remaining connection slots/i.test(message);
+}
+
 export const pool = new Pool({
   connectionString: resolveDatabaseUrl(),
   ssl: resolveDatabaseSsl(),
-  max: Number(process.env.PGPOOL_MAX ?? 10),
+  // Supabase session poolers commonly cap a project at 15 clients. Six per
+  // instance permits a two-instance rolling deploy plus migration/ops headroom.
+  max: resolvePoolMax(),
   idleTimeoutMillis: Number(process.env.PGPOOL_IDLE_MS ?? 30_000),
   keepAlive: true
 });

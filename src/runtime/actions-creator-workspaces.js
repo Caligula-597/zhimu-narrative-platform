@@ -48,6 +48,9 @@ import { callView } from "./view-registry.js";
       case "add-relationship-inline":
         void callView("creatorWorkspaces", "addRelationshipInline");
         return true;
+      case "delete-relationship-inline":
+        void callView("creatorWorkspaces", "deleteRelationshipInline", el?.dataset?.relationshipId);
+        return true;
       default:
         return false;
     }

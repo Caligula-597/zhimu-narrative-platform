@@ -22,6 +22,7 @@ import { registerFeedbackRoutes } from "./routes/feedback-routes.js";
 import { registerBatchBRoutes } from "./routes/batch-b-routes.js";
 import { registerContentPlatformRoutes } from "./routes/content-platform-routes.js";
 import { registerCreatorBibleRoutes } from "./routes/creator-bible-routes.js";
+import { registerCreatorBootstrapRoutes } from "./routes/creator-bootstrap-routes.js";
 
 export async function registerRoutes(app) {
   await registerWorldRoutes(app);
@@ -48,4 +49,5 @@ export async function registerRoutes(app) {
   await registerBatchBRoutes(app);
   await registerContentPlatformRoutes(app);
   await registerCreatorBibleRoutes(app);
+  await registerCreatorBootstrapRoutes(app);
 }

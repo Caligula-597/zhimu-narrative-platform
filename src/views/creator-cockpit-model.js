@@ -19,10 +19,10 @@ export const STAGE_DEFS = [
     id: "architecture",
     title: "骨架的搭建",
     short: "架构",
-    subtitle: "真相链、关系网、章节时间线、线索",
+    subtitle: "核心事实、人物关系、案件时间线、线索",
     items: [
-      { id: "trick", title: "真相链", link: { canvas: "trick", view: "truth", label: "真相与关系" } },
-      { id: "relations", title: "关系网", link: { canvas: "relations", view: "truth", label: "真相与关系" } },
+      { id: "trick", title: "核心事实", link: { canvas: "trick", view: "truth", label: "谜底与关系" } },
+      { id: "relations", title: "人物关系", link: { canvas: "relations", view: "truth", label: "谜底与关系" } },
       { id: "timeline", title: "章节结构", link: { canvas: "timeline", view: "studio", label: "编排图谱" } },
       { id: "evidence", title: "线索", link: { canvas: "trick", view: "clues", label: "线索管理" } }
     ]
@@ -35,7 +35,7 @@ export const STAGE_DEFS = [
     items: [
       { id: "profiles", title: "角色与分幕", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } },
       { id: "arcs", title: "分幕与发布", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } },
-      { id: "foreshadow", title: "真相与关系", link: { canvas: "profiles", view: "truth", label: "真相与关系" } },
+      { id: "foreshadow", title: "谜底与伏笔", link: { canvas: "profiles", view: "truth", label: "谜底与关系" } },
       { id: "player-preview", title: "玩家视角", link: { canvas: "preview", action: "creator-preview", label: "预览私人分幕" } }
     ]
   },
@@ -43,9 +43,9 @@ export const STAGE_DEFS = [
     id: "flow",
     title: "游戏的规则",
     short: "流程",
-    subtitle: "Segment、线索矩阵、规则、主持预演",
+    subtitle: "运行段落、线索矩阵、自动化规则、主持预演",
     items: [
-      { id: "beats", title: "Segment 段落", link: { canvas: "beats", view: "structure", label: "Segment 工作台" } },
+      { id: "beats", title: "运行段落", link: { canvas: "beats", view: "structure", label: "运行段落工作台" } },
       { id: "clue-matrix", title: "线索分发", link: { canvas: "matrix", view: "clues", label: "线索管理" } },
       { id: "mechanics", title: "自动化规则", link: { canvas: "sandbox", view: "rules", label: "自动化规则" } },
       { id: "dm-sandbox", title: "主持预演", link: { canvas: "sandbox", action: "open-host-console", label: "打开主持端" } }
@@ -58,7 +58,7 @@ export const STAGE_DEFS = [
     subtitle: "创作入口、物料、导入导出",
     items: [
       { id: "player-book", title: "内容生产", link: { canvas: "writing", view: "writer", label: "角色私人剧本" } },
-      { id: "dm-manual", title: "主持 runbook", link: { canvas: "writing", view: "structure", label: "Segment 工作台" } },
+      { id: "dm-manual", title: "主持手册", link: { canvas: "writing", view: "structure", label: "运行段落工作台" } },
       { id: "props", title: "线索与场景", link: { canvas: "cards", view: "studio", label: "编排图谱" } },
       { id: "package", title: "导入导出", link: { canvas: "package", action: "creator-export", label: "导出备份" } }
     ]
@@ -91,7 +91,7 @@ export const CANVAS_LABELS = {
   selling: "卖点",
   positioning: "定位",
   overview: "一览",
-  trick: "真相链",
+  trick: "核心事实",
   relations: "关系网",
   timeline: "章节",
   profiles: "角色",
@@ -187,7 +187,7 @@ function itemObservation(id, ctx) {
     positioning: [draft.target, draft.duration, draft.type].filter(Boolean).length
       ? `定位字段 ${[draft.target, draft.duration, draft.type].filter(Boolean).length} / 3 已填写`
       : "定位字段为空",
-    trick: `${truthClaims.length} 条真相断言`,
+    trick: `${truthClaims.length} 条核心事实`,
     relations: `${relationships.length} 条关系 · ${counts.roles || 0} 个角色`,
     timeline: `${counts.chapters || 0} 章 · ${counts.scenes || 0} 场景`,
     evidence: `${counts.clues || 0} 条线索 · ${counts.investigationPoints || 0} 调查点`,
@@ -265,7 +265,7 @@ export function buildContentOverview(ctx) {
   return [
     ["世界简介", summary ? `${summary.length} 字` : "空"],
     ["灵感卡", `${bc.sparks ?? (draft.sparks || []).length} 张`],
-    ["核诡", bc.coreTrick ? "已写入" : "未写入"],
+    ["核心谜底", bc.coreTrick ? "已写入" : "未写入"],
     ["真相 / 关系", `${bc.truthClaims ?? truthClaims.length} / ${bc.relationships ?? relationships.length}`],
     ["案件时间线", `${bc.timelineEvents ?? 0} 条`],
     ["伏笔", `${bc.foreshadowBeats ?? 0} 条`],

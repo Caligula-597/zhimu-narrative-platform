@@ -11,6 +11,9 @@ import {
   const S = () => window.zhimuSessionMode || {};
   let authStatus = "checking";
   let lastAuthError = null;
+  let profilePromise = null;
+  let profileRerenderRequested = false;
+  let profileFollowupRequested = false;
 
   function isLoggedIn() {
     if (userStore.get().currentUser?.id) return true;
@@ -93,18 +96,22 @@ import {
     return true;
   }
 
-  async function syncProfile(options = {}) {
-    const rerender = options.rerender !== false;
+  async function runProfileSync() {
+    const credentialVersion = window.zhimuSessionAuth?.getCredentialVersion?.() ?? 0;
     const beforeMode = S().getSessionMode?.();
     const beforeUserId = userStore.get().currentUser?.id || "";
     authStatus = "checking";
     lastAuthError = null;
     try {
       const me = await zhimuApi.me();
+      if ((window.zhimuSessionAuth?.getCredentialVersion?.() ?? 0) !== credentialVersion) {
+        profileFollowupRequested = true;
+        return { status: authStatus, user: userStore.get().currentUser, error: null, stale: true };
+      }
       if (!applyProfileUser(me)) throw new Error("Invalid auth profile");
       const afterMode = S().getSessionMode?.();
       const afterUserId = userStore.get().currentUser?.id || "";
-      if (rerender && (beforeMode !== afterMode || beforeUserId !== afterUserId)) render();
+      if (profileRerenderRequested && (beforeMode !== afterMode || beforeUserId !== afterUserId)) render();
       return { status: authStatus, user: normalizeUserPayload(me), error: null };
     } catch (error) {
       authStatus = authProbeFailureStatus(error);
@@ -114,10 +121,28 @@ import {
         window.zhimuSessionAuth?.markLoggedOut?.();
         updateProfileText(null);
         syncAuthBanner();
-        if (rerender && beforeMode === "authenticated") render();
+        if (profileRerenderRequested && beforeMode === "authenticated") render();
       }
       return { status: authStatus, user: userStore.get().currentUser, error };
     }
+  }
+
+  function syncProfile(options = {}) {
+    if (options.rerender !== false) profileRerenderRequested = true;
+    if (profilePromise) {
+      if (options.force) profileFollowupRequested = true;
+      return profilePromise;
+    }
+    profilePromise = runProfileSync().finally(() => {
+      profilePromise = null;
+      const rerender = profileRerenderRequested;
+      profileRerenderRequested = false;
+      if (profileFollowupRequested) {
+        profileFollowupRequested = false;
+        return syncProfile({ rerender });
+      }
+    });
+    return profilePromise;
   }
 
   function getAuthStatus() {

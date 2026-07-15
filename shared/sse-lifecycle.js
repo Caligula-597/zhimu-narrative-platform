@@ -111,7 +111,11 @@ export function createSseLifecycle({
       if (signal.aborted || currentGeneration !== generation) return;
       connected = false;
       abortController = null;
-      await onDisconnected();
+      try {
+        await onDisconnected();
+      } catch (error) {
+        onError(error, { phase: "disconnect" });
+      }
       if (!active) {
         stopPolling();
         setStatus("idle");

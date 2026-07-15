@@ -42,6 +42,7 @@ const files = [
   "src/runtime/wizard.js",
   "src/runtime/auth-session.js",
   "src/runtime/workspace-store.js",
+  "src/runtime/studio-loader.js",
   "src/runtime/runtime-store.js",
   "src/runtime/context-coordinator.js",
   "src/runtime/account-quota.js",

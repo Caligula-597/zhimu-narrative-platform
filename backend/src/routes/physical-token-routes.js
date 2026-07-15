@@ -1,10 +1,11 @@
-import { query, transaction } from "../db.js";
+import { query } from "../db.js";
 import { transactionWithEvents } from "../transaction-events.js";
 import { evaluateRoomRules } from "../rule-engine.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole, requireRoomRole } from "./route-guards.js";
 import { sendErr } from "../api-errors.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
+import { runRevisionMutation } from "../world-revision.js";
 import {
   createPhysicalTokens,
   listPhysicalTokens,
@@ -43,8 +44,8 @@ export async function registerPhysicalTokenRoutes(app) {
       return sendErr(reply, "PHYSICAL_TOKEN_CONTENT_TYPE_INVALID");
     }
 
-    const tokens = await transaction(async (client) =>
-      createPhysicalTokens(client, {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const tokens = await createPhysicalTokens(client, {
         worldId,
         actorId,
         contentType: body.contentType,
@@ -55,18 +56,19 @@ export async function registerPhysicalTokenRoutes(app) {
         activationRule: body.activationRule ?? {},
         metadata: body.metadata ?? {},
         expiresAt: body.expiresAt ?? null
-      })
-    );
-
-    return reply.code(201).send({ tokens, created: tokens.length });
+      });
+      return { tokens, created: tokens.length };
+    }, { sendErr, statusCode: 201 });
   });
 
   app.post("/api/worlds/:worldId/physical-tokens/:tokenId/revoke", { schema: revokePhysicalTokenSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, tokenId } = request.params;
     await requireWorldRole(actorId, worldId);
-    const token = await transaction(async (client) => revokePhysicalToken(client, worldId, tokenId));
-    return { ok: true, token };
+    return runRevisionMutation(request, reply, worldId, async (client) => ({
+      ok: true,
+      token: await revokePhysicalToken(client, worldId, tokenId)
+    }), { sendErr });
   });
 
   app.get("/api/physical-tokens/:tokenCode/preview", { schema: physicalTokenPreviewSchema }, async (request, reply) => {

@@ -128,10 +128,10 @@ export function renderConceptCanvas(ctx, cockpit, findItemLink) {
 }
 
 function truthAddForm() {
-  return renderQuickForm("新增真相断言", `
+  return renderQuickForm("新增核心事实", `
     <input class="field" data-cockpit-truth="title" placeholder="标题，如：真凶身份">
-    <textarea class="field" data-cockpit-truth="claim" rows="3" placeholder="断言内容"></textarea>
-    <select class="field" data-cockpit-truth="confidence"><option value="canon">canon</option><option value="inferred">inferred</option><option value="misdirection">misdirection</option><option value="unknown">unknown</option></select>`, "cockpit-add-truth-claim");
+    <textarea class="field" data-cockpit-truth="claim" rows="3" placeholder="事实内容及成立依据"></textarea>
+    <select class="field" data-cockpit-truth="confidence"><option value="canon">已确认</option><option value="inferred">推定</option><option value="misdirection">误导信息</option><option value="unknown">待确认</option></select>`, "cockpit-add-truth-claim");
 }
 
 function relationAddForm(roles) {
@@ -155,10 +155,10 @@ export function renderArchitectureCanvas(ctx, cockpit, findItemLink) {
   const { studio, truthClaims, relationships, bibleSummary } = ctx;
   const counts = bibleSummary?.counts || {};
   const link = findItemLink("architecture", cockpit.activeItem);
-  const proLink = `<div class="row" style="margin-top:12px">${linkButton({ view: "truth", label: "打开真相与关系编辑器" }, "primary-btn")}${linkButton(link)}</div>`;
+  const proLink = `<div class="row" style="margin-top:12px">${linkButton({ view: "truth", label: "打开谜底与关系编辑器" }, "primary-btn")}${linkButton(link)}</div>`;
   if (cockpit.activeCanvas === "relations") {
     return `<section class="cockpit-panel"><div class="panel-heading"><div><p>角色关系</p><h3>${relationships.length || counts.relationships || 0} 条</h3></div></div>
-      <p class="muted-note">关系图与边的完整编辑请在「真相与关系」专业视图中进行。</p>${proLink}</section>`;
+      <p class="muted-note">人物关系的新增、删除和关系图查看请在「谜底与关系」专业视图中进行。</p>${proLink}</section>`;
   }
   if (cockpit.activeCanvas === "timeline") {
     const chapters = studio?.chapters || [];
@@ -166,8 +166,8 @@ export function renderArchitectureCanvas(ctx, cockpit, findItemLink) {
       <div class="timeline-swimlane">${renderTimelineSwimlane(studio)}</div>
       <p class="muted-note">公共章节泳道（只读）。案件时间线事件请在专业视图编辑。</p>${proLink}</section>`;
   }
-  return `<section class="cockpit-panel"><div class="panel-heading"><div><p>真相链 / 核诡</p><h3>${truthClaims.length || counts.truthClaims || 0} 条断言 · 核诡 ${counts.coreTrick ? "已写入" : "未写入"}</h3></div></div>
-    <p class="muted-note">驾驶舱仅展示统计。核诡、真相链、伏笔、案件时间线在「真相与关系」中深度编辑。</p>${proLink}</section>`;
+  return `<section class="cockpit-panel"><div class="panel-heading"><div><p>核心事实 / 核心谜底</p><h3>${truthClaims.length || counts.truthClaims || 0} 条事实 · 谜底 ${counts.coreTrick ? "已写入" : "未写入"}</h3></div></div>
+    <p class="muted-note">驾驶舱仅展示统计。核心事实、谜底、伏笔和案件时间线在「谜底与关系」中编辑。</p>${proLink}</section>`;
 }
 
 export function renderCharactersCanvas(ctx, cockpit, findItemLink) {
@@ -230,10 +230,10 @@ export function renderFlowCanvas(ctx, cockpit, findItemLink) {
         <p>${s.operations?.flow ? "含主持流程" : "缺 flow"} · ${(s.operations?.clueGrants || []).length} 条应发线索</p></button>`).join("")
     : `<div class="empty-state">尚无 Segment。有章节后可从图谱同步。</div>`;
   const current = segments.find((s) => s.id === cockpit.selectedSegmentId) || segments[0] || null;
-  return `<section class="cockpit-panel cockpit-segment-panel"><div class="panel-heading"><div><p>Segment 段落</p><h3>${segments.length} 幕 · ${bc.segmentsWithFlow ?? 0} 含 runbook</h3></div>
-    <div class="row">${linkButton({ view: "structure", label: "Segment 工作台" }, "primary-btn")}${linkButton({ action: "cockpit-sync-segments", label: "从章节同步" }, "secondary-btn")}</div></div>
+  return `<section class="cockpit-panel cockpit-segment-panel"><div class="panel-heading"><div><p>运行段落</p><h3>${segments.length} 幕 · ${bc.segmentsWithFlow ?? 0} 幕已写主持手册</h3></div>
+    <div class="row">${linkButton({ view: "structure", label: "运行段落工作台" }, "primary-btn")}${linkButton({ action: "cockpit-sync-segments", label: "从章节同步" }, "secondary-btn")}</div></div>
     <div class="host-current-list">${segRows}</div>
-    <p class="muted-note">主持 flow / hostTruth / clueGrants 请在 Segment 工作台深度编辑。</p></section>`;
+    <p class="muted-note">主持流程、主持真相与应发线索请在运行段落工作台深度编辑。</p></section>`;
 }
 
 export function renderManuscriptCanvas(ctx, cockpit) {

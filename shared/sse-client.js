@@ -18,8 +18,16 @@ export async function openSseStream({
   validateRoomEvents = true
 }) {
   const requestHeaders = { Accept: "text/event-stream", ...traceRequestHeaders(), ...headers };
-  const cursor = cursorKey ? storage?.getItem?.(cursorKey) : null;
-  if (cursor) requestHeaders["Last-Event-ID"] = cursor;
+  let cursor = null;
+  try {
+    cursor = cursorKey ? storage?.getItem?.(cursorKey) : null;
+  } catch {
+    cursor = null;
+  }
+  const numericCursor = Number(cursor);
+  if (/^\d+$/.test(String(cursor ?? "")) && Number.isSafeInteger(numericCursor)) {
+    requestHeaders["Last-Event-ID"] = String(cursor);
+  }
 
   const response = await fetch(url, {
     headers: requestHeaders,
@@ -40,6 +48,7 @@ export async function openSseStream({
   return consumeSseStream(response, {
     cursorKey,
     storage,
+    initialCursor: requestHeaders["Last-Event-ID"] ?? null,
     onEvent: async (_eventType, message) => {
       if (message?.type === "heartbeat") return;
       if (message?.type === "connected") {

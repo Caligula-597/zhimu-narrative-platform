@@ -47,7 +47,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
             victim: bibleField("victim"),
             hostNotes: bibleField("hostNotes")
           }, worldId);
-          showToast("核诡已保存");
+          showToast("核心谜底已保存");
           void loadTruthBibleTab("core-trick");
         } catch (error) {
           showError(error);
@@ -107,7 +107,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
       case "delete-truth-claim":
         try {
           await zhimuApi.deleteTruthClaim(el?.dataset?.claimId, worldId);
-          showToast("断言已删除");
+          showToast("核心事实已删除");
           void loadTruthBibleTab("claims");
         } catch (error) {
           showError(error);

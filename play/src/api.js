@@ -26,7 +26,8 @@ const portal = createPortalApiClient({
   baseUrl: API_BASE,
   tokenStore: sessionToken,
   getDemoUserId: () => localStorage.getItem("zhimuDemoUserId"),
-  mapHttpError: createPortalJsonError
+  mapHttpError: createPortalJsonError,
+  clearTokenOn401: true
 });
 
 const { request } = portal;
@@ -50,6 +51,10 @@ export function setSessionToken(token) {
 
 export function clearSession() {
   sessionToken.clear();
+}
+
+export function subscribeSessionToken(listener) {
+  return sessionToken.subscribe(listener);
 }
 
 export function hasSession() {

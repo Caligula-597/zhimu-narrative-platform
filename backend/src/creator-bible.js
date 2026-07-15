@@ -102,40 +102,39 @@ function timelineEventRow(row) {
   };
 }
 
-export async function loadBibleSummary(worldId) {
-  const [core, archives, foreshadow, timeline, claims, rels, segments, cluesByKind, brief] = await Promise.all([
-    query(`SELECT summary, method FROM world_core_tricks WHERE world_id = $1`, [worldId]),
-    query(
-      `SELECT count(*)::int AS total,
-              count(*) FILTER (WHERE external_goal <> '' OR secret <> '')::int AS filled
-       FROM world_role_archives WHERE world_id = $1`,
-      [worldId]
-    ),
-    query(`SELECT count(*)::int AS count FROM world_foreshadow_beats WHERE world_id = $1`, [worldId]),
-    query(`SELECT count(*)::int AS count FROM world_timeline_events WHERE world_id = $1`, [worldId]),
-    query(`SELECT count(*)::int AS count FROM world_truth_claims WHERE world_id = $1`, [worldId]),
-    query(`SELECT count(*)::int AS count FROM world_role_relationships WHERE world_id = $1`, [worldId]),
-    query(
-      `SELECT count(*)::int AS total,
-              count(*) FILTER (WHERE coalesce(operations->>'flow', '') <> '' OR coalesce(operations->>'hostTruth', '') <> '')::int AS with_flow
-       FROM world_segments WHERE world_id = $1`,
-      [worldId]
-    ),
-    query(
-      `SELECT clue_kind, count(*)::int AS count FROM clues WHERE world_id = $1 GROUP BY clue_kind`,
-      [worldId]
-    ),
-    query(`SELECT summary, settings FROM worlds WHERE id = $1`, [worldId])
-  ]);
+export const BIBLE_SUMMARY_SQL = `
+  SELECT
+       (SELECT summary FROM world_core_tricks WHERE world_id = $1) AS core_summary,
+       (SELECT method FROM world_core_tricks WHERE world_id = $1) AS core_method,
+       (SELECT count(*)::int FROM world_role_archives WHERE world_id = $1) AS archives_total,
+       (SELECT count(*) FILTER (WHERE external_goal <> '' OR secret <> '')::int FROM world_role_archives WHERE world_id = $1) AS archives_filled,
+       (SELECT count(*)::int FROM world_foreshadow_beats WHERE world_id = $1) AS foreshadow_count,
+       (SELECT count(*)::int FROM world_timeline_events WHERE world_id = $1) AS timeline_count,
+       (SELECT count(*)::int FROM world_truth_claims WHERE world_id = $1) AS claims_count,
+       (SELECT count(*)::int FROM world_role_relationships WHERE world_id = $1) AS relationships_count,
+       (SELECT count(*)::int FROM world_segments WHERE world_id = $1) AS segments_total,
+       (SELECT count(*) FILTER (
+          WHERE coalesce(operations->>'flow', '') <> '' OR coalesce(operations->>'hostTruth', '') <> ''
+        )::int FROM world_segments WHERE world_id = $1) AS segments_with_flow,
+       COALESCE((
+         SELECT jsonb_object_agg(grouped.clue_kind, grouped.count)
+         FROM (
+           SELECT clue_kind, count(*)::int AS count
+           FROM clues WHERE world_id = $1 GROUP BY clue_kind
+         ) grouped
+       ), '{}'::jsonb) AS clues_by_kind,
+       (SELECT summary FROM worlds WHERE id = $1) AS world_summary,
+       (SELECT settings FROM worlds WHERE id = $1) AS world_settings`;
 
-  const world = brief.rows[0] || {};
+export function bibleSummaryFromRow(row = {}) {
+  const world = { summary: row.world_summary, settings: row.world_settings };
   const creatorBrief = world.settings?.creatorBrief || {};
   const sellingFilled = (creatorBrief.sellingPoints || []).filter(Boolean).length;
   const positioningFilled = [creatorBrief.target, creatorBrief.duration, creatorBrief.type].filter(Boolean).length;
   const sparks = Array.isArray(creatorBrief.sparks) ? creatorBrief.sparks.length : 0;
   const loglineChars = String(world.summary || "").trim().length;
-  const coreRow = core.rows[0];
-  const cluesMap = Object.fromEntries((cluesByKind.rows || []).map((r) => [r.clue_kind, r.count]));
+  const coreFilled = Boolean(row.core_summary || row.core_method);
+  const cluesMap = row.clues_by_kind || {};
 
   return {
     counts: {
@@ -143,19 +142,24 @@ export async function loadBibleSummary(worldId) {
       loglineChars,
       sellingFilled,
       positioningFilled,
-      coreTrick: coreRow && (coreRow.summary || coreRow.method) ? 1 : 0,
-      truthClaims: claims.rows[0]?.count || 0,
-      relationships: rels.rows[0]?.count || 0,
-      timelineEvents: timeline.rows[0]?.count || 0,
-      roleArchives: archives.rows[0]?.total || 0,
-      roleArchivesFilled: archives.rows[0]?.filled || 0,
-      roleArcs: archives.rows[0]?.total || 0,
-      foreshadowBeats: foreshadow.rows[0]?.count || 0,
-      segments: segments.rows[0]?.total || 0,
-      segmentsWithFlow: segments.rows[0]?.with_flow || 0,
+      coreTrick: coreFilled ? 1 : 0,
+      truthClaims: row.claims_count || 0,
+      relationships: row.relationships_count || 0,
+      timelineEvents: row.timeline_count || 0,
+      roleArchives: row.archives_total || 0,
+      roleArchivesFilled: row.archives_filled || 0,
+      roleArcs: row.archives_total || 0,
+      foreshadowBeats: row.foreshadow_count || 0,
+      segments: row.segments_total || 0,
+      segmentsWithFlow: row.segments_with_flow || 0,
       cluesByKind: cluesMap
     }
   };
+}
+
+export async function loadBibleSummary(worldId, client = null) {
+  const result = await run(client)(BIBLE_SUMMARY_SQL, [worldId]);
+  return bibleSummaryFromRow(result.rows[0]);
 }
 
 export async function getCoreTrick(worldId, client = null) {

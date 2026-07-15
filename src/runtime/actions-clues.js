@@ -10,6 +10,8 @@ import { callView } from "./view-registry.js";
       case "clue-flow-filter": callView("clues", "setClueFlowFilter", el?.dataset?.filter); return true;
       case "clue-detail-tab": callView("clues", "setClueDetailTab", el?.dataset?.tab); return true;
       case "clue-flow-zoom": callView("clues", "adjustClueFlowZoom", el?.dataset?.zoom); return true;
+      case "clue-flow-fit": callView("clues", "fitClueFlow"); return true;
+      case "clue-flow-focus": callView("clues", "focusSelectedClue"); return true;
       case "clues-open-studio": callView("clues", "openClueInStudio", el?.dataset?.clue); return true;
       case "clues-add": callView("clues", "openCluesEditor", ""); return true;
       case "clues-delete": callView("clues", "confirmDeleteClue", el?.dataset?.clue); return true;

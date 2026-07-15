@@ -12,6 +12,7 @@ export const uiStore = createStore({
   clueFlowZoom: 1,
   clueFlowScroll: null,
   clueFlowSuppressClick: false,
+  writerSelectedRoleId: null,
   panelCollapse: {},
   accountHubTab: "account",
   accountView: null,

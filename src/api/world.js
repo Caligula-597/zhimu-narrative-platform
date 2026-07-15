@@ -4,6 +4,13 @@
  */
 import { request, worldWrite, demoContext } from "./client.js";
 
+const creatorDashboardInFlight = new Map();
+const creatorDashboardCache = new Map();
+// A full studio snapshot can take several seconds on the managed database.
+// Keep the derived dashboard through the rest of the initial hydration wave;
+// explicit publish checks bypass this cache with force:true.
+const CREATOR_DASHBOARD_CACHE_MS = 30_000;
+
 /* ── Worlds ── */
 
 export function getWorlds(includeArchived = false) {
@@ -142,12 +149,35 @@ export function getCreatorChecks() {
   return request(`/worlds/${demoContext.worldId}/creator-checks`, { userId: demoContext.hostUserId });
 }
 
-export function getCreatorDashboard({ roomId, worldId } = {}) {
+export function getCreatorDashboard({ roomId, worldId, force = false } = {}) {
   const params = new URLSearchParams();
   if (roomId) params.set("roomId", roomId);
   const query = params.toString();
   const wid = worldId || demoContext.worldId;
-  return request(`/worlds/${wid}/creator-dashboard${query ? `?${query}` : ""}`, {
+  const path = `/worlds/${wid}/creator-dashboard${query ? `?${query}` : ""}`;
+  const key = `${demoContext.hostUserId || "session"}:${path}`;
+  const cached = creatorDashboardCache.get(key);
+  if (!force && cached?.expiresAt > Date.now()) return Promise.resolve(cached.value);
+  const existing = creatorDashboardInFlight.get(key);
+  if (existing) return existing;
+  const pending = request(path, {
+    userId: demoContext.hostUserId
+  }).then((value) => {
+    creatorDashboardCache.set(key, { value, expiresAt: Date.now() + CREATOR_DASHBOARD_CACHE_MS });
+    return value;
+  }).finally(() => {
+    if (creatorDashboardInFlight.get(key) === pending) creatorDashboardInFlight.delete(key);
+  });
+  creatorDashboardInFlight.set(key, pending);
+  return pending;
+}
+
+export function getCreatorBootstrap({ roomId, worldId } = {}) {
+  const params = new URLSearchParams();
+  if (roomId) params.set("roomId", roomId);
+  const query = params.toString();
+  const wid = worldId || demoContext.worldId;
+  return request(`/worlds/${wid}/creator-bootstrap${query ? `?${query}` : ""}`, {
     userId: demoContext.hostUserId
   });
 }
@@ -182,6 +212,10 @@ export function getRoleRelationships(worldId = demoContext.worldId) {
 
 export function createRoleRelationship(payload, worldId = demoContext.worldId) {
   return worldWrite(`/worlds/${worldId}/role-relationships`, { worldId, method: "POST", body: payload });
+}
+
+export function deleteRoleRelationship(relationshipId, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/role-relationships/${relationshipId}`, { worldId, method: "DELETE" });
 }
 
 export function getBibleSummary(worldId = demoContext.worldId) {
@@ -287,11 +321,11 @@ export function listPhysicalTokens(worldId, query = "") {
 }
 
 export function createPhysicalTokens(payload, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/physical-tokens`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return worldWrite(`/worlds/${worldId}/physical-tokens`, { worldId, method: "POST", body: payload });
 }
 
 export function revokePhysicalToken(tokenId, worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/physical-tokens/${tokenId}/revoke`, { userId: demoContext.hostUserId, method: "POST" });
+  return worldWrite(`/worlds/${worldId}/physical-tokens/${tokenId}/revoke`, { worldId, method: "POST" });
 }
 
 export function previewPhysicalToken(tokenCode) {

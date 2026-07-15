@@ -31,8 +31,8 @@ export async function listWorldTags(worldId) {
   return rows;
 }
 
-export async function replaceWorldTags(worldId, tags = []) {
-  await query(`DELETE FROM world_tags WHERE world_id = $1`, [worldId]);
+export async function replaceWorldTags(worldId, tags = [], runQuery = query) {
+  await runQuery(`DELETE FROM world_tags WHERE world_id = $1`, [worldId]);
   const inserted = [];
   const seen = new Set();
   for (const row of tags) {
@@ -42,7 +42,7 @@ export async function replaceWorldTags(worldId, tags = []) {
     const dedupe = `${tagKey}:${tagValue}`;
     if (seen.has(dedupe)) continue;
     seen.add(dedupe);
-    const { rows } = await query(
+    const { rows } = await runQuery(
       `INSERT INTO world_tags (world_id, tag_key, tag_value) VALUES ($1, $2, $3)
        RETURNING id, tag_key, tag_value`,
       [worldId, tagKey, tagValue]

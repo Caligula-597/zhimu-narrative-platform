@@ -10,23 +10,53 @@ export function normalizeSessionUser(raw) {
 }
 
 export function createSessionController({ api, state, clearSession, getSessionToken, setSessionToken }) {
-  async function loadSessionUser() {
-    try {
-      state.user = normalizeSessionUser(await api.me());
-    } catch (error) {
-      if (error.status === 401) {
-        clearSession();
-        state.user = null;
-      }
+  let loadSessionPromise = null;
+  let loadSessionToken = null;
+  let ensureSessionPromise = null;
+
+  function loadSessionUser() {
+    const tokenAtStart = getSessionToken();
+    if (loadSessionPromise) {
+      if (loadSessionToken === tokenAtStart) return loadSessionPromise;
+      return loadSessionPromise.finally(() => loadSessionUser());
     }
+    loadSessionToken = tokenAtStart;
+    loadSessionPromise = (async () => {
+      try {
+        const user = normalizeSessionUser(await api.me());
+        if (getSessionToken() === tokenAtStart) state.user = user;
+        return state.user;
+      } catch (error) {
+        if (error.status === 401 && getSessionToken() === tokenAtStart) {
+          clearSession();
+          state.user = null;
+        }
+        return state.user;
+      } finally {
+        loadSessionPromise = null;
+        loadSessionToken = null;
+      }
+    })();
+    return loadSessionPromise;
   }
 
-  async function ensureSession() {
+  function ensureSession() {
     if (getSessionToken()) return;
-    const guestName = `Player${Math.floor(Math.random() * 9000 + 1000)}`;
-    const result = await api.guest(guestName);
-    setSessionToken(result.token);
-    state.user = normalizeSessionUser(result.user);
+    if (ensureSessionPromise) return ensureSessionPromise;
+    ensureSessionPromise = (async () => {
+      const guestName = `Player${Math.floor(Math.random() * 9000 + 1000)}`;
+      const result = await api.guest(guestName);
+      if (!getSessionToken()) {
+        setSessionToken(result.token);
+        state.user = normalizeSessionUser(result.user);
+      } else {
+        await loadSessionUser();
+      }
+      return state.user;
+    })().finally(() => {
+      ensureSessionPromise = null;
+    });
+    return ensureSessionPromise;
   }
 
   function cleanAuthUrl() {

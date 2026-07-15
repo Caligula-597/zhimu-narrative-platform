@@ -10,6 +10,7 @@
 import { escapeHtml } from "./security.js";
 
 const POLICY_NAME = "zhimu-html";
+const HTML_FRAGMENT = Symbol("zhimu.html-fragment");
 let trustedHtmlPolicy;
 
 /**
@@ -19,6 +20,12 @@ let trustedHtmlPolicy;
  */
 export function assertSafeProductHtml(html) {
   const value = String(html ?? "");
+  const normalizedForSchemeScan = value
+    .replace(/&#(?:x([0-9a-f]+)|(\d+));?/gi, (_match, hex, decimal) =>
+      String.fromCodePoint(Number.parseInt(hex || decimal, hex ? 16 : 10)))
+    .replace(/&colon;/gi, ":")
+    .replace(/[\u0000-\u0020\u007f]+/g, "")
+    .toLowerCase();
   if (/<\s*script[\s>/]/i.test(value)) {
     throw new TypeError(`${POLICY_NAME} rejected <script> markup`);
   }
@@ -31,13 +38,36 @@ export function assertSafeProductHtml(html) {
   if (/<\s*embed[\s>/]/i.test(value)) {
     throw new TypeError(`${POLICY_NAME} rejected <embed> markup`);
   }
+  if (/<\s*(?:math|meta|base|link|foreignobject)[\s>/]/i.test(value)) {
+    throw new TypeError(`${POLICY_NAME} rejected active document markup`);
+  }
+  if (/\s+srcdoc\s*=/i.test(value)) {
+    throw new TypeError(`${POLICY_NAME} rejected srcdoc attribute`);
+  }
   if (/\s+on[a-z]+\s*=/i.test(value)) {
     throw new TypeError(`${POLICY_NAME} rejected inline event handler attribute`);
   }
-  if (/javascript\s*:/i.test(value)) {
-    throw new TypeError(`${POLICY_NAME} rejected javascript: URL`);
+  if (/(?:javascript|vbscript):/.test(normalizedForSchemeScan)
+      || /data:(?:text\/html|image\/svg\+xml)/.test(normalizedForSchemeScan)) {
+    throw new TypeError(`${POLICY_NAME} rejected executable URL scheme`);
   }
   return value;
+}
+
+/** Mark a composed product-template fragment after it passes the shared sink audit. */
+export function htmlFragment(value) {
+  return Object.freeze({
+    [HTML_FRAGMENT]: true,
+    value: assertSafeProductHtml(value)
+  });
+}
+
+/** Template slot guard: raw strings cannot enter slots that expect markup. */
+export function unwrapHtmlFragment(fragment, slot = "HTML fragment") {
+  if (!fragment?.[HTML_FRAGMENT]) {
+    throw new TypeError(`${slot} must be created with htmlFragment()`);
+  }
+  return fragment.value;
 }
 
 function getTrustedHtmlPolicy() {

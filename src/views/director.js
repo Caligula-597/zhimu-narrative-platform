@@ -12,18 +12,46 @@ import * as S from "../components/ui-semantics.js";
 import { collapsibleCard } from "../components/collapse-panel.js";
 import { rulePreviewStatusLabel } from "../utils/user-messages.js";
 import { resolveHostStuckIntervention } from "../../shared/host-stuck-intervention.js";
-import { setHtml } from "../../shared/safe-dom.js";
+import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
 import {
   delayHostEventModalHtml,
   hostClueNoteModalHtml,
-  hostGrantClueModalHtml,
-  hostGrantItemModalHtml,
-  hostLogModalHtml,
+  hostGrantClueModalHtml as renderHostGrantClueModalHtml,
+  hostGrantItemModalHtml as renderHostGrantItemModalHtml,
+  hostLogModalHtml as renderHostLogModalHtml,
   hostMiniGameModalHtml,
-  hostNudgeModalHtml,
-  hostUnlockSceneModalHtml,
-  hostUnlockSectionModalHtml
+  hostNudgeModalHtml as renderHostNudgeModalHtml,
+  hostUnlockSceneModalHtml as renderHostUnlockSceneModalHtml,
+  hostUnlockSectionModalHtml as renderHostUnlockSectionModalHtml
 } from "./director-modal-templates.js";
+
+const hostGrantClueModalHtml = ({ clueSelectHtml, memberRowsHtml, messageFieldHtml }) => renderHostGrantClueModalHtml({
+  clueSelectHtml: htmlFragment(clueSelectHtml),
+  memberRowsHtml: htmlFragment(memberRowsHtml),
+  messageFieldHtml: htmlFragment(messageFieldHtml)
+});
+const hostGrantItemModalHtml = ({ roleSelectHtml, itemSelectHtml, quantityFieldHtml, messageFieldHtml }) => renderHostGrantItemModalHtml({
+  roleSelectHtml: htmlFragment(roleSelectHtml),
+  itemSelectHtml: htmlFragment(itemSelectHtml),
+  quantityFieldHtml: htmlFragment(quantityFieldHtml),
+  messageFieldHtml: htmlFragment(messageFieldHtml)
+});
+const hostUnlockSectionModalHtml = ({ roleSelectHtml, sectionSelectHtml, messageFieldHtml }) => renderHostUnlockSectionModalHtml({
+  roleSelectHtml: htmlFragment(roleSelectHtml),
+  sectionSelectHtml: htmlFragment(sectionSelectHtml),
+  messageFieldHtml: htmlFragment(messageFieldHtml)
+});
+const hostUnlockSceneModalHtml = (sceneSelectHtml) => renderHostUnlockSceneModalHtml(htmlFragment(sceneSelectHtml));
+const hostLogModalHtml = ({ roleSelectHtml, messageFieldHtml }) => renderHostLogModalHtml({
+  roleSelectHtml: htmlFragment(roleSelectHtml),
+  messageFieldHtml: htmlFragment(messageFieldHtml)
+});
+const hostNudgeModalHtml = ({ title, intro, messageHtml, memberRowsHtml }) => renderHostNudgeModalHtml({
+  title,
+  intro,
+  messageHtml: htmlFragment(messageHtml),
+  memberRowsHtml: htmlFragment(memberRowsHtml)
+});
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");

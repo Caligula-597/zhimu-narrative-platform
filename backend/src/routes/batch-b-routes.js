@@ -7,9 +7,10 @@
  */
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole, requireWorldRole } from "./route-guards.js";
-import { throwErr } from "../api-errors.js";
+import { sendErr, throwErr } from "../api-errors.js";
 import { query } from "../db.js";
 import { transactionWithEvents } from "../transaction-events.js";
+import { runRevisionMutation } from "../world-revision.js";
 import {
   roomIdParams,
   worldIdParams,
@@ -156,8 +157,9 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor"]);
-    const tags = await replaceWorldTags(worldId, request.body?.tags || []);
-    return reply.code(200).send({ tags });
+    return runRevisionMutation(request, reply, worldId, async (client) => ({
+      tags: await replaceWorldTags(worldId, request.body?.tags || [], client.query.bind(client))
+    }), { sendErr });
   });
 
   app.get("/api/worlds/catalog/tag-facets", async () => {
@@ -178,24 +180,26 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor"]);
-    const item = await createSegmentRemedy(worldId, request.body ?? {});
-    return reply.code(201).send({ item });
+    return runRevisionMutation(request, reply, worldId, async (client) => ({
+      item: await createSegmentRemedy(worldId, request.body ?? {}, client.query.bind(client))
+    }), { sendErr, statusCode: 201 });
   });
 
   app.patch("/api/worlds/:worldId/segment-remedies/:remedyId", { schema: { params: worldSegmentRemedyParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, remedyId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor"]);
-    const item = await updateSegmentRemedy(remedyId, worldId, request.body ?? {});
-    return { item };
+    return runRevisionMutation(request, reply, worldId, async (client) => ({
+      item: await updateSegmentRemedy(remedyId, worldId, request.body ?? {}, client.query.bind(client))
+    }), { sendErr });
   });
 
   app.delete("/api/worlds/:worldId/segment-remedies/:remedyId", { schema: { params: worldSegmentRemedyParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId, remedyId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor"]);
-    await deleteSegmentRemedy(remedyId, worldId);
-    return reply.code(204).send();
+    return runRevisionMutation(request, reply, worldId, async (client) =>
+      deleteSegmentRemedy(remedyId, worldId, client.query.bind(client)), { sendErr });
   });
 
   app.get("/api/rooms/:roomId/host/segment-remedies", { schema: { params: roomIdParams } }, async (request) => {

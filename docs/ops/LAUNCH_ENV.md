@@ -24,9 +24,8 @@ HOST_SITE_URL=https://host.getzhimu.com
 ```env
 ALLOW_DEMO_USER_HEADER=false
 CSP_MODE=enforce
-TRUSTED_TYPES_REPORT_ONLY=true
-# Set only after report-only violations remain at zero during full acceptance.
-TRUSTED_TYPES_ENFORCE=false
+TRUSTED_TYPES_REPORT_ONLY=false
+TRUSTED_TYPES_ENFORCE=true
 CSP_ALERT_THRESHOLD_PER_MINUTE=20
 OPENAPI_UI=false
 OPS_API_TOKEN=

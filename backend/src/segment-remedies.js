@@ -28,12 +28,12 @@ export async function listSegmentRemedies(worldId, segmentKey = null) {
   return rows;
 }
 
-export async function createSegmentRemedy(worldId, body) {
+export async function createSegmentRemedy(worldId, body, runQuery = query) {
   const title = sanitizeText(body?.title, 200);
   const hostScript = sanitizeText(body?.hostScript ?? body?.host_script, 4000);
   const segmentKey = sanitizeText(body?.segmentKey ?? body?.segment_key, 40);
   if (!title || !hostScript || !segmentKey) throwErr("BAD_REQUEST", "segmentKey, title and hostScript are required");
-  const { rows } = await query(
+  const { rows } = await runQuery(
     `INSERT INTO segment_remedies (world_id, segment_key, title, host_script, trigger_hint, sequence)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
@@ -49,12 +49,12 @@ export async function createSegmentRemedy(worldId, body) {
   return rows[0];
 }
 
-export async function updateSegmentRemedy(remedyId, worldId, body) {
+export async function updateSegmentRemedy(remedyId, worldId, body, runQuery = query) {
   const title = body?.title != null ? sanitizeText(body.title, 200) : null;
   const hostScript = body?.hostScript != null || body?.host_script != null
     ? sanitizeText(body.hostScript ?? body.host_script, 4000)
     : null;
-  const { rows } = await query(
+  const { rows } = await runQuery(
     `UPDATE segment_remedies
      SET title = COALESCE($3, title),
          host_script = COALESCE($4, host_script),
@@ -78,8 +78,8 @@ export async function updateSegmentRemedy(remedyId, worldId, body) {
   return rows[0];
 }
 
-export async function deleteSegmentRemedy(remedyId, worldId) {
-  const { rowCount } = await query(`DELETE FROM segment_remedies WHERE id = $1 AND world_id = $2`, [remedyId, worldId]);
+export async function deleteSegmentRemedy(remedyId, worldId, runQuery = query) {
+  const { rowCount } = await runQuery(`DELETE FROM segment_remedies WHERE id = $1 AND world_id = $2`, [remedyId, worldId]);
   if (!rowCount) throwErr("NOT_FOUND");
   return { ok: true };
 }

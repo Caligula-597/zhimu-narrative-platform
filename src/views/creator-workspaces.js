@@ -56,8 +56,8 @@ export function creatorWorkspaceHub() {
   <section class="workspace-hub-grid" aria-label="工作模式">
     ${workspaceLinkCard("creatorCockpit", "⌂", "创作驾驶舱", "六阶段主流程 · 完成度与深链")}
     ${workspaceLinkCard("production", "✎", "内容生产", "AI、母稿、角色分幕、导入导出")}
-    ${workspaceLinkCard("structure", "◇", "结构编排", "Segment 工作台与编排入口")}
-    ${workspaceLinkCard("truth", "◈", "真相与关系", "真相链、关系图、误导线")}
+    ${workspaceLinkCard("structure", "◇", "结构编排", "运行段落工作台与剧情编排入口")}
+    ${workspaceLinkCard("truth", "◈", "谜底与关系", "核心事实、谜底、时间线、伏笔与人物关系")}
     ${workspaceLinkCard("publish", "▶", "测试与发布", "发布检查、质量报告、试跑")}
     ${workspaceLinkCard("insights", "◷", "复盘改本", "完成率、线索命中、玩后洞察")}
   </section>`;
@@ -87,7 +87,7 @@ export function production() {
     <button type="button" class="workspace-action-card" data-action="creator-export"><strong>交付包导出</strong><span>玩家本 · 线索清单 · 主持手册 · JSON</span></button>
     <button type="button" class="workspace-action-card" data-action="story-assistant"><strong>规则分类器</strong><span>从母稿提取结构化规则</span></button>
   </section>
-  <section class="card" style="margin-top:14px"><div class="section-head"><div><h3>下一步</h3><p>内容就绪后绑定运行态段落。</p></div><button class="secondary-btn" data-go="structure">打开 Segment 工作台 →</button></div></section>`;
+  <section class="card" style="margin-top:14px"><div class="section-head"><div><h3>下一步</h3><p>内容就绪后绑定主持运行段落。</p></div><button class="secondary-btn" data-go="structure">打开运行段落工作台 →</button></div></section>`;
 }
 
 function selectedSegment(segments = [], selectedId) {
@@ -144,10 +144,10 @@ function beatPlanFromForm(form) {
 function renderBeatPlanEditor(beatPlan = {}) {
   const beat = normalizeBeatPlan(beatPlan);
   return `<section class="segment-beat-editor">
-    <div class="section-head compact"><div><h3>分幕流程 beatPlan</h3><p class="muted-note">写入 segment.story.beatPlan，描述本幕目标、时长与推进条件。</p></div></div>
+    <div class="section-head compact"><div><h3>本幕流程</h3><p class="muted-note">描述本幕目标、时长与推进条件。</p></div></div>
     <label>本幕目标</label><textarea class="field" name="beatGoal" rows="2">${escapeHtml(beat.goal)}</textarea>
     <label>玩家可读内容摘要</label><textarea class="field" name="beatPlayerContent" rows="2">${escapeHtml(beat.playerContent)}</textarea>
-    <label>DM 任务</label><textarea class="field" name="beatDmTasks" rows="2">${escapeHtml(beat.dmTasks)}</textarea>
+    <label>主持任务</label><textarea class="field" name="beatDmTasks" rows="2">${escapeHtml(beat.dmTasks)}</textarea>
     <label>可开放线索/地图</label><textarea class="field" name="beatOpenClues" rows="2">${escapeHtml(beat.openClues)}</textarea>
     <label>私聊建议</label><textarea class="field" name="beatPrivateChat" rows="2">${escapeHtml(beat.privateChatHints)}</textarea>
     <label>预计时长（分钟）</label><input class="field" name="beatMinutes" type="number" min="0" max="999" value="${beat.estimatedMinutes ?? ""}" placeholder="例如 45">
@@ -159,11 +159,11 @@ function renderSegmentOperationsEditor(operations = {}) {
   const ops = normalizeSegmentOperations(operations);
   const advancedJson = JSON.stringify(operations || {}, null, 2);
   return `<section class="segment-ops-editor">
-    <div class="section-head compact"><div><h3>主持运行信息</h3><p class="muted-note">常用字段会写入 Segment.operations，供主持端当前幕读取。</p></div></div>
-    <label>主持流程 flow</label><textarea class="field" name="opsFlow" rows="4">${escapeHtml(ops.flow)}</textarea>
-    <label>主持真相 hostTruth</label><textarea class="field" name="opsHostTruth" rows="4">${escapeHtml(ops.hostTruth)}</textarea>
-    <label>应发线索 clueGrants</label><textarea class="field monospace-field" name="opsClueGrants" rows="4" placeholder="clueId | 发放时机 | roleKey">${escapeHtml(clueGrantsToText(ops.clueGrants))}</textarea>
-    <label>补救话术 fallbacks</label><textarea class="field" name="opsFallbacks" rows="3">${escapeHtml(linesFromList(ops.fallbacks))}</textarea>
+    <div class="section-head compact"><div><h3>主持运行信息</h3><p class="muted-note">这些内容会供主持端当前幕读取。</p></div></div>
+    <label>主持流程</label><textarea class="field" name="opsFlow" rows="4">${escapeHtml(ops.flow)}</textarea>
+    <label>主持真相</label><textarea class="field" name="opsHostTruth" rows="4">${escapeHtml(ops.hostTruth)}</textarea>
+    <label>应发线索</label><textarea class="field monospace-field" name="opsClueGrants" rows="4" placeholder="线索 ID | 发放时机 | 角色标识">${escapeHtml(clueGrantsToText(ops.clueGrants))}</textarea>
+    <label>补救话术</label><textarea class="field" name="opsFallbacks" rows="3">${escapeHtml(linesFromList(ops.fallbacks))}</textarea>
     <details class="segment-advanced-json">
       <summary>高级 JSON</summary>
       <textarea class="field monospace-field" name="operationsAdvanced" rows="6">${escapeHtml(advancedJson)}</textarea>
@@ -178,7 +178,7 @@ const REF_TYPE_LABELS = {
   clue: "线索",
   item: "物品",
   rule: "规则",
-  truth_claim: "真相断言"
+  truth_claim: "核心事实"
 };
 
 function segmentRefLabel(studio, ref) {
@@ -235,7 +235,7 @@ function segmentRefsPanel(segment, studio) {
         <span><code>${escapeHtml(REF_TYPE_LABELS[r.refType] || r.refType)}</code> ${escapeHtml(segmentRefLabel(studio, r))}${r.metadata?.when ? `<small class="muted-note"> · ${escapeHtml(r.metadata.when)}</small>` : ""}</span>
         <button type="button" class="text-btn danger-text" data-action="remove-segment-ref" data-segment-id="${escapeHtml(segment.id)}" data-ref-type="${escapeHtml(r.refType)}" data-ref-id="${escapeHtml(r.refId)}" data-role-slot-id="${escapeHtml(r.roleSlotId || "")}">移除</button>
       </li>`).join("")
-    : `<li class="muted-note">暂无关联。Matrix 导入会自动绑定章节/分幕/线索；也可手动追加。</li>`;
+    : `<li class="muted-note">暂无关联。结构化导入会自动绑定章节、分幕和线索，也可以手动追加。</li>`;
   const defaultRefType = "chapter";
   const options = refResourceOptions(studio, defaultRefType);
   return `<div class="segment-refs-panel" data-segment-refs="${escapeHtml(segment.id)}">
@@ -252,11 +252,11 @@ function segmentRefsPanel(segment, studio) {
       <button type="button" class="text-btn" data-go="clues">线索库 (${clues.length})</button>
       <button type="button" class="text-btn" data-go="rules">规则 (${(worldStore.get().cloudRules || []).filter((r) => r.enabled).length} 启用)</button>
     </div>
-    <p class="muted-note">公共章节：${chapters.length} · Matrix 同步后 operations 含主持 runbook。</p>
+    <p class="muted-note">公共章节：${chapters.length} · 结构化同步后会生成主持手册。</p>
   </div>`;
 }
 
-/** Segment 工作台 — left list / center editor / right refs */
+/** 运行段落工作台 — left list / center editor / right refs */
 export function structure() {
   const studio = studioStore.get().cloudStudio;
   const { cloudSegments: segments, cloudSelectedSegmentId: selectedId } = worldStore.get();
@@ -265,7 +265,7 @@ export function structure() {
   }
   const list = segments?.length
     ? segments.map((s) => segmentListItem(s, selectedId || segments[0]?.id)).join("")
-    : `<div class="empty-state">尚无 Segment。点击下方创建，或从 Matrix 导入后绑定。</div>`;
+    : `<div class="empty-state">尚无运行段落。点击下方创建，或从结构化内容导入后绑定。</div>`;
   const current = selectedSegment(segments || [], selectedId);
   const storyExtra = { ...(current?.story || {}) };
   delete storyExtra.beatPlan;
@@ -283,8 +283,8 @@ export function structure() {
         ${renderSegmentOperationsEditor(current.operations || {})}
         <div class="row"><button type="button" class="primary-btn" data-action="save-structure-segment" data-segment-id="${escapeHtml(current.id)}">保存段落</button></div>
       </form>`
-    : `<div class="empty-state">选择或创建一个 Segment 开始编辑。</div>`;
-  return `${workspaceHero("SEGMENT WORKBENCH", "结构编排", "Segment 是章节、分幕、任务与主持 runbook 的<strong>聚合层</strong>，不替换 script_sections。左选段落，中编辑本幕，右跳转关联资源。")}
+    : `<div class="empty-state">选择或创建一个运行段落开始编辑。</div>`;
+  return `${workspaceHero("运行段落工作台", "结构编排", "运行段落把章节、私人分幕、任务和主持手册聚合成一幕可执行流程，但不会替换原始正文。左侧选幕，中间编辑，右侧关联资源。")}
   ${contentLayerMapHtml({ open: false })}
   <section class="segment-workbench">
     <aside class="segment-workbench-list card">
@@ -449,11 +449,11 @@ export async function addTruthClaimInline() {
   const title = document.querySelector("[data-truth-field=\"title\"]")?.value?.trim();
   const claim = document.querySelector("[data-truth-field=\"claim\"]")?.value?.trim();
   const confidence = document.querySelector("[data-truth-field=\"confidence\"]")?.value || "canon";
-  if (!title || !claim) return showToast("请填写标题与断言");
+  if (!title || !claim) return showToast("请填写事实标题与内容");
   try {
     await zhimuApi.createTruthClaim({ title, claim, confidence }, zhimuApi.context.worldId);
     await refreshTruthWorkspace();
-    showToast("断言已添加");
+    showToast("核心事实已添加");
   } catch (error) {
     showError(error);
   }
@@ -465,6 +465,7 @@ export async function addRelationshipInline() {
   const label = document.querySelector("[data-rel-field=\"label\"]")?.value?.trim() || "";
   const strengthRaw = document.querySelector("[data-rel-field=\"strength\"]")?.value;
   if (!from || !to || from === to) return showToast("请选择两个不同角色");
+  if (!label) return showToast("请填写关系名称");
   try {
     await zhimuApi.createRoleRelationship({
       fromRoleSlotId: from,
@@ -479,7 +480,19 @@ export async function addRelationshipInline() {
   }
 }
 
-/** 真相与关系 — professional bible view */
+export async function deleteRelationshipInline(relationshipId) {
+  if (!relationshipId) return;
+  if (!window.confirm("确定删除这条人物关系吗？删除后关系图会立即更新。")) return;
+  try {
+    await zhimuApi.deleteRoleRelationship(relationshipId, zhimuApi.context.worldId);
+    await refreshTruthWorkspace();
+    showToast("关系已删除");
+  } catch (error) {
+    showError(error);
+  }
+}
+
+/** 谜底与关系 — professional bible view */
 export function truth() {
   return renderTruthBiblePage();
 }
@@ -548,7 +561,7 @@ function renderSegmentCompletionPanel() {
         <span class="status-chip neutral">${scopeLabel} · 平均 ${data.averageCompletion}%</span>
         <button type="button" class="secondary-btn" data-action="load-segment-completion">刷新</button>
         <button type="button" class="text-btn" data-go="writer">编辑分幕 →</button>
-        <button type="button" class="text-btn" data-go="structure">Segment 工作台 →</button>
+        <button type="button" class="text-btn" data-go="structure">运行段落工作台 →</button>
       </div>
     </div>
     <div class="segment-summary">${escapeHtml(data.summary?.label || "")}</div>
@@ -615,9 +628,9 @@ export function insights() {
     </div>
     <div class="row" style="margin-top:12px">
       <button type="button" class="text-btn" data-go="writer">角色私人剧本 →</button>
-      <button type="button" class="text-btn" data-go="structure">Segment 工作台 →</button>
+      <button type="button" class="text-btn" data-go="structure">运行段落工作台 →</button>
       <button type="button" class="text-btn" data-go="clues">线索库 →</button>
-      <button type="button" class="text-btn" data-go="truth">真相与关系 →</button>
+      <button type="button" class="text-btn" data-go="truth">谜底与关系 →</button>
       <button type="button" class="text-btn" data-go="archive">存档明细 →</button>
     </div>
   </section>

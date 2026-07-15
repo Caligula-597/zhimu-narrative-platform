@@ -1,5 +1,5 @@
 /** Workspace / auth / cloud refresh action dispatch — isolated from view-specific handlers. */
-import { uiStore } from "../state/index.js";
+import { studioStore, uiStore } from "../state/index.js";
 import { callRuntime, go, loadCloudData, render } from "./runtime-facade.js";
 import { activeRuntimeRoom } from "../components/emptyState.js";
 import { togglePanelInDom } from "../components/collapse-panel.js";
@@ -99,6 +99,10 @@ import { callView } from "./view-registry.js";
         loadCloudData(true, true);
         return true;
       case "retry-view-module":
+        if (studioStore.get().studioError) {
+          const retry = callRuntime("retryStudioSnapshot");
+          Promise.resolve(retry).catch(() => {}).finally(() => render());
+        }
         render();
         return true;
       case "dismiss-onboarding":

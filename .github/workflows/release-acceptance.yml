@@ -22,7 +22,7 @@ jobs:
       DATABASE_URL: postgres://zhimu:replace_me@localhost:5432/zhimu
       ALLOW_DEMO_USER_HEADER: "true"
       NODE_ENV: test
-      PGPOOL_MAX: "10"
+      PGPOOL_MAX: "6"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

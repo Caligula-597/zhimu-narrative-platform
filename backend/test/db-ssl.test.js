@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { resolveDatabaseUrl, resolveDatabaseSsl } from "../src/db.js";
+import {
+  DEFAULT_POOL_MAX, isDatabaseCapacityError, resolveDatabaseUrl,
+  resolveDatabaseSsl, resolvePoolMax
+} from "../src/db.js";
 
 test("resolveDatabaseUrl strips sslmode for Supabase pooler", () => {
   const url =
@@ -19,4 +22,19 @@ test("resolveDatabaseSsl uses rejectUnauthorized false when DATABASE_SSL=true", 
   assert.equal(resolveDatabaseSsl(), false);
   if (prev === undefined) delete process.env.DATABASE_SSL;
   else process.env.DATABASE_SSL = prev;
+});
+
+test("connection pool uses a rolling-deploy-safe default and validates overrides", () => {
+  assert.equal(DEFAULT_POOL_MAX, 6);
+  assert.equal(resolvePoolMax(undefined), 6);
+  assert.equal(resolvePoolMax("8"), 8);
+  assert.equal(resolvePoolMax("0"), 6);
+  assert.equal(resolvePoolMax("not-a-number"), 6);
+});
+
+test("database capacity errors are recognized without exposing provider details", () => {
+  assert.equal(isDatabaseCapacityError({ code: "EMAXCONNSESSION" }), true);
+  assert.equal(isDatabaseCapacityError({ code: "53300" }), true);
+  assert.equal(isDatabaseCapacityError({ message: "remaining connection slots are reserved" }), true);
+  assert.equal(isDatabaseCapacityError(new Error("ordinary failure")), false);
 });

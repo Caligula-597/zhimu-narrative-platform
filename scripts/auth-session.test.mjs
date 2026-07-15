@@ -90,9 +90,11 @@ const testUser = {
   display_name: "Creator",
   isGuest: false
 };
+let meFetches = 0;
 globalThis.fetch = async (url) => {
   const urlStr = String(url);
   if (urlStr === "/api/auth/me" || urlStr.startsWith("/api/auth/me?")) {
+    meFetches += 1;
     return { ok: true, status: 200, json: async () => testUser };
   }
   return { ok: true, status: 200, json: async () => ({}) };
@@ -116,6 +118,7 @@ test.before(async () => {
 test.beforeEach(() => {
   cookieSessionActive = false;
   renders = 0;
+  meFetches = 0;
   userStore.set({ currentUser: null });
   banner.hidden = false;
   for (const n of Object.values(banner.children)) {
@@ -126,6 +129,16 @@ test.beforeEach(() => {
   for (const n of Object.values(profile.children)) {
     n.textContent = "";
   }
+});
+
+test("syncProfile coalesces concurrent auth probes", async () => {
+  await Promise.all([
+    zhimuAuthSession.syncProfile(),
+    zhimuAuthSession.syncProfile(),
+    zhimuAuthSession.syncProfile({ rerender: false })
+  ]);
+  assert.equal(meFetches, 1);
+  assert.equal(userStore.get().currentUser?.id, "user-1");
 });
 
 test("syncProfile upgrades stale unauthenticated UI and rerenders content", async () => {

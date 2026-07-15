@@ -16,10 +16,17 @@ test("creator issues lists revokes physical tokens", async (context) => {
   const clue = await query(`SELECT id FROM clues WHERE world_id = $1 ORDER BY created_at LIMIT 1`, [worldId]);
   assert.ok(clue.rowCount);
 
+  const world = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${worldId}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  const revision = Number(world.json().content_revision);
+
   const created = await app.inject({
     method: "POST",
     url: `/api/worlds/${worldId}/physical-tokens`,
-    headers: { "x-user-id": hostUserId },
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision}"` },
     payload: {
       contentType: "clue",
       contentId: clue.rows[0].id,
@@ -32,6 +39,15 @@ test("creator issues lists revokes physical tokens", async (context) => {
   const tokens = created.json().tokens;
   assert.equal(tokens.length, 2);
   assert.match(tokens[0].tokenCode, /^ZHM-/);
+  assert.equal(Number(created.json().content_revision), revision + 1);
+
+  const staleRevoke = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/physical-tokens/${tokens[0].id}/revoke`,
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision}"` }
+  });
+  assert.equal(staleRevoke.statusCode, 409);
+  assert.equal(staleRevoke.json().code, "WORLD_VERSION_CONFLICT");
 
   const list = await app.inject({
     method: "GET",
@@ -44,13 +60,67 @@ test("creator issues lists revokes physical tokens", async (context) => {
   const revoked = await app.inject({
     method: "POST",
     url: `/api/worlds/${worldId}/physical-tokens/${tokens[1].id}/revoke`,
-    headers: { "x-user-id": hostUserId }
+    headers: { "x-user-id": hostUserId, "if-match": `"${revision + 1}"` }
   });
   assert.equal(revoked.statusCode, 200);
   assert.equal(revoked.json().token.status, "revoked");
+  assert.equal(Number(revoked.json().content_revision), revision + 2);
 
   context.after(async () => {
     await query(`DELETE FROM physical_tokens WHERE id = ANY($1::uuid[])`, [tokens.map((row) => row.id)]);
+  });
+});
+
+test("player activates public event token and emits its configured timeline message", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const worldId = fixtureWorldId;
+  const clue = await query(`SELECT id FROM clues WHERE world_id = $1 ORDER BY created_at LIMIT 1`, [worldId]);
+  assert.ok(clue.rowCount);
+  const eventMessage = `event-token-${Date.now()}`;
+
+  const created = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${worldId}/physical-tokens`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      contentType: "event",
+      contentId: clue.rows[0].id,
+      label: "Public event token",
+      activationRule: { eventMessage, eventVisibility: "public" }
+    }
+  });
+  assert.equal(created.statusCode, 201, created.body);
+  const token = created.json().tokens[0];
+  assert.equal(token.activationRule.eventMessage, eventMessage);
+  assert.equal(token.activationRule.eventVisibility, "public");
+
+  const activated = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fixtureRoomId}/physical-tokens/activate`,
+    headers: { "x-user-id": playerUserId },
+    payload: { tokenCode: token.tokenCode }
+  });
+  assert.equal(activated.statusCode, 200, activated.body);
+  assert.equal(activated.json().effect.effect, "event");
+  assert.equal(activated.json().effect.message, eventMessage);
+
+  const timeline = await query(
+    `SELECT visibility, message FROM timeline_logs
+     WHERE room_id = $1 AND event_type = 'physical_token_event'
+       AND metadata->>'physicalTokenId' = $2
+     ORDER BY created_at DESC LIMIT 1`,
+    [fixtureRoomId, token.id]
+  );
+  assert.equal(timeline.rowCount, 1);
+  assert.equal(timeline.rows[0].visibility, "public");
+  assert.equal(timeline.rows[0].message, eventMessage);
+
+  context.after(async () => {
+    await query(`DELETE FROM event_outbox WHERE event_scope = 'room' AND payload->>'tokenId' = $1`, [token.id]);
+    await query(`DELETE FROM room_event_journal WHERE room_id = $1 AND payload->>'tokenId' = $2`, [fixtureRoomId, token.id]);
+    await query(`DELETE FROM timeline_logs WHERE room_id = $1 AND metadata->>'physicalTokenId' = $2`, [fixtureRoomId, token.id]);
+    await query(`DELETE FROM physical_tokens WHERE id = $1`, [token.id]);
   });
 });
 

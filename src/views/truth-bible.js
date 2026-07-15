@@ -13,12 +13,19 @@ import { ARC_STAGES, defaultRoleArc } from "../../shared/creator-bible-contract.
 const showError = (error, fallback = "操作失败") => showToast(normalizeError(error, fallback));
 
 const TABS = [
-  { id: "claims", label: "真相链" },
-  { id: "core-trick", label: "核诡" },
+  { id: "claims", label: "核心事实" },
+  { id: "core-trick", label: "核心谜底" },
   { id: "timeline", label: "案件时间线" },
   { id: "foreshadow", label: "伏笔" },
-  { id: "relations", label: "关系网" }
+  { id: "relations", label: "角色关系" }
 ];
+
+const CONFIDENCE_LABELS = {
+  canon: "已确认",
+  inferred: "推定",
+  misdirection: "误导信息",
+  unknown: "待确认"
+};
 
 function roleOptions(roles, selected = "") {
   return roles.map((r) => `<option value="${escapeHtml(r.id)}" ${r.id === selected ? "selected" : ""}>${escapeHtml(r.name)}</option>`).join("");
@@ -32,28 +39,30 @@ function renderTabs(active) {
 function renderClaimsPanel(claims) {
   const rows = claims?.length
     ? claims.map((c) => `<article class="truth-claim-row" data-claim-id="${escapeHtml(c.id)}">
-        <div class="row"><strong>${escapeHtml(c.title)}</strong><span class="status-chip">${escapeHtml(c.confidence || "canon")}</span></div>
+        <div class="row"><strong>${escapeHtml(c.title)}</strong><span class="status-chip">${escapeHtml(CONFIDENCE_LABELS[c.confidence] || "已确认")}</span></div>
         <p>${escapeHtml(c.claim || "")}</p>
         <button type="button" class="text-btn danger-text" data-action="delete-truth-claim" data-claim-id="${escapeHtml(c.id)}">删除</button></article>`).join("")
-    : `<div class="empty-state">尚无真相断言。</div>`;
+    : `<div class="empty-state">尚未记录核心事实。先写下一个无论玩家如何选择都不会改变的事实。</div>`;
   return `<article class="card truth-claims-panel">
-    <div class="section-head"><div><h3>真相链</h3><p>结构化断言，供主持 runbook 与复盘引用。</p></div></div>
+    <div class="section-head"><div><h3>核心事实</h3><p>作者内部的事实台账，用来统一谜底、证据和角色口径。</p></div></div>
+    <div class="assistant-guide"><b>当前会影响什么？</b><span>核心事实会参与创作完整性统计，也可以在“运行段落”中作为关联资源；目前不会自动改写章节、主持手册或局后复盘。</span></div>
     <div class="truth-claim-list">${rows}</div>
     <div class="form-group truth-add-form">
-      <label>新增断言</label>
-      <input class="field" data-truth-field="title" placeholder="标题">
-      <textarea class="field" data-truth-field="claim" rows="3" placeholder="断言内容"></textarea>
-      <select class="field" data-truth-field="confidence"><option value="canon">canon</option><option value="inferred">inferred</option><option value="misdirection">misdirection</option><option value="unknown">unknown</option></select>
-      <button type="button" class="primary-btn" data-action="add-truth-claim-inline">添加断言</button>
+      <label>新增核心事实</label>
+      <input class="field" data-truth-field="title" placeholder="事实标题，例如：死者真正的死亡时间">
+      <textarea class="field" data-truth-field="claim" rows="3" placeholder="写清楚事实本身，以及它为什么成立"></textarea>
+      <select class="field" data-truth-field="confidence"><option value="canon">已确认</option><option value="inferred">推定</option><option value="misdirection">误导信息</option><option value="unknown">待确认</option></select>
+      <button type="button" class="primary-btn" data-action="add-truth-claim-inline">添加核心事实</button>
     </div></article>`;
 }
 
 function renderCoreTrickPanel(coreTrick, roles) {
   const ct = coreTrick || {};
   return `<article class="card">
-    <div class="section-head"><div><h3>核诡</h3><p>凶手、手法、动机等核心设计（作者自填，平台不作评判）。</p></div>
-      <button type="button" class="primary-btn" data-action="save-core-trick">保存核诡</button></div>
-    <label class="cockpit-field"><span>概要</span><textarea data-bible-field="summary" rows="4">${escapeHtml(ct.summary || "")}</textarea></label>
+    <div class="section-head"><div><h3>核心谜底</h3><p>集中记录凶手、手法、动机和主持人口径，仅创作者与获授权的主持人使用。</p></div>
+      <button type="button" class="primary-btn" data-action="save-core-trick">保存核心谜底</button></div>
+    <div class="assistant-guide"><b>当前会影响什么？</b><span>这里是谜底的唯一结构化档案，目前用于创作完整性统计与作者校对；不会自动公开给玩家，也不会替代公共章节和角色私人剧情。</span></div>
+    <label class="cockpit-field"><span>谜底概要</span><textarea data-bible-field="summary" rows="4">${escapeHtml(ct.summary || "")}</textarea></label>
     <label class="cockpit-field"><span>凶手角色</span><select data-bible-field="killerRoleSlotId"><option value="">未指定</option>${roleOptions(roles, ct.killerRoleSlotId || "")}</select></label>
     <label class="cockpit-field"><span>手法</span><textarea data-bible-field="method" rows="3">${escapeHtml(ct.method || "")}</textarea></label>
     <label class="cockpit-field"><span>动机</span><textarea data-bible-field="motive" rows="3">${escapeHtml(ct.motive || "")}</textarea></label>
@@ -105,17 +114,18 @@ function renderForeshadowPanel(beats) {
 
 function renderRelationsPanel(roles, relationships) {
   const relList = relationships?.length
-    ? relationships.map((r) => `<article class="checkpoint-row"><strong>${escapeHtml(r.label || r.relation_type || "关系")}</strong><p class="muted-note">${escapeHtml(r.from_role_name || "")} → ${escapeHtml(r.to_role_name || "")}</p></article>`).join("")
-    : `<div class="empty-state">尚无关系边。</div>`;
+    ? relationships.map((r) => `<article class="checkpoint-row" data-relationship-id="${escapeHtml(r.id)}"><div><strong>${escapeHtml(r.label || "未命名关系")}</strong><p class="muted-note">${escapeHtml(r.from_role_name || "")} → ${escapeHtml(r.to_role_name || "")}${Number.isInteger(r.strength) ? ` · 强度 ${r.strength}` : ""}</p></div><button type="button" class="text-btn danger-text" data-action="delete-relationship-inline" data-relationship-id="${escapeHtml(r.id)}">删除</button></article>`).join("")
+    : `<div class="empty-state">尚未建立角色关系。关系默认只作为作者和主持人的结构化参考，不会自动展示给玩家。</div>`;
   return `<article class="card truth-relations-panel">
-    <div class="section-head"><div><h3>角色关系图</h3></div></div>
+    <div class="section-head"><div><h3>角色关系</h3><p>明确人物之间的方向、性质和强弱；新增或删除后，下方关系图会同步刷新。</p></div></div>
     <div class="rel-graph-wrap">${relationships === null ? `<div class="empty-state">加载后显示</div>` : renderRelationshipGraph(roles, relationships)}</div>
     <div class="truth-rel-list">${relList}</div>
     ${roles.length ? `<div class="form-group truth-add-form">
       <label>新增关系</label>
-      <select class="field" data-rel-field="from">${roleOptions(roles)}</select>
-      <select class="field" data-rel-field="to">${roleOptions(roles)}</select>
-      <input class="field" data-rel-field="label" placeholder="关系标签">
+      <select class="field" data-rel-field="from" aria-label="关系起点角色">${roleOptions(roles)}</select>
+      <select class="field" data-rel-field="to" aria-label="关系终点角色">${roleOptions(roles)}</select>
+      <input class="field" data-rel-field="label" placeholder="关系名称，例如：表面盟友、暗中怀疑">
+      <input class="field" data-rel-field="strength" type="number" min="-10" max="10" placeholder="关系强度 -10 至 10（可选）">
       <button type="button" class="primary-btn" data-action="add-relationship-inline">添加关系</button>
     </div>` : `<p class="muted-note">请先在角色私人剧本创建角色席位。</p>`}
   </article>`;
@@ -135,8 +145,8 @@ export function renderTruthBiblePage() {
 
   const loaded = ws.cloudTruthClaims !== null;
   return `<section class="truth-bible-workspace">
-    <header class="writer-hero compact"><div><p class="section-kicker">STORY BIBLE</p><h2>真相与关系</h2>
-      <p>核诡、真相链、案件时间线、伏笔与关系网 — 深度编辑在此完成；驾驶舱仅展示统计。</p></div>
+    <header class="writer-hero compact"><div><p class="section-kicker">创作底稿</p><h2>谜底与人物关系</h2>
+      <p>集中维护不会直接展示给玩家的核心事实、谜底、时间线、伏笔与人物关系。每个页签都会说明数据当前实际作用。</p></div>
       <button type="button" class="secondary-btn" data-action="refresh-truth-workspace">刷新</button></header>
     <nav class="truth-bible-tabs">${renderTabs(tab)}</nav>
     ${loaded || tab !== "claims" ? `<div class="truth-bible-panel">${body}</div>` : `<div class="empty-state">点击「刷新」加载数据，或切换 Tab 按需加载。</div>`}

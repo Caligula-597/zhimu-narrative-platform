@@ -22,20 +22,20 @@ export function clueGrantsFromText(value = "") {
 
 export function renderCockpitSegmentEditor(segment, studio) {
   if (!segment) {
-    return `<div class="empty-state">选择左侧 Segment 段落，在此编辑主持 runbook。</div>`;
+    return `<div class="empty-state">选择左侧运行段落，在此编辑主持手册。</div>`;
   }
   const ops = normalizeSegmentOperations(segment.operations || {});
   const refs = segment.refs || [];
   const refRows = refs.length
     ? refs.slice(0, 8).map((r) => `<li><code>${escapeHtml(r.refType || "ref")}</code> ${escapeHtml(r.refId?.slice(0, 8) || "")}${r.metadata?.when ? ` · ${escapeHtml(r.metadata.when)}` : ""}</li>`).join("")
-    : `<li class="muted-note">暂无关联。完整 refs 编辑请开 Segment 工作台。</li>`;
+    : `<li class="muted-note">暂无关联。完整资源关联请在运行段落工作台编辑。</li>`;
   return `<section class="cockpit-segment-editor" data-cockpit-segment-editor="${escapeHtml(segment.id)}">
     <div class="panel-heading compact"><div><p>${escapeHtml(segment.segmentKey)}</p><h3>${escapeHtml(segment.title)}</h3></div>
-      <div class="row">${linkButton({ view: "structure", label: "完整工作台" }, "text-btn compact")}<button type="button" class="primary-btn compact" data-action="cockpit-save-segment" data-segment-id="${escapeHtml(segment.id)}">保存 runbook</button></div></div>
+      <div class="row">${linkButton({ view: "structure", label: "完整工作台" }, "text-btn compact")}<button type="button" class="primary-btn compact" data-action="cockpit-save-segment" data-segment-id="${escapeHtml(segment.id)}">保存主持手册</button></div></div>
     <details class="segment-refs-summary" open><summary>关联资源 · ${refs.length}</summary><ul>${refRows}</ul></details>
-    <label class="cockpit-field"><span>主持流程 flow</span><textarea data-cockpit-seg="flow" rows="5">${escapeHtml(ops.flow || "")}</textarea></label>
-    <label class="cockpit-field"><span>主持真相 hostTruth</span><textarea data-cockpit-seg="hostTruth" rows="4">${escapeHtml(ops.hostTruth || "")}</textarea></label>
-    <label class="cockpit-field"><span>应发线索 clueGrants</span><textarea data-cockpit-seg="clueGrants" rows="4" placeholder="clueId | 发放时机 | roleKey">${escapeHtml(clueGrantsToText(ops.clueGrants))}</textarea></label>
+    <label class="cockpit-field"><span>主持流程</span><textarea data-cockpit-seg="flow" rows="5">${escapeHtml(ops.flow || "")}</textarea></label>
+    <label class="cockpit-field"><span>主持真相</span><textarea data-cockpit-seg="hostTruth" rows="4">${escapeHtml(ops.hostTruth || "")}</textarea></label>
+    <label class="cockpit-field"><span>应发线索</span><textarea data-cockpit-seg="clueGrants" rows="4" placeholder="线索 ID | 发放时机 | 角色标识">${escapeHtml(clueGrantsToText(ops.clueGrants))}</textarea></label>
     <p class="muted-note">保存后主持端「应发线索」会更新。</p>
   </section>`;
 }

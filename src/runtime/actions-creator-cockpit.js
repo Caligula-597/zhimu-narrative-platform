@@ -2,11 +2,12 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { normalizeError } from "../components/status-ui.js";
-import { studioStore, worldStore } from "../state/index.js";
+import { worldStore } from "../state/index.js";
 import { LOGLINE_TEMPLATE, newSparkId } from "../views/creator-cockpit-model.js";
 import { clueGrantsFromText } from "../views/creator-cockpit-segment.js";
 import { normalizeSegmentOperations } from "shared/segment-contract.js";
 import { callView } from "./view-registry.js";
+import { callRuntime } from "./runtime-facade.js";
 
 const showError = (error, fallback = "操作失败") => showToast(normalizeError(error, fallback));
 
@@ -19,27 +20,21 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
     return cockpitRoot()?.querySelector(`[${attr}="${name}"]`)?.value?.trim?.() ?? cockpitRoot()?.querySelector(`[${attr}="${name}"]`)?.value ?? "";
   }
 
-  async function reloadStudio() {
-    const studioData = await zhimuApi.getStudio();
-    studioStore.set({ cloudStudio: studioData });
+  function workspacePreview() {
+    return worldStore.get().cloudWorkspacePreview;
   }
 
-  async function reloadTruthAndSegments() {
-    const worldId = zhimuApi.context.worldId;
-    const [truthPayload, relPayload, segmentsPayload] = await Promise.all([
-      zhimuApi.getTruthClaims(worldId),
-      zhimuApi.getRoleRelationships(worldId),
-      zhimuApi.getWorldSegments(worldId)
-    ]);
-    worldStore.set({
-      cloudTruthClaims: truthPayload?.claims || [],
-      cloudRoleRelationships: relPayload?.relationships || [],
-      cloudSegments: segmentsPayload?.segments || []
-    });
+  async function reloadCockpitAfterWrite() {
+    callRuntime("invalidateStudioSnapshot", { clear: true });
+    callView("creatorCockpit", "invalidateCockpitData");
+    await callView("creatorCockpit", "refreshCockpitData", { force: true });
   }
 
   function maybeAutoLoadCockpit(view) {
     if (view !== "creatorCockpit") return;
+    const worldId = zhimuApi.context.worldId;
+    const worldValidated = (worldStore.get().cloudWorlds || []).some((world) => world.id === worldId);
+    if (!worldId || !worldValidated) return;
     // Enter-once load; refreshCockpitData no-ops when already loaded for this world.
     void callView("creatorCockpit", "refreshCockpitData");
   }
@@ -112,9 +107,8 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         if (!title || !claim) return showToast("请填写标题与断言"), true;
         try {
           await zhimuApi.createTruthClaim({ title, claim, confidence }, worldId);
-          await reloadTruthAndSegments();
-          void callView("creatorCockpit", "refreshCockpitData");
-          showToast("断言已添加");
+          await reloadCockpitAfterWrite();
+          showToast("核心事实已添加");
         } catch (error) {
           showError(error);
         }
@@ -134,8 +128,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
             label,
             strength: strengthRaw === "" || strengthRaw == null ? undefined : Number(strengthRaw)
           }, worldId);
-          await reloadTruthAndSegments();
-          void callView("creatorCockpit", "refreshCockpitData");
+          await reloadCockpitAfterWrite();
           showToast("关系已添加");
         } catch (error) {
           showError(error);
@@ -147,11 +140,10 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         const title = field("title", "data-cockpit-chapter");
         const summary = cockpitRoot()?.querySelector('[data-cockpit-chapter="summary"]')?.value?.trim() || "";
         if (!title) return showToast("请填写章节标题"), true;
-        const chapters = studioStore.get().cloudStudio?.chapters || [];
+        const chapters = workspacePreview()?.chapters || [];
         try {
           await zhimuApi.createChapter(worldId, { title, summary, sequence: chapters.length + 1 });
-          await reloadStudio();
-          void callView("creatorCockpit", "refreshCockpitData");
+          await reloadCockpitAfterWrite();
           showToast("章节已添加");
         } catch (error) {
           showError(error);
@@ -162,11 +154,10 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
       case "cockpit-add-role": {
         const name = field("name", "data-cockpit-role");
         if (!name) return showToast("请填写角色名"), true;
-        const roles = studioStore.get().cloudStudio?.roles || [];
+        const roles = workspacePreview()?.roles || [];
         try {
           await zhimuApi.createRole(worldId, { name, sequence: roles.length + 1 });
-          await reloadStudio();
-          void callView("creatorCockpit", "refreshCockpitData");
+          await reloadCockpitAfterWrite();
           showToast("角色已添加");
         } catch (error) {
           showError(error);
@@ -184,10 +175,9 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
             title,
             chapterId,
             body: `# ${title}\n\n（在此撰写私人分幕正文）`,
-            sequence: (studioStore.get().cloudStudio?.sections || []).filter((s) => s.role_slot_id === roleId).length + 1
+            sequence: (workspacePreview()?.sections || []).filter((s) => s.role_slot_id === roleId).length + 1
           });
-          await reloadStudio();
-          void callView("creatorCockpit", "refreshCockpitData");
+          await reloadCockpitAfterWrite();
           showToast("分幕已添加，可在创作台编辑正文");
         } catch (error) {
           showError(error);
@@ -198,9 +188,8 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
       case "cockpit-sync-segments":
         try {
           await zhimuApi.syncWorldSegmentsFromGraph(worldId);
-          await reloadTruthAndSegments();
-          void callView("creatorCockpit", "refreshCockpitData");
-          showToast("已从章节同步 Segment");
+          await reloadCockpitAfterWrite();
+          showToast("已从章节同步运行段落");
         } catch (error) {
           showError(error);
         }
@@ -209,7 +198,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
       case "cockpit-save-segment": {
         const segmentId = el?.dataset?.segmentId;
         const segment = (worldStore.get().cloudSegments || []).find((s) => s.id === segmentId);
-        if (!segmentId || !segment) return showToast("请选择 Segment"), true;
+        if (!segmentId || !segment) return showToast("请选择运行段落"), true;
         const root = cockpitRoot()?.querySelector(`[data-cockpit-segment-editor="${segmentId}"]`);
         if (!root) return true;
         const flow = root.querySelector('[data-cockpit-seg="flow"]')?.value || "";
@@ -228,9 +217,8 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
             story: segment.story || {},
             operations
           }, worldId);
-          await reloadTruthAndSegments();
-          void callView("creatorCockpit", "refreshCockpitData");
-          showToast("Segment runbook 已保存");
+          await reloadCockpitAfterWrite();
+          showToast("运行段落的主持手册已保存");
         } catch (error) {
           showError(error);
         }
@@ -243,8 +231,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         if (!name) return showToast("请填写线索名称"), true;
         try {
           await zhimuApi.createClue({ name, publicText: publicText || undefined });
-          await reloadStudio();
-          void callView("creatorCockpit", "refreshCockpitData");
+          await reloadCockpitAfterWrite();
           showToast("线索已添加");
         } catch (error) {
           showError(error);
@@ -256,15 +243,14 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         const chapterId = el?.dataset?.chapterId;
         const summary = cockpitRoot()?.querySelector(`[data-cockpit-chapter-summary="${chapterId}"]`)?.value?.trim() || "";
         if (!chapterId) return true;
-        const chapter = studioStore.get().cloudStudio?.chapters?.find((c) => c.id === chapterId);
+        const chapter = workspacePreview()?.chapters?.find((c) => c.id === chapterId);
         if (!chapter) return true;
         try {
           await zhimuApi.updateChapter(chapterId, {
             title: chapter.title,
             summary
           });
-          await reloadStudio();
-          void callView("creatorCockpit", "refreshCockpitData");
+          await reloadCockpitAfterWrite();
           showToast("章节摘要已保存");
         } catch (error) {
           showError(error);
@@ -289,7 +275,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
 
       case "cockpit-ai-suggest": {
         const draft = callView("creatorCockpit", "getCockpitDraft") || {};
-        const studio = studioStore.get().cloudStudio;
+        const studio = workspacePreview();
         const text = String(draft.copilotQuery || draft.logline || "").trim();
         if (!text) return showToast("请先输入或粘贴文本"), true;
         try {
@@ -327,7 +313,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
     const roleId = selectEl?.dataset?.roleId;
     const sectionId = selectEl?.dataset?.sectionId;
     const publicationStatus = selectEl?.value;
-    const studio = studioStore.get().cloudStudio;
+    const studio = await callRuntime("ensureStudioSnapshot");
     const section = studio?.sections?.find((s) => s.id === sectionId);
     if (!roleId || !sectionId || !section) return;
     try {
@@ -338,8 +324,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         sequence: section.sequence,
         publicationStatus
       });
-      await reloadStudio();
-      void callView("creatorCockpit", "refreshCockpitData");
+      await reloadCockpitAfterWrite();
       showToast("分幕状态已更新");
     } catch (error) {
       showError(error);

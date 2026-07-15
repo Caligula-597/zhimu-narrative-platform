@@ -37,6 +37,8 @@ export function normalizeActivationRule(rule = {}) {
     requiredRoleSlotIds: Array.isArray(rule.requiredRoleSlotIds)
       ? rule.requiredRoleSlotIds.filter(Boolean)
       : [],
+    eventMessage: rule.eventMessage == null ? null : String(rule.eventMessage).slice(0, 500),
+    eventVisibility: rule.eventVisibility === "public" ? "public" : "host",
     externalGate: rule.externalGate && typeof rule.externalGate === "object" ? rule.externalGate : null
   };
   if (normalized.externalGate?.provider === "tump") {
@@ -261,6 +263,7 @@ export async function revokePhysicalToken(client, worldId, tokenId) {
 }
 
 async function applyTokenContent(client, roomId, roleSlotId, token, queueEvent) {
+  const run = client.query.bind(client);
   const { content_type: contentType, content_id: contentId, activation_rule: activationRule } = token;
   const source = "physical_token";
 

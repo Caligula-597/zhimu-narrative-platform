@@ -1,34 +1,84 @@
 import { pool, transaction } from "../db.js";
-export async function buildWorldSnapshot(worldId, client = null) {
-  if (!client) {
-    const pooledClient = await pool.connect();
-    try {
-      return await buildWorldSnapshot(worldId, pooledClient);
-    } finally {
-      pooledClient.release();
-    }
-  }
-  const world = await client.query(`SELECT id, name, summary, status, settings FROM worlds WHERE id = $1`, [worldId]);
-  const chapters = await client.query(`SELECT * FROM chapters WHERE world_id = $1 ORDER BY sequence`, [worldId]);
-  const roles = await client.query(`SELECT * FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]);
-  const sections = await client.query(
-    `SELECT ss.* FROM script_sections ss
-     JOIN role_slots rs ON rs.id = ss.role_slot_id
-     WHERE rs.world_id = $1 ORDER BY rs.sequence, ss.sequence`,
-    [worldId]
-  );
-  const scenes = await client.query(`SELECT * FROM scenes WHERE world_id = $1 ORDER BY created_at`, [worldId]);
-  const clues = await client.query(`SELECT * FROM clues WHERE world_id = $1 ORDER BY created_at`, [worldId]);
-  const points = await client.query(`SELECT * FROM investigation_points WHERE world_id = $1 ORDER BY created_at`, [worldId]);
-  const items = await client.query(`SELECT id, name FROM items WHERE world_id = $1 ORDER BY created_at`, [worldId]);
-  const edges = await client.query(`SELECT * FROM story_graph_edges WHERE world_id = $1 ORDER BY created_at`, [worldId]);
-  const rules = await client.query(`SELECT * FROM automation_rules WHERE world_id = $1 ORDER BY priority, created_at`, [worldId]);
-  const rooms = await client.query(`SELECT id, name, status, invite_code FROM rooms WHERE world_id = $1 ORDER BY created_at DESC`, [worldId]);
-  const segments = await client.query(`SELECT * FROM world_segments WHERE world_id = $1 ORDER BY sequence, created_at`, [worldId]);
+
+// One PostgreSQL statement gives every consumer a transaction-consistent
+// snapshot and avoids twelve managed-database network round trips.
+export const WORLD_SNAPSHOT_SQL = `
+  SELECT
+    (SELECT to_jsonb(w) FROM (
+      SELECT id, name, summary, status, settings
+      FROM worlds WHERE id = $1
+    ) w) AS world,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(c) ORDER BY c.sequence)
+      FROM chapters c WHERE c.world_id = $1
+    ), '[]'::jsonb) AS chapters,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(r) ORDER BY r.sequence)
+      FROM role_slots r WHERE r.world_id = $1
+    ), '[]'::jsonb) AS roles,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(ss) ORDER BY rs.sequence, ss.sequence)
+      FROM script_sections ss
+      JOIN role_slots rs ON rs.id = ss.role_slot_id
+      WHERE rs.world_id = $1
+    ), '[]'::jsonb) AS sections,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(s) ORDER BY s.created_at)
+      FROM scenes s WHERE s.world_id = $1
+    ), '[]'::jsonb) AS scenes,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(c) ORDER BY c.created_at)
+      FROM clues c WHERE c.world_id = $1
+    ), '[]'::jsonb) AS clues,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(ip) ORDER BY ip.created_at)
+      FROM investigation_points ip WHERE ip.world_id = $1
+    ), '[]'::jsonb) AS investigation_points,
+    COALESCE((
+      SELECT jsonb_agg(jsonb_build_object('id', i.id, 'name', i.name) ORDER BY i.created_at)
+      FROM items i WHERE i.world_id = $1
+    ), '[]'::jsonb) AS items,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(e) ORDER BY e.created_at)
+      FROM story_graph_edges e WHERE e.world_id = $1
+    ), '[]'::jsonb) AS edges,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(ar) ORDER BY ar.priority, ar.created_at)
+      FROM automation_rules ar WHERE ar.world_id = $1
+    ), '[]'::jsonb) AS rules,
+    COALESCE((
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'id', r.id,
+          'name', r.name,
+          'status', r.status,
+          'invite_code', r.invite_code
+        ) ORDER BY r.created_at DESC
+      )
+      FROM rooms r WHERE r.world_id = $1
+    ), '[]'::jsonb) AS rooms,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(ws) ORDER BY ws.sequence, ws.created_at)
+      FROM world_segments ws WHERE ws.world_id = $1
+    ), '[]'::jsonb) AS segments
+`;
+
+export async function buildWorldSnapshot(worldId, client = pool) {
+  const result = await client.query(WORLD_SNAPSHOT_SQL, [worldId]);
+  const row = result.rows[0] || {};
   return {
-    world: world.rows[0], chapters: chapters.rows, roles: roles.rows, sections: sections.rows,
-    scenes: scenes.rows, clues: clues.rows, investigationPoints: points.rows, items: items.rows, edges: edges.rows,
-    rules: rules.rows, rooms: rooms.rows, segments: segments.rows
+    world: row.world || undefined,
+    chapters: row.chapters || [],
+    roles: row.roles || [],
+    sections: row.sections || [],
+    scenes: row.scenes || [],
+    clues: row.clues || [],
+    investigationPoints: row.investigation_points || [],
+    items: row.items || [],
+    edges: row.edges || [],
+    rules: row.rules || [],
+    rooms: row.rooms || [],
+    segments: row.segments || []
   };
 }
 

@@ -7,10 +7,12 @@ export function storyAssistantModalHtml() {
 }
 
 export function creatorPreviewModalHtml(controlsHtml) {
+  controlsHtml = unwrapHtmlFragment(controlsHtml, "creator preview controls");
   return `<h2>玩家视角模拟器</h2><p class="wizard-intro">切换角色和章节，核对玩家能读到的私人文本。草稿、测试中和已发布状态会明确标记。</p><div class="preview-controls">${controlsHtml}</div><div data-preview-body></div><div class="modal-actions"><button class="primary-btn" data-close>结束模拟</button></div>`;
 }
 
 export function publishImpactModalHtml(controlsHtml) {
+  controlsHtml = unwrapHtmlFragment(controlsHtml, "publish impact controls");
   return `<h2>发布影响预览</h2><p class="wizard-intro">选择角色与房间类型，查看该玩家此刻按发布状态能看到的章节、分幕、场景、线索与任务，以及不可见原因。不含运行中解锁/持有态（解锁与授予另计）。</p><div class="preview-controls">${controlsHtml}</div><div data-impact-body></div><div class="modal-actions"><button class="primary-btn" data-close>关闭</button></div>`;
 }
 
@@ -23,25 +25,40 @@ export function plainTextImportPreviewHtml() {
 }
 
 export function storyManuscriptModalHtml({ bodyHtml, statusHtml }) {
+  bodyHtml = unwrapHtmlFragment(bodyHtml, "manuscript body");
+  statusHtml = unwrapHtmlFragment(statusHtml, "manuscript status");
   return `<h2>完整剧情母稿</h2><p class="wizard-intro">这是创作者维护的全局剧情文稿，不会替代每位角色的私人剧本。你可以从剧情编排生成一份规范化母稿，也可以把编辑后的母稿拆分成场景、调查点、线索与连接线。</p><div class="assistant-guide"><b>双向同步边界</b><span>“从编排台生成母稿”会覆盖下方文本；“拆分母稿写回编排台”会重建此前由母稿生成的节点，不会删除你手工建立的节点。</span></div><textarea class="field manuscript-draft" rows="20" data-story-manuscript>${bodyHtml}</textarea><div class="manuscript-meta" data-manuscript-meta>${statusHtml}</div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="secondary-btn" data-manuscript-save>仅保存母稿</button><button class="secondary-btn" data-manuscript-from-graph>从编排台生成母稿</button><button class="primary-btn" data-manuscript-to-graph>拆分母稿写回编排台</button></div>`;
 }
 
 export function collaborationModalHtml({ memberRowsHtml, pendingRowsHtml }) {
+  memberRowsHtml = unwrapHtmlFragment(memberRowsHtml, "collaboration members");
+  pendingRowsHtml = unwrapHtmlFragment(pendingRowsHtml, "collaboration invites");
   return `<h2>协作权限</h2><p class="wizard-intro">输入邮箱邀请协作者。未注册账号会收到邀请邮件；已注册账号将直接加入。</p><div class="collab-list">${memberRowsHtml}${pendingRowsHtml}</div><div class="collab-invite"><h3>邀请协作者</h3><div class="row"><input class="field" data-member-email placeholder="成员邮箱"><select class="field compact-field" data-member-new-role><option value="editor">协作者</option><option value="host">主持人</option><option value="viewer">只读观察者</option></select><button class="primary-btn" data-add-member>发送邀请</button></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`;
 }
 
 export function documentParserModalHtml(roleOptionsHtml) {
+  roleOptionsHtml = unwrapHtmlFragment(roleOptionsHtml, "document role options");
   return `<h2>文档解析与导入</h2><p class="wizard-intro">支持 TXT / Markdown / DOCX / PDF / 图片。文本型文档提取文字；图片型 PDF 与 JPG/PNG 将<strong>按页导入为分幕图片</strong>，玩家在端内直接翻页阅读。可选 OCR 提取可编辑文字（需复核）。</p><div class="form-group"><label>选择文档</label><input class="field" type="file" accept=".txt,.md,.markdown,.docx,.pdf,.jpg,.jpeg,.png,.webp" data-document-file><label>写入目标</label><select class="field" data-document-target><option value="manuscript">完整剧情母稿</option>${roleOptionsHtml}</select><label class="checkbox-line" style="margin-top:10px"><input type="checkbox" data-document-allow-ocr> 图片型 PDF 尝试 OCR 为文字（较慢，需复核）</label><label>PDF 图片导入布局（仅图片模式）</label><select class="field" data-document-page-layout><option value="single_section">整份 PDF 合并为一个分幕</option><option value="one_section_per_page">每页单独一个分幕</option></select></div><div data-document-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-document-parse>解析预览</button><button class="primary-btn" data-document-import disabled>确认导入</button></div>`;
 }
 
 export function documentPreviewHtml({ filenameHtml, summaryHtml, extraHtml }) {
+  filenameHtml = unwrapHtmlFragment(filenameHtml, "document filename");
+  summaryHtml = unwrapHtmlFragment(summaryHtml, "document summary");
+  extraHtml = unwrapHtmlFragment(extraHtml, "document preview");
   return `<section class="document-preview"><b>${filenameHtml}</b><p>${summaryHtml}</p>${extraHtml}</section>`;
 }
 
 export function creatorPreviewBodyHtml({ roleNameHtml, privateProfileHtml, sectionRowsHtml }) {
+  roleNameHtml = unwrapHtmlFragment(roleNameHtml, "preview role name");
+  privateProfileHtml = unwrapHtmlFragment(privateProfileHtml, "preview private profile");
+  sectionRowsHtml = unwrapHtmlFragment(sectionRowsHtml, "preview section rows");
   return `<article class="preview-role-card"><p class="section-kicker">仅此角色可见</p><h3>${roleNameHtml}</h3><p>${privateProfileHtml}</p></article>${sectionRowsHtml || `<div class="empty-state">该筛选条件下没有私人剧情。</div>`}`;
 }
 
 export function creatorImportModalHtml({ emptyRoleHintHtml, newWorldFieldsHtml, roleSelectHtml }) {
+  emptyRoleHintHtml = unwrapHtmlFragment(emptyRoleHintHtml, "import empty-role hint");
+  newWorldFieldsHtml = unwrapHtmlFragment(newWorldFieldsHtml, "import world fields");
+  roleSelectHtml = unwrapHtmlFragment(roleSelectHtml, "import role select");
   return `<h2>导入创作内容</h2><p class="wizard-intro">JSON 内容包会先预览再写入。可选择追加到当前世界，或创建一个新世界。现有内容不会被覆盖。</p><div class="form-group"><label>导入模式</label><select class="field" data-import-mode><option value="append">追加到当前世界</option><option value="new_world">创建新世界并导入</option></select>${emptyRoleHintHtml}<div data-new-world-fields style="display:none;margin-top:10px">${newWorldFieldsHtml}</div><label>选择文件</label><input class="field" type="file" accept=".json,.md,.txt" data-creator-import-file>${roleSelectHtml}</div><div data-import-preview></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="secondary-btn" data-import-preview-btn>解析预览</button><button class="primary-btn" data-import-submit disabled>确认导入</button></div>`;
 }
+import { unwrapHtmlFragment } from "../../shared/safe-dom.js";

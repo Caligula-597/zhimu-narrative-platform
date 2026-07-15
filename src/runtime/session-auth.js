@@ -3,9 +3,15 @@ import { userStore } from "../state/index.js";
 (function (window) {
   const LEGACY_KEY = "zhimuSessionToken";
   let cookieSessionActive = false;
+  let storageSyncPromise = null;
+  let credentialVersion = 0;
 
   function legacyToken() {
-    return localStorage.getItem(LEGACY_KEY);
+    try {
+      return localStorage.getItem(LEGACY_KEY);
+    } catch {
+      return null;
+    }
   }
 
   function isAuthenticated() {
@@ -14,14 +20,16 @@ import { userStore } from "../state/index.js";
 
   function markAuthenticated(token) {
     if (typeof token === "string" && token.length >= 16) {
-      localStorage.setItem(LEGACY_KEY, token);
+      try { localStorage.setItem(LEGACY_KEY, token); } catch { /* cookie session remains authoritative */ }
     }
     cookieSessionActive = true;
+    credentialVersion += 1;
   }
 
 function markLoggedOut() {
   cookieSessionActive = false;
-  localStorage.removeItem(LEGACY_KEY);
+  credentialVersion += 1;
+  try { localStorage.removeItem(LEGACY_KEY); } catch { /* storage may be unavailable */ }
   if (typeof window !== "undefined") userStore.set({ currentUser: null });
 }
 
@@ -42,7 +50,17 @@ function markLoggedOut() {
     markLoggedOut,
     authHeaders,
     withCredentials,
-    legacyToken
+    legacyToken,
+    getCredentialVersion: () => credentialVersion
   };
+
+  window.addEventListener?.("storage", (event) => {
+    if (event?.key !== LEGACY_KEY || event.newValue === event.oldValue) return;
+    if (!event.newValue) markLoggedOut();
+    else credentialVersion += 1;
+    if (storageSyncPromise) return;
+    storageSyncPromise = Promise.resolve().then(() => window.zhimuAuthSession?.syncProfile?.({ force: true }))
+      .finally(() => { storageSyncPromise = null; });
+  });
 })(window);
 export {};

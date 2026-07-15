@@ -11,6 +11,10 @@ export function setSessionToken(token) {
   defaultSessionTokenStore.set(token || "");
 }
 
+export function subscribeSessionToken(listener) {
+  return defaultSessionTokenStore.subscribe(listener);
+}
+
 export function getWorldId() {
   return localStorage.getItem(WORLD_KEY) || "";
 }

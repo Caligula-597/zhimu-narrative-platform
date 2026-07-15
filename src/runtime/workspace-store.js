@@ -2,6 +2,18 @@
 import * as zhimuApi from "../api/index.js";
 import { worldStore, studioStore, roomStore, userStore } from "../state/index.js";
 
+let prefetchedWorldsPromise = null;
+
+export function prefetchWorlds() {
+  if (!prefetchedWorldsPromise) {
+    prefetchedWorldsPromise = zhimuApi.getWorlds();
+    // Mark early failures as observed while preserving the rejected promise
+    // for ensureActiveWorld(), which remains the authoritative error handler.
+    void prefetchedWorldsPromise.catch(() => {});
+  }
+  return prefetchedWorldsPromise;
+}
+
 export function isLoggedIn() {
   return window.zhimuAuthSession?.isLoggedIn?.() ?? window.zhimuSessionAuth?.isAuthenticated?.() ?? false;
 }
@@ -41,10 +53,12 @@ export function roomBelongsToActiveWorld() {
 export async function ensureActiveWorld() {
   let worlds;
   try {
-    worlds = await zhimuApi.getWorlds();
+    worlds = await (prefetchedWorldsPromise || zhimuApi.getWorlds());
   } catch (error) {
     worldStore.set({ cloudWorlds: [] });
     throw error;
+  } finally {
+    prefetchedWorldsPromise = null;
   }
   worldStore.set({ cloudWorlds: worlds });
   const hasSession = isLoggedIn();
