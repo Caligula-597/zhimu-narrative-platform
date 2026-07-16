@@ -28,3 +28,5 @@
 ## 破坏性数据库脚本护栏
 
 `with-isolated-database` 与 `verify-backup-restore` 默认拒绝指向生产形态主机（如 Supabase / Railway / Neon）的 `DATABASE_URL`。确认是非生产集群后，可设置 `ZHIMU_ALLOW_DESTRUCTIVE_DB=1` 覆盖。
+
+`verify-migration-upgrade`、`verify-backup-restore-managed` 同样受上述破坏性演练开关保护。测试套件与 Player 性能 fixture 使用权限更窄的 `ZHIMU_ALLOW_TEST_DB_WRITES=1`；设置破坏性演练开关不会自动放开测试写入。两个开关都只能用于已经确认隔离的非生产数据库，生产 Supabase 地址默认拒绝。

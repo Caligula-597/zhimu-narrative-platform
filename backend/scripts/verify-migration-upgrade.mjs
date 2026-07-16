@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import pg from "pg";
 import "dotenv/config";
 import { migrationChecksum, validateMigrationFilenames } from "./migration-integrity.mjs";
+import { assertSafeDatabaseUrlForDestructiveOps } from "./lib/assert-safe-database-url.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.join(here, "..", "migrations");
@@ -88,6 +89,7 @@ if (!sourceUrl) {
   console.error("DATABASE_URL is required");
   process.exit(1);
 }
+assertSafeDatabaseUrlForDestructiveOps(sourceUrl, { opName: "verify-migration-upgrade" });
 
 requireCli("psql");
 

@@ -3,11 +3,16 @@ import fs from "node:fs/promises";
 import crypto from "node:crypto";
 import { pool } from "../src/db.js";
 import { FIXTURE } from "./fixture-constants.mjs";
+import { assertSafeDatabaseUrlForTestWrites } from "./lib/assert-safe-database-url.mjs";
 
 const cleanup = process.argv.includes("--cleanup");
 const outArg = process.argv.find((value) => value.startsWith("--out="));
 const out = outArg?.slice("--out=".length) || "";
 const EMAIL_PATTERN = "perf-player-%@zhimu.local";
+
+assertSafeDatabaseUrlForTestWrites(process.env.DATABASE_URL, {
+  opName: "player-home performance fixture"
+});
 
 async function cleanupUsers(client) {
   const result = await client.query(`DELETE FROM users WHERE email LIKE $1 RETURNING id`, [EMAIL_PATTERN]);

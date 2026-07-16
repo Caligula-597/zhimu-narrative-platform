@@ -10,6 +10,7 @@
  */
 import pg from "pg";
 import "dotenv/config";
+import { assertSafeDatabaseUrlForDestructiveOps } from "./lib/assert-safe-database-url.mjs";
 
 const { Client } = pg;
 const TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions"];
@@ -31,6 +32,7 @@ async function main() {
     console.error("DATABASE_URL is required");
     process.exit(1);
   }
+  assertSafeDatabaseUrlForDestructiveOps(databaseUrl, { opName: "verify-backup-restore-managed" });
 
   const schema = `zhimu_drill_${Date.now()}`;
   const startedAt = new Date().toISOString();

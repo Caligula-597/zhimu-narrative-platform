@@ -91,6 +91,10 @@ const invariants = [
   ["backend/src/logger-config.js", ".split(\"?\")[0]", "request logs must strip sensitive query strings"],
   ["backend/src/deepseek-client.js", "assertSafeOutboundHttpsUrl", "user LLM endpoints must be checked for SSRF"],
   ["backend/src/deepseek-client.js", "redirect: \"manual\"", "LLM redirects must not bypass the outbound URL policy"],
+  ["backend/test/hooks.mjs", "assertSafeDatabaseUrlForTestWrites", "test fixture bootstrap must reject production databases"],
+  ["backend/scripts/player-home-performance-fixture.mjs", "assertSafeDatabaseUrlForTestWrites", "performance fixtures must reject production databases"],
+  ["backend/scripts/verify-migration-upgrade.mjs", "assertSafeDatabaseUrlForDestructiveOps", "migration drills must reject production databases"],
+  ["backend/scripts/verify-backup-restore-managed.mjs", "assertSafeDatabaseUrlForDestructiveOps", "managed restore drills must reject production databases"],
   ["backend/.env.production.example", "CSP_MODE=enforce", "production CSP must be enforced"],
   ["backend/.env.production.example", "TRUSTED_TYPES_ENFORCE=true", "production Trusted Types must be enforced"],
   ["backend/.env.production.example", "ALLOW_DEMO_USER_HEADER=false", "production demo identity bypass must be disabled"]
