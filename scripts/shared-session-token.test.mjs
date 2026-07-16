@@ -76,3 +76,17 @@ test("session token store suppresses duplicate local notifications", () => {
   store.clear();
   assert.equal(changes.length, 2);
 });
+
+test("session token store preserves the invalidation source", () => {
+  const map = new Map([["test-token", "expired"]]);
+  const storage = {
+    getItem: (key) => map.get(key) || null,
+    setItem: (key, value) => map.set(key, value),
+    removeItem: (key) => map.delete(key)
+  };
+  const store = createSessionTokenStore("test-token", storage, null);
+  const changes = [];
+  store.subscribe((change) => changes.push(change));
+  store.clear("rejected");
+  assert.deepEqual(changes, [{ token: "", previousToken: "expired", source: "rejected" }]);
+});

@@ -42,7 +42,7 @@ export async function openSseStream({
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    const error = mapHttpError?.(response, payload)
+    const error = mapHttpError?.(response, payload, { headers: requestHeaders })
       || Object.assign(new Error(payload.error || payload.message || `SSE ${response.status}`), {
         code: payload.code,
         status: response.status

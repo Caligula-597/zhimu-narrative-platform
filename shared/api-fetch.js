@@ -41,6 +41,7 @@ export function createAbortTimer(timeoutMs) {
  * @property {(error: Error, ctx: { timeoutMs: number, method: string, path: string }) => Error} [mapTransportError]
  * @property {(path: string, payload: Record<string, unknown>, response: Response) => void} [afterSuccess]
  * @property {(path: string, options: object, error: Error, attempt: number) => Promise<unknown>|null|undefined} [onHttpError]
+ * @property {() => unknown} [getRequestState] Snapshot client state for stale-response protection.
  */
 
 /**
@@ -55,7 +56,8 @@ export function createApiFetch(config) {
     mapHttpError,
     mapTransportError = defaultTransportError,
     afterSuccess,
-    onHttpError
+    onHttpError,
+    getRequestState = () => undefined
   } = config;
 
   /**
@@ -64,6 +66,7 @@ export function createApiFetch(config) {
    * @param {number} [attempt=0]
    */
   async function request(path, options = {}, attempt = 0) {
+    const requestState = getRequestState();
     const method = options.method || "GET";
     const timeoutMs = options.timeoutMs ?? defaultTimeoutMs;
     const headers = {
@@ -88,9 +91,13 @@ export function createApiFetch(config) {
       const payload = await parseJsonResponse(response);
       if (!response.ok) {
         const err =
-          mapHttpError?.(response, payload, { method, path }) ??
+          mapHttpError?.(response, payload, { method, path, headers, options, attempt, requestState }) ??
           defaultHttpError(response, payload, method, path);
-        const retry = await onHttpError?.(path, options, err, attempt);
+        const retry = await onHttpError?.(path, options, err, attempt, {
+          method,
+          headers,
+          requestState
+        });
         if (retry !== undefined && retry !== null) return retry;
         throw err;
       }

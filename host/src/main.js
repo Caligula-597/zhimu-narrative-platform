@@ -81,7 +81,9 @@ app.addEventListener("click", async (event) => {
 });
 
 subscribeSessionToken((change) => {
-  if (change.source === "storage") void lifecycle.handleExternalSessionChange(change.token);
+  if (change.source === "storage" || change.source === "rejected") {
+    void lifecycle.handleExternalSessionChange(change.token);
+  }
 });
 
 void lifecycle.bootstrap();

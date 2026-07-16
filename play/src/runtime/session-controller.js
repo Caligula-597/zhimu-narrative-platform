@@ -27,7 +27,7 @@ export function createSessionController({ api, state, clearSession, getSessionTo
         if (getSessionToken() === tokenAtStart) state.user = user;
         return state.user;
       } catch (error) {
-        if (error.status === 401 && getSessionToken() === tokenAtStart) {
+        if (error.status === 401 && !error.staleCredential && getSessionToken() === tokenAtStart) {
           clearSession();
           state.user = null;
         }

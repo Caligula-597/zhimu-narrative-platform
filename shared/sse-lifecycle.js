@@ -103,7 +103,7 @@ export function createSseLifecycle({
     })).catch(async (error) => {
       if (signal.aborted || currentGeneration !== generation) return;
       onError(error, { phase: "stream" });
-      if (error?.status === 401) {
+      if (error?.status === 401 && !error?.staleCredential) {
         active = false;
         await onAuthLost(error);
       }

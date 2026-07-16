@@ -396,7 +396,7 @@ app.addEventListener("click", async (event) => {
 
 let externalSessionGeneration = 0;
 subscribeSessionToken(async (change) => {
-  if (change.source !== "storage") return;
+  if (change.source !== "storage" && change.source !== "rejected") return;
   const generation = ++externalSessionGeneration;
   if (!change.token) {
     handleAuthLost();

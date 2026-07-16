@@ -86,3 +86,27 @@ test("SSE lifecycle coalesces polling while a fallback refresh is in flight", as
   releasePoll();
   lifecycle.stop();
 });
+
+test("SSE lifecycle reconnects a stale-credential 401 without logging out the new session", async () => {
+  let authLost = false;
+  let errors = 0;
+  const lifecycle = createSseLifecycle({
+    eventTarget: null,
+    reconnectBaseMs: 10000,
+    poll: async () => {},
+    open: async () => {
+      throw Object.assign(new Error("old token rejected"), {
+        status: 401,
+        staleCredential: true
+      });
+    },
+    onAuthLost: () => { authLost = true; },
+    onError: () => { errors += 1; }
+  });
+  lifecycle.start();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(authLost, false);
+  assert.equal(lifecycle.isActive(), true);
+  assert.equal(errors, 1);
+  lifecycle.stop();
+});

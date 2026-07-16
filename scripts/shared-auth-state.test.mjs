@@ -5,7 +5,8 @@ import {
   authProbeFailureStatus,
   isSessionRejection,
   normalizeAuthenticatedUser,
-  revokeSessionForLogout
+  revokeSessionForLogout,
+  shouldInvalidateSessionForUnauthorized
 } from "../shared/auth-state.js";
 
 test("auth payload normalization accepts flat and nested users", () => {
@@ -33,4 +34,20 @@ test("only an explicit 401 invalidates a known session", () => {
   assert.equal(authProbeFailureStatus({ status: 401 }), "anonymous");
   assert.equal(authProbeFailureStatus({ status: 500 }), "unavailable");
   assert.equal(authProbeFailureStatus({ code: "NETWORK_ERROR" }), "unavailable");
+});
+
+test("credential-attempt 401s do not revoke an existing session", () => {
+  for (const path of [
+    "/auth/login",
+    "/auth/register",
+    "/auth/guest",
+    "/auth/forgot-password",
+    "/auth/reset-password",
+    "/auth/verify-email",
+    "https://app.example.com/api/auth/oauth/complete"
+  ]) {
+    assert.equal(shouldInvalidateSessionForUnauthorized(path), false, path);
+  }
+  assert.equal(shouldInvalidateSessionForUnauthorized("/auth/me"), true);
+  assert.equal(shouldInvalidateSessionForUnauthorized("/worlds"), true);
 });

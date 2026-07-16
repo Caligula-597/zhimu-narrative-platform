@@ -26,12 +26,19 @@ import { userStore } from "../state/index.js";
     credentialVersion += 1;
   }
 
-function markLoggedOut() {
-  cookieSessionActive = false;
-  credentialVersion += 1;
-  try { localStorage.removeItem(LEGACY_KEY); } catch { /* storage may be unavailable */ }
-  if (typeof window !== "undefined") userStore.set({ currentUser: null });
-}
+  function discardLegacyToken() {
+    if (!legacyToken()) return false;
+    try { localStorage.removeItem(LEGACY_KEY); } catch { return false; }
+    credentialVersion += 1;
+    return true;
+  }
+
+  function markLoggedOut() {
+    cookieSessionActive = false;
+    credentialVersion += 1;
+    try { localStorage.removeItem(LEGACY_KEY); } catch { /* storage may be unavailable */ }
+    if (typeof window !== "undefined") userStore.set({ currentUser: null });
+  }
 
   function authHeaders(extra = {}) {
     const headers = { ...extra };
@@ -48,6 +55,7 @@ function markLoggedOut() {
     isAuthenticated,
     markAuthenticated,
     markLoggedOut,
+    discardLegacyToken,
     authHeaders,
     withCredentials,
     legacyToken,

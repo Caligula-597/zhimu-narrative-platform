@@ -81,6 +81,35 @@ test("createApiFetch preserves custom mapped HTTP status", async () => {
   }
 });
 
+test("createApiFetch gives error handlers the request-start snapshot", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: false,
+    status: 401,
+    json: async () => ({ error: "expired" })
+  });
+  let version = 7;
+  let observed;
+  try {
+    const { request } = createApiFetch({
+      baseUrl: "http://test/api",
+      getRequestState: () => ({ version }),
+      getHeaders: () => ({ authorization: "Bearer old" }),
+      onHttpError(_path, _options, _error, _attempt, meta) {
+        observed = meta;
+        return null;
+      }
+    });
+    const pending = request("/auth/me");
+    version = 8;
+    await assert.rejects(pending);
+    assert.equal(observed.requestState.version, 7);
+    assert.equal(observed.headers.authorization, "Bearer old");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("extractAuthToken reads login token", () => {
   assert.equal(extractAuthToken("/auth/login", { token: "abc" }), "abc");
   assert.equal(extractAuthToken("/worlds", { token: "abc" }), undefined);

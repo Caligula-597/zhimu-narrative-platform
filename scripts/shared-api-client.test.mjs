@@ -94,3 +94,92 @@ test("platform SSE transport drops events with invalid contract payloads", async
     { type: "plaza.post_created", payload: { postId: "post-1" } }
   ]);
 });
+
+test("a late 401 cannot clear a newer bearer token", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  let release;
+  let token = "old";
+  const clears = [];
+  globalThis.fetch = async () => new Promise((resolve) => { release = resolve; });
+  const client = createPortalApiClient({
+    baseUrl: "http://test/api",
+    tokenStore: {
+      bearerHeaders: () => token ? { authorization: `Bearer ${token}` } : {},
+      set(value) { token = value; },
+      clear(source) { clears.push(source); token = ""; }
+    },
+    clearTokenOn401: true
+  });
+
+  const oldRequest = client.request("/auth/me");
+  await Promise.resolve();
+  token = "new";
+  release(new Response(JSON.stringify({ error: "expired" }), {
+    status: 401,
+    headers: { "content-type": "application/json" }
+  }));
+  await assert.rejects(oldRequest, (error) => error.staleCredential === true && !error.sessionRejected);
+  assert.equal(token, "new");
+  assert.deepEqual(clears, []);
+});
+
+test("a late SSE handshake 401 is marked stale for safe reconnect", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  let release;
+  let token = "old";
+  let clears = 0;
+  globalThis.fetch = async () => new Promise((resolve) => { release = resolve; });
+  const client = createPortalApiClient({
+    baseUrl: "http://test/api",
+    tokenStore: {
+      bearerHeaders: () => token ? { authorization: `Bearer ${token}` } : {},
+      set(value) { token = value; },
+      clear() { clears += 1; token = ""; }
+    },
+    clearTokenOn401: true
+  });
+
+  const oldStream = client.streamPlatformEvents({ onEvent() {} });
+  await Promise.resolve();
+  token = "new";
+  release(new Response(JSON.stringify({ error: "expired" }), {
+    status: 401,
+    headers: { "content-type": "application/json" }
+  }));
+  await assert.rejects(oldStream, (error) => error.status === 401 && error.staleCredential === true);
+  assert.equal(token, "new");
+  assert.equal(clears, 0);
+});
+
+test("a current protected-route 401 clears once, but a failed login does not", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(JSON.stringify({ error: "unauthorized" }), {
+    status: 401,
+    headers: { "content-type": "application/json" }
+  });
+  let token = "current";
+  const clears = [];
+  const client = createPortalApiClient({
+    baseUrl: "http://test/api",
+    tokenStore: {
+      bearerHeaders: () => token ? { authorization: `Bearer ${token}` } : {},
+      set(value) { token = value; },
+      clear(source) { clears.push(source); token = ""; }
+    },
+    clearTokenOn401: true
+  });
+
+  const protectedResults = await Promise.allSettled([client.request("/worlds"), client.request("/platform/site")]);
+  assert.deepEqual(clears, ["rejected"]);
+  assert.equal(protectedResults.some((result) => result.status === "rejected" && result.reason.sessionRejected), true);
+  token = "still-signed-in";
+  await assert.rejects(
+    client.request("/auth/login", { method: "POST", body: {} }),
+    (error) => !error.sessionRejected
+  );
+  assert.equal(token, "still-signed-in");
+  assert.deepEqual(clears, ["rejected"]);
+});

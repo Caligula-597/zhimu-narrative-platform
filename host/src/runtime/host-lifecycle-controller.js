@@ -174,7 +174,6 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       render();
       if (withToast) showToast(`运行房已刷新：${state.rooms.length} 个`);
     } catch (error) {
-      if (error.status === 401) state.user = null;
       showToast(formatApiError(error, "无法加载平行房"));
     } finally {
       setBusy(false);
@@ -206,7 +205,6 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       showToast(`运行房已创建：${room.invite_code || inviteCode}`);
       await enterConsole();
     } catch (error) {
-      if (error.status === 401) state.user = null;
       showToast(formatApiError(error, "创建运行房失败"));
     } finally {
       setBusy(false);

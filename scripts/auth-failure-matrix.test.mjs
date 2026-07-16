@@ -70,12 +70,13 @@ test("concurrent HTTP 401 responses invalidate a portal token once", async (cont
     headers: { "content-type": "application/json" }
   });
   let clears = 0;
+  let token = "expired";
   const client = createPortalApiClient({
     baseUrl: "http://test/api",
     tokenStore: {
-      bearerHeaders: () => ({ authorization: "Bearer expired" }),
-      set() {},
-      clear() { clears += 1; }
+      bearerHeaders: () => token ? { authorization: `Bearer ${token}` } : {},
+      set(value) { token = value; },
+      clear() { clears += 1; token = ""; }
     },
     clearTokenOn401: true
   });
@@ -93,15 +94,19 @@ test("all three portals subscribe to cross-tab auth changes", () => {
   const host = fs.readFileSync(path.join(root, "host/src/main.js"), "utf8");
   const player = fs.readFileSync(path.join(root, "play/src/main.js"), "utf8");
   const playerApi = fs.readFileSync(path.join(root, "play/src/api.js"), "utf8");
+  const hostLifecycle = fs.readFileSync(path.join(root, "host/src/runtime/host-lifecycle-controller.js"), "utf8");
   assert.match(creator, /addEventListener\?\.\("storage"/);
   assert.match(host, /subscribeSessionToken/);
   assert.match(player, /subscribeSessionToken/);
   assert.match(playerApi, /clearTokenOn401:\s*true/);
+  assert.match(host, /change\.source === "rejected"/);
+  assert.match(player, /change\.source !== "rejected"/);
+  assert.doesNotMatch(hostLifecycle, /error\.status === 401\) state\.user = null/);
 });
 
 test("auth failure matrix documentation keeps every release scenario", () => {
   const doc = fs.readFileSync(path.join(root, "docs/AUTH_FAILURE_MATRIX_ZH.md"), "utf8");
-  for (let index = 1; index <= 10; index += 1) {
+  for (let index = 1; index <= 12; index += 1) {
     assert.match(doc, new RegExp(`AUTH-${String(index).padStart(2, "0")}`));
   }
 });

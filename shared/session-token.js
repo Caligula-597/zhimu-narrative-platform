@@ -76,11 +76,11 @@ export function createSessionTokenStore(
     get() {
       return read();
     },
-    set(token) {
-      write(token);
+    set(token, source = "local") {
+      write(token, source);
     },
-    clear() {
-      write("");
+    clear(source = "local") {
+      write("", source);
     },
     bearerHeaders() {
       const token = read();

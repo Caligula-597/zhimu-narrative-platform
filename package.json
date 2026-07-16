@@ -73,7 +73,7 @@
     "test:ui-semantics": "node --test scripts/ui-semantics.test.mjs",
     "test:runtime-stores": "node --test scripts/runtime-stores.test.mjs",
     "test:sse-matrix": "node --test scripts/shared-sse.test.mjs scripts/shared-sse-lifecycle.test.mjs scripts/sse-fault-matrix.test.mjs backend/test/sse-replay-subscription.test.js backend/test/sse-response.test.js backend/test/room-event-audience.test.js",
-    "test:auth-matrix": "node --test scripts/shared-session-token.test.mjs scripts/shared-auth-state.test.mjs scripts/auth-session.test.mjs scripts/auth-failure-matrix.test.mjs host/test/auth-state.test.mjs",
+    "test:auth-matrix": "node --test scripts/shared-session-token.test.mjs scripts/shared-auth-state.test.mjs scripts/auth-session.test.mjs scripts/session-auth-race.test.mjs scripts/auth-failure-matrix.test.mjs host/test/auth-state.test.mjs play/test/auth-startup.test.mjs",
     "test:trusted-types": "node --test scripts/shared-safe-dom.test.mjs scripts/writer-modal-templates.test.mjs scripts/director-modal-templates.test.mjs scripts/trusted-types-contract.test.mjs backend/test/security-headers.test.js",
     "test:clue-flow": "node --test scripts/clue-flow-view.test.mjs",
     "test:pipeline-session": "node --test scripts/pipeline-wizard-session.test.mjs",

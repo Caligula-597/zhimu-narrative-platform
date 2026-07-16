@@ -20,6 +20,14 @@ export function authProbeFailureStatus(error) {
   return isSessionRejection(error) ? "anonymous" : "unavailable";
 }
 
+const CREDENTIAL_ATTEMPT_PATH = /^\/auth\/(login|register|guest|forgot-password|reset-password|verify-email|oauth\/complete)(?:\/|$)/;
+
+/** A failed login/code/reset attempt must not revoke an already active session. */
+export function shouldInvalidateSessionForUnauthorized(path) {
+  const normalized = String(path || "").replace(/^https?:\/\/[^/]+\/api/, "");
+  return !CREDENTIAL_ATTEMPT_PATH.test(normalized);
+}
+
 /** Treat an already-expired session as a successful logout. */
 export async function revokeSessionForLogout(requestLogout) {
   try {

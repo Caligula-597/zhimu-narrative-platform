@@ -4,6 +4,7 @@
 import { createApiFetch, extractAuthToken } from "./api-fetch.js";
 import { openSseStream } from "./sse-client.js";
 import { validatePlatformEvent } from "./contracts/platform-events.js";
+import { shouldInvalidateSessionForUnauthorized } from "./auth-state.js";
 
 /**
  * Resolve `/api` base for Vite portals (play.* / host.* â†’ app.* in prod).
@@ -68,7 +69,7 @@ export function createPortalJsonError(response, payload, fallbackPrefix = "è¯·æ±
 /**
  * @param {Object} config
  * @param {string} config.baseUrl
- * @param {{ bearerHeaders: () => Record<string, string>, set: (token: string) => void, clear?: () => void }} [config.tokenStore]
+ * @param {{ bearerHeaders: () => Record<string, string>, set: (token: string, source?: string) => void, clear?: (source?: string) => void }} [config.tokenStore]
  * @param {() => string|null|undefined} [config.getDemoUserId]
  * @param {(ctx: { options: object }) => Record<string, string>} [config.getHeaders]
  * @param {import("./api-fetch.js").ApiFetchConfig["mapHttpError"]} [config.mapHttpError]
@@ -78,6 +79,7 @@ export function createPortalJsonError(response, payload, fallbackPrefix = "è¯·æ±
  * @param {RequestCredentials} [config.credentials]
  * @param {number} [config.defaultTimeoutMs]
  * @param {boolean} [config.clearTokenOn401]
+ * @param {() => unknown} [config.getRequestState]
  * @returns {PortalApiClient}
  */
 export function createPortalApiClient(config) {
@@ -92,14 +94,20 @@ export function createPortalApiClient(config) {
     afterSuccess,
     credentials = "include",
     defaultTimeoutMs,
-    clearTokenOn401 = false
+    clearTokenOn401 = false,
+    getRequestState
   } = config;
-  let authInvalidated = false;
 
-  function invalidateRejectedToken() {
-    if (!clearTokenOn401 || authInvalidated) return;
-    authInvalidated = true;
-    tokenStore?.clear?.();
+  function invalidateRejectedToken(rejectedAuthorization, path) {
+    if (!clearTokenOn401 || !shouldInvalidateSessionForUnauthorized(path)) {
+      return { invalidated: false, stale: false };
+    }
+    const currentAuthorization = tokenStore?.bearerHeaders?.().authorization || "";
+    if (String(rejectedAuthorization || "") !== currentAuthorization) {
+      return { invalidated: false, stale: true };
+    }
+    tokenStore?.clear?.("rejected");
+    return { invalidated: true, stale: false };
   }
 
   function resolveHeaders(options = {}) {
@@ -121,26 +129,36 @@ export function createPortalApiClient(config) {
       return resolveHeaders(options);
     },
     mapHttpError(response, payload, ctx) {
-      if (response.status === 401) invalidateRejectedToken();
-      return mapHttpError(response, payload, ctx);
+      const rejection = response.status === 401
+        ? invalidateRejectedToken(ctx.headers?.authorization, ctx.path)
+        : { stale: false };
+      const error = mapHttpError(response, payload, ctx);
+      if (rejection.stale && error) error.staleCredential = true;
+      if (rejection.invalidated && error) error.sessionRejected = true;
+      return error;
     },
     mapTransportError,
+    getRequestState,
     onHttpError,
     afterSuccess(path, payload, response) {
       if (tokenStore) {
         const token = extractAuthToken(path, payload);
         if (token) {
           tokenStore.set(token);
-          authInvalidated = false;
         }
       }
       afterSuccess?.(path, payload, response);
     }
   });
 
-  function mapStreamHttpError(response, payload) {
-    if (response.status === 401) invalidateRejectedToken();
-    return mapHttpError(response, payload, { path: response.url, options: { method: "GET" } });
+  function mapStreamHttpError(response, payload, ctx = {}) {
+    const rejection = response.status === 401
+      ? invalidateRejectedToken(ctx.headers?.authorization, response.url)
+      : { stale: false };
+    const error = mapHttpError(response, payload, { path: response.url, options: { method: "GET" } });
+    if (rejection.stale && error) error.staleCredential = true;
+    if (rejection.invalidated && error) error.sessionRejected = true;
+    return error;
   }
 
   return {

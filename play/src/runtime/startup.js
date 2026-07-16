@@ -1,7 +1,7 @@
 export async function runPlayStartup(ctx) {
   const {
     state, api, render, setBusy, setToast, formatApiError, normalizeUser,
-    setSessionToken, clearSession, cleanAuthUrl, loadSessionUser, ensureSession,
+    setSessionToken, cleanAuthUrl, loadSessionUser, ensureSession,
     loadAuthConfig, loadPlatform, loadPublicRooms, loadDmConversations,
     loadPlazaPosts, loadFriends, loadPlazaThread, handleJoinOfficial,
     handleLookupInvite, refreshHome, loadRecapSummary, syncPlatformStream,
@@ -52,8 +52,7 @@ export async function runPlayStartup(ctx) {
     }
   } catch (error) {
     if (!state.error) state.error = formatApiError(error, "Loading failed");
-    if (error.status === 401 || error.status === 403) {
-      clearSession();
+    if (error.sessionRejected) {
       persistRoom("", isUuid);
     }
   } finally {

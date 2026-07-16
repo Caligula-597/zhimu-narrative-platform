@@ -9,6 +9,7 @@ import { friendlyApiError } from "../utils/user-messages.js";
 import { createPortalApiClient } from "../../shared/api-client.js";
 import { createIdempotencyKey as sharedCreateIdempotencyKey } from "../../shared/api-fetch.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
+import { shouldInvalidateSessionForUnauthorized } from "../../shared/auth-state.js";
 
 const runtimeConfig = window.zhimuConfig || {};
 const API_BASE = runtimeConfig.apiBase || "/api";
@@ -121,6 +122,9 @@ export function createIdempotencyKey() {
 
 const apiClient = createPortalApiClient({
   baseUrl: API_BASE,
+  getRequestState() {
+    return { credentialVersion: sessionAuth().getCredentialVersion?.() ?? 0 };
+  },
   getHeaders({ options }) {
     const { userId: explicitUserId, headers: extraHeaders = {} } = options;
     const userId = explicitUserId ?? (demoMode ? demoContext.hostUserId : undefined);
@@ -164,11 +168,22 @@ const apiClient = createPortalApiClient({
       else markSessionFromResponse(payload);
     }
   },
-  async onHttpError(path, options, err, attempt) {
-    if (err.status === 401 && attempt === 0 && sessionAuth().isAuthenticated?.()) {
-      sessionAuth().markLoggedOut?.();
-      return apiClient.request(path, options, attempt + 1);
+  async onHttpError(path, options, err, attempt, requestMeta = {}) {
+    if (err.status !== 401 || !shouldInvalidateSessionForUnauthorized(path)) return null;
+    const currentVersion = sessionAuth().getCredentialVersion?.() ?? 0;
+    const requestVersion = requestMeta.requestState?.credentialVersion;
+    if (requestVersion != null && requestVersion !== currentVersion) {
+      const method = options.method || "GET";
+      return attempt === 0 && ["GET", "HEAD"].includes(method)
+        ? apiClient.request(path, options, attempt + 1)
+        : null;
     }
+    if (attempt === 0 && requestMeta.headers?.authorization && sessionAuth().discardLegacyToken?.()) {
+      const payload = await apiClient.request(path, options, attempt + 1);
+      sessionAuth().markAuthenticated?.();
+      return payload;
+    }
+    if (sessionAuth().isAuthenticated?.()) sessionAuth().markLoggedOut?.();
     return null;
   }
 });
