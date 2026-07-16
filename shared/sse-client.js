@@ -2,6 +2,12 @@ import { consumeSseStream } from "./sse.js";
 import { traceRequestHeaders } from "./trace-context.js";
 import { validateRoomEvent } from "./contracts/room-events.js";
 
+/** Keep resume cursors isolated across accounts, rooms and stream classes. */
+export function scopedSseCursorKey(prefix, ...scopes) {
+  const normalizedPrefix = String(prefix || "zhimuSseCursor");
+  return [normalizedPrefix, ...scopes.map((scope) => encodeURIComponent(String(scope || "anonymous")))].join(":");
+}
+
 /** Shared authenticated SSE transport for app, host and play clients. */
 export async function openSseStream({
   url,

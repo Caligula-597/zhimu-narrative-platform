@@ -86,7 +86,7 @@ export function connectPlatformEvents(ctx) {
     open: ({ signal, onConnected }) => api.streamPlatformEvents(async (type, data) => {
       if (type === "__connected__") return onConnected(data);
       await handlePlatformEvent(type, data, ctx);
-    }, signal),
+    }, signal, ctx.getUserId?.()),
     poll: () => runPlatformPoll(ctx),
     reconcile: () => runPlatformPoll(ctx),
     onStatus: setStreamStatus,

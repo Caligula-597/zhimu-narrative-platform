@@ -51,11 +51,17 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     userId: id,
     roleName: text
   }),
-  "room.voice_message_created": schema(["voiceRoomId", "messageId"], { voiceRoomId: id, messageId: id }),
+  "room.voice_message_created": schema(["voiceRoomId", "messageId"], {
+    voiceRoomId: id,
+    messageId: id,
+    audience: enumString(["room", "restricted"]),
+    audienceUserIds: idList
+  }),
   "room.physical_token_event": schema(["tokenId", "tokenCode", "message"], {
     tokenId: id,
     tokenCode,
-    message: text
+    message: text,
+    visibility: enumString(["public", "host"])
   }),
   "room.physical_token_activated": schema(
     ["tokenId", "tokenCode", "contentType", "contentId", "roleSlotId", "effect"],
@@ -107,11 +113,13 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
   "room.vote_updated": schema(["voteId", "action"], { voteId: id, action: shortText }),
   "room.private_action_submitted": schema(["actionId", "actionType"], {
     actionId: id,
-    actionType: enumString(["ask_host", "secret_action", "trade", "promise", "accusation_note"])
+    actionType: enumString(["ask_host", "secret_action", "trade", "promise", "accusation_note"]),
+    roleSlotIds: idList
   }),
   "room.private_action_updated": schema(["actionId", "status"], {
     actionId: id,
-    status: enumString(["seen", "accepted", "rejected", "resolved", "cancelled"])
+    status: enumString(["seen", "accepted", "rejected", "resolved", "cancelled"]),
+    roleSlotIds: idList
   }),
   "room.role_state_updated": schema(["roleSlotId"], { roleSlotId: id }),
   "room.player_task_completed": schema(["taskId", "roleSlotId"], { taskId: id, roleSlotId: id }),

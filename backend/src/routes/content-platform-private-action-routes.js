@@ -50,7 +50,9 @@ export async function registerContentPlatformPrivateActionRoutes(app) {
           body.actionType, membership.role_slot_id]
       );
       queueEvent(roomId, "room.private_action_submitted", {
-        actionId: action.id, actionType: body.actionType
+        actionId: action.id,
+        actionType: body.actionType,
+        roleSlotIds: [membership.role_slot_id, action.target_role_slot_id].filter(Boolean)
       });
     });
     return reply.code(201).send({ action });
@@ -93,7 +95,11 @@ export async function registerContentPlatformPrivateActionRoutes(app) {
            jsonb_build_object('actionId', $4::text, 'status', $5::text))`,
         [roomId, actorId, `秘密行动状态更新为 ${body.status}`, actionId, body.status]
       );
-      queueEvent(roomId, "room.private_action_updated", { actionId, status: body.status });
+      queueEvent(roomId, "room.private_action_updated", {
+        actionId,
+        status: body.status,
+        roleSlotIds: [updated.rows[0].actor_role_slot_id, updated.rows[0].target_role_slot_id].filter(Boolean)
+      });
       return updated.rows[0];
     });
     if (!result) return sendErr(reply, "NOT_FOUND", "Private action not found");

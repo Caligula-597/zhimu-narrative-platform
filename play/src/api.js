@@ -4,6 +4,7 @@ import {
   resolveVitePortalApiBase
 } from "../../shared/api-client.js";
 import { createSessionTokenStore } from "../../shared/session-token.js";
+import { scopedSseCursorKey } from "../../shared/sse-client.js";
 
 const viteEnv = import.meta.env || {};
 const APP_ORIGIN = (viteEnv.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
@@ -16,11 +17,13 @@ const API_BASE = resolveVitePortalApiBase({
 const sessionToken = createSessionTokenStore("zhimuSessionToken");
 
 /** Play 部署在 play.*，API 在 app.*；SameSite=Lax 的 HttpOnly Cookie 不会随跨站 fetch 发送，故始终用 Bearer。 */
-function sseCursorKey(roomId) {
-  return `zhimuPlaySseCursor:${roomId}`;
+function sseCursorKey(roomId, userId) {
+  return scopedSseCursorKey("zhimuPlaySseCursor", roomId, userId);
 }
 
-const PLATFORM_SSE_CURSOR = "zhimuPlayPlatformSseCursor";
+function platformSseCursorKey(userId) {
+  return scopedSseCursorKey("zhimuPlayPlatformSseCursor", userId);
+}
 
 const portal = createPortalApiClient({
   baseUrl: API_BASE,
@@ -179,11 +182,11 @@ export const api = {
       }
     }),
 
-  streamRoomEvents(roomId, onEvent, signal) {
-    return portal.streamRoomEvents({ roomId, onEvent, signal, cursorKey: sseCursorKey(roomId) });
+  streamRoomEvents(roomId, onEvent, signal, userId) {
+    return portal.streamRoomEvents({ roomId, onEvent, signal, cursorKey: sseCursorKey(roomId, userId) });
   },
 
-  streamPlatformEvents(onEvent, signal) {
-    return portal.streamPlatformEvents({ onEvent, signal, cursorKey: PLATFORM_SSE_CURSOR });
+  streamPlatformEvents(onEvent, signal, userId) {
+    return portal.streamPlatformEvents({ onEvent, signal, cursorKey: platformSseCursorKey(userId) });
   }
 };

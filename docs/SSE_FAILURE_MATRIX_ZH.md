@@ -18,5 +18,8 @@
 | SSE-12 | 多标签页共享 localStorage | 每条连接固定使用发请求时的游标；其他标签推进存储不会吞掉本标签事件 | `shared-sse.test.mjs` |
 | SSE-13 | localStorage 被禁用 | 实时事件继续工作，游标持久化降级为 best-effort | `shared-sse.test.mjs` |
 | SSE-14 | fallback 回调自身失败或请求堆积 | 断线观察器失败不打断重连；轮询保持 single-flight | `shared-sse-lifecycle.test.mjs` |
+| SSE-15 | 同一浏览器切换账号/角色 | 房间流和平台流游标必须按已认证用户隔离，不能继承其他账号的 Last-Event-ID | `sse-fault-matrix.test.mjs` |
+| SSE-16 | 同房间定向或私密事件 | Host 可接收完整事件；Player 只能接收公开事件或自己的角色/用户受众，隐藏事件以无内容 heartbeat 推进游标 | `room-event-audience.test.js` |
+| SSE-17 | 被踢、登出或服务端会话撤销 | 被踢玩家收到终止事件后立即断流；所有长连接最多 5 分钟强制重连并重新执行 HTTP 认证 | `room-event-audience.test.js`、`sse-response.test.js` |
 
 发布门槛：共享解析与生命周期测试、后端 replay 测试、三端接线矩阵、事件契约漂移检查必须同时通过。长时间断网和多实例 PostgreSQL LISTEN/NOTIFY 演练保留在发布候选环境执行。

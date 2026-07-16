@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolveSseMaxBufferedBytes, writeSseEvent } from "../src/sse-response.js";
+import {
+  resolveSseMaxBufferedBytes,
+  resolveSseMaxConnectionAgeMs,
+  writeSseEvent
+} from "../src/sse-response.js";
 
 function fakeResponse(initialLength = 0) {
   return {
@@ -20,6 +24,13 @@ test("SSE buffer configuration is bounded", () => {
   assert.equal(resolveSseMaxBufferedBytes(undefined), 1024 * 1024);
   assert.equal(resolveSseMaxBufferedBytes("65536"), 65536);
   assert.equal(resolveSseMaxBufferedBytes("0"), 1024 * 1024);
+});
+
+test("SSE connection age forces periodic authentication without unsafe values", () => {
+  assert.equal(resolveSseMaxConnectionAgeMs(undefined), 300_000);
+  assert.equal(resolveSseMaxConnectionAgeMs("30000"), 30_000);
+  assert.equal(resolveSseMaxConnectionAgeMs("1000"), 300_000);
+  assert.equal(resolveSseMaxConnectionAgeMs("7200000"), 300_000);
 });
 
 test("writeSseEvent formats one frame and rejects slow consumers before buffering", () => {

@@ -83,11 +83,25 @@ export async function registerVoiceRoutes(app) {
         [voiceRoomId, actorId, body]
       );
       const message = result.rows[0];
-      const room = await client.query(`SELECT room_id FROM voice_rooms WHERE id = $1`, [voiceRoomId]);
-      if (room.rowCount) queueEvent(room.rows[0].room_id, "room.voice_message_created", {
-        voiceRoomId,
-        messageId: message.id
-      });
+      const room = await client.query(
+        `SELECT vr.room_id, vr.room_type,
+                COALESCE(array_agg(vrm.user_id) FILTER (WHERE vrm.user_id IS NOT NULL), '{}') AS audience_user_ids
+         FROM voice_rooms vr
+         LEFT JOIN voice_room_members vrm
+           ON vrm.voice_room_id = vr.id AND vr.room_type <> 'public'
+         WHERE vr.id = $1
+         GROUP BY vr.id, vr.room_id, vr.room_type`,
+        [voiceRoomId]
+      );
+      if (room.rowCount) {
+        const isPublic = room.rows[0].room_type === "public";
+        queueEvent(room.rows[0].room_id, "room.voice_message_created", {
+          voiceRoomId,
+          messageId: message.id,
+          audience: isPublic ? "room" : "restricted",
+          audienceUserIds: isPublic ? [] : room.rows[0].audience_user_ids
+        });
+      }
       return message;
     });
     return reply.code(201).send({ id: row.id, body: row.body, created_at: row.created_at });

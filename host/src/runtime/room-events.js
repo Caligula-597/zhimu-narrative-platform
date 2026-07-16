@@ -136,7 +136,7 @@ export function connectRoomEvents() {
     open: ({ signal, onConnected }) => api.streamRoomEvents(roomId, async (type, payload) => {
       if (type === "__connected__") return onConnected(payload);
       await handleRoomEvent(type, payload);
-    }, signal),
+    }, signal, state.user?.id),
     poll: () => state.view === "console" && getRoomId() === roomId ? refreshDirectorPoll() : undefined,
     reconcile: () => refreshDirectorPoll(),
     onStatus: (status) => {

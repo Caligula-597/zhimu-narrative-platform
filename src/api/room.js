@@ -31,7 +31,7 @@ export function patchRoomSettings(settings, roomId = demoContext.roomId) {
  * SSE via fetch (supports Bearer / x-user-id). onEvent(type, data); type "__connected__" on open.
  */
 export function streamRoomEvents(roomId, onEvent, signal, userId = demoContext.hostUserId) {
-  const cursorKey = sseCursorKey(roomId);
+  const cursorKey = sseCursorKey(roomId, userId);
   return openSseStream({
     url: `${API_BASE}/rooms/${roomId}/events/stream`,
     headers: authHeaders(userId),

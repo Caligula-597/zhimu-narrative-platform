@@ -164,7 +164,7 @@ export function connectRoomEvents(roomId, ctx) {
     open: ({ signal, onConnected }) => api.streamRoomEvents(roomId, async (type, data) => {
       if (type === "__connected__") return onConnected(data);
       await handleRoomEvent(type, data, ctx);
-    }, signal),
+    }, signal, ctx.getUserId?.()),
     poll: () => {
       if (ctx.getView() !== "game" || ctx.getRoomId() !== roomId) return;
       return ctx.onRefresh();

@@ -329,7 +329,8 @@ async function applyTokenContent(client, roomId, roleSlotId, token, queueEvent) 
     queueEvent(roomId, "room.physical_token_event", {
       tokenId: token.id,
       tokenCode: token.token_code,
-      message
+      message,
+      visibility
     });
     return { effect: "event", message };
   }

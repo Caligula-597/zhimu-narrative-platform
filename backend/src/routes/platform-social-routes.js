@@ -6,7 +6,7 @@ import {
 } from "../platform-event-bus.js";
 import { fetchPlatformEventsAfter, getLatestPlatformEventId } from "../platform-event-journal.js";
 import { createReplaySubscription } from "../sse-replay-subscription.js";
-import { writeSseEvent } from "../sse-response.js";
+import { resolveSseMaxConnectionAgeMs, writeSseEvent } from "../sse-response.js";
 import {
   createPlazaPost,
   createPlazaReply,
@@ -311,16 +311,20 @@ export async function registerPlatformSocialRoutes(app) {
     let closed = false;
     let unsubscribe = () => {};
     let heartbeat = null;
+    let maxAgeTimer = null;
     const cleanup = (endResponse = false) => {
       if (closed) return;
       closed = true;
       if (heartbeat) clearInterval(heartbeat);
+      if (maxAgeTimer) clearTimeout(maxAgeTimer);
       unsubscribe();
       if (endResponse && !reply.raw.destroyed && !reply.raw.writableEnded) reply.raw.end();
     };
 
     request.raw.on("close", cleanup);
     request.raw.on("error", cleanup);
+    maxAgeTimer = setTimeout(() => cleanup(true), resolveSseMaxConnectionAgeMs());
+    maxAgeTimer.unref?.();
 
     const subscription = createReplaySubscription({
       lastEventId: request.headers["last-event-id"],

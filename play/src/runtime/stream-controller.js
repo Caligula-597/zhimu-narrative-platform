@@ -73,6 +73,7 @@ export function createPlayStreamController({
 
   platformEventCtx = {
     hasSession: () => Boolean(getSessionToken() || state.user?.id),
+    getUserId: () => state.user?.id || "",
     getView: () => state.view,
     getPlazaPostId: () => state.plazaPostId,
     getDmConversationId: () => state.dmConversationId,

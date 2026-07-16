@@ -8,6 +8,7 @@
 import { friendlyApiError } from "../utils/user-messages.js";
 import { createPortalApiClient } from "../../shared/api-client.js";
 import { createIdempotencyKey as sharedCreateIdempotencyKey } from "../../shared/api-fetch.js";
+import { scopedSseCursorKey } from "../../shared/sse-client.js";
 
 const runtimeConfig = window.zhimuConfig || {};
 const API_BASE = runtimeConfig.apiBase || "/api";
@@ -174,8 +175,8 @@ const apiClient = createPortalApiClient({
 
 export const request = apiClient.request;
 
-export function sseCursorKey(roomId) {
-  return `zhimuSseCursor:${roomId}`;
+export function sseCursorKey(roomId, userId) {
+  return scopedSseCursorKey("zhimuSseCursor", roomId || "unknown", userId);
 }
 
 export function opsToken() {

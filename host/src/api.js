@@ -6,6 +6,7 @@ import {
   resolveVitePortalApiBase
 } from "../../shared/api-client.js";
 import { defaultSessionTokenStore } from "../../shared/session-token.js";
+import { scopedSseCursorKey } from "../../shared/sse-client.js";
 
 export { getSessionToken, setSessionToken };
 
@@ -18,8 +19,8 @@ const API_BASE = resolveVitePortalApiBase({
   dev: viteEnv.DEV
 });
 
-function sseCursorKey(roomId) {
-  return `zhimuHostSseCursor:${roomId}`;
+function sseCursorKey(roomId, userId) {
+  return scopedSseCursorKey("zhimuHostSseCursor", roomId, userId);
 }
 
 const portal = createPortalApiClient({
@@ -153,12 +154,12 @@ export const api = {
   applyHostSegmentRemedy: (remedyId) =>
     request(roomPath(`/host/segment-remedies/${remedyId}/apply`), { method: "POST", body: {} }),
 
-  streamRoomEvents(roomId, onEvent, signal) {
+  streamRoomEvents(roomId, onEvent, signal, userId) {
     return portal.streamRoomEvents({
       roomId,
       onEvent,
       signal,
-      cursorKey: sseCursorKey(roomId)
+      cursorKey: sseCursorKey(roomId, userId)
     });
   }
 };
