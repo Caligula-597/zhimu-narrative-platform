@@ -1,6 +1,6 @@
 # 上市路线图（后端优先 · 分 Part 推进）
 
-最后更新：2026-07-02
+最后更新：2026-07-16
 
 > 官方示例：创作者上传并通过审核的模板剧本（`OFFICIAL_EXAMPLE_WORLD_ID`）。  
 > **商业上线任务分级**见 [LAUNCH_PRIORITIES_ZH.md](./LAUNCH_PRIORITIES_ZH.md)（P0–P3，与 Part 编号互补）。
@@ -20,11 +20,11 @@
 | 1 | 权限与成员元数据 | **完成** | `membership-labels.js`、中文 403、`GET /worlds` enrich |
 | 2 | 官方示例 + 首次路径 | **部分完成** | `OFFICIAL_EXAMPLE_WORLD_ID`、`/api/platform/official-example`、onboarding strip；见 P0-01～03 |
 | 3 | 创作者闭环 | **完成** | 向导 bootstrap、模板库、发布前检查、公开库就绪门槛 |
-| 4 | 主持工作流 | 待做 | 事件上下文 payload |
+| 4 | 主持工作流 | **完成基础闭环** | 事件上下文、规则管理、投票/私密行动、干预与同步已接；现场产品体验继续迭代 |
 | 5 | 运营审核 | **完成** | `GET/POST /api/ops/catalog/reviews/*` |
 | 6 | 官网内测 | **完成** | 内测申请、Ops 审批、`GET /api/platform/site` 整站 bootstrap |
-| 7 | 法务运维 | 待做 | 监控、上线 checklist |
-| 8 | 玩家端 | **大部分完成** | 独立 `play/` 子域（5174）；广场/好友/私信/游戏内 SSE；P0-04～05 移动与错误态待收口 |
+| 7 | 法务运维 | **部分完成** | 监控、告警、备份/恢复脚本、SLA 草案已有；真实镜像/R2 回滚证据待补 |
+| 8 | 玩家端 | **大部分完成** | 独立 `play/` 子域；广场/好友/私信/游戏内 SSE；首页真实容量证据待补 |
 
 ## 架构治理（横切，A1–A4 + RLS）
 
@@ -35,8 +35,10 @@
 | A1 桥接清理 | **完成** | `zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` |
 | A2 状态分片 | **完成** | 8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js`；`window.zhimuState` Proxy 仅测试/demo 模式条件激活 |
 | A3 API 拆分 | **完成** | 后端按域拆分（account/asset/billing/checkpoint/host/player/rules/studio/world 等） |
-| A4 共享层 | **进行中，阶段 5 完成一批** | `shared/security.js`、`shared/api-error.js`、`shared/sse.js`、`shared/components/collapse.js` 已落地；api-fetch/session-token/tokens 待继续抽 |
+| A4 共享层 | **transport 完成，UI 持续收敛** | 三端共用 API/session/auth/error/SSE/cursor/toast/safe-dom/trace/web-vitals；业务 UI 保持分端 |
 | 后端 RLS | **完成** | `backend/migrations/045_enable_public_rls.sql` 为 44 张表启用 Row-Level Security；测试用 `backend/src/storage/memory-storage.js` |
+| A5 领域服务 | **递减治理中** | 68 个路由模块剩余 143 个直连 DB 点；world/player/schema 大入口已完成拆分 |
+| A6 非功能门禁 | **代码侧完成** | 生产库防误写、SSE/Auth 故障矩阵、Trusted Types、bundle、性能/恢复证据工具进入周期审计 |
 
 ## Part 5 · Ops 公开库审核 API
 
@@ -85,7 +87,7 @@ CLI：`node backend/scripts/approve-catalog-world.mjs <worldId>`（需 pending �
 | GET | `/api/platform/beta` | 表单配置、角色选项、`acceptingApplications` |
 | POST | `/api/platform/beta/apply` | 提交内测申请（限流 5 次/小时/IP） |
 
-Ops 审核见 [ops/BETA_APPLICATIONS.md](./ops/BETA_APPLICATIONS.md)。官网代码约定目录：`site/`（同仓子项目，待宣发开工）。
+Ops 审核见 [ops/BETA_APPLICATIONS.md](./ops/BETA_APPLICATIONS.md)。官网位于 `site/`，已上线真实产品展示、价格/内测入口和 CSP/Trusted Types 安全头。
 
 ## Part 6 · 官网 bootstrap API
 

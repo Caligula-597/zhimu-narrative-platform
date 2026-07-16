@@ -1,5 +1,7 @@
 # 织幕 Alpha 功能矩阵
 
+> **历史快照**：本文保留 Alpha 阶段“真实/演示/待接入”记录。当前功能和风险以 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)、[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) 为准。
+
 > **完整实现状态（后端/前端/未接通/缺陷）见 [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)。**  
 > **中文产品总览见 [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)。**  
 > 本文档为精简版「真实 / 演示 / 待接入」速查表。  

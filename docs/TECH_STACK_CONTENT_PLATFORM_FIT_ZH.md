@@ -1,6 +1,6 @@
 # 技术栈与内容平台愿景适配评估
 
-最后更新：2026-07-06
+最后更新：2026-07-16
 
 ## 一句话结论
 
@@ -14,7 +14,7 @@
 - 原生 ES Modules + Vite 的前端栈轻、快、可控，适合继续快速迭代。
 - 规则引擎、SSE、checkpoint、recap、Matrix 管线已经构成“剧情操作系统”底座。
 
-主要技术短板不是选型错误，而是缺少一个新的中间模型：**Segment 段落单元**。它应该把 Matrix 产物、章节正文、角色视角、规则触发、任务、主持 runbook 和复盘指标统一起来。
+主要技术短板不是选型错误。**Segment 段落单元**、任务、投票、秘密行动、怀疑度、creator analytics 与 run report 的基础模型已经落地；当前缺口是把这些能力稳定编排成一致的创作、主持、玩家流程，并用真实容量与故障证据证明可交付性。
 
 ## 当前技术栈画像
 
@@ -68,7 +68,7 @@
 
 这些都不应该放在前端。当前 Fastify + PostgreSQL + route guards + rule engine 的架构方向是对的。
 
-后续新增的 Segment、Task、Vote、Suspicion、PrivateAction、Analytics 也应以后端为真相源，前端只做交互和展示。
+Segment、Task、Vote、Suspicion、PrivateAction、Analytics 已以后端为真相源，前端只做交互和展示；后续扩展仍须保持这一边界。
 
 ### 2. 三端分离是正确选择
 
@@ -105,20 +105,18 @@ API DTO -> view model -> render -> event handlers -> action -> API/state update
 
 ## 内容平台愿景对应的技术落点
 
-### P0：Segment 段落单元
+### P0：Segment 段落单元（基础已落地）
 
-这是最应该优先补的技术模型。
+现有落点：
 
-建议新增后端能力：
-
-| 能力 | 建议位置 |
+| 能力 | 当前实现 |
 |---|---|
-| Segment schema | PostgreSQL migrations + backend service |
-| Segment CRUD/API | `backend/src/routes/segment-routes.js` 或归入 world/studio routes |
-| Matrix -> Segment 编译 | Matrix import/materialize 脚本或 service |
-| 玩家任务下发 | player routes |
-| 主持 runbook 卡片 | host routes |
-| 段落结束条件 | rule engine + segment service |
+| Segment schema | migration `049_content_platform_runtime.sql` 的 `world_segments` / `world_segment_refs` |
+| Segment CRUD/API | `backend/src/routes/content-platform-segment-routes.js` |
+| Matrix -> Segment 编译 | `world-segments-seed.js` 与 `world-import-service.js` |
+| 玩家任务下发 | player-home service、玩家任务 API 与 Tasks UI |
+| 主持 runbook 卡片 | Host 当前 Segment 任务/runbook 视图 |
+| 段落补救 | `segment_remedies`、Host 查询/应用与 SSE 事件 |
 
 Segment 不应该替代现有 chapters/script_sections/scenes/clues/rules，而应先作为聚合层：
 
@@ -136,11 +134,11 @@ Segment
 
 这样风险较低，也能逐步接住 Matrix 产物。
 
-### P1：投票/指认/秘密行动
+### P1：投票/指认/秘密行动（基础闭环已落地）
 
 这类功能属于运行实例，不属于剧本模板本身。
 
-建议新增：
+当前基础模型：
 
 | 模型 | 说明 |
 |---|---|
@@ -148,7 +146,9 @@ Segment
 | `room_vote_options` | 候选人、地点、答案、自由文本配置 |
 | `room_vote_ballots` | 玩家提交，支持匿名/实名/可改/不可改 |
 | `room_private_actions` | 秘密行动提交，如调查、保护、交换、销毁、询问主持 |
-| `room_accusations` | 指认、证据引用、辩论阶段记录 |
+| 怀疑度/口供 | 玩家怀疑度、口供 API 与 Player/Host 基础 UI；完整辩论编排仍需产品化 |
+
+Host 已可创建、关闭和公布投票，Player 已可投票、提交秘密行动和怀疑度，关键变化通过 SSE 同步。剩余重点是阶段 FSM、证据引用、匿名/改票策略和完整验收。
 
 技术上应复用：
 
@@ -190,12 +190,12 @@ Segment
 | `feedback` | 主持/玩家问题、满意度、卡点 |
 | `rule_executions` | 触发频率、规则异常、自动化有效性 |
 
-建议新增 creator analytics 聚合 API，而不是让前端拼：
+creator analytics 与 run report 聚合 API 已存在；segment 级分析仍需补齐：
 
 ```text
-GET /api/worlds/:worldId/creator-analytics
+GET /api/worlds/:worldId/creator-analytics        # 已实现
 GET /api/worlds/:worldId/segments/:segmentId/analytics
-GET /api/rooms/:roomId/run-report
+GET /api/rooms/:roomId/run-report                 # 已实现
 ```
 
 ### P4：平台化商业能力
@@ -213,16 +213,14 @@ GET /api/rooms/:roomId/run-report
 
 ## 技术债与风险
 
-### 1. 多前端共享层仍偏薄
+### 1. 通用 transport 已完成，领域契约仍需扩展
 
-当前 shared 已有 API、session、toast、status-chip、tokens，但下一阶段三端都会消费 Segment/Task/Vote。
+Creator、Host、Player 已统一复用 API、认证状态、错误转换、SSE 生命周期、受众游标和事件校验；共享层不再是主要断点。下一步应继续扩展：
 
-建议优先抽：
-
-- `shared/api-contracts`：通用 DTO normalizer。
-- `shared/room-events`：SSE event type helpers。
-- `shared/tasks`：任务状态和展示文案 helper。
-- `shared/votes`：投票状态机 helper。
+- 由 Fastify JSON Schema 生成并覆盖更多读写 DTO。
+- Segment/Task/Vote 的领域状态机和展示 normalizer。
+- 官网公开请求的 timeout、CSP 与错误边界。
+- 不把各端业务控制器重新塞回大型 shared UI。
 
 不建议先抽大型 shared UI。业务仍应留在各端。
 
@@ -264,29 +262,15 @@ GET /api/rooms/:roomId/run-report
 
 ## 推荐实施顺序
 
-### 第一阶段：Segment 聚合层
+### 第一阶段：Segment 聚合层（已完成基础迁移）
 
-目标：不大改现有内容模型，先把分散数据聚合成段落视角。
+已有 `world_segments`、refs、导入 seed、CRUD、玩家任务和 Host runbook/补救基础。下一步是补全创作者编辑、段落状态机、end condition 和端到端验收。
 
-交付：
-
-- 数据库 migration：segments 或 world_segments。
-- 后端 service：从 chapter/section/rules/clues/runbook 组装 segment。
-- Matrix 编译：actTasks/runbook/endCondition 写入 segment metadata。
-- 玩家端：任务 Tab 和下一步行动来自 segment。
-- 主持端：当前段落 runbook 卡片。
-
-### 第二阶段：投票和秘密行动
+### 第二阶段：投票和秘密行动（已完成基础闭环）
 
 目标：补齐剧本杀核心博弈闭环。
 
-交付：
-
-- vote schema/API/UI。
-- private action schema/API/UI。
-- SSE 推送和主持控制。
-- rule engine 触发。
-- recap 纳入投票和行动结果。
+已有 vote/private action schema、API、Host/Player UI 与 SSE。下一步是补齐规则副作用、辩论/证据引用、recap 结构化结果和故障矩阵验收。
 
 ### 第三阶段：质量报告
 
@@ -318,9 +302,9 @@ GET /api/rooms/:roomId/run-report
 下一步最关键的技术动作是：
 
 ```text
-新增 Segment 聚合模型，
-把 Matrix 管线产物编译进运行态，
-再在这个模型上补投票、任务、runbook、质量报告和玩后分析。
+把已落地的 Segment、任务、投票和秘密行动收束为稳定阶段流程，
+继续扩大 schema 生成契约和 repository/service 边界，
+再用真实容量、恢复、回滚与用户试玩证据推动商用。
 ```
 
 这样做能最大化复用现有架构，也能避免为了愿景功能引入一套平行系统。

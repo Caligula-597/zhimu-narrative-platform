@@ -1,5 +1,7 @@
 # 织幕前端模块化计划
 
+> 2026-07-16 同步：原计划的入口、状态、API 和懒加载拆分已经完成主体。当前事实见 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)；下文保留迁移设计与事故复盘。
+
 当前前端为静态 HTML + `src/` 模块化脚本。`app.js` 仅负责 bootstrap；API 在 `src/api/client.js`，视图在 `src/views/`。
 
 **产品功能总览**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)
@@ -28,7 +30,7 @@ FRONTEND_MODULE_PLAN.md
 
 ## 框架迁移判断
 
-**2026-06-03 更新**：已引入 **Vite** 作为构建与开发服务器，仍保留 `window.*` 全局命名空间；`frontend/main.js` 按原 `index.html` 顺序 side-effect import。完整 ES module 导出与去全局化留作后续阶段。
+**2026-07-16 更新**：四端已升级为 Vite 8；主应用使用 view registry/runtime facade 和视图动态加载，三大 window 桥已清除。Creator/Host/Player 的 API/Auth/SSE transport 已统一到 `shared/`；少量兼容协调层按收益继续迁移，不再做一次性框架重写。
 
 不要在权限和 API 仍快速变化时硬迁移 React/Vue/Svelte。推荐先完成 Vite 打包 + 原生模块拆分；等玩家、主持、创作者三个视角的接口稳定后，再用同一套模块边界迁移到组件框架。
 

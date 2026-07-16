@@ -1,6 +1,6 @@
 # 分域部署
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 ## 当前标准
 
@@ -12,6 +12,8 @@
 | `getzhimu.com` | Cloudflare Pages | `site/` | 官网 |
 
 不要把根域 `getzhimu.com` 指向 Railway；根域属于官网 Pages。
+
+官网、Play、Host 已进入 `.github/workflows/pages-deploy.yml`，最新 PR 预览部署和安全检查通过。
 
 ## Railway：app + API
 

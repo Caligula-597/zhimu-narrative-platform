@@ -1,6 +1,6 @@
 # 世界、示例与测试桩
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 ## 原则
 
@@ -31,6 +31,8 @@ npm run check:tests
 cd ..
 npx playwright test --list
 ```
+
+发布候选长验收使用隔离数据库/fixture 并执行重复全链路，不能复用开发者本地房间状态；当前入口见 `.github/workflows/release-acceptance.yml`。
 
 ## 生产小示例
 

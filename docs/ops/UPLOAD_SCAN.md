@@ -1,6 +1,6 @@
 # 上传 AV strict
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 ## 模式
 
@@ -43,6 +43,8 @@ UPLOAD_SCAN_CLAMAV_MAX_BYTES=36700160
 - `UPLOAD_SCAN_MODE=strict` 且 webhook/ClamAV 已配置
 
 `strict-builtin-only` 不算生产可信。
+
+代码门禁已具备；真实 webhook/ClamAV scanner secret、故障告警与隔离对象处置仍须在目标环境留证。
 
 ## 触发点
 

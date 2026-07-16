@@ -1,6 +1,6 @@
 # 前端说明
 
-最后更新：2026-07-02
+最后更新：2026-07-16
 
 ## 应用拆分
 
@@ -19,7 +19,7 @@
 
 | 路径 | 说明 |
 |---|---|
-| `src/api/client.js` | REST/SSE API client |
+| `src/api/client.js` | Creator 端 API 适配器，底层复用 `shared/api-client.js`、session 与 SSE 游标策略 |
 | `src/runtime/` | auth、workspace、data、actions、room events |
 | `src/runtime/view-registry.js` | 视图注册表（替代 `zhimuViews` 窗口桥） |
 | `src/runtime/runtime-facade.js` | 运行时门面（替代 `zhimuRuntime`/`zhimuDom` 窗口桥） |
@@ -65,6 +65,10 @@ npm run build
 
 ```powershell
 npm run check:modules
+npm run audit:periodic
+npm run test:auth-matrix
+npm run test:sse-matrix
+npm run test:trusted-types
 npm run build
 node scripts/ui-smoke.js
 npm run test:e2e
@@ -83,17 +87,18 @@ Playwright 默认跨 Chromium/Firefox/WebKit。
 
 ## 当前前端框架风险
 
-三端重复了部分 session、错误展示、表单和 shell 逻辑。短期保留独立应用，长期建议抽：
+Creator、Host、Player 的 API、session、错误转换、SSE 生命周期与游标已经统一到 `shared/`；三端仍保持独立应用和独立视图控制器。当前主要风险变为：
 
-- `shared-api`
-- `shared-ui-tokens`
-- `shared-session`
+- 官网 `site/` 的公开请求仍是独立 transport，需要补超时、错误边界与 CSP 审计。
+- 业务 DTO 虽已逐步生成类型契约，但尚未覆盖全部读写接口。
+- Writer/Director 已移除产品直接 `innerHTML`，后续新模板必须继续通过 Trusted Types 门禁。
+- 表单、复杂领域视图与 UI tokens 仍有端内重复，不应为了复用重新合并三端。
 
 详见 [架构与端口审视](./ARCHITECTURE_PORT_AUDIT_ZH.md)。
 
 ## Pages 发布
 
-`site/play/host` 已接入 `.github/workflows/pages-deploy.yml`。本地 smoke：
+`site/play/host` 已接入 `.github/workflows/pages-deploy.yml`，最新 PR 预览部署与安全检查通过。本地 smoke：
 
 ```powershell
 npm run pages:smoke

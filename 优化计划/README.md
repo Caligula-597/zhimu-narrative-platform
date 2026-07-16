@@ -1,8 +1,8 @@
 # 织幕优化计划
 
-最后更新：2026-07-03
+最后更新：2026-07-16
 
-本目录是基于 2026-06-28 完整代码通读 + 主应用 dev 预览（`http://localhost:4173/`）得出的产品、架构、代码、性能、安全、宣传六位一体优化计划；2026-07-02 已按当前代码治理进度重新同步。
+本目录是基于 2026-06-28 完整代码通读形成的阶段计划。2026-07-16 已同步完成状态；各子文档保留当时决策和迁移设计，当前事实以 [项目状态](../docs/PROJECT_STATUS.md) 为准。
 
 > 原则：**不动业务行为、不改数据库真相源、不引入重型框架**。所有改动都向项目已有的最佳实践（`play/`、`host/` 的真 ES Modules 模式）对齐，而不是另起炉灶。
 
@@ -21,16 +21,16 @@
 
 ## 一句话结论
 
-织幕目前是**「公开 Beta 前夜、L1 生产门槛已验收、商业试点需人工陪跑」**的状态。
+织幕目前是**「可信 Beta、发布候选长验收失败待修、商业试点需人工陪跑」**的状态。
 
 - **后端**：健康，路由按领域拆分，安全门禁扎实，知识块/内容检索已超前于前端。
 - **三端前端**（`play/` `host/` `site/`）：已迁移到真 ES Modules，结构清晰。
 - **主应用**（根 `src/`）：`api/client.js` 已按领域拆分为 `src/api/*.js`，`src/state/` 已拆为 8 个领域 shard + `createStore`；**Phase 4 状态分片迁移已全部完成**；三大 window 桥（zhimuViews/zhimuRuntime/zhimuDom）已清除；zhimuWorkspace / zhimuRuntimeStore / zhimuFormat / zhimuUi / zhimuModal / zhimuUiSemantics / zhimuCollapsePanel / zhimuStatus / zhimuUserMessages 小桥已迁移为 ES Module。
-- **共享层**：`shared/tokens.css`、`shared/security.js`、`shared/api-error.js`、`shared/sse.js`、`shared/components/collapse.js`、`shared/api-fetch.js`、`shared/session-token.js`、`shared/toast.js`、`shared/components/status-chip.js` 已落地。
+- **共享层**：Creator/Host/Player 的 API、session/auth、error、SSE lifecycle/cursor、toast、safe DOM、trace/web-vitals 已收口；业务 UI 保持角色端独立。
 - **官网与宣传**：hero + 四端 showcase 已换真实截图；pilot 案例待示例达标或人工定稿。
 - **矩阵示例剧本**：⏸ **暂停**（雾港回声 Gen5 overall 6.5）— 🔴 恢复清单 [`docs/MATRIX_PILOT_BACKLOG.md`](../docs/MATRIX_PILOT_BACKLOG.md)。
 
-**最高优先级**：B0-02 首场路径、B0-03 全量备份恢复、B1-01 creator dashboard 聚合 API、商业试点 SOP。**不含**示例剧本重新生成。
+**最高优先级**：修复 Release Acceptance 的 8 个测试失败与 cleanup 错误并完整重跑，然后补 staging 真实 Bearer 容量、应用镜像/R2 回滚与实际 RPO/RTO。其后继续 143 个直连 DB 点递减和商业试点 SOP。**不含**示例剧本重新生成。
 
 ## 不在本计划范围内的事
 

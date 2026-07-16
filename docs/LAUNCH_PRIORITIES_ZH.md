@@ -1,6 +1,6 @@
 # 上线优先级
 
-最后更新：2026-07-02
+最后更新：2026-07-16
 
 ## 已完成
 
@@ -23,17 +23,21 @@
 | CI/E2E 修复 | 完成：25+ commit 修复 CI 门禁、E2E selector、host console 流程等 |
 | A1 小桥收口 | 完成：`zhimuWorkspace`、`zhimuRuntimeStore`、`zhimuFormat`、`zhimuUi`、`zhimuModal`、`zhimuUiSemantics`、`zhimuCollapsePanel`、`zhimuStatus`、`zhimuUserMessages` 已迁移为 ES Module |
 | A4 共享层阶段 5 | 完成一批：Vite alias、`shared/api-error.js`、`shared/sse.js`、`shared/components/collapse.js` 已落地 |
+| 三端 transport | 完成：API client、session/auth、错误转换、SSE lifecycle/游标/重连共用 shared 实现 |
+| 后端大入口拆分 | 完成：world/player 入口成为兼容 barrel/注册器；schema 拆为 14 个领域文件；Player main 412 行 |
+| 非功能门禁 | 完成代码侧：生产库防误写、SSE 受众隔离、并发 401、Trusted Types、性能/恢复证据工具 |
+| Pages 三站 CI/CD | 完成并有成功预览部署；lockfile installability 已进入周期门禁 |
 
 ## 最高优先级
 
 | 优先级 | 项 | 说明 |
 |---|---|---|
-| P0 | Pages 三站 CI/CD | 已新增 workflow；待 GitHub Cloudflare secrets 实际验证 |
 | P0 | 真实生产 secret | **已完成**（Ops Bridge + Railway，productionTrust 7/7） |
-| P1 | 端口诊断脚本 | 已新增 `npm run port:doctor` |
+| P0 | 修复发布候选阻断 | Release Acceptance 第 1/3 轮 8 项失败；修复重跑后再补 staging 真实 Bearer 20/50/100 并发 |
+| P0 | 恢复承诺 | 应用镜像回滚、R2 恢复、实际 RPO/RTO |
 | P1 | 公开 Beta 自助闭环 | 反馈入口、真实截图、onboarding、支持追踪 |
-| P1 | 共享前端层 | 继续抽 api-fetch/session-token/toast/status chip/tokens |
-| P2 | Runbook 演练 | DB/R2/OTLP/alert/AV 故障，需形成记录 |
+| P1 | 后端领域债务 | 143 个直连 DB 点按递减预算继续迁移 |
+| P1 | 商业试点交付 | pilot、订单/开通/发票、SLA、客户成功 |
 
 ## 验收标准
 
@@ -41,4 +45,6 @@
 npm run check:production-ready
 npm run monitoring:smoke -- --alerts
 npm run test:e2e
+npm run audit:periodic
+npm run test:release-gates
 ```

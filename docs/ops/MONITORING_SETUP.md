@@ -1,6 +1,6 @@
 # 监控与告警接入
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 ## 监控面
 
@@ -53,6 +53,8 @@ npm run monitoring:smoke -- --alerts
 - `/metrics` 认证失败
 - alert webhook 未配置或发送失败
 - `productionTrust` 未通过
+
+本地/CI 门禁只能证明配置与探针行为；目标生产的 OTLP 到达、告警送达与值班响应必须单独留证。
 
 ## 值班与演练
 

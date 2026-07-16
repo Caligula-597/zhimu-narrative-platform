@@ -1,6 +1,6 @@
 # 后端运维基准
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 ## 当前基准
 
@@ -10,20 +10,20 @@
 | 数据库 | PostgreSQL，迁移脚本 + schema/boot 检查 |
 | 认证 | Session、HttpOnly cookie、OAuth、guest |
 | 权限 | world/room/capability guard |
-| 实时 | SSE + room event journal + 可选 PostgreSQL NOTIFY |
+| 实时 | SSE + journal/outbox + PostgreSQL NOTIFY；replay/live 受众投影、账号游标、慢消费者与重认证上限 |
 | 上传 | R2 signed upload + AV strict |
 | 观测 | metrics + OTLP + alert webhook |
 | 部署 | Railway fullstack |
-| 测试 | 后端测试数量以 `npm run check:tests` 为准；E2E 以 `npx playwright test --list` 为准 |
+| 测试 | `audit:periodic` 14 项；SSE/Auth/Trusted Types/发布证据专项矩阵；长验收独立产出 JSON 工件 |
 
 ## 与生产 SaaS 的差距
 
 | 优先级 | 差距 | 建议 |
 |---|---|---|
-| P0 | Pages 三站缺统一 CI/CD | 新增 Cloudflare Pages deploy workflow |
-| P1 | 多前端共享层不足 | 抽 shared API/session/error/tokens |
-| P1 | 端口诊断缺工具 | 新增 port doctor |
-| P2 | runbook 演练不足 | 演练 DB/R2/OTLP/alert 故障 |
+| P0 | 真实容量与恢复承诺不足 | staging Bearer P95/P99、镜像回滚、R2 恢复、实际 RPO/RTO |
+| P1 | 路由层直连 DB 仍有 143 点 | 按热点迁移 repository/service，并下调递减预算 |
+| P1 | 业务 UI 仍有端间重复 | transport 已统一；只抽高复用控件，不合并角色视图 |
+| P2 | 官网公共 fetch 未进入认证 transport | 保持独立，但纳入超时、CSP 和错误边界审计 |
 
 ## 不建议立即做
 

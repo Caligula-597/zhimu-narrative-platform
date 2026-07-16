@@ -12,7 +12,7 @@
 | 主持端 | `host/` Vite 应用，本地 `5175`，生产目标 `host.getzhimu.com` |
 | 官网 | `site/` Vite 应用，生产目标 `getzhimu.com` |
 | 生产门槛 | CSP enforce、真实 OTLP、告警 webhook、上传 AV strict + webhook/ClamAV、OPS token、metrics token |
-| 自动化 | 后端模块/schema/boot/单测；UI smoke；Playwright Chromium/Firefox/WebKit 矩阵 |
+| 自动化 | 14 项定期快审；领域契约/SSE/Auth/Trusted Types 门禁；隔离 DB ×3 + 关键 E2E + 性能/恢复证据工作流 |
 
 关键文档：
 
@@ -79,6 +79,11 @@ npm run build
 npm run test:e2e
 npm run check:production-ready
 npm run monitoring:smoke -- --alerts
+npm run audit:periodic
+npm run test:sse-matrix
+npm run test:auth-matrix
+npm run test:trusted-types
+npm run test:release-gates
 ```
 
 Playwright 默认按 `chromium,firefox,webkit` 跑。临时缩小矩阵：
@@ -90,10 +95,10 @@ npm run test:e2e
 
 ## 仍需关注的架构问题
 
-1. Railway workflow 只覆盖 `app.getzhimu.com`，`site/play/host` 的 Pages 部署还没有纳入同一条 GitHub Actions 发布门禁。
-2. 本地端口较多，`4173` 最容易与 Vite dev / dist server 冲突。
-3. `play` 默认 Vite 配置没有写死 `strictPort`，CI 命令已补 `--strictPort`，本地也建议显式加。
-4. 三个前端应用共享 API，但 UI 组件与设计 token 仍有重复，后续应抽出共享包或明确复制边界。
+1. 后端 68 个路由模块仍有 143 个路由层直接数据库调用点，受递减门禁约束；优先继续迁移 checkpoint、voice、player access/progress 与 host content action。
+2. Creator/Host/Player 已统一认证、错误、游标和 SSE lifecycle，但 UI 组件与业务视图仍有合理重复，应按复用收益继续收敛。
+3. 本地端口较多，`4173` 最容易与 Vite dev / dist server 冲突；使用 `npm run port:doctor` 排查。
+4. 真正未完成的是运行证据：staging 真实 Bearer P95/P99、应用镜像回滚、R2 恢复和实际 RPO/RTO。
 
 ## 新增发布与诊断
 

@@ -1,8 +1,8 @@
-# 织幕 · 功能实现状态总览
+# 织幕 · 功能实现状态总览（历史长表）
 
 > **用途**：团队协调用的「一张表看清全貌」——后端做到哪、前端做到哪、哪里没接通、哪里有坑。  
-> **更新**：2026-06-20（主持—玩家联动 · **347** 测试 · [DESIGN_ZH.md](./docs/DESIGN_ZH.md)）  
-> **阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）  
+> **同步说明**：2026-07-16 已校正架构、安全和测试口径；本文件保留早期逐功能长表，当前阶段与风险以 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) 为准。
+> **阶段**：可信 Beta；本轮发布候选长验收失败待修，非成熟商用 SaaS。
 > **平台总览（前后端对照）**：[docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md)  
 > **中文总览**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)  
@@ -127,9 +127,9 @@
 |------|------|
 | 认证 | Stripe webhook + checkout ✅；前端结账 UI 🔲 |
 | 复盘 | AI 叙事总结 |
-| 实时 | Redis / 多节点 SSE；WebSocket 集群 |
-| 资产 | 病毒扫描、图片转码 |
-| 安全 | 上传扫描 **stub** + quarantine；**upload/AI 限流分桶** |
+| 实时 | 当前 journal/outbox + PostgreSQL NOTIFY + SSE 已支持多实例；只有实测瓶颈后才评估 Redis/WebSocket |
+| 资产 | 图片转码、R2 跨区域灾备；病毒扫描 strict + webhook/ClamAV 已实现 |
+| 安全 | 多实例全局限流仍需 Cloudflare 权威层；应用镜像/R2 恢复证据待补 |
 | 实体 | NPC 模型与 API；实体卡 QR/NFC |
 | Schema | 创作/资产部分路由尚无 Fastify schema |
 | 协作 | 邀请邮件 + pending + 注册/`?invite=` 接受 | ✅ `world-collaboration.js` |
@@ -166,8 +166,8 @@
 | 前端 Idempotency-Key | — | 写操作已透明发送；用户界面不展示 |
 | UI smoke 静态检查 | 中 | 不执行浏览器 JS；SyntaxError 用 `npm run check:modules` 捕获 |
 | Rate limit | — | 生产环境已启用单节点读写/auth 限流；开发/测试默认关闭 |
-| 无上传扫描 | 中 | R2 直传无病毒检测；已加 MIME 白名单 + 扩展名黑名单 |
-| XSS 基线 | 低 | `escapeHtml` + modal `studioField`/`studioSelect`/`studioOptionsHtml`；ui-smoke 监控 innerHTML 比例，非正式审计 |
+| 上传扫描依赖外部服务 | 中 | 生产 strict + webhook/ClamAV 已实现；scanner 不可用会拒绝完成上传，仍需演练外部服务故障 |
+| XSS / HTML sink | 低 | 产品直接 `innerHTML` 为 0；唯一写入点为 `shared/safe-dom.js`，App/Site 有 CSP/Trusted Types 门禁 |
 | 导入重复 | — | 内容包 / AI 导入已加 **importKey / proposalKey / packageSourceId** 去重 |
 | 设置页错误文案 | — | 已改为跳转创作台导出/导入；世界名/简介与运行房选项可保存 |
 | 存档页错误文案 | — | 恢复 UI 已接通；卡片显示「可恢复」 |
@@ -176,16 +176,17 @@
 
 | 项 | 状态 |
 |----|------|
-| `npm test` | **347**（含 stripe-billing、account-entitlements、world-invites-quota、register-ip-limit） |
-| `check:schemas` | **61** 条写/SSE 路由 schema 门禁 |
+| `npm test` | 动态用例数以命令输出为准；当前有 180 个后端测试文件 |
+| `check:schemas` | 写/SSE 路由 schema 动态门禁；schema 已拆为 14 个领域文件 |
 | `check:tests` 数量下限 | ≥100 |
 | checkpoint / journal / 幂等 E2E | ✅ 专项测试 |
 | `test:smoke` | **18** 项（需 4180 进程，含 checkpoint-restore） |
 | UI smoke | **44** 项静态（含 host-audit、restore/settings 等） |
 | `test:format-helpers` | **5** 项 |
 | `test:modal-helpers` | **2** 项（CI 已纳入） |
-| `npm run check:modules` | **51** 脚本顺序加载（Vite 入口链） |
-| 全链路 smoke | `verify:full:fresh`（后端测试 + API/UI smoke） |
+| `npm run check:modules` | Vite 入口链和懒加载模块验证；数量以命令输出为准 |
+| 快速非功能验收 | `audit:periodic` 14/14；SSE 39、Auth 22、Trusted Types 23、发布工具 5 |
+| 发布候选长验收 | `Release Acceptance`：隔离 DB ×3 + 关键 E2E + 性能/恢复工件 |
 | 前端构建 | `npm run build` → `dist/`；CI 用 `server.js --dist` |
 
 ---
@@ -197,9 +198,9 @@
 - **规则表达能力**：仅结构化 JSON，无可视化流程图执行引擎。
 - **主持确认**：主持台支持批量确认/拒绝、**延迟调度 UI**（`delay_until` + 到期唤醒）。
 - **线索分享**：全房间公开 + **私享指定角色**（`share-roles`）。
-- **前端架构**：**Vite 6** 构建 + `frontend/main.js` 顺序 import；仍用 `window.*` 全局；详见 [FRONTEND_MODULE_PLAN.md](./FRONTEND_MODULE_PLAN.md)、[docs/OPS.md](./docs/OPS.md)。
+- **前端架构**：四端使用 **Vite 8**；主应用视图懒加载，Player/Host 入口已拆控制器；仍有少量兼容协调层，详见 [FRONTEND_MODULE_PLAN.md](./FRONTEND_MODULE_PLAN.md)。
 - **LiveKit**：可选；无 env 时语音不可用，文字频道仍可用。
-- **Beta 前建议**：创作 API schema 全覆盖、ES module 去全局化、上传扫描、指标；多实例 SSE 已可用 Postgres NOTIFY。
+- **继续收口**：Fastify 契约逐步生成类型、143 个 route 直连 DB 点递减、staging 容量与镜像/R2 回滚证据；上传扫描、指标和多实例 SSE 已落地。
 
 ---
 
@@ -304,7 +305,7 @@
 | [ALPHA_FEATURE_MATRIX.md](./ALPHA_FEATURE_MATRIX.md) | 真实 / 演示 / 待接入 速查 |
 | [docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md) | **产品功能与工程现状（中文总览）** |
 | [docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md) | 系统设计 · 主持—玩家闭环 |
-| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 安全收口 + **347** 项测试矩阵 |
+| [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) | 当前安全收口、专项矩阵与发布验收入口 |
 | [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) | **休息/交接检查点** |
 | [docs/BACKEND_OPS.md](./docs/BACKEND_OPS.md) | 后端运维路线图 |
 | [docs/OPS.md](./docs/OPS.md) | 部署与故障排查 |
@@ -319,7 +320,7 @@
 
 ## 8. 建议优先级（后端与运维优先）
 
-1. ~~**story-assistant + world 成员 schema**~~ — ✅ 见 [BACKEND_OPS_BENCHMARK.md](./BACKEND_OPS_BENCHMARK.md)
+1. ~~**story-assistant + world 成员 schema**~~ — ✅ 见 [BACKEND_OPS_BENCHMARK.md](./docs/BACKEND_OPS_BENCHMARK.md)
 2. **Prometheus `/metrics` + 告警 Runbook** — 对标 Datadog/Grafana 基线
 3. ~~**全文搜索 API + 顶栏 UI**~~ — ✅ `GET /worlds/:id/search`（2026-06-03）
 4. ~~**多节点 SSE**~~ — ✅ Postgres NOTIFY；Redis 总线待 Beta 高吞吐场景

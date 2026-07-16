@@ -1,6 +1,6 @@
 # 系统设计
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 本文是产品架构说明；更短的工程入口见 [ARCHITECTURE.md](../ARCHITECTURE.md)。
 
@@ -28,9 +28,11 @@
 
 模板表承载可复用内容：`worlds`、`chapters`、`role_slots`、`script_sections`、`scenes`、`clues`、`items`、`automation_rules`。
 
-运行态表承载每次开团：`rooms`、`room_members`、`player_states`、`reading_progress`、`clue_ownership`、`inventory`、`rule_executions`、`timeline_logs`、`checkpoints`、`recaps`。
+运行态表承载每次开团：`rooms`、`room_members`、`player_states`、`reading_progress`、`clue_ownership`、`inventory`、`rule_executions`、`timeline_logs`、`checkpoints`、`recaps`、`room_votes`、`room_vote_ballots`、`room_private_actions`。`world_segments` / refs 作为章节、规则、任务与 runbook 的聚合层，不替换原有内容真相源。
 
 同一世界可以创建多个房间，任一房间的进度、选择和结局不能污染模板或其他房间。
+
+Creator、Host、Player 保持独立部署，但 API、认证状态、错误转换、SSE 生命周期、游标和事件契约统一复用 `shared/`。当前架构事实与剩余风险见 [PROJECT_STATUS.md](./PROJECT_STATUS.md)。
 
 ## 权限原则
 

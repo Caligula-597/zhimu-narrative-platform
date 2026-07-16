@@ -1,7 +1,7 @@
 # 织幕 · 数据库结构索引
 
 > **用途**：后端表/枚举/迁移的快速参考。权威定义在 `backend/migrations/*.sql`。  
-> **更新**：2026-06-04（迁移 **001–018**）
+> **更新**：2026-07-16（迁移 **001–067**）。数据库真相以迁移文件和 `schema_migrations` 为准；生产/类生产环境必须先应用 `065_platform_event_journal.sql`，否则 readiness 会阻断。
 
 ---
 
@@ -27,6 +27,50 @@
 | `016_catalog_seed_fog.sql` | （历史）曾标记平台 Demo 公开；现由 028/030 保证测试桩不公开 |
 | `017_rooms_world_cascade.sql` | 删世界时 cascade 平行房 |
 | `018_host_event_delay_until.sql` | 待确认事件 `delay_until` + 延迟唤醒索引 |
+| `019_password_reset_tokens.sql` | 密码重置 token |
+| `020_email_verification.sql` | 邮箱验证 |
+| `021_identity_foundation.sql` | 身份与账号基础 |
+| `022_oauth_accounts.sql` | OAuth 账号绑定 |
+| `023_plan_beta.sql` | Beta 套餐与权益 |
+| `024_stripe_billing.sql` | Stripe billing 骨架 |
+| `025_catalog_review.sql` | 剧本库审核 |
+| `026_chapter_graph_metadata.sql` | 章节图谱 metadata |
+| `027_physical_tokens_integration.sql` | 实体 token 集成 |
+| `028`–`033` | 历史 Demo 下架/清理与 fixture 摘要修正 |
+| `034_oauth_return_origin.sql` | OAuth return origin |
+| `035_room_public_listing.sql` | 房间公开列表 |
+| `036_play_plaza.sql` | 玩家广场 |
+| `037_play_social.sql` | 玩家社交 |
+| `038_play_plaza_review.sql` | 广场审核 |
+| `039_plan_upgrade_requests.sql` | 套餐升级申请 |
+| `040_account_delete_jobs.sql` | 账号删除任务 |
+| `041_world_content_revision.sql` | 世界内容 revision / 冲突控制 |
+| `042_remove_legacy_official_example.sql` | 清理旧官方示例 |
+| `043_room_mini_games.sql` | 房间小游戏 |
+| `044_knowledge_chunks.sql` | 知识块与内容检索 |
+| `045_enable_public_rls.sql` | public 表 RLS 基线 |
+| `046_feedback.sql` | 反馈 |
+| `047_user_credits.sql` | 用户积分 |
+| `048_user_llm_connections.sql` | 用户 LLM 连接 |
+| `049_content_platform_runtime.sql` | Segment、质量报告、投票、秘密行动等内容运行模型 |
+| `050_player_tasks.sql` | 玩家任务 |
+| `051_player_suspicions.sql` | 玩家怀疑度 |
+| `052_testimonies.sql` | 口供 |
+| `053_world_tags.sql` | 世界标签 |
+| `054_segment_remedies.sql` | Segment 补救模板 |
+| `055_feedback_satisfaction.sql` | 满意度反馈 |
+| `056_content_platform_rls.sql` | 内容平台运行表 RLS |
+| `057_drop_room_suspicion_marks_legacy.sql` | 移除旧怀疑度表 |
+| `058_creator_bible_structures.sql` | 创作者 Bible 结构 |
+| `059_automation_rules_metadata.sql` | 自动规则 metadata |
+| `060_bible_world_scope_triggers.sql` | Bible 世界域触发器 |
+| `061_enable_rls_remaining_public_tables.sql` | 剩余 public 表 RLS |
+| `062_bible_foreshadow_timeline_scope_triggers.sql` | 伏笔/时间线作用域触发器 |
+| `063_pg_stat_statements.sql` | 查询统计扩展/能力检测 |
+| `064_write_idempotency_claim.sql` | 写幂等 claim 并发控制 |
+| `065_platform_event_journal.sql` | 平台事件 journal；生产 readiness 必需 |
+| `066_room_event_journal_retention_index.sql` | 房间事件保留期索引 |
+| `067_transactional_event_outbox.sql` | 事务型事件 outbox，避免业务提交与通知分裂 |
 
 应用：`cd backend && npm run db:migrate`
 
@@ -38,12 +82,14 @@
 users ──┬── world_members ── worlds ──┬── role_slots ── character_scripts ── script_sections
         │                              ├── chapters
         │                              ├── scenes / clues / items / automation_rules
+        │                              ├── world_segments / world_segment_refs / quality_reports
         │                              └── rooms ──┬── room_members / player_states
         │                                         ├── reading_progress / clue_ownership / inventory
         │                                         ├── room_content_unlocks / timeline_logs
         │                                         ├── pending_host_events / checkpoints
         │                                         ├── checkpoint_restores / room_recaps
-        │                                         ├── room_event_journal
+        │                                         ├── room_votes / ballots / private_actions / player_tasks
+        │                                         ├── room_event_journal / platform_event_journal / event_outbox
         │                                         └── voice_rooms ── voice_room_members
         └── auth_sessions
 ```
@@ -115,10 +161,11 @@ users ──┬── world_members ── worlds ──┬── role_slots ─
 
 主持生成的结构化复盘 JSONB。
 
-### `room_event_journal`（012）
+### `room_event_journal` / `platform_event_journal` / `event_outbox`
 
- durable 事件日志，供 SSE 补发与 future 多节点消费。  
-Room 事件由 `transactionWithEvents` 在业务事务内写入 `event_outbox`，提交后由 dispatcher 持久化到 journal 并推送 SSE；rollback 不产生 outbox。
+持久事件日志供 SSE 补发、受众投影与多实例消费。Room 事件由 `transactionWithEvents` 在业务事务内写入 `event_outbox`，提交后由 dispatcher 持久化到 journal 并推送 SSE；rollback 不产生 outbox。PostgreSQL LISTEN/NOTIFY 用于跨实例低延迟唤醒，journal/poll 负责补偿通知失败和竞态窗口。
+
+`pg_notify` 失败不得把已经提交的业务错误转换成 500；outbox dispatcher 和 poll 必须承担重试/补偿。LISTEN 会常驻占用连接，容量规划需预留连接池余量。
 
 ### `write_idempotency`（013）
 
@@ -141,13 +188,16 @@ Room 事件由 `transactionWithEvents` 在业务事务内写入 `event_outbox`�
 
 ---
 
-## 索引（012 补充）
+## 关键索引
 
 - `idx_checkpoint_restores_room_created`
 - `idx_room_event_journal_room_id`
 - `idx_inventory_room_role`
 - `idx_items_world_id` / `idx_clues_world_id` / `idx_scenes_world_id`
 - `idx_checkpoints_room_created`
+- `room_event_journal` retention/replay 索引（066）
+- `event_outbox` pending dispatcher 索引（067）
+- `world_segments` / `room_votes` / `room_private_actions` 运行态索引（049）
 
 ---
 

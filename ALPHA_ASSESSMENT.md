@@ -1,5 +1,7 @@
 # 织幕 Alpha · 客观评估（2026-06-03）
 
+> **历史快照**：本文只记录 2026-06-03 的 Alpha 判断，其中测试数字、迁移数量和生产缺口已过期。当前结论见 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) 与 [docs/PRODUCTION_SAAS_ASSESSMENT_ZH.md](./docs/PRODUCTION_SAAS_ASSESSMENT_ZH.md)，不要用本文作为上线验收依据。
+
 > 本文档记录 Alpha 阶段的能力边界、测试现状、架构风险与下一阶段建议。  
 > 功能清单仍以 [FEATURE_CATALOG.md](./FEATURE_CATALOG.md) 为准；本文侧重**工程质量判断**。
 

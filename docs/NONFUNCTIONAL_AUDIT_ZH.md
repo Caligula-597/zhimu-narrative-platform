@@ -1,5 +1,7 @@
 # 非功能性审计与上线门禁
 
+最后更新：2026-07-16
+
 本轮把非功能性要求从人工检查收敛为 `npm run audit:nonfunctional`，并接入 `npm run audit:periodic`。门禁覆盖外部 I/O 超时、数据库池等待与连接回收、后台任务关闭 drain、限流内存上限、500 错误脱敏、敏感查询串日志脱敏、静态文件路径边界、生产 CSP / Trusted Types 和 App、Site、Host、Play 四个前端表面的入口体积。
 
 `npm run check:bundle-budgets` 会重新构建四个前端表面并检查 gzip 预算；LiveKit 必须保持独立懒加载块，不能回流到 Player 首页入口。
@@ -19,11 +21,12 @@
 - 测试套件、性能 fixture、迁移升级和托管恢复脚本默认拒绝生产形态或未知远程数据库；测试写入与破坏性演练使用相互独立的显式开关，避免本地 `.env` 误指向生产时污染真实数据。
 - SSE 服务端增加单连接写缓冲和 replay 队列上限，慢客户端会被主动断开；房间事件在 replay/live 两条路径执行服务端受众投影，私享线索、定向提醒、私密语音等不再依赖客户端自行过滤。四条流的游标按账号隔离，长连接最多 5 分钟重新认证，被踢玩家收到终止事件后立即断流。PostgreSQL LISTEN 冷启动失败会保留订阅并指数退避恢复。
 - 投票写链路已迁移到 repository/service；投票关闭与玩家提交在同一行锁事务内串行化，消除“校验时开放、落库时已关闭”的竞态。
-- 周期报告使用明确 UTF-8 输出；编码门禁覆盖 735 个生产与审计脚本，并识别常见二次转码乱码。四个前端表面的 gzip 预算已加入周期验收。
-- 编码/语法门禁采用最多 8 路有界并发，同等 735 文件覆盖从 48.2 秒降到约 15.6 秒，避免定期检查自身成为反馈瓶颈。
+- 周期报告使用明确 UTF-8 输出；编码门禁覆盖生产与审计脚本并识别常见二次转码乱码。四个前端表面的 gzip 预算已加入周期验收，Site 的共享 `safe-dom` 首屏块单独计入，避免拆 chunk 后漏算。
+- Writer/Director/Site 等产品代码不再直接写 `innerHTML`；`shared/safe-dom.js` 是唯一带精确预算的安全 sink。官网发布产物包含 CSP、`trusted-types zhimu-html` 与 `require-trusted-types-for 'script'`。
+- `verify:full:3` 对非法、重复或零次数参数直接失败，每次隔离运行记录退出码、信号和耗时；备份恢复与前向迁移演练也生成 JSON，且明确声明未覆盖应用镜像回滚。
 
 当前代码结构债务由 `npm run check:architecture` 做单调收敛门禁：68 个路由模块还剩 143 个路由层直连数据库点，任何回升都会失败。热点优先级是 checkpoint、voice、player-access、player-progress、host-content-action；它们是后续领域迁移计划，不是本轮非功能修复的未通过项。
 
-本轮快速证据包括：依赖生产审计四端 0 个 high/critical 漏洞、App/Site/Host/Play 四个前端表面构建通过、SSE 故障矩阵 27/27、共享 transport 81/81、LISTEN 冷启动故障注入恢复、外部请求/SSRF/限流/错误脱敏/静态路径/优雅关闭的定向测试，以及包体预算全部通过。当前 Supabase 数据库的迁移完整性为 67 个已应用、0 个待应用、校验和一致；该结果是只读核验，不替代隔离数据库上的升级与回滚演练。无隔离 `DATABASE_URL` 时，真实 PostgreSQL 写入、会话触碰与 LISTEN 集成断言必须明确标记跳过，不能计作通过。
+当前快速证据包括：`audit:periodic` 14/14、SSE 故障矩阵 39/39、Auth 故障矩阵 22/22、Trusted Types 23/23、发布门禁工具 5/5、性能工具 4/4，以及 App/Site/Host/Play 构建和包体预算通过。当前 Supabase 数据库的迁移完整性为 67 个已应用、0 个待应用、校验和一致；该结果是只读核验，不替代隔离数据库上的升级与回滚演练。无隔离 `DATABASE_URL` 时，真实 PostgreSQL 写入、会话触碰与 LISTEN 集成断言必须明确标记跳过，不能计作通过。
 
-仍属于部署/运行证据而不是静态代码能消除的风险：多实例全局限流必须由 Cloudflare WAF/Rate Limiting 作为权威层；P95/P99、SSE 大并发、托管数据库容量和恢复时间必须在预发或生产镜像环境定期采样。快速审计不替代恢复演练与长时间 soak test。
+仍属于部署/运行证据而不是静态代码能消除的风险：多实例全局限流必须由 Cloudflare WAF/Rate Limiting 作为权威层；真实 Bearer 的 P95/P99、SSE 大并发、托管数据库容量、应用镜像回滚、R2 恢复和恢复时间必须在预发或生产镜像环境定期采样。2026-07-16 的 `Release Acceptance` 运行 29477387204 已失败：第 1/3 轮隔离测试 712 项中 8 项失败，后续 E2E、性能和恢复步骤全部 skipped；cleanup 还暴露隔离库删除后的表访问错误。快速矩阵通过不能覆盖这一发布阻断。

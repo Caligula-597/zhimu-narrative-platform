@@ -1,6 +1,6 @@
 # SLA 草案（对外可解释 · 对内可执行）
 
-> **状态**：Draft · 2026-07-03
+> **状态**：Draft · 2026-07-16 同步；正式商用前仍需法务与实际恢复证据确认。
 > **适用**：公开 Beta 与商业试点；正式商用前需法务审阅。
 > **关联**：[ONCALL_DUTY_ZH.md](./ONCALL_DUTY_ZH.md) · [BACKUP.md](./BACKUP.md) · [BETA_SUPPORT_SOP_ZH.md](./BETA_SUPPORT_SOP_ZH.md)
 
@@ -38,7 +38,7 @@
 | 账户删除 | 7 工作日内处理请求 | 隐私政策入口（L3-07 待补齐） |
 | 试运行数据 | 内测期不承诺永久保留 | 长期商用前写入正式保留期 |
 
-**工程现状（2026-07-06）**：CI 每 push 执行 `pg_dump → verify-restore`；生产 managed clone 见 [BACKUP_DRILL_2026-07-04.md](./BACKUP_DRILL_2026-07-04.md)；R2 抽样见 [BACKUP_DRILL_2026-07-06.md](./BACKUP_DRILL_2026-07-06.md)。
+**工程现状（2026-07-16）**：恢复脚本会拒绝生产形态/未知远程数据库，并可对 `pg_dump → isolated restore`、N-1 → latest 迁移生成结构化证据；Release Acceptance 负责在隔离 PostgreSQL 上执行。但本轮工作流在此前的隔离测试已失败，未到达恢复步骤。生产 managed clone 见 [BACKUP_DRILL_2026-07-04.md](./BACKUP_DRILL_2026-07-04.md)，R2 抽样见 [BACKUP_DRILL_2026-07-06.md](./BACKUP_DRILL_2026-07-06.md)。应用镜像回滚、R2 灾难恢复和实测 RPO/RTO 尚未完成，因此本表仍是草案，不能对客户写成已验证承诺。
 
 **对客户说法（简版）**：「我们每日备份核心数据库；附件存储在对象存储并有多副本。重大故障会按运维 Runbook 恢复，并在维护窗口外尽量提前通知。」
 
@@ -54,7 +54,7 @@
 
 ## 5. 配额与公平使用
 
-- 套餐配额以账号设置与 [plans](../backend/src/plans.js) 为准
+- 套餐配额以账号设置与 [plans](../../backend/src/plans.js) 为准
 - 滥用（爬虫、恶意上传）可限流或暂停，先邮件告知
 
 ---
@@ -64,3 +64,4 @@
 | 日期 | 变更 |
 |------|------|
 | 2026-07-03 | 初稿，配合 Beta-1 商业试点 |
+| 2026-07-16 | 同步恢复证据门禁；明确隔离 DB 证据不覆盖镜像/R2 回滚 |

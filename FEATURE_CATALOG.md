@@ -1,11 +1,11 @@
-# 织幕 · 完整功能目录（Alpha）
+# 织幕 · 完整功能目录（历史长表）
 
 > **文档用途**：团队协调用的功能总表。每个功能标明已实现、部分实现、未实现与已知局限。  
 > **详尽产品流程、三端同步与首次使用者评审**：[docs/PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md](./docs/PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md)
 > **产品现状（中文长文，推荐先读）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **一张表总览（后端/前端/未接通/缺陷）**：[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)  
-> **更新日期**：2026-06-20（主持—玩家联动 · **347** 测试 · **62** schema · **44** UI smoke · **15** E2E）  
-> **版本阶段**：Alpha → Beta 过渡（可内测，非生产 SaaS）
+> **同步说明**：2026-07-16 已校正关键架构口径；本文件保留按批次追加的历史功能明细，当前状态、测试与风险以 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) 为准。
+> **版本阶段**：可信 Beta；本轮发布候选长验收失败待修，非成熟商用 SaaS。
 
 ---
 
@@ -13,7 +13,7 @@
 
 **织幕**是面向线上长线剧本杀 / 跑团的自动化互动叙事引擎。
 
-- **前端**：根目录静态 HTML + `app.js`（`http://localhost:4173`）
+- **前端**：Vite + 原生 ES Modules，根目录 Creator 主应用（`http://localhost:4173`），Host/Play/Site 独立构建
 - **后端**：Fastify + PostgreSQL（`http://localhost:4180/api`）
 - **存储**：Cloudflare R2（附件）
 - **数据库**：Supabase PostgreSQL（生产/云）或本地 Docker Postgres
@@ -190,7 +190,7 @@
 
 | 功能 | 状态 | 已实现 | 未实现 / 局限 |
 |------|------|--------|----------------|
-| 主持监控台 | ✅ | 绑定平行房；玩家运行时状态表；分项刷新；SSE 实时推送（连接成功时停轮询，断线 15s 回退） | 无多节点集群总线 |
+| 主持监控台 | ✅ | 绑定平行房；玩家运行时状态表；分项刷新；SSE 实时推送（连接成功时停轮询，断线回退） | PostgreSQL NOTIFY 多实例总线已落地 |
 | 卡关预警 | ✅ | 启发式：`maybe_stuck`（45 分钟无活动 / 30 分钟未读首段）；`stuckCount` 来自 API | 非 ML；依赖 reading_progress / clue / investigate 活动时间 |
 | 玩家详情弹窗 | ✅ | 分幕进度、线索、调查、笔记、最近日志、主持备注 | SSE 触发局部刷新，无需整页 reload |
 | 待确认事件 | ✅ | 列表含规则来源、动作预览；确认 / 拒绝 / **延迟** / 批量 / 查看上下文 | — |
@@ -280,7 +280,7 @@
 | Supabase 云库 | ✅ | 生产/开发可连 |
 | Cloudflare R2 | ✅ | 私有 bucket + 签名 URL |
 | 路由模块化 | ✅ | `backend/src/routes/*.js` + helpers |
-| 单元/集成测试 | ✅ | **347 项** / 96 文件（见 [docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md) §10） |
+| 单元/集成测试 | ✅ | 历史基线为 347 项；当前计数见 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) 并以命令输出为准 |
 | 前端 helper 测试 | ✅ | `test:format-helpers` **5** · `test:modal-helpers` **2**（CI 已跑） |
 | 测试数量门禁 | ✅ | `npm run check:tests`（下限 ≥100，`verify-test-count.mjs`） |
 | API smoke | ✅ | `scripts/smoke-api.js` **18 项**真实库（含 checkpoint-restore） |
@@ -289,7 +289,7 @@
 | 全链路 smoke | ✅ | `npm run verify:full:fresh`（后端测试 + API/UI smoke） |
 | GitHub Actions CI | ✅ | migrate → seed → check → check:boot → **check:tests** → npm test → format/modal helpers → smoke |
 | WebSocket 实时推送 | 🔲 | 未开始（多节点集群场景） |
-| SSE 房间事件流 | ✅ | `GET /api/rooms/:roomId/events/stream`；单节点内存总线（见 §17） |
+| SSE 房间事件流 | ✅ | `GET /api/rooms/:roomId/events/stream`；journal/outbox + PostgreSQL NOTIFY；受众投影与游标恢复见当前 SSE 矩阵 |
 | LiveKit | ✅ | token API + 前端连接；需 `LIVEKIT_*`（见 §24） |
 | 前端模块化 | ✅ | `src/` 视图/组件/API 拆分；`app.js` ~70 行 bootstrap | 见 §21 |
 | 全文检索 | ✅ | `GET /worlds/:id/search` + 迁移 014；顶栏 UI |
@@ -430,7 +430,7 @@ npm run ci
 
 # 或分步复验（P0～P2）
 npm run check    # 语法
-npm test         # 347 项单元/集成
+npm test         # 执行当前单元/集成矩阵，数量以输出为准
 npm run test:smoke   # 18 项 API（需 4180 已启动）
 npm run test:format-helpers
 npm run test:modal-helpers
@@ -1033,7 +1033,7 @@ cd backend && node --test test/recap.test.js
 |------|------|
 | `checkpoints.schema_version` | 快照格式版本（当前 **2**） |
 | `checkpoint_restores` | 恢复操作审计表（`pending/applied/failed/cancelled`） |
-| `room_event_journal` | 房间事件持久化日志（SSE 补发 / 未来多节点） |
+| `room_event_journal` | 房间事件持久化日志（SSE 补发）；多节点由 PostgreSQL NOTIFY 协调 |
 | 索引 | inventory、items/clues/scenes by world、checkpoints by room |
 
 ### Checkpoint 快照 v2
@@ -1091,7 +1091,7 @@ cd backend && node --test test/recap.test.js
 
 ### 底盘增强（2026-06-03 续）
 
-- 统一 API 错误体：`{ error, code, details? }` — **全路由已接入** [`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)
+- 统一 API 错误体：`{ error, code, details? }` — **全路由已接入** [`backend/docs/API_ERRORS.md`](./backend/docs/API_ERRORS.md)
 - `throwErr` / `sendErr` + `error-codes.js` 注册表（100+ 稳定 code）
 - `Idempotency-Key`：见上表 **10** 条写路由
 - `host_audit_log`：restore / grant / room_settings 等
@@ -1116,14 +1116,14 @@ npm run bootstrap:local   # migrate + seed + exploration
 - `backend/test/event-journal-e2e.test.js` — API 写操作与 journal 一致性
 - `backend/test/idempotency-coverage.test.js` — 幂等路由审计  
 - `backend/test/api-errors.test.js` — 全站 `{ error, code }` 回归  
-- 错误码注册表：[`backend/docs/API_ERRORS.md`](../backend/docs/API_ERRORS.md)
+- 错误码注册表：[`backend/docs/API_ERRORS.md`](./backend/docs/API_ERRORS.md)
 
-### 仍属 Alpha 局限（见评估 §3）
+### 历史 Alpha 局限与当前映射（见评估 §3）
 
-- 前端全局脚本顺序脆弱 → Beta 建议 Vite/框架  
-- SSE 内存总线 + journal 落库，**无** Redis 多节点  
-- checkpoint **恢复回滚** MVP 已实现（scoped restore + 幂等 + 审计）；**前端恢复弹窗已接通**（2026-06-03）
-- LiveKit / 创作态 API schema 未全覆盖
+- 前端全局脚本顺序风险已通过 Vite、ES Modules、view registry 和模块检查收口。
+- SSE 已使用 journal/outbox + PostgreSQL NOTIFY 多节点总线；Redis 仅在明确吞吐瓶颈后评估。
+- checkpoint **恢复回滚** MVP 已实现（scoped restore + 幂等 + 审计）；前端恢复弹窗已接通。
+- LiveKit 与全部 API 类型契约仍未完全覆盖。
 
 ---
 
@@ -1141,7 +1141,7 @@ npm run bootstrap:local   # migrate + seed + exploration
 
 ### 测试扩充（历史记录 · 当时数字）
 
-> **当前验收**见 [SECURITY_AND_TESTING.md](../SECURITY_AND_TESTING.md) 整体验收表：**347** 单测 · **62** schema · **18** smoke · **44** UI smoke · **51** modules · **15** E2E。
+> **历史验收快照**：此处原记录 347/62/18/44/51/15；当前验收见 [SECURITY_AND_TESTING.md](./SECURITY_AND_TESTING.md) 与 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)。
 
 | 套件 | 数量（当时） | 新增 |
 |------|------|------|
@@ -1191,7 +1191,7 @@ npm run test:ui             # 需 :4173 + :4180
 
 | 门禁 | 数量 |
 |------|------|
-| `backend npm test` | **347** |
+| `backend npm test` | 历史记录 **347**；当前以命令输出为准 |
 | `check:schemas` | **61** |
 | `test:smoke` | **18** |
 | `ui-smoke.js` | **44** |

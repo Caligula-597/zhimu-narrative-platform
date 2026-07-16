@@ -1,13 +1,13 @@
 # 织幕代码功能地图与接线盘点
 
-最后更新：2026-07-08
+最后更新：2026-07-16
 
 ## 一句话结论
 
 当前项目已经不是“后端做了一堆、前端没接”的状态。更准确的判断是：
 
-- 后端已经形成一个较完整的长剧情剧本杀 SaaS 能力底座，约 296 个 Fastify 路由注册点，57 个数据库迁移，136 个后端测试文件。
-- 主应用前端已经把大部分后端能力通过 `src/api/index.js` 接成统一 API 门面，扫描到约 254 个导出函数，其中约 211 个在主应用、玩家端、主持端、官网或运行时中被调用。
+- 后端已经形成较完整的长剧情剧本杀 SaaS 能力底座；当前静态扫描约 320 个 Fastify 路由注册点、67 个数据库迁移、180 个后端测试文件。
+- 主应用通过 `src/api/index.js` 提供领域 API 门面；Creator/Host/Player 的底层 HTTP、认证、错误和 SSE transport 已统一到 `shared/`，不再由三端各自实现协议细节。
 - 仍有一批后端能力处于“已实现/有 API/有测试，但没有明显产品化入口或只在独立端、运营入口、内部脚本中使用”的状态，主要集中在旧版 DeepSeek 分步流水线、物理令牌、部分玩家/主持增强功能、世界模板、少数 LLM 连接编辑能力。
 - 项目现在最需要的不是继续盲目加功能，而是按“可见闭环、隐藏能力、商业试点、运维门槛”四条线收口。
 
@@ -20,7 +20,7 @@
 | 玩家端 | `play/` | 加房、阅读、调查、线索、笔记、投票/私密行动、语音、广场/社交 | 独立轻量 API 客户端，接运行时能力 |
 | 主持端 | `host/` | 独立主持控制台、房间状态、玩家管理、事件推进、投票/私密行动 | 独立轻量 API 客户端，接主持能力 |
 | 官网 | `site/` | 产品展示、价格/内测申请、真实截图展示 | 主要接平台公开站点与 beta 申请 API |
-| 共享层 | `shared/` | session token、api-fetch、toast、status-chip、tokens、SSE | 已开始抽出，但 UI 共享还不完整 |
+| 共享层 | `shared/` | API client/fetch、session/auth、error、SSE client/lifecycle、safe DOM、toast、tokens、trace、web-vitals | transport 已收口；业务 UI 按角色保持独立 |
 
 ## 后端现存能力
 
@@ -44,7 +44,7 @@
 | 平台社交 | `backend/src/routes/platform-social-routes.js` | 17 | 玩家广场、社交、公开事件流等平台层功能 |
 | Batch B 玩家增强 | `backend/src/routes/batch-b-routes.js` | 15 | 玩家任务、怀疑度、口供、世界标签、段落补救 |
 | 创作/编辑 | `backend/src/routes/creator-routes.js`, `studio-routes.js`, `studio-graph-routes.js` | 35 | 文档导入、角色/章节/段落、场景、线索、物品、调查点、故事图谱 |
-| 玩家运行 | `backend/src/routes/player-routes.js` | 14 | 加房、玩家首页、阅读完成、探索、读线索、分享线索、笔记 |
+| 玩家运行 | `player-access-routes.js`、`player-progress-routes.js`、`player-exploration-routes.js`、`player-home-*` | 20+ | `player-routes.js` 仅为 9 行注册器；访问、进度、探索和首页查询已分域 |
 | 运营 OPS | `backend/src/routes/ops-routes.js`, `ops-*` | 18 | 生产状态、审计、反馈、计划升级、catalog/plaza/beta 管理 |
 | 账户/商业化 | `account-routes.js`, `account-llm-routes.js`, `billing-routes.js` | 15 | 权益、套餐、升级申请、账号导出/删除、用户 LLM、Stripe 底座 |
 | 资产/存储 | `asset-routes.js` | 7 | 存储用量、上传确认、下载 URL、删除/恢复 |
@@ -121,14 +121,14 @@
 
 - `backend/src/app.js` 负责 Fastify app 生命周期、横切中间件、限流、安全、错误和指标。
 - `backend/src/routes.js` 聚合核心业务路由，其它公开平台/OPS/认证路由在 `app.js` 单独注册。
-- `backend/src/routes/*.js` 按领域组织 HTTP 层，参数 schema 与业务函数组合。
-- `backend/src/*.js` 中的 service/helper 文件承载核心逻辑，例如规则引擎、事件总线、权限、导入、矩阵生成、资产策略、邮件、计费、数据保留。
-- `backend/migrations/*.sql` 是数据结构演进，目前到 `057_drop_room_suspicion_marks_legacy.sql`。
+- `backend/src/routes/*.js` 按领域组织 HTTP 层；`routes/schemas/` 已拆为 14 个领域 schema 文件，兼容 barrel 只有 7 行。
+- `backend/src/repositories/`、`services/` 与聚焦 service 文件承载查询、事务和领域逻辑。68 个路由模块仍有 143 个直连数据库点，由 `check:architecture` 单调递减。
+- `backend/migrations/*.sql` 是数据结构演进，目前到 `067_transactional_event_outbox.sql`。
 - `backend/test/*.test.js` 覆盖主要领域，当前测试文件数量较多，说明很多批次至少有后端回归证据。
 
 ### 主应用前端
 
-- `src/api/client.js` 是请求底座，管理 API_BASE、认证头、活跃 world/room、SSE cursor、DeepSeek timeout、幂等 key。
+- `src/api/client.js` 是 Creator 门面适配层；底层请求、认证失效与 SSE 游标/连接由 `shared/api-client.js`、`auth-state.js` 和 `sse-*` 统一实现。
 - `src/api/*.js` 按领域封装后端接口，`src/api/index.js` 统一导出。
 - `src/runtime/data.js` 聚合页面数据，是许多视图读取后端状态的中枢。
 - `src/runtime/auth-world.js` 管登录、世界选择、加房、建房、邀请等第一路径。
@@ -137,7 +137,7 @@
 
 ### 独立端
 
-- `play/src/api.js` 和 `host/src/api.js` 是独立端自己的轻量 API 客户端，避免直接依赖主应用的大 API 门面。
+- `play/src/api.js` 和 `host/src/api.js` 保留领域方法，但共同复用 shared transport；端内不再重复实现认证、错误转换和游标协议。
 - `play/src/room-events.js`、`host/src/runtime/room-events.js` 使用 SSE 接房间事件。
 - `play/src/views/*` 与 `host/src/views/*` 分别承接玩家端和主持端的正式体验。
 
@@ -147,7 +147,7 @@
 2. AI 生成链路新旧并存。矩阵链路已经推进，旧 DeepSeek 分步函数仍留在 API 层，容易让规划失焦。
 3. 后端能力比 UI 产品化更快。物理令牌、部分主持状态、玩家增强、账户套餐/LLM 编辑等需要决定是补 UI 还是降级为内部能力。
 4. 商业化不是代码能力不足，而是交付系统不足。订单、开通记录、SLA、案例、客户成功看板仍偏人工。
-5. 文档已有不少，但缺一张长期维护的“功能接线表”。本文件可以作为起点，后续每个批次更新。
+5. 静态代码门禁已经较完整，但 staging 容量、镜像/R2 回滚和 RPO/RTO 仍需运行证据，不能由函数数量或快审代替。
 
 ## 建议的收口路线
 

@@ -1,5 +1,7 @@
 # 织幕后端
 
+最后更新：2026-07-16
+
 正式 PostgreSQL 后端骨架。没有 SQLite 过渡层。
 
 系统设计（三端、主持—玩家闭环）：[docs/DESIGN_ZH.md](../docs/DESIGN_ZH.md)
@@ -30,7 +32,7 @@ npm run start
 ### 连不上后端？
 
 1. **端口占用**：`npm run dev:restart` 或 `netstat -ano | findstr :4180` 后 `taskkill /PID <pid> /F`
-2. **健康检查**：访问 `http://localhost:4180/api/health`，应返回 `ok: true` 与 `migrationsApplied: 23`（或当前迁移数）
+2. **健康检查**：访问 `http://localhost:4180/api/health`，应返回 `ok: true` 与当前 `migrationsApplied`；迁移真相以 `backend/migrations/` 和 `schema_migrations` 为准
 3. **迁移未跑**：`npm run db:migrate`（缺表时 health 会列出 `missingTables`；启动时也会 FATAL 拦截）
 4. **前端 Demo 401**：本地需 `ALLOW_DEMO_USER_HEADER=true`（见 `.env.example`）
 5. **改代码后自检**：`npm run check`（语法 + import 路径 + 模块图）→ `npm run check:boot`（DB + 启动链）
@@ -45,12 +47,14 @@ npm run start
 |------|------|
 | `npm run check` | 全量 JS 语法、`src/` 下错误 `../` import、**createApp 模块图可加载** |
 | `npm run check:boot` | 环境变量 + 模块图 + **数据库 schema**（与 server 启动前相同校验） |
-| `npm run check:tests` | 测试用例数量下限（≥80，`scripts/verify-test-count.mjs`） |
-| `npm test` | **347** 项集成测试（`--test-concurrency=1 --test-force-exit --import ./test/hooks.mjs`） |
+| `npm run check:tests` | 测试声明数量门禁（当前下限 ≥100；2026-07-16 实测 704 个声明 / 178 个 `.test.js` 文件） |
+| `npm test` | 执行 `backend/test/` 的 180 个测试文件；用例总数以本次命令输出为准 |
 
 后端默认监听 `http://localhost:4180`。
 
-## 已实现 API
+## 已实现 API（代表性入口）
+
+以下是常用入口，不再作为完整路由清单。当前约 320 个 Fastify route registration；完整契约以 `/documentation`、领域 schema 和 [CODEBASE_FUNCTION_MAP_ZH.md](../docs/CODEBASE_FUNCTION_MAP_ZH.md) 为准。
 
 - `GET /api/health`
 - `POST /api/auth/register`
@@ -208,14 +212,14 @@ npm run test:smoke
 
 完整功能说明见项目根目录 [FEATURE_CATALOG.md](../FEATURE_CATALOG.md)（含 P0-1～P2 变更 §12–§26）。
 
-### 测试规模（2026-06-18）
+### 测试规模（2026-07-16）
 
 | 套件 | 数量 |
 |------|------|
-| `npm run check:tests` + `npm test` | **347** |
-| `npm run test:smoke` | **18** |
-| `node ../scripts/ui-smoke.js` | **44** |
-| `npm run check:modules`（根） | **51** |
+| `npm run check:tests` | **704 个测试声明 / 178 个 `.test.js` 文件** |
+| `npm test` | **180 个后端测试文件**；断言数以运行输出为准 |
+| 根目录专项矩阵 | SSE **39**、Auth **22**、Trusted Types **23**、release gates **5**、performance tools **4** |
+| E2E 列表 | **87 tests / 15 files**，跨 Chromium / Firefox / WebKit；以 `npx playwright test --list` 为准 |
 
 产品总览见 [docs/PRODUCT_STATUS_ZH.md](../docs/PRODUCT_STATUS_ZH.md)。
 

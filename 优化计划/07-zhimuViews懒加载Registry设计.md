@@ -2,6 +2,8 @@
 
 最后更新：2026-07-02
 
+> 实施状态：设计已完成落地，`zhimuViews` 已由懒加载 registry 替代；本文保留设计依据，当前入口与行数见 [项目状态](../docs/PROJECT_STATUS.md)。
+
 ## 结论
 
 `zhimuViews` 不应该用“把所有 view 静态 import 到 app.js”的方式清理。这样会破坏现在已经做出来的 view-level code splitting，让创作者端首屏重新背上所有视图、动作和编辑器代码。

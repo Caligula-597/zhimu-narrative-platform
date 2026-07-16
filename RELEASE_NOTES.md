@@ -1,6 +1,19 @@
-# 织幕 Alpha · Release Notes
+# 织幕 · Release Notes
 
-**最新增量**：2026-06-03 · 工程完善（封面 UI、文档 347/62、@fastify/static v9、官网复盘 showcase）  
+## 2026-07-16 · 非功能性与架构收口
+
+| 领域 | 交付 |
+|---|---|
+| 后端结构 | world/player 大入口收敛，schema 拆为 14 个领域文件；68 个路由模块/143 个直连 DB 点进入递减门禁 |
+| 三端 transport | API/Auth/SSE 共用 shared 实现；并发 401、跨标签、账号游标、断线恢复统一 |
+| SSE 安全 | replay/live 服务端受众投影、慢消费者与 replay buffer 上限、5 分钟重认证 |
+| 数据安全 | 测试写入和破坏性演练分权；生产形态/未知远程数据库默认拒绝 |
+| Web 安全 | 产品直接 `innerHTML` 为 0；App/Site CSP + Trusted Types；官网 edge `_headers` |
+| 证据门禁 | periodic 14/14；SSE 39、Auth 22、TT 23、发布工具 5；Release Acceptance 运行 29477387204 失败（712 tests：701 pass / 8 fail / 3 skipped，仅 1/3） |
+
+> 以下内容按日期保留历史原貌；其中旧测试数字和“单节点 SSE”等表述不代表当前状态。
+
+**历史增量**：2026-06-03 · 工程完善（封面 UI、文档 347/62、@fastify/static v9、官网复盘 showcase）
 **版本标签建议**：`beta-8-2026-06-03`  
 **分支**：`main`
 
@@ -14,7 +27,7 @@
 
 ---
 
-**上一增量**：2026-06-18 · 主持—玩家联动 · 设计文档 · **341** 项测试  
+**更早增量**：2026-06-18 · 主持—玩家联动 · 设计文档 · **341** 项测试
 **版本标签建议**：`beta-7-2026-06-18`  
 **分支**：`main`
 

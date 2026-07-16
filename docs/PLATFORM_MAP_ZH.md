@@ -1,6 +1,6 @@
 # 平台地图
 
-最后更新：2026-07-02
+最后更新：2026-07-16
 
 ## 产品模块
 
@@ -28,7 +28,7 @@
 
 ## API 真相源
 
-后端路由按领域拆在 `backend/src/routes/`。新增写路由必须通过 `npm run check:schemas`。
+后端路由按领域拆在 `backend/src/routes/`，schema 已按领域拆入 `backend/src/routes/schemas/`，持续迁移到 repository/service 边界。新增写路由必须通过 `npm run check:schemas`。
 
 ## 前端真相源
 
@@ -47,9 +47,15 @@
 | A1 桥接清理 | 完成：`zhimuViews`/`zhimuRuntime`/`zhimuDom` 三大桥已从 `src/` 和 `app.js` 全部清除，替换为 `src/runtime/view-registry.js` + `src/runtime/runtime-facade.js` |
 | A2 状态分片 | 完成：8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js` 已落地；`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活 |
 | 后端 RLS | `backend/migrations/045_enable_public_rls.sql` 已为 44 张表启用 Row-Level Security |
+| 三端 transport | 完成：Creator、Host、Player 统一复用 `shared/api-client.js`、session token、SSE 生命周期、游标与错误转换 |
+| Pages 三站 | 完成：官网、Host、Play 已进入 `.github/workflows/pages-deploy.yml`，最新 PR 预览部署与安全检查通过 |
+| 内容运行层 | 基础闭环已实现：Segment、玩家任务、投票/指认、秘密行动、怀疑度、run report 与 creator analytics 已有后端和端侧接线 |
 
 ## 当前差距
 
-- Pages 三站 CI/CD workflow 已新增，待 secrets 验证。
-- 三端共享层不足。
-- 端口诊断工具：已新增 `npm run port:doctor`。
+- 后端路由仍有 143 个直接数据库调用点，需要继续迁移到 repository/service。
+- 官网公开请求仍需补统一超时、CSP 与错误边界审计；业务三端 transport 已统一。
+- 本轮发布候选长验收第 1/3 轮 8 项失败；修复完整重跑后，真实多玩家 P95/P99、应用镜像回滚、R2 恢复和实际 RPO/RTO 仍需形成环境证据。
+- 端口诊断工具已提供：`npm run port:doctor`。
+
+当前工程事实以 [PROJECT_STATUS.md](./PROJECT_STATUS.md) 为准。

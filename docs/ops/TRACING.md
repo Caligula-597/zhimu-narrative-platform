@@ -1,6 +1,6 @@
 # OpenTelemetry tracing
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 ## 当前状态
 
@@ -66,3 +66,5 @@ npm run check:production-ready
 ```
 
 如果 OTLP endpoint 或 headers 错误，`productionTrust` 会失败。
+
+当前仍需在目标生产环境保留 trace 到达 collector/backend 的证据；配置门禁通过不等于链路已被外部系统接收。

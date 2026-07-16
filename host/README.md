@@ -1,5 +1,7 @@
 # 织幕主持端
 
+最后更新：2026-07-16
+
 目录：`host/`
 
 生产域：`https://host.getzhimu.com`
@@ -49,4 +51,16 @@ HOST_SITE_URL=https://host.getzhimu.com
 
 ## 当前状态
 
-主持端作为独立 Vite 应用存在，但 Pages 发布和部署后 smoke 尚未进入统一 CI/CD。生产风险详见 `docs/ARCHITECTURE_PORT_AUDIT_ZH.md`。
+主持端作为独立 Vite 应用部署，已进入 `.github/workflows/pages-deploy.yml`；最新 PR 预览部署和安全检查通过。API、session、错误转换、SSE 生命周期与受众游标复用 `shared/`，投票、秘密行动、玩家任务、runbook 和补救视图已有基础接线。
+
+本地验证：
+
+```powershell
+npm test
+npm run build
+cd ..
+npm run pages:smoke
+npm run test:sse-matrix
+```
+
+真实发布候选、容量和恢复证据见 [项目状态](../docs/PROJECT_STATUS.md) 与 [架构/端口审计](../docs/ARCHITECTURE_PORT_AUDIT_ZH.md)。

@@ -1,6 +1,8 @@
 # 织幕待处理问题清单
 
-最后更新：2026-07-02
+最后更新：2026-07-16
+
+> 本文件是按发现顺序保留的性能/体验处理日志，正文中的旧文件行数、window bridge 和阶段性“剩余”描述不代表当前状态。当前性能证据见 [PLAYER_HOME_ACCEPTANCE_ZH.md](./PLAYER_HOME_ACCEPTANCE_ZH.md)，当前全局风险见 [PROJECT_STATUS.md](../PROJECT_STATUS.md)。
 
 ## 问题一：进入监控台卡顿
 

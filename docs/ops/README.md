@@ -1,6 +1,6 @@
 # 运维文档索引
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 当前真相源：
 
@@ -16,6 +16,8 @@
 | [DEPLOY.md](./DEPLOY.md) | 部署总览 |
 | [OAUTH_SETUP.md](./OAUTH_SETUP.md) | Google/GitHub OAuth |
 | [BACKUP.md](./BACKUP.md) | 数据库备份 |
+| [../operations/RELEASE_ROLLBACK_ZH.md](../operations/RELEASE_ROLLBACK_ZH.md) | 隔离验证、恢复证据、应用回滚边界 |
+| [R2_RESTORE_SOP_ZH.md](./R2_RESTORE_SOP_ZH.md) | R2 对象抽样与灾难恢复边界 |
 | [DATA_RETENTION.md](./DATA_RETENTION.md) | 数据保留 |
 
 历史参考：
@@ -27,8 +29,10 @@
 ```powershell
 npm run check:production-ready
 npm run monitoring:smoke -- --alerts
+npm run audit:periodic
+# 发布候选：GitHub Actions 手动运行 Release Acceptance
 ```
 
 ## 仍需补齐
 
-Cloudflare Pages 的 `site/play/host` 统一 CI/CD 尚未完成。详见 [架构与端口审视](../ARCHITECTURE_PORT_AUDIT_ZH.md)。
+Cloudflare Pages 的 `site/play/host` CI/CD 已完成并验证。2026-07-16 的 Release Acceptance 运行 `29477387204` 已失败：第 1/3 轮隔离测试 8 项失败，后续 E2E/性能/恢复均未执行。当前顺序是先修复并重跑，再补 staging 真实 Bearer 容量、应用镜像回滚、R2 恢复和实际 RPO/RTO。

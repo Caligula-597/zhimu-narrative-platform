@@ -1,6 +1,6 @@
 # 本地运维与排障
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 ## 服务与端口
 
@@ -25,6 +25,11 @@
 
 ```powershell
 npm run port:doctor
+npm run check:source-encoding
+npm run audit:periodic
+npm run test:auth-matrix
+npm run test:sse-matrix
+npm run test:trusted-types
 
 cd backend
 npm run check
@@ -37,6 +42,8 @@ npm run check:modules
 npm run build
 npm run test:e2e
 ```
+
+快速矩阵用于日常回归；发布候选必须由 `.github/workflows/release-acceptance.yml` 在隔离 fixture 下执行 `verify:full ×3`、恢复与回滚证据门禁。工作流仍在运行时不得提前标记通过。
 
 ## 生产验证
 
@@ -58,3 +65,5 @@ npm run monitoring:smoke -- --alerts
 ## 端口/框架审视
 
 详见 [ARCHITECTURE_PORT_AUDIT_ZH.md](./ARCHITECTURE_PORT_AUDIT_ZH.md)。
+
+恢复与回滚步骤见 [RELEASE_ROLLBACK_ZH.md](./operations/RELEASE_ROLLBACK_ZH.md) 和 [R2 恢复 SOP](./ops/R2_RESTORE_SOP_ZH.md)；当前工程状态见 [PROJECT_STATUS.md](./PROJECT_STATUS.md)。

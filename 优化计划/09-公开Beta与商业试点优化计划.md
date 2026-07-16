@@ -1,13 +1,13 @@
 # 公开 Beta 与商业试点优化计划
 
-最后更新：2026-07-06
+最后更新：2026-07-16
 
 ## 一句话结论
 
 织幕已经完成 L1 生产门槛和主要 P1 产品闭环，下一阶段重点从“补功能/补架构”切换为：
 
 ```text
-公开 Beta 小流量开放 + 人工陪跑商业试点。
+修复发布候选阻断 + 再评估公开 Beta 小流量开放 + 人工陪跑商业试点。
 ```
 
 工程优先级不再是大规模拆桥，而是把 **陌生用户信任、恢复承诺、商业交付、关键 E2E** 补成可运营闭环。
@@ -16,12 +16,12 @@
 
 | 领域 | 状态 |
 |---|---|
-| SaaS 评分 | 84 / 100 |
+| SaaS 评分 | 81 / 100（长验收失败后下调） |
 | L1 生产门槛 | 已完成：productionTrust 7/7、备份演练、权限矩阵、Support、staging 隔离、值班演练 |
 | P1 产品闭环 | 已完成：创作者风险总控、主持风险台、玩家下一步、反馈入口、clue audit、rule trace |
-| 共享层 | A4 Phase 6 完成：api-fetch、session-token、toast、status-chip、tokens |
+| 共享层 | Creator/Host/Player API、session/auth、error、SSE lifecycle/cursor 与事件校验已统一；端特定 UI 保持独立 |
 | 官网资产 | hero + 四端 showcase 已换真实截图 |
-| 主要缺口 | ~~pilot 案例~~ 已补匿名摘要；pg_dump **CI 已有**；R2 抽样脚本已有；**Beta-2 计费 UI 上线**（积分后端已就绪，首月隐藏） |
+| 主要缺口 | Release Acceptance 8 个测试失败与 cleanup 错误；真实 Bearer 20/50/100 并发、应用镜像回滚、R2 恢复、实际 RPO/RTO、商业试点与客户成功证据 |
 
 ## 阶段目标
 
@@ -33,9 +33,9 @@
 |---|---|---|---|
 | B0-01 | 官网 pilot 案例 | `site/` 案例区 + 匿名试点故事 | 至少 1 个真实/匿名案例；**依赖矩阵示例达标或人工定稿**（⏸ 见 `MATRIX_PILOT_BACKLOG.md`） |
 | B0-02 | 第一场路径文案 | ✅ 官网 `#first-session` + 产品内 onboarding | 用户知道创建→开房→邀请→复盘 |
-| B0-03 | 全量备份恢复补演练 | ✅ [BACKUP_DRILL_2026-07-04.md](./BACKUP_DRILL_2026-07-04.md) | managed clone 通过；Docker 待季度补跑 |
-| B0-04 | R2 附件恢复策略 | ✅ [R2_RESTORE_SOP_ZH.md](./R2_RESTORE_SOP_ZH.md) | 单对象/DB 恢复/孤儿 key 路径清楚 |
-| B0-05 | 值班联系人登记 | ✅ 模板 + 告警演练 | [ONCALL_CONTACTS.template.md](./ONCALL_CONTACTS.template.md)；`drill:oncall` 6/6 |
+| B0-03 | 全量备份恢复补演练 | ✅ [BACKUP_DRILL_2026-07-04.md](../docs/ops/BACKUP_DRILL_2026-07-04.md) | managed clone 通过；Docker 待季度补跑 |
+| B0-04 | R2 附件恢复策略 | ✅ [R2_RESTORE_SOP_ZH.md](../docs/ops/R2_RESTORE_SOP_ZH.md) | 单对象/DB 恢复/孤儿 key 路径清楚 |
+| B0-05 | 值班联系人登记 | ✅ 模板 + 告警演练 | [ONCALL_CONTACTS.template.md](../docs/ops/ONCALL_CONTACTS.template.md)；`drill:oncall` 6/6 |
 
 推荐命令：
 
@@ -98,7 +98,7 @@ npm run monitoring:smoke -- --alerts
 - 聚合 API 返回稳定卡片模型：`level/title/detail/action/ref`。
 - 所有聚合 API 必须进入权限矩阵或专门 route test。
 
-### 2. 三端共享层继续收敛
+### 2. 通用 transport 已收敛，继续扩展领域契约
 
 已完成：
 
@@ -110,7 +110,9 @@ npm run monitoring:smoke -- --alerts
 
 下一步仅按收益推进：
 
-- URL 安全校验
+- Fastify JSON Schema 生成契约覆盖更多读写 DTO
+- Segment/Task/Vote 状态 normalizer
+- 官网公开请求的 timeout、CSP 与错误边界
 - 空状态/错误页基础模板
 - 轻量 telemetry client hook
 - 表单字段与按钮状态 helper
@@ -174,8 +176,8 @@ npm run monitoring:smoke -- --alerts
 
 ## 当前建议
 
-1. 允许公开 Beta 小流量开放，但保留申请/人工审核节奏。
+1. 先修复并完整通过 Release Acceptance，再允许公开 Beta 小流量开放并保留申请/人工审核节奏。
 2. 商业试点可以启动，但只承接少量团队并人工陪跑。
 3. **矩阵示例剧本（雾港回声）暂停迭代** — 🔴 backlog 见 `docs/MATRIX_PILOT_BACKLOG.md`。
-4. **Beta-0（B0-02～B0-05）文档与演练已完成**；下一批：**Beta-2**（B2-01 计费 / B2-02 E2E）。
+4. Beta-0 文档/SOP 已有，但当前先修复 Release Acceptance；B2-01 计费与后续 E2E 不得越过发布阻断。
 5. 暂缓大规模重构，把工程注意力放到“证据、承诺、交付”上。

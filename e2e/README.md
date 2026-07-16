@@ -1,6 +1,6 @@
 # E2E / 浏览器测试
 
-最后更新：2026-06-26
+最后更新：2026-07-16
 
 ## Playwright 矩阵
 
@@ -19,7 +19,7 @@ chromium, firefox, webkit
 - `play-firefox`
 - `play-webkit`
 
-当前 `npx playwright test --list` 显示 45 个用例，覆盖创作者向导、主持台、玩家进度、存档复盘、玩家端广场/邀请码/官方体验/Tab。
+2026-07-16 的 `npx playwright test --list` 显示 87 tests / 15 files，覆盖创作者角色私人档案、向导、Host、玩家进度、全链路、存档复盘、运行主路径、三端 Trusted Types，以及玩家端广场/邀请码/官方体验/Tab。计数以后续命令输出为准。
 
 ## 运行
 
@@ -59,9 +59,13 @@ npm run test:e2e
 | Spec | 覆盖 |
 |---|---|
 | `creator-wizard-smoke` | 五步向导、测试房、邀请码 |
+| `creator-role-archive` | 角色私人档案懒加载、展开、编辑、新增分幕与保存 |
 | `host-director-smoke` | 待办、等待提示、nudge 弹窗 |
 | `player-host-progress` | 玩家阅读进度同步到主持台 |
+| `runtime-main-path` | 主持发线索、开放场景与玩家探索主链路 |
+| `full-chain` | fixture 全链路与向导到玩家阅读 |
 | `archive-recap-smoke` | 存档与复盘 |
+| `trusted-types-enforce` | Creator、Host、Play 强制模式启动与原始 sink 拒绝 |
 | `play-portal-smoke` | 邀请码、移动导航、广场 deep-link |
 | `play-official-example` | 官方体验入口 |
 | `play-sync-chrome` | 广场非白屏、入房后 tablist；文件名保留历史，测试已跨浏览器 |
