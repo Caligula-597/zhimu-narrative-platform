@@ -23,9 +23,8 @@ async function readSourceBundle(rels) {
 
 /* ── API bundle helpers ──
  * After the A1 migration, the original 599-line src/api/client.js was split
- * into 14 domain modules (client/auth/world/studio/room/host/player/voice/
- * recap/ai/content/assets/ops/index).  Smoke checks that used to grep a
- * single file now read the concatenated bundle.
+ * into domain modules plus shared request/SSE transports. Smoke checks that
+ * used to grep a single file now read the concatenated transport bundle.
  */
 const API_DOMAIN_FILES = [
   "src/api/client.js",
@@ -41,7 +40,9 @@ const API_DOMAIN_FILES = [
   "src/api/content.js",
   "src/api/assets.js",
   "src/api/ops.js",
-  "src/api/index.js"
+  "src/api/index.js",
+  "shared/api-fetch.js",
+  "shared/sse-client.js"
 ];
 
 let apiBundleCache = null;
@@ -602,7 +603,10 @@ await check("cloud-load-staged", async () => {
 
 await check("content-package-p1-4-wired", async () => {
   const apiBundle = readApiBundle();
-  const writer = readSource("src/views/writer.js");
+    const writer = [
+      readSource("src/views/writer.js"),
+      readSource("src/views/writer-modal-templates.js")
+    ].join("\n");
   for (const token of ["getContentPackageSummary", "previewContentPackageImport", "importContentPackageAsNewWorld"]) {
     if (!apiBundle.includes(token)) throw new Error(`${token} missing from api bundle`);
   }

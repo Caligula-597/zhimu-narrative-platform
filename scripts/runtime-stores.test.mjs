@@ -381,11 +381,11 @@ test("data.js delegates ensureActiveWorld and clearRuntimeState to stores", () =
 });
 
 test("startup overlaps auth and world membership before cloud hydration", () => {
-  const appJs = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  const profileIndex = appJs.indexOf("const profilePromise = window.zhimuAuthSession?.syncProfile?.()");
-  const prefetchIndex = appJs.indexOf("R.prefetchWorlds?.()");
-  const awaitProfileIndex = appJs.indexOf("await profilePromise");
-  const hydrateIndex = appJs.indexOf("return R.loadCloudData()");
+  const startupJs = fs.readFileSync(path.join(root, "src/bootstrap/startup.js"), "utf8");
+  const profileIndex = startupJs.indexOf("const profilePromise = window.zhimuAuthSession?.syncProfile?.()");
+  const prefetchIndex = startupJs.indexOf("runtime.prefetchWorlds?.()");
+  const awaitProfileIndex = startupJs.indexOf("await profilePromise");
+  const hydrateIndex = startupJs.indexOf("return runtime.loadCloudData()");
 
   assert.ok(profileIndex >= 0);
   assert.ok(prefetchIndex > profileIndex);

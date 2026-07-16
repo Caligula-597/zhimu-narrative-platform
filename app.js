@@ -2,13 +2,12 @@
 import { updateNotifyBadge } from "./src/components/toast.js";
 import { getViewMeta, resolveViewFn } from "./src/bootstrap/view-resolver.js";
 import { initEvents } from "./src/bootstrap/events.js";
+import { startApplication } from "./src/bootstrap/startup.js";
 import { content, modalBackdrop } from "./src/dom.js";
 import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
 import { callView } from "./src/runtime/view-registry.js";
 import { uiStore, studioStore, userStore } from "./src/state/index.js";
 import { loading as renderLoading, error as renderError } from "./src/components/status-ui.js";
-import { mountFeedbackButton } from "./src/components/feedback-button.js";
-import { initWebVitalsReporting } from "./shared/web-vitals.js";
 import { setHtml } from "./shared/safe-dom.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
@@ -133,33 +132,8 @@ const appEntry = (function (window) {
 
   initEvents({ content, modalBackdrop, R, go });
 
-  mountFeedbackButton();
-  initWebVitalsReporting({ app: "app", endpoint: "/api/metrics/web-vitals" });
   render();
-  const startupAuth = R.handleStartupAuthParams?.();
-  Promise.resolve(startupAuth)
-    .then(async () => {
-      // Keep startup to one authoritative auth probe. A former module-load
-      // probe raced this call and could overwrite a successful result.
-      // World membership is authorized by the same session cookie and can be
-      // fetched while /auth/me resolves. The result is not applied until the
-      // authoritative profile probe has completed.
-      const profilePromise = window.zhimuAuthSession?.syncProfile?.();
-      R.prefetchWorlds?.();
-      await profilePromise;
-      window.zhimuAuthSession?.syncAuthBanner?.();
-      return R.loadCloudData();
-    })
-    .catch((error) => {
-      studioStore.set({ cloudLoading: false });
-      userStore.set({ apiError: error.message || String(error) });
-      render();
-    })
-    .finally(() => {
-      if (!window.zhimuAuthSession?.isLoggedIn?.()) {
-        window.zhimuAuthSession?.promptAuthIfNeeded?.();
-      }
-    });
+  startApplication({ runtime: R, render });
 
   return { render, go };
 })(window);
