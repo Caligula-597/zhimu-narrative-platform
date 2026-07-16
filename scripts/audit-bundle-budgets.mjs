@@ -26,6 +26,7 @@ function runBuild(args, cwd = root) {
 
 if (shouldBuild) {
   runBuild(["run", "build"]);
+  runBuild(["run", "build"], path.join(root, "site"));
   runBuild(["run", "build"], path.join(root, "host"));
   runBuild(["run", "build"], path.join(root, "play"));
 }
@@ -47,6 +48,7 @@ function matchingAsset(directory, pattern) {
 
 const surfaces = {
   app: path.join(root, "dist"),
+  site: path.join(root, "site", "dist"),
   host: path.join(root, "host", "dist"),
   play: path.join(root, "play", "dist")
 };
@@ -54,6 +56,9 @@ const surfaces = {
 const checks = [
   ["app-entry-js", htmlAsset(surfaces.app, /assets\/index-[^/]+\.js$/), 85 * 1024],
   ["app-entry-css", htmlAsset(surfaces.app, /assets\/index-[^/]+\.css$/), 32 * 1024],
+  ["site-index-html", path.join(surfaces.site, "index.html"), 12 * 1024],
+  ["site-entry-js", htmlAsset(surfaces.site, /assets\/main-[^/]+\.js$/), 8 * 1024],
+  ["site-entry-css", htmlAsset(surfaces.site, /assets\/styles-[^/]+\.css$/), 10 * 1024],
   ["host-entry-js", htmlAsset(surfaces.host, /assets\/index-[^/]+\.js$/), 45 * 1024],
   ["host-entry-css", htmlAsset(surfaces.host, /assets\/index-[^/]+\.css$/), 38 * 1024],
   ["play-entry-js", htmlAsset(surfaces.play, /assets\/index-[^/]+\.js$/), 65 * 1024],

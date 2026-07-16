@@ -2,7 +2,9 @@
 
 本轮把非功能性要求从人工检查收敛为 `npm run audit:nonfunctional`，并接入 `npm run audit:periodic`。门禁覆盖外部 I/O 超时、数据库池等待与连接回收、后台任务关闭 drain、限流内存上限、500 错误脱敏、敏感查询串日志脱敏、静态文件路径边界、生产 CSP / Trusted Types 和三端入口体积。
 
-`npm run check:bundle-budgets` 会重新构建三端并检查 gzip 预算；LiveKit 必须保持独立懒加载块，不能回流到 Player 首页入口。
+`npm run check:bundle-budgets` 会重新构建四个前端表面并检查 gzip 预算；LiveKit 必须保持独立懒加载块，不能回流到 Player 首页入口。
+
+`npm run check:pages-installability` 使用 Cloudflare 当前构建环境的 `npm@10.9.2`，并行验证 Site、Host、Play 的 lockfile 能否执行干净安装；这可以发现本机已有 `node_modules` 时普通构建掩盖的 lockfile 漂移。包体门禁同时覆盖 App、Site、Host、Play 四个前端表面。
 
 已完成的高风险整改：
 

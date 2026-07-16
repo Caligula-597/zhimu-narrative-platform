@@ -24,6 +24,7 @@ const checks = [
   { name: "world-write-contracts", command: npmCommand, args: [...npmPrefixArgs, "run", "check:world-writes"], cwd: root },
   { name: "domain-boundaries", command: npmCommand, args: [...npmPrefixArgs, "run", "check:architecture"], cwd: root },
   { name: "nonfunctional-guardrails", command: npmCommand, args: [...npmPrefixArgs, "run", "audit:nonfunctional"], cwd: root },
+  { name: "pages-installability", command: npmCommand, args: [...npmPrefixArgs, "run", "check:pages-installability"], cwd: root },
   { name: "bundle-budgets", command: npmCommand, args: [...npmPrefixArgs, "run", "check:bundle-budgets"], cwd: root },
   { name: "sse-fault-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:sse-matrix"], cwd: root },
   { name: "auth-failure-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:auth-matrix"], cwd: root },
