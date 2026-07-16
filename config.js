@@ -1,7 +1,14 @@
 (() => {
-  const localHost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-  const storedApiBase = localStorage.getItem("zhimuApiBase");
-  const storedDemoMode = localStorage.getItem("zhimuDemoMode");
+  // Deployment shells and tests may inject an authoritative config before the
+  // application graph loads. Preserve it instead of replacing it with build
+  // defaults when another chunk imports this module directly.
+  if (window.zhimuConfig) return;
+
+  const runtimeLocation = window.location || globalThis.location || {};
+  const runtimeStorage = window.localStorage || globalThis.localStorage;
+  const localHost = runtimeLocation.hostname === "localhost" || runtimeLocation.hostname === "127.0.0.1";
+  const storedApiBase = runtimeStorage?.getItem("zhimuApiBase") ?? null;
+  const storedDemoMode = runtimeStorage?.getItem("zhimuDemoMode") ?? null;
   const viteEnv = typeof import.meta !== "undefined" && import.meta.env ? import.meta.env : {};
   const isViteDev = Boolean(viteEnv.DEV);
   const viteApiBase = viteEnv.VITE_API_BASE;
@@ -24,7 +31,7 @@
     if (!storedApiBase) return fallback;
     if (
       localHost &&
-      location.port === "8080" &&
+      runtimeLocation.port === "8080" &&
       /^https?:\/\/(?:localhost|127\.0\.0\.1):4180/i.test(storedApiBase)
     ) {
       return fallback;
@@ -55,4 +62,15 @@
     }
   };
 })();
-export {};
+
+/**
+ * Return the initialized browser runtime configuration.
+ *
+ * Importing this function also creates an explicit ESM dependency on this
+ * module. That dependency is important after Vite splits API/state code into
+ * separate chunks: consumers must not capture configuration before this
+ * module has run.
+ */
+export function getRuntimeConfig() {
+  return window.zhimuConfig || {};
+}

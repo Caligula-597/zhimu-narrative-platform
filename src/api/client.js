@@ -6,12 +6,13 @@
  * `window.zhimuApi` bridge has been removed; consumers import the namespace directly.
  */
 import { friendlyApiError } from "../utils/user-messages.js";
+import { getRuntimeConfig } from "../../config.js";
 import { createPortalApiClient } from "../../shared/api-client.js";
 import { createIdempotencyKey as sharedCreateIdempotencyKey } from "../../shared/api-fetch.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
 import { shouldInvalidateSessionForUnauthorized } from "../../shared/auth-state.js";
 
-const runtimeConfig = window.zhimuConfig || {};
+const runtimeConfig = getRuntimeConfig();
 const API_BASE = runtimeConfig.apiBase || "/api";
 const demoMode = Boolean(runtimeConfig.demoMode);
 const demoUsers = runtimeConfig.demoUsers || {};
