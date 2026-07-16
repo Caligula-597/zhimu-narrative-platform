@@ -29,6 +29,7 @@ const checks = [
   { name: "sse-fault-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:sse-matrix"], cwd: root },
   { name: "auth-failure-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:auth-matrix"], cwd: root },
   { name: "performance-tools", command: npmCommand, args: [...npmPrefixArgs, "run", "test:performance-tools"], cwd: root },
+  { name: "release-gates", command: npmCommand, args: [...npmPrefixArgs, "run", "test:release-gates"], cwd: root },
   { name: "trusted-types-contract", command: npmCommand, args: [...npmPrefixArgs, "run", "test:trusted-types"], cwd: root },
   {
     name: "code-diff-whitespace",

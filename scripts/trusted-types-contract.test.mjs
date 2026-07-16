@@ -16,6 +16,15 @@ test("production launch contract enforces Trusted Types", () => {
   }
 });
 
+test("marketing site enforces its shared Trusted Types policy at the edge", () => {
+  const headers = fs.readFileSync(path.join(root, "site/public/_headers"), "utf8");
+  assert.match(headers, /Content-Security-Policy:/);
+  assert.match(headers, /trusted-types zhimu-html/);
+  assert.match(headers, /require-trusted-types-for 'script'/);
+  assert.match(headers, /object-src 'none'/);
+  assert.match(headers, /frame-ancestors 'none'/);
+});
+
 test("Writer and Director use fragment-guarded template boundaries", () => {
   for (const file of ["src/views/writer.js", "src/views/director.js"]) {
     const source = fs.readFileSync(path.join(root, file), "utf8");

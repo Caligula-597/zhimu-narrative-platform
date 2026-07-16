@@ -3,8 +3,8 @@
 ## 发布前硬门槛
 
 1. 记录待发布提交 SHA、上一稳定镜像或部署 ID、数据库迁移范围。
-2. 执行 `npm run db:verify-rollback --prefix backend` 并保存日志。
-3. 执行 `npm run verify:full:3`（隔离库上的后端/前端单元与集成，**不含** Playwright E2E，也不要求本机 :4180/:4173 在线）。E2E 须由 `release-acceptance` 工作流或本地无 `--skip-e2e` 的 `full-chain` 另行通过。
+2. 执行 `npm run db:verify-rollback --prefix backend -- --out=../artifacts/recovery/release-rollback.json`。命令会记录每个恢复步骤的退出码和耗时；任一步未执行或失败，整体门禁失败。
+3. 执行 `npm run verify:full:3 -- --out=artifacts/release/verify-full-repeat.json`（隔离库上的后端/前端单元与集成，**不含** Playwright E2E，也不要求本机 :4180/:4173 在线）。次数必须是 1–10 的整数；非法次数直接失败，不能零次运行后假通过。E2E 须由 `release-acceptance` 工作流或本地无 `--skip-e2e` 的 `full-chain` 另行通过。
 4. 对 staging 执行 Player 首页并发压测，保存 JSON 和 `pg_stat_statements` 报告。
 5. 创建生产数据库快照并验证快照状态，不能只记录“已请求备份”。
 
@@ -30,3 +30,5 @@
 `with-isolated-database` 与 `verify-backup-restore` 默认拒绝指向生产形态主机（如 Supabase / Railway / Neon）的 `DATABASE_URL`。确认是非生产集群后，可设置 `ZHIMU_ALLOW_DESTRUCTIVE_DB=1` 覆盖。
 
 `verify-migration-upgrade`、`verify-backup-restore-managed` 同样受上述破坏性演练开关保护。测试套件与 Player 性能 fixture 使用权限更窄的 `ZHIMU_ALLOW_TEST_DB_WRITES=1`；设置破坏性演练开关不会自动放开测试写入。两个开关都只能用于已经确认隔离的非生产数据库，生产 Supabase 地址默认拒绝。
+
+`release-acceptance` 会上传 `artifacts/release/*.json` 与 `artifacts/recovery/*.json`。这些文件只证明隔离库重复验证、备份恢复和前向迁移；应用镜像回滚仍必须在部署平台单独演练并留存部署 ID、旧/新版本、开始/结束时间和健康检查结果，不能用数据库演练代替。

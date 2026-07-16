@@ -1,3 +1,5 @@
+import { escapeHtml, setHtml } from "../shared/safe-dom.js";
+
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || "https://app.getzhimu.com";
 
 const header = document.querySelector("[data-header]");
@@ -64,14 +66,6 @@ function applySiteLinks(links = {}) {
   applyExternalEntryBehavior();
 }
 
-function escapeHtml(value = "") {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 function renderLaunchPricingTier(tier) {
   const featured = tier.code === "creator" ? " pricing-card-featured" : "";
   return `<article class="pricing-card${featured}">
@@ -94,7 +88,7 @@ function applyPricingBootstrap(pricing = {}) {
 
   const tiersEl = document.querySelector("[data-pricing-tiers]");
   if (tiersEl && launch.tiers?.length) {
-    tiersEl.innerHTML = launch.tiers.map(renderLaunchPricingTier).join("");
+    setHtml(tiersEl, launch.tiers.map(renderLaunchPricingTier).join(""));
   }
 
   const inApp = document.querySelector("[data-pricing-in-app]");
@@ -118,7 +112,7 @@ function applyPricingBootstrap(pricing = {}) {
 
   const foot = document.querySelector("[data-pricing-footnote]");
   if (foot && pricing.commercial?.public) {
-    foot.innerHTML = `在线支付筹备中，当前仍通过人工开通。标价详见 <a href="/pricing-commercial.html">定价草案页</a>。`;
+    setHtml(foot, `在线支付筹备中，当前仍通过人工开通。标价详见 <a href="/pricing-commercial.html">定价草案页</a>。`);
   }
 }
 

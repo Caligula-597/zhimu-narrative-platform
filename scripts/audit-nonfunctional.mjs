@@ -101,6 +101,9 @@ const invariants = [
   ["backend/scripts/benchmark-player-home.mjs", "productionRepresentativeAuth", "performance evidence must disclose whether authentication is production-representative"],
   ["backend/scripts/verify-migration-upgrade.mjs", "assertSafeDatabaseUrlForDestructiveOps", "migration drills must reject production databases"],
   ["backend/scripts/verify-backup-restore-managed.mjs", "assertSafeDatabaseUrlForDestructiveOps", "managed restore drills must reject production databases"],
+  ["scripts/verify-full-repeat.mjs", "requestedRuns", "repeat verification must record every requested isolated run"],
+  ["backend/scripts/verify-release-rollback.mjs", "applicationImageRollbackCovered", "release recovery evidence must disclose the separate image rollback gate"],
+  ["site/public/_headers", "require-trusted-types-for 'script'", "marketing pages must enforce Trusted Types"],
   ["backend/.env.production.example", "CSP_MODE=enforce", "production CSP must be enforced"],
   ["backend/.env.production.example", "TRUSTED_TYPES_ENFORCE=true", "production Trusted Types must be enforced"],
   ["backend/.env.production.example", "ALLOW_DEMO_USER_HEADER=false", "production demo identity bypass must be disabled"]

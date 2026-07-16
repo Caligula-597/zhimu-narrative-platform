@@ -91,7 +91,9 @@ test("migrated public entry points do not bypass the audited HTML sink", () => {
     "play/src/runtime/reader.js",
     "play/src/runtime/view-controller.js",
     "host/src/main.js",
-    "host/src/components/modal.js"
+    "host/src/components/modal.js",
+    "site/main.js",
+    "site/pricing-commercial.js"
   ]) {
     const source = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
     assert.doesNotMatch(source, /\.innerHTML\s*=|insertAdjacentHTML\s*\(/, file);

@@ -1,3 +1,5 @@
+import { escapeHtml, setHtml } from "../shared/safe-dom.js";
+
 const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || "https://app.getzhimu.com";
 
 function applyExternalEntryBehavior() {
@@ -7,19 +9,11 @@ function applyExternalEntryBehavior() {
   });
 }
 
-function escapeHtml(value = "") {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 function renderTierCard(tier, { showPrice = true } = {}) {
   const price = tier.price;
   const priceHtml =
     showPrice && price
-      ? `<p class="pricing-price">${price.monthly === 0 ? "免费" : `¥${price.monthly}<small>/月</small>`}${price.yearly ? `<span class="pricing-year">年付 ¥${price.yearly}</span>` : ""}</p><p class="pricing-price-note">${escapeHtml(price.billingNote || "")}</p>`
+      ? `<p class="pricing-price">${price.monthly === 0 ? "免费" : `¥${escapeHtml(price.monthly)}<small>/月</small>`}${price.yearly ? `<span class="pricing-year">年付 ¥${escapeHtml(price.yearly)}</span>` : ""}</p><p class="pricing-price-note">${escapeHtml(price.billingNote || "")}</p>`
       : "";
   return `<article class="pricing-card ${tier.code === "creator" ? "pricing-card-featured" : ""}">
     <h3>${escapeHtml(tier.label)}</h3>
@@ -50,7 +44,7 @@ async function bootstrap() {
 
     const tiersEl = document.querySelector("[data-pricing-tiers]");
     if (tiersEl && pricing?.tiers?.length) {
-      tiersEl.innerHTML = pricing.tiers.map((tier) => renderTierCard(tier)).join("");
+      setHtml(tiersEl, pricing.tiers.map((tier) => renderTierCard(tier)).join(""));
     }
 
     const emailBtn = document.querySelector("[data-pricing-email]");
@@ -61,7 +55,7 @@ async function bootstrap() {
 
     const banner = document.querySelector("[data-pricing-banner]");
     if (banner && pricing?.public) {
-      banner.innerHTML = `<strong>标价已公开</strong> · 在线支付仍筹备中，请邮件 ${escapeHtml(support)} 人工开通。`;
+      setHtml(banner, `<strong>标价已公开</strong> · 在线支付仍筹备中，请邮件 ${escapeHtml(support)} 人工开通。`);
     }
 
     if (payload.links?.creatorApp) {
@@ -77,7 +71,7 @@ async function bootstrap() {
   } catch {
     const tiersEl = document.querySelector("[data-pricing-tiers]");
     if (tiersEl) {
-      tiersEl.innerHTML = `<p class="muted">暂时无法加载标价数据，请稍后刷新或联系 support@getzhimu.com。</p>`;
+      setHtml(tiersEl, `<p class="muted">暂时无法加载标价数据，请稍后刷新或联系 support@getzhimu.com。</p>`);
     }
   }
 }

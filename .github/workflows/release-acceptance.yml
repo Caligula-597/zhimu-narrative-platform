@@ -48,7 +48,7 @@ jobs:
           sudo apt-get install -y postgresql-client-17
           echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
       - name: Three isolated unit/integration runs (no E2E)
-        run: npm run verify:full:3
+        run: npm run verify:full:3 -- --out=artifacts/release/verify-full-repeat.json
       - name: Install acceptance browser
         run: npx playwright install --with-deps chromium
       - name: Main and Host critical E2E
@@ -86,7 +86,7 @@ jobs:
         run: npm run perf:player-home -- --concurrency=20 --requests=200 --path=/api/rooms/11111111-2222-4333-8444-555555550002/player-home/core --out=../artifacts/performance/player-home-core-ci-c20.json
         working-directory: backend
       - name: Backup restore and rollback drill
-        run: npm run db:verify-rollback
+        run: npm run db:verify-rollback -- --out=../artifacts/recovery/release-rollback.json
         working-directory: backend
       - name: Cleanup performance fixture
         if: always()
@@ -98,6 +98,8 @@ jobs:
           name: release-acceptance-evidence
           path: |
             artifacts/performance/*.json
+            artifacts/release/*.json
+            artifacts/recovery/*.json
             /tmp/zhimu-api.log
           if-no-files-found: warn
           retention-days: 30
