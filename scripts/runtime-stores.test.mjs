@@ -419,6 +419,8 @@ test("creator cockpit uses preview while detailed views lazy-load Studio", () =>
   assert.match(studioLoaderJs, /"clues"/);
   assert.match(appJs, /R\.viewRequiresStudio/);
   assert.match(appJs, /R\.ensureStudioSnapshot/);
+  assert.match(appJs, /if \(uiStore\.get\(\)\.view === loadingView\) render\(\)/);
+  assert.doesNotMatch(appJs, /currentToken === renderToken && uiStore\.get\(\)\.view === loadingView/);
 });
 
 test("saved world revisions invalidate and refresh the creator cockpit preview", () => {

@@ -59,6 +59,10 @@ test("main.js wires console, SSE and director actions", () => {
   assert.doesNotMatch(`${mainSource}\n${directorSource}`, /button\.dataset\.(?:testimony|flag|remedy|voteId|status|actionId|actKey)/);
   assert.match(mainSource, /renderApp/);
   assert.match(lifecycleSource, /requestMe:\s*api\.me/);
+  assert.match(
+    lifecycleSource,
+    /import\s*\{[^}]*\bgetSessionToken\b[^}]*\}\s*from\s*["']\.\.\/session\.js["']/s
+  );
   assert.doesNotMatch(`${mainSource}\n${lifecycleSource}`, /if \(!getSessionToken\(\)\) return/);
   assert.match(mainSource, /createDirectorActionHandler\(\{ render, showToast: setToast \}\)/);
   assert.match(mainSource, /createHostLifecycleController\(\{ render, setBusy, showToast: setToast \}\)/);

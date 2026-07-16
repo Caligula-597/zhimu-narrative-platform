@@ -51,7 +51,11 @@ const appEntry = (function (window) {
       Promise.resolve(R.ensureStudioSnapshot?.())
         .catch(() => {})
         .finally(() => {
-          if (currentToken === renderToken && uiStore.get().view === loadingView) render();
+          // View-module loading and Studio hydration run in parallel. Another
+          // render may legitimately advance renderToken before hydration
+          // settles; the active detailed view must still leave its loading
+          // state when the data request completes.
+          if (uiStore.get().view === loadingView) render();
         });
     }
     window.zhimuNavShell?.syncWorldSwitcher?.();

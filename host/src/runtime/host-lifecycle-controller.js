@@ -14,7 +14,7 @@ import {
   setSessionToken
 } from "../api.js";
 import { formatApiError } from "../errors.js";
-import { getRoomId, getWorldId, setRoomId, setWorldId } from "../session.js";
+import { getRoomId, getSessionToken, getWorldId, setRoomId, setWorldId } from "../session.js";
 import { state } from "../state.js";
 import { bindConsoleContext } from "../views/console.js";
 import {
