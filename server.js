@@ -1,4 +1,5 @@
 import http from "node:http";
+import https from "node:https";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +11,24 @@ const docsRoot = fs.existsSync(path.join(root, "docs"))
   ? path.join(root, "docs")
   : path.join(__dirname, "docs");
 const port = Number(process.env.PORT ?? process.env.FRONTEND_PORT ?? 4173);
+const apiProxyTarget = new URL(
+  process.env.API_PROXY_TARGET ?? process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:4180"
+);
+
+if (!["http:", "https:"].includes(apiProxyTarget.protocol)) {
+  throw new Error(`Unsupported API proxy protocol: ${apiProxyTarget.protocol}`);
+}
+
+const hopByHopHeaders = new Set([
+  "connection",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade"
+]);
 
 const mime = {
   ".html": "text/html; charset=utf-8",
@@ -46,10 +65,60 @@ function sendFile(res, filePath, statusCode = 200) {
   });
 }
 
+function withoutHopByHopHeaders(headers) {
+  return Object.fromEntries(
+    Object.entries(headers).filter(([name, value]) => value !== undefined && !hopByHopHeaders.has(name.toLowerCase()))
+  );
+}
+
+/** Keep the standalone dist server aligned with production's same-origin /api topology. */
+function proxyApi(req, res) {
+  const client = apiProxyTarget.protocol === "https:" ? https : http;
+  const basePath = apiProxyTarget.pathname.replace(/\/$/, "");
+  const headers = withoutHopByHopHeaders(req.headers);
+  headers.host = apiProxyTarget.host;
+  headers["x-forwarded-host"] = req.headers.host || "";
+  headers["x-forwarded-proto"] = req.socket.encrypted ? "https" : "http";
+
+  const upstream = client.request(
+    {
+      protocol: apiProxyTarget.protocol,
+      hostname: apiProxyTarget.hostname,
+      port: apiProxyTarget.port || undefined,
+      method: req.method,
+      path: `${basePath}${req.url || "/api"}`,
+      headers
+    },
+    (upstreamResponse) => {
+      const responseHeaders = withoutHopByHopHeaders(upstreamResponse.headers);
+      res.writeHead(upstreamResponse.statusCode || 502, responseHeaders);
+      upstreamResponse.pipe(res);
+    }
+  );
+
+  upstream.on("error", (error) => {
+    if (res.headersSent) {
+      res.destroy(error);
+      return;
+    }
+    res.writeHead(502, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify({
+      error: "API upstream unavailable",
+      code: "API_PROXY_UNAVAILABLE"
+    }));
+  });
+  req.on("aborted", () => upstream.destroy());
+  req.pipe(upstream);
+}
+
 http
   .createServer((req, res) => {
     const urlPath = (req.url ?? "/").split("?")[0];
     const target = urlPath === "/" ? "/index.html" : urlPath;
+    if (target === "/api" || target.startsWith("/api/")) {
+      proxyApi(req, res);
+      return;
+    }
     if (target.startsWith("/errors/")) {
       const errBase = fs.existsSync(path.join(root, "errors")) ? path.join(root, "errors") : path.join(__dirname, "error-pages");
       const rel = target.slice("/errors/".length);

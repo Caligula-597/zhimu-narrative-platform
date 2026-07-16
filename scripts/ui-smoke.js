@@ -683,6 +683,16 @@ await check("backend-health-reachable", async () => {
   return "backend /api/health ok";
 });
 
+await check("frontend-api-proxy", async () => {
+  const response = await fetch(`${FRONTEND}/api/health`);
+  const contentType = response.headers.get("content-type") || "";
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.ok || !/json/i.test(contentType)) {
+    throw new Error(`same-origin /api proxy failed: ${response.status} ${contentType || "no content type"}`);
+  }
+  return "frontend same-origin /api returns backend JSON";
+});
+
 await check("frontend-api-config", async () => {
   const config = readSource("config.js");
   if (!config.includes("zhimuConfig")) throw new Error("zhimuConfig missing");

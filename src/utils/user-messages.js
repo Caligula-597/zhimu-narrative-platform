@@ -337,8 +337,10 @@ function formatCloudPanelError(apiError, { hasStudio = false } = {}) {
     return "当前账号还没有剧本。点击「＋ 创建新世界」或使用创作向导开始。";
   }
   if (/请先登录/.test(apiError)) return apiError;
-  if (/无法连接|API_UNAVAILABLE|ECONNREFUSED|Failed to fetch|请求超时/i.test(apiError)) {
-    return "无法连接服务器，请确认网络后点击「刷新云端数据」。";
+  if (/无法连接|响应格式异常|API_UNAVAILABLE|INVALID_API_RESPONSE|ECONNREFUSED|Failed to fetch|请求超时/i.test(apiError)) {
+    return /响应格式异常|INVALID_API_RESPONSE/i.test(apiError)
+      ? "服务器返回了异常数据，请稍后点击「刷新云端数据」重试。"
+      : "无法连接服务器，请确认网络后点击「刷新云端数据」。";
   }
   const parts = apiError
     .split(" · ")
@@ -351,7 +353,7 @@ function overviewHeroTitle({ loading, worldName, apiError }) {
   if (loading) return "正在连接云端…";
   if (worldName) return worldName;
   if (apiError && /还没有可访问的剧本/.test(apiError)) return "欢迎，创作者";
-  if (apiError && /无法连接|API_UNAVAILABLE|ECONNREFUSED/i.test(apiError)) return "暂时无法连接云端";
+  if (apiError && /无法连接|响应格式异常|API_UNAVAILABLE|INVALID_API_RESPONSE|ECONNREFUSED/i.test(apiError)) return "暂时无法连接云端";
   if (apiError) return "加载未完成";
   return "未选择剧本";
 }

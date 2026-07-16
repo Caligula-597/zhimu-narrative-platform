@@ -124,8 +124,8 @@ export async function waitForCloudReady(page, timeout = 60_000) {
   );
   await page.waitForFunction(() => {
     const state = window.zhimuState;
-    const worldId = state?.cloudStudio?.world?.id;
-    return state && !state.cloudLoading && worldId && (state.cloudWorlds?.length || state.cloudStudio?.world);
+    const worldId = state?.cloudStudio?.world?.id || state?.cloudWorkspacePreview?.world?.id;
+    return state && !state.cloudLoading && worldId && Array.isArray(state.cloudWorlds) && state.cloudWorlds.length > 0;
   }, undefined, { timeout });
 }
 

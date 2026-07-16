@@ -317,6 +317,16 @@ test("workspace ensureActiveWorld consumes one prefetched worlds request", async
   assert.equal(worldFetchCount, 1);
 });
 
+test("workspace ensureActiveWorld rejects a non-array worlds contract", async () => {
+  nextWorlds = { ok: true };
+
+  await assert.rejects(
+    zhimuWorkspace.ensureActiveWorld(),
+    (error) => error.code === "INVALID_API_RESPONSE"
+  );
+  assert.deepEqual(worldStore.get().cloudWorlds, []);
+});
+
 test("workspace activeRuntimeRoom resolves from studio rooms or player payload", () => {
   demoContext.roomId = "room-a";
 

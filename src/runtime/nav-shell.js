@@ -21,7 +21,8 @@ import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
     const small = document.querySelector(".world-switcher small");
     if (!icon || !strong || !small) return;
     const studioWorld = cloudStudio?.world || cloudWorkspacePreview?.world;
-    const listedWorld = (cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
+    const listedWorld = (Array.isArray(cloudWorlds) ? cloudWorlds : [])
+      .find((world) => world.id === zhimuApi.context.worldId);
     const worldName = studioWorld?.name || listedWorld?.name;
     const bootstrapping = cloudLoading;
 

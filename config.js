@@ -13,15 +13,8 @@
   /** Production default API root. */
   function resolveDefaultApiBase() {
     if (viteApiBase) return viteApiBase;
-    // Vite dev / nginx staging / same-origin deploy: /api (proxy or reverse proxy).
-    if (isViteDev) return "/api";
-    if (localHost) {
-      const port = location.port;
-      // node server.js --dist on :4173 has no /api proxy — talk to backend directly.
-      if (port === "4173" || port === "5173") {
-        return "http://localhost:4180/api";
-      }
-    }
+    // Vite, the standalone dist server, nginx, and the full-stack deployment
+    // all expose the API through the same-origin /api boundary.
     return "/api";
   }
 

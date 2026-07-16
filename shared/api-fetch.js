@@ -7,13 +7,21 @@ import { isKnownApiErrorCode } from "./contracts/error-codes.js";
 
 /**
  * @param {Response} response
+ * @param {{ allowInvalid?: boolean }} [options]
  * @returns {Promise<Record<string, unknown>>}
  */
-export async function parseJsonResponse(response) {
+export async function parseJsonResponse(response, { allowInvalid = false } = {}) {
+  if (response.status === 204 || response.status === 205) return {};
   try {
     return await response.json();
-  } catch {
-    return {};
+  } catch (cause) {
+    if (allowInvalid) return {};
+    const contentType = response.headers?.get?.("content-type") || "unknown content type";
+    const error = new Error(`服务器响应格式异常，请稍后重试（${contentType}）`);
+    error.code = "INVALID_API_RESPONSE";
+    error.status = response.status;
+    error.cause = cause;
+    throw error;
   }
 }
 
@@ -88,7 +96,10 @@ export function createApiFetch(config) {
         signal: timer.signal,
         credentials
       });
-      const payload = await parseJsonResponse(response);
+      // Error responses may legitimately have an empty body, but every
+      // successful API response is a JSON contract. Reject HTML SPA fallbacks
+      // and proxy error pages before they can corrupt application state.
+      const payload = await parseJsonResponse(response, { allowInvalid: !response.ok });
       if (!response.ok) {
         const err =
           mapHttpError?.(response, payload, { method, path, headers, options, attempt, requestState }) ??

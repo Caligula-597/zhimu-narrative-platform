@@ -43,6 +43,41 @@ test("createApiFetch returns JSON on success", async () => {
   }
 });
 
+test("createApiFetch rejects a successful HTML fallback", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    headers: { get: () => "text/html; charset=utf-8" },
+    json: async () => { throw new SyntaxError("Unexpected token '<'"); }
+  });
+  try {
+    const { request } = createApiFetch({ baseUrl: "http://test/api" });
+    await assert.rejects(
+      request("/worlds"),
+      (err) => err.code === "INVALID_API_RESPONSE" && err.status === 200
+    );
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("createApiFetch accepts an empty 204 success", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 204,
+    headers: { get: () => null },
+    json: async () => { throw new SyntaxError("empty"); }
+  });
+  try {
+    const { request } = createApiFetch({ baseUrl: "http://test/api" });
+    assert.deepEqual(await request("/session", { method: "DELETE" }), {});
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("createApiFetch maps HTTP errors", async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async () => ({

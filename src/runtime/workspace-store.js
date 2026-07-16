@@ -60,6 +60,11 @@ export async function ensureActiveWorld() {
   } finally {
     prefetchedWorldsPromise = null;
   }
+  if (!Array.isArray(worlds)) {
+    const error = new Error("服务器返回的剧本列表格式不正确，请刷新后重试");
+    error.code = "INVALID_API_RESPONSE";
+    throw error;
+  }
   worldStore.set({ cloudWorlds: worlds });
   const hasSession = isLoggedIn();
   const current = zhimuApi.context.worldId;

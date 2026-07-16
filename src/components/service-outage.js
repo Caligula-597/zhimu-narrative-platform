@@ -5,7 +5,7 @@ import { escapeHtml } from "../../shared/security.js";
 (function (window) {
   function isServiceOutage(apiError) {
     if (!apiError) return false;
-    return /无法连接|API_UNAVAILABLE|ECONNREFUSED|Failed to fetch|请求超时|502|503|504|UNAVAILABLE/i.test(apiError);
+    return /无法连接|响应格式异常|API_UNAVAILABLE|INVALID_API_RESPONSE|ECONNREFUSED|Failed to fetch|请求超时|502|503|504|UNAVAILABLE/i.test(apiError);
   }
 
   function renderServiceOutage(apiError) {
