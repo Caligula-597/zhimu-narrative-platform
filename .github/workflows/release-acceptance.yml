@@ -79,10 +79,10 @@ jobs:
       - name: Create multi-player performance fixture
         run: npm run perf:player-home:fixture -- --out=../artifacts/performance/player-home-users.json
         working-directory: backend
-      - name: Player home P95/P99 evidence
+      - name: Player home local route/database P95/P99 baseline
         run: npm run perf:player-home -- --concurrency=20 --requests=200 --out=../artifacts/performance/player-home-ci-c20.json
         working-directory: backend
-      - name: Player home first-paint core evidence
+      - name: Player home local first-paint core baseline
         run: npm run perf:player-home -- --concurrency=20 --requests=200 --path=/api/rooms/11111111-2222-4333-8444-555555550002/player-home/core --out=../artifacts/performance/player-home-core-ci-c20.json
         working-directory: backend
       - name: Backup restore and rollback drill

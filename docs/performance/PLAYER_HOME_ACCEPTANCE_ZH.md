@@ -6,14 +6,16 @@
 
 ```bash
 cd backend
-npm run perf:player-home -- --url=https://staging.example.com --room-id=... --user-id=... --concurrency=20 --requests=200 --out=../artifacts/performance/player-home-c20.json
+PLAYER_HOME_BEARER_TOKENS='token-a,token-b,token-c' npm run perf:player-home -- --url=https://staging.example.com --room-id=... --concurrency=20 --requests=200 --out=../artifacts/performance/player-home-c20.json
 ```
 
 首屏 core 单独验收可增加：`--path=/api/rooms/<roomId>/player-home/core`。
 
 真实并发容量测试必须通过 `--user-ids=<id1,id2,...>` 提供多个已加入同一房间的测试玩家。单一用户压测主要验证重复同步、连接池和接口上限，不能替代多玩家并发证据。
 
-生产环境禁用 `x-user-id`，因此 staging 必须使用专用测试身份，或在脚本后续接入短期 Bearer Token。禁止为压测在生产开启 demo header。
+生产环境禁用 `x-user-id`。远程地址默认必须通过 `PLAYER_HOME_BEARER_TOKENS` 提供多个短期测试 Bearer；脚本不会把 token 写入控制台或 JSON。只有确认隔离的非生产环境才可显式传 `--allow-demo-header`。禁止为压测在生产开启 demo header。
+
+报告 schema v2 同时记录认证模式、是否具备生产代表性、样本数、状态码分布、错误率、成功请求与全请求延迟、响应体积、吞吐、Node 版本和提交 SHA。参数为 `NaN`、少于 100 个计量样本、URL 内含凭证或远程 demo header 时会直接拒绝执行。GitHub Actions 会把核心结果写入 Step Summary；Release Acceptance 中的 localhost demo-header 结果只证明路由/数据库基线，不能冒充真实认证容量证据。
 
 ## 2026-07-11 本地到远程 Supabase 基线
 

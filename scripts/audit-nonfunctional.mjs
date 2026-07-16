@@ -98,6 +98,7 @@ const invariants = [
   ["shared/sse-lifecycle.js", "staleCredential", "stale SSE handshakes must reconnect without logging out a new session"],
   ["backend/test/hooks.mjs", "assertSafeDatabaseUrlForTestWrites", "test fixture bootstrap must reject production databases"],
   ["backend/scripts/player-home-performance-fixture.mjs", "assertSafeDatabaseUrlForTestWrites", "performance fixtures must reject production databases"],
+  ["backend/scripts/benchmark-player-home.mjs", "productionRepresentativeAuth", "performance evidence must disclose whether authentication is production-representative"],
   ["backend/scripts/verify-migration-upgrade.mjs", "assertSafeDatabaseUrlForDestructiveOps", "migration drills must reject production databases"],
   ["backend/scripts/verify-backup-restore-managed.mjs", "assertSafeDatabaseUrlForDestructiveOps", "managed restore drills must reject production databases"],
   ["backend/.env.production.example", "CSP_MODE=enforce", "production CSP must be enforced"],
