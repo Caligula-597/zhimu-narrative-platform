@@ -27,6 +27,11 @@ function rlsMigrationTables(sql) {
   for (const block of sql.matchAll(/rls_tables\s+text\[\]\s*:=\s*ARRAY\[([\s\S]*?)\];/gi)) {
     for (const match of block[1].matchAll(/'([a-zA-Z_][a-zA-Z0-9_]*)'/g)) tables.push(match[1]);
   }
+  for (const match of sql.matchAll(
+    /ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:(?:public)\.)?([a-zA-Z_][a-zA-Z0-9_]*)\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/gi
+  )) {
+    tables.push(match[1]);
+  }
   return [...new Set(tables)].sort();
 }
 

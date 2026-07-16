@@ -34,6 +34,17 @@ test("formatErrorBody uses registered safe messages for known 5xx codes", () => 
   });
 });
 
+test("formatErrorBody preserves registered idempotency conflict codes", () => {
+  const conflict = Object.assign(new Error("Idempotency-Key was already used with a different request body"), {
+    code: "IDEMPOTENCY_PAYLOAD_MISMATCH",
+    statusCode: 409
+  });
+  assert.deepEqual(formatErrorBody(conflict, 409), {
+    error: "Idempotency-Key was already used with a different request body",
+    code: "IDEMPOTENCY_PAYLOAD_MISMATCH"
+  });
+});
+
 test("httpError carries custom code", () => {
   const err = httpError(409, "Conflict", "ROLE_TAKEN", { roleSlotId: "x" });
   assert.equal(err.code, "ROLE_TAKEN");

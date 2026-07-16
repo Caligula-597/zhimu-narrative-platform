@@ -114,7 +114,7 @@ export async function registerStoryAssistantRoutes(app) {
     return createDeepseekStoryProposal(request.body ?? {});
   });
 
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/import", { schema: deepseekImportSchema, preHandler: llmPreHandler }, async (request, reply) => {
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/import", { schema: deepseekImportSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -130,7 +130,7 @@ export async function registerStoryAssistantRoutes(app) {
     return createDeepseekMysteryPackage(request.body ?? {});
   });
 
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/full-mystery/import", { schema: deepseekMysteryImportSchema, preHandler: llmPreHandler }, async (request, reply) => {
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/full-mystery/import", { schema: deepseekMysteryImportSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
@@ -183,7 +183,7 @@ export async function registerStoryAssistantRoutes(app) {
     return createDeepseekManuscriptSynopsis(request.body ?? {});
   });
 
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/import", { schema: deepseekPipelineImportSchema, preHandler: llmPreHandler }, async (request, reply) => {
+  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/import", { schema: deepseekPipelineImportSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);

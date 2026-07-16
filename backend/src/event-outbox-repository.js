@@ -118,7 +118,10 @@ export async function persistClaimedRoomEvent(row) {
     assertValidRoomEvent(current.event_type, event);
     if (event.type !== current.event_type) throw new Error("Room outbox event type mismatch");
     if (event.roomId !== current.audience_id) throw new Error("Room outbox audience mismatch");
-    const audience = await client.query(`SELECT 1 FROM rooms WHERE id = $1`, [current.audience_id]);
+    // Hold the audience row through the journal insert. Without this lock a
+    // concurrent room deletion can commit between the existence check and the
+    // FK-protected insert, turning a harmless stale outbox row into a retry.
+    const audience = await client.query(`SELECT 1 FROM rooms WHERE id = $1 FOR KEY SHARE`, [current.audience_id]);
     if (!audience.rowCount) return markOutboxAudienceGone(client, current, "room audience no longer exists");
     const journal = await client.query(
       `INSERT INTO room_event_journal (room_id, event_type, payload)
@@ -160,7 +163,7 @@ export async function persistClaimedPlatformEvent(row) {
       throw new Error("Platform broadcast event must not carry userId");
     }
     if (audienceType === "user") {
-      const audience = await client.query(`SELECT 1 FROM users WHERE id = $1`, [current.audience_id]);
+      const audience = await client.query(`SELECT 1 FROM users WHERE id = $1 FOR KEY SHARE`, [current.audience_id]);
       if (!audience.rowCount) return markOutboxAudienceGone(client, current, "user audience no longer exists");
     }
     const journal = await client.query(

@@ -102,8 +102,15 @@ test("POST /api/platform/official-example/join creates personal runtime room", a
   const payload = join.json();
   assert.equal(payload.worldId, example.id);
   assert.equal(payload.worldName, example.name);
-  assert.equal(payload.membershipRole, "host");
+  assert.equal(payload.membershipRole, "viewer");
   assert.ok(payload.room?.invite_code);
+
+  const [worldMembership, roomMembership] = await Promise.all([
+    query(`SELECT role FROM world_members WHERE world_id = $1 AND user_id = $2`, [example.id, playerUserId]),
+    query(`SELECT member_type FROM room_members WHERE room_id = $1 AND user_id = $2`, [payload.room.id, playerUserId])
+  ]);
+  assert.equal(worldMembership.rows[0]?.role, "viewer", "play join must not grant creator permissions");
+  assert.equal(roomMembership.rows[0]?.member_type, "host", "personal runtime owner must control their room");
 
   const again = await app.inject({
     method: "POST",

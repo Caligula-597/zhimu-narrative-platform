@@ -50,6 +50,11 @@ export const API_ERRORS = {
   VALIDATION_ERROR: { status: 400, message: "Validation failed" },
   NOT_FOUND: { status: 404, message: "Not found" },
   CONFLICT: { status: 409, message: "Conflict" },
+  IDEMPOTENCY_CONFLICT: { status: 409, message: "Idempotency key conflict" },
+  IDEMPOTENCY_ROUTE_MISMATCH: { status: 409, message: "Idempotency key was already used for another route" },
+  IDEMPOTENCY_PAYLOAD_MISMATCH: { status: 409, message: "Idempotency key was already used with another request body" },
+  IDEMPOTENCY_IN_PROGRESS: { status: 409, message: "Idempotent request is still processing" },
+  IDEMPOTENCY_PREVIOUS_FAILED: { status: 409, message: "Previous idempotent request failed" },
   PAYLOAD_TOO_LARGE: { status: 413, message: "Payload too large" },
   UNSUPPORTED_MEDIA_TYPE: { status: 415, message: "Unsupported media type" },
   UNPROCESSABLE: { status: 422, message: "Unprocessable entity" },
@@ -83,6 +88,7 @@ export const API_ERRORS = {
   /** Model output parsed but failed schema / length / consistency checks */
   DEEPSEEK_OUTPUT_INVALID: { status: 422, message: "DeepSeek output failed validation" },
   UNAVAILABLE: { status: 503, message: "Service unavailable" },
+  IDEMPOTENCY_UNAVAILABLE: { status: 503, message: "Idempotency service is unavailable" },
   GATEWAY_TIMEOUT: { status: 504, message: "Gateway timeout" },
 
   // Worlds & collaboration
