@@ -15,7 +15,6 @@ const appEntry = (function (window) {
 
   const R = getRuntime();
 
-  let renderToken = 0;
   let lastContentHtml = "";
 
   function setContentHtml(nextHtml) {
@@ -40,7 +39,6 @@ const appEntry = (function (window) {
   }
 
   function render() {
-    const currentToken = ++renderToken;
     const currentView = uiStore.get().view;
     if (!getViewMeta(currentView)) { uiStore.set({ view: "creatorCockpit" }); return render(); }
     const [eyebrow, title] = getViewMeta(uiStore.get().view);
@@ -51,10 +49,8 @@ const appEntry = (function (window) {
       Promise.resolve(R.ensureStudioSnapshot?.())
         .catch(() => {})
         .finally(() => {
-          // View-module loading and Studio hydration run in parallel. Another
-          // render may legitimately advance renderToken before hydration
-          // settles; the active detailed view must still leave its loading
-          // state when the data request completes.
+          // View-module loading and Studio hydration run in parallel. Either
+          // completion must let the still-active view leave its loading state.
           if (uiStore.get().view === loadingView) render();
         });
     }
@@ -70,12 +66,12 @@ const appEntry = (function (window) {
       setContentHtml(renderViewLoading(title));
       loader.ensureViewModules(loadingView)
         .then(() => {
-          if (currentToken !== renderToken || uiStore.get().view !== loadingView) return;
+          if (uiStore.get().view !== loadingView) return;
           if (uiStore.get().view === "account") window.zhimuAccountHub?.beginAccountHubLoad?.();
           render();
         })
         .catch((error) => {
-          if (currentToken !== renderToken || uiStore.get().view !== loadingView) return;
+          if (uiStore.get().view !== loadingView) return;
           setContentHtml(renderViewError(title, error));
         });
       return;

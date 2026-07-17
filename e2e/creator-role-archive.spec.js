@@ -7,7 +7,9 @@ test.describe("创作者 · 角色私人档案", () => {
     await page.goto(BASE_URL);
     await waitForCloudReady(page);
     await goToView(page, "writer");
-    await expect(page.locator(".writer-archives")).toBeVisible();
+    await expect(page.locator(".writer-role-workbench")).toBeVisible();
+    await expect(page.locator(".writer-role-tab")).toHaveCount(3);
+    await expect(page.locator(".writer-role-editor")).toBeVisible();
   });
 
   test("档案只加载一次，展开、编辑席位、新增分幕和保存均可操作", async ({ page }) => {
@@ -20,13 +22,20 @@ test.describe("创作者 · 角色私人档案", () => {
     await page.waitForTimeout(500);
     expect(archiveGets).toBeLessThanOrEqual(1);
 
+    const secondRole = page.locator(".writer-role-tab").nth(1);
+    const secondRoleId = await secondRole.getAttribute("data-role");
+    expect(secondRoleId).toBeTruthy();
+    await secondRole.click();
+    await expect(page.locator('.writer-role-tab[aria-selected="true"]')).toHaveAttribute("data-role", secondRoleId);
+
     const panels = page.locator('[data-collapse-panel^="writer:archive:"]');
-    await expect(panels).toHaveCount(3);
-    const second = panels.nth(1);
-    await second.locator(".collapse-panel-toggle").click();
-    await expect(second).toHaveClass(/is-open/);
+    await expect(panels).toHaveCount(1);
+    const activePanel = page.locator(`[data-collapse-panel="writer:archive:${secondRoleId}"]`);
+    await activePanel.locator(".collapse-panel-toggle").click();
+    await expect(activePanel).toHaveClass(/is-open/);
+    await expect(activePanel.locator("[data-role-archive]")).toBeVisible();
     await page.waitForTimeout(800);
-    await expect(second).toHaveClass(/is-open/);
+    await expect(activePanel).toHaveClass(/is-open/);
 
     await page.locator('[data-action="creator-edit-role"]').first().click();
     await expect(page.locator("#modal-backdrop.show")).toBeVisible();
