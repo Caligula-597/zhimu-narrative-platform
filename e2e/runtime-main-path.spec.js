@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test";
 import {
-  FIXTURE,
   gotoHostConsole,
   injectHostAppContext,
-  joinPlayRoomViaUi,
+  joinFixturePlayRoomViaUi,
   refreshHostRoomState,
   waitForHostIdle,
 } from "./helpers/fixture.mjs";
@@ -17,7 +16,7 @@ test.describe("运行时主链路 · 发线索与开放场景", () => {
     const playPage = await playContext.newPage();
 
     try {
-      await joinPlayRoomViaUi(playPage, FIXTURE.inviteCode);
+      await joinFixturePlayRoomViaUi(playPage);
       await expect(playPage.locator("[data-game-tab-bar]")).toBeVisible({ timeout: 30_000 });
 
       await injectHostAppContext(hostContext);

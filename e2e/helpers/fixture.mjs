@@ -1,5 +1,10 @@
 /** Playwright helpers — CI test fixture (TEST-FIXTURE-DEMO), not a specific story script. */
 
+import { execFile } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+
 /** @typedef {import('@playwright/test').Page} Page */
 
 export const FIXTURE = {
@@ -13,6 +18,18 @@ export const FIXTURE = {
 export const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:4173";
 export const API_BASE = process.env.PLAYWRIGHT_API_URL || "http://localhost:4180";
 export const HOST_URL = process.env.PLAYWRIGHT_HOST_URL || "http://localhost:5175";
+
+const execFileAsync = promisify(execFile);
+const backendDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../backend");
+
+/** Restore the shared fixture room before a test claims one of its player seats. */
+export async function resetFixtureRoom() {
+  await execFileAsync(process.execPath, ["scripts/e2e-reset-fixture-room.mjs"], {
+    cwd: backendDir,
+    env: process.env,
+    windowsHide: true
+  });
+}
 
 /**
  * @param {import('@playwright/test').BrowserContext} context
@@ -103,8 +120,10 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
   let target = roleName
     ? roleCards.filter({ hasText: roleName }).first()
     : roleCards.first();
-  if (roleName && !(await target.isVisible().catch(() => false))) {
-    target = roleCards.first();
+  if (roleName) {
+    await target.waitFor({ state: "visible", timeout: 30_000 }).catch(() => {
+      throw new Error(`Requested fixture role is unavailable: ${roleName}`);
+    });
   }
   await target.click();
   await page.waitForFunction(() => {
@@ -113,6 +132,12 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
   }, undefined, { timeout: 10_000 });
   await page.locator('[data-action="confirm-join"]').first().evaluate((button) => button.click());
   await page.locator("[data-game-tab-bar]").waitFor({ state: "visible", timeout: 30_000 });
+}
+
+/** @param {Page} page @param {string} [roleName] */
+export async function joinFixturePlayRoomViaUi(page, roleName) {
+  await resetFixtureRoom();
+  await joinPlayRoomViaUi(page, FIXTURE.inviteCode, roleName);
 }
 
 export async function waitForCloudReady(page, timeout = 60_000) {

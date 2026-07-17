@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test";
 import {
-  FIXTURE,
   gotoHostConsole,
   injectHostAppContext,
-  joinPlayRoomViaUi,
+  joinFixturePlayRoomViaUi,
 } from "./helpers/fixture.mjs";
 
 test.describe("主持台 · 玩家阅读进度联动", () => {
@@ -14,7 +13,7 @@ test.describe("主持台 · 玩家阅读进度联动", () => {
     const playPage = await playContext.newPage();
 
     try {
-      await joinPlayRoomViaUi(playPage, FIXTURE.inviteCode, "角色 B");
+      await joinFixturePlayRoomViaUi(playPage, "角色 B");
       await playPage.locator('[data-action="switch-tab"][data-tab="sections"]').click();
       await expect(playPage.locator(".sections-layout, .reader").first()).toBeVisible({ timeout: 20_000 });
       const completeBtn = playPage.locator('[data-action="complete-section"]').first();

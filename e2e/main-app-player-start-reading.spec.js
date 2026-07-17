@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
-  FIXTURE,
-  joinPlayRoomViaUi,
+  joinFixturePlayRoomViaUi,
 } from "./helpers/fixture.mjs";
 
 test.describe("独立玩家端 · 阅读开始埋点", () => {
@@ -11,7 +10,7 @@ test.describe("独立玩家端 · 阅读开始埋点", () => {
       { timeout: 45_000 }
     );
 
-    await joinPlayRoomViaUi(page, FIXTURE.inviteCode, "角色 B");
+    await joinFixturePlayRoomViaUi(page, "角色 B");
     await page.locator('[data-action="switch-tab"][data-tab="sections"]').click();
     await expect(page.locator(".sections-layout, .reader, [data-reader-body]").first()).toBeVisible({ timeout: 30_000 });
 

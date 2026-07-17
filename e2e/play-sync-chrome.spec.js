@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { FIXTURE, PLAY_URL, joinPlayRoomViaUi } from "./helpers/fixture.mjs";
+import { FIXTURE, PLAY_URL, joinFixturePlayRoomViaUi, joinPlayRoomViaUi } from "./helpers/fixture.mjs";
 
 test.describe("玩家端 同步与导航", () => {
   test("广场页显示加载或内容区（非白屏）", async ({ page }) => {
@@ -14,7 +14,8 @@ test.describe("玩家端 同步与导航", () => {
 
   test("游戏壳 Tab 栏带 role=tablist（入房后）", async ({ page }) => {
     const invite = process.env.PLAYWRIGHT_INVITE_CODE || FIXTURE.inviteCode;
-    await joinPlayRoomViaUi(page, invite);
+    if (invite === FIXTURE.inviteCode) await joinFixturePlayRoomViaUi(page);
+    else await joinPlayRoomViaUi(page, invite);
     await expect(page.locator('[role="tablist"]').first()).toBeVisible({ timeout: 30_000 });
     const investigationTab = page.locator('[data-primary-tab="investigation"]');
     await investigationTab.click();

@@ -14,7 +14,7 @@ import {
   injectHostAppContext,
   injectHostContext,
   injectVerifiedPlayContext,
-  joinPlayRoomViaUi,
+  joinFixturePlayRoomViaUi,
   waitForCloudReady
 } from "./helpers/fixture.mjs";
 
@@ -52,7 +52,7 @@ test("capture creator, host, play, archive PNGs for site", async ({ browser }) =
   const playCtx = await browser.newContext({ viewport: VIEWPORT, locale: "zh-CN" });
   await injectVerifiedPlayContext(playCtx);
   const playPage = await playCtx.newPage();
-  await joinPlayRoomViaUi(playPage);
+  await joinFixturePlayRoomViaUi(playPage);
   await playPage.locator("[data-game-tab-bar]").waitFor({ state: "visible", timeout: 30_000 });
   await playPage.waitForTimeout(400);
   await playPage.screenshot({ path: path.join(OUT_DIR, "zhimu-screenshot-play.png"), fullPage: false });

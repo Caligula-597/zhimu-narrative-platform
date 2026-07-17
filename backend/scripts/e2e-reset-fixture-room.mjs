@@ -11,9 +11,32 @@ try {
   await client.query(
     `DELETE FROM room_members
      WHERE room_id = $1
-       AND member_type = 'player'
-       AND user_id <> $2`,
-    [FIXTURE.roomId, FIXTURE.playerUserId]
+       AND user_id NOT IN ($2, $3)`,
+    [FIXTURE.roomId, FIXTURE.hostUserId, FIXTURE.playerUserId]
+  );
+  await client.query(
+    `INSERT INTO room_members (room_id, user_id, member_type, role_slot_id, status)
+     VALUES ($1, $2, 'host', NULL, 'active')
+     ON CONFLICT (room_id, user_id) DO UPDATE SET
+       member_type = 'host',
+       role_slot_id = NULL,
+       status = 'active',
+       joined_at = COALESCE(room_members.joined_at, now())`,
+    [FIXTURE.roomId, FIXTURE.hostUserId]
+  );
+  await client.query(
+    `INSERT INTO room_members (room_id, user_id, member_type, role_slot_id, status)
+     SELECT $1, $2, 'player', rs.id, 'active'
+     FROM role_slots rs
+     WHERE rs.world_id = $3
+     ORDER BY rs.sequence, rs.id
+     LIMIT 1
+     ON CONFLICT (room_id, user_id) DO UPDATE SET
+       member_type = 'player',
+       role_slot_id = EXCLUDED.role_slot_id,
+       status = 'active',
+       joined_at = COALESCE(room_members.joined_at, now())`,
+    [FIXTURE.roomId, FIXTURE.playerUserId, FIXTURE.worldId]
   );
   await client.query(`DELETE FROM reading_progress WHERE room_id = $1`, [FIXTURE.roomId]);
   await client.query(`DELETE FROM clue_ownership WHERE room_id = $1`, [FIXTURE.roomId]);
@@ -25,12 +48,6 @@ try {
     `INSERT INTO pending_host_events (room_id, event_key, title, description, actions, status)
      VALUES ($1, 'seed-fixture-pending', '【演示】待确认推进', 'seed 用于主持台演示与 E2E', '[]'::jsonb, 'pending')`,
     [FIXTURE.roomId]
-  );
-  await client.query(
-    `UPDATE room_members
-     SET status = 'active', joined_at = COALESCE(joined_at, now())
-     WHERE room_id = $1 AND user_id = $2 AND member_type = 'player'`,
-    [FIXTURE.roomId, FIXTURE.playerUserId]
   );
   await client.query(
     `INSERT INTO worlds (id, owner_user_id, name, summary, status, catalog_public, catalog_review_status)

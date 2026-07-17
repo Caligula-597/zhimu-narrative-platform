@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
 import {
   BASE_URL,
-  FIXTURE,
   dismissModalIfOpen,
   goToView,
   gotoHostConsole,
   injectHostAppContext,
   injectHostContext,
+  joinFixturePlayRoomViaUi,
   joinPlayRoomViaUi,
   refreshHostRoomState,
   waitForCloudReady,
@@ -23,7 +23,7 @@ test.describe("Beta 主线 · fixture 全链路", () => {
     const hostPage = await hostContext.newPage();
 
     try {
-      await joinPlayRoomViaUi(playPage, FIXTURE.inviteCode, "角色 B");
+      await joinFixturePlayRoomViaUi(playPage, "角色 B");
       await playPage.locator('[data-action="switch-tab"][data-tab="sections"]').click();
       await expect(playPage.locator(".sections-layout, .reader").first()).toBeVisible({ timeout: 20_000 });
       const completeBtn = playPage.locator('[data-action="complete-section"]').first();
