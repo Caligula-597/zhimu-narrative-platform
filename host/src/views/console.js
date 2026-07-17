@@ -186,8 +186,9 @@ export function hostPlayerTableRows(players){
 
 function hostLiveFeed(){
  const logs=(state.cloudWorldLogs||[]).slice(0,6);
- if(!logs.length)return "";
- const body=logs.map((log)=>activity(`${escapeHtml(hostOperationLabel(log.event_type,log.message))}${log.message?` · ${escapeHtml(log.message)}`:""}`,formatRelativeTime(log.created_at),logActivityType(log.event_type))).join("");
+ const body=logs.length
+  ?logs.map((log)=>activity(`${escapeHtml(hostOperationLabel(log.event_type,log.message))}${log.message?` · ${escapeHtml(log.message)}`:""}`,formatRelativeTime(log.created_at),logActivityType(log.event_type))).join("")
+  :`<div class="empty-state">尚无玩家动态；玩家阅读、调查或主持操作后会自动显示。</div>`;
  return collapsibleCard({ id: "director:live-feed", title: "玩家实时动态", subtitle: "最近房间时间线 — 与玩家阅读、调查操作同步", headerExtra: `<button class="secondary-btn" data-action="refresh-host-room">刷新</button>`, body: `<div class="host-audit-list">${body}</div>`, defaultOpen: true, style: "margin-top:14px" });
 }
 

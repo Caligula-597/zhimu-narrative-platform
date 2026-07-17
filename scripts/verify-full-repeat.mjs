@@ -16,6 +16,16 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const backend = path.join(root, "backend");
 
+export function assertSupportedNodeRuntime(version = process.versions.node) {
+  const major = Number(String(version).split(".")[0]);
+  if (major !== 22) {
+    throw new Error(
+      `release acceptance requires Node.js 22.x (received ${version}). ` +
+        "Use .nvmrc or .node-version before running verify:full:3."
+    );
+  }
+}
+
 export function parseRepeatOptions(argv = []) {
   const unknownArgs = argv.filter((value) => !value.startsWith("--count=") && !value.startsWith("--out="));
   if (unknownArgs.length) throw new TypeError(`unknown argument: ${unknownArgs[0]}`);
@@ -98,6 +108,11 @@ export function runRepeatedVerification({ count, outputPath }, runProcess = spaw
     finishedAt: finishedAt.toISOString(),
     durationMs: finishedAt.getTime() - startedAt.getTime(),
     revision: process.env.GITHUB_SHA || null,
+    runtime: {
+      nodeVersion: process.version,
+      platform: process.platform,
+      arch: process.arch
+    },
     requestedRuns: count,
     completedRuns: runs.length,
     passedRuns: passed,
@@ -121,6 +136,7 @@ export function runRepeatedVerification({ count, outputPath }, runProcess = spaw
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   try {
+    assertSupportedNodeRuntime();
     const options = parseRepeatOptions(process.argv.slice(2));
     process.exitCode = runRepeatedVerification(options);
   } catch (error) {

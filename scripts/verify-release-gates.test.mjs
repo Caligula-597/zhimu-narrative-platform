@@ -3,7 +3,11 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { parseRepeatOptions, runRepeatedVerification } from "./verify-full-repeat.mjs";
+import {
+  assertSupportedNodeRuntime,
+  parseRepeatOptions,
+  runRepeatedVerification
+} from "./verify-full-repeat.mjs";
 import {
   parseRollbackOptions,
   runRollbackVerification
@@ -16,6 +20,17 @@ test("verify repeat options reject counts that could false-pass without running"
   assert.deepEqual(parseRepeatOptions([]), { count: 3, outputPath: null });
   assert.equal(parseRepeatOptions(["--count=3"]).count, 3);
   assert.throws(() => parseRepeatOptions(["--coun=3"]), /unknown argument/);
+});
+
+test("release acceptance rejects runtimes outside the pinned Node 22 line", () => {
+  assert.doesNotThrow(() => assertSupportedNodeRuntime("22.23.1"));
+  assert.throws(() => assertSupportedNodeRuntime("24.13.0"), /requires Node\.js 22\.x/);
+  assert.throws(() => assertSupportedNodeRuntime("invalid"), /requires Node\.js 22\.x/);
+});
+
+test("Playwright migrates a fresh database before starting the API", () => {
+  const config = readFileSync(path.join(process.cwd(), "playwright.config.js"), "utf8");
+  assert.match(config, /command:\s*["']npm run db:migrate && node src\/server\.js["']/);
 });
 
 test("verify repeat stops and fails on a signalled child process", () => {

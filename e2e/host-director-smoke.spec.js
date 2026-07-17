@@ -40,7 +40,12 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
   });
 
   test("玩家实时动态卡片可展开", async ({ page }) => {
-    await expect(page.getByText("玩家实时动态")).toBeVisible();
+    const liveFeed = page.locator('[data-collapse-panel="director:live-feed"]');
+    await expect(liveFeed.getByRole("heading", { name: "玩家实时动态" })).toBeVisible();
+    await liveFeed.locator(".collapse-panel-toggle").click();
+    await expect(liveFeed).toHaveClass(/is-collapsed/);
+    await liveFeed.locator(".collapse-panel-toggle").click();
+    await expect(liveFeed).toHaveClass(/is-open/);
   });
 
   test("提醒等待中的玩家可打开并发送", async ({ page }) => {

@@ -49,7 +49,7 @@ export default {
     ? undefined
     : [
         {
-          command: "node src/server.js",
+          command: "npm run db:migrate && node src/server.js",
           cwd: "backend",
           url: "http://localhost:4180/api/health/live",
           reuseExistingServer: true,
