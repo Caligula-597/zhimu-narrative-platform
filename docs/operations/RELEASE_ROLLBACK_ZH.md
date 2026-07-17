@@ -32,3 +32,13 @@
 `verify-migration-upgrade`、`verify-backup-restore-managed` 同样受上述破坏性演练开关保护。测试套件与 Player 性能 fixture 使用权限更窄的 `ZHIMU_ALLOW_TEST_DB_WRITES=1`；设置破坏性演练开关不会自动放开测试写入。两个开关都只能用于已经确认隔离的非生产数据库，生产 Supabase 地址默认拒绝。
 
 `release-acceptance` 会上传 `artifacts/release/*.json` 与 `artifacts/recovery/*.json`。这些文件只证明隔离库重复验证、备份恢复和前向迁移；应用镜像回滚仍必须在部署平台单独演练并留存部署 ID、旧/新版本、开始/结束时间和健康检查结果，不能用数据库演练代替。
+
+## Windows 本机恢复演练（无 psql/pg_dump 时）
+
+1. 启动 Docker Desktop，并拉起本地 Postgres：`docker compose -p zhimu-local up -d postgres`（默认 `postgresql://zhimu:replace_me@localhost:5432/zhimu`）。
+2. 在 `backend` 目录迁移并种子：`DATABASE_SSL=false npm run db:migrate && npm run db:seed`。
+3. 执行完整门禁：`DATABASE_SSL=false npm run db:verify-rollback -- --out=../artifacts/recovery/local-release-rollback.json`。
+
+当本机 PATH 无 `psql`/`pg_dump` 但 Docker 可用时，`backend/scripts/pg-bin.mjs` 会自动用 `postgres:17-alpine` 容器作客户端（`localhost` 会改写为 `host.docker.internal`）。也可安装 [PostgreSQL 17 命令行工具](https://www.postgresql.org/download/windows/) 或设置 `PG_CLIENT_BIN_DIR`。强制 Docker 客户端：`ZHIMU_PG_DOCKER_CLIENT=1`；禁用：`ZHIMU_PG_DOCKER_CLIENT=0`。
+
+远程托管库（Supabase 等）的备份恢复请用 `npm run db:verify-restore:docker`（独立脚本，表范围较窄），不要对生产库运行 `db:verify-rollback`。

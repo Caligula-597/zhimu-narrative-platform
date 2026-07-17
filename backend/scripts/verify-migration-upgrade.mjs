@@ -12,30 +12,18 @@ import pg from "pg";
 import "dotenv/config";
 import { migrationChecksum, validateMigrationFilenames } from "./migration-integrity.mjs";
 import { assertSafeDatabaseUrlForDestructiveOps } from "./lib/assert-safe-database-url.mjs";
+import { assertPgClientAvailable, runPgTool } from "./pg-bin.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.join(here, "..", "migrations");
 
-function run(cmd, args, opts = {}) {
-  const result = spawnSync(cmd, args, {
-    encoding: "utf8",
-    shell: process.platform === "win32",
-    env: { ...process.env, PGPASSWORD: process.env.PGPASSWORD },
-    ...opts
-  });
+function runPsql(args, opts = {}) {
+  const result = runPgTool("psql", args, { spawnSync, ...opts });
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    throw new Error((result.stderr || result.stdout || `${cmd} failed`).trim());
+    throw new Error((result.stderr || result.stdout || "psql failed").trim());
   }
   return (result.stdout || "").trim();
-}
-
-function requireCli(name) {
-  const probe = spawnSync(name, ["--version"], { encoding: "utf8", shell: process.platform === "win32" });
-  if (probe.error || probe.status !== 0) {
-    console.error(`${name} not on PATH — migration evidence cannot be produced`);
-    process.exit(1);
-  }
 }
 
 function adminDatabaseUrl(url) {
@@ -91,7 +79,7 @@ if (!sourceUrl) {
 }
 assertSafeDatabaseUrlForDestructiveOps(sourceUrl, { opName: "verify-migration-upgrade" });
 
-requireCli("psql");
+assertPgClientAvailable();
 
 const files = (await fs.readdir(migrationsDir)).filter((f) => f.endsWith(".sql")).sort();
 validateMigrationFilenames(files);
@@ -108,7 +96,7 @@ const pool = new pg.Pool({ connectionString: drillUrl });
 
 try {
   console.log("▶ CREATE DATABASE", drillDb);
-  run("psql", [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `CREATE DATABASE "${drillDb}"`]);
+  runPsql([adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `CREATE DATABASE "${drillDb}"`]);
 
   const client = await pool.connect();
   try {
@@ -155,7 +143,7 @@ try {
 } finally {
   await pool.end().catch(() => {});
   try {
-    run("psql", [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `DROP DATABASE IF EXISTS "${drillDb}"`]);
+    runPsql([adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `DROP DATABASE IF EXISTS "${drillDb}"`]);
     console.log("▶ dropped", drillDb);
   } catch (error) {
     console.warn("dropdb warning:", error.message);

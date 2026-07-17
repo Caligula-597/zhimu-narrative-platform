@@ -1,16 +1,16 @@
 # 产品状态
 
-最后更新：2026-07-16
+最后更新：2026-07-17
 
 ## 总体结论
 
 按生产级 SaaS 标准，织幕当前处于：
 
 ```text
-可信 Beta / 发布候选长验收失败待修 / 商业试点需人工陪跑
+可信 Beta / 公开 Beta 发布工程收尾 / 商业试点需人工陪跑
 ```
 
-项目已经不是 demo 或原型。除原有产品闭环外，本轮已经完成大文件领域拆分、三端 API/SSE transport 收敛、SSE 服务端受众隔离、登录竞态专项修复、生产数据库防误写、HTML sink/Trusted Types 收口，以及可审计的性能和恢复证据工具。但 2026-07-16 的 Release Acceptance 在隔离测试第 1/3 轮出现 8 个失败，后续 E2E、性能和恢复步骤均未执行；修复并完整通过前，不应继续公开 Beta 放量。
+项目已经不是 demo 或原型。2026-07-17 已 land Node 22 锁定、Playwright 迁移门禁、Host 实时动态空态与本地完整数据库恢复演练（`db:verify-rollback` 两步通过）。2026-07-16 的 GitHub Release Acceptance 仍是历史失败基线；账单恢复后必须在官方 CI 重跑全流程，不能用本地 Windows 结果代替。
 
 当前仍不建议按“大规模公开商用 SaaS”对外承诺，主要短板已经转向商业交付与运营承诺：完整数据库/R2 恢复演练、SLA、客户交付包、订单/开通记录、客户成功看板和稳定 E2E 主线仍需继续压实。
 
@@ -20,15 +20,15 @@
 
 | 维度 | 分数 | 判断 |
 |---|---:|---|
-| 总体生产级准备度 | 81 / 100 | 可信 Beta；发布候选被长验收阻断，修复后再评估小流量放量 |
+| 总体生产级准备度 | 81 / 100 | 可信 Beta；发布工程收尾中，官方 CI 证据待重跑 |
 | 产品闭环 | 84 / 100 | 创作、开房、邀请、主持推进、线索、规则、复盘和反馈闭环已具备 |
 | 后端与领域建模 | 89 / 100 | 大入口已拆为领域注册器/barrel，schema 领域化，repository/service 迁移有递减门禁；仍有 143 个直连 DB 点 |
 | 前端与 UI 产品化 | 86 / 100 | 四端成形，Player/Host 入口收敛，Creator/Host/Player transport 统一；业务 UI 仍保持独立 |
 | 安全与权限 | 89 / 100 | 生产库防误写、SSE 服务端受众投影、并发 401、防 SSRF、CSP/Trusted Types 已落地 |
-| 测试与质量门禁 | 82 / 100 | 快审和专项矩阵通过，但隔离全量测试出现 8 个失败，说明环境/全链路差异尚未收口 |
+| 测试与质量门禁 | 83 / 100 | 快审与专项矩阵通过；发布门禁 7/7；官方 Release Acceptance 工件仍缺 |
 | 运维与可观测 | 84 / 100 | health、metrics、OTEL、alert、ops 面板、监控和值班演练已有证据 |
-| CI/CD 与发布 | 76 / 100 | Railway/Pages 已验证；Release Acceptance 防假通过有效，但本轮失败且后续证据全部 skipped |
-| 数据治理与恢复 | 80 / 100 | managed schema clone 已演练；完整 pg_dump/R2 恢复与 RPO/RTO 承诺仍待补 |
+| CI/CD 与发布 | 76 / 100 | Railway/Pages 已验证；本地修复已 push，GitHub 全流程待账单恢复后重跑 |
+| 数据治理与恢复 | 82 / 100 | 本地 pg_dump→恢复→全表核验与 N-1 迁移已通过；R2/Railway 回滚与 RPO/RTO 仍待补 |
 | 商业化与客户支持 | 68 / 100 | 可做人工陪跑商业试点，标准化 SLA、交付包、订单记录和客户成功体系仍不足 |
 
 ## 已完成重点
@@ -37,7 +37,7 @@
 |---|---|
 | L1 生产门槛 | `productionTrust 7/7`，Ops Bridge、CSP enforce、OTLP、alert、上传扫描、OPS/METRICS token 已形成证据 |
 | 监控和值班 | 监控 oncall drill 6/6，通过告警链路和值班流程抽查 |
-| 备份恢复 | managed schema clone 已通过；完整 pg_dump restore 与 R2 恢复仍是下一阶段 P0 |
+| 备份恢复 | 本地 `db:verify-rollback` 2026-07-17 通过（Docker PG 客户端）；R2 恢复与平台镜像回滚仍待补 |
 | 权限矩阵 | 27 项抽查通过，catalog、asset、ops、room/world 边界已复核 |
 | 内测支持 | beta support drill 10/10，通过反馈、升级、通知、记录链路 |
 | Staging 隔离 | config 8/8、smoke 11/11，通过环境隔离验收 |
@@ -48,14 +48,14 @@
 | 架构拆分 | `world-helpers.js` 6 行兼容 barrel、`player-routes.js` 9 行注册器、schema 拆为 14 个领域文件、Player 入口 412 行 |
 | 三端一致性 | API/Auth/SSE 共用 shared transport；SSE 39/39、Auth 22/22，游标按账号隔离，迟到 401 不清新会话 |
 | HTML 安全 | 产品直接 `innerHTML` 为 0；共享安全 sink 是唯一写入点，App/Site 强制 Trusted Types 契约 |
-| 发布证据 | 防假通过有效：工件正确记录 1/3 轮失败、0 轮通过；当前不能视为发布通过 |
+| 发布证据 | 本地恢复与发布门禁工具已更新；官方 `Release Acceptance` 全流程工件待 GitHub 重跑 |
 
 ## 当前主要风险
 
 | 优先级 | 风险 | 影响 | 处理建议 |
 |---|---|---|---|
-| P0 | 完整恢复承诺仍未压实 | 本轮长验收未到达恢复步骤 | 先修复长验收，再取得 pg_dump 工件并完成镜像/R2 恢复和 RPO/RTO 记录 |
-| P0 | Release Acceptance 失败 | 全量隔离测试 8 项失败，E2E/性能/恢复未运行 | 修复幂等、官方示例权限、AI/导入、RLS 与 cleanup，再完整重跑 |
+| P0 | 官方 Release Acceptance 工件缺失 | 不能用本地 Windows 结果冒充 Ubuntu+PG17 证据 | 账单恢复后重跑 `.github/workflows/release-acceptance.yml` |
+| P0 | 平台级恢复未完成 | Railway 镜像回滚、R2 抽样、RPO/RTO 未记录 | 在部署平台与对象存储分别演练并归档 |
 | P0 | 商业试点交付仍偏人工 | 可试点，但不宜标准化规模收费 | 固化订单记录、开通记录、交付包、SLA 草案和客户联系人 |
 | P0 | pilot case 证据不足 | 官网可信度和转化不足 | 产出匿名案例、截图、问题记录和复盘 |
 | P1 | 首场路径仍需观察真实用户 | 陌生用户可能卡在开房/邀请/复盘 | 继续跟踪 B0-02 onboarding 数据和反馈入口 |
@@ -68,7 +68,7 @@
 |---|---|---|
 | 内部演示 | 已超过 | 功能和后端能力已不是展示型 demo |
 | 可信内测 | 已达到 | 适合真实小团队试用，有人工支持 |
-| 公开 Beta | 产品基础基本达到、发布被阻断 | 长验收完整通过前不继续放量 |
+| 公开 Beta | 产品基础基本达到、官方 CI 待闭环 | 本地修复与恢复已补齐；GitHub 全流程通过前谨慎放量 |
 | 商业试点 | 可谨慎推进 | 可做少量人工陪跑客户，不建议承诺标准 SLA |
 | 大规模商用 SaaS | 未达到 | 需要恢复演练、客户成功、计费配额、合规和运营闭环继续成熟 |
 
@@ -120,8 +120,9 @@ npm run test:release-gates
 
 ## 下一步
 
-1. 完成公开 Beta pilot case、官网案例和首场路径观测。
-2. 修复 Release Acceptance 的 8 个测试失败与 cleanup 错误，重跑至隔离 DB ×3、E2E、性能和恢复全部通过。
-3. 固化商业试点 SOP、交付包、订单/开通记录和 SLA 草案。
-4. 在 staging 用多个真实账号完成 Player 20/50/100 并发 P95/P99，再继续递减 143 个直接数据库调用点。
-5. 将矩阵 Gen5.1 内容质量问题作为独立 backlog 推进，不阻塞公开 Beta 主线。
+1. 账单恢复后重跑 GitHub Release Acceptance，取得官方全流程工件。
+2. 在 staging 用多个真实 Bearer 完成 Player 20/50/100 并发 P95/P99。
+3. 完成 Railway 镜像回滚、R2 恢复抽样与 RPO/RTO 记录。
+4. 完成公开 Beta pilot case、官网案例和首场路径观测。
+5. 固化商业试点 SOP、交付包、订单/开通记录和 SLA 草案。
+6. 继续递减 143 个直接数据库调用点；矩阵 Gen5.1 内容质量作为独立 backlog。

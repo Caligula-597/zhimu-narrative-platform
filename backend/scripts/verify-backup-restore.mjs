@@ -11,7 +11,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { resolvePgTool } from "./pg-bin.mjs";
+import { assertPgClientAvailable, runPgTool } from "./pg-bin.mjs";
 import { assertSafeDatabaseUrlForDestructiveOps } from "./lib/assert-safe-database-url.mjs";
 import "dotenv/config";
 
@@ -27,16 +27,11 @@ const REQUIRED_TABLES = [
   "schema_migrations"
 ];
 
-function run(cmd, args, opts = {}) {
-  const result = spawnSync(cmd, args, {
-    encoding: "utf8",
-    shell: process.platform === "win32",
-    env: { ...process.env, PGPASSWORD: process.env.PGPASSWORD },
-    ...opts
-  });
+function runPg(name, args, opts = {}) {
+  const result = runPgTool(name, args, { spawnSync, ...opts });
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    throw new Error((result.stderr || result.stdout || `${cmd} failed`).trim());
+    throw new Error((result.stderr || result.stdout || `${name} failed`).trim());
   }
   return (result.stdout || "").trim();
 }
@@ -53,12 +48,8 @@ function withDatabase(url, dbName) {
   return parsed.toString();
 }
 
-function pgTool(name) {
-  return resolvePgTool(name);
-}
-
 function listTables(databaseUrl) {
-  const out = run(pgTool("psql"), [databaseUrl, "-t", "-A", "-c",
+  const out = runPg("psql", [databaseUrl, "-t", "-A", "-c",
     "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename"]);
   return out.split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
 }
@@ -67,7 +58,7 @@ function countTables(databaseUrl, tables) {
   const counts = {};
   for (const table of tables) {
     if (!/^[a-z_][a-z0-9_]*$/.test(table)) throw new Error(`Unsafe table identifier: ${table}`);
-    const out = run(pgTool("psql"), [databaseUrl, "-t", "-A", "-c", `SELECT COUNT(*) FROM "${table}"`]);
+    const out = runPg("psql", [databaseUrl, "-t", "-A", "-c", `SELECT COUNT(*) FROM "${table}"`]);
     counts[table] = Number(out);
   }
   return counts;
@@ -91,16 +82,7 @@ if (!sourceUrl) {
 }
 assertSafeDatabaseUrlForDestructiveOps(sourceUrl, { opName: "verify-backup-restore" });
 
-function requireCli(name) {
-  const probe = spawnSync(name, ["--version"], { encoding: "utf8", shell: process.platform === "win32" });
-  if (probe.error || probe.status !== 0) {
-    console.error(`${name} not on PATH — restore evidence cannot be produced`);
-    process.exit(1);
-  }
-}
-
-requireCli(pgTool("psql"));
-requireCli(pgTool("pg_dump"));
+assertPgClientAvailable();
 
 const drillDb = `zhimu_restore_drill_${Date.now()}`;
 const restoreUrl = withDatabase(sourceUrl, drillDb);
@@ -116,13 +98,13 @@ try {
   console.log(before);
 
   console.log("▶ pg_dump →", dumpPath);
-  run(pgTool("pg_dump"), ["--dbname", sourceUrl, "--no-owner", "--no-acl", "-F", "p", "-f", dumpPath]);
+  runPg("pg_dump", ["--dbname", sourceUrl, "--no-owner", "--no-acl", "-F", "p", "-f", dumpPath]);
 
   console.log("▶ CREATE DATABASE", drillDb);
-  run(pgTool("psql"), [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `CREATE DATABASE "${drillDb}"`]);
+  runPg("psql", [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `CREATE DATABASE "${drillDb}"`]);
 
   console.log("▶ psql restore…");
-  run(pgTool("psql"), [restoreUrl, "-v", "ON_ERROR_STOP=1", "-f", dumpPath]);
+  runPg("psql", [restoreUrl, "-v", "ON_ERROR_STOP=1", "-f", dumpPath]);
 
   console.log("▶ Counting restored tables…");
   const restoredTables = listTables(restoreUrl);
@@ -142,7 +124,7 @@ try {
 } finally {
   if (!keep) {
     try {
-      run(pgTool("psql"), [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `DROP DATABASE IF EXISTS "${drillDb}"`]);
+      runPg("psql", [adminDatabaseUrl(sourceUrl), "-v", "ON_ERROR_STOP=1", "-c", `DROP DATABASE IF EXISTS "${drillDb}"`]);
       console.log("▶ dropped", drillDb);
     } catch (error) {
       console.warn("dropdb warning:", error.message);

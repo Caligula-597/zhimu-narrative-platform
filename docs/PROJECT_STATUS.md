@@ -1,7 +1,7 @@
 # 项目状态
 
-最后更新：2026-07-16
-事实基线：`agent/nonfunctional-hardening` / `c72209b`
+最后更新：2026-07-17
+事实基线：`agent/nonfunctional-hardening` / `ec96c5a`
 
 ## 当前真相源
 
@@ -18,7 +18,7 @@
 
 | 领域 | 当前状态 |
 |---|---|
-| 阶段 | 可信 Beta；本次发布候选被长验收阻断，修复并完整通过前不进入新的公开 Beta 放量 |
+| 阶段 | 可信 Beta / 公开 Beta 发布工程收尾；本地修复与恢复证据已补齐，官方 CI 证据待账单恢复后重跑 |
 | 核心闭环 | 创作、导入、开房、玩家阅读/调查、主持推进、规则、线索、存档、复盘和反馈均有真实链路 |
 | 后端拆分 | `world-helpers.js` 已收敛为 6 行兼容 barrel；`player-routes.js` 为 9 行注册器；原 2200+ 行 schema 已拆成 14 个领域 schema 文件 |
 | 前端拆分 | `play/src/main.js` 412 行、`host/src/main.js` 89 行；启动、会话、路由、同步和视图控制已分模块，主应用视图按需加载 |
@@ -27,9 +27,10 @@
 | 登录状态 | 多标签同步、并发 401、旧请求覆盖新登录、Cookie/Bearer 恢复和凭证尝试失败专项门禁已落地 |
 | HTML 安全 | 产品代码原生 `innerHTML` 为 0；唯一写入点是 `shared/safe-dom.js`；App 与官网均有 CSP/Trusted Types 门禁 |
 | 数据库安全 | 测试写入与破坏性演练分别受独立开关保护，生产形态/未知远程库默认拒绝；Supabase 只读核验为 67 已应用、0 待应用 |
-| 快速验收 | `npm run audit:periodic` 当前 14/14；SSE 39/39、Auth 22/22、Trusted Types 23/23、发布门禁工具 5/5 |
+| 快速验收 | `npm run audit:periodic` 当前 14/14；SSE 39/39、Auth 22/22、Trusted Types 23/23、发布门禁工具 **7/7**（含 Node 22 与 Playwright 迁移断言） |
 | 架构债务 | 68 个路由模块、143 个路由层直接数据库调用点；递减门禁禁止回升 |
-| 长验收 | GitHub `Release Acceptance` 运行 `29477387204` **失败**：隔离测试第 1/3 轮为 712 tests、701 pass、8 fail、3 skipped；E2E/性能/恢复均未执行 |
+| 长验收（官方 CI） | 历史运行 `29477387204`（`c72209b`）失败：隔离测试第 1/3 轮 8 fail；**不能**用本地结果替代 Ubuntu + PG17 工件 |
+| 本地恢复门禁 | 2026-07-17 `db:verify-rollback` **通过**（Docker PG 客户端 + 本地 Postgres 17，`artifacts/recovery/local-release-rollback.json`） |
 
 ## 常用短验收
 
@@ -54,20 +55,28 @@ npm run test:release-gates
 3. Player 首页 localhost 路由/数据库 P95/P99 基线；该结果不冒充真实 staging Bearer 容量证据。
 4. `pg_dump -> isolated restore` 与 N-1 → latest 前向迁移演练，并生成恢复证据。
 
-本轮实际结果（提交 `c72209b`）：
+本轮实际结果（提交 `c72209b`，**历史基线**）：
 
 | 项 | 结果 |
 |---|---|
 | 隔离 unit/integration | 第 1/3 轮失败：712 tests、701 pass、8 fail、3 skipped |
 | 失败类别 | 幂等错误码契约 1；官方示例角色权限 1；AI/导入/世界 revision 5；新事件表 RLS 覆盖 1 |
-| 后续步骤 | Creator/Host/Player E2E、Player 性能和恢复演练全部 skipped，不能形成通过证据 |
-| 清理 | 隔离库删除后 cleanup 仍访问 `users`，产生 `relation \"users\" does not exist` 二次失败 |
-| 工件 | `verify-full-repeat.json` 正确记录 `completedRuns=1`、`passedRuns=0`、`status=failed`，证明防假通过门禁有效 |
+| 后续步骤 | 当时 E2E、性能、恢复全部 skipped |
+
+2026-07-17 本地增量（提交 `ec96c5a` 及之后）：
+
+| 项 | 结果 |
+|---|---|
+| Node 22 锁定 | 根与各 workspace `engines` + `.nvmrc` / `.node-version`；`verify:full:3` 拒绝 Node 24 |
+| Playwright | 启动 API 前自动 `db:migrate` |
+| Host / E2E | 「玩家实时动态」空态保留卡片；创作者角色私档 E2E 放宽 fixture |
+| 本地恢复门禁 | `backup-restore` + `forward-migration` 两步均 passed（约 407s，Docker `postgres:17-alpine` 作 psql/pg_dump 客户端） |
+| 仍缺 | GitHub Actions 全流程工件；Railway 镜像回滚；R2 抽样；正式 RPO/RTO |
 
 ## 当前必须保留的风险
 
-1. Release Acceptance 的 8 个测试失败与 cleanup 二次错误是当前发布阻断；在完整 `verify ×3` 通过前，不能进入后续 E2E/性能/恢复证据阶段。
-2. staging 真实 Bearer、多玩家、同区域数据库的 Player P95/P99 证据尚未完成；本地到远程 Supabase 的旧基线不能作为发布通过。
+1. GitHub `Release Acceptance` 官方工件仍缺（账单/额度恢复后必须在 Ubuntu + PostgreSQL 17 上重跑，不能用本地 Windows 结果代替）。
+2. staging 真实 Bearer、多玩家、同区域数据库的 Player P95/P99 证据尚未完成；本地三用户 C20 最好 P95 约 596ms，仍超 500ms 目标。
 3. 应用镜像回滚、R2 对象恢复和实际 RPO/RTO 仍需要平台级演练；数据库脚本不能替代这些证据。
 4. 143 个路由层数据库调用点仍需按 checkpoint、voice、player access/progress、host content action 的顺序递减。
 5. 官网 pilot 案例、订单/开通/发票、SLA 和客户成功流程仍是商业试点短板。
@@ -75,8 +84,7 @@ npm run test:release-gates
 
 ## 下一步顺序
 
-1. 修复 8 个隔离测试失败与 cleanup 二次错误，先定向回归，再重跑 Release Acceptance 直到隔离 DB ×3 全通过。
-2. 让同一次长验收继续跑完关键 E2E、localhost 性能和 pg_dump/迁移恢复工件。
-3. 在 staging 用多个真实账号跑 20/50/100 并发 Player P95/P99。
-4. 完成部署平台镜像回滚与 R2 恢复抽样，记录实际 RPO/RTO。
-5. 继续递减后端直接数据库调用点，并用真实 pilot 补官网信任与商业交付证据。
+1. 账单恢复后重跑 GitHub `Release Acceptance`，取得隔离 DB ×3、E2E、localhost 性能与恢复工件。
+2. 在 staging 用多个真实账号跑 20/50/100 并发 Player P95/P99（区分首屏 core / 完整聚合 / 冷热缓存 / 连接池 / SSE 在线）。
+3. 完成部署平台镜像回滚与 R2 恢复抽样，记录实际 RPO/RTO。
+4. 继续递减后端直接数据库调用点，并用真实 pilot 补官网信任与商业交付证据。
