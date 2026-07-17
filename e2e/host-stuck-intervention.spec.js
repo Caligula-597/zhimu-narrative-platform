@@ -6,7 +6,6 @@ import {
   gotoHostConsole,
   injectHostAppContext,
   refreshHostRoomState,
-  waitForHostIdle,
 } from "./helpers/fixture.mjs";
 
 /**
@@ -32,6 +31,11 @@ async function mockStuckHostPlayers(page, recommendedAction) {
   });
 }
 
+async function refreshMockedStuckPlayer(page) {
+  await refreshHostRoomState(page);
+  await expect(page.getByText("E2E 测试卡关").first()).toBeVisible({ timeout: 10_000 });
+}
+
 test.describe("主持台 · 卡关干预分支", () => {
   test.beforeEach(async ({ context, page }) => {
     await injectHostAppContext(context);
@@ -41,8 +45,7 @@ test.describe("主持台 · 卡关干预分支", () => {
 
   test("unlock_section 打开手动解锁分幕弹窗", async ({ page }) => {
     await mockStuckHostPlayers(page, "unlock_section");
-    await page.locator('[data-action="refresh-host-room"]').click();
-    await waitForHostIdle(page);
+    await refreshMockedStuckPlayer(page);
 
     await page.locator('[data-action="host-stuck-intervene"]').first().click();
     await expect(page.getByRole("heading", { name: "手动解锁分幕" })).toBeVisible({ timeout: 10_000 });
@@ -51,19 +54,18 @@ test.describe("主持台 · 卡关干预分支", () => {
 
   test("inspect 打开玩家详情弹窗", async ({ page }) => {
     await mockStuckHostPlayers(page, "inspect");
-    await page.locator('[data-action="refresh-host-room"]').click();
-    await waitForHostIdle(page);
+    await refreshMockedStuckPlayer(page);
 
     await page.locator('[data-action="host-stuck-intervene"]').first().click();
-    await expect(page.locator(".host-detail-modal, .modal.host-detail-modal")).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator(".host-detail-list").first()).toBeVisible();
+    const detailModal = page.locator(".host-detail-modal, .modal.host-detail-modal");
+    await expect(detailModal).toBeVisible({ timeout: 10_000 });
+    await expect(detailModal.locator(".host-detail-list").first()).toBeVisible();
     await dismissModalIfOpen(page);
   });
 
   test("nudge 打开帮助卡关玩家提醒弹窗", async ({ page }) => {
     await mockStuckHostPlayers(page, "nudge");
-    await page.locator('[data-action="refresh-host-room"]').click();
-    await waitForHostIdle(page);
+    await refreshMockedStuckPlayer(page);
 
     await page.locator('[data-action="host-stuck-intervene"]').first().click();
     await expect(page.getByRole("heading", { name: "帮助卡关玩家" })).toBeVisible({ timeout: 10_000 });

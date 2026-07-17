@@ -3,6 +3,7 @@ import {
   gotoHostConsole,
   injectHostAppContext,
   joinFixturePlayRoomViaUi,
+  refreshHostRoomState,
 } from "./helpers/fixture.mjs";
 
 test.describe("主持台 · 玩家阅读进度联动", () => {
@@ -27,7 +28,7 @@ test.describe("主持台 · 玩家阅读进度联动", () => {
 
       await injectHostAppContext(hostContext);
       await gotoHostConsole(hostPage);
-      await hostPage.locator('[data-action="refresh-host-room"]').click({ timeout: 5000 }).catch(() => {});
+      await refreshHostRoomState(hostPage);
 
       await expect(hostPage.locator(".host-runtime-table")).toContainText(/1\/|已完成|阅读/, {
         timeout: 30_000

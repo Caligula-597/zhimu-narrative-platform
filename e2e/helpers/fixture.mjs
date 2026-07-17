@@ -230,7 +230,18 @@ export async function ensurePendingHostEvent(page) {
 
 /** @param {Page} page */
 export async function refreshHostRoomState(page) {
-  await page.locator('[data-action="refresh-host-room"]').click({ timeout: 8000 }).catch(() => {});
+  const playersResponse = page.waitForResponse(
+    (response) => response.request().method() === "GET"
+      && /\/api\/rooms\/[^/]+\/host\/players$/.test(new URL(response.url()).pathname),
+    { timeout: 15_000 }
+  );
+  const [response] = await Promise.all([
+    playersResponse,
+    page.locator('[data-action="refresh-host-room"]').first().click({ timeout: 8000 })
+  ]);
+  if (!response.ok()) {
+    throw new Error(`Host room refresh failed: ${response.status()}`);
+  }
   await waitForHostIdle(page);
 }
 
