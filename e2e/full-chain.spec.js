@@ -37,10 +37,15 @@ test.describe("Beta 主线 · fixture 全链路", () => {
       await refreshHostRoomState(hostPage);
       await expect(hostPage.locator(".host-runtime-table")).toContainText(/已完成|阅读|1\//, { timeout: 30_000 });
 
-      await hostPage.locator('[data-action="host-manual-grant-clue"]').click();
+      await hostPage.locator('.host-manual-actions [data-action="host-manual-grant-clue"]').click();
       await hostPage.locator(".modal, .modal-backdrop.show").first().waitFor({ state: "visible", timeout: 10_000 });
-      await hostPage.locator('[data-studio-field="grantClue"]').selectOption({ label: /测试线索/ });
-      await hostPage.locator("[data-grant-role]").first().check();
+      const clueSelect = hostPage.locator('[data-studio-field="grantClue"]');
+      const clueValue = await clueSelect.locator("option").filter({ hasText: "测试线索" }).first().getAttribute("value");
+      expect(clueValue).toBeTruthy();
+      await clueSelect.selectOption(clueValue);
+      const roleBTarget = hostPage.getByRole("checkbox", { name: /角色 B/ });
+      await expect(roleBTarget).toHaveCount(1);
+      await roleBTarget.check();
       await hostPage.locator("[data-host-grant-submit]").click();
       await waitForHostIdle(hostPage);
       await expect(playPage.getByText(/测试线索/)).toBeVisible({ timeout: 20_000 });
@@ -85,19 +90,20 @@ test.describe("Beta 主线 · 向导创建到玩家阅读", () => {
     const playPage = await playContext.newPage();
 
     try {
-      await goToView(page, "overview");
-      await page.locator('[data-action="open-wizard"]').first().click();
+      // World creation is a shell-level action now; the former overview page
+      // is no longer exposed in navigation.
+      await page.locator("#create-world-btn").click();
       await expect(page.locator(".wizard-shell")).toBeVisible();
       for (let step = 0; step < 5; step += 1) {
         await page.locator("[data-wizard-next]").click();
       }
-      await expect(page.locator("#modal-backdrop.show")).toBeVisible({ timeout: 90_000 });
-      const inviteText = await page.locator("#modal").innerText();
-      const inviteMatch = inviteText.match(/邀请码[:：]\s*([A-Z0-9-]+)/i);
-      expect(inviteMatch).toBeTruthy();
+      const inviteCode = page.locator("[data-wizard-invite-code]");
+      await expect(inviteCode).toBeVisible({ timeout: 90_000 });
+      const createdInviteCode = (await inviteCode.textContent())?.trim();
+      expect(createdInviteCode).toBeTruthy();
       await dismissModalIfOpen(page);
 
-      await joinPlayRoomViaUi(playPage, inviteMatch[1]);
+      await joinPlayRoomViaUi(playPage, createdInviteCode);
       await playPage.locator('[data-action="switch-tab"][data-tab="sections"]').click();
       await expect(playPage.locator(".sections-layout, .reader").first()).toBeVisible({ timeout: 20_000 });
     } finally {

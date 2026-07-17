@@ -3,7 +3,6 @@ import {
   BASE_URL,
   FIXTURE,
   injectDemoContext,
-  goToView,
   waitForCloudReady,
 } from "./helpers/fixture.mjs";
 
@@ -13,7 +12,14 @@ test.describe("创作中心 · 玩后洞察漏斗", () => {
     await page.goto(BASE_URL);
     await waitForCloudReady(page);
 
-    await goToView(page, "insights");
+    // The detailed insights page is intentionally no longer a sidebar item.
+    // Exercise the creator's real product path so this contract follows the
+    // cockpit information architecture instead of a removed legacy nav entry.
+    await page.locator('[data-cockpit-stage="launch"]').click();
+    await page.locator('[data-cockpit-item="feedback"]').click();
+    await expect(page.locator('.feedback-embed-grid [data-go="insights"]')).toBeVisible();
+    await page.locator('.feedback-embed-grid [data-go="insights"]').click();
+    await page.waitForFunction(() => window.zhimuState?.view === "insights", undefined, { timeout: 15_000 });
     await expect(page.locator(".creator-analytics-panel")).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('[data-action="load-creator-analytics"]')).toBeVisible();
 

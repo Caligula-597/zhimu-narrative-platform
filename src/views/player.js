@@ -10,7 +10,7 @@ import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import * as S from "../components/ui-semantics.js";
 import { bindSectionStartOnReader } from "../../shared/player-reader.js";
-import { setHtml } from "../../shared/safe-dom.js";
+import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -37,6 +37,7 @@ import { setHtml } from "../../shared/safe-dom.js";
   const showError = S.showError;
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
+  const openRichModal = M.openRichModal || (() => {});
   const studioModal = M.studioModal || (() => {});
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
@@ -531,7 +532,7 @@ export async function investigateCloud(pointId){
   await loadCloudData();
   if(result.clue?.name)showToast(`调查完成。你获得了新线索：${result.clue.name}。主持事件可能已触发。`,3600);
   else showToast("调查完成，新的线索或主持事件可能已触发。",3200);
-  openModal("调查完成",`${result.resultText}${result.clue?`<br><br><strong>获得线索：${escapeHtml(result.clue.name)}</strong><br>${escapeHtml(result.clue.public_text)}`:""}${result.executedRules?.length?`<br><br><small>已触发 ${result.executedRules.length} 条自动化规则。</small>`:""}`,"继续探索");
+  openRichModal("调查完成",htmlFragment(`${escapeHtml(result.resultText)}${result.clue?`<br><br><strong>获得线索：${escapeHtml(result.clue.name)}</strong><br>${escapeHtml(result.clue.public_text)}`:""}${result.executedRules?.length?`<br><br><small>已触发 ${result.executedRules.length} 条自动化规则。</small>`:""}`),"继续探索");
  }catch(error){showError(error)}
 }
 

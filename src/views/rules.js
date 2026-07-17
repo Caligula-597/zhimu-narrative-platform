@@ -9,7 +9,7 @@ import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
-import { setHtml } from "../../shared/safe-dom.js";
+import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -36,6 +36,7 @@ import { setHtml } from "../../shared/safe-dom.js";
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
+  const openRichModal = M.openRichModal || (() => {});
   const studioModal = M.studioModal || (() => {});
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
@@ -151,7 +152,7 @@ export async function toggleCloudRule(ruleId){const rule=worldStore.get().cloudR
 
 export async function deleteCloudRule(ruleId){try{await zhimuApi.deleteRule(ruleId);await loadCloudData();showToast("规则已删除")}catch(error){showError(error)}}
 
-export async function validateCloudRules(){try{const result=await zhimuApi.validateRules();openModal("规则检查完成",result.checks.length?result.checks.map(check=>`<b>${escapeHtml(check.title)}</b><br><span>${escapeHtml(check.detail)}</span>`).join("<br><br>"):`已检查 ${result.totalRules} 条规则，没有发现结构问题。`,"知道了")}catch(error){showError(error)}}
+export async function validateCloudRules(){try{const result=await zhimuApi.validateRules();openRichModal("规则检查完成",htmlFragment(result.checks.length?result.checks.map(check=>`<b>${escapeHtml(check.title)}</b><br><span>${escapeHtml(check.detail)}</span>`).join("<br><br>"):`已检查 ${Number(result.totalRules) || 0} 条规则，没有发现结构问题。`),"知道了")}catch(error){showError(error)}}
 
 export async function seedExampleRules(){
  if(!canEditRules())return showToast("当前为只读体验，登录并拥有编辑权限后可载入示例");

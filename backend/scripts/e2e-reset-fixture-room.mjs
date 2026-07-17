@@ -16,6 +16,16 @@ try {
     [FIXTURE.roomId, FIXTURE.playerUserId]
   );
   await client.query(`DELETE FROM reading_progress WHERE room_id = $1`, [FIXTURE.roomId]);
+  await client.query(`DELETE FROM clue_ownership WHERE room_id = $1`, [FIXTURE.roomId]);
+  await client.query(
+    `DELETE FROM pending_host_events WHERE room_id = $1`,
+    [FIXTURE.roomId]
+  );
+  await client.query(
+    `INSERT INTO pending_host_events (room_id, event_key, title, description, actions, status)
+     VALUES ($1, 'seed-fixture-pending', '【演示】待确认推进', 'seed 用于主持台演示与 E2E', '[]'::jsonb, 'pending')`,
+    [FIXTURE.roomId]
+  );
   await client.query(
     `UPDATE room_members
      SET status = 'active', joined_at = COALESCE(joined_at, now())

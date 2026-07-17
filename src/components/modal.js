@@ -1,7 +1,7 @@
 /* Modal helpers shared by creator views and runtime actions. */
 import { modal, modalBackdrop } from "../dom.js";
 import { escapeHtml } from "../utils/format.js";
-import { setHtml } from "../../shared/safe-dom.js";
+import { setHtml, unwrapHtmlFragment } from "../../shared/safe-dom.js";
 
 let modalScrollY = 0;
 
@@ -65,6 +65,15 @@ export function closeModal() {
 export function openModal(title, text, confirm) {
   modal.className = "modal";
   setHtml(modal, `<h2>${escapeHtml(title)}</h2><p>${escapeHtml(text)}</p><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-close>${escapeHtml(confirm)}</button></div>`);
+  modalBackdrop.classList.add("show");
+  modal.querySelectorAll("[data-close]").forEach((button) => (button.onclick = closeModal));
+}
+
+/** Render audited rich content. Raw strings are rejected at this boundary. */
+export function openRichModal(title, bodyFragment, confirm) {
+  const bodyHtml = unwrapHtmlFragment(bodyFragment, "modal body");
+  modal.className = "modal";
+  setHtml(modal, `<h2>${escapeHtml(title)}</h2><div class="modal-copy">${bodyHtml}</div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-close>${escapeHtml(confirm)}</button></div>`);
   modalBackdrop.classList.add("show");
   modal.querySelectorAll("[data-close]").forEach((button) => (button.onclick = closeModal));
 }

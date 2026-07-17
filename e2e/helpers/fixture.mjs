@@ -140,7 +140,9 @@ export async function goToView(page, view) {
       await advanced.waitFor({ state: "visible", timeout: 10_000 });
     }
   }
-  await page.locator(`.nav-item[data-view="${view}"]`).click();
+  const navItem = page.locator(`.nav-item[data-view="${view}"]`);
+  await navItem.waitFor({ state: "visible", timeout: 10_000 });
+  await navItem.click();
   await page.waitForFunction((v) => window.zhimuState?.view === v, view, { timeout: 15_000 });
 }
 

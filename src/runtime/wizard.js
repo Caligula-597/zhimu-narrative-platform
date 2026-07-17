@@ -8,7 +8,7 @@ import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
-import { setHtml } from "../../shared/safe-dom.js";
+import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -34,6 +34,7 @@ import { setHtml } from "../../shared/safe-dom.js";
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
+  const openRichModal = M.openRichModal || (() => {});
   const studioModal = M.studioModal || (() => {});
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
@@ -260,7 +261,7 @@ export async function finishWizard(){
   await loadCloudData(true);
   closeModal();go("rules");
   const rulesHint=rulesCreated?`已根据向导模板写入 ${rulesCreated} 条起始规则，可在本页继续调整。`:"未启用规则模板，可在「自动化规则」页手动创建。";
-  openModal("测试房间已创建",`世界、角色、章节和序章已经真实写入云端。<br><br><strong>邀请码：${escapeHtml(inviteCode)}</strong><br><br>${rulesHint}<br><small>完整步骤见侧栏「创作指引」。</small>`,"查看规则列表");
+  openRichModal("测试房间已创建",htmlFragment(`世界、角色、章节和序章已经真实写入云端。<br><br>邀请码：<strong class="invite-code" data-wizard-invite-code>${escapeHtml(inviteCode)}</strong><br><br>${escapeHtml(rulesHint)}<br><small>完整步骤见侧栏「创作指引」。</small>`),"查看规则列表");
  }catch(error){button.disabled=false;button.textContent="重新创建测试房间";showError(error)}
 }
 registerRuntime({ openWizard, finishWizard });

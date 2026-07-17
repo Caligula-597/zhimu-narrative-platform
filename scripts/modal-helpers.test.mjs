@@ -10,6 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { htmlFragment } from "../shared/safe-dom.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -76,6 +77,11 @@ test("studioOptionsHtml escapes option names and restores selected value", () =>
   ], "asset-1");
   assert.ok(html.includes(" selected"), "selected option must be marked");
   assert.ok(!html.includes("<b onclick"), "option name must be escaped");
+});
+
+test("rich modal bodies require an audited HTML fragment", () => {
+  assert.throws(() => M.openRichModal("title", "<b>raw</b>", "close"), /htmlFragment/);
+  assert.doesNotThrow(() => M.openRichModal("title", htmlFragment("<b>audited</b>"), "close"));
 });
 
 test("src no longer consumes or publishes zhimuModal window bridge", () => {

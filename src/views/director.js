@@ -80,6 +80,7 @@ const hostNudgeModalHtml = ({ title, intro, messageHtml, memberRowsHtml }) => re
   const showError = S.showError;
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
+  const openRichModal = M.openRichModal || (() => {});
   const studioModal = M.studioModal || (() => {});
   const studioField = M.studioField || (() => "");
   const studioValues = M.studioValues || (() => ({}));
@@ -378,7 +379,7 @@ export async function openHostClueNote(clueId,roleSlotId){
 export function openHostEventContext(eventId){
  const { cloudHostEvents } = roomStore.get();
  const event=(cloudHostEvents||[]).find(item=>item.id===eventId);if(!event)return;
- openModal("待确认事件上下文",`<div class="rule-block"><b>来源</b> · ${escapeHtml(event.source_label||"系统")}<br><b>规则</b> · ${escapeHtml(event.rule_name||"—")}<br><b>触发条件</b><br>${escapeHtml(JSON.stringify(event.rule_conditions||{},null,2))}<br><br><b>将执行动作</b><br>${escapeHtml(JSON.stringify(event.actions||[],null,2))}</div>`,"关闭");
+ openRichModal("待确认事件上下文",htmlFragment(`<div class="rule-block"><b>来源</b> · ${escapeHtml(event.source_label||"系统")}<br><b>规则</b> · ${escapeHtml(event.rule_name||"—")}<br><b>触发条件</b><br>${escapeHtml(JSON.stringify(event.rule_conditions||{},null,2))}<br><br><b>将执行动作</b><br>${escapeHtml(JSON.stringify(event.actions||[],null,2))}</div>`),"关闭");
 }
 
 export function openHostGrantClueModal(){
