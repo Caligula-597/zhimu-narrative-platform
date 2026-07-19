@@ -45,6 +45,15 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     source: shortText
   }),
   "room.host_nudge": schema(["message", "roleSlotIds"], { message: text, roleSlotIds: idList }),
+  "room.host_log_created": schema(["logId", "eventType"], {
+    logId: id,
+    eventType: shortText,
+    roleSlotId: id
+  }),
+  "room.host_player_notes_updated": schema(["roleSlotId", "updatedAt"], {
+    roleSlotId: id,
+    updatedAt: text
+  }),
   "room.player_joined": schema(["roleSlotId", "roleName"], { roleSlotId: id, roleName: text }),
   "room.player_kicked": schema(["roleSlotId", "userId", "roleName"], {
     roleSlotId: id,

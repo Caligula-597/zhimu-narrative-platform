@@ -1,5 +1,4 @@
 import { createQueryScheduler } from "./recap-query-scheduler.js";
-import { fetchHostPlayers } from "./routes/host-helpers.js";
 
 export async function fetchRoomRecapRows(query, roomId) {
   const roomRow = await query(
@@ -13,8 +12,78 @@ export async function fetchRoomRecapRows(query, roomId) {
   if (!roomRow.rowCount) return null;
 
   const room = roomRow.rows[0];
-  const scheduleQuery = createQueryScheduler({ concurrency: 4 });
-  const playersPromise = scheduleQuery(() => fetchHostPlayers(query, roomId));
+  // Recap generation runs inside one repeatable-read transaction. Keeping this
+  // scheduler at one avoids a single expensive report consuming most of the
+  // six-connection application pool.
+  const scheduleQuery = createQueryScheduler({ concurrency: 1 });
+  const playersPromise = scheduleQuery(async () => {
+    const result = await query(
+      `WITH section_counts AS (
+         SELECT role_slot_id, COUNT(*)::int AS total_sections
+         FROM script_sections
+         GROUP BY role_slot_id
+       ), progress_counts AS (
+         SELECT rp.role_slot_id,
+                COUNT(*) FILTER (WHERE rp.completed_at IS NOT NULL)::int AS completed_sections,
+                MAX(GREATEST(rp.started_at, rp.completed_at)) AS last_activity_at
+         FROM reading_progress rp
+         WHERE rp.room_id = $1
+         GROUP BY rp.role_slot_id
+       ), clue_counts AS (
+         SELECT role_slot_id,
+                COUNT(*)::int AS clue_count,
+                COUNT(*) FILTER (WHERE read_at IS NOT NULL)::int AS read_clue_count,
+                MAX(GREATEST(acquired_at, read_at)) AS last_activity_at
+         FROM clue_ownership
+         WHERE room_id = $1
+         GROUP BY role_slot_id
+       ), note_counts AS (
+         SELECT role_slot_id,
+                COUNT(*)::int AS note_count,
+                MAX(created_at) AS last_activity_at
+         FROM notebook_entries
+         WHERE room_id = $1
+         GROUP BY role_slot_id
+       ), investigation_activity AS (
+         SELECT role_slot_id, MAX(investigated_at) AS last_activity_at
+         FROM investigation_records
+         WHERE room_id = $1
+         GROUP BY role_slot_id
+       )
+       SELECT rs.id AS role_slot_id,
+              rs.name AS role_name,
+              rm.user_id,
+              u.display_name AS player_display_name,
+              rm.joined_at,
+              (rm.user_id IS NOT NULL) AS joined,
+              COALESCE(sc.total_sections, 0) AS total_sections,
+              COALESCE(pc.completed_sections, 0) AS completed_sections,
+              COALESCE(cc.clue_count, 0) AS clue_count,
+              COALESCE(cc.read_clue_count, 0) AS read_clue_count,
+              COALESCE(nc.note_count, 0) AS note_count,
+              GREATEST(
+                rm.joined_at,
+                pc.last_activity_at,
+                cc.last_activity_at,
+                nc.last_activity_at,
+                ia.last_activity_at
+              ) AS last_activity_at
+       FROM role_slots rs
+       JOIN rooms room ON room.world_id = rs.world_id
+       LEFT JOIN room_members rm
+         ON rm.room_id = room.id AND rm.role_slot_id = rs.id AND rm.status = 'active'
+       LEFT JOIN users u ON u.id = rm.user_id
+       LEFT JOIN section_counts sc ON sc.role_slot_id = rs.id
+       LEFT JOIN progress_counts pc ON pc.role_slot_id = rs.id
+       LEFT JOIN clue_counts cc ON cc.role_slot_id = rs.id
+       LEFT JOIN note_counts nc ON nc.role_slot_id = rs.id
+       LEFT JOIN investigation_activity ia ON ia.role_slot_id = rs.id
+       WHERE room.id = $1
+       ORDER BY rs.sequence, rs.created_at`,
+      [roomId]
+    );
+    return result.rows;
+  });
   const clueRowsPromise = scheduleQuery(() => query(
     `SELECT c.id AS clue_id, c.name AS clue_name, c.metadata AS clue_metadata,
             rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name,

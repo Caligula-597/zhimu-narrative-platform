@@ -25,6 +25,9 @@ import { isDatabaseCapacityError } from "./db.js";
 import { createRoomAccessAbuseProtection } from "./room-access-abuse-protection.js";
 import { createVoiceAbuseProtection } from "./voice-abuse-protection.js";
 import { createCheckpointAbuseProtection } from "./checkpoint-abuse-protection.js";
+import { createRecapAbuseProtection } from "./recap-abuse-protection.js";
+import { createHostCommunicationAbuseProtection } from "./host-communication-abuse-protection.js";
+import { createHostPlayerManagementAbuseProtection } from "./host-player-management-abuse-protection.js";
 
 const guestAuthRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -179,6 +182,9 @@ export async function createApp(options = {}) {
   const roomAccessAbuseProtection = createRoomAccessAbuseProtection();
   const voiceAbuseProtection = createVoiceAbuseProtection();
   const checkpointAbuseProtection = createCheckpointAbuseProtection();
+  const recapAbuseProtection = createRecapAbuseProtection();
+  const hostCommunicationAbuseProtection = createHostCommunicationAbuseProtection();
+  const hostPlayerManagementAbuseProtection = createHostPlayerManagementAbuseProtection();
 
   await app.register(cors, {
     origin: resolveCorsOrigin(options, nodeEnv),
@@ -198,6 +204,9 @@ export async function createApp(options = {}) {
       await roomAccessAbuseProtection.protectNetwork(request, reply, url);
       await voiceAbuseProtection.protectNetwork(request, reply, url);
       await checkpointAbuseProtection.protectNetwork(request, reply, url);
+      await recapAbuseProtection.protectNetwork(request, reply, url);
+      await hostCommunicationAbuseProtection.protectNetwork(request, reply, url);
+      await hostPlayerManagementAbuseProtection.protectNetwork(request, reply, url);
     }
   });
   app.addHook("onResponse", async (request, reply) => {
@@ -226,6 +235,9 @@ export async function createApp(options = {}) {
     if (await roomAccessAbuseProtection.protectActor(request, reply, url)) return;
     if (await voiceAbuseProtection.protectActor(request, reply, url)) return;
     if (await checkpointAbuseProtection.protectActor(request, reply, url)) return;
+    if (await recapAbuseProtection.protectActor(request, reply, url)) return;
+    if (await hostCommunicationAbuseProtection.protectActor(request, reply, url)) return;
+    if (await hostPlayerManagementAbuseProtection.protectActor(request, reply, url)) return;
     if (url.startsWith("/api/auth/login") || url.startsWith("/api/auth/register")
       || url.startsWith("/api/auth/forgot-password") || url.startsWith("/api/auth/reset-password")) {
       await authRateLimit(request, reply);

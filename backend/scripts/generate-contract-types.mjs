@@ -3,12 +3,15 @@ import path from "node:path";
 import { compile } from "json-schema-to-typescript";
 import {
   clueShareRolesSchema,
-  hostLogSchema,
-  hostNudgeWaitingSchema,
   inviteLookupSchema,
   joinRoomSchema,
   readClueSchema
 } from "../src/routes/schemas/player.js";
+import {
+  hostLogSchema,
+  hostNudgeWaitingSchema
+} from "../src/routes/schemas/host-communication.js";
+import { hostPlayerNotesSchema } from "../src/routes/schemas/host-player-management.js";
 import {
   hostGrantClueSchema,
   hostUnlockSectionSchema
@@ -25,18 +28,27 @@ import {
   updateWorldSchema
 } from "../src/routes/schemas/world.js";
 import {
-  createClueSchema,
   createContentVersionSchema,
   createItemSchema,
   createRoleSchema,
   createRoomSchema,
-  createSceneSchema,
   createSectionSchema,
   patchItemSchema,
   updateSectionSchema,
   createWorldSchema
 } from "../src/routes/schemas/creator.js";
+import {
+  createClueSchema,
+  createSceneSchema,
+  patchClueSchema,
+  patchSceneSchema
+} from "../src/routes/schemas/studio-scene-clue.js";
 import { createRuleSchema, updateRuleSchema } from "../src/routes/schemas/rules.js";
+import { createRecapSchema } from "../src/routes/schemas/recap.js";
+import {
+  createTruthClaimSchema,
+  patchTruthClaimSchema
+} from "../src/routes/schemas/content-platform-truth.js";
 import {
   importDocumentPagesSchema,
   importDocumentSchema,
@@ -71,6 +83,7 @@ const contracts = [
   ["HostUnlockSectionBody", hostUnlockSectionSchema.body],
   ["HostNudgeWaitingBody", hostNudgeWaitingSchema.body],
   ["HostLogBody", hostLogSchema.body],
+  ["HostPlayerNotesBody", hostPlayerNotesSchema.body],
   ["PlayerProgressAssessment", playerProgressAssessmentSchema],
   ["UpdateWorldBody", updateWorldSchema.body],
   ["UpdateRoomSettingsBody", updateRoomSettingsSchema.body],
@@ -81,11 +94,16 @@ const contracts = [
   ["CreateSectionBody", createSectionSchema.body],
   ["UpdateSectionBody", updateSectionSchema.body],
   ["CreateSceneBody", createSceneSchema.body],
+  ["PatchSceneBody", patchSceneSchema.body],
   ["CreateClueBody", createClueSchema.body],
+  ["PatchClueBody", patchClueSchema.body],
   ["CreateItemBody", createItemSchema.body],
   ["PatchItemBody", patchItemSchema.body],
   ["CreateContentVersionBody", createContentVersionSchema.body],
   ["CreateRoomBody", createRoomSchema.body],
+  ["CreateRecapBody", createRecapSchema.body],
+  ["CreateTruthClaimBody", createTruthClaimSchema.body],
+  ["PatchTruthClaimBody", patchTruthClaimSchema.body],
   ["ParseDocumentBody", parseDocumentSchema.body],
   ["ImportDocumentBody", importDocumentSchema.body],
   ["ImportDocumentPagesBody", importDocumentPagesSchema.body],

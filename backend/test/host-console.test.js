@@ -8,6 +8,19 @@ import { query } from "../src/db.js";
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
 
+async function createFixtureClue(context, label) {
+  const result = await query(
+    `INSERT INTO clues (world_id, name)
+     SELECT world_id, $2 FROM rooms WHERE id = $1
+     RETURNING id`,
+    [fixtureRoomId, `${label}-${Date.now()}`]
+  );
+  assert.equal(result.rowCount, 1, "room-backed clue fixture required");
+  const clueId = result.rows[0].id;
+  context.after(() => query(`DELETE FROM clues WHERE id = $1`, [clueId]));
+  return clueId;
+}
+
 test("host players list returns runtime table rows for hosts", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
@@ -29,25 +42,18 @@ test("host can grant clue and unlock section manually", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
   const roleSlotId = await queryFixtureRoleId();
-  const clue = await query(
-    `SELECT c.id FROM clues c
-     JOIN rooms r ON r.world_id = c.world_id
-     WHERE r.id = $1
-     LIMIT 1`,
-    [fixtureRoomId]
-  );
+  const clueId = await createFixtureClue(context, "host-grant");
   const section = await query(
     `SELECT id FROM script_sections WHERE role_slot_id = $1 ORDER BY sequence DESC LIMIT 1`,
     [roleSlotId]
   );
-  assert.ok(clue.rowCount, "clue fixture required");
   assert.ok(section.rowCount, "section fixture required");
 
   const grant = await app.inject({
     method: "POST",
     url: `/api/rooms/${fixtureRoomId}/host/grant-clue`,
     headers: { "x-user-id": hostUserId },
-    payload: { roleSlotId, clueId: clue.rows[0].id, message: "测试发放" }
+    payload: { roleSlotId, clueId, message: "测试发放" }
   });
   assert.equal(grant.statusCode, 200);
   assert.equal(grant.json().ok, true);
@@ -68,7 +74,7 @@ test("host can grant clue and unlock section manually", async (context) => {
   });
   assert.equal(detail.statusCode, 200);
   const payload = detail.json();
-  assert.ok(payload.clues.some((item) => item.id === clue.rows[0].id));
+  assert.ok(payload.clues.some((item) => item.id === clueId));
   assert.ok(payload.sections.some((item) => item.id === section.rows[0].id && item.unlocked));
 });
 
@@ -128,20 +134,13 @@ test("host audit log lists recent host actions", async (context) => {
   context.after(() => app.close());
 
   const roleSlotId = await queryFixtureRoleId();
-  const clue = await query(
-    `SELECT c.id FROM clues c
-     JOIN rooms r ON r.world_id = c.world_id
-     WHERE r.id = $1
-     LIMIT 1`,
-    [fixtureRoomId]
-  );
-  assert.ok(clue.rowCount);
+  const clueId = await createFixtureClue(context, "host-audit");
 
   const grant = await app.inject({
     method: "POST",
     url: `/api/rooms/${fixtureRoomId}/host/grant-clue`,
     headers: { "x-user-id": hostUserId, "idempotency-key": `audit-probe-${Date.now()}` },
-    payload: { roleSlotId, clueId: clue.rows[0].id }
+    payload: { roleSlotId, clueId }
   });
   assert.equal(grant.statusCode, 200);
 

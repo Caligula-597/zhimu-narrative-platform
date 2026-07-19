@@ -104,30 +104,9 @@ const contentMetadataObject = { type: "object", additionalProperties: true };
 const contentOptionalUuid = { anyOf: [uuid, { type: "null" }] };
 const contentVisibility = { type: "string", enum: ["author", "host", "role", "faction", "public", "postgame"] };
 
-export const createTruthClaimSchema = {
-  params: worldIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["title", "claim"],
-    properties: {
-      claimKey: { type: "string", maxLength: 120 },
-      title: { type: "string", minLength: 1, maxLength: 200 },
-      claim: { type: "string", minLength: 1, maxLength: 12000 },
-      revealStage: { type: "string", maxLength: 120 },
-      confidence: { type: "string", enum: ["canon", "inferred", "misdirection", "unknown"] },
-      evidence: { type: "array", maxItems: 100, items: contentMetadataObject },
-      contradictions: { type: "array", maxItems: 100, items: contentMetadataObject },
-      roleVisibility: contentMetadataObject,
-      metadata: contentMetadataObject
-    }
-  }
-};
-
 export const bibleRoleSlotParams = paramsSchema({ worldId: uuid, roleSlotId: uuid });
 export const bibleBeatIdParams = paramsSchema({ worldId: uuid, beatId: uuid });
 export const bibleEventIdParams = paramsSchema({ worldId: uuid, eventId: uuid });
-export const truthClaimIdParams = paramsSchema({ worldId: uuid, claimId: uuid });
 
 export const patchCoreTrickSchema = {
   params: worldIdParams,
@@ -216,25 +195,6 @@ export const postTimelineEventSchema = {
 export const patchTimelineEventSchema = {
   params: bibleEventIdParams,
   body: postTimelineEventSchema.body
-};
-
-export const patchTruthClaimSchema = {
-  params: truthClaimIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      claimKey: { type: "string", maxLength: 120 },
-      title: { type: "string", minLength: 1, maxLength: 200 },
-      claim: { type: "string", minLength: 1, maxLength: 12000 },
-      revealStage: { type: "string", maxLength: 120 },
-      confidence: { type: "string", enum: ["canon", "inferred", "misdirection", "unknown"] },
-      evidence: { type: "array", maxItems: 100, items: contentMetadataObject },
-      contradictions: { type: "array", maxItems: 100, items: contentMetadataObject },
-      roleVisibility: contentMetadataObject,
-      metadata: contentMetadataObject
-    }
-  }
 };
 
 export const createQualityReportSchema = {

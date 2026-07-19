@@ -10,3 +10,7 @@ export * from "./schemas/player-progress.js";
 export * from "./schemas/host-content-action.js";
 export * from "./schemas/studio-investigation.js";
 export * from "./schemas/rules.js";
+export * from "./schemas/recap.js";
+export * from "./schemas/host-communication.js";
+export * from "./schemas/host-player-management.js";
+export * from "./schemas/content-platform-truth.js";

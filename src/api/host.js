@@ -32,15 +32,15 @@ export function hostUnlockScene(sceneId) {
 }
 
 export function hostAddLog(payload) {
-  return request(`/rooms/${demoContext.roomId}/host/log`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return request(`/rooms/${demoContext.roomId}/host/log`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true });
 }
 
 export function hostNudgeWaiting(payload) {
-  return request(`/rooms/${demoContext.roomId}/host/nudge-waiting`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return request(`/rooms/${demoContext.roomId}/host/nudge-waiting`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true });
 }
 
 export function hostSaveNotes(roleSlotId, notes) {
-  return request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}/notes`, { userId: demoContext.hostUserId, method: "PUT", body: { notes } });
+  return request(`/rooms/${demoContext.roomId}/host/players/${roleSlotId}/notes`, { userId: demoContext.hostUserId, method: "PUT", body: { notes }, idempotent: true });
 }
 
 export function hostKickPlayer(roleSlotId) {

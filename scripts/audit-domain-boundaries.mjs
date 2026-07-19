@@ -15,17 +15,22 @@ const ZERO_DB_ROUTES = new Set([
   "content-platform-private-action-routes.js",
   "content-platform-role-routes.js",
   "content-platform-segment-routes.js",
+  "content-platform-truth-routes.js",
   "checkpoint-routes.js",
   "creator-document-routes.js",
   "creator-section-routes.js",
   "host-content-action-routes.js",
+  "host-communication-routes.js",
+  "host-player-management-routes.js",
   "player-access-routes.js",
   "player-exploration-routes.js",
   "player-progress-routes.js",
+  "recap-routes.js",
   "rules-routes.js",
   "studio-graph-routes.js",
   "studio-investigation-routes.js",
   "studio-item-routes.js",
+  "studio-scene-clue-routes.js",
   "studio-version-routes.js",
   "story-assistant-routes.js",
   "voice-routes.js",
@@ -33,7 +38,7 @@ const ZERO_DB_ROUTES = new Set([
 ]);
 const MAX_ROUTE_LINES = 400;
 const MAX_DIRECT_DB_POINTS_PER_ROUTE = 20;
-const MAX_DIRECT_DB_POINTS_TOTAL = 50;
+const MAX_DIRECT_DB_POINTS_TOTAL = 30;
 
 const rows = routeFiles.map((file) => {
   const source = fs.readFileSync(path.join(routesDir, file), "utf8");
@@ -80,7 +85,7 @@ console.log("Remaining direct-DB hotspots (ratcheted debt):");
 for (const row of hotspots) {
   console.log(`  ${String(row.queryCalls).padStart(2)} DB\t${String(row.lines).padStart(3)} lines\t${row.file}`);
 }
-console.log("Migrated repository/service routes: asset, checkpoint, content-platform-private-action, content-platform-role, content-platform-segment, content-platform-vote, creator-document, creator-section, host-content-action, player-access, player-exploration, player-progress, rules, studio-graph, studio-investigation, studio-item, studio-version, story-assistant, voice, world");
+console.log("Migrated repository/service routes: asset, checkpoint, content-platform-private-action, content-platform-role, content-platform-segment, content-platform-truth, content-platform-vote, creator-document, creator-section, host-communication, host-content-action, host-player-management, player-access, player-exploration, player-progress, recap, rules, studio-graph, studio-investigation, studio-item, studio-scene-clue, studio-version, story-assistant, voice, world");
 
 if (failures.length) {
   console.error("\nDomain boundary violations:");

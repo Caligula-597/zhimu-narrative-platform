@@ -47,8 +47,8 @@ npm run start
 |------|------|
 | `npm run check` | 全量 JS 语法、`src/` 下错误 `../` import、**createApp 模块图可加载** |
 | `npm run check:boot` | 环境变量 + 模块图 + **数据库 schema**（与 server 启动前相同校验） |
-| `npm run check:tests` | 测试声明数量门禁（当前下限 ≥100；2026-07-19 实测 773 个声明 / 194 个 `.test.js`/`.test.mjs` 文件） |
-| `npm test` | 执行 `backend/test/` 的 194 个测试文件；用例总数以本次命令输出为准 |
+| `npm run check:tests` | 测试声明数量门禁（当前下限 ≥100；2026-07-19 实测 824 个声明 / 205 个 `.test.js`/`.test.mjs` 文件） |
+| `npm test` | 执行 `backend/test/` 的 205 个测试文件；用例总数以本次命令输出为准 |
 
 后端默认监听 `http://localhost:4180`。
 
@@ -218,8 +218,8 @@ npm run test:smoke
 
 | 套件 | 数量 |
 |------|------|
-| `npm run check:tests` | **773 个测试声明 / 194 个测试文件** |
-| `npm test` | **194 个后端测试文件**；断言数以运行输出为准 |
+| `npm run check:tests` | **824 个测试声明 / 205 个测试文件** |
+| `npm test` | **205 个后端测试文件**；断言数以运行输出为准 |
 | 根目录专项矩阵 | SSE **39**、Auth **22**、Trusted Types **23**、release gates **5**、performance tools **4** |
 | E2E 列表 | **87 tests / 15 files**，跨 Chromium / Firefox / WebKit；以 `npx playwright test --list` 为准 |
 
@@ -230,6 +230,16 @@ npm run test:smoke
 Content Platform 聚焦回归使用 `npm run test:content-platform:isolated`，覆盖私有行动状态机、跨世界引用防护、分段引用完整性、角色关系幂等版本以及既有创作者圣经流程。
 
 创作者内容聚焦回归使用 `npm run test:creator-content:isolated`，覆盖角色分节并发顺序、跨世界章节/素材引用、道具引用删除保护、内容版本恢复与修订号一致性。
+
+房间复盘聚焦回归使用 `npm run test:recap:isolated`，覆盖同房互斥生成、数量/大小保护、积分故障降级、玩家视角投影、叙事摘要与复盘查询调度。
+
+主持通信聚焦回归使用 `npm run test:host-communication:isolated`，覆盖日志/审计/outbox 原子提交、跨世界与失效目标过滤、写入幂等、SSE 受众隔离和独立滥用限流。
+
+主持玩家管理聚焦回归使用 `npm run test:host-player-management:isolated`，覆盖踢出与备注幂等、席位继承、跨世界保护、审计/outbox 原子性、host-only 备注事件和独立限流。
+
+场景/线索创作聚焦回归使用 `npm run test:studio-scene-clue:isolated`，覆盖世界版本并发、事务内编辑权限、跨世界章节保护、引用锁、名称规范化及数据库竞争错误转换。
+
+真相声明聚焦回归使用 `npm run test:content-platform-truth:isolated`，覆盖重复键冲突、跨世界隔离、引用删除保护、世界/成员锁、字段清空语义与世界版本回滚。
 
 产品总览见 [docs/PRODUCT_STATUS_ZH.md](../docs/PRODUCT_STATUS_ZH.md)。
 

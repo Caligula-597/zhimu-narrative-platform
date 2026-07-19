@@ -170,6 +170,12 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         }
         break;
       }
+      case "room.host_log_created":
+        if (view === "director" || view === "overview") await R.refreshHostRoom?.(false);
+        break;
+      case "room.host_player_notes_updated":
+        if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
+        break;
       case "room.section_unlocked":
         if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
         else if (view === "player") {

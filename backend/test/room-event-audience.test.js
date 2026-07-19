@@ -84,3 +84,19 @@ test("new or malformed event types are host-only by default", () => {
   const projected = projectRoomEventEnvelope({ id: 8, payload: "not-json" }, player);
   assert.deepEqual(JSON.parse(projected.envelope.payload), { type: "heartbeat" });
 });
+
+test("host manual log events never cross the player audience boundary", () => {
+  const event = { type: "room.host_log_created", logId: "42", eventType: "host_note" };
+  assert.equal(projectRoomEventForAudience(event, player).event, null);
+  assert.equal(projectRoomEventForAudience(event, { memberType: "cohost" }).event, event);
+});
+
+test("host player notes events remain host-only", () => {
+  const event = {
+    type: "room.host_player_notes_updated",
+    roleSlotId: "role-1",
+    updatedAt: "now"
+  };
+  assert.equal(projectRoomEventForAudience(event, player).event, null);
+  assert.equal(projectRoomEventForAudience(event, { memberType: "host" }).event, event);
+});

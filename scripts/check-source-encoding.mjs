@@ -19,7 +19,7 @@ const sourceRoots = ["src", "host/src", "play/src", "shared", "backend/src", "ba
   .map((entry) => path.join(root, entry));
 const decoder = new TextDecoder("utf-8", { fatal: true });
 const sourceExtensions = new Set([".js", ".mjs", ".cjs"]);
-const mojibakePattern = /\uFFFD|Ã.|Â.|â(?:€|™|€œ|€œ|€˜|€™)|ðŸ|锟斤拷|缁囧|鏃堕棿|閰嶇疆|鍒嗘敮|宸ヤ綔|缁撴灉|鑰楁椂|妫€鏌|瀹屾暣/u;
+const mojibakePattern = /\uFFFD|Ã.|Â.|â(?:€|™|€œ|€œ|€˜|€™)|ðŸ|锟斤拷|缁囧|鏃堕棿|閰嶇疆|鍒嗘敮|宸ヤ綔|缁撴灉|鑰楁椂|妫€鏌|瀹屾暣|棣栧満|澶嶇洏|濂栧姳|粐骞曠Н鍒/u;
 const requestedConcurrency = Number.parseInt(process.env.SOURCE_CHECK_CONCURRENCY || "", 10);
 const syntaxConcurrency = Number.isFinite(requestedConcurrency)
   ? Math.max(1, Math.min(16, requestedConcurrency))

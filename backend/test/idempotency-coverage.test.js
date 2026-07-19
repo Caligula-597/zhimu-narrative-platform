@@ -201,6 +201,11 @@ test("idempotency coverage registry matches implemented routes", () => {
     "player.notebook_create",
     "player.notebook_delete",
     "checkpoints.restore",
+    "recaps.create",
+    "host.manual_log",
+    "host.nudge_waiting",
+    "host.player_notes",
+    "host.player_kick",
     "host.grant_clue",
     "host.grant_item",
     "host.unlock_section",
@@ -214,5 +219,5 @@ test("idempotency coverage registry matches implemented routes", () => {
     "clues.share_room",
     "clues.share_roles"
   ];
-  assert.equal(covered.length, 17);
+  assert.equal(covered.length, 22);
 });

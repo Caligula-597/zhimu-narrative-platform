@@ -69,3 +69,23 @@ test("validateRoomEvent remains available at the producer boundary", () => {
   const bad = validateRoomEvent("room.host_nudge", { message: "hi" });
   assert.equal(bad.ok, false);
 });
+
+test("host manual log event contract requires its durable log identity", () => {
+  const ok = validateRoomEvent("room.host_log_created", {
+    logId: "42",
+    eventType: "host_note"
+  });
+  assert.equal(ok.ok, true);
+  const bad = validateRoomEvent("room.host_log_created", { eventType: "host_note" });
+  assert.equal(bad.ok, false);
+});
+
+test("host player notes event contract requires role and timestamp", () => {
+  const ok = validateRoomEvent("room.host_player_notes_updated", {
+    roleSlotId: "role-1",
+    updatedAt: new Date().toISOString()
+  });
+  assert.equal(ok.ok, true);
+  const bad = validateRoomEvent("room.host_player_notes_updated", { roleSlotId: "role-1" });
+  assert.equal(bad.ok, false);
+});

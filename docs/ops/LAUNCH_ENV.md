@@ -109,9 +109,23 @@ RATE_LIMIT_VOICE_CREATE_MAX=5
 RATE_LIMIT_VOICE_CREATE_IP_MAX=60
 RATE_LIMIT_VOICE_INVITE_MAX=10
 RATE_LIMIT_VOICE_INVITE_IP_MAX=120
+RATE_LIMIT_CHECKPOINT_CREATE_MAX=5
+RATE_LIMIT_CHECKPOINT_CREATE_IP_MAX=30
+RATE_LIMIT_CHECKPOINT_RESTORE_MAX=3
+RATE_LIMIT_CHECKPOINT_RESTORE_IP_MAX=20
+RATE_LIMIT_RECAP_CREATE_MAX=2
+RATE_LIMIT_RECAP_CREATE_IP_MAX=20
+RATE_LIMIT_HOST_LOG_MAX=30
+RATE_LIMIT_HOST_LOG_IP_MAX=120
+RATE_LIMIT_HOST_NUDGE_MAX=10
+RATE_LIMIT_HOST_NUDGE_IP_MAX=60
+RATE_LIMIT_HOST_PLAYER_NOTES_MAX=30
+RATE_LIMIT_HOST_PLAYER_NOTES_IP_MAX=120
+RATE_LIMIT_HOST_PLAYER_KICK_MAX=10
+RATE_LIMIT_HOST_PLAYER_KICK_IP_MAX=60
 ```
 
-邀请查询、加入房间、语音消息、令牌、建房和邀请同时按账号和来源网络计数；来源网络额度必须高于账号额度，避免共享网络中的正常玩家互相误伤。上线前在隔离或预发布环境分别运行 `npm run perf:abuse-guard` 与 `npm run perf:voice-abuse-guard`，远程目标必须显式传 `--allow-remote` 并通过 `ABUSE_TEST_BEARER_TOKENS` 提供测试账号。
+邀请查询、加入房间、语音消息、令牌、建房、邀请、存档恢复、复盘生成、主持通信和玩家管理同时按账号和来源网络计数；来源网络额度必须高于账号额度，避免共享网络中的正常玩家互相误伤。复盘生成默认每账号每分钟 2 次、每来源网络 20 次，并在数据库层继续按房间互斥；主持提醒和踢出默认每账号每分钟 10 次，防止 SSE、时间线及成员状态写入被恶意放大。上线前在隔离或预发布环境分别运行 `npm run perf:abuse-guard` 与 `npm run perf:voice-abuse-guard`，远程目标必须显式传 `--allow-remote` 并通过 `ABUSE_TEST_BEARER_TOKENS` 提供测试账号。
 
 ## 生成与推送
 

@@ -41,5 +41,10 @@ export function getLatestRecap(asPlayer = false) {
 }
 
 export function createRecap(payload) {
-  return request(`/rooms/${demoContext.roomId}/recaps`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return request(`/rooms/${demoContext.roomId}/recaps`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: payload,
+    idempotent: true
+  });
 }

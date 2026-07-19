@@ -92,6 +92,12 @@ export async function handleRoomEvent(type, data, ctx) {
       }
       break;
     }
+    case "room.host_log_created":
+      // Host-only by server audience projection; kept explicit for contract drift checks.
+      break;
+    case "room.host_player_notes_updated":
+      // Host-only by server audience projection; player details must remain private.
+      break;
     case "room.game_updated": {
       const game = data.currentGame || data.current_game || data.game || data;
       ctx.setCurrentGame?.(game);

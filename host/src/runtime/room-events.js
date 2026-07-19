@@ -120,6 +120,8 @@ async function handleRoomEvent(type, data) {
     case "room.physical_token_event":
     case "room.voice_message_created":
     case "room.host_nudge":
+    case "room.host_log_created":
+    case "room.host_player_notes_updated":
       await refreshHostRoom(false);
       break;
     default:

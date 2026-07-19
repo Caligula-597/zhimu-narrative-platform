@@ -72,6 +72,10 @@ export interface HostLogBody {
   roleSlotId?: string;
 }
 
+export interface HostPlayerNotesBody {
+  notes: string;
+}
+
 export interface PlayerProgressAssessment {
   maybeStuck: boolean;
   code: string;
@@ -193,8 +197,29 @@ export interface CreateSceneBody {
   };
 }
 
+export interface PatchSceneBody {
+  name?: string;
+  publicText?: string;
+  hostText?: string;
+  chapterId?: string | null;
+  metadata?: {
+    [k: string]: unknown;
+  };
+}
+
 export interface CreateClueBody {
   name: string;
+  publicText?: string;
+  hostText?: string;
+  visibility?: "author" | "host" | "role" | "faction" | "public" | "postgame";
+  clueKind?: "general" | "deep" | "verify" | "misdirect" | "emotion" | "mechanic";
+  metadata?: {
+    [k: string]: unknown;
+  };
+}
+
+export interface PatchClueBody {
+  name?: string;
   publicText?: string;
   hostText?: string;
   visibility?: "author" | "host" | "role" | "faction" | "public" | "postgame";
@@ -239,6 +264,63 @@ export interface CreateRoomBody {
    */
   inviteCode?: string;
   publicListing?: boolean;
+}
+
+export interface CreateRecapBody {
+  title: string;
+  description?: string;
+}
+
+export interface CreateTruthClaimBody {
+  claimKey?: string | null;
+  title: string;
+  claim: string;
+  revealStage?: string | null;
+  confidence?: "canon" | "inferred" | "misdirection" | "unknown";
+  /**
+   * @maxItems 100
+   */
+  evidence?: {
+    [k: string]: unknown;
+  }[];
+  /**
+   * @maxItems 100
+   */
+  contradictions?: {
+    [k: string]: unknown;
+  }[];
+  roleVisibility?: {
+    [k: string]: unknown;
+  };
+  metadata?: {
+    [k: string]: unknown;
+  };
+}
+
+export interface PatchTruthClaimBody {
+  claimKey?: string | null;
+  title?: string;
+  claim?: string;
+  revealStage?: string | null;
+  confidence?: "canon" | "inferred" | "misdirection" | "unknown";
+  /**
+   * @maxItems 100
+   */
+  evidence?: {
+    [k: string]: unknown;
+  }[];
+  /**
+   * @maxItems 100
+   */
+  contradictions?: {
+    [k: string]: unknown;
+  }[];
+  roleVisibility?: {
+    [k: string]: unknown;
+  };
+  metadata?: {
+    [k: string]: unknown;
+  };
 }
 
 export type ParseDocumentBody = {
@@ -489,6 +571,19 @@ export interface RoomHostNudgeData {
    * @maxItems 100
    */
   roleSlotIds: string[];
+  [k: string]: unknown;
+}
+
+export interface RoomHostLogCreatedData {
+  logId: string;
+  eventType: string;
+  roleSlotId?: string;
+  [k: string]: unknown;
+}
+
+export interface RoomHostPlayerNotesUpdatedData {
+  roleSlotId: string;
+  updatedAt: string;
   [k: string]: unknown;
 }
 

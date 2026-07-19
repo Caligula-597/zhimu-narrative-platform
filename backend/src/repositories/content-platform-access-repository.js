@@ -12,7 +12,7 @@ export async function lockWorldEditor(client, { worldId, actorId }) {
      JOIN world_members world_member
        ON world_member.world_id = world.id AND world_member.user_id = $2
      WHERE world.id = $1
-     FOR KEY SHARE OF world
+     FOR UPDATE OF world
      FOR SHARE OF world_member`,
     [worldId, actorId]
   );

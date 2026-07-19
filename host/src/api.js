@@ -122,10 +122,10 @@ export const api = {
   hostUnlockSection: (payload) =>
     request(roomPath("/host/unlock-section"), { method: "POST", body: payload, idempotent: true }),
   hostUnlockScene: (sceneId) => request(roomPath(`/scenes/${sceneId}/unlock`), { method: "POST", idempotent: true }),
-  hostAddLog: (payload) => request(roomPath("/host/log"), { method: "POST", body: payload }),
-  hostNudgeWaiting: (payload) => request(roomPath("/host/nudge-waiting"), { method: "POST", body: payload }),
+  hostAddLog: (payload) => request(roomPath("/host/log"), { method: "POST", body: payload, idempotent: true }),
+  hostNudgeWaiting: (payload) => request(roomPath("/host/nudge-waiting"), { method: "POST", body: payload, idempotent: true }),
   hostSaveNotes: (roleSlotId, notes) =>
-    request(roomPath(`/host/players/${roleSlotId}/notes`), { method: "PUT", body: { notes } }),
+    request(roomPath(`/host/players/${roleSlotId}/notes`), { method: "PUT", body: { notes }, idempotent: true }),
   hostKickPlayer: (roleSlotId) =>
     request(roomPath(`/host/players/${roleSlotId}/kick`), { method: "POST", idempotent: true }),
   hostClueNote: (clueId, payload) =>
@@ -141,7 +141,7 @@ export const api = {
     request(roomPath("/host-events/batch"), { method: "POST", body: { action, eventIds }, idempotent: true }),
 
   createCheckpoint: (payload) => request(roomPath("/checkpoints"), { method: "POST", body: payload }),
-  createRecap: (payload) => request(roomPath("/recaps"), { method: "POST", body: payload }),
+  createRecap: (payload) => request(roomPath("/recaps"), { method: "POST", body: payload, idempotent: true }),
 
   getHostTestimonies: () => request(roomPath("/host/testimonies")),
   reviewHostTestimony: (testimonyId, payload) =>

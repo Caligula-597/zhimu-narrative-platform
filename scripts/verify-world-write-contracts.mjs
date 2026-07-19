@@ -7,6 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const apiDir = path.join(root, "src", "api");
 const routesDir = path.join(root, "backend", "src", "routes");
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const REVISION_MARKER = /\brunRevisionMutation\b|\bupdateWorldContent\b|\bupdateWorld\s*\(/;
 
 function listJsFiles(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -75,6 +76,62 @@ function normalizePath(routePath) {
     .replace(/\/+$/, "") || "/";
 }
 
+function resolveRelativeModule(importer, specifier) {
+  if (!specifier.startsWith(".")) return null;
+  const candidate = path.resolve(path.dirname(importer), specifier);
+  for (const absolute of [candidate, `${candidate}.js`]) {
+    if (fs.existsSync(absolute) && fs.statSync(absolute).isFile()) return absolute;
+  }
+  return null;
+}
+
+function collectNamedImportBindings(source, importer) {
+  const bindings = new Map();
+  const imports = /import\s*\{([\s\S]*?)\}\s*from\s*(["'])([^"']+)\2/g;
+  for (const match of source.matchAll(imports)) {
+    const target = resolveRelativeModule(importer, match[3]);
+    if (!target) continue;
+    for (const raw of match[1].split(",")) {
+      const binding = raw.trim().replace(/\s+/g, " ");
+      if (!binding) continue;
+      const parts = binding.split(" as ");
+      bindings.set(parts.at(-1), target);
+    }
+  }
+  return bindings;
+}
+
+const revisionModuleCache = new Map();
+
+function moduleIsRevisionAware(file, visiting = new Set()) {
+  if (revisionModuleCache.has(file)) return revisionModuleCache.get(file);
+  if (visiting.has(file)) return false;
+  visiting.add(file);
+  const source = fs.readFileSync(file, "utf8");
+  if (REVISION_MARKER.test(source)) {
+    revisionModuleCache.set(file, true);
+    visiting.delete(file);
+    return true;
+  }
+  const importSpecifiers = [...source.matchAll(/\bfrom\s*(["'])([^"']+)\1/g)]
+    .map((match) => resolveRelativeModule(file, match[2]))
+    .filter(Boolean);
+  const aware = importSpecifiers.some((imported) => moduleIsRevisionAware(imported, visiting));
+  revisionModuleCache.set(file, aware);
+  visiting.delete(file);
+  return aware;
+}
+
+function routeBlockIsRevisionAware(block, source, file) {
+  if (REVISION_MARKER.test(block)) return true;
+  const imports = collectNamedImportBindings(source, file);
+  for (const [binding, imported] of imports) {
+    if (!new RegExp(`\\b${binding}\\b`).test(block)) continue;
+    if (moduleIsRevisionAware(imported)) return true;
+  }
+  return false;
+}
+
 function collectFrontendWrites() {
   const calls = [];
   for (const file of listJsFiles(apiDir)) {
@@ -125,7 +182,7 @@ function collectBackendWrites() {
         line: lineNumber(source, match.index),
         method: match[1].toUpperCase(),
         path: normalizePath(match[3]),
-        revisionAware: /\brunRevisionMutation\b|\bupdateWorldContent\b|\bupdateWorld\s*\(/.test(block)
+        revisionAware: routeBlockIsRevisionAware(block, source, file)
       });
     }
   }
