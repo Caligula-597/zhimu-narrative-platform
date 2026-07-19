@@ -3,8 +3,12 @@ import test from "node:test";
 import { validateRuleBody } from "../src/rule-structure-validator.js";
 
 const snapshot = {
-  roles: [{ id: "role-1", name: "顾言" }],
-  sections: [{ id: "sec-1", role_slot_id: "role-1" }, { id: "sec-2", role_slot_id: "role-1" }],
+  roles: [{ id: "role-1", name: "顾言" }, { id: "role-2", name: "林岚" }],
+  sections: [
+    { id: "sec-1", role_slot_id: "role-1" },
+    { id: "sec-2", role_slot_id: "role-1" },
+    { id: "sec-3", role_slot_id: "role-2" }
+  ],
   scenes: [{ id: "scene-1", name: "档案馆" }],
   clues: [{ id: "clue-1", name: "航运录" }],
   investigationPoints: [{ id: "point-1", name: "旧报架" }],
@@ -20,6 +24,17 @@ test("validateRuleBody accepts reading unlock rule", () => {
   });
   assert.equal(result.ok, true);
   assert.equal(result.errors.length, 0);
+});
+
+test("validateRuleBody rejects a reading section owned by another role", () => {
+  const result = validateRuleBody(snapshot, {
+    conditions: {
+      all: [{ type: "reading_completed", roleSlotId: "role-1", scriptSectionId: "sec-3" }]
+    },
+    actions: [{ type: "timeline_log", message: "不应触发" }]
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((item) => item.message.includes("分幕不属于所选角色")));
 });
 
 test("validateRuleBody accepts investigation host confirm grant clue flow", () => {
@@ -77,4 +92,28 @@ test("validateRuleBody accepts any group and variable_compare", () => {
     actions: [{ type: "timeline_log", message: "ok" }]
   });
   assert.equal(result.ok, true);
+});
+
+test("validateRuleBody bounds condition depth and node count", () => {
+  let nested = { type: "item_owned", roleSlotId: "role-1", itemId: "item-1" };
+  for (let index = 0; index < 13; index += 1) nested = { not: nested };
+  const tooDeep = validateRuleBody(snapshot, {
+    conditions: nested,
+    actions: [{ type: "timeline_log", message: "ok" }]
+  });
+  assert.equal(tooDeep.ok, false);
+  assert.ok(tooDeep.errors.some((item) => item.message.includes("不能超过 12 层")));
+
+  const tooWide = validateRuleBody(snapshot, {
+    conditions: {
+      any: Array.from({ length: 201 }, () => ({
+        type: "item_owned",
+        roleSlotId: "role-1",
+        itemId: "item-1"
+      }))
+    },
+    actions: [{ type: "timeline_log", message: "ok" }]
+  });
+  assert.equal(tooWide.ok, false);
+  assert.ok(tooWide.errors.some((item) => item.message.includes("最多包含 200 个条件节点")));
 });

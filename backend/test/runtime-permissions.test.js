@@ -73,6 +73,7 @@ test("private voice rooms are isolated from active room members who were not inv
     payload: { name: `权限隔离测试 ${Date.now()}`, roomType: "invite_private", inviteUserIds: [] }
   });
   assert.equal(room.statusCode, 201);
+  context.after(() => query(`DELETE FROM voice_rooms WHERE id = $1`, [room.json().id]));
   const response = await app.inject({
     method: "GET",
     url: `/api/voice-rooms/${room.json().id}/messages`,
@@ -167,4 +168,17 @@ test("player cannot complete another role's private script section", async (cont
   });
   assert.equal(response.statusCode, 404);
   assert.equal(response.json().error, "Script section is locked or unavailable");
+});
+
+test("player cannot create a public runtime voice room", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const response = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fixtureRoomId}/voice-rooms`,
+    headers: { "x-user-id": playerUserId },
+    payload: { name: `公共房滥用 ${Date.now()}`, roomType: "public", inviteUserIds: [] }
+  });
+  assert.equal(response.statusCode, 403);
+  assert.equal(response.json().code, "VOICE_PUBLIC_CREATE_FORBIDDEN");
 });

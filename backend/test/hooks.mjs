@@ -15,7 +15,9 @@ process.env.REGISTER_IP_DAY_MAX ??= "0";
 process.env.GUEST_CREATE_HOUR_MAX ??= "1000";
 process.env.GUEST_CREATE_DAY_MAX ??= "1000";
 process.env.PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN ??= "0";
-process.env.OBJECT_STORAGE_PROVIDER ??= "memory";
+// Automated tests must never inherit a developer/production R2 provider from
+// .env; live R2 checks use the dedicated r2-head-sample script instead.
+process.env.OBJECT_STORAGE_PROVIDER = "memory";
 
 assertSafeDatabaseUrlForTestWrites(process.env.DATABASE_URL, {
   opName: "backend test fixture bootstrap"

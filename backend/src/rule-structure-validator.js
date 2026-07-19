@@ -16,10 +16,15 @@ const ACTION_TYPES = new Set([
   "timeline_log"
 ]);
 
+export const RULE_MAX_CONDITION_DEPTH = 12;
+export const RULE_MAX_CONDITION_NODES = 200;
+export const RULE_MAX_ACTIONS = 50;
+
 function entityIds(snapshot) {
   return {
     roles: new Set((snapshot.roles ?? []).map((item) => item.id)),
     sections: new Set((snapshot.sections ?? []).map((item) => item.id)),
+    sectionRoles: new Map((snapshot.sections ?? []).map((item) => [item.id, item.role_slot_id])),
     scenes: new Set((snapshot.scenes ?? []).map((item) => item.id)),
     clues: new Set((snapshot.clues ?? []).map((item) => item.id)),
     points: new Set((snapshot.investigationPoints ?? []).map((item) => item.id)),
@@ -27,8 +32,7 @@ function entityIds(snapshot) {
   };
 }
 
-function validateLeafCondition(snapshot, condition, path, errors, label) {
-  const ids = entityIds(snapshot);
+function validateLeafCondition(ids, condition, path, errors, label) {
   if (!condition?.type) {
     errors.push({ path, message: `${label} 缺少类型，请选择条件类型。` });
     return;
@@ -42,6 +46,10 @@ function validateLeafCondition(snapshot, condition, path, errors, label) {
     else if (!ids.roles.has(condition.roleSlotId)) errors.push({ path, message: `${label} 的角色不存在，请重新选择。` });
     if (!condition.scriptSectionId) errors.push({ path, message: `${label} 缺少 scriptSectionId，请选择一个分幕。` });
     else if (!ids.sections.has(condition.scriptSectionId)) errors.push({ path, message: `${label} 的分幕不存在，请重新选择。` });
+    else if (condition.roleSlotId && ids.roles.has(condition.roleSlotId)
+      && ids.sectionRoles.get(condition.scriptSectionId) !== condition.roleSlotId) {
+      errors.push({ path, message: `${label} 的分幕不属于所选角色，请重新选择。` });
+    }
   }
   if (condition.type === "clue_owned") {
     if (!condition.roleSlotId) errors.push({ path, message: `${label} 缺少 roleSlotId，请选择一个角色。` });
@@ -74,7 +82,32 @@ function validateLeafCondition(snapshot, condition, path, errors, label) {
   }
 }
 
-function validateConditionsNode(snapshot, node, path, errors, label = "条件") {
+function addComplexityError(errors, budget, path, message) {
+  if (budget.limitReported) return;
+  budget.limitReported = true;
+  errors.push({ path, message });
+}
+
+function validateConditionsNode(ids, node, path, errors, label = "条件", budget, depth = 1) {
+  if (depth > RULE_MAX_CONDITION_DEPTH) {
+    addComplexityError(
+      errors,
+      budget,
+      path,
+      `条件嵌套不能超过 ${RULE_MAX_CONDITION_DEPTH} 层，请拆分规则。`
+    );
+    return;
+  }
+  budget.nodes += 1;
+  if (budget.nodes > RULE_MAX_CONDITION_NODES) {
+    addComplexityError(
+      errors,
+      budget,
+      path,
+      `单条规则最多包含 ${RULE_MAX_CONDITION_NODES} 个条件节点，请拆分规则。`
+    );
+    return;
+  }
   if (!node || typeof node !== "object") {
     errors.push({ path, message: `${label} 结构无效。` });
     return;
@@ -95,12 +128,12 @@ function validateConditionsNode(snapshot, node, path, errors, label = "条件") 
   }
 
   if (hasType) {
-    validateLeafCondition(snapshot, node, path, errors, label);
+    validateLeafCondition(ids, node, path, errors, label);
     return;
   }
 
   if (hasNot) {
-    validateConditionsNode(snapshot, node.not, `${path}.not`, errors, `${label}（not）`);
+    validateConditionsNode(ids, node.not, `${path}.not`, errors, `${label}（not）`, budget, depth + 1);
     return;
   }
 
@@ -109,8 +142,26 @@ function validateConditionsNode(snapshot, node, path, errors, label = "条件") 
       errors.push({ path, message: `${label}.all 至少需要一项子条件。` });
       return;
     }
+    if (node.all.length > RULE_MAX_CONDITION_NODES) {
+      addComplexityError(
+        errors,
+        budget,
+        path,
+        `单条规则最多包含 ${RULE_MAX_CONDITION_NODES} 个条件节点，请拆分规则。`
+      );
+      return;
+    }
     for (const [index, child] of node.all.entries()) {
-      validateConditionsNode(snapshot, child, `${path}.all[${index}]`, errors, `${label} ${index + 1}`);
+      if (budget.nodes >= RULE_MAX_CONDITION_NODES) {
+        addComplexityError(
+          errors,
+          budget,
+          path,
+          `单条规则最多包含 ${RULE_MAX_CONDITION_NODES} 个条件节点，请拆分规则。`
+        );
+        break;
+      }
+      validateConditionsNode(ids, child, `${path}.all[${index}]`, errors, `${label} ${index + 1}`, budget, depth + 1);
     }
     return;
   }
@@ -120,8 +171,26 @@ function validateConditionsNode(snapshot, node, path, errors, label = "条件") 
       errors.push({ path, message: `${label}.any 至少需要一项子条件。` });
       return;
     }
+    if (node.any.length > RULE_MAX_CONDITION_NODES) {
+      addComplexityError(
+        errors,
+        budget,
+        path,
+        `单条规则最多包含 ${RULE_MAX_CONDITION_NODES} 个条件节点，请拆分规则。`
+      );
+      return;
+    }
     for (const [index, child] of node.any.entries()) {
-      validateConditionsNode(snapshot, child, `${path}.any[${index}]`, errors, `${label} ${index + 1}`);
+      if (budget.nodes >= RULE_MAX_CONDITION_NODES) {
+        addComplexityError(
+          errors,
+          budget,
+          path,
+          `单条规则最多包含 ${RULE_MAX_CONDITION_NODES} 个条件节点，请拆分规则。`
+        );
+        break;
+      }
+      validateConditionsNode(ids, child, `${path}.any[${index}]`, errors, `${label} ${index + 1}`, budget, depth + 1);
     }
   }
 }
@@ -129,13 +198,14 @@ function validateConditionsNode(snapshot, node, path, errors, label = "条件") 
 export function validateRuleBody(snapshot, { conditions, actions } = {}) {
   const errors = [];
   const add = (path, message) => errors.push({ path, message });
+  const ids = entityIds(snapshot);
 
   if (!conditions || typeof conditions !== "object") {
     add("conditions", "缺少检测条件结构。");
     return { ok: false, errors };
   }
 
-  validateConditionsNode(snapshot, conditions, "conditions", errors);
+  validateConditionsNode(ids, conditions, "conditions", errors, "条件", { nodes: 0, limitReported: false });
 
   if (!Array.isArray(actions)) {
     add("actions", "执行动作必须是数组。");
@@ -144,10 +214,11 @@ export function validateRuleBody(snapshot, { conditions, actions } = {}) {
   if (!actions.length) {
     add("actions", "请至少添加一个执行动作。");
   }
+  if (actions.length > RULE_MAX_ACTIONS) {
+    add("actions", `单条规则最多包含 ${RULE_MAX_ACTIONS} 个动作，请拆分规则。`);
+  }
 
-  const ids = entityIds(snapshot);
-
-  for (const [index, action] of actions.entries()) {
+  for (const [index, action] of actions.slice(0, RULE_MAX_ACTIONS).entries()) {
     const label = `动作 ${index + 1}`;
     const path = `actions[${index}]`;
     if (!action?.type) {

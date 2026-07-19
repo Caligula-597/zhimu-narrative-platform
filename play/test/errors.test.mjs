@@ -13,4 +13,6 @@ test("formatApiError maps HTTP status to friendly Chinese", () => {
 test("formatApiError hides raw status-only message", () => {
   assert.equal(formatApiError({ message: "请求失败 (500)" }, "自定义失败"), "自定义失败");
   assert.equal(formatApiError({ code: "ROOM_NOT_FOUND" }), "邀请码无效或房间不存在。");
+  assert.match(formatApiError({ code: "VOICE_ROOM_LIMIT_REACHED" }), /语音房已达上限/);
+  assert.match(formatApiError({ code: "NOTEBOOK_SOURCE_INVALID" }), /尚未解锁/);
 });

@@ -3,17 +3,21 @@ import path from "node:path";
 import { compile } from "json-schema-to-typescript";
 import {
   clueShareRolesSchema,
-  completeSectionSchema,
-  hostGrantClueSchema,
   hostLogSchema,
   hostNudgeWaitingSchema,
-  hostUnlockSectionSchema,
   inviteLookupSchema,
   joinRoomSchema,
-  notebookEntrySchema,
-  readClueSchema,
-  sectionProgressResponseSchema
+  readClueSchema
 } from "../src/routes/schemas/player.js";
+import {
+  hostGrantClueSchema,
+  hostUnlockSectionSchema
+} from "../src/routes/schemas/host-content-action.js";
+import {
+  completeSectionSchema,
+  notebookEntrySchema,
+  sectionProgressResponseSchema
+} from "../src/routes/schemas/player-progress.js";
 import {
   createRoomVoteSchema,
   createSegmentSchema,
@@ -22,12 +26,22 @@ import {
 } from "../src/routes/schemas/world.js";
 import {
   createClueSchema,
+  createContentVersionSchema,
+  createItemSchema,
   createRoleSchema,
   createRoomSchema,
   createSceneSchema,
   createSectionSchema,
+  patchItemSchema,
+  updateSectionSchema,
   createWorldSchema
 } from "../src/routes/schemas/creator.js";
+import { createRuleSchema, updateRuleSchema } from "../src/routes/schemas/rules.js";
+import {
+  importDocumentPagesSchema,
+  importDocumentSchema,
+  parseDocumentSchema
+} from "../src/routes/schemas/creator-document.js";
 import { deepseekPipelineSpecSchema } from "../src/routes/schemas/ai.js";
 import {
   createPhysicalTokensSchema,
@@ -65,9 +79,18 @@ const contracts = [
   ["CreateWorldBody", createWorldSchema.body],
   ["CreateRoleBody", createRoleSchema.body],
   ["CreateSectionBody", createSectionSchema.body],
+  ["UpdateSectionBody", updateSectionSchema.body],
   ["CreateSceneBody", createSceneSchema.body],
   ["CreateClueBody", createClueSchema.body],
+  ["CreateItemBody", createItemSchema.body],
+  ["PatchItemBody", patchItemSchema.body],
+  ["CreateContentVersionBody", createContentVersionSchema.body],
   ["CreateRoomBody", createRoomSchema.body],
+  ["ParseDocumentBody", parseDocumentSchema.body],
+  ["ImportDocumentBody", importDocumentSchema.body],
+  ["ImportDocumentPagesBody", importDocumentPagesSchema.body],
+  ["CreateRuleBody", createRuleSchema.body],
+  ["UpdateRuleBody", updateRuleSchema.body],
   ["DeepseekPipelineSpecBody", deepseekPipelineSpecSchema.body],
   ["CreatePhysicalTokensBody", createPhysicalTokensSchema.body],
   ["SubmitBetaApplicationBody", submitBetaApplicationSchema.body],

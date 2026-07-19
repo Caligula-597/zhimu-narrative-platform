@@ -20,6 +20,11 @@ import { listPlanUpgradeRequests } from "../plan-upgrade-request.js";
 import { PLAN_DEFAULTS } from "../plans.js";
 import { getSentryStatus } from "../sentry.js";
 import { sendErr } from "../api-errors.js";
+import { resolveRoomAccessRateLimits } from "../room-access-abuse-protection.js";
+import { resolveVoiceRateLimits } from "../voice-abuse-protection.js";
+import { resolveCheckpointRateLimits } from "../checkpoint-abuse-protection.js";
+import { resolveVoiceRuntimePolicy } from "../voice-service.js";
+import { resolveLiveKitTokenTtlSeconds } from "../livekit.js";
 import { listFeedback, getFeedbackStats, updateFeedbackStatus } from "../feedback.js";
 import { registerOpsCatalogRoutes } from "./ops-catalog-routes.js";
 import { registerOpsBetaRoutes } from "./ops-beta-routes.js";
@@ -35,6 +40,13 @@ const opsAuditLogQuerySchema = {
     offset: { type: "integer", minimum: 0, maximum: 100_000 }
   }
 };
+
+export function allRateLimitsPositive(value) {
+  if (typeof value === "number") return Number.isFinite(value) && value > 0;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const values = Object.values(value);
+  return values.length > 0 && values.every(allRateLimitsPositive);
+}
 
 function productionTrustGates({ features, rateLimits }) {
   const uploadScan = features.uploadScan ?? {};
@@ -75,7 +87,7 @@ function productionTrustGates({ features, rateLimits }) {
     {
       key: "rate_limits",
       label: "API rate limits",
-      ok: Object.values(rateLimits).every((value) => Number(value) > 0),
+      ok: allRateLimitsPositive(rateLimits),
       detail: JSON.stringify(rateLimits)
     },
     {
@@ -243,15 +255,23 @@ export async function registerOpsRoutes(app) {
         sentry: getSentryStatus(),
         email: getEmailServiceStatus(),
         oauth: getPublicOAuthDiagnostics(),
-        stripe: getStripeBillingStatus()
+        stripe: getStripeBillingStatus(),
+        voice: {
+          tokenTtlSeconds: resolveLiveKitTokenTtlSeconds(),
+          ...resolveVoiceRuntimePolicy()
+        }
       };
       const rateLimits = {
         authPerMin: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
         writePerMin: Number(process.env.RATE_LIMIT_WRITE_MAX ?? 120),
         readPerMin: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
         uploadPerMin: Number(process.env.RATE_LIMIT_UPLOAD_MAX ?? 30),
+        documentPerMin: Number(process.env.RATE_LIMIT_DOCUMENT_MAX ?? 10),
         aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40),
-        feedbackPerHour: Number(process.env.RATE_LIMIT_FEEDBACK_MAX ?? 10)
+        feedbackPerHour: Number(process.env.RATE_LIMIT_FEEDBACK_MAX ?? 10),
+        roomAccess: resolveRoomAccessRateLimits(),
+        voice: resolveVoiceRateLimits(),
+        checkpoint: resolveCheckpointRateLimits()
       };
       return {
         ok: ready.ready,

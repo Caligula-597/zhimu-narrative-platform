@@ -184,62 +184,66 @@ export async function triggerManualRule(roomId, ruleId) {
   });
 }
 
-export async function evaluateRoomRules(roomId) {
-  return transactionWithEvents(async (client, queueEvent) => {
-    const rules = await client.query(
-      `SELECT id, name, mode, conditions, actions
-       FROM automation_rules
-       WHERE room_id = $1 AND enabled = true AND mode IN ('automatic', 'host_confirm')
-       ORDER BY priority ASC, created_at ASC`,
-      [roomId]
+export async function evaluateRoomRulesWithClient(client, queueEvent, roomId) {
+  const rules = await client.query(
+    `SELECT id, name, mode, conditions, actions
+     FROM automation_rules
+     WHERE room_id = $1 AND enabled = true AND mode IN ('automatic', 'host_confirm')
+     ORDER BY priority ASC, created_at ASC`,
+    [roomId]
+  );
+
+  const executed = [];
+  for (const rule of rules.rows) {
+    const alreadyExecuted = await client.query(
+      `SELECT 1 FROM rule_executions WHERE rule_id = $1 AND room_id = $2 LIMIT 1`,
+      [rule.id, roomId]
     );
+    if (alreadyExecuted.rowCount) continue;
 
-    const executed = [];
-    for (const rule of rules.rows) {
-      const alreadyExecuted = await client.query(
-        `SELECT 1 FROM rule_executions WHERE rule_id = $1 AND room_id = $2 LIMIT 1`,
-        [rule.id, roomId]
+    const conditionsMet = await evaluateConditions(client, roomId, rule.conditions ?? {});
+    if (!conditionsMet) continue;
+
+    if (rule.mode === "host_confirm") {
+      const inserted = await client.query(
+        `INSERT INTO pending_host_events
+          (room_id, rule_id, event_key, title, description, actions)
+         VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+         ON CONFLICT (room_id, rule_id) WHERE rule_id IS NOT NULL DO NOTHING
+         RETURNING id, title`,
+        [
+          roomId,
+          rule.id,
+          `rule:${rule.id}`,
+          rule.name,
+          "条件已满足，等待主持人确认。",
+          JSON.stringify(rule.actions ?? [])
+        ]
       );
-      if (alreadyExecuted.rowCount) continue;
-
-      const conditionsMet = await evaluateConditions(client, roomId, rule.conditions ?? {});
-      if (!conditionsMet) continue;
-
-      if (rule.mode === "host_confirm") {
-        const inserted = await client.query(
-          `INSERT INTO pending_host_events
-            (room_id, rule_id, event_key, title, description, actions)
-           VALUES ($1, $2, $3, $4, $5, $6::jsonb)
-           ON CONFLICT (room_id, rule_id) WHERE rule_id IS NOT NULL DO NOTHING
-           RETURNING id, title`,
-          [
-            roomId,
-            rule.id,
-            `rule:${rule.id}`,
-            rule.name,
-            "条件已满足，等待主持人确认。",
-            JSON.stringify(rule.actions ?? [])
-          ]
-        );
-        if (inserted.rowCount) {
-          queueEvent(roomId, "room.host_event_pending", {
-            eventId: inserted.rows[0].id,
-            title: inserted.rows[0].title,
-            source: "rule"
-          });
-        }
-        continue;
+      if (inserted.rowCount) {
+        queueEvent(roomId, "room.host_event_pending", {
+          eventId: inserted.rows[0].id,
+          title: inserted.rows[0].title,
+          source: "rule"
+        });
       }
-
-      await executeActionsWithClient(client, roomId, rule.actions);
-      queueRuleActionEvents(queueEvent, roomId, rule.actions, "rule");
-      await client.query(
-        `INSERT INTO rule_executions (rule_id, room_id, result)
-         VALUES ($1, $2, '{"status":"executed"}'::jsonb)`,
-        [rule.id, roomId]
-      );
-      executed.push(rule.id);
+      continue;
     }
-    return executed;
-  });
+
+    await executeActionsWithClient(client, roomId, rule.actions);
+    queueRuleActionEvents(queueEvent, roomId, rule.actions, "rule");
+    await client.query(
+      `INSERT INTO rule_executions (rule_id, room_id, result)
+       VALUES ($1, $2, '{"status":"executed"}'::jsonb)`,
+      [rule.id, roomId]
+    );
+    executed.push(rule.id);
+  }
+  return executed;
+}
+
+export async function evaluateRoomRules(roomId) {
+  return transactionWithEvents((client, queueEvent) => (
+    evaluateRoomRulesWithClient(client, queueEvent, roomId)
+  ));
 }

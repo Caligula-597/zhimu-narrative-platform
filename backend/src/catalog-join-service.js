@@ -4,12 +4,9 @@
  */
 import { query, transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
+import { generateRoomInviteCode } from "./room-invite-code.js";
 
 const PLAY_MEMBERSHIP_ROLE = "viewer";
-
-function catalogInviteCode() {
-  return `PLAY-${Date.now().toString(36).toUpperCase().slice(-8)}`;
-}
 
 export async function joinPublicCatalogWorld(actorId, worldId) {
   const world = await query(
@@ -55,7 +52,7 @@ export async function joinPublicCatalogWorld(actorId, worldId) {
       const roomResult = await client.query(
         `INSERT INTO rooms (world_id, host_user_id, name, invite_code, status)
          VALUES ($1, $2, $3, $4, 'testing') RETURNING id, name, invite_code`,
-        [worldId, actorId, roomName, catalogInviteCode()]
+        [worldId, actorId, roomName, generateRoomInviteCode("PLAY")]
       );
       room = roomResult.rows[0];
     }

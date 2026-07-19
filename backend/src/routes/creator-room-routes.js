@@ -6,13 +6,15 @@ import { ROOMS_VISIBLE_TO_ACTOR_SQL } from "./world-helpers.js";
 import { requireWorldRole } from "./route-guards.js";
 import { createRoomSchema, updateRoomListingSchema } from "./schemas/creator-room.js";
 import { worldIdParams } from "./schemas/world.js";
+import { generateRoomInviteCode } from "../room-invite-code.js";
 
 export async function registerCreatorRoomRoutes(app) {
   app.post("/api/worlds/:worldId/rooms", { schema: createRoomSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);
-    const { name, inviteCode, publicListing = false } = request.body ?? {};
+    const { name, publicListing = false } = request.body ?? {};
+    const inviteCode = generateRoomInviteCode("ROOM");
     const room = await transaction(async (client) => {
       const result = await client.query(
         `INSERT INTO rooms (world_id, host_user_id, name, invite_code, status, public_listing)

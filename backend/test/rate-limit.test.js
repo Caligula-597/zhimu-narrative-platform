@@ -81,3 +81,24 @@ test("upload routes return RATE_LIMITED after threshold", async (context) => {
   assert.equal(lastStatus, 429);
   resetRateLimitersForTests();
 });
+
+test("document processing routes use the lower-cost abuse threshold", async (context) => {
+  resetRateLimitersForTests();
+  const app = await createApp({ logger: false, rateLimit: true });
+  context.after(() => app.close());
+
+  let response;
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    response = await app.inject({
+      method: "POST",
+      url: "/api/worlds/00000000-0000-4000-8000-000000000001/documents/parse",
+      payload: {
+        filename: "probe.txt",
+        contentBase64: Buffer.from("probe").toString("base64")
+      }
+    });
+  }
+  assert.equal(response.statusCode, 429, response.body);
+  assert.equal(response.json().code, "RATE_LIMITED");
+  resetRateLimitersForTests();
+});

@@ -62,7 +62,8 @@ export const importDocumentSchema = {
           filename: { type: "string", maxLength: 255 },
           sections: {
             type: "array",
-            maxItems: 500,
+            minItems: 1,
+            maxItems: 80,
             items: {
               type: "object",
               additionalProperties: false,

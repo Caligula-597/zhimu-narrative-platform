@@ -88,6 +88,12 @@ const API_ERROR_MESSAGES = {
   ROLE_ALREADY_BOUND: "你已在该运行房绑定角色，不可更换席位。如需换角请联系主持人。",
   ROLE_SLOT_NOT_FOUND: "角色席位不存在。",
   ROLE_SLOT_WORLD_MISMATCH: "所选角色不属于当前世界的运行房。",
+  ROLE_RELATIONSHIP_SELF_INVALID: "角色关系需要选择两个不同的角色。",
+  SEGMENT_WORLD_MISMATCH: "所选内容段不属于当前运行房。",
+  SEGMENT_REFERENCE_WORLD_MISMATCH: "内容段包含不属于当前剧本的引用，请刷新后重新选择。",
+  SEGMENT_REFERENCES_INVALID: "内容段引用重复或格式无效，请检查后重试。",
+  PRIVATE_ACTION_TARGET_REQUIRED: "该秘密行动需要选择目标角色。",
+  PRIVATE_ACTION_TRANSITION_INVALID: "秘密行动状态已经变化，请刷新后重试。",
   INVITE_FIELDS_REQUIRED: "请填写邀请码并选择角色席位。",
 
   NAME_REQUIRED: "请填写名称。",
@@ -103,9 +109,14 @@ const API_ERROR_MESSAGES = {
   SECTION_NOT_FOUND: "找不到该角色的分幕。",
   SECTION_LOCKED: "该分幕尚未解锁，暂时无法标记为已读。",
   CONTENT_VERSION_NOT_FOUND: "创作版本不存在。",
+  CONTENT_VERSION_INVALID: "该创作版本已损坏，无法安全恢复。",
+  CONTENT_VERSION_TOO_LARGE: "该创作版本过大，无法安全创建或恢复。",
+  CONTENT_VERSION_LIMIT_REACHED: "该剧本的创作版本已达上限，请先删除不再需要的版本。",
+  SECTION_SEQUENCE_CONFLICT: "该角色已有相同顺序的分幕，请调整顺序后重试。",
   PARSED_DOCUMENT_REQUIRED: "请先完成文档解析后再提交。",
   ROLE_SLOT_IMPORT_REQUIRED: "导入角色剧本前需选择有效的角色席位。",
   NOTEBOOK_FIELDS_REQUIRED: "请填写笔记来源、标题与正文。",
+  NOTEBOOK_SOURCE_INVALID: "该笔记来源尚未解锁，或不属于当前角色。",
   NOTEBOOK_ENTRY_NOT_FOUND: "未找到该高亮记录。",
   VISIBILITY_INVALID: "可见范围设置无效。",
 
@@ -148,8 +159,11 @@ const API_ERROR_MESSAGES = {
 
   CHECKPOINT_NOT_FOUND: "找不到该存档点，可能已被删除。",
   CHECKPOINT_WORLD_MISMATCH: "该存档与所选平行房不属于同一个世界，无法恢复。",
+  CHECKPOINT_RESTORE_BUSY: "该房间正在执行另一项恢复，请稍后重试。",
+  CHECKPOINT_RESTORE_TIMEOUT: "恢复耗时超过安全上限，所有改动已回滚；请稍后重试或联系运维。",
   INVALID_SNAPSHOT: "存档快照无效，无法恢复。",
   SNAPSHOT_VERSION_UNSUPPORTED: "存档版本过旧，无法恢复。",
+  SNAPSHOT_TIMELINE_TRUNCATED: "该存档的时间线已截断；为避免丢失更早记录，不能执行时间线覆盖恢复。",
   RECAP_NOT_FOUND: "复盘报告不存在。",
   RECAP_NOT_GENERATED: "尚未生成复盘报告。",
 
@@ -158,6 +172,8 @@ const API_ERROR_MESSAGES = {
   VOICE_MESSAGE_INVALID: "消息长度需在 1～1000 字之间。",
   VOICE_ROOM_NOT_IN_PARALLEL_ROOM: "语音房不属于当前平行房。",
   VOICE_MEMBER_NOT_IN_ROOM: "被邀请用户必须是运行房成员。",
+  VOICE_PUBLIC_CREATE_FORBIDDEN: "只有主持人或协主持能创建公共/角色管理语音房。",
+  VOICE_ROOM_LIMIT_REACHED: "当前平行房的活跃语音房已达上限，请等待临时密谈过期或联系主持人。",
   LIVEKIT_NOT_CONFIGURED: "语音服务暂不可用，请稍后再试。",
 
   FILE_TOO_LARGE: "文件超出大小限制。",
@@ -183,7 +199,8 @@ const API_ERROR_MESSAGES = {
 
   STORY_TEXT_REQUIRED: "请粘贴或输入剧情文本。",
   DEEPSEEK_NOT_CONFIGURED: "AI 服务暂不可用，请稍后再试。",
-  DOCUMENT_TYPE_UNSUPPORTED: "仅支持 TXT、Markdown 和 DOCX 文档。",
+  DOCUMENT_TYPE_UNSUPPORTED: "仅支持 TXT、Markdown、DOCX、PDF 与常见图片文档。",
+  DOCUMENT_PROCESSING_BUSY: "文档处理任务较多，请稍后重试。",
   DOCUMENT_EMPTY: "文档中没有可读取的文字。",
 
   CONTENT_PACKAGE_INVALID: "内容包格式无效。",

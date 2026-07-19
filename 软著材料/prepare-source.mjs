@@ -99,7 +99,8 @@ function formatPages(lines, sideLabel, startPageNo) {
     const pageLines = lines.slice(start, start + linesPerPage);
     for (let i = 0; i < linesPerPage; i += 1) {
       const lineNo = String(i + 1).padStart(2, '0');
-      output.push(`${lineNo}: ${pageLines[i] ?? ''}`);
+      const sourceLine = pageLines[i] ?? '';
+      output.push(sourceLine ? `${lineNo}: ${sourceLine}` : `${lineNo}:`);
     }
   }
   return output;

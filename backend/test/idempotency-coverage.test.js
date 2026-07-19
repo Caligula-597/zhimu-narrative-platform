@@ -197,10 +197,14 @@ test("host event delay is idempotent with Idempotency-Key", async (context) => {
 test("idempotency coverage registry matches implemented routes", () => {
   const covered = [
     "sections.complete",
+    "player.mini_game_submit",
+    "player.notebook_create",
+    "player.notebook_delete",
     "checkpoints.restore",
     "host.grant_clue",
     "host.grant_item",
     "host.unlock_section",
+    "host.unlock_scene",
     "host.event_dismiss",
     "host.event_execute",
     "host.event_delay",
@@ -210,5 +214,5 @@ test("idempotency coverage registry matches implemented routes", () => {
     "clues.share_room",
     "clues.share_roles"
   ];
-  assert.equal(covered.length, 13);
+  assert.equal(covered.length, 17);
 });

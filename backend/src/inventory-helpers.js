@@ -21,14 +21,17 @@ export async function grantItemToInventory(client, { roomId, roleSlotId, itemId,
   const meta = item.metadata ?? {};
   const qty = Math.max(1, Number(quantity) || 1);
   if (meta.unique) {
-    const existing = await run(
-      `SELECT quantity FROM inventory
-       WHERE room_id = $1 AND role_slot_id = $2 AND item_id = $3 AND quantity > 0`,
-      [roomId, roleSlotId, itemId]
+    const inserted = await run(
+      `INSERT INTO inventory (room_id, role_slot_id, item_id, quantity, metadata)
+       VALUES ($1, $2, $3, 1, $4::jsonb)
+       ON CONFLICT (room_id, role_slot_id, item_id) DO NOTHING
+       RETURNING quantity`,
+      [roomId, roleSlotId, itemId, JSON.stringify({ source, grantedAt: new Date().toISOString() })]
     );
-    if (existing.rowCount) {
+    if (!inserted.rowCount) {
       throw Object.assign(new Error("Player already owns this unique item"), { statusCode: 409 });
     }
+    return item;
   }
   await run(
     `INSERT INTO inventory (room_id, role_slot_id, item_id, quantity, metadata)

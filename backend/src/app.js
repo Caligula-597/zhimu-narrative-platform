@@ -22,6 +22,9 @@ import { registerStaticFrontend } from "./static-frontend.js";
 import { resolveAllowedCorsOrigins } from "./cors-origins.js";
 import { applySecurityHeaders } from "./security-headers.js";
 import { isDatabaseCapacityError } from "./db.js";
+import { createRoomAccessAbuseProtection } from "./room-access-abuse-protection.js";
+import { createVoiceAbuseProtection } from "./voice-abuse-protection.js";
+import { createCheckpointAbuseProtection } from "./checkpoint-abuse-protection.js";
 
 const guestAuthRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -62,6 +65,11 @@ const aiRateLimit = createRateLimiter({
   windowMs: 60_000,
   max: Number(process.env.RATE_LIMIT_AI_MAX ?? 40),
   routeKey: "api-ai"
+});
+const documentRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_DOCUMENT_MAX ?? 10),
+  routeKey: "api-document"
 });
 
 function isUploadRoute(url, method) {
@@ -104,6 +112,10 @@ function isPlatformReadRoute(url, method) {
 
 function resolveCorsOrigin(options, nodeEnv) {
   return resolveAllowedCorsOrigins(options, nodeEnv);
+}
+
+function isDocumentRoute(url, method) {
+  return method === "POST" && /^\/api\/worlds\/[^/]+\/documents\/(?:parse|import|import-pages)$/.test(url);
 }
 
 export function resolveTrustProxy(value = process.env.TRUST_PROXY_HOPS) {
@@ -162,7 +174,11 @@ export async function createApp(options = {}) {
   const allowDemoUserHeader = nodeEnv === "production"
     ? false
     : (options.allowDemoUserHeader ?? process.env.ALLOW_DEMO_USER_HEADER === "true");
-  const rateLimitEnabled = options.rateLimit ?? nodeEnv === "production";
+  const rateLimitEnabled = options.rateLimit
+    ?? (nodeEnv === "production" || process.env.RATE_LIMIT_ENABLED === "true");
+  const roomAccessAbuseProtection = createRoomAccessAbuseProtection();
+  const voiceAbuseProtection = createVoiceAbuseProtection();
+  const checkpointAbuseProtection = createCheckpointAbuseProtection();
 
   await app.register(cors, {
     origin: resolveCorsOrigin(options, nodeEnv),
@@ -176,6 +192,13 @@ export async function createApp(options = {}) {
     reply.header("X-Request-Id", request.id);
     reply.header("X-Trace-Id", request.traceId);
     request._metricsStart = process.hrtime.bigint();
+    if (!rateLimitEnabled) return;
+    const url = request.url.split("?")[0];
+    if (!shouldSkipRateLimit(url)) {
+      await roomAccessAbuseProtection.protectNetwork(request, reply, url);
+      await voiceAbuseProtection.protectNetwork(request, reply, url);
+      await checkpointAbuseProtection.protectNetwork(request, reply, url);
+    }
   });
   app.addHook("onResponse", async (request, reply) => {
     const started = request._metricsStart;
@@ -200,6 +223,9 @@ export async function createApp(options = {}) {
 
     const url = request.url.split("?")[0];
     if (shouldSkipRateLimit(url)) return;
+    if (await roomAccessAbuseProtection.protectActor(request, reply, url)) return;
+    if (await voiceAbuseProtection.protectActor(request, reply, url)) return;
+    if (await checkpointAbuseProtection.protectActor(request, reply, url)) return;
     if (url.startsWith("/api/auth/login") || url.startsWith("/api/auth/register")
       || url.startsWith("/api/auth/forgot-password") || url.startsWith("/api/auth/reset-password")) {
       await authRateLimit(request, reply);
@@ -220,6 +246,10 @@ export async function createApp(options = {}) {
     if (!url.startsWith("/api/")) return;
 
     const method = request.method;
+    if (isDocumentRoute(url, method)) {
+      await documentRateLimit(request, reply);
+      return;
+    }
     if (isUploadRoute(url, method)) {
       await uploadRateLimit(request, reply);
       return;

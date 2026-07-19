@@ -3,6 +3,12 @@ import { getObjectStorage } from "./storage/index.js";
 import { scanUploadedObject } from "./upload-scan.js";
 import { throwErr } from "./api-errors.js";
 
+export async function cleanupStoredObjects(objectKeys = []) {
+  if (!objectKeys.length) return;
+  const storage = getObjectStorage();
+  await Promise.allSettled([...new Set(objectKeys)].map((key) => storage.deleteObject({ key })));
+}
+
 /**
  * Server-side upload (import pipeline) — bypasses presigned client PUT.
  */
@@ -24,33 +30,32 @@ export async function uploadWorldAssetFromBuffer(
   const objectKey = `users/${actorId}/worlds/${worldId}/assets/${randomUUID()}`;
   const storage = getObjectStorage();
   await storage.putObject({ key: objectKey, body: buffer, contentType });
-  const stat = await storage.statObject({ key: objectKey });
   try {
+    const stat = await storage.statObject({ key: objectKey });
     await scanUploadedObject({
       key: objectKey,
       contentType: stat.contentType,
       byteSize: stat.byteSize,
       filename
     });
+    const file = await client.query(
+      `INSERT INTO asset_files
+        (owner_user_id, world_id, room_id, asset_kind, visibility, role_slot_id, object_key, original_filename, content_type, byte_size, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'active')
+       RETURNING id, object_key, original_filename`,
+      [actorId, worldId, roomId, assetKind, visibility, roleSlotId, objectKey, filename, contentType, stat.byteSize]
+    );
+    const assetId = file.rows[0].id;
+    await client.query(
+      `INSERT INTO asset_versions (asset_file_id, version_number, object_key, byte_size)
+       VALUES ($1, 1, $2, $3)`,
+      [assetId, objectKey, stat.byteSize]
+    );
+    return { assetId, byteSize: stat.byteSize, objectKey };
   } catch (error) {
     await storage.deleteObject({ key: objectKey }).catch(() => {});
     throw error;
   }
-
-  const file = await client.query(
-    `INSERT INTO asset_files
-      (owner_user_id, world_id, room_id, asset_kind, visibility, role_slot_id, object_key, original_filename, content_type, byte_size, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'active')
-     RETURNING id, object_key, original_filename`,
-    [actorId, worldId, roomId, assetKind, visibility, roleSlotId, objectKey, filename, contentType, stat.byteSize]
-  );
-  const assetId = file.rows[0].id;
-  await client.query(
-    `INSERT INTO asset_versions (asset_file_id, version_number, object_key, byte_size)
-     VALUES ($1, 1, $2, $3)`,
-    [assetId, objectKey, stat.byteSize]
-  );
-  return { assetId, byteSize: stat.byteSize, objectKey };
 }
 
 export async function fetchActiveAssetsByIds(client, assetIds) {

@@ -2,6 +2,7 @@ import { nonEmptyText, paramsSchema, uuid } from "./primitives.js";
 
 export const roomIdParams = paramsSchema({ roomId: uuid });
 export const voiceRoomIdParams = paramsSchema({ voiceRoomId: uuid });
+export const voiceRoomInRoomParams = paramsSchema({ roomId: uuid, voiceRoomId: uuid });
 
 export const inviteLookupSchema = {
   params: paramsSchema({
@@ -30,7 +31,7 @@ export const createVoiceRoomSchema = {
     properties: {
       name: { type: "string", minLength: 1, maxLength: 80 },
       roomType: { type: "string", enum: ["public", "role_private", "invite_private"] },
-      inviteUserIds: { type: "array", maxItems: 20, items: uuid }
+      inviteUserIds: { type: "array", maxItems: 20, uniqueItems: true, items: uuid }
     }
   }
 };
@@ -42,7 +43,7 @@ export const appendVoiceMembersSchema = {
     additionalProperties: false,
     required: ["inviteUserIds"],
     properties: {
-      inviteUserIds: { type: "array", minItems: 1, maxItems: 20, items: uuid }
+      inviteUserIds: { type: "array", minItems: 1, maxItems: 20, uniqueItems: true, items: uuid }
     }
   }
 };
@@ -53,41 +54,8 @@ export const sendVoiceMessageSchema = {
     type: "object",
     additionalProperties: false,
     required: ["body"],
-    properties: { body: nonEmptyText }
+    properties: { body: { ...nonEmptyText, maxLength: 1000 } }
   }
-};
-
-export const completeSectionSchema = {
-  params: paramsSchema({ roomId: uuid, sectionId: uuid })
-};
-
-export const sectionProgressResponseSchema = {
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    startedAt: { type: "string", format: "date-time" },
-    completedAt: { anyOf: [{ type: "string", format: "date-time" }, { type: "null" }] }
-  },
-  required: ["startedAt"]
-};
-
-export const notebookEntrySchema = {
-  params: roomIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["sourceType", "title", "body"],
-    properties: {
-      sourceType: { type: "string", minLength: 1, maxLength: 40 },
-      sourceId: { anyOf: [uuid, { type: "null" }] },
-      title: { type: "string", minLength: 1, maxLength: 120 },
-      body: { type: "string", minLength: 1, maxLength: 5000 }
-    }
-  }
-};
-
-export const deleteNotebookEntrySchema = {
-  params: paramsSchema({ roomId: uuid, entryId: uuid })
 };
 
 export const investigatePointSchema = {
@@ -186,55 +154,6 @@ export const hostEventBatchSchema = {
 
 export const roleSlotRoomParams = paramsSchema({ roomId: uuid, roleSlotId: uuid });
 
-export const hostGrantClueSchema = {
-  params: roomIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["clueId"],
-    properties: {
-      roleSlotId: uuid,
-      roleSlotIds: {
-        type: "array",
-        items: uuid,
-        minItems: 1,
-        maxItems: 20
-      },
-      clueId: uuid,
-      message: { type: "string", maxLength: 500 }
-    }
-  }
-};
-
-export const hostGrantItemSchema = {
-  params: roomIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["roleSlotId", "itemId"],
-    properties: {
-      roleSlotId: uuid,
-      itemId: uuid,
-      quantity: { type: "integer", minimum: 1, maximum: 99 },
-      message: { type: "string", maxLength: 500 }
-    }
-  }
-};
-
-export const hostUnlockSectionSchema = {
-  params: roomIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["roleSlotId", "scriptSectionId"],
-    properties: {
-      roleSlotId: uuid,
-      scriptSectionId: uuid,
-      message: { type: "string", maxLength: 500 }
-    }
-  }
-};
-
 export const hostLogSchema = {
   params: roomIdParams,
   body: {
@@ -273,11 +192,6 @@ export const hostNotesSchema = {
   }
 };
 
-export const checkpointIdParams = paramsSchema({
-  roomId: uuid,
-  checkpointId: uuid
-});
-
 export const createRecapSchema = {
   params: roomIdParams,
   body: {
@@ -295,41 +209,3 @@ export const recapIdParams = paramsSchema({
   roomId: uuid,
   recapId: uuid
 });
-
-export const createCheckpointSchema = {
-  params: roomIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["title"],
-    properties: {
-      title: { type: "string", minLength: 1, maxLength: 120 },
-      description: { type: "string", maxLength: 2000 }
-    }
-  }
-};
-
-export const restoreCheckpointSchema = {
-  params: checkpointIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      scope: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          readingProgress: { type: "boolean" },
-          clueOwnership: { type: "boolean" },
-          inventory: { type: "boolean" },
-          contentUnlocks: { type: "boolean" },
-          pendingHostEvents: { type: "boolean" },
-          investigationRecords: { type: "boolean" },
-          playerStates: { type: "boolean" },
-          ruleExecutions: { type: "boolean" },
-          timelineLogs: { type: "boolean" }
-        }
-      }
-    }
-  }
-};

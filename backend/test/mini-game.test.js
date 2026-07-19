@@ -50,10 +50,11 @@ test("mini game loop starts, submits, and completes for player home", async (con
   assert.equal(home.statusCode, 200, home.body);
   assert.equal(home.json().currentGame.instanceId, startBody.currentGame.instanceId);
 
+  const wrongKey = `mini-game-submit-${Date.now()}`;
   const wrong = await app.inject({
     method: "POST",
     url: "/api/rooms/game/submit",
-    headers: { "x-user-id": playerUserId },
+    headers: { "x-user-id": playerUserId, "idempotency-key": wrongKey },
     payload: {
       roomId: fixtureRoomId,
       instanceId: startBody.currentGame.instanceId,
@@ -67,6 +68,25 @@ test("mini game loop starts, submits, and completes for player home", async (con
   assert.equal(wrong.json().attemptsLeft, 1);
   assert.equal(roomEvents.at(-1).type, "room.game_updated");
   assert.equal(roomEvents.at(-1).currentGame.attemptsLeft, 1);
+
+  const wrongReplay = await app.inject({
+    method: "POST",
+    url: "/api/rooms/game/submit",
+    headers: { "x-user-id": playerUserId, "idempotency-key": wrongKey },
+    payload: {
+      roomId: fixtureRoomId,
+      instanceId: startBody.currentGame.instanceId,
+      answer: "0000"
+    }
+  });
+  assert.equal(wrongReplay.statusCode, 200, wrongReplay.body);
+  assert.deepEqual(wrongReplay.json(), wrong.json());
+
+  const gameAfterReplay = await query(
+    `SELECT state FROM room_mini_games WHERE id = $1`,
+    [startBody.currentGame.instanceId]
+  );
+  assert.equal(gameAfterReplay.rows[0].state.attempts_left, 1, "network retry must not consume another attempt");
 
   const correct = await app.inject({
     method: "POST",

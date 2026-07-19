@@ -6,10 +6,10 @@ export const createRoomSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["name", "inviteCode"],
+    required: ["name"],
     properties: {
       name: { type: "string", minLength: 1, maxLength: 80 },
-      inviteCode: { type: "string", minLength: 1, maxLength: 80 },
+      inviteCode: { type: "string", minLength: 1, maxLength: 80, deprecated: true },
       publicListing: { type: "boolean" }
     }
   }

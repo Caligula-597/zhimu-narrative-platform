@@ -33,6 +33,7 @@
 | ROOM_MEMBERSHIP_REQUIRED | 你不是该运行房成员 | 未入房访问房内 API | 未 join 时读 player-home |
 | WORLD_EDITOR_REQUIRED | 需要世界编辑权限 | viewer 修改世界内容 | viewer 角色 PATCH 世界 |
 | VOICE_ACCESS_DENIED | 无权进入该语音房 | 未受邀进入私密语音房 | 未邀请用户请求 token |
+| VOICE_PUBLIC_CREATE_FORBIDDEN | 只有主持人或协主持可创建管理语音房 | 玩家尝试创建公共/角色管理房 | 玩家提交非 invite_private 类型 |
 
 ---
 
@@ -46,7 +47,14 @@
 | ROLE_SLOT_OCCUPIED | 该角色席位已被占用 | 两玩家选同一席 | 第二人 join 同 roleSlotId |
 | ROLE_SLOT_NOT_FOUND | 角色席位不存在 | join 时席位 ID 无效 | 伪造 UUID join |
 | ROLE_SLOT_WORLD_MISMATCH | 席位不属于该房间世界 | 跨世界席位 | join 时用其他世界的 roleId |
+| ROLE_RELATIONSHIP_SELF_INVALID | 请选择两个不同角色 | 关系起点与终点相同 | 为角色建立指向自己的关系 |
+| SEGMENT_WORLD_MISMATCH | 内容段不属于当前运行房 | 私密行动引用了其他剧本内容段 | 伪造其他世界的 segmentId |
+| SEGMENT_REFERENCE_WORLD_MISMATCH | 内容段包含其他剧本的引用 | chapter/scene/clue 等引用越界 | 提交其他世界的 sceneId |
+| SEGMENT_REFERENCES_INVALID | 内容段引用重复或无效 | 同一引用被重复提交 | refs 中出现相同三元组 |
+| PRIVATE_ACTION_TARGET_REQUIRED | 请选择秘密行动的目标角色 | 使用目标可见模式但未选目标 | actor_target_host 缺 targetRoleSlotId |
+| PRIVATE_ACTION_TRANSITION_INVALID | 行动状态已经变化，请刷新 | 终态回退或并发审核冲突 | accepted 再改回 seen |
 | INVITE_FIELDS_REQUIRED | 请填写邀请码并选择角色 | join 缺字段 | POST join 空 body |
+| VOICE_ROOM_LIMIT_REACHED | 活跃语音房已达上限 | 同一平行房已有 30 个未过期/未关闭语音房 | 并发或连续创建临时密谈 |
 
 ---
 
@@ -70,8 +78,11 @@
 |--------|--------------|----------|----------|
 | CHECKPOINT_NOT_FOUND | 找不到该存档点 | 恢复已删存档 | 错误 checkpointId |
 | CHECKPOINT_WORLD_MISMATCH | 存档与平行房不属于同一世界 | 跨世界恢复 | restore 到其它世界的房 |
+| CHECKPOINT_RESTORE_BUSY | 房间正在执行另一项恢复 | 并发恢复争抢房间锁 | 同时提交两个不同恢复请求 |
+| CHECKPOINT_RESTORE_TIMEOUT | 恢复超时且已回滚 | 快照过大或数据库拥塞 | 构造大快照/降低测试 statement timeout |
 | INVALID_SNAPSHOT | 存档快照无效 | 损坏快照数据 | 手工改 DB 快照为空 |
 | SNAPSHOT_VERSION_UNSUPPORTED | 存档版本过旧无法恢复 | 旧版 snapshot schema | 降级 snapshot version |
+| SNAPSHOT_TIMELINE_TRUNCATED | 存档时间线不完整，禁止覆盖恢复 | 房间时间线超过 5000 条 | 勾选 timelineLogs 恢复超长房间存档 |
 
 ---
 
@@ -85,6 +96,7 @@
 | REQUIRED_ITEM_MISSING | 缺少所需物品 | 调查门槛物品不足 | 无物品时 investigate |
 | ITEM_NOT_FOUND | 物品不存在 | 引用已删物品 | 规则引用旧 itemId |
 | SECTION_LOCKED | 分幕尚未解锁 | 完成未开放分幕 | complete 未 unlock 分幕 |
+| NOTEBOOK_SOURCE_INVALID | 笔记来源尚未解锁或不属于当前角色 | 伪造/过期的剧本段或线索来源 | 用未持有线索创建笔记 |
 
 ---
 
@@ -96,7 +108,12 @@
 | FILE_TOO_LARGE | 文件超出大小限制 | 单文件过大 | 上传超大文件 |
 | ASSET_NOT_FOUND | 附件不存在 | 删除后访问 | 错误 assetId |
 | UPLOAD_SESSION_NOT_FOUND | 上传会话已过期 | confirm 超时 | 延迟 confirm |
-| DOCUMENT_TYPE_UNSUPPORTED | 不支持的文档类型 | 解析非 txt/md/docx | 上传 pdf 解析 |
+| DOCUMENT_TYPE_UNSUPPORTED | 不支持或文件内容与扩展名不一致 | 解析非 txt/md/docx/pdf/图片或伪造 MIME | 将文本伪装成 `.png` 上传 |
+| DOCUMENT_PROCESSING_BUSY | 文档处理任务较多，请稍后重试 | PDF/OCR/页面渲染达到并发或排队上限 | 并发提交超过处理闸门容量 |
+| CONTENT_VERSION_INVALID | 该创作版本已损坏，无法安全恢复 | 历史快照结构异常或含跨世界引用 | 修改快照数据后执行 restore |
+| CONTENT_VERSION_TOO_LARGE | 该创作版本过大 | 快照超过章节、分幕或字节上限 | 超大剧本连续创建快照 |
+| CONTENT_VERSION_LIMIT_REACHED | 创作版本已达上限 | 单个剧本已有 50 个版本 | 连续创建手动快照 |
+| SECTION_SEQUENCE_CONFLICT | 分幕顺序重复 | 同一角色两个分幕使用相同 sequence | 并发创建相同顺序分幕 |
 
 ---
 

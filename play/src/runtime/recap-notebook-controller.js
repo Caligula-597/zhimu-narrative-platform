@@ -67,7 +67,7 @@ export function createRecapNotebookController({
     setBusy(true, render);
     try {
       await api.addNotebookEntry(state.roomId, {
-        sourceType: "free", sourceId: null, title, body
+        sourceType: "manual", sourceId: null, title, body
       });
       state.notesDraft = "";
       state.notesDraftTitle = "";

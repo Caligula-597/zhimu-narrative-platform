@@ -151,3 +151,60 @@ test("join is idempotent for the bound role and invite lookup exposes it", async
   });
   assert.equal(again.statusCode, 200, again.body);
 });
+
+test("concurrent joins cannot bind one player to two roles", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const host = await app.inject({
+    method: "POST",
+    url: "/api/auth/register",
+    payload: { displayName: "并发主持", email: `host-race-${suffix}@example.invalid`, password: "test-pass-123" }
+  });
+  const player = await app.inject({
+    method: "POST",
+    url: "/api/auth/register",
+    payload: { displayName: "并发玩家", email: `player-race-${suffix}@example.invalid`, password: "test-pass-123" }
+  });
+  assert.equal(host.statusCode, 201, host.body);
+  assert.equal(player.statusCode, 201, player.body);
+
+  const world = await app.inject({
+    method: "POST",
+    url: "/api/worlds",
+    headers: { authorization: `Bearer ${host.json().token}` },
+    payload: { name: "并发角色绑定", summary: "race regression" }
+  });
+  assert.equal(world.statusCode, 201, world.body);
+  const roles = await query(
+    `INSERT INTO role_slots (world_id, name, sequence)
+     VALUES ($1, '并发角色甲', 1), ($1, '并发角色乙', 2)
+     RETURNING id`,
+    [world.json().id]
+  );
+  const room = await query(
+    `INSERT INTO rooms (world_id, host_user_id, name, invite_code, status)
+     VALUES ($1, $2, '并发绑定房间', $3, 'testing')
+     RETURNING id, invite_code`,
+    [world.json().id, host.json().user.id, `RACE-${suffix}`]
+  );
+  const authorization = `Bearer ${player.json().token}`;
+  const [first, second] = await Promise.all(roles.rows.map((role) => app.inject({
+    method: "POST",
+    url: "/api/rooms/join",
+    headers: { authorization },
+    payload: { inviteCode: room.rows[0].invite_code, roleSlotId: role.id }
+  })));
+
+  assert.deepEqual([first.statusCode, second.statusCode].sort(), [200, 409]);
+  const rejected = first.statusCode === 409 ? first : second;
+  assert.equal(rejected.json().code, "ROLE_ALREADY_BOUND");
+  const membership = await query(
+    `SELECT role_slot_id FROM room_members
+     WHERE room_id = $1 AND user_id = $2 AND status = 'active'`,
+    [room.rows[0].id, player.json().user.id]
+  );
+  assert.equal(membership.rowCount, 1);
+  assert.ok(roles.rows.some((role) => role.id === membership.rows[0].role_slot_id));
+});

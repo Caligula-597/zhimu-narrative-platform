@@ -29,6 +29,13 @@ const PLAY_API_ERROR_MESSAGES = {
   EMAIL_NOT_VERIFIED: "请先验证邮箱后再使用社区功能。",
   PLAY_SOCIAL_ACCOUNT_TOO_NEW: "新注册账号需稍等片刻后才能发帖或私聊。",
   RECAP_NOT_GENERATED: "主持人尚未生成复盘报告。",
+  NOTEBOOK_SOURCE_INVALID: "该笔记来源尚未解锁，或不属于当前角色。",
+  NOTEBOOK_ENTRY_NOT_FOUND: "该笔记已删除或不属于当前角色。",
+  VOICE_ACCESS_DENIED: "你无权进入该语音房。",
+  VOICE_MEMBER_NOT_IN_ROOM: "只能邀请已经进入当前平行房的玩家。",
+  VOICE_PUBLIC_CREATE_FORBIDDEN: "只有主持人或协主持能创建公共/角色管理语音房。",
+  VOICE_ROOM_LIMIT_REACHED: "当前平行房的活跃语音房已达上限，请稍后再试或联系主持人。",
+  LIVEKIT_NOT_CONFIGURED: "语音服务暂不可用，仍可使用文字频道。",
   EMAIL_NOT_CONFIGURED: "邮件服务未配置，暂无法发送验证或重置邮件。",
   PASSWORD_RESET_INVALID: "重置链接无效或已过期，请重新申请。",
   EMAIL_VERIFICATION_INVALID: "验证链接无效或已过期。"

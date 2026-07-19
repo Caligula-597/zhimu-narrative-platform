@@ -5,10 +5,7 @@ import { assertWorldCreateQuota } from "./quota-guards.js";
 import { resolveClueKind } from "./clue-kind.js";
 import { syncWorldSegmentsFromChapters } from "./world-segments-seed.js";
 import { buildWizardAutomationRules } from "./wizard-automation-templates.js";
-
-function makeTestInviteCode() {
-  return `TEST-${Date.now().toString(36).toUpperCase()}`;
-}
+import { generateRoomInviteCode } from "./room-invite-code.js";
 
 function normalizeRoles(roles) {
   if (!Array.isArray(roles) || !roles.length) {
@@ -218,7 +215,7 @@ export async function bootstrapWorldFromWizard(actorId, payload) {
           })
         ]
       );
-      const inviteCode = String(payload?.inviteCode || "").trim() || makeTestInviteCode();
+      const inviteCode = generateRoomInviteCode("TEST");
       const roomResult = await client.query(
         `INSERT INTO rooms (world_id, host_user_id, name, invite_code, status)
          VALUES ($1, $2, $3, $4, 'testing') RETURNING *`,

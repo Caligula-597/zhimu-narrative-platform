@@ -19,7 +19,7 @@ export const createRoleSchema = {
       name: { type: "string", minLength: 1, maxLength: 120 },
       publicProfile: { type: "string", maxLength: 4000 },
       privateProfile: { type: "string", maxLength: 20_000 },
-      sequence: { type: "integer", minimum: 0, maximum: 9999 }
+      sequence: { type: "integer", minimum: 1, maximum: 9999 }
     }
   }
 };
@@ -34,7 +34,7 @@ export const updateRoleSchema = {
       name: { type: "string", minLength: 1, maxLength: 120 },
       publicProfile: { type: "string", maxLength: 4000 },
       privateProfile: { type: "string", maxLength: 20_000 },
-      sequence: { type: "integer", minimum: 0, maximum: 9999 }
+      sequence: { type: "integer", minimum: 1, maximum: 9999 }
     }
   }
 };
@@ -50,7 +50,7 @@ export const createChapterSchema = {
     properties: {
       title: { type: "string", minLength: 1, maxLength: 200 },
       summary: { type: "string", maxLength: 4000 },
-      sequence: { type: "integer", minimum: 0, maximum: 9999 }
+      sequence: { type: "integer", minimum: 1, maximum: 9999 }
     }
   }
 };
@@ -80,7 +80,7 @@ export const createSectionSchema = {
     properties: {
       title: { type: "string", minLength: 1, maxLength: 200 },
       body: { type: "string", minLength: 1, maxLength: 500_000 },
-      sequence: { type: "integer", minimum: 0, maximum: 9999 },
+      sequence: { type: "integer", minimum: 1, maximum: 9999 },
       chapterId: optionalUuid,
       publicationStatus
     }

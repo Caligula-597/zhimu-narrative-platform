@@ -46,6 +46,7 @@
 | `WORLD_EDITOR_REQUIRED` | 403 | 需要世界编辑权限 |
 | `HOST_ROLE_REQUIRED` | 403 | 需要主持人/副主持 |
 | `VOICE_ACCESS_DENIED` | 403 | 无权进入语音房 |
+| `VOICE_PUBLIC_CREATE_FORBIDDEN` | 403 | 非 Host/Cohost 创建公共或角色管理语音房 |
 
 ## 世界与协作
 
@@ -67,7 +68,14 @@
 | `ROLE_SLOT_OCCUPIED` | 409 | 席位已被占用 |
 | `ROLE_SLOT_NOT_FOUND` | 404 | 角色席位不存在 |
 | `ROLE_SLOT_WORLD_MISMATCH` | 400 | 席位不属于该房间世界 |
+| `ROLE_RELATIONSHIP_SELF_INVALID` | 400 | 角色关系的起点和终点相同 |
+| `SEGMENT_WORLD_MISMATCH` | 400 | 内容段不属于该运行房世界 |
+| `SEGMENT_REFERENCE_WORLD_MISMATCH` | 400 | 内容段引用不属于当前剧本 |
+| `SEGMENT_REFERENCES_INVALID` | 400 | 内容段引用重复或无效 |
+| `PRIVATE_ACTION_TARGET_REQUIRED` | 400 | 可见于目标角色的秘密行动缺少目标 |
+| `PRIVATE_ACTION_TRANSITION_INVALID` | 409 | 秘密行动状态发生非法回退或终态变更 |
 | `INVITE_FIELDS_REQUIRED` | 400 | 缺少 inviteCode / roleSlotId |
+| `VOICE_ROOM_LIMIT_REACHED` | 409 | 平行房活跃语音房达到硬上限 |
 
 ## 创作内容（角色/章节/分幕）
 
@@ -79,7 +87,12 @@
 | `CHAPTER_NOT_FOUND` | 404 | 章节不存在 |
 | `SCRIPT_SECTION_NOT_FOUND` | 404 | 分幕不存在 |
 | `SECTION_NOT_FOUND` / `SECTION_LOCKED` | 404 | 分幕不可用或未解锁 |
+| `NOTEBOOK_SOURCE_INVALID` | 404 | 笔记来源未解锁、不属于当前角色或类型不匹配 |
 | `CONTENT_VERSION_NOT_FOUND` | 404 | 创作版本不存在 |
+| `CONTENT_VERSION_INVALID` | 422 | 创作版本快照损坏或包含越界引用 |
+| `CONTENT_VERSION_TOO_LARGE` | 413 | 创作版本超过安全创建/恢复上限 |
+| `CONTENT_VERSION_LIMIT_REACHED` | 409 | 单个剧本的创作版本数量达到上限 |
+| `SECTION_SEQUENCE_CONFLICT` | 409 | 同一角色的分幕顺序重复 |
 
 ## 编排台（场景/线索/物品/调查点）
 
@@ -106,7 +119,10 @@
 | `HOST_EVENT_NOT_FOUND` | 404 | 待确认主持事件不存在 |
 | `CHECKPOINT_NOT_FOUND` | 404 | 存档不存在 |
 | `CHECKPOINT_WORLD_MISMATCH` | 400 | 存档与目标运行房不属于同一世界 |
+| `CHECKPOINT_RESTORE_BUSY` | 409 | 同一房间已有恢复事务持锁，稍后重试 |
+| `CHECKPOINT_RESTORE_TIMEOUT` | 503 | 恢复超过 30 秒安全执行窗口并已回滚 |
 | `INVALID_SNAPSHOT` / `SNAPSHOT_VERSION_UNSUPPORTED` | 422 | 快照无效或版本过旧 |
+| `SNAPSHOT_TIMELINE_TRUNCATED` | 422 | 快照只保留了最近 5000 条时间线，禁止覆盖完整时间线 |
 | `RECAP_NOT_FOUND` / `RECAP_NOT_GENERATED` | 404 | 复盘不存在或未生成 |
 
 ## 语音与 LiveKit
@@ -129,7 +145,7 @@
 
 | code | HTTP | 说明 |
 |------|------|------|
-| `DOCUMENT_*` | 413/415/422 | 文档解析失败 |
+| `DOCUMENT_*` | 413/415/422/503 | 文档解析失败或处理队列繁忙 |
 | `DEEPSEEK_NOT_CONFIGURED` | 503 | DeepSeek 未配置 |
 | `UPSTREAM_ERROR` / `GATEWAY_TIMEOUT` | 502/504 | 上游 AI 失败或超时 |
 | `CONTENT_PACKAGE_*` | 400 | 内容包格式或版本无效 |

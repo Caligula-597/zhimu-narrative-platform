@@ -36,13 +36,16 @@ test("world rooms list counts joined players with roles, not host membership", a
   );
   const roleSlotId = role.rows[0].id;
 
+  const callerInviteCode = `CNT-${Date.now()}`;
   const createRoom = await app.inject({
     method: "POST",
     url: `/api/worlds/${worldId}/rooms`,
     headers: { authorization: `Bearer ${token}` },
-    payload: { name: "测试房", inviteCode: `CNT-${Date.now()}` }
+    payload: { name: "测试房", inviteCode: callerInviteCode }
   });
   assert.equal(createRoom.statusCode, 201);
+  assert.notEqual(createRoom.json().invite_code, callerInviteCode);
+  assert.match(createRoom.json().invite_code, /^ROOM-(?:[0-9A-F]{5}-){3}[0-9A-F]{5}$/);
   const roomId = createRoom.json().id;
 
   const guest = await app.inject({

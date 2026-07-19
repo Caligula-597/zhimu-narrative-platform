@@ -47,8 +47,8 @@ npm run start
 |------|------|
 | `npm run check` | 全量 JS 语法、`src/` 下错误 `../` import、**createApp 模块图可加载** |
 | `npm run check:boot` | 环境变量 + 模块图 + **数据库 schema**（与 server 启动前相同校验） |
-| `npm run check:tests` | 测试声明数量门禁（当前下限 ≥100；2026-07-16 实测 704 个声明 / 178 个 `.test.js` 文件） |
-| `npm test` | 执行 `backend/test/` 的 180 个测试文件；用例总数以本次命令输出为准 |
+| `npm run check:tests` | 测试声明数量门禁（当前下限 ≥100；2026-07-19 实测 773 个声明 / 194 个 `.test.js`/`.test.mjs` 文件） |
+| `npm test` | 执行 `backend/test/` 的 194 个测试文件；用例总数以本次命令输出为准 |
 
 后端默认监听 `http://localhost:4180`。
 
@@ -141,7 +141,9 @@ AI 只生成待复核的结构化提案，不会直接修改正式剧情。作�
 - `GET /api/rooms/:roomId/host/clue-matrix`
 - `PUT /api/rooms/:roomId/host/clues/:clueId/notes`
 - `POST /api/rooms/:roomId/host/grant-clue`
+- `POST /api/rooms/:roomId/host/grant-item`
 - `POST /api/rooms/:roomId/host/unlock-section`
+- `POST /api/rooms/:roomId/scenes/:sceneId/unlock`
 - `POST /api/rooms/:roomId/host/log`
 - `PUT /api/rooms/:roomId/host/players/:roleSlotId/notes`
 - `GET /api/rooms/:roomId/host/audit-log` — 主持审计（主持台 UI 已接）
@@ -154,10 +156,10 @@ AI 只生成待复核的结构化提案，不会直接修改正式剧情。作�
 - `POST /api/rooms/:roomId/host-events/:eventId/dismiss`
 - `POST /api/rooms/:roomId/host-events/batch` — `{ action: "execute"|"dismiss", eventIds: [] }`
 - `GET /api/rooms/:roomId/checkpoints`
-- `POST /api/rooms/:roomId/checkpoints`
+- `POST /api/rooms/:roomId/checkpoints`（支持 `Idempotency-Key`；时间线最多保留最近 5000 条）
 - `GET /api/rooms/:roomId/checkpoints/:checkpointId`
 - `GET /api/rooms/:roomId/checkpoints/:checkpointId/restores`
-- `POST /api/rooms/:roomId/checkpoints/:checkpointId/restore`（scoped：阅读/线索/背包/解锁/待确认/调查/玩家状态/规则执行/**时间线**；支持**跨房间**同 world 恢复；`Idempotency-Key`）
+- `POST /api/rooms/:roomId/checkpoints/:checkpointId/restore`（scoped：阅读/线索/背包/解锁/待确认/调查/玩家状态/规则执行/**时间线**；支持**跨房间**同 world 恢复；`Idempotency-Key`；时间线被截断时禁止覆盖恢复）
 - `GET /api/rooms/:roomId/recaps`
 - `POST /api/rooms/:roomId/recaps`
 - `GET /api/rooms/:roomId/recaps/:recapId`
@@ -212,14 +214,22 @@ npm run test:smoke
 
 完整功能说明见项目根目录 [FEATURE_CATALOG.md](../FEATURE_CATALOG.md)（含 P0-1～P2 变更 §12–§26）。
 
-### 测试规模（2026-07-16）
+### 测试规模（2026-07-19）
 
 | 套件 | 数量 |
 |------|------|
-| `npm run check:tests` | **704 个测试声明 / 178 个 `.test.js` 文件** |
-| `npm test` | **180 个后端测试文件**；断言数以运行输出为准 |
+| `npm run check:tests` | **773 个测试声明 / 194 个测试文件** |
+| `npm test` | **194 个后端测试文件**；断言数以运行输出为准 |
 | 根目录专项矩阵 | SSE **39**、Auth **22**、Trusted Types **23**、release gates **5**、performance tools **4** |
 | E2E 列表 | **87 tests / 15 files**，跨 Chromium / Firefox / WebKit；以 `npx playwright test --list` 为准 |
+
+规则引擎可用 `npm run test:rules:isolated` 在一次性数据库中做聚焦回归；若数据库主机是远程非生产集群，需在人工确认后显式设置 `ZHIMU_ALLOW_DESTRUCTIVE_DB=1`。脚本会迁移、播种、运行规则结构/写入/运行时测试，并强制清理临时数据库。
+
+文档导入聚焦回归使用 `npm run test:documents:isolated`，覆盖对象存储、批量导入、并发锁、版本冲突和 PDF 页面模式；隔离运行器会强制使用内存对象存储，禁止测试继承本机 R2 配置。
+
+Content Platform 聚焦回归使用 `npm run test:content-platform:isolated`，覆盖私有行动状态机、跨世界引用防护、分段引用完整性、角色关系幂等版本以及既有创作者圣经流程。
+
+创作者内容聚焦回归使用 `npm run test:creator-content:isolated`，覆盖角色分节并发顺序、跨世界章节/素材引用、道具引用删除保护、内容版本恢复与修订号一致性。
 
 产品总览见 [docs/PRODUCT_STATUS_ZH.md](../docs/PRODUCT_STATUS_ZH.md)。
 
@@ -227,9 +237,11 @@ npm run test:smoke
 
 以下 POST 支持重试去重（表 `write_idempotency`，迁移 013）：
 
-- `sections.complete` · `player.investigate` · `clues.share_room`
-- `host.grant_clue` · `host.grant_item` · `host.unlock_section`
-- `host.event_execute` · `host.event_dismiss` · `host.rule_trigger` · `checkpoints.restore`
+- `sections.complete` · `player.mini_game_submit` · `player.investigate`
+- `player.notebook_create` · `player.notebook_delete` · `clues.share_room` · `clues.share_roles`
+- `host.grant_clue` · `host.grant_item` · `host.unlock_section` · `host.unlock_scene`
+- `host.event_execute` · `host.event_dismiss` · `host.event_delay` · `host.event_batch`
+- `host.rule_trigger` · `checkpoints.restore`
 
 验收见 `test/idempotency-coverage.test.js`。
 
@@ -243,9 +255,27 @@ npm run test:smoke
 | `RATE_LIMIT_WRITE_MAX` | 120/min | 其它 `POST/PUT/PATCH/DELETE /api/*` |
 | `RATE_LIMIT_READ_MAX` | 300/min | `GET/HEAD /api/*`（SSE stream 除外） |
 | `RATE_LIMIT_UPLOAD_MAX` | 30/min | 资产上传确认相关路由 |
-| `RATE_LIMIT_AI_MAX` | 20/min | DeepSeek / story-assistant 写路由 |
+| `RATE_LIMIT_DOCUMENT_MAX` | 10/min | 文档解析、导入与 PDF 图片页渲染 |
+| `RATE_LIMIT_AI_MAX` | 40/min | DeepSeek / story-assistant 写路由 |
+| `RATE_LIMIT_INVITE_LOOKUP_MAX` | 30/min | 单账号查询房间邀请码 |
+| `RATE_LIMIT_INVITE_LOOKUP_IP_MAX` | 120/min | 单网络查询房间邀请码，防账号轮换枚举 |
+| `RATE_LIMIT_ROOM_JOIN_MAX` | 12/min | 单账号加入房间尝试 |
+| `RATE_LIMIT_ROOM_JOIN_IP_MAX` | 80/min | 单网络加入房间尝试，防账号轮换重放 |
+| `RATE_LIMIT_VOICE_MESSAGE_MAX` / `_IP_MAX` | 20 / 240 min | 语音房文字消息，分别按账号/网络限制 |
+| `RATE_LIMIT_VOICE_TOKEN_MAX` / `_IP_MAX` | 10 / 120 min | LiveKit 入房令牌签发与重放保护 |
+| `RATE_LIMIT_VOICE_CREATE_MAX` / `_IP_MAX` | 5 / 60 min | 临时密谈建房；单平行房另有 30 个活跃房硬上限 |
+| `RATE_LIMIT_VOICE_INVITE_MAX` / `_IP_MAX` | 10 / 120 min | 密谈成员追加邀请 |
+| `RATE_LIMIT_VOICE_READ_MAX` / `_IP_MAX` | 120 / 600 min | 语音房最近消息读取 |
+| `RATE_LIMIT_CHECKPOINT_CREATE_MAX` / `_IP_MAX` | 5 / 30 min | 检查点快照创建，分别按账号/网络限制 |
+| `RATE_LIMIT_CHECKPOINT_RESTORE_MAX` / `_IP_MAX` | 3 / 20 min | 高成本房间恢复，分别按账号/网络限制 |
 
-开发/测试 `createApp` 默认不限流；生产 `NODE_ENV=production` 自动启用。验收见 `test/rate-limit.test.js`。
+文档解析另有进程内并发闸门：`DOCUMENT_PROCESSING_MAX_CONCURRENT`（默认 2）、`DOCUMENT_PROCESSING_MAX_QUEUED`（默认 4）和 `DOCUMENT_PROCESSING_QUEUE_TIMEOUT_MS`（默认 30000）。该闸门限制 DOCX/PDF/OCR/页面渲染同时占用的 CPU 与内存；多实例部署仍应由边缘层限流兜底。
+
+开发/测试 `createApp` 默认不限流；生产 `NODE_ENV=production` 自动启用。本机隔离压测可设置 `RATE_LIMIT_ENABLED=true`，无需伪装生产环境。网络桶在 `onRequest` 阶段执行，因此格式错误的路径或请求体也会被计数；账号桶在认证解析后执行。验收见 `test/rate-limit.test.js`、`test/room-access-abuse-protection.test.js` 和 `test/voice-abuse-protection.test.js`。本机混合攻击压测可运行 `npm run perf:abuse-guard -- --requests=240 --concurrency=20`；语音域专项运行 `npm run perf:voice-abuse-guard -- --requests=240 --concurrency=20`。
+
+LiveKit 入房令牌默认只签发 10 分钟（`LIVEKIT_TOKEN_TTL_SECONDS=600`），每个平行房默认最多 30 个活跃语音房（`VOICE_ROOM_ACTIVE_LIMIT=30`）。玩家创建的邀请制临时密谈默认 24 小时过期（`VOICE_PRIVATE_ROOM_LIFETIME_HOURS=24`）；公共房与角色管理房只能由 Host/Cohost 创建且不自动过期。语音消息只展示最近 80 条，运维清理默认保留 90 天。
+
+运行房邀请码由后端统一生成 80-bit 加密随机码；`POST /api/worlds/:worldId/rooms` 中旧的 `inviteCode` 字段仅为兼容旧客户端而保留，服务端不会采用调用方提供的弱口令。
 
 ## 前端数据边界（与后端对应）
 

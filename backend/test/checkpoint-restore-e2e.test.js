@@ -267,6 +267,14 @@ test("checkpoint restore supports cross-room target in same world", async (conte
     [targetRoom.rows[0].id, hostUserId]
   );
 
+  const sourceEvent = await query(
+    `INSERT INTO pending_host_events
+      (room_id, rule_id, event_key, title, description, actions, status)
+     VALUES ($1, $2, 'cross-room-source', 'source pending event', '', '[]'::jsonb, 'pending')
+     RETURNING id`,
+    [fx.roomId, fx.ruleId]
+  );
+
   const create = await app.inject({
     method: "POST",
     url: `/api/rooms/${fx.roomId}/checkpoints`,
@@ -275,6 +283,14 @@ test("checkpoint restore supports cross-room target in same world", async (conte
   });
   assert.equal(create.statusCode, 201);
   const checkpointId = create.json().id;
+
+  const targetEvent = await query(
+    `INSERT INTO pending_host_events
+      (room_id, rule_id, event_key, title, description, actions, status)
+     VALUES ($1, $2, 'cross-room-target', 'already executed', '', '[]'::jsonb, 'executed')
+     RETURNING id`,
+    [targetRoom.rows[0].id, fx.ruleId]
+  );
 
   await query(
     `INSERT INTO reading_progress (room_id, role_slot_id, script_section_id, started_at, completed_at)
@@ -292,7 +308,7 @@ test("checkpoint restore supports cross-room target in same world", async (conte
         clueOwnership: false,
         inventory: false,
         contentUnlocks: false,
-        pendingHostEvents: false,
+        pendingHostEvents: true,
         investigationRecords: false,
         playerStates: false,
         ruleExecutions: false,
@@ -316,6 +332,24 @@ test("checkpoint restore supports cross-room target in same world", async (conte
     [fx.roomId]
   );
   assert.equal(sourceProgress.rowCount, 1, "source room progress should remain untouched");
+
+  const restoredEvent = await query(
+    `SELECT id, status, event_key, title
+     FROM pending_host_events WHERE room_id = $1 AND rule_id = $2`,
+    [targetRoom.rows[0].id, fx.ruleId]
+  );
+  assert.equal(restoredEvent.rowCount, 1);
+  assert.equal(restoredEvent.rows[0].status, "pending");
+  assert.equal(restoredEvent.rows[0].event_key, "cross-room-source");
+  assert.equal(restoredEvent.rows[0].title, "source pending event");
+  assert.equal(restoredEvent.rows[0].id, targetEvent.rows[0].id, "target event history row should be reused");
+  assert.notEqual(restoredEvent.rows[0].id, sourceEvent.rows[0].id, "cross-room restore must not reuse a global event id");
+
+  const untouchedSourceEvent = await query(
+    `SELECT status FROM pending_host_events WHERE id = $1 AND room_id = $2`,
+    [sourceEvent.rows[0].id, fx.roomId]
+  );
+  assert.equal(untouchedSourceEvent.rows[0]?.status, "pending", "source event should remain untouched");
 });
 
 test("checkpoint restore rejects cross-world target room", async (context) => {
@@ -379,4 +413,72 @@ test("checkpoint restore rejects cross-world target room", async (context) => {
   });
   assert.equal(restore.statusCode, 400);
   assert.equal(restore.json().code, "CHECKPOINT_WORLD_MISMATCH");
+});
+
+test("failed restore rolls back state and does not persist database error details", async (context) => {
+  const suffix = `${Date.now()}-${Math.round(Math.random() * 10000)}`;
+  const fx = await createRestoreFixture(suffix);
+  context.after(() => deleteRestoreFixture(fx.worldId));
+
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+
+  await query(
+    `INSERT INTO reading_progress
+      (room_id, role_slot_id, script_section_id, started_at, completed_at)
+     VALUES ($1, $2, $3, now(), now())`,
+    [fx.roomId, fx.roleId, fx.sectionId]
+  );
+  const create = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fx.roomId}/checkpoints`,
+    headers: { "x-user-id": hostUserId },
+    payload: { title: "corrupt restore probe", description: "" }
+  });
+  assert.equal(create.statusCode, 201);
+  const checkpointId = create.json().id;
+  const corrupted = create.json().snapshot;
+  corrupted.readingProgress = [{
+    role_slot_id: "not-a-uuid",
+    script_section_id: fx.sectionId,
+    started_at: new Date().toISOString(),
+    completed_at: null
+  }];
+  await query(`UPDATE checkpoints SET snapshot = $2::jsonb WHERE id = $1`, [checkpointId, JSON.stringify(corrupted)]);
+
+  const restore = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fx.roomId}/checkpoints/${checkpointId}/restore`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      scope: {
+        readingProgress: true,
+        clueOwnership: false,
+        inventory: false,
+        contentUnlocks: false,
+        pendingHostEvents: false,
+        investigationRecords: false,
+        playerStates: false,
+        ruleExecutions: false,
+        timelineLogs: false
+      }
+    }
+  });
+  assert.equal(restore.statusCode, 422);
+  assert.equal(restore.json().code, "INVALID_SNAPSHOT");
+
+  const progress = await query(
+    `SELECT 1 FROM reading_progress WHERE room_id = $1 AND role_slot_id = $2 AND script_section_id = $3`,
+    [fx.roomId, fx.roleId, fx.sectionId]
+  );
+  assert.equal(progress.rowCount, 1, "failed restore must roll back its scoped deletes");
+
+  const history = await query(
+    `SELECT status, error_message FROM checkpoint_restores
+     WHERE room_id = $1 AND checkpoint_id = $2 ORDER BY created_at DESC LIMIT 1`,
+    [fx.roomId, checkpointId]
+  );
+  assert.equal(history.rows[0]?.status, "failed");
+  assert.equal(history.rows[0]?.error_message, "Checkpoint snapshot contains invalid or stale data");
+  assert.doesNotMatch(history.rows[0]?.error_message ?? "", /uuid|syntax|22P02/i);
 });

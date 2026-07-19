@@ -3,7 +3,7 @@ import { fixtureRoomId, fixtureWorldId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
-import { buildRoomCheckpointSnapshot } from "../src/routes/checkpoint-helpers.js";
+import { buildRoomCheckpointSnapshot } from "../src/checkpoint-snapshot.js";
 import { executeHostEventById } from "../src/routes/host-event-actions.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";

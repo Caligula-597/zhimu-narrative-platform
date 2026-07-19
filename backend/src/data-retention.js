@@ -12,7 +12,8 @@ const DEFAULT_RETENTION_DAYS = {
   emailVerificationTokens: 30,
   completedDeleteJobs: 90,
   expiredUploadSessions: 30,
-  eventJournals: 30
+  eventJournals: 30,
+  voiceMessages: 90
 };
 
 export function resolveRetentionDays(env = process.env) {
@@ -29,7 +30,8 @@ export function resolveRetentionDays(env = process.env) {
     emailVerificationTokens: read("RETENTION_EMAIL_VERIFICATION_DAYS", DEFAULT_RETENTION_DAYS.emailVerificationTokens),
     completedDeleteJobs: read("RETENTION_DELETE_JOBS_DAYS", DEFAULT_RETENTION_DAYS.completedDeleteJobs),
     expiredUploadSessions: read("RETENTION_UPLOAD_SESSIONS_DAYS", DEFAULT_RETENTION_DAYS.expiredUploadSessions),
-    eventJournals: read("RETENTION_EVENT_JOURNALS_DAYS", DEFAULT_RETENTION_DAYS.eventJournals)
+    eventJournals: read("RETENTION_EVENT_JOURNALS_DAYS", DEFAULT_RETENTION_DAYS.eventJournals),
+    voiceMessages: read("RETENTION_VOICE_MESSAGES_DAYS", DEFAULT_RETENTION_DAYS.voiceMessages)
   };
 }
 
@@ -158,6 +160,17 @@ export async function purgeExpiredData(options = {}) {
       WHERE status IN ('published', 'dead')
         AND COALESCE(published_at, updated_at) < now() - ($1::text || ' days')::interval`,
     params: [days.eventJournals]
+  });
+
+  await purgeTable({
+    dryRun,
+    summary,
+    key: "voiceRoomMessages",
+    countSql: `SELECT COUNT(*)::int AS count FROM voice_room_messages
+      WHERE created_at < now() - ($1::text || ' days')::interval`,
+    deleteSql: `DELETE FROM voice_room_messages
+      WHERE created_at < now() - ($1::text || ' days')::interval`,
+    params: [days.voiceMessages]
   });
 
   return summary;

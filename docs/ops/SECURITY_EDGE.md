@@ -5,6 +5,7 @@
 Alpha/Beta 推荐在 API 与静态站前放置 **Cloudflare** 或云厂商 WAF：
 
 - 速率限制：`/api/auth/*` 更严格
+- 语音高成本写路由单独分桶：`*/messages`、`*/token`、`*/voice-rooms`、`*/members`
 - Bot 管理 / 地理封锁（按需）
 - 仅允许 CDN → 源站 IP（防火墙）
 
@@ -21,6 +22,19 @@ server {
   }
 }
 ```
+
+应用内限流只保护单个 Node 实例，不能替代多实例共享的边缘限流。WAF 应至少按来源 IP 配置以下一分钟窗口，并让额度略高于应用内账号桶：
+
+| 路径模式 | 方法 | 建议 IP 上限/min | 目的 |
+|---------|------|-----------------|------|
+| `/api/voice-rooms/*/messages` | POST | 240 | 消息洪泛 |
+| `/api/rooms/*/voice-rooms/*/token` | POST | 120 | LiveKit 令牌重放/成本放大 |
+| `/api/rooms/*/voice-rooms` | POST | 60 | 房间资源堆积 |
+| `/api/voice-rooms/*/members` | POST | 120 | 邀请写放大 |
+| `/api/rooms/invite/*` | GET | 120 | 邀请码枚举 |
+| `/api/rooms/join` | POST | 80 | 加房重放 |
+
+源站仍同时按账号和网络限流；WAF 负责跨实例、伪造账号和大规模来源流量。部署后用受控测试账号执行 `npm run perf:voice-abuse-guard -- --url=https://预发域名 --allow-remote`，不要对生产真实账号直接压测。
 
 ## 密钥管理
 

@@ -13,11 +13,16 @@ export function isLiveKitConfigured() {
   return Boolean(url && apiKey && apiSecret);
 }
 
+export function resolveLiveKitTokenTtlSeconds(raw = process.env.LIVEKIT_TOKEN_TTL_SECONDS) {
+  const value = Number(raw ?? 600);
+  return Number.isInteger(value) && value >= 60 && value <= 3600 ? value : 600;
+}
+
 export async function createVoiceRoomToken({
   roomName,
   participantIdentity,
   participantName,
-  ttlSeconds = 3600
+  ttlSeconds = resolveLiveKitTokenTtlSeconds()
 }) {
   const { url, apiKey, apiSecret } = livekitConfig();
   if (!isLiveKitConfigured()) {

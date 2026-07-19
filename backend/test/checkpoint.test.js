@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { fixtureRoomId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
+import { query } from "../src/db.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
@@ -101,4 +102,34 @@ test("player cannot create checkpoints", async (context) => {
     payload: { title: "不应成功", description: "玩家不能创建" }
   });
   assert.equal(response.statusCode, 403);
+});
+
+test("checkpoint creation is idempotent across client retries", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const key = `checkpoint-create-${Date.now()}-${Math.random()}`;
+  const headers = { "x-user-id": hostUserId, "idempotency-key": key };
+  const payload = { title: "idempotent checkpoint", description: "retry probe" };
+
+  const first = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fixtureRoomId}/checkpoints`,
+    headers,
+    payload
+  });
+  const second = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${fixtureRoomId}/checkpoints`,
+    headers,
+    payload
+  });
+
+  assert.equal(first.statusCode, 201);
+  assert.equal(second.statusCode, 201);
+  assert.equal(second.json().id, first.json().id);
+  const count = await query(
+    `SELECT COUNT(*)::int AS count FROM checkpoints WHERE room_id = $1 AND label = $2`,
+    [fixtureRoomId, payload.title]
+  );
+  assert.equal(count.rows[0].count, 1);
 });

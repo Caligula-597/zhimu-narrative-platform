@@ -6,3 +6,5 @@ export * from "./creator-room.js";
 export * from "./creator-rules-package.js";
 export * from "./creator-script-bundle.js";
 export * from "./creator-studio.js";
+export * from "./studio-item.js";
+export * from "./studio-version.js";

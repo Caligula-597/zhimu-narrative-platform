@@ -75,12 +75,21 @@ export async function updateWorldContent(client, worldId, { name, summary, setti
   throwErr("WORLD_NOT_FOUND");
 }
 
-export async function bumpWorldRevisionAfterWrite(worldId, expectedRevision, client, writeFn) {
+export async function bumpWorldRevisionAfterWrite(
+  worldId,
+  expectedRevision,
+  client,
+  writeFn,
+  { shouldBumpRevision } = {}
+) {
   if (expectedRevision != null) {
     await assertWorldRevisionMatch(worldId, expectedRevision, client);
   }
   const result = await writeFn(client);
-  const revision = await bumpWorldRevision(worldId, client);
+  const shouldBump = shouldBumpRevision ? await shouldBumpRevision(result) : true;
+  const revision = shouldBump
+    ? await bumpWorldRevision(worldId, client)
+    : await loadWorldRevision(worldId, client);
   return { result, revision };
 }
 
@@ -96,16 +105,24 @@ export function withContentRevision(result, revision) {
   return { ok: true, content_revision: revision };
 }
 
-export async function runRevisionMutation(request, reply, worldId, writeFn, { sendErr, statusCode = 200 } = {}) {
+export async function runRevisionMutation(
+  request,
+  reply,
+  worldId,
+  writeFn,
+  { sendErr, statusCode = 200, configureClient, shouldBumpRevision, onRollback } = {}
+) {
   const ifMatch = parseIfMatch(request);
   try {
-    const { result, revision } = await transaction((client) =>
-      bumpWorldRevisionAfterWrite(worldId, ifMatch, client, writeFn)
-    );
+    const { result, revision } = await transaction(async (client) => {
+      await configureClient?.(client);
+      return bumpWorldRevisionAfterWrite(worldId, ifMatch, client, writeFn, { shouldBumpRevision });
+    });
     setWorldRevisionHeaders(reply, revision);
     if (statusCode !== 200) reply.code(statusCode);
     return withContentRevision(result, revision);
   } catch (error) {
+    if (onRollback) await Promise.resolve(onRollback(error)).catch(() => {});
     if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
     throw error;
   }

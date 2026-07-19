@@ -5,3 +5,8 @@ export * from "./schemas/world.js";
 export * from "./schemas/creator.js";
 export * from "./schemas/ai.js";
 export * from "./schemas/platform.js";
+export * from "./schemas/checkpoint.js";
+export * from "./schemas/player-progress.js";
+export * from "./schemas/host-content-action.js";
+export * from "./schemas/studio-investigation.js";
+export * from "./schemas/rules.js";

@@ -85,9 +85,14 @@ test("investigation requires item and consumes when consumable", async (context)
   context.after(() => app.close());
   const worldId = fixtureWorldId;
   const roleSlotId = await queryFixtureRoleId();
-  const scene = await query(`SELECT id FROM scenes WHERE world_id = $1 LIMIT 1`, [worldId]);
-  assert.ok(scene.rowCount);
+  const scene = await query(
+    `INSERT INTO scenes (world_id, name, public_text)
+     VALUES ($1, $2, '')
+     RETURNING id`,
+    [worldId, `inventory-investigation-${Date.now()}`]
+  );
   const sceneId = scene.rows[0].id;
+  context.after(() => query(`DELETE FROM scenes WHERE id = $1`, [sceneId]));
 
   const itemRes = await app.inject({
     method: "POST",

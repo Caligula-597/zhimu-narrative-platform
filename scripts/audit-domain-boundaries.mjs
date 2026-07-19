@@ -12,14 +12,28 @@ const routeFiles = fs.readdirSync(routesDir)
 const ZERO_DB_ROUTES = new Set([
   "asset-routes.js",
   "content-platform-vote-routes.js",
+  "content-platform-private-action-routes.js",
+  "content-platform-role-routes.js",
+  "content-platform-segment-routes.js",
+  "checkpoint-routes.js",
+  "creator-document-routes.js",
+  "creator-section-routes.js",
+  "host-content-action-routes.js",
+  "player-access-routes.js",
   "player-exploration-routes.js",
+  "player-progress-routes.js",
+  "rules-routes.js",
   "studio-graph-routes.js",
+  "studio-investigation-routes.js",
+  "studio-item-routes.js",
+  "studio-version-routes.js",
   "story-assistant-routes.js",
+  "voice-routes.js",
   "world-routes.js"
 ]);
 const MAX_ROUTE_LINES = 400;
 const MAX_DIRECT_DB_POINTS_PER_ROUTE = 20;
-const MAX_DIRECT_DB_POINTS_TOTAL = 143;
+const MAX_DIRECT_DB_POINTS_TOTAL = 50;
 
 const rows = routeFiles.map((file) => {
   const source = fs.readFileSync(path.join(routesDir, file), "utf8");
@@ -66,7 +80,7 @@ console.log("Remaining direct-DB hotspots (ratcheted debt):");
 for (const row of hotspots) {
   console.log(`  ${String(row.queryCalls).padStart(2)} DB\t${String(row.lines).padStart(3)} lines\t${row.file}`);
 }
-console.log("Migrated repository/service routes: asset, content-platform-vote, player-exploration, studio-graph, story-assistant, world");
+console.log("Migrated repository/service routes: asset, checkpoint, content-platform-private-action, content-platform-role, content-platform-segment, content-platform-vote, creator-document, creator-section, host-content-action, player-access, player-exploration, player-progress, rules, studio-graph, studio-investigation, studio-item, studio-version, story-assistant, voice, world");
 
 if (failures.length) {
   console.error("\nDomain boundary violations:");

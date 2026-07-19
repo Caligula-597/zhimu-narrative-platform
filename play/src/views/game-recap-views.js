@@ -63,7 +63,11 @@ export function renderNotesTab() {
     ? notes
         .map((note) => {
           const time = String(note.created_at || "").slice(0, 16).replace("T", " ");
-          const sourceLabel = note.source_type === "clue" ? "来自线索" : note.source_type === "section" ? "来自分幕" : note.source_type === "scene" ? "来自场景" : "自由记录";
+          const sourceLabel = note.source_type === "clue"
+            ? "来自线索"
+            : note.source_type === "script_section"
+              ? "来自角色剧本"
+              : "自由记录";
           return `<article class="notes-item">
             <div class="notes-item-head">
               <strong>${escapeHtml(note.title || "无标题")}</strong>

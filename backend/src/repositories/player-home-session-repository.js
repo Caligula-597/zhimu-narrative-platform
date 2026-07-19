@@ -15,8 +15,11 @@ export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId }) {
            FROM (
              SELECT vr.id, vr.name, vr.room_type, vr.status, vr.created_at
              FROM voice_rooms vr
-             WHERE vr.room_id = $1 AND (
-               vr.room_type = 'public' OR EXISTS (
+             WHERE vr.room_id = $1
+               AND vr.status = 'active'
+               AND (vr.expires_at IS NULL OR vr.expires_at > now())
+               AND (
+                 vr.room_type = 'public' OR EXISTS (
                  SELECT 1 FROM voice_room_members vrm
                  WHERE vrm.voice_room_id = vr.id AND vrm.user_id = $3
                )

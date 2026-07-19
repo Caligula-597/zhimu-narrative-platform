@@ -11,7 +11,7 @@ export interface JoinRoomBody {
 }
 
 export interface NotebookEntryBody {
-  sourceType: string;
+  sourceType: "script_section" | "clue" | "manual";
   sourceId?: string | null;
   title: string;
   body: string;
@@ -39,7 +39,9 @@ export interface ReadClueParams {
   clueId: string;
 }
 
-export interface HostGrantClueBody {
+export type HostGrantClueBody = {
+  [k: string]: unknown;
+} & {
   roleSlotId?: string;
   /**
    * @minItems 1
@@ -48,7 +50,7 @@ export interface HostGrantClueBody {
   roleSlotIds?: string[];
   clueId: string;
   message?: string;
-}
+};
 
 export interface HostUnlockSectionBody {
   roleSlotId: string;
@@ -174,6 +176,13 @@ export interface CreateSectionBody {
   publicationStatus?: "draft" | "testing" | "published";
 }
 
+export interface UpdateSectionBody {
+  title: string;
+  body: string;
+  chapterId?: string | null;
+  publicationStatus?: "draft" | "testing" | "published";
+}
+
 export interface CreateSceneBody {
   name: string;
   publicText?: string;
@@ -195,10 +204,158 @@ export interface CreateClueBody {
   };
 }
 
+export interface CreateItemBody {
+  name: string;
+  publicText?: string;
+  hostText?: string;
+  unique?: boolean;
+  consumable?: boolean;
+  assetId?: string | null;
+  metadata?: {
+    [k: string]: unknown;
+  };
+}
+
+export interface PatchItemBody {
+  name?: string;
+  publicText?: string;
+  hostText?: string;
+  unique?: boolean;
+  consumable?: boolean;
+  assetId?: string | null;
+  metadata?: {
+    [k: string]: unknown;
+  };
+}
+
+export interface CreateContentVersionBody {
+  label?: string;
+}
+
 export interface CreateRoomBody {
   name: string;
-  inviteCode: string;
+  /**
+   * @deprecated
+   */
+  inviteCode?: string;
   publicListing?: boolean;
+}
+
+export type ParseDocumentBody = {
+  [k: string]: unknown;
+} & {
+  filename: string;
+  contentType?: string;
+  dataBase64?: string;
+  contentBase64?: string;
+  parseMode?: "auto" | "pages" | "text";
+  allowOcr?: boolean;
+};
+
+export interface ImportDocumentBody {
+  target: "manuscript" | "role_script";
+  roleSlotId?: string | null;
+  document: {
+    text: string;
+    filename?: string;
+    /**
+     * @minItems 1
+     * @maxItems 80
+     */
+    sections: {
+      title: string;
+      body: string;
+    }[];
+  };
+}
+
+export type ImportDocumentPagesBody = {
+  [k: string]: unknown;
+} & {
+  filename: string;
+  contentType?: string;
+  dataBase64?: string;
+  contentBase64?: string;
+  roleSlotId: string;
+  title?: string;
+  layout?: "single_section" | "one_section_per_page";
+  publicationStatus?: "draft" | "testing" | "published";
+  parseMode?: "auto" | "pages" | "text";
+  allowOcr?: boolean;
+};
+
+export interface CreateRuleBody {
+  roomId?: string | null;
+  name: string;
+  mode?: "automatic" | "host_confirm" | "manual";
+  priority?: number;
+  enabled?: boolean;
+  conditions: {
+    [k: string]: unknown;
+  };
+  /**
+   * @minItems 1
+   * @maxItems 50
+   */
+  actions: {
+    type: "unlock_script_section" | "unlock_scene" | "grant_clue" | "grant_item" | "timeline_log";
+    roleSlotId?: string | null;
+    scriptSectionId?: string;
+    sceneId?: string;
+    clueId?: string;
+    itemId?: string;
+    investigationPointId?: string;
+    quantity?: number;
+    message?: string;
+    source?: string;
+    key?: string;
+    operator?: "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+    value?: unknown;
+    metadata?: {
+      [k: string]: unknown;
+    };
+    [k: string]: unknown;
+  }[];
+  metadata?: {
+    [k: string]: unknown;
+  };
+}
+
+export interface UpdateRuleBody {
+  roomId?: string | null;
+  name: string;
+  mode?: "automatic" | "host_confirm" | "manual";
+  priority?: number;
+  enabled?: boolean;
+  conditions: {
+    [k: string]: unknown;
+  };
+  /**
+   * @minItems 1
+   * @maxItems 50
+   */
+  actions: {
+    type: "unlock_script_section" | "unlock_scene" | "grant_clue" | "grant_item" | "timeline_log";
+    roleSlotId?: string | null;
+    scriptSectionId?: string;
+    sceneId?: string;
+    clueId?: string;
+    itemId?: string;
+    investigationPointId?: string;
+    quantity?: number;
+    message?: string;
+    source?: string;
+    key?: string;
+    operator?: "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+    value?: unknown;
+    metadata?: {
+      [k: string]: unknown;
+    };
+    [k: string]: unknown;
+  }[];
+  metadata?: {
+    [k: string]: unknown;
+  };
 }
 
 export interface DeepseekPipelineSpecBody {
@@ -351,6 +508,11 @@ export interface RoomPlayerKickedData {
 export interface RoomVoiceMessageCreatedData {
   voiceRoomId: string;
   messageId: string;
+  audience?: "room" | "restricted";
+  /**
+   * @maxItems 100
+   */
+  audienceUserIds?: string[];
   [k: string]: unknown;
 }
 
@@ -358,6 +520,7 @@ export interface RoomPhysicalTokenEventData {
   tokenId: string;
   tokenCode: string;
   message: string;
+  visibility?: "public" | "host";
   [k: string]: unknown;
 }
 
@@ -497,12 +660,20 @@ export interface RoomVoteUpdatedData {
 export interface RoomPrivateActionSubmittedData {
   actionId: string;
   actionType: "ask_host" | "secret_action" | "trade" | "promise" | "accusation_note";
+  /**
+   * @maxItems 100
+   */
+  roleSlotIds?: string[];
   [k: string]: unknown;
 }
 
 export interface RoomPrivateActionUpdatedData {
   actionId: string;
   status: "seen" | "accepted" | "rejected" | "resolved" | "cancelled";
+  /**
+   * @maxItems 100
+   */
+  roleSlotIds?: string[];
   [k: string]: unknown;
 }
 

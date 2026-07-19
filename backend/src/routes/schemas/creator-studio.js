@@ -15,9 +15,6 @@ const relationType = { type: "string", enum: ["mainline", "parallel", "extension
 
 export const sceneIdParams = paramsSchema({ worldId: uuid, sceneId: uuid });
 export const clueIdParams = paramsSchema({ worldId: uuid, clueId: uuid });
-export const investigationPointIdParams = paramsSchema({ worldId: uuid, pointId: uuid });
-export const itemIdParams = paramsSchema({ worldId: uuid, itemId: uuid });
-export const contentVersionIdParams = paramsSchema({ worldId: uuid, versionId: uuid });
 export const storyEdgeIdParams = paramsSchema({ worldId: uuid, edgeId: uuid });
 export const studioNodeParams = paramsSchema({ worldId: uuid, nodeType: graphNodeType, nodeId: uuid });
 
@@ -86,97 +83,6 @@ export const patchClueSchema = {
     }
   }
 };
-
-export const patchInvestigationPointSchema = {
-  params: investigationPointIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    minProperties: 1,
-    properties: {
-      name: { type: "string", minLength: 1, maxLength: 120 },
-      description: { type: "string", maxLength: 10_000 },
-      interactionText: { type: "string", maxLength: 10_000 },
-      resultText: { type: "string", maxLength: 10_000 },
-      sceneId: uuid,
-      clueId: optionalUuid,
-      requiredItemId: optionalUuid,
-      requiredRoleSlotId: optionalUuid,
-      sequence: { type: "integer", minimum: 0, maximum: 9999 },
-      metadata: metadataObject
-    }
-  }
-};
-
-export const createInvestigationPointSchema = {
-  params: sceneIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["name"],
-    properties: {
-      name: { type: "string", minLength: 1, maxLength: 120 },
-      description: { type: "string", maxLength: 10_000 },
-      interactionText: { type: "string", maxLength: 10_000 },
-      resultText: { type: "string", maxLength: 10_000 },
-      clueId: optionalUuid,
-      requiredItemId: optionalUuid,
-      requiredRoleSlotId: optionalUuid,
-      sequence: { type: "integer", minimum: 0, maximum: 9999 },
-      metadata: metadataObject
-    }
-  }
-};
-
-export const createItemSchema = {
-  params: worldIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["name"],
-    properties: {
-      name: { type: "string", minLength: 1, maxLength: 120 },
-      publicText: { type: "string", maxLength: 10_000 },
-      hostText: { type: "string", maxLength: 10_000 },
-      unique: { type: "boolean" },
-      consumable: { type: "boolean" },
-      assetId: optionalUuid,
-      metadata: metadataObject
-    }
-  }
-};
-
-export const patchItemSchema = {
-  params: itemIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    minProperties: 1,
-    properties: {
-      name: { type: "string", minLength: 1, maxLength: 120 },
-      publicText: { type: "string", maxLength: 10_000 },
-      hostText: { type: "string", maxLength: 10_000 },
-      unique: { type: "boolean" },
-      consumable: { type: "boolean" },
-      assetId: optionalUuid,
-      metadata: metadataObject
-    }
-  }
-};
-
-export const deleteItemSchema = { params: itemIdParams };
-
-export const createContentVersionSchema = {
-  params: worldIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    properties: { label: { type: "string", minLength: 1, maxLength: 120 } }
-  }
-};
-
-export const restoreContentVersionSchema = { params: contentVersionIdParams };
-export const deleteContentVersionSchema = { params: contentVersionIdParams };
 
 export const createStoryEdgeSchema = {
   params: worldIdParams,

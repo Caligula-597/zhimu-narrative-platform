@@ -104,66 +104,6 @@ const contentMetadataObject = { type: "object", additionalProperties: true };
 const contentOptionalUuid = { anyOf: [uuid, { type: "null" }] };
 const contentVisibility = { type: "string", enum: ["author", "host", "role", "faction", "public", "postgame"] };
 
-const segmentPayload = {
-  type: "object",
-  additionalProperties: false,
-  required: ["segmentKey", "title"],
-  properties: {
-    segmentKey: { type: "string", minLength: 1, maxLength: 120 },
-    title: { type: "string", minLength: 1, maxLength: 200 },
-    sequence: { type: "integer", minimum: 1, maximum: 999 },
-    chapterId: contentOptionalUuid,
-    story: contentMetadataObject,
-    mechanics: contentMetadataObject,
-    operations: contentMetadataObject,
-    quality: contentMetadataObject,
-    metadata: contentMetadataObject,
-    refs: {
-      type: "array",
-      maxItems: 200,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["refType", "refId"],
-        properties: {
-          refType: { type: "string", enum: ["chapter", "script_section", "scene", "clue", "item", "rule", "truth_claim"] },
-          refId: uuid,
-          roleSlotId: contentOptionalUuid,
-          metadata: contentMetadataObject
-        }
-      }
-    }
-  }
-};
-
-export const createSegmentSchema = {
-  params: worldIdParams,
-  body: segmentPayload
-};
-
-export const segmentIdParams = paramsSchema({ worldId: uuid, segmentId: uuid });
-
-export const updateSegmentSchema = {
-  params: segmentIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    minProperties: 1,
-    properties: {
-      segmentKey: { type: "string", minLength: 1, maxLength: 120 },
-      title: { type: "string", minLength: 1, maxLength: 200 },
-      sequence: { type: "integer", minimum: 1, maximum: 999 },
-      chapterId: contentOptionalUuid,
-      story: contentMetadataObject,
-      mechanics: contentMetadataObject,
-      operations: contentMetadataObject,
-      quality: contentMetadataObject,
-      metadata: contentMetadataObject,
-      refs: segmentPayload.properties.refs
-    }
-  }
-};
-
 export const createTruthClaimSchema = {
   params: worldIdParams,
   body: {
@@ -184,29 +124,10 @@ export const createTruthClaimSchema = {
   }
 };
 
-export const createRoleRelationshipSchema = {
-  params: worldIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["fromRoleSlotId", "toRoleSlotId"],
-    properties: {
-      fromRoleSlotId: uuid,
-      toRoleSlotId: uuid,
-      relationType: { type: "string", minLength: 1, maxLength: 80 },
-      label: { type: "string", maxLength: 200 },
-      strength: { type: "integer", minimum: -10, maximum: 10 },
-      visibility: contentVisibility,
-      metadata: contentMetadataObject
-    }
-  }
-};
-
 export const bibleRoleSlotParams = paramsSchema({ worldId: uuid, roleSlotId: uuid });
 export const bibleBeatIdParams = paramsSchema({ worldId: uuid, beatId: uuid });
 export const bibleEventIdParams = paramsSchema({ worldId: uuid, eventId: uuid });
 export const truthClaimIdParams = paramsSchema({ worldId: uuid, claimId: uuid });
-export const roleRelationshipIdParams = paramsSchema({ worldId: uuid, relationshipId: uuid });
 
 export const patchCoreTrickSchema = {
   params: worldIdParams,
@@ -393,53 +314,6 @@ export const updateRoomVoteStatusSchema = {
   }
 };
 
-export const createPrivateActionSchema = {
-  params: roomIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["actionType", "title"],
-    properties: {
-      segmentId: contentOptionalUuid,
-      targetRoleSlotId: contentOptionalUuid,
-      actionType: { type: "string", enum: ["ask_host", "secret_action", "trade", "promise", "accusation_note"] },
-      title: { type: "string", minLength: 1, maxLength: 200 },
-      body: { type: "string", maxLength: 4000 },
-      payload: contentMetadataObject,
-      visibility: { type: "string", enum: ["actor_host", "actor_target_host", "host_only", "postgame"] }
-    }
-  }
-};
-
-export const privateActionIdParams = paramsSchema({ roomId: uuid, actionId: uuid });
-
-export const updatePrivateActionSchema = {
-  params: privateActionIdParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["status"],
-    properties: {
-      status: { type: "string", enum: ["seen", "accepted", "rejected", "resolved", "cancelled"] },
-      hostResponse: { type: "string", maxLength: 4000 }
-    }
-  }
-};
-
-export const updateRoleStateSchema = {
-  params: roleSlotRoomParams,
-  body: {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      factionKey: { type: "string", maxLength: 120 },
-      publicAlias: { type: "string", maxLength: 120 },
-      hiddenIdentity: { type: "string", maxLength: 500 },
-      variables: contentMetadataObject
-    }
-  }
-};
-
 export const updateSuspicionSchema = {
   params: paramsSchema({ roomId: uuid, targetRoleSlotId: uuid }),
   body: {
@@ -477,22 +351,6 @@ export const forceCompleteMiniGameSchema = {
   params: paramsSchema({ roomId: uuid, gameId: uuid })
 };
 
-export const submitMiniGameSchema = {
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["roomId", "answer"],
-    properties: {
-      roomId: uuid,
-      instanceId: uuid,
-      instance_id: uuid,
-      gameId: uuid,
-      game_id: uuid,
-      answer: { type: "string", minLength: 1, maxLength: 64 }
-    }
-  }
-};
-
 export const roomRuleIdParams = paramsSchema({ roomId: uuid, ruleId: uuid });
 
 export const triggerManualRuleSchema = {
@@ -502,3 +360,14 @@ export const triggerManualRuleSchema = {
 export const roomRulesPreviewSchema = {
   params: roomIdParams
 };
+
+export {
+  createPrivateActionSchema,
+  createRoleRelationshipSchema,
+  createSegmentSchema,
+  roleRelationshipIdParams,
+  privateActionListSchema,
+  updatePrivateActionSchema,
+  updateRoleStateSchema,
+  updateSegmentSchema
+} from "./content-platform.js";

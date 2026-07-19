@@ -131,6 +131,12 @@ export const API_ERRORS = {
   ROLE_ALREADY_BOUND: { status: 409, message: "Player already bound to another role in this room" },
   ROLE_SLOT_NOT_FOUND: { status: 404, message: "Role slot not found" },
   ROLE_SLOT_WORLD_MISMATCH: { status: 400, message: "Role slot not found in room world" },
+  ROLE_RELATIONSHIP_SELF_INVALID: { status: 400, message: "A role relationship requires two different roles" },
+  SEGMENT_WORLD_MISMATCH: { status: 400, message: "Segment not found in room world" },
+  SEGMENT_REFERENCE_WORLD_MISMATCH: { status: 400, message: "Segment reference does not belong to this world" },
+  SEGMENT_REFERENCES_INVALID: { status: 400, message: "Segment references are invalid" },
+  PRIVATE_ACTION_TARGET_REQUIRED: { status: 400, message: "Target role is required for target-visible private actions" },
+  PRIVATE_ACTION_TRANSITION_INVALID: { status: 409, message: "Private action status transition is invalid" },
   INVITE_FIELDS_REQUIRED: { status: 400, message: "inviteCode and roleSlotId are required" },
 
   // Creator content
@@ -147,9 +153,14 @@ export const API_ERRORS = {
   SECTION_NOT_FOUND: { status: 404, message: "Script section not found for role" },
   SECTION_LOCKED: { status: 404, message: "Script section is locked or unavailable" },
   CONTENT_VERSION_NOT_FOUND: { status: 404, message: "Content version not found" },
+  CONTENT_VERSION_INVALID: { status: 422, message: "Content version snapshot is invalid" },
+  CONTENT_VERSION_TOO_LARGE: { status: 413, message: "Content version snapshot exceeds the safe restore limit" },
+  CONTENT_VERSION_LIMIT_REACHED: { status: 409, message: "Content version limit reached for this world" },
+  SECTION_SEQUENCE_CONFLICT: { status: 409, message: "Another section already uses this sequence" },
   PARSED_DOCUMENT_REQUIRED: { status: 400, message: "Parsed document is required" },
   ROLE_SLOT_IMPORT_REQUIRED: { status: 400, message: "Valid roleSlotId is required for role script import" },
   NOTEBOOK_FIELDS_REQUIRED: { status: 400, message: "sourceType, title and body are required" },
+  NOTEBOOK_SOURCE_INVALID: { status: 404, message: "Notebook source is unavailable for this player" },
   NOTEBOOK_ENTRY_NOT_FOUND: { status: 404, message: "Notebook entry not found" },
 
   // Studio & graph
@@ -211,8 +222,11 @@ export const API_ERRORS = {
   HOST_EVENT_ALREADY_RESOLVED: { status: 409, message: "Host event already resolved" },
   CHECKPOINT_NOT_FOUND: { status: 404, message: "Checkpoint not found" },
   CHECKPOINT_WORLD_MISMATCH: { status: 400, message: "Checkpoint and target room must belong to the same world" },
-  INVALID_SNAPSHOT: { status: 422, message: "Checkpoint snapshot is missing" },
+  CHECKPOINT_RESTORE_BUSY: { status: 409, message: "Another checkpoint restore is in progress" },
+  CHECKPOINT_RESTORE_TIMEOUT: { status: 503, message: "Checkpoint restore timed out safely" },
+  INVALID_SNAPSHOT: { status: 422, message: "Checkpoint snapshot is invalid or incomplete" },
   SNAPSHOT_VERSION_UNSUPPORTED: { status: 422, message: "Checkpoint snapshot version is too old to restore" },
+  SNAPSHOT_TIMELINE_TRUNCATED: { status: 422, message: "Checkpoint timeline is truncated and cannot safely replace the full timeline" },
   RECAP_NOT_FOUND: { status: 404, message: "Recap not found" },
   RECAP_NOT_GENERATED: { status: 404, message: "No recap generated yet" },
   NO_PLAYERS_TO_NUDGE: { status: 400, message: "No joined players to notify" },
@@ -226,6 +240,8 @@ export const API_ERRORS = {
   VOICE_MESSAGE_INVALID: { status: 400, message: "Message body must contain between 1 and 1000 characters" },
   VOICE_ROOM_NOT_IN_PARALLEL_ROOM: { status: 404, message: "Voice room not found in this parallel room" },
   VOICE_MEMBER_NOT_IN_ROOM: { status: 400, message: "Invited user must be an active room member" },
+  VOICE_PUBLIC_CREATE_FORBIDDEN: { status: 403, message: "Only a host or cohost can create a managed voice room" },
+  VOICE_ROOM_LIMIT_REACHED: { status: 409, message: "This parallel room has reached its active voice room limit" },
   LIVEKIT_NOT_CONFIGURED: { status: 503, message: "LiveKit is not configured on the server" },
 
   // Assets & storage
@@ -274,6 +290,7 @@ export const API_ERRORS = {
   LLM_PROBE_FAILED: { status: 502, message: "AI 连接测试失败" },
   DOCUMENT_SIZE_INVALID: { status: 413, message: "Document must contain between 1 byte and 5 MB" },
   DOCUMENT_TYPE_UNSUPPORTED: { status: 415, message: "Only TXT, Markdown, DOCX, PDF and image documents can be parsed" },
+  DOCUMENT_PROCESSING_BUSY: { status: 503, message: "Document processing is busy; retry shortly" },
   DOCUMENT_EMPTY: { status: 422, message: "Document does not contain readable text" },
   PDF_PAGES_RECOMMENDED: {
     status: 422,
