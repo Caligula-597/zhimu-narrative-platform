@@ -85,7 +85,7 @@
     "adm-zip": "^0.6.0",
     "dotenv": "^16.6.1",
     "fastify": "^5.6.1",
-    "livekit-server-sdk": "^2.15.4",
+    "livekit-server-sdk": "^2.17.0",
     "mammoth": "^1.12.0",
     "pdfjs-dist": "^6.0.227",
     "pg": "^8.16.3",
