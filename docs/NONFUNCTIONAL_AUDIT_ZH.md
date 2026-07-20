@@ -23,6 +23,7 @@
 - 投票写链路已迁移到 repository/service；投票关闭与玩家提交在同一行锁事务内串行化，消除“校验时开放、落库时已关闭”的竞态。
 - Host 游戏控制写链路已迁移到 repository/service；小游戏、时间线、主持审计和 outbox 同事务提交，房间与成员锁顺序固定。并发双启动隔离测试证明只保留一个活动游戏，审计失败会整体回滚且可安全重试。规则预览不再重复执行条件查询，每个条件叶只读取一次。
 - 内容运行报告与洞察已迁移到 repository/service；run-report 从 4 次数据库往返降到 2 次，creator analytics 从四条并发 SQL 合并为一条聚合 SQL，避免单请求占用默认 6 连接池中的 4 个连接。
+- Player 首页 supplemental 的 social 从 5 次数据库往返合并为 1 次、session 从 4 次合并为 1 次；连同 tasks，单请求并发连接峰值由约 9 降为 3。章节页附件不再按章节逐次查询，而是对当前可读章节的资产 ID 去重后一次查询、一次签名，并保持每章原始页序。
 - 路由层最后六个直连点已归零；实体卡激活把房间 world 校验移入 token 行锁事务，消除事务外检查窗口；房间补救列表由“查 worldId + 查列表”收敛为单条联表查询。
 - 周期报告使用明确 UTF-8 输出；编码门禁覆盖生产与审计脚本并识别常见二次转码乱码。四个前端表面的 gzip 预算已加入周期验收，Site 的共享 `safe-dom` 首屏块单独计入，避免拆 chunk 后漏算。
 - Writer/Director/Site 等产品代码不再直接写 `innerHTML`；`shared/safe-dom.js` 是唯一带精确预算的安全 sink。官网发布产物包含 CSP、`trusted-types zhimu-html` 与 `require-trusted-types-for 'script'`。
@@ -30,6 +31,6 @@
 
 当前代码结构由 `npm run check:architecture` 固定门禁：68 个路由模块的路由层直连数据库点为 0，任何回升都会失败。后续数据库审计对象转为 service/repository 内部的往返次数、连接池占用、索引和事务一致性，而不是继续按文件机械拆层。
 
-当前快速证据包括：`audit:periodic` 14/14、SSE 故障矩阵 39/39、Auth 故障矩阵 22/22、Trusted Types 23/23、发布门禁工具 5/5、性能工具 4/4，以及 App/Site/Host/Play 构建和包体预算通过。当前 Supabase 数据库的迁移完整性为 67 个已应用、0 个待应用、校验和一致；该结果是只读核验，不替代隔离数据库上的升级与回滚演练。无隔离 `DATABASE_URL` 时，真实 PostgreSQL 写入、会话触碰与 LISTEN 集成断言必须明确标记跳过，不能计作通过。
+当前快速证据包括：`audit:periodic` 14/14、SSE 故障矩阵 39/39、Auth 故障矩阵 22/22、Trusted Types 23/23、发布门禁工具 5/5、性能工具 4/4，以及 App/Site/Host/Play 构建和包体预算通过。2026-07-20 已在当前 Supabase 数据库部署 068–090，迁移完整性为 90 个已应用、0 个待应用、校验和一致，应用 readiness 为 `ready=true`；这不替代隔离数据库上的升级与回滚演练。无隔离 `DATABASE_URL` 时，真实 PostgreSQL 写入、会话触碰与 LISTEN 集成断言必须明确标记跳过，不能计作通过。
 
 仍属于部署/运行证据而不是静态代码能消除的风险：多实例全局限流必须由 Cloudflare WAF/Rate Limiting 作为权威层；真实 Bearer 的 P95/P99、SSE 大并发、托管数据库容量、应用镜像回滚、R2 恢复和恢复时间必须在预发或生产镜像环境定期采样。2026-07-16 的 `Release Acceptance` 运行 29477387204 已失败：第 1/3 轮隔离测试 712 项中 8 项失败，后续 E2E、性能和恢复步骤全部 skipped；cleanup 还暴露隔离库删除后的表访问错误。快速矩阵通过不能覆盖这一发布阻断。

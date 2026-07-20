@@ -1,15 +1,26 @@
 /** Volatile room session state used by the Player home screen. */
 import { query } from "../db.js";
-import { listPlayerInventory } from "../inventory-helpers.js";
-import { fetchPlayerHostConfirmStatus } from "../routes/host-helpers.js";
-import { fetchCurrentMiniGame } from "../room-mini-games.js";
+import { extractTriggerPlayers } from "../routes/host-helpers.js";
+import { publicMiniGame } from "../room-mini-games.js";
 
-const poolQuery = { query };
+export function summarizePlayerHostConfirm(rows, roleSlotId) {
+  let waitingForYou = false;
+  const titles = [];
+  for (const row of rows) {
+    titles.push(row.title);
+    const triggers = extractTriggerPlayers(row.rule_conditions);
+    if (!triggers.length || triggers.includes(roleSlotId)) waitingForYou = true;
+  }
+  return {
+    pendingCount: rows.length,
+    waitingForYou,
+    titles: titles.slice(0, 3)
+  };
+}
 
-export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId }) {
-  const [snapshot, inventory, hostConfirm, currentGame] = await Promise.all([
-    query(
-      `SELECT
+export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId, runQuery = query }) {
+  const snapshot = await runQuery(
+    `SELECT
          COALESCE((
            SELECT jsonb_agg(to_jsonb(voice_row) - 'created_at' ORDER BY voice_row.created_at)
            FROM (
@@ -48,20 +59,43 @@ export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId }) {
             SELECT faction_key, public_alias, hidden_identity, variables, updated_at
             FROM room_role_states
             WHERE room_id = $1 AND role_slot_id = $2
-          ) state_row) AS role_state`,
-      [roomId, roleSlotId, actorId]
-    ),
-    listPlayerInventory(poolQuery, roomId, roleSlotId),
-    fetchPlayerHostConfirmStatus(query, roomId, roleSlotId),
-    fetchCurrentMiniGame(query, roomId)
-  ]);
+          ) state_row) AS role_state,
+         COALESCE((
+           SELECT jsonb_agg(to_jsonb(inventory_row) ORDER BY inventory_row.name)
+           FROM (
+             SELECT i.id AS item_id, i.name, i.public_text, i.metadata,
+                    inv.quantity, inv.metadata AS inventory_metadata
+             FROM inventory inv
+             JOIN items i ON i.id = inv.item_id
+             WHERE inv.room_id = $1 AND inv.role_slot_id = $2 AND inv.quantity > 0
+           ) inventory_row
+         ), '[]'::jsonb) AS inventory,
+         COALESCE((
+           SELECT jsonb_agg(
+             jsonb_build_object('title', phe.title, 'rule_conditions', ar.conditions)
+             ORDER BY phe.created_at
+           )
+           FROM pending_host_events phe
+           LEFT JOIN automation_rules ar ON ar.id = phe.rule_id
+           WHERE phe.room_id = $1 AND phe.status = 'pending'
+         ), '[]'::jsonb) AS pending_host_events,
+         (SELECT to_jsonb(game_row)
+          FROM (
+            SELECT *
+            FROM room_mini_games
+            WHERE room_id = $1 AND status = 'active'
+            ORDER BY updated_at DESC
+            LIMIT 1
+          ) game_row) AS current_game`,
+    [roomId, roleSlotId, actorId]
+  );
 
   const row = snapshot.rows[0] ?? {};
   return {
     voiceRooms: row.voice_rooms ?? [],
-    inventory,
-    hostConfirm,
-    currentGame,
+    inventory: row.inventory ?? [],
+    hostConfirm: summarizePlayerHostConfirm(row.pending_host_events ?? [], roleSlotId),
+    currentGame: publicMiniGame(row.current_game),
     activeVotes: row.active_votes ?? [],
     roleState: row.role_state ?? null
   };
