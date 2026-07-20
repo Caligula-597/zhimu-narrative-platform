@@ -79,6 +79,9 @@ export async function fetchCurrentMiniGame(runQuery, roomId) {
 
 export async function startLockMiniGame(client, { roomId, actorUserId, body }) {
   const game = buildLockGameConfig(body);
+  // Keep this as two ordered statements. A data-modifying CTE does not provide
+  // execution order between its UPDATE and INSERT branches, so the partial
+  // unique index for one active game can still reject the INSERT.
   await client.query(
     `UPDATE room_mini_games
      SET status = 'skipped', completed_at = now(), updated_at = now()

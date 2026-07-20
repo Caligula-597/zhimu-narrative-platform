@@ -93,8 +93,8 @@ export async function executeActions(roomId, actions) {
 
 export { executeActionsWithClient };
 
-export async function previewRoomRules(roomId) {
-  const rules = await query(
+export async function previewRoomRules(roomId, { executor = query } = {}) {
+  const rules = await executor(
     `SELECT ar.id, ar.name, ar.mode, ar.priority, ar.conditions, ar.enabled,
             EXISTS (
               SELECT 1 FROM rule_executions re
@@ -111,13 +111,13 @@ export async function previewRoomRules(roomId) {
     [roomId]
   );
 
-  const dbClient = { query: (...args) => query(...args) };
+  const dbClient = { query: (...args) => executor(...args) };
   const preview = [];
 
   for (const rule of rules.rows) {
     const conditions = rule.conditions ?? {};
-    const conditionsMet = await evaluateConditions(dbClient, roomId, conditions);
     const conditionTrace = await traceConditions(dbClient, roomId, conditions);
+    const conditionsMet = conditionTrace.satisfied;
     const failedLeaves = collectFailedConditionLeaves(conditionTrace);
     let status = "waiting";
     if (rule.mode === "manual") {
@@ -153,35 +153,39 @@ export async function previewRoomRules(roomId) {
   return preview;
 }
 
+export async function triggerManualRuleWithClient(client, queueEvent, roomId, ruleId) {
+  const ruleResult = await client.query(
+    `SELECT id, name, mode, enabled, room_id, conditions, actions
+     FROM automation_rules WHERE id = $1`,
+    [ruleId]
+  );
+  if (!ruleResult.rowCount) throwErr("RULE_NOT_FOUND");
+  const rule = ruleResult.rows[0];
+  if (rule.mode !== "manual") throwErr("RULE_NOT_MANUAL");
+  if (!rule.enabled) throwErr("RULE_DISABLED");
+  if (rule.room_id !== roomId) throwErr("RULE_ROOM_SCOPE_MISMATCH");
+
+  const conditionsMet = await evaluateConditions(client, roomId, rule.conditions ?? {});
+  if (!conditionsMet) {
+    throwErr("RULE_CONDITIONS_NOT_MET");
+  }
+
+  await executeActionsWithClient(client, roomId, rule.actions);
+  queueRuleActionEvents(queueEvent, roomId, rule.actions, "manual_rule");
+
+  await client.query(
+    `INSERT INTO timeline_logs (room_id, visibility, event_type, message, metadata)
+     VALUES ($1, 'host', 'manual_rule_triggered', $2, jsonb_build_object('ruleId', $3::text))`,
+    [roomId, `主持人手动触发规则「${rule.name}」`, ruleId]
+  );
+
+  return { ok: true, ruleId, ruleName: rule.name };
+}
+
 export async function triggerManualRule(roomId, ruleId) {
-  return transactionWithEvents(async (client, queueEvent) => {
-    const ruleResult = await client.query(
-      `SELECT id, name, mode, enabled, room_id, conditions, actions
-       FROM automation_rules WHERE id = $1`,
-      [ruleId]
-    );
-    if (!ruleResult.rowCount) throwErr("RULE_NOT_FOUND");
-    const rule = ruleResult.rows[0];
-    if (rule.mode !== "manual") throwErr("RULE_NOT_MANUAL");
-    if (!rule.enabled) throwErr("RULE_DISABLED");
-    if (rule.room_id !== roomId) throwErr("RULE_ROOM_SCOPE_MISMATCH");
-
-    const conditionsMet = await evaluateConditions(client, roomId, rule.conditions ?? {});
-    if (!conditionsMet) {
-      throwErr("RULE_CONDITIONS_NOT_MET");
-    }
-
-    await executeActionsWithClient(client, roomId, rule.actions);
-    queueRuleActionEvents(queueEvent, roomId, rule.actions, "manual_rule");
-
-    await client.query(
-      `INSERT INTO timeline_logs (room_id, visibility, event_type, message, metadata)
-       VALUES ($1, 'host', 'manual_rule_triggered', $2, jsonb_build_object('ruleId', $3::text))`,
-      [roomId, `主持人手动触发规则「${rule.name}」`, ruleId]
-    );
-
-    return { ok: true, ruleId, ruleName: rule.name };
-  });
+  return transactionWithEvents((client, queueEvent) => (
+    triggerManualRuleWithClient(client, queueEvent, roomId, ruleId)
+  ));
 }
 
 export async function evaluateRoomRulesWithClient(client, queueEvent, roomId) {

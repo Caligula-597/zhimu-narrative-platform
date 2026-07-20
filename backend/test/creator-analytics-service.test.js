@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { fetchCreatorAnalyticsData } from "../src/creator-analytics-repository.js";
 import { buildCreatorAnalytics } from "../src/creator-analytics-service.js";
 
 function data(overrides = {}) {
@@ -57,4 +58,25 @@ test("creator analytics distinguishes opening abandonment from start abandonment
   }));
 
   assert.equal(result.suggestions[0].type, "opening_completion");
+});
+
+test("creator analytics repository collects all aggregates in one database call", async () => {
+  const calls = [];
+  const result = await fetchCreatorAnalyticsData(async (sql, params) => {
+    calls.push({ sql, params });
+    return {
+      rows: [{
+        sections: [{ id: "section-1" }],
+        clues: [{ id: "clue-1" }],
+        feedback: [{ kind: "bug", status: "open", count: 1 }],
+        funnel: { joined_players: 1 }
+      }]
+    };
+  }, "world-1");
+
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].params, ["world-1"]);
+  assert.match(calls[0].sql, /WITH section_stats AS/);
+  assert.equal(result.sections[0].id, "section-1");
+  assert.equal(result.funnel.joined_players, 1);
 });

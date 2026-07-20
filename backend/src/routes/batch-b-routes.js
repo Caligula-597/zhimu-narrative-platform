@@ -8,9 +8,15 @@
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole, requireWorldRole } from "./route-guards.js";
 import { sendErr, throwErr } from "../api-errors.js";
-import { query } from "../db.js";
 import { transactionWithEvents } from "../transaction-events.js";
 import { runRevisionMutation } from "../world-revision.js";
+import {
+  getRoomSegmentRemedies,
+  getRoomSuspicionsForHost,
+  getRoomTestimoniesForHost,
+  savePlayerSuspicion,
+  saveTestimonyReview
+} from "../batch-b-service.js";
 import {
   roomIdParams,
   worldIdParams,
@@ -29,11 +35,9 @@ import {
   listWorldPlayerTasks,
   resolveCurrentActKey
 } from "../player-tasks.js";
-import { fetchPlayerSuspicions, listRoomSuspicionsForHost, upsertPlayerSuspicion } from "../player-suspicions.js";
+import { fetchPlayerSuspicions } from "../player-suspicions.js";
 import {
   fetchMyTestimonies,
-  listRoomTestimoniesForHost,
-  reviewTestimony,
   submitTestimony
 } from "../testimonies.js";
 import {
@@ -85,7 +89,7 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { roomId, targetRoleSlotId } = request.params;
     const membership = await requirePlayerRoleSlot(actorId, roomId);
-    const row = await upsertPlayerSuspicion(query, {
+    const row = await savePlayerSuspicion({
       roomId,
       observerRoleSlotId: membership.role_slot_id,
       targetRoleSlotId,
@@ -119,7 +123,7 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     await requireHostMembership(actorId, roomId);
-    const items = await listRoomTestimoniesForHost(query, roomId);
+    const items = await getRoomTestimoniesForHost(roomId);
     return { items };
   });
 
@@ -127,7 +131,7 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { roomId, testimonyId } = request.params;
     await requireHostMembership(actorId, roomId);
-    const testimony = await reviewTestimony(query, {
+    const testimony = await saveTestimonyReview({
       testimonyId,
       roomId,
       reviewerId: actorId,
@@ -141,7 +145,7 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     await requireHostMembership(actorId, roomId);
-    const items = await listRoomSuspicionsForHost(query, roomId);
+    const items = await getRoomSuspicionsForHost(roomId);
     return { items };
   });
 
@@ -206,10 +210,8 @@ export async function registerBatchBRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     await requireHostMembership(actorId, roomId);
-    const room = await query(`SELECT world_id FROM rooms WHERE id = $1`, [roomId]);
-    if (!room.rowCount) throwErr("ROOM_NOT_FOUND");
     const segmentKey = request.query?.segmentKey || request.query?.segment_key || null;
-    const items = await listSegmentRemedies(room.rows[0].world_id, segmentKey);
+    const items = await getRoomSegmentRemedies(roomId, segmentKey);
     return { items };
   });
 

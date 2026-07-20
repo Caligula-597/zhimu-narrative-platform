@@ -1,4 +1,3 @@
-import { query } from "../db.js";
 import { transactionWithEvents } from "../transaction-events.js";
 import { evaluateRoomRules } from "../rule-engine.js";
 import { requireActor } from "../request-actor.js";
@@ -105,14 +104,10 @@ export async function registerPhysicalTokenRoutes(app) {
       return sendErr(reply, "PHYSICAL_TOKEN_PLAYER_ROLE_REQUIRED");
     }
 
-    const room = await query(`SELECT world_id FROM rooms WHERE id = $1`, [roomId]);
-    if (!room.rowCount) return sendErr(reply, "ROOM_NOT_FOUND");
-
     return withRoomIdempotency(roomId, request, "player.activate_physical_token", async () => {
       const result = await transactionWithEvents(async (client, queueEvent) =>
         activatePhysicalToken(client, {
           roomId,
-          worldId: room.rows[0].world_id,
           roleSlotId: membership.role_slot_id,
           userId: actorId,
           tokenCode,

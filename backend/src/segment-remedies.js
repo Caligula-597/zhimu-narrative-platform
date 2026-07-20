@@ -28,6 +28,29 @@ export async function listSegmentRemedies(worldId, segmentKey = null) {
   return rows;
 }
 
+export async function listRoomSegmentRemediesWith(runQuery, roomId, segmentKey = null) {
+  const params = [roomId];
+  let segmentFilter = "";
+  if (segmentKey) {
+    params.push(segmentKey);
+    segmentFilter = ` AND remedy.segment_key = $${params.length}`;
+  }
+  const { rows } = await runQuery(
+    `SELECT remedy.id, remedy.segment_key, remedy.title, remedy.host_script,
+            remedy.trigger_hint, remedy.sequence, remedy.created_at, remedy.updated_at
+     FROM rooms room
+     JOIN segment_remedies remedy ON remedy.world_id = room.world_id
+     WHERE room.id = $1${segmentFilter}
+     ORDER BY remedy.segment_key, remedy.sequence, remedy.created_at`,
+    params
+  );
+  return rows;
+}
+
+export function listRoomSegmentRemedies(roomId, segmentKey = null) {
+  return listRoomSegmentRemediesWith(query, roomId, segmentKey);
+}
+
 export async function createSegmentRemedy(worldId, body, runQuery = query) {
   const title = sanitizeText(body?.title, 200);
   const hostScript = sanitizeText(body?.hostScript ?? body?.host_script, 4000);

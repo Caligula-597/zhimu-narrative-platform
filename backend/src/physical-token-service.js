@@ -340,7 +340,6 @@ async function applyTokenContent(client, roomId, roleSlotId, token, queueEvent) 
 
 export async function activatePhysicalToken(client, {
   roomId,
-  worldId,
   roleSlotId,
   userId,
   tokenCode,
@@ -349,16 +348,17 @@ export async function activatePhysicalToken(client, {
   const run = client.query.bind(client);
   const code = normalizePhysicalTokenCode(tokenCode);
   const locked = await run(
-    `SELECT pt.*
+    `SELECT pt.*, room.world_id AS room_world_id
      FROM physical_tokens pt
+     JOIN rooms room ON room.id = $2
      WHERE pt.token_code = $1
-     FOR UPDATE`,
-    [code]
+     FOR UPDATE OF pt`,
+    [code, roomId]
   );
   if (!locked.rowCount) throwErr("PHYSICAL_TOKEN_NOT_FOUND");
   const token = locked.rows[0];
 
-  if (token.world_id !== worldId) throwErr("PHYSICAL_TOKEN_WORLD_MISMATCH");
+  if (token.world_id !== token.room_world_id) throwErr("PHYSICAL_TOKEN_WORLD_MISMATCH");
   if (token.status === "revoked") throwErr("PHYSICAL_TOKEN_REVOKED");
   if (token.status === "activated") throwErr("PHYSICAL_TOKEN_ALREADY_ACTIVATED");
   if (token.expires_at && new Date(token.expires_at).getTime() < Date.now()) {

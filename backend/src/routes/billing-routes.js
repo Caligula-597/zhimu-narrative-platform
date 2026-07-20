@@ -1,10 +1,8 @@
 import { requireActor } from "../request-actor.js";
-import { query } from "../db.js";
 import { sendErr } from "../api-errors.js";
+import { createBillingCheckoutSession } from "../billing-service.js";
 import {
-  createStripeCheckoutSession,
-  handleStripeWebhook,
-  isStripeConfigured
+  handleStripeWebhook
 } from "../stripe-billing.js";
 
 export async function registerBillingRoutes(app) {
@@ -55,23 +53,10 @@ export async function registerBillingRoutes(app) {
       }
     },
     async (request, reply) => {
-      if (!isStripeConfigured()) return sendErr(reply, "STRIPE_NOT_CONFIGURED");
       const actorId = requireActor(request);
       const { planCode } = request.body;
-
-      const user = await query(
-        `SELECT email, user_kind FROM users WHERE id = $1`,
-        [actorId]
-      );
-      if (!user.rowCount) return sendErr(reply, "USER_NOT_FOUND");
-      if (user.rows[0].user_kind === "guest") {
-        return sendErr(reply, "AUTH_REQUIRED", "Guest accounts cannot subscribe");
-      }
-      const email = user.rows[0].email;
-      if (!email) return sendErr(reply, "BAD_REQUEST", "Account email required for checkout");
-
       try {
-        const session = await createStripeCheckoutSession({ userId: actorId, email, planCode });
+        const session = await createBillingCheckoutSession({ actorId, planCode });
         return reply.code(200).send(session);
       } catch (error) {
         if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);

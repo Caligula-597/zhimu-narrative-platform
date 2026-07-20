@@ -156,6 +156,34 @@ test("previewRoomRules reports would_execute without writes", async (context) =>
   assert.equal(logsBefore.rowCount, 0);
 });
 
+test("previewRoomRules evaluates each condition leaf once", async () => {
+  let queryCount = 0;
+  const executor = async (sql) => {
+    queryCount += 1;
+    if (sql.includes("FROM automation_rules")) {
+      return {
+        rows: [{
+          id: "rule-query-budget",
+          name: "Query budget",
+          mode: "automatic",
+          priority: 100,
+          conditions: {
+            all: [{ type: "item_owned", roleSlotId: "role-1", itemId: "item-1" }]
+          },
+          enabled: true,
+          already_executed: false,
+          pending_host_event: false
+        }]
+      };
+    }
+    return { rows: [{ ok: true }], rowCount: 1 };
+  };
+
+  const preview = await previewRoomRules("room-query-budget", { executor });
+  assert.equal(preview[0].conditionsMet, true);
+  assert.equal(queryCount, 2, "one list query plus one query for the single condition leaf");
+});
+
 test("host can preview and trigger manual rules via API", async (context) => {
   const suffix = `${Date.now()}-${Math.round(Math.random() * 10000)}`;
   const fx = await createRuleFixture(suffix);
