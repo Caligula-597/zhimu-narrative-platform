@@ -199,10 +199,10 @@ export async function openPlayerRecapModal(recapId){
  try{
   const detail=await zhimuApi.getRecap(recapId,true);
   modal.className="modal host-detail-modal recap-player-modal";
-  setHtml(modal, `<h2>${escapeHtml(detail.label)}</h2><p class="wizard-intro">${escapeHtml(detail.description||"无备注")} · 生成于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p>${playerRecapModalBody(detail)}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-action="player-recap-open-archive">在存档页查看</button></div>`);
+  setHtml(modal, `<h2>${escapeHtml(detail.label)}</h2><p class="wizard-intro">${escapeHtml(detail.description||"无备注")} · 生成于 ${formatTime(detail.created_at)} · ${escapeHtml(detail.created_by_name||"主持人")}</p>${playerRecapModalBody(detail)}<div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="text-btn" data-player-recap-open-archive>在存档页查看</button></div>`);
   modalBackdrop.classList.add("show");
   modal.querySelector("[data-close]").onclick=closeModal;
-  const archiveBtn=modal.querySelector("[data-action=player-recap-open-archive]");
+  const archiveBtn=modal.querySelector("[data-player-recap-open-archive]");
   if(archiveBtn)archiveBtn.onclick=async()=>{closeModal();await openRecapDetail(recapId,true);};
  }catch(error){showError(error)}
 }

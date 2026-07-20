@@ -33,6 +33,8 @@ export function canEditWorldContent(world){
 }
 export function catalogExperienceBanner(world){
  if(!world?.id||canEditWorldContent(world))return "";
+ if(world.membership_role==="reviewer")return `<section class="demo-strip catalog-experience-strip"><div><span class="cloud-pill">受邀审稿 · 只读</span><strong style="margin-top:7px">正在查看主创作者的私有审稿材料</strong><p>可以阅读草稿并提交审稿意见，不能修改、主持或导出内容；请遵守团队保密约定。</p></div></section>`;
+ if(world.membership_role==="host")return `<section class="demo-strip catalog-experience-strip"><div><span class="cloud-pill">主持协作 · 只读创作内容</span><strong style="margin-top:7px">当前身份用于运行房主持</strong><p>创作正文不可由主持身份修改；请前往独立 Host 端执行场次操作。</p></div></section>`;
  return `<section class="demo-strip catalog-experience-strip"><div><span class="cloud-pill">公开剧本 · 体验</span><strong style="margin-top:7px">正在浏览主创作者发布的完整剧本</strong><p>可阅读角色分幕与剧情编排；运行数据只显示<strong>你自己的运行房</strong>（重复点「开始体验」不会刷出一堆空房间）。改正文需主创作者授权。</p></div></section>`;
 }
 export function isWorldOwner(worldId) {

@@ -89,6 +89,16 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     roleSlotId: id,
     source
   }),
+  "room.section_relocked": schema(["sectionId", "roleSlotId", "source"], {
+    sectionId: id,
+    roleSlotId: id,
+    source
+  }),
+  "room.section_skipped": schema(["sectionId", "roleSlotId", "source"], {
+    sectionId: id,
+    roleSlotId: id,
+    source
+  }),
   "room.section_completed": schema(["sectionId", "roleSlotId"], { sectionId: id, roleSlotId: id }),
   "room.clue_granted": schema(["clueId"], {
     clueId: id,
@@ -97,6 +107,18 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     clueName: text,
     pointId: id,
     ownerRoleSlotId: id
+  }),
+  "room.clue_revoked": schema(["clueId", "roleSlotId", "source"], {
+    clueId: id,
+    roleSlotId: id,
+    clueName: text,
+    source
+  }),
+  "room.clue_resent": schema(["clueId", "roleSlotId", "source"], {
+    clueId: id,
+    roleSlotId: id,
+    clueName: text,
+    source
   }),
   "room.item_granted": schema(["itemId", "roleSlotId", "source"], {
     itemId: id,

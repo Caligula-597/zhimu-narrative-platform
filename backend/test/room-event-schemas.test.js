@@ -168,7 +168,7 @@ test("getRoomEventSchema returns null for unknown type", () => {
 });
 
 test("all production room contracts remain JSON-Schema-shaped and additive", () => {
-  assert.equal(Object.keys(ROOM_EVENT_SCHEMAS).length, 27);
+  assert.equal(Object.keys(ROOM_EVENT_SCHEMAS).length, 31);
   assert.ok(ROOM_EVENT_SCHEMAS["room.host_log_created"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.host_player_notes_updated"]);
   for (const schema of Object.values(ROOM_EVENT_SCHEMAS)) {

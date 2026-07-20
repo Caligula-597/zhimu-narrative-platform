@@ -657,6 +657,7 @@ export const creatorWorkspacesApi = {
   refreshTruthWorkspace,
   addTruthClaimInline,
   addRelationshipInline,
+  deleteRelationshipInline,
   loadCreatorAnalytics,
   loadQualityReports,
   recordQualityReportSnapshot

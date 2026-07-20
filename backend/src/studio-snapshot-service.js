@@ -5,6 +5,7 @@ import {
   compactChapterSequences
 } from "./routes/world-chapter-service.js";
 import { ROOMS_VISIBLE_TO_ACTOR_SQL } from "./routes/world-access-service.js";
+import { projectWorldForMembership } from "./world-settings-visibility.js";
 
 export const STUDIO_SNAPSHOT_SQL = `
   WITH world_row AS (
@@ -12,19 +13,21 @@ export const STUDIO_SNAPSHOT_SQL = `
            w.catalog_public, w.catalog_review_status,
            w.catalog_review_submitted_at, w.catalog_review_note,
            w.settings, w.content_revision, wm.role AS membership_role,
-           wm.role IN ('owner', 'editor') AS can_read_draft_content
+           wm.role IN ('owner', 'editor', 'reviewer') AS can_read_draft_content,
+           wm.role IN ('owner', 'editor', 'reviewer', 'host') AS can_read_operational_content
     FROM worlds w
     JOIN world_members wm ON wm.world_id = w.id AND wm.user_id = $2
     WHERE w.id = $1
   )
   SELECT
-    (SELECT to_jsonb(world_row) - 'can_read_draft_content' FROM world_row) AS world,
+    (SELECT to_jsonb(world_row) - 'can_read_draft_content' - 'can_read_operational_content' FROM world_row) AS world,
     COALESCE((
       SELECT jsonb_agg(to_jsonb(chapter_row) ORDER BY chapter_row.sequence)
       FROM (
         SELECT id, title, summary, sequence, publication_status, unlock_rules, metadata
         FROM chapters
-        WHERE world_id = $1 AND EXISTS (SELECT 1 FROM world_row)
+        WHERE world_id = $1
+          AND (SELECT can_read_operational_content FROM world_row)
       ) chapter_row
     ), '[]'::jsonb) AS chapters,
     COALESCE((
@@ -46,6 +49,7 @@ export const STUDIO_SNAPSHOT_SQL = `
       FROM (
         SELECT ss.id, ss.role_slot_id, ss.chapter_id, ss.title,
                CASE WHEN (SELECT can_read_draft_content FROM world_row)
+                         OR (SELECT membership_role FROM world_row) = 'host'
                     THEN ss.body ELSE '' END AS body,
                ss.sequence, ss.publication_status, ss.updated_at,
                rs.sequence AS role_sequence
@@ -53,6 +57,7 @@ export const STUDIO_SNAPSHOT_SQL = `
         JOIN role_slots rs ON rs.id = ss.role_slot_id
         WHERE rs.world_id = $1
           AND EXISTS (SELECT 1 FROM world_row)
+          AND (SELECT can_read_operational_content FROM world_row)
           AND ((SELECT can_read_draft_content FROM world_row)
                OR ss.publication_status IN ('testing', 'published'))
       ) section_row
@@ -64,11 +69,12 @@ export const STUDIO_SNAPSHOT_SQL = `
       )
       FROM (
         SELECT id, chapter_id, name, public_text,
-               CASE WHEN (SELECT can_read_draft_content FROM world_row)
+               CASE WHEN (SELECT can_read_operational_content FROM world_row)
                     THEN host_text ELSE '' END AS host_text,
                metadata, created_at AS sort_created_at
         FROM scenes
-        WHERE world_id = $1 AND EXISTS (SELECT 1 FROM world_row)
+        WHERE world_id = $1
+          AND (SELECT can_read_operational_content FROM world_row)
       ) scene_row
     ), '[]'::jsonb) AS scenes,
     COALESCE((
@@ -78,11 +84,12 @@ export const STUDIO_SNAPSHOT_SQL = `
       )
       FROM (
         SELECT id, name, public_text,
-               CASE WHEN (SELECT can_read_draft_content FROM world_row)
+               CASE WHEN (SELECT can_read_operational_content FROM world_row)
                     THEN host_text ELSE '' END AS host_text,
                visibility, clue_kind, metadata, created_at AS sort_created_at
         FROM clues
-        WHERE world_id = $1 AND EXISTS (SELECT 1 FROM world_row)
+        WHERE world_id = $1
+          AND (SELECT can_read_operational_content FROM world_row)
       ) clue_row
     ), '[]'::jsonb) AS clues,
     COALESCE((
@@ -92,12 +99,13 @@ export const STUDIO_SNAPSHOT_SQL = `
       )
       FROM (
         SELECT id, scene_id, name, description, interaction_text,
-               CASE WHEN (SELECT can_read_draft_content FROM world_row)
+               CASE WHEN (SELECT can_read_operational_content FROM world_row)
                     THEN result_text ELSE '' END AS result_text,
                clue_id, required_item_id, required_role_slot_id,
                sequence, metadata, created_at AS sort_created_at
         FROM investigation_points
-        WHERE world_id = $1 AND EXISTS (SELECT 1 FROM world_row)
+        WHERE world_id = $1
+          AND (SELECT can_read_operational_content FROM world_row)
       ) point_row
     ), '[]'::jsonb) AS investigation_points,
     COALESCE((
@@ -107,11 +115,12 @@ export const STUDIO_SNAPSHOT_SQL = `
       )
       FROM (
         SELECT id, name, public_text,
-               CASE WHEN (SELECT can_read_draft_content FROM world_row)
+               CASE WHEN (SELECT can_read_operational_content FROM world_row)
                     THEN host_text ELSE '' END AS host_text,
                metadata, created_at AS sort_created_at
         FROM items
-        WHERE world_id = $1 AND EXISTS (SELECT 1 FROM world_row)
+        WHERE world_id = $1
+          AND (SELECT can_read_operational_content FROM world_row)
       ) item_row
     ), '[]'::jsonb) AS items,
     COALESCE((
@@ -123,7 +132,8 @@ export const STUDIO_SNAPSHOT_SQL = `
         SELECT id, from_type, from_id, to_type, to_id,
                relation_type, label, created_at AS sort_created_at
         FROM story_graph_edges
-        WHERE world_id = $1 AND EXISTS (SELECT 1 FROM world_row)
+        WHERE world_id = $1
+          AND (SELECT can_read_operational_content FROM world_row)
       ) edge_row
     ), '[]'::jsonb) AS edges,
     COALESCE((
@@ -131,7 +141,8 @@ export const STUDIO_SNAPSHOT_SQL = `
       FROM (
         SELECT id, label, created_at
         FROM content_versions
-        WHERE world_id = $1 AND EXISTS (SELECT 1 FROM world_row)
+        WHERE world_id = $1
+          AND (SELECT can_read_draft_content FROM world_row)
         ORDER BY created_at DESC
         LIMIT 12
       ) version_row
@@ -142,7 +153,10 @@ export const STUDIO_SNAPSHOT_SQL = `
         ORDER BY room_row.sort_created_at DESC
       )
       FROM (
-        SELECT r.id, r.name, r.status, r.invite_code, r.public_listing,
+        SELECT r.id, r.name, r.status,
+               CASE WHEN (SELECT membership_role FROM world_row) IN ('owner', 'editor', 'host')
+                    THEN r.invite_code ELSE NULL END AS invite_code,
+               r.public_listing,
                r.created_at AS sort_created_at
         FROM rooms r
         WHERE r.world_id = $1
@@ -162,11 +176,14 @@ function asDate(value) {
 export async function queryStudioSnapshot({ worldId, actorId, client = null }) {
   const result = await run(client)(STUDIO_SNAPSHOT_SQL, [worldId, actorId]);
   const row = result.rows[0] ?? {};
-  const world = row.world
+  const projectedWorld = projectWorldForMembership(row.world);
+  const world = projectedWorld
     ? {
-        ...row.world,
-        catalog_review_submitted_at: asDate(row.world.catalog_review_submitted_at),
-        content_revision: Number(row.world.content_revision ?? 1)
+        ...projectedWorld,
+        ...(projectedWorld.catalog_review_submitted_at == null
+          ? {}
+          : { catalog_review_submitted_at: asDate(projectedWorld.catalog_review_submitted_at) }),
+        content_revision: Number(projectedWorld.content_revision ?? 1)
       }
     : null;
   return {

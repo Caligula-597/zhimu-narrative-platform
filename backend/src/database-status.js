@@ -7,7 +7,8 @@ const REQUIRED_TABLES = [
   "platform_event_journal",
   "event_outbox",
   "checkpoint_restores",
-  "auth_account_creation_events"
+  "auth_account_creation_events",
+  "creator_review_threads"
 ];
 const REQUIRED_MIGRATIONS = [
   "084_room_creation_idempotency.sql",
@@ -16,7 +17,8 @@ const REQUIRED_MIGRATIONS = [
   "087_room_members_role_active_index.sql",
   "088_auth_account_creation_events.sql",
   "089_auth_account_creation_events_indexes.sql",
-  "090_auth_account_creation_events_user_index.sql"
+  "090_auth_account_creation_events_user_index.sql",
+  "091_creator_review_workflow.sql"
 ];
 
 export function inspectRequiredDatabaseSchema({ tableNames = [], migrationNames = [] } = {}) {

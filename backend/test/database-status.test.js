@@ -9,7 +9,8 @@ const requiredTables = [
   "platform_event_journal",
   "event_outbox",
   "checkpoint_restores",
-  "auth_account_creation_events"
+  "auth_account_creation_events",
+  "creator_review_threads"
 ];
 const requiredMigrations = [
   "084_room_creation_idempotency.sql",
@@ -18,7 +19,8 @@ const requiredMigrations = [
   "087_room_members_role_active_index.sql",
   "088_auth_account_creation_events.sql",
   "089_auth_account_creation_events_indexes.sql",
-  "090_auth_account_creation_events_user_index.sql"
+  "090_auth_account_creation_events_user_index.sql",
+  "091_creator_review_workflow.sql"
 ];
 
 test("database readiness requires the current creator and identity migrations", () => {

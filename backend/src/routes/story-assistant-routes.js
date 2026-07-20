@@ -1,6 +1,6 @@
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
-import { requireWorldRole, requireWorldReader } from "./route-guards.js";
+import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import { createLlmContextPreHandler } from "./llm-route-hook.js";
 import { fetchUserLlmPreferences, resolveLlmRuntime } from "../user-llm.js";
 import {
@@ -316,7 +316,7 @@ export async function registerStoryAssistantRoutes(app) {
   app.get("/api/worlds/:worldId/story-manuscript", async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
     return loadStoryManuscript(worldId);
   });
 

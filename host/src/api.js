@@ -122,9 +122,15 @@ export const api = {
   triggerManualRule: (ruleId) => request(roomPath(`/rules/${ruleId}/trigger`), { method: "POST", idempotent: true }),
 
   hostGrantClue: (payload) => request(roomPath("/host/grant-clue"), { method: "POST", body: payload, idempotent: true }),
+  hostRevokeClue: (payload) => request(roomPath("/host/revoke-clue"), { method: "POST", body: payload, idempotent: true }),
+  hostResendClue: (payload) => request(roomPath("/host/resend-clue"), { method: "POST", body: payload, idempotent: true }),
   hostGrantItem: (payload) => request(roomPath("/host/grant-item"), { method: "POST", body: payload, idempotent: true }),
   hostUnlockSection: (payload) =>
     request(roomPath("/host/unlock-section"), { method: "POST", body: payload, idempotent: true }),
+  hostRelockSection: (payload) =>
+    request(roomPath("/host/relock-section"), { method: "POST", body: payload, idempotent: true }),
+  hostSkipSection: (payload) =>
+    request(roomPath("/host/skip-section"), { method: "POST", body: payload, idempotent: true }),
   hostUnlockScene: (sceneId) => request(roomPath(`/scenes/${sceneId}/unlock`), { method: "POST", idempotent: true }),
   hostAddLog: (payload) => request(roomPath("/host/log"), { method: "POST", body: payload, idempotent: true }),
   hostNudgeWaiting: (payload) => request(roomPath("/host/nudge-waiting"), { method: "POST", body: payload, idempotent: true }),

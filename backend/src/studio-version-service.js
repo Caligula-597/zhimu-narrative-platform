@@ -10,7 +10,7 @@ import {
   restoreVersionSections,
   snapshotHasForeignReferences
 } from "./repositories/studio-version-repository.js";
-import { buildWorldSnapshot } from "./routes/world-chapter-service.js";
+import { buildWorldArchiveSnapshot } from "./routes/world-chapter-service.js";
 import { runRevisionMutation } from "./world-revision.js";
 
 const MAX_CONTENT_VERSIONS_PER_WORLD = 50;
@@ -53,7 +53,7 @@ export function addStudioVersion({ request, reply, actorId, worldId, label }) {
     if (await countContentVersions(client, worldId) >= MAX_CONTENT_VERSIONS_PER_WORLD) {
       throwErr("CONTENT_VERSION_LIMIT_REACHED");
     }
-    const snapshot = await buildWorldSnapshot(worldId, client);
+    const snapshot = await buildWorldArchiveSnapshot(worldId, client);
     const snapshotBytes = Buffer.byteLength(JSON.stringify(snapshot), "utf8");
     if (snapshotBytes > MAX_CONTENT_VERSION_BYTES) throwErr("CONTENT_VERSION_TOO_LARGE");
     return createContentVersion(client, { worldId, actorId, label, snapshot });

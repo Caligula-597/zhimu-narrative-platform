@@ -7,6 +7,7 @@ import { LOGLINE_TEMPLATE, newSparkId } from "../views/creator-cockpit-model.js"
 import { clueGrantsFromText } from "../views/creator-cockpit-segment.js";
 import { normalizeSegmentOperations } from "shared/segment-contract.js";
 import { callView } from "./view-registry.js";
+import { ownsCreatorCockpitAction } from "./action-ownership.js";
 import { callRuntime } from "./runtime-facade.js";
 
 const showError = (error, fallback = "操作失败") => showToast(normalizeError(error, fallback));
@@ -40,6 +41,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
   }
 
   async function handleCreatorCockpitAction(action, el) {
+    if (!ownsCreatorCockpitAction(action)) return false;
     const worldId = zhimuApi.context.worldId;
     if (!worldId && action !== "cockpit-refresh") {
       showToast("请先选择剧本");

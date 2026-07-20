@@ -45,7 +45,7 @@ function mapRow(type, row) {
 }
 
 /**
- * World-scoped search. Owner/editor searches all draft authoring material;
+ * World-scoped search. Owner/editor/reviewer searches all draft authoring material;
  * host/viewer searches only non-draft content plus non-author knowledge chunks.
  */
 export async function searchWorldContent(worldId, { q, limit = 30, type = "all", includeDraftContent = true } = {}) {

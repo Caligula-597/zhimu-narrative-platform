@@ -1,5 +1,7 @@
 # 织幕 · 主持端（host）工程说明
 
+临场补发、撤回、跳过和「某玩家现在知道什么」的产品边界与验收要求，见 [商业作者工作流与稿件安全](./COMMERCIAL_CREATOR_WORKFLOW_ZH.md#5-主持人的临场自由)。
+
 > **架构**：创作者 = `app.getzhimu.com` · 玩家 = `play.getzhimu.com` · **主持 = `host.getzhimu.com`**
 
 ---

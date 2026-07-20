@@ -31,6 +31,25 @@ test("role-targeted events are not delivered to another player", () => {
     source: "shared_room"
   }, player);
   assert.equal(visible.event?.clueName, "shared clue");
+
+  for (const type of ["room.clue_revoked", "room.clue_resent", "room.section_relocked", "room.section_skipped"]) {
+    const hiddenOverride = projectRoomEventForAudience({
+      type,
+      clueId: "clue-2",
+      sectionId: "section-2",
+      roleSlotId: "role-2",
+      source: "host_manual"
+    }, player);
+    const visibleOverride = projectRoomEventForAudience({
+      type,
+      clueId: "clue-1",
+      sectionId: "section-1",
+      roleSlotId: "role-1",
+      source: "host_manual"
+    }, player);
+    assert.equal(hiddenOverride.event, null, `${type} must stay private to its target role`);
+    assert.equal(visibleOverride.event?.type, type);
+  }
 });
 
 test("private nudges, actions and voice activity enforce their explicit audience", () => {

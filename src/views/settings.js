@@ -10,6 +10,7 @@ import { closeModal } from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
 import { setHtml } from "../../shared/safe-dom.js";
+import { normalizeCreationType } from "../../shared/creator-terminology.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatRelativeTime = F.formatRelativeTime || (() => "");
@@ -57,6 +58,48 @@ import { setHtml } from "../../shared/safe-dom.js";
     return `<div class="form-group" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line, #ece7df)"><label>剧本封面</label><p class="muted-note">公开大厅、公开剧本库和玩家入口会优先展示这里指定的图片；未指定时使用本世界最早上传的图片。</p>${preview ? `<figure class="cover-preview"><img src="${escapeHtml(preview)}" alt="剧本封面预览" loading="lazy"></figure>` : ""}<div class="row" style="align-items:center;gap:10px"><select class="field" style="min-width:240px" data-action="set-world-cover" data-asset-select ${canEdit && images.length ? "" : "disabled"}><option value="">${images.length ? "选择已有图片" : "暂无图片资产"}</option>${options}</select><button type="button" class="secondary-btn" data-action="upload-world-cover" ${canEdit ? "" : "disabled"}>上传封面</button>${coverId ? `<button type="button" class="text-btn" data-action="clear-world-cover" ${canEdit ? "" : "disabled"}>清除封面</button>` : ""}</div><p class="muted-note">仍可在「内容资产」管理附件下载、回收站与其它文件类型。</p></div>`;
   }
 
+  function commercialProfilePanel(world, canEdit) {
+    const settings = world?.settings || {};
+    const profile = settings.commercialProfile || {};
+    const disabled = canEdit ? "" : "disabled";
+    const selected = (value, expected) => value === expected ? "selected" : "";
+    const longFields = new Set(["copyrightSource"]);
+    const field = (key, label, placeholder = "", type = "text") => `<label>${escapeHtml(label)}</label><input class="field" type="${type}" data-commercial-field="${key}" value="${escapeHtml(profile[key] || "")}" placeholder="${escapeHtml(placeholder)}" maxlength="${longFields.has(key) ? 2000 : 300}" ${disabled}>`;
+    return `<section class="form-group" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line, #ece7df)">
+      <div class="section-head"><div><h4 style="margin:0">创作类型与商业备案资料</h4><p class="muted-note" style="margin:4px 0 0">用于术语切换、交付归档和线下备案准备；不会自动向主管部门提交。</p></div></div>
+      <label>创作类型</label>
+      <select class="field" id="settings-creation-type" ${disabled}>
+        <option value="murder_mystery" ${selected(normalizeCreationType(settings.creationType), "murder_mystery")}>剧本杀（角色本 / 公共幕 / 线索 / 主持人）</option>
+        <option value="tabletop_rpg" ${selected(normalizeCreationType(settings.creationType), "tabletop_rpg")}>桌面角色扮演（HO / 模组 / KP）</option>
+        <option value="interactive_story" ${selected(normalizeCreationType(settings.creationType), "interactive_story")}>互动叙事（角色 / 章节 / 场景）</option>
+      </select>
+      ${field("authorName", "作者 / 编剧", "作者实名或笔名")}
+      ${field("copyrightSource", "著作权来源", "原创、授权改编或版权方及授权范围")}
+      ${field("registrationNumber", "备案编号 / 剧本编号（选填）", "尚未备案可留空")}
+      ${field("theme", "主题", "如悬疑、情感、历史")}
+      ${field("category", "类型 / 品类", "如本格、还原、阵营、跑团模组")}
+      ${field("versionLabel", "对外版本", "如 1.0、发行修订版")}
+      <label>建议适龄范围</label>
+      <select class="field" data-commercial-field="ageRating" ${disabled}>
+        <option value="" ${selected(profile.ageRating || "", "")}>未评定</option>
+        <option value="12+" ${selected(profile.ageRating, "12+")}>12+</option>
+        <option value="16+" ${selected(profile.ageRating, "16+")}>16+</option>
+        <option value="18+" ${selected(profile.ageRating, "18+")}>18+</option>
+      </select>
+      <label>内容自审状态</label>
+      <select class="field" data-commercial-field="selfReviewStatus" ${disabled}>
+        <option value="not_started" ${selected(profile.selfReviewStatus || "not_started", "not_started")}>未开始</option>
+        <option value="in_review" ${selected(profile.selfReviewStatus, "in_review")}>自审中</option>
+        <option value="passed" ${selected(profile.selfReviewStatus, "passed")}>已通过自审</option>
+        <option value="needs_changes" ${selected(profile.selfReviewStatus, "needs_changes")}>需修改</option>
+      </select>
+      <label>内容自审说明</label><textarea class="field" data-commercial-field="selfReviewNotes" rows="3" maxlength="4000" placeholder="记录敏感内容、处理结论、审稿责任人和依据" ${disabled}>${escapeHtml(profile.selfReviewNotes || "")}</textarea>
+      ${field("materialChangeDate", "最近实质修改日期", "", "date")}
+      ${field("filingUpdatedDate", "最近备案更新日期", "", "date")}
+      <p class="muted-note">这些字段用于归档和提醒，不构成法律意见，也不能替代属地主管部门要求的备案、自审或更新流程。</p>
+    </section>`;
+  }
+
 export function settings(){
  const worldId=zhimuApi.context.worldId;
  const studioWorld=studioStore.get().cloudStudio?.world;
@@ -70,7 +113,7 @@ export function settings(){
  const canAudit=["owner","editor","host"].includes(world?.membership_role);
  const editHint=canEditWorld?"":"<p class=\"muted-note\">仅主创作者或编辑协作者可修改剧本名称与简介。</p>";
  return `${deleteWorldPanel(world)}
- <section class="rules-layout"><article class="card"><div class="section-head"><div><h3>剧本信息</h3><p>名称与简介会展示在侧栏、总览与玩家入口${roleLabel?` · 你在本剧本的身份：<strong>${escapeHtml(roleLabel)}</strong>`:""}</p></div></div><div class="form-group"><label>剧本名称</label><input class="field" id="settings-world-name" value="${escapeHtml(world?.name||"")}" ${canEditWorld?"":"readonly"} placeholder="例如：午夜列车"><label>剧本简介</label><textarea class="field" id="settings-world-summary" rows="3" ${canEditWorld?"":"readonly"} placeholder="一句话介绍题材与氛围">${escapeHtml(world?.summary||"")}</textarea><label>真相结论（局后复盘）</label><textarea class="field" id="settings-recap-truth" rows="4" ${canEditWorld?"":"readonly"} placeholder="本局结束后向玩家展示的真相总结；留空则根据结局规则与推进记录自动生成">${escapeHtml(world?.settings?.recapTruthSummary||"")}</textarea><p class="muted-note">章节与场景的「复盘公开摘要」请在剧情编排台选中节点编辑。</p><label>角色席位数</label><input class="field" value="${String(studioStore.get().cloudStudio?.roles?.length||0)}" readonly>${worldCoverPanel(world, canEditWorld)}${editHint}${owner?catalogReviewPanel(world):""}<button class="primary-btn" style="margin-top:14px" data-action="save-world-settings" ${canEditWorld?"":"disabled"}>保存剧本信息</button></div></article>
+ <section class="rules-layout"><article class="card"><div class="section-head"><div><h3>剧本信息</h3><p>名称与简介会展示在侧栏、总览与玩家入口${roleLabel?` · 你在本剧本的身份：<strong>${escapeHtml(roleLabel)}</strong>`:""}</p></div></div><div class="form-group"><label>剧本名称</label><input class="field" id="settings-world-name" value="${escapeHtml(world?.name||"")}" ${canEditWorld?"":"readonly"} placeholder="例如：午夜列车"><label>剧本简介</label><textarea class="field" id="settings-world-summary" rows="3" ${canEditWorld?"":"readonly"} placeholder="一句话介绍题材与氛围">${escapeHtml(world?.summary||"")}</textarea><label>真相结论（局后复盘）</label><textarea class="field" id="settings-recap-truth" rows="4" ${canEditWorld?"":"readonly"} placeholder="本局结束后向玩家展示的真相总结；留空则根据结局规则与推进记录自动生成">${escapeHtml(world?.settings?.recapTruthSummary||"")}</textarea><p class="muted-note">章节与场景的「复盘公开摘要」请在剧情编排台选中节点编辑。</p><label>角色席位数</label><input class="field" value="${String(studioStore.get().cloudStudio?.roles?.length||0)}" readonly>${commercialProfilePanel(world, canEditWorld)}${worldCoverPanel(world, canEditWorld)}${editHint}${owner?catalogReviewPanel(world):""}<button class="primary-btn" style="margin-top:14px" data-action="save-world-settings" ${canEditWorld?"":"disabled"}>保存剧本信息</button></div></article>
  <article class="card"><div class="section-head"><div><h3>运行房选项</h3><p>${room?`当前平行房：${escapeHtml(room.name)}`:"请先在总览中选择平行运行房"}</p></div></div><div class="form-group"><label class="check-label"><input type="checkbox" id="settings-host-voice-listen" ${roomSettings.hostVoiceListen?"checked":""} ${room?"":"disabled"}><span><strong>主持人可旁听私密语音房</strong><small>开启后，主持人在未受邀的情况下仍可进入私密语音房旁听（不可发言）。</small></span></label><button class="primary-btn" style="margin-top:14px" data-action="save-room-settings" ${room?"":"disabled"}>保存运行房选项</button></div></article>
  ${canEditWorld?`<article class="card"><div class="section-head"><div><h3>内容标签</h3><p>公开剧本库 faceted 筛选（人数、难度等），上架后玩家可按标签浏览。</p></div><button class="secondary-btn" data-action="open-world-tags">编辑标签</button></div></article>
  <article class="card"><div class="section-head"><div><h3>主持运行段落</h3><p>把章节、核心事实与人物关系整理成主持人可执行的一幕，不替换角色私人剧情。</p></div><div class="row"><button class="secondary-btn" data-go="structure">运行段落工作台</button><button class="secondary-btn" data-go="truth">谜底与关系</button></div></div></article>
@@ -86,10 +129,16 @@ export function settings(){
  const name=document.getElementById("settings-world-name")?.value?.trim();
  const summary=document.getElementById("settings-world-summary")?.value?.trim()||"";
  const recapTruthSummary=document.getElementById("settings-recap-truth")?.value?.trim()||"";
+ const creationType=normalizeCreationType(document.getElementById("settings-creation-type")?.value);
+ const commercialProfile={};
+ document.querySelectorAll("[data-commercial-field]").forEach((input)=>{
+  commercialProfile[input.dataset.commercialField]=input.value?.trim?.()||"";
+ });
  if(!name)return showToast("请填写剧本名称");
  const revision=window.zhimuWorldRevision?.currentRevision?.(worldId);
  try{
-  const updated=await zhimuApi.patchWorld({name,summary,settings:{recapTruthSummary}},worldId,{revision});
+  const nextSettings={recapTruthSummary,creationType,commercialProfile};
+  const updated=await zhimuApi.patchWorld({name,summary,settings:nextSettings},worldId,{revision});
   const cloudStudio=studioStore.get().cloudStudio;
   if(cloudStudio?.world?.id===worldId){
    studioStore.set({
@@ -99,14 +148,14 @@ export function settings(){
       ...cloudStudio.world,
       name,
       summary,
-      settings:{...(cloudStudio.world.settings||{}),recapTruthSummary},
+      settings:{...(cloudStudio.world.settings||{}),...nextSettings},
       content_revision:updated.content_revision??cloudStudio.world.content_revision
      }
     }
    });
   }
   worldStore.set({
-   cloudWorlds:(worldStore.get().cloudWorlds||[]).map((w)=>w.id===worldId?{...w,name,summary,settings:{...(w.settings||{}),recapTruthSummary}}:w)
+   cloudWorlds:(worldStore.get().cloudWorlds||[]).map((w)=>w.id===worldId?{...w,name,summary,settings:{...(w.settings||{}),...nextSettings}}:w)
   });
   window.zhimuNavShell?.syncWorldSwitcher?.();
   await loadCloudData();

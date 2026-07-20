@@ -3,6 +3,7 @@ import { worldIdParams } from "./world.js";
 
 const optionalUuid = { anyOf: [uuid, { type: "null" }] };
 const publicationStatus = { type: "string", enum: ["draft", "testing", "published"] };
+const creationType = { type: "string", enum: ["murder_mystery", "tabletop_rpg", "interactive_story"] };
 
 export const parseDocumentSchema = {
   params: worldIdParams,
@@ -16,9 +17,25 @@ export const parseDocumentSchema = {
       dataBase64: { type: "string", minLength: 1, maxLength: 7_000_000 },
       contentBase64: { type: "string", minLength: 1, maxLength: 7_000_000 },
       parseMode: { type: "string", enum: ["auto", "pages", "text"] },
-      allowOcr: { type: "boolean" }
+      allowOcr: { type: "boolean" },
+      rightsConfirmed: { type: "boolean", const: true },
+      creationType
     },
     anyOf: [{ required: ["dataBase64"] }, { required: ["contentBase64"] }]
+  }
+};
+
+export const parseFeishuDocumentSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["url"],
+    properties: {
+      url: { type: "string", minLength: 20, maxLength: 2_000, format: "uri" },
+      rightsConfirmed: { type: "boolean", const: true },
+      creationType
+    }
   }
 };
 
@@ -38,7 +55,8 @@ export const importDocumentPagesSchema = {
       layout: { type: "string", enum: ["single_section", "one_section_per_page"] },
       publicationStatus,
       parseMode: { type: "string", enum: ["auto", "pages", "text"] },
-      allowOcr: { type: "boolean" }
+      allowOcr: { type: "boolean" },
+      rightsConfirmed: { type: "boolean", const: true }
     },
     anyOf: [{ required: ["dataBase64"] }, { required: ["contentBase64"] }]
   }
@@ -51,8 +69,10 @@ export const importDocumentSchema = {
     additionalProperties: false,
     required: ["target", "document"],
     properties: {
-      target: { type: "string", enum: ["manuscript", "role_script"] },
+      target: { type: "string", enum: ["manuscript", "role_script", "structured"] },
       roleSlotId: optionalUuid,
+      creationType,
+      rightsConfirmed: { type: "boolean", const: true },
       document: {
         type: "object",
         additionalProperties: false,

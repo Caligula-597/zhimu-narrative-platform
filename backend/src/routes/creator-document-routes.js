@@ -1,6 +1,7 @@
 import {
   importCreatorDocumentPages,
   importParsedCreatorDocument,
+  parseFeishuDocumentForWorld,
   parseCreatorDocumentForWorld
 } from "../creator-document-service.js";
 import { requireActor } from "../request-actor.js";
@@ -8,7 +9,8 @@ import { requireWorldRole } from "./route-guards.js";
 import {
   importDocumentPagesSchema,
   importDocumentSchema,
-  parseDocumentSchema
+  parseDocumentSchema,
+  parseFeishuDocumentSchema
 } from "./schemas/creator-document.js";
 
 export async function registerCreatorDocumentRoutes(app) {
@@ -16,6 +18,12 @@ export async function registerCreatorDocumentRoutes(app) {
     const actorId = requireActor(request);
     await requireWorldRole(actorId, request.params.worldId);
     return parseCreatorDocumentForWorld(request.body);
+  });
+
+  app.post("/api/worlds/:worldId/documents/feishu/parse", { schema: parseFeishuDocumentSchema }, async (request) => {
+    const actorId = requireActor(request);
+    await requireWorldRole(actorId, request.params.worldId, ["owner", "editor"]);
+    return parseFeishuDocumentForWorld(request.body);
   });
 
   app.post("/api/worlds/:worldId/documents/import", { schema: importDocumentSchema }, async (request, reply) => {

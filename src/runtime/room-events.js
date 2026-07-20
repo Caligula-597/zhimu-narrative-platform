@@ -130,6 +130,18 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
           else showToast(data.clueName ? `获得新线索：${data.clueName}` : "获得新线索", 2800);
         }
         break;
+      case "room.clue_revoked":
+      case "room.clue_resent":
+        if (view === "director" || view === "overview") {
+          await R.refreshHostPlayers?.(false, true);
+          await R.refreshHostClueMatrix?.(false, true);
+        } else if (view === "player" && data.roleSlotId === cloudPlayer?.role?.id) {
+          await refreshPlayerHome();
+          showToast(type === "room.clue_revoked"
+            ? (data.clueName ? `主持人已撤回线索：${data.clueName}` : "主持人已撤回一条线索")
+            : (data.clueName ? `主持人补发线索：${data.clueName}` : "主持人补发了一条线索"), 3000);
+        }
+        break;
       case "room.item_granted":
         if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
         else if (view === "player") {
@@ -181,6 +193,14 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         else if (view === "player") {
           await refreshPlayerHome();
           showToast("新分幕已解锁", 2800);
+        }
+        break;
+      case "room.section_relocked":
+      case "room.section_skipped":
+        if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
+        else if (view === "player" && data.roleSlotId === cloudPlayer?.role?.id) {
+          await refreshPlayerHome();
+          showToast(type === "room.section_relocked" ? "主持人已撤回一个分幕" : "主持人已跳过一个分幕并继续推进", 3000);
         }
         break;
       case "room.investigation_completed":

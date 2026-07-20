@@ -5,6 +5,7 @@ import { normalizeError } from "../components/status-ui.js";
 import { render } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 import { bibleField, loadTruthBibleTab } from "../views/truth-bible.js";
+import { ownsBibleAction } from "./action-ownership.js";
 
 const showError = (error, fallback = "操作失败") => showToast(normalizeError(error, fallback));
 
@@ -14,6 +15,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
   }
 
   async function handleBibleAction(action, el) {
+    if (!ownsBibleAction(action)) return false;
     const worldId = zhimuApi.context.worldId;
     if (!worldId && !action.startsWith("truth-tab")) {
       showToast("请先选择剧本");

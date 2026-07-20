@@ -14,6 +14,10 @@ import {
 import { hostPlayerNotesSchema } from "../src/routes/schemas/host-player-management.js";
 import {
   hostGrantClueSchema,
+  hostRelockSectionSchema,
+  hostResendClueSchema,
+  hostRevokeClueSchema,
+  hostSkipSectionSchema,
   hostUnlockSectionSchema
 } from "../src/routes/schemas/host-content-action.js";
 import {
@@ -52,8 +56,16 @@ import {
 import {
   importDocumentPagesSchema,
   importDocumentSchema,
-  parseDocumentSchema
+  parseDocumentSchema,
+  parseFeishuDocumentSchema
 } from "../src/routes/schemas/creator-document.js";
+import {
+  creatorReviewCreateSchema,
+  creatorReviewListSchema,
+  creatorReviewPatchSchema,
+  creatorReviewReplySchema,
+  creatorVersionCompareSchema
+} from "../src/routes/schemas/creator-review.js";
 import { deepseekPipelineSpecSchema } from "../src/routes/schemas/ai.js";
 import {
   createPhysicalTokensSchema,
@@ -80,7 +92,11 @@ const contracts = [
   ["SectionProgressResponse", sectionProgressResponseSchema],
   ["ReadClueParams", readClueSchema.params],
   ["HostGrantClueBody", hostGrantClueSchema.body],
+  ["HostRevokeClueBody", hostRevokeClueSchema.body],
+  ["HostResendClueBody", hostResendClueSchema.body],
   ["HostUnlockSectionBody", hostUnlockSectionSchema.body],
+  ["HostRelockSectionBody", hostRelockSectionSchema.body],
+  ["HostSkipSectionBody", hostSkipSectionSchema.body],
   ["HostNudgeWaitingBody", hostNudgeWaitingSchema.body],
   ["HostLogBody", hostLogSchema.body],
   ["HostPlayerNotesBody", hostPlayerNotesSchema.body],
@@ -105,8 +121,14 @@ const contracts = [
   ["CreateTruthClaimBody", createTruthClaimSchema.body],
   ["PatchTruthClaimBody", patchTruthClaimSchema.body],
   ["ParseDocumentBody", parseDocumentSchema.body],
+  ["ParseFeishuDocumentBody", parseFeishuDocumentSchema.body],
   ["ImportDocumentBody", importDocumentSchema.body],
   ["ImportDocumentPagesBody", importDocumentPagesSchema.body],
+  ["CreatorReviewListQuery", creatorReviewListSchema.querystring],
+  ["CreatorReviewCreateBody", creatorReviewCreateSchema.body],
+  ["CreatorReviewPatchBody", creatorReviewPatchSchema.body],
+  ["CreatorReviewReplyBody", creatorReviewReplySchema.body],
+  ["CreatorVersionCompareQuery", creatorVersionCompareSchema.querystring],
   ["CreateRuleBody", createRuleSchema.body],
   ["UpdateRuleBody", updateRuleSchema.body],
   ["DeepseekPipelineSpecBody", deepseekPipelineSpecSchema.body],

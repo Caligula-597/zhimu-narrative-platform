@@ -1,7 +1,7 @@
 import { evaluateClueAudit } from "../clue-audit.js";
 import { buildWorldSnapshot } from "./world-helpers.js";
 import { loadWorldPublishReadiness } from "../world-readiness-service.js";
-import { requireWorldReader } from "./route-guards.js";
+import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import { requireActor } from "../request-actor.js";
 import { worldIdParams } from "./schemas.js";
 
@@ -14,7 +14,7 @@ export async function registerWorldReadinessRoutes(app) {
     async (request, reply) => {
       const actorId = requireActor(request);
       const { worldId } = request.params;
-      await requireWorldReader(actorId, worldId);
+      await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
       try {
         const result = await loadWorldPublishReadiness(worldId);
         return {
@@ -39,7 +39,7 @@ export async function registerWorldReadinessRoutes(app) {
     async (request, reply) => {
       const actorId = requireActor(request);
       const { worldId } = request.params;
-      await requireWorldReader(actorId, worldId);
+      await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
       try {
         const snapshot = await buildWorldSnapshot(worldId);
         return {
@@ -64,7 +64,7 @@ export async function registerWorldReadinessRoutes(app) {
     async (request, reply) => {
       const actorId = requireActor(request);
       const { worldId } = request.params;
-      await requireWorldReader(actorId, worldId);
+      await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
       try {
         const result = await loadWorldPublishReadiness(worldId);
         return {
@@ -101,7 +101,7 @@ export async function registerWorldReadinessRoutes(app) {
       const actorId = requireActor(request);
       const { worldId } = request.params;
       const { roomId = null } = request.query ?? {};
-      await requireWorldReader(actorId, worldId);
+      await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
       try {
         const { buildSegmentCompletion } = await import("../segment-completion.js");
         return await buildSegmentCompletion({ worldId, actorId, roomId: roomId || null });
@@ -135,7 +135,7 @@ export async function registerWorldReadinessRoutes(app) {
       const actorId = requireActor(request);
       const { worldId } = request.params;
       const { roomId = null } = request.query ?? {};
-      await requireWorldReader(actorId, worldId);
+      await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
       try {
         const { buildClueHitRate } = await import("../clue-hit-rate.js");
         return await buildClueHitRate({ worldId, actorId, roomId: roomId || null });
@@ -169,7 +169,7 @@ export async function registerWorldReadinessRoutes(app) {
       const actorId = requireActor(request);
       const { worldId } = request.params;
       const { roomId = null } = request.query ?? {};
-      await requireWorldReader(actorId, worldId);
+      await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
       try {
         const { buildCreatorDashboard } = await import("../creator-dashboard.js");
         return await buildCreatorDashboard({ worldId, actorId, roomId: roomId || null });

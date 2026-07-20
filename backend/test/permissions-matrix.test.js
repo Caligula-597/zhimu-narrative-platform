@@ -156,17 +156,18 @@ test("permission matrix - viewer studio read is redacted and cannot search draft
   assert.equal(studio.statusCode, 200, studio.body);
   const studioBody = studio.json();
   assert.equal(studioBody.roles[0].private_profile, "");
-  assert.equal(studioBody.sections.length, 1);
-  assert.equal(studioBody.sections[0].body, "");
-  assert.equal(studioBody.sections[0].publication_status, "testing");
+  // Catalog viewers only get public role profiles; operational studio content stays internal.
+  assert.equal(studioBody.sections.length, 0);
+  assert.equal(studioBody.chapters?.length ?? 0, 0);
+  assert.equal(studioBody.scenes?.length ?? 0, 0);
+  assert.equal(studioBody.clues?.length ?? 0, 0);
 
   const searchDraft = await app.inject({
     method: "GET",
     url: `/api/worlds/${worldId}/search?q=${encodeURIComponent("不可搜索草稿正文")}`,
     headers: { "x-user-id": playerUserId }
   });
-  assert.equal(searchDraft.statusCode, 200, searchDraft.body);
-  assert.equal(searchDraft.json().results.length, 0);
+  assert.equal(searchDraft.statusCode, 403, searchDraft.body);
 });
 
 async function createAuditWorld(suffix, extraMembers = []) {

@@ -9,6 +9,7 @@ import {
   deliveryExportModalHtml,
   plainTextImportPreviewHtml,
   storyAssistantModalHtml,
+  storyManuscriptModalHtml,
   worldLogModalHtml
 } from "../src/views/writer-modal-templates.js";
 
@@ -19,6 +20,13 @@ test("writer modal templates preserve required interaction hooks", () => {
   assert.match(publishImpactModalHtml(htmlFragment("<select data-safe-control></select>")), /data-impact-body/);
   assert.match(deliveryExportModalHtml(), /data-delivery-run/);
   assert.match(plainTextImportPreviewHtml(), /Markdown \/ TXT/);
+  const readOnlyManuscript = storyManuscriptModalHtml({
+    bodyHtml: htmlFragment("private manuscript"),
+    statusHtml: htmlFragment("saved"),
+    readOnly: true
+  });
+  assert.match(readOnlyManuscript, /data-story-manuscript readonly/);
+  assert.doesNotMatch(readOnlyManuscript, /data-manuscript-save/);
 });
 
 test("writer template fragment slots reject unreviewed raw strings", () => {

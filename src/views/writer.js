@@ -15,6 +15,7 @@ import { handleApiErrorToast } from "../utils/user-messages.js";
 import { renderRoleArchiveFields, archiveMapFromList } from "./role-archive-panel.js";
 import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
 import { evaluatePublishImpact } from "../../shared/publish-impact-preview.js";
+import { creatorTerms, normalizeCreationType } from "../../shared/creator-terminology.js";
 import {
   creatorPreviewModalHtml as renderCreatorPreviewModalHtml,
   creatorPreviewBodyHtml as renderCreatorPreviewBodyHtml,
@@ -35,9 +36,10 @@ import {
 const creatorPreviewModalHtml = (controlsHtml) => renderCreatorPreviewModalHtml(htmlFragment(controlsHtml));
 const publishImpactModalHtml = (controlsHtml) => renderPublishImpactModalHtml(htmlFragment(controlsHtml));
 const documentParserModalHtml = (roleOptionsHtml) => renderDocumentParserModalHtml(htmlFragment(roleOptionsHtml));
-const storyManuscriptModalHtml = ({ bodyHtml, statusHtml }) => renderStoryManuscriptModalHtml({
+const storyManuscriptModalHtml = ({ bodyHtml, statusHtml, readOnly = false }) => renderStoryManuscriptModalHtml({
   bodyHtml: htmlFragment(bodyHtml),
-  statusHtml: htmlFragment(statusHtml)
+  statusHtml: htmlFragment(statusHtml),
+  readOnly
 });
 const collaborationModalHtml = ({ memberRowsHtml, pendingRowsHtml }) => renderCollaborationModalHtml({
   memberRowsHtml: htmlFragment(memberRowsHtml),
@@ -117,31 +119,32 @@ function writerRoleRailHtml(roles, sections, selectedRoleId) {
 }
 
 function writerRoleWorkspaceHtml(data, selectedRole, archive, statusName) {
-  if (!selectedRole) return `<div class="empty-state">尚无角色席位。新增角色后即可建立档案和私人剧本。</div>`;
+  const terms = creatorTerms(data.world?.settings?.creationType);
+  const canEdit = Boolean(U.canEditWorldContent?.(data.world));
+  if (!selectedRole) return `<div class="empty-state">尚无角色席位。${canEdit ? "新增角色后即可建立档案和私人剧本。" : "当前没有可供审阅的角色内容。"}</div>`;
   const sections = data.sections
     .filter((section) => section.role_slot_id === selectedRole.id)
     .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
   const status = roleSectionStatus(sections);
-  const archiveBody = renderRoleArchiveFields(selectedRole, archive);
+  const archiveBody = renderRoleArchiveFields(selectedRole, archive, { readOnly: !canEdit });
   const sectionRows = sections.map((section) => {
     const meta = typeof section.metadata === "object" ? section.metadata : {};
     const summary = meta.contentMode === "pages"
       ? `图片分幕 · ${meta.pageCount || meta.pageAssetIds?.length || "?"} 页`
       : `${section.body.slice(0, 100)}${section.body.length > 100 ? "..." : ""}`;
     const statusKey = section.publication_status || "draft";
-    return `<div class="manuscript-row"><div><strong>${section.sequence}. ${escapeHtml(section.title)}</strong><p>${escapeHtml(summary || "尚未填写正文")}</p></div><span class="status-chip ${escapeHtml(statusKey)}">${statusName[statusKey] || "草稿"}</span><button class="secondary-btn" data-action="creator-edit-section" data-role="${escapeHtml(selectedRole.id)}" data-section="${escapeHtml(section.id)}">编辑</button></div>`;
+    return `<div class="manuscript-row"><div><strong>${section.sequence}. ${escapeHtml(section.title)}</strong><p>${escapeHtml(summary || "尚未填写正文")}</p></div><span class="status-chip ${escapeHtml(statusKey)}">${statusName[statusKey] || "草稿"}</span>${canEdit ? `<button class="secondary-btn" data-action="creator-edit-section" data-role="${escapeHtml(selectedRole.id)}" data-section="${escapeHtml(section.id)}">编辑</button>` : ""}</div>`;
   }).join("");
-  return `<section class="writer-role-editor" aria-label="${escapeHtml(selectedRole.name)}角色工作台">
+  return `<section class="writer-role-editor" aria-label="${escapeHtml(selectedRole.name)}${escapeHtml(terms.roleShort)}工作台">
     <header class="writer-role-head">
       <div>
-        <p class="section-kicker">当前角色</p>
+        <p class="section-kicker">当前${escapeHtml(terms.roleShort)}</p>
         <h3>${escapeHtml(selectedRole.name)}</h3>
         <p>${escapeHtml(selectedRole.public_profile || "尚未补充公开身份")}</p>
       </div>
       <div class="row writer-role-actions">
         <button class="secondary-btn" data-action="creator-preview" data-role="${escapeHtml(selectedRole.id)}">玩家视角预览</button>
-        <button class="secondary-btn" data-action="creator-edit-role" data-role="${escapeHtml(selectedRole.id)}">编辑基础信息</button>
-        <button class="primary-btn" data-action="creator-add-section" data-role="${escapeHtml(selectedRole.id)}">＋ 新增一幕</button>
+        ${canEdit ? `<button class="secondary-btn" data-action="creator-edit-role" data-role="${escapeHtml(selectedRole.id)}">编辑基础信息</button><button class="primary-btn" data-action="creator-add-section" data-role="${escapeHtml(selectedRole.id)}">＋ 新增一幕</button>` : ""}
       </div>
     </header>
     <div class="writer-role-status" aria-label="私人分幕发布概况">
@@ -151,7 +154,7 @@ function writerRoleWorkspaceHtml(data, selectedRole, archive, statusName) {
       <span><b>${status.published}</b>已发布</span>
     </div>
     ${collapsibleCard({ id: `writer:archive:${selectedRole.id}`, title: "角色档案", subtitle: "创作侧人物动机、秘密与弧光；保存后供创作工作台复用", body: archiveBody, defaultOpen: false, className: "writer-role-module", nested: true })}
-    ${collapsibleCard({ id: `writer:role:${selectedRole.id}`, title: "私人分幕", subtitle: "玩家只会读取被分配角色且符合房间发布状态的内容", headerExtra: `<button class="primary-btn" data-action="creator-add-section" data-role="${escapeHtml(selectedRole.id)}">＋ 新增一幕</button>`, body: `<div class="manuscript-list">${sectionRows || `<div class="empty-state">尚无正文。先新增角色序章或第一幕。</div>`}</div>`, defaultOpen: true, className: "writer-role-module", nested: true })}
+    ${collapsibleCard({ id: `writer:role:${selectedRole.id}`, title: "私人分幕", subtitle: "玩家只会读取被分配角色且符合房间发布状态的内容", headerExtra: canEdit ? `<button class="primary-btn" data-action="creator-add-section" data-role="${escapeHtml(selectedRole.id)}">＋ 新增一幕</button>` : "", body: `<div class="manuscript-list">${sectionRows || `<div class="empty-state">尚无正文。${canEdit ? "先新增角色序章或第一幕。" : ""}</div>`}</div>`, defaultOpen: true, className: "writer-role-module", nested: true })}
   </section>`;
 }
 
@@ -189,33 +192,39 @@ export async function loadWriterRoleArchives({ force = false } = {}) {
 export function writer(){
  const data=studioStore.get().cloudStudio;
  if(!data)return U.creatorWorkspaceEmpty?.({title:"剧本杀创作中心",kicker:"SCRIPTED MYSTERY CREATOR",intro:"为每位玩家编写私人分幕，并控制公共章节的发布节奏。尚未选择剧本时，可先浏览公开库或创建新世界。",guideTitle:"开始创作",guideItems:[{label:"角色稿",title:"私人分幕正文",text:"每位玩家只看到自己的章节与秘密。",bullets:["按角色席位管理分幕","支持 Markdown","草稿 / 测试中 / 已发布"]},{label:"章节",title:"公共章节",text:"控制玩家何时能看到下一章信息。",bullets:["主持人确认或自动解锁","与规则引擎联动"]},{label:"工具",title:"导入导出与 AI",text:"备份、迁移与辅助生成剧情结构。",bullets:["内容包导入导出","AI 剧本创作向导"]}]})||`<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
+ const terms=creatorTerms(data.world?.settings?.creationType);
+ const membershipRole=data.world?.membership_role;
+ const canEdit=Boolean(U.canEditWorldContent?.(data.world));
+ const isReviewer=membershipRole==="reviewer";
  const statusName={draft:"草稿",testing:"测试中",published:"已发布"};
  const checks=worldStore.get().cloudCreatorChecks||[];
- const quickActions=`<div class="row writer-hero-actions"><button class="primary-btn" data-action="deepseek-pipeline">AI 剧本创作</button><button class="secondary-btn" data-action="story-manuscript">完整剧情</button><button class="secondary-btn" data-action="story-assistant">规则分类器</button><button class="secondary-btn" data-action="creator-import">导入内容</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="primary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`;
+ const quickActions=canEdit?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="deepseek-pipeline">AI 剧本创作</button><button class="secondary-btn" data-action="story-manuscript">完整剧情</button><button class="secondary-btn" data-action="story-assistant">规则分类器</button><button class="secondary-btn" data-action="creator-import">导入内容</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="primary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`:`<div class="row writer-hero-actions">${isReviewer?'<button class="primary-btn" data-action="creator-review">打开协作者审稿</button><button class="secondary-btn" data-action="story-manuscript">只读完整母稿</button>':""}<button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button></div>`;
  const archiveMap=archiveMapFromList(worldStore.get().cloudRoleArchives||[]);
  const selectedRoleId=data.roles.some((role)=>role.id===uiStore.get().writerSelectedRoleId)?uiStore.get().writerSelectedRoleId:data.roles[0]?.id||null;
  const selectedRole=data.roles.find((role)=>role.id===selectedRoleId)||null;
  const roleRail=writerRoleRailHtml(data.roles,data.sections,selectedRoleId);
  const roleWorkspace=writerRoleWorkspaceHtml(data,selectedRole,archiveMap[selectedRoleId],statusName);
- const chapterBody=data.chapters.map((chapter,index)=>`<div class="chapter-control"><div><strong>${chapter.sequence ?? index + 1}. ${chapter.title}</strong><p>${chapter.summary||"尚未补充章节摘要"}</p></div><span class="status-chip ${chapter.publication_status}">${statusName[chapter.publication_status]}</span><div class="row"><button class="text-btn" data-action="creator-edit-chapter" data-chapter="${chapter.id}">设置</button><button class="text-btn danger-text" data-action="creator-delete-chapter" data-chapter="${chapter.id}">删除</button></div></div>`).join("")||`<div class="empty-state">请先在剧情编排中新增章节。</div>`;
+ const chapterBody=data.chapters.map((chapter,index)=>`<div class="chapter-control"><div><strong>${chapter.sequence ?? index + 1}. ${chapter.title}</strong><p>${chapter.summary||"尚未补充章节摘要"}</p></div><span class="status-chip ${chapter.publication_status}">${statusName[chapter.publication_status]}</span>${canEdit?`<div class="row"><button class="text-btn" data-action="creator-edit-chapter" data-chapter="${chapter.id}">设置</button><button class="text-btn danger-text" data-action="creator-delete-chapter" data-chapter="${chapter.id}">删除</button></div>`:""}</div>`).join("")||`<div class="empty-state">${canEdit?"请先在剧情编排中新增章节。":"当前没有可供审阅的章节。"}</div>`;
  const testBody=`${checks.length?checks.map(check=>`<div class="check-result ${check.level}"><b>${check.title}</b><span>${check.detail}</span></div>`).join(""):`<div class="empty-state">点击“运行发布检查”生成真实云端报告。</div>`}<button class="secondary-btn full-btn" data-go="player">打开独立玩家端</button><button class="text-btn full-btn" style="margin-top:8px" data-action="creator-preview"${selectedRoleId?` data-role="${escapeHtml(selectedRoleId)}"`:""}>预览当前角色私人剧本（无需运行房）</button>`;
- const versionBody=data.versions.map(version=>`<div class="version-row"><div><strong>${version.label}</strong><p>${formatTime(version.created_at)}</p></div><div class="row"><button class="text-btn" data-action="creator-restore" data-version="${version.id}">恢复</button><button class="text-btn" data-action="creator-delete-version" data-version="${version.id}">删除</button></div></div>`).join("")||`<div class="empty-state">尚未保存创作快照。</div>`;
- return `${catalogExperienceBanner(data.world)}<section class="writer-hero"><div><p class="section-kicker">SCRIPTED MYSTERY CREATOR</p><h2>剧本杀创作中心</h2><p><strong>AI 剧本创作</strong>为八层生成流程：立项 → 真相 → 角色 → 信息矩阵 → 主持手册 → 逐幕剧本 → 评判 → 入库。可分步中断与锁定复用；草稿仅存本机，确认后再上传云端。</p></div>${collapsibleCard({ id: "writer:quick-actions", title: "快捷操作", subtitle: "AI 创作、导入导出、检查与版本", body: quickActions, defaultOpen: true, className: "collapse-panel-bare", nested: true })}</section>
- ${contentLayerMapHtml({ open: false })}
+ const versionBody=data.versions.map(version=>`<div class="version-row"><div><strong>${version.label}</strong><p>${formatTime(version.created_at)}</p></div>${canEdit?`<div class="row"><button class="text-btn" data-action="creator-restore" data-version="${version.id}">恢复</button><button class="text-btn" data-action="creator-delete-version" data-version="${version.id}">删除</button></div>`:""}</div>`).join("")||`<div class="empty-state">尚未保存创作快照。</div>`;
+ const accessBanner=isReviewer?`<section class="demo-strip catalog-experience-strip"><div><span class="cloud-pill">受邀审稿 · 只读</span><strong style="margin-top:7px">你可以查看私有草稿并提交审稿意见</strong><p>正文、角色档案和版本内容不可由此身份修改或导出；审稿意见仅作者、编辑和受邀审稿人可见。</p></div></section>`:catalogExperienceBanner(data.world);
+ const toolboxItems=[membershipRole==="owner"?creatorTool("协作权限","邀请成员并分配编辑、审稿、主持或玩家权限","creator-collaboration","管理成员 →"):"",["owner","editor","reviewer"].includes(membershipRole)?creatorTool("协作者审稿","批注、修改建议、版本对比与影响范围检查","creator-review","打开审稿台 →"):"",["owner","editor","host"].includes(membershipRole)?creatorTool("运行日志","筛选阅读、调查、规则触发与主持操作记录","creator-logs","查看日志 →"):"",canEdit?creatorTool("文档解析","解析 TXT、Markdown、DOCX、PDF 或飞书稿件，预览后结构化写入","creator-document-parser","解析文档 →"):""].join("");
+ return `${accessBanner}<section class="writer-hero"><div><p class="section-kicker">SCRIPTED NARRATIVE CREATOR</p><h2>${escapeHtml(terms.work)}${isReviewer?"审稿":"创作"}中心</h2><p>${isReviewer?"逐项查看角色档案、私人分幕和版本差异，并把问题记录为可追踪的审稿意见。":`<strong>AI ${escapeHtml(terms.work)}创作</strong>为八层生成流程：立项 → 真相 → ${escapeHtml(terms.roleShort)} → 信息矩阵 → ${escapeHtml(terms.host)}手册 → 逐幕正文 → 评判 → 入库。可分步中断与锁定复用；草稿仅存本机，确认后再上传云端。`}</p></div>${collapsibleCard({ id: "writer:quick-actions", title: "快捷操作", subtitle: canEdit?"AI 创作、导入导出、检查与版本":"只读预览与审稿", body: quickActions, defaultOpen: true, className: "collapse-panel-bare", nested: true })}</section>
+ ${isReviewer?"":contentLayerMapHtml({ open: false })}
  <section class="writer-grid">
-  <article class="card writer-main"><div class="section-head"><div><h3>角色工作台</h3><p>选择一个角色，在同一上下文中维护基础信息、创作档案、私人分幕和玩家预览。</p></div><button class="secondary-btn" data-action="load-writer-archives">刷新档案</button></div>
+  <article class="card writer-main"><div class="section-head"><div><h3>${escapeHtml(terms.roleShort)}工作台</h3><p>选择一个${escapeHtml(terms.roleShort)}，在同一上下文中维护基础信息、创作档案、私人分幕和玩家预览。</p></div><button class="secondary-btn" data-action="load-writer-archives">刷新档案</button></div>
    <div class="writer-role-workbench">
-    <aside class="writer-role-rail"><div class="writer-role-rail-head"><strong>角色列表</strong><button class="text-btn" data-action="creator-add-role">＋ 新增</button></div><div class="writer-role-tabs" role="tablist">${roleRail||`<div class="empty-state">尚无角色</div>`}</div></aside>
+    <aside class="writer-role-rail"><div class="writer-role-rail-head"><strong>${escapeHtml(terms.roleShort)}列表</strong>${canEdit?'<button class="text-btn" data-action="creator-add-role">＋ 新增</button>':""}</div><div class="writer-role-tabs" role="tablist">${roleRail||`<div class="empty-state">尚无${escapeHtml(terms.roleShort)}</div>`}</div></aside>
     ${roleWorkspace}
    </div>
   </article>
   <aside class="writer-side">
-   ${collapsibleCard({ id: "writer:chapters", title: "章节发布控制", subtitle: "草稿不会进入玩家房间。删除章节会重排序号，并移除绑定本章的私人分幕与相关自动化规则。", body: chapterBody, defaultOpen: true })}
+   ${collapsibleCard({ id: "writer:chapters", title: `${terms.act}发布控制`, subtitle: `草稿不会进入玩家房间。删除${terms.act}会重排序号，并移除绑定内容与相关自动化规则。`, body: chapterBody, defaultOpen: true })}
    ${collapsibleCard({ id: "writer:player-test", title: "玩家视角测试", subtitle: "发布前检查缺失内容与孤立节点。", body: testBody, defaultOpen: false, style: "margin-top:14px" })}
    ${collapsibleCard({ id: "writer:versions", title: "创作版本历史", subtitle: "保存关键节点，需要时恢复正文与发布状态。", body: versionBody, defaultOpen: false, style: "margin-top:14px" })}
   </aside>
  </section>
- ${collapsibleCard({ id: "writer:toolbox", title: "创作者工具箱", subtitle: "协作、日志与文档解析", body: `<div class="placeholder-grid">${creatorTool("协作权限","邀请已注册成员，分配协作者、主持人或只读观察者权限","creator-collaboration","管理成员 →")}${creatorTool("运行日志","筛选阅读、调查、规则触发与主持操作记录","creator-logs","查看日志 →")}${creatorTool("文档解析","解析 TXT、Markdown 或 DOCX，预览后写入母稿或角色私人剧本","creator-document-parser","解析文档 →")}</div>`, defaultOpen: false, className: "card placeholder-hub" })}`;
+ ${toolboxItems?collapsibleCard({ id: "writer:toolbox", title: "创作者工具箱", subtitle: "按当前成员权限显示可用工具", body: `<div class="placeholder-grid">${toolboxItems}</div>`, defaultOpen: false, className: "card placeholder-hub" }):""}`;
 }
 
 export function creatorTool(title,text,action,label){return `<article class="placeholder-module connected"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p><button class="text-btn" data-action="${escapeHtml(action)}">${escapeHtml(label)}</button></article>`}
@@ -297,8 +306,10 @@ export async function runCreatorChecks(){try{const roomId=zhimuApi.context.roomI
 export async function openStoryManuscript(){
  try{
   const manuscript=await zhimuApi.getStoryManuscript();
-  modal.className="modal story-manuscript-modal";setHtml(modal,storyManuscriptModalHtml({bodyHtml:escapeHtml(manuscript.body),statusHtml:storyManuscriptStatus(manuscript)}));
+  const readOnly=!U.canEditWorldContent?.(studioStore.get().cloudStudio?.world);
+  modal.className="modal story-manuscript-modal";setHtml(modal,storyManuscriptModalHtml({bodyHtml:escapeHtml(manuscript.body),statusHtml:storyManuscriptStatus(manuscript),readOnly}));
   modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const body=()=>modal.querySelector("[data-story-manuscript]").value.trim(),meta=modal.querySelector("[data-manuscript-meta]");
+  if(readOnly)return;
   modal.querySelector("[data-manuscript-save]").onclick=async()=>{try{const result=await zhimuApi.saveStoryManuscript(body());setHtml(meta,storyManuscriptStatus(result));showToast("完整剧情母稿已保存")}catch(error){showError(error)}};
   modal.querySelector("[data-manuscript-from-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptFromGraph();modal.querySelector("[data-story-manuscript]").value=result.body;setHtml(meta,storyManuscriptStatus(result));showToast("已经从剧情编排生成完整母稿")}catch(error){showError(error)}};
   modal.querySelector("[data-manuscript-to-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptToGraph(body());closeModal();await loadCloudData();go("studio");showToast(`母稿已拆分为 ${result.nodes} 个节点和 ${result.edges} 条连线`)}catch(error){showError(error)}};
@@ -311,10 +322,10 @@ export async function openCollaboration(){
  try{
   const members=await zhimuApi.getWorldMembers();
   const pending=await zhimuApi.getWorldMemberInvites();
-  const roleName={owner:"主创作者",editor:"协作者",host:"主持人",viewer:"只读观察者"};
+  const roleName={owner:"主创作者",editor:"协作者",reviewer:"只读审稿人",host:"主持人",viewer:"只读玩家"};
   const pendingRows=pending.map(invite=>`<div class="collab-row pending"><div><b>${escapeHtml(invite.email)}</b><p>待接受 · ${roleName[invite.role]} · 过期 ${formatTime(invite.expires_at)}</p></div><div class="row"><button class="text-btn" data-resend-invite="${invite.id}">重发邮件</button><button class="text-btn danger-text" data-revoke-invite="${invite.id}">撤销</button></div></div>`).join("");
   modal.className="modal creator-tool-modal";
-  const memberRows=members.map(member=>`<div class="collab-row"><div><b>${escapeHtml(member.display_name)}</b><p>${escapeHtml(member.email||"—")} · ${roleName[member.role]}</p></div>${member.role==="owner"?`<span class="cloud-pill">OWNER</span>`:`<div class="row"><select class="field compact-field" data-member-role="${member.user_id}">${["editor","host","viewer"].map(role=>`<option value="${role}" ${role===member.role?"selected":""}>${roleName[role]}</option>`).join("")}</select><button class="text-btn danger-text" data-remove-member="${member.user_id}">移除</button></div>`}</div>`).join("");
+  const memberRows=members.map(member=>`<div class="collab-row"><div><b>${escapeHtml(member.display_name)}</b><p>${escapeHtml(member.email||"—")} · ${roleName[member.role]}</p></div>${member.role==="owner"?`<span class="cloud-pill">OWNER</span>`:`<div class="row"><select class="field compact-field" data-member-role="${member.user_id}">${["editor","reviewer","host","viewer"].map(role=>`<option value="${role}" ${role===member.role?"selected":""}>${roleName[role]}</option>`).join("")}</select><button class="text-btn danger-text" data-remove-member="${member.user_id}">移除</button></div>`}</div>`).join("");
   setHtml(modal,collaborationModalHtml({memberRowsHtml:memberRows,pendingRowsHtml:pendingRows}));
   modalBackdrop.classList.add("show");
   modal.querySelector("[data-close]").onclick=closeModal;
@@ -327,6 +338,122 @@ export async function openCollaboration(){
  }catch(error){showError(error)}
 }
 
+function creatorReviewTargetOptions(studio = {}, { truthClaims = [], segments = [] } = {}) {
+ const groups = [
+  ["world", [{ id: "", label: "整个剧本" }]],
+  ["manuscript", [{ id: "", label: "完整剧情母稿" }]],
+  ["role", (studio.roles || []).map((item) => ({ id: item.id, label: `角色 · ${item.name}` }))],
+  ["chapter", (studio.chapters || []).map((item) => ({ id: item.id, label: `章节 · ${item.title}` }))],
+  ["script_section", (studio.sections || []).map((item) => ({ id: item.id, label: `私人分幕 · ${item.title}` }))],
+  ["scene", (studio.scenes || []).map((item) => ({ id: item.id, label: `场景 · ${item.name}` }))],
+  ["clue", (studio.clues || []).map((item) => ({ id: item.id, label: `线索 · ${item.name}` }))],
+  ["rule", (studio.rules || []).map((item) => ({ id: item.id, label: `规则 · ${item.name}` }))],
+  ["truth_claim", truthClaims.map((item) => ({ id: item.id, label: `真相 · ${item.title || item.claim_key}` }))],
+  ["segment", segments.map((item) => ({ id: item.id, label: `运行段落 · ${item.title || item.segment_key}` }))]
+ ];
+ return groups.flatMap(([type, rows]) => rows.map((item) => ({ type, ...item })));
+}
+
+function creatorReviewImpactText(impact) {
+ const counts = impact?.counts || {};
+ const entries = Object.entries(counts).filter(([, value]) => Number(value) > 0);
+ return entries.length ? entries.map(([key, value]) => `${key} ${value}`).join(" · ") : "未发现直接结构引用";
+}
+
+function creatorReviewRowsHtml(reviews, canResolve) {
+ const repliesByParent = new Map();
+ for (const review of reviews.filter((item) => item.parent_id)) {
+  if (!repliesByParent.has(review.parent_id)) repliesByParent.set(review.parent_id, []);
+  repliesByParent.get(review.parent_id).push(review);
+ }
+ const statusLabel = { open: "待处理", resolved: "已解决", dismissed: "已驳回" };
+ const severityLabel = { note: "备注", minor: "轻微", major: "重要", blocking: "阻塞" };
+ const roots = reviews.filter((item) => !item.parent_id);
+ if (!roots.length) return `<div class="empty-state">当前筛选下还没有审稿意见。</div>`;
+ return roots.map((review) => {
+  const replies = (repliesByParent.get(review.id) || []).map((reply) => `<div class="log-row"><div><b>${escapeHtml(reply.created_by_name)}</b><span>${formatTime(reply.created_at)}</span></div><p>${escapeHtml(reply.body)}</p></div>`).join("");
+  const actions = canResolve
+   ? review.status === "open"
+    ? `<button class="text-btn" data-review-status="resolved" data-review-id="${escapeHtml(review.id)}">标记解决</button><button class="text-btn danger-text" data-review-status="dismissed" data-review-id="${escapeHtml(review.id)}">驳回</button>`
+    : `<button class="text-btn" data-review-status="open" data-review-id="${escapeHtml(review.id)}">重新打开</button>`
+   : "";
+  const suggestion = Object.keys(review.suggested_patch || {}).length
+   ? `<details><summary>结构化修改建议</summary><pre>${escapeHtml(JSON.stringify(review.suggested_patch, null, 2))}</pre></details>` : "";
+  return `<article class="card-lite review-thread"><div class="section-head"><div><p class="section-kicker">${escapeHtml(review.target_label || review.target_type)} · ${severityLabel[review.severity] || review.severity}</p><h4>${escapeHtml(review.title || "未命名审稿意见")}</h4></div><span class="status-chip ${review.status === "open" ? "testing" : "published"}">${statusLabel[review.status] || review.status}</span></div><p>${escapeHtml(review.body)}</p><p class="muted-note">${escapeHtml(review.created_by_name)} · ${formatTime(review.created_at)} · 影响范围：${escapeHtml(creatorReviewImpactText(review.impact_scope))}</p>${suggestion}${replies}<label>回复</label><textarea class="field" rows="2" data-review-reply-body="${escapeHtml(review.id)}" placeholder="补充讨论或确认修改结果"></textarea><div class="row"><button class="text-btn" data-review-reply="${escapeHtml(review.id)}">发送回复</button>${actions}</div></article>`;
+ }).join("");
+}
+
+function creatorVersionDiffHtml(payload) {
+ const summary = payload?.comparison?.summary || {};
+ const changedDomains = Object.entries(payload?.comparison?.domains || {})
+  .filter(([, value]) => value.counts.added || value.counts.removed || value.counts.changed)
+  .map(([key, value]) => `<li><strong>${escapeHtml(key)}</strong>：新增 ${value.counts.added} · 删除 ${value.counts.removed} · 修改 ${value.counts.changed}${value.truncated ? " · 仅显示前 100 项" : ""}</li>`)
+  .join("");
+ return `<div class="assistant-preview"><h4>${escapeHtml(payload.base.label)} → ${escapeHtml(payload.head.label)}</h4><div class="proposal-stats"><span>新增 ${summary.added || 0}</span><span>删除 ${summary.removed || 0}</span><span>修改 ${summary.changed || 0}</span></div>${payload.comparison.world.changed ? `<p>剧本级字段：${escapeHtml(payload.comparison.world.fields.join("、"))}</p>` : ""}<ul>${changedDomains || "<li>两个版本没有结构差异。</li>"}</ul><p class="muted-note">为降低泄稿风险，这里只显示对象和字段级变化，不直接展开私人正文。</p></div>`;
+}
+
+export async function openCreatorReview() {
+ try {
+  const studio = studioStore.get().cloudStudio;
+  const [truthPayload, segmentPayload] = await Promise.all([
+   zhimuApi.getTruthClaims(),
+   zhimuApi.getWorldSegments()
+  ]);
+  const targets = creatorReviewTargetOptions(studio, {
+   truthClaims: truthPayload?.claims || [],
+   segments: segmentPayload?.segments || []
+  });
+  const membershipRole = studio?.world?.membership_role;
+  const canResolve = ["owner", "editor"].includes(membershipRole);
+  const versions = studio?.versions || [];
+  const targetOptions = targets.map((item) => `<option value="${escapeHtml(`${item.type}:${item.id}`)}">${escapeHtml(item.label)}</option>`).join("");
+  const versionOptions = versions.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)} · ${formatTime(item.created_at)}</option>`).join("");
+  modal.className = "modal creator-tool-modal creator-review-modal";
+  setHtml(modal, `<h2>协作者审稿</h2><p class="wizard-intro">发行编辑、共同作者和只读审稿人可提交批注或修改建议；系统会检查目标归属并计算影响范围。只有主创作者或编辑者能将意见标记为解决/驳回。</p><div class="form-group"><label>审稿对象</label><select class="field" data-review-target>${targetOptions}</select><div class="row"><select class="field compact-field" data-review-kind><option value="comment">批注</option><option value="suggestion">修改建议</option><option value="change_request">必须修改</option></select><select class="field compact-field" data-review-severity><option value="note">备注</option><option value="minor">轻微</option><option value="major">重要</option><option value="blocking">阻塞交付</option></select></div><input class="field" data-review-title placeholder="意见标题"><textarea class="field" rows="3" data-review-body placeholder="说明问题、修改理由和验收标准"></textarea><textarea class="field" rows="2" data-review-suggestion placeholder='结构化建议 JSON（选填，如 {"publicationStatus":"draft"}）'></textarea><button class="primary-btn" data-review-create>提交审稿意见</button></div><section style="margin-top:16px"><div class="section-head"><div><h3>意见列表</h3><p>默认显示待处理意见及其讨论。</p></div><select class="field compact-field" data-review-filter><option value="open">待处理</option><option value="">全部</option><option value="resolved">已解决</option><option value="dismissed">已驳回</option></select></div><div class="host-detail-list" data-review-list><div class="empty-state">正在加载…</div></div></section><section style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line,#ece7df)"><h3>版本影响对比</h3><p class="muted-note">选择一个基准快照，对比当前内容或另一个快照。</p><div class="row"><select class="field" data-review-base-version ${versions.length ? "" : "disabled"}>${versionOptions || '<option value="">尚无版本快照</option>'}</select><select class="field" data-review-head-version ${versions.length ? "" : "disabled"}><option value="">当前内容</option>${versionOptions}</select><button class="secondary-btn" data-review-compare ${versions.length ? "" : "disabled"}>开始对比</button></div><div data-review-diff></div></section><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`);
+  modalBackdrop.classList.add("show");
+  modal.querySelector("[data-close]").onclick = closeModal;
+  const draw = async () => {
+   const payload = await zhimuApi.getCreatorReviews({ status: modal.querySelector("[data-review-filter]").value });
+   setHtml(modal.querySelector("[data-review-list]"), creatorReviewRowsHtml(payload.reviews || [], canResolve));
+   modal.querySelectorAll("[data-review-reply]").forEach((button) => button.onclick = async () => {
+    const body = modal.querySelector(`[data-review-reply-body="${button.dataset.reviewReply}"]`)?.value?.trim();
+    if (!body) return showToast("请填写回复内容");
+    button.disabled = true;
+    try { await zhimuApi.replyCreatorReview(button.dataset.reviewReply, body); await draw(); showToast("回复已提交"); } catch (error) { showError(error); } finally { if (button.isConnected) button.disabled = false; }
+   });
+   modal.querySelectorAll("[data-review-status]").forEach((button) => button.onclick = async () => {
+    button.disabled = true;
+    try { await zhimuApi.patchCreatorReview(button.dataset.reviewId, { status: button.dataset.reviewStatus }); await draw(); showToast("审稿状态已更新"); } catch (error) { showError(error); } finally { if (button.isConnected) button.disabled = false; }
+   });
+  };
+  modal.querySelector("[data-review-filter]").onchange = () => draw().catch(showError);
+  modal.querySelector("[data-review-create]").onclick = async () => {
+   const [targetType, targetId = ""] = modal.querySelector("[data-review-target]").value.split(":");
+   const selected = targets.find((item) => item.type === targetType && item.id === targetId);
+   const body = modal.querySelector("[data-review-body]").value.trim();
+   if (!body) return showToast("请填写审稿意见");
+   let suggestedPatch = {};
+   const rawSuggestion = modal.querySelector("[data-review-suggestion]").value.trim();
+   if (rawSuggestion) {
+    try { suggestedPatch = JSON.parse(rawSuggestion); } catch { return showToast("结构化建议必须是有效 JSON 对象"); }
+    if (!suggestedPatch || Array.isArray(suggestedPatch) || typeof suggestedPatch !== "object") return showToast("结构化建议必须是 JSON 对象");
+   }
+  const payload = { targetType, targetLabel: selected?.label || targetType, kind: modal.querySelector("[data-review-kind]").value, severity: modal.querySelector("[data-review-severity]").value, title: modal.querySelector("[data-review-title]").value.trim(), body, suggestedPatch };
+  if (targetId) payload.targetId = targetId;
+   const createButton = modal.querySelector("[data-review-create]");
+   createButton.disabled = true;
+   try { await zhimuApi.createCreatorReview(payload); modal.querySelector("[data-review-title]").value = ""; modal.querySelector("[data-review-body]").value = ""; modal.querySelector("[data-review-suggestion]").value = ""; modal.querySelector("[data-review-filter]").value = "open"; await draw(); showToast("审稿意见已提交"); } catch (error) { showError(error); } finally { if (createButton.isConnected) createButton.disabled = false; }
+  };
+  modal.querySelector("[data-review-compare]").onclick = async () => {
+   const base = modal.querySelector("[data-review-base-version]").value;
+   const head = modal.querySelector("[data-review-head-version]").value;
+   if (!base) return showToast("请先保存至少一个创作版本");
+   try { const payload = await zhimuApi.compareCreatorVersions(base, head); setHtml(modal.querySelector("[data-review-diff]"), creatorVersionDiffHtml(payload)); } catch (error) { showError(error); }
+  };
+  await draw();
+ } catch (error) { showError(error); }
+}
+
 export async function openWorldLogs(){
  try{
   const draw=async()=>{const params={limit:"100"},eventType=modal.querySelector("[data-log-event]")?.value,keyword=modal.querySelector("[data-log-keyword]")?.value;if(eventType)params.eventType=eventType;if(keyword)params.keyword=keyword;const logs=await zhimuApi.getWorldLogs(params);setHtml(modal.querySelector("[data-log-list]"),logs.map(log=>`<div class="log-row"><div><b>${escapeHtml(log.event_type)}</b><span>${escapeHtml(log.room_name)}</span></div><p>${escapeHtml(log.message)}</p><small>${escapeHtml(log.actor_name||"系统")} · ${formatTime(log.created_at)}</small></div>`).join("")||`<div class="empty-state">没有匹配的运行日志。</div>`)};
@@ -337,53 +464,94 @@ export async function openWorldLogs(){
 
 export async function openDocumentParser(){
  const roles=studioStore.get().cloudStudio?.roles||[];
+ const terms=creatorTerms(studioStore.get().cloudStudio?.world?.settings?.creationType);
  let parsed=null;
  let pendingFile=null;
  modal.className="modal creator-tool-modal";
- setHtml(modal,documentParserModalHtml(roles.map(role=>`<option value="${role.id}">角色私人剧本 · ${escapeHtml(role.name)}</option>`).join("")));
+ setHtml(modal,documentParserModalHtml(roles.map(role=>`<option value="${role.id}">${escapeHtml(terms.role)} · ${escapeHtml(role.name)}</option>`).join("")));
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  const commit=modal.querySelector("[data-document-import]");
+ const sourceSelect=modal.querySelector("[data-document-source]");
+ const targetSelect=modal.querySelector("[data-document-target]");
+ const rightsCheckbox=modal.querySelector("[data-document-rights-confirmed]");
+ const creationTypeSelect=modal.querySelector("[data-document-creation-type]");
+ creationTypeSelect.value=normalizeCreationType(studioStore.get().cloudStudio?.world?.settings?.creationType);
+ const syncSourceFields=()=>{
+  const feishu=sourceSelect.value==="feishu";
+  modal.querySelector("[data-document-file-fields]").hidden=feishu;
+  modal.querySelector("[data-document-feishu-fields]").hidden=!feishu;
+  modal.querySelector("[data-document-allow-ocr]").disabled=feishu;
+  modal.querySelector("[data-document-page-layout]").disabled=feishu;
+ };
+ const canCommit=()=>{
+  if(!parsed||!rightsCheckbox.checked)return false;
+  const target=targetSelect.value;
+  if(parsed.contentMode==="pages")return target!=="manuscript"&&target!=="structured"&&Boolean(pendingFile);
+  if(target==="structured")return Boolean(parsed.structure?.candidateCount);
+  return true;
+ };
+ const syncCommit=()=>{commit.disabled=!canCommit()};
+ sourceSelect.onchange=()=>{parsed=null;pendingFile=null;commit.disabled=true;modal.querySelector("[data-document-preview]").textContent="";syncSourceFields()};
+ rightsCheckbox.onchange=syncCommit;
+ syncSourceFields();
  const extractionLabel=(extraction,contentMode)=>{
   if(contentMode==="pages"||extraction?.method==="pdf_pages"||extraction?.method==="image_file")return `图片导入 · ${extraction?.pageCount||"?"} 页`;
   if(extraction?.method==="pdf_ocr")return `OCR 识别 · ${extraction.ocrPages||extraction.pageCount||"?"} 页`;
   if(extraction?.method==="pdf_text")return `PDF 文字层 · ${extraction.pageCount||"?"} 页`;
   if(extraction?.method==="docx")return "Word 文档";
+  if(extraction?.method==="feishu_docx")return `飞书云文档 · ${extraction.blockCount||0} 个内容块`;
   if(extraction?.method==="plain_text")return "纯文本";
   return "";
  };
  modal.querySelector("[data-document-parse]").onclick=async()=>{
-  const file=modal.querySelector("[data-document-file]").files[0];
-  if(!file)return showToast("请先选择文档");
-  pendingFile=file;
   try{
-   const allowOcr=modal.querySelector("[data-document-allow-ocr]").checked;
-   parsed=await zhimuApi.parseDocument({filename:file.name,contentBase64:await fileToBase64(file),allowOcr,parseMode:allowOcr?"text":"auto"});
+   if(!rightsCheckbox.checked)return showToast("请先确认稿件版权与处理授权");
+   const creationType=creationTypeSelect.value;
+   if(sourceSelect.value==="feishu"){
+    const url=modal.querySelector("[data-document-feishu-url]").value.trim();
+    if(!url)return showToast("请粘贴飞书文档链接");
+    pendingFile=null;
+    parsed=await zhimuApi.parseFeishuDocument({url,creationType,rightsConfirmed:true});
+   }else{
+    const file=modal.querySelector("[data-document-file]").files[0];
+    if(!file)return showToast("请先选择文档");
+    pendingFile=file;
+    const allowOcr=modal.querySelector("[data-document-allow-ocr]").checked;
+    parsed=await zhimuApi.parseDocument({filename:file.name,contentBase64:await fileToBase64(file),allowOcr,parseMode:allowOcr?"text":"auto",creationType,rightsConfirmed:true});
+   }
    const warnHtml=(parsed.warnings||[]).map(w=>`<p class="tutorial-tip"><span>${escapeHtml(w)}</span></p>`).join("");
    const modeLabel=extractionLabel(parsed.extraction,parsed.contentMode);
    const previewImg=parsed.previewImageBase64?`<figure class="document-page-preview"><img alt="预览" src="data:image/png;base64,${parsed.previewImageBase64}"></figure>`:"";
    const sectionPreview=parsed.contentMode==="pages"?"":parsed.sections.slice(0,8).map(section=>`<article><strong>${escapeHtml(section.title)}</strong><span>${escapeHtml(section.body.slice(0,120))}${section.body.length>120?"...":""}</span></article>`).join("");
-   setHtml(modal.querySelector("[data-document-preview]"),documentPreviewHtml({filenameHtml:escapeHtml(parsed.filename),summaryHtml:`${parsed.contentMode==="pages"?`${parsed.pageCount||0} 页图片分幕`:parsed.characterCount+" 字符 · "+parsed.sectionCount+" 个分段"}${modeLabel?" · "+escapeHtml(modeLabel):""}`,extraHtml:`${warnHtml}${previewImg}${sectionPreview}`}));
-   commit.disabled=parsed.contentMode==="pages"?!roles.length&&!modal.querySelector("[data-document-target]").value.startsWith("manuscript"):false;
-   if(parsed.contentMode==="pages"&&modal.querySelector("[data-document-target]").value==="manuscript"){commit.disabled=true;showToast("图片分幕只能导入到角色私人剧本")}
-   else showToast(parsed.contentMode==="pages"?"识别为图片文档，确认后将上传各页":"文档解析完成，请复核分段");
+   const structure=parsed.structure;
+   const activeTerms=creatorTerms(creationType);
+   const structureSummary=structure?`${activeTerms.roleShort} ${structure.counts.role} · ${activeTerms.act} ${structure.counts.act} · ${activeTerms.scene} ${structure.counts.scene} · ${activeTerms.clue} ${structure.counts.clue} · ${activeTerms.secret} ${structure.counts.secret}`:"";
+   const structurePreview=structure?.candidates?.length?`<section class="document-structure-preview"><h4>结构识别 · ${escapeHtml(structureSummary)}</h4>${structure.candidates.slice(0,12).map(item=>`<article><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.type)} · ${escapeHtml(item.confidence)}${item.parentActTitle?` · ${escapeHtml(item.parentActTitle)}`:""}</span></article>`).join("")}${structure.candidateCount>12?`<p class="muted-note">另有 ${structure.candidateCount-12} 项，导入后可在对应工作区逐项复核。</p>`:""}</section>`:"";
+   setHtml(modal.querySelector("[data-document-preview]"),documentPreviewHtml({filenameHtml:escapeHtml(parsed.filename),summaryHtml:`${parsed.contentMode==="pages"?`${parsed.pageCount||0} 页图片分幕`:parsed.characterCount+" 字符 · "+parsed.sectionCount+" 个分段"}${modeLabel?" · "+escapeHtml(modeLabel):""}`,extraHtml:`${warnHtml}${structurePreview}${previewImg}${sectionPreview}`}));
+   if(parsed.contentMode==="pages"&&(targetSelect.value==="manuscript"||targetSelect.value==="structured")){showToast("图片分幕需要选择一个角色私人剧本作为目标")}
+   else showToast(parsed.contentMode==="pages"?"识别为图片文档，确认后将上传各页":"结构识别完成，请复核后再导入");
+   syncCommit();
   }catch(error){showError(error)}
  };
- modal.querySelector("[data-document-target]").addEventListener("change",()=>{
-  if(parsed?.contentMode==="pages"&&modal.querySelector("[data-document-target]").value==="manuscript"){commit.disabled=true;showToast("图片分幕只能导入到角色私人剧本");}
-  else if(parsed)commit.disabled=false;
+ targetSelect.addEventListener("change",()=>{
+  if(parsed?.contentMode==="pages"&&(targetSelect.value==="manuscript"||targetSelect.value==="structured"))showToast("图片分幕只能导入到角色私人剧本");
+  syncCommit();
  });
  commit.onclick=async()=>{
-  if(!parsed||!pendingFile)return;
+  if(!parsed)return;
+  if(!rightsCheckbox.checked)return showToast("请先确认稿件版权与处理授权");
   try{
-   const target=modal.querySelector("[data-document-target]").value;
+   const target=targetSelect.value;
    if(parsed.contentMode==="pages"){
-    if(target==="manuscript")return showToast("图片分幕只能导入到角色私人剧本");
-    await zhimuApi.importDocumentPages({filename:pendingFile.name,contentBase64:await fileToBase64(pendingFile),roleSlotId:target,layout:modal.querySelector("[data-document-page-layout]").value,contentType:pendingFile.type||undefined});
+    if(target==="manuscript"||target==="structured")return showToast("图片分幕只能导入到角色私人剧本");
+    if(!pendingFile)return showToast("请重新选择本地图片或 PDF");
+    await zhimuApi.importDocumentPages({filename:pendingFile.name,contentBase64:await fileToBase64(pendingFile),roleSlotId:target,layout:modal.querySelector("[data-document-page-layout]").value,contentType:pendingFile.type||undefined,rightsConfirmed:true});
     closeModal();await loadCloudData();showToast("图片分幕已上传，玩家端可翻页阅读");return;
    }
-   await zhimuApi.importParsedDocument({target:target==="manuscript"?"manuscript":"role_script",roleSlotId:target==="manuscript"?null:target,document:parsed});
-   closeModal();await loadCloudData();showToast("文档内容已写入云端");
+   const resolvedTarget=target==="structured"?"structured":target==="manuscript"?"manuscript":"role_script";
+   const result=await zhimuApi.importParsedDocument({target:resolvedTarget,roleSlotId:resolvedTarget==="role_script"?target:null,creationType:creationTypeSelect.value,rightsConfirmed:true,document:{filename:parsed.filename,text:parsed.text,sections:parsed.sections}});
+   closeModal();await loadCloudData();showToast(resolvedTarget==="structured"?`结构化草稿已导入：${Object.values(result.created||{}).reduce((sum,count)=>sum+Number(count||0),0)} 项写入`:"文档内容已写入云端");
   }catch(error){showError(error)}
  };
 }
@@ -479,7 +647,7 @@ export function openPublishImpactPreview(){
 }
 
 function contentPackageSummaryHtml(summary){
- return `<section class="assistant-preview package-summary"><div class="proposal-stats"><span>${summary.roles} 角色</span><span>${summary.chapters} 章节</span><span>${summary.sections} 分幕</span><span>${summary.scenes} 场景</span><span>${summary.clues} 线索</span><span>${summary.investigationPoints} 调查点</span><span>${summary.rules} 规则</span><span>${summary.assetCount} 资产</span></div><div class="assistant-guide"><b>${summary.hasAttachments?"包含附件引用":"不含附件文件"}</b><span>JSON 内容包导出角色、章节、分幕、场景、线索、调查点、规则与剧情连线。资产文件本体需在「账号与资产」中单独管理；导出包不会嵌入二进制附件。</span></div></section>`;
+ return `<section class="assistant-preview package-summary"><div class="proposal-stats"><span>${summary.roles} 角色</span><span>${summary.chapters} 章节</span><span>${summary.sections} 分幕</span><span>${summary.scenes} 场景</span><span>${summary.clues} 线索</span><span>${summary.truthClaims || 0} 真相</span><span>${summary.roleArchives || 0} 档案</span><span>${summary.creatorReviews || 0} 审稿记录</span><span>${summary.assetCount} 资产</span></div><div class="assistant-guide"><b>${summary.hasAttachments?"包含资产清单":"不含附件文件"}</b><span>完整结构化归档包含剧本结构、真相库、角色档案、审稿记录、关系、伏笔、时间线与资产清单。文件二进制不会嵌入 JSON，须在「账号与资产」中另行下载；当前导入器只恢复标准创作对象，扩展域请保留原始归档。</span></div></section>`;
 }
 
 function contentPackagePreviewHtml(preview){
@@ -566,8 +734,8 @@ function deliveryExportStepHtml(step, summary, studio, segments, selections) {
     return `<section class="assistant-preview delivery-export-step">
       <p class="section-kicker">步骤 1 / 2</p>
       <h3>选择交付物</h3>
-      <p class="wizard-intro">勾选需要导出的物料。JSON 内容包用于备份/迁移；Markdown 文件可在本地打印或二次排版。</p>
-      <label class="check-label"><input type="checkbox" data-export-kind="json" ${selections.json ? "checked" : ""}> 内容包 JSON（${summary.roles} 角色 · ${summary.chapters} 章节 · ${summary.clues} 线索）</label>
+      <p class="wizard-intro">勾选需要导出的物料。JSON 用于完整结构化归档，Markdown 文件可在本地打印或二次排版。</p>
+      <label class="check-label"><input type="checkbox" data-export-kind="json" ${selections.json ? "checked" : ""}> 完整结构化归档 JSON（${summary.roles} 角色 · ${summary.chapters} 章节 · ${summary.clues} 线索）</label>
       <label class="check-label"><input type="checkbox" data-export-kind="roleScripts" ${selections.roleScripts ? "checked" : ""}> 玩家剧本 Markdown（${roleCount} 角色，按角色分文件）</label>
       <label class="check-label"><input type="checkbox" data-export-kind="clueCards" ${selections.clueCards ? "checked" : ""}> 线索清单 Markdown（${clueCount} 条）</label>
       <label class="check-label"><input type="checkbox" data-export-kind="hostRunbook" ${selections.hostRunbook ? "checked" : ""}> 主持手册 Markdown（${segments.length} 个 Segment）</label>
@@ -575,7 +743,7 @@ function deliveryExportStepHtml(step, summary, studio, segments, selections) {
     </section>`;
   }
   const picked = [
-    selections.json && "内容包 JSON",
+    selections.json && "完整结构化归档 JSON",
     selections.roleScripts && "玩家剧本",
     selections.clueCards && "线索清单",
     selections.hostRunbook && "主持手册",
@@ -693,5 +861,5 @@ export function createCreatorSnapshot(){studioModal("保存创作版本",studioF
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, storyManuscriptStatus, openCollaboration, openWorldLogs, openDocumentParser, fileToBase64, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, storyManuscriptStatus, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, fileToBase64, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
 registerView("writer", writerViewApi);

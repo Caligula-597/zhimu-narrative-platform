@@ -152,7 +152,7 @@ export async function registerBatchBRoutes(app) {
   app.get("/api/worlds/:worldId/tags", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId, ["owner", "editor", "host", "viewer"]);
+    await requireWorldRole(actorId, worldId, ["owner", "editor", "reviewer", "host", "viewer"]);
     const tags = await listWorldTags(worldId);
     return { tags };
   });
@@ -174,7 +174,7 @@ export async function registerBatchBRoutes(app) {
   app.get("/api/worlds/:worldId/segment-remedies", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId, ["owner", "editor", "host", "viewer"]);
+    await requireWorldRole(actorId, worldId, ["owner", "editor", "reviewer"]);
     const segmentKey = request.query?.segmentKey || request.query?.segment_key || null;
     const items = await listSegmentRemedies(worldId, segmentKey);
     return { items };

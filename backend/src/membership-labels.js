@@ -2,7 +2,7 @@
  * World membership roles — API-facing labels and capability flags (Part 1).
  */
 
-export const WORLD_MEMBERSHIP_ROLES = ["owner", "editor", "host", "viewer", "player"];
+export const WORLD_MEMBERSHIP_ROLES = ["owner", "editor", "reviewer", "host", "viewer", "player"];
 
 const ROLE_META = {
   owner: {
@@ -12,6 +12,10 @@ const ROLE_META = {
   editor: {
     label: "编辑者",
     capabilities: ["edit_content", "host_rooms", "view_content"]
+  },
+  reviewer: {
+    label: "审稿人",
+    capabilities: ["review_content", "view_content"]
   },
   host: {
     label: "主持人",

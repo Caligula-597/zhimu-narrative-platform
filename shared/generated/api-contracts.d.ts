@@ -52,7 +52,31 @@ export type HostGrantClueBody = {
   message?: string;
 };
 
+export interface HostRevokeClueBody {
+  roleSlotId: string;
+  clueId: string;
+  message?: string;
+}
+
+export interface HostResendClueBody {
+  roleSlotId: string;
+  clueId: string;
+  message?: string;
+}
+
 export interface HostUnlockSectionBody {
+  roleSlotId: string;
+  scriptSectionId: string;
+  message?: string;
+}
+
+export interface HostRelockSectionBody {
+  roleSlotId: string;
+  scriptSectionId: string;
+  message?: string;
+}
+
+export interface HostSkipSectionBody {
   roleSlotId: string;
   scriptSectionId: string;
   message?: string;
@@ -89,6 +113,21 @@ export interface UpdateWorldBody {
   name?: string;
   summary?: string;
   settings?: {
+    recapTruthSummary?: string;
+    creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+    commercialProfile?: {
+      authorName?: string;
+      copyrightSource?: string;
+      registrationNumber?: string;
+      theme?: string;
+      category?: string;
+      versionLabel?: string;
+      ageRating?: "" | "12+" | "16+" | "18+";
+      selfReviewStatus?: "not_started" | "in_review" | "passed" | "needs_changes";
+      selfReviewNotes?: string;
+      materialChangeDate?: string;
+      filingUpdatedDate?: string;
+    };
     [k: string]: unknown;
   };
 }
@@ -332,11 +371,21 @@ export type ParseDocumentBody = {
   contentBase64?: string;
   parseMode?: "auto" | "pages" | "text";
   allowOcr?: boolean;
+  rightsConfirmed?: true;
+  creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
 };
 
+export interface ParseFeishuDocumentBody {
+  url: string;
+  rightsConfirmed?: true;
+  creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+}
+
 export interface ImportDocumentBody {
-  target: "manuscript" | "role_script";
+  target: "manuscript" | "role_script" | "structured";
   roleSlotId?: string | null;
+  creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+  rightsConfirmed?: true;
   document: {
     text: string;
     filename?: string;
@@ -364,7 +413,72 @@ export type ImportDocumentPagesBody = {
   publicationStatus?: "draft" | "testing" | "published";
   parseMode?: "auto" | "pages" | "text";
   allowOcr?: boolean;
+  rightsConfirmed?: true;
 };
+
+export interface CreatorReviewListQuery {
+  status?: "open" | "resolved" | "dismissed";
+  targetType?:
+    | "world"
+    | "manuscript"
+    | "role"
+    | "chapter"
+    | "script_section"
+    | "scene"
+    | "clue"
+    | "rule"
+    | "truth_claim"
+    | "segment";
+  limit?: number;
+}
+
+export type CreatorReviewCreateBody = {
+  [k: string]: unknown;
+} & {
+  targetType:
+    | "world"
+    | "manuscript"
+    | "role"
+    | "chapter"
+    | "script_section"
+    | "scene"
+    | "clue"
+    | "rule"
+    | "truth_claim"
+    | "segment";
+  targetId?: string;
+  targetLabel?: string;
+  anchor?: {
+    [k: string]: unknown;
+  };
+  kind?: "comment" | "suggestion" | "change_request";
+  severity?: "note" | "minor" | "major" | "blocking";
+  title?: string;
+  body: string;
+  suggestedPatch?: {
+    [k: string]: unknown;
+  };
+};
+
+export interface CreatorReviewPatchBody {
+  kind?: "comment" | "suggestion" | "change_request";
+  status?: "open" | "resolved" | "dismissed";
+  severity?: "note" | "minor" | "major" | "blocking";
+  title?: string;
+  body?: string;
+  suggestedPatch?: {
+    [k: string]: unknown;
+  };
+}
+
+export interface CreatorReviewReplyBody {
+  body: string;
+}
+
+export interface CreatorVersionCompareQuery {
+  baseVersionId: string;
+  headVersionId?: string;
+}
 
 export interface CreateRuleBody {
   roomId?: string | null;
@@ -661,6 +775,36 @@ export interface RoomSectionUnlockedData {
   [k: string]: unknown;
 }
 
+export interface RoomSectionRelockedData {
+  sectionId: string;
+  roleSlotId: string;
+  source:
+    | "rule"
+    | "manual_rule"
+    | "host_manual"
+    | "host_event"
+    | "investigation"
+    | "shared_room"
+    | "shared_roles"
+    | "physical_token";
+  [k: string]: unknown;
+}
+
+export interface RoomSectionSkippedData {
+  sectionId: string;
+  roleSlotId: string;
+  source:
+    | "rule"
+    | "manual_rule"
+    | "host_manual"
+    | "host_event"
+    | "investigation"
+    | "shared_room"
+    | "shared_roles"
+    | "physical_token";
+  [k: string]: unknown;
+}
+
 export interface RoomSectionCompletedData {
   sectionId: string;
   roleSlotId: string;
@@ -682,6 +826,38 @@ export interface RoomClueGrantedData {
   clueName?: string;
   pointId?: string;
   ownerRoleSlotId?: string;
+  [k: string]: unknown;
+}
+
+export interface RoomClueRevokedData {
+  clueId: string;
+  roleSlotId: string;
+  clueName?: string;
+  source:
+    | "rule"
+    | "manual_rule"
+    | "host_manual"
+    | "host_event"
+    | "investigation"
+    | "shared_room"
+    | "shared_roles"
+    | "physical_token";
+  [k: string]: unknown;
+}
+
+export interface RoomClueResentData {
+  clueId: string;
+  roleSlotId: string;
+  clueName?: string;
+  source:
+    | "rule"
+    | "manual_rule"
+    | "host_manual"
+    | "host_event"
+    | "investigation"
+    | "shared_room"
+    | "shared_roles"
+    | "physical_token";
   [k: string]: unknown;
 }
 

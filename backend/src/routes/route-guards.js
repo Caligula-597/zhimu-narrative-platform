@@ -42,7 +42,8 @@ export async function requireRoomRole(actorId, roomId) {
 }
 
 export const WORLD_EDITOR_ROLES = ["owner", "editor"];
-export const WORLD_READER_ROLES = ["owner", "editor", "host", "viewer"];
+export const WORLD_CREATOR_READER_ROLES = ["owner", "editor", "reviewer"];
+export const WORLD_READER_ROLES = ["owner", "editor", "reviewer", "host", "viewer"];
 
 export async function requireWorldRole(actorId, worldId, allowedRoles = WORLD_EDITOR_ROLES) {
   const result = await query(

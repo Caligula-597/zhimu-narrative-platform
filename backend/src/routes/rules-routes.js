@@ -7,7 +7,7 @@ import {
   validateWorldRuleBody,
   validateWorldRules
 } from "../rules-service.js";
-import { requireWorldReader, requireWorldRole } from "./route-guards.js";
+import { requireWorldRole } from "./route-guards.js";
 import {
   createRuleSchema,
   deleteRuleSchema,
@@ -28,7 +28,7 @@ export async function registerRulesRoutes(app) {
   app.get("/api/worlds/:worldId/rules", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId, ["owner", "editor", "reviewer", "host"]);
     return getWorldRules(worldId);
   });
 

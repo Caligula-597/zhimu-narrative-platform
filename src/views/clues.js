@@ -12,6 +12,7 @@ import {
 import { batchDeleteClues, confirmDeleteClue } from "./clues-crud-controller.js";
 import { openClueInStudio, openCluesEditor } from "./clues-editor.js";
 import { loadClueHitRate, renderClueHitRatePanel } from "./clues-hit-rate.js";
+import { creatorTerms } from "../../shared/creator-terminology.js";
 import {
   adjustClueFlowZoom, bindCluesSearch, closeClueDetail, selectClue,
   fitClueFlow, focusSelectedClue, setClueDetailTab, setClueFlowFilter,
@@ -38,6 +39,7 @@ import {
         ]
       }) || `<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
     }
+    const terms = creatorTerms(data.world?.settings?.creationType);
     const q = ui.cluesSearchQuery || "";
     let list = data.clues || [];
     const dependencyRefs = clueDependencyEdges(data);
@@ -64,7 +66,7 @@ import {
     const bulkToolbar = list.length
       ? `<div class="row clues-bulk-toolbar"><label class="check-label"><input type="checkbox" data-action="clues-select-all" ${allVisibleSelected ? "checked" : ""}><span>全选当前列表 (${list.length})</span></label><button class="danger-btn" data-action="clues-batch-delete" ${bulkSelected.size ? "" : "disabled"}>删除所选 (${bulkSelected.size || 0})</button></div>`
       : "";
-    return `${catalogExperienceBanner(data.world)}<section class="clues-page ${escapeHtml(S.surface?.("creator")?.className || "")}"><div class="section-head"><div><p class="section-kicker">CLUE LIBRARY</p><h2>线索管理</h2><p>共 ${data.clues.length} 条线索 · 勾选后可批量删除测试线索</p></div><div class="row"><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="primary-btn" data-action="clues-add">＋ 新建线索</button></div></div>
+    return `${catalogExperienceBanner(data.world)}<section class="clues-page ${escapeHtml(S.surface?.("creator")?.className || "")}"><div class="section-head"><div><p class="section-kicker">CLUE LIBRARY</p><h2>${escapeHtml(terms.clue)}管理</h2><p>共 ${data.clues.length} 条${escapeHtml(terms.clue)} · 勾选后可批量删除测试内容</p></div><div class="row"><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="primary-btn" data-action="clues-add">＋ 新建${escapeHtml(terms.clue)}</button></div></div>
     ${renderClueHitRatePanel()}
     <div class="clues-command-row">
       <div class="search-box clues-search"><span>⌕</span><input id="clues-search-input" class="field" placeholder="搜索线索名称或正文…" value="${escapeHtml(q)}"></div>

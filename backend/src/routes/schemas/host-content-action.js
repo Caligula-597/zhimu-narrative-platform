@@ -53,6 +53,48 @@ export const hostUnlockSectionSchema = {
   }
 };
 
+const hostSingleClueActionBody = {
+  type: "object",
+  additionalProperties: false,
+  required: ["roleSlotId", "clueId"],
+  properties: {
+    roleSlotId: uuid,
+    clueId: uuid,
+    message: { type: "string", maxLength: 500 }
+  }
+};
+
+export const hostRevokeClueSchema = {
+  params: roomIdParams,
+  body: hostSingleClueActionBody
+};
+
+export const hostResendClueSchema = {
+  params: roomIdParams,
+  body: hostSingleClueActionBody
+};
+
+const hostSectionOverrideBody = {
+  type: "object",
+  additionalProperties: false,
+  required: ["roleSlotId", "scriptSectionId"],
+  properties: {
+    roleSlotId: uuid,
+    scriptSectionId: uuid,
+    message: { type: "string", maxLength: 500 }
+  }
+};
+
+export const hostRelockSectionSchema = {
+  params: roomIdParams,
+  body: hostSectionOverrideBody
+};
+
+export const hostSkipSectionSchema = {
+  params: roomIdParams,
+  body: hostSectionOverrideBody
+};
+
 export const hostUnlockSceneSchema = {
   params: paramsSchema({ roomId: uuid, sceneId: uuid })
 };

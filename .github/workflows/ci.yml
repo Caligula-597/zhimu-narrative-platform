@@ -47,6 +47,8 @@ jobs:
         run: npm run build
       - name: Frontend module load check
         run: npm run check:modules
+      - name: Frontend interaction contract check
+        run: npm run check:ui-interactions
       - name: Migrate and seed
         run: npm run db:migrate && npm run db:seed && npm run demo:seed-exploration
         working-directory: backend

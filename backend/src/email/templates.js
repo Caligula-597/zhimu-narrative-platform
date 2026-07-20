@@ -29,6 +29,9 @@ function roleCollaborationHint(roleLabel = "") {
   if (label.includes("主持") || label.includes("host")) {
     return "你将可以开团、监控玩家进度并处理主持事件。";
   }
+  if (label.includes("审稿") || label.includes("reviewer")) {
+    return "你将可以只读查看私有草稿并提交审稿意见，不能修改或导出正文。";
+  }
   if (label.includes("查看") || label.includes("viewer")) {
     return "你将可以阅读剧本与运行数据（只读）。";
   }

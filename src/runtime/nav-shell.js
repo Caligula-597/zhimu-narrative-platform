@@ -61,6 +61,10 @@ import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
     const panel = document.getElementById("nav-advanced");
     const toggle = document.querySelector("[data-action=toggle-nav-advanced]");
     if (!panel || !toggle) return;
+    const reviewerMode = studioStore.get().cloudStudio?.world?.membership_role === "reviewer";
+    panel.querySelectorAll("[data-view]").forEach((button) => {
+      button.hidden = reviewerMode && button.dataset.view !== "writer";
+    });
     // Respect explicit collapse ("0"). Being on an advanced page must NOT force-reopen
     // after the user clicks 收起 — that caused UI stutter / snap-back.
     const stored = localStorage.getItem("zhimuNavAdvanced");

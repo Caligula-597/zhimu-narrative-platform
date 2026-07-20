@@ -1,14 +1,14 @@
 import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { searchWorldContent } from "../world-search.js";
-import { requireWorldReader } from "./route-guards.js";
+import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import { worldSearchQuerySchema } from "./schemas.js";
 
 export async function registerSearchRoutes(app) {
   app.get("/api/worlds/:worldId/search", { schema: worldSearchQuerySchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    const membership = await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
 
     const q = String(request.query?.q ?? "").trim();
     if (!q) return sendErr(reply, "BAD_REQUEST");
@@ -20,7 +20,7 @@ export async function registerSearchRoutes(app) {
       q,
       limit,
       type,
-      includeDraftContent: ["owner", "editor"].includes(membership.role)
+      includeDraftContent: true
     });
   });
 }

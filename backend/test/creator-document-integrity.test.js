@@ -24,6 +24,7 @@ function parsedImportPayload(roleSlotId, filename, sectionPrefix) {
   return {
     target: "role_script",
     roleSlotId,
+    rightsConfirmed: true,
     document: {
       filename,
       text: `${sectionPrefix} 总稿`,
@@ -139,6 +140,7 @@ test("image-page imports canonicalize MIME and duplicate imports do not bump wor
     contentType: "text/html",
     contentBase64,
     roleSlotId,
+    rightsConfirmed: true,
     title: "Canonical image"
   };
   const first = await app.inject({

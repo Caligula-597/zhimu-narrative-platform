@@ -68,6 +68,8 @@ async function handleRoomEvent(type, data) {
       await refreshHostEvents(false, true);
       break;
     case "room.clue_granted":
+    case "room.clue_revoked":
+    case "room.clue_resent":
       await refreshHostPlayers(false, true);
       await refreshHostClueMatrix(false, true);
       break;
@@ -82,6 +84,8 @@ async function handleRoomEvent(type, data) {
       else showToast("有新的待确认事件 · 玩家可能在等待", 3200);
       break;
     case "room.section_unlocked":
+    case "room.section_relocked":
+    case "room.section_skipped":
     case "room.scene_unlocked":
       await refreshHostPlayers(false, true);
       break;

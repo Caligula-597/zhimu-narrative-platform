@@ -13,6 +13,10 @@ const PUBLIC_PLAYER_EVENT_TYPES = new Set([
 const ROLE_TARGETED_EVENT_TYPES = new Set([
   "room.item_granted",
   "room.section_unlocked",
+  "room.section_relocked",
+  "room.section_skipped",
+  "room.clue_revoked",
+  "room.clue_resent",
   "room.section_completed",
   "room.investigation_completed",
   "room.role_state_updated",

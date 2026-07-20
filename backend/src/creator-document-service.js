@@ -1,7 +1,9 @@
 import { sendErr, throwErr } from "./api-errors.js";
 import { cleanupStoredObjects } from "./asset-upload-helpers.js";
 import { transaction } from "./db.js";
-import { MAX_DOCUMENT_BYTES, parseCreatorDocument } from "./document-parser.js";
+import { decodeDocumentBuffer, parseCreatorDocument } from "./document-parser.js";
+import { importStructuredCreatorDocumentWithClient } from "./creator-document-structure-service.js";
+import { loadFeishuDocumentText } from "./feishu-document-client.js";
 import { runDocumentProcessing } from "./document-processing-guard.js";
 import {
   importImageFileToRoleSection,
@@ -10,7 +12,6 @@ import {
   preparePdfPageAssetUploads,
   renderPdfPageBuffers
 } from "./document-page-import.js";
-import { parseDocumentPayloadBase64 } from "./section-content.js";
 import {
   configureCreatorDocumentTransaction,
   ensureDocumentCharacterScript,
@@ -35,19 +36,6 @@ const IMAGE_CONTENT_TYPES = new Map([
 
 function fileExtension(filename) {
   return String(filename ?? "").toLowerCase().match(/\.[^.]+$/)?.[0] ?? "";
-}
-
-function decodeDocumentBuffer(payload) {
-  const encoded = String(parseDocumentPayloadBase64(payload) ?? "").trim();
-  if (!encoded || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded) || encoded.length % 4 === 1) {
-    throwErr("DOCUMENT_SIZE_INVALID");
-  }
-  const buffer = Buffer.from(encoded, "base64");
-  const canonical = buffer.toString("base64").replace(/=+$/, "");
-  if (canonical !== encoded.replace(/=+$/, "") || !buffer.length || buffer.length > MAX_DOCUMENT_BYTES) {
-    throwErr("DOCUMENT_SIZE_INVALID");
-  }
-  return buffer;
 }
 
 function hasExpectedSignature(buffer, extension) {
@@ -98,12 +86,38 @@ function pageImportResponse(result) {
 }
 
 export async function parseCreatorDocumentForWorld(payload) {
+  if (payload?.rightsConfirmed !== true) throwErr("IMPORT_RIGHTS_CONFIRMATION_REQUIRED");
   return runDocumentProcessing(() => parseCreatorDocument(payload ?? {}));
 }
 
+export async function parseFeishuDocumentForWorld(payload) {
+  if (payload?.rightsConfirmed !== true) throwErr("IMPORT_RIGHTS_CONFIRMATION_REQUIRED");
+  return runDocumentProcessing(() => loadFeishuDocumentText({
+    url: payload?.url,
+    creationType: payload?.creationType
+  }));
+}
+
 export async function importParsedCreatorDocument({ request, reply, actorId, worldId, payload }) {
+  if (payload?.rightsConfirmed !== true) throwErr("IMPORT_RIGHTS_CONFIRMATION_REQUIRED");
   const target = payload?.target ?? "manuscript";
   const document = payload?.document ?? {};
+  if (target === "structured") {
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      await lockDocumentEditor(client, { worldId, actorId });
+      return importStructuredCreatorDocumentWithClient(client, {
+        worldId,
+        document,
+        creationType: payload?.creationType,
+        rightsConfirmed: payload?.rightsConfirmed
+      });
+    }, {
+      sendErr,
+      statusCode: 201,
+      configureClient: configureCreatorDocumentTransaction,
+      shouldBumpRevision: (result) => result.changed
+    });
+  }
   if (target === "manuscript") {
     const text = String(document.text ?? "");
     if (!text.trim()) throwErr("DOCUMENT_EMPTY");
@@ -140,6 +154,7 @@ export async function importParsedCreatorDocument({ request, reply, actorId, wor
 }
 
 export async function importCreatorDocumentPages({ request, reply, actorId, worldId, payload }) {
+  if (payload?.rightsConfirmed !== true) throwErr("IMPORT_RIGHTS_CONFIRMATION_REQUIRED");
   const roleSlotId = payload?.roleSlotId;
   if (!roleSlotId) throwErr("ROLE_SLOT_IMPORT_REQUIRED");
   const filename = String(payload?.filename ?? "").trim();

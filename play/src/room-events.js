@@ -31,6 +31,20 @@ export async function handleRoomEvent(type, data, ctx) {
         }
       }
       break;
+    case "room.clue_revoked":
+      if (affectsPlayer) {
+        ctx.bumpTabPulse?.("clues");
+        await ctx.onRefresh();
+        ctx.onToast(data.clueName ? `主持人已撤回线索：${data.clueName}` : "主持人已撤回一条线索");
+      }
+      break;
+    case "room.clue_resent":
+      if (affectsPlayer) {
+        ctx.bumpTabPulse?.("clues");
+        await ctx.onRefresh();
+        ctx.onToast(data.clueName ? `主持人补发线索：${data.clueName}` : "主持人补发了一条线索");
+      }
+      break;
     case "room.item_granted":
       if (affectsPlayer) {
         ctx.bumpTabPulse?.("inventory");
@@ -45,6 +59,20 @@ export async function handleRoomEvent(type, data, ctx) {
       if (type === "room.player_joined") ctx.bumpTabPulse?.("home");
       await ctx.onRefresh();
       if (type === "room.section_unlocked") ctx.onToast("新分幕已解锁");
+      break;
+    case "room.section_relocked":
+      if (affectsPlayer) {
+        ctx.bumpTabPulse?.("sections");
+        await ctx.onRefresh();
+        ctx.onToast("主持人已撤回一个分幕");
+      }
+      break;
+    case "room.section_skipped":
+      if (affectsPlayer) {
+        ctx.bumpTabPulse?.("sections");
+        await ctx.onRefresh();
+        ctx.onToast("主持人已跳过一个分幕并继续推进");
+      }
       break;
     case "room.section_completed":
     case "room.player_task_completed":

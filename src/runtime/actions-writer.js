@@ -13,6 +13,7 @@ import { callView } from "./view-registry.js";
       case "writer-select-role": callView("writer", "selectWriterRole", el?.dataset?.role); return true;
       case "publish-impact-preview": callView("writer", "openPublishImpactPreview"); return true;
       case "creator-collaboration": callView("writer", "openCollaboration"); return true;
+      case "creator-review": callView("writer", "openCreatorReview"); return true;
       case "creator-logs": callView("writer", "openWorldLogs"); return true;
       case "creator-document-parser": callView("writer", "openDocumentParser"); return true;
       case "deepseek-assistant": callView("writer", "openDeepseekAssistant"); return true;

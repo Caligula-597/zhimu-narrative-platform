@@ -1,6 +1,10 @@
 import {
   grantClueFromHost,
   grantItemFromHost,
+  relockSectionFromHost,
+  resendClueFromHost,
+  revokeClueFromHost,
+  skipSectionFromHost,
   unlockSceneFromHost,
   unlockSectionFromHost
 } from "../host-content-action-service.js";
@@ -10,6 +14,10 @@ import { requireHostMembership } from "./host-route-guards.js";
 import {
   hostGrantClueSchema,
   hostGrantItemSchema,
+  hostRelockSectionSchema,
+  hostResendClueSchema,
+  hostRevokeClueSchema,
+  hostSkipSectionSchema,
   hostUnlockSceneSchema,
   hostUnlockSectionSchema
 } from "./schemas/host-content-action.js";
@@ -23,6 +31,26 @@ export async function registerHostContentActionRoutes(app) {
     await requireHostMembership(actorId, roomId);
     return withRoomIdempotency(roomId, request, "host.grant_clue", () => (
       grantClueFromHost({ roomId, actorId, targets, clueId, message })
+    ));
+  });
+
+  app.post("/api/rooms/:roomId/host/revoke-clue", { schema: hostRevokeClueSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const { roleSlotId, clueId, message } = request.body;
+    await requireHostMembership(actorId, roomId);
+    return withRoomIdempotency(roomId, request, "host.revoke_clue", () => (
+      revokeClueFromHost({ roomId, actorId, roleSlotId, clueId, message })
+    ));
+  });
+
+  app.post("/api/rooms/:roomId/host/resend-clue", { schema: hostResendClueSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const { roleSlotId, clueId, message } = request.body;
+    await requireHostMembership(actorId, roomId);
+    return withRoomIdempotency(roomId, request, "host.resend_clue", () => (
+      resendClueFromHost({ roomId, actorId, roleSlotId, clueId, message })
     ));
   });
 
@@ -43,6 +71,26 @@ export async function registerHostContentActionRoutes(app) {
     await requireHostMembership(actorId, roomId);
     return withRoomIdempotency(roomId, request, "host.unlock_section", () => (
       unlockSectionFromHost({ roomId, actorId, roleSlotId, scriptSectionId, message })
+    ));
+  });
+
+  app.post("/api/rooms/:roomId/host/relock-section", { schema: hostRelockSectionSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const { roleSlotId, scriptSectionId, message } = request.body;
+    await requireHostMembership(actorId, roomId);
+    return withRoomIdempotency(roomId, request, "host.relock_section", () => (
+      relockSectionFromHost({ roomId, actorId, roleSlotId, scriptSectionId, message })
+    ));
+  });
+
+  app.post("/api/rooms/:roomId/host/skip-section", { schema: hostSkipSectionSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const { roleSlotId, scriptSectionId, message } = request.body;
+    await requireHostMembership(actorId, roomId);
+    return withRoomIdempotency(roomId, request, "host.skip_section", () => (
+      skipSectionFromHost({ roomId, actorId, roleSlotId, scriptSectionId, message })
     ));
   });
 

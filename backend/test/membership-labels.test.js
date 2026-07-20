@@ -11,6 +11,10 @@ test("membershipMeta returns Chinese labels and capabilities", () => {
   const viewer = membershipMeta("viewer");
   assert.equal(viewer.label, "查看者");
   assert.deepEqual(viewer.capabilities, ["view_content"]);
+
+  const reviewer = membershipMeta("reviewer");
+  assert.equal(reviewer.label, "审稿人");
+  assert.deepEqual(reviewer.capabilities, ["review_content", "view_content"]);
 });
 
 test("enrichWorldMembership adds flags for editors and owners", () => {

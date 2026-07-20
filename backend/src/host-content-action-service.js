@@ -12,6 +12,10 @@ import {
   findSectionInRoomRole,
   grantClueToRoles,
   hasActiveHostMembership,
+  relockSection,
+  resendClueToRole,
+  revokeClueFromRole,
+  skipSectionProgress,
   unlockScene,
   unlockSection
 } from "./repositories/host-content-action-repository.js";
@@ -20,6 +24,74 @@ async function assertHostAccess(client, roomId, actorId) {
   if (!await hasActiveHostMembership(client, { roomId, actorId })) {
     throwErr("HOST_ROLE_REQUIRED");
   }
+}
+
+export async function revokeClueFromHost({ roomId, actorId, roleSlotId, clueId, message }) {
+  return transactionWithEvents(async (client, queueEvent) => {
+    await configureHostContentActionTransaction(client);
+    await assertHostAccess(client, roomId, actorId);
+    const clue = await findClueInRoomWorld(client, { roomId, clueId });
+    if (!clue) throwErr("CLUE_WORLD_MISMATCH");
+    await assertRolesInRoomWorld(client, roomId, [roleSlotId]);
+    const revoked = await revokeClueFromRole(client, { roomId, roleSlotId, clueId });
+    if (revoked) {
+      await appendHostContentTimeline(client, {
+        roomId,
+        actorId,
+        eventType: "host_revoke_clue",
+        message: message || `主持人撤回线索「${clue.name}」`,
+        metadata: { roleSlotId, clueId }
+      });
+      queueEvent(roomId, "room.clue_revoked", {
+        clueId,
+        roleSlotId,
+        clueName: clue.name,
+        source: "host_manual"
+      });
+    }
+    await appendHostContentAudit(client, {
+      roomId,
+      actorId,
+      action: "host_revoke_clue",
+      targetType: "clue",
+      targetId: clueId,
+      metadata: { roleSlotId, revoked }
+    });
+    return { ok: true, revoked };
+  });
+}
+
+export async function resendClueFromHost({ roomId, actorId, roleSlotId, clueId, message }) {
+  return transactionWithEvents(async (client, queueEvent) => {
+    await configureHostContentActionTransaction(client);
+    await assertHostAccess(client, roomId, actorId);
+    const clue = await findClueInRoomWorld(client, { roomId, clueId });
+    if (!clue) throwErr("CLUE_WORLD_MISMATCH");
+    await assertRolesInRoomWorld(client, roomId, [roleSlotId]);
+    const result = await resendClueToRole(client, { roomId, roleSlotId, clueId });
+    await appendHostContentTimeline(client, {
+      roomId,
+      actorId,
+      eventType: "host_resend_clue",
+      message: message || `主持人补发线索「${clue.name}」`,
+      metadata: { roleSlotId, clueId, ...result }
+    });
+    await appendHostContentAudit(client, {
+      roomId,
+      actorId,
+      action: "host_resend_clue",
+      targetType: "clue",
+      targetId: clueId,
+      metadata: { roleSlotId, ...result }
+    });
+    queueEvent(roomId, "room.clue_resent", {
+      clueId,
+      roleSlotId,
+      clueName: clue.name,
+      source: "host_manual"
+    });
+    return { ok: true, ...result };
+  });
 }
 
 async function assertRolesInRoomWorld(client, roomId, roleSlotIds) {
@@ -153,6 +225,88 @@ export async function unlockSectionFromHost({
       metadata: { roleSlotId, newlyUnlocked }
     });
     return { ok: true };
+  });
+}
+
+export async function relockSectionFromHost({
+  roomId,
+  actorId,
+  roleSlotId,
+  scriptSectionId,
+  message
+}) {
+  return transactionWithEvents(async (client, queueEvent) => {
+    await configureHostContentActionTransaction(client);
+    await assertHostAccess(client, roomId, actorId);
+    const section = await findSectionInRoomRole(client, { roomId, roleSlotId, scriptSectionId });
+    if (!section) throwErr("SECTION_NOT_FOUND");
+    if (Number(section.sequence) === 1) throwErr("SECTION_ALWAYS_AVAILABLE");
+    const relocked = await relockSection(client, { roomId, scriptSectionId });
+    if (relocked) {
+      await appendHostContentTimeline(client, {
+        roomId,
+        actorId,
+        eventType: "host_relock_section",
+        message: message || `主持人撤回分幕「${section.title}」`,
+        metadata: { roleSlotId, sectionId: scriptSectionId }
+      });
+      queueEvent(roomId, "room.section_relocked", {
+        sectionId: scriptSectionId,
+        roleSlotId,
+        source: "host_manual"
+      });
+    }
+    await appendHostContentAudit(client, {
+      roomId,
+      actorId,
+      action: "host_relock_section",
+      targetType: "script_section",
+      targetId: scriptSectionId,
+      metadata: { roleSlotId, relocked }
+    });
+    return { ok: true, relocked };
+  });
+}
+
+export async function skipSectionFromHost({
+  roomId,
+  actorId,
+  roleSlotId,
+  scriptSectionId,
+  message
+}) {
+  return transactionWithEvents(async (client, queueEvent) => {
+    await configureHostContentActionTransaction(client);
+    await assertHostAccess(client, roomId, actorId);
+    const section = await findSectionInRoomRole(client, { roomId, roleSlotId, scriptSectionId });
+    if (!section) throwErr("SECTION_NOT_FOUND");
+    const progress = await skipSectionProgress(client, { roomId, roleSlotId, scriptSectionId });
+    if (progress.newlyCompleted) {
+      await appendHostContentTimeline(client, {
+        roomId,
+        actorId,
+        eventType: "host_skip_section",
+        message: message || `主持人跳过分幕「${section.title}」并标记完成`,
+        metadata: { roleSlotId, sectionId: scriptSectionId, skipped: true }
+      });
+      queueEvent(roomId, "room.section_skipped", {
+        sectionId: scriptSectionId,
+        roleSlotId,
+        source: "host_manual"
+      });
+    }
+    await appendHostContentAudit(client, {
+      roomId,
+      actorId,
+      action: "host_skip_section",
+      targetType: "script_section",
+      targetId: scriptSectionId,
+      metadata: { roleSlotId, newlyCompleted: progress.newlyCompleted }
+    });
+    const executedRules = progress.newlyCompleted
+      ? await evaluateRoomRulesWithClient(client, queueEvent, roomId)
+      : [];
+    return { ok: true, skipped: progress.newlyCompleted, executedRules };
   });
 }
 

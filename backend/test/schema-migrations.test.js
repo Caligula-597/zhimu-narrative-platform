@@ -31,7 +31,8 @@ const REQUIRED_TABLES = [
   "world_member_invites",
   "oauth_accounts",
   "oauth_states",
-  "oauth_login_codes"
+  "oauth_login_codes",
+  "creator_review_threads"
 ];
 
 const CLUE_OWNERSHIP_COLUMNS = [

@@ -5,7 +5,7 @@ import {
   reviseWorldTruthClaim
 } from "../content-platform-truth-service.js";
 import { requireActor } from "../request-actor.js";
-import { requireWorldRole } from "./route-guards.js";
+import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import {
   createTruthClaimSchema,
   deleteTruthClaimSchema,
@@ -17,7 +17,7 @@ export async function registerContentPlatformTruthRoutes(app) {
   app.get("/api/worlds/:worldId/truth-claims", { schema: listTruthClaimsSchema }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
     return getWorldTruthClaims(worldId);
   });
 

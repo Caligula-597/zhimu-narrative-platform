@@ -53,6 +53,7 @@ if (!skipTests) {
   run("check:schemas", process.execPath, [path.join("scripts", "verify-route-schemas.mjs")], { cwd: backend });
   run("backend npm test", process.platform === "win32" ? "npm.cmd" : "npm", ["test"], { cwd: backend });
   run("innerHTML audit", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "audit:innerhtml"], { cwd: root });
+  run("UI interaction contracts", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "check:ui-interactions"], { cwd: root });
   run("shared tests", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:shared"], { cwd: root });
   run("main production build", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], { cwd: root });
   run("format helper tests", process.execPath, ["--test", path.join("scripts", "format-helpers.test.mjs")], { cwd: root });

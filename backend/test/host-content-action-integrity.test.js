@@ -191,3 +191,81 @@ test("repeated clue and scene host actions do not duplicate timeline or SSE", as
   assert.equal(sceneTimeline.rows[0].count, 1);
   assert.equal(sceneOutbox.rows[0].count, 1);
 });
+
+test("host reversible content overrides keep state, audit and targeted events consistent", async (context) => {
+  const app = await createApp({ logger: false, allowDemoUserHeader: true });
+  context.after(() => app.close());
+  const roleSlotId = await queryFixtureRoleId();
+  const clue = await query(
+    `INSERT INTO clues (world_id, name) VALUES ($1, $2) RETURNING id`,
+    [fixtureWorldId, `reversible-clue-${Date.now()}`]
+  );
+  context.after(() => query(`DELETE FROM clues WHERE id = $1`, [clue.rows[0].id]));
+  const script = await query(
+    `SELECT id FROM character_scripts WHERE role_slot_id = $1 ORDER BY created_at LIMIT 1`,
+    [roleSlotId]
+  );
+  assert.ok(script.rowCount, "character script fixture required");
+  const maxSequence = await query(
+    `SELECT COALESCE(MAX(sequence), 0)::int AS value FROM script_sections WHERE role_slot_id = $1`,
+    [roleSlotId]
+  );
+  const section = await query(
+    `INSERT INTO script_sections
+       (character_script_id, role_slot_id, title, body, sequence, publication_status)
+     VALUES ($1, $2, $3, 'temporary', $4, 'testing') RETURNING id`,
+    [script.rows[0].id, roleSlotId, `reversible-section-${Date.now()}`, maxSequence.rows[0].value + 1]
+  );
+  context.after(() => query(`DELETE FROM script_sections WHERE id = $1`, [section.rows[0].id]));
+  const call = (path, payload, key) => app.inject({
+    method: "POST",
+    url: `/api/rooms/${fixtureRoomId}${path}`,
+    headers: { "x-user-id": hostUserId, "idempotency-key": `${key}-${Date.now()}-${randomUUID()}` },
+    payload
+  });
+
+  assert.equal((await call("/host/resend-clue", { roleSlotId, clueId: clue.rows[0].id }, "resend")).statusCode, 200);
+  assert.equal((await call("/host/revoke-clue", { roleSlotId, clueId: clue.rows[0].id }, "revoke")).statusCode, 200);
+  const ownership = await query(
+    `SELECT 1 FROM clue_ownership WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3`,
+    [fixtureRoomId, roleSlotId, clue.rows[0].id]
+  );
+  assert.equal(ownership.rowCount, 0);
+
+  assert.equal((await call("/host/unlock-section", { roleSlotId, scriptSectionId: section.rows[0].id }, "unlock")).statusCode, 200);
+  assert.equal((await call("/host/relock-section", { roleSlotId, scriptSectionId: section.rows[0].id }, "relock")).statusCode, 200);
+  const unlock = await query(
+    `SELECT 1 FROM room_content_unlocks WHERE room_id = $1 AND content_type = 'script_section' AND content_id = $2`,
+    [fixtureRoomId, section.rows[0].id]
+  );
+  assert.equal(unlock.rowCount, 0);
+
+  const firstSkip = await call("/host/skip-section", { roleSlotId, scriptSectionId: section.rows[0].id }, "skip-a");
+  const secondSkip = await call("/host/skip-section", { roleSlotId, scriptSectionId: section.rows[0].id }, "skip-b");
+  assert.equal(firstSkip.statusCode, 200, firstSkip.body);
+  assert.equal(firstSkip.json().skipped, true);
+  assert.equal(secondSkip.statusCode, 200, secondSkip.body);
+  assert.equal(secondSkip.json().skipped, false);
+
+  const [progress, audit, events] = await Promise.all([
+    query(
+      `SELECT completed_at FROM reading_progress WHERE room_id = $1 AND role_slot_id = $2 AND script_section_id = $3`,
+      [fixtureRoomId, roleSlotId, section.rows[0].id]
+    ),
+    query(
+      `SELECT action FROM host_audit_log WHERE room_id = $1 AND target_id = ANY($2::text[])`,
+      [fixtureRoomId, [clue.rows[0].id, section.rows[0].id]]
+    ),
+    query(
+      `SELECT event_type FROM event_outbox
+       WHERE audience_id = $1 AND event_type = ANY($2::text[])
+         AND (payload->>'clueId' = $3 OR payload->>'sectionId' = $4)`,
+      [fixtureRoomId, ["room.clue_resent", "room.clue_revoked", "room.section_relocked", "room.section_skipped"], clue.rows[0].id, section.rows[0].id]
+    )
+  ]);
+  assert.ok(progress.rows[0]?.completed_at);
+  assert.ok(new Set(audit.rows.map((row) => row.action)).has("host_skip_section"));
+  assert.deepEqual(new Set(events.rows.map((row) => row.event_type)), new Set([
+    "room.clue_resent", "room.clue_revoked", "room.section_relocked", "room.section_skipped"
+  ]));
+});

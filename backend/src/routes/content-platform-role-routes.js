@@ -5,7 +5,7 @@ import {
   updateRoomRoleState
 } from "../content-platform-role-service.js";
 import { requireActor } from "../request-actor.js";
-import { requireWorldRole } from "./route-guards.js";
+import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import {
   requireHostMembership
 } from "./content-platform-room-access.js";
@@ -18,7 +18,7 @@ export async function registerContentPlatformRoleRoutes(app) {
   app.get("/api/worlds/:worldId/role-relationships", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
     return { relationships: await getWorldRoleRelationships(worldId) };
   });
 

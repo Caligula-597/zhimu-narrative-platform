@@ -5,7 +5,7 @@ export async function listVisibleWorlds(actorId, includeArchived) {
     `SELECT DISTINCT ON (id) id, name, summary, status, catalog_public, catalog_review_status, catalog_review_submitted_at, catalog_review_note, membership_role, updated_at
      FROM (
        SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note, wm.role::text AS membership_role, w.updated_at,
-              CASE wm.role WHEN 'owner' THEN 4 WHEN 'editor' THEN 3 WHEN 'host' THEN 2 WHEN 'viewer' THEN 1 ELSE 0 END AS role_rank
+              CASE wm.role WHEN 'owner' THEN 5 WHEN 'editor' THEN 4 WHEN 'reviewer' THEN 3 WHEN 'host' THEN 2 WHEN 'viewer' THEN 1 ELSE 0 END AS role_rank
        FROM worlds w
        JOIN world_members wm ON wm.world_id = w.id
        WHERE wm.user_id = $1 AND ($2::boolean OR w.status <> 'archived')

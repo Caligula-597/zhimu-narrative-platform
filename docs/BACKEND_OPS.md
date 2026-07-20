@@ -15,8 +15,12 @@
 | `backend/src/telemetry.js` | OpenTelemetry Node SDK |
 | `backend/src/upload-scan.js` | 上传 AV strict |
 | `backend/src/static-frontend.js` | Railway 同域托管主应用 dist |
+| `backend/src/creator-document-structure-service.js` | DOCX/PDF/飞书统一结构识别后的安全草稿导入 |
+| `backend/src/creator-review-service.js` | 协作者审稿、权限、影响范围与版本结构对比 |
 
 ## 生产配置
+
+协作者审稿依赖迁移 `091_creator_review_workflow.sql`，该迁移同时增加独立的 `reviewer` 成员枚举；应用部署必须晚于迁移完成，禁止先部署引用新枚举的代码。飞书云文档导入使用后端环境变量 `FEISHU_APP_ID` + `FEISHU_APP_SECRET`（或短期 `FEISHU_USER_ACCESS_TOKEN`）；凭据不得进入前端配置或内容包。
 
 核心变量见 [ops/LAUNCH_ENV.md](./ops/LAUNCH_ENV.md)。
 

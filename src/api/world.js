@@ -71,6 +71,29 @@ export function patchWorld(payload, worldId = demoContext.worldId, { revision } 
   return worldWrite(`/worlds/${worldId}`, { worldId, method: "PATCH", body: payload, revision });
 }
 
+export function getCreatorReviews(params = {}, worldId = demoContext.worldId) {
+  const query = new URLSearchParams(Object.entries(params).filter(([, value]) => value !== undefined && value !== ""));
+  return request(`/worlds/${worldId}/reviews${query.size ? `?${query}` : ""}`, { userId: demoContext.hostUserId });
+}
+
+export function createCreatorReview(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/reviews`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+}
+
+export function patchCreatorReview(reviewId, payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/reviews/${reviewId}`, { userId: demoContext.hostUserId, method: "PATCH", body: payload });
+}
+
+export function replyCreatorReview(reviewId, body, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/reviews/${reviewId}/replies`, { userId: demoContext.hostUserId, method: "POST", body: { body } });
+}
+
+export function compareCreatorVersions(baseVersionId, headVersionId = "", worldId = demoContext.worldId) {
+  const query = new URLSearchParams({ baseVersionId });
+  if (headVersionId) query.set("headVersionId", headVersionId);
+  return request(`/worlds/${worldId}/content-versions/compare?${query}`, { userId: demoContext.hostUserId });
+}
+
 export function deleteWorld(worldId = demoContext.worldId) {
   return request(`/worlds/${worldId}`, { userId: demoContext.hostUserId, method: "DELETE" });
 }

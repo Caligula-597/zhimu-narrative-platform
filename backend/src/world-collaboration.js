@@ -15,7 +15,7 @@ import {
 } from "./email/index.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const ROLE_LABELS = { editor: "协作者", host: "主持人", viewer: "只读观察者" };
+const ROLE_LABELS = { editor: "协作者", reviewer: "只读审稿人", host: "主持人", viewer: "只读玩家" };
 
 export function normalizeCollaboratorEmail(email) {
   return String(email ?? "").trim().toLowerCase();
@@ -90,7 +90,7 @@ async function deliverInviteEmail({ email, token, worldName, inviterName, role }
 
 export async function inviteWorldCollaborator({ worldId, email, role, invitedByUserId }) {
   const normalized = assertCollaboratorEmail(email);
-  if (!["editor", "host", "viewer"].includes(role)) throwErr("COLLABORATION_ROLE_INVALID");
+  if (!["editor", "reviewer", "host", "viewer"].includes(role)) throwErr("COLLABORATION_ROLE_INVALID");
   await assertNotSelfInvite(invitedByUserId, normalized);
   await assertNotExistingMember(worldId, normalized);
 

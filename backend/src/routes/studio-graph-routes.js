@@ -1,6 +1,6 @@
 import { requireActor } from "../request-actor.js";
 import { sendErr } from "../api-errors.js";
-import { requireWorldRole, requireWorldReader } from "./route-guards.js";
+import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import { runRevisionMutation } from "../world-revision.js";
 import {
   autoLayoutStory,
@@ -25,7 +25,7 @@ export async function registerStudioGraphRoutes(app) {
   app.get("/api/worlds/:worldId/studio-nodes/:nodeType/:nodeId/references", { schema: studioNodeReferencesSchema }, async (request) => {
     const actorId = requireActor(request);
     const { worldId, nodeType, nodeId } = request.params;
-    await requireWorldReader(actorId, worldId);
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
     return getStudioNodeReferences(worldId, nodeType, nodeId);
   });
 

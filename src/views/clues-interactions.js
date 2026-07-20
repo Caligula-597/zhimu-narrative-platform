@@ -3,6 +3,7 @@ import { render } from "../runtime/runtime-facade.js";
 import { studioStore, uiStore } from "../state/index.js";
 import * as S from "../components/ui-semantics.js";
 import { captureClueFlowViewport, restoreClueFlowViewport } from "./clue-flow-view.js";
+import { studioDragMoved, studioDragPosition } from "./studio-drag-math.js";
 
 const showError = S.showError;
 
@@ -90,7 +91,8 @@ export function toggleCluesSelection(clueId, checked) {
   async function saveClueGraphPosition(clueId, position) {
     const data = studioStore.get().cloudStudio;
     const clue = data?.clues?.find((item) => item.id === clueId);
-    if (!clue || !position) return;
+    if (!clue || !position) return false;
+    const previousMetadata = clue.metadata;
     const metadata = {
       ...(clue.metadata || {}),
       clueGraphPosition: {
@@ -107,8 +109,11 @@ export function toggleCluesSelection(clueId, checked) {
         visibility: clue.visibility || "role",
         metadata
       });
+      return true;
     } catch (error) {
+      clue.metadata = previousMetadata;
       showError(error, "线索位置保存失败，请稍后重试");
+      return false;
     }
   }
 
@@ -182,9 +187,9 @@ export function bindCluesSearch() {
       selectClue(node.dataset.clue);
     }, true);
     viewport.addEventListener("pointerdown", (event) => {
-      const dragHandle = event.target.closest(".clue-node-drag-handle");
-      const node = dragHandle?.closest(".clue-flow-node");
-      if (node && dragHandle) {
+      if (event.button !== undefined && event.button !== 0) return;
+      const node = event.target.closest(".clue-flow-node");
+      if (node && viewport.contains(node)) {
         event.preventDefault();
         event.stopPropagation();
         const zoom = Number(uiStore.get().clueFlowZoom || 1) || 1;
@@ -198,26 +203,39 @@ export function bindCluesSearch() {
           top: Number.parseFloat(node.dataset.y || node.style.top) || 0,
           moved: false
         };
-        node.classList.add("dragging");
         node.setPointerCapture?.(event.pointerId);
         const move = (moveEvent) => {
-          const dx = (moveEvent.clientX - start.x) / zoom;
-          const dy = (moveEvent.clientY - start.y) / zoom;
-          if (Math.abs(dx) + Math.abs(dy) > 4) start.moved = true;
-          const x = Math.min(canvasWidth - 90, Math.max(90, start.left + dx));
-          const y = Math.min(canvasHeight - 46, Math.max(46, start.top + dy));
+          if (!start.moved && !studioDragMoved(start, moveEvent.clientX, moveEvent.clientY)) return;
+          start.moved = true;
+          moveEvent.preventDefault();
+          node.classList.add("dragging");
+          const position = studioDragPosition(start, moveEvent.clientX, moveEvent.clientY, zoom);
+          const x = Math.min(canvasWidth - 90, Math.max(90, position.x));
+          const y = Math.min(canvasHeight - 46, Math.max(46, position.y));
           node.style.left = `${x}px`;
           node.style.top = `${y}px`;
           node.dataset.x = String(Math.round(x));
           node.dataset.y = String(Math.round(y));
           refreshClueFlowLines(canvas);
         };
-        const finish = async () => {
+        const cleanup = () => {
           node.classList.remove("dragging");
-          node.releasePointerCapture?.(event.pointerId);
+          if (node.hasPointerCapture?.(event.pointerId)) node.releasePointerCapture?.(event.pointerId);
           document.removeEventListener("pointermove", move);
           document.removeEventListener("pointerup", finish);
-          document.removeEventListener("pointercancel", finish);
+          document.removeEventListener("pointercancel", cancel);
+        };
+        const cancel = () => {
+          cleanup();
+          if (!start.moved) return;
+          node.style.left = `${start.left}px`;
+          node.style.top = `${start.top}px`;
+          node.dataset.x = String(Math.round(start.left));
+          node.dataset.y = String(Math.round(start.top));
+          refreshClueFlowLines(canvas);
+        };
+        const finish = async () => {
+          cleanup();
           if (!start.moved) {
             selectClue(node.dataset.clue);
             return;
@@ -234,9 +252,9 @@ export function bindCluesSearch() {
             uiStore.set({ clueFlowSuppressClick: false });
           }, 180);
         };
-        document.addEventListener("pointermove", move);
+        document.addEventListener("pointermove", move, { passive: false });
         document.addEventListener("pointerup", finish, { once: true });
-        document.addEventListener("pointercancel", finish, { once: true });
+        document.addEventListener("pointercancel", cancel, { once: true });
         return;
       }
       if (event.target.closest(".clue-flow-node")) return;

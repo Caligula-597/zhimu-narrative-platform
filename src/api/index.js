@@ -107,6 +107,11 @@ export {
   joinWorldCatalog,
   getWorld,
   patchWorld,
+  getCreatorReviews,
+  createCreatorReview,
+  patchCreatorReview,
+  replyCreatorReview,
+  compareCreatorVersions,
   deleteWorld,
   getWorldRooms,
   createWorld,
@@ -318,6 +323,7 @@ export {
 /* ── Content (documents / manuscript / rules / packages) ── */
 export {
   parseDocument,
+  parseFeishuDocument,
   importParsedDocument,
   importDocumentPages,
   getStoryManuscript,

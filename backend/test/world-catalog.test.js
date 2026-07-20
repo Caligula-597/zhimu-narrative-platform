@@ -211,11 +211,10 @@ test("POST /worlds/:id/catalog/join grants viewer membership and a personal room
     const studioBody = studio.json();
     assert.equal(studioBody.world.name, worldName);
     assert.ok(studioBody.roles.length >= 1, "roles should be visible to catalog viewer");
-    assert.ok(studioBody.chapters.length >= 1, "chapters should be visible");
-    assert.ok(studioBody.sections.length >= 1, "sections should be visible");
+    assert.equal(studioBody.chapters.length, 0, "catalog viewers must not see chapters");
+    assert.equal(studioBody.sections.length, 0, "catalog viewers must not see script sections");
     assert.equal(studioBody.roles[0].private_profile, "", "viewer must not see private_profile");
-    for (const scene of studioBody.scenes || []) {
-      assert.equal(scene.host_text, "", "viewer must not see scene host_text");
-    }
+    assert.equal((studioBody.scenes || []).length, 0, "catalog viewers must not see scenes");
+    assert.equal((studioBody.clues || []).length, 0, "catalog viewers must not see clues");
   });
 });

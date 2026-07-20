@@ -98,9 +98,22 @@ export async function openHostPlayerDetail(roleSlotId) {
   try {
     const detail = await api.getHostPlayerDetail(roleSlotId);
     const role = detail.role;
+    const sectionRows = detail.sections.map((section) => {
+      const stateLabel = section.completed ? "已完成" : section.unlocked || section.sequence === 1 ? "可阅读" : "未解锁";
+      const actions = [
+        !section.completed && !(section.unlocked || section.sequence === 1)
+          ? `<button class="text-btn" data-unlock-section="${escapeHtml(section.id)}" data-role="${escapeHtml(roleSlotId)}">解锁</button>` : "",
+        !section.completed
+          ? `<button class="text-btn" data-skip-section="${escapeHtml(section.id)}" data-role="${escapeHtml(roleSlotId)}">跳过并完成</button>` : "",
+        section.unlocked && Number(section.sequence) > 1
+          ? `<button class="text-btn danger-text" data-relock-section="${escapeHtml(section.id)}" data-role="${escapeHtml(roleSlotId)}">撤回</button>` : ""
+      ].filter(Boolean).join("");
+      return `<div class="host-detail-row"><div><strong>${section.sequence}. ${escapeHtml(section.title)}</strong><p>${stateLabel} · ${escapeHtml(section.publication_status)}</p></div><div class="row">${section.completed ? `<span class="status-chip published">完成</span>` : ""}${actions}</div></div>`;
+    }).join("") || `<div class="empty-state">尚无分幕。</div>`;
+    const clueRows = detail.clues.map((clue) => `<div class="host-detail-row"><div><strong>${escapeHtml(clue.name)}</strong><p>${clue.read_at ? "已阅读" : "未阅读"}${clue.shared_with_room ? " · 已公开" : ""} · ${formatTime(clue.acquired_at)}</p>${clue.player_note ? `<small>玩家解读：${escapeHtml(clue.player_note)}</small>` : ""}${clue.host_note ? `<small>主持备注：${escapeHtml(clue.host_note)}</small>` : ""}</div><div class="row"><button class="text-btn" data-resend-clue="${escapeHtml(clue.id)}" data-role="${escapeHtml(roleSlotId)}">补发</button><button class="text-btn danger-text" data-revoke-clue="${escapeHtml(clue.id)}" data-role="${escapeHtml(roleSlotId)}">撤回</button></div></div>`).join("") || `<div class="empty-state">尚未获得线索。</div>`;
     mountModal();
     modalEl.root.className = "modal host-detail-modal";
-    setHtml(modalEl.root, `<h2>${escapeHtml(role.player_display_name || role.name)} · ${escapeHtml(role.name)}</h2><p class="wizard-intro">${escapeHtml(role.public_profile || "尚未补充公开身份")}</p><div class="host-detail-grid"><section><h3>分幕进度</h3><div class="host-detail-list">${detail.sections.map((section) => `<div class="host-detail-row"><div><strong>${section.sequence}. ${escapeHtml(section.title)}</strong><p>${section.completed ? "已完成" : section.unlocked || section.sequence === 1 ? "可阅读" : "未解锁"} · ${escapeHtml(section.publication_status)}</p></div>${section.completed ? `<span class="status-chip published">完成</span>` : `<button class="text-btn" data-unlock-section="${escapeHtml(section.id)}" data-role="${escapeHtml(roleSlotId)}">手动解锁</button>`}</div>`).join("") || `<div class="empty-state">尚无分幕。</div>`}</div></section><section><h3>线索 · ${detail.clues.length}</h3><div class="host-detail-list">${detail.clues.map((clue) => `<div class="host-detail-row"><div><strong>${escapeHtml(clue.name)}</strong><p>${clue.read_at ? "已阅读" : "未阅读"}${clue.shared_with_room ? " · 已公开" : ""} · ${formatTime(clue.acquired_at)}</p>${clue.player_note ? `<small>玩家解读：${escapeHtml(clue.player_note)}</small>` : ""}${clue.host_note ? `<small>主持备注：${escapeHtml(clue.host_note)}</small>` : ""}</div></div>`).join("") || `<div class="empty-state">尚未获得线索。</div>`}</div></section><section><h3>调查记录 · ${detail.investigations.length}</h3><div class="host-detail-list">${detail.investigations.map((item) => `<div class="host-detail-row"><strong>${escapeHtml(item.point_name)}</strong><p>${escapeHtml(item.scene_name)} · ${formatTime(item.investigated_at)}</p></div>`).join("") || `<div class="empty-state">尚无调查记录。</div>`}</div></section><section><h3>笔记 · ${detail.notes.length}</h3><div class="host-detail-list">${detail.notes.slice(0, 6).map((note) => `<div class="host-detail-row"><strong>${escapeHtml(note.title)}</strong><p>${escapeHtml(note.body.slice(0, 80))}</p></div>`).join("") || `<div class="empty-state">尚无笔记。</div>`}</div></section><section><h3>最近日志</h3><div class="host-detail-list">${detail.recentLogs.slice(0, 8).map((log) => `<div class="host-detail-row"><strong>${escapeHtml(hostOperationLabel(log.event_type, log.message))}</strong><p>${escapeHtml(log.message)} · ${formatTime(log.created_at)}</p></div>`).join("") || `<div class="empty-state">尚无相关日志。</div>`}</div></section></div><label>主持备注</label><textarea class="field" rows="3" data-host-notes>${escapeHtml(role.host_notes || "")}</textarea><div class="modal-actions">${role.player_display_name ? `<button class="secondary-btn host-kick-btn" data-kick-player="${escapeHtml(roleSlotId)}">踢出玩家</button>` : ""}<button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-save-host-notes>保存备注</button></div>`);
+    setHtml(modalEl.root, `<h2>${escapeHtml(role.player_display_name || role.name)} · ${escapeHtml(role.name)}</h2><p class="wizard-intro">${escapeHtml(role.public_profile || "尚未补充公开身份")}</p><aside class="tutorial-tip"><strong>该玩家现在知道什么</strong><span>下方汇总其可读分幕、已获得线索、调查、笔记与最近操作。撤回只会移除当前访问权，不会抹去玩家已看过的记忆、笔记或审计历史。</span></aside><div class="host-detail-grid"><section><h3>分幕进度</h3><div class="host-detail-list">${sectionRows}</div></section><section><h3>线索 · ${detail.clues.length}</h3><div class="host-detail-list">${clueRows}</div></section><section><h3>调查记录 · ${detail.investigations.length}</h3><div class="host-detail-list">${detail.investigations.map((item) => `<div class="host-detail-row"><strong>${escapeHtml(item.point_name)}</strong><p>${escapeHtml(item.scene_name)} · ${formatTime(item.investigated_at)}</p></div>`).join("") || `<div class="empty-state">尚无调查记录。</div>`}</div></section><section><h3>笔记 · ${detail.notes.length}</h3><div class="host-detail-list">${detail.notes.slice(0, 6).map((note) => `<div class="host-detail-row"><strong>${escapeHtml(note.title)}</strong><p>${escapeHtml(note.body.slice(0, 80))}</p></div>`).join("") || `<div class="empty-state">尚无笔记。</div>`}</div></section><section><h3>最近日志</h3><div class="host-detail-list">${detail.recentLogs.slice(0, 8).map((log) => `<div class="host-detail-row"><strong>${escapeHtml(hostOperationLabel(log.event_type, log.message))}</strong><p>${escapeHtml(log.message)} · ${formatTime(log.created_at)}</p></div>`).join("") || `<div class="empty-state">尚无相关日志。</div>`}</div></section></div><label>主持备注</label><textarea class="field" rows="3" data-host-notes>${escapeHtml(role.host_notes || "")}</textarea><div class="modal-actions">${role.player_display_name ? `<button class="secondary-btn host-kick-btn" data-kick-player="${escapeHtml(roleSlotId)}">踢出玩家</button>` : ""}<button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-save-host-notes>保存备注</button></div>`);
     modalEl.backdrop.classList.add("show");
     modalEl.root.querySelector("[data-close]").onclick = closeModal;
     const kickButton = modalEl.root.querySelector("[data-kick-player]");
@@ -123,6 +136,55 @@ export async function openHostPlayerDetail(roleSlotId) {
           closeModal();
           await refreshHostRoom();
           showToast("分幕已手动解锁");
+        } catch (error) { showToast(error.message); }
+      };
+    });
+    modalEl.root.querySelectorAll("[data-skip-section]").forEach((button) => {
+      button.onclick = async () => {
+        if (!window.confirm("跳过会把该分幕标记为完成，并可能触发后续自动规则。确定继续？")) return;
+        try {
+          await api.hostSkipSection({
+            roleSlotId: button.dataset.role,
+            scriptSectionId: button.dataset.skipSection
+          });
+          closeModal();
+          await refreshHostRoom();
+          showToast("已跳过分幕并继续推进");
+        } catch (error) { showToast(error.message); }
+      };
+    });
+    modalEl.root.querySelectorAll("[data-relock-section]").forEach((button) => {
+      button.onclick = async () => {
+        if (!window.confirm("确定撤回这个分幕的阅读权限？已产生的阅读记录和玩家笔记会保留。")) return;
+        try {
+          await api.hostRelockSection({
+            roleSlotId: button.dataset.role,
+            scriptSectionId: button.dataset.relockSection
+          });
+          closeModal();
+          await refreshHostRoom();
+          showToast("分幕访问权已撤回");
+        } catch (error) { showToast(error.message); }
+      };
+    });
+    modalEl.root.querySelectorAll("[data-resend-clue]").forEach((button) => {
+      button.onclick = async () => {
+        try {
+          await api.hostResendClue({ roleSlotId: button.dataset.role, clueId: button.dataset.resendClue });
+          closeModal();
+          await refreshHostRoom();
+          showToast("线索已重新推送");
+        } catch (error) { showToast(error.message); }
+      };
+    });
+    modalEl.root.querySelectorAll("[data-revoke-clue]").forEach((button) => {
+      button.onclick = async () => {
+        if (!window.confirm("确定撤回该玩家的线索访问权？已产生的笔记、分享和审计记录不会被抹除。")) return;
+        try {
+          await api.hostRevokeClue({ roleSlotId: button.dataset.role, clueId: button.dataset.revokeClue });
+          closeModal();
+          await refreshHostRoom();
+          showToast("线索访问权已撤回");
         } catch (error) { showToast(error.message); }
       };
     });

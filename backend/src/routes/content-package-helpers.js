@@ -1,6 +1,6 @@
 import { query, transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
-import { buildWorldSnapshot, creatorChecks, storageUsage } from "./world-helpers.js";
+import { buildWorldArchiveSnapshot, creatorChecks, storageUsage } from "./world-helpers.js";
 import { assertWorldCreateQuota } from "../quota-guards.js";
 import { resolveClueKind } from "../clue-kind.js";
 
@@ -66,6 +66,13 @@ export function buildContentSummary(snapshot, assetMeta = { assetCount: 0, hasAt
     rules: snapshot.rules?.length ?? 0,
     items: snapshot.items?.length ?? 0,
     edges: snapshot.edges?.length ?? 0,
+    segmentRefs: snapshot.segmentRefs?.length ?? 0,
+    truthClaims: snapshot.truthClaims?.length ?? 0,
+    roleRelationships: snapshot.roleRelationships?.length ?? 0,
+    roleArchives: snapshot.roleArchives?.length ?? 0,
+    foreshadowBeats: snapshot.foreshadowBeats?.length ?? 0,
+    timelineEvents: snapshot.timelineEvents?.length ?? 0,
+    creatorReviews: snapshot.creatorReviews?.length ?? 0,
     assetCount: assetMeta.assetCount ?? 0,
     hasAttachments: Boolean(assetMeta.hasAttachments),
     includesBinaryAssets: false
@@ -609,7 +616,7 @@ export async function createWorldFromContentPackage(actorId, { name, summary = "
 }
 
 export async function exportSummaryForWorld(worldId) {
-  const snapshot = await buildWorldSnapshot(worldId);
+  const snapshot = await buildWorldArchiveSnapshot(worldId);
   const assets = await assetSummaryForWorld(worldId);
   return buildContentSummary(snapshot, assets);
 }

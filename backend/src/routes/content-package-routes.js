@@ -2,7 +2,7 @@ import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireVerifiedEmail } from "../email-verification-policy.js";
 import { requireWorldRole } from "./route-guards.js";
-import { buildWorldSnapshot } from "./world-helpers.js";
+import { buildWorldArchiveSnapshot, buildWorldSnapshot } from "./world-helpers.js";
 import { runRevisionMutation } from "../world-revision.js";
 import {
   worldIdParams,
@@ -36,7 +36,7 @@ export async function registerContentPackageRoutes(app) {
       format: PACKAGE_FORMAT,
       version: PACKAGE_VERSION,
       exportedAt: new Date().toISOString(),
-      data: await buildWorldSnapshot(worldId)
+      data: await buildWorldArchiveSnapshot(worldId)
     };
   });
 

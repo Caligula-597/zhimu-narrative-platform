@@ -9,6 +9,15 @@ export function parseDocument(payload) {
   return request(`/worlds/${demoContext.worldId}/documents/parse`, { userId: demoContext.hostUserId, method: "POST", body: payload });
 }
 
+export function parseFeishuDocument(payload) {
+  return request(`/worlds/${demoContext.worldId}/documents/feishu/parse`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: payload,
+    timeoutMs: 60_000
+  });
+}
+
 export function importParsedDocument(payload) {
   return worldWrite(`/worlds/${demoContext.worldId}/documents/import`, { method: "POST", body: payload });
 }

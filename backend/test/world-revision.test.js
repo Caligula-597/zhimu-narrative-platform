@@ -12,6 +12,14 @@ function tinyPngBase64() {
   return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 }
 
+function uniquePngBase64(label) {
+  // Keep a valid PNG signature while varying bytes so import-key dedupe does not skip revision bumps.
+  return Buffer.concat([
+    Buffer.from(tinyPngBase64(), "base64"),
+    Buffer.from(`\nzhimu-revision-${label}`, "utf8")
+  ]).toString("base64");
+}
+
 function buildRevisionScriptBundle(label) {
   const zip = new AdmZip();
   zip.addFile(`revision-${label}/人物剧本/测试角色.txt`, Buffer.from("第一幕\n角色正文", "utf8"));
@@ -371,7 +379,7 @@ test("document page imports participate in world revision conflicts", async (con
     headers: { "x-user-id": hostUserId }
   });
   const revision = Number(world.json().content_revision);
-  const contentBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
+  const contentBase64 = uniquePngBase64(`page-${suffix}`);
 
   const imported = await app.inject({
     method: "POST",
@@ -382,10 +390,12 @@ test("document page imports participate in world revision conflicts", async (con
       contentType: "image/png",
       contentBase64,
       roleSlotId,
+      rightsConfirmed: true,
       title: "Revision page import"
     }
   });
   assert.equal(imported.statusCode, 201, imported.body);
+  assert.equal(imported.json().skipped, false, imported.body);
   assert.equal(Number(imported.json().content_revision), revision + 1);
   assert.equal(imported.json().target, "role_script_pages");
 
@@ -396,8 +406,9 @@ test("document page imports participate in world revision conflicts", async (con
     payload: {
       filename: `revision-page-stale-${suffix}.png`,
       contentType: "image/png",
-      contentBase64,
+      contentBase64: uniquePngBase64(`page-stale-${suffix}`),
       roleSlotId,
+      rightsConfirmed: true,
       title: "Stale revision page import"
     }
   });

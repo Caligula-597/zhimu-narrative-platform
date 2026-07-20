@@ -57,7 +57,7 @@ export async function requireAssetRead(actorId, assetId) {
      LEFT JOIN world_members wm ON wm.world_id = a.world_id AND wm.user_id = $2
      WHERE a.id = $1 AND a.status = 'active'
        AND (
-         a.owner_user_id = $2 OR wm.role IN ('owner', 'editor', 'host')
+         a.owner_user_id = $2 OR wm.role IN ('owner', 'editor', 'reviewer', 'host')
          OR a.visibility = 'public'
          OR (a.visibility = 'host' AND rm.member_type IN ('host', 'cohost'))
          OR (a.visibility = 'role' AND rm.role_slot_id = a.role_slot_id)

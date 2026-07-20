@@ -23,6 +23,7 @@ import { submitCatalogReviewRequest } from "../catalog-review.js";
 import { joinPublicCatalogWorld } from "../catalog-join-service.js";
 import { attachTagsToWorldRows, buildCatalogTagFilterSql, parseCatalogTagFilters } from "../world-tags.js";
 import { enrichWorldMembership, enrichWorldMembershipList } from "../membership-labels.js";
+import { projectWorldForMembership } from "../world-settings-visibility.js";
 import {
   findWorldForMember,
   findWorldOwnerId,
@@ -69,10 +70,10 @@ export async function registerWorldRoutes(app) {
   app.get("/api/worlds/:worldId", { schema: { params: worldIdParams } }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId, ["owner", "editor", "host", "viewer"]);
+    await requireWorldRole(actorId, worldId, ["owner", "editor", "reviewer", "host", "viewer"]);
     const row = await findWorldForMember(worldId, actorId);
     if (!row) return sendErr(reply, "WORLD_NOT_FOUND");
-    const world = enrichWorldMembership(row);
+    const world = enrichWorldMembership(projectWorldForMembership(row));
     if (world.content_revision != null) world.content_revision = Number(world.content_revision);
     setWorldRevisionHeaders(reply, world.content_revision);
     return world;
@@ -190,7 +191,7 @@ export async function registerWorldRoutes(app) {
     await assertCapability(actorId, "world.collaborate");
     const email = normalizeCollaboratorEmail(request.body?.email);
     const role = String(request.body?.role ?? "viewer");
-    if (!["editor", "host", "viewer"].includes(role)) return sendErr(reply, "COLLABORATION_ROLE_INVALID");
+    if (!["editor", "reviewer", "host", "viewer"].includes(role)) return sendErr(reply, "COLLABORATION_ROLE_INVALID");
 
     const direct = await addRegisteredWorldCollaborator({ worldId, email, role, invitedByUserId: actorId });
     if (direct) {
@@ -262,7 +263,7 @@ export async function registerWorldRoutes(app) {
     const { worldId, userId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner"]);
     const role = String(request.body?.role ?? "");
-    if (!["editor", "host", "viewer"].includes(role)) return sendErr(reply, "COLLABORATION_ROLE_INVALID");
+    if (!["editor", "reviewer", "host", "viewer"].includes(role)) return sendErr(reply, "COLLABORATION_ROLE_INVALID");
     const member = await updateWorldMemberRole(worldId, userId, role);
     if (!member) return sendErr(reply, "COLLABORATION_MEMBER_NOT_FOUND");
     return member;

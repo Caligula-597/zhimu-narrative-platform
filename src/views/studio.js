@@ -10,6 +10,8 @@ import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
 import { setHtml } from "../../shared/safe-dom.js";
+import { studioDragMoved, studioDragPosition } from "./studio-drag-math.js";
+export { studioDragMoved, studioDragPosition } from "./studio-drag-math.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -117,7 +119,7 @@ export function studioNodes(data){
 export function studioNode(x,y,type,id,badge,title,desc,cls,metadata={},extras={}){
  const { studioSelectedNode, studioAnchorEditing } = studioStore.get();
  const selected=studioSelectedNode?.type===type&&studioSelectedNode?.id===id,anchors=studioNodeAnchors({metadata});
- return `<button class="node node-${type} ${cls} ${selected?"selected":""} ${extras.childOfScene?"node-scene-child":""}" style="left:${x}px;top:${y}px;text-align:left" data-action="studio-select-node" data-node-type="${type}" data-node-id="${id}">${extras.branchToggle||""}<span class="node-drag-handle" title="拖动调整节点位置">⠿</span>${anchors.map(anchor=>`<span class="node-link-handle ${studioAnchorEditing&&selected?"anchor-editing":""}" style="left:${anchor.x}px;top:${anchor.y}px" data-anchor-id="${anchor.id}" title="${studioAnchorEditing&&selected?"拖动调整连接点位置":"拖到其他节点创建连线"}"></span>`).join("")}<span class="badge">${escapeHtml(badge)}</span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(desc)}</small></button>`}
+ return `<button class="node node-${type} ${cls} ${selected?"selected":""} ${extras.childOfScene?"node-scene-child":""}" style="left:${x}px;top:${y}px;text-align:left" data-action="studio-select-node" data-node-type="${type}" data-node-id="${id}" title="拖动卡片调整位置，单击选中节点">${extras.branchToggle||""}<span class="node-drag-handle" title="拖动卡片或此手柄调整节点位置">⠿</span>${anchors.map(anchor=>`<span class="node-link-handle ${studioAnchorEditing&&selected?"anchor-editing":""}" style="left:${anchor.x}px;top:${anchor.y}px" data-anchor-id="${anchor.id}" title="${studioAnchorEditing&&selected?"拖动调整连接点位置":"拖到其他节点创建连线"}"></span>`).join("")}<span class="badge">${escapeHtml(badge)}</span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(desc)}</small></button>`}
 
 export function studioNodeList(data){
  const chapterNodes=(data.chapters||[]).map((chapter,index)=>({type:"chapter",id:chapter.id,name:`章节 · ${chapter.title}`,title:chapter.title,badge:"公共章节",desc:chapter.summary||"公共剧情阶段",cls:"chapter",metadata:chapter.metadata||{}}));
@@ -243,25 +245,69 @@ export function studioNodeEditPanel(data,selected){
 
 export function bindStudioDragging(){
  const board=document.querySelector(".node-board");
- if(board) board.onpointerdown=event=>{
-  if(event.target.closest("button,input,select,textarea")||event.target.closest(".node"))return;
-  const start={x:event.clientX,y:event.clientY,left:board.scrollLeft,top:board.scrollTop};
-  board.classList.add("panning");
-  const move=moveEvent=>{board.scrollLeft=start.left-(moveEvent.clientX-start.x);board.scrollTop=start.top-(moveEvent.clientY-start.y)};
-  const finish=()=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);board.classList.remove("panning")};
-  document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});
- };
- document.querySelectorAll(".node").forEach(target=>target.onpointerdown=event=>{
-  if(!event.target.closest(".node-drag-handle"))return;
+ if(!board)return;
+ let suppressClickUntil=0;
+ board.onclick=event=>{
+  if(performance.now()>=suppressClickUntil)return;
   event.preventDefault();event.stopPropagation();
-  const { studioZoom } = studioStore.get();
-  const canvas=target.closest(".graph-canvas"),scale=studioZoom;
-  const start={x:event.clientX,y:event.clientY,left:target.offsetLeft,top:target.offsetTop};
-  target.classList.add("dragging");target.setPointerCapture?.(event.pointerId);
-  const move=moveEvent=>{let x=start.left+(moveEvent.clientX-start.x)/scale,y=start.top+(moveEvent.clientY-start.y)/scale;studioEnsureCanvasRoom(canvas,x,y);({x,y}=studioClampNodePosition(canvas,x,y));target.style.left=`${x}px`;target.style.top=`${y}px`;refreshStudioConnectors(canvas)};
-  const finish=async upEvent=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);target.classList.remove("dragging");const x=Math.round(target.offsetLeft),y=Math.round(target.offsetTop),type=target.dataset.nodeType,id=target.dataset.nodeId;setStudioNodePosition(type,id,{x,y});try{await zhimuApi.updateStudioNodePosition(type,id,{x,y});showToast("节点位置已保存到云端")}catch(error){showError(error)}};
-  document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});
- });
+ };
+ board.onpointerdown=event=>{
+  if(event.button!==undefined&&event.button!==0)return;
+  const target=event.target.closest(".node[data-node-type]");
+  if(target&&board.contains(target)){
+   if(event.target.closest(".node-link-handle,.node-branch-toggle,input,select,textarea,a"))return;
+   event.stopPropagation();
+   if(event.target.closest(".node-drag-handle"))event.preventDefault();
+   const { studioZoom } = studioStore.get();
+   const canvas=target.closest(".graph-canvas"),scale=Number(studioZoom)||1;
+   const start={x:event.clientX,y:event.clientY,left:target.offsetLeft,top:target.offsetTop,moved:false};
+   target.setPointerCapture?.(event.pointerId);
+   const cleanup=()=>{
+    document.removeEventListener("pointermove",move);
+    document.removeEventListener("pointerup",finish);
+    document.removeEventListener("pointercancel",cancel);
+    target.classList.remove("dragging");
+    if(target.hasPointerCapture?.(event.pointerId))target.releasePointerCapture?.(event.pointerId);
+   };
+   const move=moveEvent=>{
+    if(!start.moved&&!studioDragMoved(start,moveEvent.clientX,moveEvent.clientY))return;
+    start.moved=true;moveEvent.preventDefault();target.classList.add("dragging");
+    let {x,y}=studioDragPosition(start,moveEvent.clientX,moveEvent.clientY,scale);
+    studioEnsureCanvasRoom(canvas,x,y);({x,y}=studioClampNodePosition(canvas,x,y));
+    target.style.left=`${x}px`;target.style.top=`${y}px`;refreshStudioConnectors(canvas);
+   };
+   const cancel=()=>{
+    cleanup();
+    if(!start.moved)return;
+    target.style.left=`${start.left}px`;target.style.top=`${start.top}px`;refreshStudioConnectors(canvas);
+   };
+   const finish=async()=>{
+    cleanup();
+    if(!start.moved)return;
+    suppressClickUntil=performance.now()+250;
+    const x=Math.round(target.offsetLeft),y=Math.round(target.offsetTop),type=target.dataset.nodeType,id=target.dataset.nodeId;
+    setStudioNodePosition(type,id,{x,y});
+    try{
+     await zhimuApi.updateStudioNodePosition(type,id,{x,y});showToast("节点位置已保存到云端");
+    }catch(error){
+     setStudioNodePosition(type,id,{x:start.left,y:start.top});
+     if(target.isConnected){target.style.left=`${start.left}px`;target.style.top=`${start.top}px`;refreshStudioConnectors(canvas)}
+     showError(error,"节点位置保存失败，已恢复原位置");
+    }
+   };
+   document.addEventListener("pointermove",move,{passive:false});
+   document.addEventListener("pointerup",finish,{once:true});
+   document.addEventListener("pointercancel",cancel,{once:true});
+   return;
+  }
+  if(event.target.closest("button,input,select,textarea,a"))return;
+  const start={x:event.clientX,y:event.clientY,left:board.scrollLeft,top:board.scrollTop,moved:false};
+  board.classList.add("panning");board.setPointerCapture?.(event.pointerId);
+  const move=moveEvent=>{if(studioDragMoved(start,moveEvent.clientX,moveEvent.clientY))start.moved=true;board.scrollLeft=start.left-(moveEvent.clientX-start.x);board.scrollTop=start.top-(moveEvent.clientY-start.y)};
+  const cleanup=()=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",finish);document.removeEventListener("pointercancel",finish);board.classList.remove("panning");if(board.hasPointerCapture?.(event.pointerId))board.releasePointerCapture?.(event.pointerId);if(start.moved)suppressClickUntil=performance.now()+250};
+  const finish=()=>cleanup();
+  document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});document.addEventListener("pointercancel",finish,{once:true});
+ };
  document.querySelectorAll('[data-action="studio-toggle-scene-children"]').forEach(toggle=>{toggle.onclick=event=>{event.stopPropagation();event.preventDefault();callRuntime("handle","studio-toggle-scene-children",toggle)}});
  document.querySelectorAll(".node-link-handle").forEach(handle=>handle.onpointerdown=event=>{
   event.preventDefault();event.stopPropagation();
@@ -464,5 +510,5 @@ function studioMobileOutline(data){
  return `<section class="studio-mobile-outline"><div class="section-head"><div><h3>节点目录</h3><p>小屏幕下可先从目录定位节点，再进入画布调整连线与位置。</p></div><span class="status-chip draft">${visible.length} 个节点</span></div><div class="studio-mobile-node-list">${rows||`<div class="empty-state">暂无节点</div>`}</div>${extra}</section>`;
 }
 
-export const studioViewApi = { studioCloud, studioNodes, studioNode, studioNodeList, studioSceneChildCount, studioVisibleNodes, studioFilterButton, studioCompactSelection, studioDefaultPositions, studioNodePosition, studioNodeRecord, studioNodeAnchors, setStudioNodePosition, setStudioNodeAnchors, closestStudioAnchorPair, studioNodeName, studioEdges, studioSelection, studioEditField, studioEditSelect, studioEditValues, studioNodeEditPanel, bindStudioDragging, fitStudioView, focusSelectedStudioNode, addStudioAnchor, deleteStudioAnchor, refreshStudioConnectors, autoLayoutStudio, openStudioLayoutMenu, saveSelectedStudioNode, deleteSelectedStudioNode, deleteStudioEdge, openStudioChapter, openStudioNodeMenu, openStudioScene, openStudioClue, openStudioItem, openStudioPoint, openStudioConnection, openStudioDragConnection };
+export const studioViewApi = { studioCloud, studioNodes, studioNode, studioNodeList, studioSceneChildCount, studioVisibleNodes, studioFilterButton, studioCompactSelection, studioDefaultPositions, studioNodePosition, studioNodeRecord, studioNodeAnchors, setStudioNodePosition, setStudioNodeAnchors, closestStudioAnchorPair, studioNodeName, studioEdges, studioSelection, studioEditField, studioEditSelect, studioEditValues, studioNodeEditPanel, studioDragPosition, studioDragMoved, bindStudioDragging, fitStudioView, focusSelectedStudioNode, addStudioAnchor, deleteStudioAnchor, refreshStudioConnectors, autoLayoutStudio, openStudioLayoutMenu, saveSelectedStudioNode, deleteSelectedStudioNode, deleteStudioEdge, openStudioChapter, openStudioNodeMenu, openStudioScene, openStudioClue, openStudioItem, openStudioPoint, openStudioConnection, openStudioDragConnection };
 registerView("studio", studioViewApi);
