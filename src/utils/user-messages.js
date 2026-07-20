@@ -36,6 +36,8 @@ const API_ERROR_MESSAGES = {
   OAUTH_EXCHANGE_FAILED: "OAuth 授权失败（多为回调地址未在控制台登记），请稍后重试或改用邮箱登录。",
   OAUTH_STATE_INVALID: "登录状态已失效，请重新发起 OAuth 登录。",
   OAUTH_EMAIL_REQUIRED: "OAuth 账号未提供邮箱，无法注册，请改用邮箱注册。",
+  OAUTH_EMAIL_UNVERIFIED: "OAuth 账号没有提供已验证邮箱，为保护账号安全，暂时不能完成绑定。",
+  OAUTH_IDENTITY_CONFLICT: "该 OAuth 身份与现有账号状态冲突，请退出其他设备后重试或联系支持。",
   ACCOUNT_DELETE_BLOCKED: "当前账号状态不允许注销，请查看页面说明。",
   ACCOUNT_DELETE_CONFIRMATION_INVALID: "输入的昵称与账号显示名不一致，请原样输入后再试。",
 

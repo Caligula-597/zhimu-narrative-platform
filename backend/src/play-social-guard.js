@@ -43,12 +43,11 @@ export async function assertPlaySocialWrite(actorId) {
 export async function countGuestUsersForIp(ipHash, { windowHours = 1 } = {}) {
   if (!ipHash) return 0;
   const result = await query(
-    `SELECT COUNT(DISTINCT u.id)::int AS count
-     FROM users u
-     JOIN auth_sessions s ON s.user_id = u.id
-     WHERE u.user_kind = 'guest'
-       AND s.ip_hash = $1
-       AND u.created_at > now() - ($2::text || ' hours')::interval`,
+    `SELECT COUNT(*)::int AS count
+     FROM auth_account_creation_events
+     WHERE account_kind = 'guest'
+       AND ip_hash = $1
+       AND created_at > now() - ($2::text || ' hours')::interval`,
     [ipHash, String(windowHours)]
   );
   return result.rows[0]?.count ?? 0;
@@ -57,12 +56,11 @@ export async function countGuestUsersForIp(ipHash, { windowHours = 1 } = {}) {
 export async function countRegisteredUsersForIp(ipHash, { windowHours = 24 } = {}) {
   if (!ipHash) return 0;
   const result = await query(
-    `SELECT COUNT(DISTINCT u.id)::int AS count
-     FROM users u
-     JOIN auth_sessions s ON s.user_id = u.id
-     WHERE u.user_kind = 'registered'
-       AND s.ip_hash = $1
-       AND u.created_at > now() - ($2::text || ' hours')::interval`,
+    `SELECT COUNT(*)::int AS count
+     FROM auth_account_creation_events
+     WHERE account_kind = 'registered'
+       AND ip_hash = $1
+       AND created_at > now() - ($2::text || ' hours')::interval`,
     [ipHash, String(windowHours)]
   );
   return result.rows[0]?.count ?? 0;

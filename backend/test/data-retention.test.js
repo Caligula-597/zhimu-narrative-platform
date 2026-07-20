@@ -8,6 +8,7 @@ test("resolveRetentionDays reads env overrides", () => {
   assert.equal(days.oauthStates, 3);
   assert.equal(days.expiredSessions, 30);
   assert.equal(days.voiceMessages, 90);
+  assert.equal(days.accountCreationEvents, 7);
 });
 
 test("purgeExpiredData dry-run returns counts without deleting", async () => {

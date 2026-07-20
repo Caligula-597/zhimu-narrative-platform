@@ -1,7 +1,4 @@
-import { query } from "../db.js";
-import { createEmailVerificationToken } from "../auth.js";
 import { attachSessionToReply } from "../session-cookie.js";
-import { sendEmailVerificationEmail } from "../email.js";
 
 export const authBodySchema = {
   type: "object",
@@ -57,19 +54,6 @@ export function userAuthPayload(row) {
     isGuest: kind === "guest",
     emailVerified: Boolean(row.email_verified_at)
   };
-}
-
-export async function ensureStorageQuota(userId) {
-  await query(
-    `INSERT INTO storage_quotas (user_id) VALUES ($1)
-     ON CONFLICT (user_id) DO UPDATE SET updated_at = storage_quotas.updated_at`,
-    [userId]
-  );
-}
-
-export async function sendVerificationForUser(userId, email) {
-  const { token } = await createEmailVerificationToken(userId);
-  await sendEmailVerificationEmail({ to: email, verifyToken: token });
 }
 
 export function sendAuthSession(reply, session, payload, statusCode) {

@@ -262,6 +262,8 @@ Content Platform 聚焦回归使用 `npm run test:content-platform:isolated`，�
 | 桶 | 默认 | 范围 |
 |----|------|------|
 | `RATE_LIMIT_AUTH_MAX` | 20/min | `/api/auth/login` · `/api/auth/register` |
+| `RATE_LIMIT_AUTH_RECOVERY_MAX` | 6/15min/IP | 找回密码、重置密码和邮箱验证，抑制令牌猜测与邮件轰炸 |
+| `RATE_LIMIT_VERIFICATION_RESEND_MAX` | 3/15min/account | 已登录账号重发验证邮件 |
 | `RATE_LIMIT_WRITE_MAX` | 120/min | 其它 `POST/PUT/PATCH/DELETE /api/*` |
 | `RATE_LIMIT_READ_MAX` | 300/min | `GET/HEAD /api/*`（SSE stream 除外） |
 | `RATE_LIMIT_UPLOAD_MAX` | 30/min | 资产上传确认相关路由 |

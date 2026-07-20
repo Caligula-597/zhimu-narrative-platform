@@ -102,6 +102,9 @@ npm run railway:push-env     # 需 .env.railway.setup 中 RAILWAY_TOKEN
 2. 登录弹窗出现 **Google / GitHub** 按钮  
 
 3. 授权后回到 `https://app.getzhimu.com/?oauth_code=...` 并自动登录  
+   - 新账号同时具有一条 `oauth_accounts`、`user_plans` 与 `storage_quotas` 记录
+   - Google/GitHub 必须返回已验证邮箱；未验证邮箱应得到 `OAUTH_EMAIL_UNVERIFIED`，且不得产生账号或绑定
+   - 同一 provider 身份并发回调只能解析到同一个用户，不能发生绑定漂移
 
 本地：
 
@@ -118,6 +121,8 @@ npm run oauth:check
 | 无 OAuth 按钮 | Railway 未配 `GOOGLE_*` / `GITHUB_*` → `railway:push-env` 后 Redeploy |
 | `redirect_uri_mismatch` | Google/GitHub 控制台回调必须是 **app.getzhimu.com**，不是 getzhimu.com |
 | 回调后 `oauth_error` | Railway 日志；多为 Secret 错误或 state 过期 |
+| `OAUTH_EMAIL_UNVERIFIED` | provider 未返回已验证邮箱；GitHub 需保留 `user:email` scope，并确认账号至少有一个 verified email |
+| `OAUTH_IDENTITY_CONFLICT` | 安全绑定检测到历史数据或并发冲突；不要手工改绑，先核查 `oauth_accounts` 与目标用户 |
 | 在 getzhimu.com 营销页点登录 | 应跳转 **app.getzhimu.com** 再登录（营销站无 `/api`） |
 
 ---

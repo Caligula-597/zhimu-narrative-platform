@@ -240,8 +240,13 @@ user_subscriptions (user_id, plan_id, status, ...)
 ### 5.5 OAuth
 
 **表**：`oauth_accounts (provider, provider_user_id, user_id)`  
-**流**：callback → 查找绑定 → 或创建 user + 绑定 → `createSession`。  
-**顺序**：在 guest + session 稳定之后，避免三种登录态交织难以测试。
+**流**：callback 在事务外完成 provider 换票/资料读取 → 校验 provider subject 与已验证邮箱 → 在短事务内完成 user/guest 升级、OAuth 绑定、plan、storage quota、beta 权益、邀请接收与一次性登录码。登录码兑换时，消费 code 与创建 session 也在同一事务内。
+
+**并发安全**：按 `provider + provider_user_id`、邮箱顺序获取事务级 advisory lock；绑定 UPSERT 只允许更新同一 `user_id` 的资料，禁止并发回调把第三方身份改绑给其他用户。未验证的 provider 邮箱不得新建、合并或接管账号。
+
+**调用预算**：新 OAuth 身份连同一次性登录码最多 10 次事务内 SQL round trip；回归测试持续执行该上限。provider HTTP 请求始终位于数据库事务外。
+
+**模块边界**：provider HTTP 编排位于 `oauth-service.js`，身份事务位于 `oauth-identity-service.js`，SQL 位于 `repositories/oauth-repository.js`。
 
 ---
 

@@ -39,6 +39,18 @@ const authRateLimit = createRateLimiter({
   max: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
   routeKey: "auth"
 });
+const authRecoveryRateLimit = createRateLimiter({
+  windowMs: 15 * 60_000,
+  max: Number(process.env.RATE_LIMIT_AUTH_RECOVERY_MAX ?? 6),
+  routeKey: "auth-recovery",
+  identity: "ip"
+});
+const verificationResendRateLimit = createRateLimiter({
+  windowMs: 15 * 60_000,
+  max: Number(process.env.RATE_LIMIT_VERIFICATION_RESEND_MAX ?? 3),
+  routeKey: "verification-resend",
+  identity: "actor"
+});
 const betaApplyRateLimit = createRateLimiter({
   windowMs: 3_600_000,
   max: Number(process.env.RATE_LIMIT_BETA_APPLY_MAX ?? 5),
@@ -238,8 +250,19 @@ export async function createApp(options = {}) {
     if (await recapAbuseProtection.protectActor(request, reply, url)) return;
     if (await hostCommunicationAbuseProtection.protectActor(request, reply, url)) return;
     if (await hostPlayerManagementAbuseProtection.protectActor(request, reply, url)) return;
-    if (url.startsWith("/api/auth/login") || url.startsWith("/api/auth/register")
-      || url.startsWith("/api/auth/forgot-password") || url.startsWith("/api/auth/reset-password")) {
+    if ([
+      "/api/auth/forgot-password",
+      "/api/auth/reset-password",
+      "/api/auth/verify-email"
+    ].includes(url)) {
+      await authRecoveryRateLimit(request, reply);
+      return;
+    }
+    if (url === "/api/auth/resend-verification") {
+      await verificationResendRateLimit(request, reply);
+      return;
+    }
+    if (url.startsWith("/api/auth/login") || url.startsWith("/api/auth/register")) {
       await authRateLimit(request, reply);
       return;
     }
