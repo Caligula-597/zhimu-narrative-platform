@@ -3,7 +3,6 @@
  * Separate from worlds.catalog_public (curated script library).
  */
 import { query } from "./db.js";
-import { throwErr } from "./api-errors.js";
 import { worldCoverApiPath } from "./world-cover.js";
 
 export async function listPublicRooms({ limit = 24 } = {}) {
@@ -64,23 +63,4 @@ export async function listPublicRooms({ limit = 24 } = {}) {
     total: result.rowCount,
     items
   };
-}
-
-export async function setRoomPublicListing({ actorId, worldId, roomId, publicListing }) {
-  const room = await query(
-    `SELECT r.id, r.world_id, r.host_user_id, r.public_listing
-     FROM rooms r
-     WHERE r.id = $1 AND r.world_id = $2`,
-    [roomId, worldId]
-  );
-  if (!room.rowCount) throwErr("ROOM_NOT_FOUND");
-
-  const updated = await query(
-    `UPDATE rooms
-     SET public_listing = $1, updated_at = now()
-     WHERE id = $2 AND world_id = $3
-     RETURNING id, name, invite_code, status, public_listing, updated_at`,
-    [Boolean(publicListing), roomId, worldId]
-  );
-  return updated.rows[0];
 }

@@ -197,12 +197,11 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     if (!name) return;
     setBusy(true);
     try {
-      const inviteCode = `ROOM-${Date.now().toString(36).toUpperCase()}`;
-      const room = await api.createRoom({ name, inviteCode, publicListing: false }, worldId);
+      const room = await api.createRoom({ name, publicListing: false }, worldId);
       state.rooms = await api.getWorldRooms(worldId);
       setRoomId(worldId, room.id);
       state.room = state.rooms.find((item) => item.id === room.id) || room;
-      showToast(`运行房已创建：${room.invite_code || inviteCode}`);
+      showToast(`运行房已创建：${room.invite_code}`);
       await enterConsole();
     } catch (error) {
       showToast(formatApiError(error, "创建运行房失败"));

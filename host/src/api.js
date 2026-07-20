@@ -77,7 +77,11 @@ export const api = {
   },
   createRoom: (payload, worldId = getWorldId()) => {
     if (!worldId) throw Object.assign(new Error("请先选择剧本世界"), { code: "WORLD_REQUIRED" });
-    return request(`/worlds/${worldId}/rooms`, { method: "POST", body: payload });
+    return request(`/worlds/${worldId}/rooms`, {
+      method: "POST",
+      body: payload,
+      idempotent: true
+    });
   },
   getStudio: (worldId = getWorldId()) => request(`/worlds/${worldId}/studio`),
   getWorldSegments: (worldId = getWorldId()) => request(`/worlds/${worldId}/segments`),

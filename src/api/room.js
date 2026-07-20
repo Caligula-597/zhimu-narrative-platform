@@ -12,7 +12,12 @@ import { friendlyApiError } from "../utils/user-messages.js";
 import { openSseStream } from "../../shared/sse-client.js";
 
 export function createRoom(worldId, payload) {
-  return request(`/worlds/${worldId}/rooms`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+  return request(`/worlds/${worldId}/rooms`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: payload,
+    idempotent: true
+  });
 }
 
 export function updateRoomPublicListing(worldId, roomId, publicListing) {

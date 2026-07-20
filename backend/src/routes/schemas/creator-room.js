@@ -8,11 +8,15 @@ export const createRoomSchema = {
     additionalProperties: false,
     required: ["name"],
     properties: {
-      name: { type: "string", minLength: 1, maxLength: 80 },
+      name: { type: "string", minLength: 1, maxLength: 80, pattern: "\\S" },
       inviteCode: { type: "string", minLength: 1, maxLength: 80, deprecated: true },
       publicListing: { type: "boolean" }
     }
   }
+};
+
+export const listCreatorRoomsSchema = {
+  params: worldIdParams
 };
 
 export const updateRoomListingSchema = {

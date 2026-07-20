@@ -253,8 +253,8 @@ export async function finishWizard(){
    for(const ruleBody of templateRules){
     try{await zhimuApi.createRule(ruleBody);rulesCreated+=1}catch(error){console.warn("wizard rule template skipped",error)}
    }
-   inviteCode=`TEST-${Date.now().toString(36).toUpperCase()}`;
-   room=await zhimuApi.createRoom(world.id,{name:`${d.worldName} · 测试房`,inviteCode});
+   room=await zhimuApi.createRoom(world.id,{name:`${d.worldName} · 测试房`});
+   inviteCode=room?.invite_code||"";
   }
   zhimuApi.selectWorld(world.id);
   if(room?.id) zhimuApi.selectRoom(room.id);

@@ -307,7 +307,7 @@ export async function openWorldRooms(){
 export async function createParallelRoom(){
  const input=modal.querySelector("[data-room-name]"),name=input.value.trim();if(!name)return showToast("请填写平行房名称");
  const publicListing=Boolean(modal.querySelector("[data-room-public-listing]")?.checked);
- try{const room=await zhimuApi.createRoom(zhimuApi.context.worldId,{name,inviteCode:`ROOM-${Date.now().toString(36).toUpperCase()}`,publicListing});zhimuApi.selectRoom(room.id);closeModal();await loadCloudData(true,true);showToast(publicListing?`平行房已开放并公开到大厅：${room.invite_code}`:`平行房已开放：${room.invite_code}`);openWorldRooms()}catch(error){showError(error)}
+ try{const room=await zhimuApi.createRoom(zhimuApi.context.worldId,{name,publicListing});zhimuApi.selectRoom(room.id);closeModal();await loadCloudData(true,true);showToast(publicListing?`平行房已开放并公开到大厅：${room.invite_code}`:`平行房已开放：${room.invite_code}`);openWorldRooms()}catch(error){showError(error)}
 }
 
 export async function setRoomPublicListing(roomId,publicListing){
