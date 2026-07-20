@@ -9,6 +9,75 @@ export async function cleanupStoredObjects(objectKeys = []) {
   await Promise.allSettled([...new Set(objectKeys)].map((key) => storage.deleteObject({ key })));
 }
 
+export async function prepareWorldAssetUpload({
+  actorId,
+  worldId,
+  roleSlotId = null,
+  roomId = null,
+  filename,
+  buffer,
+  contentType,
+  visibility = "role",
+  assetKind = "image"
+}) {
+  if (!buffer?.length) throwErr("UPLOAD_FIELDS_REQUIRED");
+  const objectKey = `users/${actorId}/worlds/${worldId}/assets/${randomUUID()}`;
+  const storage = getObjectStorage();
+  await storage.putObject({ key: objectKey, body: buffer, contentType });
+  try {
+    const stat = await storage.statObject({ key: objectKey });
+    await scanUploadedObject({
+      key: objectKey,
+      contentType: stat.contentType,
+      byteSize: stat.byteSize,
+      filename
+    });
+    return {
+      actorId,
+      worldId,
+      roleSlotId,
+      roomId,
+      filename,
+      contentType: stat.contentType,
+      visibility,
+      assetKind,
+      objectKey,
+      byteSize: stat.byteSize
+    };
+  } catch (error) {
+    await storage.deleteObject({ key: objectKey }).catch(() => {});
+    throw error;
+  }
+}
+
+export async function registerPreparedWorldAsset(client, prepared) {
+  const file = await client.query(
+    `INSERT INTO asset_files
+      (owner_user_id, world_id, room_id, asset_kind, visibility, role_slot_id, object_key, original_filename, content_type, byte_size, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'active')
+     RETURNING id, object_key, original_filename`,
+    [
+      prepared.actorId,
+      prepared.worldId,
+      prepared.roomId,
+      prepared.assetKind,
+      prepared.visibility,
+      prepared.roleSlotId,
+      prepared.objectKey,
+      prepared.filename,
+      prepared.contentType,
+      prepared.byteSize
+    ]
+  );
+  const assetId = file.rows[0].id;
+  await client.query(
+    `INSERT INTO asset_versions (asset_file_id, version_number, object_key, byte_size)
+     VALUES ($1, 1, $2, $3)`,
+    [assetId, prepared.objectKey, prepared.byteSize]
+  );
+  return { assetId, byteSize: prepared.byteSize, objectKey: prepared.objectKey };
+}
+
 /**
  * Server-side upload (import pipeline) — bypasses presigned client PUT.
  */
@@ -26,34 +95,21 @@ export async function uploadWorldAssetFromBuffer(
     assetKind = "image"
   }
 ) {
-  if (!buffer?.length) throwErr("UPLOAD_FIELDS_REQUIRED");
-  const objectKey = `users/${actorId}/worlds/${worldId}/assets/${randomUUID()}`;
-  const storage = getObjectStorage();
-  await storage.putObject({ key: objectKey, body: buffer, contentType });
+  const prepared = await prepareWorldAssetUpload({
+    actorId,
+    worldId,
+    roleSlotId,
+    roomId,
+    filename,
+    buffer,
+    contentType,
+    visibility,
+    assetKind
+  });
   try {
-    const stat = await storage.statObject({ key: objectKey });
-    await scanUploadedObject({
-      key: objectKey,
-      contentType: stat.contentType,
-      byteSize: stat.byteSize,
-      filename
-    });
-    const file = await client.query(
-      `INSERT INTO asset_files
-        (owner_user_id, world_id, room_id, asset_kind, visibility, role_slot_id, object_key, original_filename, content_type, byte_size, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'active')
-       RETURNING id, object_key, original_filename`,
-      [actorId, worldId, roomId, assetKind, visibility, roleSlotId, objectKey, filename, contentType, stat.byteSize]
-    );
-    const assetId = file.rows[0].id;
-    await client.query(
-      `INSERT INTO asset_versions (asset_file_id, version_number, object_key, byte_size)
-       VALUES ($1, 1, $2, $3)`,
-      [assetId, objectKey, stat.byteSize]
-    );
-    return { assetId, byteSize: stat.byteSize, objectKey };
+    return await registerPreparedWorldAsset(client, prepared);
   } catch (error) {
-    await storage.deleteObject({ key: objectKey }).catch(() => {});
+    await cleanupStoredObjects([prepared.objectKey]);
     throw error;
   }
 }

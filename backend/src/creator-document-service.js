@@ -1,10 +1,13 @@
 import { sendErr, throwErr } from "./api-errors.js";
 import { cleanupStoredObjects } from "./asset-upload-helpers.js";
+import { transaction } from "./db.js";
 import { MAX_DOCUMENT_BYTES, parseCreatorDocument } from "./document-parser.js";
 import { runDocumentProcessing } from "./document-processing-guard.js";
 import {
   importImageFileToRoleSection,
   importPdfPagesToRoleScript,
+  prepareImagePageAssetUpload,
+  preparePdfPageAssetUploads,
   renderPdfPageBuffers
 } from "./document-page-import.js";
 import { parseDocumentPayloadBase64 } from "./section-content.js";
@@ -152,18 +155,39 @@ export async function importCreatorDocumentPages({ request, reply, actorId, worl
   const publicationStatus = ["draft", "testing", "published"].includes(payload?.publicationStatus)
     ? payload.publicationStatus
     : "draft";
-  const uploadedObjectKeys = [];
-  const onAssetUploaded = (uploaded) => uploadedObjectKeys.push(uploaded.objectKey);
-  const onRollback = () => cleanupStoredObjects(uploadedObjectKeys);
 
+  await transaction(async (client) => {
+    await configureCreatorDocumentTransaction(client);
+    await lockDocumentEditor(client, { worldId, actorId });
+    await lockDocumentRole(client, { worldId, roleSlotId });
+  });
+  const expectedRevision = parseIfMatch(request);
+  await assertWorldRevisionMatch(worldId, expectedRevision);
   let renderedPages = null;
   if (extension === ".pdf") {
-    const expectedRevision = parseIfMatch(request);
-    if (expectedRevision != null) await assertWorldRevisionMatch(worldId, expectedRevision);
     renderedPages = await runDocumentProcessing(() => renderPdfPageBuffers(buffer));
   }
 
-  return runRevisionMutation(request, reply, worldId, async (client) => {
+  const preparedAssets = extension === ".pdf"
+    ? await preparePdfPageAssetUploads({
+        worldId,
+        actorId,
+        roleSlotId,
+        filename,
+        pages: renderedPages.pages
+      })
+    : [await prepareImagePageAssetUpload({
+        worldId,
+        actorId,
+        roleSlotId,
+        filename,
+        buffer,
+        contentType: IMAGE_CONTENT_TYPES.get(extension)
+      })];
+  const uploadedObjectKeys = preparedAssets.map((asset) => asset.objectKey);
+  const onRollback = () => cleanupStoredObjects(uploadedObjectKeys);
+
+  const response = await runRevisionMutation(request, reply, worldId, async (client) => {
     await lockDocumentEditor(client, { worldId, actorId });
     const result = extension === ".pdf"
       ? await importPdfPagesToRoleScript({
@@ -176,7 +200,7 @@ export async function importCreatorDocumentPages({ request, reply, actorId, worl
           publicationStatus,
           layout,
           renderedPages,
-          onAssetUploaded,
+          preparedAssets,
           client
         })
       : await importImageFileToRoleSection({
@@ -188,7 +212,7 @@ export async function importCreatorDocumentPages({ request, reply, actorId, worl
           contentType: IMAGE_CONTENT_TYPES.get(extension),
           title: payload?.title,
           publicationStatus,
-          onAssetUploaded,
+          preparedAsset: preparedAssets[0],
           client
         });
     return pageImportResponse(result);
@@ -199,4 +223,6 @@ export async function importCreatorDocumentPages({ request, reply, actorId, worl
     shouldBumpRevision: (result) => !result.skipped,
     onRollback
   });
+  if (response?.skipped) await cleanupStoredObjects(uploadedObjectKeys);
+  return response;
 }

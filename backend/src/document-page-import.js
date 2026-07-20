@@ -3,6 +3,8 @@ import { throwErr } from "./api-errors.js";
 import { transaction } from "./db.js";
 import {
   cleanupStoredObjects,
+  prepareWorldAssetUpload,
+  registerPreparedWorldAsset,
   uploadWorldAssetFromBuffer
 } from "./asset-upload-helpers.js";
 import {
@@ -59,6 +61,42 @@ export async function renderPdfPageBuffers(buffer, { maxPages = null, scale = nu
   return { pageCount: doc.numPages, pages };
 }
 
+export async function preparePdfPageAssetUploads({ worldId, actorId, roleSlotId, filename, pages }) {
+  const stem = baseName(filename);
+  const preparedAssets = [];
+  try {
+    for (const page of pages) {
+      preparedAssets.push(await prepareWorldAssetUpload({
+        actorId,
+        worldId,
+        roleSlotId,
+        filename: `${stem}-p${page.pageNumber}.png`,
+        buffer: page.buffer,
+        contentType: page.contentType,
+        visibility: "role",
+        assetKind: "image"
+      }));
+    }
+    return preparedAssets;
+  } catch (error) {
+    await cleanupStoredObjects(preparedAssets.map((asset) => asset.objectKey));
+    throw error;
+  }
+}
+
+export function prepareImagePageAssetUpload({ worldId, actorId, roleSlotId, filename, buffer, contentType }) {
+  return prepareWorldAssetUpload({
+    actorId,
+    worldId,
+    roleSlotId,
+    filename,
+    buffer,
+    contentType: contentType || "image/jpeg",
+    visibility: "role",
+    assetKind: "image"
+  });
+}
+
 export async function importPdfPagesToRoleScript({
   worldId,
   actorId,
@@ -69,6 +107,7 @@ export async function importPdfPagesToRoleScript({
   publicationStatus = "draft",
   layout = "single_section",
   renderedPages = null,
+  preparedAssets = null,
   onAssetUploaded = null,
   client: existingClient = null
 }) {
@@ -78,6 +117,9 @@ export async function importPdfPagesToRoleScript({
   const importKey = `pdf-pages:sha256:${contentHash(buffer)}`;
   const legacyImportKey = `pdf-pages:${stem}:${pageCount}:${buffer.length}`;
   const uploadedObjectKeys = [];
+  if (preparedAssets && preparedAssets.length !== pages.length) {
+    throw new Error("Prepared PDF asset count does not match rendered page count");
+  }
 
   try {
     return await runWithClient(existingClient, async (client) => {
@@ -99,17 +141,19 @@ export async function importPdfPagesToRoleScript({
 
       const scriptId = await ensureDocumentCharacterScript(client, roleSlotId);
       const pageAssetIds = [];
-      for (const page of pages) {
-        const uploaded = await uploadWorldAssetFromBuffer(client, {
-          actorId,
-          worldId,
-          roleSlotId,
-          filename: `${stem}-p${page.pageNumber}.png`,
-          buffer: page.buffer,
-          contentType: page.contentType,
-          visibility: "role",
-          assetKind: "image"
-        });
+      for (const [index, page] of pages.entries()) {
+        const uploaded = preparedAssets
+          ? await registerPreparedWorldAsset(client, preparedAssets[index])
+          : await uploadWorldAssetFromBuffer(client, {
+              actorId,
+              worldId,
+              roleSlotId,
+              filename: `${stem}-p${page.pageNumber}.png`,
+              buffer: page.buffer,
+              contentType: page.contentType,
+              visibility: "role",
+              assetKind: "image"
+            });
         uploadedObjectKeys.push(uploaded.objectKey);
         onAssetUploaded?.(uploaded);
         pageAssetIds.push(uploaded.assetId);
@@ -152,7 +196,7 @@ export async function importPdfPagesToRoleScript({
       };
     });
   } catch (error) {
-    await cleanupStoredObjects(uploadedObjectKeys);
+    if (!preparedAssets) await cleanupStoredObjects(uploadedObjectKeys);
     throw error;
   }
 }
@@ -166,6 +210,7 @@ export async function importImageFileToRoleSection({
   contentType,
   title = null,
   publicationStatus = "draft",
+  preparedAsset = null,
   onAssetUploaded = null,
   client: existingClient = null
 }) {
@@ -186,16 +231,18 @@ export async function importImageFileToRoleSection({
         return { skipped: true, reason: "duplicate_import", sectionId: existing.id, pageCount: 1 };
       }
 
-      const uploaded = await uploadWorldAssetFromBuffer(client, {
-        actorId,
-        worldId,
-        roleSlotId,
-        filename,
-        buffer,
-        contentType: contentType || "image/jpeg",
-        visibility: "role",
-        assetKind: "image"
-      });
+      const uploaded = preparedAsset
+        ? await registerPreparedWorldAsset(client, preparedAsset)
+        : await uploadWorldAssetFromBuffer(client, {
+            actorId,
+            worldId,
+            roleSlotId,
+            filename,
+            buffer,
+            contentType: contentType || "image/jpeg",
+            visibility: "role",
+            assetKind: "image"
+          });
       uploadedObjectKeys.push(uploaded.objectKey);
       onAssetUploaded?.(uploaded);
 
@@ -226,7 +273,7 @@ export async function importImageFileToRoleSection({
       };
     });
   } catch (error) {
-    await cleanupStoredObjects(uploadedObjectKeys);
+    if (!preparedAsset) await cleanupStoredObjects(uploadedObjectKeys);
     throw error;
   }
 }

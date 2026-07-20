@@ -110,20 +110,28 @@ export async function runRevisionMutation(
   reply,
   worldId,
   writeFn,
-  { sendErr, statusCode = 200, configureClient, shouldBumpRevision, onRollback } = {}
+  {
+    sendErr,
+    statusCode = 200,
+    configureClient,
+    shouldBumpRevision,
+    onRollback,
+    runTransaction = transaction
+  } = {}
 ) {
   const ifMatch = parseIfMatch(request);
+  let mutation;
   try {
-    const { result, revision } = await transaction(async (client) => {
+    mutation = await runTransaction(async (client) => {
       await configureClient?.(client);
       return bumpWorldRevisionAfterWrite(worldId, ifMatch, client, writeFn, { shouldBumpRevision });
     });
-    setWorldRevisionHeaders(reply, revision);
-    if (statusCode !== 200) reply.code(statusCode);
-    return withContentRevision(result, revision);
   } catch (error) {
     if (onRollback) await Promise.resolve(onRollback(error)).catch(() => {});
     if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
     throw error;
   }
+  setWorldRevisionHeaders(reply, mutation.revision);
+  if (statusCode !== 200) reply.code(statusCode);
+  return withContentRevision(mutation.result, mutation.revision);
 }
