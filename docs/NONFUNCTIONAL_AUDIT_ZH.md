@@ -25,6 +25,7 @@
 - 内容运行报告与洞察已迁移到 repository/service；run-report 从 4 次数据库往返降到 2 次，creator analytics 从四条并发 SQL 合并为一条聚合 SQL，避免单请求占用默认 6 连接池中的 4 个连接。
 - Player 首页 supplemental 的 social 从 5 次数据库往返合并为 1 次、session 从 4 次合并为 1 次；连同 tasks，单请求并发连接峰值由约 9 降为 3。章节页附件不再按章节逐次查询，而是对当前可读章节的资产 ID 去重后一次查询、一次签名，并保持每章原始页序。
 - Creator 单文档图片/PDF 页导入改为两阶段：权限与版本先短事务预检，R2 上传、stat 和安全扫描在不占数据库连接的阶段完成，正式事务只登记资产与章节；失败和重复导入在事务结束后清理暂存对象。响应序列化失败不再误触发“数据库回滚”清理，避免删除已经提交引用的对象。
+- ZIP script-bundle 导入也完成两阶段收敛：解压、文本抽取、PDF 检测/渲染及 R2 扫描全部在事务外执行；事务开始后先锁定目标 world，每个有效文件使用 SAVEPOINT，单文件失败会回滚角色、资产、章节和知识块的半成品，已跳过或预处理失败的文件不产生 SAVEPOINT 往返。多章节/逐页导入同时按子 importKey 去重，重复提交不会再次生成内容。
 - 路由层最后六个直连点已归零；实体卡激活把房间 world 校验移入 token 行锁事务，消除事务外检查窗口；房间补救列表由“查 worldId + 查列表”收敛为单条联表查询。
 - 周期报告使用明确 UTF-8 输出；编码门禁覆盖生产与审计脚本并识别常见二次转码乱码。四个前端表面的 gzip 预算已加入周期验收，Site 的共享 `safe-dom` 首屏块单独计入，避免拆 chunk 后漏算。
 - Writer/Director/Site 等产品代码不再直接写 `innerHTML`；`shared/safe-dom.js` 是唯一带精确预算的安全 sink。官网发布产物包含 CSP、`trusted-types zhimu-html` 与 `require-trusted-types-for 'script'`。

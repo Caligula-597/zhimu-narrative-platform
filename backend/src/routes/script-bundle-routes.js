@@ -2,18 +2,9 @@ import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireVerifiedEmail } from "../email-verification-policy.js";
 import { requireWorldRole } from "./route-guards.js";
-import {
-  analyzeScriptBundle,
-  createWorldFromScriptBundle,
-  importScriptBundleToWorldWithClient
-} from "../script-bundle-import.js";
+import { analyzeScriptBundle, cleanupPreparedScriptBundle, createWorldFromScriptBundle, importScriptBundleToWorldWithClient, prepareScriptBundleImport } from "../script-bundle-import.js";
 import { runRevisionMutation } from "../world-revision.js";
-import {
-  scriptBundleAnalyzeSchema,
-  scriptBundleImportSchema,
-  scriptBundleNewWorldSchema,
-  worldIdParams
-} from "./schemas.js";
+import { scriptBundleAnalyzeSchema, scriptBundleImportSchema, scriptBundleNewWorldSchema, worldIdParams } from "./schemas.js";
 
 export async function registerScriptBundleRoutes(app) {
   app.post("/api/worlds/:worldId/script-bundle/analyze", { schema: scriptBundleAnalyzeSchema }, async (request, reply) => {
@@ -31,9 +22,23 @@ export async function registerScriptBundleRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     try {
-      return runRevisionMutation(request, reply, worldId, async (client) => {
-        return importScriptBundleToWorldWithClient(client, worldId, actorId, request.body ?? {}, request.body ?? {});
-      }, { sendErr, statusCode: 201 });
+      const body = request.body ?? {};
+      const preparedImport = await prepareScriptBundleImport(worldId, actorId, body, body);
+      const response = await runRevisionMutation(
+        request,
+        reply,
+        worldId,
+        async (client) => {
+          return importScriptBundleToWorldWithClient(client, worldId, actorId, body, body, preparedImport);
+        },
+        {
+          sendErr,
+          statusCode: 201,
+          onRollback: () => cleanupPreparedScriptBundle(preparedImport)
+        }
+      );
+      await cleanupPreparedScriptBundle(preparedImport, { unusedOnly: true });
+      return response;
     } catch (error) {
       return sendErr(reply, error.code ?? "BAD_REQUEST", error.message);
     }

@@ -34,4 +34,12 @@ PLAYER_HOME_BEARER_TOKENS='token-a,token-b,token-c' npm run perf:player-home -- 
 
 最终首屏切片相对原完整接口使 P95 降低约 80%、吞吐提高约 342%；P99 已进入 1000ms 门槛，但 P95 仍未达到 500ms。该结果受开发机到远程数据库网络延迟影响，不能替代同区域 staging 证据，也不能判定发布通过。
 
-多玩家 fixture 使用三个不同角色身份。连接池从 10 增至 12 只使 P95 改善约 4%，不足以支持修改默认池大小；默认值保持 10，避免逼近当前 Supabase session pooler 的 15 连接上限。
+多玩家 fixture 使用三个不同角色身份。历史实验把连接池从 10 增至 12 只使 P95 改善约 4%，不足以支持继续扩池；当前生产默认值为 6，为两实例滚动部署、迁移和运维连接保留余量。
+
+## 2026-07-20 查询预算收敛
+
+- supplemental social 从 5 次数据库往返合并为 1 次，session 从 4 次合并为 1 次；连同 tasks，峰值连接占用约为 3，而不是约 9。
+- 当前可读章节的页面资产统一去重后批量查询和签名，不再按章节产生 N+1。
+- 真实 SQL 已在迁移 90/90、`ready=true` 的数据库上用只读空身份完成语法和返回字段核验；查询预算与映射回归 11/11 通过。
+
+本轮没有生成新的 P95/P99 数字：本机 Docker daemon 未启动，staging 未配置 `PLAYER_HOME_BEARER_TOKENS` 和专用房间。安全门禁因此阻止远程 demo-header 压测；不得把当前远程数据库当作未授权压测目标。补齐隔离 staging 和多个短期 Bearer 后，仍需按本文命令采集 20/50/100 并发 JSON 与 `pg_stat_statements`。

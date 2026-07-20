@@ -4,7 +4,7 @@ import { transaction } from "./db.js";
 import { cleanText, splitSections } from "./document-parser.js";
 import { detectPdfContentMode, extractTextFromPdfBuffer } from "./pdf-document.js";
 import { buildPagesSectionMetadata, PAGES_BODY_PLACEHOLDER } from "./section-content.js";
-import { uploadWorldAssetFromBuffer } from "./asset-upload-helpers.js";
+import { registerPreparedWorldAsset, uploadWorldAssetFromBuffer } from "./asset-upload-helpers.js";
 import { renderPdfPageBuffers } from "./document-page-import.js";
 import { resolveClueKind } from "./clue-kind.js";
 import { replaceKnowledgeChunks } from "./knowledge-chunks.js";
@@ -26,13 +26,13 @@ async function ensureCharacterScriptId(client, roleSlotId) {
     [roleSlotId]
   );
   if (script.rowCount) return script.rows[0].id;
-  return (
-    await client.query(`SELECT id FROM character_scripts WHERE role_slot_id = $1 ORDER BY created_at LIMIT 1`, [roleSlotId])
-  ).rows[0].id;
+  return (await client.query(`SELECT id FROM character_scripts WHERE role_slot_id = $1 ORDER BY created_at LIMIT 1`, [roleSlotId])).rows[0].id;
 }
 
 export async function extractDocumentText(buffer, filename) {
-  const extension = String(filename ?? "").toLowerCase().match(/\.[^.]+$/)?.[0];
+  const extension = String(filename ?? "")
+    .toLowerCase()
+    .match(/\.[^.]+$/)?.[0];
   if ([".txt", ".md", ".markdown"].includes(extension)) return cleanText(buffer.toString("utf8"));
   if (extension === ".docx") return cleanText((await mammoth.extractRawText({ buffer })).value);
   if (extension === ".pdf") {
@@ -73,34 +73,35 @@ export async function appendStoryManuscript(client, worldId, actorId, text, sour
   return { appended: true, characters: cleaned.length };
 }
 
-export async function importTextSectionsToRole({
-  worldId,
-  actorId,
-  roleSlotId,
-  filename,
-  buffer,
-  title = null,
-  publicationStatus = "draft",
-  importKey,
-  client: existingClient = null
-}) {
-  const text = await extractDocumentText(buffer, filename);
+export async function importTextSectionsToRole({ worldId, actorId, roleSlotId, filename, buffer, title = null, publicationStatus = "draft", importKey, extractedText = undefined, client: existingClient = null }) {
+  const text = extractedText === undefined ? await extractDocumentText(buffer, filename) : extractedText;
   if (!text) return { mode: "needs_pages", skipped: false };
   const sections = splitSections(text).slice(0, 80);
   if (!sections.length) throwErr("DOCUMENT_EMPTY");
 
   return runWithClient(existingClient, async (client) => {
     const existing = await client.query(
-      `SELECT id FROM script_sections WHERE role_slot_id = $1 AND metadata->>'importKey' = $2 LIMIT 1`,
+      `SELECT id
+       FROM script_sections
+       WHERE role_slot_id = $1
+         AND (
+           metadata->>'importKey' = $2
+           OR position($2 || ':section:' IN metadata->>'importKey') = 1
+         )
+       ORDER BY created_at
+       LIMIT 1`,
       [roleSlotId, importKey]
     );
-    if (existing.rowCount) return { skipped: true, reason: "duplicate_import", sectionId: existing.rows[0].id, mode: "text" };
+    if (existing.rowCount)
+      return {
+        skipped: true,
+        reason: "duplicate_import",
+        sectionId: existing.rows[0].id,
+        mode: "text"
+      };
 
     const scriptId = await ensureCharacterScriptId(client, roleSlotId);
-    const maxSeq = await client.query(
-      `SELECT COALESCE(MAX(sequence), 0)::int AS value FROM script_sections WHERE character_script_id = $1`,
-      [scriptId]
-    );
+    const maxSeq = await client.query(`SELECT COALESCE(MAX(sequence), 0)::int AS value FROM script_sections WHERE character_script_id = $1`, [scriptId]);
     let sequence = maxSeq.rows[0].value;
     const created = [];
     for (const [index, section] of sections.entries()) {
@@ -118,7 +119,11 @@ export async function importTextSectionsToRole({
           section.body,
           sequence,
           publicationStatus,
-          JSON.stringify({ source: "script_bundle", filename, importKey: `${importKey}:section:${index + 1}` })
+          JSON.stringify({
+            source: "script_bundle",
+            filename,
+            importKey: `${importKey}:section:${index + 1}`
+          })
         ]
       );
       await replaceKnowledgeChunks(client, {
@@ -129,11 +134,20 @@ export async function importTextSectionsToRole({
         visibility: "role",
         title: sectionTitle,
         text: section.body,
-        metadata: { source: "script_bundle", filename, importKey: `${importKey}:section:${index + 1}` }
+        metadata: {
+          source: "script_bundle",
+          filename,
+          importKey: `${importKey}:section:${index + 1}`
+        }
       });
       created.push(inserted.rows[0]);
     }
-    return { skipped: false, mode: "text", sections: created, sectionCount: created.length };
+    return {
+      skipped: false,
+      mode: "text",
+      sections: created,
+      sectionCount: created.length
+    };
   });
 }
 
@@ -147,37 +161,58 @@ export async function importPdfPagesToRoleWithKey({
   publicationStatus = "draft",
   layout = "single_section",
   importKey,
+  renderedPages = null,
+  preparedAssets = null,
   client: existingClient = null
 }) {
   return runWithClient(existingClient, async (client) => {
     const existing = await client.query(
-      `SELECT id FROM script_sections WHERE role_slot_id = $1 AND metadata->>'importKey' = $2 LIMIT 1`,
+      `SELECT id
+       FROM script_sections
+       WHERE role_slot_id = $1
+         AND (
+           metadata->>'importKey' = $2
+           OR position($2 || ':page:' IN metadata->>'importKey') = 1
+         )
+       ORDER BY created_at
+       LIMIT 1`,
       [roleSlotId, importKey]
     );
-    if (existing.rowCount) return { skipped: true, reason: "duplicate_import", sectionId: existing.rows[0].id, mode: "pages" };
+    if (existing.rowCount)
+      return {
+        skipped: true,
+        reason: "duplicate_import",
+        sectionId: existing.rows[0].id,
+        mode: "pages"
+      };
 
-    const { pageCount, pages } = await renderPdfPageBuffers(buffer);
+    const { pageCount, pages } = renderedPages ?? (await renderPdfPageBuffers(buffer));
+    if (preparedAssets && preparedAssets.length !== pages.length) {
+      throw new Error("Prepared PDF asset count does not match rendered page count");
+    }
     const stem = title?.trim() || baseName(filename);
     const scriptId = await ensureCharacterScriptId(client, roleSlotId);
     const pageAssetIds = [];
-    for (const page of pages) {
-      const uploaded = await uploadWorldAssetFromBuffer(client, {
-        actorId,
-        worldId,
-        roleSlotId,
-        filename: `${stem}-p${page.pageNumber}.png`,
-        buffer: page.buffer,
-        contentType: page.contentType,
-        visibility: "role",
-        assetKind: "image"
-      });
+    for (const [index, page] of pages.entries()) {
+      const uploaded = preparedAssets
+        ? await registerPreparedWorldAsset(client, {
+            ...preparedAssets[index],
+            roleSlotId
+          })
+        : await uploadWorldAssetFromBuffer(client, {
+            actorId,
+            worldId,
+            roleSlotId,
+            filename: `${stem}-p${page.pageNumber}.png`,
+            buffer: page.buffer,
+            contentType: page.contentType,
+            visibility: "role",
+            assetKind: "image"
+          });
       pageAssetIds.push(uploaded.assetId);
     }
 
-    const maxSeq = await client.query(
-      `SELECT COALESCE(MAX(sequence), 0)::int AS value FROM script_sections WHERE character_script_id = $1`,
-      [scriptId]
-    );
+    const maxSeq = await client.query(`SELECT COALESCE(MAX(sequence), 0)::int AS value FROM script_sections WHERE character_script_id = $1`, [scriptId]);
     let nextSequence = maxSeq.rows[0].value;
     const createdSections = [];
 
@@ -218,36 +253,36 @@ export async function importPdfPagesToRoleWithKey({
       createdSections.push(inserted.rows[0]);
     }
 
-    return { skipped: false, mode: "pages", pageCount, sections: createdSections };
+    return {
+      skipped: false,
+      mode: "pages",
+      pageCount,
+      sections: createdSections
+    };
   });
 }
 
-export async function importClueImageFile({
-  worldId,
-  actorId,
-  clueName,
-  filename,
-  buffer,
-  contentType,
-  importKey,
-  client: existingClient = null
-}) {
+export async function importClueImageFile({ worldId, actorId, clueName, filename, buffer, contentType, importKey, preparedAsset = null, client: existingClient = null }) {
   return runWithClient(existingClient, async (client) => {
-    const existing = await client.query(
-      `SELECT id FROM clues WHERE world_id = $1 AND metadata->>'importKey' = $2 LIMIT 1`,
-      [worldId, importKey]
-    );
-    if (existing.rowCount) return { skipped: true, reason: "duplicate_import", clueId: existing.rows[0].id };
+    const existing = await client.query(`SELECT id FROM clues WHERE world_id = $1 AND metadata->>'importKey' = $2 LIMIT 1`, [worldId, importKey]);
+    if (existing.rowCount)
+      return {
+        skipped: true,
+        reason: "duplicate_import",
+        clueId: existing.rows[0].id
+      };
 
-    const uploaded = await uploadWorldAssetFromBuffer(client, {
-      actorId,
-      worldId,
-      filename,
-      buffer,
-      contentType: contentType || "image/jpeg",
-      visibility: "author",
-      assetKind: "image"
-    });
+    const uploaded = preparedAsset
+      ? await registerPreparedWorldAsset(client, preparedAsset)
+      : await uploadWorldAssetFromBuffer(client, {
+          actorId,
+          worldId,
+          filename,
+          buffer,
+          contentType: contentType || "image/jpeg",
+          visibility: "author",
+          assetKind: "image"
+        });
 
     const inserted = await client.query(
       `INSERT INTO clues (world_id, name, public_text, host_text, visibility, clue_kind, metadata)
@@ -271,41 +306,36 @@ export async function importClueImageFile({
         })
       ]
     );
-    return { skipped: false, clue: inserted.rows[0], assetId: uploaded.assetId };
+    return {
+      skipped: false,
+      clue: inserted.rows[0],
+      assetId: uploaded.assetId
+    };
   });
 }
 
-export async function importBundleAssetFile({
-  worldId,
-  actorId,
-  filename,
-  buffer,
-  contentType,
-  importKey,
-  label,
-  assetKind = "image",
-  client: existingClient = null
-}) {
+export async function importBundleAssetFile({ worldId, actorId, filename, buffer, contentType, importKey, label, assetKind = "image", preparedAsset = null, client: existingClient = null }) {
   return runWithClient(existingClient, async (client) => {
-    const existing = await client.query(
-      `SELECT id FROM asset_files WHERE world_id = $1 AND metadata->>'importKey' = $2 AND status = 'active' LIMIT 1`,
-      [worldId, importKey]
-    );
-    if (existing.rowCount) return { skipped: true, reason: "duplicate_import", assetId: existing.rows[0].id };
+    const existing = await client.query(`SELECT id FROM asset_files WHERE world_id = $1 AND metadata->>'importKey' = $2 AND status = 'active' LIMIT 1`, [worldId, importKey]);
+    if (existing.rowCount)
+      return {
+        skipped: true,
+        reason: "duplicate_import",
+        assetId: existing.rows[0].id
+      };
 
-    const uploaded = await uploadWorldAssetFromBuffer(client, {
-      actorId,
-      worldId,
-      filename,
-      buffer,
-      contentType: contentType || "application/octet-stream",
-      visibility: "author",
-      assetKind
-    });
-    await client.query(`UPDATE asset_files SET metadata = $2::jsonb WHERE id = $1`, [
-      uploaded.assetId,
-      JSON.stringify({ importKey, label, source: "script_bundle" })
-    ]);
+    const uploaded = preparedAsset
+      ? await registerPreparedWorldAsset(client, preparedAsset)
+      : await uploadWorldAssetFromBuffer(client, {
+          actorId,
+          worldId,
+          filename,
+          buffer,
+          contentType: contentType || "application/octet-stream",
+          visibility: "author",
+          assetKind
+        });
+    await client.query(`UPDATE asset_files SET metadata = $2::jsonb WHERE id = $1`, [uploaded.assetId, JSON.stringify({ importKey, label, source: "script_bundle" })]);
     return { skipped: false, assetId: uploaded.assetId };
   });
 }

@@ -1,44 +1,26 @@
 import { transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { assertWorldCreateQuota } from "./quota-guards.js";
-import { parseDocumentPayloadBase64 } from "./section-content.js";
-import { scriptBundleMaxBytes } from "./script-bundle-limits.js";
-import { analyzeScriptBundleBuffer, extractScriptBundleZip } from "./script-bundle-zip.js";
 import { matchRoleSlotByName, normalizeRoleLabel } from "./script-bundle-classify.js";
-import {
-  appendStoryManuscript,
-  extractDocumentText,
-  importBundleAssetFile,
-  importClueImageFile,
-  importPdfPagesToRoleWithKey,
-  importTextSectionsToRole
-} from "./document-text-import.js";
-import { detectPdfContentMode } from "./pdf-document.js";
+import { appendStoryManuscript, importBundleAssetFile, importClueImageFile, importPdfPagesToRoleWithKey, importTextSectionsToRole } from "./document-text-import.js";
+import { analyzeScriptBundle } from "./script-bundle-payload.js";
+import { cleanupPreparedScriptBundle, markPreparedBundleFileUsed, prepareScriptBundleImport, preparedScriptBundleObjectKeys, scriptBundleImageContentType } from "./script-bundle-preparation.js";
+import { lockDocumentRole } from "./repositories/creator-document-repository.js";
 
-function imageContentType(extension) {
-  if (extension === ".png") return "image/png";
-  if (extension === ".webp") return "image/webp";
-  if (extension === ".gif") return "image/gif";
-  return "image/jpeg";
-}
+export { analyzeScriptBundle, loadScriptBundleBuffer } from "./script-bundle-payload.js";
+export { cleanupPreparedScriptBundle, prepareScriptBundleImport, preparedScriptBundleObjectKeys } from "./script-bundle-preparation.js";
 
 function bundleImportKey(rootFolder, relativePath, byteSize) {
   return `script-bundle:${rootFolder || "root"}:${relativePath}:${byteSize}`;
 }
 
 async function listWorldRoles(client, worldId) {
-  const result = await client.query(
-    `SELECT id, name, sequence, public_profile FROM role_slots WHERE world_id = $1 ORDER BY sequence`,
-    [worldId]
-  );
+  const result = await client.query(`SELECT id, name, sequence, public_profile FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]);
   return result.rows;
 }
 
 async function nextRoleSequence(client, worldId) {
-  const result = await client.query(
-    `SELECT COALESCE(MAX(sequence), 0)::int AS value FROM role_slots WHERE world_id = $1`,
-    [worldId]
-  );
+  const result = await client.query(`SELECT COALESCE(MAX(sequence), 0)::int AS value FROM role_slots WHERE world_id = $1`, [worldId]);
   return result.rows[0].value + 1;
 }
 
@@ -58,37 +40,11 @@ async function ensureRoleSlot(client, worldId, roleName, { createMissingRoles })
   return created.rows[0];
 }
 
-export function loadScriptBundleBuffer(body) {
-  const contentBase64 = parseDocumentPayloadBase64(body ?? {});
-  const buffer = Buffer.from(String(contentBase64 ?? ""), "base64");
-  if (!buffer.length || buffer.length > scriptBundleMaxBytes()) {
-    throwErr("SCRIPT_BUNDLE_TOO_LARGE", `Zip must be between 1 byte and ${scriptBundleMaxBytes()} bytes`);
-  }
-  return buffer;
+function bundleFileNeedsDatabase(file, options) {
+  return !(file.preparationError || file.classification.category === "skip" || file.classification.category === "unknown" || options.skipCategories?.includes(file.classification.category));
 }
 
-export function analyzeScriptBundle(body) {
-  const buffer = loadScriptBundleBuffer(body);
-  const analysis = analyzeScriptBundleBuffer(buffer);
-  return {
-    ...analysis,
-    byteSize: buffer.length,
-    limits: {
-      maxBytes: scriptBundleMaxBytes()
-    }
-  };
-}
-
-async function importSingleBundleFile({
-  client,
-  worldId,
-  actorId,
-  file,
-  rootFolder,
-  options,
-  roleSlots,
-  roleMappings
-}) {
+async function importSingleBundleFile({ client, worldId, actorId, file, rootFolder, options, roleSlots, roleMappings, preparedImport }) {
   const { classification, relativePath, buffer, byteSize, extension } = file;
   const importKey = bundleImportKey(rootFolder, relativePath, byteSize);
   const publicationStatus = options.publicationStatus ?? "draft";
@@ -102,40 +58,36 @@ async function importSingleBundleFile({
     return { relativePath, status: "skipped", reason: "category_disabled" };
   }
 
-  try {
-    if (classification.category === "role_script") {
-      const mappedRoleId = roleMappings?.[classification.roleName] ?? roleMappings?.[normalizeRoleLabel(classification.roleName)];
-      let role = mappedRoleId ? roleSlots.find((item) => item.id === mappedRoleId) : matchRoleSlotByName(roleSlots, classification.roleName);
-      if (!role) {
-        role = await ensureRoleSlot(client, worldId, classification.roleName, {
-          createMissingRoles: options.createMissingRoles !== false
-        });
-        if (role) roleSlots.push(role);
-      }
-      if (!role) {
-        return { relativePath, status: "skipped", reason: "role_not_found", roleName: classification.roleName };
-      }
+  if (file.preparationError) {
+    return {
+      relativePath,
+      status: "failed",
+      errorCode: file.preparationError.code,
+      errorMessage: file.preparationError.message
+    };
+  }
 
-      if (extension === ".pdf") {
-        const detected = await detectPdfContentMode(buffer);
-        if (detected.mode === "pages") {
-          const result = await importPdfPagesToRoleWithKey({
-            worldId,
-            actorId,
-            roleSlotId: role.id,
-            filename: classification.filename,
-            buffer,
-            title: classification.roleName,
-            publicationStatus,
-            layout: pdfLayout,
-            importKey,
-            client
-          });
-          return { relativePath, status: result.skipped ? "duplicate" : "imported", category: "role_script", mode: "pages", roleName: role.name, ...result };
-        }
-      }
+  if (classification.category === "role_script") {
+    const mappedRoleId = roleMappings?.[classification.roleName] ?? roleMappings?.[normalizeRoleLabel(classification.roleName)];
+    let role = mappedRoleId ? roleSlots.find((item) => item.id === mappedRoleId) : matchRoleSlotByName(roleSlots, classification.roleName);
+    if (!role) {
+      role = await ensureRoleSlot(client, worldId, classification.roleName, {
+        createMissingRoles: options.createMissingRoles !== false
+      });
+      if (role) roleSlots.push(role);
+    }
+    if (!role) {
+      return {
+        relativePath,
+        status: "skipped",
+        reason: "role_not_found",
+        roleName: classification.roleName
+      };
+    }
+    await lockDocumentRole(client, { worldId, roleSlotId: role.id });
 
-      const textResult = await importTextSectionsToRole({
+    if (file.preparedMode === "pages") {
+      const result = await importPdfPagesToRoleWithKey({
         worldId,
         actorId,
         roleSlotId: role.id,
@@ -143,115 +95,178 @@ async function importSingleBundleFile({
         buffer,
         title: classification.roleName,
         publicationStatus,
+        layout: pdfLayout,
         importKey,
+        renderedPages: file.renderedPages,
+        preparedAssets: file.preparedAssets,
         client
       });
-      if (textResult.mode === "needs_pages") {
-        const pageResult = await importPdfPagesToRoleWithKey({
-          worldId,
-          actorId,
-          roleSlotId: role.id,
-          filename: classification.filename,
-          buffer,
-          title: classification.roleName,
-          publicationStatus,
-          layout: pdfLayout,
-          importKey,
-          client
-        });
-        return { relativePath, status: pageResult.skipped ? "duplicate" : "imported", category: "role_script", mode: "pages", roleName: role.name, ...pageResult };
-      }
-      return { relativePath, status: textResult.skipped ? "duplicate" : "imported", category: "role_script", mode: "text", roleName: role.name, ...textResult };
+      if (!result.skipped) markPreparedBundleFileUsed(preparedImport, file);
+      return {
+        relativePath,
+        status: result.skipped ? "duplicate" : "imported",
+        category: "role_script",
+        mode: "pages",
+        roleName: role.name,
+        ...result
+      };
     }
 
-    if (classification.category === "clue") {
-      const result = await importClueImageFile({
-        worldId,
-        actorId,
-        clueName: classification.clueName || classification.label,
-        filename: classification.filename,
-        buffer,
-        contentType: imageContentType(extension),
-        importKey,
-        client
-      });
-      return { relativePath, status: result.skipped ? "duplicate" : "imported", category: "clue", ...result };
-    }
-
-    if (classification.category === "asset") {
-      const result = await importBundleAssetFile({
-        worldId,
-        actorId,
-        filename: classification.filename,
-        buffer,
-        contentType: imageContentType(extension),
-        importKey,
-        label: classification.assetName || classification.label,
-        client
-      });
-      return { relativePath, status: result.skipped ? "duplicate" : "imported", category: "asset", ...result };
-    }
-
-    if (["host_manual", "public_script", "role_profile"].includes(classification.category)) {
-      if (extension === ".pdf") {
-        const detected = await detectPdfContentMode(buffer);
-        if (detected.mode === "pages") {
-          const pageResult = await importBundleAssetFile({
-            worldId,
-            actorId,
-            filename: classification.filename,
-            buffer,
-            contentType: "application/pdf",
-            importKey,
-            label: classification.title,
-            assetKind: "document",
-            client
-          });
-          await (async () =>
-            appendStoryManuscript(client, worldId, actorId, `（${classification.title} - 图片 PDF，已作为素材 ${pageResult.assetId} 保存）`, classification.title)
-          )();
-          return { relativePath, status: "imported", category: classification.category, mode: "pdf_asset", ...pageResult };
-        }
-      }
-      const text = await extractDocumentText(buffer, classification.filename);
-      await appendStoryManuscript(client, worldId, actorId, text, classification.title || classification.label);
-      return { relativePath, status: "imported", category: classification.category, mode: "manuscript_text" };
-    }
-
-    return { relativePath, status: "skipped", reason: "unsupported" };
-  } catch (error) {
+    const textResult = await importTextSectionsToRole({
+      worldId,
+      actorId,
+      roleSlotId: role.id,
+      filename: classification.filename,
+      buffer,
+      title: classification.roleName,
+      publicationStatus,
+      importKey,
+      extractedText: file.extractedText,
+      client
+    });
     return {
       relativePath,
-      status: "failed",
-      errorCode: error.code ?? "IMPORT_FAILED",
-      errorMessage: error.message ?? "Import failed"
+      status: textResult.skipped ? "duplicate" : "imported",
+      category: "role_script",
+      mode: "text",
+      roleName: role.name,
+      ...textResult
     };
   }
-}
 
-export async function importScriptBundleToWorldWithClient(client, worldId, actorId, body, options = {}) {
-  const buffer = loadScriptBundleBuffer(body);
-  const extracted = extractScriptBundleZip(buffer);
-  const analysis = analyzeScriptBundleBuffer(buffer);
+  if (classification.category === "clue") {
+    const result = await importClueImageFile({
+      worldId,
+      actorId,
+      clueName: classification.clueName || classification.label,
+      filename: classification.filename,
+      buffer,
+      contentType: scriptBundleImageContentType(extension),
+      importKey,
+      preparedAsset: file.preparedAsset,
+      client
+    });
+    if (!result.skipped) markPreparedBundleFileUsed(preparedImport, file);
+    return {
+      relativePath,
+      status: result.skipped ? "duplicate" : "imported",
+      category: "clue",
+      ...result
+    };
+  }
 
-  const roleSlots = await client.query(`SELECT id, name, sequence, public_profile FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]).then(
-    (result) => result.rows
-  );
+  if (classification.category === "asset") {
+    const result = await importBundleAssetFile({
+      worldId,
+      actorId,
+      filename: classification.filename,
+      buffer,
+      contentType: scriptBundleImageContentType(extension),
+      importKey,
+      label: classification.assetName || classification.label,
+      preparedAsset: file.preparedAsset,
+      client
+    });
+    if (!result.skipped) markPreparedBundleFileUsed(preparedImport, file);
+    return {
+      relativePath,
+      status: result.skipped ? "duplicate" : "imported",
+      category: "asset",
+      ...result
+    };
+  }
 
-  const results = [];
-  for (const file of extracted.files) {
-    results.push(
-      await importSingleBundleFile({
-        client,
+  if (["host_manual", "public_script", "role_profile"].includes(classification.category)) {
+    if (file.preparedMode === "pdf_asset") {
+      const pageResult = await importBundleAssetFile({
         worldId,
         actorId,
-        file,
-        rootFolder: extracted.rootFolder,
-        options,
-        roleSlots,
-        roleMappings: options.roleMappings ?? body.roleMappings ?? {}
-      })
-    );
+        filename: classification.filename,
+        buffer,
+        contentType: "application/pdf",
+        importKey,
+        label: classification.title,
+        assetKind: "document",
+        preparedAsset: file.preparedAsset,
+        client
+      });
+      if (pageResult.skipped) {
+        return {
+          relativePath,
+          status: "duplicate",
+          category: classification.category,
+          mode: "pdf_asset",
+          ...pageResult
+        };
+      }
+      await (async () => appendStoryManuscript(client, worldId, actorId, `（${classification.title} - 图片 PDF，已作为素材 ${pageResult.assetId} 保存）`, classification.title))();
+      markPreparedBundleFileUsed(preparedImport, file);
+      return {
+        relativePath,
+        status: "imported",
+        category: classification.category,
+        mode: "pdf_asset",
+        ...pageResult
+      };
+    }
+    await appendStoryManuscript(client, worldId, actorId, file.extractedText, classification.title || classification.label);
+    return {
+      relativePath,
+      status: "imported",
+      category: classification.category,
+      mode: "manuscript_text"
+    };
+  }
+
+  return { relativePath, status: "skipped", reason: "unsupported" };
+}
+
+export async function importScriptBundleToWorldWithClient(client, worldId, actorId, body, options = {}, preparedImport = null) {
+  if (!preparedImport) {
+    throw new Error("Script bundle must be prepared before opening its database transaction");
+  }
+  const { extracted, analysis } = preparedImport;
+
+  const worldLock = await client.query(`SELECT id FROM worlds WHERE id = $1 FOR UPDATE`, [worldId]);
+  if (!worldLock.rowCount) throwErr("WORLD_NOT_FOUND");
+
+  const roleSlots = await client.query(`SELECT id, name, sequence, public_profile FROM role_slots WHERE world_id = $1 ORDER BY sequence`, [worldId]).then((result) => result.rows);
+
+  const results = [];
+  for (const [index, file] of extracted.files.entries()) {
+    const importArgs = {
+      client,
+      worldId,
+      actorId,
+      file,
+      rootFolder: extracted.rootFolder,
+      options,
+      roleSlots,
+      roleMappings: options.roleMappings ?? body.roleMappings ?? {},
+      preparedImport
+    };
+    if (!bundleFileNeedsDatabase(file, options)) {
+      results.push(await importSingleBundleFile(importArgs));
+      continue;
+    }
+    const savepoint = `script_bundle_file_${index + 1}`;
+    const roleCountBefore = roleSlots.length;
+    await client.query(`SAVEPOINT ${savepoint}`);
+    try {
+      const result = await importSingleBundleFile(importArgs);
+      await client.query(`RELEASE SAVEPOINT ${savepoint}`);
+      results.push(result);
+    } catch (error) {
+      await client.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+      await client.query(`RELEASE SAVEPOINT ${savepoint}`);
+      roleSlots.splice(roleCountBefore);
+      results.push({
+        relativePath: file.relativePath,
+        status: "failed",
+        errorCode: error.code ?? "IMPORT_FAILED",
+        errorMessage: error.message ?? "Import failed"
+      });
+    }
   }
 
   const importedCount = results.filter((item) => item.status === "imported").length;
@@ -291,13 +306,20 @@ export async function importScriptBundleToWorldWithClient(client, worldId, actor
 }
 
 export async function importScriptBundleToWorld(worldId, actorId, body, options = {}) {
-  return transaction((client) => importScriptBundleToWorldWithClient(client, worldId, actorId, body, options));
+  const preparedImport = await prepareScriptBundleImport(worldId, actorId, body, options);
+  try {
+    const result = await transaction((client) => importScriptBundleToWorldWithClient(client, worldId, actorId, body, options, preparedImport));
+    await cleanupPreparedScriptBundle(preparedImport, { unusedOnly: true });
+    return result;
+  } catch (error) {
+    await cleanupPreparedScriptBundle(preparedImport);
+    throw error;
+  }
 }
 
 export async function createWorldFromScriptBundle(actorId, body, options = {}) {
   await assertWorldCreateQuota(actorId);
-  const buffer = loadScriptBundleBuffer(body);
-  const analysis = analyzeScriptBundleBuffer(buffer);
+  const analysis = analyzeScriptBundle(body);
   const worldName = String(body.worldName ?? body.name ?? analysis.suggestedWorldName ?? "导入的剧本世界").trim();
   const worldSummary = String(body.worldSummary ?? body.summary ?? "").trim();
   const playerCount = body.playerCount ?? analysis.suggestedPlayerCount;
