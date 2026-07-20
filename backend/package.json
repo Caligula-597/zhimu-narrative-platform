@@ -83,7 +83,7 @@
     "@opentelemetry/sdk-node": "^0.219.0",
     "@sentry/node": "^10.65.0",
     "adm-zip": "^0.6.0",
-    "dotenv": "^16.6.1",
+    "dotenv": "^17.4.2",
     "fastify": "^5.6.1",
     "livekit-server-sdk": "^2.15.4",
     "mammoth": "^1.12.0",
