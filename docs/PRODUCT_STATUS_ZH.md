@@ -1,6 +1,6 @@
 # 产品状态
 
-最后更新：2026-07-17
+最后更新：2026-07-20
 
 ## 总体结论
 
@@ -22,7 +22,7 @@
 |---|---:|---|
 | 总体生产级准备度 | 81 / 100 | 可信 Beta；发布工程收尾中，官方 CI 证据待重跑 |
 | 产品闭环 | 84 / 100 | 创作、开房、邀请、主持推进、线索、规则、复盘和反馈闭环已具备 |
-| 后端与领域建模 | 89 / 100 | 大入口已拆为领域注册器/barrel，schema 领域化，repository/service 迁移有递减门禁；仍有 143 个直连 DB 点 |
+| 后端与领域建模 | 91 / 100 | 大入口与 schema 已领域化；68 个路由模块直连 DB 为 0，并由硬门禁禁止回升 |
 | 前端与 UI 产品化 | 86 / 100 | 四端成形，Player/Host 入口收敛，Creator/Host/Player transport 统一；业务 UI 仍保持独立 |
 | 安全与权限 | 89 / 100 | 生产库防误写、SSE 服务端受众投影、并发 401、防 SSRF、CSP/Trusted Types 已落地 |
 | 测试与质量门禁 | 83 / 100 | 快审与专项矩阵通过；发布门禁 7/7；官方 Release Acceptance 工件仍缺 |
@@ -46,6 +46,9 @@
 | 矩阵流水线 | prompt contract、spoiler/fairness gate、structured script、killer guard 已进入测试覆盖 |
 | 官网资产 | 真实截图已替换占位图；pilot case 与交付案例仍需补证据 |
 | 架构拆分 | `world-helpers.js` 6 行兼容 barrel、`player-routes.js` 9 行注册器、schema 拆为 14 个领域文件、Player 入口 412 行 |
+| Host 游戏控制 | 房间设置、小游戏、手动规则已进入 service/repository；业务写、时间线、审计、outbox 同事务，并发双启动保持唯一活动实例 |
+| 内容报告与洞察 | run-report 从 4 次数据库往返降到 2 次；creator analytics 四条并发查询合并为单条聚合 SQL，降低连接池压力 |
+| 路由数据边界 | 68 个路由模块直连 DB 由 143 点归零；实体卡世界校验进入锁事务，最后六个单点路由完成 service/repository 收口 |
 | 三端一致性 | API/Auth/SSE 共用 shared transport；SSE 39/39、Auth 22/22，游标按账号隔离，迟到 401 不清新会话 |
 | HTML 安全 | 产品直接 `innerHTML` 为 0；共享安全 sink 是唯一写入点，App/Site 强制 Trusted Types 契约 |
 | 发布证据 | 本地恢复与发布门禁工具已更新；官方 `Release Acceptance` 全流程工件待 GitHub 重跑 |
@@ -125,4 +128,4 @@ npm run test:release-gates
 3. 完成 Railway 镜像回滚、R2 恢复抽样与 RPO/RTO 记录。
 4. 完成公开 Beta pilot case、官网案例和首场路径观测。
 5. 固化商业试点 SOP、交付包、订单/开通记录和 SLA 草案。
-6. 继续递减 143 个直接数据库调用点；矩阵 Gen5.1 内容质量作为独立 backlog。
+6. 路由迁移完成后，转入 service/repository 内部的查询计划、索引、连接池占用和事务边界审计；矩阵 Gen5.1 内容质量作为独立 backlog。

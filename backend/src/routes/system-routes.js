@@ -44,6 +44,8 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       database: {
         latencyMs: ready.latencyMs,
         missingTables: ready.missingTables,
+        missingMigrations: ready.missingMigrations,
+        latestMigration: ready.latestMigration,
         migrationsApplied: ready.migrationsApplied
       },
       pool: ready.pool,

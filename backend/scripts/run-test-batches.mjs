@@ -16,9 +16,10 @@ function runOne(file) {
   const full = join(root, file);
   return new Promise((resolve) => {
     const started = Date.now();
+    // hooks.mjs owns teardown; forcing exit can race handles already closing.
     const child = spawn(
       process.execPath,
-      ["--test-concurrency=1", "--test-force-exit", "--import", "./test/hooks.mjs", "--test-reporter=spec", full],
+      ["--test-concurrency=1", "--import", "./test/hooks.mjs", "--test-reporter=spec", full],
       { cwd, stdio: ["ignore", "pipe", "pipe"] }
     );
 

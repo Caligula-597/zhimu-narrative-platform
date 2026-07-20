@@ -263,6 +263,8 @@ export async function registerOpsRoutes(app) {
       };
       const rateLimits = {
         authPerMin: Number(process.env.RATE_LIMIT_AUTH_MAX ?? 20),
+        authRecoveryPer15Min: Number(process.env.RATE_LIMIT_AUTH_RECOVERY_MAX ?? 6),
+        verificationResendPer15Min: Number(process.env.RATE_LIMIT_VERIFICATION_RESEND_MAX ?? 3),
         writePerMin: Number(process.env.RATE_LIMIT_WRITE_MAX ?? 120),
         readPerMin: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
         uploadPerMin: Number(process.env.RATE_LIMIT_UPLOAD_MAX ?? 30),

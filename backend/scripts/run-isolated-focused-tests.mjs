@@ -17,6 +17,7 @@ const env = {
 const commands = [
   ["scripts/migrate.js"],
   ["scripts/seed.js"],
+  ["scripts/seed-exploration.js"],
   ["--test-concurrency=1", "--import", "./test/hooks.mjs", "--test", ...testFiles]
 ];
 

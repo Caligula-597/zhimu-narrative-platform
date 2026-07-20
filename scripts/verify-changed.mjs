@@ -29,6 +29,27 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/postgres-notify", ["test/postgres-notify.test.js"]],
   ["backend/src/sse-replay-subscription", ["test/sse-replay-subscription.test.js"]],
   ["backend/src/db.js", ["test/creator-bible.test.js", "test/transaction-events.test.js"]],
+  ["backend/src/database-status", ["test/database-status.test.js", "test/creator-room-integrity.test.js", "test/ops-health.test.js"]],
+  ["backend/src/auth-recovery-service", ["test/auth-recovery-integrity.test.js", "test/auth-password-reset.test.js", "test/auth-email-verification.test.js"]],
+  ["backend/src/auth-identity-errors", ["test/auth-identity-integrity.test.js"]],
+  ["backend/src/auth-registration-service", ["test/auth-identity-integrity.test.js", "test/identity-foundation.test.js", "test/register-ip-limit.test.js", "test/auth-email-verification.test.js", "test/beta-apply.test.js"]],
+  ["backend/src/auth-session-service", ["test/auth-identity-integrity.test.js", "test/identity-foundation.test.js", "test/auth-password-reset.test.js", "test/session-cookie.test.js"]],
+  ["backend/src/oauth-service", ["test/oauth.test.js", "test/oauth-return-origin.test.js"]],
+  ["backend/src/oauth-identity-service", ["test/oauth.test.js"]],
+  ["backend/src/auth-token", ["test/auth-recovery-integrity.test.js", "test/auth-password.test.js", "test/session-cookie.test.js"]],
+  ["backend/src/auth.js", ["test/auth-recovery-integrity.test.js", "test/auth-password-reset.test.js", "test/auth-email-verification.test.js", "test/auth-session-touch.test.js", "test/auth-password.test.js", "test/session-cookie.test.js"]],
+  ["backend/src/play-social-guard", ["test/auth-identity-integrity.test.js", "test/register-ip-limit.test.js"]],
+  ["backend/src/app.js", ["test/app-auth.test.js", "test/auth-recovery-integrity.test.js", "test/rate-limit.test.js", "test/security-headers.test.js"]],
+  ["backend/src/repositories/auth-recovery-repository", ["test/auth-recovery-integrity.test.js", "test/auth-password-reset.test.js", "test/auth-email-verification.test.js"]],
+  ["backend/src/repositories/auth-identity-repository", ["test/auth-identity-integrity.test.js", "test/identity-foundation.test.js", "test/auth-email-verification.test.js", "test/beta-apply.test.js"]],
+  ["backend/src/repositories/auth-registration-repository", ["test/auth-identity-integrity.test.js", "test/register-ip-limit.test.js"]],
+  ["backend/src/repositories/auth-session-repository", ["test/auth-identity-integrity.test.js", "test/identity-foundation.test.js", "test/session-cookie.test.js"]],
+  ["backend/src/repositories/oauth-repository", ["test/oauth.test.js"]],
+  ["backend/src/routes/auth-recovery-routes", ["test/auth-recovery-integrity.test.js", "test/auth-password-reset.test.js", "test/auth-email-verification.test.js"]],
+  ["backend/src/routes/auth-registration-routes", ["test/auth-email-verification.test.js", "test/app-auth.test.js"]],
+  ["backend/src/routes/auth-session-routes", ["test/auth-identity-integrity.test.js", "test/identity-foundation.test.js", "test/session-cookie.test.js"]],
+  ["backend/src/routes/auth-oauth-routes", ["test/oauth.test.js", "test/oauth-return-origin.test.js"]],
+  ["backend/src/routes/auth-route-shared", ["test/auth-password-reset.test.js", "test/auth-email-verification.test.js", "test/app-auth.test.js"]],
   ["backend/src/script-bundle", ["test/script-bundle.test.js", "test/script-bundle-import.test.js"]],
   ["backend/src/pdf-document", ["test/pdf-document.test.js"]],
   ["backend/src/document-parser", ["test/pdf-document.test.js"]],
@@ -39,6 +60,18 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/membership-labels", ["test/membership-labels.test.js"]],
   ["backend/src/official-example", ["test/official-example.test.js"]],
   ["backend/src/catalog-join-service", ["test/catalog-join-service.test.js", "test/world-catalog.test.js"]],
+  ["backend/src/creator-room-service", ["test/creator-room-service.test.js", "test/creator-room-integrity.test.js", "test/world-rooms-list.test.js", "test/public-room-listing.test.js"]],
+  ["backend/src/creator-role-service", ["test/creator-structure-integrity.test.js", "test/creator-role-profile.test.js", "test/world-revision.test.js"]],
+  ["backend/src/creator-chapter-service", ["test/creator-structure-integrity.test.js", "test/studio-edit.test.js", "test/world-revision.test.js"]],
+  ["backend/src/creator-structure-errors", ["test/creator-structure-errors.test.js"]],
+  ["backend/src/creator-structure-service", ["test/creator-structure-errors.test.js", "test/creator-structure-integrity.test.js", "test/world-revision.test.js"]],
+  ["backend/src/repositories/creator-role-repository", ["test/creator-structure-integrity.test.js", "test/creator-role-profile.test.js"]],
+  ["backend/src/repositories/creator-chapter-repository", ["test/creator-structure-integrity.test.js", "test/studio-edit.test.js"]],
+  ["backend/src/repositories/creator-structure-access-repository", ["test/creator-structure-integrity.test.js", "test/world-revision.test.js"]],
+  ["backend/src/repositories/creator-room-repository", ["test/creator-room-integrity.test.js", "test/world-rooms-list.test.js", "test/public-room-listing.test.js"]],
+  ["backend/src/routes/creator-room-routes", ["test/creator-room-integrity.test.js", "test/world-rooms-list.test.js", "test/public-room-listing.test.js"]],
+  ["backend/src/routes/creator-role-routes", ["test/creator-structure-integrity.test.js", "test/creator-role-profile.test.js"]],
+  ["backend/src/routes/creator-chapter-routes", ["test/creator-structure-integrity.test.js", "test/studio-edit.test.js"]],
   ["backend/src/routes/official-example-routes", ["test/official-example.test.js"]],
   ["backend/test/permissions-matrix.test.js", ["test/permissions-matrix.test.js", "test/runtime-permissions.test.js"]],
   ["backend/src/routes/route-guards.js", ["test/permissions-matrix.test.js", "test/runtime-permissions.test.js"]],
@@ -73,6 +106,11 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/repositories/host-player-management-repository", ["test/host-kick-player.test.js"]],
   ["backend/src/host-player-management-abuse-protection", ["test/host-player-management-abuse-protection.test.js"]],
   ["backend/src/routes/host-player-management-routes", ["test/host-kick-player.test.js"]],
+  ["backend/src/host-game-control-service", ["test/host-game-control-integrity.test.js", "test/mini-game.test.js", "test/rule-runtime.test.js", "test/world-settings.test.js"]],
+  ["backend/src/repositories/host-game-control-repository", ["test/host-game-control-integrity.test.js", "test/world-settings.test.js"]],
+  ["backend/src/routes/host-game-control-routes", ["test/host-game-control-integrity.test.js", "test/mini-game.test.js", "test/rule-runtime.test.js", "test/world-settings.test.js"]],
+  ["backend/src/room-mini-games", ["test/host-game-control-integrity.test.js", "test/mini-game.test.js"]],
+  ["backend/src/rule-engine", ["test/rule-runtime.test.js", "test/rules-integrity.test.js"]],
   ["backend/src/routes/player-routes", ["test/player-host-confirm.test.js"]],
   ["backend/src/routes/player-access-routes", ["test/player-host-confirm.test.js"]],
   ["backend/src/routes/player-progress-routes", ["test/player-host-confirm.test.js"]],
@@ -81,6 +119,30 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/player-progress-assessment.js", ["test/host-player-assessment.test.js"]],
   ["backend/src/rule-condition-evaluator", ["test/rule-runtime.test.js", "test/rule-engine.test.js"]],
   ["backend/src/rule-engine", ["test/rule-runtime.test.js", "test/rule-engine.test.js"]],
+  ["backend/src/content-platform-run-report-service", ["test/content-platform-report-service.test.js", "test/content-platform.test.js"]],
+  ["backend/src/repositories/content-platform-run-report-repository", ["test/content-platform-report-service.test.js", "test/content-platform.test.js"]],
+  ["backend/src/routes/content-platform-run-report-routes", ["test/content-platform-report-service.test.js", "test/content-platform.test.js"]],
+  ["backend/src/content-platform-insight-service", ["test/content-platform-report-service.test.js", "test/content-platform.test.js", "test/player-reading-start.test.js"]],
+  ["backend/src/repositories/content-platform-insight-repository", ["test/content-platform-report-service.test.js", "test/content-platform.test.js"]],
+  ["backend/src/creator-analytics-repository", ["test/creator-analytics-service.test.js", "test/player-reading-start.test.js"]],
+  ["backend/src/routes/content-platform-insight-routes", ["test/content-platform.test.js", "test/player-reading-start.test.js"]],
+  ["backend/src/batch-b-service", ["test/route-domain-services.test.js", "test/batch-b.test.js"]],
+  ["backend/src/segment-remedies", ["test/route-domain-services.test.js", "test/batch-b.test.js"]],
+  ["backend/src/routes/batch-b-routes", ["test/route-domain-services.test.js", "test/batch-b.test.js"]],
+  ["backend/src/physical-token-service", ["test/route-domain-services.test.js", "test/physical-token.test.js"]],
+  ["backend/src/routes/physical-token-routes", ["test/route-domain-services.test.js", "test/physical-token.test.js"]],
+  ["backend/src/host-event-service", ["test/route-domain-services.test.js", "test/host-console.test.js", "test/host-event-robustness.test.js"]],
+  ["backend/src/repositories/host-event-repository", ["test/route-domain-services.test.js", "test/host-console.test.js"]],
+  ["backend/src/routes/host-event-routes", ["test/route-domain-services.test.js", "test/host-console.test.js", "test/host-event-robustness.test.js"]],
+  ["backend/src/billing-service", ["test/route-domain-services.test.js", "test/stripe-billing.test.js"]],
+  ["backend/src/repositories/billing-repository", ["test/route-domain-services.test.js", "test/stripe-billing.test.js"]],
+  ["backend/src/routes/billing-routes", ["test/route-domain-services.test.js", "test/stripe-billing.test.js"]],
+  ["backend/src/host-monitor-service", ["test/route-domain-services.test.js", "test/host-console.test.js", "test/host-player-assessment.test.js"]],
+  ["backend/src/repositories/host-monitor-repository", ["test/route-domain-services.test.js", "test/host-console.test.js"]],
+  ["backend/src/routes/host-monitor-routes", ["test/route-domain-services.test.js", "test/host-console.test.js", "test/host-player-assessment.test.js"]],
+  ["backend/src/studio-story-edge-service", ["test/studio-edit.test.js", "test/creator-schema-validation.test.js"]],
+  ["backend/src/repositories/studio-story-edge-repository", ["test/studio-edit.test.js"]],
+  ["backend/src/routes/studio-story-edge-routes", ["test/studio-edit.test.js", "test/creator-schema-validation.test.js"]],
   ["backend/src/optional-services-status", ["test/ops-health.test.js"]],
   ["backend/src/routes/system-routes", ["test/ops-health.test.js", "test/security-headers.test.js", "test/web-vitals-metrics.test.js"]],
   ["backend/src/metrics.js", ["test/web-vitals-metrics.test.js"]],
@@ -206,10 +268,12 @@ if (files.some((f) =>
   run("check contracts drift", "npm run check:contracts");
 }
 
+// Let hooks.mjs finish resource teardown. Node's --test-force-exit can abort
+// Windows libuv while async handles are already closing, and it hides leaks.
 for (const t of backendTests) {
   run(
     `backend ${t}`,
-    `node --test-concurrency=1 --test-force-exit --import ./test/hooks.mjs --test ${t}`,
+    `node --test-concurrency=1 --import ./test/hooks.mjs --test ${t}`,
     backendRoot
   );
 }
@@ -251,6 +315,17 @@ if (files.some((f) => /^scripts\/(format-helpers|modal-helpers)/.test(f))) {
 
 if (files.some((f) => /^shared\//.test(f) || /^scripts\/shared-/.test(f))) {
   run("test:shared", "npm run test:shared");
+}
+
+if (files.some((f) => [
+  "src/api/room.js",
+  "src/runtime/auth-world.js",
+  "src/runtime/wizard.js",
+  "host/src/api.js",
+  "host/src/runtime/host-lifecycle-controller.js",
+  "scripts/creator-room-client-contract.test.mjs"
+].includes(f))) {
+  run("test:creator-room-client", "npm run test:creator-room-client");
 }
 
 if (files.some((f) => /^src\/runtime\/(workspace-store|runtime-store|data)\.js/.test(f))) {

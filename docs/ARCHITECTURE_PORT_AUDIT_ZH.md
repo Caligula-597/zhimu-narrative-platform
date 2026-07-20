@@ -1,10 +1,10 @@
 # 架构与端口审视
 
-最后更新：2026-07-16
+最后更新：2026-07-20
 
 ## 结论
 
-当前核心业务框架可继续生产化：Fastify + PostgreSQL 的领域边界清楚，Railway fullstack 承载主应用和 API，玩家端/主持端/官网按 Cloudflare Pages 分域。Pages 三站、共享 API/Auth/SSE transport、入口拆分和生产安全门禁均已落地。当前主要风险已经转为路由层 143 个直接数据库调用债务，以及真实容量、恢复和回滚证据。
+当前核心业务框架可继续生产化：Fastify + PostgreSQL 的领域边界清楚，Railway fullstack 承载主应用和 API，玩家端/主持端/官网按 Cloudflare Pages 分域。Pages 三站、共享 API/Auth/SSE transport、入口拆分和生产安全门禁均已落地。68 个路由模块的直接数据库调用债务已由 143 个递减到 0，并由架构门禁禁止回升；当前主要风险已转为领域服务内部质量，以及真实容量、恢复和回滚证据。
 
 ## 端口表
 

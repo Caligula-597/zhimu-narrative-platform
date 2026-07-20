@@ -44,15 +44,19 @@ const results = await Promise.all([
   }),
   check("voice-room-append-invite", async () => {
     const home = await request(`/rooms/${roomId}/player-home`, playerUserId);
-    const privateRoom = home.voiceRooms.find((room) => room.room_type === "invite_private");
-    if (!privateRoom) throw new Error("expected at least one private voice room fixture");
-    const response = await fetch(`${baseUrl}/voice-rooms/${privateRoom.id}/members`, {
+    const privateRoom = home.voiceRooms.find((room) => room.room_type === "invite_private")
+      ?? await request(`/rooms/${roomId}/voice-rooms`, hostUserId, {
+        method: "POST",
+        body: {
+          name: `smoke-private-${Date.now()}`,
+          roomType: "invite_private",
+          inviteUserIds: []
+        }
+      });
+    const payload = await request(`/voice-rooms/${privateRoom.id}/members`, hostUserId, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-user-id": playerUserId },
-      body: JSON.stringify({ inviteUserIds: [playerUserId] })
+      body: { inviteUserIds: [playerUserId] }
     });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok || !payload.ok) throw new Error(`${response.status}: ${payload.error || "append invite failed"}`);
     return payload.invited;
   }),
   check("exploration", async () => {
