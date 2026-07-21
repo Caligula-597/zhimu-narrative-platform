@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="织幕是线上剧本杀创作与运行平台：AI/Matrix 创作生产线、主持控场运行台、玩家沉浸端与玩后改本闭环，三端分工协作。"
+      content="织幕是线上剧本创作与运行平台：创作者编排角色、章节与线索，主持人掌控现场，玩家按角色实时接收内容。"
     />
-    <meta property="og:title" content="织幕 | 线上剧本杀创作与运行平台" />
+    <meta property="og:title" content="织幕 | 把一个剧本运行成真正同步的故事" />
     <meta
       property="og:description"
-      content="从 AI 生成与 Segment 编排，到主持投票指认、玩家任务怀疑口供，再到质量报告与复盘改本——完整剧本杀平台闭环。"
+      content="从角色私人本、主持控场到玩家阅读与复盘，三端使用同一份故事数据。"
     />
     <meta property="og:image" content="/assets/zhimu-product-hero.png" />
-    <meta name="theme-color" content="#f4f1e9" />
-    <title>织幕 | 线上剧本杀创作与运行平台</title>
+    <meta name="theme-color" content="#fbfaf6" />
+    <title>织幕 | 线上剧本创作与运行平台</title>
     <link rel="icon" href="/assets/favicon.svg" />
     <link rel="preload" as="image" href="/assets/zhimu-product-hero.png" type="image/png" />
     <link rel="stylesheet" href="/styles.css" />
@@ -23,9 +23,9 @@
     <header class="site-header" data-header>
       <a class="brand" href="#top" aria-label="织幕首页">
         <span class="brand-mark">织</span>
-        <span>
+        <span class="brand-copy">
           <strong>织幕</strong>
-          <small>ZHIMU</small>
+          <small>NARRATIVE ENGINE</small>
         </span>
       </a>
 
@@ -35,379 +35,189 @@
       </button>
 
       <nav class="site-nav" aria-label="主导航" data-nav>
-        <a href="#product">四大能力</a>
-        <a href="#showcase">界面</a>
-        <a href="#first-session">首场路径</a>
-        <a href="#workflow">闭环</a>
-        <a href="#status">状态</a>
+        <a href="#product">产品</a>
+        <a href="#workflow">运行方式</a>
+        <a href="#import">导入服务</a>
         <a href="#pricing">套餐</a>
-        <a href="#beta">内测</a>
+        <a href="#beta">内测申请</a>
         <a href="/pricing-commercial.html" class="pricing-commercial-nav hidden" data-pricing-commercial-nav hidden>标价草案</a>
       </nav>
 
       <div class="header-actions">
-        <a class="link-button quiet" data-link-play href="https://play.getzhimu.com/">玩家入口</a>
-        <a class="link-button quiet" data-link-host href="https://host.getzhimu.com/">主持入口</a>
-        <a class="link-button solid" data-link-creator href="https://app.getzhimu.com/?auth=register">创作者入口</a>
+        <a class="link-button quiet" data-link-login href="https://app.getzhimu.com/?auth=login">登录</a>
+        <a class="link-button solid" data-link-creator href="https://app.getzhimu.com/?auth=register">开始创作</a>
       </div>
     </header>
 
     <main id="top">
       <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-backdrop" aria-hidden="true">
+        <div class="hero-copy">
+          <p class="eyebrow">线上剧本创作与运行平台</p>
+          <h1 id="hero-title">把一个剧本，<br />运行成一场真正同步的故事。</h1>
+          <p class="hero-lede">
+            创作者写角色与线索，主持人掌控现场，玩家只看到此刻该知道的内容。三端使用同一份故事数据，不再靠群聊、文档和人工记忆拼接现场。
+          </p>
+          <div class="hero-actions">
+            <a class="link-button solid large" data-link-creator href="https://app.getzhimu.com/?auth=register">开始创作</a>
+            <a class="link-button outline large" href="#product">查看三端如何同步</a>
+          </div>
+          <p class="hero-note">支持新建剧本，也支持 TXT、Markdown、DOCX、PDF 与飞书稿件结构化导入。</p>
+        </div>
+
+        <figure class="hero-product">
           <img
             src="/assets/zhimu-product-hero.png"
-            alt=""
+            alt="织幕创作者端的角色私人剧本工作台，展示四个角色、私人分幕和发布控制"
             width="1440"
             height="900"
-            decoding="async"
             fetchpriority="high"
+            decoding="async"
           />
-          <div class="story-pulse story-pulse-a"></div>
-          <div class="story-pulse story-pulse-b"></div>
-          <div class="story-pulse story-pulse-c"></div>
+          <figcaption>真实产品界面 · 雾港回声示例世界</figcaption>
+        </figure>
+      </section>
+
+      <section class="sync-intro" aria-labelledby="sync-title">
+        <div>
+          <p class="eyebrow">同一份内容，三种正确视角</p>
+          <h2 id="sync-title">三端同步，故事按你的节奏推进。</h2>
         </div>
-        <div class="hero-content">
-          <p class="eyebrow">线上剧本杀 · 创作、控场、博弈与改本闭环</p>
-          <h1 id="hero-title">写本、开团、博弈、改本——都在同一套运行态里。</h1>
-          <p class="hero-lede">
-            织幕面向<strong>剧本杀工作室、线上主持人与长线本作者</strong>：用 Segment 聚合结构，把 AI/Matrix 创作、主持投票指认、玩家任务怀疑口供，以及玩后质量报告与复盘改本串成可追踪的平台闭环。
-          </p>
-          <div class="hero-entry-grid" role="group" aria-label="选择你的入口">
-            <a class="hero-entry-card hero-entry-creator" data-link-creator href="https://app.getzhimu.com/?auth=register">
-              <span class="hero-entry-kicker">我是创作者</span>
-              <strong>创建 / 导入剧本</strong>
-              <small>Matrix · Segment · 角色分屏 · 真相链</small>
-            </a>
-            <a class="hero-entry-card hero-entry-host" data-link-host href="https://host.getzhimu.com/">
-              <span class="hero-entry-kicker">我是主持人</span>
-              <strong>进入控场台</strong>
-              <small>投票指认 · 私密行动 · 线索发放 · 补救话术</small>
-            </a>
-            <a class="hero-entry-card hero-entry-play" data-link-play href="https://play.getzhimu.com/">
-              <span class="hero-entry-kicker">我是玩家</span>
-              <strong>输入邀请码</strong>
-              <small>任务 · 怀疑 · 口供 · 线索与复盘</small>
-            </a>
-            <a class="hero-entry-card hero-entry-demo" data-link-official href="https://play.getzhimu.com/?experience=official">
-              <span class="hero-entry-kicker">我想看示例</span>
-              <strong>体验官方测试局</strong>
-              <small>无需自备剧本，快速感受三端联动</small>
-            </a>
+        <p>每次发布、解锁和现场操作都有明确的归属与记录。创作者维护内容，主持人决定节奏，玩家只接收属于自己的部分。</p>
+      </section>
+
+      <section class="product-story" id="product" aria-label="三端产品实景">
+        <article class="product-chapter product-chapter-creator">
+          <div class="product-copy">
+            <p class="chapter-number">01 · 创作者端</p>
+            <h3>编写与组织剧本</h3>
+            <p>在角色工作台里维护公开身份、私人档案与逐幕正文，再把章节、场景、线索和自动化规则连接成可运行结构。</p>
+            <ul>
+              <li>角色档案与私人分幕集中编辑</li>
+              <li>章节发布状态与玩家视角预览</li>
+              <li>文档导入、协作者审稿与版本对比</li>
+            </ul>
+            <a class="text-link" data-link-creator href="https://app.getzhimu.com/?auth=register">进入创作者端 <span aria-hidden="true">→</span></a>
           </div>
-          <p class="hero-entry-note">
-            内测期免费试用与人工扩容；已有 Word / PDF 母稿可<a href="#import">预约导入协助</a>。
-          </p>
-          <dl class="signal-row" aria-label="产品状态">
-            <div>
-              <dt>平台闭环</dt>
-              <dd>创作 → 开房控场 → 玩家博弈 → 质量报告与改本</dd>
-            </div>
-            <div>
-              <dt>三端分工</dt>
-              <dd>创作者主应用 · 独立主持端 · 独立玩家端</dd>
-            </div>
-            <div>
-              <dt>当前阶段</dt>
-              <dd>可信 Beta：核心博弈与玩后洞察已接入</dd>
-            </div>
+          <figure class="product-shot">
+            <img src="/assets/zhimu-screenshot-creator.png" alt="织幕创作者端角色私人剧本工作台" loading="lazy" decoding="async" width="1440" height="900" />
+          </figure>
+        </article>
+
+        <article class="product-chapter product-chapter-host">
+          <figure class="product-shot">
+            <img src="/assets/zhimu-screenshot-host.png" alt="织幕主持端显示四位玩家进度、当前幕流程和待发线索" loading="lazy" decoding="async" width="1440" height="900" />
+          </figure>
+          <div class="product-copy">
+            <p class="chapter-number">02 · 主持端</p>
+            <h3>掌控现场与节奏</h3>
+            <p>主持人能同时看到谁已入房、读到哪一幕、掌握哪些线索，以及当前幕该推进什么。临场变化不必回创作端改结构。</p>
+            <ul>
+              <li>玩家状态、阅读进度与卡关提醒</li>
+              <li>按流程发线索、解锁分幕与任务</li>
+              <li>跳过、补发、撤回、改条件与手工覆盖</li>
+            </ul>
+            <a class="text-link" data-link-host href="https://host.getzhimu.com/">进入主持端 <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+
+        <article class="product-chapter product-chapter-play">
+          <div class="product-copy">
+            <p class="chapter-number">03 · 玩家端</p>
+            <h3>只看到此刻该知道的内容</h3>
+            <p>玩家以角色身份阅读私人分幕、接收线索并完成行动。秘密、进度和当前任务彼此隔离，主持操作会实时反映到玩家端。</p>
+            <ul>
+              <li>私人角色档案与沉浸式分幕阅读</li>
+              <li>线索、探索、任务、怀疑与口供</li>
+              <li>阅读完成回执和房间成员状态</li>
+            </ul>
+            <a class="text-link" data-link-play href="https://play.getzhimu.com/">进入玩家端 <span aria-hidden="true">→</span></a>
+          </div>
+          <figure class="product-shot">
+            <img src="/assets/zhimu-screenshot-play.png" alt="织幕玩家端显示顾晚的角色秘密和私人分幕正文" loading="lazy" decoding="async" width="1440" height="900" />
+          </figure>
+        </article>
+      </section>
+
+      <section class="recap-section" aria-labelledby="recap-title">
+        <div class="recap-copy">
+          <p class="eyebrow">运行后继续沉淀</p>
+          <h2 id="recap-title">每次开团，都留下可复盘、可改本的依据。</h2>
+          <p>系统把阅读进度、线索流转、主持操作和章节推进整理为结构化复盘。作者看到的不只是“这一局结束了”，而是下一版具体该改哪里。</p>
+          <dl class="recap-facts">
+            <div><dt>过程可追溯</dt><dd>谁在什么时候读过、获得或分享了什么。</dd></div>
+            <div><dt>结果可回滚</dt><dd>checkpoint 保存运行房状态，意外中断也能恢复。</dd></div>
           </dl>
         </div>
-      </section>
-
-      <section class="quiet-panel" id="product" aria-labelledby="product-title">
-        <div class="section-heading">
-          <p class="eyebrow">四大能力</p>
-          <h2 id="product-title">从写本到改本，剧本杀平台该有的四段闭环。</h2>
-          <p>
-            长线本真正难的不只是写完文本，而是<strong>运行态</strong>：谁读到了哪一幕、投票指认如何推进、玩家怀疑与口供如何沉淀、哪一段卡关该改。织幕把创作、控场、博弈与玩后洞察放进同一套 Segment 运行模型，而不是散落的工具集合。
-          </p>
-        </div>
-
-        <div class="pillar-grid">
-          <article class="pillar-card">
-            <span class="pillar-index">01</span>
-            <h3>创作生产线</h3>
-            <p>从世界设定到可运行结构，一次成型。</p>
-            <ul class="pillar-features">
-              <li>AI 生成与 Matrix 管线</li>
-              <li>Segment 段落聚合</li>
-              <li>角色分屏与分幕任务</li>
-              <li>真相链与关系图</li>
-            </ul>
-          </article>
-          <article class="pillar-card">
-            <span class="pillar-index">02</span>
-            <h3>开局运行台</h3>
-            <p>主持人现场控场，不再当人工数据库。</p>
-            <ul class="pillar-features">
-              <li>玩家进度与卡关提醒</li>
-              <li>投票 / 指认与结果公布</li>
-              <li>私密行动与口供审核</li>
-              <li>线索发放与段落补救话术</li>
-            </ul>
-          </article>
-          <article class="pillar-card">
-            <span class="pillar-index">03</span>
-            <h3>玩家沉浸端</h3>
-            <p>按角色隔离阅读，博弈体验独立成区。</p>
-            <ul class="pillar-features">
-              <li>任务清单与下一步引导</li>
-              <li>怀疑度与投票指认</li>
-              <li>口供与秘密行动</li>
-              <li>线索板、探索与局后复盘</li>
-            </ul>
-          </article>
-          <article class="pillar-card">
-            <span class="pillar-index">04</span>
-            <h3>玩后改本闭环</h3>
-            <p>用运行数据回答「下一场该怎么改」。</p>
-            <ul class="pillar-features">
-              <li>质量报告与发布检查</li>
-              <li>段落完成率与卡关点</li>
-              <li>线索命中率与投票结果</li>
-              <li>运行报告与 recap 归档</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <section class="showcase-section" id="showcase" aria-labelledby="showcase-title">
-        <div class="section-heading compact">
-          <p class="eyebrow">产品界面</p>
-          <h2 id="showcase-title">创作、控场、博弈、改本——三端各管一段，数据同源。</h2>
-          <p>创作者维护 Segment 与真相链；主持端处理投票、私密行动与补救；玩家端聚焦任务、怀疑与口供；玩后洞察回流到质量报告与改本决策。</p>
-        </div>
-        <div class="showcase-grid">
-          <figure class="showcase-panel">
-            <div class="showcase-frame">
-              <img src="/assets/zhimu-screenshot-creator.png" alt="织幕创作者端界面：线索矩阵与发布前检查" loading="lazy" decoding="async" width="1440" height="900" />
-            </div>
-            <figcaption>
-              <strong>创作者端</strong>
-              <span>Segment、Matrix、角色分屏、真相链、质量报告与发布检查。</span>
-            </figcaption>
-          </figure>
-          <figure class="showcase-panel">
-            <div class="showcase-frame showcase-frame-accent">
-              <img src="/assets/zhimu-screenshot-host.png" alt="织幕主持端界面：投票指认与玩家进度" loading="lazy" decoding="async" width="1440" height="900" />
-            </div>
-            <figcaption>
-              <strong>主持端</strong>
-              <span>控场台、投票/指认、私密行动、口供审核、补救话术与运行报告。</span>
-            </figcaption>
-          </figure>
-          <figure class="showcase-panel">
-            <div class="showcase-frame showcase-frame-warm">
-              <img src="/assets/zhimu-screenshot-play.png" alt="织幕玩家端界面：任务、怀疑与线索板" loading="lazy" decoding="async" width="1440" height="900" />
-            </div>
-            <figcaption>
-              <strong>玩家端</strong>
-              <span>邀请码入房、私人分幕、任务/怀疑/口供、投票博弈与复盘。</span>
-            </figcaption>
-          </figure>
-          <figure class="showcase-panel">
-            <div class="showcase-frame showcase-frame-recap">
-              <img src="/assets/zhimu-screenshot-archive.png" alt="织幕复盘界面：完成率、质量报告与 recap" loading="lazy" decoding="async" width="1440" height="900" />
-            </div>
-            <figcaption>
-              <strong>玩后改本</strong>
-              <span>段落完成率、线索命中、投票结果、checkpoint 与结构化 recap。</span>
-            </figcaption>
-          </figure>
-        </div>
-      </section>
-
-      <section class="case-section" id="status" aria-labelledby="status-title">
-        <div class="case-layout">
-          <div class="case-copy">
-            <p class="eyebrow">当前状态</p>
-            <h2 id="status-title">可信 Beta：博弈运行与玩后洞察已接入，持续产品化 IA。</h2>
-            <p>
-              织幕已完成创作、开房、玩家加入、阅读探索、<strong>投票指认、任务怀疑口供、私密行动</strong>、主持确认、质量报告与存档复盘等核心闭环；三端 API 与运行态骨架已就绪，前端信息架构正按「四段闭环」持续整合。
-            </p>
-            <ul class="case-stats">
-              <li><strong>已具备</strong><span>创作、主持、玩家、复盘和 OPS 产品闭环。</span></li>
-              <li><strong>已接入</strong><span>CSP、限流、HttpOnly session、上传扫描、metrics 与 alert 桥接。</span></li>
-              <li><strong>推进中</strong><span>Pages 三站 CI/CD、生产 OTLP、alert webhook 与 AV scanner 实际配置。</span></li>
-            </ul>
-            <p class="case-note muted">这不是演示壳子。内测团队可以围绕真实跑团流程试用；生产级发布仍会受安全、监控和部署门槛约束。</p>
-          </div>
-          <blockquote class="case-quote">
-            <p>“我们希望主持人少当人工数据库，把注意力放回故事现场。系统记录谁知道什么、什么时候知道、为什么知道。”</p>
-            <footer>织幕产品原则</footer>
-          </blockquote>
-        </div>
-      </section>
-
-      <section class="first-session-section" id="first-session" aria-labelledby="first-session-title">
-        <div class="section-heading compact">
-          <p class="eyebrow">首场路径</p>
-          <h2 id="first-session-title">第一次跑团，按这四步就够了。</h2>
-          <p class="section-lede">注册登录后，在创作者端约 10 分钟可跑通完整链路；玩家只需邀请码，主持与复盘各有独立入口。</p>
-        </div>
-        <ol class="first-session-path">
-          <li>
-            <span>1</span>
-            <strong>创建剧本</strong>
-            <p>向导一键生成测试世界，或在创作台导入 Word/Markdown，再在编排台补场景与线索。</p>
-          </li>
-          <li>
-            <span>2</span>
-            <strong>开房控场</strong>
-            <p>创建运行房，主持端处理投票、私密行动、线索发放与段落补救；复制邀请码给玩家。</p>
-          </li>
-          <li>
-            <span>3</span>
-            <strong>玩家博弈</strong>
-            <p>玩家用邀请码入房，完成任务、怀疑、口供与投票指认；私人分幕与线索板按角色隔离。</p>
-          </li>
-          <li>
-            <span>4</span>
-            <strong>玩后改本</strong>
-            <p>查看段落完成率、质量报告与运行报告，生成 recap，为下一场改本留依据。</p>
-          </li>
-        </ol>
-        <div class="first-session-cta">
-          <a class="link-button solid" data-link-creator href="https://app.getzhimu.com/?auth=register">注册并开始创建</a>
-          <a class="link-button outline" data-link-official href="https://play.getzhimu.com/?experience=official">先体验官方示例</a>
-        </div>
-      </section>
-
-      <section class="case-study-section" id="case-study" aria-labelledby="case-study-title">
-        <div class="section-heading compact">
-          <p class="eyebrow">试点故事</p>
-          <h2 id="case-study-title">内测团队怎么把一场本跑通</h2>
-          <p class="section-lede">以下为匿名化摘要，基于真实内测流程；完整数据见仓库 <code>docs/ops/PILOT_CASE_STUDY_ZH.md</code>。</p>
-        </div>
-        <article class="case-study-card">
-          <header>
-            <strong>匿名团队 A · 4 人长线本</strong>
-            <span class="case-tag">自助创作</span>
-          </header>
-          <ul>
-            <li><strong>Day 0</strong>：注册后走五 step 向导，约 8 分钟生成测试世界与邀请码。</li>
-            <li><strong>Day 1</strong>：主持端看到 3/4 玩家完成第一幕；手动发放 1 条线索解锁卡关。</li>
-            <li><strong>Day 2</strong>：生成 recap，确认下一场改本方向；产品内反馈 1 条 UI 建议。</li>
-          </ul>
-          <p class="muted-note">关键指标：首场完成率 75%，主持干预 1 次，复盘已生成。</p>
-        </article>
+        <figure class="recap-shot">
+          <img src="/assets/zhimu-screenshot-archive.png" alt="织幕上帝视角结构化复盘界面" loading="lazy" decoding="async" width="1440" height="900" />
+        </figure>
       </section>
 
       <section class="workflow-section" id="workflow" aria-labelledby="workflow-title">
         <div class="section-heading compact">
-          <p class="eyebrow">平台闭环</p>
-          <h2 id="workflow-title">四段能力，一条运行态数据链。</h2>
+          <p class="eyebrow">第一次跑团</p>
+          <h2 id="workflow-title">从一份稿件到首场测试，四步完成。</h2>
+          <p>主流程保持简单；复杂编辑、临场覆盖和复盘能力在需要时再展开。</p>
         </div>
         <ol class="workflow-list" data-workflow-list>
           <li data-workflow-step>
-            <span>1</span>
-            <strong>创作生产线</strong>
-            <p>Matrix / AI 生成、Segment、角色分屏、真相链与关系图，产出可运行结构。</p>
+            <span>01</span>
+            <strong>创建或导入</strong>
+            <p>新建故事，或把现有稿件解析成角色、章节、场景、线索与秘密。</p>
           </li>
           <li data-workflow-step>
-            <span>2</span>
-            <strong>开局运行台</strong>
-            <p>主持控场：进度监控、投票指认、私密行动、线索发放与补救话术。</p>
+            <span>02</span>
+            <strong>检查并发布</strong>
+            <p>用玩家视角预览内容边界，通过发布检查后创建测试房。</p>
           </li>
           <li data-workflow-step>
-            <span>3</span>
-            <strong>玩家沉浸端</strong>
-            <p>任务、怀疑、口供、秘密行动与线索板——按角色隔离的博弈体验。</p>
+            <span>03</span>
+            <strong>主持现场</strong>
+            <p>邀请玩家入房，按当前幕手册推进，并对意外情况手工覆盖。</p>
           </li>
           <li data-workflow-step>
-            <span>4</span>
-            <strong>玩后改本闭环</strong>
-            <p>质量报告、完成率、卡关点、投票命中与运行报告回流改本决策。</p>
+            <span>04</span>
+            <strong>复盘改本</strong>
+            <p>根据真实进度、线索命中与主持日志，修订下一次运行版本。</p>
           </li>
         </ol>
       </section>
 
-      <section class="systems-section" id="systems" aria-labelledby="systems-title">
-        <div class="section-heading">
-          <p class="eyebrow">系统能力</p>
-          <h2 id="systems-title">为长期运行准备的底座。</h2>
-          <p>织幕优先把权限、事件、存档、资产、错误处理与运营审核做扎实，再逐步扩展更复杂的 AI 创作和商业能力。</p>
-        </div>
-        <div class="systems-grid">
-          <article>
-            <h3>身份与协作</h3>
-            <p>注册登录、OAuth、游客升级、设备会话、协作者邀请和套餐配额。</p>
-          </article>
-          <article>
-            <h3>实时运行</h3>
-            <p>SSE 事件、主持确认、规则幂等、玩家进度和运行日志持续同步。</p>
-          </article>
-          <article>
-            <h3>内容资产</h3>
-            <p>文档导入、内容包、云端附件、资产回收站、上传扫描和存储用量管理。</p>
-          </article>
-          <article>
-            <h3>回滚复盘</h3>
-            <p>运行 checkpoint、局部 restore、跨房间复盘和结构化 recap。</p>
-          </article>
-          <article>
-            <h3>主持审计</h3>
-            <p>关键操作留痕，便于排查每一次线索发放与事件处理。</p>
-          </article>
-          <article>
-            <h3>内测运维</h3>
-            <p>健康检查、错误页、告警桥接、限流、公开库审核和内测申请管理。</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="role-section" aria-labelledby="role-title">
-        <div class="section-heading compact">
-          <p class="eyebrow">四种入口</p>
-          <h2 id="role-title">你是谁，就从哪里开始。</h2>
-        </div>
-        <div class="role-table role-table-four" role="list">
-          <article role="listitem">
-            <p>Creator</p>
-            <h3>创作者</h3>
-            <span>创建或导入剧本，维护 Segment、真相链、质量报告与发布检查。</span>
-            <a class="link-button outline role-entry-link" data-link-creator href="https://app.getzhimu.com/?auth=register">创建 / 导入剧本</a>
-          </article>
-          <article role="listitem">
-            <p>Host</p>
-            <h3>主持人</h3>
-            <span>控场台：投票指认、私密行动、口供、线索矩阵与段落补救。</span>
-            <a class="link-button outline role-entry-link" data-link-host href="https://host.getzhimu.com/">进入控场台</a>
-          </article>
-          <article role="listitem">
-            <p>Player</p>
-            <h3>玩家</h3>
-            <span>邀请码入房：任务、怀疑、口供、投票博弈、线索与复盘。</span>
-            <a class="link-button outline role-entry-link" data-link-play href="https://play.getzhimu.com/">输入邀请码</a>
-          </article>
-          <article role="listitem">
-            <p>Demo</p>
-            <h3>体验者</h3>
-            <span>无需自备剧本，进入官方测试局感受三端联动。</span>
-            <a class="link-button outline role-entry-link" data-link-official href="https://play.getzhimu.com/?experience=official">体验官方示例</a>
-          </article>
-        </div>
+      <section class="assurance-section" aria-label="版权、协作与运行保障">
+        <article>
+          <p class="chapter-number">内容归作者</p>
+          <h3>未授权稿件不公开、不用于训练。</h3>
+          <p>支持完整导出、回收站与彻底删除；角色秘密按权限和运行状态隔离。</p>
+        </article>
+        <article>
+          <p class="chapter-number">协作者审稿</p>
+          <h3>批注、建议和版本影响都有记录。</h3>
+          <p>共同作者、发行编辑和只读审稿人使用不同权限协作，不必交换完整账号。</p>
+        </article>
+        <article>
+          <p class="chapter-number">运行可恢复</p>
+          <h3>同步断开，也知道从哪里接上。</h3>
+          <p>SSE 游标恢复、幂等写入、checkpoint 与主持审计共同保护现场状态。</p>
+        </article>
       </section>
 
       <section class="import-section" id="import" aria-labelledby="import-title">
         <div class="import-layout">
           <div class="import-copy">
-            <p class="eyebrow">导入服务</p>
-            <h2 id="import-title">已有 Word / PDF 母稿？预约导入一个剧本。</h2>
-            <p>
-              内测期由运营人工协助梳理角色分屏、线索矩阵与规则结构，迁入织幕世界并开测试房试跑。适合“有现成剧本、想尽快线上开团”的工作室。
-            </p>
+            <p class="eyebrow">已有完整母稿</p>
+            <h2 id="import-title">把 Word / PDF / 飞书稿件带进来。</h2>
+            <p>织幕会先识别角色名、幕、场景、线索和秘密，再让作者预览结构后写入，不会把全文粗暴塞进一个编辑器。</p>
             <ol class="import-steps">
-              <li>提交表单或邮件，说明剧本规模、素材格式和预期上线时间。</li>
-              <li>运营评估后联系你，约定导入时间线，通常 2-5 个工作日。</li>
-              <li>导入完成后在创作者端验收，并协助完成首场试跑。</li>
+              <li>上传或粘贴稿件，预览识别出的内容结构。</li>
+              <li>确认角色、章节、线索与隐私边界。</li>
+              <li>进入对应工作台逐项精修，并创建首场测试房。</li>
             </ol>
           </div>
           <div class="import-cta">
+            <strong>内测期提供人工导入协助</strong>
+            <p>适合已有商业剧本、希望尽快完成线上首场试跑的作者与工作室。</p>
             <a class="link-button solid large" data-import-mailto href="mailto:support@getzhimu.com?subject=%E9%A2%84%E7%BA%A6%E5%AF%BC%E5%85%A5%E8%84%9A%E6%9C%AC">邮件预约导入</a>
             <a class="link-button outline large" href="#beta" data-action="prefill-import">填写内测表单</a>
-            <p class="import-note muted">也可直接发邮件至 <a href="mailto:support@getzhimu.com">support@getzhimu.com</a>，标题注明“预约导入剧本”。</p>
           </div>
         </div>
       </section>
@@ -416,9 +226,7 @@
         <div class="section-heading compact">
           <p class="eyebrow">套餐与配额</p>
           <h2 id="pricing-title">内测期免费试用，配额人工开通。</h2>
-          <p class="pricing-lead" data-pricing-lead>
-            当前暂无在线支付。登录后可在账号页提交升级申请，也可以邮件联系 support，通常 1-2 个工作日内处理。
-          </p>
+          <p class="pricing-lead" data-pricing-lead>当前暂无在线支付。登录后可在账号页提交升级申请，也可以邮件联系支持。</p>
         </div>
         <div class="pricing-grid" data-pricing-tiers>
           <article class="pricing-card">
@@ -441,22 +249,16 @@
           <a class="link-button solid large" data-pricing-in-app href="https://app.getzhimu.com/?view=account">登录后申请升级</a>
           <a class="link-button outline large" data-pricing-email href="mailto:support@getzhimu.com?subject=%E7%BB%87%E5%B9%95%20%C2%B7%20%E7%94%B3%E8%AF%B7%E5%A5%97%E9%A4%90%E5%8D%87%E7%BA%A7">邮件申请扩容</a>
         </div>
-        <p class="pricing-foot muted" data-pricing-footnote>
-          完整标价页暂作内部预览：<a href="/pricing-commercial.html">pricing-commercial.html</a>。稳定实测后再公开商业价格。
-        </p>
+        <p class="pricing-foot muted" data-pricing-footnote>完整标价页暂作内部预览：<a href="/pricing-commercial.html">pricing-commercial.html</a>。</p>
       </section>
 
       <section class="beta-section" id="beta" aria-labelledby="beta-title">
         <div class="beta-copy">
           <p class="eyebrow">Beta</p>
-          <h2 id="beta-title">适合正在筹备线上长线本的团队先试用。</h2>
-          <p>
-            内测期以免费试用和人工扩容为主。你可以直接注册进入应用，也可以提交申请，方便后续对接运行规模、素材迁移和主持流程。
-          </p>
+          <h2 id="beta-title">用你的剧本，跑一次完整流程。</h2>
+          <p>你可以直接注册进入创作者端，也可以留下需求，便于我们协助评估稿件迁移、运行规模和首场主持流程。</p>
           <div class="beta-actions">
-            <a class="link-button solid large" data-link-creator href="https://app.getzhimu.com/?auth=register">我是创作者</a>
-            <a class="link-button outline large" data-link-host href="https://host.getzhimu.com/">我是主持人</a>
-            <a class="link-button outline large" data-link-play href="https://play.getzhimu.com/">我是玩家</a>
+            <a class="link-button solid large" data-link-creator href="https://app.getzhimu.com/?auth=register">开始创作</a>
             <a class="link-button outline large" data-link-official href="https://play.getzhimu.com/?experience=official">体验官方示例</a>
             <a class="link-button quiet-on-light large" href="mailto:support@getzhimu.com">联系支持</a>
           </div>
@@ -492,7 +294,7 @@
           </label>
           <label class="wide">
             想优先解决什么？
-            <textarea name="useCase" rows="4" minlength="16" placeholder="例如：多人平行房主持压力、线索发放、章节阅读进度、复盘归档等" required></textarea>
+            <textarea name="useCase" rows="4" minlength="16" placeholder="例如：现有稿件迁移、多人平行房、线索发放、复盘归档等" required></textarea>
           </label>
           <label class="wide">
             其他联系方式（选填）
@@ -508,15 +310,14 @@
     <footer class="site-footer">
       <div>
         <strong>织幕</strong>
-        <span>线上剧本杀创作与运行平台</span>
+        <span>线上剧本创作与运行平台</span>
       </div>
       <nav aria-label="页脚导航">
         <a data-link-play href="https://play.getzhimu.com/">玩家端</a>
         <a data-link-host href="https://host.getzhimu.com/">主持端</a>
         <a data-link-creator href="https://app.getzhimu.com/?auth=register">创作者端</a>
-        <a data-link-login href="https://app.getzhimu.com/?auth=login">创作者登录</a>
+        <a data-link-login href="https://app.getzhimu.com/?auth=login">登录</a>
         <a href="mailto:support@getzhimu.com" data-support-email>support@getzhimu.com</a>
-        <a href="mailto:hello@getzhimu.com" data-hello-email>hello@getzhimu.com</a>
       </nav>
     </footer>
 
