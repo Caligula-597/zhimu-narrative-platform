@@ -6,6 +6,13 @@ import { callView } from "./view-registry.js";
     switch (action) {
       case "creator-add-section": callView("writer", "openCreatorSection", el?.dataset?.role); return true;
       case "creator-edit-section": callView("writer", "openCreatorSection", el?.dataset?.role, el?.dataset?.section); return true;
+      case "writer-editor-close": callView("writer", "closeWriterSectionEditor"); return true;
+      case "writer-editor-save": callView("writer", "saveWriterSectionEditor"); return true;
+      case "writer-editor-delete": callView("writer", "deleteWriterSectionEditor"); return true;
+      case "writer-editor-discard": callView("writer", "discardWriterSectionDraft"); return true;
+      case "writer-editor-replace": callView("writer", "replaceWriterSectionText"); return true;
+      case "writer-editor-format": callView("writer", "formatWriterSectionText", el?.dataset?.format); return true;
+      case "writer-editor-switch": callView("writer", "switchWriterSection", el?.dataset?.role, el?.dataset?.section); return true;
       case "creator-edit-chapter": callView("writer", "openCreatorChapter", el?.dataset?.chapter); return true;
       case "creator-delete-chapter": callView("writer", "deleteCreatorChapter", el?.dataset?.chapter); return true;
       case "creator-check": callView("writer", "runCreatorChecks"); return true;

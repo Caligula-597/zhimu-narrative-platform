@@ -29,3 +29,10 @@ test("showcase section uses per-end PNGs not placeholder SVG", () => {
   assert.match(indexHtml, /zhimu-screenshot-archive\.png/);
   assert.doesNotMatch(indexHtml, /site-preview\.svg/);
 });
+
+test("site header exposes direct player and host entries", () => {
+  assert.match(indexHtml, /class="header-surface-link" data-link-play/);
+  assert.match(indexHtml, /class="header-surface-link" data-link-host/);
+  assert.match(indexHtml, /class="nav-surface-entry" data-link-play/);
+  assert.match(indexHtml, /class="nav-surface-entry" data-link-host/);
+});

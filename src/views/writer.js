@@ -13,6 +13,7 @@ import { contentLayerMapHtml } from "../components/content-layer-map.js";
 import { normalizeError } from "../components/status-ui.js";
 import { handleApiErrorToast } from "../utils/user-messages.js";
 import { renderRoleArchiveFields, archiveMapFromList } from "./role-archive-panel.js";
+import { writerSectionEditorHtml } from "./writer-section-editor.js";
 import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
 import { evaluatePublishImpact } from "../../shared/publish-impact-preview.js";
 import { creatorTerms, normalizeCreationType } from "../../shared/creator-terminology.js";
@@ -97,6 +98,54 @@ const creatorImportModalHtml = ({ emptyRoleHintHtml, newWorldFieldsHtml, roleSel
   const openJoinRoom = R.openJoinRoom || (() => {});
 
 let roleArchivesRequest = null;
+let writerEditorSession = null;
+
+function editorDraft(section) {
+  return {
+    title: section?.title || "",
+    body: section?.body || "",
+    chapterId: section?.chapter_id || "",
+    publicationStatus: section?.publication_status || "draft"
+  };
+}
+
+function ensureWriterEditorSession(data, role, section) {
+  const worldId = data.world?.id || zhimuApi.context.worldId || "";
+  const sectionId = section?.id || "";
+  if (
+    writerEditorSession?.worldId === worldId &&
+    writerEditorSession?.roleId === role.id &&
+    writerEditorSession?.sectionId === sectionId
+  ) return writerEditorSession;
+  if (writerEditorSession?.dirty && !writerEditorSession.sectionId) return null;
+  writerEditorSession = {
+    worldId,
+    roleId: role.id,
+    sectionId,
+    draft: editorDraft(section),
+    dirty: false,
+    revision: 0,
+    saveState: section ? "已加载云端版本" : "新分幕尚未写入",
+    autosaveTimer: null,
+    deleteArmed: false,
+    deleteResetTimer: null
+  };
+  return writerEditorSession;
+}
+
+function activeWriterEditorContext() {
+  const data = studioStore.get().cloudStudio;
+  const state = uiStore.get();
+  if (!data || !state.writerEditorOpen) return null;
+  const role = data.roles.find((item) => item.id === state.writerEditorRoleId);
+  if (!role) return null;
+  const section = state.writerEditorSectionId
+    ? data.sections.find((item) => item.id === state.writerEditorSectionId && item.role_slot_id === role.id)
+    : null;
+  if (state.writerEditorSectionId && !section) return null;
+  const session = ensureWriterEditorSession(data, role, section);
+  return session ? { data, role, section, session } : null;
+}
 
 function roleSectionStatus(sections = []) {
   return sections.reduce((counts, section) => {
@@ -192,6 +241,8 @@ export async function loadWriterRoleArchives({ force = false } = {}) {
 export function writer(){
  const data=studioStore.get().cloudStudio;
  if(!data)return U.creatorWorkspaceEmpty?.({title:"剧本杀创作中心",kicker:"SCRIPTED MYSTERY CREATOR",intro:"为每位玩家编写私人分幕，并控制公共章节的发布节奏。尚未选择剧本时，可先浏览公开库或创建新世界。",guideTitle:"开始创作",guideItems:[{label:"角色稿",title:"私人分幕正文",text:"每位玩家只看到自己的章节与秘密。",bullets:["按角色席位管理分幕","支持 Markdown","草稿 / 测试中 / 已发布"]},{label:"章节",title:"公共章节",text:"控制玩家何时能看到下一章信息。",bullets:["主持人确认或自动解锁","与规则引擎联动"]},{label:"工具",title:"导入导出与 AI",text:"备份、迁移与辅助生成剧情结构。",bullets:["内容包导入导出","AI 剧本创作向导"]}]})||`<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
+ const editorContext=activeWriterEditorContext();
+ if(editorContext&&U.canEditWorldContent?.(data.world))return writerSectionEditorHtml({data:editorContext.data,role:editorContext.role,section:editorContext.section,draft:editorContext.session.draft,saveState:editorContext.session.saveState});
  const terms=creatorTerms(data.world?.settings?.creationType);
  const membershipRole=data.world?.membership_role;
  const canEdit=Boolean(U.canEditWorldContent?.(data.world));
@@ -229,37 +280,130 @@ export function writer(){
 
 export function creatorTool(title,text,action,label){return `<article class="placeholder-module connected"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p><button class="text-btn" data-action="${escapeHtml(action)}">${escapeHtml(label)}</button></article>`}
 
-function manuscriptEditorHtml(data, role, section){
- const chapters=[{id:"",name:"暂不绑定章节"},...data.chapters];
- const chapterSelect=`<select class="field" id="editor-chapter" data-studio-field="chapterId">${studioOptionsHtml(chapters,section?.chapter_id||"")}</select>`;
- const statusSelect=`<select class="field" id="editor-status" data-studio-field="publicationStatus">${studioOptionsHtml([{id:"draft",name:"草稿 · 仅创作者可见"},{id:"testing",name:"测试中 · 测试房可见"},{id:"published",name:"已发布 · 正式房可见"}],section?.publication_status||"draft")}</select>`;
- const settingsOpen=section?"":" open";
- const roleLabel=escapeHtml(role?.name||"角色");
- const seqLabel=section?` · 第 ${section.sequence} 幕`:"";
- const modeLabel=section?"编辑角色分幕":"新增角色分幕";
- return `<div class="editor-shell"><header class="editor-top"><div class="editor-context"><p class="editor-kicker">${modeLabel}<span class="editor-kicker-sep">·</span>${roleLabel}${seqLabel}</p><input class="field editor-title" data-studio-field="title" value="${escapeHtml(section?.title||"")}" placeholder="分幕标题" autocomplete="off"></div><div class="editor-status"><span class="editor-word-count" data-word-count>0 字</span><span class="editor-save-state" data-editor-state>${section?"已加载云端版本":"新分幕尚未写入"}</span></div></header><div class="editor-body-wrap"><textarea class="field manuscript-body" data-studio-field="body" placeholder="在此撰写角色私人正文，支持 Markdown…" spellcheck="true">${escapeHtml(section?.body||"")}</textarea></div><details class="editor-details"${settingsOpen}><summary>分幕设置</summary><div class="editor-details-body"><div class="editor-meta-field"><label for="editor-chapter">公共章节</label>${chapterSelect}</div><div class="editor-meta-field"><label for="editor-status">发布状态</label>${statusSelect}</div></div></details><details class="editor-details"><summary>查找与替换</summary><div class="editor-details-body editor-find-body"><div class="editor-meta-field"><label for="editor-search">搜索</label><input class="field" id="editor-search" data-editor-search placeholder="关键词"></div><div class="editor-meta-field"><label for="editor-replace">替换为</label><input class="field" id="editor-replace" data-editor-replace placeholder="新的文本"></div><button type="button" class="secondary-btn editor-replace-btn" data-editor-replace-btn>全部替换</button></div></details><div class="modal-actions editor-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-studio-submit>${section?"保存并关闭":"写入云端"}</button></div></div>`;
+export function openCreatorSection(roleId,sectionId=""){
+ const data=studioStore.get().cloudStudio,role=data?.roles.find(item=>item.id===roleId),section=sectionId?data?.sections.find(item=>item.id===sectionId&&item.role_slot_id===roleId):null;
+ if(!data||!role||!U.canEditWorldContent?.(data.world))return showToast("当前身份不能编辑角色分幕");
+ if(sectionId&&!section)return showToast("没有找到要编辑的角色分幕");
+ const sameTarget=writerEditorSession?.worldId===(data.world?.id||zhimuApi.context.worldId||"")&&writerEditorSession?.roleId===roleId&&writerEditorSession?.sectionId===(sectionId||"");
+ if(writerEditorSession?.dirty&&!writerEditorSession.sectionId&&!sameTarget)return showToast("请先保存当前新增分幕，再切换到其他内容");
+ if(!sameTarget)writerEditorSession=null;
+ ensureWriterEditorSession(data,role,section);
+ uiStore.set({writerSelectedRoleId:roleId,writerEditorOpen:true,writerEditorRoleId:roleId,writerEditorSectionId:sectionId||null});
+ render();
 }
 
-function bindManuscriptEditor(roleId, section, sections){
- const body=modal.querySelector('[data-studio-field="body"]'),count=modal.querySelector("[data-word-count]"),status=modal.querySelector("[data-editor-state]");let timer,disposed=false;
- const refreshCount=()=>{if(count)count.textContent=`${body.value.length} 字`};
- const cancelPending=()=>{disposed=true;clearTimeout(timer)};
- const scheduleAutosave=()=>{status.textContent="有未保存修改";if(!section)return;clearTimeout(timer);timer=setTimeout(async()=>{if(disposed)return;try{const values=studioValues();if(!values.chapterId)values.chapterId=null;await zhimuApi.updateSection(roleId,section.id,values);if(disposed)return;section.title=values.title;section.body=values.body;section.chapter_id=values.chapterId;section.publication_status=values.publicationStatus;status.textContent=`已自动保存 · ${new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}`}catch(error){if(!disposed)status.textContent=`保存失败 · ${error.message}`}},900)};
- refreshCount();
- modal.querySelector("[data-close]").onclick=()=>{cancelPending();closeModal()};
- modal.querySelectorAll("[data-studio-field]").forEach((field)=>{field.addEventListener("input",()=>{refreshCount();scheduleAutosave()});if(field.tagName==="SELECT")field.addEventListener("change",scheduleAutosave)});
- modal.querySelector("[data-editor-replace-btn]").onclick=()=>{const from=modal.querySelector("[data-editor-search]").value,to=modal.querySelector("[data-editor-replace]").value;if(!from)return showToast("请先填写搜索关键词");body.value=body.value.split(from).join(to);body.dispatchEvent(new Event("input"));showToast("当前分幕已完成替换")};
- const submitButton=modal.querySelector("[data-studio-submit]");
- submitButton.onclick=async()=>{if(submitButton.disabled)return;submitButton.disabled=true;clearTimeout(timer);try{const values=studioValues();if(!values.chapterId)values.chapterId=null;if(section)await zhimuApi.updateSection(roleId,section.id,values);else await zhimuApi.createSection(zhimuApi.context.worldId,roleId,{...values,sequence:sections.length+1});disposed=true;closeModal();await loadCloudData();showToast("角色分幕已保存")}catch(error){submitButton.disabled=false;showError(error)}};
- if(section){const actions=modal.querySelector(".modal-actions"),button=document.createElement("button");button.className="danger-btn";button.dataset.deleteSection="";button.textContent="删除这一幕";actions.prepend(button);button.onclick=async()=>{if(button.disabled)return;button.disabled=true;clearTimeout(timer);try{await zhimuApi.deleteSection(roleId,section.id);disposed=true;closeModal();await loadCloudData();showToast("角色分幕已删除")}catch(error){button.disabled=false;showError(error)}};}
+function collectWriterEditorDraft(root,session){
+ root.querySelectorAll("[data-studio-field]").forEach((field)=>{session.draft[field.dataset.studioField]=field.value});
+ return {...session.draft,title:session.draft.title.trim(),chapterId:session.draft.chapterId||null};
+}
+
+function setWriterEditorState(message,session=writerEditorSession){
+ if(!session)return;
+ session.saveState=message;
+ if(writerEditorSession!==session)return;
+ const status=content.querySelector("[data-writer-section-editor] [data-editor-state]");
+ if(status)status.textContent=message;
+}
+
+async function persistWriterEditor({close=false,quiet=false}={}){
+ const context=activeWriterEditorContext(),root=content.querySelector("[data-writer-section-editor]");
+ if(!context||!root)return false;
+ const {data,role,section,session}=context;
+ const values=collectWriterEditorDraft(root,session);
+ if(!values.title){showToast("请先填写分幕标题");root.querySelector('[data-studio-field="title"]')?.focus();return false;}
+ clearTimeout(session.autosaveTimer);
+ const revision=session.revision;
+ setWriterEditorState("正在写入云端…",session);
+ try{
+  if(section)await zhimuApi.updateSection(role.id,section.id,values);
+  else await zhimuApi.createSection(zhimuApi.context.worldId,role.id,{...values,sequence:data.sections.filter(item=>item.role_slot_id===role.id).length+1});
+  if(session.revision===revision){session.dirty=false;setWriterEditorState(`已保存 · ${new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}`,session)}
+  else setWriterEditorState("有未保存修改",session);
+  if(close){writerEditorSession=null;uiStore.set({writerEditorOpen:false,writerEditorRoleId:null,writerEditorSectionId:null});await loadCloudData();render();if(!quiet)showToast("角色分幕已保存");}
+  return true;
+ }catch(error){setWriterEditorState(`保存失败 · ${error.message}`,session);if(!quiet)showError(error);return false;}
+}
+
+export function bindWriterSectionEditor(){
+ const root=content.querySelector("[data-writer-section-editor]");
+ const context=activeWriterEditorContext();
+ if(!root||!context||root.dataset.bound==="1")return;
+ root.dataset.bound="1";
+ const {section,session}=context;
+ const body=root.querySelector('[data-studio-field="body"]'),count=root.querySelector("[data-word-count]");
+ const markChanged=()=>{
+  collectWriterEditorDraft(root,session);
+  session.dirty=true;session.revision+=1;session.deleteArmed=false;
+  if(count)count.textContent=`${body.value.length} 字`;
+  setWriterEditorState(section?"有未保存修改":"新分幕尚未写入",session);
+  if(!section)return;
+  clearTimeout(session.autosaveTimer);
+  session.autosaveTimer=setTimeout(()=>void persistWriterEditor({quiet:true}),900);
+ };
+ root.querySelectorAll("[data-studio-field]").forEach((field)=>{
+  field.addEventListener("input",markChanged);
+  if(field.tagName==="SELECT")field.addEventListener("change",markChanged);
+ });
  setTimeout(()=>body?.focus(),60);
 }
 
-export function openCreatorSection(roleId,sectionId=""){
- const data=studioStore.get().cloudStudio,role=data.roles.find(item=>item.id===roleId),sections=data.sections.filter(section=>section.role_slot_id===roleId),section=sections.find(item=>item.id===sectionId);
- modal.className="modal manuscript-editor-modal";setHtml(modal,manuscriptEditorHtml(data,role,section));
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;
- bindManuscriptEditor(roleId,section,sections);
+export async function saveWriterSectionEditor(){await persistWriterEditor({close:true})}
+
+export async function closeWriterSectionEditor(){
+ const context=activeWriterEditorContext();
+ if(context?.section&&context.session.dirty){const saved=await persistWriterEditor({quiet:true});if(!saved)return;}
+ if(context?.session){clearTimeout(context.session.autosaveTimer);clearTimeout(context.session.deleteResetTimer)}
+ uiStore.set({writerEditorOpen:false,writerEditorRoleId:null,writerEditorSectionId:null});
+ render();
+ if(context?.session.dirty&&!context.section)showToast("未提交的新分幕暂时保留；再次点击新增分幕可继续编辑");
+}
+
+export async function switchWriterSection(roleId,sectionId){
+ const context=activeWriterEditorContext();
+ if(context?.session.sectionId===sectionId)return;
+ if(context?.session.dirty&&!context.section)return showToast("请先保存当前新增分幕，再切换其他分幕");
+ if(context?.session.dirty){const saved=await persistWriterEditor({quiet:true});if(!saved)return;}
+ writerEditorSession=null;openCreatorSection(roleId,sectionId);
+}
+
+export function replaceWriterSectionText(){
+ const root=content.querySelector("[data-writer-section-editor]"),body=root?.querySelector('[data-studio-field="body"]');
+ const from=root?.querySelector("[data-editor-search]")?.value||"",to=root?.querySelector("[data-editor-replace]")?.value||"";
+ if(!from)return showToast("请先填写搜索关键词");
+ body.value=body.value.split(from).join(to);body.dispatchEvent(new Event("input"));showToast("当前分幕已完成替换");
+}
+
+export function formatWriterSectionText(format){
+ const body=content.querySelector('[data-writer-section-editor] [data-studio-field="body"]');
+ if(!body)return;
+ const start=body.selectionStart,end=body.selectionEnd,value=body.value,selected=value.slice(start,end);
+ let replacement=selected,nextStart=start,nextEnd=end;
+ if(format==="bold"){replacement=`**${selected||"加粗文字"}**`;nextStart=start+2;nextEnd=start+replacement.length-2;}
+ else if(format==="italic"){replacement=`_${selected||"斜体文字"}_`;nextStart=start+1;nextEnd=start+replacement.length-1;}
+ else if(format==="heading"){const lineStart=value.lastIndexOf("\n",Math.max(0,start-1))+1;body.setSelectionRange(lineStart,end);replacement=`## ${value.slice(lineStart,end)||"小标题"}`;nextStart=lineStart+3;nextEnd=lineStart+replacement.length;body.setRangeText(replacement,lineStart,end,"end");body.dispatchEvent(new Event("input"));body.setSelectionRange(nextStart,nextEnd);body.focus();return;}
+ else if(format==="list"){replacement=(selected||"列表内容").split("\n").map(line=>`- ${line.replace(/^[-*]\s+/,"")}`).join("\n");nextEnd=start+replacement.length;}
+ else return;
+ body.setRangeText(replacement,start,end,"end");body.dispatchEvent(new Event("input"));body.setSelectionRange(nextStart,nextEnd);body.focus();
+}
+
+export async function deleteWriterSectionEditor(){
+ const context=activeWriterEditorContext();
+ if(!context?.section)return;
+ const button=content.querySelector('[data-action="writer-editor-delete"]');
+ if(!context.session.deleteArmed){
+  context.session.deleteArmed=true;if(button)button.textContent="再次点击确认删除";
+  clearTimeout(context.session.deleteResetTimer);context.session.deleteResetTimer=setTimeout(()=>{context.session.deleteArmed=false;if(button)button.textContent="删除这一幕"},5000);
+  return showToast("删除后不可恢复，请再次点击确认");
+ }
+ if(button)button.disabled=true;clearTimeout(context.session.autosaveTimer);
+ try{await zhimuApi.deleteSection(context.role.id,context.section.id);writerEditorSession=null;uiStore.set({writerEditorOpen:false,writerEditorRoleId:null,writerEditorSectionId:null});await loadCloudData();render();showToast("角色分幕已删除")}catch(error){if(button)button.disabled=false;showError(error)}
+}
+
+export function discardWriterSectionDraft(){
+ const context=activeWriterEditorContext();
+ if(!context||context.section)return;
+ clearTimeout(context.session.autosaveTimer);clearTimeout(context.session.deleteResetTimer);
+ writerEditorSession=null;uiStore.set({writerEditorOpen:false,writerEditorRoleId:null,writerEditorSectionId:null});render();showToast("未提交的新分幕草稿已放弃");
 }
 
 export function selectWriterRole(roleId){
@@ -861,5 +1005,5 @@ export function createCreatorSnapshot(){studioModal("保存创作版本",studioF
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, storyManuscriptStatus, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, fileToBase64, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, storyManuscriptStatus, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, fileToBase64, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
 registerView("writer", writerViewApi);

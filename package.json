@@ -104,6 +104,8 @@
     "ensure:esm": "node scripts/ensure-esm-exports.mjs",
     "capture:site-screenshots": "playwright test e2e/capture-site-screenshots.spec.js --project=app-chromium",
     "test:site-screenshots": "node --test scripts/site-screenshots.test.mjs",
+    "test:writer-section-editor": "node --test scripts/writer-section-editor.test.mjs",
+    "qa:writer-focus:edge": "node scripts/edge-writer-focus-qa.mjs",
     "git:push": "node scripts/git-push.mjs"
   },
   "devDependencies": {

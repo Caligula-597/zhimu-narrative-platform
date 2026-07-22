@@ -136,6 +136,23 @@ img {
   font-weight: 600;
 }
 
+.nav-surface-entry {
+  display: none;
+}
+
+.header-surface-link {
+  padding: 8px 3px;
+  border-bottom: 1px solid transparent;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.header-surface-link:hover,
+.header-surface-link:focus-visible {
+  border-bottom-color: var(--green);
+}
+
 .site-nav a {
   position: relative;
   padding: 24px 0 23px;
@@ -896,6 +913,12 @@ h2 {
 
   .site-nav.is-open {
     display: grid;
+  }
+
+  .nav-surface-entry {
+    display: block;
+    color: var(--green);
+    font-weight: 800;
   }
 
   .site-nav a {

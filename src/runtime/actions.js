@@ -35,7 +35,10 @@ export function bindDynamic() {
     if (view === "account") callView("accountHub", "bindAccountHubView");
     if (view === "player") callView("player", "bindPlayerReader");
     if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
-    if (view === "writer") void callView("writer", "loadWriterRoleArchives");
+    if (view === "writer") {
+      void callView("writer", "loadWriterRoleArchives");
+      callView("writer", "bindWriterSectionEditor");
+    }
     window.zhimuActionsCreatorCockpit?.maybeAutoLoadCockpit?.(view);
     window.zhimuActionsCreatorWorkspaces?.maybeAutoLoadWorkspace?.(view);
     window.zhimuSearchFocus?.applyAfterRender?.();
