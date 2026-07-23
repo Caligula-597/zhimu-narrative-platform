@@ -62,7 +62,7 @@ const fileGroups = {
     "writer", "placeholderModule", "creatorTool", "openCreatorSection", "openCreatorRole", "openCreatorChapter",
     "runCreatorChecks", "openStoryManuscript", "storyManuscriptStatus", "openCollaboration", "openWorldLogs",
     "openDocumentParser", "fileToBase64", "openDeepseekAssistant", "deepseekProposalPreview", "openStoryAssistant",
-    "storyAssistantPreview",     "openCreatorPreview", "exportCreatorPackage", "openCreatorImport", "importCreatorPackage",
+    "openCreatorPreview", "exportCreatorPackage", "openCreatorImport", "importCreatorPackage",
   ],
   "src/views/assets.js": ["assets", "deleteCloudAsset", "openAssetUpload", "uploadSelectedAsset"],
   "src/views/rules.js": [

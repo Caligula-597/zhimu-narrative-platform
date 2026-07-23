@@ -61,7 +61,10 @@ test("long creator editors no longer depend on the global modal surface", () => 
     "src/views/writer-collaboration-workspace.js",
     "src/views/writer-player-preview-model.js",
     "src/views/writer-player-preview-view.js",
-    "src/views/writer-player-preview-workspace.js"
+    "src/views/writer-player-preview-workspace.js",
+    "src/views/writer-story-assistant-model.js",
+    "src/views/writer-story-assistant-view.js",
+    "src/views/writer-story-assistant-workspace.js"
   ]) {
     const source = read(file);
     assert.doesNotMatch(source, /\bstudioModal\b|\bmodalBackdrop\b|from\s+["']\.\.\/dom\.js["']/, file);
@@ -109,6 +112,7 @@ test("writer heavy tools use guarded full-page sessions", () => {
   assert.match(tools, /review:\s*\(\)\s*=>\s*import\("\.\/writer-review-workspace\.js"\)/);
   assert.match(tools, /collaboration:\s*\(\)\s*=>\s*import\("\.\/writer-collaboration-workspace\.js"\)/);
   assert.match(tools, /preview:\s*\(\)\s*=>\s*import\("\.\/writer-player-preview-workspace\.js"\)/);
+  assert.match(tools, /"story-assistant":\s*\(\)\s*=>\s*import\("\.\/writer-story-assistant-workspace\.js"\)/);
   assert.match(session, /activeSession === session/);
   assert.match(session, /zhimuApi\.context\.worldId === session\.worldId/);
   assert.match(manuscript, /session\.savingAction/);
@@ -129,6 +133,8 @@ test("writer heavy tools use guarded full-page sessions", () => {
   for (const action of [
     "writer-tool-close",
     "writer-manuscript-save",
+    "writer-story-analyze",
+    "writer-story-import",
     "writer-document-parse",
     "writer-document-import",
     "writer-export-run",
@@ -147,6 +153,30 @@ test("writer heavy tools use guarded full-page sessions", () => {
   ]) {
     assert.match(actions, new RegExp(action));
   }
+});
+
+test("story structure extraction uses a guarded lazy workspace instead of the global modal", () => {
+  const writer = read("src/views/writer.js");
+  const tools = read("src/views/writer-tool-workspace.js");
+  const templates = read("src/views/writer-modal-templates.js");
+  const model = read("src/views/writer-story-assistant-model.js");
+  const view = read("src/views/writer-story-assistant-view.js");
+  const controller = read("src/views/writer-story-assistant-workspace.js");
+  const api = read("src/api/ai.js");
+  assert.match(writer, /openStoryAssistant\(\)\{\s*return openStoryAssistantWorkspace\(\)/);
+  assert.doesNotMatch(writer, /story-assistant-modal|data-story-draft|storyAssistantPreview/);
+  assert.doesNotMatch(templates, /storyAssistantModalHtml|data-assistant-analyze|data-story-draft/);
+  assert.match(tools, /"story-assistant":\s*\(\)\s*=>\s*import\("\.\/writer-story-assistant-workspace\.js"\)/);
+  assert.match(model, /STORY_ASSISTANT_MAX_TEXT_LENGTH = 500_000/);
+  assert.match(model, /STORY_ASSISTANT_MAX_NODES = 80/);
+  assert.match(view, /data-writer-tool="story-assistant"/);
+  assert.match(view, /不会创建章节、角色、私人分幕或自动化规则/);
+  assert.match(controller, /beginWriterToolSession\("story-assistant"/);
+  assert.match(controller, /requestFingerprint !== storySourceFingerprint/);
+  assert.match(controller, /writerToolSessionIsCurrent\(session\)/);
+  assert.match(controller, /切勿重复导入/);
+  assert.match(api, /analyzeStoryDraft\(text, \{ worldId = demoContext\.worldId \} = \{\}\)/);
+  assert.match(api, /importStoryDraft\(text, \{ worldId = demoContext\.worldId, idempotencyKey \} = \{\}\)/);
 });
 
 test("collaborative review uses a guarded lazy workspace instead of the global modal", () => {

@@ -1,14 +1,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import test from "node:test";
-import {
-  storyAssistantModalHtml,
-  worldLogModalHtml
-} from "../src/views/writer-modal-templates.js";
+import { worldLogModalHtml } from "../src/views/writer-modal-templates.js";
 
-test("writer modal templates preserve required interaction hooks", () => {
+test("writer modal templates only preserve the short world-log interaction", () => {
   assert.match(worldLogModalHtml(), /data-log-refresh/);
-  assert.match(storyAssistantModalHtml(), /data-assistant-analyze/);
 });
 
 test("migrated Writer tools have no dormant modal templates", async () => {
@@ -19,7 +15,10 @@ test("migrated Writer tools have no dormant modal templates", async () => {
     "data-delivery-run",
     "data-document-parse",
     "data-story-manuscript",
-    "data-import-submit"
+    "data-import-submit",
+    "data-story-draft",
+    "data-assistant-analyze",
+    "data-assistant-import"
   ]) {
     assert.doesNotMatch(source, new RegExp(marker));
   }

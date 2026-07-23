@@ -30,6 +30,7 @@ import {
   createReviewFromWorkspace,
   dismissCollaborationInviteLink,
   importDocumentWorkspace,
+  importStoryAssistantWorkspace,
   inviteCollaboratorFromWorkspace,
   nextExportWorkspaceStep,
   openCollaborationWorkspace,
@@ -41,6 +42,7 @@ import {
   openPlayerPreviewWorkspace,
   openReviewWorkspace,
   openSnapshotWorkspace,
+  openStoryAssistantWorkspace,
   parseDocumentWorkspace,
   previousExportWorkspaceStep,
   previewImportWorkspace,
@@ -55,6 +57,7 @@ import {
   saveCollaboratorRoleFromWorkspace,
   saveManuscriptWorkspace,
   saveSnapshotWorkspace,
+  analyzeStoryAssistantWorkspace,
   setReviewFilter,
   setReviewWorkspaceMode,
   syncManuscriptFromGraphWorkspace,
@@ -64,10 +67,7 @@ import {
 } from "./writer-tool-workspace.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { creatorTerms } from "../../shared/creator-terminology.js";
-import {
-  storyAssistantModalHtml,
-  worldLogModalHtml
-} from "./writer-modal-templates.js";
+import { worldLogModalHtml } from "./writer-modal-templates.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -262,7 +262,7 @@ export function writer(){
  const canPreviewPlayer=["owner","editor","reviewer"].includes(membershipRole);
  const statusName={draft:"草稿",testing:"测试中",published:"已发布"};
  const checks=worldStore.get().cloudCreatorChecks||[];
- const quickActions=canEdit?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="deepseek-pipeline">AI 剧本创作</button><button class="secondary-btn" data-action="story-manuscript">完整剧情</button><button class="secondary-btn" data-action="story-assistant">规则分类器</button><button class="secondary-btn" data-action="creator-import">导入内容</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="primary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`:isReviewer?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="creator-review">打开协作者审稿</button><button class="secondary-btn" data-action="story-manuscript">只读完整母稿</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button></div>`:`<div class="empty-state">当前身份不开放创作稿件预览。</div>`;
+ const quickActions=canEdit?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="deepseek-pipeline">AI 剧本创作</button><button class="secondary-btn" data-action="story-manuscript">完整剧情</button><button class="secondary-btn" data-action="story-assistant">剧情结构提取</button><button class="secondary-btn" data-action="creator-import">导入内容</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="primary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`:isReviewer?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="creator-review">打开协作者审稿</button><button class="secondary-btn" data-action="story-manuscript">只读完整母稿</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button></div>`:`<div class="empty-state">当前身份不开放创作稿件预览。</div>`;
  const archiveMap=archiveMapFromList(worldStore.get().cloudRoleArchives||[]);
  const selectedRoleId=data.roles.some((role)=>role.id===uiStore.get().writerSelectedRoleId)?uiStore.get().writerSelectedRoleId:data.roles[0]?.id||null;
  const selectedRole=data.roles.find((role)=>role.id===selectedRoleId)||null;
@@ -504,13 +504,8 @@ function pipelineStepLabel(step){return PipelineWizard()?.pipelineStepLabel(step
 function pipelinePreviewHtml(session){return PipelineWizard()?.pipelinePreviewHtml(session)||""}
 
 export function openStoryAssistant(){
- modal.className="modal story-assistant-modal";setHtml(modal,storyAssistantModalHtml());
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const text=()=>modal.querySelector("[data-story-draft]").value.trim(),preview=modal.querySelector("[data-assistant-preview]"),commit=modal.querySelector("[data-assistant-import]");
- modal.querySelector("[data-assistant-analyze]").onclick=async()=>{try{const result=await zhimuApi.analyzeStoryDraft(text());setHtml(preview,storyAssistantPreview(result));commit.disabled=!result.nodes.length;showToast(`已识别 ${result.nodes.length} 个剧情节点`)}catch(error){showError(error)}};
- commit.onclick=async()=>{try{commit.disabled=true;const result=await zhimuApi.importStoryDraft(text());closeModal();await loadCloudData();go("studio");showToast(`已生成 ${result.nodes.length} 个节点和 ${result.edges.length} 条连线`)}catch(error){commit.disabled=false;showError(error)}};
+ return openStoryAssistantWorkspace();
 }
-
-export function storyAssistantPreview(result){const typeName={scene:"场景",clue:"线索",investigation_point:"调查点"};return `<section class="assistant-preview"><div class="section-head"><div><h3>分类预览</h3><p>${result.nodes.length} 个节点 · ${result.edges.length} 条建议连线</p></div></div><div class="assistant-node-grid">${result.nodes.map(node=>`<article><span>${typeName[node.type]}</span><b>${escapeHtml(node.name)}</b><p>${escapeHtml(node.text)}</p></article>`).join("")}</div><div class="assistant-suggestions"><b>写作建议</b>${result.suggestions.map(item=>`<p>· ${escapeHtml(item)}</p>`).join("")}</div></section>`}
 
 export function openCreatorPreview(roleId=""){
  return openPlayerPreviewWorkspace(roleId);
@@ -528,5 +523,5 @@ export function createCreatorSnapshot(){return openSnapshotWorkspace()}
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, analyzeStoryAssistantWorkspace, importStoryAssistantWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
 registerView("writer", writerViewApi);

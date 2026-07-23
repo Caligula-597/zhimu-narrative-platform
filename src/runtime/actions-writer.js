@@ -20,6 +20,8 @@ import { callView } from "./view-registry.js";
       case "writer-manuscript-save": callView("writer", "saveManuscriptWorkspace"); return true;
       case "writer-manuscript-from-graph": callView("writer", "syncManuscriptFromGraphWorkspace"); return true;
       case "writer-manuscript-to-graph": callView("writer", "syncManuscriptToGraphWorkspace"); return true;
+      case "writer-story-analyze": callView("writer", "analyzeStoryAssistantWorkspace"); return true;
+      case "writer-story-import": callView("writer", "importStoryAssistantWorkspace"); return true;
       case "writer-document-parse": callView("writer", "parseDocumentWorkspace"); return true;
       case "writer-document-import": callView("writer", "importDocumentWorkspace"); return true;
       case "writer-export-next": callView("writer", "nextExportWorkspaceStep"); return true;
