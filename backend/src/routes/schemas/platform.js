@@ -1,6 +1,7 @@
 import { nonEmptyText, paramsSchema, uuid } from "./primitives.js";
 import { roomIdParams } from "./player.js";
 import { worldIdParams } from "./world.js";
+import { worldSettingsSchema } from "./world-settings.js";
 
 const physicalTokenContentType = {
   type: "string",
@@ -147,7 +148,7 @@ export const bootstrapWorldWizardSchema = {
     properties: {
       name: { type: "string", minLength: 1, maxLength: 120 },
       summary: { type: "string", maxLength: 4000 },
-      settings: { type: "object", additionalProperties: true },
+      settings: worldSettingsSchema,
       chapter: {
         type: "object",
         additionalProperties: false,

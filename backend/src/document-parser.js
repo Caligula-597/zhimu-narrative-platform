@@ -12,6 +12,7 @@ import { analyzeNarrativeStructure, normalizeCreationType } from "./document-str
 
 export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 export const MAX_DOCUMENT_TEXT_CHARACTERS = 2_000_000;
+export const DOCUMENT_JSON_BODY_LIMIT_BYTES = 8 * 1024 * 1024;
 
 const MAX_DOCX_ENTRIES = 2_000;
 const MAX_DOCX_UNCOMPRESSED_BYTES = 64 * 1024 * 1024;

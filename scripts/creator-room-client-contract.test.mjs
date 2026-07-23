@@ -46,3 +46,15 @@ test("creator room callers leave invite-code allocation to the server", () => {
     assert.doesNotMatch(runtime, /createRoom\([^;\n]*inviteCode/);
   }
 });
+
+test("Creator room UI sends the selected Release and restores the action after failure", () => {
+  const mainCreate = section(
+    "src/runtime/auth-world.js",
+    "export async function createParallelRoom",
+    "export async function setRoomPublicListing"
+  );
+  assert.match(mainCreate, /data-room-release/);
+  assert.match(mainCreate, /\{name,publicListing,releaseId\}/);
+  assert.match(mainCreate, /button\.disabled=true/);
+  assert.match(mainCreate, /button\.disabled=false/);
+});

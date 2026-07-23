@@ -10,7 +10,12 @@ import { closeModal } from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
 import { setHtml } from "../../shared/safe-dom.js";
-import { normalizeCreationType } from "../../shared/creator-terminology.js";
+import {
+  legacyWorldModeForNarrativeProfile,
+  narrativeProfileFromSettings,
+  normalizeCreationType,
+  normalizeNarrativeProfile
+} from "../../shared/narrative-profile.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatRelativeTime = F.formatRelativeTime || (() => "");
@@ -61,6 +66,7 @@ import { normalizeCreationType } from "../../shared/creator-terminology.js";
   function commercialProfilePanel(world, canEdit) {
     const settings = world?.settings || {};
     const profile = settings.commercialProfile || {};
+    const narrativeProfile = narrativeProfileFromSettings(settings);
     const disabled = canEdit ? "" : "disabled";
     const selected = (value, expected) => value === expected ? "selected" : "";
     const longFields = new Set(["copyrightSource"]);
@@ -69,10 +75,22 @@ import { normalizeCreationType } from "../../shared/creator-terminology.js";
       <div class="section-head"><div><h4 style="margin:0">创作类型与商业备案资料</h4><p class="muted-note" style="margin:4px 0 0">用于术语切换、交付归档和线下备案准备；不会自动向主管部门提交。</p></div></div>
       <label>创作类型</label>
       <select class="field" id="settings-creation-type" ${disabled}>
-        <option value="murder_mystery" ${selected(normalizeCreationType(settings.creationType), "murder_mystery")}>剧本杀（角色本 / 公共幕 / 线索 / 主持人）</option>
-        <option value="tabletop_rpg" ${selected(normalizeCreationType(settings.creationType), "tabletop_rpg")}>桌面角色扮演（HO / 模组 / KP）</option>
-        <option value="interactive_story" ${selected(normalizeCreationType(settings.creationType), "interactive_story")}>互动叙事（角色 / 章节 / 场景）</option>
+        <option value="murder_mystery" ${selected(narrativeProfile.creationType, "murder_mystery")}>剧本杀（角色本 / 公共幕 / 线索 / 主持人）</option>
+        <option value="tabletop_rpg" ${selected(narrativeProfile.creationType, "tabletop_rpg")}>桌面角色扮演（HO / 模组 / KP）</option>
+        <option value="interactive_story" ${selected(narrativeProfile.creationType, "interactive_story")}>互动叙事（角色 / 章节 / 场景）</option>
       </select>
+      <label>运行形态</label>
+      <select class="field" id="settings-run-format" ${disabled}>
+        <option value="single_session" ${selected(narrativeProfile.runFormat, "single_session")}>单局 / One-shot</option>
+        <option value="campaign" ${selected(narrativeProfile.runFormat, "campaign")}>长线 / 多场次战役</option>
+      </select>
+      <label>角色加入方式</label>
+      <select class="field" id="settings-role-mode" ${disabled}>
+        <option value="fixed" ${selected(narrativeProfile.roleMode, "fixed")}>作者预设固定角色</option>
+        <option value="player_created" ${selected(narrativeProfile.roleMode, "player_created")}>玩家创建，主持审核</option>
+        <option value="mixed" ${selected(narrativeProfile.roleMode, "mixed")}>预设与玩家创建并存</option>
+      </select>
+      <p class="muted-note">这三项共同决定后续角色、发布版本和运行房能力；旧世界的运行模式会自动兼容，不会因保存设置丢失内容。</p>
       ${field("authorName", "作者 / 编剧", "作者实名或笔名")}
       ${field("copyrightSource", "著作权来源", "原创、授权改编或版权方及授权范围")}
       ${field("registrationNumber", "备案编号 / 剧本编号（选填）", "尚未备案可留空")}
@@ -130,6 +148,18 @@ export function settings(){
  const summary=document.getElementById("settings-world-summary")?.value?.trim()||"";
  const recapTruthSummary=document.getElementById("settings-recap-truth")?.value?.trim()||"";
  const creationType=normalizeCreationType(document.getElementById("settings-creation-type")?.value);
+ const studioWorld=studioStore.get().cloudStudio?.world;
+ const listedWorld=(worldStore.get().cloudWorlds||[]).find((world)=>world.id===worldId);
+ const currentSettings=(studioWorld?.id===worldId?studioWorld:listedWorld)?.settings||{};
+ const existingProfile=narrativeProfileFromSettings(currentSettings);
+ const ruleset=creationType===existingProfile.creationType?existingProfile.ruleset:undefined;
+ const narrativeProfile=normalizeNarrativeProfile({
+  ...existingProfile,
+  creationType,
+  runFormat:document.getElementById("settings-run-format")?.value||existingProfile.runFormat,
+  roleMode:document.getElementById("settings-role-mode")?.value||existingProfile.roleMode,
+  ruleset
+ });
  const commercialProfile={};
  document.querySelectorAll("[data-commercial-field]").forEach((input)=>{
   commercialProfile[input.dataset.commercialField]=input.value?.trim?.()||"";
@@ -137,7 +167,13 @@ export function settings(){
  if(!name)return showToast("请填写剧本名称");
  const revision=window.zhimuWorldRevision?.currentRevision?.(worldId);
  try{
-  const nextSettings={recapTruthSummary,creationType,commercialProfile};
+  const nextSettings={
+   recapTruthSummary,
+   creationType:narrativeProfile.creationType,
+   worldMode:legacyWorldModeForNarrativeProfile(narrativeProfile),
+   narrativeProfile,
+   commercialProfile
+  };
   const updated=await zhimuApi.patchWorld({name,summary,settings:nextSettings},worldId,{revision});
   const cloudStudio=studioStore.get().cloudStudio;
   if(cloudStudio?.world?.id===worldId){

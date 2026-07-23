@@ -49,6 +49,9 @@
       () => import("../views/mini-games.js"),
       () => import("./actions-mini-games.js")
     ],
+    rooms: [
+      () => import("../views/rooms.js")
+    ],
     archive: [
       () => import("../views/archive.js"),
       () => import("./actions-archive.js")

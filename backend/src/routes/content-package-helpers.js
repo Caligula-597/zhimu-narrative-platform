@@ -3,6 +3,7 @@ import { throwErr } from "../api-errors.js";
 import { buildWorldArchiveSnapshot, creatorChecks, storageUsage } from "./world-helpers.js";
 import { assertWorldCreateQuota } from "../quota-guards.js";
 import { resolveClueKind } from "../clue-kind.js";
+import { assertContentPackageWithinLimits } from "../content-package-limits.js";
 
 export const PACKAGE_FORMAT = "zhimu-world-package";
 export const PACKAGE_VERSION = 1;
@@ -15,6 +16,7 @@ export function normalizeContentPackagePayload(body) {
   if (!Array.isArray(envelope.roles) || !Array.isArray(envelope.chapters)) {
     throwErr("CONTENT_PACKAGE_STRUCTURE_INVALID");
   }
+  assertContentPackageWithinLimits(envelope);
   return envelope;
 }
 
@@ -190,9 +192,18 @@ function packageReferenceWarnings(payload) {
   }
 
   for (const rule of payload.rules ?? []) {
-    const walk = (value, path = "rule") => {
-      if (Array.isArray(value)) return value.forEach((item, index) => walk(item, `${path}[${index}]`));
-      if (!value || typeof value !== "object") return;
+    const walk = (root, rootPath = "rule") => {
+      const stack = [{ value: root, path: rootPath }];
+      let visited = 0;
+      while (stack.length) {
+        const { value, path } = stack.pop();
+        visited += 1;
+        if (visited > 50_000) throwErr("CONTENT_PACKAGE_TOO_LARGE", "Rule structure is too deeply nested");
+        if (Array.isArray(value)) {
+          value.forEach((item, index) => stack.push({ value: item, path: `${path}[${index}]` }));
+          continue;
+        }
+        if (!value || typeof value !== "object") continue;
       if (value.roleSlotId && !ids.roles.has(value.roleSlotId)) {
         warnings.push({
           level: "error",
@@ -241,7 +252,8 @@ function packageReferenceWarnings(payload) {
           detail: `${path}.chapterId → ${value.chapterId}（${chapterById.get(value.chapterId) ?? "未知"}）`
         });
       }
-      Object.values(value).forEach((item) => walk(item, path));
+        Object.entries(value).forEach(([key, item]) => stack.push({ value: item, path: `${path}.${key}` }));
+      }
     };
     walk(rule.conditions ?? {});
     for (const action of rule.actions ?? []) walk(action, "action");
@@ -599,14 +611,59 @@ export async function importContentPackage(worldId, payload) {
   return transaction(async (client) => importContentPackageData(client, worldId, payload));
 }
 
-export async function createWorldFromContentPackage(actorId, { name, summary = "", data }) {
+export async function createWorldFromContentPackage(actorId, { name, summary = "", requestId = "", data }) {
+  if (requestId) {
+    const existing = await query(
+      `SELECT id, name
+       FROM worlds
+       WHERE owner_user_id = $1
+         AND settings->>'contentPackageCreationRequestId' = $2
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [actorId, requestId]
+    );
+    if (existing.rowCount) {
+      return {
+        world: existing.rows[0],
+        imported: { chapters: 0, roles: 0, sections: 0, scenes: 0, clues: 0, points: 0, edges: 0, rules: 0 },
+        warnings: [],
+        deduplicated: true
+      };
+    }
+  }
   await assertWorldCreateQuota(actorId);
-  const worldName = name?.trim() || data.world?.name?.trim() || "导入的世界";
-  const worldSummary = summary?.trim() || data.world?.summary?.trim() || "";
+  const cleanText = (value) => typeof value === "string" ? value.trim() : "";
+  const worldName = cleanText(name) || cleanText(data.world?.name) || "导入的世界";
+  const worldSummary = cleanText(summary) || cleanText(data.world?.summary);
   return transaction(async (client) => {
+    if (requestId) {
+      await client.query(`SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`, [`content-package:${actorId}:${requestId}`]);
+      const existing = await client.query(
+        `SELECT id, name
+         FROM worlds
+         WHERE owner_user_id = $1
+           AND settings->>'contentPackageCreationRequestId' = $2
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [actorId, requestId]
+      );
+      if (existing.rowCount) {
+        return {
+          world: existing.rows[0],
+          imported: { chapters: 0, roles: 0, sections: 0, scenes: 0, clues: 0, points: 0, edges: 0, rules: 0 },
+          warnings: [],
+          deduplicated: true
+        };
+      }
+    }
+    const sourceSettings = data.world?.settings;
+    const settings = sourceSettings && typeof sourceSettings === "object" && !Array.isArray(sourceSettings)
+      ? { ...sourceSettings }
+      : {};
+    if (requestId) settings.contentPackageCreationRequestId = requestId;
     const created = await client.query(
       `INSERT INTO worlds (owner_user_id, name, summary, settings) VALUES ($1, $2, $3, $4::jsonb) RETURNING id, name`,
-      [actorId, worldName, worldSummary, JSON.stringify(data.world?.settings ?? {})]
+      [actorId, worldName, worldSummary, JSON.stringify(settings)]
     );
     const worldId = created.rows[0].id;
     await client.query(`INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, 'owner')`, [worldId, actorId]);

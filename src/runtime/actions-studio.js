@@ -11,6 +11,9 @@ import { callView } from "./view-registry.js";
       case "studio-add-item": callView("studio", "openStudioItem"); return true;
       case "studio-add-point": callView("studio", "openStudioPoint"); return true;
       case "studio-add-node-menu": callView("studio", "openStudioNodeMenu"); return true;
+      case "studio-create-type": callView("studio", "openStudioCreateEditor", el?.dataset?.nodeType); return true;
+      case "studio-create-close": callView("studio", "closeStudioCreateEditor"); return true;
+      case "studio-create-save": callView("studio", "saveStudioCreateEditor"); return true;
       case "studio-select-node":
         studioStore.set({ studioSelectedNode: { type: el?.dataset?.nodeType, id: el?.dataset?.nodeId } });
         studioStore.set({ studioAnchorEditing: false });

@@ -24,6 +24,8 @@ test("world templates expose three built-in skeletons", () => {
   assert.equal(payload.name, "自定义名");
   assert.ok(payload.roles.length >= 4);
   assert.equal(payload.includeStarterGraph, true);
+  assert.equal(payload.settings.narrativeProfile.creationType, "murder_mystery");
+  assert.equal(payload.settings.narrativeProfile.runFormat, "single_session");
 });
 
 test("GET /api/platform/world-templates lists templates", async (context) => {
@@ -114,6 +116,8 @@ test("POST /api/worlds/from-template/:id applies built-in template", async (cont
   assert.equal(body.templateId, "campaign-lite");
   assert.equal(body.roles.length, 3);
   assert.equal(body.starterGraph, null);
+  assert.equal(body.world.settings.narrativeProfile.creationType, "tabletop_rpg");
+  assert.equal(body.world.settings.narrativeProfile.runFormat, "campaign");
 
   context.after(async () => {
     const worldId = body.world.id;

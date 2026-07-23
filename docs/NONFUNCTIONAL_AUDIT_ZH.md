@@ -31,7 +31,7 @@
 - Writer/Director/Site 等产品代码不再直接写 `innerHTML`；`shared/safe-dom.js` 是唯一带精确预算的安全 sink。官网发布产物包含 CSP、`trusted-types zhimu-html` 与 `require-trusted-types-for 'script'`。
 - `verify:full:3` 对非法、重复或零次数参数直接失败，每次隔离运行记录退出码、信号和耗时；备份恢复与前向迁移演练也生成 JSON，且明确声明未覆盖应用镜像回滚。
 
-当前代码结构由 `npm run check:architecture` 固定门禁：68 个路由模块的路由层直连数据库点为 0，任何回升都会失败。后续数据库审计对象转为 service/repository 内部的往返次数、连接池占用、索引和事务一致性，而不是继续按文件机械拆层。
+当前代码结构由 `npm run check:architecture` 固定门禁：69 个路由模块的路由层直连数据库点为 0，任何回升都会失败。后续数据库审计对象转为 service/repository 内部的往返次数、连接池占用、索引和事务一致性，而不是继续按文件机械拆层。
 
 当前快速证据包括：`audit:periodic` 14/14、SSE 故障矩阵 39/39、Auth 故障矩阵 22/22、Trusted Types 23/23、发布门禁工具 5/5、性能工具 4/4，以及 App/Site/Host/Play 构建和包体预算通过。2026-07-20 已在当前 Supabase 数据库部署 068–090，迁移完整性为 90 个已应用、0 个待应用、校验和一致，应用 readiness 为 `ready=true`；这不替代隔离数据库上的升级与回滚演练。无隔离 `DATABASE_URL` 时，真实 PostgreSQL 写入、会话触碰与 LISTEN 集成断言必须明确标记跳过，不能计作通过。
 

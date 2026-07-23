@@ -31,3 +31,14 @@ test("resolveAllowedCorsOrigins rejects unknown in production without env", () =
     else process.env.MARKETING_SITE_ORIGIN = prevMarketing;
   }
 });
+
+test("wildcard remains visible to production startup validation", () => {
+  const previous = process.env.CORS_ORIGIN;
+  process.env.CORS_ORIGIN = "*";
+  try {
+    assert.equal(resolveAllowedCorsOrigins({}, "production"), true);
+  } finally {
+    if (previous === undefined) delete process.env.CORS_ORIGIN;
+    else process.env.CORS_ORIGIN = previous;
+  }
+});

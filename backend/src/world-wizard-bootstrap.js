@@ -6,6 +6,7 @@ import { resolveClueKind } from "./clue-kind.js";
 import { syncWorldSegmentsFromChapters } from "./world-segments-seed.js";
 import { buildWizardAutomationRules } from "./wizard-automation-templates.js";
 import { generateRoomInviteCode } from "./room-invite-code.js";
+import { normalizeNarrativeSettings } from "../../shared/narrative-profile.js";
 
 function normalizeRoles(roles) {
   if (!Array.isArray(roles) || !roles.length) {
@@ -51,11 +52,11 @@ export async function bootstrapWorldFromWizard(actorId, payload) {
     ? payload.sectionPublicationStatus
     : "testing";
 
-  const mergedSettings = {
+  const mergedSettings = normalizeNarrativeSettings({
     ...settings,
     contentSource: settings.contentSource || "template",
     automationTemplates
-  };
+  });
 
   return transaction(async (client) => {
     const worldResult = await client.query(

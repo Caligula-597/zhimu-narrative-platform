@@ -1,7 +1,24 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { formatErrorBody, httpError, throwErr } from "../src/api-errors.js";
+import { formatErrorBody, httpError, sendErr, throwErr } from "../src/api-errors.js";
+
+function captureReply() {
+  const response = { statusCode: null, body: null };
+  return {
+    response,
+    reply: {
+      code(statusCode) {
+        response.statusCode = statusCode;
+        return this;
+      },
+      send(body) {
+        response.body = body;
+        return body;
+      }
+    }
+  };
+}
 
 test("formatErrorBody includes code and validation details", () => {
   const validationError = Object.assign(new Error("body/title must be string"), {
@@ -42,6 +59,42 @@ test("formatErrorBody preserves registered idempotency conflict codes", () => {
   assert.deepEqual(formatErrorBody(conflict, 409), {
     error: "Idempotency-Key was already used with a different request body",
     code: "IDEMPOTENCY_PAYLOAD_MISMATCH"
+  });
+});
+
+test("sendErr redacts unknown server errors and their details", () => {
+  const { reply, response } = captureReply();
+  sendErr(
+    reply,
+    "23505",
+    "duplicate key value violates unique constraint users_email_key",
+    { sql: "INSERT INTO users" }
+  );
+  assert.deepEqual(response, {
+    statusCode: 500,
+    body: { error: "Internal error", code: "INTERNAL_ERROR" }
+  });
+});
+
+test("sendErr uses registered safe text for known 5xx errors", () => {
+  const { reply, response } = captureReply();
+  sendErr(reply, "UPSTREAM_ERROR", "provider leaked diagnostics", { secret: true });
+  assert.deepEqual(response, {
+    statusCode: 502,
+    body: { error: "Upstream service error", code: "UPSTREAM_ERROR" }
+  });
+});
+
+test("sendErr preserves useful client error messages and details", () => {
+  const { reply, response } = captureReply();
+  sendErr(reply, "BAD_REQUEST", "Archive manifest is malformed", { field: "manifest" });
+  assert.deepEqual(response, {
+    statusCode: 400,
+    body: {
+      error: "Archive manifest is malformed",
+      code: "BAD_REQUEST",
+      details: { field: "manifest" }
+    }
   });
 });
 

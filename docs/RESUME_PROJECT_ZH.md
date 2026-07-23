@@ -18,7 +18,7 @@
 | 层级 | 技术 |
 |------|------|
 | 前端 | Vanilla JS（ES Module）、Vite 8、四端分域；views/runtime/api 拆分与按需加载 |
-| 后端 | Node.js 22、Fastify 5、PostgreSQL（jsonb 规则/快照）、67 个 SQL 迁移 |
+| 后端 | Node.js 24.13、Fastify 5、PostgreSQL（jsonb 规则/快照）、67 个 SQL 迁移 |
 | 存储 | Cloudflare R2（S3 兼容）、附件配额与回收站 |
 | AI | DeepSeek API — 分层 Prompt（规格→逐章总剧情→角色本→结构抽取→编排导入） |
 | 实时 | SSE + journal/outbox + PostgreSQL NOTIFY；replay/受众/游标/重连门禁；LiveKit 语音房 |
@@ -85,7 +85,7 @@
 | 领域 Schema 模块 | **14** |
 | SQL 迁移 | **67** |
 | 定期快审 | **14/14**（2026-07-16） |
-| 专项矩阵 | SSE 39 · Auth 22 · Trusted Types 23 · 发布工具 5 |
+| 专项矩阵 | SSE 43 · Auth 22 · Trusted Types 23 · 发布工具 8 |
 | 发布候选 | `Release Acceptance` 已建立；2026-07-16 本轮在第 1/3 轮隔离测试失败，后续证据未生成 |
 
 ---

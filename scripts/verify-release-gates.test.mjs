@@ -22,10 +22,40 @@ test("verify repeat options reject counts that could false-pass without running"
   assert.throws(() => parseRepeatOptions(["--coun=3"]), /unknown argument/);
 });
 
-test("release acceptance rejects runtimes outside the pinned Node 22 line", () => {
-  assert.doesNotThrow(() => assertSupportedNodeRuntime("22.23.1"));
-  assert.throws(() => assertSupportedNodeRuntime("24.13.0"), /requires Node\.js 22\.x/);
-  assert.throws(() => assertSupportedNodeRuntime("invalid"), /requires Node\.js 22\.x/);
+test("release acceptance rejects runtimes outside the pinned Node 24.13 line", () => {
+  assert.doesNotThrow(() => assertSupportedNodeRuntime("24.13.0"));
+  assert.doesNotThrow(() => assertSupportedNodeRuntime("24.13.9"));
+  assert.throws(() => assertSupportedNodeRuntime("22.23.1"), /requires Node\.js 24\.13\.x/);
+  assert.throws(() => assertSupportedNodeRuntime("24.14.0"), /requires Node\.js 24\.13\.x/);
+  assert.throws(() => assertSupportedNodeRuntime("invalid"), /requires Node\.js 24\.13\.x/);
+});
+
+test("package, developer, CI and container runtime pins stay aligned", () => {
+  const root = process.cwd();
+  const expectedVersion = "24.13.0";
+  const expectedEngine = ">=24.13.0 <24.14.0";
+  assert.equal(readFileSync(path.join(root, ".nvmrc"), "utf8").trim(), expectedVersion);
+  assert.equal(readFileSync(path.join(root, ".node-version"), "utf8").trim(), expectedVersion);
+  for (const workspace of [".", "backend", "host", "play", "site"]) {
+    const packageJson = JSON.parse(readFileSync(path.join(root, workspace, "package.json"), "utf8"));
+    assert.equal(packageJson.engines?.node, expectedEngine, `${workspace} engines.node drifted`);
+  }
+  for (const dockerfile of ["backend/Dockerfile", "deploy/Dockerfile.fullstack"]) {
+    assert.match(readFileSync(path.join(root, dockerfile), "utf8"), /FROM node:24\.13\.0-alpine/);
+  }
+  for (const workflow of [
+    "ci.yml",
+    "guardian-poll.yml",
+    "pages-deploy.yml",
+    "periodic-audit.yml",
+    "railway-deploy.yml",
+    "release-acceptance.yml"
+  ]) {
+    const source = readFileSync(path.join(root, ".github", "workflows", workflow), "utf8");
+    for (const match of source.matchAll(/node-version:\s*["']?([^\s"']+)/g)) {
+      assert.equal(match[1], expectedVersion, `${workflow} node-version drifted`);
+    }
+  }
 });
 
 test("Playwright migrates a fresh database before starting the API", () => {

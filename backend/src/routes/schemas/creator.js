@@ -11,3 +11,4 @@ export * from "./creator-studio.js";
 export * from "./studio-scene-clue.js";
 export * from "./studio-item.js";
 export * from "./studio-version.js";
+export * from "./world-release.js";

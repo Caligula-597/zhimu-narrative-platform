@@ -95,7 +95,7 @@ npm run test:e2e
 
 ## 仍需关注的架构问题
 
-1. 后端 68 个路由模块仍有 143 个路由层直接数据库调用点，受递减门禁约束；优先继续迁移 checkpoint、voice、player access/progress 与 host content action。
+1. 后端 69 个路由模块的直接数据库调用点已经归零并由门禁禁止回升；下一阶段审计 service/repository 内部查询往返、索引、连接池占用和事务边界。
 2. Creator/Host/Player 已统一认证、错误、游标和 SSE lifecycle，但 UI 组件与业务视图仍有合理重复，应按复用收益继续收敛。
 3. 本地端口较多，`4173` 最容易与 Vite dev / dist server 冲突；使用 `npm run port:doctor` 排查。
 4. 真正未完成的是运行证据：staging 真实 Bearer P95/P99、应用镜像回滚、R2 恢复和实际 RPO/RTO。

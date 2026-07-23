@@ -36,6 +36,7 @@ import {
   createItemSchema,
   createRoleSchema,
   createRoomSchema,
+  roomContentBindingSchema,
   createSectionSchema,
   patchItemSchema,
   updateSectionSchema,
@@ -75,6 +76,10 @@ import {
 import { playerProgressAssessmentSchema } from "../src/player-progress-assessment.js";
 import { PLATFORM_EVENT_SCHEMAS } from "../src/platform-event-schemas.js";
 import { ROOM_EVENT_SCHEMAS } from "../src/room-event-schemas.js";
+import {
+  createWorldReleaseSchema,
+  worldReleaseSummarySchema
+} from "../src/routes/schemas/world-release.js";
 
 function eventContractName(type) {
   return `${type.split(/[^a-zA-Z0-9]+/).map((part) => part[0].toUpperCase() + part.slice(1)).join("")}Data`;
@@ -116,7 +121,10 @@ const contracts = [
   ["CreateItemBody", createItemSchema.body],
   ["PatchItemBody", patchItemSchema.body],
   ["CreateContentVersionBody", createContentVersionSchema.body],
+  ["CreateWorldReleaseBody", createWorldReleaseSchema.body],
+  ["WorldReleaseSummary", worldReleaseSummarySchema],
   ["CreateRoomBody", createRoomSchema.body],
+  ["RoomContentBinding", roomContentBindingSchema],
   ["CreateRecapBody", createRecapSchema.body],
   ["CreateTruthClaimBody", createTruthClaimSchema.body],
   ["PatchTruthClaimBody", patchTruthClaimSchema.body],

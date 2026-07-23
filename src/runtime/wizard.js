@@ -9,6 +9,7 @@ import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
 import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
+import { normalizeNarrativeSettings } from "../../shared/narrative-profile.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatBytes = F.formatBytes || (() => "");
@@ -224,7 +225,7 @@ export async function finishWizard(){
   const payload={
    name:d.worldName,
    summary:d.summary,
-   settings:{worldMode:d.worldMode,contentSource:d.contentSource,automationTemplates:d.automationTemplates},
+   settings:normalizeNarrativeSettings({worldMode:d.worldMode,contentSource:d.contentSource,automationTemplates:d.automationTemplates}),
    chapter:{title:content.chapterTitle,summary:d.summary},
    sectionDefaults:{title:content.sectionTitle,body:content.sectionBody},
    roles,
@@ -240,7 +241,7 @@ export async function finishWizard(){
    rulesCreated=result.rulesCreated||0;
    inviteCode=result.inviteCode||room?.invite_code||"";
   }else{
-   world=await zhimuApi.createWorld({name:d.worldName,summary:d.summary,settings:{worldMode:d.worldMode,contentSource:d.contentSource,automationTemplates:d.automationTemplates}});
+   world=await zhimuApi.createWorld({name:d.worldName,summary:d.summary,settings:normalizeNarrativeSettings({worldMode:d.worldMode,contentSource:d.contentSource,automationTemplates:d.automationTemplates})});
    zhimuApi.selectWorld(world.id);
    const chapter=await zhimuApi.createChapter(world.id,{title:content.chapterTitle,summary:d.summary,sequence:1});
    const createdRoles=[];

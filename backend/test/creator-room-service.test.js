@@ -12,12 +12,17 @@ function uniqueViolation(constraint) {
   return Object.assign(new Error(`duplicate ${constraint}`), { code: "23505", constraint });
 }
 
-function roomTransactionRunner({ failInviteCode }) {
+function roomTransactionRunner({ failInviteCode, releaseFound = true }) {
   return async (work) => work({
     async query(sql, params = []) {
       if (sql.includes("set_config")) return { rows: [{}], rowCount: 1 };
       if (sql.includes("world_member.role")) {
         return { rows: [{ role: "owner" }], rowCount: 1 };
+      }
+      if (sql.includes("FROM world_releases release")) {
+        return releaseFound
+          ? { rows: [{ id: params[1], release_number: 2 }], rowCount: 1 }
+          : { rows: [], rowCount: 0 };
       }
       if (sql.includes("INSERT INTO rooms")) {
         if (params[3] === failInviteCode) throw uniqueViolation("rooms_invite_code_key");
@@ -30,7 +35,12 @@ function roomTransactionRunner({ failInviteCode }) {
             invite_code: params[3],
             status: "testing",
             settings: {},
-            public_listing: params[4]
+            public_listing: params[4],
+            release_id: params[5] ?? null,
+            current_content_revision: 8,
+            release_number: params[5] ? 2 : null,
+            release_label: params[5] ? "内测二版" : null,
+            release_source_revision: params[5] ? 7 : null
           }],
           rowCount: 1
         };
@@ -59,6 +69,42 @@ test("room creation retries an invite-code collision in a fresh transaction", as
   assert.equal(room.invite_code, "ROOM-UNIQUE");
   assert.equal(room.name, "retry room");
   assert.equal(room.public_listing, true);
+});
+
+test("room creation validates and projects the selected Release without claiming frozen runtime", async () => {
+  const releaseId = "11111111-2222-4333-8444-555555550088";
+  const room = await addCreatorRoom({
+    request: { headers: {} },
+    actorId,
+    worldId,
+    body: { name: "release room", releaseId },
+    inviteCodeFactory: () => "ROOM-RELEASE",
+    transactionRunner: roomTransactionRunner({})
+  });
+  assert.equal(room.contentBinding.mode, "release");
+  assert.equal(room.contentBinding.release.id, releaseId);
+  assert.equal(room.contentBinding.release.releaseNumber, 2);
+  assert.equal(room.contentBinding.runtimeSource, "live_draft");
+  assert.equal(room.contentBinding.isFrozen, false);
+  assert.equal(room.contentBinding.hasNewerDraft, true);
+  assert.equal("release_id" in room, false);
+});
+
+test("room creation rejects a Release from another world or a missing Release", async () => {
+  await assert.rejects(
+    addCreatorRoom({
+      request: { headers: {} },
+      actorId,
+      worldId,
+      body: {
+        name: "invalid release room",
+        releaseId: "11111111-2222-4333-8444-555555550077"
+      },
+      inviteCodeFactory: () => "ROOM-INVALID-RELEASE",
+      transactionRunner: roomTransactionRunner({ releaseFound: false })
+    }),
+    (error) => error.code === "WORLD_RELEASE_NOT_FOUND" && error.statusCode === 404
+  );
 });
 
 test("invite-code exhaustion and database contention return typed errors", async () => {

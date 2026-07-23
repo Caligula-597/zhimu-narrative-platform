@@ -73,7 +73,7 @@ host/ 主持端
 
 Creator、Player、Host、Site 均使用 Vite 8。Creator/Host/Player 已共用 `shared/api-client.js`、session/auth、错误映射、SSE client/lifecycle、游标、toast、安全 DOM、trace 和 web-vitals；认证、401、断线恢复不再维护三份。业务视图继续按角色独立，UI 只在复用收益明确时抽取。
 
-已完成的大入口收敛：`world-helpers.js` 为 6 行兼容 barrel，`player-routes.js` 为 9 行注册器，原 2200+ 行 schema 已拆为 14 个领域文件，`play/src/main.js` 为 412 行启动编排入口。当前结构债务不是“大文件尚未拆”，而是 68 个路由模块仍有 143 个路由层直接数据库调用点；`npm run check:architecture` 作为单调递减门禁。
+已完成的大入口收敛：`world-helpers.js` 为 6 行兼容 barrel，`player-routes.js` 为 9 行注册器，原 2200+ 行 schema 已拆为 14 个领域文件，`play/src/main.js` 为 412 行启动编排入口。当前 69 个路由模块的直接数据库调用点已经归零，并由 `npm run check:architecture` 固定为不可回升门禁；后续结构审计转向 service/repository 内部查询往返、事务边界和跨领域依赖。
 
 ## 5. 生产可信七项
 
@@ -84,7 +84,7 @@ OPS 页面与 `scripts/check-production-ready.mjs` 以 `productionTrust` 为准�
 3. 上传 AV：`UPLOAD_SCAN_MODE=strict` 且 webhook 或 ClamAV 已配置
 4. OpenTelemetry SDK 初始化成功并导出 OTLP HTTP
 5. `ALERT_WEBHOOK_URL` 已配置，可通过 `/api/ops/alerts/test` 探测
-6. API rate limits 全部大于 0
+6. API rate limits 全部大于 0，且代理层数与单副本/边缘限流拓扑已经验证
 7. `OPS_API_TOKEN` 已配置
 
 Railway env 同步脚本会在缺关键生产配置时失败，不再生成弱生产配置。

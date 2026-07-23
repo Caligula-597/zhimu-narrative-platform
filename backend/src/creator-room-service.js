@@ -13,6 +13,8 @@ import {
   updateCreatorRoomListing
 } from "./repositories/creator-room-repository.js";
 import { generateRoomInviteCode } from "./room-invite-code.js";
+import { withRoomContentBinding } from "./room-content-binding.js";
+import { lockWorldReleaseForRoom } from "./repositories/world-release-repository.js";
 
 const CREATOR_ROOM_ROLES = new Set(["owner", "editor", "host"]);
 const CREATOR_ROOM_EDITOR_ROLES = new Set(["owner", "editor"]);
@@ -20,9 +22,9 @@ const INVITE_CODE_CONSTRAINT = "rooms_invite_code_key";
 const CREATION_IDEMPOTENCY_CONSTRAINT = "idx_rooms_creation_idempotency";
 const DEFAULT_INVITE_ATTEMPTS = 5;
 
-function normalizedCreateHash({ worldId, actorId, name, publicListing }) {
+function normalizedCreateHash({ worldId, actorId, name, publicListing, releaseId }) {
   return createHash("sha256")
-    .update(JSON.stringify([worldId, actorId, name, publicListing]))
+    .update(JSON.stringify([worldId, actorId, name, publicListing, releaseId ?? null]))
     .digest("hex");
 }
 
@@ -66,7 +68,7 @@ async function replayCreatorRoom({
     );
   }
   const { creation_request_hash: _requestHash, ...response } = room;
-  return response;
+  return withRoomContentBinding(response);
 }
 
 export async function addCreatorRoom({
@@ -81,9 +83,10 @@ export async function addCreatorRoom({
   const name = String(body?.name ?? "").trim();
   if (!name) throwErr("NAME_EMPTY");
   const publicListing = Boolean(body?.publicListing);
+  const releaseId = body?.releaseId || null;
   const idempotencyKey = readIdempotencyKey(request);
   const requestHash = idempotencyKey
-    ? normalizedCreateHash({ worldId, actorId, name, publicListing })
+    ? normalizedCreateHash({ worldId, actorId, name, publicListing, releaseId })
     : null;
   const attempts = Math.max(1, Math.min(Number(maxInviteAttempts) || DEFAULT_INVITE_ATTEMPTS, 10));
 
@@ -94,15 +97,21 @@ export async function addCreatorRoom({
         await configureCreatorRoomTransaction(client);
         const role = await lockCreatorRoomActor(client, { worldId, actorId });
         assertCreatorRoomRole(role);
-        return insertCreatorRoomGraph(client, {
+        if (releaseId) {
+          const release = await lockWorldReleaseForRoom(client, { worldId, releaseId });
+          if (!release) throwErr("WORLD_RELEASE_NOT_FOUND");
+        }
+        const room = await insertCreatorRoomGraph(client, {
           worldId,
           actorId,
           name,
           inviteCode,
           publicListing,
+          releaseId,
           idempotencyKey,
           requestHash
         });
+        return withRoomContentBinding(room);
       });
     } catch (error) {
       if (idempotencyKey && isConstraint(error, CREATION_IDEMPOTENCY_CONSTRAINT)) {
@@ -133,7 +142,7 @@ export async function addCreatorRoom({
 export async function listCreatorRooms({ actorId, worldId }) {
   const result = await listCreatorRoomsForActor({ actorId, worldId });
   assertCreatorRoomRole(result.role);
-  return result.rooms;
+  return result.rooms.map((room) => withRoomContentBinding(room));
 }
 
 export async function reviseCreatorRoomListing({ actorId, worldId, roomId, publicListing }) {

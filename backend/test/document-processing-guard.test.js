@@ -17,3 +17,21 @@ test("document processing guard bounds active and queued work", async () => {
   assert.equal(await second, "second");
   assert.equal(guard.stats().active, 0);
 });
+
+test("processing guard can expose a domain-specific busy error", async () => {
+  const guard = createDocumentProcessingGuard({
+    maxConcurrent: 1,
+    maxQueued: 1,
+    queueTimeoutMs: 5_000,
+    busyErrorCode: "SCRIPT_BUNDLE_PROCESSING_BUSY"
+  });
+  let releaseFirst;
+  const first = guard.run(() => new Promise((resolve) => { releaseFirst = resolve; }));
+  const second = guard.run(() => "second");
+  await assert.rejects(
+    guard.run(() => "third"),
+    (error) => error.code === "SCRIPT_BUNDLE_PROCESSING_BUSY" && error.statusCode === 503
+  );
+  releaseFirst("first");
+  await Promise.all([first, second]);
+});

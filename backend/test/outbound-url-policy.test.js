@@ -3,11 +3,25 @@ import test from "node:test";
 import {
   assertSafeOutboundHttpsUrl,
   isPrivateNetworkAddress,
-  parseSafeOutboundHttpsUrl
+  parseSafeOutboundHttpsUrl,
+  resolveSafeOutboundHttpsTarget
 } from "../src/outbound-url-policy.js";
+import { createPinnedLookup } from "../src/pinned-outbound-fetch.js";
 
 test("private and special-use network addresses are recognized", () => {
-  for (const address of ["127.0.0.1", "10.0.0.1", "169.254.169.254", "172.16.1.1", "192.168.1.1", "::1", "fd00::1", "fe80::1"]) {
+  for (const address of [
+    "127.0.0.1",
+    "10.0.0.1",
+    "169.254.169.254",
+    "172.16.1.1",
+    "192.168.1.1",
+    "::1",
+    "fd00::1",
+    "fe80::1",
+    "fec0::1",
+    "::ffff:7f00:1",
+    "2002:7f00:1::"
+  ]) {
     assert.equal(isPrivateNetworkAddress(address), true, address);
   }
   assert.equal(isPrivateNetworkAddress("8.8.8.8"), false);
@@ -39,4 +53,44 @@ test("DNS resolution blocks hostnames that resolve to private networks", async (
     resolver: async () => [{ address: "8.8.8.8", family: 4 }]
   });
   assert.equal(parsed.hostname, "llm.example.com");
+});
+
+test("safe outbound target retains only the validated DNS answers", async () => {
+  const target = await resolveSafeOutboundHttpsTarget("https://llm.example.com/v1", {
+    resolver: async () => [
+      { address: "8.8.8.8", family: 4 },
+      { address: "2606:4700:4700::1111", family: 6 }
+    ]
+  });
+  assert.deepEqual(target.addresses, [
+    { address: "8.8.8.8", family: 4 },
+    { address: "2606:4700:4700::1111", family: 6 }
+  ]);
+});
+
+test("public IPv6 literals bypass DNS while mapped private literals are blocked", async () => {
+  let resolverCalls = 0;
+  const target = await resolveSafeOutboundHttpsTarget("https://[2606:4700:4700::1111]/v1", {
+    resolver: async () => {
+      resolverCalls += 1;
+      return [];
+    }
+  });
+  assert.equal(resolverCalls, 0);
+  assert.deepEqual(target.addresses, [{ address: "2606:4700:4700::1111", family: 6 }]);
+  await assert.rejects(
+    resolveSafeOutboundHttpsTarget("https://[::ffff:7f00:1]/v1"),
+    (error) => error?.code === "LLM_BASE_URL_UNSAFE"
+  );
+});
+
+test("pinned lookup never performs a second DNS resolution", async () => {
+  const lookup = createPinnedLookup([{ address: "8.8.8.8", family: 4 }]);
+  const selected = await new Promise((resolve, reject) => {
+    lookup("llm.example.com", {}, (error, address, family) => {
+      if (error) reject(error);
+      else resolve({ address, family });
+    });
+  });
+  assert.deepEqual(selected, { address: "8.8.8.8", family: 4 });
 });

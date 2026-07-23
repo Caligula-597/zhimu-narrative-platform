@@ -10,6 +10,7 @@ e2e
 playwright-report
 test-results
 artifacts
+examples/pending-review
 .env
 .env.*
 !.env.example

@@ -27,8 +27,8 @@
 | 登录状态 | 多标签同步、并发 401、旧请求覆盖新登录、Cookie/Bearer 恢复和凭证尝试失败专项门禁已落地 |
 | HTML 安全 | 产品代码原生 `innerHTML` 为 0；唯一写入点是 `shared/safe-dom.js`；App 与官网均有 CSP/Trusted Types 门禁 |
 | 数据库安全 | 测试写入与破坏性演练分别受独立开关保护，生产形态/未知远程库默认拒绝；Supabase 只读核验为 67 已应用、0 待应用 |
-| 快速验收 | `npm run audit:periodic` 当前 14/14；SSE 39/39、Auth 22/22、Trusted Types 23/23、发布门禁工具 **7/7**（含 Node 22 与 Playwright 迁移断言） |
-| 架构债务 | 68 个路由模块、143 个路由层直接数据库调用点；递减门禁禁止回升 |
+| 快速验收 | `npm run audit:periodic` 当前 14/14；SSE 43/43、Auth 22/22、Trusted Types 23/23、发布门禁工具 **8/8**（含 Node 24.13 与 Playwright 迁移断言） |
+| 架构债务 | 69 个路由模块、路由层直接数据库调用点为 0；固定门禁禁止回升 |
 | 长验收（官方 CI） | 历史运行 `29477387204`（`c72209b`）失败：隔离测试第 1/3 轮 8 fail；**不能**用本地结果替代 Ubuntu + PG17 工件 |
 | 本地恢复门禁 | 2026-07-17 `db:verify-rollback` **通过**（Docker PG 客户端 + 本地 Postgres 17，`artifacts/recovery/local-release-rollback.json`） |
 
@@ -67,7 +67,7 @@ npm run test:release-gates
 
 | 项 | 结果 |
 |---|---|
-| Node 22 锁定 | 根与各 workspace `engines` + `.nvmrc` / `.node-version`；`verify:full:3` 拒绝 Node 24 |
+| Node 24.13 锁定 | 根与各 workspace `engines` + `.nvmrc` / `.node-version`、CI 与 Docker 镜像保持一致；`verify:full:3` 拒绝其他运行时基线 |
 | Playwright | 启动 API 前自动 `db:migrate` |
 | Host / E2E | 「玩家实时动态」空态保留卡片；创作者角色私档 E2E 放宽 fixture |
 | 本地恢复门禁 | `backup-restore` + `forward-migration` 两步均 passed（约 407s，Docker `postgres:17-alpine` 作 psql/pg_dump 客户端） |
@@ -78,7 +78,7 @@ npm run test:release-gates
 1. GitHub `Release Acceptance` 官方工件仍缺（账单/额度恢复后必须在 Ubuntu + PostgreSQL 17 上重跑，不能用本地 Windows 结果代替）。
 2. staging 真实 Bearer、多玩家、同区域数据库的 Player P95/P99 证据尚未完成；本地三用户 C20 最好 P95 约 596ms，仍超 500ms 目标。
 3. 应用镜像回滚、R2 对象恢复和实际 RPO/RTO 仍需要平台级演练；数据库脚本不能替代这些证据。
-4. 143 个路由层数据库调用点仍需按 checkpoint、voice、player access/progress、host content action 的顺序递减。
+4. 路由层数据库调用迁移已经完成；下一阶段按调用频率审计 service/repository 查询往返、索引和事务锁范围。
 5. 官网 pilot 案例、订单/开通/发票、SLA 和客户成功流程仍是商业试点短板。
 6. 官网公开 bootstrap/申请请求仍是独立公共 transport，尚未纳入三端认证 transport；应继续保持超时和 CSP 边界审计。
 
@@ -87,4 +87,4 @@ npm run test:release-gates
 1. 账单恢复后重跑 GitHub `Release Acceptance`，取得隔离 DB ×3、E2E、localhost 性能与恢复工件。
 2. 在 staging 用多个真实账号跑 20/50/100 并发 Player P95/P99（区分首屏 core / 完整聚合 / 冷热缓存 / 连接池 / SSE 在线）。
 3. 完成部署平台镜像回滚与 R2 恢复抽样，记录实际 RPO/RTO。
-4. 继续递减后端直接数据库调用点，并用真实 pilot 补官网信任与商业交付证据。
+4. 持续优化领域服务内部查询和事务，并用真实 pilot 补官网信任与商业交付证据。

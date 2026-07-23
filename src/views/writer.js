@@ -14,20 +14,41 @@ import { normalizeError } from "../components/status-ui.js";
 import { handleApiErrorToast } from "../utils/user-messages.js";
 import { renderRoleArchiveFields, archiveMapFromList } from "./role-archive-panel.js";
 import { writerSectionEditorHtml } from "./writer-section-editor.js";
+import {
+  bindWriterMetadataEditor,
+  closeWriterMetadataEditor,
+  deleteWriterRoleEditor,
+  openWriterChapterEditor,
+  openWriterRoleEditor,
+  saveWriterMetadataEditor,
+  writerMetadataWorkspaceHtml
+} from "./writer-metadata-editor.js";
+import {
+  bindWriterToolWorkspace,
+  closeWriterToolWorkspace,
+  importDocumentWorkspace,
+  nextExportWorkspaceStep,
+  openDocumentWorkspace,
+  openExportWorkspace,
+  openImpactWorkspace,
+  openImportWorkspace,
+  openManuscriptWorkspace,
+  parseDocumentWorkspace,
+  previousExportWorkspaceStep,
+  previewImportWorkspace,
+  runExportWorkspace,
+  runImportWorkspace,
+  saveManuscriptWorkspace,
+  syncManuscriptFromGraphWorkspace,
+  syncManuscriptToGraphWorkspace,
+  writerToolWorkspaceHtml
+} from "./writer-tool-workspace.js";
 import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
-import { evaluatePublishImpact } from "../../shared/publish-impact-preview.js";
-import { creatorTerms, normalizeCreationType } from "../../shared/creator-terminology.js";
+import { creatorTerms } from "../../shared/creator-terminology.js";
 import {
   creatorPreviewModalHtml as renderCreatorPreviewModalHtml,
   creatorPreviewBodyHtml as renderCreatorPreviewBodyHtml,
-  publishImpactModalHtml as renderPublishImpactModalHtml,
-  creatorImportModalHtml as renderCreatorImportModalHtml,
-  deliveryExportModalHtml,
-  documentParserModalHtml as renderDocumentParserModalHtml,
-  documentPreviewHtml as renderDocumentPreviewHtml,
-  plainTextImportPreviewHtml,
   storyAssistantModalHtml,
-  storyManuscriptModalHtml as renderStoryManuscriptModalHtml,
   collaborationModalHtml as renderCollaborationModalHtml,
   worldLogModalHtml
 } from "./writer-modal-templates.js";
@@ -35,31 +56,14 @@ import {
 // Fragment-taking template boundaries are centralized here so raw application
 // strings cannot call the lower-level template contract directly.
 const creatorPreviewModalHtml = (controlsHtml) => renderCreatorPreviewModalHtml(htmlFragment(controlsHtml));
-const publishImpactModalHtml = (controlsHtml) => renderPublishImpactModalHtml(htmlFragment(controlsHtml));
-const documentParserModalHtml = (roleOptionsHtml) => renderDocumentParserModalHtml(htmlFragment(roleOptionsHtml));
-const storyManuscriptModalHtml = ({ bodyHtml, statusHtml, readOnly = false }) => renderStoryManuscriptModalHtml({
-  bodyHtml: htmlFragment(bodyHtml),
-  statusHtml: htmlFragment(statusHtml),
-  readOnly
-});
 const collaborationModalHtml = ({ memberRowsHtml, pendingRowsHtml }) => renderCollaborationModalHtml({
   memberRowsHtml: htmlFragment(memberRowsHtml),
   pendingRowsHtml: htmlFragment(pendingRowsHtml)
-});
-const documentPreviewHtml = ({ filenameHtml, summaryHtml, extraHtml }) => renderDocumentPreviewHtml({
-  filenameHtml: htmlFragment(filenameHtml),
-  summaryHtml: htmlFragment(summaryHtml),
-  extraHtml: htmlFragment(extraHtml)
 });
 const creatorPreviewBodyHtml = ({ roleNameHtml, privateProfileHtml, sectionRowsHtml }) => renderCreatorPreviewBodyHtml({
   roleNameHtml: htmlFragment(roleNameHtml),
   privateProfileHtml: htmlFragment(privateProfileHtml),
   sectionRowsHtml: htmlFragment(sectionRowsHtml)
-});
-const creatorImportModalHtml = ({ emptyRoleHintHtml, newWorldFieldsHtml, roleSelectHtml }) => renderCreatorImportModalHtml({
-  emptyRoleHintHtml: htmlFragment(emptyRoleHintHtml),
-  newWorldFieldsHtml: htmlFragment(newWorldFieldsHtml),
-  roleSelectHtml: htmlFragment(roleSelectHtml)
 });
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
@@ -243,6 +247,10 @@ export function writer(){
  if(!data)return U.creatorWorkspaceEmpty?.({title:"剧本杀创作中心",kicker:"SCRIPTED MYSTERY CREATOR",intro:"为每位玩家编写私人分幕，并控制公共章节的发布节奏。尚未选择剧本时，可先浏览公开库或创建新世界。",guideTitle:"开始创作",guideItems:[{label:"角色稿",title:"私人分幕正文",text:"每位玩家只看到自己的章节与秘密。",bullets:["按角色席位管理分幕","支持 Markdown","草稿 / 测试中 / 已发布"]},{label:"章节",title:"公共章节",text:"控制玩家何时能看到下一章信息。",bullets:["主持人确认或自动解锁","与规则引擎联动"]},{label:"工具",title:"导入导出与 AI",text:"备份、迁移与辅助生成剧情结构。",bullets:["内容包导入导出","AI 剧本创作向导"]}]})||`<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
  const editorContext=activeWriterEditorContext();
  if(editorContext&&U.canEditWorldContent?.(data.world))return writerSectionEditorHtml({data:editorContext.data,role:editorContext.role,section:editorContext.section,draft:editorContext.session.draft,saveState:editorContext.session.saveState});
+ const metadataWorkspace=writerMetadataWorkspaceHtml();
+ if(metadataWorkspace)return metadataWorkspace;
+ const toolWorkspace=writerToolWorkspaceHtml(data);
+ if(toolWorkspace)return toolWorkspace;
  const terms=creatorTerms(data.world?.settings?.creationType);
  const membershipRole=data.world?.membership_role;
  const canEdit=Boolean(U.canEditWorldContent?.(data.world));
@@ -414,14 +422,11 @@ export function selectWriterRole(roleId){
 }
 
 export function openCreatorRole(roleId=""){
- const data=studioStore.get().cloudStudio,role=data.roles.find(item=>item.id===roleId);
- studioModal(role?"编辑角色基础信息":"新增角色",studioField("角色名称","name","input",role?.name||"")+studioField("玩家可见的公开身份","publicProfile","textarea",role?.public_profile||"")+studioField("进入游戏后仅该玩家可见的角色秘密","privateProfile","textarea",role?.private_profile||"")+studioField("席位顺序","sequence","input",String(role?.sequence||data.roles.length+1)),role?"保存角色修改":"写入云端",async()=>{const saveButton=modal.querySelector("[data-studio-submit]");if(saveButton.disabled)return;saveButton.disabled=true;try{const values=studioValues(),payload={name:values.name,publicProfile:values.publicProfile,privateProfile:values.privateProfile,sequence:Number(values.sequence)||data.roles.length+1};const saved=role?await zhimuApi.updateRole(role.id,payload):await zhimuApi.createRole(zhimuApi.context.worldId,payload);uiStore.set({writerSelectedRoleId:saved?.id||role?.id||uiStore.get().writerSelectedRoleId});closeModal();await loadCloudData();showToast("角色基础信息已保存")}catch(error){saveButton.disabled=false;showError(error)}});
- if(role){const actions=modal.querySelector(".modal-actions"),button=document.createElement("button");button.className="danger-btn";button.dataset.deleteRole="";button.textContent="删除角色";actions.prepend(button);button.onclick=()=>{if(data.roles.length<=1)return showToast("至少需要保留一个角色席位");const sectionCount=data.sections.filter((section)=>section.role_slot_id===role.id).length;const fallbackRoleId=data.roles.find((item)=>item.id!==role.id)?.id||null;studioModal("确认删除角色",`<p>将永久删除「${escapeHtml(role.name)}」及其 ${sectionCount} 段私人分幕。</p><p class="muted-note">关联的角色档案和关系也会失效。此操作不可撤销，建议先导出备份。</p>`,"确认删除",async()=>{const confirmButton=modal.querySelector("[data-studio-submit]");if(confirmButton.disabled)return;confirmButton.disabled=true;try{await zhimuApi.deleteRole(role.id);uiStore.set({writerSelectedRoleId:fallbackRoleId});closeModal();await loadCloudData();showToast("角色及其私人正文已删除")}catch(error){confirmButton.disabled=false;showError(error)}})}};
+ openWriterRoleEditor(roleId);
 }
 
 export function openCreatorChapter(chapterId){
- const chapter=studioStore.get().cloudStudio.chapters.find(item=>item.id===chapterId);
- studioModal("章节发布控制",studioField("章节名称","title","input",chapter.title)+studioField("章节摘要","summary","textarea",chapter.summary||"")+studioSelect("发布阶段","publicationStatus",[{id:"draft",name:"草稿 · 不对玩家开放"},{id:"testing",name:"测试中 · 用于测试房"},{id:"published",name:"已发布 · 可进入正式房"}],chapter.publication_status||"draft")+studioSelect("解锁方式","unlockMode",[{id:"host_confirm",name:"主持人确认后开放"},{id:"automatic",name:"满足规则后自动开放"},{id:"manual",name:"仅手动开放"}],chapter.unlock_rules?.mode||"host_confirm"),"保存章节设置",async()=>{try{const values=studioValues();await zhimuApi.updateChapter(chapter.id,{title:values.title,summary:values.summary,publicationStatus:values.publicationStatus,unlockRules:{mode:values.unlockMode}});closeModal();await loadCloudData();showToast("章节发布规则已保存")}catch(error){showError(error)}});
+ openWriterChapterEditor(chapterId);
 }
 
 function chapterDeleteReferenceHint(refs){
@@ -447,20 +452,7 @@ export async function deleteCreatorChapter(chapterId){
 
 export async function runCreatorChecks(){try{const roomId=zhimuApi.context.roomId||null;const dash=await zhimuApi.getCreatorDashboard({roomId,force:true});worldStore.set({cloudCreatorDashboard:dash,cloudCreatorChecks:dash.checks||[]});render();showToast("发布检查已完成")}catch(error){showError(error)}}
 
-export async function openStoryManuscript(){
- try{
-  const manuscript=await zhimuApi.getStoryManuscript();
-  const readOnly=!U.canEditWorldContent?.(studioStore.get().cloudStudio?.world);
-  modal.className="modal story-manuscript-modal";setHtml(modal,storyManuscriptModalHtml({bodyHtml:escapeHtml(manuscript.body),statusHtml:storyManuscriptStatus(manuscript),readOnly}));
-  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const body=()=>modal.querySelector("[data-story-manuscript]").value.trim(),meta=modal.querySelector("[data-manuscript-meta]");
-  if(readOnly)return;
-  modal.querySelector("[data-manuscript-save]").onclick=async()=>{try{const result=await zhimuApi.saveStoryManuscript(body());setHtml(meta,storyManuscriptStatus(result));showToast("完整剧情母稿已保存")}catch(error){showError(error)}};
-  modal.querySelector("[data-manuscript-from-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptFromGraph();modal.querySelector("[data-story-manuscript]").value=result.body;setHtml(meta,storyManuscriptStatus(result));showToast("已经从剧情编排生成完整母稿")}catch(error){showError(error)}};
-  modal.querySelector("[data-manuscript-to-graph]").onclick=async()=>{try{const result=await zhimuApi.syncStoryManuscriptToGraph(body());closeModal();await loadCloudData();go("studio");showToast(`母稿已拆分为 ${result.nodes} 个节点和 ${result.edges} 条连线`)}catch(error){showError(error)}};
- }catch(error){showError(error)}
-}
-
-export function storyManuscriptStatus(manuscript){const label={manual:"手动保存",graph_to_manuscript:"剧情编排 → 完整母稿",manuscript_to_graph:"完整母稿 → 剧情编排"}[manuscript.lastSyncDirection||manuscript.last_sync_direction]||"尚未同步";return `<span>最近同步：${label}</span>${manuscript.updatedAt||manuscript.updated_at?`<span>${formatTime(manuscript.updatedAt||manuscript.updated_at)}</span>`:""}`}
+export async function openStoryManuscript(){return openManuscriptWorkspace()}
 
 export async function openCollaboration(){
  try{
@@ -606,101 +598,7 @@ export async function openWorldLogs(){
  }catch(error){showError(error)}
 }
 
-export async function openDocumentParser(){
- const roles=studioStore.get().cloudStudio?.roles||[];
- const terms=creatorTerms(studioStore.get().cloudStudio?.world?.settings?.creationType);
- let parsed=null;
- let pendingFile=null;
- modal.className="modal creator-tool-modal";
- setHtml(modal,documentParserModalHtml(roles.map(role=>`<option value="${role.id}">${escapeHtml(terms.role)} · ${escapeHtml(role.name)}</option>`).join("")));
- modalBackdrop.classList.add("show");
- modal.querySelector("[data-close]").onclick=closeModal;
- const commit=modal.querySelector("[data-document-import]");
- const sourceSelect=modal.querySelector("[data-document-source]");
- const targetSelect=modal.querySelector("[data-document-target]");
- const rightsCheckbox=modal.querySelector("[data-document-rights-confirmed]");
- const creationTypeSelect=modal.querySelector("[data-document-creation-type]");
- creationTypeSelect.value=normalizeCreationType(studioStore.get().cloudStudio?.world?.settings?.creationType);
- const syncSourceFields=()=>{
-  const feishu=sourceSelect.value==="feishu";
-  modal.querySelector("[data-document-file-fields]").hidden=feishu;
-  modal.querySelector("[data-document-feishu-fields]").hidden=!feishu;
-  modal.querySelector("[data-document-allow-ocr]").disabled=feishu;
-  modal.querySelector("[data-document-page-layout]").disabled=feishu;
- };
- const canCommit=()=>{
-  if(!parsed||!rightsCheckbox.checked)return false;
-  const target=targetSelect.value;
-  if(parsed.contentMode==="pages")return target!=="manuscript"&&target!=="structured"&&Boolean(pendingFile);
-  if(target==="structured")return Boolean(parsed.structure?.candidateCount);
-  return true;
- };
- const syncCommit=()=>{commit.disabled=!canCommit()};
- sourceSelect.onchange=()=>{parsed=null;pendingFile=null;commit.disabled=true;modal.querySelector("[data-document-preview]").textContent="";syncSourceFields()};
- rightsCheckbox.onchange=syncCommit;
- syncSourceFields();
- const extractionLabel=(extraction,contentMode)=>{
-  if(contentMode==="pages"||extraction?.method==="pdf_pages"||extraction?.method==="image_file")return `图片导入 · ${extraction?.pageCount||"?"} 页`;
-  if(extraction?.method==="pdf_ocr")return `OCR 识别 · ${extraction.ocrPages||extraction.pageCount||"?"} 页`;
-  if(extraction?.method==="pdf_text")return `PDF 文字层 · ${extraction.pageCount||"?"} 页`;
-  if(extraction?.method==="docx")return "Word 文档";
-  if(extraction?.method==="feishu_docx")return `飞书云文档 · ${extraction.blockCount||0} 个内容块`;
-  if(extraction?.method==="plain_text")return "纯文本";
-  return "";
- };
- modal.querySelector("[data-document-parse]").onclick=async()=>{
-  try{
-   if(!rightsCheckbox.checked)return showToast("请先确认稿件版权与处理授权");
-   const creationType=creationTypeSelect.value;
-   if(sourceSelect.value==="feishu"){
-    const url=modal.querySelector("[data-document-feishu-url]").value.trim();
-    if(!url)return showToast("请粘贴飞书文档链接");
-    pendingFile=null;
-    parsed=await zhimuApi.parseFeishuDocument({url,creationType,rightsConfirmed:true});
-   }else{
-    const file=modal.querySelector("[data-document-file]").files[0];
-    if(!file)return showToast("请先选择文档");
-    pendingFile=file;
-    const allowOcr=modal.querySelector("[data-document-allow-ocr]").checked;
-    parsed=await zhimuApi.parseDocument({filename:file.name,contentBase64:await fileToBase64(file),allowOcr,parseMode:allowOcr?"text":"auto",creationType,rightsConfirmed:true});
-   }
-   const warnHtml=(parsed.warnings||[]).map(w=>`<p class="tutorial-tip"><span>${escapeHtml(w)}</span></p>`).join("");
-   const modeLabel=extractionLabel(parsed.extraction,parsed.contentMode);
-   const previewImg=parsed.previewImageBase64?`<figure class="document-page-preview"><img alt="预览" src="data:image/png;base64,${parsed.previewImageBase64}"></figure>`:"";
-   const sectionPreview=parsed.contentMode==="pages"?"":parsed.sections.slice(0,8).map(section=>`<article><strong>${escapeHtml(section.title)}</strong><span>${escapeHtml(section.body.slice(0,120))}${section.body.length>120?"...":""}</span></article>`).join("");
-   const structure=parsed.structure;
-   const activeTerms=creatorTerms(creationType);
-   const structureSummary=structure?`${activeTerms.roleShort} ${structure.counts.role} · ${activeTerms.act} ${structure.counts.act} · ${activeTerms.scene} ${structure.counts.scene} · ${activeTerms.clue} ${structure.counts.clue} · ${activeTerms.secret} ${structure.counts.secret}`:"";
-   const structurePreview=structure?.candidates?.length?`<section class="document-structure-preview"><h4>结构识别 · ${escapeHtml(structureSummary)}</h4>${structure.candidates.slice(0,12).map(item=>`<article><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.type)} · ${escapeHtml(item.confidence)}${item.parentActTitle?` · ${escapeHtml(item.parentActTitle)}`:""}</span></article>`).join("")}${structure.candidateCount>12?`<p class="muted-note">另有 ${structure.candidateCount-12} 项，导入后可在对应工作区逐项复核。</p>`:""}</section>`:"";
-   setHtml(modal.querySelector("[data-document-preview]"),documentPreviewHtml({filenameHtml:escapeHtml(parsed.filename),summaryHtml:`${parsed.contentMode==="pages"?`${parsed.pageCount||0} 页图片分幕`:parsed.characterCount+" 字符 · "+parsed.sectionCount+" 个分段"}${modeLabel?" · "+escapeHtml(modeLabel):""}`,extraHtml:`${warnHtml}${structurePreview}${previewImg}${sectionPreview}`}));
-   if(parsed.contentMode==="pages"&&(targetSelect.value==="manuscript"||targetSelect.value==="structured")){showToast("图片分幕需要选择一个角色私人剧本作为目标")}
-   else showToast(parsed.contentMode==="pages"?"识别为图片文档，确认后将上传各页":"结构识别完成，请复核后再导入");
-   syncCommit();
-  }catch(error){showError(error)}
- };
- targetSelect.addEventListener("change",()=>{
-  if(parsed?.contentMode==="pages"&&(targetSelect.value==="manuscript"||targetSelect.value==="structured"))showToast("图片分幕只能导入到角色私人剧本");
-  syncCommit();
- });
- commit.onclick=async()=>{
-  if(!parsed)return;
-  if(!rightsCheckbox.checked)return showToast("请先确认稿件版权与处理授权");
-  try{
-   const target=targetSelect.value;
-   if(parsed.contentMode==="pages"){
-    if(target==="manuscript"||target==="structured")return showToast("图片分幕只能导入到角色私人剧本");
-    if(!pendingFile)return showToast("请重新选择本地图片或 PDF");
-    await zhimuApi.importDocumentPages({filename:pendingFile.name,contentBase64:await fileToBase64(pendingFile),roleSlotId:target,layout:modal.querySelector("[data-document-page-layout]").value,contentType:pendingFile.type||undefined,rightsConfirmed:true});
-    closeModal();await loadCloudData();showToast("图片分幕已上传，玩家端可翻页阅读");return;
-   }
-   const resolvedTarget=target==="structured"?"structured":target==="manuscript"?"manuscript":"role_script";
-   const result=await zhimuApi.importParsedDocument({target:resolvedTarget,roleSlotId:resolvedTarget==="role_script"?target:null,creationType:creationTypeSelect.value,rightsConfirmed:true,document:{filename:parsed.filename,text:parsed.text,sections:parsed.sections}});
-   closeModal();await loadCloudData();showToast(resolvedTarget==="structured"?`结构化草稿已导入：${Object.values(result.created||{}).reduce((sum,count)=>sum+Number(count||0),0)} 项写入`:"文档内容已写入云端");
-  }catch(error){showError(error)}
- };
-}
-
-export function fileToBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.onerror=reject;reader.readAsDataURL(file)})}
+export function openDocumentParser(){return openDocumentWorkspace()}
 
 const AiDraft=()=>window.zhimuAiDraft;
 function aiDraftWorldId(){return zhimuApi.context?.worldId||""}
@@ -749,261 +647,17 @@ export function openCreatorPreview(roleId=""){
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const draw=()=>{const roleId=modal.querySelector('[data-studio-field="previewRole"]').value,chapterId=modal.querySelector('[data-studio-field="previewChapter"]').value,role=roles.find(item=>item.id===roleId),sections=data.sections.filter(section=>section.role_slot_id===roleId&&(!chapterId||section.chapter_id===chapterId));const sectionRows=sections.map(section=>`<article class="preview-section"><span class="status-chip ${section.publication_status}">${statusName[section.publication_status]||"草稿"}</span><h3>${escapeHtml(section.title)}</h3><div>${escapeHtml(section.body).replace(/\n/g,"<br>")}</div></article>`).join("");setHtml(modal.querySelector("[data-preview-body]"),creatorPreviewBodyHtml({roleNameHtml:escapeHtml(role.name),privateProfileHtml:escapeHtml(role.private_profile||"尚未补充角色秘密"),sectionRowsHtml:sectionRows}))};modal.querySelectorAll("select").forEach(select=>select.onchange=draw);draw();
 }
 
-function publishImpactGroupHtml(title, items){
-  if(!items.length)return `<section class="publish-impact-group"><h4>${escapeHtml(title)}</h4><div class="empty-state">无</div></section>`;
-  const rows=items.map((item)=>`<div class="publish-impact-row ${item.visible?"is-visible":"is-hidden"}"><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.reason)}</small></div><span class="status-chip ${item.visible?"published":"draft"}">${item.visible?"可见":"不可见"}</span></div>`).join("");
-  return `<section class="publish-impact-group"><h4>${escapeHtml(title)} · ${items.filter((i)=>i.visible).length}/${items.length}</h4>${rows}</section>`;
-}
+export function openPublishImpactPreview(){return openImpactWorkspace()}
 
-export function openPublishImpactPreview(){
-  const data=studioStore.get().cloudStudio;
-  const roles=data?.roles||[];
-  if(!roles.length)return showToast("请先创建角色");
-  const activeRoom=U.activeRuntimeRoom?.()||null;
-  const roomChoices=[
-    {id:"__testing__",name:"假设：测试房",status:"testing"},
-    {id:"__active__",name:"假设：正式房",status:"active"},
-    ...(data.rooms||[]).map((room)=>({id:room.id,name:`${room.name||"运行房"}（${room.status||"?"}）`,status:room.status||"active"}))
-  ];
-  const defaultRoomId=activeRoom?.id||roomChoices[0].id;
-  const defaultRoleId=roles[0].id;
-  modal.className="modal preview-modal publish-impact-modal";
-  setHtml(modal,publishImpactModalHtml(`${studioSelect("模拟角色","impactRole",roles,defaultRoleId)}${studioSelect("房间 / 模式","impactRoom",roomChoices.map((r)=>({id:r.id,name:r.name})),defaultRoomId)}`));
-  modalBackdrop.classList.add("show");
-  modal.querySelector("[data-close]").onclick=closeModal;
-  const draw=()=>{
-    const roleId=modal.querySelector('[data-studio-field="impactRole"]').value;
-    const roomId=modal.querySelector('[data-studio-field="impactRoom"]').value;
-    const roomChoice=roomChoices.find((r)=>r.id===roomId)||roomChoices[0];
-    const impact=evaluatePublishImpact({
-      roleSlotId:roleId,
-      roomStatus:roomChoice.status,
-      chapters:data.chapters||[],
-      sections:data.sections||[],
-      scenes:data.scenes||[],
-      clues:data.clues||[],
-      tasks:data.playerTasks||data.tasks||[]
-    });
-    setHtml(modal.querySelector("[data-impact-body]"),`<p class="publish-impact-summary">可见 <strong>${impact.summary.visible}</strong> / 共 ${impact.summary.total} · 房间状态 <code>${escapeHtml(impact.roomStatus)}</code></p>${publishImpactGroupHtml("章节",impact.chapters)}${publishImpactGroupHtml("私人分幕",impact.sections)}${publishImpactGroupHtml("场景",impact.scenes)}${publishImpactGroupHtml("线索",impact.clues)}${publishImpactGroupHtml("任务",impact.tasks)}`);
-  };
-  modal.querySelectorAll("select").forEach((select)=>select.onchange=draw);
-  draw();
-}
-
-function contentPackageSummaryHtml(summary){
- return `<section class="assistant-preview package-summary"><div class="proposal-stats"><span>${summary.roles} 角色</span><span>${summary.chapters} 章节</span><span>${summary.sections} 分幕</span><span>${summary.scenes} 场景</span><span>${summary.clues} 线索</span><span>${summary.truthClaims || 0} 真相</span><span>${summary.roleArchives || 0} 档案</span><span>${summary.creatorReviews || 0} 审稿记录</span><span>${summary.assetCount} 资产</span></div><div class="assistant-guide"><b>${summary.hasAttachments?"包含资产清单":"不含附件文件"}</b><span>完整结构化归档包含剧本结构、真相库、角色档案、审稿记录、关系、伏笔、时间线与资产清单。文件二进制不会嵌入 JSON，须在「账号与资产」中另行下载；当前导入器只恢复标准创作对象，扩展域请保留原始归档。</span></div></section>`;
-}
-
-function contentPackagePreviewHtml(preview){
- const warningRows=preview.warnings.length?preview.warnings.map(item=>`<div class="check-result ${item.level}"><b>${escapeHtml(item.title)}</b><span>${escapeHtml(item.detail)}</span></div>`).join(""):`<div class="empty-state">未发现缺失引用或重名冲突。</div>`;
- const roleRows=preview.roles.map(item=>`<li>${escapeHtml(item.name)}</li>`).join("")||`<li>无角色</li>`;
- const chapterRows=preview.chapters.map(item=>`<li>${escapeHtml(String(item.sequence))}. ${escapeHtml(item.title)}</li>`).join("")||`<li>无章节</li>`;
- const clueRows=preview.clues.map(item=>`<li>${escapeHtml(item.name)}</li>`).join("")||`<li>无线索</li>`;
- return `<section class="assistant-preview package-preview"><div class="section-head"><div><p class="section-kicker">${preview.mode==="new_world"?"创建新世界":"追加到当前世界"}</p><h3>${escapeHtml(preview.sourceWorldName)}</h3><p>${escapeHtml(preview.sourceWorldSummary||"无摘要")}</p></div><span class="cloud-pill">仅预览 · 尚未写入</span></div><div class="proposal-stats"><span>${preview.summary.roles} 角色</span><span>${preview.summary.chapters} 章节</span><span>${preview.summary.sections} 分幕</span><span>${preview.summary.scenes} 场景</span><span>${preview.summary.clues} 线索</span><span>${preview.summary.investigationPoints} 调查点</span><span>${preview.summary.rules} 规则</span></div><div class="preview-grid"><article><h4>即将导入的角色</h4><ul>${roleRows}</ul></article><article><h4>即将导入的章节</h4><ul>${chapterRows}</ul></article><article><h4>即将导入的线索</h4><ul>${clueRows}</ul></article></div><div class="section-head" style="margin-top:14px"><div><h4>引用检查与重名提示</h4><p>${preview.targetWorldName?`目标世界：${escapeHtml(preview.targetWorldName)} · `:''}导入不会覆盖已有内容，只会追加新记录。</p></div></div>${warningRows}</section>`;
-}
-
-function downloadTextFile(filename, text, mime = "text/plain;charset=utf-8") {
-  const url = URL.createObjectURL(new Blob([text], { type: mime }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function buildRoleScriptsMarkdown(studio) {
-  const roles = studio?.roles || [];
-  const sections = studio?.sections || [];
-  const chapters = studio?.chapters || [];
-  return roles.map((role) => {
-    const roleSections = sections
-      .filter((section) => section.role_slot_id === role.id)
-      .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
-    const header = `# ${role.name}\n\n${role.private_profile || ""}\n\n---\n\n`;
-    const body = roleSections
-      .map((section) => {
-        const chapter = chapters.find((item) => item.id === section.chapter_id);
-        return `## ${chapter ? `${chapter.title} · ` : ""}${section.title}\n\n${section.body || ""}\n`;
-      })
-      .join("\n");
-    return { filename: `${role.name}-玩家剧本.md`, content: header + body };
-  });
-}
-
-const CLUE_KIND_EXPORT_LABELS = {
-  general: "一般线索",
-  deep: "深入线索",
-  verify: "验证线索",
-  misdirect: "误导线索",
-  emotion: "情感线索",
-  mechanic: "机制线索"
-};
-
-function buildClueCardsMarkdown(studio) {
-  const clues = studio?.clues || [];
-  const lines = ["# 线索清单", "", `共 ${clues.length} 条线索`, ""];
-  for (const clue of clues) {
-    const kind = CLUE_KIND_EXPORT_LABELS[clue.clue_kind || clue.clueKind || "general"] || "一般线索";
-    lines.push(`## ${clue.name}`, `- 类型：${kind}`, `- 可见性：${clue.visibility || "role"}`, "", clue.public_text || clue.host_text || "（暂无正文）", "", "---", "");
-  }
-  return lines.join("\n");
-}
-
-function buildHostRunbookMarkdown(segments = [], worldName = "剧本") {
-  const lines = [`# ${worldName} · 主持手册`, ""];
-  if (!segments.length) {
-    lines.push("暂无 Segment 主持信息。请先在「结构编排」工作台编辑 Segment.operations。");
-    return lines.join("\n");
-  }
-  for (const segment of segments.sort((a, b) => (a.sequence || 0) - (b.sequence || 0))) {
-    const ops = segment.operations || {};
-    lines.push(
-      `## ${segment.segmentKey || segment.segment_key} · ${segment.title || ""}`,
-      "",
-      ops.flow ? `### 流程\n${ops.flow}\n` : "",
-      ops.hostTruth ? `### 主持真相\n${ops.hostTruth}\n` : "",
-      Array.isArray(ops.fallbacks) && ops.fallbacks.length ? `### 补救话术\n${ops.fallbacks.map((item) => `- ${item}`).join("\n")}\n` : "",
-      "---",
-      ""
-    );
-  }
-  return lines.join("\n");
-}
-
-function deliveryExportStepHtml(step, summary, studio, segments, selections) {
-  const worldName = studio?.world?.name || "剧本";
-  if (step === 1) {
-    const roleCount = studio?.roles?.length || 0;
-    const clueCount = studio?.clues?.length || 0;
-    return `<section class="assistant-preview delivery-export-step">
-      <p class="section-kicker">步骤 1 / 2</p>
-      <h3>选择交付物</h3>
-      <p class="wizard-intro">勾选需要导出的物料。JSON 用于完整结构化归档，Markdown 文件可在本地打印或二次排版。</p>
-      <label class="check-label"><input type="checkbox" data-export-kind="json" ${selections.json ? "checked" : ""}> 完整结构化归档 JSON（${summary.roles} 角色 · ${summary.chapters} 章节 · ${summary.clues} 线索）</label>
-      <label class="check-label"><input type="checkbox" data-export-kind="roleScripts" ${selections.roleScripts ? "checked" : ""}> 玩家剧本 Markdown（${roleCount} 角色，按角色分文件）</label>
-      <label class="check-label"><input type="checkbox" data-export-kind="clueCards" ${selections.clueCards ? "checked" : ""}> 线索清单 Markdown（${clueCount} 条）</label>
-      <label class="check-label"><input type="checkbox" data-export-kind="hostRunbook" ${selections.hostRunbook ? "checked" : ""}> 主持手册 Markdown（${segments.length} 个 Segment）</label>
-      <label class="check-label"><input type="checkbox" data-export-kind="snapshot" ${selections.snapshot ? "checked" : ""}> 保存创作版本快照（写入云端版本记录）</label>
-    </section>`;
-  }
-  const picked = [
-    selections.json && "完整结构化归档 JSON",
-    selections.roleScripts && "玩家剧本",
-    selections.clueCards && "线索清单",
-    selections.hostRunbook && "主持手册",
-    selections.snapshot && "创作版本快照"
-  ].filter(Boolean);
-  return `<section class="assistant-preview delivery-export-step">
-    <p class="section-kicker">步骤 2 / 2</p>
-    <h3>确认导出 · ${escapeHtml(worldName)}</h3>
-    ${contentPackageSummaryHtml(summary)}
-    <div class="assistant-guide"><b>即将导出</b><span>${picked.length ? picked.join("、") : "未选择任何交付物"}</span></div>
-  </section>`;
-}
-
-export async function openCreatorExport(){
- try{
-  const summary=await zhimuApi.getContentPackageSummary();
-  const studio=studioStore.get().cloudStudio;
-  const segments=worldStore.get().cloudSegments||[];
-  let step=1;
-  const selections={json:true,roleScripts:false,clueCards:false,hostRunbook:false,snapshot:false};
-  const worldName=studio?.world?.name||"zhimu-backup";
-  const redraw=()=>{setHtml(modal.querySelector("[data-delivery-body]"),deliveryExportStepHtml(step,summary,studio,segments,selections));modal.querySelector("[data-delivery-back]").style.display=step>1?"inline-flex":"none";modal.querySelector("[data-delivery-next]").style.display=step<2?"inline-flex":"none";modal.querySelector("[data-delivery-run]").style.display=step===2?"inline-flex":"none";};
-  modal.className="modal creator-tool-modal delivery-export-modal";
-  setHtml(modal,deliveryExportModalHtml());
-  modalBackdrop.classList.add("show");
-  modal.querySelector("[data-close]").onclick=closeModal;
-  modal.querySelector("[data-delivery-body]").addEventListener("change",(event)=>{
-   const kind=event.target?.dataset?.exportKind;
-   if(!kind)return;
-   selections[kind]=Boolean(event.target.checked);
-  });
-  modal.querySelector("[data-delivery-next]").onclick=()=>{step=2;redraw();};
-  modal.querySelector("[data-delivery-back]").onclick=()=>{step=1;redraw();};
-  modal.querySelector("[data-delivery-run]").onclick=async()=>{
-   try{
-    const runBtn=modal.querySelector("[data-delivery-run]");
-    runBtn.disabled=true;
-    let count=0;
-    if(selections.json){const payload=await zhimuApi.exportContentPackage();downloadTextFile(`${worldName}-zhimu-backup.json`,JSON.stringify(payload,null,2),"application/json");count+=1;}
-    if(selections.roleScripts){for(const file of buildRoleScriptsMarkdown(studio)){downloadTextFile(file.filename,file.content,"text/markdown;charset=utf-8");count+=1;}}
-    if(selections.clueCards){downloadTextFile(`${worldName}-线索清单.md`,buildClueCardsMarkdown(studio),"text/markdown;charset=utf-8");count+=1;}
-    if(selections.hostRunbook){downloadTextFile(`${worldName}-主持手册.md`,buildHostRunbookMarkdown(segments,worldName),"text/markdown;charset=utf-8");count+=1;}
-    if(selections.snapshot){await zhimuApi.createContentVersion({label:`交付快照 ${new Date().toLocaleString("zh-CN")}`});count+=1;}
-    closeModal();
-    showToast(count?`已导出 ${count} 项交付物`:"未选择任何交付物");
-    if(selections.snapshot)await loadCloudData();
-   }catch(error){showError(error);modal.querySelector("[data-delivery-run]").disabled=false;}
-  };
-  redraw();
- }catch(error){showError(error)}
-}
-
+export async function openCreatorExport(){return openExportWorkspace()}
 export async function exportCreatorPackage(){return openCreatorExport()}
 
-export function openCreatorImport(){
- const roles=studioStore.get().cloudStudio?.roles||[];
- modal.className="modal creator-tool-modal";
- setHtml(modal,creatorImportModalHtml({emptyRoleHintHtml:roles.length?"":`<div class="tutorial-tip"><b>当前世界尚无角色</b><span>追加模式仍可导入完整内容包；Markdown/TXT 导入需先创建角色席位。</span></div>`,newWorldFieldsHtml:`${studioField("新世界名称","newWorldName","input",studioStore.get().cloudStudio?.world?.name?`${studioStore.get().cloudStudio.world.name} · 导入副本`:"导入的世界")}${studioField("世界摘要","newWorldSummary","textarea",studioStore.get().cloudStudio?.world?.summary||"")}`,roleSelectHtml:roles.length?studioSelect("文档写入角色","importRole",roles):""}));
- modalBackdrop.classList.add("show");
- modal.querySelector("[data-close]").onclick=closeModal;
- let parsedJson=null, previewResult=null;
- const modeSelect=modal.querySelector("[data-import-mode]");
- const newWorldFields=modal.querySelector("[data-new-world-fields]");
- const previewBtn=modal.querySelector("[data-import-preview-btn]");
- const commitBtn=modal.querySelector("[data-import-submit]");
- const redrawMode=()=>{newWorldFields.style.display=modeSelect.value==="new_world"?"block":"none";parsedJson=null;previewResult=null;commitBtn.disabled=true;setHtml(modal.querySelector("[data-import-preview]"),"")};
- modeSelect.onchange=redrawMode; redrawMode();
- previewBtn.onclick=async()=>{
-  const file=modal.querySelector("[data-creator-import-file]").files[0];
-  if(!file)return showToast("请选择导入文件");
-  try{
-   if(!/\.json$/i.test(file.name)){
-    parsedJson=null;previewResult=null;commitBtn.disabled=false;
-    setHtml(modal.querySelector("[data-import-preview]"),plainTextImportPreviewHtml());
-    return;
-   }
-   parsedJson=JSON.parse(await file.text());
-   previewResult=modeSelect.value==="new_world"?await zhimuApi.previewNewWorldContentPackage(parsedJson):await zhimuApi.previewContentPackageImport(parsedJson);
-   setHtml(modal.querySelector("[data-import-preview]"),contentPackagePreviewHtml(previewResult));
-   commitBtn.disabled=false;
-   showToast("内容包预览已生成，请确认后导入");
-  }catch(error){showToast(`预览失败：${error.message}`)}
- };
- modal.querySelector("[data-import-submit]").onclick=()=>importCreatorPackage(parsedJson, previewResult);
-}
-
-export async function importCreatorPackage(parsedJson=null, previewResult=null){
- const file=modal.querySelector("[data-creator-import-file]").files[0];
- if(!file)return showToast("请选择导入文件");
- const mode=modal.querySelector("[data-import-mode]")?.value||"append";
- try{
-  if(/\.json$/i.test(file.name)){
-   const payload=parsedJson||JSON.parse(await file.text());
-   if(mode==="new_world"){
-    const values=studioValues();
-    const result=await zhimuApi.importContentPackageAsNewWorld({name:values.newWorldName,summary:values.newWorldSummary,data:payload.data??payload});
-    closeModal();await loadCloudData(true,true);zhimuApi.selectWorld(result.world.id);await loadCloudData(true,true);showToast(`已创建新世界并导入 ${result.imported.roles} 个角色、${result.imported.chapters} 个章节`);
-   }else{
-    const result=await zhimuApi.importContentPackage(payload);
-    closeModal();await loadCloudData();
-    const warnCount=(result.warnings||[]).length;
-    showToast(warnCount?`导入完成：${result.imported.roles} 角色 · ${warnCount} 条提示`:`导入完成：追加 ${result.imported.roles} 角色、${result.imported.sections} 分幕`);
-   }
-  }else{
-   const roleId=modal.querySelector('[data-studio-field="importRole"]')?.value;
-   if(!roleId)throw new Error("请先创建角色席位");
-   const sections=studioStore.get().cloudStudio.sections.filter(section=>section.role_slot_id===roleId);
-   await zhimuApi.createSection(zhimuApi.context.worldId,roleId,{title:file.name.replace(/\.(md|txt)$/i,""),body:await file.text(),sequence:sections.length+1,publicationStatus:"draft"});
-   closeModal();await loadCloudData();showToast("文档内容已写入角色分幕");
-  }
- }catch(error){showToast(`导入失败：${error.message}`)}
-}
+export function openCreatorImport(){return openImportWorkspace()}
+export async function importCreatorPackage(){return runImportWorkspace()}
 
 export function createCreatorSnapshot(){studioModal("保存创作版本",studioField("版本名称","label","input",`创作快照 ${new Date().toLocaleString("zh-CN")}`),"保存快照",async()=>{try{await zhimuApi.createContentVersion(studioValues());closeModal();await loadCloudData();showToast("创作版本已保存")}catch(error){showError(error)}})}
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, storyManuscriptStatus, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, fileToBase64, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
 registerView("writer", writerViewApi);

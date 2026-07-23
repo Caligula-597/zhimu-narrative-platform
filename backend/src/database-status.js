@@ -8,7 +8,8 @@ const REQUIRED_TABLES = [
   "event_outbox",
   "checkpoint_restores",
   "auth_account_creation_events",
-  "creator_review_threads"
+  "creator_review_threads",
+  "world_releases"
 ];
 const REQUIRED_MIGRATIONS = [
   "084_room_creation_idempotency.sql",
@@ -18,7 +19,10 @@ const REQUIRED_MIGRATIONS = [
   "088_auth_account_creation_events.sql",
   "089_auth_account_creation_events_indexes.sql",
   "090_auth_account_creation_events_user_index.sql",
-  "091_creator_review_workflow.sql"
+  "091_creator_review_workflow.sql",
+  "092_narrative_profile_settings.sql",
+  "093_world_releases.sql",
+  "094_room_release_binding.sql"
 ];
 
 export function inspectRequiredDatabaseSchema({ tableNames = [], migrationNames = [] } = {}) {

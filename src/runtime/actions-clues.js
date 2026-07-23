@@ -14,6 +14,8 @@ import { callView } from "./view-registry.js";
       case "clue-flow-focus": callView("clues", "focusSelectedClue"); return true;
       case "clues-open-studio": callView("clues", "openClueInStudio", el?.dataset?.clue); return true;
       case "clues-add": callView("clues", "openCluesEditor", ""); return true;
+      case "clue-editor-close": callView("clues", "closeCluesEditor"); return true;
+      case "clue-editor-save": callView("clues", "saveCluesEditor"); return true;
       case "clues-delete": callView("clues", "confirmDeleteClue", el?.dataset?.clue); return true;
       case "clues-batch-delete": callView("clues", "batchDeleteClues"); return true;
       case "clues-toggle-select": callView("clues", "toggleCluesSelection", el?.dataset?.clue, el?.checked); return true;

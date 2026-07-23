@@ -2,6 +2,7 @@ import { asArray, escapeHtml } from "../../../shared/security.js";
 import { currentScene, playerProgress, state } from "../state.js";
 import { clueIsRead } from "../utils/clues.js";
 import { renderVoiceCompact } from "./voice.js";
+import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
 
 export function renderGameResume() {
   return `
@@ -40,6 +41,15 @@ function hostConfirmBanner() {
     <div class="banner host-wait-banner soft">
       <strong>主持人正在处理 ${hc.pendingCount} 条待确认事件</strong>
       <p>与你相关的推进会在确认后实时通知。</p>
+    </div>`;
+}
+
+function roomContentBindingBanner() {
+  const binding = roomContentBindingPresentation(state.home?.room?.contentBinding);
+  return `
+    <div class="banner room-content-binding-banner ${binding.tone === "published" ? "soft" : "host-wait-banner"}">
+      <strong>${escapeHtml(binding.label)}</strong>
+      <p>${escapeHtml(binding.detail)}</p>
     </div>`;
 }
 
@@ -93,6 +103,7 @@ export function renderGameHome() {
 
   return `
     <div class="home-dashboard">
+      ${roomContentBindingBanner()}
       ${renderVoiceCompact()}
       <article class="player-hero card live-flash">
         <div class="player-hero-copy">

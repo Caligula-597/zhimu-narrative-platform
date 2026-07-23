@@ -44,10 +44,20 @@ export function throwErr(code, message, details) {
 /** Reply using a registered API error code (optional message override). */
 export function sendErr(reply, code, message, details) {
   const meta = errorMeta(code);
-  if (!meta) {
-    return sendApiError(reply, 500, message ?? "Internal error", "INTERNAL_ERROR", details);
-  }
-  return sendApiError(reply, meta.status, message ?? meta.message, code, details);
+  const statusCode = meta?.status ?? 500;
+  const publicCode = meta ? code : "INTERNAL_ERROR";
+  // Route-level catch blocks often pass database/upstream messages here. Keep
+  // those diagnostics in structured logs, never in a 5xx response body.
+  const publicMessage = statusCode >= 500
+    ? (meta?.message ?? "Internal error")
+    : (message ?? meta.message);
+  return sendApiError(
+    reply,
+    statusCode,
+    publicMessage,
+    publicCode,
+    statusCode < 500 ? details : undefined
+  );
 }
 
 export function resolveErrorCode(error, statusCode) {

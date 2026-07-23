@@ -1,4 +1,5 @@
 import { transaction } from "./db.js";
+import { randomUUID } from "node:crypto";
 import { throwErr } from "./api-errors.js";
 import { assertWorldCreateQuota } from "./quota-guards.js";
 import { matchRoleSlotByName, normalizeRoleLabel } from "./script-bundle-classify.js";
@@ -319,40 +320,55 @@ export async function importScriptBundleToWorld(worldId, actorId, body, options 
 
 export async function createWorldFromScriptBundle(actorId, body, options = {}) {
   await assertWorldCreateQuota(actorId);
-  const analysis = analyzeScriptBundle(body);
+  // Prepare storage before opening the database transaction, but allocate the
+  // final world id up front so a failed import never commits an empty world.
+  const worldId = randomUUID();
+  const preparedImport = await prepareScriptBundleImport(worldId, actorId, body, options);
+  const { analysis } = preparedImport;
   const worldName = String(body.worldName ?? body.name ?? analysis.suggestedWorldName ?? "导入的剧本世界").trim();
   const worldSummary = String(body.worldSummary ?? body.summary ?? "").trim();
   const playerCount = body.playerCount ?? analysis.suggestedPlayerCount;
 
-  const created = await transaction(async (client) => {
-    const world = await client.query(
-      `INSERT INTO worlds (owner_user_id, name, summary, settings)
-       VALUES ($1, $2, $3, $4::jsonb)
-       RETURNING id, name`,
-      [
+  try {
+    const result = await transaction(async (client) => {
+      const world = await client.query(
+        `INSERT INTO worlds (id, owner_user_id, name, summary, settings)
+         VALUES ($1, $2, $3, $4, $5::jsonb)
+         RETURNING id, name`,
+        [
+          worldId,
+          actorId,
+          worldName,
+          worldSummary,
+          JSON.stringify({
+            source: "script_bundle",
+            suggestedPlayerCount: playerCount ?? null,
+            importedAt: new Date().toISOString()
+          })
+        ]
+      );
+      await client.query(
+        `INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, 'owner')`,
+        [worldId, actorId]
+      );
+      const importResult = await importScriptBundleToWorldWithClient(
+        client,
+        worldId,
         actorId,
-        worldName,
-        worldSummary,
-        JSON.stringify({
-          source: "script_bundle",
-          suggestedPlayerCount: playerCount ?? null,
-          importedAt: new Date().toISOString()
-        })
-      ]
-    );
-    const worldId = world.rows[0].id;
-    await client.query(`INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, 'owner')`, [worldId, actorId]);
-    return { worldId, worldName: world.rows[0].name };
-  });
-
-  const importResult = await importScriptBundleToWorld(created.worldId, actorId, body, {
-    ...options,
-    createMissingRoles: options.createMissingRoles !== false
-  });
-
-  return {
-    ...importResult,
-    mode: "new_world",
-    world: created
-  };
+        body,
+        { ...options, createMissingRoles: options.createMissingRoles !== false },
+        preparedImport
+      );
+      return {
+        ...importResult,
+        mode: "new_world",
+        world: { worldId: world.rows[0].id, worldName: world.rows[0].name }
+      };
+    });
+    await cleanupPreparedScriptBundle(preparedImport, { unusedOnly: true });
+    return result;
+  } catch (error) {
+    await cleanupPreparedScriptBundle(preparedImport);
+    throw error;
+  }
 }

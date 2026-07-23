@@ -4,6 +4,7 @@ import { registerStudioSceneClueRoutes } from "./studio-scene-clue-routes.js";
 import { registerStudioSnapshotRoutes } from "./studio-snapshot-routes.js";
 import { registerStudioStoryEdgeRoutes } from "./studio-story-edge-routes.js";
 import { registerStudioVersionRoutes } from "./studio-version-routes.js";
+import { registerWorldReleaseRoutes } from "./world-release-routes.js";
 
 export async function registerStudioRoutes(app) {
   await registerStudioSceneClueRoutes(app);
@@ -12,4 +13,5 @@ export async function registerStudioRoutes(app) {
   await registerStudioSnapshotRoutes(app);
   await registerStudioVersionRoutes(app);
   await registerStudioStoryEdgeRoutes(app);
+  await registerWorldReleaseRoutes(app);
 }

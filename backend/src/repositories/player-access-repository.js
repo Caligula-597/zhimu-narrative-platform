@@ -3,6 +3,10 @@ import { query } from "../db.js";
 export async function findInviteAccess(inviteCode, actorId, executor = query) {
   const result = await executor(
     `SELECT r.id, r.name, r.status, r.world_id, w.name AS world_name,
+            r.release_id, w.content_revision AS current_content_revision,
+            release.release_number, release.label AS release_label,
+            release.source_content_revision AS release_source_revision,
+            release.created_at AS release_created_at,
             (SELECT rm.role_slot_id
              FROM room_members rm
              WHERE rm.room_id = r.id AND rm.user_id = $2
@@ -25,6 +29,7 @@ export async function findInviteAccess(inviteCode, actorId, executor = query) {
             ), '[]'::jsonb) AS roles
      FROM rooms r
      JOIN worlds w ON w.id = r.world_id
+     LEFT JOIN world_releases release ON release.id = r.release_id
      WHERE r.invite_code = $1`,
     [inviteCode, actorId]
   );

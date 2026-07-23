@@ -1,5 +1,5 @@
 # Fullstack: Vite frontend + Fastify API in ONE Railway service (no extra Web service).
-FROM node:24-alpine AS web-build
+FROM node:24.13.0-alpine AS web-build
 WORKDIR /web
 COPY package.json package-lock.json ./
 COPY config ./config
@@ -14,7 +14,7 @@ ENV VITE_REQUIRE_AUTH=true
 ENV VITE_DEMO_MODE=false
 RUN npm run build
 
-FROM node:24-alpine AS api
+FROM node:24.13.0-alpine AS api
 WORKDIR /app
 
 COPY backend/package.json backend/package-lock.json ./

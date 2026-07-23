@@ -420,3 +420,19 @@ export function restoreContentVersion(versionId) {
 export function deleteContentVersion(versionId) {
   return worldWrite(`/worlds/${demoContext.worldId}/content-versions/${versionId}`, { method: "DELETE" });
 }
+
+/* ── Immutable world releases ── */
+
+export function getWorldReleases(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/releases`, { userId: demoContext.hostUserId });
+}
+
+export function createWorldRelease(payload, worldId = demoContext.worldId, { revision } = {}) {
+  return worldWrite(`/worlds/${worldId}/releases`, {
+    worldId,
+    method: "POST",
+    body: payload,
+    revision,
+    idempotent: true
+  });
+}

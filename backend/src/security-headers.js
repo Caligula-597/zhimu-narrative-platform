@@ -45,13 +45,10 @@ export function buildContentSecurityPolicy({ nodeEnv, cspMode } = {}) {
     "trusted-types zhimu-html"
   ];
 
-  // A require directive inside a Report-Only header reports violations without
-  // blocking them. Enforced CSP keeps Trusted Types behind the explicit gate.
-  const requireTrustedTypes = mode === "report-only"
-    || String(process.env.TRUSTED_TYPES_ENFORCE || "").toLowerCase() === "true";
-  if (requireTrustedTypes) {
-    directives.push("require-trusted-types-for 'script'");
-  }
+  // All production templates now use the shared zhimu-html policy. Keeping the
+  // sink requirement inside both report-only and enforced policies prevents an
+  // environment drift from silently disabling the protection.
+  directives.push("require-trusted-types-for 'script'");
 
   const reportUri = process.env.CSP_REPORT_URI?.trim();
   if (reportUri) {
@@ -67,15 +64,12 @@ export function buildContentSecurityPolicy({ nodeEnv, cspMode } = {}) {
 }
 
 export function buildTrustedTypesReportOnlyPolicy({ nodeEnv, cspMode } = {}) {
-  const mode = resolveCspMode(nodeEnv ?? process.env.NODE_ENV ?? "development", cspMode);
-  const enabled = String(process.env.TRUSTED_TYPES_REPORT_ONLY || "").toLowerCase() === "true";
-  const enforced = String(process.env.TRUSTED_TYPES_ENFORCE || "").toLowerCase() === "true";
-  if (!enabled || enforced || mode !== "enforce") return null;
-  const reportUri = process.env.CSP_REPORT_URI?.trim() || "/api/csp-report";
-  return {
-    header: "Content-Security-Policy-Report-Only",
-    value: `trusted-types zhimu-html; require-trusted-types-for 'script'; report-uri ${reportUri}`
-  };
+  // Retained as a compatibility export. The primary policy now always carries
+  // the Trusted Types requirement, so emitting a second policy could overwrite
+  // the complete report-only header in Fastify.
+  void nodeEnv;
+  void cspMode;
+  return null;
 }
 
 export function applySecurityHeaders(reply, { nodeEnv, cspMode } = {}) {

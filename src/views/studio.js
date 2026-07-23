@@ -11,6 +11,13 @@ import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { studioDragMoved, studioDragPosition } from "./studio-drag-math.js";
+import {
+  bindStudioCreateEditor,
+  closeStudioCreateEditor,
+  openStudioCreateEditor,
+  saveStudioCreateEditor,
+  studioCreateEditorHtml
+} from "./studio-create-editor.js";
 export { studioDragMoved, studioDragPosition } from "./studio-drag-math.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
@@ -55,6 +62,10 @@ const STUDIO_NODE_H=124;
 const STUDIO_PAD=16;
 const STUDIO_CANVAS_MIN={width:1000,height:760};
 const STUDIO_CANVAS_MAX={width:2800,height:8000};
+let studioNodeSaveBusy=false;
+
+function canEditStudio(){return Boolean(U.canEditWorldContent?.(studioStore.get().cloudStudio?.world))}
+function requireStudioEdit(){if(canEditStudio())return true;showToast("当前身份只能查看剧情编排，不能修改节点");return false}
 
 function studioCanvasMetrics(data){
  let maxX=STUDIO_CANVAS_MIN.width,maxY=STUDIO_CANVAS_MIN.height;
@@ -82,6 +93,8 @@ export function studioCloud() {
  const data=cloudStudio;
  if(!data)return U.creatorWorkspaceEmpty?.({title:"剧情编排台",kicker:"STORY STUDIO",intro:"用场景、线索、调查点与连线组织可运行的互动结构。选择剧本后会在画布上展示完整图谱。",guideTitle:"编排台会提供什么",guideItems:[{label:"图谱",title:"节点与连线",text:"章节、场景、线索、物品、调查点可视化编排。",bullets:["拖拽布局与多种自动排布板式","节点引用检查"]},{label:"探索",title:"调查与线索流转",text:"玩家调查、获得线索、主持确认后解锁新区域。",bullets:["与运行房进度隔离的平行房"]},{label:"资产",title:"附件关联",text:"线索图、音频等可在节点上引用。",bullets:["在「账号与资产」上传附件"]}]})||`<section class="card"><h3>尚未选择剧本</h3><p><button class="primary-btn" data-action="open-catalog">浏览公开剧本库</button></p></section>`;
  const canvas=studioCanvasMetrics(data);
+ const createEditor=studioCreateEditorHtml();
+ const canEdit=Boolean(U.canEditWorldContent?.(data.world));
  return `${catalogExperienceBanner(data.world)}<section class="studio-layout">
   <aside class="panel"><div class="panel-title">剧本杀世界结构</div><div class="tree">
    <div class="tree-item">◈　${data.world.name}</div>
@@ -90,21 +103,21 @@ export function studioCloud() {
    ${data.roles.map(role=>`<div class="tree-item indent">${role.name} · ${data.sections.filter(section=>section.role_slot_id===role.id).length} 段</div>`).join("")}
   </div></aside>
   <div class="story-workspace">
-   <div class="story-toolbar"><div class="story-toolbar-row"><div class="tool-group"><button class="tool" data-action="studio-add-scene">＋ 场景</button><button class="tool" data-action="studio-add-clue">＋ 线索</button><button class="tool" data-action="studio-add-item">＋ 物品</button><button class="tool" data-action="studio-add-point">＋ 调查点</button><button class="tool" data-action="studio-add-chapter">＋ 章节</button></div><div class="tool-group"><button class="tool" data-action="studio-auto-layout-menu">自动排布 ▾</button><button class="tool" data-action="studio-fit-view">适应视图</button><button class="tool" data-action="studio-focus-selected" ${studioStore.get().studioSelectedNode?"":"disabled"}>定位选中</button><button class="tool" data-action="studio-collapse-all-scenes">折叠</button><button class="tool" data-action="studio-expand-all-scenes">展开</button><button class="tool" data-action="studio-zoom-out" aria-label="缩小画布">−</button><span class="zoom-label">${Math.round(studioZoom*100)}%</span><button class="tool" data-action="studio-zoom-in" aria-label="放大画布">＋</button></div></div>
+   <div class="story-toolbar"><div class="story-toolbar-row">${canEdit?`<div class="tool-group"><button class="tool" data-action="studio-add-scene">＋ 场景</button><button class="tool" data-action="studio-add-clue">＋ 线索</button><button class="tool" data-action="studio-add-item">＋ 物品</button><button class="tool" data-action="studio-add-point">＋ 调查点</button><button class="tool" data-action="studio-add-chapter">＋ 章节</button></div>`:`<span class="status-chip draft">只读编排视图</span>`}<div class="tool-group">${canEdit?`<button class="tool" data-action="studio-auto-layout-menu">自动排布 ▾</button>`:""}<button class="tool" data-action="studio-fit-view">适应视图</button><button class="tool" data-action="studio-focus-selected" ${studioStore.get().studioSelectedNode?"":"disabled"}>定位选中</button><button class="tool" data-action="studio-collapse-all-scenes">折叠</button><button class="tool" data-action="studio-expand-all-scenes">展开</button><button class="tool" data-action="studio-zoom-out" aria-label="缩小画布">−</button><span class="zoom-label">${Math.round(studioZoom*100)}%</span><button class="tool" data-action="studio-zoom-in" aria-label="放大画布">＋</button></div></div>
    <div class="story-toolbar-row"><div class="filter-tabs">${studioFilterButton("all","全部节点")}${studioFilterButton("chapter","章节")}${studioFilterButton("scene","场景")}${studioFilterButton("clue","线索")}${studioFilterButton("item","物品")}${studioFilterButton("investigation_point","调查点")}</div><div class="graph-legend"><span><i class="relation-mainline"></i>主线</span><span><i class="relation-parallel"></i>并列</span><span><i class="relation-extension"></i>延伸</span></div></div>${studioCompactSelection(data)}</div>
    ${studioMobileOutline(data)}
-   <div class="node-board" data-canvas-width="${canvas.width}" data-canvas-height="${canvas.height}"><div class="canvas-floatbar"><button class="canvas-add-btn" data-action="studio-add-node-menu">＋ 新增节点</button><span>拖动画布空白处平移 · 拖节点顶部手柄调整位置</span></div><div class="graph-canvas-stage" style="width:${canvas.width*studioZoom}px;height:${canvas.height*studioZoom}px"><div class="graph-canvas" style="width:${canvas.width}px;min-height:${canvas.height}px;transform:scale(${studioZoom})">
+   <div class="node-board" data-canvas-width="${canvas.width}" data-canvas-height="${canvas.height}"><div class="canvas-floatbar">${canEdit?`<button class="canvas-add-btn" data-action="studio-add-node-menu">＋ 新增节点</button>`:""}<span>${canEdit?"拖动画布空白处平移 · 拖节点顶部手柄调整位置":"拖动画布空白处平移 · 单击节点查看内容"}</span></div><div class="graph-canvas-stage" style="width:${canvas.width*studioZoom}px;height:${canvas.height*studioZoom}px"><div class="graph-canvas" style="width:${canvas.width}px;min-height:${canvas.height}px;transform:scale(${studioZoom})">
       ${studioEdges(data)}${studioNodes(data)}
    </div></div></div>
   </div>
-  <aside class="panel inspector"><div class="panel-title">节点编辑</div><div class="inspector-body">
+  ${createEditor||`<aside class="panel inspector"><div class="panel-title">节点编辑</div><div class="inspector-body">
    <p class="section-kicker">SCRIPTED WORLD</p><h3 style="margin-top:7px">${data.world.name}</h3>
    <label>公共章节</label><div class="rule-block">${data.chapters.map(chapter=>`${chapter.sequence}. ${chapter.title}`).join("<br>")||"尚未创建"}</div>
    <label>角色专属剧本</label><div class="rule-block">${data.roles.map(role=>`${role.name}：${data.sections.filter(section=>section.role_slot_id===role.id).length} 段私人内容`).join("<br>")||"尚未创建"}</div>
    <label>已写入节点</label><div><span class="tag">${data.scenes.length} 场景</span><span class="tag">${data.clues.length} 线索</span><span class="tag">${(data.items||[]).length} 物品</span><span class="tag">${data.investigationPoints.length} 调查点</span><span class="tag">${data.edges.length} 连线</span></div>
    ${studioSelection(data)}
    <div class="tutorial-tip"><b>剧本杀编排</b><span>公共剧情线负责章节、场景和线索关系；每位玩家的私人文本单独存储，不会混成同一份剧本。</span></div>
-  </div></aside>
+  </div></aside>`}
  </section>`;
 }
 
@@ -118,8 +131,9 @@ export function studioNodes(data){
 
 export function studioNode(x,y,type,id,badge,title,desc,cls,metadata={},extras={}){
  const { studioSelectedNode, studioAnchorEditing } = studioStore.get();
+ const canEdit=canEditStudio();
  const selected=studioSelectedNode?.type===type&&studioSelectedNode?.id===id,anchors=studioNodeAnchors({metadata});
- return `<button class="node node-${type} ${cls} ${selected?"selected":""} ${extras.childOfScene?"node-scene-child":""}" style="left:${x}px;top:${y}px;text-align:left" data-action="studio-select-node" data-node-type="${type}" data-node-id="${id}" title="拖动卡片调整位置，单击选中节点">${extras.branchToggle||""}<span class="node-drag-handle" title="拖动卡片或此手柄调整节点位置">⠿</span>${anchors.map(anchor=>`<span class="node-link-handle ${studioAnchorEditing&&selected?"anchor-editing":""}" style="left:${anchor.x}px;top:${anchor.y}px" data-anchor-id="${anchor.id}" title="${studioAnchorEditing&&selected?"拖动调整连接点位置":"拖到其他节点创建连线"}"></span>`).join("")}<span class="badge">${escapeHtml(badge)}</span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(desc)}</small></button>`}
+ return `<button class="node node-${type} ${cls} ${selected?"selected":""} ${extras.childOfScene?"node-scene-child":""}" style="left:${x}px;top:${y}px;text-align:left" data-action="studio-select-node" data-node-type="${type}" data-node-id="${id}" title="${canEdit?"拖动卡片调整位置，单击选中节点":"单击查看节点内容"}">${extras.branchToggle||""}${canEdit?`<span class="node-drag-handle" title="拖动卡片或此手柄调整节点位置">⠿</span>${anchors.map(anchor=>`<span class="node-link-handle ${studioAnchorEditing&&selected?"anchor-editing":""}" style="left:${anchor.x}px;top:${anchor.y}px" data-anchor-id="${anchor.id}" title="${studioAnchorEditing&&selected?"拖动调整连接点位置":"拖到其他节点创建连线"}"></span>`).join("")}`:""}<span class="badge">${escapeHtml(badge)}</span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(desc)}</small></button>`}
 
 export function studioNodeList(data){
  const chapterNodes=(data.chapters||[]).map((chapter,index)=>({type:"chapter",id:chapter.id,name:`章节 · ${chapter.title}`,title:chapter.title,badge:"公共章节",desc:chapter.summary||"公共剧情阶段",cls:"chapter",metadata:chapter.metadata||{}}));
@@ -143,7 +157,8 @@ export function studioCompactSelection(data){
  const { studioSelectedNode, studioAnchorEditing } = studioStore.get();
  const selected=studioSelectedNode;
  if(!selected)return `<div class="canvas-tip">场景卡片上的 ▸ 可折叠/展开其下线索、调查点与物品；点「自动排布」优先使用「场景分支」避免重叠。拖动画布空白处可平移。</div>`;
- return `<div class="compact-selection"><span>当前节点：${studioNodeName(data,selected.type,selected.id)} · ${studioNodeAnchors(studioNodeRecord(data,selected.type,selected.id)).length} 个连接点</span><div class="row"><button class="text-btn" data-action="studio-add-anchor">＋ 连接点</button><button class="text-btn" data-action="studio-toggle-anchor-edit">${studioAnchorEditing?"完成调整":"调整连接点"}</button><button class="text-btn" data-action="studio-connect-node">＋ 创建连线</button><button class="text-btn danger-text" data-action="studio-delete-node">删除节点</button></div></div>`;
+ const actions=U.canEditWorldContent?.(data.world)?`<div class="row"><button class="text-btn" data-action="studio-add-anchor">＋ 连接点</button><button class="text-btn" data-action="studio-toggle-anchor-edit">${studioAnchorEditing?"完成调整":"调整连接点"}</button><button class="text-btn" data-action="studio-connect-node">＋ 创建连线</button><button class="text-btn danger-text" data-action="studio-delete-node">删除节点</button></div>`:"";
+ return `<div class="compact-selection"><span>当前节点：${studioNodeName(data,selected.type,selected.id)} · ${studioNodeAnchors(studioNodeRecord(data,selected.type,selected.id)).length} 个连接点</span>${actions}</div>`;
 }
 
 export function studioDefaultPositions(data){
@@ -193,10 +208,20 @@ export function studioEdges(data){
 export function studioSelection(data){
  const { studioSelectedNode, studioAnchorEditing } = studioStore.get();
  const selected=studioSelectedNode;
- const edges=data.edges.map(edge=>`<div class="edge-row"><span class="tag">${({mainline:"主线",parallel:"并列",extension:"延伸"})[edge.relation_type]}</span><p>${studioNodeName(data,edge.from_type,edge.from_id)} → ${studioNodeName(data,edge.to_type,edge.to_id)}</p><button class="text-btn" data-action="studio-delete-edge" data-edge-id="${edge.id}">删除</button></div>`).join("");
- if(!selected)return `<label>剧情连线</label>${edges||`<p class="wizard-intro">点击节点后可以编辑内容，并建立主线、并列或延伸关系。</p>`}`;
+ const canEdit=Boolean(U.canEditWorldContent?.(data.world));
+ const edges=data.edges.map(edge=>`<div class="edge-row"><span class="tag">${({mainline:"主线",parallel:"并列",extension:"延伸"})[edge.relation_type]}</span><p>${studioNodeName(data,edge.from_type,edge.from_id)} → ${studioNodeName(data,edge.to_type,edge.to_id)}</p>${canEdit?`<button class="text-btn" data-action="studio-delete-edge" data-edge-id="${edge.id}">删除</button>`:""}</div>`).join("");
+ if(!selected)return `<label>剧情连线</label>${edges||`<p class="wizard-intro">${canEdit?"点击节点后可以编辑内容，并建立主线、并列或延伸关系。":"点击节点可查看内容与关系。"}</p>`}`;
+ if(!canEdit)return `${studioNodeReadOnlyPanel(data,selected)}<label>剧情连线</label>${edges||`<p class="wizard-intro">尚未创建连线。</p>`}`;
  const anchors=studioNodeAnchors(studioNodeRecord(data,selected.type,selected.id));
  return `${studioNodeEditPanel(data,selected)}<div class="anchor-toolbar"><button class="secondary-btn" data-action="studio-add-anchor">＋ 添加连接点</button><button class="secondary-btn" data-action="studio-toggle-anchor-edit">${studioAnchorEditing?"完成位置调整":"拖动调整连接点"}</button></div><div class="anchor-list">${anchors.map((anchor,index)=>`<div class="anchor-row"><span><i></i> 连接点 ${index+1}</span>${anchors.length>1?`<button class="text-btn danger-text" data-action="studio-delete-anchor" data-anchor-id="${anchor.id}">删除</button>`:""}</div>`).join("")}</div><button class="secondary-btn full-btn" data-action="studio-connect-node">＋ 创建剧情连线</button><button class="danger-btn full-btn" data-action="studio-delete-node">删除当前节点</button><label>剧情连线</label>${edges||`<p class="wizard-intro">尚未创建连线。</p>`}`;
+}
+
+function studioNodeReadOnlyPanel(data,selected){
+ const record=studioNodeRecord(data,selected.type,selected.id);
+ if(!record)return `<p class="wizard-intro">节点数据不可用，请刷新后重试。</p>`;
+ const description=record.public_text||record.description||record.summary||record.result_text||"尚未补充说明";
+ const hostText=record.host_text||record.metadata?.hostNote||"";
+ return `<div class="studio-readonly-node"><p class="section-kicker">只读节点</p><h3>${escapeHtml(studioNodeName(data,selected.type,selected.id))}</h3><p>${escapeHtml(description)}</p>${hostText?`<div class="rule-block"><b>主持/创作备注</b><p>${escapeHtml(hostText)}</p></div>`:""}<span class="status-chip draft">审稿身份不可修改</span></div>`;
 }
 
 export function studioEditField(label,key,type="input",value=""){
@@ -246,6 +271,7 @@ export function studioNodeEditPanel(data,selected){
 export function bindStudioDragging(){
  const board=document.querySelector(".node-board");
  if(!board)return;
+ const canEdit=canEditStudio();
  let suppressClickUntil=0;
  board.onclick=event=>{
   if(performance.now()>=suppressClickUntil)return;
@@ -255,6 +281,7 @@ export function bindStudioDragging(){
   if(event.button!==undefined&&event.button!==0)return;
   const target=event.target.closest(".node[data-node-type]");
   if(target&&board.contains(target)){
+   if(!canEdit)return;
    if(event.target.closest(".node-link-handle,.node-branch-toggle,input,select,textarea,a"))return;
    event.stopPropagation();
    if(event.target.closest(".node-drag-handle"))event.preventDefault();
@@ -309,7 +336,7 @@ export function bindStudioDragging(){
   document.addEventListener("pointermove",move);document.addEventListener("pointerup",finish,{once:true});document.addEventListener("pointercancel",finish,{once:true});
  };
  document.querySelectorAll('[data-action="studio-toggle-scene-children"]').forEach(toggle=>{toggle.onclick=event=>{event.stopPropagation();event.preventDefault();callRuntime("handle","studio-toggle-scene-children",toggle)}});
- document.querySelectorAll(".node-link-handle").forEach(handle=>handle.onpointerdown=event=>{
+ if(canEdit)document.querySelectorAll(".node-link-handle").forEach(handle=>handle.onpointerdown=event=>{
   event.preventDefault();event.stopPropagation();
   const { studioZoom, studioAnchorEditing, studioSelectedNode } = studioStore.get();
   const source=handle.closest(".node"),canvas=source.closest(".graph-canvas"),scale=studioZoom;
@@ -348,6 +375,7 @@ export function focusSelectedStudioNode(){
 }
 
 export async function addStudioAnchor(){
+ if(!requireStudioEdit())return;
  const { studioSelectedNode, cloudStudio } = studioStore.get();
  if(!studioSelectedNode)return;
  const node=studioNodeRecord(cloudStudio,studioSelectedNode.type,studioSelectedNode.id),anchors=studioNodeAnchors(node);
@@ -358,6 +386,7 @@ export async function addStudioAnchor(){
 }
 
 export async function deleteStudioAnchor(anchorId){
+ if(!requireStudioEdit())return;
  const { studioSelectedNode, cloudStudio } = studioStore.get();
  if(!studioSelectedNode)return;
  const node=studioNodeRecord(cloudStudio,studioSelectedNode.type,studioSelectedNode.id),anchors=studioNodeAnchors(node);
@@ -373,6 +402,7 @@ export function refreshStudioConnectors(canvas){
 }
 
 export async function autoLayoutStudio(mode = studioStore.get().studioLayoutMode){
+ if(!requireStudioEdit())return;
  try{
   const result=await zhimuApi.autoStoryLayout(mode);
   studioStore.set({ studioLayoutMode: mode, studioCollapsedScenes: [], studioCanvasHeight: 0 });
@@ -390,6 +420,7 @@ export async function autoLayoutStudio(mode = studioStore.get().studioLayoutMode
 }
 
 export function openStudioLayoutMenu(){
+ if(!requireStudioEdit())return;
  const modes=[
   {id:"scene-tree",title:"场景分支（推荐）",desc:"线索、调查点、物品归到所属场景下，避免与场景卡片重叠"},
   {id:"columns",title:"分栏板式",desc:"按节点类型分列，适合总览全部节点"},
@@ -406,8 +437,13 @@ export function openStudioLayoutMenu(){
 }
 
 export async function saveSelectedStudioNode(){
+ if(!requireStudioEdit())return;
+ if(studioNodeSaveBusy)return;
  const { studioSelectedNode, cloudStudio } = studioStore.get();
  if(!studioSelectedNode)return;
+ studioNodeSaveBusy=true;
+ const saveButton=document.querySelector('[data-action="studio-save-node"]');
+ if(saveButton)saveButton.disabled=true;
  const values=studioEditValues();
  const record=studioNodeRecord(cloudStudio,studioSelectedNode.type,studioSelectedNode.id);
  try{
@@ -426,10 +462,11 @@ export async function saveSelectedStudioNode(){
   window.zhimuWorldRevision?.clearEditorDirty?.();
   window.zhimuWorldRevision?.clearDraft?.();
   showToast("节点已保存");
- }catch(error){showError(error)}
+ }catch(error){showError(error)}finally{studioNodeSaveBusy=false;if(saveButton?.isConnected)saveButton.disabled=false}
 }
 
 export async function deleteSelectedStudioNode(){
+ if(!requireStudioEdit())return;
  const { studioSelectedNode } = studioStore.get();
  if(!studioSelectedNode)return;
  try{
@@ -448,59 +485,45 @@ export async function deleteSelectedStudioNode(){
 }
 
 export async function deleteStudioEdge(edgeId){
+ if(!requireStudioEdit())return;
  try{await zhimuApi.deleteStoryEdge(edgeId);await loadCloudData();showToast("剧情连线已删除")}catch(error){showError(error)}
 }
 
 export function openStudioChapter(){
- const { cloudStudio } = studioStore.get();
- studioModal("新增公共章节",studioField("章节名称","title")+studioField("章节摘要","summary","textarea"),"写入云端",async()=>{try{const values=studioValues();await zhimuApi.createStudioChapter({...values,sequence:(cloudStudio?.chapters.length||0)+1});closeModal();await loadCloudData();showToast("公共章节已写入剧情线")}catch(error){showError(error)}});
+ openStudioCreateEditor("chapter");
 }
 
 export function openStudioNodeMenu(){
- modal.className="modal";setHtml(modal, `<h2>在画布中新增节点</h2><p>先选择节点类型，再填写内容。新增后节点会直接进入当前剧情画布。</p><div class="node-type-grid"><button data-node-create="scene"><b>场景节点</b><span>公开地点、房间或可进入区域</span></button><button data-node-create="clue"><b>线索节点</b><span>玩家获得后可阅读的证据</span></button><button data-node-create="item"><b>物品节点</b><span>钥匙、证件、道具等可发放物品</span></button><button data-node-create="point"><b>调查点节点</b><span>场景内可点击搜证的位置</span></button><button data-node-create="chapter"><b>章节</b><span>公共剧情阶段与发布单位</span></button></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button></div>`);
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelectorAll("[data-node-create]").forEach(button=>button.onclick=()=>{closeModal();({scene:openStudioScene,clue:openStudioClue,item:openStudioItem,point:openStudioPoint,chapter:openStudioChapter})[button.dataset.nodeCreate]()});
+ openStudioCreateEditor("menu");
 }
 
 export function openStudioScene(){
- const { cloudStudio } = studioStore.get();
- const chapters=cloudStudio?.chapters||[];
- studioModal("新增公共场景",(chapters.length?studioSelect("所属章节","chapterId",chapters):"")+studioField("场景名称","name")+studioField("玩家可见说明","publicText","textarea")+studioField("主持人备注","hostText","textarea"),"写入云端",async()=>{try{await zhimuApi.createScene(studioValues());closeModal();await loadCloudData();showToast("公共场景已加入剧情线")}catch(error){showError(error)}});
+ openStudioCreateEditor("scene");
 }
 
 export function openStudioClue(){
- studioModal("新增剧本杀线索",studioField("线索名称","name")+studioField("获得后可见内容","publicText","textarea")+studioField("主持人解释","hostText","textarea"),"写入云端",async()=>{try{await zhimuApi.createClue({...studioValues(),visibility:"role"});closeModal();await loadCloudData();showToast("线索已加入剧情线")}catch(error){showError(error)}});
+ openStudioCreateEditor("clue");
 }
 
 export function openStudioItem(){
- const { cloudAssets } = assetStore.get();
- studioModal("新增物品",
-  studioField("物品名称","name")+
-  studioField("物品描述","publicText","textarea")+
-  `<label class="studio-check-row"><input type="checkbox" data-studio-boolean="unique"> 是否唯一（同一角色不可重复获得）</label>`+
-  `<label class="studio-check-row"><input type="checkbox" data-studio-boolean="consumable"> 是否可消耗（使用后消失）</label>`+
-  (cloudAssets.length?studioSelect("关联资产","assetId",[{id:"",name:"不关联附件"},...cloudAssets.map(asset=>({id:asset.id,name:asset.original_filename}))]):"")+
-  studioField("主持备注","hostText","textarea"),
-  "写入云端",async()=>{try{const values=studioValues();document.querySelectorAll("[data-studio-boolean]").forEach(input=>{values[input.dataset.studioBoolean]=input.checked});await zhimuApi.createItem({name:values.name,publicText:values.publicText,hostText:values.hostText,unique:Boolean(values.unique),consumable:Boolean(values.consumable),assetId:values.assetId||null});closeModal();await loadCloudData();showToast("物品已加入剧情线")}catch(error){showError(error)}});
+ openStudioCreateEditor("item");
 }
 
 export function openStudioPoint(){
- const { cloudStudio } = studioStore.get();
- const scenes=cloudStudio?.scenes||[], clues=cloudStudio?.clues||[], items=cloudStudio?.items||[];
- if(!scenes.length)return showToast("请先创建一个公共场景");
- studioModal("新增场景调查点",studioSelect("所属场景","sceneId",scenes)+studioField("调查点名称","name")+studioField("玩家看到的描述","description","textarea")+studioField("调查结果","resultText","textarea")+(clues.length?studioSelect("发现线索","clueId",[{id:"",name:"不发放线索"},...clues]):"")+(items.length?studioSelect("需要物品","requiredItemId",[{id:"",name:"不需要物品"},...items]):""),"写入云端",async()=>{try{const values=studioValues();const sceneId=values.sceneId;delete values.sceneId;if(!values.clueId)delete values.clueId;if(!values.requiredItemId)delete values.requiredItemId;await zhimuApi.createInvestigationPoint(sceneId,values);closeModal();await loadCloudData();showToast("调查点已加入公共场景")}catch(error){showError(error)}});
+ openStudioCreateEditor("point");
 }
 
 export function openStudioConnection(){
+ if(!requireStudioEdit())return;
  const { studioSelectedNode, cloudStudio } = studioStore.get();
  const selected=studioSelectedNode;
- const nodes=studioNodeList(cloudStudio).filter(node=>!(node.type===selected.type&&node.id===selected.id));
- if(!nodes.length)return showToast("请先创建另一个场景、线索或调查点");
- studioModal("创建剧情连线",studioSelect("目标节点","target",nodes.map(node=>({id:`${node.type}:${node.id}`,name:node.name})))+studioSelect("关系类型","relationType",[{id:"mainline",name:"主线 · 核心推进路径"},{id:"parallel",name:"并列 · 同阶段可同时发生"},{id:"extension",name:"延伸 · 支线或后续补充"}])+studioField("连线备注","label"),"写入云端",async()=>{try{const values=studioValues(),[toType,toId]=values.target.split(":");await zhimuApi.createStoryEdge({fromType:selected.type,fromId:selected.id,toType,toId,relationType:values.relationType,label:values.label});closeModal();await loadCloudData();showToast("剧情连线已写入云端")}catch(error){showError(error)}});
+ if(!selected||!cloudStudio)return showToast("请先选择一个节点");
+ openStudioCreateEditor("connection",{from:selected});
 }
 
 export function openStudioDragConnection(from,to){
- const { cloudStudio } = studioStore.get();
- studioModal("确认拖拽连线",`<div class="rule-block">${studioNodeName(cloudStudio,from.type,from.id)} → ${studioNodeName(cloudStudio,to.type,to.id)}</div>`+studioSelect("关系类型","relationType",[{id:"mainline",name:"主线 · 核心推进路径"},{id:"parallel",name:"并列 · 同阶段可同时发生"},{id:"extension",name:"延伸 · 支线或后续补充"}])+studioField("连线备注","label"),"写入云端",async()=>{try{const values=studioValues();await zhimuApi.createStoryEdge({fromType:from.type,fromId:from.id,toType:to.type,toId:to.id,relationType:values.relationType,label:values.label});closeModal();await loadCloudData();showToast("拖拽连线已写入云端")}catch(error){showError(error)}});
+ if(!requireStudioEdit())return;
+ openStudioCreateEditor("connection",{from,to});
 }
 function studioMobileOutline(data){
  const { studioSelectedNode } = studioStore.get();
@@ -510,5 +533,5 @@ function studioMobileOutline(data){
  return `<section class="studio-mobile-outline"><div class="section-head"><div><h3>节点目录</h3><p>小屏幕下可先从目录定位节点，再进入画布调整连线与位置。</p></div><span class="status-chip draft">${visible.length} 个节点</span></div><div class="studio-mobile-node-list">${rows||`<div class="empty-state">暂无节点</div>`}</div>${extra}</section>`;
 }
 
-export const studioViewApi = { studioCloud, studioNodes, studioNode, studioNodeList, studioSceneChildCount, studioVisibleNodes, studioFilterButton, studioCompactSelection, studioDefaultPositions, studioNodePosition, studioNodeRecord, studioNodeAnchors, setStudioNodePosition, setStudioNodeAnchors, closestStudioAnchorPair, studioNodeName, studioEdges, studioSelection, studioEditField, studioEditSelect, studioEditValues, studioNodeEditPanel, studioDragPosition, studioDragMoved, bindStudioDragging, fitStudioView, focusSelectedStudioNode, addStudioAnchor, deleteStudioAnchor, refreshStudioConnectors, autoLayoutStudio, openStudioLayoutMenu, saveSelectedStudioNode, deleteSelectedStudioNode, deleteStudioEdge, openStudioChapter, openStudioNodeMenu, openStudioScene, openStudioClue, openStudioItem, openStudioPoint, openStudioConnection, openStudioDragConnection };
+export const studioViewApi = { studioCloud, studioNodes, studioNode, studioNodeList, studioSceneChildCount, studioVisibleNodes, studioFilterButton, studioCompactSelection, studioDefaultPositions, studioNodePosition, studioNodeRecord, studioNodeAnchors, setStudioNodePosition, setStudioNodeAnchors, closestStudioAnchorPair, studioNodeName, studioEdges, studioSelection, studioEditField, studioEditSelect, studioEditValues, studioNodeEditPanel, studioDragPosition, studioDragMoved, bindStudioDragging, bindStudioCreateEditor, openStudioCreateEditor, closeStudioCreateEditor, saveStudioCreateEditor, fitStudioView, focusSelectedStudioNode, addStudioAnchor, deleteStudioAnchor, refreshStudioConnectors, autoLayoutStudio, openStudioLayoutMenu, saveSelectedStudioNode, deleteSelectedStudioNode, deleteStudioEdge, openStudioChapter, openStudioNodeMenu, openStudioScene, openStudioClue, openStudioItem, openStudioPoint, openStudioConnection, openStudioDragConnection };
 registerView("studio", studioViewApi);

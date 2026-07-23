@@ -9,6 +9,7 @@ export function createSseLifecycle({
   onAuthLost = () => {},
   onError = () => {},
   pollMs = 15000,
+  connectedReconcileMs = 30000,
   reconnectBaseMs = 1000,
   reconnectMaxMs = 30000,
   eventTarget = globalThis,
@@ -19,8 +20,11 @@ export function createSseLifecycle({
   let abortController = null;
   let reconnectTimer = null;
   let pollTimer = null;
+  let connectedReconcileTimer = null;
   let pollInFlight = false;
   let pollPromise = null;
+  let reconcileInFlight = false;
+  let reconcilePromise = null;
   let reconnectAttempt = 0;
   let generation = 0;
 
@@ -36,6 +40,10 @@ export function createSseLifecycle({
     if (name === "poll" && pollTimer) {
       clearInterval(pollTimer);
       pollTimer = null;
+    }
+    if (name === "connectedReconcile" && connectedReconcileTimer) {
+      clearInterval(connectedReconcileTimer);
+      connectedReconcileTimer = null;
     }
   }
 
@@ -61,6 +69,35 @@ export function createSseLifecycle({
 
   function stopPolling() {
     clearTimer("poll");
+  }
+
+  async function runReconcile(reason = "connected", payload) {
+    if (!active || !connected || reconcileInFlight || typeof reconcile !== "function") return;
+    reconcileInFlight = true;
+    try {
+      reconcilePromise = Promise.resolve(reconcile(reason, payload));
+      await reconcilePromise;
+    } catch (error) {
+      onError(error, { phase: "reconcile", reason });
+    } finally {
+      reconcileInFlight = false;
+      reconcilePromise = null;
+    }
+  }
+
+  function startConnectedReconciliation() {
+    clearTimer("connectedReconcile");
+    const intervalMs = Number(connectedReconcileMs);
+    if (!active || !connected || typeof reconcile !== "function"
+      || !Number.isFinite(intervalMs) || intervalMs <= 0) return;
+    connectedReconcileTimer = setInterval(
+      () => { void runReconcile("connected-periodic"); },
+      Math.max(10, Math.floor(intervalMs))
+    );
+  }
+
+  function stopConnectedReconciliation() {
+    clearTimer("connectedReconcile");
   }
 
   function scheduleReconnect(connect) {
@@ -93,11 +130,8 @@ export function createSseLifecycle({
         stopPolling();
         setStatus("connected");
         if (pollPromise) await pollPromise.catch(() => {});
-        try {
-          await reconcile?.("connected", payload);
-        } catch (error) {
-          onError(error, { phase: "reconcile" });
-        }
+        await runReconcile("connected", payload);
+        startConnectedReconciliation();
         await onConnected(payload);
       }
     })).catch(async (error) => {
@@ -110,6 +144,7 @@ export function createSseLifecycle({
     }).finally(async () => {
       if (signal.aborted || currentGeneration !== generation) return;
       connected = false;
+      stopConnectedReconciliation();
       abortController = null;
       try {
         await onDisconnected();
@@ -150,6 +185,7 @@ export function createSseLifecycle({
     generation += 1;
     clearTimer("reconnect");
     stopPolling();
+    stopConnectedReconciliation();
     abortController?.abort();
     abortController = null;
     eventTarget?.removeEventListener?.("online", handleRecoverySignal);
