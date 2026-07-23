@@ -4,6 +4,7 @@ import { sendViaResend } from "./providers/resend.js";
 import { sendViaSendGrid } from "./providers/sendgrid.js";
 import { worldInviteEmailHtml, passwordResetEmailHtml, emailVerificationHtml } from "./templates.js";
 import { enterpriseEmailSummary } from "../enterprise-emails.js";
+import { isEmailVerificationRequired } from "../email-verification-policy.js";
 
 function isDeliveryStubbed() {
   return process.env.EMAIL_DELIVERY_STUB === "1" || process.env.PASSWORD_RESET_EMAIL_STUB === "1";
@@ -48,8 +49,10 @@ export function publicAppUrl() {
 
 export function isEmailConfigured() {
   const provider = getEmailProvider();
+  const production = (process.env.NODE_ENV ?? "development") === "production";
+  if (production && isDeliveryStubbed()) return false;
   const mailFrom = process.env.MAIL_FROM?.trim();
-  if (provider === "console") return true;
+  if (provider === "console") return !production;
   if (!mailFrom) return false;
   if (provider === "resend") {
     return Boolean(process.env.RESEND_API_KEY?.trim() && publicAppUrl());
@@ -73,7 +76,7 @@ export function getEmailServiceStatus() {
   return {
     provider,
     configured: isEmailConfigured(),
-    requireVerification: process.env.REQUIRE_EMAIL_VERIFICATION === "true",
+    requireVerification: isEmailVerificationRequired(),
     publicAppUrl: publicAppUrl() || null,
     addresses: enterpriseEmailSummary()
   };

@@ -42,7 +42,10 @@ function loadBlocklistFile() {
       forbidden: Array.isArray(parsed.forbiddenTerms) ? parsed.forbiddenTerms : [],
       ad: Array.isArray(parsed.adTerms) ? parsed.adTerms : []
     };
-  } catch {
+  } catch (error) {
+    if ((process.env.NODE_ENV ?? "development") === "production") {
+      throw new Error(`Play content blocklist is unavailable at ${filePath}: ${error.message}`);
+    }
     return { forbidden: [], ad: [] };
   }
 }
@@ -66,6 +69,14 @@ function getTerms() {
     ad: normalizeList(fileTerms.ad)
   };
   return cachedTerms;
+}
+
+export function validatePlayContentBlocklist() {
+  const terms = getTerms();
+  if (!terms.forbidden.length || !terms.ad.length) {
+    throw new Error("Play content blocklist must contain both forbiddenTerms and adTerms");
+  }
+  return { forbidden: terms.forbidden.length, ad: terms.ad.length };
 }
 
 export function resetPlayContentModerationForTests() {

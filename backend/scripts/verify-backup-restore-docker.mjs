@@ -15,6 +15,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import pg from "pg";
 import "dotenv/config";
+import {
+  resolveDatabaseSsl,
+  resolveDatabaseUrl
+} from "../src/database-connection-options.js";
 
 const TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions"];
 const PG_IMAGE = process.env.PG_DRILL_IMAGE || "postgres:17";
@@ -67,7 +71,10 @@ function countTablesInContainer(containerName) {
 }
 
 async function countSourceTables(databaseUrl) {
-  const client = new pg.Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
+  const client = new pg.Client({
+    connectionString: resolveDatabaseUrl(databaseUrl),
+    ssl: resolveDatabaseSsl()
+  });
   await client.connect();
   try {
     const counts = {};

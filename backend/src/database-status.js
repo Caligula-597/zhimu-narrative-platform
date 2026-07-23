@@ -22,24 +22,36 @@ const REQUIRED_MIGRATIONS = [
   "091_creator_review_workflow.sql",
   "092_narrative_profile_settings.sql",
   "093_world_releases.sql",
-  "094_room_release_binding.sql"
+  "094_room_release_binding.sql",
+  "095_account_deletion_integrity.sql",
+  "096_foreign_key_index_coverage.sql",
+  "097_enable_rls_post_launch_tables.sql"
 ];
 
-export function inspectRequiredDatabaseSchema({ tableNames = [], migrationNames = [] } = {}) {
+export function inspectRequiredDatabaseSchema({
+  tableNames = [],
+  migrationNames = [],
+  rlsTableNames = tableNames
+} = {}) {
   const presentTables = new Set(tableNames);
   const appliedMigrations = new Set(migrationNames);
+  const rlsTables = new Set(rlsTableNames);
   const missingTables = REQUIRED_TABLES.filter((name) => !presentTables.has(name));
   const missingMigrations = REQUIRED_MIGRATIONS.filter((name) => !appliedMigrations.has(name));
+  const missingRlsTables = REQUIRED_TABLES.filter((name) => !rlsTables.has(name));
   return {
-    ok: missingTables.length === 0 && missingMigrations.length === 0,
+    ok: missingTables.length === 0
+      && missingMigrations.length === 0
+      && missingRlsTables.length === 0,
     missingTables,
-    missingMigrations
+    missingMigrations,
+    missingRlsTables
   };
 }
 
 export async function getDatabaseStatus() {
   const started = Date.now();
-  const [time, migrations, tables] = await Promise.all([
+  const [time, migrations, tables, rlsTables] = await Promise.all([
     query("SELECT now() AS database_time"),
     query(
       `SELECT filename FROM schema_migrations ORDER BY filename`
@@ -49,13 +61,24 @@ export async function getDatabaseStatus() {
        WHERE table_schema = 'public'
          AND table_name = ANY($1::text[])`,
       [REQUIRED_TABLES]
+    ).catch(() => ({ rows: [] })),
+    query(
+      `SELECT relation.relname AS table_name
+       FROM pg_class relation
+       JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+       WHERE namespace.nspname = 'public'
+         AND relation.relkind IN ('r', 'p')
+         AND relation.relrowsecurity
+         AND relation.relname = ANY($1::text[])`,
+      [REQUIRED_TABLES]
     ).catch(() => ({ rows: [] }))
   ]);
   const latencyMs = Date.now() - started;
 
   const schema = inspectRequiredDatabaseSchema({
     tableNames: tables.rows.map((row) => row.table_name),
-    migrationNames: migrations.rows.map((row) => row.filename)
+    migrationNames: migrations.rows.map((row) => row.filename),
+    rlsTableNames: rlsTables.rows.map((row) => row.table_name)
   });
 
   const latestMigration = migrations.rows.at(-1)?.filename ?? null;
@@ -71,6 +94,7 @@ export async function getDatabaseStatus() {
     },
     missingTables: schema.missingTables,
     missingMigrations: schema.missingMigrations,
+    missingRlsTables: schema.missingRlsTables,
     pool: getPoolStats(),
     hint: schema.ok
       ? null

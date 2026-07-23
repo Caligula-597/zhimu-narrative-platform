@@ -14,7 +14,7 @@ const checks = [
   { label: "host", url: hostUrl, expect: ["主持", "监控", "织幕", "host"] }
 ];
 if (!skipApi) {
-  checks.push({ label: "api/live", url: `${appUrl}/api/health/live`, json: true });
+  checks.push({ label: "api/ready", url: `${appUrl}/api/health/ready`, json: true });
 }
 
 function pass(label, detail) {
@@ -44,7 +44,7 @@ for (const check of checks) {
     }
     if (check.json) {
       const body = JSON.parse(text);
-      if (body.ok === false) fail(check.label, text.slice(0, 160));
+      if (body.ok === false || body.ready === false) fail(check.label, text.slice(0, 160));
       else pass(check.label, `${response.status} ${check.url}`);
       continue;
     }

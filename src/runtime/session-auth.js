@@ -1,4 +1,4 @@
-/** Cookie + localStorage Bearer; HttpOnly cookie is not visible in document.cookie. */
+/** Cookie + tab-scoped bearer fallback; HttpOnly cookie remains authoritative. */
 import { userStore } from "../state/index.js";
 (function (window) {
   const LEGACY_KEY = "zhimuSessionToken";
@@ -8,7 +8,7 @@ import { userStore } from "../state/index.js";
 
   function legacyToken() {
     try {
-      return localStorage.getItem(LEGACY_KEY);
+      return sessionStorage.getItem(LEGACY_KEY);
     } catch {
       return null;
     }
@@ -20,7 +20,7 @@ import { userStore } from "../state/index.js";
 
   function markAuthenticated(token) {
     if (typeof token === "string" && token.length >= 16) {
-      try { localStorage.setItem(LEGACY_KEY, token); } catch { /* cookie session remains authoritative */ }
+      try { sessionStorage.setItem(LEGACY_KEY, token); } catch { /* cookie session remains authoritative */ }
     }
     cookieSessionActive = true;
     credentialVersion += 1;
@@ -28,7 +28,7 @@ import { userStore } from "../state/index.js";
 
   function discardLegacyToken() {
     if (!legacyToken()) return false;
-    try { localStorage.removeItem(LEGACY_KEY); } catch { return false; }
+    try { sessionStorage.removeItem(LEGACY_KEY); } catch { return false; }
     credentialVersion += 1;
     return true;
   }
@@ -36,7 +36,7 @@ import { userStore } from "../state/index.js";
   function markLoggedOut() {
     cookieSessionActive = false;
     credentialVersion += 1;
-    try { localStorage.removeItem(LEGACY_KEY); } catch { /* storage may be unavailable */ }
+    try { sessionStorage.removeItem(LEGACY_KEY); } catch { /* storage may be unavailable */ }
     if (typeof window !== "undefined") userStore.set({ currentUser: null });
   }
 

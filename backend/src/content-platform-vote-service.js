@@ -57,14 +57,14 @@ export async function createRoomVote({ actorId, roomId, body }) {
       title: created.title,
       status: created.status
     });
+    await logHostAction({
+      roomId,
+      actorUserId: actorId,
+      action: "vote_created",
+      targetType: "vote",
+      targetId: created.id
+    }, client);
     return created;
-  });
-  await logHostAction({
-    roomId,
-    actorUserId: actorId,
-    action: "vote_created",
-    targetType: "vote",
-    targetId: vote.id
   });
   return vote;
 }

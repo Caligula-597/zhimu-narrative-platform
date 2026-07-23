@@ -11,6 +11,10 @@
 import pg from "pg";
 import "dotenv/config";
 import { assertSafeDatabaseUrlForDestructiveOps } from "./lib/assert-safe-database-url.mjs";
+import {
+  resolveDatabaseSsl,
+  resolveDatabaseUrl
+} from "../src/database-connection-options.js";
 
 const { Client } = pg;
 const TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions"];
@@ -36,7 +40,10 @@ async function main() {
 
   const schema = `zhimu_drill_${Date.now()}`;
   const startedAt = new Date().toISOString();
-  const client = new Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
+  const client = new Client({
+    connectionString: resolveDatabaseUrl(databaseUrl),
+    ssl: resolveDatabaseSsl()
+  });
   await client.connect();
 
   try {

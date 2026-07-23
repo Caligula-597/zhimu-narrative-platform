@@ -2,7 +2,7 @@ import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { transactionWithPlatformEvents } from "./transaction-events.js";
 import { reviewPlazaPostContent } from "./play-plaza-ai-review.js";
-import { assertPlayAdFree } from "./play-content-moderation.js";
+import { assertPlaySocialContentAllowed } from "./play-content-moderation.js";
 import { assertPlaySocialWrite } from "./play-social-guard.js";
 
 const HOURLY_POST_LIMIT = 12;
@@ -124,7 +124,7 @@ export async function createPlazaPost({ actorId, kind, body, inviteCode }) {
   const normalizedKind = kind === "recruit" ? "recruit" : "chat";
   const text = String(body ?? "").trim();
   if (!text || text.length > 500) throwErr("PLAZA_POST_INVALID", "发言内容需为 1～500 字。");
-  assertPlayAdFree(text);
+  assertPlaySocialContentAllowed(text);
 
   const recent = await query(
     `SELECT COUNT(*)::int AS count FROM play_plaza_posts
@@ -216,8 +216,18 @@ export async function createPlazaReply({ actorId, postId, body, parentReplyId = 
   await assertPlaySocialWrite(actorId);
   const text = String(body ?? "").trim();
   if (!text || text.length > 500) throwErr("PLAZA_REPLY_INVALID", "评论内容需为 1～500 字。");
-  assertPlayAdFree(text);
+  assertPlaySocialContentAllowed(text);
   await getPlazaPost(postId, actorId);
+
+  const verdict = await reviewPlazaPostContent({ body: text, kind: "reply" });
+  if (verdict.decision !== "approve") {
+    throwErr(
+      "PLAZA_REPLY_REJECTED",
+      verdict.decision === "reject"
+        ? (verdict.feedback || "评论未通过社区审核，请修改后重试。")
+        : "评论暂时无法完成安全审核，请稍后重试。"
+    );
+  }
 
   if (parentReplyId) {
     const parent = await query(

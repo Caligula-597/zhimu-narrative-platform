@@ -149,7 +149,7 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
           rating: { type: "string", enum: ["good", "needs-improvement", "poor", "unknown"], maxLength: 20 },
           id: { type: "string", maxLength: 120 },
           path: { type: "string", maxLength: 500 },
-          app: { type: "string", maxLength: 40 }
+          app: { type: "string", enum: ["app", "play", "host", "site", "unknown"] }
         }
       },
       response: { 204: { type: "null" } }

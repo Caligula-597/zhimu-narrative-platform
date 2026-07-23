@@ -8,7 +8,7 @@ COPY docs ./docs
 COPY frontend ./frontend
 COPY index.html app.js config.js styles.css rule-visual.js ./
 COPY shared ./shared
-RUN npm install --no-audit --no-fund
+RUN npm ci --no-audit --no-fund
 ENV VITE_API_BASE=/api
 ENV VITE_REQUIRE_AUTH=true
 ENV VITE_DEMO_MODE=false

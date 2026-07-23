@@ -50,6 +50,14 @@ export async function buildAccountDeletePreview(userId) {
     `SELECT provider FROM oauth_accounts WHERE user_id = $1 ORDER BY provider`,
     [userId]
   );
+  const authoredCollaborativeContent = await query(
+    `SELECT
+       (SELECT COUNT(*)::int FROM notebook_entries WHERE created_by_user_id = $1) AS notebook_entries,
+       (SELECT COUNT(*)::int FROM checkpoints WHERE created_by_user_id = $1) AS checkpoints,
+       (SELECT COUNT(*)::int FROM content_versions WHERE created_by_user_id = $1) AS content_versions,
+       (SELECT COUNT(*)::int FROM room_recaps WHERE created_by_user_id = $1) AS room_recaps`,
+    [userId]
+  );
 
   const blockers = [];
   if (ownedWorlds.rows.some((row) => isProtectedPlatformWorldId(row.id))) {
@@ -83,7 +91,13 @@ export async function buildAccountDeletePreview(userId) {
       hostedRooms: hostedRooms.rows[0]?.count ?? 0,
       assetCount: assets.rows[0]?.count ?? 0,
       assetBytes: Number(assets.rows[0]?.bytes ?? 0),
-      oauthProviders: oauth.rows.map((row) => row.provider)
+      oauthProviders: oauth.rows.map((row) => row.provider),
+      authoredCollaborativeContent: authoredCollaborativeContent.rows[0] ?? {
+        notebook_entries: 0,
+        checkpoints: 0,
+        content_versions: 0,
+        room_recaps: 0
+      }
     },
     warnings: [
       "注销会永久删除你拥有的剧本、资产与 OAuth 绑定；协作剧本仅解除你的成员关系。",

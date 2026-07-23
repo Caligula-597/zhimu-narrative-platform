@@ -25,7 +25,7 @@ export const CREDIT_PACKS = [
 ];
 
 export function isCreditsSystemEnabled() {
-  return process.env.CREDITS_SYSTEM_ENABLED !== "false";
+  return process.env.CREDITS_SYSTEM_ENABLED === "true";
 }
 
 export function isCreditsDebitAiEnabled() {

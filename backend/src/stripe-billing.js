@@ -11,6 +11,10 @@ import { fetchUpstream, resolveUpstreamTimeoutMs } from "./upstream-fetch.js";
 const STRIPE_API = "https://api.stripe.com/v1";
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 
+export function isBillingLaunchEnabled() {
+  return process.env.BILLING_LAUNCH_ENABLED === "true";
+}
+
 function stripeSecretKey() {
   return process.env.STRIPE_SECRET_KEY?.trim() ?? "";
 }
@@ -20,7 +24,7 @@ export function stripeWebhookSecret() {
 }
 
 export function isStripeConfigured() {
-  return Boolean(stripeSecretKey());
+  return isBillingLaunchEnabled() && Boolean(stripeSecretKey());
 }
 
 export function getStripeBillingStatus() {
@@ -315,6 +319,7 @@ export async function processStripeWebhookEvent(event) {
 }
 
 export async function handleStripeWebhook(rawBody, signatureHeader) {
+  if (!isBillingLaunchEnabled()) throwErr("STRIPE_NOT_CONFIGURED");
   const secret = stripeWebhookSecret();
   if (!secret) throwErr("STRIPE_NOT_CONFIGURED");
   if (!verifyStripeWebhookSignature(rawBody, signatureHeader, secret)) {

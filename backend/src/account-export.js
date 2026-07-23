@@ -4,6 +4,7 @@
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { buildAccountEntitlements } from "./account-entitlements.js";
+import { buildWorldArchiveSnapshot } from "./routes/world-chapter-service.js";
 
 export async function buildAccountExport(userId) {
   const user = await query(
@@ -49,9 +50,125 @@ export async function buildAccountExport(userId) {
     ]);
 
   const profile = user.rows[0];
+  const [
+    worldArchives,
+    plazaPosts,
+    plazaReplies,
+    sentDirectMessages,
+    plazaReports,
+    feedback,
+    betaApplications,
+    planUpgradeRequests,
+    creditLedger,
+    creditBalance,
+    llmConnections,
+    llmPreferences,
+    notebookEntries,
+    hostAuditActions
+  ] = await Promise.all([
+    Promise.all(ownedWorlds.rows.map(async (world) => ({
+      worldId: world.id,
+      snapshot: await buildWorldArchiveSnapshot(world.id)
+    }))),
+    query(
+      `SELECT id, kind, body, invite_code, review_status, ai_review_note,
+              published_at, created_at, deleted_at
+       FROM play_plaza_posts
+       WHERE author_user_id = $1
+       ORDER BY created_at`,
+      [userId]
+    ),
+    query(
+      `SELECT id, post_id, parent_reply_id, body, created_at, deleted_at
+       FROM play_plaza_replies
+       WHERE author_user_id = $1
+       ORDER BY created_at`,
+      [userId]
+    ),
+    query(
+      `SELECT m.id, m.conversation_id, m.body, m.created_at, m.read_at
+       FROM play_dm_messages m
+       WHERE m.sender_user_id = $1
+       ORDER BY m.created_at`,
+      [userId]
+    ),
+    query(
+      `SELECT id, target_type, target_id, reason, human_review_status,
+              ops_note, resolved_at, created_at
+       FROM play_plaza_reports
+       WHERE reporter_user_id = $1
+       ORDER BY created_at`,
+      [userId]
+    ),
+    query(
+      `SELECT id, kind, subject, body, page_url, status, created_at, updated_at
+       FROM feedback
+       WHERE user_id = $1
+       ORDER BY created_at`,
+      [userId]
+    ),
+    query(
+      `SELECT id, email, display_name, role_intent, use_case, referral_source,
+              contact, status, review_note, created_at, updated_at
+       FROM beta_applications
+       WHERE user_id = $1 OR lower(email) = lower($2)
+       ORDER BY created_at`,
+      [userId, profile.email]
+    ),
+    query(
+      `SELECT id, email, display_name, current_plan_code, desired_plan_code,
+              reason, contact, status, review_note, created_at, reviewed_at, updated_at
+       FROM plan_upgrade_requests
+       WHERE user_id = $1
+       ORDER BY created_at`,
+      [userId]
+    ),
+    query(
+      `SELECT id, delta, reason, ref_type, ref_id, created_at
+       FROM credit_ledger
+       WHERE user_id = $1
+       ORDER BY created_at`,
+      [userId]
+    ),
+    query(
+      `SELECT balance, lifetime_granted, lifetime_spent, last_monthly_grant_at, updated_at
+       FROM user_credit_balances
+       WHERE user_id = $1`,
+      [userId]
+    ),
+    query(
+      `SELECT id, name, provider, base_url, model, api_key_hint, is_active,
+              enabled, created_at, updated_at
+       FROM user_llm_connections
+       WHERE user_id = $1
+       ORDER BY created_at`,
+      [userId]
+    ),
+    query(
+      `SELECT routing_mode, updated_at
+       FROM user_llm_preferences
+       WHERE user_id = $1`,
+      [userId]
+    ),
+    query(
+      `SELECT id, room_id, role_slot_id, source_type, source_id, title, body, created_at
+       FROM notebook_entries
+       WHERE created_by_user_id = $1
+       ORDER BY created_at`,
+      [userId]
+    ),
+    query(
+      `SELECT id, room_id, action, target_type, target_id, metadata, created_at
+       FROM host_audit_log
+       WHERE actor_user_id = $1
+       ORDER BY created_at`,
+      [userId]
+    )
+  ]);
+
   return {
     exportedAt: new Date().toISOString(),
-    formatVersion: 1,
+    formatVersion: 2,
     note:
       "此导出包含账号元数据与资产清单，不含密码、会话令牌或对象存储二进制内容。如需批量下载资产文件请联系支持。",
     profile: {
@@ -89,6 +206,7 @@ export async function buildAccountExport(userId) {
       createdAt: row.created_at,
       updatedAt: row.updated_at
     })),
+    worldArchives,
     collaboratorWorlds: collaboratorWorlds.rows.map((row) => ({
       worldId: row.world_id,
       worldName: row.world_name,
@@ -105,6 +223,23 @@ export async function buildAccountExport(userId) {
       createdAt: row.created_at,
       updatedAt: row.updated_at
     })),
-    hostedRoomsOnOthersWorlds: hostedRooms.rows[0]?.count ?? 0
+    hostedRoomsOnOthersWorlds: hostedRooms.rows[0]?.count ?? 0,
+    plazaPosts: plazaPosts.rows,
+    plazaReplies: plazaReplies.rows,
+    sentDirectMessages: sentDirectMessages.rows,
+    plazaReports: plazaReports.rows,
+    feedback: feedback.rows,
+    betaApplications: betaApplications.rows,
+    planUpgradeRequests: planUpgradeRequests.rows,
+    credits: {
+      balance: creditBalance.rows[0] ?? null,
+      ledger: creditLedger.rows
+    },
+    llm: {
+      preferences: llmPreferences.rows[0] ?? null,
+      connections: llmConnections.rows
+    },
+    notebookEntries: notebookEntries.rows,
+    hostAuditActions: hostAuditActions.rows
   };
 }

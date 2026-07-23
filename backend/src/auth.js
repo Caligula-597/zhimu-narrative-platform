@@ -8,8 +8,11 @@ const scrypt = promisify(scryptCallback);
 const DUMMY_PASSWORD_SALT = "00000000000000000000000000000000";
 const DUMMY_PASSWORD_HASH = "a79be277f4164331643603688348e47bf86ce3900a63b8bc1a837c090f25b555cda39a106f0a1b8766ca7678fda8c3615c23c3b3b0c6b71e24b5628cb8f99a07";
 
-const REGISTERED_SESSION_MS = (Number(process.env.SESSION_TTL_DAYS) || 30) * 24 * 60 * 60 * 1000;
-const GUEST_SESSION_MS = (Number(process.env.GUEST_SESSION_TTL_DAYS) || 7) * 24 * 60 * 60 * 1000;
+const production = (process.env.NODE_ENV ?? "development") === "production";
+const REGISTERED_SESSION_MS =
+  (Number(process.env.SESSION_TTL_DAYS) || (production ? 1 : 30)) * 24 * 60 * 60 * 1000;
+const GUEST_SESSION_MS =
+  (Number(process.env.GUEST_SESSION_TTL_DAYS) || (production ? 1 : 7)) * 24 * 60 * 60 * 1000;
 
 export function hashClientIp(ip) {
   if (!ip) return null;

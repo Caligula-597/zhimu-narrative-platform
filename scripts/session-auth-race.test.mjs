@@ -5,9 +5,11 @@ import { userStore } from "../src/state/index.js";
 test("Creator can discard a rejected legacy bearer without hiding a valid cookie session", async (context) => {
   const previousWindow = globalThis.window;
   const previousStorage = globalThis.localStorage;
+  const previousSessionStorage = globalThis.sessionStorage;
   context.after(() => {
     globalThis.window = previousWindow;
     globalThis.localStorage = previousStorage;
+    globalThis.sessionStorage = previousSessionStorage;
     userStore.set({ currentUser: null });
   });
 
@@ -18,8 +20,10 @@ test("Creator can discard a rejected legacy bearer without hiding a valid cookie
     removeItem: (key) => values.delete(key)
   };
   globalThis.localStorage = storage;
+  globalThis.sessionStorage = storage;
   globalThis.window = {
     localStorage: storage,
+    sessionStorage: storage,
     addEventListener() {}
   };
   await import(`../src/runtime/session-auth.js?race=${Date.now()}`);

@@ -1,16 +1,16 @@
 /**
- * Shared session token storage — localStorage Bearer for play / host / cross-origin clients.
+ * Shared session token storage — tab-scoped Bearer fallback for play / host.
  */
 
 const DEFAULT_KEY = "zhimuSessionToken";
 
 /**
  * @param {string} [key=zhimuSessionToken]
- * @param {Storage|null} [storage=localStorage]
+ * @param {Storage|null} [storage=sessionStorage]
  */
 export function createSessionTokenStore(
   key = DEFAULT_KEY,
-  storage = typeof localStorage !== "undefined" ? localStorage : null,
+  storage = typeof sessionStorage !== "undefined" ? sessionStorage : null,
   eventTarget = typeof window !== "undefined" ? window : null
 ) {
   const fallbackStorage = createMemoryStorage();

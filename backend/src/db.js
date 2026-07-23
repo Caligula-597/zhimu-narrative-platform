@@ -1,29 +1,14 @@
 import pg from "pg";
 import "dotenv/config";
+import {
+  resolveDatabaseSsl,
+  resolveDatabaseUrl
+} from "./database-connection-options.js";
+
+export { resolveDatabaseSsl, resolveDatabaseUrl } from "./database-connection-options.js";
 
 const { Pool } = pg;
 export const DEFAULT_POOL_MAX = 6;
-
-/** Strip sslmode from URL — pg v8+ treats require as verify-full and breaks Supabase pooler on Railway. */
-export function resolveDatabaseUrl(raw = process.env.DATABASE_URL) {
-  if (!raw?.trim()) return raw;
-  try {
-    const parsed = new URL(raw.replace(/^postgresql:\/\//, "http://"));
-    parsed.searchParams.delete("sslmode");
-    const query = parsed.searchParams.toString();
-    const base = raw.split("?")[0];
-    return query ? `${base}?${query}` : base;
-  } catch {
-    return raw
-      .replace(/([?&])sslmode=[^&]*&?/g, (_, sep) => (sep === "?" ? "?" : ""))
-      .replace(/\?&/, "?")
-      .replace(/[?&]$/, "");
-  }
-}
-
-export function resolveDatabaseSsl() {
-  return process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false;
-}
 
 export function resolvePoolMax(raw = process.env.PGPOOL_MAX) {
   const value = Number(raw ?? DEFAULT_POOL_MAX);
@@ -46,6 +31,17 @@ export function resolvePoolLifetimeSeconds(raw = process.env.PGPOOL_MAX_LIFETIME
   return Number.isInteger(value) && value >= 60 && value <= 24 * 60 * 60 ? value : 1800;
 }
 
+export function resolveQueryTimeoutMs(raw, fallback) {
+  const fallbackNumber = Number(fallback);
+  const safeFallback = Number.isInteger(fallbackNumber) && fallbackNumber >= 1_000
+    ? fallbackNumber
+    : 30_000;
+  const value = Number(raw ?? safeFallback);
+  return Number.isInteger(value) && value >= 1_000 && value <= 10 * 60_000
+    ? value
+    : safeFallback;
+}
+
 export function isDatabaseCapacityError(error) {
   const code = String(error?.code || "").toUpperCase();
   const message = String(error?.message || "");
@@ -63,6 +59,11 @@ export const pool = new Pool({
   idleTimeoutMillis: resolvePoolTimeoutMs(process.env.PGPOOL_IDLE_MS, 30_000),
   connectionTimeoutMillis: resolvePoolTimeoutMs(process.env.PGPOOL_CONNECTION_TIMEOUT_MS, 10_000),
   maxLifetimeSeconds: resolvePoolLifetimeSeconds(),
+  statement_timeout: resolveQueryTimeoutMs(process.env.PG_STATEMENT_TIMEOUT_MS, 30_000),
+  idle_in_transaction_session_timeout: resolveQueryTimeoutMs(
+    process.env.PG_IDLE_IN_TRANSACTION_TIMEOUT_MS,
+    15_000
+  ),
   keepAlive: true
 });
 

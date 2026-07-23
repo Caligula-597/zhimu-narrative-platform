@@ -2,6 +2,7 @@ import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
 
 export function isEmailVerificationRequired() {
+  if ((process.env.NODE_ENV ?? "development") === "production") return true;
   return process.env.REQUIRE_EMAIL_VERIFICATION === "true";
 }
 

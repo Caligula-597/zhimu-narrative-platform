@@ -38,12 +38,22 @@ jobs:
           cache-dependency-path: |
             backend/package-lock.json
             host/package-lock.json
+            play/package-lock.json
+            site/package-lock.json
             package-lock.json
       - name: Install backend dependencies
         run: npm ci
         working-directory: backend
       - name: Install frontend dependencies
         run: npm ci && npm run ensure:esm
+      - name: Source, contract, architecture, and nonfunctional gates
+        run: |
+          npm run check:source-encoding
+          npm run check:contracts
+          npm run check:world-writes
+          npm run check:architecture
+          npm run audit:nonfunctional
+          npm run test:release-gates
       - name: Install Playwright browsers
         run: npx playwright install chromium firefox webkit --with-deps
       - name: Build frontend
@@ -90,14 +100,32 @@ jobs:
         run: npm run test:format-helpers
       - name: Modal helper tests
         run: npm run test:modal-helpers
+      - name: Shared runtime, auth, Trusted Types, and UI semantics tests
+        run: |
+          npm run test:shared
+          npm run test:runtime-stores
+          npm run test:auth-matrix
+          npm run test:trusted-types
+          npm run test:ui-semantics
       - name: Install play portal dependencies
         run: npm ci
+        working-directory: play
+      - name: Build play portal
+        run: npm run build
         working-directory: play
       - name: Play portal unit tests
         run: npm run test:play
       - name: Install host portal dependencies
         run: npm ci
         working-directory: host
+      - name: Build and test host portal
+        run: npm run check
+        working-directory: host
+      - name: Install and build marketing site
+        run: npm ci && npm run build
+        working-directory: site
+      - name: Enforce production bundle budgets
+        run: npm run check:bundle-budgets
       - name: Start backend for smoke tests
         run: node src/server.js &
         working-directory: backend
@@ -173,24 +201,38 @@ jobs:
           cache: npm
           cache-dependency-path: |
             backend/package-lock.json
+            host/package-lock.json
+            play/package-lock.json
+            site/package-lock.json
             package-lock.json
       - name: Install backend dependencies
         run: npm ci
         working-directory: backend
       - name: Install root dependencies
         run: npm ci
-      - name: npm audit (root, high+)
-        run: npm audit --audit-level=high --omit=dev
-      - name: npm audit (backend, high+)
-        run: npm audit --audit-level=high --omit=dev
-        working-directory: backend
+      - name: Install portal dependencies
+        run: |
+          npm ci --prefix play
+          npm ci --prefix host
+          npm ci --prefix site
+      - name: npm audit (all workspaces, high+)
+        run: |
+          npm audit --audit-level=high
+          npm --prefix backend audit --audit-level=high
+          npm --prefix play audit --audit-level=high
+          npm --prefix host audit --audit-level=high
+          npm --prefix site audit --audit-level=high
       - name: innerHTML XSS budget
         run: npm run audit:innerhtml
       - name: Generate SBOM (root)
         run: npm sbom --sbom-format=cyclonedx --omit dev > sbom-root.cdx.json
       - name: Generate SBOM (backend)
-        run: npm sbom --sbom-format=cyclonedx --omit dev > sbom-backend.cdx.json
-        working-directory: backend
+        run: npm --prefix backend sbom --sbom-format=cyclonedx --omit dev > backend/sbom-backend.cdx.json
+      - name: Generate portal SBOMs
+        run: |
+          npm --prefix play sbom --sbom-format=cyclonedx > sbom-play.cdx.json
+          npm --prefix host sbom --sbom-format=cyclonedx > sbom-host.cdx.json
+          npm --prefix site sbom --sbom-format=cyclonedx > sbom-site.cdx.json
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -198,4 +240,68 @@ jobs:
           path: |
             sbom-root.cdx.json
             backend/sbom-backend.cdx.json
+            sbom-play.cdx.json
+            sbom-host.cdx.json
+            sbom-site.cdx.json
           retention-days: 30
+
+  codeql:
+    name: CodeQL JavaScript
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@4187e74d05793876e9989daffde9c3e66b4acd07 # v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@4187e74d05793876e9989daffde9c3e66b4acd07 # v3
+      - name: Perform CodeQL analysis
+        id: codeql-analysis
+        uses: github/codeql-action/analyze@4187e74d05793876e9989daffde9c3e66b4acd07 # v3
+        with:
+          category: /language:javascript-typescript
+          output: codeql-results
+          upload: never
+          upload-database: false
+      - name: Enforce CodeQL zero-finding gate
+        run: |
+          result_count="$(find codeql-results -type f -name '*.sarif' -print0 | xargs -0 jq -s '[.[].runs[].results[]] | length')"
+          echo "CodeQL findings: $result_count"
+          test "$result_count" -eq 0
+      - name: Upload CodeQL SARIF
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: codeql-sarif
+          path: codeql-results/
+          if-no-files-found: error
+          retention-days: 30
+
+  pages-preview:
+    name: Cloudflare Pages preview smoke
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/codex/') }}
+    needs: [ci, security, codeql]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24.13.0"
+          cache: npm
+          cache-dependency-path: |
+            site/package-lock.json
+            play/package-lock.json
+            host/package-lock.json
+      - name: Build, deploy, and verify website previews
+        run: node scripts/pages-release-ci.mjs --prepare
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

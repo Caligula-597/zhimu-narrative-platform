@@ -1,0 +1,99 @@
+name: Encrypted Production Backup
+
+on:
+  schedule:
+    - cron: "30 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: restore_drill
+          POSTGRES_USER: restore
+          POSTGRES_PASSWORD: restore_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U restore -d restore_drill"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Require backup secrets
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+        run: |
+          test -n "$DATABASE_URL"
+          test -n "$BACKUP_PASSPHRASE"
+          test "${#BACKUP_PASSPHRASE}" -ge 24
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+      - name: Create and encrypt logical backup
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+        run: |
+          mkdir -p artifacts/backup
+          /usr/lib/postgresql/17/bin/pg_dump \
+            --dbname "$DATABASE_URL" \
+            --format=custom \
+            --compress=9 \
+            --no-owner \
+            --no-acl \
+            --file artifacts/backup/zhimu.dump
+          openssl enc -aes-256-cbc -pbkdf2 -salt \
+            -in artifacts/backup/zhimu.dump \
+            -out artifacts/backup/zhimu.dump.enc \
+            -pass env:BACKUP_PASSPHRASE
+          rm artifacts/backup/zhimu.dump
+          sha256sum artifacts/backup/zhimu.dump.enc > artifacts/backup/SHA256SUMS
+          printf 'created_at=%s\ncommit=%s\nformat=pg_dump-custom+aes-256-cbc-pbkdf2\n' \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            "$GITHUB_SHA" > artifacts/backup/manifest.txt
+      - name: Decrypt and restore into isolated PostgreSQL
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+          PGPASSWORD: restore_only
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 \
+            -in artifacts/backup/zhimu.dump.enc \
+            -out /tmp/zhimu-restore.dump \
+            -pass env:BACKUP_PASSPHRASE
+          /usr/lib/postgresql/17/bin/pg_restore \
+            --exit-on-error \
+            --no-owner \
+            --no-acl \
+            --dbname postgresql://restore@127.0.0.1:5432/restore_drill \
+            /tmp/zhimu-restore.dump
+          /usr/lib/postgresql/17/bin/psql \
+            postgresql://restore@127.0.0.1:5432/restore_drill \
+            -v ON_ERROR_STOP=1 \
+            -c "SELECT COUNT(*) FROM users" \
+            -c "SELECT COUNT(*) FROM worlds" \
+            -c "SELECT COUNT(*) FROM schema_migrations"
+          rm /tmp/zhimu-restore.dump
+      - name: Upload encrypted off-site backup
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: production-backup-${{ github.run_id }}
+          path: artifacts/backup/
+          if-no-files-found: error
+          retention-days: 30

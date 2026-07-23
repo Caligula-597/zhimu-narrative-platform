@@ -13,6 +13,35 @@ const migrationsDir = path.join(here, "..", "migrations");
 const verifyOnly = process.argv.includes("--verify-only");
 const MIGRATION_LOCK_KEY = "zhimu:schema-migrations:v1";
 
+function concurrentIndexNames(sql) {
+  const names = [];
+  const pattern =
+    /\bCREATE\s+(?:UNIQUE\s+)?INDEX\s+CONCURRENTLY\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:"([^"]+)"|([a-zA-Z_][a-zA-Z0-9_$]*))/gi;
+  for (const match of sql.matchAll(pattern)) names.push(match[1] || match[2]);
+  return [...new Set(names)];
+}
+
+function quoteIdentifier(identifier) {
+  return `"${String(identifier).replace(/"/g, '""')}"`;
+}
+
+async function removeInvalidConcurrentIndexes(client, sql) {
+  for (const indexName of concurrentIndexNames(sql)) {
+    const state = await client.query(
+      `SELECT i.indisvalid
+       FROM pg_class c
+       JOIN pg_index i ON i.indexrelid = c.oid
+       JOIN pg_namespace n ON n.oid = c.relnamespace
+       WHERE n.nspname = current_schema() AND c.relname = $1`,
+      [indexName]
+    );
+    if (state.rows[0]?.indisvalid === false) {
+      console.warn(`Removing invalid concurrent index before retry: ${indexName}`);
+      await client.query(`DROP INDEX CONCURRENTLY IF EXISTS ${quoteIdentifier(indexName)}`);
+    }
+  }
+}
+
 /** Renamed migrations — copy applied_at so existing DBs skip re-apply. */
 const MIGRATION_RENAMES = [
   ["047_content_platform_runtime.sql", "049_content_platform_runtime.sql"],
@@ -115,7 +144,23 @@ try {
     if (!integrity.pending.includes(filename)) continue;
     const nonTransactional = /^\s*--\s*migrate:no-transaction\b/im.test(sql);
     if (nonTransactional) {
+      await removeInvalidConcurrentIndexes(client, sql);
       await client.query(sql);
+      const invalid = await client.query(
+        `SELECT c.relname
+         FROM pg_class c
+         JOIN pg_index i ON i.indexrelid = c.oid
+         JOIN pg_namespace n ON n.oid = c.relnamespace
+         WHERE n.nspname = current_schema()
+           AND c.relname = ANY($1::text[])
+           AND NOT i.indisvalid`,
+        [concurrentIndexNames(sql)]
+      );
+      if (invalid.rowCount) {
+        throw new Error(
+          `Migration ${filename} left invalid indexes: ${invalid.rows.map((row) => row.relname).join(", ")}`
+        );
+      }
       await client.query("INSERT INTO schema_migrations (filename, checksum) VALUES ($1, $2)", [filename, checksum]);
       console.log(`Applied ${filename} (non-transactional)`);
       continue;

@@ -7,7 +7,10 @@ import { getEventOutboxStatus } from "../event-outbox-dispatcher.js";
 import { getTelemetryStatus } from "../telemetry.js";
 import { getEmailServiceStatus } from "../email.js";
 import { getPublicOAuthDiagnostics } from "../oauth-diagnostics.js";
-import { getStripeBillingStatus } from "../stripe-billing.js";
+import { getStripeBillingStatus, isBillingLaunchEnabled } from "../stripe-billing.js";
+import { isCreditsSystemEnabled } from "../credits.js";
+import { isEmailVerificationRequired } from "../email-verification-policy.js";
+import { getPricingPageMode, isCommercialUiVisible } from "../pricing-pages.js";
 import { getUploadScanStatus } from "../upload-scan.js";
 import { resolveCspMode } from "../security-headers.js";
 import {
@@ -63,6 +66,31 @@ export function productionTrustGates({ features, rateLimits }) {
       label: "Session cookies + revocation",
       ok: true,
       detail: "auth_sessions revocation and HttpOnly cookie restore are enabled"
+    },
+    {
+      key: "email_verification",
+      label: "Verified registered identities",
+      ok: isEmailVerificationRequired() && Boolean(features.email?.configured),
+      detail: `required=${isEmailVerificationRequired()}; provider=${features.email?.provider || "none"}`
+    },
+    {
+      key: "database_tls",
+      label: "Verified database TLS",
+      ok: process.env.DATABASE_SSL === "true",
+      detail: process.env.DATABASE_SSL === "true"
+        ? "certificate verification enabled"
+        : "DATABASE_SSL must be true in production"
+    },
+    {
+      key: "monetization_frozen",
+      label: "Launch without charging",
+      ok: !isBillingLaunchEnabled()
+        && !isCreditsSystemEnabled()
+        && getPricingPageMode() === "launch"
+        && !isCommercialUiVisible(),
+      detail:
+        `billing=${isBillingLaunchEnabled()}; credits=${isCreditsSystemEnabled()}; `
+        + `pricing=${getPricingPageMode()}; commercialUi=${isCommercialUiVisible()}`
     },
     {
       key: "csp",

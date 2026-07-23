@@ -19,6 +19,7 @@ RUN npm ci --omit=dev --ignore-scripts
 RUN set -eux; \
   if [ -f /ctx/backend/package.json ]; then \
     cp -a /ctx/backend/. /app/; \
+    if [ -d /ctx/shared ]; then cp -a /ctx/shared /shared; fi; \
   else \
     cp -a /ctx/. /app/; \
   fi; \

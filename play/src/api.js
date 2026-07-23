@@ -16,7 +16,7 @@ const API_BASE = resolveVitePortalApiBase({
 
 const sessionToken = createSessionTokenStore("zhimuSessionToken");
 
-/** Play 部署在 play.*，API 在 app.*；SameSite=Lax 的 HttpOnly Cookie 不会随跨站 fetch 发送，故始终用 Bearer。 */
+/** HttpOnly Cookie is authoritative; the Bearer fallback is scoped to this browser tab. */
 function sseCursorKey(roomId, userId) {
   return scopedSseCursorKey("zhimuPlaySseCursor", roomId, userId);
 }

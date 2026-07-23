@@ -71,6 +71,7 @@ export const API_ERRORS = {
   PLAZA_POST_INVALID: { status: 400, message: "Plaza post body invalid" },
   PLAZA_POST_NOT_FOUND: { status: 404, message: "Plaza post not found" },
   PLAZA_REPLY_INVALID: { status: 400, message: "Plaza reply body invalid" },
+  PLAZA_REPLY_REJECTED: { status: 422, message: "Plaza reply rejected by review" },
   PLAZA_REPLY_NOT_FOUND: { status: 404, message: "Plaza reply not found" },
   PLAZA_REPORT_INVALID: { status: 400, message: "Plaza report reason invalid" },
   PLAZA_REPORT_SELF: { status: 400, message: "Cannot report own content" },

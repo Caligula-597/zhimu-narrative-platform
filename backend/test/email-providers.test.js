@@ -14,7 +14,10 @@ const ENV_KEYS = [
   "MAILGUN_API_KEY",
   "MAILGUN_DOMAIN",
   "MAIL_FROM",
-  "APP_PUBLIC_URL"
+  "APP_PUBLIC_URL",
+  "EMAIL_DELIVERY_STUB",
+  "PASSWORD_RESET_EMAIL_STUB",
+  "NODE_ENV"
 ];
 
 function saveEnv() {
@@ -59,6 +62,13 @@ test("isEmailConfigured respects EMAIL_PROVIDER routes", async (context) => {
   delete process.env.MAILGUN_DOMAIN;
   assert.equal(isEmailConfigured(), true);
   assert.equal(getEmailProvider(), "console");
+
+  process.env.NODE_ENV = "production";
+  assert.equal(isEmailConfigured(), false);
+  process.env.EMAIL_PROVIDER = "resend";
+  process.env.RESEND_API_KEY = "re_test";
+  process.env.EMAIL_DELIVERY_STUB = "1";
+  assert.equal(isEmailConfigured(), false);
 });
 
 test("sendEmailVerificationEmail captures verify URL in stub mode", async (context) => {

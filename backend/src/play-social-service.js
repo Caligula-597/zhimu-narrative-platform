@@ -1,7 +1,7 @@
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { transactionWithPlatformEvents } from "./transaction-events.js";
-import { assertPlayAdFree } from "./play-content-moderation.js";
+import { assertPlaySocialContentAllowed } from "./play-content-moderation.js";
 import { assertPlaySocialWrite } from "./play-social-guard.js";
 
 const HOURLY_DM_LIMIT = 60;
@@ -237,7 +237,7 @@ export async function sendDmMessage(actorId, conversationId, body) {
   await assertPlaySocialWrite(actorId);
   const text = String(body ?? "").trim();
   if (!text || text.length > 1000) throwErr("DM_MESSAGE_INVALID", "私信内容需为 1～1000 字。");
-  assertPlayAdFree(text);
+  assertPlaySocialContentAllowed(text);
   const inserted = await transactionWithPlatformEvents(async (client, events) => {
     const conv = await client.query(
       `SELECT id, user_low_id, user_high_id FROM play_dm_conversations WHERE id = $1 FOR UPDATE`,

@@ -9,6 +9,10 @@
 import pg from "pg";
 import "dotenv/config";
 import { R2Storage } from "../src/storage/r2-storage.js";
+import {
+  resolveDatabaseSsl,
+  resolveDatabaseUrl
+} from "../src/database-connection-options.js";
 
 const { Client } = pg;
 const limit = Math.max(1, Math.min(20, Number(process.argv.find((a, i) => process.argv[i - 1] === "--limit") || 1)));
@@ -28,8 +32,8 @@ async function main() {
   }
 
   const client = new Client({
-    connectionString: databaseUrl,
-    ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined
+    connectionString: resolveDatabaseUrl(databaseUrl),
+    ssl: resolveDatabaseSsl()
   });
   await client.connect();
 

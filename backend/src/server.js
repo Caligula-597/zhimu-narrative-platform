@@ -9,6 +9,9 @@ import { startOpsAlertMonitor } from "./ops-alert-bridge.js";
 import { initTelemetry, shutdownTelemetry } from "./telemetry.js";
 import { initSentry, shutdownSentry } from "./sentry.js";
 import { startEventOutboxDispatcher } from "./event-outbox-dispatcher.js";
+import { startAccountDeleteJobWorker } from "./account-delete-job-worker.js";
+import { startPlazaReviewWorker } from "./play-plaza-review-worker.js";
+import { startDataRetentionWorker } from "./data-retention-worker.js";
 
 await runStartupValidation();
 await initTelemetry();
@@ -20,6 +23,9 @@ const port = Number(process.env.PORT ?? 4180);
 let stopEventOutbox = () => {};
 let stopHostDelayWake = () => {};
 let stopAlertMonitor = () => {};
+let stopAccountDeleteJobs = () => {};
+let stopPlazaReviews = () => {};
+let stopDataRetention = () => {};
 let shutdownPromise = null;
 
 function shutdown(signal, exitCode = 0) {
@@ -29,6 +35,9 @@ function shutdown(signal, exitCode = 0) {
     const background = await Promise.allSettled([
       stopHostDelayWake(),
       stopAlertMonitor(),
+      stopAccountDeleteJobs(),
+      stopPlazaReviews(),
+      stopDataRetention(),
       stopEventOutbox()
     ]);
     for (const result of background) {
@@ -95,4 +104,19 @@ try {
   stopAlertMonitor = startOpsAlertMonitor({ log: app.log });
 } catch (error) {
   app.log.error({ err: error }, "ops alert monitor startup failed");
+}
+try {
+  stopAccountDeleteJobs = startAccountDeleteJobWorker({ log: app.log });
+} catch (error) {
+  app.log.error({ err: error }, "account delete job worker startup failed");
+}
+try {
+  stopPlazaReviews = startPlazaReviewWorker({ log: app.log });
+} catch (error) {
+  app.log.error({ err: error }, "plaza review worker startup failed");
+}
+try {
+  stopDataRetention = startDataRetentionWorker({ log: app.log });
+} catch (error) {
+  app.log.error({ err: error }, "data retention worker startup failed");
 }
