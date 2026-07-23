@@ -21,6 +21,8 @@ COPY backend/package.json backend/package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts
 
 COPY backend/ .
+RUN sed -i 's/\r$//' ./deploy/docker-entrypoint-api.sh \
+  && chmod +x ./deploy/docker-entrypoint-api.sh
 # room/platform event schemas resolve ../../shared from /app/src → /shared
 COPY shared /shared
 COPY --from=web-build /web/dist ./public/dist

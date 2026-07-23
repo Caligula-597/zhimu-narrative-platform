@@ -1,4 +1,5 @@
 #!/bin/sh
+# Keep this entrypoint POSIX-compatible even when the repository is opened on Windows.
 set -e
 
 echo "[zhimu-api] running migrations…"
