@@ -1,0 +1,428 @@
+/*
+ * Host live-operation workspace.
+ * Kept separate from the shell stylesheet so the operation domain can evolve
+ * without adding another global-style hotspot.
+ */
+
+.host-operation-workspace {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 16px;
+  padding: 18px;
+  border: 1px solid rgba(43, 107, 97, 0.26);
+  border-top: 4px solid var(--host-green);
+  border-radius: var(--host-radius);
+  background:
+    linear-gradient(135deg, rgba(43, 107, 97, 0.055), transparent 34%),
+    var(--host-surface);
+  box-shadow: var(--host-shadow);
+}
+
+.host-operation-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 20px;
+}
+
+.host-operation-head h2 {
+  margin: 3px 0 5px;
+  color: var(--host-green);
+  font-size: 22px;
+}
+
+.host-operation-head p {
+  max-width: 820px;
+  color: var(--host-muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.host-operation-head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.host-operation-tabs {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 8px 0 2px;
+  border-top: 1px solid var(--host-line);
+}
+
+.host-operation-tab {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid var(--host-line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--host-muted);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.host-operation-tab.is-active {
+  border-color: rgba(43, 107, 97, 0.42);
+  color: var(--host-green);
+  background: rgba(43, 107, 97, 0.1);
+}
+
+.host-operation-status {
+  padding: 10px 12px;
+  border: 1px solid var(--host-line);
+  border-radius: 7px;
+  color: var(--host-muted);
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.host-operation-status.pending {
+  border-color: rgba(167, 120, 61, 0.35);
+  color: #755523;
+  background: var(--brass-soft);
+}
+
+.host-operation-status.success {
+  border-color: rgba(43, 107, 97, 0.32);
+  color: var(--host-green);
+  background: rgba(43, 107, 97, 0.08);
+}
+
+.host-operation-status.error {
+  border-color: rgba(177, 85, 70, 0.34);
+  color: #8a3f34;
+  background: #fff4f2;
+}
+
+.host-operation-body {
+  min-width: 0;
+}
+
+.host-operation-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 13px;
+}
+
+.host-operation-form > label,
+.host-player-note-editor label {
+  display: grid;
+  gap: 6px;
+  color: var(--host-ink);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.host-operation-copy,
+.host-operation-picker,
+.host-operation-actions {
+  grid-column: 1 / -1;
+}
+
+.host-operation-copy {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--host-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.host-operation-copy strong {
+  color: var(--host-ink);
+  font-size: 14px;
+}
+
+.host-operation-copy p,
+.host-operation-picker p {
+  color: var(--host-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.host-operation-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--host-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.host-operation-picker legend {
+  padding: 0 5px;
+  color: var(--host-muted);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.host-operation-picker label {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(25, 68, 61, 0.11);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--host-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.host-operation-picker input {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.host-operation-picker span {
+  min-width: 0;
+}
+
+.host-operation-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.host-operation-confirm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 13px;
+  border: 1px solid rgba(177, 85, 70, 0.32);
+  border-radius: 8px;
+  background: #fff4f2;
+}
+
+.host-operation-confirm strong {
+  display: block;
+  margin: 2px 0 4px;
+  color: #74382f;
+}
+
+.host-operation-confirm p {
+  color: #80544c;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.host-operation-notice {
+  padding: 11px 12px;
+  border-left: 3px solid var(--host-brass);
+  background: var(--brass-soft);
+}
+
+.host-operation-notice strong,
+.host-operation-notice p {
+  display: block;
+}
+
+.host-operation-notice p {
+  margin-top: 3px;
+  color: var(--host-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.host-operation-loading {
+  min-height: 180px;
+  padding: 28px;
+  border: 1px dashed var(--host-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.65);
+  text-align: center;
+}
+
+.host-operation-loading p {
+  margin-top: 5px;
+  color: var(--host-muted);
+  font-size: 12px;
+}
+
+.host-player-inspector {
+  display: grid;
+  gap: 14px;
+}
+
+.host-player-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.host-player-summary h3 {
+  margin: 3px 0;
+  color: var(--host-ink);
+  font-size: 18px;
+}
+
+.host-player-summary p {
+  color: var(--host-muted);
+  font-size: 12px;
+}
+
+.host-player-summary-facts {
+  display: flex;
+  gap: 8px;
+}
+
+.host-player-summary-facts span {
+  min-width: 92px;
+  padding: 9px 10px;
+  border: 1px solid var(--host-line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--host-muted);
+  font-size: 10px;
+  text-align: center;
+}
+
+.host-player-summary-facts b {
+  display: block;
+  color: var(--host-green);
+  font-size: 17px;
+}
+
+.host-player-knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.host-player-knowledge-grid > section,
+.host-player-note-editor {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--host-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.host-player-knowledge-grid h4 {
+  margin-bottom: 9px;
+  color: var(--host-ink);
+}
+
+.host-player-log-section {
+  grid-column: 1 / -1;
+}
+
+.host-detail-list {
+  display: grid;
+  gap: 7px;
+  overflow: auto;
+}
+
+.host-detail-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px;
+  border: 1px solid rgba(25, 68, 61, 0.1);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.host-detail-row > div:first-child {
+  min-width: 0;
+}
+
+.host-detail-row strong,
+.host-detail-row p,
+.host-detail-row small {
+  display: block;
+}
+
+.host-detail-row p,
+.host-detail-row small {
+  margin-top: 3px;
+  color: var(--host-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.host-player-note-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.danger-btn {
+  border-color: #8a3f34 !important;
+  background: #8a3f34 !important;
+}
+
+@media (max-width: 1180px) {
+  .host-operation-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .host-operation-workspace {
+    padding: 14px;
+  }
+
+  .host-operation-head,
+  .host-player-summary,
+  .host-operation-confirm,
+  .host-player-note-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .host-operation-head-actions,
+  .host-operation-confirm .row,
+  .host-player-note-editor .host-operation-actions {
+    justify-content: flex-start;
+  }
+
+  .host-operation-form,
+  .host-player-knowledge-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .host-player-log-section {
+    grid-column: auto;
+  }
+
+  .host-player-summary-facts {
+    overflow-x: auto;
+  }
+
+  .host-operation-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .host-operation-head-actions,
+  .host-operation-actions,
+  .host-operation-confirm .row,
+  .host-player-note-editor .host-operation-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .host-operation-head-actions > *,
+  .host-operation-actions > *,
+  .host-operation-confirm .row > *,
+  .host-player-note-editor .host-operation-actions > * {
+    width: 100%;
+  }
+
+  .host-detail-row {
+    flex-direction: column;
+  }
+}

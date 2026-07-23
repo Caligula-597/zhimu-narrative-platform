@@ -139,7 +139,7 @@ export const api = {
   hostKickPlayer: (roleSlotId) =>
     request(roomPath(`/host/players/${roleSlotId}/kick`), { method: "POST", idempotent: true }),
   hostClueNote: (clueId, payload) =>
-    request(roomPath(`/host/clues/${clueId}/notes`), { method: "PUT", body: payload }),
+    request(roomPath(`/host/clues/${clueId}/notes`), { method: "PUT", body: payload, idempotent: true }),
 
   executeHostEvent: (eventId) =>
     request(roomPath(`/host-events/${eventId}/execute`), { method: "POST", idempotent: true }),

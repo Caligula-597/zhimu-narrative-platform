@@ -1,4 +1,5 @@
 import "./styles.css";
+import "./styles/host-operation-workspace.css";
 import { createToastTimer } from "../../shared/toast.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { togglePanelInDom } from "./components/collapse.js";
@@ -6,6 +7,7 @@ import { renderApp } from "./components/shell.js";
 import { createDirectorActionHandler } from "./runtime/director-actions.js";
 import { createHostLifecycleController } from "./runtime/host-lifecycle-controller.js";
 import { createHostMiniGameActionHandler } from "./runtime/host-mini-game-controller.js";
+import { createHostOperationController } from "./runtime/host-operation-controller.js";
 import { bootstrapPaceTimer, tickPaceTimer } from "./runtime/host-pace-timer.js";
 import { getRoomId, subscribeSessionToken } from "./session.js";
 import { state } from "./state.js";
@@ -47,6 +49,7 @@ function setToast(message, ms = 3200) {
 const directorActions = createDirectorActionHandler({ render, showToast: setToast });
 const lifecycle = createHostLifecycleController({ render, setBusy, showToast: setToast });
 const miniGameActions = createHostMiniGameActionHandler({ render, showToast: setToast });
+const hostOperations = createHostOperationController({ render, showToast: setToast });
 
 // 节奏计时器仅直更计时 DOM，避免每秒触发整页重绘。
 bootstrapPaceTimer();
@@ -68,6 +71,7 @@ app.addEventListener("click", async (event) => {
   const action = button.dataset.action;
 
   if (await miniGameActions(action, button)) return;
+  if (await hostOperations.handleAction(action, button)) return;
   if (directorActions(action, button)) return;
   if (await lifecycle.handleAction(action, button)) return;
 
@@ -78,6 +82,14 @@ app.addEventListener("click", async (event) => {
       button
     );
   }
+});
+
+app.addEventListener("input", (event) => {
+  hostOperations.handleField(event.target);
+});
+
+app.addEventListener("change", (event) => {
+  hostOperations.handleField(event.target);
 });
 
 subscribeSessionToken((change) => {

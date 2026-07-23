@@ -34,6 +34,7 @@ export const state = {
   cloudRulesPreview: null,
   hostEventSelection: [],
   hostSelectedActKey: "",
+  hostOperation: null,
   panelCollapse: {},
 
   roomEventsConnected: false,

@@ -27,19 +27,6 @@ import {
   openCreateRecapModal,
   openRoomInviteModal
 } from "./invite.js";
-import {
-  kickHostPlayer,
-  openHostClueNote,
-  openHostGrantClueModal,
-  openHostGrantItemModal,
-  openHostLogModal,
-  openHostNudgeWaitingModal,
-  openHostPlayerDetail,
-  openHostStuckIntervention,
-  openHostUnlockSceneModal,
-  openHostUnlockSectionModal
-} from "./host-intervention-controller.js";
-
 export function createDirectorActionHandler({ render, showToast }) {
   async function runCommand(command, successMessage, fallbackMessage, { refresh = true } = {}) {
     try {
@@ -62,30 +49,12 @@ export function createDirectorActionHandler({ render, showToast }) {
       case "rule-manual-trigger": triggerManualRuleFromDirector(el?.dataset?.rule); return true;
       case "delay-host-event": openDelayHostEventModal(el?.dataset?.event); return true;
       case "host-event-context": openHostEventContext(el?.dataset?.event); return true;
-      case "host-player-detail": openHostPlayerDetail(el?.dataset?.role); return true;
-      case "host-kick-player": kickHostPlayer(el?.dataset?.role); return true;
-      case "host-manual-grant-clue":
-        openHostGrantClueModal({
-          actKey: el?.dataset?.actKey,
-          clueId: el?.dataset?.clueId,
-          roleKey: el?.dataset?.roleKey
-        });
-        return true;
-      case "host-manual-grant-item": openHostGrantItemModal(); return true;
-      case "host-manual-unlock-section":
-        openHostUnlockSectionModal({ actKey: el?.dataset?.actKey });
-        return true;
-      case "host-manual-unlock-scene": openHostUnlockSceneModal(); return true;
-      case "host-manual-log": openHostLogModal(); return true;
-      case "host-clue-note": openHostClueNote(el?.dataset?.clue, el?.dataset?.role); return true;
       case "host-event-toggle": toggleHostEventSelection(el?.dataset?.event, el?.checked); return true;
       case "host-event-select-all": syncHostEventSelectAll(el?.checked); return true;
       case "batch-execute-host-events": batchHostEventsAction("execute"); return true;
       case "batch-dismiss-host-events": batchHostEventsAction("dismiss"); return true;
       case "execute-host-event": executeHostEvent(el?.dataset?.event); return true;
       case "dismiss-host-event": dismissHostEvent(el?.dataset?.event); return true;
-      case "host-nudge-waiting": openHostNudgeWaitingModal(); return true;
-      case "host-stuck-intervene": openHostStuckIntervention(el?.dataset?.role || ""); return true;
       case "create-checkpoint": openCreateCheckpointModal(); return true;
       case "create-recap": openCreateRecapModal(); return true;
       case "room-invite-current": openRoomInviteModal(); return true;

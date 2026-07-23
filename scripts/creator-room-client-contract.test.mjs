@@ -28,7 +28,7 @@ test("main and Host room clients opt into the shared idempotency transport", () 
 
 test("creator room callers leave invite-code allocation to the server", () => {
   const mainCreate = section(
-    "src/runtime/auth-world.js",
+    "src/views/rooms.js",
     "export async function createParallelRoom",
     "export async function setRoomPublicListing"
   );
@@ -48,13 +48,18 @@ test("creator room callers leave invite-code allocation to the server", () => {
 });
 
 test("Creator room UI sends the selected Release and restores the action after failure", () => {
+  const roomView = section(
+    "src/views/rooms.js",
+    "export function rooms",
+    "export async function refreshRoomWorkspace"
+  );
   const mainCreate = section(
-    "src/runtime/auth-world.js",
+    "src/views/rooms.js",
     "export async function createParallelRoom",
     "export async function setRoomPublicListing"
   );
-  assert.match(mainCreate, /data-room-release/);
-  assert.match(mainCreate, /\{name,publicListing,releaseId\}/);
-  assert.match(mainCreate, /button\.disabled=true/);
-  assert.match(mainCreate, /button\.disabled=false/);
+  assert.match(roomView, /data-room-draft="releaseId"/);
+  assert.match(mainCreate, /releaseId:\s*state\.draft\.releaseId\s*\|\|\s*null/);
+  assert.match(mainCreate, /state\.createSaving\s*=\s*true/);
+  assert.match(mainCreate, /catch\s*\(error\)\s*\{[\s\S]*?state\.createSaving\s*=\s*false/);
 });

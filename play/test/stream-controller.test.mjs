@@ -69,3 +69,47 @@ test("player applies mini-game progress and failed completion from room events",
   assert.equal(games.at(-1).status, "fail");
   assert.equal(messages.at(-1), "机关尝试次数已耗尽");
 });
+
+test("player reconciles every Host live-operation event with the correct surface", async () => {
+  const pulses = [];
+  const messages = [];
+  const nudges = [];
+  let refreshes = 0;
+  const ctx = {
+    getView: () => "game",
+    getRoomId: () => "room-1",
+    getRoleId: () => "role-1",
+    bumpTabPulse: (tab) => pulses.push(tab),
+    onRefresh: async () => { refreshes += 1; },
+    onToast: (message) => messages.push(message),
+    setHostNudge: (message) => nudges.push(message)
+  };
+
+  const events = [
+    ["room.clue_granted", { roleSlotId: "role-1", clueId: "clue-1", clueName: "血迹", source: "host_manual" }],
+    ["room.clue_revoked", { roleSlotId: "role-1", clueId: "clue-1", clueName: "血迹", source: "host_manual" }],
+    ["room.clue_resent", { roleSlotId: "role-1", clueId: "clue-1", clueName: "血迹", source: "host_manual" }],
+    ["room.item_granted", { roleSlotId: "role-1", itemId: "item-1", itemName: "钥匙", source: "host_manual" }],
+    ["room.section_unlocked", { roleSlotId: "role-1", scriptSectionId: "section-1", source: "host_manual" }],
+    ["room.section_relocked", { roleSlotId: "role-1", sectionId: "section-1", source: "host_manual" }],
+    ["room.section_skipped", { roleSlotId: "role-1", sectionId: "section-1", source: "host_manual" }],
+    ["room.scene_unlocked", { sceneId: "scene-1", sceneName: "大厅", source: "host_manual" }],
+    ["room.host_nudge", { roleSlotIds: ["role-1"], message: "请查看新的线索" }]
+  ];
+  for (const [type, payload] of events) {
+    await handleRoomEvent(type, payload, ctx);
+  }
+
+  assert.equal(refreshes, 8);
+  assert.ok(pulses.includes("clues"));
+  assert.ok(pulses.includes("inventory"));
+  assert.ok(pulses.includes("sections"));
+  assert.ok(pulses.includes("explore"));
+  assert.ok(pulses.includes("home"));
+  assert.equal(nudges.at(-1), "请查看新的线索");
+  assert.ok(messages.some((message) => message.includes("获得线索")));
+  assert.ok(messages.some((message) => message.includes("撤回线索")));
+  assert.ok(messages.some((message) => message.includes("获得物品")));
+  assert.ok(messages.some((message) => message.includes("新分幕")));
+  assert.ok(messages.some((message) => message.includes("新场景")));
+});

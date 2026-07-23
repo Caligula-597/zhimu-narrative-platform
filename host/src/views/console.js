@@ -19,15 +19,15 @@ import {
   pendingEventRoleIds
 } from "../runtime/host-event-queue.js";
 import { bindHostRulesContext, directorRulesPreview, hostRulesManager } from "../runtime/host-rules-controller.js";
-import { bindHostInterventionContext, grantModeLabel } from "../runtime/host-intervention-controller.js";
+import { grantModeLabel } from "../runtime/host-operation-model.js";
 import { bindHostMiniGameContext, hostMiniGameCard } from "../runtime/host-mini-game-controller.js";
 import { renderHostCommandCenter } from "./host-layout.js";
+import { renderHostOperationWorkspace } from "./host-operation-workspace.js";
 
 export function bindConsoleContext({ render, showToast }) {
   bindHostPaceTimerContext({ render });
   bindHostEventQueueContext({ render, showToast });
   bindHostRulesContext({ render, showToast });
-  bindHostInterventionContext({ showToast });
   bindHostMiniGameContext({ render, showToast });
 }
 
@@ -71,6 +71,7 @@ export function renderConsole(){
  return `<section class="host-console">
   <div class="host-console-status">${cloudStatus()}</div>
   ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows })}
+  ${renderHostOperationWorkspace()}
   ${hostRiskPanel}
   ${noPlayerProgressHint}
   ${hostPlayersErrorBanner}

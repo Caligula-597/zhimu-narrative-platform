@@ -96,6 +96,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     sessionGeneration += 1;
     if (!token) {
       disconnectRoomEvents();
+      state.hostOperation = null;
       state.user = null;
       state.authStatus = "anonymous";
       state.authError = "";
@@ -121,6 +122,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       state.landingStep = "rooms";
       return;
     }
+    if (state.hostOperation?.roomId !== getRoomId()) state.hostOperation = null;
     state.view = "console";
     render();
     setBusy(true);
@@ -140,6 +142,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     if (!worldId) return;
     setWorldId(worldId);
     setRoomId(worldId, "");
+    state.hostOperation = null;
     state.room = null;
     state.landingStep = "rooms";
     setBusy(true);
@@ -213,6 +216,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   async function selectRoom(roomId) {
     const worldId = getWorldId();
     if (!worldId || !roomId) return;
+    state.hostOperation = null;
     setRoomId(worldId, roomId);
     state.room = state.rooms.find((room) => room.id === roomId) || null;
     await enterConsole();
@@ -269,6 +273,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     disconnectRoomEvents();
     clearSession();
     setWorldId("");
+    state.hostOperation = null;
     state.user = null;
     state.authStatus = "anonymous";
     state.authError = "";
@@ -280,11 +285,13 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     switch (action) {
       case "go-home":
         disconnectRoomEvents();
+        state.hostOperation = null;
         state.view = "landing";
         render();
         return true;
       case "go-pick-room":
         disconnectRoomEvents();
+        state.hostOperation = null;
         state.view = "landing";
         state.landingStep = getWorldId() ? "rooms" : "worlds";
         render();
