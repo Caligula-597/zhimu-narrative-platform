@@ -8,11 +8,11 @@ import { beginWriterToolSession } from "./writer-tool-session.js";
 
 function roomChoices(data = {}) {
   return [
-    { id: "__testing__", name: "假设：测试房", status: "testing" },
-    { id: "__active__", name: "假设：正式房", status: "active" },
+    { id: "__testing__", name: "假设：测试房初始态", status: "testing" },
+    { id: "__active__", name: "假设：正式房初始态", status: "active" },
     ...(data.rooms || []).map((room) => ({
       id: room.id,
-      name: `${room.name || "运行房"}（${room.status || "active"}）`,
+      name: `${room.name || "运行房"}（${room.status || "active"} · 初始态）`,
       status: room.status || "active"
     }))
   ];
@@ -26,6 +26,11 @@ function impactGroupHtml(title, items = []) {
   if (!items.length) return `<section class="publish-impact-group"><h4>${escapeHtml(title)}</h4><div class="empty-state">无</div></section>`;
   const rows = items.map((item) => `<div class="publish-impact-row ${item.visible ? "is-visible" : "is-hidden"}"><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.reason)}</small></div><span class="status-chip ${item.visible ? "published" : "draft"}">${item.visible ? "可见" : "不可见"}</span></div>`).join("");
   return `<section class="publish-impact-group"><h4>${escapeHtml(title)} · ${items.filter((item) => item.visible).length}/${items.length}</h4>${rows}</section>`;
+}
+
+function impactWarningsHtml(warnings = []) {
+  if (!warnings.length) return "";
+  return `<aside class="workspace-inline-warning"><strong>Player 契约提醒</strong><ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul></aside>`;
 }
 
 function impactResult(data, session) {
@@ -53,6 +58,7 @@ export function impactWorkspaceHtml(data, session) {
     <label><span>房间 / 模式</span><select class="field" data-impact-room>${optionsHtml(rooms, session.draft.roomId)}</select></label>
   </div>
   <p class="publish-impact-summary">预计可见 <strong>${impact.summary.visible}</strong> / 共 ${impact.summary.total} · 房间状态 <code>${escapeHtml(impact.roomStatus)}</code></p>
+  ${impactWarningsHtml(impact.warnings)}
   <div class="writer-impact-results">
     ${impactGroupHtml("章节", impact.chapters)}
     ${impactGroupHtml("私人分幕", impact.sections)}
@@ -72,7 +78,7 @@ export function impactWorkspaceHtml(data, session) {
           <div><dt>预计隐藏</dt><dd>${impact.summary.hidden}</dd></div>
           <div><dt>总项目</dt><dd>${impact.summary.total}</dd></div>
         </dl>
-        <div class="writer-metadata-guidance"><strong>预览边界</strong><p>这里不模拟玩家已经获得的私密线索，也不执行运行房中的临时解锁；上线前仍需在真实测试房走一遍玩家视角。</p></div>
+        <div class="writer-metadata-guidance"><strong>预览边界</strong><p>这里按 Player 初始态计算：非首幕、场景和线索都需要运行时解锁、获取或分享记录。真实运行进度仍需进入玩家端核验。</p></div>
       </aside>
       ${renderWorkspaceEditor({
         title: "玩家可见性推演",

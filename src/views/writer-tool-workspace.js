@@ -18,7 +18,8 @@ const moduleLoaders = {
   import: () => import("./writer-package-workspace.js"),
   snapshot: () => import("./writer-snapshot-workspace.js"),
   review: () => import("./writer-review-workspace.js"),
-  collaboration: () => import("./writer-collaboration-workspace.js")
+  collaboration: () => import("./writer-collaboration-workspace.js"),
+  preview: () => import("./writer-player-preview-workspace.js")
 };
 
 const renderMethods = {
@@ -29,7 +30,8 @@ const renderMethods = {
   import: "importWorkspaceHtml",
   snapshot: "snapshotWorkspaceHtml",
   review: "reviewWorkspaceHtml",
-  collaboration: "collaborationWorkspaceHtml"
+  collaboration: "collaborationWorkspaceHtml",
+  preview: "playerPreviewWorkspaceHtml"
 };
 
 const bindMethods = {
@@ -40,7 +42,8 @@ const bindMethods = {
   import: "bindImportWorkspace",
   snapshot: "bindSnapshotWorkspace",
   review: "bindReviewWorkspace",
-  collaboration: "bindCollaborationWorkspace"
+  collaboration: "bindCollaborationWorkspace",
+  preview: "bindPlayerPreviewWorkspace"
 };
 
 async function loadToolModule(type) {
@@ -114,6 +117,7 @@ export const syncManuscriptFromGraphWorkspace = (...args) => invokeTool("manuscr
 export const syncManuscriptToGraphWorkspace = (...args) => invokeTool("manuscript", "syncManuscriptToGraphWorkspace", ...args);
 
 export const openImpactWorkspace = (...args) => invokeTool("impact", "openImpactWorkspace", ...args);
+export const openPlayerPreviewWorkspace = (...args) => invokeTool("preview", "openPlayerPreviewWorkspace", ...args);
 
 export const openDocumentWorkspace = (...args) => invokeTool("document", "openDocumentWorkspace", ...args);
 export const parseDocumentWorkspace = (...args) => invokeTool("document", "parseDocumentWorkspace", ...args);

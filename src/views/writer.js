@@ -38,6 +38,7 @@ import {
   openImpactWorkspace,
   openImportWorkspace,
   openManuscriptWorkspace,
+  openPlayerPreviewWorkspace,
   openReviewWorkspace,
   openSnapshotWorkspace,
   parseDocumentWorkspace,
@@ -61,23 +62,12 @@ import {
   updateReviewStatusFromWorkspace,
   writerToolWorkspaceHtml
 } from "./writer-tool-workspace.js";
-import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
+import { setHtml } from "../../shared/safe-dom.js";
 import { creatorTerms } from "../../shared/creator-terminology.js";
 import {
-  creatorPreviewModalHtml as renderCreatorPreviewModalHtml,
-  creatorPreviewBodyHtml as renderCreatorPreviewBodyHtml,
   storyAssistantModalHtml,
   worldLogModalHtml
 } from "./writer-modal-templates.js";
-
-// Fragment-taking template boundaries are centralized here so raw application
-// strings cannot call the lower-level template contract directly.
-const creatorPreviewModalHtml = (controlsHtml) => renderCreatorPreviewModalHtml(htmlFragment(controlsHtml));
-const creatorPreviewBodyHtml = ({ roleNameHtml, privateProfileHtml, sectionRowsHtml }) => renderCreatorPreviewBodyHtml({
-  roleNameHtml: htmlFragment(roleNameHtml),
-  privateProfileHtml: htmlFragment(privateProfileHtml),
-  sectionRowsHtml: htmlFragment(sectionRowsHtml)
-});
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -187,6 +177,7 @@ function writerRoleRailHtml(roles, sections, selectedRoleId) {
 function writerRoleWorkspaceHtml(data, selectedRole, archive, statusName) {
   const terms = creatorTerms(data.world?.settings?.creationType);
   const canEdit = Boolean(U.canEditWorldContent?.(data.world));
+  const canPreview = ["owner", "editor", "reviewer"].includes(data.world?.membership_role);
   if (!selectedRole) return `<div class="empty-state">尚无角色席位。${canEdit ? "新增角色后即可建立档案和私人剧本。" : "当前没有可供审阅的角色内容。"}</div>`;
   const sections = data.sections
     .filter((section) => section.role_slot_id === selectedRole.id)
@@ -209,7 +200,7 @@ function writerRoleWorkspaceHtml(data, selectedRole, archive, statusName) {
         <p>${escapeHtml(selectedRole.public_profile || "尚未补充公开身份")}</p>
       </div>
       <div class="row writer-role-actions">
-        <button class="secondary-btn" data-action="creator-preview" data-role="${escapeHtml(selectedRole.id)}">玩家视角预览</button>
+        ${canPreview ? `<button class="secondary-btn" data-action="creator-preview" data-role="${escapeHtml(selectedRole.id)}">玩家视角预览</button>` : ""}
         ${canEdit ? `<button class="secondary-btn" data-action="creator-edit-role" data-role="${escapeHtml(selectedRole.id)}">编辑基础信息</button><button class="primary-btn" data-action="creator-add-section" data-role="${escapeHtml(selectedRole.id)}">＋ 新增一幕</button>` : ""}
       </div>
     </header>
@@ -268,16 +259,17 @@ export function writer(){
  const membershipRole=data.world?.membership_role;
  const canEdit=Boolean(U.canEditWorldContent?.(data.world));
  const isReviewer=membershipRole==="reviewer";
+ const canPreviewPlayer=["owner","editor","reviewer"].includes(membershipRole);
  const statusName={draft:"草稿",testing:"测试中",published:"已发布"};
  const checks=worldStore.get().cloudCreatorChecks||[];
- const quickActions=canEdit?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="deepseek-pipeline">AI 剧本创作</button><button class="secondary-btn" data-action="story-manuscript">完整剧情</button><button class="secondary-btn" data-action="story-assistant">规则分类器</button><button class="secondary-btn" data-action="creator-import">导入内容</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="primary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`:`<div class="row writer-hero-actions">${isReviewer?'<button class="primary-btn" data-action="creator-review">打开协作者审稿</button><button class="secondary-btn" data-action="story-manuscript">只读完整母稿</button>':""}<button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button></div>`;
+ const quickActions=canEdit?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="deepseek-pipeline">AI 剧本创作</button><button class="secondary-btn" data-action="story-manuscript">完整剧情</button><button class="secondary-btn" data-action="story-assistant">规则分类器</button><button class="secondary-btn" data-action="creator-import">导入内容</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="primary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`:isReviewer?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="creator-review">打开协作者审稿</button><button class="secondary-btn" data-action="story-manuscript">只读完整母稿</button><button class="secondary-btn" data-action="creator-preview">玩家视角模拟</button></div>`:`<div class="empty-state">当前身份不开放创作稿件预览。</div>`;
  const archiveMap=archiveMapFromList(worldStore.get().cloudRoleArchives||[]);
  const selectedRoleId=data.roles.some((role)=>role.id===uiStore.get().writerSelectedRoleId)?uiStore.get().writerSelectedRoleId:data.roles[0]?.id||null;
  const selectedRole=data.roles.find((role)=>role.id===selectedRoleId)||null;
  const roleRail=writerRoleRailHtml(data.roles,data.sections,selectedRoleId);
  const roleWorkspace=writerRoleWorkspaceHtml(data,selectedRole,archiveMap[selectedRoleId],statusName);
  const chapterBody=data.chapters.map((chapter,index)=>`<div class="chapter-control"><div><strong>${chapter.sequence ?? index + 1}. ${chapter.title}</strong><p>${chapter.summary||"尚未补充章节摘要"}</p></div><span class="status-chip ${chapter.publication_status}">${statusName[chapter.publication_status]}</span>${canEdit?`<div class="row"><button class="text-btn" data-action="creator-edit-chapter" data-chapter="${chapter.id}">设置</button><button class="text-btn danger-text" data-action="creator-delete-chapter" data-chapter="${chapter.id}">删除</button></div>`:""}</div>`).join("")||`<div class="empty-state">${canEdit?"请先在剧情编排中新增章节。":"当前没有可供审阅的章节。"}</div>`;
- const testBody=`${checks.length?checks.map(check=>`<div class="check-result ${check.level}"><b>${check.title}</b><span>${check.detail}</span></div>`).join(""):`<div class="empty-state">点击“运行发布检查”生成真实云端报告。</div>`}<button class="secondary-btn full-btn" data-go="player">打开独立玩家端</button><button class="text-btn full-btn" style="margin-top:8px" data-action="creator-preview"${selectedRoleId?` data-role="${escapeHtml(selectedRoleId)}"`:""}>预览当前角色私人剧本（无需运行房）</button>`;
+ const testBody=`${checks.length?checks.map(check=>`<div class="check-result ${check.level}"><b>${check.title}</b><span>${check.detail}</span></div>`).join(""):`<div class="empty-state">点击“运行发布检查”生成真实云端报告。</div>`}<button class="secondary-btn full-btn" data-go="player">打开独立玩家端</button>${canPreviewPlayer?`<button class="text-btn full-btn" style="margin-top:8px" data-action="creator-preview"${selectedRoleId?` data-role="${escapeHtml(selectedRoleId)}"`:""}>按 Player 规则模拟当前角色</button>`:""}`;
  const versionBody=data.versions.map(version=>`<div class="version-row"><div><strong>${escapeHtml(version.label)}</strong><p>${escapeHtml(formatTime(version.created_at))}</p></div>${canEdit?`<div class="row"><button class="text-btn" data-action="creator-restore" data-version="${escapeHtml(version.id)}">恢复</button><button class="text-btn" data-action="creator-delete-version" data-version="${escapeHtml(version.id)}">删除</button></div>`:""}</div>`).join("")||`<div class="empty-state">尚未保存创作快照。</div>`;
  const accessBanner=isReviewer?`<section class="demo-strip catalog-experience-strip"><div><span class="cloud-pill">受邀审稿 · 只读</span><strong style="margin-top:7px">你可以查看私有草稿并提交审稿意见</strong><p>正文、角色档案和版本内容不可由此身份修改或导出；审稿意见仅作者、编辑和受邀审稿人可见。</p></div></section>`:catalogExperienceBanner(data.world);
  const toolboxItems=[membershipRole==="owner"?creatorTool("协作权限","邀请成员并分配编辑、审稿、主持或玩家权限","creator-collaboration","管理成员 →"):"",["owner","editor","reviewer"].includes(membershipRole)?creatorTool("协作者审稿","批注、修改建议、版本对比与影响范围检查","creator-review","打开审稿台 →"):"",["owner","editor","host"].includes(membershipRole)?creatorTool("运行日志","筛选阅读、调查、规则触发与主持操作记录","creator-logs","查看日志 →"):"",canEdit?creatorTool("文档解析","解析 TXT、Markdown、DOCX、PDF 或飞书稿件，预览后结构化写入","creator-document-parser","解析文档 →"):""].join("");
@@ -521,11 +513,7 @@ export function openStoryAssistant(){
 export function storyAssistantPreview(result){const typeName={scene:"场景",clue:"线索",investigation_point:"调查点"};return `<section class="assistant-preview"><div class="section-head"><div><h3>分类预览</h3><p>${result.nodes.length} 个节点 · ${result.edges.length} 条建议连线</p></div></div><div class="assistant-node-grid">${result.nodes.map(node=>`<article><span>${typeName[node.type]}</span><b>${escapeHtml(node.name)}</b><p>${escapeHtml(node.text)}</p></article>`).join("")}</div><div class="assistant-suggestions"><b>写作建议</b>${result.suggestions.map(item=>`<p>· ${escapeHtml(item)}</p>`).join("")}</div></section>`}
 
 export function openCreatorPreview(roleId=""){
- const data=studioStore.get().cloudStudio,roles=data.roles;if(!roles.length)return showToast("请先创建角色");
- const defaultRoleId=roles.some((role)=>role.id===roleId)?roleId:(roles.some((role)=>role.id===uiStore.get().writerSelectedRoleId)?uiStore.get().writerSelectedRoleId:roles[0]?.id||"");
- modal.className="modal preview-modal";setHtml(modal,creatorPreviewModalHtml(`${studioSelect("模拟角色","previewRole",roles,defaultRoleId)}${studioSelect("公共章节","previewChapter",[{id:"",name:"全部章节"},...data.chapters],"")}`));
- const statusName={draft:"草稿",testing:"测试中",published:"已发布"};
- modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;const draw=()=>{const roleId=modal.querySelector('[data-studio-field="previewRole"]').value,chapterId=modal.querySelector('[data-studio-field="previewChapter"]').value,role=roles.find(item=>item.id===roleId),sections=data.sections.filter(section=>section.role_slot_id===roleId&&(!chapterId||section.chapter_id===chapterId));const sectionRows=sections.map(section=>`<article class="preview-section"><span class="status-chip ${section.publication_status}">${statusName[section.publication_status]||"草稿"}</span><h3>${escapeHtml(section.title)}</h3><div>${escapeHtml(section.body).replace(/\n/g,"<br>")}</div></article>`).join("");setHtml(modal.querySelector("[data-preview-body]"),creatorPreviewBodyHtml({roleNameHtml:escapeHtml(role.name),privateProfileHtml:escapeHtml(role.private_profile||"尚未补充角色秘密"),sectionRowsHtml:sectionRows}))};modal.querySelectorAll("select").forEach(select=>select.onchange=draw);draw();
+ return openPlayerPreviewWorkspace(roleId);
 }
 
 export function openPublishImpactPreview(){return openImpactWorkspace()}

@@ -1,6 +1,7 @@
 /**
- * Static publish-impact preview: what a role would see given room.status,
- * before room_content_unlocks / clue ownership (noted separately).
+ * Static publish-impact preview: what a role would see given room.status and
+ * the supplied runtime evidence. Empty evidence represents the Player
+ * initial state, not an already-running room.
  */
 
 export const PUBLICATION_STATUS_LABEL = {
@@ -46,6 +47,10 @@ function sceneVisibleRoles(scene) {
  * @param {Array} [input.scenes]
  * @param {Array} [input.clues]
  * @param {Array} [input.tasks]
+ * @param {Array<string>} [input.unlockedSectionIds]
+ * @param {Array<string>} [input.unlockedSceneIds]
+ * @param {Array<string>} [input.ownedClueIds]
+ * @param {Array<string>} [input.sharedClueIds]
  */
 export function evaluatePublishImpact({
   roleSlotId,
@@ -54,8 +59,16 @@ export function evaluatePublishImpact({
   sections = [],
   scenes = [],
   clues = [],
-  tasks = []
+  tasks = [],
+  unlockedSectionIds = [],
+  unlockedSceneIds = [],
+  ownedClueIds = [],
+  sharedClueIds = []
 } = {}) {
+  const unlockedSections = new Set(unlockedSectionIds.filter(Boolean));
+  const unlockedScenes = new Set(unlockedSceneIds.filter(Boolean));
+  const ownedClues = new Set(ownedClueIds.filter(Boolean));
+  const sharedClues = new Set(sharedClueIds.filter(Boolean));
   const chapterItems = chapters.map((chapter) => {
     const gate = publicationVisibleToPlayer(chapter.publication_status, roomStatus);
     return {
@@ -68,19 +81,21 @@ export function evaluatePublishImpact({
     };
   });
 
-  const chapterVisible = new Map(chapterItems.map((c) => [c.id, c.visible]));
-
   const sectionItems = sections
     .filter((section) => section.role_slot_id === roleSlotId)
     .map((section) => {
       const gate = publicationVisibleToPlayer(section.publication_status, roomStatus);
       let visible = gate.visible;
       let reason = gate.reason;
-      if (visible && section.chapter_id && chapterVisible.get(section.chapter_id) === false) {
+      const isInitialSection = Number(section.sequence) === 1;
+      const isUnlocked = unlockedSections.has(section.id);
+      if (visible && !isInitialSection && !isUnlocked) {
         visible = false;
-        reason = "所属章节对玩家不可见";
-      } else if (visible && Number(section.sequence) > 1) {
-        reason = `${gate.reason} · 非序幕，常需主持解锁后才真正可读`;
+        reason = "发布状态允许，但 Player 端尚无该分幕的运行时解锁记录";
+      } else if (visible) {
+        reason = isInitialSection
+          ? `${gate.reason} · 首幕默认进入 Player 阅读列表`
+          : `${gate.reason} · 已有运行时解锁记录`;
       }
       return {
         id: section.id,
@@ -94,23 +109,12 @@ export function evaluatePublishImpact({
 
   const sceneItems = scenes.map((scene) => {
     const open = sceneOpenStatus(scene);
-    const roles = sceneVisibleRoles(scene);
-    const roleOk = !roles.length || roles.includes(roleSlotId);
-    let visible = open === "unlocked" && roleOk;
-    let reason;
-    if (open === "locked") {
-      visible = false;
-      reason = "场景锁定 · 需规则或主持开放";
-    } else if (!roleOk) {
-      visible = false;
-      reason = "角色不在该场景可见范围";
-    } else {
-      reason = "已开放 · 初始对该角色可见";
-    }
-    if (visible && scene.chapter_id && chapterVisible.get(scene.chapter_id) === false) {
-      visible = false;
-      reason = "所属章节对玩家不可见";
-    }
+    const visible = unlockedScenes.has(scene.id);
+    const reason = visible
+      ? "已有运行时场景解锁记录 · Player 探索页可见"
+      : open === "unlocked"
+        ? "创作状态标记为开放，但 Player 端尚无运行时场景解锁记录"
+        : "场景尚无运行时解锁记录";
     return {
       id: scene.id,
       kind: "scene",
@@ -123,14 +127,14 @@ export function evaluatePublishImpact({
 
   const clueItems = clues.map((clue) => {
     const visibility = clue.visibility || "private";
-    if (visibility === "public") {
+    if (ownedClues.has(clue.id) || sharedClues.has(clue.id)) {
       return {
         id: clue.id,
         kind: "clue",
         title: clue.name || "未命名线索",
         status: visibility,
         visible: true,
-        reason: "公开线索 · 进入房间即可查看"
+        reason: ownedClues.has(clue.id) ? "已有获取记录 · Player 端可见" : "已有分享记录 · Player 端可见"
       };
     }
     if (visibility === "host") {
@@ -143,13 +147,23 @@ export function evaluatePublishImpact({
         reason: "仅主持可见"
       };
     }
+    if (visibility === "public") {
+      return {
+        id: clue.id,
+        kind: "clue",
+        title: clue.name || "未命名线索",
+        status: visibility,
+        visible: false,
+        reason: "标记为公开，但 Player 端仍需获取或分享记录"
+      };
+    }
     return {
       id: clue.id,
       kind: "clue",
       title: clue.name || "未命名线索",
       status: visibility,
       visible: false,
-      reason: "私密 · 需获得/主持授予后才可见（本预览不模拟持有）"
+      reason: "私密 · 需获得或由主持授予后才可见"
     };
   });
 
@@ -179,6 +193,21 @@ export function evaluatePublishImpact({
 
   const all = [...chapterItems, ...sectionItems, ...sceneItems, ...clueItems, ...taskItems];
   const visibleCount = all.filter((item) => item.visible).length;
+  const warnings = [];
+  const chapterById = new Map(chapterItems.map((item) => [item.id, item]));
+  const sectionById = new Map(sectionItems.map((item) => [item.id, item]));
+  if (sections.some((section) => sectionById.get(section.id)?.visible && section.chapter_id && chapterById.get(section.chapter_id)?.visible === false)) {
+    warnings.push("Player 当前按分幕自身发布状态与解锁记录读取，不会因父章节未发布而自动隐藏该分幕。");
+  }
+  if (clues.some((clue) => (clue.visibility || "private") === "public" && !ownedClues.has(clue.id) && !sharedClues.has(clue.id))) {
+    warnings.push("公开线索不会仅凭 visibility 自动出现在 Player；仍需获取或分享记录。");
+  }
+  if (scenes.some((scene) => sceneOpenStatus(scene) === "unlocked" && !unlockedScenes.has(scene.id))) {
+    warnings.push("场景 metadata.openStatus 不会直接开放 Player 探索页；运行房仍需 room_content_unlocks 记录。");
+  }
+  if (scenes.some((scene) => sceneVisibleRoles(scene).length)) {
+    warnings.push("场景 visibleRoleSlotIds 目前不是 Player 探索查询的访问门槛；角色限制应落实到调查点或运行时规则。");
+  }
   return {
     roomStatus,
     roleSlotId,
@@ -191,6 +220,7 @@ export function evaluatePublishImpact({
     sections: sectionItems,
     scenes: sceneItems,
     clues: clueItems,
-    tasks: taskItems
+    tasks: taskItems,
+    warnings
   };
 }

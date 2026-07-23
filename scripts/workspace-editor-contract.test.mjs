@@ -58,7 +58,10 @@ test("long creator editors no longer depend on the global modal surface", () => 
     "src/views/writer-review-workspace.js",
     "src/views/writer-collaboration-model.js",
     "src/views/writer-collaboration-view.js",
-    "src/views/writer-collaboration-workspace.js"
+    "src/views/writer-collaboration-workspace.js",
+    "src/views/writer-player-preview-model.js",
+    "src/views/writer-player-preview-view.js",
+    "src/views/writer-player-preview-workspace.js"
   ]) {
     const source = read(file);
     assert.doesNotMatch(source, /\bstudioModal\b|\bmodalBackdrop\b|from\s+["']\.\.\/dom\.js["']/, file);
@@ -105,6 +108,7 @@ test("writer heavy tools use guarded full-page sessions", () => {
   assert.match(tools, /snapshot:\s*\(\)\s*=>\s*import\("\.\/writer-snapshot-workspace\.js"\)/);
   assert.match(tools, /review:\s*\(\)\s*=>\s*import\("\.\/writer-review-workspace\.js"\)/);
   assert.match(tools, /collaboration:\s*\(\)\s*=>\s*import\("\.\/writer-collaboration-workspace\.js"\)/);
+  assert.match(tools, /preview:\s*\(\)\s*=>\s*import\("\.\/writer-player-preview-workspace\.js"\)/);
   assert.match(session, /activeSession === session/);
   assert.match(session, /zhimuApi\.context\.worldId === session\.worldId/);
   assert.match(manuscript, /session\.savingAction/);
@@ -180,6 +184,22 @@ test("collaboration access uses one guarded lazy workspace instead of the global
   assert.match(controller, /writerToolSessionIsCurrent\(session\)/);
   assert.match(controller, /session\.pendingActions/);
   assert.match(controller, /session\.confirmAction/);
+});
+
+test("player preview uses Player visibility predicates in a guarded lazy workspace", () => {
+  const writer = read("src/views/writer.js");
+  const templates = read("src/views/writer-modal-templates.js");
+  const model = read("src/views/writer-player-preview-model.js");
+  const view = read("src/views/writer-player-preview-view.js");
+  const controller = read("src/views/writer-player-preview-workspace.js");
+  assert.match(writer, /openCreatorPreview\(roleId=""\)\{\s*return openPlayerPreviewWorkspace\(roleId\)/);
+  assert.doesNotMatch(writer, /preview-modal|data-preview-body|creatorPreviewModalHtml/);
+  assert.doesNotMatch(templates, /creatorPreviewModalHtml|creatorPreviewBodyHtml|data-preview-body/);
+  assert.match(model, /evaluatePublishImpact/);
+  assert.match(model, /PLAYER_PREVIEW_MEMBERSHIP_ROLES/);
+  assert.match(view, /writer-player-preview-workspace/);
+  assert.match(view, /escapeHtml\(section\.body/);
+  assert.match(controller, /beginWriterToolSession\("preview"/);
 });
 
 test("rule creation enters the routed editor without an informational modal", () => {
