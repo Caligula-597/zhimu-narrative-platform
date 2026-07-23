@@ -6,6 +6,11 @@ import {
   storyAnalysisIsCurrent,
   storyAssistantCounts
 } from "./writer-story-assistant-model.js";
+import {
+  writerToolContextPanelHtml,
+  writerToolGridPageHtml,
+  writerToolGuidanceHtml
+} from "./writer-tool-layout.js";
 
 function nodeRowsHtml(nodes = []) {
   if (!nodes.length) return `<div class="writer-story-empty"><strong>没有识别到结构节点</strong><p>建议使用“场景：”“调查点：”“线索：”作为段落开头，再重新提取。</p></div>`;
@@ -66,18 +71,25 @@ function analysisPreviewHtml(session) {
 function storyContextHtml(data, session) {
   const counts = storyAssistantCounts(session.analysis);
   const current = storyAnalysisIsCurrent(session);
-  return `<aside class="writer-tool-context writer-story-context">
-    <p class="section-kicker">NARRATIVE STRUCTURE</p>
-    <h2>剧情结构提取</h2>
-    <p>把散文式剧情拆成可继续编辑的场景、调查点、线索和关系建议。它是结构整理器，不是自动化规则生成器。</p>
-    <dl class="writer-metadata-facts">
-      <div><dt>文本字符</dt><dd data-story-character-count>${String(session.draft.text || "").length}</dd></div>
-      <div><dt>识别节点</dt><dd>${counts.total}</dd></div>
-      <div><dt>预览状态</dt><dd>${session.analysis ? (current ? "可复核" : "已失效") : "待提取"}</dd></div>
-    </dl>
-    <div class="writer-metadata-guidance"><strong>写入边界</strong><p>确认后只会追加场景、调查点、线索和剧情连线，不会创建章节、角色、私人分幕或自动化规则，也不会覆盖已有节点。</p></div>
-    <div class="writer-metadata-guidance"><strong>当前剧本</strong><p>${escapeHtml(data?.world?.name || "未命名剧本")}。所有请求固定绑定打开工作区时的 worldId，切换剧本后旧响应不会写回新页面。</p></div>
-  </aside>`;
+  return writerToolContextPanelHtml({
+    kicker: "NARRATIVE STRUCTURE",
+    title: "剧情结构提取",
+    intro: "把散文式剧情拆成可继续编辑的场景、调查点、线索和关系建议。它是结构整理器，不是自动化规则生成器。",
+    facts: [
+      { label: "文本字符", value: String(session.draft.text || "").length, hook: "story-character-count" },
+      { label: "识别节点", value: counts.total },
+      { label: "预览状态", value: session.analysis ? (current ? "可复核" : "已失效") : "待提取" }
+    ],
+    bodyHtml: `${writerToolGuidanceHtml({
+      title: "写入边界",
+      text: "确认后只会追加场景、调查点、线索和剧情连线，不会创建章节、角色、私人分幕或自动化规则，也不会覆盖已有节点。"
+    })}
+    ${writerToolGuidanceHtml({
+      title: "当前剧本",
+      text: `${data?.world?.name || "未命名剧本"}。所有请求固定绑定打开工作区时的 worldId，切换剧本后旧响应不会写回新页面。`
+    })}`,
+    className: "writer-story-context"
+  });
 }
 
 function storyEditorHtml(session) {
@@ -121,11 +133,11 @@ function storyEditorHtml(session) {
 }
 
 export function storyAssistantWorkspaceHtml(data, session) {
-  return `<section class="writer-tool-workspace writer-story-workspace" data-writer-tool="story-assistant">
-    <button type="button" class="workspace-back-btn" data-action="writer-tool-close">← 返回创作中心</button>
-    <div class="writer-tool-grid writer-tool-grid-wide">
-      ${storyContextHtml(data, session)}
-      ${storyEditorHtml(session)}
-    </div>
-  </section>`;
+  return writerToolGridPageHtml({
+    type: "story-assistant",
+    className: "writer-story-workspace",
+    wide: true,
+    contextHtml: storyContextHtml(data, session),
+    contentHtml: storyEditorHtml(session)
+  });
 }

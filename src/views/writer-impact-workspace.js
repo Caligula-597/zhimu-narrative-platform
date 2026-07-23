@@ -5,6 +5,11 @@ import { studioStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { evaluatePublishImpact } from "../../shared/publish-impact-preview.js";
 import { beginWriterToolSession } from "./writer-tool-session.js";
+import {
+  writerToolContextPanelHtml,
+  writerToolGridPageHtml,
+  writerToolGuidanceHtml
+} from "./writer-tool-layout.js";
 
 function roomChoices(data = {}) {
   return [
@@ -66,21 +71,23 @@ export function impactWorkspaceHtml(data, session) {
     ${impactGroupHtml("线索", impact.clues)}
     ${impactGroupHtml("任务", impact.tasks)}
   </div>`;
-  return `<section class="writer-tool-workspace" data-writer-tool-workspace data-writer-tool="impact">
-    <button type="button" class="workspace-back-btn" data-action="writer-tool-close">← 返回创作中心</button>
-    <div class="writer-tool-grid">
-      <aside class="writer-tool-context">
-        <p class="section-kicker">PLAYER VISIBILITY</p>
-        <h2>发布影响预览</h2>
-        <p>按角色和房间阶段推演玩家初始可见内容，用于发现草稿误发布、角色内容串位和章节门槛缺失。</p>
-        <dl class="writer-metadata-facts">
-          <div><dt>预计可见</dt><dd>${impact.summary.visible}</dd></div>
-          <div><dt>预计隐藏</dt><dd>${impact.summary.hidden}</dd></div>
-          <div><dt>总项目</dt><dd>${impact.summary.total}</dd></div>
-        </dl>
-        <div class="writer-metadata-guidance"><strong>预览边界</strong><p>这里按 Player 初始态计算：非首幕、场景和线索都需要运行时解锁、获取或分享记录。真实运行进度仍需进入玩家端核验。</p></div>
-      </aside>
-      ${renderWorkspaceEditor({
+  return writerToolGridPageHtml({
+    type: "impact",
+    contextHtml: writerToolContextPanelHtml({
+      kicker: "PLAYER VISIBILITY",
+      title: "发布影响预览",
+      intro: "按角色和房间阶段推演玩家初始可见内容，用于发现草稿误发布、角色内容串位和章节门槛缺失。",
+      facts: [
+        { label: "预计可见", value: impact.summary.visible },
+        { label: "预计隐藏", value: impact.summary.hidden },
+        { label: "总项目", value: impact.summary.total }
+      ],
+      bodyHtml: writerToolGuidanceHtml({
+        title: "预览边界",
+        text: "这里按 Player 初始态计算：非首幕、场景和线索都需要运行时解锁、获取或分享记录。真实运行进度仍需进入玩家端核验。"
+      })
+    }),
+    contentHtml: renderWorkspaceEditor({
         title: "玩家可见性推演",
         kicker: "IMPACT REVIEW",
         intro: "切换角色或房间阶段即可重新计算，不会修改云端内容。",
@@ -89,9 +96,8 @@ export function impactWorkspaceHtml(data, session) {
         cancelAction: "writer-tool-close",
         cancelLabel: "返回创作中心",
         className: "writer-impact-editor"
-      })}
-    </div>
-  </section>`;
+    })
+  });
 }
 
 export function openImpactWorkspace() {

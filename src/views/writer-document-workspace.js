@@ -14,6 +14,11 @@ import {
   writerToolSessionIsCurrent
 } from "./writer-tool-session.js";
 import { fileFingerprint, fileToBase64 } from "./writer-transfer-files.js";
+import {
+  writerToolContextPanelHtml,
+  writerToolGridPageHtml,
+  writerToolGuidanceHtml
+} from "./writer-tool-layout.js";
 
 const CREATION_TYPES = [
   { id: "murder_mystery", name: "剧本杀 · 角色本 / 公共幕 / 线索" },
@@ -78,18 +83,21 @@ function documentSourceFingerprint(session) {
 
 function documentContextHtml(data, session) {
   const parsed = session.parsed;
-  return `<aside class="writer-tool-context">
-    <p class="section-kicker">DOCUMENT INGESTION</p>
-    <h2>稿件解析与结构化导入</h2>
-    <p>先解析、再复核、最后写入。系统识别角色、幕、场景、线索和秘密，不会把整份文档直接塞进单一编辑器。</p>
-    <dl class="writer-metadata-facts">
-      <div><dt>解析状态</dt><dd>${parsed ? "已预览" : "待解析"}</dd></div>
-      <div><dt>分段</dt><dd>${Number(parsed?.sectionCount || parsed?.pageCount || 0)}</dd></div>
-      <div><dt>目标</dt><dd>${session.draft.target === "structured" ? "结构化" : session.draft.target === "manuscript" ? "母稿" : "角色本"}</dd></div>
-    </dl>
-    <div class="writer-metadata-guidance"><strong>版权与保密</strong><p>只导入你拥有或获授权处理的稿件。私有稿件不会自动公开或用于平台训练；调用外部 AI 能力前应另行确认供应商与数据范围。</p></div>
-    ${session.file ? `<div class="writer-tool-file"><strong>已选择文件</strong><span>${escapeHtml(session.file.name)} · ${Math.ceil(session.file.size / 1024)} KB</span></div>` : ""}
-  </aside>`;
+  return writerToolContextPanelHtml({
+    kicker: "DOCUMENT INGESTION",
+    title: "稿件解析与结构化导入",
+    intro: "先解析、再复核、最后写入。系统识别角色、幕、场景、线索和秘密，不会把整份文档直接塞进单一编辑器。",
+    facts: [
+      { label: "解析状态", value: parsed ? "已预览" : "待解析" },
+      { label: "分段", value: Number(parsed?.sectionCount || parsed?.pageCount || 0) },
+      { label: "目标", value: session.draft.target === "structured" ? "结构化" : session.draft.target === "manuscript" ? "母稿" : "角色本" }
+    ],
+    bodyHtml: `${writerToolGuidanceHtml({
+      title: "版权与保密",
+      text: "只导入你拥有或获授权处理的稿件。私有稿件不会自动公开或用于平台训练；调用外部 AI 能力前应另行确认供应商与数据范围。"
+    })}
+    ${session.file ? `<div class="writer-tool-file"><strong>已选择文件</strong><span>${escapeHtml(session.file.name)} · ${Math.ceil(session.file.size / 1024)} KB</span></div>` : ""}`
+  });
 }
 
 function documentEditorHtml(data, session) {
@@ -119,13 +127,12 @@ function documentEditorHtml(data, session) {
 }
 
 export function documentWorkspaceHtml(data, session) {
-  return `<section class="writer-tool-workspace" data-writer-tool-workspace data-writer-tool="document">
-    <button type="button" class="workspace-back-btn" data-action="writer-tool-close">← 返回创作中心</button>
-    <div class="writer-tool-grid writer-tool-grid-wide">
-      ${documentContextHtml(data, session)}
-      ${documentEditorHtml(data, session)}
-    </div>
-  </section>`;
+  return writerToolGridPageHtml({
+    type: "document",
+    wide: true,
+    contextHtml: documentContextHtml(data, session),
+    contentHtml: documentEditorHtml(data, session)
+  });
 }
 
 function invalidateDocumentPreview(session) {

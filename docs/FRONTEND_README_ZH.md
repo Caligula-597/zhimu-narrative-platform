@@ -1,6 +1,6 @@
 # 前端说明
 
-最后更新：2026-07-16
+最后更新：2026-07-24
 
 ## 应用拆分
 
@@ -25,6 +25,7 @@
 | `src/runtime/runtime-facade.js` | 运行时门面（替代 `zhimuRuntime`/`zhimuDom` 窗口桥） |
 | `src/state/` | 8 个状态 shard + `create-store.js`（替代 `zhimuState` 窗口桥） |
 | `src/views/` | account、overview、writer、studio、rules、director、player、archive、assets、ops |
+| `src/views/writer-tool-layout.js` | Writer 全页工具共享壳层：页面标识、返回动作、响应式网格、事实统计和风险说明 |
 | `config/vite.config.mjs` | dev server、docs static plugin、生产 build |
 | `server.js` | 本地静态 dist server |
 
@@ -45,6 +46,19 @@ npm run build
 ```
 
 注意：`npm run start:dist` 只托管静态文件，默认端口 `4173`，不代理 `/api`。
+
+### Writer 工作台边界
+
+新的 Writer 长流程不得自行重复拼接 `.writer-tool-workspace`、返回按钮和双栏上下文结构，应使用 `writer-tool-layout.js`。当前母稿、发布影响、文档解析、导入导出、版本、审稿、协作、玩家模拟和剧情结构提取均已接入。
+
+共享层只负责布局与动态文本转义，不持有 API、store 或领域状态。领域功能继续遵守：
+
+- model 负责上限、归一化、指纹和纯计算；
+- view 负责领域内容，不直接发请求；
+- controller 负责权限、会话、并发与失败恢复；
+- 专用 CSS 随领域模块懒加载，不进入所有 Creator 用户的入口包。
+
+文件长度不是再次拆分的唯一依据。只有出现两个以上独立变化原因时才继续拆：例如远端请求与渲染混在一起、同一文件同时维护多个领域，或测试无法隔离；不得为了把行数变小重新制造无语义的转发文件。
 
 ## 数据边界
 

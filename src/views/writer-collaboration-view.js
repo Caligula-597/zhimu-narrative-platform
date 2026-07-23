@@ -7,6 +7,7 @@ import {
   collaborationInvitePending,
   collaborationMemberPending
 } from "./writer-collaboration-model.js";
+import { writerToolSurfaceHtml } from "./writer-tool-layout.js";
 
 function roleLabel(role) {
   return COLLABORATION_ROLE_DETAILS[role]?.label || role || "未知权限";
@@ -158,8 +159,10 @@ export function collaborationWorkspaceHtml(data, session) {
   if (!session) return "";
   const counts = collaborationCounts(session);
   const status = workspaceStatusHtml(session);
-  return `<section class="writer-tool-workspace writer-collaboration-workspace" data-writer-tool="collaboration">
-    <header class="writer-collaboration-head">
+  return writerToolSurfaceHtml({
+    type: "collaboration",
+    className: "writer-collaboration-workspace",
+    bodyHtml: `<header class="writer-collaboration-head">
       <div>
         <p class="section-kicker">COLLABORATION ACCESS</p>
         <h1>协作权限中心</h1>
@@ -188,6 +191,6 @@ export function collaborationWorkspaceHtml(data, session) {
         </section>
       </main>
       ${inviteEditorHtml(session)}
-    </div>`}
-  </section>`;
+    </div>`}`
+  });
 }

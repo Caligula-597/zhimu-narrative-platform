@@ -48,6 +48,7 @@ test("long creator editors no longer depend on the global modal surface", () => 
     "src/views/studio-create-editor.js",
     "src/views/writer-tool-session.js",
     "src/views/writer-tool-workspace.js",
+    "src/views/writer-tool-layout.js",
     "src/views/writer-manuscript-workspace.js",
     "src/views/writer-impact-workspace.js",
     "src/views/writer-document-workspace.js",
@@ -169,7 +170,7 @@ test("story structure extraction uses a guarded lazy workspace instead of the gl
   assert.match(tools, /"story-assistant":\s*\(\)\s*=>\s*import\("\.\/writer-story-assistant-workspace\.js"\)/);
   assert.match(model, /STORY_ASSISTANT_MAX_TEXT_LENGTH = 500_000/);
   assert.match(model, /STORY_ASSISTANT_MAX_NODES = 80/);
-  assert.match(view, /data-writer-tool="story-assistant"/);
+  assert.match(view, /writerToolGridPageHtml\(\{[\s\S]*type: "story-assistant"/);
   assert.match(view, /不会创建章节、角色、私人分幕或自动化规则/);
   assert.match(controller, /beginWriterToolSession\("story-assistant"/);
   assert.match(controller, /requestFingerprint !== storySourceFingerprint/);

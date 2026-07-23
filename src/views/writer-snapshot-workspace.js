@@ -18,6 +18,11 @@ import {
   getWriterToolSession,
   writerToolSessionIsCurrent
 } from "./writer-tool-session.js";
+import {
+  writerToolContextPanelHtml,
+  writerToolGridPageHtml,
+  writerToolGuidanceHtml
+} from "./writer-tool-layout.js";
 
 const MAX_VERSION_LABEL_LENGTH = 120;
 const MAX_VERSIONS_PER_WORLD = 50;
@@ -40,25 +45,25 @@ function recentVersionsHtml(versions = []) {
 
 function snapshotContextHtml(data, session) {
   const versions = data?.versions || [];
-  return `<aside class="writer-tool-context">
-    <p class="section-kicker">CONTENT VERSION</p>
-    <h2>保存创作版本</h2>
-    <p>在大幅改写或发布前留下可恢复节点。保存动作只创建版本，不会改变当前正文或发布状态。</p>
-    <dl class="writer-metadata-facts">
-      <div><dt>公共章节</dt><dd>${data?.chapters?.length || 0}</dd></div>
-      <div><dt>私人分幕</dt><dd>${data?.sections?.length || 0}</dd></div>
-      <div><dt>版本数量</dt><dd>${versions.length}/${MAX_VERSIONS_PER_WORLD}</dd></div>
-    </dl>
-    <div class="writer-metadata-guidance">
-      <strong>当前恢复边界</strong>
-      <p>版本恢复覆盖公共章节与角色私人分幕的正文、归属和发布状态；线索、规则、图谱节点及运行房进度不会随此版本回滚。</p>
-    </div>
+  return writerToolContextPanelHtml({
+    kicker: "CONTENT VERSION",
+    title: "保存创作版本",
+    intro: "在大幅改写或发布前留下可恢复节点。保存动作只创建版本，不会改变当前正文或发布状态。",
+    facts: [
+      { label: "公共章节", value: data?.chapters?.length || 0 },
+      { label: "私人分幕", value: data?.sections?.length || 0 },
+      { label: "版本数量", value: `${versions.length}/${MAX_VERSIONS_PER_WORLD}` }
+    ],
+    bodyHtml: `${writerToolGuidanceHtml({
+      title: "当前恢复边界",
+      text: "版本恢复覆盖公共章节与角色私人分幕的正文、归属和发布状态；线索、规则、图谱节点及运行房进度不会随此版本回滚。"
+    })}
     <div class="writer-snapshot-recent">
       <strong>最近保存</strong>
       ${recentVersionsHtml(versions)}
     </div>
-    ${session.dirty ? `<div class="writer-tool-sync-status"><span>名称尚未保存</span></div>` : ""}
-  </aside>`;
+    ${session.dirty ? `<div class="writer-tool-sync-status"><span>名称尚未保存</span></div>` : ""}`
+  });
 }
 
 function snapshotEditorHtml(session) {
@@ -86,13 +91,11 @@ function snapshotEditorHtml(session) {
 }
 
 export function snapshotWorkspaceHtml(data, session) {
-  return `<section class="writer-tool-workspace" data-writer-tool-workspace data-writer-tool="snapshot">
-    <button type="button" class="workspace-back-btn" data-action="writer-tool-close">← 返回创作中心</button>
-    <div class="writer-tool-grid">
-      ${snapshotContextHtml(data, session)}
-      ${snapshotEditorHtml(session)}
-    </div>
-  </section>`;
+  return writerToolGridPageHtml({
+    type: "snapshot",
+    contextHtml: snapshotContextHtml(data, session),
+    contentHtml: snapshotEditorHtml(session)
+  });
 }
 
 export function openSnapshotWorkspace() {

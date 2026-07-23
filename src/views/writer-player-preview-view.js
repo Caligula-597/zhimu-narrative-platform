@@ -1,5 +1,6 @@
 import { escapeHtml } from "../utils/format.js";
 import { buildPlayerReaderPreview, normalizePlayerPreviewDraft } from "./writer-player-preview-model.js";
+import { writerToolFactsHtml, writerToolSurfaceHtml } from "./writer-tool-layout.js";
 
 function optionRows(items, selectedId, { allLabel = "" } = {}) {
   const all = allLabel ? [{ id: "", name: allLabel }, ...items] : items;
@@ -54,8 +55,10 @@ export function playerPreviewWorkspaceHtml(data, session) {
   const portalButton = preview.room?.source === "room" && preview.room.inviteCode
     ? `<button type="button" class="primary-btn" data-action="open-player-portal" data-invite-code="${escapeHtml(preview.room.inviteCode)}">用真实玩家端核验</button>`
     : "";
-  return `<section class="writer-tool-workspace writer-player-preview-workspace" data-writer-tool="preview">
-    <header class="writer-player-preview-head">
+  return writerToolSurfaceHtml({
+    type: "preview",
+    className: "writer-player-preview-workspace",
+    bodyHtml: `<header class="writer-player-preview-head">
       <div>
         <p class="section-kicker">PLAYER READER PREVIEW</p>
         <h1>玩家阅读模拟</h1>
@@ -73,12 +76,12 @@ export function playerPreviewWorkspaceHtml(data, session) {
         <label><span>模拟角色</span><select class="field" data-player-preview-role>${optionRows(preview.roles, session.draft.roleId)}</select></label>
         <label><span>房间阶段</span><select class="field" data-player-preview-room>${optionRows(preview.rooms, session.draft.roomId)}</select></label>
         <label><span>章节筛选</span><select class="field" data-player-preview-chapter>${optionRows(preview.chapters, session.draft.chapterId, { allLabel: "全部章节" })}</select></label>
-        <dl class="writer-metadata-facts">
-          <div><dt>可读分幕</dt><dd>${preview.summary.visibleSections}</dd></div>
-          <div><dt>隐藏分幕</dt><dd>${preview.summary.hiddenSections}</dd></div>
-          <div><dt>初始场景</dt><dd>${preview.summary.visibleScenes}</dd></div>
-          <div><dt>初始线索</dt><dd>${preview.summary.visibleClues}</dd></div>
-        </dl>
+        ${writerToolFactsHtml([
+          { label: "可读分幕", value: preview.summary.visibleSections },
+          { label: "隐藏分幕", value: preview.summary.hiddenSections },
+          { label: "初始场景", value: preview.summary.visibleScenes },
+          { label: "初始线索", value: preview.summary.visibleClues }
+        ])}
         <aside class="writer-player-preview-warnings">
           <strong>验证边界</strong>
           <ul>${warningRows(preview.warnings)}</ul>
@@ -111,6 +114,6 @@ export function playerPreviewWorkspaceHtml(data, session) {
           ${availabilityRows("线索", preview.visibleClues, preview.hiddenClues)}
         </div>
       </main>
-    </div>
-  </section>`;
+    </div>`
+  });
 }

@@ -14,6 +14,12 @@ import {
   reviewImpactText,
   targetKey
 } from "./writer-review-model.js";
+import {
+  writerToolContextPanelHtml,
+  writerToolFactsHtml,
+  writerToolGuidanceHtml,
+  writerToolSurfaceHtml
+} from "./writer-tool-layout.js";
 
 function targetOptionsHtml(groups, selectedKey) {
   return groups
@@ -119,12 +125,12 @@ function reviewFilterHtml(session) {
     <label>内容类型
       <select class="field" data-action="writer-review-filter-target">${targetOptions}</select>
     </label>
-    <dl class="writer-metadata-facts">
-      <div><dt>当前根意见</dt><dd>${session.reviews.filter((item) => !item.parent_id).length}</dd></div>
-      <div><dt>回复</dt><dd>${session.reviews.filter((item) => item.parent_id).length}</dd></div>
-      <div><dt>筛选</dt><dd>${escapeHtml(STATUS_LABELS[session.filterStatus] || "全部")}</dd></div>
-    </dl>
-    ${session.targetWarning ? `<div class="writer-metadata-guidance"><strong>部分对象未载入</strong><p>${escapeHtml(session.targetWarning)}</p></div>` : ""}
+    ${writerToolFactsHtml([
+      { label: "当前根意见", value: session.reviews.filter((item) => !item.parent_id).length },
+      { label: "回复", value: session.reviews.filter((item) => item.parent_id).length },
+      { label: "筛选", value: STATUS_LABELS[session.filterStatus] || "全部" }
+    ])}
+    ${session.targetWarning ? writerToolGuidanceHtml({ title: "部分对象未载入", text: session.targetWarning }) : ""}
     <button type="button" class="secondary-btn full-btn" data-action="writer-review-refresh">刷新意见</button>
   </aside>`;
 }
@@ -215,7 +221,10 @@ export function creatorVersionDiffHtml(payload) {
     <div class="proposal-stats"><span>新增 ${added}</span><span>删除 ${removed}</span><span>修改 ${changed}</span></div>
     ${comparison.world?.changed ? `<p>剧本级字段：${escapeHtml(changedWorldFields.join("、"))}</p>` : ""}
     <ul class="writer-review-diff-domains">${changedDomains || "<li><strong>没有结构差异</strong><span>两个版本的受比较内容一致。</span></li>"}</ul>
-    <div class="writer-metadata-guidance"><strong>保密边界</strong><p>版本对比只展示对象和字段级变化，不直接展开角色私人正文。</p></div>
+    ${writerToolGuidanceHtml({
+      title: "保密边界",
+      text: "版本对比只展示对象和字段级变化，不直接展开角色私人正文。"
+    })}
   </section>`;
 }
 
@@ -223,24 +232,24 @@ function reviewCompareHtml(data, session) {
   const versions = data.versions || [];
   const disabled = versions.length ? "" : " disabled";
   return `<div class="writer-review-compare-grid">
-    <aside class="writer-tool-context">
-      <p class="section-kicker">VERSION IMPACT</p>
-      <h2>版本影响对比</h2>
-      <p>以保存的内容版本为基准，对比当前内容或另一个版本。结果只读，不会执行恢复。</p>
-      <dl class="writer-metadata-facts">
-        <div><dt>可用版本</dt><dd>${versions.length}</dd></div>
-        <div><dt>基准</dt><dd>${session.compareBaseId ? "已选择" : "待选择"}</dd></div>
-        <div><dt>目标</dt><dd>${session.compareHeadId ? "历史版本" : "当前内容"}</dd></div>
-      </dl>
-      <label class="writer-review-compare-field">基准版本
+    ${writerToolContextPanelHtml({
+      kicker: "VERSION IMPACT",
+      title: "版本影响对比",
+      intro: "以保存的内容版本为基准，对比当前内容或另一个版本。结果只读，不会执行恢复。",
+      facts: [
+        { label: "可用版本", value: versions.length },
+        { label: "基准", value: session.compareBaseId ? "已选择" : "待选择" },
+        { label: "目标", value: session.compareHeadId ? "历史版本" : "当前内容" }
+      ],
+      bodyHtml: `<label class="writer-review-compare-field">基准版本
         <select class="field" data-review-compare-field="baseId"${disabled}>${versions.length ? versionOptionsHtml(versions, session.compareBaseId) : '<option value="">尚无版本快照</option>'}</select>
       </label>
       <label class="writer-review-compare-field">对比目标
         <select class="field" data-review-compare-field="headId"${disabled}>${versionOptionsHtml(versions, session.compareHeadId, { includeCurrent: true })}</select>
       </label>
       <button type="button" class="primary-btn full-btn" data-action="writer-review-compare"${disabled}${session.compareLoading ? " disabled" : ""}>${session.compareLoading ? "正在对比…" : "开始对比"}</button>
-      ${session.compareError ? `<div class="workspace-editor-errors show" role="alert">${escapeHtml(session.compareError)}</div>` : ""}
-    </aside>
+      ${session.compareError ? `<div class="workspace-editor-errors show" role="alert">${escapeHtml(session.compareError)}</div>` : ""}`
+    })}
     <main class="writer-review-diff-panel" aria-live="polite">
       ${session.compareLoading
         ? `<div class="writer-review-loading"><strong>正在计算版本差异…</strong><p>大型剧本可能需要几秒，切换剧本后旧结果不会写回当前页面。</p></div>`
@@ -259,12 +268,14 @@ function workspaceTabsHtml(session) {
 }
 
 export function reviewWorkspaceHtml(data, session) {
-  return `<section class="writer-tool-workspace writer-review-workspace" data-writer-tool-workspace data-writer-tool="review">
-    <button type="button" class="workspace-back-btn" data-action="writer-tool-close">← 返回创作中心</button>
+  return writerToolSurfaceHtml({
+    type: "review",
+    className: "writer-review-workspace",
+    bodyHtml: `<button type="button" class="workspace-back-btn" data-action="writer-tool-close">← 返回创作中心</button>
     <header class="writer-review-head">
       <div><p class="section-kicker">COLLABORATIVE REVIEW</p><h1>协作者审稿台</h1><p>在同一页面追踪意见、讨论、处理状态和版本影响，不遮挡创作上下文。</p></div>
       ${workspaceTabsHtml(session)}
     </header>
-    ${session.mode === "compare" ? reviewCompareHtml(data, session) : reviewDiscussionHtml(data, session)}
-  </section>`;
+    ${session.mode === "compare" ? reviewCompareHtml(data, session) : reviewDiscussionHtml(data, session)}`
+  });
 }

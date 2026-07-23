@@ -12,6 +12,11 @@ import {
   getWriterToolSession,
   writerToolSessionIsCurrent
 } from "./writer-tool-session.js";
+import {
+  writerToolContextPanelHtml,
+  writerToolGridPageHtml,
+  writerToolGuidanceHtml
+} from "./writer-tool-layout.js";
 
 function manuscriptDirectionLabel(manuscript = {}) {
   const direction = manuscript.lastSyncDirection || manuscript.last_sync_direction;
@@ -30,22 +35,28 @@ export function storyManuscriptStatus(manuscript = {}) {
 function manuscriptContextHtml(session, readOnly) {
   const manuscript = session.manuscript || {};
   const length = String(session.draft?.body || "").length;
-  return `<aside class="writer-tool-context">
-    <p class="section-kicker">MASTER MANUSCRIPT</p>
-    <h2>完整剧情母稿</h2>
-    <p>母稿适合连续阅读和集中修订；剧情编排图适合维护结构。二者的覆盖同步都需要显式确认，避免未保存文本被替换。</p>
-    <dl class="writer-metadata-facts">
-      <div><dt>当前字数</dt><dd>${length}</dd></div>
-      <div><dt>权限</dt><dd>${readOnly ? "只读" : "可编辑"}</dd></div>
-      <div><dt>状态</dt><dd>${session.dirty ? "有草稿" : "已同步"}</dd></div>
-    </dl>
-    <div class="writer-tool-sync-status">${storyManuscriptStatus(manuscript)}</div>
-    ${readOnly ? `<div class="writer-metadata-guidance"><strong>只读审阅</strong><p>你可以阅读完整母稿，但不能保存或执行双向覆盖。</p></div>` : `<div class="writer-tool-actions">
+  return writerToolContextPanelHtml({
+    kicker: "MASTER MANUSCRIPT",
+    title: "完整剧情母稿",
+    intro: "母稿适合连续阅读和集中修订；剧情编排图适合维护结构。二者的覆盖同步都需要显式确认，避免未保存文本被替换。",
+    facts: [
+      { label: "当前字数", value: length },
+      { label: "权限", value: readOnly ? "只读" : "可编辑" },
+      { label: "状态", value: session.dirty ? "有草稿" : "已同步" }
+    ],
+    bodyHtml: `<div class="writer-tool-sync-status">${storyManuscriptStatus(manuscript)}</div>
+    ${readOnly ? writerToolGuidanceHtml({
+      title: "只读审阅",
+      text: "你可以阅读完整母稿，但不能保存或执行双向覆盖。"
+    }) : `<div class="writer-tool-actions">
       <button type="button" class="secondary-btn full-btn" data-action="writer-manuscript-from-graph">${session.replaceArmed ? "再次点击：用编排图覆盖母稿" : "从剧情编排生成母稿"}</button>
       <button type="button" class="secondary-btn full-btn" data-action="writer-manuscript-to-graph">${session.graphImportArmed ? "再次点击：用母稿重建编排图" : "将母稿拆分到剧情编排"}</button>
     </div>
-    <div class="writer-metadata-guidance"><strong>覆盖边界</strong><p>“从编排生成”会替换云端母稿；“拆分到编排”会重建图谱节点与连线。执行前请先保存版本快照。</p></div>`}
-  </aside>`;
+    ${writerToolGuidanceHtml({
+      title: "覆盖边界",
+      text: "“从编排生成”会替换云端母稿；“拆分到编排”会重建图谱节点与连线。执行前请先保存版本快照。"
+    })}`}`
+  });
 }
 
 function manuscriptEditorHtml(session, readOnly) {
@@ -71,13 +82,11 @@ function manuscriptEditorHtml(session, readOnly) {
 
 export function manuscriptWorkspaceHtml(data, session) {
   const readOnly = !canEditWorldContent(data?.world);
-  return `<section class="writer-tool-workspace" data-writer-tool-workspace data-writer-tool="manuscript">
-    <button type="button" class="workspace-back-btn" data-action="writer-tool-close">← 返回创作中心</button>
-    <div class="writer-tool-grid">
-      ${manuscriptContextHtml(session, readOnly)}
-      ${manuscriptEditorHtml(session, readOnly)}
-    </div>
-  </section>`;
+  return writerToolGridPageHtml({
+    type: "manuscript",
+    contextHtml: manuscriptContextHtml(session, readOnly),
+    contentHtml: manuscriptEditorHtml(session, readOnly)
+  });
 }
 
 export async function openManuscriptWorkspace() {
