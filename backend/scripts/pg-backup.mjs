@@ -35,7 +35,7 @@ const target = outPath || join(defaultDir, `zhimu-${timestamp}.sql`);
 
 const pgDumpArgs = ["--dbname", databaseUrl, "--no-owner", "--no-acl", "-F", "p", "-f", target];
 const pgDump = resolvePgTool("pg_dump");
-const result = spawnSync(pgDump, pgDumpArgs, { encoding: "utf8", shell: process.platform === "win32" });
+const result = spawnSync(pgDump, pgDumpArgs, { encoding: "utf8", shell: false });
 
 if (result.error) {
   console.error("Failed to run pg_dump:", result.error.message);

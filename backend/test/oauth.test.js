@@ -23,10 +23,16 @@ test("auth config exposes oauth provider list", async (context) => {
 });
 
 test("oauth start returns 503 when provider is not configured", async (context) => {
-  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    context.skip("Google OAuth configured in environment");
-    return;
-  }
+  const previousClientId = process.env.GOOGLE_CLIENT_ID;
+  const previousClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  context.after(() => {
+    if (previousClientId === undefined) delete process.env.GOOGLE_CLIENT_ID;
+    else process.env.GOOGLE_CLIENT_ID = previousClientId;
+    if (previousClientSecret === undefined) delete process.env.GOOGLE_CLIENT_SECRET;
+    else process.env.GOOGLE_CLIENT_SECRET = previousClientSecret;
+  });
   const app = await createApp({ logger: false, allowDemoUserHeader: false });
   context.after(() => app.close());
   const before = await query(`SELECT COUNT(*)::int AS count FROM oauth_states WHERE provider = 'google'`);

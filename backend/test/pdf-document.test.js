@@ -1,13 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { createCanvas, loadImage, PDFDocument } from "@napi-rs/canvas";
 import {
   isPdfTextSufficient,
   detectPdfContentMode,
-  extractTextFromPdfBuffer,
-  pdfOcrEnabled
+  extractTextFromPdfBuffer
 } from "../src/pdf-document.js";
 import { sectionContentMode, buildPagesSectionMetadata } from "../src/section-content.js";
+
+async function createImageOnlyPdf() {
+  const raster = createCanvas(1400, 500);
+  const rasterContext = raster.getContext("2d");
+  rasterContext.fillStyle = "#ffffff";
+  rasterContext.fillRect(0, 0, 1400, 500);
+  rasterContext.fillStyle = "#111111";
+  rasterContext.font = "48px Arial";
+  rasterContext.fillText("ZHIMU OCR SAMPLE DOCUMENT", 60, 120);
+  rasterContext.fillText("This sentence exists only inside a raster image.", 60, 220);
+  rasterContext.fillText("The PDF intentionally contains no searchable text layer.", 60, 320);
+
+  const image = await loadImage(raster.toBuffer("image/png"));
+  const pdf = new PDFDocument({ title: "Image-only OCR fixture" });
+  const page = pdf.beginPage(1400, 500);
+  page.drawImage(image, 0, 0, 1400, 500);
+  pdf.endPage();
+  return pdf.close();
+}
 
 test("isPdfTextSufficient accepts normal text PDF extract", () => {
   assert.equal(isPdfTextSufficient("这是一段足够长的剧本正文，用于测试文本层提取是否通过阈值判断。", 1), true);
@@ -28,13 +46,8 @@ test("sectionContentMode detects pages metadata", () => {
   assert.equal(sectionContentMode({ contentMode: "pages", pageAssetIds: [] }), "text");
 });
 
-test("extractTextFromPdfBuffer rejects image PDF without allowOcr", async (t) => {
-  const samplePath = process.env.PDF_OCR_SAMPLE_PATH;
-  if (!samplePath) {
-    t.skip("Set PDF_OCR_SAMPLE_PATH to an image-only PDF");
-    return;
-  }
-  const buffer = readFileSync(samplePath);
+test("extractTextFromPdfBuffer rejects image PDF without allowOcr", async () => {
+  const buffer = await createImageOnlyPdf();
   const detected = await detectPdfContentMode(buffer);
   assert.equal(detected.mode, "pages");
   await assert.rejects(
@@ -43,14 +56,32 @@ test("extractTextFromPdfBuffer rejects image PDF without allowOcr", async (t) =>
   );
 });
 
-test("extractTextFromPdfBuffer uses OCR for image PDF when allowOcr enabled", async (t) => {
-  const samplePath = process.env.PDF_OCR_SAMPLE_PATH;
-  if (!samplePath || !pdfOcrEnabled()) {
-    t.skip("Set PDF_OCR_SAMPLE_PATH to an image-only PDF to run live OCR test");
-    return;
-  }
-  const buffer = readFileSync(samplePath);
-  const result = await extractTextFromPdfBuffer(buffer, { allowOcr: true });
+test("extractTextFromPdfBuffer renders image PDF pages through the OCR worker", async () => {
+  const buffer = await createImageOnlyPdf();
+  let terminated = false;
+  let recognizedPngBytes = 0;
+  const result = await extractTextFromPdfBuffer(buffer, {
+    allowOcr: true,
+    lang: "eng",
+    createWorker: async (lang) => {
+      assert.equal(lang, "eng");
+      return {
+        recognize: async (png) => {
+          recognizedPngBytes = png.byteLength;
+          return {
+            data: {
+              text: "ZHIMU OCR SAMPLE DOCUMENT This raster-only page was recognized without a searchable PDF text layer."
+            }
+          };
+        },
+        terminate: async () => {
+          terminated = true;
+        }
+      };
+    }
+  });
   assert.equal(result.extraction.method, "pdf_ocr");
-  assert.ok(result.text.replace(/\s/g, "").length > 100);
+  assert.ok(result.text.includes("ZHIMU OCR SAMPLE"));
+  assert.ok(recognizedPngBytes > 100);
+  assert.equal(terminated, true);
 });

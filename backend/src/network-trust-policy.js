@@ -5,7 +5,7 @@
  * application sees the real client IP and either runs a single replica or has
  * an independently verified edge limiter in front of every replica.
  */
-export function resolveTrustProxy(value = process.env.TRUST_PROXY_HOPS) {
+export function resolveTrustProxy(value) {
   if (value === false || value == null || value === "") return false;
   if (value === true) return true;
   const hops = Number(value);

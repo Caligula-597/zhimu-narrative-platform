@@ -102,7 +102,7 @@ npm run test:e2e
 
 ## 新增发布与诊断
 
-Cloudflare Pages 三站已接入 `.github/workflows/pages-deploy.yml`。本地可先跑：
+Cloudflare Pages 三站已接入 `.github/workflows/production-release.yml`。本地可先跑：
 
 ```powershell
 npm run pages:smoke

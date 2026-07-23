@@ -1,79 +1,62 @@
 /* Global data-action dispatcher — domain handlers live in actions-*.js */
-import { showToast } from "../components/toast.js";
-import { openFeedbackForm } from "../components/feedback-button.js";
 import { uiStore } from "../state/index.js";
 import { callRuntime, registerRuntime } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
-import * as M from "../components/modal.js";
 import { dispatchActionHandlers } from "../../shared/action-dispatch.js";
-  const openModal = M.openModal || (() => {});
-  const enhanceCloudPanels = () => callRuntime("enhanceCloudPanels");
-  const openWizard = () => callRuntime("openWizard");
+import { handleShellAction } from "./actions-shell.js";
 
-  const dispatchers = [
-    () => window.zhimuActionsCreatorCockpit?.handleCreatorCockpitAction,
-    () => window.zhimuActionsBible?.handleBibleAction,
-    () => window.zhimuActionsWorkspace?.handleWorkspaceAction,
-    () => window.zhimuActionsCreatorWorkspaces?.handleCreatorWorkspacesAction,
-    () => window.zhimuActionsArchive?.handleArchiveAction,
-    () => window.zhimuActionsPlayer?.handlePlayerAction,
-    () => window.zhimuActionsDirector?.handleDirectorAction,
-    () => window.zhimuActionsStudio?.handleStudioAction,
-    () => window.zhimuActionsWriter?.handleWriterAction,
-    () => window.zhimuActionsRules?.handleRulesAction,
-    () => window.zhimuActionsMiniGames?.handleMiniGamesAction,
-    () => window.zhimuActionsAssets?.handleAssetsAction,
-    () => window.zhimuActionsOps?.handleOpsAction,
-    () => window.zhimuActionsClues?.handleCluesAction
-  ];
+const enhanceCloudPanels = () => callRuntime("enhanceCloudPanels");
+
+const dispatchers = [
+  () => window.zhimuActionsCreatorCockpit?.handleCreatorCockpitAction,
+  () => window.zhimuActionsBible?.handleBibleAction,
+  () => window.zhimuActionsWorkspace?.handleWorkspaceAction,
+  () => window.zhimuActionsCreatorWorkspaces?.handleCreatorWorkspacesAction,
+  () => window.zhimuActionsArchive?.handleArchiveAction,
+  () => window.zhimuActionsPlayer?.handlePlayerAction,
+  () => window.zhimuActionsDirector?.handleDirectorAction,
+  () => window.zhimuActionsStudio?.handleStudioAction,
+  () => window.zhimuActionsWriter?.handleWriterAction,
+  () => window.zhimuActionsRules?.handleRulesAction,
+  () => window.zhimuActionsMiniGames?.handleMiniGamesAction,
+  () => window.zhimuActionsAssets?.handleAssetsAction,
+  () => window.zhimuActionsOps?.handleOpsAction,
+  () => window.zhimuActionsClues?.handleCluesAction
+];
 
 export function bindDynamic() {
-    enhanceCloudPanels();
-    const view = uiStore.get().view;
-    if (view === "studio") {
-      callView("studio", "bindStudioDragging");
-      callView("studio", "bindStudioCreateEditor");
-    }
-    if (view === "clues") {
-      callView("clues", "bindCluesSearch");
-      callView("clues", "bindClueEditor");
-    }
-    if (view === "miniGames") callView("miniGames", "bindMiniGameEditor");
-    if (view === "rules") callView("rules", "bindRuleEditor");
-    if (view === "rooms") callView("rooms", "bindRoomWorkspace");
-    if (view === "account") callView("accountHub", "bindAccountHubView");
-    if (view === "player") callView("player", "bindPlayerReader");
-    if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
-    if (view === "writer") {
-      void callView("writer", "loadWriterRoleArchives");
-      callView("writer", "bindWriterSectionEditor");
-      callView("writer", "bindWriterMetadataEditor");
-      callView("writer", "bindWriterToolWorkspace");
-    }
-    window.zhimuActionsCreatorCockpit?.maybeAutoLoadCockpit?.(view);
-    window.zhimuActionsCreatorWorkspaces?.maybeAutoLoadWorkspace?.(view);
-    window.zhimuSearchFocus?.applyAfterRender?.();
+  enhanceCloudPanels();
+  const view = uiStore.get().view;
+  if (view === "studio") {
+    callView("studio", "bindStudioDragging");
+    callView("studio", "bindStudioCreateEditor");
   }
+  if (view === "clues") {
+    callView("clues", "bindCluesSearch");
+    callView("clues", "bindClueEditor");
+  }
+  if (view === "miniGames") callView("miniGames", "bindMiniGameEditor");
+  if (view === "rules") callView("rules", "bindRuleEditor");
+  if (view === "rooms") callView("rooms", "bindRoomWorkspace");
+  if (view === "account") callView("accountHub", "bindAccountHubView");
+  if (view === "player") callView("player", "bindPlayerReader");
+  if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
+  if (view === "writer") {
+    void callView("writer", "loadWriterRoleArchives");
+    callView("writer", "bindWriterSectionEditor");
+    callView("writer", "bindWriterMetadataEditor");
+    callView("writer", "bindWriterToolWorkspace");
+  }
+  window.zhimuActionsCreatorCockpit?.maybeAutoLoadCockpit?.(view);
+  window.zhimuActionsCreatorWorkspaces?.maybeAutoLoadWorkspace?.(view);
+  window.zhimuSearchFocus?.applyAfterRender?.();
+}
 
 export async function handle(action, el) {
-    const handled = await dispatchActionHandlers(dispatchers.map((getFn) => getFn()), action, el);
-    if (handled) return;
-    if (action === "save-node" || action === "save-settings") return showToast("配置已保存");
-    if (action === "explore") {
-      return openModal("调查进行中", `你开始调查「${el.dataset.place}」。系统将根据角色状态、持有物品和已解读线索展示可发现的内容。`, "确认调查");
-    }
-    if (action === "export") return showToast("世界数据已准备导出");
-    if (action === "import") return handle("creator-import", el);
-    if (action === "token") return showToast("实体小卡功能暂不可用");
-    if (action === "open-wizard") return openWizard();
-    if (action === "open-creator-guide") return window.zhimuGuide?.openCreatorGuide?.();
-    if (action === "open-error-guide") return window.zhimuGuide?.openErrorGuide?.();
-    if (action === "report-issue") {
-      const subject = el?.dataset?.reportSubject || "";
-      const body = el?.dataset?.reportBody || "";
-      return openFeedbackForm("bug", subject, body);
-    }
-    if (action === "unavailable") return showToast(`${el.dataset.feature || "该功能"}暂不可用`);
-  }
+  const handled = await dispatchActionHandlers(dispatchers.map((getFn) => getFn()), action, el);
+  if (handled) return;
+  if (action === "import") return handle("creator-import", el);
+  return handleShellAction(action, el);
+}
 
 registerRuntime({ bindDynamic, handle });

@@ -30,7 +30,7 @@
 
 ### 已完成：Pages 三站 CI/CD 与安装门禁
 
-`.github/workflows/pages-deploy.yml` 负责 `site/play/host` 的构建、Cloudflare Pages deploy 和部署后 smoke；`check:pages-installability` 使用 Cloudflare 对应 npm 版本验证三份 lockfile，防止本机缓存掩盖安装漂移。
+`.github/workflows/production-release.yml` 负责 `site/play/host` 的不可变预览构建、Cloudflare Pages promote 和部署后 smoke；`check:pages-installability` 使用 Cloudflare 对应 npm 版本验证三份 lockfile，防止本机缓存掩盖安装漂移。
 
 ### 已完成 transport 收口，UI 继续按收益复用
 

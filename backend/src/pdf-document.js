@@ -89,12 +89,13 @@ export async function ocrPdfDocument(doc, options = {}) {
   const maxPages = options.maxPages ?? pdfOcrMaxPages();
   const scale = options.scale ?? pdfOcrScale();
   const lang = options.lang ?? pdfOcrLang();
+  const createOcrWorker = options.createWorker ?? createWorker;
 
   if (doc.numPages > maxPages) {
     throwErr("PDF_OCR_PAGE_LIMIT", `PDF has ${doc.numPages} pages; OCR limit is ${maxPages}`);
   }
 
-  const worker = await createWorker(lang);
+  const worker = await createOcrWorker(lang);
   const perPage = [];
   try {
     for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber += 1) {

@@ -98,7 +98,7 @@ Creator、Host、Player 的 API、session、错误转换、SSE 生命周期与�
 
 ## Pages 发布
 
-`site/play/host` 已接入 `.github/workflows/pages-deploy.yml`，最新 PR 预览部署与安全检查通过。本地 smoke：
+`site/play/host` 已接入 `.github/workflows/production-release.yml`，由统一生产发布流程构建并提升已验证产物。本地 smoke：
 
 ```powershell
 npm run pages:smoke

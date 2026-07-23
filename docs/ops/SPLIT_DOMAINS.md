@@ -13,7 +13,7 @@
 
 不要把根域 `getzhimu.com` 指向 Railway；根域属于官网 Pages。
 
-官网、Play、Host 已进入 `.github/workflows/pages-deploy.yml`，最新 PR 预览部署和安全检查通过。
+官网、Play、Host 已进入 `.github/workflows/production-release.yml`，由统一发布流程构建、验证并提升产物。
 
 ## Railway：app + API
 
@@ -106,4 +106,4 @@ GET https://host.getzhimu.com/
 GET https://app.getzhimu.com/api/health/ready
 ```
 
-当前 GitHub Actions 已新增 `pages-deploy.yml` 自动部署 `site/play/host` 并运行 `npm run pages:smoke`。首次运行前需确认 GitHub Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`。
+当前 GitHub Actions 使用 `production-release.yml` 构建并提升 `site/play/host` 产物，同时运行发布后 smoke。首次运行前需确认 GitHub Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`。

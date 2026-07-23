@@ -28,9 +28,9 @@ import { resolveVoiceRateLimits } from "../voice-abuse-protection.js";
 import { resolveCheckpointRateLimits } from "../checkpoint-abuse-protection.js";
 import { resolveVoiceRuntimePolicy } from "../voice-service.js";
 import { resolveLiveKitTokenTtlSeconds } from "../livekit.js";
-import { listFeedback, getFeedbackStats, updateFeedbackStatus } from "../feedback.js";
 import { registerOpsCatalogRoutes } from "./ops-catalog-routes.js";
 import { registerOpsBetaRoutes } from "./ops-beta-routes.js";
+import { registerOpsFeedbackRoutes } from "./ops-feedback-routes.js";
 import { registerOpsPlazaRoutes } from "./ops-plaza-routes.js";
 import {
   explainRateLimitTopology,
@@ -178,82 +178,6 @@ export async function registerOpsRoutes(app) {
         limit: limit != null ? Number(limit) : 50,
         offset: offset != null ? Number(offset) : 0
       });
-    }
-  );
-
-  app.get(
-    "/api/ops/feedback/stats",
-    {
-      schema: {
-        hide: true,
-        tags: ["system"],
-        response: {
-          200: { type: "array", items: { type: "object", additionalProperties: true } }
-        }
-      }
-    },
-    async () => {
-      return getFeedbackStats();
-    }
-  );
-
-  app.get(
-    "/api/ops/feedback",
-    {
-      schema: {
-        hide: true,
-        tags: ["system"],
-        querystring: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            status: { type: "string", enum: ["new", "seen", "resolved"] },
-            kind: { type: "string", enum: ["feedback", "bug", "feature"] },
-            limit: { type: "integer", minimum: 1, maximum: 200 },
-            offset: { type: "integer", minimum: 0, maximum: 100_000 }
-          }
-        },
-        response: {
-          200: { type: "object", additionalProperties: true }
-        }
-      }
-    },
-    async (request) => {
-      const { status, kind, limit, offset } = request.query;
-      return listFeedback({
-        status,
-        kind,
-        limit: limit != null ? Number(limit) : 50,
-        offset: offset != null ? Number(offset) : 0
-      });
-    }
-  );
-
-  app.patch(
-    "/api/ops/feedback/:id",
-    {
-      schema: {
-        hide: true,
-        tags: ["system"],
-        params: {
-          type: "object",
-          additionalProperties: false,
-          required: ["id"],
-          properties: { id: { type: "string", format: "uuid" } }
-        },
-        body: {
-          type: "object",
-          additionalProperties: false,
-          required: ["status"],
-          properties: { status: { type: "string", enum: ["new", "seen", "resolved"] } }
-        },
-        response: {
-          200: { type: "object", additionalProperties: true }
-        }
-      }
-    },
-    async (request) => {
-      return updateFeedbackStatus(request.params.id, request.body.status);
     }
   );
 
@@ -419,5 +343,6 @@ export async function registerOpsRoutes(app) {
 
   await registerOpsCatalogRoutes(app);
   await registerOpsBetaRoutes(app);
+  await registerOpsFeedbackRoutes(app);
   await registerOpsPlazaRoutes(app);
 }

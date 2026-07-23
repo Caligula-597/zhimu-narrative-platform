@@ -28,7 +28,7 @@ test("main and Host room clients opt into the shared idempotency transport", () 
 
 test("creator room callers leave invite-code allocation to the server", () => {
   const mainCreate = section(
-    "src/runtime/auth-world.js",
+    "src/views/rooms.js",
     "export async function createParallelRoom",
     "export async function setRoomPublicListing"
   );
@@ -47,14 +47,17 @@ test("creator room callers leave invite-code allocation to the server", () => {
   }
 });
 
-test("Creator room UI sends the selected Release and restores the action after failure", () => {
+test("Creator room workspace sends the selected Release and restores the action after failure", () => {
   const mainCreate = section(
-    "src/runtime/auth-world.js",
+    "src/views/rooms.js",
     "export async function createParallelRoom",
     "export async function setRoomPublicListing"
   );
-  assert.match(mainCreate, /data-room-release/);
-  assert.match(mainCreate, /\{name,publicListing,releaseId\}/);
-  assert.match(mainCreate, /button\.disabled=true/);
-  assert.match(mainCreate, /button\.disabled=false/);
+  const roomView = source("src/views/rooms.js");
+  assert.match(roomView, /data-room-draft="releaseId"/);
+  assert.match(mainCreate, /releaseId:\s*state\.draft\.releaseId\s*\|\|\s*null/);
+  assert.match(mainCreate, /state\.createSaving\s*=\s*true/);
+  assert.match(mainCreate, /catch \(error\) \{\s*state\.createSaving\s*=\s*false/);
+  assert.match(mainCreate, /state\.error\s*=\s*normalizeError/);
+  assert.match(mainCreate, /render\(\)/);
 });

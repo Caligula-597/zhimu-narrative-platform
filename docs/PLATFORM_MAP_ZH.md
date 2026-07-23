@@ -48,7 +48,7 @@
 | A2 状态分片 | 完成：8 个 shard（asset/room/studio/ui/user/voice/wizard/world）+ `src/state/create-store.js` 已落地；`window.zhimuState` Proxy 仅在测试/demo 模式下条件激活 |
 | 后端 RLS | `backend/migrations/045_enable_public_rls.sql` 已为 44 张表启用 Row-Level Security |
 | 三端 transport | 完成：Creator、Host、Player 统一复用 `shared/api-client.js`、session token、SSE 生命周期、游标与错误转换 |
-| Pages 三站 | 完成：官网、Host、Play 已进入 `.github/workflows/pages-deploy.yml`，最新 PR 预览部署与安全检查通过 |
+| Pages 三站 | 完成：官网、Host、Play 已进入 `.github/workflows/production-release.yml`，由统一发布流程提升已验证产物 |
 | 内容运行层 | 基础闭环已实现：Segment、玩家任务、投票/指认、秘密行动、怀疑度、run report 与 creator analytics 已有后端和端侧接线 |
 
 ## 当前差距

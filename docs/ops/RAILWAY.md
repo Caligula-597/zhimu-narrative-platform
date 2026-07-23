@@ -46,7 +46,7 @@ npm run railway:push-env
 
 ## 方案 C · GitHub Actions（需 Project Token）
 
-`.github/workflows/railway-deploy.yml`：`railway up --ci` 从仓库根。
+`.github/workflows/production-release.yml`：在 CI 成功后，从仓库根部署 fullstack API 与创作者前端。
 
 Secrets：`RAILWAY_TOKEN`（Project Token）、`RAILWAY_SERVICE_ID`。
 
