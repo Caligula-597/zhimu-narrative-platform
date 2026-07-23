@@ -17,7 +17,8 @@ const moduleLoaders = {
   export: () => import("./writer-package-workspace.js"),
   import: () => import("./writer-package-workspace.js"),
   snapshot: () => import("./writer-snapshot-workspace.js"),
-  review: () => import("./writer-review-workspace.js")
+  review: () => import("./writer-review-workspace.js"),
+  collaboration: () => import("./writer-collaboration-workspace.js")
 };
 
 const renderMethods = {
@@ -27,7 +28,8 @@ const renderMethods = {
   export: "exportWorkspaceHtml",
   import: "importWorkspaceHtml",
   snapshot: "snapshotWorkspaceHtml",
-  review: "reviewWorkspaceHtml"
+  review: "reviewWorkspaceHtml",
+  collaboration: "collaborationWorkspaceHtml"
 };
 
 const bindMethods = {
@@ -37,7 +39,8 @@ const bindMethods = {
   export: "bindExportWorkspace",
   import: "bindImportWorkspace",
   snapshot: "bindSnapshotWorkspace",
-  review: "bindReviewWorkspace"
+  review: "bindReviewWorkspace",
+  collaboration: "bindCollaborationWorkspace"
 };
 
 async function loadToolModule(type) {
@@ -136,3 +139,13 @@ export const createReviewFromWorkspace = (...args) => invokeTool("review", "crea
 export const replyReviewFromWorkspace = (...args) => invokeTool("review", "replyReviewFromWorkspace", ...args);
 export const updateReviewStatusFromWorkspace = (...args) => invokeTool("review", "updateReviewStatusFromWorkspace", ...args);
 export const compareReviewVersions = (...args) => invokeTool("review", "compareReviewVersions", ...args);
+
+export const openCollaborationWorkspace = (...args) => invokeTool("collaboration", "openCollaborationWorkspace", ...args);
+export const refreshCollaborationWorkspace = (...args) => invokeTool("collaboration", "refreshCollaborationWorkspace", ...args);
+export const inviteCollaboratorFromWorkspace = (...args) => invokeTool("collaboration", "inviteCollaboratorFromWorkspace", ...args);
+export const saveCollaboratorRoleFromWorkspace = (...args) => invokeTool("collaboration", "saveCollaboratorRoleFromWorkspace", ...args);
+export const removeCollaboratorFromWorkspace = (...args) => invokeTool("collaboration", "removeCollaboratorFromWorkspace", ...args);
+export const resendCollaboratorInviteFromWorkspace = (...args) => invokeTool("collaboration", "resendCollaboratorInviteFromWorkspace", ...args);
+export const revokeCollaboratorInviteFromWorkspace = (...args) => invokeTool("collaboration", "revokeCollaboratorInviteFromWorkspace", ...args);
+export const copyCollaborationInviteLink = (...args) => invokeTool("collaboration", "copyCollaborationInviteLink", ...args);
+export const dismissCollaborationInviteLink = (...args) => invokeTool("collaboration", "dismissCollaborationInviteLink", ...args);

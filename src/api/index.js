@@ -118,6 +118,7 @@ export {
   bootstrapWorldFromWizard,
   getWorldTemplates,
   createWorldFromTemplate,
+  getWorldCollaborators,
   getWorldMembers,
   getWorldMemberInvites,
   addWorldMember,

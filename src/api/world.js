@@ -124,38 +124,45 @@ export function createWorldFromTemplate(templateId, payload = {}) {
 
 /* ── Members / invites ── */
 
-export async function getWorldMembers() {
-  const payload = await request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId });
-  return Array.isArray(payload) ? payload : payload.members ?? [];
+export async function getWorldCollaborators(worldId = demoContext.worldId) {
+  const payload = await request(`/worlds/${worldId}/members`, { userId: demoContext.hostUserId });
+  if (Array.isArray(payload)) return { members: payload, pendingInvites: [] };
+  return {
+    members: Array.isArray(payload?.members) ? payload.members : [],
+    pendingInvites: Array.isArray(payload?.pendingInvites) ? payload.pendingInvites : []
+  };
 }
 
-export async function getWorldMemberInvites() {
-  const payload = await request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId });
-  return Array.isArray(payload) ? [] : payload.pendingInvites ?? [];
+export async function getWorldMembers(worldId = demoContext.worldId) {
+  return (await getWorldCollaborators(worldId)).members;
 }
 
-export function addWorldMember(payload) {
-  return request(`/worlds/${demoContext.worldId}/members`, { userId: demoContext.hostUserId, method: "POST", body: payload });
+export async function getWorldMemberInvites(worldId = demoContext.worldId) {
+  return (await getWorldCollaborators(worldId)).pendingInvites;
+}
+
+export function addWorldMember(payload, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/members`, { userId: demoContext.hostUserId, method: "POST", body: payload });
 }
 
 export function acceptWorldInvite(token) {
   return request("/worlds/invites/accept", { method: "POST", body: { token } });
 }
 
-export function resendWorldInvite(inviteId) {
-  return request(`/worlds/${demoContext.worldId}/invites/${inviteId}/resend`, { userId: demoContext.hostUserId, method: "POST" });
+export function resendWorldInvite(inviteId, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/invites/${inviteId}/resend`, { userId: demoContext.hostUserId, method: "POST" });
 }
 
-export function revokeWorldInvite(inviteId) {
-  return request(`/worlds/${demoContext.worldId}/invites/${inviteId}`, { userId: demoContext.hostUserId, method: "DELETE" });
+export function revokeWorldInvite(inviteId, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/invites/${inviteId}`, { userId: demoContext.hostUserId, method: "DELETE" });
 }
 
-export function updateWorldMember(userId, role) {
-  return request(`/worlds/${demoContext.worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "PUT", body: { role } });
+export function updateWorldMember(userId, role, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "PUT", body: { role } });
 }
 
-export function deleteWorldMember(userId) {
-  return request(`/worlds/${demoContext.worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "DELETE" });
+export function deleteWorldMember(userId, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/members/${userId}`, { userId: demoContext.hostUserId, method: "DELETE" });
 }
 
 /* ── Logs / checks ── */

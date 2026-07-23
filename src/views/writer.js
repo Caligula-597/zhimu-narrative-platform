@@ -11,7 +11,6 @@ import * as U from "../components/emptyState.js";
 import { collapsibleCard } from "../components/collapse-panel.js";
 import { contentLayerMapHtml } from "../components/content-layer-map.js";
 import { normalizeError } from "../components/status-ui.js";
-import { handleApiErrorToast } from "../utils/user-messages.js";
 import { renderRoleArchiveFields, archiveMapFromList } from "./role-archive-panel.js";
 import { writerSectionEditorHtml } from "./writer-section-editor.js";
 import {
@@ -27,9 +26,13 @@ import {
   bindWriterToolWorkspace,
   closeWriterToolWorkspace,
   compareReviewVersions,
+  copyCollaborationInviteLink,
   createReviewFromWorkspace,
+  dismissCollaborationInviteLink,
   importDocumentWorkspace,
+  inviteCollaboratorFromWorkspace,
   nextExportWorkspaceStep,
+  openCollaborationWorkspace,
   openDocumentWorkspace,
   openExportWorkspace,
   openImpactWorkspace,
@@ -40,10 +43,15 @@ import {
   parseDocumentWorkspace,
   previousExportWorkspaceStep,
   previewImportWorkspace,
+  refreshCollaborationWorkspace,
   refreshReviewList,
+  removeCollaboratorFromWorkspace,
   replyReviewFromWorkspace,
+  resendCollaboratorInviteFromWorkspace,
+  revokeCollaboratorInviteFromWorkspace,
   runExportWorkspace,
   runImportWorkspace,
+  saveCollaboratorRoleFromWorkspace,
   saveManuscriptWorkspace,
   saveSnapshotWorkspace,
   setReviewFilter,
@@ -59,17 +67,12 @@ import {
   creatorPreviewModalHtml as renderCreatorPreviewModalHtml,
   creatorPreviewBodyHtml as renderCreatorPreviewBodyHtml,
   storyAssistantModalHtml,
-  collaborationModalHtml as renderCollaborationModalHtml,
   worldLogModalHtml
 } from "./writer-modal-templates.js";
 
 // Fragment-taking template boundaries are centralized here so raw application
 // strings cannot call the lower-level template contract directly.
 const creatorPreviewModalHtml = (controlsHtml) => renderCreatorPreviewModalHtml(htmlFragment(controlsHtml));
-const collaborationModalHtml = ({ memberRowsHtml, pendingRowsHtml }) => renderCollaborationModalHtml({
-  memberRowsHtml: htmlFragment(memberRowsHtml),
-  pendingRowsHtml: htmlFragment(pendingRowsHtml)
-});
 const creatorPreviewBodyHtml = ({ roleNameHtml, privateProfileHtml, sectionRowsHtml }) => renderCreatorPreviewBodyHtml({
   roleNameHtml: htmlFragment(roleNameHtml),
   privateProfileHtml: htmlFragment(privateProfileHtml),
@@ -464,25 +467,7 @@ export async function runCreatorChecks(){try{const roomId=zhimuApi.context.roomI
 
 export async function openStoryManuscript(){return openManuscriptWorkspace()}
 
-export async function openCollaboration(){
- try{
-  const members=await zhimuApi.getWorldMembers();
-  const pending=await zhimuApi.getWorldMemberInvites();
-  const roleName={owner:"主创作者",editor:"协作者",reviewer:"只读审稿人",host:"主持人",viewer:"只读玩家"};
-  const pendingRows=pending.map(invite=>`<div class="collab-row pending"><div><b>${escapeHtml(invite.email)}</b><p>待接受 · ${roleName[invite.role]} · 过期 ${formatTime(invite.expires_at)}</p></div><div class="row"><button class="text-btn" data-resend-invite="${invite.id}">重发邮件</button><button class="text-btn danger-text" data-revoke-invite="${invite.id}">撤销</button></div></div>`).join("");
-  modal.className="modal creator-tool-modal";
-  const memberRows=members.map(member=>`<div class="collab-row"><div><b>${escapeHtml(member.display_name)}</b><p>${escapeHtml(member.email||"—")} · ${roleName[member.role]}</p></div>${member.role==="owner"?`<span class="cloud-pill">OWNER</span>`:`<div class="row"><select class="field compact-field" data-member-role="${member.user_id}">${["editor","reviewer","host","viewer"].map(role=>`<option value="${role}" ${role===member.role?"selected":""}>${roleName[role]}</option>`).join("")}</select><button class="text-btn danger-text" data-remove-member="${member.user_id}">移除</button></div>`}</div>`).join("");
-  setHtml(modal,collaborationModalHtml({memberRowsHtml:memberRows,pendingRowsHtml:pendingRows}));
-  modalBackdrop.classList.add("show");
-  modal.querySelector("[data-close]").onclick=closeModal;
-  const handleErr=(error)=>handleApiErrorToast(error, showToast);
-  modal.querySelector("[data-add-member]").onclick=async()=>{try{const result=await zhimuApi.addWorldMember({email:modal.querySelector("[data-member-email]").value,role:modal.querySelector("[data-member-new-role]").value});closeModal();if(result?.pendingInvite){showToast(result.emailSent?"邀请邮件已发送":result.inviteToken?"邀请已创建（邮件未配置，请手动分享链接）":"邀请已创建");if(result.inviteToken&&navigator.clipboard)try{await navigator.clipboard.writeText(`${location.origin}${location.pathname}?invite=${encodeURIComponent(result.inviteToken)}`);showToast("邀请链接已复制")}catch{}}else showToast("协作成员已加入");openCollaboration()}catch(error){handleErr(error)}};
-  modal.querySelectorAll("[data-member-role]").forEach(select=>select.onchange=async()=>{try{await zhimuApi.updateWorldMember(select.dataset.memberRole,select.value);showToast("成员权限已更新")}catch(error){handleErr(error)}});
-  modal.querySelectorAll("[data-remove-member]").forEach(button=>button.onclick=async()=>{try{await zhimuApi.deleteWorldMember(button.dataset.removeMember);closeModal();showToast("协作成员已移除");openCollaboration()}catch(error){handleErr(error)}});
-  modal.querySelectorAll("[data-resend-invite]").forEach(button=>button.onclick=async()=>{try{const result=await zhimuApi.resendWorldInvite(button.dataset.resendInvite);showToast(result.emailSent?"邀请邮件已重发":"已刷新邀请（请手动分享链接）");openCollaboration()}catch(error){handleErr(error)}});
-  modal.querySelectorAll("[data-revoke-invite]").forEach(button=>button.onclick=async()=>{try{await zhimuApi.revokeWorldInvite(button.dataset.revokeInvite);showToast("待接受邀请已撤销");openCollaboration()}catch(error){handleErr(error)}});
- }catch(error){showError(error)}
-}
+export function openCollaboration(){return openCollaborationWorkspace()}
 
 export function openCreatorReview(){return openReviewWorkspace()}
 
@@ -555,5 +540,5 @@ export function createCreatorSnapshot(){return openSnapshotWorkspace()}
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
 registerView("writer", writerViewApi);

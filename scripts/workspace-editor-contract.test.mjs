@@ -55,7 +55,10 @@ test("long creator editors no longer depend on the global modal surface", () => 
     "src/views/writer-snapshot-workspace.js",
     "src/views/writer-review-model.js",
     "src/views/writer-review-view.js",
-    "src/views/writer-review-workspace.js"
+    "src/views/writer-review-workspace.js",
+    "src/views/writer-collaboration-model.js",
+    "src/views/writer-collaboration-view.js",
+    "src/views/writer-collaboration-workspace.js"
   ]) {
     const source = read(file);
     assert.doesNotMatch(source, /\bstudioModal\b|\bmodalBackdrop\b|from\s+["']\.\.\/dom\.js["']/, file);
@@ -101,6 +104,7 @@ test("writer heavy tools use guarded full-page sessions", () => {
   assert.match(writer, /writerToolWorkspaceHtml\(data\)/);
   assert.match(tools, /snapshot:\s*\(\)\s*=>\s*import\("\.\/writer-snapshot-workspace\.js"\)/);
   assert.match(tools, /review:\s*\(\)\s*=>\s*import\("\.\/writer-review-workspace\.js"\)/);
+  assert.match(tools, /collaboration:\s*\(\)\s*=>\s*import\("\.\/writer-collaboration-workspace\.js"\)/);
   assert.match(session, /activeSession === session/);
   assert.match(session, /zhimuApi\.context\.worldId === session\.worldId/);
   assert.match(manuscript, /session\.savingAction/);
@@ -130,7 +134,12 @@ test("writer heavy tools use guarded full-page sessions", () => {
     "writer-review-create",
     "writer-review-reply",
     "writer-review-status",
-    "writer-review-compare"
+    "writer-review-compare",
+    "writer-collaboration-invite",
+    "writer-collaboration-role-save",
+    "writer-collaboration-remove",
+    "writer-collaboration-invite-resend",
+    "writer-collaboration-invite-revoke"
   ]) {
     assert.match(actions, new RegExp(action));
   }
@@ -153,6 +162,24 @@ test("collaborative review uses a guarded lazy workspace instead of the global m
   assert.match(model, /MAX_SUGGESTED_PATCH_BYTES/);
   assert.match(view, /writer-review-workspace/);
   assert.match(view, /escapeHtml\(review\.body/);
+});
+
+test("collaboration access uses one guarded lazy workspace instead of the global modal", () => {
+  const writer = read("src/views/writer.js");
+  const tools = read("src/views/writer-tool-workspace.js");
+  const model = read("src/views/writer-collaboration-model.js");
+  const view = read("src/views/writer-collaboration-view.js");
+  const controller = read("src/views/writer-collaboration-workspace.js");
+  assert.match(writer, /openCollaboration\(\)\{return openCollaborationWorkspace\(\)\}/);
+  assert.doesNotMatch(writer, /data-add-member|data-member-role|data-remove-member|collaborationModalHtml/);
+  assert.match(tools, /collaboration:\s*\(\)\s*=>\s*import\("\.\/writer-collaboration-workspace\.js"\)/);
+  assert.match(model, /reconcileCollaborationPayload/);
+  assert.match(view, /writer-collaboration-workspace/);
+  assert.match(view, /escapeHtml\(member\.email/);
+  assert.match(controller, /getWorldCollaborators\(session\.worldId\)/);
+  assert.match(controller, /writerToolSessionIsCurrent\(session\)/);
+  assert.match(controller, /session\.pendingActions/);
+  assert.match(controller, /session\.confirmAction/);
 });
 
 test("rule creation enters the routed editor without an informational modal", () => {

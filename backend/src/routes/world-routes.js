@@ -262,6 +262,7 @@ export async function registerWorldRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, userId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner"]);
+    await assertCapability(actorId, "world.collaborate");
     const role = String(request.body?.role ?? "");
     if (!["editor", "reviewer", "host", "viewer"].includes(role)) return sendErr(reply, "COLLABORATION_ROLE_INVALID");
     const member = await updateWorldMemberRole(worldId, userId, role);
@@ -273,6 +274,7 @@ export async function registerWorldRoutes(app) {
     const actorId = requireActor(request);
     const { worldId, userId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner"]);
+    await assertCapability(actorId, "world.collaborate");
     const member = await removeWorldMember(worldId, userId);
     if (!member) return sendErr(reply, "COLLABORATION_MEMBER_NOT_FOUND", "Collaboration member not found or owner cannot be removed");
     return { ok: true };
