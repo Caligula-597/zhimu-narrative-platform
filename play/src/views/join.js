@@ -1,6 +1,7 @@
 import { renderStepper } from "../components/stepper.js";
 import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
+import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
 
 export function renderJoin() {
   const preview = state.joinPreview;
@@ -24,6 +25,7 @@ export function renderJoin() {
     ? 1
     : roles.filter((r) => !r.occupied || r.occupied_by_current).length;
   const selected = roles.find((r) => r.id === state.selectedRoleId);
+  const binding = roomContentBindingPresentation(preview.room.contentBinding);
 
   return `
     <section class="join-shell">
@@ -33,6 +35,7 @@ export function renderJoin() {
           <p class="eyebrow">即将进入</p>
           <h2>${escapeHtml(preview.room.name)}</h2>
           <p class="muted">世界 · ${escapeHtml(preview.world.name)} · 房间状态 ${escapeHtml(preview.room.status || "运行中")}</p>
+          <p class="hint ${binding.tone === "testing" ? "warn" : ""}"><strong>${escapeHtml(binding.label)}</strong> · ${escapeHtml(binding.detail)}</p>
         </div>
         <dl class="join-stats">
           <div><dt>可选角色</dt><dd>${availableCount} / ${roles.length}</dd></div>

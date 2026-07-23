@@ -1,7 +1,7 @@
 # Works with either build context:
 # - railway up backend --path-as-root   (context = backend/)
 # - docker compose / dockerfilePath=backend/Dockerfile from repo root
-FROM node:22-alpine
+FROM node:24.13.0-alpine
 
 WORKDIR /app
 

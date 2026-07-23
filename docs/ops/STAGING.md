@@ -11,7 +11,7 @@
 
 - 项目目录名为**中文**时，需 `COMPOSE_PROJECT_NAME=zhimu-staging`（见 `.env.staging.example`）；`npm run staging:*` 已带 `-p zhimu-staging`。
 - `backend/deploy/*.sh` 在 Windows 上可能是 CRLF；Dockerfile 构建时会 `sed` 去 `\r`。
-- 首次拉 `node:22-alpine` 若超时，可重试 `docker pull node:22-alpine` 或配置镜像加速。
+- 首次拉 `node:24.13.0-alpine` 若超时，可重试 `docker pull node:24.13.0-alpine` 或配置镜像加速。
 - **白屏 / 无法切换导航**：① 硬刷新 Ctrl+F5；② 清除 localStorage 的 `zhimuApiBase`；③ 确认 API 为 `/api` 而非 `:4180`。若仍白屏，多为 **Vite 把 views 拆包后先于 dom.js 执行**（已修复：生产构建为单包，勿在 vite.config 拆 views/runtime）。
 
 ## 快速启动

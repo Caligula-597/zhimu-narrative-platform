@@ -1,5 +1,6 @@
 import { escapeHtml } from "../../../shared/security.js";
 import { renderStatusChip } from "../../../shared/components/status-chip.js";
+import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
 import { getWorldId } from "../session.js";
 import { state } from "../state.js";
 
@@ -24,13 +25,14 @@ export function renderLanding() {
 
   const roomCards = rooms.length
     ? rooms
-        .map(
-          (room) => `<button type="button" class="pick-card room-pick-card" data-action="room-select" data-room-id="${escapeHtml(room.id)}">
+        .map((room) => {
+          const binding = roomContentBindingPresentation(room.contentBinding);
+          return `<button type="button" class="pick-card room-pick-card" data-action="room-select" data-room-id="${escapeHtml(room.id)}">
             <span class="pick-card-mark room" aria-hidden="true">◉</span>
-            <span class="pick-card-copy"><strong>${escapeHtml(room.name)}</strong><small>邀请码 ${escapeHtml(room.invite_code || "—")} · ${escapeHtml(room.status || "运行中")}</small></span>
+            <span class="pick-card-copy"><strong>${escapeHtml(room.name)}</strong><small>邀请码 ${escapeHtml(room.invite_code || "—")} · ${escapeHtml(room.status || "运行中")}</small><small class="room-binding-copy">${escapeHtml(binding.label)} · ${escapeHtml(binding.detail)}</small></span>
             <span class="room-enter-label">进入监控台 <b aria-hidden="true">→</b></span>
-          </button>`
-        )
+          </button>`;
+        })
         .join("")
     : `<div class="empty-state host-empty-state"><span class="empty-state-mark" aria-hidden="true">⌘</span><p><strong>当前世界尚无平行房</strong></p><p>可以直接在主持端创建运行房；如果刚在创作者端创建过，请刷新列表。</p><div class="row"><button class="primary-btn" type="button" data-action="create-room">创建运行房</button><button class="secondary-btn" type="button" data-action="refresh-rooms">刷新运行房</button><button class="secondary-btn" type="button" data-action="open-creator">打开创作者端</button></div></div>`;
 

@@ -6,6 +6,7 @@ import {
 } from "../creator-document-service.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole } from "./route-guards.js";
+import { DOCUMENT_JSON_BODY_LIMIT_BYTES } from "../document-parser.js";
 import {
   importDocumentPagesSchema,
   importDocumentSchema,
@@ -14,7 +15,10 @@ import {
 } from "./schemas/creator-document.js";
 
 export async function registerCreatorDocumentRoutes(app) {
-  app.post("/api/worlds/:worldId/documents/parse", { schema: parseDocumentSchema }, async (request) => {
+  app.post("/api/worlds/:worldId/documents/parse", {
+    schema: parseDocumentSchema,
+    bodyLimit: DOCUMENT_JSON_BODY_LIMIT_BYTES
+  }, async (request) => {
     const actorId = requireActor(request);
     await requireWorldRole(actorId, request.params.worldId);
     return parseCreatorDocumentForWorld(request.body);
@@ -26,14 +30,20 @@ export async function registerCreatorDocumentRoutes(app) {
     return parseFeishuDocumentForWorld(request.body);
   });
 
-  app.post("/api/worlds/:worldId/documents/import", { schema: importDocumentSchema }, async (request, reply) => {
+  app.post("/api/worlds/:worldId/documents/import", {
+    schema: importDocumentSchema,
+    bodyLimit: DOCUMENT_JSON_BODY_LIMIT_BYTES
+  }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     return importParsedCreatorDocument({ request, reply, actorId, worldId, payload: request.body });
   });
 
-  app.post("/api/worlds/:worldId/documents/import-pages", { schema: importDocumentPagesSchema }, async (request, reply) => {
+  app.post("/api/worlds/:worldId/documents/import-pages", {
+    schema: importDocumentPagesSchema,
+    bodyLimit: DOCUMENT_JSON_BODY_LIMIT_BYTES
+  }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);

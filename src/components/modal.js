@@ -2,6 +2,7 @@
 import { modal, modalBackdrop } from "../dom.js";
 import { escapeHtml } from "../utils/format.js";
 import { setHtml, unwrapHtmlFragment } from "../../shared/safe-dom.js";
+import { formField, formOptionsHtml, formSelect, formValues } from "./form-fields.js";
 
 let modalScrollY = 0;
 
@@ -87,34 +88,17 @@ export function studioModal(title, fields, confirm, submit) {
 }
 
 export function studioField(label, key, type = "input", value = "") {
-  const safeValue = escapeHtml(value ?? "");
-  const safeLabel = escapeHtml(label);
-  const safeKey = escapeHtml(key);
-  const id = `studio-field-${safeKey}`;
-  return type === "textarea"
-    ? `<label for="${id}">${safeLabel}</label><textarea class="field" id="${id}" name="${safeKey}" data-studio-field="${safeKey}" rows="4">${safeValue}</textarea>`
-    : `<label for="${id}">${safeLabel}</label><input class="field" id="${id}" name="${safeKey}" data-studio-field="${safeKey}" value="${safeValue}">`;
+  return formField(label, key, type, value);
 }
 
 export function studioValues() {
-  return Object.fromEntries(Array.from(modal.querySelectorAll("[data-studio-field]")).map((input) => [input.dataset.studioField, input.value.trim()]));
+  return formValues(modal);
 }
 
 export function studioSelect(label, key, options, selectedId = "") {
-  const safeLabel = escapeHtml(label);
-  const safeKey = escapeHtml(key);
-  const id = `studio-field-${safeKey}`;
-  return `<label for="${id}">${safeLabel}</label><select class="field" id="${id}" name="${safeKey}" data-studio-field="${safeKey}">${studioOptionsHtml(options, selectedId)}</select>`;
+  return formSelect(label, key, options, selectedId);
 }
 
 export function studioOptionsHtml(options, selectedId = "") {
-  const selected = selectedId == null ? "" : String(selectedId);
-  return options
-    .map((option) => {
-      const id = String(option.id ?? "");
-      const name = option.name || option.title || "";
-      const sel = id === selected ? " selected" : "";
-      return `<option value="${escapeHtml(id)}"${sel}>${escapeHtml(name)}</option>`;
-    })
-    .join("");
+  return formOptionsHtml(options, selectedId);
 }

@@ -26,47 +26,30 @@ test("buildContentSecurityPolicy uses report-only header in production default",
   assert.doesNotMatch(csp.value, /unsafe-eval/);
 });
 
-test("Trusted Types enforcement is an explicit rollout gate", () => {
-  const previous = process.env.TRUSTED_TYPES_ENFORCE;
-  process.env.TRUSTED_TYPES_ENFORCE = "true";
-  try {
-    const csp = buildContentSecurityPolicy({ nodeEnv: "production" });
-    assert.match(csp.value, /require-trusted-types-for 'script'/);
-  } finally {
-    if (previous === undefined) delete process.env.TRUSTED_TYPES_ENFORCE;
-    else process.env.TRUSTED_TYPES_ENFORCE = previous;
-  }
+test("enforced CSP always requires Trusted Types", () => {
+  const csp = buildContentSecurityPolicy({ nodeEnv: "production", cspMode: "enforce" });
+  assert.equal(csp.header, "Content-Security-Policy");
+  assert.match(csp.value, /require-trusted-types-for 'script'/);
 });
 
-test("enforced CSP does not require Trusted Types until its rollout gate is enabled", () => {
-  const previous = process.env.TRUSTED_TYPES_ENFORCE;
-  delete process.env.TRUSTED_TYPES_ENFORCE;
-  try {
-    const csp = buildContentSecurityPolicy({ nodeEnv: "production", cspMode: "enforce" });
-    assert.equal(csp.header, "Content-Security-Policy");
-    assert.doesNotMatch(csp.value, /require-trusted-types-for 'script'/);
-  } finally {
-    if (previous === undefined) delete process.env.TRUSTED_TYPES_ENFORCE;
-    else process.env.TRUSTED_TYPES_ENFORCE = previous;
-  }
-});
-
-test("Trusted Types can report violations while the regular CSP remains enforced", () => {
+test("enforced CSP does not emit a redundant Trusted Types report-only policy", () => {
   const previousReportOnly = process.env.TRUSTED_TYPES_REPORT_ONLY;
   const previousEnforce = process.env.TRUSTED_TYPES_ENFORCE;
   process.env.TRUSTED_TYPES_REPORT_ONLY = "true";
   delete process.env.TRUSTED_TYPES_ENFORCE;
   try {
     const policy = buildTrustedTypesReportOnlyPolicy({ nodeEnv: "production", cspMode: "enforce" });
-    assert.equal(policy.header, "Content-Security-Policy-Report-Only");
-    assert.match(policy.value, /require-trusted-types-for 'script'/);
-    assert.match(policy.value, /report-uri \/api\/csp-report/);
+    assert.equal(policy, null);
   } finally {
     if (previousReportOnly === undefined) delete process.env.TRUSTED_TYPES_REPORT_ONLY;
     else process.env.TRUSTED_TYPES_REPORT_ONLY = previousReportOnly;
     if (previousEnforce === undefined) delete process.env.TRUSTED_TYPES_ENFORCE;
     else process.env.TRUSTED_TYPES_ENFORCE = previousEnforce;
   }
+});
+
+test("report-only CSP also avoids a duplicate Trusted Types header", () => {
+  assert.equal(buildTrustedTypesReportOnlyPolicy({ nodeEnv: "production", cspMode: "report-only" }), null);
 });
 
 test("production app responses include CSP report-only header", async (context) => {
@@ -86,7 +69,7 @@ test("production app responses include CSP report-only header", async (context) 
   assert.equal(response.headers["x-content-type-options"], "nosniff");
 });
 
-test("production can enforce regular CSP while reporting Trusted Types", async (context) => {
+test("production enforced CSP includes Trusted Types directly", async (context) => {
   const previousMode = process.env.CSP_MODE;
   const previousReportOnly = process.env.TRUSTED_TYPES_REPORT_ONLY;
   const previousEnforce = process.env.TRUSTED_TYPES_ENFORCE;
@@ -106,8 +89,8 @@ test("production can enforce regular CSP while reporting Trusted Types", async (
 
   const response = await app.inject({ method: "GET", url: "/api/health/live" });
   assert.match(response.headers["content-security-policy"], /default-src 'self'/);
-  assert.doesNotMatch(response.headers["content-security-policy"], /require-trusted-types-for 'script'/);
-  assert.match(response.headers["content-security-policy-report-only"], /require-trusted-types-for 'script'/);
+  assert.match(response.headers["content-security-policy"], /require-trusted-types-for 'script'/);
+  assert.equal(response.headers["content-security-policy-report-only"], undefined);
 });
 
 test("development app omits CSP when mode is off", async (context) => {

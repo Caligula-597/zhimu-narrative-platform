@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { productionArtifactGuard } from "./production-artifact-guard.mjs";
 
 const configDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(configDir, "..");
@@ -76,7 +77,11 @@ export default defineConfig(({ mode }) => {
   return {
     root,
     publicDir: false,
-    plugins: [docsStaticPlugin()],
+    plugins: [docsStaticPlugin(), productionArtifactGuard({
+      enabled: mode === "production",
+      outDir: path.join(root, "dist"),
+      name: "zhimu-production-artifact-guard"
+    })],
     server: {
       port: Number(env.VITE_DEV_PORT || 4173),
       strictPort: true,
@@ -101,7 +106,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "dist",
       emptyOutDir: true,
-      sourcemap: true
+      sourcemap: mode !== "production"
     },
     resolve: {
       alias: {

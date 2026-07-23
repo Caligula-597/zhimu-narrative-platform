@@ -176,6 +176,8 @@ export {
   createContentVersion,
   restoreContentVersion,
   deleteContentVersion,
+  getWorldReleases,
+  createWorldRelease,
   getSegmentCompletion,
   getClueHitRate
 } from "./world.js";

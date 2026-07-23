@@ -1,37 +1,8 @@
 import { nonEmptyText, paramsSchema, uuid } from "./primitives.js";
 import { roomIdParams, roleSlotRoomParams } from "./player.js";
+import { worldSettingsSchema } from "./world-settings.js";
 
 export const worldIdParams = paramsSchema({ worldId: uuid });
-
-const commercialProfile = {
-  type: "object",
-  additionalProperties: false,
-  maxProperties: 12,
-  properties: {
-    authorName: { type: "string", maxLength: 300 },
-    copyrightSource: { type: "string", maxLength: 2000 },
-    registrationNumber: { type: "string", maxLength: 300 },
-    theme: { type: "string", maxLength: 300 },
-    category: { type: "string", maxLength: 300 },
-    versionLabel: { type: "string", maxLength: 200 },
-    ageRating: { type: "string", enum: ["", "12+", "16+", "18+"] },
-    selfReviewStatus: { type: "string", enum: ["not_started", "in_review", "passed", "needs_changes"] },
-    selfReviewNotes: { type: "string", maxLength: 4000 },
-    materialChangeDate: { type: "string", pattern: "^(?:|\\d{4}-\\d{2}-\\d{2})$" },
-    filingUpdatedDate: { type: "string", pattern: "^(?:|\\d{4}-\\d{2}-\\d{2})$" }
-  }
-};
-
-const worldSettings = {
-  type: "object",
-  additionalProperties: true,
-  maxProperties: 100,
-  properties: {
-    recapTruthSummary: { type: "string", maxLength: 20000 },
-    creationType: { type: "string", enum: ["murder_mystery", "tabletop_rpg", "interactive_story"] },
-    commercialProfile
-  }
-};
 
 export const updateWorldSchema = {
   params: worldIdParams,
@@ -42,7 +13,7 @@ export const updateWorldSchema = {
     properties: {
       name: { type: "string", minLength: 1, maxLength: 120 },
       summary: { type: "string", maxLength: 4000 },
-      settings: worldSettings
+      settings: worldSettingsSchema
     }
   }
 };

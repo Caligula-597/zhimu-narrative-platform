@@ -10,7 +10,15 @@ import {
   highlightQuery, linkedPoints
 } from "./clue-flow-view.js";
 import { batchDeleteClues, confirmDeleteClue } from "./clues-crud-controller.js";
-import { openClueInStudio, openCluesEditor } from "./clues-editor.js";
+import {
+  bindClueEditor,
+  closeCluesEditor,
+  isClueEditorOpen,
+  openClueInStudio,
+  openCluesEditor,
+  renderClueEditorPanel,
+  saveCluesEditor
+} from "./clues-editor.js";
 import { loadClueHitRate, renderClueHitRatePanel } from "./clues-hit-rate.js";
 import { creatorTerms } from "../../shared/creator-terminology.js";
 import {
@@ -63,6 +71,8 @@ import {
     const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => bulkSelected.has(id));
     const selectedId = ui.cluesSelectedId || "";
     const selectedClue = selectedId ? (data.clues || []).find((clue) => clue.id === selectedId) || null : null;
+    const editorPanel = renderClueEditorPanel();
+    const hasContextPanel = isClueEditorOpen() || Boolean(selectedClue);
     const bulkToolbar = list.length
       ? `<div class="row clues-bulk-toolbar"><label class="check-label"><input type="checkbox" data-action="clues-select-all" ${allVisibleSelected ? "checked" : ""}><span>全选当前列表 (${list.length})</span></label><button class="danger-btn" data-action="clues-batch-delete" ${bulkSelected.size ? "" : "disabled"}>删除所选 (${bulkSelected.size || 0})</button></div>`
       : "";
@@ -72,7 +82,7 @@ import {
       <div class="search-box clues-search"><span>⌕</span><input id="clues-search-input" class="field" placeholder="搜索线索名称或正文…" value="${escapeHtml(q)}"></div>
       ${bulkToolbar}
     </div>
-    ${list.length ? `<div class="clue-workbench${selectedClue ? "" : " no-detail"}">
+    ${list.length ? `<div class="clue-workbench${hasContextPanel ? "" : " no-detail"}">
       <main class="clue-workbench-main">
         ${clueGraph(list, data, q)}
         ${clueTimeline(data)}
@@ -88,12 +98,17 @@ import {
       })
       .join("")}</div></details>
       </main>
-      ${selectedClue ? clueDetailPanel(selectedClue, data) : ""}
-    </div>` : (q ? `<div class="empty-state">没有匹配「${escapeHtml(q)}」的线索。</div>` : `<div class="empty-state enriched-empty"><p><strong>尚未创建线索</strong></p><p>线索是玩家调查与规则推进的核心。空列表不代表功能未完成——可在编排图谱批量创建，或在此快速新建。</p><ul class="empty-hints"><li>编排台：筛选「线索」节点 → 拖拽创建并连线到场景/调查点</li><li>调查点完成可自动发放线索；规则页可配置「拥有线索 → 开放场景」</li></ul><div class="row"><button class="primary-btn" data-action="clues-add">＋ 新建线索</button><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="text-btn" data-action="open-creator-guide">阅读线索说明</button></div></div>`)}
+      ${editorPanel || (selectedClue ? clueDetailPanel(selectedClue, data) : "")}
+    </div>` : (() => {
+      const empty = q
+        ? `<div class="empty-state">没有匹配「${escapeHtml(q)}」的线索。</div>`
+        : `<div class="empty-state enriched-empty"><p><strong>尚未创建线索</strong></p><p>线索是玩家调查与规则推进的核心。空列表不代表功能未完成——可在编排图谱批量创建，或在此快速新建。</p><ul class="empty-hints"><li>编排台：筛选「线索」节点 → 拖拽创建并连线到场景/调查点</li><li>调查点完成可自动发放线索；规则页可配置「拥有线索 → 开放场景」</li></ul><div class="row"><button class="primary-btn" data-action="clues-add">＋ 新建线索</button><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="text-btn" data-action="open-creator-guide">阅读线索说明</button></div></div>`;
+      return editorPanel ? `<div class="clue-workbench"><main class="clue-workbench-main">${empty}</main>${editorPanel}</div>` : empty;
+    })()}
     </section>`;
   }
 
 
 
-export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, fitClueFlow, focusSelectedClue, bindCluesSearch, openClueInStudio, openCluesEditor, confirmDeleteClue, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, loadClueHitRate };
+export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, fitClueFlow, focusSelectedClue, bindCluesSearch, bindClueEditor, openClueInStudio, openCluesEditor, closeCluesEditor, saveCluesEditor, confirmDeleteClue, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, loadClueHitRate };
 registerView("clues", cluesViewApi);

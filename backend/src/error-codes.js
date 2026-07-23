@@ -31,6 +31,7 @@ export const API_ERRORS = {
   ACCOUNT_DELETE_BLOCKED: { status: 403, message: "Account cannot be deleted in the current state" },
   ACCOUNT_DELETE_CONFIRMATION_INVALID: { status: 400, message: "Confirmation text does not match your display name" },
   WORLD_VERSION_CONFLICT: { status: 409, message: "World content was modified by another session" },
+  WORLD_REVISION_REQUIRED: { status: 428, message: "If-Match world revision is required" },
   SESSION_NOT_FOUND: { status: 404, message: "Session not found" },
   WORLD_INVITE_INVALID: { status: 400, message: "Collaboration invite is invalid or expired" },
   WORLD_INVITE_EMAIL_MISMATCH: { status: 403, message: "Invite email does not match your account" },
@@ -62,6 +63,7 @@ export const API_ERRORS = {
   IDEMPOTENCY_PAYLOAD_MISMATCH: { status: 409, message: "Idempotency key was already used with another request body" },
   IDEMPOTENCY_IN_PROGRESS: { status: 409, message: "Idempotent request is still processing" },
   IDEMPOTENCY_PREVIOUS_FAILED: { status: 409, message: "Previous idempotent request failed" },
+  IDEMPOTENCY_KEY_REQUIRED: { status: 400, message: "Idempotency-Key header is required" },
   PAYLOAD_TOO_LARGE: { status: 413, message: "Payload too large" },
   UNSUPPORTED_MEDIA_TYPE: { status: 415, message: "Unsupported media type" },
   UNPROCESSABLE: { status: 422, message: "Unprocessable entity" },
@@ -173,6 +175,13 @@ export const API_ERRORS = {
   CONTENT_VERSION_INVALID: { status: 422, message: "Content version snapshot is invalid" },
   CONTENT_VERSION_TOO_LARGE: { status: 413, message: "Content version snapshot exceeds the safe restore limit" },
   CONTENT_VERSION_LIMIT_REACHED: { status: 409, message: "Content version limit reached for this world" },
+  WORLD_RELEASE_READINESS_BLOCKED: { status: 422, message: "发布版本仍有阻塞问题，请先完成发布检查" },
+  WORLD_RELEASE_SNAPSHOT_INVALID: { status: 422, message: "发布版本快照不完整或格式无效" },
+  WORLD_RELEASE_TOO_LARGE: { status: 413, message: "发布版本超过安全大小限制" },
+  WORLD_RELEASE_LIMIT_REACHED: { status: 409, message: "该剧本的发布版本数量已达到上限" },
+  WORLD_RELEASE_WRITE_BUSY: { status: 409, message: "正在生成其他发布版本，请稍后重试" },
+  WORLD_RELEASE_WRITE_TIMEOUT: { status: 503, message: "发布版本生成超过安全执行时间" },
+  WORLD_RELEASE_NOT_FOUND: { status: 404, message: "未找到当前剧本的发布版本" },
   CREATOR_REVIEW_ACCESS_DENIED: { status: 403, message: "Editorial review access is not available for this membership" },
   CREATOR_REVIEW_NOT_FOUND: { status: 404, message: "Creator review entry not found" },
   CREATOR_REVIEW_TARGET_INVALID: { status: 400, message: "Review target does not belong to this world" },
@@ -333,6 +342,7 @@ export const API_ERRORS = {
   LLM_USER_NOT_CONFIGURED: { status: 403, message: "请先在账号设置中配置 AI API 连接" },
   LLM_NOT_AVAILABLE: { status: 503, message: "AI 暂不可用：请配置自备 API 或联系 support" },
   LLM_PROBE_FAILED: { status: 502, message: "AI 连接测试失败" },
+  LLM_RESPONSE_TOO_LARGE: { status: 502, message: "AI provider response exceeds the safe processing limit" },
   DOCUMENT_SIZE_INVALID: { status: 413, message: "Document must contain between 1 byte and 5 MB" },
   DOCUMENT_TYPE_UNSUPPORTED: { status: 415, message: "Only TXT, Markdown, DOCX, PDF and image documents can be parsed" },
   DOCUMENT_ARCHIVE_TOO_LARGE: { status: 413, message: "The DOCX archive expands beyond the safe processing limit" },
@@ -366,12 +376,15 @@ export const API_ERRORS = {
   SCRIPT_BUNDLE_ENTRY_INVALID: { status: 400, message: "Script bundle contains unsafe path entries" },
   SCRIPT_BUNDLE_UNCOMPRESSED_LIMIT: { status: 413, message: "Script bundle uncompressed size exceeds limit" },
   SCRIPT_BUNDLE_NO_SUPPORTED_FILES: { status: 422, message: "Script bundle has no supported files" },
+  SCRIPT_BUNDLE_PROCESSING_BUSY: { status: 503, message: "Script bundle processing is busy; retry shortly" },
 
   // Content package
   CONTENT_PACKAGE_INVALID: { status: 400, message: "A valid Zhimu JSON content package is required" },
   CONTENT_PACKAGE_STRUCTURE_INVALID: { status: 400, message: "Content package must include roles and chapters arrays" },
   CONTENT_PACKAGE_FORMAT_INVALID: { status: 400, message: "Unsupported package format" },
-  CONTENT_PACKAGE_VERSION_INVALID: { status: 400, message: "Unsupported package version" }
+  CONTENT_PACKAGE_VERSION_INVALID: { status: 400, message: "Unsupported package version" },
+  CONTENT_PACKAGE_TOO_LARGE: { status: 413, message: "Content package exceeds the supported import limits" },
+  CONTENT_PACKAGE_PROCESSING_BUSY: { status: 503, message: "Content package processing is busy; retry shortly" }
 };
 
 export function errorMeta(code) {

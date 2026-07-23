@@ -14,6 +14,7 @@ const viewMeta = {
   clues: ["内容创作", "线索管理"],
   rules: ["内容创作", "自动化规则"],
   miniGames: ["内容创作", "小游戏设计"],
+  rooms: ["测试与运行", "运行房工作区"],
   archive: ["历史记录", "存档与复盘"],
   settings: ["世界管理", "世界设置"],
   account: ["账号", "账号与资产"],
@@ -38,6 +39,7 @@ export function resolveViewFn(view) {
     case "clues": return getView("clues").clues;
     case "rules": return getView("rules").rules;
     case "miniGames": return getView("miniGames").miniGames;
+    case "rooms": return getView("rooms").rooms;
     case "archive": return getView("archive").archive;
     case "settings": return getView("settings").settings;
     case "account": return getView("accountHub").accountHub;

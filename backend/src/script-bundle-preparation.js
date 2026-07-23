@@ -3,7 +3,7 @@ import { extractDocumentText } from "./document-text-import.js";
 import { preparePdfPageAssetUploads, renderPdfPageBuffers } from "./document-page-import.js";
 import { detectPdfContentMode } from "./pdf-document.js";
 import { loadScriptBundleBuffer } from "./script-bundle-payload.js";
-import { analyzeScriptBundleBuffer, extractScriptBundleZip } from "./script-bundle-zip.js";
+import { analyzeScriptBundleEntries, extractScriptBundleZip } from "./script-bundle-zip.js";
 
 export function scriptBundleImageContentType(extension) {
   if (extension === ".png") return "image/png";
@@ -101,7 +101,7 @@ async function prepareSingleBundleFile({ file, worldId, actorId, options }) {
 export async function prepareScriptBundleImport(worldId, actorId, body, options = {}) {
   const buffer = loadScriptBundleBuffer(body);
   const extracted = extractScriptBundleZip(buffer);
-  const analysis = analyzeScriptBundleBuffer(buffer);
+  const analysis = analyzeScriptBundleEntries(extracted);
   const files = [];
   for (const file of extracted.files) {
     files.push(await prepareSingleBundleFile({ file, worldId, actorId, options }));

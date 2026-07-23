@@ -11,12 +11,18 @@ import {
   lockActiveSeatOccupant,
   lockJoinMembership
 } from "./repositories/player-access-repository.js";
+import { projectRoomContentBinding } from "./room-content-binding.js";
 
 export async function loadRoomInviteAccess(actorId, inviteCode) {
   const row = await findInviteAccess(inviteCode, actorId);
   if (!row) throwErr("ROOM_NOT_FOUND");
   return {
-    room: { id: row.id, name: row.name, status: row.status },
+    room: {
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      contentBinding: projectRoomContentBinding(row)
+    },
     world: { id: row.world_id, name: row.world_name },
     current_role_slot_id: row.current_role_slot_id ?? null,
     roles: row.roles ?? []

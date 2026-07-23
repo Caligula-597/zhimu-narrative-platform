@@ -16,13 +16,16 @@ test("production launch contract enforces Trusted Types", () => {
   }
 });
 
-test("marketing site enforces its shared Trusted Types policy at the edge", () => {
-  const headers = fs.readFileSync(path.join(root, "site/public/_headers"), "utf8");
-  assert.match(headers, /Content-Security-Policy:/);
-  assert.match(headers, /trusted-types zhimu-html/);
-  assert.match(headers, /require-trusted-types-for 'script'/);
-  assert.match(headers, /object-src 'none'/);
-  assert.match(headers, /frame-ancestors 'none'/);
+test("all Cloudflare frontends enforce the shared Trusted Types policy at the edge", () => {
+  for (const file of ["site/public/_headers", "host/public/_headers", "play/public/_headers"]) {
+    const headers = fs.readFileSync(path.join(root, file), "utf8");
+    assert.match(headers, /Content-Security-Policy:/, file);
+    assert.match(headers, /trusted-types zhimu-html/, file);
+    assert.match(headers, /require-trusted-types-for 'script'/, file);
+    assert.match(headers, /object-src 'none'/, file);
+    assert.match(headers, /frame-ancestors 'none'/, file);
+    assert.match(headers, /Strict-Transport-Security:/, file);
+  }
 });
 
 test("Writer and Director use fragment-guarded template boundaries", () => {

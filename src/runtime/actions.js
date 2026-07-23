@@ -30,14 +30,25 @@ import { dispatchActionHandlers } from "../../shared/action-dispatch.js";
 export function bindDynamic() {
     enhanceCloudPanels();
     const view = uiStore.get().view;
-    if (view === "studio") callView("studio", "bindStudioDragging");
-    if (view === "clues") callView("clues", "bindCluesSearch");
+    if (view === "studio") {
+      callView("studio", "bindStudioDragging");
+      callView("studio", "bindStudioCreateEditor");
+    }
+    if (view === "clues") {
+      callView("clues", "bindCluesSearch");
+      callView("clues", "bindClueEditor");
+    }
+    if (view === "miniGames") callView("miniGames", "bindMiniGameEditor");
+    if (view === "rules") callView("rules", "bindRuleEditor");
+    if (view === "rooms") callView("rooms", "bindRoomWorkspace");
     if (view === "account") callView("accountHub", "bindAccountHubView");
     if (view === "player") callView("player", "bindPlayerReader");
     if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
     if (view === "writer") {
       void callView("writer", "loadWriterRoleArchives");
       callView("writer", "bindWriterSectionEditor");
+      callView("writer", "bindWriterMetadataEditor");
+      callView("writer", "bindWriterToolWorkspace");
     }
     window.zhimuActionsCreatorCockpit?.maybeAutoLoadCockpit?.(view);
     window.zhimuActionsCreatorWorkspaces?.maybeAutoLoadWorkspace?.(view);

@@ -28,6 +28,13 @@ const privateSettings = {
 test("public world settings expose display metadata without truth or internal review data", () => {
   assert.deepEqual(publicWorldSettings(privateSettings), {
     creationType: "tabletop_rpg",
+    narrativeProfile: {
+      version: 1,
+      creationType: "tabletop_rpg",
+      runFormat: "campaign",
+      roleMode: "mixed",
+      ruleset: { mode: "system_neutral", key: "", diceNotation: "" }
+    },
     coverAssetId: "asset-1",
     commercialProfile: {
       authorName: "作者",

@@ -1,13 +1,22 @@
-import { resolve } from "node:path";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+import { productionArtifactGuard } from "../config/production-artifact-guard.mjs";
 
-export default defineConfig({
+const root = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig(({ mode }) => ({
+  plugins: [productionArtifactGuard({
+    enabled: mode === "production",
+    outDir: path.join(root, "dist"),
+    name: "zhimu-site-production-artifact-guard"
+  })],
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        pricingCommercial: resolve(__dirname, "pricing-commercial.html")
+        main: path.resolve(root, "index.html"),
+        pricingCommercial: path.resolve(root, "pricing-commercial.html")
       }
     }
   }
-});
+}));

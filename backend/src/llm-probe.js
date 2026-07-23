@@ -2,15 +2,14 @@
  * Lightweight LLM connectivity probe for account settings.
  */
 import { throwErr } from "./api-errors.js";
-import { assertSafeOutboundHttpsUrl } from "./outbound-url-policy.js";
+import { fetchPinnedOutboundJson } from "./pinned-outbound-fetch.js";
 
 export async function probeLlmConnection(runtime) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Math.min(runtime.timeoutMs || 30000, 30000));
   try {
-    await assertSafeOutboundHttpsUrl(runtime.baseUrl);
     const url = `${runtime.baseUrl.replace(/\/$/, "")}/chat/completions`;
-    const response = await fetch(url, {
+    const response = await fetchPinnedOutboundJson(url, {
       method: "POST",
       headers: {
         authorization: `Bearer ${runtime.apiKey}`,
@@ -22,10 +21,9 @@ export async function probeLlmConnection(runtime) {
         max_tokens: 16,
         temperature: 0
       }),
-      signal: controller.signal,
-      redirect: "manual"
+      signal: controller.signal
     });
-    const payload = await response.json().catch(() => ({}));
+    const payload = response.payload;
     if (!response.ok) {
       const msg = payload.error?.message || `HTTP ${response.status}`;
       throwErr("LLM_PROBE_FAILED", `连接测试失败：${msg}`, { status: response.status });

@@ -1,5 +1,6 @@
 /** Player-home authored/readable content queries. */
 import { query } from "../db.js";
+import { withRoomContentBinding } from "../room-content-binding.js";
 
 const stableContentCache = new Map();
 const STABLE_CACHE_MAX = Number(process.env.PLAYER_HOME_STABLE_CACHE_MAX || 500);
@@ -48,10 +49,15 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
   const result = await query(
     `WITH member AS (
        SELECT rm.role_slot_id, r.id AS room_id, r.name AS room_name,
-              r.invite_code, r.status AS room_status, r.world_id, w.content_revision
+              r.invite_code, r.status AS room_status, r.world_id, r.release_id,
+              w.content_revision,
+              release.release_number, release.label AS release_label,
+              release.source_content_revision AS release_source_revision,
+              release.created_at AS release_created_at
        FROM room_members rm
        JOIN rooms r ON r.id = rm.room_id
        JOIN worlds w ON w.id = r.world_id
+       LEFT JOIN world_releases release ON release.id = r.release_id
        WHERE rm.room_id = $1 AND rm.user_id = $2
          AND rm.status = 'active' AND rm.role_slot_id IS NOT NULL
      )
@@ -59,6 +65,11 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
        m.role_slot_id,
        m.world_id,
        m.content_revision,
+       m.release_id,
+       m.release_number,
+       m.release_label,
+       m.release_source_revision,
+       m.release_created_at,
        jsonb_build_object(
          'id', m.room_id, 'name', m.room_name,
          'invite_code', m.invite_code, 'status', m.room_status
@@ -103,7 +114,15 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
     roleSlotId: row.role_slot_id,
     worldId: row.world_id,
     contentRevision: Number(row.content_revision),
-    room: row.room,
+    room: withRoomContentBinding({
+      ...row.room,
+      release_id: row.release_id,
+      release_number: row.release_number,
+      release_label: row.release_label,
+      release_source_revision: row.release_source_revision,
+      release_created_at: row.release_created_at,
+      current_content_revision: row.content_revision
+    }),
     role: stable.role,
     sections: row.sections ?? [],
     segments: stable.segments
@@ -117,6 +136,12 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
          (SELECT jsonb_build_object(
             'id', r.id, 'name', r.name, 'invite_code', r.invite_code, 'status', r.status
           ) FROM rooms r WHERE r.id = $1) AS room,
+         room_binding.release_id,
+         world.content_revision AS current_content_revision,
+         release.release_number,
+         release.label AS release_label,
+         release.source_content_revision AS release_source_revision,
+         release.created_at AS release_created_at,
          (SELECT jsonb_build_object(
             'id', rs.id, 'name', rs.name, 'public_profile', rs.public_profile,
             'private_profile', rs.private_profile
@@ -133,7 +158,11 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
              JOIN rooms r ON r.world_id = ws.world_id
              WHERE r.id = $1
            ) segment_row
-         ), '[]'::jsonb) AS segments`,
+         ), '[]'::jsonb) AS segments
+       FROM rooms room_binding
+       JOIN worlds world ON world.id = room_binding.world_id
+       LEFT JOIN world_releases release ON release.id = room_binding.release_id
+       WHERE room_binding.id = $1`,
       [roomId, roleSlotId]
     ),
     query(
@@ -162,7 +191,15 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
 
   const row = snapshot.rows[0] ?? {};
   return {
-    room: row.room,
+    room: withRoomContentBinding({
+      ...row.room,
+      release_id: row.release_id,
+      release_number: row.release_number,
+      release_label: row.release_label,
+      release_source_revision: row.release_source_revision,
+      release_created_at: row.release_created_at,
+      current_content_revision: row.current_content_revision
+    }),
     role: row.role,
     sections: sections.rows,
     segments: row.segments ?? []

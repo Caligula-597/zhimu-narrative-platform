@@ -1,4 +1,5 @@
 import { paramsSchema, uuid } from "./primitives.js";
+import { worldSettingsSchema } from "./world-settings.js";
 
 export const createWorldSchema = {
   body: {
@@ -8,7 +9,7 @@ export const createWorldSchema = {
     properties: {
       name: { type: "string", minLength: 1, maxLength: 120 },
       summary: { type: "string", maxLength: 4000 },
-      settings: { type: "object", additionalProperties: true }
+      settings: worldSettingsSchema
     }
   }
 };

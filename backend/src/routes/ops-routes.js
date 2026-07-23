@@ -29,6 +29,10 @@ import { listFeedback, getFeedbackStats, updateFeedbackStatus } from "../feedbac
 import { registerOpsCatalogRoutes } from "./ops-catalog-routes.js";
 import { registerOpsBetaRoutes } from "./ops-beta-routes.js";
 import { registerOpsPlazaRoutes } from "./ops-plaza-routes.js";
+import {
+  explainRateLimitTopology,
+  resolveRateLimitTopology
+} from "../network-trust-policy.js";
 
 const opsAuditLogQuerySchema = {
   type: "object",
@@ -48,7 +52,7 @@ export function allRateLimitsPositive(value) {
   return values.length > 0 && values.every(allRateLimitsPositive);
 }
 
-function productionTrustGates({ features, rateLimits }) {
+export function productionTrustGates({ features, rateLimits }) {
   const uploadScan = features.uploadScan ?? {};
   const uploadMode = uploadScan.mode;
   const hasExternalScanner = Boolean(uploadScan.webhookConfigured || uploadScan.clamAvConfigured);
@@ -86,9 +90,9 @@ function productionTrustGates({ features, rateLimits }) {
     },
     {
       key: "rate_limits",
-      label: "API rate limits",
-      ok: allRateLimitsPositive(rateLimits),
-      detail: JSON.stringify(rateLimits)
+      label: "API rate limits and network topology",
+      ok: allRateLimitsPositive(rateLimits) && Boolean(features.rateLimitTopology?.trusted),
+      detail: `${explainRateLimitTopology(features.rateLimitTopology)}; limits=${JSON.stringify(rateLimits)}`
     },
     {
       key: "ops_token",
@@ -253,6 +257,7 @@ export async function registerOpsRoutes(app) {
         openapiUi: process.env.OPENAPI_UI === "true" || (process.env.NODE_ENV ?? "development") !== "production",
         telemetry: getTelemetryStatus(),
         sentry: getSentryStatus(),
+        rateLimitTopology: resolveRateLimitTopology(),
         email: getEmailServiceStatus(),
         oauth: getPublicOAuthDiagnostics(),
         stripe: getStripeBillingStatus(),
@@ -269,7 +274,14 @@ export async function registerOpsRoutes(app) {
         readPerMin: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
         uploadPerMin: Number(process.env.RATE_LIMIT_UPLOAD_MAX ?? 30),
         documentPerMin: Number(process.env.RATE_LIMIT_DOCUMENT_MAX ?? 10),
+        scriptBundlePerMin: Number(process.env.RATE_LIMIT_SCRIPT_BUNDLE_MAX ?? 4),
         aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40),
+        network: {
+          uploadPerMin: Number(process.env.RATE_LIMIT_UPLOAD_IP_MAX ?? 120),
+          documentPerMin: Number(process.env.RATE_LIMIT_DOCUMENT_IP_MAX ?? 60),
+          scriptBundlePerMin: Number(process.env.RATE_LIMIT_SCRIPT_BUNDLE_IP_MAX ?? 20),
+          aiPerMin: Number(process.env.RATE_LIMIT_AI_IP_MAX ?? 160)
+        },
         feedbackPerHour: Number(process.env.RATE_LIMIT_FEEDBACK_MAX ?? 10),
         roomAccess: resolveRoomAccessRateLimits(),
         voice: resolveVoiceRateLimits(),

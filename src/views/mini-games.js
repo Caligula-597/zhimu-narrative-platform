@@ -1,20 +1,24 @@
 /* Creator mini-game design — test feature backed by room mini-game runtime. */
 import * as zhimuApi from "../api/index.js";
+import { formField } from "../components/form-fields.js";
 import { showToast } from "../components/toast.js";
+import {
+  bindWorkspaceDraft,
+  renderWorkspaceEditor,
+  setWorkspaceSaving,
+  showWorkspaceErrors,
+  workspaceValues
+} from "../components/workspace-editor.js";
 import { render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
 import { studioStore, worldStore } from "../state/index.js";
 import * as F from "../utils/format.js";
-import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
   const escapeHtml = F.escapeHtml || ((value = "") => String(value));
   const catalogExperienceBanner = U.catalogExperienceBanner || (() => "");
-  const studioField = M.studioField || (() => "");
-  const studioValues = M.studioValues || (() => ({}));
-  const studioModal = M.studioModal || (() => {});
-  const closeModal = M.closeModal || (() => {});
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
+  let miniGameEditorState = null;
 
   function templates() {
     const world = studioStore.get().cloudStudio?.world;
@@ -42,7 +46,7 @@ import { normalizeError } from "../components/status-ui.js";
   async function saveTemplates(nextTemplates) {
     const studio = studioStore.get().cloudStudio;
     const world = studio?.world;
-    if (!world || !zhimuApi.context.worldId) return showToast("请先选择剧本世界");
+    if (!world || !zhimuApi.context.worldId) throw new Error("请先选择剧本世界");
     const revision = world.content_revision;
     const settings = { ...(world.settings || {}), miniGameTemplates: nextTemplates.map(normalizeTemplate) };
     const updated = await zhimuApi.patchWorld({ settings }, zhimuApi.context.worldId, { revision });
@@ -68,6 +72,17 @@ import { normalizeError } from "../components/status-ui.js";
       answer: template.answer,
       length: template.length,
       maxAttempts: template.maxAttempts
+    };
+  }
+
+  function miniGameDraft(template) {
+    return {
+      miniTitle: template.title,
+      miniPrompt: template.prompt,
+      miniHint: template.hint,
+      miniAnswer: template.answer,
+      miniLength: String(template.length || 4),
+      miniAttempts: String(template.maxAttempts || 3)
     };
   }
 
@@ -111,6 +126,29 @@ import { normalizeError } from "../components/status-ui.js";
     </aside>`;
   }
 
+  function renderMiniGameEditor() {
+    if (!miniGameEditorState) return "";
+    const value = miniGameEditorState.draft;
+    const body =
+      formField("标题", "miniTitle", "input", value.miniTitle) +
+      formField("玩家提示", "miniPrompt", "textarea", value.miniPrompt, { rows: 5 }) +
+      formField("额外提示（可选）", "miniHint", "textarea", value.miniHint, { rows: 4 }) +
+      formField("答案", "miniAnswer", "input", value.miniAnswer, { inputMode: "numeric" }) +
+      formField("输入长度", "miniLength", "input", value.miniLength, { inputType: "number", inputMode: "numeric" }) +
+      formField("尝试次数", "miniAttempts", "input", value.miniAttempts, { inputType: "number", inputMode: "numeric" });
+    return renderWorkspaceEditor({
+      title: miniGameEditorState.existing ? `编辑小游戏 · ${value.miniTitle}` : "新建小游戏 · 数字锁",
+      kicker: "MINI GAME EDITOR",
+      intro: "模板保存在当前剧本中；保存后可直接从主持端在测试房启动。",
+      body,
+      status: `<span class="test-badge">测试功能</span><p>当前支持数字锁，答案仅用于运行房校验，不会展示给玩家。</p>`,
+      submitLabel: miniGameEditorState.existing ? "保存模板" : "创建模板",
+      submitAction: "mini-game-editor-save",
+      cancelAction: "mini-game-editor-close",
+      className: "mini-game-workspace-editor"
+    });
+  }
+
   export function miniGames() {
     const data = studioStore.get().cloudStudio;
     if (!data) {
@@ -137,7 +175,7 @@ import { normalizeError } from "../components/status-ui.js";
           </article>
           ${list.length ? list.map(templateCard).join("") : `<div class="empty-state enriched-empty"><p><strong>还没有小游戏模板</strong></p><p>先创建一个数字锁模板。答案会随剧本设置保存，测试阶段请只用于内部房间。</p><button class="primary-btn" data-action="mini-game-new">＋ 新建数字锁</button></div>`}
         </main>
-        ${backendStatusCard()}
+        ${renderMiniGameEditor() || backendStatusCard()}
       </div>
     </section>`;
   }
@@ -146,38 +184,61 @@ import { normalizeError } from "../components/status-ui.js";
     const current = templates().map(normalizeTemplate);
     const existing = current.find((item) => item.id === templateId);
     const template = normalizeTemplate(existing || {});
-    studioModal(
-      existing ? `编辑小游戏 · ${template.title}` : "新建小游戏 · 数字锁",
-      `<div class="tutorial-tip"><b>测试功能</b><span>当前只支持数字锁。模板保存在剧本设置里，主持端可以在当前运行房中测试启动。</span></div>` +
-        studioField("标题", "miniTitle", "input", template.title) +
-        studioField("玩家提示", "miniPrompt", "textarea", template.prompt) +
-        studioField("额外提示（可选）", "miniHint", "textarea", template.hint) +
-        studioField("答案", "miniAnswer", "input", template.answer) +
-        studioField("输入长度", "miniLength", "input", String(template.length || 4)) +
-        studioField("尝试次数", "miniAttempts", "input", String(template.maxAttempts || 3)),
-      existing ? "保存模板" : "创建模板",
-      async () => {
-        try {
-          const values = studioValues();
-          const next = normalizeTemplate({
-            id: template.id,
-            title: values.miniTitle,
-            prompt: values.miniPrompt,
-            hint: values.miniHint,
-            answer: values.miniAnswer,
-            length: values.miniLength,
-            maxAttempts: values.miniAttempts
-          });
-          const nextList = existing ? current.map((item) => item.id === template.id ? next : item) : [next, ...current];
-          await saveTemplates(nextList);
-          closeModal();
-          render();
-          showToast(existing ? "小游戏模板已保存" : "小游戏模板已创建");
-        } catch (error) {
-          showError(error, "小游戏模板保存失败");
-        }
-      }
-    );
+    miniGameEditorState = { existing: Boolean(existing), templateId: template.id, draft: miniGameDraft(template) };
+    render();
+  }
+
+  export function closeMiniGameEditor() {
+    miniGameEditorState = null;
+    render();
+  }
+
+  export function bindMiniGameEditor() {
+    const root = document.querySelector(".mini-game-workspace-editor[data-workspace-editor]");
+    bindWorkspaceDraft(root, miniGameEditorState?.draft);
+  }
+
+  export async function saveMiniGameEditor() {
+    if (!miniGameEditorState) return;
+    const root = document.querySelector(".mini-game-workspace-editor[data-workspace-editor]");
+    const values = workspaceValues(root);
+    if (!values.miniTitle) {
+      showWorkspaceErrors(root, ["请填写小游戏标题"]);
+      root?.querySelector('[data-studio-field="miniTitle"]')?.focus();
+      return;
+    }
+    if (!values.miniAnswer) {
+      showWorkspaceErrors(root, ["请填写用于校验的答案"]);
+      root?.querySelector('[data-studio-field="miniAnswer"]')?.focus();
+      return;
+    }
+    const current = templates().map(normalizeTemplate);
+    const next = normalizeTemplate({
+      id: miniGameEditorState.templateId,
+      title: values.miniTitle,
+      prompt: values.miniPrompt,
+      hint: values.miniHint,
+      answer: values.miniAnswer,
+      length: values.miniLength,
+      maxAttempts: values.miniAttempts
+    });
+    miniGameEditorState.draft = miniGameDraft(next);
+    setWorkspaceSaving(root, true);
+    showWorkspaceErrors(root, []);
+    try {
+      const nextList = miniGameEditorState.existing
+        ? current.map((item) => item.id === next.id ? next : item)
+        : [next, ...current];
+      const wasExisting = miniGameEditorState.existing;
+      await saveTemplates(nextList);
+      miniGameEditorState = null;
+      render();
+      showToast(wasExisting ? "小游戏模板已保存" : "小游戏模板已创建");
+    } catch (error) {
+      setWorkspaceSaving(root, false);
+      showWorkspaceErrors(root, [error?.message || "小游戏模板保存失败"]);
+      showError(error, "小游戏模板保存失败");
+    }
   }
 
   export async function deleteMiniGameTemplate(templateId) {
@@ -185,6 +246,7 @@ import { normalizeError } from "../components/status-ui.js";
     const next = current.filter((item) => item.id !== templateId);
     try {
       await saveTemplates(next);
+      if (miniGameEditorState?.templateId === templateId) miniGameEditorState = null;
       render();
       showToast("小游戏模板已删除");
     } catch (error) {
@@ -206,5 +268,5 @@ import { normalizeError } from "../components/status-ui.js";
     }
   }
 
-export const miniGamesViewApi = { miniGames, openMiniGameEditor, deleteMiniGameTemplate, launchMiniGameTemplate };
+export const miniGamesViewApi = { miniGames, openMiniGameEditor, closeMiniGameEditor, bindMiniGameEditor, saveMiniGameEditor, deleteMiniGameTemplate, launchMiniGameTemplate };
 registerView("miniGames", miniGamesViewApi);

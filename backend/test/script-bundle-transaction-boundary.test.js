@@ -170,3 +170,15 @@ test("script bundle route finishes external preparation before revision transact
   assert.match(transactionBody, /SAVEPOINT \$\{savepoint\}/);
   assert.match(transactionBody, /ROLLBACK TO SAVEPOINT \$\{savepoint\}/);
 });
+
+test("new-world script bundle import commits world and content atomically", async () => {
+  const source = await fs.readFile(new URL("../src/script-bundle-import.js", import.meta.url), "utf8");
+  const start = source.indexOf("export async function createWorldFromScriptBundle");
+  const body = source.slice(start);
+  const prepareIndex = body.indexOf("prepareScriptBundleImport(");
+  const transactionIndex = body.indexOf("transaction(async (client)");
+  const importIndex = body.indexOf("importScriptBundleToWorldWithClient(", transactionIndex);
+  assert.ok(prepareIndex >= 0 && transactionIndex > prepareIndex && importIndex > transactionIndex);
+  assert.doesNotMatch(body, /importScriptBundleToWorld\(created\.worldId/);
+  assert.match(body, /cleanupPreparedScriptBundle\(preparedImport\)/);
+});

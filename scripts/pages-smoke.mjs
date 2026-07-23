@@ -48,6 +48,16 @@ for (const check of checks) {
       else pass(check.label, `${response.status} ${check.url}`);
       continue;
     }
+    const csp = response.headers.get("content-security-policy") || "";
+    const hsts = response.headers.get("strict-transport-security") || "";
+    const frameProtection = response.headers.get("x-frame-options") || csp;
+    if (!csp.includes("require-trusted-types-for 'script'")
+      || !csp.includes("frame-ancestors 'none'")
+      || !/max-age=/i.test(hsts)
+      || !/(DENY|frame-ancestors 'none')/i.test(frameProtection)) {
+      fail(check.label, `security headers incomplete at ${check.url}`);
+      continue;
+    }
     const lower = text.toLowerCase();
     const matched = check.expect.some((word) => lower.includes(word.toLowerCase()));
     if (!matched) {

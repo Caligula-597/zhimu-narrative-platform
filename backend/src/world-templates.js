@@ -1,6 +1,11 @@
 /**
  * Built-in world skeleton templates for creator onboarding.
  */
+import { normalizeNarrativeSettings } from "../../shared/narrative-profile.js";
+
+function templateSettings(worldMode, settings) {
+  return normalizeNarrativeSettings({ worldMode, ...settings });
+}
 
 const CLASSIC_ROLES = [
   {
@@ -119,11 +124,10 @@ const WORLD_TEMPLATES = [
     defaults: {
       name: "我的剧本杀",
       summary: "经典剧本杀骨架：角色席位、序章分幕、起始场景与线索。",
-      settings: {
-        worldMode: "scripted",
+      settings: templateSettings("scripted", {
         contentSource: "template",
         templateId: "classic-script"
-      },
+      }),
       chapter: { title: "序章", summary: "故事从这里开始。" },
       roles: CLASSIC_ROLES,
       automationTemplates: { reading: true, clue: true, chapter: true, hint: false },
@@ -142,11 +146,10 @@ const WORLD_TEMPLATES = [
     defaults: {
       name: "我的调查故事",
       summary: "线上调查骨架：私人节点、公共场景与线索入口。",
-      settings: {
-        worldMode: "hybrid",
+      settings: templateSettings("hybrid", {
         contentSource: "template",
         templateId: "online-investigation"
-      },
+      }),
       chapter: { title: "第一阶段：来信", summary: "调查从一封匿名消息开始。" },
       roles: INVESTIGATION_ROLES,
       automationTemplates: { reading: true, clue: true, chapter: true, hint: false },
@@ -165,11 +168,10 @@ const WORLD_TEMPLATES = [
     defaults: {
       name: "我的跑团冒险",
       summary: "轻量跑团骨架：开场钩子与测试房，场景与道具可在创作台继续扩展。",
-      settings: {
-        worldMode: "campaign",
+      settings: templateSettings("campaign", {
         contentSource: "template",
         templateId: "campaign-lite"
-      },
+      }),
       chapter: { title: "第一次冒险", summary: "首场冒险的开场。" },
       roles: CAMPAIGN_ROLES,
       automationTemplates: { reading: true, clue: false, chapter: true, hint: false },
@@ -197,14 +199,15 @@ function mergePayload(base, overrides = {}) {
 }
 
 export function listWorldTemplates() {
-  return WORLD_TEMPLATES.map(({ id, label, description, playerCountHint, worldMode, tags, includes }) => ({
+  return WORLD_TEMPLATES.map(({ id, label, description, playerCountHint, worldMode, tags, includes, defaults }) => ({
     id,
     label,
     description,
     playerCountHint,
     worldMode,
     tags,
-    includes
+    includes,
+    narrativeProfile: defaults.settings.narrativeProfile
   }));
 }
 

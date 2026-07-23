@@ -6,6 +6,8 @@ import { callView } from "./view-registry.js";
     switch (action) {
       case "mini-game-new": callView("miniGames", "openMiniGameEditor", ""); return true;
       case "mini-game-edit": callView("miniGames", "openMiniGameEditor", el?.dataset?.template); return true;
+      case "mini-game-editor-close": callView("miniGames", "closeMiniGameEditor"); return true;
+      case "mini-game-editor-save": callView("miniGames", "saveMiniGameEditor"); return true;
       case "mini-game-delete": callView("miniGames", "deleteMiniGameTemplate", el?.dataset?.template); return true;
       case "mini-game-launch": callView("miniGames", "launchMiniGameTemplate", el?.dataset?.template); return true;
       default: return false;

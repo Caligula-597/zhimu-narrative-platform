@@ -24,6 +24,7 @@ import { renderTruthBiblePage, loadTruthBibleTab } from "./truth-bible.js";
 import { contentLayerMapHtml } from "../components/content-layer-map.js";
 
 const escapeHtml = F.escapeHtml || ((v = "") => String(v));
+const formatBytes = F.formatBytes || ((value = 0) => `${value} B`);
 const activeRuntimeRoom = U.activeRuntimeRoom || (() => null);
 const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
 
@@ -500,10 +501,28 @@ export function truth() {
 /** 测试与发布 */
 export function publishLab() {
   const checks = worldStore.get().cloudCreatorChecks || [];
+  const releases = worldStore.get().cloudWorldReleases;
+  const currentRevision = Number(studioStore.get().cloudStudio?.world?.content_revision || 0);
   const room = activeRuntimeRoom();
   const checkRows = checks.length
     ? checks.map((c) => `<div class="check-result ${c.level}"><b>${escapeHtml(c.title)}</b><span>${escapeHtml(c.detail)}</span></div>`).join("")
     : `<div class="empty-state">点击「运行发布检查」生成报告，并可存档为质量报告。</div>`;
+  const releaseRows = Array.isArray(releases)
+    ? releases.map((release) => {
+        const behind = currentRevision > Number(release.sourceRevision || 0);
+        const revisionKnown = currentRevision > 0;
+        const revisionLabel = revisionKnown ? (behind ? "草稿已有更新" : "当前草稿版本") : "已冻结";
+        const revisionTone = revisionKnown ? (behind ? "testing" : "published") : "neutral";
+        const counts = release.contentSummary?.counts || {};
+        return `<article class="version-row">
+          <div>
+            <div class="row" style="gap:8px;align-items:center"><strong>R${release.releaseNumber} · ${escapeHtml(release.label)}</strong><span class="status-chip ${revisionTone}">${revisionLabel}</span></div>
+            <p>来源 revision ${release.sourceRevision} · ${counts.roles || 0} 个角色 · ${counts.sections || 0} 段私人内容 · ${counts.segments || 0} 个运行段落</p>
+            <small>${formatBytes(release.snapshotBytes)} · SHA-256 ${escapeHtml(String(release.contentSha256 || "").slice(0, 12))}… · ${escapeHtml(F.formatTime?.(release.createdAt) || release.createdAt || "")}</small>
+          </div>
+        </article>`;
+      }).join("") || `<div class="empty-state">尚未生成正式 Release。创作快照仍用于恢复；Release 用于后续冻结 Host/Player 的运行内容。</div>`
+    : `<div class="empty-state">尚未加载发布版本。点击“加载版本”读取独立 Release 清单。</div>`;
   return `${workspaceHero("TEST & PUBLISH", "测试与发布", "发布前检查、质量报告存档、玩家/主持视角试跑与测试房。")}
   <section class="publish-lab-grid">
     <article class="card">
@@ -518,8 +537,51 @@ export function publishLab() {
       <button type="button" class="secondary-btn full-btn" style="margin-top:8px" data-go="player">打开独立玩家端</button>
       <button type="button" class="secondary-btn full-btn" style="margin-top:8px" data-action="open-host-console">打开主持端试跑</button>
     </article>
+    <article class="card" style="grid-column:1/-1">
+      <div class="section-head"><div><h3>不可变发布版本</h3><p>Release 与可恢复的“创作快照”分开。运行房现在可预绑定目标版本；在冻结读取器完成前，三端会明确标记为兼容读取，不会冒充正式冻结。</p></div><button type="button" class="secondary-btn" data-action="load-world-releases">加载版本</button></div>
+      <div class="row" style="margin:12px 0;align-items:center">
+        <input class="field" id="world-release-label" maxlength="120" placeholder="版本名称，例如：内测版 1.0" value="正式发布 ${new Date().toLocaleDateString("zh-CN")}">
+        <button type="button" class="primary-btn" data-action="create-world-release">检查并生成 Release</button>
+      </div>
+      <p class="muted-note">生成时会重新运行服务端检查；任何 error 都会阻断。成功后继续编辑只影响草稿，不会修改已有 Release。</p>
+      <div class="version-list">${releaseRows}</div>
+    </article>
   </section>
   ${renderQualityReportsPanel()}`;
+}
+
+export async function loadWorldReleases({ quiet = false } = {}) {
+  const worldId = zhimuApi.context.worldId;
+  if (!worldId) return [];
+  try {
+    const releases = await zhimuApi.getWorldReleases(worldId);
+    if (zhimuApi.context.worldId !== worldId) return [];
+    worldStore.set({ cloudWorldReleases: releases });
+    render();
+    if (!quiet) showToast(`已加载 ${releases.length} 个发布版本`);
+    return releases;
+  } catch (error) {
+    showError(error, "发布版本加载失败");
+    return [];
+  }
+}
+
+export async function createWorldRelease() {
+  const label = document.getElementById("world-release-label")?.value?.trim();
+  if (!label) return showToast("请填写发布版本名称");
+  const worldId = zhimuApi.context.worldId;
+  const revision = window.zhimuWorldRevision?.currentRevision?.(worldId);
+  try {
+    const release = await zhimuApi.createWorldRelease({ label }, worldId, { revision });
+    await loadWorldReleases({ quiet: true });
+    showToast(release.replayed
+      ? `已返回原发布版本 R${release.releaseNumber}`
+      : `Release R${release.releaseNumber} 已生成并锁定`);
+    return release;
+  } catch (error) {
+    showError(error, "Release 生成失败，请先处理发布检查中的阻塞项");
+    return null;
+  }
 }
 
 /** 复盘改本 */
@@ -660,7 +722,9 @@ export const creatorWorkspacesApi = {
   deleteRelationshipInline,
   loadCreatorAnalytics,
   loadQualityReports,
-  recordQualityReportSnapshot
+  recordQualityReportSnapshot,
+  loadWorldReleases,
+  createWorldRelease
 };
 
 registerView("creatorWorkspaces", creatorWorkspacesApi);

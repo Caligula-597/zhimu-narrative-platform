@@ -1,3 +1,5 @@
+import { narrativeProfileFromSettings } from "../../shared/narrative-profile.js";
+
 const PUBLIC_COMMERCIAL_PROFILE_FIELDS = Object.freeze([
   "authorName",
   "registrationNumber",
@@ -20,8 +22,11 @@ export function publicWorldSettings(settings) {
   const commercialProfile = compactObject(Object.fromEntries(
     PUBLIC_COMMERCIAL_PROFILE_FIELDS.map((key) => [key, commercialSource[key]])
   ));
+  const hasNarrativeProfile = source.narrativeProfile || source.creationType || source.worldMode;
+  const narrativeProfile = hasNarrativeProfile ? narrativeProfileFromSettings(source) : undefined;
   return compactObject({
-    creationType: source.creationType,
+    creationType: narrativeProfile?.creationType ?? source.creationType,
+    narrativeProfile,
     coverAssetId: source.coverAssetId,
     commercialProfile: Object.keys(commercialProfile).length ? commercialProfile : undefined
   });

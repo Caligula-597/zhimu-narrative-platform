@@ -97,7 +97,17 @@ RETENTION_ACCOUNT_CREATION_EVENTS_DAYS=7
 RATE_LIMIT_WRITE_MAX=120
 RATE_LIMIT_READ_MAX=300
 RATE_LIMIT_UPLOAD_MAX=30
+RATE_LIMIT_UPLOAD_IP_MAX=120
+RATE_LIMIT_DOCUMENT_MAX=10
+RATE_LIMIT_DOCUMENT_IP_MAX=60
+RATE_LIMIT_SCRIPT_BUNDLE_MAX=4
+RATE_LIMIT_SCRIPT_BUNDLE_IP_MAX=20
+# 内容包预览、导入和完整导出复用上述重型包限流桶；单实例再由以下队列限制并发。
+CONTENT_PACKAGE_PROCESSING_MAX_CONCURRENT=1
+CONTENT_PACKAGE_PROCESSING_MAX_QUEUED=2
+CONTENT_PACKAGE_PROCESSING_QUEUE_TIMEOUT_MS=30000
 RATE_LIMIT_AI_MAX=40
+RATE_LIMIT_AI_IP_MAX=160
 RATE_LIMIT_INVITE_LOOKUP_MAX=30
 RATE_LIMIT_INVITE_LOOKUP_IP_MAX=120
 RATE_LIMIT_ROOM_JOIN_MAX=12
@@ -127,6 +137,16 @@ RATE_LIMIT_HOST_PLAYER_NOTES_IP_MAX=120
 RATE_LIMIT_HOST_PLAYER_KICK_MAX=10
 RATE_LIMIT_HOST_PLAYER_KICK_IP_MAX=60
 ```
+
+限流器目前按应用进程保存计数，因此生产部署还必须声明代理和副本拓扑：
+
+```env
+TRUST_PROXY_HOPS=1
+APP_INSTANCE_COUNT=1
+EDGE_RATE_LIMIT_VERIFIED=false
+```
+
+`TRUST_PROXY_HOPS` 必须与 CDN/反向代理层数一致，否则攻击者可能伪造来源 IP，或所有用户被错误归并为同一个代理 IP。单副本可显式设置 `APP_INSTANCE_COUNT=1`；扩到两个及以上副本前，必须在 Cloudflare/WAF 配置覆盖登录、邀请码、房间加入、上传、AI 和写接口的边缘限流，经过预发布压测确认每个副本都无法绕过后，才可设置 `EDGE_RATE_LIMIT_VERIFIED=true`。`/api/ops/status` 会把这组拓扑作为 production trust 的硬验收门，不满足时不应放量。
 
 邀请查询、加入房间、语音消息、令牌、建房、邀请、存档恢复、复盘生成、主持通信和玩家管理同时按账号和来源网络计数；来源网络额度必须高于账号额度，避免共享网络中的正常玩家互相误伤。复盘生成默认每账号每分钟 2 次、每来源网络 20 次，并在数据库层继续按房间互斥；主持提醒和踢出默认每账号每分钟 10 次，防止 SSE、时间线及成员状态写入被恶意放大。上线前在隔离或预发布环境分别运行 `npm run perf:abuse-guard` 与 `npm run perf:voice-abuse-guard`，远程目标必须显式传 `--allow-remote` 并通过 `ABUSE_TEST_BEARER_TOKENS` 提供测试账号。
 

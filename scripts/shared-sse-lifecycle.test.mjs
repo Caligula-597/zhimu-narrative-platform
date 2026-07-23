@@ -110,3 +110,50 @@ test("SSE lifecycle reconnects a stale-credential 401 without logging out the ne
   assert.equal(errors, 1);
   lifecycle.stop();
 });
+
+test("SSE lifecycle reconciles periodically while the stream remains connected", async () => {
+  const reasons = [];
+  let releaseStream;
+  const stream = new Promise((resolve) => { releaseStream = resolve; });
+  const lifecycle = createSseLifecycle({
+    eventTarget: null,
+    connectedReconcileMs: 10,
+    reconcile: async (reason) => { reasons.push(reason); },
+    open: async ({ onConnected }) => {
+      await onConnected({});
+      await stream;
+    }
+  });
+  lifecycle.start();
+  await new Promise((resolve) => setTimeout(resolve, 45));
+  assert.equal(reasons[0], "connected");
+  assert.ok(reasons.filter((reason) => reason === "connected-periodic").length >= 2);
+  lifecycle.stop();
+  releaseStream();
+});
+
+test("SSE lifecycle coalesces slow connected reconciliation", async () => {
+  let calls = 0;
+  let releasePeriodic;
+  const pendingPeriodic = new Promise((resolve) => { releasePeriodic = resolve; });
+  let releaseStream;
+  const stream = new Promise((resolve) => { releaseStream = resolve; });
+  const lifecycle = createSseLifecycle({
+    eventTarget: null,
+    connectedReconcileMs: 10,
+    reconcile: async (reason) => {
+      calls += 1;
+      if (reason === "connected-periodic") await pendingPeriodic;
+    },
+    open: async ({ onConnected }) => {
+      await onConnected({});
+      await stream;
+    }
+  });
+  lifecycle.start();
+  await new Promise((resolve) => setTimeout(resolve, 45));
+  assert.equal(calls, 2);
+  releasePeriodic();
+  lifecycle.stop();
+  releaseStream();
+});

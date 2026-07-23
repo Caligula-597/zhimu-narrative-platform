@@ -41,7 +41,7 @@ function detectRootFolder(paths) {
   return bestCount >= Math.max(2, Math.floor(paths.length * 0.5)) ? best : null;
 }
 
-export function extractScriptBundleZip(buffer) {
+export function extractScriptBundleZip(buffer, { includeData = true } = {}) {
   let zip;
   try {
     zip = new AdmZip(buffer);
@@ -55,32 +55,44 @@ export function extractScriptBundleZip(buffer) {
     throwErr("SCRIPT_BUNDLE_ENTRY_LIMIT", `Zip has ${rawEntries.length} files; limit is ${scriptBundleMaxEntries()}`);
   }
 
-  let uncompressedTotal = 0;
-  const files = [];
+  const maxUncompressedBytes = scriptBundleMaxUncompressedBytes();
+  let declaredUncompressedTotal = 0;
+  const supportedEntries = [];
   for (const entry of rawEntries) {
     const relativePath = safeEntryPath(entry.entryName);
     if (isSkippedBundlePath(relativePath)) continue;
     const ext = path.extname(relativePath).toLowerCase();
     if (!SCRIPT_BUNDLE_ALLOWED_EXTENSIONS.has(ext)) continue;
 
-    const headerSize = Number(entry.header?.size ?? entry.header?.compressedSize ?? 0);
-    uncompressedTotal += headerSize > 0 ? headerSize : 0;
-    if (uncompressedTotal > scriptBundleMaxUncompressedBytes()) {
+    const headerSize = Number(entry.header?.size ?? 0);
+    if (!Number.isSafeInteger(headerSize) || headerSize < 0) {
+      throwErr("SCRIPT_BUNDLE_UNCOMPRESSED_LIMIT", "Zip entry has an invalid uncompressed size");
+    }
+    declaredUncompressedTotal += headerSize;
+    if (declaredUncompressedTotal > maxUncompressedBytes) {
       throwErr("SCRIPT_BUNDLE_UNCOMPRESSED_LIMIT", "Zip uncompressed size exceeds limit");
     }
+    supportedEntries.push({ entry, relativePath, ext, headerSize });
+  }
 
-    const data = entry.getData();
-    if (!data?.length) continue;
-    uncompressedTotal += data.length;
-    if (uncompressedTotal > scriptBundleMaxUncompressedBytes()) {
-      throwErr("SCRIPT_BUNDLE_UNCOMPRESSED_LIMIT", "Zip uncompressed size exceeds limit");
+  let actualUncompressedTotal = 0;
+  const files = [];
+  for (const { entry, relativePath, ext, headerSize } of supportedEntries) {
+    const data = includeData ? entry.getData() : null;
+    const byteSize = includeData ? Number(data?.length ?? 0) : headerSize;
+    if (!byteSize) continue;
+    if (includeData) {
+      actualUncompressedTotal += byteSize;
+      if (actualUncompressedTotal > maxUncompressedBytes) {
+        throwErr("SCRIPT_BUNDLE_UNCOMPRESSED_LIMIT", "Zip uncompressed size exceeds limit");
+      }
     }
 
     files.push({
       relativePath,
       extension: ext,
-      byteSize: data.length,
-      buffer: data,
+      byteSize,
+      ...(includeData ? { buffer: data } : {}),
       classification: classifyBundleEntry(relativePath)
     });
   }
@@ -93,7 +105,9 @@ export function extractScriptBundleZip(buffer) {
   return {
     rootFolder,
     titleHints,
-    files
+    files,
+    declaredUncompressedBytes: declaredUncompressedTotal,
+    uncompressedBytes: includeData ? actualUncompressedTotal : declaredUncompressedTotal
   };
 }
 
@@ -145,6 +159,8 @@ function inferImportMode(file) {
 }
 
 export function analyzeScriptBundleBuffer(buffer) {
-  const extracted = extractScriptBundleZip(buffer);
+  // Inventory does not need file contents. Avoid inflating an archive merely
+  // to show a preview; actual bytes are materialized once during import.
+  const extracted = extractScriptBundleZip(buffer, { includeData: false });
   return analyzeScriptBundleEntries(extracted);
 }

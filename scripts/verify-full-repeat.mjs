@@ -17,10 +17,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const backend = path.join(root, "backend");
 
 export function assertSupportedNodeRuntime(version = process.versions.node) {
-  const major = Number(String(version).split(".")[0]);
-  if (major !== 22) {
+  const [major, minor] = String(version).split(".").map(Number);
+  if (major !== 24 || minor !== 13) {
     throw new Error(
-      `release acceptance requires Node.js 22.x (received ${version}). ` +
+      `release acceptance requires Node.js 24.13.x (received ${version}). ` +
         "Use .nvmrc or .node-version before running verify:full:3."
     );
   }

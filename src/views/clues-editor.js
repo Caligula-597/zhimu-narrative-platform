@@ -1,99 +1,151 @@
 import * as zhimuApi from "../api/index.js";
+import { formField, formSelect } from "../components/form-fields.js";
 import { showToast } from "../components/toast.js";
-import { modal } from "../dom.js";
-import { go, loadCloudData } from "../runtime/runtime-facade.js";
+import {
+  bindWorkspaceDraft,
+  renderWorkspaceEditor,
+  setWorkspaceSaving,
+  showWorkspaceErrors,
+  workspaceValues
+} from "../components/workspace-editor.js";
+import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { assetStore, studioStore, uiStore } from "../state/index.js";
-import * as M from "../components/modal.js";
 import * as S from "../components/ui-semantics.js";
 import { CLUE_IMPORTANCE_OPTIONS, CLUE_KIND_OPTIONS, CLUE_TYPE_OPTIONS } from "./clues-catalog.js";
 
-const studioField = M.studioField || (() => "");
-const studioSelect = M.studioSelect || (() => "");
-const studioValues = M.studioValues || (() => ({}));
-const studioModal = M.studioModal || (() => {});
-const closeModal = M.closeModal || (() => {});
 const showError = S.showError;
+let clueEditorState = null;
+
+function clueDraft(clue = null) {
+  const meta = clue?.metadata || {};
+  return {
+    name: clue?.name || "",
+    publicText: clue?.public_text || "",
+    hostText: clue?.host_text || "",
+    visibility: clue?.visibility || "role",
+    grantMode: meta.grantMode || "auto",
+    clueType: meta.clueType || "text",
+    clueKind: clue?.clue_kind || clue?.clueKind || "general",
+    assetId: meta.assetId || "",
+    importance: meta.importance || "normal",
+    triggerNote: meta.triggerNote || ""
+  };
+}
+
+function currentClue() {
+  const id = clueEditorState?.clueId;
+  return id ? studioStore.get().cloudStudio?.clues?.find((item) => item.id === id) || null : null;
+}
+
+export function isClueEditorOpen() {
+  return Boolean(clueEditorState);
+}
 
 export function openClueInStudio(clueId) {
-    uiStore.set({ searchFocus: { view: "studio", type: "clue", id: clueId, nodeType: "clue" } });
-    go("studio");
-  }
+  uiStore.set({ searchFocus: { view: "studio", type: "clue", id: clueId, nodeType: "clue" } });
+  go("studio");
+}
 
-  export function openCluesEditor(clueId = "") {
-    const data = studioStore.get().cloudStudio;
-    if (!data) return showToast("请先选择剧本世界");
-    const clue = clueId ? data.clues.find((item) => item.id === clueId) : null;
-    const assets = [{ id: "", name: "不关联附件" }, ...(assetStore.get().cloudAssets || []).map((asset) => ({ id: asset.id, name: asset.original_filename }))];
-    const meta = clue?.metadata || {};
-    studioModal(
-      clue ? `编辑线索 · ${clue.name}` : "新建线索",
-      studioField("线索名称", "name", "input", clue?.name || "") +
-        studioField("获得后可见内容", "publicText", "textarea", clue?.public_text || "") +
-        studioField("主持解释", "hostText", "textarea", clue?.host_text || "") +
-        studioSelect("默认可见性", "visibility", [
-          { id: "role", name: "私密 · 仅获得角色可见" },
-          { id: "public", name: "房间公开" },
-          { id: "host", name: "主持可见" }
-        ], clue?.visibility || "role") +
-        studioSelect("发放模式", "grantMode", [
-          { id: "auto", name: "自动发放" },
-          { id: "host_confirm", name: "主持确认后发放" },
-          { id: "explore", name: "探索调查获得" }
-        ], meta.grantMode || "auto") +
-        studioSelect("线索形态", "clueType", CLUE_TYPE_OPTIONS, meta.clueType || "text") +
-        studioSelect("线索类型", "clueKind", CLUE_KIND_OPTIONS, clue?.clue_kind || clue?.clueKind || "general") +
-        studioSelect("关联资产", "assetId", assets, meta.assetId || "") +
-        studioSelect("重要程度", "importance", CLUE_IMPORTANCE_OPTIONS, meta.importance || "normal") +
-        studioField("触发条件说明", "triggerNote", "textarea", meta.triggerNote || ""),
-      clue ? "保存修改" : "写入云端",
-      async () => {
-        try {
-          const values = studioValues();
-          if (clue) {
-            await zhimuApi.updateClue(clue.id, {
-              name: values.name,
-              publicText: values.publicText,
-              hostText: values.hostText,
-              visibility: values.visibility || "role",
-              clueKind: values.clueKind || "general",
-              metadata: {
-                ...(clue.metadata || {}),
-                clueType: values.clueType || "text",
-                assetId: values.assetId || null,
-                importance: values.importance || "normal",
-                grantMode: values.grantMode || "auto",
-                triggerNote: values.triggerNote || ""
-              }
-            });
-          } else {
-            await zhimuApi.createClue({
-              name: values.name,
-              publicText: values.publicText,
-              hostText: values.hostText,
-              visibility: values.visibility || "role",
-              clueKind: values.clueKind || "general",
-              metadata: {
-                clueType: values.clueType || "text",
-                assetId: values.assetId || null,
-                importance: values.importance || "normal",
-                grantMode: values.grantMode || "auto",
-                triggerNote: values.triggerNote || ""
-              }
-            });
-          }
-          closeModal();
-          await loadCloudData();
-          showToast(clue ? "线索已更新" : "线索已创建");
-        } catch (error) {
-          showError(error);
-        }
-      }
-    );
-    if (clue) {
-      modal.querySelector('[data-studio-field="visibility"]').value = clue.visibility || "role";
-      modal.querySelector('[data-studio-field="grantMode"]').value = meta.grantMode || "auto";
-      modal.querySelector('[data-studio-field="clueType"]').value = meta.clueType || "text";
-      modal.querySelector('[data-studio-field="clueKind"]').value = clue.clue_kind || clue.clueKind || "general";
-      modal.querySelector('[data-studio-field="importance"]').value = meta.importance || "normal";
-    }
+export function openCluesEditor(clueId = "") {
+  const data = studioStore.get().cloudStudio;
+  if (!data) return showToast("请先选择剧本世界");
+  const clue = clueId ? data.clues.find((item) => item.id === clueId) : null;
+  if (clueId && !clue) return showToast("线索不存在或已被删除");
+  clueEditorState = { clueId: clue?.id || "", draft: clueDraft(clue) };
+  if (clue?.id) uiStore.set({ cluesSelectedId: clue.id });
+  render();
+}
+
+export function closeCluesEditor() {
+  clueEditorState = null;
+  render();
+}
+
+export function renderClueEditorPanel() {
+  if (!clueEditorState) return "";
+  const clue = currentClue();
+  const value = clueEditorState.draft;
+  const assets = [
+    { id: "", name: "不关联附件" },
+    ...(assetStore.get().cloudAssets || []).map((asset) => ({ id: asset.id, name: asset.original_filename }))
+  ];
+  const body =
+    formField("线索名称", "name", "input", value.name) +
+    formField("获得后可见内容", "publicText", "textarea", value.publicText, { rows: 7 }) +
+    formField("主持解释", "hostText", "textarea", value.hostText, { rows: 5 }) +
+    formSelect("默认可见性", "visibility", [
+      { id: "role", name: "私密 · 仅获得角色可见" },
+      { id: "public", name: "房间公开" },
+      { id: "host", name: "主持可见" }
+    ], value.visibility) +
+    formSelect("发放模式", "grantMode", [
+      { id: "auto", name: "自动发放" },
+      { id: "host_confirm", name: "主持确认后发放" },
+      { id: "explore", name: "探索调查获得" }
+    ], value.grantMode) +
+    formSelect("线索形态", "clueType", CLUE_TYPE_OPTIONS, value.clueType) +
+    formSelect("线索类型", "clueKind", CLUE_KIND_OPTIONS, value.clueKind) +
+    formSelect("关联资产", "assetId", assets, value.assetId) +
+    formSelect("重要程度", "importance", CLUE_IMPORTANCE_OPTIONS, value.importance) +
+    formField("触发条件说明", "triggerNote", "textarea", value.triggerNote, { rows: 4 });
+  return renderWorkspaceEditor({
+    title: clue ? `编辑线索 · ${clue.name}` : "新建线索",
+    kicker: "CLUE EDITOR",
+    intro: "正文、主持备注与发放条件在同一上下文中编辑，保存后同步刷新线索图谱。",
+    body,
+    submitLabel: clue ? "保存修改" : "创建线索",
+    submitAction: "clue-editor-save",
+    cancelAction: "clue-editor-close",
+    className: "clue-workspace-editor"
+  });
+}
+
+export function bindClueEditor() {
+  if (!clueEditorState) return;
+  const root = document.querySelector(".clue-workspace-editor[data-workspace-editor]");
+  bindWorkspaceDraft(root, clueEditorState.draft);
+}
+
+export async function saveCluesEditor() {
+  if (!clueEditorState) return;
+  const root = document.querySelector(".clue-workspace-editor[data-workspace-editor]");
+  const values = workspaceValues(root);
+  clueEditorState.draft = { ...clueEditorState.draft, ...values };
+  if (!values.name) {
+    showWorkspaceErrors(root, ["请填写线索名称"]);
+    root?.querySelector('[data-studio-field="name"]')?.focus();
+    return;
   }
+  const clue = currentClue();
+  setWorkspaceSaving(root, true);
+  showWorkspaceErrors(root, []);
+  try {
+    const payload = {
+      name: values.name,
+      publicText: values.publicText,
+      hostText: values.hostText,
+      visibility: values.visibility || "role",
+      clueKind: values.clueKind || "general",
+      metadata: {
+        ...(clue?.metadata || {}),
+        clueType: values.clueType || "text",
+        assetId: values.assetId || null,
+        importance: values.importance || "normal",
+        grantMode: values.grantMode || "auto",
+        triggerNote: values.triggerNote || ""
+      }
+    };
+    const saved = clue
+      ? await zhimuApi.updateClue(clue.id, payload)
+      : await zhimuApi.createClue(payload);
+    clueEditorState = null;
+    if (saved?.id) uiStore.set({ cluesSelectedId: saved.id });
+    await loadCloudData();
+    render();
+    showToast(clue ? "线索已更新" : "线索已创建");
+  } catch (error) {
+    setWorkspaceSaving(root, false);
+    showWorkspaceErrors(root, [error?.message || "线索保存失败"]);
+    showError(error);
+  }
+}

@@ -26,6 +26,12 @@ import { callView } from "./view-registry.js";
       case "record-quality-report":
         callView("platformRuntime", "recordQualityReportSnapshot");
         return true;
+      case "load-world-releases":
+        void callView("creatorWorkspaces", "loadWorldReleases");
+        return true;
+      case "create-world-release":
+        void callView("creatorWorkspaces", "createWorldRelease");
+        return true;
       case "load-clue-hit-rate":
         callView("clues", "loadClueHitRate");
         return true;
@@ -48,7 +54,7 @@ import { callView } from "./view-registry.js";
         callRuntime("openRenameWorldModal", el?.dataset?.worldId, el?.dataset?.worldName, el?.dataset?.worldSummary, true);
         return true;
       case "room-select":
-        callRuntime("selectParallelRoom", el?.dataset?.roomId);
+        callView("rooms", "selectParallelRoom", el?.dataset?.roomId);
         return true;
       case "room-invite":
         callRuntime("openRoomInvite", el?.dataset?.roomId, el?.dataset?.inviteCode, el?.dataset?.roomName);
@@ -87,13 +93,16 @@ import { callView } from "./view-registry.js";
         callRuntime("openJoinRoom", el?.dataset?.inviteCode);
         return true;
       case "room-create":
-        callRuntime("createParallelRoom");
+        callView("rooms", "createParallelRoom");
         return true;
       case "room-listing-on":
-        callRuntime("setRoomPublicListing", el?.dataset?.roomId, true);
+        callView("rooms", "setRoomPublicListing", el?.dataset?.roomId, true);
         return true;
       case "room-listing-off":
-        callRuntime("setRoomPublicListing", el?.dataset?.roomId, false);
+        callView("rooms", "setRoomPublicListing", el?.dataset?.roomId, false);
+        return true;
+      case "room-workspace-refresh":
+        callView("rooms", "refreshRoomWorkspace");
         return true;
       case "refresh-cloud":
         loadCloudData(true, true);

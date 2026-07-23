@@ -5,6 +5,8 @@
 import { getDatabaseStatus } from "./database-status.js";
 import { isEmailConfigured } from "./email.js";
 import { validateOAuthProductionConfig } from "./oauth-diagnostics.js";
+import { resolveAllowedCorsOrigins } from "./cors-origins.js";
+import { explainRateLimitTopology, resolveRateLimitTopology } from "./network-trust-policy.js";
 
 const REQUIRED_ENV = ["DATABASE_URL"];
 
@@ -24,6 +26,12 @@ export function validateStartupEnvironment() {
     process.exit(1);
   }
 
+  if (nodeEnv === "production" && resolveAllowedCorsOrigins({}, nodeEnv) === true) {
+    console.error("FATAL: wildcard CORS is forbidden in production while credentialed requests are enabled.");
+    console.error("Configure explicit APP/MARKETING/PLAY/HOST origins instead of '*'.");
+    process.exit(1);
+  }
+
   const port = Number(process.env.PORT ?? 4180);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     console.error(`FATAL: Invalid PORT "${process.env.PORT}"`);
@@ -31,6 +39,11 @@ export function validateStartupEnvironment() {
   }
 
   if (nodeEnv === "production") {
+    const rateLimitTopology = resolveRateLimitTopology();
+    if (!rateLimitTopology.trusted) {
+      console.warn(`WARN: API rate-limit topology is not production-trusted: ${explainRateLimitTopology(rateLimitTopology)}.`);
+      console.warn("WARN: /api/ops/status will keep the rate_limits production gate closed until this is resolved.");
+    }
     if (process.env.REQUIRE_EMAIL_VERIFICATION === "true" && !isEmailConfigured()) {
       console.error("FATAL: REQUIRE_EMAIL_VERIFICATION=true but email provider is not configured.");
       console.error("Set EMAIL_PROVIDER + MAIL_FROM + provider API keys, or disable REQUIRE_EMAIL_VERIFICATION.");

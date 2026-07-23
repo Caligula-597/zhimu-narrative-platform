@@ -4,8 +4,13 @@ import { scriptBundleMaxBytes } from "./script-bundle-limits.js";
 import { analyzeScriptBundleBuffer } from "./script-bundle-zip.js";
 
 export function loadScriptBundleBuffer(body) {
-  const contentBase64 = parseDocumentPayloadBase64(body ?? {});
-  const buffer = Buffer.from(String(contentBase64 ?? ""), "base64");
+  const encoded = String(parseDocumentPayloadBase64(body ?? {}) ?? "").trim();
+  if (!encoded || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded) || encoded.length % 4 === 1) {
+    throwErr("SCRIPT_BUNDLE_INVALID");
+  }
+  const buffer = Buffer.from(encoded, "base64");
+  const canonical = buffer.toString("base64").replace(/=+$/, "");
+  if (canonical !== encoded.replace(/=+$/, "")) throwErr("SCRIPT_BUNDLE_INVALID");
   if (!buffer.length || buffer.length > scriptBundleMaxBytes()) {
     throwErr("SCRIPT_BUNDLE_TOO_LARGE", `Zip must be between 1 byte and ${scriptBundleMaxBytes()} bytes`);
   }

@@ -126,10 +126,21 @@ function findUnschemaedWriteRoutes(content, file) {
   return issues;
 }
 
+function hasRequiredSchemaRegistration(content, marker) {
+  if (content.includes(marker)) return true;
+  const route = marker.match(/app\.(get|post|put|patch|delete)\("([^"]+)"/);
+  if (!route) return false;
+  const [, method, routePath] = route;
+  const lines = content.split("\n");
+  const startIndex = lines.findIndex((line) => line.includes(`app.${method}("${routePath}"`));
+  if (startIndex < 0) return false;
+  return /\bschema\s*:/.test(collectRegistrationBlock(lines, startIndex).block);
+}
+
 let failed = false;
 for (const [file, marker] of REQUIRED_SCHEMA_MARKERS) {
   const content = readFileSync(join(routesDir, file), "utf8");
-  if (!content.includes(marker)) {
+  if (!hasRequiredSchemaRegistration(content, marker)) {
     console.error(`FAIL  ${file}  missing schema marker: ${marker}`);
     failed = true;
   } else {

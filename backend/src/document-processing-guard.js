@@ -8,7 +8,8 @@ function positiveInteger(value, fallback, maximum) {
 export function createDocumentProcessingGuard({
   maxConcurrent = 2,
   maxQueued = 4,
-  queueTimeoutMs = 30_000
+  queueTimeoutMs = 30_000,
+  busyErrorCode = "DOCUMENT_PROCESSING_BUSY"
 } = {}) {
   const concurrency = positiveInteger(maxConcurrent, 2, 16);
   const queueLimit = positiveInteger(maxQueued, 4, 100);
@@ -18,7 +19,7 @@ export function createDocumentProcessingGuard({
 
   function rejectBusy(reject) {
     try {
-      throwErr("DOCUMENT_PROCESSING_BUSY");
+      throwErr(busyErrorCode);
     } catch (error) {
       reject(error);
     }

@@ -56,6 +56,28 @@ test("extractScriptBundleZip reads supported files and root folder", () => {
   assert.ok(extracted.files.every((file) => file.buffer.length > 0));
 });
 
+test("metadata-only bundle analysis does not retain inflated file buffers", () => {
+  const extracted = extractScriptBundleZip(buildSampleZip(), { includeData: false });
+  assert.ok(extracted.files.length > 0);
+  assert.ok(extracted.files.every((file) => file.buffer === undefined));
+  assert.ok(extracted.uncompressedBytes > 0);
+});
+
+test("uncompressed limit counts actual bytes once", () => {
+  const previous = process.env.SCRIPT_BUNDLE_MAX_UNCOMPRESSED_BYTES;
+  process.env.SCRIPT_BUNDLE_MAX_UNCOMPRESSED_BYTES = "100";
+  try {
+    const zip = new AdmZip();
+    zip.addFile("bundle/a.txt", Buffer.alloc(60, 1));
+    const extracted = extractScriptBundleZip(zip.toBuffer());
+    assert.equal(extracted.files[0].byteSize, 60);
+    assert.equal(extracted.uncompressedBytes, 60);
+  } finally {
+    if (previous === undefined) delete process.env.SCRIPT_BUNDLE_MAX_UNCOMPRESSED_BYTES;
+    else process.env.SCRIPT_BUNDLE_MAX_UNCOMPRESSED_BYTES = previous;
+  }
+});
+
 test("analyzeScriptBundleBuffer returns inventory summary", () => {
   const analysis = analyzeScriptBundleBuffer(buildSampleZip());
   assert.equal(analysis.suggestedWorldName, "水上之谜");

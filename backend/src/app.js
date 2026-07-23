@@ -28,6 +28,7 @@ import { createCheckpointAbuseProtection } from "./checkpoint-abuse-protection.j
 import { createRecapAbuseProtection } from "./recap-abuse-protection.js";
 import { createHostCommunicationAbuseProtection } from "./host-communication-abuse-protection.js";
 import { createHostPlayerManagementAbuseProtection } from "./host-player-management-abuse-protection.js";
+import { resolveTrustProxy } from "./network-trust-policy.js";
 
 const guestAuthRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -86,6 +87,35 @@ const documentRateLimit = createRateLimiter({
   max: Number(process.env.RATE_LIMIT_DOCUMENT_MAX ?? 10),
   routeKey: "api-document"
 });
+const scriptBundleRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_SCRIPT_BUNDLE_MAX ?? 4),
+  routeKey: "api-script-bundle"
+});
+const uploadNetworkRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_UPLOAD_IP_MAX ?? 120),
+  routeKey: "api-upload-network",
+  identity: "ip"
+});
+const documentNetworkRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_DOCUMENT_IP_MAX ?? 60),
+  routeKey: "api-document-network",
+  identity: "ip"
+});
+const scriptBundleNetworkRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_SCRIPT_BUNDLE_IP_MAX ?? 20),
+  routeKey: "api-script-bundle-network",
+  identity: "ip"
+});
+const aiNetworkRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_AI_IP_MAX ?? 160),
+  routeKey: "api-ai-network",
+  identity: "ip"
+});
 
 function isUploadRoute(url, method) {
   if (method !== "POST") return false;
@@ -130,15 +160,25 @@ function resolveCorsOrigin(options, nodeEnv) {
 }
 
 function isDocumentRoute(url, method) {
-  return method === "POST" && /^\/api\/worlds\/[^/]+\/documents\/(?:parse|import|import-pages)$/.test(url);
+  return method === "POST" && /^\/api\/worlds\/[^/]+\/documents\/(?:parse|import|import-pages|feishu\/parse)$/.test(url);
 }
 
-export function resolveTrustProxy(value = process.env.TRUST_PROXY_HOPS) {
-  if (value === false || value == null || value === "") return false;
-  if (value === true) return true;
-  const hops = Number(value);
-  return Number.isInteger(hops) && hops >= 1 && hops <= 5 ? hops : false;
+function isScriptBundleRoute(url, method) {
+  if (method !== "POST") return false;
+  return /^\/api\/worlds\/[^/]+\/script-bundle\/(?:analyze|import)$/.test(url)
+    || url === "/api/script-bundle/preview-new-world"
+    || url === "/api/worlds/from-script-bundle";
 }
+
+function isContentPackageRoute(url, method) {
+  if (method === "GET") return /^\/api\/worlds\/[^/]+\/content-package$/.test(url);
+  if (method !== "POST") return false;
+  return /^\/api\/worlds\/[^/]+\/content-package\/(?:preview|import)$/.test(url)
+    || url === "/api/content-package/preview-new-world"
+    || url === "/api/worlds/from-content-package";
+}
+
+export { resolveTrustProxy };
 
 export function resolveHttpRequestTimeoutMs(value = process.env.HTTP_REQUEST_TIMEOUT_MS) {
   const timeout = Number(value ?? 120_000);
@@ -220,6 +260,18 @@ export async function createApp(options = {}) {
       await hostCommunicationAbuseProtection.protectNetwork(request, reply, url);
       await hostPlayerManagementAbuseProtection.protectNetwork(request, reply, url);
     }
+    // Admission for body-heavy routes must happen in onRequest, before Fastify
+    // buffers or parses attacker-controlled JSON. Actor limits still run after
+    // authentication in preHandler using a separate bucket.
+    if (isScriptBundleRoute(url, request.method) || isContentPackageRoute(url, request.method)) {
+      await scriptBundleNetworkRateLimit(request, reply);
+    } else if (isDocumentRoute(url, request.method)) {
+      await documentNetworkRateLimit(request, reply);
+    } else if (isUploadRoute(url, request.method)) {
+      await uploadNetworkRateLimit(request, reply);
+    } else if (isAiRoute(url, request.method)) {
+      await aiNetworkRateLimit(request, reply);
+    }
   });
   app.addHook("onResponse", async (request, reply) => {
     const started = request._metricsStart;
@@ -281,6 +333,10 @@ export async function createApp(options = {}) {
     if (!url.startsWith("/api/")) return;
 
     const method = request.method;
+    if (isScriptBundleRoute(url, method) || isContentPackageRoute(url, method)) {
+      await scriptBundleRateLimit(request, reply);
+      return;
+    }
     if (isDocumentRoute(url, method)) {
       await documentRateLimit(request, reply);
       return;

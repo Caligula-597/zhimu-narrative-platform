@@ -1213,6 +1213,11 @@ textarea:focus-visible {
   display: grid;
   gap: 14px;
 }
+.pick-card-copy .room-binding-copy {
+  color: #8a5a21;
+  line-height: 1.45;
+  white-space: normal;
+}
 
 .host-mini-game-active,
 .host-mini-game-template {

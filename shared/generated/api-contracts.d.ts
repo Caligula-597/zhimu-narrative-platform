@@ -115,6 +115,18 @@ export interface UpdateWorldBody {
   settings?: {
     recapTruthSummary?: string;
     creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+    worldMode?: "scripted" | "campaign" | "hybrid";
+    narrativeProfile?: {
+      version: 1;
+      creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+      runFormat: "single_session" | "campaign";
+      roleMode: "fixed" | "player_created" | "mixed";
+      ruleset: {
+        mode: "none" | "system_neutral" | "custom";
+        key: string;
+        diceNotation: string;
+      };
+    };
     commercialProfile?: {
       authorName?: string;
       copyrightSource?: string;
@@ -200,6 +212,33 @@ export interface CreateWorldBody {
   name: string;
   summary?: string;
   settings?: {
+    recapTruthSummary?: string;
+    creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+    worldMode?: "scripted" | "campaign" | "hybrid";
+    narrativeProfile?: {
+      version: 1;
+      creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+      runFormat: "single_session" | "campaign";
+      roleMode: "fixed" | "player_created" | "mixed";
+      ruleset: {
+        mode: "none" | "system_neutral" | "custom";
+        key: string;
+        diceNotation: string;
+      };
+    };
+    commercialProfile?: {
+      authorName?: string;
+      copyrightSource?: string;
+      registrationNumber?: string;
+      theme?: string;
+      category?: string;
+      versionLabel?: string;
+      ageRating?: "" | "12+" | "16+" | "18+";
+      selfReviewStatus?: "not_started" | "in_review" | "passed" | "needs_changes";
+      selfReviewNotes?: string;
+      materialChangeDate?: string;
+      filingUpdatedDate?: string;
+    };
     [k: string]: unknown;
   };
 }
@@ -296,6 +335,55 @@ export interface CreateContentVersionBody {
   label?: string;
 }
 
+export interface CreateWorldReleaseBody {
+  label?: string;
+}
+
+export interface WorldReleaseSummary {
+  id: string;
+  worldId: string;
+  releaseNumber: number;
+  label: string;
+  sourceRevision: number;
+  snapshotSchemaVersion: number;
+  narrativeProfile: {
+    version: 1;
+    creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+    runFormat: "single_session" | "campaign";
+    roleMode: "fixed" | "player_created" | "mixed";
+    ruleset: {
+      mode: "none" | "system_neutral" | "custom";
+      key: string;
+      diceNotation: string;
+    };
+  };
+  readinessSummary: {
+    errorCount?: number;
+    warningCount?: number;
+    successCount?: number;
+    readyForPlaytest?: boolean;
+    readyForCatalog?: boolean;
+    counts?: {
+      [k: string]: number;
+    };
+    [k: string]: unknown;
+  };
+  contentSummary: {
+    counts: {
+      [k: string]: number;
+    };
+    hasCoreTrick: boolean;
+    totalObjects: number;
+  };
+  contentSha256: string;
+  snapshotBytes: number;
+  createdByUserId?: string | null;
+  createdByName?: string | null;
+  createdAt: string;
+  replayed?: boolean;
+  content_revision?: number;
+}
+
 export interface CreateRoomBody {
   name: string;
   /**
@@ -303,6 +391,23 @@ export interface CreateRoomBody {
    */
   inviteCode?: string;
   publicListing?: boolean;
+  releaseId?: string | null;
+}
+
+export interface RoomContentBinding {
+  mode: "live_draft" | "release";
+  runtimeSource: "live_draft" | "release_snapshot";
+  isFrozen: boolean;
+  compatibilityStatus: "legacy_live_draft" | "awaiting_release_reader" | "frozen_release";
+  release: {
+    id: string;
+    releaseNumber: number | null;
+    label: string;
+    sourceRevision: number | null;
+    createdAt: string | null;
+  } | null;
+  currentDraftRevision: number | null;
+  hasNewerDraft: boolean;
 }
 
 export interface CreateRecapBody {

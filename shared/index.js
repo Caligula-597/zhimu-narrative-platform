@@ -7,6 +7,8 @@ export * from "./api-error.js";
 export * from "./api-fetch.js";
 export * from "./session-token.js";
 export * from "./segment-contract.js";
+export * from "./narrative-profile.js";
+export * from "./room-content-binding.js";
 export * from "./toast.js";
 export * from "./sse.js";
 export { renderCollapsibleCard } from "./components/collapse.js";
