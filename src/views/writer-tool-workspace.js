@@ -16,7 +16,8 @@ const moduleLoaders = {
   document: () => import("./writer-document-workspace.js"),
   export: () => import("./writer-package-workspace.js"),
   import: () => import("./writer-package-workspace.js"),
-  snapshot: () => import("./writer-snapshot-workspace.js")
+  snapshot: () => import("./writer-snapshot-workspace.js"),
+  review: () => import("./writer-review-workspace.js")
 };
 
 const renderMethods = {
@@ -25,7 +26,8 @@ const renderMethods = {
   document: "documentWorkspaceHtml",
   export: "exportWorkspaceHtml",
   import: "importWorkspaceHtml",
-  snapshot: "snapshotWorkspaceHtml"
+  snapshot: "snapshotWorkspaceHtml",
+  review: "reviewWorkspaceHtml"
 };
 
 const bindMethods = {
@@ -34,7 +36,8 @@ const bindMethods = {
   document: "bindDocumentWorkspace",
   export: "bindExportWorkspace",
   import: "bindImportWorkspace",
-  snapshot: "bindSnapshotWorkspace"
+  snapshot: "bindSnapshotWorkspace",
+  review: "bindReviewWorkspace"
 };
 
 async function loadToolModule(type) {
@@ -87,7 +90,11 @@ export function bindWriterToolWorkspace() {
 
 export function closeWriterToolWorkspace() {
   const session = getWriterToolSession(studioStore.get().cloudStudio);
-  if (!session || session.savingAction) return;
+  if (!session) return;
+  if (session.savingAction || session.pendingActions?.size) {
+    showToast("当前写入尚未完成，请等待结果后再离开");
+    return;
+  }
   if (session.dirty && !session.discardArmed) {
     session.discardArmed = true;
     render();
@@ -120,3 +127,12 @@ export const runImportWorkspace = (...args) => invokeTool("import", "runImportWo
 
 export const openSnapshotWorkspace = (...args) => invokeTool("snapshot", "openSnapshotWorkspace", ...args);
 export const saveSnapshotWorkspace = (...args) => invokeTool("snapshot", "saveSnapshotWorkspace", ...args);
+
+export const openReviewWorkspace = (...args) => invokeTool("review", "openReviewWorkspace", ...args);
+export const setReviewWorkspaceMode = (...args) => invokeTool("review", "setReviewWorkspaceMode", ...args);
+export const setReviewFilter = (...args) => invokeTool("review", "setReviewFilter", ...args);
+export const refreshReviewList = (...args) => invokeTool("review", "refreshReviewList", ...args);
+export const createReviewFromWorkspace = (...args) => invokeTool("review", "createReviewFromWorkspace", ...args);
+export const replyReviewFromWorkspace = (...args) => invokeTool("review", "replyReviewFromWorkspace", ...args);
+export const updateReviewStatusFromWorkspace = (...args) => invokeTool("review", "updateReviewStatusFromWorkspace", ...args);
+export const compareReviewVersions = (...args) => invokeTool("review", "compareReviewVersions", ...args);

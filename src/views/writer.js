@@ -26,6 +26,8 @@ import {
 import {
   bindWriterToolWorkspace,
   closeWriterToolWorkspace,
+  compareReviewVersions,
+  createReviewFromWorkspace,
   importDocumentWorkspace,
   nextExportWorkspaceStep,
   openDocumentWorkspace,
@@ -33,16 +35,22 @@ import {
   openImpactWorkspace,
   openImportWorkspace,
   openManuscriptWorkspace,
+  openReviewWorkspace,
   openSnapshotWorkspace,
   parseDocumentWorkspace,
   previousExportWorkspaceStep,
   previewImportWorkspace,
+  refreshReviewList,
+  replyReviewFromWorkspace,
   runExportWorkspace,
   runImportWorkspace,
-  saveSnapshotWorkspace,
   saveManuscriptWorkspace,
+  saveSnapshotWorkspace,
+  setReviewFilter,
+  setReviewWorkspaceMode,
   syncManuscriptFromGraphWorkspace,
   syncManuscriptToGraphWorkspace,
+  updateReviewStatusFromWorkspace,
   writerToolWorkspaceHtml
 } from "./writer-tool-workspace.js";
 import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
@@ -476,121 +484,7 @@ export async function openCollaboration(){
  }catch(error){showError(error)}
 }
 
-function creatorReviewTargetOptions(studio = {}, { truthClaims = [], segments = [] } = {}) {
- const groups = [
-  ["world", [{ id: "", label: "整个剧本" }]],
-  ["manuscript", [{ id: "", label: "完整剧情母稿" }]],
-  ["role", (studio.roles || []).map((item) => ({ id: item.id, label: `角色 · ${item.name}` }))],
-  ["chapter", (studio.chapters || []).map((item) => ({ id: item.id, label: `章节 · ${item.title}` }))],
-  ["script_section", (studio.sections || []).map((item) => ({ id: item.id, label: `私人分幕 · ${item.title}` }))],
-  ["scene", (studio.scenes || []).map((item) => ({ id: item.id, label: `场景 · ${item.name}` }))],
-  ["clue", (studio.clues || []).map((item) => ({ id: item.id, label: `线索 · ${item.name}` }))],
-  ["rule", (studio.rules || []).map((item) => ({ id: item.id, label: `规则 · ${item.name}` }))],
-  ["truth_claim", truthClaims.map((item) => ({ id: item.id, label: `真相 · ${item.title || item.claim_key}` }))],
-  ["segment", segments.map((item) => ({ id: item.id, label: `运行段落 · ${item.title || item.segment_key}` }))]
- ];
- return groups.flatMap(([type, rows]) => rows.map((item) => ({ type, ...item })));
-}
-
-function creatorReviewImpactText(impact) {
- const counts = impact?.counts || {};
- const entries = Object.entries(counts).filter(([, value]) => Number(value) > 0);
- return entries.length ? entries.map(([key, value]) => `${key} ${value}`).join(" · ") : "未发现直接结构引用";
-}
-
-function creatorReviewRowsHtml(reviews, canResolve) {
- const repliesByParent = new Map();
- for (const review of reviews.filter((item) => item.parent_id)) {
-  if (!repliesByParent.has(review.parent_id)) repliesByParent.set(review.parent_id, []);
-  repliesByParent.get(review.parent_id).push(review);
- }
- const statusLabel = { open: "待处理", resolved: "已解决", dismissed: "已驳回" };
- const severityLabel = { note: "备注", minor: "轻微", major: "重要", blocking: "阻塞" };
- const roots = reviews.filter((item) => !item.parent_id);
- if (!roots.length) return `<div class="empty-state">当前筛选下还没有审稿意见。</div>`;
- return roots.map((review) => {
-  const replies = (repliesByParent.get(review.id) || []).map((reply) => `<div class="log-row"><div><b>${escapeHtml(reply.created_by_name)}</b><span>${formatTime(reply.created_at)}</span></div><p>${escapeHtml(reply.body)}</p></div>`).join("");
-  const actions = canResolve
-   ? review.status === "open"
-    ? `<button class="text-btn" data-review-status="resolved" data-review-id="${escapeHtml(review.id)}">标记解决</button><button class="text-btn danger-text" data-review-status="dismissed" data-review-id="${escapeHtml(review.id)}">驳回</button>`
-    : `<button class="text-btn" data-review-status="open" data-review-id="${escapeHtml(review.id)}">重新打开</button>`
-   : "";
-  const suggestion = Object.keys(review.suggested_patch || {}).length
-   ? `<details><summary>结构化修改建议</summary><pre>${escapeHtml(JSON.stringify(review.suggested_patch, null, 2))}</pre></details>` : "";
-  return `<article class="card-lite review-thread"><div class="section-head"><div><p class="section-kicker">${escapeHtml(review.target_label || review.target_type)} · ${severityLabel[review.severity] || review.severity}</p><h4>${escapeHtml(review.title || "未命名审稿意见")}</h4></div><span class="status-chip ${review.status === "open" ? "testing" : "published"}">${statusLabel[review.status] || review.status}</span></div><p>${escapeHtml(review.body)}</p><p class="muted-note">${escapeHtml(review.created_by_name)} · ${formatTime(review.created_at)} · 影响范围：${escapeHtml(creatorReviewImpactText(review.impact_scope))}</p>${suggestion}${replies}<label>回复</label><textarea class="field" rows="2" data-review-reply-body="${escapeHtml(review.id)}" placeholder="补充讨论或确认修改结果"></textarea><div class="row"><button class="text-btn" data-review-reply="${escapeHtml(review.id)}">发送回复</button>${actions}</div></article>`;
- }).join("");
-}
-
-function creatorVersionDiffHtml(payload) {
- const summary = payload?.comparison?.summary || {};
- const changedDomains = Object.entries(payload?.comparison?.domains || {})
-  .filter(([, value]) => value.counts.added || value.counts.removed || value.counts.changed)
-  .map(([key, value]) => `<li><strong>${escapeHtml(key)}</strong>：新增 ${value.counts.added} · 删除 ${value.counts.removed} · 修改 ${value.counts.changed}${value.truncated ? " · 仅显示前 100 项" : ""}</li>`)
-  .join("");
- return `<div class="assistant-preview"><h4>${escapeHtml(payload.base.label)} → ${escapeHtml(payload.head.label)}</h4><div class="proposal-stats"><span>新增 ${summary.added || 0}</span><span>删除 ${summary.removed || 0}</span><span>修改 ${summary.changed || 0}</span></div>${payload.comparison.world.changed ? `<p>剧本级字段：${escapeHtml(payload.comparison.world.fields.join("、"))}</p>` : ""}<ul>${changedDomains || "<li>两个版本没有结构差异。</li>"}</ul><p class="muted-note">为降低泄稿风险，这里只显示对象和字段级变化，不直接展开私人正文。</p></div>`;
-}
-
-export async function openCreatorReview() {
- try {
-  const studio = studioStore.get().cloudStudio;
-  const [truthPayload, segmentPayload] = await Promise.all([
-   zhimuApi.getTruthClaims(),
-   zhimuApi.getWorldSegments()
-  ]);
-  const targets = creatorReviewTargetOptions(studio, {
-   truthClaims: truthPayload?.claims || [],
-   segments: segmentPayload?.segments || []
-  });
-  const membershipRole = studio?.world?.membership_role;
-  const canResolve = ["owner", "editor"].includes(membershipRole);
-  const versions = studio?.versions || [];
-  const targetOptions = targets.map((item) => `<option value="${escapeHtml(`${item.type}:${item.id}`)}">${escapeHtml(item.label)}</option>`).join("");
-  const versionOptions = versions.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)} · ${formatTime(item.created_at)}</option>`).join("");
-  modal.className = "modal creator-tool-modal creator-review-modal";
-  setHtml(modal, `<h2>协作者审稿</h2><p class="wizard-intro">发行编辑、共同作者和只读审稿人可提交批注或修改建议；系统会检查目标归属并计算影响范围。只有主创作者或编辑者能将意见标记为解决/驳回。</p><div class="form-group"><label>审稿对象</label><select class="field" data-review-target>${targetOptions}</select><div class="row"><select class="field compact-field" data-review-kind><option value="comment">批注</option><option value="suggestion">修改建议</option><option value="change_request">必须修改</option></select><select class="field compact-field" data-review-severity><option value="note">备注</option><option value="minor">轻微</option><option value="major">重要</option><option value="blocking">阻塞交付</option></select></div><input class="field" data-review-title placeholder="意见标题"><textarea class="field" rows="3" data-review-body placeholder="说明问题、修改理由和验收标准"></textarea><textarea class="field" rows="2" data-review-suggestion placeholder='结构化建议 JSON（选填，如 {"publicationStatus":"draft"}）'></textarea><button class="primary-btn" data-review-create>提交审稿意见</button></div><section style="margin-top:16px"><div class="section-head"><div><h3>意见列表</h3><p>默认显示待处理意见及其讨论。</p></div><select class="field compact-field" data-review-filter><option value="open">待处理</option><option value="">全部</option><option value="resolved">已解决</option><option value="dismissed">已驳回</option></select></div><div class="host-detail-list" data-review-list><div class="empty-state">正在加载…</div></div></section><section style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line,#ece7df)"><h3>版本影响对比</h3><p class="muted-note">选择一个基准快照，对比当前内容或另一个快照。</p><div class="row"><select class="field" data-review-base-version ${versions.length ? "" : "disabled"}>${versionOptions || '<option value="">尚无版本快照</option>'}</select><select class="field" data-review-head-version ${versions.length ? "" : "disabled"}><option value="">当前内容</option>${versionOptions}</select><button class="secondary-btn" data-review-compare ${versions.length ? "" : "disabled"}>开始对比</button></div><div data-review-diff></div></section><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`);
-  modalBackdrop.classList.add("show");
-  modal.querySelector("[data-close]").onclick = closeModal;
-  const draw = async () => {
-   const payload = await zhimuApi.getCreatorReviews({ status: modal.querySelector("[data-review-filter]").value });
-   setHtml(modal.querySelector("[data-review-list]"), creatorReviewRowsHtml(payload.reviews || [], canResolve));
-   modal.querySelectorAll("[data-review-reply]").forEach((button) => button.onclick = async () => {
-    const body = modal.querySelector(`[data-review-reply-body="${button.dataset.reviewReply}"]`)?.value?.trim();
-    if (!body) return showToast("请填写回复内容");
-    button.disabled = true;
-    try { await zhimuApi.replyCreatorReview(button.dataset.reviewReply, body); await draw(); showToast("回复已提交"); } catch (error) { showError(error); } finally { if (button.isConnected) button.disabled = false; }
-   });
-   modal.querySelectorAll("[data-review-status]").forEach((button) => button.onclick = async () => {
-    button.disabled = true;
-    try { await zhimuApi.patchCreatorReview(button.dataset.reviewId, { status: button.dataset.reviewStatus }); await draw(); showToast("审稿状态已更新"); } catch (error) { showError(error); } finally { if (button.isConnected) button.disabled = false; }
-   });
-  };
-  modal.querySelector("[data-review-filter]").onchange = () => draw().catch(showError);
-  modal.querySelector("[data-review-create]").onclick = async () => {
-   const [targetType, targetId = ""] = modal.querySelector("[data-review-target]").value.split(":");
-   const selected = targets.find((item) => item.type === targetType && item.id === targetId);
-   const body = modal.querySelector("[data-review-body]").value.trim();
-   if (!body) return showToast("请填写审稿意见");
-   let suggestedPatch = {};
-   const rawSuggestion = modal.querySelector("[data-review-suggestion]").value.trim();
-   if (rawSuggestion) {
-    try { suggestedPatch = JSON.parse(rawSuggestion); } catch { return showToast("结构化建议必须是有效 JSON 对象"); }
-    if (!suggestedPatch || Array.isArray(suggestedPatch) || typeof suggestedPatch !== "object") return showToast("结构化建议必须是 JSON 对象");
-   }
-  const payload = { targetType, targetLabel: selected?.label || targetType, kind: modal.querySelector("[data-review-kind]").value, severity: modal.querySelector("[data-review-severity]").value, title: modal.querySelector("[data-review-title]").value.trim(), body, suggestedPatch };
-  if (targetId) payload.targetId = targetId;
-   const createButton = modal.querySelector("[data-review-create]");
-   createButton.disabled = true;
-   try { await zhimuApi.createCreatorReview(payload); modal.querySelector("[data-review-title]").value = ""; modal.querySelector("[data-review-body]").value = ""; modal.querySelector("[data-review-suggestion]").value = ""; modal.querySelector("[data-review-filter]").value = "open"; await draw(); showToast("审稿意见已提交"); } catch (error) { showError(error); } finally { if (createButton.isConnected) createButton.disabled = false; }
-  };
-  modal.querySelector("[data-review-compare]").onclick = async () => {
-   const base = modal.querySelector("[data-review-base-version]").value;
-   const head = modal.querySelector("[data-review-head-version]").value;
-   if (!base) return showToast("请先保存至少一个创作版本");
-   try { const payload = await zhimuApi.compareCreatorVersions(base, head); setHtml(modal.querySelector("[data-review-diff]"), creatorVersionDiffHtml(payload)); } catch (error) { showError(error); }
-  };
-  await draw();
- } catch (error) { showError(error); }
-}
+export function openCreatorReview(){return openReviewWorkspace()}
 
 export async function openWorldLogs(){
  try{
@@ -661,5 +555,5 @@ export function createCreatorSnapshot(){return openSnapshotWorkspace()}
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, storyAssistantPreview, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
 registerView("writer", writerViewApi);

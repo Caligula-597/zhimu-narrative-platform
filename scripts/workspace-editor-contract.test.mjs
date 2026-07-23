@@ -52,7 +52,10 @@ test("long creator editors no longer depend on the global modal surface", () => 
     "src/views/writer-impact-workspace.js",
     "src/views/writer-document-workspace.js",
     "src/views/writer-package-workspace.js",
-    "src/views/writer-snapshot-workspace.js"
+    "src/views/writer-snapshot-workspace.js",
+    "src/views/writer-review-model.js",
+    "src/views/writer-review-view.js",
+    "src/views/writer-review-workspace.js"
   ]) {
     const source = read(file);
     assert.doesNotMatch(source, /\bstudioModal\b|\bmodalBackdrop\b|from\s+["']\.\.\/dom\.js["']/, file);
@@ -97,6 +100,7 @@ test("writer heavy tools use guarded full-page sessions", () => {
   const actions = read("src/runtime/actions-writer.js");
   assert.match(writer, /writerToolWorkspaceHtml\(data\)/);
   assert.match(tools, /snapshot:\s*\(\)\s*=>\s*import\("\.\/writer-snapshot-workspace\.js"\)/);
+  assert.match(tools, /review:\s*\(\)\s*=>\s*import\("\.\/writer-review-workspace\.js"\)/);
   assert.match(session, /activeSession === session/);
   assert.match(session, /zhimuApi\.context\.worldId === session\.worldId/);
   assert.match(manuscript, /session\.savingAction/);
@@ -122,10 +126,33 @@ test("writer heavy tools use guarded full-page sessions", () => {
     "writer-export-run",
     "writer-import-preview",
     "writer-import-run",
-    "writer-snapshot-save"
+    "writer-snapshot-save",
+    "writer-review-create",
+    "writer-review-reply",
+    "writer-review-status",
+    "writer-review-compare"
   ]) {
     assert.match(actions, new RegExp(action));
   }
+});
+
+test("collaborative review uses a guarded lazy workspace instead of the global modal", () => {
+  const writer = read("src/views/writer.js");
+  const tools = read("src/views/writer-tool-workspace.js");
+  const model = read("src/views/writer-review-model.js");
+  const view = read("src/views/writer-review-view.js");
+  const controller = read("src/views/writer-review-workspace.js");
+  assert.match(writer, /openCreatorReview\(\)\{return openReviewWorkspace\(\)\}/);
+  assert.doesNotMatch(writer, /creator-review-modal|data-review-create|function creatorReviewRowsHtml/);
+  assert.match(tools, /pendingActions\?\.size/);
+  assert.match(controller, /listRequestSequence/);
+  assert.match(controller, /initialListSequence === session\.listRequestSequence/);
+  assert.match(controller, /writerToolSessionIsCurrent\(session\)/);
+  assert.match(controller, /session\.worldId/);
+  assert.match(controller, /Promise\.allSettled/);
+  assert.match(model, /MAX_SUGGESTED_PATCH_BYTES/);
+  assert.match(view, /writer-review-workspace/);
+  assert.match(view, /escapeHtml\(review\.body/);
 });
 
 test("rule creation enters the routed editor without an informational modal", () => {
