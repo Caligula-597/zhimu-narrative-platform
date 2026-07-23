@@ -55,6 +55,7 @@ test("main.js wires console, SSE and director actions", () => {
   const dataSource = readFileSync(path.join(root, "src", "runtime", "data.js"), "utf8");
   const eventsSource = readFileSync(path.join(root, "src", "runtime", "room-events.js"), "utf8");
   const operationSource = readFileSync(path.join(root, "src", "runtime", "host-operation-controller.js"), "utf8");
+  const ruleWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-rule-workspace-controller.js"), "utf8");
   assert.match(eventsSource, /connectRoomEvents/);
   assert.match(directorSource, /executeHostEvent/);
   assert.match(directorSource, /case "host-select-act"/);
@@ -73,7 +74,10 @@ test("main.js wires console, SSE and director actions", () => {
   assert.match(mainSource, /createDirectorActionHandler\(\{ render, showToast: setToast \}\)/);
   assert.match(mainSource, /createHostLifecycleController\(\{ render, setBusy, showToast: setToast \}\)/);
   assert.match(mainSource, /createHostOperationController\(\{ render, showToast: setToast \}\)/);
+  assert.match(mainSource, /createHostRuleWorkspaceController\(\{ render, showToast: setToast \}\)/);
   assert.match(mainSource, /hostOperations\.handleField\(event\.target\)/);
+  assert.match(mainSource, /hostRules\.handleField\(event\.target\)/);
+  assert.match(ruleWorkspaceSource, /case "host-rule-save"/);
   assert.match(directorSource, /createDirectorActionHandler\(\{ render, showToast \}\)/);
   assert.doesNotMatch(directorSource, /\bsetToast\(/);
   assert.match(consoleSource, /renderConsole/);
@@ -126,6 +130,7 @@ test("console render escapes user content", () => {
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
   const operationModelSource = readFileSync(path.join(root, "src", "runtime", "host-operation-model.js"), "utf8");
   const operationViewSource = readFileSync(path.join(root, "src", "views", "host-operation-workspace.js"), "utf8");
+  const ruleViewSource = readFileSync(path.join(root, "src", "views", "host-rule-workspace.js"), "utf8");
   assert.match(consoleSource, /escapeHtml\(/);
   assert.match(operationModelSource, /hostActClueIds/);
   assert.match(operationModelSource, /resolveSectionSegmentKey/);
@@ -133,7 +138,24 @@ test("console render escapes user content", () => {
   assert.match(operationModelSource, /selectedClueId/);
   assert.match(operationModelSource, /targetRoleIds/);
   assert.match(operationViewSource, /escapeHtml\(/);
-  assert.doesNotMatch(`${operationModelSource}\n${operationViewSource}`, /modalEl|mountModal|modal-backdrop/);
+  assert.match(ruleViewSource, /escapeHtml\(/);
+  assert.doesNotMatch(`${operationModelSource}\n${operationViewSource}\n${ruleViewSource}`, /modalEl|mountModal|modal-backdrop/);
+});
+
+test("host rule workspace keeps permissions and list commands outside the editor transaction service", () => {
+  const controllerSource = readFileSync(path.join(root, "src", "runtime", "host-rule-workspace-controller.js"), "utf8");
+  const workspaceServiceSource = readFileSync(path.join(root, "src", "runtime", "host-rule-workspace-service.js"), "utf8");
+  const listServiceSource = readFileSync(path.join(root, "src", "runtime", "host-rule-list-service.js"), "utf8");
+  const permissionSource = readFileSync(path.join(root, "src", "runtime", "host-rule-permissions.js"), "utf8");
+  assert.match(controllerSource, /createHostRuleListService/);
+  assert.match(controllerSource, /createHostRuleWorkspaceService/);
+  assert.match(workspaceServiceSource, /reconcileDelays/);
+  assert.doesNotMatch(workspaceServiceSource, /async function (toggleRule|deleteRule|validateWorldRules)/);
+  assert.match(listServiceSource, /async function toggleRule/);
+  assert.match(listServiceSource, /async function deleteRule/);
+  assert.match(permissionSource, /membership_role/);
+  assert.match(permissionSource, /owner.*editor/);
+  assert.doesNotMatch(`${controllerSource}\n${workspaceServiceSource}\n${listServiceSource}`, /modalEl|mountModal|openModal/);
 });
 
 test("standalone console keeps the full host monitoring action surface", () => {
@@ -144,8 +166,10 @@ test("standalone console keeps the full host monitoring action surface", () => {
   const ruleSource = readFileSync(path.join(root, "src", "runtime", "host-rules-controller.js"), "utf8");
   const operationViewSource = readFileSync(path.join(root, "src", "views", "host-operation-workspace.js"), "utf8");
   const operationSource = readFileSync(path.join(root, "src", "runtime", "host-operation-controller.js"), "utf8");
-  const hostSurface = `${consoleSource}\n${layoutSource}\n${eventSource}\n${ruleSource}\n${operationViewSource}`;
-  const handlers = `${directorSource}\n${operationSource}`;
+  const ruleViewSource = readFileSync(path.join(root, "src", "views", "host-rule-workspace.js"), "utf8");
+  const ruleWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-rule-workspace-controller.js"), "utf8");
+  const hostSurface = `${consoleSource}\n${layoutSource}\n${eventSource}\n${ruleSource}\n${operationViewSource}\n${ruleViewSource}`;
+  const handlers = `${directorSource}\n${operationSource}\n${ruleWorkspaceSource}`;
   const actions = [
     "batch-dismiss-host-events",
     "batch-execute-host-events",
@@ -169,6 +193,11 @@ test("standalone console keeps the full host monitoring action surface", () => {
     "host-nudge-waiting",
     "host-stuck-intervene",
     "host-player-detail",
+    "host-rule-delete-request",
+    "host-rule-edit",
+    "host-rule-new",
+    "host-rule-toggle",
+    "host-rule-validate",
     "onboarding-go-player",
     "refresh-host-audit",
     "refresh-host-clue-matrix",

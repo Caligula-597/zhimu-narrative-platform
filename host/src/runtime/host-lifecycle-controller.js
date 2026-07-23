@@ -66,6 +66,14 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   let sessionProbePromise = null;
   let sessionProbeToken = null;
   let sessionGeneration = 0;
+
+  function resetHostRuleUi() {
+    state.hostRuleWorkspace = null;
+    state.hostRuleListBusy = "";
+    state.hostRuleListMessage = "";
+    state.hostRuleDeleteConfirmId = "";
+    state.hostRuleAudit = null;
+  }
   function cleanOAuthUrl() {
     const url = new URL(window.location.href);
     ["oauth_code", "oauth_error", "auth"].forEach((key) => url.searchParams.delete(key));
@@ -97,6 +105,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     if (!token) {
       disconnectRoomEvents();
       state.hostOperation = null;
+      resetHostRuleUi();
       state.user = null;
       state.authStatus = "anonymous";
       state.authError = "";
@@ -123,6 +132,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       return;
     }
     if (state.hostOperation?.roomId !== getRoomId()) state.hostOperation = null;
+    if (state.hostRuleWorkspace?.worldId !== getWorldId()) resetHostRuleUi();
     state.view = "console";
     render();
     setBusy(true);
@@ -143,6 +153,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     setWorldId(worldId);
     setRoomId(worldId, "");
     state.hostOperation = null;
+    resetHostRuleUi();
     state.room = null;
     state.landingStep = "rooms";
     setBusy(true);
@@ -274,6 +285,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     clearSession();
     setWorldId("");
     state.hostOperation = null;
+    resetHostRuleUi();
     state.user = null;
     state.authStatus = "anonymous";
     state.authError = "";

@@ -65,6 +65,21 @@ HOST_SITE_URL=https://host.getzhimu.com
 
 命令固定绑定当前 roomId，写入期间阻止重复提交；成功后优先用 SSE 更新，断线时由轮询 reconcile 补偿。Player 对线索、物品、分幕、场景与提醒事件都有独立同步契约。
 
+自动化规则的新建、编辑、启停、删除和检查使用页面内“规则工作区”，不再打开全局居中长弹窗。该领域按独立变化原因拆分：
+
+| 路径 | 责任 |
+|---|---|
+| `src/runtime/host-rule-workspace-model.js` | 草稿、Fastify schema 对齐的本地边界、脏状态与上下文指纹 |
+| `src/runtime/host-rule-workspace-service.js` | 单条规则校验、保存、响应不确定时的服务器核对 |
+| `src/runtime/host-rule-list-service.js` | 启停、删除、全量检查和列表刷新 |
+| `src/runtime/host-rule-store.js` | 规则列表 upsert、重新读取和响应核对 |
+| `src/runtime/host-rule-permissions.js` | 将世界 `membership_role` 映射为规则写权限 |
+| `src/runtime/host-rule-workspace-controller.js` | 工作区生命周期、未保存离开确认和动作分派 |
+| `src/views/host-rule-workspace.js` | 转义后的页面内编辑器与资产 ID 引用助手 |
+| `src/styles/host-rule-workspace.css` | 规则工作区独立布局与响应式规则 |
+
+规则写入仅允许拥有者和编辑者；主持人、审稿人保留规则查看和房间运行预览，不显示注定被后端拒绝的写按钮。创建请求通过 `metadata.hostRequestId` 支持响应丢失后的列表核对；服务器已提交但列表刷新失败时必须提示不要重复写入。
+
 本地验证：
 
 ```powershell

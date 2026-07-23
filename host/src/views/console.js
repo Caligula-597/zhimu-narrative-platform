@@ -18,11 +18,17 @@ import {
   hostPlayerWaitStrip,
   pendingEventRoleIds
 } from "../runtime/host-event-queue.js";
-import { bindHostRulesContext, directorRulesPreview, hostRulesManager } from "../runtime/host-rules-controller.js";
+import {
+  bindHostRulesContext,
+  directorRulesPreview,
+  hostRuleManagerHeaderActions,
+  hostRulesManager
+} from "../runtime/host-rules-controller.js";
 import { grantModeLabel } from "../runtime/host-operation-model.js";
 import { bindHostMiniGameContext, hostMiniGameCard } from "../runtime/host-mini-game-controller.js";
 import { renderHostCommandCenter } from "./host-layout.js";
 import { renderHostOperationWorkspace } from "./host-operation-workspace.js";
+import { renderHostRuleWorkspace } from "./host-rule-workspace.js";
 
 export function bindConsoleContext({ render, showToast }) {
   bindHostPaceTimerContext({ render });
@@ -72,6 +78,7 @@ export function renderConsole(){
   <div class="host-console-status">${cloudStatus()}</div>
   ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows })}
   ${renderHostOperationWorkspace()}
+  ${renderHostRuleWorkspace()}
   ${hostRiskPanel}
   ${noPlayerProgressHint}
   ${hostPlayersErrorBanner}
@@ -102,7 +109,7 @@ function hostSupportPanels(events) {
     ${hostPlayerWaitStrip()}
     ${hostMiniGameCard()}
     ${collapsibleCard({ id: "director:host-events", title: "待确认事件（批量）", subtitle: "完整列表与批量确认/延后", headerExtra: hostEventBatchToolbar(), body: hostEventRows(), defaultOpen: Boolean(events.filter((e) => e.status !== "delayed").length), className: "card host-events-card" })}
-    ${collapsibleCard({ id: "director:rules-preview", title: "规则运行与管理", subtitle: "当前房间的条件评估与自动化规则", headerExtra: `<button class="secondary-btn" data-action="rules-preview">刷新预览</button><button class="secondary-btn" data-action="host-rule-new">新建</button><button class="secondary-btn" data-action="host-rule-validate">检查</button>`, body: `${directorRulesPreview()}${hostRulesManager()}`, defaultOpen: false })}
+    ${collapsibleCard({ id: "director:rules-preview", title: "规则运行与管理", subtitle: "当前房间的条件评估与自动化规则", headerExtra: hostRuleManagerHeaderActions(), body: `${directorRulesPreview()}${hostRulesManager()}`, defaultOpen: false })}
     <div class="host-support-dual">
       ${hostLiveFeed()}
       ${hostAuditCard()}

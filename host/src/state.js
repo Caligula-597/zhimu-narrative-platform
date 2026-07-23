@@ -35,6 +35,11 @@ export const state = {
   hostEventSelection: [],
   hostSelectedActKey: "",
   hostOperation: null,
+  hostRuleWorkspace: null,
+  hostRuleListBusy: "",
+  hostRuleListMessage: "",
+  hostRuleDeleteConfirmId: "",
+  hostRuleAudit: null,
   panelCollapse: {},
 
   roomEventsConnected: false,

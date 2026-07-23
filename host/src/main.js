@@ -1,5 +1,6 @@
 import "./styles.css";
 import "./styles/host-operation-workspace.css";
+import "./styles/host-rule-workspace.css";
 import { createToastTimer } from "../../shared/toast.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { togglePanelInDom } from "./components/collapse.js";
@@ -8,6 +9,7 @@ import { createDirectorActionHandler } from "./runtime/director-actions.js";
 import { createHostLifecycleController } from "./runtime/host-lifecycle-controller.js";
 import { createHostMiniGameActionHandler } from "./runtime/host-mini-game-controller.js";
 import { createHostOperationController } from "./runtime/host-operation-controller.js";
+import { createHostRuleWorkspaceController } from "./runtime/host-rule-workspace-controller.js";
 import { bootstrapPaceTimer, tickPaceTimer } from "./runtime/host-pace-timer.js";
 import { getRoomId, subscribeSessionToken } from "./session.js";
 import { state } from "./state.js";
@@ -50,6 +52,7 @@ const directorActions = createDirectorActionHandler({ render, showToast: setToas
 const lifecycle = createHostLifecycleController({ render, setBusy, showToast: setToast });
 const miniGameActions = createHostMiniGameActionHandler({ render, showToast: setToast });
 const hostOperations = createHostOperationController({ render, showToast: setToast });
+const hostRules = createHostRuleWorkspaceController({ render, showToast: setToast });
 
 // 节奏计时器仅直更计时 DOM，避免每秒触发整页重绘。
 bootstrapPaceTimer();
@@ -72,6 +75,7 @@ app.addEventListener("click", async (event) => {
 
   if (await miniGameActions(action, button)) return;
   if (await hostOperations.handleAction(action, button)) return;
+  if (await hostRules.handleAction(action, button)) return;
   if (directorActions(action, button)) return;
   if (await lifecycle.handleAction(action, button)) return;
 
@@ -86,10 +90,12 @@ app.addEventListener("click", async (event) => {
 
 app.addEventListener("input", (event) => {
   hostOperations.handleField(event.target);
+  hostRules.handleField(event.target);
 });
 
 app.addEventListener("change", (event) => {
   hostOperations.handleField(event.target);
+  hostRules.handleField(event.target);
 });
 
 subscribeSessionToken((change) => {

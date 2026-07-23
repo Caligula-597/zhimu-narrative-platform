@@ -13,12 +13,8 @@ import {
   toggleHostEventSelection
 } from "./host-event-queue.js";
 import {
-  deleteHostRule,
-  openHostRuleEditor,
   refreshRulesPreview,
-  toggleHostRule,
-  triggerManualRuleFromDirector,
-  validateHostRules
+  triggerManualRuleFromDirector
 } from "./host-rules-controller.js";
 import {
   copyInviteCode,
@@ -41,11 +37,6 @@ export function createDirectorActionHandler({ render, showToast }) {
   return function handleDirectorAction(action, el) {
     switch (action) {
       case "rules-preview": refreshRulesPreview(); return true;
-      case "host-rule-new": openHostRuleEditor(); return true;
-      case "host-rule-edit": openHostRuleEditor(el?.dataset?.rule); return true;
-      case "host-rule-toggle": toggleHostRule(el?.dataset?.rule); return true;
-      case "host-rule-delete": deleteHostRule(el?.dataset?.rule); return true;
-      case "host-rule-validate": validateHostRules(); return true;
       case "rule-manual-trigger": triggerManualRuleFromDirector(el?.dataset?.rule); return true;
       case "delay-host-event": openDelayHostEventModal(el?.dataset?.event); return true;
       case "host-event-context": openHostEventContext(el?.dataset?.event); return true;

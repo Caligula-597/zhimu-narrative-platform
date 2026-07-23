@@ -1465,37 +1465,6 @@ textarea:focus-visible {
   margin: 2px 0;
 }
 
-.rule-editor-modal {
-  width: min(820px, 94vw);
-}
-
-.rule-editor-modal textarea {
-  min-height: 130px;
-  font-family: Consolas, "SFMono-Regular", monospace;
-  font-size: 12px;
-}
-
-.rule-error-box {
-  display: none;
-  margin: 10px 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(177, 85, 70, 0.28);
-  border-radius: var(--host-radius);
-  color: #8a3f34;
-  background: #fff4f2;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.rule-error-box.show {
-  display: block;
-}
-
-.rule-error-box ul {
-  margin: 6px 0 0 18px;
-  padding: 0;
-}
-
 .host-clue-matrix-wrap {
   max-height: 440px;
 }
