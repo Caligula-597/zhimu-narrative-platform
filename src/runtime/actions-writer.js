@@ -27,6 +27,7 @@ import { callView } from "./view-registry.js";
       case "writer-export-run": callView("writer", "runExportWorkspace"); return true;
       case "writer-import-preview": callView("writer", "previewImportWorkspace"); return true;
       case "writer-import-run": callView("writer", "runImportWorkspace"); return true;
+      case "writer-snapshot-save": callView("writer", "saveSnapshotWorkspace"); return true;
       case "creator-edit-chapter": callView("writer", "openCreatorChapter", el?.dataset?.chapter); return true;
       case "creator-delete-chapter": callView("writer", "deleteCreatorChapter", el?.dataset?.chapter); return true;
       case "creator-check": callView("writer", "runCreatorChecks"); return true;

@@ -51,7 +51,8 @@ test("long creator editors no longer depend on the global modal surface", () => 
     "src/views/writer-manuscript-workspace.js",
     "src/views/writer-impact-workspace.js",
     "src/views/writer-document-workspace.js",
-    "src/views/writer-package-workspace.js"
+    "src/views/writer-package-workspace.js",
+    "src/views/writer-snapshot-workspace.js"
   ]) {
     const source = read(file);
     assert.doesNotMatch(source, /\bstudioModal\b|\bmodalBackdrop\b|from\s+["']\.\.\/dom\.js["']/, file);
@@ -87,12 +88,15 @@ test("editor drafts are rebound after view rerenders", () => {
 
 test("writer heavy tools use guarded full-page sessions", () => {
   const writer = read("src/views/writer.js");
+  const tools = read("src/views/writer-tool-workspace.js");
   const session = read("src/views/writer-tool-session.js");
   const manuscript = read("src/views/writer-manuscript-workspace.js");
   const document = read("src/views/writer-document-workspace.js");
   const packages = read("src/views/writer-package-workspace.js");
+  const snapshot = read("src/views/writer-snapshot-workspace.js");
   const actions = read("src/runtime/actions-writer.js");
   assert.match(writer, /writerToolWorkspaceHtml\(data\)/);
+  assert.match(tools, /snapshot:\s*\(\)\s*=>\s*import\("\.\/writer-snapshot-workspace\.js"\)/);
   assert.match(session, /activeSession === session/);
   assert.match(session, /zhimuApi\.context\.worldId === session\.worldId/);
   assert.match(manuscript, /session\.savingAction/);
@@ -105,6 +109,11 @@ test("writer heavy tools use guarded full-page sessions", () => {
   assert.match(packages, /zhimuApi\.selectWorld\(newWorldId\)/);
   assert.match(packages, /requestId: zhimuApi\.createIdempotencyKey\(\)/);
   assert.match(packages, /requestId: session\.requestId/);
+  assert.match(snapshot, /createContentVersion\(\{ label \}\)/);
+  assert.match(snapshot, /writerToolSessionIsCurrent\(session\)/);
+  assert.match(snapshot, /setWorkspaceSaving/);
+  assert.doesNotMatch(writer, /studioModal\("保存创作版本"/);
+  assert.match(writer, /escapeHtml\(version\.label\)/);
   for (const action of [
     "writer-tool-close",
     "writer-manuscript-save",
@@ -112,10 +121,18 @@ test("writer heavy tools use guarded full-page sessions", () => {
     "writer-document-import",
     "writer-export-run",
     "writer-import-preview",
-    "writer-import-run"
+    "writer-import-run",
+    "writer-snapshot-save"
   ]) {
     assert.match(actions, new RegExp(action));
   }
+});
+
+test("rule creation enters the routed editor without an informational modal", () => {
+  const actions = read("src/runtime/actions-rules.js");
+  assert.doesNotMatch(actions, /openModal|components\/modal/);
+  assert.match(actions, /case "new-rule":[\s\S]*callView\("rules", "openRuleEditor"\)/);
+  assert.match(actions, /case "rule-new":[\s\S]*callView\("rules", "openRuleEditor"\)/);
 });
 
 test("writer transfer helpers preserve store order and escape package previews", () => {

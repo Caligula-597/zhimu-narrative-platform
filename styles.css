@@ -1694,7 +1694,7 @@ button { cursor: pointer; border: 0; }
 .writer-metadata-guidance { margin-top:16px; padding:13px; border-left:3px solid var(--gold); border-radius:10px; background:#fff9ed; }
 .writer-metadata-guidance p { margin-top:6px; color:var(--muted); font-size:11px; line-height:1.65; }
 .writer-metadata-editor { position:static; width:100%; max-height:calc(100vh - 132px); }
-.writer-manuscript-editor,.writer-impact-editor,.writer-document-editor,.writer-export-editor,.writer-import-editor { position:static; width:100%; max-height:calc(100vh - 132px); }
+.writer-manuscript-editor,.writer-impact-editor,.writer-document-editor,.writer-export-editor,.writer-import-editor,.writer-snapshot-editor { position:static; width:100%; max-height:calc(100vh - 132px); }
 .writer-tool-grid-wide { grid-template-columns:minmax(280px,340px) minmax(620px,900px); }
 .workspace-longform-field { display:grid; gap:8px; padding-top:14px; color:var(--ink-soft); font-size:11px; font-weight:800; }
 .workspace-longform-field textarea { min-height:56vh; padding:16px; border:1px solid rgba(25,68,61,.23); border-radius:12px; color:var(--ink); background:#fff; font:500 13px/1.8 "Noto Sans SC","Microsoft YaHei",sans-serif; }
@@ -1702,6 +1702,13 @@ button { cursor: pointer; border: 0; }
 .workspace-longform-field small { color:var(--muted); font-size:10px; font-weight:500; line-height:1.55; }
 .writer-tool-sync-status { display:flex; flex-wrap:wrap; gap:7px; margin-top:16px; }
 .writer-tool-sync-status span { padding:6px 8px; border:1px solid var(--line); border-radius:8px; color:var(--ink-soft); background:#f8faf6; font-size:10px; }
+.writer-snapshot-label-hint { display:block; margin-top:-8px; color:var(--muted); font-size:10px; line-height:1.55; }
+.writer-snapshot-recent { display:grid; gap:10px; margin-top:18px; }
+.writer-snapshot-recent>strong { color:var(--ink-soft); font-size:11px; }
+.writer-snapshot-history { display:grid; gap:8px; }
+.writer-snapshot-history article { display:grid; gap:4px; padding:10px 11px; border:1px solid var(--line); border-radius:9px; background:#fff; }
+.writer-snapshot-history article strong { overflow-wrap:anywhere; font-size:11px; }
+.writer-snapshot-history article span { color:var(--muted); font-size:10px; }
 .writer-tool-actions { display:grid; gap:9px; margin-top:16px; }
 .writer-impact-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding-top:14px; }
 .writer-impact-controls label { display:grid; gap:7px; color:var(--ink-soft); font-size:10px; font-weight:800; }

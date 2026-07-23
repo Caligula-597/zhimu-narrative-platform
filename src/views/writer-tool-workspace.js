@@ -15,7 +15,8 @@ const moduleLoaders = {
   impact: () => import("./writer-impact-workspace.js"),
   document: () => import("./writer-document-workspace.js"),
   export: () => import("./writer-package-workspace.js"),
-  import: () => import("./writer-package-workspace.js")
+  import: () => import("./writer-package-workspace.js"),
+  snapshot: () => import("./writer-snapshot-workspace.js")
 };
 
 const renderMethods = {
@@ -23,7 +24,8 @@ const renderMethods = {
   impact: "impactWorkspaceHtml",
   document: "documentWorkspaceHtml",
   export: "exportWorkspaceHtml",
-  import: "importWorkspaceHtml"
+  import: "importWorkspaceHtml",
+  snapshot: "snapshotWorkspaceHtml"
 };
 
 const bindMethods = {
@@ -31,7 +33,8 @@ const bindMethods = {
   impact: "bindImpactWorkspace",
   document: "bindDocumentWorkspace",
   export: "bindExportWorkspace",
-  import: "bindImportWorkspace"
+  import: "bindImportWorkspace",
+  snapshot: "bindSnapshotWorkspace"
 };
 
 async function loadToolModule(type) {
@@ -114,3 +117,6 @@ export const runExportWorkspace = (...args) => invokeTool("export", "runExportWo
 export const openImportWorkspace = (...args) => invokeTool("import", "openImportWorkspace", ...args);
 export const previewImportWorkspace = (...args) => invokeTool("import", "previewImportWorkspace", ...args);
 export const runImportWorkspace = (...args) => invokeTool("import", "runImportWorkspace", ...args);
+
+export const openSnapshotWorkspace = (...args) => invokeTool("snapshot", "openSnapshotWorkspace", ...args);
+export const saveSnapshotWorkspace = (...args) => invokeTool("snapshot", "saveSnapshotWorkspace", ...args);
