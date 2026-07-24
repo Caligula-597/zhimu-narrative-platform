@@ -437,8 +437,8 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题七：主应用（创作者端）全量加载
 
-> **处理状态：阶段完成（2026-06-25）**
-> 已将 `src/runtime/data.js` 的运行态与资源态接口按当前视图收窄：玩家页只拉玩家/探索/最新复盘，主持页才拉玩家进度、线索矩阵和审计，归档页才拉 checkpoint/recap，资源/配额/创作者检查只在需要的视图启动；房间成员权限错误也从单一接口扩展到所有实际调用的房间接口，避免跳过主持接口时无法自动恢复。验证：`node --check src/runtime/data.js`、`npm run build`、`npm run check:modules`、实际打开 `http://127.0.0.1:5173/` 桌面/移动页面，无控制台错误。仍保留基础世界/studio 数据的首屏加载，后续可结合问题十做按需模块与按需数据进一步拆分。
+> **处理状态：已收口（2026-07-24）**
+> `src/runtime/data.js` 已按视图读取。Creator 总览只读取自己展示的玩家进度、待确认事件、房间日志和规则摘要；线索矩阵、主持审计只由独立 Host 维护，不再进入 Creator store 或断线 reconcile。归档页才读取 checkpoint/recap，Player 页才读取 player-home/exploration。Creator 总览的断线快照从 3 类 Host 请求缩为 2 类，房间摘要刷新从 5 个并发请求缩为 3 个。边界由 `scripts/creator-host-boundary.test.mjs` 固定。
 
 ### 问题描述
 
@@ -460,21 +460,21 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 |------|--------|-------------------|
 | 基础 | 世界列表（catalog） | ✅ 是 |
 | 基础 | studio 全量数据（场景/线索/物品/调查点/章节/角色/分幕） | 仅 studio/writer/clues 等视图需要 |
-| 运行时 | 玩家进度（hostPlayers） | 仅 director/player/overview 需要 |
-| 运行时 | 待确认事件（hostEvents） | 仅 director/overview 需要 |
+| 运行时 | 玩家进度（hostPlayers） | 仅 Creator overview；正式 Host 自行加载 |
+| 运行时 | 待确认事件（hostEvents） | 仅 Creator overview；正式 Host 自行加载 |
 | 运行时 | 探索数据（exploration） | 仅 player 视图需要 |
-| 运行时 | 线索矩阵（clueMatrix） | 仅 director 需要 |
-| 运行时 | 存档列表（checkpoints） | 仅 archive/director 需要 |
-| 运行时 | 复盘列表（recaps） | 仅 archive/director 需要 |
-| 运行时 | 世界日志（worldLogs） | 仅 director/overview 需要 |
-| 运行时 | 规则列表（rules） | 仅 rules/studio 需要 |
-| 运行时 | 审计日志（auditLog） | 仅 director 需要 |
+| 运行时 | 线索矩阵（clueMatrix） | 不进入 Creator；仅 Host |
+| 运行时 | 存档列表（checkpoints） | 仅 archive；Host 自行加载 |
+| 运行时 | 复盘列表（recaps） | 仅 archive；Host 自行加载 |
+| 运行时 | 世界日志（worldLogs） | 仅 overview |
+| 运行时 | 规则列表（rules） | 仅 overview/rules |
+| 运行时 | 审计日志（auditLog） | 不进入 Creator；仅 Host |
 | 资源 | 资产列表（assets） | 仅 assets/writer 需要 |
 | 资源 | 存储用量（storageUsage） | 仅 account/settings 需要 |
 | 资源 | 创作者检查（creatorChecks） | 仅 overview/settings 需要 |
 | 语音 | 语音消息（voiceMessages） | 仅 player 语音 tab 需要 |
 
-**问题**：80% 的数据在大多数视图下都是不需要的，但每次都全量加载。
+**当前约束**：新增 Creator 请求必须能在当前视图找到直接消费方；Host 专属运行态不得回流 Creator 聚合 loader。
 
 ---
 
@@ -583,32 +583,30 @@ PostgreSQL 触发 NOTIFY → 后端 SSE 服务感知 → 向全房玩家广播 R
 
 ## 问题十一：主应用 vs Host 端大量代码重复
 
-> **处理状态：阶段完成（2026-06-25）**
-> 已先收敛主应用主持台与 Host 端最明显的行为差异：`src/views/director.js` 中主持手动操作后的全量 `loadCloudData()` 已迁移为 `refreshHostRoom()` / `refreshHostPlayers()` / `refreshHostClueMatrix()` 局部刷新，与 Host 端策略同步，避免两端在性能和数据刷新粒度上继续分叉。验证：`node --check src/views/director.js`、`npm run check:modules`。代码删除级合并仍需等 Host 端功能覆盖稳定后再做。
+> **处理状态：已完成（2026-07-24）**
+> Host 已成为唯一现场控制台。不可达的 Creator `src/views/director.js`、`director-modal-templates.js`、`actions-director.js` 及对应测试已经删除；旧一次性移植/拆分脚本也已移除，避免未来误运行恢复旧架构。Creator 只保留 `go("director")` 外跳兼容别名与总览所需的玩家进度/待确认事件/日志摘要。
 
 ### 问题描述
 
-Host 主持端是从主应用的 director 视图独立出来的，两边的状态管理、API 调用、UI 渲染逻辑有大量重复代码。以后改功能要改两边，很容易不一致。
+历史上 Host 从主应用 director 视图独立，两套实现长期并存。该风险现在通过删除 Creator 副本和建立自动边界契约解决。
 
 ### 影响范围
 
 - **产品**：织幕全端
-- **模块**：主应用 director 视图 + Host 端 console 视图
+- **模块**：Creator 运行摘要 + Host console
 - **触发场景**：任何主持台相关的功能修改
 
 ### 问题分析
 
-#### 重复的代码
+#### 当前边界
 
-| 功能 | 主应用位置 | Host 端位置 |
-|------|-----------|------------|
-| 数据加载 | `src/runtime/data.js` | `host/src/runtime/data.js` |
-| 主持台视图 | `src/views/director.js` | `host/src/views/console.js` |
-| SSE 事件 | `src/runtime/room-events.js` | `host/src/runtime/room-events.js` |
-| API 调用 | `src/api/client.js` | `host/src/api.js` |
-| 状态管理 | `src/state.js` | `host/src/state.js` |
-| 邀请/存档/复盘弹窗 | `src/runtime/invite.js` | `host/src/runtime/invite.js` |
-| UI 组件（modal/toast 等） | `src/components/` | `host/src/components/` |
+| 功能 | Creator | Host |
+|------|---------|------|
+| 运行摘要 | 玩家进度、待确认数量、房间日志 | 完整运行数据 |
+| 现场操作 | 只提供“打开主持端”入口 | 唯一实现 |
+| 线索矩阵/主持审计 | 不加载、不存储 | 唯一实现 |
+| SSE 断线回补 | 只刷新总览实际展示的数据 | 刷新完整现场运行态 |
+| 规则/存档/事件审阅 | 创作与归档视角 | 页面内现场工作区 |
 
 #### 风险
 
@@ -616,13 +614,11 @@ Host 主持端是从主应用的 director 视图独立出来的，两边的状�
 - 两边行为可能不一致
 - 维护成本翻倍
 
-#### 后续计划
+#### 防回归
 
-> **待负责人验收 Host 端功能完整后，考虑删除主应用的 director 视图及相关重复代码。**
->
-> 验收标准：Host 端功能 100% 覆盖主应用 director 视图，且稳定运行一段时间。
->
-> 删除范围：`src/views/director.js`、`src/runtime/actions-director.js`、以及 data.js / state.js 中仅 director 用的字段和逻辑。
+- `scripts/creator-host-boundary.test.mjs` 禁止 Creator Director 模块、Host 专属 store 字段和请求重新出现。
+- `scripts/ui-smoke.js` 的主持能力检查只读取 `host/src`，不再把 Creator 副本当作验收对象。
+- `director` 作为导航字符串可以保留，但只能打开 `hostConsoleUrl()`。
 
 ---
 

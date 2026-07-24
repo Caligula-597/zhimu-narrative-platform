@@ -11,8 +11,6 @@ export function clearRuntimeFields() {
     cloudHostStuckCount: 0,
     cloudExploration: null,
     cloudHostEvents: [],
-    cloudHostClueMatrix: null,
-    cloudHostAuditLog: [],
     cloudCheckpoints: [],
     cloudRecaps: [],
     cloudRecapLatest: null,

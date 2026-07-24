@@ -25,7 +25,6 @@ const files = [
   "src/views/studio.js",
   "src/views/assets.js",
   "src/views/rules.js",
-  "src/views/director.js",
   "src/views/player.js",
   "src/views/archive.js",
   "src/views/settings.js",

@@ -22,8 +22,6 @@ import { normalizeError } from "../components/status-ui.js";
   let loadCloudDataKey = "";
   let hostEventsRefreshSeq = 0;
   let hostPlayersRefreshSeq = 0;
-  let hostAuditRefreshSeq = 0;
-  let hostClueMatrixRefreshSeq = 0;
   let hostRoomRefreshSeq = 0;
 
 export async function ensureActiveWorld() {
@@ -177,22 +175,19 @@ export async function loadCloudData(withToast = false, force = false) {
         if (hasRoom) logParams.roomId = zhimuApi.context.roomId;
         const view = uiStore.get().view;
         const needsPlayerRuntime = hasRoom && view === "player";
-        const needsDirectorRuntime = hasRoom && view === "director";
         const needsOverviewRuntime = hasRoom && view === "overview";
         const needsArchiveRuntime = hasRoom && view === "archive";
-        const needsRules = ["overview", "rules", "director"].includes(view);
+        const needsRules = ["overview", "rules"].includes(view);
         const phase2 = await Promise.allSettled([
           needsPlayerRuntime ? zhimuApi.getPlayerHome() : Promise.resolve(null),
-          needsDirectorRuntime ? zhimuApi.getHostPlayers() : Promise.resolve(null),
+          needsOverviewRuntime ? zhimuApi.getHostPlayers() : Promise.resolve(null),
           needsPlayerRuntime ? zhimuApi.getExploration() : Promise.resolve(null),
-          needsDirectorRuntime || needsOverviewRuntime ? zhimuApi.getHostEvents() : Promise.resolve(null),
-          needsDirectorRuntime ? zhimuApi.getHostClueMatrix() : Promise.resolve(null),
+          needsOverviewRuntime ? zhimuApi.getHostEvents() : Promise.resolve(null),
           needsArchiveRuntime ? zhimuApi.getCheckpoints().catch(() => []) : Promise.resolve([]),
           needsArchiveRuntime ? zhimuApi.getRecaps().catch(() => []) : Promise.resolve([]),
           needsArchiveRuntime || needsPlayerRuntime ? zhimuApi.getLatestRecap(view === "player").catch(() => null) : Promise.resolve(null),
-          view === "overview" || view === "director" ? zhimuApi.getWorldLogs(logParams) : Promise.resolve([]),
-          needsRules ? zhimuApi.getRules() : Promise.resolve(worldStore.get().cloudRules || []),
-          needsDirectorRuntime ? zhimuApi.getHostAuditLog().catch(() => ({ entries: [] })) : Promise.resolve({ entries: roomStore.get().cloudHostAuditLog || [] })
+          view === "overview" ? zhimuApi.getWorldLogs(logParams) : Promise.resolve([]),
+          needsRules ? zhimuApi.getRules() : Promise.resolve(worldStore.get().cloudRules || [])
         ]);
         if (hasRoom && phase2.some(isRoomMembershipError)) {
           zhimuApi.clearRoom();
@@ -204,9 +199,9 @@ export async function loadCloudData(withToast = false, force = false) {
           }
         } else {
           take(phase2[0], (value) => { roomStore.set({ cloudPlayer: value }); }, () => { roomStore.set({ cloudPlayer: null }); });
-          if (needsDirectorRuntime && phase2[1].status === "fulfilled") {
+          if (needsOverviewRuntime && phase2[1].status === "fulfilled") {
             applyHostPlayersPayload(phase2[1].value);
-          } else if (needsDirectorRuntime && phase2[1].status === "rejected") {
+          } else if (needsOverviewRuntime && phase2[1].status === "rejected") {
             failHostPlayersLoad(phase2[1].reason);
             pushUniqueError(errors, phase2[1].reason?.message || String(phase2[1].reason));
           }
@@ -214,14 +209,12 @@ export async function loadCloudData(withToast = false, force = false) {
         }
         if (hasRoom) {
           take(phase2[3], (value) => { roomStore.set({ cloudHostEvents: value || [] }); }, () => { roomStore.set({ cloudHostEvents: [] }); });
-          take(phase2[4], (value) => { roomStore.set({ cloudHostClueMatrix: value }); }, () => { roomStore.set({ cloudHostClueMatrix: null }); });
-          take(phase2[5], (value) => { roomStore.set({ cloudCheckpoints: value || [] }); }, () => { roomStore.set({ cloudCheckpoints: [] }); });
-          take(phase2[6], (value) => { roomStore.set({ cloudRecaps: value || [] }); }, () => { roomStore.set({ cloudRecaps: [] }); });
-          take(phase2[7], (value) => { roomStore.set({ cloudRecapLatest: value }); }, () => { roomStore.set({ cloudRecapLatest: null }); });
-          take(phase2[10], (value) => { roomStore.set({ cloudHostAuditLog: value?.entries || [] }); }, () => { roomStore.set({ cloudHostAuditLog: [] }); });
+          take(phase2[4], (value) => { roomStore.set({ cloudCheckpoints: value || [] }); }, () => { roomStore.set({ cloudCheckpoints: [] }); });
+          take(phase2[5], (value) => { roomStore.set({ cloudRecaps: value || [] }); }, () => { roomStore.set({ cloudRecaps: [] }); });
+          take(phase2[6], (value) => { roomStore.set({ cloudRecapLatest: value }); }, () => { roomStore.set({ cloudRecapLatest: null }); });
         }
-        take(phase2[8], (value) => { worldStore.set({ cloudWorldLogs: value || [] }); }, () => { worldStore.set({ cloudWorldLogs: [] }); });
-        take(phase2[9], (value) => { worldStore.set({ cloudRules: value }); }, () => { worldStore.set({ cloudRules: [] }); });
+        take(phase2[7], (value) => { worldStore.set({ cloudWorldLogs: value || [] }); }, () => { worldStore.set({ cloudWorldLogs: [] }); });
+        take(phase2[8], (value) => { worldStore.set({ cloudRules: value }); }, () => { worldStore.set({ cloudRules: [] }); });
       } else {
         roomStore.set({
           cloudPlayer: null,
@@ -231,8 +224,6 @@ export async function loadCloudData(withToast = false, force = false) {
           cloudHost: [],
           cloudExploration: null,
           cloudHostEvents: [],
-          cloudHostClueMatrix: null,
-          cloudHostAuditLog: [],
           cloudCheckpoints: [],
           cloudRecaps: [],
           cloudRecapLatest: null
@@ -256,8 +247,7 @@ export async function loadCloudData(withToast = false, force = false) {
       })();
 
       userStore.set({ apiError: [...new Set(errors)].join(" · ") });
-      roomEvents().syncDirectorPolling?.();
-      if (worldReady && hasRoom && ["overview", "director", "player", "archive"].includes(uiStore.get().view)) {
+      if (worldReady && hasRoom && ["overview", "player", "archive"].includes(uiStore.get().view)) {
         roomEvents().connectRoomEventStream?.();
       }
       render();
@@ -353,7 +343,7 @@ export async function refreshHostEvents(withToast = false, silent = false) {
       if (refreshSeq !== hostEventsRefreshSeq || !isCurrentLoad(refreshKey)) return;
       roomStore.set({ cloudHostEvents });
       updateNotifyBadge();
-      if (["director", "overview"].includes(uiStore.get().view)) render();
+      if (uiStore.get().view === "overview") render();
       if (withToast && !silent) showToast(`待确认事件已刷新（${cloudHostEvents.length} 条）`);
     } catch (error) {
       if (refreshSeq !== hostEventsRefreshSeq || !isCurrentLoad(refreshKey)) return;
@@ -372,49 +362,13 @@ export async function refreshHostPlayers(withToast = false, silent = false) {
       const payload = await zhimuApi.getHostPlayers();
       if (refreshSeq !== hostPlayersRefreshSeq || !isCurrentLoad(refreshKey)) return;
       applyHostPlayersPayload(payload);
-      if (["director", "overview"].includes(uiStore.get().view)) render();
+      if (uiStore.get().view === "overview") render();
       if (withToast && !silent) showToast(`玩家进度已刷新（${roomStore.get().cloudHostPlayers.filter((player) => player.joined).length} 人已加入）`);
     } catch (error) {
       if (refreshSeq !== hostPlayersRefreshSeq || !isCurrentLoad(refreshKey)) return;
       failHostPlayersLoad(error);
-      if (["director", "overview"].includes(uiStore.get().view)) render();
+      if (uiStore.get().view === "overview") render();
       if (withToast && !silent) reportError(error, "刷新玩家进度失败");
-    }
-  }
-
-export async function refreshHostAuditLog(withToast = false, silent = false) {
-    if (!zhimuApi.context.roomId) {
-      if (withToast && !silent) showToast("请先选择运行房");
-      return;
-    }
-    const refreshSeq = ++hostAuditRefreshSeq;
-    const refreshKey = zhimuApi.loadKey();
-    try {
-      const payload = await zhimuApi.getHostAuditLog();
-      if (refreshSeq !== hostAuditRefreshSeq || !isCurrentLoad(refreshKey)) return;
-      const cloudHostAuditLog = payload?.entries || [];
-      roomStore.set({ cloudHostAuditLog });
-      if (uiStore.get().view === "director") render();
-      if (withToast && !silent) showToast(`主持审计已刷新（${cloudHostAuditLog.length} 条）`);
-    } catch (error) {
-      if (refreshSeq !== hostAuditRefreshSeq || !isCurrentLoad(refreshKey)) return;
-      if (withToast && !silent) reportError(error, "刷新主持审计失败");
-    }
-  }
-
-export async function refreshHostClueMatrix(withToast = false, silent = false) {
-    if (!zhimuApi.context.roomId) return;
-    const refreshSeq = ++hostClueMatrixRefreshSeq;
-    const refreshKey = zhimuApi.loadKey();
-    try {
-      const cloudHostClueMatrix = await zhimuApi.getHostClueMatrix();
-      if (refreshSeq !== hostClueMatrixRefreshSeq || !isCurrentLoad(refreshKey)) return;
-      roomStore.set({ cloudHostClueMatrix });
-      if (uiStore.get().view === "director") render();
-      if (withToast && !silent) showToast("线索矩阵已刷新");
-    } catch (error) {
-      if (refreshSeq !== hostClueMatrixRefreshSeq || !isCurrentLoad(refreshKey)) return;
-      if (withToast && !silent) reportError(error, "刷新线索矩阵失败");
     }
   }
 
@@ -427,30 +381,26 @@ export async function refreshHostRoom(withToast = false) {
     const refreshKey = zhimuApi.loadKey();
     try {
       const logParams = { limit: "20", roomId: zhimuApi.context.roomId };
-      const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog] = await Promise.all([
+      const [hostPlayers, hostEvents, worldLogs] = await Promise.all([
         zhimuApi.getHostPlayers(),
         zhimuApi.getHostEvents(),
-        zhimuApi.getWorldLogs(logParams),
-        zhimuApi.getHostClueMatrix(),
-        zhimuApi.getHostAuditLog().catch(() => ({ entries: [] }))
+        zhimuApi.getWorldLogs(logParams)
       ]);
       if (refreshSeq !== hostRoomRefreshSeq || !isCurrentLoad(refreshKey)) return;
       applyHostPlayersPayload(hostPlayers);
       const cloudHostEvents = hostEvents || [];
       const cloudWorldLogs = worldLogs || [];
-      const cloudHostClueMatrix = clueMatrix;
-      const cloudHostAuditLog = auditLog?.entries || [];
-      roomStore.set({ cloudHostEvents, cloudHostClueMatrix, cloudHostAuditLog });
+      roomStore.set({ cloudHostEvents });
       worldStore.set({ cloudWorldLogs });
       updateNotifyBadge();
-      if (["director", "overview"].includes(uiStore.get().view)) render();
+      if (uiStore.get().view === "overview") render();
       if (withToast) {
         showToast(`房间状态已刷新 · 待确认 ${cloudHostEvents.length} 条 · 玩家 ${roomStore.get().cloudHostPlayers.filter((player) => player.joined).length} 人`);
       }
     } catch (error) {
       if (refreshSeq !== hostRoomRefreshSeq || !isCurrentLoad(refreshKey)) return;
       failHostPlayersLoad(error);
-      if (["director", "overview"].includes(uiStore.get().view)) render();
+      if (uiStore.get().view === "overview") render();
       if (withToast) reportError(error, "刷新房间状态失败");
     }
   }
@@ -459,8 +409,7 @@ export function enhanceCloudPanels() {}
 
 export function refreshPlayerHome(...args) { return roomEvents().refreshPlayerHome?.(...args); }
 export function refreshExploration(...args) { return roomEvents().refreshExploration?.(...args); }
-export function syncDirectorPolling(...args) { return roomEvents().syncDirectorPolling?.(...args); }
-export function refreshDirectorPoll(...args) { return roomEvents().refreshDirectorPoll?.(...args); }
+export function refreshHostRuntimeSnapshot(...args) { return roomEvents().refreshHostRuntimeSnapshot?.(...args); }
 export function disconnectRoomEventStream(...args) { return roomEvents().disconnectRoomEventStream?.(...args); }
 export function scheduleRoomEventReconnect(...args) { return roomEvents().scheduleRoomEventReconnect?.(...args); }
 export function connectRoomEventStream(...args) { return roomEvents().connectRoomEventStream?.(...args); }
@@ -468,4 +417,4 @@ export function handleRoomEvent(...args) { return roomEvents().handleRoomEvent?.
 export function streamUserIdForRoom(...args) { return roomEvents().streamUserIdForRoom?.(...args); }
 export function renderQuotaSection(...args) { return window.zhimuAccountQuota?.renderQuotaSection?.(...args); }
 
-registerRuntime({ loadCloudData, ensureActiveWorld, prefetchWorlds, clearRuntimeState, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, syncDirectorPolling, refreshDirectorPoll, refreshHostEvents, refreshHostPlayers, refreshHostClueMatrix, refreshHostAuditLog, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels, renderQuotaSection });
+registerRuntime({ loadCloudData, ensureActiveWorld, prefetchWorlds, clearRuntimeState, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, refreshHostRuntimeSnapshot, refreshHostEvents, refreshHostPlayers, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels, renderQuotaSection });

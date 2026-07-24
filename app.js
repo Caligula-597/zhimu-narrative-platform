@@ -118,7 +118,6 @@ const appEntry = (function (window) {
     const sameView = uiStore.get().view === view;
     if (!sameView) {
       uiStore.set({ view });
-      R.syncDirectorPolling();
       R.connectRoomEventStream();
       if (view === "account") window.zhimuAccountHub?.beginAccountHubLoad?.();
       if (view === "creatorCockpit") callView("creatorCockpit", "refreshCockpitData");

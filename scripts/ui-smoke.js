@@ -80,7 +80,6 @@ const requiredModuleScripts = [
   "src/views/clues.js",
   "src/views/assets.js",
   "src/views/rules.js",
-  "src/views/director.js",
   "src/views/player.js",
   "src/views/archive.js",
   "src/views/settings.js",
@@ -238,12 +237,12 @@ await check("state-runtime-boundaries", async () => {
   for (const removed of ["players:", "logs:", "demoStep:"]) {
     if (stateJs.includes(removed)) throw new Error(`state still has demo runtime field ${removed}`);
   }
-  // 12 个关键字段已迁至 shard 文件，检查 shard 包含这些字段
+  // 关键字段已迁至 shard 文件，检查 Creator 自身消费的运行态字段。
   const shardFieldChecks = [
     { shard: "src/state/voice-store.js", fields: ["voiceRoomId", "voiceLiveStatus"] },
     { shard: "src/state/world-store.js", fields: ["cloudWorldLogs"] },
     { shard: "src/state/studio-store.js", fields: ["cloudStudio"] },
-    { shard: "src/state/room-store.js", fields: ["cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostStuckCount", "cloudHostAuditLog", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest"] }
+    { shard: "src/state/room-store.js", fields: ["cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostStuckCount", "cloudHostEvents", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest"] }
   ];
   for (const { shard, fields } of shardFieldChecks) {
     const js = readSource(shard);
@@ -280,13 +279,17 @@ await check("overview-uses-world-logs", async () => {
 });
 
 await check("host-console-wired", async () => {
-  const director = readSource("src/views/director.js");
-  for (const token of ["hostPlayerTableRows", "openHostPlayerDetail", "host-runtime-table", "hostClueMatrixCard"]) {
-    if (!director.includes(token)) throw new Error(`director view missing host console token ${token}`);
+  const hostConsole = [
+    readSource("host/src/views/console.js"),
+    readSource("host/src/views/host-layout.js"),
+    readSource("host/src/runtime/host-operation-controller.js")
+  ].join("\n");
+  for (const token of ["playersTableRows", "host-player-detail", "host-runtime-table", "hostClueMatrixCard"]) {
+    if (!hostConsole.includes(token)) throw new Error(`canonical Host console missing token ${token}`);
   }
-  const css = readSource("styles.css");
-  if (!css.includes(".host-runtime-table")) throw new Error("styles missing host-runtime-table");
-  return "host console UI + styles present";
+  const css = readSource("host/src/styles.css");
+  if (!css.includes(".host-runtime-table")) throw new Error("Host styles missing host-runtime-table");
+  return "canonical Host console UI + styles present";
 });
 
 await check("studio-node-edit-wired", async () => {
@@ -305,11 +308,12 @@ await check("studio-node-edit-wired", async () => {
 
 await check("clue-sharing-wired", async () => {
   const player = readSource("src/views/player.js");
-  const director = readSource("src/views/director.js");
   for (const token of ["shareCloudClue", "sharedClueSection"]) {
     if (!player.includes(token)) throw new Error(`player view missing clue-sharing token ${token}`);
   }
-  if (!director.includes("hostClueMatrixCard")) throw new Error("director view missing hostClueMatrixCard");
+  if (!readSource("host/src/views/console.js").includes("hostClueMatrixCard")) {
+    throw new Error("canonical Host console missing hostClueMatrixCard");
+  }
   const apiBundle = readApiBundle();
   for (const method of ["shareClueToRoom", "updateCluePlayerNote", "getHostClueMatrix"]) {
     if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
@@ -343,33 +347,31 @@ await check("room-events-wired", async () => {
 
 await check("refresh-notify-wired", async () => {
   const dataJs = readSource("src/runtime/data.js");
+  const roomEventsJs = readSource("src/runtime/room-events.js");
   const toastJs = readSource("src/components/toast.js");
-  const director = readSource("src/views/director.js");
-  for (const token of ["refreshHostRoom", "refreshHostEvents", "syncDirectorPolling"]) {
-    if (!dataJs.includes(token)) throw new Error(`runtime/data.js missing refresh token ${token}`);
+  const runtimeBundle = `${dataJs}${roomEventsJs}`;
+  for (const token of ["refreshHostRoom", "refreshHostEvents", "refreshHostRuntimeSnapshot"]) {
+    if (!runtimeBundle.includes(token)) throw new Error(`Creator overview runtime missing refresh token ${token}`);
   }
   for (const token of ["updateNotifyBadge", "pendingHostEventCount"]) {
     if (!toastJs.includes(token)) throw new Error(`toast.js missing ${token}`);
   }
-  if (!director.includes("refresh-host-room")) throw new Error("director refresh buttons missing");
-  return "refresh + notify polling wired";
+  if (!roomEventsJs.includes('view === "overview"')) throw new Error("overview SSE fallback missing");
+  return "Creator overview refresh + notify reconciliation wired";
 });
 
 await check("host-audit-wired", async () => {
-  const director = readSource("src/views/director.js");
-  const dataJs = readSource("src/runtime/data.js");
-  const actionsJs = readSource("src/runtime/actions.js");
-  const formatJs = readSource("src/utils/format.js");
-  for (const token of ["hostAuditCard", "host-audit-card", "refresh-host-audit", "cloudHostAuditLog"]) {
-    const bundle = `${director}${dataJs}${actionsJs}`;
-    if (!bundle.includes(token)) throw new Error(`host audit wiring missing ${token}`);
+  const hostBundle = [
+    readSource("host/src/views/console.js"),
+    readSource("host/src/runtime/data.js"),
+    readSource("host/src/runtime/director-actions.js"),
+    readSource("host/src/utils/format.js"),
+    readSource("host/src/api.js")
+  ].join("\n");
+  for (const token of ["hostAuditCard", "host-audit-card", "refresh-host-audit", "cloudHostAuditLog", "getHostAuditLog"]) {
+    if (!hostBundle.includes(token)) throw new Error(`canonical Host audit wiring missing ${token}`);
   }
-  for (const fn of ["hostAuditActionLabel", "hostAuditDetail"]) {
-    if (!formatJs.includes(fn)) throw new Error(`format.js missing ${fn}`);
-  }
-  const apiBundle = readApiBundle();
-  if (!apiHasMethod(apiBundle, "getHostAuditLog")) throw new Error("api bundle missing getHostAuditLog");
-  return "host audit UI + refresh + format helpers wired";
+  return "canonical Host audit UI + refresh wired";
 });
 
 await check("clues-view-wired", async () => {
@@ -393,13 +395,16 @@ await check("clue-share-roles-wired", async () => {
 });
 
 await check("host-delay-wired", async () => {
-  const director = readSource("src/views/director.js");
-  const apiBundle = readApiBundle();
-  for (const token of ["openDelayHostEventModal", "delayHostEvent", "host-event-delayed", "delay_until"]) {
-    const bundle = `${director}${apiBundle}`;
-    if (!bundle.includes(token)) throw new Error(`host delay wiring missing ${token}`);
+  const hostBundle = [
+    readSource("host/src/runtime/host-event-workspace-service.js"),
+    readSource("host/src/runtime/host-event-workspace-controller.js"),
+    readSource("host/src/runtime/host-event-queue.js"),
+    readSource("host/src/api.js")
+  ].join("\n");
+  for (const token of ["delayHostEvent", "host-event-delayed", "delay_until"]) {
+    if (!hostBundle.includes(token)) throw new Error(`canonical Host delay wiring missing ${token}`);
   }
-  return "host event delay UI wired";
+  return "canonical Host event delay workflow wired";
 });
 
 await check("global-search-focus-wired", async () => {
@@ -412,12 +417,16 @@ await check("global-search-focus-wired", async () => {
   return "global search highlight/focus wired";
 });
 
-await check("runtime-state-clears-audit", async () => {
+await check("creator-host-state-boundary", async () => {
   const runtimeStoreJs = readSource("src/runtime/runtime-store.js");
   const contextJs = readSource("src/runtime/context-coordinator.js");
-  if (!runtimeStoreJs.includes("cloudHostAuditLog")) throw new Error("clearRuntimeState must reset cloudHostAuditLog");
-  if (!contextJs.includes("cloudHostAuditLog")) throw new Error("world switch must reset cloudHostAuditLog");
-  return "audit log cleared on world/room reset";
+  if (runtimeStoreJs.includes("cloudHostAuditLog") || contextJs.includes("cloudHostAuditLog")) {
+    throw new Error("Creator runtime must not retain canonical Host audit state");
+  }
+  if (!readSource("host/src/runtime/data.js").includes("cloudHostAuditLog")) {
+    throw new Error("canonical Host runtime must own audit state");
+  }
+  return "Creator and canonical Host runtime state are separated";
 });
 
 await check("checkpoint-wired", async () => {
@@ -463,17 +472,18 @@ await check("settings-world-patch-wired", async () => {
 });
 
 await check("rules-preview-wired", async () => {
-  const director = readSource("src/views/director.js");
+  const hostRules = readSource("host/src/runtime/host-rules-controller.js");
   for (const token of ["directorRulesPreview", "refreshRulesPreview", "triggerManualRuleFromDirector", "rule-manual-trigger"]) {
-    if (!director.includes(token)) throw new Error(`director view missing rules preview token ${token}`);
+    const hostBundle = `${hostRules}${readSource("host/src/runtime/director-actions.js")}`;
+    if (!hostBundle.includes(token)) throw new Error(`canonical Host rules preview missing token ${token}`);
   }
-  const apiBundle = readApiBundle();
+  const apiBundle = readSource("host/src/api.js");
   for (const method of ["previewRoomRules", "triggerManualRule"]) {
-    if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
+    if (!apiHasMethod(apiBundle, method)) throw new Error(`Host API missing ${method}`);
   }
-  const userMsg = readSource("src/utils/user-messages.js");
+  const userMsg = readSource("host/src/utils/format.js");
   if (!userMsg.includes("rulePreviewStatusLabel")) throw new Error("user-messages missing rulePreviewStatusLabel");
-  return "rules preview + manual trigger wired";
+  return "canonical Host rules preview + manual trigger wired";
 });
 
 await check("assets-filter-wired", async () => {
@@ -502,7 +512,6 @@ await check("friendly-api-errors-wired", async () => {
 await check("inventory-wired", async () => {
   const studio = readSource("src/views/studio.js");
   const player = readSource("src/views/player.js");
-  const director = readSource("src/views/director.js");
   const roomJs = readSource("src/runtime/room-events.js");
   for (const token of ["openStudioItem", "studio-add-item", "requiredItemId"]) {
     if (!studio.includes(token)) throw new Error(`studio view missing inventory token ${token}`);
@@ -510,7 +519,9 @@ await check("inventory-wired", async () => {
   for (const token of ["inventoryRows", "hasRequiredItem", "inventory-card"]) {
     if (!player.includes(token)) throw new Error(`player view missing inventory token ${token}`);
   }
-  if (!director.includes("host-manual-grant-item")) throw new Error("director missing host grant item");
+  if (!readSource("host/src/views/host-layout.js").includes("host-manual-grant-item")) {
+    throw new Error("canonical Host console missing host grant item");
+  }
   if (!roomJs.includes("room.item_granted")) throw new Error("SSE handler missing room.item_granted");
   const apiBundle = readApiBundle();
   for (const method of ["createItem", "updateItem", "deleteItem", "hostGrantItem"]) {
@@ -536,12 +547,13 @@ await check("livekit-voice-wired", async () => {
 
 await check("recap-wired", async () => {
   const archive = readSource("src/views/archive.js");
-  const director = readSource("src/views/director.js");
   const dataJs = readSource("src/runtime/data.js");
   for (const token of ["openCreateRecapModal", "openRecapDetail", "recapDetailView", "create-recap", "recap-detail"]) {
     if (!archive.includes(token)) throw new Error(`archive view missing recap token ${token}`);
   }
-  if (!director.includes("create-recap")) throw new Error("director missing create-recap action");
+  if (!readSource("host/src/runtime/host-archive-controller.js").includes("create-recap")) {
+    throw new Error("canonical Host console missing create-recap action");
+  }
   for (const key of ["cloudRecaps", "cloudRecapLatest", "cloudRecapDetail"]) {
     if (!readSource("src/state/room-store.js").includes(key)) throw new Error(`room-store missing ${key}`);
   }

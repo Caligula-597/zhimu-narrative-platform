@@ -14,14 +14,14 @@
 | 主持 | `host/` | 5175 | 监控台、待确认事件、手动干预、存档/复盘 |
 | 玩家 | `play/` | 5174 | 邀请码、阅读、探索、语音 |
 
-主应用内 `director` 视图仍保留，便于过渡期；新入口优先链到 `host.getzhimu.com?room=...`。
+`host/` 是唯一的现场主持实现。Creator 不再注册或懒加载 `director` 视图；历史 `go("director")` 只作为兼容导航别名，直接打开 `host.getzhimu.com?room=...`，不得重新引入第二套主持控制台。
 
 ---
 
 ## 2. 主持端数据流
 
 ```
-登录 → 选世界 → 选平行房 → console（原 director UI）
+登录 → 选世界 → 选平行房 → console（唯一现场控制台）
      → connectRoomEvents (SSE /rooms/:id/events/stream)
      → SSE 断开 → 15s 轮询 refreshHostEvents/Players/ClueMatrix
 ```
@@ -36,11 +36,16 @@ Room 选择：`zhimuHostWorldId` + `zhimuHostRoomId:<worldId>`。
 
 | 路径 | 说明 |
 |------|------|
-| `host/src/views/console.js` | 自 `src/views/director.js` 移植的监控台 UI + 主持操作 |
-| `host/src/runtime/data.js` | 主持数据加载与 refresh* |
+| `host/src/views/console.js` | 监控台组合视图；运行概览、事件、规则、审计、线索矩阵 |
+| `host/src/views/host-layout.js` | 玩家状态与现场命令布局 |
+| `host/src/runtime/host-operation-*` | 现场干预 model / command service / controller |
+| `host/src/runtime/host-event-workspace-*` | 待确认事件审阅与幂等操作 |
+| `host/src/runtime/host-rules-*` | 规则草稿、校验、写入与运行预览 |
+| `host/src/runtime/host-archive-*` | 存档点与复盘工作区 |
+| `host/src/runtime/data.js` | Host 全量初始化与领域粒度 refresh |
 | `host/src/runtime/room-events.js` | SSE + 15s 轮询回退 |
-| `host/src/runtime/invite.js` | 邀请码/玩家链接、存档点/复盘弹窗 |
-| `host/src/main.js` | 引导、路由、事件分发 |
+| `host/src/runtime/host-console-runtime.js` | 监控台 action 与领域控制器装配 |
+| `host/src/main.js` | 登录/选房壳层与监控台懒加载 |
 
 ---
 
@@ -49,7 +54,7 @@ Room 选择：`zhimuHostWorldId` + `zhimuHostRoomId:<worldId>`。
 1. Cloudflare Pages 项目 `zhimu-host`（见 `host/wrangler.toml`）
 2. DNS `host` → Pages
 3. Railway：`HOST_SITE_ORIGIN` + CORS + OAuth returnOrigin
-4. 创作者端总览/侧栏逐步改为外链 `host.getzhimu.com`
+4. 创作者端所有“打开主持端”入口必须只生成 `host.getzhimu.com` 链接
 
 ---
 
@@ -57,6 +62,7 @@ Room 选择：`zhimuHostWorldId` + `zhimuHostRoomId:<worldId>`。
 
 ```bash
 npm run test:host
+node --test scripts/creator-host-boundary.test.mjs
 ```
 
 变更 `host/` 时 `npm run verify:changed` 会自动跑上述命令。

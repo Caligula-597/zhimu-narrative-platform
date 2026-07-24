@@ -24,7 +24,7 @@
 | `src/runtime/view-registry.js` | 视图注册表（替代 `zhimuViews` 窗口桥） |
 | `src/runtime/runtime-facade.js` | 运行时门面（替代 `zhimuRuntime`/`zhimuDom` 窗口桥） |
 | `src/state/` | 8 个状态 shard + `create-store.js`（替代 `zhimuState` 窗口桥） |
-| `src/views/` | account、overview、writer、studio、rules、director、player、archive、assets、ops |
+| `src/views/` | account、overview、writer、studio、rules、player、archive、assets、ops；现场主持只存在于 `host/` |
 | `src/views/writer-tool-layout.js` | Writer 全页工具共享壳层：页面标识、返回动作、响应式网格、事实统计和风险说明 |
 | `config/vite.config.mjs` | dev server、docs static plugin、生产 build |
 | `server.js` | 本地静态 dist server |
@@ -87,6 +87,8 @@ Host 规则长编辑不得重新接回 `modalEl`。页面内 `host-rule-workspac
 
 Host 首屏只加载登录、鉴权、世界和运行房选择所需代码。`host-console-loader.js` 在进入运行房时并行加载监控台视图和 `host-console-runtime.js`，后者统一初始化小游戏、现场操作、归档、规则与 Director action；工作区 CSS 也跟随监控台加载。视图和控制器必须作为同一个进入事务完成，禁止只懒加载视图而让按钮落到未初始化 dispatcher。离开门禁也归 runtime 所有：未决写入和未保存草稿必须同时拦截站内切房与 `beforeunload`，不能只保护工作区自己的关闭按钮。
 
+Creator 的 `director` 页面、action dispatcher 和 modal templates 已退役。Creator 总览只保留它实际展示的玩家进度、待确认事件和房间日志；Host 线索矩阵与主持审计不进入 Creator store，也不参加 Creator 的 SSE 断线轮询。兼容导航目标 `director` 只能外跳 Host。
+
 ## 数据边界
 
 前端不得硬编码玩家、日志、资产、剧本内容或运行状态。运行数据必须来自 API：
@@ -132,7 +134,7 @@ Creator、Host、Player 的 API、session、错误转换、SSE 生命周期与�
 
 - 官网 `site/` 的公开请求仍是独立 transport，需要补超时、错误边界与 CSP 审计。
 - 业务 DTO 虽已逐步生成类型契约，但尚未覆盖全部读写接口。
-- Writer/Director 已移除产品直接 `innerHTML`，后续新模板必须继续通过 Trusted Types 门禁。
+- Writer 已移除产品直接 `innerHTML`，旧 Creator Director 模板已整体退役；Host 新模板必须继续通过安全 DOM/Trusted Types 门禁。
 - 表单、复杂领域视图与 UI tokens 仍有端内重复，不应为了复用重新合并三端。
 
 详见 [架构与端口审视](./ARCHITECTURE_PORT_AUDIT_ZH.md)。

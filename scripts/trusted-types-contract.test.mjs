@@ -28,13 +28,10 @@ test("all Cloudflare frontends enforce the shared Trusted Types policy at the ed
   }
 });
 
-test("Writer and Director keep HTML writes behind audited boundaries", () => {
+test("Writer keeps HTML writes behind audited boundaries after retiring the duplicate Creator Director", () => {
   const writer = fs.readFileSync(path.join(root, "src/views/writer.js"), "utf8");
-  const director = fs.readFileSync(path.join(root, "src/views/director.js"), "utf8");
   assert.match(writer, /import \{ setHtml \} from "\.\.\/\.\.\/shared\/safe-dom\.js"/);
   assert.doesNotMatch(writer, /creatorPreviewModalHtml|creatorPreviewBodyHtml/);
-  assert.match(director, /htmlFragment/);
-  for (const source of [writer, director]) {
-    assert.doesNotMatch(source, /\.innerHTML\s*=|insertAdjacentHTML\s*\(/);
-  }
+  assert.doesNotMatch(writer, /\.innerHTML\s*=|insertAdjacentHTML\s*\(/);
+  assert.equal(fs.existsSync(path.join(root, "src/views/director.js")), false);
 });

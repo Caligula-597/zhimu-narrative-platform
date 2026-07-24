@@ -24,7 +24,6 @@ import { invalidateStudioSnapshot } from "./studio-loader.js";
       cloudHostPlayersError: "",
       cloudHostStuckCount: 0,
       cloudHostEvents: [],
-      cloudHostAuditLog: [],
       cloudCheckpoints: [],
       cloudRecaps: [],
       cloudRecapLatest: null,

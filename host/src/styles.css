@@ -10,6 +10,13 @@
   --host-green-soft: #eaf3ee;
   --host-brass: #b7823d;
   --host-clay: #b8624f;
+  --host-ink: var(--ink);
+  --host-muted: var(--muted);
+  --host-line: var(--line);
+  --host-surface: var(--surface);
+  --host-radius: var(--radius);
+  --host-shadow: var(--shadow-soft);
+  --host-shadow-soft: var(--shadow-soft);
 }
 
 html {
