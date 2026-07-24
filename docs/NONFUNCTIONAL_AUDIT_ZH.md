@@ -35,6 +35,8 @@
 
 当前代码结构由 `npm run check:architecture` 固定门禁：70 个路由模块的路由层直连数据库点为 0，任何回升都会失败。后续数据库审计对象转为 service/repository 内部的往返次数、连接池占用、索引和事务一致性，而不是继续按文件机械拆层。
 
-当前快速证据包括：`audit:periodic` 14/14、SSE 故障矩阵 39/39、Auth 故障矩阵 22/22、Trusted Types 23/23、发布门禁工具 5/5、性能工具 4/4，以及 App/Site/Host/Play 构建和包体预算通过。2026-07-20 已在当前 Supabase 数据库部署 068–090，迁移完整性为 90 个已应用、0 个待应用、校验和一致，应用 readiness 为 `ready=true`；这不替代隔离数据库上的升级与回滚演练。无隔离 `DATABASE_URL` 时，真实 PostgreSQL 写入、会话触碰与 LISTEN 集成断言必须明确标记跳过，不能计作通过。
+快速证据由 `audit:periodic`、SSE/Auth/Trusted Types、发布门禁、性能工具和四端包体预算分别产生，数量以本次命令输出为准，不在本文复制绝对值。代码迁移基线已经到 `094_room_release_binding`；部署数据库是否为 94 个已应用、0 个待应用，必须以目标环境的 `schema_migrations`、readiness 和迁移日志确认，不能由仓库文件数量推断。无隔离 `DATABASE_URL` 时，真实 PostgreSQL 写入、会话触碰与 LISTEN 集成断言必须明确标记跳过，不能计作通过。
 
-仍属于部署/运行证据而不是静态代码能消除的风险：多实例全局限流必须由 Cloudflare WAF/Rate Limiting 作为权威层；真实 Bearer 的 P95/P99、SSE 大并发、托管数据库容量、应用镜像回滚、R2 恢复和恢复时间必须在预发或生产镜像环境定期采样。2026-07-16 的 `Release Acceptance` 运行 29477387204 已失败：第 1/3 轮隔离测试 712 项中 8 项失败，后续 E2E、性能和恢复步骤全部 skipped；cleanup 还暴露隔离库删除后的表访问错误。快速矩阵通过不能覆盖这一发布阻断。
+仍属于部署/运行证据而不是静态代码能消除的风险：多实例全局限流必须由 Cloudflare WAF/Rate Limiting 作为权威层；真实 Bearer 的 P95/P99、SSE 大并发、托管数据库容量、应用镜像回滚、R2 恢复和恢复时间必须在预发或生产镜像环境定期采样。2026-07-16 的 `Release Acceptance` 运行 29477387204 是失败的历史证据：第 1/3 轮未通过，后续 E2E、性能和恢复步骤均未执行。它不能证明当前提交失败，也不能被快速矩阵覆盖；当前提交仍需要新的完整成功工件。
+
+文档本身也进入非功能门禁：`npm run status:generate` 生成易漂移基线，`npm run docs:index` 为全部 Markdown 标注用途，`npm run check:docs` 检查 UTF-8、一级标题、相对链接、索引和生成基线。这样可以阻止旧迁移号、已删除模块和断链继续作为运维真相。

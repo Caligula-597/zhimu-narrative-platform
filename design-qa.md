@@ -1,5 +1,7 @@
 # 官网第一版设计验收
 
+> **历史验收**：本文只证明对应版本的官网检查，不代表当前生产页面。当前官网边界见 [site/README.md](./site/README.md)，真实视觉仍需按发布版本人工复核。
+
 ## 验收基线
 
 - 参考设计：`C:\Users\lenovo\.codex\generated_images\019f4b7a-eac5-7dc3-bd64-e15a36bd2d38\exec-f82be5d1-d1ca-4a4b-9156-07a94788a5f8.png`

@@ -1,24 +1,65 @@
 {
-  "generatedAt": "2026-06-25T23:18:20.280Z",
-  "git": {
-    "note": "Run from clean tree; commit hash not embedded to avoid dirty-tree noise."
+  "generatedAt": "2026-07-24T12:39:40.768Z",
+  "source": {
+    "gitCommit": "9b39783",
+    "node": "v24.13.0",
+    "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
-    "unitTests": 387,
-    "testFiles": 109,
-    "schemaRouteMarkers": 62,
-    "migrations": 41,
-    "latestMigration": "041_world_content_revision"
+    "tests": {
+      "declarations": 964,
+      "files": 236
+    },
+    "migrations": 94,
+    "latestMigration": "094_room_release_binding",
+    "routes": {
+      "modules": 70,
+      "directDatabaseCalls": 0
+    },
+    "schemas": {
+      "domainFiles": 32
+    }
   },
   "frontend": {
-    "scriptModules": 67
+    "verifiedScriptModules": 67,
+    "entryLines": {
+      "creator": 50,
+      "host": 113,
+      "player": 413
+    },
+    "tests": {
+      "sharedAndTooling": {
+        "declarations": 243,
+        "files": 45
+      },
+      "host": {
+        "declarations": 62,
+        "files": 14
+      },
+      "player": {
+        "declarations": 77,
+        "files": 20
+      }
+    }
   },
-  "play": {
-    "unitTests": 23,
-    "testFiles": 4
+  "contracts": {
+    "worldWrites": 69,
+    "note": "Validated by npm run check:world-writes; run the command for pass/fail evidence."
   },
-  "docs": {
-    "trustedBetaPlan": "docs/TRUSTED_BETA_ZH.md",
-    "securityTesting": "SECURITY_AND_TESTING.md"
+  "documentation": {
+    "trackedFiles": 151,
+    "byArea": {
+      "软著材料": 4,
+      "优化计划": 11,
+      "backend": 3,
+      "docs": 110,
+      "e2e": 1,
+      "examples": 6,
+      "host": 1,
+      "play": 1,
+      "root": 12,
+      "site": 1,
+      "web": 1
+    }
   }
 }

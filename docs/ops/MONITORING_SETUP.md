@@ -1,6 +1,6 @@
 # 监控与告警接入
 
-最后更新：2026-07-16
+最后更新：2026-07-24
 
 ## 监控面
 
@@ -40,7 +40,7 @@ npm run monitoring:smoke -- --url http://localhost:4180
 
 ## 部署门禁
 
-Railway 部署 workflow 已在部署后执行：
+Railway 部署 workflow 被设计为在部署后执行：
 
 ```powershell
 npm run check:production-ready
@@ -53,6 +53,8 @@ npm run monitoring:smoke -- --alerts
 - `/metrics` 认证失败
 - alert webhook 未配置或发送失败
 - `productionTrust` 未通过
+
+如果本次没有触发 GitHub Actions，以上命令必须由发布人针对生产域手工执行并保存输出；“workflow 文件存在”不能作为本次监控验收证据。
 
 本地/CI 门禁只能证明配置与探针行为；目标生产的 OTLP 到达、告警送达与值班响应必须单独留证。
 

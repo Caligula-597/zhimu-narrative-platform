@@ -1,6 +1,6 @@
 # 织幕统一叙事功能 · 模块化实施计划
 
-最后更新：2026-07-22
+最后更新：2026-07-24
 上位设计：[UNIFIED_NARRATIVE_PRODUCT_BLUEPRINT_ZH.md](./UNIFIED_NARRATIVE_PRODUCT_BLUEPRINT_ZH.md)
 
 ## 1. 实施规则
@@ -36,7 +36,7 @@
 | 序号 | 模块 | 复用现有能力 | 新增/细化 | 主要页面 | 状态 |
 |---:|---|---|---|---|---|
 | M00 | 玩法 Profile | `creationType`、`worldMode`、术语表、向导、模板 | 统一 `narrativeProfile`、运行形态、角色方式、规则配置入口 | Creator 设置/向导 | 已实现第一版 |
-| M01 | 完整发布版本 | `content_versions`、发布检查、内容包、版本比较 | 不可变 Release、完整对象清单、房间绑定、升级影响 | Creator 发布；Host 准备 | M01-A/B 已实现代码，待隔离库验收；M01-C 待实施 |
+| M01 | 完整发布版本 | `content_versions`、发布检查、内容包、版本比较 | 不可变 Release、完整对象清单、房间绑定、升级影响 | Creator 发布；Host 准备 | M01-A/B 已实现代码与三端兼容提示，待隔离库验收；M01-C 运行读取器待实施 |
 | M02 | 知识与可见性 | clues、sections、knowledge chunks、角色可见性、分享 | 统一 audience、grant、revoke、“玩家知道什么”投影 | Creator 视角模拟；Host 玩家详情；Player 内容 | 待实施 |
 | M03 | 当前状态与建议行动 | player-home、host progress、creator dashboard | 三端 `currentState/suggestedActions/syncState` 聚合契约 | 三端首页 | 待实施 |
 | M04 | 创作者七阶段导航 | cockpit、workspaces、精细编辑器 | 直白阶段、唯一编辑位置、完整页面路由 | Creator 全局 | 待实施 |

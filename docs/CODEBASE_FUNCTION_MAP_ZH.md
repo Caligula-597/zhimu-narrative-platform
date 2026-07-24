@@ -6,7 +6,7 @@
 
 当前项目已经不是“后端做了一堆、前端没接”的状态。更准确的判断是：
 
-- 后端已经形成较完整的长剧情剧本杀 SaaS 能力底座；当前静态扫描约 320 个 Fastify 路由注册点、67 个数据库迁移、180 个后端测试文件。
+- 后端已经形成较完整的长剧情剧本杀 SaaS 能力底座；当前有 70 个领域路由模块、32 个领域 schema 文件和 94 个数据库迁移。路由注册与测试声明等易漂移数量见 [`GENERATED_PROJECT_STATUS.json`](./GENERATED_PROJECT_STATUS.json)，不再手工复制。
 - 主应用通过 `src/api/index.js` 提供领域 API 门面；Creator/Host/Player 的底层 HTTP、认证、错误和 SSE transport 已统一到 `shared/`，不再由三端各自实现协议细节。
 - 仍有一批后端能力处于“已实现/有 API/有测试，但没有明显产品化入口或只在独立端、运营入口、内部脚本中使用”的状态，主要集中在旧版 DeepSeek 分步流水线、物理令牌、部分玩家/主持增强功能、世界模板、少数 LLM 连接编辑能力。
 - 项目现在最需要的不是继续盲目加功能，而是按“可见闭环、隐藏能力、商业试点、运维门槛”四条线收口。
@@ -120,8 +120,8 @@
 
 - `backend/src/app.js` 负责 Fastify app 生命周期、横切中间件、限流、安全、错误和指标。
 - `backend/src/routes.js` 聚合核心业务路由，其它公开平台/OPS/认证路由在 `app.js` 单独注册。
-- `backend/src/routes/*.js` 按领域组织 HTTP 层；`routes/schemas/` 已拆为 14 个领域 schema 文件，兼容 barrel 只有 7 行。
-- `backend/src/repositories/`、`services/` 与聚焦 service 文件承载查询、事务和领域逻辑。69 个路由模块直连数据库点为 0，由 `check:architecture` 固定门禁禁止回升。
+- `backend/src/routes/*.js` 按领域组织 HTTP 层；`routes/schemas/` 已拆为 32 个领域 schema 文件，兼容 barrel 只有 7 行。
+- `backend/src/repositories/`、`services/` 与聚焦 service 文件承载查询、事务和领域逻辑。70 个路由模块直连数据库点为 0，由 `check:architecture` 固定门禁禁止回升。
 - `backend/migrations/*.sql` 是数据结构演进，目前到 `067_transactional_event_outbox.sql`。
 - `backend/test/*.test.js` 覆盖主要领域，当前测试文件数量较多，说明很多批次至少有后端回归证据。
 

@@ -1,6 +1,8 @@
 # 织幕后端
 
-最后更新：2026-07-16
+最后更新：2026-07-24
+
+易变化的测试声明、迁移、路由和 schema 数量见 [`docs/GENERATED_PROJECT_STATUS.json`](../docs/GENERATED_PROJECT_STATUS.json)。本文只维护后端边界与操作方式。
 
 正式 PostgreSQL 后端骨架。没有 SQLite 过渡层。
 
@@ -47,14 +49,14 @@ npm run start
 |------|------|
 | `npm run check` | 全量 JS 语法、`src/` 下错误 `../` import、**createApp 模块图可加载** |
 | `npm run check:boot` | 环境变量 + 模块图 + **数据库 schema**（与 server 启动前相同校验） |
-| `npm run check:tests` | 测试声明数量门禁（当前下限 ≥100；2026-07-19 实测 824 个声明 / 205 个 `.test.js`/`.test.mjs` 文件） |
-| `npm test` | 执行 `backend/test/` 的 205 个测试文件；用例总数以本次命令输出为准 |
+| `npm run check:tests` | 测试声明数量门禁（当前下限 ≥100；实际值以命令和生成基线为准） |
+| `npm test` | 执行 `backend/test/`；用例总数以本次命令输出为准 |
 
 后端默认监听 `http://localhost:4180`。
 
 ## 已实现 API（代表性入口）
 
-以下是常用入口，不再作为完整路由清单。当前约 320 个 Fastify route registration；完整契约以 `/documentation`、领域 schema 和 [CODEBASE_FUNCTION_MAP_ZH.md](../docs/CODEBASE_FUNCTION_MAP_ZH.md) 为准。
+以下是常用入口，不再作为完整路由清单。完整契约以 `/documentation`、领域 schema 和 [CODEBASE_FUNCTION_MAP_ZH.md](../docs/CODEBASE_FUNCTION_MAP_ZH.md) 为准；不要在文档中手工维护 route registration 总数。
 
 - `GET /api/health`
 - `POST /api/auth/register`
@@ -214,14 +216,14 @@ npm run test:smoke
 
 完整功能说明见项目根目录 [FEATURE_CATALOG.md](../FEATURE_CATALOG.md)（含 P0-1～P2 变更 §12–§26）。
 
-### 测试规模（2026-07-19）
+### 测试规模与证据口径
 
 | 套件 | 数量 |
 |------|------|
-| `npm run check:tests` | **824 个测试声明 / 205 个测试文件** |
-| `npm test` | **205 个后端测试文件**；断言数以运行输出为准 |
-| 根目录专项矩阵 | SSE **39**、Auth **22**、Trusted Types **23**、release gates **5**、performance tools **4** |
-| E2E 列表 | **87 tests / 15 files**，跨 Chromium / Firefox / WebKit；以 `npx playwright test --list` 为准 |
+| `npm run check:tests` | 声明数量下限门禁；当前源文件统计见生成基线 |
+| `npm test` | 后端测试文件与断言数以运行输出为准 |
+| 根目录专项矩阵 | SSE、Auth、Trusted Types、release gates、performance tools 分别独立执行 |
+| E2E 列表 | 以 `npx playwright test --list` 为准；列出测试不等于执行通过 |
 
 规则引擎可用 `npm run test:rules:isolated` 在一次性数据库中做聚焦回归；若数据库主机是远程非生产集群，需在人工确认后显式设置 `ZHIMU_ALLOW_DESTRUCTIVE_DB=1`。脚本会迁移、播种、运行规则结构/写入/运行时测试，并强制清理临时数据库。
 

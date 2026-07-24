@@ -2,7 +2,7 @@
 
 > **用途**：团队协调用的「一张表看清全貌」——后端做到哪、前端做到哪、哪里没接通、哪里有坑。  
 > **同步说明**：2026-07-16 已校正架构、安全和测试口径；本文件保留早期逐功能长表，当前阶段与风险以 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) 为准。
-> **阶段**：可信 Beta；本轮发布候选长验收失败待修，非成熟商用 SaaS。
+> **阶段说明**：此处为历史阶段标签；当前阶段和发布阻断见 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)。
 > **平台总览（前后端对照）**：[docs/PLATFORM_MAP_ZH.md](./docs/PLATFORM_MAP_ZH.md)  
 > **中文总览**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **休息检查点**：[docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md)  
@@ -176,7 +176,7 @@
 
 | 项 | 状态 |
 |----|------|
-| `npm test` | 动态用例数以命令输出为准；当前有 180 个后端测试文件 |
+| `npm test` | 动态用例数以命令输出为准；当前源文件数量见 `docs/GENERATED_PROJECT_STATUS.json` |
 | `check:schemas` | 写/SSE 路由 schema 动态门禁；schema 已拆为 14 个领域文件 |
 | `check:tests` 数量下限 | ≥100 |
 | checkpoint / journal / 幂等 E2E | ✅ 专项测试 |

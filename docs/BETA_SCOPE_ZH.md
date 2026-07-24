@@ -1,6 +1,6 @@
 # Beta 范围
 
-最后更新：2026-07-16
+最后更新：2026-07-24
 
 ## 当前 Beta 可开放范围
 
@@ -33,7 +33,7 @@ Beta 生产环境必须通过：
 - upload AV strict + webhook/ClamAV
 - `/api/ops/status` productionTrust
 - 三浏览器 Playwright 门禁
-- `audit:periodic` 14 项快审
+- `audit:periodic` 15 项快审（含文档一致性）
 - SSE/Auth/Trusted Types 专项矩阵
 - 发布候选必须执行隔离 DB ×3、关键 E2E 和恢复证据工作流
 

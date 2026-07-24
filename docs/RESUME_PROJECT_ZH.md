@@ -23,7 +23,7 @@
 | AI | DeepSeek API — 分层 Prompt（规格→逐章总剧情→角色本→结构抽取→编排导入） |
 | 实时 | SSE + journal/outbox + PostgreSQL NOTIFY；replay/受众/游标/重连门禁；LiveKit 语音房 |
 | 身份 | Session（scrypt）、Google/GitHub OAuth、邮箱验证、找回密码（Resend） |
-| 工程 | 180 个后端测试文件、14 个领域 schema 模块、14 项周期快审、专项故障矩阵、GitHub Release Acceptance |
+| 工程 | 70 个路由模块、32 个领域 schema、周期快审、专项故障矩阵与 GitHub Release Acceptance；测试声明数量见生成基线 |
 
 ---
 
@@ -62,7 +62,7 @@
 
 **精简版（3 条）**
 
-- 独立开发全栈剧本杀 SaaS **织幕**：Fastify + PostgreSQL + Vite 四端，180 个后端测试文件与 E2E 覆盖创作—运行—主持闭环
+- 独立开发全栈剧本杀 SaaS **织幕**：Fastify + PostgreSQL + Vite 四端，以领域门禁、专项故障矩阵和 E2E 覆盖创作—运行—主持闭环
 - 设计 **模板/房间双域** 数据模型与 JSON **规则引擎**（幂等执行、主持确认、物品/调查点），SSE + PG NOTIFY 实现多实例实时推送  
 - 集成 **DeepSeek** 分层 AI 创作流水线（逐章总剧情→角色本→编排结构导入）；R2 附件、OAuth、Checkpoint **9 域回滚**
 
@@ -84,7 +84,7 @@
 | Fastify 路由注册点 | 约 **320**（静态扫描） |
 | 领域 Schema 模块 | **14** |
 | SQL 迁移 | **67** |
-| 定期快审 | **14/14**（2026-07-16） |
+| 定期快审 | 当前定义为 **15 项**（含文档一致性）；通过情况以最新审计工件为准 |
 | 专项矩阵 | SSE 43 · Auth 22 · Trusted Types 23 · 发布工具 8 |
 | 发布候选 | `Release Acceptance` 已建立；2026-07-16 本轮在第 1/3 轮隔离测试失败，后续证据未生成 |
 

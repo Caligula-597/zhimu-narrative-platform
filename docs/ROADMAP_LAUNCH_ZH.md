@@ -1,6 +1,6 @@
 # 上市路线图（后端优先 · 分 Part 推进）
 
-最后更新：2026-07-16
+最后更新：2026-07-24
 
 > 官方示例：创作者上传并通过审核的模板剧本（`OFFICIAL_EXAMPLE_WORLD_ID`）。  
 > **商业上线任务分级**见 [LAUNCH_PRIORITIES_ZH.md](./LAUNCH_PRIORITIES_ZH.md)（P0–P3，与 Part 编号互补）。
@@ -37,7 +37,7 @@
 | A3 API 拆分 | **完成** | 后端按域拆分（account/asset/billing/checkpoint/host/player/rules/studio/world 等） |
 | A4 共享层 | **transport 完成，UI 持续收敛** | 三端共用 API/session/auth/error/SSE/cursor/toast/safe-dom/trace/web-vitals；业务 UI 保持分端 |
 | 后端 RLS | **完成** | `backend/migrations/045_enable_public_rls.sql` 为 44 张表启用 Row-Level Security；测试用 `backend/src/storage/memory-storage.js` |
-| A5 领域服务 | **路由层已完成** | 69 个路由模块直连 DB 为 0；下一阶段治理 service/repository 查询与事务质量 |
+| A5 领域服务 | **路由层已完成** | 70 个路由模块直连 DB 为 0；下一阶段治理 service/repository 查询与事务质量 |
 | A6 非功能门禁 | **代码侧完成** | 生产库防误写、SSE/Auth 故障矩阵、Trusted Types、bundle、性能/恢复证据工具进入周期审计 |
 
 ## Part 5 · Ops 公开库审核 API

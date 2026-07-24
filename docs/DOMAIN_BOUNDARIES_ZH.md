@@ -1,5 +1,9 @@
 # 领域边界与迁移门禁
 
+最后更新：2026-07-24
+
+当前路由、schema 和迁移数量以 [`GENERATED_PROJECT_STATUS.json`](./GENERATED_PROJECT_STATUS.json) 为准。
+
 后端采用三层边界：route 只处理 HTTP schema、身份、权限和响应；service 负责业务编排与事务原子性；repository 负责 SQL 与数据映射。事务型 service 可以接收同一个 `client`，避免为了“分层”增加数据库往返。
 
 本轮完成的高风险迁移：
