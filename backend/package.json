@@ -75,7 +75,7 @@
     "@fastify/cors": "^11.0.0",
     "@fastify/static": "^10.1.2",
     "@fastify/swagger": "^9.5.1",
-    "@fastify/swagger-ui": "^5.2.2",
+    "@fastify/swagger-ui": "^6.0.0",
     "@napi-rs/canvas": "^1.0.0",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/auto-instrumentations-node": "^0.78.0",
