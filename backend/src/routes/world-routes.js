@@ -36,10 +36,10 @@ import {
   updateWorldMemberRole
 } from "../repositories/world-repository.js";
 import { createOwnedWorld, deleteWorldOwnedBy, updateWorld } from "../world-service.js";
+import { createWorldSchema } from "./schemas/creator-assets.js";
 import {
   updateWorldSchema,
   worldIdParams,
-  createWorldSchema,
   deleteWorldSchema,
   addWorldMemberSchema,
   updateWorldMemberSchema,
