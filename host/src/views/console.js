@@ -1,3 +1,6 @@
+import "../styles/host-archive-workspace.css";
+import "../styles/host-operation-workspace.css";
+import "../styles/host-rule-workspace.css";
 import { state } from "../state.js";
 import { collapsibleCard } from "../components/collapse.js";
 import { activeRuntimeRoom, cloudStatus, runtimeEmpty, activity } from "../components/ui.js";
@@ -27,6 +30,7 @@ import {
 import { grantModeLabel } from "../runtime/host-operation-model.js";
 import { bindHostMiniGameContext, hostMiniGameCard } from "../runtime/host-mini-game-controller.js";
 import { renderHostCommandCenter } from "./host-layout.js";
+import { renderHostArchiveWorkspace } from "./host-archive-workspace.js";
 import { renderHostOperationWorkspace } from "./host-operation-workspace.js";
 import { renderHostRuleWorkspace } from "./host-rule-workspace.js";
 
@@ -78,6 +82,7 @@ export function renderConsole(){
   <div class="host-console-status">${cloudStatus()}</div>
   ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows })}
   ${renderHostOperationWorkspace()}
+  ${renderHostArchiveWorkspace()}
   ${renderHostRuleWorkspace()}
   ${hostRiskPanel}
   ${noPlayerProgressHint}

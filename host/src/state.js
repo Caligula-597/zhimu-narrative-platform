@@ -35,6 +35,7 @@ export const state = {
   hostEventSelection: [],
   hostSelectedActKey: "",
   hostOperation: null,
+  hostArchiveWorkspace: null,
   hostRuleWorkspace: null,
   hostRuleListBusy: "",
   hostRuleListMessage: "",

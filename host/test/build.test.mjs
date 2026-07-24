@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,8 +13,15 @@ test("production build artifacts exist after vite build", (context) => {
     return;
   }
   const html = readFileSync(distIndex, "utf8");
+  const assets = readdirSync(path.join(root, "dist", "assets"));
   assert.match(html, /织幕 · 主持端/);
   assert.match(html, /assets\/index-.*\.js/);
+  assert.ok(assets.some((name) => /^console-.*\.js$/.test(name)), "missing lazy console view chunk");
+  assert.ok(
+    assets.some((name) => /^host-console-runtime-.*\.js$/.test(name)),
+    "missing lazy console action runtime chunk"
+  );
+  assert.ok(assets.some((name) => /^console-.*\.css$/.test(name)), "missing lazy console workspace styles");
 });
 
 test("index.html uses module entry without inline scripts", () => {
@@ -38,6 +45,10 @@ test("host api uses cookie credentials, bearer fallback and room-scoped host end
   assert.match(apiSource, /createRoom/);
   assert.match(apiSource, /streamRoomEvents/);
   assert.match(apiSource, /hostClueNote:[\s\S]{0,200}method:\s*"PUT"[\s\S]{0,120}idempotent:\s*true/);
+  assert.match(apiSource, /createCheckpoint:[\s\S]{0,260}idempotent:\s*true[\s\S]{0,120}timeoutMs:\s*45_000/);
+  assert.match(apiSource, /createRecap:[\s\S]{0,260}idempotent:\s*true[\s\S]{0,120}timeoutMs:\s*45_000/);
+  assert.match(apiSource, /getRoomCheckpoints/);
+  assert.match(apiSource, /getRoomRecaps/);
   assert.match(sharedSseSource, /openSseStream/);
   assert.match(sharedSseSource, /message\?\.type === "connected"/);
   assert.match(sharedSseSource, /message\?\.type === "heartbeat"/);
@@ -51,9 +62,13 @@ test("main.js wires console, SSE and director actions", () => {
   const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
   const directorSource = readFileSync(path.join(root, "src", "runtime", "director-actions.js"), "utf8");
   const lifecycleSource = readFileSync(path.join(root, "src", "runtime", "host-lifecycle-controller.js"), "utf8");
+  const shellSource = readFileSync(path.join(root, "src", "components", "shell.js"), "utf8");
+  const consoleLoaderSource = readFileSync(path.join(root, "src", "runtime", "host-console-loader.js"), "utf8");
+  const consoleRuntimeSource = readFileSync(path.join(root, "src", "runtime", "host-console-runtime.js"), "utf8");
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
   const dataSource = readFileSync(path.join(root, "src", "runtime", "data.js"), "utf8");
   const eventsSource = readFileSync(path.join(root, "src", "runtime", "room-events.js"), "utf8");
+  const archiveSource = readFileSync(path.join(root, "src", "runtime", "host-archive-controller.js"), "utf8");
   const operationSource = readFileSync(path.join(root, "src", "runtime", "host-operation-controller.js"), "utf8");
   const ruleWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-rule-workspace-controller.js"), "utf8");
   assert.match(eventsSource, /connectRoomEvents/);
@@ -66,17 +81,35 @@ test("main.js wires console, SSE and director actions", () => {
   assert.doesNotMatch(`${mainSource}\n${directorSource}`, /button\.dataset\.(?:testimony|flag|remedy|voteId|status|actionId|actKey)/);
   assert.match(mainSource, /renderApp/);
   assert.match(lifecycleSource, /requestMe:\s*api\.me/);
+  assert.match(lifecycleSource, /await loadHostConsole\(\{ render, showToast \}\)/);
+  assert.doesNotMatch(shellSource, /from\s+["'][^"']*views\/console\.js["']/);
+  assert.match(shellSource, /renderHostConsoleBoundary/);
+  assert.match(consoleLoaderSource, /import\(["']\.\.\/views\/console\.js["']\)/);
+  assert.match(consoleLoaderSource, /import\(["']\.\/host-console-runtime\.js["']\)/);
+  assert.match(consoleLoaderSource, /consolePromise = null/);
+  assert.doesNotMatch(mainSource, /host-(?:archive|operation|rule)-workspace\.css/);
+  assert.match(consoleSource, /host-archive-workspace\.css/);
+  assert.match(consoleSource, /host-operation-workspace\.css/);
+  assert.match(consoleSource, /host-rule-workspace\.css/);
   assert.match(
     lifecycleSource,
     /import\s*\{[^}]*\bgetSessionToken\b[^}]*\}\s*from\s*["']\.\.\/session\.js["']/s
   );
   assert.doesNotMatch(`${mainSource}\n${lifecycleSource}`, /if \(!getSessionToken\(\)\) return/);
-  assert.match(mainSource, /createDirectorActionHandler\(\{ render, showToast: setToast \}\)/);
   assert.match(mainSource, /createHostLifecycleController\(\{ render, setBusy, showToast: setToast \}\)/);
-  assert.match(mainSource, /createHostOperationController\(\{ render, showToast: setToast \}\)/);
-  assert.match(mainSource, /createHostRuleWorkspaceController\(\{ render, showToast: setToast \}\)/);
-  assert.match(mainSource, /hostOperations\.handleField\(event\.target\)/);
-  assert.match(mainSource, /hostRules\.handleField\(event\.target\)/);
+  assert.match(mainSource, /handleHostConsoleAction\(action, button\)/);
+  assert.match(mainSource, /handleHostConsoleField\(event\.target\)/);
+  assert.match(mainSource, /beforeunload/);
+  assert.match(lifecycleSource, /blockUnsafeConsoleExit/);
+  assert.match(consoleRuntimeSource, /createDirectorActionHandler\(\{ render, showToast \}\)/);
+  assert.match(consoleRuntimeSource, /createHostOperationController\(\{ render, showToast \}\)/);
+  assert.match(consoleRuntimeSource, /createHostArchiveController\(\{ render, showToast \}\)/);
+  assert.match(consoleRuntimeSource, /createHostRuleWorkspaceController\(\{ render, showToast \}\)/);
+  assert.match(consoleRuntimeSource, /hostOperations\.handleField\(element\)/);
+  assert.match(consoleRuntimeSource, /hostArchive\.handleField\(element\)/);
+  assert.match(consoleRuntimeSource, /hostRules\.handleField\(element\)/);
+  assert.match(archiveSource, /case "create-checkpoint"/);
+  assert.match(archiveSource, /case "create-recap"/);
   assert.match(ruleWorkspaceSource, /case "host-rule-save"/);
   assert.match(directorSource, /createDirectorActionHandler\(\{ render, showToast \}\)/);
   assert.doesNotMatch(directorSource, /\bsetToast\(/);
@@ -130,6 +163,7 @@ test("console render escapes user content", () => {
   const consoleSource = readFileSync(path.join(root, "src", "views", "console.js"), "utf8");
   const operationModelSource = readFileSync(path.join(root, "src", "runtime", "host-operation-model.js"), "utf8");
   const operationViewSource = readFileSync(path.join(root, "src", "views", "host-operation-workspace.js"), "utf8");
+  const archiveViewSource = readFileSync(path.join(root, "src", "views", "host-archive-workspace.js"), "utf8");
   const ruleViewSource = readFileSync(path.join(root, "src", "views", "host-rule-workspace.js"), "utf8");
   assert.match(consoleSource, /escapeHtml\(/);
   assert.match(operationModelSource, /hostActClueIds/);
@@ -138,8 +172,22 @@ test("console render escapes user content", () => {
   assert.match(operationModelSource, /selectedClueId/);
   assert.match(operationModelSource, /targetRoleIds/);
   assert.match(operationViewSource, /escapeHtml\(/);
+  assert.match(archiveViewSource, /escapeHtml\(/);
   assert.match(ruleViewSource, /escapeHtml\(/);
-  assert.doesNotMatch(`${operationModelSource}\n${operationViewSource}\n${ruleViewSource}`, /modalEl|mountModal|modal-backdrop/);
+  assert.doesNotMatch(`${operationModelSource}\n${operationViewSource}\n${archiveViewSource}\n${ruleViewSource}`, /modalEl|mountModal|modal-backdrop/);
+});
+
+test("host archive workspace owns recap and checkpoint transactions outside the invite modal", () => {
+  const inviteSource = readFileSync(path.join(root, "src", "runtime", "invite.js"), "utf8");
+  const controllerSource = readFileSync(path.join(root, "src", "runtime", "host-archive-controller.js"), "utf8");
+  const serviceSource = readFileSync(path.join(root, "src", "runtime", "host-archive-service.js"), "utf8");
+  const viewSource = readFileSync(path.join(root, "src", "views", "host-archive-workspace.js"), "utf8");
+  assert.doesNotMatch(inviteSource, /openCreateRecapModal|openCreateCheckpointModal|studioField|studioValues/);
+  assert.match(controllerSource, /createHostArchiveService/);
+  assert.match(serviceSource, /idempotencyKey/);
+  assert.match(serviceSource, /workspace\.roomId/);
+  assert.match(viewSource, /data-host-archive-workspace/);
+  assert.doesNotMatch(`${controllerSource}\n${serviceSource}\n${viewSource}`, /modalEl|mountModal|openModal|modal-backdrop/);
 });
 
 test("host rule workspace keeps permissions and list commands outside the editor transaction service", () => {
@@ -166,10 +214,12 @@ test("standalone console keeps the full host monitoring action surface", () => {
   const ruleSource = readFileSync(path.join(root, "src", "runtime", "host-rules-controller.js"), "utf8");
   const operationViewSource = readFileSync(path.join(root, "src", "views", "host-operation-workspace.js"), "utf8");
   const operationSource = readFileSync(path.join(root, "src", "runtime", "host-operation-controller.js"), "utf8");
+  const archiveViewSource = readFileSync(path.join(root, "src", "views", "host-archive-workspace.js"), "utf8");
+  const archiveSource = readFileSync(path.join(root, "src", "runtime", "host-archive-controller.js"), "utf8");
   const ruleViewSource = readFileSync(path.join(root, "src", "views", "host-rule-workspace.js"), "utf8");
   const ruleWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-rule-workspace-controller.js"), "utf8");
-  const hostSurface = `${consoleSource}\n${layoutSource}\n${eventSource}\n${ruleSource}\n${operationViewSource}\n${ruleViewSource}`;
-  const handlers = `${directorSource}\n${operationSource}\n${ruleWorkspaceSource}`;
+  const hostSurface = `${consoleSource}\n${layoutSource}\n${eventSource}\n${ruleSource}\n${operationViewSource}\n${archiveViewSource}\n${ruleViewSource}`;
+  const handlers = `${directorSource}\n${operationSource}\n${archiveSource}\n${ruleWorkspaceSource}`;
   const actions = [
     "batch-dismiss-host-events",
     "batch-execute-host-events",

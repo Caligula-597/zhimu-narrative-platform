@@ -53,6 +53,8 @@ HOST_SITE_URL=https://host.getzhimu.com
 
 主持端作为独立 Vite 应用部署。API、session、错误转换、SSE 生命周期与受众游标复用 `shared/`，投票、秘密行动、玩家任务、runbook 和补救视图已有基础接线。
 
+登录、鉴权和运行房选择保留在首屏入口包；监控台视图、领域控制器以及三个长工作区样式只在进入运行房后加载。`host-console-loader.js` 同时加载视图和 `host-console-runtime.js`，成功后才开放监控台 action 分发；加载失败会回到选房页并显示错误，不会留下只有界面、没有控制器的半初始化状态。归档或规则有草稿/待核对结果、现场命令仍在提交时，顶部导航和浏览器刷新均会触发离开保护。
+
 玩家详情、发线索、发物品、解锁/撤回/跳过分幕、开放场景、提醒、主持日志、线索备注和移出玩家统一进入页面内“现场操作工作台”，不再占用全局居中弹窗。相关代码边界：
 
 | 路径 | 责任 |
@@ -79,6 +81,20 @@ HOST_SITE_URL=https://host.getzhimu.com
 | `src/styles/host-rule-workspace.css` | 规则工作区独立布局与响应式规则 |
 
 规则写入仅允许拥有者和编辑者；主持人、审稿人保留规则查看和房间运行预览，不显示注定被后端拒绝的写按钮。创建请求通过 `metadata.hostRequestId` 支持响应丢失后的列表核对；服务器已提交但列表刷新失败时必须提示不要重复写入。
+
+复盘生成与存档点创建统一进入页面内“房间归档工作区”。两类草稿独立保存，切换类型不会覆盖另一份输入；工作区固定绑定打开时的 roomId，同时展示存档和复盘历史。相关边界：
+
+| 路径 | 责任 |
+|---|---|
+| `src/runtime/host-archive-model.js` | 两类草稿、schema 上限、脏状态、提交指纹和幂等键 |
+| `src/runtime/host-archive-service.js` | 历史读取、提交、防重复、响应不确定时的幂等核对 |
+| `src/runtime/host-archive-controller.js` | 工作区打开/关闭、类型切换、房间上下文和未保存确认 |
+| `src/views/host-archive-workspace.js` | 页面内表单、数据边界、房间事实和历史记录 |
+| `src/styles/host-archive-workspace.css` | 归档工作区布局与小屏回流 |
+
+后端复盘与存档事务允许最长约 30 秒，Host 客户端为这两个操作设置 45 秒超时。两者都发送幂等键；网络中断后不允许直接重复创建，只能使用原键“核对提交”。写入成功但历史列表暂时未返回新记录时，本地结果会继续保留并明确标记。
+
+生产包预算以 gzip level 9 复算：Host 首屏 JS 为约 24 KiB（预算 45 KiB），监控台视图、控制器和布局拆成进入运行房后加载的独立 chunk；首屏 CSS 为约 35 KiB（预算 38 KiB），工作区 CSS 约 3.2 KiB gzip 并随监控台加载。
 
 本地验证：
 

@@ -1,15 +1,14 @@
 import "./styles.css";
-import "./styles/host-operation-workspace.css";
-import "./styles/host-rule-workspace.css";
 import { createToastTimer } from "../../shared/toast.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { togglePanelInDom } from "./components/collapse.js";
 import { renderApp } from "./components/shell.js";
-import { createDirectorActionHandler } from "./runtime/director-actions.js";
+import {
+  getHostConsoleNavigationBlockReason,
+  handleHostConsoleAction,
+  handleHostConsoleField
+} from "./runtime/host-console-loader.js";
 import { createHostLifecycleController } from "./runtime/host-lifecycle-controller.js";
-import { createHostMiniGameActionHandler } from "./runtime/host-mini-game-controller.js";
-import { createHostOperationController } from "./runtime/host-operation-controller.js";
-import { createHostRuleWorkspaceController } from "./runtime/host-rule-workspace-controller.js";
 import { bootstrapPaceTimer, tickPaceTimer } from "./runtime/host-pace-timer.js";
 import { getRoomId, subscribeSessionToken } from "./session.js";
 import { state } from "./state.js";
@@ -48,11 +47,7 @@ function setToast(message, ms = 3200) {
   }, ms);
 }
 
-const directorActions = createDirectorActionHandler({ render, showToast: setToast });
 const lifecycle = createHostLifecycleController({ render, setBusy, showToast: setToast });
-const miniGameActions = createHostMiniGameActionHandler({ render, showToast: setToast });
-const hostOperations = createHostOperationController({ render, showToast: setToast });
-const hostRules = createHostRuleWorkspaceController({ render, showToast: setToast });
 
 // 节奏计时器仅直更计时 DOM，避免每秒触发整页重绘。
 bootstrapPaceTimer();
@@ -73,10 +68,7 @@ app.addEventListener("click", async (event) => {
   if (!button || state.busy) return;
   const action = button.dataset.action;
 
-  if (await miniGameActions(action, button)) return;
-  if (await hostOperations.handleAction(action, button)) return;
-  if (await hostRules.handleAction(action, button)) return;
-  if (directorActions(action, button)) return;
+  if (await handleHostConsoleAction(action, button)) return;
   if (await lifecycle.handleAction(action, button)) return;
 
   if (action === "toggle-collapse-panel") {
@@ -89,19 +81,23 @@ app.addEventListener("click", async (event) => {
 });
 
 app.addEventListener("input", (event) => {
-  hostOperations.handleField(event.target);
-  hostRules.handleField(event.target);
+  handleHostConsoleField(event.target);
 });
 
 app.addEventListener("change", (event) => {
-  hostOperations.handleField(event.target);
-  hostRules.handleField(event.target);
+  handleHostConsoleField(event.target);
 });
 
 subscribeSessionToken((change) => {
   if (change.source === "storage" || change.source === "rejected") {
     void lifecycle.handleExternalSessionChange(change.token);
   }
+});
+
+window.addEventListener("beforeunload", (event) => {
+  if (!getHostConsoleNavigationBlockReason()) return;
+  event.preventDefault();
+  event.returnValue = "";
 });
 
 void lifecycle.bootstrap();

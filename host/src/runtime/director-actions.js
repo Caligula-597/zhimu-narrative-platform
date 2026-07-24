@@ -19,8 +19,6 @@ import {
 import {
   copyInviteCode,
   copyPlayLink,
-  openCreateCheckpointModal,
-  openCreateRecapModal,
   openRoomInviteModal
 } from "./invite.js";
 export function createDirectorActionHandler({ render, showToast }) {
@@ -46,8 +44,6 @@ export function createDirectorActionHandler({ render, showToast }) {
       case "batch-dismiss-host-events": batchHostEventsAction("dismiss"); return true;
       case "execute-host-event": executeHostEvent(el?.dataset?.event); return true;
       case "dismiss-host-event": dismissHostEvent(el?.dataset?.event); return true;
-      case "create-checkpoint": openCreateCheckpointModal(); return true;
-      case "create-recap": openCreateRecapModal(); return true;
       case "room-invite-current": openRoomInviteModal(); return true;
       case "copy-invite-code": copyInviteCode(el?.dataset?.inviteCode); return true;
       case "copy-play-link": copyPlayLink(el?.dataset?.inviteCode); return true;

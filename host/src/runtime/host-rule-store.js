@@ -1,12 +1,5 @@
 import { state } from "../state.js";
 
-export function isUncertainTransportError(error) {
-  return error?.code === "NETWORK_ERROR"
-    || error?.code === "REQUEST_TIMEOUT"
-    || error?.name === "AbortError"
-    || error instanceof TypeError;
-}
-
 function sameJson(left, right) {
   return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
 }

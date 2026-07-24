@@ -1,13 +1,13 @@
 import { renderHeader } from "./header.js";
 import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
+import { renderHostConsoleBoundary } from "../runtime/host-console-loader.js";
 import { renderAuth } from "../views/auth.js";
-import { renderConsole } from "../views/console.js";
 import { renderLanding } from "../views/landing.js";
 
 function renderMainView() {
   if (state.view === "auth") return renderAuth();
-  if (state.view === "console") return renderConsole();
+  if (state.view === "console") return renderHostConsoleBoundary();
   return renderLanding();
 }
 

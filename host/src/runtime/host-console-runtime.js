@@ -1,0 +1,61 @@
+import { createDirectorActionHandler } from "./director-actions.js";
+import { createHostArchiveController } from "./host-archive-controller.js";
+import {
+  hostArchiveHasDirtyDraft,
+  hostArchiveIsPending
+} from "./host-archive-model.js";
+import { createHostMiniGameActionHandler } from "./host-mini-game-controller.js";
+import { createHostOperationController } from "./host-operation-controller.js";
+import { hostOperationIsSubmitting } from "./host-operation-model.js";
+import { createHostRuleWorkspaceController } from "./host-rule-workspace-controller.js";
+import { hostRuleWorkspaceIsPending } from "./host-rule-workspace-model.js";
+import { state } from "../state.js";
+
+export function hostConsoleNavigationBlockReason(stateRef = state) {
+  if (hostOperationIsSubmitting(stateRef.hostOperation)) {
+    return "现场命令仍在提交，请等待服务器返回后再离开。";
+  }
+  const archive = stateRef.hostArchiveWorkspace;
+  if (hostArchiveIsPending(archive)) {
+    return "归档仍在提交或核对，请等待服务器返回后再离开。";
+  }
+  if (hostArchiveHasDirtyDraft(archive) || archive?.status === "uncertain") {
+    return "房间归档存在未提交或待核对草稿，请先在归档工作区保存、核对或明确放弃。";
+  }
+  const rule = stateRef.hostRuleWorkspace;
+  if (hostRuleWorkspaceIsPending(rule)) {
+    return "自动化规则仍在检查或提交，请等待服务器返回后再离开。";
+  }
+  if (rule?.dirty || rule?.status === "uncertain") {
+    return "自动化规则存在未保存或待核对草稿，请先在规则工作区保存、核对或明确放弃。";
+  }
+  return "";
+}
+
+export function createHostConsoleRuntime({ render, showToast }) {
+  const directorActions = createDirectorActionHandler({ render, showToast });
+  const miniGameActions = createHostMiniGameActionHandler({ render, showToast });
+  const hostOperations = createHostOperationController({ render, showToast });
+  const hostArchive = createHostArchiveController({ render, showToast });
+  const hostRules = createHostRuleWorkspaceController({ render, showToast });
+
+  async function handleAction(action, element) {
+    if (await miniGameActions(action, element)) return true;
+    if (await hostOperations.handleAction(action, element)) return true;
+    if (await hostArchive.handleAction(action, element)) return true;
+    if (await hostRules.handleAction(action, element)) return true;
+    return directorActions(action, element);
+  }
+
+  function handleField(element) {
+    hostOperations.handleField(element);
+    hostArchive.handleField(element);
+    hostRules.handleField(element);
+  }
+
+  return {
+    handleAction,
+    handleField,
+    navigationBlockReason: () => hostConsoleNavigationBlockReason()
+  };
+}

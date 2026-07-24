@@ -16,14 +16,17 @@ import {
 import { formatApiError } from "../errors.js";
 import { getRoomId, getSessionToken, getWorldId, setRoomId, setWorldId } from "../session.js";
 import { state } from "../state.js";
-import { bindConsoleContext } from "../views/console.js";
 import {
   bindDataContext,
   loadHostData,
   loadWorldsList,
   resolveRoomDeepLink
 } from "./data.js";
-import { bindArchiveModalsContext } from "./invite.js";
+import {
+  getHostConsoleNavigationBlockReason,
+  loadHostConsole
+} from "./host-console-loader.js";
+import { bindInviteContext } from "./invite.js";
 import {
   bindRoomEventsContext,
   disconnectRoomEvents,
@@ -74,10 +77,19 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     state.hostRuleDeleteConfirmId = "";
     state.hostRuleAudit = null;
   }
+  function resetHostArchiveUi() {
+    state.hostArchiveWorkspace = null;
+  }
   function cleanOAuthUrl() {
     const url = new URL(window.location.href);
     ["oauth_code", "oauth_error", "auth"].forEach((key) => url.searchParams.delete(key));
     window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }
+  function blockUnsafeConsoleExit() {
+    const reason = getHostConsoleNavigationBlockReason();
+    if (!reason) return false;
+    showToast(reason);
+    return true;
   }
 
   function loadSessionUser() {
@@ -105,6 +117,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     if (!token) {
       disconnectRoomEvents();
       state.hostOperation = null;
+      resetHostArchiveUi();
       resetHostRuleUi();
       state.user = null;
       state.authStatus = "anonymous";
@@ -132,11 +145,13 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       return;
     }
     if (state.hostOperation?.roomId !== getRoomId()) state.hostOperation = null;
+    if (state.hostArchiveWorkspace?.roomId !== getRoomId()) resetHostArchiveUi();
     if (state.hostRuleWorkspace?.worldId !== getWorldId()) resetHostRuleUi();
     state.view = "console";
     render();
     setBusy(true);
     try {
+      await loadHostConsole({ render, showToast });
       await loadHostData(false, true);
       syncRoomStream();
       syncDirectorPolling();
@@ -153,6 +168,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     setWorldId(worldId);
     setRoomId(worldId, "");
     state.hostOperation = null;
+    resetHostArchiveUi();
     resetHostRuleUi();
     state.room = null;
     state.landingStep = "rooms";
@@ -285,6 +301,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     clearSession();
     setWorldId("");
     state.hostOperation = null;
+    resetHostArchiveUi();
     resetHostRuleUi();
     state.user = null;
     state.authStatus = "anonymous";
@@ -296,12 +313,14 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   async function handleAction(action, element) {
     switch (action) {
       case "go-home":
+        if (blockUnsafeConsoleExit()) return true;
         disconnectRoomEvents();
         state.hostOperation = null;
         state.view = "landing";
         render();
         return true;
       case "go-pick-room":
+        if (blockUnsafeConsoleExit()) return true;
         disconnectRoomEvents();
         state.hostOperation = null;
         state.view = "landing";
@@ -333,10 +352,9 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     initWebVitalsReporting({ app: "host", endpoint: "/api/metrics/web-vitals" });
     const params = new URLSearchParams(window.location.search);
     const deepRoom = params.get("room");
-    bindConsoleContext({ render, showToast });
     bindDataContext({ render, showToast });
     bindRoomEventsContext({ render, showToast });
-    bindArchiveModalsContext({ render, showToast });
+    bindInviteContext({ showToast });
 
     setBusy(true);
     try {

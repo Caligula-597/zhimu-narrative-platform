@@ -5,10 +5,10 @@ import { state } from "../state.js";
 import { canEditHostRules } from "./host-rule-permissions.js";
 import {
   hostRuleMatchesPayload,
-  isUncertainTransportError,
   reloadHostRules,
   upsertHostRule
 } from "./host-rule-store.js";
+import { isUncertainHostWrite } from "./host-write-reconciliation.js";
 
 export function createHostRuleListService({
   render,
@@ -58,7 +58,7 @@ export function createHostRuleListService({
       showToast(state.hostRuleListMessage);
       return updated;
     } catch (error) {
-      if (getWorld() === worldId && isUncertainTransportError(error)) {
+      if (getWorld() === worldId && isUncertainHostWrite(error)) {
         try {
           const rules = await reload(worldId);
           const committed = rules?.find((item) =>
@@ -109,7 +109,7 @@ export function createHostRuleListService({
       showToast(state.hostRuleListMessage);
       return true;
     } catch (error) {
-      if (getWorld() === worldId && isUncertainTransportError(error)) {
+      if (getWorld() === worldId && isUncertainHostWrite(error)) {
         try {
           const rules = await reload(worldId);
           if (!rules?.some((item) => String(item.id) === String(rule.id))) {

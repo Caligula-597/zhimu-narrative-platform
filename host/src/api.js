@@ -34,7 +34,10 @@ const portal = createPortalApiClient({
 const { request } = portal;
 
 function roomPath(suffix) {
-  const roomId = getRoomId();
+  return roomPathFor(getRoomId(), suffix);
+}
+
+function roomPathFor(roomId, suffix) {
   if (!roomId) throw Object.assign(new Error("请先选择平行房"), { code: "ROOM_REQUIRED" });
   return `/rooms/${roomId}${suffix}`;
 }
@@ -150,8 +153,24 @@ export const api = {
   batchHostEvents: (action, eventIds) =>
     request(roomPath("/host-events/batch"), { method: "POST", body: { action, eventIds }, idempotent: true }),
 
-  createCheckpoint: (payload) => request(roomPath("/checkpoints"), { method: "POST", body: payload }),
-  createRecap: (payload) => request(roomPath("/recaps"), { method: "POST", body: payload, idempotent: true }),
+  getRoomCheckpoints: (roomId = getRoomId()) => request(roomPathFor(roomId, "/checkpoints")),
+  getRoomRecaps: (roomId = getRoomId()) => request(roomPathFor(roomId, "/recaps")),
+  createCheckpoint: (payload, roomId = getRoomId(), idempotencyKey = "") =>
+    request(roomPathFor(roomId, "/checkpoints"), {
+      method: "POST",
+      body: payload,
+      idempotent: true,
+      idempotencyKey,
+      timeoutMs: 45_000
+    }),
+  createRecap: (payload, roomId = getRoomId(), idempotencyKey = "") =>
+    request(roomPathFor(roomId, "/recaps"), {
+      method: "POST",
+      body: payload,
+      idempotent: true,
+      idempotencyKey,
+      timeoutMs: 45_000
+    }),
 
   getHostTestimonies: () => request(roomPath("/host/testimonies")),
   reviewHostTestimony: (testimonyId, payload) =>

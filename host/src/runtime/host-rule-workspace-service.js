@@ -11,10 +11,10 @@ import {
 import { canEditHostRules } from "./host-rule-permissions.js";
 import {
   hostRuleMatchesPayload,
-  isUncertainTransportError,
   reloadHostRules,
   upsertHostRule
 } from "./host-rule-store.js";
+import { isUncertainHostWrite } from "./host-write-reconciliation.js";
 
 function currentWorkspace(id, getWorld = getWorldId) {
   const workspace = state.hostRuleWorkspace;
@@ -201,7 +201,7 @@ export function createHostRuleWorkspaceService({
       }
       return saved;
     } catch (error) {
-      if (isUncertainTransportError(error)) {
+      if (isUncertainHostWrite(error)) {
         const reconciliation = await reconcileSave(workspaceId, parsed.payload);
         if (reconciliation.found) return state.hostRuleWorkspace;
         const current = currentWorkspace(workspaceId, getWorld);
