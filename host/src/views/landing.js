@@ -3,6 +3,7 @@ import { renderStatusChip } from "../../../shared/components/status-chip.js";
 import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
 import { getWorldId } from "../session.js";
 import { state } from "../state.js";
+import { renderHostRoomCreateWorkspace } from "./host-room-create-workspace.js";
 
 export function renderLanding() {
   const worldId = getWorldId();
@@ -43,7 +44,7 @@ export function renderLanding() {
         <div class="host-page-meta"><span><b>${worlds.length}</b> 个剧本</span><span><b>${showRooms ? rooms.length : "—"}</b> 个运行房</span></div>
       </div>
       ${showRooms
-        ? `<div class="host-selection-toolbar"><button class="text-btn" type="button" data-action="landing-back-worlds">← 返回剧本</button><div><span>当前剧本</span><strong>${escapeHtml(state.studio?.world?.name || "当前世界")}</strong></div><div class="row"><button class="secondary-btn" type="button" data-action="refresh-rooms">刷新运行房</button><button class="primary-btn" type="button" data-action="create-room">创建运行房</button></div></div><div class="pick-grid">${roomCards}</div>`
+        ? `<div class="host-selection-toolbar"><button class="text-btn" type="button" data-action="landing-back-worlds">← 返回剧本</button><div><span>当前剧本</span><strong>${escapeHtml(state.studio?.world?.name || "当前世界")}</strong></div><div class="row"><button class="secondary-btn" type="button" data-action="refresh-rooms">刷新运行房</button><button class="primary-btn" type="button" data-action="create-room">创建运行房</button></div></div>${renderHostRoomCreateWorkspace()}<div class="pick-grid">${roomCards}</div>`
         : `<div class="pick-grid">${worldCards}</div>`}
       ${!state.user ? `<div class="host-auth-notice"><span aria-hidden="true">!</span><p><strong>登录后载入主持权限</strong><small>访客模式不会展示私密运行数据。</small></p><button class="primary-btn" type="button" data-action="show-auth">登录</button></div>` : ""}
     </section>`;

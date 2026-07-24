@@ -162,21 +162,6 @@ import { callView } from "./view-registry.js";
         window.zhimuOnboarding?.markRecapVisit?.();
         go("archive");
         return true;
-      case "refresh-host-room":
-        callRuntime("refreshHostRoom", true);
-        return true;
-      case "refresh-host-events":
-        callRuntime("refreshHostEvents", true);
-        return true;
-      case "refresh-host-players":
-        callRuntime("refreshHostPlayers", true);
-        return true;
-      case "refresh-host-clue-matrix":
-        callRuntime("refreshHostClueMatrix", true);
-        return true;
-      case "refresh-host-audit":
-        callRuntime("refreshHostAuditLog", true);
-        return true;
       case "open-account-hub":
       case "go-account": {
         const tab = el?.dataset?.hubTab === "assets" ? "assets" : "account";

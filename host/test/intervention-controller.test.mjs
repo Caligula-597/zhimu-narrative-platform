@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolveInitialUnlockRoleId } from "../src/runtime/host-intervention-controller.js";
+import { resolveInitialUnlockRoleId } from "../src/runtime/host-operation-model.js";
 
 test("stuck intervention keeps the recommended role selected for section unlock", () => {
   const players = [

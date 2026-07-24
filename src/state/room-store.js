@@ -1,4 +1,4 @@
-/** In-room runtime state shard — host console, players, events, clues, recaps. */
+/** In-room Creator runtime state shard — player progress, pending events, and recaps. */
 import { createStore } from "./create-store.js";
 
 export const roomStore = createStore({
@@ -9,8 +9,6 @@ export const roomStore = createStore({
   cloudHostStuckCount: 0,
   cloudExploration: null,
   cloudHostEvents: [],
-  cloudHostClueMatrix: null,
-  cloudHostAuditLog: [],
   cloudCheckpoints: [],
   cloudRecaps: [],
   cloudRecapLatest: null,

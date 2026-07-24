@@ -1,8 +1,6 @@
 import { api } from "../api.js";
-import { closeModal, modalEl, mountModal, openModal } from "../components/modal.js";
 import { state } from "../state.js";
 import { escapeHtml, formatRelativeTime, formatTime } from "../utils/format.js";
-import { setHtml } from "../../../shared/safe-dom.js";
 import { refreshHostRoom } from "./data.js";
 
 let renderRef = () => {};
@@ -112,64 +110,6 @@ export async function batchHostEventsAction(action) {
     render();
     const label = action === "execute" ? "确认" : "拒绝";
     showToast(`已${label} ${result.processed} 条${result.skipped ? `，${result.skipped} 条已跳过` : ""}`);
-  } catch (error) {
-    showToast(error.message);
-  }
-}
-
-export function openHostEventContext(eventId) {
-  const event = (state.cloudHostEvents || []).find((item) => item.id === eventId);
-  if (!event) return;
-  openModal(
-    "待确认事件上下文",
-    `<div class="rule-block"><b>来源</b> · ${escapeHtml(event.source_label || "系统")}<br><b>规则</b> · ${escapeHtml(event.rule_name || "—")}<br><b>触发条件</b><br>${escapeHtml(JSON.stringify(event.rule_conditions || {}, null, 2))}<br><br><b>将执行动作</b><br>${escapeHtml(JSON.stringify(event.actions || [], null, 2))}</div>`,
-    "关闭"
-  );
-}
-
-export function openDelayHostEventModal(eventId) {
-  const event = (state.cloudHostEvents || []).find((item) => item.id === eventId);
-  if (!event) return showToast("找不到待确认事件");
-  mountModal();
-  modalEl.root.className = "modal";
-  setHtml(modalEl.root, `<h2>延迟待确认事件</h2><p class="wizard-intro">「${escapeHtml(event.title)}」将从待办列表移出，到期后自动回到待确认队列。</p><div class="form-group"><label>延迟时长</label><select class="field" data-delay-minutes><option value="5">5 分钟</option><option value="15" selected>15 分钟</option><option value="30">30 分钟</option><option value="60">1 小时</option><option value="120">2 小时</option></select></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-delay-submit>确认延迟</button></div>`);
-  modalEl.backdrop.classList.add("show");
-  modalEl.root.querySelector("[data-close]").onclick = closeModal;
-  modalEl.root.querySelector("[data-delay-submit]").onclick = async () => {
-    try {
-      const delayMinutes = Number(modalEl.root.querySelector("[data-delay-minutes]").value) || 15;
-      await api.delayHostEvent(eventId, delayMinutes);
-      closeModal();
-      await refreshHostRoom();
-      showToast(`已延迟 ${delayMinutes} 分钟`);
-    } catch (error) {
-      showToast(error.message);
-    }
-  };
-}
-
-export async function dismissHostEvent(eventId) {
-  const event = (state.cloudHostEvents || []).find((item) => item.id === eventId);
-  try {
-    await api.dismissHostEvent(eventId);
-    state.hostEventSelection = (state.hostEventSelection || []).filter((id) => id !== eventId);
-    await refreshHostRoom(true);
-    render();
-    showToast(`已拒绝「${event?.title || "待确认事件"}」`);
-  } catch (error) {
-    showToast(error.message);
-  }
-}
-
-export async function executeHostEvent(eventId) {
-  const event = (state.cloudHostEvents || []).find((item) => item.id === eventId);
-  try {
-    await api.executeHostEvent(eventId);
-    state.hostEventSelection = (state.hostEventSelection || []).filter((id) => id !== eventId);
-    await refreshHostRoom(true);
-    render();
-    const preview = event?.action_summaries?.slice(0, 2).join("；") || "规则动作已写入房间";
-    showToast(`已确认「${event?.title || "事件"}」· ${preview}`);
   } catch (error) {
     showToast(error.message);
   }

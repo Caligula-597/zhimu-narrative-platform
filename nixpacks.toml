@@ -1,4 +1,4 @@
 # Monorepo root is NOT deployable. API deploy uses backend/ only.
-# See: npm run railway:deploy  or  .github/workflows/railway-deploy.yml
+# See: npm run railway:deploy or .github/workflows/production-release.yml
 [phases.install]
 cmds = ["echo 'ERROR: Deploy API with: railway up backend --path-as-root' && exit 1"]

@@ -37,27 +37,28 @@ test("creator room callers leave invite-code allocation to the server", () => {
     "export async function finishWizard",
     "registerRuntime"
   );
-  const hostCreate = section(
-    "host/src/runtime/host-lifecycle-controller.js",
-    "async function createHostRoom",
-    "async function selectRoom"
-  );
+  const hostCreate = source("host/src/runtime/host-room-create-service.js");
   for (const runtime of [mainCreate, wizardCreate, hostCreate]) {
     assert.doesNotMatch(runtime, /createRoom\([^;\n]*inviteCode/);
   }
+  assert.match(hostCreate, /apiRef\.createRoom\(\s*parsed\.payload,\s*workspace\.worldId,\s*idempotencyKey/s);
 });
 
 test("Creator room workspace sends the selected Release and restores the action after failure", () => {
+  const roomView = section(
+    "src/views/rooms.js",
+    "export function rooms",
+    "export async function refreshRoomWorkspace"
+  );
   const mainCreate = section(
     "src/views/rooms.js",
     "export async function createParallelRoom",
     "export async function setRoomPublicListing"
   );
-  const roomView = source("src/views/rooms.js");
   assert.match(roomView, /data-room-draft="releaseId"/);
   assert.match(mainCreate, /releaseId:\s*state\.draft\.releaseId\s*\|\|\s*null/);
   assert.match(mainCreate, /state\.createSaving\s*=\s*true/);
-  assert.match(mainCreate, /catch \(error\) \{\s*state\.createSaving\s*=\s*false/);
+  assert.match(mainCreate, /catch\s*\(error\)\s*\{[\s\S]*?state\.createSaving\s*=\s*false/);
   assert.match(mainCreate, /state\.error\s*=\s*normalizeError/);
   assert.match(mainCreate, /render\(\)/);
 });

@@ -29,6 +29,35 @@ function showToast(message, ms) {
   showToastRef(message, ms);
 }
 
+async function refreshOpenPlayerOperation(roleSlotId = "") {
+  const operation = state.hostOperation;
+  if (operation?.kind !== "player" || !operation.options?.roleSlotId) return;
+  if (roleSlotId && String(roleSlotId) !== String(operation.options.roleSlotId)) return;
+  const operationId = operation.id;
+  try {
+    const detail = await api.getHostPlayerDetail(operation.options.roleSlotId);
+    if (state.hostOperation?.id !== operationId) return;
+    state.hostOperation.detail = detail;
+    if (state.hostOperation.status !== "submitting") {
+      state.hostOperation.status = "ready";
+      state.hostOperation.message = "玩家状态已通过实时事件更新。";
+    }
+    render();
+  } catch {
+    // The regular 15s reconcile remains authoritative if a detail refresh races a room change.
+  }
+}
+
+function markOpenPlayerRemoved(roleSlotId = "") {
+  const operation = state.hostOperation;
+  if (operation?.kind !== "player") return;
+  if (roleSlotId && String(roleSlotId) !== String(operation.options?.roleSlotId)) return;
+  operation.detail = null;
+  operation.status = "success";
+  operation.message = "该玩家已离开当前角色席位；历史进度仍保留在房间记录中。";
+  render();
+}
+
 async function refreshDirectorPoll() {
   try {
     await refreshHostRoom(false);
@@ -57,10 +86,12 @@ async function handleRoomEvent(type, data) {
   switch (type) {
     case "room.player_joined":
       await refreshHostPlayers(false, true);
+      await refreshOpenPlayerOperation(data.roleSlotId);
       showToast("有新玩家加入房间", 2800);
       break;
     case "room.player_kicked":
       await refreshHostPlayers(false, true);
+      markOpenPlayerRemoved(data.roleSlotId);
       showToast("已移出玩家", 2800);
       break;
     case "room.section_completed":
@@ -72,9 +103,11 @@ async function handleRoomEvent(type, data) {
     case "room.clue_resent":
       await refreshHostPlayers(false, true);
       await refreshHostClueMatrix(false, true);
+      await refreshOpenPlayerOperation(data.roleSlotId);
       break;
     case "room.item_granted":
       await refreshHostPlayers(false, true);
+      await refreshOpenPlayerOperation(data.roleSlotId);
       break;
     case "room.host_event_pending":
       await refreshHostEvents(false, true);
@@ -88,10 +121,12 @@ async function handleRoomEvent(type, data) {
     case "room.section_skipped":
     case "room.scene_unlocked":
       await refreshHostPlayers(false, true);
+      if (type !== "room.scene_unlocked") await refreshOpenPlayerOperation(data.roleSlotId);
       break;
     case "room.investigation_completed":
       await refreshHostPlayers(false, true);
       await refreshHostEvents(false, true);
+      await refreshOpenPlayerOperation(data.roleSlotId);
       break;
     case "room.game_started":
       applyHostMiniGameEvent(type, data);
@@ -127,6 +162,9 @@ async function handleRoomEvent(type, data) {
     case "room.host_log_created":
     case "room.host_player_notes_updated":
       await refreshHostRoom(false);
+      if (type === "room.host_player_notes_updated") {
+        await refreshOpenPlayerOperation(data.roleSlotId);
+      }
       break;
     default:
       break;

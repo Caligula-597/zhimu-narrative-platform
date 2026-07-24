@@ -16,14 +16,17 @@ import {
 import { formatApiError } from "../errors.js";
 import { getRoomId, getSessionToken, getWorldId, setRoomId, setWorldId } from "../session.js";
 import { state } from "../state.js";
-import { bindConsoleContext } from "../views/console.js";
 import {
   bindDataContext,
   loadHostData,
   loadWorldsList,
   resolveRoomDeepLink
 } from "./data.js";
-import { bindArchiveModalsContext } from "./invite.js";
+import {
+  getHostConsoleNavigationBlockReason,
+  loadHostConsole
+} from "./host-console-loader.js";
+import { bindInviteContext } from "./invite.js";
 import {
   bindRoomEventsContext,
   disconnectRoomEvents,
@@ -66,10 +69,36 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   let sessionProbePromise = null;
   let sessionProbeToken = null;
   let sessionGeneration = 0;
+
+  function resetHostRuleUi() {
+    state.hostRuleWorkspace = null;
+    state.hostRuleListBusy = "";
+    state.hostRuleListMessage = "";
+    state.hostRuleDeleteConfirmId = "";
+    state.hostRuleAudit = null;
+  }
+  function resetHostArchiveUi() {
+    state.hostArchiveWorkspace = null;
+  }
+  function resetHostEventUi() {
+    state.hostEventWorkspace = null;
+  }
+  function resetHostVoteUi() {
+    state.hostVoteWorkspace = null;
+  }
+  function resetHostRoomCreateUi() {
+    state.hostRoomCreateWorkspace = null;
+  }
   function cleanOAuthUrl() {
     const url = new URL(window.location.href);
     ["oauth_code", "oauth_error", "auth"].forEach((key) => url.searchParams.delete(key));
     window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }
+  function blockUnsafeConsoleExit() {
+    const reason = getHostConsoleNavigationBlockReason();
+    if (!reason) return false;
+    showToast(reason);
+    return true;
   }
 
   function loadSessionUser() {
@@ -96,6 +125,12 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     sessionGeneration += 1;
     if (!token) {
       disconnectRoomEvents();
+      state.hostOperation = null;
+      resetHostEventUi();
+      resetHostVoteUi();
+      resetHostRoomCreateUi();
+      resetHostArchiveUi();
+      resetHostRuleUi();
       state.user = null;
       state.authStatus = "anonymous";
       state.authError = "";
@@ -121,10 +156,16 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       state.landingStep = "rooms";
       return;
     }
+    if (state.hostOperation?.roomId !== getRoomId()) state.hostOperation = null;
+    if (state.hostEventWorkspace?.roomId !== getRoomId()) resetHostEventUi();
+    if (state.hostVoteWorkspace?.roomId !== getRoomId()) resetHostVoteUi();
+    if (state.hostArchiveWorkspace?.roomId !== getRoomId()) resetHostArchiveUi();
+    if (state.hostRuleWorkspace?.worldId !== getWorldId()) resetHostRuleUi();
     state.view = "console";
     render();
     setBusy(true);
     try {
+      await loadHostConsole({ render, showToast });
       await loadHostData(false, true);
       syncRoomStream();
       syncDirectorPolling();
@@ -140,6 +181,12 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     if (!worldId) return;
     setWorldId(worldId);
     setRoomId(worldId, "");
+    state.hostOperation = null;
+    resetHostEventUi();
+    resetHostVoteUi();
+    resetHostRoomCreateUi();
+    resetHostArchiveUi();
+    resetHostRuleUi();
     state.room = null;
     state.landingStep = "rooms";
     setBusy(true);
@@ -180,39 +227,13 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     }
   }
 
-  async function createHostRoom() {
-    if (!state.user) {
-      state.view = "auth";
-      render();
-      showToast("请先登录后再操作");
-      return;
-    }
-    const worldId = getWorldId();
-    if (!worldId) {
-      showToast("请先选择剧本世界");
-      return;
-    }
-    const defaultName = `测试房 ${new Date().toLocaleDateString("zh-CN")}`;
-    const name = window.prompt("运行房名称", defaultName)?.trim();
-    if (!name) return;
-    setBusy(true);
-    try {
-      const room = await api.createRoom({ name, publicListing: false }, worldId);
-      state.rooms = await api.getWorldRooms(worldId);
-      setRoomId(worldId, room.id);
-      state.room = state.rooms.find((item) => item.id === room.id) || room;
-      showToast(`运行房已创建：${room.invite_code}`);
-      await enterConsole();
-    } catch (error) {
-      showToast(formatApiError(error, "创建运行房失败"));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function selectRoom(roomId) {
     const worldId = getWorldId();
     if (!worldId || !roomId) return;
+    state.hostOperation = null;
+    resetHostEventUi();
+    resetHostVoteUi();
+    resetHostRoomCreateUi();
     setRoomId(worldId, roomId);
     state.room = state.rooms.find((room) => room.id === roomId) || null;
     await enterConsole();
@@ -269,6 +290,12 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     disconnectRoomEvents();
     clearSession();
     setWorldId("");
+    state.hostOperation = null;
+    resetHostEventUi();
+    resetHostVoteUi();
+    resetHostRoomCreateUi();
+    resetHostArchiveUi();
+    resetHostRuleUi();
     state.user = null;
     state.authStatus = "anonymous";
     state.authError = "";
@@ -279,12 +306,20 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   async function handleAction(action, element) {
     switch (action) {
       case "go-home":
+        if (blockUnsafeConsoleExit()) return true;
         disconnectRoomEvents();
+        state.hostOperation = null;
+        resetHostEventUi();
+        resetHostVoteUi();
         state.view = "landing";
         render();
         return true;
       case "go-pick-room":
+        if (blockUnsafeConsoleExit()) return true;
         disconnectRoomEvents();
+        state.hostOperation = null;
+        resetHostEventUi();
+        resetHostVoteUi();
         state.view = "landing";
         state.landingStep = getWorldId() ? "rooms" : "worlds";
         render();
@@ -298,7 +333,6 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       case "world-select": await selectWorld(element?.dataset?.worldId); return true;
       case "room-select": await selectRoom(element?.dataset?.roomId); return true;
       case "refresh-rooms": await refreshRoomsList(true); return true;
-      case "create-room": await createHostRoom(); return true;
       case "landing-back-worlds": state.landingStep = "worlds"; render(); return true;
       case "open-creator":
         window.open(getAppOrigin(), "_blank", "noopener,noreferrer");
@@ -314,10 +348,9 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     initWebVitalsReporting({ app: "host", endpoint: "/api/metrics/web-vitals" });
     const params = new URLSearchParams(window.location.search);
     const deepRoom = params.get("room");
-    bindConsoleContext({ render, showToast });
     bindDataContext({ render, showToast });
     bindRoomEventsContext({ render, showToast });
-    bindArchiveModalsContext({ render, showToast });
+    bindInviteContext({ showToast });
 
     setBusy(true);
     try {
@@ -362,5 +395,5 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     }
   }
 
-  return { bootstrap, handleAction, handleAuthSubmit, handleExternalSessionChange };
+  return { bootstrap, handleAction, handleAuthSubmit, handleExternalSessionChange, selectRoom };
 }

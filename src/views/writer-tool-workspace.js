@@ -19,7 +19,9 @@ const moduleLoaders = {
   snapshot: () => import("./writer-snapshot-workspace.js"),
   review: () => import("./writer-review-workspace.js"),
   collaboration: () => import("./writer-collaboration-workspace.js"),
-  preview: () => import("./writer-player-preview-workspace.js")
+  preview: () => import("./writer-player-preview-workspace.js"),
+  logs: () => import("./writer-world-logs-workspace.js"),
+  "story-assistant": () => import("./writer-story-assistant-workspace.js")
 };
 
 const renderMethods = {
@@ -31,7 +33,9 @@ const renderMethods = {
   snapshot: "snapshotWorkspaceHtml",
   review: "reviewWorkspaceHtml",
   collaboration: "collaborationWorkspaceHtml",
-  preview: "playerPreviewWorkspaceHtml"
+  preview: "playerPreviewWorkspaceHtml",
+  logs: "worldLogsWorkspaceHtml",
+  "story-assistant": "storyAssistantWorkspaceHtml"
 };
 
 const bindMethods = {
@@ -43,7 +47,9 @@ const bindMethods = {
   snapshot: "bindSnapshotWorkspace",
   review: "bindReviewWorkspace",
   collaboration: "bindCollaborationWorkspace",
-  preview: "bindPlayerPreviewWorkspace"
+  preview: "bindPlayerPreviewWorkspace",
+  logs: "bindWorldLogsWorkspace",
+  "story-assistant": "bindStoryAssistantWorkspace"
 };
 
 async function loadToolModule(type) {
@@ -118,6 +124,15 @@ export const syncManuscriptToGraphWorkspace = (...args) => invokeTool("manuscrip
 
 export const openImpactWorkspace = (...args) => invokeTool("impact", "openImpactWorkspace", ...args);
 export const openPlayerPreviewWorkspace = (...args) => invokeTool("preview", "openPlayerPreviewWorkspace", ...args);
+export const openWorldLogsWorkspace = (...args) => invokeTool("logs", "openWorldLogsWorkspace", ...args);
+export const setWorldLogFilter = (...args) => invokeTool("logs", "setWorldLogFilter", ...args);
+export const applyWorldLogFilters = (...args) => invokeTool("logs", "applyWorldLogFilters", ...args);
+export const clearWorldLogFilters = (...args) => invokeTool("logs", "clearWorldLogFilters", ...args);
+export const refreshWorldLogs = (...args) => invokeTool("logs", "refreshWorldLogs", ...args);
+export const loadMoreWorldLogs = (...args) => invokeTool("logs", "loadMoreWorldLogs", ...args);
+export const openStoryAssistantWorkspace = (...args) => invokeTool("story-assistant", "openStoryAssistantWorkspace", ...args);
+export const analyzeStoryAssistantWorkspace = (...args) => invokeTool("story-assistant", "analyzeStoryAssistantWorkspace", ...args);
+export const importStoryAssistantWorkspace = (...args) => invokeTool("story-assistant", "importStoryAssistantWorkspace", ...args);
 
 export const openDocumentWorkspace = (...args) => invokeTool("document", "openDocumentWorkspace", ...args);
 export const parseDocumentWorkspace = (...args) => invokeTool("document", "parseDocumentWorkspace", ...args);

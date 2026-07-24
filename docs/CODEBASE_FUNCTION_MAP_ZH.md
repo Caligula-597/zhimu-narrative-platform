@@ -1,12 +1,12 @@
 # 织幕代码功能地图与接线盘点
 
-最后更新：2026-07-16
+最后更新：2026-07-24
 
 ## 一句话结论
 
 当前项目已经不是“后端做了一堆、前端没接”的状态。更准确的判断是：
 
-- 后端已经形成较完整的长剧情剧本杀 SaaS 能力底座；当前静态扫描约 320 个 Fastify 路由注册点、67 个数据库迁移、180 个后端测试文件。
+- 后端已经形成较完整的长剧情剧本杀 SaaS 能力底座；当前有 70 个领域路由模块、32 个领域 schema 文件和 94 个数据库迁移。路由注册与测试声明等易漂移数量见 [`GENERATED_PROJECT_STATUS.json`](./GENERATED_PROJECT_STATUS.json)，不再手工复制。
 - 主应用通过 `src/api/index.js` 提供领域 API 门面；Creator/Host/Player 的底层 HTTP、认证、错误和 SSE transport 已统一到 `shared/`，不再由三端各自实现协议细节。
 - 仍有一批后端能力处于“已实现/有 API/有测试，但没有明显产品化入口或只在独立端、运营入口、内部脚本中使用”的状态，主要集中在旧版 DeepSeek 分步流水线、物理令牌、部分玩家/主持增强功能、世界模板、少数 LLM 连接编辑能力。
 - 项目现在最需要的不是继续盲目加功能，而是按“可见闭环、隐藏能力、商业试点、运维门槛”四条线收口。
@@ -15,7 +15,7 @@
 
 | 入口 | 目录 | 当前职责 | 接线状态 |
 |---|---|---|---|
-| 主应用 | `src/` + 根目录 Vite | 创作者工作台、世界管理、内容创作、主持过渡视图、资产、账户、OPS | 已接大量 `/api` 能力，是主产品入口 |
+| 主应用 | `src/` + 根目录 Vite | 创作者工作台、世界管理、内容创作、运行摘要、资产、账户、OPS | 已接大量 `/api` 能力，是创作产品入口；现场主持外跳 `host/` |
 | 后端 API | `backend/src/` | Fastify API、PostgreSQL 真相源、权限、安全、规则、AI、运营、静态托管 | 已模块化，路由规模最大 |
 | 玩家端 | `play/` | 加房、阅读、调查、线索、笔记、投票/私密行动、语音、广场/社交 | 独立轻量 API 客户端，接运行时能力 |
 | 主持端 | `host/` | 独立主持控制台、房间状态、玩家管理、事件推进、投票/私密行动 | 独立轻量 API 客户端，接主持能力 |
@@ -71,7 +71,6 @@
 | `src/views/studio.js` | 场景、线索、物品、调查点、故事边、节点删除、节点位置/锚点、自动布局 |
 | `src/views/clues.js` | 线索管理、节点引用、线索命中率 |
 | `src/views/rules.js` | 规则增删改、规则校验、规则体校验 |
-| `src/views/director.js` | 主持发线索/物品、解锁、日志、催促、笔记、踢人、事件执行/延迟/批处理、规则预览与触发 |
 | `src/views/player.js` | 玩家阅读完成、笔记、调查、读线索、线索分享、玩家线索备注、语音 |
 | `src/views/archive.js` | 检查点、恢复、复盘生成/查看 |
 | `src/views/settings.js` | 房间设置、世界标签、段落补救、公开目录申请、世界审计 |
@@ -80,7 +79,7 @@
 | `src/views/ops.js` | OPS token、生产状态、审计、升级申请、反馈统计和处理 |
 | `src/views/platform-runtime.js` / `creator-workspaces.js` | segments、truth claims、角色关系、创作者分析、质量报告 |
 | `src/runtime/auth-world.js` | 登录注册、OAuth、加房、创建房间、世界目录、邀请、世界 CRUD |
-| `src/runtime/data.js` | 页面数据聚合：studio、rules、host、player、archive、assets、catalog 等 |
+| `src/runtime/data.js` | 页面数据聚合：studio、rules、Creator 运行摘要、player、archive、assets、catalog 等；不维护 Host 线索矩阵或审计 |
 | `play/src` | 玩家独立端：认证、加房、阅读、调查、线索、笔记、投票、私密行动、语音、SSE |
 | `host/src` | 主持独立端：认证、选择世界/房间、事件处理、投票/私密行动、run report、SSE |
 | `site/` | 官网配置读取、beta 申请提交 |
@@ -107,7 +106,7 @@
 | 创作者从 0 到世界 | 高 | 世界创建、向导、导入、章节/角色/段落、studio 图谱、内容包、版本基本成形 |
 | AI 矩阵生成 | 中高 | 后端和前端入口都很厚，但存在新旧流水线并存，需要产品口径收束 |
 | 开房与玩家加入 | 高 | 房间、邀请、玩家首页、阅读/调查/线索/笔记、SSE 已成闭环 |
-| 主持控制 | 高 | 主应用和独立 host 端都有主持能力，后端能力较全；需要统一哪个端是正式入口 |
+| 主持控制 | 高 | 独立 `host/` 是唯一正式现场入口；Creator 只展示运行摘要并外跳 Host |
 | 玩家体验增强 | 中 | 任务、怀疑度、口供、投票、私密行动、语音等已铺底，但 UI 分散，需做成玩家端明确 Tab/路径 |
 | 复盘/归档 | 中高 | 检查点、恢复、复盘生成和最新复盘有 API 与 UI；商业化案例沉淀还需补 |
 | 资产与上传安全 | 中高 | 资产 CRUD、上传扫描、R2/对象存储底座已在；资产使用场景还可继续产品化 |
@@ -121,9 +120,9 @@
 
 - `backend/src/app.js` 负责 Fastify app 生命周期、横切中间件、限流、安全、错误和指标。
 - `backend/src/routes.js` 聚合核心业务路由，其它公开平台/OPS/认证路由在 `app.js` 单独注册。
-- `backend/src/routes/*.js` 按领域组织 HTTP 层；`routes/schemas/` 已拆为 14 个领域 schema 文件，兼容 barrel 只有 7 行。
-- `backend/src/repositories/`、`services/` 与聚焦 service 文件承载查询、事务和领域逻辑。69 个路由模块直连数据库点为 0，由 `check:architecture` 固定门禁禁止回升。
-- `backend/migrations/*.sql` 是数据结构演进，目前到 `067_transactional_event_outbox.sql`。
+- `backend/src/routes/*.js` 按领域组织 HTTP 层；`routes/schemas/` 已拆为 32 个领域 schema 文件，兼容 barrel 只有 7 行。
+- `backend/src/repositories/`、`services/` 与聚焦 service 文件承载查询、事务和领域逻辑。71 个路由模块直连数据库点为 0，由 `check:architecture` 固定门禁禁止回升。
+- `backend/migrations/*.sql` 是数据结构演进，目前到 `097_enable_rls_post_launch_tables.sql`。
 - `backend/test/*.test.js` 覆盖主要领域，当前测试文件数量较多，说明很多批次至少有后端回归证据。
 
 ### 主应用前端
@@ -132,7 +131,7 @@
 - `src/api/*.js` 按领域封装后端接口，`src/api/index.js` 统一导出。
 - `src/runtime/data.js` 聚合页面数据，是许多视图读取后端状态的中枢。
 - `src/runtime/auth-world.js` 管登录、世界选择、加房、建房、邀请等第一路径。
-- `src/views/*.js` 是主应用的功能页面，当前已经拆成创作、studio、线索、规则、主持、玩家、设置、资产、归档、账户、OPS 等视图。
+- `src/views/*.js` 是主应用的功能页面，当前已经拆成创作、studio、线索、规则、玩家预览、设置、资产、归档、账户、OPS 等视图；不再包含现场主持副本。
 - `src/bootstrap/view-resolver.js` 和 `src/runtime/view-registry.js` 负责懒加载视图注册与解析。
 
 ### 独立端
@@ -143,7 +142,7 @@
 
 ## 现阶段最大问题
 
-1. 功能多，但“正式入口”不够统一。主应用里有 player/director 视图，独立 `play/host` 也有正式端，需要明确产品口径。
+1. 玩家预览与正式 Player 的边界仍需持续约束；主持入口已统一为独立 `host/`，Creator 不再维护第二份现场控制台。
 2. AI 生成链路新旧并存。矩阵链路已经推进，旧 DeepSeek 分步函数仍留在 API 层，容易让规划失焦。
 3. 后端能力比 UI 产品化更快。物理令牌、部分主持状态、玩家增强、账户套餐/LLM 编辑等需要决定是补 UI 还是降级为内部能力。
 4. 商业化不是代码能力不足，而是交付系统不足。订单、开通记录、SLA、案例、客户成功看板仍偏人工。
@@ -155,7 +154,7 @@
 
 1. 创作者正式路径：官网/beta -> 注册 -> 创建世界/模板 -> 导入/AI -> 发布检查 -> 开房。
 2. 玩家正式路径：`play/` 作为正式玩家端，主应用 player 视图定位为调试/内嵌预览。
-3. 主持正式路径：`host/` 作为正式主持端，主应用 director 视图定位为过渡/管理入口。
+3. 主持正式路径：`host/` 是唯一现场主持端；主应用只保留运行摘要与外跳兼容别名。
 4. OPS 正式路径：主应用 `ops` 保留，但要继续补客户成功、订单、试点交付状态。
 
 ### P1：清理“后端有但前端不显性”的能力

@@ -70,7 +70,7 @@ Copy-Item .env.example .env
 填写 `.env` 后运行：
 
 ```powershell
-cd D:\长剧情\backend
+cd backend
 npm run db:migrate
 npm run db:seed
 npm run start

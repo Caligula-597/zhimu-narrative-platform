@@ -18,6 +18,7 @@ function git(...args) {
 }
 
 const checks = [
+  { name: "documentation-consistency", command: npmCommand, args: [...npmPrefixArgs, "run", "check:docs"], cwd: root },
   { name: "source-encoding", command: npmCommand, args: [...npmPrefixArgs, "run", "check:source-encoding"], cwd: root },
   { name: "innerhtml-budget", command: npmCommand, args: [...npmPrefixArgs, "run", "audit:innerhtml"], cwd: root },
   { name: "contract-drift", command: npmCommand, args: [...npmPrefixArgs, "run", "check:contracts"], cwd: root },

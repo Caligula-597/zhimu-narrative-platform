@@ -1,6 +1,6 @@
 # E2E / 浏览器测试
 
-最后更新：2026-07-16
+最后更新：2026-07-24
 
 ## Playwright 矩阵
 
@@ -19,7 +19,7 @@ chromium, firefox, webkit
 - `play-firefox`
 - `play-webkit`
 
-2026-07-16 的 `npx playwright test --list` 显示 87 tests / 15 files，覆盖创作者角色私人档案、向导、Host、玩家进度、全链路、存档复盘、运行主路径、三端 Trusted Types，以及玩家端广场/邀请码/官方体验/Tab。计数以后续命令输出为准。
+测试覆盖创作者角色私人档案、向导、Host、玩家进度、全链路、存档复盘、运行主路径、三端 Trusted Types，以及玩家端广场/邀请码/官方体验/Tab。项目和数量以 `npx playwright test --list` 的当前输出为准；列出成功不等于执行通过。
 
 ## 运行
 

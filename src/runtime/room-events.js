@@ -1,4 +1,4 @@
-/** Room SSE stream and director/player polling fallback. */
+/** Room SSE stream with overview/player polling reconciliation. */
 import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
 import { uiStore, roomStore, userStore, voiceStore } from "../state/index.js";
@@ -6,7 +6,7 @@ import { getRuntime, go, render } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
 (function (window) {
-  const DIRECTOR_POLL_MS = 15000;
+  const HOST_RUNTIME_POLL_MS = 15000;
   const PLAYER_POLL_MS = 15000;
   let roomEventStreamKey = "";
   let roomEventLifecycle = null;
@@ -37,27 +37,18 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
     }
   }
 
-  async function refreshDirectorPoll() {
+  async function refreshHostRuntimeSnapshot() {
     const R = runtime();
     const view = uiStore.get().view;
     try {
       await Promise.all([
         R.refreshHostEvents?.(false, true),
-        R.refreshHostPlayers?.(false, true),
-        R.refreshHostClueMatrix?.(false, true)
+        R.refreshHostPlayers?.(false, true)
       ]);
-      if (view === "director") render();
+      if (view === "overview") render();
     } catch (error) {
       userStore.set({ apiError: error.message });
     }
-  }
-
-  function syncPlayerPolling() {
-    // Polling is owned by the shared SSE lifecycle; retained as a compatibility hook.
-  }
-
-  function syncDirectorPolling() {
-    syncPlayerPolling();
   }
 
   function disconnectRoomEventStream() {
@@ -68,8 +59,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
     const { roomEventsConnected } = roomStore.get();
     if (roomEventsConnected) {
       roomStore.set({ roomEventsConnected: false });
-      syncDirectorPolling();
-      if (view === "director") render();
+      if (view === "overview") render();
     }
   }
 
@@ -91,13 +81,13 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
     const { voiceRoomId } = voiceStore.get();
     switch (type) {
       case "room.player_joined":
-        if (view === "director" || view === "overview") {
+        if (view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           showToast("有新玩家加入房间", 2800);
         }
         break;
       case "room.player_kicked":
-        if (view === "director" || view === "overview") {
+        if (view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           showToast("已移出玩家", 2800);
         } else if (
@@ -114,15 +104,14 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         }
         break;
       case "room.section_completed":
-        if (view === "director" || view === "overview") {
+        if (view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           await R.refreshHostEvents?.(false, true);
         } else if (view === "player" && data.roleSlotId === cloudPlayer?.role?.id) await refreshPlayerHome();
         break;
       case "room.clue_granted":
-        if (view === "director" || view === "overview") {
+        if (view === "overview") {
           await R.refreshHostPlayers?.(false, true);
-          await R.refreshHostClueMatrix?.(false, true);
         } else if (view === "player") {
           await refreshPlayerHome();
           if (data.source === "shared_room") showToast(data.clueName ? `房间内有新公开线索：${data.clueName}` : "有新的公开线索", 2800);
@@ -132,9 +121,8 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         break;
       case "room.clue_revoked":
       case "room.clue_resent":
-        if (view === "director" || view === "overview") {
+        if (view === "overview") {
           await R.refreshHostPlayers?.(false, true);
-          await R.refreshHostClueMatrix?.(false, true);
         } else if (view === "player" && data.roleSlotId === cloudPlayer?.role?.id) {
           await refreshPlayerHome();
           showToast(type === "room.clue_revoked"
@@ -143,7 +131,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         }
         break;
       case "room.item_granted":
-        if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
+        if (view === "overview") await R.refreshHostPlayers?.(false, true);
         else if (view === "player") {
           await refreshPlayerHome();
           await refreshExploration();
@@ -152,13 +140,13 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         break;
       case "room.host_event_pending":
         await R.refreshHostEvents?.(false, true);
-        if (view === "director" || view === "overview") {
+        if (view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           if (data.action === "executed") {
             showToast("待确认事件已执行 · 玩家端将收到解锁通知", 3200);
           } else if (data.action === "dismissed") {
             showToast("待确认事件已拒绝", 2800);
-          } else if (view === "director") {
+          } else {
             showToast("有新的待确认事件 · 玩家可能在等待", 3200);
           }
         } else if (view === "player") {
@@ -183,13 +171,13 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         break;
       }
       case "room.host_log_created":
-        if (view === "director" || view === "overview") await R.refreshHostRoom?.(false);
+        if (view === "overview") await R.refreshHostRoom?.(false);
         break;
       case "room.host_player_notes_updated":
-        if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
+        if (view === "overview") await R.refreshHostPlayers?.(false, true);
         break;
       case "room.section_unlocked":
-        if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
+        if (view === "overview") await R.refreshHostPlayers?.(false, true);
         else if (view === "player") {
           await refreshPlayerHome();
           showToast("新分幕已解锁", 2800);
@@ -197,14 +185,14 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         break;
       case "room.section_relocked":
       case "room.section_skipped":
-        if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
+        if (view === "overview") await R.refreshHostPlayers?.(false, true);
         else if (view === "player" && data.roleSlotId === cloudPlayer?.role?.id) {
           await refreshPlayerHome();
           showToast(type === "room.section_relocked" ? "主持人已撤回一个分幕" : "主持人已跳过一个分幕并继续推进", 3000);
         }
         break;
       case "room.investigation_completed":
-        if (view === "director" || view === "overview") {
+        if (view === "overview") {
           await R.refreshHostPlayers?.(false, true);
           await R.refreshHostEvents?.(false, true);
         } else if (view === "player" && data.roleSlotId === cloudPlayer?.role?.id) {
@@ -217,7 +205,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         if (view === "player") {
           await refreshExploration();
           showToast("新场景已开放", 2800);
-        } else if (view === "director" || view === "overview") await R.refreshHostPlayers?.(false, true);
+        } else if (view === "overview") await R.refreshHostPlayers?.(false, true);
         break;
       case "room.voice_message_created":
         if (data.voiceRoomId === voiceRoomId) {
@@ -226,7 +214,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         }
         break;
       case "room.checkpoint_restored":
-        if (view === "director" || view === "overview" || view === "archive") {
+        if (view === "overview" || view === "archive") {
           await R.refreshHostRoom?.(false);
           showToast("房间已从存档恢复", 2800);
         }
@@ -244,7 +232,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
       case "room.segment_remedy_applied":
       case "room.physical_token_activated":
       case "room.physical_token_event":
-        if (view === "director" || view === "overview") await refreshDirectorPoll();
+        if (view === "overview") await refreshHostRuntimeSnapshot();
         else if (view === "player") await refreshPlayerHome();
         break;
     }
@@ -259,14 +247,14 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
     disconnectRoomEventStream();
     roomEventStreamKey = nextStreamKey;
     roomEventLifecycle = createSseLifecycle({
-      pollMs: Math.min(DIRECTOR_POLL_MS, PLAYER_POLL_MS),
+      pollMs: Math.min(HOST_RUNTIME_POLL_MS, PLAYER_POLL_MS),
       open: ({ signal, onConnected }) => zhimuApi.streamRoomEvents(roomId, async (type, data) => {
         if (type === "__connected__") return onConnected(data);
         await handleRoomEvent(type, data);
       }, signal, streamUserId),
       poll: async () => {
         const view = uiStore.get().view;
-        if (view === "director") await refreshDirectorPoll();
+        if (view === "overview") await refreshHostRuntimeSnapshot();
         else if (view === "player") {
           await refreshPlayerHome();
           await refreshExploration();
@@ -274,7 +262,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
       },
       reconcile: async () => {
         const view = uiStore.get().view;
-        if (view === "director") await refreshDirectorPoll();
+        if (view === "overview") await refreshHostRuntimeSnapshot();
         else if (view === "player") {
           await refreshPlayerHome();
           await refreshExploration();
@@ -283,7 +271,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
       onConnected: () => roomStore.set({ roomEventsConnected: true }),
       onDisconnected: () => roomStore.set({ roomEventsConnected: false }),
       onStatus: () => {
-        if (["director", "player"].includes(uiStore.get().view)) render();
+        if (["overview", "player"].includes(uiStore.get().view)) render();
       },
       onAuthLost: () => {
         window.zhimuSessionAuth?.markLoggedOut?.();
@@ -302,11 +290,9 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
     scheduleRoomEventReconnect,
     connectRoomEventStream,
     handleRoomEvent,
-    syncDirectorPolling,
-    syncPlayerPolling,
     refreshPlayerHome,
     refreshExploration,
-    refreshDirectorPoll,
+    refreshHostRuntimeSnapshot,
     streamUserIdForRoom
   };
 })(window);

@@ -1,6 +1,8 @@
 # 织幕架构总览
 
-最后更新：2026-07-16
+最后更新：2026-07-24
+
+当前易变化指标由 [`docs/GENERATED_PROJECT_STATUS.json`](./docs/GENERATED_PROJECT_STATUS.json) 生成；全部文档的生命周期与优先级见 [文档总索引](./docs/DOCUMENTATION_INDEX_ZH.md)。
 
 ## 1. 总体形态
 
@@ -53,7 +55,7 @@ host/ 主持端
 | `app.js` | Fastify app、CORS、安全头、限流、统一错误、metrics |
 | `server.js` | 启动校验、OpenTelemetry SDK、事件总线、告警 monitor、优雅关闭 |
 | `routes/` | 按领域拆分 HTTP 路由 |
-| `routes/schemas/` | 14 个领域 schema；`routes/schemas.js` 只做兼容导出 |
+| `routes/schemas/` | 32 个领域 schema；`routes/schemas.js` 只做兼容导出 |
 | `repositories/` / `services/` | 查询、事务和领域服务边界；复杂新路由不得继续堆进 route |
 | `auth.js` / `session-cookie.js` | Session、guest、HttpOnly cookie |
 | `rule-engine.js` | 结构化规则执行，禁止用户 JS |
@@ -66,14 +68,14 @@ host/ 主持端
 
 | 应用 | 目录 | 生产域 | 说明 |
 |---|---|---|---|
-| 主应用 | 根目录 `src/` | `app.getzhimu.com` | 创作者、主持过渡视图、资产、OPS |
+| 主应用 | 根目录 `src/` | `app.getzhimu.com` | 创作者、资产、发布准备、账号与 OPS |
 | 玩家端 | `play/` | `play.getzhimu.com` | 加房、广场、好友、私信、局内 Tab |
 | 主持端 | `host/` | `host.getzhimu.com` | 独立主持监控台 |
 | 官网 | `site/` | `getzhimu.com` | 营销、公开入口、内测表单 |
 
-Creator、Player、Host、Site 均使用 Vite 8。Creator/Host/Player 已共用 `shared/api-client.js`、session/auth、错误映射、SSE client/lifecycle、游标、toast、安全 DOM、trace 和 web-vitals；认证、401、断线恢复不再维护三份。业务视图继续按角色独立，UI 只在复用收益明确时抽取。
+Creator、Player、Host、Site 均使用 Vite 8。Creator/Host/Player 已共用 `shared/api-client.js`、session/auth、错误映射、SSE client/lifecycle、游标、toast、安全 DOM、trace 和 web-vitals；认证、401、断线恢复不再维护三份。业务视图继续按角色独立，UI 只在复用收益明确时抽取。Host 是唯一现场控制台；Creator 中退役的 Director 兼容导航只允许外跳 Host。
 
-已完成的大入口收敛：`world-helpers.js` 为 6 行兼容 barrel，`player-routes.js` 为 9 行注册器，原 2200+ 行 schema 已拆为 14 个领域文件，`play/src/main.js` 为 412 行启动编排入口。当前 69 个路由模块的直接数据库调用点已经归零，并由 `npm run check:architecture` 固定为不可回升门禁；后续结构审计转向 service/repository 内部查询往返、事务边界和跨领域依赖。
+已完成的大入口收敛：`world-helpers.js` 为 6 行兼容 barrel，`player-routes.js` 为 8 行注册器，原 2200+ 行 schema 已拆为 32 个领域文件，`play/src/main.js` 当前约 413 行且只负责启动编排。当前 71 个路由模块的直接数据库调用点已经归零，并由 `npm run check:architecture` 固定为不可回升门禁；后续结构审计转向 service/repository 内部查询往返、事务边界和跨领域依赖。
 
 ## 5. 生产可信七项
 
@@ -96,4 +98,4 @@ Railway env 同步脚本会在缺关键生产配置时失败，不再生成弱�
 - Pages 三站部署、预览和 lockfile installability 已进入 CI/CD；本轮发布候选长验收在第 1/3 轮隔离测试失败，修复后还需补齐 E2E、性能、恢复和真实环境证据。
 - `4173` 同时用于 Vite dev 与静态 dist，容易残留进程占端口。
 - staging 真实 Bearer P95/P99、应用镜像回滚、R2 恢复和实际 RPO/RTO 尚不能由代码门禁替代。
-- 文档历史版本较多，所有当前标准应以 `docs/PROJECT_STATUS.md`、README、ARCHITECTURE、SECURITY_AND_TESTING、docs/ops 为准。
+- 文档历史版本较多，所有当前标准应从 `docs/DOCUMENTATION_INDEX_ZH.md` 进入；历史证据和方案文档不得覆盖当前事实。

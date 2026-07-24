@@ -1,6 +1,6 @@
 # 上线优先级
 
-最后更新：2026-07-16
+最后更新：2026-07-24
 
 ## 已完成
 
@@ -24,7 +24,7 @@
 | A1 小桥收口 | 完成：`zhimuWorkspace`、`zhimuRuntimeStore`、`zhimuFormat`、`zhimuUi`、`zhimuModal`、`zhimuUiSemantics`、`zhimuCollapsePanel`、`zhimuStatus`、`zhimuUserMessages` 已迁移为 ES Module |
 | A4 共享层阶段 5 | 完成一批：Vite alias、`shared/api-error.js`、`shared/sse.js`、`shared/components/collapse.js` 已落地 |
 | 三端 transport | 完成：API client、session/auth、错误转换、SSE lifecycle/游标/重连共用 shared 实现 |
-| 后端大入口拆分 | 完成：world/player 入口成为兼容 barrel/注册器；schema 拆为 14 个领域文件；Player main 412 行 |
+| 后端大入口拆分 | 完成：world/player 入口成为兼容 barrel/注册器；schema 拆为 32 个领域文件；Player main 约 413 行 |
 | 非功能门禁 | 完成代码侧：生产库防误写、SSE 受众隔离、并发 401、Trusted Types、性能/恢复证据工具 |
 | Pages 三站 CI/CD | 完成并有成功预览部署；lockfile installability 已进入周期门禁 |
 

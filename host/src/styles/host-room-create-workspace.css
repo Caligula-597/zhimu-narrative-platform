@@ -1,0 +1,161 @@
+.host-room-create-workspace {
+  margin: 18px 0;
+  padding: clamp(18px, 2.5vw, 28px);
+  border: 1px solid rgba(25, 68, 61, 0.16);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(250, 248, 241, 0.98), rgba(239, 245, 241, 0.96));
+  box-shadow: 0 22px 56px rgba(16, 50, 45, 0.11);
+  scroll-margin-top: 18px;
+}
+
+.host-room-create-head,
+.host-room-create-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.host-room-create-head h2 {
+  margin: 4px 0;
+}
+
+.host-room-create-head p {
+  color: var(--host-muted);
+  line-height: 1.6;
+}
+
+.host-room-create-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.host-room-create-form,
+.host-room-create-summary {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(25, 68, 61, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.host-room-create-form > label:first-child {
+  display: grid;
+  gap: 7px;
+  font-weight: 800;
+}
+
+.host-room-create-form > label:first-child > span {
+  justify-self: end;
+  margin-top: -24px;
+  color: var(--host-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.host-room-public-field {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 13px;
+  border-radius: 8px;
+  background: rgba(43, 107, 97, 0.07);
+}
+
+.host-room-public-field span,
+.host-room-public-field small {
+  display: block;
+}
+
+.host-room-public-field small {
+  margin-top: 4px;
+  color: var(--host-muted);
+  line-height: 1.5;
+}
+
+.host-room-create-summary {
+  grid-template-columns: auto 1fr;
+  align-content: start;
+}
+
+.host-room-create-summary > span {
+  color: var(--host-muted);
+}
+
+.host-room-created-code,
+.host-room-create-actions {
+  grid-column: 1 / -1;
+}
+
+.host-room-created-code {
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--host-green);
+  color: #fff;
+  text-align: center;
+}
+
+.host-room-created-code span,
+.host-room-created-code strong {
+  display: block;
+}
+
+.host-room-created-code strong {
+  margin-top: 5px;
+  font-size: 24px;
+  letter-spacing: 0.08em;
+}
+
+.host-room-create-status {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(43, 107, 97, 0.08);
+}
+
+.host-room-create-status p {
+  margin: 0;
+}
+
+.host-room-create-status.error {
+  border: 1px solid rgba(164, 62, 56, 0.24);
+  background: rgba(164, 62, 56, 0.08);
+  color: #74322e;
+}
+
+.host-room-create-status.warning {
+  border: 1px solid rgba(167, 120, 61, 0.28);
+  background: rgba(167, 120, 61, 0.1);
+}
+
+.host-room-create-status.success {
+  border: 1px solid rgba(43, 107, 97, 0.22);
+  background: rgba(43, 107, 97, 0.1);
+}
+
+@media (max-width: 820px) {
+  .host-room-create-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .host-room-create-workspace,
+  .host-room-create-form,
+  .host-room-create-summary {
+    padding: 14px;
+  }
+
+  .host-room-create-head,
+  .host-room-create-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .host-room-create-actions button {
+    width: 100%;
+  }
+}

@@ -1,6 +1,6 @@
 # 分域部署
 
-最后更新：2026-07-16
+最后更新：2026-07-24
 
 ## 当前标准
 
@@ -13,7 +13,7 @@
 
 不要把根域 `getzhimu.com` 指向 Railway；根域属于官网 Pages。
 
-官网、Play、Host 已进入 `.github/workflows/production-release.yml`，由统一发布流程构建、验证并提升产物。
+官网、Play、Host 已进入 `.github/workflows/production-release.yml`，由统一发布流程构建、验证并提升产物；工作流文件存在不证明当前提交已执行或通过，每次发布仍需核对 Actions 运行或直接部署结果。
 
 ## Railway：app + API
 
@@ -106,4 +106,4 @@ GET https://host.getzhimu.com/
 GET https://app.getzhimu.com/api/health/ready
 ```
 
-当前 GitHub Actions 使用 `production-release.yml` 构建并提升 `site/play/host` 产物，同时运行发布后 smoke。首次运行前需确认 GitHub Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`。
+GitHub Actions 的 `production-release.yml` 可统一构建并提升 `site/play/host` 产物，同时运行发布后 smoke。首次运行前需确认 GitHub Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`。若暂时跳过 Actions，按 [生产部署](./DEPLOY.md#暂不使用-github-actions-时) 直接发布，并保留 Wrangler 返回的 deployment URL、烟雾测试与回滚证据。

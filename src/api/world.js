@@ -167,8 +167,8 @@ export function deleteWorldMember(userId, worldId = demoContext.worldId) {
 
 /* ── Logs / checks ── */
 
-export function getWorldLogs(params = {}) {
-  return request(`/worlds/${demoContext.worldId}/logs?${new URLSearchParams(params)}`, { userId: demoContext.hostUserId });
+export function getWorldLogs(params = {}, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/logs?${new URLSearchParams(params)}`, { userId: demoContext.hostUserId });
 }
 
 export function getWorldHostAuditLog(limit = 50) {

@@ -185,13 +185,15 @@ export async function refreshHostAuditLog(withToast = false, silent = false) {
 }
 
 export async function refreshHostClueMatrix(withToast = false, silent = false) {
-  if (!getRoomId()) return;
+  if (!getRoomId()) return false;
   try {
     state.cloudHostClueMatrix = await api.getHostClueMatrix();
     if (state.view === "console") renderRef();
     if (withToast && !silent) toastRef("线索矩阵已刷新");
+    return true;
   } catch (error) {
     if (withToast && !silent) toastRef(formatApiError(error, "刷新失败"));
+    return false;
   }
 }
 
@@ -209,7 +211,7 @@ export async function refreshHostMiniGames(withToast = false, silent = false) {
 export async function refreshHostRoom(withToast = false) {
   if (!getRoomId()) {
     if (withToast) toastRef("请先选择运行房");
-    return;
+    return false;
   }
   const generation = ++roomRefreshGeneration;
   try {
@@ -224,7 +226,7 @@ export async function refreshHostRoom(withToast = false) {
       api.getHostVotes().catch(() => ({ votes: [] })),
       api.getHostPrivateActions().catch(() => ({ actions: [] }))
     ]);
-    if (generation !== roomRefreshGeneration) return;
+    if (generation !== roomRefreshGeneration) return false;
     applyHostPlayersPayload(hostPlayers);
     state.cloudHostEvents = hostEvents || [];
     state.cloudWorldLogs = worldLogs || [];
@@ -239,11 +241,13 @@ export async function refreshHostRoom(withToast = false) {
         `房间状态已刷新 · 待确认 ${state.cloudHostEvents.length} 条 · 玩家 ${state.cloudHostPlayers.filter((p) => p.joined).length} 人`
       );
     }
+    return true;
   } catch (error) {
-    if (generation !== roomRefreshGeneration) return;
+    if (generation !== roomRefreshGeneration) return false;
     failHostPlayersLoad(error);
     if (state.view === "console") renderRef();
     if (withToast) toastRef(formatApiError(error, "刷新失败"));
+    return false;
   }
 }
 

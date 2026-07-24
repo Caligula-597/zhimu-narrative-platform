@@ -138,7 +138,6 @@ function resetState(overrides = {}) {
     cloudHostPlayersError: "",
     cloudHostStuckCount: 2,
     cloudHostEvents: [{ id: "e1" }],
-    cloudHostAuditLog: [{ id: "a1" }],
     cloudCheckpoints: [{ id: "cp1" }],
     cloudRecaps: [{ id: "rc1" }],
     cloudRecapLatest: { id: "latest" },
@@ -162,7 +161,7 @@ function resetState(overrides = {}) {
   const allShards = [
     [userStore, ["currentUser", "apiError", "roomEventsConnected"]],
     [worldStore, ["cloudWorlds", "cloudCatalog", "cloudCatalogError", "cloudCreatorChecks", "cloudRules", "cloudRulesPreview", "cloudWorldLogs"]],
-    [roomStore, ["cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostPlayersError", "cloudHostStuckCount", "cloudExploration", "cloudHostEvents", "cloudHostClueMatrix", "cloudHostAuditLog", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest", "cloudRecapDetail", "activeRecapId", "cloudRoomSettings", "hostEventSelection"]],
+    [roomStore, ["cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostPlayersError", "cloudHostStuckCount", "cloudExploration", "cloudHostEvents", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest", "cloudRecapDetail", "activeRecapId", "cloudRoomSettings", "hostEventSelection"]],
     [studioStore, ["cloudStudio", "studioSelectedNode", "studioAnchorEditing", "studioFilter", "studioZoom", "studioLayoutMode", "studioCollapsedScenes", "studioCanvasHeight", "cloudLoading"]],
     [assetStore, ["cloudAssets", "assetKindFilter", "assetSearchQuery", "assetShowRecycle", "assetTotal", "storageUsage"]],
     [voiceStore, ["voiceRoom", "voiceRoomId", "voiceMessages", "voiceLiveStatus", "voiceMicEnabled", "voiceParticipants", "voiceLiveError", "voicePlaybackBlocked"]],
@@ -195,7 +194,6 @@ test("runtime-store clearRuntimeFields resets in-room payload only", () => {
 
   assert.equal(roomStore.get().cloudPlayer, null);
   assert.equal(roomStore.get().cloudHostEvents.length, 0);
-  assert.equal(roomStore.get().cloudHostAuditLog.length, 0);
   assert.equal(voiceStore.get().voiceLiveStatus, "idle");
   assert.equal(worldStore.get().cloudRules.length, 1, "world-scoped rules must survive runtime-only clear");
   assert.equal(runtimeDisconnects.length, 0);
@@ -254,7 +252,7 @@ test("context-coordinator prepareWorldSwitch selects world and clears scoped cac
   assert.equal(demoContext.roomId, "");
   assert.equal(studioStore.get().cloudStudio, null);
   assert.equal(worldStore.get().cloudRules.length, 0);
-  assert.equal(roomStore.get().cloudHostAuditLog.length, 0);
+  assert.equal(roomStore.get().cloudHostEvents.length, 0);
   assert.equal(assetStore.get().storageUsage, null);
   assert.equal(userStore.get().apiError, "");
 });
@@ -441,7 +439,6 @@ test("actions.js delegates to domain action modules", () => {
     "zhimuActionsWorkspace",
     "zhimuActionsArchive",
     "zhimuActionsPlayer",
-    "zhimuActionsDirector",
     "zhimuActionsStudio",
     "zhimuActionsWriter",
     "zhimuActionsRules",
@@ -513,7 +510,6 @@ test("phase V4 view APIs register without writing the old zhimuViews bridge", ()
     ["src/views/assets.js", "assets"],
     ["src/views/archive.js", "archive"],
     ["src/views/player.js", "player"],
-    ["src/views/director.js", "director"],
     ["src/views/studio.js", "studio"],
     ["src/views/writer.js", "writer"],
     ["src/views/mini-games.js", "miniGames"],
@@ -536,7 +532,6 @@ test("phase V2 action pilots consume view registry instead of zhimuViews", () =>
     "src/runtime/actions-assets.js",
     "src/runtime/actions-archive.js",
     "src/runtime/actions-player.js",
-    "src/runtime/actions-director.js",
     "src/runtime/actions-studio.js",
     "src/runtime/actions-writer.js",
     "src/runtime/actions-mini-games.js",
@@ -584,7 +579,6 @@ test("phase V3 runtime cross-view calls go through loader and registry", () => {
 test("phase V3 removes stale zhimuViews read handles", () => {
   for (const rel of [
     "src/views/archive.js",
-    "src/views/director.js",
     "src/views/overview.js",
     "src/views/player.js",
     "src/views/rules.js",
@@ -655,7 +649,6 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
     "src/views/account-hub.js",
     "src/views/archive.js",
     "src/views/assets.js",
-    "src/views/director.js",
     "src/views/mini-games.js",
     "src/views/overview.js",
     "src/views/player.js",

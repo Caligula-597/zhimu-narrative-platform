@@ -16,9 +16,9 @@ const BLOCKED_PATH = [
   /\.env\./i,
   /credentials\.json$/i,
   /\.pem$/i,
-  /chi_sim\.traineddata$/i,
-  /RESUME_PROJECT/i
+  /chi_sim\.traineddata$/i
 ];
+const PROTECTED_DOCUMENT_PATH = [/RESUME_PROJECT/i];
 
 const BACKEND_PREFIX_TESTS = [
   ["backend/src/room-event-bus", ["test/room-events.test.js", "test/room-event-bus-postgres.test.js"]],
@@ -224,10 +224,31 @@ for (const f of files) {
     console.error(`\n✗ blocked sensitive path: ${f}`);
     process.exit(1);
   }
+  if (
+    PROTECTED_DOCUMENT_PATH.some((re) => re.test(f)) &&
+    process.env.ZHIMU_ALLOW_PROTECTED_DOC_CHANGES !== "1"
+  ) {
+    console.error(
+      `\n✗ protected document changed: ${f}\n` +
+      "Set ZHIMU_ALLOW_PROTECTED_DOC_CHANGES=1 only after confirming the user requested this document update."
+    );
+    process.exit(1);
+  }
 }
 
 for (const f of files.filter((p) => /\.(js|mjs|cjs)$/.test(p))) {
   run(`syntax ${f}`, `node --check "${f}"`);
+}
+
+if (files.some((f) =>
+  f.endsWith(".md") ||
+  f === "package.json" ||
+  f === "docs/GENERATED_PROJECT_STATUS.json" ||
+  f === "scripts/check-documentation.mjs" ||
+  f === "scripts/generate-documentation-index.mjs" ||
+  f === "scripts/generate-project-status.mjs"
+)) {
+  run("documentation consistency", "npm run check:docs");
 }
 
 const backendTests = new Set();
@@ -278,7 +299,7 @@ for (const t of backendTests) {
   );
 }
 
-if (files.some((f) => f.startsWith("backend/"))) {
+if (files.some((f) => f.startsWith("backend/") && !f.endsWith(".md"))) {
   run("backend security audit (high+)", "npm audit --audit-level=high --omit=dev", backendRoot);
 }
 
@@ -332,11 +353,11 @@ if (files.some((f) => /^src\/runtime\/(workspace-store|runtime-store|data)\.js/.
   run("test:runtime-stores", "npm run test:runtime-stores");
 }
 
-if (files.some((f) => f.startsWith("play/"))) {
+if (files.some((f) => f.startsWith("play/") && !f.endsWith(".md"))) {
   run("test:play", "npm run test:play");
 }
 
-if (files.some((f) => f.startsWith("host/"))) {
+if (files.some((f) => f.startsWith("host/") && !f.endsWith(".md"))) {
   run("test:host", "npm run test:host");
 }
 

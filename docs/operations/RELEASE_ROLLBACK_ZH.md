@@ -1,12 +1,17 @@
 # 发布恢复与回滚流程
 
+最后更新：2026-07-24
+
 ## 发布前硬门槛
 
 1. 记录待发布提交 SHA、上一稳定镜像或部署 ID、数据库迁移范围。
-2. 执行 `npm run db:verify-rollback --prefix backend -- --out=../artifacts/recovery/release-rollback.json`。命令会记录每个恢复步骤的退出码和耗时；任一步未执行或失败，整体门禁失败。
-3. 执行 `npm run verify:full:3 -- --out=artifacts/release/verify-full-repeat.json`（隔离库上的后端/前端单元与集成，**不含** Playwright E2E，也不要求本机 :4180/:4173 在线）。次数必须是 1–10 的整数；非法次数直接失败，不能零次运行后假通过。E2E 须由 `release-acceptance` 工作流或本地无 `--skip-e2e` 的 `full-chain` 另行通过。
-4. 对 staging 执行 Player 首页并发压测，保存 JSON 和 `pg_stat_statements` 报告。
-5. 创建生产数据库快照并验证快照状态，不能只记录“已请求备份”。
+2. 执行 `npm run status:generate && npm run docs:index && npm run check:docs`，阻止发布说明仍引用旧迁移或已删除模块。
+3. 执行 `npm run db:verify-rollback --prefix backend -- --out=../artifacts/recovery/release-rollback.json`。命令会记录每个恢复步骤的退出码和耗时；任一步未执行或失败，整体门禁失败。
+4. 执行 `npm run verify:full:3 -- --out=artifacts/release/verify-full-repeat.json`（隔离库上的后端/前端单元与集成，**不含** Playwright E2E，也不要求本机 :4180/:4173 在线）。次数必须是 1–10 的整数；非法次数直接失败，不能零次运行后假通过。E2E 须由 `release-acceptance` 工作流或本地无 `--skip-e2e` 的 `full-chain` 另行通过。
+5. 对 staging 执行 Player 首页并发压测，保存 JSON 和 `pg_stat_statements` 报告。
+6. 创建生产数据库快照并验证快照状态，不能只记录“已请求备份”。
+
+当前迁移顺序必须包含 `091` 审稿、`092` 玩法 Profile、`093` 不可变 Release 和 `094` 房间绑定。应用发布前先迁移；旧应用必须继续忽略新增可空字段。RuntimeContentProvider 未全面启用前，`release_id` 只是预绑定，回滚时不得把房间误标为冻结读取。
 
 ## 回滚原则
 

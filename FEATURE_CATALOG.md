@@ -5,7 +5,7 @@
 > **产品现状（中文长文，推荐先读）**：[docs/PRODUCT_STATUS_ZH.md](./docs/PRODUCT_STATUS_ZH.md)  
 > **一张表总览（后端/前端/未接通/缺陷）**：[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)  
 > **同步说明**：2026-07-16 已校正关键架构口径；本文件保留按批次追加的历史功能明细，当前状态、测试与风险以 [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) 为准。
-> **版本阶段**：可信 Beta；本轮发布候选长验收失败待修，非成熟商用 SaaS。
+> **版本阶段**：历史功能长表；当前为可信 Beta，当前提交缺官方完整发布工件，非成熟商用 SaaS。
 
 ---
 
@@ -1282,4 +1282,3 @@ npm run test:ui             # 需 :4173 + :4180
 | `scripts/ui-smoke.js` | **44/44** |
 
 **设计说明**：[docs/DESIGN_ZH.md](./docs/DESIGN_ZH.md)
-

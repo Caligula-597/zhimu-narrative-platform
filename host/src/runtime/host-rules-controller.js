@@ -1,17 +1,9 @@
 import { api } from "../api.js";
 import { activeRuntimeRoom } from "../components/ui.js";
-import {
-  closeModal,
-  modalEl,
-  mountModal,
-  openModal,
-  studioField,
-  studioSelect,
-  studioValues
-} from "../components/modal.js";
 import { state } from "../state.js";
 import { escapeHtml, rulePreviewStatusLabel } from "../utils/format.js";
-import { setHtml } from "../../../shared/safe-dom.js";
+import { hostRuleModeLabel } from "./host-rule-workspace-model.js";
+import { resolveHostWorldAccess } from "./host-rule-permissions.js";
 import { refreshHostRoom } from "./data.js";
 
 let renderRef = () => {};
@@ -25,149 +17,62 @@ export function bindHostRulesContext({ render, showToast }) {
 function render() { renderRef(); }
 function showToast(message) { showToastRef(message); }
 
-function ruleModeLabel(mode) {
-  return { automatic: "自动执行", host_confirm: "主持确认", manual: "仅手动" }[mode]
-    || mode
-    || "自动执行";
-}
-
 function ruleSummary(rule) {
   const conditions = JSON.stringify(rule.conditions || {});
   const actions = JSON.stringify(rule.actions || []);
   return `<small>当 ${escapeHtml(conditions.slice(0, 90))}${conditions.length > 90 ? "…" : ""}</small><small>则 ${escapeHtml(actions.slice(0, 90))}${actions.length > 90 ? "…" : ""}</small>`;
 }
 
+function ruleAuditHtml() {
+  const audit = state.hostRuleAudit;
+  if (!audit) return "";
+  if (audit.status === "loading") {
+    return `<section class="host-rule-audit pending" role="status">${escapeHtml(audit.message || "正在检查全部规则…")}</section>`;
+  }
+  if (audit.status === "error") {
+    return `<section class="host-rule-audit error" role="alert">${escapeHtml(audit.message || "规则检查失败")}</section>`;
+  }
+  if (!audit.checks.length) {
+    return `<section class="host-rule-audit success"><strong>全部规则检查通过</strong><p>已检查 ${Number(audit.totalRules) || 0} 条规则，没有发现结构或发布阻断问题。</p></section>`;
+  }
+  return `<section class="host-rule-audit warning"><strong>发现 ${audit.checks.length} 项需要处理</strong><div>${audit.checks.map((check) => `<article><b>${escapeHtml(check.title || "规则问题")}</b><p>${escapeHtml(check.detail || "")}</p></article>`).join("")}</div></section>`;
+}
+
+function deleteConfirmation(rule) {
+  if (String(state.hostRuleDeleteConfirmId || "") !== String(rule.id)) return "";
+  return `<section class="host-rule-delete-confirm">
+    <div><strong>确认删除「${escapeHtml(rule.name)}」？</strong><p>删除会立即影响当前世界和绑定房间，历史审计不会被抹除。</p></div>
+    <div class="row"><button class="secondary-btn" data-action="host-rule-delete-cancel">取消</button><button class="primary-btn danger-btn" data-action="host-rule-delete-confirm" data-rule="${escapeHtml(rule.id)}">确认删除</button></div>
+  </section>`;
+}
+
 export function hostRulesManager() {
   const room = activeRuntimeRoom();
+  const access = resolveHostWorldAccess();
+  const canEdit = access.canEditRules;
   const currentRules = (state.rules || []).filter((rule) => !rule.room_id || rule.room_id === room?.id);
+  const busy = Boolean(state.hostRuleListBusy);
   const rows = currentRules.length
-    ? currentRules.map((rule) => `<div class="checkpoint-row"><div><strong>${escapeHtml(rule.name)}</strong><p>${escapeHtml(ruleModeLabel(rule.mode))} · ${rule.enabled ? "已启用" : "已暂停"} · ${escapeHtml(rule.room_name || "世界模板")} · 优先级 ${Number(rule.priority) || 100}</p>${ruleSummary(rule)}</div><div class="row"><button class="text-btn" data-action="host-rule-toggle" data-rule="${escapeHtml(rule.id)}">${rule.enabled ? "暂停" : "启用"}</button><button class="text-btn" data-action="host-rule-edit" data-rule="${escapeHtml(rule.id)}">编辑</button><button class="text-btn danger-text" data-action="host-rule-delete" data-rule="${escapeHtml(rule.id)}">删除</button></div></div>`).join("")
+    ? currentRules.map((rule) => {
+      const editing = String(state.hostRuleWorkspace?.ruleId || "") === String(rule.id);
+      const rowBusy = String(state.hostRuleListBusy || "").endsWith(`:${rule.id}`);
+      const editorActions = canEdit
+        ? `<div class="row">${editing ? `<span class="status-chip testing">正在编辑</span>` : ""}<button class="text-btn" data-action="host-rule-toggle" data-rule="${escapeHtml(rule.id)}" ${busy || editing ? "disabled" : ""}>${rule.enabled ? "暂停" : "启用"}</button><button class="text-btn" data-action="host-rule-edit" data-rule="${escapeHtml(rule.id)}" ${busy ? "disabled" : ""}>编辑</button><button class="text-btn danger-text" data-action="host-rule-delete-request" data-rule="${escapeHtml(rule.id)}" ${busy || editing ? "disabled" : ""}>删除</button></div>`
+        : `<span class="status-chip draft">${escapeHtml(access.label)} · 只读</span>`;
+      return `<div class="checkpoint-row host-rule-row" ${rowBusy ? 'aria-busy="true"' : ""}><div><strong>${escapeHtml(rule.name)}</strong><p>${escapeHtml(hostRuleModeLabel(rule.mode))} · ${rule.enabled ? "已启用" : "已暂停"} · ${escapeHtml(rule.room_name || "世界模板")} · 优先级 ${Number(rule.priority) || 100}</p>${ruleSummary(rule)}</div>${editorActions}${canEdit ? deleteConfirmation(rule) : ""}</div>`;
+    }).join("")
     : `<div class="empty-state">当前房间没有可用规则。可以新建世界模板规则，或绑定到当前房间。</div>`;
-  return `<div class="host-detail-list" style="margin-top:12px"><p class="section-kicker">规则管理</p>${rows}</div>`;
+  const accessNote = canEdit
+    ? ""
+    : `<div class="host-rule-list-message" role="note">当前身份为 ${escapeHtml(access.label)}：可以查看规则与运行预览，写入操作仅限拥有者和编辑者。</div>`;
+  return `<div class="host-detail-list host-rule-manager"><p class="section-kicker">规则管理</p>${accessNote}${state.hostRuleListMessage ? `<div class="host-rule-list-message" role="status">${escapeHtml(state.hostRuleListMessage)}</div>` : ""}${ruleAuditHtml()}${rows}</div>`;
 }
 
-function ruleEditorValue(rule = {}) {
-  return {
-    roomId: rule.room_id || "",
-    name: rule.name || "",
-    mode: rule.mode || "automatic",
-    priority: String(rule.priority ?? 100),
-    enabled: rule.enabled !== false,
-    conditions: JSON.stringify(rule.conditions || { all: [{ type: "reading_completed", roleSlotId: "", scriptSectionId: "" }] }, null, 2),
-    actions: JSON.stringify(rule.actions || [{ type: "timeline_log", message: "主持端新建规则" }], null, 2)
-  };
-}
-
-async function refreshHostRules() {
-  state.rules = await api.getRules();
-  render();
-}
-
-function showRuleEditorErrors(errors = []) {
-  const box = modalEl.root.querySelector("[data-host-rule-errors]");
-  if (!box) return;
-  if (!errors.length) {
-    setHtml(box, "");
-    box.classList.remove("show");
-    return;
-  }
-  box.classList.add("show");
-  setHtml(box, `<strong>请修正以下问题：</strong><ul>${errors.map((item) => `<li>${escapeHtml(item.message || String(item))}</li>`).join("")}</ul>`);
-}
-
-export function openHostRuleEditor(ruleId = "") {
-  const rule = (state.rules || []).find((item) => item.id === ruleId);
-  const value = ruleEditorValue(rule);
-  const rooms = state.rooms || [];
-  mountModal();
-  modalEl.root.className = "modal rule-editor-modal";
-  setHtml(modalEl.root, `<h2>${rule ? "编辑自动化规则" : "新建自动化规则"}</h2><p class="wizard-intro">主持端提供轻量 JSON 管理；复杂可视化编排仍可回到创作者端处理。</p><div class="form-group">${studioField("规则名称", "ruleName", "input", value.name)}${studioSelect("绑定范围", "ruleRoomId", [{ id: "", name: "世界模板 · 可复用于新房间" }, ...rooms.map((room) => ({ id: room.id, name: room.name }))], value.roomId)}${studioSelect("触发模式", "ruleMode", [{ id: "automatic", name: "自动执行" }, { id: "host_confirm", name: "主持确认" }, { id: "manual", name: "仅手动触发" }], value.mode)}${studioField("优先级", "rulePriority", "input", value.priority)}<label class="check-label"><input type="checkbox" data-host-rule-enabled ${value.enabled ? "checked" : ""}> 启用规则</label>${studioField("检测条件 JSON", "ruleConditions", "textarea", value.conditions)}${studioField("执行动作 JSON", "ruleActions", "textarea", value.actions)}</div><div data-host-rule-errors class="rule-error-box"></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-host-rule-submit>保存规则</button></div>`);
-  modalEl.backdrop.classList.add("show");
-  modalEl.root.querySelector("[data-close]").onclick = closeModal;
-  modalEl.root.querySelector("[data-host-rule-submit]").onclick = async () => {
-    try {
-      showRuleEditorErrors([]);
-      const values = studioValues();
-      let conditions;
-      let actions;
-      try {
-        conditions = JSON.parse(values.ruleConditions);
-        actions = JSON.parse(values.ruleActions);
-      } catch (error) {
-        showRuleEditorErrors([{ message: `JSON 格式错误：${error.message}` }]);
-        return;
-      }
-      const validation = await api.validateRuleBody({ conditions, actions });
-      if (!validation.ok) {
-        showRuleEditorErrors(validation.errors || []);
-        return;
-      }
-      const payload = {
-        roomId: values.ruleRoomId || null,
-        name: values.ruleName,
-        mode: values.ruleMode,
-        priority: Number(values.rulePriority) || 100,
-        enabled: modalEl.root.querySelector("[data-host-rule-enabled]").checked,
-        conditions,
-        actions
-      };
-      if (rule) await api.updateRule(rule.id, payload);
-      else await api.createRule(payload);
-      closeModal();
-      await refreshHostRules();
-      showToast("规则已保存");
-    } catch (error) {
-      showToast(error.message);
-    }
-  };
-}
-
-export async function toggleHostRule(ruleId) {
-  const rule = (state.rules || []).find((item) => item.id === ruleId);
-  if (!rule) return showToast("找不到规则");
-  try {
-    await api.updateRule(rule.id, {
-      roomId: rule.room_id || null,
-      name: rule.name,
-      mode: rule.mode,
-      priority: rule.priority,
-      enabled: !rule.enabled,
-      conditions: rule.conditions,
-      actions: rule.actions
-    });
-    await refreshHostRules();
-    showToast(rule.enabled ? "规则已暂停" : "规则已启用");
-  } catch (error) {
-    showToast(error.message);
-  }
-}
-
-export async function deleteHostRule(ruleId) {
-  const rule = (state.rules || []).find((item) => item.id === ruleId);
-  if (!rule) return showToast("找不到规则");
-  if (!window.confirm(`确定删除规则“${rule.name}”？`)) return;
-  try {
-    await api.deleteRule(ruleId);
-    await refreshHostRules();
-    showToast("规则已删除");
-  } catch (error) {
-    showToast(error.message);
-  }
-}
-
-export async function validateHostRules() {
-  try {
-    const result = await api.validateRules();
-    openModal(
-      "规则检查完成",
-      result.checks?.length
-        ? result.checks.map((check) => `<b>${escapeHtml(check.title)}</b><br><span>${escapeHtml(check.detail)}</span>`).join("<br><br>")
-        : `已检查 ${result.totalRules || 0} 条规则，没有发现结构问题。`,
-      "知道了"
-    );
-  } catch (error) {
-    showToast(error.message);
-  }
+export function hostRuleManagerHeaderActions() {
+  const editorActions = resolveHostWorldAccess().canEditRules
+    ? `<button class="secondary-btn" data-action="host-rule-new">新建</button><button class="secondary-btn" data-action="host-rule-validate">检查</button>`
+    : "";
+  return `<button class="secondary-btn" data-action="rules-preview">刷新预览</button>${editorActions}`;
 }
 
 function rulePreviewTraceRows(row) {

@@ -21,6 +21,11 @@ import {
   downloadTextFile,
   fileFingerprint
 } from "./writer-transfer-files.js";
+import {
+  writerToolContextPanelHtml,
+  writerToolGridPageHtml,
+  writerToolGuidanceHtml
+} from "./writer-tool-layout.js";
 
 const MAX_CONTENT_PACKAGE_FILE_BYTES = 15 * 1024 * 1024;
 const MAX_PLAIN_TEXT_FILE_BYTES = 500_000;
@@ -58,17 +63,23 @@ function exportWorkspaceBody(data, session) {
 }
 
 export function exportWorkspaceHtml(data, session) {
-  return `<section class="writer-tool-workspace" data-writer-tool-workspace data-writer-tool="export">
-    <button type="button" class="workspace-back-btn" data-action="writer-tool-close">← 返回创作中心</button>
-    <div class="writer-tool-grid">
-      <aside class="writer-tool-context">
-        <p class="section-kicker">DELIVERY PACKAGE</p>
-        <h2>导出与交付</h2>
-        <p>把云端创作内容拆成适合迁移、排版、发稿和主持执行的交付物，并可在导出时保存版本锚点。</p>
-        <dl class="writer-metadata-facts"><div><dt>步骤</dt><dd>${session.draft.step}/2</dd></div><div><dt>已选择</dt><dd>${exportPicked(session).length}</dd></div><div><dt>权限</dt><dd>主创</dd></div></dl>
-        <div class="writer-metadata-guidance"><strong>保密提醒</strong><p>下载文件离开平台后由本机和接收方保管。对外发稿前请检查隐藏真相、主持信息和玩家稿是否被错误打包。</p></div>
-      </aside>
-      ${renderWorkspaceEditor({
+  return writerToolGridPageHtml({
+    type: "export",
+    contextHtml: writerToolContextPanelHtml({
+      kicker: "DELIVERY PACKAGE",
+      title: "导出与交付",
+      intro: "把云端创作内容拆成适合迁移、排版、发稿和主持执行的交付物，并可在导出时保存版本锚点。",
+      facts: [
+        { label: "步骤", value: `${session.draft.step}/2` },
+        { label: "已选择", value: exportPicked(session).length },
+        { label: "权限", value: "主创" }
+      ],
+      bodyHtml: writerToolGuidanceHtml({
+        title: "保密提醒",
+        text: "下载文件离开平台后由本机和接收方保管。对外发稿前请检查隐藏真相、主持信息和玩家稿是否被错误打包。"
+      })
+    }),
+    contentHtml: renderWorkspaceEditor({
         title: "创作内容交付",
         kicker: "SELECT · REVIEW · EXPORT",
         intro: "导出不会修改正文；勾选版本快照时会新增一条云端版本记录。",
@@ -79,9 +90,8 @@ export function exportWorkspaceHtml(data, session) {
         cancelLabel: "返回创作中心",
         className: "writer-export-editor",
         status: session.error ? `<strong>导出未全部完成</strong><p>${escapeHtml(session.error)}</p>` : ""
-      })}
-    </div>
-  </section>`;
+    })
+  });
 }
 
 export async function openExportWorkspace() {
@@ -214,16 +224,23 @@ export function importWorkspaceHtml(data, session) {
     <div class="writer-transfer-inline-actions"><button type="button" class="secondary-btn" data-action="writer-import-preview">${session.savingAction === "preview" ? "正在生成预览…" : "生成导入预览"}</button></div>
     ${importPreviewBody(session)}
   </div>`;
-  return `<section class="writer-tool-workspace" data-writer-tool-workspace data-writer-tool="import">
-    <button type="button" class="workspace-back-btn" data-action="writer-tool-close">← 返回创作中心</button>
-    <div class="writer-tool-grid">
-      <aside class="writer-tool-context">
-        <p class="section-kicker">CONTENT MIGRATION</p><h2>导入内容</h2>
-        <p>导入分为文件识别、影响预览和写入三步；文件或模式变化后，必须重新预览，避免把旧文件结果写进当前世界。</p>
-        <dl class="writer-metadata-facts"><div><dt>模式</dt><dd>${newWorld ? "新世界" : "追加"}</dd></div><div><dt>文件</dt><dd>${session.file ? "已选择" : "未选择"}</dd></div><div><dt>预览</dt><dd>${session.preview ? "有效" : "待生成"}</dd></div></dl>
-        <div class="writer-metadata-guidance"><strong>不可逆边界</strong><p>追加导入只新增记录，不覆盖现有对象；创建新世界成功后即使页面刷新失败，也不要重复点击导入。</p></div>
-      </aside>
-      ${renderWorkspaceEditor({
+  return writerToolGridPageHtml({
+    type: "import",
+    contextHtml: writerToolContextPanelHtml({
+      kicker: "CONTENT MIGRATION",
+      title: "导入内容",
+      intro: "导入分为文件识别、影响预览和写入三步；文件或模式变化后，必须重新预览，避免把旧文件结果写进当前世界。",
+      facts: [
+        { label: "模式", value: newWorld ? "新世界" : "追加" },
+        { label: "文件", value: session.file ? "已选择" : "未选择" },
+        { label: "预览", value: session.preview ? "有效" : "待生成" }
+      ],
+      bodyHtml: writerToolGuidanceHtml({
+        title: "不可逆边界",
+        text: "追加导入只新增记录，不覆盖现有对象；创建新世界成功后即使页面刷新失败，也不要重复点击导入。"
+      })
+    }),
+    contentHtml: renderWorkspaceEditor({
         title: "内容导入工作台",
         kicker: "SELECT · PREVIEW · IMPORT",
         intro: "预览与当前文件指纹绑定，无法拿旧预览提交新文件。",
@@ -234,9 +251,8 @@ export function importWorkspaceHtml(data, session) {
         cancelLabel: "返回创作中心",
         className: "writer-import-editor",
         status: session.error ? `<strong>操作未完成</strong><p>${escapeHtml(session.error)}</p>` : ""
-      })}
-    </div>
-  </section>`;
+    })
+  });
 }
 
 export function openImportWorkspace() {

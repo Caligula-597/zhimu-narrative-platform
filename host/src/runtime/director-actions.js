@@ -5,41 +5,18 @@ import { loadHostData, refreshHostAuditLog, refreshHostClueMatrix, refreshHostEv
 import { resetPaceTimer, switchPaceMode, togglePaceTimer } from "./host-pace-timer.js";
 import {
   batchHostEventsAction,
-  dismissHostEvent,
-  executeHostEvent,
-  openDelayHostEventModal,
-  openHostEventContext,
   syncHostEventSelectAll,
   toggleHostEventSelection
 } from "./host-event-queue.js";
 import {
-  deleteHostRule,
-  openHostRuleEditor,
   refreshRulesPreview,
-  toggleHostRule,
-  triggerManualRuleFromDirector,
-  validateHostRules
+  triggerManualRuleFromDirector
 } from "./host-rules-controller.js";
 import {
   copyInviteCode,
   copyPlayLink,
-  openCreateCheckpointModal,
-  openCreateRecapModal,
   openRoomInviteModal
 } from "./invite.js";
-import {
-  kickHostPlayer,
-  openHostClueNote,
-  openHostGrantClueModal,
-  openHostGrantItemModal,
-  openHostLogModal,
-  openHostNudgeWaitingModal,
-  openHostPlayerDetail,
-  openHostStuckIntervention,
-  openHostUnlockSceneModal,
-  openHostUnlockSectionModal
-} from "./host-intervention-controller.js";
-
 export function createDirectorActionHandler({ render, showToast }) {
   async function runCommand(command, successMessage, fallbackMessage, { refresh = true } = {}) {
     try {
@@ -54,40 +31,11 @@ export function createDirectorActionHandler({ render, showToast }) {
   return function handleDirectorAction(action, el) {
     switch (action) {
       case "rules-preview": refreshRulesPreview(); return true;
-      case "host-rule-new": openHostRuleEditor(); return true;
-      case "host-rule-edit": openHostRuleEditor(el?.dataset?.rule); return true;
-      case "host-rule-toggle": toggleHostRule(el?.dataset?.rule); return true;
-      case "host-rule-delete": deleteHostRule(el?.dataset?.rule); return true;
-      case "host-rule-validate": validateHostRules(); return true;
       case "rule-manual-trigger": triggerManualRuleFromDirector(el?.dataset?.rule); return true;
-      case "delay-host-event": openDelayHostEventModal(el?.dataset?.event); return true;
-      case "host-event-context": openHostEventContext(el?.dataset?.event); return true;
-      case "host-player-detail": openHostPlayerDetail(el?.dataset?.role); return true;
-      case "host-kick-player": kickHostPlayer(el?.dataset?.role); return true;
-      case "host-manual-grant-clue":
-        openHostGrantClueModal({
-          actKey: el?.dataset?.actKey,
-          clueId: el?.dataset?.clueId,
-          roleKey: el?.dataset?.roleKey
-        });
-        return true;
-      case "host-manual-grant-item": openHostGrantItemModal(); return true;
-      case "host-manual-unlock-section":
-        openHostUnlockSectionModal({ actKey: el?.dataset?.actKey });
-        return true;
-      case "host-manual-unlock-scene": openHostUnlockSceneModal(); return true;
-      case "host-manual-log": openHostLogModal(); return true;
-      case "host-clue-note": openHostClueNote(el?.dataset?.clue, el?.dataset?.role); return true;
       case "host-event-toggle": toggleHostEventSelection(el?.dataset?.event, el?.checked); return true;
       case "host-event-select-all": syncHostEventSelectAll(el?.checked); return true;
       case "batch-execute-host-events": batchHostEventsAction("execute"); return true;
       case "batch-dismiss-host-events": batchHostEventsAction("dismiss"); return true;
-      case "execute-host-event": executeHostEvent(el?.dataset?.event); return true;
-      case "dismiss-host-event": dismissHostEvent(el?.dataset?.event); return true;
-      case "host-nudge-waiting": openHostNudgeWaitingModal(); return true;
-      case "host-stuck-intervene": openHostStuckIntervention(el?.dataset?.role || ""); return true;
-      case "create-checkpoint": openCreateCheckpointModal(); return true;
-      case "create-recap": openCreateRecapModal(); return true;
       case "room-invite-current": openRoomInviteModal(); return true;
       case "copy-invite-code": copyInviteCode(el?.dataset?.inviteCode); return true;
       case "copy-play-link": copyPlayLink(el?.dataset?.inviteCode); return true;
@@ -110,20 +58,6 @@ export function createDirectorActionHandler({ render, showToast }) {
           "执行失败"
         );
         return true;
-      case "host-create-vote": {
-        const title = window.prompt("投票标题（如：指认凶手）");
-        if (!title?.trim()) return true;
-        void runCommand(
-          () => api.hostCreateVote({
-            title: title.trim(),
-            voteType: "accusation",
-            prompt: "请选择你认为的嫌疑人"
-          }),
-          "投票已开启",
-          "开启失败"
-        );
-        return true;
-      }
       case "host-vote-status":
         void runCommand(
           () => api.hostUpdateVoteStatus(el?.dataset?.voteId, el?.dataset?.status),

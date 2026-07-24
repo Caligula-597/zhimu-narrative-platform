@@ -1,6 +1,6 @@
 # 生产级 SaaS 评估
 
-最后更新：2026-07-20
+最后更新：2026-07-24
 
 ## 结论
 
@@ -35,7 +35,7 @@
 | Staging 隔离 | `docs/ops/STAGING_ISOLATION_DRILL_2026-07-03.md`，配置 8/8，功能 smoke 11/11 | L1-07 完成 |
 | 共享层 | API/session/auth/error/SSE/cursor/toast/safe-dom/trace/web-vitals | 三端 transport 已完成，业务 UI 保持独立 |
 | 官网资产 | `docs/ops/L2-06_SITE_SCREENSHOTS_ACCEPTANCE.md`，hero + 四端真实 PNG | 截图完成，案例待补 |
-| 快速非功能门禁 | periodic 14/14，SSE 43/43，Auth 22/22，Trusted Types 23/23，发布工具 8/8 | 代码侧门禁通过，不替代真实环境 |
+| 快速非功能门禁 | 最近专项门禁有通过基线；periodic 当前定义为 15 项并新增文档一致性 | 代码侧门禁不替代真实环境，本次完整 15 项仍需重新执行留证 |
 | 发布候选长验收 | GitHub Actions `29477387204`，提交 `c72209b` | **失败**：712 tests、701 pass、8 fail、3 skipped；只完成 1/3，后续门禁未运行 |
 
 ## 评分总表
@@ -43,10 +43,10 @@
 | 维度 | 分数 | 依据 | 主要扣分点 |
 |---|---:|---|---|
 | 产品闭环 | 84 | 创作、开房、主持、玩家、规则、线索、复盘、反馈、官网展示均已形成可演示和可使用闭环 | 首次上手仍可继续压缩；pilot 案例不足 |
-| 后端与领域建模 | 91 | world/player/schema 大入口完成拆分，69 个路由模块直连 DB 为 0 且有硬门禁 | service 内部查询与跨领域依赖仍需持续审计 |
+| 后端与领域建模 | 91 | world/player/schema 大入口完成拆分，71 个路由模块直连 DB 为 0 且有硬门禁 | service 内部查询与跨领域依赖仍需持续审计 |
 | 前端与 UI 产品化 | 86 | 三端 transport 统一，Player/Host 入口与 Creator 懒加载已收敛 | 业务 UI 与少量协调层仍有重复 |
 | 安全与权限 | 89 | productionTrust、RLS、生产库防误写、SSE 受众、Auth 竞态、SSRF、Trusted Types | 新事件/路由仍须进入契约与权限矩阵 |
-| 测试与质量门禁 | 82 | 14 项周期审计和专项矩阵固定化；失败工件没有被误判为通过 | 全量隔离测试仍有 8 个失败；staging 容量与 soak 未完成 |
+| 测试与质量门禁 | 82 | 15 项周期审计和专项矩阵固定化；失败工件没有被误判为通过 | 当前提交缺完整官方成功工件；staging 容量与 soak 未完成 |
 | 运维与可观测 | 84 | ready/metrics/OTLP/alert/on-call/Ops Bridge 已演练 | 上传扫描故障、部署回滚、人工值班登记仍需压实 |
 | CI/CD 与发布 | 76 | Railway/Pages 已验证；Release Acceptance 会阻断失败并保留工件 | 本轮在 1/3 隔离测试即失败；E2E/性能/恢复均未执行 |
 | 数据治理与恢复 | 80 | managed 恢复演练、RLS、导出/删除/保留文档齐全 | 全量 pg_dump 恢复、R2 附件恢复、客户承诺文本待补 |
@@ -57,7 +57,7 @@
 
 ### 后端
 
-后端结构健康。原 844 行 world helper 已成为 6 行兼容 barrel，player 路由入口为 9 行注册器，schema 拆为 14 个领域文件；复杂查询进入 repository/service。业务状态和玩家可见内容继续由后端推导。69 个路由模块的直连数据库点已从 143 个降至 0，并固定为不可回升门禁；下一阶段不再追求机械拆文件，而是审计 service 内部查询效率、事务与领域依赖。
+后端结构健康。原 844 行 world helper 已成为 6 行兼容 barrel，player 路由入口为 8 行注册器，schema 拆为 32 个领域文件；复杂查询进入 repository/service。业务状态和玩家可见内容继续由后端推导。71 个路由模块的直连数据库点已从历史 143 个降至 0，并固定为不可回升门禁；下一阶段不再追求机械拆文件，而是审计 service 内部查询效率、事务与领域依赖。
 
 需要继续守住的边界：
 

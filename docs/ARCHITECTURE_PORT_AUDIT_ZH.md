@@ -1,10 +1,10 @@
 # 架构与端口审视
 
-最后更新：2026-07-20
+最后更新：2026-07-24
 
 ## 结论
 
-当前核心业务框架可继续生产化：Fastify + PostgreSQL 的领域边界清楚，Railway fullstack 承载主应用和 API，玩家端/主持端/官网按 Cloudflare Pages 分域。Pages 三站、共享 API/Auth/SSE transport、入口拆分和生产安全门禁均已落地。69 个路由模块的直接数据库调用债务已由 143 个递减到 0，并由架构门禁禁止回升；当前主要风险已转为领域服务内部质量，以及真实容量、恢复和回滚证据。
+当前核心业务框架可继续生产化：Fastify + PostgreSQL 的领域边界清楚，Railway fullstack 承载主应用和 API，玩家端/主持端/官网按 Cloudflare Pages 分域。Pages 三站、共享 API/Auth/SSE transport、入口拆分和生产安全门禁均已落地。71 个路由模块的直接数据库调用债务已由历史 143 个递减到 0，并由架构门禁禁止回升；当前主要风险已转为领域服务内部质量，以及真实容量、恢复和回滚证据。
 
 ## 端口表
 
@@ -57,14 +57,11 @@ A1/A2 已完成主应用三大桥清除与状态分片。Creator、Host、Player
 
 代码已强制 CSP enforce、OTLP、alert webhook、AV strict；缺少真实值时 `railway:sync-env` 会失败。productionTrust 已有生产验证，当前不能由静态配置替代的是 staging 容量、镜像回滚、R2 恢复和实际 RPO/RTO。
 
-### P2：文档历史版本多
+### 已处理：文档历史版本多
 
 旧 Alpha/Beta 文档保留了当时的评估数字和待办，容易与当前标准冲突。
 
-建议：
-
-- 当前真相源固定为：`docs/PROJECT_STATUS.md`、`README.md`、`ARCHITECTURE.md`、`SECURITY_AND_TESTING.md`、`docs/PRODUCT_STATUS_ZH.md`、`docs/ops/*`。
-- 历史文档顶部加“历史参考，以当前真相源为准”。
+当前已经建立 [`DOCUMENTATION_INDEX_ZH.md`](./DOCUMENTATION_INDEX_ZH.md)，把全部 Markdown 分为当前事实、产品说明、方案、运维、历史和法务材料；`npm run check:docs` 校验索引、相对链接和生成事实基线。历史记录不再通过改写旧证据来“同步”。
 
 ## 当前不建议改的点
 

@@ -1,6 +1,6 @@
 # 织幕 · 官网（营销站）
 
-最后更新：2026-07-16
+最后更新：2026-07-24
 
 官网代码放在本目录，和产品 App 同仓不同构建，避免污染根目录 `src/` 产品代码。
 
@@ -84,7 +84,7 @@ MARKETING_SITE_URL=https://getzhimu.com
 | `getzhimu.com` | 本目录构建产物，可部署到 Cloudflare Pages、Vercel、Netlify 或独立静态服务 |
 | `app.getzhimu.com` | 现有 fullstack 应用，见根目录 `deploy/Dockerfile.fullstack` |
 
-官网已接入 `.github/workflows/pages-deploy.yml`，最新 PR 预览部署和安全检查通过。`site/main.js` 与 `site/pricing-commercial.js` 仍使用官网独立公开请求层；它不承载登录态，但后续应补统一 timeout、CSP 与错误边界审计。
+官网已接入 `.github/workflows/production-release.yml` 的统一预览、验证与提升流程；工作流存在不代表当前提交已经执行通过。`site/main.js` 与 `site/pricing-commercial.js` 仍使用官网独立公开请求层；它不承载登录态，但后续应补统一 timeout、CSP 与错误边界审计。
 
 ## 相关文档
 

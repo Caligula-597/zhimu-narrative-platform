@@ -86,7 +86,7 @@ export function production() {
     <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>Word / Markdown / 内容包</span></button>
     <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>${roleCount} 角色 · ${sectionCount} 分幕</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-export"><strong>交付包导出</strong><span>玩家本 · 线索清单 · 主持手册 · JSON</span></button>
-    <button type="button" class="workspace-action-card" data-action="story-assistant"><strong>规则分类器</strong><span>从母稿提取结构化规则</span></button>
+    <button type="button" class="workspace-action-card" data-action="story-assistant"><strong>剧情结构提取</strong><span>从文本提取场景、调查点、线索和建议连线</span></button>
   </section>
   <section class="card" style="margin-top:14px"><div class="section-head"><div><h3>下一步</h3><p>内容就绪后绑定主持运行段落。</p></div><button class="secondary-btn" data-go="structure">打开运行段落工作台 →</button></div></section>`;
 }

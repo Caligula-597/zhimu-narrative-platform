@@ -14,7 +14,6 @@ const dispatchers = [
   () => window.zhimuActionsCreatorWorkspaces?.handleCreatorWorkspacesAction,
   () => window.zhimuActionsArchive?.handleArchiveAction,
   () => window.zhimuActionsPlayer?.handlePlayerAction,
-  () => window.zhimuActionsDirector?.handleDirectorAction,
   () => window.zhimuActionsStudio?.handleStudioAction,
   () => window.zhimuActionsWriter?.handleWriterAction,
   () => window.zhimuActionsRules?.handleRulesAction,

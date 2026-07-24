@@ -1,7 +1,7 @@
 # 织幕 · 数据库结构索引
 
 > **用途**：后端表/枚举/迁移的快速参考。权威定义在 `backend/migrations/*.sql`。  
-> **更新**：2026-07-16（迁移 **001–067**）。数据库真相以迁移文件和 `schema_migrations` 为准；生产/类生产环境必须先应用 `065_platform_event_journal.sql`，否则 readiness 会阻断。
+> **更新**：2026-07-24（迁移 **001–097**）。数据库真相以迁移文件和 `schema_migrations` 为准；生产/类生产环境必须至少包含 readiness 要求的关键迁移，不能只按本文手工建表。当前迁移号由 [`docs/GENERATED_PROJECT_STATUS.json`](./docs/GENERATED_PROJECT_STATUS.json) 自动记录。
 
 ---
 
@@ -71,6 +71,19 @@
 | `065_platform_event_journal.sql` | 平台事件 journal；生产 readiness 必需 |
 | `066_room_event_journal_retention_index.sql` | 房间事件保留期索引 |
 | `067_transactional_event_outbox.sql` | 事务型事件 outbox，避免业务提交与通知分裂 |
+| `068_voice_room_lifecycle.sql` | 语音房生命周期 |
+| `069`–`070` | 语音房运行索引与消息保留索引 |
+| `071_checkpoint_restore_history_index.sql` | 检查点恢复历史索引 |
+| `072`–`083` | 调查点、规则、导入、角色脚本、私密行动、背包、线索、复盘与阅读进度查询索引 |
+| `084`–`087` | 开房幂等、世界房间查询与活跃席位索引 |
+| `088`–`090` | 账号创建事件与查询索引 |
+| `091_creator_review_workflow.sql` | 创作者协作审稿、建议与评审工作流 |
+| `092_narrative_profile_settings.sql` | 剧本杀 / 跑团叙事档案与术语设置 |
+| `093_world_releases.sql` | 世界内容发布版本 |
+| `094_room_release_binding.sql` | 运行房绑定不可变发布版本 |
+| `095_account_deletion_integrity.sql` | 账号删除任务、关联数据与审计完整性 |
+| `096_foreign_key_index_coverage.sql` | 补齐高频外键查询的索引覆盖 |
+| `097_enable_rls_post_launch_tables.sql` | 为上市准备阶段新增表启用 Row-Level Security |
 
 应用：`cd backend && npm run db:migrate`
 
@@ -155,7 +168,7 @@ users ──┬── world_members ── worlds ──┬── role_slots ─
 | `playerStates` | `player_states` |
 | `ruleExecutions` | `rule_executions` |
 
-不回滚 `timeline_logs`（恢复操作会追加 `checkpoint_restored` 日志）。
+`timelineLogs` 默认为 `false`，避免普通恢复覆盖审计历史；主持显式选择时可以恢复最多 5000 条完整快照日志，若快照已截断则后端拒绝覆盖。无论是否恢复时间线，恢复操作都会追加新的 `checkpoint_restored` 日志。
 
 ### `room_recaps`
 
@@ -198,6 +211,7 @@ users ──┬── world_members ── worlds ──┬── role_slots ─
 - `room_event_journal` retention/replay 索引（066）
 - `event_outbox` pending dispatcher 索引（067）
 - `world_segments` / `room_votes` / `room_private_actions` 运行态索引（049）
+- 语音、复盘、导入、开房、账号事件与发布绑定查询索引（068–094）
 
 ---
 

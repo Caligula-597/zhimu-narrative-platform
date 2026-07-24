@@ -1,0 +1,249 @@
+.writer-world-logs-workspace {
+  --ledger-paper: #fffdf7;
+  --ledger-ink: #20312d;
+  gap: 16px;
+}
+
+.writer-world-logs-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  border: 1px solid rgba(25, 68, 61, .14);
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fffdf7, #eef4ef);
+}
+
+.writer-world-logs-head h1 {
+  margin-top: 7px;
+  font: 600 28px/1.25 "Noto Serif SC", "Songti SC", serif;
+}
+
+.writer-world-logs-head p:not(.section-kicker) {
+  max-width: 760px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.writer-world-logs-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.writer-world-logs-layout > .writer-tool-context {
+  position: sticky;
+  top: 108px;
+}
+
+.writer-world-log-filters {
+  display: grid;
+  gap: 13px;
+  margin-top: 17px;
+}
+
+.writer-world-log-filters label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.writer-world-log-filter-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.writer-world-log-filter-note {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.writer-world-log-ledger {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ledger-ink);
+  background: var(--ledger-paper);
+}
+
+.writer-world-log-ledger > .section-head {
+  align-items: flex-start;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--line);
+}
+
+.writer-world-log-ledger > .section-head h2 {
+  margin-top: 6px;
+  font: 600 22px/1.3 "Noto Serif SC", "Songti SC", serif;
+}
+
+.writer-world-log-ledger > .section-head p:last-child {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.writer-world-log-list {
+  position: relative;
+  display: grid;
+  padding: 8px 0;
+}
+
+.writer-world-log-list::before {
+  position: absolute;
+  top: 21px;
+  bottom: 21px;
+  left: 7px;
+  width: 1px;
+  background: rgba(25, 68, 61, .15);
+  content: "";
+}
+
+.writer-world-log-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 13px;
+  padding: 13px 0;
+}
+
+.writer-world-log-mark {
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  margin: 7px 0 0 3px;
+  border: 2px solid #fffdf7;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 1px rgba(25, 68, 61, .22);
+}
+
+.writer-world-log-copy {
+  min-width: 0;
+  padding: 13px 15px;
+  border: 1px solid rgba(25, 68, 61, .11);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.writer-world-log-copy header,
+.writer-world-log-copy header > div,
+.writer-world-log-copy footer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.writer-world-log-copy header {
+  justify-content: space-between;
+}
+
+.writer-world-log-type {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.writer-world-log-copy code {
+  overflow: hidden;
+  max-width: 220px;
+  color: #7d6c4c;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.writer-world-log-copy time,
+.writer-world-log-copy footer {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.writer-world-log-copy > p {
+  margin-top: 9px;
+  color: #48514e;
+  font-size: 11px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.writer-world-log-copy footer {
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.writer-world-log-copy footer span + span::before {
+  margin-right: 9px;
+  content: "·";
+}
+
+.writer-world-log-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.writer-world-log-cap,
+.writer-world-log-status p,
+.writer-world-logs-empty p {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.writer-world-log-status,
+.writer-world-logs-empty {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 280px;
+  padding: 28px;
+  text-align: center;
+}
+
+.writer-world-log-status.error {
+  color: #8b352f;
+}
+
+@media (max-width: 900px) {
+  .writer-world-logs-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .writer-world-logs-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .writer-world-logs-layout > .writer-tool-context {
+    position: static;
+  }
+}
+
+@media (max-width: 560px) {
+  .writer-world-logs-head,
+  .writer-world-log-ledger {
+    padding: 16px;
+  }
+
+  .writer-world-logs-head .row,
+  .writer-world-logs-head .row > button {
+    width: 100%;
+  }
+
+  .writer-world-log-copy header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
