@@ -24,6 +24,8 @@ import {
 } from "./writer-metadata-editor.js";
 import {
   bindWriterToolWorkspace,
+  applyWorldLogFilters,
+  clearWorldLogFilters,
   closeWriterToolWorkspace,
   compareReviewVersions,
   copyCollaborationInviteLink,
@@ -43,11 +45,13 @@ import {
   openReviewWorkspace,
   openSnapshotWorkspace,
   openStoryAssistantWorkspace,
+  openWorldLogsWorkspace,
   parseDocumentWorkspace,
   previousExportWorkspaceStep,
   previewImportWorkspace,
   refreshCollaborationWorkspace,
   refreshReviewList,
+  refreshWorldLogs,
   removeCollaboratorFromWorkspace,
   replyReviewFromWorkspace,
   resendCollaboratorInviteFromWorkspace,
@@ -60,14 +64,15 @@ import {
   analyzeStoryAssistantWorkspace,
   setReviewFilter,
   setReviewWorkspaceMode,
+  setWorldLogFilter,
   syncManuscriptFromGraphWorkspace,
   syncManuscriptToGraphWorkspace,
   updateReviewStatusFromWorkspace,
+  loadMoreWorldLogs,
   writerToolWorkspaceHtml
 } from "./writer-tool-workspace.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { creatorTerms } from "../../shared/creator-terminology.js";
-import { worldLogModalHtml } from "./writer-modal-templates.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -464,11 +469,7 @@ export function openCollaboration(){return openCollaborationWorkspace()}
 export function openCreatorReview(){return openReviewWorkspace()}
 
 export async function openWorldLogs(){
- try{
-  const draw=async()=>{const params={limit:"100"},eventType=modal.querySelector("[data-log-event]")?.value,keyword=modal.querySelector("[data-log-keyword]")?.value;if(eventType)params.eventType=eventType;if(keyword)params.keyword=keyword;const logs=await zhimuApi.getWorldLogs(params);setHtml(modal.querySelector("[data-log-list]"),logs.map(log=>`<div class="log-row"><div><b>${escapeHtml(log.event_type)}</b><span>${escapeHtml(log.room_name)}</span></div><p>${escapeHtml(log.message)}</p><small>${escapeHtml(log.actor_name||"系统")} · ${formatTime(log.created_at)}</small></div>`).join("")||`<div class="empty-state">没有匹配的运行日志。</div>`)};
-  modal.className="modal creator-tool-modal";setHtml(modal,worldLogModalHtml());
-  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-log-refresh]").onclick=draw;await draw();
- }catch(error){showError(error)}
+ return openWorldLogsWorkspace();
 }
 
 export function openDocumentParser(){return openDocumentWorkspace()}
@@ -523,5 +524,5 @@ export function createCreatorSnapshot(){return openSnapshotWorkspace()}
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, analyzeStoryAssistantWorkspace, importStoryAssistantWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, analyzeStoryAssistantWorkspace, importStoryAssistantWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, setWorldLogFilter, applyWorldLogFilters, clearWorldLogFilters, refreshWorldLogs, loadMoreWorldLogs, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDeepseekAssistant, openDeepseekPipeline, openDeepseekFullMystery, deepseekProposalPreview, openStoryAssistant, openCreatorPreview, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
 registerView("writer", writerViewApi);

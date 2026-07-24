@@ -44,10 +44,11 @@ import {
   addWorldMemberSchema,
   updateWorldMemberSchema,
   deleteWorldMemberSchema,
+  listWorldLogsSchema,
   updateWorldCatalogSchema,
   requestCatalogReviewSchema,
   joinWorldCatalogSchema
-} from "./schemas.js";
+} from "./schemas/world.js";
 
 export async function registerWorldRoutes(app) {
   app.get("/api/worlds", async (request) => {
@@ -280,7 +281,7 @@ export async function registerWorldRoutes(app) {
     return { ok: true };
   });
 
-  app.get("/api/worlds/:worldId/logs", async (request) => {
+  app.get("/api/worlds/:worldId/logs", { schema: listWorldLogsSchema }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, ["owner", "editor", "host"]);

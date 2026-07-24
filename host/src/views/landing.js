@@ -3,7 +3,6 @@ import { renderStatusChip } from "../../../shared/components/status-chip.js";
 import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
 import { getWorldId } from "../session.js";
 import { state } from "../state.js";
-import "../styles/host-room-create-workspace.css";
 import { renderHostRoomCreateWorkspace } from "./host-room-create-workspace.js";
 
 export function renderLanding() {

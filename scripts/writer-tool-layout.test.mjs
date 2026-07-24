@@ -66,7 +66,8 @@ test("all Writer full-page tools consume the shared layout instead of rebuilding
     "src/views/writer-story-assistant-view.js",
     "src/views/writer-review-view.js",
     "src/views/writer-player-preview-view.js",
-    "src/views/writer-collaboration-view.js"
+    "src/views/writer-collaboration-view.js",
+    "src/views/writer-world-logs-view.js"
   ];
   for (const file of files) {
     const source = read(file);

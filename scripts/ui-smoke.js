@@ -605,7 +605,8 @@ await check("content-package-p1-4-wired", async () => {
   const apiBundle = readApiBundle();
     const writer = [
       readSource("src/views/writer.js"),
-      readSource("src/views/writer-modal-templates.js")
+      readSource("src/views/writer-package-workspace.js"),
+      readSource("src/views/writer-transfer-files.js")
     ].join("\n");
   for (const token of ["getContentPackageSummary", "previewContentPackageImport", "importContentPackageAsNewWorld"]) {
     if (!apiBundle.includes(token)) throw new Error(`${token} missing from api bundle`);

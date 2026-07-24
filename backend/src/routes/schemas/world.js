@@ -81,6 +81,46 @@ export const updateWorldMemberSchema = {
 
 export const deleteWorldMemberSchema = { params: worldMemberUserIdParams };
 
+export const listWorldLogsSchema = {
+  params: worldIdParams,
+  querystring: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      roomId: uuid,
+      eventType: {
+        type: "string",
+        maxLength: 80,
+        pattern: "^[A-Za-z0-9_.:-]*$"
+      },
+      keyword: { type: "string", maxLength: 120 },
+      limit: { type: "integer", minimum: 1, maximum: 200, default: 80 }
+    }
+  },
+  response: {
+    200: {
+      type: "array",
+      maxItems: 200,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "room_id", "room_name", "event_type", "message", "visibility", "metadata", "created_at"],
+        properties: {
+          id: { anyOf: [{ type: "string" }, { type: "integer" }] },
+          room_id: uuid,
+          room_name: { type: "string" },
+          event_type: { type: "string" },
+          message: { type: "string" },
+          visibility: { type: "string", enum: ["author", "host", "role", "faction", "public", "postgame"] },
+          metadata: { type: "object", additionalProperties: true },
+          created_at: { type: "string" },
+          actor_name: { anyOf: [{ type: "string" }, { type: "null" }] }
+        }
+      }
+    }
+  }
+};
+
 export const updateRoomSettingsSchema = {
   params: roomIdParams,
   body: {

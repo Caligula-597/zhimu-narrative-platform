@@ -1,4 +1,5 @@
 @import url("../../styles.css");
+@import url("./styles/host-room-create-workspace.css");
 
 :root {
   --host-header-height: 68px;

@@ -159,14 +159,12 @@ test("writer heavy tools use guarded full-page sessions", () => {
 test("story structure extraction uses a guarded lazy workspace instead of the global modal", () => {
   const writer = read("src/views/writer.js");
   const tools = read("src/views/writer-tool-workspace.js");
-  const templates = read("src/views/writer-modal-templates.js");
   const model = read("src/views/writer-story-assistant-model.js");
   const view = read("src/views/writer-story-assistant-view.js");
   const controller = read("src/views/writer-story-assistant-workspace.js");
   const api = read("src/api/ai.js");
   assert.match(writer, /openStoryAssistant\(\)\{\s*return openStoryAssistantWorkspace\(\)/);
   assert.doesNotMatch(writer, /story-assistant-modal|data-story-draft|storyAssistantPreview/);
-  assert.doesNotMatch(templates, /storyAssistantModalHtml|data-assistant-analyze|data-story-draft/);
   assert.match(tools, /"story-assistant":\s*\(\)\s*=>\s*import\("\.\/writer-story-assistant-workspace\.js"\)/);
   assert.match(model, /STORY_ASSISTANT_MAX_TEXT_LENGTH = 500_000/);
   assert.match(model, /STORY_ASSISTANT_MAX_NODES = 80/);
@@ -219,13 +217,11 @@ test("collaboration access uses one guarded lazy workspace instead of the global
 
 test("player preview uses Player visibility predicates in a guarded lazy workspace", () => {
   const writer = read("src/views/writer.js");
-  const templates = read("src/views/writer-modal-templates.js");
   const model = read("src/views/writer-player-preview-model.js");
   const view = read("src/views/writer-player-preview-view.js");
   const controller = read("src/views/writer-player-preview-workspace.js");
   assert.match(writer, /openCreatorPreview\(roleId=""\)\{\s*return openPlayerPreviewWorkspace\(roleId\)/);
   assert.doesNotMatch(writer, /preview-modal|data-preview-body|creatorPreviewModalHtml/);
-  assert.doesNotMatch(templates, /creatorPreviewModalHtml|creatorPreviewBodyHtml|data-preview-body/);
   assert.match(model, /evaluatePublishImpact/);
   assert.match(model, /PLAYER_PREVIEW_MEMBERSHIP_ROLES/);
   assert.match(view, /writer-player-preview-workspace/);
