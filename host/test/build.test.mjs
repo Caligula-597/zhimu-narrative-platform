@@ -43,6 +43,8 @@ test("host api uses cookie credentials, bearer fallback and room-scoped host end
   assert.match(apiSource, /createPortalApiClient/);
   assert.match(apiSource, /defaultSessionTokenStore/);
   assert.match(apiSource, /createRoom/);
+  assert.match(apiSource, /createRoom:[\s\S]{0,300}idempotent:\s*true[\s\S]{0,100}idempotencyKey/);
+  assert.match(apiSource, /hostCreateVote:[\s\S]{0,300}idempotent:\s*true[\s\S]{0,100}idempotencyKey/);
   assert.match(apiSource, /streamRoomEvents/);
   assert.match(apiSource, /hostClueNote:[\s\S]{0,200}method:\s*"PUT"[\s\S]{0,120}idempotent:\s*true/);
   assert.match(apiSource, /createCheckpoint:[\s\S]{0,260}idempotent:\s*true[\s\S]{0,120}timeoutMs:\s*45_000/);
@@ -69,10 +71,13 @@ test("main.js wires console, SSE and director actions", () => {
   const dataSource = readFileSync(path.join(root, "src", "runtime", "data.js"), "utf8");
   const eventsSource = readFileSync(path.join(root, "src", "runtime", "room-events.js"), "utf8");
   const archiveSource = readFileSync(path.join(root, "src", "runtime", "host-archive-controller.js"), "utf8");
+  const eventWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-event-workspace-controller.js"), "utf8");
   const operationSource = readFileSync(path.join(root, "src", "runtime", "host-operation-controller.js"), "utf8");
   const ruleWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-rule-workspace-controller.js"), "utf8");
+  const voteWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-vote-workspace-controller.js"), "utf8");
   assert.match(eventsSource, /connectRoomEvents/);
-  assert.match(directorSource, /executeHostEvent/);
+  assert.doesNotMatch(directorSource, /executeHostEvent|dismissHostEvent|delayHostEvent|window\.prompt/);
+  assert.match(eventWorkspaceSource, /case "host-event-workspace-submit"/);
   assert.match(directorSource, /case "host-select-act"/);
   assert.match(directorSource, /el\?\.dataset\?\.actKey/);
   assert.match(operationSource, /clueId:\s*element\?\.dataset\?\.clueId/);
@@ -87,10 +92,12 @@ test("main.js wires console, SSE and director actions", () => {
   assert.match(consoleLoaderSource, /import\(["']\.\.\/views\/console\.js["']\)/);
   assert.match(consoleLoaderSource, /import\(["']\.\/host-console-runtime\.js["']\)/);
   assert.match(consoleLoaderSource, /consolePromise = null/);
-  assert.doesNotMatch(mainSource, /host-(?:archive|operation|rule)-workspace\.css/);
+  assert.doesNotMatch(mainSource, /host-(?:archive|event|operation|rule|vote)-workspace\.css/);
   assert.match(consoleSource, /host-archive-workspace\.css/);
   assert.match(consoleSource, /host-operation-workspace\.css/);
   assert.match(consoleSource, /host-rule-workspace\.css/);
+  assert.match(consoleSource, /host-event-workspace\.css/);
+  assert.match(consoleSource, /host-vote-workspace\.css/);
   assert.match(
     lifecycleSource,
     /import\s*\{[^}]*\bgetSessionToken\b[^}]*\}\s*from\s*["']\.\.\/session\.js["']/s
@@ -105,12 +112,17 @@ test("main.js wires console, SSE and director actions", () => {
   assert.match(consoleRuntimeSource, /createHostOperationController\(\{ render, showToast \}\)/);
   assert.match(consoleRuntimeSource, /createHostArchiveController\(\{ render, showToast \}\)/);
   assert.match(consoleRuntimeSource, /createHostRuleWorkspaceController\(\{ render, showToast \}\)/);
+  assert.match(consoleRuntimeSource, /createHostEventWorkspaceController\(\{ render, showToast \}\)/);
+  assert.match(consoleRuntimeSource, /createHostVoteWorkspaceController\(\{ render, showToast \}\)/);
   assert.match(consoleRuntimeSource, /hostOperations\.handleField\(element\)/);
   assert.match(consoleRuntimeSource, /hostArchive\.handleField\(element\)/);
   assert.match(consoleRuntimeSource, /hostRules\.handleField\(element\)/);
+  assert.match(consoleRuntimeSource, /hostEvents\.handleField\(element\)/);
+  assert.match(consoleRuntimeSource, /hostVotes\.handleField\(element\)/);
   assert.match(archiveSource, /case "create-checkpoint"/);
   assert.match(archiveSource, /case "create-recap"/);
   assert.match(ruleWorkspaceSource, /case "host-rule-save"/);
+  assert.match(voteWorkspaceSource, /case "host-vote-workspace-submit"/);
   assert.match(directorSource, /createDirectorActionHandler\(\{ render, showToast \}\)/);
   assert.doesNotMatch(directorSource, /\bsetToast\(/);
   assert.match(consoleSource, /renderConsole/);
@@ -152,10 +164,18 @@ test("host command center uses segment runbooks and five critical queue actions"
 
 test("landing view exposes room management for authenticated hosts", () => {
   const landingSource = readFileSync(path.join(root, "src", "views", "landing.js"), "utf8");
+  const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
   const lifecycleSource = readFileSync(path.join(root, "src", "runtime", "host-lifecycle-controller.js"), "utf8");
+  const roomControllerSource = readFileSync(path.join(root, "src", "runtime", "host-room-create-controller.js"), "utf8");
+  const roomServiceSource = readFileSync(path.join(root, "src", "runtime", "host-room-create-service.js"), "utf8");
   assert.match(landingSource, /data-action="create-room"/);
   assert.match(landingSource, /data-action="refresh-rooms"/);
-  assert.match(lifecycleSource, /case "create-room"/);
+  assert.match(landingSource, /renderHostRoomCreateWorkspace/);
+  assert.match(mainSource, /createHostRoomCreateController/);
+  assert.match(roomControllerSource, /case "create-room"/);
+  assert.match(roomControllerSource, /case "host-room-create-submit"/);
+  assert.match(roomServiceSource, /idempotencyKey/);
+  assert.doesNotMatch(`${mainSource}\n${lifecycleSource}\n${roomControllerSource}`, /window\.prompt|\bprompt\(/);
   assert.match(lifecycleSource, /case "refresh-rooms"/);
 });
 
@@ -165,6 +185,8 @@ test("console render escapes user content", () => {
   const operationViewSource = readFileSync(path.join(root, "src", "views", "host-operation-workspace.js"), "utf8");
   const archiveViewSource = readFileSync(path.join(root, "src", "views", "host-archive-workspace.js"), "utf8");
   const ruleViewSource = readFileSync(path.join(root, "src", "views", "host-rule-workspace.js"), "utf8");
+  const eventViewSource = readFileSync(path.join(root, "src", "views", "host-event-workspace.js"), "utf8");
+  const voteViewSource = readFileSync(path.join(root, "src", "views", "host-vote-workspace.js"), "utf8");
   assert.match(consoleSource, /escapeHtml\(/);
   assert.match(operationModelSource, /hostActClueIds/);
   assert.match(operationModelSource, /resolveSectionSegmentKey/);
@@ -174,7 +196,9 @@ test("console render escapes user content", () => {
   assert.match(operationViewSource, /escapeHtml\(/);
   assert.match(archiveViewSource, /escapeHtml\(/);
   assert.match(ruleViewSource, /escapeHtml\(/);
-  assert.doesNotMatch(`${operationModelSource}\n${operationViewSource}\n${archiveViewSource}\n${ruleViewSource}`, /modalEl|mountModal|modal-backdrop/);
+  assert.match(eventViewSource, /escapeHtml\(/);
+  assert.match(voteViewSource, /escapeHtml\(/);
+  assert.doesNotMatch(`${operationModelSource}\n${operationViewSource}\n${archiveViewSource}\n${ruleViewSource}\n${eventViewSource}\n${voteViewSource}`, /modalEl|mountModal|modal-backdrop/);
 });
 
 test("host archive workspace owns recap and checkpoint transactions outside the invite modal", () => {
@@ -218,8 +242,12 @@ test("standalone console keeps the full host monitoring action surface", () => {
   const archiveSource = readFileSync(path.join(root, "src", "runtime", "host-archive-controller.js"), "utf8");
   const ruleViewSource = readFileSync(path.join(root, "src", "views", "host-rule-workspace.js"), "utf8");
   const ruleWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-rule-workspace-controller.js"), "utf8");
-  const hostSurface = `${consoleSource}\n${layoutSource}\n${eventSource}\n${ruleSource}\n${operationViewSource}\n${archiveViewSource}\n${ruleViewSource}`;
-  const handlers = `${directorSource}\n${operationSource}\n${archiveSource}\n${ruleWorkspaceSource}`;
+  const eventWorkspaceViewSource = readFileSync(path.join(root, "src", "views", "host-event-workspace.js"), "utf8");
+  const eventWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-event-workspace-controller.js"), "utf8");
+  const voteWorkspaceViewSource = readFileSync(path.join(root, "src", "views", "host-vote-workspace.js"), "utf8");
+  const voteWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-vote-workspace-controller.js"), "utf8");
+  const hostSurface = `${consoleSource}\n${layoutSource}\n${eventSource}\n${ruleSource}\n${operationViewSource}\n${archiveViewSource}\n${ruleViewSource}\n${eventWorkspaceViewSource}\n${voteWorkspaceViewSource}`;
+  const handlers = `${directorSource}\n${operationSource}\n${archiveSource}\n${ruleWorkspaceSource}\n${eventWorkspaceSource}\n${voteWorkspaceSource}`;
   const actions = [
     "batch-dismiss-host-events",
     "batch-execute-host-events",
@@ -231,6 +259,7 @@ test("standalone console keeps the full host monitoring action surface", () => {
     "dismiss-host-event",
     "execute-host-event",
     "host-clue-note",
+    "host-create-vote",
     "host-event-context",
     "host-event-select-all",
     "host-event-toggle",

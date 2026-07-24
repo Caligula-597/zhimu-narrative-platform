@@ -22,6 +22,8 @@ test("Host console navigation blocks unresolved writes and dirty archive drafts"
   const stateRef = {
     hostOperation: { status: "submitting" },
     hostArchiveWorkspace: null,
+    hostEventWorkspace: null,
+    hostVoteWorkspace: null,
     hostRuleWorkspace: null
   };
   assert.match(hostConsoleNavigationBlockReason(stateRef), /现场命令仍在提交/);
@@ -34,6 +36,14 @@ test("Host console navigation blocks unresolved writes and dirty archive drafts"
   assert.match(hostConsoleNavigationBlockReason(stateRef), /归档存在未提交/);
 
   stateRef.hostArchiveWorkspace = null;
+  stateRef.hostEventWorkspace = { status: "uncertain" };
+  assert.match(hostConsoleNavigationBlockReason(stateRef), /事件操作仍在提交或等待核对/);
+
+  stateRef.hostEventWorkspace = null;
+  stateRef.hostVoteWorkspace = { status: "ready", dirty: true };
+  assert.match(hostConsoleNavigationBlockReason(stateRef), /投票存在未创建草稿/);
+
+  stateRef.hostVoteWorkspace = null;
   stateRef.hostRuleWorkspace = { status: "uncertain", dirty: false };
   assert.match(hostConsoleNavigationBlockReason(stateRef), /规则存在未保存或待核对/);
 });

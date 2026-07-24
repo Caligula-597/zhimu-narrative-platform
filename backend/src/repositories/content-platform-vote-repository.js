@@ -100,6 +100,22 @@ export function insertVoteTimeline(client, { roomId, actorId, visibility, eventT
   );
 }
 
+export function insertVoteAudit(client, {
+  roomId,
+  actorId,
+  action,
+  targetType,
+  targetId,
+  metadata = {}
+}) {
+  return client.query(
+    `INSERT INTO host_audit_log
+       (room_id, actor_user_id, action, target_type, target_id, metadata)
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
+    [roomId, actorId, action, targetType, String(targetId), JSON.stringify(metadata)]
+  );
+}
+
 export async function createVote(client, { roomId, actorId, body }) {
   const result = await client.query(
     `INSERT INTO room_votes (room_id, segment_id, created_by_user_id, title, prompt, vote_type, visibility, settings)

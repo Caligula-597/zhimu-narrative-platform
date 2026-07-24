@@ -1,4 +1,5 @@
 import { requireActor } from "../request-actor.js";
+import { withRoomIdempotency } from "../idempotency-helpers.js";
 import {
   createRoomVote,
   getRoomVotes,
@@ -47,8 +48,10 @@ export async function registerContentPlatformVoteRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     await requireHostMembership(actorId, roomId);
-    const vote = await createRoomVote({ actorId, roomId, body: request.body ?? {} });
-    return reply.code(201).send({ vote });
+    const result = await withRoomIdempotency(roomId, request, "host.vote_create", async () => ({
+      vote: await createRoomVote({ actorId, roomId, body: request.body ?? {} })
+    }));
+    return reply.code(201).send(result);
   });
 
   app.patch("/api/rooms/:roomId/host/votes/:voteId", { schema: updateRoomVoteStatusSchema }, async (request) => {

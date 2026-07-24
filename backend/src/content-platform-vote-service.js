@@ -1,9 +1,9 @@
 import { throwErr } from "./api-errors.js";
-import { logHostAction } from "./audit-log.js";
 import { transactionWithEvents } from "./transaction-events.js";
 import {
   createVote,
   defaultVoteOptions,
+  insertVoteAudit,
   insertVoteOptions,
   insertVoteTimeline,
   listRoomVotes,
@@ -40,7 +40,7 @@ export async function submitRoomVoteBallot({ actorId, roomId, voteId, roleSlotId
 }
 
 export async function createRoomVote({ actorId, roomId, body }) {
-  const vote = await transactionWithEvents(async (client, queueEvent) => {
+  return transactionWithEvents(async (client, queueEvent) => {
     const created = await createVote(client, { roomId, actorId, body });
     const options = body.options?.length ? body.options : await defaultVoteOptions(client, roomId);
     await insertVoteOptions(client, created.id, options);
@@ -57,16 +57,15 @@ export async function createRoomVote({ actorId, roomId, body }) {
       title: created.title,
       status: created.status
     });
+    await insertVoteAudit(client, {
+      roomId,
+      actorId,
+      action: "vote_created",
+      targetType: "vote",
+      targetId: created.id
+    });
     return created;
   });
-  await logHostAction({
-    roomId,
-    actorUserId: actorId,
-    action: "vote_created",
-    targetType: "vote",
-    targetId: vote.id
-  });
-  return vote;
 }
 
 export async function setRoomVoteStatus({ actorId, roomId, voteId, status }) {

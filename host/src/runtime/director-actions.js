@@ -5,10 +5,6 @@ import { loadHostData, refreshHostAuditLog, refreshHostClueMatrix, refreshHostEv
 import { resetPaceTimer, switchPaceMode, togglePaceTimer } from "./host-pace-timer.js";
 import {
   batchHostEventsAction,
-  dismissHostEvent,
-  executeHostEvent,
-  openDelayHostEventModal,
-  openHostEventContext,
   syncHostEventSelectAll,
   toggleHostEventSelection
 } from "./host-event-queue.js";
@@ -36,14 +32,10 @@ export function createDirectorActionHandler({ render, showToast }) {
     switch (action) {
       case "rules-preview": refreshRulesPreview(); return true;
       case "rule-manual-trigger": triggerManualRuleFromDirector(el?.dataset?.rule); return true;
-      case "delay-host-event": openDelayHostEventModal(el?.dataset?.event); return true;
-      case "host-event-context": openHostEventContext(el?.dataset?.event); return true;
       case "host-event-toggle": toggleHostEventSelection(el?.dataset?.event, el?.checked); return true;
       case "host-event-select-all": syncHostEventSelectAll(el?.checked); return true;
       case "batch-execute-host-events": batchHostEventsAction("execute"); return true;
       case "batch-dismiss-host-events": batchHostEventsAction("dismiss"); return true;
-      case "execute-host-event": executeHostEvent(el?.dataset?.event); return true;
-      case "dismiss-host-event": dismissHostEvent(el?.dataset?.event); return true;
       case "room-invite-current": openRoomInviteModal(); return true;
       case "copy-invite-code": copyInviteCode(el?.dataset?.inviteCode); return true;
       case "copy-play-link": copyPlayLink(el?.dataset?.inviteCode); return true;
@@ -66,20 +58,6 @@ export function createDirectorActionHandler({ render, showToast }) {
           "执行失败"
         );
         return true;
-      case "host-create-vote": {
-        const title = window.prompt("投票标题（如：指认凶手）");
-        if (!title?.trim()) return true;
-        void runCommand(
-          () => api.hostCreateVote({
-            title: title.trim(),
-            voteType: "accusation",
-            prompt: "请选择你认为的嫌疑人"
-          }),
-          "投票已开启",
-          "开启失败"
-        );
-        return true;
-      }
       case "host-vote-status":
         void runCommand(
           () => api.hostUpdateVoteStatus(el?.dataset?.voteId, el?.dataset?.status),

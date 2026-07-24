@@ -78,12 +78,13 @@ export const api = {
     if (!worldId) throw Object.assign(new Error("请先选择剧本世界"), { code: "WORLD_REQUIRED" });
     return request(`/worlds/${worldId}/rooms`);
   },
-  createRoom: (payload, worldId = getWorldId()) => {
+  createRoom: (payload, worldId = getWorldId(), idempotencyKey = "") => {
     if (!worldId) throw Object.assign(new Error("请先选择剧本世界"), { code: "WORLD_REQUIRED" });
     return request(`/worlds/${worldId}/rooms`, {
       method: "POST",
       body: payload,
-      idempotent: true
+      idempotent: true,
+      idempotencyKey
     });
   },
   getStudio: (worldId = getWorldId()) => request(`/worlds/${worldId}/studio`),
@@ -107,7 +108,13 @@ export const api = {
   getHostClueMatrix: () => request(roomPath("/host/clue-matrix")),
   getHostAuditLog: (limit = 50) => request(`${roomPath("/host/audit-log")}?limit=${limit}`),
   getHostVotes: () => request(roomPath("/host/votes")),
-  hostCreateVote: (payload) => request(roomPath("/host/votes"), { method: "POST", body: payload }),
+  hostCreateVote: (payload, roomId = getRoomId(), idempotencyKey = "") =>
+    request(roomPathFor(roomId, "/host/votes"), {
+      method: "POST",
+      body: payload,
+      idempotent: true,
+      idempotencyKey
+    }),
   hostUpdateVoteStatus: (voteId, status) =>
     request(roomPath(`/host/votes/${voteId}`), { method: "PATCH", body: { status } }),
   getHostPrivateActions: () => request(roomPath("/host/private-actions")),
@@ -144,12 +151,25 @@ export const api = {
   hostClueNote: (clueId, payload) =>
     request(roomPath(`/host/clues/${clueId}/notes`), { method: "PUT", body: payload, idempotent: true }),
 
-  executeHostEvent: (eventId) =>
-    request(roomPath(`/host-events/${eventId}/execute`), { method: "POST", idempotent: true }),
-  dismissHostEvent: (eventId) =>
-    request(roomPath(`/host-events/${eventId}/dismiss`), { method: "POST", idempotent: true }),
-  delayHostEvent: (eventId, delayMinutes) =>
-    request(roomPath(`/host-events/${eventId}/delay`), { method: "POST", body: { delayMinutes }, idempotent: true }),
+  executeHostEvent: (eventId, roomId = getRoomId(), idempotencyKey = "") =>
+    request(roomPathFor(roomId, `/host-events/${eventId}/execute`), {
+      method: "POST",
+      idempotent: true,
+      idempotencyKey
+    }),
+  dismissHostEvent: (eventId, roomId = getRoomId(), idempotencyKey = "") =>
+    request(roomPathFor(roomId, `/host-events/${eventId}/dismiss`), {
+      method: "POST",
+      idempotent: true,
+      idempotencyKey
+    }),
+  delayHostEvent: (eventId, delayMinutes, roomId = getRoomId(), idempotencyKey = "") =>
+    request(roomPathFor(roomId, `/host-events/${eventId}/delay`), {
+      method: "POST",
+      body: { delayMinutes },
+      idempotent: true,
+      idempotencyKey
+    }),
   batchHostEvents: (action, eventIds) =>
     request(roomPath("/host-events/batch"), { method: "POST", body: { action, eventIds }, idempotent: true }),
 

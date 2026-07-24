@@ -37,14 +37,11 @@ test("creator room callers leave invite-code allocation to the server", () => {
     "export async function finishWizard",
     "registerRuntime"
   );
-  const hostCreate = section(
-    "host/src/runtime/host-lifecycle-controller.js",
-    "async function createHostRoom",
-    "async function selectRoom"
-  );
+  const hostCreate = source("host/src/runtime/host-room-create-service.js");
   for (const runtime of [mainCreate, wizardCreate, hostCreate]) {
     assert.doesNotMatch(runtime, /createRoom\([^;\n]*inviteCode/);
   }
+  assert.match(hostCreate, /apiRef\.createRoom\(\s*parsed\.payload,\s*workspace\.worldId,\s*idempotencyKey/s);
 });
 
 test("Creator room UI sends the selected Release and restores the action after failure", () => {

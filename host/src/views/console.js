@@ -1,6 +1,8 @@
 import "../styles/host-archive-workspace.css";
+import "../styles/host-event-workspace.css";
 import "../styles/host-operation-workspace.css";
 import "../styles/host-rule-workspace.css";
+import "../styles/host-vote-workspace.css";
 import { state } from "../state.js";
 import { collapsibleCard } from "../components/collapse.js";
 import { activeRuntimeRoom, cloudStatus, runtimeEmpty, activity } from "../components/ui.js";
@@ -31,8 +33,10 @@ import { grantModeLabel } from "../runtime/host-operation-model.js";
 import { bindHostMiniGameContext, hostMiniGameCard } from "../runtime/host-mini-game-controller.js";
 import { renderHostCommandCenter } from "./host-layout.js";
 import { renderHostArchiveWorkspace } from "./host-archive-workspace.js";
+import { renderHostEventWorkspace } from "./host-event-workspace.js";
 import { renderHostOperationWorkspace } from "./host-operation-workspace.js";
 import { renderHostRuleWorkspace } from "./host-rule-workspace.js";
+import { renderHostVoteWorkspace } from "./host-vote-workspace.js";
 
 export function bindConsoleContext({ render, showToast }) {
   bindHostPaceTimerContext({ render });
@@ -81,6 +85,8 @@ export function renderConsole(){
  return `<section class="host-console">
   <div class="host-console-status">${cloudStatus()}</div>
   ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows })}
+  ${renderHostEventWorkspace()}
+  ${renderHostVoteWorkspace()}
   ${renderHostOperationWorkspace()}
   ${renderHostArchiveWorkspace()}
   ${renderHostRuleWorkspace()}

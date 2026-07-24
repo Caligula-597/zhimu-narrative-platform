@@ -9,6 +9,7 @@ import {
   handleHostConsoleField
 } from "./runtime/host-console-loader.js";
 import { createHostLifecycleController } from "./runtime/host-lifecycle-controller.js";
+import { createHostRoomCreateController } from "./runtime/host-room-create-controller.js";
 import { bootstrapPaceTimer, tickPaceTimer } from "./runtime/host-pace-timer.js";
 import { getRoomId, subscribeSessionToken } from "./session.js";
 import { state } from "./state.js";
@@ -48,6 +49,11 @@ function setToast(message, ms = 3200) {
 }
 
 const lifecycle = createHostLifecycleController({ render, setBusy, showToast: setToast });
+const roomCreate = createHostRoomCreateController({
+  render,
+  showToast: setToast,
+  enterRoom: lifecycle.selectRoom
+});
 
 // 节奏计时器仅直更计时 DOM，避免每秒触发整页重绘。
 bootstrapPaceTimer();
@@ -69,6 +75,7 @@ app.addEventListener("click", async (event) => {
   const action = button.dataset.action;
 
   if (await handleHostConsoleAction(action, button)) return;
+  if (await roomCreate.handleAction(action, button)) return;
   if (await lifecycle.handleAction(action, button)) return;
 
   if (action === "toggle-collapse-panel") {
@@ -81,10 +88,12 @@ app.addEventListener("click", async (event) => {
 });
 
 app.addEventListener("input", (event) => {
+  roomCreate.handleField(event.target);
   handleHostConsoleField(event.target);
 });
 
 app.addEventListener("change", (event) => {
+  roomCreate.handleField(event.target);
   handleHostConsoleField(event.target);
 });
 
@@ -95,7 +104,7 @@ subscribeSessionToken((change) => {
 });
 
 window.addEventListener("beforeunload", (event) => {
-  if (!getHostConsoleNavigationBlockReason()) return;
+  if (!getHostConsoleNavigationBlockReason() && !roomCreate.navigationBlockReason()) return;
   event.preventDefault();
   event.returnValue = "";
 });
