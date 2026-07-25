@@ -2,6 +2,7 @@ import { throwErr } from "./api-errors.js";
 import { grantItemToInventory } from "./inventory-helpers.js";
 import { evaluateRoomRulesWithClient } from "./rule-engine.js";
 import { transactionWithEvents } from "./transaction-events.js";
+import { loadRuntimeContentProvider } from "./runtime-content-provider.js";
 import {
   appendHostContentAudit,
   appendHostContentTimeline,
@@ -26,13 +27,45 @@ async function assertHostAccess(client, roomId, actorId) {
   }
 }
 
+function loadActionContent(client, roomId) {
+  return loadRuntimeContentProvider(roomId, {
+    runQuery: client.query.bind(client),
+    includeLiveSnapshot: false
+  });
+}
+
+async function findRuntimeClue(client, provider, { roomId, clueId }) {
+  return provider?.isFrozen
+    ? provider.find("clues", clueId)
+    : findClueInRoomWorld(client, { roomId, clueId });
+}
+
+async function findRuntimeSection(client, provider, {
+  roomId,
+  roleSlotId,
+  scriptSectionId
+}) {
+  if (!provider?.isFrozen) {
+    return findSectionInRoomRole(client, { roomId, roleSlotId, scriptSectionId });
+  }
+  const section = provider.find("sections", scriptSectionId);
+  return String(section?.role_slot_id) === String(roleSlotId) ? section : null;
+}
+
+async function findRuntimeScene(client, provider, { roomId, sceneId }) {
+  return provider?.isFrozen
+    ? provider.find("scenes", sceneId)
+    : findSceneInRoomWorld(client, { roomId, sceneId });
+}
+
 export async function revokeClueFromHost({ roomId, actorId, roleSlotId, clueId, message }) {
   return transactionWithEvents(async (client, queueEvent) => {
     await configureHostContentActionTransaction(client);
     await assertHostAccess(client, roomId, actorId);
-    const clue = await findClueInRoomWorld(client, { roomId, clueId });
+    const provider = await loadActionContent(client, roomId);
+    const clue = await findRuntimeClue(client, provider, { roomId, clueId });
     if (!clue) throwErr("CLUE_WORLD_MISMATCH");
-    await assertRolesInRoomWorld(client, roomId, [roleSlotId]);
+    await assertRolesInRoomWorld(client, roomId, [roleSlotId], provider);
     const revoked = await revokeClueFromRole(client, { roomId, roleSlotId, clueId });
     if (revoked) {
       await appendHostContentTimeline(client, {
@@ -65,9 +98,10 @@ export async function resendClueFromHost({ roomId, actorId, roleSlotId, clueId, 
   return transactionWithEvents(async (client, queueEvent) => {
     await configureHostContentActionTransaction(client);
     await assertHostAccess(client, roomId, actorId);
-    const clue = await findClueInRoomWorld(client, { roomId, clueId });
+    const provider = await loadActionContent(client, roomId);
+    const clue = await findRuntimeClue(client, provider, { roomId, clueId });
     if (!clue) throwErr("CLUE_WORLD_MISMATCH");
-    await assertRolesInRoomWorld(client, roomId, [roleSlotId]);
+    await assertRolesInRoomWorld(client, roomId, [roleSlotId], provider);
     const result = await resendClueToRole(client, { roomId, roleSlotId, clueId });
     await appendHostContentTimeline(client, {
       roomId,
@@ -94,7 +128,11 @@ export async function resendClueFromHost({ roomId, actorId, roleSlotId, clueId, 
   });
 }
 
-async function assertRolesInRoomWorld(client, roomId, roleSlotIds) {
+async function assertRolesInRoomWorld(client, roomId, roleSlotIds, provider = null) {
+  if (provider?.isFrozen) {
+    if (roleSlotIds.every((roleSlotId) => provider.find("roles", roleSlotId))) return;
+    throwErr("ROLE_SLOT_WORLD_MISMATCH");
+  }
   const validIds = await findRoleIdsInRoomWorld(client, { roomId, roleSlotIds });
   if (validIds.length !== roleSlotIds.length) throwErr("ROLE_SLOT_WORLD_MISMATCH");
 }
@@ -103,9 +141,10 @@ export async function grantClueFromHost({ roomId, actorId, targets, clueId, mess
   return transactionWithEvents(async (client, queueEvent) => {
     await configureHostContentActionTransaction(client);
     await assertHostAccess(client, roomId, actorId);
-    const clue = await findClueInRoomWorld(client, { roomId, clueId });
+    const provider = await loadActionContent(client, roomId);
+    const clue = await findRuntimeClue(client, provider, { roomId, clueId });
     if (!clue) throwErr("CLUE_WORLD_MISMATCH");
-    await assertRolesInRoomWorld(client, roomId, targets);
+    await assertRolesInRoomWorld(client, roomId, targets, provider);
 
     const grantedRoleSlotIds = await grantClueToRoles(client, {
       roomId,
@@ -153,7 +192,10 @@ export async function grantItemFromHost({
   return transactionWithEvents(async (client, queueEvent) => {
     await configureHostContentActionTransaction(client);
     await assertHostAccess(client, roomId, actorId);
-    await assertRolesInRoomWorld(client, roomId, [roleSlotId]);
+    const provider = await loadActionContent(client, roomId);
+    await assertRolesInRoomWorld(client, roomId, [roleSlotId], provider);
+    const authoredItem = provider?.isFrozen ? provider.find("items", itemId) : null;
+    if (provider?.isFrozen && !authoredItem) throwErr("ITEM_NOT_FOUND");
     const item = await grantItemToInventory(client, {
       roomId,
       roleSlotId,
@@ -161,6 +203,12 @@ export async function grantItemFromHost({
       quantity,
       source: "host_manual"
     });
+    if (authoredItem) {
+      item.name = authoredItem.name;
+      item.public_text = authoredItem.public_text;
+      item.host_text = authoredItem.host_text;
+      item.metadata = authoredItem.metadata;
+    }
     const grantedQuantity = item.metadata?.unique ? 1 : quantity;
     await appendHostContentTimeline(client, {
       roomId,
@@ -198,7 +246,10 @@ export async function unlockSectionFromHost({
   return transactionWithEvents(async (client, queueEvent) => {
     await configureHostContentActionTransaction(client);
     await assertHostAccess(client, roomId, actorId);
-    const section = await findSectionInRoomRole(client, { roomId, roleSlotId, scriptSectionId });
+    const provider = await loadActionContent(client, roomId);
+    const section = await findRuntimeSection(client, provider, {
+      roomId, roleSlotId, scriptSectionId
+    });
     if (!section) throwErr("SECTION_NOT_FOUND");
     const newlyUnlocked = await unlockSection(client, { roomId, scriptSectionId });
 
@@ -238,7 +289,10 @@ export async function relockSectionFromHost({
   return transactionWithEvents(async (client, queueEvent) => {
     await configureHostContentActionTransaction(client);
     await assertHostAccess(client, roomId, actorId);
-    const section = await findSectionInRoomRole(client, { roomId, roleSlotId, scriptSectionId });
+    const provider = await loadActionContent(client, roomId);
+    const section = await findRuntimeSection(client, provider, {
+      roomId, roleSlotId, scriptSectionId
+    });
     if (!section) throwErr("SECTION_NOT_FOUND");
     if (Number(section.sequence) === 1) throwErr("SECTION_ALWAYS_AVAILABLE");
     const relocked = await relockSection(client, { roomId, scriptSectionId });
@@ -278,7 +332,10 @@ export async function skipSectionFromHost({
   return transactionWithEvents(async (client, queueEvent) => {
     await configureHostContentActionTransaction(client);
     await assertHostAccess(client, roomId, actorId);
-    const section = await findSectionInRoomRole(client, { roomId, roleSlotId, scriptSectionId });
+    const provider = await loadActionContent(client, roomId);
+    const section = await findRuntimeSection(client, provider, {
+      roomId, roleSlotId, scriptSectionId
+    });
     if (!section) throwErr("SECTION_NOT_FOUND");
     const progress = await skipSectionProgress(client, { roomId, roleSlotId, scriptSectionId });
     if (progress.newlyCompleted) {
@@ -314,7 +371,8 @@ export async function unlockSceneFromHost({ roomId, actorId, sceneId }) {
   return transactionWithEvents(async (client, queueEvent) => {
     await configureHostContentActionTransaction(client);
     await assertHostAccess(client, roomId, actorId);
-    const scene = await findSceneInRoomWorld(client, { roomId, sceneId });
+    const provider = await loadActionContent(client, roomId);
+    const scene = await findRuntimeScene(client, provider, { roomId, sceneId });
     if (!scene) throwErr("SCENE_WORLD_MISMATCH");
     const newlyUnlocked = await unlockScene(client, { roomId, sceneId });
 

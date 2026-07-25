@@ -51,15 +51,38 @@ async function loadHostDataInternal(withToast = false) {
       errors.push("请先选择剧本世界");
     } else {
       try {
-        const [studio, rules, segments] = await Promise.all([
-          api.getStudio(worldId),
-          api.getRules(worldId),
-          api.getWorldSegments(worldId).catch(() => ({ segments: [] }))
-        ]);
-        state.studio = studio;
-        state.rules = rules;
-        state.cloudWorldSegments = segments?.segments || [];
+        if (roomId) {
+          try {
+            const runtime = await api.getRuntimeContent();
+            state.runtimeContent = runtime;
+            state.studio = runtime?.content || null;
+            state.rules = runtime?.content?.rules || [];
+            state.cloudWorldSegments = runtime?.content?.segments || [];
+          } catch (error) {
+            if (error?.status !== 404) throw error;
+            const [studio, rules, segments] = await Promise.all([
+              api.getStudio(worldId),
+              api.getRules(worldId),
+              api.getWorldSegments(worldId).catch(() => ({ segments: [] }))
+            ]);
+            state.runtimeContent = null;
+            state.studio = studio;
+            state.rules = rules;
+            state.cloudWorldSegments = segments?.segments || [];
+          }
+        } else {
+          const [studio, rules, segments] = await Promise.all([
+            api.getStudio(worldId),
+            api.getRules(worldId),
+            api.getWorldSegments(worldId).catch(() => ({ segments: [] }))
+          ]);
+          state.runtimeContent = null;
+          state.studio = studio;
+          state.rules = rules;
+          state.cloudWorldSegments = segments?.segments || [];
+        }
       } catch (error) {
+        state.runtimeContent = null;
         state.studio = null;
         state.cloudWorldSegments = [];
         errors.push(formatApiError(error, "无法加载剧本数据"));
@@ -86,7 +109,8 @@ async function loadHostDataInternal(withToast = false) {
         api.getHostSegmentRemedies().catch(() => ({ items: [] })),
         api.getHostVotes().catch(() => ({ votes: [] })),
         api.getHostPrivateActions().catch(() => ({ actions: [] })),
-        api.getHostMiniGames().catch(() => ({ games: [] }))
+        api.getHostMiniGames().catch(() => ({ games: [] })),
+        api.getHostCurrentState().catch(() => null)
       ]);
       if (results[0].status === "fulfilled") applyHostPlayersPayload(results[0].value);
       else {
@@ -103,6 +127,7 @@ async function loadHostDataInternal(withToast = false) {
       if (results[7].status === "fulfilled") state.cloudHostVotes = results[7].value?.votes || [];
       if (results[8].status === "fulfilled") state.cloudHostPrivateActions = results[8].value?.actions || [];
       if (results[9].status === "fulfilled") applyHostMiniGamesPayload(results[9].value);
+      if (results[10].status === "fulfilled") state.currentState = results[10].value;
     } else {
       state.cloudHostPlayers = [];
       state.cloudHostEvents = [];
@@ -115,6 +140,7 @@ async function loadHostDataInternal(withToast = false) {
       state.cloudHostVotes = [];
       state.cloudHostPrivateActions = [];
       state.cloudHostMiniGames = [];
+      state.currentState = null;
       state.cloudRunReport = null;
     }
 
@@ -216,7 +242,7 @@ export async function refreshHostRoom(withToast = false) {
   const generation = ++roomRefreshGeneration;
   try {
     const logParams = { limit: "20", roomId: getRoomId() };
-    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions] = await Promise.all([
+    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions, currentState] = await Promise.all([
       api.getHostPlayers(),
       api.getHostEvents(),
       api.getWorldLogs(logParams),
@@ -224,7 +250,8 @@ export async function refreshHostRoom(withToast = false) {
       api.getHostAuditLog().catch(() => ({ entries: [] })),
       api.getHostMiniGames().catch(() => ({ games: [] })),
       api.getHostVotes().catch(() => ({ votes: [] })),
-      api.getHostPrivateActions().catch(() => ({ actions: [] }))
+      api.getHostPrivateActions().catch(() => ({ actions: [] })),
+      api.getHostCurrentState().catch(() => null)
     ]);
     if (generation !== roomRefreshGeneration) return false;
     applyHostPlayersPayload(hostPlayers);
@@ -235,6 +262,7 @@ export async function refreshHostRoom(withToast = false) {
     applyHostMiniGamesPayload(miniGames);
     state.cloudHostVotes = votes?.votes || [];
     state.cloudHostPrivateActions = privateActions?.actions || [];
+    state.currentState = currentState;
     if (state.view === "console") renderRef();
     if (withToast) {
       toastRef(

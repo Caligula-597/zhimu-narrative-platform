@@ -210,6 +210,11 @@ export {
 export {
   createRoom,
   updateRoomPublicListing,
+  getRoomContentPolicy,
+  getRoomReleaseImpact,
+  applyRoomRelease,
+  getCreatorRoomCurrentState,
+  getCreatorRoleKnowledge,
   patchRoomSettings,
   streamRoomEvents
 } from "./room.js";

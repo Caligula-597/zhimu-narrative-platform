@@ -84,7 +84,12 @@ test("release snapshot summary counts every authored runtime collection", () => 
   assert.equal(summary.counts.roles, 1);
   assert.equal(summary.counts.sections, 1);
   assert.equal(summary.counts.segments, 1);
+  assert.equal(summary.counts.playerTasks, 0);
   assert.equal(summary.totalObjects, 4);
+  assert.throws(
+    () => assertWorldReleaseSnapshot({ ...snapshot, playerTasks: {} }),
+    /playerTasks must be an array/
+  );
 });
 
 test("release preparation blocks readiness errors and accepts warning-only content", () => {

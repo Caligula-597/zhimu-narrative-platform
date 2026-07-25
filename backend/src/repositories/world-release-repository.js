@@ -135,3 +135,18 @@ export async function lockWorldReleaseForRoom(client, { worldId, releaseId }) {
   );
   return result.rows[0] ?? null;
 }
+
+export async function lockLatestWorldReleaseForRoom(client, { worldId }) {
+  const result = await client.query(
+    `SELECT release.id, release.release_number, release.label,
+            release.source_content_revision, release.content_sha256,
+            release.created_at
+     FROM world_releases release
+     WHERE release.world_id = $1
+     ORDER BY release.release_number DESC
+     LIMIT 1
+     FOR KEY SHARE`,
+    [worldId]
+  );
+  return result.rows[0] ?? null;
+}

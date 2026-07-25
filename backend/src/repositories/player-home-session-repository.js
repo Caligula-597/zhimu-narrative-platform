@@ -72,11 +72,22 @@ export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId, runQu
          ), '[]'::jsonb) AS inventory,
          COALESCE((
            SELECT jsonb_agg(
-             jsonb_build_object('title', phe.title, 'rule_conditions', ar.conditions)
+             jsonb_build_object(
+               'title', phe.title,
+               'rule_conditions', COALESCE(frozen_rule.value->'conditions', ar.conditions)
+             )
              ORDER BY phe.created_at
            )
            FROM pending_host_events phe
+           JOIN rooms runtime_room ON runtime_room.id = phe.room_id
+           LEFT JOIN world_releases release ON release.id = runtime_room.release_id
            LEFT JOIN automation_rules ar ON ar.id = phe.rule_id
+           LEFT JOIN LATERAL (
+             SELECT value
+             FROM jsonb_array_elements(COALESCE(release.snapshot->'rules', '[]'::jsonb)) value
+             WHERE value->>'id' = phe.rule_id::text
+             LIMIT 1
+           ) frozen_rule ON true
            WHERE phe.room_id = $1 AND phe.status = 'pending'
          ), '[]'::jsonb) AS pending_host_events,
          (SELECT to_jsonb(game_row)

@@ -1,6 +1,6 @@
 # 织幕统一叙事功能 · 模块化实施计划
 
-最后更新：2026-07-24
+最后更新：2026-07-25
 上位设计：[UNIFIED_NARRATIVE_PRODUCT_BLUEPRINT_ZH.md](./UNIFIED_NARRATIVE_PRODUCT_BLUEPRINT_ZH.md)
 
 ## 1. 实施规则
@@ -36,9 +36,9 @@
 | 序号 | 模块 | 复用现有能力 | 新增/细化 | 主要页面 | 状态 |
 |---:|---|---|---|---|---|
 | M00 | 玩法 Profile | `creationType`、`worldMode`、术语表、向导、模板 | 统一 `narrativeProfile`、运行形态、角色方式、规则配置入口 | Creator 设置/向导 | 已实现第一版 |
-| M01 | 完整发布版本 | `content_versions`、发布检查、内容包、版本比较 | 不可变 Release、完整对象清单、房间绑定、升级影响 | Creator 发布；Host 准备 | M01-A/B 已实现代码与三端兼容提示，待隔离库验收；M01-C 运行读取器待实施 |
-| M02 | 知识与可见性 | clues、sections、knowledge chunks、角色可见性、分享 | 统一 audience、grant、revoke、“玩家知道什么”投影 | Creator 视角模拟；Host 玩家详情；Player 内容 | 待实施 |
-| M03 | 当前状态与建议行动 | player-home、host progress、creator dashboard | 三端 `currentState/suggestedActions/syncState` 聚合契约 | 三端首页 | 待实施 |
+| M01 | 完整发布版本 | `content_versions`、发布检查、内容包、版本比较 | 不可变 Release、完整对象清单、房间绑定、升级影响 | Creator 发布；Host 准备 | M01-A/B/C 完成；M01-D 代码与隔离库验收完成，生产默认冻结开关待 staging 故障矩阵后启用 |
+| M02 | 知识与可见性 | clues、sections、knowledge chunks、角色可见性、分享 | 统一 audience、grant、revoke、“玩家知道什么”投影 | Creator 视角模拟；Host 玩家详情；Player 内容 | 第一版完成：三类 audience 共用服务端投影，三端已消费 |
+| M03 | 当前状态与建议行动 | player-home、host progress、creator dashboard | 三端 `currentState/suggestedActions/syncState` 聚合契约 | 三端首页 | 第一版完成：契约、三端入口、SSE 本地状态叠加和游标均已接入 |
 | M04 | 创作者七阶段导航 | cockpit、workspaces、精细编辑器 | 直白阶段、唯一编辑位置、完整页面路由 | Creator 全局 | 待实施 |
 | M05 | 世界、案件事实与时间线 | Bible、truth claims、core trick、timeline、relations | 事实卡统一、剧本杀案件字段、跑团阵营/威胁入口 | Creator 世界与谜底 | 待实施 |
 | M06 | 角色与私人内容 | roles、archives、sections、Writer、玩家预览 | 角色模板/实例边界、结构化目标与弧光、加入策略 | Creator 角色；Player 剧情 | 待实施 |
@@ -74,7 +74,7 @@
 
 - `content_versions` 是可删除、可恢复的作者工作快照；现有恢复逻辑只恢复章节和私人分幕，不是完整运行内容。
 - 当前 Archive Snapshot 还包含房间、质量报告、审稿记录和版本清单；直接作为 Release 会把运行数据和协作数据打进发布包，并造成递归膨胀。
-- Host/Player 当前仍从 chapters、sections、scenes、clues、rules 等活跃创作表读取。只在 rooms 上增加 `releaseId`，不能保证运行内容不可变。
+- 历史实现中 Host/Player 直接从 chapters、sections、scenes、clues、rules 等活跃创作表读取；M01-C 已用统一 Provider 替代运行热路径，保留这条说明作为迁移动机。
 - reading progress、clue ownership、current scene 等运行表仍通过外键引用活跃创作对象。若作者在下一版删除对象，旧房可能被级联影响或失去引用。
 - 现有 `content_revision` 只解决并发编辑冲突，不代表可运行、可追溯的发布版本。
 
@@ -96,9 +96,11 @@
    - Player 内容、Host runbook、自动化规则、调查、线索与“玩家知道什么”均经同一 provider，禁止各路由自行判断。
    - 对已进入任一 Release 的源对象增加删除保护；下一版可以编辑活跃对象，但旧房始终读取旧 Release payload。
 4. **M01-D · 默认冻结与升级影响**
-   - 完成三端故障矩阵和旧房回归后，才允许新正式房默认绑定最新 Release。
-   - 已开始房间不原地换版；未开始房间升级必须先展示对象级 diff 和运行状态影响。
-   - 通过功能开关逐步启用，回滚时保留 `release_id` 与 Release 数据，旧后端仍可按空值兼容运行。
+   - `ROOM_DEFAULT_CONTENT_BINDING=latest_release` 时，省略 `releaseId` 的新私有房默认绑定最新 Release；显式 `releaseId=null` 仍只用于私有联调房。公开房无论开关状态都必须绑定 Release。
+   - 已开始或已有进度、线索、物品、调查、日志、投票、任务等运行证据的房间不允许原地换版；未开始房先展示完整对象级 diff、角色席位兼容性、阻塞项和警告。
+   - 预览生成 SHA-256 影响指纹；确认时在短事务内锁房间并重新校验当前 Release、目标哈希、角色分配和运行证据，避免“预览后房间已变化”竞态。
+   - 切换与审计、Outbox 事件同事务提交；`room.content_release_changed` 触发 Creator、Host、Player 重新拉取，断线仍可由 journal replay 或轮询 reconcile。
+   - 生产开关保持 `live_draft`，staging 模板启用 `latest_release`；完成真实 Bearer、多实例 SSE、回滚演练后再切生产。
 
 ### 4.3 M01 完成标准
 
@@ -107,6 +109,8 @@
 - 相同 Idempotency-Key 重试返回同一 Release，不生成重复版本号。
 - Release 内容有稳定校验和；导出、Host 和 Player 读取的是同一份 payload。
 - 未绑定 Release 的旧房间有醒目标识和完整兼容测试，不能静默冒充已冻结版本。
+- 公开房不能创建或重新公开为实时草稿；已有旧公开房不被批量改写，但下一次公开写入必须先绑定 Release。
+- 版本影响预览与确认之间若内容 revision、席位或运行证据变化，确认请求必须返回 typed 409，而不是带着旧预览继续执行。
 
 ### 4.4 M01-A 当前落点（2026-07-22）
 
@@ -119,16 +123,35 @@
 - GET/POST API 只返回 Release 摘要与哈希，不返回完整快照；请求和响应类型已由 Fastify JSON Schema 生成到共享契约。
 - Creator「测试与发布」增加页面内 Release 区，可加载版本、查看来源 revision/内容数量/哈希，并显示草稿是否已有更新。
 - 已通过纯契约、readiness、迁移编号、RLS、Schema、模块图、架构、类型生成、生产构建和源码编码检查。
-- 数据库端到端用例已写入 `backend/test/world-release-integrity.test.js`；当前环境指向生产外观 Supabase，安全闸门拒绝创建临时库，因此该用例必须在本地 PostgreSQL、CI 隔离库或 staging 执行后，M01-A 才能标记为验收完成。
+- 数据库端到端用例已写入 `backend/test/world-release-integrity.test.js`，并已在本地 PostgreSQL 17 隔离库完成迁移 001–097 与用例验收。
 
 ### 4.5 M01-B 当前落点（2026-07-23）
 
 - Migration `094_room_release_binding.sql` 为 `rooms` 增加可空 `release_id`，使用 `(world_id, release_id)` 复合外键阻止跨世界绑定；旧房间保持 `NULL`，不改写、不停服。
 - 创建运行房支持可选 `releaseId`，服务端在同一短事务内锁定并验证 Release；Release 也进入幂等请求摘要，防止同一个 Idempotency-Key 被换版本重放。
-- 房间 API 只返回 `contentBinding` 元数据，不返回 Release Snapshot。契约同时声明 `mode`、`runtimeSource`、`isFrozen` 和兼容状态，避免“选了 Release 就假装内容已经冻结”。
+- 房间 API 只返回 `contentBinding` 元数据，不返回 Release Snapshot。契约同时声明 `mode`、`runtimeSource`、`isFrozen`，供三端以同一口径展示版本来源。
 - Creator 可选择实时草稿或 Release，并有防重复提交与错误恢复；Creator、Host、Player 共用 `shared/room-content-binding.js` 的状态解释与文案。
-- 邀请预览和 Player Home 均返回相同绑定投影。当前 `runtimeSource` 仍为 `live_draft`，选择 Release 的房间显示“版本预绑定”，旧房间显示“实时草稿 · 测试”。
-- M01-C 的 `RuntimeContentProvider` 完成并覆盖 Player、Host、规则、调查、线索和知识投影前，不得把 `isFrozen` 置为 `true`，也不得将 Release 自动设为正式新房默认值。
+- 邀请预览和 Player Home 均返回相同绑定投影。绑定 Release 的房间现在返回 `release_snapshot / isFrozen=true`；旧房仍返回 `live_draft / isFrozen=false`。
+- Release 仍不自动成为所有新房默认值；该开关属于 M01-D。本地版本升级、三端恢复路径与跨实例 PostgreSQL NOTIFY 已有隔离证据，启用生产默认值前仍须补 staging Bearer 压测、长断网和部署回滚演练。
+
+### 4.6 M01-C、M02、M03 当前落点（2026-07-24）
+
+- `runtime-content-provider` 统一决定 Release Snapshot 或实时草稿；Player 正文、Host runbook、规则、调查、线索、物品、任务和手工运行操作不再自行判断内容来源。
+- Release Snapshot 新发布版本同时冻结 `playerTasks`；旧 schemaVersion 1 且不含该可选集合的历史 Release 不会回读实时任务，任务区保持为空并要求创建新 Release，避免用“兼容”破坏冻结语义。角色、分幕、章节、场景、线索、调查点、物品、边、规则和运行段删除均有已绑定房间保护。
+- 玩家开始/完成分幕、记笔记、完成任务，以及 Host 发放/撤回线索、发放物品、解锁/撤回/跳过分幕、开放场景，都会先按运行版本校验对象，不能通过伪造 ID 把新草稿对象注入旧房。
+- `runtime-knowledge-service` 以同一事实查询生成 Player、Host、Creator 三类 audience；Player 响应不包含 `hostText`、主持备注和近期主持日志。Creator 的玩家视角预览选择真实房间后读取真实运行投影，Host 详情与 Player 首页也消费同一语义。
+- `runtime-current-state-service` 输出统一的 `phase / suggestedActions / blockers / syncState / metrics`；三端首页叠加本地 SSE 连接态，但不篡改服务端 journal cursor。
+- 新增七个只读端点：Host Runtime Content，Player/Host/Creator Knowledge，以及 Player/Host/Creator Current State。其请求和 200 响应 JSON Schema 已进入自动生成类型契约。
+- 隔离库验证覆盖“发布后修改草稿，三端仍读取原角色、分幕、规则、物品和任务”，并验证删除保护和权限隔离。Player Core 本地 20 并发、200 请求结果为 0 错误，P95 29.45ms、P99 34.27ms；该数据使用 demo header 和本机数据库，只证明代码回归，不替代 staging Bearer 证据。
+
+### 4.7 M01-D 当前落点（2026-07-25）
+
+- 新增房间内容策略接口与 `ROOM_DEFAULT_CONTENT_BINDING` 灰度开关；请求语义明确区分“未提供版本，使用策略”和“显式 null，使用私有实时草稿”。
+- 新增版本影响预览与应用接口。差异覆盖角色、章节、分幕、场景、线索、调查点、物品、规则、流程段、任务、关系、事实、伏笔、时间线、素材和核心诡计。
+- 运行证据由一个数据库往返聚合，所有 `room_id` 热过滤均使用既有主键、复合索引或专项索引；应用事务不重建大快照，只校验不可变目标快照和影响指纹，避免长时间持有房间锁。
+- Creator 运行房页面用内联面板显示目标版本、差异、阻塞和警告，不使用全局弹窗；切换成功后 Host、Player 与 Creator SSE 消费者统一刷新。
+- 本地 PostgreSQL 17 隔离库从空库应用 migration 001–097，版本预览→绑定→公开→真实 R1→R2、旧房权限、冻结读取与跨实例 NOTIFY 共 9 项集成用例通过；SSE replay/live 重叠、重复事件和三端 pull reconcile 矩阵 46 项通过，三端生产构建与 Host 62 / Player 77 项测试通过。
+- 尚未作为生产完成证据的部分：真实 staging Bearer 压测、长时间断网/进程重启、部署平台版本回滚。当前本机 staging 地址是未运行的 `localhost:8080`，且实际 `.env.staging` 尚未加入本批次开关，因此不能用本地隔离结果冒充预发证据。完成这些证据前，Railway 同步脚本默认写 `live_draft`。
 
 ## 5. 关键依赖顺序
 

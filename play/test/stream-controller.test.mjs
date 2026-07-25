@@ -94,13 +94,14 @@ test("player reconciles every Host live-operation event with the correct surface
     ["room.section_relocked", { roleSlotId: "role-1", sectionId: "section-1", source: "host_manual" }],
     ["room.section_skipped", { roleSlotId: "role-1", sectionId: "section-1", source: "host_manual" }],
     ["room.scene_unlocked", { sceneId: "scene-1", sceneName: "大厅", source: "host_manual" }],
+    ["room.content_release_changed", { releaseId: "release-2", releaseNumber: 2, direction: "upgrade" }],
     ["room.host_nudge", { roleSlotIds: ["role-1"], message: "请查看新的线索" }]
   ];
   for (const [type, payload] of events) {
     await handleRoomEvent(type, payload, ctx);
   }
 
-  assert.equal(refreshes, 8);
+  assert.equal(refreshes, 9);
   assert.ok(pulses.includes("clues"));
   assert.ok(pulses.includes("inventory"));
   assert.ok(pulses.includes("sections"));
@@ -112,4 +113,5 @@ test("player reconciles every Host live-operation event with the correct surface
   assert.ok(messages.some((message) => message.includes("获得物品")));
   assert.ok(messages.some((message) => message.includes("新分幕")));
   assert.ok(messages.some((message) => message.includes("新场景")));
+  assert.ok(messages.some((message) => message.includes("R2")));
 });

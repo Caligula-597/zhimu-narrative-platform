@@ -12,7 +12,11 @@ function uniqueViolation(constraint) {
   return Object.assign(new Error(`duplicate ${constraint}`), { code: "23505", constraint });
 }
 
-function roomTransactionRunner({ failInviteCode, releaseFound = true }) {
+function roomTransactionRunner({
+  failInviteCode,
+  releaseFound = true,
+  latestReleaseId = "11111111-2222-4333-8444-555555550088"
+}) {
   return async (work) => work({
     async query(sql, params = []) {
       if (sql.includes("set_config")) return { rows: [{}], rowCount: 1 };
@@ -20,8 +24,11 @@ function roomTransactionRunner({ failInviteCode, releaseFound = true }) {
         return { rows: [{ role: "owner" }], rowCount: 1 };
       }
       if (sql.includes("FROM world_releases release")) {
+        const selectedReleaseId = sql.includes("ORDER BY release.release_number DESC")
+          ? latestReleaseId
+          : params[1];
         return releaseFound
-          ? { rows: [{ id: params[1], release_number: 2 }], rowCount: 1 }
+          ? { rows: [{ id: selectedReleaseId, release_number: 2 }], rowCount: 1 }
           : { rows: [], rowCount: 0 };
       }
       if (sql.includes("INSERT INTO rooms")) {
@@ -71,7 +78,7 @@ test("room creation retries an invite-code collision in a fresh transaction", as
   assert.equal(room.public_listing, true);
 });
 
-test("room creation validates and projects the selected Release without claiming frozen runtime", async () => {
+test("room creation validates and projects the selected Release as frozen runtime", async () => {
   const releaseId = "11111111-2222-4333-8444-555555550088";
   const room = await addCreatorRoom({
     request: { headers: {} },
@@ -84,10 +91,60 @@ test("room creation validates and projects the selected Release without claiming
   assert.equal(room.contentBinding.mode, "release");
   assert.equal(room.contentBinding.release.id, releaseId);
   assert.equal(room.contentBinding.release.releaseNumber, 2);
-  assert.equal(room.contentBinding.runtimeSource, "live_draft");
-  assert.equal(room.contentBinding.isFrozen, false);
+  assert.equal(room.contentBinding.runtimeSource, "release_snapshot");
+  assert.equal(room.contentBinding.isFrozen, true);
   assert.equal(room.contentBinding.hasNewerDraft, true);
   assert.equal("release_id" in room, false);
+});
+
+test("room creation can default private rooms to the latest Release behind policy", async () => {
+  const latestReleaseId = "11111111-2222-4333-8444-555555550066";
+  const room = await addCreatorRoom({
+    request: { headers: {} },
+    actorId,
+    worldId,
+    body: { name: "default release room" },
+    inviteCodeFactory: () => "ROOM-DEFAULT-RELEASE",
+    transactionRunner: roomTransactionRunner({ latestReleaseId }),
+    releasePolicy: {
+      defaultReleaseEnabled: true,
+      defaultMode: "latest_release",
+      publicListingRequiresRelease: true,
+      allowExplicitLiveDraft: true
+    }
+  });
+  assert.equal(room.contentBinding.release.id, latestReleaseId);
+  assert.equal(room.contentBinding.isFrozen, true);
+});
+
+test("explicit live draft remains available for private rooms but not public listings", async () => {
+  const liveRoom = await addCreatorRoom({
+    request: { headers: {} },
+    actorId,
+    worldId,
+    body: { name: "private live room", releaseId: null },
+    inviteCodeFactory: () => "ROOM-PRIVATE-LIVE",
+    transactionRunner: roomTransactionRunner({}),
+    releasePolicy: {
+      defaultReleaseEnabled: true,
+      defaultMode: "latest_release",
+      publicListingRequiresRelease: true,
+      allowExplicitLiveDraft: true
+    }
+  });
+  assert.equal(liveRoom.contentBinding.mode, "live_draft");
+
+  await assert.rejects(
+    addCreatorRoom({
+      request: { headers: {} },
+      actorId,
+      worldId,
+      body: { name: "public live room", publicListing: true, releaseId: null },
+      inviteCodeFactory: () => "ROOM-PUBLIC-LIVE",
+      transactionRunner: roomTransactionRunner({})
+    }),
+    (error) => error.code === "ROOM_PUBLIC_LISTING_REQUIRES_RELEASE"
+  );
 });
 
 test("room creation rejects a Release from another world or a missing Release", async () => {

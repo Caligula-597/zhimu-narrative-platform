@@ -410,6 +410,412 @@ export interface RoomContentBinding {
   hasNewerDraft: boolean;
 }
 
+export interface RoomContentPolicy {
+  defaultMode: "live_draft" | "latest_release";
+  defaultReleaseEnabled: boolean;
+  publicListingRequiresRelease: boolean;
+  allowExplicitLiveDraft: boolean;
+}
+
+export interface PreviewRoomReleaseImpactQuery {
+  releaseId: string;
+}
+
+export interface RoomReleaseImpact {
+  roomId: string;
+  currentBinding: {
+    mode: "live_draft" | "release";
+    runtimeSource: "live_draft" | "release_snapshot";
+    isFrozen: boolean;
+    compatibilityStatus: "legacy_live_draft" | "awaiting_release_reader" | "frozen_release";
+    release: {
+      id: string;
+      releaseNumber: number | null;
+      label: string;
+      sourceRevision: number | null;
+      createdAt: string | null;
+    } | null;
+    currentDraftRevision: number | null;
+    hasNewerDraft: boolean;
+  };
+  source: {
+    mode: "live_draft" | "release";
+    release: {
+      id: string;
+      worldId: string;
+      releaseNumber: number;
+      label: string;
+      sourceRevision: number;
+      snapshotSchemaVersion: number;
+      narrativeProfile: {
+        version: 1;
+        creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+        runFormat: "single_session" | "campaign";
+        roleMode: "fixed" | "player_created" | "mixed";
+        ruleset: {
+          mode: "none" | "system_neutral" | "custom";
+          key: string;
+          diceNotation: string;
+        };
+      };
+      readinessSummary: {
+        errorCount?: number;
+        warningCount?: number;
+        successCount?: number;
+        readyForPlaytest?: boolean;
+        readyForCatalog?: boolean;
+        counts?: {
+          [k: string]: number;
+        };
+        [k: string]: unknown;
+      };
+      contentSummary: {
+        counts: {
+          [k: string]: number;
+        };
+        hasCoreTrick: boolean;
+        totalObjects: number;
+      };
+      contentSha256: string;
+      snapshotBytes: number;
+      createdByUserId?: string | null;
+      createdByName?: string | null;
+      createdAt: string;
+      replayed?: boolean;
+      content_revision?: number;
+    } | null;
+    sourceRevision: number;
+  };
+  targetRelease: {
+    id: string;
+    worldId: string;
+    releaseNumber: number;
+    label: string;
+    sourceRevision: number;
+    snapshotSchemaVersion: number;
+    narrativeProfile: {
+      version: 1;
+      creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+      runFormat: "single_session" | "campaign";
+      roleMode: "fixed" | "player_created" | "mixed";
+      ruleset: {
+        mode: "none" | "system_neutral" | "custom";
+        key: string;
+        diceNotation: string;
+      };
+    };
+    readinessSummary: {
+      errorCount?: number;
+      warningCount?: number;
+      successCount?: number;
+      readyForPlaytest?: boolean;
+      readyForCatalog?: boolean;
+      counts?: {
+        [k: string]: number;
+      };
+      [k: string]: unknown;
+    };
+    contentSummary: {
+      counts: {
+        [k: string]: number;
+      };
+      hasCoreTrick: boolean;
+      totalObjects: number;
+    };
+    contentSha256: string;
+    snapshotBytes: number;
+    createdByUserId?: string | null;
+    createdByName?: string | null;
+    createdAt: string;
+    replayed?: boolean;
+    content_revision?: number;
+  };
+  direction: "bind" | "upgrade" | "downgrade" | "same";
+  allowed: boolean;
+  fingerprint: string;
+  comparison: {
+    summary: {
+      added: number;
+      removed: number;
+      changed: number;
+    };
+    world: {
+      changed: boolean;
+      /**
+       * @maxItems 40
+       */
+      fields: string[];
+    };
+    coreTrick: {
+      changed: boolean;
+      /**
+       * @maxItems 40
+       */
+      fields: string[];
+    };
+    domains: {
+      [k: string]: {
+        counts: {
+          added: number;
+          removed: number;
+          changed: number;
+        };
+        /**
+         * @maxItems 100
+         */
+        added: {
+          id: string;
+          label: string;
+          /**
+           * @maxItems 40
+           */
+          fields?: string[];
+        }[];
+        /**
+         * @maxItems 100
+         */
+        removed: {
+          id: string;
+          label: string;
+          /**
+           * @maxItems 40
+           */
+          fields?: string[];
+        }[];
+        /**
+         * @maxItems 100
+         */
+        changed: {
+          id: string;
+          label: string;
+          /**
+           * @maxItems 40
+           */
+          fields?: string[];
+        }[];
+        truncated: boolean;
+      };
+    };
+  };
+  runtimeImpact: {
+    hasStarted: boolean;
+    runtimeActivityCount: number;
+    /**
+     * @maxItems 500
+     */
+    assignedRoleIds: string[];
+    /**
+     * @maxItems 500
+     */
+    missingAssignedRoleIds: string[];
+    evidence: {
+      [k: string]: number;
+    };
+    /**
+     * @maxItems 100
+     */
+    blockers: {
+      code: string;
+      message: string;
+      /**
+       * @maxItems 200
+       */
+      objectIds?: string[];
+    }[];
+    /**
+     * @maxItems 100
+     */
+    warnings: {
+      code: string;
+      message: string;
+      /**
+       * @maxItems 200
+       */
+      objectIds?: string[];
+    }[];
+  };
+  generatedAt: string;
+}
+
+export interface ApplyRoomReleaseBody {
+  releaseId: string;
+  expectedCurrentReleaseId: string | null;
+  targetContentSha256: string;
+  impactFingerprint: string;
+}
+
+export interface RuntimeContentResponse {
+  room: {
+    id: string;
+    worldId: string;
+    name: string;
+    status: string;
+  };
+  contentBinding: {
+    mode: "live_draft" | "release";
+    runtimeSource: "live_draft" | "release_snapshot";
+    isFrozen: boolean;
+    compatibilityStatus: "legacy_live_draft" | "awaiting_release_reader" | "frozen_release";
+    release: {
+      id: string;
+      releaseNumber: number | null;
+      label: string;
+      sourceRevision: number | null;
+      createdAt: string | null;
+    } | null;
+    currentDraftRevision: number | null;
+    hasNewerDraft: boolean;
+  };
+  content: {
+    schemaVersion: number | null;
+    sourceRevision: number;
+    narrativeProfile: {
+      [k: string]: unknown;
+    } | null;
+    world: {
+      [k: string]: unknown;
+    } | null;
+    chapters: {
+      [k: string]: unknown;
+    }[];
+    roles: {
+      [k: string]: unknown;
+    }[];
+    sections: {
+      [k: string]: unknown;
+    }[];
+    scenes: {
+      [k: string]: unknown;
+    }[];
+    clues: {
+      [k: string]: unknown;
+    }[];
+    investigationPoints: {
+      [k: string]: unknown;
+    }[];
+    items: {
+      [k: string]: unknown;
+    }[];
+    edges: {
+      [k: string]: unknown;
+    }[];
+    rules: {
+      [k: string]: unknown;
+    }[];
+    segments: {
+      [k: string]: unknown;
+    }[];
+    segmentRefs: {
+      [k: string]: unknown;
+    }[];
+    playerTasks: {
+      [k: string]: unknown;
+    }[];
+  };
+}
+
+export interface RuntimeKnowledgeProjection {
+  audience: "player" | "host" | "creator";
+  roomId: string;
+  roleSlotId: string;
+  role: {
+    id: string;
+    name: string;
+    publicProfile: string;
+    privateProfile: string;
+    playerDisplayName: string | null;
+    joinedAt: string | null;
+  } | null;
+  contentBinding: {
+    mode: "live_draft" | "release";
+    runtimeSource: "live_draft" | "release_snapshot";
+    isFrozen: boolean;
+    compatibilityStatus: "legacy_live_draft" | "awaiting_release_reader" | "frozen_release";
+    release: {
+      id: string;
+      releaseNumber: number | null;
+      label: string;
+      sourceRevision: number | null;
+      createdAt: string | null;
+    } | null;
+    currentDraftRevision: number | null;
+    hasNewerDraft: boolean;
+  };
+  sections: {
+    id: string;
+    title: string;
+    body: string;
+    sequence: number;
+    chapterId: string | null;
+    startedAt: string | null;
+    completedAt: string | null;
+    completed: boolean;
+    publicationStatus?: string;
+    unlocked?: boolean;
+  }[];
+  clues: {
+    [k: string]: unknown;
+  }[];
+  scenes: {
+    [k: string]: unknown;
+  }[];
+  investigations: {
+    [k: string]: unknown;
+  }[];
+  notes: {
+    [k: string]: unknown;
+  }[];
+  playerState?: {
+    [k: string]: unknown;
+  } | null;
+  recentLogs?: {
+    [k: string]: unknown;
+  }[];
+  summary: {
+    availableSections: number;
+    completedSections: number;
+    ownedClues: number;
+    sharedClues: number;
+    investigations: number;
+    notes: number;
+  };
+  generatedAt: string;
+}
+
+export interface RuntimeCurrentState {
+  audience: "player" | "host" | "creator";
+  roomId: string;
+  worldId: string;
+  phase: {
+    key: string;
+    label: string;
+    detail: string;
+  };
+  suggestedActions: {
+    key: string;
+    label: string;
+    priority: number;
+    target: string;
+    reason: string;
+  }[];
+  blockers: {
+    key: string;
+    label: string;
+    severity: "info" | "warning" | "error";
+    target: string;
+  }[];
+  syncState: {
+    status: "synced" | "reconnecting" | "stale" | "offline";
+    runtimeSource: "live_draft" | "release_snapshot";
+    isFrozen: boolean;
+    serverCursor: number;
+    generatedAt: string;
+  };
+  metrics: {
+    [k: string]: unknown;
+  };
+}
+
 export interface CreateRecapBody {
   title: string;
   description?: string;
@@ -1011,6 +1417,14 @@ export interface RoomCheckpointRestoredData {
   restoreId: string;
   sourceRoomId: string;
   crossRoom: boolean;
+  [k: string]: unknown;
+}
+
+export interface RoomContentReleaseChangedData {
+  previousReleaseId?: string;
+  releaseId: string;
+  releaseNumber: number;
+  direction: "bind" | "upgrade" | "downgrade";
   [k: string]: unknown;
 }
 

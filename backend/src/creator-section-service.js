@@ -12,6 +12,7 @@ import {
   updateCreatorSection
 } from "./repositories/creator-section-repository.js";
 import { runRevisionMutation } from "./world-revision.js";
+import { assertRuntimeObjectDeletionAllowed } from "./runtime-release-guard.js";
 
 async function assertEditor(client, { worldId, actorId }) {
   const role = await lockCreatorSectionEditor(client, { worldId, actorId });
@@ -90,6 +91,11 @@ export function removeCreatorSection({
     await assertEditor(client, { worldId, actorId });
     const current = await lockCreatorSection(client, { worldId, roleSlotId, sectionId });
     if (!current) throwErr("SCRIPT_SECTION_NOT_FOUND");
+    await assertRuntimeObjectDeletionAllowed(client, {
+      worldId,
+      field: "sections",
+      objectId: sectionId
+    });
     await deleteCreatorSection(client, sectionId);
     return { ok: true };
   }, { sendErr, configureClient: configureCreatorSectionTransaction });

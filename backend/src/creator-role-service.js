@@ -9,6 +9,7 @@ import {
   lockCreatorRole,
   updateCreatorRole
 } from "./repositories/creator-role-repository.js";
+import { assertRuntimeObjectDeletionAllowed } from "./runtime-release-guard.js";
 
 export function addCreatorRole({ request, reply, actorId, worldId, body }) {
   const name = String(body?.name ?? "").trim();
@@ -64,6 +65,11 @@ export function removeCreatorRole({ request, reply, actorId, worldId, roleSlotId
       if (!current) throwErr("ROLE_SLOT_NOT_FOUND");
       if (current.world_role_count <= 1) throwErr("LAST_ROLE_SLOT_REQUIRED");
       if (current.has_active_members) throwErr("ROLE_SLOT_IN_USE");
+      await assertRuntimeObjectDeletionAllowed(client, {
+        worldId,
+        field: "roles",
+        objectId: roleSlotId
+      });
       if (!await deleteCreatorRole(client, roleSlotId)) throwErr("ROLE_SLOT_NOT_FOUND");
       return { ok: true };
     }

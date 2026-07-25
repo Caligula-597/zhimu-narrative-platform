@@ -191,6 +191,8 @@ env.OFFICIAL_EXAMPLE_WORLD_ID =
 env.LOG_FORMAT = "json";
 env.LOG_LEVEL = "info";
 env.ROOM_EVENTS_BUS = "postgres";
+env.ROOM_DEFAULT_CONTENT_BINDING =
+  local.ROOM_DEFAULT_CONTENT_BINDING?.trim() || "live_draft";
 env.OPENAPI_UI = "false";
 env.SERVE_STATIC = "true";
 env.STATIC_ROOT = "/app/public/dist";

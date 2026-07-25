@@ -36,6 +36,18 @@ export async function startReadableSection({ roomId, roleSlotId, sectionId }) {
   return result.rows[0] ?? null;
 }
 
+export async function startReadingProgress(client, { roomId, roleSlotId, sectionId }) {
+  const result = await client.query(
+    `INSERT INTO reading_progress (room_id, role_slot_id, script_section_id, started_at)
+     VALUES ($1, $2, $3, now())
+     ON CONFLICT (room_id, role_slot_id, script_section_id)
+     DO UPDATE SET started_at = COALESCE(reading_progress.started_at, EXCLUDED.started_at)
+     RETURNING started_at, completed_at`,
+    [roomId, roleSlotId, sectionId]
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function findReadableSection(client, { roomId, roleSlotId, sectionId }) {
   const result = await client.query(
     `SELECT ss.id

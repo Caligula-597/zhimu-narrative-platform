@@ -83,12 +83,28 @@ test("room SSE applies a server-side audience projection and bounded reauthentic
   assert.match(platformRoute, /resolveSseMaxConnectionAgeMs/);
 });
 
+test("Release changes fan out to all room surfaces and every surface has pull recovery", () => {
+  const creator = read("src/runtime/room-events.js");
+  const host = read("host/src/runtime/room-events.js");
+  const player = read("play/src/room-events.js");
+  const audience = read("backend/src/room-event-audience.js");
+
+  for (const source of [creator, host, player]) {
+    assert.match(source, /room\.content_release_changed/);
+  }
+  assert.match(creator, /refreshCreatorRoomWorkspace/);
+  assert.match(creator, /view === "rooms"/);
+  assert.match(host, /room\.content_release_changed[\s\S]*?refreshHostRoom/);
+  assert.match(player, /room\.content_release_changed[\s\S]*?onRefresh/);
+  assert.match(audience, /PUBLIC_PLAYER_EVENT_TYPES[\s\S]*?room\.content_release_changed/);
+});
+
 test("the documented SSE fault matrix names every release-gating failure class", () => {
   const matrix = read("docs/SSE_FAILURE_MATRIX_ZH.md");
   for (const marker of [
     "SSE-01", "SSE-02", "SSE-03", "SSE-04", "SSE-05", "SSE-06", "SSE-07",
     "SSE-08", "SSE-09", "SSE-10", "SSE-11", "SSE-12", "SSE-13", "SSE-14",
-    "SSE-15", "SSE-16", "SSE-17"
+    "SSE-15", "SSE-16", "SSE-17", "SSE-18", "SSE-19"
   ]) {
     assert.match(matrix, new RegExp(`\\b${marker}\\b`));
   }

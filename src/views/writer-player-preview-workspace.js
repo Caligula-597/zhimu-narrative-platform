@@ -7,7 +7,11 @@ import {
   playerPreviewRoomChoices
 } from "./writer-player-preview-model.js";
 import { playerPreviewWorkspaceHtml } from "./writer-player-preview-view.js";
-import { beginWriterToolSession } from "./writer-tool-session.js";
+import {
+  beginWriterToolSession,
+  writerToolSessionIsCurrent
+} from "./writer-tool-session.js";
+import * as zhimuApi from "../api/index.js";
 import "./writer-player-preview-workspace.css";
 
 export { playerPreviewWorkspaceHtml } from "./writer-player-preview-view.js";
@@ -47,7 +51,38 @@ export function bindPlayerPreviewWorkspace(data, session) {
     root.querySelector(selector)?.addEventListener("change", (event) => {
       session.draft[key] = event.target.value;
       session.discardArmed = false;
+      session.runtimeKnowledge = null;
+      session.runtimeKnowledgeError = "";
       render();
+      void refreshRuntimeKnowledge(session);
     });
   }
+}
+
+async function refreshRuntimeKnowledge(session) {
+  const data = studioStore.get().cloudStudio;
+  const room = playerPreviewRoomChoices(data)
+    .find((candidate) => candidate.id === session.draft.roomId);
+  if (room?.source !== "room" || !session.draft.roleId) return;
+  const requestKey = `${room.id}:${session.draft.roleId}`;
+  session.runtimeKnowledgeStatus = "loading";
+  session.runtimeKnowledgeKey = requestKey;
+  render();
+  try {
+    const knowledge = await zhimuApi.getCreatorRoleKnowledge(
+      session.worldId,
+      room.id,
+      session.draft.roleId
+    );
+    if (!writerToolSessionIsCurrent(session) || session.runtimeKnowledgeKey !== requestKey) return;
+    session.runtimeKnowledge = knowledge;
+    session.runtimeKnowledgeStatus = "ready";
+    session.runtimeKnowledgeError = "";
+  } catch (error) {
+    if (!writerToolSessionIsCurrent(session) || session.runtimeKnowledgeKey !== requestKey) return;
+    session.runtimeKnowledge = null;
+    session.runtimeKnowledgeStatus = "error";
+    session.runtimeKnowledgeError = error?.message || "真实运行态读取失败";
+  }
+  render();
 }

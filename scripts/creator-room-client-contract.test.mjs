@@ -62,3 +62,19 @@ test("Creator room workspace sends the selected Release and restores the action 
   assert.match(mainCreate, /state\.error\s*=\s*normalizeError/);
   assert.match(mainCreate, /render\(\)/);
 });
+
+test("Creator room Release changes stay inline and preserve preview-before-apply", () => {
+  const api = source("src/api/room.js");
+  const roomView = source("src/views/rooms.js");
+  const releaseWorkspace = source("src/views/room-release-workspace.js");
+  const actions = source("src/runtime/actions-workspace.js");
+  assert.match(api, /export function getRoomContentPolicy/);
+  assert.match(api, /export function getRoomReleaseImpact/);
+  assert.match(api, /export function applyRoomRelease/);
+  assert.match(releaseWorkspace, /class="room-release-change-panel"/);
+  assert.doesNotMatch(`${roomView}\n${releaseWorkspace}`, /openModal|modalBackdrop/);
+  assert.match(releaseWorkspace, /impactFingerprint:\s*impact\.fingerprint/);
+  assert.match(releaseWorkspace, /expectedCurrentReleaseId:/);
+  assert.match(actions, /case "room-release-preview"/);
+  assert.match(actions, /case "room-release-apply"/);
+});

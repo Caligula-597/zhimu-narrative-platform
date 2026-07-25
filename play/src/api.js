@@ -90,6 +90,8 @@ export const api = {
   playerHomeCore: (roomId) => request(`/rooms/${roomId}/player-home/core`),
   playerHomeSocial: (roomId, currentActKey = "ch1") =>
     request(`/rooms/${roomId}/player-home/social?currentActKey=${encodeURIComponent(currentActKey)}`),
+  playerKnowledge: (roomId) => request(`/rooms/${roomId}/knowledge`),
+  playerCurrentState: (roomId) => request(`/rooms/${roomId}/current-state`),
   playerVotes: (roomId) => request(`/rooms/${roomId}/votes`),
   submitVoteBallot: (roomId, voteId, payload) =>
     request(`/rooms/${roomId}/votes/${voteId}/ballots`, { method: "POST", body: payload }),

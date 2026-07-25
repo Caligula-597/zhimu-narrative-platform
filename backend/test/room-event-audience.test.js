@@ -13,6 +13,16 @@ test("hosts receive the complete room event payload", () => {
   assert.equal(projected.event, event);
 });
 
+test("content Release changes are visible to every room participant", () => {
+  const event = {
+    type: "room.content_release_changed",
+    releaseId: "release-2",
+    releaseNumber: 2,
+    direction: "upgrade"
+  };
+  assert.equal(projectRoomEventForAudience(event, player).event, event);
+});
+
 test("role-targeted events are not delivered to another player", () => {
   const hidden = projectRoomEventForAudience({
     type: "room.clue_granted",

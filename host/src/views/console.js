@@ -37,6 +37,7 @@ import { renderHostEventWorkspace } from "./host-event-workspace.js";
 import { renderHostOperationWorkspace } from "./host-operation-workspace.js";
 import { renderHostRuleWorkspace } from "./host-rule-workspace.js";
 import { renderHostVoteWorkspace } from "./host-vote-workspace.js";
+import { normalizeRuntimeCurrentState } from "../../../shared/runtime-current-state.js";
 
 export function bindConsoleContext({ render, showToast }) {
   bindHostPaceTimerContext({ render });
@@ -54,6 +55,15 @@ export function renderConsole(){
  const hostPlayersError=state.cloudHostPlayersError||"";
  const hostPlayersErrorBanner=hostPlayersError?`<section class="demo-strip" style="margin-bottom:14px;border-color:rgba(167,120,61,0.45);background:var(--brass-soft)"><div><span class="cloud-pill">玩家进度</span><strong style="margin-top:7px">未能加载玩家运行状态</strong><p>${escapeHtml(hostPlayersError)}</p></div><button class="secondary-btn" type="button" data-action="refresh-host-players">重试</button></section>`:"";
  const inviteCode=room.invite_code||"";
+ const runtimeState=normalizeRuntimeCurrentState(state.currentState,{audience:"host",connected:state.roomEventsConnected});
+ const runtimeStatePanel=`<section class="demo-strip host-runtime-state" style="margin-bottom:14px">
+  <div>
+   <span class="cloud-pill">${escapeHtml(runtimeState.syncState.status==="synced"?"三端已同步":"正在恢复同步")}</span>
+   <strong style="margin-top:7px">${escapeHtml(runtimeState.phase.label)}</strong>
+   <p>${escapeHtml(runtimeState.phase.detail)} · 游标 ${runtimeState.syncState.serverCursor} · ${runtimeState.syncState.isFrozen?"发布版本冻结运行":"实时草稿运行"}</p>
+  </div>
+  <div class="row">${runtimeState.suggestedActions.slice(0,2).map(item=>`<span class="status-chip testing">${escapeHtml(item.label)}</span>`).join("")}</div>
+ </section>`;
  const noPlayerProgressHint=players.length&&!joinedCount?`<section class="demo-strip" style="margin-bottom:14px"><div><span class="cloud-pill">等待玩家入房</span><strong style="margin-top:7px">尚无阅读进度</strong><p>${inviteCode?`邀请码 <code class="invite-code-inline">${escapeHtml(inviteCode)}</code> · 复制后发给玩家，或让他们打开 play.getzhimu.com 输入码。`:"分享运行房邀请码"}读完一幕后本页玩家表会自动更新。</p>${inviteCode?`<div class="row" style="margin-top:8px"><button class="secondary-btn" data-action="copy-invite-code" data-invite-code="${escapeHtml(inviteCode)}">复制邀请码</button><button class="secondary-btn" data-action="copy-play-link" data-invite-code="${escapeHtml(inviteCode)}">复制玩家链接</button><button class="secondary-btn" data-action="room-invite-current">邀请详情</button></div>`:""}</div><button class="secondary-btn" data-action="onboarding-go-player">进入玩家视角</button></section>`:"";
  const hostRisks=[];
  if(hostPlayersError){hostRisks.push({level:"error",title:"玩家运行状态加载失败",detail:hostPlayersError,action:"refresh-host-players",button:"重试"});}
@@ -84,6 +94,7 @@ export function renderConsole(){
  </section>`;
  return `<section class="host-console">
   <div class="host-console-status">${cloudStatus()}</div>
+  ${runtimeStatePanel}
   ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows })}
   ${renderHostEventWorkspace()}
   ${renderHostVoteWorkspace()}

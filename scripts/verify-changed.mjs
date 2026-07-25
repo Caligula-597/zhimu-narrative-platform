@@ -271,14 +271,19 @@ if (files.some((f) => f.startsWith("backend/src/routes/schemas") || f === "backe
 
 if (files.some((f) =>
   f.startsWith("backend/src/routes/schemas") ||
-  f === "backend/scripts/generate-contract-types.mjs"
+  f === "backend/scripts/generate-contract-types.mjs" ||
+  f === "backend/generated/api-contracts.d.ts" ||
+  f === "shared/generated/api-contracts.d.ts" ||
+  f === "scripts/check-generated-contracts-current.mjs"
 )) {
-  run("backend contracts:generate", "npm run contracts:generate", backendRoot);
-  run(
-    "backend contracts drift",
-    "git diff --exit-code -- backend/generated/api-contracts.d.ts shared/generated/api-contracts.d.ts",
-    root
-  );
+  run("backend generated contracts current", "npm run check:generated-contracts", root);
+}
+
+if (files.some((f) =>
+  f === "scripts/check-generated-contracts-current.mjs" ||
+  f === "scripts/check-generated-contracts-current.test.mjs"
+)) {
+  run("generated contracts verifier tests", "npm run test:generated-contracts", root);
 }
 
 if (files.some((f) =>

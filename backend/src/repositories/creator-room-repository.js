@@ -37,6 +37,17 @@ export async function lockCreatorRoomActor(client, { worldId, actorId }) {
   return result.rows[0]?.role ?? null;
 }
 
+export async function findCreatorRoomActorRole({ worldId, actorId }, client = null) {
+  const db = client?.query ? client.query.bind(client) : query;
+  const result = await db(
+    `SELECT role
+     FROM world_members
+     WHERE world_id = $1 AND user_id = $2`,
+    [worldId, actorId]
+  );
+  return result.rows[0]?.role ?? null;
+}
+
 export async function insertCreatorRoomGraph(client, {
   worldId,
   actorId,
@@ -161,6 +172,20 @@ export async function lockCreatorRoomHostMembership(client, { roomId, actorId })
        AND status = 'active'
        AND member_type IN ('host', 'cohost')
      FOR SHARE`,
+    [roomId, actorId]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function findCreatorRoomHostMembership({ roomId, actorId }, client = null) {
+  const db = client?.query ? client.query.bind(client) : query;
+  const result = await db(
+    `SELECT member_type
+     FROM room_members
+     WHERE room_id = $1
+       AND user_id = $2
+       AND status = 'active'
+       AND member_type IN ('host', 'cohost')`,
     [roomId, actorId]
   );
   return result.rows[0] ?? null;

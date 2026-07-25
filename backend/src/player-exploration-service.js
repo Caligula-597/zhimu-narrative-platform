@@ -5,8 +5,72 @@ import { consumeItemIfNeeded } from "./inventory-helpers.js";
 import { playerDisplayName } from "./routes/player-route-helpers.js";
 import { evaluateRoomRules } from "./rule-engine.js";
 import { transactionWithEvents } from "./transaction-events.js";
+import { loadRuntimeContentProvider } from "./runtime-content-provider.js";
 
 export async function loadPlayerExploration(roomId, roleSlotId) {
+  const provider = await loadRuntimeContentProvider(roomId, { includeLiveSnapshot: false });
+  if (!provider) throwErr("ROOM_NOT_FOUND");
+  if (provider.isFrozen) {
+    const facts = await query(
+      `SELECT
+         COALESCE((
+           SELECT jsonb_agg(to_jsonb(unlock) ORDER BY unlock.unlocked_at)
+           FROM room_content_unlocks unlock
+           WHERE unlock.room_id = $1 AND unlock.content_type = 'scene'
+         ), '[]'::jsonb) AS scene_unlocks,
+         COALESCE((
+           SELECT jsonb_agg(to_jsonb(record))
+           FROM investigation_records record
+           WHERE record.room_id = $1 AND record.role_slot_id = $2
+         ), '[]'::jsonb) AS investigations,
+         COALESCE((
+           SELECT jsonb_object_agg(inventory.item_id::text, inventory.quantity)
+           FROM inventory
+           WHERE inventory.room_id = $1
+             AND inventory.role_slot_id = $2
+             AND inventory.quantity > 0
+         ), '{}'::jsonb) AS inventory`,
+      [roomId, roleSlotId]
+    );
+    const row = facts.rows[0] ?? {};
+    const investigated = new Map(
+      (row.investigations ?? []).map((record) => [String(record.investigation_point_id), record])
+    );
+    const inventory = row.inventory ?? {};
+    const scenes = (row.scene_unlocks ?? []).map((unlock) => {
+      const scene = provider.find("scenes", unlock.content_id);
+      if (!scene) return null;
+      const points = provider.collection("investigationPoints")
+        .filter((point) => String(point.scene_id) === String(scene.id))
+        .filter((point) => !point.required_role_slot_id || String(point.required_role_slot_id) === String(roleSlotId))
+        .sort((left, right) => Number(left.sequence) - Number(right.sequence))
+        .map((point) => {
+          const record = investigated.get(String(point.id));
+          const requiredItem = point.required_item_id
+            ? provider.find("items", point.required_item_id)
+            : null;
+          return {
+            id: point.id,
+            name: point.name,
+            description: point.description,
+            interactionText: point.interaction_text,
+            resultText: record ? point.result_text : null,
+            requiredItemId: point.required_item_id,
+            requiredItemName: requiredItem?.name ?? null,
+            hasRequiredItem: !point.required_item_id || Number(inventory[point.required_item_id]) > 0,
+            investigated: Boolean(record),
+            investigatedAt: record?.investigated_at ?? null
+          };
+        });
+      return {
+        id: scene.id,
+        name: scene.name,
+        public_text: scene.public_text,
+        investigation_points: points
+      };
+    }).filter(Boolean);
+    return { scenes };
+  }
   const scenes = await query(
     `SELECT s.id, s.name, s.public_text,
             COALESCE(json_agg(
@@ -44,17 +108,38 @@ export async function loadPlayerExploration(roomId, roleSlotId) {
 }
 
 export async function investigatePlayerPoint({ roomId, pointId, roleSlotId, actorId }) {
-  const point = await query(
-    `SELECT ip.*
-     FROM investigation_points ip
-     JOIN room_content_unlocks rcu ON rcu.content_id = ip.scene_id
-      AND rcu.room_id = $1 AND rcu.content_type = 'scene'
-     WHERE ip.id = $2
-       AND (ip.required_role_slot_id IS NULL OR ip.required_role_slot_id = $3)`,
-    [roomId, pointId, roleSlotId]
-  );
-  if (!point.rowCount) throwErr("INVESTIGATION_POINT_UNAVAILABLE");
-  const target = point.rows[0];
+  const provider = await loadRuntimeContentProvider(roomId, { includeLiveSnapshot: false });
+  if (!provider) throwErr("ROOM_NOT_FOUND");
+  let target;
+  if (provider.isFrozen) {
+    target = provider.find("investigationPoints", pointId);
+    const unlocked = target
+      ? await query(
+          `SELECT 1 FROM room_content_unlocks
+           WHERE room_id = $1 AND content_type = 'scene' AND content_id = $2`,
+          [roomId, target.scene_id]
+        )
+      : { rowCount: 0 };
+    if (
+      !target
+      || !unlocked.rowCount
+      || (target.required_role_slot_id && String(target.required_role_slot_id) !== String(roleSlotId))
+    ) {
+      throwErr("INVESTIGATION_POINT_UNAVAILABLE");
+    }
+  } else {
+    const point = await query(
+      `SELECT ip.*
+       FROM investigation_points ip
+       JOIN room_content_unlocks rcu ON rcu.content_id = ip.scene_id
+        AND rcu.room_id = $1 AND rcu.content_type = 'scene'
+       WHERE ip.id = $2
+         AND (ip.required_role_slot_id IS NULL OR ip.required_role_slot_id = $3)`,
+      [roomId, pointId, roleSlotId]
+    );
+    if (!point.rowCount) throwErr("INVESTIGATION_POINT_UNAVAILABLE");
+    target = point.rows[0];
+  }
   if (target.required_item_id) {
     const inventory = await query(
       `SELECT 1 FROM inventory WHERE room_id = $1 AND role_slot_id = $2 AND item_id = $3 AND quantity > 0`,
@@ -97,17 +182,23 @@ export async function investigatePlayerPoint({ roomId, pointId, roleSlotId, acto
 
   const executedRules = await evaluateRoomRules(roomId);
   const clue = target.clue_id
-    ? (await query(`SELECT id, name, public_text FROM clues WHERE id = $1`, [target.clue_id])).rows[0]
+    ? provider.find("clues", target.clue_id)
     : null;
   return { ok: true, resultText: target.result_text, clue, executedRules };
 }
 
 export async function readPlayerClue({ roomId, clueId, roleSlotId, actorId }) {
-  const clue = await query(
-    `SELECT id, name FROM clues c JOIN rooms r ON r.world_id = c.world_id WHERE c.id = $1 AND r.id = $2`,
-    [clueId, roomId]
-  );
-  if (!clue.rowCount) throwErr("CLUE_NOT_FOUND");
+  const provider = await loadRuntimeContentProvider(roomId, { includeLiveSnapshot: false });
+  const authoredClue = provider?.isFrozen
+    ? provider.find("clues", clueId)
+    : (await query(
+        `SELECT clue.id, clue.name
+         FROM clues clue
+         JOIN rooms room ON room.world_id = clue.world_id
+         WHERE clue.id = $1 AND room.id = $2`,
+        [clueId, roomId]
+      )).rows[0];
+  if (!authoredClue) throwErr("CLUE_NOT_FOUND");
   const owned = await query(
     `SELECT read_at FROM clue_ownership WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3`,
     [roomId, roleSlotId, clueId]
@@ -123,7 +214,7 @@ export async function readPlayerClue({ roomId, clueId, roleSlotId, actorId }) {
   if (!owned.rowCount && !shared.rowCount) throwErr("CLUE_NOT_ACCESSIBLE");
 
   const playerName = await playerDisplayName(query, roomId, roleSlotId);
-  const clueName = clue.rows[0].name;
+  const clueName = authoredClue.name;
   if (owned.rowCount) {
     const result = await query(
       `UPDATE clue_ownership SET read_at = COALESCE(read_at, now())
@@ -169,12 +260,18 @@ export async function readPlayerClue({ roomId, clueId, roleSlotId, actorId }) {
 }
 
 async function requireRoomClueName(roomId, clueId) {
-  const clue = await query(
-    `SELECT c.name FROM clues c JOIN rooms r ON r.world_id = c.world_id WHERE c.id = $1 AND r.id = $2`,
-    [clueId, roomId]
-  );
-  if (!clue.rowCount) throwErr("CLUE_NOT_FOUND");
-  return clue.rows[0].name;
+  const provider = await loadRuntimeContentProvider(roomId, { includeLiveSnapshot: false });
+  const clue = provider?.isFrozen
+    ? provider.find("clues", clueId)
+    : (await query(
+        `SELECT clue.name
+         FROM clues clue
+         JOIN rooms room ON room.world_id = clue.world_id
+         WHERE clue.id = $1 AND room.id = $2`,
+        [clueId, roomId]
+      )).rows[0];
+  if (!clue) throwErr("CLUE_NOT_FOUND");
+  return clue.name;
 }
 
 export async function sharePlayerClueWithRoom({ roomId, clueId, roleSlotId, actorId, shared }) {

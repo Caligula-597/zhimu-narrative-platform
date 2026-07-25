@@ -4,6 +4,7 @@ import { transaction } from "./db.js";
 import { readIdempotencyKey } from "./idempotency.js";
 import {
   configureCreatorRoomTransaction,
+  findCreatorRoomActorRole,
   findCreatorRoomByCreationKey,
   insertCreatorRoomGraph,
   listCreatorRoomsForActor,
@@ -14,7 +15,11 @@ import {
 } from "./repositories/creator-room-repository.js";
 import { generateRoomInviteCode } from "./room-invite-code.js";
 import { withRoomContentBinding } from "./room-content-binding.js";
-import { lockWorldReleaseForRoom } from "./repositories/world-release-repository.js";
+import {
+  lockLatestWorldReleaseForRoom,
+  lockWorldReleaseForRoom
+} from "./repositories/world-release-repository.js";
+import { resolveRoomReleasePolicy } from "./room-release-policy.js";
 
 const CREATOR_ROOM_ROLES = new Set(["owner", "editor", "host"]);
 const CREATOR_ROOM_EDITOR_ROLES = new Set(["owner", "editor"]);
@@ -22,9 +27,21 @@ const INVITE_CODE_CONSTRAINT = "rooms_invite_code_key";
 const CREATION_IDEMPOTENCY_CONSTRAINT = "idx_rooms_creation_idempotency";
 const DEFAULT_INVITE_ATTEMPTS = 5;
 
-function normalizedCreateHash({ worldId, actorId, name, publicListing, releaseId }) {
+function roomRuntimeBindingOptions(room) {
+  return {
+    runtimeSource: room?.release_id ? "release_snapshot" : "live_draft"
+  };
+}
+
+function normalizedCreateHash({ worldId, actorId, name, publicListing, requestedReleaseId }) {
   return createHash("sha256")
-    .update(JSON.stringify([worldId, actorId, name, publicListing, releaseId ?? null]))
+    .update(JSON.stringify([
+      worldId,
+      actorId,
+      name,
+      publicListing,
+      requestedReleaseId === undefined ? "auto" : requestedReleaseId
+    ]))
     .digest("hex");
 }
 
@@ -35,6 +52,30 @@ function assertCreatorRoomRole(role) {
 
 function isConstraint(error, name) {
   return error?.code === "23505" && error?.constraint === name;
+}
+
+async function resolveCreateReleaseId(client, {
+  worldId,
+  publicListing,
+  requestedReleaseId,
+  releasePolicy
+}) {
+  if (requestedReleaseId) {
+    const release = await lockWorldReleaseForRoom(client, {
+      worldId,
+      releaseId: requestedReleaseId
+    });
+    if (!release) throwErr("WORLD_RELEASE_NOT_FOUND");
+    return release.id;
+  }
+  if (requestedReleaseId === null) {
+    if (publicListing) throwErr("ROOM_PUBLIC_LISTING_REQUIRES_RELEASE");
+    return null;
+  }
+  if (!publicListing && !releasePolicy.defaultReleaseEnabled) return null;
+  const latest = await lockLatestWorldReleaseForRoom(client, { worldId });
+  if (!latest) throwErr("ROOM_RELEASE_REQUIRED");
+  return latest.id;
 }
 
 export function normalizeCreatorRoomError(error) {
@@ -68,7 +109,7 @@ async function replayCreatorRoom({
     );
   }
   const { creation_request_hash: _requestHash, ...response } = room;
-  return withRoomContentBinding(response);
+  return withRoomContentBinding(response, roomRuntimeBindingOptions(response));
 }
 
 export async function addCreatorRoom({
@@ -78,15 +119,18 @@ export async function addCreatorRoom({
   body,
   inviteCodeFactory = generateRoomInviteCode,
   maxInviteAttempts = DEFAULT_INVITE_ATTEMPTS,
-  transactionRunner = transaction
+  transactionRunner = transaction,
+  releasePolicy = resolveRoomReleasePolicy()
 }) {
   const name = String(body?.name ?? "").trim();
   if (!name) throwErr("NAME_EMPTY");
   const publicListing = Boolean(body?.publicListing);
-  const releaseId = body?.releaseId || null;
+  const requestedReleaseId = Object.hasOwn(body ?? {}, "releaseId")
+    ? body.releaseId || null
+    : undefined;
   const idempotencyKey = readIdempotencyKey(request);
   const requestHash = idempotencyKey
-    ? normalizedCreateHash({ worldId, actorId, name, publicListing, releaseId })
+    ? normalizedCreateHash({ worldId, actorId, name, publicListing, requestedReleaseId })
     : null;
   const attempts = Math.max(1, Math.min(Number(maxInviteAttempts) || DEFAULT_INVITE_ATTEMPTS, 10));
 
@@ -97,10 +141,12 @@ export async function addCreatorRoom({
         await configureCreatorRoomTransaction(client);
         const role = await lockCreatorRoomActor(client, { worldId, actorId });
         assertCreatorRoomRole(role);
-        if (releaseId) {
-          const release = await lockWorldReleaseForRoom(client, { worldId, releaseId });
-          if (!release) throwErr("WORLD_RELEASE_NOT_FOUND");
-        }
+        const releaseId = await resolveCreateReleaseId(client, {
+          worldId,
+          publicListing,
+          requestedReleaseId,
+          releasePolicy
+        });
         const room = await insertCreatorRoomGraph(client, {
           worldId,
           actorId,
@@ -111,7 +157,7 @@ export async function addCreatorRoom({
           idempotencyKey,
           requestHash
         });
-        return withRoomContentBinding(room);
+        return withRoomContentBinding(room, roomRuntimeBindingOptions(room));
       });
     } catch (error) {
       if (idempotencyKey && isConstraint(error, CREATION_IDEMPOTENCY_CONSTRAINT)) {
@@ -142,7 +188,13 @@ export async function addCreatorRoom({
 export async function listCreatorRooms({ actorId, worldId }) {
   const result = await listCreatorRoomsForActor({ actorId, worldId });
   assertCreatorRoomRole(result.role);
-  return result.rooms.map((room) => withRoomContentBinding(room));
+  return result.rooms.map((room) => withRoomContentBinding(room, roomRuntimeBindingOptions(room)));
+}
+
+export async function getCreatorRoomContentPolicy({ actorId, worldId }) {
+  const role = await findCreatorRoomActorRole({ actorId, worldId });
+  assertCreatorRoomRole(role);
+  return resolveRoomReleasePolicy();
 }
 
 export async function reviseCreatorRoomListing({ actorId, worldId, roomId, publicListing }) {
@@ -156,6 +208,9 @@ export async function reviseCreatorRoomListing({ actorId, worldId, roomId, publi
       if (!CREATOR_ROOM_EDITOR_ROLES.has(role) && room.host_user_id !== actorId) {
         const membership = await lockCreatorRoomHostMembership(client, { roomId, actorId });
         if (!membership) throwErr("ROOM_LISTING_FORBIDDEN");
+      }
+      if (publicListing && !room.release_id) {
+        throwErr("ROOM_PUBLIC_LISTING_REQUIRES_RELEASE");
       }
       return updateCreatorRoomListing(client, {
         roomId,

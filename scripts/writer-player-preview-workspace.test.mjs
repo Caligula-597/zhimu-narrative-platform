@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  applyRuntimeKnowledgePreview,
   buildPlayerReaderPreview,
   canPreviewPlayerView,
   normalizePlayerPreviewDraft
@@ -77,6 +78,39 @@ test("player preview follows the Player initial-state contract", () => {
   assert.ok(preview.warnings.some((warning) => warning.includes("父章节")));
   assert.ok(preview.warnings.some((warning) => warning.includes("公开线索")));
   assert.ok(preview.warnings.some((warning) => warning.includes("room_content_unlocks")));
+});
+
+test("real room preview replaces hypothetical visibility with canonical knowledge", () => {
+  const data = fixture();
+  const preview = buildPlayerReaderPreview(data, {
+    roleId: "role-1",
+    roomId: "room-1",
+    chapterId: ""
+  });
+  const runtime = applyRuntimeKnowledgePreview(preview, {
+    role: {
+      id: "role-1",
+      name: "冻结侦探",
+      publicProfile: "冻结公开身份",
+      privateProfile: "冻结秘密"
+    },
+    contentBinding: { isFrozen: true },
+    sections: [{
+      id: "section-2",
+      title: "第二幕",
+      body: "运行时已解锁",
+      sequence: 2,
+      chapterId: "chapter-1",
+      completed: false
+    }],
+    scenes: [{ id: "scene-1", name: "门厅" }],
+    clues: [{ id: "clue-1", name: "公开线索", access: "owned" }]
+  });
+  assert.equal(runtime.role.name, "冻结侦探");
+  assert.deepEqual(runtime.visibleSections.map((section) => section.id), ["section-2"]);
+  assert.equal(runtime.visibleScenes.length, 1);
+  assert.equal(runtime.visibleClues.length, 1);
+  assert.match(runtime.warnings[0], /冻结 Release/);
 });
 
 test("player preview renders an embedded escaped reader surface", () => {
