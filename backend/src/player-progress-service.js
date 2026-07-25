@@ -3,6 +3,7 @@ import { throwErr } from "./api-errors.js";
 import { transactionWithEvents } from "./transaction-events.js";
 import { submitMiniGameAnswer } from "./room-mini-games.js";
 import { evaluateRoomRulesWithClient } from "./rule-engine.js";
+import { loadRuntimeContentProvider } from "./runtime-content-provider.js";
 import {
   completeReadingProgress,
   configurePlayerProgressTransaction,
@@ -13,8 +14,48 @@ import {
   insertReadingCompletedTimeline,
   isNotebookSourceAvailable,
   listPlayerTimeline,
-  startReadableSection
+  startReadingProgress
 } from "./repositories/player-progress-repository.js";
+
+function sectionIsPublished(section, roomStatus) {
+  return section.publication_status === "published"
+    || (roomStatus === "testing" && section.publication_status === "testing");
+}
+
+async function findRuntimeReadableSection(client, { roomId, roleSlotId, sectionId }) {
+  const runQuery = client.query.bind(client);
+  const provider = await loadRuntimeContentProvider(roomId, {
+    runQuery,
+    includeLiveSnapshot: false
+  });
+  if (!provider) return null;
+  if (!provider.isFrozen) {
+    return findReadableSection(client, { roomId, roleSlotId, sectionId });
+  }
+
+  const section = provider.find("sections", sectionId);
+  if (
+    !section
+    || String(section.role_slot_id) !== String(roleSlotId)
+    || !sectionIsPublished(section, provider.room.status)
+  ) {
+    return null;
+  }
+  const roleSections = provider.collection("sections")
+    .filter((candidate) => String(candidate.role_slot_id) === String(roleSlotId))
+    .filter((candidate) => sectionIsPublished(candidate, provider.room.status))
+    .sort((left, right) => Number(left.sequence) - Number(right.sequence));
+  if (section.sequence === roleSections[0]?.sequence) return section;
+  const unlocked = await client.query(
+    `SELECT 1
+     FROM room_content_unlocks
+     WHERE room_id = $1
+       AND content_type = 'script_section'
+       AND content_id = $2`,
+    [roomId, sectionId]
+  );
+  return unlocked.rowCount ? section : null;
+}
 
 export async function submitPlayerMiniGame({ roomId, gameId, actorId, answer }) {
   const result = await transactionWithEvents(async (client, queueEvent) => {
@@ -53,19 +94,27 @@ export async function submitPlayerMiniGame({ roomId, gameId, actorId, answer }) 
 }
 
 export async function startPlayerSection({ roomId, roleSlotId, sectionId }) {
-  const progress = await startReadableSection({ roomId, roleSlotId, sectionId });
-  if (!progress) throwErr("SECTION_LOCKED");
-  return {
-    ok: true,
-    startedAt: progress.started_at,
-    completedAt: progress.completed_at
-  };
+  return transaction(async (client) => {
+    await configurePlayerProgressTransaction(client);
+    const section = await findRuntimeReadableSection(client, {
+      roomId,
+      roleSlotId,
+      sectionId
+    });
+    if (!section) throwErr("SECTION_LOCKED");
+    const progress = await startReadingProgress(client, { roomId, roleSlotId, sectionId });
+    return {
+      ok: true,
+      startedAt: progress.started_at,
+      completedAt: progress.completed_at
+    };
+  });
 }
 
 export async function completePlayerSection({ roomId, roleSlotId, sectionId, actorId }) {
   return transactionWithEvents(async (client, queueEvent) => {
     await configurePlayerProgressTransaction(client);
-    const section = await findReadableSection(client, { roomId, roleSlotId, sectionId });
+    const section = await findRuntimeReadableSection(client, { roomId, roleSlotId, sectionId });
     if (!section) throwErr("SECTION_LOCKED");
 
     const progress = await completeReadingProgress(client, { roomId, roleSlotId, sectionId });
@@ -90,12 +139,18 @@ export async function addPlayerNotebookEntry({
 }) {
   return transaction(async (client) => {
     await configurePlayerProgressTransaction(client);
-    const sourceAvailable = await isNotebookSourceAvailable(client, {
-      roomId,
-      roleSlotId,
-      sourceType,
-      sourceId
-    });
+    const sourceAvailable = sourceType === "script_section"
+      ? Boolean(await findRuntimeReadableSection(client, {
+          roomId,
+          roleSlotId,
+          sectionId: sourceId
+        }))
+      : await isNotebookSourceAvailable(client, {
+          roomId,
+          roleSlotId,
+          sourceType,
+          sourceId
+        });
     if (!sourceAvailable) throwErr("NOTEBOOK_SOURCE_INVALID");
     return createNotebookEntry(client, {
       roomId,

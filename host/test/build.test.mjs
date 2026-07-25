@@ -76,6 +76,7 @@ test("main.js wires console, SSE and director actions", () => {
   const ruleWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-rule-workspace-controller.js"), "utf8");
   const voteWorkspaceSource = readFileSync(path.join(root, "src", "runtime", "host-vote-workspace-controller.js"), "utf8");
   assert.match(eventsSource, /connectRoomEvents/);
+  assert.match(eventsSource, /room\.content_release_changed/);
   assert.doesNotMatch(directorSource, /executeHostEvent|dismissHostEvent|delayHostEvent|window\.prompt/);
   assert.match(eventWorkspaceSource, /case "host-event-workspace-submit"/);
   assert.match(directorSource, /case "host-select-act"/);

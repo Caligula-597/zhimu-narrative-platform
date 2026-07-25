@@ -87,13 +87,7 @@ npm run test:e2e
 - 构建前端、迁移/seed、后端全套检查。
 - 启动 `4180` API、`4173` 主应用、`5174` 玩家端后跑 smoke/E2E。
 
-`.github/workflows/railway-deploy.yml`：
-
-- 部署 Railway fullstack。
-- 部署后执行 `check:production-ready`。
-- 执行 `monitoring:smoke -- --alerts`，验证 metrics 和告警 webhook。
-
-`.github/workflows/pages-deploy.yml` 覆盖 `site/play/host` 构建、Pages 部署和 smoke；`.github/workflows/release-acceptance.yml` 手动执行隔离 DB ×3、关键 E2E、Player localhost 性能基线和恢复演练，并上传结构化工件。2026-07-16 的运行 `29477387204` 是一份失败的历史基线（第 1/3 轮失败，后续步骤未执行），不能代表当前代码已经失败或已经通过。当前仍缺同一提交上的完整官方成功工件。
+`.github/workflows/production-release.yml` 在 `main` 的 CI 成功后，以同一提交依次构建并验证 Pages 预览、部署 Railway fullstack、执行生产可信与监控 smoke，最后提升 `site/play/host` 产物。`.github/workflows/production-backup.yml` 定期生成加密逻辑备份并在隔离 PostgreSQL 中恢复验证；`.github/workflows/release-acceptance.yml` 手动执行隔离 DB ×3、关键 E2E、Player localhost 性能基线和恢复演练，并上传结构化工件。工作流文件存在不代表当前提交已经执行通过。2026-07-16 的运行 `29477387204` 是一份失败的历史基线（第 1/3 轮失败，后续步骤未执行），不能代表当前代码已经失败或已经通过。当前仍缺同一提交上的完整官方成功工件。
 
 仍未自动消除的发布证据：staging 真实 Bearer 多玩家 P95/P99、应用镜像回滚、R2 对象恢复与实际 RPO/RTO。
 

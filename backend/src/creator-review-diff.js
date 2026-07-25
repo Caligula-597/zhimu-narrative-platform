@@ -8,11 +8,16 @@ const DOMAINS = Object.freeze([
   ["investigationPoints", "name"],
   ["rules", "name"],
   ["segments", "title"],
+  ["segmentRefs", "ref_type"],
   ["truthClaims", "title"],
   ["roleRelationships", "label"],
   ["roleArchives", "public_identity"],
   ["foreshadowBeats", "title"],
-  ["timelineEvents", "event_summary"]
+  ["timelineEvents", "event_summary"],
+  ["playerTasks", "body"],
+  ["edges", "label"],
+  ["assetManifest", "originalFilename"],
+  ["tags", "tag_key"]
 ]);
 
 function canonical(value) {
@@ -68,9 +73,15 @@ export function compareCreatorSnapshots(baseSnapshot = {}, headSnapshot = {}) {
   }
   const worldFields = changedFieldNames(baseSnapshot.world || {}, headSnapshot.world || {});
   if (worldFields.length) totals.changed += 1;
+  const coreTrickFields = changedFieldNames(
+    baseSnapshot.coreTrick || {},
+    headSnapshot.coreTrick || {}
+  );
+  if (coreTrickFields.length) totals.changed += 1;
   return {
     summary: totals,
     world: { changed: worldFields.length > 0, fields: worldFields },
+    coreTrick: { changed: coreTrickFields.length > 0, fields: coreTrickFields },
     domains
   };
 }

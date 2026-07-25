@@ -93,16 +93,40 @@ export function createPlayerHomeController({
     const recapPromise = partial
       ? api.latestRecap(state.roomId)
       : Promise.resolve(undefined);
-    const [socialResult, recapResult] = await Promise.allSettled([socialPromise, recapPromise]);
+    const [socialResult, recapResult] = await Promise.allSettled([
+      socialPromise,
+      recapPromise
+    ]);
     if (currentGeneration !== generation || !state.home) return;
 
     if (socialResult.status === "fulfilled") {
       state.home = { ...state.home, ...socialResult.value };
     }
     if (partial) applyRecapResult(recapResult);
+    if (
+      socialResult.status !== "fulfilled"
+      || !socialResult.value?.currentState
+    ) {
+      await refreshCurrentState(currentGeneration, partial);
+      if (currentGeneration !== generation || !state.home) return;
+    }
 
     if (partial && patchGameView(state, patchContext()) !== "full") return;
     render();
+  }
+
+  async function refreshCurrentState(currentGeneration, partial) {
+    if (typeof api.playerCurrentState !== "function") return;
+    try {
+      const currentState = await api.playerCurrentState(state.roomId);
+      if (currentGeneration !== generation || !state.home) return;
+      state.home = { ...state.home, currentState };
+      if (partial && patchGameView(state, patchContext()) !== "full") return;
+      render();
+    } catch {
+      // Current-state guidance is an enhancement; the authored reader remains
+      // usable while SSE/poll recovery retries this projection.
+    }
   }
 
   function applyRecapResult(result) {

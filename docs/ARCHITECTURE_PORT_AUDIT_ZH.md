@@ -4,7 +4,7 @@
 
 ## 结论
 
-当前核心业务框架可继续生产化：Fastify + PostgreSQL 的领域边界清楚，Railway fullstack 承载主应用和 API，玩家端/主持端/官网按 Cloudflare Pages 分域。Pages 三站、共享 API/Auth/SSE transport、入口拆分和生产安全门禁均已落地。70 个路由模块的直接数据库调用债务已由历史 143 个递减到 0，并由架构门禁禁止回升；当前主要风险已转为领域服务内部质量，以及真实容量、恢复和回滚证据。
+当前核心业务框架可继续生产化：Fastify + PostgreSQL 的领域边界清楚，Railway fullstack 承载主应用和 API，玩家端/主持端/官网按 Cloudflare Pages 分域。Pages 三站、共享 API/Auth/SSE transport、入口拆分和生产安全门禁均已落地。71 个路由模块的直接数据库调用债务已由历史 143 个递减到 0，并由架构门禁禁止回升；当前主要风险已转为领域服务内部质量，以及真实容量、恢复和回滚证据。
 
 ## 端口表
 
@@ -30,7 +30,7 @@
 
 ### 已完成：Pages 三站 CI/CD 与安装门禁
 
-`.github/workflows/pages-deploy.yml` 负责 `site/play/host` 的构建、Cloudflare Pages deploy 和部署后 smoke；`check:pages-installability` 使用 Cloudflare 对应 npm 版本验证三份 lockfile，防止本机缓存掩盖安装漂移。
+`.github/workflows/production-release.yml` 负责 `site/play/host` 的不可变预览构建、Cloudflare Pages promote 和部署后 smoke；`check:pages-installability` 使用 Cloudflare 对应 npm 版本验证三份 lockfile，防止本机缓存掩盖安装漂移。
 
 ### 已完成 transport 收口，UI 继续按收益复用
 

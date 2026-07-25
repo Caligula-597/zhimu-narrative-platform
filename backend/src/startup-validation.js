@@ -7,6 +7,8 @@ import { isEmailConfigured } from "./email.js";
 import { validateOAuthProductionConfig } from "./oauth-diagnostics.js";
 import { resolveAllowedCorsOrigins } from "./cors-origins.js";
 import { explainRateLimitTopology, resolveRateLimitTopology } from "./network-trust-policy.js";
+import { isEmailVerificationRequired } from "./email-verification-policy.js";
+import { validatePlayContentBlocklist } from "./play-content-moderation.js";
 
 const REQUIRED_ENV = ["DATABASE_URL"];
 
@@ -44,9 +46,15 @@ export function validateStartupEnvironment() {
       console.warn(`WARN: API rate-limit topology is not production-trusted: ${explainRateLimitTopology(rateLimitTopology)}.`);
       console.warn("WARN: /api/ops/status will keep the rate_limits production gate closed until this is resolved.");
     }
-    if (process.env.REQUIRE_EMAIL_VERIFICATION === "true" && !isEmailConfigured()) {
-      console.error("FATAL: REQUIRE_EMAIL_VERIFICATION=true but email provider is not configured.");
-      console.error("Set EMAIL_PROVIDER + MAIL_FROM + provider API keys, or disable REQUIRE_EMAIL_VERIFICATION.");
+    if (isEmailVerificationRequired() && !isEmailConfigured()) {
+      console.error("FATAL: production email verification requires a configured email provider.");
+      console.error("Set EMAIL_PROVIDER + MAIL_FROM + provider API keys before deploying.");
+      process.exit(1);
+    }
+    try {
+      validatePlayContentBlocklist();
+    } catch (error) {
+      console.error(`FATAL: ${error.message}`);
       process.exit(1);
     }
     if (!process.env.APP_PUBLIC_URL?.trim()) {

@@ -12,6 +12,15 @@ import {
   updateStudioNodeAnchors,
   updateStudioNodePosition
 } from "./repositories/studio-graph-repository.js";
+import { assertRuntimeObjectDeletionAllowed } from "./runtime-release-guard.js";
+
+const RELEASE_NODE_FIELDS = Object.freeze({
+  chapter: "chapters",
+  scene: "scenes",
+  clue: "clues",
+  investigation_point: "investigationPoints",
+  item: "items"
+});
 
 export async function getStudioNodeReferences(worldId, nodeType, nodeId) {
   if (!supportsStudioNode(nodeType)) throwErr("NODE_TYPE_UNSUPPORTED");
@@ -33,6 +42,11 @@ export async function getStudioNodeReferences(worldId, nodeType, nodeId) {
 }
 
 export async function removeStoryEdge(client, worldId, edgeId) {
+  await assertRuntimeObjectDeletionAllowed(client, {
+    worldId,
+    field: "edges",
+    objectId: edgeId
+  });
   const removed = await deleteStoryEdgeRecord(client, worldId, edgeId);
   if (!removed) throwErr("STORY_EDGE_NOT_FOUND");
   return { ok: true };
@@ -40,6 +54,11 @@ export async function removeStoryEdge(client, worldId, edgeId) {
 
 export async function removeStudioNode(client, worldId, nodeType, nodeId) {
   if (!supportsStudioNode(nodeType)) throwErr("NODE_TYPE_UNSUPPORTED");
+  await assertRuntimeObjectDeletionAllowed(client, {
+    worldId,
+    field: RELEASE_NODE_FIELDS[nodeType],
+    objectId: nodeId
+  });
   const removed = nodeType === "chapter"
     ? await deleteWorldChapter(client, worldId, nodeId)
     : await deleteStudioEntity(client, worldId, nodeType, nodeId);

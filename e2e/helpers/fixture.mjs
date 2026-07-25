@@ -42,6 +42,7 @@ export async function injectDemoContext(context, overrides = {}) {
     localStorage.setItem("zhimuDemoMode", "true");
     localStorage.setItem("zhimuFirstRunDismissed", "1");
     localStorage.removeItem("zhimuSessionToken");
+    sessionStorage.removeItem("zhimuSessionToken");
     localStorage.setItem("zhimuActiveWorldId", worldId);
     if (roomId) localStorage.setItem(`zhimuActiveRoomId:${worldId}`, roomId);
     else localStorage.removeItem(`zhimuActiveRoomId:${worldId}`);
@@ -57,6 +58,7 @@ export async function injectHostAppContext(context) {
     localStorage.setItem("zhimuDemoMode", "true");
     localStorage.setItem("zhimuDemoUserId", hostUserId);
     localStorage.removeItem("zhimuSessionToken");
+    sessionStorage.removeItem("zhimuSessionToken");
     localStorage.setItem("zhimuHostWorldId", worldId);
     localStorage.setItem(`zhimuHostRoomId:${worldId}`, roomId);
   }, { worldId: FIXTURE.worldId, roomId: FIXTURE.roomId, hostUserId: FIXTURE.hostUserId });
@@ -78,6 +80,7 @@ export async function injectVerifiedPlayContext(context) {
     localStorage.setItem("zhimuDemoMode", "true");
     localStorage.setItem("zhimuDemoUserId", playerUserId);
     localStorage.removeItem("zhimuSessionToken");
+    sessionStorage.removeItem("zhimuSessionToken");
   }, { playerUserId: FIXTURE.playerUserId });
 }
 
@@ -86,6 +89,7 @@ export async function injectFreshCreatorContext(context) {
   await context.addInitScript(() => {
     localStorage.setItem("zhimuDemoMode", "true");
     localStorage.removeItem("zhimuSessionToken");
+    sessionStorage.removeItem("zhimuSessionToken");
     localStorage.removeItem("zhimuActiveWorldId");
     localStorage.removeItem("zhimuFirstRunDismissed");
     for (const key of Object.keys(localStorage)) {

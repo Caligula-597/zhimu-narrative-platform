@@ -7,7 +7,10 @@ import { getEventOutboxStatus } from "../event-outbox-dispatcher.js";
 import { getTelemetryStatus } from "../telemetry.js";
 import { getEmailServiceStatus } from "../email.js";
 import { getPublicOAuthDiagnostics } from "../oauth-diagnostics.js";
-import { getStripeBillingStatus } from "../stripe-billing.js";
+import { getStripeBillingStatus, isBillingLaunchEnabled } from "../stripe-billing.js";
+import { isCreditsSystemEnabled } from "../credits.js";
+import { isEmailVerificationRequired } from "../email-verification-policy.js";
+import { getPricingPageMode, isCommercialUiVisible } from "../pricing-pages.js";
 import { getUploadScanStatus } from "../upload-scan.js";
 import { resolveCspMode } from "../security-headers.js";
 import {
@@ -25,9 +28,9 @@ import { resolveVoiceRateLimits } from "../voice-abuse-protection.js";
 import { resolveCheckpointRateLimits } from "../checkpoint-abuse-protection.js";
 import { resolveVoiceRuntimePolicy } from "../voice-service.js";
 import { resolveLiveKitTokenTtlSeconds } from "../livekit.js";
-import { listFeedback, getFeedbackStats, updateFeedbackStatus } from "../feedback.js";
 import { registerOpsCatalogRoutes } from "./ops-catalog-routes.js";
 import { registerOpsBetaRoutes } from "./ops-beta-routes.js";
+import { registerOpsFeedbackRoutes } from "./ops-feedback-routes.js";
 import { registerOpsPlazaRoutes } from "./ops-plaza-routes.js";
 import {
   explainRateLimitTopology,
@@ -63,6 +66,31 @@ export function productionTrustGates({ features, rateLimits }) {
       label: "Session cookies + revocation",
       ok: true,
       detail: "auth_sessions revocation and HttpOnly cookie restore are enabled"
+    },
+    {
+      key: "email_verification",
+      label: "Verified registered identities",
+      ok: isEmailVerificationRequired() && Boolean(features.email?.configured),
+      detail: `required=${isEmailVerificationRequired()}; provider=${features.email?.provider || "none"}`
+    },
+    {
+      key: "database_tls",
+      label: "Verified database TLS",
+      ok: process.env.DATABASE_SSL === "true",
+      detail: process.env.DATABASE_SSL === "true"
+        ? "certificate verification enabled"
+        : "DATABASE_SSL must be true in production"
+    },
+    {
+      key: "monetization_frozen",
+      label: "Launch without charging",
+      ok: !isBillingLaunchEnabled()
+        && !isCreditsSystemEnabled()
+        && getPricingPageMode() === "launch"
+        && !isCommercialUiVisible(),
+      detail:
+        `billing=${isBillingLaunchEnabled()}; credits=${isCreditsSystemEnabled()}; `
+        + `pricing=${getPricingPageMode()}; commercialUi=${isCommercialUiVisible()}`
     },
     {
       key: "csp",
@@ -150,82 +178,6 @@ export async function registerOpsRoutes(app) {
         limit: limit != null ? Number(limit) : 50,
         offset: offset != null ? Number(offset) : 0
       });
-    }
-  );
-
-  app.get(
-    "/api/ops/feedback/stats",
-    {
-      schema: {
-        hide: true,
-        tags: ["system"],
-        response: {
-          200: { type: "array", items: { type: "object", additionalProperties: true } }
-        }
-      }
-    },
-    async () => {
-      return getFeedbackStats();
-    }
-  );
-
-  app.get(
-    "/api/ops/feedback",
-    {
-      schema: {
-        hide: true,
-        tags: ["system"],
-        querystring: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            status: { type: "string", enum: ["new", "seen", "resolved"] },
-            kind: { type: "string", enum: ["feedback", "bug", "feature"] },
-            limit: { type: "integer", minimum: 1, maximum: 200 },
-            offset: { type: "integer", minimum: 0, maximum: 100_000 }
-          }
-        },
-        response: {
-          200: { type: "object", additionalProperties: true }
-        }
-      }
-    },
-    async (request) => {
-      const { status, kind, limit, offset } = request.query;
-      return listFeedback({
-        status,
-        kind,
-        limit: limit != null ? Number(limit) : 50,
-        offset: offset != null ? Number(offset) : 0
-      });
-    }
-  );
-
-  app.patch(
-    "/api/ops/feedback/:id",
-    {
-      schema: {
-        hide: true,
-        tags: ["system"],
-        params: {
-          type: "object",
-          additionalProperties: false,
-          required: ["id"],
-          properties: { id: { type: "string", format: "uuid" } }
-        },
-        body: {
-          type: "object",
-          additionalProperties: false,
-          required: ["status"],
-          properties: { status: { type: "string", enum: ["new", "seen", "resolved"] } }
-        },
-        response: {
-          200: { type: "object", additionalProperties: true }
-        }
-      }
-    },
-    async (request) => {
-      return updateFeedbackStatus(request.params.id, request.body.status);
     }
   );
 
@@ -391,5 +343,6 @@ export async function registerOpsRoutes(app) {
 
   await registerOpsCatalogRoutes(app);
   await registerOpsBetaRoutes(app);
+  await registerOpsFeedbackRoutes(app);
   await registerOpsPlazaRoutes(app);
 }

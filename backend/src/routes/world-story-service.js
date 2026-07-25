@@ -1,5 +1,6 @@
 import { transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
+import { assertNoFrozenRuntimeRooms } from "../runtime-release-guard.js";
 export function classifyStoryDraft(text) {
   const blocks = String(text ?? "").split(/\n\s*\n|\r?\n(?=(?:场景|线索|调查点|地点|证据|搜证|scene|clue|point|investigation)\s*[：:])/i).map((item) => item.trim()).filter(Boolean);
   let sceneIndex = 0;
@@ -60,6 +61,7 @@ export async function syncManuscriptToGraph(worldId, text, existingClient = null
   const drafts = classifyStoryDraft(text);
   if (!drafts.length) throwErr("STORY_BLOCKS_EMPTY");
   const work = async (client) => {
+    await assertNoFrozenRuntimeRooms(client, worldId);
     const ids = new Map();
     let currentSceneId = null;
     await client.query(`DELETE FROM story_graph_edges WHERE world_id = $1 AND label LIKE '完整剧情同步%'`, [worldId]);

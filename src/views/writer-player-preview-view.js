@@ -1,5 +1,9 @@
 import { escapeHtml } from "../utils/format.js";
-import { buildPlayerReaderPreview, normalizePlayerPreviewDraft } from "./writer-player-preview-model.js";
+import {
+  applyRuntimeKnowledgePreview,
+  buildPlayerReaderPreview,
+  normalizePlayerPreviewDraft
+} from "./writer-player-preview-model.js";
 import { writerToolFactsHtml, writerToolSurfaceHtml } from "./writer-tool-layout.js";
 
 function optionRows(items, selectedId, { allLabel = "" } = {}) {
@@ -48,7 +52,12 @@ function availabilityRows(title, visible, hidden) {
 
 export function playerPreviewWorkspaceHtml(data, session) {
   normalizePlayerPreviewDraft(data, session.draft);
-  const preview = buildPlayerReaderPreview(data, session.draft);
+  const localPreview = buildPlayerReaderPreview(data, session.draft);
+  const selectedRuntimeKey = `${session.draft.roomId}:${session.draft.roleId}`;
+  const runtimeKnowledge = session.runtimeKnowledgeKey === selectedRuntimeKey
+    ? session.runtimeKnowledge
+    : null;
+  const preview = applyRuntimeKnowledgePreview(localPreview, runtimeKnowledge);
   const role = preview.role;
   if (!role) return "";
   const roomStatus = preview.room?.status === "testing" ? "测试房" : "正式房";
@@ -84,6 +93,8 @@ export function playerPreviewWorkspaceHtml(data, session) {
         ])}
         <aside class="writer-player-preview-warnings">
           <strong>验证边界</strong>
+          ${session.runtimeKnowledgeStatus === "loading" ? "<p>正在读取真实运行态…</p>" : ""}
+          ${session.runtimeKnowledgeStatus === "error" ? `<p role="alert">${escapeHtml(session.runtimeKnowledgeError || "真实运行态读取失败")}</p>` : ""}
           <ul>${warningRows(preview.warnings)}</ul>
         </aside>
       </aside>

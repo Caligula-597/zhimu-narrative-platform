@@ -23,7 +23,7 @@
 | AI | DeepSeek API — 分层 Prompt（规格→逐章总剧情→角色本→结构抽取→编排导入） |
 | 实时 | SSE + journal/outbox + PostgreSQL NOTIFY；replay/受众/游标/重连门禁；LiveKit 语音房 |
 | 身份 | Session（scrypt）、Google/GitHub OAuth、邮箱验证、找回密码（Resend） |
-| 工程 | 70 个路由模块、32 个领域 schema、周期快审、专项故障矩阵与 GitHub Release Acceptance；测试声明数量见生成基线 |
+| 工程 | 71 个路由模块、32 个领域 schema、周期快审、专项故障矩阵与 GitHub Release Acceptance；测试声明数量见生成基线 |
 
 ---
 

@@ -7,22 +7,22 @@ import {
   resolveCspMode
 } from "../src/security-headers.js";
 
-test("resolveCspMode defaults to report-only in production", () => {
-  assert.equal(resolveCspMode("production"), "report-only");
+test("resolveCspMode defaults to enforce in production", () => {
+  assert.equal(resolveCspMode("production"), "enforce");
   assert.equal(resolveCspMode("development"), "off");
   assert.equal(resolveCspMode("production", "enforce"), "enforce");
   assert.equal(resolveCspMode("production", "off"), "off");
 });
 
-test("buildContentSecurityPolicy uses report-only header in production default", () => {
+test("buildContentSecurityPolicy uses enforcing header in production default", () => {
   const csp = buildContentSecurityPolicy({ nodeEnv: "production" });
   assert.ok(csp);
-  assert.equal(csp.header, "Content-Security-Policy-Report-Only");
+  assert.equal(csp.header, "Content-Security-Policy");
   assert.match(csp.value, /default-src 'self'/);
   assert.match(csp.value, /script-src 'self'/);
   assert.match(csp.value, /trusted-types zhimu-html/);
   assert.match(csp.value, /require-trusted-types-for 'script'/);
-  assert.match(csp.value, /report-uri \/api\/csp-report/);
+  assert.doesNotMatch(csp.value, /report-uri \/api\/csp-report/);
   assert.doesNotMatch(csp.value, /unsafe-eval/);
 });
 
@@ -52,7 +52,7 @@ test("report-only CSP also avoids a duplicate Trusted Types header", () => {
   assert.equal(buildTrustedTypesReportOnlyPolicy({ nodeEnv: "production", cspMode: "report-only" }), null);
 });
 
-test("production app responses include CSP report-only header", async (context) => {
+test("production app responses include enforcing CSP header", async (context) => {
   const prev = process.env.CSP_MODE;
   delete process.env.CSP_MODE;
   const app = await createApp({ logger: false, nodeEnv: "production", allowDemoUserHeader: false });
@@ -64,8 +64,9 @@ test("production app responses include CSP report-only header", async (context) 
 
   const response = await app.inject({ method: "GET", url: "/api/health/live" });
   assert.equal(response.statusCode, 200);
-  assert.ok(response.headers["content-security-policy-report-only"]);
-  assert.match(response.headers["content-security-policy-report-only"], /default-src 'self'/);
+  assert.ok(response.headers["content-security-policy"]);
+  assert.match(response.headers["content-security-policy"], /default-src 'self'/);
+  assert.equal(response.headers["content-security-policy-report-only"], undefined);
   assert.equal(response.headers["x-content-type-options"], "nosniff");
 });
 

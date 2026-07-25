@@ -21,5 +21,7 @@
 | SSE-15 | 同一浏览器切换账号/角色 | 房间流和平台流游标必须按已认证用户隔离，不能继承其他账号的 Last-Event-ID | `sse-fault-matrix.test.mjs` |
 | SSE-16 | 同房间定向或私密事件 | Host 可接收完整事件；Player 只能接收公开事件或自己的角色/用户受众，隐藏事件以无内容 heartbeat 推进游标 | `room-event-audience.test.js` |
 | SSE-17 | 被踢、登出或服务端会话撤销 | 被踢玩家收到终止事件后立即断流；所有长连接最多 5 分钟强制重连并重新执行 HTTP 认证 | `room-event-audience.test.js`、`sse-response.test.js` |
+| SSE-18 | Release 切换发生在另一 API 实例 | 事务提交后写 journal/outbox；PostgreSQL NOTIFY 将同一稳定游标广播到其他实例，Creator、Host、Player 都收到 `room.content_release_changed` | `room-event-bus-postgres.test.js`、`room-event-audience.test.js`、`sse-fault-matrix.test.mjs` |
+| SSE-19 | Release 切换事件在断线窗口内丢失或与 live 重叠 | 按 Last-Event-ID 重放且 replay/live 同 ID 只刷新一次；若实时链路不可用，三端定期 pull 权威快照，Creator 房间工作台也必须参与 reconcile | `sse-replay-subscription.test.js`、`shared-sse-lifecycle.test.mjs`、`sse-fault-matrix.test.mjs` |
 
-发布门槛：共享解析与生命周期测试、后端 replay 测试、三端接线矩阵、事件契约漂移检查必须同时通过。长时间断网和多实例 PostgreSQL LISTEN/NOTIFY 演练保留在发布候选环境执行。
+发布门槛：共享解析与生命周期测试、后端 replay 测试、三端接线矩阵、事件契约漂移检查必须同时通过。Release 变更还必须在隔离 PostgreSQL 上完成跨实例 NOTIFY 验收；长时间断网演练保留在发布候选环境执行。

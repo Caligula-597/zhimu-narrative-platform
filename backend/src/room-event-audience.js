@@ -6,6 +6,7 @@ const PUBLIC_PLAYER_EVENT_TYPES = new Set([
   "room.game_updated",
   "room.game_completed",
   "room.checkpoint_restored",
+  "room.content_release_changed",
   "room.vote_created",
   "room.vote_updated",
   "room.segment_remedy_applied"

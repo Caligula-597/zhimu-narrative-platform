@@ -1,7 +1,7 @@
 # 织幕 · 数据库结构索引
 
 > **用途**：后端表/枚举/迁移的快速参考。权威定义在 `backend/migrations/*.sql`。  
-> **更新**：2026-07-24（迁移 **001–094**）。数据库真相以迁移文件和 `schema_migrations` 为准；生产/类生产环境必须至少包含 readiness 要求的关键迁移，不能只按本文手工建表。当前迁移号由 [`docs/GENERATED_PROJECT_STATUS.json`](./docs/GENERATED_PROJECT_STATUS.json) 自动记录。
+> **更新**：2026-07-24（迁移 **001–097**）。数据库真相以迁移文件和 `schema_migrations` 为准；生产/类生产环境必须至少包含 readiness 要求的关键迁移，不能只按本文手工建表。当前迁移号由 [`docs/GENERATED_PROJECT_STATUS.json`](./docs/GENERATED_PROJECT_STATUS.json) 自动记录。
 
 ---
 
@@ -81,6 +81,9 @@
 | `092_narrative_profile_settings.sql` | 剧本杀 / 跑团叙事档案与术语设置 |
 | `093_world_releases.sql` | 世界内容发布版本 |
 | `094_room_release_binding.sql` | 运行房绑定不可变发布版本 |
+| `095_account_deletion_integrity.sql` | 账号删除任务、关联数据与审计完整性 |
+| `096_foreign_key_index_coverage.sql` | 补齐高频外键查询的索引覆盖 |
+| `097_enable_rls_post_launch_tables.sql` | 为上市准备阶段新增表启用 Row-Level Security |
 
 应用：`cd backend && npm run db:migrate`
 

@@ -17,6 +17,7 @@ const PRICE_CREATOR = "price_creator_test";
 const PRICE_STUDIO = "price_studio_test";
 
 function stripeTestEnv() {
+  process.env.BILLING_LAUNCH_ENABLED = "true";
   process.env.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
   process.env.STRIPE_PRICE_CREATOR = PRICE_CREATOR;
   process.env.STRIPE_PRICE_STUDIO = PRICE_STUDIO;
@@ -34,6 +35,7 @@ function restoreEnv(saved) {
 }
 
 const STRIPE_ENV_KEYS = [
+  "BILLING_LAUNCH_ENABLED",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
   "STRIPE_PRICE_CREATOR",

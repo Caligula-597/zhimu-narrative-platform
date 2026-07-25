@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-07-24T12:39:40.768Z",
+  "generatedAt": "2026-07-24T17:37:23.107Z",
   "source": {
-    "gitCommit": "9b39783",
+    "gitCommit": "7851664",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
     "tests": {
-      "declarations": 964,
-      "files": 236
+      "declarations": 981,
+      "files": 240
     },
-    "migrations": 94,
-    "latestMigration": "094_room_release_binding",
+    "migrations": 97,
+    "latestMigration": "097_enable_rls_post_launch_tables",
     "routes": {
-      "modules": 70,
+      "modules": 72,
       "directDatabaseCalls": 0
     },
     "schemas": {
-      "domainFiles": 32
+      "domainFiles": 33
     }
   },
   "frontend": {
@@ -29,8 +29,8 @@
     },
     "tests": {
       "sharedAndTooling": {
-        "declarations": 243,
-        "files": 45
+        "declarations": 250,
+        "files": 47
       },
       "host": {
         "declarations": 62,

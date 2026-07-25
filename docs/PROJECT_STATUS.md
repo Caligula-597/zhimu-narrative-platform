@@ -14,8 +14,8 @@
 |---|---|
 | 产品表面 | Creator、Host、Player、Site 四端；Host 是唯一现场控制台 |
 | 后端 | Fastify 5 + PostgreSQL 17；业务表只由迁移管理 |
-| 数据迁移 | 94 个迁移，最新为 `094_room_release_binding` |
-| 路由结构 | 70 个 `*-routes.js` 模块；路由层直接数据库调用点为 0 |
+| 数据迁移 | 97 个迁移，最新为 `097_enable_rls_post_launch_tables` |
+| 路由结构 | 71 个 `*-routes.js` 模块；路由层直接数据库调用点为 0 |
 | Schema | 原 2200+ 行聚合文件拆为 32 个领域 schema；`routes/schemas.js` 仅兼容导出 |
 | 大入口 | `world-helpers.js` 6 行、`player-routes.js` 8 行；Creator/Host/Player 启动入口只做编排 |
 | Transport | Creator/Host/Player 共用 API、session/auth、错误、SSE lifecycle、游标、toast 与安全 DOM |
@@ -29,7 +29,7 @@
 
 | 检查 | 结果 |
 |---|---|
-| `npm run check:architecture` | 70 个路由模块，0 个路由层直接 DB 点，通过 |
+| `npm run check:architecture` | 71 个路由模块，0 个路由层直接 DB 点，通过 |
 | `npm run check:contracts` | 31 种 room event、8 种 platform event、9 个错误码，消费方完整 |
 | `npm run check:world-writes` | 69 个前端写调用映射到 revision-aware 后端路由 |
 | `npm run check:ui-interactions` | 220 个可见 action、248 个 view 调用、40 个导航入口，0 断链 |

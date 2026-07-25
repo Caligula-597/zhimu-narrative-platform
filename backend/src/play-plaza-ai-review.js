@@ -1,8 +1,12 @@
 import { deepseekConfig, requestDeepseekJson } from "./deepseek.js";
-import { scanPlaySocialAdContent, scanPlaySocialContent } from "./play-content-moderation.js";
+import { scanPlaySocialContent } from "./play-content-moderation.js";
 
 function resolvePlazaReviewMode() {
   const explicit = String(process.env.PLAY_PLAZA_AI_REVIEW || "").trim().toLowerCase();
+  const production = (process.env.NODE_ENV ?? "development") === "production";
+  if (production) {
+    return deepseekConfig().configured && explicit !== "off" ? "ai" : "manual";
+  }
   if (explicit === "off") return "off";
   if (explicit === "stub") return "stub";
   if (explicit === "ai") return "ai";
@@ -69,16 +73,21 @@ function stubReview(body) {
  * @returns {Promise<{ decision: 'approve'|'reject'|'human_review', reason: string, feedback: string }>}
  */
 export async function reviewPlazaPostContent({ body, kind }) {
-  const adScan = scanPlaySocialAdContent(body);
-  if (!adScan.ok) {
+  const deterministicScan = scanPlaySocialContent(body);
+  if (!deterministicScan.ok) {
     return {
       decision: "reject",
-      reason: "ad",
-      feedback: "禁止发布广告、外链、联系方式引流或推广信息。"
+      reason: deterministicScan.reason,
+      feedback: deterministicScan.reason === "ad"
+        ? "禁止发布广告、外链、联系方式引流或推广信息。"
+        : "内容包含社区违禁词，请修改后重试。"
     };
   }
 
   const mode = resolvePlazaReviewMode();
+  if (mode === "manual") {
+    return { decision: "human_review", reason: "manual_review_required", feedback: "" };
+  }
   if (mode === "off") {
     return { decision: "approve", reason: "review_disabled", feedback: "" };
   }

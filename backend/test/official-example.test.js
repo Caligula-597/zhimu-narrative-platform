@@ -133,5 +133,6 @@ test("POST /api/platform/official-example/join without env returns unavailable",
     headers: { "x-user-id": playerUserId }
   });
   assert.equal(response.statusCode, 503);
-  assert.match(response.json().error, /未配置官方示例/);
+  assert.equal(response.json().error, "Service unavailable");
+  assert.equal(response.json().code, "UNAVAILABLE");
 });

@@ -6,6 +6,19 @@ function envelope(id) {
   return { id, payload: JSON.stringify({ type: "room.test_event", id }) };
 }
 
+function releaseEnvelope(id, releaseNumber) {
+  return {
+    id,
+    payload: JSON.stringify({
+      type: "room.content_release_changed",
+      roomId: "room-release-matrix",
+      releaseId: `release-${releaseNumber}`,
+      releaseNumber,
+      direction: "upgrade"
+    })
+  };
+}
+
 test("replay subscription closes the replay-subscribe race and de-duplicates buffered events", async () => {
   let liveSend;
   const sent = [];
@@ -93,4 +106,39 @@ test("replay subscription disconnects when the live race buffer reaches its ceil
   assert.equal(await subscription.ready, false);
   assert.equal(unsubscribed, 1);
   assert.equal(closed, 1);
+});
+
+test("Release changes survive replay/live overlap without duplicate refresh events", async () => {
+  let liveSend;
+  const sent = [];
+  const subscription = createReplaySubscription({
+    lastEventId: "41",
+    subscribe(send) {
+      liveSend = send;
+      return () => {};
+    },
+    async getLatestId() {
+      liveSend(releaseEnvelope(42, 2));
+      return 42;
+    },
+    async fetchAfter() {
+      return [{
+        id: 42,
+        payload: JSON.parse(releaseEnvelope(42, 2).payload)
+      }];
+    },
+    send(message) {
+      sent.push({ id: Number(message.id), event: JSON.parse(message.payload) });
+      return true;
+    }
+  });
+
+  assert.equal(await subscription.ready, true);
+  liveSend(releaseEnvelope(42, 2));
+  liveSend(releaseEnvelope(43, 3));
+
+  assert.deepEqual(sent.map((item) => item.id), [42, 43]);
+  assert.deepEqual(sent.map((item) => item.event.releaseNumber), [2, 3]);
+  assert.ok(sent.every((item) => item.event.type === "room.content_release_changed"));
+  subscription.unsubscribe();
 });

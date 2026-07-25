@@ -1,4 +1,4 @@
-import { query } from "./db.js";
+import { pool, query } from "./db.js";
 import { getObjectStorage } from "./storage/index.js";
 
 export async function collectUserObjectKeys(userId, client = null) {
@@ -101,29 +101,46 @@ export async function purgeObjectKeys(objectKeys) {
 
 /** Retry storage purge for jobs where DB delete already succeeded. */
 export async function processPendingAccountDeleteJobs({ limit = 20 } = {}) {
-  const pending = await query(
-    `SELECT id, object_keys
-     FROM account_delete_jobs
-     WHERE status IN ('db_deleted', 'storage_pending')
-     ORDER BY updated_at ASC
-     LIMIT $1`,
-    [limit]
-  );
+  const client = await pool.connect();
+  let locked = false;
+  try {
+    const lock = await client.query(
+      `SELECT pg_try_advisory_lock(hashtext('zhimu:account-delete-jobs')) AS locked`
+    );
+    locked = Boolean(lock.rows[0]?.locked);
+    if (!locked) return [];
 
-  const results = [];
-  for (const row of pending.rows) {
-    const keys = Array.isArray(row.object_keys) ? row.object_keys : [];
-    const { purgedCount, failed } = await purgeObjectKeys(keys);
-    if (failed.length === 0) {
-      await markAccountDeleteJobCompleted(row.id, purgedCount);
-      results.push({ jobId: row.id, status: "completed", purgedCount });
-    } else {
-      await markAccountDeleteJobStoragePending(row.id, {
-        purgedCount,
-        error: `${failed.length} object(s) still pending`
-      });
-      results.push({ jobId: row.id, status: "storage_pending", purgedCount, pendingObjects: failed.length });
+    const pending = await client.query(
+      `SELECT id, object_keys
+       FROM account_delete_jobs
+       WHERE status IN ('db_deleted', 'storage_pending')
+       ORDER BY updated_at ASC
+       LIMIT $1`,
+      [limit]
+    );
+
+    const results = [];
+    for (const row of pending.rows) {
+      const keys = Array.isArray(row.object_keys) ? row.object_keys : [];
+      const { purgedCount, failed } = await purgeObjectKeys(keys);
+      if (failed.length === 0) {
+        await markAccountDeleteJobCompleted(row.id, purgedCount, client);
+        results.push({ jobId: row.id, status: "completed", purgedCount });
+      } else {
+        await markAccountDeleteJobStoragePending(row.id, {
+          purgedCount,
+          error: `${failed.length} object(s) still pending`
+        }, client);
+        results.push({ jobId: row.id, status: "storage_pending", purgedCount, pendingObjects: failed.length });
+      }
     }
+    return results;
+  } finally {
+    if (locked) {
+      await client.query(
+        `SELECT pg_advisory_unlock(hashtext('zhimu:account-delete-jobs'))`
+      ).catch(() => {});
+    }
+    client.release();
   }
-  return results;
 }

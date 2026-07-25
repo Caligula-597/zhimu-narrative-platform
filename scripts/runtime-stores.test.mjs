@@ -42,7 +42,7 @@ globalThis.window = {
     demoWorld: { worldId: "demo-world" }
   },
   zhimuAuthSession: {
-    isLoggedIn: () => Boolean(localStorage.getItem("zhimuSessionToken"))
+    isLoggedIn: () => Boolean(sessionStorage.getItem("zhimuSessionToken"))
   },
   zhimuSessionAuth: {},
   zhimuWorldRevision: {},
@@ -268,7 +268,7 @@ test("context-coordinator onSessionLogout removes auth prompt flag", () => {
 /* ── workspace tests ── */
 
 test("workspace ensureActiveWorld strips stale demo world when logged in", async () => {
-  localStorage.setItem("zhimuSessionToken", "token");
+  sessionStorage.setItem("zhimuSessionToken", "token");
   nextWorlds = [{ id: "real-world", name: "Real" }];
   demoContext.worldId = "demo-world";
   demoContext.roomId = "room-demo";

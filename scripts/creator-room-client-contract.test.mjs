@@ -44,7 +44,7 @@ test("creator room callers leave invite-code allocation to the server", () => {
   assert.match(hostCreate, /apiRef\.createRoom\(\s*parsed\.payload,\s*workspace\.worldId,\s*idempotencyKey/s);
 });
 
-test("Creator room UI sends the selected Release and restores the action after failure", () => {
+test("Creator room workspace sends the selected Release and restores the action after failure", () => {
   const roomView = section(
     "src/views/rooms.js",
     "export function rooms",
@@ -59,4 +59,22 @@ test("Creator room UI sends the selected Release and restores the action after f
   assert.match(mainCreate, /releaseId:\s*state\.draft\.releaseId\s*\|\|\s*null/);
   assert.match(mainCreate, /state\.createSaving\s*=\s*true/);
   assert.match(mainCreate, /catch\s*\(error\)\s*\{[\s\S]*?state\.createSaving\s*=\s*false/);
+  assert.match(mainCreate, /state\.error\s*=\s*normalizeError/);
+  assert.match(mainCreate, /render\(\)/);
+});
+
+test("Creator room Release changes stay inline and preserve preview-before-apply", () => {
+  const api = source("src/api/room.js");
+  const roomView = source("src/views/rooms.js");
+  const releaseWorkspace = source("src/views/room-release-workspace.js");
+  const actions = source("src/runtime/actions-workspace.js");
+  assert.match(api, /export function getRoomContentPolicy/);
+  assert.match(api, /export function getRoomReleaseImpact/);
+  assert.match(api, /export function applyRoomRelease/);
+  assert.match(releaseWorkspace, /class="room-release-change-panel"/);
+  assert.doesNotMatch(`${roomView}\n${releaseWorkspace}`, /openModal|modalBackdrop/);
+  assert.match(releaseWorkspace, /impactFingerprint:\s*impact\.fingerprint/);
+  assert.match(releaseWorkspace, /expectedCurrentReleaseId:/);
+  assert.match(actions, /case "room-release-preview"/);
+  assert.match(actions, /case "room-release-apply"/);
 });

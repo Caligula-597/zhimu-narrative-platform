@@ -84,17 +84,22 @@ test("share-roles rejects role slots from another world", async (context) => {
   });
   assert.equal(grant.statusCode, 200);
 
-  const foreignRole = await query(
-    `SELECT rs.id FROM role_slots rs
-     JOIN worlds w ON w.id = rs.world_id
-     WHERE w.id <> (SELECT world_id FROM rooms WHERE id = $1)
-     LIMIT 1`,
-    [fixtureRoomId]
+  const foreignWorld = await query(
+    `INSERT INTO worlds (owner_user_id, name, summary, status)
+     VALUES ($1, $2, 'cross-world role fixture', 'testing')
+     RETURNING id`,
+    [hostUserId, `Cross-world role fixture ${Date.now()}`]
   );
-  if (!foreignRole.rowCount) {
-    context.skip("no foreign world role fixture for mismatch test");
-    return;
-  }
+  const foreignRole = await query(
+    `INSERT INTO role_slots (world_id, name, sequence)
+     VALUES ($1, 'Foreign role', 1)
+     RETURNING id`,
+    [foreignWorld.rows[0].id]
+  );
+  context.after(async () => {
+    await query(`DELETE FROM role_slots WHERE id = $1`, [foreignRole.rows[0].id]);
+    await query(`DELETE FROM worlds WHERE id = $1`, [foreignWorld.rows[0].id]);
+  });
 
   const response = await app.inject({
     method: "POST",

@@ -5,13 +5,17 @@
  */
 import pg from "pg";
 import "dotenv/config";
+import {
+  resolveDatabaseSsl,
+  resolveDatabaseUrl
+} from "../src/database-connection-options.js";
 
 const { Client } = pg;
 const dryRun = process.argv.includes("--dry-run");
 
 const client = new Client({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined
+  connectionString: resolveDatabaseUrl(),
+  ssl: resolveDatabaseSsl()
 });
 await client.connect();
 

@@ -12,6 +12,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import "dotenv/config";
+import {
+  resolveDatabaseSsl,
+  resolveDatabaseUrl
+} from "../src/database-connection-options.js";
 
 const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -181,7 +185,10 @@ try {
   }
 
   if (!keep && databaseUrl) {
-    const client = new pg.Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
+    const client = new pg.Client({
+      connectionString: resolveDatabaseUrl(databaseUrl),
+      ssl: resolveDatabaseSsl()
+    });
     await client.connect();
     try {
       await client.query(`DELETE FROM beta_applications WHERE lower(email) = lower($1)`, [drillEmail]);

@@ -147,6 +147,10 @@ async function handleRoomEvent(type, data) {
       await refreshHostRoom(false);
       showToast("房间已从存档恢复", 2800);
       break;
+    case "room.content_release_changed":
+      await refreshHostRoom(false);
+      showToast(`运行内容已切换到 R${Number(data.releaseNumber) || "?"}`, 3200);
+      break;
     case "room.vote_created":
     case "room.vote_updated":
     case "room.private_action_submitted":

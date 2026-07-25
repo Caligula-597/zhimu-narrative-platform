@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   DEFAULT_POOL_MAX, isDatabaseCapacityError, resolveDatabaseUrl,
-  resolveDatabaseSsl, resolvePoolLifetimeSeconds, resolvePoolMax, resolvePoolTimeoutMs
+  resolveDatabaseSsl, resolvePoolLifetimeSeconds, resolvePoolMax, resolvePoolTimeoutMs,
+  resolveQueryTimeoutMs
 } from "../src/db.js";
 
 test("resolveDatabaseUrl strips sslmode for Supabase pooler", () => {
@@ -14,14 +15,20 @@ test("resolveDatabaseUrl strips sslmode for Supabase pooler", () => {
   );
 });
 
-test("resolveDatabaseSsl uses rejectUnauthorized false when DATABASE_SSL=true", () => {
+test("resolveDatabaseSsl verifies certificates and accepts an optional CA", () => {
   const prev = process.env.DATABASE_SSL;
+  const prevCa = process.env.DATABASE_SSL_CA;
   process.env.DATABASE_SSL = "true";
-  assert.deepEqual(resolveDatabaseSsl(), { rejectUnauthorized: false });
+  delete process.env.DATABASE_SSL_CA;
+  assert.deepEqual(resolveDatabaseSsl(), { rejectUnauthorized: true });
+  process.env.DATABASE_SSL_CA = "line1\\nline2";
+  assert.deepEqual(resolveDatabaseSsl(), { rejectUnauthorized: true, ca: "line1\nline2" });
   process.env.DATABASE_SSL = "false";
   assert.equal(resolveDatabaseSsl(), false);
   if (prev === undefined) delete process.env.DATABASE_SSL;
   else process.env.DATABASE_SSL = prev;
+  if (prevCa === undefined) delete process.env.DATABASE_SSL_CA;
+  else process.env.DATABASE_SSL_CA = prevCa;
 });
 
 test("connection pool uses a rolling-deploy-safe default and validates overrides", () => {
@@ -40,6 +47,9 @@ test("connection pool timeout and lifetime settings are bounded", () => {
   assert.equal(resolvePoolLifetimeSeconds(undefined), 1800);
   assert.equal(resolvePoolLifetimeSeconds("3600"), 3600);
   assert.equal(resolvePoolLifetimeSeconds("1"), 1800);
+  assert.equal(resolveQueryTimeoutMs(undefined, 30_000), 30_000);
+  assert.equal(resolveQueryTimeoutMs("15000", 30_000), 15_000);
+  assert.equal(resolveQueryTimeoutMs("0", 30_000), 30_000);
 });
 
 test("database capacity errors are recognized without exposing provider details", () => {

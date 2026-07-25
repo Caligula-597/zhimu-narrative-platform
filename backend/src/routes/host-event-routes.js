@@ -1,6 +1,5 @@
 import { requireActor } from "../request-actor.js";
 import { sendErr } from "../api-errors.js";
-import { logHostAction } from "../audit-log.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import {
   batchHostEvents,
@@ -67,14 +66,6 @@ export async function registerHostEventRoutes(app) {
     return withRoomIdempotency(roomId, request, "host.event_delay", async () => {
       const result = await delayHostEventById(roomId, actorId, eventId, delayMinutes);
       if (!result.ok) return sendErr(reply, result.code);
-      await logHostAction({
-        roomId,
-        actorUserId: actorId,
-        action: "host_event_delayed",
-        targetType: "host_event",
-        targetId: eventId,
-        metadata: { delayMinutes: result.delayMinutes }
-      });
       return { ok: true, delayMinutes: result.delayMinutes };
     });
   });

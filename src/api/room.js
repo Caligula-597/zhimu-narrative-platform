@@ -28,6 +28,39 @@ export function updateRoomPublicListing(worldId, roomId, publicListing) {
   });
 }
 
+export function getRoomContentPolicy(worldId) {
+  return request(`/worlds/${worldId}/rooms/content-policy`, {
+    userId: demoContext.hostUserId
+  });
+}
+
+export function getRoomReleaseImpact(worldId, roomId, releaseId) {
+  const query = new URLSearchParams({ releaseId });
+  return request(`/worlds/${worldId}/rooms/${roomId}/release-impact?${query}`, {
+    userId: demoContext.hostUserId
+  });
+}
+
+export function applyRoomRelease(worldId, roomId, payload) {
+  return request(`/worlds/${worldId}/rooms/${roomId}/content-release`, {
+    userId: demoContext.hostUserId,
+    method: "PATCH",
+    body: payload
+  });
+}
+
+export function getCreatorRoomCurrentState(worldId, roomId) {
+  return request(`/worlds/${worldId}/rooms/${roomId}/current-state`, {
+    userId: demoContext.hostUserId
+  });
+}
+
+export function getCreatorRoleKnowledge(worldId, roomId, roleSlotId) {
+  return request(`/worlds/${worldId}/rooms/${roomId}/knowledge/${roleSlotId}`, {
+    userId: demoContext.hostUserId
+  });
+}
+
 export function patchRoomSettings(settings, roomId = demoContext.roomId) {
   return request(`/rooms/${roomId}/settings`, { userId: demoContext.hostUserId, method: "PATCH", body: { settings } });
 }

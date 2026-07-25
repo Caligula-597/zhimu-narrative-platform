@@ -2,7 +2,7 @@
  * HTTP security headers including Content-Security-Policy (report-only by default in production).
  *
  * Env:
- *   CSP_MODE=off|report-only|enforce  (default: report-only in production, off elsewhere)
+ *   CSP_MODE=off|report-only|enforce  (default: enforce in production, off elsewhere)
  *   CSP_REPORT_URI=https://...        optional violation report endpoint
  *   CSP_CONNECT_SRC=...                 extra connect-src origins (space-separated)
  */
@@ -15,7 +15,7 @@ export function resolveCspMode(nodeEnv, override) {
   if (mode === "off" || mode === "disable" || mode === "false" || mode === "0") return "off";
   if (mode === "enforce" || mode === "block") return "enforce";
   if (mode === "report-only" || mode === "reportonly") return "report-only";
-  return nodeEnv === "production" ? "report-only" : "off";
+  return nodeEnv === "production" ? "enforce" : "off";
 }
 
 function extraConnectSrc() {
@@ -76,7 +76,10 @@ export function applySecurityHeaders(reply, { nodeEnv, cspMode } = {}) {
   reply.header("X-Content-Type-Options", "nosniff");
   reply.header("X-Frame-Options", "DENY");
   reply.header("Referrer-Policy", "strict-origin-when-cross-origin");
-  reply.header("Permissions-Policy", "camera=(), microphone=(self), geolocation=()");
+  reply.header(
+    "Permissions-Policy",
+    "camera=(), microphone=(self), geolocation=(), payment=(), usb=()"
+  );
   if ((nodeEnv ?? process.env.NODE_ENV) === "production") {
     reply.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   }

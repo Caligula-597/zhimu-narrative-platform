@@ -93,7 +93,7 @@ async function ensureFullstackDockerBuild(env) {
       input: {
         dockerfilePath: FULLSTACK_DOCKERFILE,
         railwayConfigFile: "railway.toml",
-        healthcheckPath: "/api/health/live",
+        healthcheckPath: "/api/health/ready",
         healthcheckTimeout: 300
       }
     });
@@ -136,9 +136,15 @@ async function waitForDeployment(token, serviceId, base, { sinceMs = Date.now() 
     console.log(`[railway-deploy-ci] Deployment ${trackedId.slice(0, 8)}… status=${status}`);
 
     if (status === "SUCCESS") {
+      const readyRes = await fetch(`${base}/api/health/ready`, { signal: AbortSignal.timeout(12_000) });
+      const readyBody = await readyRes.json().catch(() => ({}));
       const configRes = await fetch(`${base}/api/auth/config`, { signal: AbortSignal.timeout(12_000) });
       const configBody = await configRes.json().catch(() => ({}));
-      if (configRes.ok && configBody.oauthDiagnostics === undefined) {
+      if (readyRes.ok
+        && readyBody.ready === true
+        && configRes.ok
+        && configBody.oauthDiagnostics === undefined
+        && configBody.requireEmailVerification === true) {
         console.log(`[railway-deploy-ci] Release verified at ${base}`);
         return true;
       }
@@ -191,7 +197,9 @@ async function waitForReleaseLegacy(base) {
 
       const configRes = await fetch(`${base}/api/auth/config`, { signal: AbortSignal.timeout(12_000) });
       const configBody = await configRes.json().catch(() => ({}));
-      if (configRes.ok && configBody.oauthDiagnostics === undefined) {
+      if (configRes.ok
+        && configBody.oauthDiagnostics === undefined
+        && configBody.requireEmailVerification === true) {
         console.log(`[railway-deploy-ci] Release verified at ${base} (no oauthDiagnostics)`);
         return true;
       }
@@ -223,7 +231,12 @@ async function main() {
 
   if (!result.ok) {
     if (result.reason === "no-account-token" && !deployToken(env)) {
-      console.log("::notice::Skip deploy — set RAILWAY_ACCOUNT_TOKEN (or RAILWAY_TOKEN) in GitHub Secrets");
+      const message = "Set RAILWAY_ACCOUNT_TOKEN (or RAILWAY_TOKEN) in GitHub Secrets";
+      if (env.REQUIRE_DEPLOY === "true") {
+        console.error(`::error::Production deploy is required. ${message}`);
+        process.exit(1);
+      }
+      console.log(`::notice::Skip deploy — ${message}`);
       process.exit(0);
     }
     if (result.reason === "invalid-project-token") {

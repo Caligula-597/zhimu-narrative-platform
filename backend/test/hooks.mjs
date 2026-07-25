@@ -15,6 +15,14 @@ process.env.REGISTER_IP_DAY_MAX ??= "0";
 process.env.GUEST_CREATE_HOUR_MAX ??= "1000";
 process.env.GUEST_CREATE_DAY_MAX ??= "1000";
 process.env.PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN ??= "0";
+// Tests must not inherit production-like runtime topology or feature flags
+// from a developer's backend/.env. Individual tests can still override these
+// values after the hook has established a deterministic baseline.
+process.env.NODE_ENV = "test";
+process.env.ROOM_EVENTS_BUS = "memory";
+process.env.ROOM_DEFAULT_CONTENT_BINDING = "live_draft";
+process.env.TRUST_PROXY_HOPS = "";
+process.env.CREDITS_SYSTEM_ENABLED = "true";
 // Automated tests must never inherit a developer/production R2 provider from
 // .env; live R2 checks use the dedicated r2-head-sample script instead.
 process.env.OBJECT_STORAGE_PROVIDER = "memory";

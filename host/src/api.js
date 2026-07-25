@@ -90,6 +90,10 @@ export const api = {
   getStudio: (worldId = getWorldId()) => request(`/worlds/${worldId}/studio`),
   getWorldSegments: (worldId = getWorldId()) => request(`/worlds/${worldId}/segments`),
   getRules: (worldId = getWorldId()) => request(`/worlds/${worldId}/rules`),
+  getRuntimeContent: () => request(roomPath("/runtime-content")),
+  getHostCurrentState: () => request(roomPath("/host/current-state")),
+  getHostPlayerKnowledge: (roleSlotId) =>
+    request(roomPath(`/host/players/${roleSlotId}/knowledge`)),
   createRule: (payload, worldId = getWorldId()) => request(`/worlds/${worldId}/rules`, { method: "POST", body: payload }),
   updateRule: (ruleId, payload, worldId = getWorldId()) =>
     request(`/worlds/${worldId}/rules/${ruleId}`, { method: "PUT", body: payload }),

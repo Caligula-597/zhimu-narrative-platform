@@ -154,6 +154,9 @@ env.PGPOOL_MAX = local.PGPOOL_MAX?.trim() || "6";
 env.PGPOOL_IDLE_MS = local.PGPOOL_IDLE_MS?.trim() || "30000";
 env.PGPOOL_CONNECTION_TIMEOUT_MS = local.PGPOOL_CONNECTION_TIMEOUT_MS?.trim() || "10000";
 env.PGPOOL_MAX_LIFETIME_SECONDS = local.PGPOOL_MAX_LIFETIME_SECONDS?.trim() || "1800";
+env.PG_STATEMENT_TIMEOUT_MS = local.PG_STATEMENT_TIMEOUT_MS?.trim() || "30000";
+env.PG_IDLE_IN_TRANSACTION_TIMEOUT_MS =
+  local.PG_IDLE_IN_TRANSACTION_TIMEOUT_MS?.trim() || "15000";
 env.TRUST_PROXY_HOPS = local.TRUST_PROXY_HOPS?.trim() || "1";
 env.APP_INSTANCE_COUNT = local.APP_INSTANCE_COUNT?.trim() || "1";
 env.EDGE_RATE_LIMIT_VERIFIED = local.EDGE_RATE_LIMIT_VERIFIED?.trim() || "false";
@@ -175,13 +178,21 @@ env.PLAY_SITE_URL = playUrl;
 env.HOST_SITE_ORIGIN = hostOrigins.join(",");
 env.HOST_SITE_URL = hostUrl;
 env.EMAIL_PROVIDER = env.EMAIL_PROVIDER || "resend";
-env.REQUIRE_EMAIL_VERIFICATION = local.REQUIRE_EMAIL_VERIFICATION || "false";
+env.REQUIRE_EMAIL_VERIFICATION = "true";
+env.BILLING_LAUNCH_ENABLED = "false";
+env.PRICING_PAGE_MODE = "launch";
+env.COMMERCIAL_PRICING_PUBLIC = "false";
+env.CREDITS_SYSTEM_ENABLED = "false";
+env.CREDITS_DEBIT_AI = "false";
+env.CREDITS_UI_VISIBLE = "false";
 env.RUN_DB_SEED = "false";
 env.OFFICIAL_EXAMPLE_WORLD_ID =
   local.OFFICIAL_EXAMPLE_WORLD_ID?.trim() || "20725d66-35ec-4d2f-aef8-4794cef6ace1";
 env.LOG_FORMAT = "json";
 env.LOG_LEVEL = "info";
 env.ROOM_EVENTS_BUS = "postgres";
+env.ROOM_DEFAULT_CONTENT_BINDING =
+  local.ROOM_DEFAULT_CONTENT_BINDING?.trim() || "live_draft";
 env.OPENAPI_UI = "false";
 env.SERVE_STATIC = "true";
 env.STATIC_ROOT = "/app/public/dist";

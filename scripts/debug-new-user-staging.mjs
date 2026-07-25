@@ -29,7 +29,7 @@ if (await registerName.isVisible().catch(() => false)) {
       body: JSON.stringify({ email, password, displayName: "测试用户" })
     });
     const j = await r.json();
-    localStorage.setItem("zhimuSessionToken", j.token);
+    sessionStorage.setItem("zhimuSessionToken", j.token);
   }, { email, password });
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForTimeout(2500);

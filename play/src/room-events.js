@@ -60,6 +60,11 @@ export async function handleRoomEvent(type, data, ctx) {
       await ctx.onRefresh();
       if (type === "room.section_unlocked") ctx.onToast("新分幕已解锁");
       break;
+    case "room.content_release_changed":
+      ctx.bumpTabPulse?.("home");
+      await ctx.onRefresh();
+      ctx.onToast(`房间内容已切换到 R${Number(data.releaseNumber) || "?"}`);
+      break;
     case "room.section_relocked":
       if (affectsPlayer) {
         ctx.bumpTabPulse?.("sections");

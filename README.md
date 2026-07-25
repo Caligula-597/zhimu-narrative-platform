@@ -111,6 +111,8 @@ npm run test:host
 
 生产环境变量、DNS、监控、备份与回滚从 [运维索引](./docs/ops/README.md) 进入。不要从历史部署文档复制配置。
 
+当前自动化发布入口是 `.github/workflows/production-release.yml`，数据库备份入口是 `.github/workflows/production-backup.yml`。工作流文件存在不代表当前提交已经执行通过；若暂时跳过 Actions，必须按运维文档保留直接部署 URL、烟雾测试和回滚证据。
+
 ## 当前不能省略的风险
 
 1. GitHub Release Acceptance 的最新完整成功工件仍需取得；不能用快速矩阵代替。

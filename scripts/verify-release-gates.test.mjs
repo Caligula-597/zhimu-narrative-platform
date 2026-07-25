@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -43,15 +43,13 @@ test("package, developer, CI and container runtime pins stay aligned", () => {
   for (const dockerfile of ["backend/Dockerfile", "deploy/Dockerfile.fullstack"]) {
     assert.match(readFileSync(path.join(root, dockerfile), "utf8"), /FROM node:24\.13\.0-alpine/);
   }
-  for (const workflow of [
-    "ci.yml",
-    "guardian-poll.yml",
-    "pages-deploy.yml",
-    "periodic-audit.yml",
-    "railway-deploy.yml",
-    "release-acceptance.yml"
-  ]) {
-    const source = readFileSync(path.join(root, ".github", "workflows", workflow), "utf8");
+  const workflowDirectory = path.join(root, ".github", "workflows");
+  const workflows = readdirSync(workflowDirectory)
+    .filter((name) => /\.ya?ml$/i.test(name))
+    .sort();
+  assert.ok(workflows.includes("production-release.yml"), "production release workflow is missing");
+  for (const workflow of workflows) {
+    const source = readFileSync(path.join(workflowDirectory, workflow), "utf8");
     for (const match of source.matchAll(/node-version:\s*["']?([^\s"']+)/g)) {
       assert.equal(match[1], expectedVersion, `${workflow} node-version drifted`);
     }

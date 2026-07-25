@@ -1,5 +1,6 @@
 {
   "name": "zhimu-site",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -11,6 +12,8 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "devDependencies": {
+    "@emnapi/core": "1.11.2",
+    "@emnapi/runtime": "1.11.2",
     "vite": "^8.1.3"
   }
 }

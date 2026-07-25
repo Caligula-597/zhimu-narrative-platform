@@ -49,12 +49,12 @@
 | 后端 RLS | `backend/migrations/045_enable_public_rls.sql` 已为 44 张表启用 Row-Level Security |
 | 三端 transport | 完成：Creator、Host、Player 统一复用 `shared/api-client.js`、session token、SSE 生命周期、游标与错误转换 |
 | 主持端边界 | 完成：`host/` 为唯一现场控制台；Creator `director` 代码已删除，仅保留外跳 Host 的兼容导航别名 |
-| Pages 三站 | 完成：官网、Host、Play 已进入 `.github/workflows/pages-deploy.yml`，最新 PR 预览部署与安全检查通过 |
+| Pages 三站 | 完成：官网、Host、Play 已进入 `.github/workflows/production-release.yml` 统一构建、验证和提升产物；工作流存在不等于当前提交已经执行通过 |
 | 内容运行层 | 基础闭环已实现：Segment、玩家任务、投票/指认、秘密行动、怀疑度、run report 与 creator analytics 已有后端和端侧接线 |
 
 ## 当前差距
 
-- 后端 70 个路由模块的直接数据库调用点已归零，并由 `check:architecture` 禁止回升；查询和事务统一下沉到 service/repository 或现有领域数据模块。
+- 后端 71 个路由模块的直接数据库调用点已归零，并由 `check:architecture` 禁止回升；查询和事务统一下沉到 service/repository 或现有领域数据模块。
 - 官网公开请求仍需补统一超时、CSP 与错误边界审计；业务三端 transport 已统一。
 - 本轮发布候选长验收第 1/3 轮 8 项失败；修复完整重跑后，真实多玩家 P95/P99、应用镜像回滚、R2 恢复和实际 RPO/RTO 仍需形成环境证据。
 - 端口诊断工具已提供：`npm run port:doctor`。

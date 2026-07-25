@@ -1,15 +1,15 @@
 import { query } from "./db.js";
 
-export async function logHostAction({ roomId, actorUserId, action, targetType = null, targetId = null, metadata = {} }) {
-  try {
-    await query(
-      `INSERT INTO host_audit_log (room_id, actor_user_id, action, target_type, target_id, metadata)
-       VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
-      [roomId, actorUserId, action, targetType, targetId, JSON.stringify(metadata)]
-    );
-  } catch {
-    /* audit is best-effort; must not break primary flow */
-  }
+export async function logHostAction(
+  { roomId, actorUserId, action, targetType = null, targetId = null, metadata = {} },
+  client = null
+) {
+  const run = client?.query ? client.query.bind(client) : query;
+  await run(
+    `INSERT INTO host_audit_log (room_id, actor_user_id, action, target_type, target_id, metadata)
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
+    [roomId, actorUserId, action, targetType, targetId, JSON.stringify(metadata)]
+  );
 }
 
 export async function listHostAuditLog(roomId, { limit = 50 } = {}) {

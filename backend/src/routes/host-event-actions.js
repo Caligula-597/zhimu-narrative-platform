@@ -1,6 +1,7 @@
 import { query } from "../db.js";
 import { transactionWithEvents } from "../transaction-events.js";
 import { executeActionsWithClient, queueRuleActionEvents } from "../rule-engine.js";
+import { logHostAction } from "../audit-log.js";
 
 async function lockPendingHostEvent(client, roomId, eventId) {
   const result = await client.query(
@@ -114,6 +115,14 @@ export async function delayHostEventById(roomId, actorId, eventId, delayMinutes)
         minutes
       ]
     );
+    await logHostAction({
+      roomId,
+      actorUserId: actorId,
+      action: "host_event_delayed",
+      targetType: "host_event",
+      targetId: eventId,
+      metadata: { delayMinutes: minutes }
+    }, client);
     queueEvent(roomId, "room.host_event_pending", { action: "delayed", eventId, delayMinutes: minutes });
     return { ok: true, delayMinutes: minutes };
   });

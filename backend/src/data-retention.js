@@ -138,11 +138,9 @@ export async function purgeExpiredData(options = {}) {
     summary,
     key: "uploadSessions",
     countSql: `SELECT COUNT(*)::int AS count FROM upload_sessions
-      WHERE expires_at < now() - ($1::text || ' days')::interval
-         OR status IN ('expired', 'cancelled')`,
+      WHERE expires_at < now() - ($1::text || ' days')::interval`,
     deleteSql: `DELETE FROM upload_sessions
-      WHERE expires_at < now() - ($1::text || ' days')::interval
-         OR status IN ('expired', 'cancelled')`,
+      WHERE expires_at < now() - ($1::text || ' days')::interval`,
     params: [days.expiredUploadSessions]
   });
 

@@ -16,11 +16,15 @@ test("GET /account/export returns metadata bundle for authenticated user", async
   });
   assert.equal(res.statusCode, 200, res.body);
   const body = res.json();
-  assert.equal(body.formatVersion, 1);
+  assert.equal(body.formatVersion, 2);
   assert.equal(body.profile.id, hostUserId);
   assert.ok(body.exportedAt);
   assert.ok(Array.isArray(body.ownedWorlds));
   assert.ok(Array.isArray(body.assets));
+  assert.ok(Array.isArray(body.worldArchives));
+  assert.ok(Array.isArray(body.plazaPosts));
+  assert.ok(Array.isArray(body.sentDirectMessages));
+  assert.ok(Array.isArray(body.notebookEntries));
   assert.equal(body.profile.password, undefined);
 });
 

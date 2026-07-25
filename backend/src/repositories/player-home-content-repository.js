@@ -1,6 +1,10 @@
 /** Player-home authored/readable content queries. */
 import { query } from "../db.js";
 import { withRoomContentBinding } from "../room-content-binding.js";
+import {
+  createRuntimeContentProvider,
+  projectPlayerRuntimeContent
+} from "../runtime-content-provider.js";
 
 const stableContentCache = new Map();
 const STABLE_CACHE_MAX = Number(process.env.PLAYER_HOME_STABLE_CACHE_MAX || 500);
@@ -53,6 +57,7 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
               w.content_revision,
               release.release_number, release.label AS release_label,
               release.source_content_revision AS release_source_revision,
+              release.snapshot AS release_snapshot,
               release.created_at AS release_created_at
        FROM room_members rm
        JOIN rooms r ON r.id = rm.room_id
@@ -69,6 +74,7 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
        m.release_number,
        m.release_label,
        m.release_source_revision,
+       m.release_snapshot,
        m.release_created_at,
        jsonb_build_object(
          'id', m.room_id, 'name', m.room_name,
@@ -99,21 +105,58 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
                )
              )
          ) section_row
-       ), '[]'::jsonb) AS sections
+       ), '[]'::jsonb) AS sections,
+       COALESCE((
+         SELECT jsonb_agg(jsonb_build_object(
+           'script_section_id', progress.script_section_id,
+           'started_at', progress.started_at,
+           'completed_at', progress.completed_at
+         ))
+         FROM reading_progress progress
+         WHERE progress.room_id = m.room_id
+           AND progress.role_slot_id = m.role_slot_id
+       ), '[]'::jsonb) AS progress,
+       COALESCE((
+         SELECT array_agg(unlock.content_id)
+         FROM room_content_unlocks unlock
+         WHERE unlock.room_id = m.room_id
+           AND unlock.content_type = 'script_section'
+       ), '{}'::uuid[]) AS unlocked_section_ids
      FROM member m`,
     [roomId, actorId]
   );
   if (!result.rowCount) return null;
   const row = result.rows[0];
-  const stable = await loadStablePlayerContent({
-    worldId: row.world_id,
-    roleSlotId: row.role_slot_id,
-    contentRevision: Number(row.content_revision)
-  });
+  const provider = row.release_id
+    ? createRuntimeContentProvider({
+        room_id: row.room.id,
+        world_id: row.world_id,
+        room_name: row.room.name,
+        room_status: row.room.status,
+        release_id: row.release_id,
+        release_number: row.release_number,
+        release_label: row.release_label,
+        release_source_revision: row.release_source_revision,
+        release_snapshot: row.release_snapshot,
+        release_created_at: row.release_created_at,
+        current_content_revision: row.content_revision
+      })
+    : null;
+  const stable = provider
+    ? projectPlayerRuntimeContent(provider, {
+        roleSlotId: row.role_slot_id,
+        progress: row.progress ?? [],
+        unlockedSectionIds: row.unlocked_section_ids ?? []
+      })
+    : await loadStablePlayerContent({
+        worldId: row.world_id,
+        roleSlotId: row.role_slot_id,
+        contentRevision: Number(row.content_revision)
+      });
   return {
     roleSlotId: row.role_slot_id,
     worldId: row.world_id,
-    contentRevision: Number(row.content_revision),
+    contentRevision: provider?.sourceRevision ?? Number(row.content_revision),
     room: withRoomContentBinding({
       ...row.room,
       release_id: row.release_id,
@@ -122,25 +165,28 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
       release_source_revision: row.release_source_revision,
       release_created_at: row.release_created_at,
       current_content_revision: row.content_revision
-    }),
+    }, { runtimeSource: provider?.runtimeSource }),
     role: stable.role,
-    sections: row.sections ?? [],
-    segments: stable.segments
+    sections: provider ? stable.sections : (row.sections ?? []),
+    segments: stable.segments,
+    runtimeProvider: provider
   };
 }
 
 export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
-  const [snapshot, sections] = await Promise.all([
+  const [snapshot, sections, runtimeState] = await Promise.all([
     query(
       `SELECT
          (SELECT jsonb_build_object(
             'id', r.id, 'name', r.name, 'invite_code', r.invite_code, 'status', r.status
           ) FROM rooms r WHERE r.id = $1) AS room,
          room_binding.release_id,
+         room_binding.world_id,
          world.content_revision AS current_content_revision,
          release.release_number,
          release.label AS release_label,
          release.source_content_revision AS release_source_revision,
+         release.snapshot AS release_snapshot,
          release.created_at AS release_created_at,
          (SELECT jsonb_build_object(
             'id', rs.id, 'name', rs.name, 'public_profile', rs.public_profile,
@@ -185,11 +231,51 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
            )
          )
        ORDER BY ss.sequence`,
+       [roomId, roleSlotId]
+    ),
+    query(
+      `SELECT
+         COALESCE((
+           SELECT jsonb_agg(jsonb_build_object(
+             'script_section_id', progress.script_section_id,
+             'started_at', progress.started_at,
+             'completed_at', progress.completed_at
+           ))
+           FROM reading_progress progress
+           WHERE progress.room_id = $1 AND progress.role_slot_id = $2
+         ), '[]'::jsonb) AS progress,
+         COALESCE((
+           SELECT array_agg(unlock.content_id)
+           FROM room_content_unlocks unlock
+           WHERE unlock.room_id = $1 AND unlock.content_type = 'script_section'
+         ), '{}'::uuid[]) AS unlocked_section_ids`,
       [roomId, roleSlotId]
     )
   ]);
 
   const row = snapshot.rows[0] ?? {};
+  const provider = row.release_id
+    ? createRuntimeContentProvider({
+        room_id: row.room?.id,
+        world_id: row.world_id,
+        room_name: row.room?.name,
+        room_status: row.room?.status,
+        release_id: row.release_id,
+        release_number: row.release_number,
+        release_label: row.release_label,
+        release_source_revision: row.release_source_revision,
+        release_snapshot: row.release_snapshot,
+        release_created_at: row.release_created_at,
+        current_content_revision: row.current_content_revision
+      })
+    : null;
+  const runtime = provider
+    ? projectPlayerRuntimeContent(provider, {
+        roleSlotId,
+        progress: runtimeState.rows[0]?.progress ?? [],
+        unlockedSectionIds: runtimeState.rows[0]?.unlocked_section_ids ?? []
+      })
+    : null;
   return {
     room: withRoomContentBinding({
       ...row.room,
@@ -199,9 +285,10 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
       release_source_revision: row.release_source_revision,
       release_created_at: row.release_created_at,
       current_content_revision: row.current_content_revision
-    }),
-    role: row.role,
-    sections: sections.rows,
-    segments: row.segments ?? []
+    }, { runtimeSource: provider?.runtimeSource }),
+    role: runtime?.role ?? row.role,
+    sections: runtime?.sections ?? sections.rows,
+    segments: runtime?.segments ?? row.segments ?? [],
+    runtimeProvider: provider
   };
 }

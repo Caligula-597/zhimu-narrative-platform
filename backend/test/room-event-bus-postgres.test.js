@@ -42,7 +42,7 @@ test("postgres bus mode delivers exactly once to local subscribers", async (cont
   assert.equal(received[0].type, "room.test_bus");
 });
 
-test("postgres room bus receives events published by another instance", async (context) => {
+test("postgres room bus receives a Release change published by another instance", async (context) => {
   if (!process.env.DATABASE_URL) return;
   const previous = process.env.ROOM_EVENTS_BUS;
   process.env.ROOM_EVENTS_BUS = "postgres";
@@ -60,9 +60,23 @@ test("postgres room bus receives events published by another instance", async (c
     sourceInstanceId: "another-instance",
     roomId,
     id: 991,
-    payload: JSON.stringify({ type: "room.test_cross_instance", roomId })
+    payload: JSON.stringify({
+      type: "room.content_release_changed",
+      roomId,
+      previousReleaseId: "release-1",
+      releaseId: "release-2",
+      releaseNumber: 2,
+      direction: "upgrade"
+    })
   })]);
   const deadline = Date.now() + 2000;
   while (!received.length && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 20));
-  assert.equal(received[0]?.type, "room.test_cross_instance");
+  assert.deepEqual(received[0], {
+    type: "room.content_release_changed",
+    roomId,
+    previousReleaseId: "release-1",
+    releaseId: "release-2",
+    releaseNumber: 2,
+    direction: "upgrade"
+  });
 });

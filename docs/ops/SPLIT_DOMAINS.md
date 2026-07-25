@@ -13,7 +13,7 @@
 
 不要把根域 `getzhimu.com` 指向 Railway；根域属于官网 Pages。
 
-官网、Play、Host 已进入 `.github/workflows/pages-deploy.yml`。该文件说明自动化路径存在，不证明当前提交已经触发或通过；每次发布仍要核对 Actions 运行或直接部署结果。
+官网、Play、Host 已进入 `.github/workflows/production-release.yml`，由统一发布流程构建、验证并提升产物；工作流文件存在不证明当前提交已执行或通过，每次发布仍需核对 Actions 运行或直接部署结果。
 
 ## Railway：app + API
 
@@ -106,4 +106,4 @@ GET https://host.getzhimu.com/
 GET https://app.getzhimu.com/api/health/ready
 ```
 
-GitHub Actions 的 `pages-deploy.yml` 可自动部署 `site/play/host` 并运行 `npm run pages:smoke`。首次运行前需确认 GitHub Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`。若暂时跳过 Actions，按 [生产部署](./DEPLOY.md#暂不使用-github-actions-时) 直接发布，并保留 Wrangler 返回的 deployment URL 与自定义域 smoke 结果。
+GitHub Actions 的 `production-release.yml` 可统一构建并提升 `site/play/host` 产物，同时运行发布后 smoke。首次运行前需确认 GitHub Secrets：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`。若暂时跳过 Actions，按 [生产部署](./DEPLOY.md#暂不使用-github-actions-时) 直接发布，并保留 Wrangler 返回的 deployment URL、烟雾测试与回滚证据。

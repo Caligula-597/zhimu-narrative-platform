@@ -33,9 +33,9 @@
 - Writer/Director/Site 等产品代码不再直接写 `innerHTML`；`shared/safe-dom.js` 是唯一带精确预算的安全 sink。官网发布产物包含 CSP、`trusted-types zhimu-html` 与 `require-trusted-types-for 'script'`。
 - `verify:full:3` 对非法、重复或零次数参数直接失败，每次隔离运行记录退出码、信号和耗时；备份恢复与前向迁移演练也生成 JSON，且明确声明未覆盖应用镜像回滚。
 
-当前代码结构由 `npm run check:architecture` 固定门禁：70 个路由模块的路由层直连数据库点为 0，任何回升都会失败。后续数据库审计对象转为 service/repository 内部的往返次数、连接池占用、索引和事务一致性，而不是继续按文件机械拆层。
+当前代码结构由 `npm run check:architecture` 固定门禁：71 个路由模块的路由层直连数据库点为 0，任何回升都会失败。后续数据库审计对象转为 service/repository 内部的往返次数、连接池占用、索引和事务一致性，而不是继续按文件机械拆层。
 
-快速证据由 `audit:periodic`、SSE/Auth/Trusted Types、发布门禁、性能工具和四端包体预算分别产生，数量以本次命令输出为准，不在本文复制绝对值。代码迁移基线已经到 `094_room_release_binding`；部署数据库是否为 94 个已应用、0 个待应用，必须以目标环境的 `schema_migrations`、readiness 和迁移日志确认，不能由仓库文件数量推断。无隔离 `DATABASE_URL` 时，真实 PostgreSQL 写入、会话触碰与 LISTEN 集成断言必须明确标记跳过，不能计作通过。
+快速证据由 `audit:periodic`、SSE/Auth/Trusted Types、发布门禁、性能工具和四端包体预算分别产生，数量以本次命令输出为准，不在本文复制绝对值。代码迁移基线已经到 `097_enable_rls_post_launch_tables`；部署数据库是否为 97 个已应用、0 个待应用，必须以目标环境的 `schema_migrations`、readiness 和迁移日志确认，不能由仓库文件数量推断。无隔离 `DATABASE_URL` 时，真实 PostgreSQL 写入、会话触碰与 LISTEN 集成断言必须明确标记跳过，不能计作通过。
 
 仍属于部署/运行证据而不是静态代码能消除的风险：多实例全局限流必须由 Cloudflare WAF/Rate Limiting 作为权威层；真实 Bearer 的 P95/P99、SSE 大并发、托管数据库容量、应用镜像回滚、R2 恢复和恢复时间必须在预发或生产镜像环境定期采样。2026-07-16 的 `Release Acceptance` 运行 29477387204 是失败的历史证据：第 1/3 轮未通过，后续 E2E、性能和恢复步骤均未执行。它不能证明当前提交失败，也不能被快速矩阵覆盖；当前提交仍需要新的完整成功工件。
 

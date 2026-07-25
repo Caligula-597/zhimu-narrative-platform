@@ -38,9 +38,18 @@ export function eventRelatedRoleIds(event) {
 
 export async function fetchPlayerHostConfirmStatus(query, roomId, roleSlotId) {
   const result = await query(
-    `SELECT phe.title, ar.conditions AS rule_conditions
+    `SELECT phe.title,
+            COALESCE(frozen_rule.value->'conditions', ar.conditions) AS rule_conditions
      FROM pending_host_events phe
+     JOIN rooms runtime_room ON runtime_room.id = phe.room_id
+     LEFT JOIN world_releases release ON release.id = runtime_room.release_id
      LEFT JOIN automation_rules ar ON ar.id = phe.rule_id
+     LEFT JOIN LATERAL (
+       SELECT value
+       FROM jsonb_array_elements(COALESCE(release.snapshot->'rules', '[]'::jsonb)) value
+       WHERE value->>'id' = phe.rule_id::text
+       LIMIT 1
+     ) frozen_rule ON true
      WHERE phe.room_id = $1 AND phe.status = 'pending'
      ORDER BY phe.created_at`,
     [roomId]

@@ -51,6 +51,15 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
     }
   }
 
+  async function refreshCreatorRoomWorkspace() {
+    if (uiStore.get().view !== "rooms") return;
+    try {
+      await callView("rooms", "refreshRoomWorkspace");
+    } catch (error) {
+      userStore.set({ apiError: error.message });
+    }
+  }
+
   function disconnectRoomEventStream() {
     roomEventLifecycle?.stop();
     roomEventLifecycle = null;
@@ -219,6 +228,17 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
           showToast("房间已从存档恢复", 2800);
         }
         break;
+      case "room.content_release_changed":
+        if (view === "rooms") {
+          await refreshCreatorRoomWorkspace();
+        } else if (view === "overview") {
+          await R.refreshHostRoom?.(false);
+        } else if (view === "player") {
+          await refreshPlayerHome();
+          await refreshExploration();
+        }
+        showToast(`运行内容已切换到 R${Number(data.releaseNumber) || "?"}`, 3200);
+        break;
       case "room.game_started":
       case "room.game_updated":
       case "room.game_completed":
@@ -258,7 +278,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         else if (view === "player") {
           await refreshPlayerHome();
           await refreshExploration();
-        }
+        } else if (view === "rooms") await refreshCreatorRoomWorkspace();
       },
       reconcile: async () => {
         const view = uiStore.get().view;
@@ -266,7 +286,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         else if (view === "player") {
           await refreshPlayerHome();
           await refreshExploration();
-        }
+        } else if (view === "rooms") await refreshCreatorRoomWorkspace();
       },
       onConnected: () => roomStore.set({ roomEventsConnected: true }),
       onDisconnected: () => roomStore.set({ roomEventsConnected: false }),
@@ -293,6 +313,7 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
     refreshPlayerHome,
     refreshExploration,
     refreshHostRuntimeSnapshot,
+    refreshCreatorRoomWorkspace,
     streamUserIdForRoom
   };
 })(window);

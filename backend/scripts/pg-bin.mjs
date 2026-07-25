@@ -24,7 +24,7 @@ function nativeToolAvailable(name) {
   const tool = resolveNativeToolPath(name);
   const probe = spawnSync(tool, ["--version"], {
     encoding: "utf8",
-    shell: process.platform === "win32",
+    shell: false,
     stdio: "pipe"
   });
   return !probe.error && probe.status === 0;
@@ -114,7 +114,7 @@ export function runPgTool(name, args, opts = {}) {
   if (!usesDockerClient()) {
     return spawn(resolveNativeToolPath(name), args, {
       encoding: "utf8",
-      shell: process.platform === "win32",
+      shell: false,
       env: { ...process.env, PGPASSWORD: process.env.PGPASSWORD },
       ...opts
     });
