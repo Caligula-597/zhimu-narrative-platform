@@ -14,6 +14,8 @@ export const state = {
   worlds: [],
   rooms: [],
   room: null,
+  runtimeContent: null,
+  currentState: null,
   studio: null,
   cloudWorldSegments: [],
   rules: [],

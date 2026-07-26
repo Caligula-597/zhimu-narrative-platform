@@ -17,6 +17,7 @@ import {
   lockRulesEditor,
   replaceRule
 } from "./repositories/rules-repository.js";
+import { assertRuntimeObjectDeletionAllowed } from "./runtime-release-guard.js";
 
 function newReferenceSets() {
   return {
@@ -137,6 +138,11 @@ export async function reviseRule({ request, reply, actorId, worldId, ruleId, pay
 export async function removeRule({ request, reply, actorId, worldId, ruleId }) {
   return runRevisionMutation(request, reply, worldId, async (client) => {
     await assertEditor(client, { worldId, actorId });
+    await assertRuntimeObjectDeletionAllowed(client, {
+      worldId,
+      field: "rules",
+      objectId: ruleId
+    });
     const deleted = await deleteRule(client, { worldId, ruleId });
     if (!deleted) throwErr("RULE_NOT_FOUND");
     return { ok: true };

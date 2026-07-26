@@ -101,6 +101,18 @@ import { callView } from "./view-registry.js";
       case "room-listing-off":
         callView("rooms", "setRoomPublicListing", el?.dataset?.roomId, false);
         return true;
+      case "room-release-open":
+        callView("rooms", "openRoomReleaseChange", el?.dataset?.roomId);
+        return true;
+      case "room-release-close":
+        callView("rooms", "closeRoomReleaseChange", el?.dataset?.roomId);
+        return true;
+      case "room-release-preview":
+        callView("rooms", "previewRoomReleaseChange", el?.dataset?.roomId);
+        return true;
+      case "room-release-apply":
+        callView("rooms", "confirmRoomReleaseChange", el?.dataset?.roomId);
+        return true;
       case "room-workspace-refresh":
         callView("rooms", "refreshRoomWorkspace");
         return true;

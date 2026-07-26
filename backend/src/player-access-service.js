@@ -21,7 +21,9 @@ export async function loadRoomInviteAccess(actorId, inviteCode) {
       id: row.id,
       name: row.name,
       status: row.status,
-      contentBinding: projectRoomContentBinding(row)
+      contentBinding: projectRoomContentBinding(row, {
+        runtimeSource: row.release_id ? "release_snapshot" : "live_draft"
+      })
     },
     world: { id: row.world_id, name: row.world_name },
     current_role_slot_id: row.current_role_slot_id ?? null,

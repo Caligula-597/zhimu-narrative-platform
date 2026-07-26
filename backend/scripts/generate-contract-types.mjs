@@ -32,11 +32,15 @@ import {
   updateWorldSchema
 } from "../src/routes/schemas/world.js";
 import {
+  applyRoomReleaseSchema,
   createContentVersionSchema,
   createItemSchema,
   createRoleSchema,
   createRoomSchema,
+  previewRoomReleaseImpactSchema,
   roomContentBindingSchema,
+  roomContentPolicySchema,
+  roomReleaseImpactResponseSchema,
   createSectionSchema,
   patchItemSchema,
   updateSectionSchema,
@@ -80,6 +84,11 @@ import {
   createWorldReleaseSchema,
   worldReleaseSummarySchema
 } from "../src/routes/schemas/world-release.js";
+import {
+  runtimeContentResponseSchema,
+  runtimeCurrentStateSchema,
+  runtimeKnowledgeProjectionSchema
+} from "../src/routes/schemas/runtime-projection.js";
 
 function eventContractName(type) {
   return `${type.split(/[^a-zA-Z0-9]+/).map((part) => part[0].toUpperCase() + part.slice(1)).join("")}Data`;
@@ -125,6 +134,13 @@ const contracts = [
   ["WorldReleaseSummary", worldReleaseSummarySchema],
   ["CreateRoomBody", createRoomSchema.body],
   ["RoomContentBinding", roomContentBindingSchema],
+  ["RoomContentPolicy", roomContentPolicySchema.response[200]],
+  ["PreviewRoomReleaseImpactQuery", previewRoomReleaseImpactSchema.querystring],
+  ["RoomReleaseImpact", roomReleaseImpactResponseSchema],
+  ["ApplyRoomReleaseBody", applyRoomReleaseSchema.body],
+  ["RuntimeContentResponse", runtimeContentResponseSchema],
+  ["RuntimeKnowledgeProjection", runtimeKnowledgeProjectionSchema],
+  ["RuntimeCurrentState", runtimeCurrentStateSchema],
   ["CreateRecapBody", createRecapSchema.body],
   ["CreateTruthClaimBody", createTruthClaimSchema.body],
   ["PatchTruthClaimBody", patchTruthClaimSchema.body],

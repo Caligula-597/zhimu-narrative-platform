@@ -93,3 +93,51 @@ export function buildPlayerReaderPreview(data = {}, draft = {}) {
     }
   };
 }
+
+export function applyRuntimeKnowledgePreview(preview, knowledge) {
+  if (!knowledge) return preview;
+  const visibleSectionIds = new Set((knowledge.sections || []).map((section) => section.id));
+  const visibleSceneIds = new Set((knowledge.scenes || []).map((scene) => scene.id));
+  const visibleClueIds = new Set((knowledge.clues || []).map((clue) => clue.id));
+  const visibleSections = (knowledge.sections || []).map((section) => ({
+    ...section,
+    chapter_id: section.chapterId,
+    reason: section.completed ? "运行房中已读完" : "运行房中当前已开放"
+  }));
+  const visibleScenes = (knowledge.scenes || []).map((scene) => ({
+    ...scene,
+    title: scene.name,
+    reason: "运行房中已解锁"
+  }));
+  const visibleClues = (knowledge.clues || []).map((clue) => ({
+    ...clue,
+    title: clue.name,
+    reason: clue.access === "owned" ? "该角色已获得" : "其他玩家已分享"
+  }));
+  return {
+    ...preview,
+    role: knowledge.role ? {
+      ...preview.role,
+      id: knowledge.role.id,
+      name: knowledge.role.name,
+      public_profile: knowledge.role.publicProfile,
+      private_profile: knowledge.role.privateProfile
+    } : preview.role,
+    visibleSections,
+    hiddenSections: preview.sections.filter((section) => !visibleSectionIds.has(section.id)),
+    visibleScenes,
+    hiddenScenes: preview.hiddenScenes.filter((scene) => !visibleSceneIds.has(scene.id)),
+    visibleClues,
+    hiddenClues: preview.hiddenClues.filter((clue) => !visibleClueIds.has(clue.id)),
+    warnings: [
+      `当前展示真实运行态；内容来源：${knowledge.contentBinding?.isFrozen ? "冻结 Release" : "实时草稿"}。`,
+      "线索持有、分享、阅读进度与场景解锁均来自该房间当前状态。"
+    ],
+    summary: {
+      visibleSections: visibleSections.length,
+      hiddenSections: preview.sections.length - visibleSections.length,
+      visibleScenes: visibleScenes.length,
+      visibleClues: visibleClues.length
+    }
+  };
+}

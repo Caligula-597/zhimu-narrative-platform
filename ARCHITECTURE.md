@@ -42,9 +42,10 @@ host/ 主持端
 | 层 | 代表表 | 说明 |
 |---|---|---|
 | 剧本模板 | `worlds`, `chapters`, `role_slots`, `script_sections`, `scenes`, `clues`, `items`, `automation_rules` | 作者编辑、版本化、公开库审核 |
+| 不可变发布 | `world_releases` | 只包含运行所需作者内容、摘要与校验和；绑定房间按 Release Snapshot 读取 |
 | 运行实例 | `rooms`, `room_members`, `player_states`, `reading_progress`, `clue_ownership`, `inventory`, `rule_executions`, `timeline_logs`, `checkpoints`, `recaps` | 每次开团独立保存进度和结局 |
 
-权限不能依赖前端隐藏。玩家可见内容由后端根据 `room_members.role_slot_id`、解锁状态和持有关系推导。
+权限不能依赖前端隐藏。`RuntimeContentProvider` 决定作者内容来自 Release Snapshot 还是实时草稿；`RuntimeKnowledgeService` 再根据 `room_members.role_slot_id`、解锁、持有和分享关系生成 audience 投影。SSE 只触发刷新，三端 `syncState.serverCursor` 以事件 journal 为权威。
 
 ## 3. 后端框架
 
@@ -55,10 +56,14 @@ host/ 主持端
 | `app.js` | Fastify app、CORS、安全头、限流、统一错误、metrics |
 | `server.js` | 启动校验、OpenTelemetry SDK、事件总线、告警 monitor、优雅关闭 |
 | `routes/` | 按领域拆分 HTTP 路由 |
-| `routes/schemas/` | 32 个领域 schema；`routes/schemas.js` 只做兼容导出 |
+| `routes/schemas/` | 33 个领域 schema；`routes/schemas.js` 只做兼容导出 |
 | `repositories/` / `services/` | 查询、事务和领域服务边界；复杂新路由不得继续堆进 route |
 | `auth.js` / `session-cookie.js` | Session、guest、HttpOnly cookie |
 | `rule-engine.js` | 结构化规则执行，禁止用户 JS |
+| `runtime-content-provider.js` | 统一解析房间绑定版本，向 Player、Host、规则和调查提供同一作者内容 |
+| `room-release-service.js` | 聚合 Release 对象差异、运行证据与席位兼容性，并用影响指纹安全切换未开局房间 |
+| `runtime-knowledge-service.js` | 生成 Player / Host / Creator 的“该玩家现在知道什么”投影 |
+| `runtime-current-state-service.js` | 生成三端 phase、建议动作、阻塞项、同步状态和运行指标 |
 | `room-event-bus.js` / `postgres-event-listener.js` | SSE + PostgreSQL NOTIFY 多实例事件总线与重连 |
 | `upload-scan.js` | 上传扫描，生产 strict + webhook/ClamAV |
 | `ops-routes.js` | OPS 状态、生产可信七项、告警测试 |
@@ -75,7 +80,7 @@ host/ 主持端
 
 Creator、Player、Host、Site 均使用 Vite 8。Creator/Host/Player 已共用 `shared/api-client.js`、session/auth、错误映射、SSE client/lifecycle、游标、toast、安全 DOM、trace 和 web-vitals；认证、401、断线恢复不再维护三份。业务视图继续按角色独立，UI 只在复用收益明确时抽取。Host 是唯一现场控制台；Creator 中退役的 Director 兼容导航只允许外跳 Host。
 
-已完成的大入口收敛：`world-helpers.js` 为 6 行兼容 barrel，`player-routes.js` 为 8 行注册器，原 2200+ 行 schema 已拆为 32 个领域文件，`play/src/main.js` 当前约 413 行且只负责启动编排。当前 71 个路由模块的直接数据库调用点已经归零，并由 `npm run check:architecture` 固定为不可回升门禁；后续结构审计转向 service/repository 内部查询往返、事务边界和跨领域依赖。
+已完成的大入口收敛：`world-helpers.js` 为 6 行兼容 barrel，`player-routes.js` 为 8 行注册器，原 2200+ 行 schema 已拆为 33 个领域文件，`play/src/main.js` 当前约 413 行且只负责启动编排。当前 72 个路由模块的直接数据库调用点已经归零，并由 `npm run check:architecture` 固定为不可回升门禁；后续结构审计转向 service/repository 内部查询往返、事务边界和跨领域依赖。
 
 ## 5. 生产可信七项
 

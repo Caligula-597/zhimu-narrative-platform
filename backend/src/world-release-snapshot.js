@@ -38,6 +38,10 @@ const WORLD_RELEASE_SUPPORT_SQL = `
       FROM world_tags tag WHERE tag.world_id = $1
     ), '[]'::jsonb) AS tags,
     COALESCE((
+      SELECT jsonb_agg(to_jsonb(task) ORDER BY task.role_slot_id, task.act_key, task.sequence, task.created_at, task.id)
+      FROM player_tasks task WHERE task.world_id = $1
+    ), '[]'::jsonb) AS player_tasks,
+    COALESCE((
       SELECT jsonb_agg(jsonb_build_object(
         'id', asset.id,
         'originalFilename', asset.original_filename,
@@ -108,6 +112,7 @@ export async function buildWorldReleaseCandidate(worldId, sourceRevision, client
     foreshadowBeats: support.foreshadow_beats ?? [],
     timelineEvents: support.timeline_events ?? [],
     tags: support.tags ?? [],
+    playerTasks: support.player_tasks ?? [],
     assetManifest: support.asset_manifest ?? []
   };
   return {

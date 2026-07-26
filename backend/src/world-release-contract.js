@@ -22,6 +22,7 @@ const RELEASE_ARRAY_FIELDS = Object.freeze([
   "tags",
   "assetManifest"
 ]);
+const OPTIONAL_RELEASE_ARRAY_FIELDS = Object.freeze(["playerTasks"]);
 
 function canonicalValue(value, seen) {
   if (value === null || typeof value === "string" || typeof value === "boolean") return value;
@@ -76,12 +77,20 @@ export function assertWorldReleaseSnapshot(snapshot) {
   for (const key of RELEASE_ARRAY_FIELDS) {
     if (!Array.isArray(snapshot[key])) throw new TypeError(`Release snapshot field ${key} must be an array`);
   }
+  for (const key of OPTIONAL_RELEASE_ARRAY_FIELDS) {
+    if (snapshot[key] != null && !Array.isArray(snapshot[key])) {
+      throw new TypeError(`Release snapshot field ${key} must be an array`);
+    }
+  }
   return snapshot;
 }
 
 export function summarizeWorldReleaseSnapshot(snapshot) {
   assertWorldReleaseSnapshot(snapshot);
-  const counts = Object.fromEntries(RELEASE_ARRAY_FIELDS.map((key) => [key, snapshot[key].length]));
+  const counts = Object.fromEntries([
+    ...RELEASE_ARRAY_FIELDS.map((key) => [key, snapshot[key].length]),
+    ...OPTIONAL_RELEASE_ARRAY_FIELDS.map((key) => [key, snapshot[key]?.length ?? 0])
+  ]);
   return {
     counts,
     hasCoreTrick: Boolean(snapshot.coreTrick),

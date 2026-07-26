@@ -59,7 +59,9 @@
 
 部署前必须先执行迁移 `091_creator_review_workflow.sql`，否则审稿接口不可用。审稿表启用 RLS，不授予 Data API 访问；应用通过后端世界成员权限检查访问。
 
-玩法 Profile、不可变发布版本和运行房绑定还依赖 `092_narrative_profile_settings.sql`、`093_world_releases.sql` 与 `094_room_release_binding.sql`。当前房间可预绑定 Release，但在运行内容读取器全面完成前仍使用兼容读取并显示明确警告；不得把“已选择版本”宣传成“正式冻结运行”。
+玩法 Profile、不可变发布版本和运行房绑定依赖 `092_narrative_profile_settings.sql`、`093_world_releases.sql` 与 `094_room_release_binding.sql`。运行内容读取器已经覆盖 Host、Player、规则、调查、线索、物品、任务和知识投影；选择 Release 的房间明确标记为冻结运行。公开房必须绑定 Release；私有联调房可显式选择实时草稿。
+
+未开局房间切换 Release 时，运行房页面会内联展示对象级新增/移除/修改、已分配角色兼容性、运行证据、阻塞项和警告。确认请求携带影响指纹；预览后若有人加入角色、产生进度或更新实时草稿，服务端拒绝旧确认并要求重新评估。已经产生运行数据的房间不原地换版，应新建房间或走后续存档迁移流程。
 
 ## 5. 主持人的临场自由
 

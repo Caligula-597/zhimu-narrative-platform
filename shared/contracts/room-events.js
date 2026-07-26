@@ -135,6 +135,12 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     sourceRoomId: id,
     crossRoom: boolean
   }),
+  "room.content_release_changed": schema(["releaseId", "releaseNumber", "direction"], {
+    previousReleaseId: id,
+    releaseId: id,
+    releaseNumber: number,
+    direction: enumString(["bind", "upgrade", "downgrade"])
+  }),
   "room.investigation_completed": schema(["pointId", "roleSlotId"], { pointId: id, roleSlotId: id }),
   "room.vote_created": schema(["voteId", "title", "status"], {
     voteId: id,

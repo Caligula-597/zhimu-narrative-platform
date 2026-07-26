@@ -1,6 +1,6 @@
 # 发布恢复与回滚流程
 
-最后更新：2026-07-24
+最后更新：2026-07-25
 
 ## 发布前硬门槛
 
@@ -11,7 +11,16 @@
 5. 对 staging 执行 Player 首页并发压测，保存 JSON 和 `pg_stat_statements` 报告。
 6. 创建生产数据库快照并验证快照状态，不能只记录“已请求备份”。
 
-当前迁移顺序必须包含 `091` 审稿、`092` 玩法 Profile、`093` 不可变 Release 和 `094` 房间绑定。应用发布前先迁移；旧应用必须继续忽略新增可空字段。RuntimeContentProvider 未全面启用前，`release_id` 只是预绑定，回滚时不得把房间误标为冻结读取。
+当前迁移顺序必须包含 `091` 审稿、`092` 玩法 Profile、`093` 不可变 Release 和 `094` 房间绑定。应用发布前先迁移；旧应用必须继续忽略新增可空字段。RuntimeContentProvider 已全面启用：绑定 Release 的房间会读取不可变快照，回滚到 M01-C 之前的旧应用会退回实时表，因此属于语义降级，必须暂停这些房间或将流量保持在支持 Provider 的版本；不能在事故中清空 `release_id`。
+
+`ROOM_DEFAULT_CONTENT_BINDING` 的部署顺序：
+
+1. staging 设为 `latest_release`，完成新房、显式实时草稿、公开房、切版阻塞、三端 SSE replay 和轮询 reconcile。
+2. 生产先部署支持该变量的后端与三端前端，但保持 `live_draft`。
+3. 观察旧房和公开房后再切 `latest_release`；该切换只影响之后省略 `releaseId` 的新房，不批量更新旧房。
+4. 回滚开关时改回 `live_draft`，保留全部 `release_id` 和 `world_releases`；已冻结房间继续由 RuntimeContentProvider 读取原快照。
+
+当前自动证据覆盖空库 001–097、R1→R2 影响预览与应用、outbox/journal、跨实例 PostgreSQL NOTIFY、replay/live 去重，以及 Creator/Host/Player pull reconcile。它不能替代真实 staging 的 Bearer 并发、长断网/进程重启与部署版本回切记录。
 
 ## 回滚原则
 

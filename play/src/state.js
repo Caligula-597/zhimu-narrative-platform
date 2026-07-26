@@ -184,17 +184,20 @@ export function persistRoom(roomId, isUuid) {
 
 export function playerProgress(home) {
   const sections = home?.sections || [];
+  const knowledgeSummary = home?.knowledge?.summary;
   const completed = sections.filter((s) => s.completed).length;
   const nextSection = sections.find((s) => !s.completed) || sections[0] || null;
-  const clues = (home?.clues?.length || 0) + (home?.sharedClues?.length || 0);
+  const clues = knowledgeSummary
+    ? Number(knowledgeSummary.ownedClues || 0) + Number(knowledgeSummary.sharedClues || 0)
+    : (home?.clues?.length || 0) + (home?.sharedClues?.length || 0);
   const inventory = home?.inventory?.length || 0;
   const scenes = home ? undefined : 0;
   return {
-    sectionsTotal: sections.length,
-    sectionsCompleted: completed,
+    sectionsTotal: knowledgeSummary?.availableSections ?? sections.length,
+    sectionsCompleted: knowledgeSummary?.completedSections ?? completed,
     nextSection,
-    clueCount: home?.clues?.length || 0,
-    sharedClueCount: home?.sharedClues?.length || 0,
+    clueCount: knowledgeSummary?.ownedClues ?? home?.clues?.length ?? 0,
+    sharedClueCount: knowledgeSummary?.sharedClues ?? home?.sharedClues?.length ?? 0,
     clueTotal: clues,
     inventoryCount: inventory,
     sceneCount: scenes

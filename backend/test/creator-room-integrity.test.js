@@ -14,7 +14,7 @@ test("concurrent create-room retries replay one atomic room without leaking idem
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
   const key = `creator-room-${Date.now()}`;
-  const payload = { name: ` idempotent-room-${Date.now()} `, publicListing: true };
+  const payload = { name: ` idempotent-room-${Date.now()} `, publicListing: false };
   const inject = () => app.inject({
     method: "POST",
     url: roomUrl(),
@@ -123,7 +123,7 @@ test("world hosts cannot publish another host's room unless they are an active c
     method: "PATCH",
     url: roomUrl(`/${room.rows[0].id}/listing`),
     headers: { authorization: `Bearer ${token}` },
-    payload: { publicListing: true }
+    payload: { publicListing: false }
   });
   assert.equal(forbidden.statusCode, 403, forbidden.body);
   assert.equal(forbidden.json().code, "ROOM_LISTING_FORBIDDEN");
@@ -137,10 +137,10 @@ test("world hosts cannot publish another host's room unless they are an active c
     method: "PATCH",
     url: roomUrl(`/${room.rows[0].id}/listing`),
     headers: { authorization: `Bearer ${token}` },
-    payload: { publicListing: true }
+    payload: { publicListing: false }
   });
   assert.equal(allowed.statusCode, 200, allowed.body);
-  assert.equal(allowed.json().public_listing, true);
+  assert.equal(allowed.json().public_listing, false);
 });
 
 test("revoked world members cannot replay a previously authorized room creation", async (context) => {

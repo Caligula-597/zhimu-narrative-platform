@@ -4,6 +4,8 @@
 import { query } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { resolveSectionSegmentKey } from "./segment-contract.js";
+import { loadRuntimeContentProvider } from "./runtime-content-provider.js";
+import { assertNoFrozenRuntimeRooms } from "./runtime-release-guard.js";
 
 function sanitizeText(value = "", max = 2000) {
   return String(value ?? "")
@@ -32,6 +34,7 @@ export function resolveCurrentActKey(sections = [], segments = []) {
 
 export async function seedPlayerTasksFromArchives(client, worldId, characterArchives, roleKeyToSlotId) {
   if (!characterArchives?.roles?.length) return 0;
+  await assertNoFrozenRuntimeRooms(client, worldId);
   let inserted = 0;
   for (const role of characterArchives.roles) {
     const roleSlotId = roleKeyToSlotId.get(role.key);
@@ -78,15 +81,71 @@ export async function fetchPlayerTasksForRoom(runQuery, roomId, roleSlotId, actK
   return tasks.rows;
 }
 
+export async function fetchRuntimePlayerTasksForRoom(
+  runQuery,
+  provider,
+  roomId,
+  roleSlotId,
+  actKey
+) {
+  if (provider?.isFrozen && Object.hasOwn(provider.snapshot, "playerTasks")) {
+    const authoredTasks = provider.collection("playerTasks")
+      .filter((task) => String(task.role_slot_id) === String(roleSlotId))
+      .filter((task) => task.act_key === actKey)
+      .sort((left, right) => Number(left.sequence) - Number(right.sequence));
+    if (!authoredTasks.length) return [];
+    const progress = await runQuery(
+      `SELECT player_task_id, status, completed_at
+       FROM player_task_progress
+       WHERE room_id = $1
+         AND role_slot_id = $2
+         AND player_task_id = ANY($3::uuid[])`,
+      [roomId, roleSlotId, authoredTasks.map((task) => task.id)]
+    );
+    const progressByTask = new Map(
+      progress.rows.map((row) => [String(row.player_task_id), row])
+    );
+    return authoredTasks.map((task) => {
+      const state = progressByTask.get(String(task.id));
+      return {
+        id: task.id,
+        act_key: task.act_key,
+        body: task.body,
+        tips: task.tips,
+        visibility: task.visibility,
+        sequence: task.sequence,
+        status: state?.status ?? "pending",
+        completed_at: state?.completed_at ?? null
+      };
+    });
+  }
+  if (provider?.isFrozen) return [];
+  return fetchPlayerTasksForRoom(runQuery, roomId, roleSlotId, actKey);
+}
+
 export async function completePlayerTask(runQuery, { roomId, roleSlotId, taskId }) {
-  const owned = await runQuery(
-    `SELECT pt.id
-     FROM player_tasks pt
-     JOIN rooms r ON r.world_id = pt.world_id AND r.id = $1
-     WHERE pt.id = $2 AND pt.role_slot_id = $3`,
-    [roomId, taskId, roleSlotId]
-  );
-  if (!owned.rowCount) throwErr("NOT_FOUND", "Task not found for this role");
+  const provider = await loadRuntimeContentProvider(roomId, {
+    runQuery,
+    includeLiveSnapshot: false
+  });
+  if (!provider) throwErr("ROOM_NOT_FOUND");
+  if (provider.isFrozen && Object.hasOwn(provider.snapshot, "playerTasks")) {
+    const task = provider.find("playerTasks", taskId);
+    if (!task || String(task.role_slot_id) !== String(roleSlotId)) {
+      throwErr("NOT_FOUND", "Task not found for this role");
+    }
+  } else if (provider.isFrozen) {
+    throwErr("NOT_FOUND", "Task is unavailable in this legacy release");
+  } else {
+    const owned = await runQuery(
+      `SELECT pt.id
+       FROM player_tasks pt
+       JOIN rooms r ON r.world_id = pt.world_id AND r.id = $1
+       WHERE pt.id = $2 AND pt.role_slot_id = $3`,
+      [roomId, taskId, roleSlotId]
+    );
+    if (!owned.rowCount) throwErr("NOT_FOUND", "Task not found for this role");
+  }
 
   const { rows } = await runQuery(
     `INSERT INTO player_task_progress (room_id, player_task_id, role_slot_id, status, completed_at)

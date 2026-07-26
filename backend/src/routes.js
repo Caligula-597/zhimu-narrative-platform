@@ -23,6 +23,7 @@ import { registerBatchBRoutes } from "./routes/batch-b-routes.js";
 import { registerContentPlatformRoutes } from "./routes/content-platform-routes.js";
 import { registerCreatorBibleRoutes } from "./routes/creator-bible-routes.js";
 import { registerCreatorBootstrapRoutes } from "./routes/creator-bootstrap-routes.js";
+import { registerRuntimeProjectionRoutes } from "./routes/runtime-projection-routes.js";
 
 export async function registerRoutes(app) {
   await registerWorldRoutes(app);
@@ -40,6 +41,7 @@ export async function registerRoutes(app) {
   await registerCheckpointRoutes(app);
   await registerRecapRoutes(app);
   await registerRoomEventsRoutes(app);
+  await registerRuntimeProjectionRoutes(app);
   await registerPlayerRoutes(app);
   await registerVoiceRoutes(app);
   await registerAssetRoutes(app);

@@ -3,6 +3,10 @@ import { currentScene, playerProgress, state } from "../state.js";
 import { clueIsRead } from "../utils/clues.js";
 import { renderVoiceCompact } from "./voice.js";
 import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
+import {
+  normalizeRuntimeCurrentState,
+  primaryRuntimeAction
+} from "../../../shared/runtime-current-state.js";
 
 export function renderGameResume() {
   return `
@@ -50,6 +54,22 @@ function roomContentBindingBanner() {
     <div class="banner room-content-binding-banner ${binding.tone === "published" ? "soft" : "host-wait-banner"}">
       <strong>${escapeHtml(binding.label)}</strong>
       <p>${escapeHtml(binding.detail)}</p>
+    </div>`;
+}
+
+function runtimeStateBanner() {
+  if (!state.home?.currentState) return "";
+  const current = normalizeRuntimeCurrentState(state.home?.currentState, {
+    audience: "player",
+    connected: state.roomEventsConnected
+  });
+  return `
+    <div class="banner room-content-binding-banner ${current.syncState.status === "synced" ? "soft" : "host-wait-banner"}">
+      <div>
+        <strong>${escapeHtml(current.phase.label)}</strong>
+        <p>${escapeHtml(current.phase.detail)} · ${current.syncState.status === "synced" ? "进度已同步" : "正在恢复实时连接"}</p>
+      </div>
+      <span class="status-chip ${current.syncState.isFrozen ? "published" : "testing"}">${current.syncState.isFrozen ? "冻结版本" : "实时草稿"}</span>
     </div>`;
 }
 
@@ -104,6 +124,7 @@ export function renderGameHome() {
   return `
     <div class="home-dashboard">
       ${roomContentBindingBanner()}
+      ${runtimeStateBanner()}
       ${renderVoiceCompact()}
       <article class="player-hero card live-flash">
         <div class="player-hero-copy">
@@ -165,6 +186,19 @@ function renderPlayerActionsHub(home, nextSection) {
     primary = { title: `调查：${availablePoints[0].name}`, detail: `地点：${availablePoints[0].sceneName || "当前场景"}`, action: "switch-tab", data: 'data-tab="explore"', button: "去探索" };
   } else {
     primary = { title: "整理线索或进入语音讨论", detail: "当前没有必须完成的动作", action: "switch-tab", data: 'data-tab="voice"', button: "讨论" };
+  }
+
+  const serverAction = primaryRuntimeAction(home?.currentState);
+  if (serverAction) {
+    const targetTab = new Set(["home", "sections", "social", "explore", "voice", "clues", "tasks"])
+      .has(serverAction.target) ? serverAction.target : "home";
+    primary = {
+      title: serverAction.label,
+      detail: serverAction.reason,
+      action: "switch-tab",
+      data: `data-tab="${escapeHtml(targetTab)}"`,
+      button: "去处理"
+    };
   }
 
   const readItems = [

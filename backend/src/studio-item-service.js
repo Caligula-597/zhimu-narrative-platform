@@ -10,6 +10,7 @@ import {
   updateStudioItem
 } from "./repositories/studio-item-repository.js";
 import { runRevisionMutation } from "./world-revision.js";
+import { assertRuntimeObjectDeletionAllowed } from "./runtime-release-guard.js";
 
 async function assertEditor(client, { worldId, actorId }) {
   const role = await lockStudioItemEditor(client, { worldId, actorId });
@@ -72,6 +73,11 @@ export function removeStudioItem({ request, reply, actorId, worldId, itemId }) {
   return runRevisionMutation(request, reply, worldId, async (client) => {
     await assertEditor(client, { worldId, actorId });
     if (!await lockStudioItem(client, { worldId, itemId })) throwErr("ITEM_NOT_FOUND");
+    await assertRuntimeObjectDeletionAllowed(client, {
+      worldId,
+      field: "items",
+      objectId: itemId
+    });
     const references = await readStudioItemReferenceCounts(client, { worldId, itemId });
     const total = Object.values(references).reduce((sum, value) => sum + Number(value ?? 0), 0);
     if (total > 0) throwErr("ITEM_REFERENCED", undefined, { references });

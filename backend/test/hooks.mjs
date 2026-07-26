@@ -20,6 +20,7 @@ process.env.PLAY_SOCIAL_ACCOUNT_COOLDOWN_MIN ??= "0";
 // values after the hook has established a deterministic baseline.
 process.env.NODE_ENV = "test";
 process.env.ROOM_EVENTS_BUS = "memory";
+process.env.ROOM_DEFAULT_CONTENT_BINDING = "live_draft";
 process.env.TRUST_PROXY_HOPS = "";
 process.env.CREDITS_SYSTEM_ENABLED = "true";
 // Automated tests must never inherit a developer/production R2 provider from

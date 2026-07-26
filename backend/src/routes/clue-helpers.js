@@ -56,6 +56,61 @@ export async function fetchPlayerClues(query, roomId, roleSlotId) {
   return { owned: owned.rows, shared: shared.rows };
 }
 
+export function buildHostClueMatrix({ clues, players, ownership, receipts }) {
+  const ownMap = new Map();
+  const ownersByClue = new Map();
+  for (const row of ownership) {
+    ownMap.set(`${row.clue_id}:${row.role_slot_id}`, row);
+    if (!ownersByClue.has(row.clue_id)) ownersByClue.set(row.clue_id, []);
+    ownersByClue.get(row.clue_id).push(row);
+  }
+  const receiptSet = new Set(receipts.map((row) => `${row.clue_id}:${row.role_slot_id}`));
+
+  const sharedClueIds = new Set(
+    ownership.filter((row) => row.shared_with_room).map((row) => row.clue_id)
+  );
+
+  function visibleViaRoles(clueId, roleSlotId) {
+    for (const owner of ownersByClue.get(clueId) || []) {
+      const roles = owner.shared_with_roles || [];
+      if (Array.isArray(roles) && roles.includes(roleSlotId)) return true;
+    }
+    return false;
+  }
+
+  const cells = {};
+  for (const clue of clues) {
+    cells[clue.id] = {};
+    for (const player of players) {
+      const key = `${clue.id}:${player.role_slot_id}`;
+      const own = ownMap.get(key);
+      const read = own?.read_flag || receiptSet.has(key);
+      const roleShared = visibleViaRoles(clue.id, player.role_slot_id);
+      const visible = Boolean(own) || sharedClueIds.has(clue.id) || roleShared;
+      cells[clue.id][player.role_slot_id] = {
+        owned: Boolean(own),
+        read,
+        sharedWithRoom: Boolean(own?.shared_with_room),
+        sharedWithRoles: roleShared && !own,
+        visible,
+        playerNote: own?.player_note || "",
+        hostNote: own?.host_note || ""
+      };
+    }
+  }
+
+  const summaries = clues.map((clue) => {
+    const parts = players.map((player) => {
+      const cell = cells[clue.id][player.role_slot_id];
+      const who = player.player_display_name || player.role_name;
+      return `${who}${formatClueCellLabel(cell)}`;
+    });
+    return { clueId: clue.id, clueName: clue.name, summary: parts.join("，") };
+  });
+
+  return { clues, players, cells, summaries };
+}
+
 export async function fetchHostClueMatrix(query, roomId) {
   const [clues, players, ownership, receipts] = await Promise.all([
     query(
@@ -90,61 +145,10 @@ export async function fetchHostClueMatrix(query, roomId) {
     )
   ]);
 
-  const ownMap = new Map();
-  const ownersByClue = new Map();
-  for (const row of ownership.rows) {
-    ownMap.set(`${row.clue_id}:${row.role_slot_id}`, row);
-    if (!ownersByClue.has(row.clue_id)) ownersByClue.set(row.clue_id, []);
-    ownersByClue.get(row.clue_id).push(row);
-  }
-  const receiptSet = new Set(receipts.rows.map((row) => `${row.clue_id}:${row.role_slot_id}`));
-
-  const sharedClueIds = new Set(
-    ownership.rows.filter((row) => row.shared_with_room).map((row) => row.clue_id)
-  );
-
-  function visibleViaRoles(clueId, roleSlotId) {
-    for (const owner of ownersByClue.get(clueId) || []) {
-      const roles = owner.shared_with_roles || [];
-      if (Array.isArray(roles) && roles.includes(roleSlotId)) return true;
-    }
-    return false;
-  }
-
-  const cells = {};
-  for (const clue of clues.rows) {
-    cells[clue.id] = {};
-    for (const player of players.rows) {
-      const key = `${clue.id}:${player.role_slot_id}`;
-      const own = ownMap.get(key);
-      const read = own?.read_flag || receiptSet.has(key);
-      const roleShared = visibleViaRoles(clue.id, player.role_slot_id);
-      const visible = Boolean(own) || sharedClueIds.has(clue.id) || roleShared;
-      cells[clue.id][player.role_slot_id] = {
-        owned: Boolean(own),
-        read,
-        sharedWithRoom: Boolean(own?.shared_with_room),
-        sharedWithRoles: roleShared && !own,
-        visible,
-        playerNote: own?.player_note || "",
-        hostNote: own?.host_note || ""
-      };
-    }
-  }
-
-  const summaries = clues.rows.map((clue) => {
-    const parts = players.rows.map((player) => {
-      const cell = cells[clue.id][player.role_slot_id];
-      const who = player.player_display_name || player.role_name;
-      return `${who}${formatClueCellLabel(cell)}`;
-    });
-    return { clueId: clue.id, clueName: clue.name, summary: parts.join("，") };
-  });
-
-  return {
+  return buildHostClueMatrix({
     clues: clues.rows,
     players: players.rows,
-    cells,
-    summaries
-  };
+    ownership: ownership.rows,
+    receipts: receipts.rows
+  });
 }

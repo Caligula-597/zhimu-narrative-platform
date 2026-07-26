@@ -9,14 +9,14 @@ const INTERNAL_BINDING_FIELDS = new Set([
   "current_content_revision"
 ]);
 
-export function withRoomContentBinding(row) {
+export function withRoomContentBinding(row, options) {
   if (!row) return row;
   const room = Object.fromEntries(
     Object.entries(row).filter(([key]) => !INTERNAL_BINDING_FIELDS.has(key))
   );
   return {
     ...room,
-    contentBinding: projectRoomContentBinding(row)
+    contentBinding: projectRoomContentBinding(row, options)
   };
 }
 

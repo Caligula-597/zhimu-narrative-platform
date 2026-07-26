@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import test from "node:test";
 import { createApp } from "../src/app.js";
 import { query } from "../src/db.js";
+import { waitForScheduledEventOutbox } from "../src/event-outbox-dispatcher.js";
 import { hostUserId, playerUserId } from "./helpers/fixture-ids.js";
 
 async function createReleaseReadyWorld(context) {
@@ -110,6 +111,50 @@ test("world release creation is idempotent, private and update-immutable", async
   assert.equal(listed.json().length, 1);
   assert.equal(listed.json()[0].snapshot, undefined);
 
+  const roomCreated = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${fixture.worldId}/rooms`,
+    headers: { "x-user-id": hostUserId },
+    payload: { name: "版本切换验收房", releaseId: null }
+  });
+  assert.equal(roomCreated.statusCode, 201, roomCreated.body);
+  const room = roomCreated.json();
+  assert.equal(room.contentBinding.mode, "live_draft");
+
+  const impactResponse = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${fixture.worldId}/rooms/${room.id}/release-impact?releaseId=${release.id}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(impactResponse.statusCode, 200, impactResponse.body);
+  const impact = impactResponse.json();
+  assert.equal(impact.allowed, true);
+  assert.equal(impact.direction, "bind");
+
+  const applied = await app.inject({
+    method: "PATCH",
+    url: `/api/worlds/${fixture.worldId}/rooms/${room.id}/content-release`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      releaseId: release.id,
+      expectedCurrentReleaseId: null,
+      targetContentSha256: release.contentSha256,
+      impactFingerprint: impact.fingerprint
+    }
+  });
+  assert.equal(applied.statusCode, 200, applied.body);
+  assert.equal(applied.json().contentBinding.release.id, release.id);
+  assert.equal(applied.json().contentBinding.isFrozen, true);
+
+  const listedRoom = await app.inject({
+    method: "PATCH",
+    url: `/api/worlds/${fixture.worldId}/rooms/${room.id}/listing`,
+    headers: { "x-user-id": hostUserId },
+    payload: { publicListing: true }
+  });
+  assert.equal(listedRoom.statusCode, 200, listedRoom.body);
+  assert.equal(listedRoom.json().public_listing, true);
+
   const denied = await app.inject({
     method: "GET",
     url: `/api/worlds/${fixture.worldId}/releases`,
@@ -118,6 +163,66 @@ test("world release creation is idempotent, private and update-immutable", async
   assert.equal(denied.statusCode, 403, denied.body);
 
   await query(`UPDATE script_sections SET body = '草稿已修改' WHERE id = $1`, [fixture.sectionId]);
+  const currentRevisionResult = await query(
+    `SELECT content_revision FROM worlds WHERE id = $1`,
+    [fixture.worldId]
+  );
+  const currentRevision = Number(currentRevisionResult.rows[0].content_revision);
+  const upgradedReleaseResponse = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${fixture.worldId}/releases`,
+    headers: {
+      "x-user-id": hostUserId,
+      "if-match": `"${currentRevision}"`,
+      "idempotency-key": `release-upgrade-${randomUUID()}`
+    },
+    payload: { label: "草稿修改后的第二版" }
+  });
+  assert.equal(upgradedReleaseResponse.statusCode, 201, upgradedReleaseResponse.body);
+  const upgradedRelease = upgradedReleaseResponse.json();
+  assert.equal(upgradedRelease.releaseNumber, 2);
+
+  const upgradeImpactResponse = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${fixture.worldId}/rooms/${room.id}/release-impact?releaseId=${upgradedRelease.id}`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(upgradeImpactResponse.statusCode, 200, upgradeImpactResponse.body);
+  const upgradeImpact = upgradeImpactResponse.json();
+  assert.equal(upgradeImpact.direction, "upgrade");
+  assert.equal(upgradeImpact.allowed, true);
+  assert.ok(
+    Number(upgradeImpact.comparison.summary.changed) > 0,
+    "upgrade preview must expose the authored content change"
+  );
+
+  const upgradedRoomResponse = await app.inject({
+    method: "PATCH",
+    url: `/api/worlds/${fixture.worldId}/rooms/${room.id}/content-release`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      releaseId: upgradedRelease.id,
+      expectedCurrentReleaseId: release.id,
+      targetContentSha256: upgradedRelease.contentSha256,
+      impactFingerprint: upgradeImpact.fingerprint
+    }
+  });
+  assert.equal(upgradedRoomResponse.statusCode, 200, upgradedRoomResponse.body);
+  assert.equal(upgradedRoomResponse.json().contentBinding.release.id, upgradedRelease.id);
+
+  await waitForScheduledEventOutbox();
+  const releaseEvent = await query(
+    `SELECT payload
+     FROM room_event_journal
+     WHERE room_id = $1 AND event_type = 'room.content_release_changed'
+     ORDER BY id DESC
+     LIMIT 1`,
+    [room.id]
+  );
+  assert.equal(releaseEvent.rows[0]?.payload?.releaseId, upgradedRelease.id);
+  assert.equal(releaseEvent.rows[0]?.payload?.releaseNumber, 2);
+  assert.equal(releaseEvent.rows[0]?.payload?.direction, "upgrade");
+
   const stored = await query(
     `SELECT snapshot FROM world_releases WHERE id = $1`,
     [release.id]

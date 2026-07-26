@@ -115,6 +115,31 @@ export function productionTrustGates({
         + `pricing=${getPricingPageMode()}; commercialUi=${isCommercialUiVisible()}`
     },
     {
+      key: "email_verification",
+      label: "Verified registered identities",
+      ok: isEmailVerificationRequired() && Boolean(features.email?.configured),
+      detail: `required=${isEmailVerificationRequired()}; provider=${features.email?.provider || "none"}`
+    },
+    {
+      key: "database_tls",
+      label: "Verified database TLS",
+      ok: process.env.DATABASE_SSL === "true",
+      detail: process.env.DATABASE_SSL === "true"
+        ? "certificate verification enabled"
+        : "DATABASE_SSL must be true in production"
+    },
+    {
+      key: "monetization_frozen",
+      label: "Launch without charging",
+      ok: !isBillingLaunchEnabled()
+        && !isCreditsSystemEnabled()
+        && getPricingPageMode() === "launch"
+        && !isCommercialUiVisible(),
+      detail:
+        `billing=${isBillingLaunchEnabled()}; credits=${isCreditsSystemEnabled()}; `
+        + `pricing=${getPricingPageMode()}; commercialUi=${isCommercialUiVisible()}`
+    },
+    {
       key: "csp",
       label: "CSP enforcement",
       ok: cspMode === "enforce",
