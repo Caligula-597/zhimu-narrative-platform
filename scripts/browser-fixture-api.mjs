@@ -444,6 +444,63 @@ const server = http.createServer(async (request, response) => {
   if (request.method === "GET" && path === "/api/platform/events/stream") {
     return sendSse(request, response);
   }
+  if (request.method === "GET" && path === "/api/account/llm") {
+    return sendJson(response, 200, {
+      encryptionReady: true,
+      presets: {
+        deepseek: {
+          label: "DeepSeek",
+          baseUrl: "https://api.deepseek.com",
+          defaultModel: "deepseek-v4-flash",
+          models: ["deepseek-v4-flash", "deepseek-v4-pro"]
+        },
+        openai: {
+          label: "OpenAI",
+          baseUrl: "https://api.openai.com/v1",
+          defaultModel: "gpt-4o-mini",
+          models: ["gpt-4o-mini", "gpt-4o"]
+        },
+        openrouter: {
+          label: "OpenRouter",
+          baseUrl: "https://openrouter.ai/api/v1",
+          defaultModel: "~openai/gpt-latest",
+          models: ["~openai/gpt-latest"]
+        },
+        qwen: {
+          label: "阿里云百炼（Qwen）",
+          baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+          defaultModel: "qwen-plus",
+          models: ["qwen-plus", "qwen3.7-plus"]
+        },
+        zhipu: {
+          label: "智谱开放平台（GLM）",
+          baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+          defaultModel: "glm-5.2",
+          models: ["glm-5.2"]
+        },
+        siliconflow: {
+          label: "硅基流动",
+          baseUrl: "https://api.siliconflow.cn/v1",
+          defaultModel: "deepseek-ai/DeepSeek-V3.2",
+          models: ["deepseek-ai/DeepSeek-V3.2"]
+        },
+        openai_compatible: {
+          label: "自定义 OpenAI 兼容接口",
+          baseUrl: "https://api.openai.com/v1",
+          defaultModel: "",
+          models: []
+        }
+      },
+      preferences: { routingMode: "own_only", updatedAt: null },
+      connections: [],
+      activeConnectionId: null,
+      platform: {
+        available: false,
+        model: null,
+        note: "平台 AI 池暂不面向用户开放；创作调用只使用您保存的 API。"
+      }
+    });
+  }
   if (request.method === "GET" && path === "/api/worlds") {
     return sendJson(response, 200, [world]);
   }
@@ -462,12 +519,12 @@ const server = http.createServer(async (request, response) => {
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/story-assistant/deepseek/status`) {
     return sendJson(response, 200, {
-      configured: true,
-      source: "fixture",
-      model: "browser-fixture-model",
-      connectionName: "浏览器验收模型",
-      routingMode: "platform",
-      platformAvailable: true
+      configured: false,
+      source: "none",
+      model: null,
+      connectionName: null,
+      routingMode: "own_only",
+      platformAvailable: false
     });
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/quality-reports`) {

@@ -138,7 +138,7 @@
 | 功能 | 状态 | 已实现 | 未实现 / 局限 |
 |------|------|--------|----------------|
 | 规则分类器（本地） | ✅ | 粘贴文本 → 分类场景/线索/调查点 → 写入编排 | 规则基于关键词启发式，非 LLM |
-| DeepSeek AI 悬疑创作（分步/一键） | 🟡 | `pipeline-wizard.js` + 分层 API；① 规格手动 | **需 `DEEPSEEK_API_KEY`**；见 [docs/AI_PIPELINE_UI_ZH.md](docs/AI_PIPELINE_UI_ZH.md) |
+| 多模型 AI 悬疑创作（分步/一键） | 🟡 | `pipeline-wizard.js` + 分层 API；① 规格手动 | 用户在账号设置配置自备 API 与模型；平台 Key 不进入用户池；见 [docs/AI_PIPELINE_UI_ZH.md](docs/AI_PIPELINE_UI_ZH.md) |
 | DeepSeek 结构提案 / 整本悬疑（旧入口） | — | 已合并为「AI 悬疑创作」 | 兼容 localStorage 草稿迁移 |
 | AI 不自动发布 | ✅ | 一律需作者确认后 import | — |
 

@@ -5,7 +5,7 @@ import { query, transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { fetchUserKind } from "./capabilities.js";
 import { isUserEmailVerified, isEmailVerificationRequired } from "./email-verification-policy.js";
-import { assertAiCredits, isCreditsSystemEnabled } from "./credits.js";
+import { assertAiCredits } from "./credits.js";
 import { deepseekConfig } from "./deepseek.js";
 import { platformLlmRuntime, bindLlmRuntime } from "./llm-runtime.js";
 import { canEncryptSecrets, decryptSecret, encryptSecret, maskApiKeyHint } from "./secret-crypto.js";
@@ -15,19 +15,52 @@ export const LLM_PROVIDER_PRESETS = {
   deepseek: {
     label: "DeepSeek",
     baseUrl: "https://api.deepseek.com",
-    defaultModel: "deepseek-chat"
-  },
-  openai_compatible: {
-    label: "OpenAI 兼容",
-    baseUrl: "https://api.openai.com/v1",
-    defaultModel: "gpt-4o-mini"
+    defaultModel: "deepseek-v4-flash",
+    models: ["deepseek-v4-flash", "deepseek-v4-pro"]
   },
   openai: {
     label: "OpenAI",
     baseUrl: "https://api.openai.com/v1",
-    defaultModel: "gpt-4o-mini"
+    defaultModel: "gpt-4o-mini",
+    models: ["gpt-4o-mini", "gpt-4o"]
+  },
+  openrouter: {
+    label: "OpenRouter",
+    baseUrl: "https://openrouter.ai/api/v1",
+    defaultModel: "~openai/gpt-latest",
+    models: ["~openai/gpt-latest"]
+  },
+  qwen: {
+    label: "阿里云百炼（Qwen）",
+    baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    defaultModel: "qwen-plus",
+    models: ["qwen-plus", "qwen3.7-plus"]
+  },
+  zhipu: {
+    label: "智谱开放平台（GLM）",
+    baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+    defaultModel: "glm-5.2",
+    models: ["glm-5.2"]
+  },
+  siliconflow: {
+    label: "硅基流动",
+    baseUrl: "https://api.siliconflow.cn/v1",
+    defaultModel: "deepseek-ai/DeepSeek-V3.2",
+    models: ["deepseek-ai/DeepSeek-V3.2"]
+  },
+  openai_compatible: {
+    label: "自定义 OpenAI 兼容接口",
+    baseUrl: "https://api.openai.com/v1",
+    defaultModel: "",
+    models: []
   }
 };
+
+export const LLM_PROVIDER_IDS = Object.freeze(Object.keys(LLM_PROVIDER_PRESETS));
+
+export function isPlatformLlmUserAccessEnabled() {
+  return process.env.PLATFORM_LLM_USER_ACCESS === "true";
+}
 
 function normalizeBaseUrl(url) {
   const trimmed = String(url || "").trim().replace(/\/$/, "");
@@ -73,15 +106,18 @@ export async function fetchUserLlmPreferences(userId) {
     [userId]
   );
   return {
-    routingMode: result.rows[0]?.routing_mode ?? "prefer_own",
+    routingMode: result.rows[0]?.routing_mode ?? "own_only",
     updatedAt: result.rows[0]?.updated_at ?? null
   };
 }
 
 export async function upsertUserLlmPreferences(userId, { routingMode }) {
-  const mode = String(routingMode || "prefer_own");
+  const mode = String(routingMode || "own_only");
   if (!["prefer_own", "own_only", "platform_only"].includes(mode)) {
     throwErr("VALIDATION_ERROR", "Invalid routing mode");
+  }
+  if (!isPlatformLlmUserAccessEnabled() && mode !== "own_only") {
+    throwErr("LLM_PLATFORM_DISABLED", "平台 AI 池暂未开放，请使用自己的 API");
   }
   await query(
     `INSERT INTO user_llm_preferences (user_id, routing_mode, updated_at)
@@ -249,7 +285,14 @@ async function assertPlatformPoolAccess(userId) {
 export async function resolveLlmRuntime(userId) {
   const platform = platformLlmRuntime();
   platform.userId = userId;
-  if (!userId) return { ...platform, configured: platform.configured, source: platform.configured ? "platform" : "none" };
+  if (!userId) {
+    return {
+      ...platform,
+      configured: false,
+      source: "none",
+      apiKey: ""
+    };
+  }
 
   const [prefs, active] = await Promise.all([
     fetchUserLlmPreferences(userId),
@@ -257,16 +300,18 @@ export async function resolveLlmRuntime(userId) {
   ]);
 
   const ownReady = Boolean(active?.enabled && active?.api_key_ciphertext);
-  const platformReady = platform.configured;
+  const platformReady = platform.configured && isPlatformLlmUserAccessEnabled();
 
   if (prefs.routingMode === "platform_only") {
-    if (!platformReady) throwErr("DEEPSEEK_NOT_CONFIGURED", "平台 AI 未配置，请联系 support 或改用自备 API");
+    if (!platformReady) {
+      throwErr("LLM_PLATFORM_DISABLED", "平台 AI 池暂未开放，请在账号设置中配置自己的 API");
+    }
     await assertPlatformPoolAccess(userId);
     return { ...platform, source: "platform", billPlatform: true, userId };
   }
 
   if (prefs.routingMode === "own_only") {
-    if (!ownReady) throwErr("LLM_USER_NOT_CONFIGURED", "请先在账号设置中配置 AI API 连接");
+    if (!ownReady) throwErr("LLM_USER_NOT_CONFIGURED", "请先在账号设置中配置自己的 AI API 连接");
     return runtimeFromConnection(userId, active);
   }
 
@@ -276,7 +321,7 @@ export async function resolveLlmRuntime(userId) {
     await assertPlatformPoolAccess(userId);
     return { ...platform, source: "platform", billPlatform: true, userId };
   }
-  throwErr("LLM_NOT_AVAILABLE", "请配置自备 API，或等待平台 AI 额度开放");
+  throwErr("LLM_USER_NOT_CONFIGURED", "请先在账号设置中配置自己的 AI API 连接");
 }
 
 export async function bindUserLlmContext(userId) {
@@ -307,9 +352,11 @@ export async function buildLlmAccountPayload(userId) {
     connections,
     activeConnectionId: active?.id ?? null,
     platform: {
-      available: platform.configured && isCreditsSystemEnabled(),
-      model: platform.model,
-      note: "未配置自备 API 时，将消耗织幕积分使用平台额度（首月体验不扣费）"
+      available: platform.configured && isPlatformLlmUserAccessEnabled(),
+      model: isPlatformLlmUserAccessEnabled() ? platform.model : null,
+      note: isPlatformLlmUserAccessEnabled()
+        ? "平台 AI 池已开放，可按路由策略使用。"
+        : "平台 AI 池暂不面向用户开放；创作调用只使用您保存的 API。"
     }
   };
 }

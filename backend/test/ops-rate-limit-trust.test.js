@@ -98,3 +98,56 @@ test("production trust rejects unverified database TLS and missing identity foun
     else process.env.DATABASE_SSL_VERIFY = previous.databaseVerify;
   }
 });
+
+test("production trust requires encrypted BYOK and excludes the platform key from user routing", () => {
+  const previous = {
+    platformAccess: process.env.PLATFORM_LLM_USER_ACCESS,
+    llmSecret: process.env.LLM_CREDENTIALS_SECRET,
+    opsToken: process.env.OPS_API_TOKEN
+  };
+  process.env.PLATFORM_LLM_USER_ACCESS = "false";
+  process.env.LLM_CREDENTIALS_SECRET = "test-only-llm-credential-secret";
+  try {
+    const result = productionTrustGates({
+      features: {
+        uploadScan: { mode: "webhook", webhookConfigured: true },
+        telemetry: { enabled: true, initialized: true },
+        alerts: { configured: true },
+        rateLimitTopology: resolveRateLimitTopology({
+          TRUST_PROXY_HOPS: "1",
+          APP_INSTANCE_COUNT: "1"
+        })
+      },
+      rateLimits: { authPerMin: 20 },
+      readiness: { missingTables: [] },
+      identityFoundation: { ready: true }
+    });
+    const keys = result.gates.map((gate) => gate.key);
+    assert.equal(new Set(keys).size, keys.length);
+    assert.equal(result.gates.find((gate) => gate.key === "user_ai_byok")?.ok, true);
+
+    process.env.PLATFORM_LLM_USER_ACCESS = "true";
+    const exposed = productionTrustGates({
+      features: {
+        uploadScan: { mode: "webhook", webhookConfigured: true },
+        telemetry: { enabled: true, initialized: true },
+        alerts: { configured: true },
+        rateLimitTopology: resolveRateLimitTopology({
+          TRUST_PROXY_HOPS: "1",
+          APP_INSTANCE_COUNT: "1"
+        })
+      },
+      rateLimits: { authPerMin: 20 },
+      readiness: { missingTables: [] },
+      identityFoundation: { ready: true }
+    });
+    assert.equal(exposed.gates.find((gate) => gate.key === "user_ai_byok")?.ok, false);
+  } finally {
+    if (previous.platformAccess === undefined) delete process.env.PLATFORM_LLM_USER_ACCESS;
+    else process.env.PLATFORM_LLM_USER_ACCESS = previous.platformAccess;
+    if (previous.llmSecret === undefined) delete process.env.LLM_CREDENTIALS_SECRET;
+    else process.env.LLM_CREDENTIALS_SECRET = previous.llmSecret;
+    if (previous.opsToken === undefined) delete process.env.OPS_API_TOKEN;
+    else process.env.OPS_API_TOKEN = previous.opsToken;
+  }
+});

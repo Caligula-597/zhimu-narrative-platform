@@ -121,7 +121,9 @@
 
 | 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
 |--------|--------------|----------|----------|
-| DEEPSEEK_NOT_CONFIGURED | DeepSeek 尚未配置 | 无 API Key | 未配 DEEPSEEK_API_KEY |
+| LLM_USER_NOT_CONFIGURED | 尚未配置自己的 AI API | 用户未添加或启用连接 | 账号设置中未保存有效连接 |
+| LLM_PLATFORM_DISABLED | 平台 AI 池暂未开放 | 请求了平台额度路由 | 改用 `own_only` 并配置自备 API |
+| DEEPSEEK_NOT_CONFIGURED | 平台系统 DeepSeek 尚未配置 | 系统审核任务无 API Key | 未配 DEEPSEEK_API_KEY |
 | LIVEKIT_NOT_CONFIGURED | 语音服务未配置 | 无 LiveKit env | token 503 |
 | CONTENT_PACKAGE_INVALID | 内容包格式无效 | 导入非 JSON/错误结构 | 导入 `{}` |
 | CONTENT_PACKAGE_VERSION_INVALID | 内容包版本不支持 | 旧版 package | 改 schemaVersion |

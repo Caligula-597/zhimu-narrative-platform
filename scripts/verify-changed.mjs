@@ -339,6 +339,13 @@ if (files.some((f) => /^scripts\/(format-helpers|modal-helpers)/.test(f))) {
   run("test:modal-helpers", "npm run test:modal-helpers");
 }
 
+if (files.some((f) =>
+  f === "src/components/account-llm.js"
+  || f === "scripts/account-llm-component.test.mjs"
+)) {
+  run("account LLM component tests", "node --test scripts/account-llm-component.test.mjs");
+}
+
 if (files.some((f) => /^shared\//.test(f) || /^scripts\/shared-/.test(f))) {
   run("test:shared", "npm run test:shared");
 }

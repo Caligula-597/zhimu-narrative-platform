@@ -5,6 +5,7 @@ import {
   buildLlmAccountPayload,
   createUserLlmConnection,
   deleteUserLlmConnection,
+  LLM_PROVIDER_IDS,
   testUserLlmConnection,
   updateUserLlmConnection,
   upsertUserLlmPreferences
@@ -15,7 +16,7 @@ const connectionBody = {
   additionalProperties: false,
   properties: {
     name: { type: "string", minLength: 1, maxLength: 80 },
-    provider: { type: "string", enum: ["deepseek", "openai_compatible", "openai"] },
+    provider: { type: "string", enum: LLM_PROVIDER_IDS },
     baseUrl: { type: "string", minLength: 8, maxLength: 300 },
     model: { type: "string", minLength: 1, maxLength: 120 },
     apiKey: { type: "string", minLength: 8, maxLength: 500 },
