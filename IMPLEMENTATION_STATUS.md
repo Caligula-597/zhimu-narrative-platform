@@ -48,7 +48,7 @@
 | 编排 studio 读取 | ✅ | 场景 / 线索 / 调查点 / 边 / 布局 |
 | 场景 / 线索 / 调查点 / 物品 PATCH | ✅ | metadata 合并 |
 | 剧情助手（本地分类） | ✅ | 启发式，非 LLM |
-| DeepSeek 提案导入 | 🟡 | 需 `DEEPSEEK_API_KEY`；**proposalKey / pipeline 去重** |
+| 多模型提案导入 | 🟡 | 用户自备 OpenAI 兼容 API；**proposalKey / pipeline 去重** |
 | 文档解析 DOCX/TXT/MD | ✅ | 预览后确认导入 |
 | 内容包 import/export | ✅ | 追加模式 + 新世界；**importKey 短路 + packageSourceId 实体/边/规则去重** |
 | 创作版本快照 restore | ✅ | **仅**章节+分幕正文与发布状态 |
@@ -209,7 +209,7 @@
 | 视图 | 导航 | 状态 | 已实现要点 | 主要缺口 |
 |------|------|------|------------|----------|
 | 世界总览 | overview | ✅ | 真实 logs / 进度 / 资产统计 | — |
-| 剧本创作 | writer | ✅ | 分幕编辑、版本、导入导出、DeepSeek | 实体小卡 🔲 |
+| 剧本创作 | writer | ✅ | 分幕编辑、版本、导入导出、多模型 BYOK | 实体小卡 🔲 |
 | 剧情编排 | studio | ✅ | 图谱 CRUD、拖拽、PATCH 编辑 | — |
 | **线索管理** | clues | ✅ | 独立列表、搜索、编辑、**单删/批量删**、跳转编排 | — |
 | 内容资产 | assets | ✅ | R2 列表、上传、删除、分类 Tab、搜索 | 「＋ 新建内容」仍占位（场景/线索在编排台创建） |
@@ -266,7 +266,7 @@
 |------|------|
 | 统一错误 `code` | 常见码已映射；未收录码仍显示 `error` 字符串 |
 | LiveKit | token API ✅；需用户配 env；无 env 时 503 |
-| DeepSeek | API ✅；无 key 时 UI 提示，功能不可用 |
+| 多模型 BYOK | API ✅；支持 DeepSeek / OpenAI / OpenRouter / 百炼 / 智谱 / 硅基流动 / 自定义兼容接口；无用户 Key 时 UI 提示，平台池不兜底 |
 | 向导规则模板 | UI 勾选；**创建世界时自动写入起始规则** |
 
 ### 6.3 前端标注错误（已修正）

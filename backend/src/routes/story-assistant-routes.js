@@ -2,7 +2,11 @@ import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import { createLlmContextPreHandler } from "./llm-route-hook.js";
-import { fetchUserLlmPreferences, resolveLlmRuntime } from "../user-llm.js";
+import {
+  fetchUserLlmPreferences,
+  isPlatformLlmUserAccessEnabled,
+  resolveLlmRuntime
+} from "../user-llm.js";
 import {
   AI_PLAYTEST_PROMPT_VERSION,
   runMultiAgentPlaytest
@@ -110,7 +114,7 @@ export async function registerStoryAssistantRoutes(app) {
       model: runtime.model,
       connectionName: runtime.connectionName || null,
       routingMode: prefs.routingMode,
-      platformAvailable: deepseekConfig().configured
+      platformAvailable: deepseekConfig().configured && isPlatformLlmUserAccessEnabled()
     };
   });
 

@@ -14,7 +14,7 @@
 | P0 | 公网访问 | **分域**：Pages `getzhimu.com` + Railway `app.getzhimu.com`（见 [SPLIT_DOMAINS.md](./SPLIT_DOMAINS.md)） | Docker staging | `APP_PUBLIC_URL` · `MARKETING_SITE_*` |
 | P0 | 事务邮件 | **Resend**（已对接） | SendGrid / Mailgun | `EMAIL_PROVIDER` + 密钥 + `MAIL_FROM` |
 | P1 | 对象存储 | **Cloudflare R2**（已对接） | AWS S3 / MinIO | `R2_*` 或 `AWS_*` |
-| P1 | AI 创作 | **DeepSeek**（已对接） | OpenAI 兼容网关 | `DEEPSEEK_*` |
+| P1 | AI 创作 | **用户自备 API**（DeepSeek / OpenAI / 百炼 / 智谱 / 硅基流动） | OpenRouter / 自定义 OpenAI 兼容网关 | 账号设置内加密保存 |
 | P2 | 语音房 | **LiveKit Cloud**（已对接） | 自建 LiveKit | `LIVEKIT_*` |
 | P2 | 监控告警 | Sentry | Grafana Cloud + OTEL | `SENTRY_DSN` / `OTEL_*` |
 | P3 | OAuth 登录 | Google / GitHub | `GOOGLE_*` / `GITHUB_*` | ✅ 路由+UI；生产需配凭证 |
@@ -156,14 +156,16 @@ CORS_ORIGIN=https://app.你的域名
 
 ---
 
-## 4. AI 悬疑创作（DeepSeek）
+## 4. AI 悬疑创作（用户自备 API）
 
-| 路线 | 注册 | env |
-|------|------|-----|
-| A · DeepSeek 官方 | [platform.deepseek.com](https://platform.deepseek.com) API Key | `DEEPSEEK_API_KEY` |
-| B · OpenAI 兼容代理 | 任意兼容 `/v1/chat/completions` 的网关 | `OPENAI_API_KEY` + `OPENAI_BASE_URL`（Phase 后续接线，env 已预留） |
+普通创作请求不使用平台 Key。用户在账号设置中选择服务商、模型并填写自己的 API Key；
+Key 经过 AES-256-GCM 加密后保存，调用费用由用户对应的服务商账户承担。
 
-当前代码走 DeepSeek 专用路由；换网关需后续小改 `story-assistant` 模块或配置统一 LLM 客户端。
+当前预设支持 DeepSeek、OpenAI、OpenRouter、阿里云百炼（Qwen）、智谱（GLM）、硅基流动，
+也可以填写任意公开 HTTPS 的 OpenAI 兼容 `/chat/completions` 地址和模型标识。
+
+平台 `DEEPSEEK_API_KEY` 仅供广场内容审核等系统任务使用。首发保持
+`PLATFORM_LLM_USER_ACCESS=false`，积分和平台模型池均不面向用户。
 
 ---
 

@@ -164,6 +164,9 @@ env.TRUSTED_TYPES_ENFORCE = local.TRUSTED_TYPES_ENFORCE?.trim() || "true";
 if (local.LLM_CREDENTIALS_SECRET?.trim()) {
   env.LLM_CREDENTIALS_SECRET = local.LLM_CREDENTIALS_SECRET.trim();
 }
+// Platform credentials are reserved for moderation and other system jobs.
+// User-facing creation is BYOK unless this is explicitly re-enabled later.
+env.PLATFORM_LLM_USER_ACCESS = "false";
 env.HTTP_REQUEST_TIMEOUT_MS = local.HTTP_REQUEST_TIMEOUT_MS?.trim() || "120000";
 env.SESSION_LAST_SEEN_TOUCH_SECONDS = local.SESSION_LAST_SEEN_TOUCH_SECONDS?.trim() || "300";
 env.SSE_MAX_BUFFERED_BYTES = local.SSE_MAX_BUFFERED_BYTES?.trim() || "1048576";

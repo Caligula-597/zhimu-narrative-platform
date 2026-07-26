@@ -39,6 +39,8 @@ import {
 import { inspectDatabaseTlsPolicy } from "../database-connection-options.js";
 import { getSessionCookieSecurityStatus } from "../session-cookie.js";
 import { getIdentityFoundationStatus } from "../identity-foundation-status.js";
+import { canEncryptSecrets } from "../secret-crypto.js";
+import { isPlatformLlmUserAccessEnabled } from "../user-llm.js";
 
 const opsAuditLogQuerySchema = {
   type: "object",
@@ -115,29 +117,12 @@ export function productionTrustGates({
         + `pricing=${getPricingPageMode()}; commercialUi=${isCommercialUiVisible()}`
     },
     {
-      key: "email_verification",
-      label: "Verified registered identities",
-      ok: isEmailVerificationRequired() && Boolean(features.email?.configured),
-      detail: `required=${isEmailVerificationRequired()}; provider=${features.email?.provider || "none"}`
-    },
-    {
-      key: "database_tls",
-      label: "Verified database TLS",
-      ok: process.env.DATABASE_SSL === "true",
-      detail: process.env.DATABASE_SSL === "true"
-        ? "certificate verification enabled"
-        : "DATABASE_SSL must be true in production"
-    },
-    {
-      key: "monetization_frozen",
-      label: "Launch without charging",
-      ok: !isBillingLaunchEnabled()
-        && !isCreditsSystemEnabled()
-        && getPricingPageMode() === "launch"
-        && !isCommercialUiVisible(),
+      key: "user_ai_byok",
+      label: "User AI is BYOK-only",
+      ok: !isPlatformLlmUserAccessEnabled() && canEncryptSecrets(),
       detail:
-        `billing=${isBillingLaunchEnabled()}; credits=${isCreditsSystemEnabled()}; `
-        + `pricing=${getPricingPageMode()}; commercialUi=${isCommercialUiVisible()}`
+        `platformPool=${isPlatformLlmUserAccessEnabled() ? "enabled" : "disabled"}; `
+        + `credentialEncryption=${canEncryptSecrets() ? "ready" : "missing"}`
     },
     {
       key: "csp",
@@ -261,6 +246,10 @@ export async function registerOpsRoutes(app) {
         email: getEmailServiceStatus(),
         oauth: getPublicOAuthDiagnostics(),
         stripe: getStripeBillingStatus(),
+        userLlm: {
+          platformPoolEnabled: isPlatformLlmUserAccessEnabled(),
+          credentialEncryptionReady: canEncryptSecrets()
+        },
         voice: {
           tokenTtlSeconds: resolveLiveKitTokenTtlSeconds(),
           ...resolveVoiceRuntimePolicy()
