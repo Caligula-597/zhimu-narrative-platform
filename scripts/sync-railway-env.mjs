@@ -102,6 +102,15 @@ const SECRET_KEYS = [
   "LIVEKIT_API_KEY",
   "LIVEKIT_API_SECRET",
   "RESEND_API_KEY",
+  "SENDGRID_API_KEY",
+  "MAILGUN_API_KEY",
+  "MAILGUN_DOMAIN",
+  "MAILGUN_REGION",
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_SECURE",
+  "SMTP_USER",
+  "SMTP_PASS",
   "EMAIL_PROVIDER",
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
@@ -134,7 +143,11 @@ for (const key of SECRET_KEYS) {
 
 // Resend: plain "Name <email>" — no nested JSON quotes (Railway misparses those)
 const mailFrom = (local.MAIL_FROM || "").replace(/^["']|["']$/g, "").trim();
-env.MAIL_FROM = mailFrom.includes("@") ? mailFrom : "织幕 <noreply@mail.getzhimu.com>";
+const smtpUser = local.SMTP_USER?.trim();
+const defaultMailFrom = local.EMAIL_PROVIDER?.trim().toLowerCase() === "smtp" && smtpUser
+  ? `织幕 <${smtpUser}>`
+  : "织幕 <noreply@mail.getzhimu.com>";
+env.MAIL_FROM = mailFrom.includes("@") ? mailFrom : defaultMailFrom;
 env.SUPPORT_EMAIL = local.SUPPORT_EMAIL?.trim() || "support@getzhimu.com";
 env.HELLO_EMAIL = local.HELLO_EMAIL?.trim() || "hello@getzhimu.com";
 env.ADMIN_EMAIL = local.ADMIN_EMAIL?.trim() || "admin@getzhimu.com";
@@ -259,7 +272,6 @@ if (!env.METRICS_TOKEN?.trim()) {
 
 const required = [
   "DATABASE_URL",
-  "RESEND_API_KEY",
   "MAIL_FROM",
   "APP_PUBLIC_URL",
   "OPS_API_TOKEN",
@@ -267,6 +279,13 @@ const required = [
   "ALERT_WEBHOOK_URL",
   "OTEL_EXPORTER_OTLP_ENDPOINT"
 ];
+const emailRequiredByProvider = {
+  resend: ["RESEND_API_KEY"],
+  sendgrid: ["SENDGRID_API_KEY"],
+  mailgun: ["MAILGUN_API_KEY", "MAILGUN_DOMAIN"],
+  smtp: ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"]
+};
+required.push(...(emailRequiredByProvider[env.EMAIL_PROVIDER] || ["EMAIL_PROVIDER"]));
 const missing = required.filter((k) => !env[k]?.trim());
 const hasExternalScanner = Boolean(env.UPLOAD_SCAN_WEBHOOK_URL?.trim() || env.UPLOAD_SCAN_CLAMAV_HOST?.trim());
 if (!hasExternalScanner) {

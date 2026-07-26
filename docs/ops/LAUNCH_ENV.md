@@ -67,6 +67,15 @@ ALERT_CHECK_INTERVAL_MS=60000
 EMAIL_PROVIDER=resend
 MAIL_FROM=
 RESEND_API_KEY=
+# 企业邮箱 SMTP 时改为：
+# EMAIL_PROVIDER=smtp
+# SMTP_HOST=smtp.qiye.aliyun.com
+# SMTP_PORT=465
+# SMTP_SECURE=true
+# SMTP_USER=support@getzhimu.com
+# SMTP_PASS=【三方客户端安全密码】
+# MAIL_FROM=织幕 <support@getzhimu.com>
+# MAIL_REPLY_TO=support@getzhimu.com
 
 OBJECT_STORAGE_PROVIDER=r2
 R2_ACCOUNT_ID=

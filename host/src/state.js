@@ -5,6 +5,8 @@ export const state = {
   authError: "",
   authMode: "login",
   authConfig: null,
+  pendingVerificationEmail: "",
+  canResendVerification: false,
   busy: false,
   toast: "",
   error: "",

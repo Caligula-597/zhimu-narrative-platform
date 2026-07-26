@@ -65,6 +65,8 @@ export const api = {
   login: (email, password) => request("/auth/login", { method: "POST", body: { email, password } }),
   register: (email, displayName, password) =>
     request("/auth/register", { method: "POST", body: { email, displayName, password } }),
+  resendVerification: () =>
+    request("/auth/resend-verification", { method: "POST", body: {} }),
   guest: (displayName) => request("/auth/guest", { method: "POST", body: { displayName } }),
   oauthStartUrl: (provider, returnOrigin) =>
     request(`/auth/oauth/${provider}/start-url`, {

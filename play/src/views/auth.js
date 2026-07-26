@@ -58,7 +58,10 @@ export function renderAuth() {
         <label>密码
           <input class="field" name="password" type="password" autocomplete="${isRegister ? "new-password" : "current-password"}" minlength="8" required />
         </label>
-        <button class="btn primary" type="submit" ${state.busy ? "disabled" : ""}>${isRegister ? "注册" : "登录"}</button>
+        ${isRegister && state.authConfig?.requireEmailVerification !== false
+          ? `<p class="hint">注册后会收到织幕企业邮箱发送的验证邮件；点击邮件内链接完成验证。</p>`
+          : ""}
+        <button class="btn primary" type="submit" ${state.busy ? "disabled" : ""}>${isRegister ? "注册并发送验证邮件" : "登录"}</button>
       </form>
       ${oauth.length
         ? `
