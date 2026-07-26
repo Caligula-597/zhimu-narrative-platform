@@ -1,16 +1,18 @@
 /**
  * Creator cockpit — stage defs and factual item observations (no design judgment).
  */
+import { creativeConstitutionCoverage } from "../../shared/creative-constitution.js";
 
 export const STAGE_DEFS = [
   {
     id: "concept",
     title: "灵魂的种子",
     short: "概念",
-    subtitle: "灵感、一句话梗概、核心卖点、商业定位",
+    subtitle: "灵感、梗概、创作宪法、核心卖点、商业定位",
     items: [
       { id: "spark", title: "灵感卡", link: { canvas: "inspiration" } },
       { id: "logline", title: "一句话梗概", link: { canvas: "logline", view: "settings", label: "世界设置" } },
+      { id: "constitution", title: "创作宪法", link: { canvas: "constitution", view: "constitution", label: "创作宪法" } },
       { id: "selling", title: "核心卖点", link: { canvas: "selling" } },
       { id: "positioning", title: "商业定位", link: { canvas: "positioning", view: "settings", label: "世界设置" } }
     ]
@@ -67,8 +69,10 @@ export const STAGE_DEFS = [
     id: "launch",
     title: "测试与发布",
     short: "测试",
-    subtitle: "运行房、系统检查、跑局数据",
+    subtitle: "剧情诊断、AI 玩家试跑、运行房、系统检查、跑局数据",
     items: [
+      { id: "diagnostics", title: "作品诊断", link: { canvas: "diagnostics", view: "diagnostics", label: "作品诊断中心" } },
+      { id: "ai-playtest", title: "AI 玩家试跑", link: { canvas: "ai-playtest", view: "playtest", label: "玩家试跑实验室" } },
       { id: "test-room", title: "测试运行房", link: { canvas: "test", action: "world-rooms", label: "管理运行房" } },
       { id: "feedback", title: "跑局数据", link: { canvas: "feedback", view: "insights", label: "完整数据页" } },
       { id: "readiness", title: "系统检查", link: { canvas: "readiness", action: "creator-check", label: "刷新检查" } }
@@ -77,17 +81,18 @@ export const STAGE_DEFS = [
 ];
 
 export const CANVAS_MODES = {
-  concept: ["inspiration", "logline", "selling", "positioning", "overview"],
+  concept: ["inspiration", "logline", "constitution", "selling", "positioning", "overview"],
   architecture: ["trick", "relations", "timeline"],
   characters: ["profiles", "arcs", "preview"],
   flow: ["beats", "matrix", "sandbox"],
   manuscript: ["writing", "cards", "package"],
-  launch: ["test", "feedback", "readiness"]
+  launch: ["diagnostics", "ai-playtest", "test", "feedback", "readiness"]
 };
 
 export const CANVAS_LABELS = {
   inspiration: "灵感",
   logline: "梗概",
+  constitution: "宪法",
   selling: "卖点",
   positioning: "定位",
   overview: "一览",
@@ -103,6 +108,8 @@ export const CANVAS_LABELS = {
   writing: "生产入口",
   cards: "物料",
   package: "交付包",
+  diagnostics: "作品诊断",
+  "ai-playtest": "AI 试跑",
   test: "测试房",
   feedback: "跑局数据",
   readiness: "系统检查"
@@ -110,19 +117,25 @@ export const CANVAS_LABELS = {
 
 /** Factual presence only — no quality thresholds. */
 function itemPresence(id, ctx) {
-  const { counts = {}, segments = [], truthClaims = [], relationships = [], studio, draft = {} } = ctx;
+  const { counts = {}, segments = [], truthClaims = [], relationships = [], studio, draft = {}, diagnostics, playtest } = ctx;
   const summary = String(studio?.world?.summary || draft.logline || "").trim();
   const sparks = draft.sparks || [];
   const sellingFilled = (draft.sellingPoints || []).filter(Boolean).length;
   const positioningFilled = [draft.target, draft.duration, draft.type].filter(Boolean).length;
   const publishedSections = (studio?.sections || []).filter((s) => s.publication_status && s.publication_status !== "draft").length;
   const checks = ctx.checks || [];
+  const constitutionCoverage = creativeConstitutionCoverage(
+    studio?.world?.settings?.creativeConstitution,
+    studio?.roles || []
+  );
 
   switch (id) {
     case "spark":
       return sparks.length ? "present" : "empty";
     case "logline":
       return summary ? "present" : "empty";
+    case "constitution":
+      return constitutionCoverage.score >= 80 ? "present" : constitutionCoverage.filled ? "partial" : "empty";
     case "selling":
       return sellingFilled >= 3 ? "present" : sellingFilled ? "partial" : "empty";
     case "positioning":
@@ -159,6 +172,10 @@ function itemPresence(id, ctx) {
       return counts.scenes > 0 || counts.clues > 0 ? "present" : "empty";
     case "package":
       return counts.sections > 0 || counts.chapters > 0 ? "present" : "empty";
+    case "diagnostics":
+      return diagnostics ? "present" : (counts.clues > 0 || truthClaims.length > 0 ? "partial" : "empty");
+    case "ai-playtest":
+      return playtest ? "present" : (counts.roles > 0 && counts.sections > 0 ? "partial" : "empty");
     case "test-room":
       return counts.rooms > 0 ? "present" : "empty";
     case "feedback":
@@ -171,7 +188,7 @@ function itemPresence(id, ctx) {
 }
 
 function itemObservation(id, ctx) {
-  const { counts = {}, segments = [], truthClaims = [], relationships = [], studio, draft = {}, checks = [] } = ctx;
+  const { counts = {}, segments = [], truthClaims = [], relationships = [], studio, draft = {}, checks = [], diagnostics, playtest } = ctx;
   const summary = String(studio?.world?.summary || draft.logline || "").trim();
   const sparks = draft.sparks || [];
   const sellingFilled = (draft.sellingPoints || []).filter(Boolean).length;
@@ -179,10 +196,17 @@ function itemObservation(id, ctx) {
   const segWithFlow = segments.filter((s) => s.operations?.flow || s.operations?.hostTruth).length;
   const err = checks.filter((c) => c.level === "error").length;
   const warn = checks.filter((c) => c.level === "warning").length;
+  const constitutionCoverage = creativeConstitutionCoverage(
+    studio?.world?.settings?.creativeConstitution,
+    studio?.roles || []
+  );
 
   const map = {
     spark: sparks.length ? `${sparks.length} 张灵感卡` : "尚无灵感卡",
     logline: summary ? `${summary.length} 字 · 与世界简介同步` : "世界简介为空",
+    constitution: constitutionCoverage.filled
+      ? `${constitutionCoverage.score}% · ${constitutionCoverage.filled}/${constitutionCoverage.total} 项约束`
+      : "尚未建立项目级创作约束",
     selling: sellingFilled ? `${sellingFilled} / 3 个卖点槽已填写` : "卖点槽为空",
     positioning: [draft.target, draft.duration, draft.type].filter(Boolean).length
       ? `定位字段 ${[draft.target, draft.duration, draft.type].filter(Boolean).length} / 3 已填写`
@@ -203,6 +227,12 @@ function itemObservation(id, ctx) {
     "dm-manual": `${segments.length} Segment · ${segWithFlow} 含 flow/hostTruth`,
     props: `${counts.scenes || 0} 场景 · ${counts.clues || 0} 线索`,
     package: "内容包导入 / 导出",
+    diagnostics: diagnostics
+      ? `${diagnostics.scores?.overall ?? 0} 分 · ${diagnostics.summary?.danger ?? 0} 个高风险`
+      : "尚未运行作品诊断",
+    "ai-playtest": playtest
+      ? `${playtest.report?.players?.length || 0} 个席位 · ${playtest.issueCount ?? playtest.report?.issues?.length ?? 0} 个问题`
+      : "尚未运行多 AI 玩家试跑",
     "test-room": `${counts.rooms || 0} 个运行房`,
     feedback: "跑局完成率与线索命中统计",
     readiness: checks.length ? `系统检查 ${checks.length} 条 · error ${err} · warning ${warn}` : "尚未运行系统检查"

@@ -13,7 +13,7 @@ import {
   touchCreatorReview,
   updateCreatorReview
 } from "./repositories/creator-review-repository.js";
-import { buildWorldArchiveSnapshot } from "./routes/world-chapter-service.js";
+import { buildWorldArchiveSnapshot } from "./world-snapshot-service.js";
 
 const REVIEW_ROLES = new Set(["owner", "editor", "reviewer"]);
 const EDITOR_ROLES = new Set(["owner", "editor"]);

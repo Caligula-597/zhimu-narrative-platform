@@ -1,10 +1,44 @@
 /**
  * GDPR-style account data export — metadata JSON (no passwords, tokens, or binary blobs).
  */
-import { query } from "./db.js";
+import { query, resolveQueryTimeoutMs, transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { buildAccountEntitlements } from "./account-entitlements.js";
-import { buildWorldArchiveSnapshot } from "./routes/world-chapter-service.js";
+import { buildWorldArchiveSnapshot } from "./world-snapshot-service.js";
+
+const DEFAULT_ACCOUNT_EXPORT_STATEMENT_TIMEOUT_MS = 120_000;
+
+export function resolveAccountExportStatementTimeoutMs(
+  raw = process.env.ACCOUNT_EXPORT_STATEMENT_TIMEOUT_MS
+) {
+  return resolveQueryTimeoutMs(raw, DEFAULT_ACCOUNT_EXPORT_STATEMENT_TIMEOUT_MS);
+}
+
+export async function buildOwnedWorldArchives(
+  worlds,
+  {
+    snapshotBuilder = buildWorldArchiveSnapshot,
+    runTransaction = transaction,
+    statementTimeoutMs = resolveAccountExportStatementTimeoutMs()
+  } = {}
+) {
+  if (!worlds.length) return [];
+  const timeoutMs = resolveAccountExportStatementTimeoutMs(statementTimeoutMs);
+  return runTransaction(async (client) => {
+    await client.query(
+      `SELECT set_config('statement_timeout', $1, true)`,
+      [String(timeoutMs)]
+    );
+    const archives = [];
+    for (const world of worlds) {
+      archives.push({
+        worldId: world.id,
+        snapshot: await snapshotBuilder(world.id, client)
+      });
+    }
+    return archives;
+  });
+}
 
 export async function buildAccountExport(userId) {
   const user = await query(
@@ -66,10 +100,7 @@ export async function buildAccountExport(userId) {
     notebookEntries,
     hostAuditActions
   ] = await Promise.all([
-    Promise.all(ownedWorlds.rows.map(async (world) => ({
-      worldId: world.id,
-      snapshot: await buildWorldArchiveSnapshot(world.id)
-    }))),
+    buildOwnedWorldArchives(ownedWorlds.rows),
     query(
       `SELECT id, kind, body, invite_code, review_status, ai_review_note,
               published_at, created_at, deleted_at
@@ -79,7 +110,8 @@ export async function buildAccountExport(userId) {
       [userId]
     ),
     query(
-      `SELECT id, post_id, parent_reply_id, body, created_at, deleted_at
+      `SELECT id, post_id, parent_reply_id, body, review_status, ai_review_note,
+              published_at, created_at, deleted_at
        FROM play_plaza_replies
        WHERE author_user_id = $1
        ORDER BY created_at`,

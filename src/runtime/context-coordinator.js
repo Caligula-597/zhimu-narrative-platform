@@ -13,6 +13,17 @@ import { invalidateStudioSnapshot } from "./studio-loader.js";
     worldStore.set({
       cloudRules: [],
       cloudCreatorChecks: [],
+      cloudStoryDiagnostics: null,
+      cloudStoryDiagnosticsStandard: "classic",
+      cloudStoryDiagnosticsLoading: false,
+      cloudStoryDiagnosticsError: "",
+      cloudAiPlaytestRuns: null,
+      cloudAiPlaytestActive: null,
+      cloudAiPlaytestLoading: false,
+      cloudAiPlaytestRunning: false,
+      cloudAiPlaytestError: "",
+      cloudAiPlaytestLlmStatus: null,
+      cloudAiPlaytestDraftConfig: null,
       cloudCreatorDashboard: null,
       cloudWorkspacePreview: null,
       cloudWorldLogs: [],
@@ -41,7 +52,21 @@ import { invalidateStudioSnapshot } from "./studio-loader.js";
     zhimuApi.resetActiveWorld?.();
     invalidateStudioSnapshot({ clear: true });
     studioStore.set({ cloudStudio: null, studioLoading: false, studioError: "" });
-    worldStore.set({ cloudWorkspacePreview: null, cloudWorldReleases: null });
+    worldStore.set({
+      cloudWorkspacePreview: null,
+      cloudWorldReleases: null,
+      cloudStoryDiagnostics: null,
+      cloudStoryDiagnosticsStandard: "classic",
+      cloudStoryDiagnosticsLoading: false,
+      cloudStoryDiagnosticsError: "",
+      cloudAiPlaytestRuns: null,
+      cloudAiPlaytestActive: null,
+      cloudAiPlaytestLoading: false,
+      cloudAiPlaytestRunning: false,
+      cloudAiPlaytestError: "",
+      cloudAiPlaytestLlmStatus: null,
+      cloudAiPlaytestDraftConfig: null
+    });
     uiStore.set({ accountView: null });
     clearRuntimeState();
   }
@@ -66,7 +91,21 @@ import { invalidateStudioSnapshot } from "./studio-loader.js";
     zhimuApi.resetActiveWorld?.();
     invalidateStudioSnapshot({ clear: true });
     studioStore.set({ cloudStudio: null, studioLoading: false, studioError: "" });
-    worldStore.set({ cloudWorkspacePreview: null, cloudWorldReleases: null });
+    worldStore.set({
+      cloudWorkspacePreview: null,
+      cloudWorldReleases: null,
+      cloudStoryDiagnostics: null,
+      cloudStoryDiagnosticsStandard: "classic",
+      cloudStoryDiagnosticsLoading: false,
+      cloudStoryDiagnosticsError: "",
+      cloudAiPlaytestRuns: null,
+      cloudAiPlaytestActive: null,
+      cloudAiPlaytestLoading: false,
+      cloudAiPlaytestRunning: false,
+      cloudAiPlaytestError: "",
+      cloudAiPlaytestLlmStatus: null,
+      cloudAiPlaytestDraftConfig: null
+    });
     uiStore.set({ accountView: null });
     sessionStorage.removeItem("zhimuAuthPrompted");
     clearRuntimeState();
@@ -78,7 +117,21 @@ import { invalidateStudioSnapshot } from "./studio-loader.js";
     zhimuApi.clearRoom();
     invalidateStudioSnapshot({ clear: true });
     studioStore.set({ cloudStudio: null, studioLoading: false, studioError: "" });
-    worldStore.set({ cloudWorkspacePreview: null, cloudWorldReleases: null });
+    worldStore.set({
+      cloudWorkspacePreview: null,
+      cloudWorldReleases: null,
+      cloudStoryDiagnostics: null,
+      cloudStoryDiagnosticsStandard: "classic",
+      cloudStoryDiagnosticsLoading: false,
+      cloudStoryDiagnosticsError: "",
+      cloudAiPlaytestRuns: null,
+      cloudAiPlaytestActive: null,
+      cloudAiPlaytestLoading: false,
+      cloudAiPlaytestRunning: false,
+      cloudAiPlaytestError: "",
+      cloudAiPlaytestLlmStatus: null,
+      cloudAiPlaytestDraftConfig: null
+    });
     clearRuntimeState();
   }
 

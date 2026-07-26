@@ -5,6 +5,7 @@ import { registerRuntime } from "./runtime-facade.js";
 
 const STUDIO_VIEWS = new Set([
   "overview",
+  "diagnostics",
   "production",
   "structure",
   "truth",

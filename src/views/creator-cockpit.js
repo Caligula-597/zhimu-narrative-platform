@@ -81,6 +81,8 @@ function buildContext() {
     segments: worldStore.get().cloudSegments || [],
     truthClaims: worldStore.get().cloudTruthClaims || [],
     relationships: worldStore.get().cloudRoleRelationships || [],
+    diagnostics: worldStore.get().cloudStoryDiagnostics,
+    playtest: worldStore.get().cloudAiPlaytestActive || worldStore.get().cloudAiPlaytestRuns?.[0] || null,
     draft: cockpit,
     dashboard: dash
   };

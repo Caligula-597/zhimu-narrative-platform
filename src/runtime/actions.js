@@ -8,6 +8,9 @@ import { handleShellAction } from "./actions-shell.js";
 const enhanceCloudPanels = () => callRuntime("enhanceCloudPanels");
 
 const dispatchers = [
+  () => window.zhimuActionsCreativeConstitution?.handleCreativeConstitutionAction,
+  () => window.zhimuActionsStoryDiagnostics?.handleStoryDiagnosticsAction,
+  () => window.zhimuActionsAiPlaytest?.handleAiPlaytestAction,
   () => window.zhimuActionsCreatorCockpit?.handleCreatorCockpitAction,
   () => window.zhimuActionsBible?.handleBibleAction,
   () => window.zhimuActionsWorkspace?.handleWorkspaceAction,
@@ -40,6 +43,8 @@ export function bindDynamic() {
   if (view === "account") callView("accountHub", "bindAccountHubView");
   if (view === "player") callView("player", "bindPlayerReader");
   if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
+  if (view === "constitution") callView("creativeConstitution", "bindCreativeConstitutionForm");
+  if (view === "playtest") callView("aiPlaytestLab", "bindAiPlaytestForm");
   if (view === "writer") {
     void callView("writer", "loadWriterRoleArchives");
     callView("writer", "bindWriterSectionEditor");
@@ -47,6 +52,8 @@ export function bindDynamic() {
     callView("writer", "bindWriterToolWorkspace");
   }
   window.zhimuActionsCreatorCockpit?.maybeAutoLoadCockpit?.(view);
+  window.zhimuActionsStoryDiagnostics?.maybeAutoLoadDiagnostics?.(view);
+  window.zhimuActionsAiPlaytest?.maybeAutoLoadAiPlaytest?.(view);
   window.zhimuActionsCreatorWorkspaces?.maybeAutoLoadWorkspace?.(view);
   window.zhimuSearchFocus?.applyAfterRender?.();
 }

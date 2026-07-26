@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-07-24T17:37:23.107Z",
+  "generatedAt": "2026-07-26T11:59:08.973Z",
   "source": {
-    "gitCommit": "7851664",
+    "gitCommit": "899b330",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
     "tests": {
-      "declarations": 981,
-      "files": 240
+      "declarations": 997,
+      "files": 245
     },
-    "migrations": 97,
-    "latestMigration": "097_enable_rls_post_launch_tables",
+    "migrations": 100,
+    "latestMigration": "100_identity_foundation_integrity",
     "routes": {
       "modules": 72,
       "directDatabaseCalls": 0
@@ -29,7 +29,7 @@
     },
     "tests": {
       "sharedAndTooling": {
-        "declarations": 250,
+        "declarations": 251,
         "files": 47
       },
       "host": {

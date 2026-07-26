@@ -3,7 +3,12 @@ import test from "node:test";
 import { inspectRequiredDatabaseSchema } from "../src/database-status.js";
 
 const requiredTables = [
+  "auth_sessions",
+  "beta_applications",
   "host_audit_log",
+  "storage_quotas",
+  "user_plans",
+  "users",
   "write_idempotency",
   "room_event_journal",
   "platform_event_journal",
@@ -27,7 +32,10 @@ const requiredMigrations = [
   "094_room_release_binding.sql",
   "095_account_deletion_integrity.sql",
   "096_foreign_key_index_coverage.sql",
-  "097_enable_rls_post_launch_tables.sql"
+  "097_enable_rls_post_launch_tables.sql",
+  "098_play_plaza_reply_review.sql",
+  "099_account_delete_job_claims.sql",
+  "100_identity_foundation_integrity.sql"
 ];
 
 test("database readiness requires the current creator and identity migrations", () => {

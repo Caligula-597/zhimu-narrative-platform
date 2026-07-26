@@ -2,7 +2,9 @@ import { sendErr } from "../api-errors.js";
 import {
   listPlazaHumanReviewQueue,
   opsApprovePlazaPost,
+  opsApprovePlazaReply,
   opsRejectPlazaPost,
+  opsRejectPlazaReply,
   opsResolvePlazaReport
 } from "../play-plaza-ops.js";
 import { uuidParams } from "./schemas.js";
@@ -91,6 +93,48 @@ export async function registerOpsPlazaRoutes(app) {
     async (request, reply) => {
       try {
         return await opsRejectPlazaPost(request.params.postId, { note: request.body?.note });
+      } catch (error) {
+        if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
+        throw error;
+      }
+    }
+  );
+
+  app.post(
+    "/api/ops/plaza/replies/:replyId/approve",
+    {
+      schema: {
+        hide: true,
+        tags: ["system"],
+        params: uuidParams("replyId"),
+        body: opsNoteBodySchema,
+        response: { 200: { type: "object", additionalProperties: true } }
+      }
+    },
+    async (request, reply) => {
+      try {
+        return await opsApprovePlazaReply(request.params.replyId, { note: request.body?.note });
+      } catch (error) {
+        if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
+        throw error;
+      }
+    }
+  );
+
+  app.post(
+    "/api/ops/plaza/replies/:replyId/reject",
+    {
+      schema: {
+        hide: true,
+        tags: ["system"],
+        params: uuidParams("replyId"),
+        body: opsRejectBodySchema,
+        response: { 200: { type: "object", additionalProperties: true } }
+      }
+    },
+    async (request, reply) => {
+      try {
+        return await opsRejectPlazaReply(request.params.replyId, { note: request.body?.note });
       } catch (error) {
         if (error.code && error.statusCode) return sendErr(reply, error.code, error.message, error.details);
         throw error;

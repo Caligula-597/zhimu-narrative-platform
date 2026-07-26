@@ -408,6 +408,49 @@ export const deepseekMysteryImportSchema = {
   }
 };
 
+export const aiPlaytestRunSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["profiles"],
+    properties: {
+      depth: { type: "string", enum: ["quick", "deep"] },
+      focus: { type: "string", maxLength: 2000 },
+      profiles: {
+        type: "array",
+        minItems: 2,
+        maxItems: 8,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["roleSlotId", "archetype"],
+          properties: {
+            seatId: { type: "string", minLength: 1, maxLength: 80 },
+            roleSlotId: uuid,
+            archetype: {
+              type: "string",
+              enum: [
+                "logical",
+                "emotional",
+                "social",
+                "silent",
+                "skeptic",
+                "dominant",
+                "secretive",
+                "skimmer",
+                "brute_force",
+                "wanderer"
+              ]
+            },
+            customBehavior: { type: "string", maxLength: 800 }
+          }
+        }
+      }
+    }
+  }
+};
+
 export const worldSearchQuerySchema = {
   params: worldIdParams,
   querystring: {

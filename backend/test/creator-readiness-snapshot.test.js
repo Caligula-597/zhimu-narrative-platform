@@ -4,7 +4,7 @@ import {
   CREATOR_READINESS_SNAPSHOT_SQL,
   buildCreatorReadinessSnapshot
 } from "../src/creator-readiness-snapshot.js";
-import { buildWorldSnapshot } from "../src/routes/world-chapter-service.js";
+import { buildWorldSnapshot } from "../src/world-snapshot-service.js";
 import { evaluateWorldPublishReadiness } from "../src/world-publish-readiness.js";
 import { fixtureWorldId } from "./helpers/fixture-ids.js";
 

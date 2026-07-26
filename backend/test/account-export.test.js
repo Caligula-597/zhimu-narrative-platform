@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { buildAccountExport } from "../src/account-export.js";
+import {
+  buildAccountExport,
+  buildOwnedWorldArchives,
+  resolveAccountExportStatementTimeoutMs
+} from "../src/account-export.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 
@@ -33,6 +37,41 @@ test("buildAccountExport rejects unknown user", async () => {
     () => buildAccountExport("00000000-0000-4000-8000-000000000099"),
     (error) => error.code === "USER_NOT_FOUND"
   );
+});
+
+test("account world archives use an export-specific timeout and run sequentially", async () => {
+  assert.equal(resolveAccountExportStatementTimeoutMs(undefined), 120_000);
+  assert.equal(resolveAccountExportStatementTimeoutMs("180000"), 180_000);
+
+  const configCalls = [];
+  let activeSnapshots = 0;
+  let maxActiveSnapshots = 0;
+  const client = {
+    query: async (text, params) => {
+      configCalls.push({ text, params });
+      return { rows: [], rowCount: 0 };
+    }
+  };
+  const archives = await buildOwnedWorldArchives(
+    [{ id: "world-a" }, { id: "world-b" }, { id: "world-c" }],
+    {
+      statementTimeoutMs: 180_000,
+      runTransaction: async (work) => work(client),
+      snapshotBuilder: async (worldId, snapshotClient) => {
+        assert.equal(snapshotClient, client);
+        activeSnapshots += 1;
+        maxActiveSnapshots = Math.max(maxActiveSnapshots, activeSnapshots);
+        await Promise.resolve();
+        activeSnapshots -= 1;
+        return { world: { id: worldId } };
+      }
+    }
+  );
+
+  assert.equal(maxActiveSnapshots, 1);
+  assert.deepEqual(archives.map((item) => item.worldId), ["world-a", "world-b", "world-c"]);
+  assert.match(configCalls[0].text, /set_config\('statement_timeout'/);
+  assert.deepEqual(configCalls[0].params, ["180000"]);
 });
 
 test("GET /account/export requires authentication", async (context) => {

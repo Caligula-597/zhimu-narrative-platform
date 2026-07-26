@@ -31,6 +31,16 @@ export function getDeepseekStatus() {
   return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/status`, { userId: demoContext.hostUserId });
 }
 
+export function runAiPlaytest(payload, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/story-assistant/ai-playtest/run`, {
+    worldId,
+    method: "POST",
+    body: payload,
+    timeoutMs: 600_000,
+    idempotent: true
+  });
+}
+
 export function proposeWithDeepseek(payload) {
   return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/propose`, { userId: demoContext.hostUserId, method: "POST", body: payload });
 }

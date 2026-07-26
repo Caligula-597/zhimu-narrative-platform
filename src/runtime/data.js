@@ -228,7 +228,22 @@ export async function loadCloudData(withToast = false, force = false) {
           cloudRecaps: [],
           cloudRecapLatest: null
         });
-        worldStore.set({ cloudWorldLogs: [], cloudRules: [], cloudCreatorChecks: [] });
+        worldStore.set({
+          cloudWorldLogs: [],
+          cloudRules: [],
+          cloudCreatorChecks: [],
+          cloudStoryDiagnostics: null,
+          cloudStoryDiagnosticsStandard: "classic",
+          cloudStoryDiagnosticsLoading: false,
+          cloudStoryDiagnosticsError: "",
+          cloudAiPlaytestRuns: null,
+          cloudAiPlaytestActive: null,
+          cloudAiPlaytestLoading: false,
+          cloudAiPlaytestRunning: false,
+          cloudAiPlaytestError: "",
+          cloudAiPlaytestLlmStatus: null,
+          cloudAiPlaytestDraftConfig: null
+        });
         assetStore.set({ cloudAssets: [], assetTotal: 0, storageUsage: null });
       }
 

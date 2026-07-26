@@ -56,6 +56,7 @@ export function creatorWorkspaceHub() {
   </section>
   <section class="workspace-hub-grid" aria-label="工作模式">
     ${workspaceLinkCard("creatorCockpit", "⌂", "创作驾驶舱", "六阶段主流程 · 完成度与深链")}
+    ${workspaceLinkCard("diagnostics", "✦", "作品诊断中心", "因果链、信息链与公平推理")}
     ${workspaceLinkCard("production", "✎", "内容生产", "AI、母稿、角色分幕、导入导出")}
     ${workspaceLinkCard("structure", "◇", "结构编排", "运行段落工作台与剧情编排入口")}
     ${workspaceLinkCard("truth", "◈", "谜底与关系", "核心事实、谜底、时间线、伏笔与人物关系")}

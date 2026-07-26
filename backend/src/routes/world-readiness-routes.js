@@ -1,6 +1,10 @@
 import { evaluateClueAudit } from "../clue-audit.js";
-import { buildWorldSnapshot } from "./world-helpers.js";
+import { buildWorldArchiveSnapshot, buildWorldSnapshot } from "./world-helpers.js";
 import { loadWorldPublishReadiness } from "../world-readiness-service.js";
+import {
+  evaluateStoryDiagnostics,
+  STORY_DIAGNOSTIC_STANDARDS
+} from "../story-diagnostics.js";
 import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import { requireActor } from "../request-actor.js";
 import { worldIdParams } from "./schemas.js";
@@ -8,6 +12,48 @@ import { worldIdParams } from "./schemas.js";
 export { loadWorldPublishReadiness };
 
 export async function registerWorldReadinessRoutes(app) {
+  app.get(
+    "/api/worlds/:worldId/story-diagnostics",
+    {
+      schema: {
+        params: worldIdParams,
+        querystring: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            standard: {
+              type: "string",
+              enum: Object.keys(STORY_DIAGNOSTIC_STANDARDS),
+              default: "classic"
+            }
+          }
+        }
+      }
+    },
+    async (request, reply) => {
+      const actorId = requireActor(request);
+      const { worldId } = request.params;
+      const { standard = "classic" } = request.query ?? {};
+      await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
+      try {
+        const snapshot = await buildWorldArchiveSnapshot(worldId);
+        return {
+          worldId,
+          generatedAt: new Date().toISOString(),
+          ...evaluateStoryDiagnostics(snapshot, { standard })
+        };
+      } catch (error) {
+        if (error.code && error.statusCode) {
+          return reply.code(error.statusCode).send({
+            error: error.message,
+            code: error.code
+          });
+        }
+        throw error;
+      }
+    }
+  );
+
   app.get(
     "/api/worlds/:worldId/publish-readiness",
     { schema: { params: worldIdParams } },

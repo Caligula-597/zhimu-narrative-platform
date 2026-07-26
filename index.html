@@ -58,9 +58,13 @@
 
         </div>
 
-        <button class="create-world-btn" id="create-world-btn"><span>＋</span> 创建新世界</button>
+        <div class="sidebar-actions" aria-label="剧本快捷操作">
 
-        <button class="catalog-world-btn" id="catalog-world-btn" type="button"><span>◈</span> 公开剧本库</button>
+          <button class="sidebar-action sidebar-action-primary create-world-btn" id="create-world-btn" aria-label="创建新世界" title="创建新世界"><span class="sidebar-action-icon">＋</span><span class="sidebar-action-text">创建世界</span></button>
+
+          <button class="sidebar-action catalog-world-btn" id="catalog-world-btn" type="button" aria-label="打开公开剧本库" title="打开公开剧本库"><span class="sidebar-action-icon">◈</span><span class="sidebar-action-text">剧本库</span></button>
+
+        </div>
 
 
 
@@ -68,31 +72,37 @@
 
           <p class="nav-label">主流程</p>
 
-          <button class="nav-item active" data-view="creatorCockpit"><span>CC</span>创作驾驶舱</button>
+          <button class="nav-item active" data-view="creatorCockpit" aria-label="创作驾驶舱" title="创作驾驶舱"><span class="nav-icon">CC</span><span class="nav-text">创作驾驶舱</span></button>
 
-          <button type="button" class="nav-expand-btn" data-action="toggle-nav-advanced" aria-expanded="false" aria-controls="nav-advanced">⋯ 精细编辑器</button>
+          <button class="nav-item" data-view="constitution" aria-label="创作宪法" title="创作宪法"><span class="nav-icon">北</span><span class="nav-text">创作宪法</span></button>
+
+          <button class="nav-item" data-view="diagnostics" aria-label="作品诊断中心" title="作品诊断中心"><span class="nav-icon">✦</span><span class="nav-text">作品诊断中心</span></button>
+
+          <button class="nav-item" data-view="playtest" aria-label="玩家试跑实验室" title="玩家试跑实验室"><span class="nav-icon">AI</span><span class="nav-text">玩家试跑实验室</span></button>
+
+          <button type="button" class="nav-item nav-expand-btn" data-action="toggle-nav-advanced" aria-label="展开精细编辑器" aria-expanded="false" aria-controls="nav-advanced" title="展开或收起精细编辑器"><span class="nav-icon">⋯</span><span class="nav-text" data-nav-advanced-label>精细编辑器</span><span class="nav-chevron" aria-hidden="true">⌄</span></button>
 
           <div class="nav-advanced" id="nav-advanced" hidden>
 
-            <button class="nav-item" data-view="writer"><span>✎</span>角色私人剧本</button>
+            <button class="nav-item" data-view="writer" aria-label="角色私人剧本" title="角色私人剧本"><span class="nav-icon">✎</span><span class="nav-text">角色私人剧本</span></button>
 
-            <button class="nav-item" data-view="truth"><span>◎</span>谜底与关系</button>
+            <button class="nav-item" data-view="truth" aria-label="谜底与关系" title="谜底与关系"><span class="nav-icon">◎</span><span class="nav-text">谜底与关系</span></button>
 
-            <button class="nav-item" data-view="studio"><span>◇</span>剧情编排图谱</button>
+            <button class="nav-item" data-view="studio" aria-label="剧情编排图谱" title="剧情编排图谱"><span class="nav-icon">◇</span><span class="nav-text">剧情编排图谱</span></button>
 
-            <button class="nav-item" data-view="clues"><span>◆</span>线索管理</button>
+            <button class="nav-item" data-view="clues" aria-label="线索管理" title="线索管理"><span class="nav-icon">◆</span><span class="nav-text">线索管理</span></button>
 
-            <button class="nav-item" data-view="rules"><span>⌘</span>自动化规则</button>
+            <button class="nav-item" data-view="rules" aria-label="自动化规则" title="自动化规则"><span class="nav-icon">⌘</span><span class="nav-text">自动化规则</span></button>
 
-            <button class="nav-item" data-view="miniGames"><span>#</span>小游戏设计</button>
+            <button class="nav-item" data-view="miniGames" aria-label="小游戏设计" title="小游戏设计"><span class="nav-icon">#</span><span class="nav-text">小游戏设计</span></button>
 
-            <button class="nav-item" data-view="archive"><span>◷</span>存档与复盘</button>
+            <button class="nav-item" data-view="archive" aria-label="存档与复盘" title="存档与复盘"><span class="nav-icon">◷</span><span class="nav-text">存档与复盘</span></button>
 
           </div>
 
           <p class="nav-label">帮助</p>
 
-          <button class="nav-item" data-action="open-creator-guide"><span>?</span>创作指引</button>
+          <button class="nav-item" data-action="open-creator-guide" aria-label="打开创作指引" title="打开创作指引"><span class="nav-icon">?</span><span class="nav-text">创作指引</span></button>
 
         </nav>
 
@@ -100,11 +110,13 @@
 
         <div class="sidebar-bottom">
 
-          <button class="nav-item muted" data-view="account"><span>👤</span>账号与资产</button>
+          <p class="nav-label sidebar-bottom-label">管理</p>
 
-          <button class="nav-item muted" data-view="settings"><span>⚙</span>世界设置</button>
+          <button class="nav-item muted" data-view="account" aria-label="账号与资产" title="账号与资产"><span class="nav-icon">人</span><span class="nav-text">账号与资产</span></button>
 
-          <button class="nav-item muted" data-view="ops"><span>OPS</span>运营</button>
+          <button class="nav-item muted" data-view="settings" aria-label="世界设置" title="世界设置"><span class="nav-icon">⚙</span><span class="nav-text">世界设置</span></button>
+
+          <button class="nav-item muted" data-view="ops" aria-label="运营" title="运营"><span class="nav-icon">OP</span><span class="nav-text">运营</span></button>
 
           <div class="profile">
 

@@ -4,6 +4,12 @@ import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js"
 import { createLlmContextPreHandler } from "./llm-route-hook.js";
 import { fetchUserLlmPreferences, resolveLlmRuntime } from "../user-llm.js";
 import {
+  AI_PLAYTEST_PROMPT_VERSION,
+  runMultiAgentPlaytest
+} from "../ai-playtest-simulator.js";
+import { createWorldQualityReport } from "../content-platform-insight-service.js";
+import { buildWorldArchiveSnapshot } from "../world-snapshot-service.js";
+import {
   createDeepseekManuscriptSynopsis,
   createDeepseekMysteryPackage,
   createDeepseekRoleMatrix,
@@ -48,6 +54,7 @@ import {
 } from "./world-helpers.js";
 import {
   deepseekImportSchema,
+  aiPlaytestRunSchema,
   deepseekMysteryImportSchema,
   deepseekMysteryProposeSchema,
   deepseekPipelineEvaluateSchema,
@@ -106,6 +113,33 @@ export async function registerStoryAssistantRoutes(app) {
       platformAvailable: deepseekConfig().configured
     };
   });
+
+  app.post(
+    "/api/worlds/:worldId/story-assistant/ai-playtest/run",
+    { schema: aiPlaytestRunSchema, preHandler: llmPreHandler },
+    async (request, reply) => {
+      const actorId = requireActor(request);
+      const { worldId } = request.params;
+      await requireWorldRole(actorId, worldId);
+      const snapshot = await buildWorldArchiveSnapshot(worldId);
+      const playtest = await runMultiAgentPlaytest(snapshot, request.body ?? {}, {
+        requestId: request.id
+      });
+      return createWorldQualityReport({
+        request,
+        reply,
+        actorId,
+        worldId,
+        body: {
+          source: "playtest",
+          promptVersion: AI_PLAYTEST_PROMPT_VERSION,
+          report: playtest,
+          issueCount: playtest.issues.length,
+          score: playtest.score
+        }
+      });
+    }
+  );
 
   app.post("/api/worlds/:worldId/story-assistant/deepseek/propose", { schema: deepseekProposeSchema, preHandler: llmPreHandler }, async (request) => {
     const actorId = requireActor(request);
@@ -381,4 +415,3 @@ export async function registerStoryAssistantRoutes(app) {
   });
 
 }
-

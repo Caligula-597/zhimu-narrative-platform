@@ -12,6 +12,7 @@ import {
 } from "./creator-cockpit-model.js";
 import { renderClueHitRateEmbed, renderSegmentCompletionEmbed } from "./creator-cockpit-insights.js";
 import { renderTimelineSwimlane } from "./creator-cockpit-timeline.js";
+import { creativeConstitutionCoverage } from "../../shared/creative-constitution.js";
 
 export function linkButton(link, className = "secondary-btn compact") {
   if (!link) return "";
@@ -96,6 +97,22 @@ export function renderConceptCanvas(ctx, cockpit, findItemLink) {
   }
   if (cockpit.activeCanvas === "inspiration" || cockpit.activeItem === "spark") {
     return renderInspirationWall(cockpit);
+  }
+  if (cockpit.activeCanvas === "constitution") {
+    const coverage = creativeConstitutionCoverage(
+      ctx.studio?.world?.settings?.creativeConstitution,
+      ctx.studio?.roles || []
+    );
+    return `<section class="cockpit-panel">
+      <div class="panel-heading"><div><p>创作宪法</p><h3>${coverage.score}% · ${coverage.filled}/${coverage.total} 项约束已写明</h3></div>
+        ${linkButton({ view: "constitution", label: "打开创作宪法" })}</div>
+      <div class="constitution-cockpit-summary">
+        <strong>${coverage.missing.length ? "先把作者意图变成可检查的约束" : "核心创作约束已经齐备"}</strong>
+        <p>${coverage.missing.length
+          ? `待补：${coverage.missing.slice(0, 5).map((item) => escapeHtml(item.label)).join("、")}`
+          : "作品诊断将使用你的体验承诺、证据下限和角色高光要求。"}</p>
+      </div>
+    </section>`;
   }
   if (cockpit.activeCanvas === "selling") {
     return `<section class="cockpit-panel">
@@ -274,8 +291,29 @@ function checkLevelLabel(level) {
 }
 
 export function renderLaunchCanvas(ctx, cockpit, findItemLink) {
-  const { checks, dashboard, counts } = ctx;
+  const { checks, dashboard, counts, diagnostics, playtest } = ctx;
   const link = findItemLink("launch", cockpit.activeItem);
+  if (cockpit.activeCanvas === "diagnostics") {
+    const result = diagnostics
+      ? `<div class="diagnostic-headline ${diagnostics.summary?.danger ? "danger" : diagnostics.summary?.warning ? "warning" : "ready"}">
+          <strong>${escapeHtml(diagnostics.summary?.headline || "诊断已完成")}</strong>
+          <span>结构健康度 ${diagnostics.scores?.overall ?? 0} · 因果 ${diagnostics.scores?.causal ?? 0} · 信息 ${diagnostics.scores?.information ?? 0} · 公平 ${diagnostics.scores?.fairness ?? 0}</span>
+        </div>`
+      : `<div class="empty-state">尚未运行作品诊断。诊断中心会检查因果链、信息传播和真相证据。</div>`;
+    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>作品诊断</p><h3>剧情体检 / 剧本 MRI</h3></div>${linkButton({ view: "diagnostics", label: diagnostics ? "查看完整报告" : "开始诊断" }, "primary-btn")}</div>
+      <p class="muted-note">不同类型作品可切换本格公平、情感还原、机制推理、叙事诡计、开放调查和跑团沙盒标准。</p>${result}</section>`;
+  }
+  if (cockpit.activeCanvas === "ai-playtest") {
+    const report = playtest?.report;
+    const result = report
+      ? `<div class="diagnostic-headline ${report.summaryCounts?.danger ? "danger" : report.summaryCounts?.warning ? "warning" : "ready"}">
+          <strong>${escapeHtml(report.headline || "多 AI 试跑已完成")}</strong>
+          <span>${report.players?.length || 0} 个隔离席位 · ${report.summaryCounts?.stalledPlayers || 0} 人卡住 · 体验可信度 ${report.score || 0}</span>
+        </div>`
+      : `<div class="empty-state">尚未运行多 AI 玩家试跑。系统会分别模拟不同玩家类型，再把问题定位回角色、线索与章节。</div>`;
+    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>AI 玩家试跑</p><h3>理解、交流、误判与卡关压力测试</h3></div>${linkButton({ view: "playtest", label: report ? "查看完整回放" : "组建测试桌" }, "primary-btn")}</div>
+      <p class="muted-note">每个虚拟玩家使用隔离上下文，不读取作者真相；观察员最后按创作宪法综合验收。</p>${result}</section>`;
+  }
   if (cockpit.activeCanvas === "feedback") {
     return `<section class="cockpit-panel"><div class="panel-heading"><div><p>跑局数据</p><h3>完成率与线索命中统计</h3></div></div>
       ${renderFeedbackSummary()}</section>`;

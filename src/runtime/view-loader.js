@@ -11,6 +11,19 @@
 
   const modulesByView = {
     overview: creatorWorkspaceModules,
+    constitution: [
+      () => import("./world-revision.js"),
+      () => import("../views/creative-constitution.js"),
+      () => import("./actions-creative-constitution.js")
+    ],
+    diagnostics: [
+      () => import("../views/story-diagnostics.js"),
+      () => import("./actions-story-diagnostics.js")
+    ],
+    playtest: [
+      () => import("../views/ai-playtest-lab.js"),
+      () => import("./actions-ai-playtest.js")
+    ],
     production: creatorWorkspaceModules,
     structure: creatorWorkspaceModules,
     truth: creatorWorkspaceModules,

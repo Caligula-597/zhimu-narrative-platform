@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  DEFAULT_POOL_MAX, isDatabaseCapacityError, resolveDatabaseUrl,
+  DEFAULT_POOL_MAX, inspectDatabaseTlsPolicy, isDatabaseCapacityError, resolveDatabaseUrl,
   resolveDatabaseSsl, resolvePoolLifetimeSeconds, resolvePoolMax, resolvePoolTimeoutMs,
   resolveQueryTimeoutMs
 } from "../src/db.js";
@@ -15,20 +15,59 @@ test("resolveDatabaseUrl strips sslmode for Supabase pooler", () => {
   );
 });
 
-test("resolveDatabaseSsl verifies certificates and accepts an optional CA", () => {
-  const prev = process.env.DATABASE_SSL;
-  const prevCa = process.env.DATABASE_SSL_CA;
-  process.env.DATABASE_SSL = "true";
-  delete process.env.DATABASE_SSL_CA;
-  assert.deepEqual(resolveDatabaseSsl(), { rejectUnauthorized: true });
-  process.env.DATABASE_SSL_CA = "line1\\nline2";
-  assert.deepEqual(resolveDatabaseSsl(), { rejectUnauthorized: true, ca: "line1\nline2" });
-  process.env.DATABASE_SSL = "false";
-  assert.equal(resolveDatabaseSsl(), false);
-  if (prev === undefined) delete process.env.DATABASE_SSL;
-  else process.env.DATABASE_SSL = prev;
-  if (prevCa === undefined) delete process.env.DATABASE_SSL_CA;
-  else process.env.DATABASE_SSL_CA = prevCa;
+test("resolveDatabaseSsl verifies certificates and production refuses unverified TLS", () => {
+  assert.deepEqual(resolveDatabaseSsl({
+    DATABASE_SSL: "true"
+  }), { rejectUnauthorized: true });
+  assert.deepEqual(resolveDatabaseSsl({
+    DATABASE_SSL: "true",
+    DATABASE_SSL_CA: "line1\\nline2"
+  }), { rejectUnauthorized: true, ca: "line1\nline2" });
+  assert.deepEqual(resolveDatabaseSsl({
+    NODE_ENV: "development",
+    DATABASE_SSL: "true",
+    DATABASE_SSL_CA: "line1\\nline2",
+    DATABASE_SSL_VERIFY: "false"
+  }), {
+    rejectUnauthorized: false,
+    ca: "line1\nline2"
+  });
+  assert.throws(
+    () => resolveDatabaseSsl({
+      NODE_ENV: "production",
+      DATABASE_SSL: "true",
+      DATABASE_SSL_VERIFY: "false"
+    }),
+    { code: "DATABASE_TLS_VERIFICATION_REQUIRED" }
+  );
+  assert.throws(
+    () => resolveDatabaseSsl({
+      NODE_ENV: "production",
+      DATABASE_SSL: "false"
+    }),
+    { code: "DATABASE_TLS_REQUIRED" }
+  );
+  assert.equal(resolveDatabaseSsl({
+    NODE_ENV: "development",
+    DATABASE_SSL: "false"
+  }), false);
+});
+
+test("database TLS status does not report encrypted-but-unverified connections as trusted", () => {
+  assert.deepEqual(inspectDatabaseTlsPolicy({
+    DATABASE_SSL: "true",
+    DATABASE_SSL_VERIFY: "false"
+  }), {
+    enabled: true,
+    verifyCertificate: false,
+    caConfigured: false,
+    trusted: false,
+    caSource: "system"
+  });
+  assert.equal(inspectDatabaseTlsPolicy({
+    DATABASE_SSL: "true",
+    DATABASE_SSL_CA: "provider-ca"
+  }).trusted, true);
 });
 
 test("connection pool uses a rolling-deploy-safe default and validates overrides", () => {

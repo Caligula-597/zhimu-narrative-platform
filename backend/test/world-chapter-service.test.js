@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compactChapterSequences } from "../src/routes/world-chapter-service.js";
+import { compactChapterSequences } from "../src/world-chapter-service.js";
 
 test("compactChapterSequences uses a constant two-query compaction", async () => {
   const calls = [];

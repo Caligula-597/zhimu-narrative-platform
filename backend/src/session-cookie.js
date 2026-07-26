@@ -17,8 +17,18 @@ function resolveNodeEnv() {
   return process.env.NODE_ENV === "production" ? "production" : "development";
 }
 
-function cookieSecure(nodeEnv = resolveNodeEnv()) {
-  return nodeEnv === "production" || process.env.SESSION_COOKIE_SECURE === "true";
+export function cookieSecure(nodeEnv = resolveNodeEnv(), env = process.env) {
+  return nodeEnv === "production" || env.SESSION_COOKIE_SECURE === "true";
+}
+
+export function getSessionCookieSecurityStatus(env = process.env) {
+  const nodeEnv = env.NODE_ENV === "production" ? "production" : "development";
+  return {
+    secure: cookieSecure(nodeEnv, env),
+    httpOnly: true,
+    sameSite: "Lax",
+    revocationTable: "auth_sessions"
+  };
 }
 
 export function readSessionCookie(request) {

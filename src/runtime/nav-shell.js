@@ -61,6 +61,7 @@ import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
     const panel = document.getElementById("nav-advanced");
     const toggle = document.querySelector("[data-action=toggle-nav-advanced]");
     if (!panel || !toggle) return;
+    const label = toggle.querySelector("[data-nav-advanced-label]");
     const reviewerMode = studioStore.get().cloudStudio?.world?.membership_role === "reviewer";
     panel.querySelectorAll("[data-view]").forEach((button) => {
       button.hidden = reviewerMode && button.dataset.view !== "writer";
@@ -72,7 +73,10 @@ import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
       stored === "1" || (stored !== "0" && ADVANCED_VIEWS.includes(view));
     panel.hidden = !expanded;
     toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-    toggle.textContent = expanded ? "⋯ 收起精细编辑器" : "⋯ 精细编辑器";
+    toggle.setAttribute("aria-label", expanded ? "收起精细编辑器" : "展开精细编辑器");
+    toggle.classList.toggle("contains-active", ADVANCED_VIEWS.includes(view));
+    if (label) label.textContent = expanded ? "收起精细编辑器" : "精细编辑器";
+    toggle.title = expanded ? "收起精细编辑器" : "展开精细编辑器";
   }
 
   window.zhimuNavShell = { syncNavAdvanced, syncWorldSwitcher, ADVANCED_VIEWS };

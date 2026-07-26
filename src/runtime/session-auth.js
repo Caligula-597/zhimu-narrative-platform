@@ -6,6 +6,14 @@ import { userStore } from "../state/index.js";
   let storageSyncPromise = null;
   let credentialVersion = 0;
 
+  function clearPersistentLegacyToken() {
+    try {
+      localStorage.removeItem(LEGACY_KEY);
+    } catch {
+      // Persistent storage may be unavailable; session/cookie auth still works.
+    }
+  }
+
   function legacyToken() {
     try {
       return sessionStorage.getItem(LEGACY_KEY);
@@ -19,6 +27,7 @@ import { userStore } from "../state/index.js";
   }
 
   function markAuthenticated(token) {
+    clearPersistentLegacyToken();
     if (typeof token === "string" && token.length >= 16) {
       try { sessionStorage.setItem(LEGACY_KEY, token); } catch { /* cookie session remains authoritative */ }
     }
@@ -27,6 +36,7 @@ import { userStore } from "../state/index.js";
   }
 
   function discardLegacyToken() {
+    clearPersistentLegacyToken();
     if (!legacyToken()) return false;
     try { sessionStorage.removeItem(LEGACY_KEY); } catch { return false; }
     credentialVersion += 1;
@@ -37,6 +47,7 @@ import { userStore } from "../state/index.js";
     cookieSessionActive = false;
     credentialVersion += 1;
     try { sessionStorage.removeItem(LEGACY_KEY); } catch { /* storage may be unavailable */ }
+    clearPersistentLegacyToken();
     if (typeof window !== "undefined") userStore.set({ currentUser: null });
   }
 
@@ -51,6 +62,8 @@ import { userStore } from "../state/index.js";
     return { ...init, credentials: "include" };
   }
 
+  clearPersistentLegacyToken();
+
   window.zhimuSessionAuth = {
     isAuthenticated,
     markAuthenticated,
@@ -64,6 +77,11 @@ import { userStore } from "../state/index.js";
 
   window.addEventListener?.("storage", (event) => {
     if (event?.key !== LEGACY_KEY || event.newValue === event.oldValue) return;
+    if (event.storageArea && event.storageArea === localStorage) {
+      clearPersistentLegacyToken();
+      return;
+    }
+    if (event.storageArea && event.storageArea !== sessionStorage) return;
     if (!event.newValue) markLoggedOut();
     else credentialVersion += 1;
     if (storageSyncPromise) return;

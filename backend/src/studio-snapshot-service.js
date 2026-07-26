@@ -3,7 +3,7 @@ import { throwErr } from "./api-errors.js";
 import {
   chapterSequencesNeedRepair,
   compactChapterSequences
-} from "./routes/world-chapter-service.js";
+} from "./world-chapter-service.js";
 import { ROOMS_VISIBLE_TO_ACTOR_SQL } from "./routes/world-access-service.js";
 import { projectWorldForMembership } from "./world-settings-visibility.js";
 
