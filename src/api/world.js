@@ -179,6 +179,11 @@ export function getCreatorChecks() {
   return request(`/worlds/${demoContext.worldId}/creator-checks`, { userId: demoContext.hostUserId });
 }
 
+export function getStoryDiagnostics({ standard = "classic", worldId = demoContext.worldId } = {}) {
+  const params = new URLSearchParams({ standard });
+  return request(`/worlds/${worldId}/story-diagnostics?${params}`, { userId: demoContext.hostUserId });
+}
+
 export function getCreatorDashboard({ roomId, worldId, force = false } = {}) {
   const params = new URLSearchParams();
   if (roomId) params.set("roomId", roomId);

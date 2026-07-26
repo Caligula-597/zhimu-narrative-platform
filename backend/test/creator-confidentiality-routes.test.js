@@ -67,7 +67,7 @@ test("creator readiness and runtime analytics exclude public catalog viewers", a
 });
 
 test("creator snapshots never export live room invitation credentials", async () => {
-  const source = await readFile(routeUrl("world-chapter-service.js"), "utf8");
+  const source = await readFile(new URL("../src/world-snapshot-service.js", import.meta.url), "utf8");
 
   assert.doesNotMatch(source, /invite_code/);
   assert.match(source, /'id', r\.id, 'name', r\.name, 'status', r\.status/);

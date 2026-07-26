@@ -131,11 +131,7 @@ import { callView } from "./view-registry.js";
         const nextExpanded = panel.hidden;
         panel.hidden = !nextExpanded;
         localStorage.setItem("zhimuNavAdvanced", nextExpanded ? "1" : "0");
-        const toggle = document.querySelector("[data-action=toggle-nav-advanced]");
-        if (toggle) {
-          toggle.setAttribute("aria-expanded", nextExpanded ? "true" : "false");
-          toggle.textContent = nextExpanded ? "⋯ 收起精细编辑器" : "⋯ 精细编辑器";
-        }
+        window.zhimuNavShell?.syncNavAdvanced?.();
         return true;
       }
       case "onboarding-go-player":

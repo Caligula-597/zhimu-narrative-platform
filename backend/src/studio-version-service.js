@@ -10,7 +10,7 @@ import {
   restoreVersionSections,
   snapshotHasForeignReferences
 } from "./repositories/studio-version-repository.js";
-import { buildWorldArchiveSnapshot } from "./routes/world-chapter-service.js";
+import { buildWorldArchiveSnapshot } from "./world-snapshot-service.js";
 import { runRevisionMutation } from "./world-revision.js";
 
 const MAX_CONTENT_VERSIONS_PER_WORLD = 50;

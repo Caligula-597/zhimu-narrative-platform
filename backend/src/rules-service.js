@@ -5,7 +5,7 @@ import {
   validateRuleBody
 } from "./rule-structure-validator.js";
 import { creatorChecks } from "./world-publish-readiness.js";
-import { buildWorldSnapshot } from "./routes/world-chapter-service.js";
+import { buildWorldSnapshot } from "./world-snapshot-service.js";
 import { runRevisionMutation } from "./world-revision.js";
 import {
   configureRulesTransaction,

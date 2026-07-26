@@ -6,6 +6,77 @@ import {
   RULESET_MODES,
   RUN_FORMATS
 } from "../../../../shared/narrative-profile.js";
+import {
+  CREATIVE_CONSTITUTION_VERSION,
+  SUPERNATURAL_POLICIES
+} from "../../../../shared/creative-constitution.js";
+
+const constitutionTextListSchema = {
+  type: "array",
+  maxItems: 20,
+  items: { type: "string", minLength: 1, maxLength: 600 }
+};
+
+export const creativeConstitutionSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "version",
+    "theme",
+    "intendedEmotion",
+    "experiencePromise",
+    "revealEmotion",
+    "inviolablePrinciples",
+    "fairPuzzlePromises",
+    "pacingPrinciples",
+    "voicePrinciples",
+    "forbiddenTropes",
+    "supernaturalPolicy",
+    "supernaturalRules",
+    "desiredDebates",
+    "avoidMisunderstandings",
+    "roleHighlights",
+    "fairness"
+  ],
+  properties: {
+    version: { type: "integer", const: CREATIVE_CONSTITUTION_VERSION },
+    theme: { type: "string", maxLength: 1200 },
+    intendedEmotion: { type: "string", maxLength: 1200 },
+    experiencePromise: { type: "string", maxLength: 4000 },
+    revealEmotion: { type: "string", maxLength: 1200 },
+    inviolablePrinciples: constitutionTextListSchema,
+    fairPuzzlePromises: constitutionTextListSchema,
+    pacingPrinciples: constitutionTextListSchema,
+    voicePrinciples: constitutionTextListSchema,
+    forbiddenTropes: constitutionTextListSchema,
+    supernaturalPolicy: { type: "string", enum: [...SUPERNATURAL_POLICIES] },
+    supernaturalRules: { type: "string", maxLength: 2400 },
+    desiredDebates: { type: "string", maxLength: 2400 },
+    avoidMisunderstandings: { type: "string", maxLength: 2400 },
+    roleHighlights: {
+      type: "array",
+      maxItems: 60,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["roleId", "promise"],
+        properties: {
+          roleId: { type: "string", minLength: 1, maxLength: 120 },
+          promise: { type: "string", maxLength: 1200 }
+        }
+      }
+    },
+    fairness: {
+      type: "object",
+      additionalProperties: false,
+      required: ["minimumEvidence", "requireIndependentPaths"],
+      properties: {
+        minimumEvidence: { type: "integer", minimum: 1, maximum: 5 },
+        requireIndependentPaths: { type: "boolean" }
+      }
+    }
+  }
+};
 
 export const commercialProfileSchema = {
   type: "object",
@@ -57,6 +128,7 @@ export const worldSettingsSchema = {
     creationType: { type: "string", enum: [...CREATION_TYPES] },
     worldMode: { type: "string", enum: [...LEGACY_WORLD_MODES] },
     narrativeProfile: narrativeProfileSchema,
-    commercialProfile: commercialProfileSchema
+    commercialProfile: commercialProfileSchema,
+    creativeConstitution: creativeConstitutionSchema
   }
 };

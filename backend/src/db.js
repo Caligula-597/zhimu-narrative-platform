@@ -5,7 +5,11 @@ import {
   resolveDatabaseUrl
 } from "./database-connection-options.js";
 
-export { resolveDatabaseSsl, resolveDatabaseUrl } from "./database-connection-options.js";
+export {
+  inspectDatabaseTlsPolicy,
+  resolveDatabaseSsl,
+  resolveDatabaseUrl
+} from "./database-connection-options.js";
 
 const { Pool } = pg;
 export const DEFAULT_POOL_MAX = 6;

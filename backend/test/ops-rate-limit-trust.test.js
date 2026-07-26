@@ -56,3 +56,45 @@ test("production trust keeps rate-limit gate closed when topology is unverified"
     else process.env.NODE_ENV = previousEnv;
   }
 });
+
+test("production trust rejects unverified database TLS and missing identity foundation", () => {
+  const previous = {
+    nodeEnv: process.env.NODE_ENV,
+    databaseSsl: process.env.DATABASE_SSL,
+    databaseVerify: process.env.DATABASE_SSL_VERIFY
+  };
+  process.env.NODE_ENV = "production";
+  process.env.DATABASE_SSL = "true";
+  process.env.DATABASE_SSL_VERIFY = "false";
+  try {
+    const result = productionTrustGates({
+      features: {
+        uploadScan: { mode: "webhook", webhookConfigured: true },
+        telemetry: { enabled: true, initialized: true },
+        alerts: { configured: true },
+        rateLimitTopology: resolveRateLimitTopology({
+          TRUST_PROXY_HOPS: "1",
+          APP_INSTANCE_COUNT: "1"
+        })
+      },
+      rateLimits: { authPerMin: 20 },
+      readiness: { missingTables: [] },
+      identityFoundation: {
+        ready: false,
+        usersMissingPlan: 1,
+        usersMissingQuota: 0,
+        approvedRegisteredUsersWithoutBeta: 0
+      }
+    });
+    assert.equal(result.gates.find((gate) => gate.key === "database_tls")?.ok, false);
+    assert.equal(result.gates.find((gate) => gate.key === "secure_sessions")?.ok, true);
+    assert.equal(result.gates.find((gate) => gate.key === "identity_foundation")?.ok, false);
+  } finally {
+    if (previous.nodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previous.nodeEnv;
+    if (previous.databaseSsl === undefined) delete process.env.DATABASE_SSL;
+    else process.env.DATABASE_SSL = previous.databaseSsl;
+    if (previous.databaseVerify === undefined) delete process.env.DATABASE_SSL_VERIFY;
+    else process.env.DATABASE_SSL_VERIFY = previous.databaseVerify;
+  }
+});

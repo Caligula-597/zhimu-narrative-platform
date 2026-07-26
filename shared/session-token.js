@@ -11,12 +11,23 @@ const DEFAULT_KEY = "zhimuSessionToken";
 export function createSessionTokenStore(
   key = DEFAULT_KEY,
   storage = typeof sessionStorage !== "undefined" ? sessionStorage : null,
-  eventTarget = typeof window !== "undefined" ? window : null
+  eventTarget = typeof window !== "undefined" ? window : null,
+  legacyStorage = typeof localStorage !== "undefined" ? localStorage : null
 ) {
   const fallbackStorage = createMemoryStorage();
   const listeners = new Set();
 
+  function clearLegacyStorage() {
+    if (!legacyStorage || legacyStorage === storage) return;
+    try {
+      legacyStorage.removeItem?.(key);
+    } catch {
+      // Persistent storage may be blocked; the tab-scoped store still works.
+    }
+  }
+
   function read() {
+    clearLegacyStorage();
     try {
       const value = storage?.getItem?.(key);
       if (value !== null && value !== undefined) {
@@ -42,6 +53,7 @@ export function createSessionTokenStore(
   }
 
   function write(token, source = "local") {
+    clearLegacyStorage();
     const normalized = token ? String(token) : "";
     const previousToken = read();
     if (normalized) fallbackStorage.setItem(key, normalized);
@@ -57,6 +69,11 @@ export function createSessionTokenStore(
 
   function handleStorage(event) {
     if (event?.key !== key) return;
+    if (event?.storageArea && legacyStorage && event.storageArea === legacyStorage) {
+      clearLegacyStorage();
+      return;
+    }
+    if (event?.storageArea && storage && event.storageArea !== storage) return;
     const previousToken = event.oldValue || "";
     const token = event.newValue || "";
     if (token) fallbackStorage.setItem(key, token);
@@ -70,6 +87,8 @@ export function createSessionTokenStore(
     eventTarget.addEventListener("storage", handleStorage);
     storageListening = true;
   }
+
+  clearLegacyStorage();
 
   return {
     key,

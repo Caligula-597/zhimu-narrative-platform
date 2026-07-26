@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { query, transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { deleteOwnedWorld } from "./world-delete.js";
@@ -152,12 +153,13 @@ export async function deleteUserAccount(userId) {
 
   const objectKeys = await collectUserObjectKeys(userId);
   let jobId = null;
+  const storageClaimToken = randomUUID();
 
   try {
     await transaction(async (client) => {
       jobId = await createAccountDeleteJob(userId, objectKeys, client);
       await deleteUserAccountDb(client, userId);
-      await markAccountDeleteJobDbDeleted(jobId, client);
+      await markAccountDeleteJobDbDeleted(jobId, client, { claimToken: storageClaimToken });
     });
   } catch (error) {
     if (jobId) {
@@ -172,12 +174,12 @@ export async function deleteUserAccount(userId) {
 
   const { purgedCount, failed } = await purgeObjectKeys(objectKeys);
   if (failed.length === 0) {
-    await markAccountDeleteJobCompleted(jobId, purgedCount);
+    await markAccountDeleteJobCompleted(jobId, purgedCount, null, storageClaimToken);
   } else {
     await markAccountDeleteJobStoragePending(jobId, {
       purgedCount,
       error: `${failed.length} object(s) pending retry`
-    });
+    }, null, storageClaimToken);
   }
 
   return {

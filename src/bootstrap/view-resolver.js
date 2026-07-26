@@ -3,6 +3,9 @@ import { getView } from "../runtime/view-registry.js";
 
 const viewMeta = {
   creatorCockpit: ["创作驾驶舱", "创作驾驶舱"],
+  constitution: ["创作意图", "创作宪法"],
+  diagnostics: ["作品诊断", "作品诊断中心"],
+  playtest: ["体验验证", "AI 玩家试跑实验室"],
   overview: ["项目总控", "项目总控"],
   production: ["内容生产", "内容生产"],
   structure: ["结构编排", "运行段落工作台"],
@@ -28,6 +31,9 @@ export function getViewMeta(view) {
 export function resolveViewFn(view) {
   switch (view) {
     case "creatorCockpit": return getView("creatorCockpit").creatorCockpit;
+    case "constitution": return getView("creativeConstitution").creativeConstitution;
+    case "diagnostics": return getView("storyDiagnostics").storyDiagnostics;
+    case "playtest": return getView("aiPlaytestLab").aiPlaytestLab;
     case "overview": return getView("overview").overview;
     case "production": return getView("creatorWorkspaces").production;
     case "structure": return getView("creatorWorkspaces").structure;

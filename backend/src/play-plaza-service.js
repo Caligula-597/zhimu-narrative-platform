@@ -35,8 +35,12 @@ function mapReply(row, actorId = null) {
     body: row.body,
     authorUserId: row.author_user_id,
     authorDisplayName: row.author_display_name,
+    reviewStatus: row.review_status || "approved",
+    aiReviewNote: row.ai_review_note || null,
+    publishedAt: row.published_at || null,
     createdAt: row.created_at,
-    isMine: actorId ? row.author_user_id === actorId : false
+    isMine: actorId ? row.author_user_id === actorId : false,
+    reviewPending: row.review_status === "human_review" || row.review_status === "pending"
   };
 }
 
@@ -109,12 +113,18 @@ export async function listPlazaReplies(postId, { limit = 100, actorId = null } =
   await getPlazaPost(postId, actorId);
   const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 200);
   const result = await query(
-    `SELECT id, post_id, parent_reply_id, author_user_id, author_display_name, body, created_at
+    `SELECT id, post_id, parent_reply_id, author_user_id, author_display_name, body,
+            review_status, ai_review_note, published_at, created_at
      FROM play_plaza_replies
-     WHERE post_id = $1 AND deleted_at IS NULL
+     WHERE post_id = $1
+       AND deleted_at IS NULL
+       AND (
+         review_status = 'approved'
+         OR ($3::uuid IS NOT NULL AND author_user_id = $3)
+       )
      ORDER BY created_at ASC
      LIMIT $2`,
-    [postId, safeLimit]
+    [postId, safeLimit, actorId]
   );
   return { items: result.rows.map((row) => mapReply(row, actorId)) };
 }
@@ -220,18 +230,14 @@ export async function createPlazaReply({ actorId, postId, body, parentReplyId = 
   await getPlazaPost(postId, actorId);
 
   const verdict = await reviewPlazaPostContent({ body: text, kind: "reply" });
-  if (verdict.decision !== "approve") {
-    throwErr(
-      "PLAZA_REPLY_REJECTED",
-      verdict.decision === "reject"
-        ? (verdict.feedback || "评论未通过社区审核，请修改后重试。")
-        : "评论暂时无法完成安全审核，请稍后重试。"
-    );
+  if (verdict.decision === "reject") {
+    throwErr("PLAZA_REPLY_REJECTED", verdict.feedback || "评论未通过社区审核，请修改后重试。");
   }
 
   if (parentReplyId) {
     const parent = await query(
-      `SELECT id FROM play_plaza_replies WHERE id = $1 AND post_id = $2 AND deleted_at IS NULL`,
+      `SELECT id FROM play_plaza_replies
+       WHERE id = $1 AND post_id = $2 AND deleted_at IS NULL AND review_status = 'approved'`,
       [parentReplyId, postId]
     );
     if (!parent.rowCount) throwErr("PLAZA_REPLY_NOT_FOUND", "回复的评论不存在。");
@@ -246,19 +252,41 @@ export async function createPlazaReply({ actorId, postId, body, parentReplyId = 
 
   const user = await query(`SELECT display_name FROM users WHERE id = $1`, [actorId]);
   const authorName = user.rows[0]?.display_name || "玩家";
+  const reviewStatus = verdict.decision === "human_review" ? "human_review" : "approved";
 
   const inserted = await transactionWithPlatformEvents(async (client, events) => {
     const result = await client.query(
-      `INSERT INTO play_plaza_replies (post_id, author_user_id, author_display_name, body, parent_reply_id)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, post_id, parent_reply_id, author_user_id, author_display_name, body, created_at`,
-      [postId, actorId, authorName.slice(0, 40), text, parentReplyId || null]
+      `INSERT INTO play_plaza_replies
+         (post_id, author_user_id, author_display_name, body, parent_reply_id,
+          review_status, ai_review_note, ai_reviewed_at, published_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, now(),
+               CASE WHEN $6 = 'approved' THEN now() ELSE NULL END)
+       RETURNING id, post_id, parent_reply_id, author_user_id, author_display_name, body,
+                 review_status, ai_review_note, published_at, created_at`,
+      [
+        postId,
+        actorId,
+        authorName.slice(0, 40),
+        text,
+        parentReplyId || null,
+        reviewStatus,
+        verdict.reason
+      ]
     );
-    await client.query(`UPDATE play_plaza_posts SET reply_count = reply_count + 1 WHERE id = $1`, [postId]);
-    events.queueBroadcast("plaza.reply_created", { postId, replyId: result.rows[0].id });
+    if (reviewStatus === "approved") {
+      await client.query(`UPDATE play_plaza_posts SET reply_count = reply_count + 1 WHERE id = $1`, [postId]);
+      events.queueBroadcast("plaza.reply_created", { postId, replyId: result.rows[0].id });
+    }
     return result;
   });
   const reply = mapReply(inserted.rows[0], actorId);
+  if (reviewStatus === "human_review") {
+    return {
+      ...reply,
+      reviewPending: true,
+      message: "评论已提交，等待人工复核通过后将公开展示。"
+    };
+  }
   return reply;
 }
 
@@ -286,15 +314,17 @@ export async function deletePlazaReply(actorId, replyId) {
     const updated = await client.query(
       `UPDATE play_plaza_replies SET deleted_at = now()
        WHERE id = $1 AND author_user_id = $2 AND deleted_at IS NULL
-       RETURNING id, post_id`,
+       RETURNING id, post_id, review_status`,
       [replyId, actorId]
     );
     if (!updated.rowCount) throwErr("FORBIDDEN", "只能删除自己的评论。");
-    await client.query(
-      `UPDATE play_plaza_posts SET reply_count = GREATEST(reply_count - 1, 0) WHERE id = $1`,
-      [updated.rows[0].post_id]
-    );
-    events.queueBroadcast("plaza.reply_deleted", { postId: updated.rows[0].post_id, replyId });
+    if (updated.rows[0].review_status === "approved") {
+      await client.query(
+        `UPDATE play_plaza_posts SET reply_count = GREATEST(reply_count - 1, 0) WHERE id = $1`,
+        [updated.rows[0].post_id]
+      );
+      events.queueBroadcast("plaza.reply_deleted", { postId: updated.rows[0].post_id, replyId });
+    }
   });
   return { ok: true };
 }
@@ -313,7 +343,8 @@ export async function reportPlazaTarget({ actorId, targetType, targetId, reason 
     if (post.rows[0].author_user_id === actorId) throwErr("PLAZA_REPORT_SELF", "不能举报自己的内容。");
   } else {
     const reply = await query(
-      `SELECT author_user_id FROM play_plaza_replies WHERE id = $1 AND deleted_at IS NULL`,
+      `SELECT author_user_id FROM play_plaza_replies
+       WHERE id = $1 AND deleted_at IS NULL AND review_status = 'approved'`,
       [targetId]
     );
     if (!reply.rowCount) throwErr("PLAZA_REPLY_NOT_FOUND", "评论不存在。");

@@ -31,6 +31,12 @@ import { setHtml } from "../../shared/safe-dom.js";
 
     "#settings-recap-truth",
 
+    "[data-constitution-field]",
+
+    "[data-constitution-list]",
+
+    "[data-role-highlight]",
+
     "[data-studio-field]",
 
     ".studio-inspector textarea",
@@ -78,6 +84,8 @@ import { setHtml } from "../../shared/safe-dom.js";
     const view = uiStore.get().view;
 
     if (view === "settings") return "settings";
+
+    if (view === "constitution") return "constitution";
 
     if (view === "studio") {
 
@@ -494,6 +502,14 @@ import { setHtml } from "../../shared/safe-dom.js";
     const id = activeWorldId(worldId);
 
     const rev = Number(revision);
+
+    if (worldStore.get().cloudStoryDiagnostics) {
+      worldStore.set({
+        cloudStoryDiagnostics: null,
+        cloudStoryDiagnosticsLoading: false,
+        cloudStoryDiagnosticsError: ""
+      });
+    }
 
     const previewWorld = worldStore.get().cloudWorkspacePreview?.world;
 

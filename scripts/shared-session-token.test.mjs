@@ -90,3 +90,27 @@ test("session token store preserves the invalidation source", () => {
   store.clear("rejected");
   assert.deepEqual(changes, [{ token: "", previousToken: "expired", source: "rejected" }]);
 });
+
+test("session token store removes the persistent localStorage predecessor", () => {
+  const sessionValues = new Map();
+  const legacyValues = new Map([["test-token", "persistent-old-token"]]);
+  const session = {
+    getItem: (key) => sessionValues.get(key) ?? null,
+    setItem: (key, value) => sessionValues.set(key, String(value)),
+    removeItem: (key) => sessionValues.delete(key)
+  };
+  const legacy = {
+    getItem: (key) => legacyValues.get(key) ?? null,
+    setItem: (key, value) => legacyValues.set(key, String(value)),
+    removeItem: (key) => legacyValues.delete(key)
+  };
+
+  const store = createSessionTokenStore("test-token", session, null, legacy);
+  assert.equal(legacy.getItem("test-token"), null);
+  assert.equal(store.get(), "");
+
+  legacy.setItem("test-token", "written-by-an-old-client");
+  store.set("tab-token");
+  assert.equal(legacy.getItem("test-token"), null);
+  assert.equal(store.get(), "tab-token");
+});

@@ -13,14 +13,54 @@ async function rejectPlazaPost(client, postId, text) {
   if (!updated.rowCount) throwErr("PLAZA_POST_NOT_FOUND", "帖子不存在。");
 }
 
+async function rejectPlazaReply(client, replyId, text) {
+  const current = await client.query(
+    `SELECT id, post_id, review_status
+     FROM play_plaza_replies
+     WHERE id = $1 AND deleted_at IS NULL
+     FOR UPDATE`,
+    [replyId]
+  );
+  if (!current.rowCount) throwErr("PLAZA_REPLY_NOT_FOUND", "评论不存在。");
+
+  await client.query(
+    `UPDATE play_plaza_replies
+     SET review_status = 'rejected', ai_review_note = $2, ai_reviewed_at = now()
+     WHERE id = $1`,
+    [replyId, text.slice(0, 500)]
+  );
+  const row = current.rows[0];
+  if (row.review_status === "approved") {
+    await client.query(
+      `UPDATE play_plaza_posts
+       SET reply_count = GREATEST(reply_count - 1, 0)
+       WHERE id = $1`,
+      [row.post_id]
+    );
+  }
+  return {
+    postId: row.post_id,
+    wasPublic: row.review_status === "approved"
+  };
+}
+
 export async function listPlazaHumanReviewQueue({ limit = 50, offset = 0 } = {}) {
   const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
   const safeOffset = Math.max(Number(offset) || 0, 0);
-  const [posts, reports] = await Promise.all([
+  const [posts, replies, reports] = await Promise.all([
     query(
       `SELECT id, author_user_id, author_display_name, kind, body, review_status,
               ai_review_note, created_at, ai_reviewed_at
        FROM play_plaza_posts
+       WHERE deleted_at IS NULL AND review_status = 'human_review'
+       ORDER BY created_at ASC
+       LIMIT $1 OFFSET $2`,
+      [safeLimit, safeOffset]
+    ),
+    query(
+      `SELECT id, post_id, parent_reply_id, author_user_id, author_display_name,
+              body, review_status, ai_review_note, created_at, ai_reviewed_at
+       FROM play_plaza_replies
        WHERE deleted_at IS NULL AND review_status = 'human_review'
        ORDER BY created_at ASC
        LIMIT $1 OFFSET $2`,
@@ -40,6 +80,7 @@ export async function listPlazaHumanReviewQueue({ limit = 50, offset = 0 } = {})
   ]);
   return {
     posts: posts.rows,
+    replies: replies.rows,
     reports: reports.rows,
     limit: safeLimit,
     offset: safeOffset
@@ -74,6 +115,45 @@ export async function opsRejectPlazaPost(postId, { note = "" } = {}) {
   return { ok: true, postId };
 }
 
+export async function opsApprovePlazaReply(replyId, { note = "" } = {}) {
+  const result = await transactionWithPlatformEvents(async (client, events) => {
+    const updated = await client.query(
+      `UPDATE play_plaza_replies
+       SET review_status = 'approved',
+           ai_review_note = COALESCE(NULLIF($2, ''), ai_review_note),
+           ai_reviewed_at = now(),
+           published_at = COALESCE(published_at, now())
+       WHERE id = $1
+         AND deleted_at IS NULL
+         AND review_status IN ('human_review', 'pending', 'rejected')
+       RETURNING id, post_id`,
+      [replyId, String(note || "").trim().slice(0, 500)]
+    );
+    if (!updated.rowCount) throwErr("PLAZA_REPLY_NOT_FOUND", "评论不存在或不在待审状态。");
+    const postId = updated.rows[0].post_id;
+    await client.query(
+      `UPDATE play_plaza_posts SET reply_count = reply_count + 1 WHERE id = $1`,
+      [postId]
+    );
+    events.queueBroadcast("plaza.reply_created", { postId, replyId });
+    return { postId };
+  });
+  return { ok: true, replyId, postId: result.postId };
+}
+
+export async function opsRejectPlazaReply(replyId, { note = "" } = {}) {
+  const text = String(note || "").trim();
+  if (text.length < 4) throwErr("PLAZA_OPS_NOTE_REQUIRED", "拒审说明至少 4 个字。");
+  const result = await transactionWithPlatformEvents(async (client, events) => {
+    const rejected = await rejectPlazaReply(client, replyId, text);
+    if (rejected.wasPublic) {
+      events.queueBroadcast("plaza.reply_deleted", { postId: rejected.postId, replyId });
+    }
+    return rejected;
+  });
+  return { ok: true, replyId, postId: result.postId };
+}
+
 export async function opsResolvePlazaReport(reportId, { dismiss = false, note = "" } = {}) {
   const text = String(note || "").trim();
   const status = dismiss ? "dismissed" : "resolved";
@@ -90,6 +170,18 @@ export async function opsResolvePlazaReport(reportId, { dismiss = false, note = 
     if (!dismiss && row.rows[0].target_type === "post") {
       await rejectPlazaPost(client, row.rows[0].target_id, text || "经举报复核未通过。");
       events.queueBroadcast("plaza.post_deleted", { postId: row.rows[0].target_id });
+    } else if (!dismiss && row.rows[0].target_type === "reply") {
+      const rejected = await rejectPlazaReply(
+        client,
+        row.rows[0].target_id,
+        text || "经举报复核未通过。"
+      );
+      if (rejected.wasPublic) {
+        events.queueBroadcast("plaza.reply_deleted", {
+          postId: rejected.postId,
+          replyId: row.rows[0].target_id
+        });
+      }
     }
   });
   return { ok: true, reportId, status };

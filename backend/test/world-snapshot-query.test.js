@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildWorldSnapshot, WORLD_SNAPSHOT_SQL } from "../src/routes/world-chapter-service.js";
+import { buildWorldSnapshot, WORLD_SNAPSHOT_SQL } from "../src/world-snapshot-service.js";
 
 test("buildWorldSnapshot loads every domain in one database round trip", async () => {
   const calls = [];

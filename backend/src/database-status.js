@@ -1,7 +1,12 @@
 import { getPoolStats, query } from "./db.js";
 
 const REQUIRED_TABLES = [
+  "auth_sessions",
+  "beta_applications",
   "host_audit_log",
+  "storage_quotas",
+  "user_plans",
+  "users",
   "write_idempotency",
   "room_event_journal",
   "platform_event_journal",
@@ -25,7 +30,10 @@ const REQUIRED_MIGRATIONS = [
   "094_room_release_binding.sql",
   "095_account_deletion_integrity.sql",
   "096_foreign_key_index_coverage.sql",
-  "097_enable_rls_post_launch_tables.sql"
+  "097_enable_rls_post_launch_tables.sql",
+  "098_play_plaza_reply_review.sql",
+  "099_account_delete_job_claims.sql",
+  "100_identity_foundation_integrity.sql"
 ];
 
 export function inspectRequiredDatabaseSchema({

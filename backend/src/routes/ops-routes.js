@@ -36,6 +36,9 @@ import {
   explainRateLimitTopology,
   resolveRateLimitTopology
 } from "../network-trust-policy.js";
+import { inspectDatabaseTlsPolicy } from "../database-connection-options.js";
+import { getSessionCookieSecurityStatus } from "../session-cookie.js";
+import { getIdentityFoundationStatus } from "../identity-foundation-status.js";
 
 const opsAuditLogQuerySchema = {
   type: "object",
@@ -55,17 +58,27 @@ export function allRateLimitsPositive(value) {
   return values.length > 0 && values.every(allRateLimitsPositive);
 }
 
-export function productionTrustGates({ features, rateLimits }) {
+export function productionTrustGates({
+  features,
+  rateLimits,
+  readiness = {},
+  identityFoundation = { ready: false }
+}) {
   const uploadScan = features.uploadScan ?? {};
   const uploadMode = uploadScan.mode;
   const hasExternalScanner = Boolean(uploadScan.webhookConfigured || uploadScan.clamAvConfigured);
   const cspMode = resolveCspMode(process.env.NODE_ENV ?? "development");
+  const databaseTls = inspectDatabaseTlsPolicy();
+  const sessionCookie = getSessionCookieSecurityStatus();
+  const sessionRevocationReady = !readiness.missingTables?.includes("auth_sessions");
   const gates = [
     {
       key: "secure_sessions",
       label: "Session cookies + revocation",
-      ok: true,
-      detail: "auth_sessions revocation and HttpOnly cookie restore are enabled"
+      ok: sessionCookie.secure && sessionCookie.httpOnly && sessionRevocationReady,
+      detail:
+        `secure=${sessionCookie.secure}; httpOnly=${sessionCookie.httpOnly}; `
+        + `revocationTable=${sessionRevocationReady ? "ready" : "missing"}`
     },
     {
       key: "email_verification",
@@ -76,10 +89,19 @@ export function productionTrustGates({ features, rateLimits }) {
     {
       key: "database_tls",
       label: "Verified database TLS",
-      ok: process.env.DATABASE_SSL === "true",
-      detail: process.env.DATABASE_SSL === "true"
-        ? "certificate verification enabled"
-        : "DATABASE_SSL must be true in production"
+      ok: databaseTls.trusted,
+      detail:
+        `enabled=${databaseTls.enabled}; verifyCertificate=${databaseTls.verifyCertificate}; `
+        + `ca=${databaseTls.caSource}`
+    },
+    {
+      key: "identity_foundation",
+      label: "Account tiers + beta access",
+      ok: Boolean(identityFoundation.ready),
+      detail:
+        `missingPlan=${identityFoundation.usersMissingPlan ?? "unknown"}; `
+        + `missingQuota=${identityFoundation.usersMissingQuota ?? "unknown"}; `
+        + `approvedBetaMismatch=${identityFoundation.approvedRegisteredUsersWithoutBeta ?? "unknown"}`
     },
     {
       key: "monetization_frozen",
@@ -196,9 +218,10 @@ export async function registerOpsRoutes(app) {
       }
     },
     async () => {
-      const [ready, bus] = await Promise.all([
+      const [ready, bus, identityFoundation] = await Promise.all([
         getReadinessStatus(),
-        Promise.resolve(getRoomEventBusStatus())
+        Promise.resolve(getRoomEventBusStatus()),
+        getIdentityFoundationStatus()
       ]);
       const sse = getSseConnectionMetrics();
       const features = {
@@ -250,12 +273,18 @@ export async function registerOpsRoutes(app) {
           missingTables: ready.missingTables,
           migrationsApplied: ready.migrationsApplied
         },
+        identityFoundation,
         pool: getPoolStats(),
         sse: { connections: sse.connections, rooms: sse.rooms },
         roomEventBus: bus,
         features,
         rateLimits,
-        productionTrust: productionTrustGates({ features, rateLimits })
+        productionTrust: productionTrustGates({
+          features,
+          rateLimits,
+          readiness: ready,
+          identityFoundation
+        })
       };
     }
   );

@@ -1,5 +1,5 @@
 import { narrativeProfileFromSettings } from "../../shared/narrative-profile.js";
-import { buildWorldSnapshot } from "./routes/world-chapter-service.js";
+import { buildWorldSnapshot } from "./world-snapshot-service.js";
 import { WORLD_RELEASE_SNAPSHOT_VERSION } from "./world-release-contract.js";
 
 const WORLD_RELEASE_SUPPORT_SQL = `

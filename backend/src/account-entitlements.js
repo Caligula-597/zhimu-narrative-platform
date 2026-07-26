@@ -2,6 +2,7 @@
  * Account entitlements — plan, quota usage, and capability flags for the current user.
  */
 import { CAPABILITIES, fetchUserKind } from "./capabilities.js";
+import { throwErr } from "./api-errors.js";
 import { isEmailVerificationRequired, isUserEmailVerified } from "./email-verification-policy.js";
 import {
   buildUsagePayload,
