@@ -10,6 +10,7 @@
 | OAuth 临时 state / login code | 7 天 | 同上 |
 | 密码重置 / 邮箱验证 token | 14–30 天 | 同上 |
 | 已完成注销任务 `account_delete_jobs` | 90 天 | 同上 |
+| OPS 用户管理审计 `ops_user_audit_log` | 180 天 | 同上；`RETENTION_OPS_USER_AUDIT_DAYS` 可覆盖 |
 | 过期上传会话 `upload_sessions` | 30 天 | 同上 |
 | 语音房文字消息 `voice_room_messages` | 90 天 | 同上；`RETENTION_VOICE_MESSAGES_DAYS` 可覆盖 |
 | 用户账号与剧本内容 | 直至用户注销 | `account-delete` outbox |

@@ -32,6 +32,7 @@ import { registerOpsCatalogRoutes } from "./ops-catalog-routes.js";
 import { registerOpsBetaRoutes } from "./ops-beta-routes.js";
 import { registerOpsFeedbackRoutes } from "./ops-feedback-routes.js";
 import { registerOpsPlazaRoutes } from "./ops-plaza-routes.js";
+import { registerOpsUserRoutes } from "./ops-user-routes.js";
 import {
   explainRateLimitTopology,
   resolveRateLimitTopology
@@ -388,4 +389,5 @@ export async function registerOpsRoutes(app) {
   await registerOpsBetaRoutes(app);
   await registerOpsFeedbackRoutes(app);
   await registerOpsPlazaRoutes(app);
+  await registerOpsUserRoutes(app);
 }

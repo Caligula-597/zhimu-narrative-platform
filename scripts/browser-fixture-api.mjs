@@ -18,6 +18,25 @@ let clueSequence = 1;
 let ruleSequence = 0;
 let qualityReportSequence = 0;
 const qualityReports = [];
+const opsFixtureUserId = "77777777-7777-4777-8777-777777770001";
+let opsFixtureUsers = [{
+  id: opsFixtureUserId,
+  email: "pending-browser-test@example.invalid",
+  displayName: "待验证浏览器测试",
+  userKind: "registered",
+  emailVerified: false,
+  verificationStatus: "pending",
+  hasActiveVerification: true,
+  verificationLastSentAt: "2026-07-27T12:00:00.000Z",
+  planCode: "free",
+  ownedWorlds: 0,
+  collaboratorWorlds: 0,
+  assetCount: 0,
+  activeSessions: 0,
+  createdAt: "2026-07-27T11:58:00.000Z",
+  updatedAt: "2026-07-27T12:00:00.000Z",
+  protectedOperationsAccount: false
+}];
 
 const release = {
   id: releaseId,
@@ -506,6 +525,98 @@ const server = http.createServer(async (request, response) => {
   }
   if (request.method === "GET" && path === "/api/platform/public-rooms") {
     return sendJson(response, 200, { total: 0, items: [] });
+  }
+  if (request.method === "GET" && path === "/api/ops/status") {
+    return sendJson(response, 200, {
+      ok: true,
+      ready: true,
+      nodeEnv: "fixture",
+      uptimeSeconds: 120,
+      features: {
+        email: { configured: true },
+        oauth: { enabledProviders: ["google"] },
+        stripe: { configured: false },
+        uploadScan: { enabled: true },
+        telemetry: { enabled: true },
+        alerts: { configured: true },
+        roomEventsBus: "memory"
+      },
+      productionTrust: { passed: 7, total: 7, ready: true, gates: [] }
+    });
+  }
+  if (request.method === "GET" && path === "/api/ops/plan-upgrade/requests") {
+    return sendJson(response, 200, { items: [], total: 0, limit: 20, offset: 0 });
+  }
+  if (request.method === "GET" && path === "/api/ops/audit-log") {
+    return sendJson(response, 200, { items: [], total: 0, limit: 50, offset: 0 });
+  }
+  if (request.method === "GET" && path === "/api/ops/feedback") {
+    return sendJson(response, 200, { items: [], total: 0, limit: 20, offset: 0 });
+  }
+  if (request.method === "GET" && path === "/api/ops/feedback/stats") {
+    return sendJson(response, 200, []);
+  }
+  if (request.method === "GET" && path === "/api/ops/users") {
+    const search = String(url.searchParams.get("search") || "").trim().toLowerCase();
+    const verification = url.searchParams.get("verification") || "all";
+    const items = opsFixtureUsers.filter((user) => {
+      const matchesSearch = !search
+        || user.email.toLowerCase().includes(search)
+        || user.displayName.toLowerCase().includes(search);
+      const matchesVerification = verification === "all"
+        || user.verificationStatus === verification;
+      return matchesSearch && matchesVerification;
+    });
+    return sendJson(response, 200, { items, total: items.length, limit: 20, offset: 0 });
+  }
+  const opsDeletePreviewMatch = path.match(/^\/api\/ops\/users\/([0-9a-f-]+)\/delete-preview$/i);
+  if (request.method === "GET" && opsDeletePreviewMatch) {
+    const target = opsFixtureUsers.find((user) => user.id === opsDeletePreviewMatch[1]);
+    if (!target) return sendJson(response, 404, { code: "USER_NOT_FOUND", error: "User not found" });
+    return sendJson(response, 200, {
+      target,
+      canResetRegistration: !target.emailVerified,
+      canDeleteAccount: true,
+      deletion: {
+        canDelete: true,
+        blockers: [],
+        summary: {
+          ownedWorlds: [],
+          collaboratorWorlds: 0,
+          hostedRooms: 0,
+          assetCount: 0,
+          assetBytes: 0
+        }
+      }
+    });
+  }
+  const opsResendMatch = path.match(/^\/api\/ops\/users\/([0-9a-f-]+)\/resend-verification$/i);
+  if (request.method === "POST" && opsResendMatch) {
+    const target = opsFixtureUsers.find((user) => user.id === opsResendMatch[1]);
+    if (!target) return sendJson(response, 404, { code: "USER_NOT_FOUND", error: "User not found" });
+    target.verificationLastSentAt = new Date().toISOString();
+    target.hasActiveVerification = true;
+    return sendJson(response, 200, { ok: true, verificationRequired: true, auditRecorded: true });
+  }
+  const opsDeleteMatch = path.match(/^\/api\/ops\/users\/([0-9a-f-]+)\/delete$/i);
+  if (request.method === "POST" && opsDeleteMatch) {
+    const body = await readJson(request);
+    const target = opsFixtureUsers.find((user) => user.id === opsDeleteMatch[1]);
+    if (!target) return sendJson(response, 404, { code: "USER_NOT_FOUND", error: "User not found" });
+    if (!body.acknowledged || body.confirmationEmail !== target.email) {
+      return sendJson(response, 400, {
+        code: "ACCOUNT_DELETE_CONFIRMATION_INVALID",
+        error: "Confirmation email does not match the target account"
+      });
+    }
+    opsFixtureUsers = opsFixtureUsers.filter((user) => user.id !== target.id);
+    return sendJson(response, 200, {
+      ok: true,
+      mode: body.mode,
+      deletedAt: new Date().toISOString(),
+      storagePending: false,
+      auditRecorded: true
+    });
   }
   if (request.method === "GET" && path === "/api/platform/events/stream") {
     return sendSse(request, response);

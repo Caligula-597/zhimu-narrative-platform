@@ -4,6 +4,7 @@ const REQUIRED_TABLES = [
   "auth_sessions",
   "beta_applications",
   "host_audit_log",
+  "ops_user_audit_log",
   "storage_quotas",
   "user_plans",
   "users",
@@ -34,7 +35,9 @@ const REQUIRED_MIGRATIONS = [
   "098_play_plaza_reply_review.sql",
   "099_account_delete_job_claims.sql",
   "100_identity_foundation_integrity.sql",
-  "101_user_llm_byok_only.sql"
+  "101_user_llm_byok_only.sql",
+  "102_email_verification_codes.sql",
+  "103_ops_user_management.sql"
 ];
 
 export function inspectRequiredDatabaseSchema({
