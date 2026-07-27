@@ -48,7 +48,7 @@ export function validateStartupEnvironment() {
     }
     if (isEmailVerificationRequired() && !isEmailConfigured()) {
       console.error("FATAL: production email verification requires a configured email provider.");
-      console.error("Set EMAIL_PROVIDER + MAIL_FROM + provider API keys before deploying.");
+      console.error("Set EMAIL_PROVIDER + MAIL_FROM + provider API keys or SMTP credentials before deploying.");
       process.exit(1);
     }
     try {

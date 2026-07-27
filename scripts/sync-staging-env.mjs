@@ -27,6 +27,13 @@ function parseEnv(content) {
   return out;
 }
 
+function serializeValue(value = "") {
+  const raw = String(value);
+  return /[\s#"'\\]/.test(raw)
+    ? `"${raw.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
+    : raw;
+}
+
 const COPY_KEYS = [
   "OBJECT_STORAGE_PROVIDER",
   "R2_ACCOUNT_ID",
@@ -40,7 +47,18 @@ const COPY_KEYS = [
   "LIVEKIT_URL",
   "LIVEKIT_API_KEY",
   "LIVEKIT_API_SECRET",
+  "EMAIL_PROVIDER",
   "RESEND_API_KEY",
+  "SENDGRID_API_KEY",
+  "MAILGUN_API_KEY",
+  "MAILGUN_DOMAIN",
+  "MAILGUN_REGION",
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_SECURE",
+  "SMTP_USER",
+  "SMTP_PASS",
+  "MAIL_REPLY_TO",
   "MAIL_FROM"
 ];
 
@@ -82,8 +100,6 @@ staging.DEEPSEEK_BASE_URL = staging.DEEPSEEK_BASE_URL || "https://api.deepseek.c
 staging.DEEPSEEK_MODEL = staging.DEEPSEEK_MODEL || "deepseek-v4-flash";
 staging.DEEPSEEK_TIMEOUT_MS = staging.DEEPSEEK_TIMEOUT_MS || "180000";
 
-const mailFrom = staging.MAIL_FROM?.includes(" ") ? `"${staging.MAIL_FROM}"` : staging.MAIL_FROM;
-
 const lines = [
   "# Auto-synced by scripts/sync-staging-env.mjs — edit POSTGRES_PASSWORD here if you reset the PG volume",
   `COMPOSE_PROJECT_NAME=${staging.COMPOSE_PROJECT_NAME}`,
@@ -117,8 +133,19 @@ const lines = [
   `LIVEKIT_API_KEY=${staging.LIVEKIT_API_KEY || ""}`,
   `LIVEKIT_API_SECRET=${staging.LIVEKIT_API_SECRET || ""}`,
   "",
+  `EMAIL_PROVIDER=${staging.EMAIL_PROVIDER || "resend"}`,
   `RESEND_API_KEY=${staging.RESEND_API_KEY || ""}`,
-  `MAIL_FROM=${mailFrom || ""}`,
+  `SENDGRID_API_KEY=${staging.SENDGRID_API_KEY || ""}`,
+  `MAILGUN_API_KEY=${staging.MAILGUN_API_KEY || ""}`,
+  `MAILGUN_DOMAIN=${staging.MAILGUN_DOMAIN || ""}`,
+  `MAILGUN_REGION=${staging.MAILGUN_REGION || ""}`,
+  `SMTP_HOST=${staging.SMTP_HOST || ""}`,
+  `SMTP_PORT=${staging.SMTP_PORT || ""}`,
+  `SMTP_SECURE=${staging.SMTP_SECURE || ""}`,
+  `SMTP_USER=${staging.SMTP_USER || ""}`,
+  `SMTP_PASS=${serializeValue(staging.SMTP_PASS)}`,
+  `MAIL_FROM=${serializeValue(staging.MAIL_FROM)}`,
+  `MAIL_REPLY_TO=${serializeValue(staging.MAIL_REPLY_TO)}`,
   `APP_PUBLIC_URL=${staging.APP_PUBLIC_URL}`
 ];
 

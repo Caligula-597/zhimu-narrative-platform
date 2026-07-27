@@ -6,6 +6,10 @@ import {
   isEmailConfigured,
   peekTestVerifyUrl
 } from "../src/email.js";
+import {
+  isSmtpConfigured,
+  smtpTransportOptions
+} from "../src/email/providers/smtp.js";
 
 const ENV_KEYS = [
   "EMAIL_PROVIDER",
@@ -13,6 +17,11 @@ const ENV_KEYS = [
   "SENDGRID_API_KEY",
   "MAILGUN_API_KEY",
   "MAILGUN_DOMAIN",
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_SECURE",
+  "SMTP_USER",
+  "SMTP_PASS",
   "MAIL_FROM",
   "APP_PUBLIC_URL",
   "EMAIL_DELIVERY_STUB",
@@ -56,6 +65,42 @@ test("isEmailConfigured respects EMAIL_PROVIDER routes", async (context) => {
   process.env.MAILGUN_API_KEY = "mg_test";
   process.env.MAILGUN_DOMAIN = "mg.example.invalid";
   assert.equal(isEmailConfigured(), true);
+
+  process.env.EMAIL_PROVIDER = "smtp";
+  process.env.SMTP_HOST = "smtp.example.invalid";
+  process.env.SMTP_PORT = "465";
+  process.env.SMTP_SECURE = "true";
+  process.env.SMTP_USER = "support@example.invalid";
+  process.env.SMTP_PASS = "smtp-client-password";
+  assert.equal(isSmtpConfigured(), true);
+  assert.equal(isEmailConfigured(), true);
+  assert.deepEqual(
+    smtpTransportOptions(),
+    {
+      host: "smtp.example.invalid",
+      port: 465,
+      secure: true,
+      requireTLS: false,
+      auth: {
+        user: "support@example.invalid",
+        pass: "smtp-client-password"
+      },
+      connectionTimeout: 15_000,
+      greetingTimeout: 15_000,
+      socketTimeout: 30_000,
+      disableFileAccess: true,
+      disableUrlAccess: true,
+      tls: {
+        minVersion: "TLSv1.2",
+        rejectUnauthorized: true,
+        servername: "smtp.example.invalid"
+      }
+    }
+  );
+
+  delete process.env.SMTP_PASS;
+  assert.equal(isSmtpConfigured(), false);
+  assert.equal(isEmailConfigured(), false);
 
   process.env.EMAIL_PROVIDER = "console";
   delete process.env.MAILGUN_API_KEY;

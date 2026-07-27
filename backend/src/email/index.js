@@ -2,8 +2,9 @@ import { sendViaConsole } from "./providers/console.js";
 import { sendViaMailgun } from "./providers/mailgun.js";
 import { sendViaResend } from "./providers/resend.js";
 import { sendViaSendGrid } from "./providers/sendgrid.js";
+import { isSmtpConfigured, sendViaSmtp } from "./providers/smtp.js";
 import { worldInviteEmailHtml, passwordResetEmailHtml, emailVerificationHtml } from "./templates.js";
-import { enterpriseEmailSummary } from "../enterprise-emails.js";
+import { enterpriseEmails, enterpriseEmailSummary } from "../enterprise-emails.js";
 import { isEmailVerificationRequired } from "../email-verification-policy.js";
 
 function isDeliveryStubbed() {
@@ -63,6 +64,9 @@ export function isEmailConfigured() {
   if (provider === "mailgun") {
     return Boolean(process.env.MAILGUN_API_KEY?.trim() && process.env.MAILGUN_DOMAIN?.trim());
   }
+  if (provider === "smtp") {
+    return isSmtpConfigured() && Boolean(publicAppUrl());
+  }
   return false;
 }
 
@@ -88,6 +92,7 @@ async function dispatchEmail(payload) {
     return;
   }
   if (provider === "console") return sendViaConsole(payload);
+  if (provider === "smtp") return sendViaSmtp(payload);
   if (provider === "sendgrid") return sendViaSendGrid(payload);
   if (provider === "mailgun") return sendViaMailgun(payload);
   return sendViaResend(payload);
@@ -97,7 +102,14 @@ export async function sendTransactionalEmail({ to, subject, html }) {
   if (!isEmailConfigured()) {
     throw Object.assign(new Error("Email is not configured on the server"), { statusCode: 503, code: "EMAIL_NOT_CONFIGURED" });
   }
-  await dispatchEmail({ to, subject, html });
+  const addresses = enterpriseEmails();
+  await dispatchEmail({
+    to,
+    subject,
+    html,
+    from: addresses.mailFrom,
+    replyTo: addresses.mailReplyTo
+  });
 }
 
 export async function sendPasswordResetEmail({ to, resetToken }) {

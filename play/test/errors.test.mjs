@@ -8,6 +8,8 @@ test("formatApiError maps HTTP status to friendly Chinese", () => {
   assert.equal(formatApiError({ status: 401 }), "请先登录后再操作。");
   assert.match(formatApiError({ name: "AbortError" }), /超时/);
   assert.match(formatApiError({ code: "NETWORK_ERROR" }), /无法连接/);
+  assert.match(formatApiError({ code: "EMAIL_VERIFICATION_PENDING" }), /尚未验证/);
+  assert.match(formatApiError({ code: "EMAIL_ALREADY_REGISTERED" }), /完成验证/);
 });
 
 test("formatApiError hides raw status-only message", () => {

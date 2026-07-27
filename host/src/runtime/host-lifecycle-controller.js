@@ -248,8 +248,26 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       const result = state.authMode === "register"
         ? await api.register(email, displayName, password)
         : await api.login(email, password);
+      if (result.pendingEmailVerification) {
+        if (result.token) {
+          setSessionToken(result.token);
+          state.user = normalizeHostUser(result.user);
+        }
+        state.pendingVerificationEmail = email;
+        state.canResendVerification = Boolean(result.token);
+        state.authMode = "login";
+        showToast(
+          result.verificationEmailSent === false
+            ? "账号已创建，但邮件暂未发出；登录后可重新发送"
+            : "请查收验证邮件后再进入主持端"
+        );
+        render();
+        return;
+      }
       setSessionToken(result.token);
       state.user = normalizeHostUser(result.user);
+      state.pendingVerificationEmail = "";
+      state.canResendVerification = false;
       cleanOAuthUrl();
       await loadWorldsList();
       state.view = "landing";
@@ -327,7 +345,23 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       case "show-auth": state.view = "auth"; render(); return true;
       case "toggle-auth-mode":
         state.authMode = state.authMode === "login" ? "register" : "login";
+        state.pendingVerificationEmail = "";
+        state.canResendVerification = false;
         render();
+        return true;
+      case "verification-back-login":
+        state.pendingVerificationEmail = "";
+        state.canResendVerification = false;
+        state.authMode = "login";
+        render();
+        return true;
+      case "resend-verification":
+        try {
+          await api.resendVerification();
+          showToast("验证邮件已重新发送，请同时检查垃圾箱");
+        } catch (error) {
+          showToast(formatApiError(error, "验证邮件发送失败"));
+        }
         return true;
       case "back-landing": state.view = "landing"; render(); return true;
       case "world-select": await selectWorld(element?.dataset?.worldId); return true;

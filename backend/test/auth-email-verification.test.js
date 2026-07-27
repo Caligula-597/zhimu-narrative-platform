@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
+import {
+  deliverVerificationChallenge,
+  existingRegistrationErrorCode
+} from "../src/auth-registration-service.js";
 import { clearTestEmailCapture, peekTestVerifyUrl } from "../src/email.js";
 
 const originalRequireVerify = process.env.REQUIRE_EMAIL_VERIFICATION;
@@ -43,6 +47,35 @@ test("GET /auth/config exposes verification policy", async (context) => {
     assert.equal(body.email.configured, true);
     assert.equal(body.email.provider, "resend");
   });
+});
+
+test("registration returns a pending state before a slow email provider can outlive the frontend request", async () => {
+  const logged = [];
+  const startedAt = Date.now();
+  const delivered = await deliverVerificationChallenge({
+    user: { id: "slow-email-user", email: "slow@example.invalid" },
+    challenge: { token: "slow-token" },
+    deliveryWaitMs: 10,
+    logger: { error: (entry, message) => logged.push({ entry, message }) },
+    sendVerificationEmail: () => new Promise(() => {})
+  });
+
+  assert.equal(delivered, false);
+  assert.ok(Date.now() - startedAt < 500);
+  assert.equal(logged.length, 1);
+  assert.equal(logged[0].entry.err.code, "EMAIL_DELIVERY_TIMEOUT");
+});
+
+test("registration conflicts distinguish verified accounts from pending verification", () => {
+  assert.equal(existingRegistrationErrorCode(null), null);
+  assert.equal(
+    existingRegistrationErrorCode({ email_verified_at: null }),
+    "EMAIL_VERIFICATION_PENDING"
+  );
+  assert.equal(
+    existingRegistrationErrorCode({ email_verified_at: "2026-07-27T00:00:00.000Z" }),
+    "EMAIL_ALREADY_REGISTERED"
+  );
 });
 
 test("register with verification required sends email and blocks world create", async (context) => {
@@ -90,6 +123,31 @@ test("register with verification required sends email and blocks world create", 
       payload: { name: "已验证世界" }
     });
     assert.equal(createAfter.statusCode, 201);
+  });
+});
+
+test("registering an existing unverified email returns a pending-verification state", async (context) => {
+  await withVerificationEnv(async () => {
+    const app = await createApp({ logger: false, allowDemoUserHeader: false });
+    context.after(() => app.close());
+
+    const email = `verify-pending-${Date.now()}@example.invalid`;
+    const payload = { displayName: "待验证账号", email, password: "pass-word-12345" };
+    const first = await app.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload
+    });
+    assert.equal(first.statusCode, 201, first.body);
+    assert.equal(first.json().pendingEmailVerification, true);
+
+    const second = await app.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload
+    });
+    assert.equal(second.statusCode, 409, second.body);
+    assert.equal(second.json().code, "EMAIL_VERIFICATION_PENDING");
   });
 });
 

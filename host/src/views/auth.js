@@ -6,6 +6,21 @@ export function renderAuth() {
   const mode = state.authMode || "login";
   const isRegister = mode === "register";
 
+  if (state.pendingVerificationEmail) {
+    return `
+      <section class="host-auth-panel">
+        <p class="eyebrow">邮箱验证</p>
+        <h2>请查收验证邮件</h2>
+        <p class="muted">我们已向 ${escapeHtml(state.pendingVerificationEmail)} 发送验证链接。请点击邮件内链接完成验证；如未收到，请同时检查垃圾箱。</p>
+        <div class="auth-footer">
+          ${state.canResendVerification
+            ? `<button class="secondary-btn" type="button" data-action="resend-verification">重新发送验证邮件</button>`
+            : ""}
+          <button class="text-btn" type="button" data-action="verification-back-login">${state.canResendVerification ? "返回登录" : "返回登录；未收到时可重发"}</button>
+        </div>
+      </section>`;
+  }
+
   return `
     <section class="host-auth-panel">
       <p class="eyebrow">主持端账号</p>
@@ -17,7 +32,10 @@ export function renderAuth() {
           : ""}
         <label>邮箱<input class="field" name="email" type="email" autocomplete="email" required /></label>
         <label>密码<input class="field" name="password" type="password" minlength="8" required /></label>
-        <button class="primary-btn auth-submit" type="submit" ${state.busy ? "disabled" : ""}>${isRegister ? "注册" : "登录"}</button>
+        ${isRegister && state.authConfig?.requireEmailVerification !== false
+          ? `<p class="muted">注册后会收到织幕企业邮箱发送的验证邮件；点击邮件内链接完成验证。</p>`
+          : ""}
+        <button class="primary-btn auth-submit" type="submit" ${state.busy ? "disabled" : ""}>${isRegister ? "注册并发送验证邮件" : "登录"}</button>
       </form>
       ${oauth.length
         ? `<div class="oauth-row">${oauth

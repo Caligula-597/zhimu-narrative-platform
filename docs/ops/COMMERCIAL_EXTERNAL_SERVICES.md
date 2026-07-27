@@ -83,6 +83,7 @@ CORS_ORIGIN=https://app.你的域名
 | `resend` | 默认；你已有 `jing597.xyz` 域名 |
 | `sendgrid` | Twilio SendGrid |
 | `mailgun` | Mailgun EU/US |
+| `smtp` | 企业邮箱 SMTP；当前 `getzhimu.com` 可使用阿里企业邮箱 |
 | `console` | 仅开发：stdout 打印，不发真信 |
 
 ### 路线 A：Resend（推荐，你已部分完成）
@@ -136,6 +137,31 @@ CORS_ORIGIN=https://app.你的域名
    MAIL_FROM=织幕 <noreply@你的域名>
    APP_PUBLIC_URL=https://app.你的域名
    ```
+
+### 路线 D：阿里企业邮箱 SMTP（内测期）
+
+使用一个固定邮箱发送系统事务邮件，不要在三个邮箱之间轮换。当前建议：
+
+- `support@getzhimu.com`：验证、重置密码、协作邀请，同时作为 Reply-To。
+- `hello@getzhimu.com`：商务和一般咨询。
+- `admin@getzhimu.com`：只接收内测审批、公开库、告警等内部通知。
+
+在阿里邮箱后台为 `support@` 开启第三方客户端登录并生成三方客户端安全密码，然后配置：
+
+```env
+EMAIL_PROVIDER=smtp
+SMTP_HOST=smtp.qiye.aliyun.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=support@getzhimu.com
+SMTP_PASS=【三方客户端安全密码】
+MAIL_FROM=织幕 <support@getzhimu.com>
+MAIL_REPLY_TO=support@getzhimu.com
+APP_PUBLIC_URL=https://app.getzhimu.com
+REQUIRE_EMAIL_VERIFICATION=true
+```
+
+`SMTP_PASS` 只能保存在 Railway 等部署平台的 Secret/Variables 中。企业邮箱只用于早期低量事务信；大量自动发信应切换专用邮件推送服务。
 
 **运维检查**：`GET /api/ops/status`（需 `OPS_API_TOKEN`）→ `features.email` 显示 provider 与 configured 状态。
 
