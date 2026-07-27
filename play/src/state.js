@@ -62,6 +62,8 @@ export const state = {
   joinStep: 1,
   view: storedRoomId ? "game" : "landing",
   authMode: "login",
+  pendingVerificationEmail: "",
+  pendingVerificationChallenge: null,
   resetToken: "",
   pendingVerifyToken: "",
   recapLatest: null,

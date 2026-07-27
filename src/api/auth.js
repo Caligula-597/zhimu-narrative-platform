@@ -49,6 +49,14 @@ export function verifyEmail(payload) {
   return request("/auth/verify-email", { method: "POST", body: payload });
 }
 
+export function verifyEmailCode(payload) {
+  return request("/auth/verify-email-code", { method: "POST", body: payload });
+}
+
+export function resendVerificationCode(payload = {}) {
+  return request("/auth/resend-verification-code", { method: "POST", body: payload });
+}
+
 export function resendVerification() {
   return request("/auth/resend-verification", { method: "POST", body: {} });
 }

@@ -240,6 +240,7 @@ const {
   handleResendVerification,
   handleGuestSubmit,
   handleAuthSubmit,
+  handleVerificationSubmit,
   handleOAuth,
   handleLogout
 } = createAuthFlowController({
@@ -272,6 +273,7 @@ bindPlayFormEvents({
   handlePlayerSearch,
   handleDmSend,
   handleAuthSubmit,
+  handleVerificationSubmit,
   handleForgotSubmit,
   handleResetSubmit,
   handleGuestSubmit

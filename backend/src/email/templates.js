@@ -129,14 +129,17 @@ export function passwordResetEmailHtml({ resetUrl }) {
   });
 }
 
-export function emailVerificationHtml({ verifyUrl }) {
+export function emailVerificationHtml({ verifyUrl, verificationCode }) {
+  const safeCode = escapeHtml(verificationCode);
   const bodyHtml = `<p style="margin:0 0 12px">欢迎注册织幕。</p>
-<p style="margin:0">请点击下方按钮验证邮箱（链接 <strong>24 小时内</strong>有效）。验证通过后即可创建与管理剧本。</p>`;
+<p style="margin:0 0 16px">请在注册页面输入下面的 6 位邮箱验证码：</p>
+<div style="margin:0 0 16px;padding:16px 18px;border:1px solid rgba(20,35,33,.12);border-radius:8px;background:#f8f5ee;text-align:center;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:30px;font-weight:800;letter-spacing:.22em;color:${BRAND.green}">${safeCode}</div>
+<p style="margin:0">验证码 <strong>10 分钟内</strong>有效且只能使用一次。你也可以点击下方按钮一键验证；链接 24 小时内有效。验证成功后会自动登录。</p>`;
   return brandedEmailHtml({
     title: "验证邮箱",
-    preview: "验证织幕账号邮箱",
+    preview: `织幕邮箱验证码：${verificationCode}`,
     bodyHtml,
     ctaUrl: verifyUrl,
-    ctaLabel: "验证邮箱"
+    ctaLabel: "一键验证并登录"
   });
 }

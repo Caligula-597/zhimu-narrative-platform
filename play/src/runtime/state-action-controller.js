@@ -58,6 +58,8 @@ export function handlePlayStateAction({
       return true;
     case "toggle-auth-mode":
       state.authMode = state.authMode === "login" ? "register" : "login";
+      state.pendingVerificationEmail = "";
+      state.pendingVerificationChallenge = null;
       render();
       return true;
     case "auth-forgot":
@@ -66,6 +68,8 @@ export function handlePlayStateAction({
       return true;
     case "auth-login":
       state.authMode = "login";
+      state.pendingVerificationEmail = "";
+      state.pendingVerificationChallenge = null;
       state.resetToken = "";
       render();
       return true;

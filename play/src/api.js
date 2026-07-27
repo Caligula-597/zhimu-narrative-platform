@@ -76,6 +76,13 @@ export const api = {
   resetPassword: (token, password) =>
     request("/auth/reset-password", { method: "POST", body: { token, password } }),
   verifyEmail: (token) => request("/auth/verify-email", { method: "POST", body: { token } }),
+  verifyEmailCode: (challengeId, code) =>
+    request("/auth/verify-email-code", { method: "POST", body: { challengeId, code } }),
+  resendVerificationCode: (challengeId) =>
+    request("/auth/resend-verification-code", {
+      method: "POST",
+      body: challengeId ? { challengeId } : {}
+    }),
   resendVerification: () => request("/auth/resend-verification", { method: "POST", body: {} }),
   oauthStartUrl: (provider, returnOrigin) =>
     request(`/auth/oauth/${provider}/start-url`, {

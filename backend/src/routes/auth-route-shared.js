@@ -34,6 +34,24 @@ export const verifyEmailSchema = {
   properties: { token: { type: "string", minLength: 16, maxLength: 128 } }
 };
 
+export const verifyEmailCodeSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["challengeId", "code"],
+  properties: {
+    challengeId: { type: "string", format: "uuid" },
+    code: { type: "string", pattern: "^\\d{6}$" }
+  }
+};
+
+export const resendEmailVerificationCodeSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    challengeId: { type: "string", format: "uuid" }
+  }
+};
+
 export const PASSWORD_RESET_ACK = {
   ok: true,
   message: "If that email is registered, you will receive a password reset link shortly."

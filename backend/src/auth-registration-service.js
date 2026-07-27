@@ -1,10 +1,13 @@
 import { randomBytes } from "node:crypto";
 import { createSession, hashClientIp, hashPassword } from "./auth.js";
-import { createAuthToken, hashAuthToken } from "./auth-token.js";
 import { throwErr } from "./api-errors.js";
 import { normalizeIdentityWriteError } from "./auth-identity-errors.js";
 import { transaction } from "./db.js";
 import { isEmailConfigured, sendEmailVerificationEmail } from "./email.js";
+import {
+  createEmailVerificationChallenge,
+  publicEmailVerificationChallenge
+} from "./email-verification-code.js";
 import { isEmailVerificationRequired } from "./email-verification-policy.js";
 import { isInternalBetaEmail } from "./internal-accounts.js";
 import {
@@ -31,7 +34,6 @@ import {
 } from "./repositories/auth-recovery-repository.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const EMAIL_DELIVERY_WAIT_MS = 8_000;
 
 function boundedLimit(raw, fallback) {
@@ -55,16 +57,11 @@ function verificationState(email) {
   if (emailVerified) {
     return { internalBeta, verificationRequired, emailVerified, challenge: null };
   }
-  const token = createAuthToken();
   return {
     internalBeta,
     verificationRequired,
     emailVerified,
-    challenge: {
-      token,
-      tokenHash: hashAuthToken(token),
-      expiresAt: new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS)
-    }
+    challenge: createEmailVerificationChallenge()
   };
 }
 
@@ -108,7 +105,11 @@ export async function deliverVerificationChallenge({
   let timeout;
   try {
     const delivery = Promise.resolve(
-      sendVerificationEmail({ to: user.email, verifyToken: challenge.token })
+      sendVerificationEmail({
+        to: user.email,
+        verifyToken: challenge.token,
+        verificationCode: challenge.code
+      })
     );
     if (deliveryWaitMs > 0) {
       await Promise.race([
@@ -176,7 +177,11 @@ export async function registerIdentity({
         await insertEmailVerificationToken(client, {
           userId: user.id,
           tokenHash: state.challenge.tokenHash,
-          expiresAt: state.challenge.expiresAt
+          expiresAt: state.challenge.expiresAt,
+          challengeId: state.challenge.challengeId,
+          codeHash: state.challenge.codeHash,
+          codeExpiresAt: state.challenge.codeExpiresAt,
+          lastSentAt: state.challenge.lastSentAt
         });
       }
       const session = state.challenge
@@ -198,7 +203,10 @@ export async function registerIdentity({
     return {
       ...result,
       pendingEmailVerification: Boolean(state.challenge),
-      verificationEmailSent
+      verificationEmailSent,
+      verificationChallenge: state.challenge
+        ? publicEmailVerificationChallenge(state.challenge, result.user.email)
+        : null
     };
   } catch (error) {
     throw normalizeIdentityWriteError(error);
@@ -275,7 +283,11 @@ export async function upgradeGuestIdentity({
         await insertEmailVerificationToken(client, {
           userId: actorId,
           tokenHash: state.challenge.tokenHash,
-          expiresAt: state.challenge.expiresAt
+          expiresAt: state.challenge.expiresAt,
+          challengeId: state.challenge.challengeId,
+          codeHash: state.challenge.codeHash,
+          codeExpiresAt: state.challenge.codeExpiresAt,
+          lastSentAt: state.challenge.lastSentAt
         });
       }
       await revokeAllIdentitySessions(client, actorId);
@@ -298,7 +310,10 @@ export async function upgradeGuestIdentity({
     return {
       ...result,
       pendingEmailVerification: Boolean(state.challenge),
-      verificationEmailSent
+      verificationEmailSent,
+      verificationChallenge: state.challenge
+        ? publicEmailVerificationChallenge(state.challenge, result.user.email)
+        : null
     };
   } catch (error) {
     throw normalizeIdentityWriteError(error);

@@ -409,6 +409,15 @@ button {
   color: var(--ink-soft);
 }
 
+.verification-code-input {
+  min-height: 52px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: 0.24em;
+  text-align: center;
+}
+
 .auth-divider {
   display: flex;
   align-items: center;
