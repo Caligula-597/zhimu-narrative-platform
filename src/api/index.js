@@ -377,5 +377,9 @@ export {
   getOpsFeedbackStats,
   updateOpsFeedbackStatus,
   assignOpsPlan,
+  getOpsUsers,
+  previewOpsUserDelete,
+  resendOpsUserVerification,
+  deleteOpsUserAccount,
   sendOpsTestAlert
 } from "./ops.js";

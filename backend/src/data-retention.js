@@ -11,6 +11,7 @@ const DEFAULT_RETENTION_DAYS = {
   passwordResetTokens: 14,
   emailVerificationTokens: 30,
   accountCreationEvents: 7,
+  opsUserAudits: 180,
   completedDeleteJobs: 90,
   expiredUploadSessions: 30,
   eventJournals: 30,
@@ -30,6 +31,7 @@ export function resolveRetentionDays(env = process.env) {
     passwordResetTokens: read("RETENTION_PASSWORD_RESET_DAYS", DEFAULT_RETENTION_DAYS.passwordResetTokens),
     emailVerificationTokens: read("RETENTION_EMAIL_VERIFICATION_DAYS", DEFAULT_RETENTION_DAYS.emailVerificationTokens),
     accountCreationEvents: read("RETENTION_ACCOUNT_CREATION_EVENTS_DAYS", DEFAULT_RETENTION_DAYS.accountCreationEvents),
+    opsUserAudits: read("RETENTION_OPS_USER_AUDIT_DAYS", DEFAULT_RETENTION_DAYS.opsUserAudits),
     completedDeleteJobs: read("RETENTION_DELETE_JOBS_DAYS", DEFAULT_RETENTION_DAYS.completedDeleteJobs),
     expiredUploadSessions: read("RETENTION_UPLOAD_SESSIONS_DAYS", DEFAULT_RETENTION_DAYS.expiredUploadSessions),
     eventJournals: read("RETENTION_EVENT_JOURNALS_DAYS", DEFAULT_RETENTION_DAYS.eventJournals),
@@ -118,6 +120,17 @@ export async function purgeExpiredData(options = {}) {
     deleteSql: `DELETE FROM auth_account_creation_events
       WHERE created_at < now() - ($1::text || ' days')::interval`,
     params: [days.accountCreationEvents]
+  });
+
+  await purgeTable({
+    dryRun,
+    summary,
+    key: "opsUserAudits",
+    countSql: `SELECT COUNT(*)::int AS count FROM ops_user_audit_log
+      WHERE created_at < now() - ($1::text || ' days')::interval`,
+    deleteSql: `DELETE FROM ops_user_audit_log
+      WHERE created_at < now() - ($1::text || ' days')::interval`,
+    params: [days.opsUserAudits]
   });
 
   await purgeTable({
