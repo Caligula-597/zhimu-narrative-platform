@@ -77,3 +77,16 @@ test("all Pages builds pin their root and clear stale output", () => {
     assert.match(source, /emptyOutDir:\s*true/, `${relativePath} must clear stale output`);
   }
 });
+
+test("fullstack Docker build includes the static error pages", () => {
+  const source = fs.readFileSync(
+    new URL("../deploy/Dockerfile.fullstack", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(
+    source,
+    /^COPY error-pages \.\/error-pages$/m,
+    "the production image must include error-pages so missing hashed assets return 404"
+  );
+});
