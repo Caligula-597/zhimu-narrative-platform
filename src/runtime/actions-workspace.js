@@ -126,6 +126,9 @@ import { callView } from "./view-registry.js";
         }
         render();
         return true;
+      case "reload-app":
+        window.location.reload();
+        return true;
       case "dismiss-onboarding":
         window.zhimuOnboarding?.dismiss?.();
         render();
