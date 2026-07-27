@@ -597,6 +597,20 @@ textarea:focus-visible {
   margin-top: 3px;
 }
 
+.verification-code-input {
+  min-height: 52px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: 0.24em;
+  text-align: center;
+}
+
+.verification-help {
+  margin-top: 14px;
+  font-size: 12px;
+}
+
 .oauth-row {
   display: grid;
   gap: 8px;

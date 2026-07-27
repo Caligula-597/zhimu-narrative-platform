@@ -10,6 +10,7 @@ export function bindPlayFormEvents({
   handlePlayerSearch,
   handleDmSend,
   handleAuthSubmit,
+  handleVerificationSubmit,
   handleForgotSubmit,
   handleResetSubmit,
   handleGuestSubmit
@@ -20,6 +21,7 @@ export function bindPlayFormEvents({
     ["player-search", handlePlayerSearch],
     ["dm-send", handleDmSend],
     ["auth", handleAuthSubmit],
+    ["verification-code", handleVerificationSubmit],
     ["forgot", handleForgotSubmit],
     ["reset", handleResetSubmit],
     ["guest", handleGuestSubmit]

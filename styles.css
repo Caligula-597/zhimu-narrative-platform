@@ -9,6 +9,24 @@
   z-index: 20;
 }
 
+.verification-code-group { margin-top:18px; }
+.verification-code-input {
+  width:min(100%,340px);
+  min-height:52px;
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+  font-size:24px;
+  font-weight:750;
+  letter-spacing:.24em;
+  text-align:center;
+}
+.verification-code-actions {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:12px;
+}
+
 :root {
   --card: var(--surface-soft);
   --gold: var(--brass);

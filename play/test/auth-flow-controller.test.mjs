@@ -31,15 +31,44 @@ test("login stores session and normalized user", async () => {
   assert.deepEqual(calls.filter((call) => call[0] === "busy").map((call) => call[1]), [true, false]);
 });
 
-test("pending email verification does not persist an empty token", async () => {
-  const api = { register: async () => ({ pendingEmailVerification: true, message: "请验证邮箱" }) };
+test("pending email verification opens the six-digit challenge without persisting an empty token", async () => {
+  const challenge = {
+    id: "be36d9de-63e8-4c7b-96a3-b13ad19bb0ef",
+    maskedEmail: "a**@example.com"
+  };
+  const api = {
+    register: async () => ({
+      pendingEmailVerification: true,
+      verificationEmailSent: true,
+      verificationChallenge: challenge
+    })
+  };
   const { controller, state, calls } = setup(api);
   state.authMode = "register";
   await controller.handleAuthSubmit({
     email: { value: "a@example.com" }, password: { value: "pw" }, displayName: { value: "A" }
   });
-  assert.equal(state.authMode, "login");
+  assert.equal(state.authMode, "verify");
+  assert.equal(state.pendingVerificationEmail, "a@example.com");
+  assert.deepEqual(state.pendingVerificationChallenge, challenge);
   assert.equal(calls.some((call) => call[0] === "token"), false);
+});
+
+test("correct verification code stores the new session and exits verification", async () => {
+  const api = {
+    verifyEmailCode: async () => ({
+      token: "verified-token",
+      user: { email: "a@example.com", emailVerified: true }
+    })
+  };
+  const { controller, state, calls } = setup(api);
+  state.authMode = "verify";
+  state.pendingVerificationChallenge = {
+    id: "be36d9de-63e8-4c7b-96a3-b13ad19bb0ef"
+  };
+  await controller.handleVerificationSubmit({ code: { value: "123456" } });
+  assert.equal(state.pendingVerificationChallenge, null);
+  assert.ok(calls.some((call) => call[0] === "token" && call[1] === "verified-token"));
 });
 
 test("unsupported OAuth provider is rejected before network access", async () => {

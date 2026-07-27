@@ -63,10 +63,12 @@ setInterval(() => {
 
 app.addEventListener("submit", async (event) => {
   const form = event.target.closest("[data-form='auth']");
-  if (!form) return;
+  const verificationForm = event.target.closest("[data-form='verification-code']");
+  if (!form && !verificationForm) return;
   event.preventDefault();
   if (state.busy) return;
-  await lifecycle.handleAuthSubmit(form);
+  if (verificationForm) await lifecycle.handleVerificationSubmit(verificationForm);
+  else await lifecycle.handleAuthSubmit(form);
 });
 
 app.addEventListener("click", async (event) => {

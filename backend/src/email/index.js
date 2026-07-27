@@ -14,6 +14,7 @@ function isDeliveryStubbed() {
 const testCaptures = {
   passwordResetUrl: null,
   emailVerifyUrl: null,
+  emailVerificationCode: null,
   worldInviteUrl: null
 };
 
@@ -25,6 +26,10 @@ export function peekTestVerifyUrl() {
   return testCaptures.emailVerifyUrl;
 }
 
+export function peekTestVerificationCode() {
+  return testCaptures.emailVerificationCode;
+}
+
 export function peekTestInviteUrl() {
   return testCaptures.worldInviteUrl;
 }
@@ -32,6 +37,7 @@ export function peekTestInviteUrl() {
 export function clearTestEmailCapture() {
   testCaptures.passwordResetUrl = null;
   testCaptures.emailVerifyUrl = null;
+  testCaptures.emailVerificationCode = null;
   testCaptures.worldInviteUrl = null;
 }
 
@@ -125,16 +131,17 @@ export async function sendPasswordResetEmail({ to, resetToken }) {
   });
 }
 
-export async function sendEmailVerificationEmail({ to, verifyToken }) {
+export async function sendEmailVerificationEmail({ to, verifyToken, verificationCode }) {
   const verifyUrl = `${publicAppUrl()}/?verify=${encodeURIComponent(verifyToken)}`;
   if (isDeliveryStubbed()) {
     testCaptures.emailVerifyUrl = verifyUrl;
+    testCaptures.emailVerificationCode = verificationCode || null;
     return;
   }
   await sendTransactionalEmail({
     to,
-    subject: "验证织幕账号邮箱",
-    html: emailVerificationHtml({ verifyUrl })
+    subject: `织幕邮箱验证码：${verificationCode}`,
+    html: emailVerificationHtml({ verifyUrl, verificationCode })
   });
 }
 

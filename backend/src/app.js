@@ -305,12 +305,16 @@ export async function createApp(options = {}) {
     if ([
       "/api/auth/forgot-password",
       "/api/auth/reset-password",
-      "/api/auth/verify-email"
+      "/api/auth/verify-email",
+      "/api/auth/verify-email-code"
     ].includes(url)) {
       await authRecoveryRateLimit(request, reply);
       return;
     }
-    if (url === "/api/auth/resend-verification") {
+    if ([
+      "/api/auth/resend-verification",
+      "/api/auth/resend-verification-code"
+    ].includes(url)) {
       await verificationResendRateLimit(request, reply);
       return;
     }

@@ -96,11 +96,22 @@ export async function invalidateEmailVerificationTokens(client, userId) {
   );
 }
 
-export async function insertEmailVerificationToken(client, { userId, tokenHash, expiresAt }) {
+export async function insertEmailVerificationToken(client, {
+  userId,
+  tokenHash,
+  expiresAt,
+  challengeId,
+  codeHash,
+  codeExpiresAt,
+  lastSentAt
+}) {
   await client.query(
-    `INSERT INTO email_verification_tokens (user_id, token_hash, expires_at)
-     VALUES ($1, $2, $3)`,
-    [userId, tokenHash, expiresAt]
+    `INSERT INTO email_verification_tokens (
+       user_id, token_hash, expires_at, challenge_id,
+       verification_code_hash, verification_code_expires_at, last_sent_at
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [userId, tokenHash, expiresAt, challengeId, codeHash, codeExpiresAt, lastSentAt]
   );
 }
 
@@ -123,6 +134,95 @@ export async function consumeEmailVerificationToken(client, tokenHash) {
     [tokenHash]
   );
   return result.rows[0]?.user_id ?? null;
+}
+
+export async function findActiveEmailVerificationChallengeForUser(client, userId) {
+  const result = await client.query(
+    `SELECT challenge_id, verification_code_expires_at, last_sent_at
+     FROM email_verification_tokens
+     WHERE user_id = $1 AND used_at IS NULL
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [userId]
+  );
+  const row = result.rows[0];
+  return row
+    ? {
+        challengeId: row.challenge_id,
+        codeExpiresAt: row.verification_code_expires_at,
+        lastSentAt: row.last_sent_at
+      }
+    : null;
+}
+
+export async function findEmailVerificationChallengeUserId(client, challengeId) {
+  const result = await client.query(
+    `SELECT user_id
+     FROM email_verification_tokens
+     WHERE challenge_id = $1 AND used_at IS NULL`,
+    [challengeId]
+  );
+  return result.rows[0]?.user_id ?? null;
+}
+
+export async function lockEmailVerificationChallenge(client, challengeId) {
+  const result = await client.query(
+    `SELECT token.id, token.user_id, token.challenge_id,
+            token.verification_code_hash, token.verification_code_expires_at,
+            token.failed_attempts, token.last_sent_at, token.expires_at,
+            users.email, users.email_verified_at
+     FROM email_verification_tokens token
+     JOIN users ON users.id = token.user_id
+     WHERE token.challenge_id = $1 AND token.used_at IS NULL
+     FOR UPDATE OF token`,
+    [challengeId]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function recordFailedEmailVerificationCode(client, tokenId) {
+  const result = await client.query(
+    `UPDATE email_verification_tokens
+     SET failed_attempts = failed_attempts + 1
+     WHERE id = $1 AND used_at IS NULL
+     RETURNING failed_attempts`,
+    [tokenId]
+  );
+  return result.rows[0]?.failed_attempts ?? null;
+}
+
+export async function consumeEmailVerificationChallenge(client, tokenId) {
+  const result = await client.query(
+    `UPDATE email_verification_tokens
+     SET used_at = now()
+     WHERE id = $1 AND used_at IS NULL
+     RETURNING user_id`,
+    [tokenId]
+  );
+  return result.rows[0]?.user_id ?? null;
+}
+
+export async function rotateEmailVerificationChallenge(client, {
+  tokenId,
+  tokenHash,
+  expiresAt,
+  codeHash,
+  codeExpiresAt,
+  lastSentAt
+}) {
+  const result = await client.query(
+    `UPDATE email_verification_tokens
+     SET token_hash = $2,
+         expires_at = $3,
+         verification_code_hash = $4,
+         verification_code_expires_at = $5,
+         failed_attempts = 0,
+         last_sent_at = $6
+     WHERE id = $1 AND used_at IS NULL
+     RETURNING challenge_id`,
+    [tokenId, tokenHash, expiresAt, codeHash, codeExpiresAt, lastSentAt]
+  );
+  return result.rows[0]?.challenge_id ?? null;
 }
 
 export async function markRecoveryUserEmailVerified(client, userId) {

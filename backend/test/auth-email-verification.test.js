@@ -5,7 +5,12 @@ import {
   deliverVerificationChallenge,
   existingRegistrationErrorCode
 } from "../src/auth-registration-service.js";
-import { clearTestEmailCapture, peekTestVerifyUrl } from "../src/email.js";
+import {
+  clearTestEmailCapture,
+  peekTestVerificationCode,
+  peekTestVerifyUrl
+} from "../src/email.js";
+import { query } from "../src/db.js";
 
 const originalRequireVerify = process.env.REQUIRE_EMAIL_VERIFICATION;
 const originalResendKey = process.env.RESEND_API_KEY;
@@ -94,6 +99,9 @@ test("register with verification required sends email and blocks world create", 
     assert.equal(regBody.pendingEmailVerification, true);
     assert.equal(regBody.token, undefined);
     assert.equal(regBody.user.emailVerified, false);
+    assert.match(regBody.verificationChallenge.id, /^[0-9a-f-]{36}$/i);
+    assert.equal(regBody.verificationChallenge.codeLength, 6);
+    assert.equal("code" in regBody.verificationChallenge, false);
 
     const verifyUrl = peekTestVerifyUrl();
     assert.ok(verifyUrl);
@@ -123,6 +131,97 @@ test("register with verification required sends email and blocks world create", 
       payload: { name: "已验证世界" }
     });
     assert.equal(createAfter.statusCode, 201);
+  });
+});
+
+test("six-digit code verifies once, creates a session and rejects reuse", async (context) => {
+  await withVerificationEnv(async () => {
+    const app = await createApp({ logger: false, allowDemoUserHeader: false });
+    context.after(() => app.close());
+
+    const email = `verify-code-${Date.now()}@example.invalid`;
+    const register = await app.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload: { displayName: "验证码测试", email, password: "pass-word-12345" }
+    });
+    assert.equal(register.statusCode, 201, register.body);
+    const challengeId = register.json().verificationChallenge.id;
+    const code = peekTestVerificationCode();
+    assert.match(code, /^\d{6}$/);
+
+    const verify = await app.inject({
+      method: "POST",
+      url: "/api/auth/verify-email-code",
+      payload: { challengeId, code }
+    });
+    assert.equal(verify.statusCode, 200, verify.body);
+    assert.ok(verify.json().token);
+    assert.equal(verify.json().user.emailVerified, true);
+
+    const reuse = await app.inject({
+      method: "POST",
+      url: "/api/auth/verify-email-code",
+      payload: { challengeId, code }
+    });
+    assert.equal(reuse.statusCode, 400, reuse.body);
+    assert.equal(reuse.json().code, "EMAIL_VERIFICATION_CODE_INVALID");
+  });
+});
+
+test("code resend enforces cooldown, rotates credentials and invalidates the old code", async (context) => {
+  await withVerificationEnv(async () => {
+    const app = await createApp({ logger: false, allowDemoUserHeader: false });
+    context.after(() => app.close());
+
+    const email = `verify-resend-code-${Date.now()}@example.invalid`;
+    const register = await app.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload: { displayName: "验证码重发", email, password: "pass-word-12345" }
+    });
+    assert.equal(register.statusCode, 201, register.body);
+    const challengeId = register.json().verificationChallenge.id;
+    const firstCode = peekTestVerificationCode();
+
+    const early = await app.inject({
+      method: "POST",
+      url: "/api/auth/resend-verification-code",
+      payload: { challengeId }
+    });
+    assert.equal(early.statusCode, 429, early.body);
+    assert.equal(early.json().code, "EMAIL_VERIFICATION_RESEND_COOLDOWN");
+
+    await query(
+      `UPDATE email_verification_tokens
+       SET last_sent_at = now() - interval '61 seconds'
+       WHERE challenge_id = $1`,
+      [challengeId]
+    );
+    clearTestEmailCapture();
+    const resent = await app.inject({
+      method: "POST",
+      url: "/api/auth/resend-verification-code",
+      payload: { challengeId }
+    });
+    assert.equal(resent.statusCode, 200, resent.body);
+    const secondCode = peekTestVerificationCode();
+    assert.match(secondCode, /^\d{6}$/);
+    assert.equal(resent.json().verificationChallenge.id, challengeId);
+
+    const oldCode = await app.inject({
+      method: "POST",
+      url: "/api/auth/verify-email-code",
+      payload: { challengeId, code: firstCode }
+    });
+    assert.equal(oldCode.statusCode, 400, oldCode.body);
+
+    const currentCode = await app.inject({
+      method: "POST",
+      url: "/api/auth/verify-email-code",
+      payload: { challengeId, code: secondCode }
+    });
+    assert.equal(currentCode.statusCode, 200, currentCode.body);
   });
 });
 

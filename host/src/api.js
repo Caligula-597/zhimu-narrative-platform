@@ -65,6 +65,13 @@ export const api = {
   login: (email, password) => request("/auth/login", { method: "POST", body: { email, password } }),
   register: (email, displayName, password) =>
     request("/auth/register", { method: "POST", body: { email, displayName, password } }),
+  verifyEmailCode: (challengeId, code) =>
+    request("/auth/verify-email-code", { method: "POST", body: { challengeId, code } }),
+  resendVerificationCode: (challengeId) =>
+    request("/auth/resend-verification-code", {
+      method: "POST",
+      body: challengeId ? { challengeId } : {}
+    }),
   resendVerification: () =>
     request("/auth/resend-verification", { method: "POST", body: {} }),
   guest: (displayName) => request("/auth/guest", { method: "POST", body: { displayName } }),

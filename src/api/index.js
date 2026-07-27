@@ -67,6 +67,8 @@ export {
   logoutAllDevices,
   getAuthConfig,
   verifyEmail,
+  verifyEmailCode,
+  resendVerificationCode,
   resendVerification,
   requestPasswordReset,
   resetPassword,

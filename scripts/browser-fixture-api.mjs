@@ -8,6 +8,9 @@ import { AI_PLAYER_ARCHETYPES } from "../shared/ai-playtest.js";
 
 const host = "127.0.0.1";
 const port = Number(process.env.ZHIMU_BROWSER_FIXTURE_PORT || 4180);
+const verificationAuthFixture = process.env.ZHIMU_BROWSER_FIXTURE_AUTH === "verification";
+const verificationChallengeId = "7f5f69b2-5330-4cc9-9497-5a6c751c80e8";
+let verificationFixtureAuthenticated = false;
 const worldId = "33333333-3333-4333-8444-555555550003";
 const releaseId = "44444444-4444-4444-8444-555555550004";
 let roomSequence = 2;
@@ -412,14 +415,77 @@ const server = http.createServer(async (request, response) => {
     return sendJson(response, 200, { ok: true, fixture: true });
   }
   if (request.method === "GET" && path === "/api/auth/config") {
-    return sendJson(response, 200, { requireAuth: false, demoMode: true, providers: [] });
+    return sendJson(response, 200, verificationAuthFixture
+      ? {
+          requireAuth: true,
+          demoMode: false,
+          requireEmailVerification: true,
+          email: { configured: true, provider: "fixture" },
+          oauth: []
+        }
+      : { requireAuth: false, demoMode: true, providers: [] });
   }
   if (request.method === "GET" && path === "/api/auth/me") {
+    if (verificationAuthFixture && !verificationFixtureAuthenticated) {
+      return sendJson(response, 401, { code: "AUTH_REQUIRED", error: "Authentication required" });
+    }
     return sendJson(response, 200, {
       id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
       email: "browser-fixture@getzhimu.local",
       display_name: "浏览器验收",
       email_verified_at: "2026-07-23T00:00:00.000Z"
+    });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/register") {
+    const body = await readJson(request);
+    return sendJson(response, 201, {
+      user: {
+        id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+        email: String(body.email || "browser-fixture@example.invalid"),
+        display_name: String(body.displayName || "浏览器验收"),
+        emailVerified: false
+      },
+      pendingEmailVerification: true,
+      verificationEmailSent: true,
+      verificationChallenge: {
+        id: verificationChallengeId,
+        maskedEmail: "br*************@example.invalid",
+        codeLength: 6,
+        expiresInSeconds: 600,
+        resendAfterSeconds: 0
+      }
+    });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/verify-email-code") {
+    const body = await readJson(request);
+    if (body.challengeId !== verificationChallengeId || body.code !== "246810") {
+      return sendJson(response, 400, {
+        code: "EMAIL_VERIFICATION_CODE_INVALID",
+        error: "Email verification code is invalid or expired"
+      });
+    }
+    verificationFixtureAuthenticated = true;
+    return sendJson(response, 200, {
+      token: "browser-fixture-verified-token",
+      user: {
+        id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+        email: "browser-fixture@example.invalid",
+        display_name: "浏览器验收",
+        emailVerified: true
+      },
+      acceptedInvites: []
+    });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/resend-verification-code") {
+    return sendJson(response, 200, {
+      ok: true,
+      verificationChallenge: {
+        id: verificationChallengeId,
+        maskedEmail: "br*************@example.invalid",
+        codeLength: 6,
+        expiresInSeconds: 600,
+        resendAfterSeconds: 60
+      }
     });
   }
   if (request.method === "POST" && path === "/api/auth/guest") {

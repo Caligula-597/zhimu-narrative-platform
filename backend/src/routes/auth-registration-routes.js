@@ -43,14 +43,15 @@ export async function registerAuthRegistrationRoutes(app) {
       user: userAuthPayload(result.user),
       acceptedInvites: result.acceptedInvites,
       pendingEmailVerification: result.pendingEmailVerification,
-      verificationEmailSent: result.verificationEmailSent
+      verificationEmailSent: result.verificationEmailSent,
+      verificationChallenge: result.verificationChallenge
     };
     if (result.pendingEmailVerification) {
       return reply.code(201).send({
         ...payload,
         message: result.verificationEmailSent
           ? "Registration successful. Please verify your email before creating worlds."
-          : "Registration successful. Verification delivery is delayed; sign in and resend the email."
+          : "Registration successful. Verification delivery is delayed; request a new code."
       });
     }
     return sendAuthSession(reply, result.session, payload, 201);
@@ -99,7 +100,8 @@ export async function registerAuthRegistrationRoutes(app) {
       user: userAuthPayload(result.user),
       acceptedInvites: result.acceptedInvites,
       pendingEmailVerification: result.pendingEmailVerification,
-      verificationEmailSent: result.verificationEmailSent
+      verificationEmailSent: result.verificationEmailSent,
+      verificationChallenge: result.verificationChallenge
     }, 200);
   });
 }
