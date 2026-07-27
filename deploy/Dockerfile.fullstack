@@ -5,6 +5,7 @@ COPY package.json package-lock.json ./
 COPY config ./config
 COPY src ./src
 COPY docs ./docs
+COPY error-pages ./error-pages
 COPY frontend ./frontend
 COPY index.html app.js config.js styles.css rule-visual.js ./
 COPY shared ./shared
