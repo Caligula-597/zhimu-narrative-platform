@@ -16,6 +16,7 @@ import {
 import {
   countRecentAccountCreations,
   countRecentGuestAccountCreations,
+  findRegisteredUserByEmail,
   insertGuestUser,
   insertRegisteredUser,
   lockAccountCreationRate,
@@ -31,6 +32,7 @@ import {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
+const EMAIL_DELIVERY_WAIT_MS = 8_000;
 
 function boundedLimit(raw, fallback) {
   const value = Number(raw ?? fallback);
@@ -66,6 +68,13 @@ function verificationState(email) {
   };
 }
 
+export function existingRegistrationErrorCode(existingUser) {
+  if (!existingUser) return null;
+  return existingUser.email_verified_at
+    ? "EMAIL_ALREADY_REGISTERED"
+    : "EMAIL_VERIFICATION_PENDING";
+}
+
 async function enforceAccountCreationLimit(client, { ipHash, accountKind }) {
   await lockAccountCreationRate(client, { ipHash, accountKind });
   if (accountKind === "registered") {
@@ -88,21 +97,41 @@ async function enforceAccountCreationLimit(client, { ipHash, accountKind }) {
   if (dayMax > 0 && dayCount >= dayMax) throwErr("GUEST_CREATE_RATE_LIMITED");
 }
 
-async function deliverVerificationChallenge({
+export async function deliverVerificationChallenge({
   user,
   challenge,
   logger,
-  sendVerificationEmail = sendEmailVerificationEmail
+  sendVerificationEmail = sendEmailVerificationEmail,
+  deliveryWaitMs = boundedLimit(process.env.EMAIL_DELIVERY_WAIT_MS, EMAIL_DELIVERY_WAIT_MS)
 }) {
   if (!challenge) return null;
+  let timeout;
   try {
-    await sendVerificationEmail({ to: user.email, verifyToken: challenge.token });
+    const delivery = Promise.resolve(
+      sendVerificationEmail({ to: user.email, verifyToken: challenge.token })
+    );
+    if (deliveryWaitMs > 0) {
+      await Promise.race([
+        delivery,
+        new Promise((_, reject) => {
+          timeout = setTimeout(() => {
+            reject(Object.assign(new Error("Verification email delivery confirmation timed out"), {
+              code: "EMAIL_DELIVERY_TIMEOUT"
+            }));
+          }, deliveryWaitMs);
+        })
+      ]);
+    } else {
+      await delivery;
+    }
     return true;
   } catch (error) {
     logger?.error?.({ err: error, userId: user.id }, "registration verification email failed");
     // Delivery can be ambiguous after an upstream timeout. Keep the token valid;
     // a later resend atomically replaces it.
     return false;
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 }
 
@@ -121,6 +150,9 @@ export async function registerIdentity({
   try {
     const result = await transactionRunner(async (client) => {
       await configureIdentityTransaction(client);
+      const existingUser = await findRegisteredUserByEmail(client, input.email);
+      const existingErrorCode = existingRegistrationErrorCode(existingUser);
+      if (existingErrorCode) throwErr(existingErrorCode);
       await enforceAccountCreationLimit(client, { ipHash, accountKind: "registered" });
       const created = await insertRegisteredUser(client, {
         ...input,

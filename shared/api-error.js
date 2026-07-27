@@ -11,7 +11,9 @@ export const COMMON_API_ERROR_MESSAGES = {
   AUTH_REQUIRED: "请先登录后再操作。",
   FORBIDDEN: "无权执行此操作。",
   RATE_LIMITED: "操作过于频繁，请稍后再试。",
-  DATABASE_BUSY: "服务连接繁忙，请稍后重试。"
+  DATABASE_BUSY: "服务连接繁忙，请稍后重试。",
+  EMAIL_ALREADY_REGISTERED: "该邮箱已注册并完成验证，请直接登录。",
+  EMAIL_VERIFICATION_PENDING: "该账号已创建，但邮箱尚未验证。请检查首次验证邮件；如未收到，请先登录后重新发送。"
 };
 
 /**

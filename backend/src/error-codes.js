@@ -9,6 +9,7 @@ export const API_ERRORS = {
   EMAIL_INVALID: { status: 400, message: "Valid email is required" },
   DISPLAY_NAME_INVALID: { status: 400, message: "Display name must contain between 2 and 40 characters" },
   EMAIL_ALREADY_REGISTERED: { status: 409, message: "Email is already registered" },
+  EMAIL_VERIFICATION_PENDING: { status: 409, message: "Account exists but email verification is pending" },
   USER_NOT_FOUND: { status: 404, message: "User not found" },
   EMAIL_NOT_CONFIGURED: { status: 503, message: "Email is not configured on the server" },
   EMAIL_NOT_VERIFIED: { status: 403, message: "Email address is not verified" },

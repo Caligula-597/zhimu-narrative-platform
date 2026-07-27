@@ -44,6 +44,17 @@ export async function recordAccountCreation(client, { userId, ipHash, accountKin
   );
 }
 
+export async function findRegisteredUserByEmail(client, email) {
+  const result = await client.query(
+    `SELECT id, email_verified_at
+     FROM users
+     WHERE email = $1 AND user_kind = 'registered'
+     LIMIT 1`,
+    [email]
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function insertRegisteredUser(client, {
   email,
   displayName,

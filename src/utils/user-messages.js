@@ -27,6 +27,7 @@ const API_ERROR_MESSAGES = {
   EMAIL_INVALID: "请输入有效的邮箱地址。",
   DISPLAY_NAME_INVALID: "显示名需为 2～40 个字符。",
   EMAIL_ALREADY_REGISTERED: "该邮箱已注册，请直接登录。",
+  EMAIL_VERIFICATION_PENDING: "该账号已创建，但邮箱尚未验证。请检查首次验证邮件；如未收到，请先登录后重新发送。",
   USER_NOT_FOUND: "找不到该用户。",
   EMAIL_NOT_CONFIGURED: "暂时无法发送邮件，请稍后再试。",
   EMAIL_NOT_VERIFIED: "请先验证邮箱后再创建剧本。",
