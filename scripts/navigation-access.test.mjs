@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  claimDynamicModuleReload,
   isDynamicModuleLoadError,
   navigationAccess,
   viewModuleErrorMessage
@@ -33,4 +34,27 @@ test("dynamic module fetch failures receive a refresh-specific recovery message"
   assert.equal(isDynamicModuleLoadError(error), true);
   assert.match(viewModuleErrorMessage(error), /页面刚刚完成更新/);
   assert.equal(isDynamicModuleLoadError(new Error("ordinary failure")), false);
+});
+
+test("a stale dynamic module automatically reloads only once per failure signature", () => {
+  const values = new Map();
+  const storage = {
+    getItem(key) {
+      return values.get(key) || null;
+    },
+    setItem(key, value) {
+      values.set(key, value);
+    }
+  };
+  const firstError = new TypeError(
+    "Failed to fetch dynamically imported module: https://app.getzhimu.com/assets/writer-old.js"
+  );
+  const nextReleaseError = new TypeError(
+    "Failed to fetch dynamically imported module: https://app.getzhimu.com/assets/writer-new.js"
+  );
+
+  assert.equal(claimDynamicModuleReload(firstError, { storage, now: 1000 }), true);
+  assert.equal(claimDynamicModuleReload(firstError, { storage, now: 2000 }), false);
+  assert.equal(claimDynamicModuleReload(nextReleaseError, { storage, now: 3000 }), true);
+  assert.equal(claimDynamicModuleReload(new Error("ordinary failure"), { storage, now: 4000 }), false);
 });

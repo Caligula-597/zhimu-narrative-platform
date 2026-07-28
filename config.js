@@ -57,15 +57,28 @@
     viteRequireAuth === "true" ||
     (viteDemoMode === "false" && !localHost && !isViteDev);
 
+  function resolveDemoMode() {
+    if (!localHost) {
+      // A stale developer/demo flag must never change authentication behavior
+      // on the public application. Production configuration is authoritative.
+      if (storedDemoMode !== null) {
+        try {
+          runtimeStorage?.removeItem("zhimuDemoMode");
+        } catch {
+          // Restricted WebViews may deny storage writes; ignore the value for
+          // this page load even when it cannot be removed.
+        }
+      }
+      return requireAuth ? false : buildDemoMode;
+    }
+    if (storedDemoMode === null) return requireAuth ? false : buildDemoMode;
+    return storedDemoMode === "true";
+  }
+
   window.zhimuConfig = {
     apiBase: resolveApiBase(),
     requireAuth,
-    demoMode:
-      storedDemoMode === null
-        ? requireAuth
-          ? false
-          : buildDemoMode
-        : storedDemoMode === "true",
+    demoMode: resolveDemoMode(),
     playSiteOrigin: vitePlayOrigin || (localHost ? "http://127.0.0.1:5174" : "https://play.getzhimu.com"),
     hostSiteOrigin: viteHostOrigin || (localHost ? "http://127.0.0.1:5175" : "https://host.getzhimu.com"),
     demoUsers: {

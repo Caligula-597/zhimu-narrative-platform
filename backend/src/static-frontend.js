@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fastifyStatic from "@fastify/static";
+import { staticCacheControl } from "./static-cache-policy.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -53,6 +54,18 @@ export async function registerStaticFrontend(app) {
   const maintenance = process.env.MAINTENANCE_MODE === "true" || process.env.MAINTENANCE_MODE === "1";
   const maintenancePage = path.join(root, "errors", "503.html");
 
+  app.addHook("onSend", async (request, reply, payload) => {
+    const url = request.url.split("?")[0];
+    if (
+      (request.method === "GET" || request.method === "HEAD")
+      && !url.startsWith("/api")
+      && !url.startsWith("/metrics")
+    ) {
+      reply.header("cache-control", staticCacheControl(url, reply.statusCode));
+    }
+    return payload;
+  });
+
   app.addHook("onRequest", async (request, reply) => {
     const url = request.url.split("?")[0];
     if (!maintenance || url.startsWith("/api") || url.startsWith("/metrics")) return;
@@ -96,8 +109,14 @@ export async function registerStaticFrontend(app) {
       if (path.extname(url) && staticFile && fs.existsSync(staticFile) && fs.statSync(staticFile).isFile()) {
         return reply.sendFile(path.relative(root, staticFile).replace(/\\/g, "/"), root);
       }
-      if (fs.existsSync(notFoundPage) && path.extname(url)) {
-        return reply.code(404).type("text/html; charset=utf-8").send(fs.readFileSync(notFoundPage, "utf8"));
+      if (path.extname(url)) {
+        if (fs.existsSync(notFoundPage)) {
+          return reply.code(404).type("text/html; charset=utf-8").send(fs.readFileSync(notFoundPage, "utf8"));
+        }
+        return reply.code(404).send({
+          error: "Static asset not found",
+          code: "NOT_FOUND"
+        });
       }
       return reply.sendFile("index.html", root);
     }

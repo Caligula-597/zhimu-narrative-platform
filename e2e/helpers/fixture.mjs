@@ -38,15 +38,19 @@ export async function resetFixtureRoom() {
 export async function injectDemoContext(context, overrides = {}) {
   const worldId = overrides.worldId ?? FIXTURE.worldId;
   const roomId = overrides.roomId === undefined ? FIXTURE.roomId : overrides.roomId;
-  await context.addInitScript(({ worldId, roomId }) => {
+  await context.addInitScript(({ worldId, roomId, hostUserId }) => {
     localStorage.setItem("zhimuDemoMode", "true");
     localStorage.setItem("zhimuFirstRunDismissed", "1");
+    localStorage.setItem(
+      `zhimuFirstRunDismissed:user:${encodeURIComponent(hostUserId)}`,
+      "1"
+    );
     localStorage.removeItem("zhimuSessionToken");
     sessionStorage.removeItem("zhimuSessionToken");
     localStorage.setItem("zhimuActiveWorldId", worldId);
     if (roomId) localStorage.setItem(`zhimuActiveRoomId:${worldId}`, roomId);
     else localStorage.removeItem(`zhimuActiveRoomId:${worldId}`);
-  }, { worldId, roomId });
+  }, { worldId, roomId, hostUserId: FIXTURE.hostUserId });
 }
 
 export async function injectHostContext(context) {
@@ -86,16 +90,19 @@ export async function injectVerifiedPlayContext(context) {
 
 /** Demo creator with no active world — for wizard / first-run E2E. */
 export async function injectFreshCreatorContext(context) {
-  await context.addInitScript(() => {
+  await context.addInitScript(({ hostUserId }) => {
     localStorage.setItem("zhimuDemoMode", "true");
     localStorage.removeItem("zhimuSessionToken");
     sessionStorage.removeItem("zhimuSessionToken");
     localStorage.removeItem("zhimuActiveWorldId");
     localStorage.removeItem("zhimuFirstRunDismissed");
+    localStorage.removeItem(
+      `zhimuFirstRunDismissed:user:${encodeURIComponent(hostUserId)}`
+    );
     for (const key of Object.keys(localStorage)) {
       if (key.startsWith("zhimuActiveRoomId:")) localStorage.removeItem(key);
     }
-  });
+  }, { hostUserId: FIXTURE.hostUserId });
 }
 
 export const PLAY_URL = process.env.PLAYWRIGHT_PLAY_URL || "http://localhost:5174";

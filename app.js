@@ -5,6 +5,7 @@ import { initEvents } from "./src/bootstrap/events.js";
 import { startApplication } from "./src/bootstrap/startup.js";
 import { content, modalBackdrop } from "./src/dom.js";
 import {
+  claimDynamicModuleReload,
   isDynamicModuleLoadError,
   navigationAccess,
   viewModuleErrorMessage
@@ -91,6 +92,15 @@ const appEntry = (function (window) {
         })
         .catch((error) => {
           if (uiStore.get().view !== loadingView) return;
+          if (claimDynamicModuleReload(error)) {
+            setContentHtml(renderLoading(
+              title,
+              "检测到网站刚刚更新，正在自动刷新并载入最新资源。",
+              { kicker: "PAGE UPDATED" }
+            ));
+            window.setTimeout(() => window.location.reload(), 80);
+            return;
+          }
           setContentHtml(renderViewError(title, error));
         });
       return;
