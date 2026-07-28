@@ -6,6 +6,7 @@ import { registerScriptBundleRoutes } from "./routes/script-bundle-routes.js";
 import { registerRulesRoutes } from "./routes/rules-routes.js";
 import { registerContentPackageRoutes } from "./routes/content-package-routes.js";
 import { registerStudioRoutes } from "./routes/studio-routes.js";
+import { registerStoryManuscriptRoutes } from "./routes/story-manuscript-routes.js";
 import { registerStoryAssistantRoutes } from "./routes/story-assistant-routes.js";
 import { registerStudioGraphRoutes } from "./routes/studio-graph-routes.js";
 import { registerCheckpointRoutes } from "./routes/checkpoint-routes.js";
@@ -34,6 +35,7 @@ export async function registerRoutes(app) {
   await registerRulesRoutes(app);
   await registerContentPackageRoutes(app);
   await registerStudioRoutes(app);
+  await registerStoryManuscriptRoutes(app);
   await registerStoryAssistantRoutes(app);
   await registerStudioGraphRoutes(app);
   await registerSearchRoutes(app);

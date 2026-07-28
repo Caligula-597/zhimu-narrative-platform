@@ -11,6 +11,7 @@ import {
 } from "../account-delete.js";
 import { buildAccountExport } from "../account-export.js";
 import { registerAccountLlmRoutes } from "./account-llm-routes.js";
+import { registerAccountProfileRoutes } from "./account-profile-routes.js";
 
 export async function registerAccountRoutes(app) {
   app.get("/api/account/entitlements", async (request) => {
@@ -92,4 +93,5 @@ export async function registerAccountRoutes(app) {
   });
 
   await registerAccountLlmRoutes(app);
+  await registerAccountProfileRoutes(app);
 }

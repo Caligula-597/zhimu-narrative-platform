@@ -1,12 +1,17 @@
+import { mergePortalProfileIntoUser } from "../../../shared/portal-profile-ui.js";
+
 export function normalizeSessionUser(raw) {
   if (!raw) return null;
-  return {
+  const user = {
     id: raw.id,
     email: raw.email,
     displayName: raw.display_name || raw.displayName,
     isGuest: raw.isGuest ?? raw.user_kind === "guest",
     emailVerified: raw.emailVerified ?? Boolean(raw.email_verified_at)
   };
+  const avatarUrl = raw.avatar_url || raw.avatarUrl;
+  if (avatarUrl) user.avatarUrl = avatarUrl;
+  return user;
 }
 
 export function createSessionController({ api, state, clearSession, getSessionToken, setSessionToken }) {
@@ -23,8 +28,15 @@ export function createSessionController({ api, state, clearSession, getSessionTo
     loadSessionToken = tokenAtStart;
     loadSessionPromise = (async () => {
       try {
-        const user = normalizeSessionUser(await api.me());
-        if (getSessionToken() === tokenAtStart) state.user = user;
+        let user = normalizeSessionUser(await api.me());
+        const profile = user && api.getPortalProfile
+          ? await api.getPortalProfile("player").catch(() => null)
+          : null;
+        if (profile) user = mergePortalProfileIntoUser(user, profile);
+        if (getSessionToken() === tokenAtStart) {
+          state.user = user;
+          state.portalProfile = profile;
+        }
         return state.user;
       } catch (error) {
         if (error.status === 401 && !error.staleCredential && getSessionToken() === tokenAtStart) {

@@ -81,13 +81,10 @@ import {
   storyAssistantAnalyzeSchema,
   storyAssistantImportSchema
 } from "./schemas.js";
-import { registerStoryManuscriptRoutes } from "./story-manuscript-routes.js";
 
 const llmPreHandler = createLlmContextPreHandler(sendErr);
 
 export async function registerStoryAssistantRoutes(app) {
-  await registerStoryManuscriptRoutes(app);
-
   app.post("/api/worlds/:worldId/story-assistant/analyze", { schema: storyAssistantAnalyzeSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;

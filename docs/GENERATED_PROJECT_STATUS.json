@@ -1,19 +1,19 @@
 {
-  "generatedAt": "2026-07-28T11:08:48.914Z",
+  "generatedAt": "2026-07-28T12:50:46.620Z",
   "source": {
-    "gitCommit": "2e76294",
+    "gitCommit": "c55dc18",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
     "tests": {
-      "declarations": 1016,
-      "files": 248
+      "declarations": 1018,
+      "files": 249
     },
-    "migrations": 103,
-    "latestMigration": "103_ops_user_management",
+    "migrations": 104,
+    "latestMigration": "104_user_portal_profiles",
     "routes": {
-      "modules": 74,
+      "modules": 75,
       "directDatabaseCalls": 0
     },
     "schemas": {
@@ -24,13 +24,13 @@
     "verifiedScriptModules": 67,
     "entryLines": {
       "creator": 50,
-      "host": 116,
-      "player": 415
+      "host": 120,
+      "player": 431
     },
     "tests": {
       "sharedAndTooling": {
-        "declarations": 280,
-        "files": 54
+        "declarations": 283,
+        "files": 55
       },
       "host": {
         "declarations": 65,

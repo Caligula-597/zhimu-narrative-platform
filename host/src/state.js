@@ -1,6 +1,10 @@
 export const state = {
   view: "landing",
   user: null,
+  portalProfile: null,
+  profileOpen: false,
+  profileBusy: false,
+  profileStatus: "",
   authStatus: "checking",
   authError: "",
   authMode: "login",

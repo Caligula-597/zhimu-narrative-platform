@@ -80,7 +80,14 @@ export {
   submitPlanUpgradeRequest,
   previewAccountDelete,
   deleteAccount,
-  getAccountPlans
+  getAccountPlans,
+  getPortalProfiles,
+  getPortalProfile,
+  checkPortalProfileName,
+  updatePortalProfileName,
+  createPortalAvatarUpload,
+  confirmPortalAvatar,
+  removePortalAvatar
 } from "./auth.js";
 
 export {

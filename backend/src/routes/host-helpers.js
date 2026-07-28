@@ -75,7 +75,10 @@ export async function fetchHostPlayers(query, roomId) {
             rs.public_profile,
             rs.private_profile,
             rm.user_id,
-            u.display_name AS player_display_name,
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS player_display_name,
             rm.joined_at,
             (rm.user_id IS NOT NULL) AS joined,
             r.status AS room_status,
@@ -154,7 +157,7 @@ export async function fetchHostPlayers(query, roomId) {
        ON rp.script_section_id = ss.id AND rp.room_id = r.id AND rp.role_slot_id = rs.id
      WHERE r.id = $1
      GROUP BY rs.id, rs.name, rs.public_profile, rs.private_profile, r.status,
-              rm.user_id, u.display_name, rm.joined_at, rm.status,
+              rm.user_id, u.id, u.display_name, rm.joined_at, rm.status,
               ps.current_scene_id, ps.variables
      ORDER BY rs.sequence, rs.created_at`,
     [roomId]
@@ -177,7 +180,10 @@ export async function fetchHostPlayers(query, roomId) {
 export async function fetchHostPlayerDetail(query, roomId, roleSlotId) {
   const role = await query(
     `SELECT rs.id, rs.name, rs.public_profile, rs.private_profile,
-            rm.user_id, u.display_name AS player_display_name, rm.joined_at,
+            rm.user_id, COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS player_display_name, rm.joined_at,
             r.status AS room_status,
             ps.current_scene_id, COALESCE(ps.variables->>'hostNotes', '') AS host_notes
      FROM role_slots rs
@@ -231,8 +237,16 @@ export async function fetchHostPlayerDetail(query, roomId, roleSlotId) {
       [roomId, roleSlotId]
     ),
     query(
-      `SELECT tl.event_type, tl.message, tl.created_at, tl.metadata, u.display_name AS actor_name
+      `SELECT tl.event_type, tl.message, tl.created_at, tl.metadata, COALESCE((
+         SELECT profile.display_name FROM user_portal_profiles profile
+         WHERE profile.user_id = u.id
+           AND profile.portal = CASE
+             WHEN u.id = room.host_user_id THEN 'host'
+             ELSE 'player'
+           END
+       ), u.display_name) AS actor_name
        FROM timeline_logs tl
+       JOIN rooms room ON room.id = tl.room_id
        LEFT JOIN users u ON u.id = tl.actor_user_id
        LEFT JOIN script_sections ss ON ss.id = NULLIF(tl.metadata->>'sectionId', '')::uuid
        WHERE tl.room_id = $1

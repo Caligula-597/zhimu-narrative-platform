@@ -12,6 +12,39 @@ const verificationAuthFixture = process.env.ZHIMU_BROWSER_FIXTURE_AUTH === "veri
 const emptyAccountFixture = process.env.ZHIMU_BROWSER_FIXTURE_EMPTY_ACCOUNT === "true";
 const verificationChallengeId = "7f5f69b2-5330-4cc9-9497-5a6c751c80e8";
 let verificationFixtureAuthenticated = false;
+const fixtureUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
+const portalProfiles = {
+  creator: {
+    portal: "creator",
+    displayName: "浏览器主创",
+    avatarUrl: null,
+    hasCustomAvatar: false,
+    nameChangedAt: null,
+    nextNameChangeAt: null,
+    canChangeName: true,
+    avatarUpdatedAt: null
+  },
+  host: {
+    portal: "host",
+    displayName: "浏览器主持",
+    avatarUrl: null,
+    hasCustomAvatar: false,
+    nameChangedAt: null,
+    nextNameChangeAt: null,
+    canChangeName: true,
+    avatarUpdatedAt: null
+  },
+  player: {
+    portal: "player",
+    displayName: "浏览器玩家",
+    avatarUrl: null,
+    hasCustomAvatar: false,
+    nameChangedAt: null,
+    nextNameChangeAt: null,
+    canChangeName: true,
+    avatarUpdatedAt: null
+  }
+};
 const worldId = "33333333-3333-4333-8444-555555550003";
 const releaseId = "44444444-4444-4444-8444-555555550004";
 let roomSequence = 2;
@@ -454,11 +487,59 @@ const server = http.createServer(async (request, response) => {
       return sendJson(response, 401, { code: "AUTH_REQUIRED", error: "Authentication required" });
     }
     return sendJson(response, 200, {
-      id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+      id: fixtureUserId,
       email: "browser-fixture@getzhimu.local",
       display_name: "浏览器验收",
       email_verified_at: "2026-07-23T00:00:00.000Z"
     });
+  }
+  if (request.method === "GET" && path === "/api/account/portal-profiles") {
+    return sendJson(response, 200, { profiles: Object.values(portalProfiles) });
+  }
+  const portalProfileMatch = path.match(/^\/api\/account\/portal-profiles\/(creator|host|player)$/);
+  if (request.method === "GET" && portalProfileMatch) {
+    return sendJson(response, 200, portalProfiles[portalProfileMatch[1]]);
+  }
+  const portalAvailabilityMatch = path.match(
+    /^\/api\/account\/portal-profiles\/(creator|host|player)\/name-availability$/
+  );
+  if (request.method === "GET" && portalAvailabilityMatch) {
+    const displayName = String(url.searchParams.get("displayName") || "").trim();
+    return sendJson(response, 200, {
+      displayName,
+      available: displayName !== "已占用昵称",
+      currentUserOwnsName: displayName === portalProfiles[portalAvailabilityMatch[1]].displayName
+    });
+  }
+  const portalNameMatch = path.match(
+    /^\/api\/account\/portal-profiles\/(creator|host|player)\/name$/
+  );
+  if (request.method === "PUT" && portalNameMatch) {
+    const body = await readJson(request);
+    const displayName = String(body.displayName || "").trim();
+    if (displayName === "已占用昵称") {
+      return sendJson(response, 409, {
+        code: "PORTAL_PROFILE_NAME_TAKEN",
+        error: "该端昵称已被使用"
+      });
+    }
+    const profile = portalProfiles[portalNameMatch[1]];
+    const changedAt = new Date().toISOString();
+    profile.displayName = displayName;
+    profile.nameChangedAt = changedAt;
+    profile.nextNameChangeAt = new Date(Date.now() + 30 * 86_400_000).toISOString();
+    profile.canChangeName = false;
+    return sendJson(response, 200, profile);
+  }
+  const portalAvatarDeleteMatch = path.match(
+    /^\/api\/account\/portal-profiles\/(creator|host|player)\/avatar$/
+  );
+  if (request.method === "DELETE" && portalAvatarDeleteMatch) {
+    const profile = portalProfiles[portalAvatarDeleteMatch[1]];
+    profile.avatarUrl = null;
+    profile.hasCustomAvatar = false;
+    profile.avatarUpdatedAt = new Date().toISOString();
+    return sendJson(response, 200, profile);
   }
   if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/register") {
     const body = await readJson(request);

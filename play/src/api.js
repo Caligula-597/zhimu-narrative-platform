@@ -93,6 +93,26 @@ export const api = {
       body: returnOrigin ? { returnOrigin } : {}
     }),
   oauthComplete: (code) => request("/auth/oauth/complete", { method: "POST", body: { code } }),
+  getPortalProfile: (portal = "player") => request(`/account/portal-profiles/${portal}`),
+  checkPortalProfileName: (portal, displayName) =>
+    request(`/account/portal-profiles/${portal}/name-availability?${new URLSearchParams({ displayName })}`),
+  updatePortalProfileName: (portal, displayName) =>
+    request(`/account/portal-profiles/${portal}/name`, {
+      method: "PUT",
+      body: { displayName }
+    }),
+  createPortalAvatarUpload: (portal, payload) =>
+    request(`/account/portal-profiles/${portal}/avatar-upload-url`, {
+      method: "POST",
+      body: payload
+    }),
+  confirmPortalAvatar: (portal, uploadId) =>
+    request(`/account/portal-profiles/${portal}/avatar/confirm`, {
+      method: "POST",
+      body: { uploadId }
+    }),
+  removePortalAvatar: (portal) =>
+    request(`/account/portal-profiles/${portal}/avatar`, { method: "DELETE" }),
   lookupInvite: (inviteCode) => request(`/rooms/invite/${encodeURIComponent(inviteCode)}`),
   joinRoom: (inviteCode, roleSlotId) =>
     request("/rooms/join", { method: "POST", body: { inviteCode, roleSlotId } }),

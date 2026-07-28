@@ -17,7 +17,9 @@ const requiredTables = [
   "checkpoint_restores",
   "auth_account_creation_events",
   "creator_review_threads",
-  "world_releases"
+  "world_releases",
+  "user_portal_profiles",
+  "portal_profile_avatar_uploads"
 ];
 const requiredMigrations = [
   "084_room_creation_idempotency.sql",
@@ -39,7 +41,8 @@ const requiredMigrations = [
   "100_identity_foundation_integrity.sql",
   "101_user_llm_byok_only.sql",
   "102_email_verification_codes.sql",
-  "103_ops_user_management.sql"
+  "103_ops_user_management.sql",
+  "104_user_portal_profiles.sql"
 ];
 
 test("database readiness requires the current creator and identity migrations", () => {

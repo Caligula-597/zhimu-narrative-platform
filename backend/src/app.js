@@ -119,7 +119,12 @@ const aiNetworkRateLimit = createRateLimiter({
 
 function isUploadRoute(url, method) {
   if (method !== "POST") return false;
-  return url === "/api/assets/upload-url" || /^\/api\/assets\/[^/]+\/confirm$/.test(url);
+  return (
+    url === "/api/assets/upload-url"
+    || /^\/api\/assets\/[^/]+\/confirm$/.test(url)
+    || /^\/api\/account\/portal-profiles\/(?:creator|host|player)\/avatar-upload-url$/.test(url)
+    || /^\/api\/account\/portal-profiles\/(?:creator|host|player)\/avatar\/confirm$/.test(url)
+  );
 }
 
 function isAiRoute(url, method) {

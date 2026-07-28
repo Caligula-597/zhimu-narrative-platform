@@ -15,7 +15,10 @@ export async function logHostAction(
 export async function listHostAuditLog(roomId, { limit = 50 } = {}) {
   const result = await query(
     `SELECT hal.id, hal.action, hal.target_type, hal.target_id, hal.metadata, hal.created_at,
-            u.display_name AS actor_name
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'host'
+            ), u.display_name) AS actor_name
      FROM host_audit_log hal
      LEFT JOIN users u ON u.id = hal.actor_user_id
      WHERE hal.room_id = $1
@@ -29,7 +32,10 @@ export async function listHostAuditLog(roomId, { limit = 50 } = {}) {
 export async function listWorldHostAuditLog(worldId, { limit = 50 } = {}) {
   const result = await query(
     `SELECT hal.id, hal.room_id, hal.action, hal.target_type, hal.target_id, hal.metadata, hal.created_at,
-            u.display_name AS actor_name, r.name AS room_name
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'host'
+            ), u.display_name) AS actor_name, r.name AS room_name
      FROM host_audit_log hal
      JOIN rooms r ON r.id = hal.room_id
      LEFT JOIN users u ON u.id = hal.actor_user_id
@@ -60,7 +66,10 @@ export async function listAuditLogOps({ limit = 50, offset = 0, roomId, action }
   const [rows, countResult] = await Promise.all([
     query(
       `SELECT hal.id, hal.room_id, hal.action, hal.target_type, hal.target_id, hal.metadata,
-              hal.created_at, hal.actor_user_id, u.display_name AS actor_name
+              hal.created_at, hal.actor_user_id, COALESCE((
+                SELECT profile.display_name FROM user_portal_profiles profile
+                WHERE profile.user_id = u.id AND profile.portal = 'host'
+              ), u.display_name) AS actor_name
        FROM host_audit_log hal
        LEFT JOIN users u ON u.id = hal.actor_user_id
        ${whereClause}

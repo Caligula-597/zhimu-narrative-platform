@@ -32,7 +32,9 @@ const REQUIRED_TABLES = [
   "oauth_accounts",
   "oauth_states",
   "oauth_login_codes",
-  "creator_review_threads"
+  "creator_review_threads",
+  "user_portal_profiles",
+  "portal_profile_avatar_uploads"
 ];
 
 const CLUE_OWNERSHIP_COLUMNS = [
