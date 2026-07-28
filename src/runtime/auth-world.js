@@ -51,26 +51,43 @@ export function openForgotPassword(prefillEmail=""){
  modal.querySelector("[data-close]")?.remove();
 }
 
-async function finishEmailVerification(label="邮箱已验证，已自动登录"){
- window.zhimuSessionAuth?.markAuthenticated?.();
+async function finishAuthenticatedEntry(label){
+ if(!window.zhimuSessionAuth?.isAuthenticated?.()){
+  window.zhimuSessionAuth?.markAuthenticated?.();
+ }
  window.zhimuContext?.resetAccountContext?.();
  sessionStorage.removeItem("zhimuAuthPrompted");
  closeModal();
  showToast(label);
- await window.zhimuAuthSession?.syncProfile?.();
+ const profileResult=await window.zhimuAuthSession?.syncProfile?.({force:true});
  window.zhimuAuthSession?.syncAuthBanner?.();
- try{await loadCloudData(true,true)}catch(error){showError(error)}
+ if(profileResult?.error){
+  showToast("登录已完成，但账户信息暂时未加载，请刷新页面重试");
+  render();
+  return;
+ }
+ try{await loadCloudData(false,true)}catch{
+  showToast("登录已完成，但工作区暂时未加载，请刷新页面重试");
+ }
  render();
  callRuntime("drainPendingInviteAfterAuth");
+ if(!zhimuApi.context.worldId){
+  const hasWorlds=(worldStore.get().cloudWorlds||[]).length>0;
+  setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400);
+ }
 }
 
-function armVerificationResend(button, seconds=0){
+async function finishEmailVerification(label="邮箱已验证，已自动登录"){
+ await finishAuthenticatedEntry(label);
+}
+
+function armVerificationResend(button, seconds=0,readyLabel="重新发送验证码"){
  if(!button)return;
  const readyAt=Date.now()+Math.max(0,Number(seconds)||0)*1000;
  const update=()=>{
   const remaining=Math.max(0,Math.ceil((readyAt-Date.now())/1000));
   button.disabled=remaining>0;
-  button.textContent=remaining>0?`${remaining} 秒后可重发`:"重新发送验证码";
+  button.textContent=remaining>0?`${remaining} 秒后可重发`:readyLabel;
   if(!remaining)clearInterval(timer);
  };
  const timer=setInterval(update,1000);
@@ -80,12 +97,12 @@ function armVerificationResend(button, seconds=0){
 export function openVerifyPending(prefillEmail="",verificationEmailSent=true,initialChallenge=null){
  let challenge=initialChallenge;
  const renderVerification=()=>{
-  const masked=challenge?.maskedEmail||prefillEmail||"你的邮箱";
-  const deliveryCopy=verificationEmailSent
-   ? `6 位邮箱验证码已发送至 ${escapeHtml(masked)}。`
-   : `账号已创建，但验证邮件暂时未确认送达。你可以稍后重新发送。`;
-  modal.className="modal auth-modal";
-  setHtml(modal, `<h2>验证你的邮箱</h2><p class="wizard-intro">${deliveryCopy} 验证码 10 分钟内有效，请同时检查垃圾箱。</p><div class="form-group verification-code-group"><label for="creator-verification-code">邮箱验证码</label><input id="creator-verification-code" class="field verification-code-input" data-auth-verification-code type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="请输入 6 位验证码" aria-label="6 位邮箱验证码" /></div><p class="muted-note">也可以点击邮件中的“一键验证并登录”链接。邮箱验证码、内测邀请码和房间邀请码互不通用。</p><div class="verification-code-actions"><button class="text-btn" type="button" data-auth-resend-code>重新发送验证码</button><button class="text-btn" type="button" data-auth-change-email>更换邮箱 / 返回登录</button></div><div class="modal-actions"><button class="secondary-btn" data-close>稍后验证</button><button class="primary-btn" data-auth-verify-code ${challenge?.id?"":"disabled"}>验证并进入织幕</button></div>`);
+   const masked=challenge?.maskedEmail||prefillEmail||"你的邮箱";
+   const deliveryCopy=challenge?.id&&verificationEmailSent
+    ? `6 位邮箱验证码已发送至 ${escapeHtml(masked)}。`
+    : `当前没有可用的验证码，请点击“发送新验证码”。`;
+   modal.className="modal auth-modal";
+   setHtml(modal, `<h2>验证你的邮箱</h2><p class="wizard-intro">${deliveryCopy} 验证码 10 分钟内有效，请同时检查垃圾箱。</p><div class="form-group verification-code-group"><label for="creator-verification-code">邮箱验证码</label><input id="creator-verification-code" class="field verification-code-input" data-auth-verification-code type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="请输入邮件中的 6 位验证码" aria-label="6 位邮箱验证码" /></div><p class="muted-note">也可以点击邮件中的“一键验证并登录”链接。邮箱验证码、内测邀请码和房间邀请码互不通用。</p><div class="verification-code-actions"><button class="text-btn" type="button" data-auth-resend-code>${challenge?.id?"重新发送验证码":"发送新验证码"}</button><button class="text-btn" type="button" data-auth-change-email>更换邮箱 / 返回登录</button></div><div class="modal-actions"><button class="secondary-btn" data-close>稍后验证</button><button class="primary-btn" data-auth-verify-code ${challenge?.id?"":"disabled"}>验证并进入织幕</button></div>`);
   modalBackdrop.classList.add("show");
   const input=modal.querySelector("[data-auth-verification-code]");
   input?.focus();
@@ -93,19 +110,27 @@ export function openVerifyPending(prefillEmail="",verificationEmailSent=true,ini
   modal.querySelector("[data-close]").onclick=closeModal;
   modal.querySelector("[data-auth-change-email]").onclick=()=>openAuthForm();
   const resend=modal.querySelector("[data-auth-resend-code]");
-  armVerificationResend(resend,challenge?.resendAfterSeconds||0);
+  armVerificationResend(resend,challenge?.resendAfterSeconds||0,challenge?.id?"重新发送验证码":"发送新验证码");
   resend.onclick=async()=>{try{const result=await zhimuApi.resendVerificationCode(challenge?.id?{challengeId:challenge.id}:{});challenge=result.verificationChallenge||challenge;verificationEmailSent=true;showToast("新的邮箱验证码已发送");renderVerification()}catch(error){showError(error)}};
   modal.querySelector("[data-auth-verify-code]").onclick=async()=>{const code=input?.value?.trim()||"";if(!/^\d{6}$/.test(code))return showToast("请输入 6 位邮箱验证码");try{const result=await zhimuApi.verifyEmailCode({challengeId:challenge.id,code});await finishEmailVerification("邮箱验证成功，已自动登录")}catch(error){showError(error)}};
  };
  renderVerification();
 }
 
-export function openVerifyEmail(verifyToken){
+export async function openVerifyEmail(verifyToken){
  if(!verifyToken)return;
+ sessionStorage.setItem("zhimuAuthPrompted","1");
  modal.className="modal auth-modal";
  setHtml(modal, `<h2>正在验证邮箱…</h2><p class="wizard-intro">请稍候。</p>`);
  modalBackdrop.classList.add("show");
- (async()=>{try{await zhimuApi.verifyEmail({token:verifyToken});await finishEmailVerification()}catch(error){setHtml(modal, `<h2>验证失败</h2><p class="wizard-intro">${escapeHtml(error.message||"链接无效或已过期")}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-open-login>去登录</button></div>`);modal.querySelector("[data-close]").onclick=closeModal;modal.querySelector("[data-auth-open-login]").onclick=()=>openAuth()}})();
+ try{
+  await zhimuApi.verifyEmail({token:verifyToken});
+  await finishEmailVerification();
+ }catch(error){
+  setHtml(modal, `<h2>验证失败</h2><p class="wizard-intro">${escapeHtml(error.message||"链接无效或已过期")}</p><p class="muted-note">你仍可使用邮箱和密码登录，然后点击“已有验证码？验证邮箱”。</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-open-login>去登录并输入验证码</button></div>`);
+  modal.querySelector("[data-close]").onclick=closeModal;
+  modal.querySelector("[data-auth-open-login]").onclick=()=>openAuthForm();
+ }
 }
 
 export function openResetPassword(resetToken){
@@ -132,12 +157,12 @@ export function openAuthForm(){
  const requireAuth=Boolean(window.zhimuConfig?.requireAuth);
  const guestIntro="注册或登录后，可创建剧本、邀请协作者并保存运行数据。";
  modal.className="modal auth-modal";
- setHtml(modal, `<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div data-oauth-bar class="row" style="margin-bottom:12px"></div><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<p class="muted-note">注册后会收到织幕企业邮箱发送的 6 位邮箱验证码；输入后即可自动登录，也可使用邮件内的一键验证链接。</p><p class="muted-note auth-legal-note">注册即表示你已阅读并同意 <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> 与 <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a>。</p><button class="primary-btn" data-auth-register>创建账号并发送验证码</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button><button type="button" class="text-btn" data-auth-forgot style="margin-top:8px">忘记密码？</button><p class="muted-note auth-legal-note"><a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a></p></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`);
+ setHtml(modal, `<h2>注册或登录</h2><p class="wizard-intro">${guestIntro}</p><div data-oauth-bar class="row" style="margin-bottom:12px"></div><div class="auth-grid"><div class="form-group"><h3>注册</h3>${studioField("昵称","registerName","input","")}${studioField("邮箱","registerEmail","input","")}${studioField("密码 · 至少 8 位","registerPassword","input","")}<p class="muted-note">注册后会收到织幕发送的 6 位邮箱验证码；输入后即可自动登录，也可使用邮件内的一键验证链接。</p><p class="muted-note auth-legal-note">注册即表示你已阅读并同意 <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> 与 <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a>。</p><button class="primary-btn" data-auth-register>创建账号并发送验证码</button></div><div class="form-group"><h3>登录</h3>${studioField("邮箱","loginEmail","input","")}${studioField("密码","loginPassword","input","")}<button class="secondary-btn" data-auth-login>登录</button><button type="button" class="text-btn" data-auth-verify-entry style="margin-top:8px">已有验证码？验证邮箱</button><button type="button" class="text-btn" data-auth-forgot style="margin-top:8px">忘记密码？</button><p class="muted-note">如果账号尚未验证，登录后会直接显示 6 位验证码输入框。</p><p class="muted-note auth-legal-note"><a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a></p></div></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button></div>`);
  modalBackdrop.classList.add("show");modal.querySelector("[data-close]").onclick=closeModal;modal.querySelectorAll('[data-studio-field$="Password"]').forEach(input=>input.type="password");
- const resetAccountContext=()=>window.zhimuContext?.resetAccountContext?.();
- const finishAuth=async(label)=>{resetAccountContext();sessionStorage.removeItem("zhimuAuthPrompted");closeModal();showToast(label);await window.zhimuAuthSession?.syncProfile?.();window.zhimuAuthSession?.syncAuthBanner?.();try{await loadCloudData(true,true)}catch(error){showError(error)}render();callRuntime("drainPendingInviteAfterAuth");if(!zhimuApi.context.worldId){const hasWorlds=(worldStore.get().cloudWorlds||[]).length>0;setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400)}};
- modal.querySelector("[data-auth-register]").onclick=async()=>{try{const email=modal.querySelector('[data-studio-field="registerEmail"]').value.trim();const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email,password:modal.querySelector('[data-studio-field="registerPassword"]').value});if(result.pendingEmailVerification){showToast(result.verificationEmailSent?"验证码已发送":"账号已创建，可尝试重新发送验证码");openVerifyPending(email,result.verificationEmailSent,result.verificationChallenge);return}window.zhimuSessionAuth?.markAuthenticated?.();await finishAuth("注册成功，已经登录")}catch(error){showError(error)}};
- modal.querySelector("[data-auth-login]").onclick=async()=>{try{const email=modal.querySelector('[data-studio-field="loginEmail"]').value.trim();const result=await zhimuApi.login({email,password:modal.querySelector('[data-studio-field="loginPassword"]').value});window.zhimuSessionAuth?.markAuthenticated?.();if(result.pendingEmailVerification){showToast("请先完成邮箱验证");openVerifyPending(email,true,result.verificationChallenge);return}await finishAuth("登录成功")}catch(error){showError(error)}};
+ const loginAndContinue=async(verificationOnly=false)=>{try{const email=modal.querySelector('[data-studio-field="loginEmail"]').value.trim();const password=modal.querySelector('[data-studio-field="loginPassword"]').value;if(!email||!password)return showToast("请先填写登录邮箱和密码");const result=await zhimuApi.login({email,password});if(result.pendingEmailVerification){showToast(result.verificationChallenge?"请输入邮件中的 6 位验证码":"请先发送新的邮箱验证码");openVerifyPending(email,Boolean(result.verificationChallenge),result.verificationChallenge);return}await finishAuthenticatedEntry(verificationOnly?"邮箱已验证，登录成功":"登录成功")}catch(error){showError(error)}};
+ modal.querySelector("[data-auth-register]").onclick=async()=>{try{const email=modal.querySelector('[data-studio-field="registerEmail"]').value.trim();const result=await zhimuApi.register({displayName:modal.querySelector('[data-studio-field="registerName"]').value,email,password:modal.querySelector('[data-studio-field="registerPassword"]').value});if(result.pendingEmailVerification){showToast(result.verificationEmailSent?"验证码已发送":"账号已创建，可尝试重新发送验证码");openVerifyPending(email,result.verificationEmailSent,result.verificationChallenge);return}await finishAuthenticatedEntry("注册成功，已经登录")}catch(error){showError(error)}};
+ modal.querySelector("[data-auth-login]").onclick=()=>loginAndContinue(false);
+ modal.querySelector("[data-auth-verify-entry]").onclick=()=>loginAndContinue(true);
  modal.querySelector("[data-auth-forgot]")?.addEventListener("click",()=>openForgotPassword(modal.querySelector('[data-studio-field="loginEmail"]')?.value||""));
  modal.querySelectorAll("[data-legal-doc]").forEach((link)=>{link.addEventListener("click",(event)=>{event.preventDefault();window.zhimuGuide?.openLegalDoc?.(link.dataset.legalDoc,link.dataset.legalTitle||"法律文档")})});
  (async()=>{try{const config=await zhimuApi.getAuthConfig();const bar=modal.querySelector("[data-oauth-bar]");if(!bar||!config.oauth?.length)return;setHtml(bar, config.oauth.map(p=>`<button class="secondary-btn" data-oauth-start="${p.id}">${escapeHtml(p.label)} 登录</button>`).join(""));bar.querySelectorAll("[data-oauth-start]").forEach(btn=>btn.onclick=async()=>{try{const {url}=await zhimuApi.oauthStartUrl(btn.dataset.oauthStart);window.location.href=url}catch(error){showError(error)}})}catch{}})();
@@ -403,7 +428,7 @@ function clearStartupSearchParams(keys){
  const params=new URLSearchParams(window.location.search);
  keys.forEach((key)=>params.delete(key));
  const qs=params.toString();
- window.history.replaceState({},"",`${window.location.pathname}${window.location.hash||""}${qs?`?${qs}`:""}`);
+ window.history.replaceState({},"",`${window.location.pathname}${qs?`?${qs}`:""}${window.location.hash||""}`);
 }
 
 export function handleStartupAuthParams(){
@@ -422,7 +447,7 @@ export function handleStartupAuthParams(){
  }
  if(verifyToken){
   clearStartupSearchParams(["verify"]);
-  pending.push((async()=>{await openVerifyEmail(verifyToken)})());
+  pending.push(openVerifyEmail(verifyToken));
  }
  if(oauthError){
   clearStartupSearchParams(["oauth_error"]);

@@ -475,6 +475,46 @@ const server = http.createServer(async (request, response) => {
       }
     });
   }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/login") {
+    const body = await readJson(request);
+    return sendJson(response, 200, {
+      token: "browser-fixture-pending-token",
+      user: {
+        id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+        email: String(body.email || "browser-fixture@example.invalid"),
+        display_name: "浏览器验收",
+        emailVerified: false
+      },
+      pendingEmailVerification: true,
+      verificationChallenge: {
+        id: verificationChallengeId,
+        maskedEmail: "br*************@example.invalid",
+        codeLength: 6,
+        expiresInSeconds: 600,
+        resendAfterSeconds: 0
+      }
+    });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/verify-email") {
+    const body = await readJson(request);
+    if (body.token !== "fixture-link-token") {
+      return sendJson(response, 400, {
+        code: "EMAIL_VERIFICATION_INVALID",
+        error: "Email verification link is invalid or expired"
+      });
+    }
+    verificationFixtureAuthenticated = true;
+    return sendJson(response, 200, {
+      token: "browser-fixture-link-token",
+      user: {
+        id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+        email: "browser-fixture@example.invalid",
+        display_name: "浏览器验收",
+        emailVerified: true
+      },
+      acceptedInvites: []
+    });
+  }
   if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/verify-email-code") {
     const body = await readJson(request);
     if (body.challengeId !== verificationChallengeId || body.code !== "246810") {
