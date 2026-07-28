@@ -188,6 +188,9 @@ import { callView } from "./view-registry.js";
       case "account-hub-tab":
         void window.zhimuAccountHub?.switchAccountHubTab?.(el?.dataset?.hubTab);
         return true;
+      case "retry-account-view":
+        window.zhimuAccountHub?.beginAccountHubLoad?.();
+        return true;
       case "toggle-collapse-panel": {
         const panelId = el?.dataset?.panelId;
         if (!panelId) return true;

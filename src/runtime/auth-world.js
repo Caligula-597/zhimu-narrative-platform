@@ -71,10 +71,6 @@ async function finishAuthenticatedEntry(label){
  }
  render();
  callRuntime("drainPendingInviteAfterAuth");
- if(!zhimuApi.context.worldId){
-  const hasWorlds=(worldStore.get().cloudWorlds||[]).length>0;
-  setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400);
- }
 }
 
 async function finishEmailVerification(label="邮箱已验证，已自动登录"){
@@ -127,8 +123,10 @@ export async function openVerifyEmail(verifyToken){
   await zhimuApi.verifyEmail({token:verifyToken});
   await finishEmailVerification();
  }catch(error){
-  setHtml(modal, `<h2>验证失败</h2><p class="wizard-intro">${escapeHtml(error.message||"链接无效或已过期")}</p><p class="muted-note">你仍可使用邮箱和密码登录，然后点击“已有验证码？验证邮箱”。</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-auth-open-login>去登录并输入验证码</button></div>`);
+  const retryable=!error?.status||["NETWORK_ERROR","REQUEST_TIMEOUT","API_UNAVAILABLE"].includes(error?.code)||/无法连接|网络|超时/i.test(error?.message||"");
+  setHtml(modal, `<h2>验证失败</h2><p class="wizard-intro">${escapeHtml(error.message||"链接无效或已过期")}</p><p class="muted-note">${retryable?"网络恢复后可以直接重新验证，无需重新注册。":"你仍可使用邮箱和密码登录，然后点击“已有验证码？验证邮箱”。"}</p><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button>${retryable?`<button class="secondary-btn" data-auth-retry-verify>重新验证</button>`:""}<button class="primary-btn" data-auth-open-login>去登录并输入验证码</button></div>`);
   modal.querySelector("[data-close]").onclick=closeModal;
+  modal.querySelector("[data-auth-retry-verify]")?.addEventListener("click",()=>void openVerifyEmail(verifyToken));
   modal.querySelector("[data-auth-open-login]").onclick=()=>openAuthForm();
  }
 }
@@ -418,10 +416,6 @@ async function finishOAuthSession(result){
  await loadCloudData(true,true);
  drainPendingInviteAfterAuth();
  render();
- if(!zhimuApi.context.worldId){
-  const hasWorlds=(worldStore.get().cloudWorlds||[]).length>0;
-  setTimeout(()=>hasWorlds?openWorldLibrary("mine"):openWorldLibrary("catalog"),400);
- }
 }
 
 function clearStartupSearchParams(keys){

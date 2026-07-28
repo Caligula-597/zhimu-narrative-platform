@@ -20,6 +20,7 @@ export const uiStore = createStore({
   accountHubTab: "account",
   accountView: null,
   accountViewLoading: false,
+  accountViewError: "",
   accountHubLoadId: 0,
   opsStatus: null,
   opsPlanRequests: null,

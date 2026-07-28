@@ -54,7 +54,14 @@ const appEntry = (function (window) {
     const currentView = uiStore.get().view;
     if (!getViewMeta(currentView)) { uiStore.set({ view: "creatorCockpit" }); return render(); }
     const [eyebrow, title] = getViewMeta(uiStore.get().view);
-    const needsStudio = Boolean(R.viewRequiresStudio?.(currentView));
+    // Detailed views already provide a useful no-world empty state. Do not
+    // repeatedly request a Studio snapshot when a brand-new account has no
+    // active world; Promise.resolve(null) would otherwise schedule render()
+    // forever and freeze the page.
+    const needsStudio = Boolean(
+      R.viewRequiresStudio?.(currentView)
+      && R.hasActiveWorld?.()
+    );
     const studioState = studioStore.get();
     if (needsStudio && !studioState.cloudStudio && !studioState.studioLoading && !studioState.studioError) {
       const loadingView = currentView;
@@ -96,10 +103,10 @@ const appEntry = (function (window) {
     const outage = window.zhimuServiceOutage;
     const apiError = userStore.get().apiError;
     const isOutage = outage?.isServiceOutage?.(apiError) && !studioStore.get().cloudLoading;
-    const showFullOutage = isOutage && currentView !== "creatorCockpit";
+    const showFullOutage = isOutage && !["creatorCockpit", "account"].includes(currentView);
     const viewFn = resolveViewFn(uiStore.get().view);
     let html = showFullOutage ? outage.renderServiceOutage(apiError) : (viewFn ? viewFn() : renderViewLoading(title));
-    if (isOutage && currentView === "creatorCockpit") {
+    if (isOutage && ["creatorCockpit", "account"].includes(currentView)) {
       html = (outage.renderScopedOutageBanner?.(apiError) || "") + html;
     }
     const contentChanged = setContentHtml(html);

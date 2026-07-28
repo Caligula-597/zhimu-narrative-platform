@@ -9,6 +9,7 @@ import { AI_PLAYER_ARCHETYPES } from "../shared/ai-playtest.js";
 const host = "127.0.0.1";
 const port = Number(process.env.ZHIMU_BROWSER_FIXTURE_PORT || 4180);
 const verificationAuthFixture = process.env.ZHIMU_BROWSER_FIXTURE_AUTH === "verification";
+const emptyAccountFixture = process.env.ZHIMU_BROWSER_FIXTURE_EMPTY_ACCOUNT === "true";
 const verificationChallengeId = "7f5f69b2-5330-4cc9-9497-5a6c751c80e8";
 let verificationFixtureAuthenticated = false;
 const worldId = "33333333-3333-4333-8444-555555550003";
@@ -661,6 +662,32 @@ const server = http.createServer(async (request, response) => {
   if (request.method === "GET" && path === "/api/platform/events/stream") {
     return sendSse(request, response);
   }
+  if (request.method === "GET" && path === "/api/auth/sessions") {
+    return sendJson(response, 200, { sessions: [] });
+  }
+  if (request.method === "GET" && path === "/api/account/entitlements") {
+    return sendJson(response, 200, {
+      usage: {
+        planCode: "internal_beta",
+        planLabel: "内测版",
+        planDescription: "内测期间基础创作功能已开通。",
+        isInternalBeta: true,
+        usedBytes: 0,
+        maxBytes: 1073741824,
+        remainingBytes: 1073741824,
+        storagePercent: 0,
+        usedWorlds: 0,
+        maxWorlds: 10,
+        remainingWorlds: 10,
+        worldsPercent: 0,
+        maxSingleFileBytes: 52428800
+      },
+      publicPlans: [],
+      upgrade: null,
+      pricing: { mode: "internal_beta" },
+      credits: null
+    });
+  }
   if (request.method === "GET" && path === "/api/account/llm") {
     return sendJson(response, 200, {
       encryptionReady: true,
@@ -719,7 +746,7 @@ const server = http.createServer(async (request, response) => {
     });
   }
   if (request.method === "GET" && path === "/api/worlds") {
-    return sendJson(response, 200, [world]);
+    return sendJson(response, 200, emptyAccountFixture ? [] : [world]);
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/creator-bootstrap`) {
     return sendJson(response, 200, {
