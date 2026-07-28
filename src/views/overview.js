@@ -398,10 +398,10 @@ export function overview() {
           ${operationCards.map((card) => `<div class="operation-mini"><span>${escapeHtml(card.k)}</span><strong>${escapeHtml(card.v)}</strong><p>${escapeHtml(card.t)}</p></div>`).join("")}
         </div>
         <div class="external-entry-grid">
-          <a class="external-entry host-entry" href="${escapeHtml(hostConsoleUrl)}" target="_blank" rel="noopener">
+          <a class="external-entry host-entry" href="${escapeHtml(hostConsoleUrl)}" target="_blank" rel="noopener noreferrer">
             <span>HOST</span><strong>打开主持端</strong><small>处理待确认事件、玩家进度与现场干预</small>
           </a>
-          <a class="external-entry play-entry" href="${escapeHtml(playJoinUrl || window.zhimuInviteLinks?.playSiteOrigin?.() || "https://play.getzhimu.com")}" target="_blank" rel="noopener">
+          <a class="external-entry play-entry" href="${escapeHtml(playJoinUrl || window.zhimuInviteLinks?.playSiteOrigin?.() || "https://play.getzhimu.com")}" target="_blank" rel="noopener noreferrer">
             <span>PLAY</span><strong>打开玩家端</strong><small>${hasActiveRoom && room?.invite_code ? `邀请码 ${escapeHtml(room.invite_code)}` : "输入邀请码或体验公开入口"}</small>
           </a>
         </div>

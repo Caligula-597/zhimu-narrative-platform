@@ -19,9 +19,10 @@ const hostToastTimer = createToastTimer(3200);
 
 function syncHostUrl() {
   const url = new URL(window.location.href);
-  const roomId = getRoomId();
-  if (state.view === "console" && roomId) url.searchParams.set("room", roomId);
+  const roomId = state.view === "console" ? getRoomId() : state.pendingRoomId;
+  if (roomId) url.searchParams.set("room", roomId);
   else url.searchParams.delete("room");
+  url.searchParams.delete("roomId");
   window.history.replaceState({}, "", url.pathname + url.search);
 }
 

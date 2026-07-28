@@ -1,21 +1,23 @@
 /** Player invite URLs for play.getzhimu.com */
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
+import {
+  hostConsoleUrl as buildHostConsoleUrl,
+  playerJoinUrl as buildPlayerJoinUrl
+} from "../../shared/portal-links.js";
 (function (window) {
   function playSiteOrigin() {
     return (window.zhimuConfig?.playSiteOrigin || "https://play.getzhimu.com").replace(/\/$/, "");
   }
 
   function playerJoinUrl(inviteCode) {
-    const code = String(inviteCode || "").trim();
-    if (!code) return playSiteOrigin();
-    return `${playSiteOrigin()}/?join=${encodeURIComponent(code)}`;
+    return buildPlayerJoinUrl(playSiteOrigin(), inviteCode);
   }
 
   function hostConsoleUrl(roomId) {
     const base = (window.zhimuConfig?.hostSiteOrigin || "https://host.getzhimu.com").replace(/\/$/, "");
     const id = String(roomId || zhimuApi?.context?.roomId || "").trim();
-    return id ? `${base}/?roomId=${encodeURIComponent(id)}` : base;
+    return buildHostConsoleUrl(base, id);
   }
 
   async function copyText(text, label = "内容") {

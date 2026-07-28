@@ -1603,14 +1603,36 @@ textarea:focus-visible {
 
   .host-brand-copy,
   .host-header-context,
-  .host-nav-link,
-  .host-room-switch,
   .host-user {
     display: none;
   }
 
   .host-nav {
     grid-column: 3;
+    gap: 4px;
+  }
+
+  .host-nav-link,
+  .host-room-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+  }
+
+  .host-nav-link span,
+  .host-room-switch span {
+    display: inline-flex;
+    font-size: 15px;
+  }
+
+  .host-nav .ghost-btn {
+    padding: 9px 10px;
   }
 
   .host-main {
