@@ -25,12 +25,14 @@ const stylesSource = fs.readFileSync(new URL("../styles.css", import.meta.url), 
 async function evaluateConfig({
   hostname,
   port = "",
-  storedApiBase = ""
+  storedApiBase = "",
+  storedDemoMode = null
 }) {
   const removed = [];
   const storage = {
     getItem(key) {
       if (key === "zhimuApiBase") return storedApiBase || null;
+      if (key === "zhimuDemoMode") return storedDemoMode;
       return null;
     },
     removeItem(key) {
@@ -71,6 +73,15 @@ test("localhost may still use an explicit developer API endpoint", async () => {
   });
   assert.equal(result.config.apiBase, "http://127.0.0.1:4180/api");
   assert.deepEqual(result.removed, []);
+});
+
+test("public site ignores and clears stale browser demo mode", async () => {
+  const result = await evaluateConfig({
+    hostname: "app.getzhimu.com",
+    storedDemoMode: "true"
+  });
+  assert.equal(result.config.demoMode, false);
+  assert.deepEqual(result.removed, ["zhimuDemoMode"]);
 });
 
 test("no-world navigation does not enter the Studio hydration render loop", () => {

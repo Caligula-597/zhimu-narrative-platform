@@ -443,7 +443,11 @@ const server = http.createServer(async (request, response) => {
           email: { configured: true, provider: "fixture" },
           oauth: []
         }
-      : { requireAuth: false, demoMode: true, providers: [] });
+        : { requireAuth: false, demoMode: true, providers: [] });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/test/reset-verification") {
+    verificationFixtureAuthenticated = false;
+    return sendJson(response, 200, { ok: true });
   }
   if (request.method === "GET" && path === "/api/auth/me") {
     if (verificationAuthFixture && !verificationFixtureAuthenticated) {
@@ -747,6 +751,9 @@ const server = http.createServer(async (request, response) => {
   }
   if (request.method === "GET" && path === "/api/worlds") {
     return sendJson(response, 200, emptyAccountFixture ? [] : [world]);
+  }
+  if (request.method === "GET" && path === "/api/worlds/catalog") {
+    return sendJson(response, 200, []);
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/creator-bootstrap`) {
     return sendJson(response, 200, {

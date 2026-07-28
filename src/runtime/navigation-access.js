@@ -7,6 +7,8 @@ const DYNAMIC_MODULE_ERROR_PATTERNS = [
   /ChunkLoadError/i,
   /Loading chunk [\w-]+ failed/i
 ];
+const DYNAMIC_MODULE_RELOAD_KEY = "zhimuDynamicModuleReload";
+const DYNAMIC_MODULE_RELOAD_WINDOW_MS = 10 * 60 * 1000;
 
 export function navigationAccess(view, {
   authenticated = false,
@@ -28,4 +30,26 @@ export function viewModuleErrorMessage(error) {
     return "页面刚刚完成更新，当前标签页仍在使用旧版静态资源。请刷新页面后重新打开该功能。";
   }
   return error;
+}
+
+export function claimDynamicModuleReload(error, {
+  storage = globalThis.sessionStorage,
+  now = Date.now()
+} = {}) {
+  if (!isDynamicModuleLoadError(error) || !storage?.getItem || !storage?.setItem) return false;
+  const signature = String(error?.message || error || "dynamic-module-load-error");
+  try {
+    const previous = JSON.parse(storage.getItem(DYNAMIC_MODULE_RELOAD_KEY) || "null");
+    if (
+      previous?.signature === signature
+      && Number.isFinite(previous?.at)
+      && now - previous.at < DYNAMIC_MODULE_RELOAD_WINDOW_MS
+    ) {
+      return false;
+    }
+    storage.setItem(DYNAMIC_MODULE_RELOAD_KEY, JSON.stringify({ signature, at: now }));
+    return true;
+  } catch {
+    return false;
+  }
 }

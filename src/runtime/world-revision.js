@@ -7,6 +7,7 @@ import { callView } from "./view-registry.js";
 import * as F from "../utils/format.js";
 import { closeModal } from "../components/modal.js";
 import { setHtml } from "../../shared/safe-dom.js";
+import { accountScopedStorageKey, currentStorageUserId } from "./storage-scope.js";
 
 (function (window) {
 
@@ -115,7 +116,11 @@ import { setHtml } from "../../shared/safe-dom.js";
 
     if (!worldId || !scope) return null;
 
-    return `zhimu_draft:${worldId}:${scope}`;
+    return accountScopedStorageKey("zhimu_draft", {
+      userId: currentStorageUserId(),
+      worldId,
+      scope
+    });
 
   }
 

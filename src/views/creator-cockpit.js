@@ -7,7 +7,7 @@ import * as U from "../components/emptyState.js";
 import { content } from "../dom.js";
 import { callRuntime, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
-import { studioStore, worldStore } from "../state/index.js";
+import { studioStore, userStore, worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { loading as renderLoading, normalizeError } from "../components/status-ui.js";
 import { contentLayerMapHtml } from "../components/content-layer-map.js";
@@ -53,7 +53,8 @@ export function invalidateCockpitData() {
 
 function loadDraft(worldId, studio) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(draftStorageKey(worldId)) || "{}");
+    const userId = userStore.get().currentUser?.id || "";
+    const parsed = JSON.parse(localStorage.getItem(draftStorageKey(worldId, userId)) || "{}");
     return mergeDraftFromSources(parsed, studio);
   } catch {
     return defaultDraft(studio);
@@ -63,7 +64,8 @@ function loadDraft(worldId, studio) {
 function saveDraft() {
   const worldId = zhimuApi.context.worldId;
   if (!worldId) return;
-  localStorage.setItem(draftStorageKey(worldId), JSON.stringify(cockpit));
+  const userId = userStore.get().currentUser?.id || "";
+  localStorage.setItem(draftStorageKey(worldId, userId), JSON.stringify(cockpit));
 }
 
 function syncDraftForWorld() {
