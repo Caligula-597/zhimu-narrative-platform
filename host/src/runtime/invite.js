@@ -1,4 +1,4 @@
-import { getPlayOrigin } from "../api.js";
+import { getPlayerJoinUrl } from "../api.js";
 import { activeRuntimeRoom } from "../components/ui.js";
 import {
   closeModal,
@@ -39,7 +39,7 @@ export function openRoomInviteModal() {
   modalEl.root.querySelector("[data-close]").onclick = closeModal;
   modalEl.root.querySelector("[data-copy-code]").onclick = () => copyText(code, "邀请码");
   modalEl.root.querySelector("[data-copy-link]").onclick = () =>
-    copyText(code ? `${getPlayOrigin()}/?join=${encodeURIComponent(code)}` : getPlayOrigin(), "玩家链接");
+    copyText(getPlayerJoinUrl(code), "玩家链接");
 }
 
 export async function copyInviteCode(code) {
@@ -47,6 +47,5 @@ export async function copyInviteCode(code) {
 }
 
 export async function copyPlayLink(code) {
-  const url = code ? `${getPlayOrigin()}/?join=${encodeURIComponent(code)}` : getPlayOrigin();
-  await copyText(url, "玩家链接");
+  await copyText(getPlayerJoinUrl(code), "玩家链接");
 }

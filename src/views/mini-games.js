@@ -122,7 +122,7 @@ import { normalizeError } from "../components/status-ui.js";
         <strong>当前测试房</strong>
         <p>${room ? `${escapeHtml(room.name || "运行房")} · ${escapeHtml(room.invite_code || "")}` : "尚未选择运行房"}</p>
       </div>
-      <button class="secondary-btn full-btn" data-action="open-host-console">打开主持端</button>
+      <button class="secondary-btn full-btn" data-action="open-host-console" data-room-id="${escapeHtml(room?.id || "")}">打开${room ? "当前房间" : ""}主持端</button>
     </aside>`;
   }
 

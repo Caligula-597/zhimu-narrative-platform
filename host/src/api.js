@@ -7,12 +7,19 @@ import {
 } from "../../shared/api-client.js";
 import { defaultSessionTokenStore } from "../../shared/session-token.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
+import { playerJoinUrl } from "../../shared/portal-links.js";
 
 export { getSessionToken, setSessionToken };
 
 const viteEnv = import.meta.env || {};
-const APP_ORIGIN = (viteEnv.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
-const PLAY_ORIGIN = (viteEnv.VITE_PLAY_ORIGIN || "https://play.getzhimu.com").replace(/\/$/, "");
+const APP_ORIGIN = (
+  viteEnv.VITE_APP_ORIGIN
+  || (viteEnv.DEV ? "http://127.0.0.1:4173" : "https://app.getzhimu.com")
+).replace(/\/$/, "");
+const PLAY_ORIGIN = (
+  viteEnv.VITE_PLAY_ORIGIN
+  || (viteEnv.DEV ? "http://127.0.0.1:5174" : "https://play.getzhimu.com")
+).replace(/\/$/, "");
 const API_BASE = resolveVitePortalApiBase({
   viteAppOrigin: APP_ORIGIN,
   viteApiOrigin: viteEnv.VITE_API_ORIGIN,
@@ -48,6 +55,10 @@ export function getAppOrigin() {
 
 export function getPlayOrigin() {
   return PLAY_ORIGIN;
+}
+
+export function getPlayerJoinUrl(inviteCode) {
+  return playerJoinUrl(PLAY_ORIGIN, inviteCode);
 }
 
 export function getHostOrigin() {

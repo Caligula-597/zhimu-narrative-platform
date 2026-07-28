@@ -8,6 +8,7 @@ export const state = {
   pendingVerificationEmail: "",
   pendingVerificationChallenge: null,
   canResendVerification: false,
+  pendingRoomId: "",
   busy: false,
   toast: "",
   error: "",

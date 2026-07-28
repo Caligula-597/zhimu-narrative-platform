@@ -16,15 +16,15 @@ import {
   roomReleaseId
 } from "./room-release-workspace.js";
 
-let loadSequence = 0;
-let roomWorkspaceState = createRoomWorkspaceState();
-
 const DEFAULT_ROOM_CONTENT_POLICY = Object.freeze({
   defaultMode: "live_draft",
   defaultReleaseEnabled: false,
   publicListingRequiresRelease: true,
   allowExplicitLiveDraft: true
 });
+
+let loadSequence = 0;
+let roomWorkspaceState = createRoomWorkspaceState();
 
 function createRoomWorkspaceState(worldId = zhimuApi.context.worldId || "") {
   return {
@@ -102,6 +102,8 @@ function roomRow(room, state) {
     </div>
     <div class="row">
       <button class="secondary-btn" data-action="room-invite" data-room-id="${escapeHtml(room.id)}" data-room-name="${escapeHtml(room.name)}" data-invite-code="${escapeHtml(room.invite_code)}">邀请玩家</button>
+      <button class="secondary-btn" data-action="open-player-portal" data-invite-code="${escapeHtml(room.invite_code)}">打开玩家端</button>
+      <button class="secondary-btn" data-action="open-host-console" data-room-id="${escapeHtml(room.id)}">打开主持端</button>
       ${releaseAction}
       ${listingAction}
       <button class="${active ? "secondary-btn" : "primary-btn"}" data-action="room-select" data-room-id="${escapeHtml(room.id)}" ${active || busy ? "disabled" : ""}>${active ? "当前房间" : "进入房间"}</button>
@@ -129,7 +131,7 @@ export function rooms() {
   return `<section class="room-workspace-page">
     <header class="room-workspace-head">
       <div><button class="workspace-back-btn" data-go="overview">← 返回项目总控</button><p class="section-kicker">RUNTIME ROOMS</p><h2>${escapeHtml(world?.name || "当前剧本")} · 运行房工作区</h2><p>创建测试房、管理公开状态、切换当前运行上下文，并向玩家分享邀请码。</p></div>
-      <div class="room-workspace-head-actions"><button class="secondary-btn" data-action="room-join">使用邀请码加入</button><button class="secondary-btn" data-action="room-workspace-refresh" ${state.status === "loading" ? "disabled" : ""}>刷新列表</button><button class="primary-btn" data-action="open-host-console">打开主持端</button></div>
+      <div class="room-workspace-head-actions"><button class="secondary-btn" data-action="room-join">使用邀请码加入</button><button class="secondary-btn" data-action="room-workspace-refresh" ${state.status === "loading" ? "disabled" : ""}>刷新列表</button><button class="primary-btn" data-action="open-host-console" data-room-id="${escapeHtml(zhimuApi.context.roomId || "")}">打开${zhimuApi.context.roomId ? "当前房间" : ""}主持端</button></div>
     </header>
     ${state.error ? `<div class="workspace-inline-error" role="alert"><strong>操作未完成</strong><p>${escapeHtml(state.error)}</p></div>` : ""}
     <div class="room-workspace-grid">

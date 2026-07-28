@@ -9,7 +9,7 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
   }
 
   function playOfficialUrl() {
-    const fromConfig = window.zhimuConfig?.playSiteUrl || window.zhimuInviteLinks?.playOrigin?.();
+    const fromConfig = window.zhimuConfig?.playSiteOrigin || window.zhimuInviteLinks?.playSiteOrigin?.();
     const base = (fromConfig || "https://play.getzhimu.com").replace(/\/$/, "");
     return `${base}/?experience=official`;
   }

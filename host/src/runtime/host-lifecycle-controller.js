@@ -1,5 +1,6 @@
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid } from "../../../shared/security.js";
 import { initWebVitalsReporting } from "../../../shared/web-vitals.js";
+import { hostRoomIdFromSearch } from "../../../shared/portal-links.js";
 import {
   authProbeFailureStatus,
   isSessionRejection,
@@ -140,6 +141,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     }
     await loadSessionUser();
     if (!state.user) return;
+    if (await enterPendingRoom()) return;
     if (state.view === "auth") state.view = "landing";
     if (state.view === "console") {
       syncRoomStream();
@@ -175,6 +177,20 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function enterPendingRoom() {
+    const roomId = state.pendingRoomId;
+    if (!state.user || !roomId) return false;
+    const found = await resolveRoomDeepLink(roomId);
+    state.pendingRoomId = "";
+    if (!found) {
+      state.error = "找不到该运行房，或你没有主持权限。";
+      return false;
+    }
+    state.view = "console";
+    await enterConsole();
+    return true;
   }
 
   async function selectWorld(worldId) {
@@ -271,6 +287,10 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       state.pendingVerificationChallenge = null;
       state.canResendVerification = false;
       cleanOAuthUrl();
+      if (await enterPendingRoom()) {
+        showToast(`欢迎，${result.user.displayName || result.user.email || "主持"}`);
+        return;
+      }
       await loadWorldsList();
       state.view = "landing";
       showToast(`欢迎，${result.user.displayName || result.user.email || "主持"}`);
@@ -297,6 +317,10 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       state.pendingVerificationChallenge = null;
       state.canResendVerification = false;
       cleanOAuthUrl();
+      if (await enterPendingRoom()) {
+        showToast("邮箱验证成功，已进入目标主持房间");
+        return;
+      }
       await loadWorldsList();
       state.view = "landing";
       showToast("邮箱验证成功，已自动登录主持端");
@@ -416,7 +440,8 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   async function bootstrap() {
     initWebVitalsReporting({ app: "host", endpoint: "/api/metrics/web-vitals" });
     const params = new URLSearchParams(window.location.search);
-    const deepRoom = params.get("room");
+    const deepRoom = hostRoomIdFromSearch(params);
+    state.pendingRoomId = isUuid(deepRoom) ? deepRoom : "";
     bindDataContext({ render, showToast });
     bindRoomEventsContext({ render, showToast });
     bindInviteContext({ showToast });
@@ -437,17 +462,13 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       await loadSessionUser();
       if (!state.user && state.view !== "auth") state.view = "landing";
 
-      if (deepRoom && isUuid(deepRoom)) {
-        const found = await resolveRoomDeepLink(deepRoom);
-        if (found) {
-          state.view = "console";
-          await enterConsole();
-          return;
-        }
-        state.error = "找不到该运行房，或你没有主持权限。";
+      if (deepRoom && !isUuid(deepRoom)) {
+        state.error = "主持端房间链接无效，请从创作者端重新打开。";
+      } else if (await enterPendingRoom()) {
+        return;
       }
 
-      if (getWorldId() && getRoomId()) {
+      if (state.user && getWorldId() && getRoomId()) {
         await enterConsole();
       } else if (state.user) {
         await loadWorldsList();

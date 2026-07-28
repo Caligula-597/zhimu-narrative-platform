@@ -1,4 +1,4 @@
-import { api, getPlayOrigin } from "../api.js";
+import { api, getPlayerJoinUrl } from "../api.js";
 import { formatApiError } from "../errors.js";
 import { state } from "../state.js";
 import { loadHostData, refreshHostAuditLog, refreshHostClueMatrix, refreshHostEvents, refreshHostPlayers, refreshHostRoom } from "./data.js";
@@ -95,8 +95,7 @@ export function createDirectorActionHandler({ render, showToast }) {
         return true;
       case "onboarding-go-player": {
         const code = state.room?.invite_code || "";
-        const url = code ? `${getPlayOrigin()}/?join=${encodeURIComponent(code)}` : getPlayOrigin();
-        window.open(url, "_blank", "noopener,noreferrer");
+        window.open(getPlayerJoinUrl(code), "_blank", "noopener,noreferrer");
         return true;
       }
       default:

@@ -7,7 +7,10 @@ import { createSessionTokenStore } from "../../shared/session-token.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
 
 const viteEnv = import.meta.env || {};
-const APP_ORIGIN = (viteEnv.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
+const APP_ORIGIN = (
+  viteEnv.VITE_APP_ORIGIN
+  || (viteEnv.DEV ? "http://127.0.0.1:4173" : "https://app.getzhimu.com")
+).replace(/\/$/, "");
 const API_BASE = resolveVitePortalApiBase({
   viteAppOrigin: APP_ORIGIN,
   viteApiOrigin: viteEnv.VITE_API_ORIGIN,
