@@ -75,8 +75,8 @@ const REQUIRED_SCHEMA_MARKERS = [
   ["story-assistant-routes.js", 'app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/spec", { schema:'],
   ["story-assistant-routes.js", 'app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/import", { schema:'],
   ["story-assistant-routes.js", 'app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/evaluate", { schema:'],
-  ["story-assistant-routes.js", 'app.put("/api/worlds/:worldId/story-manuscript", { schema:'],
-  ["story-assistant-routes.js", 'app.post("/api/worlds/:worldId/story-manuscript/sync-to-graph", { schema:'],
+  ["story-manuscript-routes.js", 'app.put("/api/worlds/:worldId/story-manuscript", { schema:'],
+  ["story-manuscript-routes.js", 'app.post("/api/worlds/:worldId/story-manuscript/sync-to-graph", { schema:'],
   ["story-assistant-routes.js", 'app.post("/api/worlds/:worldId/story-assistant/import", { schema:'],
   ["search-routes.js", 'app.get("/api/worlds/:worldId/search", { schema:']
 ];

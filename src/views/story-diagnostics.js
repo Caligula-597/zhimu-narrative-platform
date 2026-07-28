@@ -1,4 +1,5 @@
 /** Story diagnostics center — traceable causal, information and fairness checks. */
+import "./creator-intelligence.css";
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { go, render } from "../runtime/runtime-facade.js";
