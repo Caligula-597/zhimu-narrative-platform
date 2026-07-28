@@ -13,7 +13,10 @@ export async function loadRuntimeHostPlayerFacts(
      )
      SELECT requested.role_slot_id,
             member.user_id,
-            player.display_name AS player_display_name,
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = player.id AND profile.portal = 'player'
+            ), player.display_name) AS player_display_name,
             member.joined_at,
             (member.user_id IS NOT NULL) AS joined,
             room.status AS room_status,
@@ -99,7 +102,10 @@ export async function loadRuntimeHostClueFacts(roomId, runQuery = query) {
        COALESCE((
          SELECT jsonb_agg(jsonb_build_object(
            'role_slot_id', member.role_slot_id,
-           'player_display_name', player.display_name,
+           'player_display_name', COALESCE((
+             SELECT profile.display_name FROM user_portal_profiles profile
+             WHERE profile.user_id = player.id AND profile.portal = 'player'
+           ), player.display_name),
            'joined', true
          ))
          FROM room_members member

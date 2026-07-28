@@ -34,16 +34,20 @@ import {
   syncDirectorPolling,
   syncRoomStream
 } from "./room-events.js";
+import { mergePortalProfileIntoUser } from "../../../shared/portal-profile-ui.js";
 
 export function normalizeHostUser(raw) {
   raw = normalizeAuthenticatedUser(raw);
   if (!raw) return null;
-  return {
+  const user = {
     id: raw.id,
     email: raw.email,
     displayName: raw.display_name || raw.displayName,
     emailVerified: raw.emailVerified ?? Boolean(raw.email_verified_at)
   };
+  const avatarUrl = raw.avatar_url || raw.avatarUrl;
+  if (avatarUrl) user.avatarUrl = avatarUrl;
+  return user;
 }
 
 export async function loadHostSessionUser({ requestMe, stateRef, clear, isCurrent = () => true }) {
@@ -110,12 +114,30 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     }
     sessionProbeToken = tokenAtStart;
     const generationAtStart = sessionGeneration;
-    sessionProbePromise = loadHostSessionUser({
-      requestMe: api.me,
-      stateRef: state,
-      clear: clearSession,
-      isCurrent: () => generationAtStart === sessionGeneration && tokenAtStart === getSessionToken()
-    }).finally(() => {
+    sessionProbePromise = (async () => {
+      const status = await loadHostSessionUser({
+        requestMe: api.me,
+        stateRef: state,
+        clear: clearSession,
+        isCurrent: () => generationAtStart === sessionGeneration && tokenAtStart === getSessionToken()
+      });
+      if (
+        state.user
+        && generationAtStart === sessionGeneration
+        && tokenAtStart === getSessionToken()
+      ) {
+        const profile = await api.getPortalProfile("host").catch(() => null);
+        if (
+          profile
+          && generationAtStart === sessionGeneration
+          && tokenAtStart === getSessionToken()
+        ) {
+          state.portalProfile = profile;
+          state.user = mergePortalProfileIntoUser(state.user, profile);
+        }
+      }
+      return status;
+    })().finally(() => {
       sessionProbePromise = null;
       sessionProbeToken = null;
     });
@@ -133,6 +155,8 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       resetHostArchiveUi();
       resetHostRuleUi();
       state.user = null;
+      state.portalProfile = null;
+      state.profileOpen = false;
       state.authStatus = "anonymous";
       state.authError = "";
       state.view = "auth";
@@ -367,6 +391,8 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     resetHostArchiveUi();
     resetHostRuleUi();
     state.user = null;
+    state.portalProfile = null;
+    state.profileOpen = false;
     state.authStatus = "anonymous";
     state.authError = "";
     state.view = "landing";

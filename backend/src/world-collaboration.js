@@ -43,7 +43,10 @@ export async function findRegisteredUserByEmail(email) {
 
 export async function assertNotExistingMember(worldId, email) {
   const member = await query(
-    `SELECT wm.role, u.display_name
+    `SELECT wm.role, COALESCE((
+       SELECT profile.display_name FROM user_portal_profiles profile
+       WHERE profile.user_id = u.id AND profile.portal = 'creator'
+     ), u.display_name) AS display_name
      FROM world_members wm
      JOIN users u ON u.id = wm.user_id
      WHERE wm.world_id = $1 AND lower(u.email) = $2`,
@@ -60,7 +63,10 @@ export async function assertNotExistingMember(worldId, email) {
 
 export async function fetchInviteEmailContext(worldId, invitedByUserId) {
   const result = await query(
-    `SELECT w.name AS world_name, u.display_name AS inviter_name
+    `SELECT w.name AS world_name, COALESCE((
+       SELECT profile.display_name FROM user_portal_profiles profile
+       WHERE profile.user_id = u.id AND profile.portal = 'creator'
+     ), u.display_name) AS inviter_name
      FROM worlds w
      JOIN users u ON u.id = $2
      WHERE w.id = $1`,

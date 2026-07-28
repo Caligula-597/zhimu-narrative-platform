@@ -1,6 +1,7 @@
 @import "../../shared/tokens.css";
 @import "../../shared/styles/status-chip.css";
 @import "../../shared/styles/toast.css";
+@import "../../shared/styles/portal-profile.css";
 
 * {
   box-sizing: border-box;
@@ -356,6 +357,50 @@ button {
 .btn.quiet:hover:not(:disabled),
 .link-btn.quiet:hover:not(:disabled) {
   background: rgba(20, 35, 33, 0.06);
+}
+
+.play-profile-trigger {
+  display: inline-flex;
+  max-width: 150px;
+  min-height: 38px;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 9px 3px 4px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.play-profile-trigger:hover {
+  border-color: rgba(43, 107, 97, 0.42);
+  background: var(--sage-2);
+}
+
+.play-profile-trigger > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.play-profile-avatar {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-width: 1px;
+  font-size: 11px;
+}
+
+.modal.play-profile-modal {
+  width: min(760px, 100%);
+  max-height: min(90vh, 760px);
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .link-btn.quiet.is-active {

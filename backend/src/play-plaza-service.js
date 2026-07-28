@@ -62,11 +62,15 @@ async function resolveInviteLabels(inviteCode) {
 
 async function fetchPostRow(postId) {
   const result = await query(
-    `SELECT id, author_user_id, author_display_name, kind, body, invite_code,
-            room_label, world_label, reply_count, review_status, ai_review_note,
-            published_at, created_at, deleted_at
-     FROM play_plaza_posts
-     WHERE id = $1`,
+    `SELECT post.id, post.author_user_id,
+            COALESCE(profile.display_name, post.author_display_name) AS author_display_name,
+            post.kind, post.body, post.invite_code, post.room_label, post.world_label,
+            post.reply_count, post.review_status, post.ai_review_note,
+            post.published_at, post.created_at, post.deleted_at
+     FROM play_plaza_posts post
+     LEFT JOIN user_portal_profiles profile
+       ON profile.user_id = post.author_user_id AND profile.portal = 'player'
+     WHERE post.id = $1`,
     [postId]
   );
   return result.rows[0] || null;
@@ -88,12 +92,16 @@ export async function listPlazaPosts({ kind, limit = 40, actorId = null }) {
     params.push(kind);
   }
   const result = await query(
-    `SELECT id, author_user_id, author_display_name, kind, body, invite_code,
-            room_label, world_label, reply_count, review_status, ai_review_note,
-            published_at, created_at
-     FROM play_plaza_posts
+    `SELECT post.id, post.author_user_id,
+            COALESCE(profile.display_name, post.author_display_name) AS author_display_name,
+            post.kind, post.body, post.invite_code, post.room_label, post.world_label,
+            post.reply_count, post.review_status, post.ai_review_note,
+            post.published_at, post.created_at
+     FROM play_plaza_posts post
+     LEFT JOIN user_portal_profiles profile
+       ON profile.user_id = post.author_user_id AND profile.portal = 'player'
      ${filters}
-     ORDER BY COALESCE(published_at, created_at) DESC
+     ORDER BY COALESCE(post.published_at, post.created_at) DESC
      LIMIT $1`,
     params
   );
@@ -113,16 +121,20 @@ export async function listPlazaReplies(postId, { limit = 100, actorId = null } =
   await getPlazaPost(postId, actorId);
   const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 200);
   const result = await query(
-    `SELECT id, post_id, parent_reply_id, author_user_id, author_display_name, body,
-            review_status, ai_review_note, published_at, created_at
-     FROM play_plaza_replies
-     WHERE post_id = $1
-       AND deleted_at IS NULL
+    `SELECT reply.id, reply.post_id, reply.parent_reply_id, reply.author_user_id,
+            COALESCE(profile.display_name, reply.author_display_name) AS author_display_name,
+            reply.body, reply.review_status, reply.ai_review_note,
+            reply.published_at, reply.created_at
+     FROM play_plaza_replies reply
+     LEFT JOIN user_portal_profiles profile
+       ON profile.user_id = reply.author_user_id AND profile.portal = 'player'
+     WHERE reply.post_id = $1
+       AND reply.deleted_at IS NULL
        AND (
-         review_status = 'approved'
-         OR ($3::uuid IS NOT NULL AND author_user_id = $3)
+         reply.review_status = 'approved'
+         OR ($3::uuid IS NOT NULL AND reply.author_user_id = $3)
        )
-     ORDER BY created_at ASC
+     ORDER BY reply.created_at ASC
      LIMIT $2`,
     [postId, safeLimit, actorId]
   );
@@ -155,7 +167,14 @@ export async function createPlazaPost({ actorId, kind, body, inviteCode }) {
     }
   }
 
-  const user = await query(`SELECT display_name FROM users WHERE id = $1`, [actorId]);
+  const user = await query(
+    `SELECT COALESCE(profile.display_name, users.display_name) AS display_name
+     FROM users
+     LEFT JOIN user_portal_profiles profile
+       ON profile.user_id = users.id AND profile.portal = 'player'
+     WHERE users.id = $1`,
+    [actorId]
+  );
   const authorName = user.rows[0]?.display_name || "玩家";
 
   const inserted = await query(
@@ -250,7 +269,14 @@ export async function createPlazaReply({ actorId, postId, body, parentReplyId = 
   );
   if (recent.rows[0].count >= HOURLY_REPLY_LIMIT) throwErr("RATE_LIMITED", "评论过于频繁，请稍后再试。");
 
-  const user = await query(`SELECT display_name FROM users WHERE id = $1`, [actorId]);
+  const user = await query(
+    `SELECT COALESCE(profile.display_name, users.display_name) AS display_name
+     FROM users
+     LEFT JOIN user_portal_profiles profile
+       ON profile.user_id = users.id AND profile.portal = 'player'
+     WHERE users.id = $1`,
+    [actorId]
+  );
   const authorName = user.rows[0]?.display_name || "玩家";
   const reviewStatus = verdict.decision === "human_review" ? "human_review" : "approved";
 

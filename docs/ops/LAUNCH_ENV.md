@@ -98,6 +98,16 @@ VOICE_ROOM_ACTIVE_LIMIT=30
 VOICE_PRIVATE_ROOM_LIFETIME_HOURS=24
 ```
 
+三端头像与内容资产都使用浏览器直传签名 URL。R2 bucket 必须允许
+`https://app.getzhimu.com`、`https://host.getzhimu.com` 和
+`https://play.getzhimu.com` 发送带 `Content-Type` 的 `PUT` 请求，否则签名正确也会被浏览器
+CORS 拦截。使用具有 `Workers R2 Storage Edit` 权限的 Cloudflare API Token 执行：
+
+```powershell
+npm run cloudflare:sync-r2-cors
+npm run cloudflare:sync-r2-cors -- --check
+```
+
 `DEEPSEEK_API_KEY` 仅用于广场审核等平台系统任务。用户创作默认使用账号设置中加密保存的自备 API；
 首发阶段保持 `PLATFORM_LLM_USER_ACCESS=false`，不把平台 Key 加入用户调用池。
 

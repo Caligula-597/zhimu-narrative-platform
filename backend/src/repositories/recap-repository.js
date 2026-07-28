@@ -87,8 +87,16 @@ export async function listRoomRecapRows({ roomId, actorId, limit }) {
             rr.snapshot->>'description' AS description,
             rr.snapshot->'stats' AS stats,
             rr.created_at,
-            u.display_name AS created_by_name
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id
+                AND profile.portal = CASE
+                  WHEN u.id = room.host_user_id THEN 'host'
+                  ELSE 'player'
+                END
+            ), u.display_name) AS created_by_name
      FROM room_recaps rr
+     JOIN rooms room ON room.id = rr.room_id
      JOIN users u ON u.id = rr.created_by_user_id
      JOIN room_members access
        ON access.room_id = rr.room_id
@@ -105,8 +113,16 @@ export async function listRoomRecapRows({ roomId, actorId, limit }) {
 export async function findRoomRecap({ roomId, recapId, actorId }) {
   const result = await query(
     `SELECT rr.id, rr.label, rr.snapshot, rr.created_at,
-            u.display_name AS created_by_name
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id
+                AND profile.portal = CASE
+                  WHEN u.id = room.host_user_id THEN 'host'
+                  ELSE 'player'
+                END
+            ), u.display_name) AS created_by_name
      FROM room_recaps rr
+     JOIN rooms room ON room.id = rr.room_id
      JOIN users u ON u.id = rr.created_by_user_id
      JOIN room_members access
        ON access.room_id = rr.room_id
@@ -121,8 +137,16 @@ export async function findRoomRecap({ roomId, recapId, actorId }) {
 export async function findLatestRoomRecap({ roomId, actorId }) {
   const result = await query(
     `SELECT rr.id, rr.label, rr.snapshot, rr.created_at,
-            u.display_name AS created_by_name
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id
+                AND profile.portal = CASE
+                  WHEN u.id = room.host_user_id THEN 'host'
+                  ELSE 'player'
+                END
+            ), u.display_name) AS created_by_name
      FROM room_recaps rr
+     JOIN rooms room ON room.id = rr.room_id
      JOIN users u ON u.id = rr.created_by_user_id
      JOIN room_members access
        ON access.room_id = rr.room_id

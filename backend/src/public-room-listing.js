@@ -16,7 +16,10 @@ export async function listPublicRooms({ limit = 24 } = {}) {
             w.id AS world_id,
             w.name AS world_name,
             w.summary AS world_summary,
-            u.display_name AS host_display_name,
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'host'
+            ), u.display_name) AS host_display_name,
             (SELECT COUNT(*)::int FROM role_slots rs WHERE rs.world_id = w.id) AS role_count,
             (SELECT COUNT(*)::int
              FROM room_members rm

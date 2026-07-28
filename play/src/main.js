@@ -74,6 +74,7 @@ import { createPlayerHomeController } from "./runtime/player-home-controller.js"
 import { createPlayStreamController } from "./runtime/stream-controller.js";
 import { createRoomLifecycleController } from "./runtime/room-lifecycle-controller.js";
 import { createRecapNotebookController } from "./runtime/recap-notebook-controller.js";
+import { createPlayerProfileController } from "./runtime/profile-controller.js";
 
 const app = document.getElementById("app");
 
@@ -252,6 +253,16 @@ const {
   persistRoom, isUuid
 });
 
+const profile = createPlayerProfileController({
+  api,
+  state,
+  render,
+  setToast,
+  formatApiError,
+  openModalState,
+  closeModalState
+});
+
 bindPlayDomEvents({
   app,
   state,
@@ -291,6 +302,7 @@ app.addEventListener("click", async (event) => {
     return;
   }
   const action = button.dataset.action;
+  if (await profile.handleAction(action, button)) return;
   if (handlePlayStateAction({
     action,
     button,
@@ -394,6 +406,10 @@ app.addEventListener("click", async (event) => {
     loadRecapDetail, loadRecapSummary, patchGameHostBanner,
     handleAddNotebookEntry, handleDeleteNotebookEntry
   });
+});
+
+app.addEventListener("change", async (event) => {
+  await profile.handleChange(event.target);
 });
 
 let externalSessionGeneration = 0;

@@ -53,7 +53,10 @@ export async function fetchRoomRecapRows(query, roomId) {
        SELECT rs.id AS role_slot_id,
               rs.name AS role_name,
               rm.user_id,
-              u.display_name AS player_display_name,
+              COALESCE((
+                SELECT profile.display_name FROM user_portal_profiles profile
+                WHERE profile.user_id = u.id AND profile.portal = 'player'
+              ), u.display_name) AS player_display_name,
               rm.joined_at,
               (rm.user_id IS NOT NULL) AS joined,
               COALESCE(sc.total_sections, 0) AS total_sections,
@@ -86,7 +89,10 @@ export async function fetchRoomRecapRows(query, roomId) {
   });
   const clueRowsPromise = scheduleQuery(() => query(
     `SELECT c.id AS clue_id, c.name AS clue_name, c.metadata AS clue_metadata,
-            rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name,
+            rs.id AS role_slot_id, rs.name AS role_name, COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS player_display_name,
             co.acquired_at, co.read_at, co.shared_with_room, co.metadata AS ownership_metadata
      FROM clue_ownership co
      JOIN clues c ON c.id = co.clue_id
@@ -128,7 +134,10 @@ export async function fetchRoomRecapRows(query, roomId) {
   ));
   const investigationsPromise = scheduleQuery(() => query(
     `SELECT ir.investigated_at, ip.id AS point_id, ip.name AS point_name, s.name AS scene_name,
-            rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
+            rs.id AS role_slot_id, rs.name AS role_name, COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS player_display_name
      FROM investigation_records ir
      JOIN investigation_points ip ON ip.id = ir.investigation_point_id
      JOIN scenes s ON s.id = ip.scene_id
@@ -141,7 +150,10 @@ export async function fetchRoomRecapRows(query, roomId) {
   ));
   const notesPromise = scheduleQuery(() => query(
     `SELECT ne.id, ne.title, ne.body, ne.source_type, ne.created_at,
-            rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
+            rs.id AS role_slot_id, rs.name AS role_name, COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS player_display_name
      FROM notebook_entries ne
      JOIN role_slots rs ON rs.id = ne.role_slot_id
      LEFT JOIN room_members rm ON rm.room_id = ne.room_id AND rm.role_slot_id = ne.role_slot_id AND rm.status = 'active'
@@ -160,8 +172,16 @@ export async function fetchRoomRecapRows(query, roomId) {
   ));
   const timelineLogsPromise = scheduleQuery(() => query(
     `SELECT tl.id, tl.event_type, tl.message, tl.visibility, tl.created_at, tl.metadata,
-            u.display_name AS actor_name
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id
+                AND profile.portal = CASE
+                  WHEN u.id = room.host_user_id THEN 'host'
+                  ELSE 'player'
+                END
+            ), u.display_name) AS actor_name
      FROM timeline_logs tl
+     JOIN rooms room ON room.id = tl.room_id
      LEFT JOIN users u ON u.id = tl.actor_user_id
      WHERE tl.room_id = $1
      ORDER BY tl.created_at ASC`,
@@ -170,7 +190,10 @@ export async function fetchRoomRecapRows(query, roomId) {
   const readingCompletionsPromise = scheduleQuery(() => query(
     `SELECT rp.completed_at, ss.id AS section_id, ss.title AS section_title, ss.sequence,
             ss.chapter_id, ch.title AS chapter_title, ch.sequence AS chapter_sequence,
-            rs.id AS role_slot_id, rs.name AS role_name, u.display_name AS player_display_name
+            rs.id AS role_slot_id, rs.name AS role_name, COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS player_display_name
      FROM reading_progress rp
      JOIN script_sections ss ON ss.id = rp.script_section_id
      LEFT JOIN chapters ch ON ch.id = ss.chapter_id

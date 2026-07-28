@@ -69,7 +69,10 @@ export async function listPlazaHumanReviewQueue({ limit = 50, offset = 0 } = {})
     query(
       `SELECT r.id, r.reporter_user_id, r.target_type, r.target_id, r.reason,
               r.human_review_status, r.created_at,
-              u.display_name AS reporter_display_name
+              COALESCE((
+                SELECT profile.display_name FROM user_portal_profiles profile
+                WHERE profile.user_id = u.id AND profile.portal = 'player'
+              ), u.display_name) AS reporter_display_name
        FROM play_plaza_reports r
        JOIN users u ON u.id = r.reporter_user_id
        WHERE r.human_review_status = 'open'

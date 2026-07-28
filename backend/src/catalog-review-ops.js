@@ -9,7 +9,10 @@ const REVIEW_LIST_SQL = `
          w.catalog_public, w.catalog_review_status,
          w.catalog_review_submitted_at, w.catalog_review_note,
          u.id AS owner_user_id,
-         u.display_name AS owner_display_name,
+         COALESCE((
+           SELECT profile.display_name FROM user_portal_profiles profile
+           WHERE profile.user_id = u.id AND profile.portal = 'creator'
+         ), u.display_name) AS owner_display_name,
          u.email AS owner_email,
          (SELECT COUNT(*)::int FROM role_slots rs WHERE rs.world_id = w.id) AS role_count
   FROM worlds w

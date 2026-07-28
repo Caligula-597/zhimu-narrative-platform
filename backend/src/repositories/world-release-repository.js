@@ -113,7 +113,10 @@ export async function insertWorldRelease(client, {
 export async function listWorldReleaseRows({ worldId, limit = 200 }, client = null) {
   const run = client?.query ? client.query.bind(client) : query;
   const result = await run(
-    `SELECT ${RELEASE_FIELDS}, creator.display_name AS created_by_name
+    `SELECT ${RELEASE_FIELDS}, COALESCE((
+       SELECT profile.display_name FROM user_portal_profiles profile
+       WHERE profile.user_id = creator.id AND profile.portal = 'creator'
+     ), creator.display_name) AS created_by_name
      FROM world_releases release
      LEFT JOIN users creator ON creator.id = release.created_by_user_id
      WHERE release.world_id = $1

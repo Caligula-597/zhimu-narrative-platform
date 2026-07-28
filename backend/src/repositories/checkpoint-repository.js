@@ -10,7 +10,10 @@ export async function listCheckpointSummaries(roomId) {
             cp.label,
             COALESCE(cp.snapshot->>'description', '') AS description,
             cp.created_at,
-            u.display_name AS created_by_name,
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'host'
+            ), u.display_name) AS created_by_name,
             jsonb_build_object(
               'joinedPlayers', (
                 SELECT COUNT(*)::int
@@ -50,7 +53,10 @@ export async function listCheckpointSummaries(roomId) {
 export async function findCheckpoint(roomId, checkpointId) {
   const result = await query(
     `SELECT cp.id, cp.label, cp.snapshot, cp.schema_version, cp.created_at, cp.room_id,
-            u.display_name AS created_by_name
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'host'
+            ), u.display_name) AS created_by_name
      FROM checkpoints cp
      JOIN users u ON u.id = cp.created_by_user_id
      WHERE cp.id = $1 AND cp.room_id = $2`,
@@ -62,7 +68,10 @@ export async function findCheckpoint(roomId, checkpointId) {
 export async function listCheckpointRestores(roomId, checkpointId) {
   const result = await query(
     `SELECT cr.id, cr.status, cr.restore_scope, cr.error_message, cr.applied_at, cr.created_at,
-            u.display_name AS requested_by_name
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'host'
+            ), u.display_name) AS requested_by_name
      FROM checkpoint_restores cr
      JOIN users u ON u.id = cr.requested_by_user_id
      WHERE cr.room_id = $1 AND cr.checkpoint_id = $2

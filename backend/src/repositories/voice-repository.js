@@ -3,7 +3,11 @@ import { query } from "../db.js";
 export async function findVoiceRoomAccess(actorId, voiceRoomId, executor = query) {
   const result = await executor(
     `SELECT vr.id, vr.room_id, vr.name, vr.room_type, vr.provider_room_key, vr.status,
-            rm.member_type, u.display_name,
+            rm.member_type, COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id
+                AND profile.portal = CASE WHEN rm.member_type IN ('host', 'cohost') THEN 'host' ELSE 'player' END
+            ), u.display_name) AS display_name,
             COALESCE((r.settings->>'hostVoiceListen')::boolean, false) AS host_voice_listen,
             EXISTS (
               SELECT 1 FROM voice_room_members vrm
@@ -24,7 +28,10 @@ export async function findVoiceRoomAccess(actorId, voiceRoomId, executor = query
 
 export async function listVoiceRoomMessages(voiceRoomId, executor = query) {
   const result = await executor(
-    `SELECT vrm.id, vrm.body, vrm.created_at, u.display_name AS sender_name
+    `SELECT vrm.id, vrm.body, vrm.created_at, COALESCE((
+       SELECT profile.display_name FROM user_portal_profiles profile
+       WHERE profile.user_id = u.id AND profile.portal = 'player'
+     ), u.display_name) AS sender_name
      FROM voice_room_messages vrm
      JOIN users u ON u.id = vrm.sender_user_id
      WHERE vrm.voice_room_id = $1

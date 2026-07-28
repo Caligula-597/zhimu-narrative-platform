@@ -1,6 +1,7 @@
 @import "./shared/tokens.css";
 @import "./shared/styles/status-chip.css";
 @import "./shared/styles/toast.css";
+@import "./shared/styles/portal-profile.css";
 
 #toast.toast {
   position: fixed;

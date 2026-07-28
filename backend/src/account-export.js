@@ -48,7 +48,7 @@ export async function buildAccountExport(userId) {
   );
   if (!user.rowCount) throwErr("USER_NOT_FOUND");
 
-  const [oauth, sessions, ownedWorlds, collaboratorWorlds, assets, hostedRooms, entitlements] =
+  const [oauth, sessions, ownedWorlds, collaboratorWorlds, assets, hostedRooms, entitlements, portalProfiles] =
     await Promise.all([
       query(`SELECT provider, email, created_at, updated_at FROM oauth_accounts WHERE user_id = $1 ORDER BY provider`, [userId]),
       query(
@@ -80,7 +80,16 @@ export async function buildAccountExport(userId) {
          WHERE r.host_user_id = $1 AND w.owner_user_id <> $1`,
         [userId]
       ),
-      buildAccountEntitlements(userId)
+      buildAccountEntitlements(userId),
+      query(
+        `SELECT portal, display_name, name_changed_at, avatar_updated_at,
+                (avatar_object_key IS NOT NULL) AS has_custom_avatar,
+                created_at, updated_at
+         FROM user_portal_profiles
+         WHERE user_id = $1
+         ORDER BY CASE portal WHEN 'creator' THEN 1 WHEN 'host' THEN 2 ELSE 3 END`,
+        [userId]
+      )
     ]);
 
   const profile = user.rows[0];
@@ -212,6 +221,15 @@ export async function buildAccountExport(userId) {
       createdAt: profile.created_at,
       updatedAt: profile.updated_at
     },
+    portalProfiles: portalProfiles.rows.map((row) => ({
+      portal: row.portal,
+      displayName: row.display_name,
+      hasCustomAvatar: Boolean(row.has_custom_avatar),
+      nameChangedAt: row.name_changed_at,
+      avatarUpdatedAt: row.avatar_updated_at,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    })),
     plan: entitlements.plan,
     usage: entitlements.usage,
     oauthAccounts: oauth.rows.map((row) => ({

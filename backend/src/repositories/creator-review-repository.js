@@ -4,8 +4,14 @@ const REVIEW_SELECT = `
   SELECT review.id, review.world_id, review.parent_id, review.target_type, review.target_id,
          review.target_label, review.anchor, review.kind, review.status, review.severity,
          review.title, review.body, review.suggested_patch, review.impact_scope,
-         review.created_by_user_id, COALESCE(creator.display_name, '已删除成员') AS created_by_name,
-         review.resolved_by_user_id, resolver.display_name AS resolved_by_name,
+         review.created_by_user_id, COALESCE((
+           SELECT profile.display_name FROM user_portal_profiles profile
+           WHERE profile.user_id = creator.id AND profile.portal = 'creator'
+         ), creator.display_name, '已删除成员') AS created_by_name,
+         review.resolved_by_user_id, COALESCE((
+           SELECT profile.display_name FROM user_portal_profiles profile
+           WHERE profile.user_id = resolver.id AND profile.portal = 'creator'
+         ), resolver.display_name) AS resolved_by_name,
          review.created_at, review.updated_at, review.resolved_at
   FROM creator_review_threads review
   LEFT JOIN users creator ON creator.id = review.created_by_user_id
