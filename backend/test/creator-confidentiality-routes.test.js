@@ -5,7 +5,7 @@ import test from "node:test";
 const routeUrl = (name) => new URL(`../src/routes/${name}`, import.meta.url);
 
 test("mother manuscript uses creator-reader authorization instead of public world-reader access", async () => {
-  const source = await readFile(routeUrl("story-assistant-routes.js"), "utf8");
+  const source = await readFile(routeUrl("story-manuscript-routes.js"), "utf8");
   const handler = source.match(
     /app\.get\("\/api\/worlds\/:worldId\/story-manuscript"[\s\S]*?\n  \}\);/
   )?.[0];

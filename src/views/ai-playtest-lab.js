@@ -1,4 +1,5 @@
 /** Multi-agent AI playtest lab — isolated player contexts plus observer synthesis. */
+import "./creator-intelligence.css";
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { normalizeError } from "../components/status-ui.js";

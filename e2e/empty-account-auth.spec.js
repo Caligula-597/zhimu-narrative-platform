@@ -71,3 +71,27 @@ test("email verification link logs in and removes the one-time URL token", async
   await expect(page).not.toHaveURL(/verify=/);
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
 });
+
+test("mobile verification link keeps an empty account responsive across protected views", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  await page.goto("/?verify=fixture-link-token");
+  await expect(page).not.toHaveURL(/verify=/);
+  await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
+  await expect(page.locator("#content")).toContainText("当前账号还没有剧本");
+
+  const advanced = page.locator("#nav-advanced");
+  await page.locator('[data-action="toggle-nav-advanced"]').click();
+  await expect(advanced).toBeVisible();
+
+  await page.locator('.nav-item[data-view="writer"]:visible').click();
+  await expect(page.locator("#page-title")).toHaveText("角色私人剧本");
+  await expect(page.locator("#content")).not.toContainText("功能模块加载失败");
+
+  await page.locator('.mobile-account-nav[data-view="account"]:visible').click();
+  await expect(page.locator("#page-title")).toHaveText("账号与资产");
+  await expect(page.locator("#content")).toContainText("browser-fixture@getzhimu.local");
+  expect(pageErrors).toEqual([]);
+});
