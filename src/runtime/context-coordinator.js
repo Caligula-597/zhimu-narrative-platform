@@ -67,7 +67,7 @@ import { invalidateStudioSnapshot } from "./studio-loader.js";
       cloudAiPlaytestLlmStatus: null,
       cloudAiPlaytestDraftConfig: null
     });
-    uiStore.set({ accountView: null });
+    uiStore.set({ accountView: null, accountViewError: "" });
     clearRuntimeState();
   }
 
@@ -106,7 +106,7 @@ import { invalidateStudioSnapshot } from "./studio-loader.js";
       cloudAiPlaytestLlmStatus: null,
       cloudAiPlaytestDraftConfig: null
     });
-    uiStore.set({ accountView: null });
+    uiStore.set({ accountView: null, accountViewError: "" });
     sessionStorage.removeItem("zhimuAuthPrompted");
     clearRuntimeState();
   }

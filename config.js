@@ -29,6 +29,18 @@
   function resolveApiBase() {
     const fallback = resolveDefaultApiBase();
     if (!storedApiBase) return fallback;
+    // A browser-local API override is a developer convenience only. Letting it
+    // survive on the public site can strand mobile/WebView users on an old
+    // staging or localhost endpoint while the static app still loads normally.
+    if (!localHost) {
+      try {
+        runtimeStorage?.removeItem("zhimuApiBase");
+      } catch {
+        // Restricted WebViews may deny storage writes; the same-origin fallback
+        // remains authoritative for this page load.
+      }
+      return fallback;
+    }
     if (
       localHost &&
       runtimeLocation.port === "8080" &&

@@ -159,7 +159,7 @@ import { setHtml } from "../../shared/safe-dom.js";
     if (uiStore.get().accountViewLoading) return;
     const showLoading = !background && !uiStore.get().accountView;
     if (showLoading) {
-      uiStore.set({ accountViewLoading: true });
+      uiStore.set({ accountViewLoading: true, accountViewError: "" });
       if (uiStore.get().view === "account") render();
     }
     try {
@@ -173,10 +173,16 @@ import { setHtml } from "../../shared/safe-dom.js";
       stashLlmPresets(llm);
       const usage = entitlements?.usage ?? null;
       if (usage) assetStore.set({ storageUsage: usage });
-      uiStore.set({ accountView: { me, sessions, config, usage, entitlements, llm } });
+      uiStore.set({
+        accountView: { me, sessions, config, usage, entitlements, llm },
+        accountViewError: ""
+      });
     } catch (error) {
       if (!background) {
-        uiStore.set({ accountView: null });
+        uiStore.set({
+          accountView: null,
+          accountViewError: error?.message || "账号信息加载失败，请稍后重试"
+        });
         handleApiError(error, showToast);
       }
     } finally {

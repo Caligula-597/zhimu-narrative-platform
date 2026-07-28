@@ -88,7 +88,7 @@ import * as F from "../utils/format.js";
 
   function renderQuotaSection(usage, entitlements) {
     if (!usage) {
-      return `<section class="form-group"><h3>套餐与配额</h3><p class="muted-note">配额信息加载中…</p></section>`;
+      return `<section class="form-group"><h3>套餐与配额</h3><p class="muted-note">配额信息暂时不可用，不影响账号资料与其他功能。</p><button type="button" class="text-btn" data-action="retry-account-view">重新加载配额</button></section>`;
     }
     const upgrade = entitlements?.upgrade;
     const publicPlans = entitlements?.publicPlans;
