@@ -275,11 +275,8 @@ jobs:
           output: codeql-results
           upload: never
           upload-database: false
-      - name: Enforce CodeQL zero-finding gate
-        run: |
-          result_count="$(find codeql-results -type f -name '*.sarif' -print0 | xargs -0 jq -s '[.[].runs[].results[]] | length')"
-          echo "CodeQL findings: $result_count"
-          test "$result_count" -eq 0
+      - name: Enforce CodeQL no-new-finding gate
+        run: node scripts/check-codeql-baseline.mjs codeql-results
       - name: Upload CodeQL SARIF
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

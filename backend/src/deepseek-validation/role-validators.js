@@ -53,19 +53,23 @@ export function validateRolesFromNarrative(raw, spec, roleMatrix) {
   const sectionsRaw = Array.isArray(value.sections) ? value.sections : [];
   const roleKeys = new Set(roleMatrix.roles.map((r) => r.key));
   const chapterKeys = new Set(spec.chapterKeys);
-  const sections = {};
+  const sectionsByRole = new Map();
   for (const item of sectionsRaw) {
     const roleKey = cleanText(item?.roleKey, 40);
     const chapterKey = cleanText(item?.chapterKey, 40);
     if (!roleKeys.has(roleKey) || !chapterKeys.has(chapterKey)) continue;
-    sections[roleKey] = sections[roleKey] || {};
-    sections[roleKey][chapterKey] = validateRoleSection(
+    const roleSections = sectionsByRole.get(roleKey) ?? new Map();
+    roleSections.set(chapterKey, validateRoleSection(
       { roleKey, chapterKey, title: item.title, body: item.body },
       roleKey,
       chapterKey,
       spec.wordsPerSectionMin || 250
-    );
+    ));
+    sectionsByRole.set(roleKey, roleSections);
   }
+  const sections = Object.fromEntries(
+    [...sectionsByRole].map(([roleKey, roleSections]) => [roleKey, Object.fromEntries(roleSections)])
+  );
   const expected = spec.playerCount * spec.chapterKeys.length;
   const actual = Object.values(sections).reduce((n, ch) => n + Object.keys(ch).length, 0);
   if (actual < expected) throwErr("DEEPSEEK_OUTPUT_INVALID", `AI 仅返回 ${actual}/${expected} 个角色分幕`);
