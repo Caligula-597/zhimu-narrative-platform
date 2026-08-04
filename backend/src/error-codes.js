@@ -96,6 +96,8 @@ export const API_ERRORS = {
   CREDITS_EXHAUSTED: { status: 402, message: "织幕积分不足，请等待月度赠送或联系 support 扩容" },
   /** Empty body, truncated JSON, or other unparseable model output */
   DEEPSEEK_RESPONSE_INVALID: { status: 502, message: "DeepSeek API returned invalid response" },
+  /** Model reached the configured output-token budget before completing JSON */
+  DEEPSEEK_RESPONSE_TRUNCATED: { status: 502, message: "DeepSeek API output reached the token limit" },
   /** Model output parsed but failed schema / length / consistency checks */
   DEEPSEEK_OUTPUT_INVALID: { status: 422, message: "DeepSeek output failed validation" },
   UNAVAILABLE: { status: 503, message: "Service unavailable" },

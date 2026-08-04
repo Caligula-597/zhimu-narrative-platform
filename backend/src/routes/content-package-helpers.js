@@ -1,7 +1,8 @@
 import { query, transaction } from "../db.js";
 import { throwErr } from "../api-errors.js";
 import { buildWorldArchiveSnapshot, creatorChecks, storageUsage } from "./world-helpers.js";
-import { assertWorldCreateQuota } from "../quota-guards.js";
+import { admitWorldCreation } from "../quota-guards.js";
+import { assertCapability } from "../capabilities.js";
 import { resolveClueKind } from "../clue-kind.js";
 import { assertContentPackageWithinLimits } from "../content-package-limits.js";
 
@@ -612,6 +613,7 @@ export async function importContentPackage(worldId, payload) {
 }
 
 export async function createWorldFromContentPackage(actorId, { name, summary = "", requestId = "", data }) {
+  await assertCapability(actorId, "world.create");
   if (requestId) {
     const existing = await query(
       `SELECT id, name
@@ -631,7 +633,6 @@ export async function createWorldFromContentPackage(actorId, { name, summary = "
       };
     }
   }
-  await assertWorldCreateQuota(actorId);
   const cleanText = (value) => typeof value === "string" ? value.trim() : "";
   const worldName = cleanText(name) || cleanText(data.world?.name) || "导入的世界";
   const worldSummary = cleanText(summary) || cleanText(data.world?.summary);
@@ -656,6 +657,7 @@ export async function createWorldFromContentPackage(actorId, { name, summary = "
         };
       }
     }
+    await admitWorldCreation(client, actorId);
     const sourceSettings = data.world?.settings;
     const settings = sourceSettings && typeof sourceSettings === "object" && !Array.isArray(sourceSettings)
       ? { ...sourceSettings }

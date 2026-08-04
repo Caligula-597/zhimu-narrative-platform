@@ -64,6 +64,9 @@
     "test:smoke": "node scripts/smoke-api.js",
     "test:smoke:self-contained": "node scripts/run-smoke-with-server.mjs",
     "test:deepseek-pipeline": "node scripts/test-deepseek-pipeline.mjs",
+    "test:outline-v2:live": "node scripts/verify-outline-v2-live.mjs",
+    "calibrate:outline-similarity": "node scripts/calibrate-outline-similarity.mjs",
+    "generate:forty-outlines": "node ../examples/pending-review/generate-forty-outlines.mjs",
     "test:ui": "node ../scripts/ui-smoke.js",
     "verify:full": "node ../scripts/full-chain.mjs",
     "test:ui:load": "node ../scripts/verify-script-load.mjs",
@@ -92,7 +95,7 @@
     "pdfjs-dist": "^6.0.227",
     "pg": "^8.16.3",
     "tesseract.js": "^7.0.0",
-    "undici": "7.28.0"
+    "undici": "7.29.0"
   },
   "devDependencies": {
     "json-schema-to-typescript": "^15.0.4"

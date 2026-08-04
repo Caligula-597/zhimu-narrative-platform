@@ -18,6 +18,7 @@ import { runRevisionMutation } from "../world-revision.js";
 import { assetUploadUrlSchema, confirmAssetSchema, deleteAssetSchema, restoreAssetSchema, worldIdParams } from "./schemas.js";
 import { requireWorldRole } from "./route-guards.js";
 import { requireAssetRead, storageUsage } from "./world-helpers.js";
+import { resolveRecycleBinDays, resolveSignedDownloadTtlSeconds } from "../asset-lifetime-policy.js";
 
 export async function registerAssetRoutes(app) {
   app.get("/api/storage/usage", async (request) => {
@@ -92,7 +93,7 @@ export async function registerAssetRoutes(app) {
   app.get("/api/assets/:assetId/download-url", async (request) => {
     const actorId = requireActor(request);
     const asset = await requireAssetRead(actorId, request.params.assetId);
-    const ttl = Number(process.env.SIGNED_DOWNLOAD_TTL_SECONDS ?? 300);
+    const ttl = resolveSignedDownloadTtlSeconds();
     const downloadUrl = await getObjectStorage().createDownloadUrl({ key: asset.object_key, expiresIn: ttl });
     return { downloadUrl, expiresIn: ttl };
   });
@@ -102,7 +103,7 @@ export async function registerAssetRoutes(app) {
     const { assetId } = request.params;
     const asset = await findOwnedActiveAsset(assetId, actorId);
     if (!asset) throwErr("ASSET_NOT_FOUND");
-    const recycleDays = Number(process.env.RECYCLE_BIN_DAYS ?? 14);
+    const recycleDays = resolveRecycleBinDays();
     return runRevisionMutation(
       request,
       reply,

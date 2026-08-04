@@ -17,6 +17,7 @@ import {
 } from "./pdf-document.js";
 import { buildPagesSectionMetadata, PAGES_BODY_PLACEHOLDER } from "./section-content.js";
 import { MAX_DOCUMENT_BYTES } from "./document-parser.js";
+import { createStorageQuotaReservation } from "./quota-guards.js";
 import {
   ensureDocumentCharacterScript,
   findImportedDocumentSection,
@@ -61,9 +62,17 @@ export async function renderPdfPageBuffers(buffer, { maxPages = null, scale = nu
   return { pageCount: doc.numPages, pages };
 }
 
-export async function preparePdfPageAssetUploads({ worldId, actorId, roleSlotId, filename, pages }) {
+export async function preparePdfPageAssetUploads({
+  worldId,
+  actorId,
+  roleSlotId,
+  filename,
+  pages,
+  quotaReservation = null
+}) {
   const stem = baseName(filename);
   const preparedAssets = [];
+  const reservation = quotaReservation ?? await createStorageQuotaReservation(actorId);
   try {
     for (const page of pages) {
       preparedAssets.push(await prepareWorldAssetUpload({
@@ -74,7 +83,8 @@ export async function preparePdfPageAssetUploads({ worldId, actorId, roleSlotId,
         buffer: page.buffer,
         contentType: page.contentType,
         visibility: "role",
-        assetKind: "image"
+        assetKind: "image",
+        quotaReservation: reservation
       }));
     }
     return preparedAssets;

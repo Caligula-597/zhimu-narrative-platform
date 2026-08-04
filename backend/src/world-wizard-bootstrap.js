@@ -1,7 +1,7 @@
 import { transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { assertCapability } from "./capabilities.js";
-import { assertWorldCreateQuota } from "./quota-guards.js";
+import { admitWorldCreation } from "./quota-guards.js";
 import { resolveClueKind } from "./clue-kind.js";
 import { syncWorldSegmentsFromChapters } from "./world-segments-seed.js";
 import { buildWizardAutomationRules } from "./wizard-automation-templates.js";
@@ -26,8 +26,6 @@ function normalizeRoles(roles) {
 
 export async function bootstrapWorldFromWizard(actorId, payload) {
   await assertCapability(actorId, "world.create");
-  await assertWorldCreateQuota(actorId);
-
   const name = String(payload?.name || "").trim();
   if (!name) throwErr("WIZARD_BOOTSTRAP_INVALID", "请填写世界名称");
 
@@ -59,6 +57,7 @@ export async function bootstrapWorldFromWizard(actorId, payload) {
   });
 
   return transaction(async (client) => {
+    await admitWorldCreation(client, actorId);
     const worldResult = await client.query(
       `INSERT INTO worlds (owner_user_id, name, summary, settings) VALUES ($1, $2, $3, $4::jsonb) RETURNING *`,
       [actorId, name, summary, JSON.stringify(mergedSettings)]

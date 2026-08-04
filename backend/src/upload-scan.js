@@ -11,6 +11,12 @@ import { scanWithClamAv } from "./upload-scan-clamav.js";
 import { recordUploadScan } from "./metrics.js";
 import { fetchUpstream, resolveUpstreamTimeoutMs } from "./upstream-fetch.js";
 
+const DEFAULT_SCAN_HEAD_BYTES = 65_536;
+const DEFAULT_CLAMAV_MAX_BYTES = 35 * 1024 * 1024;
+const MAX_SCAN_HEAD_BYTES = 1024 * 1024;
+const MAX_CLAMAV_BYTES = 100 * 1024 * 1024;
+const MAX_WEBHOOK_RESPONSE_BYTES = 64 * 1024;
+
 export function resolveScanMode(env = process.env) {
   const configured = env.UPLOAD_SCAN_MODE?.trim();
   if (configured) return configured.toLowerCase();
@@ -21,12 +27,67 @@ function scanMode() {
   return resolveScanMode();
 }
 
+function boundedScanBytes(value, fallback, minimum, maximum) {
+  const parsed = Number(value ?? fallback);
+  return Number.isSafeInteger(parsed) && parsed >= minimum && parsed <= maximum
+    ? parsed
+    : fallback;
+}
+
+export function resolveUploadScanLimits(env = process.env) {
+  return {
+    headBytes: boundedScanBytes(
+      env.UPLOAD_SCAN_HEAD_BYTES,
+      DEFAULT_SCAN_HEAD_BYTES,
+      4096,
+      MAX_SCAN_HEAD_BYTES
+    ),
+    clamAvMaxBytes: boundedScanBytes(
+      env.UPLOAD_SCAN_CLAMAV_MAX_BYTES,
+      DEFAULT_CLAMAV_MAX_BYTES,
+      64 * 1024,
+      MAX_CLAMAV_BYTES
+    )
+  };
+}
+
 function headMaxBytes() {
-  return Number(process.env.UPLOAD_SCAN_HEAD_BYTES || 65536);
+  return resolveUploadScanLimits().headBytes;
 }
 
 function clamAvMaxBytes() {
-  return Number(process.env.UPLOAD_SCAN_CLAMAV_MAX_BYTES || 35 * 1024 * 1024);
+  return resolveUploadScanLimits().clamAvMaxBytes;
+}
+
+async function readWebhookVerdict(response) {
+  const declared = Number(response.headers?.get?.("content-length") ?? 0);
+  if (Number.isFinite(declared) && declared > MAX_WEBHOOK_RESPONSE_BYTES) {
+    await response.body?.cancel?.();
+    throwErr("UPLOAD_SCAN_FAILED", "Upload scan webhook response is too large");
+  }
+  const chunks = [];
+  let total = 0;
+  if (response.body) {
+    for await (const chunk of response.body) {
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      total += buffer.length;
+      if (total > MAX_WEBHOOK_RESPONSE_BYTES) {
+        throwErr("UPLOAD_SCAN_FAILED", "Upload scan webhook response is too large");
+      }
+      chunks.push(buffer);
+    }
+  }
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.concat(chunks, total).toString("utf8"));
+  } catch {
+    throwErr("UPLOAD_SCAN_FAILED", "Upload scan webhook returned invalid JSON");
+  }
+  if (payload?.clean === false) throwErr("UPLOAD_SCAN_INFECTED");
+  if (payload?.clean !== true) {
+    throwErr("UPLOAD_SCAN_FAILED", "Upload scan webhook did not return a clean verdict");
+  }
+  return payload;
 }
 
 async function loadScanBuffer({ key, byteSize }) {
@@ -60,10 +121,7 @@ async function runWebhookScan({ key, contentType, byteSize, filename }) {
   if (!response.ok) {
     throwErr("UPLOAD_SCAN_FAILED");
   }
-  const body = await response.json().catch(() => ({}));
-  if (body.clean === false) {
-    throwErr("UPLOAD_SCAN_INFECTED");
-  }
+  await readWebhookVerdict(response);
   return { clean: true, mode: "webhook" };
 }
 

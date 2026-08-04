@@ -30,8 +30,9 @@ export function createPendingAssetUpload({
   contentType,
   byteSize,
   expiresAt
-}) {
+}, { beforeInsert = null } = {}) {
   return transaction(async (client) => {
+    if (beforeInsert) await beforeInsert(client);
     const file = await client.query(
       `INSERT INTO asset_files
         (owner_user_id, world_id, room_id, asset_kind, visibility, role_slot_id, object_key, original_filename, content_type, byte_size)

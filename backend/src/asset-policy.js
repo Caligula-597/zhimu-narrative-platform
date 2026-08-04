@@ -4,6 +4,7 @@ export const allowedContentTypes = new Map([
   ["image/jpeg", { kind: "image", maxBytes: 10 * 1024 * 1024 }],
   ["image/png", { kind: "image", maxBytes: 10 * 1024 * 1024 }],
   ["image/webp", { kind: "image", maxBytes: 10 * 1024 * 1024 }],
+  ["image/gif", { kind: "image", maxBytes: 10 * 1024 * 1024 }],
   ["audio/mpeg", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
   ["audio/ogg", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
   ["audio/wav", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
