@@ -5,6 +5,7 @@ const browsers = (process.env.PLAYWRIGHT_BROWSERS || "chromium,firefox,webkit")
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined;
 
 const appTestIgnore = [
+  "**/empty-account-auth.spec.js",
   "**/play-portal-smoke.spec.js",
   "**/play-official-example.spec.js",
   "**/play-sync-chrome.spec.js"

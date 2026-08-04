@@ -114,7 +114,8 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
   await page.getByTestId("start-join").click();
   const codeStepInput = page.locator('.join-row input[data-bind="inviteCode"]').first();
   if (await codeStepInput.isVisible().catch(() => false)) {
-    await codeStepInput.fill(inviteCode);
+    const currentCode = await codeStepInput.inputValue().catch(() => "");
+    if (currentCode !== inviteCode) await codeStepInput.fill(inviteCode);
     const rolesReady = await page.locator(".role-card:not([disabled])").first().waitFor({ state: "visible", timeout: 10_000 })
       .then(() => true)
       .catch(() => false);
