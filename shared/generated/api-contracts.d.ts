@@ -182,6 +182,150 @@ export interface UpdateWorldBody {
         requireIndependentPaths: boolean;
       };
     };
+    storySpine?: {
+      version: 1;
+      title: string;
+      logline: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      overview: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      openingState: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      incitingIncident: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      centralConflict: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      playerPremise: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      mechanismLoop: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      truthAndReversal: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      /**
+       * @maxItems 12
+       */
+      roleFunctions: {
+        roleId: string;
+        roleName: string;
+        storyFunction: string;
+        goal: string;
+        pressure: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      /**
+       * @maxItems 12
+       */
+      chapterArc: {
+        chapterId: string;
+        sequence: number;
+        title: string;
+        cause: string;
+        playerAction: string;
+        turn: string;
+        consequence: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      /**
+       * @maxItems 8
+       */
+      endingDirections: {
+        key: string;
+        title: string;
+        requirements: string;
+        consequence: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      /**
+       * @maxItems 20
+       */
+      unresolvedQuestions: {
+        key: string;
+        question: string;
+        whyItMatters: string;
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      /**
+       * @maxItems 20
+       */
+      assumptions: {
+        key: string;
+        text: string;
+        impact: string;
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      provenance: {
+        promptVersion: string;
+        model: string;
+        generatedAt: string;
+        sourceRevision: number | null;
+      };
+    };
     [k: string]: unknown;
   };
 }
@@ -321,6 +465,150 @@ export interface CreateWorldBody {
       fairness: {
         minimumEvidence: number;
         requireIndependentPaths: boolean;
+      };
+    };
+    storySpine?: {
+      version: 1;
+      title: string;
+      logline: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      overview: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      openingState: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      incitingIncident: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      centralConflict: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      playerPremise: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      mechanismLoop: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      truthAndReversal: {
+        text: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      };
+      /**
+       * @maxItems 12
+       */
+      roleFunctions: {
+        roleId: string;
+        roleName: string;
+        storyFunction: string;
+        goal: string;
+        pressure: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      /**
+       * @maxItems 12
+       */
+      chapterArc: {
+        chapterId: string;
+        sequence: number;
+        title: string;
+        cause: string;
+        playerAction: string;
+        turn: string;
+        consequence: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      /**
+       * @maxItems 8
+       */
+      endingDirections: {
+        key: string;
+        title: string;
+        requirements: string;
+        consequence: string;
+        status: "author_confirmed" | "ai_draft" | "unresolved";
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      /**
+       * @maxItems 20
+       */
+      unresolvedQuestions: {
+        key: string;
+        question: string;
+        whyItMatters: string;
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      /**
+       * @maxItems 20
+       */
+      assumptions: {
+        key: string;
+        text: string;
+        impact: string;
+        /**
+         * @maxItems 30
+         */
+        sourceRefs: string[];
+      }[];
+      provenance: {
+        promptVersion: string;
+        model: string;
+        generatedAt: string;
+        sourceRevision: number | null;
       };
     };
     [k: string]: unknown;

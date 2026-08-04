@@ -13,6 +13,7 @@ import {
 } from "../ai-playtest-simulator.js";
 import { createWorldQualityReport } from "../content-platform-insight-service.js";
 import { buildWorldArchiveSnapshot } from "../world-snapshot-service.js";
+import { assembleStorySpine } from "../story-spine-assembler.js";
 import {
   createDeepseekManuscriptSynopsis,
   createDeepseekMysteryPackage,
@@ -31,14 +32,7 @@ import {
   normalizeStoryBrief
 } from "../deepseek.js";
 import {
-  buildPipelineImportPackage,
-  createPipelineCharacterArchives,
-  createPipelineHostRunbook,
-  createPipelineHostRunbooksAll,
-  createPipelineInfoMatrix,
-  createPipelineMatrixEvaluation,
-  createPipelineMatrixPlayerScript,
-  createPipelineTruthBible
+  createPipelineMatrixEvaluation
 } from "../pipeline-matrix-deepseek.js";
 import { runRevisionMutation } from "../world-revision.js";
 import {
@@ -69,13 +63,6 @@ import {
   deepseekPipelineNarrativeRoleScriptSchema,
   deepseekPipelineImportSchema,
   deepseekPipelineManuscriptSchema,
-  deepseekPipelineMatrixCharactersSchema,
-  deepseekPipelineMatrixEvaluateSchema,
-  deepseekPipelineMatrixHostSchema,
-  deepseekPipelineMatrixInfoSchema,
-  deepseekPipelineMatrixPlayerScriptSchema,
-  deepseekPipelineMatrixSyncPreviewSchema,
-  deepseekPipelineMatrixTruthSchema,
   deepseekPipelineOutlineSchema,
   deepseekPipelineRoleMatrixSchema,
   deepseekPipelineSectionSchema,
@@ -83,11 +70,13 @@ import {
   deepseekPipelineStructureSchema,
   deepseekProposeSchema,
   storyAssistantAnalyzeSchema,
+  storySpineAssembleSchema,
   storyAssistantImportSchema,
   storyManuscriptPutSchema,
   storyManuscriptSyncFromGraphSchema,
   storyManuscriptSyncToGraphSchema
 } from "./schemas.js";
+import { registerStoryAssistantMatrixRoutes } from "./story-assistant-matrix-routes.js";
 
 const llmPreHandler = createLlmContextPreHandler(sendErr);
 
@@ -101,6 +90,20 @@ export async function registerStoryAssistantRoutes(app) {
     const nodes = classifyStoryDraft(text);
     return { nodes, edges: storyDraftEdges(nodes), suggestions: storyDraftSuggestions(nodes) };
   });
+
+  app.post(
+    "/api/worlds/:worldId/story-assistant/story-spine/assemble",
+    { schema: storySpineAssembleSchema, preHandler: llmPreHandler },
+    async (request) => {
+      const actorId = requireActor(request);
+      const { worldId } = request.params;
+      await requireWorldRole(actorId, worldId);
+      const snapshot = await buildWorldArchiveSnapshot(worldId);
+      return assembleStorySpine(snapshot, request.body?.creatorInput ?? {}, {
+        requestId: request.id
+      });
+    }
+  );
 
   app.get("/api/worlds/:worldId/story-assistant/deepseek/status", { preHandler: llmPreHandler }, async (request) => {
     const actorId = requireActor(request);
@@ -300,56 +303,7 @@ export async function registerStoryAssistantRoutes(app) {
     return createDeepseekStructureFromNarrative(request.body ?? {});
   });
 
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/truth", { schema: deepseekPipelineMatrixTruthSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return createPipelineTruthBible(request.body ?? {});
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/characters", { schema: deepseekPipelineMatrixCharactersSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return createPipelineCharacterArchives(request.body ?? {});
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/info-matrix", { schema: deepseekPipelineMatrixInfoSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return createPipelineInfoMatrix(request.body ?? {});
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/host-runbook", { schema: deepseekPipelineMatrixHostSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    const body = request.body ?? {};
-    if (body.allActs) return createPipelineHostRunbooksAll(body);
-    return createPipelineHostRunbook(body);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/player-script", { schema: deepseekPipelineMatrixPlayerScriptSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return createPipelineMatrixPlayerScript(request.body ?? {});
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/evaluate", { schema: deepseekPipelineMatrixEvaluateSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return createPipelineMatrixEvaluation(request.body ?? {});
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/sync-preview", { schema: deepseekPipelineMatrixSyncPreviewSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return buildPipelineImportPackage(request.body ?? {});
-  });
+  registerStoryAssistantMatrixRoutes(app, { preHandler: llmPreHandler });
 
   app.get("/api/worlds/:worldId/story-manuscript", async (request) => {
     const actorId = requireActor(request);

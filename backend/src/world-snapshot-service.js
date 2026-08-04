@@ -5,7 +5,7 @@ import { pool } from "./db.js";
 export const WORLD_ARCHIVE_SNAPSHOT_SQL = `
   SELECT
     (SELECT to_jsonb(w) FROM (
-      SELECT id, name, summary, status, settings
+      SELECT id, name, summary, status, settings, content_revision
       FROM worlds WHERE id = $1
     ) w) AS world,
     COALESCE((
@@ -159,7 +159,7 @@ export const WORLD_ARCHIVE_SNAPSHOT_SQL = `
 export const WORLD_SNAPSHOT_SQL = `
   SELECT
     (SELECT to_jsonb(w) FROM (
-      SELECT id, name, summary, status, settings
+      SELECT id, name, summary, status, settings, content_revision
       FROM worlds WHERE id = $1
     ) w) AS world,
     COALESCE((SELECT jsonb_agg(to_jsonb(c) ORDER BY c.sequence) FROM chapters c WHERE c.world_id = $1), '[]'::jsonb) AS chapters,

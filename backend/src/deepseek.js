@@ -2,7 +2,15 @@ import { throwErr } from "./api-errors.js";
 import { deepseekConfig } from "./deepseek-config.js";
 import { requestDeepseekJson } from "./deepseek-client.js";
 import { buildStorySpecMessages } from "./prompts/spec.js";
-import { buildStoryOutlineMessages } from "./prompts/outline.js";
+import {
+  buildStoryOutlineAssemblyComponentMessages,
+  buildStoryOutlineAssemblyMessages,
+  buildStoryOutlineAssemblyMechanicalPatchPlan,
+  buildStoryOutlineAssemblyPatchMessages,
+  buildStoryOutlineBlueprintPatchMessages,
+  buildStoryOutlineBlueprintMessages,
+  buildStoryOutlineMessages
+} from "./prompts/outline.js";
 import { buildStructureMessages } from "./prompts/structure.js";
 import { buildRoleMatrixMessages } from "./prompts/role-matrix.js";
 import { buildRoleSectionMessages } from "./prompts/section.js";
@@ -14,12 +22,22 @@ import { buildExtractStructureFromNarrativeMessages } from "./prompts/extract-st
 import { buildRolesMetaFromNarrativeMessages } from "./prompts/roles-meta-from-narrative.js";
 import { buildRoleScriptFromNarrativeMessages } from "./prompts/role-script-from-narrative.js";
 import { validateCreativeSetting, validateSynopsisInput } from "./prompts/creative-input.js";
-import { clampInteger, cleanText } from "./prompts/shared.js";
+import { cleanText } from "./prompts/shared.js";
 import { pipelineWordTargets } from "./pipeline-matrix-model.js";
+import {
+  assemblyIssuesArePatchable,
+  blueprintIssuesArePatchable
+} from "./deepseek-outline-repair/issue-policy.js";
+import { applyJsonPointerPatches } from "./deepseek-outline-repair/json-pointer-patch.js";
+import { OUTLINE_ASSEMBLY_COMPONENT_KEYS } from "./story-outline-contract/structure.js";
 import {
   normalizeStoryBrief,
   validateStorySpec,
   validateStoryOutline,
+  validateStoryOutlineBlueprint,
+  validateStoryOutlineAssemblyComponent,
+  mergeStoryOutlineAssembly,
+  validateOutlineBatchDiversity,
   validateDeepseekProposal,
   validateRoleMatrix,
   validateRoleSection,
@@ -286,6 +304,10 @@ export {
   normalizeStoryBrief,
   validateStorySpec,
   validateStoryOutline,
+  validateStoryOutlineBlueprint,
+  validateStoryOutlineAssemblyComponent,
+  mergeStoryOutlineAssembly,
+  validateOutlineBatchDiversity,
   validateDeepseekProposal,
   validateRoleMatrix,
   validateRoleSection,
@@ -378,8 +400,654 @@ export async function createDeepseekStorySpec(input) {
 export async function createDeepseekStoryOutline(input) {
   const brief = mergeBrief(input);
   const spec = input.spec ? validateStorySpec(input.spec, brief) : (await createDeepseekStorySpec(brief)).spec;
-  const result = await requestDeepseekJson(buildStoryOutlineMessages(brief, spec), { maxTokens: 4000, temperature: 0.45 });
-  return { provider: "deepseek", model: result.model, brief, spec, outline: validateStoryOutline(result.value, spec) };
+  const onGenerationEvent = typeof input.onGenerationEvent === "function"
+    ? input.onGenerationEvent
+    : null;
+  const emit = async (event) => {
+    if (onGenerationEvent) await onGenerationEvent(event);
+  };
+  const stream = input.stream === true;
+  const blueprintTemperature = 0.5;
+  const assemblyTemperature = 0.35;
+  const blueprintAttemptLimit = Math.max(1, Math.min(5, Number(input.blueprintAttempts) || 3));
+  const assemblyAttemptLimit = Math.max(1, Math.min(5, Number(input.assemblyAttempts) || 3));
+  const blueprintMaxTokens = brief.generationContract?.outlineRevision === "2.4"
+    ? Math.min(16000, Math.max(12000, 8000 + (spec.chapterCount * 1200)))
+    : Math.min(14000, Math.max(9000, 6000 + (spec.chapterCount * 1200)));
+  const assemblyMaxTokens = brief.generationContract?.outlineRevision === "2.4"
+    ? 20000
+    : Math.min(20000, Math.max(12000, 8000 + (spec.chapterCount * 1600)));
+  const stageMetrics = [];
+  const requestStage = async ({
+    stage,
+    messages,
+    maxTokens,
+    temperature,
+    stageAttempt
+  }) => {
+    await emit({
+      type: "stage-start",
+      stage,
+      stageAttempt,
+      mode: "two-stage-composition",
+      temperature,
+      maxTokens
+    });
+    const result = await requestDeepseekJson(messages, {
+      maxTokens,
+      temperature,
+      timeoutMs: input.timeoutMs,
+      phase: `outline-${stage}`,
+      context: { title: brief.title, stage },
+      retryOnJsonParse: false,
+      transportRetries: 0,
+      stream,
+      maxResponseBytes: stream ? 8 * 1024 * 1024 : undefined,
+      userId: input.userId ? `${input.userId}-${stage}-${stageAttempt}` : null,
+      onStreamDelta: async (deltaEvent) => {
+        await emit({
+          type: "stage-delta",
+          stage,
+          stageAttempt,
+          mode: "two-stage-composition",
+          ...deltaEvent
+        });
+      }
+    });
+    await emit({
+      type: "stage-response",
+      stage,
+      stageAttempt,
+      mode: "two-stage-composition",
+      finishReason: result.finishReason,
+      usage: result.usage
+    });
+    stageMetrics.push({
+      stage,
+      stageAttempt,
+      temperature,
+      finishReason: result.finishReason,
+      promptTokens: result.usage?.promptTokens || 0,
+      completionTokens: result.usage?.completionTokens || 0,
+      totalTokens: result.usage?.totalTokens || 0,
+      completionBudget: maxTokens,
+      nearCompletionLimit: (result.usage?.completionTokens || 0) >= Math.floor(maxTokens * 0.9)
+    });
+    return result;
+  };
+
+  let blueprint = input.blueprint
+    ? validateStoryOutlineBlueprint(input.blueprint, spec, { brief })
+    : null;
+  let lastError = null;
+  let previousBlueprintIssues = Array.isArray(input.blueprintIssues)
+    ? input.blueprintIssues.slice(0, 20).map((issue) => String(issue || "")).filter(Boolean)
+    : [];
+  let lastBlueprintCandidate = input.blueprintCandidate && typeof input.blueprintCandidate === "object"
+    ? structuredClone(input.blueprintCandidate)
+    : null;
+  const tryBlueprintPatch = async (candidate, issues, stageAttempt) => {
+    if (!candidate || !blueprintIssuesArePatchable(issues)) return null;
+    let workingCandidate = structuredClone(candidate);
+    let workingIssues = issues;
+    let lastPatchError = null;
+    for (let patchRound = 1; patchRound <= 3; patchRound += 1) {
+      const result = await requestStage({
+        stage: "blueprint-patch",
+        stageAttempt,
+        messages: buildStoryOutlineBlueprintPatchMessages(brief, spec, workingCandidate, workingIssues),
+        maxTokens: 3500,
+        temperature: 0.2
+      });
+      try {
+        workingCandidate = applyJsonPointerPatches(workingCandidate, result.value?.patches);
+      } catch (error) {
+        lastPatchError = error;
+        workingIssues = [`补丁路径错误：${error?.message || String(error)}。只能使用候选蓝图中真实存在的数组下标和字段路径`];
+        if (patchRound === 3) throw error;
+        continue;
+      }
+      try {
+        return validateStoryOutlineBlueprint(workingCandidate, spec, { brief });
+      } catch (error) {
+        lastPatchError = error;
+        workingIssues = Array.isArray(error?.details?.issues)
+          ? error.details.issues
+          : [error?.message || String(error)];
+        if (!blueprintIssuesArePatchable(workingIssues) || patchRound === 3) throw error;
+      }
+    }
+    throw lastPatchError || new Error("Blueprint patch did not converge");
+  };
+  if (!blueprint && lastBlueprintCandidate && blueprintIssuesArePatchable(previousBlueprintIssues)) {
+    try {
+      blueprint = await tryBlueprintPatch(lastBlueprintCandidate, previousBlueprintIssues, 1);
+      await emit({ type: "stage-accepted", stage: "blueprint-patch", stageAttempt: 1, mode: "targeted-blueprint-patch" });
+      await emit({ type: "stage-composed", stage: "blueprint", stageAttempt: 1, mode: "targeted-blueprint-patch", value: blueprint });
+    } catch (error) {
+      lastError = error;
+      previousBlueprintIssues = Array.isArray(error?.details?.issues)
+        ? error.details.issues
+        : [error?.message || String(error)];
+      await emit({
+        type: "stage-error",
+        stage: "blueprint-patch",
+        stageAttempt: 1,
+        willRetry: true,
+        mode: "targeted-blueprint-patch",
+        code: error?.code || error?.name || "ERROR",
+        message: error?.message || String(error),
+        details: error?.details || null
+      });
+    }
+  }
+  if (blueprint) {
+    await emit({
+      type: "stage-reused",
+      stage: "blueprint",
+      stageAttempt: 0,
+      mode: "two-stage-composition",
+      value: blueprint
+    });
+  }
+  for (let stageAttempt = 1; !blueprint && stageAttempt <= blueprintAttemptLimit; stageAttempt += 1) {
+    try {
+      const result = await requestStage({
+        stage: "blueprint",
+        stageAttempt,
+        messages: buildStoryOutlineBlueprintMessages(brief, spec, previousBlueprintIssues),
+        maxTokens: blueprintMaxTokens,
+        temperature: blueprintTemperature
+      });
+      lastBlueprintCandidate = result.value;
+      blueprint = validateStoryOutlineBlueprint(result.value, spec, { brief });
+      await emit({
+        type: "stage-accepted",
+        stage: "blueprint",
+        stageAttempt,
+        mode: "two-stage-composition"
+      });
+      break;
+    } catch (error) {
+      lastError = error;
+      previousBlueprintIssues = Array.isArray(error?.details?.issues)
+        ? error.details.issues
+        : [error?.message || String(error)];
+      await emit({
+        type: "stage-error",
+        stage: "blueprint",
+        stageAttempt,
+        willRetry: stageAttempt < blueprintAttemptLimit,
+        mode: "two-stage-composition",
+        code: error?.code || error?.name || "ERROR",
+        message: error?.message || String(error),
+        details: error?.details || null
+      });
+      if (lastBlueprintCandidate && blueprintIssuesArePatchable(previousBlueprintIssues)) {
+        try {
+          blueprint = await tryBlueprintPatch(lastBlueprintCandidate, previousBlueprintIssues, stageAttempt);
+          await emit({
+            type: "stage-accepted",
+            stage: "blueprint-patch",
+            stageAttempt,
+            mode: "targeted-blueprint-patch"
+          });
+          await emit({
+            type: "stage-composed",
+            stage: "blueprint",
+            stageAttempt,
+            mode: "targeted-blueprint-patch",
+            value: blueprint
+          });
+          break;
+        } catch (patchError) {
+          lastError = patchError;
+          previousBlueprintIssues = Array.isArray(patchError?.details?.issues)
+            ? patchError.details.issues
+            : [patchError?.message || String(patchError)];
+          await emit({
+            type: "stage-error",
+            stage: "blueprint-patch",
+            stageAttempt,
+            willRetry: stageAttempt < blueprintAttemptLimit,
+            mode: "targeted-blueprint-patch",
+            code: patchError?.code || patchError?.name || "ERROR",
+            message: patchError?.message || String(patchError),
+            details: patchError?.details || null
+          });
+        }
+      }
+    }
+  }
+  if (!blueprint && lastBlueprintCandidate && blueprintIssuesArePatchable(previousBlueprintIssues)) {
+    try {
+      blueprint = await tryBlueprintPatch(lastBlueprintCandidate, previousBlueprintIssues, 2);
+      await emit({ type: "stage-accepted", stage: "blueprint-patch", stageAttempt: 2, mode: "targeted-blueprint-patch" });
+      await emit({ type: "stage-composed", stage: "blueprint", stageAttempt: 2, mode: "targeted-blueprint-patch", value: blueprint });
+    } catch (error) {
+      lastError = error;
+      previousBlueprintIssues = Array.isArray(error?.details?.issues)
+        ? error.details.issues
+        : [error?.message || String(error)];
+      await emit({
+        type: "stage-error",
+        stage: "blueprint-patch",
+        stageAttempt: 2,
+        willRetry: false,
+        mode: "targeted-blueprint-patch",
+        code: error?.code || error?.name || "ERROR",
+        message: error?.message || String(error),
+        details: error?.details || null
+      });
+    }
+  }
+  if (!blueprint) throw lastError;
+
+  let acceptedAssemblyResult = null;
+  let outline = null;
+  let previousAssemblyIssues = Array.isArray(input.assemblyIssues)
+    ? input.assemblyIssues.slice(0, 30).map((issue) => String(issue || "")).filter(Boolean)
+    : [];
+  const tryAssemblyPatch = async (candidate, issues, stageAttempt) => {
+    if (!candidate || !assemblyIssuesArePatchable(issues)) return null;
+    let workingCandidate = structuredClone(candidate);
+    let workingIssues = issues;
+    let lastPatchError = null;
+    for (let patchRound = 1; patchRound <= 12; patchRound += 1) {
+      const focusedIssues = workingIssues.slice(0, 1);
+      let result;
+      const mechanicalPatches = buildStoryOutlineAssemblyMechanicalPatchPlan(blueprint, workingCandidate, focusedIssues[0], spec);
+      if (mechanicalPatches.length) {
+        result = {
+          value: { patches: mechanicalPatches },
+          model: "deterministic-contract-repair",
+          finishReason: "mechanical",
+          usage: null
+        };
+      } else {
+        try {
+          result = await requestStage({
+            stage: "assembly-patch",
+            stageAttempt,
+            messages: buildStoryOutlineAssemblyPatchMessages(brief, spec, blueprint, workingCandidate, focusedIssues),
+            maxTokens: 2500,
+            temperature: 0.2
+          });
+        } catch (error) {
+          lastPatchError = error;
+          workingIssues = [
+            ...focusedIssues,
+            `补丁响应无效：${error?.message || String(error)}。仍须修复上一项原问题，不得改写其他字段`
+          ];
+          if (patchRound === 12) throw error;
+          continue;
+        }
+      }
+      try {
+        workingCandidate = applyJsonPointerPatches(workingCandidate, result.value?.patches);
+      } catch (error) {
+        lastPatchError = error;
+        workingIssues = [
+          ...focusedIssues,
+          `补丁输出无效：${error?.message || String(error)}。仍须修复上一项原问题，只能使用当前装配中真实存在的数组下标和字段路径`
+        ];
+        if (patchRound === 12) throw error;
+        continue;
+      }
+      try {
+        const assembledOutline = mergeStoryOutlineAssembly(blueprint, workingCandidate, spec, {
+          generationContract: brief.generationContract
+        });
+        return {
+          assembly: workingCandidate,
+          outline: validateStoryOutline(assembledOutline, spec, { strict: true, brief }),
+          result
+        };
+      } catch (error) {
+        lastPatchError = error;
+        workingIssues = Array.isArray(error?.details?.issues)
+          ? error.details.issues
+          : [error?.message || String(error)];
+        await emit({
+          type: "stage-checkpoint",
+          stage: "assembly",
+          stageAttempt,
+          mode: "targeted-assembly-patch",
+          value: workingCandidate,
+          issues: workingIssues
+        });
+        if (!assemblyIssuesArePatchable(workingIssues) || patchRound === 12) throw error;
+      }
+    }
+    throw lastPatchError || new Error("Assembly patch did not converge");
+  };
+  if (input.assemblyCandidate && typeof input.assemblyCandidate === "object") {
+    try {
+      const assembledOutline = mergeStoryOutlineAssembly(blueprint, input.assemblyCandidate, spec, {
+        generationContract: brief.generationContract
+      });
+      outline = validateStoryOutline(assembledOutline, spec, { strict: true, brief });
+      acceptedAssemblyResult = { model: "revalidated-assembly-checkpoint" };
+      await emit({
+        type: "stage-reused",
+        stage: "assembly",
+        stageAttempt: 0,
+        mode: "revalidated-assembly-checkpoint",
+        value: input.assemblyCandidate
+      });
+    } catch (error) {
+      lastError = error;
+      previousAssemblyIssues = Array.isArray(error?.details?.issues)
+        ? error.details.issues
+        : [error?.message || String(error)];
+      await emit({
+        type: "stage-error",
+        stage: "assembly-revalidate",
+        stageAttempt: 0,
+        willRetry: true,
+        mode: "revalidated-assembly-checkpoint",
+        code: error?.code || error?.name || "ERROR",
+        message: error?.message || String(error),
+        details: error?.details || null
+      });
+      if (assemblyIssuesArePatchable(previousAssemblyIssues)) {
+        try {
+          const patched = await tryAssemblyPatch(input.assemblyCandidate, previousAssemblyIssues, 1);
+          outline = patched.outline;
+          acceptedAssemblyResult = patched.result;
+          await emit({ type: "stage-accepted", stage: "assembly-patch", stageAttempt: 1, mode: "targeted-assembly-patch" });
+          await emit({ type: "stage-composed", stage: "assembly", stageAttempt: 1, mode: "targeted-assembly-patch", value: patched.assembly });
+        } catch (patchError) {
+          lastError = patchError;
+          previousAssemblyIssues = Array.isArray(patchError?.details?.issues)
+            ? patchError.details.issues
+            : [patchError?.message || String(patchError)];
+          await emit({
+            type: "stage-error",
+            stage: "assembly-patch",
+            stageAttempt: 1,
+            willRetry: true,
+            mode: "targeted-assembly-patch",
+            code: patchError?.code || patchError?.name || "ERROR",
+            message: patchError?.message || String(patchError),
+            details: patchError?.details || null
+          });
+        }
+      }
+    }
+  }
+  const usesParallelAssembly = brief.generationContract?.outlineRevision === "2.3";
+  const usesSemanticAssembly = brief.generationContract?.outlineRevision === "2.4";
+  if (!outline && usesParallelAssembly) {
+    const componentPlans = {
+      playerActions: { stage: "assembly-player-actions", maxTokens: Math.min(10000, assemblyMaxTokens) },
+      chapterBeats: { stage: "assembly-chapter-beats", maxTokens: assemblyMaxTokens },
+      styleExpressions: { stage: "assembly-style-expressions", maxTokens: Math.min(6000, assemblyMaxTokens) }
+    };
+    const components = OUTLINE_ASSEMBLY_COMPONENT_KEYS.map((key) => ({ key, ...componentPlans[key] }));
+    const acceptedComponentValues = new Map();
+    const acceptedComponentResults = new Map();
+    const componentAttemptCounts = new Map(components.map((component) => [component.key, 0]));
+    const reusableComponents = input.assemblyComponents && typeof input.assemblyComponents === "object"
+      ? input.assemblyComponents
+      : {};
+    for (const component of components) {
+      const rawReusable = reusableComponents[component.key];
+      if (!rawReusable) continue;
+      try {
+        const validated = validateStoryOutlineAssemblyComponent(
+          rawReusable,
+          component.key,
+          blueprint,
+          spec,
+          { generationContract: brief.generationContract }
+        );
+        acceptedComponentValues.set(component.key, validated);
+        await emit({
+          type: "stage-reused",
+          stage: component.stage,
+          stageAttempt: 0,
+          mode: "parallel-assembly-components",
+          value: validated
+        });
+      } catch {
+        // A checkpoint accepted by an older contract is regenerated under the current validator.
+      }
+    }
+    let retryComponentKeys = new Set(components
+      .filter((component) => !acceptedComponentValues.has(component.key))
+      .map((component) => component.key));
+    const playerIssuePrefixes = (Array.isArray(blueprint?.players) ? blueprint.players : [])
+      .flatMap((player) => [
+        `${player?.name || ""}.chapter-`,
+        `${player?.key || ""}.chapterActions`
+      ])
+      .filter((prefix) => !prefix.startsWith("."));
+    const classifyRetryComponents = (issues) => {
+      const keys = new Set();
+      for (const issue of issues) {
+        if (/styleChapterExpressions|styleContract|文风/u.test(issue)) keys.add("styleExpressions");
+        else if (/chapterBeats/u.test(issue)) keys.add("chapterBeats");
+        else if (
+          /chapterActions|必须在 chapter-\d+ 通过行动|虽有行动|行动结果没有形成|行动从未改变/u.test(issue)
+          || playerIssuePrefixes.some((prefix) => issue.startsWith(prefix))
+        ) keys.add("playerActions");
+        else keys.add("chapterBeats");
+      }
+      return keys.size ? keys : new Set(["chapterBeats"]);
+    };
+    for (let stageAttempt = 1; stageAttempt <= assemblyAttemptLimit * components.length; stageAttempt += 1) {
+      const componentsToRun = components.filter(
+        (component) => (
+          (retryComponentKeys.has(component.key) || !acceptedComponentValues.has(component.key))
+          && (componentAttemptCounts.get(component.key) || 0) < assemblyAttemptLimit
+        )
+      );
+      if (!componentsToRun.length && acceptedComponentValues.size !== components.length) break;
+      try {
+        for (const component of componentsToRun) {
+          componentAttemptCounts.set(component.key, (componentAttemptCounts.get(component.key) || 0) + 1);
+        }
+        const results = await Promise.allSettled(componentsToRun.map((component) => requestStage({
+          stage: component.stage,
+          stageAttempt,
+          messages: buildStoryOutlineAssemblyComponentMessages(
+            brief,
+            spec,
+            blueprint,
+            component.key,
+            previousAssemblyIssues
+          ),
+          maxTokens: component.maxTokens,
+          temperature: assemblyTemperature
+        })));
+        const rejectedComponentKeys = new Set();
+        const rejectedIssues = [];
+        let firstComponentError = null;
+        for (const [index, settledResult] of results.entries()) {
+          const component = componentsToRun[index];
+          try {
+            if (settledResult.status === "rejected") throw settledResult.reason;
+            const result = settledResult.value;
+            const validated = validateStoryOutlineAssemblyComponent(
+              result.value,
+              component.key,
+              blueprint,
+              spec,
+              { generationContract: brief.generationContract }
+            );
+            acceptedComponentValues.set(component.key, validated);
+            acceptedComponentResults.set(component.key, result);
+            await emit({
+              type: "stage-accepted",
+              stage: component.stage,
+              stageAttempt,
+              mode: "parallel-assembly-components"
+            });
+          } catch (componentError) {
+            componentError.assemblyComponentKey = component.key;
+            if (!firstComponentError) firstComponentError = componentError;
+            const componentIssues = Array.isArray(componentError?.details?.issues)
+              ? componentError.details.issues
+              : [componentError?.message || String(componentError)];
+            rejectedIssues.push(...componentIssues);
+            rejectedComponentKeys.add(component.key);
+            acceptedComponentValues.delete(component.key);
+            acceptedComponentResults.delete(component.key);
+            await emit({
+              type: "stage-error",
+              stage: component.stage,
+              stageAttempt,
+              willRetry: (componentAttemptCounts.get(component.key) || 0) < assemblyAttemptLimit,
+              mode: "parallel-assembly-components",
+              code: componentError?.code || componentError?.name || "ERROR",
+              message: componentError?.message || String(componentError),
+              details: componentError?.details || null
+            });
+          }
+        }
+        if (rejectedComponentKeys.size) {
+          lastError = firstComponentError;
+          previousAssemblyIssues = rejectedIssues;
+          retryComponentKeys = rejectedComponentKeys;
+          continue;
+        }
+        retryComponentKeys = new Set();
+        const assembly = Object.assign(
+          {},
+          ...components.map((component) => acceptedComponentValues.get(component.key)).filter(Boolean)
+        );
+        const assembledOutline = mergeStoryOutlineAssembly(blueprint, assembly, spec, {
+          generationContract: brief.generationContract
+        });
+        outline = validateStoryOutline(assembledOutline, spec, { strict: true, brief });
+        acceptedAssemblyResult = acceptedComponentResults.get("chapterBeats")
+          || acceptedComponentResults.values().next().value
+          || { model: "reused-accepted-components" };
+        await emit({
+          type: "stage-composed",
+          stage: "assembly",
+          stageAttempt,
+          mode: "parallel-assembly-components",
+          value: assembly
+        });
+        break;
+      } catch (error) {
+        lastError = error;
+        previousAssemblyIssues = Array.isArray(error?.details?.issues)
+          ? error.details.issues
+          : [error?.message || String(error)];
+        retryComponentKeys = error?.assemblyComponentKey
+          ? new Set([error.assemblyComponentKey])
+          : classifyRetryComponents(previousAssemblyIssues);
+        for (const key of retryComponentKeys) {
+          acceptedComponentValues.delete(key);
+          acceptedComponentResults.delete(key);
+        }
+        for (const component of components.filter((entry) => retryComponentKeys.has(entry.key))) {
+          await emit({
+            type: "stage-error",
+            stage: component.stage,
+            stageAttempt,
+            willRetry: (componentAttemptCounts.get(component.key) || 0) < assemblyAttemptLimit,
+            mode: "parallel-assembly-components",
+            code: error?.code || error?.name || "ERROR",
+            message: error?.message || String(error),
+            details: error?.details || null
+          });
+        }
+      }
+    }
+  } else if (!outline) {
+    let lastAssemblyCandidate = null;
+    for (let stageAttempt = 1; stageAttempt <= assemblyAttemptLimit; stageAttempt += 1) {
+      try {
+        const result = await requestStage({
+          stage: "assembly",
+          stageAttempt,
+          messages: buildStoryOutlineAssemblyMessages(brief, spec, blueprint, previousAssemblyIssues),
+          maxTokens: assemblyMaxTokens,
+          temperature: assemblyTemperature
+        });
+        lastAssemblyCandidate = result.value;
+        const assembledOutline = mergeStoryOutlineAssembly(blueprint, result.value, spec, {
+          generationContract: brief.generationContract
+        });
+        outline = validateStoryOutline(assembledOutline, spec, { strict: true, brief });
+        acceptedAssemblyResult = result;
+        await emit({
+          type: "stage-accepted",
+          stage: "assembly",
+          stageAttempt,
+          mode: "two-stage-composition"
+        });
+        break;
+      } catch (error) {
+        lastError = error;
+        previousAssemblyIssues = Array.isArray(error?.details?.issues)
+          ? error.details.issues
+          : [error?.message || String(error)];
+        await emit({
+          type: "stage-error",
+          stage: "assembly",
+          stageAttempt,
+          willRetry: stageAttempt < assemblyAttemptLimit,
+          mode: "two-stage-composition",
+          code: error?.code || error?.name || "ERROR",
+          message: error?.message || String(error),
+          details: error?.details || null
+        });
+        if (lastAssemblyCandidate && assemblyIssuesArePatchable(previousAssemblyIssues)) {
+          try {
+            const patched = await tryAssemblyPatch(lastAssemblyCandidate, previousAssemblyIssues, stageAttempt);
+            outline = patched.outline;
+            acceptedAssemblyResult = patched.result;
+            await emit({ type: "stage-accepted", stage: "assembly-patch", stageAttempt, mode: "targeted-assembly-patch" });
+            await emit({ type: "stage-composed", stage: "assembly", stageAttempt, mode: "targeted-assembly-patch", value: patched.assembly });
+            break;
+          } catch (patchError) {
+            lastError = patchError;
+            previousAssemblyIssues = Array.isArray(patchError?.details?.issues)
+              ? patchError.details.issues
+              : [patchError?.message || String(patchError)];
+            await emit({
+              type: "stage-error",
+              stage: "assembly-patch",
+              stageAttempt,
+              willRetry: stageAttempt < assemblyAttemptLimit,
+              mode: "targeted-assembly-patch",
+              code: patchError?.code || patchError?.name || "ERROR",
+              message: patchError?.message || String(patchError),
+              details: patchError?.details || null
+            });
+          }
+        }
+      }
+    }
+  }
+  if (!outline || !acceptedAssemblyResult) throw lastError;
+
+  const totalPromptTokens = stageMetrics.reduce((sum, row) => sum + row.promptTokens, 0);
+  const totalCompletionTokens = stageMetrics.reduce((sum, row) => sum + row.completionTokens, 0);
+  return {
+    provider: "deepseek",
+    model: deepseekConfig().model,
+    brief,
+    spec,
+    generationAttempts: stageMetrics.length,
+    generationMode: usesParallelAssembly
+      ? "blueprint-then-parallel-assembly-components"
+      : usesSemanticAssembly
+        ? "semantic-blueprint-then-branch-aware-assembly"
+        : "blueprint-then-assembly",
+    generationMetrics: {
+      attempts: stageMetrics,
+      totalPromptTokens,
+      totalCompletionTokens,
+      nearCompletionLimit: stageMetrics.some((row) => row.nearCompletionLimit)
+    },
+    outline
+  };
 }
 
 export function buildDeepseekStoryMessages(input) {
@@ -401,9 +1069,8 @@ export function buildDeepseekStoryMessages(input) {
 
 export async function createDeepseekStoryProposal(input) {
   const brief = mergeBrief(input);
-  const spec = input.spec ? validateStorySpec(input.spec, brief) : null;
-  const outline = input.outline ? validateStoryOutline(input.outline, spec || { chapterKeys: [] }) : null;
-  const resolvedSpec = spec || (await createDeepseekStorySpec(brief)).spec;
+  const resolvedSpec = input.spec ? validateStorySpec(input.spec, brief) : (await createDeepseekStorySpec(brief)).spec;
+  const outline = input.outline ? validateStoryOutline(input.outline, resolvedSpec, { brief }) : null;
   const resolvedOutline = outline || (input.skipOutline ? null : null);
   const { messages } = buildDeepseekStoryMessages({ ...input, brief, spec: resolvedSpec, outline: resolvedOutline });
   const result = await requestDeepseekJson(messages, { maxTokens: 10000, temperature: 0.55 });

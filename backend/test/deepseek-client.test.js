@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildChatCompletionBody } from "../src/deepseek-client.js";
+import {
+  buildChatCompletionBody,
+  readDeepseekSseCompletion
+} from "../src/deepseek-client.js";
 import { deepseekConfig } from "../src/deepseek-config.js";
 
 test("deepseek request body disables thinking for JSON contracts", () => {
@@ -19,6 +22,53 @@ test("non-deepseek compatible provider does not receive vendor thinking field", 
     { messages: [], maxTokens: 800, temperature: 0.5 }
   );
   assert.equal("thinking" in body, false);
+});
+
+test("streaming JSON requests include SSE usage and isolated user id", () => {
+  const body = buildChatCompletionBody(
+    { provider: "deepseek", baseUrl: "https://api.deepseek.com", model: "deepseek-v4-flash" },
+    {
+      messages: [{ role: "user", content: "hello" }],
+      maxTokens: 1200,
+      temperature: 0.2,
+      stream: true,
+      userId: "outline-01"
+    }
+  );
+  assert.equal(body.stream, true);
+  assert.deepEqual(body.stream_options, { include_usage: true });
+  assert.equal(body.user_id, "outline-01");
+});
+
+test("DeepSeek SSE reader ignores keep-alives and joins streamed JSON deltas", async () => {
+  const encoder = new TextEncoder();
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(": keep-alive\n\n"));
+      controller.enqueue(encoder.encode('data: {"choices":[{"delta":{"content":"{\\"ok\\""},"finish_reason":null}],"usage":null}\n'));
+      controller.enqueue(encoder.encode('data: {"choices":[{"delta":{"content":":true}"},"finish_reason":"stop"}],"usage":null}\n'));
+      controller.enqueue(encoder.encode('data: {"choices":[],"usage":{"prompt_tokens":10,"completion_tokens":4,"total_tokens":14}}\n'));
+      controller.enqueue(encoder.encode("data: [DONE]\n"));
+      controller.close();
+    }
+  });
+  const response = new Response(body, {
+    status: 200,
+    headers: { "content-type": "text/event-stream" }
+  });
+  const deltas = [];
+  const result = await readDeepseekSseCompletion(response, {
+    maxResponseBytes: 64 * 1024,
+    onStreamDelta: async ({ delta }) => deltas.push(delta)
+  });
+  assert.equal(result.content, '{"ok":true}');
+  assert.equal(result.finishReason, "stop");
+  assert.deepEqual(result.usage, {
+    promptTokens: 10,
+    completionTokens: 4,
+    totalTokens: 14
+  });
+  assert.deepEqual(deltas, ['{"ok"', ":true}"]);
 });
 
 test("deepseek config clamps timeout and strips trailing slash", () => {

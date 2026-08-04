@@ -29,6 +29,7 @@ test("validateStoryOutline requires chapter beats", () => {
     chapterBeats: [{ chapterKey: "chapter-1", title: "入港", goal: "集合", turn: "发现尸体", hostNotes: "勿剧透" }]
   }, spec);
   assert.equal(outline.chapterBeats.length, 1);
+  assert.equal(outline.readiness.readyForExpansion, false);
 });
 
 test("validateDeepseekProposal checks edge references", () => {
