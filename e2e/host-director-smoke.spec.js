@@ -64,7 +64,6 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
     await expect(nudgeWorkspace).toBeVisible();
     await expect(nudgeWorkspace.getByRole("button", { name: "发送提醒" })).toBeVisible();
     await nudgeWorkspace.locator('[data-action="host-operation-submit"]').click();
-    await waitForHostIdle(page);
-    await expect(page.locator("#toast.show, .toast-host .toast.show")).toContainText("已提醒", { timeout: 10_000 });
+    await expect(nudgeWorkspace.locator(".host-operation-status.success")).toContainText("提醒已发送给", { timeout: 10_000 });
   });
 });
