@@ -80,7 +80,7 @@ host/ 主持端
 
 Creator、Player、Host、Site 均使用 Vite 8。Creator/Host/Player 已共用 `shared/api-client.js`、session/auth、错误映射、SSE client/lifecycle、游标、toast、安全 DOM、trace 和 web-vitals；认证、401、断线恢复不再维护三份。业务视图继续按角色独立，UI 只在复用收益明确时抽取。Host 是唯一现场控制台；Creator 中退役的 Director 兼容导航只允许外跳 Host。
 
-已完成的大入口收敛：`world-helpers.js` 为 6 行兼容 barrel，`player-routes.js` 为 8 行注册器，原 2200+ 行 schema 已拆为 33 个领域文件，`play/src/main.js` 当前约 413 行且只负责启动编排。当前 72 个路由模块的直接数据库调用点已经归零，并由 `npm run check:architecture` 固定为不可回升门禁；后续结构审计转向 service/repository 内部查询往返、事务边界和跨领域依赖。
+已完成的大入口收敛：`world-helpers.js` 为 6 行兼容 barrel，`player-routes.js` 为 8 行注册器，原 2200+ 行 schema 已拆为领域文件，`play/src/main.js` 只负责启动编排。当前全部路由模块的直接数据库调用点已经归零，并由 `npm run check:architecture` 固定为不可回升门禁；模块与 schema 的最新数量以 [`GENERATED_PROJECT_STATUS.json`](./docs/GENERATED_PROJECT_STATUS.json) 为准，后续结构审计转向 service/repository 内部查询往返、事务边界和跨领域依赖。
 
 ## 5. 生产可信七项
 

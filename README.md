@@ -1,12 +1,14 @@
 # 织幕
 
-最后更新：2026-07-24
+最后更新：2026-07-30
+工程事实基线：2026-07-24；产品与品牌维护入口更新：2026-07-30
 
 织幕是面向线上长线剧本杀与跑团的创作、主持和玩家协作平台。PostgreSQL 是业务数据真相源，Fastify 提供统一 `/api`，Creator、Host、Player 与官网分别按使用角色部署。
 
 ## 从这里开始
 
 - [全部文档与生命周期](./docs/DOCUMENTATION_INDEX_ZH.md)
+- [产品与品牌维护总控台](./docs/PRODUCT_BRAND_MAINTENANCE_HUB_ZH.md)
 - [当前项目状态](./docs/PROJECT_STATUS.md)
 - [架构总览](./ARCHITECTURE.md)
 - [完整产品功能与创作流程](./docs/PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md)
@@ -41,7 +43,7 @@ Creator 中的旧 Director 副本已经退役；兼容导航只能跳转到 Host
 | 安全 | 后端权限判断、HttpOnly session、CSP/Trusted Types、分桶限流、SSRF 防护 |
 | 可观测 | health/readiness、metrics、OpenTelemetry、告警 webhook、结构化审计 |
 
-当前源代码基线为 70 个后端路由模块、32 个领域 schema 文件、94 个数据库迁移；路由层直接数据库调用点为 0。易变化的数量不在本页重复维护，详见 [`GENERATED_PROJECT_STATUS.json`](./docs/GENERATED_PROJECT_STATUS.json)。
+当前路由层直接数据库调用点为 0。路由、schema、迁移与测试等易变化数量不在本页重复维护，统一以 [`GENERATED_PROJECT_STATUS.json`](./docs/GENERATED_PROJECT_STATUS.json) 为准。
 
 ## 本地启动
 

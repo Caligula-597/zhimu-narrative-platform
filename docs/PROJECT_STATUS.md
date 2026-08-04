@@ -29,7 +29,7 @@
 
 | 检查 | 结果 |
 |---|---|
-| `npm run check:architecture` | 71 个路由模块，0 个路由层直接 DB 点，通过 |
+| `npm run check:architecture` | 全部路由模块保持 0 个路由层直接 DB 点，通过；模块数量见生成基线 |
 | `npm run check:contracts` | 31 种 room event、8 种 platform event、9 个错误码，消费方完整 |
 | `npm run check:world-writes` | 69 个前端写调用映射到 revision-aware 后端路由 |
 | `npm run check:ui-interactions` | 220 个可见 action、248 个 view 调用、40 个导航入口，0 断链 |

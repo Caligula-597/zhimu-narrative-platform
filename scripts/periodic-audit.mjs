@@ -24,6 +24,7 @@ const checks = [
   { name: "contract-drift", command: npmCommand, args: [...npmPrefixArgs, "run", "check:contracts"], cwd: root },
   { name: "world-write-contracts", command: npmCommand, args: [...npmPrefixArgs, "run", "check:world-writes"], cwd: root },
   { name: "domain-boundaries", command: npmCommand, args: [...npmPrefixArgs, "run", "check:architecture"], cwd: root },
+  { name: "style-boundaries", command: npmCommand, args: [...npmPrefixArgs, "run", "check:style-boundaries"], cwd: root },
   { name: "nonfunctional-guardrails", command: npmCommand, args: [...npmPrefixArgs, "run", "audit:nonfunctional"], cwd: root },
   { name: "pages-installability", command: npmCommand, args: [...npmPrefixArgs, "run", "check:pages-installability"], cwd: root },
   { name: "bundle-budgets", command: npmCommand, args: [...npmPrefixArgs, "run", "check:bundle-budgets"], cwd: root },
@@ -41,7 +42,7 @@ const checks = [
 ];
 
 if (includeSecurity) {
-  for (const directory of [".", "backend", "host", "play"]) {
+  for (const directory of [".", "backend", "host", "play", "site"]) {
     checks.push({
       name: `npm-audit-${directory === "." ? "root" : directory}`,
       command: npmCommand,

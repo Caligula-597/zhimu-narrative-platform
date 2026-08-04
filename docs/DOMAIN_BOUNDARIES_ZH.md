@@ -21,6 +21,6 @@
 - 最后六个单点路由已收口：实体卡世界校验进入 token 行锁事务，房间补救列表合并为单条联表查询；host event、billing、host monitor、story edge 的数据访问进入 service/repository。
 - `world-helpers.js`、`player-routes.js`、`schemas.js` 保持兼容 barrel，禁止重新长回业务实现。
 
-`npm run check:architecture` 是架构门禁：单一路由文件不超过 400 行，71 个路由模块都必须保持 repository/service-only，路由层直接数据库点总数固定为 0。任何新增路由也不得直接导入数据库或调用 `query/client.query`。
+`npm run check:architecture` 是架构门禁：单一路由文件不超过 400 行，全部路由模块都必须保持 repository/service-only，路由层直接数据库点总数固定为 0。任何新增路由也不得直接导入数据库或调用 `query/client.query`；模块数量以 [`GENERATED_PROJECT_STATUS.json`](./GENERATED_PROJECT_STATUS.json) 为准。
 
 路由层迁移已经完成，但这不代表服务内部不存在查询债务。后续架构工作转向：检查单请求连接池占用、N+1、锁顺序、事务外校验窗口和跨领域 service 依赖；任何新增大型能力必须从 repository/service 起步，不得先写成长路由再拆。
