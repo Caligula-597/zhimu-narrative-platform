@@ -38,14 +38,18 @@ test.describe("创作者 · 角色私人档案", () => {
     await expect(activePanel).toHaveClass(/is-open/);
 
     await page.locator('[data-action="creator-edit-role"]').first().click();
-    await expect(page.locator("#modal-backdrop.show")).toBeVisible();
-    await expect(page.locator('[data-studio-field="privateProfile"]')).toBeVisible();
-    await page.locator("#modal [data-close]").click();
+    const metadataWorkspace = page.locator("[data-writer-metadata-workspace]");
+    await expect(metadataWorkspace).toBeVisible();
+    await expect(metadataWorkspace.locator('[data-studio-field="privateProfile"]')).toBeVisible();
+    await metadataWorkspace.locator('[data-action="writer-metadata-close"]').first().click();
+    await expect(metadataWorkspace).toBeHidden();
 
     await page.locator('[data-action="creator-add-section"]').first().click();
-    await expect(page.locator("#modal-backdrop.show")).toBeVisible();
-    await expect(page.locator('.manuscript-editor-modal [data-studio-field="body"]')).toBeVisible();
-    await page.locator("#modal [data-close]").click();
+    const sectionWorkspace = page.locator("[data-writer-section-editor]");
+    await expect(sectionWorkspace).toBeVisible();
+    await expect(sectionWorkspace.locator('[data-studio-field="body"]')).toBeVisible();
+    await sectionWorkspace.locator('[data-action="writer-editor-close"]').click();
+    await expect(sectionWorkspace).toBeHidden();
 
     const archive = page.locator("[data-role-archive]").first();
     const goal = archive.locator('[data-archive-field="externalGoal"]');
