@@ -9,9 +9,12 @@ test("SERVE_STATIC serves /docs/*.md and does not SPA-fallback docs to index.htm
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "zhimu-static-"));
   const root = path.join(tmp, "dist");
   const docsDir = path.join(root, "docs");
+  const assetsDir = path.join(root, "assets");
   fs.mkdirSync(docsDir, { recursive: true });
+  fs.mkdirSync(assetsDir, { recursive: true });
   fs.writeFileSync(path.join(root, "index.html"), "<!doctype html><title>app</title>");
   fs.writeFileSync(path.join(docsDir, "CREATOR_GUIDE.md"), "# Guide\n\nHello");
+  fs.writeFileSync(path.join(assetsDir, "writer-AbC123.js"), "export {};");
   context.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
   const prevStatic = process.env.SERVE_STATIC;
@@ -36,4 +39,17 @@ test("SERVE_STATIC serves /docs/*.md and does not SPA-fallback docs to index.htm
   const missing = await app.inject({ method: "GET", url: "/docs/DOES_NOT_EXIST.md" });
   assert.equal(missing.statusCode, 404);
   assert.ok(!/<!doctype/i.test(missing.body));
+  assert.equal(missing.headers["cache-control"], "no-store");
+
+  const index = await app.inject({ method: "GET", url: "/" });
+  assert.equal(index.statusCode, 200);
+  assert.equal(index.headers["cache-control"], "public, max-age=0, must-revalidate");
+
+  const asset = await app.inject({ method: "GET", url: "/assets/writer-AbC123.js" });
+  assert.equal(asset.statusCode, 200);
+  assert.equal(asset.headers["cache-control"], "public, max-age=31536000, immutable");
+
+  const missingAsset = await app.inject({ method: "GET", url: "/assets/writer-old.js" });
+  assert.equal(missingAsset.statusCode, 404);
+  assert.equal(missingAsset.headers["cache-control"], "no-store");
 });

@@ -11,6 +11,11 @@ import * as Status from "../components/status-ui.js";
 import { handleApiErrorToast } from "../utils/user-messages.js";
 import { bindAccountLlmPanel, renderAccountLlmSection, stashLlmPresets } from "../components/account-llm.js";
 import { setHtml } from "../../shared/safe-dom.js";
+import { uploadPortalAvatar } from "../../shared/portal-profile-client.js";
+import {
+  mergePortalProfileIntoUser,
+  renderPortalProfileEditor
+} from "../../shared/portal-profile-ui.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const handleApiError = handleApiErrorToast;
@@ -148,10 +153,15 @@ import { setHtml } from "../../shared/safe-dom.js";
     const oauthLoginButtons = oauth.map((p) => `<button class="secondary-btn" data-oauth-start="${p.id}">使用 ${escapeHtml(p.label)} 登录</button>`).join("");
     const quotaHtml = callRuntime("renderQuotaSection", usage, data.entitlements) || "";
     const llmHtml = !isGuest ? renderAccountLlmSection(data.llm) : "";
+    const profileHtml = renderPortalProfileEditor(data.portalProfile, {
+      portal: "creator",
+      loading: !data.portalProfile,
+      localActions: true
+    });
     const guestUpgrade = isGuest
       ? `<section class="form-group"><h3>保存进度 · 注册正式账号</h3>${studioField("邮箱", "upgradeEmail", "input", "")}${studioField("昵称", "upgradeName", "input", me.display_name || "")}${studioField("密码 · 至少 8 位", "upgradePassword", "input", "")}<button type="button" class="primary-btn" data-guest-upgrade>绑定邮箱并注册</button><p class="muted-note">或使用 OAuth 绑定（保留当前房间进度）</p>${oauthLoginButtons ? `<div class="row">${oauthLoginButtons}</div>` : ""}</section>`
       : "";
-    return `${guestUpgrade}${!isGuest ? `${quotaHtml}${llmHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section>${!isGuest ? `<section class="form-group"><h3>数据导出</h3><p class="muted-note">下载 JSON 格式的账号元数据（剧本清单、资产清单、会话设备等），不含密码与文件二进制。</p><button type="button" class="secondary-btn" data-export-account>下载我的数据</button><p class="muted-note" style="margin-top:10px"><a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a> · <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/COPYRIGHT_APPEAL_ZH.md" data-legal-title="版权与侵权申诉">版权申诉</a></p></section>` : ""}<section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
+    return `<div class="form-group">${profileHtml}</div>${guestUpgrade}${!isGuest ? `${quotaHtml}${llmHtml}${oauthButtons ? `<section class="form-group"><h3>关联登录</h3><div class="row">${oauthButtons}</div></section>` : ""}` : ""}<section class="form-group"><h3>登录设备</h3><div class="collab-list">${sessionRows}</div>${!isGuest ? `<button type="button" class="text-btn" data-logout-all>下线其他所有设备</button>` : ""}</section><section class="form-group session-actions"><h3>会话</h3><p class="muted-note">退出登录仅结束当前设备会话，账号与剧本数据仍保留。</p><button type="button" class="secondary-btn" data-auth-logout>退出登录</button></section>${!isGuest ? `<section class="form-group"><h3>数据导出</h3><p class="muted-note">下载 JSON 格式的账号元数据（剧本清单、资产清单、会话设备等），不含密码与文件二进制。</p><button type="button" class="secondary-btn" data-export-account>下载我的数据</button><p class="muted-note" style="margin-top:10px"><a href="#" data-legal-doc="legal/PRIVACY_ZH.md" data-legal-title="隐私政策">隐私政策</a> · <a href="#" data-legal-doc="legal/USER_TERMS_ZH.md" data-legal-title="用户协议">用户协议</a> · <a href="#" data-legal-doc="legal/COPYRIGHT_APPEAL_ZH.md" data-legal-title="版权与侵权申诉">版权申诉</a></p></section>` : ""}<section class="form-group danger-zone-card"><h3>注销账号</h3><p class="muted-note">永久删除账号、你拥有的剧本与资产，<strong>不可恢复</strong>。与上方「退出登录」不同。</p><button type="button" class="danger-btn" data-open-delete-account>注销账号…</button></section>`;
   }
 
   export async function refreshAccountView(options = {}) {
@@ -159,24 +169,39 @@ import { setHtml } from "../../shared/safe-dom.js";
     if (uiStore.get().accountViewLoading) return;
     const showLoading = !background && !uiStore.get().accountView;
     if (showLoading) {
-      uiStore.set({ accountViewLoading: true });
+      uiStore.set({ accountViewLoading: true, accountViewError: "" });
       if (uiStore.get().view === "account") render();
     }
     try {
-      const [me, sessions, config, entitlements, llm] = await Promise.all([
+      const [me, sessions, config, entitlements, llm, portalProfile] = await Promise.all([
         zhimuApi.me(),
         zhimuApi.listSessions().catch(() => ({ sessions: [] })),
         zhimuApi.getAuthConfig(),
         zhimuApi.getAccountEntitlements().catch(() => null),
-        zhimuApi.getAccountLlm().catch(() => null)
+        zhimuApi.getAccountLlm().catch(() => null),
+        zhimuApi.getPortalProfile("creator").catch(() => null)
       ]);
       stashLlmPresets(llm);
       const usage = entitlements?.usage ?? null;
       if (usage) assetStore.set({ storageUsage: usage });
-      uiStore.set({ accountView: { me, sessions, config, usage, entitlements, llm } });
+      uiStore.set({
+        accountView: {
+          me: mergePortalProfileIntoUser(me, portalProfile),
+          sessions,
+          config,
+          usage,
+          entitlements,
+          llm,
+          portalProfile
+        },
+        accountViewError: ""
+      });
     } catch (error) {
       if (!background) {
-        uiStore.set({ accountView: null });
+        uiStore.set({
+          accountView: null,
+          accountViewError: error?.message || "账号信息加载失败，请稍后重试"
+        });
         handleApiError(error, showToast);
       }
     } finally {
@@ -186,6 +211,77 @@ import { setHtml } from "../../shared/safe-dom.js";
   }
 
   export function bindAccountPanel(root = document) {
+    const commitCreatorProfile = (profile) => {
+      const accountView = uiStore.get().accountView;
+      if (!accountView || !profile) return;
+      uiStore.set({
+        accountView: {
+          ...accountView,
+          portalProfile: profile,
+          me: mergePortalProfileIntoUser(accountView.me, profile)
+        }
+      });
+      const currentUser = userStore.get().currentUser;
+      if (currentUser) {
+        userStore.set({ currentUser: mergePortalProfileIntoUser(currentUser, profile) });
+      }
+    };
+    const setProfileStatus = (message) => {
+      const status = root.querySelector("[data-profile-status]");
+      if (status) status.textContent = message || "";
+    };
+    root.querySelector('[data-profile-command="profile-check-name"]')?.addEventListener("click", async () => {
+      const input = root.querySelector("[data-profile-name]");
+      if (!input) return;
+      setProfileStatus("正在检查…");
+      try {
+        const result = await zhimuApi.checkPortalProfileName("creator", input.value);
+        setProfileStatus(result.available ? "这个创作者昵称可以使用" : "这个创作者昵称已被占用");
+      } catch (error) {
+        setProfileStatus(error.message || "暂时无法检查昵称");
+      }
+    });
+    root.querySelector('[data-profile-command="profile-save-name"]')?.addEventListener("click", async () => {
+      const input = root.querySelector("[data-profile-name]");
+      if (!input) return;
+      setProfileStatus("正在保存…");
+      try {
+        const profile = await zhimuApi.updatePortalProfileName("creator", input.value);
+        commitCreatorProfile(profile);
+        showToast("创作者端昵称已更新");
+        render();
+      } catch (error) {
+        setProfileStatus(error.message || "昵称保存失败");
+        handleApiError(error, showToast);
+      }
+    });
+    root.querySelector("[data-profile-avatar-file]")?.addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      setProfileStatus("正在上传并检查头像…");
+      try {
+        const profile = await uploadPortalAvatar(zhimuApi, "creator", file);
+        commitCreatorProfile(profile);
+        showToast("创作者端头像已更新");
+        render();
+      } catch (error) {
+        event.target.value = "";
+        setProfileStatus(error.message || "头像上传失败");
+        handleApiError(error, showToast);
+      }
+    });
+    root.querySelector('[data-profile-command="profile-remove-avatar"]')?.addEventListener("click", async () => {
+      setProfileStatus("正在恢复默认头像…");
+      try {
+        const profile = await zhimuApi.removePortalAvatar("creator");
+        commitCreatorProfile(profile);
+        showToast("已恢复创作者端默认头像");
+        render();
+      } catch (error) {
+        setProfileStatus(error.message || "头像恢复失败");
+        handleApiError(error, showToast);
+      }
+    });
     root.querySelectorAll("[data-plan-upgrade]").forEach((btn) => {
       btn.onclick = () => void openPlanUpgradeModal(btn.dataset.planUpgrade);
     });

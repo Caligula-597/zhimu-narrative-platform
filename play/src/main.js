@@ -74,6 +74,7 @@ import { createPlayerHomeController } from "./runtime/player-home-controller.js"
 import { createPlayStreamController } from "./runtime/stream-controller.js";
 import { createRoomLifecycleController } from "./runtime/room-lifecycle-controller.js";
 import { createRecapNotebookController } from "./runtime/recap-notebook-controller.js";
+import { createPlayerProfileController } from "./runtime/profile-controller.js";
 
 const app = document.getElementById("app");
 
@@ -240,6 +241,7 @@ const {
   handleResendVerification,
   handleGuestSubmit,
   handleAuthSubmit,
+  handleVerificationSubmit,
   handleOAuth,
   handleLogout
 } = createAuthFlowController({
@@ -249,6 +251,16 @@ const {
   allowedOAuthProviders: ALLOWED_OAUTH_PROVIDERS, resetVoiceOnLeave,
   disconnectRoomEvents, disconnectPlatformEvents, roomEventCtx, platformEventCtx,
   persistRoom, isUuid
+});
+
+const profile = createPlayerProfileController({
+  api,
+  state,
+  render,
+  setToast,
+  formatApiError,
+  openModalState,
+  closeModalState
 });
 
 bindPlayDomEvents({
@@ -272,6 +284,7 @@ bindPlayFormEvents({
   handlePlayerSearch,
   handleDmSend,
   handleAuthSubmit,
+  handleVerificationSubmit,
   handleForgotSubmit,
   handleResetSubmit,
   handleGuestSubmit
@@ -289,6 +302,7 @@ app.addEventListener("click", async (event) => {
     return;
   }
   const action = button.dataset.action;
+  if (await profile.handleAction(action, button)) return;
   if (handlePlayStateAction({
     action,
     button,
@@ -392,6 +406,10 @@ app.addEventListener("click", async (event) => {
     loadRecapDetail, loadRecapSummary, patchGameHostBanner,
     handleAddNotebookEntry, handleDeleteNotebookEntry
   });
+});
+
+app.addEventListener("change", async (event) => {
+  await profile.handleChange(event.target);
 });
 
 let externalSessionGeneration = 0;

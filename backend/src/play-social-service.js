@@ -28,11 +28,12 @@ export async function searchPlayers({ actorId, queryText, limit = 10 }) {
   if (q.length < 2) return { items: [] };
   const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 20);
   const result = await query(
-    `SELECT id, display_name
-     FROM users
-     WHERE id <> $1
-       AND display_name ILIKE $2
-     ORDER BY display_name
+    `SELECT profile.user_id AS id, profile.display_name
+     FROM user_portal_profiles profile
+     WHERE profile.portal = 'player'
+       AND profile.user_id <> $1
+       AND profile.display_name ILIKE $2
+     ORDER BY profile.display_name
      LIMIT $3`,
     [actorId, `%${q.replace(/[%_]/g, "")}%`, safeLimit]
   );
@@ -44,7 +45,10 @@ export async function searchPlayers({ actorId, queryText, limit = 10 }) {
 export async function listFriendships(actorId) {
   const result = await query(
     `SELECT f.user_low_id, f.user_high_id, f.requested_by_user_id, f.status, f.updated_at,
-            u.display_name AS friend_display_name
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS friend_display_name
      FROM play_friendships f
      JOIN users u ON u.id = CASE WHEN f.user_low_id = $1 THEN f.user_high_id ELSE f.user_low_id END
      WHERE f.user_low_id = $1 OR f.user_high_id = $1
@@ -145,7 +149,10 @@ async function requireFriendship(actorId, otherUserId, runQuery = query) {
 export async function listDmConversations(actorId) {
   const result = await query(
     `SELECT c.id, c.user_low_id, c.user_high_id, c.last_message_at,
-            u.display_name AS peer_display_name,
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS peer_display_name,
             m.body AS last_body,
             m.sender_user_id AS last_sender_user_id,
             (SELECT COUNT(*)::int FROM play_dm_messages um
@@ -218,7 +225,14 @@ export async function listDmMessages(actorId, conversationId) {
     [conversationId]
   );
   const peerId = row.user_low_id === actorId ? row.user_high_id : row.user_low_id;
-  const peer = await query(`SELECT display_name FROM users WHERE id = $1`, [peerId]);
+  const peer = await query(
+    `SELECT COALESCE(profile.display_name, users.display_name) AS display_name
+     FROM users
+     LEFT JOIN user_portal_profiles profile
+       ON profile.user_id = users.id AND profile.portal = 'player'
+     WHERE users.id = $1`,
+    [peerId]
+  );
   return {
     conversationId,
     peerUserId: peerId,

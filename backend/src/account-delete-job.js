@@ -20,7 +20,15 @@ export async function collectUserObjectKeys(userId, client = null) {
      UNION
      SELECT av.object_key AS key FROM asset_versions av
      INNER JOIN asset_files af ON af.id = av.asset_file_id
-     WHERE af.owner_user_id = $1 AND av.object_key IS NOT NULL`,
+     WHERE af.owner_user_id = $1 AND av.object_key IS NOT NULL
+     UNION
+     SELECT profile.avatar_object_key AS key
+     FROM user_portal_profiles profile
+     WHERE profile.user_id = $1 AND profile.avatar_object_key IS NOT NULL
+     UNION
+     SELECT upload.object_key AS key
+     FROM portal_profile_avatar_uploads upload
+     WHERE upload.user_id = $1 AND upload.object_key IS NOT NULL`,
     [userId]
   );
   return keys.rows.map((row) => row.key).filter(Boolean);

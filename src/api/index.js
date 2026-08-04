@@ -67,6 +67,8 @@ export {
   logoutAllDevices,
   getAuthConfig,
   verifyEmail,
+  verifyEmailCode,
+  resendVerificationCode,
   resendVerification,
   requestPasswordReset,
   resetPassword,
@@ -78,7 +80,14 @@ export {
   submitPlanUpgradeRequest,
   previewAccountDelete,
   deleteAccount,
-  getAccountPlans
+  getAccountPlans,
+  getPortalProfiles,
+  getPortalProfile,
+  checkPortalProfileName,
+  updatePortalProfileName,
+  createPortalAvatarUpload,
+  confirmPortalAvatar,
+  removePortalAvatar
 } from "./auth.js";
 
 export {
@@ -376,5 +385,9 @@ export {
   getOpsFeedbackStats,
   updateOpsFeedbackStatus,
   assignOpsPlan,
+  getOpsUsers,
+  previewOpsUserDelete,
+  resendOpsUserVerification,
+  deleteOpsUserAccount,
   sendOpsTestAlert
 } from "./ops.js";

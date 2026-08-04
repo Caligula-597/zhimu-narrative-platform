@@ -8,6 +8,7 @@ import { validateOAuthProductionConfig } from "./oauth-diagnostics.js";
 import { resolveAllowedCorsOrigins } from "./cors-origins.js";
 import { explainRateLimitTopology, resolveRateLimitTopology } from "./network-trust-policy.js";
 import { isEmailVerificationRequired } from "./email-verification-policy.js";
+import { hasEmailVerificationCodeSecret } from "./email-verification-code.js";
 import { validatePlayContentBlocklist } from "./play-content-moderation.js";
 
 const REQUIRED_ENV = ["DATABASE_URL"];
@@ -49,6 +50,11 @@ export function validateStartupEnvironment() {
     if (isEmailVerificationRequired() && !isEmailConfigured()) {
       console.error("FATAL: production email verification requires a configured email provider.");
       console.error("Set EMAIL_PROVIDER + MAIL_FROM + provider API keys or SMTP credentials before deploying.");
+      process.exit(1);
+    }
+    if (isEmailVerificationRequired() && !hasEmailVerificationCodeSecret()) {
+      console.error("FATAL: production email verification codes require EMAIL_VERIFICATION_CODE_SECRET.");
+      console.error("Set a random secret of at least 32 bytes before deploying.");
       process.exit(1);
     }
     try {

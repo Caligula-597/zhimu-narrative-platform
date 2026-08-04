@@ -1,11 +1,17 @@
 /** AI 生成草稿仅存作者浏览器 localStorage，确认「写入云端」前不上传 PostgreSQL。 */
+import { accountScopedStorageKey, currentStorageUserId } from "./storage-scope.js";
+
 (function (window) {
   const PREFIX = "zhimuAiDraft";
   const VERSION = 1;
   const MAX_BYTES = 3_500_000;
 
   function key(worldId, kind) {
-    return `${PREFIX}:${worldId || "__none__"}:${kind}`;
+    return accountScopedStorageKey(PREFIX, {
+      userId: currentStorageUserId(),
+      worldId,
+      scope: kind
+    });
   }
 
   function byteSize(text) {
@@ -29,6 +35,7 @@
       version: VERSION,
       kind,
       worldId: worldId || "",
+      userId: currentStorageUserId(),
       savedAt: new Date().toISOString(),
       payload
     };

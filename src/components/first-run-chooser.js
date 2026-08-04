@@ -1,20 +1,25 @@
 /** First login: three clear paths — wizard / import / official play demo. */
 import { worldStore } from "../state/index.js";
+import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storage-scope.js";
 (function (window) {
   const DISMISS_KEY = "zhimuFirstRunDismissed";
 
+  function dismissKey() {
+    return accountScopedStorageKey(DISMISS_KEY, { userId: currentStorageUserId() });
+  }
+
   function playOfficialUrl() {
-    const fromConfig = window.zhimuConfig?.playSiteUrl || window.zhimuInviteLinks?.playOrigin?.();
+    const fromConfig = window.zhimuConfig?.playSiteOrigin || window.zhimuInviteLinks?.playSiteOrigin?.();
     const base = (fromConfig || "https://play.getzhimu.com").replace(/\/$/, "");
     return `${base}/?experience=official`;
   }
 
   function isDismissed() {
-    return localStorage.getItem(DISMISS_KEY) === "1";
+    return localStorage.getItem(dismissKey()) === "1";
   }
 
   function dismiss() {
-    localStorage.setItem(DISMISS_KEY, "1");
+    localStorage.setItem(dismissKey(), "1");
   }
 
   function shouldShow() {

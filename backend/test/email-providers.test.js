@@ -129,7 +129,11 @@ test("sendEmailVerificationEmail captures verify URL in stub mode", async (conte
   process.env.EMAIL_DELIVERY_STUB = "1";
 
   const { sendEmailVerificationEmail } = await import("../src/email/index.js");
-  await sendEmailVerificationEmail({ to: "user@example.invalid", verifyToken: "abc123token" });
+  await sendEmailVerificationEmail({
+    to: "user@example.invalid",
+    verifyToken: "abc123token",
+    verificationCode: "123456"
+  });
   const url = peekTestVerifyUrl();
   assert.match(url, /^http:\/\/localhost:4173\/\?verify=abc123token$/);
 });

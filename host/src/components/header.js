@@ -1,14 +1,14 @@
 import { escapeHtml } from "../../../shared/security.js";
-import { getAppOrigin, getPlayOrigin } from "../api.js";
+import { getAppOrigin, getPlayerJoinUrl } from "../api.js";
 import { state } from "../state.js";
 import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
+import { renderPortalAvatar } from "../../../shared/portal-profile-ui.js";
 
 export function renderHeader() {
   const user = state.user;
   const room = state.room;
   const binding = room ? roomContentBindingPresentation(room.contentBinding) : null;
   const userLabel = user?.displayName || user?.email || "已登录";
-  const userInitial = userLabel.slice(0, 1).toUpperCase();
   return `
     <header class="host-header">
       <div class="host-header-inner">
@@ -21,11 +21,11 @@ export function renderHeader() {
           ${room ? `<span class="host-room-pill" title="${escapeHtml(binding.detail)}">${escapeHtml(room.name)} · ${escapeHtml(binding.label)}</span>` : ""}
         </div>
         <nav class="host-nav" aria-label="主持端导航">
-          ${state.view === "console" ? `<button class="secondary-btn host-room-switch" type="button" data-action="go-pick-room"><span aria-hidden="true">⌘</span>切换房间</button>` : ""}
-          <a class="host-nav-link" href="${escapeHtml(getAppOrigin())}" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">◇</span>创作者端</a>
-          <a class="host-nav-link" href="${escapeHtml(getPlayOrigin())}" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">♙</span>玩家端</a>
+          ${state.view === "console" ? `<button class="secondary-btn host-room-switch" type="button" data-action="go-pick-room" aria-label="切换房间" title="切换房间"><span aria-hidden="true">⌘</span>切换房间</button>` : ""}
+          <a class="host-nav-link" href="${escapeHtml(getAppOrigin())}" target="_blank" rel="noopener noreferrer" aria-label="打开创作者端" title="打开创作者端"><span aria-hidden="true">◇</span>创作者端</a>
+          <a class="host-nav-link" href="${escapeHtml(getPlayerJoinUrl(room?.invite_code))}" target="_blank" rel="noopener noreferrer" aria-label="${room?.invite_code ? "打开当前房间玩家端" : "打开玩家端"}" title="${room?.invite_code ? "打开当前房间玩家端" : "打开玩家端"}"><span aria-hidden="true">♙</span>${room?.invite_code ? "当前房间玩家端" : "玩家端"}</a>
           ${user
-            ? `<span class="host-user" title="${escapeHtml(userLabel)}"><span class="host-user-avatar">${escapeHtml(userInitial)}</span><span class="host-user-name">${escapeHtml(userLabel)}</span></span><button class="ghost-btn" type="button" data-action="logout">退出</button>`
+            ? `<button class="host-user" type="button" data-action="open-profile" title="编辑主持人端身份资料">${renderPortalAvatar({ displayName: userLabel, avatarUrl: user.avatarUrl }, "host-user-avatar")}<span class="host-user-name">${escapeHtml(userLabel)}</span></button><button class="ghost-btn" type="button" data-action="logout">退出</button>`
             : `<button class="primary-btn" type="button" data-action="show-auth">登录</button>`}
         </nav>
       </div>

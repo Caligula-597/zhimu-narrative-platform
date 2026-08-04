@@ -107,6 +107,8 @@ jobs:
           npm run test:auth-matrix
           npm run test:trusted-types
           npm run test:ui-semantics
+      - name: Verified empty-account browser journey
+        run: npm run test:empty-account:browser
       - name: Install play portal dependencies
         run: npm ci
         working-directory: play

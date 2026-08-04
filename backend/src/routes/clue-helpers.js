@@ -14,7 +14,10 @@ export async function fetchPlayerClues(query, roomId, roleSlotId) {
     `SELECT c.id, c.name, c.public_text, co.acquired_at, co.read_at,
             co.shared_with_room, co.shared_with_roles, co.player_note, co.shared_at,
             true AS is_owner, co.role_slot_id AS owner_role_slot_id,
-            rs.name AS owner_role_name, u.display_name AS owner_player_name
+            rs.name AS owner_role_name, COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS owner_player_name
      FROM clue_ownership co
      JOIN clues c ON c.id = co.clue_id
      JOIN role_slots rs ON rs.id = co.role_slot_id
@@ -29,7 +32,10 @@ export async function fetchPlayerClues(query, roomId, roleSlotId) {
     `SELECT c.id, c.name, c.public_text, co.acquired_at, co.shared_at,
             co.player_note, co.shared_with_room, co.shared_with_roles,
             false AS is_owner, co.role_slot_id AS owner_role_slot_id,
-            rs.name AS owner_role_name, u.display_name AS owner_player_name,
+            rs.name AS owner_role_name, COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'player'
+            ), u.display_name) AS owner_player_name,
             CASE WHEN co.shared_with_room THEN 'room' ELSE 'roles' END AS shared_scope,
             EXISTS (
               SELECT 1 FROM clue_read_receipts crr
@@ -122,7 +128,10 @@ export async function fetchHostClueMatrix(query, roomId) {
     ),
     query(
       `SELECT rs.id AS role_slot_id, rs.name AS role_name,
-              u.display_name AS player_display_name,
+              COALESCE((
+                SELECT profile.display_name FROM user_portal_profiles profile
+                WHERE profile.user_id = u.id AND profile.portal = 'player'
+              ), u.display_name) AS player_display_name,
               (rm.user_id IS NOT NULL) AS joined
        FROM role_slots rs
        JOIN rooms r ON r.world_id = rs.world_id

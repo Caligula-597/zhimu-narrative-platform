@@ -2,6 +2,7 @@ import { getAppOrigin, getSessionToken } from "../api.js";
 import { escapeHtml } from "../../../shared/security.js";
 import { dmUnreadTotal, state } from "../state.js";
 import { userSessionLabel } from "../utils/user.js";
+import { renderPortalAvatar } from "../../../shared/portal-profile-ui.js";
 
 function syncPillLabel() {
   if (state.roomEventsStatus === "connected") return "实时";
@@ -54,6 +55,7 @@ export function renderHeader() {
           <button class="link-btn quiet ${state.view === "messages" || state.view === "dm" ? "is-active" : ""}" type="button" data-action="go-messages">消息${dmUnread ? `<span class="nav-badge">${dmUnread > 99 ? "99+" : dmUnread}</span>` : ""}</button>
           <button class="link-btn quiet ${state.view === "lobby" ? "is-active" : ""}" type="button" data-action="go-lobby">找人一起玩</button>` : ""}
         <a class="link-btn quiet" href="${appOrigin}/" target="_blank" rel="noopener">创作者入口</a>
+        ${state.user ? `<button class="play-profile-trigger" type="button" data-action="open-profile" title="编辑玩家端身份资料">${renderPortalAvatar({ displayName: state.user.displayName, avatarUrl: state.user.avatarUrl }, "play-profile-avatar")}<span>${escapeHtml(state.user.displayName || "玩家资料")}</span></button>` : ""}
         ${getSessionToken() ? `<button class="link-btn quiet" type="button" data-action="logout">退出</button>` : ""}
       </div>
     </header>`;

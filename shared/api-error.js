@@ -13,7 +13,10 @@ export const COMMON_API_ERROR_MESSAGES = {
   RATE_LIMITED: "操作过于频繁，请稍后再试。",
   DATABASE_BUSY: "服务连接繁忙，请稍后重试。",
   EMAIL_ALREADY_REGISTERED: "该邮箱已注册并完成验证，请直接登录。",
-  EMAIL_VERIFICATION_PENDING: "该账号已创建，但邮箱尚未验证。请检查首次验证邮件；如未收到，请先登录后重新发送。"
+  EMAIL_VERIFICATION_PENDING: "该账号已创建，但邮箱尚未验证。请检查首次验证邮件；如未收到，请先登录后重新发送。",
+  EMAIL_VERIFICATION_CODE_INVALID: "邮箱验证码不正确或已过期，请检查后重试。",
+  EMAIL_VERIFICATION_CODE_ATTEMPTS_EXCEEDED: "验证码错误次数过多，请重新发送一个新验证码。",
+  EMAIL_VERIFICATION_RESEND_COOLDOWN: "发送太频繁，请稍等片刻后再获取新验证码。"
 };
 
 /**

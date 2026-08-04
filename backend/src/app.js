@@ -119,7 +119,12 @@ const aiNetworkRateLimit = createRateLimiter({
 
 function isUploadRoute(url, method) {
   if (method !== "POST") return false;
-  return url === "/api/assets/upload-url" || /^\/api\/assets\/[^/]+\/confirm$/.test(url);
+  return (
+    url === "/api/assets/upload-url"
+    || /^\/api\/assets\/[^/]+\/confirm$/.test(url)
+    || /^\/api\/account\/portal-profiles\/(?:creator|host|player)\/avatar-upload-url$/.test(url)
+    || /^\/api\/account\/portal-profiles\/(?:creator|host|player)\/avatar\/confirm$/.test(url)
+  );
 }
 
 function isAiRoute(url, method) {
@@ -305,12 +310,16 @@ export async function createApp(options = {}) {
     if ([
       "/api/auth/forgot-password",
       "/api/auth/reset-password",
-      "/api/auth/verify-email"
+      "/api/auth/verify-email",
+      "/api/auth/verify-email-code"
     ].includes(url)) {
       await authRecoveryRateLimit(request, reply);
       return;
     }
-    if (url === "/api/auth/resend-verification") {
+    if ([
+      "/api/auth/resend-verification",
+      "/api/auth/resend-verification-code"
+    ].includes(url)) {
       await verificationResendRateLimit(request, reply);
       return;
     }

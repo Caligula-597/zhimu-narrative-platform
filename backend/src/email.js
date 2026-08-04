@@ -7,6 +7,7 @@ export {
   isEmailConfigured,
   isResendConfigured,
   peekTestResetUrl,
+  peekTestVerificationCode,
   peekTestVerifyUrl,
   publicAppUrl,
   sendEmailVerificationEmail,

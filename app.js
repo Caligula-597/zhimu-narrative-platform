@@ -1,9 +1,15 @@
 /** App bootstrap: routing, render shell, startup. View logic lives in src/views/*. */
-import { updateNotifyBadge } from "./src/components/toast.js";
+import { showToast, updateNotifyBadge } from "./src/components/toast.js";
 import { getViewMeta, resolveViewFn } from "./src/bootstrap/view-resolver.js";
 import { initEvents } from "./src/bootstrap/events.js";
 import { startApplication } from "./src/bootstrap/startup.js";
 import { content, modalBackdrop } from "./src/dom.js";
+import {
+  claimDynamicModuleReload,
+  isDynamicModuleLoadError,
+  navigationAccess,
+  viewModuleErrorMessage
+} from "./src/runtime/navigation-access.js";
 import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
 import { callView } from "./src/runtime/view-registry.js";
 import { uiStore, studioStore, userStore } from "./src/state/index.js";
@@ -34,15 +40,29 @@ const appEntry = (function (window) {
   }
 
   function renderViewError(title, error) {
-    const actions = `<button class="primary-btn" data-action="retry-view-module">重新加载</button><button class="secondary-btn" data-action="open-error-guide">错误排查手册</button>`;
-    return renderError(title, error, { kicker: "MODULE ERROR", actions, fallback: "功能模块加载失败，请刷新后重试。" });
+    const staleModule = isDynamicModuleLoadError(error);
+    const actions = staleModule
+      ? `<button class="primary-btn" data-action="reload-app">刷新并继续</button><button class="secondary-btn" data-go="creatorCockpit">返回创作驾驶舱</button>`
+      : `<button class="primary-btn" data-action="retry-view-module">重新加载</button><button class="secondary-btn" data-action="open-error-guide">错误排查手册</button>`;
+    return renderError(title, viewModuleErrorMessage(error), {
+      kicker: staleModule ? "PAGE UPDATED" : "MODULE ERROR",
+      actions,
+      fallback: "功能模块加载失败，请稍后重试。"
+    });
   }
 
   function render() {
     const currentView = uiStore.get().view;
     if (!getViewMeta(currentView)) { uiStore.set({ view: "creatorCockpit" }); return render(); }
     const [eyebrow, title] = getViewMeta(uiStore.get().view);
-    const needsStudio = Boolean(R.viewRequiresStudio?.(currentView));
+    // Detailed views already provide a useful no-world empty state. Do not
+    // repeatedly request a Studio snapshot when a brand-new account has no
+    // active world; Promise.resolve(null) would otherwise schedule render()
+    // forever and freeze the page.
+    const needsStudio = Boolean(
+      R.viewRequiresStudio?.(currentView)
+      && R.hasActiveWorld?.()
+    );
     const studioState = studioStore.get();
     if (needsStudio && !studioState.cloudStudio && !studioState.studioLoading && !studioState.studioError) {
       const loadingView = currentView;
@@ -72,6 +92,15 @@ const appEntry = (function (window) {
         })
         .catch((error) => {
           if (uiStore.get().view !== loadingView) return;
+          if (claimDynamicModuleReload(error)) {
+            setContentHtml(renderLoading(
+              title,
+              "检测到网站刚刚更新，正在自动刷新并载入最新资源。",
+              { kicker: "PAGE UPDATED" }
+            ));
+            window.setTimeout(() => window.location.reload(), 80);
+            return;
+          }
           setContentHtml(renderViewError(title, error));
         });
       return;
@@ -84,10 +113,10 @@ const appEntry = (function (window) {
     const outage = window.zhimuServiceOutage;
     const apiError = userStore.get().apiError;
     const isOutage = outage?.isServiceOutage?.(apiError) && !studioStore.get().cloudLoading;
-    const showFullOutage = isOutage && currentView !== "creatorCockpit";
+    const showFullOutage = isOutage && !["creatorCockpit", "account"].includes(currentView);
     const viewFn = resolveViewFn(uiStore.get().view);
     let html = showFullOutage ? outage.renderServiceOutage(apiError) : (viewFn ? viewFn() : renderViewLoading(title));
-    if (isOutage && currentView === "creatorCockpit") {
+    if (isOutage && ["creatorCockpit", "account"].includes(currentView)) {
       html = (outage.renderScopedOutageBanner?.(apiError) || "") + html;
     }
     const contentChanged = setContentHtml(html);
@@ -115,6 +144,19 @@ const appEntry = (function (window) {
       return;
     }
     if (!getViewMeta(view)) view = "overview";
+    const access = navigationAccess(view, {
+      authenticated: Boolean(window.zhimuAuthSession?.isLoggedIn?.()),
+      authStatus: window.zhimuAuthSession?.getAuthStatus?.()?.status || ""
+    });
+    if (access === "checking") {
+      showToast("正在确认登录状态，请稍候");
+      return;
+    }
+    if (access === "authentication-required") {
+      showToast("请先登录后再使用该功能");
+      R.openAuth?.();
+      return;
+    }
     const sameView = uiStore.get().view === view;
     if (!sameView) {
       uiStore.set({ view });

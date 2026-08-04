@@ -1,5 +1,6 @@
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid } from "../../../shared/security.js";
 import { initWebVitalsReporting } from "../../../shared/web-vitals.js";
+import { hostRoomIdFromSearch } from "../../../shared/portal-links.js";
 import {
   authProbeFailureStatus,
   isSessionRejection,
@@ -33,16 +34,20 @@ import {
   syncDirectorPolling,
   syncRoomStream
 } from "./room-events.js";
+import { mergePortalProfileIntoUser } from "../../../shared/portal-profile-ui.js";
 
 export function normalizeHostUser(raw) {
   raw = normalizeAuthenticatedUser(raw);
   if (!raw) return null;
-  return {
+  const user = {
     id: raw.id,
     email: raw.email,
     displayName: raw.display_name || raw.displayName,
     emailVerified: raw.emailVerified ?? Boolean(raw.email_verified_at)
   };
+  const avatarUrl = raw.avatar_url || raw.avatarUrl;
+  if (avatarUrl) user.avatarUrl = avatarUrl;
+  return user;
 }
 
 export async function loadHostSessionUser({ requestMe, stateRef, clear, isCurrent = () => true }) {
@@ -109,12 +114,30 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     }
     sessionProbeToken = tokenAtStart;
     const generationAtStart = sessionGeneration;
-    sessionProbePromise = loadHostSessionUser({
-      requestMe: api.me,
-      stateRef: state,
-      clear: clearSession,
-      isCurrent: () => generationAtStart === sessionGeneration && tokenAtStart === getSessionToken()
-    }).finally(() => {
+    sessionProbePromise = (async () => {
+      const status = await loadHostSessionUser({
+        requestMe: api.me,
+        stateRef: state,
+        clear: clearSession,
+        isCurrent: () => generationAtStart === sessionGeneration && tokenAtStart === getSessionToken()
+      });
+      if (
+        state.user
+        && generationAtStart === sessionGeneration
+        && tokenAtStart === getSessionToken()
+      ) {
+        const profile = await api.getPortalProfile("host").catch(() => null);
+        if (
+          profile
+          && generationAtStart === sessionGeneration
+          && tokenAtStart === getSessionToken()
+        ) {
+          state.portalProfile = profile;
+          state.user = mergePortalProfileIntoUser(state.user, profile);
+        }
+      }
+      return status;
+    })().finally(() => {
       sessionProbePromise = null;
       sessionProbeToken = null;
     });
@@ -132,6 +155,8 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       resetHostArchiveUi();
       resetHostRuleUi();
       state.user = null;
+      state.portalProfile = null;
+      state.profileOpen = false;
       state.authStatus = "anonymous";
       state.authError = "";
       state.view = "auth";
@@ -140,6 +165,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     }
     await loadSessionUser();
     if (!state.user) return;
+    if (await enterPendingRoom()) return;
     if (state.view === "auth") state.view = "landing";
     if (state.view === "console") {
       syncRoomStream();
@@ -175,6 +201,20 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function enterPendingRoom() {
+    const roomId = state.pendingRoomId;
+    if (!state.user || !roomId) return false;
+    const found = await resolveRoomDeepLink(roomId);
+    state.pendingRoomId = "";
+    if (!found) {
+      state.error = "找不到该运行房，或你没有主持权限。";
+      return false;
+    }
+    state.view = "console";
+    await enterConsole();
+    return true;
   }
 
   async function selectWorld(worldId) {
@@ -254,12 +294,13 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
           state.user = normalizeHostUser(result.user);
         }
         state.pendingVerificationEmail = email;
+        state.pendingVerificationChallenge = result.verificationChallenge || null;
         state.canResendVerification = Boolean(result.token);
         state.authMode = "login";
         showToast(
           result.verificationEmailSent === false
-            ? "账号已创建，但邮件暂未发出；登录后可重新发送"
-            : "请查收验证邮件后再进入主持端"
+            ? "账号已创建，可尝试重新发送验证码"
+            : "验证码已发送，请完成邮箱验证"
         );
         render();
         return;
@@ -267,13 +308,48 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       setSessionToken(result.token);
       state.user = normalizeHostUser(result.user);
       state.pendingVerificationEmail = "";
+      state.pendingVerificationChallenge = null;
       state.canResendVerification = false;
       cleanOAuthUrl();
+      if (await enterPendingRoom()) {
+        showToast(`欢迎，${result.user.displayName || result.user.email || "主持"}`);
+        return;
+      }
       await loadWorldsList();
       state.view = "landing";
       showToast(`欢迎，${result.user.displayName || result.user.email || "主持"}`);
     } catch (error) {
       showToast(formatApiError(error, "登录失败"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleVerificationSubmit(form) {
+    const challengeId = state.pendingVerificationChallenge?.id;
+    const code = String(form.code?.value || "").replace(/\D/g, "").slice(0, 6);
+    if (!challengeId || !/^\d{6}$/.test(code)) {
+      showToast("请输入 6 位邮箱验证码");
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await api.verifyEmailCode(challengeId, code);
+      setSessionToken(result.token);
+      state.user = normalizeHostUser(result.user);
+      state.pendingVerificationEmail = "";
+      state.pendingVerificationChallenge = null;
+      state.canResendVerification = false;
+      cleanOAuthUrl();
+      if (await enterPendingRoom()) {
+        showToast("邮箱验证成功，已进入目标主持房间");
+        return;
+      }
+      await loadWorldsList();
+      state.view = "landing";
+      showToast("邮箱验证成功，已自动登录主持端");
+    } catch (error) {
+      showToast(formatApiError(error, "邮箱验证码无效或已过期"));
     } finally {
       setBusy(false);
     }
@@ -315,6 +391,8 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     resetHostArchiveUi();
     resetHostRuleUi();
     state.user = null;
+    state.portalProfile = null;
+    state.profileOpen = false;
     state.authStatus = "anonymous";
     state.authError = "";
     state.view = "landing";
@@ -346,21 +424,28 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       case "toggle-auth-mode":
         state.authMode = state.authMode === "login" ? "register" : "login";
         state.pendingVerificationEmail = "";
+        state.pendingVerificationChallenge = null;
         state.canResendVerification = false;
         render();
         return true;
       case "verification-back-login":
         state.pendingVerificationEmail = "";
+        state.pendingVerificationChallenge = null;
         state.canResendVerification = false;
         state.authMode = "login";
         render();
         return true;
-      case "resend-verification":
+      case "resend-verification-code":
         try {
-          await api.resendVerification();
-          showToast("验证邮件已重新发送，请同时检查垃圾箱");
+          const result = await api.resendVerificationCode(
+            state.pendingVerificationChallenge?.id || ""
+          );
+          state.pendingVerificationChallenge =
+            result.verificationChallenge || state.pendingVerificationChallenge;
+          showToast("新的邮箱验证码已发送，请同时检查垃圾箱");
+          render();
         } catch (error) {
-          showToast(formatApiError(error, "验证邮件发送失败"));
+          showToast(formatApiError(error, "验证码发送失败"));
         }
         return true;
       case "back-landing": state.view = "landing"; render(); return true;
@@ -381,7 +466,8 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   async function bootstrap() {
     initWebVitalsReporting({ app: "host", endpoint: "/api/metrics/web-vitals" });
     const params = new URLSearchParams(window.location.search);
-    const deepRoom = params.get("room");
+    const deepRoom = hostRoomIdFromSearch(params);
+    state.pendingRoomId = isUuid(deepRoom) ? deepRoom : "";
     bindDataContext({ render, showToast });
     bindRoomEventsContext({ render, showToast });
     bindInviteContext({ showToast });
@@ -402,17 +488,13 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       await loadSessionUser();
       if (!state.user && state.view !== "auth") state.view = "landing";
 
-      if (deepRoom && isUuid(deepRoom)) {
-        const found = await resolveRoomDeepLink(deepRoom);
-        if (found) {
-          state.view = "console";
-          await enterConsole();
-          return;
-        }
-        state.error = "找不到该运行房，或你没有主持权限。";
+      if (deepRoom && !isUuid(deepRoom)) {
+        state.error = "主持端房间链接无效，请从创作者端重新打开。";
+      } else if (await enterPendingRoom()) {
+        return;
       }
 
-      if (getWorldId() && getRoomId()) {
+      if (state.user && getWorldId() && getRoomId()) {
         await enterConsole();
       } else if (state.user) {
         await loadWorldsList();
@@ -429,5 +511,12 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     }
   }
 
-  return { bootstrap, handleAction, handleAuthSubmit, handleExternalSessionChange, selectRoom };
+  return {
+    bootstrap,
+    handleAction,
+    handleAuthSubmit,
+    handleVerificationSubmit,
+    handleExternalSessionChange,
+    selectRoom
+  };
 }

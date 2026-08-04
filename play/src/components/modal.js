@@ -1,5 +1,6 @@
 import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
+import { renderPortalProfileEditor } from "../../../shared/portal-profile-ui.js";
 
 export function renderModal() {
   const modal = state.modal;
@@ -8,7 +9,15 @@ export function renderModal() {
   const { kind, title, message = "" } = modal;
 
   let body = "";
-  if (kind === "report") {
+  if (kind === "portal-profile") {
+    body = renderPortalProfileEditor(state.portalProfile, {
+      portal: "player",
+      busy: state.profileBusy,
+      loading: state.profileBusy && !state.portalProfile,
+      status: state.profileStatus,
+      closeAction: "profile-close"
+    });
+  } else if (kind === "report") {
     body = `
       <p class="modal-lede">${escapeHtml(message || "请简要说明举报原因（4～200 字）")}</p>
       <textarea class="field" rows="4" maxlength="200" placeholder="描述具体问题…" data-bind="modalDraft" required>${escapeHtml(state.modalDraft || "")}</textarea>`;
@@ -136,7 +145,9 @@ export function renderModal() {
   }
 
   const primaryAction =
-    kind === "report"
+    kind === "portal-profile"
+      ? ""
+      : kind === "report"
       ? `<button class="btn primary" type="button" data-action="modal-submit-report" ${state.busy ? "disabled" : ""}>提交举报</button>`
       : kind === "clue-note"
         ? `<button class="btn primary" type="button" data-action="modal-save-clue-note" data-clue-id="${escapeHtml(modal.clueId || "")}" ${state.busy ? "disabled" : ""}>保存解读</button>`
@@ -151,6 +162,14 @@ export function renderModal() {
                 : kind === "voice-pick"
                   ? `<button class="btn quiet" type="button" data-action="voice-room-create">＋ 创建密谈</button>`
                   : `<button class="btn primary" type="button" data-action="modal-confirm" ${state.busy ? "disabled" : ""}>确认</button>`;
+
+  if (kind === "portal-profile") {
+    return `<div class="modal-backdrop is-open" data-action="modal-backdrop-close">
+      <div class="modal play-profile-modal" role="dialog" aria-modal="true" aria-label="玩家端身份资料">
+        ${body}
+      </div>
+    </div>`;
+  }
 
   return `
     <div class="modal-backdrop is-open" data-action="modal-backdrop-close">

@@ -52,6 +52,12 @@ import * as Status from "../components/status-ui.js";
       return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1"><div class="section-head"><div><h3>账号与内容资产</h3><p>登录后可管理账号、配额、云端附件与会话。</p></div></div><button type="button" class="primary-btn" data-action="open-auth">登录 / 注册</button></article></section>`;
     }
     if (uiStore.get().accountViewLoading || !uiStore.get().accountView) {
+      const error = uiStore.get().accountViewError;
+      if (error && !uiStore.get().accountViewLoading) {
+        return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1">${Status.error?.("账号信息暂时未加载", error, {
+          actions: `<button type="button" class="primary-btn" data-action="retry-account-view">重新加载账号资料</button>`
+        }) || `<div class="section-head"><div><h3>账号信息暂时未加载</h3><p>${escapeHtml(error)}</p></div></div><button type="button" class="primary-btn" data-action="retry-account-view">重新加载账号资料</button>`}</article></section>`;
+      }
       return `<section class="rules-layout account-hub-page"><article class="card" style="grid-column:1/-1">${Status.loading?.("账号与内容资产", "正在加载账号信息、套餐配额与会话记录。") || `<div class="section-head"><div><h3>账号与内容资产</h3><p>正在加载账号信息…</p></div></div>`}</article></section>`;
     }
     const tab = activeTab();

@@ -48,6 +48,7 @@ const ZERO_DB_ROUTES = new Set([
   "studio-story-edge-routes.js",
   "studio-version-routes.js",
   "story-assistant-routes.js",
+  "story-manuscript-routes.js",
   "voice-routes.js",
   "world-routes.js"
 ]);

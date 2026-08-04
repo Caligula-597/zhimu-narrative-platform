@@ -8,6 +8,7 @@ import { registerView } from "../runtime/view-registry.js";
 import { worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { normalizeError } from "../components/status-ui.js";
+import { creatorWorkspaceEmpty } from "../components/emptyState.js";
 
 export const STORY_DIAGNOSTIC_STANDARD_OPTIONS = [
   ["classic", "本格公平"],
@@ -295,6 +296,28 @@ function renderError(activeStandard, error) {
 }
 
 export function storyDiagnostics() {
+  if (!zhimuApi.context.worldId) {
+    return creatorWorkspaceEmpty({
+      kicker: "STORY MRI",
+      title: "作品诊断中心",
+      intro: "创建或选择剧本后，系统会读取因果链、信息链与证据链并生成结构诊断。",
+      guideTitle: "诊断会检查什么",
+      guideItems: [
+        {
+          label: "结构",
+          title: "因果链与信息链",
+          text: "定位缺少前因、不可达线索和跨角色信息单点。",
+          bullets: ["关键事件前后因", "线索获得路径", "角色知识时间线"]
+        },
+        {
+          label: "公平",
+          title: "证据与揭晓",
+          text: "检查核心结论是否拥有足够且独立的显式证据。",
+          bullets: ["证据数量下限", "独立获得路径", "揭晓时机"]
+        }
+      ]
+    });
+  }
   const state = worldStore.get();
   const report = state.cloudStoryDiagnostics;
   const activeStandard = currentStandard();
@@ -342,7 +365,14 @@ export function storyDiagnostics() {
 
 export async function loadStoryDiagnostics({ standard = currentStandard(), quiet = false } = {}) {
   const worldId = zhimuApi.context.worldId;
-  if (!worldId) return null;
+  if (!worldId) {
+    worldStore.set({
+      cloudStoryDiagnostics: null,
+      cloudStoryDiagnosticsLoading: false,
+      cloudStoryDiagnosticsError: ""
+    });
+    return null;
+  }
   worldStore.set({
     cloudStoryDiagnosticsStandard: standard,
     cloudStoryDiagnosticsLoading: true,

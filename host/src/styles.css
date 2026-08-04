@@ -1,5 +1,6 @@
 @import url("../../shared/styles/app-primitives.css");
 @import url("./styles/host-room-create-workspace.css");
+@import url("../../shared/styles/portal-profile.css");
 
 :root {
   --host-header-height: 68px;
@@ -201,6 +202,12 @@ textarea:focus-visible {
   margin-left: 4px;
   padding-left: 10px;
   border-left: 1px solid var(--line);
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
 }
 
 .host-user-avatar {
@@ -214,6 +221,19 @@ textarea:focus-visible {
   background: linear-gradient(135deg, #b78255, #875b43);
   font-size: 11px;
   font-weight: 700;
+  object-fit: cover;
+}
+
+.host-user:hover .host-user-name {
+  color: var(--host-green);
+}
+
+.modal.host-profile-modal {
+  width: min(760px, 100%);
+  max-height: min(90vh, 760px);
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .host-user-name {
@@ -595,6 +615,20 @@ textarea:focus-visible {
 .auth-submit {
   width: 100%;
   margin-top: 3px;
+}
+
+.verification-code-input {
+  min-height: 52px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: 0.24em;
+  text-align: center;
+}
+
+.verification-help {
+  margin-top: 14px;
+  font-size: 12px;
 }
 
 .oauth-row {
@@ -1638,14 +1672,36 @@ textarea:focus-visible {
 
   .host-brand-copy,
   .host-header-context,
-  .host-nav-link,
-  .host-room-switch,
   .host-user {
     display: none;
   }
 
   .host-nav {
     grid-column: 3;
+    gap: 4px;
+  }
+
+  .host-nav-link,
+  .host-room-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+  }
+
+  .host-nav-link span,
+  .host-room-switch span {
+    display: inline-flex;
+    font-size: 15px;
+  }
+
+  .host-nav .ghost-btn {
+    padding: 9px 10px;
   }
 
   .host-main {

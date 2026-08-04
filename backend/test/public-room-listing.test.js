@@ -69,7 +69,7 @@ test("GET /api/platform/public-rooms lists only release-backed public rooms", as
 });
 
 test("PATCH room listing rejects live draft and toggles a release-backed room", async (context) => {
-  const app = await createApp();
+  const app = await createApp({ allowDemoUserHeader: true });
   context.after(() => app.close());
   const releaseId = await createFixtureRelease();
   const created = await query(

@@ -43,6 +43,16 @@ export function createAuthFlowController(ctx) {
 
   async function handleResendVerification() {
     await runBusy(async () => {
+      if (state.authMode === "verify") {
+        const result = await api.resendVerificationCode(
+          state.pendingVerificationChallenge?.id || ""
+        );
+        state.pendingVerificationChallenge =
+          result.verificationChallenge || state.pendingVerificationChallenge;
+        setToast("新的邮箱验证码已发送，请查收", render);
+        render();
+        return;
+      }
       await api.resendVerification();
       setToast("验证邮件已发送，请查收", render);
     }, "发送失败");
@@ -73,14 +83,38 @@ export function createAuthFlowController(ctx) {
       const result = state.authMode === "register"
         ? await api.register(email, displayName, password)
         : await api.login(email, password);
-      if (result.pendingEmailVerification && !result.token) {
-        setToast(result.message || "注册成功，请先验证邮箱后再登录", render);
-        state.authMode = "login";
+      if (result.pendingEmailVerification) {
+        if (result.token) setSessionToken(result.token);
+        state.pendingVerificationEmail = email;
+        state.pendingVerificationChallenge = result.verificationChallenge || null;
+        state.authMode = "verify";
+        setToast(
+          result.verificationEmailSent === false
+            ? "账号已创建，可尝试重新发送验证码"
+            : "验证码已发送，请完成邮箱验证",
+          render
+        );
         render();
         return;
       }
       await finishLogin(result, "玩家");
     }, "登录失败");
+  }
+
+  async function handleVerificationSubmit(form) {
+    const challengeId = state.pendingVerificationChallenge?.id;
+    const code = String(form.code?.value || "").replace(/\D/g, "").slice(0, 6);
+    if (!challengeId || !/^\d{6}$/.test(code)) {
+      setToast("请输入 6 位邮箱验证码", render);
+      return;
+    }
+    await runBusy(async () => {
+      const result = await api.verifyEmailCode(challengeId, code);
+      state.pendingVerificationEmail = "";
+      state.pendingVerificationChallenge = null;
+      await finishLogin(result, "玩家");
+      setToast("邮箱验证成功，已自动登录玩家端", render);
+    }, "邮箱验证码无效或已过期");
   }
 
   async function handleOAuth(provider) {
@@ -132,6 +166,7 @@ export function createAuthFlowController(ctx) {
   return {
     handleEmailVerify, handleForgotSubmit, handleResetSubmit,
     handleResendVerification, handleGuestSubmit, handleAuthSubmit,
+    handleVerificationSubmit,
     handleOAuth, handleLogout
   };
 }

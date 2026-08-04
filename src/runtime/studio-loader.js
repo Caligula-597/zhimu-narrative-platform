@@ -29,6 +29,10 @@ export function viewRequiresStudio(view) {
   return STUDIO_VIEWS.has(view);
 }
 
+export function hasActiveWorld() {
+  return Boolean(zhimuApi.context.worldId);
+}
+
 export function invalidateStudioSnapshot({ clear = true } = {}) {
   loadSequence += 1;
   inFlightPromise = null;
@@ -84,6 +88,7 @@ export function retryStudioSnapshot() {
 
 registerRuntime({
   ensureStudioSnapshot,
+  hasActiveWorld,
   invalidateStudioSnapshot,
   retryStudioSnapshot,
   viewRequiresStudio

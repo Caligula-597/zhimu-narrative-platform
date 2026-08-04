@@ -142,7 +142,9 @@ async function deleteUserAccountDb(client, userId) {
   if (!removed.rowCount) throwErr("USER_NOT_FOUND");
 }
 
-export async function deleteUserAccount(userId) {
+export async function deleteUserAccount(userId, {
+  requireUnverifiedRegistered = false
+} = {}) {
   const preview = await buildAccountDeletePreview(userId);
   if (!preview.canDelete) {
     const error = new Error(preview.blockers[0]?.detail || "Account deletion blocked");
@@ -157,6 +159,22 @@ export async function deleteUserAccount(userId) {
 
   try {
     await transaction(async (client) => {
+      if (requireUnverifiedRegistered) {
+        const target = await client.query(
+          `SELECT user_kind, email_verified_at
+           FROM users
+           WHERE id = $1
+           FOR UPDATE`,
+          [userId]
+        );
+        if (!target.rowCount) throwErr("USER_NOT_FOUND");
+        if (target.rows[0].user_kind !== "registered" || target.rows[0].email_verified_at) {
+          throwErr(
+            "ACCOUNT_DELETE_BLOCKED",
+            "Only an unverified registered account can be reset"
+          );
+        }
+      }
       jobId = await createAccountDeleteJob(userId, objectKeys, client);
       await deleteUserAccountDb(client, userId);
       await markAccountDeleteJobDbDeleted(jobId, client, { claimToken: storageClaimToken });

@@ -10,6 +10,7 @@ import {
 } from "./runtime/host-console-loader.js";
 import { createHostLifecycleController } from "./runtime/host-lifecycle-controller.js";
 import { createHostRoomCreateController } from "./runtime/host-room-create-controller.js";
+import { createHostProfileController } from "./runtime/profile-controller.js";
 import { bootstrapPaceTimer, tickPaceTimer } from "./runtime/host-pace-timer.js";
 import { getRoomId, subscribeSessionToken } from "./session.js";
 import { state } from "./state.js";
@@ -19,9 +20,10 @@ const hostToastTimer = createToastTimer(3200);
 
 function syncHostUrl() {
   const url = new URL(window.location.href);
-  const roomId = getRoomId();
-  if (state.view === "console" && roomId) url.searchParams.set("room", roomId);
+  const roomId = state.view === "console" ? getRoomId() : state.pendingRoomId;
+  if (roomId) url.searchParams.set("room", roomId);
   else url.searchParams.delete("room");
+  url.searchParams.delete("roomId");
   window.history.replaceState({}, "", url.pathname + url.search);
 }
 
@@ -54,6 +56,7 @@ const roomCreate = createHostRoomCreateController({
   showToast: setToast,
   enterRoom: lifecycle.selectRoom
 });
+const profile = createHostProfileController({ render, showToast: setToast });
 
 // 节奏计时器仅直更计时 DOM，避免每秒触发整页重绘。
 bootstrapPaceTimer();
@@ -63,10 +66,12 @@ setInterval(() => {
 
 app.addEventListener("submit", async (event) => {
   const form = event.target.closest("[data-form='auth']");
-  if (!form) return;
+  const verificationForm = event.target.closest("[data-form='verification-code']");
+  if (!form && !verificationForm) return;
   event.preventDefault();
   if (state.busy) return;
-  await lifecycle.handleAuthSubmit(form);
+  if (verificationForm) await lifecycle.handleVerificationSubmit(verificationForm);
+  else await lifecycle.handleAuthSubmit(form);
 });
 
 app.addEventListener("click", async (event) => {
@@ -74,6 +79,7 @@ app.addEventListener("click", async (event) => {
   if (!button || state.busy) return;
   const action = button.dataset.action;
 
+  if (await profile.handleAction(action, button)) return;
   if (await handleHostConsoleAction(action, button)) return;
   if (await roomCreate.handleAction(action, button)) return;
   if (await lifecycle.handleAction(action, button)) return;
@@ -92,7 +98,8 @@ app.addEventListener("input", (event) => {
   handleHostConsoleField(event.target);
 });
 
-app.addEventListener("change", (event) => {
+app.addEventListener("change", async (event) => {
+  if (await profile.handleChange(event.target)) return;
   roomCreate.handleField(event.target);
   handleHostConsoleField(event.target);
 });

@@ -8,6 +8,43 @@ import { AI_PLAYER_ARCHETYPES } from "../shared/ai-playtest.js";
 
 const host = "127.0.0.1";
 const port = Number(process.env.ZHIMU_BROWSER_FIXTURE_PORT || 4180);
+const verificationAuthFixture = process.env.ZHIMU_BROWSER_FIXTURE_AUTH === "verification";
+const emptyAccountFixture = process.env.ZHIMU_BROWSER_FIXTURE_EMPTY_ACCOUNT === "true";
+const verificationChallengeId = "7f5f69b2-5330-4cc9-9497-5a6c751c80e8";
+let verificationFixtureAuthenticated = false;
+const fixtureUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
+const portalProfiles = {
+  creator: {
+    portal: "creator",
+    displayName: "浏览器主创",
+    avatarUrl: null,
+    hasCustomAvatar: false,
+    nameChangedAt: null,
+    nextNameChangeAt: null,
+    canChangeName: true,
+    avatarUpdatedAt: null
+  },
+  host: {
+    portal: "host",
+    displayName: "浏览器主持",
+    avatarUrl: null,
+    hasCustomAvatar: false,
+    nameChangedAt: null,
+    nextNameChangeAt: null,
+    canChangeName: true,
+    avatarUpdatedAt: null
+  },
+  player: {
+    portal: "player",
+    displayName: "浏览器玩家",
+    avatarUrl: null,
+    hasCustomAvatar: false,
+    nameChangedAt: null,
+    nextNameChangeAt: null,
+    canChangeName: true,
+    avatarUpdatedAt: null
+  }
+};
 const worldId = "33333333-3333-4333-8444-555555550003";
 const releaseId = "44444444-4444-4444-8444-555555550004";
 let roomSequence = 2;
@@ -15,6 +52,25 @@ let clueSequence = 1;
 let ruleSequence = 0;
 let qualityReportSequence = 0;
 const qualityReports = [];
+const opsFixtureUserId = "77777777-7777-4777-8777-777777770001";
+let opsFixtureUsers = [{
+  id: opsFixtureUserId,
+  email: "pending-browser-test@example.invalid",
+  displayName: "待验证浏览器测试",
+  userKind: "registered",
+  emailVerified: false,
+  verificationStatus: "pending",
+  hasActiveVerification: true,
+  verificationLastSentAt: "2026-07-27T12:00:00.000Z",
+  planCode: "free",
+  ownedWorlds: 0,
+  collaboratorWorlds: 0,
+  assetCount: 0,
+  activeSessions: 0,
+  createdAt: "2026-07-27T11:58:00.000Z",
+  updatedAt: "2026-07-27T12:00:00.000Z",
+  protectedOperationsAccount: false
+}];
 
 const release = {
   id: releaseId,
@@ -412,14 +468,169 @@ const server = http.createServer(async (request, response) => {
     return sendJson(response, 200, { ok: true, fixture: true });
   }
   if (request.method === "GET" && path === "/api/auth/config") {
-    return sendJson(response, 200, { requireAuth: false, demoMode: true, providers: [] });
+    return sendJson(response, 200, verificationAuthFixture
+      ? {
+          requireAuth: true,
+          demoMode: false,
+          requireEmailVerification: true,
+          email: { configured: true, provider: "fixture" },
+          oauth: []
+        }
+        : { requireAuth: false, demoMode: true, providers: [] });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/test/reset-verification") {
+    verificationFixtureAuthenticated = false;
+    return sendJson(response, 200, { ok: true });
   }
   if (request.method === "GET" && path === "/api/auth/me") {
+    if (verificationAuthFixture && !verificationFixtureAuthenticated) {
+      return sendJson(response, 401, { code: "AUTH_REQUIRED", error: "Authentication required" });
+    }
     return sendJson(response, 200, {
-      id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+      id: fixtureUserId,
       email: "browser-fixture@getzhimu.local",
       display_name: "浏览器验收",
       email_verified_at: "2026-07-23T00:00:00.000Z"
+    });
+  }
+  if (request.method === "GET" && path === "/api/account/portal-profiles") {
+    return sendJson(response, 200, { profiles: Object.values(portalProfiles) });
+  }
+  const portalProfileMatch = path.match(/^\/api\/account\/portal-profiles\/(creator|host|player)$/);
+  if (request.method === "GET" && portalProfileMatch) {
+    return sendJson(response, 200, portalProfiles[portalProfileMatch[1]]);
+  }
+  const portalAvailabilityMatch = path.match(
+    /^\/api\/account\/portal-profiles\/(creator|host|player)\/name-availability$/
+  );
+  if (request.method === "GET" && portalAvailabilityMatch) {
+    const displayName = String(url.searchParams.get("displayName") || "").trim();
+    return sendJson(response, 200, {
+      displayName,
+      available: displayName !== "已占用昵称",
+      currentUserOwnsName: displayName === portalProfiles[portalAvailabilityMatch[1]].displayName
+    });
+  }
+  const portalNameMatch = path.match(
+    /^\/api\/account\/portal-profiles\/(creator|host|player)\/name$/
+  );
+  if (request.method === "PUT" && portalNameMatch) {
+    const body = await readJson(request);
+    const displayName = String(body.displayName || "").trim();
+    if (displayName === "已占用昵称") {
+      return sendJson(response, 409, {
+        code: "PORTAL_PROFILE_NAME_TAKEN",
+        error: "该端昵称已被使用"
+      });
+    }
+    const profile = portalProfiles[portalNameMatch[1]];
+    const changedAt = new Date().toISOString();
+    profile.displayName = displayName;
+    profile.nameChangedAt = changedAt;
+    profile.nextNameChangeAt = new Date(Date.now() + 30 * 86_400_000).toISOString();
+    profile.canChangeName = false;
+    return sendJson(response, 200, profile);
+  }
+  const portalAvatarDeleteMatch = path.match(
+    /^\/api\/account\/portal-profiles\/(creator|host|player)\/avatar$/
+  );
+  if (request.method === "DELETE" && portalAvatarDeleteMatch) {
+    const profile = portalProfiles[portalAvatarDeleteMatch[1]];
+    profile.avatarUrl = null;
+    profile.hasCustomAvatar = false;
+    profile.avatarUpdatedAt = new Date().toISOString();
+    return sendJson(response, 200, profile);
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/register") {
+    const body = await readJson(request);
+    return sendJson(response, 201, {
+      user: {
+        id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+        email: String(body.email || "browser-fixture@example.invalid"),
+        display_name: String(body.displayName || "浏览器验收"),
+        emailVerified: false
+      },
+      pendingEmailVerification: true,
+      verificationEmailSent: true,
+      verificationChallenge: {
+        id: verificationChallengeId,
+        maskedEmail: "br*************@example.invalid",
+        codeLength: 6,
+        expiresInSeconds: 600,
+        resendAfterSeconds: 0
+      }
+    });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/login") {
+    const body = await readJson(request);
+    return sendJson(response, 200, {
+      token: "browser-fixture-pending-token",
+      user: {
+        id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+        email: String(body.email || "browser-fixture@example.invalid"),
+        display_name: "浏览器验收",
+        emailVerified: false
+      },
+      pendingEmailVerification: true,
+      verificationChallenge: {
+        id: verificationChallengeId,
+        maskedEmail: "br*************@example.invalid",
+        codeLength: 6,
+        expiresInSeconds: 600,
+        resendAfterSeconds: 0
+      }
+    });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/verify-email") {
+    const body = await readJson(request);
+    if (body.token !== "fixture-link-token") {
+      return sendJson(response, 400, {
+        code: "EMAIL_VERIFICATION_INVALID",
+        error: "Email verification link is invalid or expired"
+      });
+    }
+    verificationFixtureAuthenticated = true;
+    return sendJson(response, 200, {
+      token: "browser-fixture-link-token",
+      user: {
+        id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+        email: "browser-fixture@example.invalid",
+        display_name: "浏览器验收",
+        emailVerified: true
+      },
+      acceptedInvites: []
+    });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/verify-email-code") {
+    const body = await readJson(request);
+    if (body.challengeId !== verificationChallengeId || body.code !== "246810") {
+      return sendJson(response, 400, {
+        code: "EMAIL_VERIFICATION_CODE_INVALID",
+        error: "Email verification code is invalid or expired"
+      });
+    }
+    verificationFixtureAuthenticated = true;
+    return sendJson(response, 200, {
+      token: "browser-fixture-verified-token",
+      user: {
+        id: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
+        email: "browser-fixture@example.invalid",
+        display_name: "浏览器验收",
+        emailVerified: true
+      },
+      acceptedInvites: []
+    });
+  }
+  if (verificationAuthFixture && request.method === "POST" && path === "/api/auth/resend-verification-code") {
+    return sendJson(response, 200, {
+      ok: true,
+      verificationChallenge: {
+        id: verificationChallengeId,
+        maskedEmail: "br*************@example.invalid",
+        codeLength: 6,
+        expiresInSeconds: 600,
+        resendAfterSeconds: 60
+      }
     });
   }
   if (request.method === "POST" && path === "/api/auth/guest") {
@@ -441,8 +652,126 @@ const server = http.createServer(async (request, response) => {
   if (request.method === "GET" && path === "/api/platform/public-rooms") {
     return sendJson(response, 200, { total: 0, items: [] });
   }
+  if (request.method === "GET" && path === "/api/ops/status") {
+    return sendJson(response, 200, {
+      ok: true,
+      ready: true,
+      nodeEnv: "fixture",
+      uptimeSeconds: 120,
+      features: {
+        email: { configured: true },
+        oauth: { enabledProviders: ["google"] },
+        stripe: { configured: false },
+        uploadScan: { enabled: true },
+        telemetry: { enabled: true },
+        alerts: { configured: true },
+        roomEventsBus: "memory"
+      },
+      productionTrust: { passed: 7, total: 7, ready: true, gates: [] }
+    });
+  }
+  if (request.method === "GET" && path === "/api/ops/plan-upgrade/requests") {
+    return sendJson(response, 200, { items: [], total: 0, limit: 20, offset: 0 });
+  }
+  if (request.method === "GET" && path === "/api/ops/audit-log") {
+    return sendJson(response, 200, { items: [], total: 0, limit: 50, offset: 0 });
+  }
+  if (request.method === "GET" && path === "/api/ops/feedback") {
+    return sendJson(response, 200, { items: [], total: 0, limit: 20, offset: 0 });
+  }
+  if (request.method === "GET" && path === "/api/ops/feedback/stats") {
+    return sendJson(response, 200, []);
+  }
+  if (request.method === "GET" && path === "/api/ops/users") {
+    const search = String(url.searchParams.get("search") || "").trim().toLowerCase();
+    const verification = url.searchParams.get("verification") || "all";
+    const items = opsFixtureUsers.filter((user) => {
+      const matchesSearch = !search
+        || user.email.toLowerCase().includes(search)
+        || user.displayName.toLowerCase().includes(search);
+      const matchesVerification = verification === "all"
+        || user.verificationStatus === verification;
+      return matchesSearch && matchesVerification;
+    });
+    return sendJson(response, 200, { items, total: items.length, limit: 20, offset: 0 });
+  }
+  const opsDeletePreviewMatch = path.match(/^\/api\/ops\/users\/([0-9a-f-]+)\/delete-preview$/i);
+  if (request.method === "GET" && opsDeletePreviewMatch) {
+    const target = opsFixtureUsers.find((user) => user.id === opsDeletePreviewMatch[1]);
+    if (!target) return sendJson(response, 404, { code: "USER_NOT_FOUND", error: "User not found" });
+    return sendJson(response, 200, {
+      target,
+      canResetRegistration: !target.emailVerified,
+      canDeleteAccount: true,
+      deletion: {
+        canDelete: true,
+        blockers: [],
+        summary: {
+          ownedWorlds: [],
+          collaboratorWorlds: 0,
+          hostedRooms: 0,
+          assetCount: 0,
+          assetBytes: 0
+        }
+      }
+    });
+  }
+  const opsResendMatch = path.match(/^\/api\/ops\/users\/([0-9a-f-]+)\/resend-verification$/i);
+  if (request.method === "POST" && opsResendMatch) {
+    const target = opsFixtureUsers.find((user) => user.id === opsResendMatch[1]);
+    if (!target) return sendJson(response, 404, { code: "USER_NOT_FOUND", error: "User not found" });
+    target.verificationLastSentAt = new Date().toISOString();
+    target.hasActiveVerification = true;
+    return sendJson(response, 200, { ok: true, verificationRequired: true, auditRecorded: true });
+  }
+  const opsDeleteMatch = path.match(/^\/api\/ops\/users\/([0-9a-f-]+)\/delete$/i);
+  if (request.method === "POST" && opsDeleteMatch) {
+    const body = await readJson(request);
+    const target = opsFixtureUsers.find((user) => user.id === opsDeleteMatch[1]);
+    if (!target) return sendJson(response, 404, { code: "USER_NOT_FOUND", error: "User not found" });
+    if (!body.acknowledged || body.confirmationEmail !== target.email) {
+      return sendJson(response, 400, {
+        code: "ACCOUNT_DELETE_CONFIRMATION_INVALID",
+        error: "Confirmation email does not match the target account"
+      });
+    }
+    opsFixtureUsers = opsFixtureUsers.filter((user) => user.id !== target.id);
+    return sendJson(response, 200, {
+      ok: true,
+      mode: body.mode,
+      deletedAt: new Date().toISOString(),
+      storagePending: false,
+      auditRecorded: true
+    });
+  }
   if (request.method === "GET" && path === "/api/platform/events/stream") {
     return sendSse(request, response);
+  }
+  if (request.method === "GET" && path === "/api/auth/sessions") {
+    return sendJson(response, 200, { sessions: [] });
+  }
+  if (request.method === "GET" && path === "/api/account/entitlements") {
+    return sendJson(response, 200, {
+      usage: {
+        planCode: "internal_beta",
+        planLabel: "内测版",
+        planDescription: "内测期间基础创作功能已开通。",
+        isInternalBeta: true,
+        usedBytes: 0,
+        maxBytes: 1073741824,
+        remainingBytes: 1073741824,
+        storagePercent: 0,
+        usedWorlds: 0,
+        maxWorlds: 10,
+        remainingWorlds: 10,
+        worldsPercent: 0,
+        maxSingleFileBytes: 52428800
+      },
+      publicPlans: [],
+      upgrade: null,
+      pricing: { mode: "internal_beta" },
+      credits: null
+    });
   }
   if (request.method === "GET" && path === "/api/account/llm") {
     return sendJson(response, 200, {
@@ -502,7 +831,10 @@ const server = http.createServer(async (request, response) => {
     });
   }
   if (request.method === "GET" && path === "/api/worlds") {
-    return sendJson(response, 200, [world]);
+    return sendJson(response, 200, emptyAccountFixture ? [] : [world]);
+  }
+  if (request.method === "GET" && path === "/api/worlds/catalog") {
+    return sendJson(response, 200, []);
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/creator-bootstrap`) {
     return sendJson(response, 200, {

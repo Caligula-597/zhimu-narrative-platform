@@ -20,7 +20,8 @@ export async function registerAuthSessionRoutes(app) {
     });
     return sendAuthSession(reply, result.session, {
       user: userAuthPayload(result.user),
-      pendingEmailVerification: result.pendingEmailVerification
+      pendingEmailVerification: result.pendingEmailVerification,
+      verificationChallenge: result.verificationChallenge
     });
   });
 

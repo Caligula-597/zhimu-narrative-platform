@@ -7,12 +7,19 @@ import {
 } from "../../shared/api-client.js";
 import { defaultSessionTokenStore } from "../../shared/session-token.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
+import { playerJoinUrl } from "../../shared/portal-links.js";
 
 export { getSessionToken, setSessionToken };
 
 const viteEnv = import.meta.env || {};
-const APP_ORIGIN = (viteEnv.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
-const PLAY_ORIGIN = (viteEnv.VITE_PLAY_ORIGIN || "https://play.getzhimu.com").replace(/\/$/, "");
+const APP_ORIGIN = (
+  viteEnv.VITE_APP_ORIGIN
+  || (viteEnv.DEV ? "http://127.0.0.1:4173" : "https://app.getzhimu.com")
+).replace(/\/$/, "");
+const PLAY_ORIGIN = (
+  viteEnv.VITE_PLAY_ORIGIN
+  || (viteEnv.DEV ? "http://127.0.0.1:5174" : "https://play.getzhimu.com")
+).replace(/\/$/, "");
 const API_BASE = resolveVitePortalApiBase({
   viteAppOrigin: APP_ORIGIN,
   viteApiOrigin: viteEnv.VITE_API_ORIGIN,
@@ -50,6 +57,10 @@ export function getPlayOrigin() {
   return PLAY_ORIGIN;
 }
 
+export function getPlayerJoinUrl(inviteCode) {
+  return playerJoinUrl(PLAY_ORIGIN, inviteCode);
+}
+
 export function getHostOrigin() {
   return window.location.origin;
 }
@@ -65,6 +76,13 @@ export const api = {
   login: (email, password) => request("/auth/login", { method: "POST", body: { email, password } }),
   register: (email, displayName, password) =>
     request("/auth/register", { method: "POST", body: { email, displayName, password } }),
+  verifyEmailCode: (challengeId, code) =>
+    request("/auth/verify-email-code", { method: "POST", body: { challengeId, code } }),
+  resendVerificationCode: (challengeId) =>
+    request("/auth/resend-verification-code", {
+      method: "POST",
+      body: challengeId ? { challengeId } : {}
+    }),
   resendVerification: () =>
     request("/auth/resend-verification", { method: "POST", body: {} }),
   guest: (displayName) => request("/auth/guest", { method: "POST", body: { displayName } }),
@@ -74,6 +92,26 @@ export const api = {
       body: returnOrigin ? { returnOrigin } : {}
     }),
   oauthComplete: (code) => request("/auth/oauth/complete", { method: "POST", body: { code } }),
+  getPortalProfile: (portal = "host") => request(`/account/portal-profiles/${portal}`),
+  checkPortalProfileName: (portal, displayName) =>
+    request(`/account/portal-profiles/${portal}/name-availability?${new URLSearchParams({ displayName })}`),
+  updatePortalProfileName: (portal, displayName) =>
+    request(`/account/portal-profiles/${portal}/name`, {
+      method: "PUT",
+      body: { displayName }
+    }),
+  createPortalAvatarUpload: (portal, payload) =>
+    request(`/account/portal-profiles/${portal}/avatar-upload-url`, {
+      method: "POST",
+      body: payload
+    }),
+  confirmPortalAvatar: (portal, uploadId) =>
+    request(`/account/portal-profiles/${portal}/avatar/confirm`, {
+      method: "POST",
+      body: { uploadId }
+    }),
+  removePortalAvatar: (portal) =>
+    request(`/account/portal-profiles/${portal}/avatar`, { method: "DELETE" }),
 
   getWorlds: () => request("/worlds"),
   getWorldRooms: (worldId = getWorldId()) => {

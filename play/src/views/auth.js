@@ -5,6 +5,25 @@ export function renderAuth() {
   const oauth = state.authConfig?.oauth || [];
   const mode = state.authMode || "login";
 
+  if (mode === "verify") {
+    const challenge = state.pendingVerificationChallenge;
+    return `
+      <section class="panel narrow card">
+        <p class="eyebrow">邮箱验证</p>
+        <h2>验证你的邮箱</h2>
+        <p class="muted">6 位邮箱验证码已发送至 ${escapeHtml(challenge?.maskedEmail || state.pendingVerificationEmail || "你的邮箱")}。验证码 10 分钟内有效，请同时检查垃圾箱。</p>
+        <form class="auth-form" data-form="verification-code">
+          <label>邮箱验证码
+            <input class="field verification-code-input" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="请输入 6 位验证码" required />
+          </label>
+          <button class="btn primary" type="submit" ${state.busy || !challenge?.id ? "disabled" : ""}>验证并进入玩家端</button>
+        </form>
+        <p class="hint">也可以点击邮件中的“一键验证并登录”链接。邮箱验证码与内测邀请码、房间邀请码互不通用。</p>
+        <button class="btn outline full" type="button" data-action="resend-verification" ${state.busy ? "disabled" : ""}>重新发送验证码</button>
+        <button class="text-btn" type="button" data-action="auth-login">更换邮箱 / 返回登录</button>
+      </section>`;
+  }
+
   if (mode === "forgot") {
     return `
       <section class="panel narrow card">
@@ -59,9 +78,9 @@ export function renderAuth() {
           <input class="field" name="password" type="password" autocomplete="${isRegister ? "new-password" : "current-password"}" minlength="8" required />
         </label>
         ${isRegister && state.authConfig?.requireEmailVerification !== false
-          ? `<p class="hint">注册后会收到织幕企业邮箱发送的验证邮件；点击邮件内链接完成验证。</p>`
+          ? `<p class="hint">注册后会收到 6 位邮箱验证码；输入后自动登录，也可使用邮件内的一键验证链接。</p>`
           : ""}
-        <button class="btn primary" type="submit" ${state.busy ? "disabled" : ""}>${isRegister ? "注册并发送验证邮件" : "登录"}</button>
+        <button class="btn primary" type="submit" ${state.busy ? "disabled" : ""}>${isRegister ? "注册并发送验证码" : "登录"}</button>
       </form>
       ${oauth.length
         ? `

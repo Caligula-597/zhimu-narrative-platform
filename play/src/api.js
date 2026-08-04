@@ -7,7 +7,10 @@ import { createSessionTokenStore } from "../../shared/session-token.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
 
 const viteEnv = import.meta.env || {};
-const APP_ORIGIN = (viteEnv.VITE_APP_ORIGIN || "https://app.getzhimu.com").replace(/\/$/, "");
+const APP_ORIGIN = (
+  viteEnv.VITE_APP_ORIGIN
+  || (viteEnv.DEV ? "http://127.0.0.1:4173" : "https://app.getzhimu.com")
+).replace(/\/$/, "");
 const API_BASE = resolveVitePortalApiBase({
   viteAppOrigin: APP_ORIGIN,
   viteApiOrigin: viteEnv.VITE_API_ORIGIN,
@@ -76,6 +79,13 @@ export const api = {
   resetPassword: (token, password) =>
     request("/auth/reset-password", { method: "POST", body: { token, password } }),
   verifyEmail: (token) => request("/auth/verify-email", { method: "POST", body: { token } }),
+  verifyEmailCode: (challengeId, code) =>
+    request("/auth/verify-email-code", { method: "POST", body: { challengeId, code } }),
+  resendVerificationCode: (challengeId) =>
+    request("/auth/resend-verification-code", {
+      method: "POST",
+      body: challengeId ? { challengeId } : {}
+    }),
   resendVerification: () => request("/auth/resend-verification", { method: "POST", body: {} }),
   oauthStartUrl: (provider, returnOrigin) =>
     request(`/auth/oauth/${provider}/start-url`, {
@@ -83,6 +93,26 @@ export const api = {
       body: returnOrigin ? { returnOrigin } : {}
     }),
   oauthComplete: (code) => request("/auth/oauth/complete", { method: "POST", body: { code } }),
+  getPortalProfile: (portal = "player") => request(`/account/portal-profiles/${portal}`),
+  checkPortalProfileName: (portal, displayName) =>
+    request(`/account/portal-profiles/${portal}/name-availability?${new URLSearchParams({ displayName })}`),
+  updatePortalProfileName: (portal, displayName) =>
+    request(`/account/portal-profiles/${portal}/name`, {
+      method: "PUT",
+      body: { displayName }
+    }),
+  createPortalAvatarUpload: (portal, payload) =>
+    request(`/account/portal-profiles/${portal}/avatar-upload-url`, {
+      method: "POST",
+      body: payload
+    }),
+  confirmPortalAvatar: (portal, uploadId) =>
+    request(`/account/portal-profiles/${portal}/avatar/confirm`, {
+      method: "POST",
+      body: { uploadId }
+    }),
+  removePortalAvatar: (portal) =>
+    request(`/account/portal-profiles/${portal}/avatar`, { method: "DELETE" }),
   lookupInvite: (inviteCode) => request(`/rooms/invite/${encodeURIComponent(inviteCode)}`),
   joinRoom: (inviteCode, roleSlotId) =>
     request("/rooms/join", { method: "POST", body: { inviteCode, roleSlotId } }),

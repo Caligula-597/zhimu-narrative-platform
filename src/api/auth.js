@@ -49,6 +49,14 @@ export function verifyEmail(payload) {
   return request("/auth/verify-email", { method: "POST", body: payload });
 }
 
+export function verifyEmailCode(payload) {
+  return request("/auth/verify-email-code", { method: "POST", body: payload });
+}
+
+export function resendVerificationCode(payload = {}) {
+  return request("/auth/resend-verification-code", { method: "POST", body: payload });
+}
+
 export function resendVerification() {
   return request("/auth/resend-verification", { method: "POST", body: {} });
 }
@@ -102,6 +110,43 @@ export function deleteAccount(payload) {
 
 export function getAccountPlans() {
   return request("/account/plans");
+}
+
+export function getPortalProfiles() {
+  return request("/account/portal-profiles");
+}
+
+export function getPortalProfile(portal) {
+  return request(`/account/portal-profiles/${portal}`);
+}
+
+export function checkPortalProfileName(portal, displayName) {
+  return request(`/account/portal-profiles/${portal}/name-availability?${new URLSearchParams({ displayName })}`);
+}
+
+export function updatePortalProfileName(portal, displayName) {
+  return request(`/account/portal-profiles/${portal}/name`, {
+    method: "PUT",
+    body: { displayName }
+  });
+}
+
+export function createPortalAvatarUpload(portal, payload) {
+  return request(`/account/portal-profiles/${portal}/avatar-upload-url`, {
+    method: "POST",
+    body: payload
+  });
+}
+
+export function confirmPortalAvatar(portal, uploadId) {
+  return request(`/account/portal-profiles/${portal}/avatar/confirm`, {
+    method: "POST",
+    body: { uploadId }
+  });
+}
+
+export function removePortalAvatar(portal) {
+  return request(`/account/portal-profiles/${portal}/avatar`, { method: "DELETE" });
 }
 
 export { demoContext };

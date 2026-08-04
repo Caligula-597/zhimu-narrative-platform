@@ -9,6 +9,7 @@ function snapshotAuthState() {
     authMode: state.authMode,
     authConfig: state.authConfig,
     pendingVerificationEmail: state.pendingVerificationEmail,
+    pendingVerificationChallenge: state.pendingVerificationChallenge,
     canResendVerification: state.canResendVerification,
     busy: state.busy
   };
@@ -28,8 +29,8 @@ test("host registration explains the email verification step", (context) => {
   state.canResendVerification = false;
 
   const html = renderAuth();
-  assert.match(html, /注册后会收到织幕企业邮箱发送的验证邮件/);
-  assert.match(html, /注册并发送验证邮件/);
+  assert.match(html, /注册后会收到 6 位邮箱验证码/);
+  assert.match(html, /注册并发送验证码/);
 });
 
 test("host renders a dedicated pending verification state", (context) => {
@@ -37,23 +38,32 @@ test("host renders a dedicated pending verification state", (context) => {
   context.after(() => restoreAuthState(snapshot));
 
   state.pendingVerificationEmail = "reader@example.com";
+  state.pendingVerificationChallenge = {
+    id: "be36d9de-63e8-4c7b-96a3-b13ad19bb0ef",
+    maskedEmail: "re****@example.com"
+  };
   state.canResendVerification = true;
 
   const html = renderAuth();
-  assert.match(html, /请查收验证邮件/);
-  assert.match(html, /reader@example\.com/);
-  assert.match(html, /data-action="resend-verification"/);
+  assert.match(html, /验证你的邮箱/);
+  assert.match(html, /re\*{4}@example\.com/);
+  assert.match(html, /autocomplete="one-time-code"/);
+  assert.match(html, /验证并进入主持端/);
+  assert.match(html, /data-action="resend-verification-code"/);
   assert.match(html, /data-action="verification-back-login"/);
 });
 
-test("host does not offer unauthenticated resend immediately after registration", (context) => {
+test("host keeps the code action disabled when no challenge is available", (context) => {
   const snapshot = snapshotAuthState();
   context.after(() => restoreAuthState(snapshot));
 
   state.pendingVerificationEmail = "reader@example.com";
+  state.pendingVerificationChallenge = null;
   state.canResendVerification = false;
 
   const html = renderAuth();
-  assert.doesNotMatch(html, /data-action="resend-verification"/);
-  assert.match(html, /未收到时可重发/);
+  assert.match(html, /data-action="resend-verification-code"/);
+  assert.match(html, /验证并进入主持端<\/button>/);
+  assert.match(html, /验证并进入主持端/);
+  assert.match(html, /disabled/);
 });

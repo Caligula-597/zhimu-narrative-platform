@@ -338,8 +338,10 @@ export function defaultCanvasForItem(stageId, itemId) {
   return findItemLink(stageId, itemId)?.canvas || CANVAS_MODES[stageId]?.[0] || "logline";
 }
 
-export function draftStorageKey(worldId) {
-  return worldId ? `zhimuCreatorCockpitDraft:${worldId}` : "zhimuCreatorCockpitDraft:global";
+export function draftStorageKey(worldId, userId = "") {
+  const owner = encodeURIComponent(String(userId || "__anonymous__"));
+  const world = encodeURIComponent(String(worldId || "__none__"));
+  return `zhimuCreatorCockpitDraft:user:${owner}:world:${world}`;
 }
 
 export function defaultDraft(studio) {

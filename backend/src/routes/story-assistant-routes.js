@@ -1,6 +1,6 @@
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
-import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
+import { requireWorldRole } from "./route-guards.js";
 import { createLlmContextPreHandler } from "./llm-route-hook.js";
 import {
   fetchUserLlmPreferences,
@@ -36,11 +36,7 @@ import {
 } from "../pipeline-matrix-deepseek.js";
 import { runRevisionMutation } from "../world-revision.js";
 import {
-  importStoryAssistantDrafts,
-  loadStoryManuscript,
-  saveStoryManuscript,
-  syncStoryManuscriptFromGraph,
-  syncStoryManuscriptToGraph
+  importStoryAssistantDrafts
 } from "../story-manuscript-service.js";
 import {
   classifyStoryDraft,
@@ -71,10 +67,7 @@ import {
   deepseekProposeSchema,
   storyAssistantAnalyzeSchema,
   storySpineAssembleSchema,
-  storyAssistantImportSchema,
-  storyManuscriptPutSchema,
-  storyManuscriptSyncFromGraphSchema,
-  storyManuscriptSyncToGraphSchema
+  storyAssistantImportSchema
 } from "./schemas.js";
 import { registerStoryAssistantMatrixRoutes } from "./story-assistant-matrix-routes.js";
 
@@ -304,56 +297,6 @@ export async function registerStoryAssistantRoutes(app) {
   });
 
   registerStoryAssistantMatrixRoutes(app, { preHandler: llmPreHandler });
-
-  app.get("/api/worlds/:worldId/story-manuscript", async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
-    return loadStoryManuscript(worldId);
-  });
-
-  app.put("/api/worlds/:worldId/story-manuscript", { schema: storyManuscriptPutSchema }, async (request, reply) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    const body = String(request.body?.body ?? "").trim();
-    if (!body) return sendErr(reply, "STORY_MANUSCRIPT_REQUIRED");
-    return runRevisionMutation(
-      request,
-      reply,
-      worldId,
-      (client) => saveStoryManuscript(client, worldId, body, actorId),
-      { sendErr }
-    );
-  });
-
-  app.post("/api/worlds/:worldId/story-manuscript/sync-from-graph", { schema: storyManuscriptSyncFromGraphSchema }, async (request, reply) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return runRevisionMutation(
-      request,
-      reply,
-      worldId,
-      (client) => syncStoryManuscriptFromGraph(client, worldId, actorId),
-      { sendErr }
-    );
-  });
-
-  app.post("/api/worlds/:worldId/story-manuscript/sync-to-graph", { schema: storyManuscriptSyncToGraphSchema }, async (request, reply) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    const body = String(request.body?.body ?? "").trim();
-    if (!body) return sendErr(reply, "STORY_MANUSCRIPT_REQUIRED");
-    return runRevisionMutation(
-      request,
-      reply,
-      worldId,
-      (client) => syncStoryManuscriptToGraph(client, worldId, body, actorId),
-      { sendErr, statusCode: 201 }
-    );
-  });
 
   app.post("/api/worlds/:worldId/story-assistant/import", { schema: storyAssistantImportSchema }, async (request, reply) => {
     const actorId = requireActor(request);

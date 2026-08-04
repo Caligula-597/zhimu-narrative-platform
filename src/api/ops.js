@@ -60,6 +60,36 @@ export function assignOpsPlan(payload) {
   return opsRequest("/ops/users/plan", { method: "POST", body: payload });
 }
 
+export function getOpsUsers(params = {}) {
+  const query = new URLSearchParams();
+  if (params.search) query.set("search", params.search);
+  if (params.verification && params.verification !== "all") {
+    query.set("verification", params.verification);
+  }
+  if (params.limit) query.set("limit", String(params.limit));
+  if (params.offset) query.set("offset", String(params.offset));
+  const qs = query.toString();
+  return opsRequest(`/ops/users${qs ? `?${qs}` : ""}`);
+}
+
+export function previewOpsUserDelete(userId) {
+  return opsRequest(`/ops/users/${encodeURIComponent(userId)}/delete-preview`);
+}
+
+export function resendOpsUserVerification(userId) {
+  return opsRequest(`/ops/users/${encodeURIComponent(userId)}/resend-verification`, {
+    method: "POST",
+    body: {}
+  });
+}
+
+export function deleteOpsUserAccount(userId, payload) {
+  return opsRequest(`/ops/users/${encodeURIComponent(userId)}/delete`, {
+    method: "POST",
+    body: payload
+  });
+}
+
 export function sendOpsTestAlert() {
   return opsRequest("/ops/alerts/test", { method: "POST", body: {} });
 }

@@ -8,6 +8,7 @@ import { throwErr } from "./api-errors.js";
 import { normalizeIdentityWriteError } from "./auth-identity-errors.js";
 import { transaction } from "./db.js";
 import { isEmailVerificationRequired } from "./email-verification-policy.js";
+import { publicEmailVerificationChallenge } from "./email-verification-code.js";
 import { isInternalBetaEmail } from "./internal-accounts.js";
 import { planMeta } from "./plans.js";
 import {
@@ -24,6 +25,7 @@ import {
   revokeIdentitySession,
   revokeOtherIdentitySessions
 } from "./repositories/auth-session-repository.js";
+import { findActiveEmailVerificationChallengeForUser } from "./repositories/auth-recovery-repository.js";
 
 export async function loginIdentity({ email, password, sessionMeta, transactionRunner = transaction }) {
   const normalizedEmail = String(email ?? "").trim().toLowerCase();
@@ -53,10 +55,17 @@ export async function loginIdentity({ email, password, sessionMeta, transactionR
       const session = await createSession(user.id, sessionMeta, {
         executor: client.query.bind(client)
       });
+      const pendingEmailVerification = isEmailVerificationRequired() && !user.email_verified_at;
+      const verificationChallenge = pendingEmailVerification
+        ? await findActiveEmailVerificationChallengeForUser(client, user.id)
+        : null;
       return {
         user,
         session,
-        pendingEmailVerification: isEmailVerificationRequired() && !user.email_verified_at
+        pendingEmailVerification,
+        verificationChallenge: verificationChallenge
+          ? publicEmailVerificationChallenge(verificationChallenge, user.email)
+          : null
       };
     });
   } catch (error) {

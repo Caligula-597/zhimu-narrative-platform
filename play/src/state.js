@@ -31,6 +31,9 @@ const storedRoomId = readStoredRoomId();
 
 export const state = {
   user: null,
+  portalProfile: null,
+  profileBusy: false,
+  profileStatus: "",
   authConfig: null,
   platform: null,
   roomId: storedRoomId,
@@ -62,6 +65,8 @@ export const state = {
   joinStep: 1,
   view: storedRoomId ? "game" : "landing",
   authMode: "login",
+  pendingVerificationEmail: "",
+  pendingVerificationChallenge: null,
   resetToken: "",
   pendingVerifyToken: "",
   recapLatest: null,

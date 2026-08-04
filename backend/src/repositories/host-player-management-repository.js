@@ -49,7 +49,10 @@ export async function upsertHostPlayerNotes(client, { roomId, roleSlotId, notes 
 
 export async function lockActivePlayerOccupant(client, { roomId, roleSlotId }) {
   const result = await client.query(
-    `SELECT rm.user_id, u.display_name, rs.name AS role_name
+    `SELECT rm.user_id, COALESCE((
+       SELECT profile.display_name FROM user_portal_profiles profile
+       WHERE profile.user_id = u.id AND profile.portal = 'player'
+     ), u.display_name) AS display_name, rs.name AS role_name
      FROM room_members rm
      JOIN rooms room ON room.id = rm.room_id
      JOIN role_slots rs ON rs.id = rm.role_slot_id AND rs.world_id = room.world_id

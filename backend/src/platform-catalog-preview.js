@@ -8,7 +8,10 @@ export async function listPublicCatalogPreview({ limit = 8 } = {}) {
   const safeLimit = Math.min(Math.max(Number(limit) || 8, 1), 24);
   const result = await query(
     `SELECT w.id, w.name, w.summary, w.updated_at,
-            u.display_name AS owner_display_name,
+            COALESCE((
+              SELECT profile.display_name FROM user_portal_profiles profile
+              WHERE profile.user_id = u.id AND profile.portal = 'creator'
+            ), u.display_name) AS owner_display_name,
             (SELECT COUNT(*)::int FROM role_slots rs WHERE rs.world_id = w.id) AS role_count,
             EXISTS (
               SELECT 1

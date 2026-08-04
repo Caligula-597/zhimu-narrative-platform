@@ -20,8 +20,16 @@ export const uiStore = createStore({
   accountHubTab: "account",
   accountView: null,
   accountViewLoading: false,
+  accountViewError: "",
   accountHubLoadId: 0,
   opsStatus: null,
   opsPlanRequests: null,
-  opsAuditLog: null
+  opsAuditLog: null,
+  opsUsers: null,
+  opsUserQuery: {
+    search: "",
+    verification: "all",
+    limit: 20,
+    offset: 0
+  }
 });

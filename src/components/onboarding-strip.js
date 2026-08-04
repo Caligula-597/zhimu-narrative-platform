@@ -2,15 +2,20 @@
 import * as zhimuApi from "../api/index.js";
 import { studioStore, roomStore, worldStore } from "../state/index.js";
 import { activeRuntimeRoom } from "../runtime/workspace-store.js";
+import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storage-scope.js";
 (function (window) {
   const DISMISS_KEY = "zhimuOnboardingDismissed";
 
+  function scopedKey(key) {
+    return accountScopedStorageKey(key, { userId: currentStorageUserId() });
+  }
+
   function isDismissed() {
-    return localStorage.getItem(DISMISS_KEY) === "1";
+    return localStorage.getItem(scopedKey(DISMISS_KEY)) === "1";
   }
 
   function dismiss() {
-    localStorage.setItem(DISMISS_KEY, "1");
+    localStorage.setItem(scopedKey(DISMISS_KEY), "1");
   }
 
   function hasWorld() {
@@ -33,9 +38,9 @@ import { activeRuntimeRoom } from "../runtime/workspace-store.js";
   }
 
   function stepState(stepId) {
-    const visitedInvite = sessionStorage.getItem("zhimuOnboardingInvite") === "1";
-    const visitedPlayer = sessionStorage.getItem("zhimuOnboardingPlayer") === "1";
-    const visitedRecap = sessionStorage.getItem("zhimuOnboardingRecap") === "1";
+    const visitedInvite = sessionStorage.getItem(scopedKey("zhimuOnboardingInvite")) === "1";
+    const visitedPlayer = sessionStorage.getItem(scopedKey("zhimuOnboardingPlayer")) === "1";
+    const visitedRecap = sessionStorage.getItem(scopedKey("zhimuOnboardingRecap")) === "1";
 
     switch (stepId) {
       case "world":
@@ -100,15 +105,15 @@ import { activeRuntimeRoom } from "../runtime/workspace-store.js";
   }
 
   function markPlayerVisit() {
-    sessionStorage.setItem("zhimuOnboardingPlayer", "1");
+    sessionStorage.setItem(scopedKey("zhimuOnboardingPlayer"), "1");
   }
 
   function markInviteSent() {
-    sessionStorage.setItem("zhimuOnboardingInvite", "1");
+    sessionStorage.setItem(scopedKey("zhimuOnboardingInvite"), "1");
   }
 
   function markRecapVisit() {
-    sessionStorage.setItem("zhimuOnboardingRecap", "1");
+    sessionStorage.setItem(scopedKey("zhimuOnboardingRecap"), "1");
   }
 
   window.zhimuOnboarding = {
