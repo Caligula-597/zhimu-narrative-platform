@@ -3,6 +3,11 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "@playwright/test";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const fixtureApiUrl = "http://127.0.0.1:4190";
+
+// The spec shares API helpers with the full E2E suite. Keep its API origin
+// aligned with this config's dedicated fixture server.
+process.env.PLAYWRIGHT_API_URL = fixtureApiUrl;
 
 export default defineConfig({
   testDir: path.join(root, "e2e"),
@@ -25,7 +30,7 @@ export default defineConfig({
     {
       command: "node scripts/browser-fixture-api.mjs",
       cwd: root,
-      url: "http://127.0.0.1:4190/api/health",
+      url: `${fixtureApiUrl}/api/health`,
       reuseExistingServer: false,
       timeout: 30_000,
       env: {
@@ -43,7 +48,7 @@ export default defineConfig({
       timeout: 60_000,
       env: {
         ...process.env,
-        VITE_API_PROXY_TARGET: "http://127.0.0.1:4190",
+        VITE_API_PROXY_TARGET: fixtureApiUrl,
         VITE_REQUIRE_AUTH: "true",
         VITE_DEMO_MODE: "false"
       }
