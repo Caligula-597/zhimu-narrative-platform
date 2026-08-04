@@ -170,6 +170,9 @@ export async function requestDeepseekJson(messages, {
     timeoutMs ?? runtime.timeoutMs,
     deepseekConfig().timeoutMs
   );
+  if (callTimeoutMs < 5_000 || callTimeoutMs > 240_000) {
+    throw new RangeError("DeepSeek timeout escaped its bounded range");
+  }
   const attempts = Math.max(
     retryOnJsonParse ? 2 : 1,
     Math.max(0, Math.min(5, Number(transportRetries) || 0)) + 1
