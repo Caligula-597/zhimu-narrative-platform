@@ -24,6 +24,14 @@ export function renderStudioLoading(title) {
   return renderLoading(title, "正在按需读取完整创作数据，请稍候。", { kicker: "WORKSPACE" });
 }
 
+export function renderPageUpdated(title) {
+  return renderLoading(
+    title,
+    "检测到网站刚刚更新，正在自动刷新并载入最新资源。",
+    { kicker: "PAGE UPDATED" }
+  );
+}
+
 export function renderViewError(title, error) {
   const staleModule = isDynamicModuleLoadError(error);
   const actions = staleModule

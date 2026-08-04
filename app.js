@@ -11,7 +11,7 @@ import {
 import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
 import { callView } from "./src/runtime/view-registry.js";
 import { uiStore, studioStore, userStore } from "./src/state/index.js";
-import { createContentRenderer, renderStudioLoading, renderViewError, renderViewLoading } from "./src/bootstrap/render-shell.js";
+import { createContentRenderer, renderPageUpdated, renderStudioLoading, renderViewError, renderViewLoading } from "./src/bootstrap/render-shell.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
   if (startupMissing.length) return { render: () => {}, go: () => {} };
@@ -62,11 +62,7 @@ const appEntry = (function (window) {
         .catch((error) => {
           if (uiStore.get().view !== loadingView) return;
           if (claimDynamicModuleReload(error)) {
-            setContentHtml(renderLoading(
-              title,
-              "检测到网站刚刚更新，正在自动刷新并载入最新资源。",
-              { kicker: "PAGE UPDATED" }
-            ));
+            setContentHtml(renderPageUpdated(title));
             window.setTimeout(() => window.location.reload(), 80);
             return;
           }

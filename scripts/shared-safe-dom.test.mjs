@@ -77,7 +77,7 @@ test("migrated public entry points do not bypass the audited HTML sink", () => {
     "src/views/account.js",
     "src/views/archive.js",
     "src/views/settings.js",
-    "app.js",
+    "src/bootstrap/render-shell.js",
     "src/components/feedback-button.js",
     "src/components/modal.js",
     "src/runtime/dependency-guard.js",
