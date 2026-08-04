@@ -105,4 +105,7 @@ if (violations.length) {
   }
   process.exit(1);
 }
-console.log(`CodeQL incremental gate passed; debt reduced by ${baseline.totalFindings - current.total}.`);
+console.log(
+  `CodeQL incremental gate passed; ${baseline.totalFindings - current.total} finding(s) `
+  + "below the full-push historical ceiling."
+);

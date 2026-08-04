@@ -2,6 +2,7 @@ import { throwErr } from "./api-errors.js";
 import { chargeAiCredits, isCreditsDebitAiEnabled, isCreditsSystemEnabled } from "./credits.js";
 import { deepseekConfig } from "./deepseek-config.js";
 import { getLlmRuntime } from "./llm-runtime.js";
+import { clampInteger } from "./prompts/shared.js";
 import {
   fetchPinnedOutboundJson,
   withPinnedOutboundResponse
@@ -145,6 +146,10 @@ async function wait(ms) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export function resolveDeepseekTimeoutMs(value, fallback = 180_000) {
+  return clampInteger(value, 5_000, 240_000, fallback);
+}
+
 export async function requestDeepseekJson(messages, {
   maxTokens = 8000,
   temperature = 0.5,
@@ -161,7 +166,10 @@ export async function requestDeepseekJson(messages, {
 } = {}) {
   const runtime = getLlmRuntime();
   if (!runtime.configured || !runtime.apiKey) throwNotConfigured(runtime);
-  const callTimeoutMs = timeoutMs ?? runtime.timeoutMs ?? deepseekConfig().timeoutMs;
+  const callTimeoutMs = resolveDeepseekTimeoutMs(
+    timeoutMs ?? runtime.timeoutMs,
+    deepseekConfig().timeoutMs
+  );
   const attempts = Math.max(
     retryOnJsonParse ? 2 : 1,
     Math.max(0, Math.min(5, Number(transportRetries) || 0)) + 1

@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildChatCompletionBody,
-  readDeepseekSseCompletion
+  readDeepseekSseCompletion,
+  resolveDeepseekTimeoutMs
 } from "../src/deepseek-client.js";
 import { deepseekConfig } from "../src/deepseek-config.js";
 
@@ -93,4 +94,10 @@ test("deepseek config clamps timeout and strips trailing slash", () => {
     if (previous.timeout === undefined) delete process.env.DEEPSEEK_TIMEOUT_MS;
     else process.env.DEEPSEEK_TIMEOUT_MS = previous.timeout;
   }
+});
+
+test("per-request DeepSeek timeout is bounded before creating a timer", () => {
+  assert.equal(resolveDeepseekTimeoutMs("999999999"), 240_000);
+  assert.equal(resolveDeepseekTimeoutMs("1"), 5_000);
+  assert.equal(resolveDeepseekTimeoutMs("invalid", 42_000), 42_000);
 });
