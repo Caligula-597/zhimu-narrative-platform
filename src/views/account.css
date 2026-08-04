@@ -1,0 +1,28 @@
+@import "../../shared/styles/portal-profile.css";
+
+.account-hub-page { margin-top: 0; }
+.account-hub-tabs { display: flex; gap: 8px; margin: 14px 0 16px; flex-wrap: wrap; }
+.account-hub-tab { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fbfcfa; color: var(--ink-soft); font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
+.account-hub-tab.active { border-color: rgba(44, 107, 98, .45); background: #eef5ef; color: var(--green); }
+.account-hub-panels { min-height: 0; }
+.account-hub-panel .asset-toolbar { margin-top: 0; }
+
+.upload-zone { display: grid; min-height: 126px; padding: 16px; margin-top: 14px; place-items: center; border: 1px dashed rgba(44, 107, 98, .35); border-radius: 12px; background: #f5f8f4; text-align: center; }
+.upload-zone p { margin-top: 7px; }
+.upload-zone input { max-width: 100%; margin-top: 13px; font-size: 11px; }
+.usage-bar { height: 7px; margin-top: 10px; overflow: hidden; border-radius: 8px; background: #e4ebe6; }
+.usage-bar i { display: block; height: 100%; border-radius: 8px; background: var(--green-2); }
+.plan-compare-wrap { margin-top: 16px; overflow-x: auto; }
+.plan-compare { width: 100%; border-collapse: collapse; font-size: 11px; }
+.plan-compare th,
+.plan-compare td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.plan-compare th { color: var(--muted); font-weight: 700; }
+.credit-pack-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.credit-pack-card { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.credit-pack-card strong { display: block; margin-bottom: 6px; font-size: 13px; }
+.credit-pack-card p { margin: 0 0 4px; color: var(--ink); font-size: 12px; }
+.plan-row-current { background: #edf5ef; }
+
+@media (max-width: 720px) {
+  .credit-pack-grid { grid-template-columns: 1fr; }
+}

@@ -74,12 +74,14 @@
       () => import("../views/settings.js")
     ],
     account: [
+      () => import("../views/account.css"),
       () => import("../views/assets.js"),
       () => import("../views/account.js"),
       () => import("../views/account-hub.js"),
       () => import("./actions-assets.js")
     ],
     ops: [
+      () => import("../views/ops.css"),
       () => import("../views/ops.js"),
       () => import("./actions-ops.js")
     ]
