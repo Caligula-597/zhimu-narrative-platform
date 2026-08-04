@@ -24,6 +24,8 @@ test("prepared object registration performs database work only", async () => {
   const client = {
     async query(sql, params) {
       statements.push({ sql, params });
+      if (/pg_advisory_xact_lock/.test(sql)) return { rows: [], rowCount: 1 };
+      if (/stored_max_bytes/.test(sql)) return { rows: [{}], rowCount: 1 };
       if (/INSERT INTO asset_files/.test(sql)) return { rows: [{ id: "asset-1" }], rowCount: 1 };
       if (/INSERT INTO asset_versions/.test(sql)) return { rows: [], rowCount: 1 };
       throw new Error(`unexpected query: ${sql}`);
@@ -36,14 +38,17 @@ test("prepared object registration performs database work only", async () => {
     byteSize: 128,
     objectKey: preparedAsset.objectKey
   });
-  assert.equal(statements.length, 2);
-  assert.equal(statements[0].params[6], preparedAsset.objectKey);
+  assert.equal(statements.length, 4);
+  const assetInsert = statements.find(({ sql }) => /INSERT INTO asset_files/.test(sql));
+  assert.equal(assetInsert.params[6], preparedAsset.objectKey);
 });
 
 test("page import consumes a prepared object without performing storage I/O in its transaction", async () => {
   let assetRegistrations = 0;
   const client = {
     async query(sql) {
+      if (/pg_advisory_xact_lock/.test(sql)) return { rows: [], rowCount: 1 };
+      if (/stored_max_bytes/.test(sql)) return { rows: [{}], rowCount: 1 };
       if (/FROM role_slots/.test(sql)) {
         return { rows: [{ id: preparedAsset.roleSlotId, name: "Role" }], rowCount: 1 };
       }

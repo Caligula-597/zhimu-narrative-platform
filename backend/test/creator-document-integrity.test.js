@@ -241,9 +241,14 @@ test("document role locks serialize imports and import indexes are installed", a
 test("server-side asset upload removes the stored object when database registration fails", async () => {
   let objectKey;
   const client = {
-    async query(_sql, parameters) {
-      objectKey = parameters[6];
-      throw new Error("forced asset row failure");
+    async query(sql, parameters) {
+      if (/pg_advisory_xact_lock/.test(sql)) return { rows: [], rowCount: 1 };
+      if (/stored_max_bytes/.test(sql)) return { rows: [{}], rowCount: 1 };
+      if (/INSERT INTO asset_files/.test(sql)) {
+        objectKey = parameters[6];
+        throw new Error("forced asset row failure");
+      }
+      throw new Error(`unexpected query: ${sql}`);
     }
   };
   await assert.rejects(
