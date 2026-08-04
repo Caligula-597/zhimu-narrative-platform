@@ -38,15 +38,16 @@ test.describe("Beta 主线 · fixture 全链路", () => {
       await expect(hostPage.locator(".host-runtime-table")).toContainText(/已完成|阅读|1\//, { timeout: 30_000 });
 
       await hostPage.locator('.host-manual-actions [data-action="host-manual-grant-clue"]').click();
-      await hostPage.locator(".modal, .modal-backdrop.show").first().waitFor({ state: "visible", timeout: 10_000 });
-      const clueSelect = hostPage.locator('[data-studio-field="grantClue"]');
+      const clueWorkspace = hostPage.locator('[data-host-operation-workspace][data-operation-kind="grant-clue"]');
+      await expect(clueWorkspace).toBeVisible({ timeout: 10_000 });
+      const clueSelect = clueWorkspace.locator('[data-host-operation-field="clueId"]');
       const clueValue = await clueSelect.locator("option").filter({ hasText: "测试线索" }).first().getAttribute("value");
       expect(clueValue).toBeTruthy();
       await clueSelect.selectOption(clueValue);
-      const roleBTarget = hostPage.getByRole("checkbox", { name: /角色 B/ });
+      const roleBTarget = clueWorkspace.getByRole("checkbox", { name: /角色 B/ });
       await expect(roleBTarget).toHaveCount(1);
       await roleBTarget.check();
-      await hostPage.locator("[data-host-grant-submit]").click();
+      await clueWorkspace.locator('[data-action="host-operation-submit"]').click();
       await waitForHostIdle(hostPage);
       await expect(playPage.getByText(/测试线索/)).toBeVisible({ timeout: 20_000 });
 
