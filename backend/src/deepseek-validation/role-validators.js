@@ -103,20 +103,24 @@ export function validateRolesMeta(raw, playerCount) {
 export function validateRoleScriptFromNarrative(raw, roleKey, spec, minWords, requiredChapterKeys = null) {
   const value = raw && typeof raw === "object" ? raw : {};
   const sectionsRaw = Array.isArray(value.sections) ? value.sections : [];
-  const sections = {};
-  sections[roleKey] = {};
+  const sections = new Map();
   for (const item of sectionsRaw) {
     const rk = cleanText(item?.roleKey, 40);
     const ck = cleanText(item?.chapterKey, 40);
     if (rk !== roleKey || !spec.chapterKeys.includes(ck)) continue;
-    sections[roleKey][ck] = validateRoleSection({ roleKey, chapterKey: ck, title: item.title, body: item.body }, roleKey, ck, minWords);
+    sections.set(ck, validateRoleSection(
+      { roleKey, chapterKey: ck, title: item.title, body: item.body },
+      roleKey,
+      ck,
+      minWords
+    ));
   }
   const keys = requiredChapterKeys || spec.chapterKeys;
-  const missing = keys.filter((ck) => !sections[roleKey][ck]);
+  const missing = keys.filter((ck) => !sections.has(ck));
   if (missing.length) throwErr("DEEPSEEK_OUTPUT_INVALID", `角色 ${roleKey} 缺少分幕：${missing.join("、")}`, { roleKey, missing });
   return {
     roleKey,
-    sections: sections[roleKey],
+    sections: Object.fromEntries(sections),
     suggestions: Array.isArray(value.suggestions) ? value.suggestions.slice(0, 8).map((item) => cleanText(item, 500)) : []
   };
 }

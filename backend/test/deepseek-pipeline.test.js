@@ -10,6 +10,7 @@ import {
   validateStoryEvaluation,
   validateChapterNarrative,
   validateRolesFromNarrative,
+  validateRoleScriptFromNarrative,
   normalizeStoryBrief
 } from "../src/deepseek.js";
 
@@ -174,4 +175,14 @@ test("validateRolesFromNarrative builds section map", () => {
   assert.ok(parsed.sections["role-1"]["chapter-1"].body.length >= 250);
   assert.equal(Object.hasOwn(parsed.sections, "__proto__"), true);
   assert.ok(parsed.sections["__proto__"]["chapter-1"].body.length >= 250);
+});
+
+test("validateRoleScriptFromNarrative safely preserves special role keys", () => {
+  const body = "x".repeat(260);
+  const parsed = validateRoleScriptFromNarrative({
+    sections: [{ roleKey: "__proto__", chapterKey: "chapter-1", title: "Role", body }]
+  }, "__proto__", { chapterKeys: ["chapter-1"] }, 250);
+  assert.equal(parsed.roleKey, "__proto__");
+  assert.ok(parsed.sections["chapter-1"].body.length >= 250);
+  assert.equal(Object.hasOwn(parsed.sections, "chapter-1"), true);
 });

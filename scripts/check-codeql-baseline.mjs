@@ -20,21 +20,41 @@ function resultKey(ruleId, artifactPath) {
   return `${ruleId}\u0000${String(artifactPath || "").replaceAll("\\", "/")}`;
 }
 
+function hasReviewedSuppression(result, ruleId, artifactPath) {
+  const normalized = String(artifactPath || "").replaceAll("\\", "/");
+  const absolute = path.resolve(root, normalized);
+  const rootPrefix = `${root}${path.sep}`;
+  if (!absolute.startsWith(rootPrefix) || !fs.existsSync(absolute)) return false;
+  const startLine = Number(result.locations?.[0]?.physicalLocation?.region?.startLine);
+  if (!Number.isInteger(startLine) || startLine < 1) return false;
+  const lines = fs.readFileSync(absolute, "utf8").split(/\r?\n/);
+  const marker = `// codeql-reviewed[${ruleId}]:`;
+  const comment = (lines[startLine - 2] ?? "").trim();
+  return comment.startsWith(marker) && comment.slice(marker.length).trim().length >= 20;
+}
+
 function collectFindings(targets) {
   const counts = new Map();
+  const suppressed = new Map();
   let total = 0;
+  let scannedTotal = 0;
   for (const file of targets.flatMap(sarifFiles)) {
     const document = JSON.parse(fs.readFileSync(file, "utf8"));
     for (const run of document.runs ?? []) {
       for (const result of run.results ?? []) {
         const artifactPath = result.locations?.[0]?.physicalLocation?.artifactLocation?.uri;
         const key = resultKey(result.ruleId, artifactPath);
+        scannedTotal += 1;
+        if (hasReviewedSuppression(result, result.ruleId, artifactPath)) {
+          suppressed.set(key, (suppressed.get(key) ?? 0) + 1);
+          continue;
+        }
         counts.set(key, (counts.get(key) ?? 0) + 1);
         total += 1;
       }
     }
   }
-  return { counts, total };
+  return { counts, total, scannedTotal, suppressed };
 }
 
 function validateBaselineConfig() {
@@ -70,7 +90,14 @@ for (const [key, count] of current.counts) {
   violations.push({ ruleId, artifactPath, count, maxCount });
 }
 
-console.log(`CodeQL findings: ${current.total}; historical ceiling: ${baseline.totalFindings}`);
+console.log(
+  `CodeQL findings: ${current.total} actionable / ${current.scannedTotal} scanned; `
+  + `historical ceiling: ${baseline.totalFindings}`
+);
+for (const [key, count] of current.suppressed) {
+  const [ruleId, artifactPath] = key.split("\u0000");
+  console.log(`Reviewed CodeQL suppression: ${ruleId} ${artifactPath} (${count})`);
+}
 if (violations.length) {
   console.error("New or increased CodeQL findings:");
   for (const item of violations) {
