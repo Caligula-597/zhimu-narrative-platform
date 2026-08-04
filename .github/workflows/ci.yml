@@ -41,6 +41,8 @@ jobs:
             play/package-lock.json
             site/package-lock.json
             package-lock.json
+      - name: Pin npm with SBOM dependency-tree fixes
+        run: npm install --global npm@11.17.0
       - name: Install backend dependencies
         run: npm ci
         working-directory: backend
@@ -207,6 +209,8 @@ jobs:
             play/package-lock.json
             site/package-lock.json
             package-lock.json
+      - name: Pin npm with SBOM dependency-tree fixes
+        run: npm install --global npm@11.17.0
       - name: Install backend dependencies
         run: npm ci
         working-directory: backend
