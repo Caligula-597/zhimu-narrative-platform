@@ -83,6 +83,7 @@ const requiredModuleScripts = [
   "src/views/player.js",
   "src/views/archive.js",
   "src/views/settings.js",
+  "src/bootstrap/render-shell.js",
   "src/runtime/wizard.js",
   "src/runtime/auth-session.js",
   "src/runtime/workspace-store.js",
@@ -623,7 +624,7 @@ await check("content-package-p1-4-wired", async () => {
   for (const token of ["getContentPackageSummary", "previewContentPackageImport", "importContentPackageAsNewWorld"]) {
     if (!apiBundle.includes(token)) throw new Error(`${token} missing from api bundle`);
   }
-  for (const token of ["contentPackageSummaryHtml", "contentPackagePreviewHtml", "openCreatorExport", "解析预览", "创建新世界并导入"]) {
+  for (const token of ["contentPackageSummaryHtml", "contentPackagePreviewHtml", "openCreatorExport", "生成导入预览", "创建新世界并导入"]) {
     if (!writer.includes(token)) throw new Error(`${token} missing from writer view`);
   }
   return "content package summary/preview/import modes wired";

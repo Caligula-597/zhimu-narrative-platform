@@ -6,50 +6,19 @@ import { startApplication } from "./src/bootstrap/startup.js";
 import { content, modalBackdrop } from "./src/dom.js";
 import {
   claimDynamicModuleReload,
-  isDynamicModuleLoadError,
-  navigationAccess,
-  viewModuleErrorMessage
+  navigationAccess
 } from "./src/runtime/navigation-access.js";
 import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
 import { callView } from "./src/runtime/view-registry.js";
 import { uiStore, studioStore, userStore } from "./src/state/index.js";
-import { loading as renderLoading, error as renderError } from "./src/components/status-ui.js";
-import { setHtml } from "./shared/safe-dom.js";
+import { createContentRenderer, renderStudioLoading, renderViewError, renderViewLoading } from "./src/bootstrap/render-shell.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
   if (startupMissing.length) return { render: () => {}, go: () => {} };
 
   const R = getRuntime();
 
-  let lastContentHtml = "";
-
-  function setContentHtml(nextHtml) {
-    if (lastContentHtml === nextHtml) return false;
-    setHtml(content, nextHtml);
-    lastContentHtml = nextHtml;
-    R.bindDynamic();
-    return true;
-  }
-
-  function renderViewLoading(title) {
-    return renderLoading(title, "正在加载该功能模块，请稍候。", { kicker: "MODULE" });
-  }
-
-  function renderStudioLoading(title) {
-    return renderLoading(title, "正在按需读取完整创作数据，请稍候。", { kicker: "WORKSPACE" });
-  }
-
-  function renderViewError(title, error) {
-    const staleModule = isDynamicModuleLoadError(error);
-    const actions = staleModule
-      ? `<button class="primary-btn" data-action="reload-app">刷新并继续</button><button class="secondary-btn" data-go="creatorCockpit">返回创作驾驶舱</button>`
-      : `<button class="primary-btn" data-action="retry-view-module">重新加载</button><button class="secondary-btn" data-action="open-error-guide">错误排查手册</button>`;
-    return renderError(title, viewModuleErrorMessage(error), {
-      kicker: staleModule ? "PAGE UPDATED" : "MODULE ERROR",
-      actions,
-      fallback: "功能模块加载失败，请稍后重试。"
-    });
-  }
+  const setContentHtml = createContentRenderer(content, () => R.bindDynamic());
 
   function render() {
     const currentView = uiStore.get().view;
