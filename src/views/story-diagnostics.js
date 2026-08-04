@@ -1,9 +1,11 @@
 /** Story diagnostics center — traceable causal, information and fairness checks. */
+import "./story-diagnostics.css";
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
-import { go, render } from "../runtime/runtime-facade.js";
+import { render } from "../runtime/runtime-facade.js";
+import { openStoryReference } from "../runtime/story-reference-navigation.js";
 import { registerView } from "../runtime/view-registry.js";
-import { studioStore, uiStore, worldStore } from "../state/index.js";
+import { worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { normalizeError } from "../components/status-ui.js";
 
@@ -384,47 +386,7 @@ export function selectStoryDiagnosticStandard(standard) {
 }
 
 export function openStoryDiagnosticReference(type, id) {
-  if (!type || !id) return;
-  if (type === "clue") {
-    uiStore.set({ cluesSelectedId: id, clueDetailTab: "detail" });
-    go("clues");
-    return;
-  }
-  if (["chapter", "scene", "item", "investigation_point"].includes(type)) {
-    studioStore.set({ studioSelectedNode: { type, id }, studioAnchorEditing: false });
-    go("studio");
-    return;
-  }
-  if (type === "truth_claim") {
-    worldStore.set({ truthBibleTab: "claims" });
-    go("truth");
-    return;
-  }
-  if (type === "segment") {
-    worldStore.set({ cloudSelectedSegmentId: id });
-    go("structure");
-    return;
-  }
-  if (type === "role") {
-    uiStore.set({ writerSelectedRoleId: id });
-    go("writer");
-    return;
-  }
-  if (type === "script_section") {
-    const section = (studioStore.get().cloudStudio?.sections || []).find((item) => item.id === id);
-    if (section?.role_slot_id) uiStore.set({ writerSelectedRoleId: section.role_slot_id });
-    go("writer");
-    return;
-  }
-  if (type === "rule") {
-    go("rules");
-    return;
-  }
-  if (type === "constitution") {
-    go("constitution");
-    return;
-  }
-  showToast("该诊断对象暂时没有独立编辑入口");
+  openStoryReference(type, id);
 }
 
 export const storyDiagnosticsApi = {

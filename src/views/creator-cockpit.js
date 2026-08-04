@@ -1,6 +1,7 @@
 /**
  * Creator cockpit — live workflow shell wired to dashboard, studio, and native panels.
  */
+import "./creator-cockpit-story-spine.css";
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import * as U from "../components/emptyState.js";
@@ -83,6 +84,7 @@ function buildContext() {
     relationships: worldStore.get().cloudRoleRelationships || [],
     diagnostics: worldStore.get().cloudStoryDiagnostics,
     playtest: worldStore.get().cloudAiPlaytestActive || worldStore.get().cloudAiPlaytestRuns?.[0] || null,
+    storySpineLlmStatus: worldStore.get().cloudStorySpineLlmStatus,
     draft: cockpit,
     dashboard: dash
   };
@@ -165,7 +167,10 @@ export async function refreshCockpitData({ force = false } = {}) {
   syncDraftForWorld();
   inFlightPromise = (async () => {
     try {
-      const bootstrap = await loadCockpitBootstrap(worldId);
+      const [bootstrap, llmStatus] = await Promise.all([
+        loadCockpitBootstrap(worldId),
+        zhimuApi.getDeepseekStatus().catch(() => ({ configured: false }))
+      ]);
       if (seq !== loadSeq) return;
       worldStore.set({
         cloudCreatorDashboard: bootstrap.dashboard,
@@ -174,7 +179,8 @@ export async function refreshCockpitData({ force = false } = {}) {
         cloudBibleSummary: bootstrap.bibleSummary,
         cloudSegments: bootstrap.segments || [],
         cloudTruthClaims: bootstrap.truthClaims || [],
-        cloudRoleRelationships: bootstrap.roleRelationships || []
+        cloudRoleRelationships: bootstrap.roleRelationships || [],
+        cloudStorySpineLlmStatus: llmStatus
       });
       syncDraftForWorld();
       if (cockpit.activeCanvas === "feedback") {

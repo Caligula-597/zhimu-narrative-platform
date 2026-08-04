@@ -2,14 +2,19 @@
  * Creator cockpit — stage defs and factual item observations (no design judgment).
  */
 import { creativeConstitutionCoverage } from "../../shared/creative-constitution.js";
+import {
+  isStorySpineEmpty,
+  storySpineCoverage
+} from "../../shared/story-spine.js";
 
 export const STAGE_DEFS = [
   {
     id: "concept",
     title: "灵魂的种子",
     short: "概念",
-    subtitle: "灵感、梗概、创作宪法、核心卖点、商业定位",
+    subtitle: "故事总览、灵感、梗概、创作宪法、核心卖点、商业定位",
     items: [
+      { id: "story", title: "故事总览", link: { canvas: "story" } },
       { id: "spark", title: "灵感卡", link: { canvas: "inspiration" } },
       { id: "logline", title: "一句话梗概", link: { canvas: "logline", view: "settings", label: "世界设置" } },
       { id: "constitution", title: "创作宪法", link: { canvas: "constitution", view: "constitution", label: "创作宪法" } },
@@ -81,7 +86,7 @@ export const STAGE_DEFS = [
 ];
 
 export const CANVAS_MODES = {
-  concept: ["inspiration", "logline", "constitution", "selling", "positioning", "overview"],
+  concept: ["story", "inspiration", "logline", "constitution", "selling", "positioning", "overview"],
   architecture: ["trick", "relations", "timeline"],
   characters: ["profiles", "arcs", "preview"],
   flow: ["beats", "matrix", "sandbox"],
@@ -90,6 +95,7 @@ export const CANVAS_MODES = {
 };
 
 export const CANVAS_LABELS = {
+  story: "故事总览",
   inspiration: "灵感",
   logline: "梗概",
   constitution: "宪法",
@@ -128,8 +134,11 @@ function itemPresence(id, ctx) {
     studio?.world?.settings?.creativeConstitution,
     studio?.roles || []
   );
+  const storySpine = studio?.world?.settings?.storySpine;
 
   switch (id) {
+    case "story":
+      return isStorySpineEmpty(storySpine) ? "empty" : "present";
     case "spark":
       return sparks.length ? "present" : "empty";
     case "logline":
@@ -200,8 +209,12 @@ function itemObservation(id, ctx) {
     studio?.world?.settings?.creativeConstitution,
     studio?.roles || []
   );
+  const storyCoverage = storySpineCoverage(studio?.world?.settings?.storySpine);
 
   const map = {
+    story: storyCoverage.filled
+      ? `${storyCoverage.score}% 主干覆盖 · ${storyCoverage.confirmed} 项作者确认 · ${storyCoverage.unresolved} 项待决定`
+      : "尚未把已填写材料组装成整体故事",
     spark: sparks.length ? `${sparks.length} 张灵感卡` : "尚无灵感卡",
     logline: summary ? `${summary.length} 字 · 与世界简介同步` : "世界简介为空",
     constitution: constitutionCoverage.filled
@@ -334,8 +347,8 @@ export function defaultDraft(studio) {
   const brief = studio?.world?.settings?.creatorBrief || {};
   return {
     activeStage: "concept",
-    activeItem: "logline",
-    activeCanvas: "logline",
+    activeItem: "story",
+    activeCanvas: "story",
     selectedSegmentId: null,
     logline: summary,
     spark: "",
@@ -349,7 +362,9 @@ export function defaultDraft(studio) {
     magicNote: brief.magicNote || "此处展示作品数据与内容预览，不对剧情设计作评判。",
     copilotQuery: "",
     lastAnalysis: null,
-    lastAiNote: ""
+    lastAiNote: "",
+    storySpineCandidate: null,
+    storySpineAssembling: false
   };
 }
 
@@ -364,7 +379,9 @@ export function mergeDraftFromSources(parsed, studio) {
     selectedSegmentId: parsed.selectedSegmentId ?? base.selectedSegmentId,
     copilotQuery: parsed.copilotQuery ?? base.copilotQuery,
     lastAnalysis: parsed.lastAnalysis ?? base.lastAnalysis,
-    lastAiNote: parsed.lastAiNote ?? base.lastAiNote
+    lastAiNote: parsed.lastAiNote ?? base.lastAiNote,
+    storySpineCandidate: parsed.storySpineCandidate ?? base.storySpineCandidate,
+    storySpineAssembling: false
   };
 }
 

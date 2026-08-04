@@ -1,4 +1,5 @@
 /** First-class author intent editor used by diagnostics and future AI workflows. */
+import "./creative-constitution.css";
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { normalizeError } from "../components/status-ui.js";

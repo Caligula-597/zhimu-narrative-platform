@@ -1,0 +1,159 @@
+/**
+ * Cross-portal UI primitives.
+ *
+ * Keep this file limited to elements and components intentionally shared by
+ * Creator and Host. Product/workspace selectors belong to their own portal.
+ */
+@import "../tokens.css";
+@import "./status-chip.css";
+@import "./toast.css";
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+
+button,
+input,
+select { font: inherit; }
+
+button {
+  cursor: pointer;
+  border: 0;
+}
+
+.surface-creator { --surface-accent: var(--green); --surface-accent-soft: var(--sage-2); }
+.surface-host { --surface-accent: var(--brass); --surface-accent-soft: #faeedb; }
+.surface-player { --surface-accent: #587f79; --surface-accent-soft: #e7f2e9; }
+.surface-creator .section-kicker,
+.surface-host .section-kicker,
+.surface-player .section-kicker { color: var(--surface-accent); }
+
+h1,
+h2,
+h3,
+p { margin: 0; }
+
+h1,
+h2,
+h3 { font-family: var(--font-display); }
+h1 { margin-top: 4px; font-size: 25px; letter-spacing: 1px; }
+h2 { font-size: 21px; }
+h3 { font-size: 15px; }
+
+.eyebrow,
+.section-kicker {
+  color: var(--brass);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.topbar-actions,
+.row { display: flex; align-items: center; gap: 10px; }
+
+.icon-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--green);
+  background: transparent;
+  font-size: 19px;
+}
+.icon-btn:hover { background: var(--sage-2); }
+
+.primary-btn,
+.secondary-btn,
+.ghost-btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: .2s;
+}
+.primary-btn { color: white; background: var(--green); box-shadow: 0 8px 16px rgba(28,81,75,.17); }
+.primary-btn:hover { background: #24635b; transform: translateY(-1px); }
+.secondary-btn { color: var(--green); border: 1px solid var(--line); background: rgba(255,255,255,.54); }
+.secondary-btn:hover,
+.ghost-btn:hover { background: white; }
+.ghost-btn { padding: 8px 10px; color: var(--ink-soft); background: transparent; }
+.secondary-btn.compact { padding: 6px 10px; font-size: 11px; }
+
+.text-btn { color: var(--green-2); background: none; font-size: 11px; font-weight: 700; }
+.text-btn:disabled,
+.secondary-btn:disabled,
+.ghost-btn:disabled { cursor: not-allowed; opacity: .46; }
+
+.status-card,
+.card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card, var(--surface-soft));
+  box-shadow: var(--shadow, var(--shadow-soft));
+}
+.status-head,
+.section-head,
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.status-head span { padding: 4px 8px; border-radius: 8px; color: #46946c; background: #e7f2e9; font-size: 11px; }
+
+.demo-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(196,147,77,.24);
+  border-radius: 13px;
+  background: linear-gradient(90deg,#fffaf0,#f7f4ea);
+}
+.demo-strip strong { display: block; font-size: 12px; }
+.demo-strip p { margin-top: 4px; color: var(--muted); font-size: 10px; }
+.demo-strip .row { flex-wrap: wrap; }
+.demo-badge { padding: 5px 8px; border-radius: 7px; color: #9b6a35; background: #f7e8cc; font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+
+.cloud-pill { display: inline-block; padding: 4px 7px; border-radius: 7px; color: #34734f; background: #e7f2e9; font-size: 9px; font-weight: 700; }
+.cloud-pill.offline { color: #9b6a35; background: #faeedb; }
+.danger-text { color: #a34f4f; }
+.danger-btn { padding: 9px 11px; border: 1px solid #9a3f3f; border-radius: 8px; color: #fff; background: #b54a4a; font-size: 11px; font-weight: 700; }
+.danger-btn:hover { background: #9a3f3f; }
+.text-btn.danger-text { color: #b54a4a; font-weight: 700; }
+
+.empty-state { padding: 11px; margin-top: 9px; border-radius: 9px; color: var(--muted); background: #f5f6f2; font-size: 10px; line-height: 1.6; }
+.enriched-empty { padding: 18px 16px; text-align: left; }
+.enriched-empty .empty-hints { margin: 10px 0 14px 18px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.enriched-empty .row { flex-wrap: wrap; gap: 8px; }
+
+.field { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: #fbfcfa; font-size: 11px; }
+.rule-block { padding: 10px; margin-top: 7px; border-radius: 9px; color: var(--ink-soft); background: #f6f7f3; font-size: 10px; line-height: 1.7; }
+.check-label { display: flex !important; align-items: center; gap: 7px; letter-spacing: 0 !important; }
+.check-label input { accent-color: var(--green); }
+
+.avatar { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 50%; color: white; background: linear-gradient(135deg,#cc9b63,#996b4d); font-size: 12px; font-weight: 700; }
+.avatar.small { width: 31px; height: 31px; }
+.activity .dot { width: 8px; height: 8px; margin-top: 4px; flex: 0 0 auto; border-radius: 50%; background: #73aa82; }
+.activity.warn .dot { background: #d59a5e; }
+
+html.modal-scroll-lock,
+body.modal-scroll-lock { overflow: hidden !important; }
+body.modal-scroll-lock { position: fixed; right: 0; left: 0; width: 100%; }
+.modal-backdrop { display: none; position: fixed; inset: 0; z-index: 10; align-items: center; justify-content: center; padding: 16px 20px; overflow: hidden; overscroll-behavior: contain; background: rgba(14,42,40,.48); }
+.modal-backdrop.show { display: flex; }
+.modal { width: min(520px,90vw); padding: 20px; border-radius: 16px; background: var(--paper); box-shadow: 0 24px 60px rgba(9,35,33,.22); }
+.modal h2 { margin-bottom: 7px; }
+.modal p { color: var(--muted); font-size: 11px; line-height: 1.7; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+.tutorial-tip { display: flex; gap: 9px; padding: 11px; margin-top: 16px; border-radius: 10px; color: var(--ink-soft); background: #f1eee5; font-size: 10px; line-height: 1.6; }
+.tutorial-tip b { color: var(--brass); }
+.tutorial-tip .invite-link { display: block; margin-top: 4px; font-family: ui-monospace, Consolas, monospace; font-size: 11px; word-break: break-all; }
+.invite-code-display,
+.invite-code-inline { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: #f4f1e9; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 13px; letter-spacing: .04em; }

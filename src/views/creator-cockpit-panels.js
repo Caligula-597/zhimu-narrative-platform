@@ -13,6 +13,7 @@ import {
 import { renderClueHitRateEmbed, renderSegmentCompletionEmbed } from "./creator-cockpit-insights.js";
 import { renderTimelineSwimlane } from "./creator-cockpit-timeline.js";
 import { creativeConstitutionCoverage } from "../../shared/creative-constitution.js";
+import { renderStorySpinePanel } from "./creator-cockpit-story-spine.js";
 
 export function linkButton(link, className = "secondary-btn compact") {
   if (!link) return "";
@@ -92,6 +93,9 @@ function renderContentOverviewPanel(ctx) {
 
 export function renderConceptCanvas(ctx, cockpit, findItemLink) {
   const link = findItemLink("concept", cockpit.activeItem);
+  if (cockpit.activeCanvas === "story" || cockpit.activeItem === "story") {
+    return renderStorySpinePanel(ctx, cockpit);
+  }
   if (cockpit.activeCanvas === "overview") {
     return renderContentOverviewPanel(ctx);
   }

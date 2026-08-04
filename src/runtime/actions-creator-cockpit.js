@@ -6,6 +6,10 @@ import { worldStore } from "../state/index.js";
 import { LOGLINE_TEMPLATE, newSparkId } from "../views/creator-cockpit-model.js";
 import { clueGrantsFromText } from "../views/creator-cockpit-segment.js";
 import { normalizeSegmentOperations } from "shared/segment-contract.js";
+import {
+  confirmStorySpineSection,
+  normalizeStorySpine
+} from "shared/story-spine.js";
 import { callView } from "./view-registry.js";
 import { ownsCreatorCockpitAction } from "./action-ownership.js";
 import { callRuntime } from "./runtime-facade.js";
@@ -66,6 +70,77 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         });
         callView("creatorCockpit", "scheduleSummarySave");
         callView("creatorCockpit", "rerenderCockpit");
+        return true;
+      }
+
+      case "cockpit-story-spine-assemble": {
+        const draft = callView("creatorCockpit", "getCockpitDraft") || {};
+        if (draft.storySpineAssembling) return true;
+        callView("creatorCockpit", "patchCockpitDraft", { storySpineAssembling: true });
+        callView("creatorCockpit", "rerenderCockpit");
+        try {
+          const result = await zhimuApi.assembleStorySpine({
+            creatorInput: {
+              logline: draft.logline || "",
+              sparks: draft.sparks || [],
+              sellingPoints: draft.sellingPoints || [],
+              target: draft.target || "",
+              duration: draft.duration || "",
+              type: draft.type || "",
+              focus: "把现有材料装配成一份能够概览整体故事、继续进入角色与章节生产的故事主干。"
+            }
+          }, worldId);
+          callView("creatorCockpit", "patchCockpitDraft", {
+            storySpineCandidate: normalizeStorySpine(result?.storySpine),
+            storySpineAssembling: false,
+            activeStage: "concept",
+            activeItem: "story",
+            activeCanvas: "story"
+          });
+          callView("creatorCockpit", "rerenderCockpit");
+          showToast("故事主干候选已经组装完成，请检查后再采用");
+        } catch (error) {
+          callView("creatorCockpit", "patchCockpitDraft", { storySpineAssembling: false });
+          callView("creatorCockpit", "rerenderCockpit");
+          showError(error, "故事总览组装失败");
+        }
+        return true;
+      }
+
+      case "cockpit-story-spine-adopt": {
+        const draft = callView("creatorCockpit", "getCockpitDraft") || {};
+        if (!draft.storySpineCandidate) return true;
+        try {
+          await zhimuApi.patchWorld({
+            settings: { storySpine: normalizeStorySpine(draft.storySpineCandidate) }
+          }, worldId);
+          callView("creatorCockpit", "patchCockpitDraft", { storySpineCandidate: null });
+          await reloadCockpitAfterWrite();
+          showToast("候选版本已采用为当前故事总览");
+        } catch (error) {
+          showError(error, "故事总览保存失败");
+        }
+        return true;
+      }
+
+      case "cockpit-story-spine-discard":
+        callView("creatorCockpit", "patchCockpitDraft", { storySpineCandidate: null });
+        callView("creatorCockpit", "rerenderCockpit");
+        showToast("已放弃候选版本，当前故事总览没有变化");
+        return true;
+
+      case "cockpit-story-spine-confirm": {
+        const sectionKey = el?.dataset?.storySpineKey;
+        const current = workspacePreview()?.world?.settings?.storySpine;
+        if (!sectionKey || !current) return true;
+        try {
+          const storySpine = confirmStorySpineSection(current, sectionKey);
+          await zhimuApi.patchWorld({ settings: { storySpine } }, worldId);
+          await reloadCockpitAfterWrite();
+          showToast("该区块已确认为作者设定，后续装配会保留原文");
+        } catch (error) {
+          showError(error, "作者设定确认失败");
+        }
         return true;
       }
 

@@ -17,6 +17,15 @@ export function analyzeStoryDraft(text, { worldId = demoContext.worldId } = {}) 
   });
 }
 
+export function assembleStorySpine(payload, worldId = demoContext.worldId) {
+  return deepseekRequest(`/worlds/${worldId}/story-assistant/story-spine/assemble`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: payload,
+    timeoutMs: 240_000
+  });
+}
+
 export function importStoryDraft(text, { worldId = demoContext.worldId, idempotencyKey } = {}) {
   return worldWrite(`/worlds/${worldId}/story-assistant/import`, {
     worldId,

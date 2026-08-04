@@ -1,0 +1,191 @@
+/* ── Multi-agent AI playtest lab ──────────────────────────────────────── */
+.ai-playtest-page { display:grid; gap:16px; padding-bottom:36px; }
+.playtest-lab-hero {
+  display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding:27px 29px;
+  overflow:hidden; position:relative; border:1px solid rgba(38,70,66,.18); border-radius:20px; color:#fff;
+  background:
+    radial-gradient(circle at 80% -10%,rgba(223,180,105,.26),transparent 34%),
+    radial-gradient(circle at 96% 95%,rgba(104,145,128,.3),transparent 30%),
+    linear-gradient(135deg,#162f31 0%,#25494a 48%,#30364a 100%);
+}
+.playtest-lab-hero::after {
+  content:""; position:absolute; width:260px; height:260px; right:-105px; top:-105px;
+  border:1px solid rgba(255,255,255,.12); border-radius:50%; box-shadow:0 0 0 34px rgba(255,255,255,.025);
+}
+.playtest-lab-hero > * { position:relative; z-index:1; }
+.playtest-lab-hero h1 { margin-top:5px; font:700 33px/1.2 "Noto Serif SC","Songti SC",serif; }
+.playtest-lab-hero p:not(.section-kicker) { max-width:760px; margin-top:9px; color:rgba(255,255,255,.72); font-size:12px; line-height:1.7; }
+.playtest-lab-hero .section-kicker { color:#e4c786; }
+.playtest-lab-hero-actions { display:flex; max-width:310px; flex-wrap:wrap; justify-content:flex-end; gap:7px; }
+.playtest-lab-hero-actions span {
+  padding:6px 9px; border:1px solid rgba(255,255,255,.12); border-radius:999px;
+  color:rgba(255,255,255,.7); background:rgba(255,255,255,.05); font-size:9px;
+}
+.playtest-lab-hero-actions .secondary-btn { width:100%; color:#fff; border-color:rgba(255,255,255,.2); background:rgba(255,255,255,.08); }
+.playtest-setup-grid { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:14px; align-items:start; }
+.playtest-config-card,.playtest-history { padding:19px; }
+.playtest-config-card .section-head p:not(.section-kicker) { max-width:680px; margin-top:5px; color:var(--muted); font-size:10px; line-height:1.55; }
+.playtest-depth-switch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-top:16px; }
+.playtest-depth-switch label { position:relative; cursor:pointer; }
+.playtest-depth-switch input { position:absolute; opacity:0; pointer-events:none; }
+.playtest-depth-switch span {
+  display:grid; gap:3px; min-height:58px; padding:11px 13px; border:1px solid rgba(42,74,67,.12);
+  border-radius:11px; background:#fafaf7; transition:.18s ease;
+}
+.playtest-depth-switch b { color:#3c4b46; font-size:11px; }.playtest-depth-switch small { color:var(--muted); font-size:9px; }
+.playtest-depth-switch input:checked + span { border-color:#52786e; background:#eef5f1; box-shadow:inset 0 0 0 1px rgba(53,101,88,.13); }
+.playtest-archetype-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:10px; }
+.playtest-archetype {
+  display:grid; grid-template-columns:36px minmax(0,1fr); gap:9px; min-width:0; padding:10px;
+  border:1px solid rgba(42,74,67,.1); border-radius:11px; background:#fcfbf8; cursor:pointer; transition:.18s ease;
+}
+.playtest-archetype:hover { transform:translateY(-1px); border-color:rgba(42,74,67,.24); }
+.playtest-archetype.selected { border-color:rgba(58,104,91,.38); background:linear-gradient(135deg,#f4f9f5,#fbfaf5); }
+.playtest-archetype > input { position:absolute; opacity:0; pointer-events:none; }
+.playtest-archetype-mark {
+  display:grid; place-items:center; width:34px; height:34px; border-radius:10px; color:#65726d;
+  background:#eeeae1; font:700 12px "Noto Serif SC","Songti SC",serif;
+}
+.playtest-archetype.selected .playtest-archetype-mark { color:#fff; background:#416a61; }
+.playtest-archetype-copy { display:grid; min-width:0; gap:3px; }
+.playtest-archetype-copy strong { font-size:10px; }.playtest-archetype-copy small { min-height:26px; color:var(--muted); font-size:8px; line-height:1.45; }
+.playtest-archetype-copy select { min-width:0; height:29px; margin-top:3px; padding:4px 8px; font-size:9px; }
+.playtest-focus { display:grid; gap:6px; margin-top:13px; color:#3f4945; font-size:10px; font-weight:800; }
+.playtest-focus textarea { min-height:68px; resize:vertical; line-height:1.55; }
+.playtest-run-row {
+  display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:13px; padding:12px;
+  border:1px solid rgba(83,77,112,.11); border-radius:11px; background:linear-gradient(120deg,#faf8ff,#f6faf6);
+}
+.playtest-run-row p { display:grid; gap:3px; margin:0; }.playtest-run-row p strong { font-size:9px; }.playtest-run-row p span { color:var(--muted); font-size:8px; line-height:1.5; }
+.playtest-run-btn { flex:0 0 auto; min-width:168px; }
+.playtest-history { position:sticky; top:12px; }
+.playtest-history-list { display:grid; gap:7px; max-height:390px; margin-top:12px; overflow:auto; }
+.playtest-history-item {
+  display:grid; grid-template-columns:minmax(0,1fr) 38px; gap:8px; align-items:center; width:100%; padding:10px;
+  border:1px solid rgba(42,74,67,.1); border-radius:10px; color:inherit; background:#faf9f6; text-align:left;
+}
+.playtest-history-item:hover,.playtest-history-item.active { border-color:#658a80; background:#f0f6f2; }
+.playtest-history-item > span { display:grid; min-width:0; gap:4px; }
+.playtest-history-item strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; }
+.playtest-history-item small { color:var(--muted); font-size:8px; }
+.playtest-history-item > b {
+  display:grid; place-items:center; width:34px; height:34px; border-radius:50%;
+  color:#fff; background:#405f59; font-size:10px;
+}
+.playtest-history > .muted-note { margin-top:12px; font-size:8px; line-height:1.55; }
+.playtest-empty-report {
+  display:grid; grid-template-columns:180px minmax(0,1fr); gap:25px; align-items:center; min-height:250px; padding:30px;
+  border:1px dashed rgba(55,92,83,.25); border-radius:17px; background:linear-gradient(135deg,#f8faf6,#fbf8f1);
+}
+.playtest-empty-report > span {
+  display:grid; place-items:center; width:160px; height:160px; border:1px solid rgba(47,89,79,.18); border-radius:50%;
+  color:#325d55; background:radial-gradient(circle,#fff 0 47%,#e5eee8 48% 54%,transparent 55%); font:700 27px "Noto Serif SC";
+}
+.playtest-empty-report h2 { max-width:650px; margin-top:5px; font:700 25px/1.4 "Noto Serif SC","Songti SC",serif; }
+.playtest-empty-report p:not(.section-kicker) { max-width:720px; margin-top:8px; color:var(--muted); line-height:1.7; }
+.playtest-running {
+  display:flex; align-items:center; justify-content:center; gap:18px; min-height:260px; text-align:left;
+  background:linear-gradient(135deg,#f7faf7,#fbf7ef);
+}
+.playtest-running > span {
+  width:42px; height:42px; border:3px solid #dae5de; border-top-color:#315f57; border-radius:50%;
+  animation:playtest-spin .9s linear infinite;
+}
+@keyframes playtest-spin { to { transform:rotate(360deg); } }
+.playtest-running h2 { font:700 21px "Noto Serif SC"; }.playtest-running p { max-width:620px; margin-top:6px; color:var(--muted); font-size:10px; line-height:1.6; }
+.playtest-report { display:grid; gap:14px; }
+.playtest-report-hero {
+  display:grid; grid-template-columns:minmax(0,1fr) 130px; gap:22px; align-items:center; padding:24px 26px;
+  border:1px solid rgba(92,73,112,.17); border-radius:18px; color:#fff;
+  background:linear-gradient(135deg,#35334d 0%,#4c5263 54%,#38625a 100%);
+}
+.playtest-report-hero h1 { max-width:850px; margin-top:5px; font:700 27px/1.35 "Noto Serif SC","Songti SC",serif; }
+.playtest-report-hero p:not(.section-kicker) { max-width:900px; margin-top:8px; color:rgba(255,255,255,.74); font-size:11px; line-height:1.65; }
+.playtest-report-hero .section-kicker { color:#e6cb8d; }
+.playtest-report-meta { display:flex; flex-wrap:wrap; gap:7px; margin-top:13px; }
+.playtest-report-meta span { padding:5px 8px; border-radius:999px; color:rgba(255,255,255,.7); background:rgba(255,255,255,.08); font-size:8px; }
+.playtest-score {
+  display:grid; grid-template-columns:auto auto; place-content:center; align-items:end; width:122px; height:122px;
+  border:1px solid rgba(255,255,255,.2); border-radius:50%; background:rgba(255,255,255,.08); text-align:center;
+}
+.playtest-score span { grid-column:1/-1; margin-bottom:4px; color:rgba(255,255,255,.65); font-size:8px; }
+.playtest-score strong { font:700 42px/1 "Noto Serif SC"; }.playtest-score small { margin-bottom:5px; color:rgba(255,255,255,.55); font-size:8px; }
+.playtest-metric-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
+.playtest-metric { display:grid; grid-template-columns:1fr auto; gap:7px; padding:11px; border:1px solid rgba(42,74,67,.1); border-radius:11px; background:#fff; }
+.playtest-metric span { color:var(--muted); font-size:8px; }.playtest-metric strong { font-size:14px; }
+.playtest-metric div { grid-column:1/-1; height:4px; overflow:hidden; border-radius:999px; background:#e9ece8; }
+.playtest-metric i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#5c8478,#c49a55); }
+.playtest-group-timeline,.playtest-issues,.playtest-constitution-checks { padding:19px; }
+.playtest-group-timeline .section-head p:not(.section-kicker),.playtest-issues .section-head p:not(.section-kicker) { margin-top:4px; color:var(--muted); font-size:9px; }
+.playtest-stage-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:9px; margin-top:15px; }
+.playtest-stage { display:grid; grid-template-columns:32px 1fr; gap:10px; padding:12px; border:1px solid rgba(42,74,67,.1); border-radius:11px; background:#fbfaf7; }
+.playtest-stage-index { display:grid; place-items:center; align-self:start; width:30px; height:30px; border-radius:50%; color:#fff; background:#55756e; font-size:9px; }
+.playtest-stage h4 { font-size:11px; }.playtest-stage p { display:grid; gap:3px; margin-top:7px; color:#565d59; font-size:9px; line-height:1.5; }
+.playtest-stage p b { color:#856c46; font-size:7px; letter-spacing:.08em; }.playtest-stage small { display:block; margin-top:7px; color:var(--muted); font-size:8px; line-height:1.5; }
+.playtest-issue-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-top:14px; }
+.playtest-issue { display:grid; grid-template-columns:32px 1fr; gap:10px; padding:13px; border:1px solid rgba(42,74,67,.1); border-radius:11px; background:#fff; }
+.playtest-issue.danger { border-color:rgba(163,83,73,.27); background:#fff9f8; }.playtest-issue.warning { border-color:rgba(174,128,61,.25); background:#fffcf5; }
+.playtest-issue-mark { display:grid; place-items:center; width:29px; height:29px; border-radius:9px; color:#fff; background:#a47d43; font-weight:900; }
+.playtest-issue.danger .playtest-issue-mark { background:#9b574d; }.playtest-issue.info .playtest-issue-mark { background:#607d77; }
+.playtest-issue-meta { display:flex; align-items:center; flex-wrap:wrap; gap:6px; color:var(--muted); font-size:8px; }
+.playtest-issue h4 { margin-top:8px; font-size:12px; }.playtest-issue > div > p { margin-top:6px; color:#5f615e; font-size:9px; line-height:1.6; }
+.playtest-section-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:7px 2px 0; }
+.playtest-section-heading h2 { margin-top:3px; font-size:20px; }.playtest-section-heading > p { max-width:430px; color:var(--muted); font-size:9px; text-align:right; }
+.playtest-player-list { display:grid; gap:8px; margin-top:12px; }
+.playtest-player { overflow:hidden; border:1px solid rgba(42,74,67,.12); border-radius:12px; background:#fff; }
+.playtest-player summary { display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:11px; align-items:center; padding:12px 14px; cursor:pointer; list-style:none; }
+.playtest-player summary::-webkit-details-marker { display:none; }.playtest-player[open] summary { border-bottom:1px solid rgba(42,74,67,.1); background:#f7faf7; }
+.playtest-player-avatar { display:grid; place-items:center; width:38px; height:38px; border-radius:12px; color:#fff; background:#496c64; font:700 13px "Noto Serif SC"; }
+.playtest-player summary > span:nth-child(2) { display:grid; gap:3px; }.playtest-player summary strong { font-size:11px; }.playtest-player summary small { color:var(--muted); font-size:8px; }
+.playtest-player-result { display:flex; align-items:center; gap:10px; }.playtest-player-result i { color:#796647; font-size:8px; font-style:normal; }.playtest-player-result b { font-size:14px; }
+.playtest-player-body { padding:14px; }
+.playtest-player-brief { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.playtest-player-brief p { display:grid; gap:4px; margin:0; padding:10px; border-radius:9px; color:#5d615e; background:#f8f7f3; font-size:9px; line-height:1.55; }
+.playtest-player-brief b { color:#7d6848; font-size:8px; }
+.playtest-player-timeline { display:grid; gap:0; margin:13px 0 0; padding:0; list-style:none; }
+.playtest-player-timeline > li { display:grid; grid-template-columns:100px minmax(0,1fr) 42px; gap:12px; position:relative; padding:10px 0 10px 17px; border-left:2px solid #dbe5df; }
+.playtest-player-timeline > li::before { content:""; position:absolute; width:8px; height:8px; left:-5px; top:15px; border-radius:50%; background:#587b72; }
+.playtest-player-timeline > li > span { color:#5c7069; font-size:9px; font-weight:800; }
+.playtest-player-timeline strong { font-size:9px; }.playtest-player-timeline p { margin-top:4px; color:#60635f; font-size:9px; line-height:1.55; }
+.playtest-player-timeline small,.playtest-player-timeline em { display:block; margin-top:4px; color:var(--muted); font-size:8px; font-style:normal; }
+.playtest-player-timeline em { padding:5px 7px; border-radius:7px; color:#865f3c; background:#fff4e4; }
+.playtest-player-timeline > li > b { color:#68736f; font-size:9px; text-align:right; }
+.playtest-player-footer { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:9px; color:var(--muted); font-size:8px; }
+.playtest-constitution-callout {
+  display:flex; align-items:center; justify-content:space-between; gap:18px; padding:19px;
+  border:1px solid rgba(91,79,119,.18); border-radius:14px; background:linear-gradient(135deg,#f8f5ff,#f4f8f4);
+}
+.playtest-constitution-callout h3 { margin-top:3px; font-size:15px; }.playtest-constitution-callout p:not(.section-kicker) { max-width:760px; margin-top:5px; color:var(--muted); font-size:9px; line-height:1.55; }
+.playtest-constitution-checks > div:last-child { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:12px; }
+.playtest-constitution-checks article { display:grid; grid-template-columns:28px 1fr; gap:9px; padding:11px; border:1px solid rgba(42,74,67,.1); border-radius:10px; }
+.playtest-constitution-checks article > span { display:grid; place-items:center; width:27px; height:27px; border-radius:50%; color:#fff; background:#9e7c45; font-weight:900; }
+.playtest-constitution-checks article.pass > span { background:#4e7867; }.playtest-constitution-checks article.fail > span { background:#98594f; }
+.playtest-constitution-checks strong { font-size:9px; }.playtest-constitution-checks p { margin-top:4px; color:var(--muted); font-size:8px; line-height:1.5; }
+
+@media (max-width:1180px) {
+  .playtest-setup-grid { grid-template-columns:1fr; }
+  .playtest-history { position:static; }
+  .playtest-history-list { grid-template-columns:repeat(2,minmax(0,1fr)); max-height:none; }
+  .playtest-metric-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:760px) {
+  .playtest-lab-hero { align-items:flex-start; flex-direction:column; padding:21px; }
+  .playtest-lab-hero h1 { font-size:27px; }
+  .playtest-lab-hero-actions { max-width:none; justify-content:flex-start; width:100%; }
+  .playtest-archetype-grid,.playtest-issue-list,.playtest-player-brief,.playtest-constitution-checks > div:last-child { grid-template-columns:1fr; }
+  .playtest-depth-switch { grid-template-columns:1fr 1fr; }
+  .playtest-run-row,.playtest-constitution-callout,.playtest-section-heading { align-items:stretch; flex-direction:column; }
+  .playtest-run-btn { width:100%; }
+  .playtest-history-list { grid-template-columns:1fr; }
+  .playtest-empty-report { grid-template-columns:1fr; padding:21px; }
+  .playtest-empty-report > span { width:118px; height:118px; font-size:22px; }
+  .playtest-report-hero { grid-template-columns:1fr; padding:21px; }
+  .playtest-score { width:98px; height:98px; }
+  .playtest-score strong { font-size:34px; }
+  .playtest-metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .playtest-section-heading > p { text-align:left; }
+  .playtest-player summary { grid-template-columns:38px minmax(0,1fr); }
+  .playtest-player-result { grid-column:1/-1; padding-left:49px; justify-content:space-between; }
+  .playtest-player-timeline > li { grid-template-columns:1fr auto; }
+  .playtest-player-timeline > li > span { grid-column:1/-1; }
+}
