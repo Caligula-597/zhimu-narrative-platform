@@ -15,6 +15,9 @@ const MAGIC_CHECKS = {
       buf.subarray(0, 4).toString("ascii") === "RIFF" &&
       buf.subarray(8, 12).toString("ascii") === "WEBP"
   ],
+  "image/gif": [
+    (buf) => buf.length >= 6 && ["GIF87a", "GIF89a"].includes(buf.subarray(0, 6).toString("ascii"))
+  ],
   "application/pdf": [(buf) => buf.length >= 5 && buf.subarray(0, 5).toString("ascii") === "%PDF-"],
   "audio/mpeg": [
     (buf) => buf.length >= 3 && buf.subarray(0, 3).toString("ascii") === "ID3",

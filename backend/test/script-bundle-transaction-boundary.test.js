@@ -57,7 +57,16 @@ test("bundle preparation extracts text and scans assets before any database tran
   zip.addFile("故事/调查线索/钥匙.png", tinyPngBuffer());
   const body = { contentBase64: zip.toBuffer().toString("base64") };
 
-  const preparedImport = await prepareScriptBundleImport("world-1", "actor-1", body, {});
+  const preparedImport = await prepareScriptBundleImport("world-1", "actor-1", body, {}, {
+    fetchQuota: async () => ({
+      plan_code: "free",
+      max_bytes: 1024 * 1024,
+      max_worlds: 2,
+      max_single_file_bytes: 1024 * 1024,
+      used_bytes: 0,
+      used_worlds: 0
+    })
+  });
   const roleFile = preparedImport.extracted.files.find((file) => file.classification.category === "role_script");
   const clueFile = preparedImport.extracted.files.find((file) => file.classification.category === "clue");
   assert.match(roleFile.extractedText, /角色正文/);
@@ -179,6 +188,8 @@ test("new-world script bundle import commits world and content atomically", asyn
   const transactionIndex = body.indexOf("transaction(async (client)");
   const importIndex = body.indexOf("importScriptBundleToWorldWithClient(", transactionIndex);
   assert.ok(prepareIndex >= 0 && transactionIndex > prepareIndex && importIndex > transactionIndex);
+  const finalAdmissionIndex = body.indexOf("admitWorldCreation(client, actorId)", transactionIndex);
+  assert.ok(finalAdmissionIndex > transactionIndex && finalAdmissionIndex < importIndex);
   assert.doesNotMatch(body, /importScriptBundleToWorld\(created\.worldId/);
   assert.match(body, /cleanupPreparedScriptBundle\(preparedImport\)/);
 });

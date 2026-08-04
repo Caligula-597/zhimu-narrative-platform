@@ -1,19 +1,19 @@
 {
-  "generatedAt": "2026-07-28T12:50:46.620Z",
+  "generatedAt": "2026-08-04T11:50:12.730Z",
   "source": {
-    "gitCommit": "c55dc18",
+    "gitCommit": "7093137",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
     "tests": {
-      "declarations": 1018,
-      "files": 249
+      "declarations": 1125,
+      "files": 260
     },
     "migrations": 104,
     "latestMigration": "104_user_portal_profiles",
     "routes": {
-      "modules": 75,
+      "modules": 76,
       "directDatabaseCalls": 0
     },
     "schemas": {
@@ -29,8 +29,8 @@
     },
     "tests": {
       "sharedAndTooling": {
-        "declarations": 283,
-        "files": 55
+        "declarations": 291,
+        "files": 57
       },
       "host": {
         "declarations": 65,
@@ -47,12 +47,12 @@
     "note": "Validated by npm run check:world-writes; run the command for pass/fail evidence."
   },
   "documentation": {
-    "trackedFiles": 151,
+    "trackedFiles": 157,
     "byArea": {
       "软著材料": 4,
       "优化计划": 11,
       "backend": 3,
-      "docs": 110,
+      "docs": 116,
       "e2e": 1,
       "examples": 6,
       "host": 1,

@@ -1,5 +1,6 @@
 import { pool } from "./db.js";
 import { purgeExpiredData } from "./data-retention.js";
+import { cleanupExpiredUploads } from "./expired-upload-cleanup.js";
 import { startNonOverlappingInterval } from "./non-overlapping-interval.js";
 
 export function startDataRetentionWorker({
@@ -19,7 +20,13 @@ export function startDataRetentionWorker({
       locked = Boolean(lock.rows[0]?.locked);
       if (!locked) return;
       const summary = await purgeExpiredData();
-      log.info?.({ retention: summary.deleted }, "expired data retention completed");
+      const uploads = await cleanupExpiredUploads();
+      const context = { retention: summary.deleted, expiredUploads: uploads };
+      if (uploads.failed) {
+        log.warn?.(context, "expired data retention completed with upload cleanup failures");
+      } else {
+        log.info?.(context, "expired data retention completed");
+      }
     } catch (error) {
       log.error?.({ err: error }, "expired data retention failed");
     } finally {

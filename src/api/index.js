@@ -310,6 +310,7 @@ export {
 /* ── AI / story assistant ── */
 export {
   analyzeStoryDraft,
+  assembleStorySpine,
   importStoryDraft,
   getDeepseekStatus,
   runAiPlaytest,

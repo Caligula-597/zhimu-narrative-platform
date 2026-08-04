@@ -17,6 +17,7 @@ export const worldStore = createStore({
   cloudAiPlaytestError: "",
   cloudAiPlaytestLlmStatus: null,
   cloudAiPlaytestDraftConfig: null,
+  cloudStorySpineLlmStatus: null,
   cloudCreatorDashboard: null,
   cloudWorkspacePreview: null,
   cloudRules: [],

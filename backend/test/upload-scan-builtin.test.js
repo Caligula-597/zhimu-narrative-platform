@@ -7,6 +7,11 @@ test("validateMagicBytes accepts PNG header", () => {
   assert.doesNotThrow(() => validateMagicBytes("image/png", png));
 });
 
+test("validateMagicBytes accepts both standard GIF signatures", () => {
+  assert.doesNotThrow(() => validateMagicBytes("image/gif", Buffer.from("GIF87a")));
+  assert.doesNotThrow(() => validateMagicBytes("image/gif", Buffer.from("GIF89a")));
+});
+
 test("validateMagicBytes rejects JPEG declared as PNG", () => {
   const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10]);
   assert.throws(

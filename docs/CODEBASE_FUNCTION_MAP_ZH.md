@@ -121,7 +121,7 @@
 - `backend/src/app.js` 负责 Fastify app 生命周期、横切中间件、限流、安全、错误和指标。
 - `backend/src/routes.js` 聚合核心业务路由，其它公开平台/OPS/认证路由在 `app.js` 单独注册。
 - `backend/src/routes/*.js` 按领域组织 HTTP 层；`routes/schemas/` 已拆为 32 个领域 schema 文件，兼容 barrel 只有 7 行。
-- `backend/src/repositories/`、`services/` 与聚焦 service 文件承载查询、事务和领域逻辑。71 个路由模块直连数据库点为 0，由 `check:architecture` 固定门禁禁止回升。
+- `backend/src/repositories/`、`services/` 与聚焦 service 文件承载查询、事务和领域逻辑。全部路由模块直连数据库点为 0，由 `check:architecture` 固定门禁禁止回升；模块数量以生成基线为准。
 - `backend/migrations/*.sql` 是数据结构演进，目前到 `097_enable_rls_post_launch_tables.sql`。
 - `backend/test/*.test.js` 覆盖主要领域，当前测试文件数量较多，说明很多批次至少有后端回归证据。
 

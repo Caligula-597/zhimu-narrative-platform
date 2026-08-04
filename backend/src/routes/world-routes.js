@@ -5,7 +5,7 @@ import {
 } from "../world-revision.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole } from "./route-guards.js";
-import { assertWorldCreateQuota, assertStorageBytesQuota, assertSingleFileQuota } from "../quota-guards.js";
+import { assertStorageBytesQuota, assertSingleFileQuota } from "../quota-guards.js";
 import { parseCreatorDocument } from "../document-parser.js";
 import { listWorldHostAuditLog } from "../audit-log.js";
 import { requireVerifiedEmail } from "../email-verification-policy.js";
@@ -98,9 +98,7 @@ export async function registerWorldRoutes(app) {
 
   app.post("/api/worlds", { schema: createWorldSchema }, async (request, reply) => {
     const actorId = requireActor(request);
-    await assertCapability(actorId, "world.create");
     const { name, summary = "", settings = {} } = request.body ?? {};
-    await assertWorldCreateQuota(actorId);
     const world = await createOwnedWorld(actorId, { name, summary, settings });
     return reply.code(201).send(world);
   });

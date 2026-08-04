@@ -1,6 +1,7 @@
 # 织幕文档总索引
 
-最后更新：2026-07-24
+最后更新：2026-07-30
+工程事实基线：2026-07-24；产品与品牌维护入口更新：2026-07-30
 
 > 本页由 `npm run docs:index` 从 Git 跟踪的 Markdown 生成，确保每份现有文档都有归属。它解决“去哪找”和“能否作为当前真相”两个问题，不会把历史记录改写成今天的结论。
 
@@ -15,13 +16,14 @@
 ## 当前真相读取顺序
 
 ```text
-README → PROJECT_STATUS → ARCHITECTURE / PRODUCT_STATUS
+README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
+       → PROJECT_STATUS → ARCHITECTURE / PRODUCT_STATUS
        → SECURITY_AND_TESTING / NONFUNCTIONAL_AUDIT
        → docs/ops/README → 具体 Runbook
        → GENERATED_PROJECT_STATUS.json（易漂移数字）
 ```
 
-## 当前事实与工程入口（23）
+## 当前事实与工程入口（24）
 
 可用于当前开发、验收和发布判断；变化时必须同步代码证据。
 
@@ -41,6 +43,7 @@ README → PROJECT_STATUS → ARCHITECTURE / PRODUCT_STATUS
 | [非功能性审计与上线门禁](./NONFUNCTIONAL_AUDIT_ZH.md) | `docs/NONFUNCTIONAL_AUDIT_ZH.md` |
 | [平台地图](./PLATFORM_MAP_ZH.md) | `docs/PLATFORM_MAP_ZH.md` |
 | [织幕 · 玩家端（play）工程说明](./PLAY_PORTAL_ZH.md) | `docs/PLAY_PORTAL_ZH.md` |
+| [织幕产品与品牌维护总控台](./PRODUCT_BRAND_MAINTENANCE_HUB_ZH.md) | `docs/PRODUCT_BRAND_MAINTENANCE_HUB_ZH.md` |
 | [产品状态](./PRODUCT_STATUS_ZH.md) | `docs/PRODUCT_STATUS_ZH.md` |
 | [项目状态](./PROJECT_STATUS.md) | `docs/PROJECT_STATUS.md` |
 | [三端 SSE 故障验收矩阵](./SSE_FAILURE_MATRIX_ZH.md) | `docs/SSE_FAILURE_MATRIX_ZH.md` |
@@ -51,12 +54,15 @@ README → PROJECT_STATUS → ARCHITECTURE / PRODUCT_STATUS
 | [安全与测试收口](../SECURITY_AND_TESTING.md) | `SECURITY_AND_TESTING.md` |
 | [织幕 · 官网（营销站）](../site/README.md) | `site/README.md` |
 
-## 产品、流程与用户指南（28）
+## 产品、流程与用户指南（31）
 
 描述产品意图、工作流和用户操作；部分页面同时包含待实现设计。
 
 | 文档 | 路径 |
 |---|---|
+| [创作驾驶舱故事总览 V1](./创作驾驶舱故事总览-V1.md) | `docs/创作驾驶舱故事总览-V1.md` |
+| [织幕创作者机制设计与多审查工作台 V1](./创作者机制设计与多审查工作台-V1.md) | `docs/创作者机制设计与多审查工作台-V1.md` |
+| [AI 大纲生成 V2.4：语义宪章、分支执行与生成前创作合同](./AI_OUTLINE_STREAMING_PIPELINE_ZH.md) | `docs/AI_OUTLINE_STREAMING_PIPELINE_ZH.md` |
 | [AI 剧本创作 · UI 验收（五步流程）](./AI_PIPELINE_UI_ZH.md) | `docs/AI_PIPELINE_UI_ZH.md` |
 | [商业作者工作流与稿件安全](./COMMERCIAL_CREATOR_WORKFLOW_ZH.md) | `docs/COMMERCIAL_CREATOR_WORKFLOW_ZH.md` |
 | [内容平台路由边界](./CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md) | `docs/CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md` |
@@ -169,7 +175,7 @@ README → PROJECT_STATUS → ARCHITECTURE / PRODUCT_STATUS
 | [OpenTelemetry tracing](./ops/TRACING.md) | `docs/ops/TRACING.md` |
 | [上传 AV strict](./ops/UPLOAD_SCAN.md) | `docs/ops/UPLOAD_SCAN.md` |
 
-## 历史验收、演练与迁移记录（15）
+## 历史验收、演练与迁移记录（17）
 
 按发生时事实保留，不用今天的数据回写过去的证据。
 
@@ -178,6 +184,7 @@ README → PROJECT_STATUS → ARCHITECTURE / PRODUCT_STATUS
 | [织幕 Alpha · 客观评估（2026-06-03）](../ALPHA_ASSESSMENT.md) | `ALPHA_ASSESSMENT.md` |
 | [织幕 Alpha 功能矩阵](../ALPHA_FEATURE_MATRIX.md) | `ALPHA_FEATURE_MATRIX.md` |
 | [官网第一版设计验收](../design-qa.md) | `design-qa.md` |
+| [织幕竞品定位与宣发简报（2026-07-30）](./COMPETITIVE_PROMOTION_BRIEF_2026-07-30_ZH.md) | `docs/COMPETITIVE_PROMOTION_BRIEF_2026-07-30_ZH.md` |
 | [备份恢复演练记录 · 2026-07-03](./ops/BACKUP_DRILL_2026-07-03.md) | `docs/ops/BACKUP_DRILL_2026-07-03.md` |
 | [备份恢复演练记录 · 2026-07-04](./ops/BACKUP_DRILL_2026-07-04.md) | `docs/ops/BACKUP_DRILL_2026-07-04.md` |
 | [备份恢复演练记录 · 2026-07-06](./ops/BACKUP_DRILL_2026-07-06.md) | `docs/ops/BACKUP_DRILL_2026-07-06.md` |
@@ -187,6 +194,7 @@ README → PROJECT_STATUS → ARCHITECTURE / PRODUCT_STATUS
 | [监控告警值班演练 · 2026-07-04](./ops/MONITORING_ONCALL_DRILL_2026-07-04.md) | `docs/ops/MONITORING_ONCALL_DRILL_2026-07-04.md` |
 | [权限矩阵抽查记录 · L1-05 · 2026-07-03](./ops/PERMISSION_MATRIX_AUDIT_2026-07-03.md) | `docs/ops/PERMISSION_MATRIX_AUDIT_2026-07-03.md` |
 | [Staging 隔离演练记录 · L1-07 · 2026-07-03](./ops/STAGING_ISOLATION_DRILL_2026-07-03.md) | `docs/ops/STAGING_ISOLATION_DRILL_2026-07-03.md` |
+| [织幕产品体验与视觉审计（2026-07-30）](./PRODUCT_EXPERIENCE_AUDIT_2026-07-30_ZH.md) | `docs/PRODUCT_EXPERIENCE_AUDIT_2026-07-30_ZH.md` |
 | [织幕 · 完整功能目录（历史长表）](../FEATURE_CATALOG.md) | `FEATURE_CATALOG.md` |
 | [织幕 · 功能实现状态总览（历史长表）](../IMPLEMENTATION_STATUS.md) | `IMPLEMENTATION_STATUS.md` |
 | [织幕 · Release Notes](../RELEASE_NOTES.md) | `RELEASE_NOTES.md` |
@@ -229,5 +237,6 @@ README → PROJECT_STATUS → ARCHITECTURE / PRODUCT_STATUS
 | Creator / Host / Player / Site 入口或职责 | `README.md`、平台地图、对应端 README |
 | 部署、域名、环境变量、恢复流程 | `docs/ops/README.md` 与对应 Runbook |
 | 产品流程、页面结构、术语 | 产品总览、Creator/Host/Player 指南与蓝图状态 |
+| 产品定位、品牌口径、视觉与宣发 | `PRODUCT_BRAND_MAINTENANCE_HUB_ZH.md`、官网与当前宣发材料 |
 | 安全、SSE、登录、Trusted Types | 安全总览、专项矩阵、非功能审计 |
 | 实际演练或线上事故 | 新增带日期记录，不覆盖旧证据 |

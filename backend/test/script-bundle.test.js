@@ -94,6 +94,21 @@ test("safeBundleEntryPath rejects traversal segments", () => {
   );
 });
 
+test("safeBundleEntryPath rejects absolute, UNC, drive-relative and control-character paths", () => {
+  for (const entryPath of [
+    "/absolute.txt",
+    "\\\\server\\share\\file.txt",
+    "C:relative.txt",
+    "bundle/control\u0000.txt"
+  ]) {
+    assert.throws(
+      () => safeBundleEntryPath(entryPath),
+      (error) => error.code === "SCRIPT_BUNDLE_ENTRY_INVALID",
+      entryPath
+    );
+  }
+});
+
 test("summarizeBundleInventory aggregates categories", () => {
   const items = [
     classifyBundleEntry("a/人物剧本/甲.pdf"),

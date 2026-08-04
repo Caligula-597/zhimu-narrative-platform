@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { API_BASE } from "./helpers/fixture.mjs";
 
-const RESET_URL = "http://127.0.0.1:4190/api/test/reset-verification";
+const RESET_URL = `${API_BASE}/api/test/reset-verification`;
 
 test.beforeEach(async ({ request }) => {
   const response = await request.post(RESET_URL);

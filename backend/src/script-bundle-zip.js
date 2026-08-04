@@ -14,8 +14,13 @@ import {
 } from "./script-bundle-classify.js";
 
 function safeEntryPath(entryPath) {
+  const raw = String(entryPath ?? "").replace(/\\/g, "/").trim();
   const norm = normalizeBundlePath(entryPath);
-  if (!norm || norm.includes("..") || norm.startsWith("/") || /^[a-z]:\//i.test(norm)) {
+  if (!norm
+    || raw.startsWith("/")
+    || /^[a-z]:/iu.test(raw)
+    || norm.includes("..")
+    || /[\0-\x1f\x7f]/u.test(norm)) {
     throwErr("SCRIPT_BUNDLE_ENTRY_INVALID", `Unsafe zip entry path: ${entryPath}`);
   }
   return norm;

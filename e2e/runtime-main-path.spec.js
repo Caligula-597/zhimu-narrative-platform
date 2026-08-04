@@ -24,13 +24,14 @@ test.describe("运行时主链路 · 发线索与开放场景", () => {
       await refreshHostRoomState(hostPage);
 
       await hostPage.getByRole("button", { name: "发线索", exact: true }).click();
-      await hostPage.locator(".modal, .modal-backdrop.show").first().waitFor({ state: "visible", timeout: 10_000 });
-      const clueSelect = hostPage.locator('[data-studio-field="grantClue"]');
+      const clueWorkspace = hostPage.locator('[data-host-operation-workspace][data-operation-kind="grant-clue"]');
+      await expect(clueWorkspace).toBeVisible({ timeout: 10_000 });
+      const clueSelect = clueWorkspace.locator('[data-host-operation-field="clueId"]');
       const clueValue = await clueSelect.locator("option").filter({ hasText: "测试线索" }).first().getAttribute("value");
       await clueSelect.selectOption(clueValue);
-      const grantRole = hostPage.locator("[data-grant-role]").first();
+      const grantRole = clueWorkspace.locator('[data-host-operation-field="roleSlotIds"]').first();
       await grantRole.check();
-      await hostPage.locator("[data-host-grant-submit]").click();
+      await clueWorkspace.locator('[data-action="host-operation-submit"]').click();
       await waitForHostIdle(hostPage);
 
       await expect(playPage.getByText(/获得线索：测试线索|测试线索/)).toBeVisible({ timeout: 20_000 });
@@ -39,11 +40,12 @@ test.describe("运行时主链路 · 发线索与开放场景", () => {
       await expect(playPage.getByText("测试线索").first()).toBeVisible();
 
       await hostPage.locator('[data-action="host-manual-unlock-scene"]').click();
-      await hostPage.locator(".modal, .modal-backdrop.show").first().waitFor({ state: "visible", timeout: 10_000 });
-      const sceneSelect = hostPage.locator('[data-studio-field="unlockScene"]');
+      const sceneWorkspace = hostPage.locator('[data-host-operation-workspace][data-operation-kind="unlock-scene"]');
+      await expect(sceneWorkspace).toBeVisible({ timeout: 10_000 });
+      const sceneSelect = sceneWorkspace.locator('[data-host-operation-field="sceneId"]');
       const sceneValue = await sceneSelect.locator("option").filter({ hasText: "场景 B" }).first().getAttribute("value");
       await sceneSelect.selectOption(sceneValue);
-      await hostPage.locator("[data-host-scene-submit]").click();
+      await sceneWorkspace.locator('[data-action="host-operation-submit"]').click();
       await waitForHostIdle(hostPage);
 
       await playPage.locator('[data-primary-tab="investigation"]').click();

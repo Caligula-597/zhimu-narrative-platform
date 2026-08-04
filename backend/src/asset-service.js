@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { throwErr } from "./api-errors.js";
 import { validateFilename, validateUpload } from "./asset-policy.js";
-import { assertStorageBytesQuota, assertSingleFileQuota } from "./quota-guards.js";
+import { assertAssetUploadQuota, lockAssetQuotaAdmission } from "./quota-guards.js";
 import {
   cancelPendingAssetUpload,
   createPendingAssetUpload,
@@ -12,6 +12,7 @@ import {
 } from "./repositories/asset-repository.js";
 import { getObjectStorage } from "./storage/index.js";
 import { scanUploadedObject } from "./upload-scan.js";
+import { resolveSignedUploadTtlSeconds } from "./asset-lifetime-policy.js";
 
 const ASSET_VISIBILITIES = new Set(["author", "host", "role", "public"]);
 
@@ -28,15 +29,13 @@ export async function prepareAssetUpload(actorId, input) {
   if (!worldId || !filename || !contentType || !byteSize) throwErr("UPLOAD_FIELDS_REQUIRED");
   validateFilename(filename);
   const policy = validateUpload({ contentType, byteSize });
-  await assertSingleFileQuota(actorId, byteSize);
-  await assertStorageBytesQuota(actorId, byteSize);
   if (!ASSET_VISIBILITIES.has(visibility)) throwErr("ASSET_VISIBILITY_INVALID");
   if (visibility === "role" && !roleSlotId) throwErr("ASSET_ROLE_REQUIRED");
   if (roomId && !(await roomBelongsToWorld(roomId, worldId))) throwErr("ASSET_ROOM_WORLD_MISMATCH");
   if (roleSlotId && !(await roleBelongsToWorld(roleSlotId, worldId))) throwErr("ASSET_ROLE_WORLD_MISMATCH");
 
   const objectKey = `users/${actorId}/worlds/${worldId}/assets/${randomUUID()}`;
-  const ttl = Number(process.env.SIGNED_UPLOAD_TTL_SECONDS ?? 600);
+  const ttl = resolveSignedUploadTtlSeconds();
   const expiresAt = new Date(Date.now() + ttl * 1000);
   const pending = await createPendingAssetUpload({
     actorId,
@@ -50,6 +49,11 @@ export async function prepareAssetUpload(actorId, input) {
     contentType,
     byteSize,
     expiresAt
+  }, {
+    beforeInsert: async (client) => {
+      await lockAssetQuotaAdmission(client, actorId);
+      await assertAssetUploadQuota(actorId, byteSize, { client });
+    }
   });
   let uploadUrl;
   try {

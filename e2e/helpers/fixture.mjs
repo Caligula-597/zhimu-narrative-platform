@@ -114,7 +114,8 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
   await page.getByTestId("start-join").click();
   const codeStepInput = page.locator('.join-row input[data-bind="inviteCode"]').first();
   if (await codeStepInput.isVisible().catch(() => false)) {
-    await codeStepInput.fill(inviteCode);
+    const currentCode = await codeStepInput.inputValue().catch(() => "");
+    if (currentCode !== inviteCode) await codeStepInput.fill(inviteCode);
     const rolesReady = await page.locator(".role-card:not([disabled])").first().waitFor({ state: "visible", timeout: 10_000 })
       .then(() => true)
       .catch(() => false);
@@ -182,7 +183,7 @@ export async function goToView(page, view) {
   await page.waitForFunction((v) => window.zhimuState?.view === v, view, { timeout: 15_000 });
 }
 
-/** @param {Page} page — only use on the main app (localhost:4173) where the state bridge is active. */
+/** @param {Page} page — only use on the main app where the state bridge is active. */
 export async function joinRoomViaInviteUi(page, inviteCode = FIXTURE.inviteCode) {
   await page.locator("#preview-btn").click();
   await page.locator("#modal-backdrop.show").waitFor({ state: "visible", timeout: 10_000 });

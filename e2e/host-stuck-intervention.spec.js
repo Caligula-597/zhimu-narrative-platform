@@ -2,7 +2,6 @@ import { test, expect } from "@playwright/test";
 import {
   FIXTURE,
   API_BASE,
-  dismissModalIfOpen,
   gotoHostConsole,
   injectHostAppContext,
   refreshHostRoomState,
@@ -43,34 +42,35 @@ test.describe("主持台 · 卡关干预分支", () => {
     await refreshHostRoomState(page);
   });
 
-  test("unlock_section 打开手动解锁分幕弹窗", async ({ page }) => {
+  test("unlock_section 打开手动解锁分幕工作区", async ({ page }) => {
     await mockStuckHostPlayers(page, "unlock_section");
     await refreshMockedStuckPlayer(page);
 
     await page.locator('[data-action="host-stuck-intervene"]').first().click();
-    await expect(page.getByRole("heading", { name: "手动解锁分幕" })).toBeVisible({ timeout: 10_000 });
-    await dismissModalIfOpen(page);
+    const unlockWorkspace = page.locator('[data-host-operation-workspace][data-operation-kind="unlock-section"]');
+    await expect(unlockWorkspace).toBeVisible({ timeout: 10_000 });
+    await expect(unlockWorkspace.locator('[data-host-operation-field="roleSlotId"]')).toHaveValue(/.+/);
   });
 
-  test("inspect 打开玩家详情弹窗", async ({ page }) => {
+  test("inspect 打开玩家详情工作区", async ({ page }) => {
     await mockStuckHostPlayers(page, "inspect");
     await refreshMockedStuckPlayer(page);
 
     await page.locator('[data-action="host-stuck-intervene"]').first().click();
-    const detailModal = page.locator(".host-detail-modal, .modal.host-detail-modal");
-    await expect(detailModal).toBeVisible({ timeout: 10_000 });
-    await expect(detailModal.locator(".host-detail-list").first()).toBeVisible();
-    await dismissModalIfOpen(page);
+    const detailWorkspace = page.locator('[data-host-operation-workspace][data-operation-kind="player"]');
+    await expect(detailWorkspace).toBeVisible({ timeout: 10_000 });
+    await expect(detailWorkspace.locator(".host-player-inspector")).toBeVisible({ timeout: 10_000 });
+    await expect(detailWorkspace.locator(".host-detail-list").first()).toBeVisible();
   });
 
-  test("nudge 打开帮助卡关玩家提醒弹窗", async ({ page }) => {
+  test("nudge 打开帮助卡关玩家提醒工作区", async ({ page }) => {
     await mockStuckHostPlayers(page, "nudge");
     await refreshMockedStuckPlayer(page);
 
     await page.locator('[data-action="host-stuck-intervene"]').first().click();
-    await expect(page.getByRole("heading", { name: "帮助卡关玩家" })).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator("[data-nudge-message]")).toContainText(/E2E 建议话术/);
-    await dismissModalIfOpen(page);
+    const nudgeWorkspace = page.locator('[data-host-operation-workspace][data-operation-kind="nudge"]');
+    await expect(nudgeWorkspace).toBeVisible({ timeout: 10_000 });
+    await expect(nudgeWorkspace.locator('[data-host-operation-field="message"]')).toHaveValue(/E2E 建议话术/);
   });
 
   test("API 返回 recommended_action 与 shared 路由一致", async ({ page }) => {

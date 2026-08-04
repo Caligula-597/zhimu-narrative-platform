@@ -80,6 +80,7 @@
     "check:generated-contracts": "node scripts/check-generated-contracts-current.mjs",
     "check:world-writes": "node scripts/verify-world-write-contracts.mjs",
     "check:architecture": "node scripts/audit-domain-boundaries.mjs",
+    "check:style-boundaries": "node --test scripts/style-boundaries.test.mjs",
     "audit:nonfunctional": "node scripts/audit-nonfunctional.mjs",
     "check:pages-installability": "node scripts/check-pages-installability.mjs",
     "check:bundle-budgets": "node scripts/audit-bundle-budgets.mjs --build",

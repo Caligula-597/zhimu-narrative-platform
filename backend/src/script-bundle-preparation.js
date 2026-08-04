@@ -4,6 +4,7 @@ import { preparePdfPageAssetUploads, renderPdfPageBuffers } from "./document-pag
 import { detectPdfContentMode } from "./pdf-document.js";
 import { loadScriptBundleBuffer } from "./script-bundle-payload.js";
 import { analyzeScriptBundleEntries, extractScriptBundleZip } from "./script-bundle-zip.js";
+import { createStorageQuotaReservation } from "./quota-guards.js";
 
 export function scriptBundleImageContentType(extension) {
   if (extension === ".png") return "image/png";
@@ -23,7 +24,7 @@ function preparationFailure(error) {
   };
 }
 
-async function prepareSingleBundleFile({ file, worldId, actorId, options }) {
+async function prepareSingleBundleFile({ file, worldId, actorId, options, quotaReservation }) {
   const prepared = { ...file };
   const { classification, extension, buffer } = prepared;
   if (classification.category === "skip" || classification.category === "unknown" || options.skipCategories?.includes(classification.category)) {
@@ -48,7 +49,8 @@ async function prepareSingleBundleFile({ file, worldId, actorId, options }) {
           actorId,
           roleSlotId: null,
           filename: classification.filename,
-          pages: prepared.renderedPages.pages
+          pages: prepared.renderedPages.pages,
+          quotaReservation
         });
         prepared.preparedMode = "pages";
       } else {
@@ -65,7 +67,8 @@ async function prepareSingleBundleFile({ file, worldId, actorId, options }) {
         buffer,
         contentType: scriptBundleImageContentType(extension),
         visibility: "author",
-        assetKind: "image"
+        assetKind: "image",
+        quotaReservation
       });
       return prepared;
     }
@@ -84,7 +87,8 @@ async function prepareSingleBundleFile({ file, worldId, actorId, options }) {
           buffer,
           contentType: "application/pdf",
           visibility: "author",
-          assetKind: "document"
+          assetKind: "document",
+          quotaReservation
         });
         prepared.preparedMode = "pdf_asset";
       } else {
@@ -98,13 +102,26 @@ async function prepareSingleBundleFile({ file, worldId, actorId, options }) {
   return prepared;
 }
 
-export async function prepareScriptBundleImport(worldId, actorId, body, options = {}) {
+export async function prepareScriptBundleImport(
+  worldId,
+  actorId,
+  body,
+  options = {},
+  { fetchQuota } = {}
+) {
   const buffer = loadScriptBundleBuffer(body);
   const extracted = extractScriptBundleZip(buffer);
   const analysis = analyzeScriptBundleEntries(extracted);
+  const quotaReservation = await createStorageQuotaReservation(actorId, { fetchQuota });
   const files = [];
   for (const file of extracted.files) {
-    files.push(await prepareSingleBundleFile({ file, worldId, actorId, options }));
+    files.push(await prepareSingleBundleFile({
+      file,
+      worldId,
+      actorId,
+      options,
+      quotaReservation
+    }));
   }
   return {
     extracted: { ...extracted, files },

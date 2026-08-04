@@ -1,6 +1,5 @@
 import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
-import { requireVerifiedEmail } from "../email-verification-policy.js";
 import { requireWorldRole } from "./route-guards.js";
 import { buildWorldArchiveSnapshot, buildWorldSnapshot } from "./world-helpers.js";
 import { runRevisionMutation } from "../world-revision.js";
@@ -113,7 +112,6 @@ export async function registerContentPackageRoutes(app) {
     bodyLimit: CONTENT_PACKAGE_JSON_BODY_LIMIT_BYTES
   }, async (request, reply) => {
     const actorId = requireActor(request);
-    await requireVerifiedEmail(actorId);
     try {
       const result = await runContentPackageProcessing(async () => {
         validateEnvelope(request.body);

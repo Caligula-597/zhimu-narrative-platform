@@ -10,6 +10,7 @@ import {
   validateStoryEvaluation,
   validateChapterNarrative,
   validateRolesFromNarrative,
+  validateRoleScriptFromNarrative,
   normalizeStoryBrief
 } from "../src/deepseek.js";
 
@@ -29,6 +30,7 @@ test("validateStoryOutline requires chapter beats", () => {
     chapterBeats: [{ chapterKey: "chapter-1", title: "入港", goal: "集合", turn: "发现尸体", hostNotes: "勿剧透" }]
   }, spec);
   assert.equal(outline.chapterBeats.length, 1);
+  assert.equal(outline.readiness.readyForExpansion, false);
 });
 
 test("validateDeepseekProposal checks edge references", () => {
@@ -149,10 +151,11 @@ test("validateRolesFromNarrative builds section map", () => {
     edges: [],
     suggestions: []
   });
+  const roleKeys = ["role-1", "role-2", "role-3", "__proto__"];
   const matrix = validateRoleMatrix({
-    roles: [1, 2, 3, 4].map((n) => ({
-      key: `role-${n}`,
-      name: `角色${n}`,
+    roles: roleKeys.map((key, index) => ({
+      key,
+      name: `角色${index + 1}`,
       publicProfile: "p",
       privateProfile: "s",
       chapterKnowledge: [{ chapterKey: "chapter-1", knows: "k", mustHide: "h", canDiscuss: "c" }]
@@ -162,12 +165,24 @@ test("validateRolesFromNarrative builds section map", () => {
   }, spec, proposal);
   const body = "中".repeat(260);
   const parsed = validateRolesFromNarrative({
-    sections: [1, 2, 3, 4].map((n) => ({
-      roleKey: `role-${n}`,
+    sections: roleKeys.map((roleKey, index) => ({
+      roleKey,
       chapterKey: "chapter-1",
-      title: `角色${n}`,
+      title: `角色${index + 1}`,
       body
     }))
   }, spec, matrix);
   assert.ok(parsed.sections["role-1"]["chapter-1"].body.length >= 250);
+  assert.equal(Object.hasOwn(parsed.sections, "__proto__"), true);
+  assert.ok(parsed.sections["__proto__"]["chapter-1"].body.length >= 250);
+});
+
+test("validateRoleScriptFromNarrative safely preserves special role keys", () => {
+  const body = "x".repeat(260);
+  const parsed = validateRoleScriptFromNarrative({
+    sections: [{ roleKey: "__proto__", chapterKey: "chapter-1", title: "Role", body }]
+  }, "__proto__", { chapterKeys: ["chapter-1"] }, 250);
+  assert.equal(parsed.roleKey, "__proto__");
+  assert.ok(parsed.sections["chapter-1"].body.length >= 250);
+  assert.equal(Object.hasOwn(parsed.sections, "chapter-1"), true);
 });

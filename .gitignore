@@ -27,3 +27,12 @@ docs/ops/email-previews/
 
 # Unapproved author fixtures stay local until editorial/legal review.
 examples/pending-review/**
+!examples/pending-review/generate-forty-outlines.mjs
+
+# Local document rendering and packaged legal-delivery artefacts are generated
+# from tracked sources. Keep bulky previews, caches and potentially sensitive
+# submission bundles out of the repository.
+docs/提示词架构/rendered*/
+软著材料/__pycache__/
+软著材料/交付/
+软著材料/渲染检查/

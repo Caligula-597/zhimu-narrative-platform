@@ -4,6 +4,7 @@
  */
 import { query } from "./db.js";
 import { getObjectStorage } from "./storage/index.js";
+import { resolveSignedDownloadTtlSeconds } from "./asset-lifetime-policy.js";
 import { throwErr } from "./api-errors.js";
 
 export function worldCoverApiPath(worldId) {
@@ -61,7 +62,7 @@ export async function serveWorldCoverRedirect(worldId) {
   if (!await isWorldPubliclyVisible(worldId)) throwErr("NOT_FOUND");
   const asset = await resolveWorldCoverAsset(worldId);
   if (!asset) throwErr("NOT_FOUND");
-  const ttl = Number(process.env.SIGNED_DOWNLOAD_TTL_SECONDS ?? 300);
+  const ttl = resolveSignedDownloadTtlSeconds();
   const downloadUrl = await getObjectStorage().createDownloadUrl({
     key: asset.object_key,
     expiresIn: ttl

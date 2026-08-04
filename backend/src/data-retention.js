@@ -18,6 +18,11 @@ const DEFAULT_RETENTION_DAYS = {
   voiceMessages: 90
 };
 
+// Non-terminal sessions retain the object key needed by the dedicated upload
+// cleanup job. Removing them here would strand pending asset rows and objects.
+export const TERMINAL_UPLOAD_SESSION_RETENTION_PREDICATE =
+  "status IN ('confirmed', 'cancelled')";
+
 export function resolveRetentionDays(env = process.env) {
   const read = (key, fallback) => {
     const value = Number(env[key]);
@@ -151,9 +156,11 @@ export async function purgeExpiredData(options = {}) {
     summary,
     key: "uploadSessions",
     countSql: `SELECT COUNT(*)::int AS count FROM upload_sessions
-      WHERE expires_at < now() - ($1::text || ' days')::interval`,
+      WHERE ${TERMINAL_UPLOAD_SESSION_RETENTION_PREDICATE}
+        AND expires_at < now() - ($1::text || ' days')::interval`,
     deleteSql: `DELETE FROM upload_sessions
-      WHERE expires_at < now() - ($1::text || ' days')::interval`,
+      WHERE ${TERMINAL_UPLOAD_SESSION_RETENTION_PREDICATE}
+        AND expires_at < now() - ($1::text || ' days')::interval`,
     params: [days.expiredUploadSessions]
   });
 

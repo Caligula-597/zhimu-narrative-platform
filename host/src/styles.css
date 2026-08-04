@@ -1,4 +1,4 @@
-@import url("../../styles.css");
+@import url("../../shared/styles/app-primitives.css");
 @import url("./styles/host-room-create-workspace.css");
 @import url("../../shared/styles/portal-profile.css");
 
@@ -1378,6 +1378,30 @@ textarea:focus-visible {
   border-bottom: 0;
 }
 
+.host-event-select {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.host-wait-actions,
+.host-event-players {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.host-event-players {
+  margin: 8px 0;
+  font-size: 10px;
+}
+
+.host-wait-tag {
+  color: var(--host-brass);
+  font-size: 10px;
+  font-weight: 700;
+}
+
 .host-event-card:hover {
   background: rgba(234, 243, 238, 0.42);
 }
@@ -1519,7 +1543,32 @@ textarea:focus-visible {
 }
 
 .clue-matrix-cell-btn {
+  padding: 0;
+  border: 0;
   color: var(--host-green);
+  background: transparent;
+  font: inherit;
+  text-decoration: underline dotted;
+}
+
+.clue-matrix-cell.public {
+  color: var(--host-green);
+  font-weight: 600;
+}
+
+.clue-matrix-summaries {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.clue-matrix-summary {
+  padding: 10px;
+  border: 1px solid var(--host-line);
+  border-radius: 8px;
+  background: #fafbf8;
+  font-size: 10px;
+  line-height: 1.7;
 }
 
 .status-chip,

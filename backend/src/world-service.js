@@ -1,4 +1,6 @@
 import { transaction } from "./db.js";
+import { assertCapability } from "./capabilities.js";
+import { admitWorldCreation } from "./quota-guards.js";
 import { deleteOwnedWorld } from "./world-delete.js";
 import { updateWorldContent } from "./world-revision.js";
 import {
@@ -13,9 +15,11 @@ export function updateWorld(worldId, patch, ifMatch) {
   return transaction((client) => updateWorldContent(client, worldId, normalizedPatch, ifMatch));
 }
 
-export function createOwnedWorld(actorId, { name, summary = "", settings = {} }) {
+export async function createOwnedWorld(actorId, { name, summary = "", settings = {} }) {
+  await assertCapability(actorId, "world.create");
   const normalizedSettings = normalizeNarrativeSettings(settings);
   return transaction(async (client) => {
+    await admitWorldCreation(client, actorId);
     const result = await client.query(
       `INSERT INTO worlds (owner_user_id, name, summary, settings) VALUES ($1, $2, $3, $4::jsonb) RETURNING *`,
       [actorId, name, summary, JSON.stringify(normalizedSettings)]

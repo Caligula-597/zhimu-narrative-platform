@@ -74,3 +74,30 @@ export async function fetchPinnedOutboundJson(rawUrl, init = {}, {
     await dispatcher.close().catch(() => {});
   }
 }
+
+/**
+ * Resolve and pin the outbound target while allowing the caller to consume a
+ * streaming response body. The dispatcher stays alive until `consume`
+ * resolves, so SSE readers can safely process the full response.
+ */
+export async function withPinnedOutboundResponse(rawUrl, init = {}, consume, {
+  resolver,
+  maxResponseBytes = responseByteLimit()
+} = {}) {
+  if (typeof consume !== "function") throw new TypeError("consume must be a function");
+  const target = await resolveSafeOutboundHttpsTarget(rawUrl, { resolver });
+  const boundedResponseBytes = responseByteLimit(maxResponseBytes);
+  const dispatcher = new Agent({
+    connect: { lookup: createPinnedLookup(target.addresses) }
+  });
+  try {
+    const response = await undiciFetch(target.url, {
+      ...init,
+      dispatcher,
+      redirect: "manual"
+    });
+    return await consume(response, { maxResponseBytes: boundedResponseBytes });
+  } finally {
+    await dispatcher.close().catch(() => {});
+  }
+}

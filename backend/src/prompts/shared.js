@@ -34,10 +34,37 @@ export function compactProposal(proposal) {
 export function compactOutline(outline) {
   if (!outline) return null;
   return {
+    outlineVersion: outline.outlineVersion,
+    outlineRevision: outline.outlineRevision,
     logline: outline.logline,
     chapterBeats: outline.chapterBeats,
     truthTimeline: cleanText(outline.truthTimeline, 2000),
-    redHerrings: (outline.redHerrings || []).slice(0, 8)
+    sourceFidelity: outline.sourceFidelity || null,
+    hookPromises: (outline.hookPromises || []).slice(0, 8),
+    genreProfile: outline.genreProfile || null,
+    genreMechanic: outline.genreMechanic || null,
+    entities: (outline.entities || []).slice(0, 40),
+    resources: (outline.resources || []).slice(0, 20),
+    players: (outline.players || []).map((player) => ({
+      key: player.key,
+      name: player.name,
+      identity: player.identity,
+      publicGoal: player.publicGoal,
+      hiddenGoal: player.hiddenGoal,
+      coreSecret: player.coreSecret,
+      exclusiveAnchorKey: player.exclusiveAnchorKey,
+      activePlan: player.activePlan,
+      arc: player.arc,
+      spotlightChapterKey: player.spotlightChapterKey,
+      contribution: player.contribution,
+      chapterActions: player.chapterActions
+    })),
+    centralResponsibilityRoleKeys: outline.centralResponsibilityRoleKeys || [],
+    evidenceGraph: outline.evidenceGraph || null,
+    misdirections: (outline.misdirections || []).slice(0, 8),
+    endingLogic: outline.endingLogic || null,
+    batchFingerprint: outline.batchFingerprint || null,
+    readiness: outline.readiness || null
   };
 }
 

@@ -1,14 +1,14 @@
 /** Multi-agent AI playtest lab — isolated player contexts plus observer synthesis. */
-import "./creator-intelligence.css";
+import "./ai-playtest-lab.css";
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { normalizeError } from "../components/status-ui.js";
-import { go, render } from "../runtime/runtime-facade.js";
+import { render } from "../runtime/runtime-facade.js";
+import { openStoryReference } from "../runtime/story-reference-navigation.js";
 import { registerView } from "../runtime/view-registry.js";
 import { studioStore, worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { AI_PLAYER_ARCHETYPES } from "../../shared/ai-playtest.js";
-import { openStoryDiagnosticReference } from "./story-diagnostics.js";
 
 const DEFAULT_ARCHETYPES = new Set(["logical", "emotional", "social", "silent"]);
 const SEVERITY_META = {
@@ -459,7 +459,7 @@ export function selectAiPlaytestRun(runId) {
 }
 
 export function openAiPlaytestReference(type, id) {
-  openStoryDiagnosticReference(type, id);
+  openStoryReference(type, id);
 }
 
 export function bindAiPlaytestForm() {

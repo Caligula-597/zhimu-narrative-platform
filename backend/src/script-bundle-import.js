@@ -1,7 +1,8 @@
 import { transaction } from "./db.js";
 import { randomUUID } from "node:crypto";
 import { throwErr } from "./api-errors.js";
-import { assertWorldCreateQuota } from "./quota-guards.js";
+import { admitWorldCreation, assertWorldCreateQuota } from "./quota-guards.js";
+import { assertCapability } from "./capabilities.js";
 import { matchRoleSlotByName, normalizeRoleLabel } from "./script-bundle-classify.js";
 import { appendStoryManuscript, importBundleAssetFile, importClueImageFile, importPdfPagesToRoleWithKey, importTextSectionsToRole } from "./document-text-import.js";
 import { analyzeScriptBundle } from "./script-bundle-payload.js";
@@ -319,6 +320,7 @@ export async function importScriptBundleToWorld(worldId, actorId, body, options 
 }
 
 export async function createWorldFromScriptBundle(actorId, body, options = {}) {
+  await assertCapability(actorId, "world.create");
   await assertWorldCreateQuota(actorId);
   // Prepare storage before opening the database transaction, but allocate the
   // final world id up front so a failed import never commits an empty world.
@@ -331,6 +333,7 @@ export async function createWorldFromScriptBundle(actorId, body, options = {}) {
 
   try {
     const result = await transaction(async (client) => {
+      await admitWorldCreation(client, actorId);
       const world = await client.query(
         `INSERT INTO worlds (id, owner_user_id, name, summary, settings)
          VALUES ($1, $2, $3, $4, $5::jsonb)

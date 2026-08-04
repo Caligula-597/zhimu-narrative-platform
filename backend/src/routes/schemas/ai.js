@@ -354,6 +354,45 @@ export const storyAssistantAnalyzeSchema = {
   }
 };
 
+export const storySpineAssembleSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      creatorInput: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          logline: { type: "string", maxLength: 4000 },
+          sparks: {
+            type: "array",
+            maxItems: 30,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["text"],
+              properties: {
+                tag: { type: "string", maxLength: 80 },
+                text: { type: "string", minLength: 1, maxLength: 800 }
+              }
+            }
+          },
+          sellingPoints: {
+            type: "array",
+            maxItems: 6,
+            items: { type: "string", maxLength: 800 }
+          },
+          target: { type: "string", maxLength: 600 },
+          duration: { type: "string", maxLength: 200 },
+          type: { type: "string", maxLength: 400 },
+          focus: { type: "string", maxLength: 2000 }
+        }
+      }
+    }
+  }
+};
+
 export const storyAssistantImportSchema = {
   params: worldIdParams,
   body: {

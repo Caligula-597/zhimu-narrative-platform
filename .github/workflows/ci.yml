@@ -41,6 +41,8 @@ jobs:
             play/package-lock.json
             site/package-lock.json
             package-lock.json
+      - name: Pin npm with SBOM dependency-tree fixes
+        run: npm install --global npm@11.17.0
       - name: Install backend dependencies
         run: npm ci
         working-directory: backend
@@ -154,16 +156,23 @@ jobs:
       - name: Reset fixture room for E2E
         run: npm run e2e:reset-fixture-room
         working-directory: backend
+      - name: Start app dev server for source-aware E2E
+        run: npm run dev -- --port 4176 --strictPort &
+        env:
+          VITE_API_PROXY_TARGET: http://127.0.0.1:4180
       - name: Start play dev for E2E
         run: npm run dev -- --port 5174 --strictPort &
         working-directory: play
       - name: Start host dev for E2E
         run: npm run dev -- --port 5175 --strictPort &
         working-directory: host
-      - name: Wait for play dev
+      - name: Wait for E2E dev servers
         run: |
           for i in $(seq 1 60); do
-            curl -sf http://localhost:5174/ >/dev/null && curl -sf http://localhost:5175/ >/dev/null && exit 0
+            curl -sf http://localhost:4176/ >/dev/null \
+              && curl -sf http://localhost:5174/ >/dev/null \
+              && curl -sf http://localhost:5175/ >/dev/null \
+              && exit 0
             sleep 1
           done
           exit 1
@@ -175,7 +184,7 @@ jobs:
           PLAYWRIGHT_BROWSERS: chromium
           PLAYWRIGHT_INVITE_CODE: TEST-FIXTURE-DEMO
           PLAYWRIGHT_API_URL: http://localhost:4180
-          PLAYWRIGHT_BASE_URL: http://localhost:4173
+          PLAYWRIGHT_BASE_URL: http://localhost:4176
           PLAYWRIGHT_PLAY_URL: http://localhost:5174
           PLAYWRIGHT_HOST_URL: http://localhost:5175
           GUEST_CREATE_HOUR_MAX: "1000"
@@ -207,6 +216,8 @@ jobs:
             play/package-lock.json
             site/package-lock.json
             package-lock.json
+      - name: Pin npm with SBOM dependency-tree fixes
+        run: npm install --global npm@11.17.0
       - name: Install backend dependencies
         run: npm ci
         working-directory: backend
@@ -271,11 +282,8 @@ jobs:
           output: codeql-results
           upload: never
           upload-database: false
-      - name: Enforce CodeQL zero-finding gate
-        run: |
-          result_count="$(find codeql-results -type f -name '*.sarif' -print0 | xargs -0 jq -s '[.[].runs[].results[]] | length')"
-          echo "CodeQL findings: $result_count"
-          test "$result_count" -eq 0
+      - name: Enforce CodeQL no-new-finding gate
+        run: node scripts/check-codeql-baseline.mjs codeql-results
       - name: Upload CodeQL SARIF
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

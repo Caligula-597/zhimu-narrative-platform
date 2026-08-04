@@ -60,7 +60,8 @@ function normalizeLine(line) {
   const redacted = line
     .replace(/(token|secret|password|api[_-]?key)\s*[:=]\s*['"][^'"]+['"]/gi, '$1 = "[REDACTED]"')
     .replace(/(postgres|postgresql):\/\/[^\s'"]+/gi, '[REDACTED_DATABASE_URL]');
-  return redacted.length > 180 ? `${redacted.slice(0, 180)} ...` : redacted;
+  // Keep each deposited source line within the printable width of an A4 page.
+  return redacted.length > 105 ? `${redacted.slice(0, 101)} ...` : redacted;
 }
 
 function readSourceLines() {

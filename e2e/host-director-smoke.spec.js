@@ -2,7 +2,6 @@ import { test, expect } from "@playwright/test";
 import {
   FIXTURE,
   API_BASE,
-  dismissModalIfOpen,
   ensurePendingHostEvent,
   gotoHostConsole,
   injectHostAppContext,
@@ -61,10 +60,10 @@ test.describe("主持监控台 · 主持-玩家联动", () => {
     await expect(nudgeBtn).toBeVisible();
     await waitForHostIdle(page);
     await nudgeBtn.click();
-    await expect(page.locator(".modal-backdrop.show")).toBeVisible();
-    await expect(page.getByRole("button", { name: "发送提醒" })).toBeVisible();
-    await page.locator("[data-nudge-submit]").click();
-    await dismissModalIfOpen(page);
-    await expect(page.locator("#toast.show, .toast-host .toast.show")).toContainText("已提醒", { timeout: 10_000 });
+    const nudgeWorkspace = page.locator('[data-host-operation-workspace][data-operation-kind="nudge"]');
+    await expect(nudgeWorkspace).toBeVisible();
+    await expect(nudgeWorkspace.getByRole("button", { name: "发送提醒" })).toBeVisible();
+    await nudgeWorkspace.locator('[data-action="host-operation-submit"]').click();
+    await expect(nudgeWorkspace.locator(".host-operation-status.success")).toContainText("提醒已发送给", { timeout: 10_000 });
   });
 });

@@ -10,6 +10,10 @@ import {
   CREATIVE_CONSTITUTION_VERSION,
   SUPERNATURAL_POLICIES
 } from "../../../../shared/creative-constitution.js";
+import {
+  STORY_SPINE_STATUSES,
+  STORY_SPINE_VERSION
+} from "../../../../shared/story-spine.js";
 
 const constitutionTextListSchema = {
   type: "array",
@@ -78,6 +82,161 @@ export const creativeConstitutionSchema = {
   }
 };
 
+const storySpineSourceRefsSchema = {
+  type: "array",
+  maxItems: 30,
+  items: { type: "string", minLength: 1, maxLength: 180 }
+};
+
+const storySpineStatusSchema = { type: "string", enum: [...STORY_SPINE_STATUSES] };
+
+const storySpineBlockSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["text", "status", "sourceRefs"],
+  properties: {
+    text: { type: "string", maxLength: 12_000 },
+    status: storySpineStatusSchema,
+    sourceRefs: storySpineSourceRefsSchema
+  }
+};
+
+export const storySpineSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "version",
+    "title",
+    "logline",
+    "overview",
+    "openingState",
+    "incitingIncident",
+    "centralConflict",
+    "playerPremise",
+    "mechanismLoop",
+    "truthAndReversal",
+    "roleFunctions",
+    "chapterArc",
+    "endingDirections",
+    "unresolvedQuestions",
+    "assumptions",
+    "provenance"
+  ],
+  properties: {
+    version: { type: "integer", const: STORY_SPINE_VERSION },
+    title: { type: "string", maxLength: 200 },
+    logline: storySpineBlockSchema,
+    overview: storySpineBlockSchema,
+    openingState: storySpineBlockSchema,
+    incitingIncident: storySpineBlockSchema,
+    centralConflict: storySpineBlockSchema,
+    playerPremise: storySpineBlockSchema,
+    mechanismLoop: storySpineBlockSchema,
+    truthAndReversal: storySpineBlockSchema,
+    roleFunctions: {
+      type: "array",
+      maxItems: 12,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["roleId", "roleName", "storyFunction", "goal", "pressure", "status", "sourceRefs"],
+        properties: {
+          roleId: { type: "string", minLength: 1, maxLength: 120 },
+          roleName: { type: "string", minLength: 1, maxLength: 120 },
+          storyFunction: { type: "string", maxLength: 2400 },
+          goal: { type: "string", maxLength: 2400 },
+          pressure: { type: "string", maxLength: 2400 },
+          status: storySpineStatusSchema,
+          sourceRefs: storySpineSourceRefsSchema
+        }
+      }
+    },
+    chapterArc: {
+      type: "array",
+      maxItems: 12,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["chapterId", "sequence", "title", "cause", "playerAction", "turn", "consequence", "status", "sourceRefs"],
+        properties: {
+          chapterId: { type: "string", minLength: 1, maxLength: 120 },
+          sequence: { type: "integer", minimum: 1, maximum: 99 },
+          title: { type: "string", minLength: 1, maxLength: 200 },
+          cause: { type: "string", maxLength: 3000 },
+          playerAction: { type: "string", maxLength: 3000 },
+          turn: { type: "string", maxLength: 3000 },
+          consequence: { type: "string", maxLength: 3000 },
+          status: storySpineStatusSchema,
+          sourceRefs: storySpineSourceRefsSchema
+        }
+      }
+    },
+    endingDirections: {
+      type: "array",
+      maxItems: 8,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["key", "title", "requirements", "consequence", "status", "sourceRefs"],
+        properties: {
+          key: { type: "string", minLength: 1, maxLength: 100 },
+          title: { type: "string", minLength: 1, maxLength: 200 },
+          requirements: { type: "string", maxLength: 3000 },
+          consequence: { type: "string", maxLength: 3000 },
+          status: storySpineStatusSchema,
+          sourceRefs: storySpineSourceRefsSchema
+        }
+      }
+    },
+    unresolvedQuestions: {
+      type: "array",
+      maxItems: 20,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["key", "question", "whyItMatters", "sourceRefs"],
+        properties: {
+          key: { type: "string", minLength: 1, maxLength: 100 },
+          question: { type: "string", minLength: 1, maxLength: 3000 },
+          whyItMatters: { type: "string", maxLength: 3000 },
+          sourceRefs: storySpineSourceRefsSchema
+        }
+      }
+    },
+    assumptions: {
+      type: "array",
+      maxItems: 20,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["key", "text", "impact", "sourceRefs"],
+        properties: {
+          key: { type: "string", minLength: 1, maxLength: 100 },
+          text: { type: "string", minLength: 1, maxLength: 3000 },
+          impact: { type: "string", maxLength: 3000 },
+          sourceRefs: storySpineSourceRefsSchema
+        }
+      }
+    },
+    provenance: {
+      type: "object",
+      additionalProperties: false,
+      required: ["promptVersion", "model", "generatedAt", "sourceRevision"],
+      properties: {
+        promptVersion: { type: "string", maxLength: 80 },
+        model: { type: "string", maxLength: 160 },
+        generatedAt: { type: "string", maxLength: 80 },
+        sourceRevision: {
+          anyOf: [
+            { type: "integer", minimum: 0 },
+            { type: "null" }
+          ]
+        }
+      }
+    }
+  }
+};
+
 export const commercialProfileSchema = {
   type: "object",
   additionalProperties: false,
@@ -129,6 +288,7 @@ export const worldSettingsSchema = {
     worldMode: { type: "string", enum: [...LEGACY_WORLD_MODES] },
     narrativeProfile: narrativeProfileSchema,
     commercialProfile: commercialProfileSchema,
-    creativeConstitution: creativeConstitutionSchema
+    creativeConstitution: creativeConstitutionSchema,
+    storySpine: storySpineSchema
   }
 };
