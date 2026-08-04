@@ -182,7 +182,7 @@ export async function goToView(page, view) {
   await page.waitForFunction((v) => window.zhimuState?.view === v, view, { timeout: 15_000 });
 }
 
-/** @param {Page} page — only use on the main app (localhost:4173) where the state bridge is active. */
+/** @param {Page} page — only use on the main app where the state bridge is active. */
 export async function joinRoomViaInviteUi(page, inviteCode = FIXTURE.inviteCode) {
   await page.locator("#preview-btn").click();
   await page.locator("#modal-backdrop.show").waitFor({ state: "visible", timeout: 10_000 });
