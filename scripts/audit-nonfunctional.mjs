@@ -28,6 +28,9 @@ const nativeFetchAllowlist = new Set([
   "backend/src/llm-probe.js",
   "backend/src/upstream-fetch.js",
   "shared/api-fetch.js",
+  // Presigned R2 avatar PUTs cannot use the JSON API client. This boundary
+  // validates type/size first and supplies its own abort timer.
+  "shared/portal-profile-client.js",
   "shared/sse-client.js",
   "shared/web-vitals.js",
   "src/api/assets.js",
