@@ -7,6 +7,11 @@ import {
   storySpineCoverage
 } from "../../shared/story-spine.js";
 
+export function creatorCockpitAccessMode(role = "") {
+  if (role === "owner" || role === "editor" || !role) return "creator";
+  return role === "reviewer" ? "reviewer" : "runtime";
+}
+
 export const STAGE_DEFS = [
   {
     id: "concept",
