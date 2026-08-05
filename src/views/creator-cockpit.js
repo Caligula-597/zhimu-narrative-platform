@@ -23,6 +23,7 @@ import {
   findItemLink,
   mergeDraftFromSources,
   briefSettingsPatch,
+  creatorCockpitAccessMode,
   resolveCheckTarget,
   statusText
 } from "./creator-cockpit-model.js";
@@ -160,6 +161,12 @@ export async function refreshCockpitData({ force = false } = {}) {
   const worldId = zhimuApi.context.worldId;
   if (!worldId) {
     loadedWorldId = null;
+    return;
+  }
+  const membership = (worldStore.get().cloudWorlds || []).find((world) => world.id === worldId);
+  if (membership && creatorCockpitAccessMode(membership.membership_role) !== "creator") {
+    loadedWorldId = worldId;
+    worldStore.set({ cloudWorkspacePreview: null });
     return;
   }
   if (!force && loadedWorldId === worldId) return;
@@ -312,7 +319,31 @@ function renderCanvas(ctx, stage) {
   return renderLaunchCanvas(...args);
 }
 
+function renderNonCreatorLanding(mode, world) {
+  const runtimeMode = mode === "runtime";
+  const title = runtimeMode ? "剧本体验已就绪" : "审稿工作区已就绪";
+  const description = runtimeMode
+    ? "个人运行房已经建立；正文没有丢失，创作驾驶舱只对作者和编辑开放。"
+    : "审稿身份可阅读受邀内容并提交意见，但不能修改作者稿件。";
+  const primaryAction = runtimeMode
+    ? `<button class="primary-btn" type="button" data-action="open-host-console" data-room-id="${escapeHtml(zhimuApi.context.roomId || "")}">进入主持端体验</button>`
+    : `<button class="primary-btn" type="button" data-go="writer">进入审稿工作区</button>`;
+  return `<section class="creator-cockpit creator-access-landing">
+    <header class="cockpit-hero">
+      <div><p class="eyebrow">${escapeHtml(world?.name || "当前剧本")}</p><h2>${title}</h2><p class="cockpit-hero-lede">${description}</p></div>
+      <div class="cockpit-hero-actions">${primaryAction}<button class="secondary-btn" type="button" data-action="world-library">切换剧本</button></div>
+    </header>
+    <section class="card"><h3>使用其他身份</h3><p>${description}</p><div class="row"><button class="secondary-btn" type="button" data-action="open-wizard">＋ 创建我的世界</button><button class="secondary-btn" type="button" data-action="world-library">我的剧本</button></div></section>
+  </section>`;
+}
+
 export function creatorCockpit() {
+  const worlds = worldStore.get().cloudWorlds || [];
+  const activeWorld = worlds.find((world) => world.id === zhimuApi.context.worldId);
+  const accessMode = creatorCockpitAccessMode(activeWorld?.membership_role);
+  if (activeWorld && accessMode !== "creator") {
+    return renderNonCreatorLanding(accessMode, activeWorld);
+  }
   const studio = worldStore.get().cloudWorkspacePreview;
   if (inFlightPromise && loadedWorldId !== zhimuApi.context.worldId) {
     return renderLoading("创作驾驶舱", "正在同步最新作品摘要，请稍候。", { kicker: "CREATOR COCKPIT" });

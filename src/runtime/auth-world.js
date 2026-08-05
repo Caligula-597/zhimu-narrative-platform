@@ -210,14 +210,8 @@ export async function joinCatalogWorld(worldId){
   zhimuApi.selectRoom(result.room.id);
   closeModal();
   await loadCloudData(true,true);
-  const roles=worldStore.get().cloudWorkspacePreview?.roles?.length||0;
-  const sections=worldStore.get().cloudWorkspacePreview?.sections?.length||0;
-  if(!roles){
-   showToast("已加入剧本，但正文尚未加载完成，请稍后刷新");
-  }else{
-   showToast(`已加入「${result.worldName}」：${roles} 个角色、${sections} 段分幕。邀请码 ${result.room.invite_code}`);
-  }
-  go(uiStore.get().view==="writer"||uiStore.get().view==="studio"?uiStore.get().view:"creatorCockpit");
+  showToast(`已加入「${result.worldName}」，个人运行房已经建立。`);
+  go("creatorCockpit");
  }catch(error){showError(error)}
 }
 
