@@ -5,7 +5,12 @@
 import { actIndex } from "./matrix-prompt-engine.js";
 import { cleanText } from "./shared.js";
 
-/** Default entity registry; merged with clue names from infoMatrix. */
+/**
+ * Optional aliases for common entity tokens.
+ *
+ * This is an alias dictionary, not a catalogue of entities that every story owns.
+ * Tokens enter a story's unlock schedule only when an actual clue mentions them.
+ */
 export const ENTITY_TOKEN_REGISTRY = {
   钥匙胚: { aliases: ["未打磨铜坯", "备用铜坯", "备用钥匙坯"], personalEarly: true },
   暗格: { aliases: ["底板盖板", "检修活门", "地板活门", "检修口"] },
@@ -37,7 +42,6 @@ function tokensFromClue(clue) {
  * @param {object} config
  */
 export function buildEntityUnlockSchedule(infoMatrix, config) {
-  const keys = config?.chapterKeys || [];
   const entries = [];
 
   for (const clue of infoMatrix?.clues || []) {
@@ -62,21 +66,6 @@ export function buildEntityUnlockSchedule(infoMatrix, config) {
         });
       }
     }
-  }
-
-  for (const token of SCAN_TOKENS) {
-    if (entries.some((e) => e.token === token)) continue;
-    const reg = ENTITY_TOKEN_REGISTRY[token];
-    entries.push({
-      token,
-      unlockActKey: keys[keys.length - 1] || "ch3",
-      unlockActIndex: Math.max(0, keys.length - 1),
-      clueKeys: new Set(),
-      aliases: reg.aliases,
-      personalEarly: reg.personalEarly,
-      grantMode: "host_confirm",
-      source: "Environment"
-    });
   }
 
   return entries

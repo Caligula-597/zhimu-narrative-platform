@@ -7,6 +7,7 @@ import {
   resolveKillerRoleKey
 } from "./matrix-prompt-engine.js";
 import { buildDeAiRewriteRubric } from "./matrix-speech-style.js";
+import { styleCardForPrompt } from "./matrix-literary-styles.js";
 
 export function buildMatrixPlayerScriptMessages({
   setting,
@@ -49,11 +50,11 @@ export function buildMatrixPlayerScriptMessages({
   const killerBlock = isKillerBeforeFinal
     ? `
 【真凶位专属 — 本幕写作模式（最高优先级）】
-- 你是真凶，但本幕正文**不能**出现作案手法、走私/改频、配钥匙作案、设置机关、推/杀/灭口、用细线反锁等 forbiddenFacts。
-- 回忆与周沉的冲突：只写「争吵、被威胁、护目镜摔碎、情绪失控」，**禁止**写诱进暗格、推落、故意杀害。
-- 内心独白只能是「担心被怀疑」「后悔说了过头的话」，**禁止**「担心杀人败露的具体手法」。
-- 对他人：可撒谎、转移怀疑、强调自己的公开身份（检修工/律师等）；禁止内心承认犯罪。
-- 线索：若 matrixRow.newClueIds 为空，不要独自「发现」推理关键物（细线、机关、暗格）；最多看见公共场景中的表象。`
+- 你是真凶，但本幕正文**不能**出现 spoilerContract.forbiddenFacts 所含的作案步骤、物证专名或等价暗示。
+- 回忆只可使用当前角色档案与矩阵已登记的冲突事实；禁止新增受害者、地点、工具或致死动作。
+- 内心独白只表现被怀疑的压力与当前角色已有矛盾，禁止复盘尚未解锁的具体手法。
+- 对他人可撒谎、转移怀疑、强调自己的公开身份；禁止公开认罪。
+- 若 matrixRow.newClueIds 为空，不得独自发现推理关键物；最多描述当前公共场景中的已登记表象。`
     : "";
 
   const system = `你是线上剧本杀私人本主笔。你只写**一位角色、一个幕**的玩家阅读正文。
@@ -109,7 +110,7 @@ ${formatPromptBlock("clueLedger", bundle.clueLedger)}
 ${bundle.peerScriptDigest.length ? formatPromptBlock("peerScriptDigest（已生成剧本摘要，勿与之矛盾或重复独占信息）", bundle.peerScriptDigest) : formatPromptBlock("peerScriptDigest", "尚无其它格剧本，勿预写他人独占目击")}
 ${untrustedUserPayload("角色档案", characterArchive)}
 ${untrustedUserPayload("本幕信息矩阵行", matrixRow)}
-${styleCard ? untrustedUserPayload("风格卡", styleCard) : ""}
+${styleCard ? untrustedUserPayload("风格规则", styleCardForPrompt(styleCard)) : ""}
 
 写完后自检：① 开头是否承接上一幕 ② 是否违反 forbiddenFacts ③ 是否出现独家关键事实 ④ tasks 是否与 matrixRow.tasks 一致。
 
@@ -160,9 +161,9 @@ export function buildMatrixInnocentKillerScriptMessages({
 ${PRODUCT_BOUNDARY}
 
 【innocent_witness 模式 — 最高优先级】
-- 该角色在本幕是**无辜者/普通登岛者**，**不知道**自己是凶手，**禁止**内心认罪或担心「杀人败露」。
+- 该角色在本幕按**无辜目击者**书写，**不知道**自己是凶手，**禁止**内心认罪或担心「杀人败露」。
 - 只写公开行动、可观察现象、与他人的表面互动；心理活动限于「被怀疑的焦虑」「对死者的震惊」。
-- 禁止写：走私/改频动机、设置机关、暗格作案、细线反锁、推/杀/灭口、威胁上报等 forbiddenFacts。
+- 禁止写 spoilerContract.forbiddenFacts 所含的动机、手法、专名和等价暗示。
 - 「说谎」由系统事后注入，你只需写**看似诚实**的叙述；对外口径见 innocentAlibi.outwardClaims。
 - 不要写「我必须隐瞒真相」—— innocents 没有需要隐瞒的命案。
 
@@ -172,7 +173,7 @@ ${bundle.roleContinuity?.continuityRules?.map((r) => `- ${r}`).join("\n") || "- 
 【剧透与公平】
 - ${povRule}；目标约 ${targetWords} 字（±15%）。
 - 严格遵守 spoilerContract.forbiddenFacts。
-- 禁止独家发现 host_confirm 线索（走私记录、暗格机关等）；最多模糊感知异常。
+- 禁止独家发现 host_confirm 线索；最多模糊感知已登记的公共异常。
 - tasks 与 authoritativeTasks 完全一致。
 
 【输出 schema】
@@ -203,7 +204,7 @@ ${untrustedUserPayload("角色档案（公开面）", {
   voiceHints: characterArchive?.voiceHints
 })}
 ${untrustedUserPayload("本幕信息矩阵行", matrixRow)}
-${styleCard ? untrustedUserPayload("风格卡", styleCard) : ""}
+${styleCard ? untrustedUserPayload("风格规则", styleCardForPrompt(styleCard)) : ""}
 
 只返回 JSON。`;
   return [{ role: "system", content: system }, { role: "user", content: user }];
@@ -226,7 +227,7 @@ export function buildMatrixKillerSanitizeMessages({
 ${PRODUCT_BOUNDARY}
 
 【必须删除或改写的语义】
-- 作案手法、机关、暗格联动、细线反锁、推/杀/灭口、走私/改频/暗号、私自配钥匙作案
+- spoilerContract.forbiddenFacts 中尚未解锁的作案手法、物证、动作与其同义改写
 - 内心认罪、担心杀人败露的具体细节
 - forbiddenFacts 列表中的任何等价表述
 
@@ -248,7 +249,7 @@ ${untrustedUserPayload("违规命中", violationList)}
 ${formatPromptBlock("spoilerContract", spoilerContract)}
 ${untrustedUserPayload("本幕矩阵行", matrixRow)}
 ${untrustedUserPayload("待修复正文", { body: cleanText(body, 12000) })}
-${styleCard ? untrustedUserPayload("风格卡", styleCard) : ""}
+${styleCard ? untrustedUserPayload("风格规则", styleCardForPrompt(styleCard)) : ""}
 
 目标字数约 ${targetWords}（±15%）。只返回 JSON。`;
   return [{ role: "system", content: system }, { role: "user", content: user }];
@@ -260,6 +261,8 @@ export function buildMatrixDeAiPassMessages({
   targetWords,
   spoilerContract,
   characterArchive = null,
+  roleRoster = null,
+  truthConsistency = null,
   isKiller = false,
   actIndex = 0,
   finalActIndex = 0
@@ -279,13 +282,19 @@ ${PRODUCT_BOUNDARY}
 ${rubric}
 
 - 保持长度约 ${targetWords} 字（±10%）。
+- 只允许使用 roleRoster 与当前输入中已经登记的人名、地点、组织和物件；禁止新造人物或嫁接别的故事素材。
+- 不得重复已有段落，不得输出「规定疑惑」「规定情绪」或任何内部状态字段。
+- 引号外叙述必须保持原正文的人称，不得在「你」与「我」之间切换。
+- 若提供 truthConsistency，不得把其中锁定事实改写成相反记忆；未解锁手法仍不得在公聊台词中说穿。
 - 输出 JSON：{"body":"改写后正文","removedPhrases":["删掉的套话"],"suggestions":[]}`;
   const user = `请去 AI 腔、口语化公聊对白，改写以下正文：
 
 ${untrustedUserPayload("正文", { body: cleanText(body, 12000) })}
 ${spoilerContract ? formatPromptBlock("spoilerContract（改写时仍须遵守）", spoilerContract) : ""}
+${roleRoster ? formatPromptBlock("roleRoster（唯一可用玩家姓名）", roleRoster) : ""}
+${truthConsistency ? untrustedUserPayload("角色事实一致性约束", truthConsistency) : ""}
 ${characterArchive ? untrustedUserPayload("角色声线", { voiceHints: characterArchive.voiceHints, name: characterArchive.name }) : ""}
-${styleCard ? untrustedUserPayload("风格卡", styleCard) : ""}
+${styleCard ? untrustedUserPayload("风格规则", styleCardForPrompt(styleCard)) : ""}
 
 只返回 JSON。`;
   return [{ role: "system", content: system }, { role: "user", content: user }];

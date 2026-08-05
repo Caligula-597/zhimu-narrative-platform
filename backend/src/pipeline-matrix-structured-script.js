@@ -18,7 +18,7 @@ import { killerPrivateScriptSpoilerExempt } from "./prompts/matrix-fairness-mode
 export const FEELING_PREFIX_PUZZLE = "[规定疑惑]";
 export const FEELING_PREFIX_EMOTION = "[规定情绪]";
 
-export const PROMPT_VERSION_STRUCTURED = "matrix-v5.6-expressive";
+export const PROMPT_VERSION_STRUCTURED = "matrix-v5.7-context-isolated";
 
 /** 剧透级表述 — 正常心理描写（感到/心想/紧张）不在此列 */
 const SPOILER_LEAK_IN_NARRATIVE =
@@ -156,7 +156,7 @@ export function buildPublicActionBrief({ characterArchive, matrixRow, actKey, ac
     voiceHints: cleanText(characterArchive?.voiceHints, 160),
     scheduledTasks: tasks,
     outwardStatements: lies,
-    rule: "写本幕经历：相对顺序（随后/这时），勿每句死钟点；心理描写主要在公聊段，但可短句点缀。禁止剧透与未授权物证专名。禁止群像快剪——先写本角色，再顺带他人；勿把 L2 公共池逐人罗列成一段。"
+    rule: "写本幕经历：相对顺序（随后/这时），勿每句死钟点；心理描写主要在公聊段，但可短句点缀。禁止剧透与未授权物证专名。禁止群像快剪——先写本角色，再顺带他人；勿把 L2 公共池逐人罗列成一段。outwardStatements 只允许作为引号内对外口径，私人叙述不得把角色自己的锁定行动事实写反。"
   };
   if (actOutline?.outline) {
     brief.actOutline = cleanText(actOutline.outline, 800);
@@ -282,12 +282,31 @@ export function scanPersonaBleed(text, roleKey, characterArchives) {
   };
 }
 
-export function stitchStructuredScript({ actionLog, feelingsPack, dialogueLog }) {
+export function stitchStructuredScript({ actionLog, feelingsPack, dialogueLog, roleName }) {
   const parts = [];
   if (actionLog?.narrative) parts.push(actionLog.narrative);
-  const feelingBlock = [...(feelingsPack?.puzzles || []), ...(feelingsPack?.emotions || [])].filter(Boolean);
-  if (feelingBlock.length) parts.push(feelingBlock.join("\n"));
-  if (dialogueLog?.narrative) parts.push(dialogueLog.narrative);
+  const selfName = cleanText(roleName, 80).split("·")[0].trim();
+  const dialogueLines = (dialogueLog?.dialogues || [])
+    .map((item) => {
+      const speaker = cleanText(item?.speaker, 80);
+      const line = cleanText(item?.line, 300).replace(/^[「“\"]|[」”\"]$/g, "");
+      const speakerName = speaker.split("·")[0].trim();
+      const label = selfName && speakerName === selfName ? "你" : speakerName;
+      return label && line ? `${label}说：「${line}」` : "";
+    })
+    .filter(Boolean);
+  const observationLines = (dialogueLog?.observations || [])
+    .map((item) => {
+      const target = cleanText(item?.target, 80).split("·")[0].trim();
+      const note = cleanText(item?.note, 240);
+      const label = selfName && target === selfName ? "你" : target;
+      return label && note ? `${label}：${note}` : note;
+    })
+    .filter((line) => line && !String(actionLog?.narrative || "").includes(line))
+    .slice(0, 4);
+  const publicContinuation = [...dialogueLines, ...observationLines].join("\n");
+  if (publicContinuation) parts.push(publicContinuation);
+  else if (dialogueLog?.narrative) parts.push(dialogueLog.narrative);
   return cleanText(parts.join("\n\n"), 12000);
 }
 

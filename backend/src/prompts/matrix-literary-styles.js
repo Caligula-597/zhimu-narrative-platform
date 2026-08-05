@@ -63,7 +63,7 @@ export const LITERARY_STYLE_PRESETS = {
   cinematic: {
     label: "电影感文风",
     anchor:
-      "镜头语言：景别、光影、声场。例：特写——你的指节扣在门把上。广角——四人散坐大厅，谁也没看谁。画外：潮声像低音提琴。",
+      "使用景别、光影与声场组织叙述；感官细节必须来自当前故事，不提供可直接复用的示范句。",
     rhythm: "视觉切镜；少解释多呈现；声画对位",
     forbidden: "大段作者旁白总结",
     dialogue: {
@@ -233,21 +233,47 @@ export function buildLiteraryStyleCard(setting = {}) {
 
 export function formatLiteraryStyleBlock(styleCard) {
   if (!styleCard) return "";
-  const dialogueLines = styleCard.dialogueGuide
-    ? [
-        `语域：${styleCard.dialogueGuide.register || ""}`,
-        styleCard.dialogueGuide.good ? `对白✅ ${styleCard.dialogueGuide.good}` : "",
-        styleCard.dialogueGuide.bad ? `对白❌ ${styleCard.dialogueGuide.bad}` : ""
-      ].filter(Boolean)
-    : [];
+  const dialogueRegister = styleCard.dialogueGuide?.register || "";
   return `【文风预设 · ${styleCard.literaryStyleLabel}】
 节奏：${styleCard.rhythm}
-范例：${styleCard.anchor.split("\n")[0]}
 禁用：${styleCard.styleForbidden || "无"}
-${dialogueLines.length ? `对白：\n${dialogueLines.join("\n")}` : ""}
+${dialogueRegister ? `对白语域：${dialogueRegister}` : ""}
 
 【悬疑推理 · ${styleCard.mysteryStyleLabel}】
 技法：${styleCard.mysteryTechniques}`;
+}
+
+/** Prompt-safe style payload: rules only, never reusable prose examples. */
+export function styleCardForPrompt(styleCard) {
+  if (!styleCard) return null;
+  return {
+    literaryStyle: styleCard.literaryStyle,
+    literaryStyleLabel: styleCard.literaryStyleLabel,
+    mysteryStyle: styleCard.mysteryStyle,
+    mysteryStyleLabel: styleCard.mysteryStyleLabel,
+    volumeTier: styleCard.volumeTier,
+    pov: styleCard.pov,
+    rhythm: styleCard.rhythm,
+    mysteryTechniques: styleCard.mysteryTechniques,
+    dialogueRegister: styleCard.dialogueGuide?.register || "",
+    forbiddenPhrases: styleCard.forbiddenPhrases,
+    styleForbidden: styleCard.styleForbidden,
+    era: styleCard.era
+      ? {
+          eraPreset: styleCard.era.eraPreset,
+          eraLabel: styleCard.era.eraLabel,
+          timeRange: styleCard.era.timeRange,
+          vocabulary: styleCard.era.vocabulary,
+          props: styleCard.era.props,
+          technology: styleCard.era.technology,
+          socialContext: styleCard.era.socialContext,
+          taboos: styleCard.era.taboos,
+          atmosphere: styleCard.era.atmosphere,
+          speechRegister: styleCard.era.speechRegister,
+          customEraNotes: styleCard.era.customEraNotes
+        }
+      : null
+  };
 }
 
 export function listLiteraryStyleOptions() {

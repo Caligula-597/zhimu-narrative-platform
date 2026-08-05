@@ -66,11 +66,12 @@ export async function createPipelineMatrixNarrativePlayerScript(input) {
     pov: styleCard.pov,
     existingScripts: input.scripts || {}
   };
-  const maxAttempts = killerInnocentMode ? 2 : 1;
+  const maxAttempts = 2;
   let script;
   let model;
   let qualityGates;
   let killerInjections = [];
+  let accepted = false;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const messages = killerInnocentMode
@@ -94,6 +95,14 @@ export async function createPipelineMatrixNarrativePlayerScript(input) {
           targetWords,
           spoilerContract,
           characterArchive,
+          roleRoster: {
+            roles: characterArchives.roles.map((role) => ({
+              key: role.key,
+              name: role.name,
+              publicIdentity: role.publicIdentity,
+              pronouns: role.pronouns
+            }))
+          },
           isKiller,
           actIndex: actIdx,
           finalActIndex: finalIdx
@@ -159,15 +168,26 @@ export async function createPipelineMatrixNarrativePlayerScript(input) {
       isKillerInnocentMode: killerInnocentMode,
       actIndex: actIdx,
       isKiller,
-      finalActIndex: finalIdx
+      finalActIndex: finalIdx,
+      characterArchives,
+      truthBible,
+      pov: styleCard.pov,
+      roleName: characterArchive.name
     });
     script = { ...script, body: gated.body };
     qualityGates = gated.gates;
-    const innocentPassed = killerInnocentMode
-      && gated.gates.guiltStatements?.passed
-      && gated.gates.forbiddenFacts?.passed;
-    const legacyPassed = !killerInnocentMode && gated.passed;
-    if (innocentPassed || legacyPassed || attempt === maxAttempts - 1) break;
+    if (gated.passed) {
+      accepted = true;
+      break;
+    }
+  }
+
+  if (!accepted) {
+    throwErr("DEEPSEEK_OUTPUT_INVALID", "剧本正文未通过人物边界、重复内容或剧透门禁", {
+      roleKey,
+      actKey,
+      qualityGates
+    });
   }
 
   return {

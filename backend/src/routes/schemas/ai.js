@@ -40,6 +40,12 @@ const creativeSettingBody = {
     tone: { type: "string", maxLength: 800 },
     volumeTier: { type: "string", enum: ["demo", "standard", "epic"] },
     pov: { type: "string", enum: ["second", "first"] },
+    literaryStyle: { type: "string", maxLength: 80 },
+    mysteryStyle: { type: "string", maxLength: 80 },
+    killerAwareness: { type: "string", enum: ["self-aware", "self-unaware"] },
+    matrixMode: { type: "string", enum: ["honkaku", "henkaku"] },
+    eraPreset: { type: "string", maxLength: 80 },
+    eraNotes: { type: "string", maxLength: 800 },
     styleAnchor: { type: "string", maxLength: 2000 },
     forbiddenPhrases: { type: "string", maxLength: 1000 }
   }
@@ -202,7 +208,9 @@ const matrixPipelineBody = {
     hostRunbooks: optionalNullableJsonObject,
     actKey: { type: "string", maxLength: 40 },
     roleKey: { type: "string", maxLength: 40 },
-    deAiPass: { type: "boolean" }
+    deAiPass: { type: "boolean" },
+    allActs: { type: "boolean" },
+    scriptGenerationMode: { type: "string", enum: ["structured", "narrative"] }
   }
 };
 

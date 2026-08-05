@@ -8,7 +8,7 @@ import {
   scanHeartVerbAdvisory,
   scanMontageAdvisory
 } from "../src/prompts/matrix-speech-style.js";
-import { buildLiteraryStyleCard } from "../src/prompts/matrix-literary-styles.js";
+import { buildLiteraryStyleCard, styleCardForPrompt } from "../src/prompts/matrix-literary-styles.js";
 import { buildEraSettingCard, formatEraSpeechBlock } from "../src/prompts/matrix-era-setting.js";
 
 test("buildLiteraryStyleCard includes dialogueGuide and era", () => {
@@ -21,12 +21,22 @@ test("buildLiteraryStyleCard includes dialogueGuide and era", () => {
   assert.ok(card.era.speechRegister);
 });
 
-test("formatEraSpeechBlock includes good/bad dialogue samples", () => {
+test("styleCardForPrompt removes reusable prose samples", () => {
+  const card = buildLiteraryStyleCard({ literaryStyle: "cinematic", eraPreset: "modern-cn" });
+  const safe = styleCardForPrompt(card);
+  assert.equal("anchor" in safe, false);
+  assert.equal("dialogueGuide" in safe, false);
+  assert.equal("dialogueGood" in safe.era, false);
+  assert.equal("dialogueBad" in safe.era, false);
+});
+
+test("formatEraSpeechBlock exposes register without reusable dialogue samples", () => {
   const era = buildEraSettingCard({ eraPreset: "modern-cn" });
   const block = formatEraSpeechBlock(era);
   assert.ok(block.includes("时代语域"));
-  assert.ok(block.includes("✅"));
-  assert.ok(block.includes("❌"));
+  assert.ok(!block.includes("✅"));
+  assert.ok(!block.includes("❌"));
+  assert.ok(!block.includes(era.dialogueGood));
 });
 
 test("buildCombinedSpeechBlock merges voiceHints", () => {
@@ -75,4 +85,6 @@ test("buildDeAiRewriteRubric includes sensory expression", () => {
   });
   assert.ok(rubric.includes("感官替心"));
   assert.ok(rubric.includes("混沌视角"));
+  assert.ok(!rubric.includes("沈念"));
+  assert.ok(!rubric.includes("叔公"));
 });

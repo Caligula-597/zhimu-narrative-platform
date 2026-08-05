@@ -82,11 +82,26 @@ export async function createPipelineMatrixStructuredPlayerScript(input) {
     killerAwareness: setting?.killerAwareness || "self-aware"
   });
   const killerAwareness = setting?.killerAwareness || "self-aware";
+  const truthConsistency = {
+    roleKey,
+    pronouns: characterArchive.pronouns,
+    lockedRoleFacts: {
+      hiddenIdentity: characterArchive.hiddenIdentity,
+      motive: characterArchive.motive,
+      timelineActions: characterArchive.timelineActions
+    },
+    ...(isKiller && killerAwareness === "self-aware"
+      ? { lockedMotive: truthBible.motive, lockedMethod: truthBible.method }
+      : {}),
+    rule: "私人叙述不得否认或改写这些锁定事实；角色的对外谎言只能出现在引号内。尚未解锁的事实可以回避，但不得虚构相反记忆。"
+  };
   const styleCard = buildLiteraryStyleCard(input.setting || {});
   const maxAttempts = 2;
   let model;
   let script;
   let structuredGates;
+  let qualityGates;
+  let accepted = false;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const actionResult = await requestDeepseekJson(
@@ -104,7 +119,8 @@ export async function createPipelineMatrixStructuredPlayerScript(input) {
         styleCard,
         killerAwareness,
         characterArchive,
-        actOutline
+        actOutline,
+        truthConsistency
       }),
       {
         maxTokens: 6000,
@@ -119,6 +135,8 @@ export async function createPipelineMatrixStructuredPlayerScript(input) {
     const dialogueResult = await requestDeepseekJson(
       buildDialogueLogMessages({
         publicActionBrief,
+        actionLog,
+        feelingsPack,
         roleKey,
         actKey,
         targetWords,
@@ -133,7 +151,8 @@ export async function createPipelineMatrixStructuredPlayerScript(input) {
         styleCard,
         killerAwareness,
         characterArchive,
-        actOutline
+        actOutline,
+        truthConsistency
       }),
       {
         maxTokens: 6000,
@@ -163,7 +182,8 @@ export async function createPipelineMatrixStructuredPlayerScript(input) {
     const body = stitchStructuredScript({
       actionLog: gated.actionLog,
       feelingsPack: gated.feelingsPack,
-      dialogueLog: gated.dialogueLog
+      dialogueLog: gated.dialogueLog,
+      roleName: characterArchive.name
     });
 
     let finalBody = body;
@@ -175,6 +195,8 @@ export async function createPipelineMatrixStructuredPlayerScript(input) {
           targetWords,
           spoilerContract,
           characterArchive,
+          roleRoster: bundle.roleRoster,
+          truthConsistency,
           isKiller,
           actIndex: actIdx,
           finalActIndex: finalIdx
@@ -212,22 +234,36 @@ export async function createPipelineMatrixStructuredPlayerScript(input) {
       isKillerInnocentMode: false,
       actIndex: actIdx,
       isKiller,
-      finalActIndex: finalIdx
+      finalActIndex: finalIdx,
+      characterArchives,
+      truthBible,
+      pov: styleCard.pov,
+      roleName: characterArchive.name
     });
     script.body = finalGates.body;
-    if (script.body.length >= minWords && gated.passed && finalGates.passed) break;
+    qualityGates = finalGates.gates;
+    if (script.body.length >= minWords && gated.passed && finalGates.passed) {
+      accepted = true;
+      break;
+    }
   }
 
-  if (script.body.length >= minWords) {
-    script = validateMatrixPlayerScript(script, roleKey, actKey, minWords);
+  if (!accepted) {
+    throwErr("DEEPSEEK_OUTPUT_INVALID", "剧本正文未通过结构、人物边界或重复内容门禁", {
+      roleKey,
+      actKey,
+      structuredGates,
+      qualityGates
+    });
   }
+  script = validateMatrixPlayerScript(script, roleKey, actKey, minWords);
   return {
     provider: "deepseek",
     model,
     script,
     scriptGenerationMode: "structured",
     structuredGates,
-    qualityGates: null,
+    qualityGates,
     killerInnocentMode: false,
     killerInjections: []
   };

@@ -162,10 +162,7 @@ export function buildEraSettingCard(setting) {
 
 export function formatEraSpeechBlock(eraCard) {
   if (!eraCard?.speechRegister) return "";
-  const lines = [`【时代语域 · ${eraCard.eraLabel}】${eraCard.speechRegister}`];
-  if (eraCard.dialogueGood) lines.push(`✅ ${eraCard.dialogueGood}`);
-  if (eraCard.dialogueBad) lines.push(`❌ ${eraCard.dialogueBad}`);
-  return lines.join("\n");
+  return `【时代语域 · ${eraCard.eraLabel}】${eraCard.speechRegister}`;
 }
 
 export function formatEraSettingBlock(eraCard) {
