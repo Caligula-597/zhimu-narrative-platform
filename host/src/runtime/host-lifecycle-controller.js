@@ -464,7 +464,10 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   }
 
   async function bootstrap() {
-    initWebVitalsReporting({ app: "host", endpoint: "/api/metrics/web-vitals" });
+    initWebVitalsReporting({
+      app: "host",
+      endpoint: `${getAppOrigin()}/api/metrics/web-vitals`
+    });
     const params = new URLSearchParams(window.location.search);
     const deepRoom = hostRoomIdFromSearch(params);
     state.pendingRoomId = isUuid(deepRoom) ? deepRoom : "";

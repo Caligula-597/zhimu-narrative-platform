@@ -2,6 +2,7 @@ import "./styles.css";
 import {
   api,
   clearSession,
+  getAppOrigin,
   getPlayOrigin,
   getSessionToken,
   setSessionToken,
@@ -203,7 +204,10 @@ const {
 });
 
 async function bootstrap() {
-  initWebVitalsReporting({ app: "play", endpoint: "/api/metrics/web-vitals" });
+  initWebVitalsReporting({
+    app: "play",
+    endpoint: `${getAppOrigin()}/api/metrics/web-vitals`
+  });
   return runPlayStartup({
     state, api, render, setBusy, setToast, formatApiError, normalizeUser,
     setSessionToken, clearSession, cleanAuthUrl, loadSessionUser, ensureSession,

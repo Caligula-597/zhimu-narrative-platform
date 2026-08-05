@@ -137,6 +137,13 @@ test("main.js wires console, SSE and director actions", () => {
   assert.doesNotMatch(eventsSource, /state\.roomEventsConnected && getRoomId\(\) === boundRoom/);
 });
 
+test("web vitals are reported to the shared app backend", () => {
+  const lifecycleSource = readFileSync(path.join(root, "src", "runtime", "host-lifecycle-controller.js"), "utf8");
+  assert.match(lifecycleSource, /getAppOrigin/);
+  assert.match(lifecycleSource, /endpoint:\s*`\$\{getAppOrigin\(\)\}\/api\/metrics\/web-vitals`/);
+  assert.doesNotMatch(lifecycleSource, /endpoint:\s*["']\/api\/metrics\/web-vitals["']/);
+});
+
 test("host command center uses segment runbooks and five critical queue actions", () => {
   const layoutSource = readFileSync(path.join(root, "src", "views", "host-layout.js"), "utf8");
   const stylesSource = readFileSync(path.join(root, "src", "styles.css"), "utf8");

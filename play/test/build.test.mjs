@@ -128,3 +128,10 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(socialSource, /renderDm/);
   assert.match(lobbySource, /renderLobby/);
 });
+
+test("web vitals are reported to the shared app backend", () => {
+  const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
+  assert.match(mainSource, /getAppOrigin/);
+  assert.match(mainSource, /endpoint:\s*`\$\{getAppOrigin\(\)\}\/api\/metrics\/web-vitals`/);
+  assert.doesNotMatch(mainSource, /endpoint:\s*["']\/api\/metrics\/web-vitals["']/);
+});

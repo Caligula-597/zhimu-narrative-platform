@@ -6,6 +6,20 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+function cspSourceTokens(headers, directiveName) {
+  const cspLine = headers
+    .split(/\r?\n/)
+    .find((line) => line.trimStart().startsWith("Content-Security-Policy:"));
+  assert.ok(cspLine, "missing Content-Security-Policy header");
+  const directive = cspLine
+    .slice(cspLine.indexOf(":") + 1)
+    .split(";")
+    .map((entry) => entry.trim())
+    .find((entry) => entry.startsWith(`${directiveName} `));
+  assert.ok(directive, `missing ${directiveName} directive`);
+  return new Set(directive.split(/\s+/).slice(1));
+}
+
 test("production launch contract enforces Trusted Types", () => {
   const env = fs.readFileSync(path.join(root, "backend/.env.production.example"), "utf8");
   const ops = fs.readFileSync(path.join(root, "docs/ops/LAUNCH_ENV.md"), "utf8");
@@ -22,9 +36,19 @@ test("all Cloudflare frontends enforce the shared Trusted Types policy at the ed
     assert.match(headers, /Content-Security-Policy:/, file);
     assert.match(headers, /trusted-types zhimu-html/, file);
     assert.match(headers, /require-trusted-types-for 'script'/, file);
+    assert.equal(cspSourceTokens(headers, "script-src").has("https://static.cloudflareinsights.com"), true, file);
+    assert.equal(cspSourceTokens(headers, "connect-src").has("https://cloudflareinsights.com"), true, file);
     assert.match(headers, /object-src 'none'/, file);
     assert.match(headers, /frame-ancestors 'none'/, file);
     assert.match(headers, /Strict-Transport-Security:/, file);
+  }
+});
+
+test("player and host edge policies allow their declared web fonts", () => {
+  for (const file of ["host/public/_headers", "play/public/_headers"]) {
+    const headers = fs.readFileSync(path.join(root, file), "utf8");
+    assert.equal(cspSourceTokens(headers, "style-src").has("https://fonts.googleapis.com"), true, file);
+    assert.equal(cspSourceTokens(headers, "font-src").has("https://fonts.gstatic.com"), true, file);
   }
 });
 

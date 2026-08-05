@@ -19,7 +19,8 @@ test("buildContentSecurityPolicy uses enforcing header in production default", (
   assert.ok(csp);
   assert.equal(csp.header, "Content-Security-Policy");
   assert.match(csp.value, /default-src 'self'/);
-  assert.match(csp.value, /script-src 'self'/);
+  assert.match(csp.value, /script-src 'self' https:\/\/static\.cloudflareinsights\.com/);
+  assert.match(csp.value, /connect-src[^;]*https:/);
   assert.match(csp.value, /trusted-types zhimu-html/);
   assert.match(csp.value, /require-trusted-types-for 'script'/);
   assert.doesNotMatch(csp.value, /report-uri \/api\/csp-report/);
