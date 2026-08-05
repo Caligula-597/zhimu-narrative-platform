@@ -109,6 +109,9 @@ export function validateCharacterArchives(raw, config) {
     if (!role.key) role.key = `role-${index + 1}`;
     role.name = cleanText(role.name, 80);
     role.publicIdentity = cleanText(role.publicIdentity || role.publicProfile, 800);
+    role.pronouns = ["他", "她", "TA"].includes(cleanText(role.pronouns, 8))
+      ? cleanText(role.pronouns, 8)
+      : "TA";
     role.hiddenIdentity = cleanText(role.hiddenIdentity, 1200);
     role.motive = cleanText(role.motive, 800);
     role.relationships = cleanText(role.relationships, 1200);

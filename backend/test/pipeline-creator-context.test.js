@@ -1,0 +1,76 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { applyCreatorContextToPipelineInput } from "../src/pipeline-creator-context.js";
+
+test("matrix pipeline receives confirmed cockpit spine and constitution", () => {
+  const input = {
+    setting: { theme: "原始主题", extraConflicts: "弹窗冲突", styleAnchor: "短句" },
+    synopsis: { body: "弹窗纲要", charactersSketch: "", truthSketch: "", redHerringsSketch: "" },
+    config: { notes: ["标准档"] }
+  };
+  const result = applyCreatorContextToPipelineInput(input, {
+    creatorBrief: {
+      sellingPoints: ["实时调水"],
+      target: "六人玩家",
+      duration: "4 小时",
+      type: "工业伦理悬疑",
+      magicNote: "机制失败也必须推进剧情",
+      sparks: [{ tag: "现场", text: "潮窗每十八分钟关闭一次" }]
+    },
+    creativeConstitution: {
+      theme: "程序责任",
+      experiencePromise: "每幕选择改变下幕",
+      inviolablePrinciples: ["不得最后临时投票"],
+      fairPuzzlePromises: ["双源印证"],
+      pacingPrinciples: ["先救灾再质证"],
+      voicePrinciples: ["工业现场感"],
+      forbiddenTropes: ["万能信任值"],
+      avoidMisunderstandings: "死亡与制度危机不是同一行为"
+    },
+    storySpine: {
+      title: "六号闸",
+      logline: { text: "死者签名生效", status: "author_confirmed", sourceRefs: [] },
+      mechanismLoop: { text: "每十八分钟调水", status: "author_confirmed", sourceRefs: [] },
+      truthAndReversal: { text: "签名真实但授权越界", status: "author_confirmed", sourceRefs: [] },
+      roleFunctions: [{ roleId: "role-1", roleName: "方既白", storyFunction: "运行主任", goal: "救主环", pressure: "越权会曝光" }],
+      chapterArc: [{ chapterId: "ch1", sequence: 1, title: "潮窗", cause: "潮位上升", playerAction: "选择区域", turn: "签名真实", consequence: "区域关闭" }],
+      endingDirections: [{ key: "repair", title: "带伤合闸", requirements: "保留许可", consequence: "公开责任" }]
+    }
+  });
+
+  assert.match(result.synopsis.body, /创作驾驶舱·权威创作上下文/);
+  assert.match(result.synopsis.body, /作者已确认故事主轴/);
+  assert.match(result.synopsis.body, /产品与体验目标/);
+  assert.match(result.synopsis.body, /工业伦理悬疑/);
+  assert.match(result.synopsis.body, /机制失败也必须推进剧情/);
+  assert.match(result.synopsis.body, /潮窗每十八分钟关闭一次/);
+  assert.match(result.synopsis.body, /每十八分钟调水/);
+  assert.match(result.synopsis.body, /章节因果/);
+  assert.match(result.synopsis.charactersSketch, /方既白/);
+  assert.match(result.synopsis.truthSketch, /签名真实但授权越界/);
+  assert.match(result.setting.extraConflicts, /不得最后临时投票/);
+  assert.match(result.setting.styleAnchor, /工业现场感/);
+  assert.ok(result.config.notes.some((note) => note.includes("实时调水")));
+  assert.equal(input.synopsis.body, "弹窗纲要", "source input must not be mutated");
+});
+
+test("creator context injection is idempotent", () => {
+  const first = applyCreatorContextToPipelineInput(
+    { synopsis: { body: "用户纲要" } },
+    { creatorBrief: { sellingPoints: ["机械潮窗"] } }
+  );
+  const second = applyCreatorContextToPipelineInput(first, {
+    creatorBrief: { sellingPoints: ["机械潮窗"] }
+  });
+  assert.equal((second.synopsis.body.match(/创作驾驶舱·权威创作上下文/g) || []).length, 1);
+});
+
+test("confirmed cockpit context is preserved when the popup synopsis is near its length limit", () => {
+  const result = applyCreatorContextToPipelineInput(
+    { synopsis: { body: "旧".repeat(12_000) } },
+    { creatorBrief: { sellingPoints: ["必须保留的潮窗机制"] } }
+  );
+  assert.ok(result.synopsis.body.length <= 12_000);
+  assert.match(result.synopsis.body, /必须保留的潮窗机制/);
+});

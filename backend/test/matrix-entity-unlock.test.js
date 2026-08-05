@@ -33,6 +33,16 @@ test("buildEntityUnlockSchedule orders by act", () => {
   assert.equal(hatch.unlockActKey, "ch3");
 });
 
+test("buildEntityUnlockSchedule never injects registry tokens absent from current clues", () => {
+  const schedule = buildEntityUnlockSchedule(
+    { clues: [{ key: "clue-current", name: "闸门压力曲线", description: "压力曲线", actKey: "ch1" }] },
+    config
+  );
+  assert.ok(schedule.some((entry) => entry.token.includes("闸门压力")));
+  assert.ok(!schedule.some((entry) => entry.token === "钥匙胚"));
+  assert.ok(!schedule.some((entry) => entry.token === "暗格"));
+});
+
 test("substituteEarlyEntityAliases replaces before unlock act", () => {
   const schedule = buildEntityUnlockSchedule(infoMatrix, config);
   const out = substituteEarlyEntityAliases("他说暗格有问题", "ch2", config, schedule);

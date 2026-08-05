@@ -19,7 +19,8 @@ export function buildActionLogMessages({
   styleCard = null,
   killerAwareness = "self-aware",
   actOutline = null,
-  characterArchive = null
+  characterArchive = null,
+  truthConsistency = null
 }) {
   const styleBlock = buildWritingStyleBlock({
     channel: "action",
@@ -57,6 +58,8 @@ ${entityUnlockContract?.promptBlock || ""}
 【时间 — 不要写死】
 - 用先后：随后 / 这时 / 回大厅后 / 入夜后 — **不要**每句一个 HH:MM 钟点
 - 全幕至多 1～2 个模糊时间锚点；entries.time 可填「入夜后」等相对词，勿填 21:05 流水账
+- 引号外叙述始终使用第二人称「你」，禁止切换为第一人称「我」。
+- 若提供 truthConsistency，只用于避免把锁定事实写反；经历段不要复述尚未解锁的具体手法。
 
 【任务-行为咬合 — 必填】
 - matrixRow.tasks 中每个任务（「解释是否去过…」「是否公开…」）须在 entries/narrative 有对应物理动作或对白，禁止任务写仓库/书房而正文无相关行动。
@@ -77,6 +80,7 @@ ${formatPromptBlock("publicActionBrief", publicActionBrief)}
 ${formatPromptBlock("spoilerContract", spoilerContract)}
 ${entityUnlockContract ? formatPromptBlock("entityUnlockContract", { promptBlock: entityUnlockContract.promptBlock }) : ""}
 ${formatPromptBlock("roleRoster", roleRoster)}
+${truthConsistency ? untrustedUserPayload("角色事实一致性约束", truthConsistency) : ""}
 
 只返回 JSON。`;
   return [{ role: "system", content: system }, { role: "user", content: user }];
@@ -84,6 +88,9 @@ ${formatPromptBlock("roleRoster", roleRoster)}
 
 export function buildDialogueLogMessages({
   publicActionBrief,
+  actionLog,
+  feelingsPack,
+  truthConsistency,
   roleKey,
   actKey,
   targetWords,
@@ -120,6 +127,10 @@ export function buildDialogueLogMessages({
     unknowns: actOutline?.unknowns,
     volumeTier: styleCard?.volumeTier
   });
+  const feelingGuidance = {
+    questions: (feelingsPack?.puzzles || []).map((line) => String(line).replace(/^\[规定疑惑\]\s*/, "")),
+    emotions: (feelingsPack?.emotions || []).map((line) => String(line).replace(/^\[规定情绪\]\s*/, ""))
+  };
   const system = `你是剧本杀「私人本 · 公聊与心理段」主笔。写公开对话 + **你的心思** — 多人向私人本有心理描写很正常。
 
 ${PRODUCT_BOUNDARY}
@@ -147,6 +158,12 @@ ${entityUnlockContract?.promptBlock || ""}
 - 对话（引号）+ 你听见后的想法、怀疑、不安、误判
 - 对他人的观察与推理疑问；相对时间（「刚才」「回大厅后」）
 
+【与经历段衔接】
+- actionLog 已经写过本幕经历；本段只能承接其结果，禁止换句话重述同一组动作、环境和信息。
+- 开头直接进入新的对话、反应或判断，不要重新介绍场景和在场人物。
+- 引号外叙述始终使用第二人称「你」，禁止切换为第一人称「我」；引号内角色台词不受此限制。
+- 若提供 truthConsistency，只用于避免把锁定事实写反；未解锁的手法仍不得在公聊台词中说穿。
+
 输出 JSON：
 {
   "dialogues": [{"speaker":"姓名","line":"公开台词"}],
@@ -158,6 +175,9 @@ ${entityUnlockContract?.promptBlock || ""}
 
 ${characterArchive ? untrustedUserPayload("角色档案（voiceHints 必用于对白）", { name: characterArchive.name, voiceHints: characterArchive.voiceHints }) : ""}
 ${formatPromptBlock("publicActionBrief", publicActionBrief)}
+${actionLog ? untrustedUserPayload("已完成经历段（只承接，不复述）", { narrative: actionLog.narrative, entries: actionLog.entries }) : ""}
+${untrustedUserPayload("心理方向（自然融入正文，禁止输出字段名或方括号标签）", feelingGuidance)}
+${truthConsistency ? untrustedUserPayload("角色事实一致性约束（不得在内心否认这些既定事实，也不得原句复述）", truthConsistency) : ""}
 ${formatPromptBlock("spoilerContract", spoilerContract)}
 ${formatPromptBlock("roleRoster", roleRoster)}
 ${formatPromptBlock("clueLedger", clueLedger)}

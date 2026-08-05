@@ -33,7 +33,8 @@ export function buildRoleRosterBlock(characterArchives) {
   const roles = (characterArchives?.roles || []).map((r) => ({
     key: r.key,
     name: r.name,
-    publicIdentity: cleanText(r.publicIdentity, 120)
+    publicIdentity: cleanText(r.publicIdentity, 120),
+    pronouns: cleanText(r.pronouns, 8) || "TA"
   }));
   return {
     roles,
@@ -169,7 +170,7 @@ export function buildSpoilerContract({
   if (idx === 0) {
     rules.push(
       "第一幕：closingHook 只能怀疑「方向」（如时间线对不上、某人在撒谎），不得点名真凶或核心手法。",
-      "第一幕：不得描写核心诡计机关的完整运作（如暗格如何联动、谁诱谁坠亡）。"
+      "第一幕：不得描写核心诡计的完整运作，也不得交代实施者、受害者与全部步骤。"
     );
   } else if (idx === 1) {
     rules.push(

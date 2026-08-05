@@ -10,6 +10,8 @@ import {
   createPipelineTruthBible
 } from "../pipeline-matrix-deepseek.js";
 import { requireWorldRole } from "./route-guards.js";
+import { findWorldForMember } from "../repositories/world-repository.js";
+import { applyCreatorContextToPipelineInput } from "../pipeline-creator-context.js";
 import {
   deepseekPipelineMatrixCharactersSchema,
   deepseekPipelineMatrixEvaluateSchema,
@@ -24,7 +26,8 @@ async function authorizeAndRun(request, handler) {
   const actorId = requireActor(request);
   const { worldId } = request.params;
   await requireWorldRole(actorId, worldId);
-  return handler(request.body ?? {});
+  const world = await findWorldForMember(worldId, actorId);
+  return handler(applyCreatorContextToPipelineInput(request.body ?? {}, world?.settings));
 }
 
 export function registerStoryAssistantMatrixRoutes(app, { preHandler }) {

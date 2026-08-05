@@ -50,6 +50,7 @@ test("validateCharacterArchives assigns missing keys", () => {
   );
   assert.equal(archives.roles.length, 2);
   assert.equal(archives.roles[0].key, "role-1");
+  assert.equal(archives.roles[0].pronouns, "TA");
 });
 
 test("validateInfoMatrix links rows to roles and clues", () => {

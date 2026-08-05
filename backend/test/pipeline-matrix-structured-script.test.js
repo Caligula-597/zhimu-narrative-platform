@@ -191,13 +191,31 @@ test("applyStructuredGates killer feelings leak fails gate", () => {
   assert.ok(r.feelingsPack.emotions.every((e) => !/复仇/.test(e)));
 });
 
-test("stitchStructuredScript joins three channels", () => {
+test("stitchStructuredScript keeps internal feelings metadata out of player text", () => {
   const body = stitchStructuredScript({
     actionLog: { narrative: "20:05 你进入走廊。" },
     feelingsPack: { puzzles: ["[规定疑惑] 谁撕了日志？"], emotions: [] },
     dialogueLog: { narrative: "林海说：「你来了。」" }
   });
   assert.ok(body.includes("进入走廊"));
-  assert.ok(body.includes("[规定疑惑]"));
+  assert.ok(!body.includes("[规定疑惑]"));
   assert.ok(body.includes("林海说"));
+});
+
+test("stitchStructuredScript uses structured dialogue instead of a repeated second narrative", () => {
+  const repeated = "你核对签名，又看了一遍时间戳。";
+  const body = stitchStructuredScript({
+    actionLog: { narrative: repeated },
+    feelingsPack: { puzzles: [], emotions: [] },
+    roleName: "岑见潮 · 紧急法务官",
+    dialogueLog: {
+      dialogues: [{ speaker: "岑见潮", line: "授权范围不对。" }],
+      observations: [{ target: "岑见潮", note: "他把条款推到你面前。" }],
+      narrative: repeated
+    }
+  });
+  assert.equal(body.split(repeated).length - 1, 1);
+  assert.ok(body.includes("你说"));
+  assert.ok(!body.includes("岑见潮说"));
+  assert.ok(body.includes("授权范围不对"));
 });

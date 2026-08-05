@@ -632,11 +632,17 @@ import { setHtml } from "../../shared/safe-dom.js";
           pipelinePersistActiveEditor(session, ctx);
           const pkg = await zhimuApi.deepseekPipelineMatrixSyncPreview(pipelinePayload());
           const result = await zhimuApi.importDeepseekPipeline({
+            ...pkg,
             proposal: session.proposal || pkg.proposal,
             roleMatrix: pkg.rolesMeta,
             rolesMeta: pkg.rolesMeta,
             sections: pkg.sections,
-            synopsis: pkg.synopsis
+            synopsis: pkg.synopsis,
+            setting: session.setting,
+            characterArchives: session.characterArchives,
+            truthBible: session.truthBible,
+            infoMatrix: session.infoMatrix,
+            hostRunbooks: session.hostRunbooks
           });
           clearLocalAiDraft(draftKind);
           clearLocalAiDraft(AiDraft()?.KIND?.STRUCTURE);
