@@ -13,6 +13,11 @@ import { escapeHtml } from "../utils/format.js";
 import { loading as renderLoading, normalizeError } from "../components/status-ui.js";
 import { contentLayerMapHtml } from "../components/content-layer-map.js";
 import {
+  activeWorldMembership,
+  canLoadCreatorCockpit,
+  creatorCockpitAccessMode
+} from "./creator-cockpit-access.js";
+import {
   CANVAS_LABELS,
   CANVAS_MODES,
   buildLiveStages,
@@ -160,6 +165,11 @@ export async function refreshCockpitData({ force = false } = {}) {
   const worldId = zhimuApi.context.worldId;
   if (!worldId) {
     loadedWorldId = null;
+    return;
+  }
+  if (!canLoadCreatorCockpit(worldStore.get().cloudWorlds, worldId)) {
+    loadedWorldId = worldId;
+    worldStore.set({ cloudWorkspacePreview: null });
     return;
   }
   if (!force && loadedWorldId === worldId) return;
@@ -312,7 +322,40 @@ function renderCanvas(ctx, stage) {
   return renderLaunchCanvas(...args);
 }
 
+function renderNonCreatorLanding(mode, world) {
+  const worldName = world?.name || "当前剧本";
+  const runtimeMode = mode === "runtime";
+  const title = runtimeMode ? "剧本体验已就绪" : "审稿工作区已就绪";
+  const badge = runtimeMode ? "公开剧本体验" : "受邀审稿";
+  const description = runtimeMode
+    ? "你当前以体验或主持身份加入这个剧本。创作驾驶舱只对作者和编辑开放，剧本正文没有丢失。"
+    : "你当前以审稿人身份加入这个剧本。请进入角色剧本中心查看只读稿件、版本差异并提交审稿意见。";
+  const primaryAction = runtimeMode
+    ? `<button class="primary-btn" type="button" data-action="open-host-console" data-room-id="${escapeHtml(zhimuApi.context.roomId || "")}">进入主持端体验</button>`
+    : `<button class="primary-btn" type="button" data-go="writer">进入审稿工作区</button>`;
+  return `<section class="creator-cockpit creator-access-landing">
+    <header class="cockpit-hero">
+      <div>
+        <p class="eyebrow">${escapeHtml(badge)} · ${escapeHtml(worldName)}</p>
+        <h2>${escapeHtml(title)}</h2>
+        <p class="cockpit-hero-lede">${escapeHtml(description)}</p>
+      </div>
+      <div class="cockpit-hero-actions">${primaryAction}<button class="secondary-btn" type="button" data-action="world-library">切换剧本</button></div>
+    </header>
+    <section class="card">
+      <div class="section-head"><div><h3>${runtimeMode ? "接下来怎么做" : "审稿权限说明"}</h3><p>${runtimeMode ? "个人运行房已经建立；你可以进入主持端组织试跑，也可以切换到自己的创作项目。" : "审稿身份可以阅读受邀内容和提交意见，但不能修改作者的世界观、角色或正文。"}</p></div></div>
+      <div class="row"><button class="secondary-btn" type="button" data-action="open-wizard">＋ 创建我的世界</button><button class="secondary-btn" type="button" data-action="world-library">我的剧本</button></div>
+    </section>
+  </section>`;
+}
+
 export function creatorCockpit() {
+  const worlds = worldStore.get().cloudWorlds || [];
+  const activeWorld = activeWorldMembership(worlds, zhimuApi.context.worldId);
+  const accessMode = creatorCockpitAccessMode(worlds, zhimuApi.context.worldId);
+  if (activeWorld && accessMode !== "creator") {
+    return renderNonCreatorLanding(accessMode, activeWorld);
+  }
   const studio = worldStore.get().cloudWorkspacePreview;
   if (inFlightPromise && loadedWorldId !== zhimuApi.context.worldId) {
     return renderLoading("创作驾驶舱", "正在同步最新作品摘要，请稍候。", { kicker: "CREATOR COCKPIT" });
