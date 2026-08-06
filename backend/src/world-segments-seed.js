@@ -1,4 +1,5 @@
 import { normalizeSegmentOperations, resolveChapterSegmentKey } from "./segment-contract.js";
+import { projectMechanismRound } from "./mechanism-package.js";
 
 /**
  * World segment seeding — compile Matrix pipeline / chapter graph into world_segments.
@@ -173,7 +174,7 @@ function playerTasksForAct(characterArchives, ...actKeys) {
 /**
  * Compile Matrix pipeline acts into world_segments (idempotent upsert by segment_key).
  */
-export async function seedWorldSegmentsFromPipeline(client, worldId, pipeline, graph) {
+export async function seedWorldSegmentsFromPipeline(client, worldId, pipeline, graph, mechanismPackage = null) {
   const chapters = pipeline?.proposal?.chapters || [];
   if (!chapters.length) return 0;
 
@@ -206,6 +207,9 @@ export async function seedWorldSegmentsFromPipeline(client, worldId, pipeline, g
     });
     const refs = await buildSegmentRefs(client, worldId, actKey, { chapterId, runbook, clueIds });
 
+    const mechanismProjection = mechanismPackage
+      ? projectMechanismRound(mechanismPackage, sourceKey, { sequence: index + 1 })
+      : null;
     await upsertWorldSegment(client, worldId, {
       segmentKey: actKey,
       title: sanitizeText(runbook?.title || chapter.title || actKey, 200),
@@ -213,8 +217,15 @@ export async function seedWorldSegmentsFromPipeline(client, worldId, pipeline, g
       chapterId,
       story,
       operations,
-      mechanics: { source: "matrix_import", actKey },
-      metadata: { source: "matrix_import", actKey },
+      mechanics: mechanismProjection
+        ? { ...mechanismProjection, source: "matrix_import", actKey }
+        : { source: "matrix_import", actKey },
+      metadata: {
+        source: "matrix_import",
+        actKey,
+        mechanismPackageSchemaVersion: mechanismProjection?.schemaVersion ?? null,
+        mechanismRoundKey: mechanismProjection?.roundKey ?? null
+      },
       refs
     });
     count += 1;

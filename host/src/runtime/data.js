@@ -110,7 +110,12 @@ async function loadHostDataInternal(withToast = false) {
         api.getHostVotes().catch(() => ({ votes: [] })),
         api.getHostPrivateActions().catch(() => ({ actions: [] })),
         api.getHostMiniGames().catch(() => ({ games: [] })),
-        api.getHostCurrentState().catch(() => null)
+        api.getHostCurrentState().catch(() => null),
+        api.getHostMechanismRuntime().catch((error) => ({
+          initialized: false,
+          error: formatApiError(error, "机制运行态加载失败"),
+          errorCode: error?.code || ""
+        }))
       ]);
       if (results[0].status === "fulfilled") applyHostPlayersPayload(results[0].value);
       else {
@@ -128,6 +133,7 @@ async function loadHostDataInternal(withToast = false) {
       if (results[8].status === "fulfilled") state.cloudHostPrivateActions = results[8].value?.actions || [];
       if (results[9].status === "fulfilled") applyHostMiniGamesPayload(results[9].value);
       if (results[10].status === "fulfilled") state.currentState = results[10].value;
+      if (results[11].status === "fulfilled") state.cloudHostMechanismRuntime = results[11].value;
     } else {
       state.cloudHostPlayers = [];
       state.cloudHostEvents = [];
@@ -141,6 +147,9 @@ async function loadHostDataInternal(withToast = false) {
       state.cloudHostPrivateActions = [];
       state.cloudHostMiniGames = [];
       state.currentState = null;
+      state.cloudHostMechanismRuntime = null;
+      state.hostMechanismBusy = "";
+      state.hostMechanismError = "";
       state.cloudRunReport = null;
     }
 
@@ -242,7 +251,7 @@ export async function refreshHostRoom(withToast = false) {
   const generation = ++roomRefreshGeneration;
   try {
     const logParams = { limit: "20", roomId: getRoomId() };
-    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions, currentState] = await Promise.all([
+    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions, currentState, mechanismRuntime] = await Promise.all([
       api.getHostPlayers(),
       api.getHostEvents(),
       api.getWorldLogs(logParams),
@@ -251,7 +260,12 @@ export async function refreshHostRoom(withToast = false) {
       api.getHostMiniGames().catch(() => ({ games: [] })),
       api.getHostVotes().catch(() => ({ votes: [] })),
       api.getHostPrivateActions().catch(() => ({ actions: [] })),
-      api.getHostCurrentState().catch(() => null)
+      api.getHostCurrentState().catch(() => null),
+      api.getHostMechanismRuntime().catch((error) => ({
+        initialized: false,
+        error: formatApiError(error, "机制运行态加载失败"),
+        errorCode: error?.code || ""
+      }))
     ]);
     if (generation !== roomRefreshGeneration) return false;
     applyHostPlayersPayload(hostPlayers);
@@ -263,6 +277,7 @@ export async function refreshHostRoom(withToast = false) {
     state.cloudHostVotes = votes?.votes || [];
     state.cloudHostPrivateActions = privateActions?.actions || [];
     state.currentState = currentState;
+    state.cloudHostMechanismRuntime = mechanismRuntime;
     if (state.view === "console") renderRef();
     if (withToast) {
       toastRef(

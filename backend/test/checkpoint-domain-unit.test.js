@@ -25,7 +25,8 @@ test("checkpoint snapshot uses one repository round trip", async () => {
           content_unlocks: [],
           rule_executions: [],
           investigation_records: [],
-          player_states: []
+          player_states: [],
+          mechanism_runtime: null
         }]
       };
     }
@@ -34,8 +35,24 @@ test("checkpoint snapshot uses one repository round trip", async () => {
   const snapshot = await buildRoomCheckpointSnapshot("room-1", { client });
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0].params, ["room-1", true]);
-  assert.equal(snapshot.schemaVersion, 2);
+  assert.equal(snapshot.schemaVersion, 3);
+  assert.equal(snapshot.mechanismRuntime, null);
   assert.deepEqual(snapshot.players, []);
+});
+
+test("legacy checkpoint restore never interprets an absent runtime as deletion", () => {
+  const scope = validateRestoreSnapshot({
+    schemaVersion: 2,
+    readingProgress: [],
+    clueOwnership: [],
+    inventory: [],
+    contentUnlocks: [],
+    pendingEvents: [],
+    investigationRecords: [],
+    playerStates: [],
+    ruleExecutions: []
+  }, { mechanismRuntime: true });
+  assert.equal(scope.mechanismRuntime, false);
 });
 
 test("checkpoint restore batches rows per dataset instead of per row", async () => {

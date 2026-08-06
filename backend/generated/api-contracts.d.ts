@@ -1047,6 +1047,9 @@ export interface RuntimeContentResponse {
     world: {
       [k: string]: unknown;
     } | null;
+    mechanismPackage: {
+      [k: string]: unknown;
+    } | null;
     chapters: {
       [k: string]: unknown;
     }[];

@@ -13,9 +13,13 @@ import { createHostRuleWorkspaceController } from "./host-rule-workspace-control
 import { hostRuleWorkspaceIsPending } from "./host-rule-workspace-model.js";
 import { createHostVoteWorkspaceController } from "./host-vote-workspace-controller.js";
 import { hostVoteWorkspaceIsPending } from "./host-vote-workspace-model.js";
+import { createHostMechanismController } from "./host-mechanism-controller.js";
 import { state } from "../state.js";
 
 export function hostConsoleNavigationBlockReason(stateRef = state) {
+  if (stateRef.hostMechanismBusy) {
+    return "机制状态仍在结算，请等待服务器返回后再离开。";
+  }
   if (hostOperationIsSubmitting(stateRef.hostOperation)) {
     return "现场命令仍在提交，请等待服务器返回后再离开。";
   }
@@ -55,8 +59,10 @@ export function createHostConsoleRuntime({ render, showToast }) {
   const hostOperations = createHostOperationController({ render, showToast });
   const hostArchive = createHostArchiveController({ render, showToast });
   const hostRules = createHostRuleWorkspaceController({ render, showToast });
+  const hostMechanism = createHostMechanismController({ render, showToast });
 
   async function handleAction(action, element) {
+    if (await hostMechanism.handleAction(action, element)) return true;
     if (await miniGameActions(action, element)) return true;
     if (await hostEvents.handleAction(action, element)) return true;
     if (await hostVotes.handleAction(action, element)) return true;

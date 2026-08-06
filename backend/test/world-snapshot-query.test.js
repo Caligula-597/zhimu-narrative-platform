@@ -20,7 +20,8 @@ test("buildWorldSnapshot loads every domain in one database round trip", async (
           edges: [{ id: "edge-1" }],
           rules: [{ id: "rule-1" }],
           rooms: [{ id: "room-1" }],
-          segments: [{ id: "segment-1" }]
+          segments: [{ id: "segment-1" }],
+          mechanism_package: { schemaVersion: 1, rounds: [] }
         }]
       };
     }
@@ -33,6 +34,7 @@ test("buildWorldSnapshot loads every domain in one database round trip", async (
   assert.deepEqual(calls[0].params, ["world-1"]);
   assert.equal(snapshot.world.id, "world-1");
   assert.equal(snapshot.investigationPoints[0].id, "point-1");
+  assert.equal(snapshot.mechanismPackage.schemaVersion, 1);
   for (const field of ["chapters", "roles", "sections", "scenes", "clues", "items", "edges", "rules", "rooms", "segments"]) {
     assert.equal(snapshot[field].length, 1, `${field} should be preserved`);
   }

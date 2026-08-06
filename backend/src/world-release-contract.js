@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { assertMechanismPackage } from "./mechanism-package.js";
 
 export const WORLD_RELEASE_SNAPSHOT_VERSION = 1;
 
@@ -82,6 +83,15 @@ export function assertWorldReleaseSnapshot(snapshot) {
       throw new TypeError(`Release snapshot field ${key} must be an array`);
     }
   }
+  if (snapshot.mechanismPackage != null) {
+    if (typeof snapshot.mechanismPackage !== "object" || Array.isArray(snapshot.mechanismPackage)) {
+      throw new TypeError("Release snapshot mechanismPackage must be an object or null");
+    }
+    if (!Number.isInteger(snapshot.mechanismPackage.schemaVersion) || snapshot.mechanismPackage.schemaVersion < 1) {
+      throw new TypeError("Release snapshot mechanismPackage must declare a positive schema version");
+    }
+    assertMechanismPackage(snapshot.mechanismPackage);
+  }
   return snapshot;
 }
 
@@ -94,7 +104,10 @@ export function summarizeWorldReleaseSnapshot(snapshot) {
   return {
     counts,
     hasCoreTrick: Boolean(snapshot.coreTrick),
-    totalObjects: Object.values(counts).reduce((sum, value) => sum + value, 0) + (snapshot.coreTrick ? 1 : 0)
+    hasMechanismPackage: Boolean(snapshot.mechanismPackage),
+    totalObjects: Object.values(counts).reduce((sum, value) => sum + value, 0)
+      + (snapshot.coreTrick ? 1 : 0)
+      + (snapshot.mechanismPackage ? 1 : 0)
   };
 }
 

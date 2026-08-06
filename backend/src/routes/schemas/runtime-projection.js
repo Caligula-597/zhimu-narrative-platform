@@ -60,13 +60,14 @@ export const runtimeContentResponseSchema = {
         "schemaVersion", "sourceRevision", "narrativeProfile", "world",
         "chapters", "roles", "sections", "scenes", "clues",
         "investigationPoints", "items", "edges", "rules", "segments", "segmentRefs",
-        "playerTasks"
+        "playerTasks", "mechanismPackage"
       ],
       properties: {
         schemaVersion: { anyOf: [{ type: "integer", minimum: 1 }, { type: "null" }] },
         sourceRevision: { type: "integer", minimum: 1 },
         narrativeProfile: { anyOf: [openObject, { type: "null" }] },
         world: { anyOf: [openObject, { type: "null" }] },
+        mechanismPackage: { anyOf: [openObject, { type: "null" }] },
         chapters: openObjectArray,
         roles: openObjectArray,
         sections: openObjectArray,

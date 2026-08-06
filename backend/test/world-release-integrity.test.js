@@ -47,6 +47,40 @@ async function createReleaseReadyWorld(context) {
      VALUES ($1, 'ch1', '第一章', 1, $2::jsonb)`,
     [world.id, JSON.stringify({ flow: "依次推进", hostTruth: "主持人真相" })]
   );
+  await query(
+    `INSERT INTO world_mechanism_packages (world_id, schema_version, source, package)
+     VALUES ($1, 1, 'test_fixture', $2::jsonb)`,
+    [world.id, JSON.stringify({
+      schemaVersion: 1,
+      source: "test_fixture",
+      factLedger: [],
+      entities: [],
+      authorizationMatrix: [],
+      eventLedger: [],
+      stateRegistry: [],
+      resourceRegistry: [],
+      rounds: [{
+        key: "ch1",
+        sequence: 1,
+        stateReads: [],
+        stateWrites: [],
+        resourceDeltas: [],
+        unlocksEvidenceKeys: [],
+        locksEvidenceKeys: [],
+        evidenceKeys: [],
+        onReadFail: {}
+      }],
+      actions: [],
+      investigationActions: [],
+      evidenceGraph: { evidence: [], conclusions: [], misdirections: [] },
+      decisionNodes: [],
+      branchFragments: [],
+      endingRoutes: [],
+      endingResolution: { defaultRouteKey: "", conflictResolution: "" },
+      roleDisclosureStates: [],
+      worldRules: []
+    })]
+  );
   return {
     worldId: world.id,
     revision: Number(world.content_revision),
@@ -228,6 +262,8 @@ test("world release creation is idempotent, private and update-immutable", async
     [release.id]
   );
   assert.equal(stored.rows[0].snapshot.sections[0].body, "冻结前正文");
+  assert.equal(stored.rows[0].snapshot.mechanismPackage.schemaVersion, 1);
+  assert.equal(stored.rows[0].snapshot.mechanismPackage.rounds[0].key, "ch1");
 
   await assert.rejects(
     query(`UPDATE world_releases SET label = '禁止覆盖' WHERE id = $1`, [release.id]),

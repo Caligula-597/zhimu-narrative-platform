@@ -61,6 +61,29 @@ function validSnapshot(overrides = {}) {
   };
 }
 
+function emptyMechanismPackage() {
+  return {
+    schemaVersion: 1,
+    source: "test",
+    factLedger: [],
+    entities: [],
+    authorizationMatrix: [],
+    eventLedger: [],
+    stateRegistry: [],
+    resourceRegistry: [],
+    rounds: [],
+    actions: [],
+    investigationActions: [],
+    evidenceGraph: { evidence: [], conclusions: [], misdirections: [] },
+    decisionNodes: [],
+    branchFragments: [],
+    endingRoutes: [],
+    endingResolution: { defaultRouteKey: "", conflictResolution: "" },
+    roleDisclosureStates: [],
+    worldRules: []
+  };
+}
+
 test("release digest is stable across object key insertion order", () => {
   const left = { world: { name: "A", id: "1" }, values: [{ z: 2, a: 1 }] };
   const right = { values: [{ a: 1, z: 2 }], world: { id: "1", name: "A" } };
@@ -89,6 +112,15 @@ test("release snapshot summary counts every authored runtime collection", () => 
   assert.throws(
     () => assertWorldReleaseSnapshot({ ...snapshot, playerTasks: {} }),
     /playerTasks must be an array/
+  );
+
+  const withMechanism = validSnapshot({ mechanismPackage: emptyMechanismPackage() });
+  const mechanismSummary = summarizeWorldReleaseSnapshot(withMechanism);
+  assert.equal(mechanismSummary.hasMechanismPackage, true);
+  assert.equal(mechanismSummary.totalObjects, 5);
+  assert.throws(
+    () => assertWorldReleaseSnapshot(validSnapshot({ mechanismPackage: [] })),
+    /mechanismPackage must be an object/
   );
 });
 

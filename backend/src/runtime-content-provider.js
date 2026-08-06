@@ -42,7 +42,8 @@ function runtimeContent(snapshot, provider) {
     schemaVersion: snapshot.schemaVersion ?? null,
     sourceRevision: Number(snapshot.sourceRevision ?? provider.sourceRevision),
     narrativeProfile: snapshot.narrativeProfile ?? null,
-    world: snapshot.world ?? null
+    world: snapshot.world ?? null,
+    mechanismPackage: snapshot.mechanismPackage ?? null
   };
   for (const field of RUNTIME_COLLECTIONS) content[field] = provider.collection(field);
   return content;

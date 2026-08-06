@@ -318,10 +318,10 @@ test("pipeline import normalizes unsafe AI role and proposal fields", async (con
   assert.equal(Number(chapter.rows[0].summary_len), 2000);
 });
 
-test("buildRoomCheckpointSnapshot returns schema v2 without pg client overlap", async () => {
+test("buildRoomCheckpointSnapshot returns schema v3 without pg client overlap", async () => {
   const snapshot = await buildRoomCheckpointSnapshot(fixtureRoomId);
   assert.ok(snapshot);
-  assert.equal(snapshot.schemaVersion, 2);
+  assert.equal(snapshot.schemaVersion, 3);
   assert.ok(Array.isArray(snapshot.players));
   assert.ok(Array.isArray(snapshot.clueOwnership));
 });

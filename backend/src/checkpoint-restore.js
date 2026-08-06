@@ -8,6 +8,12 @@ import {
   applyCheckpointState,
   clearCheckpointScope
 } from "./repositories/checkpoint-restore-state-repository.js";
+import {
+  appendRoomMechanismAction,
+  findRoomMechanismState,
+  insertRoomMechanismState,
+  updateRoomMechanismRuntime
+} from "./repositories/room-mechanism-runtime-repository.js";
 
 export const DEFAULT_CHECKPOINT_RESTORE_SCOPE = Object.freeze({
   readingProgress: true,
@@ -18,6 +24,7 @@ export const DEFAULT_CHECKPOINT_RESTORE_SCOPE = Object.freeze({
   investigationRecords: true,
   playerStates: true,
   ruleExecutions: true,
+  mechanismRuntime: true,
   timelineLogs: false
 });
 
@@ -75,6 +82,19 @@ export function validateRestoreSnapshot(snapshot, scopeInput = {}) {
     throwErr("SNAPSHOT_VERSION_UNSUPPORTED", undefined, { schemaVersion: version });
   }
   const scope = resolveCheckpointRestoreScope(scopeInput);
+  // V2 snapshots predate mechanism runtime capture. Treat the missing dataset
+  // as "not captured", never as an instruction to erase current room state.
+  if (version < 3) scope.mechanismRuntime = false;
+  if (scope.mechanismRuntime && snapshot.mechanismRuntime != null) {
+    const mechanism = snapshot.mechanismRuntime;
+    if (!mechanism || typeof mechanism !== "object" || Array.isArray(mechanism)
+      || !mechanism.runtime || typeof mechanism.runtime !== "object" || Array.isArray(mechanism.runtime)
+      || !Number.isInteger(Number(mechanism.mechanismSchemaVersion))
+      || !Number.isInteger(Number(mechanism.sourceContentRevision))
+      || !/^[0-9a-f]{64}$/.test(String(mechanism.mechanismPackageSha256 ?? ""))) {
+      throwErr("INVALID_SNAPSHOT", undefined, { dataset: "mechanismRuntime", reason: "invalid_runtime_binding" });
+    }
+  }
   if (scope.timelineLogs && snapshot.timelineLogsTruncated === true) {
     throwErr("SNAPSHOT_TIMELINE_TRUNCATED");
   }
@@ -173,8 +193,80 @@ function projectBeforeSnapshot(snapshot, scope) {
   for (const [scopeKey, dataset] of Object.entries(SCOPE_DATASETS)) {
     if (scope[scopeKey]) projected[dataset] = snapshot[dataset] ?? [];
   }
+  if (scope.mechanismRuntime) projected.mechanismRuntime = snapshot.mechanismRuntime ?? null;
   if (scope.timelineLogs) projected.timelineLogsTruncated = snapshot.timelineLogsTruncated === true;
   return projected;
+}
+
+function mechanismBindingMatches(current, captured) {
+  return current.mechanismSchemaVersion === Number(captured.mechanismSchemaVersion)
+    && current.contentBindingMode === captured.contentBindingMode
+    && current.contentReleaseId === (captured.contentReleaseId ?? null)
+    && current.sourceContentRevision === Number(captured.sourceContentRevision)
+    && current.mechanismPackageSha256 === captured.mechanismPackageSha256;
+}
+
+export async function restoreMechanismRuntimeFromCheckpoint(client, {
+  roomId,
+  sourceRoomId,
+  actorId,
+  captured,
+  checkpointId = null,
+  restoreId = null
+}) {
+  if (captured == null) return { applied: false, reason: "not_initialized_at_capture" };
+  if (sourceRoomId !== roomId) throwErr("CHECKPOINT_MECHANISM_CROSS_ROOM_UNSUPPORTED");
+
+  const current = await findRoomMechanismState(roomId, { client, forUpdate: true });
+  if (current && !mechanismBindingMatches(current, captured)) {
+    throwErr("MECHANISM_RUNTIME_CONTENT_MISMATCH", undefined, {
+      expectedSha256: current.mechanismPackageSha256,
+      capturedSha256: captured.mechanismPackageSha256
+    });
+  }
+
+  const revisionBefore = current?.revision ?? 0;
+  const restored = current
+    ? await updateRoomMechanismRuntime(client, {
+        roomId,
+        expectedRevision: current.revision,
+        runtime: captured.runtime
+      })
+    : await insertRoomMechanismState(client, {
+        roomId,
+        mechanismSchemaVersion: Number(captured.mechanismSchemaVersion),
+        contentBindingMode: captured.contentBindingMode,
+        contentReleaseId: captured.contentReleaseId ?? null,
+        sourceContentRevision: Number(captured.sourceContentRevision),
+        mechanismPackageSha256: captured.mechanismPackageSha256,
+        actorId,
+        runtime: captured.runtime,
+        metadata: { restoredFromCheckpoint: true }
+      });
+
+  if (!restored) {
+    throwErr("MECHANISM_RUNTIME_REVISION_CONFLICT", undefined, { expectedRevision: revisionBefore });
+  }
+  await appendRoomMechanismAction(client, {
+    roomId,
+    actorId,
+    revisionBefore,
+    revisionAfter: restored.revision,
+    roundKey: restored.runtime.currentRoundKey,
+    actionType: "override",
+    actionKey: "checkpoint-restore",
+    changes: [{
+      targetType: "runtime",
+      targetKey: "checkpoint",
+      operation: "restore",
+      capturedRevision: Number(captured.capturedRevision ?? 0),
+      revisionBefore,
+      revisionAfter: restored.revision
+    }],
+    request: { checkpointId, restoreId },
+    metadata: { source: "checkpoint-restore" }
+  });
+  return { applied: true, revisionBefore, revisionAfter: restored.revision };
 }
 
 export async function restoreRoomFromCheckpoint(client, roomId, snapshot, scopeInput = {}, options = {}) {
@@ -193,6 +285,16 @@ export async function restoreRoomFromCheckpoint(client, roomId, snapshot, scopeI
   const state = normalizeCheckpointState(snapshot);
   await clearCheckpointScope(client, roomId, scope);
   await applyCheckpointState(client, roomId, state, scope);
+  const mechanismRestore = scope.mechanismRuntime
+    ? await restoreMechanismRuntimeFromCheckpoint(client, {
+        roomId,
+        sourceRoomId,
+        actorId: options.actorId ?? null,
+        captured: snapshot.mechanismRuntime ?? null,
+        checkpointId: options.checkpointId ?? null,
+        restoreId: options.restoreId ?? null
+      })
+    : { applied: false, reason: "scope_disabled" };
   await appendCheckpointRestoreLog(client, { roomId, snapshot, scope, sourceRoomId });
-  return { beforeSnapshot, scope, sourceRoomId, targetRoomId: roomId };
+  return { beforeSnapshot, scope, sourceRoomId, targetRoomId: roomId, mechanismRestore };
 }
