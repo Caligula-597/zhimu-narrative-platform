@@ -4,6 +4,13 @@ const asArray = (value) => (Array.isArray(value) ? value : []);
 const clone = (value) => structuredClone(value);
 const valueSignature = (value) => JSON.stringify(value);
 
+function withRecordValue(record, key, value) {
+  return Object.fromEntries([
+    ...Object.entries(record ?? {}).filter(([entryKey]) => entryKey !== key),
+    [key, value]
+  ]);
+}
+
 export class MechanismRuntimeError extends Error {
   constructor(code, message, details = undefined) {
     super(message);
@@ -95,7 +102,7 @@ function applyEffect(runtimeInput, effect, packageValue, changes, sourceKey) {
     else if (effect.operation === "remove") after = asArray(before).filter((entry) => valueSignature(entry) !== valueSignature(effect.value));
     else fail("MECHANISM_OPERATION_UNSUPPORTED", `Unsupported state operation ${effect.operation}`, { effect });
     validateStateValue(packageValue, targetKey, after);
-    runtime.states[targetKey] = after;
+    runtime.states = withRecordValue(runtime.states, targetKey, after);
     setChange(changes, "state", targetKey, before, after, sourceKey);
     return runtime;
   }
@@ -108,7 +115,7 @@ function applyEffect(runtimeInput, effect, packageValue, changes, sourceKey) {
     else if (effect.operation === "set") after = Number(effect.amount ?? effect.value ?? 0);
     else fail("MECHANISM_OPERATION_UNSUPPORTED", `Unsupported resource operation ${effect.operation}`, { effect });
     validateResourceValue(packageValue, targetKey, after);
-    runtime.resources[targetKey] = after;
+    runtime.resources = withRecordValue(runtime.resources, targetKey, after);
     setChange(changes, "resource", targetKey, before, after, sourceKey);
     return runtime;
   }
@@ -119,14 +126,14 @@ function applyEffect(runtimeInput, effect, packageValue, changes, sourceKey) {
     const before = runtime.evidence[targetKey];
     const after = effect.operation === "unlock" ? "available" : effect.operation === "lock" ? "locked" : null;
     if (!after) fail("MECHANISM_OPERATION_UNSUPPORTED", `Unsupported evidence operation ${effect.operation}`, { effect });
-    runtime.evidence[targetKey] = after;
+    runtime.evidence = withRecordValue(runtime.evidence, targetKey, after);
     setChange(changes, "evidence", targetKey, before, after, sourceKey);
     return runtime;
   }
   if (effect?.targetType === "event") {
     if (effect.operation !== "trigger") fail("MECHANISM_OPERATION_UNSUPPORTED", `Unsupported event operation ${effect.operation}`, { effect });
     const before = runtime.events[targetKey];
-    runtime.events[targetKey] = true;
+    runtime.events = withRecordValue(runtime.events, targetKey, true);
     setChange(changes, "event", targetKey, before, true, sourceKey);
     return runtime;
   }
@@ -205,7 +212,7 @@ function applyWorldRules(runtimeInput, packageValue, roundKey) {
     if (!triggersPass || !conditionsPass) continue;
     for (const effect of asArray(rule.effects)) runtime = applyEffect(runtime, effect, packageValue, changes, `world-rule:${rule.key}`);
     const before = runtime.events[`world-rule:${rule.key}`];
-    runtime.events[`world-rule:${rule.key}`] = true;
+    runtime.events = withRecordValue(runtime.events, `world-rule:${rule.key}`, true);
     setChange(changes, "event", `world-rule:${rule.key}`, before, true, `world-rule:${rule.key}`);
   }
   return { runtime, changes };
@@ -267,7 +274,7 @@ export function executeMechanismDecision(runtimeInput, packageInput, { decisionK
   let runtime = clone(runtimeInput);
   const changes = [];
   for (const effect of option.effects) runtime = applyEffect(runtime, effect, packageValue, changes, `${decision.key}:${option.key}`);
-  runtime.decisionStates[decision.key] = option.key;
+  runtime.decisionStates = withRecordValue(runtime.decisionStates, decision.key, option.key);
   return { runtime, changes, action: { type: "decision", decisionKey, optionKey } };
 }
 
@@ -288,7 +295,7 @@ export function executeMechanismInvestigation(runtimeInput, packageInput, { inve
   runtime = applyStateWrites(runtime, branch.stateWrites, packageValue, changes, `${action.key}:${outcome}`);
   runtime = applyResourceDeltas(runtime, branch.resourceDeltas, packageValue, changes, `${action.key}:${outcome}`);
   runtime = applyEvidence(runtime, branch.unlocksEvidenceKeys, branch.locksEvidenceKeys, changes, `${action.key}:${outcome}`);
-  runtime.executedInvestigations[action.key] = outcome;
+  runtime.executedInvestigations = withRecordValue(runtime.executedInvestigations, action.key, outcome);
   return { runtime, changes, action: { type: "investigation", investigationKey, outcome } };
 }
 

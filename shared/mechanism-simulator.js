@@ -4,6 +4,13 @@ const asArray = (value) => (Array.isArray(value) ? value : []);
 const clone = (value) => structuredClone(value);
 const signature = (value) => JSON.stringify(value);
 
+function withRecordValue(record, key, value) {
+  return Object.fromEntries([
+    ...Object.entries(record ?? {}).filter(([entryKey]) => entryKey !== key),
+    [key, value]
+  ]);
+}
+
 function requirementSatisfied(current, operator, expected) {
   if (operator === "equals") return signature(current) === signature(expected);
   if (operator === "not_equals") return signature(current) !== signature(expected);
@@ -74,26 +81,30 @@ function applyEffect(rawSnapshot, effect, context, roundKey, sourceKey) {
   const targetKey = String(effect?.targetKey ?? "");
   if (effect?.targetType === "state") {
     const current = snapshot.states[targetKey];
-    if (effect.operation === "set") snapshot.states[targetKey] = clone(effect.value);
-    else if (effect.operation === "increment") snapshot.states[targetKey] = Number(current || 0) + Number(effect.value || 0);
-    else if (effect.operation === "decrement") snapshot.states[targetKey] = Number(current || 0) - Number(effect.value || 0);
-    else if (effect.operation === "add") snapshot.states[targetKey] = [...new Set([...(Array.isArray(current) ? current : []), clone(effect.value)])];
-    else if (effect.operation === "remove") snapshot.states[targetKey] = asArray(current).filter((entry) => signature(entry) !== signature(effect.value));
+    let nextValue;
+    if (effect.operation === "set") nextValue = clone(effect.value);
+    else if (effect.operation === "increment") nextValue = Number(current || 0) + Number(effect.value || 0);
+    else if (effect.operation === "decrement") nextValue = Number(current || 0) - Number(effect.value || 0);
+    else if (effect.operation === "add") nextValue = [...new Set([...(Array.isArray(current) ? current : []), clone(effect.value)])];
+    else if (effect.operation === "remove") nextValue = asArray(current).filter((entry) => signature(entry) !== signature(effect.value));
     else recordIssue(context, { code: "unsupported_operation", roundKey, sourceKey, targetType: "state", targetKey, operation: effect.operation });
+    if (nextValue !== undefined) snapshot.states = withRecordValue(snapshot.states, targetKey, nextValue);
     checkStateValue(context, snapshot, targetKey, roundKey, sourceKey);
   } else if (effect?.targetType === "resource") {
     const current = Number(snapshot.resources[targetKey] || 0);
-    if (effect.operation === "gain") snapshot.resources[targetKey] = current + Number(effect.amount || 0);
-    else if (effect.operation === "lose") snapshot.resources[targetKey] = current - Number(effect.amount || 0);
-    else if (effect.operation === "set") snapshot.resources[targetKey] = Number(effect.amount ?? effect.value ?? 0);
+    let nextValue;
+    if (effect.operation === "gain") nextValue = current + Number(effect.amount || 0);
+    else if (effect.operation === "lose") nextValue = current - Number(effect.amount || 0);
+    else if (effect.operation === "set") nextValue = Number(effect.amount ?? effect.value ?? 0);
     else recordIssue(context, { code: "unsupported_operation", roundKey, sourceKey, targetType: "resource", targetKey, operation: effect.operation });
+    if (nextValue !== undefined) snapshot.resources = withRecordValue(snapshot.resources, targetKey, nextValue);
     checkResourceValue(context, snapshot, targetKey, roundKey, sourceKey);
   } else if (effect?.targetType === "evidence") {
-    if (effect.operation === "unlock") snapshot.evidence[targetKey] = "available";
-    else if (effect.operation === "lock") snapshot.evidence[targetKey] = "locked";
+    if (effect.operation === "unlock") snapshot.evidence = withRecordValue(snapshot.evidence, targetKey, "available");
+    else if (effect.operation === "lock") snapshot.evidence = withRecordValue(snapshot.evidence, targetKey, "locked");
     else recordIssue(context, { code: "unsupported_operation", roundKey, sourceKey, targetType: "evidence", targetKey, operation: effect.operation });
   } else if (effect?.targetType === "event") {
-    if (effect.operation === "trigger") snapshot.events[targetKey] = true;
+    if (effect.operation === "trigger") snapshot.events = withRecordValue(snapshot.events, targetKey, true);
     else recordIssue(context, { code: "unsupported_operation", roundKey, sourceKey, targetType: "event", targetKey, operation: effect.operation });
   }
   return snapshot;
@@ -123,8 +134,8 @@ function applyResourceDeltas(snapshot, deltas, context, roundKey, sourceKey) {
 
 function applyEvidenceSwitches(rawSnapshot, unlocks, locks) {
   const snapshot = clone(rawSnapshot);
-  for (const key of asArray(unlocks)) snapshot.evidence[key] = "available";
-  for (const key of asArray(locks)) snapshot.evidence[key] = "locked";
+  for (const key of asArray(unlocks)) snapshot.evidence = withRecordValue(snapshot.evidence, key, "available");
+  for (const key of asArray(locks)) snapshot.evidence = withRecordValue(snapshot.evidence, key, "locked");
   return snapshot;
 }
 
@@ -139,7 +150,7 @@ function applyWorldRules(rawSnapshot, packageValue, context, roundKey) {
     ));
     if (!triggersPass || !conditionsPass) continue;
     for (const effect of asArray(rule.effects)) snapshot = applyEffect(snapshot, effect, context, roundKey, `world-rule:${rule.key}`);
-    snapshot.events[`world-rule:${rule.key}`] = true;
+    snapshot.events = withRecordValue(snapshot.events, `world-rule:${rule.key}`, true);
   }
   return snapshot;
 }

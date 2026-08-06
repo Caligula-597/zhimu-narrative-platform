@@ -187,3 +187,25 @@ test("room mechanism runtime rejects out-of-bounds resources before persistence"
   );
   assert.equal(runtime.resources["review-seat"], 2);
 });
+
+test("mechanism runtime stores author-defined keys without mutating object prototypes", () => {
+  const packageValue = runtimePackage();
+  packageValue.stateRegistry[0].key = "__proto__";
+  packageValue.decisionNodes[0].stateKey = "__proto__";
+  packageValue.decisionNodes[0].options[0].effects[0].targetKey = "__proto__";
+  packageValue.rounds[1].stateReads[0].stateKey = "__proto__";
+  packageValue.endingRoutes[0].requirements[0].targetKey = "__proto__";
+
+  const initialized = initializeMechanismRuntime(packageValue);
+  assert.equal(Object.getPrototypeOf(initialized.runtime.states), Object.prototype);
+  assert.equal(Object.hasOwn(initialized.runtime.states, "__proto__"), true);
+  assert.equal(initialized.runtime.states["__proto__"], "unknown");
+
+  const decided = executeMechanismDecision(initialized.runtime, packageValue, {
+    decisionKey: "decision-auth",
+    optionKey: "accept"
+  });
+  assert.equal(Object.getPrototypeOf(decided.runtime.states), Object.prototype);
+  assert.equal(decided.runtime.states["__proto__"], "accepted");
+  assert.equal({}.accepted, undefined);
+});
