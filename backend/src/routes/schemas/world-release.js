@@ -19,10 +19,11 @@ const readinessSummarySchema = {
 const contentSummarySchema = {
   type: "object",
   additionalProperties: false,
-  required: ["counts", "hasCoreTrick", "totalObjects"],
+  required: ["counts", "hasCoreTrick", "hasMechanismPackage", "totalObjects"],
   properties: {
     counts: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
     hasCoreTrick: { type: "boolean" },
+    hasMechanismPackage: { type: "boolean" },
     totalObjects: { type: "integer", minimum: 0 }
   }
 };

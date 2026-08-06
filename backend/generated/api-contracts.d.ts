@@ -745,6 +745,7 @@ export interface WorldReleaseSummary {
       [k: string]: number;
     };
     hasCoreTrick: boolean;
+    hasMechanismPackage: boolean;
     totalObjects: number;
   };
   contentSha256: string;
@@ -846,6 +847,7 @@ export interface RoomReleaseImpact {
           [k: string]: number;
         };
         hasCoreTrick: boolean;
+        hasMechanismPackage: boolean;
         totalObjects: number;
       };
       contentSha256: string;
@@ -892,6 +894,7 @@ export interface RoomReleaseImpact {
         [k: string]: number;
       };
       hasCoreTrick: boolean;
+      hasMechanismPackage: boolean;
       totalObjects: number;
     };
     contentSha256: string;
