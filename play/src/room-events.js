@@ -65,6 +65,27 @@ export async function handleRoomEvent(type, data, ctx) {
       await ctx.onRefresh();
       ctx.onToast(`房间内容已切换到 R${Number(data.releaseNumber) || "?"}`);
       break;
+    case "room.mechanism_state_updated": {
+      ctx.bumpTabPulse?.("home");
+      await ctx.onRefresh();
+      if (data.status === "completed") {
+        ctx.onToast("本场剧情机制已完成");
+      } else if (data.action === "initialize") {
+        ctx.onToast("主持人已开启本场剧情机制");
+      } else if (data.action === "reset") {
+        ctx.onToast("主持人已重置本场剧情机制");
+      } else if (data.action === "advance") {
+        const round = data.roundSequence ? `第 ${data.roundSequence} 轮` : "下一轮";
+        ctx.onToast(`剧情已推进到${round}${data.roundTitle ? `「${data.roundTitle}」` : ""}`);
+      } else if (data.action === "decision") {
+        ctx.onToast("主持人已结算本轮选择");
+      } else if (data.action === "investigation") {
+        ctx.onToast("本轮调查结果已结算");
+      } else {
+        ctx.onToast("主持人已更新本轮剧情状态");
+      }
+      break;
+    }
     case "room.section_relocked":
       if (affectsPlayer) {
         ctx.bumpTabPulse?.("sections");

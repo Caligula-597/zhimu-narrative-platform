@@ -73,6 +73,60 @@ function runtimeStateBanner() {
     </div>`;
 }
 
+function renderMechanismProgress() {
+  const mechanism = state.home?.currentState?.mechanism;
+  if (!mechanism) return "";
+  if (mechanism.stale) {
+    return `
+      <article class="mechanism-progress card is-waiting">
+        <p class="eyebrow">实时剧情机制</p>
+        <h3>等待主持人同步新版本</h3>
+        <p class="muted">当前机制与房间内容版本不一致，旧状态不会继续影响本场运行。</p>
+      </article>`;
+  }
+  if (!mechanism.initialized) {
+    return `
+      <article class="mechanism-progress card is-waiting">
+        <p class="eyebrow">实时剧情机制</p>
+        <h3>等待主持人开启</h3>
+        <p class="muted">创作者设计的机制已随剧本进入房间，主持人开启后会自动显示当前轮次。</p>
+      </article>`;
+  }
+  if (mechanism.status === "completed") {
+    return `
+      <article class="mechanism-progress card is-complete">
+        <p class="eyebrow">实时剧情机制 · 已完成</p>
+        <h3>${escapeHtml(mechanism.ending?.title || "本场机制已结算")}</h3>
+        <p class="muted">最终状态已由主持端确认并同步。</p>
+      </article>`;
+  }
+
+  const round = mechanism.currentRound;
+  if (!round) return "";
+  const decisions = asArray(mechanism.decisions);
+  return `
+    <article class="mechanism-progress card">
+      <div class="mechanism-progress-head">
+        <div>
+          <p class="eyebrow">实时剧情机制 · 第 ${Number(round.sequence) || 1} / ${Number(mechanism.totalRounds) || "?"} 轮</p>
+          <h3>${escapeHtml(round.title || "当前轮次")}</h3>
+        </div>
+        <span class="status-chip testing">主持端结算</span>
+      </div>
+      ${round.goal ? `<p class="mechanism-goal">${escapeHtml(round.goal)}</p>` : ""}
+      ${round.playerAction ? `<div class="mechanism-player-action"><span>你们现在要做</span><strong>${escapeHtml(round.playerAction)}</strong></div>` : ""}
+      ${decisions.map((decision) => `
+        <div class="mechanism-decision">
+          <span>本轮抉择</span>
+          <strong>${escapeHtml(decision.question || "请讨论并形成选择")}</strong>
+          <div class="mechanism-option-list">
+            ${asArray(decision.options).map((option) => `<em>${escapeHtml(option.choiceText)}</em>`).join("")}
+          </div>
+        </div>`).join("")}
+      <p class="muted small">选择由全桌讨论，主持人结算后会自动同步结果与下一轮。</p>
+    </article>`;
+}
+
 function renderRoomMembers() {
   const members = state.home?.roomMembers || [];
   if (!members.length) return "";
@@ -125,6 +179,7 @@ export function renderGameHome() {
     <div class="home-dashboard">
       ${roomContentBindingBanner()}
       ${runtimeStateBanner()}
+      ${renderMechanismProgress()}
       ${renderVoiceCompact()}
       <article class="player-hero card live-flash">
         <div class="player-hero-copy">

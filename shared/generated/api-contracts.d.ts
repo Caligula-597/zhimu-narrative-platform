@@ -1176,6 +1176,31 @@ export interface RuntimeCurrentState {
     target: string;
     reason: string;
   }[];
+  mechanism: {
+    initialized: boolean;
+    stale: boolean;
+    revision: number;
+    status: "not_started" | "running" | "completed";
+    totalRounds: number;
+    currentRound: {
+      sequence: number;
+      title: string;
+      goal: string;
+      playerAction: string;
+      genreMechanicUse: string;
+    } | null;
+    decisions: {
+      question: string;
+      options: {
+        choiceText: string;
+      }[];
+    }[];
+    ending: {
+      title: string;
+    } | null;
+    waitingForHost: boolean;
+    updatedAt: string | null;
+  } | null;
   blockers: {
     key: string;
     label: string;
@@ -1803,6 +1828,15 @@ export interface RoomContentReleaseChangedData {
   releaseId: string;
   releaseNumber: number;
   direction: "bind" | "upgrade" | "downgrade";
+  [k: string]: unknown;
+}
+
+export interface RoomMechanismStateUpdatedData {
+  action: "initialize" | "reset" | "decision" | "investigation" | "override" | "advance";
+  revision: number;
+  status: "running" | "completed";
+  roundSequence?: number;
+  roundTitle?: string;
   [k: string]: unknown;
 }
 

@@ -371,6 +371,58 @@ export function projectMechanismRuntime(runtimeInput, packageInput) {
   };
 }
 
+/**
+ * Return the deliberately small mechanism projection that may cross the
+ * host/player privacy boundary. Internal state keys, resources, evidence,
+ * branch conditions, host notes and effect mappings never leave this helper.
+ */
+export function projectPlayerMechanismRuntime(runtimeInput, packageInput, {
+  revision = 0,
+  stale = false,
+  updatedAt = null
+} = {}) {
+  const packageValue = assertMechanismPackage(packageInput);
+  const runtime = runtimeInput ? clone(runtimeInput) : null;
+  const round = runtime
+    ? packageValue.rounds.find((entry) => entry.key === runtime.currentRoundKey) ?? null
+    : null;
+  const endingRoute = runtime?.status === "completed"
+    ? packageValue.endingRoutes.find((entry) => entry.key === runtime.ending?.resolvedRouteKey) ?? null
+    : null;
+
+  return {
+    initialized: Boolean(runtime),
+    stale: Boolean(stale),
+    revision: Math.max(0, Number(revision) || 0),
+    status: runtime?.status === "completed"
+      ? "completed"
+      : runtime?.status === "running"
+        ? "running"
+        : "not_started",
+    totalRounds: packageValue.rounds.length,
+    currentRound: round ? {
+      sequence: Number(round.sequence),
+      title: String(round.title ?? ""),
+      goal: String(round.goal ?? ""),
+      playerAction: String(round.playerAction ?? ""),
+      genreMechanicUse: String(round.genreMechanicUse ?? "")
+    } : null,
+    decisions: runtime && round
+      ? packageValue.decisionNodes
+          .filter((decision) => decision.roundKey === round.key && !runtime.decisionStates?.[decision.key])
+          .map((decision) => ({
+            question: String(decision.question ?? ""),
+            options: decision.options.map((option) => ({
+              choiceText: String(option.choiceText ?? "")
+            }))
+          }))
+      : [],
+    ending: endingRoute ? { title: String(endingRoute.title ?? "") } : null,
+    waitingForHost: runtime?.status === "running",
+    updatedAt: updatedAt == null ? null : new Date(updatedAt).toISOString()
+  };
+}
+
 function runtimeReachabilitySignature(runtime) {
   return valueSignature({
     status: runtime.status,

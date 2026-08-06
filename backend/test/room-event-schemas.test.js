@@ -168,16 +168,32 @@ test("getRoomEventSchema returns null for unknown type", () => {
 });
 
 test("all production room contracts remain JSON-Schema-shaped and additive", () => {
-  assert.equal(Object.keys(ROOM_EVENT_SCHEMAS).length, 32);
+  assert.equal(Object.keys(ROOM_EVENT_SCHEMAS).length, 33);
   assert.ok(ROOM_EVENT_SCHEMAS["room.host_log_created"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.host_player_notes_updated"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.content_release_changed"]);
+  assert.ok(ROOM_EVENT_SCHEMAS["room.mechanism_state_updated"]);
   for (const schema of Object.values(ROOM_EVENT_SCHEMAS)) {
     assert.equal(schema.type, "object");
     assert.equal(schema.additionalProperties, true);
     assert.ok(Array.isArray(schema.required));
     assert.equal(typeof schema.properties, "object");
   }
+});
+
+test("mechanism state updates have a durable public event contract", () => {
+  const valid = validateRoomEvent("room.mechanism_state_updated", {
+    action: "advance",
+    revision: 4,
+    status: "running",
+    roundSequence: 2,
+    roundTitle: "第二次潮窗"
+  });
+  assert.equal(valid.ok, true);
+  assert.equal(validateRoomEvent("room.mechanism_state_updated", {
+    action: "advance",
+    status: "running"
+  }).ok, false);
 });
 
 test("room contract validates array item types", () => {

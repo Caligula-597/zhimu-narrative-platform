@@ -8,7 +8,8 @@ import {
   executeMechanismInvestigation,
   executeMechanismOverride,
   initializeMechanismRuntime,
-  projectMechanismRuntime
+  projectMechanismRuntime,
+  projectPlayerMechanismRuntime
 } from "../src/mechanism-runtime.js";
 
 function runtimePackage() {
@@ -130,6 +131,31 @@ test("room mechanism runtime executes decisions, investigations and cumulative e
   const completed = advanceMechanismRound(investigated.runtime, packageValue);
   assert.equal(completed.runtime.status, "completed");
   assert.equal(completed.runtime.ending.resolvedRouteKey, "ending-accepted");
+});
+
+test("player mechanism projection exposes the current prompt without host internals", () => {
+  const packageValue = runtimePackage();
+  packageValue.rounds[0].goal = "确认数字代理是否越权";
+  packageValue.rounds[0].playerAction = "讨论授权边界并形成共同意见";
+  packageValue.rounds[0].genreMechanicUse = "赛事复核";
+  packageValue.rounds[0].hostNotes = "主持人秘密提示";
+  const { runtime } = initializeMechanismRuntime(packageValue);
+  const projected = projectPlayerMechanismRuntime(runtime, packageValue, {
+    revision: 7,
+    updatedAt: "2026-08-06T10:00:00.000Z"
+  });
+  assert.equal(projected.status, "running");
+  assert.equal(projected.currentRound.title, "确认授权");
+  assert.equal(projected.currentRound.playerAction, "讨论授权边界并形成共同意见");
+  assert.equal(projected.decisions[0].options[0].choiceText, "承认授权");
+  const serialized = JSON.stringify(projected);
+  for (const hidden of ["state-auth", "review-seat", "evidence-log", "主持人秘密提示", "effects"]) {
+    assert.equal(serialized.includes(hidden), false, `${hidden} must not cross the player boundary`);
+  }
+
+  const waiting = projectPlayerMechanismRuntime(null, packageValue);
+  assert.equal(waiting.status, "not_started");
+  assert.equal(waiting.initialized, false);
 });
 
 test("runtime reachability starts from the persisted room state and reports remaining ending gaps", () => {

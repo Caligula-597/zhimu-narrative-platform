@@ -239,6 +239,16 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
         }
         showToast(`运行内容已切换到 R${Number(data.releaseNumber) || "?"}`, 3200);
         break;
+      case "room.mechanism_state_updated":
+        if (view === "rooms") {
+          await refreshCreatorRoomWorkspace();
+        } else if (view === "overview") {
+          await R.refreshHostRoom?.(false);
+        } else if (view === "player") {
+          await refreshPlayerHome();
+        }
+        if (data.status === "completed") showToast("剧情机制已完成结算", 2800);
+        break;
       case "room.game_started":
       case "room.game_updated":
       case "room.game_completed":

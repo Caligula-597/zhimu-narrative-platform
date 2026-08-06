@@ -23,6 +23,28 @@ test("content Release changes are visible to every room participant", () => {
   assert.equal(projectRoomEventForAudience(event, player).event, event);
 });
 
+test("mechanism progress is public but internal runtime data is stripped", () => {
+  const projected = projectRoomEventForAudience({
+    type: "room.mechanism_state_updated",
+    action: "advance",
+    revision: 3,
+    status: "running",
+    roundSequence: 2,
+    roundTitle: "打开压力锁",
+    states: { "state-secret": "exposed" },
+    evidence: { "evidence-murderer": "available" },
+    hostNotes: "仅主持人可见"
+  }, player).event;
+  assert.deepEqual(projected, {
+    type: "room.mechanism_state_updated",
+    action: "advance",
+    revision: 3,
+    status: "running",
+    roundSequence: 2,
+    roundTitle: "打开压力锁"
+  });
+});
+
 test("role-targeted events are not delivered to another player", () => {
   const hidden = projectRoomEventForAudience({
     type: "room.clue_granted",

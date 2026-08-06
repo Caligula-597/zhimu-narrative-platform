@@ -43,6 +43,19 @@ export function projectRoomEventForAudience(event, audience = {}) {
   const actorId = audience.actorId;
   const type = event.type;
 
+  if (type === "room.mechanism_state_updated") {
+    return {
+      event: {
+        type,
+        action: event.action,
+        revision: event.revision,
+        status: event.status,
+        ...(event.roundSequence == null ? {} : { roundSequence: event.roundSequence }),
+        ...(event.roundTitle ? { roundTitle: event.roundTitle } : {})
+      },
+      disconnectAfter: false
+    };
+  }
   if (PUBLIC_PLAYER_EVENT_TYPES.has(type)) return { event, disconnectAfter: false };
 
   if (type === "room.player_kicked") {

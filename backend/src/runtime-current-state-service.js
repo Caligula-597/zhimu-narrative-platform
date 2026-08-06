@@ -4,6 +4,8 @@ import {
   projectPlayerRuntimeContent
 } from "./runtime-content-provider.js";
 import { loadRuntimeStateFacts } from "./repositories/runtime-current-state-repository.js";
+import { projectRoomMechanismState } from "./repositories/room-mechanism-runtime-repository.js";
+import { projectPlayerMechanismRuntime } from "../../shared/mechanism-runtime.js";
 
 function action(key, label, priority, target, reason) {
   return { key, label, priority, target, reason };
@@ -13,7 +15,7 @@ function blocker(key, label, severity, target) {
   return { key, label, severity, target };
 }
 
-function playerState({ provider, facts, knowledge }) {
+function playerState({ provider, facts, knowledge, mechanism }) {
   const suggestions = [];
   const blockers = [];
   const frozenContent = !knowledge && provider.isFrozen
@@ -34,6 +36,18 @@ function playerState({ provider, facts, knowledge }) {
       ? [{ title: facts.live_next_section_title, completed: false }]
       : []);
   const nextSection = sections.find((section) => !section.completed);
+
+  if (mechanism?.stale) {
+    blockers.push(blocker("mechanism_stale", "主持人正在同步新的剧情机制版本", "warning", "home"));
+  } else if (mechanism?.status === "running" && mechanism.currentRound) {
+    suggestions.push(action(
+      "follow_mechanism_round",
+      mechanism.currentRound.playerAction || `参与第 ${mechanism.currentRound.sequence} 轮剧情`,
+      1,
+      "home",
+      mechanism.currentRound.goal || "主持人推进后，本轮结果会自动同步到玩家端"
+    ));
+  }
 
   if (provider.room.status === "paused") {
     blockers.push(blocker("room_paused", "房间已暂停，等待主持人恢复", "warning", "home"));
@@ -63,6 +77,24 @@ function playerState({ provider, facts, knowledge }) {
     suggestions,
     blockers
   };
+}
+
+function sameMechanismBinding(state, provider) {
+  if (!state) return true;
+  return state.contentBindingMode === provider.contentBinding.mode
+    && String(state.contentReleaseId ?? "") === String(provider.contentBinding.release?.id ?? "")
+    && state.sourceContentRevision === Number(provider.sourceRevision);
+}
+
+function mechanismState(provider, facts) {
+  const packageValue = provider.snapshot?.mechanismPackage ?? null;
+  if (!packageValue) return null;
+  const persisted = projectRoomMechanismState(facts.mechanism_state);
+  return projectPlayerMechanismRuntime(persisted?.runtime ?? null, packageValue, {
+    revision: persisted?.revision ?? 0,
+    stale: persisted ? !sameMechanismBinding(persisted, provider) : false,
+    updatedAt: persisted?.updatedAt ?? null
+  });
 }
 
 function hostState({ provider, facts, stuckCount = 0 }) {
@@ -135,14 +167,15 @@ export async function buildRuntimeCurrentState({
   const queryOptions = runQuery ? { runQuery } : {};
   const provider = providedProvider ?? await loadRuntimeContentProvider(roomId, {
     ...queryOptions,
-    includeLiveSnapshot: false
+    includeLiveSnapshot: true
   });
   if (!provider) throwErr("ROOM_NOT_FOUND");
   const facts = await loadRuntimeStateFacts({ roomId, roleSlotId }, runQuery);
   facts.roleSlotId = roleSlotId;
   if (provider.isFrozen) facts.total_roles = provider.collection("roles").length;
+  const mechanism = mechanismState(provider, facts);
   const audienceState = audience === "player"
-    ? playerState({ provider, facts, knowledge })
+    ? playerState({ provider, facts, knowledge, mechanism })
     : audience === "host"
       ? hostState({ provider, facts, stuckCount })
       : creatorState({ provider, facts });
@@ -154,6 +187,7 @@ export async function buildRuntimeCurrentState({
     phase: audienceState.phase,
     suggestedActions: audienceState.suggestions,
     blockers: audienceState.blockers,
+    mechanism,
     syncState: {
       status: "synced",
       runtimeSource: provider.runtimeSource,

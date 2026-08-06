@@ -101,6 +101,19 @@ function runtimeResponse(state, packageValue, provider, extra = {}) {
   };
 }
 
+function publicMechanismEventData(action, state, packageValue) {
+  const round = packageValue.rounds.find((entry) => entry.key === state.runtime.currentRoundKey) ?? null;
+  return {
+    action,
+    revision: state.revision,
+    status: state.runtime.status,
+    ...(state.runtime.currentRoundSequence == null
+      ? {}
+      : { roundSequence: state.runtime.currentRoundSequence }),
+    ...(round?.title ? { roundTitle: round.title } : {})
+  };
+}
+
 export async function getRoomMechanismRuntime({ roomId, includeHistory = false, historyLimit = 50 }) {
   const { provider, packageValue } = await loadContext(roomId);
   const state = await findRoomMechanismState(roomId);
@@ -188,12 +201,7 @@ export async function initializeRoomMechanismRuntime({
       targetId: roomId,
       metadata: { revision: state.revision, roundKey: state.runtime.currentRoundKey, ...binding }
     }, client);
-    queueEvent(roomId, "room.mechanism_state_updated", {
-      action: actionType,
-      revision: state.revision,
-      roundKey: state.runtime.currentRoundKey,
-      status: state.runtime.status
-    });
+    queueEvent(roomId, "room.mechanism_state_updated", publicMechanismEventData(actionType, state, packageValue));
     return runtimeResponse(state, packageValue, provider, { replayed: false });
   });
 }
@@ -283,12 +291,7 @@ export async function executeRoomMechanismAction({
         changes: result.changes
       }
     }, client);
-    queueEvent(roomId, "room.mechanism_state_updated", {
-      action: actionType,
-      revision: updated.revision,
-      roundKey: updated.runtime.currentRoundKey,
-      status: updated.runtime.status
-    });
+    queueEvent(roomId, "room.mechanism_state_updated", publicMechanismEventData(actionType, updated, packageValue));
     return runtimeResponse(updated, packageValue, provider, {
       appliedAction: result.action,
       changes: result.changes

@@ -53,84 +53,65 @@ export const hostMechanismRuntimeInitializeSchema = {
   response: { 200: mechanismRuntimeResponse, 201: mechanismRuntimeResponse }
 };
 
-const decisionAction = {
-  type: "object",
-  additionalProperties: false,
-  required: ["type", "decisionKey", "optionKey"],
-  properties: {
-    type: { const: "decision" },
-    decisionKey: { type: "string", minLength: 1, maxLength: 120 },
-    optionKey: { type: "string", minLength: 1, maxLength: 120 }
-  }
-};
-
-const investigationAction = {
-  type: "object",
-  additionalProperties: false,
-  required: ["type", "investigationKey"],
-  properties: {
-    type: { const: "investigation" },
-    investigationKey: { type: "string", minLength: 1, maxLength: 160 },
-    outcome: { type: "string", enum: ["success", "failure"] }
-  }
-};
-
-const advanceAction = {
-  type: "object",
-  additionalProperties: false,
-  required: ["type"],
-  properties: { type: { const: "advance" } }
-};
-
-const stateOverrideEffect = {
-  type: "object",
-  additionalProperties: false,
-  required: ["targetType", "targetKey", "operation", "value"],
-  properties: {
-    targetType: { const: "state" },
-    targetKey: { type: "string", minLength: 1, maxLength: 160 },
-    operation: { type: "string", enum: ["set", "increment", "decrement", "add", "remove"] },
-    value: {}
-  }
-};
-
-const resourceOverrideEffect = {
-  type: "object",
-  additionalProperties: false,
-  required: ["targetType", "targetKey", "operation", "amount"],
-  properties: {
-    targetType: { const: "resource" },
-    targetKey: { type: "string", minLength: 1, maxLength: 160 },
-    operation: { type: "string", enum: ["gain", "lose", "set"] },
-    amount: { type: "number" }
-  }
-};
-
-const evidenceOverrideEffect = {
+const mechanismOverrideEffect = {
   type: "object",
   additionalProperties: false,
   required: ["targetType", "targetKey", "operation"],
   properties: {
-    targetType: { const: "evidence" },
+    targetType: { type: "string", enum: ["state", "resource", "evidence"] },
     targetKey: { type: "string", minLength: 1, maxLength: 160 },
-    operation: { type: "string", enum: ["unlock", "lock"] }
-  }
+    operation: { type: "string" },
+    value: {},
+    amount: { type: "number" }
+  },
+  allOf: [{
+    if: { properties: { targetType: { const: "state" } }, required: ["targetType"] },
+    then: {
+      required: ["value"],
+      properties: { operation: { type: "string", enum: ["set", "increment", "decrement", "add", "remove"] } }
+    }
+  }, {
+    if: { properties: { targetType: { const: "resource" } }, required: ["targetType"] },
+    then: {
+      required: ["amount"],
+      properties: { operation: { type: "string", enum: ["gain", "lose", "set"] } }
+    }
+  }, {
+    if: { properties: { targetType: { const: "evidence" } }, required: ["targetType"] },
+    then: {
+      properties: { operation: { type: "string", enum: ["unlock", "lock"] } }
+    }
+  }]
 };
 
-const overrideAction = {
+const mechanismAction = {
   type: "object",
   additionalProperties: false,
-  required: ["type", "reason", "effects"],
+  required: ["type"],
   properties: {
-    type: { const: "override" },
+    type: { type: "string", enum: ["decision", "investigation", "advance", "override"] },
+    decisionKey: { type: "string", minLength: 1, maxLength: 120 },
+    optionKey: { type: "string", minLength: 1, maxLength: 120 },
+    investigationKey: { type: "string", minLength: 1, maxLength: 160 },
+    outcome: { type: "string", enum: ["success", "failure"] },
     reason: { type: "string", minLength: 10, maxLength: 500 },
     effects: {
       type: "array",
       minItems: 1,
       maxItems: 50,
-      items: { oneOf: [stateOverrideEffect, resourceOverrideEffect, evidenceOverrideEffect] }
+      items: mechanismOverrideEffect
     }
-  }
+  },
+  allOf: [{
+    if: { properties: { type: { const: "decision" } }, required: ["type"] },
+    then: { required: ["decisionKey", "optionKey"] }
+  }, {
+    if: { properties: { type: { const: "investigation" } }, required: ["type"] },
+    then: { required: ["investigationKey"] }
+  }, {
+    if: { properties: { type: { const: "override" } }, required: ["type"] },
+    then: { required: ["reason", "effects"] }
+  }]
 };
 
 export const hostMechanismRuntimeActionSchema = {
@@ -141,7 +122,7 @@ export const hostMechanismRuntimeActionSchema = {
     required: ["expectedRevision", "action"],
     properties: {
       expectedRevision: { type: "integer", minimum: 1 },
-      action: { oneOf: [decisionAction, investigationAction, advanceAction, overrideAction] }
+      action: mechanismAction
     }
   },
   response: { 200: mechanismRuntimeResponse }

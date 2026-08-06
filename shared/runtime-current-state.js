@@ -18,6 +18,9 @@ export function normalizeRuntimeCurrentState(value, {
     phase: source.phase ?? { key: "unknown", label: "状态待确认", detail: "" },
     suggestedActions: Array.isArray(source.suggestedActions) ? source.suggestedActions : [],
     blockers: Array.isArray(source.blockers) ? source.blockers : [],
+    mechanism: source.mechanism && typeof source.mechanism === "object"
+      ? source.mechanism
+      : null,
     syncState: {
       status,
       runtimeSource: source.syncState?.runtimeSource ?? "live_draft",
