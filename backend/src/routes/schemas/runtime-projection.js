@@ -60,13 +60,14 @@ export const runtimeContentResponseSchema = {
         "schemaVersion", "sourceRevision", "narrativeProfile", "world",
         "chapters", "roles", "sections", "scenes", "clues",
         "investigationPoints", "items", "edges", "rules", "segments", "segmentRefs",
-        "playerTasks"
+        "playerTasks", "mechanismPackage"
       ],
       properties: {
         schemaVersion: { anyOf: [{ type: "integer", minimum: 1 }, { type: "null" }] },
         sourceRevision: { type: "integer", minimum: 1 },
         narrativeProfile: { anyOf: [openObject, { type: "null" }] },
         world: { anyOf: [openObject, { type: "null" }] },
+        mechanismPackage: { anyOf: [openObject, { type: "null" }] },
         chapters: openObjectArray,
         roles: openObjectArray,
         sections: openObjectArray,
@@ -173,12 +174,74 @@ const runtimeActionSchema = {
   }
 };
 
+const playerMechanismProjectionSchema = {
+  anyOf: [{
+    type: "object",
+    additionalProperties: false,
+    required: [
+      "initialized", "stale", "revision", "status", "totalRounds",
+      "currentRound", "decisions", "ending", "waitingForHost", "updatedAt"
+    ],
+    properties: {
+      initialized: { type: "boolean" },
+      stale: { type: "boolean" },
+      revision: { type: "integer", minimum: 0 },
+      status: { type: "string", enum: ["not_started", "running", "completed"] },
+      totalRounds: { type: "integer", minimum: 0 },
+      currentRound: {
+        anyOf: [{
+          type: "object",
+          additionalProperties: false,
+          required: ["sequence", "title", "goal", "playerAction", "genreMechanicUse"],
+          properties: {
+            sequence: { type: "integer", minimum: 1 },
+            title: { type: "string" },
+            goal: { type: "string" },
+            playerAction: { type: "string" },
+            genreMechanicUse: { type: "string" }
+          }
+        }, { type: "null" }]
+      },
+      decisions: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["question", "options"],
+          properties: {
+            question: { type: "string" },
+            options: {
+              type: "array",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["choiceText"],
+                properties: { choiceText: { type: "string" } }
+              }
+            }
+          }
+        }
+      },
+      ending: {
+        anyOf: [{
+          type: "object",
+          additionalProperties: false,
+          required: ["title"],
+          properties: { title: { type: "string" } }
+        }, { type: "null" }]
+      },
+      waitingForHost: { type: "boolean" },
+      updatedAt: nullableDateTime
+    }
+  }, { type: "null" }]
+};
+
 export const runtimeCurrentStateSchema = {
   type: "object",
   additionalProperties: false,
   required: [
     "audience", "roomId", "worldId", "phase", "suggestedActions",
-    "blockers", "syncState", "metrics"
+    "blockers", "mechanism", "syncState", "metrics"
   ],
   properties: {
     audience: { type: "string", enum: ["player", "host", "creator"] },
@@ -195,6 +258,7 @@ export const runtimeCurrentStateSchema = {
       }
     },
     suggestedActions: { type: "array", items: runtimeActionSchema },
+    mechanism: playerMechanismProjectionSchema,
     blockers: {
       type: "array",
       items: {

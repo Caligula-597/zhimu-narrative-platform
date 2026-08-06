@@ -26,8 +26,33 @@ test("importDeepseekPipelinePackage seeds world_segments from Matrix", async (t)
     await pool.query(`DELETE FROM worlds WHERE id = $1`, [worldId]);
   });
 
-  const imported = await importDeepseekPipelinePackage(worldId, pipeline);
+  const pipelineWithOutline = structuredClone(pipeline);
+  pipelineWithOutline.outline = {
+    semanticConstitution: { facts: [], authorizationGrants: [], branchEvents: [], worldRules: [] },
+    entities: [],
+    resources: [],
+    players: [],
+    evidenceGraph: { evidence: [], conclusions: [] },
+    misdirections: [],
+    chapterBeats: pipeline.proposal.chapters.map((chapter, index) => ({
+      chapterKey: chapter.key,
+      title: chapter.title,
+      goal: `推进第 ${index + 1} 幕`,
+      stateReads: [],
+      stateWrites: [],
+      resourceDeltas: [],
+      unlocksEvidenceKeys: [],
+      locksEvidenceKeys: [],
+      evidenceKeys: [],
+      decision: { options: [] }
+    })),
+    endingLogic: { stateVariables: [], routes: [], defaultRouteKey: "", conflictResolution: "" }
+  };
+  const imported = await importDeepseekPipelinePackage(worldId, pipelineWithOutline);
   assert.equal(imported.segmentsSeeded, 2);
+  assert.equal(imported.mechanismPackageStored, true);
+  assert.equal(imported.mechanismPackageSchemaVersion, 1);
+  assert.equal(imported.mechanismValidationSummary.pathCount, 1);
   assert.ok(imported.bibleSeeded);
   assert.equal(imported.bibleSeeded.roleArchives, 1);
 
@@ -39,7 +64,7 @@ test("importDeepseekPipelinePackage seeds world_segments from Matrix", async (t)
   assert.equal(archives.rows[0].public_identity, "客人");
 
   const segments = await pool.query(
-    `SELECT segment_key, title, operations->>'flow' AS flow, operations->'playerTasks' AS player_tasks
+    `SELECT segment_key, title, mechanics, operations->>'flow' AS flow, operations->'playerTasks' AS player_tasks
      FROM world_segments WHERE world_id = $1 ORDER BY sequence`,
     [worldId]
   );
@@ -47,6 +72,17 @@ test("importDeepseekPipelinePackage seeds world_segments from Matrix", async (t)
   assert.equal(segments.rows[0].segment_key, "ch1");
   assert.match(segments.rows[0].flow || "", /宣读背景/);
   assert.ok((segments.rows[0].player_tasks || []).length >= 1);
+  assert.equal(segments.rows[0].mechanics.schemaVersion, 1);
+  assert.equal(segments.rows[0].mechanics.roundKey, "ch1");
+
+  const mechanismPackage = await pool.query(
+    `SELECT schema_version, package, metadata FROM world_mechanism_packages WHERE world_id = $1`,
+    [worldId]
+  );
+  assert.equal(mechanismPackage.rowCount, 1);
+  assert.equal(mechanismPackage.rows[0].schema_version, 1);
+  assert.equal(mechanismPackage.rows[0].package.rounds.length, 2);
+  assert.equal(mechanismPackage.rows[0].metadata.simulationSummary.pathCount, 1);
 
   const refs = await pool.query(
     `SELECT ref_type FROM world_segment_refs wsr

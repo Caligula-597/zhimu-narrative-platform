@@ -187,7 +187,36 @@ export async function loadRoomCheckpointSnapshot(roomId, { client = null, includ
                 SELECT role_slot_id, current_scene_id, variables, updated_at
                 FROM player_states WHERE room_id = room.id
               ) state
-            ), ${SNAPSHOT_ARRAY}) AS player_states
+            ), ${SNAPSHOT_ARRAY}) AS player_states,
+            (
+              SELECT jsonb_build_object(
+                'mechanismSchemaVersion', mechanism.mechanism_schema_version,
+                'contentBindingMode', mechanism.content_binding_mode,
+                'contentReleaseId', mechanism.content_release_id,
+                'sourceContentRevision', mechanism.source_content_revision,
+                'mechanismPackageSha256', mechanism.mechanism_package_sha256,
+                'capturedRevision', mechanism.revision,
+                'runtime', jsonb_build_object(
+                  'schemaVersion', 1,
+                  'mechanismSchemaVersion', mechanism.mechanism_schema_version,
+                  'status', mechanism.status,
+                  'currentRoundKey', mechanism.current_round_key,
+                  'currentRoundSequence', mechanism.current_round_sequence,
+                  'preparedRoundKey', mechanism.prepared_round_key,
+                  'currentBranch', mechanism.current_branch,
+                  'currentVariantKey', mechanism.current_variant_key,
+                  'states', mechanism.state_values,
+                  'resources', mechanism.resource_values,
+                  'evidence', mechanism.evidence_states,
+                  'events', mechanism.event_states,
+                  'decisionStates', mechanism.decision_states,
+                  'executedInvestigations', mechanism.executed_investigations,
+                  'ending', mechanism.ending
+                )
+              )
+              FROM room_mechanism_states mechanism
+              WHERE mechanism.room_id = room.id
+            ) AS mechanism_runtime
      FROM rooms room
      WHERE room.id = $1`,
     [roomId, includeTimelineLogs]

@@ -1489,6 +1489,71 @@ code {
   gap: 4px;
 }
 
+.mechanism-progress {
+  display: grid;
+  gap: 12px;
+  border-color: rgba(196, 120, 72, 0.28);
+  background: linear-gradient(135deg, rgba(255, 252, 245, 0.98), rgba(244, 249, 244, 0.96));
+}
+
+.mechanism-progress h3,
+.mechanism-progress p {
+  margin: 0;
+}
+
+.mechanism-progress.is-waiting {
+  border-style: dashed;
+}
+
+.mechanism-progress.is-complete {
+  border-color: rgba(44, 107, 98, 0.32);
+}
+
+.mechanism-progress-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mechanism-goal {
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+
+.mechanism-player-action,
+.mechanism-decision {
+  display: grid;
+  gap: 5px;
+  padding: 12px 14px;
+  border: 1px solid rgba(20, 35, 33, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.mechanism-player-action span,
+.mechanism-decision > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mechanism-option-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.mechanism-option-list em {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(44, 107, 98, 0.09);
+  color: var(--green);
+  font-size: 12px;
+  font-style: normal;
+}
+
 .tab-badge {
   display: inline-block;
   margin-left: 6px;

@@ -132,6 +132,17 @@ export const api = {
   getRules: (worldId = getWorldId()) => request(`/worlds/${worldId}/rules`),
   getRuntimeContent: () => request(roomPath("/runtime-content")),
   getHostCurrentState: () => request(roomPath("/host/current-state")),
+  getHostMechanismRuntime: () => request(`${roomPath("/host/mechanism-runtime")}?includeHistory=true&historyLimit=20`),
+  initializeHostMechanismRuntime: () => request(roomPath("/host/mechanism-runtime/initialize"), {
+    method: "POST",
+    body: {},
+    idempotent: true
+  }),
+  executeHostMechanismAction: (payload) => request(roomPath("/host/mechanism-runtime/actions"), {
+    method: "POST",
+    body: payload,
+    idempotent: true
+  }),
   getHostPlayerKnowledge: (roleSlotId) =>
     request(roomPath(`/host/players/${roleSlotId}/knowledge`)),
   createRule: (payload, worldId = getWorldId()) => request(`/worlds/${worldId}/rules`, { method: "POST", body: payload }),

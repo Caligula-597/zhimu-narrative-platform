@@ -60,6 +60,9 @@ export const WORLD_ARCHIVE_SNAPSHOT_SQL = `
       SELECT jsonb_agg(to_jsonb(ws) ORDER BY ws.sequence, ws.created_at)
       FROM world_segments ws WHERE ws.world_id = $1
     ), '[]'::jsonb) AS segments,
+    (SELECT package
+     FROM world_mechanism_packages mechanism
+     WHERE mechanism.world_id = $1) AS mechanism_package,
     COALESCE((
       SELECT jsonb_agg(to_jsonb(ref) ORDER BY ref.created_at)
       FROM world_segment_refs ref
@@ -181,7 +184,8 @@ export const WORLD_SNAPSHOT_SQL = `
       ) ORDER BY r.created_at DESC)
       FROM rooms r WHERE r.world_id = $1
     ), '[]'::jsonb) AS rooms,
-    COALESCE((SELECT jsonb_agg(to_jsonb(ws) ORDER BY ws.sequence, ws.created_at) FROM world_segments ws WHERE ws.world_id = $1), '[]'::jsonb) AS segments
+    COALESCE((SELECT jsonb_agg(to_jsonb(ws) ORDER BY ws.sequence, ws.created_at) FROM world_segments ws WHERE ws.world_id = $1), '[]'::jsonb) AS segments,
+    (SELECT package FROM world_mechanism_packages mechanism WHERE mechanism.world_id = $1) AS mechanism_package
 `;
 
 function snapshotFromRow(row, { archive = false } = {}) {
@@ -197,7 +201,8 @@ function snapshotFromRow(row, { archive = false } = {}) {
     edges: row.edges || [],
     rules: row.rules || [],
     rooms: row.rooms || [],
-    segments: row.segments || []
+    segments: row.segments || [],
+    mechanismPackage: row.mechanism_package || null
   };
   if (!archive) return snapshot;
   return {

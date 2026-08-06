@@ -44,6 +44,8 @@ export async function loadRoomReleaseBinding(client, { worldId, roomId, lock = f
               'miniGames', (SELECT COUNT(*)::int FROM room_mini_games item WHERE item.room_id = room.id),
               'taskProgress', (SELECT COUNT(*)::int FROM player_task_progress item WHERE item.room_id = room.id),
               'testimonies', (SELECT COUNT(*)::int FROM testimonies item WHERE item.room_id = room.id),
+              'mechanismRuntime', (SELECT COUNT(*)::int FROM room_mechanism_states item WHERE item.room_id = room.id),
+              'mechanismActions', (SELECT COUNT(*)::int FROM room_mechanism_action_log item WHERE item.room_id = room.id),
               'checkpoints', (SELECT COUNT(*)::int FROM checkpoints item WHERE item.room_id = room.id)
             ) AS runtime_evidence
      FROM rooms room

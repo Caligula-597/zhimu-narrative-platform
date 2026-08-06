@@ -31,13 +31,16 @@ function handledRoomEvents(file) {
   return new Set([...source.matchAll(/case\s+["'](room\.[a-z0-9_]+)["']/g)].map((match) => match[1]));
 }
 
-for (const [surface, file] of [
-  ["app", "../src/runtime/room-events.js"],
+// Creator authors mechanism packages but never operates room mechanism state;
+// that live event belongs to the canonical Host and Player portals.
+for (const [surface, file, exclusions = []] of [
+  ["app", "../src/runtime/room-events.js", ["room.mechanism_state_updated"]],
   ["host", "../host/src/runtime/room-events.js"],
   ["play", "../play/src/room-events.js"]
 ]) {
   const handled = handledRoomEvents(file);
-  const missing = sharedTypes.filter((type) => !handled.has(type));
+  const excluded = new Set(exclusions);
+  const missing = sharedTypes.filter((type) => !handled.has(type) && !excluded.has(type));
   assert.deepEqual(missing, [], `${surface} room-event consumer missing: ${missing.join(", ")}`);
 }
 

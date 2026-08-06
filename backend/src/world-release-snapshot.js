@@ -104,6 +104,7 @@ export async function buildWorldReleaseCandidate(worldId, sourceRevision, client
     edges: core.edges,
     rules: core.rules,
     segments: core.segments,
+    mechanismPackage: core.mechanismPackage,
     segmentRefs: support.segment_refs ?? [],
     truthClaims: support.truth_claims ?? [],
     roleRelationships: support.role_relationships ?? [],

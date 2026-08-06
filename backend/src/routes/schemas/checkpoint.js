@@ -38,6 +38,7 @@ export const restoreCheckpointSchema = {
           investigationRecords: { type: "boolean" },
           playerStates: { type: "boolean" },
           ruleExecutions: { type: "boolean" },
+          mechanismRuntime: { type: "boolean" },
           timelineLogs: { type: "boolean" }
         }
       }

@@ -82,6 +82,9 @@ export async function loadRuntimeStateFacts({ roomId, roleSlotId = null }, runQu
         WHERE progress.room_id = $1
           AND progress.role_slot_id = $2::uuid
           AND progress.completed_at IS NOT NULL) AS live_completed_sections,
+       (SELECT to_jsonb(mechanism_state)
+        FROM room_mechanism_states mechanism_state
+        WHERE mechanism_state.room_id = $1) AS mechanism_state,
        (SELECT COALESCE(MAX(journal.id), 0)
         FROM room_event_journal journal
         WHERE journal.room_id = $1) AS server_cursor`,

@@ -116,12 +116,15 @@ test("live provider preserves the legacy draft source contract", () => {
     world: { id: record.world_id, name: "Live world", settings: {} },
     roles: [{ id: roleId, name: "Live role" }],
     sections: [],
-    segments: []
+    segments: [],
+    mechanismPackage: { schemaVersion: 1, source: "test" }
   };
   const provider = createRuntimeContentProvider(record, { liveSnapshot: snapshot });
   assert.equal(provider.isFrozen, false);
   assert.equal(provider.runtimeSource, "live_draft");
   assert.equal(provider.find("roles", roleId).name, "Live role");
+  assert.equal(provider.toResponse().content.mechanismPackage.schemaVersion, 1);
+  assert.equal(projectPlayerRuntimeContent(provider, { roleSlotId: roleId }).mechanismPackage, undefined);
 });
 
 test("legacy releases without frozen tasks never fall through to live task rows", async () => {

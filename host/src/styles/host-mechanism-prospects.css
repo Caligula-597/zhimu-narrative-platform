@@ -1,0 +1,27 @@
+.host-mechanism-prospects {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.host-mechanism-prospect-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.host-mechanism-prospect {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--paper-soft);
+}
+
+.host-mechanism-prospect.is-closed { opacity: .68; }
+.host-mechanism-prospect > div { display: flex; align-items: center; gap: 8px; }
+.host-mechanism-prospect p { margin: 8px 0; color: var(--muted); }
+.host-mechanism-prospect small { color: var(--muted); }
+
+@media (max-width: 900px) {
+  .host-mechanism-prospect-list { grid-template-columns: 1fr; }
+}

@@ -142,6 +142,140 @@ const rooms = [{
   contentBinding: bindingFor(releaseId)
 }];
 
+const playerRoleId = "66666666-6666-4666-8666-555555550001";
+const playerSectionId = "77777777-7777-4777-8777-555555550001";
+
+function browserPlayerCurrentState(room) {
+  return {
+    audience: "player",
+    roomId: room.id,
+    worldId,
+    phase: { key: "playing", label: "剧情进行中", detail: "核对代理授权" },
+    suggestedActions: [{
+      key: "follow_mechanism_round",
+      label: "讨论授权是否覆盖正式比赛",
+      priority: 1,
+      target: "home",
+      reason: "确认数字代理的授权范围"
+    }],
+    blockers: [],
+    mechanism: {
+      initialized: true,
+      stale: false,
+      revision: 3,
+      status: "running",
+      totalRounds: 5,
+      currentRound: {
+        sequence: 2,
+        title: "核对代理授权",
+        goal: "确认身份凭证真实，并不等于授权范围覆盖正式比赛。",
+        playerAction: "讨论授权边界，并向主持人提交全桌共同意见",
+        genreMechanicUse: "赛事认证复核"
+      },
+      decisions: [{
+        question: "小满的训练授权是否可以被扩大为正式比赛授权？",
+        options: [{ choiceText: "认可扩大授权" }, { choiceText: "认定使用范围越权" }]
+      }],
+      ending: null,
+      waitingForHost: true,
+      updatedAt: "2026-08-06T10:00:00.000Z"
+    },
+    syncState: {
+      status: "synced",
+      runtimeSource: "live_draft",
+      isFrozen: false,
+      serverCursor: 12,
+      generatedAt: "2026-08-06T10:00:00.000Z"
+    },
+    metrics: {
+      joinedPlayers: 1,
+      totalRoles: 4,
+      pendingHostEvents: 0,
+      pendingPrivateActions: 0,
+      openVotes: 0,
+      activeGame: false
+    }
+  };
+}
+
+function browserPlayerHomeCore(room) {
+  return {
+    room: {
+      id: room.id,
+      worldId,
+      name: room.name,
+      status: room.status,
+      contentBinding: room.contentBinding
+    },
+    role: {
+      id: playerRoleId,
+      name: "小满",
+      public_profile: "职业选手，因伤缺席决胜局。",
+      private_profile: "你只授权数字孪生用于训练，从未授权它参加正式比赛。"
+    },
+    sections: [{
+      id: playerSectionId,
+      title: "第五局之后",
+      body: "服务器显示比赛已经完成，但你从未进入客户端。",
+      sequence: 1,
+      completed: true,
+      completed_at: "2026-08-06T09:55:00.000Z"
+    }],
+    notes: [],
+    clues: [],
+    sharedClues: [],
+    roomMembers: [],
+    suspicions: [],
+    testimonies: [],
+    privateActions: [],
+    voiceRooms: [],
+    inventory: [],
+    hostConfirm: null,
+    currentGame: null,
+    activeVotes: [],
+    roleState: null,
+    currentActKey: "ch1",
+    tasks: [],
+    segments: [],
+    contentRevision: 8
+  };
+}
+
+function browserPlayerHomeSocial(room) {
+  return {
+    notes: [],
+    clues: [],
+    sharedClues: [],
+    roomMembers: [{
+      role_slot_id: playerRoleId,
+      role_name: "小满",
+      display_name: "浏览器玩家",
+      online: true
+    }],
+    suspicions: [],
+    testimonies: [],
+    privateActions: [],
+    voiceRooms: [],
+    inventory: [],
+    hostConfirm: null,
+    currentGame: null,
+    activeVotes: [],
+    roleState: null,
+    tasks: [],
+    knowledge: {
+      summary: {
+        availableSections: 1,
+        completedSections: 1,
+        ownedClues: 0,
+        sharedClues: 0,
+        investigations: 0,
+        notes: 0
+      }
+    },
+    currentState: browserPlayerCurrentState(room)
+  };
+}
+
 const world = {
   id: worldId,
   name: "浏览器验收剧本",
@@ -271,10 +405,23 @@ function sendSse(request, response) {
     connection: "keep-alive"
   });
   response.write(`data: ${JSON.stringify({ type: "connected", fixture: true })}\n\n`);
+  const mechanismProgress = setTimeout(() => {
+    response.write(`id: 12\ndata: ${JSON.stringify({
+      type: "room.mechanism_state_updated",
+      action: "advance",
+      revision: 3,
+      status: "running",
+      roundSequence: 2,
+      roundTitle: "核对代理授权"
+    })}\n\n`);
+  }, 250);
   const heartbeat = setInterval(() => {
     response.write(`data: ${JSON.stringify({ type: "heartbeat" })}\n\n`);
   }, 15_000);
-  request.once("close", () => clearInterval(heartbeat));
+  request.once("close", () => {
+    clearTimeout(mechanismProgress);
+    clearInterval(heartbeat);
+  });
 }
 
 async function readJson(request) {
@@ -1017,6 +1164,19 @@ const server = http.createServer(async (request, response) => {
     const room = rooms.find((item) => item.id === requestedRoomId);
     if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
     if (suffix === "/events/stream") return sendSse(request, response);
+    if (suffix === "/player-home/core") return sendJson(response, 200, browserPlayerHomeCore(room));
+    if (suffix === "/player-home/social") return sendJson(response, 200, browserPlayerHomeSocial(room));
+    if (suffix === "/current-state") return sendJson(response, 200, browserPlayerCurrentState(room));
+    if (suffix === "/exploration") {
+      return sendJson(response, 200, {
+        scenes: [{
+          id: "88888888-8888-4888-8888-555555550001",
+          name: "联盟隔离服务器",
+          public_text: "数字孪生对局已完成，授权记录仍在等待复核。",
+          investigation_points: []
+        }]
+      });
+    }
     if (suffix === "/host/players") return sendJson(response, 200, { players: [], stuckCount: 0 });
     if (suffix === "/host-events") return sendJson(response, 200, []);
     if (suffix === "/host/clue-matrix") {
@@ -1043,12 +1203,24 @@ const server = http.createServer(async (request, response) => {
       world: { id: worldId, name: world.name },
       current_role_slot_id: null,
       roles: [{
-        id: "66666666-6666-4666-8666-555555550001",
+        id: playerRoleId,
         name: "侦探",
         public_profile: "负责梳理现场证据",
         occupied: false,
         occupied_by_current: false
       }]
+    });
+  }
+  if (request.method === "POST" && path === "/api/rooms/join") {
+    const body = await readJson(request);
+    const room = rooms.find((item) => item.invite_code === body.inviteCode);
+    if (!room || body.roleSlotId !== playerRoleId) {
+      return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room or role not found" });
+    }
+    return sendJson(response, 200, {
+      roomId: room.id,
+      roleSlotId: playerRoleId,
+      contentBinding: room.contentBinding
     });
   }
   if (request.method === "POST" && path === `/api/worlds/${worldId}/rooms`) {

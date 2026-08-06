@@ -3,12 +3,48 @@ import test from "node:test";
 import { buildRuntimeKnowledgeProjection } from "../src/runtime-knowledge-service.js";
 import { buildRuntimeCurrentState } from "../src/runtime-current-state-service.js";
 import { assertRuntimeObjectDeletionAllowed } from "../src/runtime-release-guard.js";
+import { compileMechanismPackage } from "../src/mechanism-package.js";
 
 const roomId = "20000000-0000-4000-8000-000000000001";
 const worldId = "20000000-0000-4000-8000-000000000002";
 const roleId = "20000000-0000-4000-8000-000000000003";
 const sectionId = "20000000-0000-4000-8000-000000000004";
 const clueId = "20000000-0000-4000-8000-000000000005";
+
+function mechanismPackage() {
+  return compileMechanismPackage({
+    semanticConstitution: { facts: [], authorizationGrants: [], branchEvents: [], worldRules: [] },
+    causalTimeline: [],
+    entities: [],
+    resources: [],
+    players: [],
+    evidenceGraph: { evidence: [], conclusions: [] },
+    chapterBeats: [{
+      chapterKey: "round-1",
+      title: "核对授权",
+      goal: "确认授权是否覆盖正式运行",
+      playerAction: "讨论授权范围",
+      genreMechanicUse: "程序复核",
+      stateReads: [],
+      stateWrites: [],
+      resourceDeltas: [],
+      evidenceKeys: [],
+      unlocksEvidenceKeys: [],
+      locksEvidenceKeys: [],
+      decision: {
+        key: "decision-auth",
+        question: "是否认可本次授权？",
+        options: [{ key: "accept", choiceText: "认可", effects: [] }]
+      }
+    }],
+    endingLogic: {
+      stateVariables: [],
+      defaultRouteKey: "ending-default",
+      conflictResolution: "highest-priority",
+      routes: [{ key: "ending-default", title: "等待复核", priority: 0, isDefault: true, requirements: [] }]
+    }
+  });
+}
 
 function snapshot() {
   return {
@@ -51,7 +87,8 @@ function snapshot() {
     foreshadowBeats: [],
     timelineEvents: [],
     tags: [],
-    assetManifest: []
+    assetManifest: [],
+    mechanismPackage: mechanismPackage()
   };
 }
 
@@ -158,6 +195,8 @@ test("current-state projection carries the same frozen source and journal cursor
   assert.equal(current.syncState.isFrozen, true);
   assert.equal(current.syncState.serverCursor, 42);
   assert.equal(current.suggestedActions[0].key, "read_section");
+  assert.equal(current.mechanism.status, "not_started");
+  assert.equal(current.mechanism.totalRounds, 1);
 });
 
 test("deletion guard reports the bound room instead of allowing a destructive cascade", async () => {

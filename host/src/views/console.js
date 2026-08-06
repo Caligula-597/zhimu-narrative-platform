@@ -3,6 +3,8 @@ import "../styles/host-event-workspace.css";
 import "../styles/host-operation-workspace.css";
 import "../styles/host-rule-workspace.css";
 import "../styles/host-vote-workspace.css";
+import "../styles/host-mechanism-workspace.css";
+import "../styles/host-mechanism-prospects.css";
 import { state } from "../state.js";
 import { collapsibleCard } from "../components/collapse.js";
 import { activeRuntimeRoom, cloudStatus, runtimeEmpty, activity } from "../components/ui.js";
@@ -37,6 +39,7 @@ import { renderHostEventWorkspace } from "./host-event-workspace.js";
 import { renderHostOperationWorkspace } from "./host-operation-workspace.js";
 import { renderHostRuleWorkspace } from "./host-rule-workspace.js";
 import { renderHostVoteWorkspace } from "./host-vote-workspace.js";
+import { renderHostMechanismWorkspace } from "./host-mechanism-workspace.js";
 import { normalizeRuntimeCurrentState } from "../../../shared/runtime-current-state.js";
 
 export function bindConsoleContext({ render, showToast }) {
@@ -96,6 +99,7 @@ export function renderConsole(){
   <div class="host-console-status">${cloudStatus()}</div>
   ${runtimeStatePanel}
   ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows })}
+  ${renderHostMechanismWorkspace()}
   ${renderHostEventWorkspace()}
   ${renderHostVoteWorkspace()}
   ${renderHostOperationWorkspace()}

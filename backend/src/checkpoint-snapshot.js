@@ -4,7 +4,7 @@ export async function buildRoomCheckpointSnapshot(roomId, options = {}) {
   const row = await loadRoomCheckpointSnapshot(roomId, options);
   if (!row) return null;
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     roomId,
     roomName: row.name,
     roomStatus: row.status,
@@ -21,7 +21,8 @@ export async function buildRoomCheckpointSnapshot(roomId, options = {}) {
     contentUnlocks: row.content_unlocks ?? [],
     ruleExecutions: row.rule_executions ?? [],
     investigationRecords: row.investigation_records ?? [],
-    playerStates: row.player_states ?? []
+    playerStates: row.player_states ?? [],
+    mechanismRuntime: row.mechanism_runtime ?? null
   };
 }
 

@@ -125,12 +125,19 @@ export async function restoreRoomCheckpoint({ targetRoomId, checkpointId, actorI
         targetRoomId,
         context.snapshot,
         scope,
-        { sourceRoomId: context.source_room_id, roomLocked: true }
+        {
+          sourceRoomId: context.source_room_id,
+          roomLocked: true,
+          actorId,
+          checkpointId,
+          restoreId
+        }
       );
       const restoreResult = {
         scope: restored.scope,
         sourceRoomId: restored.sourceRoomId,
-        targetRoomId: restored.targetRoomId
+        targetRoomId: restored.targetRoomId,
+        mechanismRestore: restored.mechanismRestore
       };
       await markCheckpointRestoreApplied(client, {
         restoreId,

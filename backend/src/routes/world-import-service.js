@@ -3,6 +3,7 @@ import { throwErr } from "../api-errors.js";
 import { validateDeepseekProposal } from "../deepseek.js";
 import { seedPlayerTasksFromArchives } from "../player-tasks.js";
 import { seedWorldSegmentsFromPipeline, syncWorldSegmentsFromChapters } from "../world-segments-seed.js";
+import { compileAndStorePipelineMechanismPackage } from "../world-mechanism-package-service.js";
 import { seedBibleFromPipeline } from "../creator-bible.js";
 import { resolveClueKind } from "../clue-kind.js";
 import { cleanText } from "../prompts/shared.js";
@@ -502,7 +503,9 @@ export async function importDeepseekPipelinePackageWithClient(client, worldId, p
           roleKeyToSlotId
         );
       }
-      const segmentsSeeded = await seedWorldSegmentsFromPipeline(client, worldId, pipeline, graph);
+      const mechanismCompilation = await compileAndStorePipelineMechanismPackage(client, worldId, pipeline);
+      const mechanismPackage = mechanismCompilation?.packageValue ?? null;
+      const segmentsSeeded = await seedWorldSegmentsFromPipeline(client, worldId, pipeline, graph, mechanismPackage);
       const bibleSeeded = await seedBibleFromPipeline(client, worldId, pipeline, roleKeyToSlotId);
       return {
         ...graph.summary,
@@ -514,6 +517,9 @@ export async function importDeepseekPipelinePackageWithClient(client, worldId, p
         unlockRuleMode: unlockRules.ruleMode,
         playerTasksSeeded,
         segmentsSeeded,
+        mechanismPackageStored: Boolean(mechanismPackage),
+        mechanismPackageSchemaVersion: mechanismPackage?.schemaVersion ?? null,
+        mechanismValidationSummary: mechanismCompilation?.simulationSummary ?? null,
         bibleSeeded
       };
   }

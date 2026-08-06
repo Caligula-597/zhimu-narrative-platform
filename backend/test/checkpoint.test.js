@@ -26,7 +26,8 @@ test("host can create list and read room checkpoints", async (context) => {
   assert.ok(Object.hasOwn(created.snapshot, "unlockedScenes"));
   assert.ok(Object.hasOwn(created.snapshot, "pendingEvents"));
   assert.ok(Object.hasOwn(created.snapshot, "recentLogs"));
-  assert.equal(created.snapshot.schemaVersion, 2);
+  assert.equal(created.snapshot.schemaVersion, 3);
+  assert.ok(Object.hasOwn(created.snapshot, "mechanismRuntime"));
   assert.ok(Array.isArray(created.snapshot.readingProgress));
   assert.ok(Array.isArray(created.snapshot.inventory));
   assert.ok(Array.isArray(created.snapshot.contentUnlocks));
