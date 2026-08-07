@@ -36,6 +36,18 @@ test("matrix pipeline receives confirmed cockpit spine and constitution", () => 
       roleFunctions: [{ roleId: "role-1", roleName: "方既白", storyFunction: "运行主任", goal: "救主环", pressure: "越权会曝光" }],
       chapterArc: [{ chapterId: "ch1", sequence: 1, title: "潮窗", cause: "潮位上升", playerAction: "选择区域", turn: "签名真实", consequence: "区域关闭" }],
       endingDirections: [{ key: "repair", title: "带伤合闸", requirements: "保留许可", consequence: "公开责任" }]
+    },
+    mechanismDesign: {
+      interactionKind: "timed_crisis",
+      title: "潮窗分洪许可",
+      recurringAction: "每轮分配一份闸门许可",
+      conflictReason: "救人、供电与保全证据不能同时完成",
+      limitedResource: "三份开封许可",
+      immediateFeedback: "未保护区域立即发生损失",
+      failureAdvance: "超时执行默认分洪并继续下一窗",
+      genreSpecificity: "依赖潮汐城闸门制度",
+      endingCausality: "前三窗保留的区域决定最终合闸路线",
+      status: "confirmed"
     }
   });
 
@@ -47,11 +59,15 @@ test("matrix pipeline receives confirmed cockpit spine and constitution", () => 
   assert.match(result.synopsis.body, /潮窗每十八分钟关闭一次/);
   assert.match(result.synopsis.body, /每十八分钟调水/);
   assert.match(result.synopsis.body, /章节因果/);
+  assert.match(result.synopsis.body, /创作驾驶舱·机制设计/);
+  assert.match(result.synopsis.body, /潮窗分洪许可/);
+  assert.match(result.synopsis.body, /超时执行默认分洪/);
   assert.match(result.synopsis.charactersSketch, /方既白/);
   assert.match(result.synopsis.truthSketch, /签名真实但授权越界/);
   assert.match(result.setting.extraConflicts, /不得最后临时投票/);
   assert.match(result.setting.styleAnchor, /工业现场感/);
   assert.ok(result.config.notes.some((note) => note.includes("实时调水")));
+  assert.ok(result.config.notes.some((note) => note.includes("限时危机")));
   assert.equal(input.synopsis.body, "弹窗纲要", "source input must not be mutated");
 });
 

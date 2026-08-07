@@ -59,7 +59,7 @@ export const STAGE_DEFS = [
     items: [
       { id: "beats", title: "运行段落", link: { canvas: "beats", view: "structure", label: "运行段落工作台" } },
       { id: "clue-matrix", title: "线索分发", link: { canvas: "matrix", view: "clues", label: "线索管理" } },
-      { id: "mechanics", title: "自动化规则", link: { canvas: "sandbox", view: "rules", label: "自动化规则" } },
+      { id: "mechanics", title: "机制设计", link: { canvas: "sandbox", action: "cockpit-open-mechanism-workbench", label: "打开机制工作台" } },
       { id: "dm-sandbox", title: "主持预演", link: { canvas: "sandbox", action: "open-host-console", label: "打开主持端" } }
     ]
   },

@@ -62,6 +62,11 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         callView("creatorCockpit", "navigateCockpit", { target: el?.dataset?.cockpitTarget });
         return true;
 
+      case "cockpit-open-mechanism-workbench":
+        await (await import("../views/creator-mechanism-workbench.js"))
+          .openCurrentCreatorMechanismWorkbench();
+        return true;
+
       case "cockpit-fill-logline-template": {
         callView("creatorCockpit", "patchCockpitDraft", {
           logline: LOGLINE_TEMPLATE,

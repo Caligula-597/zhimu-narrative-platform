@@ -1750,7 +1750,8 @@ export function validateStoryOutlineV2(raw, spec, { brief = null } = {}) {
         choiceText: option.choiceText,
         sets: option.sets,
         effects: option.effects,
-        immediateConsequence: option.immediateConsequence
+        immediateConsequence: option.immediateConsequence,
+        presentation: option.presentation
       }));
     }
   }
