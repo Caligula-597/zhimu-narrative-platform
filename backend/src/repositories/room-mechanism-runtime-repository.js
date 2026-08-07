@@ -16,6 +16,7 @@ export function projectRoomMechanismState(row) {
     revision: Number(row.revision),
     initializedByUserId: row.initialized_by_user_id,
     initializedAt: row.initialized_at,
+    roundStartedAt: row.round_started_at,
     updatedAt: row.updated_at,
     metadata: row.metadata ?? {},
     runtime: {
@@ -23,7 +24,10 @@ export function projectRoomMechanismState(row) {
       mechanismSchemaVersion: Number(row.mechanism_schema_version),
       status: row.status,
       currentRoundKey: row.current_round_key,
-      currentRoundSequence: row.current_round_sequence == null ? null : Number(row.current_round_sequence),
+      currentRoundSequence:
+        row.current_round_sequence == null
+          ? null
+          : Number(row.current_round_sequence),
       preparedRoundKey: row.prepared_round_key,
       currentBranch: row.current_branch,
       currentVariantKey: row.current_variant_key,
@@ -33,8 +37,8 @@ export function projectRoomMechanismState(row) {
       events: row.event_states ?? {},
       decisionStates: row.decision_states ?? {},
       executedInvestigations: row.executed_investigations ?? {},
-      ending: row.ending ?? null
-    }
+      ending: row.ending ?? null,
+    },
   };
 }
 
@@ -44,17 +48,20 @@ const STATE_COLUMNS = `
   current_round_sequence, prepared_round_key, current_branch, current_variant_key,
   state_values, resource_values, evidence_states, event_states, decision_states,
   executed_investigations, ending, revision, initialized_by_user_id,
-  initialized_at, updated_at, metadata
+  initialized_at, round_started_at, updated_at, metadata
 `;
 
-export async function findRoomMechanismState(roomId, { client = null, forUpdate = false } = {}) {
+export async function findRoomMechanismState(
+  roomId,
+  { client = null, forUpdate = false } = {},
+) {
   const result = await run(
     client,
     `SELECT ${STATE_COLUMNS}
      FROM room_mechanism_states
      WHERE room_id = $1
      ${forUpdate ? "FOR UPDATE" : ""}`,
-    [roomId]
+    [roomId],
   );
   return projectRoomMechanismState(result.rows[0]);
 }
@@ -73,21 +80,24 @@ function runtimeParams(runtime) {
     JSON.stringify(runtime.events ?? {}),
     JSON.stringify(runtime.decisionStates ?? {}),
     JSON.stringify(runtime.executedInvestigations ?? {}),
-    runtime.ending == null ? null : JSON.stringify(runtime.ending)
+    runtime.ending == null ? null : JSON.stringify(runtime.ending),
   ];
 }
 
-export async function insertRoomMechanismState(client, {
-  roomId,
-  mechanismSchemaVersion,
-  contentBindingMode,
-  contentReleaseId,
-  sourceContentRevision,
-  mechanismPackageSha256,
-  actorId,
-  runtime,
-  metadata = {}
-}) {
+export async function insertRoomMechanismState(
+  client,
+  {
+    roomId,
+    mechanismSchemaVersion,
+    contentBindingMode,
+    contentReleaseId,
+    sourceContentRevision,
+    mechanismPackageSha256,
+    actorId,
+    runtime,
+    metadata = {},
+  },
+) {
   const values = runtimeParams(runtime);
   const result = await client.query(
     `INSERT INTO room_mechanism_states (
@@ -104,28 +114,35 @@ export async function insertRoomMechanismState(client, {
      )
      RETURNING ${STATE_COLUMNS}`,
     [
-      roomId, mechanismSchemaVersion, contentBindingMode, contentReleaseId,
-      sourceContentRevision, mechanismPackageSha256,
+      roomId,
+      mechanismSchemaVersion,
+      contentBindingMode,
+      contentReleaseId,
+      sourceContentRevision,
+      mechanismPackageSha256,
       ...values,
       actorId,
-      JSON.stringify(metadata)
-    ]
+      JSON.stringify(metadata),
+    ],
   );
   return projectRoomMechanismState(result.rows[0]);
 }
 
-export async function replaceRoomMechanismState(client, {
-  roomId,
-  expectedRevision,
-  mechanismSchemaVersion,
-  contentBindingMode,
-  contentReleaseId,
-  sourceContentRevision,
-  mechanismPackageSha256,
-  actorId,
-  runtime,
-  metadata = {}
-}) {
+export async function replaceRoomMechanismState(
+  client,
+  {
+    roomId,
+    expectedRevision,
+    mechanismSchemaVersion,
+    contentBindingMode,
+    contentReleaseId,
+    sourceContentRevision,
+    mechanismPackageSha256,
+    actorId,
+    runtime,
+    metadata = {},
+  },
+) {
   const values = runtimeParams(runtime);
   const result = await client.query(
     `UPDATE room_mechanism_states SET
@@ -150,26 +167,31 @@ export async function replaceRoomMechanismState(client, {
        revision = revision + 1,
        initialized_by_user_id = $21,
        initialized_at = now(),
+       round_started_at = now(),
        updated_at = now(),
        metadata = $22::jsonb
      WHERE room_id = $1 AND revision = $2
      RETURNING ${STATE_COLUMNS}`,
     [
-      roomId, expectedRevision, mechanismSchemaVersion, contentBindingMode,
-      contentReleaseId, sourceContentRevision, mechanismPackageSha256,
+      roomId,
+      expectedRevision,
+      mechanismSchemaVersion,
+      contentBindingMode,
+      contentReleaseId,
+      sourceContentRevision,
+      mechanismPackageSha256,
       ...values,
       actorId,
-      JSON.stringify(metadata)
-    ]
+      JSON.stringify(metadata),
+    ],
   );
   return projectRoomMechanismState(result.rows[0]);
 }
 
-export async function updateRoomMechanismRuntime(client, {
-  roomId,
-  expectedRevision,
-  runtime
-}) {
+export async function updateRoomMechanismRuntime(
+  client,
+  { roomId, expectedRevision, runtime, restartRoundClock = false },
+) {
   const values = runtimeParams(runtime);
   const result = await client.query(
     `UPDATE room_mechanism_states SET
@@ -186,28 +208,32 @@ export async function updateRoomMechanismRuntime(client, {
        decision_states = $13::jsonb,
        executed_investigations = $14::jsonb,
        ending = $15::jsonb,
+       round_started_at = CASE WHEN $16 THEN now() ELSE round_started_at END,
        revision = revision + 1,
        updated_at = now()
      WHERE room_id = $1 AND revision = $2
      RETURNING ${STATE_COLUMNS}`,
-    [roomId, expectedRevision, ...values]
+    [roomId, expectedRevision, ...values, Boolean(restartRoundClock)],
   );
   return projectRoomMechanismState(result.rows[0]);
 }
 
-export async function appendRoomMechanismAction(client, {
-  roomId,
-  actorId,
-  revisionBefore,
-  revisionAfter,
-  roundKey,
-  actionType,
-  actionKey = null,
-  optionKey = null,
-  changes = [],
-  request = {},
-  metadata = {}
-}) {
+export async function appendRoomMechanismAction(
+  client,
+  {
+    roomId,
+    actorId,
+    revisionBefore,
+    revisionAfter,
+    roundKey,
+    actionType,
+    actionKey = null,
+    optionKey = null,
+    changes = [],
+    request = {},
+    metadata = {},
+  },
+) {
   const result = await client.query(
     `INSERT INTO room_mechanism_action_log (
        room_id, actor_user_id, revision_before, revision_after, round_key,
@@ -215,15 +241,26 @@ export async function appendRoomMechanismAction(client, {
      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11::jsonb)
      RETURNING id, created_at`,
     [
-      roomId, actorId, revisionBefore, revisionAfter, roundKey,
-      actionType, actionKey, optionKey, JSON.stringify(changes),
-      JSON.stringify(request), JSON.stringify(metadata)
-    ]
+      roomId,
+      actorId,
+      revisionBefore,
+      revisionAfter,
+      roundKey,
+      actionType,
+      actionKey,
+      optionKey,
+      JSON.stringify(changes),
+      JSON.stringify(request),
+      JSON.stringify(metadata),
+    ],
   );
   return result.rows[0];
 }
 
-export async function listRoomMechanismActions(roomId, { limit = 100, client = null } = {}) {
+export async function listRoomMechanismActions(
+  roomId,
+  { limit = 100, client = null } = {},
+) {
   const result = await run(
     client,
     `SELECT id, actor_user_id, revision_before, revision_after, round_key,
@@ -232,7 +269,7 @@ export async function listRoomMechanismActions(roomId, { limit = 100, client = n
      WHERE room_id = $1
      ORDER BY revision_after DESC
      LIMIT $2`,
-    [roomId, limit]
+    [roomId, limit],
   );
   return result.rows.map((row) => ({
     id: row.id,
@@ -246,6 +283,6 @@ export async function listRoomMechanismActions(roomId, { limit = 100, client = n
     changes: row.changes ?? [],
     request: row.request ?? {},
     metadata: row.metadata ?? {},
-    createdAt: row.created_at
+    createdAt: row.created_at,
   }));
 }

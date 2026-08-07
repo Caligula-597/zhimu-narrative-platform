@@ -166,6 +166,7 @@ export const API_ERRORS = {
   MECHANISM_ACTION_INVALID: { status: 400, message: "机制行动参数无效" },
   MECHANISM_ACTION_BLOCKED: { status: 409, message: "当前机制状态不允许执行该行动" },
   MECHANISM_TRANSITION_INVALID: { status: 422, message: "机制行动会产生非法状态或资源结果" },
+  MECHANISM_DECISION_SUBMISSION_CLOSED: { status: 409, message: "当前机制选择已关闭或不接受玩家提交" },
   PLAYER_ROLE_REQUIRED: { status: 409, message: "Player role required" },
   ROLE_SLOT_OCCUPIED: { status: 409, message: "Role slot already occupied" },
   ROLE_SLOT_NOT_OCCUPIED: { status: 409, message: "No active player on this role seat" },

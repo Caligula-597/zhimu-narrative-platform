@@ -326,6 +326,28 @@ export interface UpdateWorldBody {
         sourceRevision: number | null;
       };
     };
+    mechanismDesign?: {
+      version: 1;
+      interactionKind:
+        | "group_choice"
+        | "resource_tradeoff"
+        | "evidence_selection"
+        | "sequence_reconstruction"
+        | "timed_crisis"
+        | "role_commitment";
+      title: string;
+      summary: string;
+      recurringAction: string;
+      conflictReason: string;
+      limitedResource: string;
+      immediateFeedback: string;
+      failureAdvance: string;
+      genreSpecificity: string;
+      endingCausality: string;
+      authorNotes: string;
+      status: "draft" | "confirmed";
+      updatedAt: string;
+    };
     [k: string]: unknown;
   };
 }
@@ -610,6 +632,28 @@ export interface CreateWorldBody {
         generatedAt: string;
         sourceRevision: number | null;
       };
+    };
+    mechanismDesign?: {
+      version: 1;
+      interactionKind:
+        | "group_choice"
+        | "resource_tradeoff"
+        | "evidence_selection"
+        | "sequence_reconstruction"
+        | "timed_crisis"
+        | "role_commitment";
+      title: string;
+      summary: string;
+      recurringAction: string;
+      conflictReason: string;
+      limitedResource: string;
+      immediateFeedback: string;
+      failureAdvance: string;
+      genreSpecificity: string;
+      endingCausality: string;
+      authorNotes: string;
+      status: "draft" | "confirmed";
+      updatedAt: string;
     };
     [k: string]: unknown;
   };
@@ -1190,9 +1234,38 @@ export interface RuntimeCurrentState {
       genreMechanicUse: string;
     } | null;
     decisions: {
+      key: string;
       question: string;
+      interaction: {
+        kind:
+          | "group_choice"
+          | "resource_tradeoff"
+          | "evidence_selection"
+          | "sequence_reconstruction"
+          | "timed_crisis"
+          | "role_commitment";
+        resolutionMode: "host_confirmed";
+        submissionMode: "advisory_choice" | "private_choice";
+        label: string;
+        playerInstruction: string;
+        deadlineSeconds: number;
+        defaultOptionKey: string;
+      };
+      deadlineAt: string | null;
+      submission?: {
+        optionKey: string;
+        submittedAt: string;
+      } | null;
       options: {
+        key: string;
         choiceText: string;
+        presentation: {
+          eyebrow: string;
+          publicPreview: string;
+          costLabel: string;
+          riskLabel: string;
+          sequenceLabel: string;
+        };
       }[];
     }[];
     ending: {
@@ -1837,6 +1910,12 @@ export interface RoomMechanismStateUpdatedData {
   status: "running" | "completed";
   roundSequence?: number;
   roundTitle?: string;
+  [k: string]: unknown;
+}
+
+export interface RoomMechanismSubmissionUpdatedData {
+  decisionKey: string;
+  submissionCount: number;
   [k: string]: unknown;
 }
 

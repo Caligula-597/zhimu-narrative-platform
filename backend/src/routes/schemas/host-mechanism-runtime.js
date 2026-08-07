@@ -8,19 +8,28 @@ const nullableOpenObject = { anyOf: [openObject, { type: "null" }] };
 const mechanismRuntimeResponse = {
   type: "object",
   additionalProperties: false,
-  required: ["initialized", "roomId", "worldId", "contentBinding", "stale", "state"],
+  required: [
+    "initialized",
+    "roomId",
+    "worldId",
+    "contentBinding",
+    "stale",
+    "submissionSummary",
+    "state",
+  ],
   properties: {
     initialized: { type: "boolean" },
     roomId: uuid,
     worldId: uuid,
     contentBinding: roomContentBindingSchema,
     stale: { type: "boolean" },
+    submissionSummary: { type: "array", items: openObject },
     state: nullableOpenObject,
     history: { type: "array", items: openObject },
     replayed: { type: "boolean" },
     appliedAction: openObject,
-    changes: { type: "array", items: openObject }
-  }
+    changes: { type: "array", items: openObject },
+  },
 };
 
 export const hostMechanismRuntimeGetSchema = {
@@ -30,10 +39,10 @@ export const hostMechanismRuntimeGetSchema = {
     additionalProperties: false,
     properties: {
       includeHistory: { type: "boolean", default: false },
-      historyLimit: { type: "integer", minimum: 1, maximum: 200, default: 50 }
-    }
+      historyLimit: { type: "integer", minimum: 1, maximum: 200, default: 50 },
+    },
   },
-  response: { 200: mechanismRuntimeResponse }
+  response: { 200: mechanismRuntimeResponse },
 };
 
 export const hostMechanismRuntimeInitializeSchema = {
@@ -43,14 +52,19 @@ export const hostMechanismRuntimeInitializeSchema = {
     additionalProperties: false,
     properties: {
       resetExisting: { type: "boolean", default: false },
-      expectedRevision: { type: "integer", minimum: 1 }
+      expectedRevision: { type: "integer", minimum: 1 },
     },
-    allOf: [{
-      if: { properties: { resetExisting: { const: true } }, required: ["resetExisting"] },
-      then: { required: ["expectedRevision"] }
-    }]
+    allOf: [
+      {
+        if: {
+          properties: { resetExisting: { const: true } },
+          required: ["resetExisting"],
+        },
+        then: { required: ["expectedRevision"] },
+      },
+    ],
   },
-  response: { 200: mechanismRuntimeResponse, 201: mechanismRuntimeResponse }
+  response: { 200: mechanismRuntimeResponse, 201: mechanismRuntimeResponse },
 };
 
 const mechanismOverrideEffect = {
@@ -62,26 +76,46 @@ const mechanismOverrideEffect = {
     targetKey: { type: "string", minLength: 1, maxLength: 160 },
     operation: { type: "string" },
     value: {},
-    amount: { type: "number" }
+    amount: { type: "number" },
   },
-  allOf: [{
-    if: { properties: { targetType: { const: "state" } }, required: ["targetType"] },
-    then: {
-      required: ["value"],
-      properties: { operation: { type: "string", enum: ["set", "increment", "decrement", "add", "remove"] } }
-    }
-  }, {
-    if: { properties: { targetType: { const: "resource" } }, required: ["targetType"] },
-    then: {
-      required: ["amount"],
-      properties: { operation: { type: "string", enum: ["gain", "lose", "set"] } }
-    }
-  }, {
-    if: { properties: { targetType: { const: "evidence" } }, required: ["targetType"] },
-    then: {
-      properties: { operation: { type: "string", enum: ["unlock", "lock"] } }
-    }
-  }]
+  allOf: [
+    {
+      if: {
+        properties: { targetType: { const: "state" } },
+        required: ["targetType"],
+      },
+      then: {
+        required: ["value"],
+        properties: {
+          operation: {
+            type: "string",
+            enum: ["set", "increment", "decrement", "add", "remove"],
+          },
+        },
+      },
+    },
+    {
+      if: {
+        properties: { targetType: { const: "resource" } },
+        required: ["targetType"],
+      },
+      then: {
+        required: ["amount"],
+        properties: {
+          operation: { type: "string", enum: ["gain", "lose", "set"] },
+        },
+      },
+    },
+    {
+      if: {
+        properties: { targetType: { const: "evidence" } },
+        required: ["targetType"],
+      },
+      then: {
+        properties: { operation: { type: "string", enum: ["unlock", "lock"] } },
+      },
+    },
+  ],
 };
 
 const mechanismAction = {
@@ -89,9 +123,16 @@ const mechanismAction = {
   additionalProperties: false,
   required: ["type"],
   properties: {
-    type: { type: "string", enum: ["decision", "investigation", "advance", "override"] },
+    type: {
+      type: "string",
+      enum: ["decision", "investigation", "advance", "override"],
+    },
     decisionKey: { type: "string", minLength: 1, maxLength: 120 },
     optionKey: { type: "string", minLength: 1, maxLength: 120 },
+    source: {
+      type: "string",
+      enum: ["host_confirmed", "deadline_default"],
+    },
     investigationKey: { type: "string", minLength: 1, maxLength: 160 },
     outcome: { type: "string", enum: ["success", "failure"] },
     reason: { type: "string", minLength: 10, maxLength: 500 },
@@ -99,19 +140,26 @@ const mechanismAction = {
       type: "array",
       minItems: 1,
       maxItems: 50,
-      items: mechanismOverrideEffect
-    }
+      items: mechanismOverrideEffect,
+    },
   },
-  allOf: [{
-    if: { properties: { type: { const: "decision" } }, required: ["type"] },
-    then: { required: ["decisionKey", "optionKey"] }
-  }, {
-    if: { properties: { type: { const: "investigation" } }, required: ["type"] },
-    then: { required: ["investigationKey"] }
-  }, {
-    if: { properties: { type: { const: "override" } }, required: ["type"] },
-    then: { required: ["reason", "effects"] }
-  }]
+  allOf: [
+    {
+      if: { properties: { type: { const: "decision" } }, required: ["type"] },
+      then: { required: ["decisionKey", "optionKey"] },
+    },
+    {
+      if: {
+        properties: { type: { const: "investigation" } },
+        required: ["type"],
+      },
+      then: { required: ["investigationKey"] },
+    },
+    {
+      if: { properties: { type: { const: "override" } }, required: ["type"] },
+      then: { required: ["reason", "effects"] },
+    },
+  ],
 };
 
 export const hostMechanismRuntimeActionSchema = {
@@ -122,8 +170,8 @@ export const hostMechanismRuntimeActionSchema = {
     required: ["expectedRevision", "action"],
     properties: {
       expectedRevision: { type: "integer", minimum: 1 },
-      action: mechanismAction
-    }
+      action: mechanismAction,
+    },
   },
-  response: { 200: mechanismRuntimeResponse }
+  response: { 200: mechanismRuntimeResponse },
 };

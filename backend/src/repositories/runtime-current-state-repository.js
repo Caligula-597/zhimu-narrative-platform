@@ -85,6 +85,20 @@ export async function loadRuntimeStateFacts({ roomId, roleSlotId = null }, runQu
        (SELECT to_jsonb(mechanism_state)
         FROM room_mechanism_states mechanism_state
         WHERE mechanism_state.room_id = $1) AS mechanism_state,
+       COALESCE((
+         SELECT jsonb_agg(jsonb_build_object(
+           'decisionKey', submission.decision_key,
+           'optionKey', submission.option_key,
+           'submittedAt', submission.updated_at
+         ))
+         FROM room_mechanism_decision_submissions submission
+         JOIN room_mechanism_states mechanism_state
+           ON mechanism_state.room_id = submission.room_id
+          AND mechanism_state.initialized_at = submission.runtime_initialized_at
+         WHERE submission.room_id = $1
+           AND $2::uuid IS NOT NULL
+           AND submission.role_slot_id = $2::uuid
+       ), '[]'::jsonb) AS mechanism_submissions,
        (SELECT COALESCE(MAX(journal.id), 0)
         FROM room_event_journal journal
         WHERE journal.room_id = $1) AS server_cursor`,

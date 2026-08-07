@@ -5,33 +5,88 @@ export const runtimeRoomParams = {
   type: "object",
   additionalProperties: false,
   required: ["roomId"],
-  properties: { roomId: uuid }
+  properties: { roomId: uuid },
 };
 
 export const runtimeRoleParams = {
   type: "object",
   additionalProperties: false,
   required: ["roomId", "roleSlotId"],
-  properties: { roomId: uuid, roleSlotId: uuid }
+  properties: { roomId: uuid, roleSlotId: uuid },
 };
 
 export const creatorRuntimeRoomParams = {
   type: "object",
   additionalProperties: false,
   required: ["worldId", "roomId"],
-  properties: { worldId: uuid, roomId: uuid }
+  properties: { worldId: uuid, roomId: uuid },
 };
 
 export const creatorRuntimeRoleParams = {
   type: "object",
   additionalProperties: false,
   required: ["worldId", "roomId", "roleSlotId"],
-  properties: { worldId: uuid, roomId: uuid, roleSlotId: uuid }
+  properties: { worldId: uuid, roomId: uuid, roleSlotId: uuid },
 };
 
 const nullableString = { anyOf: [{ type: "string" }, { type: "null" }] };
 const nullableDateTime = {
-  anyOf: [{ type: "string", format: "date-time" }, { type: "null" }]
+  anyOf: [{ type: "string", format: "date-time" }, { type: "null" }],
+};
+
+const mechanismInteractionSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "kind",
+    "resolutionMode",
+    "submissionMode",
+    "label",
+    "playerInstruction",
+    "deadlineSeconds",
+    "defaultOptionKey",
+  ],
+  properties: {
+    kind: {
+      type: "string",
+      enum: [
+        "group_choice",
+        "resource_tradeoff",
+        "evidence_selection",
+        "sequence_reconstruction",
+        "timed_crisis",
+        "role_commitment",
+      ],
+    },
+    resolutionMode: { type: "string", enum: ["host_confirmed"] },
+    submissionMode: {
+      type: "string",
+      enum: ["advisory_choice", "private_choice"],
+    },
+    label: { type: "string" },
+    playerInstruction: { type: "string" },
+    deadlineSeconds: { type: "integer", minimum: 0, maximum: 7200 },
+    defaultOptionKey: { type: "string" },
+  },
+};
+
+const mechanismOptionPresentationSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "eyebrow",
+    "publicPreview",
+    "costLabel",
+    "riskLabel",
+    "sequenceLabel",
+  ],
+  properties: {
+    eyebrow: { type: "string" },
+    publicPreview: { type: "string" },
+    costLabel: { type: "string" },
+    riskLabel: { type: "string" },
+    sequenceLabel: { type: "string" },
+  },
 };
 const openObject = { type: "object", additionalProperties: true };
 const openObjectArray = { type: "array", items: openObject };
@@ -49,21 +104,36 @@ export const runtimeContentResponseSchema = {
         id: uuid,
         worldId: uuid,
         name: { type: "string" },
-        status: { type: "string" }
-      }
+        status: { type: "string" },
+      },
     },
     contentBinding: roomContentBindingSchema,
     content: {
       type: "object",
       additionalProperties: false,
       required: [
-        "schemaVersion", "sourceRevision", "narrativeProfile", "world",
-        "chapters", "roles", "sections", "scenes", "clues",
-        "investigationPoints", "items", "edges", "rules", "segments", "segmentRefs",
-        "playerTasks", "mechanismPackage"
+        "schemaVersion",
+        "sourceRevision",
+        "narrativeProfile",
+        "world",
+        "chapters",
+        "roles",
+        "sections",
+        "scenes",
+        "clues",
+        "investigationPoints",
+        "items",
+        "edges",
+        "rules",
+        "segments",
+        "segmentRefs",
+        "playerTasks",
+        "mechanismPackage",
       ],
       properties: {
-        schemaVersion: { anyOf: [{ type: "integer", minimum: 1 }, { type: "null" }] },
+        schemaVersion: {
+          anyOf: [{ type: "integer", minimum: 1 }, { type: "null" }],
+        },
         sourceRevision: { type: "integer", minimum: 1 },
         narrativeProfile: { anyOf: [openObject, { type: "null" }] },
         world: { anyOf: [openObject, { type: "null" }] },
@@ -79,37 +149,57 @@ export const runtimeContentResponseSchema = {
         rules: openObjectArray,
         segments: openObjectArray,
         segmentRefs: openObjectArray,
-        playerTasks: openObjectArray
-      }
-    }
-  }
+        playerTasks: openObjectArray,
+      },
+    },
+  },
 };
 
 export const runtimeKnowledgeProjectionSchema = {
   type: "object",
   additionalProperties: false,
   required: [
-    "audience", "roomId", "roleSlotId", "role", "contentBinding",
-    "sections", "clues", "scenes", "investigations", "notes", "summary", "generatedAt"
+    "audience",
+    "roomId",
+    "roleSlotId",
+    "role",
+    "contentBinding",
+    "sections",
+    "clues",
+    "scenes",
+    "investigations",
+    "notes",
+    "summary",
+    "generatedAt",
   ],
   properties: {
     audience: { type: "string", enum: ["player", "host", "creator"] },
     roomId: uuid,
     roleSlotId: uuid,
     role: {
-      anyOf: [{
-        type: "object",
-        additionalProperties: false,
-        required: ["id", "name", "publicProfile", "privateProfile", "playerDisplayName", "joinedAt"],
-        properties: {
-          id: uuid,
-          name: { type: "string" },
-          publicProfile: { type: "string" },
-          privateProfile: { type: "string" },
-          playerDisplayName: nullableString,
-          joinedAt: nullableDateTime
-        }
-      }, { type: "null" }]
+      anyOf: [
+        {
+          type: "object",
+          additionalProperties: false,
+          required: [
+            "id",
+            "name",
+            "publicProfile",
+            "privateProfile",
+            "playerDisplayName",
+            "joinedAt",
+          ],
+          properties: {
+            id: uuid,
+            name: { type: "string" },
+            publicProfile: { type: "string" },
+            privateProfile: { type: "string" },
+            playerDisplayName: nullableString,
+            joinedAt: nullableDateTime,
+          },
+        },
+        { type: "null" },
+      ],
     },
     contentBinding: roomContentBindingSchema,
     sections: {
@@ -118,8 +208,14 @@ export const runtimeKnowledgeProjectionSchema = {
         type: "object",
         additionalProperties: false,
         required: [
-          "id", "title", "body", "sequence", "chapterId",
-          "startedAt", "completedAt", "completed"
+          "id",
+          "title",
+          "body",
+          "sequence",
+          "chapterId",
+          "startedAt",
+          "completedAt",
+          "completed",
         ],
         properties: {
           id: uuid,
@@ -131,9 +227,9 @@ export const runtimeKnowledgeProjectionSchema = {
           completedAt: nullableDateTime,
           completed: { type: "boolean" },
           publicationStatus: { type: "string" },
-          unlocked: { type: "boolean" }
-        }
-      }
+          unlocked: { type: "boolean" },
+        },
+      },
     },
     clues: openObjectArray,
     scenes: openObjectArray,
@@ -145,8 +241,12 @@ export const runtimeKnowledgeProjectionSchema = {
       type: "object",
       additionalProperties: false,
       required: [
-        "availableSections", "completedSections", "ownedClues",
-        "sharedClues", "investigations", "notes"
+        "availableSections",
+        "completedSections",
+        "ownedClues",
+        "sharedClues",
+        "investigations",
+        "notes",
       ],
       properties: {
         availableSections: { type: "integer", minimum: 0 },
@@ -154,11 +254,11 @@ export const runtimeKnowledgeProjectionSchema = {
         ownedClues: { type: "integer", minimum: 0 },
         sharedClues: { type: "integer", minimum: 0 },
         investigations: { type: "integer", minimum: 0 },
-        notes: { type: "integer", minimum: 0 }
-      }
+        notes: { type: "integer", minimum: 0 },
+      },
     },
-    generatedAt: { type: "string", format: "date-time" }
-  }
+    generatedAt: { type: "string", format: "date-time" },
+  },
 };
 
 const runtimeActionSchema = {
@@ -170,78 +270,138 @@ const runtimeActionSchema = {
     label: { type: "string" },
     priority: { type: "integer", minimum: 1 },
     target: { type: "string" },
-    reason: { type: "string" }
-  }
+    reason: { type: "string" },
+  },
 };
 
 const playerMechanismProjectionSchema = {
-  anyOf: [{
-    type: "object",
-    additionalProperties: false,
-    required: [
-      "initialized", "stale", "revision", "status", "totalRounds",
-      "currentRound", "decisions", "ending", "waitingForHost", "updatedAt"
-    ],
-    properties: {
-      initialized: { type: "boolean" },
-      stale: { type: "boolean" },
-      revision: { type: "integer", minimum: 0 },
-      status: { type: "string", enum: ["not_started", "running", "completed"] },
-      totalRounds: { type: "integer", minimum: 0 },
-      currentRound: {
-        anyOf: [{
-          type: "object",
-          additionalProperties: false,
-          required: ["sequence", "title", "goal", "playerAction", "genreMechanicUse"],
-          properties: {
-            sequence: { type: "integer", minimum: 1 },
-            title: { type: "string" },
-            goal: { type: "string" },
-            playerAction: { type: "string" },
-            genreMechanicUse: { type: "string" }
-          }
-        }, { type: "null" }]
+  anyOf: [
+    {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "initialized",
+        "stale",
+        "revision",
+        "status",
+        "totalRounds",
+        "currentRound",
+        "decisions",
+        "ending",
+        "waitingForHost",
+        "updatedAt",
+      ],
+      properties: {
+        initialized: { type: "boolean" },
+        stale: { type: "boolean" },
+        revision: { type: "integer", minimum: 0 },
+        status: {
+          type: "string",
+          enum: ["not_started", "running", "completed"],
+        },
+        totalRounds: { type: "integer", minimum: 0 },
+        currentRound: {
+          anyOf: [
+            {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "sequence",
+                "title",
+                "goal",
+                "playerAction",
+                "genreMechanicUse",
+              ],
+              properties: {
+                sequence: { type: "integer", minimum: 1 },
+                title: { type: "string" },
+                goal: { type: "string" },
+                playerAction: { type: "string" },
+                genreMechanicUse: { type: "string" },
+              },
+            },
+            { type: "null" },
+          ],
+        },
+        decisions: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: [
+              "key",
+              "question",
+              "interaction",
+              "deadlineAt",
+              "options",
+            ],
+            properties: {
+              key: { type: "string" },
+              question: { type: "string" },
+              interaction: mechanismInteractionSchema,
+              deadlineAt: nullableDateTime,
+              submission: {
+                anyOf: [
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["optionKey", "submittedAt"],
+                    properties: {
+                      optionKey: { type: "string" },
+                      submittedAt: { type: "string" },
+                    },
+                  },
+                  { type: "null" },
+                ],
+              },
+              options: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["key", "choiceText", "presentation"],
+                  properties: {
+                    key: { type: "string" },
+                    choiceText: { type: "string" },
+                    presentation: mechanismOptionPresentationSchema,
+                  },
+                },
+              },
+            },
+          },
+        },
+        ending: {
+          anyOf: [
+            {
+              type: "object",
+              additionalProperties: false,
+              required: ["title"],
+              properties: { title: { type: "string" } },
+            },
+            { type: "null" },
+          ],
+        },
+        waitingForHost: { type: "boolean" },
+        updatedAt: nullableDateTime,
       },
-      decisions: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: false,
-          required: ["question", "options"],
-          properties: {
-            question: { type: "string" },
-            options: {
-              type: "array",
-              items: {
-                type: "object",
-                additionalProperties: false,
-                required: ["choiceText"],
-                properties: { choiceText: { type: "string" } }
-              }
-            }
-          }
-        }
-      },
-      ending: {
-        anyOf: [{
-          type: "object",
-          additionalProperties: false,
-          required: ["title"],
-          properties: { title: { type: "string" } }
-        }, { type: "null" }]
-      },
-      waitingForHost: { type: "boolean" },
-      updatedAt: nullableDateTime
-    }
-  }, { type: "null" }]
+    },
+    { type: "null" },
+  ],
 };
 
 export const runtimeCurrentStateSchema = {
   type: "object",
   additionalProperties: false,
   required: [
-    "audience", "roomId", "worldId", "phase", "suggestedActions",
-    "blockers", "mechanism", "syncState", "metrics"
+    "audience",
+    "roomId",
+    "worldId",
+    "phase",
+    "suggestedActions",
+    "blockers",
+    "mechanism",
+    "syncState",
+    "metrics",
   ],
   properties: {
     audience: { type: "string", enum: ["player", "host", "creator"] },
@@ -254,8 +414,8 @@ export const runtimeCurrentStateSchema = {
       properties: {
         key: { type: "string" },
         label: { type: "string" },
-        detail: { type: "string" }
-      }
+        detail: { type: "string" },
+      },
     },
     suggestedActions: { type: "array", items: runtimeActionSchema },
     mechanism: playerMechanismProjectionSchema,
@@ -269,57 +429,69 @@ export const runtimeCurrentStateSchema = {
           key: { type: "string" },
           label: { type: "string" },
           severity: { type: "string", enum: ["info", "warning", "error"] },
-          target: { type: "string" }
-        }
-      }
+          target: { type: "string" },
+        },
+      },
     },
     syncState: {
       type: "object",
       additionalProperties: false,
-      required: ["status", "runtimeSource", "isFrozen", "serverCursor", "generatedAt"],
+      required: [
+        "status",
+        "runtimeSource",
+        "isFrozen",
+        "serverCursor",
+        "generatedAt",
+      ],
       properties: {
-        status: { type: "string", enum: ["synced", "reconnecting", "stale", "offline"] },
-        runtimeSource: { type: "string", enum: ["live_draft", "release_snapshot"] },
+        status: {
+          type: "string",
+          enum: ["synced", "reconnecting", "stale", "offline"],
+        },
+        runtimeSource: {
+          type: "string",
+          enum: ["live_draft", "release_snapshot"],
+        },
         isFrozen: { type: "boolean" },
         serverCursor: { type: "integer", minimum: 0 },
-        generatedAt: { type: "string", format: "date-time" }
-      }
+        generatedAt: { type: "string", format: "date-time" },
+      },
     },
-    metrics: openObject
-  }
+    metrics: openObject,
+  },
 };
 
 export const hostRuntimeContentRouteSchema = {
   params: runtimeRoomParams,
-  response: { 200: runtimeContentResponseSchema }
+  response: { 200: runtimeContentResponseSchema },
 };
 
 export const playerKnowledgeRouteSchema = {
   params: runtimeRoomParams,
-  response: { 200: runtimeKnowledgeProjectionSchema }
+  response: { 200: runtimeKnowledgeProjectionSchema },
 };
 
 export const hostKnowledgeRouteSchema = {
   params: runtimeRoleParams,
-  response: { 200: runtimeKnowledgeProjectionSchema }
+  response: { 200: runtimeKnowledgeProjectionSchema },
 };
 
 export const creatorKnowledgeRouteSchema = {
   params: creatorRuntimeRoleParams,
-  response: { 200: runtimeKnowledgeProjectionSchema }
+  response: { 200: runtimeKnowledgeProjectionSchema },
 };
 
 export const playerCurrentStateRouteSchema = {
   params: runtimeRoomParams,
-  response: { 200: runtimeCurrentStateSchema }
+  response: { 200: runtimeCurrentStateSchema },
 };
 
 export const hostCurrentStateRouteSchema = {
   params: runtimeRoomParams,
-  response: { 200: runtimeCurrentStateSchema }
+  response: { 200: runtimeCurrentStateSchema },
 };
 
 export const creatorCurrentStateRouteSchema = {
   params: creatorRuntimeRoomParams,
-  response: { 200: runtimeCurrentStateSchema }
+  response: { 200: runtimeCurrentStateSchema },
 };

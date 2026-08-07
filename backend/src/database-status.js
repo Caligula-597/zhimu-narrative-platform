@@ -17,7 +17,11 @@ const REQUIRED_TABLES = [
   "creator_review_threads",
   "world_releases",
   "user_portal_profiles",
-  "portal_profile_avatar_uploads"
+  "portal_profile_avatar_uploads",
+  "world_mechanism_packages",
+  "room_mechanism_states",
+  "room_mechanism_action_log",
+  "room_mechanism_decision_submissions",
 ];
 const REQUIRED_MIGRATIONS = [
   "084_room_creation_idempotency.sql",
@@ -40,27 +44,38 @@ const REQUIRED_MIGRATIONS = [
   "101_user_llm_byok_only.sql",
   "102_email_verification_codes.sql",
   "103_ops_user_management.sql",
-  "104_user_portal_profiles.sql"
+  "104_user_portal_profiles.sql",
+  "105_world_mechanism_packages.sql",
+  "106_room_mechanism_runtime.sql",
+  "107_room_mechanism_decision_submissions.sql",
+  "108_room_mechanism_round_clock.sql",
 ];
 
 export function inspectRequiredDatabaseSchema({
   tableNames = [],
   migrationNames = [],
-  rlsTableNames = tableNames
+  rlsTableNames = tableNames,
 } = {}) {
   const presentTables = new Set(tableNames);
   const appliedMigrations = new Set(migrationNames);
   const rlsTables = new Set(rlsTableNames);
-  const missingTables = REQUIRED_TABLES.filter((name) => !presentTables.has(name));
-  const missingMigrations = REQUIRED_MIGRATIONS.filter((name) => !appliedMigrations.has(name));
-  const missingRlsTables = REQUIRED_TABLES.filter((name) => !rlsTables.has(name));
+  const missingTables = REQUIRED_TABLES.filter(
+    (name) => !presentTables.has(name),
+  );
+  const missingMigrations = REQUIRED_MIGRATIONS.filter(
+    (name) => !appliedMigrations.has(name),
+  );
+  const missingRlsTables = REQUIRED_TABLES.filter(
+    (name) => !rlsTables.has(name),
+  );
   return {
-    ok: missingTables.length === 0
-      && missingMigrations.length === 0
-      && missingRlsTables.length === 0,
+    ok:
+      missingTables.length === 0 &&
+      missingMigrations.length === 0 &&
+      missingRlsTables.length === 0,
     missingTables,
     missingMigrations,
-    missingRlsTables
+    missingRlsTables,
   };
 }
 
@@ -68,14 +83,14 @@ export async function getDatabaseStatus() {
   const started = Date.now();
   const [time, migrations, tables, rlsTables] = await Promise.all([
     query("SELECT now() AS database_time"),
-    query(
-      `SELECT filename FROM schema_migrations ORDER BY filename`
-    ).catch(() => ({ rows: [] })),
+    query(`SELECT filename FROM schema_migrations ORDER BY filename`).catch(
+      () => ({ rows: [] }),
+    ),
     query(
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema = 'public'
          AND table_name = ANY($1::text[])`,
-      [REQUIRED_TABLES]
+      [REQUIRED_TABLES],
     ).catch(() => ({ rows: [] })),
     query(
       `SELECT relation.relname AS table_name
@@ -85,15 +100,15 @@ export async function getDatabaseStatus() {
          AND relation.relkind IN ('r', 'p')
          AND relation.relrowsecurity
          AND relation.relname = ANY($1::text[])`,
-      [REQUIRED_TABLES]
-    ).catch(() => ({ rows: [] }))
+      [REQUIRED_TABLES],
+    ).catch(() => ({ rows: [] })),
   ]);
   const latencyMs = Date.now() - started;
 
   const schema = inspectRequiredDatabaseSchema({
     tableNames: tables.rows.map((row) => row.table_name),
     migrationNames: migrations.rows.map((row) => row.filename),
-    rlsTableNames: rlsTables.rows.map((row) => row.table_name)
+    rlsTableNames: rlsTables.rows.map((row) => row.table_name),
   });
 
   const latestMigration = migrations.rows.at(-1)?.filename ?? null;
@@ -105,15 +120,15 @@ export async function getDatabaseStatus() {
     latestMigration,
     features: {
       cascadeWorldDelete: true,
-      roomsWorldCascadeMigration: Boolean(latestMigration && latestMigration >= "017_rooms_world_cascade.sql")
+      roomsWorldCascadeMigration: Boolean(
+        latestMigration && latestMigration >= "017_rooms_world_cascade.sql",
+      ),
     },
     missingTables: schema.missingTables,
     missingMigrations: schema.missingMigrations,
     missingRlsTables: schema.missingRlsTables,
     pool: getPoolStats(),
-    hint: schema.ok
-      ? null
-      : "Run: cd backend && npm run db:migrate"
+    hint: schema.ok ? null : "Run: cd backend && npm run db:migrate",
   };
 }
 
@@ -126,7 +141,7 @@ export async function getReadinessStatus() {
     ready: status.ok && !poolSaturated,
     checks: {
       database: status.ok,
-      pool: !poolSaturated
-    }
+      pool: !poolSaturated,
+    },
   };
 }
