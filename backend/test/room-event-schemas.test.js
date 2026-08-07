@@ -4,13 +4,13 @@ import {
   validateRoomEvent,
   listRegisteredEventTypes,
   getRoomEventSchema,
-  ROOM_EVENT_SCHEMAS
+  ROOM_EVENT_SCHEMAS,
 } from "../src/room-event-schemas.js";
 
 test("accepts a known event type with all required fields", () => {
   const result = validateRoomEvent("room.player_joined", {
     roleSlotId: "rs-1",
-    roleName: "侦探"
+    roleName: "侦探",
   });
   assert.equal(result.ok, true);
   assert.deepEqual(result.errors, []);
@@ -23,7 +23,9 @@ test("rejects unknown event type", () => {
 });
 
 test("rejects missing required fields", () => {
-  const result = validateRoomEvent("room.player_joined", { roleSlotId: "rs-1" });
+  const result = validateRoomEvent("room.player_joined", {
+    roleSlotId: "rs-1",
+  });
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((e) => e.includes("roleName")));
 });
@@ -31,7 +33,7 @@ test("rejects missing required fields", () => {
 test("rejects wrong field type", () => {
   const result = validateRoomEvent("room.player_joined", {
     roleSlotId: "rs-1",
-    roleName: 12345
+    roleName: 12345,
   });
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((e) => e.includes("roleName")));
@@ -69,7 +71,9 @@ test("rejects empty event type", () => {
 });
 
 test("accepts room.host_event_pending with only eventId", () => {
-  const result = validateRoomEvent("room.host_event_pending", { eventId: "evt-1" });
+  const result = validateRoomEvent("room.host_event_pending", {
+    eventId: "evt-1",
+  });
   assert.equal(result.ok, true);
 });
 
@@ -79,7 +83,7 @@ test("accepts room.host_event_pending with all fields", () => {
     action: "delayed",
     delayMinutes: 30,
     title: "待处理事件",
-    source: "rule"
+    source: "rule",
   });
   assert.equal(result.ok, true);
 });
@@ -87,7 +91,7 @@ test("accepts room.host_event_pending with all fields", () => {
 test("rejects invalid action enum for host_event_pending", () => {
   const result = validateRoomEvent("room.host_event_pending", {
     eventId: "evt-1",
-    action: "bogus_action"
+    action: "bogus_action",
   });
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((e) => e.includes("action")));
@@ -96,7 +100,7 @@ test("rejects invalid action enum for host_event_pending", () => {
 test("accepts room.game_completed with optional forced flag", () => {
   const result = validateRoomEvent("room.game_completed", {
     currentGame: { id: "g1" },
-    forced: true
+    forced: true,
   });
   assert.equal(result.ok, true);
 });
@@ -104,13 +108,15 @@ test("accepts room.game_completed with optional forced flag", () => {
 test("accepts room.game_updated with required correct boolean", () => {
   const result = validateRoomEvent("room.game_updated", {
     currentGame: { id: "g1" },
-    correct: false
+    correct: false,
   });
   assert.equal(result.ok, true);
 });
 
 test("rejects room.game_updated missing correct field", () => {
-  const result = validateRoomEvent("room.game_updated", { currentGame: { id: "g1" } });
+  const result = validateRoomEvent("room.game_updated", {
+    currentGame: { id: "g1" },
+  });
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((e) => e.includes("correct")));
 });
@@ -127,21 +133,37 @@ test("accepts room.clue_granted with all optional fields", () => {
     source: "host_manual",
     clueName: "神秘线索",
     pointId: "pt-1",
-    ownerRoleSlotId: "rs-2"
+    ownerRoleSlotId: "rs-2",
   });
   assert.equal(result.ok, true);
 });
 
 test("accepts durable batch-B event contracts and rejects missing identifiers", () => {
   for (const [type, payload, requiredField] of [
-    ["room.player_task_completed", { taskId: "task-1", roleSlotId: "role-1" }, "taskId"],
-    ["room.testimony_submitted", { testimonyId: "testimony-1", roleSlotId: "role-1" }, "testimonyId"],
-    ["room.segment_remedy_applied", { remedyId: "remedy-1", segmentKey: "ch1", title: "补救" }, "remedyId"]
+    [
+      "room.player_task_completed",
+      { taskId: "task-1", roleSlotId: "role-1" },
+      "taskId",
+    ],
+    [
+      "room.testimony_submitted",
+      { testimonyId: "testimony-1", roleSlotId: "role-1" },
+      "testimonyId",
+    ],
+    [
+      "room.segment_remedy_applied",
+      { remedyId: "remedy-1", segmentKey: "ch1", title: "补救" },
+      "remedyId",
+    ],
   ]) {
     assert.equal(validateRoomEvent(type, payload).ok, true, type);
     const invalid = { ...payload };
     delete invalid[requiredField];
-    assert.equal(validateRoomEvent(type, invalid).ok, false, `${type} requires ${requiredField}`);
+    assert.equal(
+      validateRoomEvent(type, invalid).ok,
+      false,
+      `${type} requires ${requiredField}`,
+    );
   }
 });
 
@@ -168,11 +190,12 @@ test("getRoomEventSchema returns null for unknown type", () => {
 });
 
 test("all production room contracts remain JSON-Schema-shaped and additive", () => {
-  assert.equal(Object.keys(ROOM_EVENT_SCHEMAS).length, 33);
+  assert.equal(Object.keys(ROOM_EVENT_SCHEMAS).length, 34);
   assert.ok(ROOM_EVENT_SCHEMAS["room.host_log_created"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.host_player_notes_updated"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.content_release_changed"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.mechanism_state_updated"]);
+  assert.ok(ROOM_EVENT_SCHEMAS["room.mechanism_submission_updated"]);
   for (const schema of Object.values(ROOM_EVENT_SCHEMAS)) {
     assert.equal(schema.type, "object");
     assert.equal(schema.additionalProperties, true);
@@ -187,17 +210,39 @@ test("mechanism state updates have a durable public event contract", () => {
     revision: 4,
     status: "running",
     roundSequence: 2,
-    roundTitle: "第二次潮窗"
+    roundTitle: "第二次潮窗",
   });
   assert.equal(valid.ok, true);
-  assert.equal(validateRoomEvent("room.mechanism_state_updated", {
-    action: "advance",
-    status: "running"
-  }).ok, false);
+  assert.equal(
+    validateRoomEvent("room.mechanism_state_updated", {
+      action: "advance",
+      status: "running",
+    }).ok,
+    false,
+  );
+});
+
+test("mechanism preference updates have a durable host event contract", () => {
+  assert.equal(
+    validateRoomEvent("room.mechanism_submission_updated", {
+      decisionKey: "decision-protect-zone",
+      submissionCount: 4,
+    }).ok,
+    true,
+  );
+  assert.equal(
+    validateRoomEvent("room.mechanism_submission_updated", {
+      submissionCount: 4,
+    }).ok,
+    false,
+  );
 });
 
 test("room contract validates array item types", () => {
-  const result = validateRoomEvent("room.host_nudge", { message: "hi", roleSlotIds: [123] });
+  const result = validateRoomEvent("room.host_nudge", {
+    message: "hi",
+    roleSlotIds: [123],
+  });
   assert.equal(result.ok, false);
   assert.match(result.errors[0], /roleSlotIds\[0\].*string/);
 });

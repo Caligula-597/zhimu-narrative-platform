@@ -125,6 +125,12 @@ export const api = {
   playerVotes: (roomId) => request(`/rooms/${roomId}/votes`),
   submitVoteBallot: (roomId, voteId, payload) =>
     request(`/rooms/${roomId}/votes/${voteId}/ballots`, { method: "POST", body: payload }),
+  submitMechanismDecision: (roomId, decisionKey, payload) =>
+    request(`/rooms/${roomId}/player/mechanism-decisions/${encodeURIComponent(decisionKey)}/submissions`, {
+      method: "POST",
+      body: payload,
+      idempotent: true
+    }),
   privateActions: (roomId) => request(`/rooms/${roomId}/private-actions`),
   createPrivateAction: (roomId, payload) =>
     request(`/rooms/${roomId}/private-actions`, { method: "POST", body: payload }),

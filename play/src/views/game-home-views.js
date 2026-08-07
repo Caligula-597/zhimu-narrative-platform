@@ -5,8 +5,13 @@ import { renderVoiceCompact } from "./voice.js";
 import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
 import {
   normalizeRuntimeCurrentState,
-  primaryRuntimeAction
+  primaryRuntimeAction,
 } from "../../../shared/runtime-current-state.js";
+import {
+  mechanismInteractionCard,
+  normalizeMechanismInteraction,
+  normalizeMechanismOptionPresentation,
+} from "../../../shared/mechanism-interactions.js";
 
 export function renderGameResume() {
   return `
@@ -49,7 +54,9 @@ function hostConfirmBanner() {
 }
 
 function roomContentBindingBanner() {
-  const binding = roomContentBindingPresentation(state.home?.room?.contentBinding);
+  const binding = roomContentBindingPresentation(
+    state.home?.room?.contentBinding,
+  );
   return `
     <div class="banner room-content-binding-banner ${binding.tone === "published" ? "soft" : "host-wait-banner"}">
       <strong>${escapeHtml(binding.label)}</strong>
@@ -61,7 +68,7 @@ function runtimeStateBanner() {
   if (!state.home?.currentState) return "";
   const current = normalizeRuntimeCurrentState(state.home?.currentState, {
     audience: "player",
-    connected: state.roomEventsConnected
+    connected: state.roomEventsConnected,
   });
   return `
     <div class="banner room-content-binding-banner ${current.syncState.status === "synced" ? "soft" : "host-wait-banner"}">
@@ -73,7 +80,51 @@ function runtimeStateBanner() {
     </div>`;
 }
 
-function renderMechanismProgress() {
+function renderMechanismDecision(decision) {
+  const interaction = normalizeMechanismInteraction(decision.interaction);
+  const card = mechanismInteractionCard(interaction.kind);
+  const selectedOptionKey = decision.submission?.optionKey || "";
+  const privateSubmission = interaction.submissionMode === "private_choice";
+  const deadlineAt = decision.deadlineAt
+    ? new Date(decision.deadlineAt).getTime()
+    : Number.NaN;
+  const expired = Number.isFinite(deadlineAt) && Date.now() >= deadlineAt;
+  const deadlineLabel = Number.isFinite(deadlineAt)
+    ? new Date(deadlineAt).toLocaleTimeString("zh-CN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+    : `${Math.ceil(interaction.deadlineSeconds / 60)} 分钟`;
+  return `<div class="mechanism-decision mechanism-kind-${escapeHtml(interaction.kind)}">
+    <div class="mechanism-decision-head"><span class="mechanism-kind-label is-${escapeHtml(card.theme)}">${escapeHtml(interaction.label)}</span><div><strong>${escapeHtml(decision.question || "请讨论并形成选择")}</strong><p>${escapeHtml(interaction.playerInstruction)}</p></div></div>
+    ${interaction.deadlineSeconds ? `<div class="mechanism-deadline ${expired ? "is-expired" : ""}"><span>${expired ? "本轮已到期" : "服务器截止时间"}</span><b>${escapeHtml(deadlineLabel)}</b><small>到期后停止提交，由主持人按作者预设方案结算</small></div>` : ""}
+    <div class="mechanism-option-list">${asArray(decision.options)
+      .map((option, index) => {
+        const presentation = normalizeMechanismOptionPresentation(
+          option.presentation,
+        );
+        const selected = selectedOptionKey === option.key;
+        const isDefault = interaction.defaultOptionKey === option.key;
+        return `<button type="button" class="mechanism-option-card ${selected ? "is-selected" : ""}" data-action="submit-mechanism-choice" data-submission-mode="${escapeHtml(interaction.submissionMode)}" data-decision-key="${escapeHtml(decision.key)}" data-option-key="${escapeHtml(option.key)}" ${state.busy || expired ? "disabled" : ""}>
+        <span>${escapeHtml(presentation.eyebrow || `${card.shortLabel} ${String(index + 1).padStart(2, "0")}`)}</span>
+        <strong>${escapeHtml(option.choiceText)}</strong>
+        ${isDefault ? `<small class="mechanism-default-label">超时默认方案</small>` : ""}
+        ${presentation.publicPreview ? `<p>${escapeHtml(presentation.publicPreview)}</p>` : ""}
+        ${presentation.costLabel || presentation.riskLabel || presentation.sequenceLabel ? `<small>${[presentation.sequenceLabel, presentation.costLabel, presentation.riskLabel].filter(Boolean).map(escapeHtml).join(" · ")}</small>` : ""}
+        <em>${selected ? (privateSubmission ? "秘密承诺已提交" : "已提交此倾向") : privateSubmission ? "秘密提交承诺" : "提交我的倾向"}</em>
+      </button>`;
+      })
+      .join("")}</div>
+    <p class="mechanism-submission-help">${
+      privateSubmission
+        ? "你的承诺只对本人和主持人可见；其他玩家不会看到你的选择。"
+        : "你的提交不会立即改写剧情；主持人会看到全桌倾向并确认最终结算。"
+    }</p>
+  </div>`;
+}
+
+export function renderMechanismProgress() {
   const mechanism = state.home?.currentState?.mechanism;
   if (!mechanism) return "";
   if (mechanism.stale) {
@@ -115,14 +166,7 @@ function renderMechanismProgress() {
       </div>
       ${round.goal ? `<p class="mechanism-goal">${escapeHtml(round.goal)}</p>` : ""}
       ${round.playerAction ? `<div class="mechanism-player-action"><span>你们现在要做</span><strong>${escapeHtml(round.playerAction)}</strong></div>` : ""}
-      ${decisions.map((decision) => `
-        <div class="mechanism-decision">
-          <span>本轮抉择</span>
-          <strong>${escapeHtml(decision.question || "请讨论并形成选择")}</strong>
-          <div class="mechanism-option-list">
-            ${asArray(decision.options).map((option) => `<em>${escapeHtml(option.choiceText)}</em>`).join("")}
-          </div>
-        </div>`).join("")}
+      ${decisions.map(renderMechanismDecision).join("")}
       <p class="muted small">选择由全桌讨论，主持人结算后会自动同步结果与下一轮。</p>
     </article>`;
 }
@@ -143,7 +187,7 @@ function renderRoomMembers() {
               <strong>${escapeHtml(member.role_name)}</strong>
               <span>${member.display_name ? escapeHtml(member.display_name) : member.online ? "已加入" : "空席"}</span>
             </div>
-          </div>`
+          </div>`,
           )
           .join("")}
       </div>
@@ -199,10 +243,12 @@ export function renderGameHome() {
 
       ${renderPlayerActionsHub(home, next)}
 
-      ${(state.exploration?.scenes?.length || 0) > 0
-        ? `
+      ${
+        (state.exploration?.scenes?.length || 0) > 0
+          ? `
         <button class="btn outline" type="button" data-action="switch-tab" data-tab="explore">前往探索场景（${state.exploration.scenes.length}）</button>`
-        : ""}
+          : ""
+      }
     </div>`;
 }
 
@@ -212,70 +258,178 @@ function renderPlayerActionsHub(home, nextSection) {
   const clues = home?.clues || [];
   const sharedClues = home?.sharedClues || [];
   const scenes = state.exploration?.scenes || [];
-  const points = scenes.flatMap((s) => (s.investigation_points || []).map((p) => ({ ...p, sceneName: s.name })));
+  const points = scenes.flatMap((s) =>
+    (s.investigation_points || []).map((p) => ({ ...p, sceneName: s.name })),
+  );
   const pending = home?.hostConfirm;
   const currentGame = state.currentGame;
   const votes = asArray(home?.activeVotes);
 
   const pendingTasks = tasks.filter((task) => task.status !== "completed");
-  const openVotes = votes.filter((vote) => vote.status === "open" && !vote.submitted_at);
+  const openVotes = votes.filter(
+    (vote) => vote.status === "open" && !vote.submitted_at,
+  );
   const unreadSections = sections.filter((s) => !s.completed);
   const unreadClues = clues.filter((c) => !clueIsRead(c, { owned: true }));
-  const unreadShared = sharedClues.filter((c) => !clueIsRead(c, { owned: false }));
+  const unreadShared = sharedClues.filter(
+    (c) => !clueIsRead(c, { owned: false }),
+  );
   const unreadAllClues = [...unreadClues, ...unreadShared];
-  const availablePoints = points.filter((p) => !p.investigated && p.hasRequiredItem);
-  const blockedPoints = points.filter((p) => !p.investigated && !p.hasRequiredItem && p.requiredItemName);
+  const availablePoints = points.filter(
+    (p) => !p.investigated && p.hasRequiredItem,
+  );
+  const blockedPoints = points.filter(
+    (p) => !p.investigated && !p.hasRequiredItem && p.requiredItemName,
+  );
 
   let primary;
   if (pendingTasks.length) {
-    primary = { title: pendingTasks[0].body || "完成本幕任务", detail: pendingTasks[0].tips || "先处理未完成任务，再推进调查和讨论。", action: "switch-tab", data: 'data-tab="tasks"', button: "处理任务" };
+    primary = {
+      title: pendingTasks[0].body || "完成本幕任务",
+      detail: pendingTasks[0].tips || "先处理未完成任务，再推进调查和讨论。",
+      action: "switch-tab",
+      data: 'data-tab="tasks"',
+      button: "处理任务",
+    };
   } else if (openVotes.length) {
-    primary = { title: openVotes[0].title || "参与投票 / 指认", detail: openVotes[0].prompt || "主持人已开启投票，请先完成你的选择。", action: "switch-tab", data: 'data-tab="social"', button: "去投票" };
+    primary = {
+      title: openVotes[0].title || "参与投票 / 指认",
+      detail: openVotes[0].prompt || "主持人已开启投票，请先完成你的选择。",
+      action: "switch-tab",
+      data: 'data-tab="social"',
+      button: "去投票",
+    };
   } else if (pending?.waitingForYou) {
-    primary = { title: "剧情推进等待主持确认", detail: "你已经触发关键节点。确认后新内容会自动刷新。", action: "switch-tab", data: 'data-tab="voice"', button: "进入讨论" };
+    primary = {
+      title: "剧情推进等待主持确认",
+      detail: "你已经触发关键节点。确认后新内容会自动刷新。",
+      action: "switch-tab",
+      data: 'data-tab="voice"',
+      button: "进入讨论",
+    };
   } else if (unreadAllClues.length) {
-    primary = { title: `阅读线索：${unreadAllClues[0].name}`, detail: "标记已读后可补充解读、公开或私享给指定玩家。", action: "switch-tab", data: 'data-tab="clues"', button: "查看线索" };
+    primary = {
+      title: `阅读线索：${unreadAllClues[0].name}`,
+      detail: "标记已读后可补充解读、公开或私享给指定玩家。",
+      action: "switch-tab",
+      data: 'data-tab="clues"',
+      button: "查看线索",
+    };
   } else if (nextSection && !nextSection.completed) {
-    primary = { title: nextSection.title || "阅读当前分幕", detail: `第 ${nextSection.sequence} 幕 · 尚未读完`, action: "goto-section", data: `data-section-id="${escapeHtml(nextSection.id)}"`, button: "继续阅读" };
+    primary = {
+      title: nextSection.title || "阅读当前分幕",
+      detail: `第 ${nextSection.sequence} 幕 · 尚未读完`,
+      action: "goto-section",
+      data: `data-section-id="${escapeHtml(nextSection.id)}"`,
+      button: "继续阅读",
+    };
   } else if (availablePoints.length) {
-    primary = { title: `调查：${availablePoints[0].name}`, detail: `地点：${availablePoints[0].sceneName || "当前场景"}`, action: "switch-tab", data: 'data-tab="explore"', button: "去探索" };
+    primary = {
+      title: `调查：${availablePoints[0].name}`,
+      detail: `地点：${availablePoints[0].sceneName || "当前场景"}`,
+      action: "switch-tab",
+      data: 'data-tab="explore"',
+      button: "去探索",
+    };
   } else {
-    primary = { title: "整理线索或进入语音讨论", detail: "当前没有必须完成的动作", action: "switch-tab", data: 'data-tab="voice"', button: "讨论" };
+    primary = {
+      title: "整理线索或进入语音讨论",
+      detail: "当前没有必须完成的动作",
+      action: "switch-tab",
+      data: 'data-tab="voice"',
+      button: "讨论",
+    };
   }
 
   const serverAction = primaryRuntimeAction(home?.currentState);
   if (serverAction) {
-    const targetTab = new Set(["home", "sections", "social", "explore", "voice", "clues", "tasks"])
-      .has(serverAction.target) ? serverAction.target : "home";
+    const targetTab = new Set([
+      "home",
+      "sections",
+      "social",
+      "explore",
+      "voice",
+      "clues",
+      "tasks",
+    ]).has(serverAction.target)
+      ? serverAction.target
+      : "home";
     primary = {
       title: serverAction.label,
       detail: serverAction.reason,
       action: "switch-tab",
       data: `data-tab="${escapeHtml(targetTab)}"`,
-      button: "去处理"
+      button: "去处理",
     };
   }
 
   const readItems = [
-    ...pendingTasks.slice(0, 2).map((t) => ({ label: "未完成任务", title: t.body, action: "switch-tab", data: 'data-tab="tasks"' })),
-    ...openVotes.slice(0, 2).map((v) => ({ label: "待投票", title: v.title, action: "switch-tab", data: 'data-tab="social"' })),
-    ...unreadSections.slice(0, 3).map((s) => ({ label: "未读分幕", title: s.title || `第 ${s.sequence} 幕`, action: "goto-section", data: `data-section-id="${escapeHtml(s.id)}"` })),
-    ...unreadClues.slice(0, 2).map((c) => ({ label: "未读线索", title: c.name, action: "switch-tab", data: 'data-tab="clues"' })),
-    ...unreadShared.slice(0, 2).map((c) => ({ label: "未读共享", title: c.name, action: "switch-tab", data: 'data-tab="clues"' }))
+    ...pendingTasks.slice(0, 2).map((t) => ({
+      label: "未完成任务",
+      title: t.body,
+      action: "switch-tab",
+      data: 'data-tab="tasks"',
+    })),
+    ...openVotes.slice(0, 2).map((v) => ({
+      label: "待投票",
+      title: v.title,
+      action: "switch-tab",
+      data: 'data-tab="social"',
+    })),
+    ...unreadSections.slice(0, 3).map((s) => ({
+      label: "未读分幕",
+      title: s.title || `第 ${s.sequence} 幕`,
+      action: "goto-section",
+      data: `data-section-id="${escapeHtml(s.id)}"`,
+    })),
+    ...unreadClues.slice(0, 2).map((c) => ({
+      label: "未读线索",
+      title: c.name,
+      action: "switch-tab",
+      data: 'data-tab="clues"',
+    })),
+    ...unreadShared.slice(0, 2).map((c) => ({
+      label: "未读共享",
+      title: c.name,
+      action: "switch-tab",
+      data: 'data-tab="clues"',
+    })),
   ];
   const exploreItems = [
-    ...availablePoints.slice(0, 3).map((p) => ({ label: `可调查 · ${p.sceneName || ""}`, title: p.name, action: "switch-tab", data: 'data-tab="explore"' })),
-    ...blockedPoints.slice(0, 2).map((p) => ({ label: `需要 ${p.requiredItemName || "物品"}`, title: p.name, action: "switch-tab", data: 'data-tab="explore"' }))
+    ...availablePoints.slice(0, 3).map((p) => ({
+      label: `可调查 · ${p.sceneName || ""}`,
+      title: p.name,
+      action: "switch-tab",
+      data: 'data-tab="explore"',
+    })),
+    ...blockedPoints.slice(0, 2).map((p) => ({
+      label: `需要 ${p.requiredItemName || "物品"}`,
+      title: p.name,
+      action: "switch-tab",
+      data: 'data-tab="explore"',
+    })),
   ];
   const waitItems = [];
-  if (pending?.pendingCount && !pending.waitingForYou) waitItems.push({ label: "确认后自动推送", title: `主持人处理 ${pending.pendingCount} 条待确认` });
-  if (currentGame && currentGame.status !== "success") waitItems.push({ label: "解密机关", title: "有待解决的数字锁机关" });
-  if (!scenes.length) waitItems.push({ label: "完成阅读后解锁", title: "等待主持人开放场景" });
-  if (!unreadSections.length && !availablePoints.length && !pending?.pendingCount) waitItems.push({ label: "可自由行动", title: "当前无紧急待办" });
+  if (pending?.pendingCount && !pending.waitingForYou)
+    waitItems.push({
+      label: "确认后自动推送",
+      title: `主持人处理 ${pending.pendingCount} 条待确认`,
+    });
+  if (currentGame && currentGame.status !== "success")
+    waitItems.push({ label: "解密机关", title: "有待解决的数字锁机关" });
+  if (!scenes.length)
+    waitItems.push({ label: "完成阅读后解锁", title: "等待主持人开放场景" });
+  if (
+    !unreadSections.length &&
+    !availablePoints.length &&
+    !pending?.pendingCount
+  )
+    waitItems.push({ label: "可自由行动", title: "当前无紧急待办" });
 
-  const renderItem = (item) => item.action
-    ? `<button class="action-list-item" type="button" data-action="${escapeHtml(item.action)}" ${item.data || ""}><span>${escapeHtml(item.label)}</span><b>${escapeHtml(item.title)}</b></button>`
-    : `<div class="action-list-item is-static"><span>${escapeHtml(item.label)}</span><b>${escapeHtml(item.title)}</b></div>`;
+  const renderItem = (item) =>
+    item.action
+      ? `<button class="action-list-item" type="button" data-action="${escapeHtml(item.action)}" ${item.data || ""}><span>${escapeHtml(item.label)}</span><b>${escapeHtml(item.title)}</b></button>`
+      : `<div class="action-list-item is-static"><span>${escapeHtml(item.label)}</span><b>${escapeHtml(item.title)}</b></div>`;
 
   return `
     <article class="next-action card">

@@ -3,7 +3,7 @@ import { state } from "../state.js";
 import {
   initializeHostMechanismRuntime,
   loadHostMechanismRuntime,
-  submitHostMechanismAction
+  submitHostMechanismAction,
 } from "./host-mechanism-service.js";
 
 export function createHostMechanismController({ render, showToast }) {
@@ -34,23 +34,41 @@ export function createHostMechanismController({ render, showToast }) {
       return true;
     }
     if (action === "host-mechanism-decision") {
-      await run("结算玩家选择", () => submitHostMechanismAction({
-        type: "decision",
-        decisionKey: element?.dataset?.decisionKey || "",
-        optionKey: element?.dataset?.optionKey || ""
-      }));
+      await run("结算玩家选择", () =>
+        submitHostMechanismAction({
+          type: "decision",
+          decisionKey: element?.dataset?.decisionKey || "",
+          optionKey: element?.dataset?.optionKey || "",
+        }),
+      );
+      return true;
+    }
+    if (action === "host-mechanism-deadline-default") {
+      await run("执行超时默认方案", () =>
+        submitHostMechanismAction({
+          type: "decision",
+          source: "deadline_default",
+          decisionKey: element?.dataset?.decisionKey || "",
+          optionKey: element?.dataset?.optionKey || "",
+        }),
+      );
       return true;
     }
     if (action === "host-mechanism-investigation") {
-      await run("结算调查", () => submitHostMechanismAction({
-        type: "investigation",
-        investigationKey: element?.dataset?.investigationKey || "",
-        outcome: element?.dataset?.outcome === "failure" ? "failure" : "success"
-      }));
+      await run("结算调查", () =>
+        submitHostMechanismAction({
+          type: "investigation",
+          investigationKey: element?.dataset?.investigationKey || "",
+          outcome:
+            element?.dataset?.outcome === "failure" ? "failure" : "success",
+        }),
+      );
       return true;
     }
     if (action === "host-mechanism-advance") {
-      await run("推进机制轮次", () => submitHostMechanismAction({ type: "advance" }));
+      await run("推进机制轮次", () =>
+        submitHostMechanismAction({ type: "advance" }),
+      );
       return true;
     }
     return false;
