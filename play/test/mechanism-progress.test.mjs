@@ -30,23 +30,23 @@ test("player mechanism progress renders authored online form without internal ef
         },
         decisions: [
           {
-            key: "decision-tide",
+            key: "choice-1",
             question: "本轮把闸门容量留给哪里？",
             interaction: {
               kind: "timed_crisis",
               label: "潮窗危机",
               playerInstruction: "在时限内形成一个可执行方案。",
               deadlineSeconds: 1080,
-              defaultOptionKey: "old-port",
+              defaultOptionKey: "option-1",
             },
             deadlineAt: "2999-08-06T10:00:00.000Z",
             submission: {
-              optionKey: "old-port",
+              optionKey: "option-1",
               submittedAt: "2026-08-06T10:00:00Z",
             },
             options: [
               {
-                key: "old-port",
+                key: "option-1",
                 choiceText: "保护旧港",
                 presentation: {
                   eyebrow: "区域方案 01",
@@ -91,7 +91,7 @@ test("player role commitment clearly stays private to the player and host", () =
         currentRound: { sequence: 1, title: "私人立场" },
         decisions: [
           {
-            key: "decision-promise",
+            key: "choice-1",
             question: "你愿意为谁承担责任？",
             interaction: {
               kind: "role_commitment",
@@ -101,7 +101,7 @@ test("player role commitment clearly stays private to the player and host", () =
             deadlineAt: null,
             submission: null,
             options: [
-              { key: "protect", choiceText: "保护证人", presentation: {} },
+              { key: "option-1", choiceText: "保护证人", presentation: {} },
             ],
           },
         ],

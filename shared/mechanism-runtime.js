@@ -864,17 +864,37 @@ export function projectPlayerMechanismRuntime(
                 decision.roundKey === round.key &&
                 !runtime.decisionStates?.[decision.key],
             )
-            .map((decision) => {
-              const interaction = publicMechanismInteraction(
-                decision.interaction,
+            .map((decision, decisionIndex) => {
+              const publicDecisionKey = playerMechanismDecisionHandle(
+                decisionIndex,
               );
+              const publicOptionKeyByInternalKey = new Map(
+                decision.options.map((option, optionIndex) => [
+                  String(option.key ?? ""),
+                  playerMechanismOptionHandle(optionIndex),
+                ]),
+              );
+              const interaction = {
+                ...publicMechanismInteraction(decision.interaction),
+                defaultOptionKey:
+                  publicOptionKeyByInternalKey.get(
+                    String(decision.interaction?.defaultOptionKey ?? ""),
+                  ) ?? "",
+              };
               const submission = asArray(ownSubmissions).find(
                 (entry) =>
                   String(entry?.decisionKey ?? entry?.decision_key ?? "") ===
                   String(decision.key),
               );
+              const publicSubmissionOptionKey = submission
+                ? (publicOptionKeyByInternalKey.get(
+                    String(
+                      submission.optionKey ?? submission.option_key ?? "",
+                    ),
+                  ) ?? "")
+                : "";
               return {
-                key: String(decision.key ?? ""),
+                key: publicDecisionKey,
                 question: String(decision.question ?? ""),
                 interaction,
                 deadlineAt:
@@ -886,18 +906,16 @@ export function projectPlayerMechanismRuntime(
                           interaction.deadlineSeconds * 1000,
                       ).toISOString()
                     : null,
-                submission: submission
+                submission: submission && publicSubmissionOptionKey
                   ? {
-                      optionKey: String(
-                        submission.optionKey ?? submission.option_key ?? "",
-                      ),
+                      optionKey: publicSubmissionOptionKey,
                       submittedAt: String(
                         submission.submittedAt ?? submission.submitted_at ?? "",
                       ),
                     }
                   : null,
-                options: decision.options.map((option) => ({
-                  key: String(option.key ?? ""),
+                options: decision.options.map((option, optionIndex) => ({
+                  key: playerMechanismOptionHandle(optionIndex),
                   choiceText: String(option.choiceText ?? ""),
                   presentation: normalizeMechanismOptionPresentation(
                     option.presentation,
@@ -909,6 +927,50 @@ export function projectPlayerMechanismRuntime(
     ending: endingRoute ? { title: String(endingRoute.title ?? "") } : null,
     waitingForHost: runtime?.status === "running",
     updatedAt: updatedAt == null ? null : new Date(updatedAt).toISOString(),
+  };
+}
+
+export function playerMechanismDecisionHandle(index) {
+  const normalized = Number(index);
+  return Number.isInteger(normalized) && normalized >= 0
+    ? `choice-${normalized + 1}`
+    : "";
+}
+
+export function playerMechanismOptionHandle(index) {
+  const normalized = Number(index);
+  return Number.isInteger(normalized) && normalized >= 0
+    ? `option-${normalized + 1}`
+    : "";
+}
+
+function playerHandleIndex(value, prefix) {
+  const match = String(value ?? "").match(new RegExp(`^${prefix}-(\\d+)$`));
+  if (!match) return -1;
+  const oneBased = Number(match[1]);
+  return Number.isSafeInteger(oneBased) && oneBased > 0 ? oneBased - 1 : -1;
+}
+
+/**
+ * Resolve the opaque handles exposed to Player back to the author-defined
+ * runtime keys. Player routes must never accept or return the authored keys.
+ */
+export function resolvePlayerMechanismSelection(
+  availableDecisions,
+  decisionHandle,
+  optionHandle,
+) {
+  const decisionIndex = playerHandleIndex(decisionHandle, "choice");
+  const decision = asArray(availableDecisions)[decisionIndex];
+  if (!decision) return null;
+  const optionIndex = playerHandleIndex(optionHandle, "option");
+  const option = asArray(decision.options)[optionIndex];
+  if (!option) return null;
+  return {
+    decision,
+    option,
+    decisionKey: String(decision.key ?? ""),
+    optionKey: String(option.key ?? ""),
   };
 }
 

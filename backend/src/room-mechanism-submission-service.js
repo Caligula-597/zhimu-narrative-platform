@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import { throwErr } from "./api-errors.js";
 import { canonicalReleaseJson } from "./world-release-contract.js";
-import { projectMechanismRuntime } from "./mechanism-runtime.js";
+import {
+  projectMechanismRuntime,
+  resolvePlayerMechanismSelection,
+} from "./mechanism-runtime.js";
 import { loadRuntimeContentProvider } from "./runtime-content-provider.js";
 import { transactionWithEvents } from "./transaction-events.js";
 import { findRoomMechanismState } from "./repositories/room-mechanism-runtime-repository.js";
@@ -135,8 +138,13 @@ export async function submitRoomMechanismDecisionPreference({
       state.runtime,
       packageValue,
     ).availableDecisions;
-    const decision = available.find((entry) => entry.key === decisionKey);
-    if (!decision) throwErr("MECHANISM_DECISION_SUBMISSION_CLOSED");
+    const selection = resolvePlayerMechanismSelection(
+      available,
+      decisionKey,
+      optionKey,
+    );
+    if (!selection) throwErr("MECHANISM_DECISION_SUBMISSION_CLOSED");
+    const { decision } = selection;
     const interaction = normalizeMechanismInteraction(decision.interaction);
     if (
       !["advisory_choice", "private_choice"].includes(
@@ -153,18 +161,15 @@ export async function submitRoomMechanismDecisionPreference({
     if (!submissionWindow.open) {
       throwErr("MECHANISM_DECISION_SUBMISSION_CLOSED");
     }
-    if (!decision.options.some((option) => option.key === optionKey)) {
-      throwErr("MECHANISM_ACTION_INVALID", "提交的机制选项不存在");
-    }
     const submission = await upsertRoomMechanismSubmission(client, {
       roomId,
       runtimeInitializedAt: state.initializedAt,
       mechanismRevision: state.revision,
       roundKey: state.runtime.currentRoundKey,
-      decisionKey,
+      decisionKey: selection.decisionKey,
       roleSlotId,
       actorId,
-      optionKey,
+      optionKey: selection.optionKey,
     });
     const summary = await getRoomMechanismSubmissionSummary({
       roomId,
@@ -172,13 +177,15 @@ export async function submitRoomMechanismDecisionPreference({
       client,
     });
     queueEvent(roomId, "room.mechanism_submission_updated", {
-      decisionKey,
+      decisionKey: selection.decisionKey,
       submissionCount:
-        summary.find((entry) => entry.decisionKey === decisionKey)?.total ?? 0,
+        summary.find(
+          (entry) => entry.decisionKey === selection.decisionKey,
+        )?.total ?? 0,
     });
     return {
       decisionKey,
-      optionKey: submission.optionKey,
+      optionKey,
       revision: state.revision,
       submittedAt: submission.updatedAt,
     };

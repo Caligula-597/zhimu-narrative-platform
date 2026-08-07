@@ -10,6 +10,7 @@ import {
   initializeMechanismRuntime,
   projectMechanismRuntime,
   projectPlayerMechanismRuntime,
+  resolvePlayerMechanismSelection,
 } from "../src/mechanism-runtime.js";
 import { inspectMechanismDeadlineDefault } from "../src/room-mechanism-runtime-service.js";
 
@@ -222,15 +223,17 @@ test("player mechanism projection exposes the current prompt without host intern
     "讨论授权边界并形成共同意见",
   );
   assert.equal(projected.decisions[0].options[0].choiceText, "承认授权");
+  assert.equal(projected.decisions[0].key, "choice-1");
+  assert.equal(projected.decisions[0].options[0].key, "option-1");
   assert.equal(projected.decisions[0].interaction.kind, "timed_crisis");
   assert.equal(projected.decisions[0].interaction.deadlineSeconds, 1080);
-  assert.equal(projected.decisions[0].interaction.defaultOptionKey, "accept");
+  assert.equal(projected.decisions[0].interaction.defaultOptionKey, "option-1");
   assert.equal(
     projected.decisions[0].interaction.submissionMode,
     "advisory_choice",
   );
   assert.equal(projected.decisions[0].deadlineAt, "2026-08-06T10:00:00.000Z");
-  assert.equal(projected.decisions[0].submission.optionKey, "accept");
+  assert.equal(projected.decisions[0].submission.optionKey, "option-1");
   assert.equal(
     projected.decisions[0].options[0].presentation.publicPreview,
     "承认本轮代理行为",
@@ -242,6 +245,7 @@ test("player mechanism projection exposes the current prompt without host intern
     "evidence-log",
     "主持人秘密提示",
     "effects",
+    "decision-auth",
   ]) {
     assert.equal(
       serialized.includes(hidden),
@@ -253,6 +257,26 @@ test("player mechanism projection exposes the current prompt without host intern
   const waiting = projectPlayerMechanismRuntime(null, packageValue);
   assert.equal(waiting.status, "not_started");
   assert.equal(waiting.initialized, false);
+});
+
+test("player mechanism handles resolve without accepting authored keys", () => {
+  const packageValue = runtimePackage();
+  const { runtime } = initializeMechanismRuntime(packageValue);
+  const available = projectMechanismRuntime(
+    runtime,
+    packageValue,
+  ).availableDecisions;
+  const resolved = resolvePlayerMechanismSelection(
+    available,
+    "choice-1",
+    "option-1",
+  );
+  assert.equal(resolved.decisionKey, "decision-auth");
+  assert.equal(resolved.optionKey, "accept");
+  assert.equal(
+    resolvePlayerMechanismSelection(available, "decision-auth", "accept"),
+    null,
+  );
 });
 
 test("role commitments project as private player submissions", () => {
