@@ -45,6 +45,10 @@ import {
   inferEntityTypesFromName,
   isSourceTypeCompatible
 } from "../story-outline-contract/vocabulary.js";
+import {
+  normalizeMechanismInteraction,
+  normalizeMechanismOptionPresentation
+} from "../../../shared/mechanism-interactions.js";
 
 import {
   list,
@@ -80,7 +84,8 @@ export function normalizeOption(raw) {
     },
     setsValue: hiddenValue,
     effects: list(value.effects).slice(0, 16).map(normalizeOptionEffect),
-    immediateConsequence: text(value.immediateConsequence, 800)
+    immediateConsequence: text(value.immediateConsequence, 800),
+    presentation: normalizeMechanismOptionPresentation(value.presentation)
   };
 }
 
@@ -342,6 +347,7 @@ export function normalizeBeat(raw, fallbackKey, index) {
       key: text(decision.key, 80),
       stateKey: text(decision.stateKey, 80),
       question: text(decision.question, 800),
+      interaction: normalizeMechanismInteraction(decision.interaction),
       options: list(decision.options).slice(0, 6).map(normalizeOption)
     }
   };

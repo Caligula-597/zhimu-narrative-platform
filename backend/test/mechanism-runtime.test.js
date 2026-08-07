@@ -9,92 +9,145 @@ import {
   executeMechanismOverride,
   initializeMechanismRuntime,
   projectMechanismRuntime,
-  projectPlayerMechanismRuntime
+  projectPlayerMechanismRuntime,
+  resolvePlayerMechanismSelection,
 } from "../src/mechanism-runtime.js";
+import { inspectMechanismDeadlineDefault } from "../src/room-mechanism-runtime-service.js";
 
 function runtimePackage() {
   return compileMechanismPackage({
-    semanticConstitution: { facts: [], authorizationGrants: [], branchEvents: [], worldRules: [] },
+    semanticConstitution: {
+      facts: [],
+      authorizationGrants: [],
+      branchEvents: [],
+      worldRules: [],
+    },
     causalTimeline: [],
     entities: [{ key: "system-a", type: "system", name: "主机" }],
-    resources: [{
-      key: "review-seat",
-      name: "复核席位",
-      valueType: "integer",
-      initialValue: 2,
-      minimum: 0,
-      maximum: 2
-    }],
+    resources: [
+      {
+        key: "review-seat",
+        name: "复核席位",
+        valueType: "integer",
+        initialValue: 2,
+        minimum: 0,
+        maximum: 2,
+      },
+    ],
     players: [],
     evidenceGraph: {
-      evidence: [{
-        key: "evidence-log",
-        label: "操作日志",
-        availableChapterKey: "round-2",
-        obtainedBy: "调取隔离日志",
-        methodOperation: "校验签名",
-        artifactProduced: "签名报告",
-        originRootKeys: ["system-a"],
-        storageEntityKey: "system-a"
-      }],
-      conclusions: []
+      evidence: [
+        {
+          key: "evidence-log",
+          label: "操作日志",
+          availableChapterKey: "round-2",
+          obtainedBy: "调取隔离日志",
+          methodOperation: "校验签名",
+          artifactProduced: "签名报告",
+          originRootKeys: ["system-a"],
+          storageEntityKey: "system-a",
+        },
+      ],
+      conclusions: [],
     },
-    chapterBeats: [{
-      chapterKey: "round-1",
-      title: "确认授权",
-      stateReads: [],
-      stateWrites: [],
-      resourceDeltas: [],
-      evidenceKeys: [],
-      unlocksEvidenceKeys: [],
-      locksEvidenceKeys: [],
-      decision: {
-        key: "decision-auth",
-        stateKey: "state-auth",
-        question: "是否承认授权？",
-        options: [{
-          key: "accept",
-          choiceText: "承认授权",
-          effects: [{ targetType: "state", targetKey: "state-auth", operation: "set", value: "accepted" }]
-        }]
-      }
-    }, {
-      chapterKey: "round-2",
-      title: "复核日志",
-      stateReads: [{ stateKey: "state-auth", operator: "equals", value: "accepted" }],
-      entryConditionMode: "all",
-      onReadPass: { variantKey: "full-review" },
-      onReadFail: { variantKey: "limited-review", stateWrites: [], additionalCosts: [] },
-      stateWrites: [],
-      resourceDeltas: [{ resourceKey: "review-seat", operation: "lose", amount: 1 }],
-      evidenceKeys: ["evidence-log"],
-      unlocksEvidenceKeys: [],
-      locksEvidenceKeys: [],
-      decision: { options: [] }
-    }],
+    chapterBeats: [
+      {
+        chapterKey: "round-1",
+        title: "确认授权",
+        stateReads: [],
+        stateWrites: [],
+        resourceDeltas: [],
+        evidenceKeys: [],
+        unlocksEvidenceKeys: [],
+        locksEvidenceKeys: [],
+        decision: {
+          key: "decision-auth",
+          stateKey: "state-auth",
+          question: "是否承认授权？",
+          interaction: {
+            kind: "timed_crisis",
+            deadlineSeconds: 1080,
+            defaultOptionKey: "accept",
+            hostInstruction: "十八分钟后按默认后果推进。",
+          },
+          options: [
+            {
+              key: "accept",
+              choiceText: "承认授权",
+              presentation: {
+                publicPreview: "承认本轮代理行为",
+                riskLabel: "后续申诉范围收窄",
+              },
+              effects: [
+                {
+                  targetType: "state",
+                  targetKey: "state-auth",
+                  operation: "set",
+                  value: "accepted",
+                },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        chapterKey: "round-2",
+        title: "复核日志",
+        stateReads: [
+          { stateKey: "state-auth", operator: "equals", value: "accepted" },
+        ],
+        entryConditionMode: "all",
+        onReadPass: { variantKey: "full-review" },
+        onReadFail: {
+          variantKey: "limited-review",
+          stateWrites: [],
+          additionalCosts: [],
+        },
+        stateWrites: [],
+        resourceDeltas: [
+          { resourceKey: "review-seat", operation: "lose", amount: 1 },
+        ],
+        evidenceKeys: ["evidence-log"],
+        unlocksEvidenceKeys: [],
+        locksEvidenceKeys: [],
+        decision: { options: [] },
+      },
+    ],
     endingLogic: {
-      stateVariables: [{
-        key: "state-auth",
-        valueType: "enum",
-        initialValue: "unknown",
-        allowedValues: ["unknown", "accepted"],
-        setInChapterKey: "round-1"
-      }],
+      stateVariables: [
+        {
+          key: "state-auth",
+          valueType: "enum",
+          initialValue: "unknown",
+          allowedValues: ["unknown", "accepted"],
+          setInChapterKey: "round-1",
+        },
+      ],
       defaultRouteKey: "ending-default",
       conflictResolution: "highest-priority",
-      routes: [{
-        key: "ending-accepted",
-        title: "授权成立",
-        priority: 10,
-        requirements: [{ targetType: "state", targetKey: "state-auth", operator: "equals", value: "accepted" }]
-      }, {
-        key: "ending-default",
-        title: "暂缓处理",
-        priority: 0,
-        isDefault: true,
-        requirements: []
-      }]
-    }
+      routes: [
+        {
+          key: "ending-accepted",
+          title: "授权成立",
+          priority: 10,
+          requirements: [
+            {
+              targetType: "state",
+              targetKey: "state-auth",
+              operator: "equals",
+              value: "accepted",
+            },
+          ],
+        },
+        {
+          key: "ending-default",
+          title: "暂缓处理",
+          priority: 0,
+          isDefault: true,
+          requirements: [],
+        },
+      ],
+    },
   });
 }
 
@@ -105,15 +158,19 @@ test("room mechanism runtime executes decisions, investigations and cumulative e
   assert.equal(initialized.runtime.preparedRoundKey, "round-1");
   assert.throws(
     () => advanceMechanismRound(initialized.runtime, packageValue),
-    (error) => error.code === "MECHANISM_DECISIONS_PENDING"
+    (error) => error.code === "MECHANISM_DECISIONS_PENDING",
   );
 
   const decided = executeMechanismDecision(initialized.runtime, packageValue, {
     decisionKey: "decision-auth",
-    optionKey: "accept"
+    optionKey: "accept",
   });
   assert.equal(decided.runtime.states["state-auth"], "accepted");
-  assert.equal(initialized.runtime.states["state-auth"], "unknown", "reducers must not mutate the persisted input");
+  assert.equal(
+    initialized.runtime.states["state-auth"],
+    "unknown",
+    "reducers must not mutate the persisted input",
+  );
 
   const advanced = advanceMechanismRound(decided.runtime, packageValue);
   assert.equal(advanced.runtime.currentRoundKey, "round-2");
@@ -121,11 +178,18 @@ test("room mechanism runtime executes decisions, investigations and cumulative e
   assert.equal(advanced.runtime.resources["review-seat"], 1);
 
   const projected = projectMechanismRuntime(advanced.runtime, packageValue);
-  assert.equal(projected.availableInvestigations[0].key, "investigate-evidence-log");
-  const investigated = executeMechanismInvestigation(advanced.runtime, packageValue, {
-    investigationKey: "investigate-evidence-log",
-    outcome: "success"
-  });
+  assert.equal(
+    projected.availableInvestigations[0].key,
+    "investigate-evidence-log",
+  );
+  const investigated = executeMechanismInvestigation(
+    advanced.runtime,
+    packageValue,
+    {
+      investigationKey: "investigate-evidence-log",
+      outcome: "success",
+    },
+  );
   assert.equal(investigated.runtime.evidence["evidence-log"], "available");
 
   const completed = advanceMechanismRound(investigated.runtime, packageValue);
@@ -142,15 +206,52 @@ test("player mechanism projection exposes the current prompt without host intern
   const { runtime } = initializeMechanismRuntime(packageValue);
   const projected = projectPlayerMechanismRuntime(runtime, packageValue, {
     revision: 7,
-    updatedAt: "2026-08-06T10:00:00.000Z"
+    updatedAt: "2026-08-06T10:00:00.000Z",
+    roundStartedAt: "2026-08-06T09:42:00.000Z",
+    ownSubmissions: [
+      {
+        decisionKey: "decision-auth",
+        optionKey: "accept",
+        submittedAt: "2026-08-06T10:01:00.000Z",
+      },
+    ],
   });
   assert.equal(projected.status, "running");
   assert.equal(projected.currentRound.title, "确认授权");
-  assert.equal(projected.currentRound.playerAction, "讨论授权边界并形成共同意见");
+  assert.equal(
+    projected.currentRound.playerAction,
+    "讨论授权边界并形成共同意见",
+  );
   assert.equal(projected.decisions[0].options[0].choiceText, "承认授权");
+  assert.equal(projected.decisions[0].key, "choice-1");
+  assert.equal(projected.decisions[0].options[0].key, "option-1");
+  assert.equal(projected.decisions[0].interaction.kind, "timed_crisis");
+  assert.equal(projected.decisions[0].interaction.deadlineSeconds, 1080);
+  assert.equal(projected.decisions[0].interaction.defaultOptionKey, "option-1");
+  assert.equal(
+    projected.decisions[0].interaction.submissionMode,
+    "advisory_choice",
+  );
+  assert.equal(projected.decisions[0].deadlineAt, "2026-08-06T10:00:00.000Z");
+  assert.equal(projected.decisions[0].submission.optionKey, "option-1");
+  assert.equal(
+    projected.decisions[0].options[0].presentation.publicPreview,
+    "承认本轮代理行为",
+  );
   const serialized = JSON.stringify(projected);
-  for (const hidden of ["state-auth", "review-seat", "evidence-log", "主持人秘密提示", "effects"]) {
-    assert.equal(serialized.includes(hidden), false, `${hidden} must not cross the player boundary`);
+  for (const hidden of [
+    "state-auth",
+    "review-seat",
+    "evidence-log",
+    "主持人秘密提示",
+    "effects",
+    "decision-auth",
+  ]) {
+    assert.equal(
+      serialized.includes(hidden),
+      false,
+      `${hidden} must not cross the player boundary`,
+    );
   }
 
   const waiting = projectPlayerMechanismRuntime(null, packageValue);
@@ -158,19 +259,121 @@ test("player mechanism projection exposes the current prompt without host intern
   assert.equal(waiting.initialized, false);
 });
 
+test("player mechanism handles resolve without accepting authored keys", () => {
+  const packageValue = runtimePackage();
+  const { runtime } = initializeMechanismRuntime(packageValue);
+  const available = projectMechanismRuntime(
+    runtime,
+    packageValue,
+  ).availableDecisions;
+  const resolved = resolvePlayerMechanismSelection(
+    available,
+    "choice-1",
+    "option-1",
+  );
+  assert.equal(resolved.decisionKey, "decision-auth");
+  assert.equal(resolved.optionKey, "accept");
+  assert.equal(
+    resolvePlayerMechanismSelection(available, "decision-auth", "accept"),
+    null,
+  );
+});
+
+test("role commitments project as private player submissions", () => {
+  const packageValue = runtimePackage();
+  packageValue.decisionNodes[0].interaction = {
+    kind: "role_commitment",
+    label: "秘密承诺",
+    playerInstruction: "选择你愿意承担的个人代价。",
+    hostInstruction: "逐人核对承诺，不向其他玩家公开。",
+  };
+  const { runtime } = initializeMechanismRuntime(packageValue);
+  const projected = projectPlayerMechanismRuntime(runtime, packageValue);
+  assert.equal(
+    projected.decisions[0].interaction.submissionMode,
+    "private_choice",
+  );
+  assert.equal(projected.decisions[0].interaction.deadlineSeconds, 0);
+  assert.equal(projected.decisions[0].deadlineAt, null);
+});
+
+test("deadline policy only permits the authored default after server expiry", () => {
+  const packageValue = runtimePackage();
+  const { runtime } = initializeMechanismRuntime(packageValue);
+  const state = {
+    runtime,
+    roundStartedAt: "2026-08-06T09:42:00.000Z",
+  };
+  const beforeDeadline = inspectMechanismDeadlineDefault({
+    state,
+    packageValue,
+    action: {
+      type: "decision",
+      source: "deadline_default",
+      decisionKey: "decision-auth",
+      optionKey: "accept",
+    },
+    now: new Date("2026-08-06T09:59:59.000Z"),
+  });
+  assert.equal(beforeDeadline.allowed, false);
+  assert.equal(beforeDeadline.reason, "too_early");
+
+  const normalAfterDeadline = inspectMechanismDeadlineDefault({
+    state,
+    packageValue,
+    action: {
+      type: "decision",
+      decisionKey: "decision-auth",
+      optionKey: "accept",
+    },
+    now: new Date("2026-08-06T10:00:00.000Z"),
+  });
+  assert.equal(normalAfterDeadline.allowed, false);
+  assert.equal(normalAfterDeadline.reason, "deadline_expired");
+
+  const defaultAfterDeadline = inspectMechanismDeadlineDefault({
+    state,
+    packageValue,
+    action: {
+      type: "decision",
+      source: "deadline_default",
+      decisionKey: "decision-auth",
+      optionKey: "accept",
+    },
+    now: new Date("2026-08-06T10:00:00.000Z"),
+  });
+  assert.equal(defaultAfterDeadline.allowed, true);
+  assert.equal(defaultAfterDeadline.reason, "expired");
+});
+
 test("runtime reachability starts from the persisted room state and reports remaining ending gaps", () => {
   const packageValue = runtimePackage();
   const { runtime } = initializeMechanismRuntime(packageValue);
   const initial = analyzeMechanismRuntimeReachability(runtime, packageValue);
-  assert.deepEqual(new Set(initial.reachableRouteKeys), new Set(["ending-accepted"]));
-  assert.equal(initial.endingProspects.find((route) => route.key === "ending-accepted").unmetRequirements[0].targetKey, "state-auth");
+  assert.deepEqual(
+    new Set(initial.reachableRouteKeys),
+    new Set(["ending-accepted"]),
+  );
+  assert.equal(
+    initial.endingProspects.find((route) => route.key === "ending-accepted")
+      .unmetRequirements[0].targetKey,
+    "state-auth",
+  );
 
   const decided = executeMechanismDecision(runtime, packageValue, {
     decisionKey: "decision-auth",
-    optionKey: "accept"
+    optionKey: "accept",
   });
-  const afterDecision = analyzeMechanismRuntimeReachability(decided.runtime, packageValue);
-  assert.equal(afterDecision.endingProspects.find((route) => route.key === "ending-accepted").unmetRequirements.length, 0);
+  const afterDecision = analyzeMechanismRuntimeReachability(
+    decided.runtime,
+    packageValue,
+  );
+  assert.equal(
+    afterDecision.endingProspects.find(
+      (route) => route.key === "ending-accepted",
+    ).unmetRequirements.length,
+    0,
+  );
   assert.ok(afterDecision.exploredStateCount >= 2);
 });
 
@@ -179,22 +382,31 @@ test("host override validates registered targets and keeps an explicit audit rea
   const { runtime } = initializeMechanismRuntime(packageValue);
   const overridden = executeMechanismOverride(runtime, packageValue, {
     reason: "主持人确认线下道具已被玩家正确开启",
-    effects: [{
-      targetType: "state",
-      targetKey: "state-auth",
-      operation: "set",
-      value: "accepted"
-    }]
+    effects: [
+      {
+        targetType: "state",
+        targetKey: "state-auth",
+        operation: "set",
+        value: "accepted",
+      },
+    ],
   });
   assert.equal(overridden.runtime.states["state-auth"], "accepted");
   assert.equal(overridden.action.type, "override");
   assert.match(overridden.action.reason, /线下道具/);
   assert.throws(
-    () => executeMechanismOverride(runtime, packageValue, {
-      reason: "主持人确认线下道具已被玩家正确开启",
-      effects: [{ targetType: "evidence", targetKey: "missing-evidence", operation: "unlock" }]
-    }),
-    (error) => error.code === "MECHANISM_EVIDENCE_UNKNOWN"
+    () =>
+      executeMechanismOverride(runtime, packageValue, {
+        reason: "主持人确认线下道具已被玩家正确开启",
+        effects: [
+          {
+            targetType: "evidence",
+            targetKey: "missing-evidence",
+            operation: "unlock",
+          },
+        ],
+      }),
+    (error) => error.code === "MECHANISM_EVIDENCE_UNKNOWN",
   );
 });
 
@@ -204,12 +416,16 @@ test("room mechanism runtime rejects out-of-bounds resources before persistence"
     targetType: "resource",
     targetKey: "review-seat",
     operation: "lose",
-    amount: 3
+    amount: 3,
   });
   const { runtime } = initializeMechanismRuntime(packageValue);
   assert.throws(
-    () => executeMechanismDecision(runtime, packageValue, { decisionKey: "decision-auth", optionKey: "accept" }),
-    (error) => error.code === "MECHANISM_RESOURCE_OUT_OF_BOUNDS"
+    () =>
+      executeMechanismDecision(runtime, packageValue, {
+        decisionKey: "decision-auth",
+        optionKey: "accept",
+      }),
+    (error) => error.code === "MECHANISM_RESOURCE_OUT_OF_BOUNDS",
   );
   assert.equal(runtime.resources["review-seat"], 2);
 });
@@ -223,13 +439,16 @@ test("mechanism runtime stores author-defined keys without mutating object proto
   packageValue.endingRoutes[0].requirements[0].targetKey = "__proto__";
 
   const initialized = initializeMechanismRuntime(packageValue);
-  assert.equal(Object.getPrototypeOf(initialized.runtime.states), Object.prototype);
+  assert.equal(
+    Object.getPrototypeOf(initialized.runtime.states),
+    Object.prototype,
+  );
   assert.equal(Object.hasOwn(initialized.runtime.states, "__proto__"), true);
   assert.equal(initialized.runtime.states["__proto__"], "unknown");
 
   const decided = executeMechanismDecision(initialized.runtime, packageValue, {
     decisionKey: "decision-auth",
-    optionKey: "accept"
+    optionKey: "accept",
   });
   assert.equal(Object.getPrototypeOf(decided.runtime.states), Object.prototype);
   assert.equal(decided.runtime.states["__proto__"], "accepted");

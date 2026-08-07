@@ -3,13 +3,13 @@ import {
   getOutlineAssemblyField,
   OUTLINE_ASSEMBLY_ROOT_FIELDS,
   OUTLINE_ASSEMBLY_ROOT_POINTERS,
-  OUTLINE_BLUEPRINT_EMPTY_SLOT_PATHS
+  OUTLINE_BLUEPRINT_EMPTY_SLOT_PATHS,
 } from "../story-outline-contract/structure.js";
 
 export function buildStoryOutlineMessages(brief, spec) {
   const minimumActionChapters = Math.min(
     spec.chapterKeys.length,
-    Math.max(1, Math.ceil(spec.chapterKeys.length * 0.6))
+    Math.max(1, Math.ceil(spec.chapterKeys.length * 0.6)),
   );
 
   const system = `你是互动叙事产品的首席剧情架构师。你只输出“大纲协议 V2.4”的合法 JSON，不写场景正文，不把本轮必须完成的设计推迟到 suggestions。
@@ -67,6 +67,7 @@ brief.generationContract 是40篇并发启动前已经锁定的创作合同：�
 - stateReads 只能读取此前已经写入或有 initialValue 的状态；所有 stateWrites 必须引用 endingLogic.stateVariables。
 - nextState 只是可读摘要，不能代替结构化因果。
 - 玩家可见的 decision.question、choiceText 与 immediateConsequence 只能描述世界内行为及立即后果，禁止出现 state-、resource-、chapter-、写入状态、后续路线、verified、contested、broken、unlocked 等内部实现词。隐藏变化统一写入 options[].effects，可同时改变状态、资源、证据或触发事件；公共 resourceDeltas 只能表示真正无法选择避免的世界事件。
+- 每个 decision 必须选择一种线上表现：group_choice（公开抉择）、resource_tradeoff（资源取舍）、evidence_selection（证据质证）、sequence_reconstruction（顺序重建）、timed_crisis（限时危机）或 role_commitment（角色承诺）。interaction 只描述玩家与主持如何操作，不能泄露内部状态；option.presentation 只写玩家可以提前看到的方案摘要、代价、风险或顺序标签。
 
 6. 聚光章、题材机制与节奏
 - 每名玩家的 spotlightChapterKey 必须同时出现在自己的 contribution.turnChapterKeys、chapterActions 和对应章节 triggerRoleKeys。
@@ -425,7 +426,10 @@ brief.generationContract 是40篇并发启动前已经锁定的创作合同：�
 ${untrustedUserPayload("规格", spec)}
 
 ${untrustedUserPayload("创作 brief", brief)}`;
-  return [{ role: "system", content: system }, { role: "user", content: user }];
+  return [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ];
 }
 
 function buildLegacyStoryOutlineBlueprintMessages(brief, spec) {
@@ -463,30 +467,43 @@ ${PRODUCT_BOUNDARY}
 ${untrustedUserPayload("规格", spec)}
 
 ${untrustedUserPayload("创作 brief 与批次合同", brief)}`;
-  return [{ role: "system", content: system }, { role: "user", content: user }];
+  return [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ];
 }
 
-export function buildStoryOutlineBlueprintMessages(brief, spec, previousIssues = []) {
+export function buildStoryOutlineBlueprintMessages(
+  brief,
+  spec,
+  previousIssues = [],
+) {
   const messages = buildStoryOutlineMessages(brief, spec);
   const contract = brief.generationContract || {};
-  const projectedResourceValues = (contract.resourceContracts || []).map((resource) => {
-    let finalValue = Number(resource.initialValue);
-    const plans = (contract.resourceUsagePlans || []).filter((plan) => plan?.resourceKey === resource.key);
-    for (const plan of plans) {
-      const repetitions = Array.isArray(plan.chapterKeys) ? plan.chapterKeys.length : 0;
-      const amount = Number(plan.amount);
-      if (!Number.isFinite(finalValue) || !Number.isFinite(amount)) continue;
-      if (plan.operation === "gain") finalValue += amount * repetitions;
-      if (plan.operation === "lose") finalValue -= amount * repetitions;
-      if (plan.operation === "set" && repetitions) finalValue = amount;
-    }
-    return {
-      resourceKey: resource.key,
-      initialValue: resource.initialValue,
-      mandatoryPlans: plans,
-      finalValueAfterMandatoryPublicDeltas: finalValue
-    };
-  });
+  const projectedResourceValues = (contract.resourceContracts || []).map(
+    (resource) => {
+      let finalValue = Number(resource.initialValue);
+      const plans = (contract.resourceUsagePlans || []).filter(
+        (plan) => plan?.resourceKey === resource.key,
+      );
+      for (const plan of plans) {
+        const repetitions = Array.isArray(plan.chapterKeys)
+          ? plan.chapterKeys.length
+          : 0;
+        const amount = Number(plan.amount);
+        if (!Number.isFinite(finalValue) || !Number.isFinite(amount)) continue;
+        if (plan.operation === "gain") finalValue += amount * repetitions;
+        if (plan.operation === "lose") finalValue -= amount * repetitions;
+        if (plan.operation === "set" && repetitions) finalValue = amount;
+      }
+      return {
+        resourceKey: resource.key,
+        initialValue: resource.initialValue,
+        mandatoryPlans: plans,
+        finalValueAfterMandatoryPublicDeltas: finalValue,
+      };
+    },
+  );
   const contractScaffold = {
     outlineRevision: contract.outlineRevision || "2.4",
     premiseAnchors: contract.premiseAnchors || [],
@@ -496,19 +513,24 @@ export function buildStoryOutlineBlueprintMessages(brief, spec, previousIssues =
       requiredIdentity: contract.playerIdentityRequirements?.[index] || "",
       contributionAnchorType: contract.contributionTypes?.[index] || "",
       spotlightChapterKey: contract.spotlightChapterKeys?.[index] || "",
-      actionChapterKeys: contract.roleActionChapterKeys?.[index]?.chapterKeys || [],
+      actionChapterKeys:
+        contract.roleActionChapterKeys?.[index]?.chapterKeys || [],
       endingInfluence: contract.roleEndingInfluences?.[index] || null,
-      requiredTurnChapterKeys: [...new Set([
-        contract.spotlightChapterKeys?.[index],
-        contract.roleEndingInfluences?.[index]?.chapterKey
-      ].filter(Boolean))]
+      requiredTurnChapterKeys: [
+        ...new Set(
+          [
+            contract.spotlightChapterKeys?.[index],
+            contract.roleEndingInfluences?.[index]?.chapterKey,
+          ].filter(Boolean),
+        ),
+      ],
     })),
     stateVariables: (contract.stateKeys || []).map((key, index) => ({
       key,
       valueType: contract.stateTypes?.[index] || "",
       setInChapterKey: contract.stateSetChapterKeys?.[index] || "",
       controlMode: contract.stateControlModes?.[index] || "",
-      fixedValue: contract.fixedStateValues?.[index] || ""
+      fixedValue: contract.fixedStateValues?.[index] || "",
     })),
     stateKeysAreExhaustive: contract.stateKeysAreExhaustive === true,
     resourceKeys: contract.resourceKeys || [],
@@ -522,25 +544,30 @@ export function buildStoryOutlineBlueprintMessages(brief, spec, previousIssues =
       : (contract.evidenceSourceTypes || []).map((sourceType, index) => ({
           evidenceKey: `evidence-${index + 1}`,
           sourceType,
-          provenanceGroup: contract.evidenceProvenanceGroups?.[index] || ""
-        }))).map((entry, index) => ({
+          provenanceGroup: contract.evidenceProvenanceGroups?.[index] || "",
+        }))
+    ).map((entry, index) => ({
       evidenceKey: entry.evidenceKey || `evidence-${index + 1}`,
       sourceType: entry.sourceType,
       provenanceGroup: entry.provenanceGroup || "",
-      originRootKeys: entry.originRootKeys || (entry.provenanceGroup ? [entry.provenanceGroup] : []),
+      originRootKeys:
+        entry.originRootKeys ||
+        (entry.provenanceGroup ? [entry.provenanceGroup] : []),
       commonCauseKeys: entry.commonCauseKeys || [],
       independenceDomain: entry.independenceDomain || "",
       methodDomain: entry.methodDomain || "",
-      provenanceRule: "引用本篇 entities 中真实存在且类型相容的来源实体；必须暴露真正信息根与共同故障域，不得创建来源壳",
-      derivedFromEvidenceKeys: []
+      provenanceRule:
+        "引用本篇 entities 中真实存在且类型相容的来源实体；必须暴露真正信息根与共同故障域，不得创建来源壳",
+      derivedFromEvidenceKeys: [],
     })),
-    requiredConclusionEvidenceKeys: contract.requiredConclusionEvidenceKeys || [],
+    requiredConclusionEvidenceKeys:
+      contract.requiredConclusionEvidenceKeys || [],
     hookEvidenceRequirements: contract.hookEvidenceRequirements || [],
     endingTitleTokens: contract.endingTitleTokens || [],
     endingRouteStateTargets: [
       [contract.stateKeys?.[0], contract.stateKeys?.[1]],
       [contract.stateKeys?.[0], contract.stateKeys?.[2]],
-      [contract.stateKeys?.[0], contract.stateKeys?.[1]]
+      [contract.stateKeys?.[0], contract.stateKeys?.[1]],
     ],
     signatureDevicesRequired: contract.styleDeviceSeeds || [],
     lockedFingerprints: {
@@ -556,8 +583,8 @@ export function buildStoryOutlineBlueprintMessages(brief, spec, previousIssues =
       chapterCausalPattern: contract.chapterCausalPattern || "",
       evidenceModalityMix: contract.evidenceModalityMix || "",
       powerStructure: contract.powerStructure || "",
-      endingMechanism: contract.endingMechanism || ""
-    }
+      endingMechanism: contract.endingMechanism || "",
+    },
   };
   messages[0].content += `
 
@@ -607,26 +634,40 @@ ${untrustedUserPayload("程序已预填且不可覆盖的批次合同骨架", co
   return messages;
 }
 
-export function buildStoryOutlineBlueprintPatchMessages(brief, spec, blueprint, issues) {
+export function buildStoryOutlineBlueprintPatchMessages(
+  brief,
+  spec,
+  blueprint,
+  issues,
+) {
   const blueprintPatchGuidance = { requiredPatchPaths: [] };
   const derivedOnlyIssue = (Array.isArray(issues) ? issues : [])
     .map((issue) => String(issue || ""))
-    .find((issue) => /worldRules\[\d+\]\.effects\[\d+\] 只能写 controlMode=derived/u.test(issue));
-  const derivedOnlyMatch = derivedOnlyIssue?.match(/worldRules\[(\d+)\]\.effects\[(\d+)\]/u);
+    .find((issue) =>
+      /worldRules\[\d+\]\.effects\[\d+\] 只能写 controlMode=derived/u.test(
+        issue,
+      ),
+    );
+  const derivedOnlyMatch = derivedOnlyIssue?.match(
+    /worldRules\[(\d+)\]\.effects\[(\d+)\]/u,
+  );
   if (derivedOnlyMatch) {
     const ruleIndex = Number(derivedOnlyMatch[1]);
     const effectIndex = Number(derivedOnlyMatch[2]);
     const rule = blueprint?.semanticConstitution?.worldRules?.[ruleIndex];
-    const evidenceKey = (Array.isArray(rule?.auditEvidenceKeys) ? rule.auditEvidenceKeys : [])[0];
+    const evidenceKey = (
+      Array.isArray(rule?.auditEvidenceKeys) ? rule.auditEvidenceKeys : []
+    )[0];
     if (evidenceKey) {
       const basePath = `/semanticConstitution/worldRules/${ruleIndex}/effects/${effectIndex}`;
-      blueprintPatchGuidance.rule = "该蓝图没有可由规则写入的 derived 状态；将规则效果原子改为审计证据解锁，五个字段必须一起修改。";
+      blueprintPatchGuidance.rule =
+        "该蓝图没有可由规则写入的 derived 状态；将规则效果原子改为审计证据解锁，五个字段必须一起修改。";
       blueprintPatchGuidance.requiredPatchPaths.push(
         { op: "replace", path: `${basePath}/targetType`, value: "evidence" },
         { op: "replace", path: `${basePath}/targetKey`, value: evidenceKey },
         { op: "replace", path: `${basePath}/operation`, value: "unlock" },
         { op: "replace", path: `${basePath}/value`, value: "" },
-        { op: "replace", path: `${basePath}/amount`, value: null }
+        { op: "replace", path: `${basePath}/amount`, value: null },
       );
     }
   }
@@ -656,7 +697,10 @@ ${untrustedUserPayload("待定点修复的蓝图", blueprint)}
 ${untrustedUserPayload("本问题的机器定位提示；requiredPatchPaths 非空时必须逐项原样执行", blueprintPatchGuidance)}
 
 ${untrustedUserPayload("仅允许修复的机械问题", Array.isArray(issues) ? issues.slice(0, 20) : [])}`;
-  return [{ role: "system", content: system }, { role: "user", content: user }];
+  return [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ];
 }
 
 function buildLegacyStoryOutlineAssemblyMessages(brief, spec, blueprint) {
@@ -675,7 +719,12 @@ function buildLegacyStoryOutlineAssemblyMessages(brief, spec, blueprint) {
   return messages;
 }
 
-export function buildStoryOutlineAssemblyMessages(brief, spec, blueprint, previousIssues = []) {
+export function buildStoryOutlineAssemblyMessages(
+  brief,
+  spec,
+  blueprint,
+  previousIssues = [],
+) {
   const minimumActionChapters = Math.ceil(spec.chapterKeys.length * 0.6);
   const resourceKeys = Array.isArray(blueprint?.resources)
     ? blueprint.resources.map((resource) => resource?.key).filter(Boolean)
@@ -685,88 +734,132 @@ export function buildStoryOutlineAssemblyMessages(brief, spec, blueprint, previo
   const resourceRule = resourceKeys.length
     ? `蓝图题材资源为 ${resourceKeys.join("、")}。按 resourcePolicies 把资源变化放在执行具体行为的 decision.options[].effects 中；同一决策必须至少保留一个不消耗该资源的可执行选项。公共 resourceDeltas 默认输出 []。`
     : "蓝图 resources 为空：所有 additionalCosts 和 resourceDeltas 必须输出 []，失败代价只能通过已登记状态或证据锁定/解锁表达，绝不能输出空 resourceKey 占位对象。";
-  const influencePlan = JSON.stringify(brief.generationContract?.roleEndingInfluences || []);
-  const actionChapterPlan = JSON.stringify(brief.generationContract?.roleActionChapterKeys || []);
+  const influencePlan = JSON.stringify(
+    brief.generationContract?.roleEndingInfluences || [],
+  );
+  const actionChapterPlan = JSON.stringify(
+    brief.generationContract?.roleActionChapterKeys || [],
+  );
   const stateVariables = Array.isArray(blueprint?.endingLogic?.stateVariables)
     ? blueprint.endingLogic.stateVariables
     : [];
   const endingRoutes = Array.isArray(blueprint?.endingLogic?.routes)
     ? blueprint.endingLogic.routes
     : [];
-  const stateDecisionCoveragePlan = stateVariables.filter((state) => ["adjudicated", "player-decision"].includes(state?.controlMode)).map((state) => {
-    const routeValues = endingRoutes.flatMap((route) => (
-      Array.isArray(route?.requirements)
-        ? route.requirements
-          .filter((requirement) => requirement?.targetType === "state" && requirement?.targetKey === state?.key)
-          .map((requirement) => requirement?.value)
-        : []
-    ));
-    const optionValues = [...new Set([
-      ...routeValues,
-      ...(Array.isArray(state?.allowedValues) ? state.allowedValues : [])
-    ].filter((value) => value !== undefined && value !== null))];
-    return {
-      chapterKey: state?.setInChapterKey,
-      stateKey: state?.key,
-      optionValues
-    };
-  });
-  const observedStateWritePlan = stateVariables
+  const stateDecisionCoveragePlan = stateVariables
+    .filter((state) =>
+      ["adjudicated", "player-decision"].includes(state?.controlMode),
+    )
     .map((state) => {
-      const contractIndex = (brief.generationContract?.stateKeys || []).indexOf(state?.key);
+      const routeValues = endingRoutes.flatMap((route) =>
+        Array.isArray(route?.requirements)
+          ? route.requirements
+              .filter(
+                (requirement) =>
+                  requirement?.targetType === "state" &&
+                  requirement?.targetKey === state?.key,
+              )
+              .map((requirement) => requirement?.value)
+          : [],
+      );
+      const optionValues = [
+        ...new Set(
+          [
+            ...routeValues,
+            ...(Array.isArray(state?.allowedValues) ? state.allowedValues : []),
+          ].filter((value) => value !== undefined && value !== null),
+        ),
+      ];
       return {
         chapterKey: state?.setInChapterKey,
         stateKey: state?.key,
-        value: brief.generationContract?.fixedStateValues?.[contractIndex] || ""
+        optionValues,
+      };
+    });
+  const observedStateWritePlan = stateVariables
+    .map((state) => {
+      const contractIndex = (brief.generationContract?.stateKeys || []).indexOf(
+        state?.key,
+      );
+      return {
+        chapterKey: state?.setInChapterKey,
+        stateKey: state?.key,
+        value:
+          brief.generationContract?.fixedStateValues?.[contractIndex] || "",
       };
     })
     .filter((entry) => entry.value);
-  const fallbackStateWritePlan = spec.chapterKeys.map((chapterKey, chapterIndex) => {
-    const availableState = stateVariables
-      .filter((state) => state?.controlMode !== "derived" && spec.chapterKeys.indexOf(state?.setInChapterKey) <= chapterIndex)
-      .at(-1);
-    return {
-      chapterKey,
-      whenStateReadsPresent: availableState ? {
-        stateKey: availableState.key,
-        operation: "set",
-        value: availableState.initialValue
-      } : null,
-      additionalCosts: [],
-      locksEvidenceKeys: [],
-      unlocksEvidenceKeys: []
-    };
-  });
+  const fallbackStateWritePlan = spec.chapterKeys.map(
+    (chapterKey, chapterIndex) => {
+      const availableState = stateVariables
+        .filter(
+          (state) =>
+            state?.controlMode !== "derived" &&
+            spec.chapterKeys.indexOf(state?.setInChapterKey) <= chapterIndex,
+        )
+        .at(-1);
+      return {
+        chapterKey,
+        whenStateReadsPresent: availableState
+          ? {
+              stateKey: availableState.key,
+              operation: "set",
+              value: availableState.initialValue,
+            }
+          : null,
+        additionalCosts: [],
+        locksEvidenceKeys: [],
+        unlocksEvidenceKeys: [],
+      };
+    },
+  );
   const assemblyScaffold = {
-    playerActionChapterKeys: brief.generationContract?.roleActionChapterKeys || [],
+    playerActionChapterKeys:
+      brief.generationContract?.roleActionChapterKeys || [],
     roleEndingInfluences: brief.generationContract?.roleEndingInfluences || [],
     requiredTriggerRoleKeysByChapter: spec.chapterKeys.map((chapterKey) => ({
       chapterKey,
       roleKeys: (Array.isArray(blueprint?.players) ? blueprint.players : [])
-        .filter((player) => player?.contribution?.turnChapterKeys?.includes(chapterKey))
-        .map((player) => player?.key)
+        .filter((player) =>
+          player?.contribution?.turnChapterKeys?.includes(chapterKey),
+        )
+        .map((player) => player?.key),
     })),
     chapterDecisionObligations: spec.chapterKeys.map((chapterKey) => ({
       chapterKey,
-      decisionStateKeys: stateDecisionCoveragePlan.filter((entry) => entry.chapterKey === chapterKey).map((entry) => entry.stateKey),
-      observedStateWrites: observedStateWritePlan.filter((entry) => entry.chapterKey === chapterKey),
-      branchEventKeys: (Array.isArray(blueprint?.semanticConstitution?.branchEvents) ? blueprint.semanticConstitution.branchEvents : [])
+      decisionStateKeys: stateDecisionCoveragePlan
+        .filter((entry) => entry.chapterKey === chapterKey)
+        .map((entry) => entry.stateKey),
+      observedStateWrites: observedStateWritePlan.filter(
+        (entry) => entry.chapterKey === chapterKey,
+      ),
+      branchEventKeys: (Array.isArray(
+        blueprint?.semanticConstitution?.branchEvents,
+      )
+        ? blueprint.semanticConstitution.branchEvents
+        : []
+      )
         .filter((event) => event?.chapterKey === chapterKey)
         .map((event) => event?.key),
       optionalResourceKeys: (brief.generationContract?.resourcePolicies || [])
-        .filter((policy) => policy?.optionalUseChapterKeys?.includes(chapterKey))
-        .map((policy) => policy?.resourceKey)
+        .filter((policy) =>
+          policy?.optionalUseChapterKeys?.includes(chapterKey),
+        )
+        .map((policy) => policy?.resourceKey),
     })),
     stateDecisionCoveragePlan,
     observedStateWritePlan,
-    requiredBranchEvents: (Array.isArray(blueprint?.semanticConstitution?.branchEvents)
+    requiredBranchEvents: (Array.isArray(
+      blueprint?.semanticConstitution?.branchEvents,
+    )
       ? blueprint.semanticConstitution.branchEvents
-      : []).map((event) => ({
-        eventKey: event?.key,
-        chapterKey: event?.chapterKey
-      })),
+      : []
+    ).map((event) => ({
+      eventKey: event?.key,
+      chapterKey: event?.chapterKey,
+    })),
     resourcePolicies: brief.generationContract?.resourcePolicies || [],
-    fallbackStateWritePlan
+    fallbackStateWritePlan,
   };
   const system = `你是互动叙事产品的章节架构师。第一阶段创作蓝图已经通过机械合同；你现在只能为它装配玩家章节行动和公共章节节点。
 ${PRODUCT_BOUNDARY}
@@ -834,9 +927,10 @@ chapterBeats 必须严格按 ${spec.chapterKeys.join("、")} 输出 ${spec.chapt
     "key":"本章唯一 decision key",
     "stateKey":"本决策确实裁决状态时填写已登记状态 key；只改变资源、证据或分支事件时为空字符串",
     "question":"具体选择冲突",
+    "interaction":{"kind":"group_choice|resource_tradeoff|evidence_selection|sequence_reconstruction|timed_crisis|role_commitment","label":"题材内玩法名称","playerInstruction":"玩家如何完成本轮操作","hostInstruction":"主持人如何确认并结算","deadlineSeconds":0,"defaultOptionKey":"仅限时危机填写超时后自动采用的本决策 option key，否则空字符串","resourceKey":"仅资源取舍时引用已登记资源，否则空字符串"},
     "options":[
-      {"key":"option-a","choiceText":"玩家在世界内执行的具体行为","sets":{"stateKey":"","value":""},"effects":[{"targetType":"state|resource|evidence|event","targetKey":"蓝图稳定key","operation":"与targetType相容的操作","value":"状态值或空字符串","amount":null,"consequence":"世界内效果"}],"immediateConsequence":"不暴露内部字段的立刻可见后果"},
-      {"key":"option-b","choiceText":"另一项世界内行为","sets":{"stateKey":"","value":""},"effects":[{"targetType":"state","targetKey":"已登记状态","operation":"set","value":"另一合法值","amount":null,"consequence":"该选择立即确定的世界内事实"}],"immediateConsequence":"不暴露内部字段的另一后果"}
+      {"key":"option-a","choiceText":"玩家在世界内执行的具体行为","presentation":{"eyebrow":"方案短标签","publicPreview":"玩家提前可见的结果范围","costLabel":"明确代价或空字符串","riskLabel":"明确风险或空字符串","sequenceLabel":"顺序重建时的步骤摘要，否则空字符串"},"sets":{"stateKey":"","value":""},"effects":[{"targetType":"state|resource|evidence|event","targetKey":"蓝图稳定key","operation":"与targetType相容的操作","value":"状态值或空字符串","amount":null,"consequence":"世界内效果"}],"immediateConsequence":"不暴露内部字段的立刻可见后果"},
+      {"key":"option-b","choiceText":"另一项世界内行为","presentation":{"eyebrow":"方案短标签","publicPreview":"另一方案的公开预览","costLabel":"","riskLabel":"","sequenceLabel":""},"sets":{"stateKey":"","value":""},"effects":[{"targetType":"state","targetKey":"已登记状态","operation":"set","value":"另一合法值","amount":null,"consequence":"该选择立即确定的世界内事实"}],"immediateConsequence":"不暴露内部字段的另一后果"}
     ]
   }
 }
@@ -889,42 +983,81 @@ ${untrustedUserPayload("已验收创作蓝图", blueprint)}`;
   if (Array.isArray(previousIssues) && previousIssues.length) {
     user += `\n\n${untrustedUserPayload("上一份章节装配被拒绝的原因；本次必须重写三个装配数组并逐项消除", previousIssues.slice(0, 20))}`;
   }
-  return [{ role: "system", content: system }, { role: "user", content: user }];
+  return [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ];
 }
 
-export function buildStoryOutlineAssemblyMechanicalPatchPlan(blueprint, assembly, issue, spec) {
+export function buildStoryOutlineAssemblyMechanicalPatchPlan(
+  blueprint,
+  assembly,
+  issue,
+  spec,
+) {
   const focusedIssue = String(issue || "");
   const patches = [];
-  const duplicateBranchMatch = focusedIssue.match(/分支事件\s+([\w-]+)\s+必须恰好由一个玩家选项触发/u);
+  const duplicateBranchMatch = focusedIssue.match(
+    /分支事件\s+([\w-]+)\s+必须恰好由一个玩家选项触发/u,
+  );
   if (duplicateBranchMatch) {
     const eventKey = duplicateBranchMatch[1];
     const locations = [];
-    (Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []).forEach((chapter, chapterIndex) => {
-      (Array.isArray(chapter?.decision?.options) ? chapter.decision.options : []).forEach((option, optionIndex) => {
-        (Array.isArray(option?.effects) ? option.effects : []).forEach((effect, effectIndex) => {
-          if (effect?.targetType === "event" && effect?.targetKey === eventKey && effect?.operation === "trigger") {
-            locations.push({
-              chapterIndex,
-              optionIndex,
-              effectIndex,
-              spendsResource: option.effects.some((candidate) => candidate?.targetType === "resource" && candidate?.operation === "lose")
-            });
-          }
-        });
+    (Array.isArray(assembly?.chapterBeats)
+      ? assembly.chapterBeats
+      : []
+    ).forEach((chapter, chapterIndex) => {
+      (Array.isArray(chapter?.decision?.options)
+        ? chapter.decision.options
+        : []
+      ).forEach((option, optionIndex) => {
+        (Array.isArray(option?.effects) ? option.effects : []).forEach(
+          (effect, effectIndex) => {
+            if (
+              effect?.targetType === "event" &&
+              effect?.targetKey === eventKey &&
+              effect?.operation === "trigger"
+            ) {
+              locations.push({
+                chapterIndex,
+                optionIndex,
+                effectIndex,
+                spendsResource: option.effects.some(
+                  (candidate) =>
+                    candidate?.targetType === "resource" &&
+                    candidate?.operation === "lose",
+                ),
+              });
+            }
+          },
+        );
       });
     });
-    const keepIndex = Math.max(0, locations.findIndex((location) => location.spendsResource));
+    const keepIndex = Math.max(
+      0,
+      locations.findIndex((location) => location.spendsResource),
+    );
     locations.forEach((location, index) => {
-      if (index !== keepIndex) patches.push({ op: "remove", path: `/chapterBeats/${location.chapterIndex}/decision/options/${location.optionIndex}/effects/${location.effectIndex}` });
+      if (index !== keepIndex)
+        patches.push({
+          op: "remove",
+          path: `/chapterBeats/${location.chapterIndex}/decision/options/${location.optionIndex}/effects/${location.effectIndex}`,
+        });
     });
   }
-  const emptyEffectsMatch = focusedIssue.match(/^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects 至少需要/u);
+  const emptyEffectsMatch = focusedIssue.match(
+    /^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects 至少需要/u,
+  );
   if (emptyEffectsMatch) {
     const chapterIndex = Number(emptyEffectsMatch[1]);
     const optionIndex = Number(emptyEffectsMatch[2]);
     const chapter = assembly?.chapterBeats?.[chapterIndex];
     const option = chapter?.decision?.options?.[optionIndex];
-    if (chapter?.decision?.stateKey && option?.sets?.stateKey === chapter.decision.stateKey && option?.sets?.value) {
+    if (
+      chapter?.decision?.stateKey &&
+      option?.sets?.stateKey === chapter.decision.stateKey &&
+      option?.sets?.value
+    ) {
       patches.push({
         op: "add",
         path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/-`,
@@ -934,325 +1067,671 @@ export function buildStoryOutlineAssemblyMechanicalPatchPlan(blueprint, assembly
           operation: "set",
           value: option.sets.value,
           amount: null,
-          consequence: "该选择立即形成公开裁决，并改变后续可进入的结局程序。"
-        }
+          consequence: "该选择立即形成公开裁决，并改变后续可进入的结局程序。",
+        },
       });
     } else {
-      const evidenceKey = blueprint?.semanticConstitution?.worldRules?.[0]?.auditEvidenceKeys?.[0]
-        || blueprint?.evidenceGraph?.evidence?.[0]?.key;
-      if (evidenceKey) patches.push({
-        op: "add",
-        path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/-`,
-        value: {
-          targetType: "evidence",
-          targetKey: evidenceKey,
-          operation: "lock",
-          value: "",
-          amount: null,
-          consequence: "未启动正式程序后，联盟封存该项审查材料，后续不能再据此申请同类复核。"
-        }
-      });
+      const evidenceKey =
+        blueprint?.semanticConstitution?.worldRules?.[0]
+          ?.auditEvidenceKeys?.[0] ||
+        blueprint?.evidenceGraph?.evidence?.[0]?.key;
+      if (evidenceKey)
+        patches.push({
+          op: "add",
+          path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/-`,
+          value: {
+            targetType: "evidence",
+            targetKey: evidenceKey,
+            operation: "lock",
+            value: "",
+            amount: null,
+            consequence:
+              "未启动正式程序后，联盟封存该项审查材料，后续不能再据此申请同类复核。",
+          },
+        });
     }
   }
-  const branchActionMismatch = focusedIssue.match(/分支事件\s+([\w-]+) 的登记行为要求“(公开|复核席位)”/u);
+  const branchActionMismatch = focusedIssue.match(
+    /分支事件\s+([\w-]+) 的登记行为要求“(公开|复核席位)”/u,
+  );
   if (branchActionMismatch) {
     const eventKey = branchActionMismatch[1];
-    const branchEvent = (Array.isArray(blueprint?.semanticConstitution?.branchEvents) ? blueprint.semanticConstitution.branchEvents : []).find((event) => event?.key === eventKey);
-    const chapterIndex = (Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []).findIndex((chapter) => chapter?.chapterKey === branchEvent?.chapterKey);
-    const options = chapterIndex >= 0 && Array.isArray(assembly.chapterBeats[chapterIndex]?.decision?.options) ? assembly.chapterBeats[chapterIndex].decision.options : [];
+    const branchEvent = (
+      Array.isArray(blueprint?.semanticConstitution?.branchEvents)
+        ? blueprint.semanticConstitution.branchEvents
+        : []
+    ).find((event) => event?.key === eventKey);
+    const chapterIndex = (
+      Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []
+    ).findIndex((chapter) => chapter?.chapterKey === branchEvent?.chapterKey);
+    const options =
+      chapterIndex >= 0 &&
+      Array.isArray(assembly.chapterBeats[chapterIndex]?.decision?.options)
+        ? assembly.chapterBeats[chapterIndex].decision.options
+        : [];
     let currentLocation = null;
-    options.forEach((option, optionIndex) => (Array.isArray(option?.effects) ? option.effects : []).forEach((effect, effectIndex) => {
-      if (effect?.targetType === "event" && effect?.targetKey === eventKey) currentLocation = { optionIndex, effectIndex };
-    }));
-    const preferredOptionIndex = options.findIndex((option) => option?.effects?.some((effect) => effect?.targetType === "resource" && effect?.operation === "lose"));
-    if (currentLocation && preferredOptionIndex >= 0 && preferredOptionIndex !== currentLocation.optionIndex) {
+    options.forEach((option, optionIndex) =>
+      (Array.isArray(option?.effects) ? option.effects : []).forEach(
+        (effect, effectIndex) => {
+          if (effect?.targetType === "event" && effect?.targetKey === eventKey)
+            currentLocation = { optionIndex, effectIndex };
+        },
+      ),
+    );
+    const preferredOptionIndex = options.findIndex((option) =>
+      option?.effects?.some(
+        (effect) =>
+          effect?.targetType === "resource" && effect?.operation === "lose",
+      ),
+    );
+    if (
+      currentLocation &&
+      preferredOptionIndex >= 0 &&
+      preferredOptionIndex !== currentLocation.optionIndex
+    ) {
       patches.push(
-        { op: "remove", path: `/chapterBeats/${chapterIndex}/decision/options/${currentLocation.optionIndex}/effects/${currentLocation.effectIndex}` },
+        {
+          op: "remove",
+          path: `/chapterBeats/${chapterIndex}/decision/options/${currentLocation.optionIndex}/effects/${currentLocation.effectIndex}`,
+        },
         {
           op: "add",
           path: `/chapterBeats/${chapterIndex}/decision/options/${preferredOptionIndex}/effects/-`,
-          value: { targetType: "event", targetKey: eventKey, operation: "trigger", value: "", amount: null, consequence: branchEvent.description }
-        }
+          value: {
+            targetType: "event",
+            targetKey: eventKey,
+            operation: "trigger",
+            value: "",
+            amount: null,
+            consequence: branchEvent.description,
+          },
+        },
       );
-      if (branchActionMismatch[2] === "公开" && !options[preferredOptionIndex].choiceText.includes("公开")) {
+      if (
+        branchActionMismatch[2] === "公开" &&
+        !options[preferredOptionIndex].choiceText.includes("公开")
+      ) {
         patches.push({
           op: "replace",
           path: `/chapterBeats/${chapterIndex}/decision/options/${preferredOptionIndex}/choiceText`,
-          value: `${options[preferredOptionIndex].choiceText}并向联盟公开`
+          value: `${options[preferredOptionIndex].choiceText}并向联盟公开`,
         });
       }
     }
   }
-  const deniedTriggerMatch = focusedIssue.match(/^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects\[(\d+)\] 声称触发事件/u);
+  const deniedTriggerMatch = focusedIssue.match(
+    /^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects\[(\d+)\] 声称触发事件/u,
+  );
   if (deniedTriggerMatch) {
     const chapterIndex = Number(deniedTriggerMatch[1]);
     const optionIndex = Number(deniedTriggerMatch[2]);
     const effectIndex = Number(deniedTriggerMatch[3]);
-    const targetEffect = assembly?.chapterBeats?.[chapterIndex]?.decision?.options?.[optionIndex]?.effects?.[effectIndex];
-    const duplicateCount = (Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []).flatMap((chapter) => (
-      (Array.isArray(chapter?.decision?.options) ? chapter.decision.options : []).flatMap((option) => (
-        (Array.isArray(option?.effects) ? option.effects : []).filter((effect) => effect?.targetType === "event" && effect?.targetKey === targetEffect?.targetKey)
-      ))
-    )).length;
-    if (duplicateCount > 1) patches.push({ op: "remove", path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/${effectIndex}` });
+    const targetEffect =
+      assembly?.chapterBeats?.[chapterIndex]?.decision?.options?.[optionIndex]
+        ?.effects?.[effectIndex];
+    const duplicateCount = (
+      Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []
+    ).flatMap((chapter) =>
+      (Array.isArray(chapter?.decision?.options)
+        ? chapter.decision.options
+        : []
+      ).flatMap((option) =>
+        (Array.isArray(option?.effects) ? option.effects : []).filter(
+          (effect) =>
+            effect?.targetType === "event" &&
+            effect?.targetKey === targetEffect?.targetKey,
+        ),
+      ),
+    ).length;
+    if (duplicateCount > 1)
+      patches.push({
+        op: "remove",
+        path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/${effectIndex}`,
+      });
   }
-  const stateChoiceConflictMatch = focusedIssue.match(/^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects\[(\d+)\] 的待定状态与玩家可见选项/u);
+  const stateChoiceConflictMatch = focusedIssue.match(
+    /^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects\[(\d+)\] 的待定状态与玩家可见选项/u,
+  );
   if (stateChoiceConflictMatch) {
     const chapterIndex = Number(stateChoiceConflictMatch[1]);
     const optionIndex = Number(stateChoiceConflictMatch[2]);
     patches.push(
-      { op: "replace", path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/choiceText`, value: "不消耗复核席位，暂缓最终裁定" },
-      { op: "replace", path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/immediateConsequence`, value: "复核席位保留，赛果继续等待联盟裁定" }
+      {
+        op: "replace",
+        path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/choiceText`,
+        value: "不消耗复核席位，暂缓最终裁定",
+      },
+      {
+        op: "replace",
+        path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/immediateConsequence`,
+        value: "复核席位保留，赛果继续等待联盟裁定",
+      },
     );
   }
-  const anchorIssueMatch = focusedIssue.match(/^(.+?)\s+在\s+(chapter-\d+)\s+的行动没有使用因果锚点\s+([\w-]+)/u);
+  const anchorIssueMatch = focusedIssue.match(
+    /^(.+?)\s+在\s+(chapter-\d+)\s+的行动没有使用因果锚点\s+([\w-]+)/u,
+  );
   if (anchorIssueMatch) {
     const [, roleName, chapterKey, anchorKey] = anchorIssueMatch;
-    const player = (Array.isArray(blueprint?.players) ? blueprint.players : []).find((entry) => entry?.name === roleName.trim());
-    const playerIndex = (Array.isArray(assembly?.playerChapterActions) ? assembly.playerChapterActions : []).findIndex((entry) => entry?.roleKey === player?.key);
-    const actionIndex = playerIndex >= 0
-      ? (Array.isArray(assembly.playerChapterActions[playerIndex]?.chapterActions) ? assembly.playerChapterActions[playerIndex].chapterActions : []).findIndex((entry) => entry?.chapterKey === chapterKey)
-      : -1;
+    const player = (
+      Array.isArray(blueprint?.players) ? blueprint.players : []
+    ).find((entry) => entry?.name === roleName.trim());
+    const playerIndex = (
+      Array.isArray(assembly?.playerChapterActions)
+        ? assembly.playerChapterActions
+        : []
+    ).findIndex((entry) => entry?.roleKey === player?.key);
+    const actionIndex =
+      playerIndex >= 0
+        ? (Array.isArray(
+            assembly.playerChapterActions[playerIndex]?.chapterActions,
+          )
+            ? assembly.playerChapterActions[playerIndex].chapterActions
+            : []
+          ).findIndex((entry) => entry?.chapterKey === chapterKey)
+        : -1;
     if (playerIndex >= 0 && actionIndex >= 0) {
-      const current = assembly.playerChapterActions[playerIndex].chapterActions[actionIndex];
+      const current =
+        assembly.playerChapterActions[playerIndex].chapterActions[actionIndex];
       patches.push({
         op: "replace",
         path: `/playerChapterActions/${playerIndex}/chapterActions/${actionIndex}/evidenceKeys`,
-        value: Array.from(new Set([...(Array.isArray(current?.evidenceKeys) ? current.evidenceKeys : []), anchorKey]))
+        value: Array.from(
+          new Set([
+            ...(Array.isArray(current?.evidenceKeys)
+              ? current.evidenceKeys
+              : []),
+            anchorKey,
+          ]),
+        ),
       });
     }
   }
-  const routeReachabilityMatch = focusedIssue.match(/^routes\[(\d+)\] 的条件虽然可能分别出现/u);
+  const routeReachabilityMatch = focusedIssue.match(
+    /^routes\[(\d+)\] 的条件虽然可能分别出现/u,
+  );
   if (routeReachabilityMatch) {
-    const route = blueprint?.endingLogic?.routes?.[Number(routeReachabilityMatch[1])];
-    const requirements = Array.isArray(route?.requirements) ? route.requirements : [];
-    const blockingChapter = (Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []).findIndex((chapter) => (
-      (Array.isArray(chapter?.stateReads) ? chapter.stateReads : []).some((read) => requirements.some((requirement) => (
-        requirement?.targetType === "state" && requirement?.targetKey === read?.stateKey
-        && read?.operator === "equals" && requirement?.operator === "equals" && requirement?.value !== read?.value
-        && (Array.isArray(chapter?.onReadFail?.stateWrites) ? chapter.onReadFail.stateWrites : []).some((write) => write?.stateKey === requirement.targetKey && write?.value !== requirement.value)
-      )))
-    ));
+    const route =
+      blueprint?.endingLogic?.routes?.[Number(routeReachabilityMatch[1])];
+    const requirements = Array.isArray(route?.requirements)
+      ? route.requirements
+      : [];
+    const blockingChapter = (
+      Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []
+    ).findIndex((chapter) =>
+      (Array.isArray(chapter?.stateReads) ? chapter.stateReads : []).some(
+        (read) =>
+          requirements.some(
+            (requirement) =>
+              requirement?.targetType === "state" &&
+              requirement?.targetKey === read?.stateKey &&
+              read?.operator === "equals" &&
+              requirement?.operator === "equals" &&
+              requirement?.value !== read?.value &&
+              (Array.isArray(chapter?.onReadFail?.stateWrites)
+                ? chapter.onReadFail.stateWrites
+                : []
+              ).some(
+                (write) =>
+                  write?.stateKey === requirement.targetKey &&
+                  write?.value !== requirement.value,
+              ),
+          ),
+      ),
+    );
     if (blockingChapter >= 0) {
       patches.push(
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/stateReads`, value: [] },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadPass/variantKey`, value: "" },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/variantKey`, value: "" },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/fallbackAction`, value: "" },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/stateWrites`, value: [] },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/additionalCosts`, value: [] },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/locksEvidenceKeys`, value: [] },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/unlocksEvidenceKeys`, value: [] }
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/stateReads`,
+          value: [],
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadPass/variantKey`,
+          value: "",
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/variantKey`,
+          value: "",
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/fallbackAction`,
+          value: "",
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/stateWrites`,
+          value: [],
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/additionalCosts`,
+          value: [],
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/locksEvidenceKeys`,
+          value: [],
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/unlocksEvidenceKeys`,
+          value: [],
+        },
       );
     }
   }
   return patches;
 }
 
-export function buildStoryOutlineAssemblyPatchMessages(brief, spec, blueprint, assembly, issues) {
+export function buildStoryOutlineAssemblyPatchMessages(
+  brief,
+  spec,
+  blueprint,
+  assembly,
+  issues,
+) {
   const focusedIssue = String(Array.isArray(issues) ? issues[0] || "" : "");
   const blueprintPatchContext = {
-    players: (Array.isArray(blueprint?.players) ? blueprint.players : []).map((player) => ({
-      key: player?.key,
-      name: player?.name,
-      contribution: player?.contribution,
-      exclusiveAnchorKey: player?.exclusiveAnchorKey
+    players: (Array.isArray(blueprint?.players) ? blueprint.players : []).map(
+      (player) => ({
+        key: player?.key,
+        name: player?.name,
+        contribution: player?.contribution,
+        exclusiveAnchorKey: player?.exclusiveAnchorKey,
+      }),
+    ),
+    entities: (Array.isArray(blueprint?.entities)
+      ? blueprint.entities
+      : []
+    ).map((entity) => ({
+      key: entity?.key,
+      name: entity?.name,
+      type: entity?.type,
     })),
-    entities: (Array.isArray(blueprint?.entities) ? blueprint.entities : []).map((entity) => ({ key: entity?.key, name: entity?.name, type: entity?.type })),
     resources: blueprint?.resources || [],
-    evidence: (Array.isArray(blueprint?.evidenceGraph?.evidence) ? blueprint.evidenceGraph.evidence : []).map((entry) => ({
+    evidence: (Array.isArray(blueprint?.evidenceGraph?.evidence)
+      ? blueprint.evidenceGraph.evidence
+      : []
+    ).map((entry) => ({
       key: entry?.key,
       sourceOwnerRoleKey: entry?.sourceOwnerRoleKey,
-      supportsConclusionKeys: entry?.supportsConclusionKeys
+      supportsConclusionKeys: entry?.supportsConclusionKeys,
     })),
     stateVariables: blueprint?.endingLogic?.stateVariables || [],
     routes: blueprint?.endingLogic?.routes || [],
     branchEvents: blueprint?.semanticConstitution?.branchEvents || [],
     worldRules: blueprint?.semanticConstitution?.worldRules || [],
-    signatureDevices: blueprint?.styleContract?.signatureDevices || []
+    signatureDevices: blueprint?.styleContract?.signatureDevices || [],
   };
-  const issueGuidance = { issue: focusedIssue, requiredPatchPaths: [], forbiddenPatchPaths: [] };
-  const stateIssueMatch = focusedIssue.match(/状态变量\s+([\w-]+)\.setInChapterKey/u);
+  const issueGuidance = {
+    issue: focusedIssue,
+    requiredPatchPaths: [],
+    forbiddenPatchPaths: [],
+  };
+  const stateIssueMatch = focusedIssue.match(
+    /状态变量\s+([\w-]+)\.setInChapterKey/u,
+  );
   if (stateIssueMatch) {
     const stateKey = stateIssueMatch[1];
-    const stateDefinition = blueprintPatchContext.stateVariables.find((entry) => entry?.key === stateKey);
-    const registeredIndex = spec.chapterKeys.indexOf(stateDefinition?.setInChapterKey);
+    const stateDefinition = blueprintPatchContext.stateVariables.find(
+      (entry) => entry?.key === stateKey,
+    );
+    const registeredIndex = spec.chapterKeys.indexOf(
+      stateDefinition?.setInChapterKey,
+    );
     issueGuidance.rule = `蓝图登记章节 ${stateDefinition?.setInChapterKey || ""} 不可修改；删除此前对 ${stateKey} 的全部 option state effects，禁止以 pending 或 unknown 占位。`;
-    (Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []).forEach((chapter, chapterIndex) => {
+    (Array.isArray(assembly?.chapterBeats)
+      ? assembly.chapterBeats
+      : []
+    ).forEach((chapter, chapterIndex) => {
       if (registeredIndex < 0 || chapterIndex >= registeredIndex) return;
-      (Array.isArray(chapter?.stateWrites) ? chapter.stateWrites : []).forEach((write, writeIndex) => {
-        if (write?.stateKey === stateKey) {
-          issueGuidance.requiredPatchPaths.push({
-            op: "remove",
-            path: `/chapterBeats/${chapterIndex}/stateWrites/${writeIndex}`
-          });
-        }
-      });
-      (Array.isArray(chapter?.decision?.options) ? chapter.decision.options : []).forEach((option, optionIndex) => {
-        (Array.isArray(option?.effects) ? option.effects : []).forEach((effect, effectIndex) => {
-          if (effect?.targetType === "state" && effect?.targetKey === stateKey) {
+      (Array.isArray(chapter?.stateWrites) ? chapter.stateWrites : []).forEach(
+        (write, writeIndex) => {
+          if (write?.stateKey === stateKey) {
             issueGuidance.requiredPatchPaths.push({
               op: "remove",
-              path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/${effectIndex}`
+              path: `/chapterBeats/${chapterIndex}/stateWrites/${writeIndex}`,
             });
           }
-        });
+        },
+      );
+      (Array.isArray(chapter?.decision?.options)
+        ? chapter.decision.options
+        : []
+      ).forEach((option, optionIndex) => {
+        (Array.isArray(option?.effects) ? option.effects : []).forEach(
+          (effect, effectIndex) => {
+            if (
+              effect?.targetType === "state" &&
+              effect?.targetKey === stateKey
+            ) {
+              issueGuidance.requiredPatchPaths.push({
+                op: "remove",
+                path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/${effectIndex}`,
+              });
+            }
+          },
+        );
       });
     });
   }
-  const emptyDecisionStateMatch = focusedIssue.match(/^chapterBeats\[(\d+)\]\.decision\.stateKey 必须为空/u);
+  const emptyDecisionStateMatch = focusedIssue.match(
+    /^chapterBeats\[(\d+)\]\.decision\.stateKey 必须为空/u,
+  );
   if (emptyDecisionStateMatch) {
     const chapterIndex = Number(emptyDecisionStateMatch[1]);
-    issueGuidance.rule = "本章所有选项都未裁决状态，decision.stateKey 必须清空；不要为了保留 stateKey 补造新的状态效果。";
+    issueGuidance.rule =
+      "本章所有选项都未裁决状态，decision.stateKey 必须清空；不要为了保留 stateKey 补造新的状态效果。";
     issueGuidance.requiredPatchPaths.push({
       op: "replace",
       path: `/chapterBeats/${chapterIndex}/decision/stateKey`,
-      value: ""
+      value: "",
     });
   }
-  const invalidAdditionalCostMatch = focusedIssue.match(/^chapterBeats\[(\d+)\]\.onReadFail\.additionalCosts\[(\d+)\]\.resourceKey 引用未登记资源/u);
+  const invalidAdditionalCostMatch = focusedIssue.match(
+    /^chapterBeats\[(\d+)\]\.onReadFail\.additionalCosts\[(\d+)\]\.resourceKey 引用未登记资源/u,
+  );
   if (invalidAdditionalCostMatch) {
     const chapterIndex = Number(invalidAdditionalCostMatch[1]);
     const costIndex = Number(invalidAdditionalCostMatch[2]);
-    issueGuidance.rule = "失败分支不得用空 key 或临时资源制造代价；删除这项未登记 additionalCost，不得创建新资源。";
+    issueGuidance.rule =
+      "失败分支不得用空 key 或临时资源制造代价；删除这项未登记 additionalCost，不得创建新资源。";
     issueGuidance.requiredPatchPaths.push({
       op: "remove",
-      path: `/chapterBeats/${chapterIndex}/onReadFail/additionalCosts/${costIndex}`
+      path: `/chapterBeats/${chapterIndex}/onReadFail/additionalCosts/${costIndex}`,
     });
   }
-  const anchorIssueMatch = focusedIssue.match(/^(.+?)\s+在\s+(chapter-\d+)\s+的行动没有使用因果锚点\s+([\w-]+)/u);
+  const anchorIssueMatch = focusedIssue.match(
+    /^(.+?)\s+在\s+(chapter-\d+)\s+的行动没有使用因果锚点\s+([\w-]+)/u,
+  );
   if (anchorIssueMatch) {
     const [, roleName, chapterKey, anchorKey] = anchorIssueMatch;
-    const player = blueprintPatchContext.players.find((entry) => entry?.name === roleName.trim());
-    const playerIndex = (Array.isArray(assembly?.playerChapterActions) ? assembly.playerChapterActions : [])
-      .findIndex((entry) => entry?.roleKey === player?.key);
-    const actionIndex = playerIndex >= 0
-      ? (Array.isArray(assembly.playerChapterActions[playerIndex]?.chapterActions) ? assembly.playerChapterActions[playerIndex].chapterActions : [])
-        .findIndex((entry) => entry?.chapterKey === chapterKey)
-      : -1;
+    const player = blueprintPatchContext.players.find(
+      (entry) => entry?.name === roleName.trim(),
+    );
+    const playerIndex = (
+      Array.isArray(assembly?.playerChapterActions)
+        ? assembly.playerChapterActions
+        : []
+    ).findIndex((entry) => entry?.roleKey === player?.key);
+    const actionIndex =
+      playerIndex >= 0
+        ? (Array.isArray(
+            assembly.playerChapterActions[playerIndex]?.chapterActions,
+          )
+            ? assembly.playerChapterActions[playerIndex].chapterActions
+            : []
+          ).findIndex((entry) => entry?.chapterKey === chapterKey)
+        : -1;
     if (playerIndex >= 0 && actionIndex >= 0) {
-      const current = assembly.playerChapterActions[playerIndex].chapterActions[actionIndex];
+      const current =
+        assembly.playerChapterActions[playerIndex].chapterActions[actionIndex];
       issueGuidance.rule = `该行动必须实际读取因果锚点 ${anchorKey}，不要改动其他角色或章节。`;
       issueGuidance.requiredPatchPaths.push({
         op: "replace",
         path: `/playerChapterActions/${playerIndex}/chapterActions/${actionIndex}/evidenceKeys`,
-        value: Array.from(new Set([...(Array.isArray(current?.evidenceKeys) ? current.evidenceKeys : []), anchorKey]))
+        value: Array.from(
+          new Set([
+            ...(Array.isArray(current?.evidenceKeys)
+              ? current.evidenceKeys
+              : []),
+            anchorKey,
+          ]),
+        ),
       });
     }
   }
-  const resourceIssueMatch = focusedIssue.match(/^(.+?)\.(chapter-\d+)\s+声称改变资源\s+([\w-]+)/u);
+  const resourceIssueMatch = focusedIssue.match(
+    /^(.+?)\.(chapter-\d+)\s+声称改变资源\s+([\w-]+)/u,
+  );
   if (resourceIssueMatch) {
     const [, roleName, chapterKey, resourceKey] = resourceIssueMatch;
-    const player = blueprintPatchContext.players.find((entry) => entry?.name === roleName.trim());
-    const playerIndex = (Array.isArray(assembly?.playerChapterActions) ? assembly.playerChapterActions : [])
-      .findIndex((entry) => entry?.roleKey === player?.key);
-    const actionIndex = playerIndex >= 0
-      ? (Array.isArray(assembly.playerChapterActions[playerIndex]?.chapterActions) ? assembly.playerChapterActions[playerIndex].chapterActions : [])
-        .findIndex((entry) => entry?.chapterKey === chapterKey)
-      : -1;
+    const player = blueprintPatchContext.players.find(
+      (entry) => entry?.name === roleName.trim(),
+    );
+    const playerIndex = (
+      Array.isArray(assembly?.playerChapterActions)
+        ? assembly.playerChapterActions
+        : []
+    ).findIndex((entry) => entry?.roleKey === player?.key);
+    const actionIndex =
+      playerIndex >= 0
+        ? (Array.isArray(
+            assembly.playerChapterActions[playerIndex]?.chapterActions,
+          )
+            ? assembly.playerChapterActions[playerIndex].chapterActions
+            : []
+          ).findIndex((entry) => entry?.chapterKey === chapterKey)
+        : -1;
     if (playerIndex >= 0 && actionIndex >= 0) {
-      const current = assembly.playerChapterActions[playerIndex].chapterActions[actionIndex];
+      const current =
+        assembly.playerChapterActions[playerIndex].chapterActions[actionIndex];
       issueGuidance.rule = `本章没有公共资源变化；删除角色行动对 ${resourceKey} 的虚假资源声明，不得给本章补造 resourceDeltas。`;
       issueGuidance.requiredPatchPaths.push({
         op: "replace",
         path: `/playerChapterActions/${playerIndex}/chapterActions/${actionIndex}/resourceKeys`,
-        value: (Array.isArray(current?.resourceKeys) ? current.resourceKeys : []).filter((key) => key !== resourceKey)
+        value: (Array.isArray(current?.resourceKeys)
+          ? current.resourceKeys
+          : []
+        ).filter((key) => key !== resourceKey),
       });
     }
   }
-  const branchIssueMatch = focusedIssue.match(/分支事件\s+([\w-]+)\s+只能在登记章节\s+(chapter-\d+)\s+触发/u);
+  const branchIssueMatch = focusedIssue.match(
+    /分支事件\s+([\w-]+)\s+只能在登记章节\s+(chapter-\d+)\s+触发/u,
+  );
   if (branchIssueMatch) {
     const [, eventKey, registeredChapterKey] = branchIssueMatch;
     issueGuidance.rule = `${eventKey} 只能在 ${registeredChapterKey} 触发；remove 其他章节中以 targetType=event、targetKey=${eventKey}、operation=trigger 写成的 effect。`;
-    (Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []).forEach((chapter, chapterIndex) => {
+    (Array.isArray(assembly?.chapterBeats)
+      ? assembly.chapterBeats
+      : []
+    ).forEach((chapter, chapterIndex) => {
       if (chapter?.chapterKey === registeredChapterKey) return;
-      (Array.isArray(chapter?.decision?.options) ? chapter.decision.options : []).forEach((option, optionIndex) => {
-        (Array.isArray(option?.effects) ? option.effects : []).forEach((effect, effectIndex) => {
-          if (effect?.targetType === "event" && effect?.targetKey === eventKey && effect?.operation === "trigger") {
-            issueGuidance.requiredPatchPaths.push({ op: "remove", path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/${effectIndex}` });
-          }
-        });
+      (Array.isArray(chapter?.decision?.options)
+        ? chapter.decision.options
+        : []
+      ).forEach((option, optionIndex) => {
+        (Array.isArray(option?.effects) ? option.effects : []).forEach(
+          (effect, effectIndex) => {
+            if (
+              effect?.targetType === "event" &&
+              effect?.targetKey === eventKey &&
+              effect?.operation === "trigger"
+            ) {
+              issueGuidance.requiredPatchPaths.push({
+                op: "remove",
+                path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/${effectIndex}`,
+              });
+            }
+          },
+        );
       });
     });
   }
-  const duplicateBranchMatch = focusedIssue.match(/分支事件\s+([\w-]+)\s+必须恰好由一个玩家选项触发/u);
+  const duplicateBranchMatch = focusedIssue.match(
+    /分支事件\s+([\w-]+)\s+必须恰好由一个玩家选项触发/u,
+  );
   if (duplicateBranchMatch) {
     const eventKey = duplicateBranchMatch[1];
     const triggerLocations = [];
-    (Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []).forEach((chapter, chapterIndex) => {
-      (Array.isArray(chapter?.decision?.options) ? chapter.decision.options : []).forEach((option, optionIndex) => {
-        (Array.isArray(option?.effects) ? option.effects : []).forEach((effect, effectIndex) => {
-          if (effect?.targetType === "event" && effect?.targetKey === eventKey && effect?.operation === "trigger") {
-            const spendsContractResource = option.effects.some((candidate) => candidate?.targetType === "resource" && candidate?.operation === "lose");
-            triggerLocations.push({ chapterIndex, optionIndex, effectIndex, spendsContractResource });
-          }
-        });
+    (Array.isArray(assembly?.chapterBeats)
+      ? assembly.chapterBeats
+      : []
+    ).forEach((chapter, chapterIndex) => {
+      (Array.isArray(chapter?.decision?.options)
+        ? chapter.decision.options
+        : []
+      ).forEach((option, optionIndex) => {
+        (Array.isArray(option?.effects) ? option.effects : []).forEach(
+          (effect, effectIndex) => {
+            if (
+              effect?.targetType === "event" &&
+              effect?.targetKey === eventKey &&
+              effect?.operation === "trigger"
+            ) {
+              const spendsContractResource = option.effects.some(
+                (candidate) =>
+                  candidate?.targetType === "resource" &&
+                  candidate?.operation === "lose",
+              );
+              triggerLocations.push({
+                chapterIndex,
+                optionIndex,
+                effectIndex,
+                spendsContractResource,
+              });
+            }
+          },
+        );
       });
     });
-    const keepIndex = Math.max(0, triggerLocations.findIndex((location) => location.spendsContractResource));
+    const keepIndex = Math.max(
+      0,
+      triggerLocations.findIndex((location) => location.spendsContractResource),
+    );
     issueGuidance.rule = `${eventKey} 只能保留一个真实触发选项；若事件描述涉及动用正式复核或重赛资格，保留实际消费题材资源的选项，remove 其余 event effect。`;
     triggerLocations.forEach((location, index) => {
       if (index === keepIndex) return;
       issueGuidance.requiredPatchPaths.push({
         op: "remove",
-        path: `/chapterBeats/${location.chapterIndex}/decision/options/${location.optionIndex}/effects/${location.effectIndex}`
+        path: `/chapterBeats/${location.chapterIndex}/decision/options/${location.optionIndex}/effects/${location.effectIndex}`,
       });
     });
   }
-  const deniedTriggerMatch = focusedIssue.match(/^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects\[(\d+)\] 声称触发事件/u);
+  const deniedTriggerMatch = focusedIssue.match(
+    /^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects\[(\d+)\] 声称触发事件/u,
+  );
   if (deniedTriggerMatch) {
     const chapterIndex = Number(deniedTriggerMatch[1]);
     const optionIndex = Number(deniedTriggerMatch[2]);
     const effectIndex = Number(deniedTriggerMatch[3]);
-    const targetEffect = assembly?.chapterBeats?.[chapterIndex]?.decision?.options?.[optionIndex]?.effects?.[effectIndex];
-    const duplicateCount = (Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []).flatMap((chapter) => (
-      (Array.isArray(chapter?.decision?.options) ? chapter.decision.options : []).flatMap((option) => (
-        (Array.isArray(option?.effects) ? option.effects : []).filter((effect) => effect?.targetType === "event" && effect?.targetKey === targetEffect?.targetKey)
-      ))
-    )).length;
-    issueGuidance.rule = "event trigger 的 consequence 不能写成未触发。若同一事件已由另一个选项触发，删除当前矛盾 effect；否则把 consequence 改成明确发生的世界内结果。";
+    const targetEffect =
+      assembly?.chapterBeats?.[chapterIndex]?.decision?.options?.[optionIndex]
+        ?.effects?.[effectIndex];
+    const duplicateCount = (
+      Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []
+    ).flatMap((chapter) =>
+      (Array.isArray(chapter?.decision?.options)
+        ? chapter.decision.options
+        : []
+      ).flatMap((option) =>
+        (Array.isArray(option?.effects) ? option.effects : []).filter(
+          (effect) =>
+            effect?.targetType === "event" &&
+            effect?.targetKey === targetEffect?.targetKey,
+        ),
+      ),
+    ).length;
+    issueGuidance.rule =
+      "event trigger 的 consequence 不能写成未触发。若同一事件已由另一个选项触发，删除当前矛盾 effect；否则把 consequence 改成明确发生的世界内结果。";
     if (duplicateCount > 1) {
-      issueGuidance.requiredPatchPaths.push({ op: "remove", path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/${effectIndex}` });
+      issueGuidance.requiredPatchPaths.push({
+        op: "remove",
+        path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/effects/${effectIndex}`,
+      });
     }
   }
-  const stateChoiceConflictMatch = focusedIssue.match(/^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects\[(\d+)\] 的待定状态与玩家可见选项/u);
+  const stateChoiceConflictMatch = focusedIssue.match(
+    /^chapterBeats\[(\d+)\]\.decision\.options\[(\d+)\]\.effects\[(\d+)\] 的待定状态与玩家可见选项/u,
+  );
   if (stateChoiceConflictMatch) {
     const chapterIndex = Number(stateChoiceConflictMatch[1]);
     const optionIndex = Number(stateChoiceConflictMatch[2]);
-    issueGuidance.rule = "状态仍为待定时，玩家文案不得声称已经接受、拒绝或正式裁定；保留隐藏状态值，改写可见选择和即时后果为暂缓裁定。";
+    issueGuidance.rule =
+      "状态仍为待定时，玩家文案不得声称已经接受、拒绝或正式裁定；保留隐藏状态值，改写可见选择和即时后果为暂缓裁定。";
     issueGuidance.requiredPatchPaths.push(
-      { op: "replace", path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/choiceText`, value: "不消耗复核席位，暂缓最终裁定" },
-      { op: "replace", path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/immediateConsequence`, value: "复核席位保留，赛果继续等待联盟裁定" }
+      {
+        op: "replace",
+        path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/choiceText`,
+        value: "不消耗复核席位，暂缓最终裁定",
+      },
+      {
+        op: "replace",
+        path: `/chapterBeats/${chapterIndex}/decision/options/${optionIndex}/immediateConsequence`,
+        value: "复核席位保留，赛果继续等待联盟裁定",
+      },
     );
   }
-  const routeReachabilityMatch = focusedIssue.match(/^routes\[(\d+)\] 的条件虽然可能分别出现/u);
+  const routeReachabilityMatch = focusedIssue.match(
+    /^routes\[(\d+)\] 的条件虽然可能分别出现/u,
+  );
   if (routeReachabilityMatch) {
     const routeIndex = Number(routeReachabilityMatch[1]);
     const route = blueprintPatchContext.routes[routeIndex];
-    const requirements = Array.isArray(route?.requirements) ? route.requirements : [];
-    const blockingChapter = (Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []).findIndex((chapter) => (
-      (Array.isArray(chapter?.stateReads) ? chapter.stateReads : []).some((read) => requirements.some((requirement) => (
-        requirement?.targetType === "state"
-        && requirement?.targetKey === read?.stateKey
-        && read?.operator === "equals"
-        && requirement?.operator === "equals"
-        && requirement?.value !== read?.value
-        && (Array.isArray(chapter?.onReadFail?.stateWrites) ? chapter.onReadFail.stateWrites : []).some((write) => (
-          write?.stateKey === requirement.targetKey && write?.value !== requirement.value
-        ))
-      )))
-    ));
+    const requirements = Array.isArray(route?.requirements)
+      ? route.requirements
+      : [];
+    const blockingChapter = (
+      Array.isArray(assembly?.chapterBeats) ? assembly.chapterBeats : []
+    ).findIndex((chapter) =>
+      (Array.isArray(chapter?.stateReads) ? chapter.stateReads : []).some(
+        (read) =>
+          requirements.some(
+            (requirement) =>
+              requirement?.targetType === "state" &&
+              requirement?.targetKey === read?.stateKey &&
+              read?.operator === "equals" &&
+              requirement?.operator === "equals" &&
+              requirement?.value !== read?.value &&
+              (Array.isArray(chapter?.onReadFail?.stateWrites)
+                ? chapter.onReadFail.stateWrites
+                : []
+              ).some(
+                (write) =>
+                  write?.stateKey === requirement.targetKey &&
+                  write?.value !== requirement.value,
+              ),
+          ),
+      ),
+    );
     if (blockingChapter >= 0) {
       issueGuidance.rule = `路线 ${route?.key || routeIndex} 被 chapterBeats[${blockingChapter}] 的入口失败分支改写了已经裁决的结局状态。该章必须允许此前所有合法裁决继续进入；清空入口读条件和失败覆盖，不得修改蓝图路线。`;
       issueGuidance.requiredPatchPaths.push(
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/stateReads`, value: [] },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadPass/variantKey`, value: "" },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/variantKey`, value: "" },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/fallbackAction`, value: "" },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/stateWrites`, value: [] },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/additionalCosts`, value: [] },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/locksEvidenceKeys`, value: [] },
-        { op: "replace", path: `/chapterBeats/${blockingChapter}/onReadFail/unlocksEvidenceKeys`, value: [] }
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/stateReads`,
+          value: [],
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadPass/variantKey`,
+          value: "",
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/variantKey`,
+          value: "",
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/fallbackAction`,
+          value: "",
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/stateWrites`,
+          value: [],
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/additionalCosts`,
+          value: [],
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/locksEvidenceKeys`,
+          value: [],
+        },
+        {
+          op: "replace",
+          path: `/chapterBeats/${blockingChapter}/onReadFail/unlocksEvidenceKeys`,
+          value: [],
+        },
       );
     } else {
       issueGuidance.rule = `逐章检查路线 ${route?.key || routeIndex} 的全部 requirements 是否能由同一组选项共同形成；只能修复冲突选项的隐藏 effects、stateReads 或失败覆盖，不得润色 consequence 代替因果修复。`;
@@ -1278,7 +1757,7 @@ export function buildStoryOutlineAssemblyPatchMessages(brief, spec, blueprint, a
   const user = `${untrustedUserPayload("规格、生成前合同与不可修改蓝图注册表", {
     spec,
     generationContract: brief.generationContract || {},
-    blueprint: blueprintPatchContext
+    blueprint: blueprintPatchContext,
   })}
 
 ${untrustedUserPayload("待定点修复的章节装配", assembly)}
@@ -1286,7 +1765,10 @@ ${untrustedUserPayload("待定点修复的章节装配", assembly)}
 ${untrustedUserPayload("本问题的机器定位提示；若 requiredPatchPaths 非空，逐项原样执行，不得反向改写", issueGuidance)}
 
 ${untrustedUserPayload("仅允许修复的装配问题", Array.isArray(issues) ? issues.slice(0, 30) : [])}`;
-  return [{ role: "system", content: system }, { role: "user", content: user }];
+  return [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ];
 }
 
 export function buildStoryOutlineAssemblyComponentMessages(
@@ -1294,56 +1776,93 @@ export function buildStoryOutlineAssemblyComponentMessages(
   spec,
   blueprint,
   component,
-  previousIssues = []
+  previousIssues = [],
 ) {
   const generationContract = brief.generationContract || {};
   const stateVariables = Array.isArray(blueprint?.endingLogic?.stateVariables)
     ? blueprint.endingLogic.stateVariables
     : [];
-  const routes = Array.isArray(blueprint?.endingLogic?.routes) ? blueprint.endingLogic.routes : [];
+  const routes = Array.isArray(blueprint?.endingLogic?.routes)
+    ? blueprint.endingLogic.routes
+    : [];
   const stateDecisionCoveragePlan = stateVariables.map((state) => ({
     chapterKey: state.setInChapterKey,
     stateKey: state.key,
-    optionValues: [...new Set([
-      ...routes.flatMap((route) => (Array.isArray(route?.requirements)
-        ? route.requirements
-          .filter((requirement) => requirement?.targetType === "state" && requirement?.targetKey === state.key)
-          .map((requirement) => requirement.value)
-        : [])),
-      ...(Array.isArray(state.allowedValues) ? state.allowedValues : [])
-    ])]
+    optionValues: [
+      ...new Set([
+        ...routes.flatMap((route) =>
+          Array.isArray(route?.requirements)
+            ? route.requirements
+                .filter(
+                  (requirement) =>
+                    requirement?.targetType === "state" &&
+                    requirement?.targetKey === state.key,
+                )
+                .map((requirement) => requirement.value)
+            : [],
+        ),
+        ...(Array.isArray(state.allowedValues) ? state.allowedValues : []),
+      ]),
+    ],
   }));
-  const fallbackStateWritePlan = spec.chapterKeys.map((chapterKey, chapterIndex) => {
-    const state = stateVariables
-      .filter((candidate) => spec.chapterKeys.indexOf(candidate?.setInChapterKey) < chapterIndex)
-      .at(-1);
-    return {
-      chapterKey,
-      whenStateReadsPresent: state ? { stateKey: state.key, operation: "set", value: state.initialValue } : null
-    };
-  });
+  const fallbackStateWritePlan = spec.chapterKeys.map(
+    (chapterKey, chapterIndex) => {
+      const state = stateVariables
+        .filter(
+          (candidate) =>
+            spec.chapterKeys.indexOf(candidate?.setInChapterKey) < chapterIndex,
+        )
+        .at(-1);
+      return {
+        chapterKey,
+        whenStateReadsPresent: state
+          ? { stateKey: state.key, operation: "set", value: state.initialValue }
+          : null,
+      };
+    },
+  );
   const stateReadPlan = fallbackStateWritePlan.map((entry) => ({
     chapterKey: entry.chapterKey,
-    stateReads: entry.whenStateReadsPresent ? [{
-      stateKey: entry.whenStateReadsPresent.stateKey,
-      operator: "not_equals",
-      value: entry.whenStateReadsPresent.value
-    }] : [],
+    stateReads: entry.whenStateReadsPresent
+      ? [
+          {
+            stateKey: entry.whenStateReadsPresent.stateKey,
+            operator: "not_equals",
+            value: entry.whenStateReadsPresent.value,
+          },
+        ]
+      : [],
     entryConditionMode: entry.whenStateReadsPresent ? "all" : "none",
-    onReadPassVariantKey: entry.whenStateReadsPresent ? `${entry.chapterKey}-condition-pass` : "",
-    onReadFailVariantKey: entry.whenStateReadsPresent ? `${entry.chapterKey}-condition-fail` : ""
+    onReadPassVariantKey: entry.whenStateReadsPresent
+      ? `${entry.chapterKey}-condition-pass`
+      : "",
+    onReadFailVariantKey: entry.whenStateReadsPresent
+      ? `${entry.chapterKey}-condition-fail`
+      : "",
   }));
-  const resourceUsagePlans = Array.isArray(generationContract.resourceUsagePlans)
+  const resourceUsagePlans = Array.isArray(
+    generationContract.resourceUsagePlans,
+  )
     ? generationContract.resourceUsagePlans
     : [];
-  const roleEndingInfluences = Array.isArray(generationContract.roleEndingInfluences)
+  const roleEndingInfluences = Array.isArray(
+    generationContract.roleEndingInfluences,
+  )
     ? generationContract.roleEndingInfluences
     : [];
   const chapterComponentScaffold = spec.chapterKeys.map((chapterKey) => {
-    const readPlan = stateReadPlan.find((entry) => entry.chapterKey === chapterKey);
-    const decisions = stateDecisionCoveragePlan.filter((entry) => entry.chapterKey === chapterKey);
+    const readPlan = stateReadPlan.find(
+      (entry) => entry.chapterKey === chapterKey,
+    );
+    const decisions = stateDecisionCoveragePlan.filter(
+      (entry) => entry.chapterKey === chapterKey,
+    );
     const establishedStateKeys = stateVariables
-      .filter((state) => spec.chapterKeys.indexOf(state?.setInChapterKey) < spec.chapterKeys.indexOf(chapterKey))
+      .filter(
+        (state) =>
+          spec.chapterKeys.indexOf(state?.setInChapterKey) <
+          spec.chapterKeys.indexOf(chapterKey),
+      )
       .map((state) => state.key);
     return {
       chapterKey,
@@ -1351,7 +1870,7 @@ export function buildStoryOutlineAssemblyComponentMessages(
       entryConditionMode: readPlan?.entryConditionMode || "none",
       onReadPass: {
         variantKey: readPlan?.onReadPassVariantKey || "",
-        requiredFields: ["variantKey", "effectSummary"]
+        requiredFields: ["variantKey", "effectSummary"],
       },
       onReadFail: {
         variantKey: readPlan?.onReadFailVariantKey || "",
@@ -1361,56 +1880,79 @@ export function buildStoryOutlineAssemblyComponentMessages(
           "stateWrites",
           "additionalCosts",
           "locksEvidenceKeys",
-          "unlocksEvidenceKeys"
+          "unlocksEvidenceKeys",
         ],
-        stateWrites: establishedStateKeys.length ? "恰好一项，引用 establishedStateKeys 中的合法枚举值" : [],
+        stateWrites: establishedStateKeys.length
+          ? "恰好一项，引用 establishedStateKeys 中的合法枚举值"
+          : [],
         establishedStateKeys,
         additionalCosts: [],
         locksEvidenceKeys: [],
-        unlocksEvidenceKeys: []
+        unlocksEvidenceKeys: [],
       },
       requiredDecisionContracts: decisions,
-      requiredPublicStateWriteKeys: [...new Set(roleEndingInfluences
-        .filter((entry) => entry?.chapterKey === chapterKey)
-        .map((entry) => entry?.stateKey)
-        .filter(Boolean))],
+      requiredPublicStateWriteKeys: [
+        ...new Set(
+          roleEndingInfluences
+            .filter((entry) => entry?.chapterKey === chapterKey)
+            .map((entry) => entry?.stateKey)
+            .filter(Boolean),
+        ),
+      ],
       requiredResourceDeltas: resourceUsagePlans
-        .filter((plan) => Array.isArray(plan?.chapterKeys) && plan.chapterKeys.includes(chapterKey))
+        .filter(
+          (plan) =>
+            Array.isArray(plan?.chapterKeys) &&
+            plan.chapterKeys.includes(chapterKey),
+        )
         .map((plan) => ({
           resourceKey: plan.resourceKey,
           operation: plan.operation,
-          amount: plan.amount
-        }))
+          amount: plan.amount,
+        })),
     };
   });
   const payloadBase = {
     spec,
     generationContract,
-    blueprint
+    blueprint,
   };
-  const playerActionScaffold = (Array.isArray(blueprint?.players) ? blueprint.players : []).map((player) => {
-    const actionPlan = (Array.isArray(generationContract.roleActionChapterKeys)
-      ? generationContract.roleActionChapterKeys
-      : []).find((entry) => entry?.roleKey === player?.key);
-    const influence = (Array.isArray(generationContract.roleEndingInfluences)
-      ? generationContract.roleEndingInfluences
-      : []).find((entry) => entry?.roleKey === player?.key);
+  const playerActionScaffold = (
+    Array.isArray(blueprint?.players) ? blueprint.players : []
+  ).map((player) => {
+    const actionPlan = (
+      Array.isArray(generationContract.roleActionChapterKeys)
+        ? generationContract.roleActionChapterKeys
+        : []
+    ).find((entry) => entry?.roleKey === player?.key);
+    const influence = (
+      Array.isArray(generationContract.roleEndingInfluences)
+        ? generationContract.roleEndingInfluences
+        : []
+    ).find((entry) => entry?.roleKey === player?.key);
     return {
       roleKey: player?.key,
-      requiredAffectsRoleKeys: Array.isArray(player?.contribution?.affectsRoleKeys)
+      requiredAffectsRoleKeys: Array.isArray(
+        player?.contribution?.affectsRoleKeys,
+      )
         ? player.contribution.affectsRoleKeys
         : [],
-      chapterActions: (Array.isArray(actionPlan?.chapterKeys) ? actionPlan.chapterKeys : []).map((chapterKey) => ({
+      chapterActions: (Array.isArray(actionPlan?.chapterKeys)
+        ? actionPlan.chapterKeys
+        : []
+      ).map((chapterKey) => ({
         chapterKey,
-        stateWriteKeys: influence?.chapterKey === chapterKey ? [influence.stateKey] : [],
+        stateWriteKeys:
+          influence?.chapterKey === chapterKey ? [influence.stateKey] : [],
         resourceKeys: [],
-        evidenceEffectKeys: []
-      }))
+        evidenceEffectKeys: [],
+      })),
     };
   });
   let system = "";
   const field = getOutlineAssemblyField(component);
-  if (!field) throw new Error(`Unknown outline assembly component: ${component}`);
+  if (!field)
+    throw new Error(`Unknown outline assembly component: ${component}`);
 
   if (component === "playerActions") {
     system = `你是互动叙事产品的玩家行动设计师。${PRODUCT_BOUNDARY}
@@ -1431,14 +1973,27 @@ action 必须是世界内具体动作，写明动词、对象与方法；禁止�
       political: ["resource", "authority", "alliance", "mixed"],
       variety: ["task", "performance", "audience", "mixed"],
       survival: ["resource", "risk", "mixed"],
-      hybrid: ["evidence", "relationship", "commitment", "memory", "resource", "authority", "alliance", "task", "performance", "audience", "risk", "mixed"]
+      hybrid: [
+        "evidence",
+        "relationship",
+        "commitment",
+        "memory",
+        "resource",
+        "authority",
+        "alliance",
+        "task",
+        "performance",
+        "audience",
+        "risk",
+        "mixed",
+      ],
     }[blueprint?.genreProfile?.mode] || ["mixed"];
     system = `你是互动叙事产品的章节状态与选择设计师。${PRODUCT_BOUNDARY}
 只输出一个 JSON 对象，顶层必须且只能包含 chapterBeats。外壳必须严格采用 {"chapterBeats":[{"chapterKey":"chapter-1"},{"chapterKey":"chapter-2"}]} 这种数组形状：chapterBeats 必须是 JSON 数组，绝不能输出 {"chapter-1":{...},"chapter-2":{...}} 这种章节 key 对象映射。
 数组必须恰好 ${spec.chapterKeys.length} 项，并按 ${spec.chapterKeys.join("、")} 顺序输出，每个章节对象各出现一次。
 每章必须包含 chapterKey、title、goal、turn、hostNotes、triggerRoleKeys、playerAction、actionObject、actionTargetKey、irreversibleConsequence、nextState、progressMode、stateReads、entryConditionMode、onReadPass、onReadFail、stateWrites、unlocksEvidenceKeys、locksEvidenceKeys、resourceDeltas、evidenceKeys、genreMechanicUse、sharedSpotlightConflict、decision。
 progressMode 只能从 ${progressModes.join("、")} 中选择；不得自造 decision、state-change、investigation 等值。turn 至少写成一个包含玩家行为与局面后果的完整句子，不能只写“选择”“转折”或状态名。
-decision 必须为 {"stateKey":"已登记状态","question":"世界内冲突","options":[{"key":"option-a","choiceText":"玩家世界内行为","sets":{"stateKey":"与decision相同","value":"合法枚举值"},"immediateConsequence":"世界内可见后果"}]}，至少两个选项。玩家可见文本禁止 state-、resource-、chapter-、写入状态、verified、contested、broken、unlocked、locked 等内部词。
+decision 必须包含 interaction，并从 group_choice、resource_tradeoff、evidence_selection、sequence_reconstruction、timed_crisis、role_commitment 中选择 kind；同时填写题材内 label、playerInstruction、hostInstruction、deadlineSeconds、defaultOptionKey 和 resourceKey。timed_crisis 的 deadlineSeconds 必须大于0且 defaultOptionKey 必须引用本决策一个真实选项；其他类型这两个字段均为空或0。role_commitment 会作为仅玩家本人和主持人可见的秘密承诺，不得在公开文案泄露角色私密目标。每个选项必须包含 presentation：eyebrow、publicPreview、costLabel、riskLabel、sequenceLabel。decision 至少两个选项；玩家可见文本禁止 state-、resource-、chapter-、写入状态、verified、contested、broken、unlocked、locked 等内部词。
 必须逐项执行 stateDecisionCoveragePlan：在指定章节用指定 stateKey，并让 optionValues 每个值都有一个对应选项；只有隐藏 sets 可出现枚举值。其他章节可选择此前已登记状态形成真实选择。
 必须逐项执行 generationContract.resourceUsagePlans：资源只在指定章节的 resourceDeltas 各变化一次，operation/amount 完全一致；每项完整写出 {"resourceKey":"计划key","operation":"计划值","amount":计划数字,"affectsRoleKeys":["至少一名实际受影响玩家"],"consequence":"至少八字的世界内资源变化后果"}。其他章节不得使用该资源；所有 onReadFail.additionalCosts=[]。
 必须逐章照抄 chapterComponentScaffold，一个章节对象只能对应其中同 chapterKey 的一行：stateReads、entryConditionMode、onReadPass.variantKey、onReadFail.variantKey、requiredPublicStateWriteKeys 和 requiredResourceDeltas 都不得遗漏、改值或移到别章。不要在多个计划表之间自行重组。
@@ -1457,7 +2012,8 @@ genreMechanicUse 必须逐字采用“触发：具体条件；判定：公开步
 sceneOrDialogue 必须体现该题材的时代、语感、媒介或表演机制，不能只复述“使用某某风格”。不得输出玩家行动、状态机、蓝图字段、自检或 Markdown。`;
   }
 
-  if (component === "playerActions") payloadBase.playerActionScaffold = playerActionScaffold;
+  if (component === "playerActions")
+    payloadBase.playerActionScaffold = playerActionScaffold;
 
   let user = `${untrustedUserPayload(`V2.3 ${component} 专用生成材料`, payloadBase)}
 
@@ -1465,5 +2021,8 @@ ${untrustedUserPayload("本次唯一允许的顶层字段", { field })}`;
   if (Array.isArray(previousIssues) && previousIssues.length) {
     user += `\n\n${untrustedUserPayload("上一份相关组件被拒绝的原因；只重写本组件并逐项消除", previousIssues.slice(0, 20))}`;
   }
-  return [{ role: "system", content: system }, { role: "user", content: user }];
+  return [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ];
 }

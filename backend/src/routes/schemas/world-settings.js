@@ -4,21 +4,25 @@ import {
   NARRATIVE_PROFILE_VERSION,
   ROLE_MODES,
   RULESET_MODES,
-  RUN_FORMATS
+  RUN_FORMATS,
 } from "../../../../shared/narrative-profile.js";
 import {
   CREATIVE_CONSTITUTION_VERSION,
-  SUPERNATURAL_POLICIES
+  SUPERNATURAL_POLICIES,
 } from "../../../../shared/creative-constitution.js";
 import {
   STORY_SPINE_STATUSES,
-  STORY_SPINE_VERSION
+  STORY_SPINE_VERSION,
 } from "../../../../shared/story-spine.js";
+import {
+  MECHANISM_DESIGN_STATUSES,
+  MECHANISM_DESIGN_VERSION,
+} from "../../../../shared/mechanism-design.js";
 
 const constitutionTextListSchema = {
   type: "array",
   maxItems: 20,
-  items: { type: "string", minLength: 1, maxLength: 600 }
+  items: { type: "string", minLength: 1, maxLength: 600 },
 };
 
 export const creativeConstitutionSchema = {
@@ -40,7 +44,7 @@ export const creativeConstitutionSchema = {
     "desiredDebates",
     "avoidMisunderstandings",
     "roleHighlights",
-    "fairness"
+    "fairness",
   ],
   properties: {
     version: { type: "integer", const: CREATIVE_CONSTITUTION_VERSION },
@@ -66,9 +70,9 @@ export const creativeConstitutionSchema = {
         required: ["roleId", "promise"],
         properties: {
           roleId: { type: "string", minLength: 1, maxLength: 120 },
-          promise: { type: "string", maxLength: 1200 }
-        }
-      }
+          promise: { type: "string", maxLength: 1200 },
+        },
+      },
     },
     fairness: {
       type: "object",
@@ -76,19 +80,22 @@ export const creativeConstitutionSchema = {
       required: ["minimumEvidence", "requireIndependentPaths"],
       properties: {
         minimumEvidence: { type: "integer", minimum: 1, maximum: 5 },
-        requireIndependentPaths: { type: "boolean" }
-      }
-    }
-  }
+        requireIndependentPaths: { type: "boolean" },
+      },
+    },
+  },
 };
 
 const storySpineSourceRefsSchema = {
   type: "array",
   maxItems: 30,
-  items: { type: "string", minLength: 1, maxLength: 180 }
+  items: { type: "string", minLength: 1, maxLength: 180 },
 };
 
-const storySpineStatusSchema = { type: "string", enum: [...STORY_SPINE_STATUSES] };
+const storySpineStatusSchema = {
+  type: "string",
+  enum: [...STORY_SPINE_STATUSES],
+};
 
 const storySpineBlockSchema = {
   type: "object",
@@ -97,8 +104,8 @@ const storySpineBlockSchema = {
   properties: {
     text: { type: "string", maxLength: 12_000 },
     status: storySpineStatusSchema,
-    sourceRefs: storySpineSourceRefsSchema
-  }
+    sourceRefs: storySpineSourceRefsSchema,
+  },
 };
 
 export const storySpineSchema = {
@@ -120,7 +127,7 @@ export const storySpineSchema = {
     "endingDirections",
     "unresolvedQuestions",
     "assumptions",
-    "provenance"
+    "provenance",
   ],
   properties: {
     version: { type: "integer", const: STORY_SPINE_VERSION },
@@ -139,7 +146,15 @@ export const storySpineSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["roleId", "roleName", "storyFunction", "goal", "pressure", "status", "sourceRefs"],
+        required: [
+          "roleId",
+          "roleName",
+          "storyFunction",
+          "goal",
+          "pressure",
+          "status",
+          "sourceRefs",
+        ],
         properties: {
           roleId: { type: "string", minLength: 1, maxLength: 120 },
           roleName: { type: "string", minLength: 1, maxLength: 120 },
@@ -147,9 +162,9 @@ export const storySpineSchema = {
           goal: { type: "string", maxLength: 2400 },
           pressure: { type: "string", maxLength: 2400 },
           status: storySpineStatusSchema,
-          sourceRefs: storySpineSourceRefsSchema
-        }
-      }
+          sourceRefs: storySpineSourceRefsSchema,
+        },
+      },
     },
     chapterArc: {
       type: "array",
@@ -157,7 +172,17 @@ export const storySpineSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["chapterId", "sequence", "title", "cause", "playerAction", "turn", "consequence", "status", "sourceRefs"],
+        required: [
+          "chapterId",
+          "sequence",
+          "title",
+          "cause",
+          "playerAction",
+          "turn",
+          "consequence",
+          "status",
+          "sourceRefs",
+        ],
         properties: {
           chapterId: { type: "string", minLength: 1, maxLength: 120 },
           sequence: { type: "integer", minimum: 1, maximum: 99 },
@@ -167,9 +192,9 @@ export const storySpineSchema = {
           turn: { type: "string", maxLength: 3000 },
           consequence: { type: "string", maxLength: 3000 },
           status: storySpineStatusSchema,
-          sourceRefs: storySpineSourceRefsSchema
-        }
-      }
+          sourceRefs: storySpineSourceRefsSchema,
+        },
+      },
     },
     endingDirections: {
       type: "array",
@@ -177,16 +202,23 @@ export const storySpineSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["key", "title", "requirements", "consequence", "status", "sourceRefs"],
+        required: [
+          "key",
+          "title",
+          "requirements",
+          "consequence",
+          "status",
+          "sourceRefs",
+        ],
         properties: {
           key: { type: "string", minLength: 1, maxLength: 100 },
           title: { type: "string", minLength: 1, maxLength: 200 },
           requirements: { type: "string", maxLength: 3000 },
           consequence: { type: "string", maxLength: 3000 },
           status: storySpineStatusSchema,
-          sourceRefs: storySpineSourceRefsSchema
-        }
-      }
+          sourceRefs: storySpineSourceRefsSchema,
+        },
+      },
     },
     unresolvedQuestions: {
       type: "array",
@@ -199,9 +231,9 @@ export const storySpineSchema = {
           key: { type: "string", minLength: 1, maxLength: 100 },
           question: { type: "string", minLength: 1, maxLength: 3000 },
           whyItMatters: { type: "string", maxLength: 3000 },
-          sourceRefs: storySpineSourceRefsSchema
-        }
-      }
+          sourceRefs: storySpineSourceRefsSchema,
+        },
+      },
     },
     assumptions: {
       type: "array",
@@ -214,9 +246,9 @@ export const storySpineSchema = {
           key: { type: "string", minLength: 1, maxLength: 100 },
           text: { type: "string", minLength: 1, maxLength: 3000 },
           impact: { type: "string", maxLength: 3000 },
-          sourceRefs: storySpineSourceRefsSchema
-        }
-      }
+          sourceRefs: storySpineSourceRefsSchema,
+        },
+      },
     },
     provenance: {
       type: "object",
@@ -227,14 +259,11 @@ export const storySpineSchema = {
         model: { type: "string", maxLength: 160 },
         generatedAt: { type: "string", maxLength: 80 },
         sourceRevision: {
-          anyOf: [
-            { type: "integer", minimum: 0 },
-            { type: "null" }
-          ]
-        }
-      }
-    }
-  }
+          anyOf: [{ type: "integer", minimum: 0 }, { type: "null" }],
+        },
+      },
+    },
+  },
 };
 
 export const commercialProfileSchema = {
@@ -249,11 +278,20 @@ export const commercialProfileSchema = {
     category: { type: "string", maxLength: 300 },
     versionLabel: { type: "string", maxLength: 200 },
     ageRating: { type: "string", enum: ["", "12+", "16+", "18+"] },
-    selfReviewStatus: { type: "string", enum: ["not_started", "in_review", "passed", "needs_changes"] },
+    selfReviewStatus: {
+      type: "string",
+      enum: ["not_started", "in_review", "passed", "needs_changes"],
+    },
     selfReviewNotes: { type: "string", maxLength: 4000 },
-    materialChangeDate: { type: "string", pattern: "^(?:|\\d{4}-\\d{2}-\\d{2})$" },
-    filingUpdatedDate: { type: "string", pattern: "^(?:|\\d{4}-\\d{2}-\\d{2})$" }
-  }
+    materialChangeDate: {
+      type: "string",
+      pattern: "^(?:|\\d{4}-\\d{2}-\\d{2})$",
+    },
+    filingUpdatedDate: {
+      type: "string",
+      pattern: "^(?:|\\d{4}-\\d{2}-\\d{2})$",
+    },
+  },
 };
 
 export const narrativeProfileSchema = {
@@ -272,10 +310,57 @@ export const narrativeProfileSchema = {
       properties: {
         mode: { type: "string", enum: [...RULESET_MODES] },
         key: { type: "string", maxLength: 80 },
-        diceNotation: { type: "string", maxLength: 80 }
-      }
-    }
-  }
+        diceNotation: { type: "string", maxLength: 80 },
+      },
+    },
+  },
+};
+
+export const mechanismDesignSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "version",
+    "interactionKind",
+    "title",
+    "summary",
+    "recurringAction",
+    "conflictReason",
+    "limitedResource",
+    "immediateFeedback",
+    "failureAdvance",
+    "genreSpecificity",
+    "endingCausality",
+    "authorNotes",
+    "status",
+    "updatedAt",
+  ],
+  properties: {
+    version: { type: "integer", const: MECHANISM_DESIGN_VERSION },
+    interactionKind: {
+      type: "string",
+      enum: [
+        "group_choice",
+        "resource_tradeoff",
+        "evidence_selection",
+        "sequence_reconstruction",
+        "timed_crisis",
+        "role_commitment",
+      ],
+    },
+    title: { type: "string", maxLength: 160 },
+    summary: { type: "string", maxLength: 1200 },
+    recurringAction: { type: "string", maxLength: 2400 },
+    conflictReason: { type: "string", maxLength: 2400 },
+    limitedResource: { type: "string", maxLength: 2400 },
+    immediateFeedback: { type: "string", maxLength: 2400 },
+    failureAdvance: { type: "string", maxLength: 2400 },
+    genreSpecificity: { type: "string", maxLength: 2400 },
+    endingCausality: { type: "string", maxLength: 2400 },
+    authorNotes: { type: "string", maxLength: 4000 },
+    status: { type: "string", enum: [...MECHANISM_DESIGN_STATUSES] },
+    updatedAt: { type: "string", maxLength: 80 },
+  },
 };
 
 export const worldSettingsSchema = {
@@ -289,6 +374,7 @@ export const worldSettingsSchema = {
     narrativeProfile: narrativeProfileSchema,
     commercialProfile: commercialProfileSchema,
     creativeConstitution: creativeConstitutionSchema,
-    storySpine: storySpineSchema
-  }
+    storySpine: storySpineSchema,
+    mechanismDesign: mechanismDesignSchema,
+  },
 };

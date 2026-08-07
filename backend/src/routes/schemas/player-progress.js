@@ -3,7 +3,7 @@ import { paramsSchema, uuid } from "./primitives.js";
 export const playerProgressRoomIdParams = paramsSchema({ roomId: uuid });
 
 export const completeSectionSchema = {
-  params: paramsSchema({ roomId: uuid, sectionId: uuid })
+  params: paramsSchema({ roomId: uuid, sectionId: uuid }),
 };
 
 export const sectionProgressResponseSchema = {
@@ -11,9 +11,11 @@ export const sectionProgressResponseSchema = {
   additionalProperties: false,
   properties: {
     startedAt: { type: "string", format: "date-time" },
-    completedAt: { anyOf: [{ type: "string", format: "date-time" }, { type: "null" }] }
+    completedAt: {
+      anyOf: [{ type: "string", format: "date-time" }, { type: "null" }],
+    },
   },
-  required: ["startedAt"]
+  required: ["startedAt"],
 };
 
 export const notebookEntrySchema = {
@@ -23,16 +25,19 @@ export const notebookEntrySchema = {
     additionalProperties: false,
     required: ["sourceType", "title", "body"],
     properties: {
-      sourceType: { type: "string", enum: ["script_section", "clue", "manual"] },
+      sourceType: {
+        type: "string",
+        enum: ["script_section", "clue", "manual"],
+      },
       sourceId: { anyOf: [uuid, { type: "null" }] },
       title: { type: "string", minLength: 1, maxLength: 120 },
-      body: { type: "string", minLength: 1, maxLength: 5000 }
-    }
-  }
+      body: { type: "string", minLength: 1, maxLength: 5000 },
+    },
+  },
 };
 
 export const deleteNotebookEntrySchema = {
-  params: paramsSchema({ roomId: uuid, entryId: uuid })
+  params: paramsSchema({ roomId: uuid, entryId: uuid }),
 };
 
 export const submitMiniGameSchema = {
@@ -44,7 +49,7 @@ export const submitMiniGameSchema = {
       { required: ["instanceId"] },
       { required: ["instance_id"] },
       { required: ["gameId"] },
-      { required: ["game_id"] }
+      { required: ["game_id"] },
     ],
     properties: {
       roomId: uuid,
@@ -52,7 +57,36 @@ export const submitMiniGameSchema = {
       instance_id: uuid,
       gameId: uuid,
       game_id: uuid,
-      answer: { type: "string", minLength: 1, maxLength: 64 }
-    }
-  }
+      answer: { type: "string", minLength: 1, maxLength: 64 },
+    },
+  },
+};
+
+export const submitMechanismDecisionSchema = {
+  params: paramsSchema({
+    roomId: uuid,
+    decisionKey: { type: "string", minLength: 1, maxLength: 160 },
+  }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["expectedRevision", "optionKey"],
+    properties: {
+      expectedRevision: { type: "integer", minimum: 1 },
+      optionKey: { type: "string", minLength: 1, maxLength: 160 },
+    },
+  },
+  response: {
+    200: {
+      type: "object",
+      additionalProperties: false,
+      required: ["decisionKey", "optionKey", "revision", "submittedAt"],
+      properties: {
+        decisionKey: { type: "string" },
+        optionKey: { type: "string" },
+        revision: { type: "integer" },
+        submittedAt: { type: "string" },
+      },
+    },
+  },
 };

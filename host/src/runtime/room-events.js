@@ -155,6 +155,9 @@ async function handleRoomEvent(type, data) {
       await refreshHostRoom(false);
       if (data.status === "completed") showToast("剧情机制已完成结算", 2800);
       break;
+    case "room.mechanism_submission_updated":
+      await refreshHostRoom(false);
+      break;
     case "room.vote_created":
     case "room.vote_updated":
     case "room.private_action_submitted":

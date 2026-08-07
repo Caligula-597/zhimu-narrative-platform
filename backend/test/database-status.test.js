@@ -19,7 +19,11 @@ const requiredTables = [
   "creator_review_threads",
   "world_releases",
   "user_portal_profiles",
-  "portal_profile_avatar_uploads"
+  "portal_profile_avatar_uploads",
+  "world_mechanism_packages",
+  "room_mechanism_states",
+  "room_mechanism_action_log",
+  "room_mechanism_decision_submissions",
 ];
 const requiredMigrations = [
   "084_room_creation_idempotency.sql",
@@ -42,24 +46,28 @@ const requiredMigrations = [
   "101_user_llm_byok_only.sql",
   "102_email_verification_codes.sql",
   "103_ops_user_management.sql",
-  "104_user_portal_profiles.sql"
+  "104_user_portal_profiles.sql",
+  "105_world_mechanism_packages.sql",
+  "106_room_mechanism_runtime.sql",
+  "107_room_mechanism_decision_submissions.sql",
+  "108_room_mechanism_round_clock.sql",
 ];
 
 test("database readiness requires the current creator and identity migrations", () => {
   const current = inspectRequiredDatabaseSchema({
     tableNames: requiredTables,
-    migrationNames: requiredMigrations
+    migrationNames: requiredMigrations,
   });
   assert.deepEqual(current, {
     ok: true,
     missingTables: [],
     missingMigrations: [],
-    missingRlsTables: []
+    missingRlsTables: [],
   });
 
   const stale = inspectRequiredDatabaseSchema({
     tableNames: requiredTables,
-    migrationNames: requiredMigrations.slice(0, 1)
+    migrationNames: requiredMigrations.slice(0, 1),
   });
   assert.equal(stale.ok, false);
   assert.deepEqual(stale.missingMigrations, requiredMigrations.slice(1));
@@ -67,7 +75,7 @@ test("database readiness requires the current creator and identity migrations", 
   const rlsDisabled = inspectRequiredDatabaseSchema({
     tableNames: requiredTables,
     migrationNames: requiredMigrations,
-    rlsTableNames: requiredTables.slice(1)
+    rlsTableNames: requiredTables.slice(1),
   });
   assert.equal(rlsDisabled.ok, false);
   assert.deepEqual(rlsDisabled.missingRlsTables, [requiredTables[0]]);

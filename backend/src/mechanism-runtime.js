@@ -7,5 +7,6 @@ export {
   executeMechanismOverride,
   initializeMechanismRuntime,
   projectMechanismRuntime,
-  projectPlayerMechanismRuntime
+  projectPlayerMechanismRuntime,
+  resolvePlayerMechanismSelection
 } from "../../shared/mechanism-runtime.js";

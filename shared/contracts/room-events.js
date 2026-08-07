@@ -148,6 +148,10 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     roundSequence: number,
     roundTitle: text
   }),
+  "room.mechanism_submission_updated": schema(["decisionKey", "submissionCount"], {
+    decisionKey: shortText,
+    submissionCount: number
+  }),
   "room.investigation_completed": schema(["pointId", "roleSlotId"], { pointId: id, roleSlotId: id }),
   "room.vote_created": schema(["voteId", "title", "status"], {
     voteId: id,
