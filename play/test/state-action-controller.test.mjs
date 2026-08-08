@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  canHandlePlayActionWhileBusy,
   handlePlayStateAction
 } from "../src/runtime/state-action-controller.js";
+import { canHandlePlayActionWhileBusy } from "../src/runtime/action-busy-policy.js";
 
 function run(action, state, dataset = {}, overrides = {}) {
   let rendered = 0;
