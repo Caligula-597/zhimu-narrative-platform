@@ -257,6 +257,33 @@ export async function appendRoomMechanismAction(
   return result.rows[0];
 }
 
+/**
+ * Persist one role-scoped clue result from a mechanism settlement. The
+ * ownership unique key is the final idempotency boundary even when a later
+ * mechanism action legitimately references the same clue again.
+ */
+export async function grantMechanismClueOwnership(
+  client,
+  { roomId, roleSlotId, clueId, metadata = {} },
+) {
+  const result = await client.query(
+    `INSERT INTO clue_ownership (room_id, role_slot_id, clue_id, metadata)
+     VALUES ($1, $2, $3, $4::jsonb)
+     ON CONFLICT (room_id, role_slot_id, clue_id) DO NOTHING
+     RETURNING acquired_at`,
+    [
+      roomId,
+      roleSlotId,
+      clueId,
+      JSON.stringify({ source: "mechanism_settlement", ...metadata }),
+    ],
+  );
+  return {
+    granted: result.rowCount > 0,
+    acquiredAt: result.rows[0]?.acquired_at ?? null,
+  };
+}
+
 export async function listRoomMechanismActions(
   roomId,
   { limit = 100, client = null } = {},

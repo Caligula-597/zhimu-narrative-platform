@@ -245,6 +245,57 @@
   background: color-mix(in srgb, var(--accent) 7%, var(--surface));
 }
 
+.host-mechanism-majority,
+.host-mechanism-private-details {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 94%, #dcefe8);
+}
+
+.host-mechanism-majority {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.host-mechanism-majority strong,
+.host-mechanism-majority small {
+  display: block;
+}
+
+.host-mechanism-majority small,
+.host-mechanism-private-details {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.host-mechanism-private-details summary {
+  color: var(--accent);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.host-mechanism-private-details ul {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.host-mechanism-private-details li {
+  display: grid;
+  grid-template-columns: minmax(80px, auto) minmax(0, 1fr);
+  gap: 9px;
+}
+
+.host-mechanism-private-details li span {
+  overflow-wrap: anywhere;
+}
+
 .host-mechanism-deadline-default strong,
 .host-mechanism-deadline-default small {
   display: block;

@@ -19,6 +19,7 @@ ${creativeBlock}
 
 【L2 公共信息池 — 必填】
 - clues：主持可发的线索卡；grantMode: auto | host_confirm。
+- 发放契约：当某幕的机制行动在主持端完成结算时，系统把该幕 rows.newClueIds 中 grantMode=auto 的线索幂等发给对应 roleKey；host_confirm 仍须主持人手动确认，不得自动发放。
 - 每条 clue 增加 source: Environment | Public_Witness | ClueCard${modeProfile.key === "henkaku" ? " | Ritual_State" : ""}。
 - 推理必需事实须落在 L2 clue 或 ≥2 角色 row 可触及路径 — **禁止**只锁在单人 tasks。
 - publicEnvironmentByAct：每幕 80～200 字公共环境描写（全场可见锚点：血迹、上锁的门、天气、公开对话摘要）。

@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compileMechanismPackage } from "../src/mechanism-package.js";
+import {
+  assertMechanismPackage,
+  compileMechanismPackage,
+} from "../src/mechanism-package.js";
 import {
   analyzeMechanismRuntimeReachability,
   advanceMechanismRound,
@@ -10,9 +13,13 @@ import {
   initializeMechanismRuntime,
   projectMechanismRuntime,
   projectPlayerMechanismRuntime,
+  resolvePlayerMechanismAnswer,
   resolvePlayerMechanismSelection,
 } from "../src/mechanism-runtime.js";
-import { inspectMechanismDeadlineDefault } from "../src/room-mechanism-runtime-service.js";
+import {
+  inspectMechanismDeadlineDefault,
+  prepareMechanismMajorityAction,
+} from "../src/room-mechanism-runtime-service.js";
 
 function runtimePackage() {
   return compileMechanismPackage({
@@ -197,6 +204,59 @@ test("room mechanism runtime executes decisions, investigations and cumulative e
   assert.equal(completed.runtime.ending.resolvedRouteKey, "ending-accepted");
 });
 
+test("mechanism clue grants emit external settlement changes without leaking into player state", () => {
+  const packageValue = runtimePackage();
+  packageValue.roleDisclosureStates.push({
+    roleKey: "role-captain",
+    publicGoal: "",
+    hiddenGoal: "",
+    coreSecret: "",
+    secretFactKeys: [],
+    authorizationGrantKeys: [],
+    disclosureStateKey: "",
+  });
+  packageValue.decisionNodes[0].options[0].effects.push({
+    targetType: "clue",
+    targetKey: "clue-order",
+    operation: "grant",
+    roleKey: "role-captain",
+    consequence: "发放密令残页",
+  });
+  assertMechanismPackage(packageValue);
+
+  const { runtime } = initializeMechanismRuntime(packageValue);
+  const result = executeMechanismDecision(runtime, packageValue, {
+    decisionKey: "decision-auth",
+    optionKey: "accept",
+  });
+  assert.deepEqual(
+    result.changes.find((change) => change.targetType === "clue"),
+    {
+      targetType: "clue",
+      targetKey: "clue-order",
+      roleKey: "role-captain",
+      operation: "grant",
+      before: null,
+      after: "granted",
+      sourceKey: "decision-auth:accept",
+      consequence: "发放密令残页",
+    },
+  );
+  assert.equal(Object.hasOwn(result.runtime, "grantedClues"), false);
+
+  const player = JSON.stringify(
+    projectPlayerMechanismRuntime(result.runtime, packageValue),
+  );
+  assert.equal(player.includes("clue-order"), false);
+  assert.equal(player.includes("role-captain"), false);
+
+  packageValue.decisionNodes[0].options[0].effects[1].roleKey = "role-missing";
+  assert.throws(
+    () => assertMechanismPackage(packageValue),
+    /references unknown role role-missing/,
+  );
+});
+
 test("player mechanism projection exposes the current prompt without host internals", () => {
   const packageValue = runtimePackage();
   packageValue.rounds[0].goal = "确认数字代理是否越权";
@@ -279,6 +339,73 @@ test("player mechanism handles resolve without accepting authored keys", () => {
   );
 });
 
+test("structured player answers resolve opaque handles and never project authored keys", () => {
+  const packageValue = runtimePackage();
+  packageValue.decisionNodes[0].options.push({
+    key: "reject",
+    choiceText: "拒绝授权",
+    presentation: {},
+    effects: [],
+  });
+  packageValue.decisionNodes[0].interaction = { kind: "free_ranking" };
+  const { runtime } = initializeMechanismRuntime(packageValue);
+  const available = projectMechanismRuntime(runtime, packageValue).availableDecisions;
+  const ranking = resolvePlayerMechanismAnswer(available, "choice-1", {
+    type: "ranking",
+    optionKeys: ["option-2", "option-1"],
+  });
+  assert.deepEqual(ranking.answer.optionKeys, ["reject", "accept"]);
+  assert.equal(
+    resolvePlayerMechanismAnswer(available, "choice-1", {
+      type: "ranking",
+      optionKeys: ["reject", "accept"],
+    }),
+    null,
+  );
+  const projected = projectPlayerMechanismRuntime(runtime, packageValue, {
+    ownSubmissions: [
+      {
+        decisionKey: "decision-auth",
+        optionKey: "reject",
+        answer: ranking.answer,
+        submittedAt: "2026-08-08T10:00:00.000Z",
+      },
+    ],
+  });
+  assert.deepEqual(projected.decisions[0].submission.answer, {
+    type: "ranking",
+    optionKeys: ["option-2", "option-1"],
+  });
+  assert.doesNotMatch(JSON.stringify(projected), /decision-auth|reject|accept/);
+
+  packageValue.decisionNodes[0].interaction = {
+    kind: "numeric_allocation",
+    allocationTotal: 10,
+  };
+  const allocationAvailable = projectMechanismRuntime(
+    runtime,
+    packageValue,
+  ).availableDecisions;
+  const allocation = resolvePlayerMechanismAnswer(allocationAvailable, "choice-1", {
+    type: "allocation",
+    allocations: [
+      { optionKey: "option-1", amount: 4 },
+      { optionKey: "option-2", amount: 6 },
+    ],
+  });
+  assert.equal(allocation.optionKey, "reject");
+  assert.equal(
+    resolvePlayerMechanismAnswer(allocationAvailable, "choice-1", {
+      type: "allocation",
+      allocations: [
+        { optionKey: "option-1", amount: 4 },
+        { optionKey: "option-2", amount: 5 },
+      ],
+    }),
+    null,
+  );
+});
+
 test("role commitments project as private player submissions", () => {
   const packageValue = runtimePackage();
   packageValue.decisionNodes[0].interaction = {
@@ -344,6 +471,43 @@ test("deadline policy only permits the authored default after server expiry", ()
   });
   assert.equal(defaultAfterDeadline.allowed, true);
   assert.equal(defaultAfterDeadline.reason, "expired");
+});
+
+test("server majority settlement derives the option and refuses ties or advisory decisions", () => {
+  const decision = {
+    key: "decision-secret",
+    interaction: { kind: "secret_ballot" },
+    options: [{ key: "north" }, { key: "south" }],
+  };
+  const action = {
+    type: "decision",
+    source: "majority",
+    decisionKey: "decision-secret",
+  };
+  assert.deepEqual(
+    prepareMechanismMajorityAction({
+      action,
+      decision,
+      summary: { majority: { status: "ready", optionKey: "north" } },
+    }),
+    { ...action, optionKey: "north" },
+  );
+  assert.equal(
+    prepareMechanismMajorityAction({
+      action,
+      decision,
+      summary: { majority: { status: "tie", optionKey: "" } },
+    }),
+    null,
+  );
+  assert.equal(
+    prepareMechanismMajorityAction({
+      action,
+      decision: { ...decision, interaction: { kind: "group_choice" } },
+      summary: { majority: { status: "ready", optionKey: "north" } },
+    }),
+    null,
+  );
 });
 
 test("runtime reachability starts from the persisted room state and reports remaining ending gaps", () => {

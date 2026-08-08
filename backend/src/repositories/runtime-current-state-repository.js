@@ -89,6 +89,7 @@ export async function loadRuntimeStateFacts({ roomId, roleSlotId = null }, runQu
          SELECT jsonb_agg(jsonb_build_object(
            'decisionKey', submission.decision_key,
            'optionKey', submission.option_key,
+           'answer', submission.answer,
            'submittedAt', submission.updated_at
          ))
          FROM room_mechanism_decision_submissions submission

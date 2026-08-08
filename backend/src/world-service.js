@@ -7,15 +7,56 @@ import {
   normalizeNarrativeSettings,
   normalizeNarrativeSettingsPatch
 } from "../../shared/narrative-profile.js";
+import {
+  normalizeMechanismDesign,
+  validateMechanismDesignConfirmation,
+} from "../../shared/mechanism-design.js";
+import { throwErr } from "./api-errors.js";
+
+function assertConfirmedMechanismDesign(settings = {}) {
+  if (!settings?.mechanismDesign) return;
+  const design = normalizeMechanismDesign(settings.mechanismDesign);
+  if (design.status !== "confirmed") return;
+  const validation = validateMechanismDesignConfirmation(design);
+  if (validation.valid) return;
+  throwErr(
+    "VALIDATION_ERROR",
+    `确认前请补齐机制设计：${validation.issues.map((issue) => issue.message).join("；")}`,
+    {
+      reason: "mechanism_design_incomplete",
+      fields: validation.issues.map((issue) => issue.key),
+    },
+  );
+}
 
 export function updateWorld(worldId, patch, ifMatch) {
+  assertConfirmedMechanismDesign(patch?.settings);
+  const mechanismDesignChanged = Boolean(
+    patch?.settings &&
+      Object.prototype.hasOwnProperty.call(patch.settings, "mechanismDesign"),
+  );
   const normalizedPatch = patch?.settings
     ? { ...patch, settings: normalizeNarrativeSettingsPatch(patch.settings) }
     : patch;
-  return transaction((client) => updateWorldContent(client, worldId, normalizedPatch, ifMatch));
+  return transaction(async (client) => {
+    const world = await updateWorldContent(
+      client,
+      worldId,
+      normalizedPatch,
+      ifMatch,
+    );
+    if (mechanismDesignChanged) {
+      await client.query(
+        `DELETE FROM world_mechanism_packages WHERE world_id = $1`,
+        [worldId],
+      );
+    }
+    return world;
+  });
 }
 
 export async function createOwnedWorld(actorId, { name, summary = "", settings = {} }) {
+  assertConfirmedMechanismDesign(settings);
   await assertCapability(actorId, "world.create");
   const normalizedSettings = normalizeNarrativeSettings(settings);
   return transaction(async (client) => {

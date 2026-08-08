@@ -84,7 +84,8 @@ function renderMechanismDecision(decision) {
   const interaction = normalizeMechanismInteraction(decision.interaction);
   const card = mechanismInteractionCard(interaction.kind);
   const selectedOptionKey = decision.submission?.optionKey || "";
-  const privateSubmission = interaction.submissionMode === "private_choice";
+  const submittedAnswer = decision.submission?.answer || null;
+  const privateSubmission = interaction.submissionMode !== "advisory_choice";
   const deadlineAt = decision.deadlineAt
     ? new Date(decision.deadlineAt).getTime()
     : Number.NaN;
@@ -96,29 +97,80 @@ function renderMechanismDecision(decision) {
         second: "2-digit",
       })
     : `${Math.ceil(interaction.deadlineSeconds / 60)} 分钟`;
-  return `<div class="mechanism-decision mechanism-kind-${escapeHtml(interaction.kind)}">
-    <div class="mechanism-decision-head"><span class="mechanism-kind-label is-${escapeHtml(card.theme)}">${escapeHtml(interaction.label)}</span><div><strong>${escapeHtml(decision.question || "请讨论并形成选择")}</strong><p>${escapeHtml(interaction.playerInstruction)}</p></div></div>
-    ${interaction.deadlineSeconds ? `<div class="mechanism-deadline ${expired ? "is-expired" : ""}"><span>${expired ? "本轮已到期" : "服务器截止时间"}</span><b>${escapeHtml(deadlineLabel)}</b><small>到期后停止提交，由主持人按作者预设方案结算</small></div>` : ""}
-    <div class="mechanism-option-list">${asArray(decision.options)
+  const disabled = state.busy || expired;
+  const options = asArray(decision.options);
+  const optionDescription = (option, index) => {
+    const presentation = normalizeMechanismOptionPresentation(
+      option.presentation,
+    );
+    return `<span>${escapeHtml(presentation.eyebrow || `${card.shortLabel} ${String(index + 1).padStart(2, "0")}`)}</span>
+      <strong>${escapeHtml(option.choiceText)}</strong>
+      ${presentation.publicPreview ? `<p>${escapeHtml(presentation.publicPreview)}</p>` : ""}
+      ${presentation.costLabel || presentation.riskLabel || presentation.sequenceLabel ? `<small>${[presentation.sequenceLabel, presentation.costLabel, presentation.riskLabel].filter(Boolean).map(escapeHtml).join(" · ")}</small>` : ""}`;
+  };
+  let inputHtml = "";
+  if (interaction.inputMode === "ranking") {
+    const savedOrder = Array.isArray(submittedAnswer?.optionKeys)
+      ? submittedAnswer.optionKeys
+      : [];
+    const order = new Map(savedOrder.map((key, index) => [key, index]));
+    const rankedOptions = [...options].sort(
+      (left, right) =>
+        (order.get(left.key) ?? Number.MAX_SAFE_INTEGER) -
+        (order.get(right.key) ?? Number.MAX_SAFE_INTEGER),
+    );
+    inputHtml = `<div class="mechanism-ranking" data-mechanism-answer-panel data-decision-key="${escapeHtml(decision.key)}">
+      <ol class="mechanism-ranking-list" data-mechanism-ranking-list>${rankedOptions
+        .map(
+          (option, index) => `<li data-mechanism-ranking-option data-option-key="${escapeHtml(option.key)}">
+            <b>${index + 1}</b><div>${optionDescription(option, index)}</div>
+            <span class="mechanism-rank-controls"><button type="button" data-action="move-mechanism-ranking" data-direction="up" aria-label="上移 ${escapeHtml(option.choiceText)}" ${disabled || index === 0 ? "disabled" : ""}>↑</button><button type="button" data-action="move-mechanism-ranking" data-direction="down" aria-label="下移 ${escapeHtml(option.choiceText)}" ${disabled || index === rankedOptions.length - 1 ? "disabled" : ""}>↓</button></span>
+          </li>`,
+        )
+        .join("")}</ol>
+      <button type="button" class="btn primary compact" data-action="submit-mechanism-ranking" ${disabled ? "disabled" : ""}>${submittedAnswer?.type === "ranking" ? "更新我的秘密排序" : "提交我的秘密排序"}</button>
+    </div>`;
+  } else if (interaction.inputMode === "allocation") {
+    const saved = new Map(
+      asArray(submittedAnswer?.allocations).map((entry) => [
+        entry.optionKey,
+        Number(entry.amount) || 0,
+      ]),
+    );
+    inputHtml = `<div class="mechanism-allocation" data-mechanism-answer-panel data-decision-key="${escapeHtml(decision.key)}" data-allocation-total="${interaction.allocationTotal}">
+      <div class="mechanism-allocation-head"><strong>分配 ${interaction.allocationTotal} ${escapeHtml(interaction.allocationUnitLabel)}</strong><small>必须全部分配，允许某项为 0</small></div>
+      <div class="mechanism-allocation-list">${options
+        .map(
+          (option, index) => `<label data-mechanism-allocation-option data-option-key="${escapeHtml(option.key)}"><div>${optionDescription(option, index)}</div><span><input type="number" inputmode="numeric" min="0" max="${interaction.allocationTotal}" step="1" value="${saved.get(option.key) ?? 0}" data-mechanism-allocation-amount ${disabled ? "disabled" : ""}><em>${escapeHtml(interaction.allocationUnitLabel)}</em></span></label>`,
+        )
+        .join("")}</div>
+      <button type="button" class="btn primary compact" data-action="submit-mechanism-allocation" ${disabled ? "disabled" : ""}>${submittedAnswer?.type === "allocation" ? "更新我的秘密分配" : "提交我的秘密分配"}</button>
+    </div>`;
+  } else {
+    inputHtml = `<div class="mechanism-option-list">${options
       .map((option, index) => {
         const presentation = normalizeMechanismOptionPresentation(
           option.presentation,
         );
         const selected = selectedOptionKey === option.key;
         const isDefault = interaction.defaultOptionKey === option.key;
-        return `<button type="button" class="mechanism-option-card ${selected ? "is-selected" : ""}" data-action="submit-mechanism-choice" data-submission-mode="${escapeHtml(interaction.submissionMode)}" data-decision-key="${escapeHtml(decision.key)}" data-option-key="${escapeHtml(option.key)}" ${state.busy || expired ? "disabled" : ""}>
-        <span>${escapeHtml(presentation.eyebrow || `${card.shortLabel} ${String(index + 1).padStart(2, "0")}`)}</span>
-        <strong>${escapeHtml(option.choiceText)}</strong>
+        return `<button type="button" class="mechanism-option-card ${selected ? "is-selected" : ""}" data-action="submit-mechanism-choice" data-submission-mode="${escapeHtml(interaction.submissionMode)}" data-decision-key="${escapeHtml(decision.key)}" data-option-key="${escapeHtml(option.key)}" ${disabled ? "disabled" : ""}>
+        ${optionDescription(option, index)}
         ${isDefault ? `<small class="mechanism-default-label">超时默认方案</small>` : ""}
-        ${presentation.publicPreview ? `<p>${escapeHtml(presentation.publicPreview)}</p>` : ""}
-        ${presentation.costLabel || presentation.riskLabel || presentation.sequenceLabel ? `<small>${[presentation.sequenceLabel, presentation.costLabel, presentation.riskLabel].filter(Boolean).map(escapeHtml).join(" · ")}</small>` : ""}
-        <em>${selected ? (privateSubmission ? "秘密承诺已提交" : "已提交此倾向") : privateSubmission ? "秘密提交承诺" : "提交我的倾向"}</em>
+        <em>${selected ? (interaction.submissionMode === "private_choice" ? "秘密承诺已提交" : privateSubmission ? "秘密答案已提交" : "已提交此倾向") : interaction.submissionMode === "private_choice" ? "秘密提交承诺" : privateSubmission ? "秘密提交" : "提交我的倾向"}</em>
       </button>`;
       })
-      .join("")}</div>
+      .join("")}</div>`;
+  }
+  return `<div class="mechanism-decision mechanism-kind-${escapeHtml(interaction.kind)}">
+    <div class="mechanism-decision-head"><span class="mechanism-kind-label is-${escapeHtml(card.theme)}">${escapeHtml(interaction.label)}</span><div><strong>${escapeHtml(decision.question || "请讨论并形成选择")}</strong><p>${escapeHtml(interaction.playerInstruction)}</p></div></div>
+    ${interaction.deadlineSeconds ? `<div class="mechanism-deadline ${expired ? "is-expired" : ""}"><span>${expired ? "本轮已到期" : "服务器截止时间"}</span><b>${escapeHtml(deadlineLabel)}</b><small>到期后停止提交，由主持人按作者预设方案结算</small></div>` : ""}
+    ${inputHtml}
     <p class="mechanism-submission-help">${
       privateSubmission
-        ? "你的承诺只对本人和主持人可见；其他玩家不会看到你的选择。"
+        ? interaction.submissionMode === "private_choice"
+          ? "你的承诺只对本人和主持人可见；其他玩家不会看到你的选择。"
+          : "你的答案只对本人和主持人可见；其他玩家看不到内容、顺序或分配数值。"
         : "你的提交不会立即改写剧情；主持人会看到全桌倾向并确认最终结算。"
     }</p>
   </div>`;

@@ -5,23 +5,46 @@ import {
   MECHANISM_DESIGN_QUESTIONS,
   mechanismDesignCoverage,
   normalizeMechanismDesign,
+  validateMechanismDesignConfirmation,
 } from "../../shared/mechanism-design.js";
 import {
   MECHANISM_INTERACTION_CARDS,
   mechanismInteractionCard,
 } from "../../shared/mechanism-interactions.js";
 
-function fieldHtml(question, value) {
-  return `<label class="mechanism-design-field">
+function fieldHtml(question, value, invalidKeys) {
+  const invalid = invalidKeys.has(question.key);
+  return `<label class="mechanism-design-field ${invalid ? "is-invalid" : ""}">
     <span>${escapeHtml(question.label)}</span>
     <small>${escapeHtml(question.prompt)}</small>
-    <textarea rows="3" maxlength="2400" data-mechanism-design-field="${escapeHtml(question.key)}">${escapeHtml(value)}</textarea>
+    <textarea rows="3" maxlength="2400" data-mechanism-design-field="${escapeHtml(question.key)}" aria-invalid="${invalid ? "true" : "false"}">${escapeHtml(value)}</textarea>
   </label>`;
 }
 
-function renderFrame(root, design, saving = false, discardArmed = false) {
+function renderFrame(
+  root,
+  design,
+  saving = false,
+  discardArmed = false,
+  validationIssues = [],
+  saveError = "",
+) {
   const coverage = mechanismDesignCoverage(design);
   const activeCard = mechanismInteractionCard(design.interactionKind);
+  const invalidKeys = new Set(validationIssues.map((issue) => issue.key));
+  const validationMessage = validationIssues.length
+    ? `<section class="mechanism-validation-message" role="alert" aria-label="机制设计确认校验失败"><strong>还不能确认并用于生成</strong><p>请补齐以下内容，草稿仍可随时保存。</p><ul>${validationIssues.map((issue) => `<li>${escapeHtml(issue.message)}</li>`).join("")}</ul></section>`
+    : saveError
+      ? `<section class="mechanism-validation-message is-save-error" role="alert"><strong>机制设计保存失败</strong><p>${escapeHtml(saveError)}</p></section>`
+      : "";
+  const interactionConfiguration =
+    design.interactionKind === "numeric_allocation"
+      ? `<div class="mechanism-interaction-configuration" aria-label="数值分配配置">
+        <label><span>每位玩家可分配总额</span><input type="number" min="1" max="10000" step="1" data-mechanism-design-field="allocationTotal" value="${escapeHtml(design.allocationTotal)}"></label>
+        <label><span>额度单位</span><input maxlength="40" data-mechanism-design-field="allocationUnitLabel" value="${escapeHtml(design.allocationUnitLabel)}" placeholder="例如：点、票、单位"></label>
+        <p>玩家必须把全部额度分配完毕；玩家之间互不可见，主持端只汇总各项总额。</p>
+      </div>`
+      : "";
   setHtml(
     root,
     `<section class="creator-mechanism-workbench" data-workspace-editor aria-label="机制设计工作台" aria-busy="${saving ? "true" : "false"}">
@@ -41,19 +64,21 @@ function renderFrame(root, design, saving = false, discardArmed = false) {
       <article><span>玩家端</span><p>${escapeHtml(activeCard.playerInstruction)}</p></article>
       <article><span>主持端</span><p>${escapeHtml(activeCard.hostInstruction)}</p></article>
     </div>
+    ${interactionConfiguration}
   </section>
   <section class="mechanism-design-section">
     <div class="mechanism-design-section-head"><div><span>02</span><h3>回答机制七问</h3></div><p>写世界内行为，不写状态Key、变量名或抽象“决策点”。</p></div>
     <div class="mechanism-design-basics">
-      <label><span>机制名称</span><input data-mechanism-design-field="title" maxlength="160" value="${escapeHtml(design.title)}" placeholder="例如：潮窗分洪许可"></label>
-      <label><span>一句话概述</span><textarea data-mechanism-design-field="summary" rows="2" maxlength="1200" placeholder="玩家每轮通过什么动作，在什么限制下改变局面">${escapeHtml(design.summary)}</textarea></label>
+      <label class="${invalidKeys.has("title") ? "is-invalid" : ""}"><span>机制名称</span><input data-mechanism-design-field="title" maxlength="160" value="${escapeHtml(design.title)}" aria-invalid="${invalidKeys.has("title") ? "true" : "false"}" placeholder="例如：潮窗分洪许可"></label>
+      <label class="${invalidKeys.has("summary") ? "is-invalid" : ""}"><span>一句话概述</span><textarea data-mechanism-design-field="summary" rows="2" maxlength="1200" aria-invalid="${invalidKeys.has("summary") ? "true" : "false"}" placeholder="玩家每轮通过什么动作，在什么限制下改变局面">${escapeHtml(design.summary)}</textarea></label>
     </div>
-    <div class="mechanism-design-question-grid">${MECHANISM_DESIGN_QUESTIONS.map((question) => fieldHtml(question, design[question.key])).join("")}</div>
+    <div class="mechanism-design-question-grid">${MECHANISM_DESIGN_QUESTIONS.map((question) => fieldHtml(question, design[question.key], invalidKeys)).join("")}</div>
     <label class="mechanism-design-field wide"><span>补充给AI与主持人的作者备注</span><textarea rows="3" maxlength="4000" data-mechanism-design-field="authorNotes">${escapeHtml(design.authorNotes)}</textarea></label>
   </section>
+  ${validationMessage}
   <div class="mechanism-workbench-actions">
     <button type="button" class="secondary-btn" data-mechanism-close>${discardArmed ? "再次点击放弃修改" : "返回驾驶舱"}</button>
-    <div><span>${discardArmed ? "当前有未保存修改；再次返回才会放弃。" : design.status === "confirmed" ? "当前版本已确认为作者设定" : "草稿会进入AI上下文，但会明确标记为未确认"}</span>
+    <div><span>${discardArmed ? "当前有未保存修改；再次返回才会放弃。" : validationIssues.length ? "当前修改未通过确认校验，不会进入生成" : design.status === "confirmed" ? "当前版本已确认为作者设定" : "草稿会进入AI上下文，但会明确标记为未确认"}</span>
       <button type="button" class="secondary-btn" data-mechanism-save="draft" ${saving ? "disabled" : ""}>保存草稿</button>
       <button type="button" class="primary-btn" data-mechanism-save="confirmed" ${saving ? "disabled" : ""}>确认并用于生成</button>
     </div>
@@ -81,6 +106,8 @@ export function openCreatorMechanismWorkbench({
   let saving = false;
   let dirty = false;
   let discardArmed = false;
+  let validationIssues = [];
+  let saveError = "";
 
   function bind() {
     root
@@ -110,23 +137,43 @@ export function openCreatorMechanismWorkbench({
       ?.addEventListener("input", () => {
         dirty = true;
         discardArmed = false;
+        validationIssues = [];
+        saveError = "";
       });
     root.querySelectorAll("[data-mechanism-save]").forEach((button) => {
       button.addEventListener("click", async () => {
         if (saving) return;
+        const requestedStatus = button.dataset.mechanismSave;
         design = normalizeMechanismDesign({
           ...readDesign(root, design),
-          status: button.dataset.mechanismSave,
+          status: requestedStatus,
           updatedAt: new Date().toISOString(),
         });
+        if (requestedStatus === "confirmed") {
+          const validation = validateMechanismDesignConfirmation(design);
+          if (!validation.valid) {
+            validationIssues = validation.issues;
+            saveError = "";
+            render();
+            root
+              .querySelector(
+                `[data-mechanism-design-field="${validationIssues[0].key}"]`,
+              )
+              ?.focus();
+            return;
+          }
+        }
+        validationIssues = [];
+        saveError = "";
         saving = true;
         render();
         try {
           await onSave(design);
           dirty = false;
           discardArmed = false;
-        } catch {
+        } catch (error) {
           dirty = true;
+          saveError = error?.message || "请检查网络连接后重试。";
         } finally {
           saving = false;
           if (root.isConnected) render();
@@ -136,7 +183,14 @@ export function openCreatorMechanismWorkbench({
   }
 
   function render() {
-    renderFrame(root, design, saving, discardArmed);
+    renderFrame(
+      root,
+      design,
+      saving,
+      discardArmed,
+      validationIssues,
+      saveError,
+    );
     bind();
   }
 

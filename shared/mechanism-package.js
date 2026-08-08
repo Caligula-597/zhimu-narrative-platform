@@ -131,6 +131,9 @@ function compileRound(beat, index) {
     onReadFail: clone(asObject(beat?.onReadFail)),
     stateWrites: clone(asArray(beat?.stateWrites)),
     resourceDeltas: clone(asArray(beat?.resourceDeltas)),
+    // Effects committed when a round without a decision is advanced. This is
+    // also the author-facing hook used to publish role-scoped clue grants.
+    settlementEffects: clone(asArray(beat?.settlementEffects)),
     unlocksEvidenceKeys: asArray(beat?.unlocksEvidenceKeys)
       .map(cleanKey)
       .filter(Boolean),
@@ -404,6 +407,28 @@ export function assertMechanismPackage(packageValue) {
     }
   }
 
+  const validateSettlementEffects = (effects, label) => {
+    const clueGrantKeys = new Set();
+    for (const effect of asArray(effects)) {
+      if (effect?.targetType !== "clue") continue;
+      const clueKey = cleanKey(effect.targetKey);
+      const roleKey = cleanKey(effect.roleKey);
+      if (effect.operation !== "grant" || !clueKey || !roleKey) {
+        throw new TypeError(
+          `${label} clue grants require targetKey, roleKey and operation grant`,
+        );
+      }
+      if (!roleKeys.has(roleKey)) {
+        throw new TypeError(`${label} references unknown role ${roleKey}`);
+      }
+      const grantKey = `${clueKey}:${roleKey}`;
+      if (clueGrantKeys.has(grantKey)) {
+        throw new TypeError(`${label} contains duplicate clue grant ${grantKey}`);
+      }
+      clueGrantKeys.add(grantKey);
+    }
+  };
+
   for (const state of value.stateRegistry) {
     requireReference(roundKeys, state?.setInChapterKey, `State ${state.key}`);
   }
@@ -443,6 +468,10 @@ export function assertMechanismPackage(packageValue) {
   }
 
   for (const round of value.rounds) {
+    validateSettlementEffects(
+      round.settlementEffects,
+      `Round ${round.key} settlement`,
+    );
     stateWriteReferences(round.stateReads, stateKeys, `Round ${round.key}`);
     stateWriteReferences(round.stateWrites, stateKeys, `Round ${round.key}`);
     stateWriteReferences(
@@ -507,6 +536,32 @@ export function assertMechanismPackage(packageValue) {
         `Investigation ${action.key} references unknown evidence ${action.evidenceKey}`,
       );
     }
+    for (const [outcome, branch] of [
+      ["success", action.success],
+      ["failure", action.failure],
+    ]) {
+      if (!branch) continue;
+      stateWriteReferences(
+        branch.stateWrites,
+        stateKeys,
+        `Investigation ${action.key} ${outcome}`,
+      );
+      resourceDeltaReferences(
+        branch.resourceDeltas,
+        resourceKeys,
+        `Investigation ${action.key} ${outcome}`,
+      );
+      evidenceReferences(
+        branch.unlocksEvidenceKeys,
+        evidenceKeys,
+        `Investigation ${action.key} ${outcome}`,
+      );
+      evidenceReferences(
+        branch.locksEvidenceKeys,
+        evidenceKeys,
+        `Investigation ${action.key} ${outcome}`,
+      );
+    }
   }
   for (const decision of value.decisionNodes) {
     if (!roundKeys.has(decision.roundKey))
@@ -541,6 +596,10 @@ export function assertMechanismPackage(packageValue) {
           `Decision ${decision.key} has an invalid or duplicate option key`,
         );
       optionKeys.add(optionKey);
+      validateSettlementEffects(
+        option.effects,
+        `Decision ${decision.key} option ${optionKey}`,
+      );
       for (const effect of option.effects) {
         if (
           effect.targetType === "state" &&
@@ -647,9 +706,12 @@ export function projectMechanismRound(
   const roundDecisions = value.decisionNodes.filter(
     (entry) => entry.roundKey === round.key,
   );
-  const decisionEffects = roundDecisions.flatMap((decision) =>
-    decision.options.flatMap((option) => option.effects),
-  );
+  const decisionEffects = [
+    ...asArray(round.settlementEffects),
+    ...roundDecisions.flatMap((decision) =>
+      decision.options.flatMap((option) => option.effects),
+    ),
+  ];
   const stateTargets = new Set(
     [
       ...round.stateReads.map((entry) => cleanKey(entry?.stateKey)),

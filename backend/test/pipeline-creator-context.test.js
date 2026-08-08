@@ -40,6 +40,7 @@ test("matrix pipeline receives confirmed cockpit spine and constitution", () => 
     mechanismDesign: {
       interactionKind: "timed_crisis",
       title: "潮窗分洪许可",
+      summary: "玩家每轮分配闸门许可，在救援、供电与证据保全之间作出取舍。",
       recurringAction: "每轮分配一份闸门许可",
       conflictReason: "救人、供电与保全证据不能同时完成",
       limitedResource: "三份开封许可",
@@ -62,13 +63,51 @@ test("matrix pipeline receives confirmed cockpit spine and constitution", () => 
   assert.match(result.synopsis.body, /创作驾驶舱·机制设计/);
   assert.match(result.synopsis.body, /潮窗分洪许可/);
   assert.match(result.synopsis.body, /超时执行默认分洪/);
+  assert.match(result.premise, /大纲与剧本生成契约/);
+  assert.match(result.premise, /潮窗分洪许可/);
+  assert.match(result.conflicts, /不可忽略的机制约束/);
   assert.match(result.synopsis.charactersSketch, /方既白/);
   assert.match(result.synopsis.truthSketch, /签名真实但授权越界/);
   assert.match(result.setting.extraConflicts, /不得最后临时投票/);
   assert.match(result.setting.styleAnchor, /工业现场感/);
   assert.ok(result.config.notes.some((note) => note.includes("实时调水")));
   assert.ok(result.config.notes.some((note) => note.includes("限时危机")));
+  assert.equal(result.mechanismDesign.status, "confirmed");
+  assert.equal(result.creatorContext.mechanismDesign.status, "confirmed");
   assert.equal(input.synopsis.body, "弹窗纲要", "source input must not be mutated");
+});
+
+test("draft mechanism context is explicit and remains non-canonical", () => {
+  const result = applyCreatorContextToPipelineInput(
+    { synopsis: { body: "原始纲要" } },
+    {
+      mechanismDesign: {
+        title: "尚未确认的潮窗",
+        recurringAction: "每轮分配一份许可",
+        status: "draft",
+      },
+    },
+  );
+  assert.equal(result.mechanismDesign.status, "draft");
+  assert.equal(result.creatorContext.mechanismDesign.status, "draft");
+  assert.match(result.synopsis.body, /作者草稿/);
+});
+
+test("confirmed mechanism context cannot enter outline or scripts with missing answers", () => {
+  assert.throws(
+    () =>
+      applyCreatorContextToPipelineInput(
+        { synopsis: { body: "原始纲要" } },
+        { mechanismDesign: { title: "残缺机制", status: "confirmed" } },
+      ),
+    (error) => {
+      assert.equal(error.code, "VALIDATION_ERROR");
+      assert.equal(error.statusCode, 400);
+      assert.equal(error.details.reason, "mechanism_design_incomplete");
+      assert.ok(error.details.fields.includes("recurringAction"));
+      return true;
+    },
+  );
 });
 
 test("creator context injection is idempotent", () => {

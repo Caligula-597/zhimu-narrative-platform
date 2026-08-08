@@ -29,6 +29,7 @@ const mechanismRuntimeResponse = {
     replayed: { type: "boolean" },
     appliedAction: openObject,
     changes: { type: "array", items: openObject },
+    contentGrants: { type: "array", items: openObject },
   },
 };
 
@@ -131,7 +132,7 @@ const mechanismAction = {
     optionKey: { type: "string", minLength: 1, maxLength: 120 },
     source: {
       type: "string",
-      enum: ["host_confirmed", "deadline_default"],
+      enum: ["host_confirmed", "deadline_default", "majority"],
     },
     investigationKey: { type: "string", minLength: 1, maxLength: 160 },
     outcome: { type: "string", enum: ["success", "failure"] },
@@ -146,7 +147,20 @@ const mechanismAction = {
   allOf: [
     {
       if: { properties: { type: { const: "decision" } }, required: ["type"] },
-      then: { required: ["decisionKey", "optionKey"] },
+      then: { required: ["decisionKey"] },
+    },
+    {
+      if: {
+        properties: {
+          type: { const: "decision" },
+          source: { const: "majority" },
+        },
+        required: ["type", "source"],
+      },
+      else: {
+        if: { properties: { type: { const: "decision" } }, required: ["type"] },
+        then: { required: ["optionKey"] },
+      },
     },
     {
       if: {

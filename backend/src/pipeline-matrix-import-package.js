@@ -7,6 +7,11 @@ import {
   validateInfoMatrix,
   validateTruthBible
 } from "./pipeline-matrix-model.js";
+import { compilePipelineMechanismPackage } from "./pipeline-mechanism-package.js";
+import {
+  simulateMechanismPackage,
+  summarizeMechanismSimulation,
+} from "./mechanism-simulator.js";
 
 export function buildPipelineImportPackage(session) {
   const { setting, config } = resolveCreativePipeline(session);
@@ -37,6 +42,15 @@ export function buildPipelineImportPackage(session) {
       };
     }
   }
+  const mechanismCompilation = compilePipelineMechanismPackage(
+    { ...session, proposal },
+    session.mechanismDesign,
+  );
+  const mechanismValidationSummary = mechanismCompilation.packageValue
+    ? summarizeMechanismSimulation(
+        simulateMechanismPackage(mechanismCompilation.packageValue),
+      )
+    : null;
   return {
     proposal,
     roleMatrix: rolesMeta,
@@ -49,6 +63,10 @@ export function buildPipelineImportPackage(session) {
     },
     truthBible,
     infoMatrix,
-    hostRunbooks: session.hostRunbooks
+    hostRunbooks: session.hostRunbooks,
+    mechanismDesign: mechanismCompilation.design,
+    mechanismPackagePreview: mechanismCompilation.packageValue,
+    mechanismCompilationReason: mechanismCompilation.reason,
+    mechanismValidationSummary,
   };
 }

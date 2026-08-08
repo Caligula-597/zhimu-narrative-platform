@@ -1,5 +1,6 @@
 import { assertMechanismPackage } from "./mechanism-package.js";
 import {
+  normalizeMechanismInteraction,
   normalizeMechanismOptionPresentation,
   publicMechanismInteraction,
 } from "./mechanism-interactions.js";
@@ -153,6 +154,36 @@ function setChange(changes, targetType, targetKey, before, after, sourceKey) {
 function applyEffect(runtimeInput, effect, packageValue, changes, sourceKey) {
   const runtime = clone(runtimeInput);
   const targetKey = String(effect?.targetKey ?? "");
+  if (effect?.targetType === "clue") {
+    const roleKey = String(effect?.roleKey ?? "");
+    if (effect.operation !== "grant" || !targetKey || !roleKey) {
+      fail(
+        "MECHANISM_EFFECT_INVALID",
+        "Clue grants require a targetKey, roleKey and grant operation",
+        { effect },
+      );
+    }
+    if (
+      !packageValue.roleDisclosureStates.some(
+        (entry) => String(entry?.roleKey ?? "") === roleKey,
+      )
+    ) {
+      fail("MECHANISM_ROLE_UNKNOWN", `Unknown mechanism role ${roleKey}`, {
+        roleKey,
+      });
+    }
+    changes.push({
+      targetType: "clue",
+      targetKey,
+      roleKey,
+      operation: "grant",
+      before: null,
+      after: "granted",
+      sourceKey,
+      consequence: String(effect?.consequence ?? ""),
+    });
+    return runtime;
+  }
   if (effect?.targetType === "state") {
     const before = runtime.states[targetKey];
     let after = before;
@@ -737,13 +768,24 @@ export function advanceMechanismRound(runtimeInput, packageInput) {
       },
     );
 
+  let settledRuntime = clone(runtimeInput);
+  const settlementChanges = [];
+  for (const effect of asArray(currentRound.settlementEffects)) {
+    settledRuntime = applyEffect(
+      settledRuntime,
+      effect,
+      packageValue,
+      settlementChanges,
+      `${currentRound.key}:settlement`,
+    );
+  }
   const ruleResult = applyWorldRules(
-    runtimeInput,
+    settledRuntime,
     packageValue,
     currentRound.key,
   );
   let runtime = ruleResult.runtime;
-  const changes = [...ruleResult.changes];
+  const changes = [...settlementChanges, ...ruleResult.changes];
   const rounds = [...packageValue.rounds].sort(
     (left, right) => left.sequence - right.sequence,
   );
@@ -893,6 +935,14 @@ export function projectPlayerMechanismRuntime(
                     ),
                   ) ?? "")
                 : "";
+              const publicSubmissionAnswer = submission
+                ? projectPlayerSubmissionAnswer(
+                    decision,
+                    submission.answer,
+                    publicOptionKeyByInternalKey,
+                    publicSubmissionOptionKey,
+                  )
+                : null;
               return {
                 key: publicDecisionKey,
                 question: String(decision.question ?? ""),
@@ -906,9 +956,12 @@ export function projectPlayerMechanismRuntime(
                           interaction.deadlineSeconds * 1000,
                       ).toISOString()
                     : null,
-                submission: submission && publicSubmissionOptionKey
+                submission: submission && publicSubmissionAnswer
                   ? {
-                      optionKey: publicSubmissionOptionKey,
+                      ...(publicSubmissionOptionKey
+                        ? { optionKey: publicSubmissionOptionKey }
+                        : {}),
+                      answer: publicSubmissionAnswer,
                       submittedAt: String(
                         submission.submittedAt ?? submission.submitted_at ?? "",
                       ),
@@ -944,6 +997,45 @@ export function playerMechanismOptionHandle(index) {
     : "";
 }
 
+function projectPlayerSubmissionAnswer(
+  decision,
+  answerInput,
+  publicOptionKeyByInternalKey,
+  fallbackOptionKey = "",
+) {
+  const answer =
+    answerInput && typeof answerInput === "object" && !Array.isArray(answerInput)
+      ? answerInput
+      : {};
+  const interaction = normalizeMechanismInteraction(decision?.interaction);
+  if (interaction.inputMode === "ranking") {
+    const optionKeys = asArray(answer.optionKeys)
+      .map((key) => publicOptionKeyByInternalKey.get(String(key ?? "")) ?? "")
+      .filter(Boolean);
+    return optionKeys.length === asArray(decision?.options).length
+      ? { type: "ranking", optionKeys }
+      : null;
+  }
+  if (interaction.inputMode === "allocation") {
+    const allocations = asArray(answer.allocations)
+      .map((entry) => ({
+        optionKey:
+          publicOptionKeyByInternalKey.get(String(entry?.optionKey ?? "")) ??
+          "",
+        amount: Number(entry?.amount),
+      }))
+      .filter(
+        (entry) => entry.optionKey && Number.isSafeInteger(entry.amount),
+      );
+    return allocations.length === asArray(decision?.options).length
+      ? { type: "allocation", allocations }
+      : null;
+  }
+  return fallbackOptionKey
+    ? { type: "single_choice", optionKey: fallbackOptionKey }
+    : null;
+}
+
 function playerHandleIndex(value, prefix) {
   const match = String(value ?? "").match(new RegExp(`^${prefix}-(\\d+)$`));
   if (!match) return -1;
@@ -972,6 +1064,116 @@ export function resolvePlayerMechanismSelection(
     decisionKey: String(decision.key ?? ""),
     optionKey: String(option.key ?? ""),
   };
+}
+
+/**
+ * Resolve a structured Player answer made entirely from opaque handles. The
+ * returned answer contains authored keys and must remain inside host/server
+ * boundaries.
+ */
+export function resolvePlayerMechanismAnswer(
+  availableDecisions,
+  decisionHandle,
+  answerInput,
+) {
+  const decisionIndex = playerHandleIndex(decisionHandle, "choice");
+  const decision = asArray(availableDecisions)[decisionIndex];
+  if (!decision) return null;
+  const interaction = normalizeMechanismInteraction(decision.interaction);
+  const options = asArray(decision.options);
+  const internalByHandle = new Map(
+    options.map((option, index) => [
+      playerMechanismOptionHandle(index),
+      String(option?.key ?? ""),
+    ]),
+  );
+  const source =
+    answerInput && typeof answerInput === "object" && !Array.isArray(answerInput)
+      ? answerInput
+      : {};
+
+  if (interaction.inputMode === "single_choice") {
+    if (source.type && source.type !== "single_choice") return null;
+    const optionKey = internalByHandle.get(String(source.optionKey ?? ""));
+    if (!optionKey) return null;
+    return {
+      decision,
+      decisionKey: String(decision.key ?? ""),
+      optionKey,
+      answer: { type: "single_choice", optionKey },
+      publicAnswer: {
+        type: "single_choice",
+        optionKey: String(source.optionKey),
+      },
+    };
+  }
+
+  if (interaction.inputMode === "ranking") {
+    if (source.type !== "ranking") return null;
+    const publicOptionKeys = asArray(source.optionKeys).map(String);
+    const optionKeys = publicOptionKeys.map((key) => internalByHandle.get(key));
+    if (
+      optionKeys.length !== options.length ||
+      optionKeys.some((key) => !key) ||
+      new Set(optionKeys).size !== options.length
+    ) {
+      return null;
+    }
+    return {
+      decision,
+      decisionKey: String(decision.key ?? ""),
+      optionKey: optionKeys[0],
+      answer: { type: "ranking", optionKeys },
+      publicAnswer: { type: "ranking", optionKeys: publicOptionKeys },
+    };
+  }
+
+  if (interaction.inputMode === "allocation") {
+    if (source.type !== "allocation") return null;
+    const publicAllocations = asArray(source.allocations);
+    const allocations = publicAllocations.map((entry) => ({
+      optionKey: internalByHandle.get(String(entry?.optionKey ?? "")),
+      amount: Number(entry?.amount),
+    }));
+    if (
+      allocations.length !== options.length ||
+      allocations.some(
+        (entry) =>
+          !entry.optionKey ||
+          !Number.isSafeInteger(entry.amount) ||
+          entry.amount < 0 ||
+          entry.amount > interaction.allocationTotal,
+      ) ||
+      new Set(allocations.map((entry) => entry.optionKey)).size !==
+        options.length ||
+      allocations.reduce((total, entry) => total + entry.amount, 0) !==
+        interaction.allocationTotal
+    ) {
+      return null;
+    }
+    const optionOrder = new Map(
+      options.map((option, index) => [String(option?.key ?? ""), index]),
+    );
+    const leading = [...allocations].sort(
+      (left, right) =>
+        right.amount - left.amount ||
+        optionOrder.get(left.optionKey) - optionOrder.get(right.optionKey),
+    )[0];
+    return {
+      decision,
+      decisionKey: String(decision.key ?? ""),
+      optionKey: leading?.optionKey ?? "",
+      answer: { type: "allocation", allocations },
+      publicAnswer: {
+        type: "allocation",
+        allocations: publicAllocations.map((entry) => ({
+          optionKey: String(entry?.optionKey ?? ""),
+          amount: Number(entry?.amount),
+        })),
+      },
+    };
+  }
+  return null;
 }
 
 function runtimeReachabilitySignature(runtime) {

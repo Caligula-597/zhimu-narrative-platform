@@ -69,8 +69,42 @@ function decisionRows(model, busy) {
       const submissions = model.submissionSummary.find(
         (entry) => entry.decisionKey === decision.key,
       ) || { total: 0, options: [], roles: [] };
-      const privateSubmission = interaction.submissionMode === "private_choice";
+      const privateSubmission = interaction.submissionMode !== "advisory_choice";
       const optionDisabled = busy || Boolean(deadline?.expired);
+      const optionByKey = new Map(
+        (decision.options || []).map((option) => [option.key, option]),
+      );
+      const majorityOption = optionByKey.get(
+        submissions.majority?.optionKey,
+      );
+      const structuredRoleDetails = ["ranking", "allocation"].includes(
+        interaction.inputMode,
+      )
+        ? submissions.roles
+            .map((role) => {
+              const detail =
+                interaction.inputMode === "ranking"
+                  ? (role.answer?.optionKeys || [])
+                      .map(
+                        (key) =>
+                          optionByKey.get(key)?.choiceText ||
+                          mechanismKeyLabel(key),
+                      )
+                      .join(" ＞ ")
+                  : (role.answer?.allocations || [])
+                      .filter((entry) => Number(entry.amount) > 0)
+                      .map(
+                        (entry) =>
+                          `${optionByKey.get(entry.optionKey)?.choiceText || mechanismKeyLabel(entry.optionKey)} ${entry.amount}${interaction.allocationUnitLabel}`,
+                      )
+                      .join("、");
+              return detail
+                ? `<li><b>${escapeHtml(role.roleName || "未命名角色")}</b><span>${escapeHtml(detail)}</span></li>`
+                : "";
+            })
+            .filter(Boolean)
+            .join("")
+        : "";
       return `<article class="host-mechanism-action-card mechanism-kind-${escapeHtml(interaction.kind)}">
       <div class="host-mechanism-action-head"><span class="mechanism-kind-chip is-${escapeHtml(card.theme)}">${escapeHtml(interaction.label)}</span><div><h4>${escapeHtml(decision.question || mechanismKeyLabel(decision.key))}</h4><p>${escapeHtml(interaction.hostInstruction)}</p></div></div>
       ${
@@ -87,26 +121,42 @@ function decisionRows(model, busy) {
             option.presentation,
           );
           const preferenceCount =
-            submissions.options.find((entry) => entry.optionKey === option.key)
-              ?.count ?? 0;
+            submissions.options.find((entry) => entry.optionKey === option.key) ??
+            {};
           const roleNames = submissions.roles
             .filter((entry) => entry.optionKey === option.key)
             .map((entry) => entry.roleName)
             .filter(Boolean);
+          const aggregateLabel =
+            interaction.inputMode === "ranking"
+              ? `排序积分 ${preferenceCount.score || 0} · 第一顺位 ${preferenceCount.firstPlaceCount || 0}`
+              : interaction.inputMode === "allocation"
+                ? `累计 ${preferenceCount.allocated || 0} ${interaction.allocationUnitLabel}`
+                : interaction.submissionMode === "secret_ballot"
+                  ? `秘密票 ${preferenceCount.count || 0}`
+                  : `玩家倾向 ${preferenceCount.count || 0}`;
           return `<button type="button" class="host-mechanism-option" data-action="host-mechanism-decision" data-decision-key="${escapeHtml(decision.key)}" data-option-key="${escapeHtml(option.key)}" ${optionDisabled ? "disabled" : ""}>
           <span>${escapeHtml(presentation.eyebrow || `${card.shortLabel} ${String(index + 1).padStart(2, "0")}`)}</span>
           <strong>${escapeHtml(option.choiceText || mechanismKeyLabel(option.key))}</strong>
           ${presentation.publicPreview ? `<small>${escapeHtml(presentation.publicPreview)}</small>` : ""}
           ${presentation.costLabel || presentation.riskLabel || presentation.sequenceLabel ? `<em>${[presentation.sequenceLabel, presentation.costLabel, presentation.riskLabel].filter(Boolean).map(escapeHtml).join(" · ")}</em>` : ""}
-          <small class="host-mechanism-preference">玩家倾向 ${preferenceCount}${roleNames.length ? ` · ${escapeHtml(roleNames.join("、"))}` : ""}</small>
+          <small class="host-mechanism-preference">${escapeHtml(aggregateLabel)}${roleNames.length && interaction.inputMode === "single_choice" ? ` · ${escapeHtml(roleNames.join("、"))}` : ""}</small>
         </button>`;
         })
         .join("")}</div>
+      ${structuredRoleDetails ? `<details class="host-mechanism-private-details"><summary>查看 ${submissions.total} 份玩家私密明细</summary><ul>${structuredRoleDetails}</ul></details>` : ""}
       <p class="host-mechanism-submission-note">${
         privateSubmission
-          ? `已收到 ${submissions.total} 份秘密承诺；仅主持人可见承诺人与内容，其他玩家不会看到。`
+          ? interaction.submissionMode === "private_choice"
+            ? `已收到 ${submissions.total} 份秘密承诺；仅主持人可见承诺人与内容，其他玩家不会看到。`
+            : `已收到 ${submissions.total} 份秘密答案；仅主持人可见提交人与内容，其他玩家不会看到。`
           : `已收到 ${submissions.total} 份玩家倾向；倾向仅供参考，仍由主持人确认最终结算。`
       }</p>
+      ${
+        interaction.resolutionMode === "host_majority"
+          ? `<div class="host-mechanism-majority"><div><strong>${majorityOption ? `当前唯一领先：${escapeHtml(majorityOption.choiceText)}` : submissions.majority?.status === "tie" ? "当前聚合结果平票" : "等待玩家提交"}</strong><small>${interaction.inputMode === "ranking" ? "按全桌排序积分聚合" : interaction.inputMode === "allocation" ? `按累计分配${escapeHtml(interaction.allocationUnitLabel)}聚合` : "按秘密票数聚合"}；平票时不会自动选择。</small></div><button type="button" class="primary-btn" data-action="host-mechanism-majority" data-decision-key="${escapeHtml(decision.key)}" ${busy || !majorityOption || deadline?.expired ? "disabled" : ""}>按多数结果结算</button></div>`
+          : ""
+      }
       ${
         interaction.kind === "timed_crisis"
           ? defaultOption
@@ -136,17 +186,26 @@ function investigationRows(model, busy) {
 }
 
 function latestChanges(model) {
-  if (!model.latestChanges.length)
+  if (!model.latestChanges.length && !model.contentGrants.length)
     return `<div class="host-mechanism-empty">尚无状态变更记录。</div>`;
-  return model.latestChanges
+  const contentGrantRows = model.contentGrants
+    .slice(0, 8)
+    .map(
+      (grant) => `<div class="host-mechanism-change is-content-grant">
+    <span>线索发放</span><b>${escapeHtml(grant.clueName || grant.clueTitle || mechanismKeyLabel(grant.clueKey || grant.clueId || ""))}</b>
+    <small>${escapeHtml(grant.roleName || mechanismKeyLabel(grant.roleKey || ""))} · ${grant.status === "granted" ? "已发放" : "此前已获得"}</small>
+  </div>`,
+    );
+  const stateChangeRows = model.latestChanges
+    .filter((change) => change.targetType !== "clue")
     .slice(0, 8)
     .map(
       (change) => `<div class="host-mechanism-change">
     <span>${escapeHtml(change.targetType || "状态")}</span><b>${escapeHtml(mechanismKeyLabel(change.targetKey || ""))}</b>
     <small>${escapeHtml(mechanismValueLabel(change.before))} → ${escapeHtml(mechanismValueLabel(change.after))}</small>
   </div>`,
-    )
-    .join("");
+    );
+  return [...contentGrantRows, ...stateChangeRows].slice(0, 8).join("");
 }
 
 function endingProspects(model) {
@@ -213,7 +272,7 @@ export function renderHostMechanismWorkspace() {
     ${endingProspects(model)}
     ${
       model.status === "completed"
-        ? `<div class="host-mechanism-ending"><span>命中结局</span><strong>${escapeHtml(mechanismKeyLabel(model.ending?.resolvedRouteKey || "default"))}</strong><p>候选路线：${escapeHtml((model.ending?.matchedRouteKeys || []).map(mechanismKeyLabel).join("、") || "默认路线")}</p></div>`
+        ? `<div class="host-mechanism-ending"><span>命中结局</span><strong>${escapeHtml(model.ending?.title || mechanismKeyLabel(model.ending?.resolvedRouteKey || "default"))}</strong><p>候选路线：${escapeHtml((model.ending?.matchedRouteKeys || []).map(mechanismKeyLabel).join("、") || "默认路线")}</p></div>`
         : `<div class="host-mechanism-action-grid"><section><h4>待决选择</h4>${decisionRows(model, busy || model.stale)}</section><section><h4>可执行调查</h4>${investigationRows(model, busy || model.stale)}</section></div>
     <div class="host-mechanism-footer"><div><h4>最近变化</h4>${latestChanges(model)}</div><button type="button" class="primary-btn" data-action="host-mechanism-advance" ${busy || model.stale || !model.canAdvance ? "disabled" : ""}>${model.canAdvance ? "推进到下一轮" : "先完成本轮待决选择"}</button></div>`
     }
