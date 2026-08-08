@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { rateWebVital, reportWebVital, WEB_VITAL_THRESHOLDS } from "../shared/web-vitals.js";
+import {
+  DEFAULT_WEB_VITAL_APP,
+  rateWebVital,
+  reportWebVital,
+  WEB_VITAL_APPS,
+  WEB_VITAL_NAMES,
+  WEB_VITAL_RATINGS,
+  WEB_VITAL_THRESHOLDS
+} from "../shared/web-vitals.js";
 
 test("rateWebVital uses CWV thresholds", () => {
   assert.equal(rateWebVital("LCP", 2000), "good");
@@ -23,7 +31,13 @@ test("reportWebVital fills rating and invokes onMetric", () => {
 });
 
 test("WEB_VITAL_THRESHOLDS covers core metrics", () => {
-  for (const name of ["LCP", "INP", "CLS", "FCP", "TTFB"]) {
+  for (const name of WEB_VITAL_NAMES) {
     assert.ok(WEB_VITAL_THRESHOLDS[name]?.good != null);
   }
+});
+
+test("public telemetry contract includes the Guardian fallback app", () => {
+  assert.equal(DEFAULT_WEB_VITAL_APP, "unknown");
+  assert.ok(WEB_VITAL_APPS.includes(DEFAULT_WEB_VITAL_APP));
+  assert.deepEqual(WEB_VITAL_RATINGS, ["good", "needs-improvement", "poor", "unknown"]);
 });

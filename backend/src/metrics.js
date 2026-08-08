@@ -2,6 +2,8 @@
  * Lightweight Prometheus text exporter (no prom-client dependency).
  */
 
+import { WEB_VITAL_APPS, WEB_VITAL_RATINGS } from "../../shared/web-vitals.js";
+
 const httpRequests = new Map();
 const httpErrors5xx = new Map();
 const durationBuckets = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
@@ -20,8 +22,8 @@ const webVitalBuckets = {
   TTFB: [200, 800, 1800, 3000, 8000],
   CLS: [0.05, 0.1, 0.25, 0.5, 1]
 };
-const webVitalApps = new Set(["app", "play", "host", "site", "unknown"]);
-const webVitalRatings = new Set(["good", "needs-improvement", "poor", "unknown"]);
+const webVitalApps = new Set(WEB_VITAL_APPS);
+const webVitalRatings = new Set(WEB_VITAL_RATINGS);
 const webVitalMaximums = { LCP: 600_000, INP: 600_000, FCP: 600_000, TTFB: 600_000, CLS: 10 };
 /** @type {Map<string, { buckets: number[], sum: number, count: number, le: number[] }>} */
 const webVitalValues = new Map();
