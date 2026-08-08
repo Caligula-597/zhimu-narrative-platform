@@ -19,7 +19,7 @@ test("index.html uses module entry without inline scripts", () => {
   assert.doesNotMatch(html, /<script(?![^>]*type="module")[^>]*>/);
 });
 
-test("play api persists bearer token for cross-origin session", () => {
+test("play api uses credentialed cookies with a tab-scoped bearer fallback", () => {
   const source = readFileSync(path.join(root, "src", "api.js"), "utf8");
   const sharedToken = readFileSync(path.join(root, "..", "shared", "session-token.js"), "utf8");
   const portalClient = readFileSync(path.join(root, "..", "shared", "api-client.js"), "utf8");
@@ -70,9 +70,12 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(mainSource, /handlePlayVoiceAction/);
   assert.match(voiceActionSource, /voice-live-connect/);
   const voiceSource = readFileSync(path.join(root, "src", "views", "voice.js"), "utf8");
+  const voiceRuntimeSource = readFileSync(path.join(root, "src", "runtime", "voice.js"), "utf8");
   const livekitSource = readFileSync(path.join(root, "src", "voice", "livekit-voice.js"), "utf8");
   const gameSource = readFileSync(path.join(root, "src", "views", "game.js"), "utf8");
   assert.match(voiceSource, /renderVoiceTab/);
+  assert.match(voiceRuntimeSource, /import\("\.\.\/voice\/livekit-voice\.js"\)/);
+  assert.doesNotMatch(mainSource, /from "\.\/voice\/livekit-voice\.js"/);
   assert.match(livekitSource, /connectVoiceRoom/);
   assert.match(livekitSource, /TrackSubscribed/);
   assert.match(livekitSource, /startVoicePlayback/);

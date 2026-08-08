@@ -83,9 +83,6 @@ export const api = {
       method: "POST",
       body: challengeId ? { challengeId } : {}
     }),
-  resendVerification: () =>
-    request("/auth/resend-verification", { method: "POST", body: {} }),
-  guest: (displayName) => request("/auth/guest", { method: "POST", body: { displayName } }),
   oauthStartUrl: (provider, returnOrigin) =>
     request(`/auth/oauth/${provider}/start-url`, {
       method: "POST",
@@ -143,8 +140,6 @@ export const api = {
     body: payload,
     idempotent: true
   }),
-  getHostPlayerKnowledge: (roleSlotId) =>
-    request(roomPath(`/host/players/${roleSlotId}/knowledge`)),
   createRule: (payload, worldId = getWorldId()) => request(`/worlds/${worldId}/rules`, { method: "POST", body: payload }),
   updateRule: (ruleId, payload, worldId = getWorldId()) =>
     request(`/worlds/${worldId}/rules/${ruleId}`, { method: "PUT", body: payload }),
@@ -180,8 +175,6 @@ export const api = {
     request(roomPath(`/host/mini-games/${gameId}/force-complete`), { method: "POST", body: {}, idempotent: true }),
   hostUpdatePrivateAction: (actionId, payload) =>
     request(roomPath(`/host/private-actions/${actionId}`), { method: "PATCH", body: payload }),
-  hostUpdateRoleState: (roleSlotId, payload) =>
-    request(roomPath(`/host/players/${roleSlotId}/state`), { method: "PATCH", body: payload }),
   getRoomRunReport: () => request(roomPath("/run-report")),
   previewRoomRules: () => request(roomPath("/rules/preview")),
   triggerManualRule: (ruleId) => request(roomPath(`/rules/${ruleId}/trigger`), { method: "POST", idempotent: true }),
@@ -250,7 +243,6 @@ export const api = {
   getHostTestimonies: () => request(roomPath("/host/testimonies")),
   reviewHostTestimony: (testimonyId, payload) =>
     request(roomPath(`/host/testimonies/${testimonyId}`), { method: "PATCH", body: payload }),
-  getHostSuspicions: () => request(roomPath("/host/suspicions")),
   getHostSegmentRemedies: (segmentKey) => {
     const qs = segmentKey ? `?segmentKey=${encodeURIComponent(segmentKey)}` : "";
     return request(roomPath(`/host/segment-remedies${qs}`));

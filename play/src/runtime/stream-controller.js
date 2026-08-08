@@ -110,18 +110,18 @@ export function createPlayStreamController({
     patchSyncChromeOrRender();
   }
 
-  function syncPlatformStream() {
-    if (getSessionToken() || state.user?.id) connectPlatformEvents(platformEventCtx);
+  function syncPlatformStream({ force = false } = {}) {
+    if (getSessionToken() || state.user?.id) connectPlatformEvents(platformEventCtx, { force });
     else disconnectPlatformEvents(platformEventCtx);
   }
 
-  function syncRoomStream() {
+  function syncRoomStream({ force = false } = {}) {
     if (state.view === "game" && state.roomId && isUuid(state.roomId)) {
-      connectRoomEvents(state.roomId, roomEventCtx);
+      connectRoomEvents(state.roomId, roomEventCtx, { force });
     } else {
       disconnectRoomEvents(roomEventCtx);
     }
-    syncPlatformStream();
+    syncPlatformStream({ force });
   }
 
   return {

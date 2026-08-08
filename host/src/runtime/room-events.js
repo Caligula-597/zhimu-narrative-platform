@@ -1,7 +1,10 @@
 import { api, clearSession } from "../api.js";
 import { getRoomId } from "../session.js";
 import { state } from "../state.js";
-import { createSseLifecycle } from "../../../shared/sse-lifecycle.js";
+import {
+  createPortalEventLifecycle,
+  PORTAL_POLL_INTERVAL_MS
+} from "../../../shared/sse-lifecycle.js";
 import {
   refreshHostClueMatrix,
   refreshHostEvents,
@@ -10,8 +13,8 @@ import {
 } from "./data.js";
 import { applyHostMiniGameEvent } from "./host-mini-game-controller.js";
 
-const DIRECTOR_POLL_MS = 15000;
 let lifecycle = null;
+let streamKey = "";
 
 let renderRef = () => {};
 let showToastRef = (_msg, _ms) => {};
@@ -64,17 +67,14 @@ async function refreshDirectorPoll() {
     if (state.view === "console") render();
   } catch (error) {
     state.apiError = error.message;
+    throw error;
   }
-}
-
-export function syncDirectorPolling() {
-  if (state.view === "console" && getRoomId() && !lifecycle) connectRoomEvents();
-  if ((state.view !== "console" || !getRoomId()) && lifecycle) disconnectRoomEvents();
 }
 
 export function disconnectRoomEvents() {
   lifecycle?.stop();
   lifecycle = null;
+  streamKey = "";
   if (state.roomEventsConnected) {
     state.roomEventsConnected = false;
     if (state.view === "console") render();
@@ -182,28 +182,30 @@ async function handleRoomEvent(type, data) {
   }
 }
 
-export function connectRoomEvents() {
-  disconnectRoomEvents();
+export function connectRoomEvents({ force = false } = {}) {
   const roomId = getRoomId();
   if (!roomId) return;
-  lifecycle = createSseLifecycle({
-    pollMs: DIRECTOR_POLL_MS,
-    open: ({ signal, onConnected }) => api.streamRoomEvents(roomId, async (type, payload) => {
-      if (type === "__connected__") return onConnected(payload);
-      await handleRoomEvent(type, payload);
-    }, signal, state.user?.id),
-    poll: () => state.view === "console" && getRoomId() === roomId ? refreshDirectorPoll() : undefined,
-    reconcile: () => refreshDirectorPoll(),
+  const nextStreamKey = `${roomId}:${state.user?.id || ""}`;
+  if (!force && lifecycle && streamKey === nextStreamKey) return;
+  disconnectRoomEvents();
+  streamKey = nextStreamKey;
+  lifecycle = createPortalEventLifecycle({
+    pollMs: PORTAL_POLL_INTERVAL_MS.room,
+    connect: ({ signal, onEvent }) => api.streamRoomEvents(
+      roomId,
+      onEvent,
+      signal,
+      state.user?.id
+    ),
+    onEvent: handleRoomEvent,
+    refresh: refreshDirectorPoll,
+    shouldPoll: () => state.view === "console" && getRoomId() === roomId,
     onStatus: (status) => {
-      state.roomEventsStatus = status === "connected" ? "live" : status;
+      state.roomEventsStatus = status;
       if (state.view === "console") render();
     },
-    onConnected: () => {
-      state.roomEventsConnected = true;
-      if (state.view === "console") render();
-    },
-    onDisconnected: () => {
-      state.roomEventsConnected = false;
+    onConnectionChange: (connected) => {
+      state.roomEventsConnected = connected;
       if (state.view === "console") render();
     },
     onAuthLost: () => {
@@ -221,7 +223,7 @@ export function connectRoomEvents() {
   lifecycle.start();
 }
 
-export function syncRoomStream() {
-  if (state.view === "console" && getRoomId()) connectRoomEvents();
+export function syncRoomStream({ force = false } = {}) {
+  if (state.view === "console" && getRoomId()) connectRoomEvents({ force });
   else disconnectRoomEvents();
 }

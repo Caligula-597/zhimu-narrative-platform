@@ -1,9 +1,11 @@
 import { api } from "./api.js";
-import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
-
-const POLL_MS = 20000;
+import {
+  createPortalEventLifecycle,
+  PORTAL_POLL_INTERVAL_MS
+} from "../../shared/sse-lifecycle.js";
 
 let lifecycle = null;
+let boundStreamKey = "";
 
 function setStreamStatus(status) {
   platformCtxRef?.setStreamStatus?.(status);
@@ -72,26 +74,26 @@ async function handlePlatformEvent(type, data, ctx) {
 export function disconnectPlatformEvents(ctx) {
   lifecycle?.stop();
   lifecycle = null;
+  boundStreamKey = "";
   platformCtxRef = null;
   ctx?.setStreamStatus?.("idle");
   ctx?.setConnected?.(false);
 }
 
-export function connectPlatformEvents(ctx) {
+export function connectPlatformEvents(ctx, { force = false } = {}) {
+  const nextStreamKey = ctx.getUserId?.() || "session";
+  if (!force && lifecycle && boundStreamKey === nextStreamKey) return;
   disconnectPlatformEvents(ctx);
   if (!ctx.hasSession?.()) return;
+  boundStreamKey = nextStreamKey;
   platformCtxRef = ctx;
-  lifecycle = createSseLifecycle({
-    pollMs: POLL_MS,
-    open: ({ signal, onConnected }) => api.streamPlatformEvents(async (type, data) => {
-      if (type === "__connected__") return onConnected(data);
-      await handlePlatformEvent(type, data, ctx);
-    }, signal, ctx.getUserId?.()),
-    poll: () => runPlatformPoll(ctx),
-    reconcile: () => runPlatformPoll(ctx),
+  lifecycle = createPortalEventLifecycle({
+    pollMs: PORTAL_POLL_INTERVAL_MS.platform,
+    connect: ({ signal, onEvent }) => api.streamPlatformEvents(onEvent, signal, ctx.getUserId?.()),
+    onEvent: (type, data) => handlePlatformEvent(type, data, ctx),
+    refresh: () => runPlatformPoll(ctx),
     onStatus: setStreamStatus,
-    onConnected: () => ctx.setConnected?.(true),
-    onDisconnected: () => ctx.setConnected?.(false),
+    onConnectionChange: (connected) => ctx.setConnected?.(connected),
     onAuthLost: () => ctx.onAuthLost?.(),
     onError: (error, meta) => ctx.onStreamError?.(error, meta)
   });

@@ -26,6 +26,7 @@ import {
   refreshVoiceMessages,
   resetVoiceOnLeave,
   sendVoiceChatMessage,
+  setVoiceRenderCallback,
   submitCreateVoiceRoom,
   submitVoiceInvite,
   toggleVoiceMicLive,
@@ -53,7 +54,6 @@ import {
   setToast,
   state
 } from "./state.js";
-import { setVoiceRenderCallback } from "./voice/livekit-voice.js";
 import { createSessionController } from "./runtime/session-controller.js";
 import { createSocialController } from "./runtime/social-controller.js";
 import { resolveInitialRoute } from "./runtime/router.js";
@@ -61,7 +61,10 @@ import { runPlayStartup } from "./runtime/startup.js";
 import { createPlayViewController } from "./runtime/view-controller.js";
 import { bindPlayDomEvents } from "./runtime/dom-event-controller.js";
 import { bindPlayFormEvents } from "./runtime/form-controller.js";
-import { handlePlayStateAction } from "./runtime/state-action-controller.js";
+import {
+  canHandlePlayActionWhileBusy,
+  handlePlayStateAction
+} from "./runtime/state-action-controller.js";
 import { handlePlayVoiceAction } from "./runtime/voice-action-controller.js";
 import { handlePlaySocialAction } from "./runtime/social-action-controller.js";
 import { handlePlayGameAction } from "./runtime/game-action-controller.js";
@@ -297,12 +300,7 @@ bindPlayFormEvents({
 app.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-action]");
   if (!button) return;
-  if (
-    state.busy
-    && !["dismiss-error", "modal-close", "modal-backdrop-close", "voice-room", "voice-join"].includes(
-      button.dataset.action
-    )
-  ) {
+  if (state.busy && !canHandlePlayActionWhileBusy(button.dataset.action)) {
     return;
   }
   const action = button.dataset.action;
@@ -426,8 +424,7 @@ subscribeSessionToken(async (change) => {
   }
   await loadSessionUser();
   if (generation !== externalSessionGeneration || !state.user) return;
-  syncPlatformStream();
-  syncRoomStream();
+  syncRoomStream({ force: true });
   render();
 });
 

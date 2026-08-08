@@ -56,6 +56,8 @@ const surfaces = {
 const checks = [
   ["app-entry-js", htmlAsset(surfaces.app, /assets\/index-[^/]+\.js$/), 85 * 1024],
   ["app-entry-css", htmlAsset(surfaces.app, /assets\/index-[^/]+\.css$/), 32 * 1024],
+  ["app-overview-lazy", matchingAsset(surfaces.app, /^overview-[^/]+\.js$/), 12 * 1024],
+  ["app-creator-workspaces-lazy", matchingAsset(surfaces.app, /^creator-workspaces-[^/]+\.js$/), 15 * 1024],
   ["site-index-html", path.join(surfaces.site, "index.html"), 12 * 1024],
   ["site-entry-js", htmlAsset(surfaces.site, /assets\/main-[^/]+\.js$/), 8 * 1024],
   ["site-safe-dom-js", htmlAsset(surfaces.site, /assets\/safe-dom-[^/]+\.js$/), 4 * 1024],
@@ -64,6 +66,7 @@ const checks = [
   ["host-entry-css", htmlAsset(surfaces.host, /assets\/index-[^/]+\.css$/), 38 * 1024],
   ["play-entry-js", htmlAsset(surfaces.play, /assets\/index-[^/]+\.js$/), 65 * 1024],
   ["play-entry-css", htmlAsset(surfaces.play, /assets\/index-[^/]+\.css$/), 12 * 1024],
+  ["play-livekit-adapter-lazy", matchingAsset(surfaces.play, /^livekit-voice-[^/]+\.js$/), 4 * 1024],
   ["play-livekit-lazy", matchingAsset(path.join(surfaces.play), /^livekit-vendor-[^/]+\.js$/), 145 * 1024]
 ];
 

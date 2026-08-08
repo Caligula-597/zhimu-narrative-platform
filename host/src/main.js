@@ -1,4 +1,5 @@
 import "./styles.css";
+import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
 import { createToastTimer } from "../../shared/toast.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { togglePanelInDom } from "./components/collapse.js";
@@ -60,9 +61,15 @@ const profile = createHostProfileController({ render, showToast: setToast });
 
 // 节奏计时器仅直更计时 DOM，避免每秒触发整页重绘。
 bootstrapPaceTimer();
-setInterval(() => {
-  if (state.view === "console") tickPaceTimer();
-}, 1000);
+const paceTicker = createAdaptivePoller({
+  run: () => {
+    if (state.view === "console") tickPaceTimer();
+  },
+  intervalMs: 1000,
+  maxIntervalMs: 1000,
+  jitterRatio: 0
+});
+paceTicker.start({ immediate: false });
 
 app.addEventListener("submit", async (event) => {
   const form = event.target.closest("[data-form='auth']");

@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { handlePlayStateAction } from "../src/runtime/state-action-controller.js";
+import {
+  canHandlePlayActionWhileBusy,
+  handlePlayStateAction
+} from "../src/runtime/state-action-controller.js";
 
 function run(action, state, dataset = {}, overrides = {}) {
   let rendered = 0;
@@ -34,6 +37,11 @@ test("auth and selection actions update state and render", () => {
   assert.equal(result.rendered, 1);
   run("pick-role", state, { roleId: "role-2" });
   assert.equal(state.selectedRoleId, "role-2");
+});
+
+test("login navigation remains available while background startup work is busy", () => {
+  assert.equal(canHandlePlayActionWhileBusy("show-auth"), true);
+  assert.equal(canHandlePlayActionWhileBusy("start-join"), false);
 });
 
 test("sidebar action persists the new collapsed state", () => {

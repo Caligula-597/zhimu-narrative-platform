@@ -31,7 +31,6 @@ import { bindInviteContext } from "./invite.js";
 import {
   bindRoomEventsContext,
   disconnectRoomEvents,
-  syncDirectorPolling,
   syncRoomStream
 } from "./room-events.js";
 import { mergePortalProfileIntoUser } from "../../../shared/portal-profile-ui.js";
@@ -168,8 +167,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     if (await enterPendingRoom()) return;
     if (state.view === "auth") state.view = "landing";
     if (state.view === "console") {
-      syncRoomStream();
-      syncDirectorPolling();
+      syncRoomStream({ force: true });
     } else {
       await loadWorldsList().catch(() => {});
     }
@@ -194,7 +192,6 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
       await loadHostConsole({ render, showToast });
       await loadHostData(false, true);
       syncRoomStream();
-      syncDirectorPolling();
     } catch (error) {
       state.error = formatApiError(error, "无法进入监控台");
       state.view = "landing";
@@ -295,7 +292,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
         }
         state.pendingVerificationEmail = email;
         state.pendingVerificationChallenge = result.verificationChallenge || null;
-        state.canResendVerification = Boolean(result.token);
+        state.canResendVerification = Boolean(result.verificationChallenge?.id);
         state.authMode = "login";
         showToast(
           result.verificationEmailSent === false

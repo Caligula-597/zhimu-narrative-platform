@@ -7,6 +7,7 @@ import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import { normalizeError } from "../components/status-ui.js";
 import { setHtml } from "../../shared/safe-dom.js";
+import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
 (function (window) {
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const formatTime = F.formatTime || (() => "");
@@ -464,21 +465,32 @@ import { setHtml } from "../../shared/safe-dom.js";
         throw lastError;
       }
 
-      let pipelineProgressTimer = null;
+      let pipelineProgressPoller = null;
       const setPipelineProgress = (btn, label) => {
         clearPipelineProgress();
         if (!btn) return;
         pipelineProgressBtn = btn;
         const start = Date.now();
-        pipelineProgressTimer = setInterval(() => {
-          const sec = Math.floor((Date.now() - start) / 1000);
-          btn.textContent = `${label}（${sec}s）`;
-        }, 1000);
-        btn.textContent = `${label}（0s）`;
+        let progressPoller = null;
+        progressPoller = createAdaptivePoller({
+          run: () => {
+            if (btn.isConnected === false) {
+              progressPoller?.stop();
+              return;
+            }
+            const sec = Math.floor((Date.now() - start) / 1000);
+            btn.textContent = `${label}（${sec}s）`;
+          },
+          intervalMs: 1000,
+          maxIntervalMs: 1000,
+          jitterRatio: 0
+        });
+        pipelineProgressPoller = progressPoller;
+        pipelineProgressPoller.start();
       };
       const clearPipelineProgress = () => {
-        if (pipelineProgressTimer) clearInterval(pipelineProgressTimer);
-        pipelineProgressTimer = null;
+        pipelineProgressPoller?.stop();
+        pipelineProgressPoller = null;
         pipelineProgressBtn = null;
       };
 

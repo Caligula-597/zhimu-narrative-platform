@@ -9,6 +9,7 @@ import * as M from "../components/modal.js";
 import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
 import { setHtml } from "../../shared/safe-dom.js";
+import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
 import { handleApiErrorToast, friendlyApiError } from "../utils/user-messages.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -77,17 +78,23 @@ async function finishEmailVerification(label="邮箱已验证，已自动登录"
  await finishAuthenticatedEntry(label);
 }
 
+let verificationResendPoller=null;
 function armVerificationResend(button, seconds=0,readyLabel="重新发送验证码"){
+ verificationResendPoller?.stop();
+ verificationResendPoller=null;
  if(!button)return;
  const readyAt=Date.now()+Math.max(0,Number(seconds)||0)*1000;
+ let resendPoller=null;
  const update=()=>{
+  if(button.isConnected===false){resendPoller?.stop();return}
   const remaining=Math.max(0,Math.ceil((readyAt-Date.now())/1000));
   button.disabled=remaining>0;
   button.textContent=remaining>0?`${remaining} 秒后可重发`:readyLabel;
-  if(!remaining)clearInterval(timer);
+  if(!remaining)resendPoller?.stop();
  };
- const timer=setInterval(update,1000);
- update();
+ resendPoller=createAdaptivePoller({run:update,intervalMs:1000,maxIntervalMs:1000,jitterRatio:0});
+ verificationResendPoller=resendPoller;
+ verificationResendPoller.start();
 }
 
 export function openVerifyPending(prefillEmail="",verificationEmailSent=true,initialChallenge=null){

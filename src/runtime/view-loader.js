@@ -9,8 +9,16 @@
     () => import("./actions-creator-workspaces.js")
   ];
 
+  const truthWorkspaceModules = [
+    ...creatorWorkspaceModules,
+    () => import("./actions-bible.js")
+  ];
+
   const modulesByView = {
-    overview: creatorWorkspaceModules,
+    overview: [
+      () => import("../views/overview.js"),
+      ...creatorWorkspaceModules
+    ],
     constitution: [
       () => import("./world-revision.js"),
       () => import("../views/creative-constitution.js"),
@@ -26,7 +34,7 @@
     ],
     production: creatorWorkspaceModules,
     structure: creatorWorkspaceModules,
-    truth: creatorWorkspaceModules,
+    truth: truthWorkspaceModules,
     publish: creatorWorkspaceModules,
     insights: creatorWorkspaceModules,
     writer: [

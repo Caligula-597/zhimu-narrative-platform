@@ -10,7 +10,10 @@ const sourceRoot = path.join(root, "src");
 function listJavaScriptFiles(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const filePath = path.join(dir, entry.name);
-    if (entry.isDirectory()) return listJavaScriptFiles(filePath);
+    if (entry.isDirectory()) {
+      if (["node_modules", "dist", ".wrangler"].includes(entry.name)) return [];
+      return listJavaScriptFiles(filePath);
+    }
     return entry.isFile() && entry.name.endsWith(".js") ? [filePath] : [];
   });
 }
@@ -28,6 +31,72 @@ function collectMatches(files, expression, valueIndex = 1) {
     }
   }
   return matches;
+}
+
+function existingFiles(...relativePaths) {
+  return relativePaths
+    .map((relativePath) => path.join(root, relativePath))
+    .filter((filePath) => fs.existsSync(filePath));
+}
+
+function collectHandledActions(files, { directSelectors = false } = {}) {
+  const handled = new Set([
+    ...collectMatches(files, /\bcase\s+["']([^"']+)["']\s*:/g).map(({ value }) => value),
+    ...collectMatches(files, /\baction\s*[!=]==?\s*["']([^"']+)["']/g).map(({ value }) => value)
+  ]);
+  for (const filePath of files) {
+    const source = fs.readFileSync(filePath, "utf8");
+    for (const match of source.matchAll(/\[([^\]]+)\]\.includes\(\s*action\s*\)/g)) {
+      for (const literal of match[1].matchAll(/["']([^"']+)["']/g)) handled.add(literal[1]);
+    }
+    if (directSelectors) {
+      for (const match of source.matchAll(/querySelector\(\s*["'`]\[data-action=[\\"']*([^\\"'\]]+)/g)) {
+        handled.add(match[1]);
+      }
+    }
+    for (const declaration of source.matchAll(/const\s+(?=[A-Za-z_$\d]*ACTION)[A-Za-z_$][\w$]*\s*=\s*(?:Object\.freeze\s*\(\s*)?\{/gi)) {
+      const body = findObjectBody(source, declaration.index);
+      for (const key of body.matchAll(/["']([^"']+)["']\s*:/g)) handled.add(key[1]);
+    }
+  }
+  return handled;
+}
+
+function auditSurfaceActions({ name, sourceDirectory, handlerFilter, indexFiles = [], directSelectors = false }) {
+  const sourceFiles = listJavaScriptFiles(path.join(root, sourceDirectory));
+  const markupFiles = [...sourceFiles, ...existingFiles(...indexFiles)];
+  const handlerFiles = sourceFiles.filter((filePath) => handlerFilter(relative(filePath)));
+  const renderedActions = collectMatches(markupFiles, /data-action\s*=\s*["']([^"'${}<>\s]+)["']/g);
+  const handledActions = collectHandledActions(handlerFiles, { directSelectors });
+  const unhandledActions = renderedActions.filter(({ value }) => !handledActions.has(value));
+  return {
+    name,
+    files: sourceFiles.length,
+    renderedActions,
+    handledActions,
+    unhandledActions
+  };
+}
+
+function auditApiReachability({ name, apiFile, sourceDirectory, aliases, dynamicMethods = [] }) {
+  const apiPath = path.join(root, apiFile);
+  const source = fs.readFileSync(apiPath, "utf8");
+  const declarationIndex = source.indexOf("export const api");
+  const body = findObjectBody(source, declarationIndex);
+  const methods = new Set();
+  for (const match of body.matchAll(/^\s{2}([A-Za-z_$][\w$]*)\s*(?=:|\()/gm)) methods.add(match[1]);
+
+  const consumers = listJavaScriptFiles(path.join(root, sourceDirectory))
+    .filter((filePath) => filePath !== apiPath)
+    .map((filePath) => fs.readFileSync(filePath, "utf8"))
+    .join("\n");
+  const dynamic = new Set(dynamicMethods);
+  const aliasPattern = aliases.map((alias) => alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const unusedMethods = [...methods].filter((method) => {
+    if (dynamic.has(method)) return false;
+    return !new RegExp(`\\b(?:${aliasPattern})\\.${method}\\b`).test(consumers);
+  });
+  return { name, methods, unusedMethods };
 }
 
 function findObjectBody(source, startIndex) {
@@ -85,13 +154,55 @@ function registeredViewMethods(files) {
 
 export function auditUiInteractions() {
   const files = listJavaScriptFiles(sourceRoot);
-  const actionHandlerFiles = files.filter((filePath) => /^src\/runtime\/actions(?:-[^/]+)?\.js$/.test(relative(filePath)));
-  const renderedActions = collectMatches(files, /data-action\s*=\s*["']([^"'${}<>\s]+)["']/g);
-  const handledActions = new Set([
-    ...collectMatches(actionHandlerFiles, /\bcase\s+["']([^"']+)["']\s*:/g).map(({ value }) => value),
-    ...collectMatches(actionHandlerFiles, /\baction\s*===?\s*["']([^"']+)["']/g).map(({ value }) => value)
-  ]);
-  const unhandledActions = renderedActions.filter(({ value }) => !handledActions.has(value));
+  const surfaces = [
+    auditSurfaceActions({
+      name: "creator",
+      sourceDirectory: "src",
+      indexFiles: ["index.html"],
+      handlerFilter: (file) => /^src\/runtime\/actions(?:-[^/]+)?\.js$/.test(file)
+    }),
+    auditSurfaceActions({
+      name: "host",
+      sourceDirectory: "host/src",
+      indexFiles: ["host/index.html"],
+      handlerFilter: (file) => file === "host/src/main.js" || file.startsWith("host/src/runtime/")
+    }),
+    auditSurfaceActions({
+      name: "player",
+      sourceDirectory: "play/src",
+      indexFiles: ["play/index.html"],
+      handlerFilter: (file) => file === "play/src/main.js" || file.startsWith("play/src/runtime/")
+    }),
+    auditSurfaceActions({
+      name: "site",
+      sourceDirectory: "site",
+      indexFiles: ["site/index.html"],
+      handlerFilter: (file) => file === "site/main.js",
+      directSelectors: true
+    })
+  ];
+  const apiAudits = [
+    auditApiReachability({
+      name: "host",
+      apiFile: "host/src/api.js",
+      sourceDirectory: "host/src",
+      aliases: ["api", "apiRef"],
+      dynamicMethods: ["createPortalAvatarUpload", "confirmPortalAvatar"]
+    }),
+    auditApiReachability({
+      name: "player",
+      apiFile: "play/src/api.js",
+      sourceDirectory: "play/src",
+      aliases: ["api"],
+      dynamicMethods: ["createPortalAvatarUpload", "confirmPortalAvatar"]
+    })
+  ];
+  const renderedActions = surfaces.flatMap((surface) => surface.renderedActions);
+  const handledActions = new Set(surfaces.flatMap((surface) => [...surface.handledActions]));
+  const unhandledActions = surfaces.flatMap((surface) => surface.unhandledActions.map((item) => ({
+    ...item,
+    surface: surface.name
+  })));
 
   const registry = registeredViewMethods(files);
   const viewCalls = collectMatches(files, /callView\(\s*["']([^"']+)["']\s*,\s*["']([^"']+)["']/g, 1);
@@ -141,14 +252,16 @@ export function auditUiInteractions() {
     missingViewMethods,
     navigationTargets,
     unknownNavigationTargets,
-    unresolvedViews
+    unresolvedViews,
+    surfaces,
+    apiAudits
   };
 }
 
 export function printUiInteractionAudit(result) {
   if (result.unhandledActions.length) {
     console.error("发现没有全局处理器的 data-action：");
-    for (const item of result.unhandledActions) console.error(`- ${item.value} (${item.file})`);
+    for (const item of result.unhandledActions) console.error(`- [${item.surface}] ${item.value} (${item.file})`);
   }
   if (result.missingViewMethods.length) {
     console.error("发现 callView 指向未注册的方法：");
@@ -163,11 +276,23 @@ export function printUiInteractionAudit(result) {
   if (result.unresolvedViews.length) {
     console.error(`发现没有渲染解析器的页面：${result.unresolvedViews.join(", ")}`);
   }
+  for (const apiAudit of result.apiAudits) {
+    if (!apiAudit.unusedMethods.length) continue;
+    console.error(`${apiAudit.name} 端存在没有调用路径的 API 方法：${apiAudit.unusedMethods.join(", ")}`);
+  }
   const failures = result.unhandledActions.length
     + result.missingViewMethods.length
     + result.unknownNavigationTargets.length
-    + result.unresolvedViews.length;
+    + result.unresolvedViews.length
+    + result.apiAudits.reduce((sum, audit) => sum + audit.unusedMethods.length, 0);
   const uniqueActions = new Set(result.renderedActions.map(({ value }) => value)).size;
+  for (const surface of result.surfaces) {
+    const surfaceActions = new Set(surface.renderedActions.map(({ value }) => value)).size;
+    console.log(`${surface.name}: ${surface.files} source files, ${surfaceActions} visible actions, ${surface.unhandledActions.length} broken links`);
+  }
+  for (const apiAudit of result.apiAudits) {
+    console.log(`${apiAudit.name} API: ${apiAudit.methods.size} methods, ${apiAudit.unusedMethods.length} unreachable`);
+  }
   console.log(
     `UI 交互契约：${result.files} 个源码文件，${uniqueActions} 个可见 action，${result.viewCalls.length} 个 view 调用，${result.navigationTargets.length} 个导航入口，${failures} 个断链。`
   );
