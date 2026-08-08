@@ -15,7 +15,8 @@ const routeAggregators = new Set([
   "auth-routes.js",
   "host-routes.js",
   "creator-routes.js",
-  "studio-routes.js"
+  "studio-routes.js",
+  "story-assistant-routes.js"
 ]);
 const allowedRouteImports = [
   /^\.\/schemas\.js$/,

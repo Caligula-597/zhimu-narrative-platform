@@ -34,6 +34,7 @@ import { registerOpsBetaRoutes } from "./ops-beta-routes.js";
 import { registerOpsFeedbackRoutes } from "./ops-feedback-routes.js";
 import { registerOpsPlazaRoutes } from "./ops-plaza-routes.js";
 import { registerOpsUserRoutes } from "./ops-user-routes.js";
+import { opsAuditLogQuerySchema } from "./schemas/ops.js";
 import {
   explainRateLimitTopology,
   resolveRateLimitTopology
@@ -43,17 +44,6 @@ import { getSessionCookieSecurityStatus } from "../session-cookie.js";
 import { getIdentityFoundationStatus } from "../identity-foundation-status.js";
 import { canEncryptSecrets } from "../secret-crypto.js";
 import { isPlatformLlmUserAccessEnabled } from "../user-llm.js";
-
-const opsAuditLogQuerySchema = {
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    roomId: { type: "string", format: "uuid" },
-    action: { type: "string", minLength: 1, maxLength: 80 },
-    limit: { type: "integer", minimum: 1, maximum: 200 },
-    offset: { type: "integer", minimum: 0, maximum: 100_000 }
-  }
-};
 
 export function allRateLimitsPositive(value) {
   if (typeof value === "number") return Number.isFinite(value) && value > 0;
