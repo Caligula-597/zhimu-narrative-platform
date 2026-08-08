@@ -141,7 +141,7 @@ export function createPortalApiClient(config) {
     getRequestState,
     onHttpError,
     afterSuccess(path, payload, response) {
-      if (tokenStore) {
+      if (tokenStore && !payload?.pendingEmailVerification) {
         const token = extractAuthToken(path, payload);
         if (token) {
           tokenStore.set(token);

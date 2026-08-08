@@ -22,4 +22,8 @@ export class ObjectStorage {
   async putObject() {
     throw new Error("putObject is not implemented");
   }
+
+  async copyObjectIfUnchanged() {
+    throw new Error("copyObjectIfUnchanged is not implemented");
+  }
 }

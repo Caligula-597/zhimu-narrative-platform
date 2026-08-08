@@ -92,6 +92,11 @@ export function getEmailServiceStatus() {
   };
 }
 
+/** Public login surfaces only need delivery availability, not ops addresses or provider topology. */
+export function getPublicEmailServiceStatus() {
+  return { configured: isEmailConfigured() };
+}
+
 async function dispatchEmail(payload) {
   const provider = getEmailProvider();
   if (isDeliveryStubbed()) {

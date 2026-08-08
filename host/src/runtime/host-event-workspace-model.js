@@ -1,3 +1,5 @@
+import { secureRandomId } from "../../../shared/secure-random.js";
+
 export const HOST_EVENT_DELAY_LIMITS = Object.freeze({
   MIN: 1,
   MAX: 1440,
@@ -7,8 +9,7 @@ export const HOST_EVENT_DELAY_LIMITS = Object.freeze({
 const HOST_EVENT_COMMANDS = new Set(["execute", "dismiss", "delay"]);
 
 function requestId(prefix) {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) return `${prefix}-${crypto.randomUUID()}`;
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return secureRandomId(prefix);
 }
 
 function eventSnapshot(event = {}) {

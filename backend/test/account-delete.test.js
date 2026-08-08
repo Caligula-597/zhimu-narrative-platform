@@ -44,6 +44,7 @@ test("registered user can preview and delete account with display name confirmat
   const body = preview.json();
   assert.equal(body.confirmationLabel, "待注销测试号");
   assert.equal(body.canDelete, true);
+  assert.equal(body.reauthentication.mode, "password");
   assert.equal(body.summary.ownedWorlds.length, 1);
 
   const wrong = await app.inject({
@@ -55,11 +56,28 @@ test("registered user can preview and delete account with display name confirmat
   assert.equal(wrong.statusCode, 400);
   assert.equal(wrong.json().code, "ACCOUNT_DELETE_CONFIRMATION_INVALID");
 
+  const wrongPassword = await app.inject({
+    method: "POST",
+    url: "/api/account/delete",
+    headers: { authorization: `Bearer ${token}` },
+    payload: {
+      confirmation: "待注销测试号",
+      acknowledged: true,
+      password: "wrong-pass-123"
+    }
+  });
+  assert.equal(wrongPassword.statusCode, 403);
+  assert.equal(wrongPassword.json().code, "ACCOUNT_DELETE_REAUTHENTICATION_REQUIRED");
+
   const deleted = await app.inject({
     method: "POST",
     url: "/api/account/delete",
     headers: { authorization: `Bearer ${token}` },
-    payload: { confirmation: "待注销测试号", acknowledged: true }
+    payload: {
+      confirmation: "待注销测试号",
+      acknowledged: true,
+      password: "delete-pass-123"
+    }
   });
   assert.equal(deleted.statusCode, 200, deleted.body);
   assert.ok(deleted.json().deletedAt);

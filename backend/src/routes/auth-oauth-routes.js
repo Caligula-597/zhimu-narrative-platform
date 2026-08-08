@@ -6,6 +6,11 @@ import {
 } from "../oauth-service.js";
 import { sendErr } from "../api-errors.js";
 import { sendAuthSession, userAuthPayload } from "./auth-route-shared.js";
+import {
+  oauthCallbackQuerySchema,
+  oauthProviderErrorCode,
+  oauthStartQuerySchema
+} from "../oauth-request-policy.js";
 
 const providerParams = {
   type: "object",
@@ -23,7 +28,9 @@ async function guestUserIdForRequest(request) {
 }
 
 export async function registerAuthOAuthRoutes(app) {
-  app.get("/api/auth/oauth/:provider/start", { schema: { params: providerParams } }, async (request, reply) => {
+  app.get("/api/auth/oauth/:provider/start", {
+    schema: { params: providerParams, querystring: oauthStartQuerySchema }
+  }, async (request, reply) => {
     const { provider } = request.params;
     const state = await createOAuthState(provider, await guestUserIdForRequest(request), request.query?.returnOrigin);
     return reply.redirect(buildOAuthAuthorizeUrl(provider, state));
@@ -43,14 +50,16 @@ export async function registerAuthOAuthRoutes(app) {
     return { url: buildOAuthAuthorizeUrl(provider, state) };
   });
 
-  app.get("/api/auth/oauth/:provider/callback", { schema: { params: providerParams } }, async (request, reply) => {
+  app.get("/api/auth/oauth/:provider/callback", {
+    schema: { params: providerParams, querystring: oauthCallbackQuerySchema }
+  }, async (request, reply) => {
     const { provider } = request.params;
     const code = String(request.query?.code ?? "");
     const state = String(request.query?.state ?? "");
     const oauthError = String(request.query?.error ?? "");
     const frontend = new URL(oauthFrontendReturnUrl());
     if (oauthError) {
-      frontend.searchParams.set("oauth_error", oauthError);
+      frontend.searchParams.set("oauth_error", oauthProviderErrorCode(oauthError));
       return reply.redirect(frontend.toString());
     }
     if (!code || !state) return sendErr(reply, "BAD_REQUEST");

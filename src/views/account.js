@@ -71,21 +71,38 @@ import {
       return;
     }
     const label = preview.confirmationLabel || "";
-    setHtml(modal, `<h2>注销账号</h2><p class="wizard-intro"><strong>与「退出登录」不同：</strong>注销会永久删除账号数据，无法恢复。退出登录仅在本设备结束会话，账号仍保留。</p>${deleteAccountSummaryHtml(preview)}<div class="form-group"><label>请输入你的昵称以确认（区分大小写）</label><input class="field" data-delete-confirm placeholder="${escapeHtml(label)}"><label class="check-label" style="margin-top:10px"><input type="checkbox" data-delete-ack><span>我已知晓注销不可恢复</span></label></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="danger-btn" data-delete-submit disabled>永久注销账号</button></div>`);
+    const reauthentication = preview.reauthentication || {};
+    const passwordRequired = reauthentication.mode === "password";
+    const recentSessionBlocked = reauthentication.mode === "recent_session"
+      && !reauthentication.recentSessionEligible;
+    const reauthenticationHtml = passwordRequired
+      ? `<label style="margin-top:10px">再次输入登录密码</label><input class="field" type="password" autocomplete="current-password" data-delete-password maxlength="128" placeholder="用于确认是你本人操作">`
+      : recentSessionBlocked
+        ? `<div class="check-result warn"><b>需要重新登录</b><span>第三方登录或访客账号只能在刚登录后的 10 分钟内注销。请先退出并重新登录，再返回此处操作。</span></div>`
+        : `<p class="muted-note">当前登录时间已通过高风险操作确认。</p>`;
+    setHtml(modal, `<h2>注销账号</h2><p class="wizard-intro"><strong>与「退出登录」不同：</strong>注销会永久删除账号数据，无法恢复。退出登录仅在本设备结束会话，账号仍保留。</p>${deleteAccountSummaryHtml(preview)}<div class="form-group"><label>请输入你的昵称以确认（区分大小写）</label><input class="field" data-delete-confirm placeholder="${escapeHtml(label)}">${reauthenticationHtml}<label class="check-label" style="margin-top:10px"><input type="checkbox" data-delete-ack><span>我已知晓注销不可恢复</span></label></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="danger-btn" data-delete-submit disabled>永久注销账号</button></div>`);
     modal.querySelector("[data-close]").onclick = closeModal;
     const confirmInput = modal.querySelector("[data-delete-confirm]");
+    const passwordInput = modal.querySelector("[data-delete-password]");
     const ack = modal.querySelector("[data-delete-ack]");
     const submit = modal.querySelector("[data-delete-submit]");
     const syncSubmit = () => {
-      submit.disabled = !(ack.checked && confirmInput.value.trim() === label);
+      const passwordReady = !passwordRequired || (passwordInput?.value?.length || 0) >= 8;
+      submit.disabled = recentSessionBlocked
+        || !(ack.checked && confirmInput.value.trim() === label && passwordReady);
     };
     confirmInput.addEventListener("input", syncSubmit);
+    passwordInput?.addEventListener("input", syncSubmit);
     ack.addEventListener("change", syncSubmit);
     submit.onclick = async () => {
       if (confirmInput.value.trim() !== label || !ack.checked) return;
       submit.disabled = true;
       try {
-        await zhimuApi.deleteAccount({ confirmation: confirmInput.value.trim(), acknowledged: true });
+        await zhimuApi.deleteAccount({
+          confirmation: confirmInput.value.trim(),
+          acknowledged: true,
+          ...(passwordRequired ? { password: passwordInput?.value || "" } : {})
+        });
         window.zhimuSessionAuth?.markLoggedOut?.();
         window.zhimuContext?.onSessionLogout?.();
         uiStore.set({ accountView: null });

@@ -1,3 +1,5 @@
+import { secureRandomId } from "../../../shared/secure-random.js";
+
 export const HOST_VOTE_LIMITS = Object.freeze({
   TITLE_MAX: 200,
   PROMPT_MAX: 2000,
@@ -19,8 +21,7 @@ export const HOST_VOTE_VISIBILITIES = Object.freeze([
 ]);
 
 function requestId(prefix) {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) return `${prefix}-${crypto.randomUUID()}`;
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return secureRandomId(prefix);
 }
 
 export function createHostVoteWorkspace(roomId) {

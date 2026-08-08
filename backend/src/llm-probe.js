@@ -3,6 +3,7 @@
  */
 import { throwErr } from "./api-errors.js";
 import { fetchPinnedOutboundJson } from "./pinned-outbound-fetch.js";
+import { llmProbeFailureMessage } from "./llm-upstream-error-policy.js";
 
 export async function probeLlmConnection(runtime) {
   const controller = new AbortController();
@@ -23,10 +24,10 @@ export async function probeLlmConnection(runtime) {
       }),
       signal: controller.signal
     });
-    const payload = response.payload;
     if (!response.ok) {
-      const msg = payload.error?.message || `HTTP ${response.status}`;
-      throwErr("LLM_PROBE_FAILED", `连接测试失败：${msg}`, { status: response.status });
+      throwErr("LLM_PROBE_FAILED", llmProbeFailureMessage(response.status), {
+        status: response.status
+      });
     }
     return {
       ok: true,

@@ -162,6 +162,15 @@ test("player avatar upload is confirmed, served and removable", async (context) 
   assert.equal(confirmed.statusCode, 200, confirmed.body);
   assert.equal(confirmed.json().hasCustomAvatar, true);
   assert.match(confirmed.json().avatarUrl, /\/api\/account\/portal-avatars\//);
+  const storedProfile = await query(
+    `SELECT avatar_object_key FROM user_portal_profiles WHERE user_id = $1 AND portal = 'player'`,
+    [user.id]
+  );
+  const publishedObjectKey = storedProfile.rows[0]?.avatar_object_key;
+  assert.ok(publishedObjectKey);
+  assert.notEqual(publishedObjectKey, objectKey);
+  assert.match(publishedObjectKey, /\/profiles\/player\/published\//u);
+  await assert.rejects(getObjectStorage().statObject({ key: objectKey }), /Object not found/u);
 
   const avatarPath = new URL(confirmed.json().avatarUrl).pathname;
   const served = await app.inject({ method: "GET", url: avatarPath });

@@ -5,6 +5,7 @@ import { query, transaction } from "./db.js";
 import { appPublicOrigin } from "./oauth-providers.js";
 import { getObjectStorage } from "./storage/index.js";
 import { scanUploadedObject } from "./upload-scan.js";
+import { promoteScannedObject } from "./upload-object-promotion.js";
 
 export const PORTALS = Object.freeze(["creator", "host", "player"]);
 export const PORTAL_PROFILE_NAME_MAX_LENGTH = 24;
@@ -235,6 +236,7 @@ export async function confirmPortalAvatarUpload(userId, portal, uploadId) {
   if (!upload) throwErr("UPLOAD_SESSION_NOT_FOUND");
 
   let stat;
+  const finalObjectKey = `users/${userId}/profiles/${portal}/published/${randomUUID()}`;
   try {
     stat = await getObjectStorage().statObject({ key: upload.object_key });
     if (stat.byteSize !== Number(upload.expected_byte_size)) throwErr("UPLOAD_SIZE_MISMATCH");
@@ -246,6 +248,13 @@ export async function confirmPortalAvatarUpload(userId, portal, uploadId) {
       contentType: stat.contentType,
       byteSize: stat.byteSize,
       filename: upload.original_filename
+    });
+    await promoteScannedObject({
+      sourceKey: upload.object_key,
+      destinationKey: finalObjectKey,
+      sourceEtag: stat.etag,
+      contentType: stat.contentType,
+      byteSize: stat.byteSize
     });
   } catch (error) {
     if (error.code?.startsWith("UPLOAD_")) {
@@ -260,44 +269,53 @@ export async function confirmPortalAvatarUpload(userId, portal, uploadId) {
   }
 
   let oldObjectKey = null;
-  const profile = await transaction(async (client) => {
-    const lockedUpload = await client.query(
-      `SELECT *
-       FROM portal_profile_avatar_uploads
-       WHERE id = $1 AND user_id = $2 AND portal = $3
-         AND status = 'created' AND expires_at > now()
-       FOR UPDATE`,
-      [uploadId, userId, portal]
-    );
-    if (!lockedUpload.rows[0]) throwErr("UPLOAD_SESSION_NOT_FOUND");
-    const lockedProfile = await client.query(
-      `SELECT avatar_object_key
-       FROM user_portal_profiles
-       WHERE user_id = $1 AND portal = $2
-       FOR UPDATE`,
-      [userId, portal]
-    );
-    if (!lockedProfile.rows[0]) throwErr("PORTAL_PROFILE_NOT_FOUND");
-    oldObjectKey = lockedProfile.rows[0].avatar_object_key;
-    await client.query(
-      `UPDATE user_portal_profiles
-       SET avatar_object_key = $3, avatar_content_type = $4,
-           avatar_updated_at = now(), updated_at = now()
-       WHERE user_id = $1 AND portal = $2`,
-      [userId, portal, upload.object_key, upload.expected_content_type]
-    );
-    await client.query(
-      `UPDATE portal_profile_avatar_uploads
-       SET status = 'confirmed', confirmed_at = now()
-       WHERE id = $1`,
-      [uploadId]
-    );
-    return getPortalProfileWithClient(client, userId, portal);
-  });
-
-  if (oldObjectKey && oldObjectKey !== upload.object_key) {
-    await getObjectStorage().deleteObject({ key: oldObjectKey }).catch(() => {});
+  let profile;
+  try {
+    profile = await transaction(async (client) => {
+      const lockedUpload = await client.query(
+        `SELECT *
+         FROM portal_profile_avatar_uploads
+         WHERE id = $1 AND user_id = $2 AND portal = $3 AND object_key = $4
+           AND status = 'created' AND expires_at > now()
+         FOR UPDATE`,
+        [uploadId, userId, portal, upload.object_key]
+      );
+      if (!lockedUpload.rows[0]) throwErr("UPLOAD_SESSION_NOT_FOUND");
+      const lockedProfile = await client.query(
+        `SELECT avatar_object_key
+         FROM user_portal_profiles
+         WHERE user_id = $1 AND portal = $2
+         FOR UPDATE`,
+        [userId, portal]
+      );
+      if (!lockedProfile.rows[0]) throwErr("PORTAL_PROFILE_NOT_FOUND");
+      oldObjectKey = lockedProfile.rows[0].avatar_object_key;
+      await client.query(
+        `UPDATE user_portal_profiles
+         SET avatar_object_key = $3, avatar_content_type = $4,
+             avatar_updated_at = now(), updated_at = now()
+         WHERE user_id = $1 AND portal = $2`,
+        [userId, portal, finalObjectKey, upload.expected_content_type]
+      );
+      await client.query(
+        `UPDATE portal_profile_avatar_uploads
+         SET status = 'confirmed', confirmed_at = now()
+         WHERE id = $1`,
+        [uploadId]
+      );
+      return getPortalProfileWithClient(client, userId, portal);
+    });
+  } catch (error) {
+    await getObjectStorage().deleteObject({ key: finalObjectKey }).catch(() => {});
+    throw error;
   }
+
+  await Promise.allSettled([
+    getObjectStorage().deleteObject({ key: upload.object_key }),
+    oldObjectKey && oldObjectKey !== finalObjectKey
+      ? getObjectStorage().deleteObject({ key: oldObjectKey })
+      : Promise.resolve()
+  ]);
   return profile;
 }
 

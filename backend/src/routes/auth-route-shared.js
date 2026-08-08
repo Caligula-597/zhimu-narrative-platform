@@ -1,4 +1,4 @@
-import { attachSessionToReply } from "../session-cookie.js";
+import { attachSessionToReply, sessionResponsePayload } from "../session-cookie.js";
 
 export const authBodySchema = {
   type: "object",
@@ -75,7 +75,8 @@ export function userAuthPayload(row) {
 }
 
 export function sendAuthSession(reply, session, payload, statusCode) {
-  attachSessionToReply(reply, session);
-  const body = { ...payload, ...session };
+  const nodeEnv = reply.server?.zhimuNodeEnv;
+  attachSessionToReply(reply, session, nodeEnv);
+  const body = { ...payload, ...sessionResponsePayload(session, nodeEnv) };
   return statusCode ? reply.code(statusCode).send(body) : body;
 }

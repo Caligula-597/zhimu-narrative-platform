@@ -63,6 +63,32 @@ test("createPortalJsonError preserves code and status", () => {
   assert.equal(err.status, 403);
 });
 
+test("portal clients never retain a session from a pending verification response", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    token: "legacy-unverified-session-token",
+    user: { id: "pending-user" },
+    pendingEmailVerification: true,
+    verificationChallenge: { id: "challenge" }
+  }), {
+    status: 200,
+    headers: { "content-type": "application/json" }
+  });
+  const stored = [];
+  const client = createPortalApiClient({
+    baseUrl: "http://test/api",
+    tokenStore: {
+      bearerHeaders: () => ({}),
+      set(value) { stored.push(value); }
+    }
+  });
+
+  const result = await client.request("/auth/login", { method: "POST", body: {} });
+  assert.equal(result.pendingEmailVerification, true);
+  assert.deepEqual(stored, []);
+});
+
 test("buildBearerAuthHeaders merges demo user id", () => {
   const headers = buildBearerAuthHeaders({ bearerHeaders: () => ({ authorization: "Bearer x" }) }, { demoUserId: "u" });
   assert.equal(headers["x-user-id"], "u");

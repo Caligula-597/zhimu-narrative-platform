@@ -13,6 +13,30 @@ function safeEqual(provided, configured) {
   return timingSafeEqual(bufA, bufB);
 }
 
+function validConfiguredToken(configured, provided, minimumLength, nodeEnv) {
+  if (!configured || !provided) return false;
+  if (nodeEnv === "production" && configured.length < minimumLength) return false;
+  return safeEqual(String(provided), configured);
+}
+
+/** Allow detailed health diagnostics without making load-balancer probes private. */
+export function hasDiagnosticToken(request, nodeEnv = process.env.NODE_ENV ?? "development") {
+  const bearer = bearerToken(request);
+  const opsToken = process.env.OPS_API_TOKEN?.trim() || "";
+  const metricsToken = process.env.METRICS_TOKEN?.trim() || "";
+  return validConfiguredToken(
+    opsToken,
+    request.headers["x-ops-token"] || bearer,
+    MIN_OPS_TOKEN_LENGTH,
+    nodeEnv
+  ) || validConfiguredToken(
+    metricsToken,
+    request.headers["x-metrics-token"] || bearer,
+    MIN_METRICS_TOKEN_LENGTH,
+    nodeEnv
+  );
+}
+
 export function requireOpsToken(request) {
   const configured = process.env.OPS_API_TOKEN?.trim();
   if (!configured) {

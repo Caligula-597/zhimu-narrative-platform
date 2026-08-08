@@ -3,6 +3,7 @@ export {
   clearTestEmailCapture,
   clearTestResetCapture,
   getEmailProvider,
+  getPublicEmailServiceStatus,
   getEmailServiceStatus,
   isEmailConfigured,
   isResendConfigured,

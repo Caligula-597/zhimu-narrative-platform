@@ -23,8 +23,10 @@ test("GET /api/health/ready returns 200 when database is healthy", async (contex
 test("production readiness rejects an explicitly in-memory event bus", async (context) => {
   const previousNodeEnv = process.env.NODE_ENV;
   const previousBus = process.env.ROOM_EVENTS_BUS;
+  const previousOpsToken = process.env.OPS_API_TOKEN;
   process.env.NODE_ENV = "production";
   process.env.ROOM_EVENTS_BUS = "memory";
+  process.env.OPS_API_TOKEN = "ops-health-test-token-123";
   const app = await createApp({ logger: false, nodeEnv: "production", allowDemoUserHeader: false });
   context.after(async () => {
     await app.close();
@@ -32,12 +34,22 @@ test("production readiness rejects an explicitly in-memory event bus", async (co
     else process.env.NODE_ENV = previousNodeEnv;
     if (previousBus === undefined) delete process.env.ROOM_EVENTS_BUS;
     else process.env.ROOM_EVENTS_BUS = previousBus;
+    if (previousOpsToken === undefined) delete process.env.OPS_API_TOKEN;
+    else process.env.OPS_API_TOKEN = previousOpsToken;
   });
 
   const response = await app.inject({ method: "GET", url: "/api/health/ready" });
   assert.equal(response.statusCode, 503);
-  assert.equal(response.json().checks.roomEventBus, false);
-  assert.equal(response.json().checks.platformEventBus, false);
+  assert.deepEqual(response.json(), { ok: false, ready: false });
+
+  const detailed = await app.inject({
+    method: "GET",
+    url: "/api/health/ready",
+    headers: { "x-ops-token": "ops-health-test-token-123" }
+  });
+  assert.equal(detailed.statusCode, 503);
+  assert.equal(detailed.json().checks.roomEventBus, false);
+  assert.equal(detailed.json().checks.platformEventBus, false);
 });
 
 test("responses include X-Request-Id", async (context) => {

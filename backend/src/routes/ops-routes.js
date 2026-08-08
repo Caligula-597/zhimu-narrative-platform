@@ -3,6 +3,7 @@ import { getReadinessStatus } from "../database-status.js";
 import { getPoolStats } from "../db.js";
 import { requireOpsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
+import { getSseConnectionGuardStats, resolveSseConnectionLimits } from "../sse-connection-guard.js";
 import { getEventOutboxStatus } from "../event-outbox-dispatcher.js";
 import { getTelemetryStatus } from "../telemetry.js";
 import { getEmailServiceStatus } from "../email.js";
@@ -78,9 +79,13 @@ export function productionTrustGates({
     {
       key: "secure_sessions",
       label: "Session cookies + revocation",
-      ok: sessionCookie.secure && sessionCookie.httpOnly && sessionRevocationReady,
+      ok: sessionCookie.secure
+        && sessionCookie.httpOnly
+        && !sessionCookie.bearerResponseEnabled
+        && sessionRevocationReady,
       detail:
         `secure=${sessionCookie.secure}; httpOnly=${sessionCookie.httpOnly}; `
+        + `bearerResponse=${sessionCookie.bearerResponseEnabled}; `
         + `revocationTable=${sessionRevocationReady ? "ready" : "missing"}`
     },
     {
@@ -267,6 +272,7 @@ export async function registerOpsRoutes(app) {
         scriptBundlePerMin: Number(process.env.RATE_LIMIT_SCRIPT_BUNDLE_MAX ?? 4),
         aiPerMin: Number(process.env.RATE_LIMIT_AI_MAX ?? 40),
         network: {
+          apiPerMin: Number(process.env.RATE_LIMIT_API_IP_MAX ?? 600),
           uploadPerMin: Number(process.env.RATE_LIMIT_UPLOAD_IP_MAX ?? 120),
           documentPerMin: Number(process.env.RATE_LIMIT_DOCUMENT_IP_MAX ?? 60),
           scriptBundlePerMin: Number(process.env.RATE_LIMIT_SCRIPT_BUNDLE_IP_MAX ?? 20),
@@ -290,7 +296,12 @@ export async function registerOpsRoutes(app) {
         },
         identityFoundation,
         pool: getPoolStats(),
-        sse: { connections: sse.connections, rooms: sse.rooms },
+        sse: {
+          connections: sse.connections,
+          rooms: sse.rooms,
+          admission: getSseConnectionGuardStats(),
+          limits: resolveSseConnectionLimits()
+        },
         roomEventBus: bus,
         features,
         rateLimits,

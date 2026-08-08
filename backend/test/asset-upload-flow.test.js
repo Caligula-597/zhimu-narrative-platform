@@ -61,6 +61,13 @@ test("asset upload confirms exactly once and advances world revision", async (co
   });
   assert.equal(confirmed.statusCode, 200, confirmed.body);
   assert.equal(confirmed.json().content_revision, revision + 1);
+  const stored = await query(`SELECT object_key FROM asset_files WHERE id = $1`, [assetId]);
+  const publishedObjectKey = stored.rows[0]?.object_key;
+  assert.ok(publishedObjectKey);
+  assert.notEqual(publishedObjectKey, objectKey);
+  assert.match(publishedObjectKey, /\/assets\/published\//u);
+  await assert.rejects(getObjectStorage().statObject({ key: objectKey }), /Object not found/u);
+  assert.deepEqual(await getObjectStorage().readObjectBytes({ key: publishedObjectKey }), PNG);
 
   const duplicate = await app.inject({
     method: "POST",

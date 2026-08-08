@@ -12,6 +12,7 @@ import {
   markAccountDeleteJobStoragePending,
   purgeObjectKeys
 } from "./account-delete-job.js";
+import { assertAccountDeleteAuthorizationProof } from "./account-delete-authorization.js";
 
 export async function buildAccountDeletePreview(userId) {
   const user = await query(
@@ -143,7 +144,8 @@ async function deleteUserAccountDb(client, userId) {
 }
 
 export async function deleteUserAccount(userId, {
-  requireUnverifiedRegistered = false
+  requireUnverifiedRegistered = false,
+  authorizationProof = null
 } = {}) {
   const preview = await buildAccountDeletePreview(userId);
   if (!preview.canDelete) {
@@ -159,6 +161,9 @@ export async function deleteUserAccount(userId, {
 
   try {
     await transaction(async (client) => {
+      if (authorizationProof) {
+        await assertAccountDeleteAuthorizationProof(client, userId, authorizationProof);
+      }
       if (requireUnverifiedRegistered) {
         const target = await client.query(
           `SELECT user_kind, email_verified_at

@@ -89,3 +89,47 @@ export function applySecurityHeaders(reply, { nodeEnv, cspMode } = {}) {
   const trustedTypesReportOnly = buildTrustedTypesReportOnlyPolicy({ nodeEnv, cspMode });
   if (trustedTypesReportOnly) reply.header(trustedTypesReportOnly.header, trustedTypesReportOnly.value);
 }
+
+function mergeVaryHeader(current, required) {
+  const values = new Map();
+  const add = (value) => {
+    for (const part of String(value || "").split(",")) {
+      const normalized = part.trim();
+      if (normalized) values.set(normalized.toLowerCase(), normalized);
+    }
+  };
+  if (Array.isArray(current)) current.forEach(add);
+  else add(current);
+  required.forEach(add);
+  return [...values.values()].join(", ");
+}
+
+export function isSensitiveApiResponse(request, reply) {
+  const pathname = String(request?.url || "").split("?")[0];
+  if (pathname === "/metrics") return true;
+  if (!pathname.startsWith("/api/")) return false;
+  if (
+    request?.method === "GET"
+    && pathname.startsWith("/api/account/portal-avatars/")
+    && reply?.statusCode < 400
+  ) return false;
+  if (/^\/api\/(?:auth|account|ops|health)(?:\/|$)/u.test(pathname)) return true;
+  return Boolean(
+    request?.actorId
+    || request?.headers?.authorization
+    || request?.headers?.cookie
+    || reply?.getHeader?.("set-cookie")
+  );
+}
+
+export function applySensitiveResponseHeaders(request, reply) {
+  if (!isSensitiveApiResponse(request, reply)) return;
+  reply.header("Cache-Control", "private, no-store, no-transform, max-age=0");
+  reply.header("Pragma", "no-cache");
+  reply.header("Expires", "0");
+  reply.header("Surrogate-Control", "no-store");
+  reply.header(
+    "Vary",
+    mergeVaryHeader(reply.getHeader?.("vary"), ["Origin", "Authorization", "Cookie"])
+  );
+}

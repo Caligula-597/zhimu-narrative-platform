@@ -1,5 +1,5 @@
 import { randomBytes, createHash } from "node:crypto";
-import { query } from "./db.js";
+import { query, transaction } from "./db.js";
 import { USER_KIND } from "./capabilities.js";
 import { throwErr } from "./api-errors.js";
 
@@ -30,59 +30,53 @@ export async function createWorldMemberInvite({ worldId, email, role, invitedByU
   return { ...result.rows[0], token };
 }
 
-export async function acceptWorldMemberInvitesForEmail(userId, email) {
-  const normalized = email.trim().toLowerCase();
-  const pending = await query(
-    `SELECT id, world_id, role
-     FROM world_member_invites
-     WHERE lower(email) = $1 AND accepted_at IS NULL AND expires_at > now()`,
-    [normalized]
-  );
-
-  const accepted = [];
-  for (const invite of pending.rows) {
-    await query(
-      `INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, $3)
-       ON CONFLICT (world_id, user_id) DO UPDATE SET role = EXCLUDED.role`,
-      [invite.world_id, userId, invite.role]
+export async function acceptWorldMemberInviteToken(
+  userId,
+  token,
+  { transactionRunner = transaction } = {}
+) {
+  return transactionRunner(async (client) => {
+    const kindResult = await client.query(
+      `SELECT user_kind, email FROM users WHERE id = $1 FOR UPDATE`,
+      [userId]
     );
-    await query(
+    if (!kindResult.rowCount) throwErr("USER_NOT_FOUND");
+    if (kindResult.rows[0].user_kind === USER_KIND.GUEST) throwErr("GUEST_ACCOUNT_RESTRICTED");
+
+    // Lock before validating, then consume only after the authenticated email
+    // matches. A wrong-account click must never burn a valid invitation.
+    const pending = await client.query(
+      `SELECT id, world_id, role, email
+       FROM world_member_invites
+       WHERE token_hash = $1 AND expires_at > now() AND accepted_at IS NULL
+       FOR UPDATE`,
+      [tokenHash(token.trim())]
+    );
+    if (!pending.rowCount) throwErr("WORLD_INVITE_INVALID");
+
+    const invite = pending.rows[0];
+    const userEmail = kindResult.rows[0].email?.trim().toLowerCase();
+    if (!userEmail || userEmail !== invite.email.trim().toLowerCase()) {
+      throwErr("WORLD_INVITE_EMAIL_MISMATCH");
+    }
+
+    const accepted = await client.query(
       `UPDATE world_member_invites
        SET accepted_at = now(), accepted_by_user_id = $2
-       WHERE id = $1`,
+       WHERE id = $1 AND accepted_at IS NULL
+       RETURNING world_id, role`,
       [invite.id, userId]
     );
-    accepted.push({ worldId: invite.world_id, role: invite.role });
-  }
-  return accepted;
-}
+    if (!accepted.rowCount) throwErr("WORLD_INVITE_INVALID");
 
-export async function acceptWorldMemberInviteToken(userId, token) {
-  const kindResult = await query(`SELECT user_kind, email FROM users WHERE id = $1`, [userId]);
-  if (!kindResult.rowCount) throwErr("USER_NOT_FOUND");
-  if (kindResult.rows[0].user_kind === USER_KIND.GUEST) throwErr("GUEST_ACCOUNT_RESTRICTED");
-
-  const result = await query(
-    `UPDATE world_member_invites
-     SET accepted_at = now(), accepted_by_user_id = $2
-     WHERE token_hash = $1 AND expires_at > now() AND accepted_at IS NULL
-     RETURNING world_id, role, email`,
-    [tokenHash(token.trim()), userId]
-  );
-  if (!result.rowCount) throwErr("WORLD_INVITE_INVALID");
-
-  const { world_id: worldId, role, email } = result.rows[0];
-  const userEmail = kindResult.rows[0].email?.trim().toLowerCase();
-  if (!userEmail || userEmail !== email.trim().toLowerCase()) {
-    throwErr("WORLD_INVITE_EMAIL_MISMATCH");
-  }
-
-  await query(
-    `INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, $3)
-     ON CONFLICT (world_id, user_id) DO UPDATE SET role = EXCLUDED.role`,
-    [worldId, userId, role]
-  );
-  return { worldId, role };
+    const { world_id: worldId, role } = accepted.rows[0];
+    await client.query(
+      `INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, $3)
+       ON CONFLICT (world_id, user_id) DO UPDATE SET role = EXCLUDED.role`,
+      [worldId, userId, role]
+    );
+    return { worldId, role };
+  });
 }
 
 export async function listPendingWorldInvites(worldId) {

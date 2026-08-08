@@ -10,6 +10,7 @@ import { explainRateLimitTopology, resolveRateLimitTopology } from "./network-tr
 import { isEmailVerificationRequired } from "./email-verification-policy.js";
 import { hasEmailVerificationCodeSecret } from "./email-verification-code.js";
 import { validatePlayContentBlocklist } from "./play-content-moderation.js";
+import { sessionBearerResponseEnabled } from "./session-cookie.js";
 
 const REQUIRED_ENV = ["DATABASE_URL"];
 
@@ -33,6 +34,11 @@ export function validateStartupEnvironment() {
     console.error("FATAL: wildcard CORS is forbidden in production while credentialed requests are enabled.");
     console.error("Configure explicit APP/MARKETING/PLAY/HOST origins instead of '*'.");
     process.exit(1);
+  }
+
+  if (nodeEnv === "production" && sessionBearerResponseEnabled(nodeEnv)) {
+    console.warn("WARN: SESSION_BEARER_RESPONSE_ENABLED=true exposes session tokens to browser JavaScript.");
+    console.warn("WARN: Use only as a temporary compatibility fallback; the secure_sessions ops gate will remain closed.");
   }
 
   const port = Number(process.env.PORT ?? 4180);
@@ -69,8 +75,9 @@ export function validateStartupEnvironment() {
     if (!process.env.OPS_API_TOKEN?.trim()) {
       console.warn("WARN: OPS_API_TOKEN is empty — /api/ops/* endpoints reject all requests in production.");
     }
-    if (!process.env.LLM_CREDENTIALS_SECRET?.trim() && !process.env.OPS_API_TOKEN?.trim()) {
-      console.warn("WARN: LLM_CREDENTIALS_SECRET is empty — users cannot save BYOK API keys until configured.");
+    if ((process.env.LLM_CREDENTIALS_SECRET?.trim().length ?? 0) < 32) {
+      console.warn("WARN: LLM_CREDENTIALS_SECRET must be an independent secret of at least 32 characters.");
+      console.warn("WARN: users cannot save or use BYOK API keys until it is configured; OPS_API_TOKEN is not reused for encryption in production.");
     }
     if (!process.env.METRICS_TOKEN?.trim()) {
       console.warn("WARN: METRICS_TOKEN is empty — /metrics endpoint rejects all requests in production.");

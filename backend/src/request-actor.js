@@ -2,8 +2,9 @@ import { throwErr } from "./api-errors.js";
 import { readSessionCookie } from "./session-cookie.js";
 
 export function bearerToken(request) {
-  const authorization = request.headers.authorization;
-  return authorization?.startsWith("Bearer ") ? authorization.slice(7) : "";
+  const authorization = String(request.headers.authorization || "");
+  const match = authorization.match(/^Bearer ([A-Za-z0-9_-]{16,128})$/iu);
+  return match?.[1] || "";
 }
 
 export function resolveSessionToken(request) {
@@ -13,15 +14,23 @@ export function resolveSessionToken(request) {
 }
 
 export async function resolveRequestActor(request, { resolveSession, allowDemoUserHeader = false }) {
-  const token = resolveSessionToken(request);
-  if (token) {
-    const ctx = await resolveSession(token);
+  const bearer = bearerToken(request);
+  const cookie = readSessionCookie(request);
+  const candidates = [
+    bearer ? { token: bearer, transport: "bearer" } : null,
+    cookie && cookie !== bearer ? { token: cookie, transport: "cookie" } : null
+  ].filter(Boolean);
+
+  request.authTransport = null;
+  for (const candidate of candidates) {
+    const ctx = await resolveSession(candidate.token);
     const actorId = typeof ctx === "object" && ctx !== null ? ctx.userId : ctx;
     const sessionId = typeof ctx === "object" && ctx !== null ? ctx.sessionId : null;
     if (actorId) {
       request.actorId = actorId;
       request.sessionId = sessionId;
       request.authSource = "session";
+      request.authTransport = candidate.transport;
       return actorId;
     }
   }

@@ -4,6 +4,7 @@
  */
 import { traceRequestHeaders } from "./trace-context.js";
 import { isKnownApiErrorCode } from "./contracts/error-codes.js";
+import { secureRandomId } from "./secure-random.js";
 
 /**
  * @param {Response} response
@@ -133,8 +134,7 @@ export function createApiFetch(config) {
 
 /** @param {string} [prefix='idem'] */
 export function createIdempotencyKey(prefix = "idem") {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return secureRandomId(prefix);
 }
 
 /** Sticky keys so double-click / short retries reuse the same claim window. */

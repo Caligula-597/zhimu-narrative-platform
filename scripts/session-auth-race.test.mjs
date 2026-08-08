@@ -46,6 +46,12 @@ test("Creator can discard a rejected legacy bearer without hiding a valid cookie
   assert.equal(auth.isAuthenticated(), true);
   assert.equal(userStore.get().currentUser?.id, "user-1");
 
+  auth.markAuthenticated("another-stale-bearer-123456");
+  assert.equal(auth.legacyToken(), "another-stale-bearer-123456");
+  auth.markAuthenticated();
+  assert.equal(auth.legacyToken(), null);
+  assert.equal(auth.isAuthenticated(), true);
+
   auth.markLoggedOut();
   assert.equal(auth.isAuthenticated(), false);
   assert.equal(userStore.get().currentUser, null);

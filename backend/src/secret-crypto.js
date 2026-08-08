@@ -1,13 +1,23 @@
 /**
  * AES-256-GCM for user-supplied API keys at rest.
- * Requires LLM_CREDENTIALS_SECRET (or OPS_API_TOKEN fallback) in production.
+ * Production requires an independent LLM_CREDENTIALS_SECRET. Development may
+ * fall back to OPS_API_TOKEN so local setups remain convenient.
  */
 import crypto from "node:crypto";
 
 const PREFIX = "zhimu1:";
+const PRODUCTION_SECRET_MIN_LENGTH = 32;
+
+function encryptionSecret() {
+  const dedicated = process.env.LLM_CREDENTIALS_SECRET?.trim() || "";
+  if (process.env.NODE_ENV === "production") {
+    return dedicated.length >= PRODUCTION_SECRET_MIN_LENGTH ? dedicated : null;
+  }
+  return dedicated || process.env.OPS_API_TOKEN?.trim() || null;
+}
 
 function deriveKey() {
-  const secret = process.env.LLM_CREDENTIALS_SECRET?.trim() || process.env.OPS_API_TOKEN?.trim();
+  const secret = encryptionSecret();
   if (!secret) return null;
   return crypto.createHash("sha256").update(`${PREFIX}key:${secret}`).digest();
 }

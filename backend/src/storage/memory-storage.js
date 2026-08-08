@@ -1,4 +1,5 @@
 import { Readable } from "node:stream";
+import { createHash } from "node:crypto";
 import { ObjectStorage } from "./object-storage.js";
 
 const objects = new Map();
@@ -42,7 +43,23 @@ export class MemoryStorage extends ObjectStorage {
     objects.set(key, {
       body: buffer,
       contentType: contentType || "application/octet-stream",
-      etag: `"memory-${buffer.length}-${Date.now()}"`
+      etag: `"${createHash("sha256").update(buffer).digest("hex")}"`
+    });
+  }
+
+  async copyObjectIfUnchanged({ sourceKey, destinationKey, sourceEtag, contentType }) {
+    const source = objects.get(sourceKey);
+    if (!source) throw new Error(`Object not found: ${sourceKey}`);
+    if (sourceEtag && source.etag !== sourceEtag) {
+      throw Object.assign(new Error("Upload source changed before promotion"), {
+        code: "OBJECT_PRECONDITION_FAILED"
+      });
+    }
+    const body = Buffer.from(source.body);
+    objects.set(destinationKey, {
+      body,
+      contentType: contentType || source.contentType,
+      etag: `"${createHash("sha256").update(body).digest("hex")}"`
     });
   }
 }

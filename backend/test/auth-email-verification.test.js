@@ -250,6 +250,30 @@ test("registering an existing unverified email returns a pending-verification st
   });
 });
 
+test("unverified password login returns a challenge without issuing a session", async (context) => {
+  await withVerificationEnv(async () => {
+    const app = await createApp({ logger: false, allowDemoUserHeader: false });
+    context.after(() => app.close());
+
+    const email = `verify-login-${Date.now()}@example.invalid`;
+    await app.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload: { displayName: "待验证登录", email, password: "pass-word-12345" }
+    });
+    const login = await app.inject({
+      method: "POST",
+      url: "/api/auth/login",
+      payload: { email, password: "pass-word-12345" }
+    });
+    assert.equal(login.statusCode, 200, login.body);
+    assert.equal(login.json().pendingEmailVerification, true);
+    assert.ok(login.json().verificationChallenge?.id);
+    assert.equal(login.json().token, undefined);
+    assert.equal(login.headers["set-cookie"], undefined);
+  });
+});
+
 test("verify-email rejects reused token", async (context) => {
   await withVerificationEnv(async () => {
     const app = await createApp({ logger: false, allowDemoUserHeader: false });

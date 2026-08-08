@@ -33,3 +33,23 @@ test("external cancellation remains distinguishable from an upstream timeout", a
   controller.abort(new Error("caller cancelled"));
   assert.equal(createUpstreamSignal(1000, controller.signal), controller.signal);
 });
+
+test("credentialed upstream requests never follow redirects", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+  globalThis.fetch = async (_url, init) => {
+    captured = init;
+    return new Response(null, { status: 302, headers: { location: "https://redirect.invalid" } });
+  };
+  try {
+    const response = await fetchUpstream(
+      "https://provider.invalid",
+      { redirect: "follow", headers: { authorization: "Bearer secret" } },
+      { timeoutMs: 1000 }
+    );
+    assert.equal(response.status, 302);
+    assert.equal(captured.redirect, "manual");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

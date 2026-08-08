@@ -3,6 +3,7 @@ import { promisify } from "node:util";
 import { query } from "./db.js";
 import { createAuthToken, hashAuthToken } from "./auth-token.js";
 import { USER_KIND } from "./capabilities.js";
+import { isEmailVerificationRequired } from "./email-verification-policy.js";
 
 const scrypt = promisify(scryptCallback);
 const DUMMY_PASSWORD_SALT = "00000000000000000000000000000000";
@@ -117,13 +118,20 @@ export async function resolveSession(token) {
 export async function resolveSessionContext(token) {
   if (!token) return null;
   const touchSeconds = resolveSessionTouchIntervalSeconds();
+  const verificationRequired = isEmailVerificationRequired();
   const result = await query(
     `WITH valid AS MATERIALIZED (
-       SELECT user_id, id, last_seen_at
-       FROM auth_sessions
-       WHERE token_hash = $1
-         AND expires_at > now()
-         AND revoked_at IS NULL
+       SELECT session.user_id, session.id, session.last_seen_at
+       FROM auth_sessions session
+       INNER JOIN users identity ON identity.id = session.user_id
+       WHERE session.token_hash = $1
+         AND session.expires_at > now()
+         AND session.revoked_at IS NULL
+         AND (
+           $3::boolean = false
+           OR identity.user_kind = 'guest'
+           OR identity.email_verified_at IS NOT NULL
+         )
      ), touched AS (
        UPDATE auth_sessions target
        SET last_seen_at = now()
@@ -133,7 +141,7 @@ export async function resolveSessionContext(token) {
        RETURNING target.id
      )
      SELECT user_id, id AS session_id FROM valid`,
-    [hashAuthToken(token), touchSeconds]
+    [hashAuthToken(token), touchSeconds, verificationRequired]
   );
   const row = result.rows[0];
   if (!row) return null;
