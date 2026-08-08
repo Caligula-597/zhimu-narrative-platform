@@ -18,6 +18,8 @@ function git(...args) {
 }
 
 const checks = [
+  { name: "secret-exposure", command: npmCommand, args: [...npmPrefixArgs, "run", "check:secret-exposure"], cwd: root },
+  { name: "security-baseline", command: npmCommand, args: [...npmPrefixArgs, "run", "check:security-baseline"], cwd: root },
   { name: "documentation-consistency", command: npmCommand, args: [...npmPrefixArgs, "run", "check:docs"], cwd: root },
   { name: "source-encoding", command: npmCommand, args: [...npmPrefixArgs, "run", "check:source-encoding"], cwd: root },
   { name: "innerhtml-budget", command: npmCommand, args: [...npmPrefixArgs, "run", "audit:innerhtml"], cwd: root },
@@ -30,6 +32,7 @@ const checks = [
   { name: "bundle-budgets", command: npmCommand, args: [...npmPrefixArgs, "run", "check:bundle-budgets"], cwd: root },
   { name: "sse-fault-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:sse-matrix"], cwd: root },
   { name: "auth-failure-matrix", command: npmCommand, args: [...npmPrefixArgs, "run", "test:auth-matrix"], cwd: root },
+  { name: "secure-random-identifiers", command: npmCommand, args: [...npmPrefixArgs, "run", "test:secure-random"], cwd: root },
   { name: "performance-tools", command: npmCommand, args: [...npmPrefixArgs, "run", "test:performance-tools"], cwd: root },
   { name: "release-gates", command: npmCommand, args: [...npmPrefixArgs, "run", "test:release-gates"], cwd: root },
   { name: "trusted-types-contract", command: npmCommand, args: [...npmPrefixArgs, "run", "test:trusted-types"], cwd: root },
@@ -42,6 +45,12 @@ const checks = [
 ];
 
 if (includeSecurity) {
+  checks.push({
+    name: "pure-security-regression",
+    command: npmCommand,
+    args: [...npmPrefixArgs, "run", "test:security:pure"],
+    cwd: root
+  });
   for (const directory of [".", "backend", "host", "play", "site"]) {
     checks.push({
       name: `npm-audit-${directory === "." ? "root" : directory}`,
