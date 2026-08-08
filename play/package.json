@@ -14,7 +14,7 @@
     "check": "npm run build && npm test"
   },
   "dependencies": {
-    "livekit-client": "^2.15.3"
+    "livekit-client": "^2.21.0"
   },
   "devDependencies": {
     "@emnapi/core": "1.11.2",
