@@ -51,7 +51,7 @@ const verificationResendRateLimit = createRateLimiter({
   windowMs: 15 * 60_000,
   max: Number(process.env.RATE_LIMIT_VERIFICATION_RESEND_MAX ?? 3),
   routeKey: "verification-resend",
-  identity: "actor"
+  identity: "verification-challenge"
 });
 const betaApplyRateLimit = createRateLimiter({
   windowMs: 3_600_000,

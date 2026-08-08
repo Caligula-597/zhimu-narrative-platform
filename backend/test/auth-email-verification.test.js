@@ -41,12 +41,6 @@ function withVerificationEnv(fn) {
   });
 }
 
-function sessionCookieFrom(response) {
-  const header = String(response.headers["set-cookie"] || "");
-  assert.match(header, /zhimu_session=/u);
-  return header.split(";", 1)[0];
-}
-
 test("GET /auth/config exposes verification policy without provider details", async (context) => {
   await withVerificationEnv(async () => {
     const app = await createApp({ logger: false, allowDemoUserHeader: false });
@@ -311,7 +305,7 @@ test("verify-email rejects reused token", async (context) => {
   });
 });
 
-test("resend-verification requires authenticated session", async (context) => {
+test("unverified login cannot call the legacy session-based resend route", async (context) => {
   await withVerificationEnv(async () => {
     const app = await createApp({ logger: false, allowDemoUserHeader: false });
     context.after(() => app.close());
@@ -330,16 +324,16 @@ test("resend-verification requires authenticated session", async (context) => {
       payload: { email, password: "pass-word-12345" }
     });
     assert.equal(login.statusCode, 200);
-    const sessionCookie = sessionCookieFrom(login);
+    assert.equal(login.json().pendingEmailVerification, true);
     assert.equal(login.json().token, undefined);
+    assert.equal(login.headers["set-cookie"], undefined);
 
     clearTestEmailCapture();
     const resend = await app.inject({
       method: "POST",
-      url: "/api/auth/resend-verification",
-      headers: { cookie: sessionCookie }
+      url: "/api/auth/resend-verification"
     });
-    assert.equal(resend.statusCode, 200);
-    assert.ok(peekTestVerifyUrl());
+    assert.equal(resend.statusCode, 401);
+    assert.equal(peekTestVerifyUrl(), null);
   });
 });

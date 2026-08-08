@@ -69,12 +69,6 @@ async function requestResetToken(app, email) {
   return new URL(resetUrl).searchParams.get("reset");
 }
 
-function sessionCookieFrom(response) {
-  const header = String(response.headers["set-cookie"] || "");
-  assert.match(header, /zhimu_session=/u);
-  return header.split(";", 1)[0];
-}
-
 test("auth recovery maps lock and statement failures to stable retry contracts", () => {
   const busy = normalizeAuthRecoveryError({ code: "55P03" });
   assert.equal(busy.statusCode, 409);
@@ -289,29 +283,44 @@ test("concurrent email verification creates one session and rejects the replay",
   });
 });
 
-test("verification resend is limited independently per authenticated account", async (context) => {
+test("verification resend is limited independently per anonymous challenge", async (context) => {
   await withEmailEnvironment({ requireVerification: true }, async () => {
     const app = await createApp({ logger: false, allowDemoUserHeader: false, rateLimit: true });
     context.after(() => app.close());
     const email = `verify-limit-${Date.now()}@example.invalid`;
-    await register(app, { email });
-    const login = await app.inject({
-      method: "POST",
-      url: "/api/auth/login",
-      payload: { email, password: "old-pass-12345" }
-    });
-    assert.equal(login.statusCode, 200, login.body);
-    assert.equal(login.json().token, undefined);
-    const headers = { cookie: sessionCookieFrom(login) };
+    const registration = await register(app, { email });
+    const challengeId = registration.verificationChallenge.id;
     const responses = [];
     for (let index = 0; index < 4; index += 1) {
+      await query(
+        `UPDATE email_verification_tokens
+         SET last_sent_at = now() - interval '61 seconds'
+         WHERE challenge_id = $1`,
+        [challengeId]
+      );
       responses.push(await app.inject({
         method: "POST",
-        url: "/api/auth/resend-verification",
-        headers
+        url: "/api/auth/resend-verification-code",
+        payload: { challengeId }
       }));
     }
     assert.deepEqual(responses.map((response) => response.statusCode), [200, 200, 200, 429]);
     assert.equal(responses[3].headers["ratelimit-limit"], "3");
+
+    const other = await register(app, {
+      email: `verify-limit-other-${Date.now()}@example.invalid`
+    });
+    await query(
+      `UPDATE email_verification_tokens
+       SET last_sent_at = now() - interval '61 seconds'
+       WHERE challenge_id = $1`,
+      [other.verificationChallenge.id]
+    );
+    const independent = await app.inject({
+      method: "POST",
+      url: "/api/auth/resend-verification-code",
+      payload: { challengeId: other.verificationChallenge.id }
+    });
+    assert.equal(independent.statusCode, 200, independent.body);
   });
 });

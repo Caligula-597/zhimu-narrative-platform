@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-08-08T08:03:13.616Z",
+  "generatedAt": "2026-08-08T08:57:08.774Z",
   "source": {
-    "gitCommit": "01ef38f",
+    "gitCommit": "af96270",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
     "tests": {
-      "declarations": 1227,
+      "declarations": 1228,
       "files": 286
     },
     "migrations": 109,

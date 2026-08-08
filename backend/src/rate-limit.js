@@ -12,6 +12,15 @@ function requestIp(request) {
 
 function bucketKey(request, routeKey, identity) {
   if (identity === "ip") return `${routeKey}:ip:${requestIp(request)}`;
+  if (identity === "verification-challenge") {
+    if (request.actorId) return `${routeKey}:actor:${request.actorId}`;
+    const challengeId = typeof request.body?.challengeId === "string"
+      ? request.body.challengeId.trim()
+      : "";
+    return challengeId
+      ? `${routeKey}:challenge:${challengeId}`
+      : `${routeKey}:anonymous-ip:${requestIp(request)}`;
+  }
   if (identity === "actor") {
     return request.actorId
       ? `${routeKey}:actor:${request.actorId}`
@@ -46,7 +55,7 @@ export function createRateLimiter({
   const resolvedMax = Number.isInteger(Number(max)) && Number(max) >= 1
     ? Math.min(Number(max), 1_000_000)
     : 30;
-  const resolvedIdentity = ["actor", "ip", "actor-or-ip"].includes(identity)
+  const resolvedIdentity = ["actor", "ip", "actor-or-ip", "verification-challenge"].includes(identity)
     ? identity
     : "actor-or-ip";
   return async function rateLimitHook(request, reply) {
