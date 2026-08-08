@@ -1630,6 +1630,11 @@ code {
   background: #f2e5d4;
 }
 
+.mechanism-kind-label.is-ballot {
+  color: #5d3d79;
+  background: #eee3f5;
+}
+
 .mechanism-deadline {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
@@ -1744,6 +1749,126 @@ code {
   color: var(--muted);
   font-size: 10px;
   line-height: 1.5;
+}
+
+.mechanism-ranking,
+.mechanism-allocation {
+  display: grid;
+  gap: 9px;
+}
+
+.mechanism-ranking-list,
+.mechanism-allocation-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mechanism-ranking-list > li,
+.mechanism-allocation-list > label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid rgba(20, 35, 33, 0.09);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.mechanism-ranking-list > li > b {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--accent);
+  font-size: 11px;
+}
+
+.mechanism-ranking-list strong,
+.mechanism-allocation-list strong,
+.mechanism-ranking-list span,
+.mechanism-allocation-list span,
+.mechanism-ranking-list p,
+.mechanism-allocation-list p,
+.mechanism-ranking-list small,
+.mechanism-allocation-list small {
+  display: block;
+  margin: 0;
+}
+
+.mechanism-ranking-list strong,
+.mechanism-allocation-list strong {
+  color: var(--green);
+  font-size: 12px;
+}
+
+.mechanism-ranking-list p,
+.mechanism-allocation-list p,
+.mechanism-ranking-list small,
+.mechanism-allocation-list small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.mechanism-rank-controls {
+  display: flex !important;
+  gap: 4px;
+}
+
+.mechanism-rank-controls button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(20, 35, 33, 0.12);
+  border-radius: 8px;
+  color: var(--accent);
+  background: #fff;
+  cursor: pointer;
+}
+
+.mechanism-rank-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.mechanism-allocation-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.mechanism-allocation-head small {
+  color: var(--muted);
+}
+
+.mechanism-allocation-list > label > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mechanism-allocation-list input {
+  width: 74px;
+  padding: 7px 8px;
+  border: 1px solid rgba(20, 35, 33, 0.14);
+  border-radius: 8px;
+  color: var(--green);
+  background: #fff;
+  font: inherit;
+  font-weight: 800;
+}
+
+.mechanism-allocation-list em {
+  color: var(--muted);
+  font-size: 10px;
+  font-style: normal;
 }
 
 @media (max-width: 560px) {

@@ -57,6 +57,7 @@ export function authHeaders(userId, extra = {}) {
 }
 
 export function markSessionFromResponse(result) {
+  if (result?.pendingEmailVerification) return result;
   if (result?.token) sessionAuth().markAuthenticated?.(result.token);
   else if (result?.user?.id) sessionAuth().markAuthenticated?.();
   return result;
@@ -165,8 +166,7 @@ const apiClient = createPortalApiClient({
   },
   afterSuccess(path, payload) {
     if (/^\/auth\/(login|register|guest|upgrade|verify-email|oauth\/complete)/.test(path)) {
-      if (payload.token) sessionAuth().markAuthenticated?.(payload.token);
-      else markSessionFromResponse(payload);
+      markSessionFromResponse(payload);
     }
   },
   async onHttpError(path, options, err, attempt, requestMeta = {}) {

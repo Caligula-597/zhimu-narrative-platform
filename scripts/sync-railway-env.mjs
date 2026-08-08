@@ -182,7 +182,14 @@ if (local.LLM_CREDENTIALS_SECRET?.trim()) {
 env.PLATFORM_LLM_USER_ACCESS = "false";
 env.HTTP_REQUEST_TIMEOUT_MS = local.HTTP_REQUEST_TIMEOUT_MS?.trim() || "120000";
 env.SESSION_LAST_SEEN_TOUCH_SECONDS = local.SESSION_LAST_SEEN_TOUCH_SECONDS?.trim() || "300";
+// Keep bearer tokens out of browser-visible JSON. HttpOnly cookies are the
+// production session transport across app/host/play subdomains.
+env.SESSION_BEARER_RESPONSE_ENABLED = "false";
 env.SSE_MAX_BUFFERED_BYTES = local.SSE_MAX_BUFFERED_BYTES?.trim() || "1048576";
+env.SSE_MAX_CONNECTION_AGE_MS = local.SSE_MAX_CONNECTION_AGE_MS?.trim() || "300000";
+env.SSE_MAX_CONNECTIONS_PER_ACTOR = local.SSE_MAX_CONNECTIONS_PER_ACTOR?.trim() || "8";
+env.SSE_MAX_CONNECTIONS_PER_IP = local.SSE_MAX_CONNECTIONS_PER_IP?.trim() || "64";
+env.SSE_MAX_CONNECTIONS_TOTAL = local.SSE_MAX_CONNECTIONS_TOTAL?.trim() || "2000";
 env.APP_PUBLIC_URL = publicUrl;
 // Keep the standalone host portal compatible with the currently deployed API,
 // including releases that predate HOST_SITE_ORIGIN-aware CORS resolution.
@@ -216,6 +223,8 @@ env.CSP_MODE = "enforce";
 env.UPLOAD_SCAN_MODE = "strict";
 env.OTEL_ENABLED = "true";
 env.OTEL_SERVICE_NAME = env.OTEL_SERVICE_NAME || "zhimu-api";
+env.RATE_LIMIT_API_IP_MAX = local.RATE_LIMIT_API_IP_MAX?.trim() || "600";
+env.HEALTH_STATUS_CACHE_MS = local.HEALTH_STATUS_CACHE_MS?.trim() || "1000";
 env.RATE_LIMIT_AUTH_MAX = "20";
 env.RATE_LIMIT_AUTH_RECOVERY_MAX = "6";
 env.RATE_LIMIT_VERIFICATION_RESEND_MAX = "3";

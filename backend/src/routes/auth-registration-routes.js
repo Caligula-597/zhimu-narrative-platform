@@ -5,7 +5,7 @@ import {
   upgradeGuestIdentity
 } from "../auth-registration-service.js";
 import { requireActor } from "../request-actor.js";
-import { getEmailServiceStatus } from "../email.js";
+import { getPublicEmailServiceStatus } from "../email.js";
 import { isEmailVerificationRequired } from "../email-verification-policy.js";
 import { listEnabledOAuthProviders } from "../oauth-providers.js";
 import {
@@ -17,7 +17,7 @@ import {
 export async function registerAuthRegistrationRoutes(app) {
   app.get("/api/auth/config", async () => ({
     requireEmailVerification: isEmailVerificationRequired(),
-    email: getEmailServiceStatus(),
+    email: getPublicEmailServiceStatus(),
     oauth: listEnabledOAuthProviders()
   }));
 

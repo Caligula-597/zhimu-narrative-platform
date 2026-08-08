@@ -177,15 +177,6 @@ test("accept invite token requires matching registered email", async (context) =
     await query(`DELETE FROM users WHERE id = $1`, [userId]);
   });
 
-  const accepted = await app.inject({
-    method: "POST",
-    url: "/api/worlds/invites/accept",
-    headers: { authorization: `Bearer ${userToken}` },
-    payload: { token: invite.token }
-  });
-  assert.equal(accepted.statusCode, 200, accepted.body);
-  assert.equal(accepted.json().role, "host");
-
   const mismatchUser = await app.inject({
     method: "POST",
     url: "/api/auth/register",
@@ -201,10 +192,28 @@ test("accept invite token requires matching registered email", async (context) =
     method: "POST",
     url: "/api/worlds/invites/accept",
     headers: { authorization: `Bearer ${otherToken}` },
-    payload: { token: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }
+    payload: { token: invite.token }
   });
-  assert.equal(mismatch.statusCode, 400);
-  assert.equal(mismatch.json().code, "WORLD_INVITE_INVALID");
+  assert.equal(mismatch.statusCode, 403);
+  assert.equal(mismatch.json().code, "WORLD_INVITE_EMAIL_MISMATCH");
+
+  const stillPending = await query(
+    `SELECT accepted_at, accepted_by_user_id
+     FROM world_member_invites
+     WHERE id = $1`,
+    [invite.id]
+  );
+  assert.equal(stillPending.rows[0]?.accepted_at, null);
+  assert.equal(stillPending.rows[0]?.accepted_by_user_id, null);
+
+  const accepted = await app.inject({
+    method: "POST",
+    url: "/api/worlds/invites/accept",
+    headers: { authorization: `Bearer ${userToken}` },
+    payload: { token: invite.token }
+  });
+  assert.equal(accepted.statusCode, 200, accepted.body);
+  assert.equal(accepted.json().role, "host");
 });
 
 test("owner can revoke and resend pending invite", async (context) => {

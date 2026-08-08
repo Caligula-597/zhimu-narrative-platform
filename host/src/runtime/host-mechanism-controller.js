@@ -54,6 +54,16 @@ export function createHostMechanismController({ render, showToast }) {
       );
       return true;
     }
+    if (action === "host-mechanism-majority") {
+      await run("按多数结果结算", () =>
+        submitHostMechanismAction({
+          type: "decision",
+          source: "majority",
+          decisionKey: element?.dataset?.decisionKey || "",
+        }),
+      );
+      return true;
+    }
     if (action === "host-mechanism-investigation") {
       await run("结算调查", () =>
         submitHostMechanismAction({

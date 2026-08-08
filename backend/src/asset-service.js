@@ -13,6 +13,7 @@ import {
 import { getObjectStorage } from "./storage/index.js";
 import { scanUploadedObject } from "./upload-scan.js";
 import { resolveSignedUploadTtlSeconds } from "./asset-lifetime-policy.js";
+import { promoteScannedObject } from "./upload-object-promotion.js";
 
 const ASSET_VISIBILITIES = new Set(["author", "host", "role", "public"]);
 
@@ -84,6 +85,15 @@ export async function inspectAndScanAssetUpload(actorId, assetId) {
       byteSize: stat.byteSize,
       filename: session.original_filename
     });
+    const finalObjectKey = `users/${actorId}/worlds/${session.world_id}/assets/published/${randomUUID()}`;
+    await promoteScannedObject({
+      sourceKey: session.object_key,
+      destinationKey: finalObjectKey,
+      sourceEtag: stat.etag,
+      contentType: stat.contentType,
+      byteSize: stat.byteSize
+    });
+    return { session, stat, finalObjectKey };
   } catch (error) {
     if (["UPLOAD_SCAN_INFECTED", "UPLOAD_SCAN_FAILED", "UPLOAD_SCAN_SPOOFED"].includes(error.code)) {
       await getObjectStorage().deleteObject({ key: session.object_key }).catch(() => {});
@@ -91,5 +101,4 @@ export async function inspectAndScanAssetUpload(actorId, assetId) {
     }
     throw error;
   }
-  return { session, stat };
 }

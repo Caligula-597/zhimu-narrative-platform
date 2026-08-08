@@ -1,3 +1,5 @@
+import { secureRandomId } from "../../../shared/secure-random.js";
+
 export const HOST_ARCHIVE_LIMITS = Object.freeze({
   TITLE: 120,
   DESCRIPTION: 2000
@@ -17,8 +19,7 @@ export const HOST_ARCHIVE_KINDS = Object.freeze({
 });
 
 function requestId(prefix) {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) return `${prefix}-${crypto.randomUUID()}`;
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return secureRandomId(prefix);
 }
 
 function blankDraft() {
@@ -36,7 +37,7 @@ export function createHostArchiveWorkspace({ room, kind = "checkpoint" }) {
   const checkpoint = blankDraft();
   const recap = blankDraft();
   return {
-    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    id: secureRandomId("host-archive"),
     roomId: String(room?.id || ""),
     roomName: String(room?.name || "当前运行房"),
     kind: HOST_ARCHIVE_KINDS[kind] ? kind : "checkpoint",

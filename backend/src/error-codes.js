@@ -34,6 +34,7 @@ export const API_ERRORS = {
   PLAY_SOCIAL_ACCOUNT_TOO_NEW: { status: 403, message: "Account too new for social features" },
   ACCOUNT_DELETE_BLOCKED: { status: 403, message: "Account cannot be deleted in the current state" },
   ACCOUNT_DELETE_CONFIRMATION_INVALID: { status: 400, message: "Confirmation text does not match your display name" },
+  ACCOUNT_DELETE_REAUTHENTICATION_REQUIRED: { status: 403, message: "Confirm your password or sign in again before deleting this account" },
   PORTAL_PROFILE_INVALID: { status: 400, message: "Portal profile is invalid" },
   PORTAL_PROFILE_NOT_FOUND: { status: 404, message: "Portal profile not found" },
   PORTAL_PROFILE_NAME_TAKEN: { status: 409, message: "该端昵称已被使用" },
@@ -54,6 +55,7 @@ export const API_ERRORS = {
   OAUTH_LOGIN_CODE_INVALID: { status: 400, message: "OAuth login code is invalid or expired" },
 
   // Access control
+  CSRF_ORIGIN_FORBIDDEN: { status: 403, message: "Cross-site cookie request is not allowed" },
   FORBIDDEN: { status: 403, message: "无权执行此操作" },
   ROOM_MEMBERSHIP_REQUIRED: { status: 403, message: "需要加入该运行房后才能继续" },
   WORLD_EDITOR_REQUIRED: { status: 403, message: "需要剧本编辑权限（拥有者或编辑者）" },
@@ -166,7 +168,10 @@ export const API_ERRORS = {
   MECHANISM_ACTION_INVALID: { status: 400, message: "机制行动参数无效" },
   MECHANISM_ACTION_BLOCKED: { status: 409, message: "当前机制状态不允许执行该行动" },
   MECHANISM_TRANSITION_INVALID: { status: 422, message: "机制行动会产生非法状态或资源结果" },
+  MECHANISM_CONTENT_REFERENCE_INVALID: { status: 422, message: "机制结算引用的角色或线索不属于当前内容版本" },
   MECHANISM_DECISION_SUBMISSION_CLOSED: { status: 409, message: "当前机制选择已关闭或不接受玩家提交" },
+  MECHANISM_DECISION_SUBMISSION_INVALID: { status: 400, message: "本次机制输入不完整或格式无效" },
+  MECHANISM_MAJORITY_UNAVAILABLE: { status: 409, message: "当前没有可自动结算的唯一多数结果" },
   PLAYER_ROLE_REQUIRED: { status: 409, message: "Player role required" },
   ROLE_SLOT_OCCUPIED: { status: 409, message: "Role slot already occupied" },
   ROLE_SLOT_NOT_OCCUPIED: { status: 409, message: "No active player on this role seat" },

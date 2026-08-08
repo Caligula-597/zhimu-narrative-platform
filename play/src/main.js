@@ -26,6 +26,7 @@ import {
   refreshVoiceMessages,
   resetVoiceOnLeave,
   sendVoiceChatMessage,
+  setVoiceRenderCallback,
   submitCreateVoiceRoom,
   submitVoiceInvite,
   toggleVoiceMicLive,
@@ -53,7 +54,6 @@ import {
   setToast,
   state
 } from "./state.js";
-import { setVoiceRenderCallback } from "./voice/livekit-voice.js";
 import { createSessionController } from "./runtime/session-controller.js";
 import { createSocialController } from "./runtime/social-controller.js";
 import { resolveInitialRoute } from "./runtime/router.js";
@@ -61,21 +61,15 @@ import { runPlayStartup } from "./runtime/startup.js";
 import { createPlayViewController } from "./runtime/view-controller.js";
 import { bindPlayDomEvents } from "./runtime/dom-event-controller.js";
 import { bindPlayFormEvents } from "./runtime/form-controller.js";
-import { handlePlayStateAction } from "./runtime/state-action-controller.js";
-import { handlePlayVoiceAction } from "./runtime/voice-action-controller.js";
-import { handlePlaySocialAction } from "./runtime/social-action-controller.js";
-import { handlePlayGameAction } from "./runtime/game-action-controller.js";
-import { handlePlayClueAction } from "./runtime/clue-action-controller.js";
-import { handlePlayTabAction } from "./runtime/tab-action-controller.js";
-import { handlePlaySessionAction } from "./runtime/session-action-controller.js";
-import { handlePlayContentAction } from "./runtime/content-action-controller.js";
+import { canHandlePlayActionWhileBusy } from "./runtime/action-busy-policy.js";
+import { handleLazyPlayActionController } from "./runtime/lazy-action-controller.js";
 import { createAuthFlowController } from "./runtime/auth-flow-controller.js";
 import { createPlayerGameController } from "./runtime/player-game-controller.js";
 import { createPlayerHomeController } from "./runtime/player-home-controller.js";
 import { createPlayStreamController } from "./runtime/stream-controller.js";
 import { createRoomLifecycleController } from "./runtime/room-lifecycle-controller.js";
 import { createRecapNotebookController } from "./runtime/recap-notebook-controller.js";
-import { createPlayerProfileController } from "./runtime/profile-controller.js";
+import { createLazyPlayerProfileController } from "./runtime/lazy-profile-controller.js";
 
 const app = document.getElementById("app");
 
@@ -257,7 +251,7 @@ const {
   persistRoom, isUuid
 });
 
-const profile = createPlayerProfileController({
+const profile = createLazyPlayerProfileController({
   api,
   state,
   render,
@@ -297,26 +291,22 @@ bindPlayFormEvents({
 app.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-action]");
   if (!button) return;
-  if (
-    state.busy
-    && !["dismiss-error", "modal-close", "modal-backdrop-close", "voice-room", "voice-join"].includes(
-      button.dataset.action
-    )
-  ) {
+  if (state.busy && !canHandlePlayActionWhileBusy(button.dataset.action)) {
     return;
   }
   const action = button.dataset.action;
   if (await profile.handleAction(action, button)) return;
-  if (handlePlayStateAction({
+  if (await handleLazyPlayActionController("state", {
     action,
     button,
     event,
     state,
     render,
+    setToast,
     closeModalState,
     persistGameSidebarCollapsed
   })) return;
-  if (await handlePlayVoiceAction({
+  if (await handleLazyPlayActionController("voice", {
     action,
     button,
     render,
@@ -336,7 +326,7 @@ app.addEventListener("click", async (event) => {
     submitCreateVoiceRoom,
     submitVoiceInvite
   })) return;
-  if (await handlePlaySocialAction({
+  if (await handleLazyPlayActionController("social", {
     action,
     button,
     state,
@@ -362,7 +352,7 @@ app.addEventListener("click", async (event) => {
     ensureSession,
     handleLookupInvite
   })) return;
-  if (await handlePlayGameAction({
+  if (await handleLazyPlayActionController("game", {
     action,
     button,
     state,
@@ -379,7 +369,7 @@ app.addEventListener("click", async (event) => {
     handleInvestigate,
     handleMiniGameSubmit
   })) return;
-  if (await handlePlayClueAction({
+  if (await handleLazyPlayActionController("clue", {
     action,
     button,
     state,
@@ -392,20 +382,20 @@ app.addEventListener("click", async (event) => {
     closeModalState,
     pullRoomData
   })) return;
-  if (await handlePlayTabAction({
+  if (await handleLazyPlayActionController("tab", {
     action, button, state, render, gamePatchCtx, flushPendingRoomRefresh,
     defaultGameTabFor, tabGroupFor, clearTabPulse, primaryTabFor,
     patchGameTabSwitch, syncPlayUrl, ensureDefaultVoiceRoom, refreshVoiceMessages,
     loadRecapSummary, loadMyTimeline, bindPlayReader, pullRoomData, setToast
   })) return;
-  if (await handlePlaySessionAction({
+  if (await handleLazyPlayActionController("session", {
     action, button, event, state, render, normalizeInviteCode, handleLookupInvite,
     handleJoinRoom, handleJoinOfficial, handleResendVerification, goToLanding,
     handleGuestSubmit, handleOAuth, handleLogout, resetVoiceOnLeave,
     disconnectRoomEvents, roomEventCtx, persistRoom, isUuid, syncPlatformStream,
     refreshHome, setToast
   })) return;
-  await handlePlayContentAction({
+  await handleLazyPlayActionController("content", {
     action, button, state, api, render, setBusy, setToast, formatApiError,
     loadRecapDetail, loadRecapSummary, patchGameHostBanner,
     handleAddNotebookEntry, handleDeleteNotebookEntry
@@ -426,8 +416,7 @@ subscribeSessionToken(async (change) => {
   }
   await loadSessionUser();
   if (generation !== externalSessionGeneration || !state.user) return;
-  syncPlatformStream();
-  syncRoomStream();
+  syncRoomStream({ force: true });
   render();
 });
 

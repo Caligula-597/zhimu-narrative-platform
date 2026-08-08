@@ -28,6 +28,16 @@ test("syncRoomStream connects room and platform streams for an active game", () 
   assert.deepEqual(calls.map((call) => call[0]), ["connect-room", "connect-platform"]);
 });
 
+test("forced room synchronization refreshes both credential-bound streams once", () => {
+  const { controller, calls } = setup();
+  controller.syncRoomStream({ force: true });
+  const roomCall = calls.find((call) => call[0] === "connect-room");
+  const platformCall = calls.find((call) => call[0] === "connect-platform");
+  assert.deepEqual(roomCall.at(-1), { force: true });
+  assert.deepEqual(platformCall.at(-1), { force: true });
+  assert.equal(calls.filter((call) => call[0] === "connect-platform").length, 1);
+});
+
 test("stream status patches chrome only when the value changes", () => {
   const { controller, calls } = setup();
   controller.roomEventCtx.setStreamStatus("connected");
@@ -86,7 +96,7 @@ test("player reconciles every Host live-operation event with the correct surface
   };
 
   const events = [
-    ["room.clue_granted", { roleSlotId: "role-1", clueId: "clue-1", clueName: "血迹", source: "host_manual" }],
+    ["room.clue_granted", { roleSlotId: "role-1", clueId: "clue-1", clueName: "血迹", source: "mechanism_settlement" }],
     ["room.clue_revoked", { roleSlotId: "role-1", clueId: "clue-1", clueName: "血迹", source: "host_manual" }],
     ["room.clue_resent", { roleSlotId: "role-1", clueId: "clue-1", clueName: "血迹", source: "host_manual" }],
     ["room.item_granted", { roleSlotId: "role-1", itemId: "item-1", itemName: "钥匙", source: "host_manual" }],
@@ -108,6 +118,7 @@ test("player reconciles every Host live-operation event with the correct surface
   assert.ok(pulses.includes("sections"));
   assert.ok(pulses.includes("explore"));
   assert.ok(pulses.includes("home"));
+  assert.ok(messages.includes("机制结算获得线索：血迹"));
   assert.equal(nudges.at(-1), "请查看新的线索");
   assert.ok(messages.some((message) => message.includes("获得线索")));
   assert.ok(messages.some((message) => message.includes("撤回线索")));

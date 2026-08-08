@@ -70,20 +70,69 @@ export const submitMechanismDecisionSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["expectedRevision", "optionKey"],
+    required: ["expectedRevision"],
+    anyOf: [{ required: ["optionKey"] }, { required: ["answer"] }],
     properties: {
       expectedRevision: { type: "integer", minimum: 1 },
       optionKey: { type: "string", minLength: 1, maxLength: 160 },
+      answer: {
+        type: "object",
+        additionalProperties: false,
+        required: ["type"],
+        properties: {
+          type: {
+            type: "string",
+            enum: ["single_choice", "ranking", "allocation"],
+          },
+          optionKey: { type: "string", minLength: 1, maxLength: 160 },
+          optionKeys: {
+            type: "array",
+            minItems: 1,
+            maxItems: 100,
+            uniqueItems: true,
+            items: { type: "string", minLength: 1, maxLength: 160 },
+          },
+          allocations: {
+            type: "array",
+            minItems: 1,
+            maxItems: 100,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["optionKey", "amount"],
+              properties: {
+                optionKey: { type: "string", minLength: 1, maxLength: 160 },
+                amount: { type: "integer", minimum: 0, maximum: 10000 },
+              },
+            },
+          },
+        },
+        allOf: [
+          {
+            if: { properties: { type: { const: "single_choice" } }, required: ["type"] },
+            then: { required: ["optionKey"] },
+          },
+          {
+            if: { properties: { type: { const: "ranking" } }, required: ["type"] },
+            then: { required: ["optionKeys"] },
+          },
+          {
+            if: { properties: { type: { const: "allocation" } }, required: ["type"] },
+            then: { required: ["allocations"] },
+          },
+        ],
+      },
     },
   },
   response: {
     200: {
       type: "object",
       additionalProperties: false,
-      required: ["decisionKey", "optionKey", "revision", "submittedAt"],
+      required: ["decisionKey", "answer", "revision", "submittedAt"],
       properties: {
         decisionKey: { type: "string" },
         optionKey: { type: "string" },
+        answer: { type: "object", additionalProperties: true },
         revision: { type: "integer" },
         submittedAt: { type: "string" },
       },

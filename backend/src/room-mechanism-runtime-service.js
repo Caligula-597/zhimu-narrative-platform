@@ -26,7 +26,11 @@ import {
   configureHostContentActionTransaction,
   hasActiveHostMembership,
 } from "./repositories/host-content-action-repository.js";
-import { getRoomMechanismSubmissionSummary } from "./room-mechanism-submission-service.js";
+import {
+  getRoomMechanismSubmissionSummary,
+  resolveMechanismMajorityOption,
+} from "./room-mechanism-submission-service.js";
+import { settleMechanismContentGrants } from "./mechanism-content-settlement.js";
 import { normalizeMechanismInteraction } from "../../shared/mechanism-interactions.js";
 
 function packageChecksum(packageValue) {
@@ -93,6 +97,7 @@ function translateRuntimeError(error) {
       "MECHANISM_OPTION_INVALID",
       "MECHANISM_STATE_UNKNOWN",
       "MECHANISM_RESOURCE_UNKNOWN",
+      "MECHANISM_ROLE_UNKNOWN",
       "MECHANISM_ROUND_UNKNOWN",
     ].includes(error.code)
   )
@@ -195,6 +200,27 @@ export function inspectMechanismDeadlineDefault({
   };
 }
 
+export function prepareMechanismMajorityAction({ action, decision, summary }) {
+  if (action?.type !== "decision" || action?.source !== "majority") {
+    return action;
+  }
+  if (
+    !decision ||
+    normalizeMechanismInteraction(decision.interaction).resolutionMode !==
+      "host_majority"
+  ) {
+    return null;
+  }
+  const optionKey = resolveMechanismMajorityOption(summary);
+  if (
+    !optionKey ||
+    !decision.options?.some((option) => option.key === optionKey)
+  ) {
+    return null;
+  }
+  return { ...action, optionKey };
+}
+
 function publicMechanismEventData(action, state, packageValue) {
   const round =
     packageValue.rounds.find(
@@ -226,6 +252,7 @@ export async function getRoomMechanismRuntime({
   const submissionSummary = await getRoomMechanismSubmissionSummary({
     roomId,
     state,
+    packageValue,
   });
   return runtimeResponse(state, packageValue, provider, {
     submissionSummary,
@@ -401,10 +428,39 @@ export async function executeRoomMechanismAction({
       });
     }
 
+    let effectiveAction = actionInput ?? {};
+    if (
+      effectiveAction.type === "decision" &&
+      effectiveAction.source === "majority"
+    ) {
+      const decision = projectMechanismRuntime(
+        current.runtime,
+        packageValue,
+      ).availableDecisions.find(
+        (entry) => entry.key === effectiveAction.decisionKey,
+      );
+      const summary = (
+        await getRoomMechanismSubmissionSummary({
+          roomId,
+          state: current,
+          packageValue,
+          client,
+        })
+      ).find(
+        (entry) => entry.decisionKey === effectiveAction.decisionKey,
+      );
+      effectiveAction = prepareMechanismMajorityAction({
+        action: effectiveAction,
+        decision,
+        summary,
+      });
+      if (!effectiveAction) throwErr("MECHANISM_MAJORITY_UNAVAILABLE");
+    }
+
     const deadlineDefault = inspectMechanismDeadlineDefault({
       state: current,
       packageValue,
-      action: actionInput,
+      action: effectiveAction,
       now: now(),
     });
     if (deadlineDefault.required && !deadlineDefault.allowed) {
@@ -422,7 +478,7 @@ export async function executeRoomMechanismAction({
     const result = executeRuntimeAction(
       current.runtime,
       packageValue,
-      actionInput ?? {},
+      effectiveAction,
     );
     const updated = await updateRoomMechanismRuntime(client, {
       roomId,
@@ -439,6 +495,18 @@ export async function executeRoomMechanismAction({
       result.action.fromRoundKey ??
       null;
     const optionKey = result.action.optionKey ?? result.action.outcome ?? null;
+    const contentGrants = await settleMechanismContentGrants({
+      client,
+      provider,
+      roomId,
+      actorId,
+      revision: updated.revision,
+      actionType,
+      actionKey,
+      optionKey,
+      changes: result.changes,
+      queueEvent,
+    });
     await appendRoomMechanismAction(client, {
       roomId,
       actorId,
@@ -449,11 +517,12 @@ export async function executeRoomMechanismAction({
       actionKey,
       optionKey,
       changes: result.changes,
-      request: actionInput,
+      request: effectiveAction,
       metadata: {
         toRoundKey: result.action.toRoundKey ?? null,
         endingRouteKey: result.runtime.ending?.resolvedRouteKey ?? null,
-        source: actionInput?.source ?? "host_confirmed",
+        source: effectiveAction?.source ?? "host_confirmed",
+        contentGrants,
       },
     });
     await logHostAction(
@@ -470,6 +539,7 @@ export async function executeRoomMechanismAction({
           optionKey,
           reason: result.action.reason ?? null,
           changes: result.changes,
+          contentGrants,
         },
       },
       client,
@@ -482,6 +552,7 @@ export async function executeRoomMechanismAction({
     return runtimeResponse(updated, packageValue, provider, {
       appliedAction: result.action,
       changes: result.changes,
+      contentGrants,
     });
   });
 }

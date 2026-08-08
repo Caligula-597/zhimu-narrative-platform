@@ -1,6 +1,76 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createSseLifecycle } from "../shared/sse-lifecycle.js";
+import {
+  createPortalEventLifecycle,
+  createSseLifecycle
+} from "../shared/sse-lifecycle.js";
+
+test("portal event adapter centralizes handshake, refresh and connection state wiring", async () => {
+  const events = [];
+  const connectionStates = [];
+  let refreshes = 0;
+  const lifecycle = createPortalEventLifecycle({
+    eventTarget: null,
+    reconnectBaseMs: 10000,
+    pollMs: 10000,
+    connect: async ({ onEvent }) => {
+      await onEvent("__connected__", { cursor: 1 });
+      await onEvent("room.sample", { value: 2 });
+    },
+    onEvent: (type, payload) => events.push({ type, payload }),
+    refresh: async () => { refreshes += 1; },
+    onConnectionChange: (connected) => connectionStates.push(connected)
+  });
+  lifecycle.start();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  lifecycle.stop();
+  assert.deepEqual(events, [{ type: "room.sample", payload: { value: 2 } }]);
+  assert.equal(refreshes >= 1, true);
+  assert.deepEqual(connectionStates.slice(0, 2), [true, false]);
+});
+
+test("portal reconnect performs a full pull so a disconnected clue grant is recovered", async () => {
+  const snapshots = [];
+  const states = [];
+  let clueVisible = false;
+  let attempts = 0;
+  let releaseSecondConnection;
+  const secondConnection = new Promise((resolve) => {
+    releaseSecondConnection = resolve;
+  });
+  const lifecycle = createPortalEventLifecycle({
+    eventTarget: null,
+    reconnectBaseMs: 10000,
+    pollMs: 10000,
+    connect: async ({ onEvent }) => {
+      attempts += 1;
+      await onEvent("__connected__", { attempt: attempts });
+      if (attempts === 1) return;
+      await secondConnection;
+    },
+    onEvent: () => {},
+    refresh: async (reason) => {
+      if (reason === "disconnected") clueVisible = true;
+      snapshots.push({ reason, clueVisible });
+    },
+    onConnectionChange: (connected) => states.push(connected),
+  });
+  lifecycle.start();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  lifecycle.reconnect();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  lifecycle.stop();
+  releaseSecondConnection();
+
+  assert.equal(attempts, 2);
+  assert.ok(snapshots.some(
+    (snapshot) => snapshot.reason === "disconnected" && snapshot.clueVisible,
+  ));
+  assert.ok(snapshots.some(
+    (snapshot) => snapshot.reason === "connected" && snapshot.clueVisible,
+  ));
+  assert.deepEqual(states.slice(0, 3), [true, false, true]);
+});
 
 test("SSE lifecycle reconciles on connect and reports authentication loss", async () => {
   const statuses = [];

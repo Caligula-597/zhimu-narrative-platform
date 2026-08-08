@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { readSessionCookie } from "../src/session-cookie.js";
+import {
+  readSessionCookie,
+  sessionBearerResponseEnabled,
+  sessionResponsePayload
+} from "../src/session-cookie.js";
+import { bearerToken } from "../src/request-actor.js";
 
-test("guest login sets HttpOnly session cookie and cookie auth works", async (context) => {
+test("production guest login uses HttpOnly cookie without exposing its bearer token", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: false, nodeEnv: "production" });
   context.after(() => app.close());
 
@@ -12,17 +17,18 @@ test("guest login sets HttpOnly session cookie and cookie auth works", async (co
     url: "/api/auth/guest",
     payload: { displayName: "Cookie测试" }
   });
-  assert.equal(login.statusCode, 201);
+  assert.equal(login.statusCode, 201, login.body);
   const setCookie = login.headers["set-cookie"];
   assert.ok(setCookie);
   assert.match(String(setCookie), /HttpOnly/i);
   assert.match(String(setCookie), /zhimu_session=/);
+  assert.equal(login.json().token, undefined);
 
-  const token = login.json().token;
+  const sessionCookie = String(setCookie).split(";")[0];
   const me = await app.inject({
     method: "GET",
     url: "/api/auth/me",
-    headers: { cookie: `zhimu_session=${encodeURIComponent(token)}` }
+    headers: { cookie: sessionCookie }
   });
   assert.equal(me.statusCode, 200);
   assert.equal(me.json().display_name, "Cookie测试");
@@ -51,6 +57,29 @@ test("logout clears session cookie", async (context) => {
   });
   assert.equal(logout.statusCode, 200);
   assert.match(String(logout.headers["set-cookie"] || ""), /Max-Age=0/i);
+});
+
+test("bearer response compatibility is development-only by default and explicitly configurable", () => {
+  const session = { token: "session-token-123456", sessionId: "session-id", expiresAt: "later" };
+  assert.equal(sessionBearerResponseEnabled("development", {}), true);
+  assert.equal(sessionBearerResponseEnabled("production", {}), false);
+  assert.equal(sessionBearerResponseEnabled("production", { SESSION_BEARER_RESPONSE_ENABLED: "true" }), true);
+  assert.deepEqual(
+    sessionResponsePayload(session, "production", {}),
+    { sessionId: "session-id", expiresAt: "later" }
+  );
+  assert.equal(sessionResponsePayload(session, "development", {}).token, session.token);
+});
+
+test("malformed or oversized session credentials are ignored before database lookup", () => {
+  assert.equal(readSessionCookie({ headers: { cookie: "zhimu_session=%E0%A4%A" } }), "");
+  assert.equal(readSessionCookie({ headers: { cookie: `zhimu_session=${"a".repeat(129)}` } }), "");
+  assert.equal(bearerToken({ headers: { authorization: "Bearer short" } }), "");
+  assert.equal(bearerToken({ headers: { authorization: `Bearer ${"a".repeat(129)}` } }), "");
+  assert.equal(
+    bearerToken({ headers: { authorization: "bearer abc123def456ghi789jkl012" } }),
+    "abc123def456ghi789jkl012"
+  );
 });
 
 test("logout revokes both bearer and cookie sessions when both are presented", async (context) => {

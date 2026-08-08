@@ -3,7 +3,9 @@ import { normalizeStorySpine } from "../../shared/story-spine.js";
 import {
   formatMechanismDesignForPrompt,
   normalizeMechanismDesign,
+  validateMechanismDesignConfirmation,
 } from "../../shared/mechanism-design.js";
+import { throwErr } from "./api-errors.js";
 
 function record(value) {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -125,7 +127,24 @@ export function applyCreatorContextToPipelineInput(
   const constitution = normalizeCreativeConstitution(
     settings.creativeConstitution,
   );
+  const mechanismDesignConfigured = Object.prototype.hasOwnProperty.call(
+    settings,
+    "mechanismDesign",
+  ) && settings.mechanismDesign != null;
   const mechanismDesign = normalizeMechanismDesign(settings.mechanismDesign);
+  if (mechanismDesign.status === "confirmed") {
+    const validation = validateMechanismDesignConfirmation(mechanismDesign);
+    if (!validation.valid) {
+      throwErr(
+        "VALIDATION_ERROR",
+        `确认的机制设计还缺少可执行信息：${validation.issues.map((issue) => issue.message).join("；")}`,
+        {
+          reason: "mechanism_design_incomplete",
+          fields: validation.issues.map((issue) => issue.key),
+        },
+      );
+    }
+  }
   const synopsis = { ...record(input.synopsis) };
   const setting = { ...record(input.setting) };
   const config = { ...record(input.config) };
@@ -185,5 +204,38 @@ export function applyCreatorContextToPipelineInput(
     ...formattedMechanism.slice(0, 3).map((row) => `机制设计：${row}`),
   ].slice(0, 12);
 
-  return { ...input, setting, synopsis, config };
+  const classicPremise = appendSection(
+    input.premise,
+    "创作驾驶舱·大纲与剧本生成契约",
+    [...formattedSpine, ...formattedMechanism],
+    4_000,
+  );
+  const classicConflicts = appendSection(
+    input.conflicts || input.requirements,
+    "创作驾驶舱·不可忽略的机制约束",
+    formattedMechanism,
+    3_000,
+  );
+
+  return {
+    ...input,
+    premise: classicPremise,
+    conflicts: classicConflicts,
+    requirements: classicConflicts,
+    setting,
+    synopsis,
+    config,
+    mechanismDesign: mechanismDesignConfigured ? mechanismDesign : undefined,
+    creatorContext: {
+      ...record(input.creatorContext),
+      mechanismDesign: {
+        version: mechanismDesign.version,
+        status: mechanismDesignConfigured
+          ? mechanismDesign.status
+          : "not_configured",
+        interactionKind: mechanismDesign.interactionKind,
+        updatedAt: mechanismDesign.updatedAt || null,
+      },
+    },
+  };
 }

@@ -2,12 +2,39 @@ import { api } from "../api.js";
 import { closeModalState, openModalState } from "../components/modal.js";
 import { formatApiError } from "../errors.js";
 import { state } from "../state.js";
-import {
-  connectVoiceRoom,
-  disconnectVoiceRoom,
-  startVoicePlayback,
-  toggleVoiceMic
-} from "../voice/livekit-voice.js";
+
+let voiceAdapterPromise = null;
+let voiceRenderCallback = () => {};
+
+function loadVoiceAdapter() {
+  if (!voiceAdapterPromise) {
+    voiceAdapterPromise = import("../voice/livekit-voice.js")
+      .then((adapter) => {
+        adapter.setVoiceRenderCallback(voiceRenderCallback);
+        return adapter;
+      })
+      .catch((error) => {
+        voiceAdapterPromise = null;
+        throw error;
+      });
+  }
+  return voiceAdapterPromise;
+}
+
+async function disconnectLoadedVoiceAdapter() {
+  if (!voiceAdapterPromise) return;
+  const adapter = await voiceAdapterPromise;
+  await adapter.disconnectVoiceRoom();
+}
+
+export function setVoiceRenderCallback(callback) {
+  voiceRenderCallback = typeof callback === "function" ? callback : () => {};
+  if (voiceAdapterPromise) {
+    void voiceAdapterPromise
+      .then((adapter) => adapter.setVoiceRenderCallback(voiceRenderCallback))
+      .catch(() => {});
+  }
+}
 
 export function voiceLiveStatusLabel() {
   if (state.voiceLiveStatus === "error" && state.voiceLiveError) return state.voiceLiveError;
@@ -55,7 +82,7 @@ export async function refreshVoiceMessages(render, { silent = false } = {}) {
 
 export async function joinVoiceRoom(roomId, roomName, { render, setToast, connectAudio = true } = {}) {
   if (state.voiceRoomId && state.voiceRoomId !== roomId) {
-    await disconnectVoiceRoom();
+    await disconnectLoadedVoiceAdapter();
   }
   state.voiceRoomId = roomId;
   state.voiceRoomName = roomName;
@@ -68,7 +95,8 @@ export async function joinVoiceRoom(roomId, roomName, { render, setToast, connec
 
   try {
     const tokenPayload = await api.getVoiceRoomToken(state.roomId, roomId);
-    await connectVoiceRoom(tokenPayload);
+    const adapter = await loadVoiceAdapter();
+    await adapter.connectVoiceRoom(tokenPayload);
     setToast?.(`已进入 ${roomName} · 音频已连接`, render);
   } catch (error) {
     const message = error.message || "音频连接失败";
@@ -84,7 +112,8 @@ export async function connectVoiceLive({ render, setToast } = {}) {
   try {
     state.voiceLiveError = "";
     const tokenPayload = await api.getVoiceRoomToken(state.roomId, state.voiceRoomId);
-    await connectVoiceRoom(tokenPayload);
+    const adapter = await loadVoiceAdapter();
+    await adapter.connectVoiceRoom(tokenPayload);
     setToast?.("LiveKit 音频已连接", render);
   } catch (error) {
     const message = error.message || "音频连接失败";
@@ -93,14 +122,15 @@ export async function connectVoiceLive({ render, setToast } = {}) {
 }
 
 export async function disconnectVoiceLive({ render, setToast } = {}) {
-  await disconnectVoiceRoom();
+  await disconnectLoadedVoiceAdapter();
   render();
   setToast?.("已退出音频连接", render);
 }
 
 export async function toggleVoiceMicLive({ render, setToast } = {}) {
   try {
-    const enabled = await toggleVoiceMic();
+    const adapter = await loadVoiceAdapter();
+    const enabled = await adapter.toggleVoiceMic();
     setToast?.(enabled ? "麦克风已开启" : "麦克风已关闭", render);
   } catch (error) {
     setToast?.(error.message || "麦克风切换失败", render);
@@ -109,7 +139,8 @@ export async function toggleVoiceMicLive({ render, setToast } = {}) {
 
 export async function unlockVoicePlayback({ render, setToast } = {}) {
   try {
-    const ok = await startVoicePlayback();
+    const adapter = await loadVoiceAdapter();
+    const ok = await adapter.startVoicePlayback();
     setToast?.(ok ? "扬声器已开启" : "仍无法播放，请检查浏览器音量或权限", render);
     render?.();
   } catch (error) {
@@ -219,11 +250,11 @@ export async function sendVoiceChatMessage({ render, setToast, setBusy } = {}) {
 }
 
 export async function pauseVoiceSession() {
-  await disconnectVoiceRoom();
+  await disconnectLoadedVoiceAdapter();
 }
 
 export async function resetVoiceOnLeave() {
-  await disconnectVoiceRoom();
+  await disconnectLoadedVoiceAdapter();
   state.voiceRoomId = "";
   state.voiceRoomName = "";
   state.voiceMessages = [];

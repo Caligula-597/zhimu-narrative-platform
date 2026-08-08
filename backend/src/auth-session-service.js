@@ -22,6 +22,7 @@ import {
   findLoginCandidate,
   listIdentitySessions,
   lockLoginCandidate,
+  revokeAllIdentitySessions,
   revokeIdentitySession,
   revokeOtherIdentitySessions
 } from "./repositories/auth-session-repository.js";
@@ -52,10 +53,18 @@ export async function loginIdentity({ email, password, sessionMeta, transactionR
         currentPlan: locked.plan_code
       });
       const user = await readIdentityUser(client, locked.id);
-      const session = await createSession(user.id, sessionMeta, {
-        executor: client.query.bind(client)
-      });
       const pendingEmailVerification = isEmailVerificationRequired() && !user.email_verified_at;
+      if (pendingEmailVerification) {
+        // Legacy versions issued a full session before verification. Remove any
+        // such sessions while returning only the public challenge needed by the
+        // code-entry flow.
+        await revokeAllIdentitySessions(user.id, client.query.bind(client));
+      }
+      const session = pendingEmailVerification
+        ? null
+        : await createSession(user.id, sessionMeta, {
+            executor: client.query.bind(client)
+          });
       const verificationChallenge = pendingEmailVerification
         ? await findActiveEmailVerificationChallengeForUser(client, user.id)
         : null;

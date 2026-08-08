@@ -7,6 +7,7 @@ import {
 import { fetchPlatformEventsAfter, getLatestPlatformEventId } from "../platform-event-journal.js";
 import { createReplaySubscription } from "../sse-replay-subscription.js";
 import { resolveSseMaxConnectionAgeMs, writeSseEvent } from "../sse-response.js";
+import { acquireSseConnection } from "../sse-connection-guard.js";
 import {
   createPlazaPost,
   createPlazaReply,
@@ -305,6 +306,7 @@ export async function registerPlatformSocialRoutes(app) {
 
   app.get("/api/platform/events/stream", async (request, reply) => {
     const actorId = requireActor(request);
+    const releaseConnection = acquireSseConnection(request, reply);
     reply.hijack();
     reply.raw.writeHead(200, {
       "Content-Type": "text/event-stream; charset=utf-8",
@@ -322,6 +324,7 @@ export async function registerPlatformSocialRoutes(app) {
       if (heartbeat) clearInterval(heartbeat);
       if (maxAgeTimer) clearTimeout(maxAgeTimer);
       unsubscribe();
+      releaseConnection();
       if (endResponse && !reply.raw.destroyed && !reply.raw.writableEnded) reply.raw.end();
     };
 
@@ -350,13 +353,17 @@ export async function registerPlatformSocialRoutes(app) {
       onReplayError: (error) => request.log.warn({ err: error, actorId }, "platform SSE replay failed")
     });
     unsubscribe = subscription.unsubscribe;
+    if (closed) {
+      unsubscribe();
+      return;
+    }
     const streamReady = await subscription.ready;
     if (!streamReady || closed) return;
 
     heartbeat = setInterval(() => {
       if (!writeSseEvent(reply.raw, {
         payload: JSON.stringify({ type: "heartbeat", at: new Date().toISOString() })
-      })) cleanup();
+      })) cleanup(true);
     }, 25000);
     heartbeat.unref?.();
   });

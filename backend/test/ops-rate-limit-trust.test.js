@@ -99,6 +99,39 @@ test("production trust rejects unverified database TLS and missing identity foun
   }
 });
 
+test("production trust closes secure_sessions when bearer tokens are exposed to JavaScript", () => {
+  const previous = {
+    nodeEnv: process.env.NODE_ENV,
+    bearerResponse: process.env.SESSION_BEARER_RESPONSE_ENABLED
+  };
+  process.env.NODE_ENV = "production";
+  process.env.SESSION_BEARER_RESPONSE_ENABLED = "true";
+  try {
+    const result = productionTrustGates({
+      features: {
+        uploadScan: { mode: "webhook", webhookConfigured: true },
+        telemetry: { enabled: true, initialized: true },
+        alerts: { configured: true },
+        rateLimitTopology: resolveRateLimitTopology({
+          TRUST_PROXY_HOPS: "1",
+          APP_INSTANCE_COUNT: "1"
+        })
+      },
+      rateLimits: { authPerMin: 20 },
+      readiness: { missingTables: [] },
+      identityFoundation: { ready: true }
+    });
+    const sessionGate = result.gates.find((gate) => gate.key === "secure_sessions");
+    assert.equal(sessionGate?.ok, false);
+    assert.match(sessionGate?.detail || "", /bearerResponse=true/u);
+  } finally {
+    if (previous.nodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previous.nodeEnv;
+    if (previous.bearerResponse === undefined) delete process.env.SESSION_BEARER_RESPONSE_ENABLED;
+    else process.env.SESSION_BEARER_RESPONSE_ENABLED = previous.bearerResponse;
+  }
+});
+
 test("production trust requires encrypted BYOK and excludes the platform key from user routing", () => {
   const previous = {
     platformAccess: process.env.PLATFORM_LLM_USER_ACCESS,
@@ -106,7 +139,7 @@ test("production trust requires encrypted BYOK and excludes the platform key fro
     opsToken: process.env.OPS_API_TOKEN
   };
   process.env.PLATFORM_LLM_USER_ACCESS = "false";
-  process.env.LLM_CREDENTIALS_SECRET = "test-only-llm-credential-secret";
+  process.env.LLM_CREDENTIALS_SECRET = "test-only-dedicated-llm-credential-secret";
   try {
     const result = productionTrustGates({
       features: {

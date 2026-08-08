@@ -9,7 +9,9 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5174 --strictPort",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 5174 --strictPort"
+    "preview": "vite preview --host 0.0.0.0 --port 5174 --strictPort",
+    "test": "node --test test/*.test.mjs",
+    "check": "npm run build && npm test"
   },
   "dependencies": {
     "livekit-client": "^2.15.3"

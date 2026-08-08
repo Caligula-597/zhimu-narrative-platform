@@ -7,6 +7,7 @@ import {
   fetchPinnedOutboundJson,
   withPinnedOutboundResponse
 } from "./pinned-outbound-fetch.js";
+import { llmRequestFailureMessage } from "./llm-upstream-error-policy.js";
 
 function throwNotConfigured(runtime) {
   if (runtime.source === "user") throwErr("LLM_USER_NOT_CONFIGURED");
@@ -228,11 +229,15 @@ export async function requestDeepseekJson(messages, {
           );
       if (!response.ok) {
         const status = response.status;
-        const upstreamMsg = response.payload?.error?.message || `HTTP ${status}`;
         if (status === 429) {
-          throwErr("RATE_LIMITED", `AI 服务请求过于频繁，请稍后再试。（${upstreamMsg}）`, { phase, attempt, ...context });
+          throwErr("RATE_LIMITED", "AI 服务请求过于频繁，请稍后再试。", {
+            phase,
+            attempt,
+            providerStatus: status,
+            ...context
+          });
         }
-        throwErr("DEEPSEEK_API_ERROR", `AI 服务请求失败：${upstreamMsg}`, {
+        throwErr("DEEPSEEK_API_ERROR", llmRequestFailureMessage(status), {
           phase, attempt, status, source: runtime.source, ...context
         });
       }

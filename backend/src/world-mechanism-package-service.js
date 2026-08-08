@@ -1,9 +1,9 @@
 import {
   MECHANISM_PACKAGE_SCHEMA_VERSION,
   assertMechanismPackage,
-  compileMechanismPackage
 } from "./mechanism-package.js";
 import { simulateMechanismPackage, summarizeMechanismSimulation } from "./mechanism-simulator.js";
+import { compilePipelineMechanismPackage } from "./pipeline-mechanism-package.js";
 
 export async function storeWorldMechanismPackage(client, worldId, packageValue, metadata = {}) {
   const normalized = assertMechanismPackage(packageValue);
@@ -29,15 +29,39 @@ export async function storeWorldMechanismPackage(client, worldId, packageValue, 
 }
 
 export async function compileAndStorePipelineMechanismPackage(client, worldId, pipeline) {
-  if (!pipeline?.outline || typeof pipeline.outline !== "object" || Array.isArray(pipeline.outline)) return null;
-  const packageValue = compileMechanismPackage(pipeline.outline, { source: "deepseek_pipeline_outline" });
+  const worldResult = await client.query(
+    `SELECT settings FROM worlds WHERE id = $1 FOR UPDATE`,
+    [worldId],
+  );
+  const mechanismDesign = worldResult.rows[0]?.settings?.mechanismDesign;
+  const compilation = compilePipelineMechanismPackage(pipeline, mechanismDesign);
+  const packageValue = compilation.packageValue;
+  if (!packageValue) {
+    await client.query(
+      `DELETE FROM world_mechanism_packages WHERE world_id = $1`,
+      [worldId],
+    );
+    return {
+      packageValue: null,
+      simulationSummary: null,
+      reason: compilation.reason,
+      designStatus: compilation.design.status,
+    };
+  }
   const simulationSummary = summarizeMechanismSimulation(simulateMechanismPackage(packageValue));
   await storeWorldMechanismPackage(client, worldId, packageValue, {
-    outlineSchemaVersion: pipeline.outline.schemaVersion ?? null,
+    outlineSchemaVersion: pipeline.outline?.schemaVersion ?? null,
     chapterCount: packageValue.rounds.length,
-    simulationSummary
+    simulationSummary,
+    compilationReason: compilation.reason,
+    designStatus: compilation.design.status,
   });
-  return { packageValue, simulationSummary };
+  return {
+    packageValue,
+    simulationSummary,
+    reason: compilation.reason,
+    designStatus: compilation.design.status,
+  };
 }
 
 export async function loadWorldMechanismPackage(client, worldId) {

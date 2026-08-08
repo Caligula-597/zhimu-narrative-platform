@@ -1,4 +1,5 @@
 import {
+  CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
@@ -95,5 +96,25 @@ export class R2Storage extends ObjectStorage {
         ContentType: contentType
       })
     );
+  }
+
+  async copyObjectIfUnchanged({ sourceKey, destinationKey, sourceEtag, contentType }) {
+    try {
+      await this.client.send(new CopyObjectCommand({
+        Bucket: this.bucket,
+        Key: destinationKey,
+        CopySource: encodeURIComponent(`${this.bucket}/${sourceKey}`),
+        CopySourceIfMatch: sourceEtag || undefined,
+        MetadataDirective: "REPLACE",
+        ContentType: contentType
+      }));
+    } catch (error) {
+      if (error?.name === "PreconditionFailed" || error?.$metadata?.httpStatusCode === 412) {
+        throw Object.assign(new Error("Upload source changed before promotion"), {
+          code: "OBJECT_PRECONDITION_FAILED"
+        });
+      }
+      throw error;
+    }
   }
 }

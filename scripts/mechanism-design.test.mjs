@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   formatMechanismDesignForPrompt,
+  mechanismDesignHasContent,
   mechanismDesignCoverage,
-  normalizeMechanismDesign
+  normalizeMechanismDesign,
+  validateMechanismDesignConfirmation,
 } from "../shared/mechanism-design.js";
 
 test("mechanism design turns seven author answers into a stable generation contract", () => {
@@ -31,4 +33,26 @@ test("incomplete mechanism drafts remain explicitly non-canonical", () => {
   const prompt = formatMechanismDesignForPrompt({ title: "待设计机制" }).join("\n");
   assert.match(prompt, /作者草稿/);
   assert.equal(mechanismDesignCoverage({ title: "待设计机制" }).score, 0);
+  assert.equal(mechanismDesignHasContent({ title: "待设计机制" }), true);
+  const validation = validateMechanismDesignConfirmation({
+    title: "待设计机制",
+    status: "confirmed",
+  });
+  assert.equal(validation.valid, false);
+  assert.ok(validation.issues.some((issue) => issue.key === "summary"));
+  assert.ok(validation.issues.some((issue) => issue.key === "endingCausality"));
+});
+
+test("numeric allocation keeps an author-defined fixed private budget", () => {
+  const design = normalizeMechanismDesign({
+    interactionKind: "numeric_allocation",
+    title: "救援额度",
+    allocationTotal: 12,
+    allocationUnitLabel: "枚许可",
+  });
+  assert.equal(design.allocationTotal, 12);
+  assert.equal(design.allocationUnitLabel, "枚许可");
+  const prompt = formatMechanismDesignForPrompt(design).join("\n");
+  assert.match(prompt, /数值分配/);
+  assert.match(prompt, /12 枚许可/);
 });

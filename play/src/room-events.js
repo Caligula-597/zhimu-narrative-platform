@@ -1,9 +1,10 @@
 import { api } from "./api.js";
-import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
-
-const POLL_MS = 15000;
-let boundRoomId = "";
+import {
+  createPortalEventLifecycle,
+  PORTAL_POLL_INTERVAL_MS
+} from "../../shared/sse-lifecycle.js";
 let lifecycle = null;
+let boundStreamKey = "";
 
 function ctxSetStatus(status, ctx) {
   ctx?.setStreamStatus?.(status);
@@ -22,7 +23,9 @@ export async function handleRoomEvent(type, data, ctx) {
         ctx.bumpTabPulse?.("clues");
         await ctx.onRefresh();
         if (data.clueName) {
-          const label = data.source === "shared_room"
+          const label = data.source === "mechanism_settlement"
+            ? `机制结算获得线索：${data.clueName}`
+            : data.source === "shared_room"
             ? `房间公开线索：${data.clueName}`
             : data.source === "shared_roles"
               ? `玩家分享线索：${data.clueName}`
@@ -204,35 +207,31 @@ export async function handleRoomEvent(type, data, ctx) {
 export function disconnectRoomEvents(ctx) {
   lifecycle?.stop();
   lifecycle = null;
-  boundRoomId = "";
+  boundStreamKey = "";
   ctxSetStatus("idle", ctx);
   ctx?.setConnected?.(false);
 }
 
-export function syncRoomPoll(active, ctx) {
-  if (!active) lifecycle?.stop();
-  else if (!lifecycle && ctx.getRoomId()) connectRoomEvents(ctx.getRoomId(), ctx);
-}
-
-export function connectRoomEvents(roomId, ctx) {
+export function connectRoomEvents(roomId, ctx, { force = false } = {}) {
+  const nextStreamKey = `${roomId || ""}:${ctx.getUserId?.() || ""}`;
+  if (!force && lifecycle && boundStreamKey === nextStreamKey) return;
   disconnectRoomEvents(ctx);
   if (!roomId) return;
-  boundRoomId = roomId;
+  boundStreamKey = nextStreamKey;
 
-  lifecycle = createSseLifecycle({
-    pollMs: POLL_MS,
-    open: ({ signal, onConnected }) => api.streamRoomEvents(roomId, async (type, data) => {
-      if (type === "__connected__") return onConnected(data);
-      await handleRoomEvent(type, data, ctx);
-    }, signal, ctx.getUserId?.()),
-    poll: () => {
-      if (ctx.getView() !== "game" || ctx.getRoomId() !== roomId) return;
-      return ctx.onRefresh();
-    },
-    reconcile: () => ctx.onRefresh(),
+  lifecycle = createPortalEventLifecycle({
+    pollMs: PORTAL_POLL_INTERVAL_MS.room,
+    connect: ({ signal, onEvent }) => api.streamRoomEvents(
+      roomId,
+      onEvent,
+      signal,
+      ctx.getUserId?.()
+    ),
+    onEvent: (type, data) => handleRoomEvent(type, data, ctx),
+    refresh: () => ctx.onRefresh(),
+    shouldPoll: () => ctx.getView() === "game" && ctx.getRoomId() === roomId,
     onStatus: (status) => ctxSetStatus(status, ctx),
-    onConnected: () => ctx.setConnected?.(true),
-    onDisconnected: () => ctx.setConnected?.(false),
+    onConnectionChange: (connected) => ctx.setConnected?.(connected),
     onAuthLost: () => ctx.onAuthLost?.(),
     onError: (error, meta) => ctx.onStreamError?.(error, meta)
   });

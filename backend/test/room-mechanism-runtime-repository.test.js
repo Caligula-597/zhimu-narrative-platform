@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   appendRoomMechanismAction,
+  grantMechanismClueOwnership,
   insertRoomMechanismState,
   replaceRoomMechanismState,
   updateRoomMechanismRuntime,
@@ -158,4 +159,34 @@ test("room mechanism action log persists the revision edge and structured change
       after: "accepted",
     },
   ]);
+});
+
+test("mechanism clue ownership uses the unique row as its idempotency boundary", async () => {
+  const calls = [];
+  const client = {
+    async query(sql, params) {
+      calls.push({ sql, params });
+      return {
+        rowCount: calls.length === 1 ? 1 : 0,
+        rows: calls.length === 1
+          ? [{ acquired_at: new Date("2026-08-08T12:00:00.000Z") }]
+          : [],
+      };
+    },
+  };
+  const input = {
+    roomId: "room-1",
+    roleSlotId: "role-1",
+    clueId: "clue-1",
+    metadata: { mechanismRevision: 3 },
+  };
+  const first = await grantMechanismClueOwnership(client, input);
+  const duplicate = await grantMechanismClueOwnership(client, input);
+  assert.equal(first.granted, true);
+  assert.equal(duplicate.granted, false);
+  assert.match(calls[0].sql, /ON CONFLICT \(room_id, role_slot_id, clue_id\) DO NOTHING/);
+  assert.deepEqual(JSON.parse(calls[0].params[3]), {
+    source: "mechanism_settlement",
+    mechanismRevision: 3,
+  });
 });

@@ -11,6 +11,21 @@ test("production build artifacts exist after vite build", () => {
   const html = readFileSync(distIndex, "utf8");
   assert.match(html, /织幕 · 玩家端/);
   assert.match(html, /assets\/index-.*\.js/);
+  const lazyActionController = readFileSync(
+    path.join(root, "src", "runtime", "lazy-action-controller.js"),
+    "utf8"
+  );
+  assert.match(lazyActionController, /import\("\.\/game-action-controller\.js"\)/);
+  assert.match(lazyActionController, /import\("\.\/state-action-controller\.js"\)/);
+  assert.match(lazyActionController, /import\("\.\/social-action-controller\.js"\)/);
+  assert.match(lazyActionController, /import\("\.\/clue-action-controller\.js"\)/);
+  assert.match(lazyActionController, /import\("\.\/tab-action-controller\.js"\)/);
+  assert.match(lazyActionController, /import\("\.\/session-action-controller\.js"\)/);
+  const lazyProfileController = readFileSync(
+    path.join(root, "src", "runtime", "lazy-profile-controller.js"),
+    "utf8"
+  );
+  assert.match(lazyProfileController, /import\("\.\/profile-controller\.js"\)/);
 });
 
 test("index.html uses module entry without inline scripts", () => {
@@ -19,7 +34,7 @@ test("index.html uses module entry without inline scripts", () => {
   assert.doesNotMatch(html, /<script(?![^>]*type="module")[^>]*>/);
 });
 
-test("play api persists bearer token for cross-origin session", () => {
+test("play api uses credentialed cookies with a tab-scoped bearer fallback", () => {
   const source = readFileSync(path.join(root, "src", "api.js"), "utf8");
   const sharedToken = readFileSync(path.join(root, "..", "shared", "session-token.js"), "utf8");
   const portalClient = readFileSync(path.join(root, "..", "shared", "api-client.js"), "utf8");
@@ -45,6 +60,10 @@ test("render layer escapes user content", () => {
 
 test("main.js wires room SSE sync, lobby, plaza and social", () => {
   const mainSource = readFileSync(path.join(root, "src", "main.js"), "utf8");
+  const lazyActionController = readFileSync(
+    path.join(root, "src", "runtime", "lazy-action-controller.js"),
+    "utf8"
+  );
   const apiSource = readFileSync(path.join(root, "src", "api.js"), "utf8");
   const eventsSource = readFileSync(path.join(root, "src", "room-events.js"), "utf8");
   const platformEventsSource = readFileSync(path.join(root, "src", "platform-events.js"), "utf8");
@@ -67,12 +86,16 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(eventsSource, /room\.clue_granted/);
   assert.match(eventsSource, /room\.voice_message_created/);
   assert.match(eventsSource, /room\.host_event_pending/);
-  assert.match(mainSource, /handlePlayVoiceAction/);
+  assert.match(mainSource, /handleLazyPlayActionController\("voice"/);
+  assert.match(lazyActionController, /handlePlayVoiceAction/);
   assert.match(voiceActionSource, /voice-live-connect/);
   const voiceSource = readFileSync(path.join(root, "src", "views", "voice.js"), "utf8");
+  const voiceRuntimeSource = readFileSync(path.join(root, "src", "runtime", "voice.js"), "utf8");
   const livekitSource = readFileSync(path.join(root, "src", "voice", "livekit-voice.js"), "utf8");
   const gameSource = readFileSync(path.join(root, "src", "views", "game.js"), "utf8");
   assert.match(voiceSource, /renderVoiceTab/);
+  assert.match(voiceRuntimeSource, /import\("\.\.\/voice\/livekit-voice\.js"\)/);
+  assert.doesNotMatch(mainSource, /from "\.\/voice\/livekit-voice\.js"/);
   assert.match(livekitSource, /connectVoiceRoom/);
   assert.match(livekitSource, /TrackSubscribed/);
   assert.match(livekitSource, /startVoicePlayback/);

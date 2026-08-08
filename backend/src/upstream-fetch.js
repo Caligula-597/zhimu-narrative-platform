@@ -22,7 +22,10 @@ export async function fetchUpstream(url, init = {}, { timeoutMs = DEFAULT_TIMEOU
   const externalSignal = init.signal;
   const signal = createUpstreamSignal(timeoutMs, externalSignal);
   try {
-    return await fetch(url, { ...init, signal });
+    // Provider and webhook calls carry credentials. Never follow redirects:
+    // doing so can forward a request into an unexpected trust domain or turn
+    // a compromised upstream into an SSRF redirector.
+    return await fetch(url, { ...init, signal, redirect: "manual" });
   } catch (error) {
     if (externalSignal?.aborted) throw error;
     if (signal.aborted || error?.name === "TimeoutError") {

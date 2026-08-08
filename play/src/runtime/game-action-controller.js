@@ -62,6 +62,31 @@ export async function handlePlayGameAction({
         pullRoomData,
       });
       return true;
+    case "move-mechanism-ranking":
+      moveMechanismRanking(button);
+      return true;
+    case "submit-mechanism-ranking":
+      await submitMechanismRanking({
+        button,
+        state,
+        api,
+        render,
+        setToast,
+        formatApiError,
+        pullRoomData,
+      });
+      return true;
+    case "submit-mechanism-allocation":
+      await submitMechanismAllocation({
+        button,
+        state,
+        api,
+        render,
+        setToast,
+        formatApiError,
+        pullRoomData,
+      });
+      return true;
     case "submit-private-action":
       await submitPrivateAction({
         state,
@@ -104,19 +129,132 @@ async function submitMechanismChoice({
   if (!decisionKey || !optionKey || !expectedRevision) return;
   try {
     await api.submitMechanismDecision(state.roomId, decisionKey, {
-      optionKey,
       expectedRevision,
+      answer: { type: "single_choice", optionKey },
     });
     await pullRoomData({ partial: true });
     setToast(
-      button.dataset.submissionMode === "private_choice"
-        ? "秘密承诺已交给主持人"
+      button.dataset.submissionMode === "secret_ballot"
+        ? "秘密选票已交给主持人"
+        : button.dataset.submissionMode === "private_choice"
+          ? "秘密承诺已交给主持人"
         : "你的倾向已交给主持人",
       render,
       { patch: true },
     );
   } catch (error) {
     setToast(formatApiError(error, "倾向提交失败"), render, { patch: true });
+  }
+}
+
+function mechanismRevision(state) {
+  return Number(state.home?.currentState?.mechanism?.revision || 0);
+}
+
+function moveMechanismRanking(button) {
+  const item = button?.closest?.("[data-mechanism-ranking-option]");
+  const list = item?.closest?.("[data-mechanism-ranking-list]");
+  if (!item || !list) return;
+  if (button.dataset.direction === "up" && item.previousElementSibling) {
+    list.insertBefore(item, item.previousElementSibling);
+  } else if (
+    button.dataset.direction === "down" &&
+    item.nextElementSibling
+  ) {
+    list.insertBefore(item.nextElementSibling, item);
+  }
+  const rows = [...list.querySelectorAll("[data-mechanism-ranking-option]")];
+  rows.forEach((row, index) => {
+    const rank = row.querySelector(":scope > b");
+    if (rank) rank.textContent = String(index + 1);
+    const up = row.querySelector('[data-direction="up"]');
+    const down = row.querySelector('[data-direction="down"]');
+    if (up) up.disabled = index === 0;
+    if (down) down.disabled = index === rows.length - 1;
+  });
+}
+
+async function submitMechanismRanking({
+  button,
+  state,
+  api,
+  render,
+  setToast,
+  formatApiError,
+  pullRoomData,
+}) {
+  const panel = button?.closest?.("[data-mechanism-answer-panel]");
+  const decisionKey = panel?.dataset?.decisionKey || "";
+  const optionKeys = [
+    ...(panel?.querySelectorAll?.("[data-mechanism-ranking-option]") || []),
+  ].map((entry) => entry.dataset.optionKey || "");
+  const expectedRevision = mechanismRevision(state);
+  if (!decisionKey || !expectedRevision || optionKeys.some((key) => !key))
+    return;
+  try {
+    await api.submitMechanismDecision(state.roomId, decisionKey, {
+      expectedRevision,
+      answer: { type: "ranking", optionKeys },
+    });
+    await pullRoomData({ partial: true });
+    setToast("秘密排序已交给主持人", render, { patch: true });
+  } catch (error) {
+    setToast(formatApiError(error, "排序提交失败"), render, { patch: true });
+  }
+}
+
+async function submitMechanismAllocation({
+  button,
+  state,
+  api,
+  render,
+  setToast,
+  formatApiError,
+  pullRoomData,
+}) {
+  const panel = button?.closest?.("[data-mechanism-answer-panel]");
+  const decisionKey = panel?.dataset?.decisionKey || "";
+  const total = Number(panel?.dataset?.allocationTotal || 0);
+  const allocations = [
+    ...(panel?.querySelectorAll?.("[data-mechanism-allocation-option]") || []),
+  ].map((entry) => ({
+    optionKey: entry.dataset.optionKey || "",
+    amount: Number(
+      entry.querySelector("[data-mechanism-allocation-amount]")?.value,
+    ),
+  }));
+  const allocated = allocations.reduce(
+    (sum, entry) => sum + (Number.isSafeInteger(entry.amount) ? entry.amount : 0),
+    0,
+  );
+  if (
+    !decisionKey ||
+    !mechanismRevision(state) ||
+    allocations.some(
+      (entry) =>
+        !entry.optionKey ||
+        !Number.isSafeInteger(entry.amount) ||
+        entry.amount < 0,
+    )
+  ) {
+    setToast("请为每一项填写非负整数", render, { patch: true });
+    return;
+  }
+  if (allocated !== total) {
+    setToast(`当前合计 ${allocated}，必须正好分配 ${total}`, render, {
+      patch: true,
+    });
+    return;
+  }
+  try {
+    await api.submitMechanismDecision(state.roomId, decisionKey, {
+      expectedRevision: mechanismRevision(state),
+      answer: { type: "allocation", allocations },
+    });
+    await pullRoomData({ partial: true });
+    setToast("秘密分配已交给主持人", render, { patch: true });
+  } catch (error) {
+    setToast(formatApiError(error, "分配提交失败"), render, { patch: true });
   }
 }
 

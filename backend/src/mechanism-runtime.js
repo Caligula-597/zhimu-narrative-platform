@@ -8,5 +8,6 @@ export {
   initializeMechanismRuntime,
   projectMechanismRuntime,
   projectPlayerMechanismRuntime,
+  resolvePlayerMechanismAnswer,
   resolvePlayerMechanismSelection
 } from "../../shared/mechanism-runtime.js";

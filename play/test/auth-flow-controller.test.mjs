@@ -31,6 +31,17 @@ test("login stores session and normalized user", async () => {
   assert.deepEqual(calls.filter((call) => call[0] === "busy").map((call) => call[1]), [true, false]);
 });
 
+test("cookie-only login clears a stale bearer fallback and keeps the normalized user", async () => {
+  const api = { login: async () => ({ user: { id: "user-1", email: "cookie@example.com" } }) };
+  const { controller, state, calls } = setup(api);
+  await controller.handleAuthSubmit({
+    email: { value: "cookie@example.com" },
+    password: { value: "password-123" }
+  });
+  assert.equal(state.user.id, "user-1");
+  assert.ok(calls.some((call) => call[0] === "token" && call[1] === undefined));
+});
+
 test("pending email verification opens the six-digit challenge without persisting an empty token", async () => {
   const challenge = {
     id: "be36d9de-63e8-4c7b-96a3-b13ad19bb0ef",

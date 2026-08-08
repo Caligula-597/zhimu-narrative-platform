@@ -520,6 +520,8 @@ export async function importDeepseekPipelinePackageWithClient(client, worldId, p
         mechanismPackageStored: Boolean(mechanismPackage),
         mechanismPackageSchemaVersion: mechanismPackage?.schemaVersion ?? null,
         mechanismValidationSummary: mechanismCompilation?.simulationSummary ?? null,
+        mechanismCompilationReason: mechanismCompilation?.reason ?? null,
+        mechanismDesignStatus: mechanismCompilation?.designStatus ?? null,
         bibleSeeded
       };
   }

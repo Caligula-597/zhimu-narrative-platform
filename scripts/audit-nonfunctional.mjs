@@ -65,6 +65,13 @@ for (const file of sourceFiles.filter((entry) => entry.startsWith("backend/src/"
   if (!backendTimerAllowlist.has(file)) failures.push(`${file} creates an unreviewed backend interval`);
 }
 
+// Frontend refreshes and elapsed-time displays share one visibility-aware,
+// non-overlapping scheduler so hidden tabs never keep permanent intervals alive.
+for (const file of sourceFiles.filter((entry) => !entry.startsWith("backend/src/"))) {
+  if (!/\bsetInterval\s*\(/.test(read(file))) continue;
+  failures.push(`${file} creates a frontend interval; use createAdaptivePoller`);
+}
+
 const providerFiles = [
   "backend/src/email/providers/mailgun.js",
   "backend/src/email/providers/resend.js",
@@ -100,6 +107,9 @@ const invariants = [
   ["shared/api-client.js", "rejectedAuthorization", "late 401 responses must not clear a newer bearer token"],
   ["shared/auth-state.js", "shouldInvalidateSessionForUnauthorized", "failed login attempts must not revoke an active session"],
   ["shared/sse-lifecycle.js", "staleCredential", "stale SSE handshakes must reconnect without logging out a new session"],
+  ["shared/sse-lifecycle.js", "createAdaptivePoller", "SSE fallback and reconciliation must use adaptive polling"],
+  ["shared/adaptive-poller.js", "visibilityState", "frontend polling must pause in hidden tabs"],
+  ["shared/adaptive-poller.js", "if (inFlight) return inFlight", "frontend polling must not overlap slow requests"],
   ["backend/test/hooks.mjs", "assertSafeDatabaseUrlForTestWrites", "test fixture bootstrap must reject production databases"],
   ["backend/scripts/player-home-performance-fixture.mjs", "assertSafeDatabaseUrlForTestWrites", "performance fixtures must reject production databases"],
   ["backend/scripts/benchmark-player-home.mjs", "productionRepresentativeAuth", "performance evidence must disclose whether authentication is production-representative"],
@@ -120,6 +130,25 @@ const invariants = [
 ];
 for (const [file, marker, message] of invariants) {
   if (!read(file).includes(marker)) failures.push(`${file}: ${message}`);
+}
+
+const portalStreamFiles = [
+  "src/runtime/room-events.js",
+  "host/src/runtime/room-events.js",
+  "play/src/room-events.js",
+  "play/src/platform-events.js"
+];
+for (const file of portalStreamFiles) {
+  const source = read(file);
+  if (!source.includes("createPortalEventLifecycle")) {
+    failures.push(`${file}: portal streams must use the shared event lifecycle adapter`);
+  }
+  if (!source.includes("PORTAL_POLL_INTERVAL_MS")) {
+    failures.push(`${file}: portal polling cadence must use the shared interval contract`);
+  }
+  if (/\bcreateSseLifecycle\s*\(/.test(source)) {
+    failures.push(`${file}: portal controller reimplements the low-level SSE lifecycle`);
+  }
 }
 
 const entrypointBudgets = {

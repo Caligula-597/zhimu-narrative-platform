@@ -8,7 +8,13 @@ function parseCookieHeader(header) {
     if (idx <= 0) continue;
     const key = part.slice(0, idx).trim();
     const value = part.slice(idx + 1).trim();
-    if (key) out[key] = decodeURIComponent(value);
+    if (!key) continue;
+    try {
+      out[key] = decodeURIComponent(value);
+    } catch {
+      // A malformed percent-escape is attacker input, not a server failure.
+      // Ignore that cookie instead of turning it into a noisy 500 response.
+    }
   }
   return out;
 }
@@ -21,12 +27,27 @@ export function cookieSecure(nodeEnv = resolveNodeEnv(), env = process.env) {
   return nodeEnv === "production" || env.SESSION_COOKIE_SECURE === "true";
 }
 
+export function sessionBearerResponseEnabled(nodeEnv = resolveNodeEnv(), env = process.env) {
+  const configured = String(env.SESSION_BEARER_RESPONSE_ENABLED ?? "").trim().toLowerCase();
+  if (configured === "true") return true;
+  if (configured === "false") return false;
+  return nodeEnv !== "production";
+}
+
+export function sessionResponsePayload(session, nodeEnv = resolveNodeEnv(), env = process.env) {
+  if (!session || typeof session !== "object") return {};
+  if (sessionBearerResponseEnabled(nodeEnv, env)) return { ...session };
+  const { token: _token, ...safeSession } = session;
+  return safeSession;
+}
+
 export function getSessionCookieSecurityStatus(env = process.env) {
   const nodeEnv = env.NODE_ENV === "production" ? "production" : "development";
   return {
     secure: cookieSecure(nodeEnv, env),
     httpOnly: true,
     sameSite: "Lax",
+    bearerResponseEnabled: sessionBearerResponseEnabled(nodeEnv, env),
     revocationTable: "auth_sessions"
   };
 }
@@ -34,7 +55,7 @@ export function getSessionCookieSecurityStatus(env = process.env) {
 export function readSessionCookie(request) {
   const cookies = parseCookieHeader(request.headers.cookie);
   const value = cookies[SESSION_COOKIE];
-  return typeof value === "string" && value.length >= 16 ? value : "";
+  return typeof value === "string" && /^[A-Za-z0-9_-]{16,128}$/u.test(value) ? value : "";
 }
 
 export function setSessionCookie(reply, token, expiresAt, nodeEnv = resolveNodeEnv()) {

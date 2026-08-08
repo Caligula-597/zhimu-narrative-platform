@@ -334,7 +334,12 @@ export interface UpdateWorldBody {
         | "evidence_selection"
         | "sequence_reconstruction"
         | "timed_crisis"
-        | "role_commitment";
+        | "role_commitment"
+        | "secret_ballot"
+        | "free_ranking"
+        | "numeric_allocation";
+      allocationTotal: number;
+      allocationUnitLabel: string;
       title: string;
       summary: string;
       recurringAction: string;
@@ -641,7 +646,12 @@ export interface CreateWorldBody {
         | "evidence_selection"
         | "sequence_reconstruction"
         | "timed_crisis"
-        | "role_commitment";
+        | "role_commitment"
+        | "secret_ballot"
+        | "free_ranking"
+        | "numeric_allocation";
+      allocationTotal: number;
+      allocationUnitLabel: string;
       title: string;
       summary: string;
       recurringAction: string;
@@ -1243,17 +1253,27 @@ export interface RuntimeCurrentState {
           | "evidence_selection"
           | "sequence_reconstruction"
           | "timed_crisis"
-          | "role_commitment";
-        resolutionMode: "host_confirmed";
-        submissionMode: "advisory_choice" | "private_choice";
+          | "role_commitment"
+          | "secret_ballot"
+          | "free_ranking"
+          | "numeric_allocation";
+        inputMode: "single_choice" | "ranking" | "allocation";
+        resolutionMode: "host_confirmed" | "host_majority";
+        submissionMode:
+          "advisory_choice" | "private_choice" | "secret_ballot" | "private_ranking" | "private_allocation";
         label: string;
         playerInstruction: string;
         deadlineSeconds: number;
         defaultOptionKey: string;
+        allocationTotal: number;
+        allocationUnitLabel: string;
       };
       deadlineAt: string | null;
       submission?: {
-        optionKey: string;
+        optionKey?: string;
+        answer: {
+          [k: string]: unknown;
+        };
         submittedAt: string;
       } | null;
       options: {
@@ -1741,6 +1761,7 @@ export interface RoomSceneUnlockedData {
     | "host_manual"
     | "host_event"
     | "investigation"
+    | "mechanism_settlement"
     | "shared_room"
     | "shared_roles"
     | "physical_token";
@@ -1756,6 +1777,7 @@ export interface RoomSectionUnlockedData {
     | "host_manual"
     | "host_event"
     | "investigation"
+    | "mechanism_settlement"
     | "shared_room"
     | "shared_roles"
     | "physical_token";
@@ -1771,6 +1793,7 @@ export interface RoomSectionRelockedData {
     | "host_manual"
     | "host_event"
     | "investigation"
+    | "mechanism_settlement"
     | "shared_room"
     | "shared_roles"
     | "physical_token";
@@ -1786,6 +1809,7 @@ export interface RoomSectionSkippedData {
     | "host_manual"
     | "host_event"
     | "investigation"
+    | "mechanism_settlement"
     | "shared_room"
     | "shared_roles"
     | "physical_token";
@@ -1807,6 +1831,7 @@ export interface RoomClueGrantedData {
     | "host_manual"
     | "host_event"
     | "investigation"
+    | "mechanism_settlement"
     | "shared_room"
     | "shared_roles"
     | "physical_token";
@@ -1826,6 +1851,7 @@ export interface RoomClueRevokedData {
     | "host_manual"
     | "host_event"
     | "investigation"
+    | "mechanism_settlement"
     | "shared_room"
     | "shared_roles"
     | "physical_token";
@@ -1842,6 +1868,7 @@ export interface RoomClueResentData {
     | "host_manual"
     | "host_event"
     | "investigation"
+    | "mechanism_settlement"
     | "shared_room"
     | "shared_roles"
     | "physical_token";
@@ -1857,6 +1884,7 @@ export interface RoomItemGrantedData {
     | "host_manual"
     | "host_event"
     | "investigation"
+    | "mechanism_settlement"
     | "shared_room"
     | "shared_roles"
     | "physical_token";

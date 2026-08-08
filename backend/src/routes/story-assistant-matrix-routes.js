@@ -27,7 +27,14 @@ async function authorizeAndRun(request, handler) {
   const { worldId } = request.params;
   await requireWorldRole(actorId, worldId);
   const world = await findWorldForMember(worldId, actorId);
-  return handler(applyCreatorContextToPipelineInput(request.body ?? {}, world?.settings));
+  const input = applyCreatorContextToPipelineInput(
+    request.body ?? {},
+    world?.settings,
+  );
+  const result = await handler(input);
+  return result && typeof result === "object" && !Array.isArray(result)
+    ? { ...result, creatorContext: input.creatorContext }
+    : result;
 }
 
 export function registerStoryAssistantMatrixRoutes(app, { preHandler }) {

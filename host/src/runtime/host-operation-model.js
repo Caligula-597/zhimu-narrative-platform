@@ -1,4 +1,5 @@
 import { resolveSectionSegmentKey } from "../../../shared/segment-contract.js";
+import { secureRandomId } from "../../../shared/secure-random.js";
 
 export const HOST_OPERATION_KINDS = Object.freeze({
   PLAYER: "player",
@@ -150,7 +151,7 @@ function defaultDraft(kind, stateRef, options, runbooks) {
 
 export function createHostOperation({ kind, roomId, stateRef, options = {}, runbooks = [] }) {
   return {
-    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    id: secureRandomId("host-operation"),
     roomId: String(roomId || ""),
     kind,
     options: { ...options },

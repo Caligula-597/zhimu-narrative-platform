@@ -10,9 +10,21 @@
 export const DEFAULT_MECHANISM_INTERACTION_KIND = "group_choice";
 export const MECHANISM_INTERACTION_RESOLUTION = "host_confirmed";
 export const MECHANISM_INTERACTION_SUBMISSION_MODE = "advisory_choice";
+export const MECHANISM_INTERACTION_INPUT_MODES = Object.freeze([
+  "single_choice",
+  "ranking",
+  "allocation",
+]);
+export const MECHANISM_INTERACTION_RESOLUTION_MODES = Object.freeze([
+  "host_confirmed",
+  "host_majority",
+]);
 export const MECHANISM_INTERACTION_SUBMISSION_MODES = Object.freeze([
   "advisory_choice",
   "private_choice",
+  "secret_ballot",
+  "private_ranking",
+  "private_allocation",
 ]);
 
 export const MECHANISM_INTERACTION_CARDS = Object.freeze([
@@ -70,6 +82,33 @@ export const MECHANISM_INTERACTION_CARDS = Object.freeze([
     playerInstruction: "按角色目标选择愿意承担的立场。",
     hostInstruction: "确认承诺主体并记录后续影响。",
   }),
+  Object.freeze({
+    key: "secret_ballot",
+    label: "秘密投票",
+    shortLabel: "密投",
+    theme: "ballot",
+    authorPrompt: "每位玩家独立投票，彼此不可见，由主持人查看聚合结果。",
+    playerInstruction: "独立提交一张秘密选票；其他玩家不会看到你的选择。",
+    hostInstruction: "查看私密票数聚合；有唯一领先项时可按多数结果结算。",
+  }),
+  Object.freeze({
+    key: "free_ranking",
+    label: "自由排序",
+    shortLabel: "排序",
+    theme: "sequence",
+    authorPrompt: "每位玩家把全部候选项排成自己的优先顺序。",
+    playerInstruction: "按你的判断排列全部候选项，再一次性秘密提交。",
+    hostInstruction: "查看全桌排序积分；有唯一领先项时可按多数结果结算。",
+  }),
+  Object.freeze({
+    key: "numeric_allocation",
+    label: "数值分配",
+    shortLabel: "配点",
+    theme: "resource",
+    authorPrompt: "每位玩家把固定额度分配给全部候选项。",
+    playerInstruction: "把本轮全部额度分配完毕，再一次性秘密提交。",
+    hostInstruction: "查看各项累计额度；有唯一领先项时可按多数结果结算。",
+  }),
 ]);
 
 const CARD_BY_KEY = new Map(
@@ -99,9 +138,26 @@ function boundedInteger(value, fallback = 0, minimum = 0, maximum = 7200) {
 }
 
 function submissionModeFor(card) {
+  if (card.key === "secret_ballot") return "secret_ballot";
+  if (card.key === "free_ranking") return "private_ranking";
+  if (card.key === "numeric_allocation") return "private_allocation";
   return card.key === "role_commitment"
     ? "private_choice"
     : MECHANISM_INTERACTION_SUBMISSION_MODE;
+}
+
+function inputModeFor(card) {
+  if (card.key === "free_ranking") return "ranking";
+  if (card.key === "numeric_allocation") return "allocation";
+  return "single_choice";
+}
+
+function resolutionModeFor(card) {
+  return ["secret_ballot", "free_ranking", "numeric_allocation"].includes(
+    card.key,
+  )
+    ? "host_majority"
+    : MECHANISM_INTERACTION_RESOLUTION;
 }
 
 export function mechanismInteractionCard(
@@ -121,7 +177,8 @@ export function normalizeMechanismInteraction(value = {}) {
   const card = mechanismInteractionCard(cleanKey(source.kind));
   return {
     kind: card.key,
-    resolutionMode: MECHANISM_INTERACTION_RESOLUTION,
+    inputMode: inputModeFor(card),
+    resolutionMode: resolutionModeFor(card),
     submissionMode: submissionModeFor(card),
     label: cleanText(source.label, 120) || card.label,
     playerInstruction:
@@ -135,6 +192,14 @@ export function normalizeMechanismInteraction(value = {}) {
       card.key === "timed_crisis" ? cleanKey(source.defaultOptionKey) : "",
     resourceKey:
       card.key === "resource_tradeoff" ? cleanKey(source.resourceKey) : "",
+    allocationTotal:
+      card.key === "numeric_allocation"
+        ? boundedInteger(source.allocationTotal, 100, 1, 10_000)
+        : 0,
+    allocationUnitLabel:
+      card.key === "numeric_allocation"
+        ? cleanText(source.allocationUnitLabel, 40) || "点"
+        : "",
   };
 }
 
@@ -153,11 +218,14 @@ export function publicMechanismInteraction(value = {}) {
   const interaction = normalizeMechanismInteraction(value);
   return {
     kind: interaction.kind,
+    inputMode: interaction.inputMode,
     resolutionMode: interaction.resolutionMode,
     submissionMode: interaction.submissionMode,
     label: interaction.label,
     playerInstruction: interaction.playerInstruction,
     deadlineSeconds: interaction.deadlineSeconds,
     defaultOptionKey: interaction.defaultOptionKey,
+    allocationTotal: interaction.allocationTotal,
+    allocationUnitLabel: interaction.allocationUnitLabel,
   };
 }

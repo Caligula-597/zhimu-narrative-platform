@@ -20,7 +20,8 @@ import { registerBillingRoutes } from "./routes/billing-routes.js";
 import { registerRoutes } from "./routes.js";
 import { registerStaticFrontend } from "./static-frontend.js";
 import { resolveAllowedCorsOrigins } from "./cors-origins.js";
-import { applySecurityHeaders } from "./security-headers.js";
+import { assertCookieRequestOrigin } from "./cookie-request-origin.js";
+import { applySecurityHeaders, applySensitiveResponseHeaders } from "./security-headers.js";
 import { isDatabaseCapacityError } from "./db.js";
 import { createRoomAccessAbuseProtection } from "./room-access-abuse-protection.js";
 import { createVoiceAbuseProtection } from "./voice-abuse-protection.js";
@@ -50,7 +51,7 @@ const verificationResendRateLimit = createRateLimiter({
   windowMs: 15 * 60_000,
   max: Number(process.env.RATE_LIMIT_VERIFICATION_RESEND_MAX ?? 3),
   routeKey: "verification-resend",
-  identity: "actor"
+  identity: "verification-challenge"
 });
 const betaApplyRateLimit = createRateLimiter({
   windowMs: 3_600_000,
@@ -71,6 +72,12 @@ const apiReadRateLimit = createRateLimiter({
   windowMs: 60_000,
   max: Number(process.env.RATE_LIMIT_READ_MAX ?? 300),
   routeKey: "api-read"
+});
+const apiNetworkRateLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: Number(process.env.RATE_LIMIT_API_IP_MAX ?? 600),
+  routeKey: "api-network",
+  identity: "ip"
 });
 const uploadRateLimit = createRateLimiter({
   windowMs: 60_000,
@@ -134,6 +141,12 @@ function isAiRoute(url, method) {
 
 function shouldSkipReadRateLimit(url) {
   return url.includes("/events/stream");
+}
+
+function shouldSkipApiNetworkRateLimit(url) {
+  // Keep liveness independent from application admission so Railway can still
+  // detect and replace a saturated instance. All data-bearing APIs are capped.
+  return url === "/api/health/live";
 }
 
 function shouldSkipRateLimit(url) {
@@ -210,6 +223,7 @@ function resolveTraceId(request) {
 
 export async function createApp(options = {}) {
   const nodeEnv = options.nodeEnv ?? process.env.NODE_ENV ?? "development";
+  const corsOrigin = resolveCorsOrigin(options, nodeEnv);
   const app = Fastify({
     trustProxy: resolveTrustProxy(options.trustProxy ?? process.env.TRUST_PROXY_HOPS),
     requestTimeout: resolveHttpRequestTimeoutMs(options.requestTimeout ?? process.env.HTTP_REQUEST_TIMEOUT_MS),
@@ -219,6 +233,7 @@ export async function createApp(options = {}) {
     }),
     genReqId: (request) => safeCorrelationId(request.headers["x-request-id"]) || randomUUID()
   });
+  app.decorate("zhimuNodeEnv", nodeEnv);
   app.addContentTypeParser(
     ["application/csp-report", "application/reports+json"],
     { parseAs: "string" },
@@ -244,7 +259,7 @@ export async function createApp(options = {}) {
   const hostPlayerManagementAbuseProtection = createHostPlayerManagementAbuseProtection();
 
   await app.register(cors, {
-    origin: resolveCorsOrigin(options, nodeEnv),
+    origin: corsOrigin,
     credentials: true,
     methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
   });
@@ -257,6 +272,12 @@ export async function createApp(options = {}) {
     request._metricsStart = process.hrtime.bigint();
     if (!rateLimitEnabled) return;
     const url = request.url.split("?")[0];
+    // Authentication resolves bearer/cookie sessions through PostgreSQL in
+    // preHandler. Admit every data-bearing API IP here first so random-token
+    // floods and unauthenticated public reads cannot exhaust database capacity.
+    if (url.startsWith("/api/") && !shouldSkipApiNetworkRateLimit(url)) {
+      await apiNetworkRateLimit(request, reply);
+    }
     if (!shouldSkipRateLimit(url)) {
       await roomAccessAbuseProtection.protectNetwork(request, reply, url);
       await voiceAbuseProtection.protectNetwork(request, reply, url);
@@ -289,12 +310,16 @@ export async function createApp(options = {}) {
       durationMs
     });
   });
-  app.addHook("onSend", async (_request, reply, payload) => {
+  app.addHook("onSend", async (request, reply, payload) => {
     applySecurityHeaders(reply, { nodeEnv });
+    applySensitiveResponseHeaders(request, reply);
     return payload;
   });
   app.addHook("preHandler", async (request) => {
     await resolveRequestActor(request, { resolveSession: resolveSessionContext, allowDemoUserHeader });
+  });
+  app.addHook("preHandler", async (request) => {
+    assertCookieRequestOrigin(request, corsOrigin);
   });
   app.addHook("preHandler", async (request, reply) => {
     if (!rateLimitEnabled) return;
@@ -311,7 +336,8 @@ export async function createApp(options = {}) {
       "/api/auth/forgot-password",
       "/api/auth/reset-password",
       "/api/auth/verify-email",
-      "/api/auth/verify-email-code"
+      "/api/auth/verify-email-code",
+      "/api/account/delete"
     ].includes(url)) {
       await authRecoveryRateLimit(request, reply);
       return;

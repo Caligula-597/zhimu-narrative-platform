@@ -39,11 +39,10 @@ for (const surface of SURFACES) {
   test(`${surface.name} uses the shared recoverable SSE lifecycle`, () => {
     const lifecycle = read(surface.lifecycle);
     const api = read(surface.api);
-    assert.match(lifecycle, /createSseLifecycle/);
-    assert.match(lifecycle, /\bpoll\s*:/);
-    assert.match(lifecycle, /\breconcile\s*:/);
+    assert.match(lifecycle, /createPortalEventLifecycle/);
+    assert.match(lifecycle, /\brefresh\s*:/);
     assert.match(lifecycle, /\bonAuthLost\s*:/);
-    assert.match(lifecycle, /\bonDisconnected\s*:/);
+    assert.match(lifecycle, /\bonConnectionChange\s*:/);
     assert.match(api, surface.streamPattern);
     assert.match(api, /cursorKey/);
   });
@@ -53,13 +52,15 @@ test("the shared transport covers cursor validation, de-duplication and stream-l
   const transport = read("shared/sse-client.js");
   const parser = read("shared/sse.js");
   const lifecycle = read("shared/sse-lifecycle.js");
+  const poller = read("shared/adaptive-poller.js");
   const replay = read("backend/src/sse-replay-subscription.js");
   assert.match(transport, /Last-Event-ID/);
   assert.match(transport, /initialCursor/);
   assert.match(parser, /deliveredIds/);
   assert.match(parser, /lastHandledCursor = Math\.max/);
   assert.match(parser, /handler failed|onEvent/);
-  assert.match(lifecycle, /pollInFlight/);
+  assert.match(lifecycle, /createAdaptivePoller/);
+  assert.match(poller, /if \(inFlight\) return inFlight/);
   assert.match(lifecycle, /currentGeneration !== generation/);
   assert.match(replay, /phase = "buffering"/);
   assert.match(replay, /throughId: highWaterMark/);

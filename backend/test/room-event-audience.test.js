@@ -139,6 +139,28 @@ test("role-targeted events are not delivered to another player", () => {
   }
 });
 
+test("mechanism clue settlements are visible only to the resolved role", () => {
+  const event = {
+    type: "room.clue_granted",
+    clueId: "clue-order",
+    clueName: "密令残页",
+    roleSlotId: "role-1",
+    source: "mechanism_settlement",
+  };
+  assert.equal(
+    projectRoomEventForAudience(event, player).event,
+    event,
+  );
+  assert.equal(
+    projectRoomEventForAudience(event, {
+      ...player,
+      actorId: "user-2",
+      roleSlotId: "role-2",
+    }).event,
+    null,
+  );
+});
+
 test("private nudges, actions and voice activity enforce their explicit audience", () => {
   assert.equal(
     projectRoomEventForAudience(

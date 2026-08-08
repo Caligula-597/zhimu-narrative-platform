@@ -54,7 +54,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [安全与测试收口](../SECURITY_AND_TESTING.md) | `SECURITY_AND_TESTING.md` |
 | [织幕 · 官网（营销站）](../site/README.md) | `site/README.md` |
 
-## 产品、流程与用户指南（31）
+## 产品、流程与用户指南（32）
 
 描述产品意图、工作流和用户操作；部分页面同时包含待实现设计。
 
@@ -62,6 +62,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 |---|---|
 | [创作驾驶舱故事总览 V1](./创作驾驶舱故事总览-V1.md) | `docs/创作驾驶舱故事总览-V1.md` |
 | [织幕创作者机制设计与多审查工作台 V1](./创作者机制设计与多审查工作台-V1.md) | `docs/创作者机制设计与多审查工作台-V1.md` |
+| [机制运行包与主持端联动实施基线 V1](./机制运行包与主持端联动实施基线-V1.md) | `docs/机制运行包与主持端联动实施基线-V1.md` |
 | [AI 大纲生成 V2.4：语义宪章、分支执行与生成前创作合同](./AI_OUTLINE_STREAMING_PIPELINE_ZH.md) | `docs/AI_OUTLINE_STREAMING_PIPELINE_ZH.md` |
 | [AI 剧本创作 · UI 验收（五步流程）](./AI_PIPELINE_UI_ZH.md) | `docs/AI_PIPELINE_UI_ZH.md` |
 | [商业作者工作流与稿件安全](./COMMERCIAL_CREATOR_WORKFLOW_ZH.md) | `docs/COMMERCIAL_CREATOR_WORKFLOW_ZH.md` |

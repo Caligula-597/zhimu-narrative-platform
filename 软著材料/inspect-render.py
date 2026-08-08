@@ -6,7 +6,7 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw
 
 
-QA = Path(r"D:\长剧情\软著材料\渲染检查\2026-07-26_织幕V1.0")
+QA = Path(r"D:\长剧情\软著材料\渲染检查\2026-08-08_织幕V1.0")
 BATCH = 5
 
 

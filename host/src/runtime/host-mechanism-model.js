@@ -88,6 +88,11 @@ export function normalizeHostMechanismRuntime(payload) {
       : Array.isArray(latestHistory?.changes)
         ? latestHistory.changes
         : [],
+    contentGrants: Array.isArray(payload.contentGrants)
+      ? payload.contentGrants
+      : Array.isArray(latestHistory?.metadata?.contentGrants)
+        ? latestHistory.metadata.contentGrants
+        : [],
   };
 }
 

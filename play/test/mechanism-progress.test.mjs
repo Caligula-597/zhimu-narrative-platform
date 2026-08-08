@@ -117,3 +117,59 @@ test("player role commitment clearly stays private to the player and host", () =
     state.home = previousHome;
   }
 });
+
+test("player renders private ranking and fixed-total allocation sessions with opaque handles", () => {
+  const previousHome = state.home;
+  state.home = {
+    currentState: {
+      mechanism: {
+        initialized: true,
+        stale: false,
+        status: "running",
+        totalRounds: 1,
+        currentRound: { sequence: 1, title: "确定救援次序" },
+        decisions: [
+          {
+            key: "choice-1",
+            question: "先救哪一处？",
+            interaction: { kind: "free_ranking" },
+            submission: {
+              answer: { type: "ranking", optionKeys: ["option-2", "option-1"] },
+            },
+            options: [
+              { key: "option-1", choiceText: "旧港", presentation: {} },
+              { key: "option-2", choiceText: "医疗环", presentation: {} },
+            ],
+          },
+          {
+            key: "choice-2",
+            question: "如何分配救援额度？",
+            interaction: {
+              kind: "numeric_allocation",
+              allocationTotal: 100,
+              allocationUnitLabel: "点",
+            },
+            submission: null,
+            options: [
+              { key: "option-1", choiceText: "旧港", presentation: {} },
+              { key: "option-2", choiceText: "医疗环", presentation: {} },
+            ],
+          },
+        ],
+      },
+    },
+  };
+  try {
+    const html = renderMechanismProgress();
+    assert.match(html, /自由排序/);
+    assert.match(html, /submit-mechanism-ranking/);
+    assert.ok(html.indexOf("医疗环") < html.indexOf("旧港"));
+    assert.match(html, /数值分配/);
+    assert.match(html, /分配 100 点/);
+    assert.match(html, /submit-mechanism-allocation/);
+    assert.match(html, /其他玩家看不到内容、顺序或分配数值/);
+    assert.doesNotMatch(html, /decision-internal|resource-secret|state-secret/);
+  } finally {
+    state.home = previousHome;
+  }
+});

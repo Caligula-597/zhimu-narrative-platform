@@ -416,7 +416,7 @@ export function renderLaunchCanvas(ctx, cockpit, findItemLink) {
   }
   return `<section class="cockpit-panel launch-panel"><div class="panel-heading"><div><p>测试运行房</p><h3>${counts.rooms || 0} 个平行房</h3></div></div>
     <button class="launch-test-btn" type="button" data-action="world-rooms"><strong>${counts.rooms ? "管理运行房" : "创建测试房"}</strong><span>复制邀请码 · 打开主持端试跑</span></button>
-    <div class="row" style="margin-top:10px">${linkButton({ action: "open-host-console", label: "打开主持端" })}${linkButton({ action: "creator-check", label: "运行系统检查" })}</div></section>`;
+    <div class="row" style="margin-top:10px">${linkButton({ view: "publish", label: "发布 Release" })}${linkButton({ action: "open-host-console", label: "打开主持端" })}${linkButton({ action: "creator-check", label: "运行系统检查" })}</div></section>`;
 }
 
 function renderCopilotAnalysis(cockpit) {

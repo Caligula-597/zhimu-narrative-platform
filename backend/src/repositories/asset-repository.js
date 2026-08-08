@@ -87,16 +87,29 @@ export async function quarantineUpload(assetId, uploadSessionId, scanCode) {
   });
 }
 
-export async function confirmUploadedAsset(client, { assetId, uploadSessionId, objectKey, byteSize }) {
+export async function confirmUploadedAsset(client, {
+  assetId,
+  uploadSessionId,
+  stagingObjectKey,
+  objectKey,
+  byteSize
+}) {
   const claimed = await client.query(
     `UPDATE upload_sessions
      SET status = 'confirmed', confirmed_at = now()
-     WHERE id = $1 AND asset_file_id = $2 AND status = 'created'
+     WHERE id = $1 AND asset_file_id = $2 AND object_key = $3 AND status = 'created'
      RETURNING id`,
-    [uploadSessionId, assetId]
+    [uploadSessionId, assetId, stagingObjectKey]
   );
   if (!claimed.rowCount) return null;
-  await client.query(`UPDATE asset_files SET status = 'active', updated_at = now() WHERE id = $1`, [assetId]);
+  const activated = await client.query(
+    `UPDATE asset_files
+     SET status = 'active', object_key = $2, byte_size = $3, updated_at = now()
+     WHERE id = $1 AND status = 'pending_upload'
+     RETURNING id`,
+    [assetId, objectKey, byteSize]
+  );
+  if (!activated.rowCount) return null;
   await client.query(
     `INSERT INTO asset_versions (asset_file_id, version_number, object_key, byte_size)
      VALUES ($1, 1, $2, $3)`,

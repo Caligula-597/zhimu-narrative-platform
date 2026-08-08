@@ -15,7 +15,14 @@ import {
 import { requireActor } from "../request-actor.js";
 import { getObjectStorage } from "../storage/index.js";
 import { runRevisionMutation } from "../world-revision.js";
-import { assetUploadUrlSchema, confirmAssetSchema, deleteAssetSchema, restoreAssetSchema, worldIdParams } from "./schemas.js";
+import {
+  assetIdParams,
+  assetUploadUrlSchema,
+  confirmAssetSchema,
+  deleteAssetSchema,
+  restoreAssetSchema,
+  worldIdParams
+} from "./schemas.js";
 import { requireWorldRole } from "./route-guards.js";
 import { requireAssetRead, storageUsage } from "./world-helpers.js";
 import { resolveRecycleBinDays, resolveSignedDownloadTtlSeconds } from "../asset-lifetime-policy.js";
@@ -71,8 +78,8 @@ export async function registerAssetRoutes(app) {
   app.post("/api/assets/:assetId/confirm", { schema: confirmAssetSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { assetId } = request.params;
-    const { session, stat } = await inspectAndScanAssetUpload(actorId, assetId);
-    return runRevisionMutation(
+    const { session, stat, finalObjectKey } = await inspectAndScanAssetUpload(actorId, assetId);
+    const result = await runRevisionMutation(
       request,
       reply,
       session.world_id,
@@ -80,17 +87,25 @@ export async function registerAssetRoutes(app) {
         const confirmed = await confirmUploadedAsset(client, {
           assetId,
           uploadSessionId: session.id,
-          objectKey: session.object_key,
+          stagingObjectKey: session.object_key,
+          objectKey: finalObjectKey,
           byteSize: stat.byteSize
         });
         if (!confirmed) throwErr("UPLOAD_SESSION_NOT_FOUND");
         return confirmed;
       },
-      { sendErr }
+      {
+        sendErr,
+        onRollback: () => getObjectStorage().deleteObject({ key: finalObjectKey })
+      }
     );
+    if (reply.statusCode < 400) {
+      await getObjectStorage().deleteObject({ key: session.object_key }).catch(() => {});
+    }
+    return result;
   });
 
-  app.get("/api/assets/:assetId/download-url", async (request) => {
+  app.get("/api/assets/:assetId/download-url", { schema: { params: assetIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const asset = await requireAssetRead(actorId, request.params.assetId);
     const ttl = resolveSignedDownloadTtlSeconds();

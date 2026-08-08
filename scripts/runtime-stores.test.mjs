@@ -503,6 +503,13 @@ test("view registry is introduced without disabling lazy view loading", () => {
   assert.doesNotMatch(actionsJs, /const V = window\.zhimuViews/);
   assert.match(actionsJs, /callView\("studio", "bindStudioDragging"\)/);
   assert.match(loaderJs, /\(\) => import\("\.\.\/views\/clues\.js"\)/);
+  assert.match(loaderJs, /\(\) => import\("\.\.\/views\/overview\.js"\)/);
+  assert.match(loaderJs, /\(\) => import\("\.\/actions-bible\.js"\)/);
+
+  const mainJs = fs.readFileSync(path.join(root, "frontend/main.js"), "utf8");
+  assert.doesNotMatch(mainJs, /import "\.\.\/src\/views\/overview\.js"/);
+  assert.doesNotMatch(mainJs, /import "\.\.\/src\/views\/platform-runtime\.js"/);
+  assert.doesNotMatch(mainJs, /import "\.\.\/src\/runtime\/actions-bible\.js"/);
 });
 
 test("phase V4 view APIs register without writing the old zhimuViews bridge", () => {
@@ -571,7 +578,7 @@ test("phase V3 runtime cross-view calls go through loader and registry", () => {
   assert.match(roomEvents, /ensureViewModules\?\.\("player"\)/);
   assert.match(roomEvents, /callView\("player", "refreshVoiceMessages"\)/);
   assert.match(roomEvents, /roomEventStreamKey/);
-  assert.match(roomEvents, /createSseLifecycle/);
+  assert.match(roomEvents, /createPortalEventLifecycle/);
   assert.match(roomEvents, /roomEventLifecycle && roomEventStreamKey === nextStreamKey/);
   assert.match(roomEvents, /roomEventLifecycle\?\.stop\(\)/);
   assert.match(searchFocus, /import \{ callView \} from "\.\/view-registry\.js"/);

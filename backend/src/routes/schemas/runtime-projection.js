@@ -39,12 +39,15 @@ const mechanismInteractionSchema = {
   additionalProperties: false,
   required: [
     "kind",
+    "inputMode",
     "resolutionMode",
     "submissionMode",
     "label",
     "playerInstruction",
     "deadlineSeconds",
     "defaultOptionKey",
+    "allocationTotal",
+    "allocationUnitLabel",
   ],
   properties: {
     kind: {
@@ -56,17 +59,35 @@ const mechanismInteractionSchema = {
         "sequence_reconstruction",
         "timed_crisis",
         "role_commitment",
+        "secret_ballot",
+        "free_ranking",
+        "numeric_allocation",
       ],
     },
-    resolutionMode: { type: "string", enum: ["host_confirmed"] },
+    inputMode: {
+      type: "string",
+      enum: ["single_choice", "ranking", "allocation"],
+    },
+    resolutionMode: {
+      type: "string",
+      enum: ["host_confirmed", "host_majority"],
+    },
     submissionMode: {
       type: "string",
-      enum: ["advisory_choice", "private_choice"],
+      enum: [
+        "advisory_choice",
+        "private_choice",
+        "secret_ballot",
+        "private_ranking",
+        "private_allocation",
+      ],
     },
     label: { type: "string" },
     playerInstruction: { type: "string" },
     deadlineSeconds: { type: "integer", minimum: 0, maximum: 7200 },
     defaultOptionKey: { type: "string" },
+    allocationTotal: { type: "integer", minimum: 0, maximum: 10000 },
+    allocationUnitLabel: { type: "string" },
   },
 };
 
@@ -345,9 +366,10 @@ const playerMechanismProjectionSchema = {
                   {
                     type: "object",
                     additionalProperties: false,
-                    required: ["optionKey", "submittedAt"],
+                    required: ["answer", "submittedAt"],
                     properties: {
                       optionKey: { type: "string" },
+                      answer: openObject,
                       submittedAt: { type: "string" },
                     },
                   },

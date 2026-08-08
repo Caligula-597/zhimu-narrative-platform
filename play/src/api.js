@@ -120,9 +120,7 @@ export const api = {
   playerHomeCore: (roomId) => request(`/rooms/${roomId}/player-home/core`),
   playerHomeSocial: (roomId, currentActKey = "ch1") =>
     request(`/rooms/${roomId}/player-home/social?currentActKey=${encodeURIComponent(currentActKey)}`),
-  playerKnowledge: (roomId) => request(`/rooms/${roomId}/knowledge`),
   playerCurrentState: (roomId) => request(`/rooms/${roomId}/current-state`),
-  playerVotes: (roomId) => request(`/rooms/${roomId}/votes`),
   submitVoteBallot: (roomId, voteId, payload) =>
     request(`/rooms/${roomId}/votes/${voteId}/ballots`, { method: "POST", body: payload }),
   submitMechanismDecision: (roomId, decisionKey, payload) =>
@@ -131,7 +129,6 @@ export const api = {
       body: payload,
       idempotent: true
     }),
-  privateActions: (roomId) => request(`/rooms/${roomId}/private-actions`),
   createPrivateAction: (roomId, payload) =>
     request(`/rooms/${roomId}/private-actions`, { method: "POST", body: payload }),
   startSection: (roomId, sectionId) =>
@@ -199,7 +196,6 @@ export const api = {
       method: "POST",
       body: { body }
     }),
-  officialExample: () => request("/platform/official-example"),
   joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} }),
   latestRecap: (roomId) => request(`/rooms/${roomId}/recap/latest`),
   getRecap: (roomId, recapId) => request(`/rooms/${roomId}/recaps/${recapId}`),

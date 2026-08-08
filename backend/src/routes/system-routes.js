@@ -11,22 +11,30 @@ import {
   normalizeCspReport,
   noteCspViolationForAlert
 } from "../csp-reports.js";
+import { healthResponseBody } from "../health-response-policy.js";
+import { createHealthStatusLoader, resolveHealthStatusCacheMs } from "../health-status-cache.js";
 
 const processStartedAt = Date.now();
 
-export async function registerSystemRoutes(app) {  app.get("/api/health", async () => {
-    return getDatabaseStatus();
+export async function registerSystemRoutes(app) {
+  const healthCacheMs = resolveHealthStatusCacheMs(process.env.HEALTH_STATUS_CACHE_MS, app.zhimuNodeEnv);
+  const loadDatabaseStatus = createHealthStatusLoader(getDatabaseStatus, { ttlMs: healthCacheMs });
+  const loadReadinessStatus = createHealthStatusLoader(getReadinessStatus, { ttlMs: healthCacheMs });
+
+  app.get("/api/health", async (request) => {
+    const status = await loadDatabaseStatus();
+    return healthResponseBody(request, status, { nodeEnv: app.zhimuNodeEnv });
   });
 
   app.get("/api/health/live", async () => ({ ok: true }));
 
-  app.get("/api/health/ready", async (_request, reply) => {
+  app.get("/api/health/ready", async (request, reply) => {
     const [ready, bus, platformBus] = await Promise.all([
-      getReadinessStatus(),
+      loadReadinessStatus(),
       Promise.resolve(getRoomEventBusStatus()),
       Promise.resolve(getPlatformEventBusStatus())
     ]);
-    const production = process.env.NODE_ENV === "production";
+    const production = app.zhimuNodeEnv === "production";
     const roomEventBusReady = bus.mode === "postgres" ? bus.listening : !production;
     const platformEventBusReady = platformBus.mode === "postgres" ? platformBus.listening : !production;
     const outbox = getEventOutboxStatus();
@@ -54,10 +62,12 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       eventOutbox: outbox,
       optionalServices: getOptionalServicesStatus()
     };
-    if (!body.ready) {
-      return reply.code(503).send(body);
-    }
-    return body;
+    const responseBody = healthResponseBody(request, body, {
+      nodeEnv: app.zhimuNodeEnv,
+      readiness: true
+    });
+    if (!body.ready) return reply.code(503).send(responseBody);
+    return responseBody;
   });
 
   app.get(
@@ -77,7 +87,7 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
       const platformBus = getPlatformEventBusStatus();
       const eventOutbox = getEventOutboxStatus();
       const ready = await getReadinessStatus();
-      const production = process.env.NODE_ENV === "production";
+      const production = app.zhimuNodeEnv === "production";
       const eventBusesReady = production
         ? roomBus.mode === "postgres" && roomBus.listening
           && platformBus.mode === "postgres" && platformBus.listening
@@ -145,7 +155,7 @@ export async function registerSystemRoutes(app) {  app.get("/api/health", async 
         required: ["name", "value", "id"],
         properties: {
           name: { type: "string", enum: ["LCP", "CLS", "INP", "FCP", "TTFB"] },
-          value: { type: "number" },
+          value: { type: "number", minimum: 0, maximum: 600_000 },
           rating: { type: "string", enum: ["good", "needs-improvement", "poor", "unknown"], maxLength: 20 },
           id: { type: "string", maxLength: 120 },
           path: { type: "string", maxLength: 500 },

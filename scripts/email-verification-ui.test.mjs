@@ -6,6 +6,10 @@ const authWorld = fs.readFileSync(
   new URL("../src/runtime/auth-world.js", import.meta.url),
   "utf8"
 );
+const creatorApiClient = fs.readFileSync(
+  new URL("../src/api/client.js", import.meta.url),
+  "utf8"
+);
 
 test("login surface exposes a discoverable email-code entry", () => {
   assert.match(authWorld, /data-auth-verify-entry/);
@@ -19,6 +23,14 @@ test("email-link verification is awaited before startup continues", () => {
   assert.match(authWorld, /pending\.push\(openVerifyEmail\(verifyToken\)\)/);
   assert.doesNotMatch(authWorld, /pending\.push\(\(async\(\)=>\{await openVerifyEmail/);
   assert.match(authWorld, /sessionStorage\.setItem\("zhimuAuthPrompted","1"\)/);
+});
+
+test("pending verification never marks the creator portal authenticated", () => {
+  assert.match(
+    creatorApiClient,
+    /if \(result\?\.pendingEmailVerification\) return result;/
+  );
+  assert.match(creatorApiClient, /markSessionFromResponse\(payload\)/);
 });
 
 test("successful authentication does not present an empty workspace as an outage", () => {

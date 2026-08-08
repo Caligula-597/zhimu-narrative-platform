@@ -47,6 +47,7 @@ const portalProfiles = {
 };
 const worldId = "33333333-3333-4333-8444-555555550003";
 const releaseId = "44444444-4444-4444-8444-555555550004";
+let releaseSequence = 2;
 let roomSequence = 2;
 let clueSequence = 1;
 let ruleSequence = 0;
@@ -86,7 +87,12 @@ const release = {
     rulesetFamily: "narrative"
   },
   readinessSummary: { errorCount: 0, warningCount: 1, successCount: 6 },
-  contentSummary: { counts: { roles: 4, sections: 8, segments: 3 }, hasCoreTrick: true, totalObjects: 28 },
+  contentSummary: {
+    counts: { roles: 4, sections: 8, segments: 3 },
+    hasCoreTrick: true,
+    hasMechanismPackage: true,
+    totalObjects: 29
+  },
   contentSha256: "a".repeat(64),
   snapshotBytes: 4096,
   createdByUserId: "154aa8a9-9cd2-4098-90f4-c75e56c0cc53",
@@ -94,23 +100,27 @@ const release = {
   createdAt: "2026-07-23T00:00:00.000Z"
 };
 
-const bindingFor = (selectedReleaseId = null) => selectedReleaseId
-  ? {
+const releases = [release];
+
+const bindingFor = (selectedReleaseId = null) => {
+  const selectedRelease = releases.find((item) => item.id === selectedReleaseId) || null;
+  return selectedRelease
+    ? {
       mode: "release",
-      runtimeSource: "live_draft",
-      isFrozen: false,
-      compatibilityStatus: "awaiting_release_reader",
+      runtimeSource: "release_snapshot",
+      isFrozen: true,
+      compatibilityStatus: "frozen_release",
       release: {
-        id: releaseId,
-        releaseNumber: 2,
-        label: release.label,
-        sourceRevision: 7,
-        createdAt: release.createdAt
+        id: selectedRelease.id,
+        releaseNumber: selectedRelease.releaseNumber,
+        label: selectedRelease.label,
+        sourceRevision: selectedRelease.sourceRevision,
+        createdAt: selectedRelease.createdAt
       },
       currentDraftRevision: 8,
-      hasNewerDraft: true
+      hasNewerDraft: 8 > selectedRelease.sourceRevision
     }
-  : {
+    : {
       mode: "live_draft",
       runtimeSource: "live_draft",
       isFrozen: false,
@@ -119,6 +129,7 @@ const bindingFor = (selectedReleaseId = null) => selectedReleaseId
       currentDraftRevision: 8,
       hasNewerDraft: false
     };
+};
 
 const rooms = [{
   id: "55555555-5555-4555-8555-555555550001",
@@ -145,7 +156,176 @@ const rooms = [{
 const playerRoleId = "66666666-6666-4666-8666-555555550001";
 const playerSectionId = "77777777-7777-4777-8777-555555550001";
 
+const mechanismDecision = {
+  key: "authorization-scope",
+  question: "小满的训练授权是否可以被扩大为正式比赛授权？",
+  interaction: {
+    kind: "group_choice",
+    inputMode: "single_choice",
+    resolutionMode: "host_confirmed",
+    submissionMode: "advisory_choice",
+    label: "公开抉择",
+    playerInstruction: "讨论方案后，把全桌决定交给主持人。",
+    hostInstruction: "汇总玩家倾向后，由主持人确认最终结算。",
+    deadlineSeconds: 0,
+    defaultOptionKey: "",
+    allocationTotal: 0,
+    allocationUnitLabel: "点"
+  },
+  options: [{
+    key: "expand-authorization",
+    choiceText: "认可扩大授权",
+    presentation: { eyebrow: "讨论 01", publicPreview: "代理资格继续生效" }
+  }, {
+    key: "authorization-overreach",
+    choiceText: "认定使用范围越权",
+    presentation: { eyebrow: "讨论 02", publicPreview: "冻结代理资格并进入申诉" }
+  }]
+};
+
+const mechanismRuntimes = new Map();
+
+function newFixtureMechanismRuntime({ initialized = false } = {}) {
+  const now = new Date().toISOString();
+  return {
+    initialized,
+    revision: initialized ? 3 : 0,
+    status: initialized ? "running" : "not_started",
+    initializedAt: initialized ? now : null,
+    roundStartedAt: initialized ? now : null,
+    updatedAt: now,
+    resolvedOptionKey: null,
+    grantedClue: false,
+    submissions: new Map(),
+    history: []
+  };
+}
+
+function mechanismGrantedClues(room) {
+  const runtime = mechanismRuntimeFor(room);
+  if (!runtime?.grantedClue) return [];
+  return [{
+    id: "99999999-9999-4999-8999-555555550001",
+    name: "代理授权原始记录",
+    public_text: "原始记录确认：小满只授权数字孪生用于训练。",
+    acquired_at: runtime.updatedAt,
+    read_at: null,
+    is_owner: true,
+    owner_role_slot_id: playerRoleId,
+    owner_role_name: "小满"
+  }];
+}
+
+for (const room of rooms) {
+  mechanismRuntimes.set(room.id, newFixtureMechanismRuntime({ initialized: true }));
+}
+
+function mechanismRuntimeFor(room, { create = true } = {}) {
+  if (!mechanismRuntimes.has(room.id) && create) {
+    mechanismRuntimes.set(room.id, newFixtureMechanismRuntime());
+  }
+  return mechanismRuntimes.get(room.id) || null;
+}
+
+function mechanismSubmissionSummary(runtime) {
+  if (!runtime?.submissions?.size) return [];
+  const optionCounts = new Map();
+  const roles = [];
+  for (const [roleSlotId, submission] of runtime.submissions) {
+    optionCounts.set(
+      submission.optionKey,
+      (optionCounts.get(submission.optionKey) || 0) + 1
+    );
+    roles.push({
+      roleSlotId,
+      roleName: "小满",
+      optionKey: submission.optionKey,
+      answer: { type: "single_choice", optionKey: submission.optionKey },
+      updatedAt: submission.updatedAt
+    });
+  }
+  return [{
+    decisionKey: mechanismDecision.key,
+    inputMode: "single_choice",
+    total: runtime.submissions.size,
+    options: [...optionCounts].map(([optionKey, count]) => ({
+      optionKey,
+      count,
+      score: 0,
+      firstPlaceCount: 0,
+      allocated: 0
+    })),
+    roles
+  }];
+}
+
+function browserHostMechanismRuntime(room, extra = {}) {
+  const runtime = mechanismRuntimeFor(room);
+  const base = {
+    initialized: Boolean(runtime?.initialized),
+    roomId: room.id,
+    worldId,
+    contentBinding: room.contentBinding,
+    stale: false,
+    submissionSummary: mechanismSubmissionSummary(runtime),
+    state: null,
+    history: runtime?.history || []
+  };
+  if (!runtime?.initialized) return { ...base, ...extra };
+  return {
+    ...base,
+    state: {
+      revision: runtime.revision,
+      initializedAt: runtime.initializedAt,
+      roundStartedAt: runtime.roundStartedAt,
+      updatedAt: runtime.updatedAt,
+      status: runtime.status,
+      currentRoundKey: "authorization-review",
+      currentRoundSequence: 1,
+      currentRound: {
+        sequence: 1,
+        title: "核对代理授权",
+        goal: "确认身份凭证真实，并不等于授权范围覆盖正式比赛。",
+        playerAction: "讨论授权边界，并向主持人提交全桌共同意见",
+        genreMechanicUse: "赛事认证复核"
+      },
+      currentBranch: "review",
+      currentVariantKey: "league-audit",
+      states: {
+        authorizationVerdict: runtime.resolvedOptionKey || "pending"
+      },
+      resources: { reviewSlots: runtime.resolvedOptionKey ? 2 : 3 },
+      evidence: { auditTrailVerified: true },
+      availableDecisions: runtime.resolvedOptionKey ? [] : [mechanismDecision],
+      availableInvestigations: [],
+      ending: runtime.status === "completed" ? {
+        resolvedRouteKey: "appeal-route",
+        matchedRouteKeys: ["appeal-route"],
+        title: "联盟申诉裁定",
+        summary: "授权越权已被确认，代理资格冻结并进入申诉流程。"
+      } : null,
+      reachability: {
+        truncated: false,
+        endingProspects: [{
+          key: "appeal-route",
+          title: "联盟申诉",
+          reachable: true,
+          unmetRequirements: []
+        }]
+      }
+    },
+    ...extra
+  };
+}
+
 function browserPlayerCurrentState(room) {
+  const runtime = mechanismRuntimeFor(room);
+  const ownSubmission = runtime?.submissions?.get(playerRoleId) || null;
+  const publicOptionHandle = ownSubmission?.optionKey === mechanismDecision.options[1].key
+    ? "option-2"
+    : ownSubmission
+      ? "option-1"
+      : "";
   return {
     audience: "player",
     roomId: room.id,
@@ -160,32 +340,59 @@ function browserPlayerCurrentState(room) {
     }],
     blockers: [],
     mechanism: {
-      initialized: true,
+      initialized: Boolean(runtime?.initialized),
       stale: false,
-      revision: 3,
-      status: "running",
+      revision: runtime?.revision || 0,
+      status: runtime?.status || "not_started",
       totalRounds: 5,
-      currentRound: {
+      currentRound: runtime?.initialized ? {
         sequence: 2,
         title: "核对代理授权",
         goal: "确认身份凭证真实，并不等于授权范围覆盖正式比赛。",
         playerAction: "讨论授权边界，并向主持人提交全桌共同意见",
         genreMechanicUse: "赛事认证复核"
-      },
-      decisions: [{
-        question: "小满的训练授权是否可以被扩大为正式比赛授权？",
-        options: [{ choiceText: "认可扩大授权" }, { choiceText: "认定使用范围越权" }]
-      }],
-      ending: null,
-      waitingForHost: true,
-      updatedAt: "2026-08-06T10:00:00.000Z"
+      } : null,
+      decisions: runtime?.initialized && !runtime.resolvedOptionKey ? [{
+        key: "choice-1",
+        question: mechanismDecision.question,
+        interaction: {
+          kind: "group_choice",
+          inputMode: "single_choice",
+          resolutionMode: "host_confirmed",
+          submissionMode: "advisory_choice",
+          label: "公开抉择",
+          playerInstruction: "讨论方案后，把全桌决定交给主持人。",
+          deadlineSeconds: 0,
+          defaultOptionKey: "",
+          allocationTotal: 0,
+          allocationUnitLabel: "点"
+        },
+        submission: ownSubmission ? {
+          optionKey: publicOptionHandle,
+          answer: { type: "single_choice", optionKey: publicOptionHandle },
+          submittedAt: ownSubmission.updatedAt
+        } : null,
+        options: mechanismDecision.options.map((option, index) => ({
+          key: `option-${index + 1}`,
+          choiceText: option.choiceText,
+          presentation: option.presentation
+        }))
+      }] : [],
+      ending: runtime?.status === "completed" ? {
+        resolvedRouteKey: "appeal-route",
+        matchedRouteKeys: ["appeal-route"],
+        title: "联盟申诉裁定",
+        summary: "授权越权已被确认，代理资格冻结并进入申诉流程。"
+      } : null,
+      waitingForHost: Boolean(runtime?.initialized && runtime.status === "running"),
+      updatedAt: runtime?.updatedAt || null
     },
     syncState: {
       status: "synced",
-      runtimeSource: "live_draft",
-      isFrozen: false,
-      serverCursor: 12,
-      generatedAt: "2026-08-06T10:00:00.000Z"
+      runtimeSource: room.contentBinding?.runtimeSource || "live_draft",
+      isFrozen: Boolean(room.contentBinding?.isFrozen),
+      serverCursor: roomEventCursor,
+      generatedAt: new Date().toISOString()
     },
     metrics: {
       joinedPlayers: 1,
@@ -222,7 +429,7 @@ function browserPlayerHomeCore(room) {
       completed_at: "2026-08-06T09:55:00.000Z"
     }],
     notes: [],
-    clues: [],
+    clues: mechanismGrantedClues(room),
     sharedClues: [],
     roomMembers: [],
     suspicions: [],
@@ -242,9 +449,10 @@ function browserPlayerHomeCore(room) {
 }
 
 function browserPlayerHomeSocial(room) {
+  const grantedClues = mechanismGrantedClues(room);
   return {
     notes: [],
-    clues: [],
+    clues: grantedClues,
     sharedClues: [],
     roomMembers: [{
       role_slot_id: playerRoleId,
@@ -266,7 +474,7 @@ function browserPlayerHomeSocial(room) {
       summary: {
         availableSections: 1,
         completedSections: 1,
-        ownedClues: 0,
+        ownedClues: grantedClues.length,
         sharedClues: 0,
         investigations: 0,
         notes: 0
@@ -398,28 +606,37 @@ function bumpRevision(payload = {}) {
   return { ...payload, content_revision: world.content_revision };
 }
 
-function sendSse(request, response) {
+const sseClients = new Set();
+let roomEventCursor = 12;
+
+function broadcastRoomEvent(roomId, payload) {
+  roomEventCursor += 1;
+  const message = `id: ${roomEventCursor}\ndata: ${JSON.stringify(payload)}\n\n`;
+  for (const client of sseClients) {
+    if (client.roomId === roomId && !client.response.destroyed) {
+      client.response.write(message);
+    }
+  }
+}
+
+function sendSse(request, response, roomId) {
+  const resumeCursor = Number(request.headers["last-event-id"]);
+  if (Number.isSafeInteger(resumeCursor) && resumeCursor > roomEventCursor) {
+    roomEventCursor = resumeCursor;
+  }
   response.writeHead(200, {
     "content-type": "text/event-stream; charset=utf-8",
     "cache-control": "no-cache, no-transform",
     connection: "keep-alive"
   });
   response.write(`data: ${JSON.stringify({ type: "connected", fixture: true })}\n\n`);
-  const mechanismProgress = setTimeout(() => {
-    response.write(`id: 12\ndata: ${JSON.stringify({
-      type: "room.mechanism_state_updated",
-      action: "advance",
-      revision: 3,
-      status: "running",
-      roundSequence: 2,
-      roundTitle: "核对代理授权"
-    })}\n\n`);
-  }, 250);
+  const client = { roomId, response };
+  sseClients.add(client);
   const heartbeat = setInterval(() => {
     response.write(`data: ${JSON.stringify({ type: "heartbeat" })}\n\n`);
   }, 15_000);
-  request.once("close", () => {
-    clearTimeout(mechanismProgress);
+  response.once("close", () => {
+    sseClients.delete(client);
     clearInterval(heartbeat);
   });
 }
@@ -1147,7 +1364,26 @@ const server = http.createServer(async (request, response) => {
     return sendJson(response, 200, rooms);
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/releases`) {
-    return sendJson(response, 200, [release]);
+    return sendJson(response, 200, releases);
+  }
+  if (request.method === "POST" && path === `/api/worlds/${worldId}/releases`) {
+    const body = await readJson(request);
+    releaseSequence += 1;
+    const createdAt = new Date().toISOString();
+    const created = {
+      ...release,
+      id: `44444444-4444-4444-8444-${String(releaseSequence).padStart(12, "0")}`,
+      releaseNumber: releaseSequence,
+      label: String(body.label || `浏览器验收 R${releaseSequence}`),
+      sourceRevision: world.content_revision,
+      contentSummary: {
+        ...release.contentSummary,
+        hasMechanismPackage: Boolean(world.settings?.mechanismDesign?.status === "confirmed")
+      },
+      createdAt
+    };
+    releases.unshift(created);
+    return sendJson(response, 201, created, revisionHeaders());
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/rules`) {
     return sendJson(response, 200, rules);
@@ -1163,7 +1399,7 @@ const server = http.createServer(async (request, response) => {
     const [, requestedRoomId, suffix] = roomPathMatch;
     const room = rooms.find((item) => item.id === requestedRoomId);
     if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
-    if (suffix === "/events/stream") return sendSse(request, response);
+    if (suffix === "/events/stream") return sendSse(request, response, room.id);
     if (suffix === "/player-home/core") return sendJson(response, 200, browserPlayerHomeCore(room));
     if (suffix === "/player-home/social") return sendJson(response, 200, browserPlayerHomeSocial(room));
     if (suffix === "/current-state") return sendJson(response, 200, browserPlayerCurrentState(room));
@@ -1188,6 +1424,9 @@ const server = http.createServer(async (request, response) => {
     if (suffix === "/host/votes") return sendJson(response, 200, { votes: [] });
     if (suffix === "/host/private-actions") return sendJson(response, 200, { actions: [] });
     if (suffix === "/host/mini-games") return sendJson(response, 200, { games: [] });
+    if (suffix === "/host/mechanism-runtime") {
+      return sendJson(response, 200, browserHostMechanismRuntime(room));
+    }
   }
   if (request.method === "GET" && path.startsWith("/api/rooms/invite/")) {
     const code = decodeURIComponent(path.slice("/api/rooms/invite/".length));
@@ -1227,7 +1466,7 @@ const server = http.createServer(async (request, response) => {
     try {
       const body = await readJson(request);
       const selectedReleaseId = body.releaseId || null;
-      if (selectedReleaseId && selectedReleaseId !== releaseId) {
+      if (selectedReleaseId && !releases.some((item) => item.id === selectedReleaseId)) {
         return sendJson(response, 404, { code: "WORLD_RELEASE_NOT_FOUND", error: "Release not found" });
       }
       roomSequence += 1;
@@ -1243,11 +1482,213 @@ const server = http.createServer(async (request, response) => {
         contentBinding: bindingFor(selectedReleaseId)
       };
       rooms.unshift(room);
+      mechanismRuntimes.set(room.id, newFixtureMechanismRuntime());
       dashboard.counts.rooms = rooms.length;
       return sendJson(response, 201, room);
     } catch (error) {
       return sendJson(response, 400, { code: "VALIDATION_ERROR", error: error.message });
     }
+  }
+  const playerMechanismSubmissionMatch = path.match(
+    /^\/api\/rooms\/([^/]+)\/player\/mechanism-decisions\/([^/]+)\/submissions$/
+  );
+  if (request.method === "POST" && playerMechanismSubmissionMatch) {
+    const [, requestedRoomId, publicDecisionKey] = playerMechanismSubmissionMatch;
+    const room = rooms.find((item) => item.id === requestedRoomId);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const runtime = mechanismRuntimeFor(room);
+    const body = await readJson(request);
+    if (!runtime.initialized) {
+      return sendJson(response, 409, {
+        code: "MECHANISM_RUNTIME_NOT_INITIALIZED",
+        error: "Mechanism runtime is not initialized"
+      });
+    }
+    if (Number(body.expectedRevision) !== runtime.revision) {
+      return sendJson(response, 409, {
+        code: "MECHANISM_RUNTIME_REVISION_CONFLICT",
+        error: "Mechanism runtime revision conflict",
+        currentRevision: runtime.revision
+      });
+    }
+    const publicOptions = new Map([
+      ["option-1", mechanismDecision.options[0].key],
+      ["option-2", mechanismDecision.options[1].key]
+    ]);
+    const publicOptionKey = String(body.answer?.optionKey || body.optionKey || "");
+    const internalOptionKey = publicOptions.get(publicOptionKey);
+    const validAnswer = !body.answer || body.answer.type === "single_choice";
+    if (publicDecisionKey !== "choice-1" || !internalOptionKey || !validAnswer || runtime.resolvedOptionKey) {
+      return sendJson(response, 409, {
+        code: "MECHANISM_DECISION_SUBMISSION_CLOSED",
+        error: "Mechanism decision submission is closed"
+      });
+    }
+    const submittedAt = new Date().toISOString();
+    runtime.submissions.set(playerRoleId, {
+      optionKey: internalOptionKey,
+      updatedAt: submittedAt
+    });
+    runtime.updatedAt = submittedAt;
+    broadcastRoomEvent(room.id, {
+      type: "room.mechanism_submission_updated",
+      decisionKey: mechanismDecision.key,
+      submissionCount: runtime.submissions.size
+    });
+    return sendJson(response, 200, {
+      decisionKey: publicDecisionKey,
+      optionKey: publicOptionKey,
+      answer: { type: "single_choice", optionKey: publicOptionKey },
+      revision: runtime.revision,
+      submittedAt
+    });
+  }
+  const hostMechanismInitializeMatch = path.match(
+    /^\/api\/rooms\/([^/]+)\/host\/mechanism-runtime\/initialize$/
+  );
+  if (request.method === "POST" && hostMechanismInitializeMatch) {
+    const room = rooms.find((item) => item.id === hostMechanismInitializeMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    let runtime = mechanismRuntimeFor(room);
+    if (runtime.initialized) {
+      return sendJson(response, 200, browserHostMechanismRuntime(room, { replayed: true }));
+    }
+    runtime = newFixtureMechanismRuntime({ initialized: true });
+    runtime.revision = 1;
+    runtime.history.unshift({
+      actionType: "initialize",
+      revisionBefore: 0,
+      revisionAfter: 1,
+      changes: [],
+      createdAt: runtime.updatedAt
+    });
+    mechanismRuntimes.set(room.id, runtime);
+    broadcastRoomEvent(room.id, {
+      type: "room.mechanism_state_updated",
+      action: "initialize",
+      revision: runtime.revision,
+      status: runtime.status,
+      roundSequence: 1,
+      roundTitle: "核对代理授权"
+    });
+    return sendJson(response, 201, browserHostMechanismRuntime(room, { replayed: false }));
+  }
+  const hostMechanismActionMatch = path.match(
+    /^\/api\/rooms\/([^/]+)\/host\/mechanism-runtime\/actions$/
+  );
+  if (request.method === "POST" && hostMechanismActionMatch) {
+    const room = rooms.find((item) => item.id === hostMechanismActionMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const runtime = mechanismRuntimeFor(room);
+    const body = await readJson(request);
+    if (!runtime.initialized) {
+      return sendJson(response, 409, {
+        code: "MECHANISM_RUNTIME_NOT_INITIALIZED",
+        error: "Mechanism runtime is not initialized"
+      });
+    }
+    if (Number(body.expectedRevision) !== runtime.revision) {
+      return sendJson(response, 409, {
+        code: "MECHANISM_RUNTIME_REVISION_CONFLICT",
+        error: "Mechanism runtime revision conflict",
+        currentRevision: runtime.revision
+      });
+    }
+    const action = body.action || {};
+    const revisionBefore = runtime.revision;
+    const changes = [];
+    const contentGrants = [];
+    if (action.type === "decision") {
+      const validOption = mechanismDecision.options.some((option) => option.key === action.optionKey);
+      if (action.decisionKey !== mechanismDecision.key || !validOption || runtime.resolvedOptionKey) {
+        return sendJson(response, 409, {
+          code: "MECHANISM_ACTION_INVALID",
+          error: "Mechanism decision is unavailable"
+        });
+      }
+      runtime.resolvedOptionKey = action.optionKey;
+      runtime.grantedClue = true;
+      changes.push({
+        targetType: "state",
+        targetKey: "authorizationVerdict",
+        before: "pending",
+        after: action.optionKey
+      }, {
+        targetType: "resource",
+        targetKey: "reviewSlots",
+        before: 3,
+        after: 2
+      }, {
+        targetType: "clue",
+        targetKey: "clue-authorization-source",
+        roleKey: "role-xiaoman",
+        operation: "grant",
+        before: null,
+        after: "granted"
+      });
+      contentGrants.push({
+        contentType: "clue",
+        clueId: "99999999-9999-4999-8999-555555550001",
+        clueName: "代理授权原始记录",
+        roleSlotId: playerRoleId,
+        roleName: "小满",
+        status: "granted",
+        acquiredAt: new Date().toISOString()
+      });
+    } else if (action.type === "advance") {
+      if (!runtime.resolvedOptionKey || runtime.status === "completed") {
+        return sendJson(response, 409, {
+          code: "MECHANISM_ACTION_BLOCKED",
+          error: "Resolve the current decision before advancing"
+        });
+      }
+      runtime.status = "completed";
+      changes.push({
+        targetType: "state",
+        targetKey: "mechanismStatus",
+        before: "running",
+        after: "completed"
+      });
+    } else {
+      return sendJson(response, 400, {
+        code: "MECHANISM_ACTION_INVALID",
+        error: "Fixture supports decision and advance actions"
+      });
+    }
+    runtime.revision += 1;
+    runtime.updatedAt = new Date().toISOString();
+    runtime.history.unshift({
+      actionType: action.type,
+      actionKey: action.decisionKey || null,
+      optionKey: action.optionKey || null,
+      revisionBefore,
+      revisionAfter: runtime.revision,
+      changes,
+      metadata: { contentGrants },
+      createdAt: runtime.updatedAt
+    });
+    if (contentGrants.length) {
+      broadcastRoomEvent(room.id, {
+        type: "room.clue_granted",
+        clueId: contentGrants[0].clueId,
+        clueName: contentGrants[0].clueName,
+        roleSlotId: playerRoleId,
+        source: "mechanism_settlement"
+      });
+    }
+    broadcastRoomEvent(room.id, {
+      type: "room.mechanism_state_updated",
+      action: action.type,
+      revision: runtime.revision,
+      status: runtime.status,
+      roundSequence: runtime.status === "completed" ? null : 1,
+      roundTitle: runtime.status === "completed" ? null : "核对代理授权"
+    });
+    return sendJson(response, 200, browserHostMechanismRuntime(room, {
+      appliedAction: action,
+      changes,
+      contentGrants
+    }));
   }
   if (request.method === "PATCH" && path === `/api/worlds/${worldId}`) {
     const body = await readJson(request);

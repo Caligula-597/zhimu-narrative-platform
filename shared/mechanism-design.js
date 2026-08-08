@@ -57,6 +57,12 @@ function cleanText(value, maximum = 2400) {
     .slice(0, maximum);
 }
 
+function boundedInteger(value, fallback, minimum, maximum) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(minimum, Math.min(maximum, parsed));
+}
+
 export function normalizeMechanismDesign(value = {}) {
   const source = record(value);
   const interactionKind = isMechanismInteractionKind(source.interactionKind)
@@ -68,6 +74,8 @@ export function normalizeMechanismDesign(value = {}) {
   return {
     version: MECHANISM_DESIGN_VERSION,
     interactionKind,
+    allocationTotal: boundedInteger(source.allocationTotal, 100, 1, 10_000),
+    allocationUnitLabel: cleanText(source.allocationUnitLabel, 40) || "点",
     title: cleanText(source.title, 160),
     summary: cleanText(source.summary, 1200),
     recurringAction: cleanText(source.recurringAction),
@@ -101,6 +109,47 @@ export function mechanismDesignCoverage(value = {}) {
   };
 }
 
+export function mechanismDesignHasContent(value = {}) {
+  const design = normalizeMechanismDesign(value);
+  return Boolean(
+    design.title ||
+      design.summary ||
+      design.authorNotes ||
+      MECHANISM_DESIGN_QUESTIONS.some((question) => design[question.key]),
+  );
+}
+
+export function validateMechanismDesignConfirmation(value = {}) {
+  const design = normalizeMechanismDesign(value);
+  const issues = [];
+  if (!design.title) {
+    issues.push({
+      key: "title",
+      message: "请填写机制名称，主持端和玩家端都会用它识别本机制。",
+    });
+  }
+  if (!design.summary) {
+    issues.push({
+      key: "summary",
+      message: "请填写一句话概述，说明玩家如何行动以及选择会改变什么。",
+    });
+  }
+  for (const question of MECHANISM_DESIGN_QUESTIONS) {
+    if (!design[question.key]) {
+      issues.push({
+        key: question.key,
+        message: `请回答「${question.label}」。`,
+      });
+    }
+  }
+  return {
+    valid: issues.length === 0,
+    issues,
+    design,
+    coverage: mechanismDesignCoverage(design),
+  };
+}
+
 export function formatMechanismDesignForPrompt(value = {}) {
   const design = normalizeMechanismDesign(value);
   const coverage = mechanismDesignCoverage(design);
@@ -109,6 +158,9 @@ export function formatMechanismDesignForPrompt(value = {}) {
   const rows = [
     `设计状态：${design.status === "confirmed" ? "作者已确认" : "作者草稿，不得擅自补成既定事实"}`,
     `线上表现：${card.label}`,
+    design.interactionKind === "numeric_allocation"
+      ? `每位玩家可分配：${design.allocationTotal} ${design.allocationUnitLabel}`
+      : "",
     design.title ? `机制名称：${design.title}` : "",
     design.summary ? `机制概述：${design.summary}` : "",
     ...MECHANISM_DESIGN_QUESTIONS.map((question) =>

@@ -5,6 +5,7 @@ import { createReplaySubscription } from "../sse-replay-subscription.js";
 import { requireRoomRole } from "./route-guards.js";
 import { roomIdParams } from "./schemas.js";
 import { resolveSseMaxConnectionAgeMs, writeSseEvent } from "../sse-response.js";
+import { acquireSseConnection } from "../sse-connection-guard.js";
 import { projectRoomEventEnvelope } from "../room-event-audience.js";
 
 export async function registerRoomEventsRoutes(app) {
@@ -12,6 +13,7 @@ export async function registerRoomEventsRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
+    const releaseConnection = acquireSseConnection(request, reply);
 
     reply.hijack();
     reply.raw.writeHead(200, {
@@ -31,6 +33,7 @@ export async function registerRoomEventsRoutes(app) {
       if (heartbeat) clearInterval(heartbeat);
       if (maxAgeTimer) clearTimeout(maxAgeTimer);
       unsubscribe();
+      releaseConnection();
       if (endResponse && !reply.raw.destroyed && !reply.raw.writableEnded) reply.raw.end();
     };
 
@@ -61,13 +64,17 @@ export async function registerRoomEventsRoutes(app) {
       onReplayError: (error) => request.log.warn({ err: error, roomId }, "room SSE replay failed")
     });
     unsubscribe = subscription.unsubscribe;
+    if (closed) {
+      unsubscribe();
+      return;
+    }
     const streamReady = await subscription.ready;
     if (!streamReady || closed) return;
 
     heartbeat = setInterval(() => {
       if (!writeSseEvent(reply.raw, {
         payload: JSON.stringify({ type: "heartbeat", roomId, at: new Date().toISOString() })
-      })) cleanup();
+      })) cleanup(true);
     }, 25000);
     heartbeat.unref?.();
   });

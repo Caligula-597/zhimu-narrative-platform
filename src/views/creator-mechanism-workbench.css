@@ -151,6 +151,34 @@
   font-size: 11px;
   font-weight: 900;
 }
+.mechanism-interaction-configuration {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 220px)) minmax(240px, 1fr);
+  align-items: end;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 94%, #dcefe8);
+}
+.mechanism-interaction-configuration label {
+  display: grid;
+  gap: 6px;
+}
+.mechanism-interaction-configuration label span {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+}
+.mechanism-interaction-configuration input {
+  width: 100%;
+}
+.mechanism-interaction-configuration p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
 .mechanism-cross-surface-preview p {
   margin: 5px 0 0;
   font-size: 13px;
@@ -193,6 +221,40 @@
 .mechanism-design-field.wide {
   grid-column: 1/-1;
 }
+.mechanism-design-basics .is-invalid input,
+.mechanism-design-basics .is-invalid textarea,
+.mechanism-design-field.is-invalid textarea {
+  border-color: #b42318;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #b42318 12%, transparent);
+}
+.mechanism-validation-message {
+  margin: 18px 30px 0;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, #b42318 40%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, #b42318 7%, var(--surface));
+  color: var(--ink);
+}
+.mechanism-validation-message strong,
+.mechanism-validation-message p {
+  display: block;
+  margin: 0;
+}
+.mechanism-validation-message p,
+.mechanism-validation-message ul {
+  margin-top: 6px;
+}
+.mechanism-validation-message ul {
+  margin-bottom: 0;
+  padding-left: 20px;
+  color: #8a1c13;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.mechanism-validation-message.is-save-error {
+  border-color: color-mix(in srgb, #a15c00 45%, var(--line));
+  background: color-mix(in srgb, #a15c00 8%, var(--surface));
+}
 .mechanism-workbench-actions {
   position: sticky;
   bottom: 0;
@@ -221,9 +283,14 @@
 @media (max-width: 760px) {
   .mechanism-workbench-head,
   .mechanism-design-section,
+  .mechanism-validation-message,
   .mechanism-workbench-actions {
     padding-left: 18px;
     padding-right: 18px;
+  }
+  .mechanism-validation-message {
+    margin-left: 18px;
+    margin-right: 18px;
   }
   .mechanism-design-card-grid,
   .mechanism-design-basics,

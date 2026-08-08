@@ -75,6 +75,10 @@ export async function revokeOtherIdentitySessions(userId, currentSessionId = nul
   );
 }
 
+export async function revokeAllIdentitySessions(userId, executor = query) {
+  await executor(`DELETE FROM auth_sessions WHERE user_id = $1`, [userId]);
+}
+
 export async function deleteIdentitySessionsByHashes(tokenHashes) {
   if (!tokenHashes.length) return;
   await query(`DELETE FROM auth_sessions WHERE token_hash = ANY($1::text[])`, [tokenHashes]);

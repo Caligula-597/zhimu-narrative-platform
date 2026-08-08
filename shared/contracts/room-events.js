@@ -16,6 +16,7 @@ const source = Object.freeze({
     "host_manual",
     "host_event",
     "investigation",
+    "mechanism_settlement",
     "shared_room",
     "shared_roles",
     "physical_token"

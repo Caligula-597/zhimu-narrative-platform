@@ -50,11 +50,15 @@ if (fresh) {
 }
 
 if (!skipTests) {
+  run("secret exposure audit", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "check:secret-exposure"], { cwd: root });
+  run("security baseline", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "check:security-baseline"], { cwd: root });
+  run("pure security regression", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:security:pure"], { cwd: root });
   run("check:schemas", process.execPath, [path.join("scripts", "verify-route-schemas.mjs")], { cwd: backend });
   run("backend npm test", process.platform === "win32" ? "npm.cmd" : "npm", ["test"], { cwd: backend });
   run("innerHTML audit", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "audit:innerhtml"], { cwd: root });
-  run("UI interaction contracts", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "check:ui-interactions"], { cwd: root });
+  run("frontend maintenance contracts", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "check:frontend-maintenance"], { cwd: root });
   run("shared tests", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:shared"], { cwd: root });
+  run("secure random identifier tests", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:secure-random"], { cwd: root });
   run("main production build", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], { cwd: root });
   run("format helper tests", process.execPath, ["--test", path.join("scripts", "format-helpers.test.mjs")], { cwd: root });
   run("runtime store tests", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:runtime-stores"], { cwd: root });

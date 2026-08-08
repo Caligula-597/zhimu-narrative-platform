@@ -12,7 +12,7 @@ export function createAuthFlowController(ctx) {
 
   async function handleEmailVerify(token) {
     const result = await api.verifyEmail(token);
-    if (result.token) setSessionToken(result.token);
+    setSessionToken(result.token);
     state.user = normalizeUser(result.user);
     cleanAuthUrl();
     setToast("邮箱已验证，可以使用社区功能了", render);

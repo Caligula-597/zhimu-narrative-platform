@@ -20,6 +20,31 @@ test("rate limiter isolates authenticated actors and emits standard headers", as
   resetRateLimitersForTests();
 });
 
+test("verification resend limiter isolates anonymous challenges behind one IP", async () => {
+  resetRateLimitersForTests();
+  const limiter = createRateLimiter({
+    windowMs: 10_000,
+    max: 1,
+    routeKey: "verification-resend-unit",
+    identity: "verification-challenge"
+  });
+  const reply = { header() {} };
+  const request = (challengeId) => ({
+    actorId: null,
+    body: { challengeId },
+    ip: "127.0.0.1",
+    headers: {}
+  });
+  await limiter(request("challenge-a"), reply);
+  await limiter(request("challenge-b"), reply);
+  await assert.rejects(
+    () => limiter(request("challenge-a"), reply),
+    (error) => error.code === "RATE_LIMITED"
+  );
+  assert.equal(getRateLimiterStats().buckets, 2);
+  resetRateLimitersForTests();
+});
+
 test("auth routes return RATE_LIMITED after threshold", async (context) => {
   resetRateLimitersForTests();
   const app = await createApp({ logger: false, rateLimit: true });

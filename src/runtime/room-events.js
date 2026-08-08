@@ -4,10 +4,11 @@ import { showToast, updateNotifyBadge } from "../components/toast.js";
 import { uiStore, roomStore, userStore, voiceStore } from "../state/index.js";
 import { getRuntime, go, render } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
-import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
+import {
+  createPortalEventLifecycle,
+  PORTAL_POLL_INTERVAL_MS
+} from "../../shared/sse-lifecycle.js";
 (function (window) {
-  const HOST_RUNTIME_POLL_MS = 15000;
-  const PLAYER_POLL_MS = 15000;
   let roomEventStreamKey = "";
   let roomEventLifecycle = null;
 
@@ -58,6 +59,15 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
     } catch (error) {
       userStore.set({ apiError: error.message });
     }
+  }
+
+  async function refreshActiveRoomSurface() {
+    const view = uiStore.get().view;
+    if (view === "overview") await refreshHostRuntimeSnapshot();
+    else if (view === "player") {
+      await refreshPlayerHome();
+      await refreshExploration();
+    } else if (view === "rooms") await refreshCreatorRoomWorkspace();
   }
 
   function disconnectRoomEventStream() {
@@ -266,30 +276,17 @@ import { createSseLifecycle } from "../../shared/sse-lifecycle.js";
     if (roomEventLifecycle && roomEventStreamKey === nextStreamKey) return;
     disconnectRoomEventStream();
     roomEventStreamKey = nextStreamKey;
-    roomEventLifecycle = createSseLifecycle({
-      pollMs: Math.min(HOST_RUNTIME_POLL_MS, PLAYER_POLL_MS),
-      open: ({ signal, onConnected }) => zhimuApi.streamRoomEvents(roomId, async (type, data) => {
-        if (type === "__connected__") return onConnected(data);
-        await handleRoomEvent(type, data);
-      }, signal, streamUserId),
-      poll: async () => {
-        const view = uiStore.get().view;
-        if (view === "overview") await refreshHostRuntimeSnapshot();
-        else if (view === "player") {
-          await refreshPlayerHome();
-          await refreshExploration();
-        } else if (view === "rooms") await refreshCreatorRoomWorkspace();
-      },
-      reconcile: async () => {
-        const view = uiStore.get().view;
-        if (view === "overview") await refreshHostRuntimeSnapshot();
-        else if (view === "player") {
-          await refreshPlayerHome();
-          await refreshExploration();
-        } else if (view === "rooms") await refreshCreatorRoomWorkspace();
-      },
-      onConnected: () => roomStore.set({ roomEventsConnected: true }),
-      onDisconnected: () => roomStore.set({ roomEventsConnected: false }),
+    roomEventLifecycle = createPortalEventLifecycle({
+      pollMs: PORTAL_POLL_INTERVAL_MS.room,
+      connect: ({ signal, onEvent }) => zhimuApi.streamRoomEvents(
+        roomId,
+        onEvent,
+        signal,
+        streamUserId
+      ),
+      onEvent: handleRoomEvent,
+      refresh: refreshActiveRoomSurface,
+      onConnectionChange: (connected) => roomStore.set({ roomEventsConnected: connected }),
       onStatus: () => {
         if (["overview", "player"].includes(uiStore.get().view)) render();
       },

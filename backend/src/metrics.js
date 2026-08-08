@@ -20,6 +20,9 @@ const webVitalBuckets = {
   TTFB: [200, 800, 1800, 3000, 8000],
   CLS: [0.05, 0.1, 0.25, 0.5, 1]
 };
+const webVitalApps = new Set(["app", "play", "host", "site", "unknown"]);
+const webVitalRatings = new Set(["good", "needs-improvement", "poor", "unknown"]);
+const webVitalMaximums = { LCP: 600_000, INP: 600_000, FCP: 600_000, TTFB: 600_000, CLS: 10 };
 /** @type {Map<string, { buckets: number[], sum: number, count: number, le: number[] }>} */
 const webVitalValues = new Map();
 let apiReadyGauge = 1;
@@ -54,10 +57,14 @@ export function recordUploadScan({ mode = "none", result = "clean", reason = "" 
 }
 
 export function recordWebVital({ name, app = "unknown", rating = "unknown", value } = {}) {
-  if (!name) return;
-  const safeRating = rating || "unknown";
+  if (!Object.hasOwn(webVitalMaximums, name)
+    || !webVitalApps.has(app)
+    || !webVitalRatings.has(rating)
+    || !Number.isFinite(value)
+    || value < 0
+    || value > webVitalMaximums[name]) return;
+  const safeRating = rating;
   inc(webVitals, `${app}:${name}:${safeRating}`);
-  if (!Number.isFinite(value)) return;
   const le = webVitalBuckets[name];
   if (!le) return;
   const key = `${app}:${name}`;

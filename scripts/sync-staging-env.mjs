@@ -4,6 +4,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -66,7 +67,7 @@ const backend = parseEnv(fs.readFileSync(backendEnvPath, "utf8"));
 let staging = parseEnv(fs.existsSync(stagingPath) ? fs.readFileSync(stagingPath, "utf8") : "");
 
 if (!staging.POSTGRES_PASSWORD) {
-  staging.POSTGRES_PASSWORD = "zhimu_staging_local_2026";
+  staging.POSTGRES_PASSWORD = randomBytes(24).toString("base64url");
 }
 
 for (const key of COPY_KEYS) {

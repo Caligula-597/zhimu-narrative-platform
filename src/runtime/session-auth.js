@@ -30,6 +30,11 @@ import { userStore } from "../state/index.js";
     clearPersistentLegacyToken();
     if (typeof token === "string" && token.length >= 16) {
       try { sessionStorage.setItem(LEGACY_KEY, token); } catch { /* cookie session remains authoritative */ }
+    } else {
+      // A successful cookie-only login supersedes any stale tab bearer. Keeping
+      // the stale header would force an unnecessary rejected session lookup on
+      // every request and could mask the fresh cookie on older servers.
+      try { sessionStorage.removeItem(LEGACY_KEY); } catch { /* cookie session remains authoritative */ }
     }
     cookieSessionActive = true;
     credentialVersion += 1;

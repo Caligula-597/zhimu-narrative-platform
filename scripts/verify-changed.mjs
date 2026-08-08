@@ -28,7 +28,11 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/postgres-event-listener", ["test/postgres-event-listener.test.js", "test/room-event-bus-postgres.test.js", "test/platform-event-bus-postgres.test.js"]],
   ["backend/src/postgres-notify", ["test/postgres-notify.test.js"]],
   ["backend/src/sse-replay-subscription", ["test/sse-replay-subscription.test.js"]],
-  ["backend/src/db.js", ["test/creator-bible.test.js", "test/transaction-events.test.js"]],
+  ["backend/src/sse-connection-guard", ["test/sse-connection-guard.test.js"]],
+  ["backend/src/routes/room-events-routes", ["test/sse-connection-guard.test.js", "test/room-events.test.js"]],
+  ["backend/src/routes/platform-social-routes", ["test/sse-connection-guard.test.js", "test/play-social.test.js"]],
+  ["backend/src/db.js", ["test/database-test-runner-guard.test.js", "test/creator-bible.test.js", "test/transaction-events.test.js"]],
+  ["backend/src/database-operation-safety", ["test/assert-safe-database-url.test.js", "test/database-test-runner-guard.test.js"]],
   ["backend/src/database-status", ["test/database-status.test.js", "test/creator-room-integrity.test.js", "test/ops-health.test.js"]],
   ["backend/src/auth-recovery-service", ["test/auth-recovery-integrity.test.js", "test/auth-password-reset.test.js", "test/auth-email-verification.test.js"]],
   ["backend/src/auth-identity-errors", ["test/auth-identity-integrity.test.js"]],
@@ -39,7 +43,7 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/auth-token", ["test/auth-recovery-integrity.test.js", "test/auth-password.test.js", "test/session-cookie.test.js"]],
   ["backend/src/auth.js", ["test/auth-recovery-integrity.test.js", "test/auth-password-reset.test.js", "test/auth-email-verification.test.js", "test/auth-session-touch.test.js", "test/auth-password.test.js", "test/session-cookie.test.js"]],
   ["backend/src/play-social-guard", ["test/auth-identity-integrity.test.js", "test/register-ip-limit.test.js"]],
-  ["backend/src/app.js", ["test/app-auth.test.js", "test/auth-recovery-integrity.test.js", "test/rate-limit.test.js", "test/security-headers.test.js"]],
+  ["backend/src/app.js", ["test/app-auth.test.js", "test/auth-recovery-integrity.test.js", "test/preauth-network-limit.test.js", "test/rate-limit.test.js", "test/security-headers.test.js"]],
   ["backend/src/repositories/auth-recovery-repository", ["test/auth-recovery-integrity.test.js", "test/auth-password-reset.test.js", "test/auth-email-verification.test.js"]],
   ["backend/src/repositories/auth-identity-repository", ["test/auth-identity-integrity.test.js", "test/identity-foundation.test.js", "test/auth-email-verification.test.js", "test/beta-apply.test.js"]],
   ["backend/src/repositories/auth-registration-repository", ["test/auth-identity-integrity.test.js", "test/register-ip-limit.test.js"]],
@@ -49,7 +53,7 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/routes/auth-registration-routes", ["test/auth-email-verification.test.js", "test/app-auth.test.js"]],
   ["backend/src/routes/auth-session-routes", ["test/auth-identity-integrity.test.js", "test/identity-foundation.test.js", "test/session-cookie.test.js"]],
   ["backend/src/routes/auth-oauth-routes", ["test/oauth.test.js", "test/oauth-return-origin.test.js"]],
-  ["backend/src/routes/auth-route-shared", ["test/auth-password-reset.test.js", "test/auth-email-verification.test.js", "test/app-auth.test.js"]],
+  ["backend/src/routes/auth-route-shared", ["test/auth-session-response.test.js", "test/auth-password-reset.test.js", "test/auth-email-verification.test.js", "test/app-auth.test.js"]],
   ["backend/src/script-bundle", ["test/script-bundle.test.js", "test/script-bundle-import.test.js"]],
   ["backend/src/pdf-document", ["test/pdf-document.test.js"]],
   ["backend/src/document-parser", ["test/pdf-document.test.js"]],
@@ -147,8 +151,9 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/routes/system-routes", ["test/ops-health.test.js", "test/security-headers.test.js", "test/web-vitals-metrics.test.js"]],
   ["backend/src/metrics.js", ["test/web-vitals-metrics.test.js"]],
   ["backend/scripts/pg-stat-report.mjs", ["test/pg-stat-statements.test.js"]],
-  ["backend/src/security-headers", ["test/security-headers.test.js", "test/app-auth.test.js"]],
+  ["backend/src/security-headers", ["test/security-headers.test.js", "test/sensitive-cache-policy.test.js", "test/app-auth.test.js"]],
   ["backend/src/session-cookie", ["test/session-cookie.test.js", "test/app-auth.test.js"]],
+  ["backend/src/cookie-request-origin", ["test/cookie-request-origin.test.js", "test/session-cookie.test.js"]],
   ["backend/src/world-revision", ["test/world-revision.test.js", "test/world-settings.test.js", "test/studio-edit.test.js"]],
   ["backend/src/data-retention", ["test/data-retention.test.js"]],
   ["backend/src/request-actor", ["test/app-auth.test.js", "test/session-cookie.test.js"]],
@@ -171,6 +176,7 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/routes/rules-routes", ["test/beta-gates.test.js", "test/world-revision.test.js"]],
   ["backend/src/platform-catalog-preview", ["test/platform-site.test.js"]],
   ["backend/src/cors-origins", ["test/cors-origins.test.js", "test/platform-site.test.js"]],
+  ["backend/src/world-invites", ["test/world-invites-security.test.js", "test/world-invites-quota.test.js"]],
   ["backend/src/routes/platform-site-routes", ["test/platform-site.test.js"]],
   ["backend/src/routes/platform-beta-routes", ["test/beta-apply.test.js", "test/platform-site.test.js"]],
   ["backend/scripts/seed.js", ["test/official-example.test.js"]],
@@ -214,6 +220,8 @@ if (!files.length) {
   console.log("verify-changed: no changed files (nothing to verify)");
   process.exit(0);
 }
+
+run("repository secret exposure", "npm run check:secret-exposure", root);
 
 console.log("verify-changed: scope");
 for (const f of files) console.log(`  · ${f}`);
@@ -305,6 +313,7 @@ for (const t of backendTests) {
 }
 
 if (files.some((f) => f.startsWith("backend/") && !f.endsWith(".md"))) {
+  run("backend security baseline", "npm run check:security-baseline", root);
   run("backend security audit (high+)", "npm audit --audit-level=high --omit=dev", backendRoot);
 }
 
@@ -317,17 +326,14 @@ if (files.some((f) => f.startsWith("backend/migrations/") || f.startsWith("backe
 }
 
 const frontendChanged = files.some((f) =>
-  /^(src\/|app\.js|index\.html|frontend\/|styles\.css|rule-visual\.js|config\.js)/.test(f)
+  /^(src\/|host\/src\/|play\/src\/|site\/|shared\/|app\.js|index\.html|frontend\/|styles\.css|rule-visual\.js|config\.js)/.test(f)
 );
 if (frontendChanged) {
-  const loadOrderTouched = files.some((f) =>
-    /^(app\.js|index\.html|frontend\/main\.js|config\.js)/.test(f) ||
-    f.startsWith("src/views/") ||
-    f.startsWith("src/components/")
-  );
-  if (loadOrderTouched) {
-    run("frontend check:modules", "npm run check:modules");
-  }
+  run("frontend maintenance contracts", "npm run check:frontend-maintenance");
+}
+
+if (files.some((f) => f === "shared/secure-random.js" || f === "shared/api-fetch.js" || f.startsWith("host/src/runtime/host-"))) {
+  run("secure random identifier tests", "npm run test:secure-random");
 }
 
 if (files.some((f) => /src\/views\/pipeline-|pipeline-wizard-session/.test(f))) {

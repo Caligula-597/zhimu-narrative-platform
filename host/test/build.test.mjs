@@ -130,8 +130,8 @@ test("main.js wires console, SSE and director actions", () => {
   assert.match(consoleSource, /host-kick-player/);
   assert.match(dataSource, /api\.getWorldSegments\(worldId\)/);
   assert.match(eventsSource, /room\.host_event_pending/);
-  assert.match(eventsSource, /createSseLifecycle/);
-  assert.match(eventsSource, /reconcile:\s*\(\) => refreshDirectorPoll\(\)/);
+  assert.match(eventsSource, /createPortalEventLifecycle/);
+  assert.match(eventsSource, /refresh:\s*refreshDirectorPoll/);
   assert.match(eventsSource, /onAuthLost/);
   assert.match(eventsSource, /refreshOpenPlayerOperation/);
   assert.doesNotMatch(eventsSource, /state\.roomEventsConnected && getRoomId\(\) === boundRoom/);

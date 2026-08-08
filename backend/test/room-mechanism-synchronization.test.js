@@ -12,7 +12,10 @@ function fixturePackage() {
     causalTimeline: [],
     entities: [],
     resources: [],
-    players: [],
+    players: [
+      { key: "role-captain", publicGoal: "核对密令" },
+      { key: "role-observer", publicGoal: "旁观复核" },
+    ],
     evidenceGraph: { evidence: [], conclusions: [] },
     chapterBeats: [{
       chapterKey: "round-1",
@@ -33,7 +36,16 @@ function fixturePackage() {
         options: [{
           key: "accept",
           choiceText: "承认授权",
-          effects: [{ targetType: "state", targetKey: "state-auth", operation: "set", value: "accepted" }]
+          effects: [
+            { targetType: "state", targetKey: "state-auth", operation: "set", value: "accepted" },
+            {
+              targetType: "clue",
+              targetKey: "clue-order",
+              operation: "grant",
+              roleKey: "role-captain",
+              consequence: "向队长发放密令残页"
+            }
+          ]
         }]
       }
     }],
@@ -65,6 +77,10 @@ function fixturePackage() {
 
 async function createFixture(context, app) {
   const marker = randomUUID();
+  const observerUser = (await query(
+    `INSERT INTO users (display_name, email) VALUES ($1, $2) RETURNING id`,
+    ["机制旁观者", `mechanism-observer-${marker}@example.test`]
+  )).rows[0];
   const world = (await query(
     `INSERT INTO worlds (owner_user_id, name, settings)
      VALUES ($1, $2, '{"worldMode":"scripted"}'::jsonb)
@@ -74,14 +90,29 @@ async function createFixture(context, app) {
   context.after(async () => {
     await query("DELETE FROM rooms WHERE world_id = $1", [world.id]);
     await query("DELETE FROM worlds WHERE id = $1", [world.id]);
+    await query("DELETE FROM users WHERE id = $1", [observerUser.id]);
   });
   await query(
     "INSERT INTO world_members (world_id, user_id, role) VALUES ($1, $2, 'owner')",
     [world.id, hostUserId]
   );
   const role = (await query(
-    `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
-     VALUES ($1, '队长', '公开身份', '私人身份', 1) RETURNING id`,
+    `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
+     VALUES ($1, '队长', '公开身份', '私人身份', 1, '{"deepseekRoleKey":"role-captain"}'::jsonb)
+     RETURNING id`,
+    [world.id]
+  )).rows[0];
+  const observerRole = (await query(
+    `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
+     VALUES ($1, '观察员', '公开身份', '私人身份', 2, '{"deepseekRoleKey":"role-observer"}'::jsonb)
+     RETURNING id`,
+    [world.id]
+  )).rows[0];
+  const clue = (await query(
+    `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
+     VALUES ($1, '密令残页', '只应由队长看到', '机制结算测试', 'role',
+       '{"proposalKey":"clue-order"}'::jsonb)
+     RETURNING id`,
     [world.id]
   )).rows[0];
   const packageValue = fixturePackage();
@@ -106,13 +137,29 @@ async function createFixture(context, app) {
      VALUES ($1, $2, 'player', $3)`,
     [room.id, playerUserId, role.id]
   );
-  return { roomId: room.id };
+  await query(
+    `INSERT INTO room_members (room_id, user_id, member_type, role_slot_id)
+     VALUES ($1, $2, 'player', $3)`,
+    [room.id, observerUser.id, observerRole.id]
+  );
+  return {
+    roomId: room.id,
+    targetRoleId: role.id,
+    observerRoleId: observerRole.id,
+    observerUserId: observerUser.id,
+    clueId: clue.id
+  };
 }
 
 test("host mechanism actions commit and player receives only the safe synchronized projection", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
-  const { roomId } = await createFixture(context, app);
+  const {
+    roomId,
+    targetRoleId,
+    observerUserId,
+    clueId
+  } = await createFixture(context, app);
   const hostHeaders = {
     "x-user-id": hostUserId,
     "idempotency-key": `mechanism-initialize-${randomUUID()}`
@@ -165,24 +212,87 @@ test("host mechanism actions commit and player receives only the safe synchroniz
   assert.equal(overridden.statusCode, 200, overridden.body);
   assert.equal(overridden.json().state.revision, 2);
 
+  const decisionIdempotencyKey = `mechanism-decision-${randomUUID()}`;
+  const decisionPayload = {
+    expectedRevision: 2,
+    action: {
+      type: "decision",
+      decisionKey: hostDecision.key,
+      optionKey: hostDecision.options[0].key
+    }
+  };
   const decided = await app.inject({
     method: "POST",
     url: `/api/rooms/${roomId}/host/mechanism-runtime/actions`,
     headers: {
       "x-user-id": hostUserId,
-      "idempotency-key": `mechanism-decision-${randomUUID()}`
+      "idempotency-key": decisionIdempotencyKey
     },
-    payload: {
-      expectedRevision: 2,
-      action: {
-        type: "decision",
-        decisionKey: hostDecision.key,
-        optionKey: hostDecision.options[0].key
-      }
-    }
+    payload: decisionPayload
   });
   assert.equal(decided.statusCode, 200, decided.body);
   assert.equal(decided.json().state.revision, 3);
+  assert.deepEqual(decided.json().contentGrants, [{
+    contentType: "clue",
+    clueId,
+    clueName: "密令残页",
+    roleSlotId: targetRoleId,
+    roleName: "队长",
+    status: "granted",
+    acquiredAt: decided.json().contentGrants[0].acquiredAt
+  }]);
+
+  const replayed = await app.inject({
+    method: "POST",
+    url: `/api/rooms/${roomId}/host/mechanism-runtime/actions`,
+    headers: {
+      "x-user-id": hostUserId,
+      "idempotency-key": decisionIdempotencyKey
+    },
+    payload: decisionPayload
+  });
+  assert.equal(replayed.statusCode, 200, replayed.body);
+  assert.deepEqual(replayed.json().contentGrants, decided.json().contentGrants);
+
+  const ownership = await query(
+    `SELECT COUNT(*)::int AS count, MIN(metadata->>'source') AS source
+     FROM clue_ownership
+     WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3`,
+    [roomId, targetRoleId, clueId]
+  );
+  assert.equal(ownership.rows[0].count, 1);
+  assert.equal(ownership.rows[0].source, "mechanism_settlement");
+  const actionLogs = await query(
+    `SELECT COUNT(*)::int AS count, MIN(metadata->'contentGrants'->0->>'status') AS status
+     FROM room_mechanism_action_log
+     WHERE room_id = $1 AND action_type = 'decision'`,
+    [roomId]
+  );
+  assert.equal(actionLogs.rows[0].count, 1);
+  assert.equal(actionLogs.rows[0].status, "granted");
+  const audit = await query(
+    `SELECT metadata FROM host_audit_log
+     WHERE room_id = $1 AND action = 'mechanism_decision'
+     ORDER BY created_at DESC LIMIT 1`,
+    [roomId]
+  );
+  assert.equal(audit.rows[0].metadata.contentGrants[0].clueId, clueId);
+
+  const targetHome = await app.inject({
+    method: "GET",
+    url: `/api/rooms/${roomId}/player-home`,
+    headers: { "x-user-id": playerUserId }
+  });
+  assert.equal(targetHome.statusCode, 200, targetHome.body);
+  assert.equal(targetHome.json().clues.some((clue) => clue.id === clueId), true);
+
+  const observerHome = await app.inject({
+    method: "GET",
+    url: `/api/rooms/${roomId}/player-home`,
+    headers: { "x-user-id": observerUserId }
+  });
+  assert.equal(observerHome.statusCode, 200, observerHome.body);
+  assert.equal(observerHome.json().clues.some((clue) => clue.id === clueId), false);
 
   const completed = await app.inject({
     method: "POST",

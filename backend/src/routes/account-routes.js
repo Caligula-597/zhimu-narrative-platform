@@ -9,6 +9,10 @@ import {
   buildAccountDeletePreview,
   deleteUserAccount
 } from "../account-delete.js";
+import {
+  authorizeAccountDeletion,
+  buildAccountDeleteReauthentication
+} from "../account-delete-authorization.js";
 import { buildAccountExport } from "../account-export.js";
 import { registerAccountLlmRoutes } from "./account-llm-routes.js";
 import { registerAccountProfileRoutes } from "./account-profile-routes.js";
@@ -56,10 +60,18 @@ export async function registerAccountRoutes(app) {
     }
   });
 
-  app.get("/api/account/delete/preview", async (request) => {
-    const actorId = requireActor(request);
-    return buildAccountDeletePreview(actorId);
-  });
+  app.get(
+    "/api/account/delete/preview",
+    // codeql-reviewed[js/missing-rate-limiting]: global network and actor limiters protect this authenticated preview.
+    async (request) => {
+      const actorId = requireActor(request);
+      const [preview, reauthentication] = await Promise.all([
+        buildAccountDeletePreview(actorId),
+        buildAccountDeleteReauthentication(actorId, request.sessionId ?? null)
+      ]);
+      return { ...preview, reauthentication };
+    }
+  );
 
   app.post("/api/account/delete", {
     schema: {
@@ -69,20 +81,28 @@ export async function registerAccountRoutes(app) {
         required: ["confirmation", "acknowledged"],
         properties: {
           confirmation: { type: "string", minLength: 1, maxLength: 40 },
-          acknowledged: { type: "boolean" }
+          acknowledged: { type: "boolean" },
+          password: { type: "string", minLength: 8, maxLength: 128 }
         }
       }
     }
-  }, async (request, reply) => {
+  },
+  // codeql-reviewed[js/missing-rate-limiting]: the global hook applies the dedicated auth-recovery limit to deletion.
+  async (request, reply) => {
     const actorId = requireActor(request);
-    const { confirmation, acknowledged } = request.body ?? {};
+    const { confirmation, acknowledged, password } = request.body ?? {};
     if (!acknowledged) return sendErr(reply, "BAD_REQUEST", "You must acknowledge that deletion is permanent");
 
     const preview = await buildAccountDeletePreview(actorId);
     assertDeleteConfirmation(preview.confirmationLabel, confirmation);
 
     try {
-      const result = await deleteUserAccount(actorId);
+      const authorizationProof = await authorizeAccountDeletion({
+        userId: actorId,
+        sessionId: request.sessionId ?? null,
+        password
+      });
+      const result = await deleteUserAccount(actorId, { authorizationProof });
       await deleteSession(bearerToken(request));
       clearSessionCookie(reply);
       return reply.code(200).send(result);

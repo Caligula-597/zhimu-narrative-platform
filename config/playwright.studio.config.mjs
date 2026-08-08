@@ -6,7 +6,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 /** Isolated rendered regression: no database or shared E2E fixture required. */
 export default {
   testDir: path.join(root, "e2e"),
-  testMatch: ["studio-graph-drag.spec.js", "clue-flow-drag.spec.js", "creator-interaction-bridges.spec.js"],
+  testMatch: ["studio-graph-drag.spec.js", "clue-flow-drag.spec.js", "creator-interaction-bridges.spec.js", "creator-mechanism-workbench.spec.js"],
   timeout: 30_000,
   workers: 1,
   reporter: "list",

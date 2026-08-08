@@ -138,6 +138,15 @@ test("accepts room.clue_granted with all optional fields", () => {
   assert.equal(result.ok, true);
 });
 
+test("accepts mechanism settlement as a durable clue source", () => {
+  assert.equal(validateRoomEvent("room.clue_granted", {
+    clueId: "clue-1",
+    roleSlotId: "rs-1",
+    source: "mechanism_settlement",
+    clueName: "密令残页",
+  }).ok, true);
+});
+
 test("accepts durable batch-B event contracts and rejects missing identifiers", () => {
   for (const [type, payload, requiredField] of [
     [

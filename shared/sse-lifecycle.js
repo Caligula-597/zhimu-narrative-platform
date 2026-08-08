@@ -1,4 +1,50 @@
-/** Shared reconnect, authentication and polling lifecycle for long-lived SSE streams. */
+import { createAdaptivePoller } from "./adaptive-poller.js";
+
+export const PORTAL_POLL_INTERVAL_MS = Object.freeze({
+  room: 15000,
+  platform: 20000
+});
+
+/**
+ * Thin adapter for the common portal stream contract. It keeps transport
+ * handshake handling, pull reconciliation and connection state wiring out of
+ * individual Creator, Host and Player controllers.
+ */
+export function createPortalEventLifecycle({
+  connect,
+  onEvent,
+  refresh,
+  shouldPoll = () => true,
+  onConnectionChange = () => {},
+  onConnected = () => {},
+  onDisconnected = () => {},
+  ...lifecycleOptions
+}) {
+  if (typeof connect !== "function") throw new TypeError("portal event lifecycle requires connect");
+  if (typeof refresh !== "function") throw new TypeError("portal event lifecycle requires refresh");
+  return createSseLifecycle({
+    ...lifecycleOptions,
+    open: ({ signal, onConnected: markConnected }) => connect({
+      signal,
+      onEvent: async (type, payload) => {
+        if (type === "__connected__") return markConnected(payload);
+        await onEvent?.(type, payload);
+      }
+    }),
+    poll: (reason) => shouldPoll() ? refresh(reason) : undefined,
+    reconcile: (reason, payload) => refresh(reason, payload),
+    onConnected: async (payload) => {
+      onConnectionChange(true);
+      await onConnected(payload);
+    },
+    onDisconnected: async () => {
+      onConnectionChange(false);
+      await onDisconnected();
+    }
+  });
+}
+
+/** Shared reconnect, authentication and adaptive polling lifecycle for long-lived SSE streams. */
 export function createSseLifecycle({
   open,
   poll,
@@ -9,7 +55,9 @@ export function createSseLifecycle({
   onAuthLost = () => {},
   onError = () => {},
   pollMs = 15000,
+  pollMaxMs = Math.max(pollMs, pollMs * 8),
   connectedReconcileMs = 30000,
+  connectedReconcileMaxMs = Math.max(connectedReconcileMs, connectedReconcileMs * 4),
   reconnectBaseMs = 1000,
   reconnectMaxMs = 30000,
   eventTarget = globalThis,
@@ -19,11 +67,7 @@ export function createSseLifecycle({
   let connected = false;
   let abortController = null;
   let reconnectTimer = null;
-  let pollTimer = null;
-  let connectedReconcileTimer = null;
-  let pollInFlight = false;
   let pollPromise = null;
-  let reconcileInFlight = false;
   let reconcilePromise = null;
   let reconnectAttempt = 0;
   let generation = 0;
@@ -32,72 +76,75 @@ export function createSseLifecycle({
     onStatus(status);
   }
 
-  function clearTimer(name) {
-    if (name === "reconnect" && reconnectTimer) {
-      clearTimeout(reconnectTimer);
-      reconnectTimer = null;
-    }
-    if (name === "poll" && pollTimer) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-    }
-    if (name === "connectedReconcile" && connectedReconcileTimer) {
-      clearInterval(connectedReconcileTimer);
-      connectedReconcileTimer = null;
+  function clearReconnectTimer() {
+    if (!reconnectTimer) return;
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+
+  async function performPoll(reason = "poll") {
+    if (!active || connected || typeof poll !== "function") return;
+    const task = Promise.resolve(poll(reason));
+    pollPromise = task;
+    try {
+      await task;
+    } finally {
+      if (pollPromise === task) pollPromise = null;
     }
   }
 
-  async function runPoll(reason = "poll") {
-    if (!active || connected || pollInFlight || typeof poll !== "function") return;
-    pollInFlight = true;
-    try {
-      pollPromise = Promise.resolve(poll(reason));
-      await pollPromise;
-    } catch (error) {
-      onError(error, { phase: "poll" });
-    } finally {
-      pollInFlight = false;
-      pollPromise = null;
-    }
-  }
+  const fallbackPoller = createAdaptivePoller({
+    run: performPoll,
+    intervalMs: pollMs,
+    maxIntervalMs: pollMaxMs,
+    eventTarget,
+    random,
+    onError: (error, meta) => onError(error, { phase: "poll", ...meta })
+  });
 
   function startPolling() {
     if (!active || connected || typeof poll !== "function") return;
     setStatus("polling");
-    if (!pollTimer) pollTimer = setInterval(() => void runPoll(), pollMs);
+    if (!fallbackPoller.isActive()) fallbackPoller.start({ immediate: false });
   }
 
   function stopPolling() {
-    clearTimer("poll");
+    fallbackPoller.stop();
   }
 
-  async function runReconcile(reason = "connected", payload) {
-    if (!active || !connected || reconcileInFlight || typeof reconcile !== "function") return;
-    reconcileInFlight = true;
-    try {
-      reconcilePromise = Promise.resolve(reconcile(reason, payload));
-      await reconcilePromise;
-    } catch (error) {
-      onError(error, { phase: "reconcile", reason });
-    } finally {
-      reconcileInFlight = false;
-      reconcilePromise = null;
-    }
+  function runReconcile(reason = "connected", payload) {
+    if (!active || !connected || typeof reconcile !== "function") return Promise.resolve();
+    if (reconcilePromise) return reconcilePromise;
+    const task = Promise.resolve(reconcile(reason, payload)).finally(() => {
+      if (reconcilePromise === task) reconcilePromise = null;
+    });
+    reconcilePromise = task;
+    return task;
   }
+
+  const connectedPoller = createAdaptivePoller({
+    run: () => runReconcile("connected-periodic"),
+    intervalMs: connectedReconcileMs,
+    maxIntervalMs: connectedReconcileMaxMs,
+    eventTarget,
+    random,
+    onError: (error, meta) => onError(error, {
+      phase: "reconcile",
+      reason: "connected-periodic",
+      ...meta
+    })
+  });
 
   function startConnectedReconciliation() {
-    clearTimer("connectedReconcile");
+    connectedPoller.stop();
     const intervalMs = Number(connectedReconcileMs);
     if (!active || !connected || typeof reconcile !== "function"
       || !Number.isFinite(intervalMs) || intervalMs <= 0) return;
-    connectedReconcileTimer = setInterval(
-      () => { void runReconcile("connected-periodic"); },
-      Math.max(10, Math.floor(intervalMs))
-    );
+    connectedPoller.start({ immediate: false });
   }
 
   function stopConnectedReconciliation() {
-    clearTimer("connectedReconcile");
+    connectedPoller.stop();
   }
 
   function scheduleReconnect(connect) {
@@ -114,7 +161,7 @@ export function createSseLifecycle({
 
   function connect() {
     if (!active) return;
-    clearTimer("reconnect");
+    clearReconnectTimer();
     abortController?.abort();
     abortController = new AbortController();
     const signal = abortController.signal;
@@ -130,7 +177,9 @@ export function createSseLifecycle({
         stopPolling();
         setStatus("connected");
         if (pollPromise) await pollPromise.catch(() => {});
-        await runReconcile("connected", payload);
+        await runReconcile("connected", payload).catch((error) => {
+          onError(error, { phase: "reconcile", reason: "connected" });
+        });
         startConnectedReconciliation();
         await onConnected(payload);
       }
@@ -157,7 +206,7 @@ export function createSseLifecycle({
         return;
       }
       startPolling();
-      void runPoll("disconnected");
+      void fallbackPoller.runNow("disconnected");
       scheduleReconnect(connect);
     });
   }
@@ -183,7 +232,7 @@ export function createSseLifecycle({
     active = false;
     connected = false;
     generation += 1;
-    clearTimer("reconnect");
+    clearReconnectTimer();
     stopPolling();
     stopConnectedReconciliation();
     abortController?.abort();

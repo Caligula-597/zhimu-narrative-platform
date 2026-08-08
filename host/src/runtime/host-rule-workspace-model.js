@@ -1,3 +1,5 @@
+import { secureRandomId } from "../../../shared/secure-random.js";
+
 export const HOST_RULE_LIMITS = Object.freeze({
   NAME: 120,
   JSON_TEXT: 65_536,
@@ -18,8 +20,7 @@ const DEFAULT_CONDITIONS = {
 const DEFAULT_ACTIONS = [{ type: "timeline_log", message: "主持端新建规则" }];
 
 function requestId() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
-  return `host-rule-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return secureRandomId("host-rule");
 }
 
 function jsonText(value, fallback) {
@@ -53,7 +54,7 @@ export function hostRuleDraftFingerprint(draft = {}) {
 export function createHostRuleWorkspace({ worldId, rule = null }) {
   const draft = draftFromRule(rule || {});
   return {
-    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    id: secureRandomId("host-rule-workspace"),
     worldId: String(worldId || ""),
     ruleId: String(rule?.id || ""),
     requestId: requestId(),

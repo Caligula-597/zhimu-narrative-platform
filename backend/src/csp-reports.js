@@ -55,6 +55,17 @@ function normalizeDirective(value) {
   return ALLOWED_DIRECTIVES.has(directive) ? directive : "other";
 }
 
+function normalizeDisposition(value) {
+  const raw = text(value, 20).toLowerCase();
+  if (!raw) return "report";
+  return raw === "enforce" || raw === "report" ? raw : "other";
+}
+
+function boundedInteger(value, maximum) {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed >= 0 && parsed <= maximum ? parsed : 0;
+}
+
 function pruneMap(map, windowStart, maxSize) {
   for (const [key, entry] of map) {
     if (entry.windowStart !== windowStart) map.delete(key);
@@ -81,10 +92,10 @@ export function normalizeCspReport(payload = {}) {
     violatedDirective: directive,
     blockedUri: safeUrl(report["blocked-uri"] ?? report.blockedURL ?? report.blockedURI),
     sourceFile: safeUrl(report["source-file"] ?? report.sourceFile),
-    disposition: text(report.disposition, 20) || "report",
-    statusCode: Number(report["status-code"] ?? report.statusCode) || 0,
-    lineNumber: Number(report["line-number"] ?? report.lineNumber) || 0,
-    columnNumber: Number(report["column-number"] ?? report.columnNumber) || 0
+    disposition: normalizeDisposition(report.disposition),
+    statusCode: boundedInteger(report["status-code"] ?? report.statusCode, 599),
+    lineNumber: boundedInteger(report["line-number"] ?? report.lineNumber, 10_000_000),
+    columnNumber: boundedInteger(report["column-number"] ?? report.columnNumber, 10_000_000)
   };
 }
 

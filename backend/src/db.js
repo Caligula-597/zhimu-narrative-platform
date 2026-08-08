@@ -4,6 +4,7 @@ import {
   resolveDatabaseSsl,
   resolveDatabaseUrl
 } from "./database-connection-options.js";
+import { assertSafeDatabaseUrlForTestWrites } from "./database-operation-safety.js";
 
 export {
   inspectDatabaseTlsPolicy,
@@ -13,6 +14,15 @@ export {
 
 const { Pool } = pg;
 export const DEFAULT_POOL_MAX = 6;
+
+const databaseUrl = resolveDatabaseUrl();
+if (process.env.NODE_TEST_CONTEXT) {
+  // This protection lives below the optional test hook so an engineer cannot
+  // accidentally bypass it by invoking `node --test` directly.
+  assertSafeDatabaseUrlForTestWrites(databaseUrl, {
+    opName: "database module test runner"
+  });
+}
 
 export function resolvePoolMax(raw = process.env.PGPOOL_MAX) {
   const value = Number(raw ?? DEFAULT_POOL_MAX);
@@ -55,7 +65,7 @@ export function isDatabaseCapacityError(error) {
 }
 
 export const pool = new Pool({
-  connectionString: resolveDatabaseUrl(),
+  connectionString: databaseUrl,
   ssl: resolveDatabaseSsl(),
   // Supabase session poolers commonly cap a project at 15 clients. Six per
   // instance permits a two-instance rolling deploy plus migration/ops headroom.

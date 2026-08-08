@@ -61,6 +61,7 @@
     "data:purge-expired": "node scripts/purge-expired-data.mjs",
     "test": "node --test-concurrency=1 --import ./test/hooks.mjs --test test/*.test.js test/*.test.mjs",
     "test:permissions-matrix": "node --test-concurrency=1 --import ./test/hooks.mjs --test test/permissions-matrix.test.js test/runtime-permissions.test.js test/ops-catalog.test.js test/ops-audit.test.js test/feedback.test.js",
+    "test:security:pure": "node scripts/run-pure-security-tests.mjs",
     "test:smoke": "node scripts/smoke-api.js",
     "test:smoke:self-contained": "node scripts/run-smoke-with-server.mjs",
     "test:deepseek-pipeline": "node scripts/test-deepseek-pipeline.mjs",

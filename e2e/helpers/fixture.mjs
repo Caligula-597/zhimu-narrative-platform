@@ -112,22 +112,21 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
   await page.goto(PLAY_URL);
   await page.getByTestId("invite-code-input").fill(inviteCode);
   await page.getByTestId("start-join").click();
-  const codeStepInput = page.locator('.join-row input[data-bind="inviteCode"]').first();
-  if (await codeStepInput.isVisible().catch(() => false)) {
-    const currentCode = await codeStepInput.inputValue().catch(() => "");
-    if (currentCode !== inviteCode) await codeStepInput.fill(inviteCode);
-    const rolesReady = await page.locator(".role-card:not([disabled])").first().waitFor({ state: "visible", timeout: 10_000 })
-      .then(() => true)
-      .catch(() => false);
-    if (!rolesReady) {
-      await page.waitForFunction(() => {
-        const button = document.querySelector('[data-action="lookup-invite"]');
-        return Boolean(button && !button.disabled);
-      }, undefined, { timeout: 10_000 });
-      await page.locator('[data-action="lookup-invite"]').first().evaluate((button) => button.click());
-    }
-  }
   const roleCards = page.locator(".role-card:not([disabled])");
+  const codeStepInput = page.locator('.join-row input[data-bind="inviteCode"]').first();
+  const lookupButton = page.locator('[data-action="lookup-invite"]').first();
+  const joinPhase = await Promise.race([
+    roleCards.first().waitFor({ state: "visible", timeout: 30_000 }).then(() => "roles"),
+    page.waitForFunction(() => {
+      const input = document.querySelector('.join-row input[data-bind="inviteCode"]');
+      const button = document.querySelector('[data-action="lookup-invite"]');
+      return Boolean(input && button && !button.disabled);
+    }, undefined, { timeout: 30_000 }).then(() => "code")
+  ]);
+  if (joinPhase === "code") {
+    if (await codeStepInput.inputValue() !== inviteCode) await codeStepInput.fill(inviteCode);
+    await lookupButton.evaluate((button) => button.click());
+  }
   await roleCards.first().waitFor({ timeout: 30_000 });
   let target = roleName
     ? roleCards.filter({ hasText: roleName }).first()
