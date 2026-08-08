@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-08T07:20:06.576Z",
+  "generatedAt": "2026-08-08T08:03:13.616Z",
   "source": {
-    "gitCommit": "8d128da",
+    "gitCommit": "01ef38f",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
@@ -17,7 +17,7 @@
       "directDatabaseCalls": 0
     },
     "schemas": {
-      "domainFiles": 34
+      "domainFiles": 35
     }
   },
   "frontend": {
@@ -25,7 +25,7 @@
     "entryLines": {
       "creator": 47,
       "host": 127,
-      "player": 432
+      "player": 424
     },
     "tests": {
       "sharedAndTooling": {
