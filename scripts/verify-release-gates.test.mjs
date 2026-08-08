@@ -74,6 +74,17 @@ test("production backup remains portable and validates restored business data", 
   assert.match(workflow, /rm artifacts\/backup\/zhimu\.dump/u);
 });
 
+test("Player join E2E observes the API transition without clicking a detached element", () => {
+  const fixture = readFileSync(path.join(process.cwd(), "e2e", "helpers", "fixture.mjs"), "utf8");
+  assert.doesNotMatch(
+    fixture,
+    /\[data-action=["']confirm-join["']\][\s\S]{0,160}\.evaluate\(/u
+  );
+  assert.match(fixture, /page\.waitForResponse\([\s\S]*\/api\/rooms\/join/u);
+  assert.match(fixture, /joinResponse\.ok\(\)/u);
+  assert.match(fixture, /\.role-card\.is-selected\[data-role-id=/u);
+});
+
 test("verify repeat stops and fails on a signalled child process", () => {
   let calls = 0;
   const exitCode = runRepeatedVerification(
