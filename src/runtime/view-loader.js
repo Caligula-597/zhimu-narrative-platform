@@ -46,6 +46,7 @@
       () => import("../views/pipeline-wizard.js"),
       () => import("./world-revision.js"),
       () => import("../views/writer.js"),
+      () => import("./actions-bible.js"),
       () => import("./actions-writer.js")
     ],
     studio: [

@@ -46,3 +46,10 @@ test("Bible action ownership stays aligned with its switch cases", () => {
   const cases = new Set([...source.matchAll(/case\s+"([^"]+)"\s*:/g)].map((match) => match[1]));
   assert.deepEqual([...BIBLE_ACTIONS].sort(), [...cases].sort());
 });
+
+test("writer lazy bundle loads the Bible handler used by role archives", () => {
+  const source = fs.readFileSync(new URL("../src/runtime/view-loader.js", import.meta.url), "utf8");
+  const writerModules = source.match(/writer:\s*\[([\s\S]*?)\n\s*\],\n\s*studio:/)?.[1] || "";
+  assert.match(writerModules, /import\("\.\/actions-bible\.js"\)/);
+  assert.match(writerModules, /import\("\.\/actions-writer\.js"\)/);
+});
