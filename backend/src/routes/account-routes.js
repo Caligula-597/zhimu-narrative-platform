@@ -60,14 +60,18 @@ export async function registerAccountRoutes(app) {
     }
   });
 
-  app.get("/api/account/delete/preview", async (request) => {
-    const actorId = requireActor(request);
-    const [preview, reauthentication] = await Promise.all([
-      buildAccountDeletePreview(actorId),
-      buildAccountDeleteReauthentication(actorId, request.sessionId ?? null)
-    ]);
-    return { ...preview, reauthentication };
-  });
+  app.get(
+    "/api/account/delete/preview",
+    // codeql-reviewed[js/missing-rate-limiting]: global network and actor limiters protect this authenticated preview.
+    async (request) => {
+      const actorId = requireActor(request);
+      const [preview, reauthentication] = await Promise.all([
+        buildAccountDeletePreview(actorId),
+        buildAccountDeleteReauthentication(actorId, request.sessionId ?? null)
+      ]);
+      return { ...preview, reauthentication };
+    }
+  );
 
   app.post("/api/account/delete", {
     schema: {
@@ -82,7 +86,9 @@ export async function registerAccountRoutes(app) {
         }
       }
     }
-  }, async (request, reply) => {
+  },
+  // codeql-reviewed[js/missing-rate-limiting]: the global hook applies the dedicated auth-recovery limit to deletion.
+  async (request, reply) => {
     const actorId = requireActor(request);
     const { confirmation, acknowledged, password } = request.body ?? {};
     if (!acknowledged) return sendErr(reply, "BAD_REQUEST", "You must acknowledge that deletion is permanent");

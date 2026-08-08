@@ -19,13 +19,28 @@ const cleanText = (value, maximum = 2400) =>
   String(value ?? "")
     .trim()
     .slice(0, maximum);
+const isKeyCharacter = (character) =>
+  character === "_"
+  || character === "-"
+  || (character >= "a" && character <= "z")
+  || (character >= "0" && character <= "9");
 const cleanKey = (value, fallback) => {
-  const normalized = String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
+  const output = [];
+  let replacingInvalidSequence = false;
+  for (const character of String(value ?? "").trim().toLowerCase()) {
+    if (isKeyCharacter(character)) {
+      output.push(character);
+      replacingInvalidSequence = false;
+    } else if (!replacingInvalidSequence) {
+      output.push("-");
+      replacingInvalidSequence = true;
+    }
+  }
+  let start = 0;
+  let end = output.length;
+  while (start < output.length && output[start] === "-") start += 1;
+  while (end > start && output[end - 1] === "-") end -= 1;
+  const normalized = output.slice(start, Math.min(end, start + 80)).join("");
   return normalized || fallback;
 };
 

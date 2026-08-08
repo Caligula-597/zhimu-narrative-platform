@@ -102,16 +102,28 @@ function repositoryFiles() {
   return result.stdout.split("\0").map(normalizedPath).filter(Boolean);
 }
 
+function readTextFileWithinBudget(absolutePath) {
+  let descriptor;
+  try {
+    descriptor = fs.openSync(absolutePath, "r");
+    const stat = fs.fstatSync(descriptor);
+    if (!stat.isFile() || stat.size > MAX_SCAN_BYTES) return null;
+    return fs.readFileSync(descriptor, "utf8");
+  } catch {
+    return null;
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+  }
+}
+
 export function auditRepositorySecrets() {
   const findings = [];
   let scanned = 0;
   for (const relativePath of repositoryFiles()) {
     if (!inSecurityScope(relativePath) || !isTextCandidate(relativePath)) continue;
     const absolutePath = path.join(root, relativePath);
-    let stat;
-    try { stat = fs.statSync(absolutePath); } catch { continue; }
-    if (!stat.isFile() || stat.size > MAX_SCAN_BYTES) continue;
-    const text = fs.readFileSync(absolutePath, "utf8");
+    const text = readTextFileWithinBudget(absolutePath);
+    if (text === null) continue;
     if (text.includes("\0")) continue;
     scanned += 1;
     const isTestFile = /(?:^|\/)(?:test|tests|fixtures)(?:\/|$)|\.test\.[^.]+$/u.test(relativePath);

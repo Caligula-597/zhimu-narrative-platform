@@ -6,13 +6,17 @@ import { sendAuthSession } from "../src/routes/auth-route-shared.js";
 async function authResponse(nodeEnv) {
   const app = Fastify({ logger: false });
   app.decorate("zhimuNodeEnv", nodeEnv);
-  app.post("/login", async (_request, reply) => sendAuthSession(reply, {
-    token: "session-token-1234567890",
-    sessionId: "session-id",
-    expiresAt: "2026-08-08T00:00:00.000Z"
-  }, {
-    user: { id: "user-id" }
-  }, 201));
+  app.post(
+    "/login",
+    // codeql-reviewed[js/missing-rate-limiting]: isolated injection-only fixture never opens a network listener.
+    async (_request, reply) => sendAuthSession(reply, {
+      token: "session-token-1234567890",
+      sessionId: "session-id",
+      expiresAt: "2026-08-08T00:00:00.000Z"
+    }, {
+      user: { id: "user-id" }
+    }, 201)
+  );
   const response = await app.inject({ method: "POST", url: "/login" });
   await app.close();
   return response;

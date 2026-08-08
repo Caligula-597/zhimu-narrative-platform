@@ -58,6 +58,7 @@ export async function registerAuthOAuthRoutes(app) {
     const state = String(request.query?.state ?? "");
     const oauthError = String(request.query?.error ?? "");
     const frontend = new URL(oauthFrontendReturnUrl());
+    // codeql-reviewed[js/user-controlled-bypass]: a provider error only aborts login and can never grant a session.
     if (oauthError) {
       frontend.searchParams.set("oauth_error", oauthProviderErrorCode(oauthError));
       return reply.redirect(frontend.toString());
