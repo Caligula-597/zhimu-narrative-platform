@@ -45,7 +45,8 @@ test("assignUserPlanByEmail updates plan for registered user", async (context) =
 
 test("POST /ops/users/plan requires OPS token", async (context) => {
   const prev = process.env.OPS_API_TOKEN;
-  process.env.OPS_API_TOKEN = "test-ops-token";
+  const opsToken = "test-ops-token-strong-123";
+  process.env.OPS_API_TOKEN = opsToken;
   context.after(() => {
     if (prev === undefined) delete process.env.OPS_API_TOKEN;
     else process.env.OPS_API_TOKEN = prev;
@@ -64,7 +65,7 @@ test("POST /ops/users/plan requires OPS token", async (context) => {
   const ok = await app.inject({
     method: "POST",
     url: "/api/ops/users/plan",
-    headers: { authorization: "Bearer test-ops-token" },
+    headers: { authorization: `Bearer ${opsToken}` },
     payload: { email: "host@zhimu.local", planCode: "beta" }
   });
   assert.equal(ok.statusCode, 200, ok.body);

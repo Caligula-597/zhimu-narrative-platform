@@ -69,6 +69,12 @@ async function requestResetToken(app, email) {
   return new URL(resetUrl).searchParams.get("reset");
 }
 
+function sessionCookieFrom(response) {
+  const header = String(response.headers["set-cookie"] || "");
+  assert.match(header, /zhimu_session=/u);
+  return header.split(";", 1)[0];
+}
+
 test("auth recovery maps lock and statement failures to stable retry contracts", () => {
   const busy = normalizeAuthRecoveryError({ code: "55P03" });
   assert.equal(busy.statusCode, 409);
@@ -295,7 +301,8 @@ test("verification resend is limited independently per authenticated account", a
       payload: { email, password: "old-pass-12345" }
     });
     assert.equal(login.statusCode, 200, login.body);
-    const headers = { authorization: `Bearer ${login.json().token}` };
+    assert.equal(login.json().token, undefined);
+    const headers = { cookie: sessionCookieFrom(login) };
     const responses = [];
     for (let index = 0; index < 4; index += 1) {
       responses.push(await app.inject({

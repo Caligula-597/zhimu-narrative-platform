@@ -41,7 +41,13 @@ function withVerificationEnv(fn) {
   });
 }
 
-test("GET /auth/config exposes verification policy", async (context) => {
+function sessionCookieFrom(response) {
+  const header = String(response.headers["set-cookie"] || "");
+  assert.match(header, /zhimu_session=/u);
+  return header.split(";", 1)[0];
+}
+
+test("GET /auth/config exposes verification policy without provider details", async (context) => {
   await withVerificationEnv(async () => {
     const app = await createApp({ logger: false, allowDemoUserHeader: false });
     context.after(() => app.close());
@@ -50,7 +56,8 @@ test("GET /auth/config exposes verification policy", async (context) => {
     const body = response.json();
     assert.equal(body.requireEmailVerification, true);
     assert.equal(body.email.configured, true);
-    assert.equal(body.email.provider, "resend");
+    assert.equal(body.email.provider, undefined);
+    assert.equal(body.email.from, undefined);
   });
 });
 
@@ -323,13 +330,14 @@ test("resend-verification requires authenticated session", async (context) => {
       payload: { email, password: "pass-word-12345" }
     });
     assert.equal(login.statusCode, 200);
-    const { token } = login.json();
+    const sessionCookie = sessionCookieFrom(login);
+    assert.equal(login.json().token, undefined);
 
     clearTestEmailCapture();
     const resend = await app.inject({
       method: "POST",
       url: "/api/auth/resend-verification",
-      headers: { authorization: `Bearer ${token}` }
+      headers: { cookie: sessionCookie }
     });
     assert.equal(resend.statusCode, 200);
     assert.ok(peekTestVerifyUrl());
