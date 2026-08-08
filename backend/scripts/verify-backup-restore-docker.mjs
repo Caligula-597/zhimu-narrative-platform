@@ -23,6 +23,7 @@ import {
 const TABLES = ["users", "worlds", "chapters", "asset_files", "auth_sessions"];
 const PG_IMAGE = process.env.PG_DRILL_IMAGE || "postgres:17";
 const keep = process.argv.includes("--keep");
+const sleepSignal = new Int32Array(new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT));
 
 function run(cmd, args, opts = {}) {
   const result = spawnSync(cmd, args, {
@@ -96,7 +97,7 @@ function waitForPostgres(containerName, attempts = 30) {
       { encoding: "utf8", shell: false }
     );
     if (probe.status === 0) return;
-    spawnSync("powershell", ["-Command", "Start-Sleep -Seconds 1"], { shell: true });
+    Atomics.wait(sleepSignal, 0, 0, 1000);
   }
   throw new Error("Docker Postgres did not become ready in time");
 }
