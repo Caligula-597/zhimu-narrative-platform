@@ -5,6 +5,11 @@
 
 /** @typedef {{ name: string, value: number, rating: string, id: string, path?: string }} WebVitalMetric */
 
+export const WEB_VITAL_NAMES = Object.freeze(["LCP", "CLS", "INP", "FCP", "TTFB"]);
+export const WEB_VITAL_APPS = Object.freeze(["app", "play", "host", "site", "unknown"]);
+export const WEB_VITAL_RATINGS = Object.freeze(["good", "needs-improvement", "poor", "unknown"]);
+export const DEFAULT_WEB_VITAL_APP = "unknown";
+
 /** Web Vitals thresholds (ms for LCP/INP/FCP/TTFB; unitless for CLS). */
 export const WEB_VITAL_THRESHOLDS = Object.freeze({
   LCP: { good: 2500, poor: 4000 },

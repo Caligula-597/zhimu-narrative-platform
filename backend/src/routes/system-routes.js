@@ -13,6 +13,11 @@ import {
 } from "../csp-reports.js";
 import { healthResponseBody } from "../health-response-policy.js";
 import { createHealthStatusLoader, resolveHealthStatusCacheMs } from "../health-status-cache.js";
+import {
+  WEB_VITAL_APPS,
+  WEB_VITAL_NAMES,
+  WEB_VITAL_RATINGS
+} from "../../../shared/web-vitals.js";
 
 const processStartedAt = Date.now();
 
@@ -154,12 +159,12 @@ export async function registerSystemRoutes(app) {
         additionalProperties: false,
         required: ["name", "value", "id"],
         properties: {
-          name: { type: "string", enum: ["LCP", "CLS", "INP", "FCP", "TTFB"] },
+          name: { type: "string", enum: [...WEB_VITAL_NAMES] },
           value: { type: "number", minimum: 0, maximum: 600_000 },
-          rating: { type: "string", enum: ["good", "needs-improvement", "poor", "unknown"], maxLength: 20 },
+          rating: { type: "string", enum: [...WEB_VITAL_RATINGS], maxLength: 20 },
           id: { type: "string", maxLength: 120 },
           path: { type: "string", maxLength: 500 },
-          app: { type: "string", enum: ["app", "play", "host", "site", "unknown"] }
+          app: { type: "string", enum: [...WEB_VITAL_APPS] }
         }
       },
       response: { 204: { type: "null" } }

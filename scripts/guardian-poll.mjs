@@ -17,6 +17,7 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { DEFAULT_WEB_VITAL_APP } from "../shared/web-vitals.js";
 import { runGuardianProductProbes } from "./guardian-product-probes.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -97,7 +98,7 @@ async function runWebVitalsProbe() {
       value: 1200,
       rating: "good",
       id: `guardian-${Date.now()}`,
-      app: "guardian"
+      app: DEFAULT_WEB_VITAL_APP
     })
   });
   record("web-vitals beacon", response.status === 204, String(response.status));
