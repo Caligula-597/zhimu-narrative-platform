@@ -136,12 +136,28 @@ export async function joinPlayRoomViaUi(page, inviteCode = FIXTURE.inviteCode, r
       throw new Error(`Requested fixture role is unavailable: ${roleName}`);
     });
   }
-  await target.click();
+  const targetRoleId = await target.getAttribute("data-role-id");
+  if (!targetRoleId) throw new Error("Available fixture role is missing its role id");
+  const targetClasses = String(await target.getAttribute("class") || "").split(/\s+/u);
+  if (!targetClasses.includes("is-selected")) {
+    await target.click();
+    await page.locator(`.role-card.is-selected[data-role-id="${targetRoleId}"]`)
+      .waitFor({ state: "visible", timeout: 10_000 });
+  }
   await page.waitForFunction(() => {
     const button = document.querySelector('[data-action="confirm-join"]');
     return Boolean(button && !button.disabled);
   }, undefined, { timeout: 10_000 });
-  await page.locator('[data-action="confirm-join"]').first().evaluate((button) => button.click());
+  const [joinResponse] = await Promise.all([
+    page.waitForResponse((response) => (
+      response.request().method() === "POST"
+      && new URL(response.url()).pathname === "/api/rooms/join"
+    ), { timeout: 30_000 }),
+    page.locator('[data-action="confirm-join"]').first().click()
+  ]);
+  if (!joinResponse.ok()) {
+    throw new Error(`Room join request failed with HTTP ${joinResponse.status()}`);
+  }
   await page.locator("[data-game-tab-bar]").waitFor({ state: "visible", timeout: 30_000 });
 }
 
