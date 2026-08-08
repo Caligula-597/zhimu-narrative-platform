@@ -22,6 +22,33 @@ const includeRoots = [
   'backend/migrations',
 ];
 
+// Keep the deposited excerpts continuous while making the current V1.0
+// feature boundary directly identifiable.  The front evidence block covers
+// authoring and the shared interaction contract; the back evidence block
+// covers player submissions, host confirmation and server-side settlement.
+// Every remaining source file stays in the deterministic middle block and is
+// still included in the total file/line statistics.
+const frontEvidenceFiles = [
+  'shared/mechanism-design.js',
+  'shared/mechanism-interactions.js',
+  'src/views/creator-mechanism-workbench.js',
+  'src/views/creator-mechanism-workbench.css',
+  'src/runtime/actions-creator-cockpit.js',
+  'backend/src/room-mechanism-runtime-service.js',
+];
+
+const backEvidenceFiles = [
+  'backend/migrations/107_room_mechanism_decision_submissions.sql',
+  'backend/migrations/108_room_mechanism_round_clock.sql',
+  'backend/src/room-mechanism-submission-service.js',
+  'backend/src/routes/player-progress-routes.js',
+  'play/src/runtime/game-action-controller.js',
+  'play/src/views/game-home-views.js',
+  'host/src/runtime/host-mechanism-controller.js',
+  'host/src/views/host-mechanism-workspace.js',
+  'backend/src/routes/host-mechanism-runtime-routes.js',
+];
+
 const includeExts = new Set(['.js', '.mjs', '.css', '.html', '.sql']);
 const denyPatterns = [
   /(^|[\\/])node_modules([\\/]|$)/,
@@ -64,11 +91,33 @@ function normalizeLine(line) {
   return redacted.length > 105 ? `${redacted.slice(0, 101)} ...` : redacted;
 }
 
-function readSourceLines() {
-  const files = includeRoots.flatMap((relDir) => {
+function orderedSourceFiles() {
+  const discovered = includeRoots.flatMap((relDir) => {
     const baseDir = path.join(root, relDir);
     return walk(baseDir).sort((a, b) => path.relative(baseDir, a).localeCompare(path.relative(baseDir, b)));
   });
+
+  const byRelativePath = new Map(
+    discovered.map((file) => [path.relative(root, file).replaceAll(path.sep, '/'), file]),
+  );
+  const evidencePaths = [...frontEvidenceFiles, ...backEvidenceFiles];
+  const missingEvidence = evidencePaths.filter((rel) => !byRelativePath.has(rel));
+  if (missingEvidence.length) {
+    throw new Error(`交存证据文件不存在：${missingEvidence.join('、')}`);
+  }
+  const evidenceSet = new Set(evidencePaths);
+  const middle = discovered.filter(
+    (file) => !evidenceSet.has(path.relative(root, file).replaceAll(path.sep, '/')),
+  );
+  return [
+    ...frontEvidenceFiles.map((rel) => byRelativePath.get(rel)),
+    ...middle,
+    ...backEvidenceFiles.map((rel) => byRelativePath.get(rel)),
+  ];
+}
+
+function readSourceLines() {
+  const files = orderedSourceFiles();
 
   const lines = [];
   for (const file of files) {
@@ -120,7 +169,11 @@ const output = [
   `${softwareName} ${version} 源程序鉴别材料`,
   `生成时间：${new Date().toISOString()}`,
   `纳入文件数：${files.length}`,
+  `源代码总行数：${lines.length}`,
   `纳入目录：${includeRoots.join('、')}`,
+  `前段新增功能证据：${frontEvidenceFiles.join('、')}`,
+  `后段新增功能证据：${backEvidenceFiles.join('、')}`,
+  '连续性说明：前 30 页与后 30 页分别从确定性文件序列连续截取，每页 50 行，页际不跳行。',
   '说明：本文件为软著普通交存源程序摘录稿，包含前 30 页和后 30 页，每页 50 行。',
   ...formatPages(firstLines, '前30页', 1),
   ...formatPages(lastLines, '后30页', 31),
