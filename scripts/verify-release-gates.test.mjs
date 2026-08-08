@@ -61,6 +61,19 @@ test("Playwright migrates a fresh database before starting the API", () => {
   assert.match(config, /command:\s*["']npm run db:migrate && node src\/server\.js["']/);
 });
 
+test("production backup remains portable and validates restored business data", () => {
+  const workflow = readFileSync(
+    path.join(process.cwd(), ".github", "workflows", "production-backup.yml"),
+    "utf8"
+  );
+  assert.match(workflow, /pg_dump[\s\S]*--format=custom[\s\S]*--exclude-extension=supabase_vault/u);
+  assert.match(workflow, /pg_restore[\s\S]*--exit-on-error/u);
+  for (const table of ["users", "worlds", "schema_migrations"]) {
+    assert.match(workflow, new RegExp(`SELECT COUNT\\(\\*\\) FROM ${table}`));
+  }
+  assert.match(workflow, /rm artifacts\/backup\/zhimu\.dump/u);
+});
+
 test("verify repeat stops and fails on a signalled child process", () => {
   let calls = 0;
   const exitCode = runRepeatedVerification(

@@ -58,6 +58,7 @@ jobs:
             --compress=9 \
             --no-owner \
             --no-acl \
+            --exclude-extension=supabase_vault \
             --file artifacts/backup/zhimu.dump
           openssl enc -aes-256-cbc -pbkdf2 -salt \
             -in artifacts/backup/zhimu.dump \
