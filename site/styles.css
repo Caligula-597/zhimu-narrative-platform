@@ -579,9 +579,9 @@ h2 {
   min-height: 230px;
   padding: 26px 24px 28px;
   border-right: 1px solid var(--line);
-  opacity: 0.62;
+  opacity: 1;
   transform: translateY(8px);
-  transition: opacity 260ms ease, transform 260ms ease, background 260ms ease;
+  transition: transform 260ms ease, background 260ms ease;
 }
 
 .workflow-list li:last-child {

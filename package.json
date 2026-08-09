@@ -67,6 +67,7 @@
     "verify:isolated:3": "node scripts/verify-full-repeat.mjs --count=3",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --headed",
+    "test:production-matrix": "playwright test --config config/playwright.production-matrix.config.mjs",
     "test:empty-account:browser": "playwright test --config config/playwright.empty-account.config.mjs",
     "test:format-helpers": "node --test scripts/format-helpers.test.mjs",
     "test:shared-status-chip": "node --test scripts/shared-status-chip.test.mjs",
@@ -126,6 +127,7 @@
     "git:push": "node scripts/git-push.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@emnapi/core": "1.11.2",
     "@emnapi/runtime": "1.11.2",
     "@playwright/test": "^1.52.0",
