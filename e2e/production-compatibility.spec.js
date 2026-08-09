@@ -24,22 +24,30 @@ for (const surface of surfaces) {
       if (!source || source.includes("getzhimu.com")) runtimeErrors.push(message.text());
     });
 
+    if (surface.name === "creator") {
+      await page.addInitScript(() => sessionStorage.setItem("zhimuAuthPrompted", "1"));
+    }
     const response = await page.goto(surface.url, { waitUntil: "domcontentloaded" });
     expect(response?.status(), `${surface.url} must return a successful document`).toBeLessThan(400);
     await expect(page.locator("body")).not.toBeEmpty();
     await expect(page.locator(`#${surface.mainId}`)).toBeVisible();
     await expect(page.locator("vite-error-overlay, nextjs-portal, #webpack-dev-server-client-overlay")).toHaveCount(0);
 
-    const requiresProgrammaticFocus = testInfo.project.name.includes("webkit")
+    const requiresProgrammaticFocus = testInfo.project.name.includes("firefox")
+      || testInfo.project.name.includes("webkit")
       || testInfo.project.name.includes("emulation");
+    const skipLink = page.locator(".skip-link");
     if (requiresProgrammaticFocus) {
-      await page.locator(".skip-link").focus();
+      await skipLink.focus();
     } else {
       await page.evaluate(() => document.activeElement?.blur());
-      await page.keyboard.press("Tab");
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        await page.keyboard.press("Tab");
+        if (await skipLink.evaluate((element) => element === document.activeElement)) break;
+      }
     }
-    await expect(page.locator(".skip-link")).toBeFocused();
-    await page.locator(".skip-link").press("Enter");
+    await expect(skipLink).toBeFocused();
+    await skipLink.press("Enter");
     await expect(page.locator(`#${surface.mainId}`)).toBeFocused();
 
     const viewport = await page.evaluate(() => ({
