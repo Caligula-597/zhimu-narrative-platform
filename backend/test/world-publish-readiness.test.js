@@ -24,6 +24,14 @@ function minimalSnapshot(overrides = {}) {
         segment_key: "ch1",
         title: "序章",
         sequence: 1,
+        story: {
+          beatPlan: {
+            goal: "确认第一幕冲突",
+            playerContent: "阅读证词并交换公开信息",
+            dmTasks: "引导玩家比较两份证词",
+            advanceCondition: "全员完成第一幕讨论"
+          }
+        },
         operations: {
           schemaVersion: 1,
           flow: "主持流程",
@@ -97,4 +105,26 @@ test("evaluateWorldPublishReadiness flags segment gaps", () => {
   assert.ok(result.checks.some((item) => item.id === "segments.ch1.chapter_unlinked"));
   assert.ok(result.checks.some((item) => item.id === "segments.ch1.section_unlinked"));
   assert.ok(result.checks.some((item) => item.id === "segments.other.runbook_missing"));
+});
+
+test("evaluateWorldPublishReadiness warns about incomplete beat plans without blocking playtest", () => {
+  const snapshot = minimalSnapshot();
+  snapshot.segments[0].story.beatPlan = {
+    goal: "确认第一幕冲突",
+    playerContent: "阅读证词"
+  };
+  const result = evaluateWorldPublishReadiness(snapshot);
+  const warning = result.checks.find((item) => item.id === "segments.ch1.beat_plan_incomplete");
+  assert.equal(warning?.level, "warning");
+  assert.match(warning?.detail || "", /主持任务/);
+  assert.match(warning?.detail || "", /推进条件/);
+  assert.equal(result.summary.readyForPlaytest, true);
+});
+
+test("evaluateWorldPublishReadiness reports a missing beat plan as one actionable warning", () => {
+  const snapshot = minimalSnapshot();
+  delete snapshot.segments[0].story;
+  const result = evaluateWorldPublishReadiness(snapshot);
+  assert.ok(result.checks.some((item) => item.id === "segments.ch1.beat_plan_missing"));
+  assert.ok(!result.checks.some((item) => item.id === "segments.ch1.beat_plan_incomplete"));
 });

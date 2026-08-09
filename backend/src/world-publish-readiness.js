@@ -1,7 +1,12 @@
 /**
  * Pre-publish / playtest readiness evaluation for a world snapshot.
  */
-import { normalizeSegmentOperations, resolveChapterSegmentKey, resolveSectionSegmentKey } from "./segment-contract.js";
+import {
+  normalizeBeatPlan,
+  normalizeSegmentOperations,
+  resolveChapterSegmentKey,
+  resolveSectionSegmentKey
+} from "./segment-contract.js";
 
 function add(checks, { id, level, title, detail, target = null }) {
   checks.push({ id, level, title, detail, ...(target ? { target } : {}) });
@@ -121,7 +126,31 @@ export function evaluateWorldPublishReadiness(snapshot) {
   });
   for (const segment of segments) {
     const key = segment.segment_key || segment.segmentKey;
+    const beatPlan = normalizeBeatPlan(segment.story?.beatPlan ?? {});
     const operations = normalizeSegmentOperations(segment.operations ?? {});
+    const missingBeatFields = [
+      ["goal", "本幕目标"],
+      ["playerContent", "玩家可读摘要"],
+      ["dmTasks", "主持任务"],
+      ["advanceCondition", "推进条件"]
+    ].filter(([field]) => !beatPlan[field]);
+    if (missingBeatFields.length === 4) {
+      add(checks, {
+        id: `segments.${key}.beat_plan_missing`,
+        level: "warning",
+        title: `${segment.title || key || "Segment"} 缺少本幕流程`,
+        detail: "建议补齐本幕目标、玩家可读摘要、主持任务和推进条件，保证三端知道当前要做什么。",
+        target: { kind: "segments", segmentKey: key }
+      });
+    } else if (missingBeatFields.length) {
+      add(checks, {
+        id: `segments.${key}.beat_plan_incomplete`,
+        level: "warning",
+        title: `${segment.title || key || "Segment"} 本幕流程不完整`,
+        detail: `建议补齐：${missingBeatFields.map(([, label]) => label).join("、")}。`,
+        target: { kind: "segments", segmentKey: key }
+      });
+    }
     if (!operations.flow && !operations.hostTruth) {
       add(checks, {
         id: `segments.${key}.runbook_missing`,
