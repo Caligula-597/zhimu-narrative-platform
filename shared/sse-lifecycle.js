@@ -58,6 +58,7 @@ export function createSseLifecycle({
   pollMaxMs = Math.max(pollMs, pollMs * 8),
   connectedReconcileMs = 30000,
   connectedReconcileMaxMs = Math.max(connectedReconcileMs, connectedReconcileMs * 4),
+  handshakeTimeoutMs = 10000,
   reconnectBaseMs = 1000,
   reconnectMaxMs = 30000,
   eventTarget = globalThis,
@@ -66,6 +67,7 @@ export function createSseLifecycle({
   let active = false;
   let connected = false;
   let abortController = null;
+  let handshakeTimer = null;
   let reconnectTimer = null;
   let pollPromise = null;
   let reconcilePromise = null;
@@ -80,6 +82,12 @@ export function createSseLifecycle({
     if (!reconnectTimer) return;
     clearTimeout(reconnectTimer);
     reconnectTimer = null;
+  }
+
+  function clearHandshakeTimer() {
+    if (!handshakeTimer) return;
+    clearTimeout(handshakeTimer);
+    handshakeTimer = null;
   }
 
   async function performPoll(reason = "poll") {
@@ -166,12 +174,24 @@ export function createSseLifecycle({
     abortController = new AbortController();
     const signal = abortController.signal;
     const currentGeneration = generation;
+    let handshakeTimedOut = false;
     setStatus("reconnecting");
+
+    clearHandshakeTimer();
+    const resolvedHandshakeTimeoutMs = Number(handshakeTimeoutMs);
+    if (Number.isFinite(resolvedHandshakeTimeoutMs) && resolvedHandshakeTimeoutMs > 0) {
+      handshakeTimer = setTimeout(() => {
+        if (!active || connected || currentGeneration !== generation || signal.aborted) return;
+        handshakeTimedOut = true;
+        if (abortController?.signal === signal) abortController.abort();
+      }, resolvedHandshakeTimeoutMs);
+    }
 
     Promise.resolve().then(() => open({
       signal,
       onConnected: async (payload) => {
         if (!active || signal.aborted || currentGeneration !== generation) return;
+        clearHandshakeTimer();
         connected = true;
         reconnectAttempt = 0;
         stopPolling();
@@ -184,14 +204,20 @@ export function createSseLifecycle({
         await onConnected(payload);
       }
     })).catch(async (error) => {
-      if (signal.aborted || currentGeneration !== generation) return;
-      onError(error, { phase: "stream" });
+      if ((signal.aborted && !handshakeTimedOut) || currentGeneration !== generation) return;
+      const reportedError = handshakeTimedOut
+        ? Object.assign(new Error("SSE handshake timed out"), { code: "SSE_HANDSHAKE_TIMEOUT" })
+        : error;
+      onError(reportedError, handshakeTimedOut
+        ? { phase: "handshake", timeoutMs: resolvedHandshakeTimeoutMs }
+        : { phase: "stream" });
       if (error?.status === 401 && !error?.staleCredential) {
         active = false;
         await onAuthLost(error);
       }
     }).finally(async () => {
-      if (signal.aborted || currentGeneration !== generation) return;
+      clearHandshakeTimer();
+      if ((signal.aborted && !handshakeTimedOut) || currentGeneration !== generation) return;
       connected = false;
       stopConnectedReconciliation();
       abortController = null;
@@ -233,6 +259,7 @@ export function createSseLifecycle({
     connected = false;
     generation += 1;
     clearReconnectTimer();
+    clearHandshakeTimer();
     stopPolling();
     stopConnectedReconciliation();
     abortController?.abort();

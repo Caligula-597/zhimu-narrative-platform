@@ -113,6 +113,39 @@ test("SSE lifecycle contains synchronous transport failures and enters polling f
   lifecycle.stop();
 });
 
+test("SSE lifecycle aborts a stalled handshake and keeps polling protection active", async () => {
+  const errors = [];
+  const statuses = [];
+  let attempts = 0;
+  let polls = 0;
+  const lifecycle = createSseLifecycle({
+    eventTarget: null,
+    handshakeTimeoutMs: 10,
+    reconnectBaseMs: 10000,
+    pollMs: 10000,
+    open: ({ signal }) => {
+      attempts += 1;
+      return new Promise((resolve, reject) => {
+        signal.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), {
+          name: "AbortError"
+        })), { once: true });
+      });
+    },
+    poll: async () => { polls += 1; },
+    onStatus: (status) => statuses.push(status),
+    onError: (error, meta) => errors.push({ error, meta })
+  });
+  lifecycle.start();
+  await new Promise((resolve) => setTimeout(resolve, 40));
+  lifecycle.stop();
+
+  assert.equal(attempts, 1);
+  assert.equal(polls >= 1, true);
+  assert.equal(errors[0]?.error.code, "SSE_HANDSHAKE_TIMEOUT");
+  assert.equal(errors[0]?.meta.phase, "handshake");
+  assert.ok(statuses.includes("polling"));
+});
+
 test("SSE lifecycle keeps polling and reconnecting when disconnect observers fail", async () => {
   const statuses = [];
   const errors = [];
