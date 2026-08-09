@@ -34,7 +34,7 @@ export function renderApp() {
   return `
     ${renderHeader()}
     ${renderVerifyBanner()}
-    <main class="play-main" ${state.busy ? 'aria-busy="true"' : ""}>
+    <main class="play-main" id="play-main" tabindex="-1" ${state.busy ? 'aria-busy="true"' : ""}>
       ${syncBanner ? `<div data-sync-banner>${syncBanner}</div>` : ""}
       ${state.error ? `<div class="banner error">${escapeHtml(state.error)}<button type="button" data-action="dismiss-error" aria-label="关闭">×</button></div>` : ""}
       ${state.busy ? `<div class="loading-bar" role="progressbar" aria-label="加载中"></div>` : ""}

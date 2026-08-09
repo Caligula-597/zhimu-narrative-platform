@@ -1,4 +1,5 @@
 @import "../../shared/tokens.css";
+@import "../../shared/styles/accessibility.css";
 @import "../../shared/styles/status-chip.css";
 @import "../../shared/styles/toast.css";
 @import "../../shared/styles/portal-profile.css";

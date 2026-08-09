@@ -38,6 +38,8 @@
 }
 .app-shell { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
 .sidebar {
+  --focus-ring: #f5c86e;
+  --focus-ring-contrast: #143d3a;
   display: flex; flex-direction: column; padding: 22px 15px 16px; color: #e7efec;
   background: linear-gradient(165deg,#143d3a 0%,#0f302f 56%,#102b2b 100%);
   box-shadow: 5px 0 24px rgba(13,47,45,.12); position: sticky; top: 0; align-self: start;

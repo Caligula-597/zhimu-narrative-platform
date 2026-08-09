@@ -30,7 +30,7 @@ export function renderApp() {
     <div class="host-app-shell">
       ${renderHeader()}
       ${state.busy ? `<div class="loading-bar" role="progressbar" aria-label="加载中"></div>` : ""}
-      <main class="host-main" ${state.busy ? 'aria-busy="true"' : ""}>
+      <main class="host-main" id="host-main" tabindex="-1" ${state.busy ? 'aria-busy="true"' : ""}>
         <div class="host-main-inner">
           ${state.error ? `<div class="banner error" role="alert"><span>${escapeHtml(state.error)}</span><button class="icon-btn" type="button" data-action="dismiss-error" aria-label="关闭">×</button></div>` : ""}
           ${renderMainView()}

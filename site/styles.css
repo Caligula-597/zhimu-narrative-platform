@@ -5,11 +5,12 @@
   --surface: #ffffff;
   --ink: #112f2d;
   --ink-soft: #314542;
-  --muted: #6b7773;
+  --muted: #5f6d69;
   --green: #123f3b;
   --green-2: #1f5b54;
   --green-pale: #eaf1ed;
-  --brass: #a9783e;
+  --brass: #875b2c;
+  --focus-ring: #0f6a61;
   --line: #dedfd8;
   --line-strong: #c9cec6;
   --danger: #9b403b;
@@ -44,6 +45,28 @@ body {
 body::selection {
   color: white;
   background: var(--green-2);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 1000;
+  top: 10px;
+  left: 10px;
+  max-width: calc(100vw - 20px);
+  padding: 10px 14px;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--focus-ring);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  font-weight: 700;
+  transform: translateY(calc(-100% - 18px));
+  transition: transform 120ms ease;
+}
+
+.skip-link:focus {
+  outline: none;
+  transform: translateY(0);
 }
 
 a {
@@ -225,8 +248,15 @@ img {
 
 .link-button:focus-visible,
 .text-link:focus-visible,
-.site-nav a:focus-visible {
-  outline: 3px solid rgba(31, 91, 84, 0.2);
+.site-nav a:focus-visible,
+.header-surface-link:focus-visible,
+.menu-button:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
 }
 

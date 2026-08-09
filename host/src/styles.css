@@ -9,8 +9,8 @@
   --host-green-deep: #143d3a;
   --host-green: #1f5b54;
   --host-green-soft: #eaf3ee;
-  --host-brass: #b7823d;
-  --host-clay: #b8624f;
+  --host-brass: var(--brass);
+  --host-clay: var(--clay);
   --host-ink: var(--ink);
   --host-muted: var(--muted);
   --host-line: var(--line);
