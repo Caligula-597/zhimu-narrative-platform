@@ -24,8 +24,6 @@ import "../src/components/toast.js";
 import "../src/components/modal.js";
 import "../src/components/creator-guide.js";
 import "../src/components/collapse-panel.js";
-import "../src/views/creator-cockpit.js";
-import "../src/runtime/actions-creator-cockpit.js";
 import "../src/runtime/wizard.js";
 import "../src/runtime/auth-session.js";
 import "../src/runtime/workspace-store.js";

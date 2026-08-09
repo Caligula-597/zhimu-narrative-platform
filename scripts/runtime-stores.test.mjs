@@ -507,6 +507,10 @@ test("view registry is introduced without disabling lazy view loading", () => {
   assert.match(loaderJs, /\(\) => import\("\.\/actions-bible\.js"\)/);
 
   const mainJs = fs.readFileSync(path.join(root, "frontend/main.js"), "utf8");
+  assert.match(loaderJs, /creatorCockpit:\s*\[[\s\S]*?import\("\.\.\/views\/creator-cockpit\.js"\)[\s\S]*?import\("\.\/actions-creator-cockpit\.js"\)/);
+  assert.doesNotMatch(loaderJs, /new Set\(\["creatorCockpit"\]\)/);
+  assert.doesNotMatch(mainJs, /import "\.\.\/src\/views\/creator-cockpit\.js"/);
+  assert.doesNotMatch(mainJs, /import "\.\.\/src\/runtime\/actions-creator-cockpit\.js"/);
   assert.doesNotMatch(mainJs, /import "\.\.\/src\/views\/overview\.js"/);
   assert.doesNotMatch(mainJs, /import "\.\.\/src\/views\/platform-runtime\.js"/);
   assert.doesNotMatch(mainJs, /import "\.\.\/src\/runtime\/actions-bible\.js"/);

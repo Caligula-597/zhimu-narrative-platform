@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { loading } from "../src/components/status-ui.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
@@ -53,6 +54,14 @@ test("shared accessibility primitives cover focus, forced colours, and reduced m
   assert.match(source, /:focus-visible/);
   assert.match(source, /prefers-reduced-motion:\s*reduce/);
   assert.match(source, /forced-colors:\s*active/);
+});
+
+test("lazy view loading is announced without taking keyboard focus", () => {
+  const html = loading("创作驾驶舱", "正在加载该功能模块");
+  assert.match(html, /role="status"/);
+  assert.match(html, /aria-live="polite"/);
+  assert.match(html, /aria-busy="true"/);
+  assert.doesNotMatch(html, /autofocus|tabindex/);
 });
 
 test("player landing backdrop stays inside the mobile viewport", () => {

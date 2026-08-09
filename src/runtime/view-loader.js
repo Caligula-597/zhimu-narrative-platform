@@ -1,6 +1,6 @@
 /** View-level code splitting for the legacy window.* frontend. */
 (function (window) {
-  const loaded = new Set(["creatorCockpit"]);
+  const loaded = new Set();
   const loading = new Map();
 
   const creatorWorkspaceModules = [
@@ -15,6 +15,10 @@
   ];
 
   const modulesByView = {
+    creatorCockpit: [
+      () => import("../views/creator-cockpit.js"),
+      () => import("./actions-creator-cockpit.js")
+    ],
     overview: [
       () => import("../views/overview.js"),
       ...creatorWorkspaceModules
