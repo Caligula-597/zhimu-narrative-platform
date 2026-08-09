@@ -1218,6 +1218,46 @@ export interface RuntimeCurrentState {
   audience: "player" | "host" | "creator";
   roomId: string;
   worldId: string;
+  contentBinding: {
+    mode: "live_draft" | "release";
+    runtimeSource: "live_draft" | "release_snapshot";
+    isFrozen: boolean;
+    compatibilityStatus: "legacy_live_draft" | "awaiting_release_reader" | "frozen_release";
+    release: {
+      id: string;
+      releaseNumber: number | null;
+      label: string;
+      sourceRevision: number | null;
+      createdAt: string | null;
+    } | null;
+    currentDraftRevision: number | null;
+    hasNewerDraft: boolean;
+  };
+  currentBeat: {
+    id: string;
+    key: string;
+    title: string;
+    sequence: number;
+    position: number;
+    total: number;
+    source: "mechanism_round" | "reading_progress" | "next_section" | "segment_order";
+    player: {
+      content: string;
+      tips: string[];
+      tasks: string[];
+    };
+    host: {
+      goal: string;
+      flow: string;
+      hostTruth: string;
+      dmTasks: string;
+      openClues: string;
+      privateChatHints: string;
+      advanceCondition: string;
+      fallbacks: string[];
+      estimatedMinutes: number | null;
+    } | null;
+  } | null;
   phase: {
     key: string;
     label: string;

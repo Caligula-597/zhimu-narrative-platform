@@ -10,6 +10,7 @@ const worldId = "20000000-0000-4000-8000-000000000002";
 const roleId = "20000000-0000-4000-8000-000000000003";
 const sectionId = "20000000-0000-4000-8000-000000000004";
 const clueId = "20000000-0000-4000-8000-000000000005";
+const segmentId = "20000000-0000-4000-8000-000000000007";
 
 function mechanismPackage() {
   return compileMechanismPackage({
@@ -66,7 +67,8 @@ function snapshot() {
       title: "Act one",
       body: "secret body",
       sequence: 1,
-      publication_status: "published"
+      publication_status: "published",
+      metadata: { segmentKey: "opening" }
     }],
     scenes: [],
     clues: [{
@@ -79,7 +81,28 @@ function snapshot() {
     items: [],
     edges: [],
     rules: [],
-    segments: [],
+    segments: [{
+      id: segmentId,
+      segment_key: "opening",
+      title: "Opening investigation",
+      sequence: 1,
+      story: {
+        beatPlan: {
+          goal: "Confirm the timeline",
+          playerContent: "Compare the first two statements",
+          dmTasks: "Ask who handled the receipt",
+          advanceCondition: "The table agrees on a suspect",
+          estimatedMinutes: 20
+        }
+      },
+      operations: {
+        flow: "Read, compare, then discuss",
+        hostTruth: "The receipt timestamp was altered",
+        playerTips: ["Check the printed time"],
+        playerTasks: ["Compare both statements"],
+        fallbacks: ["Reveal the register log"]
+      }
+    }],
     segmentRefs: [],
     truthClaims: [],
     roleRelationships: [],
@@ -186,7 +209,7 @@ test("current-state projection carries the same frozen source and journal cursor
     audience: "player",
     knowledge: {
       summary: { availableSections: 1, completedSections: 0 },
-      sections: [{ title: "Act one", completed: false }]
+      sections: [{ id: sectionId, title: "Act one", completed: false }]
     },
     runQuery: executor,
     now: Date.parse("2026-07-24T02:00:00.000Z")
@@ -194,9 +217,26 @@ test("current-state projection carries the same frozen source and journal cursor
   assert.equal(current.syncState.runtimeSource, "release_snapshot");
   assert.equal(current.syncState.isFrozen, true);
   assert.equal(current.syncState.serverCursor, 42);
+  assert.equal(current.contentBinding.release.releaseNumber, 1);
+  assert.equal(current.currentBeat.key, "opening");
+  assert.equal(current.currentBeat.player.content, "Compare the first two statements");
+  assert.equal(current.currentBeat.host, null);
   assert.equal(current.suggestedActions[0].key, "read_section");
   assert.equal(current.mechanism.status, "not_started");
   assert.equal(current.mechanism.totalRounds, 1);
+});
+
+test("host current beat uses the same segment and retains host-only guidance", async () => {
+  const current = await buildRuntimeCurrentState({
+    roomId,
+    audience: "host",
+    runQuery: executor,
+    now: Date.parse("2026-07-24T02:00:00.000Z")
+  });
+  assert.equal(current.currentBeat.id, segmentId);
+  assert.equal(current.currentBeat.source, "segment_order");
+  assert.equal(current.currentBeat.host.dmTasks, "Ask who handled the receipt");
+  assert.equal(current.currentBeat.host.hostTruth, "The receipt timestamp was altered");
 });
 
 test("deletion guard reports the bound room instead of allowing a destructive cascade", async () => {

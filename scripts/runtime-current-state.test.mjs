@@ -16,6 +16,44 @@ test("current-state normalization overlays local SSE connectivity without changi
       { key: "first", label: "first", priority: 1, target: "events", reason: "" }
     ],
     blockers: [],
+    contentBinding: {
+      mode: "release",
+      runtimeSource: "release_snapshot",
+      isFrozen: true,
+      release: {
+        id: "release-1",
+        releaseNumber: 3,
+        label: "Acceptance",
+        sourceRevision: 7,
+        createdAt: "2026-07-23T00:00:00.000Z"
+      },
+      currentDraftRevision: 9
+    },
+    currentBeat: {
+      id: "beat-1",
+      key: "opening",
+      title: "Opening",
+      sequence: 1,
+      position: 1,
+      total: 4,
+      source: "reading_progress",
+      player: {
+        content: "Compare the statements",
+        tips: ["Read the timestamps"],
+        tasks: []
+      },
+      host: {
+        goal: "Confirm the timeline",
+        flow: "Read and compare",
+        hostTruth: "Host-only truth",
+        dmTasks: "Ask for a theory",
+        openClues: "Receipt",
+        privateChatHints: "Nudge the detective",
+        advanceCondition: "A theory is recorded",
+        fallbacks: ["Reveal a timestamp"],
+        estimatedMinutes: 20
+      }
+    },
     syncState: {
       status: "synced",
       runtimeSource: "release_snapshot",
@@ -28,5 +66,26 @@ test("current-state normalization overlays local SSE connectivity without changi
   const offline = normalizeRuntimeCurrentState(value, { audience: "host", connected: false });
   assert.equal(offline.syncState.status, "reconnecting");
   assert.equal(offline.syncState.serverCursor, 88);
+  assert.equal(offline.contentBinding.release.releaseNumber, 3);
+  assert.equal(offline.currentBeat.host.hostTruth, "Host-only truth");
   assert.equal(primaryRuntimeAction(value).key, "first");
+});
+
+test("player current-state normalization strips host-only beat guidance", () => {
+  const normalized = normalizeRuntimeCurrentState({
+    audience: "player",
+    currentBeat: {
+      id: "beat-1",
+      key: "opening",
+      title: "Opening",
+      sequence: 1,
+      position: 1,
+      total: 1,
+      source: "segment_order",
+      player: { content: "Public", tips: [], tasks: [] },
+      host: { hostTruth: "must not cross the boundary" }
+    }
+  }, { audience: "player" });
+  assert.equal(normalized.currentBeat.player.content, "Public");
+  assert.equal(normalized.currentBeat.host, null);
 });
