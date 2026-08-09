@@ -2,6 +2,7 @@ import "./styles.css";
 import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
 import { createToastTimer } from "../../shared/toast.js";
 import { setHtml } from "../../shared/safe-dom.js";
+import { createModalFocusController } from "../../shared/modal-focus.js";
 import { togglePanelInDom } from "./components/collapse.js";
 import { renderApp } from "./components/shell.js";
 import {
@@ -18,6 +19,11 @@ import { state } from "./state.js";
 
 const app = document.getElementById("app");
 const hostToastTimer = createToastTimer(3200);
+const profileModalFocus = createModalFocusController({
+  backdropSelector: ".host-profile-modal-backdrop.show",
+  closeSelector: "[data-action='close-profile']",
+  titleIdPrefix: "host-profile-modal-title"
+});
 
 function syncHostUrl() {
   const url = new URL(window.location.href);
@@ -29,7 +35,9 @@ function syncHostUrl() {
 }
 
 function render() {
+  const modalSnapshot = profileModalFocus.beforeRender();
   setHtml(app, renderApp());
+  profileModalFocus.afterRender(modalSnapshot);
   syncHostUrl();
 }
 

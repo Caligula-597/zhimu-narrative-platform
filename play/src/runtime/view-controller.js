@@ -1,4 +1,5 @@
 import { setHtml } from "../../../shared/safe-dom.js";
+import { createModalFocusController } from "../../../shared/modal-focus.js";
 
 export function createPlayViewController({
   app,
@@ -13,23 +14,19 @@ export function createPlayViewController({
   setToast,
   syncPlayUrl
 }) {
-  let modalFocusReturn = null;
+  const modalFocus = createModalFocusController({
+    backdropSelector: ".modal-backdrop.is-open",
+    closeSelector: "[data-action='modal-close'], [data-action='profile-close']",
+    titleIdPrefix: "play-modal-title"
+  });
 
-  function bindModalFocus() {
-    const backdrop = document.querySelector(".modal-backdrop.is-open");
-    if (!backdrop) {
-      if (modalFocusReturn) {
-        modalFocusReturn.focus?.();
-        modalFocusReturn = null;
-      }
-      return;
-    }
-    const dialog = backdrop.querySelector(".modal");
-    const focusable = dialog?.querySelector("textarea, input:not([type=hidden]), button:not([disabled])");
-    focusable?.focus();
+  function bindModalFocus(snapshot) {
+    if (snapshot) modalFocus.afterRender(snapshot);
+    else modalFocus.sync();
   }
 
   function render() {
+    const modalSnapshot = modalFocus.beforeRender();
     if (state.view === "game" && state.roomId) persistGameSession();
     const restoreKey = scrollRestoreKey(state);
     const scrollTop = window.scrollY;
@@ -60,7 +57,7 @@ export function createPlayViewController({
       });
     }
     if (scrollRestoreKey(state) === restoreKey) window.scrollTo(0, scrollTop);
-    bindModalFocus();
+    bindModalFocus(modalSnapshot);
     syncPlayUrl(state);
   }
 

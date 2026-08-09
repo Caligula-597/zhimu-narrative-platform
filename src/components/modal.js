@@ -2,9 +2,18 @@
 import { modal, modalBackdrop } from "../dom.js";
 import { escapeHtml } from "../utils/format.js";
 import { setHtml, unwrapHtmlFragment } from "../../shared/safe-dom.js";
+import { createModalFocusController } from "../../shared/modal-focus.js";
 import { formField, formOptionsHtml, formSelect, formValues } from "./form-fields.js";
 
 let modalScrollY = 0;
+const modalFocus = modalBackdrop
+  ? createModalFocusController({
+      backdropSelector: "#modal-backdrop.show",
+      closeSelector: "[data-close]",
+      titleIdPrefix: "creator-modal-title",
+      onEscape: closeModal
+    })
+  : null;
 
 function elementCanScrollVertically(el) {
   if (!el || el.nodeType !== 1) return false;
@@ -45,10 +54,12 @@ function unlockPageScroll() {
 function syncModalScrollLock() {
   if (modalBackdrop.classList.contains("show")) lockPageScroll();
   else unlockPageScroll();
+  modalFocus?.sync();
 }
 
 if (modalBackdrop) {
   new MutationObserver(syncModalScrollLock).observe(modalBackdrop, { attributes: true, attributeFilter: ["class"] });
+  new MutationObserver(() => modalFocus?.sync()).observe(modal, { childList: true });
   modalBackdrop.addEventListener("wheel", (event) => {
     if (!modalBackdrop.classList.contains("show")) return;
     const scrollable = findModalScrollTarget(event.target, modalBackdrop);
@@ -60,7 +71,10 @@ if (modalBackdrop) {
 export function closeModal() {
   modalBackdrop.classList.remove("show");
   modal.className = "modal";
+  modal.removeAttribute("aria-label");
+  modal.removeAttribute("aria-labelledby");
   unlockPageScroll();
+  modalFocus?.sync();
 }
 
 export function openModal(title, text, confirm) {

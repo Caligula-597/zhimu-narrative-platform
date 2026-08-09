@@ -90,7 +90,7 @@
     "check:bundle-budgets": "node scripts/audit-bundle-budgets.mjs --build",
     "test:modal-helpers": "node --test scripts/modal-helpers.test.mjs",
     "test:ui-semantics": "node --test scripts/ui-semantics.test.mjs",
-    "test:accessibility": "node --test scripts/accessibility-contract.test.mjs",
+    "test:accessibility": "node --test scripts/accessibility-contract.test.mjs scripts/modal-accessibility.test.mjs",
     "test:runtime-stores": "node --test scripts/runtime-config-order.test.mjs scripts/runtime-stores.test.mjs",
     "test:sse-matrix": "node --test scripts/shared-sse.test.mjs scripts/shared-adaptive-poller.test.mjs scripts/shared-sse-lifecycle.test.mjs scripts/sse-fault-matrix.test.mjs backend/test/sse-connection-guard.test.js backend/test/sse-replay-subscription.test.js backend/test/sse-response.test.js backend/test/room-event-audience.test.js",
     "test:auth-matrix": "node --test scripts/shared-session-token.test.mjs scripts/shared-auth-state.test.mjs scripts/auth-session.test.mjs scripts/session-auth-race.test.mjs scripts/auth-failure-matrix.test.mjs scripts/email-verification-ui.test.mjs scripts/mobile-auth-recovery.test.mjs scripts/navigation-access.test.mjs scripts/browser-storage-scope.test.mjs host/test/auth-state.test.mjs play/test/auth-startup.test.mjs",
