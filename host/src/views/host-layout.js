@@ -71,10 +71,10 @@ function hostActs() {
   return [...byKey.values()].sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
 }
 
-function activeAct() {
+function activeAct(preferredActKey = "") {
   const acts = hostActs();
   if (!acts.length) return null;
-  const selected = state.hostSelectedActKey || "";
+  const selected = state.hostSelectedActKey || preferredActKey;
   return acts.find((act) => act.key === selected) || acts[0];
 }
 
@@ -328,9 +328,9 @@ function renderPlayersColumn({ playersTableRows }) {
   </section>`;
 }
 
-function renderCurrentActColumn() {
+function renderCurrentActColumn(preferredActKey = "") {
   const acts = hostActs();
-  const act = activeAct();
+  const act = activeAct(preferredActKey);
   return `<section class="host-command-card host-current-act-panel">
     <div class="section-head">
       <div><p class="section-kicker">CURRENT ACT</p><h3>${escapeHtml(act?.title || "当前幕控场")}</h3><p>${escapeHtml(act?.key || "尚未建立 Segment / Runbook")}</p></div>
@@ -368,12 +368,12 @@ function renderTopbar({ room, world }) {
   </section>`;
 }
 
-export function renderHostCommandCenter({ room, world, playersTableRows }) {
+export function renderHostCommandCenter({ room, world, playersTableRows, currentBeatKey = "" }) {
   return `<section class="host-command-center">
     ${renderTopbar({ room, world })}
     <div class="host-command-grid">
       ${renderPlayersColumn({ playersTableRows })}
-      ${renderCurrentActColumn()}
+      ${renderCurrentActColumn(currentBeatKey)}
       ${renderQueuePanel()}
     </div>
   </section>`;

@@ -63,14 +63,19 @@ export function renderConsole(){
  const runtimeBinding=roomContentBindingPresentation(runtimeState.contentBinding||room.contentBinding);
  const currentBeat=runtimeState.currentBeat;
  const currentBeatDetail=currentBeat?.host?.dmTasks||currentBeat?.host?.goal||currentBeat?.player?.content||runtimeState.phase.detail;
+ const currentBeatGoal=currentBeat?.host?.goal||"";
+ const currentBeatAdvance=currentBeat?.host?.advanceCondition||"";
+ const currentBeatMinutes=currentBeat?.host?.estimatedMinutes;
  const runtimeStatePanel=`<section class="demo-strip host-runtime-state" style="margin-bottom:14px">
   <div>
    <span class="cloud-pill">${escapeHtml(runtimeState.syncState.status==="synced"?"三端已同步":"正在恢复同步")}</span>
    <strong style="margin-top:7px">${escapeHtml(currentBeat?`第 ${currentBeat.position}/${currentBeat.total} 段 · ${currentBeat.title}`:runtimeState.phase.label)}</strong>
    <p>${escapeHtml(currentBeatDetail)}</p>
+   ${currentBeatGoal&&currentBeatGoal!==currentBeatDetail?`<p><b>本幕目标：</b>${escapeHtml(currentBeatGoal)}</p>`:""}
+   ${currentBeatAdvance?`<p><b>推进条件：</b>${escapeHtml(currentBeatAdvance)}</p>`:""}
    <p class="muted-note">${escapeHtml(runtimeState.phase.label)} · 游标 ${runtimeState.syncState.serverCursor} · ${escapeHtml(runtimeBinding.label)}</p>
   </div>
-  <div class="row">${runtimeState.suggestedActions.slice(0,2).map(item=>`<span class="status-chip testing">${escapeHtml(item.label)}</span>`).join("")}</div>
+  <div class="row">${currentBeatMinutes!=null?`<span class="status-chip draft">预计 ${Number(currentBeatMinutes)} 分钟</span>`:""}${runtimeState.suggestedActions.slice(0,2).map(item=>`<span class="status-chip testing">${escapeHtml(item.label)}</span>`).join("")}</div>
  </section>`;
  const noPlayerProgressHint=players.length&&!joinedCount?`<section class="demo-strip" style="margin-bottom:14px"><div><span class="cloud-pill">等待玩家入房</span><strong style="margin-top:7px">尚无阅读进度</strong><p>${inviteCode?`邀请码 <code class="invite-code-inline">${escapeHtml(inviteCode)}</code> · 复制后发给玩家，或让他们打开 play.getzhimu.com 输入码。`:"分享运行房邀请码"}读完一幕后本页玩家表会自动更新。</p>${inviteCode?`<div class="row" style="margin-top:8px"><button class="secondary-btn" data-action="copy-invite-code" data-invite-code="${escapeHtml(inviteCode)}">复制邀请码</button><button class="secondary-btn" data-action="copy-play-link" data-invite-code="${escapeHtml(inviteCode)}">复制玩家链接</button><button class="secondary-btn" data-action="room-invite-current">邀请详情</button></div>`:""}</div><button class="secondary-btn" data-action="onboarding-go-player">进入玩家视角</button></section>`:"";
  const hostRisks=[];
@@ -103,7 +108,7 @@ export function renderConsole(){
  return `<section class="host-console">
   <div class="host-console-status">${cloudStatus()}</div>
   ${runtimeStatePanel}
-  ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows })}
+  ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows, currentBeatKey: currentBeat?.key })}
   ${renderHostMechanismWorkspace()}
   ${renderHostEventWorkspace()}
   ${renderHostVoteWorkspace()}

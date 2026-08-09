@@ -72,11 +72,15 @@ function runtimeStateBanner() {
   });
   const currentBeat = current.currentBeat;
   const currentBeatDetail = currentBeat?.player?.content || current.phase.detail;
+  const currentBeatTasks = currentBeat?.player?.tasks || [];
+  const currentBeatTips = currentBeat?.player?.tips || [];
   return `
     <div class="banner room-content-binding-banner ${current.syncState.status === "synced" ? "soft" : "host-wait-banner"}">
       <div>
         <strong>${escapeHtml(currentBeat ? `第 ${currentBeat.position}/${currentBeat.total} 段 · ${currentBeat.title}` : current.phase.label)}</strong>
         <p>${escapeHtml(currentBeatDetail)}</p>
+        ${currentBeatTasks.length ? `<p><b>当前任务：</b>${currentBeatTasks.map(escapeHtml).join(" · ")}</p>` : ""}
+        ${currentBeatTips.length ? `<p class="muted"><b>行动提示：</b>${currentBeatTips.map(escapeHtml).join(" · ")}</p>` : ""}
         <p class="muted">${escapeHtml(current.phase.label)} · ${current.syncState.status === "synced" ? "进度已同步" : "正在恢复实时连接"}</p>
       </div>
       <span class="status-chip ${current.syncState.isFrozen ? "published" : "testing"}">${current.syncState.isFrozen ? "冻结版本" : "实时草稿"}</span>

@@ -96,8 +96,10 @@ function roomRow(room, state) {
     || currentBeat?.player?.content
     || runtimeState?.phase?.detail
     || "";
+  const currentBeatAdvance = currentBeat?.host?.advanceCondition || "";
+  const currentBeatMinutes = currentBeat?.host?.estimatedMinutes;
   const runtimeLine = runtimeState
-    ? `<div class="muted-note room-current-beat"><p><strong>${escapeHtml(currentBeat ? `第 ${currentBeat.position}/${currentBeat.total} 段 · ${currentBeat.title}` : runtimeState.phase?.label || "状态待确认")}</strong> · ${escapeHtml(runtimeState.phase?.label || "状态待确认")} · 游标 ${Number(runtimeState.syncState?.serverCursor) || 0}</p>${currentBeatDetail ? `<p>${escapeHtml(currentBeatDetail)}</p>` : ""}</div>`
+    ? `<div class="muted-note room-current-beat"><p><strong>${escapeHtml(currentBeat ? `第 ${currentBeat.position}/${currentBeat.total} 段 · ${currentBeat.title}` : runtimeState.phase?.label || "状态待确认")}</strong> · ${escapeHtml(runtimeState.phase?.label || "状态待确认")} · 游标 ${Number(runtimeState.syncState?.serverCursor) || 0}</p>${currentBeatDetail ? `<p>${escapeHtml(currentBeatDetail)}</p>` : ""}${currentBeatAdvance ? `<p><b>推进条件：</b>${escapeHtml(currentBeatAdvance)}${currentBeatMinutes != null ? ` · 预计 ${Number(currentBeatMinutes)} 分钟` : ""}</p>` : ""}</div>`
     : "";
   const releaseTargets = availableRoomReleaseTargets(room, state.releases);
   const releaseAction = releaseTargets.length
