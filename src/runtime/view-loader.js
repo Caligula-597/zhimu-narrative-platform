@@ -38,6 +38,7 @@
     publish: creatorWorkspaceModules,
     insights: creatorWorkspaceModules,
     writer: [
+      () => import("../views/writer-focus.css"),
       () => import("../views/pipeline-wizard-session.js"),
       () => import("../views/pipeline-wizard-brief.js"),
       () => import("../views/pipeline-wizard-html.js"),
