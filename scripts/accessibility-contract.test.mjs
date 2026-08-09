@@ -55,6 +55,14 @@ test("shared accessibility primitives cover focus, forced colours, and reduced m
   assert.match(source, /forced-colors:\s*active/);
 });
 
+test("player landing backdrop stays inside the mobile viewport", () => {
+  const source = read("play/src/styles.css");
+  assert.match(
+    source,
+    /@media \(max-width: 720px\)[\s\S]*?\.landing-backdrop\s*\{[\s\S]*?inset-inline:\s*0;/,
+  );
+});
+
 test("small shared text colours meet WCAG AA contrast on product surfaces", () => {
   const tokens = read("shared/tokens.css");
   const paper = cssVariable(tokens, "paper");

@@ -3160,6 +3160,10 @@ code {
     padding-bottom: 72px;
   }
 
+  .landing-backdrop {
+    inset-inline: 0;
+  }
+
   .landing-shell {
     gap: 20px;
   }
