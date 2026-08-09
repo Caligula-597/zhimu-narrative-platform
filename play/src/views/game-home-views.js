@@ -70,11 +70,14 @@ function runtimeStateBanner() {
     audience: "player",
     connected: state.roomEventsConnected,
   });
+  const currentBeat = current.currentBeat;
+  const currentBeatDetail = currentBeat?.player?.content || current.phase.detail;
   return `
     <div class="banner room-content-binding-banner ${current.syncState.status === "synced" ? "soft" : "host-wait-banner"}">
       <div>
-        <strong>${escapeHtml(current.phase.label)}</strong>
-        <p>${escapeHtml(current.phase.detail)} · ${current.syncState.status === "synced" ? "进度已同步" : "正在恢复实时连接"}</p>
+        <strong>${escapeHtml(currentBeat ? `第 ${currentBeat.position}/${currentBeat.total} 段 · ${currentBeat.title}` : current.phase.label)}</strong>
+        <p>${escapeHtml(currentBeatDetail)}</p>
+        <p class="muted">${escapeHtml(current.phase.label)} · ${current.syncState.status === "synced" ? "进度已同步" : "正在恢复实时连接"}</p>
       </div>
       <span class="status-chip ${current.syncState.isFrozen ? "published" : "testing"}">${current.syncState.isFrozen ? "冻结版本" : "实时草稿"}</span>
     </div>`;

@@ -41,6 +41,7 @@ import { renderHostRuleWorkspace } from "./host-rule-workspace.js";
 import { renderHostVoteWorkspace } from "./host-vote-workspace.js";
 import { renderHostMechanismWorkspace } from "./host-mechanism-workspace.js";
 import { normalizeRuntimeCurrentState } from "../../../shared/runtime-current-state.js";
+import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
 
 export function bindConsoleContext({ render, showToast }) {
   bindHostPaceTimerContext({ render });
@@ -59,11 +60,15 @@ export function renderConsole(){
  const hostPlayersErrorBanner=hostPlayersError?`<section class="demo-strip" style="margin-bottom:14px;border-color:rgba(167,120,61,0.45);background:var(--brass-soft)"><div><span class="cloud-pill">玩家进度</span><strong style="margin-top:7px">未能加载玩家运行状态</strong><p>${escapeHtml(hostPlayersError)}</p></div><button class="secondary-btn" type="button" data-action="refresh-host-players">重试</button></section>`:"";
  const inviteCode=room.invite_code||"";
  const runtimeState=normalizeRuntimeCurrentState(state.currentState,{audience:"host",connected:state.roomEventsConnected});
+ const runtimeBinding=roomContentBindingPresentation(runtimeState.contentBinding||room.contentBinding);
+ const currentBeat=runtimeState.currentBeat;
+ const currentBeatDetail=currentBeat?.host?.dmTasks||currentBeat?.host?.goal||currentBeat?.player?.content||runtimeState.phase.detail;
  const runtimeStatePanel=`<section class="demo-strip host-runtime-state" style="margin-bottom:14px">
   <div>
    <span class="cloud-pill">${escapeHtml(runtimeState.syncState.status==="synced"?"三端已同步":"正在恢复同步")}</span>
-   <strong style="margin-top:7px">${escapeHtml(runtimeState.phase.label)}</strong>
-   <p>${escapeHtml(runtimeState.phase.detail)} · 游标 ${runtimeState.syncState.serverCursor} · ${runtimeState.syncState.isFrozen?"发布版本冻结运行":"实时草稿运行"}</p>
+   <strong style="margin-top:7px">${escapeHtml(currentBeat?`第 ${currentBeat.position}/${currentBeat.total} 段 · ${currentBeat.title}`:runtimeState.phase.label)}</strong>
+   <p>${escapeHtml(currentBeatDetail)}</p>
+   <p class="muted-note">${escapeHtml(runtimeState.phase.label)} · 游标 ${runtimeState.syncState.serverCursor} · ${escapeHtml(runtimeBinding.label)}</p>
   </div>
   <div class="row">${runtimeState.suggestedActions.slice(0,2).map(item=>`<span class="status-chip testing">${escapeHtml(item.label)}</span>`).join("")}</div>
  </section>`;

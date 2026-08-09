@@ -539,7 +539,7 @@ export function publishLab() {
       <button type="button" class="secondary-btn full-btn" style="margin-top:8px" data-action="open-host-console">打开主持端试跑</button>
     </article>
     <article class="card" style="grid-column:1/-1">
-      <div class="section-head"><div><h3>不可变发布版本</h3><p>Release 与可恢复的“创作快照”分开。运行房现在可预绑定目标版本；在冻结读取器完成前，三端会明确标记为兼容读取，不会冒充正式冻结。</p></div><button type="button" class="secondary-btn" data-action="load-world-releases">加载版本</button></div>
+      <div class="section-head"><div><h3>不可变发布版本</h3><p>Release 与可恢复的“创作快照”分开。绑定 Release 的运行房会从不可变快照读取；Creator、Host、Player 显示同一版本与来源 revision。</p></div><button type="button" class="secondary-btn" data-action="load-world-releases">加载版本</button></div>
       <div class="row" style="margin:12px 0;align-items:center">
         <input class="field" id="world-release-label" maxlength="120" placeholder="版本名称，例如：内测版 1.0" value="正式发布 ${new Date().toLocaleDateString("zh-CN")}">
         <button type="button" class="primary-btn" data-action="create-world-release">检查并生成 Release</button>
