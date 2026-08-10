@@ -21,7 +21,10 @@ import {
   copyPlayLink,
   openRoomInviteModal
 } from "./invite.js";
+import { buildRuntimePresentationPatch } from "./runtime-presentation-control.js";
 export function createDirectorActionHandler({ render, showToast }) {
+  let runtimePresentationQueue = Promise.resolve();
+
   async function runCommand(command, successMessage, fallbackMessage, { refresh = true } = {}) {
     try {
       await command();
@@ -32,28 +35,22 @@ export function createDirectorActionHandler({ render, showToast }) {
     }
   }
 
-  function runtimePresentationPatch(patch = {}) {
-    const presentation = state.currentState?.presentation || {};
-    const map = presentation.map || {};
-    return {
-      activeSegmentKey: String(patch.activeSegmentKey ?? presentation.activeSegmentKey ?? ""),
-      activeLocationId: String(patch.activeLocationId ?? map.activeLocationId ?? ""),
-      revealedLocationIds: Array.isArray(patch.revealedLocationIds)
-        ? [...new Set(patch.revealedLocationIds.map(String).filter(Boolean))]
-        : [...new Set((map.revealedLocationIds || []).map(String).filter(Boolean))],
-      mapVisible: patch.mapVisible == null ? Boolean(map.visible) : Boolean(patch.mapVisible),
-      activeCheck: patch.activeCheck !== undefined ? patch.activeCheck : map.activeCheck || null,
-      activeEncounter: patch.activeEncounter !== undefined ? patch.activeEncounter : map.activeEncounter || null,
-      updatedAt: new Date().toISOString()
-    };
-  }
-
-  function saveRuntimePresentation(patch, successMessage) {
-    void runCommand(
-      () => api.updateHostRoomSettings({ runtimePresentation: runtimePresentationPatch(patch) }),
+  function saveRuntimePresentation(patchOrFactory, successMessage) {
+    const queued = runtimePresentationQueue.then(() => runCommand(
+      () => {
+        const presentation = state.currentState?.presentation || {};
+        const patch = typeof patchOrFactory === "function"
+          ? patchOrFactory(presentation)
+          : patchOrFactory;
+        return api.updateHostRoomSettings({
+          runtimePresentation: buildRuntimePresentationPatch(patch)
+        });
+      },
       successMessage,
       "同步运行流程失败"
-    );
+    ));
+    runtimePresentationQueue = queued.catch(() => {});
+    return queued;
   }
 
   return function handleDirectorAction(action, el) {
@@ -115,38 +112,44 @@ export function createDirectorActionHandler({ render, showToast }) {
         state.hostSelectedActKey = el?.dataset?.actKey || "";
         render();
         {
-          const matchedLocation = state.currentState?.presentation?.map?.host?.locations?.find(
-            (location) => location.segmentKey && location.segmentKey === state.hostSelectedActKey
-          );
-          const revealed = new Set(state.currentState?.presentation?.map?.revealedLocationIds || []);
-          if (matchedLocation?.id) revealed.add(matchedLocation.id);
-          saveRuntimePresentation({
-            activeSegmentKey: state.hostSelectedActKey,
-            activeCheck: null,
-            activeEncounter: null,
-            ...(matchedLocation?.id ? {
-              activeLocationId: matchedLocation.id,
-              revealedLocationIds: [...revealed]
-            } : {})
+          const selectedActKey = state.hostSelectedActKey;
+          saveRuntimePresentation((presentation) => {
+            const map = presentation.map || {};
+            const matchedLocation = map.host?.locations?.find(
+              (location) => location.segmentKey && location.segmentKey === selectedActKey
+            );
+            const revealed = new Set(map.revealedLocationIds || []);
+            if (matchedLocation?.id) revealed.add(matchedLocation.id);
+            return {
+              activeSegmentKey: selectedActKey,
+              activeCheck: null,
+              activeEncounter: null,
+              ...(matchedLocation?.id ? {
+                activeLocationId: matchedLocation.id,
+                revealedLocationIds: [...revealed]
+              } : {})
+            };
           }, "当前幕已同步到玩家端");
         }
         return true;
       case "host-tabletop-select-location": {
         const locationId = el?.dataset?.locationId || "";
-        const revealed = new Set(state.currentState?.presentation?.map?.revealedLocationIds || []);
-        if (locationId) revealed.add(locationId);
-        saveRuntimePresentation({
-          activeLocationId: locationId,
-          activeCheck: null,
-          activeEncounter: null,
-          revealedLocationIds: [...revealed]
+        saveRuntimePresentation((presentation) => {
+          const revealed = new Set(presentation.map?.revealedLocationIds || []);
+          if (locationId) revealed.add(locationId);
+          return {
+            activeLocationId: locationId,
+            activeCheck: null,
+            activeEncounter: null,
+            revealedLocationIds: [...revealed]
+          };
         }, "当前地点已同步到玩家端");
         return true;
       }
       case "host-tabletop-toggle-map":
-        saveRuntimePresentation({
-          mapVisible: !state.currentState?.presentation?.map?.visible
-        }, state.currentState?.presentation?.map?.visible ? "玩家地图已隐藏" : "玩家地图已公开");
+        saveRuntimePresentation((presentation) => ({
+          mapVisible: !presentation.map?.visible
+        }), state.currentState?.presentation?.map?.visible ? "玩家地图已隐藏" : "玩家地图已公开");
         return true;
       case "host-tabletop-toggle-location": {
         const locationId = el?.dataset?.locationId || "";
@@ -155,10 +158,12 @@ export function createDirectorActionHandler({ render, showToast }) {
           showToast("当前地点必须保持公开");
           return true;
         }
-        const revealed = new Set(map?.revealedLocationIds || []);
-        if (revealed.has(locationId)) revealed.delete(locationId);
-        else revealed.add(locationId);
-        saveRuntimePresentation({ revealedLocationIds: [...revealed] }, "地点可见范围已同步");
+        saveRuntimePresentation((presentation) => {
+          const revealed = new Set(presentation.map?.revealedLocationIds || []);
+          if (revealed.has(locationId) && locationId !== presentation.map?.activeLocationId) revealed.delete(locationId);
+          else revealed.add(locationId);
+          return { revealedLocationIds: [...revealed] };
+        }, "地点可见范围已同步");
         return true;
       }
       case "host-tabletop-start-encounter": {
@@ -169,18 +174,24 @@ export function createDirectorActionHandler({ render, showToast }) {
           showToast("当前地点没有可触发的遭遇，请回到创作端配置 NPC");
           return true;
         }
-        const revealed = new Set(map.revealedLocationIds || []);
-        revealed.add(location.id);
-        saveRuntimePresentation({
-          activeEncounter: {
-            locationId: location.id,
-            npcIds,
-            status: "active",
-            startedAt: new Date().toISOString()
-          },
-          activeCheck: null,
-          mapVisible: true,
-          revealedLocationIds: [...revealed]
+        const locationId = location.id;
+        saveRuntimePresentation((presentation) => {
+          const currentMap = presentation.map || {};
+          const currentLocation = currentMap.host?.locations?.find((item) => item.id === locationId);
+          const currentNpcIds = [...new Set((currentLocation?.encounterNpcIds || []).map(String).filter(Boolean))];
+          const revealed = new Set(currentMap.revealedLocationIds || []);
+          revealed.add(locationId);
+          return {
+            activeEncounter: {
+              locationId,
+              npcIds: currentNpcIds.length ? currentNpcIds : npcIds,
+              status: "active",
+              startedAt: new Date().toISOString()
+            },
+            activeCheck: null,
+            mapVisible: true,
+            revealedLocationIds: [...revealed]
+          };
         }, "地点遭遇已触发并同步到玩家端");
         return true;
       }
@@ -195,11 +206,17 @@ export function createDirectorActionHandler({ render, showToast }) {
           showToast("没有找到这项判定，请回到创作端检查地点配置");
           return true;
         }
-        saveRuntimePresentation({
-          activeCheck: createRuntimeTabletopCheck(template, {
-            locationId: location.id,
-            dice: map.dice
-          })
+        const checkId = template.id;
+        saveRuntimePresentation((presentation) => {
+          const currentMap = presentation.map || {};
+          const currentLocation = currentMap.host?.locations?.find((item) => item.id === currentMap.activeLocationId);
+          const currentTemplate = currentLocation?.checks?.find((check) => check.id === checkId) || template;
+          return {
+            activeCheck: createRuntimeTabletopCheck(currentTemplate, {
+              locationId: currentLocation?.id || location.id,
+              dice: currentMap.dice || map.dice
+            })
+          };
         }, "判定已发到玩家端");
         return true;
       }
@@ -210,7 +227,7 @@ export function createDirectorActionHandler({ render, showToast }) {
         const target = Number(panel?.querySelector?.("[data-host-check-target]")?.value ?? map?.dice?.defaultTarget ?? 12);
         const bonus = Number(panel?.querySelector?.("[data-host-check-bonus]")?.value || 0);
         const rollMode = panel?.querySelector?.("[data-host-check-mode]")?.value || "normal";
-        saveRuntimePresentation({
+        saveRuntimePresentation((presentation) => ({
           activeCheck: createRuntimeTabletopCheck({
             id: "ad-hoc",
             label,
@@ -221,10 +238,10 @@ export function createDirectorActionHandler({ render, showToast }) {
             successText: "行动成功，故事获得预期进展。",
             failureText: "行动未能如愿，但故事将带着代价继续。"
           }, {
-            locationId: map?.activeLocationId || "",
-            dice: map?.dice
+            locationId: presentation.map?.activeLocationId || map?.activeLocationId || "",
+            dice: presentation.map?.dice || map?.dice
           })
-        }, "临场判定已发到玩家端");
+        }), "临场判定已发到玩家端");
         return true;
       }
       case "host-tabletop-roll-check": {
@@ -233,9 +250,9 @@ export function createDirectorActionHandler({ render, showToast }) {
           showToast("当前没有等待结算的判定");
           return true;
         }
-        saveRuntimePresentation({
-          activeCheck: resolveRuntimeTabletopCheck(activeCheck)
-        }, "判定结果已公开");
+        saveRuntimePresentation((presentation) => ({
+          activeCheck: resolveRuntimeTabletopCheck(presentation.map?.activeCheck || activeCheck)
+        }), "判定结果已公开");
         return true;
       }
       case "host-tabletop-clear-check":

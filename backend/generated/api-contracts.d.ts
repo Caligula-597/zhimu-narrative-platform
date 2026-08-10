@@ -362,13 +362,13 @@ export interface UpdateRoomSettingsBody {
     hostVoiceListen?: boolean;
     defaultRunMode?: "automatic" | "host_confirm" | "manual";
     runtimePresentation?: {
-      activeSegmentKey: string;
-      activeLocationId: string;
+      activeSegmentKey?: string;
+      activeLocationId?: string;
       /**
        * @maxItems 24
        */
-      revealedLocationIds: string[];
-      mapVisible: boolean;
+      revealedLocationIds?: string[];
+      mapVisible?: boolean;
       activeCheck?: null | {
         id: string;
         templateId: string;
@@ -2065,6 +2065,8 @@ export interface RoomPresentationUpdatedData {
   mapVisible: boolean;
   checkStatus: "cleared" | "pending" | "resolved";
   checkLabel: string;
+  encounterStatus?: "cleared" | "active";
+  encounterLocationId?: string;
   updatedAt: string;
   [k: string]: unknown;
 }

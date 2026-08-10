@@ -137,7 +137,8 @@ export const updateRoomSettingsSchema = {
           runtimePresentation: {
             type: "object",
             additionalProperties: false,
-            required: ["activeSegmentKey", "activeLocationId", "revealedLocationIds", "mapVisible", "updatedAt"],
+            required: ["updatedAt"],
+            minProperties: 2,
             properties: {
               activeSegmentKey: { type: "string", maxLength: 120 },
               activeLocationId: { type: "string", maxLength: 80 },

@@ -163,6 +163,8 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
       mapVisible: boolean,
       checkStatus: enumString(["cleared", "pending", "resolved"]),
       checkLabel: optionalShortText,
+      encounterStatus: enumString(["cleared", "active"]),
+      encounterLocationId: optionalShortText,
       updatedAt: text
     }
   ),

@@ -151,14 +151,17 @@ export async function updateHostRoomSettings({ actorId, roomId, settings }) {
         metadata: { settings: incoming }
       });
       if (incoming.runtimePresentation) {
+        const presentation = room.settings?.runtimePresentation || incoming.runtimePresentation;
         queueEvent(roomId, "room.presentation_updated", {
-          activeSegmentKey: incoming.runtimePresentation.activeSegmentKey,
-          activeLocationId: incoming.runtimePresentation.activeLocationId,
-          revealedLocationIds: incoming.runtimePresentation.revealedLocationIds,
-          mapVisible: incoming.runtimePresentation.mapVisible,
-          checkStatus: incoming.runtimePresentation.activeCheck?.status || "cleared",
-          checkLabel: incoming.runtimePresentation.activeCheck?.label || "",
-          updatedAt: incoming.runtimePresentation.updatedAt
+          activeSegmentKey: presentation.activeSegmentKey || "",
+          activeLocationId: presentation.activeLocationId || "",
+          revealedLocationIds: presentation.revealedLocationIds || [],
+          mapVisible: Boolean(presentation.mapVisible),
+          checkStatus: presentation.activeCheck?.status || "cleared",
+          checkLabel: presentation.activeCheck?.label || "",
+          encounterStatus: presentation.activeEncounter?.status || "cleared",
+          encounterLocationId: presentation.activeEncounter?.locationId || "",
+          updatedAt: presentation.updatedAt
         });
       }
       return { ok: true, settings: room.settings };

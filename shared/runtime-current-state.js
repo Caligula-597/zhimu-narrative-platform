@@ -11,17 +11,89 @@ const VALID_BEAT_SOURCES = new Set([
   "none"
 ]);
 
+function pickObject(value, keys) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return Object.fromEntries(keys
+    .filter((key) => Object.hasOwn(value, key))
+    .map((key) => [key, value[key]]));
+}
+
+function normalizePlayerCheck(value) {
+  const check = pickObject(value, [
+    "id", "templateId", "locationId", "label", "instruction", "target", "bonus",
+    "rollMode", "dice", "status", "result", "outcomeText", "startedAt", "resolvedAt"
+  ]);
+  if (!check) return null;
+  if (check.dice && typeof check.dice === "object") check.dice = { ...check.dice };
+  if (check.result && typeof check.result === "object") {
+    check.result = {
+      ...check.result,
+      attempts: Array.isArray(check.result.attempts)
+        ? check.result.attempts.map((attempt) => Array.isArray(attempt) ? [...attempt] : [])
+        : [],
+      rolls: Array.isArray(check.result.rolls) ? [...check.result.rolls] : []
+    };
+  }
+  return check;
+}
+
+function normalizePlayerEncounter(value) {
+  const encounter = pickObject(value, ["locationId", "locationName", "status", "startedAt"]);
+  if (!encounter) return null;
+  encounter.npcs = (Array.isArray(value.npcs) ? value.npcs : [])
+    .map((npc) => pickObject(npc, ["id", "name", "role", "hp", "maxHp"]))
+    .filter(Boolean);
+  return encounter;
+}
+
+function normalizePlayerMap(value) {
+  const map = pickObject(value, [
+    "title", "visible", "activeLocationId", "revealedLocationIds", "routes", "dice"
+  ]) || {};
+  map.revealedLocationIds = Array.isArray(value.revealedLocationIds) ? [...value.revealedLocationIds] : [];
+  map.activeLocation = pickObject(value.activeLocation, [
+    "id", "name", "type", "description", "segmentKey", "x", "y", "z"
+  ]);
+  map.locations = (Array.isArray(value.locations) ? value.locations : [])
+    .map((location) => pickObject(location, [
+      "id", "name", "type", "description", "segmentKey", "x", "y", "z"
+    ]))
+    .filter(Boolean);
+  map.routes = (Array.isArray(value.routes) ? value.routes : [])
+    .map((route) => Array.isArray(route) ? [...route] : route);
+  map.party = (Array.isArray(value.party) ? value.party : [])
+    .map((member) => pickObject(member, ["id", "name", "role", "hp", "maxHp"]))
+    .filter(Boolean);
+  map.dice = value.dice && typeof value.dice === "object" ? { ...value.dice } : {};
+  map.activeCheck = normalizePlayerCheck(value.activeCheck);
+  map.activeEncounter = normalizePlayerEncounter(value.activeEncounter);
+  map.host = null;
+  return map;
+}
+
 function normalizePresentation(value, audience) {
   const source = value && typeof value === "object" ? value : {};
   const map = source.map && typeof source.map === "object" ? source.map : null;
   return {
     activeSegmentKey: String(source.activeSegmentKey ?? ""),
     updatedAt: source.updatedAt ?? null,
-    map: map ? {
-      ...map,
-      activeCheck: map.activeCheck && typeof map.activeCheck === "object" ? { ...map.activeCheck } : null,
-      host: audience === "player" ? null : map.host ?? null
-    } : null
+    map: map
+      ? audience === "player"
+        ? normalizePlayerMap(map)
+        : {
+            ...map,
+            activeCheck: map.activeCheck && typeof map.activeCheck === "object" ? { ...map.activeCheck } : null,
+            activeEncounter: map.activeEncounter && typeof map.activeEncounter === "object"
+              ? {
+                  ...map.activeEncounter,
+                  npcs: Array.isArray(map.activeEncounter.npcs)
+                    ? map.activeEncounter.npcs.map((npc) => ({ ...npc }))
+                    : []
+                }
+              : null,
+            host: map.host ?? null
+          }
+      : null
   };
 }
 

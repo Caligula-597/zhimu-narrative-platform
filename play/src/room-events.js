@@ -72,7 +72,9 @@ export async function handleRoomEvent(type, data, ctx) {
       ctx.bumpTabPulse?.("home");
       await ctx.onRefresh();
       ctx.onToast(
-        data.checkStatus === "pending"
+        data.encounterStatus === "active"
+          ? "主持人已触发当前场景遭遇"
+          : data.checkStatus === "pending"
           ? `主持人发起判定${data.checkLabel ? `：${data.checkLabel}` : ""}`
           : data.checkStatus === "resolved"
             ? `公开判定已结算${data.checkLabel ? `：${data.checkLabel}` : ""}`

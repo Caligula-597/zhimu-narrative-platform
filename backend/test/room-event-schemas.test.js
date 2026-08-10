@@ -222,12 +222,18 @@ test("presentation updates accept tabletop check lifecycle fields", () => {
     mapVisible: true,
     checkStatus: "resolved",
     checkLabel: "核验二次授权",
+    encounterStatus: "active",
+    encounterLocationId: "review-room",
     updatedAt: "2026-08-10T12:00:00.000Z"
   };
   assert.equal(validateRoomEvent("room.presentation_updated", payload).ok, true);
   assert.equal(validateRoomEvent("room.presentation_updated", {
     ...payload,
     checkStatus: "secret"
+  }).ok, false);
+  assert.equal(validateRoomEvent("room.presentation_updated", {
+    ...payload,
+    encounterStatus: "secret"
   }).ok, false);
 });
 

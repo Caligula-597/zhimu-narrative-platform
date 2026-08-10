@@ -80,6 +80,29 @@ test("player applies mini-game progress and failed completion from room events",
   assert.equal(messages.at(-1), "机关尝试次数已耗尽");
 });
 
+test("player presentation events announce encounters after reconciling current state", async () => {
+  const calls = [];
+  const ctx = {
+    getView: () => "game",
+    getRoomId: () => "room-1",
+    getRoleId: () => "role-1",
+    bumpTabPulse: (tab) => calls.push(["pulse", tab]),
+    onRefresh: async () => { calls.push(["refresh"]); },
+    onToast: (message) => calls.push(["toast", message])
+  };
+  await handleRoomEvent("room.presentation_updated", {
+    activeLocationId: "review-room",
+    checkStatus: "cleared",
+    encounterStatus: "active",
+    encounterLocationId: "review-room"
+  }, ctx);
+  assert.deepEqual(calls, [
+    ["pulse", "home"],
+    ["refresh"],
+    ["toast", "主持人已触发当前场景遭遇"]
+  ]);
+});
+
 test("player reconciles every Host live-operation event with the correct surface", async () => {
   const pulses = [];
   const messages = [];

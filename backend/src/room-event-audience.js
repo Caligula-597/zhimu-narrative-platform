@@ -57,6 +57,23 @@ export function projectRoomEventForAudience(event, audience = {}) {
       disconnectAfter: false
     };
   }
+  if (type === "room.presentation_updated") {
+    return {
+      event: {
+        type,
+        activeSegmentKey: event.activeSegmentKey,
+        activeLocationId: event.activeLocationId,
+        revealedLocationIds: Array.isArray(event.revealedLocationIds) ? event.revealedLocationIds : [],
+        mapVisible: Boolean(event.mapVisible),
+        checkStatus: event.checkStatus,
+        checkLabel: event.checkLabel,
+        encounterStatus: event.encounterStatus,
+        encounterLocationId: event.encounterLocationId,
+        updatedAt: event.updatedAt
+      },
+      disconnectAfter: false
+    };
+  }
   if (PUBLIC_PLAYER_EVENT_TYPES.has(type)) return { event, disconnectAfter: false };
 
   if (type === "room.player_kicked") {

@@ -72,7 +72,17 @@ export async function insertHostGameControlAudit(client, {
 export async function mergeHostRoomSettings(client, { roomId, settings }) {
   const result = await client.query(
     `UPDATE rooms
-     SET settings = COALESCE(settings, '{}'::jsonb) || $2::jsonb,
+     SET settings = (
+           COALESCE(settings, '{}'::jsonb)
+           || ($2::jsonb - 'runtimePresentation')
+         ) || CASE
+           WHEN $2::jsonb ? 'runtimePresentation' THEN jsonb_build_object(
+             'runtimePresentation',
+             COALESCE(settings -> 'runtimePresentation', '{}'::jsonb)
+             || ($2::jsonb -> 'runtimePresentation')
+           )
+           ELSE '{}'::jsonb
+         END,
          updated_at = now()
      WHERE id = $1
      RETURNING id, name, settings`,

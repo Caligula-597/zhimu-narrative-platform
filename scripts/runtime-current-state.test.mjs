@@ -89,8 +89,24 @@ test("player current-state normalization strips host-only beat guidance", () => 
       activeSegmentKey: "opening",
       map: {
         visible: true,
-        locations: [{ id: "public", name: "Public" }],
-        host: { variables: [{ id: "secret", value: 99 }] }
+        activeLocation: { id: "public", name: "Public", hostNotes: "hidden location note" },
+        locations: [{ id: "public", name: "Public", hostNotes: "hidden location note" }],
+        activeCheck: {
+          id: "check-1",
+          label: "Public check",
+          status: "pending",
+          successText: "hidden success branch",
+          failureText: "hidden failure branch"
+        },
+        activeEncounter: {
+          locationId: "public",
+          locationName: "Public",
+          status: "active",
+          npcs: [{ id: "npc-1", name: "Guard", hp: 8, maxHp: 8, hostNotes: "hidden npc note" }]
+        },
+        host: { variables: [{ id: "secret", value: 99 }] },
+        endings: [{ id: "secret-ending" }],
+        privateRuntimeState: { authorizationVerdict: "secret" }
       }
     }
   }, { audience: "player" });
@@ -98,4 +114,11 @@ test("player current-state normalization strips host-only beat guidance", () => 
   assert.equal(normalized.currentBeat.host, null);
   assert.equal(normalized.presentation.map.host, null);
   assert.equal(normalized.presentation.map.locations[0].name, "Public");
+  assert.equal(normalized.presentation.map.locations[0].hostNotes, undefined);
+  assert.equal(normalized.presentation.map.activeLocation.hostNotes, undefined);
+  assert.equal(normalized.presentation.map.activeCheck.successText, undefined);
+  assert.equal(normalized.presentation.map.activeCheck.failureText, undefined);
+  assert.equal(normalized.presentation.map.activeEncounter.npcs[0].hostNotes, undefined);
+  assert.equal(normalized.presentation.map.endings, undefined);
+  assert.equal(normalized.presentation.map.privateRuntimeState, undefined);
 });

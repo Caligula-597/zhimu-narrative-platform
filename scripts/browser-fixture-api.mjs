@@ -1610,9 +1610,17 @@ const server = http.createServer(async (request, response) => {
     const room = rooms.find((item) => item.id === roomSettingsMatch[1]);
     if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
     const body = await readJson(request);
+    const incomingSettings = body.settings || {};
+    const incomingPresentation = incomingSettings.runtimePresentation;
     room.settings = {
       ...(room.settings || {}),
-      ...(body.settings || {})
+      ...incomingSettings,
+      ...(incomingPresentation ? {
+        runtimePresentation: {
+          ...(room.settings?.runtimePresentation || {}),
+          ...incomingPresentation
+        }
+      } : {})
     };
     const presentation = room.settings.runtimePresentation || {};
     broadcastRoomEvent(room.id, {
@@ -1623,6 +1631,8 @@ const server = http.createServer(async (request, response) => {
       mapVisible: Boolean(presentation.mapVisible),
       checkStatus: presentation.activeCheck?.status || "cleared",
       checkLabel: presentation.activeCheck?.label || "",
+      encounterStatus: presentation.activeEncounter?.status || "cleared",
+      encounterLocationId: presentation.activeEncounter?.locationId || "",
       updatedAt: presentation.updatedAt || new Date().toISOString()
     });
     return sendJson(response, 200, { ok: true, settings: room.settings });

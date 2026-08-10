@@ -38,11 +38,27 @@ test("host presentation updates are public but contain no author-only content", 
     activeLocationId: "tower",
     revealedLocationIds: ["harbor", "tower"],
     mapVisible: true,
-    updatedAt: "2026-08-10T00:00:00.000Z"
+    checkStatus: "cleared",
+    checkLabel: "",
+    encounterStatus: "active",
+    encounterLocationId: "tower",
+    updatedAt: "2026-08-10T00:00:00.000Z",
+    hostNotes: "the keeper is lying",
+    endings: [{ id: "secret-ending" }],
+    activeEncounter: { npcIds: ["secret-npc-id"] }
   };
-  assert.equal(projectRoomEventForAudience(event, player).event, event);
-  assert.equal(event.hostNotes, undefined);
-  assert.equal(event.endings, undefined);
+  assert.deepEqual(projectRoomEventForAudience(event, player).event, {
+    type: "room.presentation_updated",
+    activeSegmentKey: "ch2",
+    activeLocationId: "tower",
+    revealedLocationIds: ["harbor", "tower"],
+    mapVisible: true,
+    checkStatus: "cleared",
+    checkLabel: "",
+    encounterStatus: "active",
+    encounterLocationId: "tower",
+    updatedAt: "2026-08-10T00:00:00.000Z"
+  });
 });
 
 test("mechanism progress is public but internal runtime data is stripped", () => {
