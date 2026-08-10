@@ -10,6 +10,27 @@ function validTimestamp(value, fallback) {
   return text && Number.isFinite(Date.parse(text)) ? text : fallback;
 }
 
+export function serializeRuntimeVariableValues(value) {
+  const seen = new Set();
+  return (Array.isArray(value) ? value : []).map((item) => {
+    const id = String(item?.id ?? "").trim();
+    const numeric = Number(item?.value);
+    if (!id || seen.has(id) || !Number.isFinite(numeric)) return null;
+    seen.add(id);
+    return { id: id.slice(0, 80), value: Math.round(Math.max(-9999, Math.min(9999, numeric))) };
+  }).filter(Boolean).slice(0, 8);
+}
+
+export function serializePublishedEndingControl(value, { now = () => new Date().toISOString() } = {}) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const id = String(value.id ?? "").trim().slice(0, 80);
+  if (!id) return null;
+  return {
+    id,
+    publishedAt: validTimestamp(value.publishedAt, now())
+  };
+}
+
 /**
  * Convert the audience projection back to the small control object accepted by
  * the room settings endpoint. Projected encounters intentionally contain NPC
@@ -50,6 +71,12 @@ export function buildRuntimePresentationPatch(patch = {}, {
   if (Object.hasOwn(source, "activeCheck")) result.activeCheck = source.activeCheck || null;
   if (Object.hasOwn(source, "activeEncounter")) {
     result.activeEncounter = serializeActiveEncounterControl(source.activeEncounter, { now: () => timestamp });
+  }
+  if (Object.hasOwn(source, "variableValues")) {
+    result.variableValues = serializeRuntimeVariableValues(source.variableValues);
+  }
+  if (Object.hasOwn(source, "publishedEnding")) {
+    result.publishedEnding = serializePublishedEndingControl(source.publishedEnding, { now: () => timestamp });
   }
   return result;
 }

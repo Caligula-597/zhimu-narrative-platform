@@ -42,3 +42,19 @@ test("room runtime presentation rejects empty and timestamp-only patches", async
   });
   assert.equal(missingTimestamp.statusCode, 400);
 });
+
+test("room runtime presentation accepts tabletop variable settlement and ending publication", async () => {
+  const response = await validate({
+    settings: {
+      runtimePresentation: {
+        variableValues: [{ id: "threat", value: 38 }],
+        publishedEnding: {
+          id: "escape",
+          publishedAt: "2026-08-10T14:00:00.000Z"
+        },
+        updatedAt: "2026-08-10T14:00:00.000Z"
+      }
+    }
+  });
+  assert.equal(response.statusCode, 200, response.body);
+});

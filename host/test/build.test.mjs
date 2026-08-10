@@ -171,8 +171,12 @@ test("host command center uses segment runbooks and five critical queue actions"
   assert.match(layoutSource, /data-action="host-tabletop-roll-check"/);
   assert.match(layoutSource, /data-action="host-tabletop-start-encounter"/);
   assert.match(layoutSource, /data-action="host-tabletop-end-encounter"/);
+  assert.match(layoutSource, /data-action="host-tabletop-apply-check-outcome"/);
+  assert.match(layoutSource, /data-action="host-tabletop-publish-ending"/);
+  assert.match(layoutSource, /data-host-tabletop-outcome/);
   assert.match(directorSource, /createRuntimeTabletopCheck/);
   assert.match(directorSource, /resolveRuntimeTabletopCheck/);
+  assert.match(directorSource, /applyRuntimeTabletopCheckOutcome/);
   for (const action of ["host-apply-remedy", "host-vote-status", "host-review-private-action", "host-review-testimony"]) {
     assert.match(layoutSource, new RegExp(`data-action=["']${action}["']`), `missing command center action: ${action}`);
   }

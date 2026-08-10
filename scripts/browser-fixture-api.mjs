@@ -236,7 +236,9 @@ const fixtureTabletopMapDesign = {
       bonus: 1,
       rollMode: "normal",
       successText: "你确认了二次授权缺失。",
-      failureText: "日志链不完整，但仍可提交人工复核。"
+      failureText: "日志链不完整，但仍可提交人工复核。",
+      successEffects: { trust: 2 },
+      failureEffects: { trust: -4 }
     }]
   }, {
     id: "appeal-terminal",
@@ -252,7 +254,23 @@ const fixtureTabletopMapDesign = {
   }],
   routes: [["server-lobby", "review-room"], ["review-room", "appeal-terminal"]],
   variables: [{ id: "trust", label: "联盟信誉", value: 6, min: 0, max: 10 }],
-  endings: [{ id: "appeal-approved", title: "申诉通过" }, { id: "appeal-rejected", title: "维持冻结" }],
+  endings: [{
+    id: "appeal-approved",
+    name: "申诉通过",
+    summary: "联盟接受公开证据并恢复参赛资格。",
+    tone: "resolve",
+    priority: 5,
+    logic: "all",
+    conditions: [{ id: "trust-high", variableId: "trust", operator: ">=", value: 7 }]
+  }, {
+    id: "appeal-rejected",
+    name: "维持冻结",
+    summary: "联盟暂不接受申诉，队伍需要承担后续代价。",
+    tone: "cost",
+    priority: 5,
+    logic: "all",
+    conditions: [{ id: "trust-low", variableId: "trust", operator: "<=", value: 3 }]
+  }],
   system: {
     players: [{ id: playerRoleId, name: "小满", role: "职业选手", hp: 9, maxHp: 12 }],
     npcs: [{ id: "npc-auditor", name: "审查官赫兹", role: "联盟审查官", hp: 14, maxHp: 14 }],

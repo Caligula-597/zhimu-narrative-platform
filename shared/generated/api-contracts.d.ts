@@ -410,6 +410,23 @@ export interface UpdateRoomSettingsBody {
         };
         successText: string;
         failureText: string;
+        successEffects?: {
+          [k: string]: number;
+        };
+        failureEffects?: {
+          [k: string]: number;
+        };
+        /**
+         * @maxItems 8
+         */
+        appliedChanges?: {
+          id: string;
+          label: string;
+          previous: number;
+          value: number;
+          delta: number;
+        }[];
+        appliedAt?: string;
         outcomeText: string;
         startedAt: string;
         resolvedAt: string;
@@ -423,6 +440,17 @@ export interface UpdateRoomSettingsBody {
         npcIds: string[];
         status: "active";
         startedAt: string;
+      };
+      /**
+       * @maxItems 8
+       */
+      variableValues?: {
+        id: string;
+        value: number;
+      }[];
+      publishedEnding?: null | {
+        id: string;
+        publishedAt: string;
       };
       updatedAt: string;
     };

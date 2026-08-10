@@ -1,4 +1,5 @@
 import { normalizeDiceConfig, rollTabletopCheck } from "./tabletop-system.js";
+import { applyTabletopEffects, normalizeTabletopEffectMap } from "./tabletop-outcomes.js";
 
 const CHECK_MODES = new Set(["normal", "advantage", "disadvantage"]);
 const CHECK_STATUSES = new Set(["pending", "resolved"]);
@@ -46,6 +47,16 @@ function normalizeResult(value) {
   };
 }
 
+function normalizeAppliedChanges(value) {
+  return (Array.isArray(value) ? value : []).slice(0, 8).map((change = {}) => ({
+    id: cleanId(change.id, ""),
+    label: cleanText(change.label, "变量", 40),
+    previous: integer(change.previous, -9999, 9999, 0),
+    value: integer(change.value, -9999, 9999, 0),
+    delta: integer(change.delta, -9999, 9999, 0)
+  })).filter((change) => change.id && change.delta);
+}
+
 export function normalizeTabletopCheckTemplate(value = {}, { defaultTarget = 12, index = 0 } = {}) {
   const source = value && typeof value === "object" ? value : {};
   return {
@@ -56,7 +67,9 @@ export function normalizeTabletopCheckTemplate(value = {}, { defaultTarget = 12,
     bonus: integer(source.bonus, -999, 999, 0),
     rollMode: CHECK_MODES.has(source.rollMode) ? source.rollMode : "normal",
     successText: cleanText(source.successText, "判定成功，获得预期进展。", 240),
-    failureText: cleanText(source.failureText, "判定失败，但故事仍可带着代价继续。", 240)
+    failureText: cleanText(source.failureText, "判定失败，但故事仍可带着代价继续。", 240),
+    successEffects: normalizeTabletopEffectMap(source.successEffects),
+    failureEffects: normalizeTabletopEffectMap(source.failureEffects)
   };
 }
 
@@ -80,6 +93,10 @@ export function normalizeRuntimeTabletopCheck(value, { defaultDice = {}, locatio
     result,
     successText: cleanText(value.successText, "判定成功，获得预期进展。", 240),
     failureText: cleanText(value.failureText, "判定失败，但故事仍可带着代价继续。", 240),
+    successEffects: normalizeTabletopEffectMap(value.successEffects),
+    failureEffects: normalizeTabletopEffectMap(value.failureEffects),
+    appliedChanges: result ? normalizeAppliedChanges(value.appliedChanges) : [],
+    appliedAt: result ? cleanText(value.appliedAt, "", 40) : "",
     outcomeText: result
       ? cleanText(value.outcomeText, result.success ? value.successText : value.failureText, 240)
       : "",
@@ -130,10 +147,43 @@ export function resolveRuntimeTabletopCheck(value, {
   });
 }
 
+export function applyRuntimeTabletopCheckOutcome(value, variables, {
+  now = () => new Date().toISOString()
+} = {}) {
+  const check = normalizeRuntimeTabletopCheck(value);
+  if (!check || check.status !== "resolved" || !check.result) return null;
+  const currentVariables = Array.isArray(variables) ? variables : [];
+  if (check.appliedAt) {
+    return {
+      activeCheck: check,
+      variableValues: currentVariables.map((variable) => ({ id: variable.id, value: variable.value })),
+      changes: check.appliedChanges
+    };
+  }
+  const effects = check.result.success ? check.successEffects : check.failureEffects;
+  const applied = applyTabletopEffects(currentVariables, effects);
+  return {
+    activeCheck: normalizeRuntimeTabletopCheck({
+      ...check,
+      appliedChanges: applied.changes,
+      appliedAt: now()
+    }),
+    variableValues: applied.variables.map((variable) => ({ id: variable.id, value: variable.value })),
+    changes: applied.changes
+  };
+}
+
 export function projectRuntimeTabletopCheck(value, { audience = "player" } = {}) {
   const check = normalizeRuntimeTabletopCheck(value);
   if (!check) return null;
   if (audience !== "player") return check;
-  const { successText: _successText, failureText: _failureText, ...publicCheck } = check;
+  const {
+    successText: _successText,
+    failureText: _failureText,
+    successEffects: _successEffects,
+    failureEffects: _failureEffects,
+    ...publicCheck
+  } = check;
+  publicCheck.appliedChanges = check.appliedAt ? check.appliedChanges : [];
   return publicCheck;
 }

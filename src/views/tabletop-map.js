@@ -259,7 +259,7 @@ function signedValue(value) {
   return number > 0 ? `+${number}` : String(number);
 }
 
-function locationCheckCard(check) {
+function locationCheckCard(check, variables) {
   const modeLabel = { normal: "普通", advantage: "优势", disadvantage: "劣势" };
   return `<article class="map-location-check-card" data-map-location-check="${escapeHtml(check.id)}">
     <div class="map-location-check-head">
@@ -274,6 +274,16 @@ function locationCheckCard(check) {
     </div>
     <label class="map-field"><span>成功结果</span><textarea class="field" rows="2" maxlength="240" data-map-location-check-field="successText" data-check-id="${escapeHtml(check.id)}">${escapeHtml(check.successText)}</textarea></label>
     <label class="map-field"><span>失败代价</span><textarea class="field" rows="2" maxlength="240" data-map-location-check-field="failureText" data-check-id="${escapeHtml(check.id)}">${escapeHtml(check.failureText)}</textarea></label>
+    <div class="map-check-effect-editor">
+      <div><strong>数值导向</strong><small>掷骰后由主持人确认应用，再计算结局候选</small></div>
+      <div class="map-check-effect-grid">
+        ${variables.map((variable) => {
+          const span = Math.max(1, variable.max - variable.min);
+          return `<label><span>${escapeHtml(variable.label)}</span><input class="field" type="number" min="${-span}" max="${span}" step="1" value="${Number(check.successEffects?.[variable.id] || 0)}" data-map-check-effect="successEffects" data-variable-id="${escapeHtml(variable.id)}" data-check-id="${escapeHtml(check.id)}" aria-label="成功时${escapeHtml(variable.label)}变化"><em>成功</em></label>
+            <label><span>${escapeHtml(variable.label)}</span><input class="field" type="number" min="${-span}" max="${span}" step="1" value="${Number(check.failureEffects?.[variable.id] || 0)}" data-map-check-effect="failureEffects" data-variable-id="${escapeHtml(variable.id)}" data-check-id="${escapeHtml(check.id)}" aria-label="失败时${escapeHtml(variable.label)}变化"><em>失败</em></label>`;
+        }).join("")}
+      </div>
+    </div>
   </article>`;
 }
 
@@ -300,7 +310,7 @@ function locationInspector(session, location) {
     </div>
     <div class="map-location-check-editor">
       <div class="map-location-check-title"><div><strong>地点判定</strong><small>预设主持端可直接发起的行动与成功/失败导向</small></div><button type="button" class="secondary-btn compact" data-action="map-add-location-check"${location.checks?.length >= 6 ? " disabled" : ""}>新增判定</button></div>
-      ${location.checks?.length ? location.checks.map(locationCheckCard).join("") : `<div class="map-condition-empty">尚未设置判定。主持人仍可临场创建，也可以在这里预设最多 6 项。</div>`}
+      ${location.checks?.length ? location.checks.map((check) => locationCheckCard(check, session.design.variables)).join("") : `<div class="map-condition-empty">尚未设置判定。主持人仍可临场创建，也可以在这里预设最多 6 项。</div>`}
     </div>
     <div class="map-encounter-editor">
       <div><strong>地点遭遇</strong><small>勾选会在这里登场的 NPC；先攻开始后按回合运行</small></div>
@@ -597,6 +607,14 @@ export function bindTabletopMapEditor() {
       field.value
     ));
   });
+  root.querySelectorAll("[data-map-check-effect]").forEach((field) => {
+    field.addEventListener("change", () => updateLocationCheckEffect(
+      field.dataset.checkId,
+      field.dataset.mapCheckEffect,
+      field.dataset.variableId,
+      field.value
+    ));
+  });
   root.querySelectorAll("[data-map-variable-value]").forEach((field) => {
     field.addEventListener("input", () => {
       const variableId = field.dataset.mapVariableValue;
@@ -816,7 +834,9 @@ export function addLocationCheck() {
     bonus: 0,
     rollMode: "normal",
     successText: "判定成功，获得预期进展。",
-    failureText: "判定失败，但故事仍会带着代价继续。"
+    failureText: "判定失败，但故事仍会带着代价继续。",
+    successEffects: Object.fromEntries(session.design.variables.map((variable) => [variable.id, 0])),
+    failureEffects: Object.fromEntries(session.design.variables.map((variable) => [variable.id, 0]))
   };
   const locations = session.design.locations.map((item) => item.id === location.id
     ? { ...item, checks: [...(item.checks || []), check] }
@@ -853,6 +873,25 @@ export function updateLocationCheckField(checkId, field, value, { preview = fals
   target[field] = nextValue;
   markInlineDraft();
   if (!preview) persistLocalDraft({ immediate: true });
+}
+
+export function updateLocationCheckEffect(checkId, branch, variableId, value) {
+  const session = initializeSession();
+  const location = selectedLocation();
+  const variable = session.design.variables.find((item) => item.id === variableId);
+  if (!location || !variable || !["successEffects", "failureEffects"].includes(branch)) return;
+  const span = Math.max(1, variable.max - variable.min);
+  const delta = Math.round(Math.max(-span, Math.min(span, Number(value) || 0)));
+  const locations = session.design.locations.map((item) => item.id === location.id
+    ? {
+        ...item,
+        checks: (item.checks || []).map((check) => check.id === checkId
+          ? { ...check, [branch]: { ...(check[branch] || {}), [variableId]: delta } }
+          : check)
+      }
+    : item);
+  replaceDesign({ ...session.design, locations });
+  render();
 }
 
 export function updateMapTitle(value) {
@@ -1211,7 +1250,12 @@ export function addMapVariable() {
   };
   const locations = session.design.locations.map((location) => ({
     ...location,
-    effects: { ...location.effects, [variable.id]: 0 }
+    effects: { ...location.effects, [variable.id]: 0 },
+    checks: (location.checks || []).map((check) => ({
+      ...check,
+      successEffects: { ...(check.successEffects || {}), [variable.id]: 0 },
+      failureEffects: { ...(check.failureEffects || {}), [variable.id]: 0 }
+    }))
   }));
   replaceDesign({ ...session.design, variables: [...session.design.variables, variable], locations });
   session.inspectorTab = "rules";
@@ -1226,7 +1270,12 @@ export function deleteMapVariable(variableId) {
   const variables = session.design.variables.filter((variable) => variable.id !== variableId);
   const locations = session.design.locations.map((location) => ({
     ...location,
-    effects: Object.fromEntries(Object.entries(location.effects || {}).filter(([key]) => key !== variableId))
+    effects: Object.fromEntries(Object.entries(location.effects || {}).filter(([key]) => key !== variableId)),
+    checks: (location.checks || []).map((check) => ({
+      ...check,
+      successEffects: Object.fromEntries(Object.entries(check.successEffects || {}).filter(([key]) => key !== variableId)),
+      failureEffects: Object.fromEntries(Object.entries(check.failureEffects || {}).filter(([key]) => key !== variableId))
+    }))
   }));
   const endings = session.design.endings.map((ending) => ({
     ...ending,
@@ -1476,6 +1525,7 @@ export const tabletopMapViewApi = {
   addLocationCheck,
   deleteLocationCheck,
   updateLocationCheckField,
+  updateLocationCheckEffect,
   updateMapTitle,
   setMapCanvasMode,
   openMapBackgroundPicker,

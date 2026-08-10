@@ -267,6 +267,7 @@ function renderHostTabletopStage(presentation) {
     </div>
     ${renderHostTabletopEncounter(map, active)}
     ${renderHostTabletopCheck(map, active, diceLabel)}
+    ${renderHostTabletopOutcome(map)}
     <div class="host-stage-footer">
       <span class="status-chip ${map.visible ? "published" : "draft"}">${map.visible ? "玩家可见" : "仅主持可见"}</span>
       <span>已公开 ${revealed.size}/${locations.length} 个地点</span>
@@ -306,7 +307,7 @@ function renderHostTabletopCheck(map, activeLocation, diceLabel) {
         <span class="status-chip ${pending ? "testing" : result.success ? "published" : "blocked"}">${pending ? "等待公开掷骰" : escapeHtml(result.degreeLabel)}</span>
       </div>
       <div class="host-stage-check-meta"><span>${escapeHtml(diceLabel)}</span><span>难度 ${check.target}</span><span>加值 ${Number(check.bonus) >= 0 ? "+" : ""}${Number(check.bonus) || 0}</span><span>${mode}</span></div>
-      ${pending ? `<div class="host-stage-check-actions"><button type="button" class="primary-btn" data-action="host-tabletop-roll-check">公开掷骰并同步结果</button><button type="button" class="secondary-btn" data-action="host-tabletop-clear-check">取消判定</button></div>` : `<div class="host-stage-check-result"><strong>${result.rolls.join(" + ")}${Number(result.total) !== Number(result.rawTotal) ? ` → ${result.total}` : ` = ${result.total}`}</strong><span>目标 ${result.target} · 差值 ${result.margin >= 0 ? "+" : ""}${result.margin}</span><p>${escapeHtml(check.outcomeText)}</p></div><div class="host-stage-check-actions"><button type="button" class="primary-btn" data-action="host-tabletop-clear-check">完成并继续流程</button></div>`}
+      ${pending ? `<div class="host-stage-check-actions"><button type="button" class="primary-btn" data-action="host-tabletop-roll-check">公开掷骰并同步结果</button><button type="button" class="secondary-btn" data-action="host-tabletop-clear-check">取消判定</button></div>` : `<div class="host-stage-check-result"><strong>${result.rolls.join(" + ")}${Number(result.total) !== Number(result.rawTotal) ? ` → ${result.total}` : ` = ${result.total}`}</strong><span>目标 ${result.target} · 差值 ${result.margin >= 0 ? "+" : ""}${result.margin}</span><p>${escapeHtml(check.outcomeText)}</p></div>${renderHostCheckChanges(map, check)}<div class="host-stage-check-actions">${check.appliedAt ? "" : `<button type="button" class="primary-btn" data-action="host-tabletop-apply-check-outcome">应用数值并计算结局</button>`}<button type="button" class="secondary-btn" data-action="host-tabletop-clear-check">完成并继续流程</button></div>`}
     </section>`;
   }
   const templates = activeLocation?.checks || [];
@@ -320,6 +321,41 @@ function renderHostTabletopCheck(map, activeLocation, diceLabel) {
       <label><span>模式</span><select class="field" data-host-check-mode><option value="normal">普通</option><option value="advantage">优势</option><option value="disadvantage">劣势</option></select></label>
       <button type="button" class="secondary-btn" data-action="host-tabletop-start-custom-check">发起临场判定</button>
     </div>
+  </section>`;
+}
+
+function renderHostCheckChanges(map, check) {
+  const applied = Array.isArray(check.appliedChanges) ? check.appliedChanges : [];
+  if (check.appliedAt) {
+    return `<div class="host-stage-check-changes is-applied" data-host-tabletop-check-changes><strong>已写入房间变量</strong>${applied.length
+      ? `<div>${applied.map((change) => `<span>${escapeHtml(change.label)} <b>${Number(change.delta) > 0 ? "+" : ""}${Number(change.delta)}</b> → ${Number(change.value)}</span>`).join("")}</div>`
+      : `<small>此分支没有配置数值变化，结局条件仍已重新计算。</small>`}</div>`;
+  }
+  const effects = check.result?.success ? check.successEffects : check.failureEffects;
+  const variableLookup = new Map((map.host?.variables || []).map((variable) => [variable.id, variable]));
+  const preview = Object.entries(effects || {}).filter(([, delta]) => Number(delta)).map(([id, delta]) => ({
+    label: variableLookup.get(id)?.label || id,
+    delta: Number(delta)
+  }));
+  return `<div class="host-stage-check-changes" data-host-tabletop-check-changes><strong>等待主持人确认数值</strong>${preview.length
+    ? `<div>${preview.map((change) => `<span>${escapeHtml(change.label)} <b>${change.delta > 0 ? "+" : ""}${change.delta}</b></span>`).join("")}</div>`
+    : `<small>创作端未配置此分支的数值变化，可直接确认以刷新结局条件。</small>`}</div>`;
+}
+
+function renderHostTabletopOutcome(map) {
+  const host = map.host;
+  if (!host?.variables?.length && !host?.endingCount) return "";
+  const published = map.publishedEnding;
+  const candidates = host.endingCandidates || [];
+  const closest = host.closestEnding;
+  return `<section class="host-stage-outcome" data-host-tabletop-outcome>
+    <div class="host-stage-outcome-head"><div><p class="section-kicker">CONDITION ROUTER</p><h4>变量与结局导向</h4><p>判定只更新变量；满足条件的结局仍由主持人确认后公开。</p></div><span>${candidates.length} 个可用候选</span></div>
+    <div class="host-stage-variable-strip">${(host.variables || []).map((variable) => {
+      const percent = Math.round((Number(variable.value) - Number(variable.min)) / Math.max(1, Number(variable.max) - Number(variable.min)) * 100);
+      return `<div><span><b>${escapeHtml(variable.label)}</b><strong>${Number(variable.value)}</strong></span><i style="--runtime-value:${Math.max(0, Math.min(100, percent))}%"><b></b></i><small>${Number(variable.min)}—${Number(variable.max)}</small></div>`;
+    }).join("")}</div>
+    ${published ? `<article class="host-stage-published-ending is-${escapeHtml(published.tone)}" data-host-tabletop-published-ending><div><span>玩家端已公开</span><h5>${escapeHtml(published.name)}</h5><p>${escapeHtml(published.summary)}</p></div><button type="button" class="secondary-btn" data-action="host-tabletop-unpublish-ending">收回公开</button></article>` : ""}
+    ${candidates.length ? `<div class="host-stage-ending-list">${candidates.map((ending) => `<article class="is-${escapeHtml(ending.tone)}"><div><span>条件已满足 · ${ending.readiness}%</span><h5>${escapeHtml(ending.name)}</h5><p>${escapeHtml(ending.summary)}</p><small>${ending.conditions.map((condition) => `${escapeHtml(condition.variableLabel)} ${condition.operator} ${condition.threshold}`).join(" · ")}</small></div><button type="button" class="primary-btn" data-action="host-tabletop-publish-ending" data-ending-id="${escapeHtml(ending.id)}"${published?.id === ending.id ? " disabled" : ""}>${published?.id === ending.id ? "已公开" : "公开此导向"}</button></article>`).join("")}</div>` : closest ? `<div class="host-stage-ending-empty"><strong>尚无结局满足全部条件</strong><span>最接近「${escapeHtml(closest.name)}」· ${closest.readiness}%</span></div>` : `<div class="host-stage-ending-empty"><strong>创作端尚未添加结局规则</strong><span>可以继续推进判定，稍后再补充条件判断器。</span></div>`}
   </section>`;
 }
 

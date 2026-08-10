@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildRuntimePresentationPatch,
-  serializeActiveEncounterControl
+  serializeActiveEncounterControl,
+  serializePublishedEndingControl,
+  serializeRuntimeVariableValues
 } from "../src/runtime/runtime-presentation-control.js";
 
 const now = () => "2026-08-10T14:00:00.000Z";
@@ -52,4 +54,25 @@ test("partial controls clear an encounter without resending unrelated map fields
   assert.equal(control.revealedLocationIds, undefined);
   assert.equal(control.activeLocationId, undefined);
   assert.deepEqual(Object.keys(control).sort(), ["activeEncounter", "updatedAt"]);
+});
+
+test("outcome controls keep only compact variable overrides and publication metadata", () => {
+  assert.deepEqual(serializeRuntimeVariableValues([
+    { id: "threat", value: 37.6, label: "must not persist" },
+    { id: "threat", value: 99 },
+    { id: "", value: 4 }
+  ]), [{ id: "threat", value: 38 }]);
+  assert.deepEqual(serializePublishedEndingControl({
+    id: "escape",
+    name: "presentation-only"
+  }, { now }), {
+    id: "escape",
+    publishedAt: "2026-08-10T14:00:00.000Z"
+  });
+  const patch = buildRuntimePresentationPatch({
+    variableValues: [{ id: "threat", value: 38 }],
+    publishedEnding: { id: "escape" }
+  }, { now });
+  assert.deepEqual(patch.variableValues, [{ id: "threat", value: 38 }]);
+  assert.deepEqual(patch.publishedEnding, { id: "escape", publishedAt: now() });
 });

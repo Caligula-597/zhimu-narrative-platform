@@ -174,6 +174,25 @@ test("locations retain creator-authored check templates with safe defaults", () 
     bonus: 2,
     rollMode: "advantage",
     successText: "守卫放行。",
-    failureText: "守卫要求额外担保。"
+    failureText: "守卫要求额外担保。",
+    successEffects: { evidence: 0, threat: 0, bond: 0 },
+    failureEffects: { evidence: 0, threat: 0, bond: 0 }
   });
+});
+
+test("location checks retain separate success and failure variable effects", () => {
+  const design = normalizeMapDesign({
+    variables: [{ id: "alarm", label: "警戒", min: 0, max: 20, value: 5 }],
+    locations: [{
+      id: "gate",
+      name: "城门",
+      checks: [{
+        id: "sneak",
+        successEffects: { alarm: -3, unknown: 99 },
+        failureEffects: { alarm: 30 }
+      }]
+    }]
+  });
+  assert.deepEqual(design.locations[0].checks[0].successEffects, { alarm: -3 });
+  assert.deepEqual(design.locations[0].checks[0].failureEffects, { alarm: 20 });
 });

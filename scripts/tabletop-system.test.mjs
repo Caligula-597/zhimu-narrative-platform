@@ -16,6 +16,7 @@ import {
 } from "../shared/tabletop-system.js";
 import { normalizeNarrativeSettings } from "../shared/narrative-profile.js";
 import {
+  applyRuntimeTabletopCheckOutcome,
   createRuntimeTabletopCheck,
   projectRuntimeTabletopCheck,
   resolveRuntimeTabletopCheck
@@ -169,7 +170,9 @@ test("runtime checks preserve the authored prompt and resolve with the world dic
     bonus: 1,
     rollMode: "normal",
     successText: "队伍无声通过。",
-    failureText: "巡逻队发现了痕迹。"
+    failureText: "巡逻队发现了痕迹。",
+    successEffects: { alarm: -4 },
+    failureEffects: { alarm: 6 }
   }, {
     id: "runtime-check",
     locationId: "gate",
@@ -191,4 +194,13 @@ test("runtime checks preserve the authored prompt and resolve with the world dic
   assert.equal(publicResolved.outcomeText, "队伍无声通过。");
   assert.equal(publicResolved.successText, undefined);
   assert.equal(publicResolved.failureText, undefined);
+  assert.equal(publicResolved.successEffects, undefined);
+  const applied = applyRuntimeTabletopCheckOutcome(resolved, [
+    { id: "alarm", label: "警戒", min: 0, max: 20, value: 7 }
+  ], { now: () => "2026-08-10T12:02:00.000Z" });
+  assert.deepEqual(applied.variableValues, [{ id: "alarm", value: 3 }]);
+  assert.deepEqual(applied.activeCheck.appliedChanges, [{
+    id: "alarm", label: "警戒", previous: 7, value: 3, delta: -4
+  }]);
+  assert.equal(projectRuntimeTabletopCheck(applied.activeCheck, { audience: "player" }).appliedAt, "2026-08-10T12:02:00.000Z");
 });

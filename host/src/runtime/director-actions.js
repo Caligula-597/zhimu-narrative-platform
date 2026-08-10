@@ -2,6 +2,7 @@ import { api, getPlayerJoinUrl } from "../api.js";
 import { formatApiError } from "../errors.js";
 import { state } from "../state.js";
 import {
+  applyRuntimeTabletopCheckOutcome,
   createRuntimeTabletopCheck,
   resolveRuntimeTabletopCheck
 } from "../../../shared/tabletop-flow.js";
@@ -255,6 +256,46 @@ export function createDirectorActionHandler({ render, showToast }) {
         }), "判定结果已公开");
         return true;
       }
+      case "host-tabletop-apply-check-outcome": {
+        const map = state.currentState?.presentation?.map;
+        if (!map?.activeCheck?.result || map.activeCheck.appliedAt) {
+          showToast(map?.activeCheck?.appliedAt ? "这次判定的数值变化已经应用" : "请先公开掷骰结果");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => {
+          const currentMap = presentation.map || {};
+          const applied = applyRuntimeTabletopCheckOutcome(
+            currentMap.activeCheck || map.activeCheck,
+            currentMap.host?.variables || map.host?.variables || []
+          );
+          return applied ? {
+            activeCheck: applied.activeCheck,
+            variableValues: applied.variableValues,
+            publishedEnding: null
+          } : { activeCheck: currentMap.activeCheck || null };
+        }, "数值变化已应用，结局候选已重新计算");
+        return true;
+      }
+      case "host-tabletop-publish-ending": {
+        const endingId = String(el?.dataset?.endingId || "");
+        const candidate = state.currentState?.presentation?.map?.host?.endingCandidates
+          ?.find((ending) => ending.id === endingId);
+        if (!candidate) {
+          showToast("该结局尚未满足条件，不能公开");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => {
+          const currentCandidate = presentation.map?.host?.endingCandidates
+            ?.find((ending) => ending.id === endingId);
+          return currentCandidate ? {
+            publishedEnding: { id: endingId, publishedAt: new Date().toISOString() }
+          } : { publishedEnding: presentation.map?.publishedEnding || null };
+        }, `结局导向「${candidate.name}」已公开给玩家`);
+        return true;
+      }
+      case "host-tabletop-unpublish-ending":
+        saveRuntimePresentation({ publishedEnding: null }, "结局导向已收回，仅主持端可见");
+        return true;
       case "host-tabletop-clear-check":
         saveRuntimePresentation({ activeCheck: null }, "判定已收起，可以继续推进");
         return true;

@@ -1291,6 +1291,17 @@ code {
 .player-stage-check-target small,
 .player-stage-check-result small { color: #bcd4cb; font-size: 10px; }
 .player-stage-check-wait { grid-column: 1 / -1; padding-top: 9px; border-top: 1px solid rgba(255, 255, 255, .1); color: #e9d3ad !important; }
+.player-stage-check-changes { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; grid-column: 1 / -1; padding-top: 9px; border-top: 1px solid rgba(255, 255, 255, .1); }
+.player-stage-check-changes strong { margin-right: 3px; color: #fff; font-size: 11px; }
+.player-stage-check-changes span { padding: 5px 7px; border-radius: 7px; background: rgba(255, 255, 255, .09); color: #d5e7e0; font-size: 10px; }
+.player-stage-check-changes span b { color: #e9cf9d; }
+.player-stage-ending { margin-bottom: 12px; padding: 16px; border: 1px solid rgba(135, 166, 219, .4); border-radius: 13px; background: radial-gradient(circle at top right, rgba(108, 134, 190, .3), transparent 52%), rgba(255, 255, 255, .075); }
+.player-stage-ending.is-resolve { border-color: rgba(126, 207, 175, .48); background: radial-gradient(circle at top right, rgba(80, 156, 126, .3), transparent 52%), rgba(255, 255, 255, .075); }
+.player-stage-ending.is-cost { border-color: rgba(223, 183, 112, .48); }
+.player-stage-ending.is-danger { border-color: rgba(226, 143, 119, .48); background: radial-gradient(circle at top right, rgba(175, 87, 65, .28), transparent 52%), rgba(255, 255, 255, .075); }
+.player-stage-ending h4 { margin: 4px 0 6px; color: #fff; font-family: var(--font-serif); font-size: 20px; }
+.player-stage-ending > p:not(.eyebrow) { margin: 0; color: #d9e8e2; font-size: 12px; line-height: 1.65; }
+.player-stage-ending small { display: block; margin-top: 9px; color: #b9d0c7; font-size: 9px; }
 .player-stage-layout { display: grid; grid-template-columns: minmax(300px, 1.15fr) minmax(220px, 0.85fr); gap: 14px; }
 .player-stage-map { position: relative; min-height: 280px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 13px; background: linear-gradient(rgba(179, 218, 203, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(179, 218, 203, 0.06) 1px, transparent 1px), radial-gradient(circle at 55% 42%, #31564f, #1d3d38); background-size: 28px 28px, 28px 28px, auto; }
 .player-stage-map svg { position: absolute; inset: 0; width: 100%; height: 100%; }

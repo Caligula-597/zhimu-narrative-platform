@@ -3,6 +3,11 @@ import {
   normalizeTabletopCheckTemplate,
   projectRuntimeTabletopCheck
 } from "./tabletop-flow.js";
+import {
+  evaluateTabletopEndingRules,
+  normalizeTabletopVariables,
+  projectTabletopEnding
+} from "./tabletop-outcomes.js";
 
 const MAX_LOCATIONS = 24;
 
@@ -118,6 +123,15 @@ function normalizeActiveEncounter(value, design, locations) {
   };
 }
 
+function normalizePublishedEnding(value, design) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const id = text(value.id, 80);
+  const exists = (Array.isArray(design?.endings) ? design.endings : [])
+    .some((ending) => text(ending?.id, 80) === id);
+  if (!id || !exists) return null;
+  return { id, publishedAt: text(value.publishedAt, 40) };
+}
+
 function projectActiveEncounter(encounter, design, locations) {
   if (!encounter) return null;
   const location = locations.find((item) => item.id === encounter.locationId);
@@ -141,18 +155,33 @@ function projectActiveEncounter(encounter, design, locations) {
   };
 }
 
-function projectHostDetails(design, locations) {
+function projectHostDetails(design, locations, variables, endingEvaluation) {
   const system = design?.system && typeof design.system === "object" ? design.system : {};
+  const endingSummary = (ending) => ending ? {
+    id: ending.id,
+    name: ending.name,
+    summary: ending.summary,
+    tone: ending.tone,
+    priority: ending.priority,
+    readiness: ending.readiness,
+    eligible: ending.eligible,
+    logic: ending.logic,
+    conditions: ending.conditions.map((condition) => ({
+      id: condition.id,
+      variableId: condition.variableId,
+      variableLabel: condition.variableLabel,
+      operator: condition.operator,
+      threshold: condition.threshold,
+      current: condition.current,
+      matched: condition.matched
+    }))
+  } : null;
   return {
     locations,
-    variables: (Array.isArray(design?.variables) ? design.variables : []).slice(0, 8).map((variable) => ({
-      id: text(variable?.id, 80),
-      label: text(variable?.label, 40),
-      value: Math.round(number(variable?.value, -9999, 9999, 0)),
-      min: Math.round(number(variable?.min, -9999, 9999, 0)),
-      max: Math.round(number(variable?.max, -9999, 9999, 100))
-    })),
+    variables,
     endingCount: Array.isArray(design?.endings) ? design.endings.length : 0,
+    endingCandidates: endingEvaluation.candidates.map(endingSummary),
+    closestEnding: endingSummary(endingEvaluation.closest),
     npcs: (Array.isArray(system.npcs) ? system.npcs : []).slice(0, 24).map((npc, index) => ({
       id: text(npc?.id, 80) || `npc-${index + 1}`,
       name: text(npc?.name, 60) || `NPC ${index + 1}`,
@@ -184,6 +213,8 @@ export function normalizeRuntimePresentationControl(value = {}, { design = null,
     locationIds
   });
   const activeEncounter = normalizeActiveEncounter(source.activeEncounter, design, locations);
+  const variables = normalizeTabletopVariables(design?.variables, source.variableValues);
+  const publishedEnding = normalizePublishedEnding(source.publishedEnding, design);
   return {
     activeSegmentKey,
     activeLocationId,
@@ -191,6 +222,8 @@ export function normalizeRuntimePresentationControl(value = {}, { design = null,
     mapVisible: source.mapVisible == null ? Boolean(locations.length) : Boolean(source.mapVisible),
     activeCheck,
     activeEncounter,
+    variableValues: variables.map((variable) => ({ id: variable.id, value: variable.value })),
+    publishedEnding,
     updatedAt: text(source.updatedAt, 40)
   };
 }
@@ -206,6 +239,12 @@ export function projectRuntimePresentation({ world = {}, roomSettings = {}, curr
     };
   }
   const allLocations = normalizeLocations(design);
+  const variables = normalizeTabletopVariables(design.variables, control.variableValues);
+  const endingEvaluation = evaluateTabletopEndingRules(design.endings, variables);
+  const publishedEnding = projectTabletopEnding(
+    endingEvaluation.results.find((ending) => ending.id === control.publishedEnding?.id),
+    control.publishedEnding?.publishedAt
+  );
   const hostAudience = audience !== "player";
   const revealedIds = new Set(control.revealedLocationIds);
   const locations = hostAudience
@@ -237,7 +276,8 @@ export function projectRuntimePresentation({ world = {}, roomSettings = {}, curr
       dice: projectDice(design),
       activeCheck: projectRuntimeTabletopCheck(control.activeCheck, { audience }),
       activeEncounter: projectActiveEncounter(control.activeEncounter, design, allLocations),
-      host: hostAudience ? projectHostDetails(design, allLocations) : null
+      publishedEnding,
+      host: hostAudience ? projectHostDetails(design, allLocations, variables, endingEvaluation) : null
     }
   };
 }

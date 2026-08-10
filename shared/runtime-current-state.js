@@ -21,7 +21,8 @@ function pickObject(value, keys) {
 function normalizePlayerCheck(value) {
   const check = pickObject(value, [
     "id", "templateId", "locationId", "label", "instruction", "target", "bonus",
-    "rollMode", "dice", "status", "result", "outcomeText", "startedAt", "resolvedAt"
+    "rollMode", "dice", "status", "result", "outcomeText", "startedAt", "resolvedAt",
+    "appliedChanges", "appliedAt"
   ]);
   if (!check) return null;
   if (check.dice && typeof check.dice === "object") check.dice = { ...check.dice };
@@ -34,6 +35,9 @@ function normalizePlayerCheck(value) {
       rolls: Array.isArray(check.result.rolls) ? [...check.result.rolls] : []
     };
   }
+  check.appliedChanges = (Array.isArray(value.appliedChanges) ? value.appliedChanges : [])
+    .map((change) => pickObject(change, ["id", "label", "previous", "value", "delta"]))
+    .filter(Boolean);
   return check;
 }
 
@@ -48,7 +52,7 @@ function normalizePlayerEncounter(value) {
 
 function normalizePlayerMap(value) {
   const map = pickObject(value, [
-    "title", "visible", "activeLocationId", "revealedLocationIds", "routes", "dice"
+    "title", "visible", "activeLocationId", "revealedLocationIds", "routes", "dice", "publishedEnding"
   ]) || {};
   map.revealedLocationIds = Array.isArray(value.revealedLocationIds) ? [...value.revealedLocationIds] : [];
   map.activeLocation = pickObject(value.activeLocation, [
@@ -67,6 +71,7 @@ function normalizePlayerMap(value) {
   map.dice = value.dice && typeof value.dice === "object" ? { ...value.dice } : {};
   map.activeCheck = normalizePlayerCheck(value.activeCheck);
   map.activeEncounter = normalizePlayerEncounter(value.activeEncounter);
+  map.publishedEnding = pickObject(value.publishedEnding, ["id", "name", "summary", "tone", "publishedAt"]);
   map.host = null;
   return map;
 }

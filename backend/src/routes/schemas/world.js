@@ -209,6 +209,33 @@ export const updateRoomSettingsSchema = {
                       },
                       successText: { type: "string", maxLength: 240 },
                       failureText: { type: "string", maxLength: 240 },
+                      successEffects: {
+                        type: "object",
+                        maxProperties: 8,
+                        additionalProperties: { type: "integer", minimum: -9999, maximum: 9999 }
+                      },
+                      failureEffects: {
+                        type: "object",
+                        maxProperties: 8,
+                        additionalProperties: { type: "integer", minimum: -9999, maximum: 9999 }
+                      },
+                      appliedChanges: {
+                        type: "array",
+                        maxItems: 8,
+                        items: {
+                          type: "object",
+                          additionalProperties: false,
+                          required: ["id", "label", "previous", "value", "delta"],
+                          properties: {
+                            id: { type: "string", minLength: 1, maxLength: 80 },
+                            label: { type: "string", minLength: 1, maxLength: 40 },
+                            previous: { type: "integer", minimum: -9999, maximum: 9999 },
+                            value: { type: "integer", minimum: -9999, maximum: 9999 },
+                            delta: { type: "integer", minimum: -9999, maximum: 9999 }
+                          }
+                        }
+                      },
+                      appliedAt: { type: "string", maxLength: 40 },
                       outcomeText: { type: "string", maxLength: 240 },
                       startedAt: { type: "string", maxLength: 40 },
                       resolvedAt: { type: "string", maxLength: 40 }
@@ -234,6 +261,34 @@ export const updateRoomSettingsSchema = {
                       },
                       status: { type: "string", enum: ["active"] },
                       startedAt: { type: "string", format: "date-time" }
+                    }
+                  }
+                ]
+              },
+              variableValues: {
+                type: "array",
+                maxItems: 8,
+                uniqueItems: true,
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["id", "value"],
+                  properties: {
+                    id: { type: "string", minLength: 1, maxLength: 80 },
+                    value: { type: "integer", minimum: -9999, maximum: 9999 }
+                  }
+                }
+              },
+              publishedEnding: {
+                anyOf: [
+                  { type: "null" },
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["id", "publishedAt"],
+                    properties: {
+                      id: { type: "string", minLength: 1, maxLength: 80 },
+                      publishedAt: { type: "string", format: "date-time" }
                     }
                   }
                 ]

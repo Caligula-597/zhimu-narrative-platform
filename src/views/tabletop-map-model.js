@@ -1,6 +1,6 @@
 import { normalizeTabletopSystem } from "../../shared/tabletop-system.js";
 
-export const TABLETOP_MAP_SCHEMA_VERSION = 5;
+export const TABLETOP_MAP_SCHEMA_VERSION = 6;
 
 export const VARIABLE_COLORS = Object.freeze([
   "#3d8b6d",
@@ -43,7 +43,9 @@ const DEFAULT_LOCATIONS = [
       bonus: 0,
       rollMode: "normal",
       successText: "你找到一处可验证的改写痕迹。",
-      failureText: "翻找惊动了钟楼守卫，但仍可换一种方式继续。"
+      failureText: "翻找惊动了钟楼守卫，但仍可换一种方式继续。",
+      successEffects: { evidence: 12, threat: 0, bond: 0 },
+      failureEffects: { evidence: 0, threat: 8, bond: 0 }
     }],
     effects: { evidence: 18, threat: 4, bond: 0 }
   },
@@ -74,7 +76,9 @@ const DEFAULT_LOCATIONS = [
       bonus: 0,
       rollMode: "normal",
       successText: "队伍抢在守卫合围前抵达撤离点。",
-      failureText: "队伍仍能抵达，但会暴露位置或付出额外代价。"
+      failureText: "队伍仍能抵达，但会暴露位置或付出额外代价。",
+      successEffects: { evidence: 4, threat: -8, bond: 4 },
+      failureEffects: { evidence: 0, threat: 12, bond: -4 }
     }],
     effects: { evidence: 8, threat: 18, bond: -6 }
   },
@@ -272,7 +276,7 @@ function normalizeEffects(rawEffects, variables, fallbackEffects = {}) {
   }));
 }
 
-function normalizeLocationChecks(rawChecks, defaultTarget = 12) {
+function normalizeLocationChecks(rawChecks, variables = [], defaultTarget = 12) {
   const usedIds = new Set();
   return (Array.isArray(rawChecks) ? rawChecks : []).slice(0, 6).map((raw = {}, index) => ({
     id: uniqueId(raw.id, "check", usedIds),
@@ -282,7 +286,9 @@ function normalizeLocationChecks(rawChecks, defaultTarget = 12) {
     bonus: Math.round(clamp(raw.bonus ?? 0, -999, 999)),
     rollMode: ["normal", "advantage", "disadvantage"].includes(raw.rollMode) ? raw.rollMode : "normal",
     successText: cleanText(raw.successText, "判定成功，获得预期进展。", 240),
-    failureText: cleanText(raw.failureText, "判定失败，但故事仍可带着代价继续。", 240)
+    failureText: cleanText(raw.failureText, "判定失败，但故事仍可带着代价继续。", 240),
+    successEffects: normalizeEffects(raw.successEffects, variables),
+    failureEffects: normalizeEffects(raw.failureEffects, variables)
   }));
 }
 
@@ -302,7 +308,7 @@ function normalizeLocation(raw = {}, index = 0, variables = [], npcIds = new Set
     y: clamp(raw.y ?? fallback.y, 0.05, 0.95),
     z: Math.round(clamp(raw.z ?? fallback.z, 0, 8)),
     encounterNpcIds: [...new Set(encounterSource.map(String).filter((id) => npcIds.has(id)))].slice(0, 12),
-    checks: normalizeLocationChecks(raw.checks, defaultTarget),
+    checks: normalizeLocationChecks(raw.checks, variables, defaultTarget),
     effects: normalizeEffects(raw.effects, variables, fallback.effects)
   };
 }

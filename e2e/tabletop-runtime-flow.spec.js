@@ -42,7 +42,7 @@ async function joinRoom(page) {
   await page.locator("[data-game-tab-bar]").waitFor({ state: "visible" });
 }
 
-test("主持发起并公开地点判定后，玩家端按阶段同步且不泄露另一条结局", async ({ browser }) => {
+test("主持结算地点判定后更新变量、筛选结局并按确认同步给玩家", async ({ browser }) => {
   const hostContext = await browser.newContext({ locale: "zh-CN", viewport: { width: 1440, height: 1000 } });
   const playerContext = await browser.newContext({ locale: "zh-CN", viewport: { width: 390, height: 844 } });
   await prepareHost(hostContext);
@@ -50,6 +50,24 @@ test("主持发起并公开地点判定后，玩家端按阶段同步且不泄�
 
   const hostPage = await hostContext.newPage();
   const playerPage = await playerContext.newPage();
+  const browserIssues = [];
+  const expectedFixtureFailure = (url) => url.includes("/api/metrics/web-vitals")
+    || url.includes("/api/platform/social/dm/conversations")
+    || url.includes("/recap/latest");
+  for (const [label, page] of [["host", hostPage], ["player", playerPage]]) {
+    page.on("console", (message) => {
+      if (message.type() !== "error") return;
+      const value = message.text();
+      if (value.includes("/api/metrics/web-vitals") || value.startsWith("Failed to load resource:")) return;
+      browserIssues.push(`${label} console: ${value}`);
+    });
+    page.on("pageerror", (error) => browserIssues.push(`${label} pageerror: ${error.message}`));
+    page.on("response", (response) => {
+      if (response.status() >= 400 && !expectedFixtureFailure(response.url())) {
+        browserIssues.push(`${label} response: ${response.status()} ${response.url()}`);
+      }
+    });
+  }
 
   try {
     await hostPage.goto(`${HOST_URL}/?room=${encodeURIComponent(FIXTURE.roomId)}`);
@@ -76,8 +94,23 @@ test("主持发起并公开地点判定后，玩家端按阶段同步且不泄�
     expect(successVisible || failureVisible).toBe(true);
     expect(successVisible && failureVisible).toBe(false);
 
+    await expect(playerPage.locator("[data-player-tabletop-check-changes]")).toHaveCount(0);
+    await hostPage.locator('[data-action="host-tabletop-apply-check-outcome"]').click();
+    await expect(hostPage.locator("[data-host-tabletop-check-changes]")).toContainText("已写入房间变量");
+    await expect(playerPage.locator("[data-player-tabletop-check-changes]")).toContainText("联盟信誉", { timeout: 15_000 });
+
+    const endingAction = hostPage.locator('[data-action="host-tabletop-publish-ending"]:not([disabled])').first();
+    await expect(endingAction).toBeVisible();
+    const endingCard = endingAction.locator("xpath=ancestor::article");
+    const endingName = (await endingCard.locator("h5").innerText()).trim();
+    expect(["申诉通过", "维持冻结"]).toContain(endingName);
+    await endingAction.click();
+    await expect(playerPage.locator("[data-player-tabletop-ending]")).toContainText(endingName, { timeout: 15_000 });
+
     await hostPage.locator('[data-action="host-tabletop-clear-check"]').click();
     await expect(playerPage.locator("[data-player-tabletop-check]")).toHaveCount(0, { timeout: 15_000 });
+    await expect(playerPage.locator("[data-player-tabletop-ending]")).toContainText(endingName);
+    expect(browserIssues).toEqual([]);
   } finally {
     await hostContext.close();
     await playerContext.close();

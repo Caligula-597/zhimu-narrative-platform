@@ -17,9 +17,11 @@ function renderPlayerTabletopCheck(check) {
     </section>`;
   }
   const result = check.result;
+  const appliedChanges = Array.isArray(check.appliedChanges) ? check.appliedChanges : [];
   return `<section class="player-stage-check ${result.success ? "is-success" : "is-failure"}" data-player-tabletop-check aria-live="polite">
     <div><p class="eyebrow">公开判定结果</p><h4>${escapeHtml(check.label)}</h4><p>${escapeHtml(check.outcomeText)}</p></div>
     <div class="player-stage-check-result"><span>${escapeHtml(result.degreeLabel)}</span><strong>${result.rolls.join(" + ")}${Number(result.total) !== Number(result.rawTotal) ? ` → ${result.total}` : ` = ${result.total}`}</strong><small>目标 ${result.target} · 差值 ${result.margin >= 0 ? "+" : ""}${result.margin}</small></div>
+    ${check.appliedAt ? `<div class="player-stage-check-changes" data-player-tabletop-check-changes><strong>故事状态已更新</strong>${appliedChanges.length ? appliedChanges.map((change) => `<span>${escapeHtml(change.label)} <b>${Number(change.delta) > 0 ? "+" : ""}${Number(change.delta)}</b></span>`).join("") : `<span>主持人已确认本次结果</span>`}</div>` : `<p class="player-stage-check-wait">结果已公开，等待主持人确认对故事状态的影响。</p>`}
   </section>`;
 }
 
@@ -31,12 +33,23 @@ function renderPlayerTabletopEncounter(encounter) {
   </section>`;
 }
 
+function renderPlayerTabletopEnding(ending) {
+  if (!ending) return "";
+  return `<section class="player-stage-ending is-${escapeHtml(ending.tone)}" data-player-tabletop-ending aria-live="polite">
+    <p class="eyebrow">主持人公开结局导向</p>
+    <h4>${escapeHtml(ending.name)}</h4>
+    <p>${escapeHtml(ending.summary)}</p>
+    <small>这是当前故事走向，主持人仍可结合现场演绎完成最终收束。</small>
+  </section>`;
+}
+
 export function renderPlayerStageMap(map) {
   if (!map) return "";
   const checkHtml = renderPlayerTabletopCheck(map.activeCheck);
   const encounterHtml = renderPlayerTabletopEncounter(map.activeEncounter);
+  const endingHtml = renderPlayerTabletopEnding(map.publishedEnding);
   if (!map.visible || !map.locations?.length) {
-    return checkHtml || encounterHtml ? `<section class="player-stage player-stage-check-only" aria-label="当前跑团状态">${encounterHtml}${checkHtml}</section>` : "";
+    return checkHtml || encounterHtml || endingHtml ? `<section class="player-stage player-stage-check-only" aria-label="当前跑团状态">${endingHtml}${encounterHtml}${checkHtml}</section>` : "";
   }
   const locations = map.locations;
   const byId = new Map(locations.map((location) => [location.id, location]));
@@ -47,6 +60,7 @@ export function renderPlayerStageMap(map) {
       <div><p class="eyebrow">当前场景地图</p><h3>${escapeHtml(map.title || "跑团地图")}</h3></div>
       <span class="player-stage-dice">${escapeHtml(notation)} · 默认难度 ${Number(map.dice?.defaultTarget) || 10}</span>
     </div>
+    ${endingHtml}
     ${encounterHtml}
     ${checkHtml}
     <div class="player-stage-layout">

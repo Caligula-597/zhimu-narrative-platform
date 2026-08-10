@@ -123,6 +123,10 @@ test("active checks sync publicly without revealing unresolved outcome branches"
     result: null,
     successText: "找到走私船。",
     failureText: "足迹被潮水冲散。",
+    successEffects: { threat: -4 },
+    failureEffects: { threat: 6 },
+    appliedChanges: [{ id: "threat", label: "威胁", previous: 72, value: 68, delta: -4 }],
+    appliedAt: "",
     outcomeText: "",
     startedAt: "2026-08-10T12:00:00.000Z",
     resolvedAt: ""
@@ -140,6 +144,8 @@ test("active checks sync publicly without revealing unresolved outcome branches"
   assert.equal(player.map.activeCheck.label, "追踪走私者");
   assert.equal(player.map.activeCheck.successText, undefined);
   assert.equal(player.map.activeCheck.failureText, undefined);
+  assert.equal(player.map.activeCheck.successEffects, undefined);
+  assert.deepEqual(player.map.activeCheck.appliedChanges, []);
   assert.equal(host.map.activeCheck.successText, "找到走私船。");
 });
 
@@ -164,4 +170,32 @@ test("active encounters are validated against the authored location and sync as 
   assert.deepEqual(player.map.activeEncounter.npcs.map((npc) => npc.name), ["守塔人"]);
   assert.equal(player.map.activeEncounter.npcs[0].hostNotes, undefined);
   assert.equal(host.map.activeEncounter.status, "active");
+});
+
+test("runtime variables drive host-only ending candidates until the host publishes one", () => {
+  const currentWorld = world();
+  currentWorld.settings.tabletopMapDesign.endings = [{
+    id: "escape",
+    name: "潮汐撤离",
+    summary: "队伍赶在封港前离开。",
+    tone: "resolve",
+    priority: 4,
+    logic: "all",
+    conditions: [{ id: "low-threat", variableId: "threat", operator: "<=", value: 40 }]
+  }];
+  const roomSettings = {
+    runtimePresentation: {
+      activeLocationId: "harbor",
+      mapVisible: true,
+      variableValues: [{ id: "threat", value: 38 }],
+      publishedEnding: { id: "escape", publishedAt: "2026-08-10T13:00:00.000Z" }
+    }
+  };
+  const host = projectRuntimePresentation({ world: currentWorld, roomSettings, audience: "host" });
+  const player = projectRuntimePresentation({ world: currentWorld, roomSettings, audience: "player" });
+  assert.equal(host.map.host.variables[0].value, 38);
+  assert.equal(host.map.host.endingCandidates[0].id, "escape");
+  assert.equal(player.map.host, null);
+  assert.equal(player.map.publishedEnding.name, "潮汐撤离");
+  assert.equal(player.map.publishedEnding.summary, "队伍赶在封港前离开。");
 });
