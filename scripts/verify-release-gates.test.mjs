@@ -64,6 +64,9 @@ test("Railway and release CI require an exact Creator frontend rollout", () => {
   assert.equal(railwayJson.deploy?.healthcheckPath, "/api/health/ready");
   assert.match(railwayToml, /healthcheckPath\s*=\s*["']\/api\/health\/ready["']/u);
   assert.match(workflow, /Build expected Creator artifact[\s\S]*npm ci && npm run build/u);
+  assert.match(workflow, /Build expected Creator artifact[\s\S]*VITE_API_BASE:\s*\/api/u);
+  assert.match(workflow, /Build expected Creator artifact[\s\S]*VITE_REQUIRE_AUTH:\s*["']true["']/u);
+  assert.match(workflow, /Build expected Creator artifact[\s\S]*VITE_DEMO_MODE:\s*["']false["']/u);
   assert.match(workflow, /REQUIRE_CREATOR_FRONTEND_SYNC:\s*["']true["']/u);
   const deployScript = readFileSync(path.join(root, "scripts", "railway-deploy-ci.mjs"), "utf8");
   assert.match(deployScript, /RAILWAY_API_SERVICE_ID/u);

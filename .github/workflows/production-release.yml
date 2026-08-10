@@ -34,6 +34,10 @@ jobs:
 
       - name: Build expected Creator artifact
         run: npm ci && npm run build
+        env:
+          VITE_API_BASE: /api
+          VITE_REQUIRE_AUTH: "true"
+          VITE_DEMO_MODE: "false"
 
       - name: Build and verify immutable Pages previews
         run: node scripts/pages-release-ci.mjs --prepare
