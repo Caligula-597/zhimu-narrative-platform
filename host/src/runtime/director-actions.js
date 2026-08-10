@@ -43,6 +43,7 @@ export function createDirectorActionHandler({ render, showToast }) {
         : [...new Set((map.revealedLocationIds || []).map(String).filter(Boolean))],
       mapVisible: patch.mapVisible == null ? Boolean(map.visible) : Boolean(patch.mapVisible),
       activeCheck: patch.activeCheck !== undefined ? patch.activeCheck : map.activeCheck || null,
+      activeEncounter: patch.activeEncounter !== undefined ? patch.activeEncounter : map.activeEncounter || null,
       updatedAt: new Date().toISOString()
     };
   }
@@ -122,6 +123,7 @@ export function createDirectorActionHandler({ render, showToast }) {
           saveRuntimePresentation({
             activeSegmentKey: state.hostSelectedActKey,
             activeCheck: null,
+            activeEncounter: null,
             ...(matchedLocation?.id ? {
               activeLocationId: matchedLocation.id,
               revealedLocationIds: [...revealed]
@@ -136,6 +138,7 @@ export function createDirectorActionHandler({ render, showToast }) {
         saveRuntimePresentation({
           activeLocationId: locationId,
           activeCheck: null,
+          activeEncounter: null,
           revealedLocationIds: [...revealed]
         }, "当前地点已同步到玩家端");
         return true;
@@ -158,6 +161,32 @@ export function createDirectorActionHandler({ render, showToast }) {
         saveRuntimePresentation({ revealedLocationIds: [...revealed] }, "地点可见范围已同步");
         return true;
       }
+      case "host-tabletop-start-encounter": {
+        const map = state.currentState?.presentation?.map;
+        const location = map?.host?.locations?.find((item) => item.id === map.activeLocationId);
+        const npcIds = [...new Set((location?.encounterNpcIds || []).map(String).filter(Boolean))];
+        if (!location || !npcIds.length) {
+          showToast("当前地点没有可触发的遭遇，请回到创作端配置 NPC");
+          return true;
+        }
+        const revealed = new Set(map.revealedLocationIds || []);
+        revealed.add(location.id);
+        saveRuntimePresentation({
+          activeEncounter: {
+            locationId: location.id,
+            npcIds,
+            status: "active",
+            startedAt: new Date().toISOString()
+          },
+          activeCheck: null,
+          mapVisible: true,
+          revealedLocationIds: [...revealed]
+        }, "地点遭遇已触发并同步到玩家端");
+        return true;
+      }
+      case "host-tabletop-end-encounter":
+        saveRuntimePresentation({ activeEncounter: null }, "地点遭遇已结束");
+        return true;
       case "host-tabletop-start-check": {
         const map = state.currentState?.presentation?.map;
         const location = map?.host?.locations?.find((item) => item.id === map.activeLocationId);

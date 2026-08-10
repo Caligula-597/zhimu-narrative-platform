@@ -1267,6 +1267,14 @@ code {
 .player-stage-head .eyebrow { color: #9bc9b8; }
 .player-stage-head h3 { margin: 3px 0 0; color: #fff; font-family: var(--font-serif); font-size: 20px; }
 .player-stage-dice { padding: 5px 9px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 99px; color: #d8eee6; font-size: 10px; white-space: nowrap; }
+.player-stage-encounter { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 18px; align-items: center; margin-bottom: 12px; padding: 14px; border: 1px solid rgba(235, 168, 116, .4); border-radius: 13px; background: linear-gradient(120deg, rgba(177, 83, 58, .3), rgba(255, 255, 255, .06)); }
+.player-stage-encounter .eyebrow { color: #f0c697; }
+.player-stage-encounter h4 { margin: 3px 0 5px; color: #fff; font-family: var(--font-serif); font-size: 18px; }
+.player-stage-encounter p { margin: 0; color: #d8e7e1; font-size: 12px; }
+.player-stage-encounter-roster { display: flex; flex-wrap: wrap; gap: 7px; justify-content: flex-end; }
+.player-stage-encounter-roster span { display: grid; gap: 2px; min-width: 116px; padding: 7px 9px; border: 1px solid rgba(255, 255, 255, .12); border-radius: 9px; background: rgba(10, 34, 29, .3); }
+.player-stage-encounter-roster strong { color: #fff; font-size: 12px; }
+.player-stage-encounter-roster small { color: #c7dcd4; font-size: 10px; }
 .player-stage-check { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 18px; align-items: center; margin-bottom: 12px; padding: 14px; border: 1px solid rgba(255, 255, 255, .14); border-radius: 13px; background: rgba(255, 255, 255, .075); }
 .player-stage-check.is-pending { border-color: rgba(220, 184, 123, .42); background: linear-gradient(120deg, rgba(194, 139, 61, .18), rgba(255, 255, 255, .06)); }
 .player-stage-check.is-success { border-color: rgba(126, 207, 175, .48); background: rgba(80, 156, 126, .18); }
@@ -1310,6 +1318,8 @@ code {
   .player-stage-map { min-height: 250px; }
   .player-stage-dice { width: max-content; }
   .player-stage-check { grid-template-columns: 1fr; }
+  .player-stage-encounter { grid-template-columns: 1fr; }
+  .player-stage-encounter-roster { justify-content: flex-start; }
   .player-stage-check-target,
   .player-stage-check-result { justify-items: start; }
 }

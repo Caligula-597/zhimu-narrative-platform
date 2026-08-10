@@ -169,6 +169,8 @@ test("host command center uses segment runbooks and five critical queue actions"
   assert.match(layoutSource, /data-action="host-tabletop-toggle-location"/);
   assert.match(layoutSource, /data-action="host-tabletop-start-check"/);
   assert.match(layoutSource, /data-action="host-tabletop-roll-check"/);
+  assert.match(layoutSource, /data-action="host-tabletop-start-encounter"/);
+  assert.match(layoutSource, /data-action="host-tabletop-end-encounter"/);
   assert.match(directorSource, /createRuntimeTabletopCheck/);
   assert.match(directorSource, /resolveRuntimeTabletopCheck/);
   for (const action of ["host-apply-remedy", "host-vote-status", "host-review-private-action", "host-review-testimony"]) {

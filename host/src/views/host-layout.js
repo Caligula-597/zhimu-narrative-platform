@@ -265,6 +265,7 @@ function renderHostTabletopStage(presentation) {
         }).join("")}
       </div>
     </div>
+    ${renderHostTabletopEncounter(map, active)}
     ${renderHostTabletopCheck(map, active, diceLabel)}
     <div class="host-stage-footer">
       <span class="status-chip ${map.visible ? "published" : "draft"}">${map.visible ? "玩家可见" : "仅主持可见"}</span>
@@ -272,6 +273,24 @@ function renderHostTabletopStage(presentation) {
       <span>队伍 ${map.party?.length || 0} 人</span>
       <span>结局条件 ${map.host.endingCount || 0} 组</span>
     </div>
+  </section>`;
+}
+
+function renderHostTabletopEncounter(map, activeLocation) {
+  const activeEncounter = map.activeEncounter;
+  const npcById = new Map((map.host?.npcs || []).map((npc) => [npc.id, npc]));
+  const configuredNpcs = (activeLocation?.encounterNpcIds || []).map((id) => npcById.get(id)).filter(Boolean);
+  if (activeEncounter?.status === "active") {
+    return `<section class="host-stage-encounter is-active" data-host-tabletop-encounter aria-live="polite">
+      <div><p class="section-kicker">ENCOUNTER LIVE</p><h4>${escapeHtml(activeEncounter.locationName)}遭遇进行中</h4><p>玩家端已收到遭遇状态；结束后会保留当前地点与已揭示地图。</p></div>
+      <div class="host-stage-encounter-roster">${activeEncounter.npcs.map((npc) => `<span><strong>${escapeHtml(npc.name)}</strong><small>${escapeHtml(npc.role || "NPC")} · HP ${npc.hp}/${npc.maxHp}</small></span>`).join("")}</div>
+      <button type="button" class="secondary-btn" data-action="host-tabletop-end-encounter">结束遭遇</button>
+    </section>`;
+  }
+  if (!configuredNpcs.length) return "";
+  return `<section class="host-stage-encounter" data-host-tabletop-encounter-builder>
+    <div><p class="section-kicker">ENCOUNTER READY</p><h4>触发${escapeHtml(activeLocation.name)}遭遇</h4><p>${configuredNpcs.map((npc) => `${escapeHtml(npc.name)} · HP ${npc.hp}/${npc.maxHp}`).join("；")}</p></div>
+    <button type="button" class="primary-btn" data-action="host-tabletop-start-encounter">触发遭遇并同步</button>
   </section>`;
 }
 

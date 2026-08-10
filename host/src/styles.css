@@ -2108,6 +2108,14 @@ textarea:focus-visible {
 .host-stage-location-main strong { color: var(--ink); font-size: 13px; }
 .host-stage-location-main small { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .host-stage-footer { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; color: var(--muted); font-size: 11px; }
+.host-stage-encounter { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 18px; align-items: center; margin-top: 14px; padding: 14px; border: 1px solid rgba(166, 108, 52, .26); border-radius: 14px; background: linear-gradient(120deg, rgba(255, 248, 235, .94), rgba(255, 255, 255, .8)); }
+.host-stage-encounter.is-active { border-color: rgba(172, 78, 55, .38); background: linear-gradient(120deg, rgba(253, 239, 232, .96), rgba(255, 249, 244, .9)); }
+.host-stage-encounter h4 { margin: 2px 0 4px; color: var(--ink); font-size: 16px; }
+.host-stage-encounter p { margin: 0; color: var(--muted); font-size: 12px; }
+.host-stage-encounter-roster { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; }
+.host-stage-encounter-roster span { display: grid; gap: 2px; padding: 7px 9px; border: 1px solid rgba(172, 78, 55, .16); border-radius: 9px; background: rgba(255, 255, 255, .72); }
+.host-stage-encounter-roster strong { color: var(--ink); font-size: 12px; }
+.host-stage-encounter-roster small { color: var(--muted); font-size: 10px; }
 .host-stage-check,
 .host-stage-check-builder { display: grid; gap: 12px; margin-top: 14px; padding: 14px; border: 1px solid rgba(40, 108, 97, .18); border-radius: 14px; background: rgba(255, 255, 255, .78); }
 .host-stage-check.is-success { border-color: rgba(40, 108, 97, .38); background: rgba(238, 249, 244, .92); }
@@ -2140,6 +2148,8 @@ textarea:focus-visible {
   .host-stage-grid { grid-template-columns: 1fr; }
   .host-stage-map { min-height: 280px; }
   .host-stage-location-list { max-height: 260px; }
+  .host-stage-encounter { grid-template-columns: 1fr; }
+  .host-stage-encounter > button { width: 100%; }
   .host-stage-check-presets { grid-template-columns: 1fr; }
   .host-stage-check-custom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .host-stage-check-custom > :first-child,

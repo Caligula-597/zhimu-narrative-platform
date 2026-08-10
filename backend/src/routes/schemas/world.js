@@ -215,6 +215,28 @@ export const updateRoomSettingsSchema = {
                   }
                 ]
               },
+              activeEncounter: {
+                anyOf: [
+                  { type: "null" },
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["locationId", "npcIds", "status", "startedAt"],
+                    properties: {
+                      locationId: { type: "string", minLength: 1, maxLength: 80 },
+                      npcIds: {
+                        type: "array",
+                        minItems: 1,
+                        maxItems: 12,
+                        uniqueItems: true,
+                        items: { type: "string", minLength: 1, maxLength: 80 }
+                      },
+                      status: { type: "string", enum: ["active"] },
+                      startedAt: { type: "string", format: "date-time" }
+                    }
+                  }
+                ]
+              },
               updatedAt: { type: "string", format: "date-time" }
             }
           }

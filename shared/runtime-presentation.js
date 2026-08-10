@@ -93,6 +93,54 @@ function projectDice(design) {
   };
 }
 
+function normalizeActiveEncounter(value, design, locations) {
+  if (!value || typeof value !== "object" || Array.isArray(value) || value.status !== "active") return null;
+  const locationId = text(value.locationId, 80);
+  const location = locations.find((item) => item.id === locationId);
+  if (!location) return null;
+  const configuredNpcIds = new Set(location.encounterNpcIds || []);
+  const knownNpcIds = new Set((Array.isArray(design?.system?.npcs) ? design.system.npcs : [])
+    .map((npc) => text(npc?.id, 80))
+    .filter(Boolean));
+  const requestedNpcIds = Array.isArray(value.npcIds) && value.npcIds.length
+    ? value.npcIds
+    : location.encounterNpcIds || [];
+  const npcIds = [...new Set(requestedNpcIds
+    .map((id) => text(id, 80))
+    .filter((id) => configuredNpcIds.has(id) && knownNpcIds.has(id)))]
+    .slice(0, 12);
+  if (!npcIds.length) return null;
+  return {
+    locationId,
+    npcIds,
+    status: "active",
+    startedAt: text(value.startedAt, 40)
+  };
+}
+
+function projectActiveEncounter(encounter, design, locations) {
+  if (!encounter) return null;
+  const location = locations.find((item) => item.id === encounter.locationId);
+  if (!location) return null;
+  const npcById = new Map((Array.isArray(design?.system?.npcs) ? design.system.npcs : [])
+    .map((npc) => [text(npc?.id, 80), npc]));
+  const npcs = encounter.npcIds.map((id) => npcById.get(id)).filter(Boolean).map((npc, index) => ({
+    id: text(npc?.id, 80) || `npc-${index + 1}`,
+    name: text(npc?.name, 60) || `NPC ${index + 1}`,
+    role: text(npc?.role, 80),
+    hp: Math.round(number(npc?.hp, 0, 9999, 0)),
+    maxHp: Math.max(1, Math.round(number(npc?.maxHp, 1, 9999, 1)))
+  }));
+  if (!npcs.length) return null;
+  return {
+    locationId: location.id,
+    locationName: location.name,
+    status: "active",
+    startedAt: encounter.startedAt,
+    npcs
+  };
+}
+
 function projectHostDetails(design, locations) {
   const system = design?.system && typeof design.system === "object" ? design.system : {};
   return {
@@ -135,12 +183,14 @@ export function normalizeRuntimePresentationControl(value = {}, { design = null,
     defaultDice: design?.system?.dice,
     locationIds
   });
+  const activeEncounter = normalizeActiveEncounter(source.activeEncounter, design, locations);
   return {
     activeSegmentKey,
     activeLocationId,
     revealedLocationIds: [...revealed],
     mapVisible: source.mapVisible == null ? Boolean(locations.length) : Boolean(source.mapVisible),
     activeCheck,
+    activeEncounter,
     updatedAt: text(source.updatedAt, 40)
   };
 }
@@ -186,6 +236,7 @@ export function projectRuntimePresentation({ world = {}, roomSettings = {}, curr
       party: projectParty(design),
       dice: projectDice(design),
       activeCheck: projectRuntimeTabletopCheck(control.activeCheck, { audience }),
+      activeEncounter: projectActiveEncounter(control.activeEncounter, design, allLocations),
       host: hostAudience ? projectHostDetails(design, allLocations) : null
     }
   };

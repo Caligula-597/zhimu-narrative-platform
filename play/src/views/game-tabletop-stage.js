@@ -23,11 +23,20 @@ function renderPlayerTabletopCheck(check) {
   </section>`;
 }
 
+function renderPlayerTabletopEncounter(encounter) {
+  if (!encounter || encounter.status !== "active" || !encounter.npcs?.length) return "";
+  return `<section class="player-stage-encounter" data-player-tabletop-encounter aria-live="polite">
+    <div><p class="eyebrow">遭遇已触发</p><h4>${escapeHtml(encounter.locationName)}</h4><p>保持在当前场景，等待主持人推进遭遇。</p></div>
+    <div class="player-stage-encounter-roster">${encounter.npcs.map((npc) => `<span><strong>${escapeHtml(npc.name)}</strong><small>${escapeHtml(npc.role || "NPC")} · HP ${npc.hp}/${npc.maxHp}</small></span>`).join("")}</div>
+  </section>`;
+}
+
 export function renderPlayerStageMap(map) {
   if (!map) return "";
   const checkHtml = renderPlayerTabletopCheck(map.activeCheck);
+  const encounterHtml = renderPlayerTabletopEncounter(map.activeEncounter);
   if (!map.visible || !map.locations?.length) {
-    return checkHtml ? `<section class="player-stage player-stage-check-only" aria-label="当前跑团判定">${checkHtml}</section>` : "";
+    return checkHtml || encounterHtml ? `<section class="player-stage player-stage-check-only" aria-label="当前跑团状态">${encounterHtml}${checkHtml}</section>` : "";
   }
   const locations = map.locations;
   const byId = new Map(locations.map((location) => [location.id, location]));
@@ -38,6 +47,7 @@ export function renderPlayerStageMap(map) {
       <div><p class="eyebrow">当前场景地图</p><h3>${escapeHtml(map.title || "跑团地图")}</h3></div>
       <span class="player-stage-dice">${escapeHtml(notation)} · 默认难度 ${Number(map.dice?.defaultTarget) || 10}</span>
     </div>
+    ${encounterHtml}
     ${checkHtml}
     <div class="player-stage-layout">
       <div class="player-stage-map" role="img" aria-label="已公开 ${locations.length} 个地点，当前位于${escapeHtml(active?.name || "未指定地点")}">

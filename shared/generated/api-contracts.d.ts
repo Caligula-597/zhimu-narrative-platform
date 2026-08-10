@@ -414,6 +414,16 @@ export interface UpdateRoomSettingsBody {
         startedAt: string;
         resolvedAt: string;
       };
+      activeEncounter?: null | {
+        locationId: string;
+        /**
+         * @minItems 1
+         * @maxItems 12
+         */
+        npcIds: string[];
+        status: "active";
+        startedAt: string;
+      };
       updatedAt: string;
     };
   };

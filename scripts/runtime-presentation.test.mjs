@@ -142,3 +142,26 @@ test("active checks sync publicly without revealing unresolved outcome branches"
   assert.equal(player.map.activeCheck.failureText, undefined);
   assert.equal(host.map.activeCheck.successText, "找到走私船。");
 });
+
+test("active encounters are validated against the authored location and sync as public status", () => {
+  const roomSettings = {
+    runtimePresentation: {
+      activeSegmentKey: "finale",
+      activeLocationId: "tower",
+      revealedLocationIds: ["tower"],
+      mapVisible: true,
+      activeEncounter: {
+        locationId: "tower",
+        npcIds: ["keeper", "unknown-npc"],
+        status: "active",
+        startedAt: "2026-08-10T12:30:00.000Z"
+      }
+    }
+  };
+  const player = projectRuntimePresentation({ world: world(), roomSettings, audience: "player" });
+  const host = projectRuntimePresentation({ world: world(), roomSettings, audience: "host" });
+  assert.equal(player.map.activeEncounter.locationName, "沉钟塔");
+  assert.deepEqual(player.map.activeEncounter.npcs.map((npc) => npc.name), ["守塔人"]);
+  assert.equal(player.map.activeEncounter.npcs[0].hostNotes, undefined);
+  assert.equal(host.map.activeEncounter.status, "active");
+});
