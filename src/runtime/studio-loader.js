@@ -16,6 +16,7 @@ const STUDIO_VIEWS = new Set([
   "clues",
   "rules",
   "miniGames",
+  "tabletopMap",
   "rooms",
   "archive",
   "settings"

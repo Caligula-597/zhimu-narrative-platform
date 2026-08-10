@@ -1,14 +1,17 @@
 /** World wizard state shard — step, draft, role editor. */
 import { createStore } from "./create-store.js";
+import { createDefaultTabletopSystem } from "../../shared/tabletop-system.js";
 
 export const wizardStore = createStore({
   wizardStep: 0,
   wizardRoleEditor: null,
+  wizardNpcEditor: null,
   wizardDraft: {
     worldName: "我的长线世界",
     summary: "一个可持续推进的线上调查故事",
     worldMode: "scripted",
     contentSource: "document",
+    tabletopSystem: createDefaultTabletopSystem(),
     roleSets: {
       scripted: [
         { name:"记者", goal:"调查真相", publicProfile:"追踪旧港航运记录的记者", privateProfile:"你在寻找父亲失踪前寄出的最后一封信。" },
@@ -16,14 +19,14 @@ export const wizardStore = createStore({
         { name:"巡警", goal:"保护证人", publicProfile:"负责旧港片区的巡警", privateProfile:"你收到过一份不能公开的证人名单。" }
       ],
       campaign: [
-        { name:"调查员", goal:"追查异象", publicProfile:"受邀前来的自由调查员", privateProfile:"你曾在梦中见过这座城镇。" },
-        { name:"领航员", goal:"绘制路线", publicProfile:"熟悉近海航线的领航员", privateProfile:"你的旧海图上标记着一座不存在的灯塔。" },
-        { name:"民俗学者", goal:"解释仪式", publicProfile:"研究沿海传说的民俗学者", privateProfile:"你知道潮落时不能回应谁的呼唤。" }
+        { name:"调查员", goal:"追查异象", publicProfile:"受邀前来的自由调查员", privateProfile:"你曾在梦中见过这座城镇。", stats:{ maxHp:30, hp:30, attack:4, defense:4, damage:6, initiative:3 } },
+        { name:"领航员", goal:"绘制路线", publicProfile:"熟悉近海航线的领航员", privateProfile:"你的旧海图上标记着一座不存在的灯塔。", stats:{ maxHp:26, hp:26, attack:3, defense:5, damage:5, initiative:5 } },
+        { name:"民俗学者", goal:"解释仪式", publicProfile:"研究沿海传说的民俗学者", privateProfile:"你知道潮落时不能回应谁的呼唤。", stats:{ maxHp:22, hp:22, attack:5, defense:3, damage:7, initiative:2 } }
       ],
       hybrid: [
-        { name:"记录者", goal:"整理线索", publicProfile:"负责记录调查进展的编辑", privateProfile:"你收到过来自未来章节的残页。" },
-        { name:"守夜人", goal:"维持秩序", publicProfile:"熟悉港区夜路的守夜人", privateProfile:"你保管着一把只能打开一次的钥匙。" },
-        { name:"调解人", goal:"连接阵营", publicProfile:"负责协调各方关系的中间人", privateProfile:"你和馆长约定过一个不能公开的交换条件。" }
+        { name:"记录者", goal:"整理线索", publicProfile:"负责记录调查进展的编辑", privateProfile:"你收到过来自未来章节的残页。", stats:{ maxHp:24, hp:24, attack:3, defense:4, damage:5, initiative:4 } },
+        { name:"守夜人", goal:"维持秩序", publicProfile:"熟悉港区夜路的守夜人", privateProfile:"你保管着一把只能打开一次的钥匙。", stats:{ maxHp:32, hp:32, attack:5, defense:5, damage:6, initiative:2 } },
+        { name:"调解人", goal:"连接阵营", publicProfile:"负责协调各方关系的中间人", privateProfile:"你和馆长约定过一个不能公开的交换条件。", stats:{ maxHp:25, hp:25, attack:4, defense:3, damage:5, initiative:5 } }
       ]
     },
     contentSets: {

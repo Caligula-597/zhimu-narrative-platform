@@ -76,6 +76,10 @@
       () => import("../views/mini-games.js"),
       () => import("./actions-mini-games.js")
     ],
+    tabletopMap: [
+      () => import("../views/tabletop-map.js"),
+      () => import("./actions-tabletop-map.js")
+    ],
     rooms: [
       () => import("../views/rooms.js")
     ],
@@ -102,9 +106,7 @@
   };
 
   async function loadModuleList(view, modules) {
-    for (const loadModule of modules) {
-      await loadModule();
-    }
+    await Promise.all(modules.map((loadModule) => loadModule()));
     loaded.add(view);
   }
 

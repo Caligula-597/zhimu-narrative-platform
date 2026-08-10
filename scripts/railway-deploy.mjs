@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Deploy backend API to Railway (backend/ only — never uploads monorepo root).
+ * Deploy the fullstack Creator service to Railway from the monorepo root.
  *
  * Prereq (once):
  *   npm i -g @railway/cli
@@ -14,11 +14,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const backendDir = path.join(root, "backend");
-
 const args = ["up", "--ci"];
-if (process.env.RAILWAY_SERVICE_ID) {
-  args.push("--service", process.env.RAILWAY_SERVICE_ID);
+const serviceId = process.env.RAILWAY_SERVICE_ID || process.env.RAILWAY_API_SERVICE_ID;
+if (serviceId) {
+  args.push("--service", serviceId);
 }
 
 const result = spawnSync("railway", args, {

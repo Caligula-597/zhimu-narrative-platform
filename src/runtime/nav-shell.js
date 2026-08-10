@@ -2,7 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
 (function (window) {
-  const ADVANCED_VIEWS = ["writer", "truth", "studio", "clues", "rules", "miniGames", "archive"];
+  const ADVANCED_VIEWS = ["writer", "truth", "studio", "tabletopMap", "clues", "rules", "miniGames", "archive"];
 
   function worldSwitcherFailureLabel(apiError) {
     const err = apiError || "";

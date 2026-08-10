@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 /** Post-deploy smoke: public auth config must not expose oauthDiagnostics (Trusted Beta). */
+import { loadExpectedCreatorManifest, probeCreatorFrontendSync } from "./production-frontend-sync.mjs";
+
 const base = (process.env.RAILWAY_PUBLIC_URL || process.env.APP_PUBLIC_URL || "https://app.getzhimu.com").replace(
   /\/$/,
   ""
@@ -31,6 +33,17 @@ async function main() {
 
   if (!Array.isArray(body.oauth)) {
     console.warn("⚠ oauth provider list missing (non-fatal)");
+  }
+
+  try {
+    const expectedManifest = loadExpectedCreatorManifest({
+      required: process.env.REQUIRE_CREATOR_FRONTEND_SYNC === "true"
+    });
+    const frontend = await probeCreatorFrontendSync(base, { expectedManifest });
+    console.log(`Creator frontend verified: ${frontend.manifest.entryScript}`);
+  } catch (error) {
+    console.error(`Creator frontend sync failed: ${error.message}`);
+    process.exit(1);
   }
 
   console.log("✓ Production release check passed (no oauthDiagnostics on /api/auth/config)");

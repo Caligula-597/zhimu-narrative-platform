@@ -27,9 +27,13 @@ jobs:
           node-version: "24.13.0"
           cache: npm
           cache-dependency-path: |
+            package-lock.json
             site/package-lock.json
             play/package-lock.json
             host/package-lock.json
+
+      - name: Build expected Creator artifact
+        run: npm ci && npm run build
 
       - name: Build and verify immutable Pages previews
         run: node scripts/pages-release-ci.mjs --prepare
@@ -50,12 +54,14 @@ jobs:
           RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
           RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
           RAILWAY_PUBLIC_URL: ${{ secrets.RAILWAY_PUBLIC_URL }}
+          REQUIRE_CREATOR_FRONTEND_SYNC: "true"
         run: node scripts/railway-deploy-ci.mjs
 
       - name: Verify production trust gates
         env:
           APP_PUBLIC_URL: ${{ secrets.RAILWAY_PUBLIC_URL }}
           OPS_API_TOKEN: ${{ secrets.OPS_API_TOKEN }}
+          REQUIRE_CREATOR_FRONTEND_SYNC: "true"
         run: npm run check:production-ready
 
       - name: Monitoring and alert webhook smoke

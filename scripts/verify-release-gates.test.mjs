@@ -56,6 +56,20 @@ test("package, developer, CI and container runtime pins stay aligned", () => {
   }
 });
 
+test("Railway and release CI require an exact Creator frontend rollout", () => {
+  const root = process.cwd();
+  const railwayJson = JSON.parse(readFileSync(path.join(root, "railway.json"), "utf8"));
+  const railwayToml = readFileSync(path.join(root, "railway.toml"), "utf8");
+  const workflow = readFileSync(path.join(root, ".github", "workflows", "production-release.yml"), "utf8");
+  assert.equal(railwayJson.deploy?.healthcheckPath, "/api/health/ready");
+  assert.match(railwayToml, /healthcheckPath\s*=\s*["']\/api\/health\/ready["']/u);
+  assert.match(workflow, /Build expected Creator artifact[\s\S]*npm ci && npm run build/u);
+  assert.match(workflow, /REQUIRE_CREATOR_FRONTEND_SYNC:\s*["']true["']/u);
+  const deployScript = readFileSync(path.join(root, "scripts", "railway-deploy-ci.mjs"), "utf8");
+  assert.match(deployScript, /RAILWAY_API_SERVICE_ID/u);
+  assert.match(deployScript, /probeCreatorFrontendSync/u);
+});
+
 test("Playwright migrates a fresh database before starting the API", () => {
   const config = readFileSync(path.join(process.cwd(), "playwright.config.js"), "utf8");
   assert.match(config, /command:\s*["']npm run db:migrate && node src\/server\.js["']/);

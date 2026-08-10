@@ -5,7 +5,7 @@
     "dockerfilePath": "deploy/Dockerfile.fullstack"
   },
   "deploy": {
-    "healthcheckPath": "/api/health/live",
+    "healthcheckPath": "/api/health/ready",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 5

@@ -51,12 +51,17 @@ test("POST /api/worlds/wizard/bootstrap creates world in one transaction", async
     payload: {
       name: `向导闭环 ${suffix}`,
       summary: "bootstrap fixture",
-      settings: { worldMode: "scripted", contentSource: "template" },
+      settings: {
+        worldMode: "scripted",
+        contentSource: "template",
+        narrativeProfile: { creationType: "tabletop_rpg" },
+        tabletopSystem: { dice: { count: 2, sides: 8, modifier: 1, defaultTarget: 12 } }
+      },
       chapter: { title: "序章", summary: "fixture chapter" },
       sectionDefaults: { title: "角色序章", body: "正文内容足够用于测试。" },
       roles: [
-        { name: "甲", publicProfile: "公开", privateProfile: "秘密" },
-        { name: "乙", publicProfile: "公开", privateProfile: "秘密" }
+        { name: "甲", publicProfile: "公开", privateProfile: "秘密", stats: { maxHp: 18, attack: 4 } },
+        { name: "乙", publicProfile: "公开", privateProfile: "秘密", stats: { maxHp: 12, defense: 5 } }
       ],
       automationTemplates: { reading: true, chapter: true, clue: false, hint: false },
       includeStarterGraph: true,
@@ -71,6 +76,10 @@ test("POST /api/worlds/wizard/bootstrap creates world in one transaction", async
   assert.ok(body.room?.invite_code);
   assert.ok(body.starterGraph?.scene?.id);
   assert.ok(body.rulesCreated >= 1);
+  assert.equal(body.world.settings.tabletopSystem.players.length, 2);
+  assert.equal(body.world.settings.tabletopSystem.players[0].name, "甲");
+  assert.equal(body.world.settings.tabletopSystem.players[0].maxHp, 18);
+  assert.equal(body.world.settings.tabletopSystem.dice.sides, 8);
 
   context.after(async () => {
     const worldId = body.world.id;

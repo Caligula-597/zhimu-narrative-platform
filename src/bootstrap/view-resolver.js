@@ -14,6 +14,7 @@ const viewMeta = {
   insights: ["复盘改本", "复盘改本"],
   writer: ["剧本杀创作", "角色私人剧本"],
   studio: ["内容创作", "剧情编排图谱"],
+  tabletopMap: ["空间与结局", "跑团地图设计"],
   clues: ["内容创作", "线索管理"],
   rules: ["内容创作", "自动化规则"],
   miniGames: ["内容创作", "小游戏设计"],
@@ -42,6 +43,7 @@ export function resolveViewFn(view) {
     case "insights": return getView("creatorWorkspaces").insights;
     case "writer": return getView("writer").writer;
     case "studio": return getView("studio").studioCloud;
+    case "tabletopMap": return getView("tabletopMap").tabletopMap;
     case "clues": return getView("clues").clues;
     case "rules": return getView("rules").rules;
     case "miniGames": return getView("miniGames").miniGames;

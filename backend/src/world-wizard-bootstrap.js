@@ -7,6 +7,7 @@ import { syncWorldSegmentsFromChapters } from "./world-segments-seed.js";
 import { buildWizardAutomationRules } from "./wizard-automation-templates.js";
 import { generateRoomInviteCode } from "./room-invite-code.js";
 import { normalizeNarrativeSettings } from "../../shared/narrative-profile.js";
+import { normalizeCombatantStats, normalizeTabletopSystem } from "../../shared/tabletop-system.js";
 
 function normalizeRoles(roles) {
   if (!Array.isArray(roles) || !roles.length) {
@@ -20,6 +21,7 @@ function normalizeRoles(roles) {
     scriptBody: String(role.scriptBody || "").trim(),
     sectionTitle: String(role.sectionTitle || "").trim(),
     sectionBody: String(role.sectionBody || "").trim(),
+    stats: normalizeCombatantStats(role.stats),
     sequence: role.sequence ?? index + 1
   }));
 }
@@ -55,6 +57,20 @@ export async function bootstrapWorldFromWizard(actorId, payload) {
     contentSource: settings.contentSource || "template",
     automationTemplates
   });
+  if (mergedSettings.narrativeProfile?.creationType === "tabletop_rpg") {
+    const tabletopSystem = normalizeTabletopSystem(mergedSettings.tabletopSystem);
+    tabletopSystem.players = roles.map((role, index) => ({
+      id: `pc-${index + 1}`,
+      name: role.name,
+      role: "玩家角色",
+      notes: role.goal,
+      conditions: [],
+      ...role.stats,
+      hp: role.stats.maxHp
+    }));
+    tabletopSystem.player = tabletopSystem.players[0];
+    mergedSettings.tabletopSystem = normalizeTabletopSystem(tabletopSystem);
+  }
 
   return transaction(async (client) => {
     await admitWorldCreation(client, actorId);
@@ -79,9 +95,16 @@ export async function bootstrapWorldFromWizard(actorId, payload) {
     const createdRoles = [];
     for (const roleDraft of roles) {
       const roleResult = await client.query(
-        `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [worldId, roleDraft.name, roleDraft.publicProfile, roleDraft.privateProfile, roleDraft.sequence]
+        `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
+         VALUES ($1, $2, $3, $4, $5, $6::jsonb) RETURNING *`,
+        [
+          worldId,
+          roleDraft.name,
+          roleDraft.publicProfile,
+          roleDraft.privateProfile,
+          roleDraft.sequence,
+          JSON.stringify({ combatStats: roleDraft.stats })
+        ]
       );
       const role = roleResult.rows[0];
 

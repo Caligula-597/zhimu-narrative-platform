@@ -100,7 +100,7 @@ const requiredModuleScripts = [
   "src/runtime/actions.js",
   "app.js"
 ];
-const requiredNavViews = ["creatorCockpit", "writer", "truth", "studio", "clues", "rules", "miniGames", "archive", "settings", "account", "ops"];
+const requiredNavViews = ["creatorCockpit", "writer", "truth", "studio", "tabletopMap", "clues", "rules", "miniGames", "archive", "settings", "account", "ops"];
 const requiredDomIds = ["content", "toast", "modal-backdrop", "modal", "page-title", "create-world-btn", "preview-btn", "run-btn"];
 const requiredApiMethods = [
   "getWorlds", "getStudio", "getPlayerHome", "getHostProgress", "getHostPlayers", "getHostPlayerDetail", "getHostAuditLog",

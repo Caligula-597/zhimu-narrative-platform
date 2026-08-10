@@ -124,6 +124,19 @@ export const activatePhysicalTokenSchema = {
   }
 };
 
+const wizardCombatStatsSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    maxHp: { type: "integer", minimum: 1, maximum: 9999 },
+    hp: { type: "integer", minimum: 0, maximum: 9999 },
+    attack: { type: "integer", minimum: -99, maximum: 999 },
+    defense: { type: "integer", minimum: -9, maximum: 999 },
+    damage: { type: "integer", minimum: 1, maximum: 999 },
+    initiative: { type: "integer", minimum: -99, maximum: 999 }
+  }
+};
+
 const wizardRoleSchema = {
   type: "object",
   additionalProperties: false,
@@ -136,6 +149,7 @@ const wizardRoleSchema = {
     scriptBody: { type: "string", maxLength: 100_000 },
     sectionTitle: { type: "string", maxLength: 200 },
     sectionBody: { type: "string", maxLength: 100_000 },
+    stats: wizardCombatStatsSchema,
     sequence: { type: "integer", minimum: 1, maximum: 999 }
   }
 };
