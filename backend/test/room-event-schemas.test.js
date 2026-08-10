@@ -199,18 +199,36 @@ test("getRoomEventSchema returns null for unknown type", () => {
 });
 
 test("all production room contracts remain JSON-Schema-shaped and additive", () => {
-  assert.equal(Object.keys(ROOM_EVENT_SCHEMAS).length, 34);
+  assert.equal(Object.keys(ROOM_EVENT_SCHEMAS).length, 35);
   assert.ok(ROOM_EVENT_SCHEMAS["room.host_log_created"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.host_player_notes_updated"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.content_release_changed"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.mechanism_state_updated"]);
   assert.ok(ROOM_EVENT_SCHEMAS["room.mechanism_submission_updated"]);
+  assert.ok(ROOM_EVENT_SCHEMAS["room.presentation_updated"]);
   for (const schema of Object.values(ROOM_EVENT_SCHEMAS)) {
     assert.equal(schema.type, "object");
     assert.equal(schema.additionalProperties, true);
     assert.ok(Array.isArray(schema.required));
     assert.equal(typeof schema.properties, "object");
   }
+});
+
+test("presentation updates accept tabletop check lifecycle fields", () => {
+  const payload = {
+    activeSegmentKey: "authorization-review",
+    activeLocationId: "review-room",
+    revealedLocationIds: ["server-lobby", "review-room"],
+    mapVisible: true,
+    checkStatus: "resolved",
+    checkLabel: "核验二次授权",
+    updatedAt: "2026-08-10T12:00:00.000Z"
+  };
+  assert.equal(validateRoomEvent("room.presentation_updated", payload).ok, true);
+  assert.equal(validateRoomEvent("room.presentation_updated", {
+    ...payload,
+    checkStatus: "secret"
+  }).ok, false);
 });
 
 test("mechanism state updates have a durable public event contract", () => {

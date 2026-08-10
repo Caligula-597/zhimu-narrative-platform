@@ -148,6 +148,73 @@ export const updateRoomSettingsSchema = {
                 items: { type: "string", maxLength: 80 }
               },
               mapVisible: { type: "boolean" },
+              activeCheck: {
+                anyOf: [
+                  { type: "null" },
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: [
+                      "id", "templateId", "locationId", "label", "instruction", "target", "bonus",
+                      "rollMode", "dice", "status", "result", "successText", "failureText",
+                      "outcomeText", "startedAt", "resolvedAt"
+                    ],
+                    properties: {
+                      id: { type: "string", minLength: 1, maxLength: 80 },
+                      templateId: { type: "string", maxLength: 80 },
+                      locationId: { type: "string", maxLength: 80 },
+                      label: { type: "string", minLength: 1, maxLength: 80 },
+                      instruction: { type: "string", maxLength: 240 },
+                      target: { type: "integer", minimum: -9999, maximum: 9999 },
+                      bonus: { type: "integer", minimum: -999, maximum: 999 },
+                      rollMode: { type: "string", enum: ["normal", "advantage", "disadvantage"] },
+                      dice: {
+                        type: "object",
+                        additionalProperties: false,
+                        required: ["count", "sides", "modifier", "defaultTarget"],
+                        properties: {
+                          count: { type: "integer", minimum: 1, maximum: 10 },
+                          sides: { type: "integer", minimum: 2, maximum: 1000 },
+                          modifier: { type: "integer", minimum: -999, maximum: 999 },
+                          defaultTarget: { type: "integer", minimum: -9999, maximum: 9999 }
+                        }
+                      },
+                      status: { type: "string", enum: ["pending", "resolved"] },
+                      result: {
+                        anyOf: [
+                          { type: "null" },
+                          {
+                            type: "object",
+                            additionalProperties: false,
+                            required: ["label", "rollMode", "attempts", "rolls", "rawTotal", "total", "target", "success", "criticalSuccess", "criticalFailure", "margin", "degree", "degreeLabel", "degreeRank"],
+                            properties: {
+                              label: { type: "string", maxLength: 80 },
+                              rollMode: { type: "string", enum: ["normal", "advantage", "disadvantage"] },
+                              attempts: { type: "array", maxItems: 2, items: { type: "array", maxItems: 10, items: { type: "integer", minimum: 1, maximum: 1000 } } },
+                              rolls: { type: "array", minItems: 1, maxItems: 10, items: { type: "integer", minimum: 1, maximum: 1000 } },
+                              rawTotal: { type: "integer", minimum: -9999, maximum: 9999 },
+                              total: { type: "integer", minimum: -9999, maximum: 9999 },
+                              target: { type: "integer", minimum: -9999, maximum: 9999 },
+                              success: { type: "boolean" },
+                              criticalSuccess: { type: "boolean" },
+                              criticalFailure: { type: "boolean" },
+                              margin: { type: "integer", minimum: -9999, maximum: 9999 },
+                              degree: { type: "string", maxLength: 40 },
+                              degreeLabel: { type: "string", maxLength: 40 },
+                              degreeRank: { type: "integer", minimum: -9, maximum: 9 }
+                            }
+                          }
+                        ]
+                      },
+                      successText: { type: "string", maxLength: 240 },
+                      failureText: { type: "string", maxLength: 240 },
+                      outcomeText: { type: "string", maxLength: 240 },
+                      startedAt: { type: "string", maxLength: 40 },
+                      resolvedAt: { type: "string", maxLength: 40 }
+                    }
+                  }
+                ]
+              },
               updatedAt: { type: "string", format: "date-time" }
             }
           }

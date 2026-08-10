@@ -1,6 +1,6 @@
 import { normalizeTabletopSystem } from "../../shared/tabletop-system.js";
 
-export const TABLETOP_MAP_SCHEMA_VERSION = 4;
+export const TABLETOP_MAP_SCHEMA_VERSION = 5;
 
 export const VARIABLE_COLORS = Object.freeze([
   "#3d8b6d",
@@ -35,6 +35,16 @@ const DEFAULT_LOCATIONS = [
     x: 0.54,
     y: 0.27,
     z: 3,
+    checks: [{
+      id: "search-archive",
+      label: "检索封存档案",
+      instruction: "说明如何定位被改写的卷宗，并进行一次调查判定。",
+      target: 12,
+      bonus: 0,
+      rollMode: "normal",
+      successText: "你找到一处可验证的改写痕迹。",
+      failureText: "翻找惊动了钟楼守卫，但仍可换一种方式继续。"
+    }],
     effects: { evidence: 18, threat: 4, bond: 0 }
   },
   {
@@ -56,6 +66,16 @@ const DEFAULT_LOCATIONS = [
     y: 0.76,
     z: 0,
     encounterNpcIds: ["dock-guard"],
+    checks: [{
+      id: "cross-fog-pier",
+      label: "穿过浓雾封锁",
+      instruction: "描述队伍如何穿过码头封锁，并进行一次行动判定。",
+      target: 14,
+      bonus: 0,
+      rollMode: "normal",
+      successText: "队伍抢在守卫合围前抵达撤离点。",
+      failureText: "队伍仍能抵达，但会暴露位置或付出额外代价。"
+    }],
     effects: { evidence: 8, threat: 18, bond: -6 }
   },
   {
@@ -252,7 +272,21 @@ function normalizeEffects(rawEffects, variables, fallbackEffects = {}) {
   }));
 }
 
-function normalizeLocation(raw = {}, index = 0, variables = [], npcIds = new Set()) {
+function normalizeLocationChecks(rawChecks, defaultTarget = 12) {
+  const usedIds = new Set();
+  return (Array.isArray(rawChecks) ? rawChecks : []).slice(0, 6).map((raw = {}, index) => ({
+    id: uniqueId(raw.id, "check", usedIds),
+    label: cleanText(raw.label, `地点判定 ${index + 1}`, 80),
+    instruction: cleanText(raw.instruction, "描述行动方式后进行判定。", 240),
+    target: Math.round(clamp(raw.target ?? defaultTarget, -9999, 9999)),
+    bonus: Math.round(clamp(raw.bonus ?? 0, -999, 999)),
+    rollMode: ["normal", "advantage", "disadvantage"].includes(raw.rollMode) ? raw.rollMode : "normal",
+    successText: cleanText(raw.successText, "判定成功，获得预期进展。", 240),
+    failureText: cleanText(raw.failureText, "判定失败，但故事仍可带着代价继续。", 240)
+  }));
+}
+
+function normalizeLocation(raw = {}, index = 0, variables = [], npcIds = new Set(), defaultTarget = 12) {
   const fallback = DEFAULT_LOCATIONS[index] || DEFAULT_LOCATIONS[0];
   const encounterSource = Array.isArray(raw.encounterNpcIds)
     ? raw.encounterNpcIds
@@ -268,6 +302,7 @@ function normalizeLocation(raw = {}, index = 0, variables = [], npcIds = new Set
     y: clamp(raw.y ?? fallback.y, 0.05, 0.95),
     z: Math.round(clamp(raw.z ?? fallback.z, 0, 8)),
     encounterNpcIds: [...new Set(encounterSource.map(String).filter((id) => npcIds.has(id)))].slice(0, 12),
+    checks: normalizeLocationChecks(raw.checks, defaultTarget),
     effects: normalizeEffects(raw.effects, variables, fallback.effects)
   };
 }
@@ -314,7 +349,13 @@ export function createDefaultMapDesign(options = {}) {
     canvas: normalizeCanvas(),
     system,
     variables,
-    locations: DEFAULT_LOCATIONS.map((location, index) => normalizeLocation(location, index, variables, npcIds)),
+    locations: DEFAULT_LOCATIONS.map((location, index) => normalizeLocation(
+      location,
+      index,
+      variables,
+      npcIds,
+      system.dice.defaultTarget
+    )),
     routes: clone(DEFAULT_ROUTES),
     // Creators define endings themselves; the system only provides the rule builder.
     endings: []
@@ -329,7 +370,13 @@ export function normalizeMapDesign(raw = {}, options = {}) {
   const sourceLocations = Array.isArray(raw.locations) && raw.locations.length
     ? raw.locations.slice(0, 24)
     : fallback.locations;
-  const locations = sourceLocations.map((location, index) => normalizeLocation(location, index, variables, npcIds));
+  const locations = sourceLocations.map((location, index) => normalizeLocation(
+    location,
+    index,
+    variables,
+    npcIds,
+    system.dice.defaultTarget
+  ));
   const locationIds = new Set(locations.map((location) => location.id));
   const isLegacyDesign = Number(raw.schemaVersion || 1) < TABLETOP_MAP_SCHEMA_VERSION;
   const sourceEndings = Array.isArray(raw.endings)

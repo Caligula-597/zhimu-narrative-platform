@@ -156,6 +156,8 @@ export async function updateHostRoomSettings({ actorId, roomId, settings }) {
           activeLocationId: incoming.runtimePresentation.activeLocationId,
           revealedLocationIds: incoming.runtimePresentation.revealedLocationIds,
           mapVisible: incoming.runtimePresentation.mapVisible,
+          checkStatus: incoming.runtimePresentation.activeCheck?.status || "cleared",
+          checkLabel: incoming.runtimePresentation.activeCheck?.label || "",
           updatedAt: incoming.runtimePresentation.updatedAt
         });
       }

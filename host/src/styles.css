@@ -2108,8 +2108,40 @@ textarea:focus-visible {
 .host-stage-location-main strong { color: var(--ink); font-size: 13px; }
 .host-stage-location-main small { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .host-stage-footer { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; color: var(--muted); font-size: 11px; }
+.host-stage-check,
+.host-stage-check-builder { display: grid; gap: 12px; margin-top: 14px; padding: 14px; border: 1px solid rgba(40, 108, 97, .18); border-radius: 14px; background: rgba(255, 255, 255, .78); }
+.host-stage-check.is-success { border-color: rgba(40, 108, 97, .38); background: rgba(238, 249, 244, .92); }
+.host-stage-check.is-failure { border-color: rgba(170, 93, 65, .35); background: rgba(253, 245, 240, .92); }
+.host-stage-check-head,
+.host-stage-check-builder-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.host-stage-check-head h4,
+.host-stage-check-builder-head h4 { margin: 2px 0 4px; font-size: 16px; }
+.host-stage-check-head p,
+.host-stage-check-builder-head p { margin: 0; color: var(--muted); font-size: 12px; }
+.host-stage-check-builder-head > span { padding: 7px 10px; border-radius: 999px; background: #e6f1ed; color: #286c61; font-size: 12px; font-weight: 800; }
+.host-stage-check-meta { display: flex; flex-wrap: wrap; gap: 7px; }
+.host-stage-check-meta span { padding: 5px 8px; border-radius: 7px; background: rgba(40, 108, 97, .08); color: #345b54; font-size: 11px; font-weight: 700; }
+.host-stage-check-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.host-stage-check-result { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: baseline; }
+.host-stage-check-result strong { color: var(--ink); font-size: 20px; }
+.host-stage-check-result span { color: var(--muted); font-size: 11px; }
+.host-stage-check-result p { grid-column: 1 / -1; margin: 4px 0 0; color: var(--ink); }
+.host-stage-check-presets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.host-stage-check-presets button { display: grid; gap: 3px; padding: 10px; border: 1px solid rgba(40, 108, 97, .16); border-radius: 10px; background: #fff; color: var(--ink); text-align: left; cursor: pointer; }
+.host-stage-check-presets button:hover { border-color: rgba(40, 108, 97, .46); box-shadow: 0 7px 18px rgba(40, 82, 74, .08); }
+.host-stage-check-presets span { color: #9a6a2f; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+.host-stage-check-presets strong { font-size: 13px; }
+.host-stage-check-presets small,
+.host-stage-check-empty { color: var(--muted); font-size: 10px; }
+.host-stage-check-custom { display: grid; grid-template-columns: minmax(160px, 1fr) 86px 86px 100px auto; gap: 8px; align-items: end; padding-top: 10px; border-top: 1px dashed rgba(40, 108, 97, .18); }
+.host-stage-check-custom label { display: grid; gap: 4px; }
+.host-stage-check-custom label > span { color: var(--muted); font-size: 10px; }
 @media (max-width: 900px) {
   .host-stage-grid { grid-template-columns: 1fr; }
   .host-stage-map { min-height: 280px; }
   .host-stage-location-list { max-height: 260px; }
+  .host-stage-check-presets { grid-template-columns: 1fr; }
+  .host-stage-check-custom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .host-stage-check-custom > :first-child,
+  .host-stage-check-custom > button { grid-column: 1 / -1; }
 }

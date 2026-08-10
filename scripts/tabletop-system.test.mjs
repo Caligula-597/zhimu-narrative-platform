@@ -15,6 +15,11 @@ import {
   tabletopCombatState
 } from "../shared/tabletop-system.js";
 import { normalizeNarrativeSettings } from "../shared/narrative-profile.js";
+import {
+  createRuntimeTabletopCheck,
+  projectRuntimeTabletopCheck,
+  resolveRuntimeTabletopCheck
+} from "../shared/tabletop-flow.js";
 
 test("dice configuration supports creator-defined dice count and sides", () => {
   const system = normalizeTabletopSystem({
@@ -153,4 +158,37 @@ test("world narrative settings retain the tabletop setup from the creation wizar
   assert.equal(settings.narrativeProfile.creationType, "tabletop_rpg");
   assert.equal(settings.narrativeProfile.ruleset.diceNotation, "2d6");
   assert.equal(settings.tabletopSystem.dice.sides, 6);
+});
+
+test("runtime checks preserve the authored prompt and resolve with the world dice", () => {
+  const pending = createRuntimeTabletopCheck({
+    id: "cross-gate",
+    label: "越过闸门",
+    instruction: "说明如何避开巡逻。",
+    target: 10,
+    bonus: 1,
+    rollMode: "normal",
+    successText: "队伍无声通过。",
+    failureText: "巡逻队发现了痕迹。"
+  }, {
+    id: "runtime-check",
+    locationId: "gate",
+    dice: { count: 2, sides: 6, modifier: 1, defaultTarget: 9 },
+    now: () => "2026-08-10T12:00:00.000Z"
+  });
+  const publicPending = projectRuntimeTabletopCheck(pending, { audience: "player" });
+  assert.equal(publicPending.successText, undefined);
+  assert.equal(publicPending.failureText, undefined);
+  const resolved = resolveRuntimeTabletopCheck(pending, {
+    random: () => 0.5,
+    now: () => "2026-08-10T12:01:00.000Z"
+  });
+  assert.deepEqual(resolved.result.rolls, [4, 4]);
+  assert.equal(resolved.result.total, 10);
+  assert.equal(resolved.result.success, true);
+  assert.equal(resolved.outcomeText, "队伍无声通过。");
+  const publicResolved = projectRuntimeTabletopCheck(resolved, { audience: "player" });
+  assert.equal(publicResolved.outcomeText, "队伍无声通过。");
+  assert.equal(publicResolved.successText, undefined);
+  assert.equal(publicResolved.failureText, undefined);
 });

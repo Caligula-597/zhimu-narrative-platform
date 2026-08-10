@@ -1,3 +1,9 @@
+import {
+  normalizeRuntimeTabletopCheck,
+  normalizeTabletopCheckTemplate,
+  projectRuntimeTabletopCheck
+} from "./tabletop-flow.js";
+
 const MAX_LOCATIONS = 24;
 
 function text(value = "", max = 500) {
@@ -28,6 +34,7 @@ function sourceDesign(world = {}) {
 }
 
 function normalizeLocations(design) {
+  const defaultTarget = Math.round(number(design?.system?.dice?.defaultTarget, -9999, 9999, 12));
   return (Array.isArray(design?.locations) ? design.locations : [])
     .slice(0, MAX_LOCATIONS)
     .map((location, index) => ({
@@ -42,7 +49,10 @@ function normalizeLocations(design) {
       z: Math.round(number(location?.z, 0, 8, 0)),
       encounterNpcIds: Array.isArray(location?.encounterNpcIds)
         ? [...new Set(location.encounterNpcIds.map((id) => text(id, 80)).filter(Boolean))].slice(0, 12)
-        : []
+        : [],
+      checks: (Array.isArray(location?.checks) ? location.checks : [])
+        .slice(0, 6)
+        .map((check, checkIndex) => normalizeTabletopCheckTemplate(check, { defaultTarget, index: checkIndex }))
     }));
 }
 
@@ -121,11 +131,16 @@ export function normalizeRuntimePresentationControl(value = {}, { design = null,
       .filter((id) => locationIds.has(id))
   );
   if (activeLocationId) revealed.add(activeLocationId);
+  const activeCheck = normalizeRuntimeTabletopCheck(source.activeCheck, {
+    defaultDice: design?.system?.dice,
+    locationIds
+  });
   return {
     activeSegmentKey,
     activeLocationId,
     revealedLocationIds: [...revealed],
     mapVisible: source.mapVisible == null ? Boolean(locations.length) : Boolean(source.mapVisible),
+    activeCheck,
     updatedAt: text(source.updatedAt, 40)
   };
 }
@@ -170,6 +185,7 @@ export function projectRuntimePresentation({ world = {}, roomSettings = {}, curr
       routes: normalizeRoutes(design, visibleIds),
       party: projectParty(design),
       dice: projectDice(design),
+      activeCheck: projectRuntimeTabletopCheck(control.activeCheck, { audience }),
       host: hostAudience ? projectHostDetails(design, allLocations) : null
     }
   };

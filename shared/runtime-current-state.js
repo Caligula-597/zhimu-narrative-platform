@@ -17,7 +17,11 @@ function normalizePresentation(value, audience) {
   return {
     activeSegmentKey: String(source.activeSegmentKey ?? ""),
     updatedAt: source.updatedAt ?? null,
-    map: map ? { ...map, host: audience === "player" ? null : map.host ?? null } : null
+    map: map ? {
+      ...map,
+      activeCheck: map.activeCheck && typeof map.activeCheck === "object" ? { ...map.activeCheck } : null,
+      host: audience === "player" ? null : map.host ?? null
+    } : null
   };
 }
 

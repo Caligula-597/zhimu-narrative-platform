@@ -227,7 +227,17 @@ const fixtureTabletopMapDesign = {
     x: 0.5,
     y: 0.34,
     z: 2,
-    encounterNpcIds: ["npc-auditor"]
+    encounterNpcIds: ["npc-auditor"],
+    checks: [{
+      id: "verify-authorization",
+      label: "核验二次授权",
+      instruction: "说明如何比对签发记录与赛事报名时间。",
+      target: 14,
+      bonus: 1,
+      rollMode: "normal",
+      successText: "你确认了二次授权缺失。",
+      failureText: "日志链不完整，但仍可提交人工复核。"
+    }]
   }, {
     id: "appeal-terminal",
     name: "联盟申诉终端",
@@ -828,6 +838,8 @@ function sendSse(request, response, roomId) {
     "cache-control": "no-cache, no-transform",
     connection: "keep-alive"
   });
+  response.socket?.setNoDelay(true);
+  response.flushHeaders();
   response.write(`data: ${JSON.stringify({ type: "connected", fixture: true })}\n\n`);
   const client = { roomId, response };
   sseClients.add(client);
@@ -1609,6 +1621,8 @@ const server = http.createServer(async (request, response) => {
       activeLocationId: presentation.activeLocationId || "",
       revealedLocationIds: presentation.revealedLocationIds || [],
       mapVisible: Boolean(presentation.mapVisible),
+      checkStatus: presentation.activeCheck?.status || "cleared",
+      checkLabel: presentation.activeCheck?.label || "",
       updatedAt: presentation.updatedAt || new Date().toISOString()
     });
     return sendJson(response, 200, { ok: true, settings: room.settings });

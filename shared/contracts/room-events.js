@@ -3,6 +3,7 @@ import { validateEventPayload } from "./event-schema-validator.js";
 const id = Object.freeze({ type: "string", minLength: 1, maxLength: 200 });
 const text = Object.freeze({ type: "string", minLength: 1, maxLength: 2000 });
 const shortText = Object.freeze({ type: "string", minLength: 1, maxLength: 80 });
+const optionalShortText = Object.freeze({ type: "string", minLength: 0, maxLength: 200 });
 const tokenCode = Object.freeze({ type: "string", minLength: 1, maxLength: 64 });
 const boolean = Object.freeze({ type: "boolean" });
 const number = Object.freeze({ type: "number" });
@@ -153,6 +154,18 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     decisionKey: shortText,
     submissionCount: number
   }),
+  "room.presentation_updated": schema(
+    ["activeSegmentKey", "activeLocationId", "revealedLocationIds", "mapVisible", "checkStatus", "checkLabel", "updatedAt"],
+    {
+      activeSegmentKey: optionalShortText,
+      activeLocationId: optionalShortText,
+      revealedLocationIds: idList,
+      mapVisible: boolean,
+      checkStatus: enumString(["cleared", "pending", "resolved"]),
+      checkLabel: optionalShortText,
+      updatedAt: text
+    }
+  ),
   "room.investigation_completed": schema(["pointId", "roleSlotId"], { pointId: id, roleSlotId: id }),
   "room.vote_created": schema(["voteId", "title", "status"], {
     voteId: id,

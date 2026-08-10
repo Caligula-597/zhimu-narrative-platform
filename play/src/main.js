@@ -92,6 +92,8 @@ const { render } = createPlayViewController({
   syncPlayUrl
 });
 
+window.addEventListener("zhimu:tabletop-stage-ready", render);
+
 setVoiceRenderCallback(render);
 
 const {

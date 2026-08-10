@@ -10,6 +10,8 @@ globalThis.localStorage = {
 };
 
 const { state } = await import("../src/state.js");
+const { loadPlayerTabletopStage } = await import("../src/views/game-tabletop-stage-loader.js");
+await loadPlayerTabletopStage();
 const { renderGameHome, renderMechanismProgress } =
   await import("../src/views/game-home-views.js");
 
@@ -203,6 +205,12 @@ test("player home renders host-controlled flow and only the public map projectio
           routes: [["harbor", "tower"]],
           party: [{ id: "pc", name: "调查员", hp: 9, maxHp: 12 }],
           dice: { count: 1, sides: 20, modifier: 2, defaultTarget: 12 },
+          activeCheck: {
+            id: "check-1", label: "推开塔门", instruction: "说明如何协力打开机关门。",
+            target: 14, bonus: 1, rollMode: "normal", status: "pending", result: null,
+            dice: { count: 1, sides: 20, modifier: 2, defaultTarget: 12 },
+            outcomeText: "", successText: "不得提前显示成功", failureText: "不得提前显示失败"
+          },
           host: { locations: [{ hostNotes: "不得显示" }] }
         }
       },
@@ -221,6 +229,9 @@ test("player home renders host-controlled flow and only the public map projectio
     assert.match(html, /盐雾群岛/);
     assert.match(html, /塔门已经开启/);
     assert.match(html, /HP 9\/12/);
+    assert.match(html, /主持人发起判定/);
+    assert.match(html, /推开塔门/);
+    assert.match(html, /目标 14/);
     assert.doesNotMatch(html, /不得显示/);
   } finally {
     state.home = previousHome;

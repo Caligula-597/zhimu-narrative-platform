@@ -147,3 +147,33 @@ test("locations retain a runtime segment binding and host-only notes", () => {
   assert.equal(design.locations[0].segmentKey, "ch2");
   assert.equal(design.locations[0].hostNotes, "第三轮后守卫会关闭城门。");
 });
+
+test("locations retain creator-authored check templates with safe defaults", () => {
+  const design = normalizeMapDesign({
+    system: { dice: { count: 2, sides: 6, defaultTarget: 9 } },
+    locations: [{
+      id: "gate",
+      name: "城门",
+      checks: [{
+        id: "pass-guard",
+        label: "说服守卫",
+        instruction: "说明通行理由。",
+        target: 11,
+        bonus: 2,
+        rollMode: "advantage",
+        successText: "守卫放行。",
+        failureText: "守卫要求额外担保。"
+      }]
+    }]
+  });
+  assert.deepEqual(design.locations[0].checks[0], {
+    id: "pass-guard",
+    label: "说服守卫",
+    instruction: "说明通行理由。",
+    target: 11,
+    bonus: 2,
+    rollMode: "advantage",
+    successText: "守卫放行。",
+    failureText: "守卫要求额外担保。"
+  });
+});

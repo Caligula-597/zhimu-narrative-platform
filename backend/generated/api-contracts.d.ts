@@ -369,6 +369,51 @@ export interface UpdateRoomSettingsBody {
        */
       revealedLocationIds: string[];
       mapVisible: boolean;
+      activeCheck?: null | {
+        id: string;
+        templateId: string;
+        locationId: string;
+        label: string;
+        instruction: string;
+        target: number;
+        bonus: number;
+        rollMode: "normal" | "advantage" | "disadvantage";
+        dice: {
+          count: number;
+          sides: number;
+          modifier: number;
+          defaultTarget: number;
+        };
+        status: "pending" | "resolved";
+        result: null | {
+          label: string;
+          rollMode: "normal" | "advantage" | "disadvantage";
+          /**
+           * @maxItems 2
+           */
+          attempts: number[][];
+          /**
+           * @minItems 1
+           * @maxItems 10
+           */
+          rolls: number[];
+          rawTotal: number;
+          total: number;
+          target: number;
+          success: boolean;
+          criticalSuccess: boolean;
+          criticalFailure: boolean;
+          margin: number;
+          degree: string;
+          degreeLabel: string;
+          degreeRank: number;
+        };
+        successText: string;
+        failureText: string;
+        outcomeText: string;
+        startedAt: string;
+        resolvedAt: string;
+      };
       updatedAt: string;
     };
   };
@@ -1997,6 +2042,20 @@ export interface RoomMechanismStateUpdatedData {
 export interface RoomMechanismSubmissionUpdatedData {
   decisionKey: string;
   submissionCount: number;
+  [k: string]: unknown;
+}
+
+export interface RoomPresentationUpdatedData {
+  activeSegmentKey: string;
+  activeLocationId: string;
+  /**
+   * @maxItems 100
+   */
+  revealedLocationIds: string[];
+  mapVisible: boolean;
+  checkStatus: "cleared" | "pending" | "resolved";
+  checkLabel: string;
+  updatedAt: string;
   [k: string]: unknown;
 }
 

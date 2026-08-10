@@ -265,11 +265,41 @@ function renderHostTabletopStage(presentation) {
         }).join("")}
       </div>
     </div>
+    ${renderHostTabletopCheck(map, active, diceLabel)}
     <div class="host-stage-footer">
       <span class="status-chip ${map.visible ? "published" : "draft"}">${map.visible ? "玩家可见" : "仅主持可见"}</span>
       <span>已公开 ${revealed.size}/${locations.length} 个地点</span>
       <span>队伍 ${map.party?.length || 0} 人</span>
       <span>结局条件 ${map.host.endingCount || 0} 组</span>
+    </div>
+  </section>`;
+}
+
+function renderHostTabletopCheck(map, activeLocation, diceLabel) {
+  const check = map.activeCheck;
+  if (check) {
+    const result = check.result;
+    const pending = check.status === "pending" || !result;
+    const mode = { normal: "普通", advantage: "优势", disadvantage: "劣势" }[check.rollMode] || "普通";
+    return `<section class="host-stage-check${pending ? " is-pending" : result.success ? " is-success" : " is-failure"}" data-host-tabletop-check>
+      <div class="host-stage-check-head">
+        <div><p class="section-kicker">${pending ? "AWAITING CHECK" : "CHECK RESULT"}</p><h4>${escapeHtml(check.label)}</h4><p>${escapeHtml(check.instruction)}</p></div>
+        <span class="status-chip ${pending ? "testing" : result.success ? "published" : "blocked"}">${pending ? "等待公开掷骰" : escapeHtml(result.degreeLabel)}</span>
+      </div>
+      <div class="host-stage-check-meta"><span>${escapeHtml(diceLabel)}</span><span>难度 ${check.target}</span><span>加值 ${Number(check.bonus) >= 0 ? "+" : ""}${Number(check.bonus) || 0}</span><span>${mode}</span></div>
+      ${pending ? `<div class="host-stage-check-actions"><button type="button" class="primary-btn" data-action="host-tabletop-roll-check">公开掷骰并同步结果</button><button type="button" class="secondary-btn" data-action="host-tabletop-clear-check">取消判定</button></div>` : `<div class="host-stage-check-result"><strong>${result.rolls.join(" + ")}${Number(result.total) !== Number(result.rawTotal) ? ` → ${result.total}` : ` = ${result.total}`}</strong><span>目标 ${result.target} · 差值 ${result.margin >= 0 ? "+" : ""}${result.margin}</span><p>${escapeHtml(check.outcomeText)}</p></div><div class="host-stage-check-actions"><button type="button" class="primary-btn" data-action="host-tabletop-clear-check">完成并继续流程</button></div>`}
+    </section>`;
+  }
+  const templates = activeLocation?.checks || [];
+  return `<section class="host-stage-check-builder" data-host-tabletop-check-builder>
+    <div class="host-stage-check-builder-head"><div><p class="section-kicker">NEXT ACTION</p><h4>发起场景判定</h4><p>玩家会先看到行动目标，公开掷骰后再同步成功或失败导向。</p></div><span>${escapeHtml(diceLabel)}</span></div>
+    ${templates.length ? `<div class="host-stage-check-presets">${templates.map((template) => `<button type="button" data-action="host-tabletop-start-check" data-check-id="${escapeHtml(template.id)}"><span>预设判定</span><strong>${escapeHtml(template.label)}</strong><small>难度 ${template.target} · ${escapeHtml(template.instruction)}</small></button>`).join("")}</div>` : `<p class="host-stage-check-empty">创作端尚未给这个地点配置预设判定，可以先使用下面的临场判定。</p>`}
+    <div class="host-stage-check-custom">
+      <label><span>临场判定</span><input class="field" maxlength="80" value="调查${escapeHtml(activeLocation?.name || "当前场景")}" data-host-check-label></label>
+      <label><span>难度</span><input class="field" type="number" min="-9999" max="9999" step="1" value="${Number(map.dice?.defaultTarget) || 12}" data-host-check-target></label>
+      <label><span>加值</span><input class="field" type="number" min="-999" max="999" step="1" value="0" data-host-check-bonus></label>
+      <label><span>模式</span><select class="field" data-host-check-mode><option value="normal">普通</option><option value="advantage">优势</option><option value="disadvantage">劣势</option></select></label>
+      <button type="button" class="secondary-btn" data-action="host-tabletop-start-custom-check">发起临场判定</button>
     </div>
   </section>`;
 }

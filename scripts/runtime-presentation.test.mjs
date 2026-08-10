@@ -21,7 +21,15 @@ function world() {
             x: 0.2,
             y: 0.4,
             z: 1,
-            encounterNpcIds: ["smuggler"]
+            encounterNpcIds: ["smuggler"],
+            checks: [{
+              id: "find-smuggler",
+              label: "追踪走私者",
+              instruction: "说明如何辨认潮水中的足迹。",
+              target: 10,
+              successText: "找到走私船。",
+              failureText: "足迹被潮水冲散。"
+            }]
           },
           {
             id: "tower",
@@ -94,7 +102,43 @@ test("host projection retains all locations and secret operational context", () 
   });
   assert.equal(projected.map.locations.length, 2);
   assert.equal(projected.map.host.locations[1].hostNotes, "结局开关在顶层。");
+  assert.equal(projected.map.host.locations[0].checks[0].label, "追踪走私者");
   assert.equal(projected.map.host.npcs[0].name, "守塔人");
   assert.equal(projected.map.host.endingCount, 1);
   assert.equal(projected.map.visible, false);
+});
+
+test("active checks sync publicly without revealing unresolved outcome branches", () => {
+  const pending = {
+    id: "runtime-check",
+    templateId: "find-smuggler",
+    locationId: "harbor",
+    label: "追踪走私者",
+    instruction: "说明如何辨认潮水中的足迹。",
+    target: 10,
+    bonus: 0,
+    rollMode: "normal",
+    dice: { count: 2, sides: 6, modifier: 1, defaultTarget: 9 },
+    status: "pending",
+    result: null,
+    successText: "找到走私船。",
+    failureText: "足迹被潮水冲散。",
+    outcomeText: "",
+    startedAt: "2026-08-10T12:00:00.000Z",
+    resolvedAt: ""
+  };
+  const player = projectRuntimePresentation({
+    world: world(),
+    roomSettings: { runtimePresentation: { activeLocationId: "harbor", mapVisible: true, activeCheck: pending } },
+    audience: "player"
+  });
+  const host = projectRuntimePresentation({
+    world: world(),
+    roomSettings: { runtimePresentation: { activeLocationId: "harbor", mapVisible: true, activeCheck: pending } },
+    audience: "host"
+  });
+  assert.equal(player.map.activeCheck.label, "追踪走私者");
+  assert.equal(player.map.activeCheck.successText, undefined);
+  assert.equal(player.map.activeCheck.failureText, undefined);
+  assert.equal(host.map.activeCheck.successText, "找到走私船。");
 });

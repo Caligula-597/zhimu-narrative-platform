@@ -108,6 +108,7 @@
     "test:studio-drag": "node --test scripts/studio-drag.test.mjs",
     "test:tabletop-map": "node --test scripts/tabletop-map-model.test.mjs",
     "test:tabletop-system": "node --test scripts/tabletop-system.test.mjs",
+    "test:tabletop-runtime:browser": "playwright test --config config/playwright.tabletop-runtime.config.mjs",
     "test:studio-drag:browser": "playwright test --config config/playwright.studio.config.mjs",
     "test:creator-interactions:browser": "playwright test --config config/playwright.studio.config.mjs",
     "test:pipeline-session": "node --test scripts/pipeline-wizard-session.test.mjs",

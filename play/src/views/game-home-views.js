@@ -12,6 +12,7 @@ import {
   normalizeMechanismInteraction,
   normalizeMechanismOptionPresentation,
 } from "../../../shared/mechanism-interactions.js";
+import { renderPlayerStageMapBoundary } from "./game-tabletop-stage-loader.js";
 
 export function renderGameResume() {
   return `
@@ -64,43 +65,6 @@ function roomContentBindingBanner() {
     </div>`;
 }
 
-function renderPlayerStageMap(map) {
-  if (!map?.visible || !map.locations?.length) return "";
-  const locations = map.locations;
-  const byId = new Map(locations.map((location) => [location.id, location]));
-  const active = byId.get(map.activeLocationId) || map.activeLocation || locations[0];
-  const dice = map.dice || {};
-  const modifier = Number(dice.modifier) || 0;
-  const diceLabel = `${Number(dice.count) || 1}d${Number(dice.sides) || 20}${modifier ? modifier > 0 ? `+${modifier}` : modifier : ""}`;
-  return `<section class="player-stage" aria-label="当前跑团地图">
-    <div class="player-stage-head">
-      <div><p class="eyebrow">当前场景地图</p><h3>${escapeHtml(map.title || "跑团地图")}</h3></div>
-      <span class="player-stage-dice">${escapeHtml(diceLabel)} · 默认难度 ${Number(dice.defaultTarget) || 10}</span>
-    </div>
-    <div class="player-stage-layout">
-      <div class="player-stage-map" role="img" aria-label="已公开 ${locations.length} 个地点，当前位于${escapeHtml(active?.name || "未指定地点")}">
-        <svg viewBox="0 0 100 100" aria-hidden="true">${(map.routes || []).map(([from, to]) => {
-          const start = byId.get(from);
-          const end = byId.get(to);
-          if (!start || !end) return "";
-          return `<line x1="${Number(start.x) * 100}" y1="${Number(start.y) * 100}" x2="${Number(end.x) * 100}" y2="${Number(end.y) * 100}"></line>`;
-        }).join("")}</svg>
-        ${locations.map((location, index) => `<div class="player-stage-node${location.id === active?.id ? " is-active" : ""}" style="--map-x:${Number(location.x) * 100}%;--map-y:${Number(location.y) * 100}%"><span>${index + 1}</span><b>${escapeHtml(location.name)}</b></div>`).join("")}
-      </div>
-      <div class="player-stage-current">
-        <span>${escapeHtml(active?.type || "当前地点")}</span>
-        <h4>${escapeHtml(active?.name || "等待主持人指定地点")}</h4>
-        <p>${escapeHtml(active?.description || "主持人推进后，这里会显示当前地点说明。")}</p>
-        ${map.party?.length ? `<div class="player-party-strip">${map.party.map((member) => {
-          const hp = Math.max(0, Number(member.hp) || 0);
-          const maxHp = Math.max(1, Number(member.maxHp) || 1);
-          return `<div class="player-party-member"><div><strong>${escapeHtml(member.name)}</strong><span>HP ${hp}/${maxHp}</span></div><i style="--hp:${Math.round(hp / maxHp * 100)}%"><b></b></i></div>`;
-        }).join("")}</div>` : ""}
-      </div>
-    </div>
-  </section>`;
-}
-
 function runtimeStateBanner() {
   if (!state.home?.currentState) return "";
   const current = normalizeRuntimeCurrentState(state.home?.currentState, {
@@ -127,7 +91,7 @@ function runtimeStateBanner() {
         ${currentBeatTasks.length ? `<section><span>现在要做</span><ul>${currentBeatTasks.map((task) => `<li>${escapeHtml(task)}</li>`).join("")}</ul></section>` : ""}
         ${currentBeatTips.length ? `<section><span>行动提示</span><div>${currentBeatTips.map((tip) => `<em>${escapeHtml(tip)}</em>`).join("")}</div></section>` : ""}
       </div>
-      ${renderPlayerStageMap(current.presentation?.map)}
+      ${renderPlayerStageMapBoundary(current.presentation?.map)}
       <footer><span>${escapeHtml(current.phase.label)}</span><span>${current.syncState.isFrozen ? "冻结版本" : "实时草稿"}</span><span>${current.syncState.status === "synced" ? "进度已同步" : "数据可能稍有延迟"}</span></footer>
     </article>`;
 }

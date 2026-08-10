@@ -259,6 +259,24 @@ function signedValue(value) {
   return number > 0 ? `+${number}` : String(number);
 }
 
+function locationCheckCard(check) {
+  const modeLabel = { normal: "普通", advantage: "优势", disadvantage: "劣势" };
+  return `<article class="map-location-check-card" data-map-location-check="${escapeHtml(check.id)}">
+    <div class="map-location-check-head">
+      <label class="map-field"><span>判定名称</span><input class="field" maxlength="80" value="${escapeHtml(check.label)}" data-map-location-check-field="label" data-check-id="${escapeHtml(check.id)}"></label>
+      <button type="button" class="map-mini-button danger-text" data-action="map-delete-location-check" data-check-id="${escapeHtml(check.id)}" aria-label="删除判定">${icon("trash")}</button>
+    </div>
+    <label class="map-field"><span>玩家行动提示</span><textarea class="field" rows="2" maxlength="240" data-map-location-check-field="instruction" data-check-id="${escapeHtml(check.id)}">${escapeHtml(check.instruction)}</textarea></label>
+    <div class="map-location-check-numbers">
+      <label class="map-field"><span>难度</span><input class="field" type="number" min="-9999" max="9999" step="1" value="${check.target}" data-map-location-check-field="target" data-check-id="${escapeHtml(check.id)}"></label>
+      <label class="map-field"><span>加值</span><input class="field" type="number" min="-999" max="999" step="1" value="${check.bonus}" data-map-location-check-field="bonus" data-check-id="${escapeHtml(check.id)}"></label>
+      <label class="map-field"><span>模式</span><select class="field" data-map-location-check-field="rollMode" data-check-id="${escapeHtml(check.id)}">${Object.entries(modeLabel).map(([value, label]) => `<option value="${value}"${check.rollMode === value ? " selected" : ""}>${label}</option>`).join("")}</select></label>
+    </div>
+    <label class="map-field"><span>成功结果</span><textarea class="field" rows="2" maxlength="240" data-map-location-check-field="successText" data-check-id="${escapeHtml(check.id)}">${escapeHtml(check.successText)}</textarea></label>
+    <label class="map-field"><span>失败代价</span><textarea class="field" rows="2" maxlength="240" data-map-location-check-field="failureText" data-check-id="${escapeHtml(check.id)}">${escapeHtml(check.failureText)}</textarea></label>
+  </article>`;
+}
+
 function locationInspector(session, location) {
   if (!location) return `<section class="map-inspector-section"><p>暂无地点，请先新增地点。</p></section>`;
   const encounterNpcs = session.design.system.npcs || [];
@@ -279,6 +297,10 @@ function locationInspector(session, location) {
         }).join("")}
       </div>
       <button type="button" class="secondary-btn full-btn" data-action="map-simulate-location" data-location-id="${escapeHtml(location.id)}">${icon("spark")}<span>模拟玩家到达</span></button>
+    </div>
+    <div class="map-location-check-editor">
+      <div class="map-location-check-title"><div><strong>地点判定</strong><small>预设主持端可直接发起的行动与成功/失败导向</small></div><button type="button" class="secondary-btn compact" data-action="map-add-location-check"${location.checks?.length >= 6 ? " disabled" : ""}>新增判定</button></div>
+      ${location.checks?.length ? location.checks.map(locationCheckCard).join("") : `<div class="map-condition-empty">尚未设置判定。主持人仍可临场创建，也可以在这里预设最多 6 项。</div>`}
     </div>
     <div class="map-encounter-editor">
       <div><strong>地点遭遇</strong><small>勾选会在这里登场的 NPC；先攻开始后按回合运行</small></div>
@@ -560,6 +582,21 @@ export function bindTabletopMapEditor() {
   root.querySelectorAll("[data-map-location-npc]").forEach((field) => {
     field.addEventListener("change", () => updateSelectedLocationEncounterNpc(field.dataset.npcId, field.checked));
   });
+  root.querySelectorAll("[data-map-location-check-field]").forEach((field) => {
+    if (field.dataset.mapLocationCheckField !== "rollMode") {
+      field.addEventListener("input", () => updateLocationCheckField(
+        field.dataset.checkId,
+        field.dataset.mapLocationCheckField,
+        field.value,
+        { preview: true }
+      ));
+    }
+    field.addEventListener("change", () => updateLocationCheckField(
+      field.dataset.checkId,
+      field.dataset.mapLocationCheckField,
+      field.value
+    ));
+  });
   root.querySelectorAll("[data-map-variable-value]").forEach((field) => {
     field.addEventListener("input", () => {
       const variableId = field.dataset.mapVariableValue;
@@ -764,6 +801,58 @@ export function updateSelectedLocationEncounterNpc(npcId, enabled) {
     : item);
   replaceDesign({ ...session.design, locations });
   render();
+}
+
+export function addLocationCheck() {
+  const session = initializeSession();
+  const location = selectedLocation();
+  if (!location) return;
+  if ((location.checks || []).length >= 6) return showToast("每个地点最多预设 6 项判定");
+  const check = {
+    id: `check-${Date.now().toString(36)}`,
+    label: "新的地点判定",
+    instruction: "描述角色如何行动，然后由主持人发起判定。",
+    target: session.design.system.dice.defaultTarget,
+    bonus: 0,
+    rollMode: "normal",
+    successText: "判定成功，获得预期进展。",
+    failureText: "判定失败，但故事仍会带着代价继续。"
+  };
+  const locations = session.design.locations.map((item) => item.id === location.id
+    ? { ...item, checks: [...(item.checks || []), check] }
+    : item);
+  replaceDesign({ ...session.design, locations });
+  render();
+}
+
+export function deleteLocationCheck(checkId) {
+  const session = initializeSession();
+  const location = selectedLocation();
+  if (!location) return;
+  const locations = session.design.locations.map((item) => item.id === location.id
+    ? { ...item, checks: (item.checks || []).filter((check) => check.id !== checkId) }
+    : item);
+  replaceDesign({ ...session.design, locations });
+  render();
+}
+
+export function updateLocationCheckField(checkId, field, value, { preview = false } = {}) {
+  const session = initializeSession();
+  const location = selectedLocation();
+  const allowed = ["label", "instruction", "target", "bonus", "rollMode", "successText", "failureText"];
+  if (!location || !allowed.includes(field)) return;
+  const nextValue = field === "target"
+    ? Math.round(Math.max(-9999, Math.min(9999, Number(value) || 0)))
+    : field === "bonus"
+      ? Math.round(Math.max(-999, Math.min(999, Number(value) || 0)))
+      : field === "rollMode"
+        ? (["normal", "advantage", "disadvantage"].includes(value) ? value : "normal")
+        : String(value || "");
+  const target = (location.checks || []).find((check) => check.id === checkId);
+  if (!target) return;
+  target[field] = nextValue;
+  markInlineDraft();
+  if (!preview) persistLocalDraft({ immediate: true });
 }
 
 export function updateMapTitle(value) {
@@ -1262,6 +1351,7 @@ export function addMapLocation() {
     y: 0.5 + (index % 2) * 0.08,
     z: 1,
     encounterNpcIds: [],
+    checks: [],
     effects: Object.fromEntries(session.design.variables.map((variable) => [variable.id, 0]))
   };
   session.selectedId = id;
@@ -1383,6 +1473,9 @@ export const tabletopMapViewApi = {
   updateSelectedLocationField,
   updateSelectedLocationEffect,
   updateSelectedLocationEncounterNpc,
+  addLocationCheck,
+  deleteLocationCheck,
+  updateLocationCheckField,
   updateMapTitle,
   setMapCanvasMode,
   openMapBackgroundPicker,

@@ -52,3 +52,26 @@ test("tabletop map zoom buttons and wheel redraw the canvas with visible feedbac
   await expect(panel).toHaveAttribute("data-map-rotation", "0");
   expect(failedResponses).toEqual([]);
 });
+
+test("creator can add and author a location check template", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => Boolean(window.zhimuViewLoader));
+  const advancedToggle = page.locator('[data-action="toggle-nav-advanced"]');
+  if (await advancedToggle.isVisible()) await advancedToggle.click();
+  await page.locator('[data-view="tabletopMap"]').click();
+  await page.locator("[data-tabletop-map-page]").waitFor({ state: "visible" });
+
+  const cards = page.locator("[data-map-location-check]");
+  const initialCount = await cards.count();
+  await page.locator('[data-action="map-add-location-check"]').click();
+  await expect(cards).toHaveCount(initialCount + 1);
+
+  const created = cards.nth(initialCount);
+  await created.locator('[data-map-location-check-field="label"]').fill("破解潮汐机关");
+  await created.locator('[data-map-location-check-field="target"]').fill("15");
+  await created.locator('[data-map-location-check-field="target"]').press("Tab");
+  await created.locator('[data-map-location-check-field="rollMode"]').selectOption("advantage");
+  await expect(created.locator('[data-map-location-check-field="label"]')).toHaveValue("破解潮汐机关");
+  await expect(created.locator('[data-map-location-check-field="target"]')).toHaveValue("15");
+  await expect(created.locator('[data-map-location-check-field="rollMode"]')).toHaveValue("advantage");
+});

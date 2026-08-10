@@ -71,7 +71,13 @@ export async function handleRoomEvent(type, data, ctx) {
     case "room.presentation_updated":
       ctx.bumpTabPulse?.("home");
       await ctx.onRefresh();
-      ctx.onToast(data.activeLocationId ? "主持人已更新当前场景" : "主持人已更新当前流程");
+      ctx.onToast(
+        data.checkStatus === "pending"
+          ? `主持人发起判定${data.checkLabel ? `：${data.checkLabel}` : ""}`
+          : data.checkStatus === "resolved"
+            ? `公开判定已结算${data.checkLabel ? `：${data.checkLabel}` : ""}`
+            : data.activeLocationId ? "主持人已更新当前场景" : "主持人已更新当前流程"
+      );
       break;
     case "room.mechanism_state_updated": {
       ctx.bumpTabPulse?.("home");

@@ -6,6 +6,8 @@ import { callView } from "./view-registry.js";
       case "map-save": callView("tabletopMap", "saveTabletopMap"); return true;
       case "map-add-location": callView("tabletopMap", "addMapLocation"); return true;
       case "map-delete-location": callView("tabletopMap", "deleteMapLocation", el?.dataset?.locationId); return true;
+      case "map-add-location-check": callView("tabletopMap", "addLocationCheck"); return true;
+      case "map-delete-location-check": callView("tabletopMap", "deleteLocationCheck", el?.dataset?.checkId); return true;
       case "map-select-location": callView("tabletopMap", "selectMapLocation", el?.dataset?.locationId); return true;
       case "map-toggle-route-mode": callView("tabletopMap", "toggleMapRouteMode"); return true;
       case "map-canvas-view": callView("tabletopMap", "updateMapCanvasView", el?.dataset?.mapOperation); return true;
