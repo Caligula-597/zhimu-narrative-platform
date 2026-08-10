@@ -184,6 +184,8 @@ export function projectRuntimeTabletopCheck(value, { audience = "player" } = {})
     failureEffects: _failureEffects,
     ...publicCheck
   } = check;
-  publicCheck.appliedChanges = check.appliedAt ? check.appliedChanges : [];
+  publicCheck.appliedChanges = check.appliedAt
+    ? check.appliedChanges.map(({ id, label, delta }) => ({ id, label, delta }))
+    : [];
   return publicCheck;
 }

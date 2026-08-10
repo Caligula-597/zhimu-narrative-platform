@@ -90,11 +90,41 @@ test("player current-state normalization strips host-only beat guidance", () => 
       map: {
         visible: true,
         activeLocation: { id: "public", name: "Public", hostNotes: "hidden location note" },
-        locations: [{ id: "public", name: "Public", hostNotes: "hidden location note" }],
+        locations: [
+          { id: "public", name: "Public", hostNotes: "hidden location note" },
+          { id: "other", name: "Other", hostNotes: "hidden location note" }
+        ],
+        revealedLocationIds: ["public", { id: "other", hostNotes: "hidden revealed note" }],
+        routes: [
+          ["public", "other", "hidden-third-endpoint"],
+          { from: "public", to: "other", hostNotes: "hidden route note" },
+          ["public", "missing"]
+        ],
+        dice: { count: 1, sides: 20, modifier: 2, defaultTarget: 12, seed: "hidden dice seed" },
         activeCheck: {
           id: "check-1",
           label: "Public check",
           status: "pending",
+          dice: { count: 1, sides: 20, modifier: 2, defaultTarget: 12, seed: "hidden check seed" },
+          result: {
+            label: "Public result",
+            rolls: [15],
+            attempts: [[15]],
+            total: 17,
+            rawTotal: 15,
+            target: 12,
+            success: true,
+            hostNotes: "hidden result note"
+          },
+          appliedAt: "2026-08-10T14:00:00.000Z",
+          appliedChanges: [{
+            id: "trust",
+            label: "Public delta",
+            previous: 6,
+            value: 8,
+            delta: 2,
+            hostNotes: "hidden change note"
+          }],
           successText: "hidden success branch",
           failureText: "hidden failure branch"
         },
@@ -118,6 +148,19 @@ test("player current-state normalization strips host-only beat guidance", () => 
   assert.equal(normalized.presentation.map.activeLocation.hostNotes, undefined);
   assert.equal(normalized.presentation.map.activeCheck.successText, undefined);
   assert.equal(normalized.presentation.map.activeCheck.failureText, undefined);
+  assert.equal(normalized.presentation.map.dice.seed, undefined);
+  assert.equal(normalized.presentation.map.activeCheck.dice.seed, undefined);
+  assert.equal(normalized.presentation.map.activeCheck.result.hostNotes, undefined);
+  assert.deepEqual(normalized.presentation.map.activeCheck.appliedChanges, [{
+    id: "trust",
+    label: "Public delta",
+    delta: 2
+  }]);
+  assert.equal(normalized.presentation.map.activeCheck.appliedChanges[0].previous, undefined);
+  assert.equal(normalized.presentation.map.activeCheck.appliedChanges[0].value, undefined);
+  assert.equal(normalized.presentation.map.activeCheck.appliedChanges[0].hostNotes, undefined);
+  assert.deepEqual(normalized.presentation.map.revealedLocationIds, ["public"]);
+  assert.deepEqual(normalized.presentation.map.routes, [["public", "other"]]);
   assert.equal(normalized.presentation.map.activeEncounter.npcs[0].hostNotes, undefined);
   assert.equal(normalized.presentation.map.endings, undefined);
   assert.equal(normalized.presentation.map.privateRuntimeState, undefined);

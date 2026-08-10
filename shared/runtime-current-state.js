@@ -18,6 +18,26 @@ function pickObject(value, keys) {
     .map((key) => [key, value[key]]));
 }
 
+const PUBLIC_DICE_KEYS = ["count", "sides", "modifier", "defaultTarget"];
+const PUBLIC_CHECK_RESULT_KEYS = [
+  "label", "rollMode", "rawTotal", "total", "target", "success",
+  "criticalSuccess", "criticalFailure", "margin", "degree", "degreeLabel", "degreeRank"
+];
+
+function normalizePlayerDice(value) {
+  return pickObject(value, PUBLIC_DICE_KEYS) || {};
+}
+
+function normalizePlayerCheckResult(value) {
+  const result = pickObject(value, PUBLIC_CHECK_RESULT_KEYS);
+  if (!result) return null;
+  result.attempts = (Array.isArray(value.attempts) ? value.attempts : [])
+    .slice(0, 2)
+    .map((attempt) => Array.isArray(attempt) ? attempt.slice(0, 10) : []);
+  result.rolls = Array.isArray(value.rolls) ? value.rolls.slice(0, 10) : [];
+  return result;
+}
+
 function normalizePlayerCheck(value) {
   const check = pickObject(value, [
     "id", "templateId", "locationId", "label", "instruction", "target", "bonus",
@@ -25,18 +45,11 @@ function normalizePlayerCheck(value) {
     "appliedChanges", "appliedAt"
   ]);
   if (!check) return null;
-  if (check.dice && typeof check.dice === "object") check.dice = { ...check.dice };
-  if (check.result && typeof check.result === "object") {
-    check.result = {
-      ...check.result,
-      attempts: Array.isArray(check.result.attempts)
-        ? check.result.attempts.map((attempt) => Array.isArray(attempt) ? [...attempt] : [])
-        : [],
-      rolls: Array.isArray(check.result.rolls) ? [...check.result.rolls] : []
-    };
-  }
+  check.dice = normalizePlayerDice(value.dice);
+  check.result = normalizePlayerCheckResult(value.result);
   check.appliedChanges = (Array.isArray(value.appliedChanges) ? value.appliedChanges : [])
-    .map((change) => pickObject(change, ["id", "label", "previous", "value", "delta"]))
+    .slice(0, 8)
+    .map((change) => pickObject(change, ["id", "label", "delta"]))
     .filter(Boolean);
   return check;
 }
@@ -45,6 +58,7 @@ function normalizePlayerEncounter(value) {
   const encounter = pickObject(value, ["locationId", "locationName", "status", "startedAt"]);
   if (!encounter) return null;
   encounter.npcs = (Array.isArray(value.npcs) ? value.npcs : [])
+    .slice(0, 24)
     .map((npc) => pickObject(npc, ["id", "name", "role", "hp", "maxHp"]))
     .filter(Boolean);
   return encounter;
@@ -54,21 +68,30 @@ function normalizePlayerMap(value) {
   const map = pickObject(value, [
     "title", "visible", "activeLocationId", "revealedLocationIds", "routes", "dice", "publishedEnding"
   ]) || {};
-  map.revealedLocationIds = Array.isArray(value.revealedLocationIds) ? [...value.revealedLocationIds] : [];
+  map.revealedLocationIds = Array.isArray(value.revealedLocationIds)
+    ? value.revealedLocationIds.slice(0, 24)
+      .map((id) => typeof id === "string" || typeof id === "number" ? String(id) : "")
+      .filter(Boolean)
+    : [];
   map.activeLocation = pickObject(value.activeLocation, [
     "id", "name", "type", "description", "segmentKey", "x", "y", "z"
   ]);
   map.locations = (Array.isArray(value.locations) ? value.locations : [])
+    .slice(0, 24)
     .map((location) => pickObject(location, [
       "id", "name", "type", "description", "segmentKey", "x", "y", "z"
     ]))
     .filter(Boolean);
+  const publicLocationIds = new Set(map.locations.map((location) => location.id).filter(Boolean));
   map.routes = (Array.isArray(value.routes) ? value.routes : [])
-    .map((route) => Array.isArray(route) ? [...route] : route);
+    .slice(0, 64)
+    .map((route) => Array.isArray(route) ? route.slice(0, 2).map(String) : [])
+    .filter(([from, to]) => from && to && from !== to && publicLocationIds.has(from) && publicLocationIds.has(to));
   map.party = (Array.isArray(value.party) ? value.party : [])
+    .slice(0, 12)
     .map((member) => pickObject(member, ["id", "name", "role", "hp", "maxHp"]))
     .filter(Boolean);
-  map.dice = value.dice && typeof value.dice === "object" ? { ...value.dice } : {};
+  map.dice = normalizePlayerDice(value.dice);
   map.activeCheck = normalizePlayerCheck(value.activeCheck);
   map.activeEncounter = normalizePlayerEncounter(value.activeEncounter);
   map.publishedEnding = pickObject(value.publishedEnding, ["id", "name", "summary", "tone", "publishedAt"]);

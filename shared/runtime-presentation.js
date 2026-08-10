@@ -242,7 +242,7 @@ export function projectRuntimePresentation({ world = {}, roomSettings = {}, curr
   const variables = normalizeTabletopVariables(design.variables, control.variableValues);
   const endingEvaluation = evaluateTabletopEndingRules(design.endings, variables);
   const publishedEnding = projectTabletopEnding(
-    endingEvaluation.results.find((ending) => ending.id === control.publishedEnding?.id),
+    endingEvaluation.candidates.find((ending) => ending.id === control.publishedEnding?.id),
     control.publishedEnding?.publishedAt
   );
   const hostAudience = audience !== "player";

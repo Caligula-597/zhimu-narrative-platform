@@ -198,4 +198,12 @@ test("runtime variables drive host-only ending candidates until the host publish
   assert.equal(player.map.host, null);
   assert.equal(player.map.publishedEnding.name, "潮汐撤离");
   assert.equal(player.map.publishedEnding.summary, "队伍赶在封港前离开。");
+
+  roomSettings.runtimePresentation.variableValues = [{ id: "threat", value: 80 }];
+  const stalePlayer = projectRuntimePresentation({
+    world: currentWorld,
+    roomSettings,
+    audience: "player"
+  });
+  assert.equal(stalePlayer.map.publishedEnding, null);
 });

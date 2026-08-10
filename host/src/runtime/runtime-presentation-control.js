@@ -10,6 +10,15 @@ function validTimestamp(value, fallback) {
   return text && Number.isFinite(Date.parse(text)) ? text : fallback;
 }
 
+export function hasRuntimePresentationMutation(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length);
+}
+
+export function matchesRuntimeControl(current, expected, keys) {
+  if (!current || typeof current !== "object" || !expected || typeof expected !== "object") return false;
+  return keys.every((key) => String(current[key] ?? "") === String(expected[key] ?? ""));
+}
+
 export function serializeRuntimeVariableValues(value) {
   const seen = new Set();
   return (Array.isArray(value) ? value : []).map((item) => {

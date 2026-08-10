@@ -22,7 +22,11 @@ import {
   copyPlayLink,
   openRoomInviteModal
 } from "./invite.js";
-import { buildRuntimePresentationPatch } from "./runtime-presentation-control.js";
+import {
+  buildRuntimePresentationPatch,
+  hasRuntimePresentationMutation,
+  matchesRuntimeControl
+} from "./runtime-presentation-control.js";
 export function createDirectorActionHandler({ render, showToast }) {
   let runtimePresentationQueue = Promise.resolve();
 
@@ -37,19 +41,20 @@ export function createDirectorActionHandler({ render, showToast }) {
   }
 
   function saveRuntimePresentation(patchOrFactory, successMessage) {
-    const queued = runtimePresentationQueue.then(() => runCommand(
-      () => {
-        const presentation = state.currentState?.presentation || {};
-        const patch = typeof patchOrFactory === "function"
-          ? patchOrFactory(presentation)
-          : patchOrFactory;
-        return api.updateHostRoomSettings({
+    const queued = runtimePresentationQueue.then(() => {
+      const presentation = state.currentState?.presentation || {};
+      const patch = typeof patchOrFactory === "function"
+        ? patchOrFactory(presentation)
+        : patchOrFactory;
+      if (!hasRuntimePresentationMutation(patch)) return false;
+      return runCommand(
+        () => api.updateHostRoomSettings({
           runtimePresentation: buildRuntimePresentationPatch(patch)
-        });
-      },
-      successMessage,
-      "同步运行流程失败"
-    ));
+        }),
+        successMessage,
+        "同步运行流程失败"
+      );
+    });
     runtimePresentationQueue = queued.catch(() => {});
     return queued;
   }
@@ -180,12 +185,13 @@ export function createDirectorActionHandler({ render, showToast }) {
           const currentMap = presentation.map || {};
           const currentLocation = currentMap.host?.locations?.find((item) => item.id === locationId);
           const currentNpcIds = [...new Set((currentLocation?.encounterNpcIds || []).map(String).filter(Boolean))];
+          if (currentMap.activeLocationId !== locationId || !currentLocation || !currentNpcIds.length) return null;
           const revealed = new Set(currentMap.revealedLocationIds || []);
           revealed.add(locationId);
           return {
             activeEncounter: {
               locationId,
-              npcIds: currentNpcIds.length ? currentNpcIds : npcIds,
+              npcIds: currentNpcIds,
               status: "active",
               startedAt: new Date().toISOString()
             },
@@ -196,9 +202,19 @@ export function createDirectorActionHandler({ render, showToast }) {
         }, "地点遭遇已触发并同步到玩家端");
         return true;
       }
-      case "host-tabletop-end-encounter":
-        saveRuntimePresentation({ activeEncounter: null }, "地点遭遇已结束");
+      case "host-tabletop-end-encounter": {
+        const activeEncounter = state.currentState?.presentation?.map?.activeEncounter;
+        if (!activeEncounter) {
+          showToast("当前没有进行中的遭遇");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => matchesRuntimeControl(
+          presentation.map?.activeEncounter,
+          activeEncounter,
+          ["locationId", "startedAt"]
+        ) ? { activeEncounter: null } : null, "地点遭遇已结束");
         return true;
+      }
       case "host-tabletop-start-check": {
         const map = state.currentState?.presentation?.map;
         const location = map?.host?.locations?.find((item) => item.id === map.activeLocationId);
@@ -208,13 +224,16 @@ export function createDirectorActionHandler({ render, showToast }) {
           return true;
         }
         const checkId = template.id;
+        const locationId = location.id;
         saveRuntimePresentation((presentation) => {
           const currentMap = presentation.map || {};
-          const currentLocation = currentMap.host?.locations?.find((item) => item.id === currentMap.activeLocationId);
-          const currentTemplate = currentLocation?.checks?.find((check) => check.id === checkId) || template;
+          if (currentMap.activeLocationId !== locationId) return null;
+          const currentLocation = currentMap.host?.locations?.find((item) => item.id === locationId);
+          const currentTemplate = currentLocation?.checks?.find((check) => check.id === checkId);
+          if (!currentTemplate) return null;
           return {
             activeCheck: createRuntimeTabletopCheck(currentTemplate, {
-              locationId: currentLocation?.id || location.id,
+              locationId,
               dice: currentMap.dice || map.dice
             })
           };
@@ -228,21 +247,25 @@ export function createDirectorActionHandler({ render, showToast }) {
         const target = Number(panel?.querySelector?.("[data-host-check-target]")?.value ?? map?.dice?.defaultTarget ?? 12);
         const bonus = Number(panel?.querySelector?.("[data-host-check-bonus]")?.value || 0);
         const rollMode = panel?.querySelector?.("[data-host-check-mode]")?.value || "normal";
-        saveRuntimePresentation((presentation) => ({
-          activeCheck: createRuntimeTabletopCheck({
-            id: "ad-hoc",
-            label,
-            instruction: `请描述如何完成「${label}」，主持人随后公开掷骰。`,
-            target,
-            bonus,
-            rollMode,
-            successText: "行动成功，故事获得预期进展。",
-            failureText: "行动未能如愿，但故事将带着代价继续。"
-          }, {
-            locationId: presentation.map?.activeLocationId || map?.activeLocationId || "",
-            dice: presentation.map?.dice || map?.dice
-          })
-        }), "临场判定已发到玩家端");
+        const locationId = map?.activeLocationId || "";
+        saveRuntimePresentation((presentation) => {
+          if ((presentation.map?.activeLocationId || "") !== locationId) return null;
+          return {
+            activeCheck: createRuntimeTabletopCheck({
+              id: "ad-hoc",
+              label,
+              instruction: `请描述如何完成「${label}」，主持人随后公开掷骰。`,
+              target,
+              bonus,
+              rollMode,
+              successText: "行动成功，故事获得预期进展。",
+              failureText: "行动未能如愿，但故事将带着代价继续。"
+            }, {
+              locationId,
+              dice: presentation.map?.dice || map?.dice
+            })
+          };
+        }, "临场判定已发到玩家端");
         return true;
       }
       case "host-tabletop-roll-check": {
@@ -251,9 +274,11 @@ export function createDirectorActionHandler({ render, showToast }) {
           showToast("当前没有等待结算的判定");
           return true;
         }
-        saveRuntimePresentation((presentation) => ({
-          activeCheck: resolveRuntimeTabletopCheck(presentation.map?.activeCheck || activeCheck)
-        }), "判定结果已公开");
+        saveRuntimePresentation((presentation) => {
+          const currentCheck = presentation.map?.activeCheck;
+          if (!matchesRuntimeControl(currentCheck, activeCheck, ["id", "locationId", "startedAt", "resolvedAt"])) return null;
+          return { activeCheck: resolveRuntimeTabletopCheck(currentCheck) };
+        }, "判定结果已公开");
         return true;
       }
       case "host-tabletop-apply-check-outcome": {
@@ -262,17 +287,24 @@ export function createDirectorActionHandler({ render, showToast }) {
           showToast(map?.activeCheck?.appliedAt ? "这次判定的数值变化已经应用" : "请先公开掷骰结果");
           return true;
         }
+        const activeCheck = map.activeCheck;
         saveRuntimePresentation((presentation) => {
           const currentMap = presentation.map || {};
+          const currentCheck = currentMap.activeCheck;
+          if (!matchesRuntimeControl(
+            currentCheck,
+            activeCheck,
+            ["id", "locationId", "startedAt", "resolvedAt"]
+          ) || currentCheck.appliedAt) return null;
           const applied = applyRuntimeTabletopCheckOutcome(
-            currentMap.activeCheck || map.activeCheck,
+            currentCheck,
             currentMap.host?.variables || map.host?.variables || []
           );
           return applied ? {
             activeCheck: applied.activeCheck,
             variableValues: applied.variableValues,
             publishedEnding: null
-          } : { activeCheck: currentMap.activeCheck || null };
+          } : null;
         }, "数值变化已应用，结局候选已重新计算");
         return true;
       }
@@ -287,18 +319,37 @@ export function createDirectorActionHandler({ render, showToast }) {
         saveRuntimePresentation((presentation) => {
           const currentCandidate = presentation.map?.host?.endingCandidates
             ?.find((ending) => ending.id === endingId);
-          return currentCandidate ? {
-            publishedEnding: { id: endingId, publishedAt: new Date().toISOString() }
-          } : { publishedEnding: presentation.map?.publishedEnding || null };
+          if (!currentCandidate || presentation.map?.publishedEnding?.id === endingId) return null;
+          return { publishedEnding: { id: endingId, publishedAt: new Date().toISOString() } };
         }, `结局导向「${candidate.name}」已公开给玩家`);
         return true;
       }
-      case "host-tabletop-unpublish-ending":
-        saveRuntimePresentation({ publishedEnding: null }, "结局导向已收回，仅主持端可见");
+      case "host-tabletop-unpublish-ending": {
+        const publishedEnding = state.currentState?.presentation?.map?.publishedEnding;
+        if (!publishedEnding) {
+          showToast("当前没有已公开的结局导向");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => matchesRuntimeControl(
+          presentation.map?.publishedEnding,
+          publishedEnding,
+          ["id", "publishedAt"]
+        ) ? { publishedEnding: null } : null, "结局导向已收回，仅主持端可见");
         return true;
-      case "host-tabletop-clear-check":
-        saveRuntimePresentation({ activeCheck: null }, "判定已收起，可以继续推进");
+      }
+      case "host-tabletop-clear-check": {
+        const activeCheck = state.currentState?.presentation?.map?.activeCheck;
+        if (!activeCheck) {
+          showToast("当前没有可收起的判定");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => matchesRuntimeControl(
+          presentation.map?.activeCheck,
+          activeCheck,
+          ["id", "locationId", "startedAt", "resolvedAt"]
+        ) ? { activeCheck: null } : null, "判定已收起，可以继续推进");
         return true;
+      }
       case "refresh-host-data": loadHostData(true, true); return true;
       case "host-pace-toggle": togglePaceTimer(); return true;
       case "host-pace-reset": resetPaceTimer(); return true;

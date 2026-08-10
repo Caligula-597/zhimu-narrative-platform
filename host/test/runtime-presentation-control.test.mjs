@@ -2,12 +2,30 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildRuntimePresentationPatch,
+  hasRuntimePresentationMutation,
+  matchesRuntimeControl,
   serializeActiveEncounterControl,
   serializePublishedEndingControl,
   serializeRuntimeVariableValues
 } from "../src/runtime/runtime-presentation-control.js";
 
 const now = () => "2026-08-10T14:00:00.000Z";
+
+test("runtime mutations distinguish explicit clears from stale no-ops", () => {
+  assert.equal(hasRuntimePresentationMutation(null), false);
+  assert.equal(hasRuntimePresentationMutation({}), false);
+  assert.equal(hasRuntimePresentationMutation({ activeCheck: null }), true);
+  assert.equal(matchesRuntimeControl(
+    { id: "check-1", startedAt: "a", resolvedAt: "b" },
+    { id: "check-1", startedAt: "a", resolvedAt: "b" },
+    ["id", "startedAt", "resolvedAt"]
+  ), true);
+  assert.equal(matchesRuntimeControl(
+    { id: "check-2", startedAt: "a", resolvedAt: "b" },
+    { id: "check-1", startedAt: "a", resolvedAt: "b" },
+    ["id", "startedAt", "resolvedAt"]
+  ), false);
+});
 
 test("projected encounters round-trip through the strict room settings patch shape", () => {
   const control = buildRuntimePresentationPatch({
