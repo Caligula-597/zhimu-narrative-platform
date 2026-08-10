@@ -319,7 +319,22 @@
 .map-tool-button + .map-tool-button { border-left: 1px solid rgba(20, 35, 33, .1); }
 .map-tool-button:hover { color: #164a43; background: #f1f6f2; }
 .map-tool-button.is-active { color: #fff; background: #315f58; }
+.map-tool-button:disabled { color: #a7aca9; background: rgba(20, 35, 33, .035); cursor: not-allowed; }
 .map-tool-button svg { width: 14px !important; height: 14px !important; flex-basis: 14px !important; }
+
+.map-zoom-value {
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border-inline: 1px solid rgba(20, 35, 33, .1);
+  color: #315f58;
+  background: rgba(255, 253, 248, .78);
+  font-size: 9px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
 
 .map-canvas-wrap {
   position: relative;

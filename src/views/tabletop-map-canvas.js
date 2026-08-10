@@ -64,15 +64,19 @@ function boardGeometry(canvas, image, view, design) {
   const scale = Math.min(
     (width - paddingX * 2) / rotatedWidth,
     (height - paddingY * 2) / rotatedHeight
-  ) * clamp(view.zoom, 0.72, 1.3);
+  ) * clamp(view.zoom, 0.6, 2);
   return {
-    centerX: width / 2,
-    centerY: height / 2 + height * 0.025,
+    centerX: width / 2 + clamp(view.panX, -0.25, 0.25) * width,
+    centerY: height / 2 + height * 0.025 + clamp(view.panY, -0.25, 0.25) * height,
     imageWidth,
     imageHeight,
     rotation,
     scale
   };
+}
+
+function panLimit(zoom) {
+  return Math.min(0.25, Math.max(0, (clamp(zoom, 1, 2) - 1) / clamp(zoom, 1, 2) / 2));
 }
 
 function projectLocation(location, geometry, view) {
@@ -329,6 +333,7 @@ export function bindTabletopMapCanvas(canvas, options) {
     geometry: null,
     draggingId: "",
     dragStart: null,
+    panStart: null,
     didDrag: false
   };
   renderCanvas(canvas, state);
@@ -336,14 +341,37 @@ export function bindTabletopMapCanvas(canvas, options) {
   observer.observe(canvas);
 
   const onPointerDown = (event) => {
-    const id = hitLocation(state, localPointer(event, canvas));
-    if (!id) return;
+    const pointer = localPointer(event, canvas);
+    const id = hitLocation(state, pointer);
+    if (!id) {
+      if (state.routeMode || Number(state.view.zoom) <= 1) return;
+      state.panStart = {
+        pointer,
+        x: Number(state.view.panX) || 0,
+        y: Number(state.view.panY) || 0
+      };
+      state.didDrag = false;
+      canvas.setPointerCapture?.(event.pointerId);
+      return;
+    }
     state.draggingId = id;
-    state.dragStart = localPointer(event, canvas);
+    state.dragStart = pointer;
     state.didDrag = false;
     canvas.setPointerCapture?.(event.pointerId);
   };
   const onPointerMove = (event) => {
+    if (state.panStart) {
+      const pointer = localPointer(event, canvas);
+      const bounds = canvas.getBoundingClientRect();
+      const distance = Math.hypot(pointer.x - state.panStart.pointer.x, pointer.y - state.panStart.pointer.y);
+      if (!state.didDrag && distance < 6) return;
+      state.didDrag = true;
+      const limit = panLimit(state.view.zoom);
+      state.view.panX = clamp(state.panStart.x + (pointer.x - state.panStart.pointer.x) / Math.max(1, bounds.width), -limit, limit);
+      state.view.panY = clamp(state.panStart.y + (pointer.y - state.panStart.pointer.y) / Math.max(1, bounds.height), -limit, limit);
+      renderCanvas(canvas, state);
+      return;
+    }
     if (!state.draggingId || !state.geometry) return;
     const pointer = localPointer(event, canvas);
     if (!state.didDrag && state.dragStart && Math.hypot(pointer.x - state.dragStart.x, pointer.y - state.dragStart.y) < 6) return;
@@ -363,6 +391,13 @@ export function bindTabletopMapCanvas(canvas, options) {
     renderCanvas(canvas, state);
   };
   const onPointerUp = (event) => {
+    if (state.panStart) {
+      state.panStart = null;
+      canvas.releasePointerCapture?.(event.pointerId);
+      if (state.didDrag) options.onPan?.({ x: state.view.panX, y: state.view.panY });
+      state.didDrag = false;
+      return;
+    }
     if (!state.draggingId) return;
     const movedId = state.draggingId;
     state.draggingId = "";
@@ -373,10 +408,16 @@ export function bindTabletopMapCanvas(canvas, options) {
     if (!state.didDrag) options.onSelect?.(movedId);
     state.didDrag = false;
   };
+  const onWheel = (event) => {
+    if (!options.onZoom || !Number.isFinite(event.deltaY) || event.deltaY === 0) return;
+    event.preventDefault();
+    options.onZoom(event.deltaY < 0 ? "zoom-in" : "zoom-out");
+  };
   canvas.addEventListener("pointerdown", onPointerDown);
   canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("pointerup", onPointerUp);
   canvas.addEventListener("pointercancel", onPointerUp);
+  canvas.addEventListener("wheel", onWheel, { passive: false });
 
   const binding = {
     disconnect() {
@@ -385,6 +426,7 @@ export function bindTabletopMapCanvas(canvas, options) {
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointercancel", onPointerUp);
+      canvas.removeEventListener("wheel", onWheel);
     }
   };
   boundCanvases.set(canvas, binding);

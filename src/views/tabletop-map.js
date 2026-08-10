@@ -32,6 +32,14 @@ import {
 const escapeHtml = F.escapeHtml || ((value = "") => String(value));
 const LOCAL_DRAFT_PREFIX = "zhimuTabletopMapDraft";
 const LOCATION_TYPES = ["室内场景", "公共场景", "探索场景", "危险场景", "机关场景", "休整场景"];
+const MAP_ZOOM_MIN = 0.6;
+const MAP_ZOOM_MAX = 2;
+const MAP_ZOOM_STEP = 0.1;
+
+function mapPanLimit(zoom) {
+  const normalized = Math.max(1, Math.min(MAP_ZOOM_MAX, Number(zoom) || 1));
+  return Math.min(0.25, Math.max(0, (normalized - 1) / normalized / 2));
+}
 
 let mapSession = null;
 let saving = false;
@@ -137,7 +145,7 @@ function initializeSession() {
     conditionTargetId: design.system.players?.[0]?.id || design.system.player?.id || "",
     conditionLabel: COMMON_COMBAT_CONDITIONS[0],
     conditionRounds: 2,
-    canvasView: { rotation: 0, zoom: 1, height: 1, grid: false }
+    canvasView: { rotation: 0, zoom: 1, panX: 0, panY: 0, height: 1, grid: false }
   };
   return mapSession;
 }
@@ -186,8 +194,9 @@ function locationRail(session) {
   </aside>`;
 }
 
-function toolbarButton(operation, iconName, label, active = false) {
-  return `<button type="button" class="map-tool-button${active ? " is-active" : ""}" data-action="map-canvas-view" data-map-operation="${operation}" aria-pressed="${active}">${icon(iconName)}<span>${label}</span></button>`;
+function toolbarButton(operation, iconName, label, active = null, disabled = false) {
+  const pressed = typeof active === "boolean" ? ` aria-pressed="${active}"` : "";
+  return `<button type="button" class="map-tool-button${active ? " is-active" : ""}" data-action="map-canvas-view" data-map-operation="${operation}" aria-label="${label}" title="${label}"${pressed}${disabled ? " disabled" : ""}>${icon(iconName)}<span>${label}</span></button>`;
 }
 
 function canvasModeButton(mode, iconName, label, active = false) {
@@ -198,13 +207,14 @@ function canvasModeButton(mode, iconName, label, active = false) {
 function mapCanvas(session) {
   const view = session.canvasView;
   const canvas = session.design.canvas;
+  const zoomPercent = Math.round(view.zoom * 100);
   const status = session.dirty ? "有未保存修改" : session.design.savedAt ? "云端已保存" : "本地草稿";
   const sourceLabel = canvas.mode === "custom"
     ? canvas.fileName || "自定义底图"
     : canvas.mode === "blank"
       ? "空白画布"
       : "示例底图";
-  return `<main class="map-canvas-panel">
+  return `<main class="map-canvas-panel" data-map-zoom="${view.zoom.toFixed(2)}" data-map-rotation="${view.rotation}" data-map-pan-x="${Number(view.panX || 0).toFixed(3)}" data-map-pan-y="${Number(view.panY || 0).toFixed(3)}">
     <div class="map-canvas-toolbar" aria-label="地图视角控制">
       <div class="map-tool-group map-source-tools">
         ${canvasModeButton("template", "image", "示例", canvas.mode === "template")}
@@ -220,9 +230,10 @@ function mapCanvas(session) {
         ${toolbarButton("rotate-left", "rotateLeft", "左旋")}
         ${toolbarButton("rotate-right", "rotateRight", "右旋")}
       </div>
-      <div class="map-tool-group">
-        ${toolbarButton("zoom-out", "zoomOut", "缩小")}
-        ${toolbarButton("zoom-in", "zoomIn", "放大")}
+      <div class="map-tool-group map-zoom-tools" aria-label="地图缩放">
+        ${toolbarButton("zoom-out", "zoomOut", "缩小地图", null, view.zoom <= MAP_ZOOM_MIN)}
+        <output class="map-zoom-value" data-map-zoom-output aria-live="polite">${zoomPercent}%</output>
+        ${toolbarButton("zoom-in", "zoomIn", "放大地图", null, view.zoom >= MAP_ZOOM_MAX)}
       </div>
       <div class="map-tool-group">
         ${toolbarButton("height", "height", `高度 ${view.height.toFixed(2)}×`, view.height !== 1)}
@@ -232,7 +243,7 @@ function mapCanvas(session) {
     </div>
     <div class="map-canvas-wrap${session.routeMode ? " is-route-mode" : ""}">
       <canvas data-tabletop-map-canvas aria-label="${escapeHtml(session.design.title)}地图画布。可拖动地点标记调整位置。"></canvas>
-      <div class="map-canvas-tip">${session.routeMode ? "依次选择两个地点以切换路线" : canvas.mode === "blank" ? "空白画布：添加并拖动地点，自行组织空间" : "拖动标记调整地点 · 可上传任意题材底图"}</div>
+      <div class="map-canvas-tip">${session.routeMode ? "依次选择两个地点以切换路线" : canvas.mode === "blank" ? "空白画布：拖动地点 · 滚轮缩放 · 放大后拖动空白处平移" : "拖动标记调整地点 · 滚轮缩放 · 放大后拖动空白处平移"}</div>
     </div>
     <footer class="map-canvas-status" aria-label="地图状态">
       <span><b>${session.design.locations.length}</b> 个地点</span>
@@ -515,7 +526,9 @@ export function bindTabletopMapEditor() {
     routeStartId: mapSession.routeStartId,
     view: mapSession.canvasView,
     onSelect: (locationId) => selectMapLocation(locationId),
-    onMove: (locationId, position, { preview } = {}) => moveMapLocation(locationId, position, { preview })
+    onMove: (locationId, position, { preview } = {}) => moveMapLocation(locationId, position, { preview }),
+    onZoom: (direction) => updateMapCanvasView(direction),
+    onPan: (position) => updateMapCanvasPan(position)
   });
 
   root.querySelectorAll("[data-map-location-field]").forEach((field) => {
@@ -1282,11 +1295,22 @@ export function updateMapCanvasView(operation) {
   const view = session.canvasView;
   if (operation === "rotate-left") view.rotation = (view.rotation + 3) % 4;
   if (operation === "rotate-right") view.rotation = (view.rotation + 1) % 4;
-  if (operation === "zoom-out") view.zoom = Math.max(0.72, Number((view.zoom - 0.1).toFixed(2)));
-  if (operation === "zoom-in") view.zoom = Math.min(1.3, Number((view.zoom + 0.1).toFixed(2)));
+  if (operation === "zoom-out") view.zoom = Math.max(MAP_ZOOM_MIN, Number((view.zoom - MAP_ZOOM_STEP).toFixed(2)));
+  if (operation === "zoom-in") view.zoom = Math.min(MAP_ZOOM_MAX, Number((view.zoom + MAP_ZOOM_STEP).toFixed(2)));
+  const panLimit = mapPanLimit(view.zoom);
+  view.panX = Math.max(-panLimit, Math.min(panLimit, Number(view.panX) || 0));
+  view.panY = Math.max(-panLimit, Math.min(panLimit, Number(view.panY) || 0));
   if (operation === "height") view.height = view.height >= 1.25 ? 0.75 : Number((view.height + 0.25).toFixed(2));
   if (operation === "grid") view.grid = !view.grid;
-  if (operation === "reset") session.canvasView = { rotation: 0, zoom: 1, height: 1, grid: false };
+  if (operation === "reset") session.canvasView = { rotation: 0, zoom: 1, panX: 0, panY: 0, height: 1, grid: false };
+  render();
+}
+
+export function updateMapCanvasPan(position = {}) {
+  const session = initializeSession();
+  const limit = mapPanLimit(session.canvasView.zoom);
+  session.canvasView.panX = Math.max(-limit, Math.min(limit, Number(position.x) || 0));
+  session.canvasView.panY = Math.max(-limit, Math.min(limit, Number(position.y) || 0));
   render();
 }
 
@@ -1396,6 +1420,7 @@ export const tabletopMapViewApi = {
   deleteMapLocation,
   toggleMapRouteMode,
   updateMapCanvasView,
+  updateMapCanvasPan,
   simulateMapLocation,
   saveTabletopMap
 };
