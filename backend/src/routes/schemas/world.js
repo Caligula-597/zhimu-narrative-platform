@@ -133,7 +133,24 @@ export const updateRoomSettingsSchema = {
         additionalProperties: false,
         properties: {
           hostVoiceListen: { type: "boolean" },
-          defaultRunMode: { type: "string", enum: ["automatic", "host_confirm", "manual"] }
+          defaultRunMode: { type: "string", enum: ["automatic", "host_confirm", "manual"] },
+          runtimePresentation: {
+            type: "object",
+            additionalProperties: false,
+            required: ["activeSegmentKey", "activeLocationId", "revealedLocationIds", "mapVisible", "updatedAt"],
+            properties: {
+              activeSegmentKey: { type: "string", maxLength: 120 },
+              activeLocationId: { type: "string", maxLength: 80 },
+              revealedLocationIds: {
+                type: "array",
+                maxItems: 24,
+                uniqueItems: true,
+                items: { type: "string", maxLength: 80 }
+              },
+              mapVisible: { type: "boolean" },
+              updatedAt: { type: "string", format: "date-time" }
+            }
+          }
         },
         minProperties: 1
       }

@@ -28,6 +28,28 @@ export function createDirectorActionHandler({ render, showToast }) {
     }
   }
 
+  function runtimePresentationPatch(patch = {}) {
+    const presentation = state.currentState?.presentation || {};
+    const map = presentation.map || {};
+    return {
+      activeSegmentKey: String(patch.activeSegmentKey ?? presentation.activeSegmentKey ?? ""),
+      activeLocationId: String(patch.activeLocationId ?? map.activeLocationId ?? ""),
+      revealedLocationIds: Array.isArray(patch.revealedLocationIds)
+        ? [...new Set(patch.revealedLocationIds.map(String).filter(Boolean))]
+        : [...new Set((map.revealedLocationIds || []).map(String).filter(Boolean))],
+      mapVisible: patch.mapVisible == null ? Boolean(map.visible) : Boolean(patch.mapVisible),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function saveRuntimePresentation(patch, successMessage) {
+    void runCommand(
+      () => api.updateHostRoomSettings({ runtimePresentation: runtimePresentationPatch(patch) }),
+      successMessage,
+      "同步运行流程失败"
+    );
+  }
+
   return function handleDirectorAction(action, el) {
     switch (action) {
       case "rules-preview": refreshRulesPreview(); return true;
@@ -86,7 +108,49 @@ export function createDirectorActionHandler({ render, showToast }) {
       case "host-select-act":
         state.hostSelectedActKey = el?.dataset?.actKey || "";
         render();
+        {
+          const matchedLocation = state.currentState?.presentation?.map?.host?.locations?.find(
+            (location) => location.segmentKey && location.segmentKey === state.hostSelectedActKey
+          );
+          const revealed = new Set(state.currentState?.presentation?.map?.revealedLocationIds || []);
+          if (matchedLocation?.id) revealed.add(matchedLocation.id);
+          saveRuntimePresentation({
+            activeSegmentKey: state.hostSelectedActKey,
+            ...(matchedLocation?.id ? {
+              activeLocationId: matchedLocation.id,
+              revealedLocationIds: [...revealed]
+            } : {})
+          }, "当前幕已同步到玩家端");
+        }
         return true;
+      case "host-tabletop-select-location": {
+        const locationId = el?.dataset?.locationId || "";
+        const revealed = new Set(state.currentState?.presentation?.map?.revealedLocationIds || []);
+        if (locationId) revealed.add(locationId);
+        saveRuntimePresentation({
+          activeLocationId: locationId,
+          revealedLocationIds: [...revealed]
+        }, "当前地点已同步到玩家端");
+        return true;
+      }
+      case "host-tabletop-toggle-map":
+        saveRuntimePresentation({
+          mapVisible: !state.currentState?.presentation?.map?.visible
+        }, state.currentState?.presentation?.map?.visible ? "玩家地图已隐藏" : "玩家地图已公开");
+        return true;
+      case "host-tabletop-toggle-location": {
+        const locationId = el?.dataset?.locationId || "";
+        const map = state.currentState?.presentation?.map;
+        if (!locationId || locationId === map?.activeLocationId) {
+          showToast("当前地点必须保持公开");
+          return true;
+        }
+        const revealed = new Set(map?.revealedLocationIds || []);
+        if (revealed.has(locationId)) revealed.delete(locationId);
+        else revealed.add(locationId);
+        saveRuntimePresentation({ revealedLocationIds: [...revealed] }, "地点可见范围已同步");
+        return true;
+      }
       case "refresh-host-data": loadHostData(true, true); return true;
       case "host-pace-toggle": togglePaceTimer(); return true;
       case "host-pace-reset": resetPaceTimer(); return true;

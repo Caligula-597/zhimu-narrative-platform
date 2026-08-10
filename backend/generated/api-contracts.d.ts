@@ -361,6 +361,16 @@ export interface UpdateRoomSettingsBody {
   settings: {
     hostVoiceListen?: boolean;
     defaultRunMode?: "automatic" | "host_confirm" | "manual";
+    runtimePresentation?: {
+      activeSegmentKey: string;
+      activeLocationId: string;
+      /**
+       * @maxItems 24
+       */
+      revealedLocationIds: string[];
+      mapVisible: boolean;
+      updatedAt: string;
+    };
   };
 }
 
@@ -1240,7 +1250,7 @@ export interface RuntimeCurrentState {
     sequence: number;
     position: number;
     total: number;
-    source: "mechanism_round" | "reading_progress" | "next_section" | "segment_order";
+    source: "mechanism_round" | "reading_progress" | "next_section" | "host_control" | "segment_order";
     player: {
       content: string;
       tips: string[];
@@ -1258,6 +1268,9 @@ export interface RuntimeCurrentState {
       estimatedMinutes: number | null;
     } | null;
   } | null;
+  presentation: {
+    [k: string]: unknown;
+  };
   phase: {
     key: string;
     label: string;

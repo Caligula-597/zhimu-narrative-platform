@@ -77,6 +77,9 @@ export function createRuntimeContentProvider(record, { liveSnapshot = null } = {
 
   const provider = {
     room: publicRoom(record),
+    roomSettings: record.room_settings && typeof record.room_settings === "object"
+      ? record.room_settings
+      : {},
     worldId: record.world_id,
     runtimeSource,
     isFrozen: released,

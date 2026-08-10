@@ -10,7 +10,7 @@ globalThis.localStorage = {
 };
 
 const { state } = await import("../src/state.js");
-const { renderMechanismProgress } =
+const { renderGameHome, renderMechanismProgress } =
   await import("../src/views/game-home-views.js");
 
 test("player mechanism progress renders authored online form without internal effects", () => {
@@ -171,5 +171,59 @@ test("player renders private ranking and fixed-total allocation sessions with op
     assert.doesNotMatch(html, /decision-internal|resource-secret|state-secret/);
   } finally {
     state.home = previousHome;
+  }
+});
+
+test("player home renders host-controlled flow and only the public map projection", () => {
+  const previousHome = state.home;
+  const previousExploration = state.exploration;
+  state.roomEventsConnected = true;
+  state.exploration = { scenes: [] };
+  state.home = {
+    room: { name: "测试房", contentBinding: { mode: "live", runtimeSource: "live_draft" } },
+    role: { name: "调查员", private_profile: "角色资料" },
+    sections: [], clues: [], sharedClues: [], inventory: [], tasks: [], activeVotes: [],
+    currentState: {
+      audience: "player",
+      currentBeat: {
+        id: "beat-1", key: "ch2", title: "穿过沉钟塔", sequence: 2,
+        position: 2, total: 4, source: "host_control",
+        player: { content: "跟随潮声进入塔内。", tasks: ["找到上层入口"], tips: ["留意钟摆"] },
+        host: { hostTruth: "不得显示" }
+      },
+      presentation: {
+        activeSegmentKey: "ch2",
+        map: {
+          title: "盐雾群岛", visible: true, activeLocationId: "tower",
+          revealedLocationIds: ["harbor", "tower"],
+          locations: [
+            { id: "harbor", name: "白帆港", type: "港口", description: "潮水退去。", x: 0.2, y: 0.4 },
+            { id: "tower", name: "沉钟塔", type: "危险场景", description: "塔门已经开启。", x: 0.8, y: 0.6 }
+          ],
+          routes: [["harbor", "tower"]],
+          party: [{ id: "pc", name: "调查员", hp: 9, maxHp: 12 }],
+          dice: { count: 1, sides: 20, modifier: 2, defaultTarget: 12 },
+          host: { locations: [{ hostNotes: "不得显示" }] }
+        }
+      },
+      phase: { key: "playing", label: "剧情进行中", detail: "" },
+      suggestedActions: [], blockers: [],
+      syncState: { status: "synced", runtimeSource: "live_draft", isFrozen: false, serverCursor: 2 },
+      metrics: {}
+    }
+  };
+  try {
+    const html = renderGameHome();
+    assert.match(html, /主持流程同步/);
+    assert.match(html, /穿过沉钟塔/);
+    assert.match(html, /找到上层入口/);
+    assert.match(html, /当前场景地图/);
+    assert.match(html, /盐雾群岛/);
+    assert.match(html, /塔门已经开启/);
+    assert.match(html, /HP 9\/12/);
+    assert.doesNotMatch(html, /不得显示/);
+  } finally {
+    state.home = previousHome;
+    state.exploration = previousExploration;
   }
 });

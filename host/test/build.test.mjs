@@ -162,13 +162,17 @@ test("host command center uses segment runbooks and five critical queue actions"
   assert.match(layoutSource, /renderHostCommandCenter/);
   assert.match(layoutSource, /data-action="host-select-act"/);
   assert.match(layoutSource, /state\.hostSelectedActKey\s*\|\|\s*preferredActKey/);
-  assert.match(layoutSource, /renderCurrentActColumn\(currentBeatKey\)/);
+  assert.match(layoutSource, /renderCurrentActColumn\(currentBeatKey, presentation\)/);
+  assert.match(layoutSource, /data-action="host-tabletop-select-location"/);
+  assert.match(layoutSource, /data-action="host-tabletop-toggle-map"/);
+  assert.match(layoutSource, /data-action="host-tabletop-toggle-location"/);
   for (const action of ["host-apply-remedy", "host-vote-status", "host-review-private-action", "host-review-testimony"]) {
     assert.match(layoutSource, new RegExp(`data-action=["']${action}["']`), `missing command center action: ${action}`);
   }
   assert.match(stylesSource, /host-command-center/);
   assert.match(stylesSource, /host-clue-grant-item/);
   assert.match(stylesSource, /host-task-item/);
+  assert.match(stylesSource, /host-stage-map/);
   assert.match(stylesSource, /@media \(max-width: 1180px\)/);
 });
 

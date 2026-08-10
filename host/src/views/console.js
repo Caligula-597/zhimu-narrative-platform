@@ -108,7 +108,7 @@ export function renderConsole(){
  return `<section class="host-console">
   <div class="host-console-status">${cloudStatus()}</div>
   ${runtimeStatePanel}
-  ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows, currentBeatKey: currentBeat?.key })}
+  ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows, currentBeatKey: currentBeat?.key, presentation: runtimeState.presentation })}
   ${renderHostMechanismWorkspace()}
   ${renderHostEventWorkspace()}
   ${renderHostVoteWorkspace()}

@@ -6,9 +6,20 @@ const VALID_BEAT_SOURCES = new Set([
   "mechanism_round",
   "reading_progress",
   "next_section",
+  "host_control",
   "segment_order",
   "none"
 ]);
+
+function normalizePresentation(value, audience) {
+  const source = value && typeof value === "object" ? value : {};
+  const map = source.map && typeof source.map === "object" ? source.map : null;
+  return {
+    activeSegmentKey: String(source.activeSegmentKey ?? ""),
+    updatedAt: source.updatedAt ?? null,
+    map: map ? { ...map, host: audience === "player" ? null : map.host ?? null } : null
+  };
+}
 
 function textList(value) {
   return Array.isArray(value) ? value.map((item) => String(item ?? "")).filter(Boolean) : [];
@@ -69,6 +80,7 @@ export function normalizeRuntimeCurrentState(value, {
         })
       : null,
     currentBeat: normalizeCurrentBeat(source.currentBeat, expectedAudience),
+    presentation: normalizePresentation(source.presentation, expectedAudience),
     phase: source.phase ?? { key: "unknown", label: "状态待确认", detail: "" },
     suggestedActions: Array.isArray(source.suggestedActions) ? source.suggestedActions : [],
     blockers: Array.isArray(source.blockers) ? source.blockers : [],

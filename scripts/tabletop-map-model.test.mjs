@@ -133,3 +133,17 @@ test("location encounters keep only NPCs that still exist in the world", () => {
   });
   assert.deepEqual(design.locations[0].encounterNpcIds, ["keeper"]);
 });
+
+test("locations retain a runtime segment binding and host-only notes", () => {
+  const design = normalizeMapDesign({
+    locations: [{
+      id: "gate",
+      name: "城门",
+      description: "玩家看见守卫正在检查通行证。",
+      hostNotes: "第三轮后守卫会关闭城门。",
+      segmentKey: "ch2"
+    }]
+  });
+  assert.equal(design.locations[0].segmentKey, "ch2");
+  assert.equal(design.locations[0].hostNotes, "第三轮后守卫会关闭城门。");
+});

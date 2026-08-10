@@ -5,6 +5,7 @@ import {
   normalizeCreativeConstitution
 } from "../shared/creative-constitution.js";
 import { AI_PLAYER_ARCHETYPES } from "../shared/ai-playtest.js";
+import { projectRuntimePresentation } from "../shared/runtime-presentation.js";
 
 const host = "127.0.0.1";
 const port = Number(process.env.ZHIMU_BROWSER_FIXTURE_PORT || 4180);
@@ -131,6 +132,124 @@ const bindingFor = (selectedReleaseId = null) => {
     };
 };
 
+const playerRoleId = "66666666-6666-4666-8666-555555550001";
+
+const fixtureSegments = [{
+  id: "88888888-8888-4888-8888-555555550011",
+  segment_key: "arrival-check",
+  title: "进入联盟隔离区",
+  sequence: 1,
+  chapter_id: "chapter-1",
+  story: {
+    beatPlan: {
+      goal: "让玩家确认比赛数据与现实身份已经被隔离。",
+      playerContent: "你们抵达联盟隔离服务器，入口只接受赛事身份凭证。",
+      dmTasks: "说明入口规则，并确认所有玩家已经进入语音。",
+      advanceCondition: "玩家完成身份核验并进入审查室。",
+      estimatedMinutes: 8
+    }
+  },
+  operations: {
+    title: "进入联盟隔离区",
+    flow: "核验身份 → 说明隔离规则 → 开放审查室",
+    hostTruth: "入口日志不会直接证明授权范围。",
+    playerTips: ["先核对自己的身份凭证", "留意训练权限与比赛权限的差别"],
+    playerTasks: ["全员进入审查室并确认身份"]
+  }
+}, {
+  id: "88888888-8888-4888-8888-555555550012",
+  segment_key: "authorization-review",
+  title: "核对代理授权",
+  sequence: 2,
+  chapter_id: "chapter-2",
+  story: {
+    beatPlan: {
+      goal: "让玩家形成对授权边界的共同判断。",
+      playerContent: "联盟审查已进入授权边界核对。你们需要判断训练授权是否覆盖正式比赛。",
+      dmTasks: "分别询问授权签发者与实际使用者，再汇总全桌倾向。",
+      openClues: "代理授权原始记录",
+      advanceCondition: "全桌提交授权边界结论。",
+      estimatedMinutes: 16
+    }
+  },
+  operations: {
+    title: "核对代理授权",
+    flow: "公开记录 → 分组核对 → 汇总判断",
+    hostTruth: "正式比赛授权从未完成签署。",
+    fallbacks: ["若讨论停滞，公开训练授权的有效期。"],
+    playerTips: ["对照原始授权记录", "区分身份真实与授权有效"],
+    playerTasks: ["讨论授权是否覆盖正式比赛"]
+  }
+}, {
+  id: "88888888-8888-4888-8888-555555550013",
+  segment_key: "appeal-route",
+  title: "资格冻结与申诉",
+  sequence: 3,
+  chapter_id: "chapter-3",
+  story: {
+    beatPlan: {
+      goal: "把授权判断转化为可执行的结局路线。",
+      playerContent: "联盟已经冻结代理资格。你们需要决定由谁提交申诉证据。",
+      dmTasks: "确认申诉代表和公开证据，不提前宣布最终裁定。",
+      advanceCondition: "玩家确认申诉代表与证据清单。",
+      estimatedMinutes: 12
+    }
+  },
+  operations: {
+    title: "资格冻结与申诉",
+    flow: "冻结资格 → 选择代表 → 提交申诉",
+    hostTruth: "裁定仍由条件判断器根据证据与信誉值决定。",
+    playerTips: ["先决定谁来承担申诉风险", "只提交能够公开验证的证据"],
+    playerTasks: ["选出申诉代表", "整理公开证据清单"]
+  }
+}];
+
+const fixtureTabletopMapDesign = {
+  title: "联盟隔离服务器",
+  locations: [{
+    id: "server-lobby",
+    name: "身份验证大厅",
+    type: "安全入口",
+    description: "漂浮的身份凭证在入口闸机前逐一亮起。",
+    hostNotes: "若玩家遗漏凭证差异，提示日志时间比比赛开始早七分钟。",
+    segmentKey: "arrival-check",
+    x: 0.18,
+    y: 0.66,
+    z: 1,
+    encounterNpcIds: []
+  }, {
+    id: "review-room",
+    name: "授权审查室",
+    type: "调查场景",
+    description: "授权原始记录与赛事报名记录并排投射在环形屏幕上。",
+    hostNotes: "隐藏事实：正式比赛授权缺少签发者的二次确认。",
+    segmentKey: "authorization-review",
+    x: 0.5,
+    y: 0.34,
+    z: 2,
+    encounterNpcIds: ["npc-auditor"]
+  }, {
+    id: "appeal-terminal",
+    name: "联盟申诉终端",
+    type: "结局节点",
+    description: "终端只接受一名代表和一组可公开验证的证据。",
+    hostNotes: "不要提前显示结局阈值；由条件判断器在提交后结算。",
+    segmentKey: "appeal-route",
+    x: 0.82,
+    y: 0.64,
+    z: 3,
+    encounterNpcIds: ["npc-auditor"]
+  }],
+  routes: [["server-lobby", "review-room"], ["review-room", "appeal-terminal"]],
+  variables: [{ id: "trust", label: "联盟信誉", value: 6, min: 0, max: 10 }],
+  endings: [{ id: "appeal-approved", title: "申诉通过" }, { id: "appeal-rejected", title: "维持冻结" }],
+  system: {
+    players: [{ id: playerRoleId, name: "小满", role: "职业选手", hp: 9, maxHp: 12 }],
+    npcs: [{ id: "npc-auditor", name: "审查官赫兹", role: "联盟审查官", hp: 14, maxHp: 14 }],
+    dice: { count: 1, sides: 20, modifier: 2, defaultTarget: 12 }
+  }
+};
+
 const rooms = [{
   id: "55555555-5555-4555-8555-555555550001",
   name: "旧版实时草稿房",
@@ -140,7 +259,16 @@ const rooms = [{
   member_count: 1,
   role_slot_count: 4,
   is_mine: true,
-  contentBinding: bindingFor()
+  contentBinding: bindingFor(),
+  settings: {
+    runtimePresentation: {
+      activeSegmentKey: "authorization-review",
+      activeLocationId: "review-room",
+      revealedLocationIds: ["server-lobby", "review-room"],
+      mapVisible: true,
+      updatedAt: "2026-08-10T08:00:00.000Z"
+    }
+  }
 }, {
   id: "55555555-5555-4555-8555-555555550002",
   name: "R2 预绑定房",
@@ -150,10 +278,18 @@ const rooms = [{
   member_count: 0,
   role_slot_count: 4,
   is_mine: true,
-  contentBinding: bindingFor(releaseId)
+  contentBinding: bindingFor(releaseId),
+  settings: {
+    runtimePresentation: {
+      activeSegmentKey: "authorization-review",
+      activeLocationId: "review-room",
+      revealedLocationIds: ["server-lobby", "review-room"],
+      mapVisible: true,
+      updatedAt: "2026-08-10T08:00:00.000Z"
+    }
+  }
 }];
 
-const playerRoleId = "66666666-6666-4666-8666-555555550001";
 const playerSectionId = "77777777-7777-4777-8777-555555550001";
 
 const mechanismDecision = {
@@ -339,6 +475,8 @@ function browserPlayerCurrentState(room) {
       reason: "确认数字代理的授权范围"
     }],
     blockers: [],
+    currentBeat: browserCurrentBeat(room, "player"),
+    presentation: browserRuntimePresentation(room, "player"),
     mechanism: {
       initialized: Boolean(runtime?.initialized),
       stale: false,
@@ -402,6 +540,65 @@ function browserPlayerCurrentState(room) {
       openVotes: 0,
       activeGame: false
     }
+  };
+}
+
+function browserCurrentBeat(room, audience = "player") {
+  const requestedKey = String(room.settings?.runtimePresentation?.activeSegmentKey || "");
+  const segment = fixtureSegments.find((item) => item.segment_key === requestedKey) || fixtureSegments[0];
+  const position = Math.max(1, fixtureSegments.indexOf(segment) + 1);
+  const beat = segment.story?.beatPlan || {};
+  const operations = segment.operations || {};
+  return {
+    id: segment.id,
+    key: segment.segment_key,
+    title: segment.title,
+    sequence: segment.sequence,
+    position,
+    total: fixtureSegments.length,
+    source: "host_control",
+    player: {
+      content: beat.playerContent || "",
+      tips: operations.playerTips || [],
+      tasks: operations.playerTasks || []
+    },
+    host: audience === "player" ? null : {
+      goal: beat.goal || "",
+      flow: operations.flow || "",
+      hostTruth: operations.hostTruth || "",
+      dmTasks: beat.dmTasks || "",
+      openClues: beat.openClues || "",
+      privateChatHints: beat.privateChatHints || "",
+      advanceCondition: beat.advanceCondition || "",
+      fallbacks: operations.fallbacks || [],
+      estimatedMinutes: beat.estimatedMinutes ?? null
+    }
+  };
+}
+
+function browserRuntimePresentation(room, audience = "player") {
+  return projectRuntimePresentation({
+    world,
+    roomSettings: room.settings || {},
+    currentBeat: browserCurrentBeat(room, audience),
+    audience
+  });
+}
+
+function browserHostCurrentState(room) {
+  const playerState = browserPlayerCurrentState(room);
+  return {
+    ...playerState,
+    audience: "host",
+    currentBeat: browserCurrentBeat(room, "host"),
+    presentation: browserRuntimePresentation(room, "host"),
+    suggestedActions: [{
+      key: "create_checkpoint",
+      label: "创建当前进度存档",
+      priority: 3,
+      target: "checkpoint",
+      reason: "关键推进后保存恢复点"
+    }]
   };
 }
 
@@ -492,6 +689,7 @@ const world = {
   membership_role: "owner",
   content_revision: 8,
   settings: {
+    tabletopMapDesign: fixtureTabletopMapDesign,
     creativeConstitution: {
       version: 1,
       theme: "错误时间顺序如何制造偏见",
@@ -578,6 +776,7 @@ const workspacePreview = {
   items: [],
   investigationPoints: [{ id: "point-1", name: "检查停摆时钟", scene_id: "scene-2" }],
   edges: [],
+  segments: fixtureSegments,
   rooms
 };
 
@@ -1389,10 +1588,30 @@ const server = http.createServer(async (request, response) => {
     return sendJson(response, 200, rules);
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/segments`) {
-    return sendJson(response, 200, { segments: [] });
+    return sendJson(response, 200, { segments: fixtureSegments });
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/logs`) {
     return sendJson(response, 200, []);
+  }
+  const roomSettingsMatch = path.match(/^\/api\/rooms\/([^/]+)\/settings$/);
+  if (request.method === "PATCH" && roomSettingsMatch) {
+    const room = rooms.find((item) => item.id === roomSettingsMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const body = await readJson(request);
+    room.settings = {
+      ...(room.settings || {}),
+      ...(body.settings || {})
+    };
+    const presentation = room.settings.runtimePresentation || {};
+    broadcastRoomEvent(room.id, {
+      type: "room.presentation_updated",
+      activeSegmentKey: presentation.activeSegmentKey || "",
+      activeLocationId: presentation.activeLocationId || "",
+      revealedLocationIds: presentation.revealedLocationIds || [],
+      mapVisible: Boolean(presentation.mapVisible),
+      updatedAt: presentation.updatedAt || new Date().toISOString()
+    });
+    return sendJson(response, 200, { ok: true, settings: room.settings });
   }
   const roomPathMatch = path.match(/^\/api\/rooms\/([^/]+)(\/.*)$/);
   if (request.method === "GET" && roomPathMatch && roomPathMatch[1] !== "invite") {
@@ -1400,9 +1619,17 @@ const server = http.createServer(async (request, response) => {
     const room = rooms.find((item) => item.id === requestedRoomId);
     if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
     if (suffix === "/events/stream") return sendSse(request, response, room.id);
+    if (suffix === "/runtime-content") {
+      return sendJson(response, 200, {
+        room: { id: room.id, worldId, name: room.name, status: room.status },
+        contentBinding: room.contentBinding,
+        content: { ...workspacePreview, segments: fixtureSegments }
+      });
+    }
     if (suffix === "/player-home/core") return sendJson(response, 200, browserPlayerHomeCore(room));
     if (suffix === "/player-home/social") return sendJson(response, 200, browserPlayerHomeSocial(room));
     if (suffix === "/current-state") return sendJson(response, 200, browserPlayerCurrentState(room));
+    if (suffix === "/host/current-state") return sendJson(response, 200, browserHostCurrentState(room));
     if (suffix === "/exploration") {
       return sendJson(response, 200, {
         scenes: [{

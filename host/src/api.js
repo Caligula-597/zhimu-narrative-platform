@@ -129,6 +129,10 @@ export const api = {
   getRules: (worldId = getWorldId()) => request(`/worlds/${worldId}/rules`),
   getRuntimeContent: () => request(roomPath("/runtime-content")),
   getHostCurrentState: () => request(roomPath("/host/current-state")),
+  updateHostRoomSettings: (settings) => request(roomPath("/settings"), {
+    method: "PATCH",
+    body: { settings }
+  }),
   getHostMechanismRuntime: () => request(`${roomPath("/host/mechanism-runtime")}?includeHistory=true&historyLimit=20`),
   initializeHostMechanismRuntime: () => request(roomPath("/host/mechanism-runtime/initialize"), {
     method: "POST",

@@ -12,6 +12,7 @@ import {
   normalizeSegmentOperations,
   resolveSectionSegmentKey,
 } from "../../shared/segment-contract.js";
+import { projectRuntimePresentation } from "../../shared/runtime-presentation.js";
 
 function action(key, label, priority, target, reason) {
   return { key, label, priority, target, reason };
@@ -262,6 +263,15 @@ function currentSegment({
 }) {
   const segments = orderedSegments(provider);
   if (!segments.length) return { segment: null, segments, source: "none" };
+
+  const controlledKey = String(provider.roomSettings?.runtimePresentation?.activeSegmentKey || "").trim();
+  if (controlledKey) {
+    const controlled = segments.find((item) => normalizeSegmentKey(
+      item.segment_key ?? item.segmentKey,
+      item.sequence || 1,
+    ) === controlledKey);
+    if (controlled) return { segment: controlled, segments, source: "host_control" };
+  }
 
   const roundSequence = Number(mechanism?.currentRound?.sequence);
   if (Number.isInteger(roundSequence) && roundSequence > 0) {
@@ -549,6 +559,12 @@ export async function buildRuntimeCurrentState({
     roleSlotId,
     audience,
   });
+  const presentation = projectRuntimePresentation({
+    world: provider.snapshot?.world ?? null,
+    roomSettings: provider.roomSettings,
+    currentBeat,
+    audience,
+  });
 
   return {
     audience,
@@ -556,6 +572,7 @@ export async function buildRuntimeCurrentState({
     worldId: provider.worldId,
     contentBinding: provider.contentBinding,
     currentBeat,
+    presentation,
     phase: audienceState.phase,
     suggestedActions: audienceState.suggestions,
     blockers: audienceState.blockers,

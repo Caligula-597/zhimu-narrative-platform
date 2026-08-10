@@ -225,6 +225,55 @@ function renderRemedies(act) {
   </div>`;
 }
 
+function renderHostTabletopStage(presentation) {
+  const map = presentation?.map;
+  if (!map?.host?.locations?.length) return "";
+  const locations = map.host.locations;
+  const locationIds = new Set(locations.map((location) => location.id));
+  const revealed = new Set(map.revealedLocationIds || []);
+  const routes = (map.routes || []).filter(([from, to]) => locationIds.has(from) && locationIds.has(to));
+  const byId = new Map(locations.map((location) => [location.id, location]));
+  const active = byId.get(map.activeLocationId) || locations[0];
+  const dice = map.dice || {};
+  const diceLabel = `${Number(dice.count) || 1}d${Number(dice.sides) || 20}${Number(dice.modifier) ? Number(dice.modifier) > 0 ? `+${Number(dice.modifier)}` : Number(dice.modifier) : ""}`;
+  return `<section class="host-stage-panel">
+    <div class="section-head">
+      <div><p class="section-kicker">PLAYER STAGE</p><h3>跑团地图同步</h3><p>${escapeHtml(map.title)} · ${locations.length} 个地点 · ${escapeHtml(diceLabel)}</p></div>
+      <button class="secondary-btn" type="button" data-action="host-tabletop-toggle-map">${map.visible ? "对玩家隐藏地图" : "向玩家公开地图"}</button>
+    </div>
+    <div class="host-stage-grid">
+      <div class="host-stage-map" role="group" aria-label="选择玩家当前地点">
+        <svg viewBox="0 0 100 100" aria-hidden="true">${routes.map(([from, to]) => {
+          const start = byId.get(from);
+          const end = byId.get(to);
+          return `<line x1="${Number(start?.x || 0.5) * 100}" y1="${Number(start?.y || 0.5) * 100}" x2="${Number(end?.x || 0.5) * 100}" y2="${Number(end?.y || 0.5) * 100}"></line>`;
+        }).join("")}</svg>
+        ${locations.map((location, index) => `<button type="button" class="host-stage-node${location.id === active?.id ? " is-active" : ""}${revealed.has(location.id) ? " is-revealed" : ""}" style="--map-x:${Number(location.x) * 100}%;--map-y:${Number(location.y) * 100}%" data-action="host-tabletop-select-location" data-location-id="${escapeHtml(location.id)}" aria-label="设为当前地点：${escapeHtml(location.name)}"><span>${index + 1}</span><b>${escapeHtml(location.name)}</b></button>`).join("")}
+      </div>
+      <div class="host-stage-location-list">
+        ${locations.map((location) => {
+          const isActive = location.id === active?.id;
+          const isRevealed = revealed.has(location.id);
+          return `<article class="host-stage-location${isActive ? " is-active" : ""}">
+            <button type="button" class="host-stage-location-main" data-action="host-tabletop-select-location" data-location-id="${escapeHtml(location.id)}">
+              <span>${isActive ? "当前地点" : location.segmentKey ? `绑定 ${escapeHtml(location.segmentKey)}` : escapeHtml(location.type)}</span>
+              <strong>${escapeHtml(location.name)}</strong>
+              <small>${escapeHtml(location.hostNotes || location.description || "尚未填写主持备注")}</small>
+            </button>
+            <button type="button" class="secondary-btn compact" data-action="host-tabletop-toggle-location" data-location-id="${escapeHtml(location.id)}" ${isActive ? "disabled" : ""}>${isRevealed ? "对玩家隐藏" : "向玩家公开"}</button>
+          </article>`;
+        }).join("")}
+      </div>
+    </div>
+    <div class="host-stage-footer">
+      <span class="status-chip ${map.visible ? "published" : "draft"}">${map.visible ? "玩家可见" : "仅主持可见"}</span>
+      <span>已公开 ${revealed.size}/${locations.length} 个地点</span>
+      <span>队伍 ${map.party?.length || 0} 人</span>
+      <span>结局条件 ${map.host.endingCount || 0} 组</span>
+    </div>
+  </section>`;
+}
+
 function queueItems() {
   const items = [];
   for (const event of (state.cloudHostEvents || []).filter((row) => row.status !== "delayed")) {
@@ -328,7 +377,7 @@ function renderPlayersColumn({ playersTableRows }) {
   </section>`;
 }
 
-function renderCurrentActColumn(preferredActKey = "") {
+function renderCurrentActColumn(preferredActKey = "", presentation = null) {
   const acts = hostActs();
   const act = activeAct(preferredActKey);
   return `<section class="host-command-card host-current-act-panel">
@@ -339,6 +388,7 @@ function renderCurrentActColumn(preferredActKey = "") {
     ${actSelector(acts, act)}
     ${renderRunbook(act)}
     ${renderPlayerTasks(act)}
+    ${renderHostTabletopStage(presentation)}
     <div class="host-current-grid">
       <section><div class="section-head compact"><div><h3>应发线索</h3></div><button class="secondary-btn" data-action="host-manual-grant-clue" data-act-key="${escapeHtml(act?.key || "")}">手动发线索</button></div>${renderClueGrants(act)}</section>
       <section><div class="section-head compact"><div><h3>补救话术</h3></div></div>${renderRemedies(act)}</section>
@@ -368,12 +418,12 @@ function renderTopbar({ room, world }) {
   </section>`;
 }
 
-export function renderHostCommandCenter({ room, world, playersTableRows, currentBeatKey = "" }) {
+export function renderHostCommandCenter({ room, world, playersTableRows, currentBeatKey = "", presentation = null }) {
   return `<section class="host-command-center">
     ${renderTopbar({ room, world })}
     <div class="host-command-grid">
       ${renderPlayersColumn({ playersTableRows })}
-      ${renderCurrentActColumn(currentBeatKey)}
+      ${renderCurrentActColumn(currentBeatKey, presentation)}
       ${renderQueuePanel()}
     </div>
   </section>`;

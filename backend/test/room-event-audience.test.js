@@ -31,6 +31,20 @@ test("content Release changes are visible to every room participant", () => {
   assert.equal(projectRoomEventForAudience(event, player).event, event);
 });
 
+test("host presentation updates are public but contain no author-only content", () => {
+  const event = {
+    type: "room.presentation_updated",
+    activeSegmentKey: "ch2",
+    activeLocationId: "tower",
+    revealedLocationIds: ["harbor", "tower"],
+    mapVisible: true,
+    updatedAt: "2026-08-10T00:00:00.000Z"
+  };
+  assert.equal(projectRoomEventForAudience(event, player).event, event);
+  assert.equal(event.hostNotes, undefined);
+  assert.equal(event.endings, undefined);
+});
+
 test("mechanism progress is public but internal runtime data is stripped", () => {
   const projected = projectRoomEventForAudience(
     {

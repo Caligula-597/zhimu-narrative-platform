@@ -324,6 +324,7 @@ const runtimeCurrentBeatSchema = {
             "mechanism_round",
             "reading_progress",
             "next_section",
+            "host_control",
             "segment_order",
           ],
         },
@@ -504,6 +505,7 @@ export const runtimeCurrentStateSchema = {
     "worldId",
     "contentBinding",
     "currentBeat",
+    "presentation",
     "phase",
     "suggestedActions",
     "blockers",
@@ -517,6 +519,7 @@ export const runtimeCurrentStateSchema = {
     worldId: uuid,
     contentBinding: roomContentBindingSchema,
     currentBeat: runtimeCurrentBeatSchema,
+    presentation: openObject,
     phase: {
       type: "object",
       additionalProperties: false,

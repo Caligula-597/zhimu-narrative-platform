@@ -68,6 +68,11 @@ export async function handleRoomEvent(type, data, ctx) {
       await ctx.onRefresh();
       ctx.onToast(`房间内容已切换到 R${Number(data.releaseNumber) || "?"}`);
       break;
+    case "room.presentation_updated":
+      ctx.bumpTabPulse?.("home");
+      await ctx.onRefresh();
+      ctx.onToast(data.activeLocationId ? "主持人已更新当前场景" : "主持人已更新当前流程");
+      break;
     case "room.mechanism_state_updated": {
       ctx.bumpTabPulse?.("home");
       await ctx.onRefresh();

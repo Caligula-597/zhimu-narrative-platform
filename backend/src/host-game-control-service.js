@@ -1,5 +1,4 @@
 import { httpError, throwErr } from "./api-errors.js";
-import { transaction } from "./db.js";
 import {
   forceCompleteMiniGame,
   listRoomMiniGames,
@@ -138,7 +137,7 @@ export async function updateHostRoomSettings({ actorId, roomId, settings }) {
   await requireHostMembership(actorId, roomId);
   const incoming = settings ?? {};
   try {
-    return await transaction(async (client) => {
+    return await transactionWithEvents(async (client, queueEvent) => {
       await configureHostGameControlTransaction(client);
       await assertLockedHostRoom(client, { actorId, roomId });
       const room = await mergeHostRoomSettings(client, { roomId, settings: incoming });
@@ -151,6 +150,15 @@ export async function updateHostRoomSettings({ actorId, roomId, settings }) {
         targetId: roomId,
         metadata: { settings: incoming }
       });
+      if (incoming.runtimePresentation) {
+        queueEvent(roomId, "room.presentation_updated", {
+          activeSegmentKey: incoming.runtimePresentation.activeSegmentKey,
+          activeLocationId: incoming.runtimePresentation.activeLocationId,
+          revealedLocationIds: incoming.runtimePresentation.revealedLocationIds,
+          mapVisible: incoming.runtimePresentation.mapVisible,
+          updatedAt: incoming.runtimePresentation.updatedAt
+        });
+      }
       return { ok: true, settings: room.settings };
     });
   } catch (error) {

@@ -84,8 +84,18 @@ test("player current-state normalization strips host-only beat guidance", () => 
       source: "segment_order",
       player: { content: "Public", tips: [], tasks: [] },
       host: { hostTruth: "must not cross the boundary" }
+    },
+    presentation: {
+      activeSegmentKey: "opening",
+      map: {
+        visible: true,
+        locations: [{ id: "public", name: "Public" }],
+        host: { variables: [{ id: "secret", value: 99 }] }
+      }
     }
   }, { audience: "player" });
   assert.equal(normalized.currentBeat.player.content, "Public");
   assert.equal(normalized.currentBeat.host, null);
+  assert.equal(normalized.presentation.map.host, null);
+  assert.equal(normalized.presentation.map.locations[0].name, "Public");
 });

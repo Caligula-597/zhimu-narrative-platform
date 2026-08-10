@@ -256,7 +256,9 @@ function locationInspector(session, location) {
     <label class="map-field"><span>名称</span><input class="field" maxlength="80" value="${escapeHtml(location.name)}" data-map-location-field="name"></label>
     <label class="map-field"><span>类型</span><select class="field" data-map-location-field="type">${LOCATION_TYPES.map((type) => `<option value="${escapeHtml(type)}"${type === location.type ? " selected" : ""}>${escapeHtml(type)}</option>`).join("")}</select></label>
     <label class="map-field"><span>高度</span><input class="field" type="number" min="0" max="8" step="1" value="${location.z}" data-map-location-field="z"></label>
-    <label class="map-field"><span>描述</span><textarea class="field" rows="3" maxlength="360" data-map-location-field="description">${escapeHtml(location.description)}</textarea></label>
+    <label class="map-field"><span>对应运行段落 Key</span><input class="field" maxlength="120" placeholder="例如 ch1；主持切换此段时自动定位" value="${escapeHtml(location.segmentKey || "")}" data-map-location-field="segmentKey"></label>
+    <label class="map-field"><span>玩家可见描述</span><textarea class="field" rows="3" maxlength="360" data-map-location-field="description">${escapeHtml(location.description)}</textarea></label>
+    <label class="map-field"><span>主持备注</span><textarea class="field" rows="3" maxlength="360" data-map-location-field="hostNotes">${escapeHtml(location.hostNotes || "")}</textarea></label>
     <div class="map-effect-editor">
       <div><strong>到达影响</strong><small>每个地点都能改变创作者定义的变量</small></div>
       <div class="map-effect-grid">
@@ -517,7 +519,7 @@ export function bindTabletopMapEditor() {
   });
 
   root.querySelectorAll("[data-map-location-field]").forEach((field) => {
-    if (["name", "description"].includes(field.dataset.mapLocationField)) {
+    if (["name", "description", "hostNotes", "segmentKey"].includes(field.dataset.mapLocationField)) {
       field.addEventListener("input", () => {
         const location = selectedLocation();
         if (!location) return;
@@ -1241,6 +1243,8 @@ export function addMapLocation() {
     name: `新地点 ${index + 1}`,
     type: "探索场景",
     description: "补充这里会发生什么，以及玩家为何需要来到此处。",
+    hostNotes: "",
+    segmentKey: "",
     x: 0.46 + (index % 3) * 0.07,
     y: 0.5 + (index % 2) * 0.08,
     z: 1,

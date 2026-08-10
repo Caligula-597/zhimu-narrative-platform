@@ -151,6 +151,9 @@ async function handleRoomEvent(type, data) {
       await refreshHostRoom(false);
       showToast(`运行内容已切换到 R${Number(data.releaseNumber) || "?"}`, 3200);
       break;
+    case "room.presentation_updated":
+      await refreshHostRoom(false);
+      break;
     case "room.mechanism_state_updated":
       await refreshHostRoom(false);
       if (data.status === "completed") showToast("剧情机制已完成结算", 2800);

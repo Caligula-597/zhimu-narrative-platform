@@ -52,7 +52,32 @@ function snapshot() {
     schemaVersion: 1,
     sourceRevision: 4,
     narrativeProfile: { kind: "mystery" },
-    world: { id: worldId, name: "Release" },
+    world: {
+      id: worldId,
+      name: "Release",
+      settings: {
+        tabletopMapDesign: {
+          title: "Runtime map",
+          locations: [{
+            id: "archive",
+            name: "Archive",
+            description: "Public archive",
+            hostNotes: "Hidden archive truth",
+            segmentKey: "opening",
+            x: 0.4,
+            y: 0.5
+          }],
+          routes: [],
+          variables: [{ id: "truth", label: "Truth", value: 8, min: 0, max: 10 }],
+          endings: [{ id: "ending", name: "Ending" }],
+          system: {
+            dice: { count: 1, sides: 20, modifier: 2, defaultTarget: 12 },
+            players: [{ id: "party", name: "Party", hp: 10, maxHp: 12 }],
+            npcs: [{ id: "keeper", name: "Keeper", hp: 8, maxHp: 8 }]
+          }
+        }
+      }
+    },
     chapters: [],
     roles: [{
       id: roleId,
@@ -121,6 +146,7 @@ function runtimeRecord() {
     world_id: worldId,
     room_name: "Room",
     room_status: "active",
+    room_settings: {},
     release_id: "20000000-0000-4000-8000-000000000006",
     release_number: 1,
     release_label: "R1",
@@ -178,6 +204,37 @@ function executor(sql) {
   throw new Error(`Unexpected query: ${sql.slice(0, 80)}`);
 }
 
+function controlledExecutor(sql) {
+  if (sql.includes("release.snapshot AS release_snapshot")) {
+    const record = runtimeRecord();
+    record.room_settings = {
+      runtimePresentation: {
+        activeSegmentKey: "closing",
+        activeLocationId: "archive",
+        revealedLocationIds: ["archive"],
+        mapVisible: true,
+        updatedAt: "2026-07-24T01:30:00.000Z"
+      }
+    };
+    record.release_snapshot = {
+      ...record.release_snapshot,
+      segments: [
+        ...record.release_snapshot.segments,
+        {
+          id: "20000000-0000-4000-8000-000000000008",
+          segment_key: "closing",
+          title: "Closing choice",
+          sequence: 2,
+          story: { beatPlan: { playerContent: "Choose the final route" } },
+          operations: { playerTasks: ["Make the choice"], hostTruth: "Only one route is safe" }
+        }
+      ]
+    };
+    return Promise.resolve({ rows: [record], rowCount: 1 });
+  }
+  return executor(sql);
+}
+
 test("player knowledge excludes host-only fields while host uses the same projection", async () => {
   const player = await buildRuntimeKnowledgeProjection({
     roomId,
@@ -224,6 +281,27 @@ test("current-state projection carries the same frozen source and journal cursor
   assert.equal(current.suggestedActions[0].key, "read_section");
   assert.equal(current.mechanism.status, "not_started");
   assert.equal(current.mechanism.totalRounds, 1);
+  assert.equal(current.presentation.map.activeLocation.name, "Archive");
+  assert.equal(current.presentation.map.host, null);
+});
+
+test("host-controlled segment is authoritative for both flow and map presentation", async () => {
+  const current = await buildRuntimeCurrentState({
+    roomId,
+    roleSlotId: roleId,
+    audience: "player",
+    knowledge: {
+      summary: { availableSections: 1, completedSections: 0 },
+      sections: [{ id: sectionId, title: "Act one", completed: false }]
+    },
+    runQuery: controlledExecutor,
+    now: Date.parse("2026-07-24T02:00:00.000Z")
+  });
+  assert.equal(current.currentBeat.key, "closing");
+  assert.equal(current.currentBeat.source, "host_control");
+  assert.equal(current.currentBeat.player.content, "Choose the final route");
+  assert.equal(current.currentBeat.host, null);
+  assert.equal(current.presentation.activeSegmentKey, "closing");
 });
 
 test("host current beat uses the same segment and retains host-only guidance", async () => {

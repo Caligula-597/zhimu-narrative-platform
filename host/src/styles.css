@@ -2031,3 +2031,85 @@ textarea:focus-visible {
   line-height: 1.5;
   color: var(--muted, #76827f);
 }
+
+/* Creator map -> host-controlled player stage */
+.host-stage-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(44, 107, 98, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(246, 250, 248, 0.98), rgba(235, 243, 239, 0.82));
+}
+.host-stage-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.05fr) minmax(280px, 0.95fr);
+  gap: 14px;
+}
+.host-stage-map {
+  position: relative;
+  min-height: 310px;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(28, 65, 60, 0.16);
+  background:
+    linear-gradient(rgba(30, 72, 65, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 72, 65, 0.055) 1px, transparent 1px),
+    radial-gradient(circle at 48% 42%, #f7fbf8, #dfeae4);
+  background-size: 32px 32px, 32px 32px, auto;
+}
+.host-stage-map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.host-stage-map line { stroke: rgba(54, 100, 91, 0.28); stroke-width: 0.8; stroke-dasharray: 2.4 1.8; }
+.host-stage-node {
+  position: absolute;
+  left: var(--map-x);
+  top: var(--map-y);
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  width: max-content;
+  max-width: 116px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #37554f;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+.host-stage-node span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #788b86;
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(24, 49, 45, 0.2);
+  font-size: 11px;
+  font-weight: 800;
+}
+.host-stage-node b { padding: 2px 5px; border-radius: 5px; background: rgba(255, 255, 255, 0.88); font-size: 10px; line-height: 1.2; }
+.host-stage-node.is-revealed span { background: #b07d38; }
+.host-stage-node.is-active span { width: 36px; height: 36px; background: #286c61; box-shadow: 0 0 0 5px rgba(40, 108, 97, 0.15), 0 7px 18px rgba(24, 49, 45, 0.28); }
+.host-stage-location-list { max-height: 310px; overflow: auto; display: grid; gap: 8px; padding-right: 3px; }
+.host-stage-location {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid rgba(28, 65, 60, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.76);
+}
+.host-stage-location.is-active { border-color: rgba(40, 108, 97, 0.48); box-shadow: inset 3px 0 #286c61; }
+.host-stage-location-main { display: grid; gap: 3px; min-width: 0; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.host-stage-location-main span { color: #9a6a2f; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.host-stage-location-main strong { color: var(--ink); font-size: 13px; }
+.host-stage-location-main small { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.host-stage-footer { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; color: var(--muted); font-size: 11px; }
+@media (max-width: 900px) {
+  .host-stage-grid { grid-template-columns: 1fr; }
+  .host-stage-map { min-height: 280px; }
+  .host-stage-location-list { max-height: 260px; }
+}
