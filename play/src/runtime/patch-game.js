@@ -10,6 +10,7 @@ import {
 } from "../views/game.js";
 import { renderMiniGamePanel } from "../components/mini-games.js";
 import { bindPlayReader } from "./reader.js";
+import { renderPlayerPaceClock } from "./player-pace-clock.js";
 
 function activeInputIn(el) {
   const active = document.activeElement;
@@ -40,6 +41,9 @@ function patchGameChrome(state) {
 
   const tabletopAlert = document.querySelector("[data-game-tabletop-alert]");
   if (tabletopAlert) setHtml(tabletopAlert, renderTabletopLiveAlert());
+
+  const paceClock = document.querySelector("[data-game-pace-clock]");
+  if (paceClock) setHtml(paceClock, renderPlayerPaceClock(state.paceClock));
 
   const miniGame = document.querySelector("[data-game-mini-game]");
   if (miniGame && !activeInputIn(miniGame)) setHtml(miniGame, renderMiniGamePanel(state.currentGame));

@@ -2,6 +2,7 @@ import { sendErr } from "../api-errors.js";
 import { listHostAuditLog } from "../audit-log.js";
 import { requireActor } from "../request-actor.js";
 import { getHostDiscoveryProgress } from "../room-discovery-service.js";
+import { applyHostPaceClockAction, getRoomPaceClock } from "../room-pace-clock-service.js";
 import {
   getHostClueMatrix,
   getHostPlayerDetail,
@@ -11,6 +12,7 @@ import {
 } from "../host-monitor-service.js";
 import { requireHostMembership } from "./host-route-guards.js";
 import { hostClueNoteSchema, roleSlotRoomParams, roomIdParams } from "./schemas.js";
+import { paceClockActionSchema } from "./schemas/room-pace-clock.js";
 
 export async function registerHostMonitorRoutes(app) {
   app.get("/api/rooms/:roomId/host/players", { schema: { params: roomIdParams } }, async (request) => {
@@ -33,6 +35,20 @@ export async function registerHostMonitorRoutes(app) {
     const { roomId } = request.params;
     await requireHostMembership(actorId, roomId);
     return getHostDiscoveryProgress(roomId);
+  });
+
+  app.get("/api/rooms/:roomId/host/pace-clock", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireHostMembership(actorId, roomId);
+    return getRoomPaceClock(roomId, { audience: "host" });
+  });
+
+  app.post("/api/rooms/:roomId/host/pace-clock/actions", { schema: paceClockActionSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireHostMembership(actorId, roomId);
+    return applyHostPaceClockAction({ roomId, actorId, input: request.body });
   });
 
   app.put("/api/rooms/:roomId/host/clues/:clueId/notes", { schema: hostClueNoteSchema }, async (request, reply) => {

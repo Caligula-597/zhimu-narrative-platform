@@ -180,6 +180,11 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
       remainingCount: number
     }
   ),
+  "room.pace_clock_updated": schema(["revision", "status", "visibleToPlayers"], {
+    revision: number,
+    status: shortText,
+    visibleToPlayers: boolean
+  }),
   "room.vote_created": schema(["voteId", "title", "status"], {
     voteId: id,
     title: text,

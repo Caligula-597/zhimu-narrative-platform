@@ -378,3 +378,19 @@ test("discovery progress events are host-only and contain no clue order", () => 
   assert.equal("drawnClueIds" in event, false);
   assert.equal("remainingClueIds" in event, false);
 });
+
+test("pace clock events are public but contain only projection invalidation fields", () => {
+  const event = {
+    type: "room.pace_clock_updated",
+    revision: 5,
+    status: "running",
+    visibleToPlayers: true,
+  };
+  assert.deepEqual(projectRoomEventForAudience(event, player).event, event);
+  assert.equal("startedAt" in event, false);
+  assert.equal("elapsedMs" in event, false);
+  assert.deepEqual(
+    projectRoomEventForAudience({ ...event, visibleToPlayers: false }, player).event,
+    { type: "room.pace_clock_updated", revision: 5, visibleToPlayers: false }
+  );
+});

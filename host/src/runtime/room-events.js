@@ -10,6 +10,7 @@ import {
   refreshHostDiscoveryProgress,
   refreshHostEvents,
   refreshHostPlayers,
+  refreshHostPaceClock,
   refreshHostRoom,
   refreshHostVoiceSession
 } from "./data.js";
@@ -158,6 +159,10 @@ async function handleRoomEvent(type, data) {
     case "room.discovery_updated":
       await refreshHostDiscoveryProgress({ render: false });
       await refreshOpenPlayerOperation(data.roleSlotId);
+      render();
+      break;
+    case "room.pace_clock_updated":
+      await refreshHostPaceClock({ render: false });
       render();
       break;
     case "room.session_started":

@@ -4,9 +4,9 @@ import { resolveChapterSegmentKey, segmentRunbookFromOperations } from "../../..
 import { hostVoiceRoster, hostVoiceStatusLabel } from "../runtime/host-voice-controller.js";
 
 function paceClock(pace = {}) {
-  let elapsed = pace.elapsedMs || 0;
-  if (pace.running && pace.startedAt) elapsed += Date.now() - pace.startedAt;
-  const ms = pace.mode === "count-up" ? elapsed : Math.max(0, (pace.targetMs || 0) - elapsed);
+  let elapsed = Number(pace.elapsedMs) || 0;
+  if (pace.status === "running") elapsed += Math.max(0, Date.now() - Number(pace._receivedAt || Date.now()));
+  const ms = pace.mode === "countup" ? elapsed : Math.max(0, (Number(pace.durationMs) || 0) - elapsed);
   const total = Math.floor(ms / 1000);
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
@@ -527,7 +527,7 @@ function renderCurrentActColumn(preferredActKey = "", presentation = null) {
 }
 
 function renderTopbar({ room, world }) {
-  const pace = state.paceTimer || { mode: "count-up", running: false, elapsedMs: 0 };
+  const pace = state.paceTimer || { mode: "countup", status: "idle", elapsedMs: 0 };
   return `<section class="host-command-topbar">
     <div class="host-topbar-room">
       <span class="live-label"><i></i>LIVE</span>
@@ -539,7 +539,7 @@ function renderTopbar({ room, world }) {
     </div>
     <div class="host-topbar-timer">
       <strong data-host-pace-clock>${escapeHtml(paceClock(pace))}</strong>
-      <button class="secondary-btn" data-action="host-pace-toggle">${pace.running ? "暂停" : "开始"}</button>
+      <button class="secondary-btn" data-action="host-pace-toggle">${pace.status === "running" ? "暂停" : "开始"}</button>
       <button class="secondary-btn" data-action="host-pace-reset">重置</button>
     </div>
   </section>`;

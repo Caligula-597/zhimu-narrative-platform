@@ -11,6 +11,7 @@ import {
   applyPlayerDiscoveryAction,
   listPlayerDiscoverySessions
 } from "../room-discovery-service.js";
+import { getRoomPaceClock } from "../room-pace-clock-service.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole } from "./route-guards.js";
@@ -43,6 +44,13 @@ export async function registerPlayerExplorationRoutes(app) {
     const { roomId } = request.params;
     const membership = await requirePlayerMembership(actorId, roomId);
     return listPlayerDiscoverySessions(roomId, membership.role_slot_id);
+  });
+
+  app.get("/api/rooms/:roomId/pace-clock", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requirePlayerMembership(actorId, roomId);
+    return getRoomPaceClock(roomId, { audience: "player" });
   });
 
   app.post("/api/rooms/:roomId/discovery-sessions/:locationId/actions", { schema: discoveryActionSchema }, async (request) => {

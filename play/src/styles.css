@@ -1007,6 +1007,30 @@ button {
   margin-top: 16px;
 }
 
+.player-pace-clock {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(43, 107, 97, .24);
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(43, 107, 97, .11), rgba(255, 255, 255, .84));
+  color: var(--green);
+}
+.player-pace-clock > div { display: flex; gap: 12px; align-items: baseline; }
+.player-pace-clock span { font-size: 12px; font-weight: 800; }
+.player-pace-clock strong { font-variant-numeric: tabular-nums; font-size: 22px; letter-spacing: .04em; }
+.player-pace-clock small { color: var(--muted); font-size: 11px; }
+.player-pace-clock.is-paused { border-color: rgba(168, 95, 84, .3); color: var(--clay); }
+.player-pace-clock.is-completed { border-color: rgba(168, 95, 84, .45); background: rgba(168, 95, 84, .1); color: var(--clay); }
+
+@media (max-width: 640px) {
+  .player-pace-clock { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .player-pace-clock > div { width: 100%; justify-content: space-between; }
+}
+
 .exploration-location-context {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

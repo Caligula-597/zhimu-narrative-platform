@@ -44,7 +44,7 @@ import { normalizeRuntimeCurrentState } from "../../../shared/runtime-current-st
 import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
 
 export function bindConsoleContext({ render, showToast }) {
-  bindHostPaceTimerContext({ render });
+  bindHostPaceTimerContext({ render, showToast });
   bindHostEventQueueContext({ render, showToast });
   bindHostRulesContext({ render, showToast });
   bindHostMiniGameContext({ render, showToast });

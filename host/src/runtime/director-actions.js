@@ -7,7 +7,13 @@ import {
   resolveRuntimeTabletopCheck
 } from "../../../shared/tabletop-flow.js";
 import { loadHostData, refreshHostAuditLog, refreshHostClueMatrix, refreshHostEvents, refreshHostPlayers, refreshHostRoom } from "./data.js";
-import { resetPaceTimer, switchPaceMode, togglePaceTimer } from "./host-pace-timer.js";
+import {
+  extendPaceTimer,
+  resetPaceTimer,
+  setPaceTimerVisibility,
+  switchPaceMode,
+  togglePaceTimer
+} from "./host-pace-timer.js";
 import {
   batchHostEventsAction,
   syncHostEventSelectAll,
@@ -59,7 +65,7 @@ export function createDirectorActionHandler({ render, showToast }) {
     return queued;
   }
 
-  return function handleDirectorAction(action, el) {
+  return async function handleDirectorAction(action, el) {
     switch (action) {
       case "rules-preview": refreshRulesPreview(); return true;
       case "rule-manual-trigger": triggerManualRuleFromDirector(el?.dataset?.rule); return true;
@@ -351,10 +357,16 @@ export function createDirectorActionHandler({ render, showToast }) {
         return true;
       }
       case "refresh-host-data": loadHostData(true, true); return true;
-      case "host-pace-toggle": togglePaceTimer(); return true;
-      case "host-pace-reset": resetPaceTimer(); return true;
+      case "host-pace-toggle": await togglePaceTimer(); return true;
+      case "host-pace-reset": await resetPaceTimer(); return true;
       case "host-pace-switch-mode":
-        switchPaceMode(el?.dataset?.mode || "count-up", Number(el?.dataset?.targetMs || 0));
+        await switchPaceMode(el?.dataset?.mode || "countup", Number(el?.dataset?.targetMs || 0));
+        return true;
+      case "host-pace-extend":
+        await extendPaceTimer(Number(el?.dataset?.extendMs || 0));
+        return true;
+      case "host-pace-visibility":
+        await setPaceTimerVisibility(el?.dataset?.visible === "1");
         return true;
       case "onboarding-go-player": {
         const code = state.room?.invite_code || "";

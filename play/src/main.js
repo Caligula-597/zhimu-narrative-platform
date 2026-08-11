@@ -72,6 +72,8 @@ import { createPlayStreamController } from "./runtime/stream-controller.js";
 import { createRoomLifecycleController } from "./runtime/room-lifecycle-controller.js";
 import { createRecapNotebookController } from "./runtime/recap-notebook-controller.js";
 import { createLazyPlayerProfileController } from "./runtime/lazy-profile-controller.js";
+import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
+import { tickPlayerPaceClock } from "./runtime/player-pace-clock.js";
 
 const app = document.getElementById("app");
 
@@ -101,6 +103,14 @@ window.addEventListener("zhimu:tabletop-discovery-action", (event) => {
     .then((session) => event.detail?.resolve?.(session))
     .catch((error) => event.detail?.reject?.(error));
 });
+
+const playerPaceTicker = createAdaptivePoller({
+  run: () => tickPlayerPaceClock(state.paceClock),
+  intervalMs: 1000,
+  maxIntervalMs: 1000,
+  jitterRatio: 0,
+});
+playerPaceTicker.start({ immediate: false });
 
 setVoiceRenderCallback(render);
 

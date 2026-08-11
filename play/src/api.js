@@ -142,6 +142,7 @@ export const api = {
       method: "POST",
       body: payload
     }),
+  paceClock: (roomId) => request(`/rooms/${roomId}/pace-clock`),
   investigate: (roomId, pointId) =>
     request(`/rooms/${roomId}/investigation-points/${pointId}/investigate`, { method: "POST", body: {} }),
   readClue: (roomId, clueId) =>

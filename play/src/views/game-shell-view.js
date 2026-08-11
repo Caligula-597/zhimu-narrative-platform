@@ -10,6 +10,7 @@ import { renderSocialTab, renderSuspicionsTab, renderTasksTab } from "./game-pla
 import { renderNotesTab, renderTimelineTab } from "./game-recap-views.js";
 import { renderSections } from "./game-section-view.js";
 import { gameTabPanelLabelId, primaryTabFor, tabGroupFor } from "./game-tab-model.js";
+import { renderPlayerPaceClock } from "../runtime/player-pace-clock.js";
 
 function sectionBlock(title, subtitle, body, action = "") {
   return `<section class="merged-tab-section card">
@@ -173,6 +174,7 @@ export function renderGame() {
           ${renderGameTabBar()}
         </nav>
         <div data-game-host-banner>${renderHostConfirmBannerHtml()}</div>
+        <div data-game-pace-clock>${renderPlayerPaceClock(state.paceClock)}</div>
         <div data-game-tabletop-alert>${renderTabletopLiveAlert()}</div>
         <div data-game-mini-game>${renderMiniGamePanel(state.currentGame)}</div>
         <div class="tab-body" data-game-tab-body role="tabpanel" aria-labelledby="${gameTabPanelLabelId(state.tab)}">${renderGameTabBody()}</div>

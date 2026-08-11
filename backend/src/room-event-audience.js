@@ -80,6 +80,17 @@ export function projectRoomEventForAudience(event, audience = {}) {
       disconnectAfter: false
     };
   }
+  if (type === "room.pace_clock_updated") {
+    return {
+      event: {
+        type,
+        revision: event.revision,
+        visibleToPlayers: Boolean(event.visibleToPlayers),
+        ...(event.visibleToPlayers ? { status: event.status } : {})
+      },
+      disconnectAfter: false
+    };
+  }
   if (PUBLIC_PLAYER_EVENT_TYPES.has(type)) return { event, disconnectAfter: false };
 
   if (type === "room.player_kicked") {

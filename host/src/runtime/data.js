@@ -32,6 +32,12 @@ export function applyHostVoiceSessionPayload(value) {
   state.hostVoiceRoomId = preferred?.id || "";
 }
 
+export function applyHostPaceClockPayload(value) {
+  state.paceTimer = value?.clock
+    ? { ...value.clock, _receivedAt: Date.now() }
+    : null;
+}
+
 export async function loadHostData(withToast = false, force = false) {
   const roomId = getRoomId();
   const worldId = getWorldId();
@@ -126,7 +132,8 @@ async function loadHostDataInternal(withToast = false) {
           errorCode: error?.code || ""
         })),
         api.getVoiceSession().catch(() => null),
-        api.getHostDiscoveryProgress().catch(() => null)
+        api.getHostDiscoveryProgress().catch(() => null),
+        api.getHostPaceClock().catch(() => ({ clock: null }))
       ]);
       if (results[0].status === "fulfilled") applyHostPlayersPayload(results[0].value);
       else {
@@ -147,6 +154,7 @@ async function loadHostDataInternal(withToast = false) {
       if (results[11].status === "fulfilled") state.cloudHostMechanismRuntime = results[11].value;
       if (results[12].status === "fulfilled") applyHostVoiceSessionPayload(results[12].value);
       if (results[13].status === "fulfilled") state.cloudHostDiscoveryProgress = results[13].value;
+      if (results[14].status === "fulfilled") applyHostPaceClockPayload(results[14].value);
     } else {
       state.cloudHostPlayers = [];
       state.cloudHostEvents = [];
@@ -154,6 +162,7 @@ async function loadHostDataInternal(withToast = false) {
       state.cloudWorldLogs = [];
       state.cloudHostClueMatrix = null;
       state.cloudHostDiscoveryProgress = null;
+      state.paceTimer = null;
       state.cloudHostAuditLog = [];
       state.cloudHostTestimonies = [];
       state.cloudHostSegmentRemedies = [];
@@ -256,6 +265,14 @@ export async function refreshHostDiscoveryProgress({ render = true } = {}) {
   return progress;
 }
 
+export async function refreshHostPaceClock({ render = true } = {}) {
+  if (!getRoomId()) return null;
+  const payload = await api.getHostPaceClock();
+  applyHostPaceClockPayload(payload);
+  if (render && state.view === "console") renderRef();
+  return state.paceTimer;
+}
+
 export async function refreshHostMiniGames(withToast = false, silent = false) {
   if (!getRoomId()) return;
   try {
@@ -275,7 +292,7 @@ export async function refreshHostRoom(withToast = false) {
   const generation = ++roomRefreshGeneration;
   try {
     const logParams = { limit: "20", roomId: getRoomId() };
-    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions, currentState, mechanismRuntime, voiceSession, discoveryProgress] = await Promise.all([
+    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions, currentState, mechanismRuntime, voiceSession, discoveryProgress, paceClock] = await Promise.all([
       api.getHostPlayers(),
       api.getHostEvents(),
       api.getWorldLogs(logParams),
@@ -291,7 +308,8 @@ export async function refreshHostRoom(withToast = false) {
         errorCode: error?.code || ""
       })),
       api.getVoiceSession().catch(() => null),
-      api.getHostDiscoveryProgress().catch(() => null)
+      api.getHostDiscoveryProgress().catch(() => null),
+      api.getHostPaceClock().catch(() => ({ clock: null }))
     ]);
     if (generation !== roomRefreshGeneration) return false;
     applyHostPlayersPayload(hostPlayers);
@@ -306,6 +324,7 @@ export async function refreshHostRoom(withToast = false) {
     state.cloudHostMechanismRuntime = mechanismRuntime;
     applyHostVoiceSessionPayload(voiceSession);
     state.cloudHostDiscoveryProgress = discoveryProgress;
+    applyHostPaceClockPayload(paceClock);
     if (state.view === "console") renderRef();
     if (withToast) {
       toastRef(

@@ -25,7 +25,7 @@ export function createPlayerHomeController({
   async function pullRoomData({ partial = false } = {}) {
     if (!state.roomId || !isUuid(state.roomId)) return;
     const currentGeneration = ++generation;
-    const [homeCore, explorationResult, discoveryResult] = await Promise.all([
+    const [homeCore, explorationResult, discoveryResult, paceClockResult] = await Promise.all([
       loadPlayerHomeCoreCompat(state.roomId),
       api.exploration(state.roomId)
         .then((data) => ({ ok: true, data }))
@@ -34,7 +34,12 @@ export function createPlayerHomeController({
         ? api.discoverySessions(state.roomId)
             .then((data) => ({ ok: true, data }))
             .catch((error) => ({ ok: false, error }))
-        : Promise.resolve({ ok: true, data: { sessions: [] } })
+        : Promise.resolve({ ok: true, data: { sessions: [] } }),
+      typeof api.paceClock === "function"
+        ? api.paceClock(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true, data: { clock: null } })
     ]);
     if (currentGeneration !== generation) return;
 
@@ -44,6 +49,7 @@ export function createPlayerHomeController({
     if (homeGame !== undefined) state.currentGame = normalizeMiniGame(homeGame);
     applyExplorationResult(explorationResult);
     applyDiscoveryResult(discoveryResult);
+    applyPaceClockResult(paceClockResult);
     selectAvailableSection();
     await refreshVoiceIfActive();
 
@@ -86,6 +92,13 @@ export function createPlayerHomeController({
       return;
     }
     state.discoverySyncError = formatApiError(result.error, "地点探索进度同步失败");
+  }
+
+  function applyPaceClockResult(result) {
+    if (!result.ok) return;
+    state.paceClock = result.data?.clock
+      ? { ...result.data.clock, _receivedAt: Date.now() }
+      : null;
   }
 
   function selectAvailableSection() {

@@ -169,6 +169,11 @@ export const api = {
   getHostEvents: () => request(roomPath("/host-events")),
   getHostClueMatrix: () => request(roomPath("/host/clue-matrix")),
   getHostDiscoveryProgress: () => request(roomPath("/host/discovery-progress")),
+  getHostPaceClock: () => request(roomPath("/host/pace-clock")),
+  updateHostPaceClock: (payload) => request(roomPath("/host/pace-clock/actions"), {
+    method: "POST",
+    body: payload
+  }),
   getHostAuditLog: (limit = 50) => request(`${roomPath("/host/audit-log")}?limit=${limit}`),
   getHostVotes: () => request(roomPath("/host/votes")),
   hostCreateVote: (payload, roomId = getRoomId(), idempotencyKey = "") =>
