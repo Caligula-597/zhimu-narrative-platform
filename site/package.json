@@ -9,7 +9,10 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test test/*.test.mjs",
+    "seo:indexnow": "node scripts/submit-indexnow.mjs",
+    "seo:verify-live": "node scripts/verify-live-seo.mjs"
   },
   "devDependencies": {
     "@emnapi/core": "1.11.2",

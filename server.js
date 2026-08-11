@@ -60,7 +60,10 @@ function sendFile(res, filePath, statusCode = 200) {
       res.end("Not found");
       return;
     }
-    res.writeHead(statusCode, { "Content-Type": mime[path.extname(filePath)] || "application/octet-stream" });
+    res.writeHead(statusCode, {
+      "Content-Type": mime[path.extname(filePath)] || "application/octet-stream",
+      "X-Robots-Tag": "noindex, nofollow, noarchive"
+    });
     res.end(data);
   });
 }

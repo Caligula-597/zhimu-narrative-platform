@@ -44,10 +44,12 @@ test("SERVE_STATIC serves /docs/*.md and does not SPA-fallback docs to index.htm
   const index = await app.inject({ method: "GET", url: "/" });
   assert.equal(index.statusCode, 200);
   assert.equal(index.headers["cache-control"], "public, max-age=0, must-revalidate");
+  assert.equal(index.headers["x-robots-tag"], "noindex, nofollow, noarchive");
 
   const asset = await app.inject({ method: "GET", url: "/assets/writer-AbC123.js" });
   assert.equal(asset.statusCode, 200);
   assert.equal(asset.headers["cache-control"], "public, max-age=31536000, immutable");
+  assert.equal(asset.headers["x-robots-tag"], "noindex, nofollow, noarchive");
 
   const missingAsset = await app.inject({ method: "GET", url: "/assets/writer-old.js" });
   assert.equal(missingAsset.statusCode, 404);

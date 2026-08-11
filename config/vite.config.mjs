@@ -86,6 +86,9 @@ export default defineConfig(({ mode }) => {
       port: Number(env.VITE_DEV_PORT || 4173),
       strictPort: true,
       host: env.VITE_DEV_HOST === "false" ? false : true,
+      headers: {
+        "X-Robots-Tag": "noindex, nofollow, noarchive"
+      },
       proxy: {
         "/api": {
           target: apiTarget,
@@ -96,6 +99,9 @@ export default defineConfig(({ mode }) => {
     preview: {
       port: Number(env.VITE_DEV_PORT || 4173),
       strictPort: true,
+      headers: {
+        "X-Robots-Tag": "noindex, nofollow, noarchive"
+      },
       proxy: {
         "/api": {
           target: apiTarget,
