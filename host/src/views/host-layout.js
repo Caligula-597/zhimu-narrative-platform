@@ -446,6 +446,18 @@ function queueItems() {
           : `<button class="primary-btn" data-action="host-vote-status" data-vote-id="${escapeHtml(vote.id)}" data-status="published">公布</button>`
     });
   }
+  for (const action of state.cloudHostItemActions || []) {
+    if (action.status !== "pending") continue;
+    const player = (state.cloudHostPlayers || []).find((row) => row.role_slot_id === action.roleSlotId);
+    items.push({
+      type: "item",
+      priority: 27,
+      time: action.submittedAt,
+      title: action.label || "物品动作",
+      detail: `${player?.role_name || "玩家"} · ${action.actionKind}${action.targetType !== "none" ? ` · 目标 ${action.targetId}` : ""}`,
+      actions: `<button class="primary-btn" data-action="host-resolve-item-action" data-item-action-id="${escapeHtml(action.actionId)}" data-revision="${Number(action.revision)}" data-decision="approve">批准</button><button class="secondary-btn" data-action="host-resolve-item-action" data-item-action-id="${escapeHtml(action.actionId)}" data-revision="${Number(action.revision)}" data-decision="reject">拒绝</button>`
+    });
+  }
   for (const action of state.cloudHostPrivateActions || []) {
     if (["accepted", "rejected"].includes(action.status)) continue;
     items.push({

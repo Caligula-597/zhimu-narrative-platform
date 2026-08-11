@@ -29,8 +29,49 @@ function itemMetadata(body, current = {}) {
     ...(body.metadata ?? {}),
     ...(body.unique !== undefined ? { unique: Boolean(body.unique) } : {}),
     ...(body.consumable !== undefined ? { consumable: Boolean(body.consumable) } : {}),
-    ...(body.assetId !== undefined ? { assetId: body.assetId || null } : {})
+    ...(body.assetId !== undefined ? { assetId: body.assetId || null } : {}),
+    ...(body.itemActions !== undefined ? { itemActions: normalizeItemActions(body.itemActions) } : {})
   };
+}
+
+export function normalizeItemActions(value) {
+  if (!Array.isArray(value) || value.length > 8) throwErr("ITEM_ACTION_CONTRACT_INVALID");
+  const keys = new Set();
+  return value.map((source) => {
+    const key = String(source?.key || "").trim();
+    const label = String(source?.label || "").trim();
+    const kind = String(source?.kind || "");
+    const targetType = String(source?.targetType || "none");
+    if (!/^[a-z][a-z0-9_]{1,63}$/.test(key) || keys.has(key) || !label || label.length > 120) {
+      throwErr("ITEM_ACTION_CONTRACT_INVALID");
+    }
+    if (!["use", "consume", "combine"].includes(kind) || !["none", "role", "location"].includes(targetType)) {
+      throwErr("ITEM_ACTION_CONTRACT_INVALID");
+    }
+    keys.add(key);
+    const combineWithItemIds = [...new Set((source.combineWithItemIds || []).map(String))];
+    const resultText = String(source.resultText || "").trim();
+    const consumeQuantity = Number(source.consumeQuantity || 0);
+    const combineConsumeQuantity = Number(source.combineConsumeQuantity || 0);
+    if (![consumeQuantity, combineConsumeQuantity].every((quantity) => Number.isSafeInteger(quantity) && quantity >= 0 && quantity <= 99)) {
+      throwErr("ITEM_ACTION_CONTRACT_INVALID");
+    }
+    if (combineWithItemIds.length > 50 || resultText.length > 2000
+        || (kind === "combine" && combineWithItemIds.length === 0)) {
+      throwErr("ITEM_ACTION_CONTRACT_INVALID");
+    }
+    return {
+      key,
+      label,
+      kind,
+      targetType,
+      requiresHostConfirmation: Boolean(source.requiresHostConfirmation),
+      consumeQuantity,
+      combineConsumeQuantity,
+      combineWithItemIds,
+      resultText,
+    };
+  });
 }
 
 export function addStudioItem({ request, reply, actorId, worldId, body }) {

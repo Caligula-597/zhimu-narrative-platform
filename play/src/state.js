@@ -43,6 +43,7 @@ export const state = {
   discoverySyncError: "",
   paceClock: null,
   sessionConclusion: null,
+  itemActions: [],
   tab: storedRoomId ? readStoredGameTab() : "home",
   sectionId: storedRoomId ? (localStorage.getItem(GAME_SECTION_KEY) || "") : "",
   clueId: "",
@@ -191,6 +192,7 @@ export function persistRoom(roomId, isUuid) {
     state.discoverySyncError = "";
     state.paceClock = null;
     state.sessionConclusion = null;
+    state.itemActions = [];
     state.recapLibrarySelected = null;
     state.recapDetail = null;
   }

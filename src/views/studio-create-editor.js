@@ -171,6 +171,12 @@ function fieldBody(context) {
       + formField("物品描述", "publicText", "textarea", draft.publicText, { rows: 7 })
       + `<label class="studio-check-row"><input type="checkbox" data-editor-checkbox="unique" ${draft.unique ? "checked" : ""}> 是否唯一（同一角色不可重复获得）</label>`
       + `<label class="studio-check-row"><input type="checkbox" data-editor-checkbox="consumable" ${draft.consumable ? "checked" : ""}> 是否可消耗（使用后消失）</label>`
+      + formSelect("主要动作", "actionKind", [{ id: "", name: "仅展示，不可主动使用" }, { id: "use", name: "使用" }, { id: "consume", name: "消耗" }, { id: "combine", name: "组合" }], draft.actionKind)
+      + formField("玩家按钮文案", "actionLabel", "input", draft.actionLabel)
+      + formSelect("作用目标", "actionTargetType", [{ id: "none", name: "无需目标" }, { id: "role", name: "选择角色" }, { id: "location", name: "选择地点" }], draft.actionTargetType || "none")
+      + formSelect("组合物品", "combineItemId", [{ id: "", name: "不需要组合物" }, ...(data.items || [])], draft.combineItemId)
+      + formField("完成提示", "actionResultText", "textarea", draft.actionResultText, { rows: 4 })
+      + `<label class="studio-check-row"><input type="checkbox" data-editor-checkbox="requiresHostConfirmation" ${draft.requiresHostConfirmation ? "checked" : ""}> 需要主持人确认</label>`
       + (assets.length ? formSelect("关联资产", "assetId", [{ id: "", name: "不关联附件" }, ...assets.map((asset) => ({ id: asset.id, name: asset.original_filename }))], draft.assetId) : "")
       + formField("主持备注", "hostText", "textarea", draft.hostText, { rows: 6 });
   }
@@ -211,7 +217,7 @@ export function bindStudioCreateEditor() {
   if (!root || !context || root.dataset.bound) return;
   root.dataset.bound = "1";
   const panel = root.querySelector("[data-workspace-editor]");
-  bindWorkspaceDraft(panel, context.session.draft, { checkboxMap: { unique: "unique", consumable: "consumable" } });
+  bindWorkspaceDraft(panel, context.session.draft, { checkboxMap: { unique: "unique", consumable: "consumable", requiresHostConfirmation: "requiresHostConfirmation" } });
   const changed = () => {
     context.session.dirty = true;
     context.session.discardArmed = false;
@@ -250,7 +256,10 @@ async function persistCreate(context, values) {
   if (session.type === "chapter") return { type: "chapter", saved: await zhimuApi.createStudioChapter({ ...values, sequence: (data.chapters?.length || 0) + 1 }) };
   if (session.type === "scene") return { type: "scene", saved: await zhimuApi.createScene({ ...values, chapterId: values.chapterId || null }) };
   if (session.type === "clue") return { type: "clue", saved: await zhimuApi.createClue({ ...values, visibility: "role" }) };
-  if (session.type === "item") return { type: "item", saved: await zhimuApi.createItem({ name: values.name, publicText: values.publicText, hostText: values.hostText, unique: Boolean(session.draft.unique), consumable: Boolean(session.draft.consumable), assetId: values.assetId || null }) };
+  if (session.type === "item") {
+    const itemActions = values.actionKind ? [{ key: "primary", label: values.actionLabel || "使用", kind: values.actionKind, targetType: values.actionTargetType || "none", requiresHostConfirmation: Boolean(session.draft.requiresHostConfirmation), consumeQuantity: values.actionKind === "consume" ? 1 : 0, combineConsumeQuantity: values.actionKind === "combine" ? 1 : 0, combineWithItemIds: values.combineItemId ? [values.combineItemId] : [], resultText: values.actionResultText || "" }] : [];
+    return { type: "item", saved: await zhimuApi.createItem({ name: values.name, publicText: values.publicText, hostText: values.hostText, unique: Boolean(session.draft.unique), consumable: Boolean(session.draft.consumable), assetId: values.assetId || null, itemActions }) };
+  }
   if (session.type === "point") {
     const payload = { ...values };
     const sceneId = payload.sceneId;

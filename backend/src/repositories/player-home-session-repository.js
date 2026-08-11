@@ -112,7 +112,12 @@ export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId, runQu
          COALESCE((
            SELECT jsonb_agg(to_jsonb(inventory_row) ORDER BY inventory_row.name)
            FROM (
-             SELECT i.id AS item_id, i.name, i.public_text, i.metadata,
+             SELECT i.id AS item_id, i.name, i.public_text,
+                    jsonb_build_object(
+                      'unique', COALESCE(i.metadata->>'unique', 'false') = 'true',
+                      'consumable', COALESCE(i.metadata->>'consumable', 'false') = 'true',
+                      'itemActions', COALESCE(i.metadata->'itemActions', '[]'::jsonb)
+                    ) AS metadata,
                     inv.quantity, inv.metadata AS inventory_metadata
              FROM inventory inv
              JOIN items i ON i.id = inv.item_id

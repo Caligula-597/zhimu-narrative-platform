@@ -193,6 +193,13 @@ export const api = {
   hostUpdateVoteStatus: (voteId, status) =>
     request(roomPath(`/host/votes/${voteId}`), { method: "PATCH", body: { status } }),
   getHostPrivateActions: () => request(roomPath("/host/private-actions")),
+  getHostItemActions: () => request(roomPath("/host/item-actions")),
+  resolveHostItemAction: (actionId, payload) =>
+    request(roomPath(`/host/item-actions/${actionId}/resolve`), {
+      method: "POST",
+      body: payload,
+      idempotent: true
+    }),
   getHostMiniGames: () => request(roomPath("/host/mini-games")),
   startHostMiniGame: (payload) =>
     request(roomPath("/host/mini-games"), { method: "POST", body: payload, idempotent: true }),

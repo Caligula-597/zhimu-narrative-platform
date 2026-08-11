@@ -15,6 +15,7 @@ const PUBLIC_PLAYER_EVENT_TYPES = new Set([
 ]);
 const ROLE_TARGETED_EVENT_TYPES = new Set([
   "room.item_granted",
+  "room.item_action_updated",
   "room.section_unlocked",
   "room.section_relocked",
   "room.section_skipped",

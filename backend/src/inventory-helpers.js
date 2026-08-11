@@ -69,7 +69,12 @@ export async function consumeItemIfNeeded(client, { roomId, roleSlotId, itemId }
 export async function listPlayerInventory(client, roomId, roleSlotId) {
   const run = client?.query ? client.query.bind(client) : query;
   const result = await run(
-    `SELECT i.id AS item_id, i.name, i.public_text, i.metadata,
+    `SELECT i.id AS item_id, i.name, i.public_text,
+            jsonb_build_object(
+              'unique', COALESCE(i.metadata->>'unique', 'false') = 'true',
+              'consumable', COALESCE(i.metadata->>'consumable', 'false') = 'true',
+              'itemActions', COALESCE(i.metadata->'itemActions', '[]'::jsonb)
+            ) AS metadata,
             inv.quantity, inv.metadata AS inventory_metadata
      FROM inventory inv
      JOIN items i ON i.id = inv.item_id

@@ -144,6 +144,13 @@ export const api = {
     }),
   paceClock: (roomId) => request(`/rooms/${roomId}/pace-clock`),
   roomConclusion: (roomId) => request(`/rooms/${roomId}/conclusion`),
+  itemActions: (roomId) => request(`/rooms/${roomId}/player/item-actions`),
+  submitItemAction: (roomId, itemId, payload) =>
+    request(`/rooms/${roomId}/player/items/${itemId}/actions`, {
+      method: "POST",
+      body: payload,
+      idempotent: true
+    }),
   investigate: (roomId, pointId) =>
     request(`/rooms/${roomId}/investigation-points/${pointId}/investigate`, { method: "POST", body: {} }),
   readClue: (roomId, clueId) =>

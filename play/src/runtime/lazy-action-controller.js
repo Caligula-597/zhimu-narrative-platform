@@ -83,7 +83,8 @@ const definitions = {
       "submit-private-action",
       "read-clue",
       "investigate",
-      "mini-game-submit"
+      "mini-game-submit",
+      "submit-item-action"
     ]),
     load: () => import("./game-action-controller.js"),
     handler: "handlePlayGameAction"

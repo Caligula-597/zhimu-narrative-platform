@@ -109,6 +109,16 @@ export function createDirectorActionHandler({ render, showToast }) {
           "处理失败"
         );
         return true;
+      case "host-resolve-item-action":
+        void runCommand(
+          () => api.resolveHostItemAction(el?.dataset?.itemActionId, {
+            expectedRevision: Number(el?.dataset?.revision),
+            decision: el?.dataset?.decision
+          }),
+          el?.dataset?.decision === "approve" ? "物品动作已批准并结算" : "物品动作已拒绝",
+          "处理物品动作失败"
+        );
+        return true;
       case "host-load-run-report":
         void runCommand(
           async () => {

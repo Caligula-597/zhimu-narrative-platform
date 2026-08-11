@@ -128,6 +128,12 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     source,
     itemName: text
   }),
+  "room.item_action_updated": schema(["actionId", "roleSlotId", "status", "revision"], {
+    actionId: id,
+    roleSlotId: id,
+    status: shortText,
+    revision: number
+  }),
   "room.game_started": schema(["currentGame"], { currentGame: object }),
   "room.game_completed": schema(["currentGame"], { currentGame: object, forced: boolean, correct: boolean }),
   "room.game_updated": schema(["currentGame", "correct"], { currentGame: object, correct: boolean }),

@@ -168,6 +168,9 @@ async function handleRoomEvent(type, data) {
     case "room.conclusion_updated":
       await refreshHostRoom(false);
       break;
+    case "room.item_action_updated":
+      await refreshHostRoom(false);
+      break;
     case "room.session_started":
       if (state.room) {
         state.room = {

@@ -25,7 +25,7 @@ export function createPlayerHomeController({
   async function pullRoomData({ partial = false } = {}) {
     if (!state.roomId || !isUuid(state.roomId)) return;
     const currentGeneration = ++generation;
-    const [homeCore, explorationResult, discoveryResult, paceClockResult, conclusionResult] = await Promise.all([
+    const [homeCore, explorationResult, discoveryResult, paceClockResult, conclusionResult, itemActionsResult] = await Promise.all([
       loadPlayerHomeCoreCompat(state.roomId),
       api.exploration(state.roomId)
         .then((data) => ({ ok: true, data }))
@@ -44,7 +44,12 @@ export function createPlayerHomeController({
         ? api.roomConclusion(state.roomId)
             .then((data) => ({ ok: true, data }))
             .catch((error) => ({ ok: false, error }))
-        : Promise.resolve({ ok: true, data: { conclusion: null } })
+        : Promise.resolve({ ok: true, data: { conclusion: null } }),
+      typeof api.itemActions === "function"
+        ? api.itemActions(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true, data: { itemActions: [] } })
     ]);
     if (currentGeneration !== generation) return;
 
@@ -56,6 +61,7 @@ export function createPlayerHomeController({
     applyDiscoveryResult(discoveryResult);
     applyPaceClockResult(paceClockResult);
     applyConclusionResult(conclusionResult);
+    applyItemActionsResult(itemActionsResult);
     selectAvailableSection();
     await refreshVoiceIfActive();
 
@@ -110,6 +116,11 @@ export function createPlayerHomeController({
   function applyConclusionResult(result) {
     if (!result.ok) return;
     state.sessionConclusion = result.data?.conclusion || null;
+  }
+
+  function applyItemActionsResult(result) {
+    if (!result.ok) return;
+    state.itemActions = Array.isArray(result.data?.itemActions) ? result.data.itemActions : [];
   }
 
   function selectAvailableSection() {

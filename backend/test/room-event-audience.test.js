@@ -412,3 +412,15 @@ test("conclusion events expose only player-safe readiness fields", () => {
     revision: 4,
   });
 });
+
+test("item action updates are delivered only to the owning role", () => {
+  const event = {
+    type: "room.item_action_updated",
+    actionId: "action-1",
+    roleSlotId: "role-a",
+    status: "pending",
+    revision: 1,
+  };
+  assert.equal(projectRoomEventForAudience(event, player).event, null);
+  assert.deepEqual(projectRoomEventForAudience(event, { ...player, roleSlotId: "role-a" }).event, event);
+});

@@ -40,6 +40,7 @@ export const state = {
   cloudHostSegmentRemedies: [],
   cloudHostVotes: [],
   cloudHostPrivateActions: [],
+  cloudHostItemActions: [],
   cloudHostMiniGames: [],
   cloudRunReport: null,
   cloudHostMechanismRuntime: null,

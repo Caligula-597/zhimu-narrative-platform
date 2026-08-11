@@ -175,14 +175,49 @@ export function renderInventory() {
   return `
     <div class="inventory-grid">
       ${items
-        .map(
-          (item) => `
+        .map((item) => {
+          const action = item.metadata?.itemActions?.[0];
+          const latest = (state.itemActions || []).find((entry) => entry.itemId === item.item_id);
+          const pending = latest?.status === "pending";
+          const roleOptions = (state.home?.voiceRoster || [])
+            .filter((member) => member.role_slot_id)
+            .map((member) => `<option value="${escapeHtml(member.role_slot_id)}">${escapeHtml(member.role_name || member.display_name || "角色")}</option>`)
+            .join("");
+          const locations = state.home?.currentState?.presentation?.map?.locations || [];
+          const locationOptions = locations
+            .map((location) => `<option value="${escapeHtml(location.id)}">${escapeHtml(location.name)}</option>`)
+            .join("");
+          const combineOptions = items
+            .filter((candidate) => candidate.item_id !== item.item_id && action?.combineWithItemIds?.includes(candidate.item_id))
+            .map((candidate) => `<option value="${escapeHtml(candidate.item_id)}">${escapeHtml(candidate.name)}</option>`)
+            .join("");
+          const targetControl = action?.targetType === "role"
+            ? `<label>作用角色<select class="field" data-item-action-target>${roleOptions}</select></label>`
+            : action?.targetType === "location"
+              ? `<label>作用地点<select class="field" data-item-action-target>${locationOptions}</select></label>`
+              : "";
+          const combineControl = action?.kind === "combine"
+            ? `<label>组合物<select class="field" data-item-action-combine>${combineOptions}</select></label>`
+              : "";
+          const unavailable = (action?.targetType === "role" && !roleOptions)
+            || (action?.targetType === "location" && !locationOptions)
+            || (action?.kind === "combine" && !combineOptions);
+          const statusLabel = latest?.status === "pending"
+            ? "等待主持确认"
+            : latest?.status === "approved"
+              ? (latest.resultText || "动作已完成")
+              : latest?.status === "rejected"
+                ? "主持人未批准"
+                : latest?.status === "failed" ? "库存变化后无法完成" : "";
+          return `
         <article class="card inventory-item">
           <strong>${escapeHtml(item.name)}</strong>
           <span class="qty">× ${item.quantity}</span>
-          ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}
-        </article>`
-        )
+          ${item.description || item.public_text ? `<p>${escapeHtml(item.description || item.public_text)}</p>` : ""}
+          ${latest ? `<small class="inventory-action-status is-${escapeHtml(latest.status)}">${escapeHtml(statusLabel)}</small>` : ""}
+          ${action ? `<div class="inventory-action" data-item-action-card>${targetControl}${combineControl}<button class="btn outline" type="button" data-action="submit-item-action" data-item-id="${escapeHtml(item.item_id)}" data-action-key="${escapeHtml(action.key)}" data-target-type="${escapeHtml(action.targetType || "none")}" ${pending || unavailable || state.busy ? "disabled" : ""}>${escapeHtml(pending ? "等待确认" : action.label)}</button><small>${unavailable ? "当前没有符合契约的可选目标" : action.requiresHostConfirmation ? "提交后由主持人确认，确认前不会扣减库存" : "动作会立即结算并同步到房间状态"}</small></div>` : ""}
+        </article>`;
+        })
         .join("")}
     </div>`;
 }

@@ -1090,6 +1090,11 @@ button {
 .inventory-item strong {
   display: block;
 }
+.inventory-action { display: grid; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.inventory-action label { display: grid; gap: 4px; color: var(--muted); font-size: 10px; }
+.inventory-action small, .inventory-action-status { color: var(--muted); font-size: 10px; }
+.inventory-action-status.is-pending { color: var(--clay); }
+.inventory-action-status.is-approved { color: var(--green); }
 
 .empty {
   padding: 32px 20px;

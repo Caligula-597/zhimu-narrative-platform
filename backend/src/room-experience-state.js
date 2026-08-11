@@ -193,11 +193,38 @@ function normalizeRecapLibrary(payload) {
   };
 }
 
+function normalizeItemAction(payload, now) {
+  const source = object(payload, "payload");
+  const actionKind = oneOf(source.actionKind, "actionKind", ["use", "consume", "combine"]);
+  const targetType = oneOf(source.targetType, "targetType", ["none", "role", "location"], "none");
+  const status = oneOf(source.status, "status", ["pending", "approved", "rejected", "failed"]);
+  return {
+    actionId: text(source.actionId, "actionId"),
+    itemId: text(source.itemId, "itemId"),
+    actionKey: text(source.actionKey, "actionKey", { max: 64 }),
+    actionKind,
+    label: text(source.label, "label", { max: 120 }),
+    roleSlotId: text(source.roleSlotId, "roleSlotId"),
+    targetType,
+    targetId: text(source.targetId, "targetId", { required: targetType !== "none" }),
+    combineItemId: text(source.combineItemId, "combineItemId", { required: actionKind === "combine" }),
+    consumeQuantity: integer(source.consumeQuantity ?? 0, "consumeQuantity", { max: 99 }),
+    combineConsumeQuantity: integer(source.combineConsumeQuantity ?? 0, "combineConsumeQuantity", { max: 99 }),
+    requiresHostConfirmation: Boolean(source.requiresHostConfirmation),
+    status,
+    resultText: text(source.resultText, "resultText", { required: false, max: 2000 }) ?? "",
+    failureCode: text(source.failureCode, "failureCode", { required: false, max: 80 }),
+    submittedAt: instant(source.submittedAt ?? now, "submittedAt"),
+    resolvedAt: instant(source.resolvedAt, "resolvedAt", { nullable: true }),
+  };
+}
+
 const NORMALIZERS = new Map([
   [ROOM_EXPERIENCE_STATE_KINDS.LOCATION_DISCOVERY, normalizeLocationDiscovery],
   [ROOM_EXPERIENCE_STATE_KINDS.PACE_CLOCK, normalizePaceClock],
   [ROOM_EXPERIENCE_STATE_KINDS.SESSION_CONCLUSION, normalizeSessionConclusion],
   [ROOM_EXPERIENCE_STATE_KINDS.RECAP_LIBRARY, normalizeRecapLibrary],
+  [ROOM_EXPERIENCE_STATE_KINDS.ITEM_ACTION, normalizeItemAction],
 ]);
 
 export function normalizeRoomExperienceIdentity(input) {

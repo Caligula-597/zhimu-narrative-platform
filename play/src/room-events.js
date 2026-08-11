@@ -55,6 +55,11 @@ export async function handleRoomEvent(type, data, ctx) {
         if (data.itemName) ctx.onToast(`获得物品：${data.itemName}`);
       }
       break;
+    case "room.item_action_updated":
+      ctx.bumpTabPulse?.("inventory");
+      await ctx.onRefresh();
+      ctx.onToast(data.status === "pending" ? "物品动作正在等待主持人确认" : "物品动作状态已更新");
+      break;
     case "room.section_unlocked":
     case "room.player_joined":
     case "room.checkpoint_restored":
