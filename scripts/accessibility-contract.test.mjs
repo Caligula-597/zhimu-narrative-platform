@@ -63,13 +63,15 @@ test("all SPA portals restore navigation context and player tabs implement the W
   const host = read("host/src/main.js");
   const player = read("play/src/runtime/view-controller.js");
   const playerMain = read("play/src/main.js");
+  const playerEdges = read("play/src/runtime/runtime-edge-bindings.js");
   const tabs = read("play/src/views/game-shell-view.js");
 
   assert.match(creator, /#page-title/);
   assert.match(creator, /aria-current/);
   assert.match(host, /createNavigationFocusManager/);
   assert.match(player, /createNavigationFocusManager/);
-  assert.match(playerMain, /handleHorizontalTablistKeydown/);
+  assert.match(playerMain, /bindPlayRuntimeEdges/);
+  assert.match(playerEdges, /handleHorizontalTablistKeydown/);
   assert.match(tabs, /aria-controls="play-tab-panel"/);
   assert.match(tabs, /tabindex="\$\{active \? "0" : "-1"\}"/);
   assert.match(tabs, /role="tabpanel"/);
