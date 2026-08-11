@@ -254,3 +254,72 @@ test("创作者发布地图后，主持切场与结算可在断线恢复后同�
     await playerContext?.close();
   }
 });
+
+test("三端在 200% 等效视口、键盘页签和减少动态效果下保持可操作", async ({ browser }) => {
+  const creatorContext = await browser.newContext({
+    locale: "zh-CN",
+    viewport: { width: 640, height: 900 },
+    reducedMotion: "reduce",
+  });
+  const hostContext = await browser.newContext({
+    locale: "zh-CN",
+    viewport: { width: 640, height: 900 },
+    reducedMotion: "reduce",
+  });
+  const playerContext = await browser.newContext({
+    locale: "zh-CN",
+    viewport: { width: 640, height: 900 },
+    reducedMotion: "reduce",
+  });
+  await prepareCreator(creatorContext);
+  await prepareHost(hostContext, "55555555-5555-4555-8555-555555550001");
+  await preparePlayer(playerContext);
+  const creatorPage = await creatorContext.newPage();
+  const hostPage = await hostContext.newPage();
+  const playerPage = await playerContext.newPage();
+
+  const expectNoDocumentOverflow = async (page, label) => {
+    const width = await page.evaluate(() => ({
+      client: document.documentElement.clientWidth,
+      scroll: document.documentElement.scrollWidth,
+    }));
+    expect(width.scroll, `${label} must not overflow the 200% equivalent viewport`).toBeLessThanOrEqual(width.client + 1);
+  };
+
+  try {
+    await Promise.all([
+      creatorPage.goto(CREATOR_URL, { waitUntil: "domcontentloaded" }),
+      hostPage.goto(`${HOST_URL}/?room=55555555-5555-4555-8555-555555550001`),
+    ]);
+    await creatorPage.waitForFunction(() => Boolean(window.zhimuViewLoader) && !window.zhimuState?.cloudLoading);
+    await hostPage.locator(".host-voice-panel").waitFor({ state: "visible", timeout: 30_000 });
+    await joinRoom(playerPage, "ROOM-LIVE-DRAFT");
+
+    await expectNoDocumentOverflow(creatorPage, "creator");
+    await expectNoDocumentOverflow(hostPage, "host");
+    await expectNoDocumentOverflow(playerPage, "player");
+
+    const currentTab = playerPage.locator('[data-game-tab-bar] [role="tab"][aria-selected="true"]');
+    await currentTab.focus();
+    await playerPage.keyboard.press("ArrowRight");
+    const storyTab = playerPage.locator('[data-game-tab-bar] [role="tab"][data-primary-tab="story"]');
+    await expect(storyTab).toBeFocused();
+    await expect(storyTab).toHaveAttribute("aria-selected", "true");
+    await playerPage.keyboard.press("ArrowLeft");
+    const homeTab = playerPage.locator('[data-game-tab-bar] [role="tab"][data-primary-tab="home"]');
+    await expect(homeTab).toBeFocused();
+    await expect(homeTab).toHaveAttribute("aria-selected", "true");
+
+    await expect(playerPage.locator("[data-player-location-discovery]")).toHaveAttribute(
+      "aria-busy",
+      "false",
+      { timeout: 5_000 },
+    );
+  } finally {
+    await Promise.allSettled([
+      creatorContext.close(),
+      hostContext.close(),
+      playerContext.close(),
+    ]);
+  }
+});
