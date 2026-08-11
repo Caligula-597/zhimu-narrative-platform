@@ -107,7 +107,13 @@ function scheduleDiscovery(session) {
   }, delay);
 }
 
-function ensureDiscoverySession(location, context = {}) {
+export function discoveryNeedsReconciliation(remote, clues = []) {
+  if (!remote || remote.phase !== "complete" || Number(remote.remainingCount) > 0) return false;
+  const drawnClueIds = new Set((remote.drawnClueIds || []).map((id) => String(id)));
+  return clues.some((clue) => clue?.id != null && !drawnClueIds.has(String(clue.id)));
+}
+
+function ensureDiscoverySession(location, context = {}, clues = []) {
   const key = discoveryKey(location, context);
   let session = discoverySessions.get(key);
   if (!session) {
@@ -118,6 +124,7 @@ function ensureDiscoverySession(location, context = {}) {
       timer: null,
       startRequested: false,
       readyRequested: false,
+      reconcileSignature: "",
     };
     discoverySessions.set(key, session);
   }
@@ -135,6 +142,21 @@ function ensureDiscoverySession(location, context = {}) {
         session.startRequested = false;
       });
     });
+  }
+  if (remote && discoveryNeedsReconciliation(remote, clues) && typeof window !== "undefined") {
+    const authorizedSignature = clues.map((clue) => String(clue.id)).sort().join(",");
+    const reconcileSignature = `${Number(remote.revision) || 0}:${authorizedSignature}`;
+    if (session.reconcileSignature !== reconcileSignature) {
+      session.reconcileSignature = reconcileSignature;
+      queueMicrotask(() => {
+        if (!discoveryNeedsReconciliation(session.remote, clues)) return;
+        void emitDiscoveryAction(session, "scan_started").catch(() => {
+          if (session.reconcileSignature === reconcileSignature) session.reconcileSignature = "";
+        });
+      });
+    }
+  } else {
+    session.reconcileSignature = "";
   }
   scheduleDiscovery(session);
   return session;
@@ -171,7 +193,7 @@ function renderRevealedClue(clue, drawnCount, totalCount, key, copy) {
 }
 
 function renderLocationDiscovery(location, clues, context) {
-  const session = ensureDiscoverySession(location, context);
+  const session = ensureDiscoverySession(location, context, clues);
   const remote = session.remote;
   const copy = normalizeLocationDiscoveryCopy(location?.discovery);
   const byId = new Map(clues.map((clue) => [String(clue.id), clue]));

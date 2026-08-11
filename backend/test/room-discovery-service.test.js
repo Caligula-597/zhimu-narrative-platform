@@ -84,3 +84,31 @@ test("draw transition preserves server order and removes no-longer-authorized id
   assert.equal(payload.remainingCount, 1);
   assert.equal(payload.phase, "drawing");
 });
+
+test("starting a completed discovery again exposes newly authorized clues", () => {
+  const payload = buildDiscoveryStatePayload({
+    location: { id: "library", segmentKey: "ch2" },
+    existing: {
+      payload: {
+        locationId: "library",
+        segmentKey: "ch2",
+        phase: "complete",
+        drawnClueIds: ["clue-a"],
+        remainingClueIds: [],
+        remainingCount: 0,
+        scanStartedAt: "2026-08-11T10:59:50.000Z",
+        scanReadyAt: "2026-08-11T10:59:54.000Z",
+        completedAt: "2026-08-11T11:00:00.000Z",
+      },
+    },
+    clueIds: ["clue-a", "clue-b"],
+    action: "scan_started",
+    now: "2026-08-11T11:05:00.000Z",
+  });
+
+  assert.equal(payload.phase, "ready");
+  assert.deepEqual(payload.drawnClueIds, ["clue-a"]);
+  assert.deepEqual(payload.remainingClueIds, ["clue-b"]);
+  assert.equal(payload.remainingCount, 1);
+  assert.equal(payload.completedAt, null);
+});

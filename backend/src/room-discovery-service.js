@@ -127,7 +127,12 @@ export function buildDiscoveryStatePayload({ location, existing, clueIds, action
   let completedAt = previous.completedAt || null;
 
   if (action === "scan_started") {
-    phase = phase === "idle" ? "scanning" : phase;
+    if (phase === "idle") {
+      phase = "scanning";
+    } else if (phase === "complete" && remainingClueIds.length) {
+      phase = "ready";
+      completedAt = null;
+    }
     scanStartedAt ||= now;
   } else if (action === "scan_ready") {
     if (!existing || !["scanning", "ready"].includes(phase)) {

@@ -6,6 +6,7 @@ import {
   shuffledClueIds,
 } from "../src/views/location-clue-deck.js";
 import {
+  discoveryNeedsReconciliation,
   handlePlayerStageAction,
   renderPlayerStageMap,
 } from "../src/views/game-tabletop-stage.js";
@@ -33,6 +34,21 @@ test("location deck shuffle is bounded and archive labels remain location-specif
   );
   assert.deepEqual(order, ["b", "c", "a"]);
   assert.equal(clueArchiveCode({ segmentKey: "authorization-review" }, 1), "AUTHORIZATIO-02");
+});
+
+test("a completed discovery reconciles when another authorized clue arrives", () => {
+  const remote = {
+    phase: "complete",
+    drawnClueIds: ["clue-a"],
+    remainingCount: 0,
+    revision: 3,
+  };
+  assert.equal(discoveryNeedsReconciliation(remote, [{ id: "clue-a" }]), false);
+  assert.equal(discoveryNeedsReconciliation(remote, [{ id: "clue-a" }, { id: "clue-b" }]), true);
+  assert.equal(discoveryNeedsReconciliation({ ...remote, phase: "ready", remainingCount: 1 }, [
+    { id: "clue-a" },
+    { id: "clue-b" },
+  ]), false);
 });
 
 test("player stage keeps clue text concealed until the server confirms the draw", async () => {
