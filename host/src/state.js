@@ -50,6 +50,7 @@ export const state = {
   hostVoicePlaybackBlocked: false,
   hostVoiceLiveError: "",
   hostVoiceBusy: false,
+  hostVoiceStartConfirmUntil: 0,
   hostMechanismBusy: "",
   hostMechanismError: "",
   cloudRulesPreview: null,

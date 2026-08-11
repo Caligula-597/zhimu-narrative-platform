@@ -249,6 +249,31 @@ test("private nudges, actions and voice activity enforce their explicit audience
       player,
     ).event,
   );
+  for (const type of ["room.voice_room_created", "room.voice_room_members_updated"]) {
+    assert.equal(
+      projectRoomEventForAudience(
+        {
+          type,
+          voiceRoomId: "voice-2",
+          audience: "restricted",
+          audienceUserIds: ["user-2"],
+        },
+        player,
+      ).event,
+      null,
+    );
+    assert.ok(
+      projectRoomEventForAudience(
+        {
+          type,
+          voiceRoomId: "voice-2",
+          audience: "restricted",
+          audienceUserIds: ["user-1"],
+        },
+        player,
+      ).event,
+    );
+  }
 });
 
 test("hidden journal events become cursor-only heartbeats", () => {

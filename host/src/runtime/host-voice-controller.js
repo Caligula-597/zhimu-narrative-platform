@@ -5,6 +5,8 @@ import { refreshHostVoiceSession } from "./data.js";
 
 let adapterPromise = null;
 let renderCallback = () => {};
+let startConfirmTimer = null;
+const START_CONFIRM_WINDOW_MS = 8000;
 
 function loadAdapter() {
   if (!adapterPromise) {
@@ -39,14 +41,42 @@ export function hostVoiceRoster() {
       name: member.display_name || member.role_name || "房间成员",
       roleLabel: ["host", "cohost"].includes(member.member_type)
         ? (member.member_type === "cohost" ? "协主持" : "主持人")
-        : (member.role_name || "玩家"),
+        : member.member_type === "spectator"
+          ? "旁观者"
+          : (member.role_name || "玩家"),
       connected: Boolean(live),
       micEnabled: live?.micEnabled ?? null
     };
   });
 }
 
+function clearStartConfirmation({ render = false } = {}) {
+  if (startConfirmTimer) clearTimeout(startConfirmTimer);
+  startConfirmTimer = null;
+  state.hostVoiceStartConfirmUntil = 0;
+  if (render) renderCallback();
+}
+
+function armStartConfirmation({ render, showToast }) {
+  const waitingCount = hostVoiceRoster().filter((member) => !member.connected).length;
+  state.hostVoiceStartConfirmUntil = Date.now() + START_CONFIRM_WINDOW_MS;
+  if (startConfirmTimer) clearTimeout(startConfirmTimer);
+  startConfirmTimer = setTimeout(() => {
+    startConfirmTimer = null;
+    if (state.hostVoiceStartConfirmUntil <= Date.now()) {
+      state.hostVoiceStartConfirmUntil = 0;
+      render();
+    }
+  }, START_CONFIRM_WINDOW_MS + 50);
+  startConfirmTimer.unref?.();
+  showToast(waitingCount
+    ? `仍有 ${waitingCount} 人未连接音频；如需继续，请再次点击确认正式开场`
+    : "全员音频已就绪；请再次点击确认正式开场");
+  render();
+}
+
 async function startSession({ render, showToast }) {
+  clearStartConfirmation();
   state.hostVoiceBusy = true;
   render();
   try {
@@ -72,6 +102,10 @@ export function createHostVoiceActionHandler({ render, showToast }) {
   if (adapterPromise) void adapterPromise.then((adapter) => adapter.setHostVoiceRenderCallback(render));
   return async function handleHostVoiceAction(action) {
     if (action === "host-session-start") {
+      if (state.hostVoiceStartConfirmUntil <= Date.now()) {
+        armStartConfirmation({ render, showToast });
+        return true;
+      }
       await startSession({ render, showToast });
       return true;
     }
@@ -123,6 +157,7 @@ export function createHostVoiceActionHandler({ render, showToast }) {
 }
 
 export async function resetHostVoiceOnLeave() {
+  clearStartConfirmation();
   if (adapterPromise) await (await adapterPromise).disconnectHostVoiceRoom();
   state.hostVoiceLiveStatus = "idle";
   state.hostVoiceMicEnabled = false;

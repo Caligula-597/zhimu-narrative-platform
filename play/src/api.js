@@ -159,7 +159,7 @@ export const api = {
   sendVoiceMessage: (voiceRoomId, body) =>
     request(`/voice-rooms/${voiceRoomId}/messages`, { method: "POST", body: { body } }),
   createVoiceRoom: (roomId, payload) =>
-    request(`/rooms/${roomId}/voice-rooms`, { method: "POST", body: payload }),
+    request(`/rooms/${roomId}/voice-rooms`, { method: "POST", body: payload, idempotent: true }),
   inviteVoiceRoomMembers: (voiceRoomId, inviteUserIds) =>
     request(`/voice-rooms/${voiceRoomId}/members`, { method: "POST", body: { inviteUserIds } }),
   platformSite: () => request("/platform/site"),

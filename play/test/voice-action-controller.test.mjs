@@ -15,6 +15,7 @@ function dependencies(overrides = {}) {
       setToast: record("toast"),
       formatApiError: (_error, fallback) => fallback,
       privateVoiceRoomsEnabled: () => true,
+      privateVoiceRoomsUnavailableMessage: () => "主持人正式开场后才会开放玩家密谈",
       openVoiceRoomPicker: record("picker"),
       openCreateVoiceRoomModal: record("create-modal"),
       openInviteVoiceRoomModal: record("invite-modal"),
@@ -60,6 +61,17 @@ test("voice room creation stays blocked before the host starts the session", asy
   assert.equal(await handlePlayVoiceAction(options), true);
   assert.equal(calls[0][0], "toast");
   assert.match(calls[0][1], /正式开场/);
+  assert.equal(calls.some(([name]) => name === "create-modal"), false);
+});
+
+test("voice room creation explains when the session has already ended", async () => {
+  const { calls, options } = dependencies({
+    action: "voice-room-create",
+    privateVoiceRoomsEnabled: () => false,
+    privateVoiceRoomsUnavailableMessage: () => "场次已经结束，玩家密谈已关闭"
+  });
+  assert.equal(await handlePlayVoiceAction(options), true);
+  assert.match(calls[0][1], /已经结束/);
   assert.equal(calls.some(([name]) => name === "create-modal"), false);
 });
 

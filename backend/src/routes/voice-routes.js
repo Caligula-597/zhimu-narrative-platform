@@ -1,4 +1,5 @@
 import { requireActor } from "../request-actor.js";
+import { withRoomIdempotency } from "../idempotency-helpers.js";
 import {
   appendVoiceRoomMembers,
   createVoiceRoomForActor,
@@ -34,12 +35,14 @@ export async function registerVoiceRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
-    const room = await createVoiceRoomForActor({
-      actorId,
-      roomId,
-      membership,
-      ...request.body
-    });
+    const room = await withRoomIdempotency(roomId, request, "voice.room_create", () => (
+      createVoiceRoomForActor({
+        actorId,
+        roomId,
+        membership,
+        ...request.body
+      })
+    ));
     return reply.code(201).send(room);
   });
 

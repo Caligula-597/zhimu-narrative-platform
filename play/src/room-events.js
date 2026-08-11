@@ -207,6 +207,19 @@ export async function handleRoomEvent(type, data, ctx) {
         ctx.bumpTabPulse?.("voice");
       }
       break;
+    case "room.voice_room_created":
+    case "room.voice_room_members_updated": {
+      ctx.bumpTabPulse?.("voice");
+      await ctx.onRefresh();
+      const myUserId = ctx.getUserId?.();
+      const actorId = data.createdByUserId || data.invitedByUserId;
+      if (!myUserId || !actorId || String(myUserId) !== String(actorId)) {
+        ctx.onToast(type === "room.voice_room_created"
+          ? `你被邀请加入密谈${data.voiceRoomName ? `「${data.voiceRoomName}」` : ""}`
+          : `你已被加入密谈${data.voiceRoomName ? `「${data.voiceRoomName}」` : ""}`);
+      }
+      break;
+    }
     case "room.vote_created":
     case "room.vote_updated":
     case "room.private_action_submitted":

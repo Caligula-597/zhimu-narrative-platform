@@ -103,6 +103,29 @@ test("player presentation events announce encounters after reconciling current s
   ]);
 });
 
+test("private voice invitations refresh the room list and notify the invitee", async () => {
+  const calls = [];
+  const ctx = {
+    getView: () => "game",
+    getRoomId: () => "room-1",
+    getRoleId: () => "role-1",
+    getUserId: () => "invitee-1",
+    bumpTabPulse: (tab) => calls.push(["pulse", tab]),
+    onRefresh: async () => { calls.push(["refresh"]); },
+    onToast: (message) => calls.push(["toast", message])
+  };
+  await handleRoomEvent("room.voice_room_created", {
+    voiceRoomId: "voice-2",
+    voiceRoomName: "档案室密谈",
+    createdByUserId: "creator-1"
+  }, ctx);
+  assert.deepEqual(calls, [
+    ["pulse", "voice"],
+    ["refresh"],
+    ["toast", "你被邀请加入密谈「档案室密谈」"]
+  ]);
+});
+
 test("player reconciles every Host live-operation event with the correct surface", async () => {
   const pulses = [];
   const messages = [];

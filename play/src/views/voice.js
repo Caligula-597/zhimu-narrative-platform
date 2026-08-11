@@ -1,6 +1,7 @@
 import { escapeHtml } from "../../../shared/security.js";
 import {
   privateVoiceRoomsEnabled,
+  privateVoiceRoomsUnavailableMessage,
   voiceHubParticipants,
   voiceLiveStatusLabel
 } from "../runtime/voice.js";
@@ -40,7 +41,7 @@ function renderVoiceHubActions(room, connected, connecting, failed) {
         ${room?.room_type === "invite_private"
           ? `<button class="btn quiet compact" type="button" data-action="voice-room-invite" data-voice-id="${escapeHtml(room.id)}" data-voice-name="${escapeHtml(room.name)}">邀请成员</button>`
           : ""}
-        <button class="btn quiet compact" type="button" data-action="voice-room-create" ${privateEnabled ? "" : "disabled"} title="${privateEnabled ? "创建仅受邀玩家可见的语音房" : "主持人正式开场后开放"}">＋ ${privateEnabled ? "密谈" : "开场后开放"}</button>
+        <button class="btn quiet compact" type="button" data-action="voice-room-create" ${privateEnabled ? "" : "disabled"} title="${privateEnabled ? "创建仅受邀玩家可见的语音房" : privateVoiceRoomsUnavailableMessage()}">＋ ${privateEnabled ? "密谈" : ["completed", "archived"].includes(state.home?.voicePolicy?.roomStatus) ? "密谈已关闭" : "开场后开放"}</button>
       </div>
     </div>`;
 }
@@ -68,7 +69,7 @@ export function renderVoiceHub() {
           ${room?.room_type === "public" && participantCount ? `<div class="voice-roster-list" aria-label="主语音房成员">
             ${participants.map((participant) => `<span class="voice-roster-person ${participant.connected ? "is-connected" : ""}"><b>${escapeHtml(participant.roleName || "玩家")}</b>${escapeHtml(participant.name)}<i>${participant.connected ? "语音在线" : "已入房"}</i></span>`).join("")}
           </div>` : ""}
-          ${room?.room_type === "public" ? `<p class="voice-room-policy ${privateEnabled ? "is-open" : ""}">${privateEnabled ? "场次已正式开始，玩家可按剧情需要创建临时密谈。" : "候场阶段仅开放全员主语音房；主持人正式开场后才会开放密谈。"}</p>` : ""}
+          ${room?.room_type === "public" ? `<p class="voice-room-policy ${privateEnabled ? "is-open" : ""}">${privateEnabled ? "场次已正式开始，玩家可邀请其他同伴创建临时密谈。" : ["completed", "archived"].includes(state.home?.voicePolicy?.roomStatus) ? "场次已结束，私密语音房已经关闭；全员主房仍可用于复盘。" : "候场阶段仅开放全员主语音房；主持人正式开场后才会开放密谈。"}</p>` : ""}
         </div>
       </div>
       ${renderVoiceHubActions(room, connected, connecting, failed)}

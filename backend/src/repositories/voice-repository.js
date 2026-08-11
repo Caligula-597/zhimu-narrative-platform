@@ -9,7 +9,7 @@ export async function findVoiceRoomAccess(actorId, voiceRoomId, executor = query
                 AND profile.portal = CASE WHEN rm.member_type IN ('host', 'cohost') THEN 'host' ELSE 'player' END
               LIMIT 1
             ), u.display_name) AS display_name,
-            r.started_at AS room_started_at,
+            r.status AS room_status, r.started_at AS room_started_at,
             COALESCE((r.settings->>'hostVoiceListen')::boolean, false) AS host_voice_listen,
             EXISTS (
               SELECT 1 FROM voice_room_members vrm
@@ -75,11 +75,15 @@ export async function loadVoiceSessionForActor(actorId, roomId, executor = query
                   AND (voice.expires_at IS NULL OR voice.expires_at > now())
                   AND (
                     voice.room_type = 'public'
-                    OR (room.started_at IS NOT NULL AND EXISTS (
+                    OR (
+                      room.started_at IS NOT NULL
+                      AND room.status NOT IN ('completed', 'archived')
+                      AND EXISTS (
                       SELECT 1 FROM voice_room_members voice_member
                       WHERE voice_member.voice_room_id = voice.id
                         AND voice_member.user_id = $1
-                    ))
+                      )
+                    )
                   )
               ) voice_row
             ), '[]'::jsonb) AS voice_rooms,
@@ -123,7 +127,8 @@ export async function loadVoiceSessionForActor(actorId, roomId, executor = query
     voiceRoster: row.voice_roster ?? [],
     voicePolicy: {
       mainRoomId: voiceRooms.find((voiceRoom) => voiceRoom.room_type === "public")?.id ?? null,
-      privateRoomsEnabled: Boolean(row.started_at),
+      privateRoomsEnabled: Boolean(row.started_at)
+        && !["completed", "archived"].includes(row.status),
       startedAt: row.started_at ?? null,
       roomStatus: row.status
     }
@@ -198,6 +203,20 @@ export async function insertVoiceMessageWithAudience(client, { voiceRoomId, acto
        WHERE vr.id = $1
          AND vr.status = 'active'
          AND (vr.expires_at IS NULL OR vr.expires_at > now())
+         AND EXISTS (
+           SELECT 1 FROM room_members sender_room_member
+           WHERE sender_room_member.room_id = vr.room_id
+             AND sender_room_member.user_id = $2
+             AND sender_room_member.status = 'active'
+         )
+         AND (
+           vr.room_type = 'public'
+           OR EXISTS (
+             SELECT 1 FROM voice_room_members sender_voice_member
+             WHERE sender_voice_member.voice_room_id = vr.id
+               AND sender_voice_member.user_id = $2
+           )
+         )
        RETURNING id, body, created_at, voice_room_id
      )
      SELECT inserted.id, inserted.body, inserted.created_at, inserted.voice_room_id,
@@ -208,8 +227,14 @@ export async function insertVoiceMessageWithAudience(client, { voiceRoomId, acto
             ) AS audience_user_ids
      FROM inserted
      JOIN voice_rooms vr ON vr.id = inserted.voice_room_id
+     JOIN rooms runtime_room ON runtime_room.id = vr.room_id
      LEFT JOIN voice_room_members vrm
        ON vrm.voice_room_id = vr.id AND vr.room_type <> 'public'
+     WHERE vr.room_type = 'public'
+        OR (
+          runtime_room.started_at IS NOT NULL
+          AND runtime_room.status NOT IN ('completed', 'archived')
+        )
      GROUP BY inserted.id, inserted.body, inserted.created_at, inserted.voice_room_id,
               vr.room_id, vr.room_type`,
     [voiceRoomId, actorId, body]
@@ -224,6 +249,15 @@ export async function ensureVoiceProviderRoomKey(voiceRoomId, proposedKey, execu
      WHERE id = $1
        AND status = 'active'
        AND (expires_at IS NULL OR expires_at > now())
+       AND (
+         room_type = 'public'
+         OR EXISTS (
+           SELECT 1 FROM rooms runtime_room
+           WHERE runtime_room.id = voice_rooms.room_id
+             AND runtime_room.started_at IS NOT NULL
+             AND runtime_room.status NOT IN ('completed', 'archived')
+         )
+       )
      RETURNING provider_room_key`,
     [voiceRoomId, proposedKey]
   );

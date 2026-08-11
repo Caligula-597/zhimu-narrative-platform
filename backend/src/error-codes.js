@@ -320,6 +320,7 @@ export const API_ERRORS = {
   HOST_PLAYER_MANAGEMENT_TIMEOUT: { status: 503, message: "Host player management timed out safely" },
   HOST_GAME_CONTROL_BUSY: { status: 409, message: "Host game control is busy; retry shortly" },
   HOST_GAME_CONTROL_TIMEOUT: { status: 503, message: "Host game control timed out safely" },
+  ROOM_SESSION_START_INVALID_STATE: { status: 409, message: "已完成或归档的场次不能重新正式开场" },
 
   // Voice & LiveKit
   VOICE_ROOM_NAME_REQUIRED: { status: 400, message: "Voice room name is required" },
@@ -332,6 +333,7 @@ export const API_ERRORS = {
   VOICE_MEMBER_NOT_IN_ROOM: { status: 400, message: "Invited user must be an active room member" },
   VOICE_PUBLIC_CREATE_FORBIDDEN: { status: 403, message: "Only a host or cohost can create a managed voice room" },
   VOICE_PRIVATE_BEFORE_START: { status: 409, message: "主持人正式开场后才可使用私密语音房" },
+  VOICE_PRIVATE_AFTER_END: { status: 409, message: "场次已结束，私密语音房已关闭" },
   VOICE_ROOM_LIMIT_REACHED: { status: 409, message: "This parallel room has reached its active voice room limit" },
   LIVEKIT_NOT_CONFIGURED: { status: 503, message: "LiveKit is not configured on the server" },
 

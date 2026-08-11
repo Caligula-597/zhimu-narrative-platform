@@ -510,9 +510,12 @@ function renderHostVoicePanel() {
   const mainRoom = (session?.voiceRooms || []).find((room) => room.id === policy.mainRoomId)
     || (session?.voiceRooms || []).find((room) => room.room_type === "public");
   const roster = hostVoiceRoster();
+  const connectedCount = roster.filter((member) => member.connected).length;
   const connected = state.hostVoiceLiveStatus === "connected";
   const connecting = state.hostVoiceLiveStatus === "connecting";
+  const ended = ["completed", "archived"].includes(policy.roomStatus);
   const started = Boolean(policy.privateRoomsEnabled);
+  const confirmingStart = !started && !ended && state.hostVoiceStartConfirmUntil > Date.now();
   return `<section class="host-voice-panel" aria-label="全员主语音房">
     <div class="host-voice-summary">
       <span class="host-voice-mark" aria-hidden="true">${connected ? "🎙" : "♬"}</span>
@@ -526,11 +529,11 @@ function renderHostVoicePanel() {
       ${roster.length ? roster.map((member) => `<span class="host-voice-person ${member.connected ? "is-connected" : ""}"><b>${escapeHtml(member.roleLabel)}</b>${escapeHtml(member.name)}<i>${member.connected ? "语音在线" : "已入房"}</i></span>`).join("") : `<span class="host-voice-empty">等待房间成员加入</span>`}
     </div>
     <div class="host-voice-policy">
-      <span class="status-chip ${started ? "published" : "testing"}">${started ? "场次已开始" : "候场中"}</span>
-      <small>${started ? "玩家现可创建仅受邀者可见的临时密谈" : "当前仅开放全员主房；正式开场后才开放玩家密谈"}</small>
+      <span class="status-chip ${started || ended ? "published" : "testing"}">${ended ? "场次已结束" : started ? "场次已开始" : "候场中"}</span>
+      <small>${ended ? "密谈已关闭；全员主房保留用于复盘" : started ? "玩家现可邀请同伴创建临时密谈" : `当前仅开放全员主房 · ${connectedCount}/${roster.length} 人已连接音频${confirmingStart ? " · 等待二次确认" : ""}`}</small>
     </div>
     <div class="host-voice-actions">
-      ${started ? "" : `<button class="primary-btn" type="button" data-action="host-session-start" ${state.hostVoiceBusy ? "disabled" : ""}>正式开始场次</button>`}
+      ${started || ended ? "" : `<button class="primary-btn ${confirmingStart ? "is-confirming" : ""}" type="button" data-action="host-session-start" ${state.hostVoiceBusy ? "disabled" : ""}>${confirmingStart ? "再次确认正式开场" : "正式开始场次"}</button>`}
       ${connected
         ? `<button class="secondary-btn" type="button" data-action="host-voice-mic">${state.hostVoiceMicEnabled ? "关闭麦克风" : "开启麦克风"}</button>
            ${state.hostVoicePlaybackBlocked ? `<button class="primary-btn" type="button" data-action="host-voice-playback">开启扬声器</button>` : ""}

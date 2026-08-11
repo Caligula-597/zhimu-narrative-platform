@@ -49,6 +49,9 @@ export async function startHostRoomSession({ actorId, roomId }) {
     return await transactionWithEvents(async (client, queueEvent) => {
       await configureHostGameControlTransaction(client);
       const lockedRoom = await assertLockedHostRoom(client, { actorId, roomId });
+      if (lockedRoom.completed_at || ["completed", "archived"].includes(lockedRoom.status)) {
+        throwErr("ROOM_SESSION_START_INVALID_STATE");
+      }
       if (lockedRoom.started_at) {
         return {
           ok: true,

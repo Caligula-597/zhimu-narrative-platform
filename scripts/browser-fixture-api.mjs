@@ -133,6 +133,8 @@ const bindingFor = (selectedReleaseId = null) => {
 };
 
 const playerRoleId = "66666666-6666-4666-8666-555555550001";
+const secondPlayerRoleId = "66666666-6666-4666-8666-555555550002";
+const secondPlayerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f36";
 
 const fixtureSegments = [{
   id: "88888888-8888-4888-8888-555555550011",
@@ -332,6 +334,7 @@ const voiceRoomsByRoom = new Map(rooms.map((room, index) => [room.id, [{
   room_type: "public",
   status: "active"
 }]]));
+const voiceCreateIdempotency = new Map();
 
 function browserVoiceSession(room) {
   const voiceRooms = voiceRoomsByRoom.get(room.id) || [];
@@ -350,6 +353,12 @@ function browserVoiceSession(room) {
       role_slot_id: playerRoleId,
       role_name: "小满",
       display_name: "浏览器玩家"
+    }, {
+      user_id: secondPlayerUserId,
+      member_type: "player",
+      role_slot_id: secondPlayerRoleId,
+      role_name: "闻溪",
+      display_name: "迟到玩家"
     }],
     voicePolicy: {
       mainRoomId: mainRoom?.id || null,
@@ -1743,6 +1752,17 @@ const server = http.createServer(async (request, response) => {
       });
     }
     const body = await readJson(request);
+    if (!Array.isArray(body.inviteUserIds) || body.inviteUserIds.length === 0) {
+      return sendJson(response, 400, {
+        code: "VOICE_INVITE_COUNT_INVALID",
+        error: "请至少邀请一名其他房间成员"
+      });
+    }
+    const idempotencyKey = String(request.headers["idempotency-key"] || "").trim();
+    const idempotencyScope = idempotencyKey ? `${room.id}:${idempotencyKey}` : "";
+    if (idempotencyScope && voiceCreateIdempotency.has(idempotencyScope)) {
+      return sendJson(response, 201, voiceCreateIdempotency.get(idempotencyScope));
+    }
     const voiceRooms = voiceRoomsByRoom.get(room.id) || [];
     const created = {
       id: `99999999-9999-4999-8999-${String(voiceRooms.length + 100).padStart(12, "0")}`,
@@ -1752,6 +1772,15 @@ const server = http.createServer(async (request, response) => {
     };
     voiceRooms.push(created);
     voiceRoomsByRoom.set(room.id, voiceRooms);
+    if (idempotencyScope) voiceCreateIdempotency.set(idempotencyScope, created);
+    broadcastRoomEvent(room.id, {
+      type: "room.voice_room_created",
+      voiceRoomId: created.id,
+      voiceRoomName: created.name,
+      createdByUserId: "1d5e8155-a80f-4e7f-99f0-0ae317a35f35",
+      audience: "restricted",
+      audienceUserIds: ["1d5e8155-a80f-4e7f-99f0-0ae317a35f35", ...body.inviteUserIds]
+    });
     return sendJson(response, 201, created);
   }
   const voiceTokenMatch = path.match(/^\/api\/rooms\/([^/]+)\/voice-rooms\/([^/]+)\/token$/);

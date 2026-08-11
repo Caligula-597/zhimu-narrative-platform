@@ -1102,6 +1102,11 @@ textarea:focus-visible {
   flex-wrap: wrap;
 }
 
+.host-voice-actions .primary-btn.is-confirming {
+  background: var(--host-brass);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--host-brass) 18%, transparent);
+}
+
 .host-topbar-room,
 .host-topbar-meta,
 .host-topbar-timer {

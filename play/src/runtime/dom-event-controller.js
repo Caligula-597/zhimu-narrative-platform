@@ -27,6 +27,7 @@ export function bindPlayDomEvents({
       state.voiceInviteUserIds = [...documentRef.querySelectorAll("[data-voice-invite]:checked")]
         .map((input) => input.value)
         .filter(Boolean);
+      render();
       return;
     }
     if (event.target.matches("[data-share-role]")) {

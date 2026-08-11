@@ -6,6 +6,7 @@ export async function handlePlayVoiceAction({
   setToast,
   formatApiError,
   privateVoiceRoomsEnabled,
+  privateVoiceRoomsUnavailableMessage,
   openVoiceRoomPicker,
   openCreateVoiceRoomModal,
   openInviteVoiceRoomModal,
@@ -27,7 +28,7 @@ export async function handlePlayVoiceAction({
       return true;
     case "voice-room-create":
       if (!privateVoiceRoomsEnabled()) {
-        setToast("主持人正式开场后才会开放玩家密谈", render);
+        setToast(privateVoiceRoomsUnavailableMessage(), render);
         return true;
       }
       openCreateVoiceRoomModal(render);

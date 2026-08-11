@@ -35,6 +35,7 @@ export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId, runQu
                      SELECT 1 FROM rooms voice_runtime_room
                      WHERE voice_runtime_room.id = vr.room_id
                        AND voice_runtime_room.started_at IS NOT NULL
+                       AND voice_runtime_room.status NOT IN ('completed', 'archived')
                    )
                    AND EXISTS (
                      SELECT 1 FROM voice_room_members vrm
@@ -54,7 +55,8 @@ export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId, runQu
               ORDER BY public_voice.created_at
               LIMIT 1
             ),
-            'privateRoomsEnabled', runtime_room.started_at IS NOT NULL,
+            'privateRoomsEnabled', runtime_room.started_at IS NOT NULL
+              AND runtime_room.status NOT IN ('completed', 'archived'),
             'startedAt', runtime_room.started_at,
             'roomStatus', runtime_room.status
           )

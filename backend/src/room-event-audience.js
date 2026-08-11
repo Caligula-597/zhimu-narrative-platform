@@ -27,6 +27,11 @@ const ROLE_TARGETED_EVENT_TYPES = new Set([
   "room.testimony_submitted",
   "room.physical_token_activated"
 ]);
+const VOICE_AUDIENCE_EVENT_TYPES = new Set([
+  "room.voice_message_created",
+  "room.voice_room_created",
+  "room.voice_room_members_updated"
+]);
 
 function includesId(values, target) {
   if (!target || !Array.isArray(values)) return false;
@@ -106,7 +111,7 @@ export function projectRoomEventForAudience(event, audience = {}) {
   if (type === "room.physical_token_event") {
     return { event: event.visibility === "public" ? event : null, disconnectAfter: false };
   }
-  if (type === "room.voice_message_created") {
+  if (VOICE_AUDIENCE_EVENT_TYPES.has(type)) {
     const visible = event.audience === "room" || includesId(event.audienceUserIds, actorId);
     return { event: visible ? event : null, disconnectAfter: false };
   }

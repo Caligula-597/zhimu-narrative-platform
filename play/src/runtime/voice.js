@@ -68,6 +68,12 @@ export function privateVoiceRoomsEnabled() {
   return Boolean(state.home?.voicePolicy?.privateRoomsEnabled);
 }
 
+export function privateVoiceRoomsUnavailableMessage() {
+  return ["completed", "archived"].includes(state.home?.voicePolicy?.roomStatus)
+    ? "场次已经结束，玩家密谈已关闭"
+    : "主持人正式开场后才会开放玩家密谈";
+}
+
 export function voiceHubParticipants() {
   const activeRoom = (state.home?.voiceRooms || []).find((room) => room.id === state.voiceRoomId);
   const live = state.voiceParticipants || [];
@@ -197,11 +203,15 @@ export function openInviteVoiceRoomModal(voiceRoomId, roomName, render) {
 
 export async function submitCreateVoiceRoom({ render, setBusy, setToast } = {}) {
   if (!privateVoiceRoomsEnabled()) {
-    setToast?.("主持人正式开场后才会开放玩家密谈", render);
+    setToast?.(privateVoiceRoomsUnavailableMessage(), render);
     return;
   }
   const name = (state.modalDraft || "").trim() || "临时密谈";
   const inviteUserIds = [...(state.voiceInviteUserIds || [])];
+  if (!inviteUserIds.length) {
+    setToast?.("请至少邀请一名其他玩家进入密谈", render);
+    return;
+  }
   setBusy(true, render);
   try {
     const created = await api.createVoiceRoom(state.roomId, {
@@ -230,10 +240,12 @@ export async function submitVoiceInvite({ render, setBusy, setToast } = {}) {
   }
   setBusy(true, render);
   try {
-    await api.inviteVoiceRoomMembers(voiceRoomId, inviteUserIds);
+    const result = await api.inviteVoiceRoomMembers(voiceRoomId, inviteUserIds);
     closeModalState();
     await pullAndResyncVoice({ render });
-    setToast?.("密谈成员已追加邀请", render);
+    setToast?.(result?.invited
+      ? `已邀请 ${result.invited} 名玩家进入密谈`
+      : "所选玩家已经在密谈中", render);
   } catch (error) {
     setToast?.(formatApiError(error, "邀请失败"), render);
   } finally {
