@@ -44,6 +44,8 @@ function handledRoomEvents(file) {
 // Creator authors mechanism packages but never operates room mechanism state.
 // Advisory submission updates are intentionally host-only, so neither Creator
 // nor Player receives their payload (players get a cursor heartbeat instead).
+// Discovery updates expose progress counts to hosts only; the acting player
+// receives its authoritative session in the action response.
 for (const [surface, file, exclusions = []] of [
   [
     "app",
@@ -51,7 +53,11 @@ for (const [surface, file, exclusions = []] of [
     ["room.mechanism_state_updated", "room.mechanism_submission_updated"],
   ],
   ["host", "../host/src/runtime/room-events.js"],
-  ["play", "../play/src/room-events.js", ["room.mechanism_submission_updated"]],
+  [
+    "play",
+    "../play/src/room-events.js",
+    ["room.mechanism_submission_updated", "room.discovery_updated"],
+  ],
 ]) {
   const handled = handledRoomEvents(file);
   const excluded = new Set(exclusions);

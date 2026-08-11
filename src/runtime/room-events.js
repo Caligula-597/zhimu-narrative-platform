@@ -271,6 +271,21 @@ import {
         if (view === "overview") await refreshHostRuntimeSnapshot();
         else if (view === "player") await refreshPlayerHome();
         break;
+      case "room.presentation_updated":
+      case "room.discovery_updated":
+      case "room.pace_clock_updated":
+      case "room.conclusion_updated":
+      case "room.item_action_updated":
+      case "room.relationship_updated":
+        if (view === "overview") {
+          await refreshHostRuntimeSnapshot();
+        } else if (view === "player") {
+          await refreshPlayerHome();
+          if (["room.presentation_updated", "room.discovery_updated", "room.item_action_updated"].includes(type)) {
+            await refreshExploration();
+          }
+        }
+        break;
     }
   }
 
