@@ -75,6 +75,7 @@ export function handlePlayStateAction({
       return true;
     case "close-recap-detail":
       state.recapDetail = null;
+      state.recapLibrarySelected = null;
       state.recapId = "";
       render();
       return true;

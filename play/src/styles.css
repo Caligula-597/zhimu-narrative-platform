@@ -3640,6 +3640,23 @@ code {
   border-radius: var(--radius-lg);
 }
 
+.recap-library { margin-top: 16px; padding: 16px; }
+.recap-library-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.recap-library-head h3, .recap-library-head p { margin: 3px 0 0; }
+.recap-library-head > span { color: var(--green-2); font-weight: 800; }
+.recap-library-groups { display: grid; gap: 16px; margin-top: 16px; }
+.recap-library-groups h4 { margin: 0 0 8px; font-size: 13px; }
+.recap-library-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.recap-library-card { display: grid; gap: 11px; padding: 13px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.recap-library-card span, .recap-library-card p { color: var(--muted); font-size: 11px; }
+.recap-library-card strong { display: block; margin-top: 3px; }
+.recap-library-card dl { display: flex; gap: 16px; margin: 0; }
+.recap-library-card dl div { display: flex; gap: 5px; font-size: 11px; }
+.recap-library-card dt { color: var(--muted); }
+.recap-library-card dd { margin: 0; font-weight: 800; }
+.recap-library-retention { display: flex; align-items: flex-end; gap: 8px; }
+.recap-library-retention label { display: grid; flex: 1; gap: 4px; color: var(--muted); font-size: 10px; }
+
 .recap-section h4 {
   margin: 0 0 10px;
   font-size: 14px;

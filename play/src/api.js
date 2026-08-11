@@ -208,6 +208,19 @@ export const api = {
   joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} }),
   latestRecap: (roomId) => request(`/rooms/${roomId}/recap/latest`),
   getRecap: (roomId, recapId) => request(`/rooms/${roomId}/recaps/${recapId}`),
+  recapLibrary: (filters = {}) => {
+    const query = new URLSearchParams();
+    if (filters.worldId) query.set("worldId", filters.worldId);
+    if (filters.roleSlotId) query.set("roleSlotId", filters.roleSlotId);
+    return request(`/account/recaps${query.size ? `?${query}` : ""}`);
+  },
+  recapLibraryDetail: (recapId) => request(`/account/recaps/${recapId}`),
+  hideRecapLibraryEntry: (recapId) => request(`/account/recaps/${recapId}`, { method: "DELETE" }),
+  updateRecapLibraryPreferences: (roomId, retentionDays) =>
+    request(`/account/recaps/preferences/${roomId}`, {
+      method: "PUT",
+      body: { retentionDays }
+    }),
   completePlayerTask: (roomId, taskId) =>
     request(`/rooms/${roomId}/player-tasks/${taskId}/complete`, { method: "POST", body: {} }),
   setSuspicion: (roomId, targetRoleSlotId, payload) =>

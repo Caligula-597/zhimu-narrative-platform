@@ -208,7 +208,10 @@ const {
   loadRecapDetail,
   loadMyTimeline,
   handleAddNotebookEntry,
-  handleDeleteNotebookEntry
+  handleDeleteNotebookEntry,
+  hideRecapLibraryEntry,
+  updateRecapRetention,
+  exportRecapLibraryEntry
 } = createRecapNotebookController({
   api, state, render, setBusy, setToast, formatApiError, pullRoomData
 });
@@ -454,7 +457,8 @@ app.addEventListener("click", async (event) => {
   await handleLazyPlayActionController("content", {
     action, button, state, api, render, setBusy, setToast, formatApiError,
     loadRecapDetail, loadRecapSummary, patchGameHostBanner,
-    handleAddNotebookEntry, handleDeleteNotebookEntry
+    handleAddNotebookEntry, handleDeleteNotebookEntry,
+    hideRecapLibraryEntry, updateRecapRetention, exportRecapLibraryEntry
   });
 });
 

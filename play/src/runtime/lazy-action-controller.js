@@ -134,6 +134,10 @@ const definitions = {
   content: {
     actions: new Set([
       "open-recap-detail",
+      "open-library-recap",
+      "export-library-recap",
+      "hide-library-recap",
+      "set-recap-retention",
       "reload-recap",
       "dismiss-host-nudge",
       "retry-exploration",

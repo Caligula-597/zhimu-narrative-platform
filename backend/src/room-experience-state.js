@@ -2,6 +2,7 @@ export const ROOM_EXPERIENCE_STATE_KINDS = Object.freeze({
   LOCATION_DISCOVERY: "location_discovery",
   PACE_CLOCK: "pace_clock",
   SESSION_CONCLUSION: "session_conclusion",
+  RECAP_LIBRARY: "recap_library",
   ITEM_ACTION: "item_action",
   RELATIONSHIP_STATE: "relationship_state",
   INTERACTION: "interaction",
@@ -184,10 +185,19 @@ function normalizeSessionConclusion(payload, now) {
   };
 }
 
+function normalizeRecapLibrary(payload) {
+  const source = object(payload, "payload");
+  return {
+    hiddenRecapIds: stringList(source.hiddenRecapIds, "hiddenRecapIds", { maxItems: 100 }),
+    retentionDays: integer(source.retentionDays ?? 0, "retentionDays", { max: 3650 }),
+  };
+}
+
 const NORMALIZERS = new Map([
   [ROOM_EXPERIENCE_STATE_KINDS.LOCATION_DISCOVERY, normalizeLocationDiscovery],
   [ROOM_EXPERIENCE_STATE_KINDS.PACE_CLOCK, normalizePaceClock],
   [ROOM_EXPERIENCE_STATE_KINDS.SESSION_CONCLUSION, normalizeSessionConclusion],
+  [ROOM_EXPERIENCE_STATE_KINDS.RECAP_LIBRARY, normalizeRecapLibrary],
 ]);
 
 export function normalizeRoomExperienceIdentity(input) {

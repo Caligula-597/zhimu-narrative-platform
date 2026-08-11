@@ -19,3 +19,31 @@ export const createRecapSchema = {
     }
   }
 };
+
+export const recapLibraryListSchema = {
+  querystring: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      worldId: uuid,
+      roleSlotId: uuid,
+      limit: { type: "integer", minimum: 1, maximum: 100, default: 100 },
+    },
+  },
+};
+
+export const recapLibraryEntrySchema = {
+  params: paramsSchema({ recapId: uuid }),
+};
+
+export const recapLibraryPreferencesSchema = {
+  params: recapRoomParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["retentionDays"],
+    properties: {
+      retentionDays: { type: "integer", minimum: 0, maximum: 3650 },
+    },
+  },
+};

@@ -8,6 +8,12 @@ import {
   getRoomConclusion,
   publishEndingAndPrepareRecap,
 } from "../room-conclusion-service.js";
+import {
+  getRecapLibraryEntry,
+  hideRecapLibraryEntry,
+  listRecapLibrary,
+  updateRecapLibraryPreferences,
+} from "../recap-library-service.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole } from "./route-guards.js";
@@ -20,10 +26,37 @@ import {
   createRecapSchema,
   latestRecapSchema,
   listRecapsSchema,
-  recapDetailSchema
+  recapDetailSchema,
+  recapLibraryEntrySchema,
+  recapLibraryListSchema,
+  recapLibraryPreferencesSchema,
 } from "./schemas/recap.js";
 
 export async function registerRecapRoutes(app) {
+  app.get("/api/account/recaps", { schema: recapLibraryListSchema }, async (request) => {
+    const actorId = requireActor(request);
+    return listRecapLibrary({ actorId, ...request.query });
+  });
+
+  app.get("/api/account/recaps/:recapId", { schema: recapLibraryEntrySchema }, async (request) => {
+    const actorId = requireActor(request);
+    return getRecapLibraryEntry({ actorId, recapId: request.params.recapId });
+  });
+
+  app.delete("/api/account/recaps/:recapId", { schema: recapLibraryEntrySchema }, async (request) => {
+    const actorId = requireActor(request);
+    return hideRecapLibraryEntry({ actorId, recapId: request.params.recapId });
+  });
+
+  app.put("/api/account/recaps/preferences/:roomId", { schema: recapLibraryPreferencesSchema }, async (request) => {
+    const actorId = requireActor(request);
+    return updateRecapLibraryPreferences({
+      actorId,
+      roomId: request.params.roomId,
+      retentionDays: request.body.retentionDays,
+    });
+  });
+
   app.get("/api/rooms/:roomId/conclusion", { schema: roomConclusionSchema }, async (request) => {
     const actorId = requireActor(request);
     const { roomId } = request.params;

@@ -75,6 +75,9 @@ export const state = {
   pendingVerifyToken: "",
   recapLatest: null,
   recapDetail: null,
+  recapLibrary: [],
+  recapLibrarySelected: null,
+  recapLibraryError: "",
   recapLoading: false,
   satisfactionSubmitted: false,
   recapError: "",
@@ -188,6 +191,8 @@ export function persistRoom(roomId, isUuid) {
     state.discoverySyncError = "";
     state.paceClock = null;
     state.sessionConclusion = null;
+    state.recapLibrarySelected = null;
+    state.recapDetail = null;
   }
   state.roomId = next;
   if (next) localStorage.setItem(ROOM_KEY, next);

@@ -326,6 +326,7 @@ export const API_ERRORS = {
   RECAP_GENERATION_IN_PROGRESS: { status: 409, message: "Another recap is being generated for this room" },
   RECAP_GENERATION_TIMEOUT: { status: 503, message: "Recap generation timed out safely" },
   RECAP_LIMIT_REACHED: { status: 409, message: "This room has reached the recap retention limit" },
+  RECAP_LIBRARY_VERSION_CONFLICT: { status: 409, message: "Recap library preferences changed; refresh before retrying" },
   RECAP_TOO_LARGE: { status: 413, message: "Recap snapshot exceeds the safe size limit" },
   NO_PLAYERS_TO_NUDGE: { status: 400, message: "No joined players to notify" },
   HOST_COMMUNICATION_BUSY: { status: 409, message: "Host communication is busy" },

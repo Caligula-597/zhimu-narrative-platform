@@ -182,6 +182,36 @@ function renderPersonalNotes(snapshot) {
   );
 }
 
+function renderRecapLibrary() {
+  const recaps = state.recapLibrary || [];
+  if (!recaps.length) {
+    return state.recapLibraryError
+      ? `<div class="banner error inline-retry">${escapeHtml(state.recapLibraryError)}<button class="btn outline compact" type="button" data-action="reload-recap">重试</button></div>`
+      : "";
+  }
+  const groups = new Map();
+  for (const recap of recaps) {
+    const key = recap.worldId || "unknown";
+    if (!groups.has(key)) groups.set(key, { name: recap.worldName || "未命名世界", recaps: [] });
+    groups.get(key).recaps.push(recap);
+  }
+  return `<section class="recap-library card-soft" aria-labelledby="recap-library-title">
+    <div class="recap-library-head">
+      <div><p class="eyebrow">MY ARCHIVE</p><h3 id="recap-library-title">我的多局复盘库</h3><p>按世界与本局角色归档；移除只影响你的列表，导出内容仍遵循你的角色权限。</p></div>
+      <span>${recaps.length} 局</span>
+    </div>
+    <div class="recap-library-groups">${[...groups.values()].map((group) => `<section>
+      <h4>${escapeHtml(group.name)}</h4>
+      <div class="recap-library-grid">${group.recaps.map((recap) => `<article class="recap-library-card" data-recap-library-card>
+        <div><span>${escapeHtml(recap.roleName || "未分配角色")}</span><strong>${escapeHtml(recap.label)}</strong><p>${escapeHtml(recap.roomName || "历史房间")} · ${formatTime(recap.createdAt)}</p></div>
+        <dl><div><dt>线索</dt><dd>${recap.summary?.cluesDiscovered ?? 0}</dd></div><div><dt>调查</dt><dd>${recap.summary?.investigationsCompleted ?? 0}</dd></div></dl>
+        <div class="recap-library-retention"><label>隐私期限<select class="field compact" data-recap-retention><option value="0"${recap.retentionDays === 0 ? " selected" : ""}>长期保留</option><option value="30"${recap.retentionDays === 30 ? " selected" : ""}>最近 30 天</option><option value="90"${recap.retentionDays === 90 ? " selected" : ""}>最近 90 天</option><option value="365"${recap.retentionDays === 365 ? " selected" : ""}>最近一年</option></select></label><button class="btn quiet compact" type="button" data-action="set-recap-retention" data-room-id="${escapeHtml(recap.roomId)}">保存</button></div>
+        <div class="row-actions"><button class="btn outline compact" type="button" data-action="open-library-recap" data-recap-id="${escapeHtml(recap.id)}">查看</button><button class="btn quiet compact" type="button" data-action="export-library-recap" data-recap-id="${escapeHtml(recap.id)}">导出</button><button class="btn quiet compact" type="button" data-action="hide-library-recap" data-recap-id="${escapeHtml(recap.id)}">移出</button></div>
+      </article>`).join("")}</div>
+    </section>`).join("")}</div>
+  </section>`;
+}
+
 export function renderRecapTab() {
   if (state.recapLoading) {
     return `<div class="empty enriched-empty"><span class="empty-icon">📜</span>正在加载复盘…</div>`;
@@ -189,9 +219,12 @@ export function renderRecapTab() {
   if (state.recapError) {
     return `<div class="empty enriched-empty"><span class="empty-icon">📜</span>${escapeHtml(state.recapError)}<button class="btn outline" type="button" data-action="reload-recap">重试</button></div>`;
   }
-  const latest = state.recapLatest;
+  const library = renderRecapLibrary();
+  const latest = state.recapLibrarySelected
+    ? { ...state.recapLibrarySelected, created_at: state.recapLibrarySelected.createdAt }
+    : state.recapLatest;
   if (!latest) {
-    return `<div class="empty enriched-empty"><span class="empty-icon">📜</span>主持人尚未生成本房间的复盘报告。局结束后请让主持人在创作者端「存档与复盘」生成，你即可在此查看<strong>全剧脉络与各角色表现</strong>。</div>`;
+    return `<div class="empty enriched-empty"><span class="empty-icon">复盘</span>当前房间还没有可查看的复盘。结局公开后，准备状态会自动同步到这里。</div>${library}`;
   }
   const satisfactionBlock =
     state.satisfactionSubmitted
@@ -215,7 +248,7 @@ export function renderRecapTab() {
     </article>`;
   if (!state.recapDetail || state.recapDetail.id !== latest.id) {
     return `
-      ${satisfactionBlock}
+      ${state.recapLibrarySelected ? "" : satisfactionBlock}
       <article class="card recap-card">
         <p class="eyebrow">局后复盘</p>
         <h3>${escapeHtml(latest.label)}</h3>
@@ -225,8 +258,8 @@ export function renderRecapTab() {
           <div><dt>线索流转</dt><dd>${latest.summary?.cluesDiscovered ?? 0}</dd></div>
           <div><dt>调查完成</dt><dd>${latest.summary?.investigationsCompleted ?? 0}</dd></div>
         </dl>
-        <button class="btn primary" type="button" data-action="open-recap-detail">查看完整复盘</button>
-      </article>`;
+        <button class="btn primary" type="button" data-action="${state.recapLibrarySelected ? "open-library-recap" : "open-recap-detail"}"${state.recapLibrarySelected ? ` data-recap-id="${escapeHtml(latest.id)}"` : ""}>查看完整复盘</button>
+      </article>${state.recapLibrarySelected ? "" : library}`;
   }
 
   const snapshot = state.recapDetail.snapshot || {};
@@ -243,7 +276,7 @@ export function renderRecapTab() {
         <div>
           <p class="eyebrow">局后复盘 · 上帝视角</p>
           <h3>${escapeHtml(state.recapDetail.label)}</h3>
-          <p class="muted">${escapeHtml(state.recapDetail.description || "")} · ${formatTime(state.recapDetail.created_at)}</p>
+          <p class="muted">${escapeHtml(state.recapDetail.description || "")} · ${formatTime(state.recapDetail.created_at || state.recapDetail.createdAt)}</p>
         </div>
         <button class="btn quiet" type="button" data-action="close-recap-detail">返回摘要</button>
       </header>
