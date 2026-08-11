@@ -1,0 +1,218 @@
+export const ROOM_EXPERIENCE_STATE_KINDS = Object.freeze({
+  LOCATION_DISCOVERY: "location_discovery",
+  PACE_CLOCK: "pace_clock",
+  SESSION_CONCLUSION: "session_conclusion",
+  ITEM_ACTION: "item_action",
+  RELATIONSHIP_STATE: "relationship_state",
+  INTERACTION: "interaction",
+});
+
+export const ROOM_EXPERIENCE_VISIBILITIES = Object.freeze([
+  "host",
+  "role",
+  "room",
+  "public",
+]);
+
+const KIND_VALUES = new Set(Object.values(ROOM_EXPERIENCE_STATE_KINDS));
+const VISIBILITY_VALUES = new Set(ROOM_EXPERIENCE_VISIBILITIES);
+const KEY_PATTERN = /^[a-z][a-z0-9_]{1,63}$/;
+
+export class RoomExperienceStateError extends Error {
+  constructor(code, message, details = {}) {
+    super(message);
+    this.name = "RoomExperienceStateError";
+    this.code = code;
+    this.details = details;
+  }
+}
+
+function reject(code, message, details) {
+  throw new RoomExperienceStateError(code, message, details);
+}
+
+function object(value, field) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    reject("invalid_payload", `${field} must be an object`, { field });
+  }
+  return value;
+}
+
+function text(value, field, { required = true, max = 160 } = {}) {
+  const normalized = String(value ?? "").trim();
+  if (required && !normalized) {
+    reject("invalid_identity", `${field} is required`, { field });
+  }
+  if (normalized.length > max) {
+    reject("invalid_identity", `${field} is too long`, { field, max });
+  }
+  return normalized || null;
+}
+
+function oneOf(value, field, values, fallback = null) {
+  const normalized = value == null || value === "" ? fallback : String(value);
+  if (!values.includes(normalized)) {
+    reject("invalid_payload", `${field} has an unsupported value`, {
+      field,
+      value: normalized,
+      values,
+    });
+  }
+  return normalized;
+}
+
+function integer(value, field, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) {
+  const normalized = Number(value);
+  if (!Number.isSafeInteger(normalized) || normalized < min || normalized > max) {
+    reject("invalid_payload", `${field} must be an integer between ${min} and ${max}`, {
+      field,
+    });
+  }
+  return normalized;
+}
+
+function instant(value, field, { nullable = false } = {}) {
+  if (nullable && (value == null || value === "")) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    reject("invalid_payload", `${field} must be an ISO timestamp`, { field });
+  }
+  return parsed.toISOString();
+}
+
+function stringList(value, field, { maxItems = 500 } = {}) {
+  if (value == null) return [];
+  if (!Array.isArray(value) || value.length > maxItems) {
+    reject("invalid_payload", `${field} must be an array with at most ${maxItems} items`, {
+      field,
+    });
+  }
+  return [...new Set(value.map((item) => text(item, field, { max: 160 })))];
+}
+
+function assertPayloadSize(payload) {
+  const bytes = Buffer.byteLength(JSON.stringify(payload), "utf8");
+  if (bytes > 64 * 1024) {
+    reject("payload_too_large", "experience state payload exceeds 64 KiB", { bytes });
+  }
+}
+
+function normalizeLocationDiscovery(payload, now) {
+  const source = object(payload, "payload");
+  const phase = oneOf(
+    source.phase,
+    "phase",
+    ["idle", "scanning", "ready", "drawing", "complete"],
+    "idle",
+  );
+  const drawnClueIds = stringList(source.drawnClueIds, "drawnClueIds");
+  const remainingCount = integer(source.remainingCount ?? 0, "remainingCount", {
+    max: 10000,
+  });
+  return {
+    locationId: text(source.locationId, "locationId"),
+    segmentKey: text(source.segmentKey, "segmentKey"),
+    phase,
+    drawnClueIds,
+    remainingCount,
+    scanStartedAt: instant(source.scanStartedAt, "scanStartedAt", { nullable: true }),
+    scanReadyAt: instant(source.scanReadyAt, "scanReadyAt", { nullable: true }),
+    completedAt: instant(source.completedAt, "completedAt", { nullable: true }),
+    updatedAt: instant(source.updatedAt ?? now, "updatedAt"),
+  };
+}
+
+function normalizePaceClock(payload, now) {
+  const source = object(payload, "payload");
+  const mode = oneOf(source.mode, "mode", ["countdown", "countup"], "countdown");
+  const status = oneOf(
+    source.status,
+    "status",
+    ["idle", "running", "paused", "completed"],
+    "idle",
+  );
+  const durationMs = integer(source.durationMs ?? 0, "durationMs", {
+    max: 24 * 60 * 60 * 1000,
+  });
+  if (mode === "countdown" && durationMs < 1000) {
+    reject("invalid_payload", "countdown durationMs must be at least 1000", {
+      field: "durationMs",
+    });
+  }
+  return {
+    mode,
+    status,
+    label: text(source.label ?? "", "label", { required: false, max: 80 }) ?? "",
+    durationMs,
+    elapsedMs: integer(source.elapsedMs ?? 0, "elapsedMs", {
+      max: 7 * 24 * 60 * 60 * 1000,
+    }),
+    startedAt: instant(source.startedAt, "startedAt", { nullable: true }),
+    visibleToPlayers: Boolean(source.visibleToPlayers),
+    updatedAt: instant(source.updatedAt ?? now, "updatedAt"),
+  };
+}
+
+function normalizeSessionConclusion(payload, now) {
+  const source = object(payload, "payload");
+  const status = oneOf(
+    source.status,
+    "status",
+    ["idle", "publishing", "recap_pending", "ready", "failed"],
+    "idle",
+  );
+  const idempotencyKey = text(source.idempotencyKey, "idempotencyKey", {
+    required: status !== "idle",
+    max: 160,
+  });
+  return {
+    status,
+    endingId: text(source.endingId, "endingId", { required: false }),
+    recapId: text(source.recapId, "recapId", { required: false }),
+    idempotencyKey,
+    failureCode: text(source.failureCode, "failureCode", { required: false, max: 80 }),
+    updatedAt: instant(source.updatedAt ?? now, "updatedAt"),
+  };
+}
+
+const NORMALIZERS = new Map([
+  [ROOM_EXPERIENCE_STATE_KINDS.LOCATION_DISCOVERY, normalizeLocationDiscovery],
+  [ROOM_EXPERIENCE_STATE_KINDS.PACE_CLOCK, normalizePaceClock],
+  [ROOM_EXPERIENCE_STATE_KINDS.SESSION_CONCLUSION, normalizeSessionConclusion],
+]);
+
+export function normalizeRoomExperienceIdentity(input) {
+  const stateKind = text(input?.stateKind, "stateKind", { max: 64 });
+  if (!KEY_PATTERN.test(stateKind) || !KIND_VALUES.has(stateKind)) {
+    reject("unsupported_state_kind", "stateKind has no registered contract", {
+      stateKind,
+    });
+  }
+  const visibility = String(input?.visibility ?? "host");
+  if (!VISIBILITY_VALUES.has(visibility)) {
+    reject("invalid_visibility", "visibility is unsupported", { visibility });
+  }
+  return {
+    stateKind,
+    scopeKey: text(input?.scopeKey, "scopeKey"),
+    subjectKey: text(input?.subjectKey ?? "room", "subjectKey"),
+    schemaVersion: integer(input?.schemaVersion ?? 1, "schemaVersion", { min: 1, max: 1000 }),
+    visibility,
+  };
+}
+
+export function normalizeRoomExperiencePayload(stateKind, payload, { now = new Date() } = {}) {
+  const normalizer = NORMALIZERS.get(stateKind);
+  const normalized = normalizer
+    ? normalizer(payload, now)
+    : { ...object(payload, "payload") };
+  assertPayloadSize(normalized);
+  return normalized;
+}
+
+export function registerRoomExperiencePayloadNormalizer(stateKind, normalizer) {
+  if (!KIND_VALUES.has(stateKind) || typeof normalizer !== "function") {
+    reject("invalid_normalizer", "normalizer requires a registered state kind");
+  }
+  NORMALIZERS.set(stateKind, normalizer);
+}
