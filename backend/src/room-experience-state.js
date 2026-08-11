@@ -106,14 +106,23 @@ function normalizeLocationDiscovery(payload, now) {
     "idle",
   );
   const drawnClueIds = stringList(source.drawnClueIds, "drawnClueIds");
+  const drawn = new Set(drawnClueIds);
+  const remainingClueIds = stringList(source.remainingClueIds, "remainingClueIds")
+    .filter((clueId) => !drawn.has(clueId));
   const remainingCount = integer(source.remainingCount ?? 0, "remainingCount", {
     max: 10000,
   });
+  if (remainingCount !== remainingClueIds.length) {
+    reject("invalid_payload", "remainingCount must match remainingClueIds", {
+      field: "remainingCount",
+    });
+  }
   return {
     locationId: text(source.locationId, "locationId"),
     segmentKey: text(source.segmentKey, "segmentKey"),
     phase,
     drawnClueIds,
+    remainingClueIds,
     remainingCount,
     scanStartedAt: instant(source.scanStartedAt, "scanStartedAt", { nullable: true }),
     scanReadyAt: instant(source.scanReadyAt, "scanReadyAt", { nullable: true }),

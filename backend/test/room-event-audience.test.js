@@ -362,3 +362,19 @@ test("host player notes events remain host-only", () => {
     event,
   );
 });
+
+test("discovery progress events are host-only and contain no clue order", () => {
+  const event = {
+    type: "room.discovery_updated",
+    locationId: "library",
+    roleSlotId: "role-1",
+    action: "clue_drawn",
+    revision: 3,
+    drawnCount: 1,
+    remainingCount: 2,
+  };
+  assert.equal(projectRoomEventForAudience(event, { memberType: "host" }).event, event);
+  assert.equal(projectRoomEventForAudience(event, player).event, null);
+  assert.equal("drawnClueIds" in event, false);
+  assert.equal("remainingClueIds" in event, false);
+});

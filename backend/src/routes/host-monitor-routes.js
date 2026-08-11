@@ -1,6 +1,7 @@
 import { sendErr } from "../api-errors.js";
 import { listHostAuditLog } from "../audit-log.js";
 import { requireActor } from "../request-actor.js";
+import { getHostDiscoveryProgress } from "../room-discovery-service.js";
 import {
   getHostClueMatrix,
   getHostPlayerDetail,
@@ -25,6 +26,13 @@ export async function registerHostMonitorRoutes(app) {
     const { roomId } = request.params;
     await requireHostMembership(actorId, roomId);
     return getHostClueMatrix(roomId);
+  });
+
+  app.get("/api/rooms/:roomId/host/discovery-progress", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireHostMembership(actorId, roomId);
+    return getHostDiscoveryProgress(roomId);
   });
 
   app.put("/api/rooms/:roomId/host/clues/:clueId/notes", { schema: hostClueNoteSchema }, async (request, reply) => {

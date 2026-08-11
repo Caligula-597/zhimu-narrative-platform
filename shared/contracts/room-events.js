@@ -169,6 +169,17 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     }
   ),
   "room.investigation_completed": schema(["pointId", "roleSlotId"], { pointId: id, roleSlotId: id }),
+  "room.discovery_updated": schema(
+    ["locationId", "roleSlotId", "action", "revision", "drawnCount", "remainingCount"],
+    {
+      locationId: id,
+      roleSlotId: id,
+      action: shortText,
+      revision: number,
+      drawnCount: number,
+      remainingCount: number
+    }
+  ),
   "room.vote_created": schema(["voteId", "title", "status"], {
     voteId: id,
     title: text,

@@ -7,7 +7,6 @@ import { clueIsRead } from "../utils/clues.js";
 import {
   authorizedCluesForLocation,
   clueArchiveCode,
-  shuffledClueIds,
 } from "./location-clue-deck.js";
 
 const LOCATION_SCAN_MS = 3200;
@@ -56,8 +55,13 @@ function renderPlayerTabletopEnding(ending) {
   </section>`;
 }
 
-function discoveryKey(location) {
-  return `${String(location?.id || "location")}:${String(location?.segmentKey || location?.segment_key || "")}`;
+function discoveryKey(location, context = {}) {
+  return [
+    String(context.roomId || "room"),
+    String(context.roleSlotId || "role"),
+    String(location?.id || "location"),
+    String(location?.segmentKey || location?.segment_key || ""),
+  ].join(":");
 }
 
 function scanDelay() {
@@ -74,37 +78,63 @@ function notifyDiscoveryReady() {
   window.dispatchEvent(new Event("zhimu:tabletop-discovery-ready"));
 }
 
+function emitDiscoveryAction(session, action) {
+  if (typeof window === "undefined") return Promise.resolve(null);
+  return new Promise((resolve, reject) => {
+    window.dispatchEvent(new CustomEvent("zhimu:tabletop-discovery-action", {
+      detail: {
+        action,
+        locationId: session.locationId,
+        expectedRevision: Number(session.remote?.revision) || 0,
+        resolve,
+        reject,
+      },
+    }));
+  });
+}
+
 function scheduleDiscovery(session) {
   const delay = scanDelay();
-  if (delay === null || session.unlocked || session.timer) return;
+  if (delay === null || session.remote?.phase !== "scanning" || session.timer || session.readyRequested) return;
   session.timer = window.setTimeout(() => {
-    session.unlocked = true;
     session.timer = null;
-    notifyDiscoveryReady();
+    session.readyRequested = true;
+    void emitDiscoveryAction(session, "scan_ready")
+      .then(() => notifyDiscoveryReady())
+      .catch(() => {
+        session.readyRequested = false;
+      });
   }, delay);
 }
 
-function ensureDiscoverySession(location, clues) {
-  const key = discoveryKey(location);
-  const clueIds = clues.map((clue) => String(clue.id));
+function ensureDiscoverySession(location, context = {}) {
+  const key = discoveryKey(location, context);
   let session = discoverySessions.get(key);
   if (!session) {
     session = {
       key,
-      unlocked: false,
-      order: shuffledClueIds(clues),
-      drawnIds: [],
+      locationId: String(location?.id || ""),
+      remote: null,
       timer: null,
+      startRequested: false,
+      readyRequested: false,
     };
     discoverySessions.set(key, session);
-  } else {
-    const allowed = new Set(clueIds);
-    session.drawnIds = session.drawnIds.filter((id) => allowed.has(id));
-    const drawn = new Set(session.drawnIds);
-    const ordered = session.order.filter((id) => allowed.has(id) && !drawn.has(id));
-    const known = new Set([...ordered, ...session.drawnIds]);
-    const added = clues.filter((clue) => !known.has(String(clue.id)));
-    session.order = [...ordered, ...shuffledClueIds(added)];
+  }
+  const remote = (context.discoverySessions || []).find(
+    (candidate) => String(candidate.locationId) === session.locationId
+  ) || null;
+  if (remote && Number(remote.revision) !== Number(session.remote?.revision)) {
+    session.readyRequested = false;
+  }
+  session.remote = remote;
+  if (!remote && !session.startRequested && typeof window !== "undefined") {
+    session.startRequested = true;
+    queueMicrotask(() => {
+      void emitDiscoveryAction(session, "scan_started").catch(() => {
+        session.startRequested = false;
+      });
+    });
   }
   scheduleDiscovery(session);
   return session;
@@ -140,54 +170,63 @@ function renderRevealedClue(clue, drawnCount, totalCount, key, copy) {
   </article>`;
 }
 
-function renderLocationDiscovery(location, clues) {
-  const session = ensureDiscoverySession(location, clues);
+function renderLocationDiscovery(location, clues, context) {
+  const session = ensureDiscoverySession(location, context);
+  const remote = session.remote;
   const copy = normalizeLocationDiscoveryCopy(location?.discovery);
   const byId = new Map(clues.map((clue) => [String(clue.id), clue]));
-  const activeClue = byId.get(session.drawnIds.at(-1));
-  const total = clues.length;
-  const drawn = session.drawnIds.length;
-  const remaining = session.order.length;
-  const statusText = session.unlocked ? copy.unlockLabel : copy.scanLabel;
+  const drawnIds = remote?.drawnClueIds || [];
+  const activeClue = byId.get(remote?.lastDrawnClueId || drawnIds.at(-1));
+  const drawn = drawnIds.length;
+  const remaining = remote ? Number(remote.remainingCount) || 0 : clues.length;
+  const total = drawn + remaining;
+  const unlocked = ["ready", "drawing", "complete"].includes(remote?.phase);
+  const statusText = unlocked ? copy.unlockLabel : copy.scanLabel;
   const countLabel = formatLocationDiscoveryCount(copy, total);
 
-  return `<section class="player-location-discovery ${session.unlocked ? "is-unlocked" : "is-scanning"}" data-player-location-discovery data-discovery-key="${escapeHtml(session.key)}" aria-busy="${session.unlocked ? "false" : "true"}">
+  return `<section class="player-location-discovery ${unlocked ? "is-unlocked" : "is-scanning"}" data-player-location-discovery data-discovery-key="${escapeHtml(session.key)}" aria-busy="${unlocked ? "false" : "true"}">
     <div class="player-location-radar-shell">
       <div class="player-location-radar" aria-hidden="true"><i></i><b></b><span>12</span><span>3</span><span>6</span><span>9</span></div>
       <div class="player-location-radar-copy" role="status" aria-live="polite">
         <strong>${escapeHtml(statusText)}</strong>
-        <span>${session.unlocked ? (total ? escapeHtml(countLabel) : "现场暂无线索") : escapeHtml(copy.scanHint)}</span>
-        ${session.unlocked ? "" : `<button type="button" class="player-scan-skip" data-action="tabletop-discovery-skip" data-discovery-key="${escapeHtml(session.key)}">立即揭示</button>`}
+        <span>${unlocked ? (total ? escapeHtml(countLabel) : "现场暂无线索") : escapeHtml(copy.scanHint)}</span>
+        ${remote?.phase === "scanning" ? `<button type="button" class="player-scan-skip" data-action="tabletop-discovery-skip" data-discovery-key="${escapeHtml(session.key)}">立即揭示</button>` : ""}
       </div>
     </div>
     <div class="player-location-clue-summary">
       <div><strong>${total ? escapeHtml(countLabel) : "尚无可抽取线索"}</strong><span>${total ? "打乱后逐条抽取" : "等待主持人授权此地点内容"}</span></div>
-      ${session.unlocked && remaining && !activeClue ? `<button type="button" class="player-stage-button is-primary" data-action="tabletop-draw-clue" data-discovery-key="${escapeHtml(session.key)}">抽取一条线索</button>` : ""}
+      ${unlocked && remaining && !activeClue ? `<button type="button" class="player-stage-button is-primary" data-action="tabletop-draw-clue" data-discovery-key="${escapeHtml(session.key)}">抽取一条线索</button>` : ""}
       <small>已授权内容 · 不会提前揭示</small>
     </div>
     <div class="player-location-clue-deck ${activeClue ? "has-revealed-clue" : ""}">
-      <div class="player-clue-deck-head"><strong>${activeClue ? escapeHtml(copy.collectionLabel) : `${escapeHtml(copy.collectionLabel)}（未抽取）`}</strong>${session.unlocked && remaining > 1 ? `<button type="button" data-action="tabletop-reshuffle-clues" data-discovery-key="${escapeHtml(session.key)}">重新洗牌</button>` : ""}</div>
+      <div class="player-clue-deck-head"><strong>${activeClue ? escapeHtml(copy.collectionLabel) : `${escapeHtml(copy.collectionLabel)}（未抽取）`}</strong>${unlocked && remaining > 1 ? `<button type="button" data-action="tabletop-reshuffle-clues" data-discovery-key="${escapeHtml(session.key)}">重新洗牌</button>` : ""}</div>
       ${activeClue ? renderRevealedClue(activeClue, drawn, total, session.key, copy) : `<div class="player-clue-backs">${renderClueBacks(location, total, copy)}</div>`}
     </div>
   </section>`;
 }
 
-export function handlePlayerStageAction({ action, button, render }) {
+export async function handlePlayerStageAction({ action, button, render, syncDiscovery }) {
   const key = String(button?.dataset?.discoveryKey || "");
   const session = discoverySessions.get(key);
-  if (!session) return false;
+  if (!session || !session.remote || typeof syncDiscovery !== "function") return false;
+  let discoveryAction = "";
   if (action === "tabletop-discovery-skip") {
     if (session.timer) globalThis.clearTimeout(session.timer);
     session.timer = null;
-    session.unlocked = true;
+    discoveryAction = "scan_ready";
   } else if (action === "tabletop-draw-clue") {
-    if (!session.unlocked || !session.order.length) return true;
-    session.drawnIds.push(session.order.shift());
+    if (!["ready", "drawing"].includes(session.remote.phase) || !session.remote.remainingCount) return true;
+    discoveryAction = "clue_drawn";
   } else if (action === "tabletop-reshuffle-clues") {
-    session.order = shuffledClueIds(session.order.map((id) => ({ id })));
+    discoveryAction = "reshuffle";
   } else {
     return false;
   }
+  await syncDiscovery({
+    action: discoveryAction,
+    locationId: session.locationId,
+    expectedRevision: Number(session.remote.revision) || 0,
+  });
   render?.();
   return true;
 }
@@ -225,7 +264,7 @@ export function renderPlayerStageMap(map, context = {}) {
       <div class="player-stage-current">
         <div class="player-stage-current-head"><div><span>${escapeHtml(active?.type || "当前地点")}</span><h4>${escapeHtml(active?.name || "等待主持人指定地点")}</h4></div>${renderParty(map.party)}</div>
         <p>${escapeHtml(active?.description || "主持人推进后，这里会显示当前地点说明。")}</p>
-        ${renderLocationDiscovery(active, clues)}
+        ${renderLocationDiscovery(active, clues, context)}
       </div>
     </div>
   </section>`;

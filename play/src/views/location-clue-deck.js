@@ -24,8 +24,9 @@ export function authorizedCluesForLocation(location, owned = [], shared = []) {
   return [...owned, ...shared].filter((clue) => {
     const id = clean(clue?.id);
     if (!id || seen.has(id)) return false;
-    const matchesLocation = locationId && clueLocationId(clue) === locationId;
-    const matchesSegment = segmentKey && clueSegmentKey(clue) === segmentKey;
+    const clueLocation = clueLocationId(clue);
+    const matchesLocation = locationId && clueLocation === locationId;
+    const matchesSegment = !clueLocation && segmentKey && clueSegmentKey(clue) === segmentKey;
     if (!matchesLocation && !matchesSegment) return false;
     seen.add(id);
     return true;

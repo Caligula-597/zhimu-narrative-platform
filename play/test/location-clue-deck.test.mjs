@@ -16,6 +16,7 @@ test("location deck groups only already-authorized clues matching location or se
     [
       { id: "owned-segment", segment_key: "authorization-review" },
       { id: "owned-other", segment_key: "appeal-route" },
+      { id: "wrong-location-same-segment", location_id: "vault", segment_key: "authorization-review" },
     ],
     [
       { id: "shared-location", location_id: "review-room" },
@@ -34,7 +35,7 @@ test("location deck shuffle is bounded and archive labels remain location-specif
   assert.equal(clueArchiveCode({ segmentKey: "authorization-review" }, 1), "AUTHORIZATIO-02");
 });
 
-test("player stage keeps clue text concealed until the local draw interaction", () => {
+test("player stage keeps clue text concealed until the server confirms the draw", async () => {
   const map = {
     title: "沉睡者的梦",
     visible: true,
@@ -69,6 +70,14 @@ test("player stage keeps clue text concealed until the local draw interaction", 
       is_owner: true,
     }],
     sharedClues: [],
+    discoverySessions: [{
+      locationId: "dream-gallery-test",
+      segmentKey: "dream-memory-test",
+      phase: "scanning",
+      drawnClueIds: [],
+      remainingCount: 1,
+      revision: 1,
+    }],
   };
 
   const scanning = renderPlayerStageMap(map, context);
@@ -80,8 +89,39 @@ test("player stage keeps clue text concealed until the local draw interaction", 
 
   const key = scanning.match(/data-discovery-key="([^"]+)"/)?.[1];
   const button = { dataset: { discoveryKey: key } };
-  handlePlayerStageAction({ action: "tabletop-discovery-skip", button });
-  handlePlayerStageAction({ action: "tabletop-draw-clue", button });
+  await handlePlayerStageAction({
+    action: "tabletop-discovery-skip",
+    button,
+    syncDiscovery: async (input) => {
+      assert.deepEqual(input, {
+        action: "scan_ready",
+        locationId: "dream-gallery-test",
+        expectedRevision: 1,
+      });
+    },
+  });
+  context.discoverySessions = [{
+    ...context.discoverySessions[0],
+    phase: "ready",
+    revision: 2,
+  }];
+  renderPlayerStageMap(map, context);
+  await handlePlayerStageAction({
+    action: "tabletop-draw-clue",
+    button,
+    syncDiscovery: async (input) => {
+      assert.equal(input.action, "clue_drawn");
+      assert.equal(input.expectedRevision, 2);
+    },
+  });
+  context.discoverySessions = [{
+    ...context.discoverySessions[0],
+    phase: "complete",
+    drawnClueIds: ["clue-a"],
+    lastDrawnClueId: "clue-a",
+    remainingCount: 0,
+    revision: 3,
+  }];
 
   const revealed = renderPlayerStageMap(map, context);
   assert.match(revealed, /记忆层已开启/);

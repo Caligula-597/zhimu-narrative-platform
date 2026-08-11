@@ -94,6 +94,9 @@ function runtimeStateBanner() {
       ${renderPlayerStageMapBoundary(current.presentation?.map, {
         clues: state.home?.clues || [],
         sharedClues: state.home?.sharedClues || [],
+        discoverySessions: state.discoverySessions,
+        roomId: state.roomId,
+        roleSlotId: state.home?.role?.id,
       })}
       <footer><span>${escapeHtml(current.phase.label)}</span><span>${current.syncState.isFrozen ? "冻结版本" : "实时草稿"}</span><span>${current.syncState.status === "synced" ? "进度已同步" : "数据可能稍有延迟"}</span></footer>
     </article>`;

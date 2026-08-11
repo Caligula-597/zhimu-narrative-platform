@@ -2202,6 +2202,24 @@ textarea:focus-visible {
 .host-stage-location-main span { color: #9a6a2f; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
 .host-stage-location-main strong { color: var(--ink); font-size: 13px; }
 .host-stage-location-main small { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.host-discovery-progress { margin-top: 14px; padding: 14px; border: 1px solid rgba(40, 108, 97, .18); border-radius: 14px; background: rgba(255, 255, 255, .72); }
+.host-discovery-progress-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 10px; }
+.host-discovery-progress-head h4 { margin: 2px 0 4px; color: var(--ink); font-size: 16px; }
+.host-discovery-progress-head p { margin: 0; color: var(--muted); font-size: 11px; }
+.host-discovery-progress-head > span { color: #286c61; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.host-discovery-table-wrap { overflow-x: auto; border: 1px solid rgba(28, 65, 60, .1); border-radius: 10px; }
+.host-discovery-table { width: 100%; min-width: 620px; border-collapse: collapse; background: rgba(250, 253, 251, .86); }
+.host-discovery-table th,
+.host-discovery-table td { min-width: 120px; padding: 9px 10px; border-right: 1px solid rgba(28, 65, 60, .08); border-bottom: 1px solid rgba(28, 65, 60, .08); text-align: left; vertical-align: top; }
+.host-discovery-table th:first-child { position: sticky; left: 0; z-index: 1; min-width: 150px; background: #f5faf7; }
+.host-discovery-table th span,
+.host-discovery-table th strong { display: block; color: var(--ink); font-size: 11px; }
+.host-discovery-table small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
+.host-discovery-state { display: inline-flex; padding: 3px 7px; border-radius: 999px; background: #edf1ef; color: #64706d; font-size: 10px; font-weight: 800; }
+.host-discovery-state.is-scanning { background: #fff2d8; color: #8b632b; }
+.host-discovery-state.is-ready,
+.host-discovery-state.is-drawing { background: #e5f2ed; color: #286c61; }
+.host-discovery-state.is-complete { background: #dcece5; color: #1d6656; }
 .host-stage-footer { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; color: var(--muted); font-size: 11px; }
 .host-stage-encounter { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 18px; align-items: center; margin-top: 14px; padding: 14px; border: 1px solid rgba(166, 108, 52, .26); border-radius: 14px; background: linear-gradient(120deg, rgba(255, 248, 235, .94), rgba(255, 255, 255, .8)); }
 .host-stage-encounter.is-active { border-color: rgba(172, 78, 55, .38); background: linear-gradient(120deg, rgba(253, 239, 232, .96), rgba(255, 249, 244, .9)); }

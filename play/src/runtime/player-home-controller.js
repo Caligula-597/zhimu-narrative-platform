@@ -25,11 +25,16 @@ export function createPlayerHomeController({
   async function pullRoomData({ partial = false } = {}) {
     if (!state.roomId || !isUuid(state.roomId)) return;
     const currentGeneration = ++generation;
-    const [homeCore, explorationResult] = await Promise.all([
+    const [homeCore, explorationResult, discoveryResult] = await Promise.all([
       loadPlayerHomeCoreCompat(state.roomId),
       api.exploration(state.roomId)
         .then((data) => ({ ok: true, data }))
-        .catch((error) => ({ ok: false, error }))
+        .catch((error) => ({ ok: false, error })),
+      typeof api.discoverySessions === "function"
+        ? api.discoverySessions(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true, data: { sessions: [] } })
     ]);
     if (currentGeneration !== generation) return;
 
@@ -38,6 +43,7 @@ export function createPlayerHomeController({
       ?? homeCore.roomRunningState?.current_game ?? homeCore.room_running_state?.current_game;
     if (homeGame !== undefined) state.currentGame = normalizeMiniGame(homeGame);
     applyExplorationResult(explorationResult);
+    applyDiscoveryResult(discoveryResult);
     selectAvailableSection();
     await refreshVoiceIfActive();
 
@@ -71,6 +77,15 @@ export function createPlayerHomeController({
     } else {
       state.explorationError = formatApiError(result.error, "探索数据刷新失败");
     }
+  }
+
+  function applyDiscoveryResult(result) {
+    if (result.ok) {
+      state.discoverySessions = Array.isArray(result.data?.sessions) ? result.data.sessions : [];
+      state.discoverySyncError = "";
+      return;
+    }
+    state.discoverySyncError = formatApiError(result.error, "地点探索进度同步失败");
   }
 
   function selectAvailableSection() {

@@ -226,6 +226,46 @@ function renderRemedies(act) {
   </div>`;
 }
 
+function discoveryProgressLabel(session) {
+  if (!session) return { tone: "idle", label: "未开始", detail: "0 / —" };
+  const labels = {
+    scanning: "侦测中",
+    ready: "待抽取",
+    drawing: "抽取中",
+    complete: "已完成",
+  };
+  return {
+    tone: session.phase || "idle",
+    label: labels[session.phase] || "未开始",
+    detail: `${Number(session.drawnCount) || 0} 已抽 · ${Number(session.remainingCount) || 0} 剩余`,
+  };
+}
+
+function renderHostDiscoveryMatrix() {
+  const progress = state.cloudHostDiscoveryProgress;
+  const locations = progress?.locations || [];
+  const players = progress?.players || [];
+  if (!locations.length || !players.length) return "";
+  const sessions = new Map((progress.sessions || []).map(
+    (session) => [`${session.roleSlotId}:${session.locationId}`, session]
+  ));
+  return `<section class="host-discovery-progress" aria-label="玩家地点探索进度">
+    <div class="host-discovery-progress-head">
+      <div><p class="section-kicker">DISCOVERY MIRROR</p><h4>角色 × 地点探索进度</h4><p>仅显示阶段与数量；线索正文和剩余顺序不会出现在主持镜像中。</p></div>
+      <span>${players.filter((player) => player.joined).length} 位玩家在线席</span>
+    </div>
+    <div class="host-discovery-table-wrap">
+      <table class="host-discovery-table">
+        <thead><tr><th scope="col">玩家 / 角色</th>${locations.map((location) => `<th scope="col"><span>${escapeHtml(location.name)}</span><small>${escapeHtml(location.segmentKey || "未绑分段")}</small></th>`).join("")}</tr></thead>
+        <tbody>${players.map((player) => `<tr><th scope="row"><strong>${escapeHtml(player.displayName || "尚未入房")}</strong><small>${escapeHtml(player.roleName || "未命名角色")}</small></th>${locations.map((location) => {
+          const status = discoveryProgressLabel(sessions.get(`${player.roleSlotId}:${location.id}`));
+          return `<td><span class="host-discovery-state is-${escapeHtml(status.tone)}">${escapeHtml(status.label)}</span><small>${escapeHtml(status.detail)}</small></td>`;
+        }).join("")}</tr>`).join("")}</tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
 function renderHostTabletopStage(presentation) {
   const map = presentation?.map;
   if (!map?.host?.locations?.length) return "";
@@ -266,6 +306,7 @@ function renderHostTabletopStage(presentation) {
         }).join("")}
       </div>
     </div>
+    ${renderHostDiscoveryMatrix()}
     ${renderHostTabletopEncounter(map, active)}
     ${renderHostTabletopCheck(map, active, diceLabel)}
     ${renderHostTabletopOutcome(map)}

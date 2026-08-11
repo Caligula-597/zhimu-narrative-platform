@@ -38,13 +38,15 @@ test("location discovery contract keeps only durable progress fields", () => {
       segmentKey: "act-1-library",
       phase: "drawing",
       drawnClueIds: ["clue-a", "clue-a", "clue-b"],
-      remainingCount: 2,
+      remainingClueIds: ["clue-c", "clue-a"],
+      remainingCount: 1,
       scanStartedAt: "2026-08-11T09:59:00Z",
       leakedSecret: "must not persist",
     },
     { now },
   );
   assert.deepEqual(result.drawnClueIds, ["clue-a", "clue-b"]);
+  assert.deepEqual(result.remainingClueIds, ["clue-c"]);
   assert.equal(result.updatedAt, now.toISOString());
   assert.equal("leakedSecret" in result, false);
 });

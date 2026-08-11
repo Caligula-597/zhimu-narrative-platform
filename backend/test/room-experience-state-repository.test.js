@@ -64,10 +64,12 @@ test("experience repository projects state and supports locking reads", async ()
   const listed = await listRoomExperienceStates("room-1", {
     stateKind: "pace_clock",
     visibility: "room",
+    subjectKey: "role-1",
     client,
   });
   assert.equal(listed[0].stateKind, "pace_clock");
-  assert.equal(client.calls[1].params.length, 4);
+  assert.equal(client.calls[1].params.length, 5);
+  assert.equal(client.calls[1].params[3], "role-1");
 });
 
 test("experience repository insert and update preserve optimistic concurrency", async () => {

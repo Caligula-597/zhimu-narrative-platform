@@ -136,6 +136,12 @@ export const api = {
   completeSection: (roomId, sectionId) =>
     request(`/rooms/${roomId}/sections/${sectionId}/complete`, { method: "POST", body: {} }),
   exploration: (roomId) => request(`/rooms/${roomId}/exploration`),
+  discoverySessions: (roomId) => request(`/rooms/${roomId}/discovery-sessions`),
+  discoveryAction: (roomId, locationId, payload) =>
+    request(`/rooms/${roomId}/discovery-sessions/${encodeURIComponent(locationId)}/actions`, {
+      method: "POST",
+      body: payload
+    }),
   investigate: (roomId, pointId) =>
     request(`/rooms/${roomId}/investigation-points/${pointId}/investigate`, { method: "POST", body: {} }),
   readClue: (roomId, clueId) =>

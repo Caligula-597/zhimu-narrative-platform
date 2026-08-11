@@ -96,6 +96,11 @@ const { render } = createPlayViewController({
 
 window.addEventListener("zhimu:tabletop-stage-ready", render);
 window.addEventListener("zhimu:tabletop-discovery-ready", render);
+window.addEventListener("zhimu:tabletop-discovery-action", (event) => {
+  void syncPlayerDiscovery(event.detail)
+    .then((session) => event.detail?.resolve?.(session))
+    .catch((error) => event.detail?.reject?.(error));
+});
 
 setVoiceRenderCallback(render);
 
@@ -159,6 +164,34 @@ const {
   ensureDefaultVoiceRoom, refreshVoiceMessages, patchGameView,
   patchSyncChrome, setToast
 });
+
+async function syncPlayerDiscovery({ action, locationId, expectedRevision } = {}) {
+  if (!state.roomId || !locationId) return null;
+  try {
+    const session = await api.discoveryAction(state.roomId, locationId, {
+      action,
+      expectedRevision: Number(expectedRevision) || 0,
+    });
+    const sessions = Array.isArray(state.discoverySessions) ? state.discoverySessions : [];
+    state.discoverySessions = [
+      ...sessions.filter((candidate) => String(candidate.locationId) !== String(session.locationId)),
+      session,
+    ];
+    state.discoverySyncError = "";
+    render();
+    return session;
+  } catch (error) {
+    try {
+      const latest = await api.discoverySessions(state.roomId);
+      state.discoverySessions = Array.isArray(latest?.sessions) ? latest.sessions : state.discoverySessions;
+    } catch {
+      // Preserve the last confirmed projection while the regular room refresh retries.
+    }
+    state.discoverySyncError = formatApiError(error, "地点探索进度同步失败");
+    setToast(state.discoverySyncError, render);
+    throw error;
+  }
+}
 
 const {
   loadRecapSummary,
@@ -392,7 +425,8 @@ app.addEventListener("click", async (event) => {
   if (await handleLazyPlayActionController("tabletop", {
     action,
     button,
-    render
+    render,
+    syncDiscovery: syncPlayerDiscovery
   })) return;
   if (await handleLazyPlayActionController("tab", {
     action, button, state, render, gamePatchCtx, flushPendingRoomRefresh,

@@ -46,7 +46,7 @@ export async function findRoomExperienceState(
 
 export async function listRoomExperienceStates(
   roomId,
-  { stateKind, visibility = null, client = null, limit = 500 },
+  { stateKind, visibility = null, subjectKey = null, client = null, limit = 500 },
 ) {
   const result = await run(
     client,
@@ -54,10 +54,11 @@ export async function listRoomExperienceStates(
      FROM room_experience_states
      WHERE room_id = $1 AND state_kind = $2
        AND ($3::text IS NULL OR visibility = $3)
+       AND ($4::text IS NULL OR subject_key = $4)
        AND (expires_at IS NULL OR expires_at > now())
      ORDER BY updated_at DESC
-     LIMIT $4`,
-    [roomId, stateKind, visibility, limit],
+     LIMIT $5`,
+    [roomId, stateKind, visibility, subjectKey, limit],
   );
   return result.rows.map(projectRoomExperienceState);
 }

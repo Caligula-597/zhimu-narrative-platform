@@ -93,9 +93,39 @@ export function renderClues() {
     </div>`;
 }
 
+function renderCurrentLocationContext() {
+  const map = state.home?.currentState?.presentation?.map;
+  if (!map?.visible || !Array.isArray(map.locations) || !map.locations.length) return "";
+  const active = map.locations.find((location) => String(location.id) === String(map.activeLocationId))
+    || map.activeLocation
+    || map.locations[0];
+  const discovery = (state.discoverySessions || []).find(
+    (session) => String(session.locationId) === String(active?.id)
+  );
+  const phaseLabel = {
+    scanning: "正在侦测",
+    ready: "等待抽取",
+    drawing: "探索进行中",
+    complete: "本地已完成",
+  }[discovery?.phase] || "等待探索";
+  return `<article class="exploration-location-context card" aria-label="当前地图位置">
+    <div>
+      <p class="eyebrow">${escapeHtml(map.title || "当前地图")} · ${escapeHtml(phaseLabel)}</p>
+      <h2>${escapeHtml(active?.name || "等待主持人指定地点")}</h2>
+      <p>${escapeHtml(active?.description || "主持人推进后，这里会同步当前地点说明。")}</p>
+    </div>
+    <div class="exploration-location-meta">
+      <span>已揭示 ${map.locations.length} 个地点</span>
+      ${discovery ? `<span>已抽 ${discovery.drawnClueIds?.length || 0} · 剩余 ${Number(discovery.remainingCount) || 0}</span>` : ""}
+      <button class="btn outline compact" type="button" data-action="switch-tab" data-tab="home">查看地图与场景状态</button>
+    </div>
+  </article>`;
+}
+
 export function renderExploration() {
+  const locationContext = renderCurrentLocationContext();
   if (state.explorationError) {
-    return `
+    return `${locationContext}
       <div class="banner error inline-retry">
         ${escapeHtml(state.explorationError)}
         <button class="btn outline compact" type="button" data-action="retry-exploration">重试</button>
@@ -103,9 +133,9 @@ export function renderExploration() {
   }
   const scenes = state.exploration?.scenes || [];
   if (!scenes.length) {
-    return `<div class="empty enriched-empty"><span class="empty-icon">🗺</span>当前还没有开放探索场景。读完分幕并等待主持人解锁后，新地点会出现在这里。</div>`;
+    return `${locationContext}<div class="empty enriched-empty"><span class="empty-icon">🗺</span>当前还没有开放探索场景。读完分幕并等待主持人解锁后，新地点会出现在这里。</div>`;
   }
-  return scenes
+  return locationContext + scenes
     .map(
       (scene) => `
     <article class="card scene-card">

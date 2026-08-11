@@ -39,6 +39,8 @@ export const state = {
   roomId: storedRoomId,
   home: null,
   exploration: null,
+  discoverySessions: [],
+  discoverySyncError: "",
   tab: storedRoomId ? readStoredGameTab() : "home",
   sectionId: storedRoomId ? (localStorage.getItem(GAME_SECTION_KEY) || "") : "",
   clueId: "",
@@ -179,6 +181,10 @@ export function clearGameSession() {
 
 export function persistRoom(roomId, isUuid) {
   const next = roomId && isUuid(roomId) ? roomId : "";
+  if (next !== state.roomId) {
+    state.discoverySessions = [];
+    state.discoverySyncError = "";
+  }
   state.roomId = next;
   if (next) localStorage.setItem(ROOM_KEY, next);
   else {

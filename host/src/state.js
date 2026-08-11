@@ -34,6 +34,7 @@ export const state = {
   cloudHostStuckCount: 0,
   cloudHostEvents: [],
   cloudHostClueMatrix: null,
+  cloudHostDiscoveryProgress: null,
   cloudHostAuditLog: [],
   cloudHostTestimonies: [],
   cloudHostSegmentRemedies: [],

@@ -7,6 +7,7 @@ import {
 } from "../../../shared/sse-lifecycle.js";
 import {
   refreshHostClueMatrix,
+  refreshHostDiscoveryProgress,
   refreshHostEvents,
   refreshHostPlayers,
   refreshHostRoom,
@@ -153,6 +154,11 @@ async function handleRoomEvent(type, data) {
     case "room.content_release_changed":
       await refreshHostRoom(false);
       showToast(`运行内容已切换到 R${Number(data.releaseNumber) || "?"}`, 3200);
+      break;
+    case "room.discovery_updated":
+      await refreshHostDiscoveryProgress({ render: false });
+      await refreshOpenPlayerOperation(data.roleSlotId);
+      render();
       break;
     case "room.session_started":
       if (state.room) {

@@ -1007,6 +1007,27 @@ button {
   margin-top: 16px;
 }
 
+.exploration-location-context {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 16px;
+  border-color: rgba(43, 107, 97, 0.32);
+  background: linear-gradient(135deg, rgba(43, 107, 97, 0.1), rgba(255, 255, 255, 0.78));
+}
+
+.exploration-location-context h2,
+.exploration-location-context p { margin: 4px 0 0; }
+.exploration-location-context p { color: var(--ink-soft); }
+.exploration-location-meta { display: grid; gap: 7px; justify-items: end; color: var(--muted); font-size: 12px; }
+
+@media (max-width: 640px) {
+  .exploration-location-context { grid-template-columns: 1fr; gap: 14px; margin-top: -4px; }
+  .exploration-location-meta { justify-items: stretch; }
+  .exploration-location-meta .btn { width: 100%; }
+}
+
 .point-list {
   display: grid;
   gap: 12px;
