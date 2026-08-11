@@ -11,6 +11,7 @@
 - `app.getzhimu.com` 的 HTML 与静态响应必须返回 `X-Robots-Tag: noindex, nofollow, noarchive`，入口 HTML 同时保留 `noindex` meta；`play` 与 `host` 继续整站禁止抓取。
 - `www.getzhimu.com` 在 Cloudflare 使用 301 永久跳转到 `getzhimu.com`，保留路径和查询参数。Cloudflare Pages 的 `_redirects` 不支持域名级跳转，应使用 Bulk Redirects 或 Single Redirects。
 - Cloudflare 开启 Crawler Hints，让已更新的公开 URL 通过 IndexNow 被参与平台更快发现。
+- 一键同步：`npm run cloudflare:sync-search-discovery`（先 `-- --dry-run`）；同步 `www`→apex 301 与 Crawler Hints。
 
 ## 二、平台提交顺序
 

@@ -33,6 +33,7 @@
     "cloudflare:sync-security": "node scripts/cloudflare-sync-security.mjs",
     "cloudflare:sync-r2-cors": "node scripts/cloudflare-sync-r2-cors.mjs",
     "cloudflare:sync-pages": "node scripts/cloudflare-sync-pages.mjs",
+    "cloudflare:sync-search-discovery": "node scripts/cloudflare-sync-search-discovery.mjs",
     "oauth:check": "node scripts/check-oauth-config.mjs",
     "monitoring:smoke": "node scripts/monitoring-smoke.mjs",
     "pages:smoke": "node scripts/pages-smoke.mjs",

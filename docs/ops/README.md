@@ -22,6 +22,7 @@
 | [R2_RESTORE_SOP_ZH.md](./R2_RESTORE_SOP_ZH.md) | R2 对象抽样与灾难恢复边界 |
 | [DATA_RETENTION.md](./DATA_RETENTION.md) | 数据保留 |
 | [SECURITY_EDGE.md](./SECURITY_EDGE.md) | 边缘安全、代理、密钥与追踪头 |
+| [SEARCH_DISCOVERY_ZH.md](./SEARCH_DISCOVERY_ZH.md) | 官网收录、www 跳转、IndexNow、站长提交 |
 | [ALERTING.md](./ALERTING.md) | 告警规则与升级 |
 | [STAGING.md](./STAGING.md) | 预发环境 |
 

@@ -54,7 +54,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [安全与测试收口](../SECURITY_AND_TESTING.md) | `SECURITY_AND_TESTING.md` |
 | [织幕 · 官网（营销站）](../site/README.md) | `site/README.md` |
 
-## 产品、流程与用户指南（32）
+## 产品、流程与用户指南（35）
 
 描述产品意图、工作流和用户操作；部分页面同时包含待实现设计。
 
@@ -72,6 +72,8 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [创作端结构化对象 · 产品位置与 API 映射](./CREATOR_OBJECT_PRODUCT_MAP_ZH.md) | `docs/CREATOR_OBJECT_PRODUCT_MAP_ZH.md` |
 | [创作者 UI 核心设计：按真实剧本创作流程搭建](./CREATOR_UI_CORE_DESIGN_FROM_AUTHOR_WORKFLOW_ZH.md) | `docs/CREATOR_UI_CORE_DESIGN_FROM_AUTHOR_WORKFLOW_ZH.md` |
 | [系统设计](./DESIGN_ZH.md) | `docs/DESIGN_ZH.md` |
+| [创作者端—主持端—玩家端完整对齐审计](./design/CREATOR_HOST_PLAYER_ALIGNMENT_AUDIT_ZH.md) | `docs/design/CREATOR_HOST_PLAYER_ALIGNMENT_AUDIT_ZH.md` |
+| [创作者端—主持端—玩家端全局修复完成报告](./design/CREATOR_HOST_PLAYER_ALIGNMENT_COMPLETION_ZH.md) | `docs/design/CREATOR_HOST_PLAYER_ALIGNMENT_COMPLETION_ZH.md` |
 | [织幕 · 如何跑第一场（用户手册）](./FIRST_SESSION_GUIDE_ZH.md) | `docs/FIRST_SESSION_GUIDE_ZH.md` |
 | [织幕 · 身份与权限底座](./IDENTITY_AND_PERMISSIONS.md) | `docs/IDENTITY_AND_PERMISSIONS.md` |
 | [上线优先级](./LAUNCH_PRIORITIES_ZH.md) | `docs/LAUNCH_PRIORITIES_ZH.md` |
@@ -80,6 +82,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕待处理问题清单](./performance/PENDING_ISSUES_ZH.md) | `docs/performance/PENDING_ISSUES_ZH.md` |
 | [Player 首页性能验收](./performance/PLAYER_HOME_ACCEPTANCE_ZH.md) | `docs/performance/PLAYER_HOME_ACCEPTANCE_ZH.md` |
 | [性能问题文档](./performance/README.md) | `docs/performance/README.md` |
+| [SSE 真实容量验收](./performance/SSE_CAPACITY_ACCEPTANCE_ZH.md) | `docs/performance/SSE_CAPACITY_ACCEPTANCE_ZH.md` |
 | [实体卡（Physical Token）后端 API](./PHYSICAL_TOKENS_API.md) | `docs/PHYSICAL_TOKENS_API.md` |
 | [织幕三端产品功能总览与完整创作流程](./PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md) | `docs/PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md` |
 | [`灵感.doc` 产品输入追踪表](./PRODUCT_INPUT_TRACEABILITY_ZH.md) | `docs/PRODUCT_INPUT_TRACEABILITY_ZH.md` |
@@ -123,7 +126,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕统一叙事功能 · 模块化实施计划](./UNIFIED_NARRATIVE_IMPLEMENTATION_PLAN_ZH.md) | `docs/UNIFIED_NARRATIVE_IMPLEMENTATION_PLAN_ZH.md` |
 | [织幕前端模块化计划](../FRONTEND_MODULE_PLAN.md) | `FRONTEND_MODULE_PLAN.md` |
 
-## 运维、安全与交付手册（46）
+## 运维、安全与交付手册（48）
 
 执行前仍需核对环境、密钥和平台控制台的当前状态。
 
@@ -132,6 +135,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [云端免费版接入清单](../CLOUD_SETUP_CHECKLIST.md) | `CLOUD_SETUP_CHECKLIST.md` |
 | [后端运维基准](./BACKEND_OPS_BENCHMARK.md) | `docs/BACKEND_OPS_BENCHMARK.md` |
 | [后端运维](./BACKEND_OPS.md) | `docs/BACKEND_OPS.md` |
+| [商用容量与平台恢复验收](./operations/COMMERCIAL_CAPACITY_RECOVERY_ZH.md) | `docs/operations/COMMERCIAL_CAPACITY_RECOVERY_ZH.md` |
 | [发布恢复与回滚流程](./operations/RELEASE_ROLLBACK_ZH.md) | `docs/operations/RELEASE_ROLLBACK_ZH.md` |
 | [本地运维与排障](./OPS.md) | `docs/OPS.md` |
 | [告警与 On-call](./ops/ALERTING.md) | `docs/ops/ALERTING.md` |
@@ -168,6 +172,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕 · Railway 部署（单服务 fullstack）](./ops/RAILWAY.md) | `docs/ops/RAILWAY.md` |
 | [运维文档索引](./ops/README.md) | `docs/ops/README.md` |
 | [远程与局域网测试](./ops/REMOTE_TESTING.md) | `docs/ops/REMOTE_TESTING.md` |
+| [织幕全平台搜索发现与收录 SOP](./ops/SEARCH_DISCOVERY_ZH.md) | `docs/ops/SEARCH_DISCOVERY_ZH.md` |
 | [边缘安全、密钥与追踪](./ops/SECURITY_EDGE.md) | `docs/ops/SECURITY_EDGE.md` |
 | [SLA 草案（对外可解释 · 对内可执行）](./ops/SLA_DRAFT_ZH.md) | `docs/ops/SLA_DRAFT_ZH.md` |
 | [分域部署](./ops/SPLIT_DOMAINS.md) | `docs/ops/SPLIT_DOMAINS.md` |

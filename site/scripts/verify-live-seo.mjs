@@ -63,4 +63,18 @@ if (!/noindex/i.test(appRobotsHeader) && !/<meta name="robots" content="[^"]*noi
 requireMatch(playRobots, /User-agent: \*\s+Disallow: \//i, "Player surface must remain blocked from search crawling");
 requireMatch(hostRobots, /User-agent: \*\s+Disallow: \//i, "Host surface must remain blocked from search crawling");
 
+const [playHomeResponse, hostHomeResponse] = await Promise.all([
+  request(`${playOrigin}/`),
+  request(`${hostOrigin}/`)
+]);
+const [playHome, hostHome] = await Promise.all([playHomeResponse.text(), hostHomeResponse.text()]);
+const playRobotsHeader = playHomeResponse.headers.get("x-robots-tag") || "";
+const hostRobotsHeader = hostHomeResponse.headers.get("x-robots-tag") || "";
+if (!/noindex/i.test(playRobotsHeader) && !/<meta name="robots" content="[^"]*noindex/i.test(playHome)) {
+  throw new Error("Player surface is missing noindex protection");
+}
+if (!/noindex/i.test(hostRobotsHeader) && !/<meta name="robots" content="[^"]*noindex/i.test(hostHome)) {
+  throw new Error("Host surface is missing noindex protection");
+}
+
 console.log("Live SEO verification passed: canonical site is discoverable and private surfaces remain excluded.");

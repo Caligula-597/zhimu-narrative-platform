@@ -86,6 +86,19 @@ MARKETING_SITE_URL=https://getzhimu.com
 
 官网已接入 `.github/workflows/production-release.yml` 的统一预览、验证与提升流程；工作流存在不代表当前提交已经执行通过。`site/main.js` 与 `site/pricing-commercial.js` 仍使用官网独立公开请求层；它不承载登录态，但后续应补统一 timeout、CSP 与错误边界审计。
 
+## 搜索发现
+
+公开收录只针对本站主域。部署后按 [SEARCH_DISCOVERY_ZH.md](../docs/ops/SEARCH_DISCOVERY_ZH.md) 验收：
+
+```powershell
+npm run cloudflare:sync-search-discovery -- --dry-run
+npm run cloudflare:sync-search-discovery
+npm run seo:verify-live --prefix site
+npm run seo:indexnow --prefix site -- --dry-run
+npm run seo:indexnow --prefix site
+```
+
 ## 相关文档
 
+- [docs/ops/SEARCH_DISCOVERY_ZH.md](../docs/ops/SEARCH_DISCOVERY_ZH.md) - 全平台搜索发现与收录 SOP
 - [docs/ops/BETA_APPLICATIONS.md](../docs/ops/BETA_APPLICATIONS.md) - 内测 API 与 Ops 审核
