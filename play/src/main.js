@@ -1,12 +1,7 @@
 import "./styles.css";
 import {
-  api,
-  clearSession,
-  getAppOrigin,
-  getPlayOrigin,
-  getSessionToken,
-  setSessionToken,
-  subscribeSessionToken
+  api, clearSession, getAppOrigin, getPlayOrigin, getSessionToken,
+  setSessionToken, subscribeSessionToken
 } from "./api.js";
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode, asArray } from "../../shared/security.js";
 import { connectRoomEvents, disconnectRoomEvents } from "./room-events.js";
@@ -15,24 +10,11 @@ import { formatApiError } from "./errors.js";
 import { renderApp } from "./render.js";
 import { closeModalState, openModalState } from "./components/modal.js";
 import {
-  connectVoiceLive,
-  disconnectVoiceLive,
-  ensureDefaultVoiceRoom,
-  joinVoiceRoom,
-  openCreateVoiceRoomModal,
-  openInviteVoiceRoomModal,
-  openVoiceRoomPicker,
-  pauseVoiceSession,
-  privateVoiceRoomsEnabled,
-  privateVoiceRoomsUnavailableMessage,
-  refreshVoiceMessages,
-  resetVoiceOnLeave,
-  sendVoiceChatMessage,
-  setVoiceRenderCallback,
-  submitCreateVoiceRoom,
-  submitVoiceInvite,
-  toggleVoiceMicLive,
-  unlockVoicePlayback
+  connectVoiceLive, disconnectVoiceLive, ensureDefaultVoiceRoom, joinVoiceRoom,
+  openCreateVoiceRoomModal, openInviteVoiceRoomModal, openVoiceRoomPicker,
+  pauseVoiceSession, privateVoiceRoomsEnabled, privateVoiceRoomsUnavailableMessage,
+  refreshVoiceMessages, resetVoiceOnLeave, sendVoiceChatMessage, setVoiceRenderCallback,
+  submitCreateVoiceRoom, submitVoiceInvite, toggleVoiceMicLive, unlockVoicePlayback
 } from "./runtime/voice.js";
 import { bindPlayReader } from "./runtime/reader.js";
 import { patchGameView, patchGameHostBanner, patchGameTabSwitch, patchGameSectionsTab, isGameInputFocused } from "./runtime/patch-game.js";
@@ -72,9 +54,7 @@ import { createPlayStreamController } from "./runtime/stream-controller.js";
 import { createRoomLifecycleController } from "./runtime/room-lifecycle-controller.js";
 import { createRecapNotebookController } from "./runtime/recap-notebook-controller.js";
 import { createLazyPlayerProfileController } from "./runtime/lazy-profile-controller.js";
-import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
-import { tickPlayerPaceClock } from "./runtime/player-pace-clock.js";
-import { handleHorizontalTablistKeydown } from "../../shared/tablist-keyboard.js";
+import { bindPlayRuntimeEdges } from "./runtime/runtime-edge-bindings.js";
 
 const app = document.getElementById("app");
 
@@ -96,28 +76,6 @@ const { render } = createPlayViewController({
   setToast,
   syncPlayUrl
 });
-
-window.addEventListener("zhimu:tabletop-stage-ready", render);
-window.addEventListener("zhimu:tabletop-discovery-ready", render);
-window.addEventListener("zhimu:tabletop-discovery-action", (event) => {
-  void syncPlayerDiscovery(event.detail)
-    .then((session) => event.detail?.resolve?.(session))
-    .catch((error) => event.detail?.reject?.(error));
-});
-
-app.addEventListener("keydown", (event) => {
-  handleHorizontalTablistKeydown(event);
-});
-
-const playerPaceTicker = createAdaptivePoller({
-  run: () => tickPlayerPaceClock(state.paceClock),
-  intervalMs: 1000,
-  maxIntervalMs: 1000,
-  jitterRatio: 0,
-});
-playerPaceTicker.start({ immediate: false });
-
-setVoiceRenderCallback(render);
 
 const {
   cleanAuthUrl,
@@ -474,18 +432,9 @@ app.addEventListener("change", async (event) => {
   await profile.handleChange(event.target);
 });
 
-let externalSessionGeneration = 0;
-subscribeSessionToken(async (change) => {
-  if (change.source !== "storage" && change.source !== "rejected") return;
-  const generation = ++externalSessionGeneration;
-  if (!change.token) {
-    handleAuthLost();
-    return;
-  }
-  await loadSessionUser();
-  if (generation !== externalSessionGeneration || !state.user) return;
-  syncRoomStream({ force: true });
-  render();
+bindPlayRuntimeEdges({
+  app, windowRef: window, state, render, syncPlayerDiscovery, setVoiceRenderCallback,
+  subscribeSessionToken, loadSessionUser, handleAuthLost, syncRoomStream,
 });
 
 bootstrap();
