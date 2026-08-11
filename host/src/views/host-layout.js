@@ -1,4 +1,5 @@
 import { state } from "../state.js";
+import { describeSyncDiagnostics } from "../../../shared/sync-diagnostics.js";
 import { escapeHtml, formatRelativeTime } from "../utils/format.js";
 import { resolveChapterSegmentKey, segmentRunbookFromOperations } from "../../../shared/segment-contract.js";
 import { hostVoiceRoster, hostVoiceStatusLabel } from "../runtime/host-voice-controller.js";
@@ -548,6 +549,9 @@ function renderCurrentActColumn(preferredActKey = "", presentation = null) {
 
 function renderTopbar({ room, world }) {
   const pace = state.paceTimer || { mode: "countup", status: "idle", elapsedMs: 0 };
+  const syncDetail = describeSyncDiagnostics(state.roomSyncDiagnostics, {
+    fallbackCursor: state.currentState?.syncState?.serverCursor
+  });
   return `<section class="host-command-topbar">
     <div class="host-topbar-room">
       <span class="live-label"><i></i>LIVE</span>
@@ -555,7 +559,7 @@ function renderTopbar({ room, world }) {
     </div>
     <div class="host-topbar-meta">
       ${room?.invite_code ? `<span>邀请码 <code class="invite-code-inline">${escapeHtml(room.invite_code)}</code></span>` : ""}
-      <span>${state.roomEventsConnected ? "实时同步已连接" : "轮询同步中"}</span>
+      <span role="status" aria-live="polite">${escapeHtml(syncDetail)}</span>
     </div>
     <div class="host-topbar-timer">
       <strong data-host-pace-clock>${escapeHtml(paceClock(pace))}</strong>

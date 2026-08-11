@@ -9,6 +9,19 @@
   --focus-ring: #0f6a61;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+:where(button, input, select, textarea) {
+  font: inherit;
+}
+
+:where(p, li, dd, dt, label, button, a, code) {
+  overflow-wrap: anywhere;
+}
+
 .skip-link {
   position: fixed;
   z-index: 10000;
@@ -48,8 +61,23 @@
   }
 }
 
+@media (prefers-contrast: more) {
+  :focus-visible {
+    outline-width: 4px !important;
+  }
+
+  :where(button, input, select, textarea, [role="tab"], [role="button"]) {
+    border-width: 2px !important;
+  }
+}
+
 @media (forced-colors: active) {
   :focus-visible {
     outline: 3px solid Highlight !important;
+  }
+
+  :where(button, input, select, textarea, [role="tab"], [role="button"], .status-chip) {
+    border: 1px solid ButtonText;
+    forced-color-adjust: auto;
   }
 }

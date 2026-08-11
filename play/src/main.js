@@ -74,6 +74,7 @@ import { createRecapNotebookController } from "./runtime/recap-notebook-controll
 import { createLazyPlayerProfileController } from "./runtime/lazy-profile-controller.js";
 import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
 import { tickPlayerPaceClock } from "./runtime/player-pace-clock.js";
+import { handleHorizontalTablistKeydown } from "../../shared/tablist-keyboard.js";
 
 const app = document.getElementById("app");
 
@@ -102,6 +103,10 @@ window.addEventListener("zhimu:tabletop-discovery-action", (event) => {
   void syncPlayerDiscovery(event.detail)
     .then((session) => event.detail?.resolve?.(session))
     .catch((error) => event.detail?.reject?.(error));
+});
+
+app.addEventListener("keydown", (event) => {
+  handleHorizontalTablistKeydown(event);
 });
 
 const playerPaceTicker = createAdaptivePoller({
@@ -229,7 +234,8 @@ const {
   setToast, patchGameHostBanner, normalizeMiniGame,
   getGamePatchCtx: () => gamePatchCtx, patchSyncChromeOrRender, bumpTabPulse,
   loadPlazaPosts, loadPlazaThread, loadFriends, loadDmConversations,
-  loadDmThread, pauseVoiceSession, persistRoom, isUuid
+  loadDmThread, pauseVoiceSession, persistRoom, isUuid,
+  getRoomEventCursor: api.getRoomEventCursor
 });
 
 const {

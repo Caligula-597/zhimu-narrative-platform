@@ -1,3 +1,5 @@
+import { createSyncDiagnostics } from "../../shared/sync-diagnostics.js";
+
 export const state = {
   view: "landing",
   user: null,
@@ -73,6 +75,7 @@ export const state = {
 
   roomEventsConnected: false,
   roomEventsStatus: "idle",
+  roomSyncDiagnostics: createSyncDiagnostics(),
 
   /** 房间级节奏时钟与一次性收束状态，均以服务端版本为准。 */
   paceTimer: null,

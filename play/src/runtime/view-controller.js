@@ -1,5 +1,6 @@
 import { setHtml } from "../../../shared/safe-dom.js";
 import { createModalFocusController } from "../../../shared/modal-focus.js";
+import { createNavigationFocusManager } from "../../../shared/navigation-focus.js";
 
 export function createPlayViewController({
   app,
@@ -18,6 +19,10 @@ export function createPlayViewController({
     backdropSelector: ".modal-backdrop.is-open",
     closeSelector: "[data-action='modal-close'], [data-action='profile-close']",
     titleIdPrefix: "play-modal-title"
+  });
+  const navigationFocus = createNavigationFocusManager({
+    mainSelector: "#play-main",
+    headingSelector: "h1, h2"
   });
 
   function bindModalFocus(snapshot) {
@@ -58,6 +63,7 @@ export function createPlayViewController({
     }
     if (scrollRestoreKey(state) === restoreKey) window.scrollTo(0, scrollTop);
     bindModalFocus(modalSnapshot);
+    navigationFocus.afterRender(state.view);
     syncPlayUrl(state);
   }
 

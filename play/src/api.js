@@ -5,6 +5,7 @@ import {
 } from "../../shared/api-client.js";
 import { createSessionTokenStore } from "../../shared/session-token.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
+import { readSseCursor } from "../../shared/sync-diagnostics.js";
 
 const viteEnv = import.meta.env || {};
 const APP_ORIGIN = (
@@ -37,6 +38,10 @@ const portal = createPortalApiClient({
 });
 
 const { request } = portal;
+
+export function getRoomEventCursor(roomId, userId, storage = globalThis.localStorage) {
+  return readSseCursor(storage, sseCursorKey(roomId, userId));
+}
 
 export function getAppOrigin() {
   return APP_ORIGIN;
@@ -249,6 +254,8 @@ export const api = {
   streamRoomEvents(roomId, onEvent, signal, userId) {
     return portal.streamRoomEvents({ roomId, onEvent, signal, cursorKey: sseCursorKey(roomId, userId) });
   },
+
+  getRoomEventCursor,
 
   streamPlatformEvents(onEvent, signal, userId) {
     return portal.streamPlatformEvents({ onEvent, signal, cursorKey: platformSseCursorKey(userId) });

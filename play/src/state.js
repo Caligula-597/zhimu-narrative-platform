@@ -1,5 +1,6 @@
 import { patchPlayToast } from "./runtime/sync-helpers.js";
 import { createToastTimer } from "../../shared/toast.js";
+import { createSyncDiagnostics } from "../../shared/sync-diagnostics.js";
 
 const playToastTimer = createToastTimer(3200);
 
@@ -110,6 +111,7 @@ export const state = {
   roomEventsConnected: false,
   platformEventsConnected: false,
   roomEventsStatus: "idle",
+  roomSyncDiagnostics: createSyncDiagnostics(),
   platformEventsStatus: "idle",
   explorationError: "",
   plazaError: "",

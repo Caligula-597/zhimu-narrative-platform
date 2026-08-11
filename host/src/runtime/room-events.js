@@ -15,6 +15,11 @@ import {
   refreshHostVoiceSession
 } from "./data.js";
 import { applyHostMiniGameEvent } from "./host-mini-game-controller.js";
+import {
+  applySyncStatus,
+  markSyncError,
+  markSyncReconciled
+} from "../../../shared/sync-diagnostics.js";
 
 let lifecycle = null;
 let streamKey = "";
@@ -236,8 +241,16 @@ export function connectRoomEvents({ force = false } = {}) {
     onEvent: handleRoomEvent,
     refresh: refreshDirectorPoll,
     shouldPoll: () => state.view === "console" && getRoomId() === roomId,
-    onStatus: (status) => {
+    onStatus: (status, meta) => {
       state.roomEventsStatus = status;
+      state.roomSyncDiagnostics = applySyncStatus(state.roomSyncDiagnostics, status, meta);
+      if (state.view === "console") render();
+    },
+    onReconciled: (meta) => {
+      state.roomSyncDiagnostics = markSyncReconciled(state.roomSyncDiagnostics, {
+        ...meta,
+        cursor: api.getHostRoomEventCursor(roomId, state.user?.id)
+      });
       if (state.view === "console") render();
     },
     onConnectionChange: (connected) => {
@@ -253,6 +266,7 @@ export function connectRoomEvents({ force = false } = {}) {
       render();
     },
     onError: (error, meta) => {
+      state.roomSyncDiagnostics = markSyncError(state.roomSyncDiagnostics, error, meta);
       state.apiError = meta?.phase === "stream" ? `实时同步异常：${error.message}` : state.apiError;
     }
   });

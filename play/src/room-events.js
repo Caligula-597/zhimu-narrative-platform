@@ -6,8 +6,8 @@ import {
 let lifecycle = null;
 let boundStreamKey = "";
 
-function ctxSetStatus(status, ctx) {
-  ctx?.setStreamStatus?.(status);
+function ctxSetStatus(status, ctx, meta) {
+  ctx?.setStreamStatus?.(status, meta);
 }
 
 export async function handleRoomEvent(type, data, ctx) {
@@ -280,7 +280,8 @@ export function connectRoomEvents(roomId, ctx, { force = false } = {}) {
     onEvent: (type, data) => handleRoomEvent(type, data, ctx),
     refresh: () => ctx.onRefresh(),
     shouldPoll: () => ctx.getView() === "game" && ctx.getRoomId() === roomId,
-    onStatus: (status) => ctxSetStatus(status, ctx),
+    onStatus: (status, meta) => ctxSetStatus(status, ctx, meta),
+    onReconciled: (meta) => ctx.setStreamReconciled?.(meta),
     onConnectionChange: (connected) => ctx.setConnected?.(connected),
     onAuthLost: () => ctx.onAuthLost?.(),
     onError: (error, meta) => ctx.onStreamError?.(error, meta)

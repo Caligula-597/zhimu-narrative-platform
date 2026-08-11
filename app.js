@@ -47,7 +47,12 @@ const appEntry = (function (window) {
     window.zhimuNavShell?.syncNavAdvanced?.(uiStore.get().view);
     document.querySelector("#page-eyebrow").textContent = eyebrow;
     document.querySelector("#page-title").textContent = title;
-    document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === uiStore.get().view));
+    document.querySelectorAll(".nav-item").forEach((item) => {
+      const active = item.dataset.view === uiStore.get().view;
+      item.classList.toggle("active", active);
+      if (active) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
+    });
     updateNotifyBadge();
     const loader = window.zhimuViewLoader;
     if (loader && !loader.isViewReady?.(uiStore.get().view)) {
@@ -129,6 +134,7 @@ const appEntry = (function (window) {
       if (view === "account") window.zhimuAccountHub?.beginAccountHubLoad?.();
       if (view === "creatorCockpit") callView("creatorCockpit", "refreshCockpitData");
       render();
+      queueMicrotask(() => document.querySelector("#page-title")?.focus());
       return;
     }
     if (view === "account") render();

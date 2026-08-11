@@ -7,6 +7,7 @@ import {
 } from "../../shared/api-client.js";
 import { defaultSessionTokenStore } from "../../shared/session-token.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
+import { readSseCursor } from "../../shared/sync-diagnostics.js";
 import { playerJoinUrl } from "../../shared/portal-links.js";
 
 export { getSessionToken, setSessionToken };
@@ -28,6 +29,10 @@ const API_BASE = resolveVitePortalApiBase({
 
 function sseCursorKey(roomId, userId) {
   return scopedSseCursorKey("zhimuHostSseCursor", roomId, userId);
+}
+
+export function getHostRoomEventCursor(roomId, userId, storage = globalThis.localStorage) {
+  return readSseCursor(storage, sseCursorKey(roomId, userId));
 }
 
 const portal = createPortalApiClient({
@@ -70,6 +75,7 @@ export function clearSession() {
 }
 
 export const api = {
+  getHostRoomEventCursor,
   authConfig: () => request("/auth/config"),
   me: () => request("/auth/me"),
   logout: () => request("/auth/logout", { method: "POST", body: {} }),

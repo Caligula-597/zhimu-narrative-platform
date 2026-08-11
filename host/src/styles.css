@@ -1131,6 +1131,11 @@ textarea:focus-visible {
   font-size: 12px;
 }
 
+.host-topbar-meta span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 .host-topbar-timer {
   justify-content: flex-end;
 }

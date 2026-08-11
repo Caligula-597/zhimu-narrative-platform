@@ -8,6 +8,12 @@ import {
   createPortalEventLifecycle,
   PORTAL_POLL_INTERVAL_MS
 } from "../../shared/sse-lifecycle.js";
+import {
+  applySyncStatus,
+  markSyncError,
+  markSyncReconciled,
+  readSseCursor
+} from "../../shared/sync-diagnostics.js";
 (function (window) {
   let roomEventStreamKey = "";
   let roomEventLifecycle = null;
@@ -286,16 +292,35 @@ import {
       ),
       onEvent: handleRoomEvent,
       refresh: refreshActiveRoomSurface,
-      onConnectionChange: (connected) => roomStore.set({ roomEventsConnected: connected }),
-      onStatus: () => {
-        if (["overview", "player"].includes(uiStore.get().view)) render();
-      },
+    onConnectionChange: (connected) => roomStore.set({ roomEventsConnected: connected }),
+    onStatus: (status, meta) => {
+      const current = roomStore.get().roomSyncDiagnostics;
+      roomStore.set({
+        roomEventsStatus: status,
+        roomSyncDiagnostics: applySyncStatus(current, status, meta)
+      });
+      if (["overview", "player"].includes(uiStore.get().view)) render();
+    },
+    onReconciled: (meta) => {
+      const current = roomStore.get().roomSyncDiagnostics;
+      const cursor = readSseCursor(
+        globalThis.localStorage,
+        zhimuApi.sseCursorKey(roomId, streamUserId)
+      );
+      roomStore.set({
+        roomSyncDiagnostics: markSyncReconciled(current, { ...meta, cursor })
+      });
+      if (["overview", "player"].includes(uiStore.get().view)) render();
+    },
       onAuthLost: () => {
         window.zhimuSessionAuth?.markLoggedOut?.();
         showToast("登录已过期，请重新登录", 3200);
         go("overview");
       },
       onError: (error, meta) => {
+        roomStore.set({
+          roomSyncDiagnostics: markSyncError(roomStore.get().roomSyncDiagnostics, error, meta)
+        });
         if (meta?.phase === "stream") userStore.set({ apiError: `实时同步异常：${error.message}` });
       }
     });

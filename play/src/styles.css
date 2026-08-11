@@ -146,13 +146,40 @@ button {
 }
 
 .sync-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
   font-size: 14px;
+}
+
+.sync-banner span {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.sync-banner.ok {
+  background: rgba(43, 107, 97, 0.08);
+  border-color: rgba(43, 107, 97, 0.24);
 }
 
 .sync-banner.warn {
   background: rgba(196, 120, 72, 0.1);
   border-color: rgba(196, 120, 72, 0.35);
+}
+
+@media (max-width: 720px) {
+  .sync-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sync-banner span {
+    text-align: left;
+  }
 }
 
 .host-nudge-banner {

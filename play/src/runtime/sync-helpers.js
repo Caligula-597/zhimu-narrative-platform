@@ -1,5 +1,6 @@
 import { escapeHtml } from "../../../shared/security.js";
 import { setHtml } from "../../../shared/safe-dom.js";
+import { describeSyncDiagnostics } from "../../../shared/sync-diagnostics.js";
 
 const syncBannerHtml = new WeakMap();
 
@@ -149,11 +150,24 @@ export function patchSyncStatusBanner(state) {
 }
 
 export function renderSyncStatusBannerHtml(state) {
-  if (state.view === "game" && state.roomEventsStatus === "reconnecting") {
-    return `<div class="banner sync-banner" role="status">实时同步重连中，数据可能稍有延迟…</div>`;
-  }
-  if (state.view === "game" && state.roomEventsStatus === "polling") {
-    return `<div class="banner sync-banner warn" role="status">实时推送已断开，每 15 秒自动刷新房间数据</div>`;
+  if (state.view === "game") {
+    if (!state.roomSyncDiagnostics) {
+      if (state.roomEventsStatus === "reconnecting") {
+        return `<div class="banner sync-banner" role="status">实时同步重连中，数据可能稍有延迟…</div>`;
+      }
+      if (state.roomEventsStatus === "polling") {
+        return `<div class="banner sync-banner warn" role="status">实时推送已断开，每 15 秒自动刷新房间数据</div>`;
+      }
+      return "";
+    }
+    const diagnostics = state.roomSyncDiagnostics;
+    const warning = diagnostics.status !== "connected" || diagnostics.inputDeferred;
+    const heading = diagnostics.inputDeferred
+      ? "更新已延迟"
+      : diagnostics.status === "connected"
+        ? "房间状态已追平"
+        : diagnostics.status === "polling" ? "每 15 秒自动核对" : "实时同步重连中";
+    return `<div class="banner sync-banner ${warning ? "warn" : "ok"}" role="status" aria-live="polite"><strong>${heading}</strong><span>${escapeHtml(describeSyncDiagnostics(diagnostics))}</span></div>`;
   }
   if (state.view !== "game" && state.platformEventsStatus === "reconnecting") {
     return `<div class="banner sync-banner" role="status">平台推送重连中，广场与私信可能稍有延迟…</div>`;

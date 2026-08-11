@@ -151,7 +151,7 @@ export function renderGameTabBar() {
   return gameTabDefinitions()
     .map(
       ({ id, target, label, badge, active, pulse }) => `
-            <button type="button" role="tab" aria-selected="${active ? "true" : "false"}" id="play-tab-${id}" class="tab ${active ? "is-active" : ""}${pulse ? " tab-has-pulse" : ""}" data-action="switch-tab" data-tab="${target}" data-primary-tab="${id}">
+            <button type="button" role="tab" aria-selected="${active ? "true" : "false"}" aria-controls="play-tab-panel" tabindex="${active ? "0" : "-1"}" id="play-tab-${id}" class="tab ${active ? "is-active" : ""}${pulse ? " tab-has-pulse" : ""}" data-action="switch-tab" data-tab="${target}" data-primary-tab="${id}">
               ${label}${renderTabBadge(id, badge, pulse)}
             </button>`
     )
@@ -180,7 +180,7 @@ export function renderGameTabBody() {
 export function renderGame() {
   return `
     <section class="game-shell ${state.gameSidebarCollapsed ? "sidebar-collapsed" : ""}">
-      <button class="sidebar-toggle btn outline full" type="button" data-action="toggle-sidebar" aria-expanded="${state.gameSidebarCollapsed ? "false" : "true"}">
+      <button class="sidebar-toggle btn outline full" type="button" data-action="toggle-sidebar" aria-controls="play-game-sidebar" aria-expanded="${state.gameSidebarCollapsed ? "false" : "true"}">
         ${state.gameSidebarCollapsed ? "展开角色与成员" : "收起侧栏"}
       </button>
       <div class="game-main">
@@ -192,9 +192,9 @@ export function renderGame() {
         <div data-game-conclusion-status>${renderConclusionStatus()}</div>
         <div data-game-tabletop-alert>${renderTabletopLiveAlert()}</div>
         <div data-game-mini-game>${renderMiniGamePanel(state.currentGame)}</div>
-        <div class="tab-body" data-game-tab-body role="tabpanel" aria-labelledby="${gameTabPanelLabelId(state.tab)}">${renderGameTabBody()}</div>
+        <div class="tab-body" id="play-tab-panel" data-game-tab-body role="tabpanel" aria-labelledby="${gameTabPanelLabelId(state.tab)}" tabindex="0">${renderGameTabBody()}</div>
       </div>
-      <aside class="game-sidebar" data-game-sidebar>
+      <aside class="game-sidebar" id="play-game-sidebar" data-game-sidebar aria-label="角色与房间成员">
         ${renderGameSidebar()}
       </aside>
     </section>`;
