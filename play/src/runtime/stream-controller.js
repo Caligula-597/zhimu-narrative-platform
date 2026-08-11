@@ -151,8 +151,54 @@ export function createPlayStreamController({
     syncPlatformStream({ force });
   }
 
+  let connectivityTarget = null;
+  let offlineListener = null;
+  let onlineListener = null;
+
+  function bindBrowserConnectivity(target = globalThis) {
+    if (!target?.addEventListener || connectivityTarget) return () => {};
+    connectivityTarget = target;
+    offlineListener = () => {
+      disconnectRoomEvents(roomEventCtx);
+      state.roomEventsConnected = false;
+      state.roomEventsStatus = "reconnecting";
+      state.roomSyncDiagnostics = applySyncStatus(state.roomSyncDiagnostics, "reconnecting", {
+        reason: "offline"
+      });
+      patchSyncChromeOrRender();
+    };
+    onlineListener = async () => {
+      state.roomSyncDiagnostics = applySyncStatus(state.roomSyncDiagnostics, "reconnecting", {
+        reason: "browser_resume"
+      });
+      patchSyncChromeOrRender();
+      syncRoomStream({ force: true });
+      if (state.view !== "game" || !state.roomId || !isUuid(state.roomId)) return;
+      try {
+        await pullRoomData({ partial: true });
+        state.roomSyncDiagnostics = markSyncReconciled(state.roomSyncDiagnostics, {
+          cursor: getRoomEventCursor(state.roomId, state.user?.id),
+          reason: "catch_up_complete",
+          transport: "poll"
+        });
+        patchSyncChromeOrRender();
+      } catch {
+        // The forced stream reconnect and its retry policy remain active.
+      }
+    };
+    target.addEventListener("offline", offlineListener);
+    target.addEventListener("online", onlineListener);
+    return () => {
+      target.removeEventListener?.("offline", offlineListener);
+      target.removeEventListener?.("online", onlineListener);
+      connectivityTarget = null;
+      offlineListener = null;
+      onlineListener = null;
+    };
+  }
+
   return {
     roomEventCtx, platformEventCtx, syncPlatformStream, syncRoomStream,
-    handleAuthLost, handleKicked
+    handleAuthLost, handleKicked, bindBrowserConnectivity
   };
 }

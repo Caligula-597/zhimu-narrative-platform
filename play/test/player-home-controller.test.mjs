@@ -64,3 +64,30 @@ test("core compatibility falls back only for a missing split endpoint", async ()
   await controller.pullRoomData();
   assert.equal(state.home.legacy, true);
 });
+
+test("fresh core voice policy replaces the pre-start policy after host opens the session", async () => {
+  const api = {
+    playerHomeCore: async () => ({
+      sections: [],
+      voiceRooms: [{ id: "voice-main", room_type: "public" }, { id: "voice-private", room_type: "invite_private" }],
+      voiceRoster: [{ user_id: "host", member_type: "host" }],
+      voicePolicy: { privateRoomsEnabled: true, roomStatus: "active", startedAt: "2026-08-11T10:00:00.000Z" }
+    }),
+    exploration: async () => ({ scenes: [] }),
+    playerHomeSocial: async () => ({}),
+    latestRecap: async () => null
+  };
+  const { controller, state } = setup(api);
+  state.home = {
+    voiceRooms: [{ id: "voice-main", room_type: "public" }],
+    voiceRoster: [],
+    voicePolicy: { privateRoomsEnabled: false, roomStatus: "draft", startedAt: null }
+  };
+
+  await controller.pullRoomData({ partial: true });
+
+  assert.equal(state.home.voicePolicy.privateRoomsEnabled, true);
+  assert.equal(state.home.voicePolicy.roomStatus, "active");
+  assert.equal(state.home.voiceRooms.length, 2);
+  assert.equal(state.home.voiceRoster[0].member_type, "host");
+});

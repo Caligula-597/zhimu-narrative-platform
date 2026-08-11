@@ -38,6 +38,34 @@ test("forced room synchronization refreshes both credential-bound streams once",
   assert.equal(calls.filter((call) => call[0] === "connect-platform").length, 1);
 });
 
+test("browser offline is visible immediately and online performs an authoritative catch-up", async () => {
+  const listeners = new Map();
+  const target = {
+    addEventListener(type, listener) { listeners.set(type, listener); },
+    removeEventListener(type) { listeners.delete(type); }
+  };
+  let refreshes = 0;
+  const { controller, state, calls } = setup({
+    pullRoomData: async () => { refreshes += 1; },
+    getRoomEventCursor: () => 42
+  });
+  const unbind = controller.bindBrowserConnectivity(target);
+
+  listeners.get("offline")();
+  assert.equal(state.roomEventsConnected, false);
+  assert.equal(state.roomEventsStatus, "reconnecting");
+  assert.equal(state.roomSyncDiagnostics.reason, "offline");
+  assert.ok(calls.some((call) => call[0] === "disconnect-room"));
+
+  await listeners.get("online")();
+  assert.equal(refreshes, 1);
+  assert.equal(state.roomSyncDiagnostics.reason, "catch_up_complete");
+  assert.equal(state.roomSyncDiagnostics.cursor, 42);
+  assert.ok(calls.some((call) => call[0] === "connect-room" && call.at(-1)?.force));
+  unbind();
+  assert.equal(listeners.size, 0);
+});
+
 test("stream status patches chrome only when the value changes", () => {
   const { controller, calls } = setup();
   controller.roomEventCtx.setStreamStatus("connected");

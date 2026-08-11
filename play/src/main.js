@@ -226,7 +226,8 @@ const {
   platformEventCtx,
   syncPlatformStream,
   syncRoomStream,
-  handleAuthLost
+  handleAuthLost,
+  bindBrowserConnectivity
 } = createPlayStreamController({
   state, render, getSessionToken, clearSession, connectRoomEvents,
   disconnectRoomEvents, connectPlatformEvents, disconnectPlatformEvents,
@@ -237,6 +238,7 @@ const {
   loadDmThread, pauseVoiceSession, persistRoom, isUuid,
   getRoomEventCursor: api.getRoomEventCursor
 });
+bindBrowserConnectivity(window);
 
 const {
   goToLanding,

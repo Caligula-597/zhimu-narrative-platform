@@ -14,6 +14,10 @@ export async function handlePlayTabAction({
   if (state.view === "game" && patchGameTabSwitch(state, gamePatchCtx)) {
     syncPlayUrl(state);
     if (state.tab === "voice") {
+      // The host may have opened/closed private rooms while this tab was not
+      // mounted or while the event stream was reconnecting. Reconcile the
+      // authoritative room/voice policy before rendering voice controls.
+      if (state.roomId) await pullRoomData({ partial: true });
       ensureDefaultVoiceRoom();
       if (state.voiceRoomId) {
         await refreshVoiceMessages(render, { silent: true }).catch(() => {});
@@ -38,6 +42,7 @@ export async function handlePlayTabAction({
   }
 
   if (state.tab === "voice") {
+    if (state.roomId) await pullRoomData({ partial: true });
     ensureDefaultVoiceRoom();
     if (state.voiceRoomId) await refreshVoiceMessages(render).catch(() => render());
     else render();

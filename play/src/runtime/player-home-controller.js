@@ -229,8 +229,11 @@ function mergeCoreWithPreviousSocial(homeCore, previousHome) {
   return {
     ...homeCore,
     ...previousSocial,
-    voiceRooms: previousHome.voiceRooms || [],
-    voiceRoster: previousHome.voiceRoster || [],
-    voicePolicy: previousHome.voicePolicy || homeCore.voicePolicy
+    // Voice availability is runtime state, not an append-only social slice.
+    // Prefer every fresh core value so host start/end policy changes become
+    // visible immediately after SSE or reconnect refreshes.
+    voiceRooms: homeCore.voiceRooms ?? previousHome.voiceRooms ?? [],
+    voiceRoster: homeCore.voiceRoster ?? previousHome.voiceRoster ?? [],
+    voicePolicy: homeCore.voicePolicy ?? previousHome.voicePolicy ?? null
   };
 }
