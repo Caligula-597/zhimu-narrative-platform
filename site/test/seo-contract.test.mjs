@@ -36,6 +36,15 @@ test("sitemap lists only canonical, indexable URLs", () => {
   assert.match(robots, /Sitemap: https:\/\/getzhimu\.com\/sitemap\.xml/);
 });
 
+test("AI search crawlers are allowed without opening training crawlers", () => {
+  for (const crawler of ["OAI-SearchBot", "ChatGPT-User", "Claude-SearchBot", "Claude-User", "PerplexityBot", "Perplexity-User"]) {
+    assert.match(robots, new RegExp(`User-agent: ${crawler}\\nAllow: /`));
+  }
+  for (const crawler of ["GPTBot", "ClaudeBot", "CCBot", "Google-Extended"]) {
+    assert.match(robots, new RegExp(`User-agent: ${crawler}\\nDisallow: /`));
+  }
+});
+
 test("IndexNow ownership key is stable and publishable at the site root", () => {
   assert.equal(indexNowKey.trim(), "4ae3984d5a13c690ca674a0fc1185a8c");
 });

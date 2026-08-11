@@ -40,6 +40,12 @@
 - 如平台仍提供站长入口，分别验证同一主域并提交同一份 sitemap。
 - 没有稳定站长入口的平台主要依赖可抓取链接、外部引用和搜索生态的数据共享；不要使用付费“包收录”或批量垃圾外链服务。
 
+### AI 搜索
+
+- 公开官网允许 `OAI-SearchBot`、`ChatGPT-User`、`Claude-SearchBot`、`Claude-User`、`PerplexityBot` 与 `Perplexity-User`，用于搜索索引或用户触发的页面读取。
+- 继续禁止 `GPTBot`、`ClaudeBot`、`CCBot` 等训练型采集器；公开可搜索不等于授权训练。
+- `Google-Extended` 同时涉及 Gemini 应用与 Vertex AI 使用，目前保持禁止；Google 网页搜索仍由允许访问的 Googlebot 完成。如未来决定开放 Gemini 的直接使用，应单独完成版权与内容授权评估。
+
 ## 三、内容供给边界
 
 搜索引擎只能持续展示公开、独立、有搜索价值的 URL。官网首页不足以覆盖所有业务关键词，建议逐步增加：
