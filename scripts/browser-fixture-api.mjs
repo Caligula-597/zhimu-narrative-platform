@@ -224,6 +224,14 @@ const fixtureTabletopMapDesign = {
     description: "授权原始记录与赛事报名记录并排投射在环形屏幕上。",
     hostNotes: "隐藏事实：正式比赛授权缺少签发者的二次确认。",
     segmentKey: "authorization-review",
+    discovery: {
+      scanLabel: "正在校验授权链",
+      scanHint: "审查环将在片刻后完成比对",
+      unlockLabel: "审查节点已开放",
+      collectionLabel: "审查证物",
+      countTemplate: "{count} 份可核验证物",
+      archiveLabel: "AUTH RECORD"
+    },
     x: 0.5,
     y: 0.34,
     z: 2,

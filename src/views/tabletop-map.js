@@ -297,6 +297,15 @@ function locationInspector(session, location) {
     <label class="map-field"><span>高度</span><input class="field" type="number" min="0" max="8" step="1" value="${location.z}" data-map-location-field="z"></label>
     <label class="map-field"><span>对应运行段落 Key</span><input class="field" maxlength="120" placeholder="例如 ch1；主持切换此段时自动定位" value="${escapeHtml(location.segmentKey || "")}" data-map-location-field="segmentKey"></label>
     <label class="map-field"><span>玩家可见描述</span><textarea class="field" rows="3" maxlength="360" data-map-location-field="description">${escapeHtml(location.description)}</textarea></label>
+    <div class="map-effect-editor map-discovery-copy-editor">
+      <div><strong>玩家端探索文案</strong><small>版式和交互保持统一，这些措辞可以随剧本题材替换；数量文案必须保留 {count}</small></div>
+      <label class="map-field"><span>扫描状态</span><input class="field" maxlength="48" value="${escapeHtml(location.discovery?.scanLabel || "")}" data-map-location-discovery-field="scanLabel"></label>
+      <label class="map-field"><span>等待提示</span><input class="field" maxlength="80" value="${escapeHtml(location.discovery?.scanHint || "")}" data-map-location-discovery-field="scanHint"></label>
+      <label class="map-field"><span>解锁状态</span><input class="field" maxlength="48" value="${escapeHtml(location.discovery?.unlockLabel || "")}" data-map-location-discovery-field="unlockLabel"></label>
+      <label class="map-field"><span>内容集合</span><input class="field" maxlength="48" value="${escapeHtml(location.discovery?.collectionLabel || "")}" data-map-location-discovery-field="collectionLabel"></label>
+      <label class="map-field"><span>数量文案</span><input class="field" maxlength="80" value="${escapeHtml(location.discovery?.countTemplate || "")}" data-map-location-discovery-field="countTemplate"></label>
+      <label class="map-field"><span>档案背标记</span><input class="field" maxlength="48" value="${escapeHtml(location.discovery?.archiveLabel || "")}" data-map-location-discovery-field="archiveLabel"></label>
+    </div>
     <label class="map-field"><span>主持备注</span><textarea class="field" rows="3" maxlength="360" data-map-location-field="hostNotes">${escapeHtml(location.hostNotes || "")}</textarea></label>
     <div class="map-effect-editor">
       <div><strong>到达影响</strong><small>每个地点都能改变创作者定义的变量</small></div>
@@ -574,6 +583,21 @@ export function bindTabletopMapEditor() {
     }
     field.addEventListener("change", () => updateSelectedLocationField(field.dataset.mapLocationField, field.value));
   });
+  root.querySelectorAll("[data-map-location-discovery-field]").forEach((field) => {
+    field.addEventListener("input", () => {
+      const location = selectedLocation();
+      if (!location) return;
+      location.discovery = {
+        ...location.discovery,
+        [field.dataset.mapLocationDiscoveryField]: field.value,
+      };
+      markInlineDraft();
+    });
+    field.addEventListener("change", () => updateSelectedLocationDiscoveryField(
+      field.dataset.mapLocationDiscoveryField,
+      field.value,
+    ));
+  });
   const titleField = root.querySelector("[data-map-title]");
   titleField?.addEventListener("input", () => {
     mapSession.design.title = titleField.value;
@@ -784,11 +808,29 @@ export function moveMapLocation(locationId, position, { preview = false } = {}) 
 export function updateSelectedLocationField(field, value) {
   const session = initializeSession();
   const location = selectedLocation();
-  if (!location || !["name", "type", "description", "z"].includes(field)) return;
+  if (!location || !["name", "type", "description", "hostNotes", "segmentKey", "z"].includes(field)) return;
   const nextValue = field === "z"
     ? Math.round(Math.max(0, Math.min(8, Number(value) || 0)))
     : String(value || "").trim();
   const locations = session.design.locations.map((item) => item.id === location.id ? { ...item, [field]: nextValue } : item);
+  replaceDesign({ ...session.design, locations });
+  render();
+}
+
+export function updateSelectedLocationDiscoveryField(field, value) {
+  const session = initializeSession();
+  const location = selectedLocation();
+  if (!location || ![
+    "scanLabel",
+    "scanHint",
+    "unlockLabel",
+    "collectionLabel",
+    "countTemplate",
+    "archiveLabel",
+  ].includes(field)) return;
+  const locations = session.design.locations.map((item) => item.id === location.id
+    ? { ...item, discovery: { ...item.discovery, [field]: String(value || "").trim() } }
+    : item);
   replaceDesign({ ...session.design, locations });
   render();
 }

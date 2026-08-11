@@ -8,6 +8,7 @@ import {
   normalizeTabletopVariables,
   projectTabletopEnding
 } from "./tabletop-outcomes.js";
+import { normalizeLocationDiscoveryCopy } from "./location-discovery.js";
 
 const MAX_LOCATIONS = 24;
 
@@ -49,6 +50,7 @@ function normalizeLocations(design) {
       description: text(location?.description, 500),
       hostNotes: text(location?.hostNotes, 500),
       segmentKey: text(location?.segmentKey, 120),
+      discovery: normalizeLocationDiscoveryCopy(location?.discovery),
       x: number(location?.x, 0.04, 0.96, 0.5),
       y: number(location?.y, 0.05, 0.95, 0.5),
       z: Math.round(number(location?.z, 0, 8, 0)),
@@ -267,6 +269,7 @@ export function projectRuntimePresentation({ world = {}, roomSettings = {}, curr
         type: location.type,
         description: location.description,
         segmentKey: location.segmentKey,
+        discovery: location.discovery,
         x: location.x,
         y: location.y,
         z: location.z

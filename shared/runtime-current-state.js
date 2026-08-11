@@ -1,4 +1,5 @@
 import { projectRoomContentBinding } from "./room-content-binding.js";
+import { normalizeLocationDiscoveryCopy } from "./location-discovery.js";
 
 const VALID_AUDIENCES = new Set(["player", "host", "creator"]);
 const VALID_SYNC_STATUS = new Set(["synced", "reconnecting", "stale", "offline"]);
@@ -73,14 +74,18 @@ function normalizePlayerMap(value) {
       .map((id) => typeof id === "string" || typeof id === "number" ? String(id) : "")
       .filter(Boolean)
     : [];
-  map.activeLocation = pickObject(value.activeLocation, [
-    "id", "name", "type", "description", "segmentKey", "x", "y", "z"
-  ]);
+  const normalizePlayerLocation = (location) => {
+    const projected = pickObject(location, [
+      "id", "name", "type", "description", "segmentKey", "x", "y", "z"
+    ]);
+    if (!projected) return null;
+    projected.discovery = normalizeLocationDiscoveryCopy(location?.discovery);
+    return projected;
+  };
+  map.activeLocation = normalizePlayerLocation(value.activeLocation);
   map.locations = (Array.isArray(value.locations) ? value.locations : [])
     .slice(0, 24)
-    .map((location) => pickObject(location, [
-      "id", "name", "type", "description", "segmentKey", "x", "y", "z"
-    ]))
+    .map(normalizePlayerLocation)
     .filter(Boolean);
   const publicLocationIds = new Set(map.locations.map((location) => location.id).filter(Boolean));
   map.routes = (Array.isArray(value.routes) ? value.routes : [])

@@ -64,6 +64,11 @@ function snapshot() {
             description: "Public archive",
             hostNotes: "Hidden archive truth",
             segmentKey: "opening",
+            discovery: {
+              scanLabel: "Reading archive residue",
+              collectionLabel: "Archive fragments",
+              countTemplate: "{count} fragments available"
+            },
             x: 0.4,
             y: 0.5
           }],
@@ -282,6 +287,8 @@ test("current-state projection carries the same frozen source and journal cursor
   assert.equal(current.mechanism.status, "not_started");
   assert.equal(current.mechanism.totalRounds, 1);
   assert.equal(current.presentation.map.activeLocation.name, "Archive");
+  assert.equal(current.presentation.map.activeLocation.discovery.scanLabel, "Reading archive residue");
+  assert.equal(current.presentation.map.activeLocation.discovery.collectionLabel, "Archive fragments");
   assert.equal(current.presentation.map.host, null);
 });
 

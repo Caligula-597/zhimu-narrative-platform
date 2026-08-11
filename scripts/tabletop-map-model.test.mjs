@@ -148,6 +148,31 @@ test("locations retain a runtime segment binding and host-only notes", () => {
   assert.equal(design.locations[0].hostNotes, "第三轮后守卫会关闭城门。");
 });
 
+test("locations retain creator-authored discovery copy without changing the player layout contract", () => {
+  const design = normalizeMapDesign({
+    locations: [{
+      id: "dream-gallery",
+      name: "梦境回廊",
+      discovery: {
+        scanLabel: "正在聆听旧日回声",
+        scanHint: "回声将在片刻后汇聚",
+        unlockLabel: "记忆层已开启",
+        collectionLabel: "记忆碎片",
+        countTemplate: "可回收 {count} 枚记忆碎片",
+        archiveLabel: "MEMORY FRAGMENT"
+      }
+    }]
+  });
+  assert.deepEqual(design.locations[0].discovery, {
+    scanLabel: "正在聆听旧日回声",
+    scanHint: "回声将在片刻后汇聚",
+    unlockLabel: "记忆层已开启",
+    collectionLabel: "记忆碎片",
+    countTemplate: "可回收 {count} 枚记忆碎片",
+    archiveLabel: "MEMORY FRAGMENT"
+  });
+});
+
 test("locations retain creator-authored check templates with safe defaults", () => {
   const design = normalizeMapDesign({
     system: { dice: { count: 2, sides: 6, defaultTarget: 9 } },

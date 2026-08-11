@@ -26,6 +26,7 @@ function clueDraft(clue = null) {
     grantMode: meta.grantMode || "auto",
     clueType: meta.clueType || "text",
     clueKind: clue?.clue_kind || clue?.clueKind || "general",
+    locationId: meta.locationId || meta.location_id || "",
     segmentKey: meta.segmentKey || meta.segment_key || "",
     assetId: meta.assetId || "",
     importance: meta.importance || "normal",
@@ -71,10 +72,18 @@ export function renderClueEditorPanel() {
     ...(assetStore.get().cloudAssets || []).map((asset) => ({ id: asset.id, name: asset.original_filename }))
   ];
   const segments = [
-    { id: "", name: "不绑定地点 / 剧情段" },
+    { id: "", name: "不绑定剧情段" },
     ...(worldStore.get().cloudSegments || []).map((segment) => ({
       id: segment.segmentKey || segment.segment_key || "",
       name: `${segment.segmentKey || segment.segment_key || "未命名"} · ${segment.title || "未命名段落"}`
+    }))
+  ];
+  const mapLocations = studioStore.get().cloudStudio?.world?.settings?.tabletopMapDesign?.locations || [];
+  const locations = [
+    { id: "", name: "不绑定具体地图地点" },
+    ...mapLocations.map((location) => ({
+      id: location.id || "",
+      name: `${location.name || "未命名地点"}${location.segmentKey ? ` · ${location.segmentKey}` : ""}`
     }))
   ];
   const body =
@@ -91,7 +100,8 @@ export function renderClueEditorPanel() {
       { id: "host_confirm", name: "主持确认后发放" },
       { id: "explore", name: "探索调查获得" }
     ], value.grantMode) +
-    formSelect("归属地点 / 剧情段", "segmentKey", segments, value.segmentKey) +
+    formSelect("归属地图地点", "locationId", locations, value.locationId) +
+    formSelect("剧情段定位", "segmentKey", segments, value.segmentKey) +
     formSelect("线索形态", "clueType", CLUE_TYPE_OPTIONS, value.clueType) +
     formSelect("线索类型", "clueKind", CLUE_KIND_OPTIONS, value.clueKind) +
     formSelect("关联资产", "assetId", assets, value.assetId) +
@@ -126,6 +136,8 @@ export async function saveCluesEditor() {
     return;
   }
   const clue = currentClue();
+  const mapLocations = studioStore.get().cloudStudio?.world?.settings?.tabletopMapDesign?.locations || [];
+  const selectedLocation = mapLocations.find((location) => location.id === values.locationId);
   setWorkspaceSaving(root, true);
   showWorkspaceErrors(root, []);
   try {
@@ -141,7 +153,8 @@ export async function saveCluesEditor() {
         assetId: values.assetId || null,
         importance: values.importance || "normal",
         grantMode: values.grantMode || "auto",
-        segmentKey: values.segmentKey || null,
+        locationId: values.locationId || null,
+        segmentKey: values.segmentKey || selectedLocation?.segmentKey || null,
         triggerNote: values.triggerNote || ""
       }
     };

@@ -1,4 +1,5 @@
 import { normalizeTabletopSystem } from "../../shared/tabletop-system.js";
+import { normalizeLocationDiscoveryCopy } from "../../shared/location-discovery.js";
 
 export const TABLETOP_MAP_SCHEMA_VERSION = 6;
 
@@ -304,6 +305,7 @@ function normalizeLocation(raw = {}, index = 0, variables = [], npcIds = new Set
     description: cleanText(raw.description, fallback.description || "", 360),
     hostNotes: cleanText(raw.hostNotes, "", 360),
     segmentKey: cleanText(raw.segmentKey, "", 120),
+    discovery: normalizeLocationDiscoveryCopy(raw.discovery),
     x: clamp(raw.x ?? fallback.x, 0.04, 0.96),
     y: clamp(raw.y ?? fallback.y, 0.05, 0.95),
     z: Math.round(clamp(raw.z ?? fallback.z, 0, 8)),
