@@ -200,6 +200,7 @@ export {
   updateScene,
   createClue,
   updateClue,
+  bindCluePaths,
   createItem,
   updateItem,
   deleteItem,
