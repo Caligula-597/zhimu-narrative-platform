@@ -219,12 +219,37 @@ function normalizeItemAction(payload, now) {
   };
 }
 
+function normalizeRelationshipState(payload, now) {
+  const source = object(payload, "payload");
+  const historySource = Array.isArray(source.history) ? source.history.slice(-30) : [];
+  return {
+    relationshipId: text(source.relationshipId, "relationshipId"),
+    fromRoleSlotId: text(source.fromRoleSlotId, "fromRoleSlotId"),
+    toRoleSlotId: text(source.toRoleSlotId, "toRoleSlotId"),
+    currentStrength: integer(source.currentStrength ?? 0, "currentStrength", { min: -10, max: 10 }),
+    status: oneOf(source.status, "status", ["unknown", "allied", "trusted", "strained", "hostile", "broken"], "unknown"),
+    disclosure: oneOf(source.disclosure, "disclosure", ["hidden", "involved", "public"], "hidden"),
+    publicLabel: text(source.publicLabel, "publicLabel", { required: false, max: 200 }) ?? "",
+    publicNote: text(source.publicNote, "publicNote", { required: false, max: 1000 }) ?? "",
+    hostNote: text(source.hostNote, "hostNote", { required: false, max: 2000 }) ?? "",
+    history: historySource.map((entry) => ({
+      strength: integer(entry?.strength ?? 0, "history.strength", { min: -10, max: 10 }),
+      status: oneOf(entry?.status, "history.status", ["unknown", "allied", "trusted", "strained", "hostile", "broken"], "unknown"),
+      label: text(entry?.label, "history.label", { required: false, max: 200 }) ?? "",
+      note: text(entry?.note, "history.note", { required: false, max: 1000 }) ?? "",
+      changedAt: instant(entry?.changedAt ?? now, "history.changedAt"),
+    })),
+    updatedAt: instant(source.updatedAt ?? now, "updatedAt"),
+  };
+}
+
 const NORMALIZERS = new Map([
   [ROOM_EXPERIENCE_STATE_KINDS.LOCATION_DISCOVERY, normalizeLocationDiscovery],
   [ROOM_EXPERIENCE_STATE_KINDS.PACE_CLOCK, normalizePaceClock],
   [ROOM_EXPERIENCE_STATE_KINDS.SESSION_CONCLUSION, normalizeSessionConclusion],
   [ROOM_EXPERIENCE_STATE_KINDS.RECAP_LIBRARY, normalizeRecapLibrary],
   [ROOM_EXPERIENCE_STATE_KINDS.ITEM_ACTION, normalizeItemAction],
+  [ROOM_EXPERIENCE_STATE_KINDS.RELATIONSHIP_STATE, normalizeRelationshipState],
 ]);
 
 export function normalizeRoomExperienceIdentity(input) {

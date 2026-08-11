@@ -275,6 +275,9 @@ export const api = {
   getHostTestimonies: () => request(roomPath("/host/testimonies")),
   reviewHostTestimony: (testimonyId, payload) =>
     request(roomPath(`/host/testimonies/${testimonyId}`), { method: "PATCH", body: payload }),
+  getHostRelationships: () => request(roomPath("/host/relationships")),
+  updateHostRelationship: (relationshipId, payload) =>
+    request(roomPath(`/host/relationships/${relationshipId}`), { method: "PATCH", body: payload, idempotent: true }),
   getHostSegmentRemedies: (segmentKey) => {
     const qs = segmentKey ? `?segmentKey=${encodeURIComponent(segmentKey)}` : "";
     return request(roomPath(`/host/segment-remedies${qs}`));

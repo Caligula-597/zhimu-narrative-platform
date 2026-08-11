@@ -353,6 +353,19 @@ export interface UpdateWorldBody {
       status: "draft" | "confirmed";
       updatedAt: string;
     };
+    /**
+     * @maxItems 4
+     */
+    communicationTemplates?: {
+      version: 1;
+      key: "testimony" | "public_statement" | "secret_action" | "ask_host";
+      kind: "testimony" | "public_statement" | "secret_action" | "ask_host";
+      enabled: boolean;
+      title: string;
+      privacyNotice: string;
+      placeholder: string;
+      deadlineMinutes: number;
+    }[];
     [k: string]: unknown;
   };
 }
@@ -758,6 +771,19 @@ export interface CreateWorldBody {
       status: "draft" | "confirmed";
       updatedAt: string;
     };
+    /**
+     * @maxItems 4
+     */
+    communicationTemplates?: {
+      version: 1;
+      key: "testimony" | "public_statement" | "secret_action" | "ask_host";
+      kind: "testimony" | "public_statement" | "secret_action" | "ask_host";
+      enabled: boolean;
+      title: string;
+      privacyNotice: string;
+      placeholder: string;
+      deadlineMinutes: number;
+    }[];
     [k: string]: unknown;
   };
 }
@@ -833,6 +859,23 @@ export interface CreateItemBody {
   unique?: boolean;
   consumable?: boolean;
   assetId?: string | null;
+  /**
+   * @maxItems 8
+   */
+  itemActions?: {
+    key: string;
+    label: string;
+    kind: "use" | "consume" | "combine";
+    targetType: "none" | "role" | "location";
+    requiresHostConfirmation?: boolean;
+    consumeQuantity?: number;
+    combineConsumeQuantity?: number;
+    /**
+     * @maxItems 50
+     */
+    combineWithItemIds?: string[];
+    resultText?: string;
+  }[];
   metadata?: {
     [k: string]: unknown;
   };
@@ -845,6 +888,23 @@ export interface PatchItemBody {
   unique?: boolean;
   consumable?: boolean;
   assetId?: string | null;
+  /**
+   * @maxItems 8
+   */
+  itemActions?: {
+    key: string;
+    label: string;
+    kind: "use" | "consume" | "combine";
+    targetType: "none" | "role" | "location";
+    requiresHostConfirmation?: boolean;
+    consumeQuantity?: number;
+    combineConsumeQuantity?: number;
+    /**
+     * @maxItems 50
+     */
+    combineWithItemIds?: string[];
+    resultText?: string;
+  }[];
   metadata?: {
     [k: string]: unknown;
   };
@@ -2028,6 +2088,26 @@ export interface RoomItemGrantedData {
   [k: string]: unknown;
 }
 
+export interface RoomItemActionUpdatedData {
+  actionId: string;
+  roleSlotId: string;
+  status: string;
+  revision: number;
+  [k: string]: unknown;
+}
+
+export interface RoomRelationshipUpdatedData {
+  relationshipId: string;
+  /**
+   * @maxItems 100
+   */
+  roleSlotIds: string[];
+  disclosure: "hidden" | "involved" | "public";
+  previousDisclosure?: "hidden" | "involved" | "public";
+  revision: number;
+  [k: string]: unknown;
+}
+
 export interface RoomGameStartedData {
   currentGame: {
     [k: string]: unknown;
@@ -2105,6 +2185,31 @@ export interface RoomInvestigationCompletedData {
   [k: string]: unknown;
 }
 
+export interface RoomDiscoveryUpdatedData {
+  locationId: string;
+  roleSlotId: string;
+  action: string;
+  revision: number;
+  drawnCount: number;
+  remainingCount: number;
+  [k: string]: unknown;
+}
+
+export interface RoomPaceClockUpdatedData {
+  revision: number;
+  status: string;
+  visibleToPlayers: boolean;
+  [k: string]: unknown;
+}
+
+export interface RoomConclusionUpdatedData {
+  status: string;
+  endingId: string;
+  recapId: string;
+  revision: number;
+  [k: string]: unknown;
+}
+
 export interface RoomVoteCreatedData {
   voteId: string;
   title: string;
@@ -2120,11 +2225,12 @@ export interface RoomVoteUpdatedData {
 
 export interface RoomPrivateActionSubmittedData {
   actionId: string;
-  actionType: "ask_host" | "secret_action" | "trade" | "promise" | "accusation_note";
+  actionType: "ask_host" | "secret_action" | "trade" | "promise" | "accusation_note" | "public_statement";
   /**
    * @maxItems 100
    */
   roleSlotIds?: string[];
+  visibility?: "actor_host" | "actor_target_host" | "host_only" | "postgame" | "public";
   [k: string]: unknown;
 }
 
@@ -2135,6 +2241,7 @@ export interface RoomPrivateActionUpdatedData {
    * @maxItems 100
    */
   roleSlotIds?: string[];
+  visibility?: "actor_host" | "actor_target_host" | "host_only" | "postgame" | "public";
   [k: string]: unknown;
 }
 

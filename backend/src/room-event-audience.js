@@ -133,6 +133,13 @@ export function projectRoomEventForAudience(event, audience = {}) {
     const visible = event.visibility === "public" || includesId(event.roleSlotIds, roleSlotId);
     return { event: visible ? event : null, disconnectAfter: false };
   }
+  if (type === "room.relationship_updated") {
+    const wasPublic = event.previousDisclosure === "public";
+    const wasInvolved = event.previousDisclosure === "involved" && includesId(event.roleSlotIds, roleSlotId);
+    const visible = event.disclosure === "public" || wasPublic || wasInvolved
+      || (event.disclosure === "involved" && includesId(event.roleSlotIds, roleSlotId));
+    return { event: visible ? event : null, disconnectAfter: false };
+  }
   if (type === "room.physical_token_event") {
     return { event: event.visibility === "public" ? event : null, disconnectAfter: false };
   }

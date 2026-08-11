@@ -232,6 +232,7 @@ export const api = {
     request(`/rooms/${roomId}/player-tasks/${taskId}/complete`, { method: "POST", body: {} }),
   setSuspicion: (roomId, targetRoleSlotId, payload) =>
     request(`/rooms/${roomId}/suspicions/${targetRoleSlotId}`, { method: "PUT", body: payload }),
+  relationships: (roomId) => request(`/rooms/${roomId}/player/relationships`),
   submitTestimony: (roomId, payload) =>
     request(`/rooms/${roomId}/testimonies`, { method: "POST", body: payload }),
   submitSatisfaction: (payload) =>

@@ -41,6 +41,7 @@ export const state = {
   cloudHostVotes: [],
   cloudHostPrivateActions: [],
   cloudHostItemActions: [],
+  cloudHostRelationships: [],
   cloudHostMiniGames: [],
   cloudRunReport: null,
   cloudHostMechanismRuntime: null,

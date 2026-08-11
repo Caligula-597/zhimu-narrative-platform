@@ -148,11 +148,18 @@ export function renderSocialTab() {
 export function renderSuspicionsTab() {
   const members = (state.home?.roomMembers || []).filter((m) => m.role_slot_id && m.role_slot_id !== state.home?.role?.id);
   const suspicions = new Map((state.home?.suspicions || []).map((row) => [row.target_role_slot_id, row]));
-  if (!members.length) {
-    return `<div class="empty enriched-empty"><span class="empty-icon">🕵️</span>尚无其他角色入席，无法标注怀疑对象。</div>`;
-  }
+  const relationships = asArray(state.relationships);
+  const statusLabels = { unknown: "未定义", allied: "结盟", trusted: "信任", strained: "紧张", hostile: "敌对", broken: "决裂" };
+  const relationshipPanel = `<section class="relationship-trajectory-panel"><div><p class="eyebrow">人物关系轨迹</p><p class="muted small">主持只会公开现场已经发生、且允许你查看的变化。</p></div>${relationships.length ? relationships.map((relationship) => `<article class="relationship-trajectory-card">
+    <div class="relationship-trajectory-head"><strong>${escapeHtml(relationship.fromRoleName)} → ${escapeHtml(relationship.toRoleName)}</strong><span class="status-chip">${escapeHtml(statusLabels[relationship.status] || relationship.status)}</span></div>
+    <p>${escapeHtml(relationship.publicLabel)}</p>${relationship.publicNote ? `<p class="muted">${escapeHtml(relationship.publicNote)}</p>` : ""}
+    <div class="relationship-strength"><span>关系强度</span><meter min="-10" max="10" low="-4" high="4" optimum="8" value="${Number(relationship.currentStrength)}">${Number(relationship.currentStrength)}</meter><b>${Number(relationship.currentStrength)}</b></div>
+    ${relationship.history?.length ? `<ol class="relationship-history">${relationship.history.slice(-4).reverse().map((entry) => `<li><time>${escapeHtml(String(entry.changedAt || "").slice(0,16))}</time><span>${escapeHtml(statusLabels[entry.status] || entry.status)} · ${Number(entry.strength)}</span>${entry.note ? `<small>${escapeHtml(entry.note)}</small>` : ""}</li>`).join("")}</ol>` : ""}
+  </article>`).join("") : `<div class="empty enriched-empty">当前没有向你公开的人物关系变化。</div>`}</section>`;
+  if (!members.length) return `${relationshipPanel}<div class="empty enriched-empty">尚无其他角色入席，无法标注怀疑对象。</div>`;
   return `
     <div class="suspicions-panel">
+      ${relationshipPanel}
       <p class="eyebrow">怀疑度（仅自己可见）</p>
       ${members
         .map((member) => {

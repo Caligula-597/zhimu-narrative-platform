@@ -244,6 +244,11 @@ export async function handleRoomEvent(type, data, ctx) {
       await ctx.onRefresh();
       if (type === "room.vote_created") ctx.onToast("主持人开启了投票/指认");
       break;
+    case "room.relationship_updated":
+      ctx.bumpTabPulse?.("suspicions");
+      await ctx.onRefresh();
+      ctx.onToast("人物关系出现了新的变化");
+      break;
     default:
       break;
   }

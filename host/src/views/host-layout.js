@@ -604,10 +604,29 @@ function renderHostVoicePanel() {
   </section>`;
 }
 
+function renderRelationshipControlPanel() {
+  const relationships = state.cloudHostRelationships || [];
+  const statusLabels = {
+    unknown: "未定义", allied: "结盟", trusted: "信任", strained: "紧张", hostile: "敌对", broken: "决裂",
+  };
+  return `<section class="host-command-card host-relationship-panel">
+    <div class="section-head"><div><p class="section-kicker">RELATIONSHIPS</p><h3>关系状态调配</h3><p>只发布现场已经发生的变化；主持备注始终不进入玩家投影。</p></div></div>
+    ${relationships.length ? `<div class="host-relationship-list">${relationships.map((relationship) => `<article class="host-relationship-row" data-host-relationship="${escapeHtml(relationship.relationshipId)}">
+      <div><strong>${escapeHtml(relationship.fromRoleName)} → ${escapeHtml(relationship.toRoleName)}</strong><small>${escapeHtml(relationship.authoredLabel)} · 原始强度 ${Number(relationship.authoredStrength)}</small></div>
+      <label>当前强度<input type="number" min="-10" max="10" value="${Number(relationship.currentStrength)}" data-relationship-field="strength"></label>
+      <label>现场状态<select data-relationship-field="status">${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${relationship.status === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>
+      <label>公开范围<select data-relationship-field="disclosure"><option value="hidden" ${relationship.disclosure === "hidden" ? "selected" : ""}>仅主持</option><option value="involved" ${relationship.disclosure === "involved" ? "selected" : ""}>关系双方</option><option value="public" ${relationship.disclosure === "public" ? "selected" : ""}>全房公开</option></select></label>
+      <label class="host-relationship-note">玩家可见说明<input value="${escapeHtml(relationship.publicNote || "")}" maxlength="1000" data-relationship-field="publicNote" placeholder="例如：两人刚刚交换了证据"></label>
+      <button class="secondary-btn" data-action="host-update-relationship" data-relationship-id="${escapeHtml(relationship.relationshipId)}" data-revision="${Number(relationship.revision)}">发布变化</button>
+    </article>`).join("")}</div>` : `<div class="empty-state">创作端尚未建立人物关系；请先在谜底与关系工作台配置。</div>`}
+  </section>`;
+}
+
 export function renderHostCommandCenter({ room, world, playersTableRows, currentBeatKey = "", presentation = null }) {
   return `<section class="host-command-center">
     ${renderTopbar({ room, world })}
     ${renderHostVoicePanel()}
+    ${renderRelationshipControlPanel()}
     <div class="host-command-grid">
       ${renderPlayersColumn({ playersTableRows })}
       ${renderCurrentActColumn(currentBeatKey, presentation)}

@@ -2096,6 +2096,18 @@ export interface RoomItemActionUpdatedData {
   [k: string]: unknown;
 }
 
+export interface RoomRelationshipUpdatedData {
+  relationshipId: string;
+  /**
+   * @maxItems 100
+   */
+  roleSlotIds: string[];
+  disclosure: "hidden" | "involved" | "public";
+  previousDisclosure?: "hidden" | "involved" | "public";
+  revision: number;
+  [k: string]: unknown;
+}
+
 export interface RoomGameStartedData {
   currentGame: {
     [k: string]: unknown;

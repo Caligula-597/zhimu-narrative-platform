@@ -44,6 +44,7 @@ export const state = {
   paceClock: null,
   sessionConclusion: null,
   itemActions: [],
+  relationships: [],
   tab: storedRoomId ? readStoredGameTab() : "home",
   sectionId: storedRoomId ? (localStorage.getItem(GAME_SECTION_KEY) || "") : "",
   clueId: "",
@@ -193,6 +194,7 @@ export function persistRoom(roomId, isUuid) {
     state.paceClock = null;
     state.sessionConclusion = null;
     state.itemActions = [];
+    state.relationships = [];
     state.recapLibrarySelected = null;
     state.recapDetail = null;
   }

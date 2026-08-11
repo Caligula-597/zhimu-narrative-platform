@@ -198,6 +198,7 @@ async function handleRoomEvent(type, data) {
     case "room.private_action_submitted":
     case "room.private_action_updated":
     case "room.role_state_updated":
+    case "room.relationship_updated":
     case "room.player_task_completed":
     case "room.testimony_submitted":
     case "room.segment_remedy_applied":

@@ -25,7 +25,7 @@ export function createPlayerHomeController({
   async function pullRoomData({ partial = false } = {}) {
     if (!state.roomId || !isUuid(state.roomId)) return;
     const currentGeneration = ++generation;
-    const [homeCore, explorationResult, discoveryResult, paceClockResult, conclusionResult, itemActionsResult] = await Promise.all([
+    const [homeCore, explorationResult, discoveryResult, paceClockResult, conclusionResult, itemActionsResult, relationshipsResult] = await Promise.all([
       loadPlayerHomeCoreCompat(state.roomId),
       api.exploration(state.roomId)
         .then((data) => ({ ok: true, data }))
@@ -49,7 +49,12 @@ export function createPlayerHomeController({
         ? api.itemActions(state.roomId)
             .then((data) => ({ ok: true, data }))
             .catch((error) => ({ ok: false, error }))
-        : Promise.resolve({ ok: true, data: { itemActions: [] } })
+        : Promise.resolve({ ok: true, data: { itemActions: [] } }),
+      typeof api.relationships === "function"
+        ? api.relationships(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true, data: { relationships: [] } })
     ]);
     if (currentGeneration !== generation) return;
 
@@ -62,6 +67,7 @@ export function createPlayerHomeController({
     applyPaceClockResult(paceClockResult);
     applyConclusionResult(conclusionResult);
     applyItemActionsResult(itemActionsResult);
+    applyRelationshipsResult(relationshipsResult);
     selectAvailableSection();
     await refreshVoiceIfActive();
 
@@ -121,6 +127,11 @@ export function createPlayerHomeController({
   function applyItemActionsResult(result) {
     if (!result.ok) return;
     state.itemActions = Array.isArray(result.data?.itemActions) ? result.data.itemActions : [];
+  }
+
+  function applyRelationshipsResult(result) {
+    if (!result.ok) return;
+    state.relationships = Array.isArray(result.data?.relationships) ? result.data.relationships : [];
   }
 
   function selectAvailableSection() {

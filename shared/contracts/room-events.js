@@ -134,6 +134,13 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     status: shortText,
     revision: number
   }),
+  "room.relationship_updated": schema(["relationshipId", "roleSlotIds", "disclosure", "revision"], {
+    relationshipId: id,
+    roleSlotIds: idList,
+    disclosure: enumString(["hidden", "involved", "public"]),
+    previousDisclosure: enumString(["hidden", "involved", "public"]),
+    revision: number
+  }),
   "room.game_started": schema(["currentGame"], { currentGame: object }),
   "room.game_completed": schema(["currentGame"], { currentGame: object, forced: boolean, correct: boolean }),
   "room.game_updated": schema(["currentGame", "correct"], { currentGame: object, correct: boolean }),

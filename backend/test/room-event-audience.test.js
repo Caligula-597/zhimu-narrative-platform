@@ -296,6 +296,27 @@ test("public statements notify every room role without exposing unrelated privat
   assert.equal(secret.event, null);
 });
 
+test("relationship disclosure and retraction reach only affected players", () => {
+  const involved = projectRoomEventForAudience({
+    type: "room.relationship_updated",
+    relationshipId: "relationship-1",
+    roleSlotIds: ["role-a", "role-b"],
+    disclosure: "involved",
+    previousDisclosure: "hidden",
+    revision: 1,
+  }, { ...player, roleSlotId: "role-b" });
+  assert.equal(involved.event?.relationshipId, "relationship-1");
+  assert.equal(projectRoomEventForAudience(involved.event, { ...player, roleSlotId: "role-c" }).event, null);
+
+  const retract = projectRoomEventForAudience({
+    ...involved.event,
+    disclosure: "hidden",
+    previousDisclosure: "public",
+    revision: 2,
+  }, { ...player, roleSlotId: "role-c" });
+  assert.equal(retract.event?.disclosure, "hidden");
+});
+
 test("hidden journal events become cursor-only heartbeats", () => {
   const projected = projectRoomEventEnvelope(
     {

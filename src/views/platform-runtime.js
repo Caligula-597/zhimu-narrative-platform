@@ -241,7 +241,7 @@ export async function openRoleRelationshipsModal() {
   };
   try {
     modal.className = "modal role-relationships-modal";
-    setHtml(modal, `<h2>角色关系图</h2><p class="wizard-intro">供创作者和主持人理解人物关系的结构化数据，不等同于剧情编排连线，也不会自动向玩家公开。</p><div class="rel-graph-wrap" data-rel-graph></div><div class="host-detail-list" data-rel-list style="margin-top:12px"><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增关系</label><select class="field" data-rel-field="from">${roleOptions(roles)}</select><select class="field" data-rel-field="to">${roleOptions(roles)}</select><input class="field" data-rel-field="label" placeholder="关系名称，例如：师生、仇敌"><input class="field" data-rel-field="strength" type="number" min="-10" max="10" placeholder="强度 -10～10（选填）"></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-rel>添加</button></div>`);
+    setHtml(modal, `<h2>角色关系图</h2><p class="wizard-intro">创作者定义关系基线和初始可见范围；开局后主持端发布的变化不会反写这里。</p><div class="rel-graph-wrap" data-rel-graph></div><div class="host-detail-list" data-rel-list style="margin-top:12px"><div class="empty-state">正在加载…</div></div><div class="form-group" style="margin-top:14px;border-top:1px solid var(--line,#ece7df);padding-top:14px"><label>新增关系</label><select class="field" data-rel-field="from">${roleOptions(roles)}</select><select class="field" data-rel-field="to">${roleOptions(roles)}</select><input class="field" data-rel-field="label" placeholder="关系名称，例如：师生、仇敌"><input class="field" data-rel-field="strength" type="number" min="-10" max="10" placeholder="强度 -10～10（选填）"><label>初始可见范围</label><select class="field" data-rel-field="visibility"><option value="host">仅创作者与主持</option><option value="role">关系双方</option><option value="public">全员公开</option></select></div><div class="modal-actions"><button class="secondary-btn" data-close>关闭</button><button class="primary-btn" data-add-rel>添加</button></div>`);
     modalBackdrop.classList.add("show");
     modal.querySelector("[data-close]").onclick = closeModal;
     modal.querySelector("[data-add-rel]").onclick = async () => {
@@ -249,13 +249,15 @@ export async function openRoleRelationshipsModal() {
       const to = modal.querySelector('[data-rel-field="to"]')?.value;
       const label = modal.querySelector('[data-rel-field="label"]')?.value?.trim() || "";
       const strengthRaw = modal.querySelector('[data-rel-field="strength"]')?.value;
+      const visibility = modal.querySelector('[data-rel-field="visibility"]')?.value || "host";
       if (!from || !to || from === to) return showToast("请选择两个不同角色");
       try {
         await zhimuApi.createRoleRelationship({
           fromRoleSlotId: from,
           toRoleSlotId: to,
           label,
-          strength: strengthRaw === "" ? undefined : Number(strengthRaw)
+          strength: strengthRaw === "" ? undefined : Number(strengthRaw),
+          visibility
         }, worldId);
         showToast("关系已添加");
         await draw();

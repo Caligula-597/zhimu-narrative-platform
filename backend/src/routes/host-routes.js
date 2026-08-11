@@ -6,6 +6,7 @@ import { registerHostMonitorRoutes } from "./host-monitor-routes.js";
 import { registerHostMechanismRuntimeRoutes } from "./host-mechanism-runtime-routes.js";
 import { registerHostPlayerManagementRoutes } from "./host-player-management-routes.js";
 import { registerHostItemActionRoutes } from "./item-action-routes.js";
+import { registerHostRoomRelationshipRoutes } from "./room-relationship-routes.js";
 
 export async function registerHostRoutes(app) {
   await registerHostEventRoutes(app);
@@ -16,4 +17,5 @@ export async function registerHostRoutes(app) {
   await registerHostMechanismRuntimeRoutes(app);
   await registerHostCommunicationRoutes(app);
   await registerHostItemActionRoutes(app);
+  await registerHostRoomRelationshipRoutes(app);
 }

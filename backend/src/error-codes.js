@@ -273,6 +273,8 @@ export const API_ERRORS = {
   ITEM_ACTION_COMBINATION_INVALID: { status: 409, message: "Item combination is not allowed" },
   ITEM_ACTION_NOT_FOUND: { status: 404, message: "Item action not found" },
   ITEM_ACTION_VERSION_CONFLICT: { status: 409, message: "Item action changed; refresh before retrying" },
+  ROOM_RELATIONSHIP_NOT_FOUND: { status: 404, message: "Authored room relationship not found" },
+  ROOM_RELATIONSHIP_VERSION_CONFLICT: { status: 409, message: "Relationship state changed; refresh before retrying" },
   ITEM_QUANTITY_INSUFFICIENT: { status: 409, message: "Inventory quantity is insufficient for this action" },
   INVESTIGATION_POINT_NOT_FOUND: { status: 404, message: "Investigation point not found" },
   INVESTIGATION_POINT_UNAVAILABLE: { status: 404, message: "Investigation point is locked or unavailable" },

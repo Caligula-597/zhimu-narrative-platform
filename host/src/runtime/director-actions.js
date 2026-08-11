@@ -119,6 +119,22 @@ export function createDirectorActionHandler({ render, showToast }) {
           "处理物品动作失败"
         );
         return true;
+      case "host-update-relationship": {
+        const row = el?.closest?.("[data-host-relationship]");
+        const value = (field) => row?.querySelector?.(`[data-relationship-field="${field}"]`)?.value;
+        void runCommand(
+          () => api.updateHostRelationship(el?.dataset?.relationshipId, {
+            expectedRevision: Number(el?.dataset?.revision),
+            currentStrength: Number(value("strength") || 0),
+            status: value("status") || "unknown",
+            disclosure: value("disclosure") || "hidden",
+            publicNote: value("publicNote")?.trim?.() || ""
+          }),
+          "关系变化已同步",
+          "更新关系失败"
+        );
+        return true;
+      }
       case "host-load-run-report":
         void runCommand(
           async () => {
