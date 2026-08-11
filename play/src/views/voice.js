@@ -1,5 +1,9 @@
 import { escapeHtml } from "../../../shared/security.js";
-import { voiceHubParticipants, voiceLiveStatusLabel } from "../runtime/voice.js";
+import {
+  privateVoiceRoomsEnabled,
+  voiceHubParticipants,
+  voiceLiveStatusLabel
+} from "../runtime/voice.js";
 import { state } from "../state.js";
 import { formatTime } from "../utils/format.js";
 
@@ -9,6 +13,7 @@ function currentVoiceRoom() {
 
 function renderVoiceHubActions(room, connected, connecting, failed) {
   const participants = voiceHubParticipants();
+  const privateEnabled = privateVoiceRoomsEnabled();
   return `
     <div class="voice-hub-actions">
       <div class="voice-hub-users">
@@ -16,7 +21,7 @@ function renderVoiceHubActions(room, connected, connecting, failed) {
           .slice(0, 8)
           .map(
             (participant) => `
-          <div class="voice-avatar ${participant.micEnabled === false ? "is-muted" : ""}" title="${escapeHtml(participant.name)}">
+          <div class="voice-avatar ${participant.connected === false ? "is-offline" : ""} ${participant.micEnabled === false ? "is-muted" : ""}" title="${escapeHtml(`${participant.roleName || "成员"} · ${participant.name}${participant.connected ? " · 已连接语音" : " · 已在房间"}`)}">
             ${escapeHtml(String(participant.name)[0] || "?")}
           </div>`
           )
@@ -35,7 +40,7 @@ function renderVoiceHubActions(room, connected, connecting, failed) {
         ${room?.room_type === "invite_private"
           ? `<button class="btn quiet compact" type="button" data-action="voice-room-invite" data-voice-id="${escapeHtml(room.id)}" data-voice-name="${escapeHtml(room.name)}">邀请成员</button>`
           : ""}
-        <button class="btn quiet compact" type="button" data-action="voice-room-create">＋ 密谈</button>
+        <button class="btn quiet compact" type="button" data-action="voice-room-create" ${privateEnabled ? "" : "disabled"} title="${privateEnabled ? "创建仅受邀玩家可见的语音房" : "主持人正式开场后开放"}">＋ ${privateEnabled ? "密谈" : "开场后开放"}</button>
       </div>
     </div>`;
 }
@@ -45,7 +50,10 @@ export function renderVoiceHub() {
   const connected = state.voiceLiveStatus === "connected";
   const connecting = state.voiceLiveStatus === "connecting";
   const failed = state.voiceLiveStatus === "error";
-  const participantCount = voiceHubParticipants().length;
+  const participants = voiceHubParticipants();
+  const participantCount = participants.length;
+  const connectedCount = participants.filter((participant) => participant.connected).length;
+  const privateEnabled = privateVoiceRoomsEnabled();
 
   return `
     <section class="voice-hub card ${failed ? "voice-hub-error" : ""}">
@@ -54,9 +62,13 @@ export function renderVoiceHub() {
         <div class="voice-hub-copy">
           <strong>语音空间 · ${escapeHtml(room?.name || state.voiceRoomName || "尚未选择")}</strong>
           <p>
-            ${room?.room_type === "public" ? "所有房间成员可进入" : room ? "私密通话 · 仅受邀玩家可见" : "选择或创建语音空间"}
-            · ${voiceLiveStatusLabel()}${connected && participantCount ? ` · ${participantCount} 人在线` : ""}
+            ${room?.room_type === "public" ? "全员主语音房 · 主持人与全部玩家均在名单中" : room ? "私密通话 · 仅受邀玩家可见" : "选择语音空间"}
+            · ${voiceLiveStatusLabel()}${room?.room_type === "public" ? ` · ${connectedCount}/${participantCount} 已连接语音` : connected && participantCount ? ` · ${participantCount} 人在线` : ""}
           </p>
+          ${room?.room_type === "public" && participantCount ? `<div class="voice-roster-list" aria-label="主语音房成员">
+            ${participants.map((participant) => `<span class="voice-roster-person ${participant.connected ? "is-connected" : ""}"><b>${escapeHtml(participant.roleName || "玩家")}</b>${escapeHtml(participant.name)}<i>${participant.connected ? "语音在线" : "已入房"}</i></span>`).join("")}
+          </div>` : ""}
+          ${room?.room_type === "public" ? `<p class="voice-room-policy ${privateEnabled ? "is-open" : ""}">${privateEnabled ? "场次已正式开始，玩家可按剧情需要创建临时密谈。" : "候场阶段仅开放全员主语音房；主持人正式开场后才会开放密谈。"}</p>` : ""}
         </div>
       </div>
       ${renderVoiceHubActions(room, connected, connecting, failed)}
@@ -121,8 +133,7 @@ export function renderVoiceTab() {
         <article class="card enriched-empty">
           <span class="empty-icon">♬</span>
           <h3>暂无语音空间</h3>
-          <p class="muted">主持人创建平行房时通常会建立「公共讨论房」。你也可以自己创建临时密谈。</p>
-          <button class="btn primary" type="button" data-action="voice-room-create">创建临时密谈</button>
+          <p class="muted">主语音房尚未建立，请联系主持人刷新房间配置。密谈不会替代全员主房。</p>
         </article>
       </div>`;
   }

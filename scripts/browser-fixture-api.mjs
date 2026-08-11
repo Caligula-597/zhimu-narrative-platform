@@ -326,6 +326,40 @@ const rooms = [{
   }
 }];
 
+const voiceRoomsByRoom = new Map(rooms.map((room, index) => [room.id, [{
+  id: `99999999-9999-4999-8999-${String(index + 1).padStart(12, "0")}`,
+  name: "全员主语音房",
+  room_type: "public",
+  status: "active"
+}]]));
+
+function browserVoiceSession(room) {
+  const voiceRooms = voiceRoomsByRoom.get(room.id) || [];
+  const mainRoom = voiceRooms.find((voiceRoom) => voiceRoom.room_type === "public");
+  return {
+    voiceRooms: room.started_at ? voiceRooms : voiceRooms.filter((voiceRoom) => voiceRoom.room_type === "public"),
+    voiceRoster: [{
+      user_id: fixtureUserId,
+      member_type: "host",
+      role_slot_id: null,
+      role_name: null,
+      display_name: "浏览器主持"
+    }, {
+      user_id: "1d5e8155-a80f-4e7f-99f0-0ae317a35f35",
+      member_type: "player",
+      role_slot_id: playerRoleId,
+      role_name: "小满",
+      display_name: "浏览器玩家"
+    }],
+    voicePolicy: {
+      mainRoomId: mainRoom?.id || null,
+      privateRoomsEnabled: Boolean(room.started_at),
+      startedAt: room.started_at || null,
+      roomStatus: room.status
+    }
+  };
+}
+
 const playerSectionId = "77777777-7777-4777-8777-555555550001";
 
 const mechanismDecision = {
@@ -685,7 +719,7 @@ function browserPlayerHomeCore(room) {
     suspicions: [],
     testimonies: [],
     privateActions: [],
-    voiceRooms: [],
+    ...browserVoiceSession(room),
     inventory: [],
     hostConfirm: null,
     currentGame: null,
@@ -713,7 +747,7 @@ function browserPlayerHomeSocial(room) {
     suspicions: [],
     testimonies: [],
     privateActions: [],
-    voiceRooms: [],
+    ...browserVoiceSession(room),
     inventory: [],
     hostConfirm: null,
     currentGame: null,
@@ -1680,6 +1714,55 @@ const server = http.createServer(async (request, response) => {
     });
     return sendJson(response, 200, { ok: true, settings: room.settings });
   }
+  const roomStartMatch = path.match(/^\/api\/rooms\/([^/]+)\/host\/start$/);
+  if (request.method === "POST" && roomStartMatch) {
+    const room = rooms.find((item) => item.id === roomStartMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const alreadyStarted = Boolean(room.started_at);
+    room.started_at ||= new Date().toISOString();
+    room.status = "active";
+    broadcastRoomEvent(room.id, {
+      type: "room.session_started",
+      startedAt: room.started_at,
+      status: room.status
+    });
+    return sendJson(response, 200, {
+      ok: true,
+      alreadyStarted,
+      room: { id: room.id, status: room.status, started_at: room.started_at }
+    });
+  }
+  const voiceCreateMatch = path.match(/^\/api\/rooms\/([^/]+)\/voice-rooms$/);
+  if (request.method === "POST" && voiceCreateMatch) {
+    const room = rooms.find((item) => item.id === voiceCreateMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    if (!room.started_at) {
+      return sendJson(response, 409, {
+        code: "VOICE_PRIVATE_BEFORE_START",
+        error: "主持人正式开场后才可使用私密语音房"
+      });
+    }
+    const body = await readJson(request);
+    const voiceRooms = voiceRoomsByRoom.get(room.id) || [];
+    const created = {
+      id: `99999999-9999-4999-8999-${String(voiceRooms.length + 100).padStart(12, "0")}`,
+      name: String(body.name || "临时密谈"),
+      room_type: "invite_private",
+      status: "active"
+    };
+    voiceRooms.push(created);
+    voiceRoomsByRoom.set(room.id, voiceRooms);
+    return sendJson(response, 201, created);
+  }
+  const voiceTokenMatch = path.match(/^\/api\/rooms\/([^/]+)\/voice-rooms\/([^/]+)\/token$/);
+  if (request.method === "POST" && voiceTokenMatch) {
+    return sendJson(response, 503, {
+      code: "LIVEKIT_NOT_CONFIGURED",
+      error: "浏览器验收环境未配置 LiveKit，界面已保留文字频道"
+    });
+  }
+  const voiceMessagesMatch = path.match(/^\/api\/voice-rooms\/([^/]+)\/messages$/);
+  if (request.method === "GET" && voiceMessagesMatch) return sendJson(response, 200, []);
   const roomPathMatch = path.match(/^\/api\/rooms\/([^/]+)(\/.*)$/);
   if (request.method === "GET" && roomPathMatch && roomPathMatch[1] !== "invite") {
     const [, requestedRoomId, suffix] = roomPathMatch;
@@ -1697,6 +1780,7 @@ const server = http.createServer(async (request, response) => {
     if (suffix === "/player-home/social") return sendJson(response, 200, browserPlayerHomeSocial(room));
     if (suffix === "/current-state") return sendJson(response, 200, browserPlayerCurrentState(room));
     if (suffix === "/host/current-state") return sendJson(response, 200, browserHostCurrentState(room));
+    if (suffix === "/voice-session") return sendJson(response, 200, browserVoiceSession(room));
     if (suffix === "/exploration") {
       return sendJson(response, 200, {
         scenes: [{
@@ -1776,6 +1860,12 @@ const server = http.createServer(async (request, response) => {
         contentBinding: bindingFor(selectedReleaseId)
       };
       rooms.unshift(room);
+      voiceRoomsByRoom.set(room.id, [{
+        id: `99999999-9999-4999-8999-${String(roomSequence).padStart(12, "0")}`,
+        name: "全员主语音房",
+        room_type: "public",
+        status: "active"
+      }]);
       mechanismRuntimes.set(room.id, newFixtureMechanismRuntime());
       dashboard.counts.rooms = rooms.length;
       return sendJson(response, 201, room);

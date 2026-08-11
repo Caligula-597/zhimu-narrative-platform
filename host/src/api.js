@@ -129,6 +129,14 @@ export const api = {
   getRules: (worldId = getWorldId()) => request(`/worlds/${worldId}/rules`),
   getRuntimeContent: () => request(roomPath("/runtime-content")),
   getHostCurrentState: () => request(roomPath("/host/current-state")),
+  getVoiceSession: () => request(roomPath("/voice-session")),
+  getVoiceRoomToken: (voiceRoomId) =>
+    request(roomPath(`/voice-rooms/${voiceRoomId}/token`), { method: "POST", body: {} }),
+  startHostSession: () => request(roomPath("/host/start"), {
+    method: "POST",
+    body: {},
+    idempotent: true
+  }),
   updateHostRoomSettings: (settings) => request(roomPath("/settings"), {
     method: "PATCH",
     body: { settings }

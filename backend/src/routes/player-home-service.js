@@ -16,7 +16,14 @@ const EMPTY_SOCIAL = Object.freeze({
 });
 const EMPTY_SESSION = Object.freeze({
   voiceRooms: [], inventory: [], hostConfirm: null, currentGame: null,
-  activeVotes: [], roleState: null
+  activeVotes: [], roleState: null,
+  voiceRoster: [],
+  voicePolicy: {
+    mainRoomId: null,
+    privateRoomsEnabled: false,
+    startedAt: null,
+    roomStatus: null
+  }
 });
 
 function projectFrozenClue(provider, clue) {
@@ -58,6 +65,11 @@ function projectFrozenPlayerSocial(provider, social) {
 function projectFrozenPlayerSession(provider, session) {
   return {
     ...session,
+    voiceRoster: (session.voiceRoster || []).map((member) => {
+      if (!member.role_slot_id) return member;
+      const role = provider.find("roles", member.role_slot_id);
+      return role ? { ...member, role_name: role.name } : member;
+    }),
     inventory: session.inventory
       .map((entry) => {
         const item = provider.find("items", entry.item_id);

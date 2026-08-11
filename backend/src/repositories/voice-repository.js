@@ -7,7 +7,9 @@ export async function findVoiceRoomAccess(actorId, voiceRoomId, executor = query
               SELECT profile.display_name FROM user_portal_profiles profile
               WHERE profile.user_id = u.id
                 AND profile.portal = CASE WHEN rm.member_type IN ('host', 'cohost') THEN 'host' ELSE 'player' END
+              LIMIT 1
             ), u.display_name) AS display_name,
+            r.started_at AS room_started_at,
             COALESCE((r.settings->>'hostVoiceListen')::boolean, false) AS host_voice_listen,
             EXISTS (
               SELECT 1 FROM voice_room_members vrm
@@ -51,13 +53,81 @@ export async function configureVoiceTransaction(client) {
 
 export async function lockRoomForVoiceMutation(client, roomId) {
   const result = await client.query(
-    `SELECT id
+    `SELECT id, status, started_at
      FROM rooms
      WHERE id = $1
      FOR UPDATE`,
     [roomId]
   );
-  return result.rowCount > 0;
+  return result.rows[0] ?? null;
+}
+
+export async function loadVoiceSessionForActor(actorId, roomId, executor = query) {
+  const result = await executor(
+    `SELECT room.id, room.status, room.started_at,
+            COALESCE((
+              SELECT jsonb_agg(to_jsonb(voice_row) - 'created_at' ORDER BY voice_row.created_at)
+              FROM (
+                SELECT voice.id, voice.name, voice.room_type, voice.status, voice.created_at
+                FROM voice_rooms voice
+                WHERE voice.room_id = room.id
+                  AND voice.status = 'active'
+                  AND (voice.expires_at IS NULL OR voice.expires_at > now())
+                  AND (
+                    voice.room_type = 'public'
+                    OR (room.started_at IS NOT NULL AND EXISTS (
+                      SELECT 1 FROM voice_room_members voice_member
+                      WHERE voice_member.voice_room_id = voice.id
+                        AND voice_member.user_id = $1
+                    ))
+                  )
+              ) voice_row
+            ), '[]'::jsonb) AS voice_rooms,
+            COALESCE((
+              SELECT jsonb_agg(jsonb_build_object(
+                'user_id', member.user_id,
+                'member_type', member.member_type,
+                'role_slot_id', member.role_slot_id,
+                'role_name', role_slot.name,
+                'display_name', COALESCE((
+                  SELECT profile.display_name
+                  FROM user_portal_profiles profile
+                  WHERE profile.user_id = member.user_id
+                    AND profile.portal = CASE
+                      WHEN member.member_type IN ('host', 'cohost') THEN 'host'
+                      ELSE 'player'
+                    END
+                  LIMIT 1
+                ), member_user.display_name)
+              ) ORDER BY
+                CASE WHEN member.member_type IN ('host', 'cohost') THEN 0 ELSE 1 END,
+                member.joined_at)
+              FROM room_members member
+              JOIN users member_user ON member_user.id = member.user_id
+              LEFT JOIN role_slots role_slot ON role_slot.id = member.role_slot_id
+              WHERE member.room_id = room.id AND member.status = 'active'
+            ), '[]'::jsonb) AS voice_roster
+     FROM rooms room
+     JOIN room_members actor
+       ON actor.room_id = room.id
+      AND actor.user_id = $1
+      AND actor.status = 'active'
+     WHERE room.id = $2`,
+    [actorId, roomId]
+  );
+  const row = result.rows[0];
+  if (!row) return null;
+  const voiceRooms = row.voice_rooms ?? [];
+  return {
+    voiceRooms,
+    voiceRoster: row.voice_roster ?? [],
+    voicePolicy: {
+      mainRoomId: voiceRooms.find((voiceRoom) => voiceRoom.room_type === "public")?.id ?? null,
+      privateRoomsEnabled: Boolean(row.started_at),
+      startedAt: row.started_at ?? null,
+      roomStatus: row.status
+    }
+  };
 }
 
 export async function countActiveVoiceRooms(client, roomId) {

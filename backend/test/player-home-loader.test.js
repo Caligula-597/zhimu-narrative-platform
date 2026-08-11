@@ -22,6 +22,8 @@ test("player-home returns full payload via parallel loader", async (context) => 
     "clues",
     "sharedClues",
     "voiceRooms",
+    "voicePolicy",
+    "voiceRoster",
     "roomMembers",
     "inventory",
     "hostConfirm",

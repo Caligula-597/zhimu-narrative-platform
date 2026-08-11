@@ -2900,6 +2900,56 @@ code {
   filter: grayscale(0.35);
 }
 
+.voice-avatar.is-offline {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--surface) 72%, var(--sage-2));
+  opacity: 0.68;
+}
+
+.voice-roster-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.voice-roster-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.64);
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.voice-roster-person b {
+  color: var(--green-2);
+}
+
+.voice-roster-person i {
+  color: var(--ink-soft);
+  opacity: 0.72;
+  font-style: normal;
+}
+
+.voice-roster-person.is-connected {
+  border-color: rgba(43, 107, 97, 0.36);
+  background: rgba(235, 247, 240, 0.92);
+}
+
+.voice-room-policy {
+  margin-top: 10px !important;
+  padding-left: 10px;
+  border-left: 2px solid var(--brass);
+}
+
+.voice-room-policy.is-open {
+  border-left-color: var(--green-2);
+}
+
 .voice-hub-btns {
   display: flex;
   gap: 8px;

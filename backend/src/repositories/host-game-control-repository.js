@@ -7,7 +7,7 @@ export async function configureHostGameControlTransaction(client) {
 
 export async function lockHostGameControlRoom(client, { roomId, actorId }) {
   const result = await client.query(
-    `SELECT room.id
+    `SELECT room.id, room.status, room.started_at, room.completed_at
      FROM rooms room
      JOIN room_members member
        ON member.room_id = room.id
@@ -18,7 +18,20 @@ export async function lockHostGameControlRoom(client, { roomId, actorId }) {
      FOR UPDATE OF room, member`,
     [roomId, actorId]
   );
-  return result.rowCount > 0;
+  return result.rows[0] ?? null;
+}
+
+export async function markHostRoomSessionStarted(client, { roomId }) {
+  const result = await client.query(
+    `UPDATE rooms
+     SET started_at = COALESCE(started_at, now()),
+         status = CASE WHEN status IN ('draft', 'testing') THEN 'active' ELSE status END,
+         updated_at = now()
+     WHERE id = $1
+     RETURNING id, status, started_at, completed_at, updated_at`,
+    [roomId]
+  );
+  return result.rows[0] ?? null;
 }
 
 export async function insertMiniGameTimelineLog(client, {

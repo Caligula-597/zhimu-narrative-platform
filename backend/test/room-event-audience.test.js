@@ -31,6 +31,15 @@ test("content Release changes are visible to every room participant", () => {
   assert.equal(projectRoomEventForAudience(event, player).event, event);
 });
 
+test("formal session start is visible to every room participant", () => {
+  const event = {
+    type: "room.session_started",
+    startedAt: "2026-08-11T09:30:00.000Z",
+    status: "active",
+  };
+  assert.equal(projectRoomEventForAudience(event, player).event, event);
+});
+
 test("host presentation updates are public but contain no author-only content", () => {
   const event = {
     type: "room.presentation_updated",

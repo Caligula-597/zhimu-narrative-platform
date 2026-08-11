@@ -165,5 +165,11 @@ function mergeCoreWithPreviousSocial(homeCore, previousHome) {
   const previousSocial = Object.fromEntries(
     SOCIAL_FIELDS.map((field) => [field, previousHome[field] || []])
   );
-  return { ...homeCore, ...previousSocial };
+  return {
+    ...homeCore,
+    ...previousSocial,
+    voiceRooms: previousHome.voiceRooms || [],
+    voiceRoster: previousHome.voiceRoster || [],
+    voicePolicy: previousHome.voicePolicy || homeCore.voicePolicy
+  };
 }

@@ -49,6 +49,8 @@ test("Player session payload is loaded with one database acquisition", async () 
       return {
         rows: [{
           voice_rooms: [{ id: "voice-1" }],
+          voice_policy: { mainRoomId: "voice-1", privateRoomsEnabled: false },
+          voice_roster: [{ user_id: "host-1", member_type: "host" }],
           inventory: [{ item_id: "item-1" }],
           pending_host_events: [
             { title: "For me", rule_conditions: { all: [{ roleSlotId: "role-1" }] } }
@@ -73,6 +75,8 @@ test("Player session payload is loaded with one database acquisition", async () 
   assert.equal(result.hostConfirm.waitingForYou, true);
   assert.equal(result.currentGame.instanceId, "game-1");
   assert.equal(result.currentGame.attemptsLeft, 2);
+  assert.equal(result.voicePolicy.privateRoomsEnabled, false);
+  assert.equal(result.voiceRoster[0].member_type, "host");
 });
 
 test("host confirmation summary keeps the legacy audience semantics", () => {

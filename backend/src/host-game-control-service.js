@@ -13,6 +13,7 @@ import {
   insertHostGameControlAudit,
   insertMiniGameTimelineLog,
   lockHostGameControlRoom,
+  markHostRoomSessionStarted,
   mergeHostRoomSettings
 } from "./repositories/host-game-control-repository.js";
 import { requireHostMembership } from "./routes/host-route-guards.js";
@@ -35,8 +36,49 @@ export function normalizeHostGameControlError(error) {
 }
 
 async function assertLockedHostRoom(client, { actorId, roomId }) {
-  if (!await lockHostGameControlRoom(client, { actorId, roomId })) {
+  const room = await lockHostGameControlRoom(client, { actorId, roomId });
+  if (!room) {
     throwErr("HOST_ROLE_REQUIRED");
+  }
+  return room;
+}
+
+export async function startHostRoomSession({ actorId, roomId }) {
+  await requireHostMembership(actorId, roomId);
+  try {
+    return await transactionWithEvents(async (client, queueEvent) => {
+      await configureHostGameControlTransaction(client);
+      const lockedRoom = await assertLockedHostRoom(client, { actorId, roomId });
+      if (lockedRoom.started_at) {
+        return {
+          ok: true,
+          alreadyStarted: true,
+          room: {
+            id: lockedRoom.id,
+            status: lockedRoom.status,
+            started_at: lockedRoom.started_at,
+            completed_at: lockedRoom.completed_at
+          }
+        };
+      }
+      const room = await markHostRoomSessionStarted(client, { roomId });
+      if (!room) throwErr("ROOM_NOT_FOUND");
+      await insertHostGameControlAudit(client, {
+        roomId,
+        actorId,
+        action: "room_session_started",
+        targetType: "room",
+        targetId: roomId,
+        metadata: { startedAt: room.started_at }
+      });
+      queueEvent(roomId, "room.session_started", {
+        startedAt: room.started_at,
+        status: room.status
+      });
+      return { ok: true, alreadyStarted: false, room };
+    });
+  } catch (error) {
+    throw normalizeHostGameControlError(error);
   }
 }
 

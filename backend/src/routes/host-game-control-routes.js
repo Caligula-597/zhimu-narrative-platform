@@ -3,6 +3,7 @@ import {
   listHostMiniGames,
   previewHostRoomRules,
   startHostMiniGame,
+  startHostRoomSession,
   triggerHostManualRule,
   updateHostRoomSettings
 } from "../host-game-control-service.js";
@@ -18,6 +19,18 @@ import {
 } from "./schemas.js";
 
 export async function registerHostGameControlRoutes(app) {
+  app.post(
+    "/api/rooms/:roomId/host/start",
+    { schema: { params: roomIdParams } },
+    async (request) => {
+      const actorId = requireActor(request);
+      const { roomId } = request.params;
+      return withRoomIdempotency(roomId, request, "host.room_start", () => (
+        startHostRoomSession({ actorId, roomId })
+      ));
+    }
+  );
+
   app.get(
     "/api/rooms/:roomId/host/mini-games",
     { schema: { params: roomIdParams } },

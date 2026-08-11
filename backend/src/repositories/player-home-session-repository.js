@@ -30,13 +30,60 @@ export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId, runQu
                AND vr.status = 'active'
                AND (vr.expires_at IS NULL OR vr.expires_at > now())
                AND (
-                 vr.room_type = 'public' OR EXISTS (
-                 SELECT 1 FROM voice_room_members vrm
-                 WHERE vrm.voice_room_id = vr.id AND vrm.user_id = $3
+                 vr.room_type = 'public' OR (
+                   EXISTS (
+                     SELECT 1 FROM rooms voice_runtime_room
+                     WHERE voice_runtime_room.id = vr.room_id
+                       AND voice_runtime_room.started_at IS NOT NULL
+                   )
+                   AND EXISTS (
+                     SELECT 1 FROM voice_room_members vrm
+                     WHERE vrm.voice_room_id = vr.id AND vrm.user_id = $3
+                   )
+                 )
                )
-             )
-           ) voice_row
+             ) voice_row
          ), '[]'::jsonb) AS voice_rooms,
+         (SELECT jsonb_build_object(
+            'mainRoomId', (
+              SELECT public_voice.id
+              FROM voice_rooms public_voice
+              WHERE public_voice.room_id = runtime_room.id
+                AND public_voice.room_type = 'public'
+                AND public_voice.status = 'active'
+              ORDER BY public_voice.created_at
+              LIMIT 1
+            ),
+            'privateRoomsEnabled', runtime_room.started_at IS NOT NULL,
+            'startedAt', runtime_room.started_at,
+            'roomStatus', runtime_room.status
+          )
+          FROM rooms runtime_room
+          WHERE runtime_room.id = $1) AS voice_policy,
+         COALESCE((
+           SELECT jsonb_agg(jsonb_build_object(
+             'user_id', member.user_id,
+             'member_type', member.member_type,
+             'role_slot_id', member.role_slot_id,
+             'role_name', role_slot.name,
+             'display_name', COALESCE((
+               SELECT profile.display_name
+               FROM user_portal_profiles profile
+               WHERE profile.user_id = member.user_id
+                 AND profile.portal = CASE
+                   WHEN member.member_type IN ('host', 'cohost') THEN 'host'
+                   ELSE 'player'
+                 END
+               LIMIT 1
+             ), member_user.display_name)
+           ) ORDER BY
+             CASE WHEN member.member_type IN ('host', 'cohost') THEN 0 ELSE 1 END,
+             member.joined_at)
+           FROM room_members member
+           JOIN users member_user ON member_user.id = member.user_id
+           LEFT JOIN role_slots role_slot ON role_slot.id = member.role_slot_id
+           WHERE member.room_id = $1 AND member.status = 'active'
+         ), '[]'::jsonb) AS voice_roster,
          COALESCE((
            SELECT jsonb_agg(to_jsonb(vote_row) - 'created_at' ORDER BY vote_row.created_at DESC)
            FROM (
@@ -104,6 +151,13 @@ export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId, runQu
   const row = snapshot.rows[0] ?? {};
   return {
     voiceRooms: row.voice_rooms ?? [],
+    voicePolicy: row.voice_policy ?? {
+      mainRoomId: null,
+      privateRoomsEnabled: false,
+      startedAt: null,
+      roomStatus: null
+    },
+    voiceRoster: row.voice_roster ?? [],
     inventory: row.inventory ?? [],
     hostConfirm: summarizePlayerHostConfirm(row.pending_host_events ?? [], roleSlotId),
     currentGame: publicMiniGame(row.current_game),

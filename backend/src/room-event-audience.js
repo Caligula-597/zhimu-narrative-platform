@@ -1,6 +1,7 @@
 const HOST_MEMBER_TYPES = new Set(["host", "cohost"]);
 const PUBLIC_PLAYER_EVENT_TYPES = new Set([
   "room.player_joined",
+  "room.session_started",
   "room.scene_unlocked",
   "room.game_started",
   "room.game_updated",

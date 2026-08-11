@@ -153,6 +153,7 @@ export const api = {
     request(`/rooms/${roomId}/notebook/${entryId}`, { method: "DELETE" }),
   myTimeline: (roomId) => request(`/rooms/${roomId}/my-timeline`),
   getVoiceMessages: (voiceRoomId) => request(`/voice-rooms/${voiceRoomId}/messages`),
+  getVoiceSession: (roomId) => request(`/rooms/${roomId}/voice-session`),
   getVoiceRoomToken: (roomId, voiceRoomId) =>
     request(`/rooms/${roomId}/voice-rooms/${voiceRoomId}/token`, { method: "POST", body: {} }),
   sendVoiceMessage: (voiceRoomId, body) =>

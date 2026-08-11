@@ -1,6 +1,7 @@
 import { state } from "../state.js";
 import { escapeHtml, formatRelativeTime } from "../utils/format.js";
 import { resolveChapterSegmentKey, segmentRunbookFromOperations } from "../../../shared/segment-contract.js";
+import { hostVoiceRoster, hostVoiceStatusLabel } from "../runtime/host-voice-controller.js";
 
 function paceClock(pace = {}) {
   let elapsed = pace.elapsedMs || 0;
@@ -503,9 +504,46 @@ function renderTopbar({ room, world }) {
   </section>`;
 }
 
+function renderHostVoicePanel() {
+  const session = state.voiceSession;
+  const policy = session?.voicePolicy || {};
+  const mainRoom = (session?.voiceRooms || []).find((room) => room.id === policy.mainRoomId)
+    || (session?.voiceRooms || []).find((room) => room.room_type === "public");
+  const roster = hostVoiceRoster();
+  const connected = state.hostVoiceLiveStatus === "connected";
+  const connecting = state.hostVoiceLiveStatus === "connecting";
+  const started = Boolean(policy.privateRoomsEnabled);
+  return `<section class="host-voice-panel" aria-label="全员主语音房">
+    <div class="host-voice-summary">
+      <span class="host-voice-mark" aria-hidden="true">${connected ? "🎙" : "♬"}</span>
+      <div>
+        <p class="section-kicker">MAIN VOICE</p>
+        <h2>${escapeHtml(mainRoom?.name || "全员主语音房")}</h2>
+        <p>主持人与全部玩家共用固定主房 · ${escapeHtml(hostVoiceStatusLabel())}</p>
+      </div>
+    </div>
+    <div class="host-voice-roster">
+      ${roster.length ? roster.map((member) => `<span class="host-voice-person ${member.connected ? "is-connected" : ""}"><b>${escapeHtml(member.roleLabel)}</b>${escapeHtml(member.name)}<i>${member.connected ? "语音在线" : "已入房"}</i></span>`).join("") : `<span class="host-voice-empty">等待房间成员加入</span>`}
+    </div>
+    <div class="host-voice-policy">
+      <span class="status-chip ${started ? "published" : "testing"}">${started ? "场次已开始" : "候场中"}</span>
+      <small>${started ? "玩家现可创建仅受邀者可见的临时密谈" : "当前仅开放全员主房；正式开场后才开放玩家密谈"}</small>
+    </div>
+    <div class="host-voice-actions">
+      ${started ? "" : `<button class="primary-btn" type="button" data-action="host-session-start" ${state.hostVoiceBusy ? "disabled" : ""}>正式开始场次</button>`}
+      ${connected
+        ? `<button class="secondary-btn" type="button" data-action="host-voice-mic">${state.hostVoiceMicEnabled ? "关闭麦克风" : "开启麦克风"}</button>
+           ${state.hostVoicePlaybackBlocked ? `<button class="primary-btn" type="button" data-action="host-voice-playback">开启扬声器</button>` : ""}
+           <button class="secondary-btn" type="button" data-action="host-voice-disconnect">退出音频</button>`
+        : `<button class="secondary-btn" type="button" data-action="host-voice-connect" ${!mainRoom || connecting || state.hostVoiceBusy ? "disabled" : ""}>${connecting ? "正在连接…" : "进入主语音房"}</button>`}
+    </div>
+  </section>`;
+}
+
 export function renderHostCommandCenter({ room, world, playersTableRows, currentBeatKey = "", presentation = null }) {
   return `<section class="host-command-center">
     ${renderTopbar({ room, world })}
+    ${renderHostVoicePanel()}
     <div class="host-command-grid">
       ${renderPlayersColumn({ playersTableRows })}
       ${renderCurrentActColumn(currentBeatKey, presentation)}

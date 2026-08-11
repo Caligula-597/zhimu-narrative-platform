@@ -14,6 +14,7 @@ function dependencies(overrides = {}) {
       setBusy() {},
       setToast: record("toast"),
       formatApiError: (_error, fallback) => fallback,
+      privateVoiceRoomsEnabled: () => true,
       openVoiceRoomPicker: record("picker"),
       openCreateVoiceRoomModal: record("create-modal"),
       openInviteVoiceRoomModal: record("invite-modal"),
@@ -49,6 +50,17 @@ test("voice refresh converts failures to a user toast", async () => {
   });
   assert.equal(await handlePlayVoiceAction(options), true);
   assert.deepEqual(calls[0].slice(0, 2), ["toast", "刷新失败"]);
+});
+
+test("voice room creation stays blocked before the host starts the session", async () => {
+  const { calls, options } = dependencies({
+    action: "voice-room-create",
+    privateVoiceRoomsEnabled: () => false
+  });
+  assert.equal(await handlePlayVoiceAction(options), true);
+  assert.equal(calls[0][0], "toast");
+  assert.match(calls[0][1], /正式开场/);
+  assert.equal(calls.some(([name]) => name === "create-modal"), false);
 });
 
 test("unknown voice action is left for the next dispatcher", async () => {

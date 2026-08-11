@@ -34,6 +34,7 @@ import {
   syncRoomStream
 } from "./room-events.js";
 import { mergePortalProfileIntoUser } from "../../../shared/portal-profile-ui.js";
+import { resetHostVoiceOnLeave } from "./host-voice-controller.js";
 
 export function normalizeHostUser(raw) {
   raw = normalizeAuthenticatedUser(raw);
@@ -146,6 +147,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   async function handleExternalSessionChange(token) {
     sessionGeneration += 1;
     if (!token) {
+      await resetHostVoiceOnLeave();
       disconnectRoomEvents();
       state.hostOperation = null;
       resetHostEventUi();
@@ -267,6 +269,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
   async function selectRoom(roomId) {
     const worldId = getWorldId();
     if (!worldId || !roomId) return;
+    await resetHostVoiceOnLeave();
     state.hostOperation = null;
     resetHostEventUi();
     resetHostVoteUi();
@@ -378,6 +381,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     } finally {
       setBusy(false);
     }
+    await resetHostVoiceOnLeave();
     disconnectRoomEvents();
     clearSession();
     setWorldId("");
@@ -400,6 +404,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
     switch (action) {
       case "go-home":
         if (blockUnsafeConsoleExit()) return true;
+        await resetHostVoiceOnLeave();
         disconnectRoomEvents();
         state.hostOperation = null;
         resetHostEventUi();
@@ -409,6 +414,7 @@ export function createHostLifecycleController({ render, setBusy, showToast }) {
         return true;
       case "go-pick-room":
         if (blockUnsafeConsoleExit()) return true;
+        await resetHostVoiceOnLeave();
         disconnectRoomEvents();
         state.hostOperation = null;
         resetHostEventUi();

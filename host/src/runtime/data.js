@@ -23,6 +23,15 @@ export function applyHostMiniGamesPayload(value) {
   state.cloudHostMiniGames = Array.isArray(value?.games) ? value.games : [];
 }
 
+export function applyHostVoiceSessionPayload(value) {
+  state.voiceSession = value || null;
+  const rooms = value?.voiceRooms || [];
+  const preferred = rooms.find((room) => room.id === value?.voicePolicy?.mainRoomId)
+    || rooms.find((room) => room.room_type === "public")
+    || null;
+  state.hostVoiceRoomId = preferred?.id || "";
+}
+
 export async function loadHostData(withToast = false, force = false) {
   const roomId = getRoomId();
   const worldId = getWorldId();
@@ -115,7 +124,8 @@ async function loadHostDataInternal(withToast = false) {
           initialized: false,
           error: formatApiError(error, "机制运行态加载失败"),
           errorCode: error?.code || ""
-        }))
+        })),
+        api.getVoiceSession().catch(() => null)
       ]);
       if (results[0].status === "fulfilled") applyHostPlayersPayload(results[0].value);
       else {
@@ -134,6 +144,7 @@ async function loadHostDataInternal(withToast = false) {
       if (results[9].status === "fulfilled") applyHostMiniGamesPayload(results[9].value);
       if (results[10].status === "fulfilled") state.currentState = results[10].value;
       if (results[11].status === "fulfilled") state.cloudHostMechanismRuntime = results[11].value;
+      if (results[12].status === "fulfilled") applyHostVoiceSessionPayload(results[12].value);
     } else {
       state.cloudHostPlayers = [];
       state.cloudHostEvents = [];
@@ -148,6 +159,8 @@ async function loadHostDataInternal(withToast = false) {
       state.cloudHostMiniGames = [];
       state.currentState = null;
       state.cloudHostMechanismRuntime = null;
+      state.voiceSession = null;
+      state.hostVoiceRoomId = "";
       state.hostMechanismBusy = "";
       state.hostMechanismError = "";
       state.cloudRunReport = null;
@@ -251,7 +264,7 @@ export async function refreshHostRoom(withToast = false) {
   const generation = ++roomRefreshGeneration;
   try {
     const logParams = { limit: "20", roomId: getRoomId() };
-    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions, currentState, mechanismRuntime] = await Promise.all([
+    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions, currentState, mechanismRuntime, voiceSession] = await Promise.all([
       api.getHostPlayers(),
       api.getHostEvents(),
       api.getWorldLogs(logParams),
@@ -265,7 +278,8 @@ export async function refreshHostRoom(withToast = false) {
         initialized: false,
         error: formatApiError(error, "机制运行态加载失败"),
         errorCode: error?.code || ""
-      }))
+      })),
+      api.getVoiceSession().catch(() => null)
     ]);
     if (generation !== roomRefreshGeneration) return false;
     applyHostPlayersPayload(hostPlayers);
@@ -278,6 +292,7 @@ export async function refreshHostRoom(withToast = false) {
     state.cloudHostPrivateActions = privateActions?.actions || [];
     state.currentState = currentState;
     state.cloudHostMechanismRuntime = mechanismRuntime;
+    applyHostVoiceSessionPayload(voiceSession);
     if (state.view === "console") renderRef();
     if (withToast) {
       toastRef(
@@ -292,6 +307,14 @@ export async function refreshHostRoom(withToast = false) {
     if (withToast) toastRef(formatApiError(error, "刷新失败"));
     return false;
   }
+}
+
+export async function refreshHostVoiceSession({ render = true } = {}) {
+  if (!getRoomId()) return null;
+  const session = await api.getVoiceSession();
+  applyHostVoiceSessionPayload(session);
+  if (render && state.view === "console") renderRef();
+  return session;
 }
 
 export async function loadWorldsList() {

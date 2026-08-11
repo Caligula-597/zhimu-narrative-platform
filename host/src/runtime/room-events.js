@@ -9,7 +9,8 @@ import {
   refreshHostClueMatrix,
   refreshHostEvents,
   refreshHostPlayers,
-  refreshHostRoom
+  refreshHostRoom,
+  refreshHostVoiceSession
 } from "./data.js";
 import { applyHostMiniGameEvent } from "./host-mini-game-controller.js";
 
@@ -86,11 +87,13 @@ async function handleRoomEvent(type, data) {
   switch (type) {
     case "room.player_joined":
       await refreshHostPlayers(false, true);
+      await refreshHostVoiceSession();
       await refreshOpenPlayerOperation(data.roleSlotId);
       showToast("有新玩家加入房间", 2800);
       break;
     case "room.player_kicked":
       await refreshHostPlayers(false, true);
+      await refreshHostVoiceSession();
       markOpenPlayerRemoved(data.roleSlotId);
       showToast("已移出玩家", 2800);
       break;
@@ -150,6 +153,18 @@ async function handleRoomEvent(type, data) {
     case "room.content_release_changed":
       await refreshHostRoom(false);
       showToast(`运行内容已切换到 R${Number(data.releaseNumber) || "?"}`, 3200);
+      break;
+    case "room.session_started":
+      if (state.room) {
+        state.room = {
+          ...state.room,
+          status: data.status || "active",
+          started_at: data.startedAt || state.room.started_at
+        };
+      }
+      await refreshHostVoiceSession({ render: false });
+      showToast("场次已正式开始 · 玩家密谈权限已开放", 3200);
+      render();
       break;
     case "room.presentation_updated":
       await refreshHostRoom(false);

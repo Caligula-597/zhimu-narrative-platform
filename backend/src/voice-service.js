@@ -11,6 +11,7 @@ import {
   insertVoiceRoom,
   insertVoiceRoomMembers,
   listVoiceRoomMessages,
+  loadVoiceSessionForActor,
   lockRoomForVoiceMutation
 } from "./repositories/voice-repository.js";
 import { transactionWithEvents } from "./transaction-events.js";
@@ -49,6 +50,9 @@ async function assertAllActiveRoomMembers(client, roomId, userIds) {
 export async function resolveVoiceRoomAccess(actorId, voiceRoomId) {
   const row = await findVoiceRoomAccess(actorId, voiceRoomId);
   if (!row) return { allowed: false, error: "Voice room membership required" };
+  if (row.room_type !== "public" && !row.room_started_at) {
+    return { allowed: false, code: "VOICE_PRIVATE_BEFORE_START", error: "Private voice rooms open after the host starts the session" };
+  }
   if (row.room_type === "public" || row.voice_member) return { allowed: true, ...row };
   if (row.member_type === "host" && row.host_voice_listen) {
     return { allowed: true, ...row, host_listen: true };
@@ -58,8 +62,14 @@ export async function resolveVoiceRoomAccess(actorId, voiceRoomId) {
 
 export async function requireVoiceRoomAccess(actorId, voiceRoomId) {
   const access = await resolveVoiceRoomAccess(actorId, voiceRoomId);
-  if (!access.allowed) throwErr("VOICE_ACCESS_DENIED", access.error);
+  if (!access.allowed) throwErr(access.code || "VOICE_ACCESS_DENIED", access.error);
   return access;
+}
+
+export async function loadVoiceSession(actorId, roomId) {
+  const session = await loadVoiceSessionForActor(actorId, roomId);
+  if (!session) throwErr("ROOM_MEMBERSHIP_REQUIRED");
+  return session;
 }
 
 export async function loadVoiceRoomMessages(actorId, voiceRoomId) {
@@ -92,7 +102,11 @@ export async function createVoiceRoomForActor({
   try {
     return await transaction(async (client) => {
       await configureVoiceTransaction(client);
-      if (!await lockRoomForVoiceMutation(client, roomId)) throwErr("ROOM_NOT_FOUND");
+      const runtimeRoom = await lockRoomForVoiceMutation(client, roomId);
+      if (!runtimeRoom) throwErr("ROOM_NOT_FOUND");
+      if (roomType !== "public" && !runtimeRoom.started_at) {
+        throwErr("VOICE_PRIVATE_BEFORE_START");
+      }
       // This must be a new statement after the row lock is acquired. A count
       // embedded in the locking statement can retain a pre-wait snapshot and
       // miss the concurrent transaction that just committed.
@@ -158,7 +172,7 @@ export async function appendVoiceRoomMembers(actorId, voiceRoomId, inviteUserIds
 
 export async function issueVoiceRoomToken(actorId, roomId, voiceRoomId) {
   const access = await resolveVoiceRoomAccess(actorId, voiceRoomId);
-  if (!access.allowed) throwErr("VOICE_ACCESS_DENIED", access.error);
+  if (!access.allowed) throwErr(access.code || "VOICE_ACCESS_DENIED", access.error);
   if (access.room_id !== roomId) throwErr("VOICE_ROOM_NOT_IN_PARALLEL_ROOM");
   if (!isLiveKitConfigured()) throwErr("LIVEKIT_NOT_CONFIGURED");
 

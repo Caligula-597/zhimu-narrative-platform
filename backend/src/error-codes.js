@@ -331,6 +331,7 @@ export const API_ERRORS = {
   VOICE_ROOM_NOT_IN_PARALLEL_ROOM: { status: 404, message: "Voice room not found in this parallel room" },
   VOICE_MEMBER_NOT_IN_ROOM: { status: 400, message: "Invited user must be an active room member" },
   VOICE_PUBLIC_CREATE_FORBIDDEN: { status: 403, message: "Only a host or cohost can create a managed voice room" },
+  VOICE_PRIVATE_BEFORE_START: { status: 409, message: "主持人正式开场后才可使用私密语音房" },
   VOICE_ROOM_LIMIT_REACHED: { status: 409, message: "This parallel room has reached its active voice room limit" },
   LIVEKIT_NOT_CONFIGURED: { status: 503, message: "LiveKit is not configured on the server" },
 
