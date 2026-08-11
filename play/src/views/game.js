@@ -5,7 +5,7 @@ import {
 import { renderSections } from "./game-section-view.js";
 import { renderClues, renderExploration, renderInventory } from "./game-investigation-views.js";
 import {
-  renderGame, renderGameTabBar, renderGameTabBody, renderTabletopLiveAlert
+  renderConclusionStatus, renderGame, renderGameTabBar, renderGameTabBody, renderTabletopLiveAlert
 } from "./game-shell-view.js";
 import {
   defaultGameTabFor, gameTabPanelLabelId, primaryTabFor, tabGroupFor
@@ -15,5 +15,5 @@ export {
   defaultGameTabFor, gameTabPanelLabelId, primaryTabFor, tabGroupFor,
   renderClues, renderExploration, renderGame, renderGameHome, renderGameResume,
   renderGameSidebar, renderGameTabBar, renderGameTabBody, renderHostConfirmBannerHtml,
-  renderInventory, renderRoomMembersHtml, renderSections, renderTabletopLiveAlert
+  renderConclusionStatus, renderInventory, renderRoomMembersHtml, renderSections, renderTabletopLiveAlert
 };

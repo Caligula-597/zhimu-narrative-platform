@@ -394,3 +394,21 @@ test("pace clock events are public but contain only projection invalidation fiel
     { type: "room.pace_clock_updated", revision: 5, visibleToPlayers: false }
   );
 });
+
+test("conclusion events expose only player-safe readiness fields", () => {
+  const event = {
+    type: "room.conclusion_updated",
+    status: "ready",
+    endingId: "escape",
+    recapId: "recap-1",
+    revision: 4,
+    failureCode: "must-not-cross",
+  };
+  assert.deepEqual(projectRoomEventForAudience(event, player).event, {
+    type: "room.conclusion_updated",
+    status: "ready",
+    endingId: "escape",
+    recapId: "recap-1",
+    revision: 4,
+  });
+});

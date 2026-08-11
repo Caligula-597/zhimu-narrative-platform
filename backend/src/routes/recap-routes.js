@@ -4,8 +4,18 @@ import {
   getRoomRecap,
   listRoomRecaps
 } from "../recap-service.js";
+import {
+  getRoomConclusion,
+  publishEndingAndPrepareRecap,
+} from "../room-conclusion-service.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
+import { requireRoomRole } from "./route-guards.js";
+import { requireHostMembership } from "./host-route-guards.js";
+import {
+  prepareRoomConclusionSchema,
+  roomConclusionSchema,
+} from "./schemas/room-conclusion.js";
 import {
   createRecapSchema,
   latestRecapSchema,
@@ -14,6 +24,29 @@ import {
 } from "./schemas/recap.js";
 
 export async function registerRecapRoutes(app) {
+  app.get("/api/rooms/:roomId/conclusion", { schema: roomConclusionSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const membership = await requireRoomRole(actorId, roomId);
+    const audience = ["host", "cohost"].includes(membership.member_type) ? "host" : "player";
+    return getRoomConclusion(roomId, { audience });
+  });
+
+  app.post("/api/rooms/:roomId/host/conclusion", { schema: prepareRoomConclusionSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireHostMembership(actorId, roomId);
+    return publishEndingAndPrepareRecap({
+      roomId,
+      actorId,
+      endingId: request.body.endingId,
+      idempotencyKey: request.body.idempotencyKey,
+      title: request.body.title,
+      description: request.body.description,
+      logger: request.log,
+    });
+  });
+
   app.get("/api/rooms/:roomId/recaps", { schema: listRecapsSchema }, async (request) => {
     const actorId = requireActor(request);
     return listRoomRecaps({ actorId, roomId: request.params.roomId });

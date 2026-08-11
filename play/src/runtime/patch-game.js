@@ -2,6 +2,7 @@ import { setHtml } from "../../../shared/safe-dom.js";
 import { setToast } from "../state.js";
 import {
   gameTabPanelLabelId,
+  renderConclusionStatus,
   renderGameTabBar,
   renderGameTabBody,
   renderGameSidebar,
@@ -44,6 +45,9 @@ function patchGameChrome(state) {
 
   const paceClock = document.querySelector("[data-game-pace-clock]");
   if (paceClock) setHtml(paceClock, renderPlayerPaceClock(state.paceClock));
+
+  const conclusion = document.querySelector("[data-game-conclusion-status]");
+  if (conclusion) setHtml(conclusion, renderConclusionStatus());
 
   const miniGame = document.querySelector("[data-game-mini-game]");
   if (miniGame && !activeInputIn(miniGame)) setHtml(miniGame, renderMiniGamePanel(state.currentGame));

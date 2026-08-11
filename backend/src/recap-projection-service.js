@@ -1,11 +1,12 @@
 export function filterRecapForPlayer(snapshot, roleSlotId) {
+  const { conclusion, ...publicSnapshot } = snapshot || {};
   const myPerformance = (snapshot.rolePerformances ?? [])
     .find((row) => row.roleSlotId === roleSlotId) ?? null;
   const personalNotes = (snapshot.notes ?? [])
     .filter((row) => row.roleSlotId === roleSlotId);
 
   return {
-    ...snapshot,
+    ...publicSnapshot,
     perspective: "postgame",
     highlightRoleSlotId: roleSlotId,
     roleSlotId,
@@ -20,7 +21,8 @@ export function filterRecapForPlayer(snapshot, roleSlotId) {
       .filter((row) => row.roleSlotId === roleSlotId),
     notes: personalNotes,
     hostConfirmedEvents: snapshot.hostConfirmedEvents ?? [],
-    endingTriggers: snapshot.endingTriggers ?? []
+    endingTriggers: snapshot.endingTriggers ?? [],
+    conclusion: conclusion?.endingId ? { endingId: conclusion.endingId } : undefined
   };
 }
 

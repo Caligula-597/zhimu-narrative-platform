@@ -1025,10 +1025,18 @@ button {
 .player-pace-clock small { color: var(--muted); font-size: 11px; }
 .player-pace-clock.is-paused { border-color: rgba(168, 95, 84, .3); color: var(--clay); }
 .player-pace-clock.is-completed { border-color: rgba(168, 95, 84, .45); background: rgba(168, 95, 84, .1); color: var(--clay); }
+.player-conclusion-status { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin: 0 0 12px; padding: 13px 15px; border: 1px solid rgba(168, 95, 84, .28); border-radius: 12px; background: linear-gradient(100deg, rgba(168, 95, 84, .12), rgba(255, 255, 255, .88)); }
+.player-conclusion-status span { color: var(--clay); font-size: 13px; font-weight: 800; }
+.player-conclusion-status p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+.player-conclusion-status.is-ready { border-color: rgba(43, 107, 97, .3); background: linear-gradient(100deg, rgba(43, 107, 97, .12), rgba(255, 255, 255, .88)); }
+.player-conclusion-status.is-ready span { color: var(--green); }
+.player-conclusion-pulse { width: 10px; height: 10px; flex: 0 0 auto; border-radius: 50%; background: var(--clay); box-shadow: 0 0 0 5px rgba(168, 95, 84, .13); }
 
 @media (max-width: 640px) {
   .player-pace-clock { align-items: flex-start; flex-direction: column; gap: 3px; }
   .player-pace-clock > div { width: 100%; justify-content: space-between; }
+  .player-conclusion-status { align-items: stretch; flex-direction: column; }
+  .player-conclusion-status .btn { width: 100%; }
 }
 
 .exploration-location-context {

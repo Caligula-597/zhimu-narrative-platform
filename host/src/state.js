@@ -72,6 +72,7 @@ export const state = {
   roomEventsConnected: false,
   roomEventsStatus: "idle",
 
-  /** 节奏计时器状态 — 保存在 localStorage，仅主持人本地使用，不同步给玩家 */
-  paceTimer: null
+  /** 房间级节奏时钟与一次性收束状态，均以服务端版本为准。 */
+  paceTimer: null,
+  sessionConclusion: null
 };

@@ -185,6 +185,12 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     status: shortText,
     visibleToPlayers: boolean
   }),
+  "room.conclusion_updated": schema(["status", "endingId", "recapId", "revision"], {
+    status: shortText,
+    endingId: optionalShortText,
+    recapId: optionalShortText,
+    revision: number
+  }),
   "room.vote_created": schema(["voteId", "title", "status"], {
     voteId: id,
     title: text,

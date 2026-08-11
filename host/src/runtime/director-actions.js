@@ -322,12 +322,16 @@ export function createDirectorActionHandler({ render, showToast }) {
           showToast("该结局尚未满足条件，不能公开");
           return true;
         }
-        saveRuntimePresentation((presentation) => {
-          const currentCandidate = presentation.map?.host?.endingCandidates
-            ?.find((ending) => ending.id === endingId);
-          if (!currentCandidate || presentation.map?.publishedEnding?.id === endingId) return null;
-          return { publishedEnding: { id: endingId, publishedAt: new Date().toISOString() } };
-        }, `结局导向「${candidate.name}」已公开给玩家`);
+        const idempotencyKey = `conclusion:${state.room?.id || "room"}:${endingId}`;
+        await runCommand(
+          () => api.prepareRoomConclusion({
+            endingId,
+            idempotencyKey,
+            title: `${candidate.name} · 复盘`
+          }, idempotencyKey),
+          `结局「${candidate.name}」已公开，复盘已进入准备流程`,
+          "公开结局或准备复盘失败"
+        );
         return true;
       }
       case "host-tabletop-unpublish-ending": {

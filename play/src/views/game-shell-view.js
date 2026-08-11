@@ -121,6 +121,20 @@ export function renderTabletopLiveAlert() {
   </section>`;
 }
 
+export function renderConclusionStatus() {
+  const conclusion = state.sessionConclusion;
+  if (!conclusion || conclusion.status === "idle") return "";
+  const ready = conclusion.status === "ready";
+  const label = ready ? "本局复盘已就绪" : "结局已公开 · 复盘准备中";
+  const detail = ready
+    ? "你可以查看本局已公开的真相、轨迹与个人视角。"
+    : "即使网络中断，结局与准备进度也会从房间状态恢复。";
+  return `<section class="player-conclusion-status ${ready ? "is-ready" : "is-pending"}" role="status" aria-live="polite">
+    <div><span>${escapeHtml(label)}</span><p>${escapeHtml(detail)}</p></div>
+    ${ready ? `<button class="btn primary compact" type="button" data-action="switch-tab" data-tab="recap">查看复盘</button>` : `<span class="player-conclusion-pulse" aria-hidden="true"></span>`}
+  </section>`;
+}
+
 function renderTabBadge(id, badge, pulseCount = 0) {
   const pulse = pulseCount > 0 && primaryTabFor(state.tab) !== id;
   const parts = [];
@@ -175,6 +189,7 @@ export function renderGame() {
         </nav>
         <div data-game-host-banner>${renderHostConfirmBannerHtml()}</div>
         <div data-game-pace-clock>${renderPlayerPaceClock(state.paceClock)}</div>
+        <div data-game-conclusion-status>${renderConclusionStatus()}</div>
         <div data-game-tabletop-alert>${renderTabletopLiveAlert()}</div>
         <div data-game-mini-game>${renderMiniGamePanel(state.currentGame)}</div>
         <div class="tab-body" data-game-tab-body role="tabpanel" aria-labelledby="${gameTabPanelLabelId(state.tab)}">${renderGameTabBody()}</div>

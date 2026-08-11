@@ -2287,6 +2287,9 @@ textarea:focus-visible {
 .host-stage-ending-list small { display: block; margin-top: 4px; color: #7b7f8b; font-size: 8px; }
 .host-stage-published-ending { border-color: rgba(40, 108, 97, .28); background: rgba(235, 247, 242, .74); }
 .host-stage-ending-empty { display: flex; justify-content: space-between; gap: 12px; padding: 10px; border-radius: 9px; background: rgba(95, 120, 184, .07); font-size: 10px; }
+.host-conclusion-status { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid rgba(40, 108, 97, .18); border-radius: 10px; background: rgba(40, 108, 97, .08); color: #286c61; font-size: 11px; }
+.host-conclusion-status span { color: var(--muted); }
+.host-conclusion-status.is-failed { border-color: rgba(172, 78, 55, .3); background: rgba(172, 78, 55, .08); color: #9b4f3a; }
 .host-stage-ending-empty span { color: var(--muted); }
 @media (max-width: 900px) {
   .host-stage-grid { grid-template-columns: 1fr; }

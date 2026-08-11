@@ -5,6 +5,7 @@ import { filterRecapForPlayer, summarizeRecap } from "./recap-projection-service
 import {
   configureRecapTransaction,
   countRoomRecaps,
+  findRoomRecapByConclusionKey,
   findLatestRoomRecap,
   findRoomRecap,
   insertRoomRecap,
@@ -122,12 +123,15 @@ export async function createRoomRecap({
   title,
   description = "",
   logger,
-  rewardRecap = rewardFirstRecap
+  rewardRecap = rewardFirstRecap,
+  conclusionKey = "",
+  endingId = ""
 }) {
   const normalizedTitle = String(title ?? "").trim();
   if (!normalizedTitle) throwErr("RECAP_TITLE_REQUIRED");
 
   let row;
+  let created = false;
   try {
     row = await transaction(async (client) => {
       await configureRecapTransaction(client);
@@ -135,6 +139,10 @@ export async function createRoomRecap({
         throwErr("RECAP_GENERATION_IN_PROGRESS");
       }
       requireHostMembership(await lockMembershipForCreate(client, { actorId, roomId }));
+      if (conclusionKey) {
+        const existing = await findRoomRecapByConclusionKey(client, { roomId, conclusionKey });
+        if (existing) return existing;
+      }
       const recapCount = await countRoomRecaps(client, roomId);
       if (recapCount >= RECAP_MAX_PER_ROOM) {
         throwErr("RECAP_LIMIT_REACHED", undefined, { limit: RECAP_MAX_PER_ROOM });
@@ -143,23 +151,33 @@ export async function createRoomRecap({
       const snapshot = await buildRoomRecapSnapshot(client.query.bind(client), roomId);
       if (!snapshot) throwErr("ROOM_NOT_FOUND");
       snapshot.description = String(description ?? "").trim();
+      if (conclusionKey) {
+        snapshot.conclusion = {
+          idempotencyKey: String(conclusionKey),
+          endingId: String(endingId || "")
+        };
+      }
       const snapshotJson = assertRecapSnapshotSize(snapshot);
-      return insertRoomRecap(client, {
+      const inserted = await insertRoomRecap(client, {
         roomId,
         actorId,
         title: normalizedTitle,
         snapshotJson
       });
+      created = true;
+      return inserted;
     });
   } catch (error) {
     throw normalizeRecapGenerationError(error);
   }
 
   let creditReward = null;
-  try {
-    creditReward = await rewardRecap(actorId, row.id);
-  } catch (error) {
-    logger?.warn?.({ err: error, actorId, recapId: row.id }, "recap credit reward deferred");
+  if (created) {
+    try {
+      creditReward = await rewardRecap(actorId, row.id);
+    } catch (error) {
+      logger?.warn?.({ err: error, actorId, recapId: row.id }, "recap credit reward deferred");
+    }
   }
 
   return {

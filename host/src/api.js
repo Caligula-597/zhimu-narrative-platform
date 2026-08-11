@@ -174,6 +174,13 @@ export const api = {
     method: "POST",
     body: payload
   }),
+  getRoomConclusion: () => request(roomPath("/conclusion")),
+  prepareRoomConclusion: (payload, idempotencyKey) => request(roomPath("/host/conclusion"), {
+    method: "POST",
+    body: payload,
+    idempotent: true,
+    idempotencyKey
+  }),
   getHostAuditLog: (limit = 50) => request(`${roomPath("/host/audit-log")}?limit=${limit}`),
   getHostVotes: () => request(roomPath("/host/votes")),
   hostCreateVote: (payload, roomId = getRoomId(), idempotencyKey = "") =>

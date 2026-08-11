@@ -91,6 +91,18 @@ export function projectRoomEventForAudience(event, audience = {}) {
       disconnectAfter: false
     };
   }
+  if (type === "room.conclusion_updated") {
+    return {
+      event: {
+        type,
+        status: event.status,
+        endingId: event.endingId || "",
+        recapId: event.recapId || "",
+        revision: event.revision
+      },
+      disconnectAfter: false
+    };
+  }
   if (PUBLIC_PLAYER_EVENT_TYPES.has(type)) return { event, disconnectAfter: false };
 
   if (type === "room.player_kicked") {

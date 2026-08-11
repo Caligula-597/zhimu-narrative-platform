@@ -390,6 +390,13 @@ function renderHostTabletopOutcome(map) {
   const published = map.publishedEnding;
   const candidates = host.endingCandidates || [];
   const closest = host.closestEnding;
+  const conclusion = state.sessionConclusion;
+  const conclusionLabel = {
+    publishing: "正在公开结局",
+    recap_pending: "复盘准备中",
+    ready: "复盘已就绪",
+    failed: "复盘准备失败，可重试",
+  }[conclusion?.status] || "";
   return `<section class="host-stage-outcome" data-host-tabletop-outcome>
     <div class="host-stage-outcome-head"><div><p class="section-kicker">CONDITION ROUTER</p><h4>变量与结局导向</h4><p>判定只更新变量；满足条件的结局仍由主持人确认后公开。</p></div><span>${candidates.length} 个可用候选</span></div>
     <div class="host-stage-variable-strip">${(host.variables || []).map((variable) => {
@@ -397,7 +404,8 @@ function renderHostTabletopOutcome(map) {
       return `<div><span><b>${escapeHtml(variable.label)}</b><strong>${Number(variable.value)}</strong></span><i style="--runtime-value:${Math.max(0, Math.min(100, percent))}%"><b></b></i><small>${Number(variable.min)}—${Number(variable.max)}</small></div>`;
     }).join("")}</div>
     ${published ? `<article class="host-stage-published-ending is-${escapeHtml(published.tone)}" data-host-tabletop-published-ending><div><span>玩家端已公开</span><h5>${escapeHtml(published.name)}</h5><p>${escapeHtml(published.summary)}</p></div><button type="button" class="secondary-btn" data-action="host-tabletop-unpublish-ending">收回公开</button></article>` : ""}
-    ${candidates.length ? `<div class="host-stage-ending-list">${candidates.map((ending) => `<article class="is-${escapeHtml(ending.tone)}"><div><span>条件已满足 · ${ending.readiness}%</span><h5>${escapeHtml(ending.name)}</h5><p>${escapeHtml(ending.summary)}</p><small>${ending.conditions.map((condition) => `${escapeHtml(condition.variableLabel)} ${condition.operator} ${condition.threshold}`).join(" · ")}</small></div><button type="button" class="primary-btn" data-action="host-tabletop-publish-ending" data-ending-id="${escapeHtml(ending.id)}"${published?.id === ending.id ? " disabled" : ""}>${published?.id === ending.id ? "已公开" : "公开此导向"}</button></article>`).join("")}</div>` : closest ? `<div class="host-stage-ending-empty"><strong>尚无结局满足全部条件</strong><span>最接近「${escapeHtml(closest.name)}」· ${closest.readiness}%</span></div>` : `<div class="host-stage-ending-empty"><strong>创作端尚未添加结局规则</strong><span>可以继续推进判定，稍后再补充条件判断器。</span></div>`}
+    ${conclusionLabel ? `<div class="host-conclusion-status is-${escapeHtml(conclusion.status)}" role="status"><strong>${escapeHtml(conclusionLabel)}</strong><span>${conclusion.recapId ? `复盘编号 ${escapeHtml(conclusion.recapId)}` : "结局公开后即使生成失败也不会自动撤回"}</span></div>` : ""}
+    ${candidates.length ? `<div class="host-stage-ending-list">${candidates.map((ending) => `<article class="is-${escapeHtml(ending.tone)}"><div><span>条件已满足 · ${ending.readiness}%</span><h5>${escapeHtml(ending.name)}</h5><p>${escapeHtml(ending.summary)}</p><small>${ending.conditions.map((condition) => `${escapeHtml(condition.variableLabel)} ${condition.operator} ${condition.threshold}`).join(" · ")}</small></div><button type="button" class="primary-btn" data-action="host-tabletop-publish-ending" data-ending-id="${escapeHtml(ending.id)}"${conclusion?.status === "recap_pending" || conclusion?.status === "publishing" || conclusion?.status === "ready" ? " disabled" : ""}>${conclusion?.status === "failed" && conclusion.endingId === ending.id ? "重试准备复盘" : published?.id === ending.id ? "补齐复盘" : "公开并准备复盘"}</button></article>`).join("")}</div>` : closest ? `<div class="host-stage-ending-empty"><strong>尚无结局满足全部条件</strong><span>最接近「${escapeHtml(closest.name)}」· ${closest.readiness}%</span></div>` : `<div class="host-stage-ending-empty"><strong>创作端尚未添加结局规则</strong><span>可以继续推进判定，稍后再补充条件判断器。</span></div>`}
   </section>`;
 }
 

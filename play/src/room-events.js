@@ -90,6 +90,11 @@ export async function handleRoomEvent(type, data, ctx) {
       await ctx.onRefresh();
       if (data.visibleToPlayers) ctx.onToast(data.status === "paused" ? "主持人已暂停节奏计时" : "主持人已更新节奏计时");
       break;
+    case "room.conclusion_updated":
+      ctx.bumpTabPulse?.("recap");
+      await ctx.onRefresh();
+      ctx.onToast(data.status === "ready" ? "本局复盘已准备完成" : "结局已公开，正在准备复盘");
+      break;
     case "room.mechanism_state_updated": {
       ctx.bumpTabPulse?.("home");
       await ctx.onRefresh();

@@ -80,6 +80,19 @@ export async function insertRoomRecap(client, { roomId, actorId, title, snapshot
   return result.rows[0];
 }
 
+export async function findRoomRecapByConclusionKey(client, { roomId, conclusionKey }) {
+  const result = await client.query(
+    `SELECT id, label, snapshot, created_at
+     FROM room_recaps
+     WHERE room_id = $1
+       AND snapshot->'conclusion'->>'idempotencyKey' = $2
+     ORDER BY created_at DESC, id DESC
+     LIMIT 1`,
+    [roomId, conclusionKey]
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function listRoomRecapRows({ roomId, actorId, limit }) {
   const result = await query(
     `SELECT rr.id,
