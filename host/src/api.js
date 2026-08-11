@@ -205,6 +205,10 @@ export const api = {
     request(roomPath("/host/mini-games"), { method: "POST", body: payload, idempotent: true }),
   forceCompleteHostMiniGame: (gameId) =>
     request(roomPath(`/host/mini-games/${gameId}/force-complete`), { method: "POST", body: {}, idempotent: true }),
+  recoverHostMiniGame: (gameId, payload) =>
+    request(roomPath(`/host/mini-games/${gameId}/recover`), { method: "POST", body: payload, idempotent: true }),
+  settleHostMiniGame: (gameId, payload) =>
+    request(roomPath(`/host/mini-games/${gameId}/settle`), { method: "POST", body: payload, idempotent: true }),
   hostUpdatePrivateAction: (actionId, payload) =>
     request(roomPath(`/host/private-actions/${actionId}`), { method: "PATCH", body: payload }),
   getRoomRunReport: () => request(roomPath("/run-report")),

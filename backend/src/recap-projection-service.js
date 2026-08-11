@@ -36,6 +36,7 @@ export function filterRecapForPlayer(snapshot, roleSlotId) {
     investigations: (source.investigations ?? [])
       .filter((row) => row.roleSlotId === roleSlotId),
     notes: personalNotes,
+    miniGames: source.miniGames ?? [],
     privateActions: (source.privateActions ?? [])
       .filter((row) => row.roleSlotId === roleSlotId),
     hostConfirmedEvents: source.hostConfirmedEvents ?? [],
@@ -51,6 +52,7 @@ export function summarizeRecap(snapshot = {}) {
     cluesUndiscovered: snapshot.stats?.cluesUndiscovered ?? 0,
     investigationsCompleted: snapshot.stats?.investigationsCompleted ?? 0,
     rulesTriggered: snapshot.stats?.rulesTriggered ?? 0,
-    notesWritten: snapshot.stats?.notesWritten ?? 0
+    notesWritten: snapshot.stats?.notesWritten ?? 0,
+    miniGamesCompleted: snapshot.stats?.miniGamesCompleted ?? 0
   };
 }

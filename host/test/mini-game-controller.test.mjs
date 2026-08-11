@@ -69,3 +69,34 @@ test("host applies player progress and completion events", () => {
   }, state);
   assert.equal(state.cloudHostMiniGames[0].status, "success");
 });
+
+test("host can recover or settle a revisioned mini-game", async () => {
+  const state = fixtureState();
+  state.cloudHostMiniGames = [{
+    id: "game-1", gameType: "zhimu_lock", status: "timeout", revision: 4,
+    config: { title: "档案柜", allow_recovery: true }
+  }];
+  const calls = [];
+  const handler = createHostMiniGameActionHandler({
+    stateRef: state,
+    apiRef: {
+      recoverHostMiniGame: async (id, payload) => {
+        calls.push(["recover", id, payload]);
+        return { currentGame: { id, gameType: "zhimu_lock", status: "playing", phase: "recovered", revision: 5 } };
+      },
+      settleHostMiniGame: async (id, payload) => {
+        calls.push(["settle", id, payload]);
+        return { currentGame: { id, gameType: "zhimu_lock", status: "success", revision: 6 } };
+      }
+    },
+    render() {},
+    showToast() {}
+  });
+
+  await handler("host-mini-game-recover", { dataset: { gameId: "game-1", revision: "4" } });
+  assert.deepEqual(calls[0], ["recover", "game-1", { expectedRevision: 4, bonusAttempts: 1, timeoutSeconds: 300 }]);
+  await handler("host-mini-game-settle-success", { dataset: { gameId: "game-1", revision: "5" } });
+  assert.equal(calls[1][0], "settle");
+  assert.equal(calls[1][2].expectedRevision, 5);
+  assert.equal(calls[1][2].outcome, "success");
+});

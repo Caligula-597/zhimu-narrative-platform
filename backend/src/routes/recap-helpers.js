@@ -38,8 +38,24 @@ export async function buildRoomRecapSnapshot(query, roomId) {
     chapterRows,
     sceneRows,
     worldClueRows,
-    finalChapter
+    finalChapter,
+    miniGames
   } = rows;
+  const miniGameSummaries = miniGames.rows.map((row) => ({
+    id: row.id,
+    protocolVersion: Number(row.protocol_version || 1),
+    gameType: row.game_type,
+    label: row.public_config?.recap_label || row.title,
+    outcome: row.settlement?.outcome
+      || (row.status === "completed" ? "success" : row.status === "failed" ? "failed" : row.status),
+    publicSummary: row.settlement?.publicSummary || "",
+    attemptsUsed: Number(row.state?.attempts_used || 0),
+    submissionCount: Number(row.state?.submission_count || 0),
+    recoveryCount: Number(row.state?.recovery_count || 0),
+    deadlineAt: row.deadline_at,
+    completedAt: row.completed_at,
+    createdAt: row.created_at
+  }));
   const worldScenesById = new Map(
     sceneRows.rows.map((row) => [
       row.id,
@@ -191,6 +207,7 @@ export async function buildRoomRecapSnapshot(query, roomId) {
       sourceType: row.source_type,
       createdAt: row.created_at
     })),
+    miniGames: miniGameSummaries,
     unlockedScenes: unlockedScenes.rows.map((row) => ({
       id: row.id,
       name: row.name,
@@ -204,7 +221,8 @@ export async function buildRoomRecapSnapshot(query, roomId) {
       investigationsCompleted: investigations.rows.length,
       hostEventsResolved: hostConfirmedEvents.length,
       rulesTriggered: endingTriggers.length,
-      notesWritten: notes.rows.length
+      notesWritten: notes.rows.length,
+      miniGamesCompleted: miniGameSummaries.filter((game) => ["success", "completed", "skipped"].includes(game.outcome)).length
     }
   };
 

@@ -275,6 +275,8 @@ export const API_ERRORS = {
   ITEM_ACTION_VERSION_CONFLICT: { status: 409, message: "Item action changed; refresh before retrying" },
   ROOM_RELATIONSHIP_NOT_FOUND: { status: 404, message: "Authored room relationship not found" },
   ROOM_RELATIONSHIP_VERSION_CONFLICT: { status: 409, message: "Relationship state changed; refresh before retrying" },
+  MINI_GAME_VERSION_CONFLICT: { status: 409, message: "Mini game state changed; refresh before retrying" },
+  MINI_GAME_RECOVERY_INVALID: { status: 409, message: "Mini game cannot be recovered in its current state" },
   ITEM_QUANTITY_INSUFFICIENT: { status: 409, message: "Inventory quantity is insufficient for this action" },
   INVESTIGATION_POINT_NOT_FOUND: { status: 404, message: "Investigation point not found" },
   INVESTIGATION_POINT_UNAVAILABLE: { status: 404, message: "Investigation point is locked or unavailable" },

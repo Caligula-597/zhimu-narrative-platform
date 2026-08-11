@@ -2,6 +2,8 @@ import { httpError, throwErr } from "./api-errors.js";
 import {
   forceCompleteMiniGame,
   listRoomMiniGames,
+  recoverMiniGame,
+  settleMiniGame,
   startLockMiniGame
 } from "./room-mini-games.js";
 import {
@@ -149,6 +151,70 @@ export async function forceCompleteHostMiniGame({ actorId, roomId, gameId }) {
         targetId: currentGame.id
       });
       queueEvent(roomId, "room.game_completed", { currentGame, forced: true });
+      return { ok: true, currentGame };
+    });
+  } catch (error) {
+    throw normalizeHostGameControlError(error);
+  }
+}
+
+export async function recoverHostMiniGame({ actorId, roomId, gameId, body }) {
+  await requireHostMembership(actorId, roomId);
+  try {
+    return await transactionWithEvents(async (client, queueEvent) => {
+      await configureHostGameControlTransaction(client);
+      await assertLockedHostRoom(client, { actorId, roomId });
+      const currentGame = await recoverMiniGame(client, {
+        roomId,
+        gameId,
+        actorUserId: actorId,
+        expectedRevision: body?.expectedRevision,
+        bonusAttempts: body?.bonusAttempts,
+        timeoutSeconds: body?.timeoutSeconds
+      });
+      if (!currentGame) throwErr("NOT_FOUND", "Mini game not found");
+      await insertHostGameControlAudit(client, {
+        roomId,
+        actorId,
+        action: "mini_game_recovered",
+        targetType: "mini_game",
+        targetId: currentGame.id,
+        metadata: { revision: currentGame.revision, deadlineAt: currentGame.deadlineAt }
+      });
+      queueEvent(roomId, "room.game_updated", { currentGame, correct: false, recovered: true });
+      return { ok: true, currentGame };
+    });
+  } catch (error) {
+    throw normalizeHostGameControlError(error);
+  }
+}
+
+export async function settleHostMiniGame({ actorId, roomId, gameId, body }) {
+  await requireHostMembership(actorId, roomId);
+  try {
+    return await transactionWithEvents(async (client, queueEvent) => {
+      await configureHostGameControlTransaction(client);
+      await assertLockedHostRoom(client, { actorId, roomId });
+      const currentGame = await settleMiniGame(client, {
+        roomId,
+        gameId,
+        actorUserId: actorId,
+        expectedRevision: body?.expectedRevision,
+        outcome: body?.outcome,
+        publicSummary: body?.publicSummary,
+        recapData: body?.recapData
+      });
+      if (!currentGame) throwErr("NOT_FOUND", "Mini game not found");
+      await insertMiniGameTimelineLog(client, { roomId, actorId, currentGame, completed: true });
+      await insertHostGameControlAudit(client, {
+        roomId,
+        actorId,
+        action: "mini_game_settled",
+        targetType: "mini_game",
+        targetId: currentGame.id,
+        metadata: { outcome: body?.outcome, revision: currentGame.revision }
+      });
+      queueEvent(roomId, "room.game_completed", { currentGame, settled: true });
       return { ok: true, currentGame };
     });
   } catch (error) {

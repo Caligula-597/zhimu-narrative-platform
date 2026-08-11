@@ -57,14 +57,15 @@ async function findRuntimeReadableSection(client, { roomId, roleSlotId, sectionI
   return unlocked.rowCount ? section : null;
 }
 
-export async function submitPlayerMiniGame({ roomId, gameId, actorId, answer }) {
+export async function submitPlayerMiniGame({ roomId, gameId, actorId, answer, expectedRevision }) {
   const result = await transactionWithEvents(async (client, queueEvent) => {
     await configurePlayerProgressTransaction(client);
     const submitted = await submitMiniGameAnswer(client, {
       roomId,
       gameId,
       actorUserId: actorId,
-      answer
+      answer,
+      expectedRevision
     });
     if (!submitted.found) return submitted;
 
@@ -78,7 +79,7 @@ export async function submitPlayerMiniGame({ roomId, gameId, actorId, answer }) 
     queueEvent(
       roomId,
       submitted.completed ? "room.game_completed" : "room.game_updated",
-      { currentGame: submitted.game, correct: submitted.correct }
+      { currentGame: submitted.game, correct: submitted.correct, timedOut: submitted.timedOut }
     );
     return submitted;
   });
@@ -89,7 +90,8 @@ export async function submitPlayerMiniGame({ roomId, gameId, actorId, answer }) 
     correct: result.correct,
     currentGame: result.game,
     attemptsLeft: result.game?.attemptsLeft ?? null,
-    attempts_left: result.game?.attemptsLeft ?? null
+    attempts_left: result.game?.attemptsLeft ?? null,
+    timedOut: Boolean(result.timedOut)
   };
 }
 

@@ -1,6 +1,7 @@
 /* Creator mini-game design — test feature backed by room mini-game runtime. */
 import * as zhimuApi from "../api/index.js";
-import { formField } from "../components/form-fields.js";
+import { formField, formSelect } from "../components/form-fields.js";
+import { normalizeMiniGameTemplate } from "../../shared/mini-game-protocol.js";
 import { showToast } from "../components/toast.js";
 import {
   bindWorkspaceDraft,
@@ -28,19 +29,7 @@ import { normalizeError } from "../components/status-ui.js";
   }
 
   function normalizeTemplate(raw = {}) {
-    const maxAttempts = Math.max(1, Math.min(12, Number(raw.maxAttempts || raw.max_attempts || 3)));
-    const answer = String(raw.answer || "").trim();
-    return {
-      id: raw.id || `lock-${Date.now()}`,
-      gameType: "zhimu_lock",
-      title: String(raw.title || "数字密码锁").trim().slice(0, 120),
-      prompt: String(raw.prompt || "输入线索中得到的密码。").trim().slice(0, 500),
-      hint: String(raw.hint || "").trim().slice(0, 500),
-      answer,
-      length: Math.max(1, Math.min(12, Number(raw.length || answer.length || 4))),
-      maxAttempts,
-      status: "test"
-    };
+    return { ...normalizeMiniGameTemplate(raw), status: "test" };
   }
 
   async function saveTemplates(nextTemplates) {
@@ -64,15 +53,7 @@ import { normalizeError } from "../components/status-ui.js";
   }
 
   function templatePayload(template) {
-    return {
-      gameType: "zhimu_lock",
-      title: template.title,
-      prompt: template.prompt,
-      hint: template.hint,
-      answer: template.answer,
-      length: template.length,
-      maxAttempts: template.maxAttempts
-    };
+    return normalizeMiniGameTemplate(template);
   }
 
   function miniGameDraft(template) {
@@ -82,7 +63,12 @@ import { normalizeError } from "../components/status-ui.js";
       miniHint: template.hint,
       miniAnswer: template.answer,
       miniLength: String(template.length || 4),
-      miniAttempts: String(template.maxAttempts || 3)
+      miniAttempts: String(template.maxAttempts || 3),
+      miniTimeout: String(template.timeoutSeconds || 0),
+      miniRecovery: template.allowRecovery === false ? "false" : "true",
+      miniSuccessText: template.successText || "",
+      miniFailureText: template.failureText || "",
+      miniRecapLabel: template.recapLabel || template.title || ""
     };
   }
 
@@ -97,6 +83,8 @@ import { normalizeError } from "../components/status-ui.js";
         <span>类型：数字锁</span>
         <span>尝试次数：${Number(template.maxAttempts || 3)}</span>
         <span>玩家输入长度：${Number(template.length || 4)}</span>
+        <span>${template.timeoutSeconds ? `限时：${Number(template.timeoutSeconds)} 秒` : "不限时"}</span>
+        <span>${template.allowRecovery === false ? "失败后不可恢复" : "允许主持恢复"}</span>
       </div>
       ${template.hint ? `<p class="mini-template-hint">提示：${escapeHtml(template.hint)}</p>` : ""}
       <div class="row mini-template-actions">
@@ -135,11 +123,19 @@ import { normalizeError } from "../components/status-ui.js";
       formField("额外提示（可选）", "miniHint", "textarea", value.miniHint, { rows: 4 }) +
       formField("答案", "miniAnswer", "input", value.miniAnswer, { inputMode: "numeric" }) +
       formField("输入长度", "miniLength", "input", value.miniLength, { inputType: "number", inputMode: "numeric" }) +
-      formField("尝试次数", "miniAttempts", "input", value.miniAttempts, { inputType: "number", inputMode: "numeric" });
+      formField("尝试次数", "miniAttempts", "input", value.miniAttempts, { inputType: "number", inputMode: "numeric" }) +
+      formField("限时秒数（0 表示不限时）", "miniTimeout", "input", value.miniTimeout, { inputType: "number", inputMode: "numeric" }) +
+      formSelect("失败后恢复", "miniRecovery", [
+        { id: "true", name: "允许主持人恢复新机会" },
+        { id: "false", name: "失败即结束" }
+      ], value.miniRecovery) +
+      formField("成功反馈", "miniSuccessText", "textarea", value.miniSuccessText, { rows: 3 }) +
+      formField("失败反馈", "miniFailureText", "textarea", value.miniFailureText, { rows: 3 }) +
+      formField("复盘显示名称", "miniRecapLabel", "input", value.miniRecapLabel);
     return renderWorkspaceEditor({
       title: miniGameEditorState.existing ? `编辑小游戏 · ${value.miniTitle}` : "新建小游戏 · 数字锁",
       kicker: "MINI GAME EDITOR",
-      intro: "模板保存在当前剧本中；保存后可直接从主持端在测试房启动。",
+      intro: "模板内容随剧本替换，运行协议保持固定；保存后可从主持端启动、恢复和结算。",
       body,
       status: `<span class="test-badge">测试功能</span><p>当前支持数字锁，答案仅用于运行房校验，不会展示给玩家。</p>`,
       submitLabel: miniGameEditorState.existing ? "保存模板" : "创建模板",
@@ -220,7 +216,12 @@ import { normalizeError } from "../components/status-ui.js";
       hint: values.miniHint,
       answer: values.miniAnswer,
       length: values.miniLength,
-      maxAttempts: values.miniAttempts
+      maxAttempts: values.miniAttempts,
+      timeoutSeconds: values.miniTimeout,
+      allowRecovery: values.miniRecovery !== "false",
+      successText: values.miniSuccessText,
+      failureText: values.miniFailureText,
+      recapLabel: values.miniRecapLabel
     });
     miniGameEditorState.draft = miniGameDraft(next);
     setWorkspaceSaving(root, true);

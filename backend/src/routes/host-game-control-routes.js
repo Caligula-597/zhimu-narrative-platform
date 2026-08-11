@@ -2,6 +2,8 @@ import {
   forceCompleteHostMiniGame,
   listHostMiniGames,
   previewHostRoomRules,
+  recoverHostMiniGame,
+  settleHostMiniGame,
   startHostMiniGame,
   startHostRoomSession,
   triggerHostManualRule,
@@ -11,8 +13,10 @@ import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import {
   forceCompleteMiniGameSchema,
+  recoverMiniGameSchema,
   roomIdParams,
   roomRulesPreviewSchema,
+  settleMiniGameSchema,
   startMiniGameSchema,
   triggerManualRuleSchema,
   updateRoomSettingsSchema
@@ -61,6 +65,30 @@ export async function registerHostGameControlRoutes(app) {
       const actorId = requireActor(request);
       const { roomId, gameId } = request.params;
       return forceCompleteHostMiniGame({ actorId, roomId, gameId });
+    }
+  );
+
+  app.post(
+    "/api/rooms/:roomId/host/mini-games/:gameId/recover",
+    { schema: recoverMiniGameSchema },
+    async (request) => {
+      const actorId = requireActor(request);
+      const { roomId, gameId } = request.params;
+      return withRoomIdempotency(roomId, request, "host.mini_game_recover", () => (
+        recoverHostMiniGame({ actorId, roomId, gameId, body: request.body })
+      ));
+    }
+  );
+
+  app.post(
+    "/api/rooms/:roomId/host/mini-games/:gameId/settle",
+    { schema: settleMiniGameSchema },
+    async (request) => {
+      const actorId = requireActor(request);
+      const { roomId, gameId } = request.params;
+      return withRoomIdempotency(roomId, request, "host.mini_game_settle", () => (
+        settleHostMiniGame({ actorId, roomId, gameId, body: request.body })
+      ));
     }
   );
 

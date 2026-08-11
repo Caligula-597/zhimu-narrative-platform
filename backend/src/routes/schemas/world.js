@@ -505,13 +505,49 @@ export const startMiniGameSchema = {
       answer: { type: "string", minLength: 1, maxLength: 32 },
       length: { type: "integer", minimum: 1, maximum: 12 },
       maxAttempts: { type: "integer", minimum: 1, maximum: 12 },
-      max_attempts: { type: "integer", minimum: 1, maximum: 12 }
+      max_attempts: { type: "integer", minimum: 1, maximum: 12 },
+      protocolVersion: { type: "integer", enum: [1] },
+      pluginKey: { type: "string", enum: ["zhimu_lock"] },
+      timeoutSeconds: { type: "integer", minimum: 0, maximum: 86400 },
+      allowRecovery: { type: "boolean" },
+      successText: { type: "string", maxLength: 1000 },
+      failureText: { type: "string", maxLength: 1000 },
+      recapLabel: { type: "string", maxLength: 160 }
     }
   }
 };
 
 export const forceCompleteMiniGameSchema = {
   params: paramsSchema({ roomId: uuid, gameId: uuid })
+};
+
+export const recoverMiniGameSchema = {
+  params: paramsSchema({ roomId: uuid, gameId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["expectedRevision"],
+    properties: {
+      expectedRevision: { type: "integer", minimum: 1 },
+      bonusAttempts: { type: "integer", minimum: 1, maximum: 12 },
+      timeoutSeconds: { type: "integer", minimum: 0, maximum: 86400 }
+    }
+  }
+};
+
+export const settleMiniGameSchema = {
+  params: paramsSchema({ roomId: uuid, gameId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["expectedRevision", "outcome"],
+    properties: {
+      expectedRevision: { type: "integer", minimum: 1 },
+      outcome: { type: "string", enum: ["success", "failed", "skipped"] },
+      publicSummary: { type: "string", maxLength: 1000 },
+      recapData: { type: "object", maxProperties: 20, additionalProperties: true }
+    }
+  }
 };
 
 export const roomRuleIdParams = paramsSchema({ roomId: uuid, ruleId: uuid });

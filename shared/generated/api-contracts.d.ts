@@ -366,6 +366,27 @@ export interface UpdateWorldBody {
       placeholder: string;
       deadlineMinutes: number;
     }[];
+    /**
+     * @maxItems 50
+     */
+    miniGameTemplates?: {
+      id: string;
+      protocolVersion: 1;
+      pluginKey: "zhimu_lock";
+      gameType: "zhimu_lock";
+      title: string;
+      prompt: string;
+      hint: string;
+      answer: string;
+      length: number;
+      maxAttempts: number;
+      timeoutSeconds: number;
+      allowRecovery: boolean;
+      successText: string;
+      failureText: string;
+      recapLabel: string;
+      status?: "test";
+    }[];
     [k: string]: unknown;
   };
 }
@@ -783,6 +804,27 @@ export interface CreateWorldBody {
       privacyNotice: string;
       placeholder: string;
       deadlineMinutes: number;
+    }[];
+    /**
+     * @maxItems 50
+     */
+    miniGameTemplates?: {
+      id: string;
+      protocolVersion: 1;
+      pluginKey: "zhimu_lock";
+      gameType: "zhimu_lock";
+      title: string;
+      prompt: string;
+      hint: string;
+      answer: string;
+      length: number;
+      maxAttempts: number;
+      timeoutSeconds: number;
+      allowRecovery: boolean;
+      successText: string;
+      failureText: string;
+      recapLabel: string;
+      status?: "test";
     }[];
     [k: string]: unknown;
   };

@@ -148,7 +148,7 @@ export async function loadPlayerHomeSession({ roomId, roleSlotId, actorId, runQu
           FROM (
             SELECT *
             FROM room_mini_games
-            WHERE room_id = $1 AND status = 'active'
+            WHERE room_id = $1
             ORDER BY updated_at DESC
             LIMIT 1
           ) game_row) AS current_game`,

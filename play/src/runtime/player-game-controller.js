@@ -107,7 +107,8 @@ export function createPlayerGameController({
     setBusy(true, render);
     try {
       const result = await api.submitMiniGame({
-        roomId: state.roomId, instance_id: game.instanceId, instanceId: game.instanceId, answer
+        roomId: state.roomId, instance_id: game.instanceId, instanceId: game.instanceId,
+        expectedRevision: game.revision, answer
       });
       state.currentGame = normalizeMiniGame(result.currentGame || result.current_game || result.game || {
         ...game,
@@ -116,6 +117,9 @@ export function createPlayerGameController({
       });
       setToast(result.correct ? "机关已解开" : "密码不正确", render);
     } catch (error) {
+      if (error?.code === "MINI_GAME_VERSION_CONFLICT") {
+        await pullRoomData({ partial: true });
+      }
       setToast(formatApiError(error, "提交失败"), render);
     } finally {
       setBusy(false, render);

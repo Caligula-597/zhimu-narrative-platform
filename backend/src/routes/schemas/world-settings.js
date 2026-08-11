@@ -386,6 +386,34 @@ const communicationTemplateSchema = {
   },
 };
 
+const miniGameTemplateSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "id", "protocolVersion", "pluginKey", "gameType", "title", "prompt", "hint",
+    "answer", "length", "maxAttempts", "timeoutSeconds", "allowRecovery",
+    "successText", "failureText", "recapLabel"
+  ],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    protocolVersion: { type: "integer", const: 1 },
+    pluginKey: { type: "string", enum: ["zhimu_lock"] },
+    gameType: { type: "string", enum: ["zhimu_lock"] },
+    title: { type: "string", minLength: 1, maxLength: 120 },
+    prompt: { type: "string", minLength: 1, maxLength: 500 },
+    hint: { type: "string", maxLength: 500 },
+    answer: { type: "string", minLength: 1, maxLength: 32 },
+    length: { type: "integer", minimum: 1, maximum: 12 },
+    maxAttempts: { type: "integer", minimum: 1, maximum: 12 },
+    timeoutSeconds: { type: "integer", minimum: 0, maximum: 86400 },
+    allowRecovery: { type: "boolean" },
+    successText: { type: "string", minLength: 1, maxLength: 1000 },
+    failureText: { type: "string", minLength: 1, maxLength: 1000 },
+    recapLabel: { type: "string", minLength: 1, maxLength: 160 },
+    status: { type: "string", enum: ["test"] }
+  }
+};
+
 export const worldSettingsSchema = {
   type: "object",
   additionalProperties: true,
@@ -400,5 +428,6 @@ export const worldSettingsSchema = {
     storySpine: storySpineSchema,
     mechanismDesign: mechanismDesignSchema,
     communicationTemplates: { type: "array", maxItems: 4, items: communicationTemplateSchema },
+    miniGameTemplates: { type: "array", maxItems: 50, items: miniGameTemplateSchema },
   },
 };

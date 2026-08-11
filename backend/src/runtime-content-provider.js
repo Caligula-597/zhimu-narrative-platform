@@ -4,6 +4,7 @@ import { buildWorldSnapshot } from "./routes/world-chapter-service.js";
 import { loadRuntimeContentRecord } from "./repositories/runtime-content-repository.js";
 import { assertWorldReleaseSnapshot } from "./world-release-contract.js";
 import { normalizeCommunicationTemplates } from "../../shared/communication-templates.js";
+import { normalizeMiniGameTemplates } from "../../shared/mini-game-protocol.js";
 
 const RUNTIME_COLLECTIONS = Object.freeze([
   "chapters",
@@ -34,6 +35,10 @@ function liveSnapshotMetadata(record, snapshot) {
     schemaVersion: null,
     sourceRevision: Number(record.current_content_revision ?? 1),
     narrativeProfile: snapshot.world?.settings?.narrativeProfile ?? null,
+    experienceConfiguration: {
+      communicationTemplates: normalizeCommunicationTemplates(snapshot.world?.settings?.communicationTemplates),
+      miniGameTemplates: normalizeMiniGameTemplates(snapshot.world?.settings?.miniGameTemplates),
+    },
     ...snapshot
   };
 }

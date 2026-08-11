@@ -58,6 +58,7 @@ export const submitMiniGameSchema = {
       gameId: uuid,
       game_id: uuid,
       answer: { type: "string", minLength: 1, maxLength: 64 },
+      expectedRevision: { type: "integer", minimum: 1 },
     },
   },
 };
