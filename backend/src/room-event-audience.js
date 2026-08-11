@@ -130,7 +130,8 @@ export function projectRoomEventForAudience(event, audience = {}) {
     return { event: visible ? event : null, disconnectAfter: false };
   }
   if (type === "room.private_action_submitted" || type === "room.private_action_updated") {
-    return { event: includesId(event.roleSlotIds, roleSlotId) ? event : null, disconnectAfter: false };
+    const visible = event.visibility === "public" || includesId(event.roleSlotIds, roleSlotId);
+    return { event: visible ? event : null, disconnectAfter: false };
   }
   if (type === "room.physical_token_event") {
     return { event: event.visibility === "public" ? event : null, disconnectAfter: false };

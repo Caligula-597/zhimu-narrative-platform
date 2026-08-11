@@ -3,8 +3,10 @@ import { query } from "../db.js";
 import { withRoomContentBinding } from "../room-content-binding.js";
 import {
   createRuntimeContentProvider,
-  projectPlayerRuntimeContent
+  projectPlayerRuntimeContent,
+  projectRuntimeCommunicationTemplates
 } from "../runtime-content-provider.js";
+import { normalizeCommunicationTemplates } from "../../../shared/communication-templates.js";
 
 const stableContentCache = new Map();
 const STABLE_CACHE_MAX = Number(process.env.PLAYER_HOME_STABLE_CACHE_MAX || 500);
@@ -55,6 +57,7 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
        SELECT rm.role_slot_id, r.id AS room_id, r.name AS room_name,
               r.invite_code, r.status AS room_status, r.world_id, r.release_id,
               w.content_revision,
+              w.settings AS world_settings,
               release.release_number, release.label AS release_label,
               release.source_content_revision AS release_source_revision,
               release.snapshot AS release_snapshot,
@@ -70,6 +73,7 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
        m.role_slot_id,
        m.world_id,
        m.content_revision,
+       m.world_settings,
        m.release_id,
        m.release_number,
        m.release_label,
@@ -169,6 +173,9 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
     role: stable.role,
     sections: provider ? stable.sections : (row.sections ?? []),
     segments: stable.segments,
+    communicationTemplates: provider
+      ? projectRuntimeCommunicationTemplates(provider)
+      : normalizeCommunicationTemplates(row.world_settings?.communicationTemplates),
     runtimeProvider: provider
   };
 }
@@ -183,6 +190,7 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
          room_binding.release_id,
          room_binding.world_id,
          world.content_revision AS current_content_revision,
+         world.settings AS world_settings,
          release.release_number,
          release.label AS release_label,
          release.source_content_revision AS release_source_revision,
@@ -289,6 +297,9 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
     role: runtime?.role ?? row.role,
     sections: runtime?.sections ?? sections.rows,
     segments: runtime?.segments ?? row.segments ?? [],
+    communicationTemplates: provider
+      ? projectRuntimeCommunicationTemplates(provider)
+      : normalizeCommunicationTemplates(row.world_settings?.communicationTemplates),
     runtimeProvider: provider
   };
 }

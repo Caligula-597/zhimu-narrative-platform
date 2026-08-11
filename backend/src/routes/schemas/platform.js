@@ -390,6 +390,7 @@ export const submitTestimonySchema = {
     properties: {
       actKey: { type: "string", maxLength: 40 },
       act_key: { type: "string", maxLength: 40 },
+      templateKey: { type: "string", const: "testimony" },
       body: { type: "string", minLength: 1, maxLength: 4000 }
     }
   }

@@ -205,13 +205,15 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
   "room.vote_updated": schema(["voteId", "action"], { voteId: id, action: shortText }),
   "room.private_action_submitted": schema(["actionId", "actionType"], {
     actionId: id,
-    actionType: enumString(["ask_host", "secret_action", "trade", "promise", "accusation_note"]),
-    roleSlotIds: idList
+    actionType: enumString(["ask_host", "secret_action", "trade", "promise", "accusation_note", "public_statement"]),
+    roleSlotIds: idList,
+    visibility: enumString(["actor_host", "actor_target_host", "host_only", "postgame", "public"])
   }),
   "room.private_action_updated": schema(["actionId", "status"], {
     actionId: id,
     status: enumString(["seen", "accepted", "rejected", "resolved", "cancelled"]),
-    roleSlotIds: idList
+    roleSlotIds: idList,
+    visibility: enumString(["actor_host", "actor_target_host", "host_only", "postgame", "public"])
   }),
   "room.role_state_updated": schema(["roleSlotId"], { roleSlotId: id }),
   "room.player_task_completed": schema(["taskId", "roleSlotId"], { taskId: id, roleSlotId: id }),

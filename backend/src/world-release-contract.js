@@ -92,6 +92,10 @@ export function assertWorldReleaseSnapshot(snapshot) {
     }
     assertMechanismPackage(snapshot.mechanismPackage);
   }
+  if (snapshot.experienceConfiguration != null
+      && (typeof snapshot.experienceConfiguration !== "object" || Array.isArray(snapshot.experienceConfiguration))) {
+    throw new TypeError("Release snapshot experienceConfiguration must be an object");
+  }
   return snapshot;
 }
 

@@ -276,6 +276,26 @@ test("private nudges, actions and voice activity enforce their explicit audience
   }
 });
 
+test("public statements notify every room role without exposing unrelated private actions", () => {
+  const statement = projectRoomEventForAudience({
+    type: "room.private_action_submitted",
+    actionId: "action-public",
+    actionType: "public_statement",
+    visibility: "public",
+    roleSlotIds: ["role-a"],
+  }, { ...player, roleSlotId: "role-b" });
+  assert.equal(statement.event?.actionId, "action-public");
+
+  const secret = projectRoomEventForAudience({
+    type: "room.private_action_submitted",
+    actionId: "action-secret",
+    actionType: "secret_action",
+    visibility: "actor_host",
+    roleSlotIds: ["role-a"],
+  }, { ...player, roleSlotId: "role-b" });
+  assert.equal(secret.event, null);
+});
+
 test("hidden journal events become cursor-only heartbeats", () => {
   const projected = projectRoomEventEnvelope(
     {

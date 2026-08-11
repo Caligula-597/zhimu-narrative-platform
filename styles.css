@@ -2114,6 +2114,10 @@
 .asset-card p { min-height:36px; margin-top:7px; color:var(--muted); font-size:10px; line-height:1.7; }
 .asset-meta { display:flex; justify-content:space-between; padding-top:11px; margin-top:10px; border-top:1px solid var(--line); color:#91a29e; font-size:9px; }
 .rules-layout { display:grid; grid-template-columns:1.2fr .8fr; gap:15px; }
+.communication-template-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; }
+.communication-template-editor { border:1px solid var(--line); background:#ffffffa8; border-radius:10px; padding:12px; }
+.communication-template-editor label:not(.check-label) { display:block; margin-top:9px; }
+@media (max-width:760px) { .communication-template-grid { grid-template-columns:1fr; } }
 .rule-card { padding:15px; margin-bottom:10px; border:1px solid var(--line); border-radius:13px; background:white; }
 .rule-card-top { display:flex; align-items:center; gap:9px; }
 .rule-card h3 { margin-right:auto; font-size:13px; }

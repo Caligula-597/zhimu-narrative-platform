@@ -18,7 +18,7 @@ export function createPlayerGameController({
     const body = textarea?.value?.trim();
     if (!body) return setToast("请填写口供内容", render);
     try {
-      await api.submitTestimony(state.roomId, { actKey: state.home?.currentActKey, body });
+      await api.submitTestimony(state.roomId, { templateKey: "testimony", actKey: state.home?.currentActKey, body });
       textarea.value = "";
       await pullRoomData({ partial: true });
       setToast("口供已提交给主持人", render);

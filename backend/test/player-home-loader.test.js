@@ -32,7 +32,8 @@ test("player-home returns full payload via parallel loader", async (context) => 
     "testimonies",
     "activeVotes",
     "privateActions",
-    "segments"
+    "segments",
+    "communicationTemplates"
   ]) {
     assert.ok(key in body, `missing ${key}`);
   }

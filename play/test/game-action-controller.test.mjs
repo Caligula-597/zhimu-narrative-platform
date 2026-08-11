@@ -30,13 +30,13 @@ test("game action delegates section and investigation identities", async () => {
   assert.deepEqual(second.calls[0], ["investigate", "p1"]);
 });
 
-test("private action rejects an empty title without API write", async () => {
+test("communication action rejects missing authored template content without API write", async () => {
   const { calls, options } = setup({
     action: "submit-private-action",
     api: { createPrivateAction: async () => { throw new Error("must not run"); } }
   });
   assert.equal(await handlePlayGameAction(options), true);
-  assert.deepEqual(calls[0].slice(0, 2), ["toast", "请填写标题"]);
+  assert.deepEqual(calls[0].slice(0, 2), ["toast", "请填写提交内容"]);
 });
 
 test("vote without complete identity is handled without API request", async () => {

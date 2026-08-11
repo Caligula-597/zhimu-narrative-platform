@@ -89,6 +89,7 @@ export async function handlePlayGameAction({
       return true;
     case "submit-private-action":
       await submitPrivateAction({
+        button,
         state,
         api,
         render,
@@ -332,6 +333,7 @@ async function submitVote({
 }
 
 async function submitPrivateAction({
+  button,
   state,
   api,
   render,
@@ -340,20 +342,17 @@ async function submitPrivateAction({
   pullRoomData,
   documentRef,
 }) {
-  const titleElement = documentRef.querySelector("[data-private-action-title]");
-  const bodyElement = documentRef.querySelector("[data-private-action-body]");
-  const title = titleElement?.value?.trim();
+  const templateKey = button?.dataset?.templateKey;
+  const form = button?.closest?.("[data-communication-form]");
+  const bodyElement = form?.querySelector("[data-private-action-body]");
   const body = bodyElement?.value?.trim() || "";
-  const actionType =
-    documentRef.querySelector("[data-private-action-type]")?.value ||
-    "ask_host";
-  if (!title) {
-    setToast("请填写标题", render, { patch: true });
+  if (!templateKey || !body) {
+    setToast("请填写提交内容", render, { patch: true });
     return;
   }
   try {
-    await api.createPrivateAction(state.roomId, { actionType, title, body });
-    if (titleElement) titleElement.value = "";
+    const actionType = templateKey === "public_statement" ? "public_statement" : templateKey;
+    await api.createPrivateAction(state.roomId, { actionType, title: templateKey, body, templateKey });
     if (bodyElement) bodyElement.value = "";
     await pullRoomData({ partial: true });
     setToast("已提交给主持人", render, { patch: true });

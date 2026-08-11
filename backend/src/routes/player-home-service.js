@@ -103,7 +103,8 @@ export async function loadPlayerHomeCore({ roomId, roleSlotId }) {
     ...EMPTY_SESSION,
     currentActKey: progress.currentActKey,
     tasks: progress.tasks,
-    segments: content.segments
+    segments: content.segments,
+    communicationTemplates: content.communicationTemplates
   };
 }
 
@@ -127,6 +128,7 @@ export async function loadAuthorizedPlayerHomeCore({ roomId, actorId }) {
     currentActKey: progress.currentActKey,
     tasks: progress.tasks,
     segments: content.segments,
+    communicationTemplates: content.communicationTemplates,
     contentRevision: content.contentRevision
   };
 }
@@ -193,6 +195,7 @@ export async function loadPlayerHomePayload({ roomId, roleSlotId, actorId }) {
     ...projectedSession,
     currentActKey: progress.currentActKey,
     tasks: progress.tasks,
-    segments: content.segments
+    segments: content.segments,
+    communicationTemplates: content.communicationTemplates
   };
 }

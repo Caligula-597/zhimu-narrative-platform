@@ -187,6 +187,8 @@ export const API_ERRORS = {
   SEGMENT_REFERENCES_INVALID: { status: 400, message: "Segment references are invalid" },
   PRIVATE_ACTION_TARGET_REQUIRED: { status: 400, message: "Target role is required for target-visible private actions" },
   PRIVATE_ACTION_TRANSITION_INVALID: { status: 409, message: "Private action status transition is invalid" },
+  COMMUNICATION_TEMPLATE_NOT_ALLOWED: { status: 409, message: "This communication action is not enabled for the room" },
+  COMMUNICATION_DEADLINE_PASSED: { status: 409, message: "The communication deadline has passed" },
   INVITE_FIELDS_REQUIRED: { status: 400, message: "inviteCode and roleSlotId are required" },
 
   // Creator content

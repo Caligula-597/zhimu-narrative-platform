@@ -3894,3 +3894,4 @@ code {
     align-items: stretch;
   }
 }
+.communication-action-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:10px}.communication-action-card{align-content:start;gap:10px;display:grid}.communication-action-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.communication-action-head span,.communication-deadline{color:var(--muted);font-size:11px;line-height:1.45}.communication-action-head h3{margin:0}.communication-action-card textarea{min-height:96px;resize:vertical}

@@ -16,6 +16,7 @@ import {
   updatePrivateAction
 } from "./repositories/content-platform-private-action-repository.js";
 import { transactionWithEvents } from "./transaction-events.js";
+import { applyPrivateActionTemplate } from "./communication-template-policy.js";
 
 const PRIVATE_ACTION_TRANSITIONS = {
   draft: new Set(["seen", "accepted", "rejected", "resolved", "cancelled"]),
@@ -38,6 +39,11 @@ export function getPrivateActionsForHost(roomId, options) {
 export async function submitPrivateAction({ actorId, roomId, body }) {
   return transactionWithEvents(async (client, queueEvent) => {
     await configureContentPlatformTransaction(client);
+    body = await applyPrivateActionTemplate(client.query.bind(client), {
+      roomId,
+      templateKey: body.templateKey,
+      body,
+    });
     const membership = await assertContentPlatformPlayer(client, { roomId, actorId });
     const references = await lockPrivateActionReferences(client, {
       roomId,
@@ -74,7 +80,8 @@ export async function submitPrivateAction({ actorId, roomId, body }) {
     queueEvent(roomId, "room.private_action_submitted", {
       actionId: action.id,
       actionType: body.actionType,
-      roleSlotIds: [membership.role_slot_id, action.target_role_slot_id].filter(Boolean)
+      roleSlotIds: [membership.role_slot_id, action.target_role_slot_id].filter(Boolean),
+      visibility: action.visibility,
     });
     return action;
   });
@@ -119,7 +126,8 @@ export async function reviewPrivateAction({ actorId, roomId, actionId, body }) {
     queueEvent(roomId, "room.private_action_updated", {
       actionId,
       status: body.status,
-      roleSlotIds: [updated.actor_role_slot_id, updated.target_role_slot_id].filter(Boolean)
+      roleSlotIds: [updated.actor_role_slot_id, updated.target_role_slot_id].filter(Boolean),
+      visibility: updated.visibility,
     });
     return updated;
   });

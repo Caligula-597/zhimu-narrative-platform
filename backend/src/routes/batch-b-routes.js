@@ -40,6 +40,7 @@ import {
   fetchMyTestimonies,
   submitTestimony
 } from "../testimonies.js";
+import { resolveCommunicationTemplate } from "../communication-template-policy.js";
 import {
   attachTagsToWorldRows,
   buildCatalogTagFilterSql,
@@ -104,6 +105,13 @@ export async function registerBatchBRoutes(app) {
     const { roomId } = request.params;
     const membership = await requirePlayerRoleSlot(actorId, roomId);
     const testimony = await transactionWithEvents(async (client, queueEvent) => {
+      if (request.body?.templateKey) {
+        await resolveCommunicationTemplate(client.query.bind(client), {
+          roomId,
+          templateKey: request.body.templateKey,
+          expectedKind: "testimony",
+        });
+      }
       const row = await submitTestimony(client.query.bind(client), {
         roomId,
         roleSlotId: membership.role_slot_id,

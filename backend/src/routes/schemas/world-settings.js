@@ -370,6 +370,22 @@ export const mechanismDesignSchema = {
   },
 };
 
+const communicationTemplateSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["version", "key", "kind", "enabled", "title", "privacyNotice", "placeholder", "deadlineMinutes"],
+  properties: {
+    version: { type: "integer", const: 1 },
+    key: { type: "string", enum: ["testimony", "public_statement", "secret_action", "ask_host"] },
+    kind: { type: "string", enum: ["testimony", "public_statement", "secret_action", "ask_host"] },
+    enabled: { type: "boolean" },
+    title: { type: "string", minLength: 1, maxLength: 120 },
+    privacyNotice: { type: "string", minLength: 1, maxLength: 500 },
+    placeholder: { type: "string", minLength: 1, maxLength: 300 },
+    deadlineMinutes: { type: "integer", minimum: 0, maximum: 1440 },
+  },
+};
+
 export const worldSettingsSchema = {
   type: "object",
   additionalProperties: true,
@@ -383,5 +399,6 @@ export const worldSettingsSchema = {
     creativeConstitution: creativeConstitutionSchema,
     storySpine: storySpineSchema,
     mechanismDesign: mechanismDesignSchema,
+    communicationTemplates: { type: "array", maxItems: 4, items: communicationTemplateSchema },
   },
 };

@@ -104,14 +104,15 @@ export const createPrivateActionSchema = {
       targetRoleSlotId: optionalUuid,
       actionType: {
         type: "string",
-        enum: ["ask_host", "secret_action", "trade", "promise", "accusation_note"]
+        enum: ["ask_host", "secret_action", "trade", "promise", "accusation_note", "public_statement"]
       },
+      templateKey: { type: "string", enum: ["public_statement", "secret_action", "ask_host"] },
       title: { type: "string", minLength: 1, maxLength: 200 },
       body: { type: "string", maxLength: 4000 },
       payload: metadataObject,
       visibility: {
         type: "string",
-        enum: ["actor_host", "actor_target_host", "host_only", "postgame"]
+        enum: ["actor_host", "actor_target_host", "host_only", "postgame", "public"]
       }
     }
   }
