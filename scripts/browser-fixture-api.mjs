@@ -335,6 +335,126 @@ const voiceRoomsByRoom = new Map(rooms.map((room, index) => [room.id, [{
   status: "active"
 }]]));
 const voiceCreateIdempotency = new Map();
+const discoverySessionsByRoom = new Map();
+const conclusionsByRoom = new Map();
+
+function discoveryStoreFor(roomId) {
+  if (!discoverySessionsByRoom.has(roomId)) discoverySessionsByRoom.set(roomId, new Map());
+  return discoverySessionsByRoom.get(roomId);
+}
+
+function idleConclusion() {
+  return { status: "idle", endingId: null, recapId: null, revision: 0 };
+}
+
+function conclusionFor(roomId) {
+  return projectFixtureConclusion(conclusionsByRoom.get(roomId) || idleConclusion());
+}
+
+function projectFixtureConclusion(conclusion) {
+  return {
+    status: conclusion.status,
+    endingId: conclusion.endingId || null,
+    recapId: conclusion.recapId || null,
+    revision: Number(conclusion.revision) || 0,
+    ...(conclusion.updatedAt ? { updatedAt: conclusion.updatedAt } : {})
+  };
+}
+
+function discoveryClueIdsFor(room, locationId) {
+  const location = fixtureTabletopMapDesign.locations.find((item) => item.id === locationId);
+  if (!location) return [];
+  return browserPlayerClues(room)
+    .filter((clue) => {
+      const metadata = clue.metadata || {};
+      if (metadata.locationId) return String(metadata.locationId) === String(location.id);
+      return String(metadata.segmentKey || clue.segment_key || "") === String(location.segmentKey || "");
+    })
+    .map((clue) => String(clue.id));
+}
+
+function projectFixtureDiscoverySession(session) {
+  if (!session) return null;
+  const { remainingClueIds: _privateOrder, ...projected } = session;
+  return projected;
+}
+
+function applyFixtureDiscoveryAction(room, locationId, input = {}) {
+  const store = discoveryStoreFor(room.id);
+  const existing = store.get(locationId) || null;
+  const expectedRevision = Number(input.expectedRevision);
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+    return { error: { status: 400, code: "DISCOVERY_REVISION_REQUIRED" } };
+  }
+  if (existing && input.action === "scan_started" && expectedRevision === 0) {
+    return { session: projectFixtureDiscoverySession(existing) };
+  }
+  if ((existing?.revision || 0) !== expectedRevision) {
+    return {
+      error: {
+        status: 409,
+        code: "DISCOVERY_VERSION_CONFLICT",
+        currentRevision: existing?.revision || 0
+      }
+    };
+  }
+  const clueIds = discoveryClueIdsFor(room, locationId);
+  const drawnClueIds = (existing?.drawnClueIds || []).filter((id) => clueIds.includes(id));
+  let remainingClueIds = [
+    ...(existing?.remainingClueIds || []).filter((id) => clueIds.includes(id) && !drawnClueIds.includes(id)),
+    ...clueIds.filter((id) => !drawnClueIds.includes(id) && !(existing?.remainingClueIds || []).includes(id))
+  ];
+  const now = new Date().toISOString();
+  let phase = existing?.phase || "idle";
+  let scanStartedAt = existing?.scanStartedAt || null;
+  let scanReadyAt = existing?.scanReadyAt || null;
+  let completedAt = existing?.completedAt || null;
+  if (input.action === "scan_started") {
+    if (phase === "idle") phase = "scanning";
+    else if (phase === "complete" && remainingClueIds.length) {
+      phase = "ready";
+      completedAt = null;
+    }
+    scanStartedAt ||= now;
+  } else if (input.action === "scan_ready") {
+    if (!existing || !["scanning", "ready"].includes(phase)) {
+      return { error: { status: 409, code: "DISCOVERY_ACTION_INVALID" } };
+    }
+    phase = remainingClueIds.length ? "ready" : "complete";
+    scanReadyAt ||= now;
+    if (!remainingClueIds.length) completedAt ||= now;
+  } else if (input.action === "clue_drawn") {
+    if (!existing || !["ready", "drawing"].includes(phase) || !remainingClueIds.length) {
+      return { error: { status: 409, code: "DISCOVERY_ACTION_INVALID" } };
+    }
+    drawnClueIds.push(remainingClueIds.shift());
+    phase = remainingClueIds.length ? "drawing" : "complete";
+    if (!remainingClueIds.length) completedAt ||= now;
+  } else if (input.action === "reshuffle") {
+    if (!existing || !["ready", "drawing"].includes(phase)) {
+      return { error: { status: 409, code: "DISCOVERY_ACTION_INVALID" } };
+    }
+    remainingClueIds = [...remainingClueIds].reverse();
+  } else {
+    return { error: { status: 400, code: "DISCOVERY_ACTION_INVALID" } };
+  }
+  const session = {
+    locationId,
+    segmentKey: fixtureTabletopMapDesign.locations.find((item) => item.id === locationId)?.segmentKey || locationId,
+    phase,
+    drawnClueIds,
+    lastDrawnClueId: drawnClueIds.at(-1) || null,
+    remainingClueIds,
+    remainingCount: remainingClueIds.length,
+    scanStartedAt,
+    scanReadyAt,
+    completedAt,
+    revision: expectedRevision + 1,
+    updatedAt: now
+  };
+  store.set(locationId, session);
+  return { session: projectFixtureDiscoverySession(session) };
+}
 
 function browserVoiceSession(room) {
   const voiceRooms = voiceRoomsByRoom.get(room.id) || [];
@@ -446,6 +566,22 @@ function mechanismGrantedClues(room) {
     owner_role_slot_id: playerRoleId,
     owner_role_name: "小满"
   }));
+}
+
+function browserPlayerClues(room) {
+  const authored = workspacePreview.clues
+    .filter((clue) => !clue.role_slot_id || String(clue.role_slot_id) === String(playerRoleId))
+    .filter((clue) => clue.metadata?.locationId || clue.metadata?.segmentKey)
+    .map((clue) => ({
+      ...clue,
+      segment_key: clue.metadata?.segmentKey || "",
+      acquired_at: "2026-08-10T08:00:00.000Z",
+      read_at: null,
+      is_owner: true,
+      owner_role_slot_id: playerRoleId,
+      owner_role_name: "Browser player"
+    }));
+  return [...authored, ...mechanismGrantedClues(room)];
 }
 
 for (const room of rooms) {
@@ -722,7 +858,7 @@ function browserPlayerHomeCore(room) {
       completed_at: "2026-08-06T09:55:00.000Z"
     }],
     notes: [],
-    clues: mechanismGrantedClues(room),
+    clues: browserPlayerClues(room),
     sharedClues: [],
     roomMembers: [],
     suspicions: [],
@@ -742,7 +878,7 @@ function browserPlayerHomeCore(room) {
 }
 
 function browserPlayerHomeSocial(room) {
-  const grantedClues = mechanismGrantedClues(room);
+  const grantedClues = browserPlayerClues(room);
   return {
     notes: [],
     clues: grantedClues,
@@ -849,7 +985,13 @@ const workspacePreview = {
     host_text: "用于引出第一幕的失踪线索。",
     visibility: "role",
     clue_kind: "general",
-    metadata: { clueType: "text", grantMode: "auto", importance: "normal" }
+    metadata: {
+      clueType: "text",
+      grantMode: "auto",
+      importance: "normal",
+      locationId: "review-room",
+      segmentKey: "authorization-review"
+    }
   }, {
     id: "clue-2",
     name: "采访记录",
@@ -858,7 +1000,13 @@ const workspacePreview = {
     visibility: "role",
     role_slot_id: "role-2",
     clue_kind: "general",
-    metadata: { clueType: "text", grantMode: "manual", importance: "key" }
+    metadata: {
+      clueType: "text",
+      grantMode: "manual",
+      importance: "key",
+      locationId: "review-room",
+      segmentKey: "authorization-review"
+    }
   }, {
     id: "clue-3",
     name: "尸温记录",
@@ -867,7 +1015,13 @@ const workspacePreview = {
     visibility: "role",
     role_slot_id: "role-3",
     clue_kind: "general",
-    metadata: { clueType: "text", grantMode: "manual", importance: "key" }
+    metadata: {
+      clueType: "text",
+      grantMode: "manual",
+      importance: "key",
+      locationId: "server-lobby",
+      segmentKey: "arrival-check"
+    }
   }],
   items: [],
   investigationPoints: [{ id: "point-1", name: "检查停摆时钟", scene_id: "scene-2" }],
@@ -1792,6 +1946,118 @@ const server = http.createServer(async (request, response) => {
   }
   const voiceMessagesMatch = path.match(/^\/api\/voice-rooms\/([^/]+)\/messages$/);
   if (request.method === "GET" && voiceMessagesMatch) return sendJson(response, 200, []);
+  if (request.method === "GET" && path === "/api/account/recaps") {
+    return sendJson(response, 200, { recaps: [], total: 0 });
+  }
+  if (request.method === "GET" && path === "/api/storage/usage") {
+    return sendJson(response, 200, {
+      planCode: "beta",
+      planLabel: "内测",
+      isInternalBeta: true,
+      usedBytes: 0,
+      maxBytes: 10 * 1024 * 1024 * 1024,
+      remainingBytes: 10 * 1024 * 1024 * 1024,
+      usedWorlds: 1,
+      maxWorlds: 20,
+      remainingWorlds: 19,
+      maxSingleFileBytes: 50 * 1024 * 1024
+    });
+  }
+  const roomContentPolicyMatch = path.match(/^\/api\/worlds\/([^/]+)\/rooms\/content-policy$/);
+  if (request.method === "GET" && roomContentPolicyMatch) {
+    if (roomContentPolicyMatch[1] !== worldId) {
+      return sendJson(response, 404, { code: "WORLD_NOT_FOUND", error: "World not found" });
+    }
+    return sendJson(response, 200, {
+      defaultMode: "release",
+      defaultReleaseEnabled: true,
+      publicListingRequiresRelease: true,
+      allowExplicitLiveDraft: true
+    });
+  }
+  const discoveryActionMatch = path.match(/^\/api\/rooms\/([^/]+)\/discovery-sessions\/([^/]+)\/actions$/);
+  if (request.method === "POST" && discoveryActionMatch) {
+    const room = rooms.find((item) => item.id === discoveryActionMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const locationId = decodeURIComponent(discoveryActionMatch[2]);
+    if (!fixtureTabletopMapDesign.locations.some((item) => item.id === locationId)) {
+      return sendJson(response, 404, { code: "DISCOVERY_LOCATION_UNAVAILABLE", error: "Location unavailable" });
+    }
+    const body = await readJson(request);
+    const result = applyFixtureDiscoveryAction(room, locationId, body);
+    if (result.error) {
+      return sendJson(response, result.error.status, {
+        code: result.error.code,
+        error: result.error.code,
+        ...(result.error.currentRevision == null ? {} : { currentRevision: result.error.currentRevision })
+      });
+    }
+    broadcastRoomEvent(room.id, {
+      type: "room.discovery_updated",
+      locationId,
+      roleSlotId: playerRoleId,
+      action: body.action,
+      revision: result.session.revision,
+      drawnCount: result.session.drawnClueIds.length,
+      remainingCount: result.session.remainingCount
+    });
+    return sendJson(response, 200, result.session);
+  }
+  const hostConclusionMatch = path.match(/^\/api\/rooms\/([^/]+)\/host\/conclusion$/);
+  if (request.method === "POST" && hostConclusionMatch) {
+    const room = rooms.find((item) => item.id === hostConclusionMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const body = await readJson(request);
+    const existing = conclusionsByRoom.get(room.id);
+    if (existing?.idempotencyKey && existing.idempotencyKey !== body.idempotencyKey) {
+      return sendJson(response, 409, { code: "CONCLUSION_ALREADY_PREPARED", error: "Conclusion already prepared" });
+    }
+    const presentation = browserRuntimePresentation(room, "host");
+    const ending = presentation.map?.host?.endingCandidates?.find((item) => String(item.id) === String(body.endingId))
+      || (String(presentation.map?.publishedEnding?.id || "") === String(body.endingId) ? presentation.map.publishedEnding : null);
+    if (!ending) {
+      return sendJson(response, 409, { code: "CONCLUSION_ENDING_INVALID", error: "Ending is unavailable" });
+    }
+    if (existing && ["publishing", "recap_pending", "ready"].includes(existing.status)) {
+      return sendJson(response, 200, { conclusion: projectFixtureConclusion(existing) });
+    }
+    const now = new Date().toISOString();
+    room.settings = {
+      ...(room.settings || {}),
+      runtimePresentation: {
+        ...(room.settings?.runtimePresentation || {}),
+        publishedEnding: { id: body.endingId, publishedAt: now },
+        updatedAt: now
+      }
+    };
+    const conclusion = {
+      status: "ready",
+      endingId: String(body.endingId),
+      recapId: `recap-${room.id}`,
+      revision: (existing?.revision || 0) + 2,
+      updatedAt: now,
+      idempotencyKey: String(body.idempotencyKey || "")
+    };
+    conclusionsByRoom.set(room.id, conclusion);
+    const publicConclusion = projectFixtureConclusion(conclusion);
+    broadcastRoomEvent(room.id, {
+      type: "room.presentation_updated",
+      activeSegmentKey: room.settings.runtimePresentation.activeSegmentKey || "",
+      activeLocationId: room.settings.runtimePresentation.activeLocationId || "",
+      revealedLocationIds: room.settings.runtimePresentation.revealedLocationIds || [],
+      mapVisible: Boolean(room.settings.runtimePresentation.mapVisible),
+      checkStatus: room.settings.runtimePresentation.activeCheck?.status || "cleared",
+      checkLabel: room.settings.runtimePresentation.activeCheck?.label || "",
+      encounterStatus: room.settings.runtimePresentation.activeEncounter?.status || "cleared",
+      encounterLocationId: room.settings.runtimePresentation.activeEncounter?.locationId || "",
+      updatedAt: now
+    });
+    broadcastRoomEvent(room.id, { type: "room.conclusion_updated", ...publicConclusion });
+    return sendJson(response, 200, {
+      conclusion: publicConclusion,
+      recap: { id: conclusion.recapId, title: String(body.title || ending.name), created_at: now }
+    });
+  }
   const roomPathMatch = path.match(/^\/api\/rooms\/([^/]+)(\/.*)$/);
   if (request.method === "GET" && roomPathMatch && roomPathMatch[1] !== "invite") {
     const [, requestedRoomId, suffix] = roomPathMatch;
@@ -1810,6 +2076,33 @@ const server = http.createServer(async (request, response) => {
     if (suffix === "/current-state") return sendJson(response, 200, browserPlayerCurrentState(room));
     if (suffix === "/host/current-state") return sendJson(response, 200, browserHostCurrentState(room));
     if (suffix === "/voice-session") return sendJson(response, 200, browserVoiceSession(room));
+    if (suffix === "/discovery-sessions") {
+      return sendJson(response, 200, {
+        sessions: [...discoveryStoreFor(room.id).values()].map(projectFixtureDiscoverySession)
+      });
+    }
+    if (suffix === "/host/discovery-progress") {
+      return sendJson(response, 200, {
+        locations: fixtureTabletopMapDesign.locations.map(({ id, name, segmentKey }) => ({ id, name, segmentKey })),
+        players: [{ roleSlotId: playerRoleId, roleName: "Browser player", displayName: "Browser player", joined: true }],
+        sessions: [...discoveryStoreFor(room.id).values()].map((session) => ({
+          roleSlotId: playerRoleId,
+          locationId: session.locationId,
+          phase: session.phase,
+          drawnCount: session.drawnClueIds.length,
+          remainingCount: session.remainingCount,
+          scanStartedAt: session.scanStartedAt,
+          scanReadyAt: session.scanReadyAt,
+          completedAt: session.completedAt,
+          revision: session.revision,
+          updatedAt: session.updatedAt
+        }))
+      });
+    }
+    if (suffix === "/pace-clock" || suffix === "/host/pace-clock") return sendJson(response, 200, { clock: null });
+    if (suffix === "/conclusion") return sendJson(response, 200, { conclusion: conclusionFor(room.id) });
+    if (suffix === "/player/item-actions" || suffix === "/host/item-actions") return sendJson(response, 200, { itemActions: [] });
+    if (suffix === "/player/relationships" || suffix === "/host/relationships") return sendJson(response, 200, { relationships: [] });
     if (suffix === "/exploration") {
       return sendJson(response, 200, {
         scenes: [{
@@ -1886,7 +2179,16 @@ const server = http.createServer(async (request, response) => {
         member_count: 0,
         role_slot_count: 4,
         is_mine: true,
-        contentBinding: bindingFor(selectedReleaseId)
+        contentBinding: bindingFor(selectedReleaseId),
+        settings: {
+          runtimePresentation: {
+            activeSegmentKey: "authorization-review",
+            activeLocationId: "review-room",
+            revealedLocationIds: ["server-lobby", "review-room"],
+            mapVisible: true,
+            updatedAt: new Date().toISOString()
+          }
+        }
       };
       rooms.unshift(room);
       voiceRoomsByRoom.set(room.id, [{
@@ -1896,6 +2198,8 @@ const server = http.createServer(async (request, response) => {
         status: "active"
       }]);
       mechanismRuntimes.set(room.id, newFixtureMechanismRuntime());
+      discoverySessionsByRoom.set(room.id, new Map());
+      conclusionsByRoom.delete(room.id);
       dashboard.counts.rooms = rooms.length;
       return sendJson(response, 201, room);
     } catch (error) {
