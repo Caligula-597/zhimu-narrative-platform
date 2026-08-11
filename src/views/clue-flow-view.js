@@ -56,6 +56,18 @@ export function highlightQuery(text, query) {
     return (data.investigationPoints || []).filter((point) => point.clue_id === clueId);
   }
 
+  export function clueHasDiscoveryPath(clue, data) {
+    const metadata = clue?.metadata || {};
+    return Boolean(
+      linkedPoints(clue?.id, data).length ||
+      metadata.locationId ||
+      metadata.location_id ||
+      metadata.segmentKey ||
+      metadata.segment_key ||
+      metadata.allowUnbound === true
+    );
+  }
+
   function pointScene(point, data) {
     return (data.scenes || []).find((scene) => scene.id === point?.scene_id);
   }
@@ -266,7 +278,10 @@ export function highlightQuery(text, query) {
         return from && to ? graphConnector({ x: from.x, y: from.y }, { x: to.x, y: to.y }, edge) : "";
       }).join("");
     const relationIds = new Set(dependencies.flatMap((edge) => [edge.from, edge.to]));
-    const connectedIds = relationIds;
+    const connectedIds = new Set([
+      ...relationIds,
+      ...list.filter((clue) => clueHasDiscoveryPath(clue, data)).map((clue) => clue.id)
+    ]);
     const unlinkedCount = Math.max(0, list.length - connectedIds.size);
     const hiddenRelationCount = Math.max(0, allDependencies.length - dependencies.length);
     return `<article class="clue-flow-panel">
@@ -402,13 +417,13 @@ export function highlightQuery(text, query) {
   }
 
   export function clueAuditCards(list, data) {
-    const linked = list.filter((clue) => linkedPoints(clue.id, data).length).length;
+    const linked = list.filter((clue) => clueHasDiscoveryPath(clue, data)).length;
     const withText = list.filter((clue) => String(clue.public_text || "").trim()).length;
     const withRules = list.filter((clue) => (data.edges || []).some((edge) => (edge.from_type === "clue" && edge.from_id === clue.id) || (edge.to_type === "clue" && edge.to_id === clue.id))).length;
     const keyed = list.filter((clue) => clue?.metadata?.importance === "key").length;
     const total = list.length || 0;
     const missingText = list.filter((clue) => !String(clue.public_text || "").trim());
-    const unlinked = list.filter((clue) => !linkedPoints(clue.id, data).length);
+    const unlinked = list.filter((clue) => !clueHasDiscoveryPath(clue, data));
     const noRuleLinks = list.filter((clue) => !(data.edges || []).some((edge) => (edge.from_type === "clue" && edge.from_id === clue.id) || (edge.to_type === "clue" && edge.to_id === clue.id)));
     const nameCounts = list.reduce((acc, clue) => {
       const key = String(clue.name || "").trim();

@@ -96,6 +96,21 @@ test("evaluateWorldPublishReadiness flags unreachable clues", () => {
   assert.ok(result.checks.some((item) => item.id === "clues.cl1.unreachable"));
 });
 
+test("publish readiness blocks clues without a deliberate player path", () => {
+  const critical = minimalSnapshot();
+  critical.clues = [{ id: "cl1", name: "关键证据", metadata: { importance: "key" } }];
+  critical.investigationPoints = [];
+  const criticalResult = evaluateWorldPublishReadiness(critical);
+  assert.ok(criticalResult.checks.some((item) => item.id === "clues.cl1.critical_path_missing"));
+  assert.equal(criticalResult.summary.readyForPlaytest, false);
+
+  const ordinary = minimalSnapshot();
+  ordinary.clues = [{ id: "cl1", name: "气氛纸条", metadata: { allowUnbound: true } }];
+  ordinary.investigationPoints = [];
+  const ordinaryResult = evaluateWorldPublishReadiness(ordinary);
+  assert.ok(!ordinaryResult.checks.some((item) => item.id === "clues.cl1.path_decision_missing"));
+});
+
 test("evaluateWorldPublishReadiness flags segment gaps", () => {
   const result = evaluateWorldPublishReadiness(
     minimalSnapshot({

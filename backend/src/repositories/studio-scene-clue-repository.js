@@ -130,3 +130,38 @@ export async function updateStudioClue(client, {
   );
   return result.rows[0] ?? null;
 }
+
+export async function bulkUpdateStudioCluePaths(client, {
+  worldId,
+  clueIds,
+  locationId,
+  segmentKey,
+  allowUnbound
+}) {
+  const result = await client.query(
+    `UPDATE clues
+     SET metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object(
+       'locationId', $3::text,
+       'segmentKey', $4::text,
+       'allowUnbound', $5::boolean
+     )
+     WHERE world_id = $1 AND id = ANY($2::uuid[])
+     RETURNING id, name, public_text, host_text, visibility, clue_kind, metadata`,
+    [worldId, clueIds, locationId, segmentKey, allowUnbound]
+  );
+  return result.rows;
+}
+
+export async function findStudioCluePathReferences(client, { worldId, segmentKey }) {
+  const result = await client.query(
+    `SELECT settings,
+            CASE WHEN $2::text IS NULL THEN true ELSE EXISTS (
+              SELECT 1 FROM world_segments
+              WHERE world_id = $1 AND segment_key = $2
+            ) END AS segment_exists
+     FROM worlds
+     WHERE id = $1`,
+    [worldId, segmentKey]
+  );
+  return result.rows[0] ?? null;
+}

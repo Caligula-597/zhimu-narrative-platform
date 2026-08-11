@@ -61,6 +61,11 @@ test("player preview is limited to roles allowed to inspect private content", ()
 
 test("player preview follows the Player initial-state contract", () => {
   const data = fixture();
+  data.world.settings = {
+    tabletopMapDesign: { locations: [{ id: "library", name: "旧图书馆" }] }
+  };
+  data.clues[0].metadata = { locationId: "library", segmentKey: "ch1" };
+  data.investigationPoints = [{ id: "point-1", clue_id: "clue-1", name: "书桌抽屉" }];
   const draft = normalizePlayerPreviewDraft(data, {
     roleId: "stale-role",
     roomId: "stale-room",
@@ -75,6 +80,9 @@ test("player preview follows the Player initial-state contract", () => {
   assert.match(preview.hiddenSections[0].reason, /运行时解锁记录/);
   assert.equal(preview.visibleScenes.length, 0);
   assert.equal(preview.visibleClues.length, 0);
+  assert.match(preview.hiddenClues[0].pathLabel, /旧图书馆/);
+  assert.match(preview.hiddenClues[0].pathLabel, /书桌抽屉/);
+  assert.match(preview.hiddenClues[0].pathLabel, /ch1/);
   assert.ok(preview.warnings.some((warning) => warning.includes("父章节")));
   assert.ok(preview.warnings.some((warning) => warning.includes("公开线索")));
   assert.ok(preview.warnings.some((warning) => warning.includes("room_content_unlocks")));

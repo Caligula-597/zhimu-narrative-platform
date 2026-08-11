@@ -230,7 +230,44 @@ export function evaluateWorldPublishReadiness(snapshot) {
       .filter((action) => action.type === "grant_clue")
       .map((action) => action.clueId)
   ]);
+  const investigationPointClueIds = new Set(
+    points.map((point) => point.clue_id).filter(Boolean)
+  );
+  const criticalImportance = new Set([
+    "key",
+    "prerequisite",
+    "truth_piece",
+    "finale_key"
+  ]);
   for (const clue of clues) {
+    const metadata = clue.metadata && typeof clue.metadata === "object"
+      ? clue.metadata
+      : {};
+    const hasPath = Boolean(
+      investigationPointClueIds.has(clue.id) ||
+      metadata.locationId ||
+      metadata.location_id ||
+      metadata.segmentKey ||
+      metadata.segment_key
+    );
+    const isCritical = criticalImportance.has(metadata.importance);
+    if (!hasPath && isCritical) {
+      add(checks, {
+        id: `clues.${clue.id}.critical_path_missing`,
+        level: "error",
+        title: `${clue.name} 缺少玩家发现路径`,
+        detail: "关键线索必须绑定地图地点、调查点或剧情段落，不能仅依赖主持人临场补救。",
+        target: { kind: "clues", clueId: clue.id }
+      });
+    } else if (!hasPath && metadata.allowUnbound !== true) {
+      add(checks, {
+        id: `clues.${clue.id}.path_decision_missing`,
+        level: "error",
+        title: `${clue.name} 尚未决定出现路径`,
+        detail: "请绑定地图地点、调查点或剧情段落；若它是刻意游离的补充线索，请明确勾选“允许游离”。",
+        target: { kind: "clues", clueId: clue.id }
+      });
+    }
     if (!grantedClueIds.has(clue.id)) {
       add(checks, {
         id: `clues.${clue.id}.unreachable`,

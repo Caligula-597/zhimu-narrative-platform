@@ -28,6 +28,7 @@ function clueDraft(clue = null) {
     clueKind: clue?.clue_kind || clue?.clueKind || "general",
     locationId: meta.locationId || meta.location_id || "",
     segmentKey: meta.segmentKey || meta.segment_key || "",
+    allowUnbound: meta.allowUnbound === true,
     assetId: meta.assetId || "",
     importance: meta.importance || "normal",
     triggerNote: meta.triggerNote || ""
@@ -100,6 +101,7 @@ export function renderClueEditorPanel() {
       { id: "host_confirm", name: "主持确认后发放" },
       { id: "explore", name: "探索调查获得" }
     ], value.grantMode) +
+    `<label class="check-label clue-path-decision"><input type="checkbox" data-editor-checkbox="allowUnbound"${value.allowUnbound ? " checked" : ""}><span>允许游离：这条普通线索刻意不绑定地点、调查点或段落</span></label>` +
     formSelect("归属地图地点", "locationId", locations, value.locationId) +
     formSelect("剧情段定位", "segmentKey", segments, value.segmentKey) +
     formSelect("线索形态", "clueType", CLUE_TYPE_OPTIONS, value.clueType) +
@@ -122,7 +124,9 @@ export function renderClueEditorPanel() {
 export function bindClueEditor() {
   if (!clueEditorState) return;
   const root = document.querySelector(".clue-workspace-editor[data-workspace-editor]");
-  bindWorkspaceDraft(root, clueEditorState.draft);
+  bindWorkspaceDraft(root, clueEditorState.draft, {
+    checkboxMap: { allowUnbound: "allowUnbound" }
+  });
 }
 
 export async function saveCluesEditor() {
@@ -138,6 +142,8 @@ export async function saveCluesEditor() {
   const clue = currentClue();
   const mapLocations = studioStore.get().cloudStudio?.world?.settings?.tabletopMapDesign?.locations || [];
   const selectedLocation = mapLocations.find((location) => location.id === values.locationId);
+  const resolvedSegmentKey = values.segmentKey || selectedLocation?.segmentKey || null;
+  const allowUnbound = !values.locationId && !resolvedSegmentKey && clueEditorState.draft.allowUnbound === true;
   setWorkspaceSaving(root, true);
   showWorkspaceErrors(root, []);
   try {
@@ -154,7 +160,8 @@ export async function saveCluesEditor() {
         importance: values.importance || "normal",
         grantMode: values.grantMode || "auto",
         locationId: values.locationId || null,
-        segmentKey: values.segmentKey || selectedLocation?.segmentKey || null,
+        segmentKey: resolvedSegmentKey,
+        allowUnbound,
         triggerNote: values.triggerNote || ""
       }
     };

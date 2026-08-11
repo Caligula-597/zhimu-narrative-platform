@@ -7,9 +7,9 @@ import * as S from "../components/ui-semantics.js";
 import {
   clueActBadge, clueAuditCards, clueDependencyEdges,
   clueDetailPanel, clueGraph, clueKindBadge, clueTimeline, clueVisibilityChip,
-  highlightQuery, linkedPoints
+  clueHasDiscoveryPath, highlightQuery, linkedPoints
 } from "./clue-flow-view.js";
-import { batchDeleteClues, confirmDeleteClue } from "./clues-crud-controller.js";
+import { batchBindCluePaths, batchDeleteClues, confirmDeleteClue } from "./clues-crud-controller.js";
 import {
   bindClueEditor,
   closeCluesEditor,
@@ -64,7 +64,7 @@ import {
     if (flowFilter === "linked") {
       list = list.filter((clue) => linkedPoints(clue.id, data).length || dependencyRefs.some((edge) => edge.from === clue.id || edge.to === clue.id));
     } else if (flowFilter === "incomplete") {
-      list = list.filter((clue) => !String(clue.public_text || "").trim() || (!linkedPoints(clue.id, data).length && !dependencyRefs.some((edge) => edge.from === clue.id || edge.to === clue.id)));
+      list = list.filter((clue) => !String(clue.public_text || "").trim() || (!clueHasDiscoveryPath(clue, data) && !dependencyRefs.some((edge) => edge.from === clue.id || edge.to === clue.id)));
     }
     const bulkSelected = new Set(ui.cluesBulkSelection || []);
     const visibleIds = list.map((clue) => clue.id);
@@ -76,11 +76,14 @@ import {
     const bulkToolbar = list.length
       ? `<div class="row clues-bulk-toolbar"><label class="check-label"><input type="checkbox" data-action="clues-select-all" ${allVisibleSelected ? "checked" : ""}><span>全选当前列表 (${list.length})</span></label><button class="danger-btn" data-action="clues-batch-delete" ${bulkSelected.size ? "" : "disabled"}>删除所选 (${bulkSelected.size || 0})</button></div>`
       : "";
+    const bulkBindButton = list.length
+      ? `<button class="secondary-btn" data-action="clues-batch-bind" ${bulkSelected.size ? "" : "disabled"}>批量绑定路径 (${bulkSelected.size || 0})</button>`
+      : "";
     return `${catalogExperienceBanner(data.world)}<section class="clues-page ${escapeHtml(S.surface?.("creator")?.className || "")}"><div class="section-head"><div><p class="section-kicker">CLUE LIBRARY</p><h2>${escapeHtml(terms.clue)}管理</h2><p>共 ${data.clues.length} 条${escapeHtml(terms.clue)} · 勾选后可批量删除测试内容</p></div><div class="row"><button class="secondary-btn" data-go="studio">打开编排图谱</button><button class="primary-btn" data-action="clues-add">＋ 新建${escapeHtml(terms.clue)}</button></div></div>
     ${renderClueHitRatePanel()}
     <div class="clues-command-row">
       <div class="search-box clues-search"><span>⌕</span><input id="clues-search-input" class="field" placeholder="搜索线索名称或正文…" value="${escapeHtml(q)}"></div>
-      ${bulkToolbar}
+      ${bulkBindButton}${bulkToolbar}
     </div>
     ${list.length ? `<div class="clue-workbench${hasContextPanel ? "" : " no-detail"}">
       <main class="clue-workbench-main">
@@ -110,5 +113,5 @@ import {
 
 
 
-export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, fitClueFlow, focusSelectedClue, bindCluesSearch, bindClueEditor, openClueInStudio, openCluesEditor, closeCluesEditor, saveCluesEditor, confirmDeleteClue, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, loadClueHitRate };
+export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, fitClueFlow, focusSelectedClue, bindCluesSearch, bindClueEditor, openClueInStudio, openCluesEditor, closeCluesEditor, saveCluesEditor, confirmDeleteClue, batchBindCluePaths, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, loadClueHitRate };
 registerView("clues", cluesViewApi);

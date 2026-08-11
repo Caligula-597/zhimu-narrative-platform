@@ -73,7 +73,9 @@ test("long creator editors no longer depend on the global modal surface", () => 
   assert.match(read("src/views/clues-editor.js"), /clue-workspace-editor/);
   assert.match(read("src/views/clues-editor.js"), /归属地图地点/);
   assert.match(read("src/views/clues-editor.js"), /locationId: values\.locationId \|\| null/);
-  assert.match(read("src/views/clues-editor.js"), /segmentKey: values\.segmentKey \|\| selectedLocation\?\.segmentKey \|\| null/);
+  assert.match(read("src/views/clues-editor.js"), /const resolvedSegmentKey = values\.segmentKey \|\| selectedLocation\?\.segmentKey \|\| null/);
+  assert.match(read("src/views/clues-editor.js"), /segmentKey: resolvedSegmentKey/);
+  assert.match(read("src/views/clues-editor.js"), /allowUnbound/);
   assert.match(read("src/views/mini-games.js"), /mini-game-workspace-editor/);
   assert.match(read("src/views/rules.js"), /rule-workspace-page/);
   assert.match(read("src/views/rooms.js"), /room-workspace-page/);

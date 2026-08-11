@@ -2,11 +2,18 @@ import { requireActor } from "../request-actor.js";
 import {
   addStudioClue,
   addStudioScene,
+  bindStudioCluePaths,
   reviseStudioClue,
   reviseStudioScene
 } from "../studio-scene-clue-service.js";
 import { requireWorldRole } from "./route-guards.js";
-import { createClueSchema, createSceneSchema, patchClueSchema, patchSceneSchema } from "./schemas/studio-scene-clue.js";
+import {
+  bindCluePathsSchema,
+  createClueSchema,
+  createSceneSchema,
+  patchClueSchema,
+  patchSceneSchema
+} from "./schemas/studio-scene-clue.js";
 
 export async function registerStudioSceneClueRoutes(app) {
   app.post("/api/worlds/:worldId/scenes", { schema: createSceneSchema }, async (request, reply) => {
@@ -21,6 +28,13 @@ export async function registerStudioSceneClueRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId);
     return addStudioClue({ request, reply, actorId, worldId, body: request.body ?? {} });
+  });
+
+  app.post("/api/worlds/:worldId/clues/bind-paths", { schema: bindCluePathsSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return bindStudioCluePaths({ request, reply, actorId, worldId, body: request.body ?? {} });
   });
 
   app.patch("/api/worlds/:worldId/scenes/:sceneId", { schema: patchSceneSchema }, async (request, reply) => {

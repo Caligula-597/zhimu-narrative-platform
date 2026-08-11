@@ -18,6 +18,7 @@ import { callView } from "./view-registry.js";
       case "clue-editor-save": callView("clues", "saveCluesEditor"); return true;
       case "clues-delete": callView("clues", "confirmDeleteClue", el?.dataset?.clue); return true;
       case "clues-batch-delete": callView("clues", "batchDeleteClues"); return true;
+      case "clues-batch-bind": callView("clues", "batchBindCluePaths"); return true;
       case "clues-toggle-select": callView("clues", "toggleCluesSelection", el?.dataset?.clue, el?.checked); return true;
       case "clues-select-all": {
         const visible = [...document.querySelectorAll("[data-clue-row]")].map((row) => row.dataset.clueRow);

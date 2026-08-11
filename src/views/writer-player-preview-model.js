@@ -57,6 +57,37 @@ export function buildPlayerReaderPreview(data = {}, draft = {}) {
     clues: data.clues || [],
     tasks: data.playerTasks || data.tasks || []
   });
+  const authoredClues = new Map((data.clues || []).map((clue) => [clue.id, clue]));
+  const locations = data.world?.settings?.tabletopMapDesign?.locations || [];
+  const pointNamesByClue = new Map();
+  for (const point of data.investigationPoints || []) {
+    if (!point.clue_id) continue;
+    const names = pointNamesByClue.get(point.clue_id) || [];
+    names.push(point.name || "未命名调查点");
+    pointNamesByClue.set(point.clue_id, names);
+  }
+  const cluePathLabel = (clueId) => {
+    const clue = authoredClues.get(clueId);
+    const metadata = clue?.metadata || {};
+    const parts = [];
+    const locationId = metadata.locationId || metadata.location_id;
+    const location = locations.find((item) => item.id === locationId);
+    if (locationId) parts.push(`地点：${location?.name || locationId}`);
+    const pointNames = pointNamesByClue.get(clueId) || [];
+    if (pointNames.length) parts.push(`调查点：${pointNames.join("、")}`);
+    const segmentKey = metadata.segmentKey || metadata.segment_key;
+    if (segmentKey) parts.push(`段落：${segmentKey}`);
+    if (!parts.length && metadata.allowUnbound === true) return "刻意游离 · 由主持或规则发放";
+    return parts.join(" · ") || "未配置玩家发现路径";
+  };
+  const clueItems = impact.clues.map((item) => {
+    const pathLabel = cluePathLabel(item.id);
+    return {
+      ...item,
+      pathLabel,
+      reason: `${item.reason} · ${pathLabel}`
+    };
+  });
   const authoredSections = new Map((data.sections || []).map((section) => [section.id, section]));
   const sections = impact.sections
     .map((item) => ({ ...authoredSections.get(item.id), ...item }))
@@ -82,8 +113,8 @@ export function buildPlayerReaderPreview(data = {}, draft = {}) {
     hiddenSections,
     visibleScenes: impact.scenes.filter((item) => item.visible),
     hiddenScenes: impact.scenes.filter((item) => !item.visible),
-    visibleClues: impact.clues.filter((item) => item.visible),
-    hiddenClues: impact.clues.filter((item) => !item.visible),
+    visibleClues: clueItems.filter((item) => item.visible),
+    hiddenClues: clueItems.filter((item) => !item.visible),
     warnings: [...new Set(warnings)],
     summary: {
       visibleSections: visibleSections.length,
@@ -114,6 +145,18 @@ export function applyRuntimeKnowledgePreview(preview, knowledge) {
     title: clue.name,
     reason: clue.access === "owned" ? "该角色已获得" : "其他玩家已分享"
   }));
+  const pathByClueId = new Map(
+    [...(preview.visibleClues || []), ...(preview.hiddenClues || [])]
+      .map((clue) => [clue.id, clue.pathLabel || ""])
+  );
+  const visibleCluesWithPaths = visibleClues.map((clue) => {
+    const pathLabel = pathByClueId.get(clue.id) || "";
+    return {
+      ...clue,
+      pathLabel,
+      reason: `${clue.reason}${pathLabel ? ` · ${pathLabel}` : ""}`
+    };
+  });
   return {
     ...preview,
     role: knowledge.role ? {
@@ -127,7 +170,7 @@ export function applyRuntimeKnowledgePreview(preview, knowledge) {
     hiddenSections: preview.sections.filter((section) => !visibleSectionIds.has(section.id)),
     visibleScenes,
     hiddenScenes: preview.hiddenScenes.filter((scene) => !visibleSceneIds.has(scene.id)),
-    visibleClues,
+    visibleClues: visibleCluesWithPaths,
     hiddenClues: preview.hiddenClues.filter((clue) => !visibleClueIds.has(clue.id)),
     warnings: [
       `当前展示真实运行态；内容来源：${knowledge.contentBinding?.isFrozen ? "冻结 Release" : "实时草稿"}。`,
@@ -137,7 +180,7 @@ export function applyRuntimeKnowledgePreview(preview, knowledge) {
       visibleSections: visibleSections.length,
       hiddenSections: preview.sections.length - visibleSections.length,
       visibleScenes: visibleScenes.length,
-      visibleClues: visibleClues.length
+      visibleClues: visibleCluesWithPaths.length
     }
   };
 }
