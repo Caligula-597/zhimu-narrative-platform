@@ -72,6 +72,116 @@ async function tableExists(client, table) {
   return result.rowCount > 0;
 }
 
+async function indexExists(client, index) {
+  const result = await client.query(
+    `SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = $1`,
+    [index]
+  );
+  return result.rowCount > 0;
+}
+
+async function constraintDefinition(client, table, constraint) {
+  const result = await client.query(
+    `SELECT pg_get_constraintdef(oid) AS definition
+     FROM pg_constraint
+     WHERE conrelid = to_regclass($1) AND conname = $2`,
+    [`public.${table}`, constraint]
+  );
+  return result.rows[0]?.definition || "";
+}
+
+async function latestMigrationMarkerExists(client, filename) {
+  if (filename.startsWith("110_room_experience_states")) {
+    return tableExists(client, "room_experience_states");
+  }
+  if (filename.startsWith("111_communication_templates")) {
+    const actionType = await constraintDefinition(
+      client,
+      "room_private_actions",
+      "room_private_actions_action_type_check"
+    );
+    const visibility = await constraintDefinition(
+      client,
+      "room_private_actions",
+      "room_private_actions_visibility_check"
+    );
+    return actionType.includes("public_statement") && visibility.includes("public");
+  }
+  if (filename.startsWith("112_mini_game_protocol")) {
+    return columnExists(client, "room_mini_games", "protocol_version");
+  }
+  return null;
+}
+
+async function assertCurrentRoomExperienceSchema(client) {
+  if (!await tableExists(client, "room_experience_states")) {
+    throw new Error("room_experience_states missing after migration upgrade");
+  }
+  for (const column of [
+    "state_kind",
+    "scope_key",
+    "subject_key",
+    "schema_version",
+    "visibility",
+    "payload",
+    "revision",
+    "expires_at"
+  ]) {
+    if (!await columnExists(client, "room_experience_states", column)) {
+      throw new Error(`room_experience_states.${column} missing after migration upgrade`);
+    }
+  }
+  for (const index of [
+    "room_experience_states_room_kind_updated_idx",
+    "room_experience_states_expiry_idx",
+    "room_private_actions_public_idx",
+    "room_mini_games_active_deadline_idx"
+  ]) {
+    if (!await indexExists(client, index)) {
+      throw new Error(`${index} missing after migration upgrade`);
+    }
+  }
+  const rls = await client.query(
+    `SELECT relrowsecurity FROM pg_class WHERE oid = to_regclass('public.room_experience_states')`
+  );
+  if (rls.rows[0]?.relrowsecurity !== true) {
+    throw new Error("room_experience_states row-level security is not enabled");
+  }
+
+  const actionType = await constraintDefinition(
+    client,
+    "room_private_actions",
+    "room_private_actions_action_type_check"
+  );
+  const visibility = await constraintDefinition(
+    client,
+    "room_private_actions",
+    "room_private_actions_visibility_check"
+  );
+  if (!actionType.includes("public_statement")) {
+    throw new Error("room_private_actions public_statement contract missing after migration upgrade");
+  }
+  if (!visibility.includes("public")) {
+    throw new Error("room_private_actions public visibility contract missing after migration upgrade");
+  }
+
+  for (const column of ["protocol_version", "deadline_at", "revision", "settlement"]) {
+    if (!await columnExists(client, "room_mini_games", column)) {
+      throw new Error(`room_mini_games.${column} missing after migration upgrade`);
+    }
+  }
+  const miniGameStatus = await constraintDefinition(
+    client,
+    "room_mini_games",
+    "room_mini_games_status_check"
+  );
+  for (const status of ["active", "completed", "failed", "timed_out", "skipped"]) {
+    if (!miniGameStatus.includes(status)) {
+      throw new Error(`room_mini_games status ${status} missing after migration upgrade`);
+    }
+  }
+}
+
 const sourceUrl = process.env.DATABASE_URL;
 if (!sourceUrl) {
   console.error("DATABASE_URL is required");
@@ -123,6 +233,10 @@ try {
     if (latest.includes("event_outbox") && await tableExists(client, "event_outbox")) {
       throw new Error(`Expected event_outbox missing before ${latest}`);
     }
+    const markerBefore = await latestMigrationMarkerExists(client, latest);
+    if (markerBefore === true) {
+      throw new Error(`Expected ${latest} schema marker to be absent before the final migration`);
+    }
 
     console.log(`▶ Apply final migration ${latest}`);
     const latestSql = await fs.readFile(path.join(migrationsDir, latest), "utf8");
@@ -135,6 +249,11 @@ try {
     if (latest.includes("event_outbox") && !(await tableExists(client, "event_outbox"))) {
       throw new Error("event_outbox missing after final migration");
     }
+    const markerAfter = await latestMigrationMarkerExists(client, latest);
+    if (markerAfter === false) {
+      throw new Error(`Expected ${latest} schema marker after the final migration`);
+    }
+    await assertCurrentRoomExperienceSchema(client);
 
     console.log("✓ Migration upgrade drill passed");
   } finally {
