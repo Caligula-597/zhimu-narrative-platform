@@ -1,4 +1,5 @@
 import { escapeHtml } from "../../../shared/security.js";
+import { normalizeRuntimeCurrentState } from "../../../shared/runtime-current-state.js";
 import { playerProgress, state } from "../state.js";
 import { renderMiniGamePanel } from "../components/mini-games.js";
 import { renderRecapTab } from "./recap.js";
@@ -76,6 +77,49 @@ function gameTabDefinitions() {
   ];
 }
 
+export function renderTabletopLiveAlert() {
+  if (state.tab === "home" || !state.home?.currentState) return "";
+  const current = normalizeRuntimeCurrentState(state.home.currentState, {
+    audience: "player",
+    connected: state.roomEventsConnected,
+  });
+  const map = current.presentation?.map;
+  if (!map) return "";
+
+  const ending = map.publishedEnding;
+  const encounter = map.activeEncounter?.status === "active" ? map.activeEncounter : null;
+  const check = map.activeCheck;
+  let liveState = null;
+  if (encounter) {
+    liveState = {
+      tone: "encounter",
+      eyebrow: "主持人触发遭遇",
+      title: `${encounter.locationName}遭遇进行中`,
+      detail: `${encounter.npcs?.length || 0} 个场景角色已登场，请返回当前场景查看状态。`,
+    };
+  } else if (check) {
+    liveState = {
+      tone: "check",
+      eyebrow: check.result ? "场景判定已公开" : "主持人发起判定",
+      title: check.label,
+      detail: check.result ? check.outcomeText : check.instruction,
+    };
+  } else if (ending) {
+    liveState = {
+      tone: "ending",
+      eyebrow: "结局已公开",
+      title: ending.name,
+      detail: ending.summary,
+    };
+  }
+  if (!liveState) return "";
+
+  return `<section class="tabletop-live-alert is-${liveState.tone}" data-player-tabletop-global-alert role="status" aria-live="assertive">
+    <div><span>${escapeHtml(liveState.eyebrow)}</span><strong>${escapeHtml(liveState.title)}</strong><p>${escapeHtml(liveState.detail)}</p></div>
+    <button class="btn primary compact" type="button" data-action="switch-tab" data-tab="home">查看当前场景</button>
+  </section>`;
+}
+
 function renderTabBadge(id, badge, pulseCount = 0) {
   const pulse = pulseCount > 0 && primaryTabFor(state.tab) !== id;
   const parts = [];
@@ -129,6 +173,7 @@ export function renderGame() {
           ${renderGameTabBar()}
         </nav>
         <div data-game-host-banner>${renderHostConfirmBannerHtml()}</div>
+        <div data-game-tabletop-alert>${renderTabletopLiveAlert()}</div>
         <div data-game-mini-game>${renderMiniGamePanel(state.currentGame)}</div>
         <div class="tab-body" data-game-tab-body role="tabpanel" aria-labelledby="${gameTabPanelLabelId(state.tab)}">${renderGameTabBody()}</div>
       </div>

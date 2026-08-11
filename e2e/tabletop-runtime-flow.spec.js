@@ -77,6 +77,16 @@ test("主持结算地点判定后更新变量、筛选结局并按确认同步�
     await joinRoom(playerPage);
     await expect(playerPage.locator(".player-stage")).toBeVisible({ timeout: 30_000 });
 
+    await playerPage.locator('[data-action="switch-tab"][data-tab="explore"]').first().click();
+    await expect(playerPage.locator("[data-player-tabletop-global-alert]")).toHaveCount(0);
+    await hostPage.locator('[data-action="host-tabletop-start-encounter"]').click();
+    await expect(playerPage.locator("[data-player-tabletop-global-alert]")).toBeVisible({ timeout: 15_000 });
+    await expect(playerPage.locator("[data-player-tabletop-global-alert]")).toContainText("遭遇");
+    await playerPage.locator('[data-player-tabletop-global-alert] [data-tab="home"]').click();
+    await expect(playerPage.locator("[data-player-tabletop-encounter]")).toBeVisible();
+    await hostPage.locator('[data-action="host-tabletop-end-encounter"]').click();
+    await expect(playerPage.locator("[data-player-tabletop-encounter]")).toHaveCount(0, { timeout: 15_000 });
+
     await hostPage.locator('[data-action="host-tabletop-start-check"][data-check-id="verify-authorization"]').click();
     await expect(hostPage.locator("[data-host-tabletop-check]")).toContainText("核验二次授权");
     await expect(playerPage.locator("[data-player-tabletop-check]")).toContainText("核验二次授权", { timeout: 15_000 });

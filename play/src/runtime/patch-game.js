@@ -5,7 +5,8 @@ import {
   renderGameTabBar,
   renderGameTabBody,
   renderGameSidebar,
-  renderHostConfirmBannerHtml
+  renderHostConfirmBannerHtml,
+  renderTabletopLiveAlert
 } from "../views/game.js";
 import { renderMiniGamePanel } from "../components/mini-games.js";
 import { bindPlayReader } from "./reader.js";
@@ -36,6 +37,9 @@ function bindSectionsReader(state, ctx) {
 function patchGameChrome(state) {
   const banner = document.querySelector("[data-game-host-banner]");
   if (banner) setHtml(banner, renderHostConfirmBannerHtml());
+
+  const tabletopAlert = document.querySelector("[data-game-tabletop-alert]");
+  if (tabletopAlert) setHtml(tabletopAlert, renderTabletopLiveAlert());
 
   const miniGame = document.querySelector("[data-game-mini-game]");
   if (miniGame && !activeInputIn(miniGame)) setHtml(miniGame, renderMiniGamePanel(state.currentGame));
