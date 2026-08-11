@@ -44,6 +44,27 @@ function mapPanLimit(zoom) {
 let mapSession = null;
 let saving = false;
 let draftPersistTimer = null;
+let deferredRenderTimer = null;
+
+function renderMap({ defer = false } = {}) {
+  if (!defer) {
+    if (deferredRenderTimer) {
+      window.clearTimeout(deferredRenderTimer);
+      deferredRenderTimer = null;
+    }
+    render();
+    return;
+  }
+  if (deferredRenderTimer) window.clearTimeout(deferredRenderTimer);
+  // A focused editor field emits `change` during the pointer sequence that
+  // moves focus to an action button. Replacing the DOM synchronously here
+  // removes that button before its click can fire. Commit the model now and
+  // repaint after the click has been dispatched.
+  deferredRenderTimer = window.setTimeout(() => {
+    deferredRenderTimer = null;
+    render();
+  }, 0);
+}
 
 function icon(name) {
   const paths = {
@@ -581,7 +602,11 @@ export function bindTabletopMapEditor() {
         markInlineDraft();
       });
     }
-    field.addEventListener("change", () => updateSelectedLocationField(field.dataset.mapLocationField, field.value));
+    field.addEventListener("change", () => updateSelectedLocationField(
+      field.dataset.mapLocationField,
+      field.value,
+      { deferRender: true }
+    ));
   });
   root.querySelectorAll("[data-map-location-discovery-field]").forEach((field) => {
     field.addEventListener("input", () => {
@@ -596,6 +621,7 @@ export function bindTabletopMapEditor() {
     field.addEventListener("change", () => updateSelectedLocationDiscoveryField(
       field.dataset.mapLocationDiscoveryField,
       field.value,
+      { deferRender: true },
     ));
   });
   const titleField = root.querySelector("[data-map-title]");
@@ -603,7 +629,7 @@ export function bindTabletopMapEditor() {
     mapSession.design.title = titleField.value;
     markInlineDraft();
   });
-  titleField?.addEventListener("change", (event) => updateMapTitle(event.currentTarget.value));
+  titleField?.addEventListener("change", (event) => updateMapTitle(event.currentTarget.value, { deferRender: true }));
   root.querySelector("[data-map-grid-type]")?.addEventListener("change", (event) => updateMapGridType(event.currentTarget.value));
   root.querySelector("[data-map-background-input]")?.addEventListener("change", async (event) => {
     const [file] = event.currentTarget.files || [];
@@ -611,7 +637,11 @@ export function bindTabletopMapEditor() {
     if (file) await applyMapBackgroundFile(file);
   });
   root.querySelectorAll("[data-map-effect]").forEach((field) => {
-    field.addEventListener("change", () => updateSelectedLocationEffect(field.dataset.mapEffect, field.value));
+    field.addEventListener("change", () => updateSelectedLocationEffect(
+      field.dataset.mapEffect,
+      field.value,
+      { deferRender: true }
+    ));
   });
   root.querySelectorAll("[data-map-location-npc]").forEach((field) => {
     field.addEventListener("change", () => updateSelectedLocationEncounterNpc(field.dataset.npcId, field.checked));
@@ -636,7 +666,8 @@ export function bindTabletopMapEditor() {
       field.dataset.checkId,
       field.dataset.mapCheckEffect,
       field.dataset.variableId,
-      field.value
+      field.value,
+      { deferRender: true }
     ));
   });
   root.querySelectorAll("[data-map-variable-value]").forEach((field) => {
@@ -665,7 +696,8 @@ export function bindTabletopMapEditor() {
     field.addEventListener("change", () => updateVariableField(
       field.dataset.variableId,
       field.dataset.mapVariableField,
-      field.value
+      field.value,
+      { deferRender: true }
     ));
   });
   root.querySelectorAll("[data-map-ending-field]").forEach((field) => {
@@ -688,7 +720,8 @@ export function bindTabletopMapEditor() {
     field.addEventListener("change", () => updateEndingField(
       field.dataset.endingId,
       field.dataset.mapEndingField,
-      field.value
+      field.value,
+      { deferRender: true }
     ));
   });
   root.querySelectorAll("[data-map-condition-field]").forEach((field) => {
@@ -705,11 +738,16 @@ export function bindTabletopMapEditor() {
       field.dataset.endingId,
       field.dataset.conditionId,
       field.dataset.mapConditionField,
-      field.value
+      field.value,
+      { deferRender: true }
     ));
   });
   root.querySelectorAll("[data-map-dice-field]").forEach((field) => {
-    field.addEventListener("change", () => updateMapDiceField(field.dataset.mapDiceField, field.value));
+    field.addEventListener("change", () => updateMapDiceField(
+      field.dataset.mapDiceField,
+      field.value,
+      { deferRender: true }
+    ));
   });
   root.querySelector("[data-map-check-mode]")?.addEventListener("change", (event) => {
     mapSession.checkMode = event.currentTarget.value;
@@ -723,7 +761,7 @@ export function bindTabletopMapEditor() {
   });
   root.querySelector("[data-map-combat-delta]")?.addEventListener("change", (event) => {
     mapSession.combatVariableDelta = Math.max(1, Math.round(Number(event.currentTarget.value) || 1));
-    render();
+    renderMap({ defer: true });
   });
   root.querySelector("[data-map-hp-target]")?.addEventListener("change", (event) => {
     mapSession.hpTargetId = event.currentTarget.value;
@@ -754,7 +792,8 @@ export function bindTabletopMapEditor() {
     field.addEventListener("change", () => updateMapCombatantField(
       field.dataset.combatantId,
       field.dataset.mapCombatantField,
-      field.value
+      field.value,
+      { deferRender: true }
     ));
   });
 }
@@ -805,7 +844,7 @@ export function moveMapLocation(locationId, position, { preview = false } = {}) 
   render();
 }
 
-export function updateSelectedLocationField(field, value) {
+export function updateSelectedLocationField(field, value, { deferRender = false } = {}) {
   const session = initializeSession();
   const location = selectedLocation();
   if (!location || !["name", "type", "description", "hostNotes", "segmentKey", "z"].includes(field)) return;
@@ -814,10 +853,10 @@ export function updateSelectedLocationField(field, value) {
     : String(value || "").trim();
   const locations = session.design.locations.map((item) => item.id === location.id ? { ...item, [field]: nextValue } : item);
   replaceDesign({ ...session.design, locations });
-  render();
+  renderMap({ defer: deferRender });
 }
 
-export function updateSelectedLocationDiscoveryField(field, value) {
+export function updateSelectedLocationDiscoveryField(field, value, { deferRender = false } = {}) {
   const session = initializeSession();
   const location = selectedLocation();
   if (!location || ![
@@ -832,10 +871,10 @@ export function updateSelectedLocationDiscoveryField(field, value) {
     ? { ...item, discovery: { ...item.discovery, [field]: String(value || "").trim() } }
     : item);
   replaceDesign({ ...session.design, locations });
-  render();
+  renderMap({ defer: deferRender });
 }
 
-export function updateSelectedLocationEffect(key, value) {
+export function updateSelectedLocationEffect(key, value, { deferRender = false } = {}) {
   const session = initializeSession();
   const location = selectedLocation();
   const variable = session.design.variables.find((item) => item.id === key);
@@ -846,7 +885,7 @@ export function updateSelectedLocationEffect(key, value) {
     ? { ...item, effects: { ...item.effects, [key]: amount } }
     : item);
   replaceDesign({ ...session.design, locations });
-  render();
+  renderMap({ defer: deferRender });
 }
 
 export function updateSelectedLocationEncounterNpc(npcId, enabled) {
@@ -917,7 +956,7 @@ export function updateLocationCheckField(checkId, field, value, { preview = fals
   if (!preview) persistLocalDraft({ immediate: true });
 }
 
-export function updateLocationCheckEffect(checkId, branch, variableId, value) {
+export function updateLocationCheckEffect(checkId, branch, variableId, value, { deferRender = false } = {}) {
   const session = initializeSession();
   const location = selectedLocation();
   const variable = session.design.variables.find((item) => item.id === variableId);
@@ -933,13 +972,13 @@ export function updateLocationCheckEffect(checkId, branch, variableId, value) {
       }
     : item);
   replaceDesign({ ...session.design, locations });
-  render();
+  renderMap({ defer: deferRender });
 }
 
-export function updateMapTitle(value) {
+export function updateMapTitle(value, { deferRender = false } = {}) {
   const session = initializeSession();
   replaceDesign({ ...session.design, title: String(value || "").trim() || "未命名地图" });
-  render();
+  renderMap({ defer: deferRender });
 }
 
 export function setMapCanvasMode(mode) {
@@ -1030,14 +1069,14 @@ function runtimeId(prefix) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-export function updateMapDiceField(field, value) {
+export function updateMapDiceField(field, value, { deferRender = false } = {}) {
   if (!["count", "sides", "modifier", "defaultTarget"].includes(field)) return;
   const session = initializeSession();
   const system = normalizeTabletopSystem(session.design.system);
   system.dice[field] = Number(value);
   replaceDesign({ ...session.design, system: normalizeTabletopSystem(system) });
   session.inspectorTab = "combat";
-  render();
+  renderMap({ defer: deferRender });
 }
 
 export function setMapCombatTarget(combatantId) {
@@ -1051,7 +1090,7 @@ export function setMapCombatTarget(combatantId) {
   render();
 }
 
-export function updateMapCombatantField(combatantId, field, value) {
+export function updateMapCombatantField(combatantId, field, value, { deferRender = false } = {}) {
   if (!["name", "role", "hp", "maxHp", "attack", "defense", "damage", "initiative"].includes(field)) return;
   const session = initializeSession();
   const system = normalizeTabletopSystem(session.design.system);
@@ -1063,7 +1102,7 @@ export function updateMapCombatantField(combatantId, field, value) {
   Object.assign(combatant, stats);
   replaceDesign({ ...session.design, system: normalizeTabletopSystem(system) });
   session.inspectorTab = "combat";
-  render();
+  renderMap({ defer: deferRender });
 }
 
 export function addMapNpc() {
@@ -1339,7 +1378,7 @@ export function updateVariableValue(variableId, value, { preview = false } = {})
   if (!preview) render();
 }
 
-export function updateVariableField(variableId, field, value) {
+export function updateVariableField(variableId, field, value, { deferRender = false } = {}) {
   const session = initializeSession();
   if (!["label", "color", "min", "max"].includes(field)) return;
   const variables = session.design.variables.map((variable) => {
@@ -1349,7 +1388,7 @@ export function updateVariableField(variableId, field, value) {
     return { ...variable, [field]: Math.round(Number(value) || 0) };
   });
   replaceDesign({ ...session.design, variables });
-  render();
+  renderMap({ defer: deferRender });
 }
 
 export function addMapEnding() {
@@ -1378,13 +1417,13 @@ export function deleteMapEnding(endingId) {
   render();
 }
 
-export function updateEndingField(endingId, field, value) {
+export function updateEndingField(endingId, field, value, { deferRender = false } = {}) {
   const session = initializeSession();
   if (!["name", "summary", "tone", "priority", "logic"].includes(field)) return;
   const nextValue = field === "priority" ? Math.round(Number(value) || 0) : String(value || "").trim();
   const endings = session.design.endings.map((ending) => ending.id === endingId ? { ...ending, [field]: nextValue } : ending);
   replaceDesign({ ...session.design, endings });
-  render();
+  renderMap({ defer: deferRender });
 }
 
 export function addEndingCondition(endingId) {
@@ -1410,7 +1449,7 @@ export function deleteEndingCondition(endingId, conditionId) {
   render();
 }
 
-export function updateEndingCondition(endingId, conditionId, field, value) {
+export function updateEndingCondition(endingId, conditionId, field, value, { deferRender = false } = {}) {
   const session = initializeSession();
   if (!["variableId", "operator", "value"].includes(field)) return;
   const nextValue = field === "value" ? Math.round(Number(value) || 0) : String(value || "");
@@ -1423,7 +1462,7 @@ export function updateEndingCondition(endingId, conditionId, field, value) {
     }
     : ending);
   replaceDesign({ ...session.design, endings });
-  render();
+  renderMap({ defer: deferRender });
 }
 
 export function addMapLocation() {
