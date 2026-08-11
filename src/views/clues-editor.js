@@ -9,7 +9,7 @@ import {
   workspaceValues
 } from "../components/workspace-editor.js";
 import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
-import { assetStore, studioStore, uiStore } from "../state/index.js";
+import { assetStore, studioStore, uiStore, worldStore } from "../state/index.js";
 import * as S from "../components/ui-semantics.js";
 import { CLUE_IMPORTANCE_OPTIONS, CLUE_KIND_OPTIONS, CLUE_TYPE_OPTIONS } from "./clues-catalog.js";
 
@@ -26,6 +26,7 @@ function clueDraft(clue = null) {
     grantMode: meta.grantMode || "auto",
     clueType: meta.clueType || "text",
     clueKind: clue?.clue_kind || clue?.clueKind || "general",
+    segmentKey: meta.segmentKey || meta.segment_key || "",
     assetId: meta.assetId || "",
     importance: meta.importance || "normal",
     triggerNote: meta.triggerNote || ""
@@ -69,6 +70,13 @@ export function renderClueEditorPanel() {
     { id: "", name: "不关联附件" },
     ...(assetStore.get().cloudAssets || []).map((asset) => ({ id: asset.id, name: asset.original_filename }))
   ];
+  const segments = [
+    { id: "", name: "不绑定地点 / 剧情段" },
+    ...(worldStore.get().cloudSegments || []).map((segment) => ({
+      id: segment.segmentKey || segment.segment_key || "",
+      name: `${segment.segmentKey || segment.segment_key || "未命名"} · ${segment.title || "未命名段落"}`
+    }))
+  ];
   const body =
     formField("线索名称", "name", "input", value.name) +
     formField("获得后可见内容", "publicText", "textarea", value.publicText, { rows: 7 }) +
@@ -83,6 +91,7 @@ export function renderClueEditorPanel() {
       { id: "host_confirm", name: "主持确认后发放" },
       { id: "explore", name: "探索调查获得" }
     ], value.grantMode) +
+    formSelect("归属地点 / 剧情段", "segmentKey", segments, value.segmentKey) +
     formSelect("线索形态", "clueType", CLUE_TYPE_OPTIONS, value.clueType) +
     formSelect("线索类型", "clueKind", CLUE_KIND_OPTIONS, value.clueKind) +
     formSelect("关联资产", "assetId", assets, value.assetId) +
@@ -132,6 +141,7 @@ export async function saveCluesEditor() {
         assetId: values.assetId || null,
         importance: values.importance || "normal",
         grantMode: values.grantMode || "auto",
+        segmentKey: values.segmentKey || null,
         triggerNote: values.triggerNote || ""
       }
     };

@@ -99,6 +99,15 @@ const definitions = {
     load: () => import("./clue-action-controller.js"),
     handler: "handlePlayClueAction"
   },
+  tabletop: {
+    actions: new Set([
+      "tabletop-discovery-skip",
+      "tabletop-draw-clue",
+      "tabletop-reshuffle-clues"
+    ]),
+    load: () => import("./tabletop-action-controller.js"),
+    handler: "handlePlayTabletopAction"
+  },
   tab: {
     actions: new Set(["switch-tab"]),
     load: () => import("./tab-action-controller.js"),

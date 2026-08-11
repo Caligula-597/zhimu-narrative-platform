@@ -27,6 +27,8 @@ function projectFrozenClue(provider, clue) {
     ...clue,
     name: authored.name,
     public_text: authored.public_text ?? "",
+    segment_key: authored.metadata?.segmentKey ?? authored.metadata?.segment_key ?? null,
+    location_id: authored.metadata?.locationId ?? authored.metadata?.location_id ?? null,
     owner_role_name: ownerRole?.name ?? clue.owner_role_name
   };
 }

@@ -368,16 +368,33 @@ function newFixtureMechanismRuntime({ initialized = false } = {}) {
 function mechanismGrantedClues(room) {
   const runtime = mechanismRuntimeFor(room);
   if (!runtime?.grantedClue) return [];
-  return [{
-    id: "99999999-9999-4999-8999-555555550001",
-    name: "代理授权原始记录",
-    public_text: "原始记录确认：小满只授权数字孪生用于训练。",
+  return [
+    {
+      id: "99999999-9999-4999-8999-555555550001",
+      name: "被覆盖的签发时间",
+      public_text: "原始记录上的签发时间被二次墨迹覆盖，边缘仍能辨认出 23:40。",
+      segment_key: "authorization-review"
+    },
+    {
+      id: "99999999-9999-4999-8999-555555550002",
+      name: "训练用途附录",
+      public_text: "附录只授权数字孪生用于封闭训练，没有正式比赛代理条款。",
+      segment_key: "authorization-review"
+    },
+    {
+      id: "99999999-9999-4999-8999-555555550003",
+      name: "审查终端缓存",
+      public_text: "缓存记录显示，正式比赛权限是在原授权完成后被单独写入的。",
+      segment_key: "authorization-review"
+    }
+  ].map((clue) => ({
+    ...clue,
     acquired_at: runtime.updatedAt,
     read_at: null,
     is_owner: true,
     owner_role_slot_id: playerRoleId,
     owner_role_name: "小满"
-  }];
+  }));
 }
 
 for (const room of rooms) {

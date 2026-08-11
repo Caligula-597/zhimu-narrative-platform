@@ -12,9 +12,11 @@ test("Player social payload is loaded with one database acquisition", async () =
   const result = await loadPlayerHomeSocial({
     roomId: "room-1",
     roleSlotId: "role-1",
-    async runQuery(_sql, params) {
+    async runQuery(sql, params) {
       calls += 1;
       assert.deepEqual(params, ["room-1", "role-1"]);
+      assert.match(sql, /AS segment_key/);
+      assert.match(sql, /AS location_id/);
       return {
         rows: [{
           notes: [{ id: "note-1" }],

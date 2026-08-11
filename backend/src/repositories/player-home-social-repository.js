@@ -48,6 +48,8 @@ export async function loadPlayerHomeSocial({ roomId, roleSlotId, runQuery = quer
            FROM (
              SELECT c.id, c.name, c.public_text, co.acquired_at, co.read_at,
                     co.shared_with_room, co.shared_with_roles, co.player_note, co.shared_at,
+                    COALESCE(c.metadata->>'segmentKey', c.metadata->>'segment_key') AS segment_key,
+                    COALESCE(c.metadata->>'locationId', c.metadata->>'location_id') AS location_id,
                     true AS is_owner, co.role_slot_id AS owner_role_slot_id,
                     rs.name AS owner_role_name, COALESCE((
                       SELECT profile.display_name FROM user_portal_profiles profile
@@ -70,6 +72,8 @@ export async function loadPlayerHomeSocial({ roomId, roleSlotId, runQuery = quer
            FROM (
              SELECT c.id, c.name, c.public_text, co.acquired_at, co.shared_at,
                     co.player_note, co.shared_with_room, co.shared_with_roles,
+                    COALESCE(c.metadata->>'segmentKey', c.metadata->>'segment_key') AS segment_key,
+                    COALESCE(c.metadata->>'locationId', c.metadata->>'location_id') AS location_id,
                     false AS is_owner, co.role_slot_id AS owner_role_slot_id,
                     rs.name AS owner_role_name, COALESCE((
                       SELECT profile.display_name FROM user_portal_profiles profile

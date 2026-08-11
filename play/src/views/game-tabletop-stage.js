@@ -1,4 +1,13 @@
 import { escapeHtml } from "../../../shared/security.js";
+import { clueIsRead } from "../utils/clues.js";
+import {
+  authorizedCluesForLocation,
+  clueArchiveCode,
+  shuffledClueIds,
+} from "./location-clue-deck.js";
+
+const LOCATION_SCAN_MS = 3200;
+const discoverySessions = new Map();
 
 function diceLabel(dice = {}) {
   const modifier = Number(dice.modifier) || 0;
@@ -43,7 +52,141 @@ function renderPlayerTabletopEnding(ending) {
   </section>`;
 }
 
-export function renderPlayerStageMap(map) {
+function discoveryKey(location) {
+  return `${String(location?.id || "location")}:${String(location?.segmentKey || location?.segment_key || "")}`;
+}
+
+function scanDelay() {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? 0 : LOCATION_SCAN_MS;
+  } catch {
+    return LOCATION_SCAN_MS;
+  }
+}
+
+function notifyDiscoveryReady() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event("zhimu:tabletop-discovery-ready"));
+}
+
+function scheduleDiscovery(session) {
+  const delay = scanDelay();
+  if (delay === null || session.unlocked || session.timer) return;
+  session.timer = window.setTimeout(() => {
+    session.unlocked = true;
+    session.timer = null;
+    notifyDiscoveryReady();
+  }, delay);
+}
+
+function ensureDiscoverySession(location, clues) {
+  const key = discoveryKey(location);
+  const clueIds = clues.map((clue) => String(clue.id));
+  let session = discoverySessions.get(key);
+  if (!session) {
+    session = {
+      key,
+      unlocked: false,
+      order: shuffledClueIds(clues),
+      drawnIds: [],
+      timer: null,
+    };
+    discoverySessions.set(key, session);
+  } else {
+    const allowed = new Set(clueIds);
+    session.drawnIds = session.drawnIds.filter((id) => allowed.has(id));
+    const drawn = new Set(session.drawnIds);
+    const ordered = session.order.filter((id) => allowed.has(id) && !drawn.has(id));
+    const known = new Set([...ordered, ...session.drawnIds]);
+    const added = clues.filter((clue) => !known.has(String(clue.id)));
+    session.order = [...ordered, ...shuffledClueIds(added)];
+  }
+  scheduleDiscovery(session);
+  return session;
+}
+
+function renderParty(party = []) {
+  if (!party.length) return "";
+  return `<div class="player-party-strip">${party.map((member) => {
+    const hp = Math.max(0, Number(member.hp) || 0);
+    const maxHp = Math.max(1, Number(member.maxHp) || 1);
+    return `<div class="player-party-member"><div><strong>${escapeHtml(member.name)}</strong><span>HP ${hp}/${maxHp}</span></div><i style="--hp:${Math.round(hp / maxHp * 100)}%"><b></b></i></div>`;
+  }).join("")}</div>`;
+}
+
+function renderClueBacks(location, count) {
+  return Array.from({ length: Math.min(3, count) }, (_, index) => `
+    <div class="player-clue-back" style="--clue-index:${index}" aria-hidden="true">
+      <span>${escapeHtml(clueArchiveCode(location, index))}</span><b>LOCATION EVIDENCE</b>
+    </div>`).join("");
+}
+
+function renderRevealedClue(clue, drawnCount, totalCount, key) {
+  if (!clue) return "";
+  const read = clueIsRead(clue, { owned: clue.is_owner !== false });
+  return `<article class="player-clue-revealed" data-player-location-clue aria-live="polite">
+    <div class="player-clue-revealed-head"><span>现场线索</span><small>已抽取 ${drawnCount} / ${totalCount}</small></div>
+    <h5>${escapeHtml(clue.name)}</h5>
+    <p>${escapeHtml(clue.public_text || "这条线索暂无公开说明。")}</p>
+    <div class="player-clue-actions">
+      ${read ? `<span class="player-clue-read">✓ 已标记阅读</span>` : `<button type="button" class="player-stage-button is-outline" data-action="read-clue" data-clue-id="${escapeHtml(clue.id)}">标记已读</button>`}
+      ${drawnCount < totalCount ? `<button type="button" class="player-stage-button is-primary" data-action="tabletop-draw-clue" data-discovery-key="${escapeHtml(key)}">再抽一条</button>` : `<span class="player-clue-complete">本地点线索已全部抽取</span>`}
+    </div>
+  </article>`;
+}
+
+function renderLocationDiscovery(location, clues) {
+  const session = ensureDiscoverySession(location, clues);
+  const byId = new Map(clues.map((clue) => [String(clue.id), clue]));
+  const activeClue = byId.get(session.drawnIds.at(-1));
+  const total = clues.length;
+  const drawn = session.drawnIds.length;
+  const remaining = session.order.length;
+  const statusText = session.unlocked ? "地点已解锁" : "正在侦测现场痕迹";
+
+  return `<section class="player-location-discovery ${session.unlocked ? "is-unlocked" : "is-scanning"}" data-player-location-discovery data-discovery-key="${escapeHtml(session.key)}" aria-busy="${session.unlocked ? "false" : "true"}">
+    <div class="player-location-radar-shell">
+      <div class="player-location-radar" aria-hidden="true"><i></i><b></b><span>12</span><span>3</span><span>6</span><span>9</span></div>
+      <div class="player-location-radar-copy" role="status" aria-live="polite">
+        <strong>${statusText}</strong>
+        <span>${session.unlocked ? (total ? `${total} 条可发现线索` : "现场暂无线索") : "环形侦测将在片刻后完成"}</span>
+        ${session.unlocked ? "" : `<button type="button" class="player-scan-skip" data-action="tabletop-discovery-skip" data-discovery-key="${escapeHtml(session.key)}">立即揭示</button>`}
+      </div>
+    </div>
+    <div class="player-location-clue-summary">
+      <div><strong>${total ? `${total} 条可发现线索` : "尚无可抽取线索"}</strong><span>${total ? "打乱后逐条抽取" : "等待主持人授权此地点内容"}</span></div>
+      ${session.unlocked && remaining && !activeClue ? `<button type="button" class="player-stage-button is-primary" data-action="tabletop-draw-clue" data-discovery-key="${escapeHtml(session.key)}">抽取一条线索</button>` : ""}
+      <small>已授权内容 · 不会提前揭示</small>
+    </div>
+    <div class="player-location-clue-deck ${activeClue ? "has-revealed-clue" : ""}">
+      <div class="player-clue-deck-head"><strong>${activeClue ? "现场线索" : "线索档案（未抽取）"}</strong>${session.unlocked && remaining > 1 ? `<button type="button" data-action="tabletop-reshuffle-clues" data-discovery-key="${escapeHtml(session.key)}">重新洗牌</button>` : ""}</div>
+      ${activeClue ? renderRevealedClue(activeClue, drawn, total, session.key) : `<div class="player-clue-backs">${renderClueBacks(location, total)}</div>`}
+    </div>
+  </section>`;
+}
+
+export function handlePlayerStageAction({ action, button, render }) {
+  const key = String(button?.dataset?.discoveryKey || "");
+  const session = discoverySessions.get(key);
+  if (!session) return false;
+  if (action === "tabletop-discovery-skip") {
+    if (session.timer) globalThis.clearTimeout(session.timer);
+    session.timer = null;
+    session.unlocked = true;
+  } else if (action === "tabletop-draw-clue") {
+    if (!session.unlocked || !session.order.length) return true;
+    session.drawnIds.push(session.order.shift());
+  } else if (action === "tabletop-reshuffle-clues") {
+    session.order = shuffledClueIds(session.order.map((id) => ({ id })));
+  } else {
+    return false;
+  }
+  render?.();
+  return true;
+}
+
+export function renderPlayerStageMap(map, context = {}) {
   if (!map) return "";
   const checkHtml = renderPlayerTabletopCheck(map.activeCheck);
   const encounterHtml = renderPlayerTabletopEncounter(map.activeEncounter);
@@ -54,6 +197,7 @@ export function renderPlayerStageMap(map) {
   const locations = map.locations;
   const byId = new Map(locations.map((location) => [location.id, location]));
   const active = byId.get(map.activeLocationId) || map.activeLocation || locations[0];
+  const clues = authorizedCluesForLocation(active, context.clues, context.sharedClues);
   const notation = diceLabel(map.dice);
   return `<section class="player-stage" aria-label="当前跑团地图">
     <div class="player-stage-head">
@@ -61,8 +205,7 @@ export function renderPlayerStageMap(map) {
       <span class="player-stage-dice">${escapeHtml(notation)} · 默认难度 ${Number(map.dice?.defaultTarget) || 10}</span>
     </div>
     ${endingHtml}
-    ${encounterHtml}
-    ${checkHtml}
+    <div class="player-stage-events">${encounterHtml}${checkHtml}</div>
     <div class="player-stage-layout">
       <div class="player-stage-map" role="img" aria-label="已公开 ${locations.length} 个地点，当前位于${escapeHtml(active?.name || "未指定地点")}">
         <svg viewBox="0 0 100 100" aria-hidden="true">${(map.routes || []).map(([from, to]) => {
@@ -71,16 +214,12 @@ export function renderPlayerStageMap(map) {
           return start && end ? `<line x1="${Number(start.x) * 100}" y1="${Number(start.y) * 100}" x2="${Number(end.x) * 100}" y2="${Number(end.y) * 100}"></line>` : "";
         }).join("")}</svg>
         ${locations.map((location, index) => `<div class="player-stage-node${location.id === active?.id ? " is-active" : ""}" style="--map-x:${Number(location.x) * 100}%;--map-y:${Number(location.y) * 100}%"><span>${index + 1}</span><b>${escapeHtml(location.name)}</b></div>`).join("")}
+        <div class="player-stage-map-legend" aria-hidden="true"><span><i></i>已探索路径</span><span><i></i>可通往地点</span></div>
       </div>
       <div class="player-stage-current">
-        <span>${escapeHtml(active?.type || "当前地点")}</span>
-        <h4>${escapeHtml(active?.name || "等待主持人指定地点")}</h4>
+        <div class="player-stage-current-head"><div><span>${escapeHtml(active?.type || "当前地点")}</span><h4>${escapeHtml(active?.name || "等待主持人指定地点")}</h4></div>${renderParty(map.party)}</div>
         <p>${escapeHtml(active?.description || "主持人推进后，这里会显示当前地点说明。")}</p>
-        ${map.party?.length ? `<div class="player-party-strip">${map.party.map((member) => {
-          const hp = Math.max(0, Number(member.hp) || 0);
-          const maxHp = Math.max(1, Number(member.maxHp) || 1);
-          return `<div class="player-party-member"><div><strong>${escapeHtml(member.name)}</strong><span>HP ${hp}/${maxHp}</span></div><i style="--hp:${Math.round(hp / maxHp * 100)}%"><b></b></i></div>`;
-        }).join("")}</div>` : ""}
+        ${renderLocationDiscovery(active, clues)}
       </div>
     </div>
   </section>`;

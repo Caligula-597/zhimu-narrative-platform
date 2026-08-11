@@ -91,7 +91,10 @@ function runtimeStateBanner() {
         ${currentBeatTasks.length ? `<section><span>现在要做</span><ul>${currentBeatTasks.map((task) => `<li>${escapeHtml(task)}</li>`).join("")}</ul></section>` : ""}
         ${currentBeatTips.length ? `<section><span>行动提示</span><div>${currentBeatTips.map((tip) => `<em>${escapeHtml(tip)}</em>`).join("")}</div></section>` : ""}
       </div>
-      ${renderPlayerStageMapBoundary(current.presentation?.map)}
+      ${renderPlayerStageMapBoundary(current.presentation?.map, {
+        clues: state.home?.clues || [],
+        sharedClues: state.home?.sharedClues || [],
+      })}
       <footer><span>${escapeHtml(current.phase.label)}</span><span>${current.syncState.isFrozen ? "冻结版本" : "实时草稿"}</span><span>${current.syncState.status === "synced" ? "进度已同步" : "数据可能稍有延迟"}</span></footer>
     </article>`;
 }

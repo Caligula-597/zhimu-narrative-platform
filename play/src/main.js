@@ -93,6 +93,7 @@ const { render } = createPlayViewController({
 });
 
 window.addEventListener("zhimu:tabletop-stage-ready", render);
+window.addEventListener("zhimu:tabletop-discovery-ready", render);
 
 setVoiceRenderCallback(render);
 
@@ -383,6 +384,11 @@ app.addEventListener("click", async (event) => {
     openModalState,
     closeModalState,
     pullRoomData
+  })) return;
+  if (await handleLazyPlayActionController("tabletop", {
+    action,
+    button,
+    render
   })) return;
   if (await handleLazyPlayActionController("tab", {
     action, button, state, render, gamePatchCtx, flushPendingRoomRefresh,

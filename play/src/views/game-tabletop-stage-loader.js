@@ -10,9 +10,9 @@ export async function loadPlayerTabletopStage() {
   return loading;
 }
 
-export function renderPlayerStageMapBoundary(map) {
+export function renderPlayerStageMapBoundary(map, context = {}) {
   if (!map) return "";
-  if (renderer) return renderer(map);
+  if (renderer) return renderer(map, context);
   if (typeof window !== "undefined" && !loading) {
     void loadPlayerTabletopStage().then(() => window.dispatchEvent(new Event("zhimu:tabletop-stage-ready")));
   }
