@@ -52,21 +52,59 @@ function buildWwwRedirectRule() {
   };
 }
 
+async function readDynamicRedirectEntrypoint(token, zoneId) {
+  const phase = "http_request_dynamic_redirect";
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/zones/${zoneId}/rulesets/phases/${phase}/entrypoint`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+  const payload = await res.json();
+  if (payload.success) return payload.result;
+  const missing = payload.errors?.some((error) => error.code === 10003 || /could not find entrypoint/i.test(error.message || ""));
+  if (res.status === 404 || missing) return null;
+  const msg = payload.errors?.map((error) => error.message).join("; ") || res.statusText;
+  throw new Error(msg || "Cloudflare API error");
+}
+
 async function ensureWwwRedirect(token, zoneId) {
   const phase = "http_request_dynamic_redirect";
-  const entrypoint = await cfRequest(token, `/zones/${zoneId}/rulesets/phases/${phase}/entrypoint`);
-  const rules = Array.isArray(entrypoint.rules) ? [...entrypoint.rules] : [];
+  const entrypoint = await readDynamicRedirectEntrypoint(token, zoneId);
+  const rules = Array.isArray(entrypoint?.rules) ? [...entrypoint.rules] : [];
   const nextRule = buildWwwRedirectRule();
   const existingIndex = rules.findIndex((rule) => rule.description === RULE_DESCRIPTION);
   if (existingIndex >= 0) {
-    rules[existingIndex] = { ...rules[existingIndex], ...nextRule, id: rules[existingIndex].id };
+    rules[existingIndex] = {
+      ...rules[existingIndex],
+      ...nextRule,
+      id: rules[existingIndex].id,
+      ref: rules[existingIndex].ref || "zhimu_www_to_apex"
+    };
   } else {
-    rules.unshift(nextRule);
+    rules.unshift({ ...nextRule, ref: "zhimu_www_to_apex" });
   }
 
   if (dryRun) {
-    console.log(`[dry-run] would upsert ${phase} rule for ${wwwHost} → ${apexOrigin}`);
+    console.log(
+      `[dry-run] would ${entrypoint ? "update" : "create"} ${phase} rule for ${wwwHost} → ${apexOrigin}`
+    );
     return entrypoint;
+  }
+
+  if (!entrypoint) {
+    return cfRequest(token, `/zones/${zoneId}/rulesets`, {
+      method: "POST",
+      body: {
+        name: "Redirect rules ruleset",
+        kind: "zone",
+        phase,
+        rules
+      }
+    });
   }
 
   return cfRequest(token, `/zones/${zoneId}/rulesets/phases/${phase}/entrypoint`, {
@@ -77,13 +115,20 @@ async function ensureWwwRedirect(token, zoneId) {
 
 async function ensureCrawlerHints(token, zoneId) {
   if (dryRun) {
-    console.log("[dry-run] would set zone setting crawler_hints=on");
-    return null;
+    console.log("[dry-run] Crawler Hints: enable manually in Caching → Configuration if API unsupported");
+    return { mode: "manual" };
   }
-  return cfRequest(token, `/zones/${zoneId}/settings/crawler_hints`, {
-    method: "PATCH",
-    body: { value: "on" }
-  });
+  try {
+    return await cfRequest(token, `/zones/${zoneId}/settings/crawler_hints`, {
+      method: "PATCH",
+      body: { value: "on" }
+    });
+  } catch (error) {
+    console.warn(
+      `Crawler Hints API unavailable (${error.message}). Enable manually: Caching → Configuration → Crawler Hints → On`
+    );
+    return { mode: "manual", error: error.message };
+  }
 }
 
 async function main() {
@@ -99,8 +144,11 @@ async function main() {
   console.log(`www redirect ready: https://${wwwHost}/* → ${apexOrigin}/* (301, preserve query)`);
 
   const hints = await ensureCrawlerHints(token, zone.id);
-  const hintsValue = hints?.value || (dryRun ? "on (dry-run)" : "on");
-  console.log(`Crawler Hints: ${hintsValue}`);
+  if (hints?.mode === "manual") {
+    console.log("Crawler Hints: manual dashboard step still required");
+  } else {
+    console.log(`Crawler Hints: ${hints?.value || "on"}`);
+  }
   console.log(dryRun ? "Dry-run complete." : "Cloudflare search discovery sync complete.");
 }
 
