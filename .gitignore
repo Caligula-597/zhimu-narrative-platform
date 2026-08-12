@@ -24,6 +24,8 @@ backend/.test-*.log
 artifacts/
 .tools/
 docs/ops/email-previews/
+output/
+tmp/
 
 # Unapproved author fixtures stay local until editorial/legal review.
 examples/pending-review/**

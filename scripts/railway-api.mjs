@@ -132,6 +132,16 @@ export async function fetchDeployment(token, deploymentId) {
   return data.deployment;
 }
 
+/** Roll back by deployment ID. Railway restores that deployment's image and variables. */
+export async function rollbackDeployment(token, deploymentId) {
+  const data = await railwayGraphql(
+    token,
+    `mutation($id: String!) { deploymentRollback(id: $id) { id } }`,
+    { id: deploymentId }
+  );
+  return data.deploymentRollback;
+}
+
 export async function fetchBuildLogs(token, deploymentId, limit = 200) {
   const data = await railwayGraphql(
     token,

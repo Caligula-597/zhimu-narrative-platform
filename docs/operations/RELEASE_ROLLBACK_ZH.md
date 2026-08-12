@@ -8,7 +8,7 @@
 2. 执行 `npm run status:generate && npm run docs:index && npm run check:docs`，阻止发布说明仍引用旧迁移或已删除模块。
 3. 执行 `npm run db:verify-rollback --prefix backend -- --out=../artifacts/recovery/release-rollback.json`。命令会记录每个恢复步骤的退出码和耗时；任一步未执行或失败，整体门禁失败。
 4. 执行 `npm run verify:full:3 -- --out=artifacts/release/verify-full-repeat.json`（隔离库上的后端/前端单元与集成，**不含** Playwright E2E，也不要求本机 :4180/:4173 在线）。次数必须是 1–10 的整数；非法次数直接失败，不能零次运行后假通过。E2E 须由 `release-acceptance` 工作流或本地无 `--skip-e2e` 的 `full-chain` 另行通过。
-5. 对 staging 执行 Player 首页并发压测，保存 JSON 和 `pg_stat_statements` 报告。
+5. 对 staging 执行 Player 首页 20/50/100 并发与 [SSE 真实容量验收](../performance/SSE_CAPACITY_ACCEPTANCE_ZH.md)，保存 JSON、`pg_stat_statements` 和连接池/SSE 指标。
 6. 创建生产数据库快照并验证快照状态，不能只记录“已请求备份”。
 
 当前迁移顺序必须包含 `091` 审稿、`092` 玩法 Profile、`093` 不可变 Release 和 `094` 房间绑定。应用发布前先迁移；旧应用必须继续忽略新增可空字段。RuntimeContentProvider 已全面启用：绑定 Release 的房间会读取不可变快照，回滚到 M01-C 之前的旧应用会退回实时表，因此属于语义降级，必须暂停这些房间或将流量保持在支持 Provider 的版本；不能在事故中清空 `release_id`。
@@ -46,6 +46,16 @@
 `verify-migration-upgrade`、`verify-backup-restore-managed` 同样受上述破坏性演练开关保护。测试套件与 Player 性能 fixture 使用权限更窄的 `ZHIMU_ALLOW_TEST_DB_WRITES=1`；设置破坏性演练开关不会自动放开测试写入。两个开关都只能用于已经确认隔离的非生产数据库，生产 Supabase 地址默认拒绝。
 
 `release-acceptance` 会上传 `artifacts/release/*.json` 与 `artifacts/recovery/*.json`。这些文件只证明隔离库重复验证、备份恢复和前向迁移；应用镜像回滚仍必须在部署平台单独演练并留存部署 ID、旧/新版本、开始/结束时间和健康检查结果，不能用数据库演练代替。
+
+平台演练完成后，将应用回切、数据库隔离恢复和 R2 跨 bucket 恢复记录合并到 `config/platform-recovery-evidence.example.json` 的副本，并执行：
+
+```bash
+npm run verify:platform-recovery -- \
+  --in=artifacts/recovery/platform-recovery-input.json \
+  --out=artifacts/recovery/platform-recovery-verified.json
+```
+
+校验器要求候选/回滚部署 ID、完整健康检查、独立数据库恢复、R2 损坏与删除后跨 bucket 恢复、实测 RPO/RTO 以及执行/审批记录。它只验收证据，不调用 Railway、数据库或 R2。
 
 ## Windows 本机恢复演练（无 psql/pg_dump 时）
 

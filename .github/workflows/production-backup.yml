@@ -32,20 +32,47 @@ jobs:
           --health-retries 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24.13.0"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
       - name: Require backup secrets
         env:
           DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
           BACKUP_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+          BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          BACKUP_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          BACKUP_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           test -n "$DATABASE_URL"
           test -n "$BACKUP_PASSPHRASE"
           test "${#BACKUP_PASSPHRASE}" -ge 24
+          test -n "$BACKUP_S3_ENDPOINT"
+          test -n "$BACKUP_S3_REGION"
+          test -n "$BACKUP_S3_BUCKET"
+          test -n "$BACKUP_S3_ACCESS_KEY_ID"
+          test -n "$BACKUP_S3_SECRET_ACCESS_KEY"
+          test -n "$SUPABASE_PROJECT_REF"
+          test -n "$SUPABASE_ACCESS_TOKEN"
+      - name: Install backup uploader dependencies
+        run: npm ci
+        working-directory: backend
       - name: Install PostgreSQL 17 client
         run: |
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc >/dev/null
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
+      - name: Verify production PITR and WAL archive are enabled
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: node scripts/verify-supabase-pitr.mjs --out=artifacts/backup/supabase-pitr.json
       - name: Create and encrypt logical backup
         env:
           DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
@@ -74,6 +101,7 @@ jobs:
           BACKUP_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
           PGPASSWORD: restore_only
         run: |
+          restore_started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           openssl enc -d -aes-256-cbc -pbkdf2 \
             -in artifacts/backup/zhimu.dump.enc \
             -out /tmp/zhimu-restore.dump \
@@ -84,14 +112,45 @@ jobs:
             --no-acl \
             --dbname postgresql://restore@127.0.0.1:5432/restore_drill \
             /tmp/zhimu-restore.dump
-          /usr/lib/postgresql/17/bin/psql \
-            postgresql://restore@127.0.0.1:5432/restore_drill \
-            -v ON_ERROR_STOP=1 \
-            -c "SELECT COUNT(*) FROM users" \
-            -c "SELECT COUNT(*) FROM worlds" \
-            -c "SELECT COUNT(*) FROM schema_migrations"
+          users_count="$(/usr/lib/postgresql/17/bin/psql postgresql://restore@127.0.0.1:5432/restore_drill -v ON_ERROR_STOP=1 -Atc 'SELECT COUNT(*) FROM users')"
+          worlds_count="$(/usr/lib/postgresql/17/bin/psql postgresql://restore@127.0.0.1:5432/restore_drill -v ON_ERROR_STOP=1 -Atc 'SELECT COUNT(*) FROM worlds')"
+          migrations_count="$(/usr/lib/postgresql/17/bin/psql postgresql://restore@127.0.0.1:5432/restore_drill -v ON_ERROR_STOP=1 -Atc 'SELECT COUNT(*) FROM schema_migrations')"
+          table_count="$(/usr/lib/postgresql/17/bin/psql postgresql://restore@127.0.0.1:5432/restore_drill -v ON_ERROR_STOP=1 -Atc \"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'\")"
+          restore_finished="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          jq -n \
+            --arg startedAt "$restore_started" \
+            --arg finishedAt "$restore_finished" \
+            --argjson users "$users_count" \
+            --argjson worlds "$worlds_count" \
+            --argjson migrations "$migrations_count" \
+            --argjson tables "$table_count" \
+            '{schemaVersion:1,operation:"isolated-postgres-restore",startedAt:$startedAt,finishedAt:$finishedAt,tableCount:$tables,rowCountChecks:{users:$users,worlds:$worlds,schemaMigrations:$migrations},integrityChecks:[{id:"pg_restore_exit_on_error",passed:true},{id:"required_tables_readable",passed:true}],passed:true}' \
+            > artifacts/backup/restore-checks.json
           rm /tmp/zhimu-restore.dump
-      - name: Upload encrypted off-site backup
+      - name: Upload encrypted backup to independent object storage and read it back
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          BACKUP_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          BACKUP_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+          BACKUP_S3_FORCE_PATH_STYLE: ${{ secrets.BACKUP_S3_FORCE_PATH_STYLE }}
+          BACKUP_S3_SERVER_SIDE_ENCRYPTION: ${{ secrets.BACKUP_S3_SERVER_SIDE_ENCRYPTION }}
+          BACKUP_S3_KMS_KEY_ID: ${{ secrets.BACKUP_S3_KMS_KEY_ID }}
+        run: >-
+          node scripts/upload-postgres-backup.mjs
+          --source-environment=production
+          --confirm-write-backup
+          --confirm-backup-bucket="$BACKUP_S3_BUCKET"
+          --run-id="github-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          --encrypted-dump=../artifacts/backup/zhimu.dump.enc
+          --checksums=../artifacts/backup/SHA256SUMS
+          --manifest=../artifacts/backup/manifest.txt
+          --restore-checks=../artifacts/backup/restore-checks.json
+          --out=../artifacts/backup/offsite-upload-report.json
+        working-directory: backend
+      - name: Upload secondary GitHub evidence copy
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: production-backup-${{ github.run_id }}
