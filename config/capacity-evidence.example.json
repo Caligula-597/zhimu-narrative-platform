@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "candidate": {
+    "environment": "staging",
+    "revision": "REPLACE_WITH_40_CHARACTER_SHA",
+    "deploymentId": "REPLACE_WITH_DEPLOYMENT_ID"
+  },
+  "capacityPlan": {
+    "requiredConcurrentSseConnections": 100,
+    "requiredPlayerConcurrency": 100,
+    "maxCpuPercent": 80,
+    "maxMemoryBytes": 1073741824
+  },
+  "playerHomeReports": [],
+  "sseIdleReports": [],
+  "sseFanoutReports": [],
+  "observability": {
+    "samples": []
+  },
+  "executedAt": "REPLACE_WITH_ISO_TIMESTAMP",
+  "approval": {
+    "executedBy": "REPLACE_WITH_OPERATOR",
+    "approvedBy": "REPLACE_WITH_RELEASE_OWNER",
+    "approvedAt": "REPLACE_WITH_ISO_TIMESTAMP"
+  }
+}

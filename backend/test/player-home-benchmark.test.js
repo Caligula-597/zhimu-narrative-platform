@@ -34,6 +34,32 @@ test("remote benchmark accepts bearer credentials without exposing them in optio
   ], { PLAYER_HOME_BEARER_TOKENS: "token-a,token-b" });
   assert.equal(options.authMode, "bearer");
   assert.equal(options.bearerTokens.length, 2);
+  assert.equal(options.evidenceMode, "baseline");
+});
+
+test("staging capacity evidence requires confirmed deployment identity", () => {
+  const argv = [
+    "--url=https://staging.example.com",
+    "--requests=100",
+    "--concurrency=10",
+    "--evidence-mode=staging",
+    "--environment=staging",
+    "--confirm-host=staging.example.com",
+    "--deployment-id=deploy-1",
+    `--deployment-revision=${"a".repeat(40)}`
+  ];
+  const options = parsePlayerHomeBenchmarkOptions(argv, {
+    PLAYER_HOME_BEARER_TOKENS: "token-a,token-b"
+  });
+  assert.equal(options.targetEnvironment, "staging");
+  assert.equal(options.targetDeploymentId, "deploy-1");
+  assert.throws(
+    () => parsePlayerHomeBenchmarkOptions(
+      argv.filter((item) => !item.startsWith("--confirm-host=")),
+      { PLAYER_HOME_BEARER_TOKENS: "token-a,token-b" }
+    ),
+    /confirm-host/
+  );
 });
 
 test("benchmark reports status, bytes, error rate and bearer-mode latency", async () => {
@@ -64,6 +90,7 @@ test("benchmark reports status, bytes, error rate and bearer-mode latency", asyn
 
   assert.equal(report.schemaVersion, 2);
   assert.equal(report.productionRepresentativeAuth, true);
+  assert.equal(report.capacityEvidenceReady, false);
   assert.equal(report.successful, 3);
   assert.equal(report.failed, 1);
   assert.equal(report.errorRatePct, 25);

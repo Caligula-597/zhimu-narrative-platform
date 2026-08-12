@@ -37,6 +37,8 @@ test("GET /metrics returns Prometheus text", async (context) => {
   assert.match(response.body, /event_outbox_pending/);
   assert.match(response.body, /event_outbox_oldest_pending_seconds/);
   assert.match(response.body, /event_outbox_discarded_total/);
+  assert.match(response.body, /sse_connection_admissions_total/);
+  assert.match(response.body, /sse_connection_limit\{scope="total"\}/);
 });
 
 test("GET /metrics rejects invalid token when METRICS_TOKEN is set", async (context) => {

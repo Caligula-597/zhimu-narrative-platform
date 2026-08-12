@@ -11,7 +11,8 @@ const PUBLIC_PLAYER_EVENT_TYPES = new Set([
   "room.presentation_updated",
   "room.vote_created",
   "room.vote_updated",
-  "room.segment_remedy_applied"
+  "room.segment_remedy_applied",
+  "room.test_capacity_probe"
 ]);
 const ROLE_TARGETED_EVENT_TYPES = new Set([
   "room.item_granted",

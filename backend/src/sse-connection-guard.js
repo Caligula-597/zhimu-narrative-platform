@@ -3,6 +3,14 @@ import { httpError } from "./api-errors.js";
 const actorConnections = new Map();
 const ipConnections = new Map();
 let totalConnections = 0;
+const admission = {
+  acceptedTotal: 0,
+  releasedTotal: 0,
+  rejectedActorTotal: 0,
+  rejectedIpTotal: 0,
+  rejectedTotalLimit: 0,
+  peakConnections: 0
+};
 
 function boundedLimit(raw, fallback, maximum) {
   const value = Number(raw ?? fallback);
@@ -51,19 +59,24 @@ export function acquireSseConnection(request, reply, env = process.env) {
   const ipKey = requestIp(request);
 
   if (totalConnections >= limits.total) {
+    admission.rejectedTotalLimit += 1;
     reply?.header?.("Retry-After", "30");
     throw connectionLimitError("total");
   }
   if ((actorConnections.get(actorKey) ?? 0) >= limits.perActor) {
+    admission.rejectedActorTotal += 1;
     reply?.header?.("Retry-After", "30");
     throw connectionLimitError("actor");
   }
   if ((ipConnections.get(ipKey) ?? 0) >= limits.perIp) {
+    admission.rejectedIpTotal += 1;
     reply?.header?.("Retry-After", "30");
     throw connectionLimitError("ip");
   }
 
   totalConnections += 1;
+  admission.acceptedTotal += 1;
+  admission.peakConnections = Math.max(admission.peakConnections, totalConnections);
   increment(actorConnections, actorKey);
   increment(ipConnections, ipKey);
 
@@ -71,6 +84,7 @@ export function acquireSseConnection(request, reply, env = process.env) {
   return () => {
     if (released) return;
     released = true;
+    admission.releasedTotal += 1;
     totalConnections = Math.max(0, totalConnections - 1);
     decrement(actorConnections, actorKey);
     decrement(ipConnections, ipKey);
@@ -81,7 +95,8 @@ export function getSseConnectionGuardStats() {
   return {
     totalConnections,
     actors: actorConnections.size,
-    ips: ipConnections.size
+    ips: ipConnections.size,
+    ...admission
   };
 }
 
@@ -89,4 +104,12 @@ export function resetSseConnectionGuardForTests() {
   actorConnections.clear();
   ipConnections.clear();
   totalConnections = 0;
+  Object.assign(admission, {
+    acceptedTotal: 0,
+    releasedTotal: 0,
+    rejectedActorTotal: 0,
+    rejectedIpTotal: 0,
+    rejectedTotalLimit: 0,
+    peakConnections: 0
+  });
 }
