@@ -696,13 +696,6 @@ button {
     padding-bottom: 8px;
   }
 
-  .story-tab-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .role-story-card {
-    position: static;
-  }
 }
 
 .card {
@@ -781,6 +774,16 @@ button {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
+}
+
+@media (max-width: 860px) {
+  .story-tab-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .role-story-card {
+    position: static;
+  }
 }
 
 .role-story-card h2 {

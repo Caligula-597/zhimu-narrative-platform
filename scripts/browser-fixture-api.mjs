@@ -1664,6 +1664,9 @@ const server = http.createServer(async (request, response) => {
   if (request.method === "GET" && path === `/api/worlds/${worldId}/studio`) {
     return sendJson(response, 200, workspacePreview, { "x-world-revision": "8" });
   }
+  if (request.method === "GET" && path === `/api/worlds/${worldId}/bible/role-archives`) {
+    return sendJson(response, 200, { archives: [] });
+  }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/story-assistant/deepseek/status`) {
     return sendJson(response, 200, {
       configured: false,
