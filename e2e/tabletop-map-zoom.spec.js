@@ -1,4 +1,29 @@
 import { expect, test } from "@playwright/test";
+import { FIXTURE } from "./helpers/fixture.mjs";
+
+const demoHeaders = { "x-user-id": FIXTURE.hostUserId };
+
+test.beforeEach(async ({ request }) => {
+  const worldsResponse = await request.get("/api/worlds", { headers: demoHeaders });
+  expect(worldsResponse.ok()).toBeTruthy();
+  const [world] = await worldsResponse.json();
+  expect(world).toBeTruthy();
+  const response = await request.post("/api/worlds", {
+    headers: demoHeaders,
+    data: {
+      name: world.name,
+      summary: world.summary,
+      settings: {
+        ...(world.settings || {}),
+        narrativeProfile: {
+          ...(world.settings?.narrativeProfile || {}),
+          creationType: "tabletop_rpg"
+        }
+      }
+    }
+  });
+  expect(response.ok()).toBeTruthy();
+});
 
 test("tabletop map zoom buttons and wheel redraw the canvas with visible feedback", async ({ page }) => {
   const failedResponses = [];

@@ -11,6 +11,10 @@ const host = "127.0.0.1";
 const port = Number(process.env.ZHIMU_BROWSER_FIXTURE_PORT || 4180);
 const verificationAuthFixture = process.env.ZHIMU_BROWSER_FIXTURE_AUTH === "verification";
 const emptyAccountFixture = process.env.ZHIMU_BROWSER_FIXTURE_EMPTY_ACCOUNT === "true";
+const fixtureCreationType = ["murder_mystery", "tabletop_rpg", "board_game"]
+  .includes(process.env.ZHIMU_BROWSER_FIXTURE_PRODUCT)
+  ? process.env.ZHIMU_BROWSER_FIXTURE_PRODUCT
+  : "murder_mystery";
 const verificationChallengeId = "7f5f69b2-5330-4cc9-9497-5a6c751c80e8";
 let verificationFixtureAuthenticated = false;
 let emptyAccountBootstrapped = false;
@@ -84,7 +88,7 @@ const release = {
   sourceRevision: 7,
   snapshotSchemaVersion: 1,
   narrativeProfile: {
-    creationType: "murder_mystery",
+    creationType: fixtureCreationType,
     runtimeShape: "one_shot",
     characterMode: "fixed_roles",
     rulesetFamily: "narrative"
@@ -923,6 +927,9 @@ const world = {
   membership_role: "owner",
   content_revision: 8,
   settings: {
+    narrativeProfile: {
+      creationType: fixtureCreationType
+    },
     tabletopMapDesign: fixtureTabletopMapDesign,
     creativeConstitution: {
       version: 1,

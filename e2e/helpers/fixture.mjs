@@ -181,7 +181,17 @@ export async function waitForCloudReady(page, timeout = 60_000) {
   }, undefined, { timeout });
 }
 
-const ADVANCED_NAV_VIEWS = new Set(["writer", "clues", "rules", "archive"]);
+const ADVANCED_NAV_VIEWS = new Set([
+  "writer",
+  "truth",
+  "studio",
+  "tabletopMap",
+  "boardGame",
+  "clues",
+  "rules",
+  "miniGames",
+  "archive"
+]);
 
 /** @param {Page} page */
 export async function goToView(page, view) {

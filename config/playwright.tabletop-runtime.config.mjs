@@ -26,7 +26,8 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       ...process.env,
-      ZHIMU_BROWSER_FIXTURE_PORT: "4192"
+      ZHIMU_BROWSER_FIXTURE_PORT: "4192",
+      ZHIMU_BROWSER_FIXTURE_PRODUCT: "tabletop_rpg"
     }
   }, {
     command: "npm run dev -- --host 127.0.0.1 --port 5193 --strictPort",
