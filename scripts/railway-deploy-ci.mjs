@@ -92,6 +92,25 @@ function resolveDeployCommitSha(env) {
   return null;
 }
 
+function buildExpectedProductionCreator(env) {
+  if (env.REQUIRE_CREATOR_FRONTEND_SYNC !== "true") return;
+  console.log("[railway-deploy-ci] Build expected Creator assets with Railway production flags…");
+  const build = spawnSync("npm", ["run", "build"], {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+    cwd: root,
+    env: {
+      ...env,
+      VITE_API_BASE: "/api",
+      VITE_REQUIRE_AUTH: "true",
+      VITE_DEMO_MODE: "false"
+    }
+  });
+  if (build.status !== 0) {
+    throw new Error("Failed to build the expected production Creator assets");
+  }
+}
+
 async function ensureFullstackDockerBuild(env) {
   const token = deployToken(env);
   if (!token) return;
@@ -248,6 +267,7 @@ async function waitForReleaseLegacy(base, expectedManifest = null) {
 async function main() {
   const env = loadSetup();
   const base = (env.RAILWAY_PUBLIC_URL || env.APP_PUBLIC_URL || "https://app.getzhimu.com").replace(/\/$/, "");
+  buildExpectedProductionCreator(env);
   const expectedManifest = loadExpectedCreatorManifest({
     root,
     required: env.REQUIRE_CREATOR_FRONTEND_SYNC === "true"
