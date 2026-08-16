@@ -238,6 +238,11 @@ import {
           await callView("player", "refreshVoiceMessages");
         }
         break;
+      case "room.voice_room_created":
+      case "room.voice_room_members_updated":
+        if (view === "overview") await R.refreshHostRoom?.(false);
+        else if (view === "player") await refreshPlayerHome();
+        break;
       case "room.checkpoint_restored":
         if (view === "overview" || view === "archive") {
           await R.refreshHostRoom?.(false);

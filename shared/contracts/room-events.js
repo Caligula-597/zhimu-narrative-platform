@@ -68,6 +68,20 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     audience: enumString(["room", "restricted"]),
     audienceUserIds: idList
   }),
+  "room.voice_room_created": schema(["voiceRoomId", "voiceRoomName", "createdByUserId", "audience", "audienceUserIds"], {
+    voiceRoomId: id,
+    voiceRoomName: text,
+    createdByUserId: id,
+    audience: enumString(["room", "restricted"]),
+    audienceUserIds: idList
+  }),
+  "room.voice_room_members_updated": schema(["voiceRoomId", "voiceRoomName", "invitedByUserId", "audience", "audienceUserIds"], {
+    voiceRoomId: id,
+    voiceRoomName: text,
+    invitedByUserId: id,
+    audience: enumString(["restricted"]),
+    audienceUserIds: idList
+  }),
   "room.physical_token_event": schema(["tokenId", "tokenCode", "message"], {
     tokenId: id,
     tokenCode,

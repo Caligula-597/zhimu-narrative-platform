@@ -218,11 +218,14 @@ export function renderMechanismProgress() {
       </article>`;
   }
   if (mechanism.status === "completed") {
+    const epilogue = mechanism.ending?.roleEpilogue;
     return `
       <article class="mechanism-progress card is-complete">
         <p class="eyebrow">实时剧情机制 · 已完成</p>
         <h3>${escapeHtml(mechanism.ending?.title || "本场机制已结算")}</h3>
-        <p class="muted">最终状态已由主持端确认并同步。</p>
+        ${mechanism.ending?.consequence ? `<p>${escapeHtml(mechanism.ending.consequence)}</p>` : ""}
+        ${epilogue ? `<div class="mechanism-player-action"><span>你的个人尾声</span><strong>${escapeHtml(epilogue.title)}</strong><p>${escapeHtml(epilogue.consequence)}</p></div>` : ""}
+        <p class="muted">主结局与个人余波均由前面各轮已经发生的行动结算。</p>
       </article>`;
   }
 

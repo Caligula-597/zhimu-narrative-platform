@@ -7,7 +7,7 @@
  */
 
 export const NARRATIVE_PROFILE_VERSION = 1;
-export const CREATION_TYPES = Object.freeze(["murder_mystery", "tabletop_rpg", "interactive_story"]);
+export const CREATION_TYPES = Object.freeze(["murder_mystery", "tabletop_rpg", "board_game", "interactive_story"]);
 export const RUN_FORMATS = Object.freeze(["single_session", "campaign"]);
 export const ROLE_MODES = Object.freeze(["fixed", "player_created", "mixed"]);
 export const RULESET_MODES = Object.freeze(["none", "system_neutral", "custom"]);
@@ -33,6 +33,16 @@ export const CREATOR_TERMINOLOGY = Object.freeze({
     secret: "KP 信息",
     host: "KP",
     work: "模组"
+  }),
+  board_game: Object.freeze({
+    role: "玩家席位",
+    roleShort: "玩家",
+    act: "阶段",
+    scene: "区域",
+    clue: "卡牌 / 信息",
+    secret: "隐藏信息",
+    host: "设计者 / 裁判",
+    work: "桌游"
   }),
   interactive_story: Object.freeze({
     role: "角色",
@@ -64,6 +74,15 @@ export const NARRATIVE_MODE_PROFILES = Object.freeze({
     defaultRoleMode: "mixed",
     defaultRulesetMode: "system_neutral",
     terminology: CREATOR_TERMINOLOGY.tabletop_rpg
+  }),
+  board_game: Object.freeze({
+    key: "board_game",
+    label: "桌游",
+    description: "自由组合棋盘、牌堆、标记、轨道、阶段与自定义组件。",
+    defaultRunFormat: "single_session",
+    defaultRoleMode: "player_created",
+    defaultRulesetMode: "custom",
+    terminology: CREATOR_TERMINOLOGY.board_game
   }),
   interactive_story: Object.freeze({
     key: "interactive_story",
@@ -163,6 +182,7 @@ export function narrativeProfileFromSettings(settings = {}) {
 export function legacyWorldModeForNarrativeProfile(value = {}) {
   const profile = normalizeNarrativeProfile(value);
   if (profile.creationType === "tabletop_rpg") return "campaign";
+  if (profile.creationType === "board_game") return "campaign";
   if (profile.runFormat === "campaign") return "hybrid";
   return "scripted";
 }

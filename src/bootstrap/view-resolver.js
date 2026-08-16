@@ -1,5 +1,6 @@
 /** View metadata and resolution — extracted from app.js bootstrap. */
 import { getView } from "../runtime/view-registry.js";
+import { productToolCapabilities, productToolLabel } from "../../shared/product-capabilities.js";
 
 const viewMeta = {
   creatorCockpit: ["创作驾驶舱", "创作驾驶舱"],
@@ -15,6 +16,7 @@ const viewMeta = {
   writer: ["剧本杀创作", "角色私人剧本"],
   studio: ["内容创作", "剧情编排图谱"],
   tabletopMap: ["空间与结局", "跑团地图设计"],
+  boardGame: ["桌游设计", "桌游组件工坊"],
   clues: ["内容创作", "线索管理"],
   rules: ["内容创作", "自动化规则"],
   miniGames: ["内容创作", "小游戏设计"],
@@ -25,8 +27,15 @@ const viewMeta = {
   ops: ["OPS", "运营控制台"]
 };
 
-export function getViewMeta(view) {
-  return viewMeta[view];
+export function getViewMeta(view, creationType) {
+  const fallback = viewMeta[view];
+  if (!fallback) return undefined;
+  if (!creationType) return fallback;
+  const capabilities = productToolCapabilities(creationType);
+  if (["writer", "studio", "truth", "clues", "miniGames", "rules", "archive"].includes(view)) {
+    return [`${capabilities.label}${view === "archive" ? "记录" : view === "rules" ? "规则" : "创作"}`, productToolLabel(creationType, view, fallback[1])];
+  }
+  return fallback;
 }
 
 export function resolveViewFn(view) {
@@ -44,6 +53,7 @@ export function resolveViewFn(view) {
     case "writer": return getView("writer").writer;
     case "studio": return getView("studio").studioCloud;
     case "tabletopMap": return getView("tabletopMap").tabletopMap;
+    case "boardGame": return getView("boardGame").boardGame;
     case "clues": return getView("clues").clues;
     case "rules": return getView("rules").rules;
     case "miniGames": return getView("miniGames").miniGames;

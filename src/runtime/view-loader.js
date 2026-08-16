@@ -17,7 +17,8 @@
   const modulesByView = {
     creatorCockpit: [
       () => import("../views/creator-cockpit.js"),
-      () => import("./actions-creator-cockpit.js")
+      () => import("./actions-creator-cockpit.js"),
+      () => import("./actions-pipeline.js")
     ],
     overview: [
       () => import("../views/overview.js"),
@@ -36,7 +37,10 @@
       () => import("../views/ai-playtest-lab.js"),
       () => import("./actions-ai-playtest.js")
     ],
-    production: creatorWorkspaceModules,
+    production: [
+      ...creatorWorkspaceModules,
+      () => import("./actions-pipeline.js")
+    ],
     structure: creatorWorkspaceModules,
     truth: truthWorkspaceModules,
     publish: creatorWorkspaceModules,
@@ -79,6 +83,10 @@
     tabletopMap: [
       () => import("../views/tabletop-map.js"),
       () => import("./actions-tabletop-map.js")
+    ],
+    boardGame: [
+      () => import("../views/board-game.js"),
+      () => import("./actions-board-game.js")
     ],
     rooms: [
       () => import("../views/rooms.js")

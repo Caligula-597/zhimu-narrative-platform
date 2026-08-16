@@ -1,30 +1,22 @@
 import { test, expect } from "@playwright/test";
-import {
-  BASE_URL,
-  dismissModalIfOpen,
-  injectHostContext,
-  waitForCloudReady
-} from "./helpers/fixture.mjs";
+import { BASE_URL, injectHostContext, waitForCloudReady } from "./helpers/fixture.mjs";
 
-test.describe("创作者 · 向导创建测试房", () => {
+test.describe("创作者 · 极简创建世界", () => {
   test.beforeEach(async ({ context, page }) => {
     await injectHostContext(context);
     await page.goto(BASE_URL);
     await waitForCloudReady(page);
   });
 
-  test("向导走完五 step 后显示邀请码", async ({ page }) => {
+  test("只选择类型和命名即可进入桌游组件工坊", async ({ page }) => {
     await page.locator("#create-world-btn").click();
-    await expect(page.locator(".wizard-shell")).toBeVisible();
-
-    for (let step = 0; step < 5; step += 1) {
-      await page.locator("[data-wizard-next]").click();
-      if (step < 4) await expect(page.locator(".wizard-shell")).toBeVisible();
-    }
-
-    const modal = page.locator("#modal");
-    await expect(page.locator("#modal-backdrop.show")).toBeVisible({ timeout: 90_000 });
-    await expect(modal.getByText(/邀请码[:：]\s*TEST-/)).toBeVisible({ timeout: 10_000 });
-    await dismissModalIfOpen(page);
+    await expect(page.locator(".world-create-shell")).toBeVisible();
+    await page.locator('[data-world-create-type="board_game"]').click();
+    await page.locator("[data-world-create-name]").fill("自由桌游实验室");
+    await page.getByRole("button", { name: "创建空白桌游" }).click();
+    await expect(page.locator(".board-game-workbench")).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: /牌堆 \/ 卡组/ }).click();
+    await expect(page.locator("[data-board-component-editor]")).toBeVisible();
+    await expect(page.locator(".board-component-row")).toHaveCount(1);
   });
 });

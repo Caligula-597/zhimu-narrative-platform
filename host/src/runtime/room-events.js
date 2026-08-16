@@ -210,6 +210,8 @@ async function handleRoomEvent(type, data) {
     case "room.physical_token_activated":
     case "room.physical_token_event":
     case "room.voice_message_created":
+    case "room.voice_room_created":
+    case "room.voice_room_members_updated":
     case "room.host_nudge":
     case "room.host_log_created":
     case "room.host_player_notes_updated":

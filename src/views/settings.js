@@ -78,6 +78,7 @@ import { normalizeCommunicationTemplates } from "../../shared/communication-temp
       <select class="field" id="settings-creation-type" ${disabled}>
         <option value="murder_mystery" ${selected(narrativeProfile.creationType, "murder_mystery")}>剧本杀（角色本 / 公共幕 / 线索 / 主持人）</option>
         <option value="tabletop_rpg" ${selected(narrativeProfile.creationType, "tabletop_rpg")}>桌面角色扮演（HO / 模组 / KP）</option>
+        <option value="board_game" ${selected(narrativeProfile.creationType, "board_game")}>桌游（棋盘 / 卡牌 / 资源 / 阶段）</option>
         <option value="interactive_story" ${selected(narrativeProfile.creationType, "interactive_story")}>互动叙事（角色 / 章节 / 场景）</option>
       </select>
       <label>运行形态</label>

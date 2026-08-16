@@ -332,6 +332,7 @@ export {
   deepseekPipelineNarrativeExtractStructure,
   deepseekPipelineMatrixTruth,
   deepseekPipelineMatrixCharacters,
+  deepseekPipelineMatrixClueNetwork,
   deepseekPipelineMatrixInfoMatrix,
   deepseekPipelineMatrixHostRunbook,
   deepseekPipelineMatrixPlayerScript,

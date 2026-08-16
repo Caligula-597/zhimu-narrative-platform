@@ -113,6 +113,10 @@ export function deepseekPipelineMatrixCharacters(payload) {
   return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/characters`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 240_000 });
 }
 
+export function deepseekPipelineMatrixClueNetwork(payload) {
+  return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/clue-network`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 240_000 });
+}
+
 export function deepseekPipelineMatrixInfoMatrix(payload) {
   return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/pipeline/matrix/info-matrix`, { userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 240_000 });
 }

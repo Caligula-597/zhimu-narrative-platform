@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
 import {
   BASE_URL,
-  dismissModalIfOpen,
   goToView,
   gotoHostConsole,
   injectHostAppContext,
   injectHostContext,
   joinFixturePlayRoomViaUi,
-  joinPlayRoomViaUi,
   refreshHostRoomState,
   waitForCloudReady,
   waitForHostIdle,
@@ -79,36 +77,28 @@ test.describe("Beta 主线 · fixture 全链路", () => {
   });
 });
 
-test.describe("Beta 主线 · 向导创建到玩家阅读", () => {
+test.describe("Beta 主线 · 极简创建到桌游原型", () => {
   test.beforeEach(async ({ context, page }) => {
     await injectHostContext(context);
     await page.goto(BASE_URL);
     await waitForCloudReady(page);
   });
 
-  test("五 step 向导 → 邀请码 → 玩家入房读幕", async ({ browser, page }) => {
-    const playContext = await browser.newContext();
-    const playPage = await playContext.newPage();
+  test("选择桌游并命名 → 空白组件工坊 → 添加自定义状态", async ({ page }) => {
+    await page.locator("#create-world-btn").click();
+    await expect(page.locator(".world-create-shell")).toBeVisible();
+    await page.locator('[data-world-create-type="board_game"]').click();
+    await page.locator("[data-world-create-name]").fill(`桌游原型 ${Date.now()}`);
+    await page.getByRole("button", { name: "创建空白桌游" }).click();
+    await expect(page.locator(".board-game-workbench")).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(".board-component-row")).toHaveCount(0);
 
-    try {
-      // World creation is a shell-level action now; the former overview page
-      // is no longer exposed in navigation.
-      await page.locator("#create-world-btn").click();
-      await expect(page.locator(".wizard-shell")).toBeVisible();
-      for (let step = 0; step < 5; step += 1) {
-        await page.locator("[data-wizard-next]").click();
-      }
-      const inviteCode = page.locator("[data-wizard-invite-code]");
-      await expect(inviteCode).toBeVisible({ timeout: 90_000 });
-      const createdInviteCode = (await inviteCode.textContent())?.trim();
-      expect(createdInviteCode).toBeTruthy();
-      await dismissModalIfOpen(page);
-
-      await joinPlayRoomViaUi(playPage, createdInviteCode);
-      await playPage.locator('[data-action="switch-tab"][data-tab="sections"]').click();
-      await expect(playPage.locator(".sections-layout, .reader").first()).toBeVisible({ timeout: 20_000 });
-    } finally {
-      await playContext.close();
-    }
+    await page.getByRole("button", { name: /自定义组件/ }).click();
+    await page.locator('[data-board-component-field="name"]').fill("双面身份标记");
+    await page.getByRole("button", { name: "＋ 添加状态" }).click();
+    await page.locator('[data-board-state-field="label"]').fill("朝向");
+    await page.locator('[data-board-state-field="initialValue"]').fill("隐藏面");
+    await page.locator("[data-board-save]").click();
+    await expect(page.locator("#toast.show")).toContainText("桌游组件已保存");
   });
 });

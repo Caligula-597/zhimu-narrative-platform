@@ -23,6 +23,7 @@ import {
 const CREATION_TYPES = [
   { id: "murder_mystery", name: "剧本杀 · 角色本 / 公共幕 / 线索" },
   { id: "tabletop_rpg", name: "跑团 · PC / 章节 / HO / KP 信息" },
+  { id: "board_game", name: "桌游 · 规则 / 卡牌 / 组件 / 隐藏信息" },
   { id: "interactive_story", name: "互动叙事 · 角色 / 章节 / 信息卡" }
 ];
 const MAX_DOCUMENT_FILE_BYTES = 5 * 1024 * 1024;
@@ -51,6 +52,30 @@ function extractionLabel(extraction, contentMode) {
   return "";
 }
 
+function authorshipAssessmentHtml(assessment) {
+  if (!assessment) return "";
+  const dimensions = assessment.dimensions || {};
+  const confidenceLabels = { high: "高", medium: "中", low: "低" };
+  const dimensionLabels = {
+    narrativeRestraint: "叙述克制",
+    sceneGrounding: "场景落地",
+    rhythmNaturalness: "节奏自然",
+    playerFacingIntegrity: "玩家正文纯度"
+  };
+  const dimensionRows = Object.entries(dimensions)
+    .map(([key, value]) => `<span>${escapeHtml(dimensionLabels[key] || key)} ${Number(value)}/100</span>`)
+    .join("");
+  const issueRows = (assessment.issues || []).slice(0, 6).map((issue) =>
+    `<article class="revision-row ${issue.severity === "high" ? "must_fix" : "should_fix"}"><div class="revision-head"><span class="cloud-pill">${issue.severity === "high" ? "重点复核" : "抽查"}</span><b>${escapeHtml(issue.sectionTitle || (issue.paragraph ? `第 ${issue.paragraph} 段` : "全文"))}</b></div>${issue.excerpt ? `<p><strong>原文</strong> ${escapeHtml(issue.excerpt)}</p>` : ""}<p><strong>依据</strong> ${escapeHtml(issue.message || "")}</p><p><strong>建议</strong> ${escapeHtml(issue.action || "")}</p></article>`
+  ).join("");
+  const suggestions = (assessment.suggestions || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const confidence = confidenceLabels[assessment.confidence] || "低";
+  const gatePassed = assessment.gate?.passed === true;
+  const gateLabel = gatePassed ? "门禁通过" : "转人工复核";
+  const gateReason = assessment.gate?.reason ? `<p class="authorship-gate-reason"><strong>${gateLabel}</strong> · ${escapeHtml(assessment.gate.reason)}</p>` : "";
+  return `<section class="authorship-assessment ${escapeHtml(assessment.level || "mixed")}"><div class="section-head"><div><p class="section-kicker">上传稿件 · 真人化写作特征</p><h4>${Number(assessment.score)}/100 · ${escapeHtml(assessment.label || "待复核")}</h4><p>样本置信度：${escapeHtml(confidence)}</p></div><span class="cloud-pill">${gateLabel}</span></div>${gateReason}<div class="proposal-stats">${dimensionRows}</div>${issueRows ? `<div class="revision-list">${issueRows}</div>` : `<p class="muted-note">未命中高置信结构问题，仍建议抽取开头、中段和结尾进行人工朗读。</p>`}${suggestions ? `<ul class="authorship-suggestions">${suggestions}</ul>` : ""}<p class="muted-note">${escapeHtml(assessment.disclaimer || "")}</p></section>`;
+}
+
 function documentPreviewHtml(parsed, creationType) {
   if (!parsed) return `<div class="writer-tool-empty-preview"><strong>等待解析</strong><p>解析结果会先显示在这里；复核结构、分段和警告后才能导入。</p></div>`;
   const warnings = (parsed.warnings || []).map((warning) => `<p class="tutorial-tip"><span>${escapeHtml(warning)}</span></p>`).join("");
@@ -64,13 +89,14 @@ function documentPreviewHtml(parsed, creationType) {
   const candidates = structure?.candidates || [];
   const structurePreview = candidates.length ? `<section class="document-structure-preview"><h4>结构识别 · ${escapeHtml(structureSummary)}</h4>${candidates.slice(0, 12).map((item) => `<article><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.type)} · ${escapeHtml(item.confidence)}${item.parentActTitle ? ` · ${escapeHtml(item.parentActTitle)}` : ""}</span></article>`).join("")}${Number(structure.candidateCount || 0) > 12 ? `<p class="muted-note">另有 ${Number(structure.candidateCount) - 12} 项，导入后可在对应工作区逐项复核。</p>` : ""}</section>` : "";
   const summary = parsed.contentMode === "pages" ? `${Number(parsed.pageCount || 0)} 页图片分幕` : `${Number(parsed.characterCount || 0)} 字符 · ${Number(parsed.sectionCount || 0)} 个分段`;
-  return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;
+  return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${authorshipAssessmentHtml(parsed.authorshipAssessment)}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;
 }
 
 function canImportDocument(session) {
   if (!session.parsed || !session.draft.rightsConfirmed || session.previewFingerprint !== session.sourceFingerprint) return false;
   const target = session.draft.target;
   if (session.parsed.contentMode === "pages") return target !== "manuscript" && target !== "structured" && Boolean(session.file && session.fileBase64);
+  if (session.parsed.authorshipAssessment?.gate?.decision === "manual_review" && !session.draft.proseReviewConfirmed) return false;
   if (target === "structured") return Boolean(session.parsed.structure?.candidateCount);
   return true;
 }
@@ -102,6 +128,7 @@ function documentContextHtml(data, session) {
 
 function documentEditorHtml(data, session) {
   const fileMode = session.draft.source === "file";
+  const needsProseReview = session.parsed?.contentMode === "text" && session.parsed.authorshipAssessment?.gate?.decision === "manual_review";
   const body = `<div class="writer-transfer-form">
     <label><span>创作类型</span><select class="field" data-document-field="creationType">${optionsHtml(CREATION_TYPES, session.draft.creationType)}</select></label>
     <label><span>稿件来源</span><select class="field" data-document-field="source"><option value="file" ${fileMode ? "selected" : ""}>本地文件</option><option value="feishu" ${!fileMode ? "selected" : ""}>飞书云文档</option></select></label>
@@ -111,6 +138,7 @@ function documentEditorHtml(data, session) {
     <label class="checkbox-line writer-rights-check"><input type="checkbox" data-document-check="rightsConfirmed" ${session.draft.rightsConfirmed ? "checked" : ""}> 我确认拥有该稿件或已取得处理与导入授权</label>
     <div class="writer-transfer-inline-actions"><button type="button" class="secondary-btn" data-action="writer-document-parse">${session.savingAction === "parse" ? "正在解析…" : "解析并生成预览"}</button></div>
     ${documentPreviewHtml(session.parsed, session.draft.creationType)}
+    ${needsProseReview ? `<label class="checkbox-line authorship-review-check"><input type="checkbox" data-document-check="proseReviewConfirmed" ${session.draft.proseReviewConfirmed ? "checked" : ""}> 我已阅读门禁命中的原文与修改依据，确认将此稿作为待继续打磨的私人草稿导入</label><p class="muted-note">未确认前不会写入。此确认不代表稿件已达到发布或精品库标准。</p>` : ""}
   </div>`;
   return renderWorkspaceEditor({
     title: "文档导入工作台",
@@ -153,7 +181,8 @@ export function openDocumentWorkspace() {
       feishuUrl: "",
       allowOcr: false,
       pageLayout: "single_section",
-      rightsConfirmed: false
+      rightsConfirmed: false,
+      proseReviewConfirmed: false
     },
     file: null,
     fileRevision: 0,
@@ -269,6 +298,7 @@ export async function parseDocumentWorkspace() {
     }
     if (!writerToolSessionIsCurrent(session) || requestFingerprint !== documentSourceFingerprint(session)) return;
     session.parsed = parsed;
+    session.draft.proseReviewConfirmed = false;
     session.previewFingerprint = requestFingerprint;
     showToast(parsed.contentMode === "pages" ? "识别为图片文档，请选择角色并复核页面" : "结构识别完成，请复核后再导入");
   } catch (error) {

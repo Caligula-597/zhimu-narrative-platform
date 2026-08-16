@@ -182,7 +182,7 @@ REQUIRE_EMAIL_VERIFICATION=true
 
 ---
 
-## 4. AI 悬疑创作（用户自备 API）
+## 4. AI 剧本创作（用户自备 API）
 
 普通创作请求不使用平台 Key。用户在账号设置中选择服务商、模型并填写自己的 API Key；
 Key 经过 AES-256-GCM 加密后保存，调用费用由用户对应的服务商账户承担。

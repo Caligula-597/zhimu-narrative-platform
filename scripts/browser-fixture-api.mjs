@@ -13,6 +13,7 @@ const verificationAuthFixture = process.env.ZHIMU_BROWSER_FIXTURE_AUTH === "veri
 const emptyAccountFixture = process.env.ZHIMU_BROWSER_FIXTURE_EMPTY_ACCOUNT === "true";
 const verificationChallengeId = "7f5f69b2-5330-4cc9-9497-5a6c751c80e8";
 let verificationFixtureAuthenticated = false;
+let emptyAccountBootstrapped = false;
 const fixtureUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const portalProfiles = {
   creator: {
@@ -53,6 +54,7 @@ let roomSequence = 2;
 let clueSequence = 1;
 let ruleSequence = 0;
 let qualityReportSequence = 0;
+let roleSequence = 4;
 const qualityReports = [];
 const opsFixtureUserId = "77777777-7777-4777-8777-777777770001";
 let opsFixtureUsers = [{
@@ -1037,6 +1039,10 @@ const dashboard = {
   production: []
 };
 
+function visibleFixtureWorlds() {
+  return emptyAccountFixture && !emptyAccountBootstrapped ? [] : [world];
+}
+
 function sendJson(response, status, payload, headers = {}) {
   response.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
@@ -1295,6 +1301,7 @@ const server = http.createServer(async (request, response) => {
   }
   if (verificationAuthFixture && request.method === "POST" && path === "/api/test/reset-verification") {
     verificationFixtureAuthenticated = false;
+    emptyAccountBootstrapped = false;
     return sendJson(response, 200, { ok: true });
   }
   if (request.method === "GET" && path === "/api/auth/me") {
@@ -1646,7 +1653,32 @@ const server = http.createServer(async (request, response) => {
     });
   }
   if (request.method === "GET" && path === "/api/worlds") {
-    return sendJson(response, 200, emptyAccountFixture ? [] : [world]);
+    return sendJson(response, 200, visibleFixtureWorlds());
+  }
+  if (request.method === "POST" && path === "/api/worlds") {
+    const body = await readJson(request);
+    emptyAccountBootstrapped = true;
+    world.name = String(body.name || world.name);
+    world.summary = String(body.summary || "");
+    world.settings = { ...(body.settings || {}) };
+    workspacePreview.chapters = [];
+    workspacePreview.roles = [];
+    roleSequence = 0;
+    workspacePreview.sections = [];
+    workspacePreview.scenes = [];
+    workspacePreview.clues = [];
+    rules.splice(0, rules.length);
+    dashboard.counts = {
+      ...(dashboard.counts || {}),
+      chapters: 0,
+      roles: 0,
+      sections: 0,
+      scenes: 0,
+      clues: 0,
+      rules: 0,
+      rooms: 0
+    };
+    return sendJson(response, 201, { ...world }, revisionHeaders());
   }
   if (request.method === "GET" && path === "/api/worlds/catalog") {
     return sendJson(response, 200, []);
@@ -1675,6 +1707,14 @@ const server = http.createServer(async (request, response) => {
       connectionName: null,
       routingMode: "own_only",
       platformAvailable: false
+    });
+  }
+  if (request.method === "GET" && path === `/api/worlds/${worldId}/story-manuscript`) {
+    return sendJson(response, 200, {
+      body: "# 浏览器验收剧本\n\n用于本地浏览器验收的剧情母稿。",
+      generatedBody: "# 浏览器验收剧本\n\n用于本地浏览器验收的剧情母稿。",
+      lastSyncDirection: "graph_to_manuscript",
+      updatedAt: "2026-07-23T00:00:00.000Z"
     });
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/quality-reports`) {
@@ -1816,6 +1856,20 @@ const server = http.createServer(async (request, response) => {
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/rooms`) {
     return sendJson(response, 200, rooms);
+  }
+  if (request.method === "POST" && path === "/api/worlds/wizard/bootstrap") {
+    const body = await readJson(request);
+    emptyAccountBootstrapped = true;
+    world.name = String(body.name || world.name);
+    world.summary = String(body.summary || world.summary);
+    world.settings = { ...(world.settings || {}), ...(body.settings || {}) };
+    dashboard.counts.rooms = rooms.length;
+    return sendJson(response, 201, {
+      world,
+      room: rooms[0],
+      inviteCode: rooms[0].invite_code,
+      rulesCreated: Object.values(body.automationTemplates || {}).filter(Boolean).length
+    }, revisionHeaders());
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/releases`) {
     return sendJson(response, 200, releases);
@@ -2412,8 +2466,49 @@ const server = http.createServer(async (request, response) => {
   }
   if (request.method === "PATCH" && path === `/api/worlds/${worldId}`) {
     const body = await readJson(request);
+    if (Object.hasOwn(body, "name")) world.name = String(body.name || world.name);
+    if (Object.hasOwn(body, "summary")) world.summary = String(body.summary || "");
     if (body.settings && typeof body.settings === "object") world.settings = body.settings;
     return sendJson(response, 200, bumpRevision({ ...world }), revisionHeaders());
+  }
+  if (request.method === "POST" && path === `/api/worlds/${worldId}/roles`) {
+    const body = await readJson(request);
+    roleSequence += 1;
+    const role = {
+      id: `role-${roleSequence}`,
+      name: String(body.name || `玩家席位 ${roleSequence}`),
+      public_profile: String(body.publicProfile || ""),
+      private_profile: String(body.privateProfile || ""),
+      sequence: Math.max(1, Number(body.sequence) || workspacePreview.roles.length + 1)
+    };
+    workspacePreview.roles.push(role);
+    workspacePreview.roles.sort((a, b) => Number(a.sequence) - Number(b.sequence));
+    dashboard.counts.roles = workspacePreview.roles.length;
+    return sendJson(response, 201, bumpRevision(role), revisionHeaders());
+  }
+  const rolePathMatch = path.match(new RegExp(`^/api/worlds/${worldId}/roles/([^/]+)$`));
+  if (request.method === "PUT" && rolePathMatch) {
+    const role = workspacePreview.roles.find((item) => item.id === rolePathMatch[1]);
+    if (!role) return sendJson(response, 404, { code: "ROLE_NOT_FOUND", error: "Role not found" });
+    const body = await readJson(request);
+    Object.assign(role, {
+      name: String(body.name ?? role.name),
+      public_profile: String(body.publicProfile ?? role.public_profile ?? ""),
+      private_profile: String(body.privateProfile ?? role.private_profile ?? ""),
+      sequence: Math.max(1, Number(body.sequence) || role.sequence || 1)
+    });
+    workspacePreview.roles.sort((a, b) => Number(a.sequence) - Number(b.sequence));
+    return sendJson(response, 200, bumpRevision(role), revisionHeaders());
+  }
+  if (request.method === "DELETE" && rolePathMatch) {
+    const index = workspacePreview.roles.findIndex((item) => item.id === rolePathMatch[1]);
+    if (index < 0) return sendJson(response, 404, { code: "ROLE_NOT_FOUND", error: "Role not found" });
+    workspacePreview.roles.splice(index, 1);
+    workspacePreview.sections = workspacePreview.sections.filter((item) => item.role_slot_id !== rolePathMatch[1]);
+    dashboard.counts.roles = workspacePreview.roles.length;
+    dashboard.counts.sections = workspacePreview.sections.length;
+    bumpRevision();
+    return sendJson(response, 204, null, revisionHeaders());
   }
   if (request.method === "POST" && path === `/api/worlds/${worldId}/clues`) {
     const body = await readJson(request);

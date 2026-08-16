@@ -23,7 +23,8 @@ const appEntry = (function (window) {
   function render() {
     const currentView = uiStore.get().view;
     if (!getViewMeta(currentView)) { uiStore.set({ view: "creatorCockpit" }); return render(); }
-    const [eyebrow, title] = getViewMeta(uiStore.get().view);
+    const creationType = studioStore.get().cloudStudio?.world?.settings?.creationType;
+    const [eyebrow, title] = getViewMeta(uiStore.get().view, creationType);
     // Detailed views already provide a useful no-world empty state. Do not
     // repeatedly request a Studio snapshot when a brand-new account has no
     // active world; Promise.resolve(null) would otherwise schedule render()

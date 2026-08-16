@@ -11,7 +11,7 @@ process.env.PLAYWRIGHT_API_URL = fixtureApiUrl;
 
 export default defineConfig({
   testDir: path.join(root, "e2e"),
-  testMatch: "empty-account-auth.spec.js",
+  testMatch: /empty-account-(auth|golden-path)\.spec\.js/,
   timeout: 90_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,

@@ -54,7 +54,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [安全与测试收口](../SECURITY_AND_TESTING.md) | `SECURITY_AND_TESTING.md` |
 | [织幕 · 官网（营销站）](../site/README.md) | `site/README.md` |
 
-## 产品、流程与用户指南（35）
+## 产品、流程与用户指南（39）
 
 描述产品意图、工作流和用户操作；部分页面同时包含待实现设计。
 
@@ -63,8 +63,11 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [创作驾驶舱故事总览 V1](./创作驾驶舱故事总览-V1.md) | `docs/创作驾驶舱故事总览-V1.md` |
 | [织幕创作者机制设计与多审查工作台 V1](./创作者机制设计与多审查工作台-V1.md) | `docs/创作者机制设计与多审查工作台-V1.md` |
 | [机制运行包与主持端联动实施基线 V1](./机制运行包与主持端联动实施基线-V1.md) | `docs/机制运行包与主持端联动实施基线-V1.md` |
+| [原素材忠实改编提示词](./原素材忠实改编提示词.md) | `docs/原素材忠实改编提示词.md` |
 | [AI 大纲生成 V2.4：语义宪章、分支执行与生成前创作合同](./AI_OUTLINE_STREAMING_PIPELINE_ZH.md) | `docs/AI_OUTLINE_STREAMING_PIPELINE_ZH.md` |
-| [AI 剧本创作 · UI 验收（五步流程）](./AI_PIPELINE_UI_ZH.md) | `docs/AI_PIPELINE_UI_ZH.md` |
+| [AI 剧本创作 · 生产向导验收（九层合同）](./AI_PIPELINE_UI_ZH.md) | `docs/AI_PIPELINE_UI_ZH.md` |
+| [AI 剧本生成系统批评意见整改对照](./AI剧本生成系统批评意见整改对照.md) | `docs/AI剧本生成系统批评意见整改对照.md` |
+| [织幕 AI 真人化叙事创作核心原则](./AI真人化叙事创作核心原则.md) | `docs/AI真人化叙事创作核心原则.md` |
 | [商业作者工作流与稿件安全](./COMMERCIAL_CREATOR_WORKFLOW_ZH.md) | `docs/COMMERCIAL_CREATOR_WORKFLOW_ZH.md` |
 | [内容平台路由边界](./CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md) | `docs/CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md` |
 | [创作端业务边界与 UI 重设计草案](./CREATOR_APP_BUSINESS_BOUNDARY_AND_UI_REDESIGN_ZH.md) | `docs/CREATOR_APP_BUSINESS_BOUNDARY_AND_UI_REDESIGN_ZH.md` |
@@ -87,10 +90,11 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕三端产品功能总览与完整创作流程](./PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md) | `docs/PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md` |
 | [`灵感.doc` 产品输入追踪表](./PRODUCT_INPUT_TRACEABILITY_ZH.md) | `docs/PRODUCT_INPUT_TRACEABILITY_ZH.md` |
 | [生产级 SaaS 评估](./PRODUCTION_SAAS_ASSESSMENT_ZH.md) | `docs/PRODUCTION_SAAS_ASSESSMENT_ZH.md` |
-| [织幕 · AI 创作流水线（五步 · 面向普通创作者）](./PROMPT_ENGINEERING.md) | `docs/PROMPT_ENGINEERING.md` |
+| [织幕 · AI 创作流水线提示词合同](./PROMPT_ENGINEERING.md) | `docs/PROMPT_ENGINEERING.md` |
 | [织幕 · 简历项目说明](./RESUME_PROJECT_ZH.md) | `docs/RESUME_PROJECT_ZH.md` |
 | [Segment 契约](./SEGMENT_CONTRACT_ZH.md) | `docs/SEGMENT_CONTRACT_ZH.md` |
 | [技术栈与内容平台愿景适配评估](./TECH_STACK_CONTENT_PLATFORM_FIT_ZH.md) | `docs/TECH_STACK_CONTENT_PLATFORM_FIT_ZH.md` |
+| [三产品线工具边界与桌游原型契约](./THREE_PRODUCT_TOOL_BOUNDARIES_ZH.md) | `docs/THREE_PRODUCT_TOOL_BOUNDARIES_ZH.md` |
 | [可信 Beta 收口](./TRUSTED_BETA_ZH.md) | `docs/TRUSTED_BETA_ZH.md` |
 | [织幕统一叙事产品蓝图：Creator / Host / Player 三端与剧本杀 / 跑团双模式](./UNIFIED_NARRATIVE_PRODUCT_BLUEPRINT_ZH.md) | `docs/UNIFIED_NARRATIVE_PRODUCT_BLUEPRINT_ZH.md` |
 | [织幕 · 错误提示与排查手册](./USER_ERROR_GUIDE.md) | `docs/USER_ERROR_GUIDE.md` |
@@ -219,7 +223,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕隐私政策（草案）](./legal/PRIVACY_ZH.md) | `docs/legal/PRIVACY_ZH.md` |
 | [织幕用户服务协议（草案）](./legal/USER_TERMS_ZH.md) | `docs/legal/USER_TERMS_ZH.md` |
 
-## 组件与目录说明（9）
+## 组件与目录说明（98）
 
 面向具体子应用、部署兼容层或示例目录。
 
@@ -227,6 +231,95 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 |---|---|
 | [勿将本目录作为 Railway Root Directory](../backend/RAILWAY_README.md) | `backend/RAILWAY_README.md` |
 | [E2E / 浏览器测试](../e2e/README.md) | `e2e/README.md` |
+| [《未归还》· 体验圣经 V0.1](../examples/pending-review/未归还/00-体验圣经.md) | `examples/pending-review/未归还/00-体验圣经.md` |
+| [《未归还》· 事实与逻辑合同 V0.1](../examples/pending-review/未归还/01-事实与逻辑合同.md) | `examples/pending-review/未归还/01-事实与逻辑合同.md` |
+| [《未归还》· 角色发动机 V0.1](../examples/pending-review/未归还/02-角色发动机.md) | `examples/pending-review/未归还/02-角色发动机.md` |
+| [《未归还》· 三幕与证据链 V0.1](../examples/pending-review/未归还/03-三幕与证据链.md) | `examples/pending-review/未归还/03-三幕与证据链.md` |
+| [《未归还》剧情合理性审查与修订决定](../examples/pending-review/未归还/complete-package/00-剧情合理性审查.md) | `examples/pending-review/未归还/complete-package/00-剧情合理性审查.md` |
+| [E01｜临时入藏编号预分配册](../examples/pending-review/未归还/complete-package/clues/E01-临时入藏编号预分配册.md) | `examples/pending-review/未归还/complete-package/clues/E01-临时入藏编号预分配册.md` |
+| [E02｜口述项目装箱与移交单](../examples/pending-review/未归还/complete-package/clues/E02-口述项目装箱与移交单.md) | `examples/pending-review/未归还/complete-package/clues/E02-口述项目装箱与移交单.md` |
+| [E03｜封存车辆临时调用单](../examples/pending-review/未归还/complete-package/clues/E03-封存车辆临时调用单.md) | `examples/pending-review/未归还/complete-package/clues/E03-封存车辆临时调用单.md` |
+| [E04｜未刊接触印样与现场笔记](../examples/pending-review/未归还/complete-package/clues/E04-未刊接触印样与现场笔记.md) | `examples/pending-review/未归还/complete-package/clues/E04-未刊接触印样与现场笔记.md` |
+| [E05｜暂缓入藏内部便笺](../examples/pending-review/未归还/complete-package/clues/E05-暂缓入藏内部便笺.md) | `examples/pending-review/未归还/complete-package/clues/E05-暂缓入藏内部便笺.md` |
+| [E06｜何岚保管日志](../examples/pending-review/未归还/complete-package/clues/E06-何岚保管日志.md) | `examples/pending-review/未归还/complete-package/clues/E06-何岚保管日志.md` |
+| [E07｜洪水损失清册原件](../examples/pending-review/未归还/complete-package/clues/E07-洪水损失清册原件.md) | `examples/pending-review/未归还/complete-package/clues/E07-洪水损失清册原件.md` |
+| [E08｜未寄纠正信](../examples/pending-review/未归还/complete-package/clues/E08-未寄纠正信.md) | `examples/pending-review/未归还/complete-package/clues/E08-未寄纠正信.md` |
+| [E09｜完整录音与剪辑时间线](../examples/pending-review/未归还/complete-package/clues/E09-完整录音与剪辑时间线.md) | `examples/pending-review/未归还/complete-package/clues/E09-完整录音与剪辑时间线.md` |
+| [E10｜第 17 箱实物查验记录](../examples/pending-review/未归还/complete-package/clues/E10-第17箱实物查验记录.md) | `examples/pending-review/未归还/complete-package/clues/E10-第17箱实物查验记录.md` |
+| [E11｜十二份授权权限核对表](../examples/pending-review/未归还/complete-package/clues/E11-十二份授权权限核对表.md) | `examples/pending-review/未归还/complete-package/clues/E11-十二份授权权限核对表.md` |
+| [E12｜今夜资助申请与第 9.3 条](../examples/pending-review/未归还/complete-package/clues/E12-今夜资助申请与第9.3条.md) | `examples/pending-review/未归还/complete-package/clues/E12-今夜资助申请与第9.3条.md` |
+| [《未归还》主持总册](../examples/pending-review/未归还/complete-package/host/00-主持总册.md) | `examples/pending-review/未归还/complete-package/host/00-主持总册.md` |
+| [《未归还》逐幕流程与朗读](../examples/pending-review/未归还/complete-package/host/01-逐幕流程与朗读.md) | `examples/pending-review/未归还/complete-package/host/01-逐幕流程与朗读.md` |
+| [《未归还》事实核验与结局](../examples/pending-review/未归还/complete-package/host/02-事实核验与结局.md) | `examples/pending-review/未归还/complete-package/host/02-事实核验与结局.md` |
+| [《未归还》完整真相与复盘](../examples/pending-review/未归还/complete-package/host/03-完整真相与复盘.md) | `examples/pending-review/未归还/complete-package/host/03-完整真相与复盘.md` |
+| [《未归还》桌面工具卡](../examples/pending-review/未归还/complete-package/host/04-桌面工具卡.md) | `examples/pending-review/未归还/complete-package/host/04-桌面工具卡.md` |
+| [《未归还》全剧情流程图谱](../examples/pending-review/未归还/complete-package/maps/00-全剧情流程图谱.md) | `examples/pending-review/未归还/complete-package/maps/00-全剧情流程图谱.md` |
+| [《未归还》事实与线索图谱](../examples/pending-review/未归还/complete-package/maps/01-事实与线索图谱.md) | `examples/pending-review/未归还/complete-package/maps/01-事实与线索图谱.md` |
+| [《未归还》角色关系与权力图谱](../examples/pending-review/未归还/complete-package/maps/02-角色关系与权力图谱.md) | `examples/pending-review/未归还/complete-package/maps/02-角色关系与权力图谱.md` |
+| [《未归还》结局分流图谱](../examples/pending-review/未归还/complete-package/maps/03-结局分流图谱.md) | `examples/pending-review/未归还/complete-package/maps/03-结局分流图谱.md` |
+| [《未归还》叙事总设计](../examples/pending-review/未归还/complete-package/narrative/00-叙事总设计.md) | `examples/pending-review/未归还/complete-package/narrative/00-叙事总设计.md` |
+| [共同事件与交叉视角矩阵](../examples/pending-review/未归还/complete-package/narrative/01-共同事件与交叉矩阵.md) | `examples/pending-review/未归还/complete-package/narrative/01-共同事件与交叉矩阵.md` |
+| [叙事回收与防串词边界](../examples/pending-review/未归还/complete-package/narrative/02-叙事回收与防串词边界.md) | `examples/pending-review/未归还/complete-package/narrative/02-叙事回收与防串词边界.md` |
+| [《未归还》四线交叉剧情图谱](../examples/pending-review/未归还/complete-package/narrative/03-四线交叉剧情图谱.md) | `examples/pending-review/未归还/complete-package/narrative/03-四线交叉剧情图谱.md` |
+| [梁芷｜开场正文：空格不是空白](../examples/pending-review/未归还/complete-package/narrative/R1-梁芷/00-开场正文.md) | `examples/pending-review/未归还/complete-package/narrative/R1-梁芷/00-开场正文.md` |
+| [梁芷｜第一幕：断号](../examples/pending-review/未归还/complete-package/narrative/R1-梁芷/01-第一幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R1-梁芷/01-第一幕正文.md` |
+| [梁芷｜第二幕：两本账之间](../examples/pending-review/未归还/complete-package/narrative/R1-梁芷/02-第二幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R1-梁芷/02-第二幕正文.md` |
+| [梁芷｜第三幕：让一座馆怎样活下来](../examples/pending-review/未归还/complete-package/narrative/R1-梁芷/03-第三幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R1-梁芷/03-第三幕正文.md` |
+| [沈闻川｜开场正文：迁馆责任](../examples/pending-review/未归还/complete-package/narrative/R2-沈闻川/00-开场正文.md) | `examples/pending-review/未归还/complete-package/narrative/R2-沈闻川/00-开场正文.md` |
+| [沈闻川｜第一幕：文件袋里的第一个名字](../examples/pending-review/未归还/complete-package/narrative/R2-沈闻川/01-第一幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R2-沈闻川/01-第一幕正文.md` |
+| [沈闻川｜第二幕：一封没有寄出的纠正](../examples/pending-review/未归还/complete-package/narrative/R2-沈闻川/02-第二幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R2-沈闻川/02-第二幕正文.md` |
+| [沈闻川｜第三幕：名字怎样留下](../examples/pending-review/未归还/complete-package/narrative/R2-沈闻川/03-第三幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R2-沈闻川/03-第三幕正文.md` |
+| [周慕｜开场正文：工程文件 v23](../examples/pending-review/未归还/complete-package/narrative/R3-周慕/00-开场正文.md) | `examples/pending-review/未归还/complete-package/narrative/R3-周慕/00-开场正文.md` |
+| [周慕｜第一幕：照片左边](../examples/pending-review/未归还/complete-package/narrative/R3-周慕/01-第一幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R3-周慕/01-第一幕正文.md` |
+| [周慕｜第二幕：被删除的四十一秒](../examples/pending-review/未归还/complete-package/narrative/R3-周慕/02-第二幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R3-周慕/02-第二幕正文.md` |
+| [周慕｜第三幕：片尾之外](../examples/pending-review/未归还/complete-package/narrative/R3-周慕/03-第三幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R3-周慕/03-第三幕正文.md` |
+| [何溪｜开场正文：水痕以下](../examples/pending-review/未归还/complete-package/narrative/R4-何溪/00-开场正文.md) | `examples/pending-review/未归还/complete-package/narrative/R4-何溪/00-开场正文.md` |
+| [何溪｜第一幕：不开箱的证明](../examples/pending-review/未归还/complete-package/narrative/R4-何溪/01-第一幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R4-何溪/01-第一幕正文.md` |
+| [何溪｜第二幕：保管不是归还](../examples/pending-review/未归还/complete-package/narrative/R4-何溪/02-第二幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R4-何溪/02-第二幕正文.md` |
+| [何溪｜第三幕：逐件，而不是整箱](../examples/pending-review/未归还/complete-package/narrative/R4-何溪/03-第三幕正文.md) | `examples/pending-review/未归还/complete-package/narrative/R4-何溪/03-第三幕正文.md` |
+| [《未归还》完整剧情包 V2](../examples/pending-review/未归还/complete-package/README.md) | `examples/pending-review/未归还/complete-package/README.md` |
+| [《未归还》完整剧情包终审](../examples/pending-review/未归还/complete-package/review/FINAL-REVIEW.md) | `examples/pending-review/未归还/complete-package/review/FINAL-REVIEW.md` |
+| [《未归还》长篇叙事层测评报告](../examples/pending-review/未归还/complete-package/review/NARRATIVE-REVIEW.md) | `examples/pending-review/未归还/complete-package/review/NARRATIVE-REVIEW.md` |
+| [梁芷｜开场角色册](../examples/pending-review/未归还/complete-package/roles/R1-梁芷/00-开场角色册.md) | `examples/pending-review/未归还/complete-package/roles/R1-梁芷/00-开场角色册.md` |
+| [梁芷｜第一幕：断号](../examples/pending-review/未归还/complete-package/roles/R1-梁芷/01-第一幕-断号.md) | `examples/pending-review/未归还/complete-package/roles/R1-梁芷/01-第一幕-断号.md` |
+| [梁芷｜第二幕：保管人](../examples/pending-review/未归还/complete-package/roles/R1-梁芷/02-第二幕-保管人.md) | `examples/pending-review/未归还/complete-package/roles/R1-梁芷/02-第二幕-保管人.md` |
+| [梁芷｜第三幕：如何归还](../examples/pending-review/未归还/complete-package/roles/R1-梁芷/03-第三幕-如何归还.md) | `examples/pending-review/未归还/complete-package/roles/R1-梁芷/03-第三幕-如何归还.md` |
+| [沈闻川｜开场角色册](../examples/pending-review/未归还/complete-package/roles/R2-沈闻川/00-开场角色册.md) | `examples/pending-review/未归还/complete-package/roles/R2-沈闻川/00-开场角色册.md` |
+| [沈闻川｜第一幕：断号](../examples/pending-review/未归还/complete-package/roles/R2-沈闻川/01-第一幕-断号.md) | `examples/pending-review/未归还/complete-package/roles/R2-沈闻川/01-第一幕-断号.md` |
+| [沈闻川｜第二幕：保管人](../examples/pending-review/未归还/complete-package/roles/R2-沈闻川/02-第二幕-保管人.md) | `examples/pending-review/未归还/complete-package/roles/R2-沈闻川/02-第二幕-保管人.md` |
+| [沈闻川｜第三幕：如何归还](../examples/pending-review/未归还/complete-package/roles/R2-沈闻川/03-第三幕-如何归还.md) | `examples/pending-review/未归还/complete-package/roles/R2-沈闻川/03-第三幕-如何归还.md` |
+| [周慕｜开场角色册](../examples/pending-review/未归还/complete-package/roles/R3-周慕/00-开场角色册.md) | `examples/pending-review/未归还/complete-package/roles/R3-周慕/00-开场角色册.md` |
+| [周慕｜第一幕：断号](../examples/pending-review/未归还/complete-package/roles/R3-周慕/01-第一幕-断号.md) | `examples/pending-review/未归还/complete-package/roles/R3-周慕/01-第一幕-断号.md` |
+| [周慕｜第二幕：保管人](../examples/pending-review/未归还/complete-package/roles/R3-周慕/02-第二幕-保管人.md) | `examples/pending-review/未归还/complete-package/roles/R3-周慕/02-第二幕-保管人.md` |
+| [周慕｜第三幕：如何归还](../examples/pending-review/未归还/complete-package/roles/R3-周慕/03-第三幕-如何归还.md) | `examples/pending-review/未归还/complete-package/roles/R3-周慕/03-第三幕-如何归还.md` |
+| [何溪｜开场角色册](../examples/pending-review/未归还/complete-package/roles/R4-何溪/00-开场角色册.md) | `examples/pending-review/未归还/complete-package/roles/R4-何溪/00-开场角色册.md` |
+| [何溪｜第一幕：断号](../examples/pending-review/未归还/complete-package/roles/R4-何溪/01-第一幕-断号.md) | `examples/pending-review/未归还/complete-package/roles/R4-何溪/01-第一幕-断号.md` |
+| [何溪｜第二幕：保管人](../examples/pending-review/未归还/complete-package/roles/R4-何溪/02-第二幕-保管人.md) | `examples/pending-review/未归还/complete-package/roles/R4-何溪/02-第二幕-保管人.md` |
+| [何溪｜第三幕：如何归还](../examples/pending-review/未归还/complete-package/roles/R4-何溪/03-第三幕-如何归还.md) | `examples/pending-review/未归还/complete-package/roles/R4-何溪/03-第三幕-如何归还.md` |
+| [《未归还》完整剧情包｜从这里开桌](../examples/pending-review/未归还/complete-package/START-HERE.md) | `examples/pending-review/未归还/complete-package/START-HERE.md` |
+| [P01｜编号对照](../examples/pending-review/未归还/prototype-v1/evidence/P01-编号对照.md) | `examples/pending-review/未归还/prototype-v1/evidence/P01-编号对照.md` |
+| [P02｜抢救现场](../examples/pending-review/未归还/prototype-v1/evidence/P02-抢救现场.md) | `examples/pending-review/未归还/prototype-v1/evidence/P02-抢救现场.md` |
+| [P03｜今夜签约](../examples/pending-review/未归还/prototype-v1/evidence/P03-今夜签约.md) | `examples/pending-review/未归还/prototype-v1/evidence/P03-今夜签约.md` |
+| [P04｜暂缓与报损](../examples/pending-review/未归还/prototype-v1/evidence/P04-暂缓与报损.md) | `examples/pending-review/未归还/prototype-v1/evidence/P04-暂缓与报损.md` |
+| [P05｜保管日志](../examples/pending-review/未归还/prototype-v1/evidence/P05-保管日志.md) | `examples/pending-review/未归还/prototype-v1/evidence/P05-保管日志.md` |
+| [P06｜未寄纠正](../examples/pending-review/未归还/prototype-v1/evidence/P06-未寄纠正.md) | `examples/pending-review/未归还/prototype-v1/evidence/P06-未寄纠正.md` |
+| [P07｜完整录音](../examples/pending-review/未归还/prototype-v1/evidence/P07-完整录音.md) | `examples/pending-review/未归还/prototype-v1/evidence/P07-完整录音.md` |
+| [P08｜箱与授权](../examples/pending-review/未归还/prototype-v1/evidence/P08-箱与授权.md) | `examples/pending-review/未归还/prototype-v1/evidence/P08-箱与授权.md` |
+| [《未归还》主持手册 00｜开场与场控](../examples/pending-review/未归还/prototype-v1/host/00-开场与场控.md) | `examples/pending-review/未归还/prototype-v1/host/00-开场与场控.md` |
+| [《未归还》主持手册 01｜事实核验与结算](../examples/pending-review/未归还/prototype-v1/host/01-事实核验与结算.md) | `examples/pending-review/未归还/prototype-v1/host/01-事实核验与结算.md` |
+| [《未归还》主持手册 02｜桌面工具卡](../examples/pending-review/未归还/prototype-v1/host/02-桌面工具卡.md) | `examples/pending-review/未归还/prototype-v1/host/02-桌面工具卡.md` |
+| [《未归还》可试玩原型 V1](../examples/pending-review/未归还/prototype-v1/README.md) | `examples/pending-review/未归还/prototype-v1/README.md` |
+| [R1｜梁芷｜第一幕私人资料](../examples/pending-review/未归还/prototype-v1/roles/R1-梁芷-第一幕.md) | `examples/pending-review/未归还/prototype-v1/roles/R1-梁芷-第一幕.md` |
+| [R2｜沈闻川｜第一幕私人资料](../examples/pending-review/未归还/prototype-v1/roles/R2-沈闻川-第一幕.md) | `examples/pending-review/未归还/prototype-v1/roles/R2-沈闻川-第一幕.md` |
+| [R3｜周慕｜第一幕私人资料](../examples/pending-review/未归还/prototype-v1/roles/R3-周慕-第一幕.md) | `examples/pending-review/未归还/prototype-v1/roles/R3-周慕-第一幕.md` |
+| [R4｜何溪｜第一幕私人资料](../examples/pending-review/未归还/prototype-v1/roles/R4-何溪-第一幕.md) | `examples/pending-review/未归还/prototype-v1/roles/R4-何溪-第一幕.md` |
+| [《未归还》真人首桌｜从这里开始](../examples/pending-review/未归还/prototype-v1/START-HERE.md) | `examples/pending-review/未归还/prototype-v1/START-HERE.md` |
+| [《未归还》](../examples/pending-review/未归还/README.md) | `examples/pending-review/未归还/README.md` |
+| [《未归还》信息隔离盲测 V1](../examples/pending-review/未归还/review/BLIND-PLAYTEST-V1.md) | `examples/pending-review/未归还/review/BLIND-PLAYTEST-V1.md` |
+| [《未归还》真人首桌观察表 01](../examples/pending-review/未归还/review/HUMAN-PLAYTEST-01.md) | `examples/pending-review/未归还/review/HUMAN-PLAYTEST-01.md` |
+| [《未归还》可试玩原型 V1 测评](../examples/pending-review/未归还/review/PROTOTYPE-V1-EVALUATION.md) | `examples/pending-review/未归还/review/PROTOTYPE-V1-EVALUATION.md` |
+| [DeepSeek 红队 V1](../examples/pending-review/未归还/review/RED-TEAM-V1.md) | `examples/pending-review/未归还/review/RED-TEAM-V1.md` |
+| [DeepSeek 红队 V2](../examples/pending-review/未归还/review/RED-TEAM-V2.md) | `examples/pending-review/未归还/review/RED-TEAM-V2.md` |
 | [文风预设目录（v5.3）](../examples/pending-review/雾港回声/LITERARY_STYLES_ZH.md) | `examples/pending-review/雾港回声/LITERARY_STYLES_ZH.md` |
 | [矩阵 · 小说优先流水线（v5.3）](../examples/pending-review/雾港回声/NOVEL_FIRST_ZH.md) | `examples/pending-review/雾港回声/NOVEL_FIRST_ZH.md` |
 | [矩阵瀑布流 · 提示词说明（当前版）](../examples/pending-review/雾港回声/PROMPTS_ZH.md) | `examples/pending-review/雾港回声/PROMPTS_ZH.md` |

@@ -11,6 +11,7 @@ const dispatchers = [
   () => window.zhimuActionsCreativeConstitution?.handleCreativeConstitutionAction,
   () => window.zhimuActionsStoryDiagnostics?.handleStoryDiagnosticsAction,
   () => window.zhimuActionsAiPlaytest?.handleAiPlaytestAction,
+  () => window.zhimuActionsPipeline?.handlePipelineAction,
   () => window.zhimuActionsCreatorCockpit?.handleCreatorCockpitAction,
   () => window.zhimuActionsBible?.handleBibleAction,
   () => window.zhimuActionsWorkspace?.handleWorkspaceAction,
@@ -22,6 +23,7 @@ const dispatchers = [
   () => window.zhimuActionsRules?.handleRulesAction,
   () => window.zhimuActionsMiniGames?.handleMiniGamesAction,
   () => window.zhimuActionsTabletopMap?.handleTabletopMapAction,
+  () => window.zhimuActionsBoardGame?.handleBoardGameAction,
   () => window.zhimuActionsAssets?.handleAssetsAction,
   () => window.zhimuActionsOps?.handleOpsAction,
   () => window.zhimuActionsClues?.handleCluesAction
@@ -40,6 +42,7 @@ export function bindDynamic() {
   }
   if (view === "miniGames") callView("miniGames", "bindMiniGameEditor");
   if (view === "tabletopMap") callView("tabletopMap", "bindTabletopMapEditor");
+  if (view === "boardGame") callView("boardGame", "bindBoardGameEditor");
   if (view === "rules") callView("rules", "bindRuleEditor");
   if (view === "rooms") callView("rooms", "bindRoomWorkspace");
   if (view === "account") callView("accountHub", "bindAccountHubView");

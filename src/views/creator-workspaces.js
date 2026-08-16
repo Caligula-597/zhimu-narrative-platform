@@ -82,7 +82,7 @@ export function production() {
   return `${workspaceHero("CONTENT PRODUCTION", "内容生产", "合并 AI 剧本创作、完整剧情、角色私人分幕与内容包导入导出。写本完成后进入 <strong>结构编排</strong> 绑定 Segment。")}
   ${contentLayerMapHtml({ open: false })}
   <section class="workspace-action-grid">
-    <button type="button" class="workspace-action-card primary" data-action="deepseek-pipeline"><strong>AI 悬疑创作</strong><span>八层生成 · 立项到入库</span></button>
+    <button type="button" class="workspace-action-card primary" data-action="deepseek-pipeline"><strong>AI 剧本创作</strong><span>九层创作 · 真相、局部线索到入库</span></button>
     <button type="button" class="workspace-action-card" data-action="story-manuscript"><strong>完整剧情</strong><span>母稿与章节总览</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>Word / Markdown / 内容包</span></button>
     <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>${roleCount} 角色 · ${sectionCount} 分幕</span></button>

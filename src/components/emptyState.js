@@ -3,7 +3,7 @@ import * as zhimuApi from "../api/index.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
 import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { showToast } from "./toast.js";
-import { userStore, studioStore, worldStore, voiceStore } from "../state/index.js";
+import { userStore, studioStore, worldStore, voiceStore, uiStore } from "../state/index.js";
 import { activeRuntimeRoom as workspaceActiveRuntimeRoom, isWorldOwner as workspaceIsWorldOwner } from "../runtime/workspace-store.js";
 import * as F from "../utils/format.js";
 import * as M from "./modal.js";
@@ -91,6 +91,8 @@ export function creatorWorkspaceEmpty({title,kicker,intro,guideTitle,guideItems=
  const cloudLoading=studioStore.get().cloudLoading;
  if(cloudLoading)return `${cloudStatus()}<section class="card creator-empty-loading"><p class="section-kicker">${escapeHtml(kicker||"WORKSPACE")}</p><h3>正在连接云端…</h3><p>已登录时会同时读取公开剧本库列表。</p></section>`;
  const noWorld=!zhimuApi.context.worldId;
+ const firstRunChooser=noWorld&&uiStore.get().view==="creatorCockpit"?(window.zhimuFirstRun?.renderFirstRunChooser?.()||""):"";
+ if(firstRunChooser)return firstRunChooser;
  const panelMsg=formatCloudPanelError(apiError,{hasStudio:false})||apiError||"";
  return `${cloudStatus()}
  <section class="creator-empty-hero card"><p class="section-kicker">${escapeHtml(kicker||"CREATOR WORKSPACE")}</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(intro)}</p>${panelMsg?`<p class="muted-note">${escapeHtml(panelMsg)}</p>`:""}<div class="row creator-empty-actions"><button class="primary-btn" data-action="open-wizard">＋ 创建我的世界</button><button class="secondary-btn" data-action="world-library">我的剧本</button><button class="secondary-btn" data-action="open-catalog">浏览公开剧本库</button></div></section>

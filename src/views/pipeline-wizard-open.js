@@ -8,6 +8,11 @@ import * as M from "../components/modal.js";
 import { normalizeError } from "../components/status-ui.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
+import {
+  diagnosePlayerScript,
+  diagnoseScriptCollection,
+  fingerprintScriptCollection
+} from "../../shared/prose-quality-gate.js";
 (function (window) {
   const formatRelativeTime = F.formatRelativeTime || (() => "");
   const formatTime = F.formatTime || (() => "");
@@ -17,8 +22,27 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
 
   const AiDraft = () => window.zhimuAiDraft;
   const PS = () => window.zhimuPipelineSession || {};
-  const PIPELINE_LAYER_ORDER = PS().PIPELINE_LAYER_ORDER || ["setup", "truth", "characters", "matrix", "host", "scripts", "evaluate", "sync"];
-  const defaultPipelineSession = (...args) => PS().defaultPipelineSession?.(...args) ?? { setting: null, synopsis: null, config: null, truthBible: null, characterArchives: null, infoMatrix: null, hostRunbooks: null, scripts: {}, evaluation: null, proposal: null, locks: {}, activeLayer: "setup", _editorRev: {} };
+  const PIPELINE_LAYER_ORDER = PS().PIPELINE_LAYER_ORDER || ["setup", "truth", "characters", "clues", "matrix", "host", "scripts", "evaluate", "sync"];
+  const defaultPipelineSession = (...args) => PS().defaultPipelineSession?.(...args) ?? {
+    setting: null,
+    synopsis: null,
+    config: null,
+    truthBible: null,
+    characterArchives: null,
+    clueNetwork: null,
+    infoMatrix: null,
+    hostRunbooks: null,
+    scripts: {},
+    evaluation: null,
+    proposal: null,
+    generationProvenance: { version: "1.0", records: {} },
+    staleArtifacts: {},
+    pendingRepairPlan: null,
+    generationAudit: null,
+    locks: {},
+    activeLayer: "setup",
+    _editorRev: {}
+  };
   const normalizePipelineSession = (...args) => PS().normalizePipelineSession?.(...args) ?? defaultPipelineSession();
   const pipelineLayerHasData = (...args) => PS().pipelineLayerHasData?.(...args) ?? false;
   const pipelineLayerStatus = (...args) => PS().pipelineLayerStatus?.(...args) ?? "empty";
@@ -54,6 +78,7 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
       aiTheme: v.aiTheme || v.aiTitle,
       aiPlayerCount: v.aiPlayerCount,
       aiChapterCount: v.aiChapterCount,
+      aiPlayStructure: v.aiPlayStructure,
       aiWordsPerChapter: v.aiWordsPerChapter,
       aiConflicts: v.aiConflicts,
       aiTone: v.aiTone,
@@ -77,6 +102,7 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
     }
     if (!next.aiConflicts && next.aiRequirements) next.aiConflicts = next.aiRequirements;
     if (!next.aiPlayerCount) next.aiPlayerCount = "6";
+    if (!next.aiPlayStructure) next.aiPlayStructure = "mystery";
     return next;
   }
   function restoreAiFormFields(form) {
@@ -186,10 +212,14 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
           ...creative,
           truthBible: session.truthBible,
           characterArchives: session.characterArchives,
+          clueNetwork: session.clueNetwork,
           infoMatrix: session.infoMatrix,
           hostRunbooks: session.hostRunbooks,
           scripts: session.scripts,
-          proposal: session.proposal
+          proposal: session.proposal,
+          evaluation: session.evaluation,
+          generationProvenance: session.generationProvenance,
+          scriptGenerationMode: "structured"
         });
       };
 
@@ -214,6 +244,14 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
         if (saveNow) flushDraftSave();
         else scheduleDraftSave();
         renderPipelineUi({ editor });
+      };
+
+      let proseScanTimer = null;
+      const updateActiveProseDiagnostics = () => {
+        const body = layerEditor.querySelector("[data-pipe-section-body]")?.value || "";
+        const host = layerEditor.querySelector("[data-prose-quality-host]");
+        if (!host) return;
+        setHtml(host, PH().proseDiagnosticsPreview?.(diagnosePlayerScript(body)) || "");
       };
 
       let uiAbort = new AbortController();
@@ -311,9 +349,10 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
             afterSessionChange({ saveNow: true, editor: true });
             showToast({
               setup: "创作立项已确认，请生成真相 Bible",
-              truth: "真相档案已确认，请生成角色档案",
-              characters: "角色档案已确认，请生成信息矩阵",
-              matrix: "信息矩阵已确认，请生成主持手册",
+              truth: "世界与真相合同已确认，请生成角色档案",
+              characters: "角色档案已确认，请生成稀疏线索网络",
+              clues: "线索网络已确认，请编排公共流程",
+              matrix: "公共流程矩阵已确认，请生成主持手册",
               host: "主持手册已确认，请生成逐幕剧本",
               scripts: "全部逐幕剧本已确认，可进行矩阵评判",
               evaluate: "评判结果已确认，请进入机械入库",
@@ -333,6 +372,11 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
             renderPipelineUi();
           }
         }, { signal });
+        frame.addEventListener("input", (event) => {
+          if (!event.target.matches("[data-pipe-section-body]")) return;
+          clearTimeout(proseScanTimer);
+          proseScanTimer = setTimeout(updateActiveProseDiagnostics, 220);
+        }, { signal });
       };
 
       const renderLayerActions = () => {
@@ -344,9 +388,10 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
         const hasData = layer === "setup" ? true : pipelineLayerHasData(session, layer);
         const canGenerate = status.configured && layer !== "setup" && pipelineDepsLocked(session, layer);
         const generateLabels = {
-          truth: hasData ? "重新生成真相" : "AI 生成真相 Bible",
+          truth: hasData ? "重新生成世界合同" : "AI 生成世界与真相合同",
           characters: hasData ? "重新生成角色档案" : "AI 生成角色档案",
-          matrix: hasData ? "重新生成信息矩阵" : "AI 生成信息矩阵",
+          clues: hasData ? "重新生成线索网络" : "AI 生成稀疏线索网络",
+          matrix: hasData ? "重新生成公共流程" : "AI 生成公共流程矩阵",
           host: hasData ? "重新生成主持手册" : "AI 生成全部主持手册",
           scripts: hasData ? "重新生成本格剧本" : "AI 生成本格剧本",
           sync: hasData ? "重新生成编排预览" : "机械生成编排预览"
@@ -364,9 +409,10 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
         const saveBtn = hasData && layer !== "evaluate" ? `<button class="text-btn" type="button" data-pipeline-save>保存修改</button>` : "";
         const lockLabel = {
           setup: "确认并继续",
-          truth: "确认真相档案",
+          truth: "确认世界与真相合同",
           characters: "确认角色档案",
-          matrix: "确认信息矩阵",
+          clues: "确认线索网络",
+          matrix: "确认公共流程矩阵",
           host: "确认主持手册",
           scripts: "确认全部剧本",
           evaluate: "确认评判并继续",
@@ -393,6 +439,7 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
         if (hookEl) hookEl.value = section?.closingHook || "";
         const listHost = layerEditor.querySelector("[data-pipeline-section-list-host]");
         if (listHost) setHtml(listHost, PH().pipelineSectionListHtml?.(session) || "");
+        updateActiveProseDiagnostics();
         return true;
       };
 
@@ -417,8 +464,10 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
         }
         setHtml(summaryEl, (draftSavedAt ? aiLocalDraftNote(draftSavedAt) : "") + pipelinePreviewHtml(session));
         importStructure.disabled = !session.proposal;
-        importAll.disabled = !session.proposal;
-        applyHints.disabled = !(session.evaluation?.revisions || []).some((rev) => rev.promptHint);
+        const proseReady = diagnoseScriptCollection(session.scripts, { expectedPov: session.setting?.pov }).passed;
+        const evaluationCurrent = session.evaluation?.scriptFingerprint === fingerprintScriptCollection(session.scripts);
+        importAll.disabled = !session.proposal || !session.locks?.sync || !session.evaluation?.readyForSync || !proseReady || !evaluationCurrent;
+        applyHints.disabled = !session.evaluation?.repairPlan?.earliestStage && !(session.evaluation?.revisions || []).length;
         renderLayerActions();
         bindPipelineUiEvents();
       };
@@ -503,6 +552,7 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
           zhimuApi.deepseekPipelineMatrixPlayerScript({ ...payload, roleKey, actKey })
         );
         session.scripts[roleKey] = { ...(session.scripts[roleKey] || {}), [actKey]: result.script };
+        PS().recordPipelineGeneration?.(session, `scripts.cells.${roleKey}.${actKey}`, result);
         ctx.roleKey = roleKey;
         ctx.chapterKey = actKey;
         forceEditorRefresh("scripts");
@@ -510,7 +560,7 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
       }
 
       const runPipelineGenerateAllScripts = async () => {
-        if (!session.locks?.matrix) return showToast("请先确认信息矩阵");
+        if (!session.locks?.matrix || !session.locks?.host) return showToast("请先确认公共流程矩阵与主持手册");
         const payload = pipelinePayload();
         const btn = layerActions.querySelector("[data-pipeline-generate-all-scripts]") || layerActions.querySelector("[data-pipeline-generate]");
         pipelineGenerating = true;
@@ -550,28 +600,47 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
           disableLayerActions();
           if (layer === "setup") return showToast("创作立项请手动填写并确认");
           if (layer === "truth") {
-            setPipelineProgress(btn, "生成真相 Bible");
-            session.truthBible = (await callDeepseekStep("② 真相 Bible", () => zhimuApi.deepseekPipelineMatrixTruth(payload))).truthBible;
+            setPipelineProgress(btn, "生成世界与真相合同");
+            const generated = await callDeepseekStep("② 世界与真相合同", () => zhimuApi.deepseekPipelineMatrixTruth(payload));
+            session.truthBible = generated.truthBible;
+            PS().recordPipelineGeneration?.(session, "truth", generated);
           } else if (layer === "characters") {
             setPipelineProgress(btn, "生成角色档案");
-            session.characterArchives = (await callDeepseekStep("③ 角色档案", () =>
+            const generated = await callDeepseekStep("③ 角色档案", () =>
               zhimuApi.deepseekPipelineMatrixCharacters({ ...payload, truthBible: session.truthBible })
-            )).characterArchives;
-          } else if (layer === "matrix") {
-            setPipelineProgress(btn, "生成信息矩阵");
-            session.infoMatrix = (await callDeepseekStep("④ 信息矩阵", () =>
-              zhimuApi.deepseekPipelineMatrixInfoMatrix({
+            );
+            session.characterArchives = generated.characterArchives;
+            PS().recordPipelineGeneration?.(session, "characters", generated);
+          } else if (layer === "clues") {
+            setPipelineProgress(btn, "生成稀疏线索网络");
+            const generated = await callDeepseekStep("④ 稀疏线索网络", () =>
+              zhimuApi.deepseekPipelineMatrixClueNetwork({
                 ...payload,
                 truthBible: session.truthBible,
                 characterArchives: session.characterArchives
               })
-            )).infoMatrix;
+            );
+            session.clueNetwork = generated.clueNetwork;
+            PS().recordPipelineGeneration?.(session, "clues", generated);
+          } else if (layer === "matrix") {
+            setPipelineProgress(btn, "生成公共流程矩阵");
+            const generated = await callDeepseekStep("⑤ 公共流程矩阵", () =>
+              zhimuApi.deepseekPipelineMatrixInfoMatrix({
+                ...payload,
+                truthBible: session.truthBible,
+                characterArchives: session.characterArchives,
+                clueNetwork: session.clueNetwork
+              })
+            );
+            session.infoMatrix = generated.infoMatrix;
+            PS().recordPipelineGeneration?.(session, "matrix", generated);
           } else if (layer === "host") {
             setPipelineProgress(btn, "生成主持手册");
-            const hostResult = await callDeepseekStep("⑤ 主持手册", () =>
+            const hostResult = await callDeepseekStep("⑥ 主持手册", () =>
               zhimuApi.deepseekPipelineMatrixHostRunbook({ ...payload, allActs: true })
             );
             session.hostRunbooks = hostResult.runbooks;
+            PS().recordPipelineGeneration?.(session, "host", hostResult);
           } else if (layer === "scripts") {
             const roleKey = modal.querySelector("[data-pipeline-role]")?.value || ctx.roleKey || session.characterArchives?.roles?.[0]?.key;
             const actKey = modal.querySelector("[data-pipeline-chapter]")?.value || ctx.chapterKey || session.config?.chapterKeys?.[0];
@@ -579,11 +648,17 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
             await generateMatrixPlayerScript(roleKey, actKey, payload, btn);
           } else if (layer === "sync") {
             setPipelineProgress(btn, "机械生成编排");
-            const pkg = await callDeepseekStep("⑧ 机械入库预览", () => zhimuApi.deepseekPipelineMatrixSyncPreview(payload));
+            const pkg = await callDeepseekStep("⑨ 机械入库预览", () => zhimuApi.deepseekPipelineMatrixSyncPreview(payload));
             session.proposal = pkg.proposal;
+            session.generationAudit = pkg.generationAudit || null;
+            PS().recordPipelineGeneration?.(session, "proposal", pkg);
           } else if (layer === "evaluate") {
             setPipelineProgress(btn, "矩阵评判中");
-            session.evaluation = (await callDeepseekStep("⑦ 矩阵评判", () => zhimuApi.deepseekPipelineMatrixEvaluate(payload))).evaluation;
+            const generated = await callDeepseekStep("⑧ 矩阵评判", () => zhimuApi.deepseekPipelineMatrixEvaluate(payload));
+            session.evaluation = generated.evaluation;
+            session.staleArtifacts = {};
+            session.pendingRepairPlan = null;
+            PS().recordPipelineGeneration?.(session, "evaluation", generated);
           }
           session.locks[layer] = false;
           if (layer !== "evaluate") pipelineClearDownstream(session, layer);
@@ -612,13 +687,12 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
         renderPipelineUi();
       });
       applyHints.onclick = () => {
-        const field = modal.querySelector('[data-studio-field="aiConflicts"]');
-        if (!field || !session.evaluation) return;
-        const hints = (session.evaluation.revisions || []).filter((rev) => rev.promptHint).map((rev) => rev.promptHint);
-        if (!hints.length) return showToast("无可应用的提示语");
-        field.value = [field.value.trim(), ...hints].filter(Boolean).join("\n");
-        scheduleDraftSave();
-        showToast(`已追加 ${hints.length} 条提示到「额外的矛盾冲突」`);
+        if (!session.evaluation) return;
+        pipelinePersistActiveEditor(session, ctx);
+        const { targetLayer } = PS().applyPipelineRepairPlan?.(session) || { targetLayer: "evaluate" };
+        afterSessionChange({ saveNow: true, editor: true });
+        const staleCount = Object.keys(session.staleArtifacts || {}).length;
+        showToast(`已定位到「${pipelineStepLabel(targetLayer)}」；已标记 ${staleCount} 个精确依赖，未清空其余成稿`);
       };
       importStructure.onclick = async () => {
         if (!session.proposal) return;
@@ -638,10 +712,16 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
       };
       importAll.onclick = async () => {
         if (!session.proposal) return;
+        pipelinePersistActiveEditor(session, ctx);
+        const proseDiagnostics = diagnoseScriptCollection(session.scripts, { expectedPov: session.setting?.pov });
+        const evaluationCurrent = session.evaluation?.scriptFingerprint === fingerprintScriptCollection(session.scripts);
+        if (!session.locks?.sync || !session.evaluation?.readyForSync || !proseDiagnostics.passed || !evaluationCurrent) {
+          showToast("尚未通过评判与场景化正文门禁，不能上传全部内容");
+          return;
+        }
         try {
           importAll.disabled = true;
           importAll.textContent = "上传中…";
-          pipelinePersistActiveEditor(session, ctx);
           const pkg = await zhimuApi.deepseekPipelineMatrixSyncPreview(pipelinePayload());
           const result = await zhimuApi.importDeepseekPipeline({
             ...pkg,
@@ -653,6 +733,7 @@ import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
             setting: session.setting,
             characterArchives: session.characterArchives,
             truthBible: session.truthBible,
+            clueNetwork: session.clueNetwork,
             infoMatrix: session.infoMatrix,
             hostRunbooks: session.hostRunbooks
           });

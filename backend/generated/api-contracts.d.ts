@@ -114,11 +114,11 @@ export interface UpdateWorldBody {
   summary?: string;
   settings?: {
     recapTruthSummary?: string;
-    creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+    creationType?: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
     worldMode?: "scripted" | "campaign" | "hybrid";
     narrativeProfile?: {
       version: 1;
-      creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+      creationType: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
       runFormat: "single_session" | "campaign";
       roleMode: "fixed" | "player_created" | "mixed";
       ruleset: {
@@ -352,6 +352,107 @@ export interface UpdateWorldBody {
       authorNotes: string;
       status: "draft" | "confirmed";
       updatedAt: string;
+    };
+    boardGameDesign?: {
+      version: 2;
+      title: string;
+      designGoal: string;
+      playerCount: {
+        min: number;
+        max: number;
+      };
+      playTimeMinutes: number;
+      /**
+       * @maxItems 300
+       */
+      components: {
+        id: string;
+        type: "board" | "deck" | "card" | "token_pool" | "track" | "dice" | "timer" | "phase" | "custom";
+        name: string;
+        quantity: number;
+        description: string;
+        playerAction: string;
+        /**
+         * @maxItems 40
+         */
+        stateFields: {
+          id: string;
+          label: string;
+          key: string;
+          initialValue: string;
+        }[];
+        /**
+         * @maxItems 100
+         */
+        assets: {
+          id: string;
+          assetId: string;
+          fileName: string;
+          kind: "image" | "document";
+          caption: string;
+        }[];
+        /**
+         * @maxItems 2000
+         */
+        entries: {
+          id: string;
+          name: string;
+          description: string;
+          quantity: number;
+        }[];
+        notes: string;
+      }[];
+      /**
+       * @maxItems 300
+       */
+      variables: {
+        id: string;
+        label: string;
+        scope: "global" | "player" | "component";
+        initialValue: number;
+        min: number;
+        max: number;
+      }[];
+      /**
+       * @maxItems 300
+       */
+      mechanisms: {
+        id: string;
+        templateKey: string;
+        name: string;
+        sourceComponentId: string;
+        trigger: string;
+        conditionMode: "all" | "any";
+        /**
+         * @maxItems 40
+         */
+        conditions: {
+          id: string;
+          sourceKey: string;
+          operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "contains";
+          value: string;
+        }[];
+        /**
+         * @maxItems 40
+         */
+        effects: {
+          id: string;
+          targetKey: string;
+          operation: "set" | "add" | "subtract" | "multiply" | "min" | "max" | "toggle";
+          value: string;
+        }[];
+        notes: string;
+      }[];
+      rulebook: {
+        objective: string;
+        setup: string;
+        turnStructure: string;
+        playerActions: string;
+        endCondition: string;
+        tieBreak: string;
+        notes: string;
+      };
+      updatedAt: string | null;
     };
     /**
      * @maxItems 4
@@ -553,11 +654,11 @@ export interface CreateWorldBody {
   summary?: string;
   settings?: {
     recapTruthSummary?: string;
-    creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+    creationType?: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
     worldMode?: "scripted" | "campaign" | "hybrid";
     narrativeProfile?: {
       version: 1;
-      creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+      creationType: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
       runFormat: "single_session" | "campaign";
       roleMode: "fixed" | "player_created" | "mixed";
       ruleset: {
@@ -792,6 +893,107 @@ export interface CreateWorldBody {
       status: "draft" | "confirmed";
       updatedAt: string;
     };
+    boardGameDesign?: {
+      version: 2;
+      title: string;
+      designGoal: string;
+      playerCount: {
+        min: number;
+        max: number;
+      };
+      playTimeMinutes: number;
+      /**
+       * @maxItems 300
+       */
+      components: {
+        id: string;
+        type: "board" | "deck" | "card" | "token_pool" | "track" | "dice" | "timer" | "phase" | "custom";
+        name: string;
+        quantity: number;
+        description: string;
+        playerAction: string;
+        /**
+         * @maxItems 40
+         */
+        stateFields: {
+          id: string;
+          label: string;
+          key: string;
+          initialValue: string;
+        }[];
+        /**
+         * @maxItems 100
+         */
+        assets: {
+          id: string;
+          assetId: string;
+          fileName: string;
+          kind: "image" | "document";
+          caption: string;
+        }[];
+        /**
+         * @maxItems 2000
+         */
+        entries: {
+          id: string;
+          name: string;
+          description: string;
+          quantity: number;
+        }[];
+        notes: string;
+      }[];
+      /**
+       * @maxItems 300
+       */
+      variables: {
+        id: string;
+        label: string;
+        scope: "global" | "player" | "component";
+        initialValue: number;
+        min: number;
+        max: number;
+      }[];
+      /**
+       * @maxItems 300
+       */
+      mechanisms: {
+        id: string;
+        templateKey: string;
+        name: string;
+        sourceComponentId: string;
+        trigger: string;
+        conditionMode: "all" | "any";
+        /**
+         * @maxItems 40
+         */
+        conditions: {
+          id: string;
+          sourceKey: string;
+          operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "contains";
+          value: string;
+        }[];
+        /**
+         * @maxItems 40
+         */
+        effects: {
+          id: string;
+          targetKey: string;
+          operation: "set" | "add" | "subtract" | "multiply" | "min" | "max" | "toggle";
+          value: string;
+        }[];
+        notes: string;
+      }[];
+      rulebook: {
+        objective: string;
+        setup: string;
+        turnStructure: string;
+        playerActions: string;
+        endCondition: string;
+        tieBreak: string;
+        notes: string;
+      };
+      updatedAt: string | null;
+    };
     /**
      * @maxItems 4
      */
@@ -969,7 +1171,7 @@ export interface WorldReleaseSummary {
   snapshotSchemaVersion: number;
   narrativeProfile: {
     version: 1;
-    creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+    creationType: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
     runFormat: "single_session" | "campaign";
     roleMode: "fixed" | "player_created" | "mixed";
     ruleset: {
@@ -1071,7 +1273,7 @@ export interface RoomReleaseImpact {
       snapshotSchemaVersion: number;
       narrativeProfile: {
         version: 1;
-        creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+        creationType: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
         runFormat: "single_session" | "campaign";
         roleMode: "fixed" | "player_created" | "mixed";
         ruleset: {
@@ -1118,7 +1320,7 @@ export interface RoomReleaseImpact {
     snapshotSchemaVersion: number;
     narrativeProfile: {
       version: 1;
-      creationType: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+      creationType: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
       runFormat: "single_session" | "campaign";
       roleMode: "fixed" | "player_created" | "mixed";
       ruleset: {
@@ -1528,6 +1730,11 @@ export interface RuntimeCurrentState {
     }[];
     ending: {
       title: string;
+      consequence: string;
+      roleEpilogue: {
+        title: string;
+        consequence: string;
+      } | null;
     } | null;
     waitingForHost: boolean;
     updatedAt: string | null;
@@ -1617,19 +1824,19 @@ export type ParseDocumentBody = {
   parseMode?: "auto" | "pages" | "text";
   allowOcr?: boolean;
   rightsConfirmed?: true;
-  creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+  creationType?: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
 };
 
 export interface ParseFeishuDocumentBody {
   url: string;
   rightsConfirmed?: true;
-  creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+  creationType?: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
 }
 
 export interface ImportDocumentBody {
   target: "manuscript" | "role_script" | "structured";
   roleSlotId?: string | null;
-  creationType?: "murder_mystery" | "tabletop_rpg" | "interactive_story";
+  creationType?: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
   rightsConfirmed?: true;
   document: {
     text: string;
@@ -1967,6 +2174,30 @@ export interface RoomVoiceMessageCreatedData {
    * @maxItems 100
    */
   audienceUserIds?: string[];
+  [k: string]: unknown;
+}
+
+export interface RoomVoiceRoomCreatedData {
+  voiceRoomId: string;
+  voiceRoomName: string;
+  createdByUserId: string;
+  audience: "room" | "restricted";
+  /**
+   * @maxItems 100
+   */
+  audienceUserIds: string[];
+  [k: string]: unknown;
+}
+
+export interface RoomVoiceRoomMembersUpdatedData {
+  voiceRoomId: string;
+  voiceRoomName: string;
+  invitedByUserId: string;
+  audience: "restricted";
+  /**
+   * @maxItems 100
+   */
+  audienceUserIds: string[];
   [k: string]: unknown;
 }
 

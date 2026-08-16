@@ -89,17 +89,17 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
       <div class="section-head">
         <div>
           <p class="section-kicker">首场路径 · 约 10 分钟</p>
-          <h3>创建剧本 → 开房 → 邀请玩家 → 复盘</h3>
+          <h3>创建剧本 → 开房 → 邀请玩家 → 读完一幕 → 复盘</h3>
           <p>按顺序跑通一次完整链路；完成后可在复盘页查看存档与 recap。</p>
         </div>
         <button type="button" class="text-btn" data-action="dismiss-onboarding">不再显示</button>
       </div>
       <ol class="onboarding-steps">
-        ${stepRow("world", 1, "① 创建剧本", "侧栏「＋ 创建新世界」走向导，或在「我的剧本」切换已有世界。", "open-wizard", "创建剧本")}
+        ${stepRow("world", 1, "① 创建世界", "选择剧本杀、跑团或桌游，输入一个名称即可进入空白工作区。", "open-wizard", "创建世界")}
         ${stepRow("room", 2, "② 开测试房", "运行房列表新建房间，选中后总览会出现邀请码。", "world-rooms", "管理运行房")}
         ${stepRow("invite", 3, "③ 邀请玩家", "复制邀请码或玩家链接发到群；也可自己打开玩家端试读。", "onboarding-copy-invite", "复制邀请")}
         ${stepRow("read", 4, "④ 读完一幕", "玩家在 play 端选角色、读私人分幕并点「确认读完」。", "onboarding-go-player", "打开玩家端")}
-        ${stepRow("recap", 5, "⑤ 存档复盘", "主持端或总控台创建 checkpoint；复盘页查看 recap。", null, "打开复盘", "archive")}
+        ${stepRow("recap", 5, "⑤ 存档复盘", "主持端或总控台创建 checkpoint；复盘页查看 recap。", "onboarding-go-archive", "打开复盘")}
       </ol>
     </section>`;
   }

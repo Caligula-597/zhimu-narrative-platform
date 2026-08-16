@@ -24,7 +24,7 @@ test("email code verification enters a responsive zero-world workspace", async (
   await page.locator("[data-auth-verify-code]").click();
 
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
-  await expect(page.locator("#content")).toContainText("当前账号还没有剧本");
+  await expect(page.locator("#content")).toContainText("先在 10 分钟内跑通第一场");
 
   const advanced = page.locator("#nav-advanced");
   if (await advanced.getAttribute("hidden") !== null) {
@@ -68,7 +68,7 @@ test("email code verification enters a responsive zero-world workspace", async (
 
 test("email verification link logs in and removes the one-time URL token", async ({ page }) => {
   await page.goto("/?verify=fixture-link-token");
-  await expect(page.locator("#content")).toContainText("当前账号还没有剧本");
+  await expect(page.locator("#content")).toContainText("先在 10 分钟内跑通第一场");
   await expect(page).not.toHaveURL(/verify=/);
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
 });
@@ -81,7 +81,7 @@ test("mobile verification link keeps an empty account responsive across protecte
   await page.goto("/?verify=fixture-link-token");
   await expect(page).not.toHaveURL(/verify=/);
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
-  await expect(page.locator("#content")).toContainText("当前账号还没有剧本");
+  await expect(page.locator("#content")).toContainText("先在 10 分钟内跑通第一场");
 
   const advanced = page.locator("#nav-advanced");
   await page.locator('[data-action="toggle-nav-advanced"]').click();

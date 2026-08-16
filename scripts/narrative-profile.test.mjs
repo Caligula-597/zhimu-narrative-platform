@@ -68,6 +68,16 @@ test("invalid profile values fall back to the selected creation type defaults", 
 test("legacy terminology imports retain their existing labels", () => {
   assert.equal(creatorTerms("murder_mystery").clue, "线索");
   assert.equal(creatorTerms("tabletop_rpg").clue, "HO");
+  assert.equal(creatorTerms("board_game").role, "玩家席位");
+  assert.equal(creatorTerms("board_game").act, "阶段");
   assert.equal(creatorTerms("interactive_story").host, "导演");
   assert.equal(legacyCreatorTerms("tabletop_rpg").host, "KP");
+});
+
+test("board-game profile is first-class while keeping legacy mode compatibility", () => {
+  const profile = normalizeNarrativeProfile({ creationType: "board_game" });
+  assert.equal(profile.creationType, "board_game");
+  assert.equal(profile.roleMode, "player_created");
+  assert.equal(profile.ruleset.mode, "custom");
+  assert.equal(legacyWorldModeForNarrativeProfile(profile), "campaign");
 });

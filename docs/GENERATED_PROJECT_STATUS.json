@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-08-12T05:28:21.878Z",
+  "generatedAt": "2026-08-16T12:18:06.521Z",
   "source": {
-    "gitCommit": "e1875f2",
+    "gitCommit": "691acf6",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
     "tests": {
-      "declarations": 1302,
-      "files": 306
+      "declarations": 1392,
+      "files": 317
     },
     "migrations": 112,
     "latestMigration": "112_mini_game_protocol",
@@ -29,15 +29,15 @@
     },
     "tests": {
       "sharedAndTooling": {
-        "declarations": 386,
-        "files": 79
+        "declarations": 460,
+        "files": 88
       },
       "host": {
         "declarations": 83,
         "files": 21
       },
       "player": {
-        "declarations": 115,
+        "declarations": 116,
         "files": 35
       }
     }
@@ -47,14 +47,14 @@
     "note": "Validated by npm run check:world-writes; run the command for pass/fail evidence."
   },
   "documentation": {
-    "trackedFiles": 163,
+    "trackedFiles": 256,
     "byArea": {
       "软著材料": 4,
       "优化计划": 11,
       "backend": 3,
-      "docs": 122,
+      "docs": 126,
       "e2e": 1,
-      "examples": 6,
+      "examples": 95,
       "host": 1,
       "play": 1,
       "root": 12,

@@ -1,6 +1,7 @@
 /** AI pipeline creative input — setting + synopsis + derived config. */
 import { showToast } from "../components/toast.js";
 import { studioValues } from "../components/modal.js";
+import { normalizePlayStructure } from "../../shared/play-structure.js";
 (function (window) {
 
 
@@ -18,6 +19,7 @@ import { studioValues } from "../components/modal.js";
     const playerCount = Math.max(4, Math.min(8, Number(values.aiPlayerCount) || 6));
     const volumeTier = ["demo", "standard", "epic"].includes(values.aiVolumeTier) ? values.aiVolumeTier : "standard";
     const matrixMode = values.aiMatrixMode === "henkaku" ? "henkaku" : "honkaku";
+    const playStructure = normalizePlayStructure(values.aiPlayStructure);
     const eraPreset = String(values.aiEraPreset || "modern-cn").trim() || "modern-cn";
     return {
       theme: String(values.aiTheme || values.aiTitle || "").trim(),
@@ -29,6 +31,7 @@ import { studioValues } from "../components/modal.js";
       volumeTier,
       pov: values.aiPov === "first" ? "first" : "second",
       matrixMode,
+      playStructure,
       eraPreset,
       styleAnchor: String(values.aiStyleAnchor || "").trim(),
       forbiddenPhrases: String(values.aiForbiddenPhrases || "").trim()

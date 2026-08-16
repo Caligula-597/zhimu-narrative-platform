@@ -120,6 +120,40 @@ test("player role commitment clearly stays private to the player and host", () =
   }
 });
 
+test("completed mechanism renders the shared ending and only this player's epilogue", () => {
+  const previousHome = state.home;
+  state.home = {
+    currentState: {
+      mechanism: {
+        initialized: true,
+        stale: false,
+        status: "completed",
+        totalRounds: 3,
+        currentRound: null,
+        decisions: [],
+        ending: {
+          title: "共同持有",
+          consequence: "旧账没有被抹掉，共同账户继续运行。",
+          roleEpilogue: {
+            title: "名字仍在账上",
+            consequence: "你保住了署名，却要继续面对另一名持有人。"
+          }
+        }
+      }
+    }
+  };
+  try {
+    const html = renderMechanismProgress();
+    assert.match(html, /共同持有/);
+    assert.match(html, /旧账没有被抹掉/);
+    assert.match(html, /你的个人尾声/);
+    assert.match(html, /名字仍在账上/);
+    assert.match(html, /前面各轮已经发生的行动/);
+  } finally {
+    state.home = previousHome;
+  }
+});
+
 test("player renders private ranking and fixed-total allocation sessions with opaque handles", () => {
   const previousHome = state.home;
   state.home = {

@@ -17,6 +17,7 @@ const STUDIO_VIEWS = new Set([
   "rules",
   "miniGames",
   "tabletopMap",
+  "boardGame",
   "rooms",
   "archive",
   "settings"

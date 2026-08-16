@@ -1,6 +1,10 @@
 /** AI pipeline editor DOM read/write — sync modal fields to session. */
 import { showToast } from "../components/toast.js";
 import { modal as modalElement } from "../dom.js";
+import {
+  diagnoseScriptCollection,
+  fingerprintScriptCollection
+} from "../../shared/prose-quality-gate.js";
 (function (window) {
   const modal = () => modalElement;
   const PB = () => window.zhimuPipelineBrief || {};
@@ -70,34 +74,61 @@ import { modal as modalElement } from "../dom.js";
 
   function pipelinePersistActiveEditor(session, ctx) {
     const layer = normalizeLayer(session.activeLayer);
+    const changed = (before, after) => JSON.stringify(before ?? null) !== JSON.stringify(after ?? null);
     if (layer === "setup") {
       const creative = pipelineReadSetupFromDom();
+      const before = { setting: session.setting, synopsis: session.synopsis, config: session.config };
       session.setting = creative.setting;
       session.synopsis = creative.synopsis;
       session.config = creative.config;
+      if (changed(before, creative)) PS().markPipelineHumanEdit?.(session, "source");
     } else if (layer === "truth") {
       const parsed = pipelineReadJsonFromDom("data-pipe-truth-json");
-      if (parsed !== undefined) session.truthBible = parsed;
+      if (parsed !== undefined) {
+        if (changed(session.truthBible, parsed)) PS().markPipelineHumanEdit?.(session, "truth");
+        session.truthBible = parsed;
+      }
     } else if (layer === "characters") {
       const parsed = pipelineReadJsonFromDom("data-pipe-characters-json");
-      if (parsed !== undefined) session.characterArchives = parsed;
+      if (parsed !== undefined) {
+        if (changed(session.characterArchives, parsed)) PS().markPipelineHumanEdit?.(session, "characters");
+        session.characterArchives = parsed;
+      }
+    } else if (layer === "clues") {
+      const parsed = pipelineReadJsonFromDom("data-pipe-clues-json");
+      if (parsed !== undefined) {
+        if (changed(session.clueNetwork, parsed)) PS().markPipelineHumanEdit?.(session, "clues");
+        session.clueNetwork = parsed;
+      }
     } else if (layer === "matrix") {
       const parsed = pipelineReadJsonFromDom("data-pipe-matrix-json");
-      if (parsed !== undefined) session.infoMatrix = parsed;
+      if (parsed !== undefined) {
+        if (changed(session.infoMatrix, parsed)) PS().markPipelineHumanEdit?.(session, "matrix");
+        session.infoMatrix = parsed;
+      }
     } else if (layer === "host") {
       const parsed = pipelineReadJsonFromDom("data-pipe-host-json");
-      if (parsed !== undefined) session.hostRunbooks = Array.isArray(parsed) ? parsed : parsed?.runbooks || [];
+      if (parsed !== undefined) {
+        const next = Array.isArray(parsed) ? parsed : parsed?.runbooks || [];
+        if (changed(session.hostRunbooks, next)) PS().markPipelineHumanEdit?.(session, "host");
+        session.hostRunbooks = next;
+      }
     } else if (layer === "scripts") {
       const el = modal();
       const roleKey = el?.querySelector("[data-pipeline-role]")?.value || ctx.roleKey;
       const actKey = el?.querySelector("[data-pipeline-chapter]")?.value || ctx.chapterKey;
       const script = pipelineReadScriptFromDom(roleKey, actKey);
       if (script) {
+        if (changed(session.scripts?.[roleKey]?.[actKey], script)) {
+          PS().markPipelineHumanEdit?.(session, `scripts.cells.${roleKey}.${actKey}`);
+        }
         session.scripts[roleKey] = session.scripts[roleKey] || {};
         session.scripts[roleKey][actKey] = script;
       }
     } else if (layer === "sync" && session.proposal) {
-      session.proposal = pipelineReadStructureFromDom(session);
+      const next = pipelineReadStructureFromDom(session);
+      if (changed(session.proposal, next)) PS().markPipelineHumanEdit?.(session, "proposal");
+      session.proposal = next;
     }
   }
 
@@ -112,8 +143,17 @@ import { modal as modalElement } from "../dom.js";
       session.synopsis = creative.synopsis;
       session.config = creative.config;
     } else if (normalized === "truth") {
-      if (lock && !session.truthBible?.summary) {
-        showToast("请先生成或填写真相 Bible");
+      const truth = session.truthBible;
+      if (lock && (!truth?.summary || !truth.playerExperiencePromise || !truth.retellableMoment ||
+        truth.worldSpecificActions?.length < 2 || !truth.sharedObjective || truth.truthNodes?.length < 4)) {
+        showToast("真相层尚未完成：需补齐体验承诺、可复述场面、世界专属动作、共同目标与至少 4 个真相节点");
+        return false;
+      }
+      if (lock && session.setting?.playStructure !== "mystery" && (
+        truth?.roleEpilogues?.length !== session.config?.playerCount ||
+        truth.roleEpilogues.some((item) => item.variants?.length < 2)
+      )) {
+        showToast("真相层尚未完成：每名角色需 2～3 个读取主结局轴的个人尾声变体");
         return false;
       }
     } else if (normalized === "characters") {
@@ -121,9 +161,26 @@ import { modal as modalElement } from "../dom.js";
         showToast("角色档案数量与玩家人数不一致");
         return false;
       }
+    } else if (normalized === "clues") {
+      const clues = session.clueNetwork?.clues || [];
+      const coverage = session.clueNetwork?.truthCoverage || [];
+      const criticalKeys = new Set((session.truthBible?.truthNodes || []).filter((node) => node.importance === "critical").map((node) => node.key));
+      const criticalCovered = [...criticalKeys].every((key) => {
+        const item = coverage.find((row) => row.truthNodeKey === key);
+        return item?.paths?.length >= 2 && item?.fallback;
+      });
+      const allRoleNonPublic = clues.some((clue) =>
+        clue.scope !== "public_anchor" && clue.involvedRoleKeys?.length >= (session.config?.playerCount || 0)
+      );
+      if (lock && (!clues.length || !coverage.length || !criticalCovered || allRoleNonPublic)) {
+        showToast(allRoleNonPublic
+          ? "存在把所有角色强行连在一起的非公共线索，请改为局部线索或真正的公共锚点"
+          : "线索网尚未覆盖关键真相：每个 critical 节点需两条独立路径与一条兜底路径");
+        return false;
+      }
     } else if (normalized === "matrix") {
-      if (lock && (!session.infoMatrix?.clues?.length || !session.infoMatrix?.rows?.length)) {
-        showToast("信息矩阵需包含线索与行");
+      if (lock && (!session.infoMatrix?.rows?.length || !session.infoMatrix?.actTitles)) {
+        showToast("公共流程矩阵需包含逐幕标题与完整角色行");
         return false;
       }
     } else if (normalized === "host") {
@@ -139,10 +196,26 @@ import { modal as modalElement } from "../dom.js";
           showToast(`逐幕剧本尚未齐全（${progress.done}/${progress.total}）`);
           return false;
         }
+        const diagnostics = diagnoseScriptCollection(session.scripts, { expectedPov: session.setting?.pov });
+        if (!diagnostics.passed) {
+          const first = diagnostics.issues.find((issue) => issue.severity === "high");
+          showToast(first
+            ? `正文门禁拦截 ${first.cell} 第 ${first.paragraph || "-"} 段：${first.message}`
+            : "玩家正文未通过场景化正文门禁");
+          return false;
+        }
       }
     } else if (normalized === "evaluate") {
       if (lock && !session.evaluation) {
         showToast("请先完成矩阵评判");
+        return false;
+      }
+      if (lock && !session.evaluation.readyForSync) {
+        showToast("评判或正文门禁未通过，修复必改项后请重新评判");
+        return false;
+      }
+      if (lock && session.evaluation.scriptFingerprint !== fingerprintScriptCollection(session.scripts)) {
+        showToast("正文在评判后发生过修改，请重新运行矩阵评判");
         return false;
       }
     } else if (normalized === "sync") {
