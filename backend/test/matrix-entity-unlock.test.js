@@ -59,15 +59,19 @@ test("scanDialogueEntities respects unlock schedule", () => {
   assert.equal(pass.passed, true);
 });
 
-test("buildProposalFromMatrix links scenes clues and sequential edges", () => {
+test("buildProposalFromMatrix only links clues when the clue network declares a real relation", () => {
   const proposal = buildProposalFromMatrix({
     setting: { theme: "测试", matrixMode: "honkaku" },
     config,
     truthBible: { summary: "x".repeat(220), killer: "role-3", method: "m" },
-    infoMatrix
+    infoMatrix,
+    clueNetwork: {
+      links: [{ fromClueKey: "clue-1", toClueKey: "clue-3", relationType: "recontextualizes", reason: "钥匙胚改变门锁痕迹的含义" }]
+    }
   });
   assert.equal(proposal.scenes.length, 2);
   assert.ok(proposal.clues.every((c) => c.metadata.actKey));
   assert.ok(proposal.matrixSync.entityUnlockSchedule.length >= 2);
   assert.ok(proposal.edges.some((e) => e.fromType === "clue" && e.toType === "clue"));
+  assert.equal(proposal.edges.filter((e) => e.fromType === "clue" && e.toType === "clue").length, 1);
 });

@@ -170,6 +170,8 @@ function mechanismState(provider, facts) {
   const packageValue = provider.snapshot?.mechanismPackage ?? null;
   if (!packageValue) return null;
   const persisted = projectRoomMechanismState(facts.mechanism_state);
+  const role = provider.collection("roles").find((entry) => String(entry.id ?? "") === String(facts.roleSlotId ?? ""));
+  const mechanismRoleKey = String(role?.settings?.deepseekRoleKey ?? role?.settings?.packageSourceId ?? "");
   return projectPlayerMechanismRuntime(
     persisted?.runtime ?? null,
     packageValue,
@@ -179,6 +181,7 @@ function mechanismState(provider, facts) {
       updatedAt: persisted?.updatedAt ?? null,
       roundStartedAt: persisted?.roundStartedAt ?? null,
       ownSubmissions: facts.mechanism_submissions ?? [],
+      roleKey: mechanismRoleKey,
     },
   );
 }

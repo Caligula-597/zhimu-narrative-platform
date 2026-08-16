@@ -11,7 +11,12 @@ export function validateStoryEvaluation(raw) {
     pacing: clampScore("pacing"),
     graphReady: clampScore("graphReady"),
     consistency: clampScore("consistency"),
-    styleFit: clampScore("styleFit")
+    styleFit: clampScore("styleFit"),
+    humanAuthorship: clampScore("humanAuthorship"),
+    sourceFidelity: clampScore("sourceFidelity"),
+    subtext: clampScore("subtext"),
+    voiceDistinctness: clampScore("voiceDistinctness"),
+    dramaticTension: clampScore("dramaticTension", 1)
   };
   const overall = clampInteger(Number(value.overallScore) * 10, 10, 100, 70) / 10;
   const validLayers = new Set(["setup", "spec", "narrative", "roles", "roleMatrix", "matrix", "section", "sync", "structure", "evaluate"]);
@@ -48,21 +53,64 @@ export function validateStoryEvaluation(raw) {
     keepEmphasis: Array.isArray(styleRaw.keepEmphasis) ? styleRaw.keepEmphasis.slice(0, 6).map((item) => cleanText(item, 300)) : [],
     adjustEmphasis: Array.isArray(styleRaw.adjustEmphasis) ? styleRaw.adjustEmphasis.slice(0, 6).map((item) => cleanText(item, 300)) : []
   };
+  const sourceFidelityRaw = value.sourceFidelityAudit && typeof value.sourceFidelityAudit === "object"
+    ? value.sourceFidelityAudit
+    : {};
+  const sourceFidelityVerdicts = new Set([
+    "preserved",
+    "partial",
+    "semantic_substitution",
+    "source_truncated",
+    "not_applicable"
+  ]);
+  const sourceFidelityAudit = {
+    verdict: sourceFidelityVerdicts.has(sourceFidelityRaw.verdict)
+      ? sourceFidelityRaw.verdict
+      : "not_applicable",
+    preservedConflictAnchors: Array.isArray(sourceFidelityRaw.preservedConflictAnchors)
+      ? sourceFidelityRaw.preservedConflictAnchors.slice(0, 16).map((item) => cleanText(item, 400))
+      : [],
+    missingConflictAnchors: Array.isArray(sourceFidelityRaw.missingConflictAnchors)
+      ? sourceFidelityRaw.missingConflictAnchors.slice(0, 16).map((item) => cleanText(item, 400))
+      : [],
+    substitutions: Array.isArray(sourceFidelityRaw.substitutions)
+      ? sourceFidelityRaw.substitutions.slice(0, 12).map((item) => cleanText(item, 500))
+      : [],
+    causalBreaks: Array.isArray(sourceFidelityRaw.causalBreaks)
+      ? sourceFidelityRaw.causalBreaks.slice(0, 12).map((item) => cleanText(item, 500))
+      : []
+  };
   const nextStepOrder = Array.isArray(value.nextStepOrder)
     ? value.nextStepOrder.map((layer) => normalizeLayer(layer)).filter((layer) => validLayers.has(layer) || layer === "setup" || layer === "roles" || layer === "sync").slice(0, 6)
     : [...new Set(revisions.map((item) => item.targetLayer))].slice(0, 5);
   const hasMustFix = revisions.some((item) => item.priority === "must_fix");
   const hasHigh = issues.some((item) => item.severity === "high");
+  const hasSourceFidelityFailure = new Set([
+    "partial",
+    "semantic_substitution",
+    "source_truncated"
+  ]).has(sourceFidelityAudit.verdict);
   return {
     overallScore: overall,
     verdict: cleanText(value.verdict, 600),
     scores: normalizedScores,
     styleAlignment,
+    sourceFidelityAudit,
     strengths: Array.isArray(value.strengths) ? value.strengths.slice(0, 8).map((item) => cleanText(item, 300)) : [],
     issues,
     revisions,
     nextStepOrder,
     recommendations: Array.isArray(value.recommendations) ? value.recommendations.slice(0, 10).map((item) => cleanText(item, 400)) : [],
-    readyForImport: Boolean(value.readyForImport) && !hasMustFix && !hasHigh && overall >= 7
+    readyForImport:
+      Boolean(value.readyForImport) &&
+      !hasMustFix &&
+      !hasHigh &&
+      overall >= 7 &&
+      normalizedScores.humanAuthorship >= 7 &&
+      normalizedScores.sourceFidelity >= 7 &&
+      normalizedScores.subtext >= 6 &&
+      normalizedScores.voiceDistinctness >= 7 &&
+      normalizedScores.dramaticTension >= 7 &&
+      !hasSourceFidelityFailure
   };
 }

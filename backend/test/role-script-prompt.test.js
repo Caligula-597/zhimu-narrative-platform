@@ -27,6 +27,9 @@ test("buildRoleScriptFromNarrativeMessages scopes to single chapterKey", () => {
   const system = messages[0].content;
   const user = messages[1].content;
   assert.match(system, /chapterKey=ch1/);
+  assert.match(system, /生活先于命题/);
+  assert.match(system, /upstream_rebuild/);
+  assert.match(system, /正文逐条包装任务/);
   assert.match(user, /sections 必须覆盖：ch1/);
   assert.ok(user.length < 12000, "prompt should stay compact vs full 20k×2 bodies");
 });

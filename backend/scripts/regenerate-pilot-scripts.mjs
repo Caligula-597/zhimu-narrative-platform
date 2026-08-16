@@ -111,6 +111,7 @@ async function main() {
     config: session.config,
     truthBible: session.truthBible,
     characterArchives: session.characterArchives,
+    clueNetwork: session.clueNetwork,
     infoMatrix: session.infoMatrix,
     reasoningNovel: existsSync(join(pilotDir, "layers/05-reasoning-novel.json"))
       ? loadJson(join(pilotDir, "layers/05-reasoning-novel.json"))

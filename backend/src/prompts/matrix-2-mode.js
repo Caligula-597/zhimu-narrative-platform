@@ -221,6 +221,9 @@ export function buildMatrix20OutlineSchema(profile, roleKey, actKey) {
     signatureClues: [{ detail: "特色线索", whyPersonal: "为何独有" }],
     knowledgeSources: [{ fact: "…", source: "亲眼所见|对话|线索卡|私人专有条目|推断|听说(未核实)", clueId: null }],
     unknowns: ["本幕尚未知/未亲见：…", "仅听说未核实：…"],
+    notYetInferred: ["已有碎片但本幕还不能完成的推论"],
+    forbiddenConclusions: ["模型不得替玩家提前说出的结论"],
+    allowedSuspicionRange: "本幕可以怀疑到哪一步，以及必须停在哪里",
     tasksHint: ["与 surfaceObjectives 呼应"]
   };
   return schema;

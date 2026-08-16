@@ -7,6 +7,10 @@ import { compileAndStorePipelineMechanismPackage } from "../world-mechanism-pack
 import { seedBibleFromPipeline } from "../creator-bible.js";
 import { resolveClueKind } from "../clue-kind.js";
 import { cleanText } from "../prompts/shared.js";
+import {
+  buildPipelineGenerationAudit,
+  generationTraceForPath
+} from "../pipeline-generation-provenance.js";
 
 
 async function nextRoleSlotSequence(client, worldId) {
@@ -410,7 +414,36 @@ export async function importDeepseekMysteryPackage(worldId, mystery) {
 export { syncWorldSegmentsFromChapters } from "../world-segments-seed.js";
 
 export async function importDeepseekPipelinePackageWithClient(client, worldId, pipeline) {
-  const proposal = validateDeepseekProposal(pipeline.proposal);
+  const generationAudit = buildPipelineGenerationAudit(pipeline, {
+    manifest: pipeline.artifactDependencyManifest || pipeline.evaluation?.artifactDependencyManifest,
+    strategyPlaytest: pipeline.strategyPlaytest || pipeline.evaluation?.strategyPlaytest,
+    importedAt: new Date().toISOString()
+  });
+  const validatedProposal = validateDeepseekProposal(pipeline.proposal);
+  const proposal = {
+    ...validatedProposal,
+    chapters: validatedProposal.chapters.map((chapter) => ({
+      ...chapter,
+      metadata: {
+        ...(chapter.metadata || {}),
+        generationTrace: generationTraceForPath(generationAudit, `matrix.contracts.${chapter.key}`)
+      }
+    })),
+    scenes: validatedProposal.scenes.map((scene) => ({
+      ...scene,
+      metadata: {
+        ...(scene.metadata || {}),
+        generationTrace: generationTraceForPath(generationAudit, `matrix.contracts.${scene.chapterKey}`)
+      }
+    })),
+    clues: validatedProposal.clues.map((clue) => ({
+      ...clue,
+      metadata: {
+        ...(clue.metadata || {}),
+        generationTrace: generationTraceForPath(generationAudit, `clues.items.${clue.key}`)
+      }
+    }))
+  };
   const roles = normalizeDeepseekImportRoles(pipeline.roleMatrix?.roles || pipeline.package?.roles, "pipeline-role");
   const sectionsMap = pipeline.sections && typeof pipeline.sections === "object" ? pipeline.sections : {};
   {
@@ -421,6 +454,10 @@ export async function importDeepseekPipelinePackageWithClient(client, worldId, p
         const { roleSlotId, roleKey } = await resolveOrCreateDeepseekRoleSlot(client, worldId, role, roleIndex);
         roleKeyToSlotId.set(roleKey, roleSlotId);
         if (role.key) roleKeyToSlotId.set(role.key, roleSlotId);
+        await client.query(
+          `UPDATE role_slots SET settings = COALESCE(settings, '{}'::jsonb) || $1::jsonb WHERE id = $2`,
+          [JSON.stringify({ generationTrace: generationTraceForPath(generationAudit, `characters.roles.${roleKey}`) }), roleSlotId]
+        );
         const scriptId = await ensureCharacterScript(client, roleSlotId, role.name || roleKey);
         if (!scriptId) continue;
 
@@ -452,7 +489,12 @@ export async function importDeepseekPipelinePackageWithClient(client, worldId, p
               mapped?.title || packaged?.title || `${chapter.title} · ${role.name}`,
               body,
               sectionIndex + 1,
-              JSON.stringify({ source: "deepseek_pipeline", chapterKey: chapter.key, roleKey })
+              JSON.stringify({
+                source: "deepseek_pipeline",
+                chapterKey: chapter.key,
+                roleKey,
+                generationTrace: generationTraceForPath(generationAudit, `scripts.cells.${roleKey}.${chapter.key}`)
+              })
             ]
           );
           sectionCount += 1;
@@ -485,12 +527,13 @@ export async function importDeepseekPipelinePackageWithClient(client, worldId, p
               mechanicalTriggers: pipeline.infoMatrix.mechanicalTriggers || []
             }
           : null);
-      if (matrixSync && typeof matrixSync === "object") {
-        await client.query(
-          `UPDATE worlds SET settings = COALESCE(settings, '{}'::jsonb) || $1::jsonb, updated_at = now() WHERE id = $2`,
-          [JSON.stringify({ matrixSync }), worldId]
-        );
-      }
+      await client.query(
+        `UPDATE worlds SET settings = COALESCE(settings, '{}'::jsonb) || $1::jsonb, updated_at = now() WHERE id = $2`,
+        [JSON.stringify({
+          ...(matrixSync && typeof matrixSync === "object" ? { matrixSync } : {}),
+          pipelineGenerationAudit: generationAudit
+        }), worldId]
+      );
       const unlockRules = await materializePipelineReadingUnlockRules(client, worldId, {
         matrixMode: pipeline.setting?.matrixMode || matrixSync?.matrixMode || "honkaku"
       });
@@ -513,6 +556,8 @@ export async function importDeepseekPipelinePackageWithClient(client, worldId, p
         sections: sectionCount,
         manuscriptCharacters: manuscript?.length || 0,
         matrixSyncStored: Boolean(matrixSync),
+        generationAuditStored: true,
+        generationArtifactCount: Object.keys(generationAudit.artifacts || {}).length,
         unlockRulesCreated: unlockRules.rulesCreated,
         unlockRuleMode: unlockRules.ruleMode,
         playerTasksSeeded,

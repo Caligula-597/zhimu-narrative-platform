@@ -65,6 +65,10 @@ export function buildKnowledgeBoundaryAuditMessages({
     ...(actOutline?.unknowns || []),
     ...(priorKnowledge?.unknowns || [])
   ];
+  const mustNotInfer = [
+    ...(actOutline?.notYetInferred || []),
+    ...(actOutline?.forbiddenConclusions || [])
+  ];
   const publicAnchors = actOutline?.matrix20?.publicAnchors || infoMatrix?.publicEnvironmentByAct?.[actKey] || [];
   const personalTimeline = actOutline?.matrix20?.personalTimeline || [];
 
@@ -79,7 +83,8 @@ LLM 在「文学化/换体裁」时，常擅自给角色补全机关原理、他
 【判定依据 — 按优先级】
 1. **knowledgeSources（本幕）+ 前幕已建立事实**：有来源的才可写为确定事实。
 2. **unknowns / mustNotKnow**：不得写穿；只能「不清楚」「后来才知」「听说未核实」。
-3. **personalTimeline + 角色档案 timelineActions**：不在场时段不得写亲见他人私密行动。
+3. **notYetInferred / forbiddenConclusions**：即使已有碎片足够让模型猜到，也不得替玩家完成推论；怀疑只能停在 allowedSuspicionRange。
+4. **personalTimeline + 角色档案 timelineActions**：不在场时段不得写亲见他人私密行动。
 4. **L2 publicAnchors**：公共场可观察；但不得把公共锚点扩写成全知复盘。
 5. **前幕剧本已写内容**：若 ch2 出现 ch1 未铺垫的「想起叔父曾教…」且无 knowledgeSources 支撑 → **high 越界**。
 6. **truth 时间线（仅物理可见证）**：角色未参与且不在场的事件，不得写确定事实。
@@ -90,7 +95,7 @@ LLM 在「文学化/换体裁」时，常擅自给角色补全机关原理、他
 
 【勿误报】
 - 猜测、误判、task 导向的怀疑 — 允许（标 medium/low 或忽略）。
-- 第二人称心理用感官描写 — 不审文笔，只审**事实断言**。
+- 按 setting.pov 锁定人称的心理与感官描写 — 不审文笔，只审**事实断言**。
 - 真凶私人本可对己相关物证紧张，但不得冷静复盘「我试图毒死但未成功」式全知报告。
 
 【输出 schema】
@@ -116,6 +121,8 @@ ${untrustedUserPayload("角色档案", {
 })}
 ${untrustedUserPayload("本幕允许知识 knowledgeSources", allowedFacts)}
 ${untrustedUserPayload("本幕及前幕不得写穿 unknowns", mustNotKnow.slice(0, 10))}
+${untrustedUserPayload("本幕不得替玩家完成的推论", mustNotInfer.slice(0, 12))}
+${untrustedUserPayload("本幕允许怀疑范围", actOutline?.allowedSuspicionRange || matrixRow?.allowedSuspicionRange || "只能依据已登记事实提出方向性怀疑")}
 ${untrustedUserPayload("L2 公共锚点", publicAnchors)}
 ${untrustedUserPayload("本幕个人时间线", personalTimeline)}
 ${untrustedUserPayload("矩阵行 forbidden", matrixRow?.forbidden || [])}

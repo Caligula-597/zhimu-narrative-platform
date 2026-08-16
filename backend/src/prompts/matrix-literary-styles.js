@@ -67,7 +67,7 @@ export const LITERARY_STYLE_PRESETS = {
     rhythm: "视觉切镜；少解释多呈现；声画对位",
     forbidden: "大段作者旁白总结",
     dialogue: {
-      register: "对白极简；潜台词大于字面；少解释",
+      register: "对白克制但完整；句长随关系、遮掩和争执变化，潜台词大于字面，不把信息压成电报式短答",
       good: "「你当时在哪儿？」镜头外，雨声盖过回答。",
       bad: "「让我详细解释一下我当时完整的行动轨迹和时间线。」"
     }

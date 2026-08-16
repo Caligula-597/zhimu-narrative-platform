@@ -1,6 +1,8 @@
 import { resolveCreativePipeline, requestDeepseekJson } from "./deepseek.js";
 import {
   validateCharacterArchives,
+  validateClueNetwork,
+  validateHostRunbooks,
   validateInfoMatrix,
   validateTruthBible
 } from "./pipeline-matrix-model.js";
@@ -16,20 +18,18 @@ import {
   validateKnowledgeBoundaryAudit
 } from "./prompts/matrix-knowledge-audit.js";
 import { resolveKillerRoleKey } from "./prompts/matrix-prompt-engine.js";
-import { cleanText } from "./prompts/shared.js";
-
-function validateMatrixEvaluation(raw) {
-  const value = raw && typeof raw === "object" ? raw : {};
-  return {
-    overallScore: Number(value.overallScore) || 0,
-    verdict: cleanText(value.verdict, 400),
-    scores: value.scores && typeof value.scores === "object" ? value.scores : {},
-    issues: Array.isArray(value.issues) ? value.issues : [],
-    revisions: Array.isArray(value.revisions) ? value.revisions : [],
-    readyForSync: Boolean(value.readyForSync),
-    suggestions: Array.isArray(value.suggestions) ? value.suggestions : []
-  };
-}
+import {
+  diagnoseScriptCollection,
+  fingerprintScriptCollection
+} from "../../shared/prose-quality-gate.js";
+import {
+  buildArtifactDependencyManifest,
+  buildRepairPlan
+} from "./pipeline-narrative-state-audit.js";
+import { validateMatrixEvaluation } from "./pipeline-matrix-evaluation-validator.js";
+import { simulateMatrixStrategyTable } from "./pipeline-matrix-strategy-playtest.js";
+import { playStructureProfile } from "../../shared/play-structure.js";
+export { validateMatrixEvaluation } from "./pipeline-matrix-evaluation-validator.js";
 
 export async function mapWithConcurrency(items, worker, requestedConcurrency = 3) {
   const values = Array.from(items || []);
@@ -52,21 +52,105 @@ export async function mapWithConcurrency(items, worker, requestedConcurrency = 3
 
 export async function createPipelineMatrixEvaluation(input) {
   const { setting, synopsis, config } = resolveCreativePipeline(input);
+  const truthBible = validateTruthBible(input.truthBible, config, setting);
+  const characterArchives = validateCharacterArchives(input.characterArchives, config, setting, truthBible);
+  const clueNetwork = validateClueNetwork(input.clueNetwork, config, characterArchives, truthBible, setting);
+  const infoMatrix = validateInfoMatrix(input.infoMatrix, config, characterArchives, setting, truthBible, clueNetwork);
+  const hostRunbooks = input.hostRunbooks
+    ? validateHostRunbooks({ runbooks: input.hostRunbooks }, config, setting).runbooks
+    : [];
   const result = await requestDeepseekJson(
     buildMatrixEvaluationMessages({
       setting,
       synopsis,
       config,
-      truthBible: input.truthBible,
-      infoMatrix: input.infoMatrix,
+      truthBible,
+      characterArchives,
+      clueNetwork,
+      infoMatrix,
+      hostRunbooks,
       scripts: input.scripts
     }),
     { maxTokens: 12000, temperature: 0.35, phase: "pipeline.evaluate" }
   );
+  const evaluation = validateMatrixEvaluation(result.value, setting);
+  const proseDiagnostics = diagnoseScriptCollection(input.scripts, { expectedPov: setting.pov });
+  if (!proseDiagnostics.passed) {
+    evaluation.readyForSync = false;
+    evaluation.issues = [
+      ...evaluation.issues,
+      ...proseDiagnostics.issues
+        .filter((issue) => issue.severity === "high")
+        .slice(0, 12)
+        .map((issue) => ({
+          severity: "high",
+          area: "player_prose_gate",
+          detail: `${issue.cell} · 第 ${issue.paragraph || "-"} 段：${issue.message}`
+        }))
+    ];
+    evaluation.revisions = [
+      ...evaluation.revisions,
+      ...proseDiagnostics.issues
+        .filter((issue) => issue.severity === "high")
+        .slice(0, 12)
+        .map((issue) => ({
+          targetLayer: "scripts",
+          targetKey: issue.cell,
+          priority: "must_fix",
+          problem: `${issue.message}${issue.excerpt ? ` 原文：“${issue.excerpt}”` : ""}`,
+          direction: issue.action,
+          promptHint: `重写 ${issue.cell}：${issue.action}`
+        }))
+    ];
+  }
+  const redTeamRoutingIssues = [
+    ...evaluation.redTeamFindings
+      .filter((finding) => finding.severity === "high" || finding.result === "blocked" || finding.result === "fragile")
+      .map((finding) => ({
+        severity: finding.severity || "medium",
+        area: `red_team_${finding.scenario || "unknown"}`,
+        targetLayer: finding.repairLayer || "evaluation",
+        targetKey: finding.targetKey,
+        detail: finding.observedFailure || `${finding.scenario || "红队场景"} 未通过`
+      })),
+    ...(evaluation.redTeamComplete ? [] : [{
+      severity: "high",
+      area: "red_team_incomplete",
+      targetLayer: "evaluation",
+      detail: "六类对抗性桌测没有完整返回，不能据此放行"
+    }])
+  ];
+  const strategyPlaytest = playStructureProfile(setting.playStructure).requiresPlayableDecision
+    ? simulateMatrixStrategyTable({ infoMatrix, clueNetwork, characterArchives, truthBible, runs: 100 })
+    : { passed: true, skipped: true, runs: 0, issues: [], claimBoundary: "纯推理结构不执行策略型结局压力测试" };
+  if (!strategyPlaytest.passed) evaluation.readyForSync = false;
+  const artifactDependencyManifest = buildArtifactDependencyManifest({
+    setting,
+    synopsis,
+    truthBible,
+    characterArchives,
+    clueNetwork,
+    infoMatrix,
+    actOutlines: input.actOutlines,
+    scripts: input.scripts,
+    hostRunbooks
+  });
+  const repairPlan = buildRepairPlan({
+    issues: [...evaluation.issues, ...redTeamRoutingIssues, ...strategyPlaytest.issues],
+    revisions: evaluation.revisions,
+    manifest: artifactDependencyManifest
+  });
   return {
     provider: "deepseek",
     model: result.model,
-    evaluation: validateMatrixEvaluation(result.value)
+    evaluation: {
+      ...evaluation,
+      proseDiagnostics,
+      scriptFingerprint: fingerprintScriptCollection(input.scripts),
+      repairPlan,
+      artifactDependencyManifest,
+      strategyPlaytest
+    }
   };
 }
 
@@ -90,10 +174,11 @@ export async function createPipelineMatrixScriptReadthroughEvaluation(input) {
 }
 
 export async function createPipelineKnowledgeBoundaryAudit(input) {
-  const { config } = resolveCreativePipeline(input);
-  const truthBible = validateTruthBible(input.truthBible, config);
-  const characterArchives = validateCharacterArchives(input.characterArchives, config);
-  const infoMatrix = validateInfoMatrix(input.infoMatrix, config, characterArchives);
+  const { setting, config } = resolveCreativePipeline(input);
+  const truthBible = validateTruthBible(input.truthBible, config, setting);
+  const characterArchives = validateCharacterArchives(input.characterArchives, config, setting, truthBible);
+  const clueNetwork = validateClueNetwork(input.clueNetwork, config, characterArchives, truthBible, setting);
+  const infoMatrix = validateInfoMatrix(input.infoMatrix, config, characterArchives, setting, truthBible, clueNetwork);
   const roleKey = String(input.roleKey || "");
   const actKey = String(input.actKey || "");
   const characterArchive = characterArchives.roles.find((role) => role.key === roleKey);
@@ -149,8 +234,9 @@ export async function createPipelineKnowledgeBoundaryAudit(input) {
 }
 
 export async function createPipelineKnowledgeBoundaryAuditBatch(input) {
-  const { config } = resolveCreativePipeline(input);
-  const characterArchives = validateCharacterArchives(input.characterArchives, config);
+  const { setting, config } = resolveCreativePipeline(input);
+  const truthBible = validateTruthBible(input.truthBible, config, setting);
+  const characterArchives = validateCharacterArchives(input.characterArchives, config, setting, truthBible);
   const work = characterArchives.roles.flatMap((role) =>
     (config.chapterKeys || []).map((actKey) => ({ roleKey: role.key, actKey }))
   );

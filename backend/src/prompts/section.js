@@ -1,6 +1,8 @@
 import { PRODUCT_BOUNDARY, cleanText, compactProposal, compactRoleMatrix, untrustedUserPayload } from "./shared.js";
+import { buildPlayerPovBlock, HUMAN_PROSE_BLOCK, HUMAN_STORY_FOUNDATION_BLOCK } from "./human-authorship.js";
+import { TERMINOLOGY_GROUNDING_BLOCK } from "./matrix-terminology-grounding.js";
 
-export function buildRoleSectionMessages({ brief, spec, outline, proposal, roleMatrix, roleKey, chapterKey, sectionMinWords = 250 }) {
+export function buildRoleSectionMessages({ brief, spec, outline, proposal, roleMatrix, roleKey, chapterKey, sectionMinWords = 250, pov = "second" }) {
   const role = roleMatrix?.roles?.find((item) => item.key === roleKey);
   const chapter = proposal?.chapters?.find((item) => item.key === chapterKey);
   const beat = outline?.chapterBeats?.find((item) => item.chapterKey === chapterKey);
@@ -8,10 +10,21 @@ export function buildRoleSectionMessages({ brief, spec, outline, proposal, roleM
 
 ${PRODUCT_BOUNDARY}
 
+${HUMAN_STORY_FOUNDATION_BLOCK}
+
+${HUMAN_PROSE_BLOCK}
+
+${TERMINOLOGY_GROUNDING_BLOCK}
+
+${buildPlayerPovBlock(pov)}
+
 【任务】
 - 输出 JSON：roleKey、chapterKey、title、body。
-- body 为玩家视角叙述，至少 ${sectionMinWords} 个中文字符，可分段，禁止跑团数值与占位语。
+- body 为已经锁定人称的玩家视角叙述，至少 ${sectionMinWords} 个中文字符，可分段，禁止跑团数值与占位语。
 - 不得剧透 mustHide；knows/canDiscuss 边界须遵守。
+- 先选择本角色本章一个正在发生的场景：谁向谁索取什么、对方如何抵抗、现场发生什么变化。不得把角色字段、章节摘要和任务依次改写成选定人称的说明文。
+- 钱款、期限、身份与线索不得在一个段落里一次性交付完整；让事实从具体交谈、误解、回避和动作中逐步出现。
+- 对白长度服从关系与处境，不得把交谈剪成“问一句—答几个字—再报一个数字”的短句阶梯。
 - 不要输出 overallManuscript 或其他角色内容。
 
 【输出 schema】

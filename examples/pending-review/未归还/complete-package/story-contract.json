@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "title": "未归还",
+  "packageStatus": "narrative_human_table_pending",
+  "format": {
+    "players": 4,
+    "acts": 3,
+    "targetMinutes": 115,
+    "debriefMinutes": 15
+  },
+  "actionLayers": ["submit_for_verification", "accession", "external_publication"],
+  "roles": [
+    { "id": "R1", "name": "梁芷", "publicRole": "代理馆长", "finalActions": ["L1", "L2", "L3"] },
+    { "id": "R2", "name": "沈闻川", "publicRole": "基金代表", "finalActions": ["S1", "S2", "S3"] },
+    { "id": "R3", "name": "周慕", "publicRole": "口述史制作人", "finalActions": ["Z1", "Z2", "Z3", "Z4"] },
+    { "id": "R4", "name": "何溪", "publicRole": "文献修复师", "finalActions": ["H1", "H2", "H3", "H4"] }
+  ],
+  "facts": [
+    { "id": "F1", "claim": "抢救是集体行动：何岚组织，沈启明提供车辆并承担违规风险。", "required": ["E03", "E04"] },
+    { "id": "F2", "claim": "第17箱真实存在，是具有公共保管义务的12人口述史项目材料。", "required": ["E01", "E02"] },
+    { "id": "F3", "claim": "何岚主动带走第17箱，沈启明看见并放行。", "required": ["E06", "E09"] },
+    { "id": "F4", "claim": "洪损记录是沈启明有意填写，动机同时包含保护、安置进程和个人声誉。", "required": ["E05", "E07"], "oneOf": ["E08", "E09"] },
+    { "id": "F5", "claim": "错误英雄叙事今夜仍被馆方、基金与内容生产继续利用。", "required": ["E09", "E12"] },
+    { "id": "F6", "claim": "材料可登记入藏，但没有未经处理对外发布全部原始内容的授权。", "required": ["E10", "E11"] }
+  ],
+  "clues": [
+    { "id": "E01", "title": "临时入藏编号预分配册", "holder": "R1", "act": 1, "sourceGroup": "library-ledger", "supports": ["F2"] },
+    { "id": "E02", "title": "口述项目装箱与移交单", "holder": "R2", "act": 1, "sourceGroup": "project-transfer", "supports": ["F2"] },
+    { "id": "E03", "title": "封存车辆临时调用单", "holder": "R1", "act": 1, "sourceGroup": "factory-transport", "supports": ["F1"] },
+    { "id": "E04", "title": "未刊接触印样与现场笔记", "holder": "R3", "act": 1, "sourceGroup": "newspaper-photo", "supports": ["F1"] },
+    { "id": "E05", "title": "暂缓入藏内部便笺", "holder": "R2", "act": 2, "sourceGroup": "resettlement-office", "supports": ["F4"] },
+    { "id": "E06", "title": "何岚保管日志", "holder": "R4", "act": 2, "sourceGroup": "he-lan-log", "supports": ["F3"] },
+    { "id": "E07", "title": "洪水损失清册原件", "holder": "R1", "act": 2, "sourceGroup": "library-loss-register", "supports": ["F4"] },
+    { "id": "E08", "title": "沈启明未寄纠正信", "holder": "R2", "act": 2, "sourceGroup": "shen-letter", "supports": ["F1", "F4", "F5"] },
+    { "id": "E09", "title": "完整录音与剪辑时间线", "holder": "R3", "act": 2, "sourceGroup": "shen-recording-edit", "supports": ["F3", "F4", "F5"] },
+    { "id": "E10", "title": "第17箱实物查验记录", "holder": "R4", "act": 3, "sourceGroup": "physical-box", "supports": ["F6"] },
+    { "id": "E11", "title": "十二份授权权限核对表", "holder": "R4", "act": 3, "sourceGroup": "consent-forms", "supports": ["F6"] },
+    { "id": "E12", "title": "今夜资助申请与第9.3条", "holder": "PUBLIC", "act": 1, "sourceGroup": "current-contract", "supports": ["F5"] }
+  ],
+  "actClues": {
+    "A1": ["E01", "E02", "E03", "E04", "E12"],
+    "A2": ["E05", "E06", "E07", "E08", "E09"],
+    "A3": ["E10", "E11"]
+  },
+  "fundingGateAvailableWhen": ["pending_verification", "material_dispute"],
+  "endingOrder": ["END-C", "END-B", "END-A", "END-D"],
+  "endings": {
+    "END-C": { "requires": ["R3:Z3", "R4:H4"] },
+    "END-B": { "requires": ["verified_count>=5", "verified:F1", "verified:F2", "verified:F6", "correction_gate_available", "R1:L2", "R2:S2", "R3:Z2", "R4:H2"] },
+    "END-A": { "requires": ["R1:L1", "R2:S1", "not:R3:Z3", "not:END-C", "not:END-B"] },
+    "END-D": { "requires": ["not:END-C", "not:END-B", "not:END-A"] }
+  }
+}

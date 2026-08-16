@@ -3,6 +3,7 @@ import { resolveLiteraryStyleKey, resolveMysteryStyleKey, LITERARY_STYLE_PRESETS
 import { resolveKillerAwareness } from "./matrix-killer-awareness.js";
 import { resolveMatrixMode, buildMatrixModeProfile } from "./matrix-2-mode.js";
 import { resolveEraPreset, buildEraSettingCard } from "./matrix-era-setting.js";
+import { normalizePlayStructure, playStructureProfile } from "../../../shared/play-structure.js";
 
 export function validateCreativeSetting(raw) {
   const value = raw && typeof raw === "object" ? raw : {};
@@ -14,6 +15,8 @@ export function validateCreativeSetting(raw) {
   const killerAwareness = resolveKillerAwareness(value);
   const matrixMode = resolveMatrixMode(value.matrixMode || value);
   const eraPreset = resolveEraPreset(value.eraPreset || value);
+  const playStructure = normalizePlayStructure(value.playStructure);
+  const structureProfile = playStructureProfile(playStructure);
   const modeProfile = buildMatrixModeProfile({ matrixMode });
   const eraCard = buildEraSettingCard({ eraPreset, eraNotes: value.eraNotes });
   return {
@@ -28,6 +31,8 @@ export function validateCreativeSetting(raw) {
     mysteryStyle,
     killerAwareness,
     matrixMode,
+    playStructure,
+    playStructureLabel: structureProfile.label,
     eraPreset,
     eraNotes: cleanText(value.eraNotes, 800),
     matrixModeLabel: modeProfile.matrixModeLabel,
@@ -60,10 +65,11 @@ export function formatCreativeSettingBlock(setting) {
     `章节数量：${setting.chapterCount}`,
     `每章节目标字数：${setting.wordsPerChapter}`,
     setting.literaryStyleLabel ? `文风预设：${setting.literaryStyleLabel}（${setting.literaryStyle || ""}）` : null,
-    setting.mysteryStyleLabel ? `悬疑参照：${setting.mysteryStyleLabel}` : null,
+    setting.playStructure === "mystery" && setting.mysteryStyleLabel ? `悬疑参照：${setting.mysteryStyleLabel}` : null,
     setting.matrixModeLabel ? `Matrix 模式：${setting.matrixModeLabel}` : null,
+    setting.playStructureLabel ? `玩法结构：${setting.playStructureLabel}（${setting.playStructure}）` : null,
     setting.eraLabel ? `时代背景：${setting.eraLabel}（${setting.eraPreset || ""}）` : null,
-    setting.killerAwarenessLabel ? `凶手自知：${setting.killerAwarenessLabel}` : null,
+    setting.playStructure === "mystery" && setting.killerAwarenessLabel ? `凶手自知：${setting.killerAwarenessLabel}` : null,
     setting.volumeTier ? `体量档位：${setting.volumeTier}` : null,
     setting.pov ? `叙述视角：${setting.pov === "first" ? "第一人称" : "第二人称"}` : null,
     setting.forbiddenPhrases ? `禁用词：\n${setting.forbiddenPhrases}` : null,

@@ -7,6 +7,7 @@ import { resolveKillerAwareness, buildKillerAwarenessContract } from "./matrix-k
 import { buildPersonalSignatureGuidance } from "./matrix-fairness-model.js";
 import { buildMatrixModeProfile } from "./matrix-2-mode.js";
 import { buildEntityUnlockContract } from "./matrix-entity-unlock.js";
+import { buildTerminologyGroundingContract } from "./matrix-terminology-grounding.js";
 
 export function actIndex(config, actKey) {
   const keys = config?.chapterKeys || [];
@@ -42,12 +43,23 @@ export function buildRoleRosterBlock(characterArchives) {
   };
 }
 
-export function buildClueLedger(infoMatrix, actKey, { includeFutureActs = false } = {}) {
-  const keys = [...new Set((infoMatrix?.clues || []).map((c) => c.actKey))];
+export function buildClueLedger(infoMatrix, actKey, { includeFutureActs = false, roleKey = "", config = null } = {}) {
+  const keys = config?.chapterKeys?.length
+    ? config.chapterKeys
+    : [...new Set((infoMatrix?.clues || []).map((c) => c.actKey))];
   const currentIdx = keys.indexOf(actKey);
+  const authorizedIds = new Set();
+  for (const row of infoMatrix?.rows || []) {
+    if (!roleKey || row.roleKey !== roleKey) continue;
+    const rowIdx = keys.indexOf(row.actKey);
+    if (!includeFutureActs && currentIdx >= 0 && (rowIdx < 0 || rowIdx > currentIdx)) continue;
+    for (const clueId of row.newClueIds || []) authorizedIds.add(clueId);
+  }
   return (infoMatrix?.clues || [])
     .filter((c) => {
-      if (includeFutureActs) return true;
+      const isPublicAnchor = c.scope === "public_anchor";
+      if (!isPublicAnchor && roleKey && !authorizedIds.has(c.key)) return false;
+      if (includeFutureActs) return isPublicAnchor || authorizedIds.has(c.key) || !roleKey;
       const idx = keys.indexOf(c.actKey);
       if (currentIdx < 0) return c.actKey === actKey;
       return idx >= 0 && idx <= currentIdx;
@@ -56,33 +68,21 @@ export function buildClueLedger(infoMatrix, actKey, { includeFutureActs = false 
       key: c.key,
       name: c.name,
       actKey: c.actKey,
+      scope: c.scope,
       grantMode: c.grantMode,
-      hint: cleanText(c.description, 160)
+      observable: cleanText(c.description, 220)
     }));
 }
 
 export function buildPeerScriptDigest(existingScripts, actKey, roleKey, config) {
-  const keys = config?.chapterKeys || [];
-  const actIdx = keys.indexOf(actKey);
-  const digest = [];
-  for (const [rk, acts] of Object.entries(existingScripts || {})) {
-    if (rk === roleKey) continue;
-    for (const [ak, script] of Object.entries(acts || {})) {
-      const akIdx = keys.indexOf(ak);
-      if (akIdx < 0 || akIdx > actIdx) continue;
-      if (rk === roleKey && ak === actKey) continue;
-      const body = cleanText(script?.body, 2000);
-      if (!body) continue;
-      digest.push({
-        roleKey: rk,
-        actKey: ak,
-        title: script.title,
-        excerpt: body.slice(0, 280),
-        tasks: (script.tasks || []).slice(0, 3)
-      });
-    }
-  }
-  return digest.slice(0, 8);
+  // Other players' scripts are private sources, not a continuity database.
+  // Shared scene continuity comes from actContracts/publicEnvironment; exposing
+  // peer excerpts here silently leaks secrets into later generated scripts.
+  void existingScripts;
+  void actKey;
+  void roleKey;
+  void config;
+  return [];
 }
 
 /** Same-role previous acts — demo 短篇按 ch1→ch2→ch3 连续阅读。 */
@@ -156,7 +156,8 @@ export function buildSpoilerContract({
   const forbidden = [
     ...new Set([
       ...(gate.forbiddenFacts || []),
-      cleanText(matrixRow?.forbidden, 500)
+      cleanText(matrixRow?.forbidden, 500),
+      ...(matrixRow?.forbiddenConclusions || []).map((item) => cleanText(item, 300))
     ].filter(Boolean))
   ];
 
@@ -194,6 +195,12 @@ export function buildSpoilerContract({
   }
 
   rules.push(...awareness.rules);
+  if ((matrixRow?.notYetInferred || []).length) {
+    rules.push(`本幕尚未由该角色完成的推论：${matrixRow.notYetInferred.join("；")}。即使上下文足以让模型猜到，也不得替玩家写出。`);
+  }
+  if (matrixRow?.allowedSuspicionRange) {
+    rules.push(`本幕怀疑只能推进到：${matrixRow.allowedSuspicionRange}`);
+  }
 
   if (killerKey && idx < 2) {
     forbidden.push(`明确指认 ${killerKey} 为凶手`);
@@ -224,14 +231,16 @@ export function buildFairnessContract({
   const idx = actIndex(config, actKey);
   const killerAwareness = resolveKillerAwareness(setting);
   const modeProfile = buildMatrixModeProfile(setting);
-  const actClues = (infoMatrix?.clues || []).filter((c) => c.actKey === actKey);
+  const actClues = (infoMatrix?.clues || []).filter((c) =>
+    c.actKey === actKey && (c.scope === "public_anchor" || (matrixRow?.newClueIds || []).includes(c.key))
+  );
   const myClueIds = matrixRow?.newClueIds || [];
   const characterArchive = (characterArchives?.roles || []).find((r) => r.key === roleKey);
   const personalSignature = buildPersonalSignatureGuidance({ roleKey, characterArchive });
 
   const rules = [
     "【Matrix 2.0 · 信息分工】",
-    "L2 公共池（clueLedger + publicEnvironment）：推理主路径；主持可发线索卡。",
+    "L2 授权线索（clueLedger）只包含本角色已取得的线索与公共锚点；不得据此想象其它角色私有线索。",
     "L3 个人本：时间线声称 + 1～2 条特色线索/secret；玩家自行决定是否公聊。",
     "L5 表层任务：对质/公开/辩护；**禁止**在 tasks 中独家发放推理必需事实。",
     "他人 secret/误导须可圆（动机/时间线/物证）；禁止凭空栽赃。",
@@ -302,7 +311,11 @@ export function buildMatrixScriptPromptBundle(input) {
     roleKey,
     matrixRow,
     existingScripts,
-    setting
+    setting,
+    synopsis,
+    styleCard,
+    characterArchive,
+    actMaterials
   } = input;
 
   return {
@@ -330,8 +343,19 @@ export function buildMatrixScriptPromptBundle(input) {
       roleKey
     }),
     misdirectionPreservation: buildMisdirectionPreservationBlock(truthBible, config, actKey),
-    clueLedger: buildClueLedger(infoMatrix, actKey),
+    clueLedger: buildClueLedger(infoMatrix, actKey, { roleKey, config }),
     peerScriptDigest: buildPeerScriptDigest(existingScripts, actKey, roleKey, config),
+    terminologyGroundingContract: buildTerminologyGroundingContract({
+      setting,
+      synopsis,
+      styleCard,
+      characterArchive: characterArchive || (characterArchives?.roles || []).find((role) => role.key === roleKey),
+      matrixRow,
+      clueLedger: buildClueLedger(infoMatrix, actKey, { roleKey, config }),
+      actMaterials,
+      roleKey,
+      actKey
+    }),
     authoritativeTasks: matrixRow?.tasks || []
   };
 }

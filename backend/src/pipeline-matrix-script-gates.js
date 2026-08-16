@@ -5,6 +5,7 @@
 import { actIndex } from "./prompts/matrix-prompt-engine.js";
 import { cleanText } from "./prompts/shared.js";
 import { scanKillerSpoilers, tokensFromForbiddenFact } from "./pipeline-matrix-killer-guard.js";
+import { diagnosePlayerScript } from "../../shared/prose-quality-gate.js";
 
 const DISCOVERY_VERBS = /(?:发现|看到|看见|捡到|捡起|拾起|打开|读到|翻出|找到|抽出|掏出|核对|确认|翻阅)/;
 const GUILT_PATTERNS = [
@@ -183,7 +184,7 @@ export function buildAuthorizedClueNames(infoMatrix, matrixRow, actKey, config) 
   for (const clue of infoMatrix?.clues || []) {
     const clueIdx = keys.indexOf(clue.actKey);
     if (clueIdx < 0 || clueIdx > actIdx) continue;
-    if (authorizedIds.has(clue.key) || clue.grantMode === "auto") {
+    if (authorizedIds.has(clue.key) || clue.scope === "public_anchor") {
       if (clue.name) names.add(clue.name);
     }
   }
@@ -293,6 +294,7 @@ export function applyScriptQualityGates(body, {
   gates.internalMarkers = scanInternalMarkers(body);
   gates.povConsistency = scanPovConsistency(body, pov, roleName);
   gates.duplicatePassages = scanDuplicatePassages(body);
+  gates.playerProse = diagnosePlayerScript(body, { expectedPov: pov });
   gates.unregisteredCharacters = scanUnregisteredCharacterNames(body, characterArchives, truthBible, infoMatrix);
   gates.unauthorizedDiscovery = scanUnauthorizedDiscoveries(body, infoMatrix, matrixRow, actKey, config);
   if (!gates.unauthorizedDiscovery.passed) {
@@ -319,6 +321,7 @@ export function applyScriptQualityGates(body, {
     gates.internalMarkers.passed &&
     gates.povConsistency.passed &&
     gates.duplicatePassages.passed &&
+    gates.playerProse.passed &&
     gates.unregisteredCharacters.passed &&
     gates.unauthorizedDiscovery.passed &&
     (gates.guiltStatements ? gates.guiltStatements.passed : true) &&

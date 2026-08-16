@@ -38,6 +38,9 @@ test("buildChapterNarrativeMessages uses compact prior context", () => {
     ]
   });
   const userContent = messages[1].content;
+  const systemContent = messages[0].content;
   assert.match(userContent, /摘要\+末尾片段/);
+  assert.match(systemContent, /生活先于命题/);
+  assert.match(systemContent, /延迟解释|立刻解释/);
   assert.ok(userContent.length < longBody.length * 2, "prompt should be much smaller than full prior bodies");
 });

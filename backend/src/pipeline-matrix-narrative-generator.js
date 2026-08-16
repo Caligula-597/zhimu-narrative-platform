@@ -6,6 +6,7 @@ import { applyScriptQualityGates } from "./pipeline-matrix-script-gates.js";
 import {
   pipelineWordTargets,
   validateCharacterArchives,
+  validateClueNetwork,
   validateInfoMatrix,
   validateMatrixPlayerScript,
   validateTruthBible
@@ -17,14 +18,21 @@ import {
   buildMatrixPlayerScriptMessages
 } from "./prompts/matrix-player-script.js";
 import { buildLiteraryStyleCard } from "./prompts/matrix-literary-styles.js";
-import { actIndex, buildSpoilerContract, resolveKillerRoleKey } from "./prompts/matrix-prompt-engine.js";
+import { HUMAN_AUTHORSHIP_VERSION } from "./prompts/human-authorship.js";
+import { actIndex, buildClueLedger, buildSpoilerContract, resolveKillerRoleKey } from "./prompts/matrix-prompt-engine.js";
+import {
+  buildTerminologyGroundingContract,
+  TERMINOLOGY_GROUNDING_VERSION
+} from "./prompts/matrix-terminology-grounding.js";
 import { cleanText } from "./prompts/shared.js";
+import { PROSE_QUALITY_GATE_VERSION } from "../../shared/prose-quality-gate.js";
 
 export async function createPipelineMatrixNarrativePlayerScript(input) {
   const { setting, synopsis, config } = resolveCreativePipeline(input);
-  const truthBible = validateTruthBible(input.truthBible, config);
-  const characterArchives = validateCharacterArchives(input.characterArchives, config);
-  const infoMatrix = validateInfoMatrix(input.infoMatrix, config, characterArchives);
+  const truthBible = validateTruthBible(input.truthBible, config, setting);
+  const characterArchives = validateCharacterArchives(input.characterArchives, config, setting, truthBible);
+  const clueNetwork = validateClueNetwork(input.clueNetwork, config, characterArchives, truthBible, setting);
+  const infoMatrix = validateInfoMatrix(input.infoMatrix, config, characterArchives, setting, truthBible, clueNetwork);
   const roleKey = String(input.roleKey || "");
   const actKey = String(input.actKey || "");
   const characterArchive = characterArchives.roles.find((role) => role.key === roleKey);
@@ -37,6 +45,17 @@ export async function createPipelineMatrixNarrativePlayerScript(input) {
   const actIdx = actIndex(config, actKey);
   const finalIdx = Math.max(0, (config.chapterKeys?.length || 1) - 1);
   const isKiller = resolveKillerRoleKey(truthBible, characterArchives) === roleKey;
+  const terminologyGroundingContract = buildTerminologyGroundingContract({
+    setting,
+    synopsis,
+    styleCard,
+    characterArchive,
+    matrixRow,
+    clueLedger: buildClueLedger(infoMatrix, actKey, { roleKey, config }),
+    actMaterials: (infoMatrix.clues || []).filter((clue) => clue.actKey === actKey && clue.physicalForm),
+    roleKey,
+    actKey
+  });
   const killerInnocentMode = input.killerScriptMode !== "legacy" && isKiller && actIdx < finalIdx;
   const spoilerContract = buildSpoilerContract({
     truthBible,
@@ -103,6 +122,7 @@ export async function createPipelineMatrixNarrativePlayerScript(input) {
               pronouns: role.pronouns
             }))
           },
+          terminologyGroundingContract,
           isKiller,
           actIndex: actIdx,
           finalActIndex: finalIdx
@@ -139,7 +159,9 @@ export async function createPipelineMatrixNarrativePlayerScript(input) {
             violations: scan.violations,
             matrixRow,
             actKey,
-            roleKey
+            roleKey,
+            pov: styleCard.pov,
+            terminologyGroundingContract
           }),
           {
             maxTokens: Math.min(12000, targetWords * 3),
@@ -159,7 +181,7 @@ export async function createPipelineMatrixNarrativePlayerScript(input) {
       }
     }
 
-    const gated = applyScriptQualityGates(script.body, {
+    let gated = applyScriptQualityGates(script.body, {
       spoilerContract,
       infoMatrix,
       matrixRow,
@@ -174,6 +196,55 @@ export async function createPipelineMatrixNarrativePlayerScript(input) {
       pov: styleCard.pov,
       roleName: characterArchive.name
     });
+    if (!gated.gates.playerProse.passed) {
+      const repair = await requestDeepseekJson(
+        buildMatrixDeAiPassMessages({
+          body: gated.body,
+          styleCard,
+          targetWords,
+          spoilerContract,
+          characterArchive,
+          roleRoster: {
+            roles: characterArchives.roles.map((role) => ({
+              key: role.key,
+              name: role.name,
+              publicIdentity: role.publicIdentity,
+              pronouns: role.pronouns
+            }))
+          },
+          terminologyGroundingContract,
+          isKiller,
+          actIndex: actIdx,
+          finalActIndex: finalIdx,
+          repairFeedback: gated.gates.playerProse.issues
+        }),
+        {
+          maxTokens: Math.min(12000, targetWords * 3),
+          temperature: 0.22,
+          phase: "pipeline.script.prose_repair",
+          context: { roleKey, actKey, attempt: attempt + 1 }
+        }
+      );
+      const repairedBody = cleanText(repair.value?.body, 12000);
+      if (repairedBody.length >= minWords) {
+        script = { ...script, body: repairedBody };
+        gated = applyScriptQualityGates(script.body, {
+          spoilerContract,
+          infoMatrix,
+          matrixRow,
+          actKey,
+          config,
+          isKillerInnocentMode: killerInnocentMode,
+          actIndex: actIdx,
+          isKiller,
+          finalActIndex: finalIdx,
+          characterArchives,
+          truthBible,
+          pov: styleCard.pov,
+          roleName: characterArchive.name
+        });
+      }
+    }
     script = { ...script, body: gated.body };
     qualityGates = gated.gates;
     if (gated.passed) {
@@ -183,18 +254,27 @@ export async function createPipelineMatrixNarrativePlayerScript(input) {
   }
 
   if (!accepted) {
-    throwErr("DEEPSEEK_OUTPUT_INVALID", "剧本正文未通过人物边界、重复内容或剧透门禁", {
+    throwErr("DEEPSEEK_OUTPUT_INVALID", "剧本正文未通过人物边界、场景化正文或剧透门禁", {
       roleKey,
       actKey,
       qualityGates
     });
   }
 
+  const prosePolicy = {
+    humanAuthorshipVersion: HUMAN_AUTHORSHIP_VERSION,
+    proseGateVersion: PROSE_QUALITY_GATE_VERSION,
+    terminologyGroundingVersion: TERMINOLOGY_GROUNDING_VERSION,
+    defaultGenerationMode: "scene_first"
+  };
+  script = { ...script, proseDiagnostics: qualityGates?.playerProse, prosePolicy };
+
   return {
     provider: "deepseek",
     model,
     script,
     scriptGenerationMode: "narrative",
+    prosePolicy,
     qualityGates,
     killerInnocentMode,
     killerInjections

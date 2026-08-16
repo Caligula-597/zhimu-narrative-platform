@@ -18,6 +18,10 @@ import {
   MECHANISM_DESIGN_STATUSES,
   MECHANISM_DESIGN_VERSION,
 } from "../../../../shared/mechanism-design.js";
+import {
+  BOARD_GAME_COMPONENT_TYPES,
+  BOARD_GAME_DESIGN_VERSION,
+} from "../../../../shared/board-game-design.js";
 
 const constitutionTextListSchema = {
   type: "array",
@@ -414,6 +418,157 @@ const miniGameTemplateSchema = {
   }
 };
 
+const boardGameStateFieldSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "label", "key", "initialValue"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    label: { type: "string", minLength: 1, maxLength: 80 },
+    key: { type: "string", minLength: 1, maxLength: 80 },
+    initialValue: { type: "string", maxLength: 300 },
+  },
+};
+
+const boardGameAssetSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "assetId", "fileName", "kind", "caption"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    assetId: { type: "string", maxLength: 120 },
+    fileName: { type: "string", minLength: 1, maxLength: 240 },
+    kind: { type: "string", enum: ["image", "document"] },
+    caption: { type: "string", maxLength: 1200 },
+  },
+};
+
+const boardGameEntrySchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "name", "description", "quantity"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    name: { type: "string", minLength: 1, maxLength: 160 },
+    description: { type: "string", maxLength: 1600 },
+    quantity: { type: "integer", minimum: 1, maximum: 9999 },
+  },
+};
+
+const boardGameComponentSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "type", "name", "quantity", "description", "playerAction", "stateFields", "assets", "entries", "notes"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    type: { type: "string", enum: [...BOARD_GAME_COMPONENT_TYPES] },
+    name: { type: "string", minLength: 1, maxLength: 120 },
+    quantity: { type: "integer", minimum: 1, maximum: 9999 },
+    description: { type: "string", maxLength: 1600 },
+    playerAction: { type: "string", maxLength: 1600 },
+    stateFields: { type: "array", maxItems: 40, items: boardGameStateFieldSchema },
+    assets: { type: "array", maxItems: 100, items: boardGameAssetSchema },
+    entries: { type: "array", maxItems: 2000, items: boardGameEntrySchema },
+    notes: { type: "string", maxLength: 2400 },
+  },
+};
+
+const boardGameVariableSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "label", "scope", "initialValue", "min", "max"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    label: { type: "string", minLength: 1, maxLength: 100 },
+    scope: { type: "string", enum: ["global", "player", "component"] },
+    initialValue: { type: "number", minimum: -1000000000, maximum: 1000000000 },
+    min: { type: "number", minimum: -1000000000, maximum: 1000000000 },
+    max: { type: "number", minimum: -1000000000, maximum: 1000000000 },
+  },
+};
+
+const boardGameConditionSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "sourceKey", "operator", "value"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    sourceKey: { type: "string", maxLength: 80 },
+    operator: { type: "string", enum: ["eq", "neq", "gt", "gte", "lt", "lte", "contains"] },
+    value: { type: "string", maxLength: 300 },
+  },
+};
+
+const boardGameEffectSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "targetKey", "operation", "value"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    targetKey: { type: "string", maxLength: 80 },
+    operation: { type: "string", enum: ["set", "add", "subtract", "multiply", "min", "max", "toggle"] },
+    value: { type: "string", maxLength: 300 },
+  },
+};
+
+const boardGameMechanismSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "templateKey", "name", "sourceComponentId", "trigger", "conditionMode", "conditions", "effects", "notes"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    templateKey: { type: "string", minLength: 1, maxLength: 80 },
+    name: { type: "string", minLength: 1, maxLength: 160 },
+    sourceComponentId: { type: "string", maxLength: 80 },
+    trigger: { type: "string", minLength: 1, maxLength: 160 },
+    conditionMode: { type: "string", enum: ["all", "any"] },
+    conditions: { type: "array", maxItems: 40, items: boardGameConditionSchema },
+    effects: { type: "array", maxItems: 40, items: boardGameEffectSchema },
+    notes: { type: "string", maxLength: 2400 },
+  },
+};
+
+const boardGameRulebookSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["objective", "setup", "turnStructure", "playerActions", "endCondition", "tieBreak", "notes"],
+  properties: {
+    objective: { type: "string", maxLength: 4000 },
+    setup: { type: "string", maxLength: 8000 },
+    turnStructure: { type: "string", maxLength: 8000 },
+    playerActions: { type: "string", maxLength: 8000 },
+    endCondition: { type: "string", maxLength: 4000 },
+    tieBreak: { type: "string", maxLength: 2400 },
+    notes: { type: "string", maxLength: 8000 },
+  },
+};
+
+export const boardGameDesignSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["version", "title", "designGoal", "playerCount", "playTimeMinutes", "components", "variables", "mechanisms", "rulebook", "updatedAt"],
+  properties: {
+    version: { type: "integer", const: BOARD_GAME_DESIGN_VERSION },
+    title: { type: "string", maxLength: 120 },
+    designGoal: { type: "string", maxLength: 2400 },
+    playerCount: {
+      type: "object",
+      additionalProperties: false,
+      required: ["min", "max"],
+      properties: {
+        min: { type: "integer", minimum: 1, maximum: 99 },
+        max: { type: "integer", minimum: 1, maximum: 99 },
+      },
+    },
+    playTimeMinutes: { type: "integer", minimum: 1, maximum: 10080 },
+    components: { type: "array", maxItems: 300, items: boardGameComponentSchema },
+    variables: { type: "array", maxItems: 300, items: boardGameVariableSchema },
+    mechanisms: { type: "array", maxItems: 300, items: boardGameMechanismSchema },
+    rulebook: boardGameRulebookSchema,
+    updatedAt: { anyOf: [{ type: "string", maxLength: 80 }, { type: "null" }] },
+  },
+};
+
 export const worldSettingsSchema = {
   type: "object",
   additionalProperties: true,
@@ -427,6 +582,7 @@ export const worldSettingsSchema = {
     creativeConstitution: creativeConstitutionSchema,
     storySpine: storySpineSchema,
     mechanismDesign: mechanismDesignSchema,
+    boardGameDesign: boardGameDesignSchema,
     communicationTemplates: { type: "array", maxItems: 4, items: communicationTemplateSchema },
     miniGameTemplates: { type: "array", maxItems: 50, items: miniGameTemplateSchema },
   },

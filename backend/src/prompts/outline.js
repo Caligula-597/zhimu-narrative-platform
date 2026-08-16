@@ -1,4 +1,6 @@
 import { PRODUCT_BOUNDARY, untrustedUserPayload } from "./shared.js";
+import { HUMAN_PROSE_BLOCK, HUMAN_STORY_FOUNDATION_BLOCK } from "./human-authorship.js";
+import { SOURCE_ADAPTATION_GENERATION_BLOCK } from "./source-adaptation-fidelity.js";
 import {
   getOutlineAssemblyField,
   OUTLINE_ASSEMBLY_ROOT_FIELDS,
@@ -16,6 +18,10 @@ export function buildStoryOutlineMessages(brief, spec) {
 
 ${PRODUCT_BOUNDARY}
 
+${HUMAN_STORY_FOUNDATION_BLOCK}
+
+${SOURCE_ADAPTATION_GENERATION_BLOCK}
+
 【生成方式】
 下面的规则全部是你在动笔时必须遵守的创作约束，不是交稿后等待后端替你修复的检查表。
 在输出第一个 JSON 字符前，先在内部完成一次不外显的预演：锁定唯一真相、六人贡献、实体与资源 key、逐章状态传递、失败分支和累计结局；发现冲突就先在内部重排，再一次性输出最终 JSON。
@@ -27,13 +33,15 @@ brief.generationContract 是40篇并发启动前已经锁定的创作合同：�
 
 1. 梗概兑现与底层质量
 - 把 logline 中每个异常、高概念承诺逐项写进 hookPromises。
-- sourceFidelity.briefTitle 必须逐字等于 brief.title；premiseElements 至少选择两个原样出现在 brief.premise 中的具体短语。不要在修订时换题。
+- sourceFidelity.briefTitle 必须逐字等于 brief.title；短素材的 premiseElements 至少选择两个原样出现在 brief.premise 中的具体短语；原素材包含多组不可合并的核心矛盾时，每组都必须有独立条目，不能只取最醒目的两条。不要在修订时换题。
 - 每项承诺必须有不降级的 payoff，并由至少两个已登记 supportKeys 支持。mystery 题材的关键承诺必须由两条来源独立的证据支持；其他题材可使用关系状态、承诺、资源、权限、任务结果或稳定实体作为支持。
 - 禁止开头承诺未来影像、魔法规则或异常名单，结尾仅解释为普通剪辑、谎言或偶然，除非仍完整兑现异常强度与全部可观察细节。
+- brief 中的主题、口播结论或社会判断可以保留作者明确立场，但不能写进 truthTimeline 当唯一裁决，也不能让全部角色、证据和结局共同证明它。先锁定人物出于具体欲望做过的不可逆行为，再让该立场进入行动、关系与反噬；玩家仍可拒绝作者预设答案。
 
 2. 不可替代的玩家贡献，而非强行平均
 - players 必须恰好等于 spec.playerCount；禁止“角色A、队员B、嘉宾1”等占位名。
 - 每人必须有身份、公开目标、隐藏目标、核心秘密、独占锚点、主动计划、人物弧光和一个 spotlightChapterKey。
+- 上述字段是制作合同，不是人生配方：秘密数量、创伤强度、表达能力、责任大小和弧光幅度不得机械对称。禁止把玩家一一设计成互补观点席位；每人必须有偏离主议题的私人欲望与关系行动。
 - 不要求每人每章机械行动。每名玩家只列真正产生影响的 chapterActions，但至少覆盖 ceil(spec.chapterCount × 0.6) 个不同章节。
 - contribution.anchorType 必须按 brief.generationContract.contributionTypes 的角色顺序逐项使用，可选 evidence、relationship、commitment、authority、resource、task、risk、memory、audience；anchorKeys 必须引用已登记 key。禁止把 authority、relationship 等类型的独占锚点继续写成 evidence-x；若 anchorType=resource，anchorKeys 必须引用 generationContract.resourceKeys 中的真实题材资源，不能用状态或证据冒充。
 - 每名玩家至少触发一次主线转折、至少一次改变其他玩家的资源或选择；其行动必须通过状态写入、资源变化或证据开关形成通往结局条件的因果路径，但不要求每人独占一个结局变量。
@@ -106,7 +114,7 @@ brief.generationContract 是40篇并发启动前已经锁定的创作合同：�
   "sourceFidelity": {
     "briefTitle": "逐字复制 brief.title",
     "premiseElements": [
-      {"element":"brief.premise 原文短语","implementation":"机制与剧情用途","chapterKeys":["chapter-1"],"supportKeys":["state-contract-primary"]}
+      {"element":"brief.premise 原文短语","implementation":"人物行动；议价权变化；即时得失；延迟后果；机制与剧情用途","chapterKeys":["chapter-1"],"supportKeys":["state-contract-primary"]}
     ]
   },
   "hookPromises": [
@@ -864,6 +872,8 @@ export function buildStoryOutlineAssemblyMessages(
   const system = `你是互动叙事产品的章节架构师。第一阶段创作蓝图已经通过机械合同；你现在只能为它装配玩家章节行动和公共章节节点。
 ${PRODUCT_BOUNDARY}
 
+${HUMAN_STORY_FOUNDATION_BLOCK}
+
 只输出一个 JSON 对象，顶层只能有 ${OUTLINE_ASSEMBLY_ROOT_FIELDS.join("、")} 三个字段。不要复述、改写或补充蓝图的其他字段。
 
 playerChapterActions 必须恰好 ${spec.playerCount} 项，按蓝图 players 顺序输出：
@@ -889,7 +899,7 @@ playerChapterActions 必须恰好 ${spec.playerCount} 项，按蓝图 players �
     }
   ]
 }
-每名玩家恰好覆盖 ${minimumActionChapters} 个不同章节，不要为了填表让六人每章轮流行动。禁止只写“调查线索、质问某人、交换信息、隐瞒秘密、寻找真相”。actionTarget 即使对象名称很短，也要写成可辨识的具体对象说明。每名玩家至少一次改变另一玩家的资源、权限或选择，并沿登记状态、资源、证据或分支事件形成通往结局的真实因果路径；不要求六个人各自直接给一个结局状态赋值。
+每名玩家恰好覆盖 ${minimumActionChapters} 个不同章节，不要为了填表让六人每章轮流行动。这个结构覆盖要求不允许复制同一种行动配方；人物的责任大小、表达方式和变化幅度可以不平均。禁止只写“调查线索、质问某人、交换信息、隐瞒秘密、寻找真相”。actionTarget 即使对象名称很短，也要写成可辨识的具体对象说明。每名玩家至少一次改变另一玩家的资源、权限或选择，并沿登记状态、资源、证据或分支事件形成通往结局的真实因果路径；不要求六个人各自直接给一个结局状态赋值。
 
 chapterBeats 必须严格按 ${spec.chapterKeys.join("、")} 输出 ${spec.chapterKeys.length} 项：
 {
@@ -2006,6 +2016,7 @@ genreMechanicUse 必须逐字采用“触发：具体条件；判定：公开步
     payloadBase.chapterComponentScaffold = chapterComponentScaffold;
   } else if (component === "styleExpressions") {
     system = `你是互动叙事产品的逐章文风设计师。${PRODUCT_BOUNDARY}
+${HUMAN_PROSE_BLOCK}
 只输出一个 JSON 对象，顶层必须且只能包含 styleChapterExpressions。外壳必须严格采用 {"styleChapterExpressions":[{"chapterKey":"chapter-1","device":"...","sceneOrDialogue":"..."}]}：styleChapterExpressions 必须是 JSON 数组，不能改成以章节 key 组成的对象映射。
 数组必须恰好 ${spec.chapterKeys.length} 项，并按 ${spec.chapterKeys.join("、")} 顺序输出，每个章节对象各出现一次。
 每项必须为 {"chapterKey":"chapter-1","device":"逐字引用 blueprint.styleContract.signatureDevices 中一项","sceneOrDialogue":"可直接扩写的场景、叙述动作或对白"}。

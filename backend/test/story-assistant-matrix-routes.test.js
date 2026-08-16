@@ -16,6 +16,7 @@ test("story assistant matrix routes keep explicit schemas and the LLM pre-handle
   assert.deepEqual(registered.map(({ path }) => path), [
     "/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/truth",
     "/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/characters",
+    "/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/clue-network",
     "/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/info-matrix",
     "/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/host-runbook",
     "/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/player-script",

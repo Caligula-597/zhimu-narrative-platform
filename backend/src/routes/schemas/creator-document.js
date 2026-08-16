@@ -3,7 +3,7 @@ import { worldIdParams } from "./world.js";
 
 const optionalUuid = { anyOf: [uuid, { type: "null" }] };
 const publicationStatus = { type: "string", enum: ["draft", "testing", "published"] };
-const creationType = { type: "string", enum: ["murder_mystery", "tabletop_rpg", "interactive_story"] };
+const creationType = { type: "string", enum: ["murder_mystery", "tabletop_rpg", "board_game", "interactive_story"] };
 
 export const parseDocumentSchema = {
   params: worldIdParams,

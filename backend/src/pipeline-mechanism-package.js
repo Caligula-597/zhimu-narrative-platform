@@ -125,6 +125,202 @@ function pipelineRoleDisclosureStates(pipeline = {}) {
   });
 }
 
+function matrixHostRunbook(pipeline, roundKey) {
+  const runbooks = Array.isArray(pipeline.hostRunbooks)
+    ? pipeline.hostRunbooks
+    : asArray(pipeline.hostRunbooks?.runbooks);
+  return runbooks.find((book) => String(book?.actKey ?? "") === String(roundKey)) || {};
+}
+
+function matrixContractPackage(pipeline = {}) {
+  const rounds = pipelineRounds(pipeline);
+  const matrix = asObject(pipeline.infoMatrix);
+  const truth = asObject(pipeline.truthBible);
+  const decisions = asArray(matrix.decisions);
+  const axes = asArray(truth.endingAxes);
+  const endingRoutes = asArray(truth.endingRoutes);
+  if (!rounds.length || !decisions.length || !axes.length || !endingRoutes.length) return null;
+
+  const stateRegistry = axes.map((axis, index) => ({
+    key: cleanKey(axis?.key, `matrix-axis-${index + 1}`),
+    name: cleanText(axis?.label, 240) || `结局变量 ${index + 1}`,
+    valueType: "number",
+    initialValue: 0,
+    setInChapterKey: rounds[0].key,
+  }));
+  const stateKeys = new Set(stateRegistry.map((state) => state.key));
+  const decisionByRound = new Map(
+    decisions.map((decision) => [cleanKey(decision?.actKey, ""), decision]),
+  );
+  const decisionNodes = rounds.flatMap((round) => {
+    const decision = decisionByRound.get(round.key);
+    if (!decision) return [];
+    const runbook = matrixHostRunbook(pipeline, round.key);
+    const compileAxisEffects = (axisEffects, consequence) => asArray(axisEffects).flatMap((effect) => {
+      const targetKey = cleanKey(effect?.axisKey, "");
+      const delta = Number(effect?.delta) || 0;
+      if (!targetKey || !stateKeys.has(targetKey) || delta === 0) return [];
+      return [{
+        targetType: "state",
+        targetKey,
+        operation: delta > 0 ? "increment" : "decrement",
+        value: Math.abs(delta),
+        consequence: cleanText(consequence, 800),
+      }];
+    });
+    const authoredOptions = asArray(decision.options).map((option, optionIndex) => ({
+      key: cleanKey(option?.key, `${decision.key}-option-${optionIndex + 1}`),
+      choiceText: cleanText(option?.label, 300),
+      immediateConsequence: cleanText(option?.immediateEffect, 800),
+      presentation: {
+        eyebrow: `方案 ${optionIndex + 1}`,
+        publicPreview: cleanText(option?.immediateEffect, 500),
+        costLabel: "",
+        riskLabel: cleanText(decision.defaultEffect, 300),
+        sequenceLabel: `第 ${round.sequence} 轮`,
+      },
+      effects: compileAxisEffects(option?.axisEffects, option?.immediateEffect),
+    }));
+    const fallbackKey = `${cleanKey(decision?.key, `matrix-decision-${round.sequence}`)}-no-settlement`;
+    return [{
+      key: cleanKey(decision?.key, `matrix-decision-${round.sequence}`),
+      roundKey: round.key,
+      question: cleanText(decision?.question, 800),
+      stateKey: "",
+      interaction: normalizeMechanismInteraction({
+        kind: "timed_crisis",
+        label: cleanText(round.title, 240),
+        playerInstruction: cleanText(decision?.question, 600),
+        hostInstruction: cleanText(runbook.decisionProcedure, 1000) || `主持人按本幕决定程序结算；若未达成，执行：${cleanText(decision?.defaultEffect, 500)}`,
+        deadlineSeconds: 900,
+        defaultOptionKey: fallbackKey,
+      }),
+      options: [
+        ...authoredOptions,
+        {
+          key: fallbackKey,
+          choiceText: "未在期限内完成结算",
+          immediateConsequence: cleanText(decision?.defaultEffect, 800),
+          presentation: {
+            eyebrow: "默认推进",
+            publicPreview: cleanText(decision?.defaultEffect, 500),
+            costLabel: "",
+            riskLabel: "不暂停剧情",
+            sequenceLabel: `第 ${round.sequence} 轮`,
+          },
+          effects: compileAxisEffects(decision?.defaultAxisEffects, decision?.defaultEffect),
+        },
+      ],
+    }];
+  });
+  if (decisionNodes.length !== rounds.length) return null;
+
+  const packageValue = {
+    schemaVersion: 1,
+    source: "matrix_play_contract",
+    authoring: {
+      playStructure: cleanText(truth.playStructure, 40),
+      centralQuestion: cleanText(truth.centralQuestion, 800),
+    },
+    factLedger: asArray(truth.objectiveFacts).map((fact, index) => ({
+      key: cleanKey(fact?.key, `fact-${index + 1}`),
+      statement: cleanText(fact?.statement, 1000),
+      observableBy: asArray(fact?.observableBy).map((item) => cleanKey(item, "")).filter(Boolean),
+    })),
+    entities: [],
+    authorizationMatrix: [],
+    eventLedger: [],
+    stateRegistry,
+    resourceRegistry: [],
+    rounds: rounds.map((round) => {
+      const decision = decisionByRound.get(round.key);
+      const contract = asArray(matrix.actContracts).find((item) => String(item?.actKey ?? "") === round.key) || {};
+      const runbook = matrixHostRunbook(pipeline, round.key);
+      const materialNames = asArray(matrix.clues)
+        .filter((clue) => String(clue?.actKey ?? "") === round.key && clue?.physicalForm)
+        .map((clue) => cleanText(clue.name, 120))
+        .filter(Boolean);
+      return {
+        key: round.key,
+        sequence: round.sequence,
+        title: round.title,
+        goal: cleanText(runbook.roundGoal, 800) || cleanText(contract.publicSituation, 800) || round.goal,
+        turn: cleanText(contract.exitState, 800) || round.turn,
+        hostNotes: [runbook.openingReadAloud, runbook.decisionProcedure, `失败推进：${runbook.failureAdvance || decision?.defaultEffect || "按默认后果继续"}`].filter(Boolean).join("\n"),
+        triggerRoleKeys: [],
+        playerAction: cleanText(decision?.question, 800),
+        actionObject: materialNames.join("、"),
+        actionTargetKey: "",
+        irreversibleConsequence: cleanText(decision?.defaultEffect, 800),
+        nextState: cleanText(contract.exitState, 800),
+        progressMode: "host_confirmed",
+        stateReads: [],
+        entryConditionMode: "none",
+        onReadPass: {},
+        onReadFail: {},
+        stateWrites: [],
+        resourceDeltas: [],
+        settlementEffects: [],
+        unlocksEvidenceKeys: [],
+        locksEvidenceKeys: [],
+        evidenceKeys: [],
+        genreMechanicUse: cleanText(truth.settlementPrinciple, 800),
+        sharedSpotlightConflict: cleanText(contract.publicSituation, 800),
+        decisionKey: cleanKey(decision?.key, `matrix-decision-${round.sequence}`),
+      };
+    }),
+    actions: [],
+    investigationActions: [],
+    evidenceGraph: { evidence: [], conclusions: [], misdirections: [] },
+    decisionNodes,
+    branchFragments: [],
+    endingRoutes: endingRoutes.map((route, index) => ({
+      key: cleanKey(route?.key, `matrix-ending-${index + 1}`),
+      title: cleanText(route?.title, 240),
+      consequence: cleanText(route?.consequence, 1600),
+      priority: Number(route?.priority) || 0,
+      isDefault: route?.isDefault === true,
+      requirements: asArray(route?.requirements).flatMap((requirement) => {
+        const targetKey = cleanKey(requirement?.axisKey, "");
+        if (!stateKeys.has(targetKey)) return [];
+        return [{
+          targetType: "state",
+          targetKey,
+          operator: cleanText(requirement?.operator, 8) || "gte",
+          value: Number(requirement?.value) || 0,
+        }];
+      }),
+    })),
+    endingResolution: {
+      defaultRouteKey: cleanKey(endingRoutes.find((route) => route?.isDefault)?.key, ""),
+      conflictResolution: "highest-priority",
+    },
+    roleEpilogues: asArray(truth.roleEpilogues).map((epilogue) => ({
+      roleKey: cleanKey(epilogue?.roleKey, ""),
+      variants: asArray(epilogue?.variants).map((variant, variantIndex) => ({
+        key: cleanKey(variant?.key, `${epilogue?.roleKey || "role"}-epilogue-${variantIndex + 1}`),
+        title: cleanText(variant?.title, 240),
+        consequence: cleanText(variant?.consequence, 1600),
+        priority: Number(variant?.priority) || 0,
+        isDefault: variant?.isDefault === true,
+        requirements: asArray(variant?.requirements).flatMap((requirement) => {
+          const targetKey = cleanKey(requirement?.axisKey, "");
+          if (!stateKeys.has(targetKey)) return [];
+          return [{
+            targetType: "state",
+            targetKey,
+            operator: cleanText(requirement?.operator, 8) || "gte",
+            value: Number(requirement?.value) || 0,
+          }];
+        }),
+      })),
+    })),
+    roleDisclosureStates: pipelineRoleDisclosureStates(pipeline),
+    worldRules: [],
+  };
+  return attachAutomaticClueGrants(packageValue, pipeline);
+}
+
 /**
  * Existing Matrix authors already declare role-visible clue content through
  * rows[].newClueIds and mark which clue cards are automatic. Compile that
@@ -408,6 +604,14 @@ export function compilePipelineMechanismPackage(
       packageValue: confirmedDesignPackage(pipeline, validation.design),
       reason: "confirmed_design",
       design: validation.design,
+    };
+  }
+  const matrixPackage = matrixContractPackage(pipeline);
+  if (matrixPackage) {
+    return {
+      packageValue: matrixPackage,
+      reason: "matrix_contract",
+      design,
     };
   }
   if (pipeline?.outline && typeof pipeline.outline === "object") {

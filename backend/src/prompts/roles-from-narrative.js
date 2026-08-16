@@ -1,7 +1,9 @@
 import { PRODUCT_BOUNDARY, cleanText, untrustedUserPayload } from "./shared.js";
+import { buildPlayerPovBlock, HUMAN_PROSE_BLOCK, HUMAN_STORY_FOUNDATION_BLOCK } from "./human-authorship.js";
+import { TERMINOLOGY_GROUNDING_BLOCK } from "./matrix-terminology-grounding.js";
 
 /** 从总剧情章节母稿，拆出各角色私人分幕（按章）。 */
-export function buildRolesFromNarrativeMessages({ brief, spec, roleMatrix, chapters = [] }) {
+export function buildRolesFromNarrativeMessages({ brief, spec, roleMatrix, chapters = [], pov = "second" }) {
   const chapterPayload = chapters.map((ch) => ({
     chapterKey: ch.chapterKey,
     title: ch.title,
@@ -19,10 +21,21 @@ export function buildRolesFromNarrativeMessages({ brief, spec, roleMatrix, chapt
 
 ${PRODUCT_BOUNDARY}
 
+${HUMAN_STORY_FOUNDATION_BLOCK}
+
+${HUMAN_PROSE_BLOCK}
+
+${TERMINOLOGY_GROUNDING_BLOCK}
+
+${buildPlayerPovBlock(pov)}
+
 【任务】
 - 为每位角色的每一章生成 section：roleKey、chapterKey、title、body。
-- body 为玩家第一人称或有限第三人称，至少 250 字；遵守 matrix 中 knows / mustHide / canDiscuss，**不得泄露 mustHide**。
+- body 使用已经锁定的玩家叙述人称，至少 250 字；遵守 matrix 中 knows / mustHide / canDiscuss，**不得泄露 mustHide**。
 - 总剧情中的公共事件各角色版本应一致；私人秘密仅在该角色 body 中体现。
+- 每个 section 至少有一场当下发生的关系冲突和可见状态变化；禁止把 chapterKnowledge、任务和公共摘要逐字段改写成角色自述。
+- 同一公共事件在不同角色本里只能共享事实，不能共享整段句法、同一种合同顾问腔或同样的结尾感悟。
+- 对白长度由人物关系决定，不得用连续短问答集中报送数字、期限、身份和线索。
 - 不要改写总剧情设定；不要输出 scenes/clues。
 
 【输出 schema】

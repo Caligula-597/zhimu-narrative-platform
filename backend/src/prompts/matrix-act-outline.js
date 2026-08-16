@@ -47,7 +47,8 @@ ${outlineInstructions}
 2. **视角限制（最高优先级）**：你是 ${roleKey} 的私人本，不是上帝。publicAnchors 只写**本角色在场且可能注意到**的公共锚点，禁止逐人罗列全场（「A哭B取C翻D…」）。
 3. matrix20.characterPerception = L3；特色线索放 signatureClues 与 perception 呼应。
 4. **unknowns 必填**：列出本角色本幕**明确不知道 / 未亲见 / 仅听说**的事（至少 2 条）——任务靠错位视角完成，不是全知。
-5. knowledgeSources 每条 fact 须标注来源；无来源的不得写入 outline。
+5. 认知边界不止 unknowns：notYetInferred 写“信息在附近但此人还没完成的推论”；forbiddenConclusions 写“模型即使猜到也不能替玩家说出的结论”；allowedSuspicionRange 写本幕可以怀疑到哪一步，不能直接跨到答案。
+6. knowledgeSources 每条 fact 须标注来源；无来源的不得写入 outline。
 6. 推理必需事实不得只出现在本角色 perception 且 reliability<0.5 且无 L2 交叉。
 7. 遵守 spoilerContract；误导须可解释。
 8. tasksHint / surfaceObjectives 禁止「收集线索」式表述。
@@ -106,6 +107,13 @@ export function validateActOutline(raw, roleKey, actKey, setting) {
     unknowns: Array.isArray(value.unknowns)
       ? value.unknowns.slice(0, 8).map((u) => cleanText(u, 200))
       : [],
+    notYetInferred: Array.isArray(value.notYetInferred)
+      ? value.notYetInferred.slice(0, 8).map((u) => cleanText(u, 240))
+      : [],
+    forbiddenConclusions: Array.isArray(value.forbiddenConclusions)
+      ? value.forbiddenConclusions.slice(0, 8).map((u) => cleanText(u, 240))
+      : [],
+    allowedSuspicionRange: cleanText(value.allowedSuspicionRange, 600),
     observableBehaviors:
       matrix20.observableBehaviors.length > 0
         ? matrix20.observableBehaviors

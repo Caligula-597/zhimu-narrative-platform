@@ -7,6 +7,7 @@ import {
 } from "../src/pipeline-mechanism-package.js";
 import { compileAndStorePipelineMechanismPackage } from "../src/world-mechanism-package-service.js";
 import {
+  advanceMechanismRound,
   executeMechanismDecision,
   initializeMechanismRuntime,
   projectMechanismRuntime,
@@ -42,6 +43,50 @@ function pipelineFixture() {
         { key: "ch3", sequence: 3, title: "最终合闸", summary: "用剩余许可决定合闸路线。" },
       ],
     },
+  };
+}
+
+function matrixPipelineFixture() {
+  return {
+    ...pipelineFixture(),
+    proposal: { chapters: pipelineFixture().proposal.chapters.slice(0, 2) },
+    truthBible: {
+      playStructure: "faction",
+      centralQuestion: "两轮签署后谁控制保障账户？",
+      settlementPrinciple: "只结算桌上确认的签名。",
+      endingAxes: [
+        { key: "mutual", label: "互保" },
+        { key: "control", label: "集中" },
+      ],
+      endingRoutes: [
+        { key: "mutual-win", title: "共同持有", consequence: "互保成立。", priority: 100, requirements: [{ axisKey: "mutual", operator: "gte", value: 2 }] },
+        { key: "control-win", title: "集中持有", consequence: "控制权归于一方。", priority: 90, requirements: [{ axisKey: "control", operator: "gte", value: 2 }] },
+        { key: "split", title: "拆分", consequence: "账户被拆分。", priority: 0, isDefault: true, requirements: [] },
+      ],
+      roleEpilogues: [
+        {
+          roleKey: "role-1",
+          variants: [
+            { key: "role-1-mutual", title: "仍在账上", consequence: "名字留在共同账户。", priority: 100, requirements: [{ axisKey: "mutual", operator: "gte", value: 2 }] },
+            { key: "role-1-default", title: "独自结清", consequence: "按个人额度离场。", priority: 0, isDefault: true, requirements: [] }
+          ]
+        }
+      ],
+    },
+    characterArchives: { roles: [{ key: "role-1", name: "甲" }] },
+    infoMatrix: {
+      clues: [], rows: [],
+      actContracts: ["ch1", "ch2"].map((actKey) => ({ actKey, publicSituation: "签署现场", exitState: "签署已结算" })),
+      decisions: ["ch1", "ch2"].map((actKey, index) => ({
+        key: `decision-${index + 1}`, actKey, question: "本轮如何登记？", defaultEffect: "未登记即作废。",
+        defaultAxisEffects: [{ axisKey: "mutual", delta: -1 }],
+        options: [
+          { key: `${actKey}-mutual`, label: "共同登记", immediateEffect: "互保增加。", axisEffects: [{ axisKey: "mutual", delta: 1 }] },
+          { key: `${actKey}-control`, label: "集中登记", immediateEffect: "集中增加。", axisEffects: [{ axisKey: "control", delta: 1 }] },
+        ],
+      })),
+    },
+    hostRunbooks: ["ch1", "ch2"].map((actKey) => ({ actKey, roundGoal: "完成登记", decisionProcedure: "核对签名后结算。", failureAdvance: "作废后继续。" })),
   };
 }
 
@@ -117,6 +162,44 @@ test("timed confirmed design carries a runnable deadline and default option", ()
   const decision = packageValue.decisionNodes[0];
   assert.equal(decision.interaction.deadlineSeconds, 300);
   assert.equal(decision.interaction.defaultOptionKey, decision.options[1].key);
+});
+
+test("validated Matrix decisions compile into the real host and player runtime without a separate mechanism design", () => {
+  const { packageValue, reason } = compilePipelineMechanismPackage(matrixPipelineFixture());
+  assert.equal(reason, "matrix_contract");
+  assert.equal(packageValue.source, "matrix_play_contract");
+  assert.equal(packageValue.decisionNodes[0].options[0].choiceText, "共同登记");
+  assert.equal(packageValue.decisionNodes[0].interaction.defaultOptionKey, "decision-1-no-settlement");
+
+  let runtime = initializeMechanismRuntime(packageValue).runtime;
+  for (const [index, decision] of packageValue.decisionNodes.entries()) {
+    runtime = executeMechanismDecision(runtime, packageValue, {
+      decisionKey: decision.key,
+      optionKey: decision.options[0].key,
+    }).runtime;
+    if (index < packageValue.decisionNodes.length - 1) {
+      runtime = advanceMechanismRound(runtime, packageValue).runtime;
+    }
+  }
+  assert.equal(runtime.states.mutual, 2);
+  assert.equal(runtime.states.control, 0);
+  runtime = advanceMechanismRound(runtime, packageValue).runtime;
+  assert.equal(runtime.ending.resolvedRouteKey, "mutual-win");
+  assert.equal(runtime.ending.resolvedRoleEpilogueKeys["role-1"], "role-1-mutual");
+  const playerEnding = projectPlayerMechanismRuntime(runtime, packageValue, { roleKey: "role-1" });
+  assert.equal(playerEnding.ending.roleEpilogue.title, "仍在账上");
+});
+
+test("Matrix timeout fallback applies authored ending-axis effects", () => {
+  const { packageValue } = compilePipelineMechanismPackage(matrixPipelineFixture());
+  const runtime = initializeMechanismRuntime(packageValue).runtime;
+  const decision = packageValue.decisionNodes[0];
+  const resolved = executeMechanismDecision(runtime, packageValue, {
+    decisionKey: decision.key,
+    optionKey: decision.interaction.defaultOptionKey,
+  });
+  assert.equal(resolved.runtime.states.mutual, -1);
+  assert.equal(resolved.runtime.states.control, 0);
 });
 
 test("Matrix automatic role clues compile into every settlement option", () => {

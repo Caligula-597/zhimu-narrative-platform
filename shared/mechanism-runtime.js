@@ -504,9 +504,23 @@ function resolveEnding(runtime, packageValue) {
     packageValue.endingRoutes.find(
       (route) => route.key === packageValue.endingResolution.defaultRouteKey,
     ) || packageValue.endingRoutes.find((route) => route.isDefault);
+  const resolvedRoleEpilogueKeys = Object.fromEntries(asArray(packageValue.roleEpilogues).map((epilogue) => {
+    const matchedVariants = asArray(epilogue.variants)
+      .filter((variant) => !variant.isDefault && asArray(variant.requirements).every((requirement) =>
+        requirementSatisfied(
+          collectionFor(runtime, requirement.targetType, factValues)?.[requirement.targetKey],
+          requirement.operator,
+          requirement.value,
+        )
+      ))
+      .sort((left, right) => Number(right.priority || 0) - Number(left.priority || 0));
+    const fallback = asArray(epilogue.variants).find((variant) => variant.isDefault);
+    return [epilogue.roleKey, matchedVariants[0]?.key || fallback?.key || null];
+  }));
   return {
     matchedRouteKeys: matched.map((route) => route.key),
     resolvedRouteKey: matched[0]?.key || defaultRoute?.key || null,
+    resolvedRoleEpilogueKeys,
   };
 }
 
@@ -862,6 +876,7 @@ export function projectPlayerMechanismRuntime(
     updatedAt = null,
     roundStartedAt = null,
     ownSubmissions = [],
+    roleKey = "",
   } = {},
 ) {
   const packageValue = assertMechanismPackage(packageInput);
@@ -877,6 +892,13 @@ export function projectPlayerMechanismRuntime(
           (entry) => entry.key === runtime.ending?.resolvedRouteKey,
         ) ?? null)
       : null;
+  const roleEpilogueGroup = roleKey
+    ? asArray(packageValue.roleEpilogues).find((entry) => entry.roleKey === roleKey)
+    : null;
+  const resolvedRoleEpilogueKey = roleKey
+    ? runtime?.ending?.resolvedRoleEpilogueKeys?.[roleKey]
+    : null;
+  const roleEpilogue = asArray(roleEpilogueGroup?.variants).find((entry) => entry.key === resolvedRoleEpilogueKey) || null;
 
   return {
     initialized: Boolean(runtime),
@@ -977,7 +999,14 @@ export function projectPlayerMechanismRuntime(
               };
             })
         : [],
-    ending: endingRoute ? { title: String(endingRoute.title ?? "") } : null,
+    ending: endingRoute ? {
+      title: String(endingRoute.title ?? ""),
+      consequence: String(endingRoute.consequence ?? ""),
+      roleEpilogue: roleEpilogue ? {
+        title: String(roleEpilogue.title ?? ""),
+        consequence: String(roleEpilogue.consequence ?? ""),
+      } : null,
+    } : null,
     waitingForHost: runtime?.status === "running",
     updatedAt: updatedAt == null ? null : new Date(updatedAt).toISOString(),
   };

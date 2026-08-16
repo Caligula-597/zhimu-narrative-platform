@@ -4,8 +4,13 @@
  */
 import { cleanText } from "./shared.js";
 import { formatEraSpeechBlock } from "./matrix-era-setting.js";
+import {
+  HUMAN_PROSE_BLOCK,
+  HUMAN_REWRITE_BLOCK,
+  scanThesisFirstAdvisory
+} from "./human-authorship.js";
 
-export const SPEECH_STYLE_VERSION = "v5.6-expressive";
+export const SPEECH_STYLE_VERSION = "v5.8-role-voice-agency";
 
 /** LLM 写心理最省力套路 — 「心中+情绪动词」 */
 export const AI_HEART_VERB_PHRASES = [
@@ -61,6 +66,10 @@ export const AI_DIALOGUE_ANTIPATTERNS = [
   "每人台词长度、句式完全一致",
   "连续三句以「然而/但是/因此」起头",
   "对白过于完整书面语、无省略与打断",
+  "把口语化误解成所有人都只说两三个字",
+  "提问后立即返回一个数字或合同字段，连续形成客服问答",
+  "厨师、维修工、平台工与负责人共享同一种合同顾问腔",
+  "把上一段关键词换主语复述成段尾金句",
   "角色在对话里自报全名或重复身份介绍",
   "用「我注意到」「我观察到」当每段开头",
   "心理段每句都「感到/意识到/明白」三连"
@@ -74,16 +83,30 @@ export const MONTAGE_ANTIPATTERNS = [
   "用「惹疑」「行档」等标签词代替具体动作与口语"
 ];
 
-export function buildKnowledgeBoundaryBlock({ knowledgeSources = [], unknowns = [], volumeTier = "standard" } = {}) {
-  const sources = knowledgeSources.slice(0, 8).map((k) => `- ${k.fact}（${k.source}${k.clueId ? ` · ${k.clueId}` : ""}）`);
+export function buildKnowledgeBoundaryBlock({
+  knowledgeSources = [],
+  unknowns = [],
+  notYetInferred = [],
+  forbiddenConclusions = [],
+  allowedSuspicionRange = "",
+  volumeTier = "standard"
+} = {}) {
+  const sources = knowledgeSources.slice(0, 8).map((k) => typeof k === "string"
+    ? `- ${k}`
+    : `- ${k.fact}（${k.source}${k.clueId ? ` · ${k.clueId}` : ""}）`);
   const gaps = unknowns.slice(0, 6).map((u) => `- ${u}`);
+  const pendingInferences = notYetInferred.slice(0, 8).map((u) => `- ${u}`);
+  const forbiddenInferenceResults = forbiddenConclusions.slice(0, 8).map((u) => `- ${u}`);
   const demoNote =
     volumeTier === "demo"
       ? "\n【demo 示范档】目标约 800 字/幕：交付**可玩纲要体**即可（场景顺序 + 短对白 + 任务 + hook），不必文学扩写；禁止为凑字补全 unknowns 或全场快剪。"
       : "";
-  return `【知识边界 · 本幕只允许写这些】
+  return `【知识与认知边界 · 本幕只允许写这些】
 ${sources.length ? sources.join("\n") : "- （仅 matrixRow 任务与本角色亲身经历）"}
-${gaps.length ? `\n【本幕不得写穿 / 尚未知晓】\n${gaps.join("\n")}` : "\n【本幕不得写穿】未在 knowledgeSources 且非亲见的细节，用「不清楚」「后来才知」「听说」留白。"}${demoNote}`;
+${gaps.length ? `\n【本幕不得写穿 / 尚未知晓】\n${gaps.join("\n")}` : "\n【本幕不得写穿】未在 knowledgeSources 且非亲见的细节，用「不清楚」「后来才知」「听说」留白。"}
+${pendingInferences.length ? `\n【本幕尚未形成的推断】\n${pendingInferences.join("\n")}` : ""}
+${forbiddenInferenceResults.length ? `\n【禁止提前抵达的结论】\n${forbiddenInferenceResults.join("\n")}` : ""}
+${allowedSuspicionRange ? `\n【允许怀疑范围】${allowedSuspicionRange}` : ""}${demoNote}`;
 }
 
 export function buildAntiMontageBlock() {
@@ -121,10 +144,12 @@ export function scanMontageAdvisory(text, { roleRosterNames = [] } = {}) {
 
 export function buildAntiAiNarrationBlock() {
   return `【去 AI 腔 · 叙述段】
-- 少用连接词堆叠（然而/与此同时/毋庸置疑）；一句一事。
+- 避免连续使用同一批书面连接词（然而/与此同时/毋庸置疑），但不能把连接全部删掉。时间过去、原因接续、预期落空和话题转向时，要使用人物会说的“后来、等到、不过、可、所以、偏偏、这时”等自然承接，让读者知道为什么下一句会发生。
 - 禁止套话：${AI_CLICHE_PHRASES.slice(0, 14).join("、")}…
-- 叙述像**人在回忆**，不是 AI 在写摘要；可省略主语、可半句收尾。
-- 环境描写**最多 1～2 处**，且须与当下动作相关，禁止空泛氛围段。`;
+- 叙述像**人在经历或回忆**，不是 AI 在写摘要；可省略主语、可半句收尾，但不要为了“像人”机械制造残句。
+- 环境描写**最多 1～2 处**，且须与当下动作相关，禁止空泛氛围段。
+- 不要在动作、旧物或对白之后立即替读者总结意义；避免每段都用象征物或金句封口。
+- 感官不是新的套话库：不能把抽象情绪批量换成发抖、杯壁发烫、机油味。细节必须影响人物下一步动作。`;
 }
 
 /**
@@ -174,10 +199,11 @@ export function buildKillerChaosPovBlock({ actIndex = 0, finalActIndex = 0 } = {
 
 export function buildAntiAiDialogueBlock() {
   return `【去 AI 腔 · 公聊对白】
-- 真人说话：**短、断、有省略**；可打断、可答非所问、可嘴硬。
+- 真人说话没有统一长度。句子可以短，也可以因为解释、遮掩、翻旧账而绕很长；长度服从关系和当下企图，禁止把“口语化”机械处理成两三个字一句。
 - 禁止：${AI_DIALOGUE_ANTIPATTERNS.map((p) => `「${p}」`).join("、")}
-- 同一场公聊里，不同角色**句长与语气要有差**（参考 voiceHints / 角色档案）。
-- 引号内是对外说的；引号外才是你的心思 — **不要**把心理活动写进引号里当台词。
+- 同一场公聊里，不同角色不仅句长与语气要有差，还要受各自职业词汇、教育程度、年龄和关系称呼约束（参考 voiceHints / 角色档案）。
+- 回答首先服务说话人自己的目的，不负责完整交付作者的字段；允许纠正问题、只答一半、把难堪绕开，但不能为了制造自然感而无意义吞字。
+- 引号内是对外说的；引号外才是当前视角人物的心思 — **不要**把心理活动写进引号里当台词，也不要让人物替作者分析自己。
 - 不得照抄提示词中的句子；台词必须由当前人物关系与当前冲突自然产生。`;
 }
 
@@ -216,7 +242,11 @@ export function buildCombinedSpeechBlock({ styleCard, eraCard, characterArchive 
 
 /** For deAi pass — narration + dialogue split */
 export function buildDeAiRewriteRubric({ styleCard, eraCard, characterArchive, isKiller = false, actIndex = 0, finalActIndex = 0 } = {}) {
-  return `${buildSensoryExpressionBlock(characterArchive)}
+  return `${HUMAN_PROSE_BLOCK}
+
+${HUMAN_REWRITE_BLOCK}
+
+${buildSensoryExpressionBlock(characterArchive)}
 
 ${isKiller && actIndex < finalActIndex ? buildKillerChaosPovBlock({ actIndex, finalActIndex }) : ""}
 
@@ -230,12 +260,13 @@ ${formatEraSpeechBlock(eraCard)}
 
 ${buildVoiceContractBlock(characterArchive)}
 
-【改写原则 · 感官替心】
-- 保留事实、线索、任务与剧透边界；只改**措辞与节奏**。
+【改写原则 · 结构性真人化】
+- 保留事实、线索、事件顺序、任务与剧透边界；可删解释、重排段落和打破论证节奏，不得改变因果。
 - **禁止文学抛光时脑补新事实**：不得新增 knowledgeSources 外的机关原理、他人动机、未亲历时间线。
-- **逐句扫描**「心中X」「你感到」「你既…又…」→ 换成感官或动作。
-- 引号内台词改短、改口语；引号外心理只使用当前角色档案声明的职业与感官滤镜。
-- 真凶段：删掉事后复盘句，改成记不清/握不住/不敢确认。`;
+- **逐句扫描**「心中X」「你感到」「你既…又…」：优先改为选择、回避、误读或具体动作；只有人物确实会注意时才使用感官。
+- 引号内台词改成当前人物在这段关系中会说的长度和词汇；不得一律改短。引号外心理只使用当前角色档案声明的职业与感官滤镜。
+- 真凶段：删掉事后复盘句，改成受当前认知与处境限制的反应。
+- 若原段只是轮流辩论立意，无法在不改事实的前提下修好，在 suggestions 中输出 "upstream_rebuild: ..."，不要假装换词后已经真人化。`;
 }
 
 /** Advisory — 「心中+动词」偷懒心理（does not block） */
@@ -275,3 +306,5 @@ export function scanAiClicheAdvisory(text) {
     longDialogueCount: longLines.length
   };
 }
+
+export { scanThesisFirstAdvisory };

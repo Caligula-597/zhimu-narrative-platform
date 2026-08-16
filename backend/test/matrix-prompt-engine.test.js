@@ -70,7 +70,7 @@ test("buildFairnessContract references row clue ids", () => {
   assert.ok(f.fairnessRules.some((r) => r.includes("L2") || r.includes("clueLedger")));
 });
 
-test("buildPeerScriptDigest excludes current cell", () => {
+test("buildPeerScriptDigest never exposes another player's private prose", () => {
   const digest = buildPeerScriptDigest(
     {
       "role-1": { ch1: { title: "T", body: "x".repeat(300), tasks: ["a"] } },
@@ -80,8 +80,7 @@ test("buildPeerScriptDigest excludes current cell", () => {
     "role-1",
     config
   );
-  assert.equal(digest.length, 1);
-  assert.equal(digest[0].roleKey, "role-2");
+  assert.deepEqual(digest, []);
 });
 
 test("buildMatrixScriptPromptBundle merges contracts", () => {

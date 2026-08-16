@@ -1,5 +1,7 @@
 import { PRODUCT_BOUNDARY, cleanText, untrustedUserPayload } from "./shared.js";
 import { creativeInputUserBlocks } from "./creative-input.js";
+import { buildPlayerPovBlock, HUMAN_PROSE_BLOCK, HUMAN_STORY_FOUNDATION_BLOCK } from "./human-authorship.js";
+import { TERMINOLOGY_GROUNDING_BLOCK } from "./matrix-terminology-grounding.js";
 
 const CHAPTER_SUMMARY_CHARS = 600;
 const FOCUS_NARRATIVE_CHARS = 5000;
@@ -59,10 +61,21 @@ export function buildRoleScriptFromNarrativeMessages({
 
 ${PRODUCT_BOUNDARY}
 
+${HUMAN_STORY_FOUNDATION_BLOCK}
+
+${HUMAN_PROSE_BLOCK}
+
+${TERMINOLOGY_GROUNDING_BLOCK}
+
+${buildPlayerPovBlock(setting?.pov || "second")}
+
 【任务】
 - ${scopeNote}
 - body 为玩家视角正文，每章建议 ${minSectionWords} 字以上；遵守角色 publicProfile / privateProfile，mustHide 内容不得提前泄露。
 - 公共事件与总剧情一致；私人秘密仅在该角色文本中体现。
+- 正文首先写这个角色如何活到当前局面、如何误解或亏欠具体的人；不要把公共章摘要换成选定人称的自述，也不要用正文逐条包装任务。
+- 不要求各角色拥有等量秘密、创伤、金句或反转。不同角色可以有不同叙述密度，但必须保留可辨别的注意力、偏见、关系语言和自发行动理由。
+- 若总剧情本身是人物轮流证明一个命题，不能靠润色掩盖；在 suggestions 中标记 upstream_rebuild 并指出具体章节。
 
 【输出 schema】
 {

@@ -2,6 +2,7 @@ import { requireActor } from "../request-actor.js";
 import {
   buildPipelineImportPackage,
   createPipelineCharacterArchives,
+  createPipelineClueNetwork,
   createPipelineHostRunbook,
   createPipelineHostRunbooksAll,
   createPipelineInfoMatrix,
@@ -14,6 +15,7 @@ import { findWorldForMember } from "../repositories/world-repository.js";
 import { applyCreatorContextToPipelineInput } from "../pipeline-creator-context.js";
 import {
   deepseekPipelineMatrixCharactersSchema,
+  deepseekPipelineMatrixCluesSchema,
   deepseekPipelineMatrixEvaluateSchema,
   deepseekPipelineMatrixHostSchema,
   deepseekPipelineMatrixInfoSchema,
@@ -52,6 +54,11 @@ export function registerStoryAssistantMatrixRoutes(app, { preHandler }) {
     { schema: deepseekPipelineMatrixCharactersSchema, preHandler },
     // codeql-reviewed[js/missing-rate-limiting]: global network and actor limiters run before this handler.
     (request) => authorizeAndRun(request, createPipelineCharacterArchives)
+  );
+  app.post(
+    "/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/clue-network",
+    { schema: deepseekPipelineMatrixCluesSchema, preHandler },
+    (request) => authorizeAndRun(request, createPipelineClueNetwork)
   );
   app.post(
     "/api/worlds/:worldId/story-assistant/deepseek/pipeline/matrix/info-matrix",

@@ -9,6 +9,7 @@ import {
 } from "./pdf-document.js";
 import { parseDocumentPayloadBase64 } from "./section-content.js";
 import { analyzeNarrativeStructure, normalizeCreationType } from "./document-structure.js";
+import { assessHumanLikeProse } from "../../shared/prose-quality-gate.js";
 
 export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 export const MAX_DOCUMENT_TEXT_CHARACTERS = 2_000_000;
@@ -69,6 +70,7 @@ export function parseCreatorTextDocument({
   if (!cleaned) throwErr("DOCUMENT_EMPTY");
   const sections = splitSections(cleaned).slice(0, 80);
   const structure = analyzeNarrativeStructure(cleaned, { filename, creationType });
+  const authorshipAssessment = assessHumanLikeProse(cleaned, { sections, creationType });
   return {
     filename,
     contentMode: "text",
@@ -79,6 +81,7 @@ export function parseCreatorTextDocument({
     sectionCount: sections.length,
     extraction,
     structure,
+    authorshipAssessment,
     warnings: [...warnings, ...structure.warnings]
   };
 }

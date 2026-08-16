@@ -1,5 +1,8 @@
 import { PRODUCT_BOUNDARY, cleanText, untrustedUserPayload } from "./shared.js";
 import { creativeInputUserBlocks } from "./creative-input.js";
+import { HUMAN_PROSE_BLOCK, HUMAN_STORY_FOUNDATION_BLOCK } from "./human-authorship.js";
+import { TERMINOLOGY_GROUNDING_BLOCK } from "./matrix-terminology-grounding.js";
+import { SOURCE_ADAPTATION_CONTINUITY_BLOCK } from "./source-adaptation-fidelity.js";
 
 const PRIOR_CHAPTER_SUMMARY_CHARS = 600;
 const PRIOR_CHAPTER_ENDING_CHARS = 2400;
@@ -42,9 +45,18 @@ export function buildChapterNarrativeMessages({
 
 ${PRODUCT_BOUNDARY}
 
+${HUMAN_STORY_FOUNDATION_BLOCK}
+
+${HUMAN_PROSE_BLOCK}
+
+${TERMINOLOGY_GROUNDING_BLOCK}
+
+${SOURCE_ADAPTATION_CONTINUITY_BLOCK}
+
 【任务】
 - 本次只写**一个章节**的 narrativeBody（中文叙述，目标约 ${targetWords} 字），承接 previousChapters 已发生事件，不得矛盾。
 - 严格遵循【创作设定】与【剧情纲要】；第 ${chapterIndex + 1} 章须符合纲要中的分章打算。
+- 若纲要含明确主题结论，只把它视为创作者关切，不得让旁白、世界或人物负责证明。章节必须以人物行动改变下一场现实，不能用轮流辩论代替剧情。
 - 输出 JSON，不要 Markdown 围栏。
 
 【输出 schema】
@@ -88,9 +100,16 @@ export function buildChapterNarrativeContinuationMessages({
 
 ${PRODUCT_BOUNDARY}
 
+${HUMAN_PROSE_BLOCK}
+
+${TERMINOLOGY_GROUNDING_BLOCK}
+
+${SOURCE_ADAPTATION_CONTINUITY_BLOCK}
+
 【任务】
 - 在已有 narrativeBody 末尾继续写，本次追加约 ${remainingChars} 字（中文叙述）。
 - 只输出续写片段与必要元数据，不要重复已有内容。
+- 延续原人物的注意力与未说透之处；不得为了凑字补主题总结、排比回顾或象征性收尾。
 - 输出 JSON，不要 Markdown 围栏。
 
 【输出 schema】

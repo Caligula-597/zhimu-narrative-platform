@@ -306,6 +306,7 @@ export function compileMechanismPackage(
     decisionNodes: decisions,
     branchFragments: compileBranchFragments(value),
     endingRoutes: clone(asArray(value.endingLogic?.routes)),
+    roleEpilogues: clone(asArray(value.endingLogic?.roleEpilogues)),
     endingResolution: {
       defaultRouteKey: cleanKey(value.endingLogic?.defaultRouteKey),
       conflictResolution: String(
@@ -405,6 +406,17 @@ export function assertMechanismPackage(packageValue) {
         `Role disclosure ${roleKey}`,
       );
     }
+  }
+
+  for (const epilogue of asArray(value.roleEpilogues)) {
+    const roleKey = cleanKey(epilogue?.roleKey);
+    if (!roleKey || !roleKeys.has(roleKey)) {
+      throw new TypeError(`Role epilogue references unknown role ${roleKey || "missing"}`);
+    }
+    const variantKeys = uniqueByKey(asArray(epilogue?.variants), `roleEpilogues.${roleKey}.variants`);
+    if (!variantKeys.size) throw new TypeError(`Role epilogue ${roleKey} has no variants`);
+    const defaults = asArray(epilogue?.variants).filter((variant) => variant?.isDefault === true);
+    if (defaults.length !== 1) throw new TypeError(`Role epilogue ${roleKey} must have exactly one default variant`);
   }
 
   const validateSettlementEffects = (effects, label) => {
@@ -685,6 +697,16 @@ export function assertMechanismPackage(packageValue) {
           requirement.targetKey,
           `Ending ${route.key}`,
         );
+    }
+  }
+  for (const epilogue of asArray(value.roleEpilogues)) {
+    for (const variant of asArray(epilogue?.variants)) {
+      for (const requirement of asArray(variant?.requirements)) {
+        if (requirement?.targetType === "state")
+          requireReference(stateKeys, requirement.targetKey, `Role epilogue ${epilogue.roleKey}/${variant.key}`);
+        if (requirement?.targetType === "resource")
+          requireReference(resourceKeys, requirement.targetKey, `Role epilogue ${epilogue.roleKey}/${variant.key}`);
+      }
     }
   }
   return value;

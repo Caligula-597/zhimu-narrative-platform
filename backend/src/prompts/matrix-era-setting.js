@@ -50,7 +50,7 @@ export const ERA_PRESETS = {
     socialContext: "都市节奏、职场关系、网络舆论",
     taboos: "避免具体真实政体/品牌；监控须有剧情内解释",
     atmosphere: "都市悬疑、密室/封闭空间、数字痕迹",
-    speechRegister: "口语、可碎句；微信/语音转写感；忌公文腔与论文句",
+    speechRegister: "当代口语；句长随关系和目的变化；忌公文腔、论文句与连续电报式碎句",
     dialogueGood: "「监控那段谁看过？」对方把手机扣桌上，「别@我。」",
     dialogueBad: "「经过我们的深入分析，监控数据呈现出明显的异常趋势。」"
   },
@@ -102,7 +102,7 @@ export const ERA_PRESETS = {
     socialContext: "孤岛封闭、值守编制、海事法规",
     taboos: "禁止 GPS、卫星电话；通讯中断须有天气/电缆理由",
     atmosphere: "盐雾、铁锈、潮声、孤立感",
-    speechRegister: "海事/工人口语；短、粗、带海风感；忌文艺腔堆砌",
+    speechRegister: "海事/工人口语；可粗粝但不机械碎句，句长随现场压力变化；忌文艺腔堆砌",
     dialogueGood: "「潮位表谁动过？」你抹了把脸，「别跟我扯天气。」",
     dialogueBad: "「空气中弥漫着咸涩的海风，你不禁感到一种难以言喻的不安。」"
   },
@@ -115,7 +115,7 @@ export const ERA_PRESETS = {
     socialContext: "技术依赖与断连恐惧",
     taboos: "避免硬科幻百科；技术细节服务谜题",
     atmosphere: "冷色调、系统故障、隔离舱",
-    speechRegister: "科技术语点到为止；口语仍要短；忌百科解释",
+    speechRegister: "科技术语点到为止；口语长度随人物目的变化；忌百科解释和字段式问答",
     dialogueGood: "「日志离线了。」她敲了敲屏幕，「别指望云端。」",
     dialogueBad: "「根据区块存证技术的原理，我们可以推断出日志存在离线同步异常。」"
   },

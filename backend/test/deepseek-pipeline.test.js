@@ -111,6 +111,25 @@ test("validateStoryEvaluation normalizes revisions and style", () => {
   assert.equal(ev.revisions[0].promptHint, "不要内奸角色");
   assert.equal(ev.readyForImport, false);
   assert.deepEqual(ev.nextStepOrder, ["roles", "setup"]);
+  assert.equal(ev.scores.humanAuthorship, 7);
+});
+
+test("validateStoryEvaluation blocks import when human-authorship gates are weak", () => {
+  const ev = validateStoryEvaluation({
+    overallScore: 8.5,
+    scores: {
+      playability: 9,
+      fairness: 9,
+      styleFit: 9,
+      humanAuthorship: 5,
+      subtext: 5,
+      voiceDistinctness: 8
+    },
+    issues: [],
+    revisions: [],
+    readyForImport: true
+  });
+  assert.equal(ev.readyForImport, false);
 });
 
 test("validateChapterNarrative enforces minimum body length", () => {

@@ -73,6 +73,7 @@
     "test:deepseek-pipeline": "node scripts/test-deepseek-pipeline.mjs",
     "test:outline-v2:live": "node scripts/verify-outline-v2-live.mjs",
     "calibrate:outline-similarity": "node scripts/calibrate-outline-similarity.mjs",
+    "preflight:source-adaptation": "node scripts/preflight-source-adaptation.mjs",
     "generate:forty-outlines": "node ../examples/pending-review/generate-forty-outlines.mjs",
     "test:ui": "node ../scripts/ui-smoke.js",
     "verify:full": "node ../scripts/full-chain.mjs",

@@ -482,8 +482,25 @@ const playerMechanismProjectionSchema = {
             {
               type: "object",
               additionalProperties: false,
-              required: ["title"],
-              properties: { title: { type: "string" } },
+              required: ["title", "consequence", "roleEpilogue"],
+              properties: {
+                title: { type: "string" },
+                consequence: { type: "string" },
+                roleEpilogue: {
+                  anyOf: [
+                    {
+                      type: "object",
+                      additionalProperties: false,
+                      required: ["title", "consequence"],
+                      properties: {
+                        title: { type: "string" },
+                        consequence: { type: "string" },
+                      },
+                    },
+                    { type: "null" },
+                  ],
+                },
+              },
             },
             { type: "null" },
           ],

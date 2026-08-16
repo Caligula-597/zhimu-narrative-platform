@@ -5,7 +5,7 @@
  * Usage:
  *   node backend/scripts/generate-matrix-pilot-example.mjs [slug]
  *   node backend/scripts/generate-matrix-pilot-example.mjs 停雪公馆
- *   node backend/scripts/generate-matrix-pilot-example.mjs --offline   # skip API, write curated fixture
+ *   node examples/pending-review/借影/validate.mjs                     # validate the current offline pilot
  */
 import { mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -15,6 +15,7 @@ import { renderHumanReviewFiles } from "./matrix-pilot-review-render.mjs";
 import {
   buildPipelineImportPackage,
   createPipelineCharacterArchives,
+  createPipelineClueNetwork,
   createPipelineHostRunbooksAll,
   createPipelineInfoMatrix,
   createPipelineMatrixEvaluation,
@@ -375,7 +376,11 @@ async function generateOnline() {
   payload.characterArchives = charResult.characterArchives;
   writeJson("layers/03-character-archives.json", payload.characterArchives);
 
-  const matrixResult = await step("④ 信息矩阵", () => createPipelineInfoMatrix(payload));
+  const clueResult = await step("④ 稀疏线索网络", () => createPipelineClueNetwork(payload));
+  payload.clueNetwork = clueResult.clueNetwork;
+  writeJson("layers/03b-clue-network.json", payload.clueNetwork);
+
+  const matrixResult = await step("⑤ 公共流程矩阵", () => createPipelineInfoMatrix(payload));
   payload.infoMatrix = matrixResult.infoMatrix;
   writeJson("layers/04-info-matrix.json", payload.infoMatrix);
 
@@ -478,6 +483,7 @@ function persistAll(payload, source) {
   writeJson("layers/01-setup.json", { setting: payload.setting, synopsis: payload.synopsis, config: payload.config });
   writeJson("layers/02-truth-bible.json", payload.truthBible);
   writeJson("layers/03-character-archives.json", payload.characterArchives);
+  writeJson("layers/03b-clue-network.json", payload.clueNetwork);
   writeJson("layers/04-info-matrix.json", payload.infoMatrix);
   writeJson("layers/05-host-runbooks.json", payload.hostRunbooks);
   for (const [roleKey, acts] of Object.entries(payload.scripts || {})) {
@@ -506,6 +512,7 @@ function persistAll(payload, source) {
     config: payload.config,
     truthBible: payload.truthBible,
     characterArchives: payload.characterArchives,
+    clueNetwork: payload.clueNetwork,
     infoMatrix: payload.infoMatrix,
     hostRunbooks: payload.hostRunbooks,
     scripts: payload.scripts,
@@ -516,6 +523,7 @@ function persistAll(payload, source) {
       setup: true,
       truth: true,
       characters: true,
+      clues: true,
       matrix: true,
       host: true,
       scripts: true,
@@ -529,7 +537,8 @@ function persistAll(payload, source) {
     setting: payload.setting,
     config: payload.config,
     truthBible: payload.truthBible,
-    infoMatrix: payload.infoMatrix
+    infoMatrix: payload.infoMatrix,
+    clueNetwork: payload.clueNetwork
   });
   if (session.proposal?.matrixSync) writeJson("layers/matrix-sync.json", session.proposal.matrixSync);
   const importPackage = buildPipelineImportPackage(session);
@@ -581,13 +590,13 @@ function persistAll(payload, source) {
 ## 生成方式
 
 - 来源：\`${source}\`
-- 架构：矩阵瀑布流 8 步（见 commit 9b777c9 后 wizard）
+- 架构：九层创作流（真相节点 → 角色认知 → 稀疏线索网 → 公共流程 → 主持/玩家本 → 评判 → 入库）
 
 生成命令：
 
 \`\`\`bash
 node backend/scripts/generate-matrix-pilot-example.mjs          # DeepSeek 在线
-node backend/scripts/generate-matrix-pilot-example.mjs --offline  # 本地 curated fixture
+npm run test:borrowed-shadow                                    # 当前离线样本门禁
 \`\`\`
 `
   );
@@ -597,9 +606,10 @@ node backend/scripts/generate-matrix-pilot-example.mjs --offline  # 本地 curat
 async function main() {
   const config = deepseekConfig();
   if (offline || !config.configured) {
-    if (!offline && !config.configured) console.warn("DEEPSEEK_API_KEY 未配置，使用 offline curated fixture");
-    const payload = offlineFixture();
-    persistAll(payload, offline ? "offline-curated" : "offline-fallback");
+    console.error(
+      "旧 --offline 固定样本不符合九层线索合同，已停止写出。请运行 `npm run test:borrowed-shadow` 验证当前离线样本；在线生成需先配置模型连接。"
+    );
+    process.exitCode = 2;
     return;
   }
   console.log(`Matrix pilot example · slug=${slug} · model=${config.model} · out=${outDir} · prompt=matrix-2.0`);

@@ -21,9 +21,16 @@ import { buildRolesFromNarrativeMessages } from "./prompts/roles-from-narrative.
 import { buildExtractStructureFromNarrativeMessages } from "./prompts/extract-structure-from-narrative.js";
 import { buildRolesMetaFromNarrativeMessages } from "./prompts/roles-meta-from-narrative.js";
 import { buildRoleScriptFromNarrativeMessages } from "./prompts/role-script-from-narrative.js";
+import { buildMatrixDeAiPassMessages } from "./prompts/matrix-player-script.js";
+import { buildLiteraryStyleCard } from "./prompts/matrix-literary-styles.js";
+import { HUMAN_AUTHORSHIP_VERSION } from "./prompts/human-authorship.js";
 import { validateCreativeSetting, validateSynopsisInput } from "./prompts/creative-input.js";
 import { cleanText } from "./prompts/shared.js";
 import { pipelineWordTargets } from "./pipeline-matrix-model.js";
+import {
+  PROSE_QUALITY_GATE_VERSION,
+  diagnosePlayerScript
+} from "../../shared/prose-quality-gate.js";
 import {
   assemblyIssuesArePatchable,
   blueprintIssuesArePatchable
@@ -80,6 +87,94 @@ function roleScriptCallTimeoutMs() {
 
 function logRoleScript(roleKey, phase, extra = {}) {
   console.info(JSON.stringify({ event: "deepseek.role_script", roleKey, phase, ...extra }));
+}
+
+const PLAYER_PROSE_POLICY = Object.freeze({
+  humanAuthorshipVersion: HUMAN_AUTHORSHIP_VERSION,
+  proseGateVersion: PROSE_QUALITY_GATE_VERSION,
+  defaultGenerationMode: "scene_first"
+});
+
+function attachPlayerProseDiagnostics(section, pov = "second") {
+  const diagnostics = diagnosePlayerScript(section?.body || "", { expectedPov: pov });
+  return { ...section, proseDiagnostics: diagnostics, prosePolicy: PLAYER_PROSE_POLICY };
+}
+
+function assertPlayerProseSections(sections, context = {}, pov = "second") {
+  const guarded = {};
+  const blocked = [];
+  for (const [chapterKey, section] of Object.entries(sections || {})) {
+    const next = attachPlayerProseDiagnostics(section, pov);
+    guarded[chapterKey] = next;
+    if (!next.proseDiagnostics.passed) {
+      blocked.push({ chapterKey, issues: next.proseDiagnostics.issues });
+    }
+  }
+  if (blocked.length) {
+    throwErr("DEEPSEEK_OUTPUT_INVALID", "私人正文仍在机械转写信息，已阻止进入工作区；请改用逐角色场景化生成或重试", {
+      ...context,
+      prosePolicy: PLAYER_PROSE_POLICY,
+      blocked
+    });
+  }
+  return guarded;
+}
+
+async function enforcePlayerProseSection({
+  section,
+  role,
+  setting,
+  minWords,
+  context = {}
+}) {
+  const styleCard = buildLiteraryStyleCard(setting || {});
+  const pov = styleCard.pov || "second";
+  let guarded = attachPlayerProseDiagnostics(section, pov);
+  if (guarded.proseDiagnostics.passed) return guarded;
+
+  const targetWords = Math.max(minWords || 250, Math.min(6000, guarded.body.length));
+  const repair = await requestDeepseekJson(
+    buildMatrixDeAiPassMessages({
+      body: guarded.body,
+      styleCard,
+      targetWords,
+      characterArchive: role
+        ? { name: role.name, voiceHints: Array.isArray(role.voiceHints) ? role.voiceHints : [] }
+        : null,
+      truthConsistency: role
+        ? {
+            roleKey: role.key,
+            roleName: role.name,
+            rule: "只改原正文的叙事组织与说话方式；不得从角色档案外新增经历、人物、物件或相反记忆，不得泄露 mustHide。"
+          }
+        : null,
+      repairFeedback: guarded.proseDiagnostics.issues
+    }),
+    {
+      maxTokens: Math.min(12000, Math.max(3500, targetWords * 3)),
+      temperature: 0.22,
+      phase: "pipeline.legacy_prose_repair",
+      context
+    }
+  );
+  const repairedBody = cleanText(repair.value?.body, 12000);
+  if (repairedBody.length < (minWords || 250)) {
+    throwErr("DEEPSEEK_OUTPUT_INVALID", "真人化重写后正文长度不足，已阻止进入工作区", {
+      ...context,
+      prosePolicy: PLAYER_PROSE_POLICY,
+      actualChars: repairedBody.length,
+      minChars: minWords || 250
+    });
+  }
+  guarded = attachPlayerProseDiagnostics({ ...section, body: repairedBody }, pov);
+  if (!guarded.proseDiagnostics.passed) {
+    throwErr("DEEPSEEK_OUTPUT_INVALID", "私人正文经真人化重写后仍命中机械转写门禁，已阻止进入工作区", {
+      ...context,
+      prosePolicy: PLAYER_PROSE_POLICY,
+      issues: guarded.proseDiagnostics.issues
+    });
+  }
+  return { ...guarded, proseRepaired: true };
 }
 
 function chapterNarrativeTargetChars(setting, config) {
@@ -236,9 +331,19 @@ export async function createDeepseekRoleScriptFromNarrative(input) {
       { maxTokens, temperature: 0.55, timeoutMs: callTimeoutMs, phase: chapterKey ? "section" : "all_sections", context: ctx }
     );
     const parsed = validateRoleScriptFromNarrative(result.value, roleKey, config, minWords, requiredChapterKeys);
+    const guardedSections = {};
+    for (const [sectionChapterKey, section] of Object.entries(parsed.sections)) {
+      guardedSections[sectionChapterKey] = await enforcePlayerProseSection({
+        section,
+        role,
+        setting,
+        minWords,
+        context: { roleKey, chapterKey: sectionChapterKey, source: "narrative_role_script" }
+      });
+    }
     logRoleScript(roleKey, "done", {
       chapterKey,
-      sectionChars: Object.fromEntries(Object.entries(parsed.sections).map(([k, s]) => [k, s.body.length])),
+      sectionChars: Object.fromEntries(Object.entries(guardedSections).map(([k, s]) => [k, s.body.length])),
       elapsedMs: Date.now() - started
     });
     return {
@@ -249,8 +354,9 @@ export async function createDeepseekRoleScriptFromNarrative(input) {
       config,
       roleKey,
       chapterKey,
-      sections: parsed.sections,
-      suggestions: parsed.suggestions
+      sections: guardedSections,
+      suggestions: parsed.suggestions,
+      prosePolicy: PLAYER_PROSE_POLICY
     };
   } catch (error) {
     logRoleScript(roleKey, "error", {
@@ -270,12 +376,26 @@ export async function createDeepseekRolesFromNarrative(input) {
   const roleMatrix = validateRoleMatrix(input.roleMatrix, spec, input.proposal || { chapters: spec.chapterKeys.map((key, i) => ({ key, title: `第 ${i + 1} 章`, summary: "", sequence: i + 1 })) });
   const chapters = Array.isArray(input.chapters) ? input.chapters.map((ch) => validateChapterNarrative(ch, spec, ch.chapterKey)) : [];
   if (chapters.length !== spec.chapterKeys.length) throwErr("VALIDATION_ERROR", "All chapter narratives required before role split");
+  const legacySetting = validateCreativeSetting({ ...(input.setting || {}), pov: input.setting?.pov || input.pov });
   const result = await requestDeepseekJson(
-    buildRolesFromNarrativeMessages({ brief, spec, roleMatrix, chapters }),
+    buildRolesFromNarrativeMessages({ brief, spec, roleMatrix, chapters, pov: legacySetting.pov }),
     { maxTokens: 12000, temperature: 0.45 }
   );
   const parsed = validateRolesFromNarrative(result.value, spec, roleMatrix);
-  return { provider: "deepseek", model: result.model, brief, spec, roleMatrix, sections: parsed.sections, suggestions: parsed.suggestions };
+  const guardedSections = {};
+  for (const [roleKey, sections] of Object.entries(parsed.sections)) {
+    guardedSections[roleKey] = assertPlayerProseSections(sections, { roleKey, source: "bulk_narrative_roles" }, legacySetting.pov);
+  }
+  return {
+    provider: "deepseek",
+    model: result.model,
+    brief,
+    spec,
+    roleMatrix,
+    sections: guardedSections,
+    suggestions: parsed.suggestions,
+    prosePolicy: PLAYER_PROSE_POLICY
+  };
 }
 
 export async function createDeepseekStructureFromNarrative(input) {
@@ -1111,14 +1231,25 @@ export async function createDeepseekRoleSection(input) {
   const chapterKey = cleanText(input.chapterKey, 40);
   if (!roleKey || !chapterKey) throwErr("VALIDATION_ERROR", "roleKey and chapterKey are required");
   const minWords = spec.wordsPerSectionMin || 250;
+  const legacySetting = validateCreativeSetting({ ...(input.setting || {}), pov: input.setting?.pov || input.pov });
   const result = await requestDeepseekJson(
-    buildRoleSectionMessages({ brief, spec, outline, proposal, roleMatrix, roleKey, chapterKey, sectionMinWords: minWords }),
+    buildRoleSectionMessages({ brief, spec, outline, proposal, roleMatrix, roleKey, chapterKey, sectionMinWords: minWords, pov: legacySetting.pov }),
     { maxTokens: 3500, temperature: 0.65 }
   );
+  const section = validateRoleSection(result.value, roleKey, chapterKey, minWords);
+  const role = roleMatrix.roles.find((item) => item.key === roleKey) || null;
+  const guardedSection = await enforcePlayerProseSection({
+    section,
+    role,
+    setting: legacySetting,
+    minWords,
+    context: { roleKey, chapterKey, source: "legacy_role_section" }
+  });
   return {
     provider: "deepseek",
     model: result.model,
-    section: validateRoleSection(result.value, roleKey, chapterKey, minWords)
+    section: guardedSection,
+    prosePolicy: PLAYER_PROSE_POLICY
   };
 }
 

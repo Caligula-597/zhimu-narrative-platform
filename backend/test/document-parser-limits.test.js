@@ -19,6 +19,25 @@ test("creator document text cannot exceed the import contract", () => {
   );
 });
 
+test("text document preview includes an evidence-based prose assessment", () => {
+  const parsed = parseCreatorTextDocument({
+    filename: "player-script.txt",
+    text: [
+      "周敏把合同压在账本上。",
+      "“先签。”她没有把笔递过来。",
+      "你去抽合同，账本跟着滑到地上，夹着的两张欠条散在柜台里面。",
+      "唐远弯腰去捡。周敏先踩住了其中一张：“这张不归你。”"
+    ].join("\n"),
+    extraction: { method: "plain_text" }
+  });
+  assert.equal(typeof parsed.authorshipAssessment.score, "number");
+  assert.equal(parsed.authorshipAssessment.creationType, "murder_mystery");
+  assert.match(parsed.authorshipAssessment.disclaimer, /不是作者身份或 AI 使用情况的鉴定/u);
+  assert.ok(parsed.authorshipAssessment.dimensions.sceneGrounding > 0);
+  assert.ok(["pass", "manual_review"].includes(parsed.authorshipAssessment.gate.decision));
+  assert.equal(parsed.authorshipAssessment.gate.threshold, 65);
+});
+
 test("document base64 decoding rejects non-canonical and empty payloads", () => {
   assert.throws(() => decodeDocumentBuffer({ contentBase64: "%%%" }), (error) => error.code === "DOCUMENT_SIZE_INVALID");
   assert.throws(() => decodeDocumentBuffer({ contentBase64: "" }), (error) => error.code === "DOCUMENT_SIZE_INVALID");

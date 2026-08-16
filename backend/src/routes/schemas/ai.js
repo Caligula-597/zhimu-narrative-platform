@@ -6,7 +6,7 @@ const deepseekBriefBody = {
   additionalProperties: false,
   properties: {
     title: { type: "string", maxLength: 120 },
-    premise: { type: "string", maxLength: 4000 },
+    premise: { type: "string", maxLength: 12_000 },
     conflicts: { type: "string", maxLength: 3000 },
     wordsPerChapter: { type: "integer", minimum: 2000, maximum: 12_000 },
     style: { type: "string", maxLength: 800 },
@@ -27,6 +27,7 @@ const deepseekBriefBody = {
 
 const deepseekJsonObject = { type: "object", additionalProperties: true };
 const optionalNullableJsonObject = { anyOf: [deepseekJsonObject, { type: "null" }] };
+const optionalNullableJsonArray = { anyOf: [{ type: "array", maxItems: 24, items: deepseekJsonObject }, { type: "null" }] };
 
 const creativeSettingBody = {
   type: "object",
@@ -44,6 +45,7 @@ const creativeSettingBody = {
     mysteryStyle: { type: "string", maxLength: 80 },
     killerAwareness: { type: "string", enum: ["self-aware", "self-unaware"] },
     matrixMode: { type: "string", enum: ["honkaku", "henkaku"] },
+    playStructure: { type: "string", enum: ["mystery", "faction", "mechanism", "hybrid"] },
     eraPreset: { type: "string", maxLength: 80 },
     eraNotes: { type: "string", maxLength: 800 },
     styleAnchor: { type: "string", maxLength: 2000 },
@@ -203,9 +205,14 @@ const matrixPipelineBody = {
     ...creativePipelineFields,
     truthBible: optionalNullableJsonObject,
     characterArchives: optionalNullableJsonObject,
+    clueNetwork: optionalNullableJsonObject,
     infoMatrix: optionalNullableJsonObject,
+    actOutlines: optionalNullableJsonObject,
     scripts: optionalNullableJsonObject,
-    hostRunbooks: optionalNullableJsonObject,
+    hostRunbooks: optionalNullableJsonArray,
+    evaluation: optionalNullableJsonObject,
+    generationProvenance: optionalNullableJsonObject,
+    artifactDependencyManifest: optionalNullableJsonObject,
     actKey: { type: "string", maxLength: 40 },
     roleKey: { type: "string", maxLength: 40 },
     deAiPass: { type: "boolean" },
@@ -224,21 +231,26 @@ export const deepseekPipelineMatrixCharactersSchema = {
   body: { ...matrixPipelineBody, required: ["truthBible"] }
 };
 
-export const deepseekPipelineMatrixInfoSchema = {
+export const deepseekPipelineMatrixCluesSchema = {
   params: worldIdParams,
   body: { ...matrixPipelineBody, required: ["truthBible", "characterArchives"] }
 };
 
+export const deepseekPipelineMatrixInfoSchema = {
+  params: worldIdParams,
+  body: { ...matrixPipelineBody, required: ["truthBible", "characterArchives", "clueNetwork"] }
+};
+
 export const deepseekPipelineMatrixHostSchema = {
   params: worldIdParams,
-  body: { ...matrixPipelineBody, required: ["truthBible", "infoMatrix"] }
+  body: { ...matrixPipelineBody, required: ["truthBible", "characterArchives", "clueNetwork", "infoMatrix"] }
 };
 
 export const deepseekPipelineMatrixPlayerScriptSchema = {
   params: worldIdParams,
   body: {
     ...matrixPipelineBody,
-    required: ["truthBible", "characterArchives", "infoMatrix", "roleKey", "actKey"]
+    required: ["truthBible", "characterArchives", "clueNetwork", "infoMatrix", "roleKey", "actKey"]
   }
 };
 
@@ -246,7 +258,7 @@ export const deepseekPipelineMatrixEvaluateSchema = {
   params: worldIdParams,
   body: {
     ...matrixPipelineBody,
-    required: ["truthBible", "infoMatrix"]
+    required: ["truthBible", "characterArchives", "clueNetwork", "infoMatrix"]
   }
 };
 
@@ -254,7 +266,7 @@ export const deepseekPipelineMatrixSyncPreviewSchema = {
   params: worldIdParams,
   body: {
     ...matrixPipelineBody,
-    required: ["truthBible", "characterArchives", "infoMatrix"]
+    required: ["truthBible", "characterArchives", "clueNetwork", "infoMatrix"]
   }
 };
 
