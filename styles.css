@@ -64,6 +64,13 @@
 .sidebar-action-icon { width:20px; height:20px; display:grid; place-items:center; flex:0 0 20px; border-radius:6px; background:rgba(255,255,255,.07); font-size:13px; line-height:1; }
 .sidebar-actions .catalog-world-btn { width:auto; margin:0; padding:8px 7px; gap:6px; border:1px solid rgba(255,255,255,.13); border-radius:9px; color:rgba(231,239,236,.74); background:rgba(255,255,255,.04); font-size:11px; }
 .sidebar-actions .catalog-world-btn:hover { color:#fff; border-color:rgba(255,255,255,.26); background:rgba(255,255,255,.085); }
+[data-board-shell][hidden], [data-narrative-shell][hidden], #catalog-world-btn[hidden],
+.topbar-actions > [hidden], .sidebar-bottom .nav-item[hidden] { display:none !important; }
+body[data-product-mode="board-game"] .sidebar { background:linear-gradient(180deg,#162f3a 0%,#102833 100%); }
+body[data-product-mode="board-game"] .sidebar-actions { grid-template-columns:1fr; }
+body[data-product-mode="board-game"] .brand-mark,
+body[data-product-mode="board-game"] .world-icon { color:#9ed5e4; border-color:rgba(158,213,228,.3); }
+body[data-product-mode="board-game"] .world-icon { background:rgba(110,181,201,.14); }
 .nav-label { padding:0 9px; margin:12px 0 5px; font-size:9px; font-weight:700; letter-spacing:1.8px; color:rgba(231,239,236,.38); }
 .main-nav {
   flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto;

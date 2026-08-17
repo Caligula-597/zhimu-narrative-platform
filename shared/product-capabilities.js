@@ -30,13 +30,10 @@ export const PRODUCT_TOOL_CAPABILITIES = Object.freeze({
   }),
   board_game: Object.freeze({
     label: "桌游",
-    dedicated: Object.freeze(["boardGame", "writer"]),
-    shared: Object.freeze(["rules", "archive"]),
+    dedicated: Object.freeze(["boardGame"]),
+    shared: Object.freeze([]),
     labels: Object.freeze({
-      boardGame: "桌游设计总台",
-      writer: "玩家席位与私密信息",
-      rules: "条件与结算规则",
-      archive: "测试局记录"
+      boardGame: "桌游创作中心"
     })
   }),
   interactive_story: Object.freeze({
@@ -70,4 +67,16 @@ export function productSupportsView(value, view) {
 
 export function productToolLabel(value, view, fallback = "") {
   return productToolCapabilities(value).labels[view] || fallback || view;
+}
+
+const BOARD_GAME_SHELL_VIEWS = Object.freeze(["boardGame", "account", "ops"]);
+
+export function productHomeView(value) {
+  return normalizeCreationType(value) === "board_game" ? "boardGame" : "creatorCockpit";
+}
+
+export function productAllowsShellView(value, view) {
+  const creationType = normalizeCreationType(value);
+  if (creationType === "board_game") return BOARD_GAME_SHELL_VIEWS.includes(view);
+  return view !== "boardGame";
 }

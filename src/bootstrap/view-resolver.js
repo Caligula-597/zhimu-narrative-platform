@@ -16,7 +16,7 @@ const viewMeta = {
   writer: ["剧本杀创作", "角色私人剧本"],
   studio: ["内容创作", "剧情编排图谱"],
   tabletopMap: ["空间与结局", "跑团地图设计"],
-  boardGame: ["桌游设计", "桌游组件工坊"],
+  boardGame: ["桌游创作", "桌游创作中心"],
   clues: ["内容创作", "线索管理"],
   rules: ["内容创作", "自动化规则"],
   miniGames: ["内容创作", "小游戏设计"],

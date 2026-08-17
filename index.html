@@ -76,17 +76,21 @@
 
         <nav class="main-nav" aria-label="主导航">
 
-          <p class="nav-label">主流程</p>
+          <p class="nav-label" data-narrative-shell>主流程</p>
 
-          <button class="nav-item active" data-view="creatorCockpit" aria-label="创作驾驶舱" title="创作驾驶舱"><span class="nav-icon">CC</span><span class="nav-text">创作驾驶舱</span></button>
+          <button class="nav-item active" data-view="creatorCockpit" data-narrative-shell aria-label="创作驾驶舱" title="创作驾驶舱"><span class="nav-icon">CC</span><span class="nav-text">创作驾驶舱</span></button>
 
-          <button class="nav-item" data-view="constitution" aria-label="创作宪法" title="创作宪法"><span class="nav-icon">北</span><span class="nav-text">创作宪法</span></button>
+          <button class="nav-item" data-view="constitution" data-narrative-shell aria-label="创作宪法" title="创作宪法"><span class="nav-icon">北</span><span class="nav-text">创作宪法</span></button>
 
-          <button class="nav-item" data-view="diagnostics" aria-label="作品诊断中心" title="作品诊断中心"><span class="nav-icon">✦</span><span class="nav-text">作品诊断中心</span></button>
+          <button class="nav-item" data-view="diagnostics" data-narrative-shell aria-label="作品诊断中心" title="作品诊断中心"><span class="nav-icon">✦</span><span class="nav-text">作品诊断中心</span></button>
 
-          <button class="nav-item" data-view="playtest" aria-label="玩家试跑实验室" title="玩家试跑实验室"><span class="nav-icon">AI</span><span class="nav-text">玩家试跑实验室</span></button>
+          <button class="nav-item" data-view="playtest" data-narrative-shell aria-label="玩家试跑实验室" title="玩家试跑实验室"><span class="nav-icon">AI</span><span class="nav-text">玩家试跑实验室</span></button>
 
-          <button type="button" class="nav-item nav-expand-btn" data-action="toggle-nav-advanced" aria-label="展开精细编辑器" aria-expanded="false" aria-controls="nav-advanced" title="展开或收起精细编辑器"><span class="nav-icon">⋯</span><span class="nav-text" data-nav-advanced-label>精细编辑器</span><span class="nav-chevron" aria-hidden="true">⌄</span></button>
+          <p class="nav-label" data-board-shell hidden>桌游创作</p>
+
+          <button class="nav-item" data-view="boardGame" data-board-shell aria-label="桌游创作中心" title="桌游创作中心" hidden><span class="nav-icon">棋</span><span class="nav-text">桌游创作中心</span></button>
+
+          <button type="button" class="nav-item nav-expand-btn" data-action="toggle-nav-advanced" data-narrative-shell aria-label="展开精细编辑器" aria-expanded="false" aria-controls="nav-advanced" title="展开或收起精细编辑器"><span class="nav-icon">⋯</span><span class="nav-text" data-nav-advanced-label>精细编辑器</span><span class="nav-chevron" aria-hidden="true">⌄</span></button>
 
           <div class="nav-advanced" id="nav-advanced" hidden>
 
@@ -100,8 +104,6 @@
 
             <button class="nav-item" data-view="tabletopMap" aria-label="跑团地图设计" title="跑团地图设计"><span class="nav-icon">图</span><span class="nav-text">跑团地图设计</span></button>
 
-            <button class="nav-item" data-view="boardGame" aria-label="桌游组件工坊" title="桌游组件工坊" hidden><span class="nav-icon">棋</span><span class="nav-text">桌游组件工坊</span></button>
-
             <button class="nav-item" data-view="clues" aria-label="线索管理" title="线索管理"><span class="nav-icon">◆</span><span class="nav-text">线索管理</span></button>
 
             <button class="nav-item" data-view="miniGames" aria-label="小游戏设计" title="小游戏设计"><span class="nav-icon">#</span><span class="nav-text">小游戏设计</span></button>
@@ -114,9 +116,9 @@
 
           </div>
 
-          <p class="nav-label">帮助</p>
+          <p class="nav-label" data-narrative-shell>帮助</p>
 
-          <button class="nav-item" data-action="open-creator-guide" aria-label="打开创作指引" title="打开创作指引"><span class="nav-icon">?</span><span class="nav-text">创作指引</span></button>
+          <button class="nav-item" data-action="open-creator-guide" data-narrative-shell aria-label="打开创作指引" title="打开创作指引"><span class="nav-icon">?</span><span class="nav-text">创作指引</span></button>
 
         </nav>
 
