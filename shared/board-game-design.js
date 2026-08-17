@@ -1,4 +1,6 @@
-export const BOARD_GAME_DESIGN_VERSION = 2;
+import { createDefaultBoardGameEngine, normalizeBoardGameEngine } from "./board-game-engine.js";
+
+export const BOARD_GAME_DESIGN_VERSION = 3;
 
 export const BOARD_GAME_COMPONENT_TYPES = Object.freeze([
   "board",
@@ -237,6 +239,7 @@ export function createDefaultBoardGameDesign(title = "") {
     components: [],
     variables: [],
     mechanisms: [],
+    engine: createDefaultBoardGameEngine(),
     rulebook: normalizeBoardGameRulebook(),
     updatedAt: null
   };
@@ -258,6 +261,7 @@ export function normalizeBoardGameDesign(value = {}, { title = "" } = {}) {
     components: (Array.isArray(source.components) ? source.components : []).slice(0, 300).map(normalizeBoardGameComponent),
     variables: (Array.isArray(source.variables) ? source.variables : []).slice(0, 300).map(normalizeBoardGameVariable),
     mechanisms: (Array.isArray(source.mechanisms) ? source.mechanisms : []).slice(0, 300).map(normalizeBoardGameMechanism),
+    engine: normalizeBoardGameEngine(source.engine),
     rulebook: normalizeBoardGameRulebook(source.rulebook),
     updatedAt: text(source.updatedAt, 80) || null
   };
@@ -327,7 +331,9 @@ export function assessBoardGameReadiness(design, roleCount = 0) {
     { key: "flow", label: "写明准备与回合流程", passed: Boolean(normalized.rulebook.setup && normalized.rulebook.turnStructure) },
     { key: "actions", label: "写明玩家可执行动作", passed: Boolean(normalized.rulebook.playerActions) },
     { key: "variables", label: "至少 1 个可计算数值", passed: normalized.variables.length >= 1 },
-    { key: "mechanisms", label: "至少 1 条可执行机制", passed: normalized.mechanisms.some((item) => item.effects.length > 0) }
+    { key: "mechanisms", label: "至少 1 条可执行机制", passed: normalized.mechanisms.some((item) => item.effects.length > 0) },
+    { key: "map", label: "至少 1 个可操作地图区域", passed: normalized.engine.map.nodes.length >= 1 },
+    { key: "runtime", label: "至少 1 个阶段和行动", passed: normalized.engine.phases.length >= 1 && normalized.engine.actions.length >= 1 }
   ];
   return {
     checks,

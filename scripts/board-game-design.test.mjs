@@ -67,6 +67,12 @@ test("board-game readiness describes the minimum playable prototype", () => {
     components: [component],
     variables: [variable],
     mechanisms: [mechanism],
+    engine: {
+      maxRounds: 3,
+      map: { kind: "area_graph", nodes: [{ id: "start", label: "起点", x: 20, y: 50 }], edges: [] },
+      phases: [{ id: "turn", label: "行动", mode: "sequential", actionIds: ["wait"] }],
+      actions: [{ id: "wait", label: "等待", kind: "pass", phaseId: "turn", target: "none" }]
+    },
     rulebook: {
       objective: "最先抵达终点",
       setup: "每人一枚棋子",

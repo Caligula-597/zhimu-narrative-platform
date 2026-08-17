@@ -70,6 +70,16 @@ const creativePipelineFields = {
   config: deepseekJsonObject
 };
 
+export const boardGameAiDraftSchema = {
+  params: worldIdParams,
+  body: { type: "object", additionalProperties: false, required: ["currentDesign", "scope", "currentSection"], properties: {
+    currentDesign: deepseekJsonObject,
+    scope: { type: "string", enum: ["patch", "missing", "current", "full"] },
+    currentSection: { type: "string", enum: ["components", "seats", "mechanisms", "engine", "rulebook"] },
+    instructions: { type: "string", maxLength: 3000 }, seed: { type: "string", maxLength: 120 }
+  } }
+};
+
 export const deepseekPipelineSpecSchema = {
   params: worldIdParams,
   body: deepseekBriefBody

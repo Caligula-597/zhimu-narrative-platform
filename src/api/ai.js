@@ -50,6 +50,12 @@ export function runAiPlaytest(payload, worldId = demoContext.worldId) {
   });
 }
 
+export function generateBoardGameAiDraft(payload, worldId = demoContext.worldId) {
+  return deepseekRequest(`/worlds/${worldId}/story-assistant/deepseek/board-game/design-draft`, {
+    userId: demoContext.hostUserId, method: "POST", body: payload, timeoutMs: 240_000
+  });
+}
+
 export function proposeWithDeepseek(payload) {
   return deepseekRequest(`/worlds/${demoContext.worldId}/story-assistant/deepseek/propose`, { userId: demoContext.hostUserId, method: "POST", body: payload });
 }

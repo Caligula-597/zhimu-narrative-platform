@@ -27,6 +27,15 @@ import { callView } from "./view-registry.js";
       case "board-effect-add": callView("boardGame", "addBoardGameEffect"); return true;
       case "board-effect-delete": callView("boardGame", "deleteBoardGameEffect", el?.dataset?.boardEffectId); return true;
       case "board-simulator-reset": callView("boardGame", "resetBoardGameSimulator"); return true;
+      case "board-ai-generate": void callView("boardGame", "generateBoardGameDraft"); return true;
+      case "board-ai-apply": callView("boardGame", "applyBoardGameDraft"); return true;
+      case "board-ai-discard": callView("boardGame", "discardBoardGameDraft"); return true;
+      case "board-ai-undo": callView("boardGame", "undoBoardGameDraft"); return true;
+      case "board-play-command": callView("boardGame", "selectBoardGamePlaygroundCommand", el?.dataset?.boardPlayCommandId); return true;
+      case "board-play-target": callView("boardGame", "selectBoardGamePlaygroundTarget", el?.dataset?.boardPlayTargetId); return true;
+      case "board-play-confirm": callView("boardGame", "confirmBoardGamePlaygroundAction"); return true;
+      case "board-play-next": callView("boardGame", "advanceBoardGamePlaygroundRound"); return true;
+      case "board-play-reset": callView("boardGame", "resetBoardGamePlaygroundView"); return true;
       case "board-design-save": void callView("boardGame", "saveBoardGameDesign"); return true;
       default: return false;
     }

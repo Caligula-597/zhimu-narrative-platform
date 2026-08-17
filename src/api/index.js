@@ -315,6 +315,7 @@ export {
   importStoryDraft,
   getDeepseekStatus,
   runAiPlaytest,
+  generateBoardGameAiDraft,
   proposeWithDeepseek,
   importDeepseekProposal,
   deepseekPipelineSpec,

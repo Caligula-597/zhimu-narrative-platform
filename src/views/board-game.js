@@ -4,15 +4,24 @@ import { normalizeError } from "../components/status-ui.js";
 import { showToast } from "../components/toast.js";
 import { loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
-import { studioStore, worldStore } from "../state/index.js";
+import { studioStore, uiStore, worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
+import { setHtml } from "../../shared/safe-dom.js";
+import {
+  advanceBoardGamePlaygroundRound as advancePlaygroundRoundState,
+  chooseBoardGamePlaygroundCommand as choosePlaygroundCommandState,
+  chooseBoardGamePlaygroundTarget as choosePlaygroundTargetState,
+  confirmBoardGamePlaygroundAction as confirmPlaygroundActionState,
+  createBoardGamePlaygroundState,
+  renderBoardGamePlayground,
+  resetBoardGamePlayground as resetPlaygroundState
+} from "./board-game-playground.js";
 import {
   BOARD_GAME_COMPONENT_TYPES,
   BOARD_GAME_CONDITION_OPERATORS,
   BOARD_GAME_EFFECT_OPERATIONS,
   BOARD_GAME_MECHANISM_TEMPLATES,
   BOARD_GAME_VARIABLE_SCOPES,
-  assessBoardGameReadiness,
   boardGameComponentTypeLabel,
   createBoardGameComponent,
   createBoardGameMechanism,
@@ -42,13 +51,24 @@ const TAB_LABELS = Object.freeze({
   components: "组件与素材",
   seats: "玩家席位",
   mechanisms: "条件与计算",
+  playground: "互动试玩",
   rulebook: "游戏说明书"
 });
+const AI_SECTION_LABELS = Object.freeze({ ...TAB_LABELS, engine: "试玩引擎" });
+const AI_SCOPE_LABELS = Object.freeze({ patch: "修改当前 Demo", missing: "只补齐空白", current: "重做当前模块", full: "生成完整新原型" });
 
 const SCOPE_LABELS = Object.freeze({ global: "整局", player: "每位玩家", component: "指定组件" });
 const OPERATOR_LABELS = Object.freeze({ eq: "等于", neq: "不等于", gt: "大于", gte: "大于等于", lt: "小于", lte: "小于等于", contains: "包含" });
 const EFFECT_LABELS = Object.freeze({ set: "设为", add: "增加", subtract: "减少", multiply: "乘以", min: "取较小值", max: "取较大值", toggle: "切换真假" });
-
+const COMPONENT_NESTED_FIELDS = Object.freeze([
+  ["boardStateField", "stateFields", "[data-board-state-id]", "boardStateId"],
+  ["boardAssetField", "assets", "[data-board-asset-id]", "boardAssetId"],
+  ["boardEntryField", "entries", "[data-board-entry-id]", "boardEntryId"]
+]);
+const MECHANISM_NESTED_FIELDS = Object.freeze([
+  ["boardConditionField", "conditions", "[data-board-condition-id]", "boardConditionId"],
+  ["boardEffectField", "effects", "[data-board-effect-id]", "boardEffectId"]
+]);
 let editorSession = null;
 
 function activeWorld() {
@@ -78,8 +98,16 @@ function initializeSession() {
     selectedId: design.components[0]?.id || "",
     selectedMechanismId: design.mechanisms[0]?.id || "",
     simulationState: initialBoardGameState(design.variables),
+    playgroundState: createBoardGamePlaygroundState(design, activeRoles().length || design.playerCount.min),
     assetUrls: {},
     seatDeleteArmedId: "",
+    aiScope: design.components.length || design.engine.actions.length ? "patch" : "missing",
+    aiInstructions: "",
+    aiDraft: null,
+    aiDraftBase: null,
+    aiGenerating: false,
+    aiError: "",
+    undoDesign: null,
     dirty: false,
     saving: false,
     busy: false
@@ -208,9 +236,9 @@ function renderComponentsTab(session) {
 function renderSeatsTab(session) {
   const roles = activeRoles();
   return `<section class="board-panel board-seats-panel">
-    <div class="board-panel-head"><div><p class="section-kicker">PLAYER SEATS</p><h2>玩家席位就是人物</h2><p>这里增删的席位直接写入人物数据。人物编辑器、规则引用和最终导出都会看到同一份名单。</p></div><div class="board-head-actions"><button type="button" class="secondary-btn" data-action="board-seat-add" ${session.busy ? "disabled" : ""}>＋ 增加 1 席</button><button type="button" class="primary-btn" data-action="board-seat-init-six" ${session.busy || roles.length >= 6 ? "disabled" : ""}>补齐为 6 人</button></div></div>
-    <div class="board-seat-summary"><strong>${roles.length}</strong><span>个真实玩家席位</span><small>${roles.length ? `保存桌游时，人数会同步为 ${roles.length} 人` : "不再要求用户去人物页重复创建"}</small></div>
-    <div class="board-seat-list">${roles.length ? roles.map((role, index) => `<article class="board-seat-row" data-board-seat-id="${escapeHtml(role.id)}"><span class="board-seat-number">${index + 1}</span><label><span>席位 / 人物名称</span><input class="field" data-board-seat-name maxlength="120" value="${escapeHtml(role.name || `玩家席位 ${index + 1}`)}"></label><small>顺序 ${Number(role.sequence || index + 1)}</small><button type="button" class="text-btn" data-action="board-seat-name-save" data-board-seat-id="${escapeHtml(role.id)}">同步名称</button><button type="button" class="text-btn danger-text ${session.seatDeleteArmedId === role.id ? "armed" : ""}" data-action="board-seat-delete" data-board-seat-id="${escapeHtml(role.id)}">${session.seatDeleteArmedId === role.id ? "确认删除" : "删除"}</button></article>`).join("") : `<div class="board-assets-empty"><strong>还没有玩家席位</strong><p>点击“补齐为 6 人”，系统会一次创建六个可继续命名和写人物内容的真实角色。</p></div>`}</div>
+    <div class="board-panel-head"><div><p class="section-kicker">PLAYER SEATS</p><h2>玩家席位</h2><p>在这里维护参与人数、席位名称和顺序；规则引用与试玩 Demo 会使用同一份席位名单。</p></div><div class="board-head-actions"><button type="button" class="secondary-btn" data-action="board-seat-add" ${session.busy ? "disabled" : ""}>＋ 增加 1 席</button><button type="button" class="primary-btn" data-action="board-seat-init-six" ${session.busy || roles.length >= 6 ? "disabled" : ""}>补齐为 6 人</button></div></div>
+    <div class="board-seat-summary"><strong>${roles.length}</strong><span>个玩家席位</span><small>${roles.length ? `保存桌游时，人数会同步为 ${roles.length} 人` : "从这里直接建立试玩所需的席位"}</small></div>
+    <div class="board-seat-list">${roles.length ? roles.map((role, index) => `<article class="board-seat-row" data-board-seat-id="${escapeHtml(role.id)}"><span class="board-seat-number">${index + 1}</span><label><span>席位名称</span><input class="field" data-board-seat-name maxlength="120" value="${escapeHtml(role.name || `玩家席位 ${index + 1}`)}"></label><small>顺序 ${Number(role.sequence || index + 1)}</small><button type="button" class="text-btn" data-action="board-seat-name-save" data-board-seat-id="${escapeHtml(role.id)}">保存名称</button><button type="button" class="text-btn danger-text ${session.seatDeleteArmedId === role.id ? "armed" : ""}" data-action="board-seat-delete" data-board-seat-id="${escapeHtml(role.id)}">${session.seatDeleteArmedId === role.id ? "确认删除" : "删除"}</button></article>`).join("") : `<div class="board-assets-empty"><strong>还没有玩家席位</strong><p>点击“补齐为 6 人”，系统会一次建立六个可继续命名并用于试玩的席位。</p></div>`}</div>
   </section>`;
 }
 
@@ -305,24 +333,54 @@ function renderRulebookTab(session) {
   return `<section class="board-panel"><div class="board-panel-head"><div><p class="section-kicker">RULEBOOK</p><h2>游戏说明书</h2><p>说明书是桌游的必需交付物。这里引用的是同一套席位、组件、数值和规则，不需要重新录入。</p></div></div><div class="board-rulebook-grid">${fields.map(([key, label, placeholder, rows]) => `<label class="${["setup", "turnStructure", "playerActions", "notes"].includes(key) ? "wide" : ""}"><span>${label}</span><textarea class="field" data-board-rulebook-field="${key}" maxlength="8000" rows="${rows}" placeholder="${placeholder}">${escapeHtml(session.design.rulebook[key])}</textarea></label>`).join("")}</div></section>`;
 }
 
-function readinessPanel(session) {
-  const readiness = assessBoardGameReadiness(session.design, activeRoles().length);
-  return `<section class="board-readiness ${readiness.ready ? "ready" : ""}"><div><span>可试玩原型</span><strong>${readiness.passed} / ${readiness.total}</strong><small>${readiness.ready ? "已满足最低闭环，可进入真人测试" : "先完成最小闭环，不要求一次把所有系统做满"}</small></div><div class="board-readiness-checks">${readiness.checks.map((check) => `<span class="${check.passed ? "passed" : ""}">${check.passed ? "✓" : "○"} ${escapeHtml(check.label)}</span>`).join("")}</div></section>`;
+function aiDraftPreview(session) {
+  const proposal = session.aiDraft;
+  if (!proposal) return "";
+  const report = proposal.engineReport;
+  const metrics = (proposal.diff?.metrics || []).filter((item) => item.changed);
+  const capabilityErrors = (proposal.capabilityPlan?.unsupported || []).map((item) => ({
+    code: item.capabilityId || "CAPABILITY_UNSUPPORTED",
+    message: item.reason || item.description || "当前引擎不能完整执行这项要求。"
+  }));
+  const errors = [...(proposal.issues || []).filter((item) => item.level === "error"), ...capabilityErrors].slice(0, 5);
+  return `<section class="board-ai-preview ${proposal.blocking ? "blocked" : ""}">
+    <div class="board-ai-preview-head"><div><span>尚未写入项目</span><h3>${escapeHtml(proposal.summary || "结构化桌游候选")}</h3><p>${escapeHtml(AI_SCOPE_LABELS[proposal.scope] || proposal.scope)} · ${escapeHtml(AI_SECTION_LABELS[proposal.currentSection] || proposal.currentSection)}</p></div><span>候选 Demo</span></div>
+    <div class="board-ai-diff">${metrics.map((item) => `<article><span>${escapeHtml(item.label)}</span><strong>${item.before} → ${item.after}</strong><small>${item.delta > 0 ? "+" : ""}${item.delta}</small></article>`).join("") || "<p>候选不会改变当前数据。</p>"}</div>
+    ${report ? `<div class="board-ai-engine-report"><div><span class="${proposal.blocking ? "blocked" : "supported"}">${proposal.blocking ? "暂不能运行" : "引擎可运行"}</span><strong>${report.tests.filter((item) => item.passed).length}/${report.tests.length} 项结构测试通过</strong><small>${report.engine.map.nodes.length} 区域 · ${report.engine.map.edges.length} 路线 · ${report.engine.actions.length} 行动</small></div><div><span>能力匹配</span><strong>${report.capabilities.supported} 支持 · ${report.capabilities.partial} 部分 · ${report.capabilities.unsupported} 不支持</strong><small>部分支持不会冒充为已实现</small></div></div>` : ""}
+    ${errors.length ? `<ul class="board-ai-issues">${errors.map((item) => `<li><strong>${escapeHtml(item.code)}</strong><span>${escapeHtml(item.message)}</span></li>`).join("")}</ul>` : ""}
+    ${proposal.capabilityPlan?.assumptions?.length ? `<p class="board-ai-assumptions"><strong>AI 自由补全：</strong>${proposal.capabilityPlan.assumptions.slice(0, 6).map(escapeHtml).join("；")}</p>` : ""}
+    <div class="board-ai-actions"><button type="button" class="text-btn" data-action="board-ai-discard">放弃候选</button><button type="button" class="primary-btn" data-action="board-ai-apply" ${proposal.blocking || !proposal.diff?.changed ? "disabled" : ""}>${proposal.blocking ? "当前能力无法完整执行" : "确认写入编辑器与试玩"}</button></div>
+  </section>`;
+}
+
+function aiDraftPanel(session) {
+  const currentSection = session.activeTab === "playground" ? "engine" : session.activeTab;
+  return `<section class="board-ai-panel"><div class="board-ai-copy"><p class="section-kicker">AI-FIRST AUTHORING</p><h2>描述你想创建或修改的桌游</h2><p>未说明但运行必需的部分会自由补全；组件、地图、行动和说明书写入同一个 Demo。</p></div><div class="board-ai-controls">
+    <label><span>本次范围</span><select class="field" data-board-ai-scope>${Object.entries(AI_SCOPE_LABELS).map(([key, label]) => `<option value="${key}" ${session.aiScope === key ? "selected" : ""}>${escapeHtml(label)}${key === "current" ? ` · ${escapeHtml(AI_SECTION_LABELS[currentSection])}` : ""}</option>`).join("")}</select></label>
+    <label class="wide"><span>用一句话说明本次创建或修改</span><textarea class="field" rows="2" maxlength="3000" data-board-ai-instructions placeholder="例如：创建4—8人团队竞争桌游；或把移动改为消耗2补给，并新增两块山地">${escapeHtml(session.aiInstructions)}</textarea></label>
+    <button type="button" class="secondary-btn" data-action="board-ai-generate" ${session.aiGenerating ? "disabled" : ""}>${session.aiGenerating ? "正在编译 Demo…" : "生成可执行候选"}</button>${session.undoDesign ? `<button type="button" class="text-btn" data-action="board-ai-undo">撤销上次 AI 写入</button>` : ""}</div>
+    ${session.aiError ? `<div class="board-ai-error" role="alert">${escapeHtml(session.aiError)}</div>` : ""}${aiDraftPreview(session)}</section>`;
 }
 
 export function boardGame() {
   const world = activeWorld();
   if (!world && studioStore.get().studioLoading) return `<div class="empty-state">正在读取桌游工作区…</div>`;
-  if (!world) return `<div class="empty-state"><h3>请先选择一个世界</h3><p>创建桌游后，人物、组件和规则都从这里逐步补齐。</p></div>`;
+  if (!world) return `<div class="empty-state"><h3>请先选择一个桌游项目</h3><p>创建项目后，席位、组件、规则和可玩 Demo 都从这里逐步补齐。</p></div>`;
   const session = initializeSession();
+  const requestedTab = uiStore.get().boardGameRequestedTab;
+  if (TAB_LABELS[requestedTab]) {
+    session.activeTab = requestedTab;
+    uiStore.set({ boardGameRequestedTab: "" });
+  }
   const tabContent = session.activeTab === "seats" ? renderSeatsTab(session)
     : session.activeTab === "mechanisms" ? renderMechanismsTab(session)
+      : session.activeTab === "playground" ? renderBoardGamePlayground(session.design, session.playgroundState, activeRoles())
       : session.activeTab === "rulebook" ? renderRulebookTab(session)
         : renderComponentsTab(session);
-  return `<div class="board-game-workbench">
+  return `<div class="board-game-workbench" data-board-workbench>
     <header class="board-game-header"><div><p class="section-kicker">BOARD GAME WORKBENCH</p><h1>${escapeHtml(world.name)}</h1><p>桌游专属工作台：玩家席位、组件资产、状态规则与说明书在同一份数据里互相引用。</p></div><button type="button" class="primary-btn ${session.dirty ? "has-changes" : ""}" data-action="board-design-save" data-board-save ${session.saving ? "disabled" : ""}><span data-board-save-label>${session.saving ? "正在保存…" : session.dirty ? "保存更改" : "已保存"}</span></button></header>
-    ${readinessPanel(session)}
-    <section class="board-game-brief"><label class="wide"><span>设计目标</span><input class="field" data-board-design-field="designGoal" maxlength="2400" value="${escapeHtml(session.design.designGoal)}" placeholder="这局游戏最希望玩家反复做什么？"></label><label><span>实际席位</span><input class="field" value="${activeRoles().length} 人" disabled></label><label><span>预计分钟</span><input class="field" data-board-design-field="playTimeMinutes" type="number" min="1" max="10080" value="${session.design.playTimeMinutes}"></label></section>
+    ${aiDraftPanel(session)}
+    <section class="board-game-brief"><label class="wide"><span>设计目标</span><input class="field" data-board-design-field="designGoal" maxlength="2400" value="${escapeHtml(session.design.designGoal)}" placeholder="这套规则围绕哪些对象、行动和状态变化运转？"></label><label><span>实际席位</span><input class="field" value="${activeRoles().length} 人" disabled></label><label><span>预计分钟</span><input class="field" data-board-design-field="playTimeMinutes" type="number" min="1" max="10080" value="${session.design.playTimeMinutes}"></label></section>
     <nav class="board-tabs" aria-label="桌游设计模块">${Object.entries(TAB_LABELS).map(([key, label]) => `<button type="button" class="${session.activeTab === key ? "active" : ""}" data-action="board-tab-select" data-board-tab="${key}">${label}</button>`).join("")}</nav>
     ${tabContent}
   </div>`;
@@ -380,64 +438,82 @@ function updateSimulatorResult() {
   if (!root || !resultNode || !mechanism) return;
   const result = simulateBoardGameMechanism(mechanism, session.simulationState, session.design.variables);
   resultNode.className = `board-simulator-result ${result.passed ? "passed" : "blocked"}`;
-  resultNode.innerHTML = `<strong>${result.passed ? "条件成立，效果会执行" : "条件不成立，本次不执行"}</strong><div>${session.design.variables.map((variable) => `<span>${escapeHtml(variable.label)} <b>${escapeHtml(String(session.simulationState[variable.id] ?? variable.initialValue))}</b> → <b>${escapeHtml(String(result.state[variable.id] ?? session.simulationState[variable.id] ?? variable.initialValue))}</b></span>`).join("")}</div>`;
+  setHtml(resultNode, `<strong>${result.passed ? "条件成立，效果会执行" : "条件不成立，本次不执行"}</strong><div>${session.design.variables.map((variable) => `<span>${escapeHtml(variable.label)} <b>${escapeHtml(String(session.simulationState[variable.id] ?? variable.initialValue))}</b> → <b>${escapeHtml(String(result.state[variable.id] ?? session.simulationState[variable.id] ?? variable.initialValue))}</b></span>`).join("")}</div>`);
 }
 
 export function bindBoardGameEditor() {
-  document.querySelectorAll("[data-board-design-field]").forEach((input) => input.addEventListener("input", () => setDesignField(input.dataset.boardDesignField, input.value)));
-  document.querySelectorAll("[data-board-component-field]").forEach((input) => input.addEventListener("input", () => {
-    const editor = input.closest("[data-board-component-editor]");
-    setComponentField(editor?.dataset.boardComponentEditor, input.dataset.boardComponentField, input.value);
-  }));
-  document.querySelectorAll("[data-board-state-field]").forEach((input) => input.addEventListener("input", () => {
-    const editor = input.closest("[data-board-component-editor]");
-    const row = input.closest("[data-board-state-id]");
-    setNestedItem(editor?.dataset.boardComponentEditor, "stateFields", row?.dataset.boardStateId, input.dataset.boardStateField, input.value);
-  }));
-  document.querySelectorAll("[data-board-asset-field]").forEach((input) => input.addEventListener("input", () => {
-    const editor = input.closest("[data-board-component-editor]");
-    const row = input.closest("[data-board-asset-id]");
-    setNestedItem(editor?.dataset.boardComponentEditor, "assets", row?.dataset.boardAssetId, input.dataset.boardAssetField, input.value);
-  }));
-  document.querySelectorAll("[data-board-entry-field]").forEach((input) => input.addEventListener("input", () => {
-    const editor = input.closest("[data-board-component-editor]");
-    const row = input.closest("[data-board-entry-id]");
-    setNestedItem(editor?.dataset.boardComponentEditor, "entries", row?.dataset.boardEntryId, input.dataset.boardEntryField, input.value);
-  }));
-  document.querySelector("[data-board-asset-input]")?.addEventListener("change", (event) => void uploadBoardGameAssets(event.target.files));
-  document.querySelectorAll("[data-board-seat-name]").forEach((input) => input.addEventListener("change", () => {
-    const row = input.closest("[data-board-seat-id]");
-    void renameBoardGameSeat(row?.dataset.boardSeatId, input.value);
-  }));
-  document.querySelectorAll("[data-board-variable-field]").forEach((input) => input.addEventListener("input", () => {
+  const root = document.querySelector("[data-board-workbench]");
+  if (!root) return;
+  root.addEventListener("input", handleBoardGameEditorInput);
+  root.addEventListener("change", handleBoardGameEditorChange);
+}
+
+function handleBoardGameEditorInput(event) {
+  const input = event.target;
+  if (!input?.dataset) return;
+  if (input.dataset.boardAiInstructions !== undefined) {
+    initializeSession().aiInstructions = input.value;
+    return;
+  }
+  if (input.dataset.boardDesignField) {
+    setDesignField(input.dataset.boardDesignField, input.value);
+    return;
+  }
+  const componentEditor = input.closest?.("[data-board-component-editor]");
+  if (input.dataset.boardComponentField) {
+    setComponentField(componentEditor?.dataset.boardComponentEditor, input.dataset.boardComponentField, input.value);
+    return;
+  }
+  for (const [fieldKey, collection, selector, idKey] of COMPONENT_NESTED_FIELDS) {
+    if (!input.dataset[fieldKey]) continue;
+    const row = input.closest(selector);
+    setNestedItem(componentEditor?.dataset.boardComponentEditor, collection, row?.dataset[idKey], input.dataset[fieldKey], input.value);
+    return;
+  }
+  if (input.dataset.boardVariableField) {
     const row = input.closest("[data-board-variable-id]");
     setVariableField(row?.dataset.boardVariableId, input.dataset.boardVariableField, input.value);
-  }));
-  document.querySelectorAll("[data-board-mechanism-field]").forEach((input) => input.addEventListener("input", () => {
-    const editor = input.closest("[data-board-mechanism-editor]");
-    setMechanismField(editor?.dataset.boardMechanismEditor, input.dataset.boardMechanismField, input.value);
+    return;
+  }
+  const mechanismEditor = input.closest?.("[data-board-mechanism-editor]");
+  if (input.dataset.boardMechanismField) {
+    setMechanismField(mechanismEditor?.dataset.boardMechanismEditor, input.dataset.boardMechanismField, input.value);
     updateSimulatorResult();
-  }));
-  document.querySelectorAll("[data-board-condition-field]").forEach((input) => input.addEventListener("input", () => {
-    const editor = input.closest("[data-board-mechanism-editor]");
-    const row = input.closest("[data-board-condition-id]");
-    setMechanismChild(editor?.dataset.boardMechanismEditor, "conditions", row?.dataset.boardConditionId, input.dataset.boardConditionField, input.value);
+    return;
+  }
+  for (const [fieldKey, collection, selector, idKey] of MECHANISM_NESTED_FIELDS) {
+    if (!input.dataset[fieldKey]) continue;
+    const row = input.closest(selector);
+    setMechanismChild(mechanismEditor?.dataset.boardMechanismEditor, collection, row?.dataset[idKey], input.dataset[fieldKey], input.value);
     updateSimulatorResult();
-  }));
-  document.querySelectorAll("[data-board-effect-field]").forEach((input) => input.addEventListener("input", () => {
-    const editor = input.closest("[data-board-mechanism-editor]");
-    const row = input.closest("[data-board-effect-id]");
-    setMechanismChild(editor?.dataset.boardMechanismEditor, "effects", row?.dataset.boardEffectId, input.dataset.boardEffectField, input.value);
-    updateSimulatorResult();
-  }));
-  document.querySelectorAll("[data-board-simulation-key]").forEach((input) => input.addEventListener("input", () => {
+    return;
+  }
+  if (input.dataset.boardSimulationKey) {
     initializeSession().simulationState[input.dataset.boardSimulationKey] = Number(input.value) || 0;
     updateSimulatorResult();
-  }));
-  document.querySelectorAll("[data-board-rulebook-field]").forEach((input) => input.addEventListener("input", () => {
+    return;
+  }
+  if (input.dataset.boardRulebookField) {
     initializeSession().design.rulebook[input.dataset.boardRulebookField] = String(input.value || "");
     markDirty();
-  }));
+  }
+}
+
+function handleBoardGameEditorChange(event) {
+  const input = event.target;
+  if (!input?.dataset) return;
+  if (input.dataset.boardAiScope !== undefined) {
+    initializeSession().aiScope = input.value;
+    return;
+  }
+  if (input.dataset.boardAssetInput !== undefined) {
+    void uploadBoardGameAssets(input.files);
+    return;
+  }
+  if (input.dataset.boardSeatName !== undefined) {
+    const row = input.closest("[data-board-seat-id]");
+    void renameBoardGameSeat(row?.dataset.boardSeatId, input.value);
+  }
 }
 
 export function selectBoardGameTab(tab) {
@@ -606,7 +682,7 @@ export async function addBoardGameSeat() {
   try {
     await createSeat(activeRoles().length + 1);
     await loadCloudData(false, true);
-    showToast("已增加玩家席位，人物列表同步完成");
+    showToast("已增加玩家席位");
   } catch (error) {
     showToast(normalizeError(error, "玩家席位创建失败"));
   } finally {
@@ -625,7 +701,7 @@ export async function initializeSixBoardGameSeats() {
   try {
     for (let sequence = existing + 1; sequence <= 6; sequence += 1) await createSeat(sequence);
     await loadCloudData(false, true);
-    showToast(`已补齐为 6 人桌游，新增 ${6 - existing} 个真实人物席位`);
+    showToast(`已补齐为 6 人桌游，新增 ${6 - existing} 个玩家席位`);
   } catch (error) {
     await loadCloudData(false, true);
     showToast(normalizeError(error, "席位未能全部创建，请重试"));
@@ -647,7 +723,7 @@ export async function renameBoardGameSeat(roleId, name) {
       sequence: Number(role.sequence || 1)
     });
     await loadCloudData(false, true);
-    showToast("席位名称已同步到人物");
+    showToast("席位名称已保存");
   } catch (error) {
     showToast(normalizeError(error, "席位名称保存失败"));
     render();
@@ -666,7 +742,7 @@ export async function deleteBoardGameSeat(roleId) {
   if (session.seatDeleteArmedId !== roleId) {
     session.seatDeleteArmedId = roleId;
     render();
-    showToast("删除会同时删除该人物及其私人内容，请再次点击确认");
+    showToast("删除会同时移除该席位的关联数据，请再次点击确认");
     return;
   }
   session.busy = true;
@@ -675,7 +751,7 @@ export async function deleteBoardGameSeat(roleId) {
     await zhimuApi.deleteRole(roleId);
     session.seatDeleteArmedId = "";
     await loadCloudData(false, true);
-    showToast("玩家席位与对应人物已同步删除");
+    showToast("玩家席位及其关联数据已删除");
   } catch (error) {
     session.seatDeleteArmedId = "";
     showToast(normalizeError(error, "玩家席位删除失败"));
@@ -774,6 +850,77 @@ export function resetBoardGameSimulator() {
   render();
 }
 
+export function selectBoardGamePlaygroundCommand(commandId) {
+  const session = initializeSession();
+  if (!choosePlaygroundCommandState(session.playgroundState, session.design, commandId)) return;
+  render();
+}
+
+export function selectBoardGamePlaygroundTarget(targetId) {
+  const session = initializeSession();
+  if (!choosePlaygroundTargetState(session.playgroundState, session.design, targetId)) return;
+  render();
+}
+
+export function confirmBoardGamePlaygroundAction() {
+  const session = initializeSession();
+  if (!confirmPlaygroundActionState(session.playgroundState, session.design)) return;
+  render();
+}
+
+export function advanceBoardGamePlaygroundRound() {
+  const session = initializeSession();
+  if (!advancePlaygroundRoundState(session.playgroundState, session.design)) return;
+  render();
+}
+
+export function resetBoardGamePlaygroundView() {
+  const session = initializeSession();
+  session.playgroundState = resetPlaygroundState(session.design, activeRoles().length || session.design.playerCount.min);
+  render();
+}
+
+function replaceSessionDesign(session, value) {
+  session.design = normalizeBoardGameDesign(value, { title: session.design.title });
+  session.selectedId = session.design.components[0]?.id || "";
+  session.selectedMechanismId = session.design.mechanisms[0]?.id || "";
+  session.simulationState = initialBoardGameState(session.design.variables);
+  session.playgroundState = createBoardGamePlaygroundState(session.design, activeRoles().length || session.design.playerCount.min);
+  session.dirty = true;
+}
+
+export async function generateBoardGameDraft() {
+  const session = initializeSession();
+  if (session.aiGenerating) return;
+  session.aiGenerating = true; session.aiError = ""; session.aiDraft = null; session.aiDraftBase = structuredClone(session.design); render();
+  try {
+    const roleCount = activeRoles().length;
+    const currentDesign = normalizeBoardGameDesign({ ...session.design, playerCount: roleCount ? { min: roleCount, max: roleCount } : session.design.playerCount });
+    const proposal = await zhimuApi.generateBoardGameAiDraft({
+      currentDesign, scope: session.aiScope, currentSection: session.activeTab === "playground" ? "engine" : session.activeTab,
+      instructions: session.aiInstructions, seed: globalThis.crypto?.randomUUID?.() || `${Date.now()}`
+    }, session.worldId);
+    session.aiDraft = proposal;
+    if (proposal.blocking) session.aiError = "候选包含当前引擎不能完整执行的结构；请查看能力报告后调整描述。";
+    else showToast("可执行候选已生成，确认前不会覆盖当前内容");
+  } catch (error) {
+    session.aiError = normalizeError(error, "桌游候选生成失败，请检查模型连接后重试"); session.aiDraftBase = null;
+  } finally { session.aiGenerating = false; render(); }
+}
+
+export function applyBoardGameDraft() {
+  const session = initializeSession();
+  if (!session.aiDraft?.draft || session.aiDraft.blocking) return;
+  if (!session.aiDraftBase || JSON.stringify(normalizeBoardGameDesign(session.design)) !== JSON.stringify(normalizeBoardGameDesign(session.aiDraftBase))) {
+    session.aiError = "候选生成后当前内容已经变化，请重新生成以免覆盖。"; render(); return;
+  }
+  session.undoDesign = structuredClone(session.design); replaceSessionDesign(session, session.aiDraft.draft); session.aiScope = "patch";
+  session.aiDraft = null; session.aiDraftBase = null; session.aiError = ""; render(); showToast("已同步写入编辑器与试玩，尚未保存");
+}
+
+export function discardBoardGameDraft() { const session = initializeSession(); session.aiDraft = null; session.aiDraftBase = null; session.aiError = ""; render(); }
+export function undoBoardGameDraft() { const session = initializeSession(); if (!session.undoDesign) return; const previous = session.undoDesign; session.undoDesign = null; replaceSessionDesign(session, previous); render(); }
+
 export async function saveBoardGameDesign() {
   const session = initializeSession();
   const studio = studioStore.get().cloudStudio;
@@ -836,5 +983,14 @@ registerView("boardGame", {
   addBoardGameEffect,
   deleteBoardGameEffect,
   resetBoardGameSimulator,
+  selectBoardGamePlaygroundCommand,
+  selectBoardGamePlaygroundTarget,
+  confirmBoardGamePlaygroundAction,
+  advanceBoardGamePlaygroundRound,
+  resetBoardGamePlaygroundView,
+  generateBoardGameDraft,
+  applyBoardGameDraft,
+  discardBoardGameDraft,
+  undoBoardGameDraft,
   saveBoardGameDesign
 });

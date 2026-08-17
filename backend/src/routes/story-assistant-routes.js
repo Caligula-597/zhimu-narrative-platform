@@ -47,6 +47,7 @@ import {
   storyDraftSuggestions
 } from "./world-helpers.js";
 import {
+  boardGameAiDraftSchema,
   deepseekImportSchema,
   aiPlaytestRunSchema,
   deepseekMysteryImportSchema,
@@ -72,6 +73,7 @@ import {
 import { registerStoryAssistantMatrixRoutes } from "./story-assistant-matrix-routes.js";
 import { findWorldForMember } from "../repositories/world-repository.js";
 import { applyCreatorContextToPipelineInput } from "../pipeline-creator-context.js";
+import { createBoardGameAiDraft } from "../board-game-ai-draft.js";
 
 const llmPreHandler = createLlmContextPreHandler(sendErr);
 
@@ -130,6 +132,17 @@ export async function registerStoryAssistantRoutes(app) {
       platformAvailable: deepseekConfig().configured && isPlatformLlmUserAccessEnabled()
     };
   });
+
+  app.post(
+    "/api/worlds/:worldId/story-assistant/deepseek/board-game/design-draft",
+    { schema: boardGameAiDraftSchema, preHandler: llmPreHandler },
+    async (request) => {
+      const actorId = requireActor(request);
+      const { worldId } = request.params;
+      await requireWorldRole(actorId, worldId);
+      return createBoardGameAiDraft(request.body ?? {}, { requestId: request.id });
+    }
+  );
 
   app.post(
     "/api/worlds/:worldId/story-assistant/ai-playtest/run",

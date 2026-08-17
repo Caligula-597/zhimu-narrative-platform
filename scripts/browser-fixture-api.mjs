@@ -5,6 +5,7 @@ import {
   normalizeCreativeConstitution
 } from "../shared/creative-constitution.js";
 import { AI_PLAYER_ARCHETYPES } from "../shared/ai-playtest.js";
+import { createBoardGameAiDraftPreview, detectedUnsupportedBoardGameRequirements } from "../shared/board-game-ai-draft.js";
 import { projectRuntimePresentation } from "../shared/runtime-presentation.js";
 
 const host = "127.0.0.1";
@@ -921,7 +922,7 @@ function browserPlayerHomeSocial(room) {
 
 const world = {
   id: worldId,
-  name: "浏览器验收剧本",
+  name: fixtureCreationType === "board_game" ? "浏览器验收桌游" : "浏览器验收剧本",
   summary: "只存在于本机进程内的隔离验收数据",
   status: "testing",
   membership_role: "owner",
@@ -1285,6 +1286,48 @@ function buildFixturePlaytestReport(body = {}) {
       "AI 试跑用于压力测试理解与交互路径，不能替代真实玩家的情绪、社交关系和现场行为。",
       "浏览器验收报告使用固定模型响应，只验证完整产品交互与呈现。"
     ]
+  };
+}
+
+function fixtureBoardGameCandidate() {
+  return {
+    title: "边境号令",
+    designGoal: "通过同时盖放命令移动单位、补给并改变区域控制与席位分数。",
+    playerCount: { min: 4, max: 8 },
+    playTimeMinutes: 60,
+    components: [{ id: "frontier-map", type: "board", name: "边境地图", quantity: 1, description: "由区域与路线组成的公共地图。", playerAction: "移动单位或改变区域控制。", stateFields: [], assets: [], entries: [], notes: "" }],
+    variables: [
+      { id: "score", label: "席位分数", scope: "player", initialValue: 0, min: 0, max: 30 },
+      { id: "supply", label: "补给", scope: "player", initialValue: 3, min: 0, max: 12 }
+    ],
+    mechanisms: [{ id: "facility-score", templateKey: "track_change", name: "设施计分", sourceComponentId: "frontier-map", trigger: "计分阶段", conditionMode: "all", conditions: [{ id: "score-ready", sourceKey: "score", operator: "gte", value: "0" }], effects: [{ id: "score-add", targetKey: "score", operation: "add", value: "1" }], notes: "" }],
+    engine: {
+      version: 1, maxRounds: 6,
+      map: {
+        kind: "area_graph",
+        nodes: [
+          { id: "north", label: "北境关", x: 18, y: 22, terrain: "mountain", scoreValue: 1 },
+          { id: "fort", label: "中央要塞", x: 55, y: 38, terrain: "fort", scoreValue: 3 },
+          { id: "fields", label: "南部田野", x: 25, y: 76, terrain: "plain", scoreValue: 1 },
+          { id: "port", label: "潮汐港", x: 78, y: 72, terrain: "port", scoreValue: 2 }
+        ],
+        edges: [
+          { id: "north-fort", from: "north", to: "fort", bidirectional: true },
+          { id: "north-fields", from: "north", to: "fields", bidirectional: true },
+          { id: "fort-port", from: "fort", to: "port", bidirectional: true },
+          { id: "fields-port", from: "fields", to: "port", bidirectional: true }
+        ]
+      },
+      phases: [{ id: "orders", label: "同时下令", mode: "reveal", actionIds: ["march", "control", "resupply"], description: "全部提交后公开。" }],
+      actions: [
+        { id: "march", label: "行军", kind: "move", phaseId: "orders", target: "adjacent_region", resourceKey: "supply", cost: 1, description: "支付1补给，移动到相邻区域。" },
+        { id: "control", label: "控制", kind: "control", phaseId: "orders", target: "any_region", resourceKey: "supply", cost: 1, description: "支付1补给，控制一个区域。" },
+        { id: "resupply", label: "补给", kind: "gain", phaseId: "orders", target: "none", resourceKey: "supply", amount: 2, description: "补给增加2。" }
+      ],
+      setup: { unitsPerSeat: 1, startingNodeIds: ["north", "fort", "fields", "port"] },
+      endCondition: { type: "rounds", value: 6 }, information: "public"
+    },
+    rulebook: { objective: "第六轮后分数较高者获胜。", setup: "放置地图与单位，每席位获得3补给。", turnStructure: "盖放命令，统一公开并结算。", playerActions: "选择当前阶段的合法行动。", endCondition: "第六轮完成后结束。", tieBreak: "比较剩余补给。", notes: "" }
   };
 }
 
@@ -1722,6 +1765,22 @@ const server = http.createServer(async (request, response) => {
       generatedBody: "# 浏览器验收剧本\n\n用于本地浏览器验收的剧情母稿。",
       lastSyncDirection: "graph_to_manuscript",
       updatedAt: "2026-07-23T00:00:00.000Z"
+    });
+  }
+  if (request.method === "POST" && path === `/api/worlds/${worldId}/story-assistant/deepseek/board-game/design-draft`) {
+    const body = await readJson(request);
+    const scope = ["patch", "missing", "current", "full"].includes(body.scope) ? body.scope : "missing";
+    const currentSection = ["components", "seats", "mechanisms", "engine", "rulebook"].includes(body.currentSection) ? body.currentSection : "components";
+    const unsupported = detectedUnsupportedBoardGameRequirements(body.instructions);
+    const preview = createBoardGameAiDraftPreview(body.currentDesign, fixtureBoardGameCandidate(), { scope, currentSection });
+    return sendJson(response, 200, {
+      generationId: "88888888-8888-4888-8888-555555550001",
+      seed: String(body.seed || "browser-fixture"), scope, currentSection,
+      summary: "已生成包含区域地图、同时盖放命令、移动补给与区域控制的可执行候选。",
+      capabilityPlan: { requested: [{ description: "区域地图与可执行行动", capabilityId: "map.area_graph" }], unsupported, assumptions: ["未指定区域数量，示例补全为四个区域。"], impactedSections: ["components", "mechanisms", "engine", "rulebook"] },
+      ...preview,
+      blocking: preview.blocking || unsupported.length > 0,
+      model: "browser-fixture", provider: "fixture", usage: null
     });
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/quality-reports`) {
