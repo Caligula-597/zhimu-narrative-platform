@@ -27,13 +27,22 @@ test("extracts the Creator entry asset fingerprint", () => {
 
 test("extracts required lazy-loaded feature assets", () => {
   assert.deepEqual(
-    extractRequiredChunkAssets('Promise.all([import("./tabletop-map-MAP.js"),"assets/tabletop-map-MAP.css"])'),
-    ["/assets/tabletop-map-MAP.css", "/assets/tabletop-map-MAP.js"]
+    extractRequiredChunkAssets('Promise.all([import("./tabletop-map-MAP.js"),"assets/tabletop-map-MAP.css",import("./board-game-BOARD.js"),"assets/board-game-BOARD.css"])'),
+    [
+      "/assets/board-game-BOARD.css",
+      "/assets/board-game-BOARD.js",
+      "/assets/tabletop-map-MAP.css",
+      "/assets/tabletop-map-MAP.js"
+    ]
   );
   assert.throws(() => extractRequiredChunkAssets("no map chunk here"), /required chunk: tabletop-map/u);
+  assert.throws(
+    () => extractRequiredChunkAssets('import("./tabletop-map-MAP.js")'),
+    /required chunk: board-game/u
+  );
 });
 
-test("production probe verifies exact entry hashes and fetches the map chunk", async () => {
+test("production probe verifies exact entry hashes and fetches required product chunks", async () => {
   const requested = [];
   const fetchImpl = async (url) => {
     const pathname = new URL(url).pathname;
@@ -41,12 +50,14 @@ test("production probe verifies exact entry hashes and fetches the map chunk", a
     if (pathname === "/") return response(html, "text/html; charset=utf-8", "public, max-age=0, must-revalidate");
     if (pathname === "/assets/index-EXPECTED.js") {
       return response(
-        'Promise.all([import("./tabletop-map-MAP.js"),"assets/tabletop-map-MAP.css"])',
+        'Promise.all([import("./tabletop-map-MAP.js"),"assets/tabletop-map-MAP.css",import("./board-game-BOARD.js"),"assets/board-game-BOARD.css"])',
         "text/javascript"
       );
     }
     if (pathname.endsWith(".css")) return response("body{}", "text/css");
-    if (pathname === "/assets/tabletop-map-MAP.js") return response("export{}", "text/javascript");
+    if (["/assets/tabletop-map-MAP.js", "/assets/board-game-BOARD.js"].includes(pathname)) {
+      return response("export{}", "text/javascript");
+    }
     return new Response("missing", { status: 404 });
   };
 
@@ -56,6 +67,8 @@ test("production probe verifies exact entry hashes and fetches the map chunk", a
     nonce: "test"
   });
   assert.deepEqual(result.verifiedDynamicAssets, [
+    "/assets/board-game-BOARD.css",
+    "/assets/board-game-BOARD.js",
     "/assets/tabletop-map-MAP.css",
     "/assets/tabletop-map-MAP.js"
   ]);
@@ -63,6 +76,8 @@ test("production probe verifies exact entry hashes and fetches the map chunk", a
     "/",
     "/assets/index-EXPECTED.js",
     "/assets/index-EXPECTED.css",
+    "/assets/board-game-BOARD.css",
+    "/assets/board-game-BOARD.js",
     "/assets/tabletop-map-MAP.css",
     "/assets/tabletop-map-MAP.js"
   ]);

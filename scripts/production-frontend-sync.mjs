@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const DEFAULT_REQUIRED_CHUNKS = Object.freeze(["tabletop-map"]);
+const DEFAULT_REQUIRED_CHUNKS = Object.freeze(["tabletop-map", "board-game"]);
 
 function canonicalAssetPath(value) {
   if (!value) return "";
