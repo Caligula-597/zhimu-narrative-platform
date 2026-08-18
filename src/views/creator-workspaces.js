@@ -52,12 +52,12 @@ export function creatorWorkspaceHub() {
   return `<section class="workspace-mode-intro card">
     <p class="section-kicker">WORK MODE</p>
     <h2>工作模式</h2>
-    <p>下面是按<strong>工作类型</strong>切换的入口，不是第二套创作顺序。日常请以侧栏<strong>创作驾驶舱六阶段</strong>为主流程；需要啃大编辑器时再进「精细编辑器」。</p>
+    <p>下面是按<strong>工作类型</strong>切换的入口。所有入口彼此并列，可按当前材料和问题自由进入；需要处理复杂内容时再进「精细编辑器」。</p>
   </section>
   <section class="workspace-hub-grid" aria-label="工作模式">
-    ${workspaceLinkCard("creatorCockpit", "⌂", "创作驾驶舱", "六阶段主流程 · 完成度与深链")}
+    ${workspaceLinkCard("creatorCockpit", "⌂", "创作驾驶舱", "六类工作区 · 完成度与深链")}
     ${workspaceLinkCard("diagnostics", "✦", "作品诊断中心", "因果链、信息链与公平推理")}
-    ${workspaceLinkCard("production", "✎", "内容生产", "AI、母稿、角色分幕、导入导出")}
+    ${workspaceLinkCard("production", "✎", "内容生产", "母稿、角色分幕、导入导出")}
     ${workspaceLinkCard("structure", "◇", "结构编排", "运行段落工作台与剧情编排入口")}
     ${workspaceLinkCard("truth", "◈", "谜底与关系", "核心事实、谜底、时间线、伏笔与人物关系")}
     ${workspaceLinkCard("publish", "▶", "测试与发布", "发布检查、质量报告、试跑")}
@@ -65,25 +65,25 @@ export function creatorWorkspaceHub() {
   </section>`;
 }
 
-/** 内容生产 — entry hub for writer / AI / import */
+/** 内容生产 — writing, structure extraction, and import/export. */
 export function production() {
   const data = studioStore.get().cloudStudio;
   if (!data) {
     return U.creatorWorkspaceEmpty?.({
       title: "内容生产",
       kicker: "CONTENT PRODUCTION",
-      intro: "从 AI/Matrix 生成、角色私人分幕到导入导出，在这里开始写本。",
+      intro: "从完整剧情、角色私人分幕或已有文稿进入，创作者可以按自己的顺序工作。",
       guideTitle: "开始",
       guideItems: []
     }) || `<section class="card"><h3>尚未选择剧本</h3></section>`;
   }
   const roleCount = data.roles?.length || 0;
   const sectionCount = data.sections?.length || 0;
-  return `${workspaceHero("CONTENT PRODUCTION", "内容生产", "合并 AI 剧本创作、完整剧情、角色私人分幕与内容包导入导出。写本完成后进入 <strong>结构编排</strong> 绑定 Segment。")}
+  return `${workspaceHero("CONTENT PRODUCTION", "内容生产", "从完整剧情、角色私人分幕或已有文稿进入；各编辑器独立保存，不规定创作顺序。")}
   ${contentLayerMapHtml({ open: false })}
   <section class="workspace-action-grid">
-    <button type="button" class="workspace-action-card primary" data-action="deepseek-pipeline"><strong>AI 剧本创作</strong><span>九层创作 · 真相、局部线索到入库</span></button>
-    <button type="button" class="workspace-action-card" data-action="story-manuscript"><strong>完整剧情</strong><span>母稿与章节总览</span></button>
+    <button type="button" class="workspace-action-card primary" data-action="world-engine"><strong>世界引擎</strong><span>从场所方向生成可运行历史，再写角色本</span></button>
+    <button type="button" class="workspace-action-card primary" data-action="story-manuscript"><strong>完整剧情</strong><span>母稿与章节总览</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>Word / Markdown / 内容包</span></button>
     <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>${roleCount} 角色 · ${sectionCount} 分幕</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-export"><strong>交付包导出</strong><span>玩家本 · 线索清单 · 主持手册 · JSON</span></button>
@@ -524,7 +524,7 @@ export function publishLab() {
         </article>`;
       }).join("") || `<div class="empty-state">尚未生成正式 Release。创作快照仍用于恢复；Release 用于后续冻结 Host/Player 的运行内容。</div>`
     : `<div class="empty-state">尚未加载发布版本。点击“加载版本”读取独立 Release 清单。</div>`;
-  return `${workspaceHero("TEST & PUBLISH", "测试与发布", "发布前检查、质量报告存档、玩家/主持视角试跑与测试房。")}
+  return `${workspaceHero("TEST & PUBLISH", "测试与发布", "发布前检查、质量报告存档、实际玩家端与主持端测试房。")}
   <section class="publish-lab-grid">
     <article class="card">
       <div class="section-head"><div><h3>发布检查</h3><p>阻塞项必须先处理。</p></div><button type="button" class="secondary-btn" data-action="creator-check">运行发布检查</button></div>
@@ -532,9 +532,8 @@ export function publishLab() {
       <div class="row" style="margin-top:12px"><button type="button" class="secondary-btn" data-action="record-quality-report">存档为质量报告</button><button type="button" class="secondary-btn" data-action="world-rooms">${room ? "管理运行房" : "创建测试房"}</button></div>
     </article>
     <article class="card publish-preview-card">
-      <div class="section-head"><div><h3>视角与发布影响</h3><p>先看“现在玩家能看到什么”，再进端试跑。</p></div></div>
+      <div class="section-head"><div><h3>发布影响与真实端测试</h3><p>先检查发布影响，再进入独立玩家端和主持端测试。</p></div></div>
       <button type="button" class="primary-btn full-btn" data-action="publish-impact-preview">发布影响预览</button>
-      <button type="button" class="secondary-btn full-btn" style="margin-top:8px" data-action="creator-preview">玩家视角预览（私人分幕正文）</button>
       <button type="button" class="secondary-btn full-btn" style="margin-top:8px" data-go="player">打开独立玩家端</button>
       <button type="button" class="secondary-btn full-btn" style="margin-top:8px" data-action="open-host-console">打开主持端试跑</button>
     </article>
