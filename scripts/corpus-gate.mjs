@@ -10,6 +10,15 @@ import {
   extractCorpusFeatures,
   renderCorpusDashboard
 } from "./corpus-gate-features.mjs";
+import {
+  CORPUS_KIND_VERSION,
+  buildKindMessages,
+  chunkKindParagraphs,
+  mixKindCoverage,
+  parseKindItems,
+  renderKindDashboard,
+  splitKindParagraphs
+} from "./corpus-gate-semantic.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const corpusRoot = path.join(root, "案例");
@@ -217,11 +226,81 @@ function cjkRatio(value) {
   return (body.match(/[\u4e00-\u9fff]/gu) || []).length / body.length;
 }
 
+function loadBackendEnv() {
+  backendRequire("dotenv").config({ path: path.join(root, "backend", ".env") });
+}
+
+async function requestKindJson(messages) {
+  loadBackendEnv();
+  const apiKey = String(process.env.DEEPSEEK_API_KEY || "").trim();
+  const baseUrl = String(process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com").replace(/\/$/, "");
+  const model = String(process.env.DEEPSEEK_MODEL || "deepseek-v4-flash");
+  if (!apiKey) throw new Error("DEEPSEEK_API_KEY missing");
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.2,
+      max_tokens: 1200,
+      response_format: { type: "json_object" },
+      thinking: { type: "disabled" }
+    })
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload?.error?.message || `kind label HTTP ${response.status}`);
+  const content = String(payload?.choices?.[0]?.message?.content || "").replace(/^```json\s*|\s*```$/g, "");
+  return JSON.parse(content);
+}
+
+async function labelWorkText(text, { limit = Infinity } = {}) {
+  const paragraphs = splitKindParagraphs(text);
+  const chunks = chunkKindParagraphs(paragraphs);
+  const rows = [];
+  let used = 0;
+  let cacheHits = 0;
+  for (const chunk of chunks) {
+    const digest = hashBuffer(Buffer.from(`${CORPUS_KIND_VERSION}\n${chunk.paragraphs.join("\n")}`));
+    const file = cachePath("semantic", digest);
+    if (fs.existsSync(file)) {
+      const cached = readJson(file);
+      const labels = Array.isArray(cached.labels)
+        ? cached.labels
+        : (cached.rows || []).map((row) => row.label);
+      rows.push(...chunk.paragraphs.map((paragraph, offset) => ({
+        i: chunk.start + offset + 1,
+        paragraph,
+        label: labels[offset] || "unlabeled"
+      })));
+      cacheHits += 1;
+      continue;
+    }
+    if (used >= limit) break;
+    const value = await requestKindJson(buildKindMessages(chunk));
+    const labeled = parseKindItems(value, chunk);
+    writeJson(file, {
+      version: CORPUS_KIND_VERSION,
+      hash: digest,
+      labeledAt: new Date().toISOString(),
+      labels: labeled.map((row) => row.label)
+    });
+    rows.push(...labeled);
+    used += 1;
+    process.stdout.write(`kind ${chunk.start + 1}-${chunk.start + chunk.paragraphs.length}\n`);
+  }
+  return { mix: mixKindCoverage(rows), cacheHits, labeledChunks: used, chunkCount: chunks.length };
+}
+
 async function main() {
   const args = new Set(process.argv.slice(2));
   const ocr = !args.has("--skip-ocr");
   const ocrLimitIndex = process.argv.indexOf("--ocr-limit");
   const ocrLimit = ocrLimitIndex >= 0 ? Number(process.argv[ocrLimitIndex + 1]) : Infinity;
+  const semantic = args.has("--semantic");
+  const semanticOcr = args.has("--semantic-ocr");
+  const semanticLimitIndex = process.argv.indexOf("--semantic-limit");
+  const semanticLimit = semanticLimitIndex >= 0 ? Number(process.argv[semanticLimitIndex + 1]) : Infinity;
   const workFilterIndex = process.argv.indexOf("--work");
   const workFilter = workFilterIndex >= 0 ? String(process.argv[workFilterIndex + 1] || "") : "";
   if (!fs.existsSync(corpusRoot)) {
@@ -229,6 +308,7 @@ async function main() {
     process.exit(1);
   }
   fs.mkdirSync(path.join(cacheRoot, "extract"), { recursive: true });
+  fs.mkdirSync(path.join(cacheRoot, "semantic"), { recursive: true });
   const files = walkFiles(corpusRoot).sort((a, b) => rel(a).localeCompare(rel(b), "zh"));
   const relatives = files.map(rel);
   const buckets = new Map(WORKS.map((work) => [work.id, { ...work, sources: [], texts: [], methods: new Set(), cacheHits: 0, pending: 0 }]));
@@ -257,6 +337,15 @@ async function main() {
   for (const bucket of buckets.values()) {
     const text = bucket.texts.join("\n\n");
     const features = text ? extractCorpusFeatures(text) : null;
+    let kindMix = null;
+    if (semantic && text && (!workFilter || bucket.id === workFilter)) {
+      const ocrText = [...bucket.methods].some((method) => method === "image_ocr" || method === "pdf_ocr");
+      if (!ocrText || semanticOcr || workFilter) {
+        const labeled = await labelWorkText(text, { limit: semanticLimit });
+        kindMix = labeled.mix;
+        console.log(`${bucket.title} kinds: ${labeled.labeledChunks}/${labeled.chunkCount} chunks, ${labeled.cacheHits} cache hits`);
+      }
+    }
     const summary = {
       id: bucket.id,
       title: bucket.title,
@@ -267,18 +356,20 @@ async function main() {
       pending: bucket.pending,
       sourceCount: bucket.sources.length,
       extractedSources: bucket.sources.filter((row) => row.text).length,
-      features
+      features,
+      kindMix
     };
     writeJson(path.join(cacheRoot, "works", `${bucket.id}.json`), {
       ...summary,
       textChars: compactLength(text),
       labels: features?.labels || [],
-      values: features?.values || null
+      values: features?.values || null,
+      kindMix
     });
     works.push(summary);
     console.log(`${bucket.title}: ${compactLength(text)} chars, ${bucket.cacheHits} cache hits, ${bucket.pending} pending`);
   }
-  const dashboard = renderCorpusDashboard({ works });
+  const dashboard = `${renderCorpusDashboard({ works })}${renderKindDashboard(works)}`;
   const dashboardPath = path.join(cacheRoot, "dashboard.md");
   fs.writeFileSync(dashboardPath, `${dashboard}\n`, "utf8");
   writeJson(path.join(cacheRoot, "dashboard.json"), {

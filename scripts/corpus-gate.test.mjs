@@ -6,6 +6,13 @@ import {
   statusAgainstPeer,
   renderCorpusDashboard
 } from "./corpus-gate-features.mjs";
+import {
+  chunkKindParagraphs,
+  mixKindCoverage,
+  parseKindItems,
+  renderKindDashboard,
+  splitKindParagraphs
+} from "./corpus-gate-semantic.mjs";
 
 test("dialogue handoff and cognition features move in the expected direction", () => {
   const qa = extractCorpusFeatures(`你问他火场有没有人。
@@ -34,4 +41,24 @@ test("peer interval marks in-range and extreme without pass/fail scores", () => 
   assert.match(md, /## mystery/);
   assert.match(md, /## mechanism/);
   assert.doesNotMatch(md, /真人感/);
+});
+
+test("kind parser keeps original paragraphs and ignores rewrites", () => {
+  const paragraphs = splitKindParagraphs("你把合同放进抽屉。\n「尾款今晚补。」\n灯还亮着。");
+  const chunk = chunkKindParagraphs(paragraphs, 80)[0];
+  const rows = parseKindItems({
+    items: [
+      { i: 1, label: "object_use" },
+      { i: 2, label: "information_handoff", text: "改写过的句子" },
+      { i: 3, label: "ambient_only" },
+      { i: 4, label: "spoken_exchange" }
+    ]
+  }, chunk);
+  assert.equal(rows[0].paragraph, "你把合同放进抽屉。");
+  assert.equal(rows[0].label, "object_use");
+  assert.equal(rows[1].label, "unlabeled");
+  assert.equal(rows[2].label, "ambient_only");
+  const mix = mixKindCoverage(rows);
+  assert.ok(mix.ratios.object_use > 0);
+  assert.match(renderKindDashboard([{ title: "样本", kindMix: mix }]), /通读种类占比/);
 });
