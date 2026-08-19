@@ -254,11 +254,11 @@ export function formatFeature(spec, value) {
 }
 
 export function renderCorpusDashboard({ works, peerGroup = "role_book" }) {
-  const peers = works.filter((work) => (work.peerGroup || "role_book") === peerGroup && work.features);
+  const groupNames = [...new Set(works.map((work) => work.peerGroup || peerGroup))];
   const lines = [
     "# 真实剧本校准门禁（检测仪）",
     "",
-    "这不是评分表。区间来自当前已提取的同类商业本，用来打脸假设，不是用来判生成稿不合格。",
+    "这不是评分表。区间只在同一玩法组内比较：机制本不跟情感本、推理本混成一个平均数。",
     "",
     `特征版本：${CORPUS_GATE_FEATURE_VERSION}`,
     "",
@@ -270,30 +270,36 @@ export function renderCorpusDashboard({ works, peerGroup = "role_book" }) {
   for (const work of works) {
     lines.push(`| ${work.title} | ${work.peerGroup || ""} | ${work.features?.values?.chars || 0} | ${work.methods?.join("、") || ""} | ${work.cacheHits || 0} | ${work.pending || 0} |`);
   }
-  lines.push("", `## 同类区间（${peerGroup}，n=${peers.length}）`, "");
-  lines.push("| 检测项 | 同类常见区间 | " + peers.map((work) => work.title).join(" | ") + " |");
-  lines.push("|---|---|" + peers.map(() => "---").join("|") + "|");
-  for (const spec of FEATURE_SPECS) {
-    const interval = peerInterval(peers.map((work) => work.features), spec.key);
-    const range = interval ? `${formatFeature(spec, interval.p10)}–${formatFeature(spec, interval.p90)}` : "—";
-    const cells = peers.map((work) => {
-      const value = work.features.values[spec.key];
-      if (peers.length < 3) return formatFeature(spec, value);
-      const status = statusAgainstPeer(value, interval);
-      const mark = status === "extreme" ? "🔴" : status === "high" ? "🟠" : status === "in_range" ? "🟢" : "⚪";
-      return `${mark} ${formatFeature(spec, value)}`;
-    });
-    lines.push(`| ${spec.label} | ${range} | ${cells.join(" | ")} |`);
+  for (const group of groupNames) {
+    const peers = works.filter((work) => (work.peerGroup || peerGroup) === group && work.features);
+    lines.push("", `## ${group}（n=${peers.length}）`, "");
+    if (!peers.length) {
+      lines.push("这一组还没有可统计文本。", "");
+      continue;
+    }
+    lines.push("| 检测项 | 组内常见区间 | " + peers.map((work) => work.title).join(" | ") + " |");
+    lines.push("|---|---|" + peers.map(() => "---").join("|") + "|");
+    for (const spec of FEATURE_SPECS) {
+      const interval = peerInterval(peers.map((work) => work.features), spec.key);
+      const range = interval ? `${formatFeature(spec, interval.p10)}–${formatFeature(spec, interval.p90)}` : "—";
+      const cells = peers.map((work) => {
+        const value = work.features.values[spec.key];
+        if (peers.length < 3) return formatFeature(spec, value);
+        const status = statusAgainstPeer(value, interval);
+        const mark = status === "extreme" ? "🔴" : status === "high" ? "🟠" : status === "in_range" ? "🟢" : "⚪";
+        return `${mark} ${formatFeature(spec, value)}`;
+      });
+      lines.push(`| ${spec.label} | ${range} | ${cells.join(" | ")} |`);
+    }
+    if (peers.length < 3) lines.push("", "样本不足 3 部，只列出数值，不标红。");
   }
   lines.push(
     "",
-    peers.length < 3 ? "同类样本还不到 3 部，上表只列出数值，不标红。等扫描件 OCR 缓存齐了再看偏离。" : "",
-    "",
     "## 怎么读",
     "",
-    "- 🟢 落在同类 p10–p90。这不能证明它好，只能说明它在这批样本里不稀奇。",
-    "- 🟠/🔴 偏离这批样本。先问门禁是不是错的，再问文本是不是 AI 病。",
-    "- 对白带出新专名、连续问答链如果在真人样本里本来就高，就不要再把它写成硬门禁。",
+    "- 先看覆盖：扫描件没识别完时，数字只代表已缓存页。",
+    "- 组内比较才有意义。机制本对白少、推理本问答链高，都可能是类型差，不是 AI 病。",
+    "- 大量真人样本都踩中的旧规则，降级成提示，不要当硬门禁。",
     ""
   );
   return lines.join("\n");

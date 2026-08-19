@@ -18,7 +18,7 @@ const backendRequire = createRequire(path.join(root, "backend", "package.json"))
 const mammoth = backendRequire("mammoth");
 const { createWorker } = backendRequire("tesseract.js");
 
-const SKIP_NAMES = new Set(["口播.txt", ".gate-cache"]);
+const SKIP_NAMES = new Set(["口播.txt", ".gate-cache", "电子购买联系方式.pdf"]);
 const IMAGE_EXT = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 const TEXT_EXT = new Set([".txt", ".md"]);
 const MAX_OCR_BYTES = 12 * 1024 * 1024;
@@ -26,38 +26,59 @@ const MAX_OCR_BYTES = 12 * 1024 * 1024;
 const WORKS = [
   {
     id: "technician",
-    title: "技师本",
-    peerGroup: "role_book",
+    title: "技师本《上钟儿》",
+    peerGroup: "mechanism",
     tags: { players: "6-8", play: "mechanism" },
     match: (rel) => /(?:号技师|^18号\/|尚佳仪\/|禾三儿\/)/.test(rel)
   },
   {
     id: "geshi-xin",
     title: "隔世信",
-    peerGroup: "role_book",
+    peerGroup: "emotion",
     tags: { players: "6", play: "emotion" },
     match: (rel) => rel.includes("隔世信")
   },
   {
     id: "gumu",
     title: "古木",
-    peerGroup: "role_book",
+    peerGroup: "mystery",
     tags: { play: "mystery" },
     match: (rel) => /古木|第一幕|第二幕|线索总/.test(rel)
   },
   {
     id: "suyue",
     title: "溯月角色本",
-    peerGroup: "role_book",
+    peerGroup: "mystery",
     tags: { play: "mystery" },
     match: (rel) => rel.startsWith("剧本/")
   },
   {
     id: "gufeng",
     title: "古风扫描本",
-    peerGroup: "role_book",
+    peerGroup: "mystery",
     tags: { play: "mystery" },
     match: (rel) => /姜昕|康宁|沈复新|沈归年|胡月月|许思|齐管家|主持人手册/.test(rel)
+  },
+  {
+    id: "jp-photo",
+    title: "日式城限扫描本",
+    peerGroup: "mystery_jp",
+    tags: { play: "mystery", form: "city-limit" },
+    match: (rel) => /不破秋波|大冢敬公|天照樱和|安倍侦探|明智春光|月读千鹤|般若弥生|^主持人\/|^结局\//.test(rel)
+  },
+  {
+    id: "jp-pdf",
+    title: "日式盒装PDF",
+    peerGroup: "mystery_jp",
+    tags: { play: "mystery", form: "boxed" },
+    match: (rel) => /久元里美|佐腾亮|小栗熊|山下智八|山口大和|新坦结库|星野源一|星野美雪|木村盆栽|松土润|水原凉子|高桥一郎|组织者手册|^卡片/.test(rel)
+  },
+  {
+    id: "cn-2020",
+    title: "六人扫描本（2020）",
+    peerGroup: "mystery",
+    tags: { players: "6", play: "mystery" },
+    match: (rel) => /_20200517_/.test(rel)
   },
   {
     id: "fanxiang",
@@ -98,6 +119,12 @@ function walkFiles(directory, output = []) {
     else output.push(absolute);
   }
   return output;
+}
+
+function isCoverPdf(relativePath, relatives) {
+  if (!relativePath.endsWith(".pdf") || /-[12]\.pdf$/i.test(relativePath)) return false;
+  const stem = relativePath.replace(/\.pdf$/i, "");
+  return relatives.includes(`${stem}-1.pdf`);
 }
 
 function assignWork(relativePath) {
@@ -203,10 +230,12 @@ async function main() {
   }
   fs.mkdirSync(path.join(cacheRoot, "extract"), { recursive: true });
   const files = walkFiles(corpusRoot).sort((a, b) => rel(a).localeCompare(rel(b), "zh"));
+  const relatives = files.map(rel);
   const buckets = new Map(WORKS.map((work) => [work.id, { ...work, sources: [], texts: [], methods: new Set(), cacheHits: 0, pending: 0 }]));
   let ocrUsed = 0;
   for (const filePath of files) {
     const relativePath = rel(filePath);
+    if (isCoverPdf(relativePath, relatives)) continue;
     const work = assignWork(relativePath);
     if (!work) continue;
     const bucket = buckets.get(work.id);

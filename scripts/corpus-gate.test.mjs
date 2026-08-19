@@ -26,10 +26,12 @@ test("peer interval marks in-range and extreme without pass/fail scores", () => 
   assert.ok(["high", "extreme", "in_range"].includes(statusAgainstPeer(0.99, interval)));
   const md = renderCorpusDashboard({
     works: [
-      { title: "样本A", peerGroup: "role_book", features: low, methods: ["plain_text"], cacheHits: 1, pending: 0 },
-      { title: "样本B", peerGroup: "role_book", features: high, methods: ["docx"], cacheHits: 0, pending: 2 }
+      { title: "样本A", peerGroup: "mystery", features: low, methods: ["plain_text"], cacheHits: 1, pending: 0 },
+      { title: "样本B", peerGroup: "mystery", features: high, methods: ["docx"], cacheHits: 0, pending: 2 },
+      { title: "机制样本", peerGroup: "mechanism", features: low, methods: ["image_ocr"], cacheHits: 2, pending: 0 }
     ]
   });
-  assert.match(md, /检测仪/);
+  assert.match(md, /## mystery/);
+  assert.match(md, /## mechanism/);
   assert.doesNotMatch(md, /真人感/);
 });
