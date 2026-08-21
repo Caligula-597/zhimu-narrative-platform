@@ -56,7 +56,10 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/routes/auth-route-shared", ["test/auth-session-response.test.js", "test/auth-password-reset.test.js", "test/auth-email-verification.test.js", "test/app-auth.test.js"]],
   ["backend/src/script-bundle", ["test/script-bundle.test.js", "test/script-bundle-import.test.js"]],
   ["backend/src/pdf-document", ["test/pdf-document.test.js"]],
-  ["backend/src/document-parser", ["test/pdf-document.test.js"]],
+  ["backend/src/document-parser", ["test/document-structure.test.js"]],
+  ["backend/src/document-structure", ["test/document-structure.test.js"]],
+  ["backend/src/document-structure-grouper", ["test/document-structure.test.js"]],
+  ["backend/src/document-structure-gate", ["test/document-structure.test.js"]],
   ["backend/src/document-page-import", ["test/pdf-document.test.js"]],
   ["backend/src/document-text-import", ["test/pdf-document.test.js"]],
   ["backend/src/catalog-review-ops", ["test/ops-catalog.test.js"]],
@@ -301,12 +304,16 @@ if (files.some((f) =>
   run("check contracts drift", "npm run check:contracts");
 }
 
+// Pure unit suites that must not load test/hooks.mjs (no DB fixture bootstrap).
+const BACKEND_TESTS_WITHOUT_DB_HOOKS = new Set(["test/document-structure.test.js"]);
+
 // Let hooks.mjs finish resource teardown. Node's --test-force-exit can abort
 // Windows libuv while async handles are already closing, and it hides leaks.
 for (const t of backendTests) {
+  const importHooks = BACKEND_TESTS_WITHOUT_DB_HOOKS.has(t) ? "" : "--import ./test/hooks.mjs ";
   run(
     `backend ${t}`,
-    `node --test-concurrency=1 --import ./test/hooks.mjs --test ${t}`,
+    `node --test-concurrency=1 ${importHooks}--test ${t}`,
     backendRoot
   );
 }

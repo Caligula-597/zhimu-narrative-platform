@@ -86,9 +86,40 @@ function documentPreviewHtml(parsed, creationType) {
   const counts = structure?.counts || {};
   const structureSummary = `${terms.roleShort} ${Number(counts.role || 0)} · ${terms.act} ${Number(counts.act || 0)} · ${terms.scene} ${Number(counts.scene || 0)} · ${terms.clue} ${Number(counts.clue || 0)} · ${terms.secret} ${Number(counts.secret || 0)}`;
   const candidates = structure?.candidates || [];
-  const structurePreview = candidates.length ? `<section class="document-structure-preview"><h4>结构识别 · ${escapeHtml(structureSummary)}</h4>${candidates.slice(0, 12).map((item) => `<article><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.type)} · ${escapeHtml(item.confidence)}${item.parentActTitle ? ` · ${escapeHtml(item.parentActTitle)}` : ""}</span></article>`).join("")}${Number(structure.candidateCount || 0) > 12 ? `<p class="muted-note">另有 ${Number(structure.candidateCount) - 12} 项，导入后可在对应工作区逐项复核。</p>` : ""}</section>` : "";
+  const roles = candidates.filter((item) => item.type === "role");
+  const acts = candidates.filter((item) => item.type === "act");
+  const other = candidates.filter((item) => item.type !== "role" && item.type !== "act");
+  const gate = structure?.gate;
+  const kindLabel =
+    gate?.documentKind === "host_handbook"
+      ? "主持手册"
+      : gate?.documentKind === "role_book"
+        ? "角色本"
+        : gate?.documentKind === "mixed"
+          ? "混合稿"
+          : "未分类";
+  const planRows = (gate?.plan || parsed.structurePlan || [])
+    .slice(0, 8)
+    .map((item) => `<li><strong>${escapeHtml(String(item.step || ""))}.</strong> ${escapeHtml(item.label || item.action || "")}</li>`)
+    .join("");
+  const gatePlanHtml = planRows
+    ? `<section class="document-structure-plan"><h4>机械门禁 · 下一步</h4><p class="muted-note">文稿类型：${escapeHtml(kindLabel)}${gate?.readyForImport === false ? " · 暂不建议直接结构化导入" : " · 可预览后导入"}</p><ol>${planRows}</ol></section>`
+    : "";
+  const listBlock = (title, items) =>
+    items.length
+      ? `<div class="document-structure-group"><h5>${escapeHtml(title)}</h5>${items
+          .slice(0, 12)
+          .map(
+            (item) =>
+              `<article><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.type)} · ${escapeHtml(item.confidence)}${item.parentActTitle ? ` · ${escapeHtml(item.parentActTitle)}` : ""}</span></article>`
+          )
+          .join("")}${items.length > 12 ? `<p class="muted-note">另有 ${items.length - 12} 项</p>` : ""}</div>`
+      : "";
+  const structurePreview = candidates.length
+    ? `<section class="document-structure-preview"><h4>结构分组 · ${escapeHtml(structureSummary)}</h4>${listBlock("角色", roles)}${listBlock("章节 / 分幕", acts)}${listBlock("其他", other)}</section>`
+    : "";
   const summary = parsed.contentMode === "pages" ? `${Number(parsed.pageCount || 0)} 页图片分幕` : `${Number(parsed.characterCount || 0)} 字符 · ${Number(parsed.sectionCount || 0)} 个分段`;
-  return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${proseDiagnosticsHtml(parsed.proseDiagnostics)}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;
+  return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${gatePlanHtml}${proseDiagnosticsHtml(parsed.proseDiagnostics)}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;
 }
 
 function canImportDocument(session) {

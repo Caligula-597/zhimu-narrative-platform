@@ -66,6 +66,7 @@ export function parseCreatorTextDocument({
   const sections = splitSections(cleaned).slice(0, 80);
   const structure = analyzeNarrativeStructure(cleaned, { filename, creationType });
   const proseDiagnostics = inspectPlayerProse(cleaned, { sections, creationType });
+  const gatePlan = Array.isArray(structure?.gate?.plan) ? structure.gate.plan : [];
   return {
     filename,
     contentMode: "text",
@@ -76,8 +77,10 @@ export function parseCreatorTextDocument({
     sectionCount: sections.length,
     extraction,
     structure,
+    structureSource: structure?.structureSource || "heuristic",
     proseDiagnostics,
-    warnings: [...warnings, ...structure.warnings]
+    warnings: [...warnings, ...structure.warnings],
+    structurePlan: gatePlan
   };
 }
 

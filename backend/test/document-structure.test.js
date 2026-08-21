@@ -64,3 +64,52 @@ test("creation type normalization is closed and exposes stable terminology", () 
   assert.equal(normalizeCreationType("unknown"), "murder_mystery");
   assert.equal(CREATOR_TERMINOLOGY.murder_mystery.role, "角色本");
 });
+
+const QINGLOU_HANDBOOK_EXCERPT = [
+  "请注意！因剧本中有较多不同于常规剧本的地方，所以此剧本是严禁盲开的。",
+  "请您务必仔细阅读此《组织者手册》。",
+  "★剧本简介 ★",
+  "此剧本《青楼》为四男三女的古装七人机制本，整本共四章。",
+  "★角色简介★",
+  "莫怀：莫府大少爷，莫玄宗与红姨之子，此角色为好人，建议给配置最高的玩家。",
+  "陈一兔：玉满楼四大名伎之月伎，此角色为好人，建议给女生比较爱盘的玩家。",
+  "姜红儿：玉满楼四大名伎之玉伎，此角色为凶手，建议给女生中比较感性的玩家。",
+  "齐剑心：江南第一剑客，此角色为凶手，建议给喜欢玩凶手的玩家。",
+  "舒悦：玉满楼四大名伎之玉伎，此角色为凶手，凶手方内乱之一。",
+  "杜霄元：衙门捕快，此角色为凶手，建议给喜欢玩凶手的玩家。",
+  "白斋子，江南第一才子，此角色为好人，建议给比较感性的玩家。",
+  "NPC柳诗诗：玉满楼四大名伎之花伎，此角色有专属的NPC剧本。",
+  "★开本流程★",
+  "1发本、宣读故事背景 见5页",
+  "2玩家读本第一章 见6页",
+  "6玩家读本第二章 见12页",
+  "12演绎第三章 见 1 7 页",
+  "14玩家读本第三、四章见19页",
+  "主持人直接按照以上流程完整进行完即可。",
+  "莫怀复盘：莫怀醒来时已经是夜中了，一幕玉满楼场景复盘：莫寒在今日早些其实便已经来到了玉满楼，打算看灵石与魔石，夜阑时分。"
+].join("\n");
+
+test("qinglou handbook excerpt groups roster roles and flow chapters without prose act false positives", () => {
+  const result = analyzeNarrativeStructure(QINGLOU_HANDBOOK_EXCERPT, { filename: "剧本.docx" });
+  const roleTitles = result.candidates.filter((item) => item.type === "role").map((item) => item.title);
+  for (const name of ["莫怀", "陈一兔", "姜红儿", "齐剑心", "舒悦", "杜霄元", "白斋子", "柳诗诗"]) {
+    assert.ok(roleTitles.includes(name), `missing role ${name}`);
+  }
+  assert.ok(result.counts.role >= 7);
+  const actTitles = result.candidates.filter((item) => item.type === "act").map((item) => item.title);
+  assert.ok(actTitles.some((title) => /第一章/.test(title)));
+  assert.ok(actTitles.some((title) => /第二章/.test(title)));
+  assert.equal(actTitles.some((title) => /灵石|魔石|玉满楼/.test(title)), false);
+  assert.equal(result.structureSource, "heuristic");
+  assert.equal(result.gate.documentKind, "host_handbook");
+  assert.equal(result.gate.readyForImport, true);
+  assert.ok(result.gate.plan.some((item) => item.action === "import_roles"));
+  assert.ok(result.gate.plan.some((item) => item.action === "import_role_scripts"));
+});
+
+test("prose lines like 一幕玉满楼 are not treated as act headings", () => {
+  const result = analyzeNarrativeStructure(
+    ["普通叙述。", "莫怀复盘：莫怀醒来时，一幕玉满楼的灯还亮着，灵石与魔石都在桌上。", "夜阑之后他才离开。"].join("\n")
+  );
+  assert.equal(result.counts.act, 0);
+});
