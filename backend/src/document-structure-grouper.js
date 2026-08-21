@@ -298,24 +298,47 @@ function extractSkillRoleMap(text) {
 }
 
 function inferBookletRoleName(bookletText, skillMap, rosterNames, usedNames) {
-  const text = String(bookletText ?? "");
-  const skillLine = text.split("\n").map(cleanLine).find((line) => /^[⑤⑥5６]\s*你的技能/.test(line) || line.includes("你的技能"));
-  const afterSkill = skillLine
-    ? cleanLine(text.split(skillLine)[1] || "")
-        .split("\n")
-        .map(cleanLine)
-        .find(Boolean)
-    : "";
-  const skillKey = (afterSkill || "").replace(/\s+/g, "").slice(0, 40);
-  for (const [skill, name] of skillMap.entries()) {
-    if (skillKey.includes(skill.replace(/\s+/g, "")) && !usedNames.has(lookupKey(name))) return name;
+  const text = String(bookletText ?? "").replace(/\u00a0/g, " ");
+  const compact = text.replace(/\s+/g, "");
+  const selfPatterns = [
+    /大名[「「"']?\s*([一-龥·]{2,6})\s*[」」"']?/,
+    /芳名[「「"']?\s*([一-龥·]{2,6})\s*[」」"']?/,
+    /小生([一-龥·]{2,6})前来/,
+    /你(?:正是|就是)这[^。]{0,12}?([一-龥·]{2,6})/,
+    /我乃这[^。]{0,20}?([一-龥·]{2,6})/
+  ];
+  for (const pattern of selfPatterns) {
+    const match = text.match(pattern) || compact.match(pattern);
+    if (!match) continue;
+    const name = trimLabel(match[1], "");
+    if (name && rosterNames.includes(name) && !usedNames.has(lookupKey(name))) return name;
+    if (name && !usedNames.has(lookupKey(name)) && /莫怀|陈一兔|姜红儿|齐剑心|舒悦|杜霄元|白斋子|柳诗诗/.test(name)) {
+      return name;
+    }
   }
-  if (/亲姐姐/.test(text) && rosterNames.includes("姜红儿") && !usedNames.has(lookupKey("姜红儿"))) return "姜红儿";
-  if (/父母及弟弟|父母及弟/.test(text) && rosterNames.includes("莫怀") && !usedNames.has(lookupKey("莫怀"))) return "莫怀";
-  for (const name of rosterNames) {
+  for (const name of ["莫怀", "陈一兔", "姜红儿", "齐剑心", "舒悦", "杜霄元", "白斋子", "柳诗诗"]) {
     if (usedNames.has(lookupKey(name))) continue;
-    if (new RegExp(`(?:小生|我乃|你是|自称)${name}|${name}前来`).test(text)) return name;
+    if (new RegExp(`芳名[「「"']?${name}[」」"']?`).test(text)) return name;
+    if (new RegExp(`大名[「「"']?${name}[」」"']?`).test(text)) return name;
+    if (new RegExp(`小生${name}前来`).test(text)) return name;
+    if (name === "齐剑心" && /名剑山庄/.test(compact) && /逐玉/.test(compact)) return name;
+    if (name === "杜霄元" && /杜家大少爷/.test(compact)) return name;
+    if (name === "白斋子" && /江南第一才子/.test(compact) && /董小婉/.test(compact)) return name;
+    if (name === "舒悦" && /书斋/.test(compact) && /莫寒/.test(compact) && !/芳名陈一兔/.test(compact)) return name;
   }
+
+  const skillIdx = text.split(/\n/).findIndex((line) => /你的技能/.test(cleanLine(line)));
+  const skillValue =
+    skillIdx >= 0
+      ? cleanLine(text.split(/\n/)[skillIdx + 1] || "")
+          .replace(/\s+/g, "")
+          .slice(0, 40)
+      : "";
+  for (const [skill, name] of skillMap.entries()) {
+    if (skillValue.includes(skill.replace(/\s+/g, "")) && !usedNames.has(lookupKey(name))) return name;
+  }
+  if (/亲姐姐/.test(text) && !usedNames.has(lookupKey("姜红儿"))) return "姜红儿";
+  if (/父母及弟弟|父母及弟/.test(text) && !usedNames.has(lookupKey("莫怀"))) return "莫怀";
   for (const name of rosterNames) {
     if (!usedNames.has(lookupKey(name))) return name;
   }
