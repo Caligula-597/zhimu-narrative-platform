@@ -15,7 +15,7 @@
     "seo:verify-live": "node scripts/verify-live-seo.mjs"
   },
   "devDependencies": {
-    "@emnapi/core": "1.11.2",
+    "@emnapi/core": "1.11.3",
     "@emnapi/runtime": "1.11.2",
     "vite": "^8.1.3"
   }
