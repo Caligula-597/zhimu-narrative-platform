@@ -403,6 +403,29 @@ export function createDirectorActionHandler({ render, showToast }) {
         window.open(getPlayerJoinUrl(code), "_blank", "noopener,noreferrer");
         return true;
       }
+      case "host-appoint-cohost": {
+        const panel = el?.closest?.("[data-host-cohost-panel]");
+        const raw = String(panel?.querySelector?.("[data-cohost-target]")?.value || "").trim();
+        if (!raw) {
+          showToast("请填写邮箱或用户 ID");
+          return true;
+        }
+        const uuidRe = /^[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
+        const payload = uuidRe.test(raw) ? { userId: raw } : { email: raw };
+        void runCommand(
+          () => api.appointHostCohost(payload),
+          "已任命协主持",
+          "任命协主持失败"
+        );
+        return true;
+      }
+      case "host-remove-cohost":
+        void runCommand(
+          () => api.removeHostCohost(el?.dataset?.userId),
+          "已移除协主持",
+          "移除协主持失败"
+        );
+        return true;
       default:
         return false;
     }

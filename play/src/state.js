@@ -49,6 +49,7 @@ export const state = {
   tab: storedRoomId ? readStoredGameTab() : "home",
   sectionId: storedRoomId ? (localStorage.getItem(GAME_SECTION_KEY) || "") : "",
   clueId: "",
+  bookletId: "",
   inviteCode: "",
   joinPreview: null,
   publicRooms: null,

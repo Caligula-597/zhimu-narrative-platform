@@ -118,9 +118,45 @@ export function renderConsole(){
   ${hostRiskPanel}
   ${noPlayerProgressHint}
   ${hostPlayersErrorBanner}
+  ${hostCohostPanel(room)}
   ${hostSessionToolbar(inviteCode)}
   ${hostSupportPanels(events)}
  </section>`;
+}
+
+function hostCohostPanel(room) {
+  const cohosts = state.cloudHostCohosts || [];
+  const canManage = Boolean(state.cloudHostCohostCanManage)
+    || String(state.user?.id || "") === String(room?.host_user_id || "");
+  const rows = cohosts.length
+    ? cohosts.map((item) => `<div class="checkpoint-row" style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+        <div><strong>${escapeHtml(item.displayName || "协主持")}</strong>
+          <p class="muted-note">${escapeHtml(item.email || item.userId || "")}</p></div>
+        ${canManage ? `<button type="button" class="secondary-btn" data-action="host-remove-cohost" data-user-id="${escapeHtml(item.userId)}">移除</button>` : ""}
+      </div>`).join("")
+    : `<div class="empty-state">尚未任命协主持。主主持可填写已注册用户的邮箱或用户 ID 进行任命。</div>`;
+  const manageBlock = canManage
+    ? `<div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
+        <input class="field" type="text" data-cohost-target placeholder="邮箱或用户 ID" style="min-width:220px;flex:1">
+        <button type="button" class="primary-btn" data-action="host-appoint-cohost">任命协主持</button>
+      </div>`
+    : `<p class="muted-note" style="margin-top:8px">仅主主持可任命或移除协主持；协主持可共同操作监控台。</p>`;
+  const caseNotes = state?.studio?.world?.settings?.caseHostNotes
+    || state?.studio?.experienceConfiguration?.caseHostNotes
+    || null;
+  const dualHostTip = caseNotes?.dualHost
+    ? `<p class="muted-note" style="margin-top:8px"><strong>本局分工：</strong>${escapeHtml(String(caseNotes.dualHost))}</p>`
+    : "";
+  const openingTip = caseNotes?.opening
+    ? `<p class="muted-note"><strong>开场：</strong>${escapeHtml(String(caseNotes.opening))}</p>`
+    : "";
+  return `<section class="card host-cohost-panel" data-host-cohost-panel style="margin-bottom:14px">
+    <div class="section-head compact"><div><p class="section-kicker">DUAL HOST</p><h3>双主持</h3>
+      <p>主主持可任命协主持共同操作本房；主主持身份仍唯一，不可转让。</p></div></div>
+    ${dualHostTip}${openingTip}
+    ${rows}
+    ${manageBlock}
+  </section>`;
 }
 
 function hostSessionToolbar(inviteCode) {

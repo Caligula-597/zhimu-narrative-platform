@@ -45,6 +45,12 @@ export function handlePlayStateAction({
       return true;
     case "pick-clue":
       state.clueId = button.dataset.clueId;
+      state.bookletId = "";
+      render();
+      return true;
+    case "pick-booklet":
+      state.bookletId = button.dataset.bookletId;
+      state.clueId = "";
       render();
       return true;
     case "goto-section":

@@ -3,6 +3,10 @@ import { formatApiError as sharedFormatApiError, COMMON_API_ERROR_MESSAGES } fro
 /** Host-specific error codes (auth comes from COMMON). */
 const HOST_API_ERROR_MESSAGES = {
   HOST_ROLE_REQUIRED: "需要主持人或协主持权限。",
+  COHOST_PRIMARY_REQUIRED: "只有主主持可以任命或移除协主持。",
+  COHOST_ALREADY_ASSIGNED: "该用户已是本房主持或协主持。",
+  COHOST_TARGET_INVALID: "协主持须为已注册用户，且不能是主主持本人。",
+  COHOST_NOT_FOUND: "未找到该协主持成员。",
   ROOM_MEMBERSHIP_REQUIRED: "你不是该运行房的成员。",
   ROLE_SLOT_NOT_OCCUPIED: "该席位尚无玩家。",
   ROOM_NOT_FOUND: "房间不存在。",

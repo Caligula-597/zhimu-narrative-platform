@@ -9,6 +9,7 @@ const definitions = {
       "section-next",
       "pick-section",
       "pick-clue",
+      "pick-booklet",
       "goto-section",
       "show-auth",
       "toggle-auth-mode",

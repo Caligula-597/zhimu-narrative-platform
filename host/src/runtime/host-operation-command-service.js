@@ -143,6 +143,19 @@ export function createHostOperationCommandService({
           );
           break;
         }
+        case HOST_OPERATION_KINDS.GRANT_BOOKLET: {
+          const bookletId = requiredText(draft.bookletId, "请选择物料册");
+          const roleSlotIds = [...new Set((draft.roleSlotIds || []).map(String).filter(Boolean))];
+          if (!roleSlotIds.length) throw new Error("请至少选择一名玩家");
+          if (roleSlotIds.length > HOST_OPERATION_LIMITS.CLUE_TARGETS) {
+            throw new Error(`单次最多向 ${HOST_OPERATION_LIMITS.CLUE_TARGETS} 名玩家发放物料册`);
+          }
+          void runOperation(
+            () => apiRef.hostGrantBooklet({ bookletId, roleSlotIds, message: String(draft.message || "").trim() }),
+            `物料册已发放给 ${roleSlotIds.length} 名玩家`
+          );
+          break;
+        }
         case HOST_OPERATION_KINDS.GRANT_ITEM: {
           const roleSlotId = requiredText(draft.roleSlotId, "请选择目标玩家");
           const itemId = requiredText(draft.itemId, "请选择物品");

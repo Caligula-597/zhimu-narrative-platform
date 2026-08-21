@@ -222,6 +222,8 @@ export const api = {
   triggerManualRule: (ruleId) => request(roomPath(`/rules/${ruleId}/trigger`), { method: "POST", idempotent: true }),
 
   hostGrantClue: (payload) => request(roomPath("/host/grant-clue"), { method: "POST", body: payload, idempotent: true }),
+  listHostMaterialBooklets: () => request(roomPath("/host/material-booklets")),
+  hostGrantBooklet: (payload) => request(roomPath("/host/grant-booklet"), { method: "POST", body: payload, idempotent: true }),
   hostRevokeClue: (payload) => request(roomPath("/host/revoke-clue"), { method: "POST", body: payload, idempotent: true }),
   hostResendClue: (payload) => request(roomPath("/host/resend-clue"), { method: "POST", body: payload, idempotent: true }),
   hostGrantItem: (payload) => request(roomPath("/host/grant-item"), { method: "POST", body: payload, idempotent: true }),
@@ -238,6 +240,11 @@ export const api = {
     request(roomPath(`/host/players/${roleSlotId}/notes`), { method: "PUT", body: { notes }, idempotent: true }),
   hostKickPlayer: (roleSlotId) =>
     request(roomPath(`/host/players/${roleSlotId}/kick`), { method: "POST", idempotent: true }),
+  getHostCohosts: () => request(roomPath("/host/cohosts")),
+  appointHostCohost: (payload) =>
+    request(roomPath("/host/cohosts"), { method: "POST", body: payload, idempotent: true }),
+  removeHostCohost: (userId) =>
+    request(roomPath(`/host/cohosts/${userId}`), { method: "DELETE", idempotent: true }),
   hostClueNote: (clueId, payload) =>
     request(roomPath(`/host/clues/${clueId}/notes`), { method: "PUT", body: payload, idempotent: true }),
 

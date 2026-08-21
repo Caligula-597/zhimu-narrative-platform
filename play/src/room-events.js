@@ -55,6 +55,13 @@ export async function handleRoomEvent(type, data, ctx) {
         if (data.itemName) ctx.onToast(`获得物品：${data.itemName}`);
       }
       break;
+    case "room.booklet_granted":
+      if (affectsPlayer) {
+        ctx.bumpTabPulse?.("clues");
+        await ctx.onRefresh();
+        if (data.bookletTitle) ctx.onToast(`获得物料册：${data.bookletTitle}`);
+      }
+      break;
     case "room.item_action_updated":
       ctx.bumpTabPulse?.("inventory");
       await ctx.onRefresh();

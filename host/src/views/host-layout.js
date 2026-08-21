@@ -515,6 +515,7 @@ function renderPlayersColumn({ playersTableRows }) {
       <div><p class="section-kicker">PLAYERS</p><h3>玩家状态</h3><p>${players.filter((p) => p.joined).length}/${players.length} 已入房</p></div>
       <div class="row host-manual-actions">
         <button class="secondary-btn" data-action="host-manual-grant-clue">发线索</button>
+        <button class="secondary-btn" data-action="host-manual-grant-booklet">发物料册</button>
         <button class="secondary-btn" data-action="host-manual-grant-item">发物品</button>
         <button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button>
       </div>

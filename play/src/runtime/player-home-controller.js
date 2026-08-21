@@ -2,7 +2,7 @@ import { createRefreshCoalescer } from "./sync-helpers.js";
 
 const SOCIAL_FIELDS = [
   "notes", "clues", "sharedClues", "roomMembers",
-  "suspicions", "testimonies", "privateActions"
+  "suspicions", "testimonies", "privateActions", "materialBooklets"
 ];
 
 export function createPlayerHomeController({

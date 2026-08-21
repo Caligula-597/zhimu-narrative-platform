@@ -90,6 +90,25 @@ function grantClueHtml(operation) {
   </div>`;
 }
 
+function grantBookletHtml(operation) {
+  const players = joinedHostPlayers(state);
+  const selectedRoles = new Set((operation.draft.roleSlotIds || []).map(String));
+  const booklets = (state.hostMaterialBooklets || []).map((booklet) => ({
+    id: String(booklet.id),
+    name: `${booklet.title || "未命名物料册"}${booklet.kind ? ` · ${booklet.kind}` : ""}${booklet.phaseLabel ? ` · ${booklet.phaseLabel}` : ""}`
+  }));
+  return `<div class="host-operation-form">
+    <div class="host-operation-copy"><strong>发放物料册</strong><p>玩家将在线索页看到完整物料册页；若册内关联了线索摘录，会一并写入该角色线索所有权。</p></div>
+    ${fieldSelect("物料册", "bookletId", booklets, operation.draft.bookletId, "当前剧本尚无物料册")}
+    <fieldset class="host-operation-picker">
+      <legend>目标玩家（可多选）</legend>
+      ${players.map((player) => `<label><input type="checkbox" data-host-operation-field="roleSlotIds" value="${escapeHtml(player.role_slot_id)}"${selectedRoles.has(String(player.role_slot_id)) ? " checked" : ""}> <span><b>${escapeHtml(player.player_display_name || "玩家")}</b> · ${escapeHtml(player.role_name)}</span></label>`).join("") || `<p>当前没有已入房玩家。</p>`}
+    </fieldset>
+    <label>日志说明<input class="field" data-host-operation-field="message" value="${escapeHtml(operation.draft.message || "")}" maxlength="500"></label>
+    <div class="host-operation-actions">${submitButton(operation, "确认发放", !players.length || !booklets.length)}</div>
+  </div>`;
+}
+
 function grantItemHtml(operation) {
   const players = joinedHostPlayers(state);
   const items = (state.studio?.items || []).map((item) => ({ id: String(item.id), name: item.name }));
@@ -225,6 +244,7 @@ function operationBodyHtml(operation) {
   switch (operation.kind) {
     case HOST_OPERATION_KINDS.PLAYER: return playerDetailHtml(operation);
     case HOST_OPERATION_KINDS.GRANT_CLUE: return grantClueHtml(operation);
+    case HOST_OPERATION_KINDS.GRANT_BOOKLET: return grantBookletHtml(operation);
     case HOST_OPERATION_KINDS.GRANT_ITEM: return grantItemHtml(operation);
     case HOST_OPERATION_KINDS.UNLOCK_SECTION: return unlockSectionHtml(operation);
     case HOST_OPERATION_KINDS.UNLOCK_SCENE: return unlockSceneHtml(operation);
@@ -239,6 +259,7 @@ function operationTitle(operation) {
   return {
     [HOST_OPERATION_KINDS.PLAYER]: "玩家状态与干预",
     [HOST_OPERATION_KINDS.GRANT_CLUE]: "线索发放",
+    [HOST_OPERATION_KINDS.GRANT_BOOKLET]: "物料册发放",
     [HOST_OPERATION_KINDS.GRANT_ITEM]: "物品发放",
     [HOST_OPERATION_KINDS.UNLOCK_SECTION]: "私人分幕解锁",
     [HOST_OPERATION_KINDS.UNLOCK_SCENE]: "公共场景开放",

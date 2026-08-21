@@ -19,6 +19,55 @@ export function normalizeMiniGame(raw) {
   };
 }
 
+function renderSequence(game) {
+  const config = game.config || {};
+  const length = Math.max(1, Math.min(12, Number(config.length || 3)));
+  const attempts = game.attemptsLeft == null ? "" : `<span class="mini-game-attempts">剩余 ${escapeHtml(game.attemptsLeft)} 次</span>`;
+  const deadline = game.deadlineAt
+    ? `<span class="mini-game-deadline">请在 ${escapeHtml(new Date(game.deadlineAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }))} 前完成</span>`
+    : "";
+  return `
+    <section class="mini-game-card" data-mini-game="${escapeHtml(game.instanceId)}">
+      <div class="mini-game-head">
+        <div>
+          <p class="eyebrow">${game.phase === "recovered" ? "机关已恢复" : "顺序机关"}</p>
+          <h3>${escapeHtml(config.title || "顺序还原")}</h3>
+        </div>
+        <div>${attempts}${deadline}</div>
+      </div>
+      <p class="muted">${escapeHtml(config.prompt || "按正确顺序输入关键步骤，用逗号分隔。")}</p>
+      <div class="mini-game-lock-row">
+        <input class="field mini-game-answer" data-mini-game-answer placeholder="例如：第一步,第二步,第三步" autocomplete="off" aria-label="输入 ${escapeHtml(length)} 步顺序答案" />
+        <button class="btn primary" type="button" data-action="mini-game-submit" ${game.instanceId ? "" : "disabled"}>提交顺序</button>
+      </div>
+      ${config.hint ? `<p class="hint">${escapeHtml(config.hint)}</p>` : ""}
+    </section>`;
+}
+
+function renderGuess(game) {
+  const config = game.config || {};
+  const attempts = game.attemptsLeft == null ? "" : `<span class="mini-game-attempts">剩余 ${escapeHtml(game.attemptsLeft)} 次</span>`;
+  const deadline = game.deadlineAt
+    ? `<span class="mini-game-deadline">请在 ${escapeHtml(new Date(game.deadlineAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }))} 前完成</span>`
+    : "";
+  return `
+    <section class="mini-game-card" data-mini-game="${escapeHtml(game.instanceId)}">
+      <div class="mini-game-head">
+        <div>
+          <p class="eyebrow">${game.phase === "recovered" ? "机关已恢复" : "歌猜机关"}</p>
+          <h3>${escapeHtml(config.title || "歌猜 / 口令")}</h3>
+        </div>
+        <div>${attempts}${deadline}</div>
+      </div>
+      <p class="muted">${escapeHtml(config.prompt || "根据提示提交你的猜测。")}</p>
+      <div class="mini-game-lock-row">
+        <input class="field mini-game-answer" data-mini-game-answer placeholder="输入歌名或口令" autocomplete="off" aria-label="输入歌猜或口令答案" />
+        <button class="btn primary" type="button" data-action="mini-game-submit" ${game.instanceId ? "" : "disabled"}>提交猜测</button>
+      </div>
+      ${config.hint ? `<p class="hint">${escapeHtml(config.hint)}</p>` : ""}
+    </section>`;
+}
+
 function renderLock(game) {
   const config = game.config || {};
   const length = Math.max(1, Math.min(12, Number(config.length || config.answer_length || 4)));
@@ -57,5 +106,7 @@ export function renderMiniGamePanel(rawGame) {
     return `<section class="mini-game-card fail" role="status"><p class="eyebrow">限时机关</p><h3>挑战时间已到</h3><p class="muted">状态已保留，不需要重复提交。主持人可以恢复新的尝试窗口。</p></section>`;
   }
   if (game.gameType === "zhimu_lock") return renderLock(game);
+  if (game.gameType === "zhimu_sequence") return renderSequence(game);
+  if (game.gameType === "zhimu_guess") return renderGuess(game);
   return `<section class="mini-game-card"><p class="eyebrow">互动机关</p><h3>${escapeHtml(game.config?.title || "暂不支持的小游戏")}</h3><p class="muted">当前玩家端暂不支持 ${escapeHtml(game.gameType)}，请联系主持人处理。</p></section>`;
 }

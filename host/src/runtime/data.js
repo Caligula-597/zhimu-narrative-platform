@@ -136,7 +136,8 @@ async function loadHostDataInternal(withToast = false) {
         api.getHostPaceClock().catch(() => ({ clock: null })),
         api.getRoomConclusion().catch(() => ({ conclusion: null })),
         api.getHostItemActions().catch(() => ({ itemActions: [] })),
-        api.getHostRelationships().catch(() => ({ relationships: [] }))
+        api.getHostRelationships().catch(() => ({ relationships: [] })),
+        api.getHostCohosts().catch(() => ({ cohosts: [], canManage: false }))
       ]);
       if (results[0].status === "fulfilled") applyHostPlayersPayload(results[0].value);
       else {
@@ -161,6 +162,13 @@ async function loadHostDataInternal(withToast = false) {
       if (results[15].status === "fulfilled") state.sessionConclusion = results[15].value?.conclusion || null;
       if (results[16].status === "fulfilled") state.cloudHostItemActions = results[16].value?.itemActions || [];
       if (results[17].status === "fulfilled") state.cloudHostRelationships = results[17].value?.relationships || [];
+      if (results[18].status === "fulfilled") {
+        state.cloudHostCohosts = results[18].value?.cohosts || [];
+        state.cloudHostCohostCanManage = Boolean(results[18].value?.canManage);
+      } else {
+        state.cloudHostCohosts = [];
+        state.cloudHostCohostCanManage = false;
+      }
     } else {
       state.cloudHostPlayers = [];
       state.cloudHostEvents = [];
@@ -172,6 +180,8 @@ async function loadHostDataInternal(withToast = false) {
       state.sessionConclusion = null;
       state.cloudHostItemActions = [];
       state.cloudHostRelationships = [];
+      state.cloudHostCohosts = [];
+      state.cloudHostCohostCanManage = false;
       state.cloudHostAuditLog = [];
       state.cloudHostTestimonies = [];
       state.cloudHostSegmentRemedies = [];
