@@ -45,9 +45,11 @@ export function evaluateDocumentStructureGate(input = {}) {
 
   const roleBodies = candidates.filter((item) => item.type === "role");
   const emptyRoleBodies = roleBodies.filter((item) => !String(item.body || "").trim());
-  const actTitles = candidates.filter((item) => item.type === "act").map((item) => item.title);
+  const roleBoundActs = candidates.filter((item) => item.type === "act" && item.roleName && String(item.body || "").trim());
+  const actTitles = candidates.filter((item) => item.type === "act" && !item.roleName).map((item) => item.title);
   const uniqueActTitles = new Set(actTitles.map(lookupKey));
-  const actDupRatio = actTitles.length ? 1 - uniqueActTitles.size / actTitles.length : 0;
+  const actDupRatio = actTitles.length ? 1 - uniqueActTitles.size / Math.max(actTitles.length, 1) : 0;
+  const roleBookletCount = Number(input.roleBookletCount || 0);
 
   if (!candidates.length) {
     issues.push({
@@ -98,7 +100,7 @@ export function evaluateDocumentStructureGate(input = {}) {
     });
   }
 
-  if (documentKind === "host_handbook") {
+  if (documentKind === "host_handbook" && roleBoundActs.length === 0 && roleBookletCount < 2) {
     issues.push({
       code: "host_handbook_detected",
       severity: "medium",
@@ -108,6 +110,17 @@ export function evaluateDocumentStructureGate(input = {}) {
       step: step++,
       action: "import_role_scripts",
       label: "另导各角色私人分幕正文（当前手册多为简介，无分角正文）"
+    });
+  } else if (roleBookletCount >= 2 || roleBoundActs.length > 0) {
+    issues.push({
+      code: "role_booklets_detected",
+      severity: "low",
+      message: `已按角色本顺序拆出 ${roleBookletCount || "若干"} 本，章节按页标/章号 1→2→3→4 阅读序排列。`
+    });
+    plan.push({
+      step: step++,
+      action: "import_role_sections",
+      label: `导入各角色分幕正文（${roleBoundActs.length} 段，阅读序 1→2→3→4）`
     });
   } else if (emptyRoleBodies.length >= Math.max(1, Math.ceil(roleBodies.length / 2))) {
     plan.push({

@@ -13,15 +13,26 @@ export function analyzeNarrativeStructure(text, { filename = "", creationType = 
   const normalizedType = normalizeCreationType(creationType);
   const grouped = groupNarrativeStructure(text, { filename });
   const counts = { role: 0, act: 0, scene: 0, clue: 0, secret: 0 };
+  const actTitles = new Set();
   for (const candidate of grouped.candidates) {
+    if (candidate.type === "act") {
+      actTitles.add(
+        String(candidate.title ?? "")
+          .trim()
+          .toLocaleLowerCase("zh-CN")
+      );
+      continue;
+    }
     if (counts[candidate.type] != null) counts[candidate.type] += 1;
   }
+  counts.act = actTitles.size;
   const gate = evaluateDocumentStructureGate({
     candidates: grouped.candidates,
     text,
     filename,
     sectionBanners: grouped.sectionBanners,
-    wasTruncated: grouped.wasTruncated
+    wasTruncated: grouped.wasTruncated,
+    roleBookletCount: grouped.roleBookletCount
   });
 
   return {
@@ -32,6 +43,7 @@ export function analyzeNarrativeStructure(text, { filename = "", creationType = 
     candidates: grouped.candidates,
     structureSource: grouped.structureSource,
     sectionBanners: grouped.sectionBanners,
+    roleBookletCount: grouped.roleBookletCount || 0,
     gate,
     warnings: gate.warnings
   };

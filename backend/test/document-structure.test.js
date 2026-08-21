@@ -86,7 +86,35 @@ const QINGLOU_HANDBOOK_EXCERPT = [
   "12演绎第三章 见 1 7 页",
   "14玩家读本第三、四章见19页",
   "主持人直接按照以上流程完整进行完即可。",
-  "莫怀复盘：莫怀醒来时已经是夜中了，一幕玉满楼场景复盘：莫寒在今日早些其实便已经来到了玉满楼，打算看灵石与魔石，夜阑时分。"
+  "白斋子  -  博学多才（搜到宝箱开启仅需要一半银两）",
+  "齐剑心  -  武功高强（可以免死一次）",
+  "发行方：黑羽发行工作室 作者：发阳",
+  "①你的任务一：",
+  "你是为数不多的未染鲜血之人。",
+  "⑤你的技能：",
+  "博学多才（搜到宝箱开启仅需要一半银两）",
+  "第一章：玉满楼",
+  "白斋子在玉满楼开场正文。",
+  "第四章：灵石",
+  "白斋子灵石正文（印本页序靠后，阅读仍是第四章）。",
+  "第三章：魔石",
+  "白斋子魔石正文。",
+  "第二章：夜阑",
+  "白斋子夜阑正文。",
+  "—未经主持人允许，请勿翻开下一页—",
+  "发行方：黑羽发行工作室 作者：发阳",
+  "①你的任务一：",
+  "你是手染鲜血之人。",
+  "⑤你的技能：",
+  "武功高强（可以免死一次）",
+  "第一章：玉满楼",
+  "齐剑心在玉满楼开场正文。",
+  "第四章：灵石",
+  "齐剑心灵石正文。",
+  "第三章：魔石",
+  "齐剑心魔石正文。",
+  "第二章：夜阑",
+  "齐剑心夜阑正文。"
 ].join("\n");
 
 test("qinglou handbook excerpt groups roster roles and flow chapters without prose act false positives", () => {
@@ -96,15 +124,28 @@ test("qinglou handbook excerpt groups roster roles and flow chapters without pro
     assert.ok(roleTitles.includes(name), `missing role ${name}`);
   }
   assert.ok(result.counts.role >= 7);
-  const actTitles = result.candidates.filter((item) => item.type === "act").map((item) => item.title);
-  assert.ok(actTitles.some((title) => /第一章/.test(title)));
-  assert.ok(actTitles.some((title) => /第二章/.test(title)));
-  assert.equal(actTitles.some((title) => /灵石|魔石|玉满楼/.test(title)), false);
+  const shells = result.candidates.filter((item) => item.type === "act" && !item.roleName);
+  assert.ok(shells.some((item) => item.title === "玉满楼"));
+  assert.ok(shells.some((item) => item.title === "夜阑"));
+  assert.equal(shells.some((item) => /灵石|魔石|玉满楼/.test(item.title) && item.title.includes("一幕")), false);
   assert.equal(result.structureSource, "heuristic");
-  assert.equal(result.gate.documentKind, "host_handbook");
-  assert.equal(result.gate.readyForImport, true);
-  assert.ok(result.gate.plan.some((item) => item.action === "import_roles"));
-  assert.ok(result.gate.plan.some((item) => item.action === "import_role_scripts"));
+  assert.ok(result.roleBookletCount >= 2);
+  assert.ok(result.gate.plan.some((item) => item.action === "import_role_sections"));
+});
+
+test("role booklet chapters follow page-label reading order 1-2-3-4 not extract appearance order", () => {
+  const result = analyzeNarrativeStructure(QINGLOU_HANDBOOK_EXCERPT, { filename: "剧本.docx" });
+  const bai = result.candidates.filter((item) => item.type === "act" && item.roleName === "白斋子" && item.body);
+  assert.deepEqual(
+    bai.map((item) => item.title),
+    ["玉满楼", "夜阑", "魔石", "灵石"]
+  );
+  assert.deepEqual(
+    bai.map((item) => item.meta?.readingOrder),
+    [1, 2, 3, 4]
+  );
+  assert.match(bai[0].body, /玉满楼开场/);
+  assert.match(bai[1].body, /夜阑正文/);
 });
 
 test("prose lines like 一幕玉满楼 are not treated as act headings", () => {
