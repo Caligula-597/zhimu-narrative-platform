@@ -32,7 +32,6 @@ const localStorage = createMemoryStorage();
 const sessionStorage = createMemoryStorage();
 
 const runtimeDisconnects = [];
-const livekitDisconnects = [];
 
 globalThis.window = {
   zhimuConfig: {
@@ -48,9 +47,6 @@ globalThis.window = {
   zhimuWorldRevision: {},
   zhimuRoomEvents: {
     disconnectRoomEventStream: () => runtimeDisconnects.push("room-events")
-  },
-  zhimuLiveKitVoice: {
-    disconnectVoiceRoom: () => livekitDisconnects.push("livekit")
   },
   zhimuRuntimeStore: null,
   zhimuContext: null,
@@ -94,7 +90,7 @@ let demoContext;
 let zhimuRuntimeStore;
 let zhimuContext;
 let zhimuWorkspace;
-let userStore, worldStore, roomStore, studioStore, assetStore, voiceStore, uiStore;
+let userStore, worldStore, roomStore, studioStore, assetStore, uiStore;
 
 test.before(async () => {
   const fileUrl = (rel) => `file://${path.join(root, rel).replace(/\\/g, "/")}?t=${Date.now()}`;
@@ -109,7 +105,6 @@ test.before(async () => {
   roomStore = stateIndex.roomStore;
   studioStore = stateIndex.studioStore;
   assetStore = stateIndex.assetStore;
-  voiceStore = stateIndex.voiceStore;
   uiStore = stateIndex.uiStore;
 
   zhimuRuntimeStore = await import(fileUrl("src/runtime/runtime-store.js"));
@@ -132,7 +127,6 @@ function resetState(overrides = {}) {
   });
   studioStore.set({ cloudStudio: null });
   roomStore.set({
-    cloudPlayer: null,
     cloudHost: [{ name: "h" }],
     cloudHostPlayers: [{ joined: true }],
     cloudHostPlayersError: "",
@@ -142,29 +136,18 @@ function resetState(overrides = {}) {
     cloudRecaps: [{ id: "rc1" }],
     cloudRecapLatest: { id: "latest" },
     cloudRecapDetail: { id: "detail" },
-    activeRecapId: "recap-1",
-    cloudExploration: { scenes: [] }
+    activeRecapId: "recap-1"
   });
   assetStore.set({ cloudAssets: [{ id: "asset1" }], storageUsage: { usedBytes: 1 } });
   uiStore.set({ accountView: { me: {} } });
   userStore.set({ apiError: "old error", currentUser: null });
-  voiceStore.set({
-    voiceRoomId: "voice-1",
-    voiceRoom: "测试房",
-    voiceMessages: [{ id: "m1" }],
-    voiceLiveStatus: "connected",
-    voiceMicEnabled: true,
-    voiceParticipants: [{ id: "p1" }],
-    voiceLiveError: "err"
-  });
   // apply overrides per shard by field name
   const allShards = [
     [userStore, ["currentUser", "apiError", "roomEventsConnected"]],
     [worldStore, ["cloudWorlds", "cloudCatalog", "cloudCatalogError", "cloudCreatorChecks", "cloudRules", "cloudRulesPreview", "cloudWorldLogs"]],
-    [roomStore, ["cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostPlayersError", "cloudHostStuckCount", "cloudExploration", "cloudHostEvents", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest", "cloudRecapDetail", "activeRecapId", "cloudRoomSettings", "hostEventSelection"]],
+    [roomStore, ["cloudHost", "cloudHostPlayers", "cloudHostPlayersError", "cloudHostStuckCount", "cloudHostEvents", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest", "cloudRecapDetail", "activeRecapId", "cloudRoomSettings", "hostEventSelection"]],
     [studioStore, ["cloudStudio", "studioSelectedNode", "studioAnchorEditing", "studioFilter", "studioZoom", "studioLayoutMode", "studioCollapsedScenes", "studioCanvasHeight", "cloudLoading"]],
     [assetStore, ["cloudAssets", "assetKindFilter", "assetSearchQuery", "assetShowRecycle", "assetTotal", "storageUsage"]],
-    [voiceStore, ["voiceRoom", "voiceRoomId", "voiceMessages", "voiceLiveStatus", "voiceMicEnabled", "voiceParticipants", "voiceLiveError", "voicePlaybackBlocked"]],
     [uiStore, ["view", "searchFocus", "cluesSearchQuery", "cluesSelectedId", "cluesBulkSelection", "panelCollapse", "accountHubTab", "accountView", "accountViewLoading", "accountHubLoadId"]]
   ];
   for (const [store, keys] of allShards) {
@@ -183,7 +166,6 @@ test.beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
   runtimeDisconnects.length = 0;
-  livekitDisconnects.length = 0;
   nextWorlds = [];
 });
 
@@ -192,18 +174,15 @@ test.beforeEach(() => {
 test("runtime-store clearRuntimeFields resets in-room payload only", () => {
   zhimuRuntimeStore.clearRuntimeFields();
 
-  assert.equal(roomStore.get().cloudPlayer, null);
   assert.equal(roomStore.get().cloudHostEvents.length, 0);
-  assert.equal(voiceStore.get().voiceLiveStatus, "idle");
   assert.equal(worldStore.get().cloudRules.length, 1, "world-scoped rules must survive runtime-only clear");
   assert.equal(runtimeDisconnects.length, 0);
 });
 
-test("runtime-store clearRuntimeState disconnects live streams", () => {
+test("runtime-store clearRuntimeState disconnects the Creator room stream", () => {
   zhimuRuntimeStore.clearRuntimeState();
 
   assert.deepEqual(runtimeDisconnects, ["room-events"]);
-  assert.deepEqual(livekitDisconnects, ["livekit"]);
 });
 
 test("runtime-store applyHostPlayersPayload maps host table rows", () => {
@@ -325,17 +304,13 @@ test("workspace ensureActiveWorld rejects a non-array worlds contract", async ()
   assert.deepEqual(worldStore.get().cloudWorlds, []);
 });
 
-test("workspace activeRuntimeRoom resolves from studio rooms or player payload", () => {
+test("workspace activeRuntimeRoom resolves only from Creator studio rooms", () => {
   demoContext.roomId = "room-a";
 
   studioStore.set({ cloudStudio: { rooms: [{ id: "room-a", name: "Studio Room" }] } });
   assert.equal(zhimuWorkspace.activeRuntimeRoom()?.name, "Studio Room");
 
   studioStore.set({ cloudStudio: { rooms: [] } });
-  roomStore.set({ cloudPlayer: { room: { id: "room-a", name: "Player Room" } } });
-  assert.equal(zhimuWorkspace.activeRuntimeRoom()?.name, "Player Room");
-
-  roomStore.set({ cloudPlayer: null });
   assert.equal(zhimuWorkspace.activeRuntimeRoom(), null);
 });
 
@@ -441,7 +416,6 @@ test("actions.js delegates to domain action modules", () => {
   const modules = [
     "zhimuActionsWorkspace",
     "zhimuActionsArchive",
-    "zhimuActionsPlayer",
     "zhimuActionsStudio",
     "zhimuActionsWriter",
     "zhimuActionsRules",
@@ -458,25 +432,6 @@ test("actions.js delegates to domain action modules", () => {
   assert.ok(actionsJs.split("\n").length < 80, "actions.js should stay a thin dispatcher");
 });
 
-test("pipeline modules split into session, brief, html, dom, open", () => {
-  for (const rel of [
-    "src/views/pipeline-wizard-session.js",
-    "src/views/pipeline-wizard-brief.js",
-    "src/views/pipeline-wizard-html.js",
-    "src/views/pipeline-wizard-dom.js",
-    "src/views/pipeline-wizard-open.js"
-  ]) {
-    assert.ok(fs.existsSync(path.join(root, rel)), `missing ${rel}`);
-  }
-  const wizardJs = fs.readFileSync(path.join(root, "src/views/pipeline-wizard.js"), "utf8");
-  assert.match(wizardJs, /zhimuPipelineOpen/);
-  assert.ok(wizardJs.split("\n").length < 25, "pipeline-wizard.js should be public entry only");
-  const openJs = fs.readFileSync(path.join(root, "src/views/pipeline-wizard-open.js"), "utf8");
-  assert.match(openJs, /openDeepseekPipeline/);
-  assert.match(openJs, /zhimuPipelineHtml/);
-  assert.match(openJs, /zhimuPipelineDom/);
-});
-
 test("main.js loads store modules before auth-world and data.js", () => {
   const mainJs = fs.readFileSync(path.join(root, "frontend/main.js"), "utf8");
   const workspaceIdx = mainJs.indexOf("workspace-store.js");
@@ -489,6 +444,7 @@ test("view registry is introduced without disabling lazy view loading", () => {
   const registryJs = fs.readFileSync(path.join(root, "src/runtime/view-registry.js"), "utf8");
   const resolverJs = fs.readFileSync(path.join(root, "src/bootstrap/view-resolver.js"), "utf8");
   const loaderJs = fs.readFileSync(path.join(root, "src/runtime/view-loader.js"), "utf8");
+  const murderManifestJs = fs.readFileSync(path.join(root, "src/products/murder-mystery/view-manifest.js"), "utf8");
   const appJs = fs.readFileSync(path.join(root, "app.js"), "utf8");
   const actionsJs = fs.readFileSync(path.join(root, "src/runtime/actions.js"), "utf8");
 
@@ -502,12 +458,12 @@ test("view registry is introduced without disabling lazy view loading", () => {
   assert.doesNotMatch(appJs, /const V = window\.zhimuViews/);
   assert.doesNotMatch(actionsJs, /const V = window\.zhimuViews/);
   assert.match(actionsJs, /callView\("studio", "bindStudioDragging"\)/);
-  assert.match(loaderJs, /\(\) => import\("\.\.\/views\/clues\.js"\)/);
-  assert.match(loaderJs, /\(\) => import\("\.\.\/views\/overview\.js"\)/);
-  assert.match(loaderJs, /\(\) => import\("\.\/actions-bible\.js"\)/);
+  assert.match(murderManifestJs, /\(\) => import\("\.\.\/\.\.\/views\/clues\.js"\)/);
+  assert.match(murderManifestJs, /\(\) => import\("\.\.\/\.\.\/views\/overview\.js"\)/);
+  assert.match(murderManifestJs, /\(\) => import\("\.\.\/\.\.\/runtime\/actions-bible\.js"\)/);
 
   const mainJs = fs.readFileSync(path.join(root, "frontend/main.js"), "utf8");
-  assert.match(loaderJs, /creatorCockpit:\s*\[[\s\S]*?import\("\.\.\/views\/creator-cockpit\.js"\)[\s\S]*?import\("\.\/actions-creator-cockpit\.js"\)/);
+  assert.match(murderManifestJs, /creatorCockpit:\s*\[[\s\S]*?import\("\.\.\/\.\.\/views\/creator-cockpit\.js"\)[\s\S]*?import\("\.\.\/\.\.\/runtime\/actions-creator-cockpit\.js"\)/);
   assert.doesNotMatch(loaderJs, /new Set\(\["creatorCockpit"\]\)/);
   assert.doesNotMatch(mainJs, /import "\.\.\/src\/views\/creator-cockpit\.js"/);
   assert.doesNotMatch(mainJs, /import "\.\.\/src\/runtime\/actions-creator-cockpit\.js"/);
@@ -523,7 +479,6 @@ test("phase V4 view APIs register without writing the old zhimuViews bridge", ()
     ["src/views/settings.js", "settings"],
     ["src/views/assets.js", "assets"],
     ["src/views/archive.js", "archive"],
-    ["src/views/player.js", "player"],
     ["src/views/studio.js", "studio"],
     ["src/views/writer.js", "writer"],
     ["src/views/mini-games.js", "miniGames"],
@@ -545,7 +500,6 @@ test("phase V2 action pilots consume view registry instead of zhimuViews", () =>
     "src/runtime/actions-rules.js",
     "src/runtime/actions-assets.js",
     "src/runtime/actions-archive.js",
-    "src/runtime/actions-player.js",
     "src/runtime/actions-studio.js",
     "src/runtime/actions-writer.js",
     "src/runtime/actions-mini-games.js",
@@ -579,8 +533,7 @@ test("phase V3 runtime cross-view calls go through loader and registry", () => {
   const roomEvents = fs.readFileSync(path.join(root, "src/runtime/room-events.js"), "utf8");
   const searchFocus = fs.readFileSync(path.join(root, "src/runtime/search-focus.js"), "utf8");
   assert.match(roomEvents, /import \{ callView \} from "\.\/view-registry\.js"/);
-  assert.match(roomEvents, /ensureViewModules\?\.\("player"\)/);
-  assert.match(roomEvents, /callView\("player", "refreshVoiceMessages"\)/);
+  assert.match(roomEvents, /callView\("rooms", "refreshRoomWorkspace"\)/);
   assert.match(roomEvents, /roomEventStreamKey/);
   assert.match(roomEvents, /createPortalEventLifecycle/);
   assert.match(roomEvents, /roomEventLifecycle && roomEventStreamKey === nextStreamKey/);
@@ -594,7 +547,6 @@ test("phase V3 removes stale zhimuViews read handles", () => {
   for (const rel of [
     "src/views/archive.js",
     "src/views/overview.js",
-    "src/views/player.js",
     "src/views/rules.js",
     "src/views/studio.js",
     "src/views/writer.js",
@@ -653,7 +605,6 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
     "src/runtime/actions-studio.js",
     "src/runtime/actions-workspace.js",
     "src/runtime/global-search.js",
-    "src/runtime/livekit-voice.js",
     "src/runtime/room-events.js",
     "src/runtime/search-focus.js",
     "src/runtime/wizard.js",
@@ -665,8 +616,6 @@ test("A1 runtime facade centralizes low-risk runtime consumers", () => {
     "src/views/assets.js",
     "src/views/mini-games.js",
     "src/views/overview.js",
-    "src/views/player.js",
-    "src/views/pipeline-wizard-open.js",
     "src/views/rules.js",
     "src/views/studio.js",
     "src/views/writer.js",

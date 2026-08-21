@@ -103,7 +103,8 @@ function markdownMetrics() {
     "*.md"
   ])
     .split(/\r?\n/)
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((file) => existsSync(join(root, file)));
   const byArea = {};
   for (const file of tracked) {
     const normalized = file.replaceAll("\\", "/");

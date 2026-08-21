@@ -7,13 +7,12 @@ import { worldStore } from "./world-store.js";
 import { roomStore } from "./room-store.js";
 import { studioStore } from "./studio-store.js";
 import { assetStore } from "./asset-store.js";
-import { voiceStore } from "./voice-store.js";
 import { wizardStore } from "./wizard-store.js";
 import { uiStore } from "./ui-store.js";
 
-export { userStore, worldStore, roomStore, studioStore, assetStore, voiceStore, wizardStore, uiStore };
+export { userStore, worldStore, roomStore, studioStore, assetStore, wizardStore, uiStore };
 
-const shards = [userStore, worldStore, roomStore, studioStore, assetStore, voiceStore, wizardStore, uiStore];
+const shards = [userStore, worldStore, roomStore, studioStore, assetStore, wizardStore, uiStore];
 
 /**
  * Activates the test-only Proxy compatibility bridge. Reads and writes route

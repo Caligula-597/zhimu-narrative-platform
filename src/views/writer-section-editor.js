@@ -44,7 +44,6 @@ export function writerSectionEditorHtml({ data, role, section, draft, saveState 
       <div class="writer-focus-header-actions">
         <span class="writer-focus-count" data-word-count>${String(draft.body || "").length} 字</span>
         <span class="writer-focus-save-state" data-editor-state>${escapeHtml(saveState)}</span>
-        <button type="button" class="secondary-btn" data-action="creator-preview" data-role="${escapeHtml(role.id)}">玩家视角预览</button>
         <button type="button" class="primary-btn" data-action="writer-editor-save">${section ? "保存并返回" : "写入云端"}</button>
       </div>
     </header>

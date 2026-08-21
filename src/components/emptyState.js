@@ -3,7 +3,7 @@ import * as zhimuApi from "../api/index.js";
 import { content, toast, modal, modalBackdrop } from "../dom.js";
 import { go, loadCloudData, render } from "../runtime/runtime-facade.js";
 import { showToast } from "./toast.js";
-import { userStore, studioStore, worldStore, voiceStore, uiStore } from "../state/index.js";
+import { userStore, studioStore, worldStore, uiStore } from "../state/index.js";
 import { activeRuntimeRoom as workspaceActiveRuntimeRoom, isWorldOwner as workspaceIsWorldOwner } from "../runtime/workspace-store.js";
 import * as F from "../utils/format.js";
 import * as M from "./modal.js";
@@ -64,10 +64,10 @@ export function cloudStatus(){
  const rooms=cloudStudio?.rooms||[];
  const panelMsg=formatCloudPanelError(apiError,{hasStudio:Boolean(cloudStudio)})||apiError||"正在读取云端…";
  const isOutage=apiError&&/无法连接|API_UNAVAILABLE|ECONNREFUSED/i.test(apiError);
- const isEmptyAccount=apiError&&/还没有可访问的剧本/.test(apiError);
- const pill=isOutage?"部分运行模块尚未连接":isEmptyAccount?"● 已连接 · 尚无剧本":apiError?"部分提示":"● 云端已连接";
- const catalogHint=isEmptyAccount&&!isOutage?"可点「公开剧本库」体验示例剧本，或创建你自己的世界。":"";
- return `${sessionMode!=="authenticated"?demoIdentityBanner():""}<section class="demo-strip cloud-status-strip"><div><span class="cloud-pill ${isOutage?"offline":""}">${pill}</span><strong style="margin-top:7px">${escapeHtml(panelMsg)}</strong><p>${cloudStudio?(rooms.length?`当前世界已建立 ${rooms.length} 个运行房间。`:"当前世界尚未建立测试房，运行状态为空。"):cloudLoading?"正在连接…":catalogHint}</p></div><button class="secondary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`}
+ const isEmptyAccount=apiError&&/还没有可访问的(剧本|项目)/.test(apiError);
+ const pill=isOutage?"部分运行模块尚未连接":isEmptyAccount?"● 已连接 · 尚无项目":apiError?"部分提示":"● 云端已连接";
+ const emptyHint=isEmptyAccount&&!isOutage?"创建或选择一个项目后，对应产品模块才会载入。":"";
+ return `${sessionMode!=="authenticated"?demoIdentityBanner():""}<section class="demo-strip cloud-status-strip"><div><span class="cloud-pill ${isOutage?"offline":""}">${pill}</span><strong style="margin-top:7px">${escapeHtml(panelMsg)}</strong><p>${cloudStudio?(rooms.length?`当前世界已建立 ${rooms.length} 个运行房间。`:"当前世界尚未建立测试房，运行状态为空。"):cloudLoading?"正在连接…":emptyHint}</p></div><button class="secondary-btn" data-action="refresh-cloud">刷新云端数据</button></section>`}
 export function stat(icon,num,label,sub){return `<article class="stat-card"><div class="stat-icon">${icon}</div><strong>${num}</strong><span>${label} · ${sub}</span></article>`}
 export function flow(kicker,title,status,cls){return `<div class="flow-node ${cls}"><small>${kicker}</small><strong>${title}</strong><span>${status}</span></div>`}
 export function activity(text,time,type){return `<div class="activity ${type}"><i class="dot"></i><div><p>${text}</p><small>${time}</small></div></div>`}
@@ -76,29 +76,17 @@ export function task(icon,title,text,view,action){return `<div class="task-row">
 export function taskAction(icon,title,text,action,label,hubTab=""){const hubAttr=hubTab?` data-hub-tab="${escapeHtml(hubTab)}"`:"";return `<div class="task-row"><span class="task-icon">${icon}</span><div><strong>${title}</strong><p>${text}</p></div><button data-action="${action}"${hubAttr}>${label} →</button></div>`}
 export function capability(icon,title,text,view){return `<article class="capability-card"><i>${icon}</i><h3>${title}</h3><p>${text}</p><button ${view==="wizard"?'data-action="open-wizard"':`data-go="${view}"`}>打开功能 →</button></article>`}
 
-function catalogCardsHtml(){
- const cloudCatalogError=worldStore.get().cloudCatalogError;
- const cloudCatalog=worldStore.get().cloudCatalog;
- if(cloudCatalogError)return `<div class="empty-state">公开库加载失败：${escapeHtml(cloudCatalogError)}</div>`;
- if(!cloudCatalog.length)return `<div class="empty-state">公开库暂无剧本。主创作者可在「世界设置」提交公开库审核申请。</div>`;
- return `<div class="catalog-inline-grid">${cloudCatalog.map(world=>`<article class="catalog-inline-card"><div><span class="cloud-pill">公开</span><h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"暂无简介")}</p><small>创作者：${escapeHtml(world.owner_display_name||"未知")} · ${world.role_count||0} 个角色席</small></div><button class="primary-btn" data-action="catalog-join" data-world-id="${world.id}">开始体验</button></article>`).join("")}</div>`;
-}
-export function catalogPromoSection(){
- return `<section class="catalog-promo card"><div class="section-head"><div><h3>公开剧本库</h3><p>浏览已发布的完整剧本，加入后会为你开启独立的体验运行房。</p></div><button class="secondary-btn" data-action="open-catalog">浏览全部 →</button></div>${catalogCardsHtml()}</section>`;
-}
 export function creatorWorkspaceEmpty({title,kicker,intro,guideTitle,guideItems=[]}){
  const apiError=userStore.get().apiError;
  const cloudLoading=studioStore.get().cloudLoading;
- if(cloudLoading)return `${cloudStatus()}<section class="card creator-empty-loading"><p class="section-kicker">${escapeHtml(kicker||"WORKSPACE")}</p><h3>正在连接云端…</h3><p>已登录时会同时读取公开剧本库列表。</p></section>`;
+ if(cloudLoading)return `${cloudStatus()}<section class="card creator-empty-loading"><p class="section-kicker">${escapeHtml(kicker||"WORKSPACE")}</p><h3>正在连接云端…</h3><p>已登录时会同时读取项目列表。</p></section>`;
  const noWorld=!zhimuApi.context.worldId;
  const firstRunChooser=noWorld&&uiStore.get().view==="creatorCockpit"?(window.zhimuFirstRun?.renderFirstRunChooser?.()||""):"";
  if(firstRunChooser)return firstRunChooser;
  const panelMsg=formatCloudPanelError(apiError,{hasStudio:false})||apiError||"";
  return `${cloudStatus()}
- <section class="creator-empty-hero card"><p class="section-kicker">${escapeHtml(kicker||"CREATOR WORKSPACE")}</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(intro)}</p>${panelMsg?`<p class="muted-note">${escapeHtml(panelMsg)}</p>`:""}<div class="row creator-empty-actions"><button class="primary-btn" data-action="open-wizard">＋ 创建我的世界</button><button class="secondary-btn" data-action="world-library">我的剧本</button><button class="secondary-btn" data-action="open-catalog">浏览公开剧本库</button></div></section>
- ${noWorld?catalogPromoSection():""}
- <section class="creator-empty-guide card"><div class="section-head"><div><h3>${escapeHtml(guideTitle||"进入创作前")}</h3><p>${noWorld?"先创建或选择剧本后，下列工具才会载入你的剧本数据。":"当前世界数据尚未加载，请刷新或重新选择剧本。"}</p></div></div>
- <div class="creator-empty-preview">${guideItems.map(item=>`<article class="creator-preview-block"><span class="asset-type">${escapeHtml(item.label)}</span><h4>${escapeHtml(item.title)}</h4><p>${escapeHtml(item.text)}</p><ul>${(item.bullets||[]).map(b=>`<li>${escapeHtml(b)}</li>`).join("")}</ul></article>`).join("")}</div></section>`;
+ <section class="creator-empty-hero card"><p class="section-kicker">${escapeHtml(kicker||"CREATOR WORKSPACE")}</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(intro)}</p>${panelMsg?`<p class="muted-note">${escapeHtml(panelMsg)}</p>`:""}<div class="row creator-empty-actions"><button class="primary-btn" data-action="open-wizard">＋ 创建我的项目</button><button class="secondary-btn" data-action="world-library">我的项目</button></div></section>
+ <section class="creator-empty-guide card"><div class="section-head"><div><h3>${escapeHtml(guideTitle||"进入创作前")}</h3><p>${noWorld?"先创建或选择项目后，对应产品工具才会载入数据。":"当前项目数据尚未加载，请刷新或重新选择项目。"}</p></div></div>
+ <div class="creator-empty-guide">${guideItems.map(item=>`<article class="creator-guide-block"><span class="asset-type">${escapeHtml(item.label)}</span><h4>${escapeHtml(item.title)}</h4><p>${escapeHtml(item.text)}</p><ul>${(item.bullets||[]).map(b=>`<li>${escapeHtml(b)}</li>`).join("")}</ul></article>`).join("")}</div></section>`;
 }
 export function check(title,status){return `<div class="check-item"><i>✓</i><div><strong>${title}</strong><p>${status}</p></div></div>`}
-export function voiceOption(icon,title,text,roomId,cls){return `<div class="voice-option ${cls}"><i>${icon}</i><div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></div><div class="row">${cls==="invite_private"?`<button class="secondary-btn" data-action="voice-room-invite" data-room-id="${roomId}" data-room="${escapeHtml(title)}">邀请成员</button>`:""}<button data-action="join-room" data-room-id="${roomId}" data-room="${escapeHtml(title)}">${voiceStore.get().voiceRoomId===roomId?"当前房间":"加入"}</button></div></div>`}

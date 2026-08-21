@@ -1,7 +1,7 @@
 /* Cloud data loader — orchestrates workspace, runtime, and room live updates. */
 import * as zhimuApi from "../api/index.js";
 import { showToast, updateNotifyBadge } from "../components/toast.js";
-import { uiStore, worldStore, studioStore, roomStore, assetStore, userStore, voiceStore } from "../state/index.js";
+import { uiStore, worldStore, studioStore, roomStore, assetStore, userStore } from "../state/index.js";
 import { registerRuntime, render as runtimeRender } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 import * as workspaceStore from "./workspace-store.js";
@@ -90,24 +90,11 @@ export async function loadCloudData(withToast = false, force = false) {
     try {
       try {
         await ensureActiveWorld();
-        const hasSession = workspaceStore.isLoggedIn();
-        if (hasSession && !zhimuApi.context.worldId) {
-          try {
-            worldStore.set({ cloudCatalog: await zhimuApi.getWorldCatalog(), cloudCatalogError: "" });
-          } catch (catalogErr) {
-            const catalogErrorMsg = catalogErr.message || String(catalogErr);
-            worldStore.set({ cloudCatalog: [], cloudCatalogError: catalogErrorMsg });
-            if (/catalog_public|does not exist/i.test(catalogErrorMsg)) {
-              errors.push("公开剧本库暂时无法加载，请稍后刷新");
-            }
-          }
-        } else {
-          worldStore.set({ cloudCatalog: [], cloudCatalogError: "" });
-        }
+        worldStore.set({ cloudCatalog: [], cloudCatalogError: "" });
         if (!zhimuApi.context.worldId) {
           studioStore.set({ cloudStudio: null, studioLoading: false, studioError: "" });
           worldStore.set({ cloudWorkspacePreview: null });
-          errors.push("当前账号还没有可访问的剧本");
+          errors.push("当前账号还没有可访问的项目");
         } else {
           const activeView = uiStore.get().view;
           const cockpitHydrationPromise = activeView === "creatorCockpit"
@@ -174,18 +161,15 @@ export async function loadCloudData(withToast = false, force = false) {
         const logParams = { limit: "20" };
         if (hasRoom) logParams.roomId = zhimuApi.context.roomId;
         const view = uiStore.get().view;
-        const needsPlayerRuntime = hasRoom && view === "player";
         const needsOverviewRuntime = hasRoom && view === "overview";
         const needsArchiveRuntime = hasRoom && view === "archive";
         const needsRules = ["overview", "rules"].includes(view);
         const phase2 = await Promise.allSettled([
-          needsPlayerRuntime ? zhimuApi.getPlayerHome() : Promise.resolve(null),
           needsOverviewRuntime ? zhimuApi.getHostPlayers() : Promise.resolve(null),
-          needsPlayerRuntime ? zhimuApi.getExploration() : Promise.resolve(null),
           needsOverviewRuntime ? zhimuApi.getHostEvents() : Promise.resolve(null),
           needsArchiveRuntime ? zhimuApi.getCheckpoints().catch(() => []) : Promise.resolve([]),
           needsArchiveRuntime ? zhimuApi.getRecaps().catch(() => []) : Promise.resolve([]),
-          needsArchiveRuntime || needsPlayerRuntime ? zhimuApi.getLatestRecap(view === "player").catch(() => null) : Promise.resolve(null),
+          needsArchiveRuntime ? zhimuApi.getLatestRecap(false).catch(() => null) : Promise.resolve(null),
           view === "overview" ? zhimuApi.getWorldLogs(logParams) : Promise.resolve([]),
           needsRules ? zhimuApi.getRules() : Promise.resolve(worldStore.get().cloudRules || [])
         ]);
@@ -198,31 +182,27 @@ export async function loadCloudData(withToast = false, force = false) {
             return loadCloudDataInternal(withToast, false, zhimuApi.loadKey());
           }
         } else {
-          take(phase2[0], (value) => { roomStore.set({ cloudPlayer: value }); }, () => { roomStore.set({ cloudPlayer: null }); });
-          if (needsOverviewRuntime && phase2[1].status === "fulfilled") {
-            applyHostPlayersPayload(phase2[1].value);
-          } else if (needsOverviewRuntime && phase2[1].status === "rejected") {
-            failHostPlayersLoad(phase2[1].reason);
-            pushUniqueError(errors, phase2[1].reason?.message || String(phase2[1].reason));
+          if (needsOverviewRuntime && phase2[0].status === "fulfilled") {
+            applyHostPlayersPayload(phase2[0].value);
+          } else if (needsOverviewRuntime && phase2[0].status === "rejected") {
+            failHostPlayersLoad(phase2[0].reason);
+            pushUniqueError(errors, phase2[0].reason?.message || String(phase2[0].reason));
           }
-          take(phase2[2], (value) => { roomStore.set({ cloudExploration: value }); }, () => { roomStore.set({ cloudExploration: null }); });
         }
         if (hasRoom) {
-          take(phase2[3], (value) => { roomStore.set({ cloudHostEvents: value || [] }); }, () => { roomStore.set({ cloudHostEvents: [] }); });
-          take(phase2[4], (value) => { roomStore.set({ cloudCheckpoints: value || [] }); }, () => { roomStore.set({ cloudCheckpoints: [] }); });
-          take(phase2[5], (value) => { roomStore.set({ cloudRecaps: value || [] }); }, () => { roomStore.set({ cloudRecaps: [] }); });
-          take(phase2[6], (value) => { roomStore.set({ cloudRecapLatest: value }); }, () => { roomStore.set({ cloudRecapLatest: null }); });
+          take(phase2[1], (value) => { roomStore.set({ cloudHostEvents: value || [] }); }, () => { roomStore.set({ cloudHostEvents: [] }); });
+          take(phase2[2], (value) => { roomStore.set({ cloudCheckpoints: value || [] }); }, () => { roomStore.set({ cloudCheckpoints: [] }); });
+          take(phase2[3], (value) => { roomStore.set({ cloudRecaps: value || [] }); }, () => { roomStore.set({ cloudRecaps: [] }); });
+          take(phase2[4], (value) => { roomStore.set({ cloudRecapLatest: value }); }, () => { roomStore.set({ cloudRecapLatest: null }); });
         }
-        take(phase2[7], (value) => { worldStore.set({ cloudWorldLogs: value || [] }); }, () => { worldStore.set({ cloudWorldLogs: [] }); });
-        take(phase2[8], (value) => { worldStore.set({ cloudRules: value }); }, () => { worldStore.set({ cloudRules: [] }); });
+        take(phase2[5], (value) => { worldStore.set({ cloudWorldLogs: value || [] }); }, () => { worldStore.set({ cloudWorldLogs: [] }); });
+        take(phase2[6], (value) => { worldStore.set({ cloudRules: value }); }, () => { worldStore.set({ cloudRules: [] }); });
       } else {
         roomStore.set({
-          cloudPlayer: null,
           cloudHostPlayers: [],
           cloudHostPlayersError: "",
           cloudHostStuckCount: 0,
           cloudHost: [],
-          cloudExploration: null,
           cloudHostEvents: [],
           cloudCheckpoints: [],
           cloudRecaps: [],
@@ -262,7 +242,7 @@ export async function loadCloudData(withToast = false, force = false) {
       })();
 
       userStore.set({ apiError: [...new Set(errors)].join(" · ") });
-      if (worldReady && hasRoom && ["overview", "player", "archive"].includes(uiStore.get().view)) {
+      if (worldReady && hasRoom && ["overview", "archive"].includes(uiStore.get().view)) {
         roomEvents().connectRoomEventStream?.();
       }
       render();
@@ -306,23 +286,6 @@ export async function loadCloudData(withToast = false, force = false) {
           }
         });
         if (["overview", "creatorCockpit", "account", "settings", "writer", "studio", "clues"].includes(uiStore.get().view)) render();
-      })();
-
-      void (async () => {
-        const roomSnap = roomStore.get();
-        const voiceSnap = voiceStore.get();
-        const voiceRooms = roomSnap.cloudPlayer?.voiceRooms || [];
-        const currentRoom = voiceRooms.find((r) => r.id === voiceSnap.voiceRoomId) || voiceRooms[0];
-        if (!currentRoom) return;
-        voiceStore.set({ voiceRoomId: currentRoom.id, voiceRoom: currentRoom.name });
-        try {
-          const messages = await zhimuApi.getVoiceMessages(currentRoom.id);
-          if (!isCurrentLoad(activeLoadKey)) return;
-          voiceStore.set({ voiceMessages: messages });
-          if (uiStore.get().view === "player") render();
-        } catch (error) {
-          userStore.set({ apiError: [userStore.get().apiError, error.message].filter(Boolean).join(" · ") });
-        }
       })();
 
       if (withToast) showToast(errors.length ? `部分运行数据尚未连接：${errors[0]}` : "云端数据已刷新");
@@ -422,8 +385,6 @@ export async function refreshHostRoom(withToast = false) {
 
 export function enhanceCloudPanels() {}
 
-export function refreshPlayerHome(...args) { return roomEvents().refreshPlayerHome?.(...args); }
-export function refreshExploration(...args) { return roomEvents().refreshExploration?.(...args); }
 export function refreshHostRuntimeSnapshot(...args) { return roomEvents().refreshHostRuntimeSnapshot?.(...args); }
 export function disconnectRoomEventStream(...args) { return roomEvents().disconnectRoomEventStream?.(...args); }
 export function scheduleRoomEventReconnect(...args) { return roomEvents().scheduleRoomEventReconnect?.(...args); }
@@ -432,4 +393,4 @@ export function handleRoomEvent(...args) { return roomEvents().handleRoomEvent?.
 export function streamUserIdForRoom(...args) { return roomEvents().streamUserIdForRoom?.(...args); }
 export function renderQuotaSection(...args) { return window.zhimuAccountQuota?.renderQuotaSection?.(...args); }
 
-registerRuntime({ loadCloudData, ensureActiveWorld, prefetchWorlds, clearRuntimeState, applyHostPlayersPayload, refreshPlayerHome, refreshExploration, refreshHostRuntimeSnapshot, refreshHostEvents, refreshHostPlayers, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels, renderQuotaSection });
+registerRuntime({ loadCloudData, ensureActiveWorld, prefetchWorlds, clearRuntimeState, applyHostPlayersPayload, refreshHostRuntimeSnapshot, refreshHostEvents, refreshHostPlayers, refreshHostRoom, disconnectRoomEventStream, scheduleRoomEventReconnect, connectRoomEventStream, handleRoomEvent, streamUserIdForRoom, enhanceCloudPanels, renderQuotaSection });

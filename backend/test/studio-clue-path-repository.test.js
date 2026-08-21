@@ -23,7 +23,6 @@ test("bulk clue path binding updates one world-scoped set in one statement", asy
   const rows = await bulkUpdateStudioCluePaths(client, {
     worldId: "world-1",
     clueIds: ["clue-1", "clue-2"],
-    locationId: "library",
     segmentKey: "ch2",
     allowUnbound: false
   });
@@ -34,15 +33,13 @@ test("bulk clue path binding updates one world-scoped set in one statement", asy
   assert.deepEqual(client.calls[0].params, [
     "world-1",
     ["clue-1", "clue-2"],
-    "library",
     "ch2",
     false
   ]);
 });
 
-test("clue path reference lookup validates segment and map from one world", async () => {
+test("clue path reference lookup validates only a murder-mystery segment", async () => {
   const stored = {
-    settings: { tabletopMapDesign: { locations: [{ id: "library" }] } },
     segment_exists: true
   };
   const client = clientWith({ rows: [stored] });

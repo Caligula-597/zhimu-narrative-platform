@@ -13,9 +13,9 @@ import { setHtml } from "../../shared/safe-dom.js";
 import {
   legacyWorldModeForNarrativeProfile,
   narrativeProfileFromSettings,
-  normalizeCreationType,
   normalizeNarrativeProfile
 } from "../../shared/narrative-profile.js";
+import { productDomainDefinition } from "../../shared/product-domains/registry.js";
 import { normalizeCommunicationTemplates } from "../../shared/communication-templates.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -68,19 +68,15 @@ import { normalizeCommunicationTemplates } from "../../shared/communication-temp
     const settings = world?.settings || {};
     const profile = settings.commercialProfile || {};
     const narrativeProfile = narrativeProfileFromSettings(settings);
+    const product = productDomainDefinition(narrativeProfile.creationType);
     const disabled = canEdit ? "" : "disabled";
     const selected = (value, expected) => value === expected ? "selected" : "";
     const longFields = new Set(["copyrightSource"]);
     const field = (key, label, placeholder = "", type = "text") => `<label>${escapeHtml(label)}</label><input class="field" type="${type}" data-commercial-field="${key}" value="${escapeHtml(profile[key] || "")}" placeholder="${escapeHtml(placeholder)}" maxlength="${longFields.has(key) ? 2000 : 300}" ${disabled}>`;
     return `<section class="form-group" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line, #ece7df)">
       <div class="section-head"><div><h4 style="margin:0">创作类型与商业备案资料</h4><p class="muted-note" style="margin:4px 0 0">用于术语切换、交付归档和线下备案准备；不会自动向主管部门提交。</p></div></div>
-      <label>创作类型</label>
-      <select class="field" id="settings-creation-type" ${disabled}>
-        <option value="murder_mystery" ${selected(narrativeProfile.creationType, "murder_mystery")}>剧本杀（角色本 / 公共幕 / 线索 / 主持人）</option>
-        <option value="tabletop_rpg" ${selected(narrativeProfile.creationType, "tabletop_rpg")}>桌面角色扮演（HO / 模组 / KP）</option>
-        <option value="board_game" ${selected(narrativeProfile.creationType, "board_game")}>桌游（棋盘 / 卡牌 / 资源 / 阶段）</option>
-        <option value="interactive_story" ${selected(narrativeProfile.creationType, "interactive_story")}>互动叙事（角色 / 章节 / 场景）</option>
-      </select>
+      <label>产品类型</label>
+      <div class="field" aria-readonly="true"><strong>${escapeHtml(product.label)}</strong> · 创建后不可更改，避免跨产品复用内容</div>
       <label>运行形态</label>
       <select class="field" id="settings-run-format" ${disabled}>
         <option value="single_session" ${selected(narrativeProfile.runFormat, "single_session")}>单局 / One-shot</option>
@@ -97,7 +93,7 @@ import { normalizeCommunicationTemplates } from "../../shared/communication-temp
       ${field("copyrightSource", "著作权来源", "原创、授权改编或版权方及授权范围")}
       ${field("registrationNumber", "备案编号 / 剧本编号（选填）", "尚未备案可留空")}
       ${field("theme", "主题", "如悬疑、情感、历史")}
-      ${field("category", "类型 / 品类", "如本格、还原、阵营、跑团模组")}
+      ${field("category", "类型 / 品类", "如本格、还原、阵营、情感")}
       ${field("versionLabel", "对外版本", "如 1.0、发行修订版")}
       <label>建议适龄范围</label>
       <select class="field" data-commercial-field="ageRating" ${disabled}>
@@ -164,18 +160,16 @@ export function settings(){
  const name=document.getElementById("settings-world-name")?.value?.trim();
  const summary=document.getElementById("settings-world-summary")?.value?.trim()||"";
  const recapTruthSummary=document.getElementById("settings-recap-truth")?.value?.trim()||"";
- const creationType=normalizeCreationType(document.getElementById("settings-creation-type")?.value);
  const studioWorld=studioStore.get().cloudStudio?.world;
  const listedWorld=(worldStore.get().cloudWorlds||[]).find((world)=>world.id===worldId);
  const currentSettings=(studioWorld?.id===worldId?studioWorld:listedWorld)?.settings||{};
  const existingProfile=narrativeProfileFromSettings(currentSettings);
- const ruleset=creationType===existingProfile.creationType?existingProfile.ruleset:undefined;
  const narrativeProfile=normalizeNarrativeProfile({
   ...existingProfile,
-  creationType,
+  creationType:existingProfile.creationType,
   runFormat:document.getElementById("settings-run-format")?.value||existingProfile.runFormat,
   roleMode:document.getElementById("settings-role-mode")?.value||existingProfile.roleMode,
-  ruleset
+  ruleset:existingProfile.ruleset
  });
  const commercialProfile={};
  document.querySelectorAll("[data-commercial-field]").forEach((input)=>{

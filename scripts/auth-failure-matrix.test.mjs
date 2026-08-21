@@ -93,14 +93,15 @@ test("all three portals subscribe to cross-tab auth changes", () => {
   const creator = fs.readFileSync(path.join(root, "src/runtime/session-auth.js"), "utf8");
   const host = fs.readFileSync(path.join(root, "host/src/main.js"), "utf8");
   const player = fs.readFileSync(path.join(root, "play/src/main.js"), "utf8");
+  const playerRuntimeEdges = fs.readFileSync(path.join(root, "play/src/runtime/runtime-edge-bindings.js"), "utf8");
   const playerApi = fs.readFileSync(path.join(root, "play/src/api.js"), "utf8");
   const hostLifecycle = fs.readFileSync(path.join(root, "host/src/runtime/host-lifecycle-controller.js"), "utf8");
   assert.match(creator, /addEventListener\?\.\("storage"/);
   assert.match(host, /subscribeSessionToken/);
   assert.match(player, /subscribeSessionToken/);
   assert.match(playerApi, /clearTokenOn401:\s*true/);
-  assert.match(host, /change\.source === "rejected"/);
-  assert.match(player, /change\.source !== "rejected"/);
+  assert.match(host, /change\.source === "storage" \|\| change\.source === "rejected"/);
+  assert.match(playerRuntimeEdges, /change\.source !== "storage" && change\.source !== "rejected"/);
   assert.doesNotMatch(hostLifecycle, /error\.status === 401\) state\.user = null/);
 });
 

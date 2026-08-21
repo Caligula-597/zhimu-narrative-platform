@@ -1,4 +1,4 @@
-/** First login: create an empty product world, import later, or try the player demo. */
+/** First login: create one empty product project without synthetic content. */
 import { worldStore } from "../state/index.js";
 import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storage-scope.js";
 (function (window) {
@@ -6,12 +6,6 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
 
   function dismissKey() {
     return accountScopedStorageKey(DISMISS_KEY, { userId: currentStorageUserId() });
-  }
-
-  function playOfficialUrl() {
-    const fromConfig = window.zhimuConfig?.playSiteOrigin || window.zhimuInviteLinks?.playSiteOrigin?.();
-    const base = (fromConfig || "https://play.getzhimu.com").replace(/\/$/, "");
-    return `${base}/?experience=official`;
   }
 
   function isDismissed() {
@@ -31,7 +25,6 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
 
   function renderFirstRunChooser() {
     if (!shouldShow()) return "";
-    const playUrl = playOfficialUrl();
     return `<section class="card first-run-chooser" data-first-run-chooser>
       <div class="section-head">
         <div>
@@ -49,22 +42,10 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
           <ul><li>创建时没有来回填表</li><li>之后按自己的顺序开发</li></ul>
           <button type="button" class="primary-btn" data-action="open-wizard">创建空白世界 →</button>
         </article>
-        <article class="first-run-card">
-          <p class="eyebrow">已有文稿</p>
-          <h4>导入剧本</h4>
-          <p>适合已经准备好 Markdown、TXT 或角色本的团队，再进入编排台补场景。</p>
-          <button type="button" class="secondary-btn" data-go="writer">打开创作台 →</button>
-        </article>
-        <article class="first-run-card">
-          <p class="eyebrow">先体验</p>
-          <h4>玩家官方示例</h4>
-          <p>先用玩家身份感受选角色、阅读分幕和探索，再决定如何创作。</p>
-          <a class="secondary-btn" href="${playUrl.replace(/"/g, "&quot;")}" target="_blank" rel="noopener noreferrer" data-action="open-play-official">打开玩家端 →</a>
-        </article>
       </div>
     </section>`;
   }
 
-  window.zhimuFirstRun = { renderFirstRunChooser, shouldShow, dismiss, playOfficialUrl };
+  window.zhimuFirstRun = { renderFirstRunChooser, shouldShow, dismiss };
 })(window);
 export {};

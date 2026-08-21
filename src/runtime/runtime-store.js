@@ -1,15 +1,13 @@
-/** In-room runtime payload (player, host, exploration, voice) cleared on room/world/auth changes. */
-import { roomStore, voiceStore } from "../state/index.js";
+/** Creator in-room runtime payload cleared on room/world/auth changes. */
+import { roomStore } from "../state/index.js";
 import { friendlyApiError } from "../utils/user-messages.js";
 
 export function clearRuntimeFields() {
   roomStore.set({
-    cloudPlayer: null,
     cloudHost: [],
     cloudHostPlayers: [],
     cloudHostPlayersError: "",
     cloudHostStuckCount: 0,
-    cloudExploration: null,
     cloudHostEvents: [],
     cloudCheckpoints: [],
     cloudRecaps: [],
@@ -17,20 +15,10 @@ export function clearRuntimeFields() {
     cloudRecapDetail: null,
     activeRecapId: null
   });
-  voiceStore.set({
-    voiceRoomId: null,
-    voiceRoom: "尚未选择",
-    voiceMessages: [],
-    voiceLiveStatus: "idle",
-    voiceMicEnabled: false,
-    voiceParticipants: [],
-    voiceLiveError: ""
-  });
 }
 
 export function clearRuntimeState() {
   window.zhimuRoomEvents?.disconnectRoomEventStream?.();
-  window.zhimuLiveKitVoice?.disconnectVoiceRoom?.();
   clearRuntimeFields();
 }
 

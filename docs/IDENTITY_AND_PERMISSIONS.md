@@ -2,7 +2,7 @@
 
 > **定位**：在创作/运行/主持/玩家/存档/资产/AI/语音链路已较完整的前提下，把「谁能做什么」从散落 guard 收口成可维护的底座。  
 > **阶段**：Alpha → Beta；**上线宣发暂缓**，优先改后端与前端设计。  
-> **关联**：[IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) · [BACKEND_OPS.md](./BACKEND_OPS.md) · [backend/docs/API_ERRORS.md](../backend/docs/API_ERRORS.md)
+> **关联**：[PRODUCT_STATUS_ZH.md](./PRODUCT_STATUS_ZH.md) · [BACKEND_OPS.md](./BACKEND_OPS.md) · [backend/docs/API_ERRORS.md](../backend/docs/API_ERRORS.md)
 
 ---
 
@@ -276,4 +276,4 @@ user_subscriptions (user_id, plan_id, status, ...)
 
 ---
 
-*文档版本：2026-06-08 · 与 IMPLEMENTATION_STATUS §2 认证缺口对齐*
+*身份与权限的当前实现以代码、迁移和认证测试为准。*

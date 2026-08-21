@@ -210,7 +210,6 @@ export const DEEPSEEK_TIMEOUT_MS = 180_000;
 /** 逐章总剧情含续写，后端最多 2 轮 × 180s */
 export const DEEPSEEK_CHAPTER_NARRATIVE_TIMEOUT_MS = 420_000;
 /** 上传编排/分幕到云端（多角色多章节时可能较慢） */
-export const PIPELINE_IMPORT_TIMEOUT_MS = 180_000;
 
 export function deepseekRequest(path, opts = {}) {
   const isChapterNarrative = /\/narrative\/chapter$/.test(path);

@@ -86,7 +86,7 @@ function runtimeValue(result) {
 const fixture = {
   world: {
     id: "qa-world",
-    name: "雾港回声",
+    name: "测试世界",
     membership_role: "owner",
     settings: { creationType: "murder_mystery" }
   },

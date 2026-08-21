@@ -15,8 +15,7 @@ export const STORY_DIAGNOSTIC_STANDARD_OPTIONS = [
   ["emotional", "情感还原"],
   ["mechanism", "机制推理"],
   ["narrative", "叙事诡计"],
-  ["open", "开放调查"],
-  ["sandbox", "跑团沙盒"]
+  ["open", "开放调查"]
 ];
 
 const CATEGORY_META = {

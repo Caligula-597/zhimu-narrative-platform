@@ -10,6 +10,7 @@ import * as U from "../components/emptyState.js";
 import { normalizeError } from "../components/status-ui.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
+import { productModule, productModuleForWorld } from "../products/product-registry.js";
 import { handleApiErrorToast, friendlyApiError } from "../utils/user-messages.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -33,7 +34,6 @@ import { handleApiErrorToast, friendlyApiError } from "../utils/user-messages.js
   const taskAction = U.taskAction || (() => "");
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
-  const voiceOption = U.voiceOption || (() => "");
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -43,6 +43,10 @@ import { handleApiErrorToast, friendlyApiError } from "../utils/user-messages.js
   const studioSelect = M.studioSelect || (() => "");
   function handle(action, el) { return callRuntime("handle", action, el); }
   const openWizard = () => callRuntime("openWizard");
+
+function productKeyForWorld(world = {}) {
+ return productModuleForWorld(world).domain.key;
+}
 export function openForgotPassword(prefillEmail=""){
  modal.className="modal auth-modal";
  setHtml(modal, `<h2>找回密码</h2><p class="wizard-intro">输入注册邮箱，我们会发送重置链接（1 小时内有效）。</p>${studioField("邮箱","forgotEmail","input",prefillEmail)}<div class="modal-actions"><button class="secondary-btn" data-auth-back-login>返回登录</button><button class="primary-btn" data-auth-forgot-submit>发送重置邮件</button></div>`);
@@ -189,21 +193,23 @@ function applyWorldRename(worldId,name,summary){
  }
 }
 
-export function openRenameWorldModal(worldId,worldName="",worldSummary="",reopenLibrary=false){
- if(!worldId)return showToast("未找到目标剧本");
+export function openRenameWorldModal(worldId,worldName="",worldSummary="",reopenLibrary=false,creationType=""){
+ if(!worldId)return showToast("未找到目标项目");
+ const storedWorld=(worldStore.get().cloudWorlds||[]).find((world)=>world.id===worldId);
+ const product=productModule(creationType||productKeyForWorld(storedWorld)).domain;
  modal.className="modal";
- setHtml(modal, `<h2>重命名剧本</h2><p class="wizard-intro">名称与简介会显示在侧栏、总览与玩家入口。</p><div class="form-group">${studioField("剧本名称","renameWorldName","input",worldName)}<label>剧本简介</label><textarea class="field" data-studio-field="renameWorldSummary" rows="3">${escapeHtml(worldSummary)}</textarea></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-rename-world-submit>保存</button></div>`);
+ setHtml(modal, `<h2>重命名${escapeHtml(product.label)}</h2><p class="wizard-intro">名称与简介会显示在侧栏和项目列表。</p><div class="form-group">${studioField(`${product.label}名称`,"renameWorldName","input",worldName)}<label>${escapeHtml(product.label)}简介</label><textarea class="field" data-studio-field="renameWorldSummary" rows="3">${escapeHtml(worldSummary)}</textarea></div><div class="modal-actions"><button class="secondary-btn" data-close>取消</button><button class="primary-btn" data-rename-world-submit>保存</button></div>`);
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  modal.querySelector("[data-rename-world-submit]").onclick=async()=>{
   const name=modal.querySelector('[data-studio-field="renameWorldName"]')?.value?.trim();
   const summary=modal.querySelector('[data-studio-field="renameWorldSummary"]')?.value?.trim()||"";
-  if(!name)return showToast("请填写剧本名称");
+  if(!name)return showToast(`请填写${product.label}名称`);
   try{
    await zhimuApi.patchWorld({name,summary},worldId);
    applyWorldRename(worldId,name,summary);
    closeModal();
-   showToast("剧本已重命名");
+   showToast(`${product.label}已重命名`);
    if(reopenLibrary)openWorldLibrary("mine");
   }catch(error){showError(error)}
  };
@@ -223,8 +229,18 @@ export async function joinCatalogWorld(worldId){
 }
 
 export async function openWorldLibrary(defaultTab="mine"){
+ const activeWorldId=zhimuApi.context.worldId;
+ const activeStudioWorld=studioStore.get().cloudStudio?.world;
+ const activePreviewWorld=worldStore.get().cloudWorkspacePreview?.world;
+ const activeListedWorld=(worldStore.get().cloudWorlds||[]).find((world)=>world.id===activeWorldId);
+ const activeWorld=[activeStudioWorld,activePreviewWorld,activeListedWorld]
+  .find((world)=>world?.id===activeWorldId);
+ const activeProduct=activeWorld?productModuleForWorld(activeWorld):null;
+ const catalogAvailable=Boolean(activeProduct?.library.catalogAvailable);
+ const catalogLabel=activeProduct?.library.catalogLabel||"公开作品库";
+ if(!catalogAvailable&&defaultTab==="catalog")defaultTab="mine";
  modal.className="modal world-library-modal";
- setHtml(modal, `<h2>选择项目</h2><p class="wizard-intro">「我的项目」包含你创建或参与协作的桌游、剧本杀与跑团项目；不同类型会进入各自独立的创作中心。</p><div class="world-library-tabs"><button type="button" class="secondary-btn" data-library-tab="mine">我的项目</button><button type="button" class="secondary-btn" data-library-tab="catalog">公开作品库</button></div><div data-library-panel="mine"><label class="check-label" style="margin-bottom:12px"><input type="checkbox" id="world-library-archived"><span>显示已归档项目</span></label></div><div data-library-panel="catalog" class="hidden" data-catalog-filters></div><div class="world-library-list"><div class="empty-state">正在加载…</div></div><div class="world-library-danger hidden" data-world-library-danger></div><div class="modal-actions"><button class="secondary-btn" data-close disabled>关闭</button><button class="primary-btn" data-open-create-world disabled>＋ 创建新项目</button></div>`);
+ setHtml(modal, `<h2>选择项目</h2><p class="wizard-intro">「我的项目」包含你创建或参与协作的桌游、剧本杀与跑团项目；不同类型会进入各自独立的创作中心。</p><div class="world-library-tabs"><button type="button" class="secondary-btn" data-library-tab="mine">我的项目</button>${catalogAvailable?`<button type="button" class="secondary-btn" data-library-tab="catalog">${escapeHtml(catalogLabel)}</button>`:""}</div><div data-library-panel="mine"><label class="check-label" style="margin-bottom:12px"><input type="checkbox" id="world-library-archived"><span>显示已归档项目</span></label></div>${catalogAvailable?`<div data-library-panel="catalog" class="hidden" data-catalog-filters></div>`:""}<div class="world-library-list"><div class="empty-state">正在加载…</div></div><div class="world-library-danger hidden" data-world-library-danger></div><div class="modal-actions"><button class="secondary-btn" data-close disabled>关闭</button><button class="primary-btn" data-open-create-world disabled>＋ 创建新项目</button></div>`);
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  let activeTab=defaultTab;
@@ -241,8 +257,21 @@ export async function openWorldLibrary(defaultTab="mine"){
   const worlds=await zhimuApi.getWorlds(includeArchived);
   worldStore.set({ cloudWorlds: worlds });
   const statusLabel={draft:"草稿",testing:"测试中",published:"已发布",archived:"已归档"};
-  const roomCounts=await Promise.allSettled(worlds.map((world)=>zhimuApi.getWorldRooms(world.id).then((rooms)=>rooms.length)));
-  return {html:worlds.map((world,index)=>{const count=roomCounts[index].status==="fulfilled"?roomCounts[index].value:"?";const isCurrent=world.id===zhimuApi.context.worldId;const owner=world.membership_role==="owner";const editor=world.membership_role==="editor";const canRename=owner||editor;const roomHint=owner||editor?`${count} 个运行空间`:count?`我的运行空间 · ${count}`:"尚未建立运行空间";return `<article class="world-library-card ${isCurrent?"active":""}"><div><span class="cloud-pill">${escapeHtml(world.membership_role||"member")}</span><span class="status-chip ${world.status||"draft"}">${escapeHtml(statusLabel[world.status]||world.status||"草稿")}</span>${world.catalog_public?`<span class="status-chip published">已公开</span>`:""}<h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充项目简介")}</p><small>${roomHint}</small></div><div class="row">${canRename?`<button class="text-btn" data-action="world-rename" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}" data-world-summary="${escapeHtml(world.summary||"")}">重命名</button>`:""}${owner?`<button class="text-btn danger-text" data-action="world-delete" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}">${isCurrent?"删除当前项目":"删除"}</button>`:""}<button class="${isCurrent?"secondary-btn":"primary-btn"}" data-action="world-select" data-world-id="${world.id}">${isCurrent?"当前项目":"切换项目"}</button></div></article>`}).join("")||`<div class="empty-state">当前账号还没有可访问的项目。可点下方「＋ 创建新项目」，或浏览公开作品库。</div>`,worlds};
+  const roomCounts=await Promise.all(worlds.map(async(world)=>{
+   if(!productModuleForWorld(world).library.loadRoomCounts)return null;
+   try{return (await zhimuApi.getWorldRooms(world.id)).length}catch{return null}
+  }));
+  return {html:worlds.map((world,index)=>{
+   const productModuleEntry=productModuleForWorld(world);
+   const productKey=productModuleEntry.domain.key;
+   const product=productModuleEntry.domain;
+   const isCurrent=world.id===zhimuApi.context.worldId;
+   const owner=world.membership_role==="owner";
+   const editor=world.membership_role==="editor";
+   const canRename=owner||editor;
+   const roomHint=productModuleEntry.library.hint({count:roomCounts[index],canManage:owner||editor});
+   return `<article class="world-library-card ${isCurrent?"active":""}"><div><span class="cloud-pill">${escapeHtml(product.label)} · ${escapeHtml(world.membership_role||"member")}</span><span class="status-chip ${world.status||"draft"}">${escapeHtml(statusLabel[world.status]||world.status||"草稿")}</span>${world.catalog_public?`<span class="status-chip published">已公开</span>`:""}<h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充项目简介")}</p><small>${escapeHtml(roomHint)}</small></div><div class="row">${canRename?`<button class="text-btn" data-action="world-rename" data-world-id="${world.id}" data-world-product="${productKey}" data-world-name="${escapeHtml(world.name)}" data-world-summary="${escapeHtml(world.summary||"")}">重命名</button>`:""}${owner?`<button class="text-btn danger-text" data-action="world-delete" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}">${isCurrent?"删除当前项目":"删除"}</button>`:""}<button class="${isCurrent?"secondary-btn":"primary-btn"}" data-action="world-select" data-world-id="${world.id}">${isCurrent?"当前项目":"切换项目"}</button></div></article>`;
+  }).join("")||`<div class="empty-state">当前账号还没有可访问的项目。可点下方「＋ 创建新项目」${catalogAvailable?`，或浏览${escapeHtml(catalogLabel)}`:""}。</div>`,worlds};
  };
  const drawCatalog=async()=>{
   const qs=Object.entries(catalogTagFilters).filter(([,v])=>v).map(([k,v])=>`tag_${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&");

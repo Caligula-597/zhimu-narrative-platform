@@ -196,7 +196,7 @@ function normalizeRecapLibrary(payload) {
 function normalizeItemAction(payload, now) {
   const source = object(payload, "payload");
   const actionKind = oneOf(source.actionKind, "actionKind", ["use", "consume", "combine"]);
-  const targetType = oneOf(source.targetType, "targetType", ["none", "role", "location"], "none");
+  const targetType = oneOf(source.targetType, "targetType", ["none", "role"], "none");
   const status = oneOf(source.status, "status", ["pending", "approved", "rejected", "failed"]);
   return {
     actionId: text(source.actionId, "actionId"),

@@ -16,7 +16,6 @@ import {
 } from "./creator-cockpit-insights.js";
 import { renderTimelineSwimlane } from "./creator-cockpit-timeline.js";
 import { creativeConstitutionCoverage } from "../../shared/creative-constitution.js";
-import { renderStorySpinePanel } from "./creator-cockpit-story-spine.js";
 
 export function linkButton(link, className = "secondary-btn compact") {
   if (!link) return "";
@@ -112,7 +111,7 @@ function renderContentOverviewPanel(ctx) {
 export function renderConceptCanvas(ctx, cockpit, findItemLink) {
   const link = findItemLink("concept", cockpit.activeItem);
   if (cockpit.activeCanvas === "story" || cockpit.activeItem === "story") {
-    return renderStorySpinePanel(ctx, cockpit);
+    return renderContentOverviewPanel(ctx);
   }
   if (cockpit.activeCanvas === "overview") {
     return renderContentOverviewPanel(ctx);
@@ -239,10 +238,6 @@ export function renderCharactersCanvas(ctx, cockpit, findItemLink) {
   const sections = studio?.sections || [];
   const counts = bibleSummary?.counts || {};
   const link = findItemLink("characters", cockpit.activeItem);
-  if (cockpit.activeCanvas === "preview") {
-    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>玩家视角</p><h3>预览私人分幕</h3></div></div>
-      <div class="row">${linkButton({ action: "creator-preview", label: "玩家视角预览" }, "primary-btn")}${linkButton({ view: "writer", label: "分幕编辑器" })}</div></section>`;
-  }
   const cards = roles.length
     ? roles
         .map((role) => {
@@ -343,11 +338,11 @@ export function renderManuscriptCanvas(ctx, cockpit) {
   }
   if (cockpit.activeCanvas === "package") {
     return `<section class="cockpit-panel"><div class="panel-heading"><div><p>导入导出</p><h3>内容包与备份</h3></div></div>
-      <div class="row">${linkButton({ action: "creator-import", label: "导入内容包" }, "secondary-btn")}${linkButton({ action: "creator-export", label: "导出备份" }, "primary-btn")}${linkButton({ action: "deepseek-pipeline", label: "AI 剧本创作" }, "secondary-btn")}</div></section>`;
+      <div class="row">${linkButton({ action: "creator-import", label: "导入内容包" }, "secondary-btn")}${linkButton({ action: "creator-export", label: "导出备份" }, "primary-btn")}</div></section>`;
   }
   return `<section class="cockpit-panel"><div class="panel-heading"><div><p>内容生产</p><h3>${counts.sections || 0} 分幕 · ${counts.chapters || 0} 章节</h3></div></div>
     <div class="workspace-action-grid" style="margin-top:12px">
-      <button type="button" class="workspace-action-card primary" data-action="deepseek-pipeline"><strong>AI 剧本创作</strong><span>九层创作 · 独立线索网络</span></button>
+      <button type="button" class="workspace-action-card primary" data-action="story-manuscript"><strong>完整剧情</strong><span>母稿与章节总览</span></button>
       <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>Markdown 分幕</span></button>
       <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>Word / Markdown</span></button>
     </div></section>`;
@@ -381,18 +376,18 @@ export function renderLaunchCanvas(ctx, cockpit, findItemLink) {
         </div>`
       : `<div class="empty-state">尚未运行作品诊断。诊断中心会检查因果链、信息传播和真相证据。</div>`;
     return `<section class="cockpit-panel"><div class="panel-heading"><div><p>作品诊断</p><h3>剧情体检 / 剧本 MRI</h3></div>${linkButton({ view: "diagnostics", label: diagnostics ? "查看完整报告" : "开始诊断" }, "primary-btn")}</div>
-      <p class="muted-note">不同类型作品可切换本格公平、情感还原、机制推理、叙事诡计、开放调查和跑团沙盒标准。</p>${result}</section>`;
+      <p class="muted-note">剧本杀作品可按本格公平、情感还原、机制推理、叙事诡计或开放调查标准分别检查。</p>${result}</section>`;
   }
   if (cockpit.activeCanvas === "ai-playtest") {
     const report = playtest?.report;
     const result = report
       ? `<div class="diagnostic-headline ${report.summaryCounts?.danger ? "danger" : report.summaryCounts?.warning ? "warning" : "ready"}">
-          <strong>${escapeHtml(report.headline || "多 AI 试跑已完成")}</strong>
-          <span>${report.players?.length || 0} 个隔离席位 · ${report.summaryCounts?.stalledPlayers || 0} 人卡住 · 体验可信度 ${report.score || 0}</span>
+          <strong>${escapeHtml(report.headline || "机器压力测试已完成")}</strong>
+          <span>${report.players?.length || 0} 个隔离席位 · ${report.summaryCounts?.stalledPlayers || 0} 人卡住</span>
         </div>`
-      : `<div class="empty-state">尚未运行多 AI 玩家试跑。系统会分别模拟不同玩家类型，再把问题定位回角色、线索与章节。</div>`;
-    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>AI 玩家试跑</p><h3>理解、交流、误判与卡关压力测试</h3></div>${linkButton({ view: "playtest", label: report ? "查看完整回放" : "组建测试桌" }, "primary-btn")}</div>
-      <p class="muted-note">每个虚拟玩家使用隔离上下文，不读取作者真相；观察员最后按创作宪法综合验收。</p>${result}</section>`;
+      : `<div class="empty-state">尚未运行机器压力测试。它只能定位结构性卡点，不能证明真人愿意观看或游玩。</div>`;
+    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>机器压力测试</p><h3>理解、信息隔离与卡关检查</h3></div>${linkButton({ view: "playtest", label: report ? "查看完整回放" : "开始压力测试" }, "primary-btn")}</div>
+      <p class="muted-note">机器模拟不计入真人证据，也不参与艺术质量判断。</p>${result}</section>`;
   }
   if (cockpit.activeCanvas === "feedback") {
     return `<section class="cockpit-panel"><div class="panel-heading"><div><p>跑局数据</p><h3>完成率与线索命中统计</h3></div></div>
@@ -421,7 +416,6 @@ export function renderLaunchCanvas(ctx, cockpit, findItemLink) {
 
 function renderCopilotAnalysis(cockpit) {
   const analysis = cockpit.lastAnalysis;
-  const aiNote = cockpit.lastAiNote;
   const parts = [];
   if (analysis?.nodes?.length) {
     const nodeLines = analysis.nodes
@@ -435,13 +429,9 @@ function renderCopilotAnalysis(cockpit) {
       `<p class="muted-note">识别 ${analysis.nodes.length} 个结构节点</p><ul class="cockpit-hint-list">${nodeLines}</ul>`,
     );
   }
-  if (aiNote)
-    parts.push(
-      `<article class="card-lite"><strong>AI 输出</strong><p>${escapeHtml(aiNote)}</p></article>`,
-    );
   return parts.length
     ? parts.join("")
-    : `<p class="muted-note">可选：结构识别（规则解析）或 AI 续写（作者主动发起，需 LLM）。</p>`;
+    : `<p class="muted-note">结构识别只整理你已经写出的文本，不续写、不补齐剧情。</p>`;
 }
 
 export function renderAssistant(stage, ctx, cockpit) {
@@ -463,10 +453,9 @@ export function renderAssistant(stage, ctx, cockpit) {
     <div class="copilot-context"><strong>${escapeHtml(stage.title)}</strong><p>${escapeHtml(stage.subtitle)}</p></div>
     <div class="copilot-cards copilot-facts">${cards}</div>
     <div class="copilot-compose">
-      <label class="cockpit-field"><span>粘贴文本（可选）</span><textarea data-cockpit-field="copilotQuery" rows="3" placeholder="粘贴梗概或片段，用于结构识别或 AI 续写…">${escapeHtml(cockpit.copilotQuery || "")}</textarea></label>
+      <label class="cockpit-field"><span>粘贴已有文本（可选）</span><textarea data-cockpit-field="copilotQuery" rows="3" placeholder="粘贴你已经写好的梗概或片段，只做结构识别…">${escapeHtml(cockpit.copilotQuery || "")}</textarea></label>
       <div class="row">
         <button type="button" class="secondary-btn compact" data-action="cockpit-analyze-draft">结构识别</button>
-        <button type="button" class="secondary-btn compact" data-action="cockpit-ai-suggest">AI 续写</button>
       </div>
       <div class="copilot-analysis">${renderCopilotAnalysis(cockpit)}</div>
     </div>

@@ -43,18 +43,5 @@ export async function itemActionTargetExists(client, { roomId, targetType, targe
     );
     return result.rowCount > 0;
   }
-  const result = await client.query(
-    `SELECT 1
-     FROM rooms room
-     JOIN worlds world ON world.id = room.world_id
-     WHERE room.id = $1
-       AND COALESCE((room.settings->'runtimePresentation'->>'mapVisible')::boolean, false)
-       AND COALESCE(room.settings->'runtimePresentation'->'revealedLocationIds', '[]'::jsonb) ? $2
-       AND EXISTS (
-         SELECT 1 FROM jsonb_array_elements(COALESCE(world.settings->'tabletopMapDesign'->'locations', '[]'::jsonb)) location
-         WHERE location->>'id' = $2
-       )`,
-    [roomId, targetId],
-  );
-  return result.rowCount > 0;
+  return false;
 }

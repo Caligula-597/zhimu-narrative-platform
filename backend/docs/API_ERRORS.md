@@ -44,7 +44,11 @@
 | `FORBIDDEN` | 403 | 无权限 |
 | `ROOM_MEMBERSHIP_REQUIRED` | 403 | 非房间成员 |
 | `WORLD_EDITOR_REQUIRED` | 403 | 需要世界编辑权限 |
-| `HOST_ROLE_REQUIRED` | 403 | 需要主持人/副主持 |
+| `HOST_ROLE_REQUIRED` | 403 | 需要主持人/协主持 |
+| `COHOST_PRIMARY_REQUIRED` | 403 | 仅主主持可任命或移除协主持 |
+| `COHOST_ALREADY_ASSIGNED` | 409 | 目标已是主持或协主持 |
+| `COHOST_TARGET_INVALID` | 400 | 协主持目标无效（须已注册且非主主持） |
+| `COHOST_NOT_FOUND` | 404 | 协主持成员不存在 |
 | `VOICE_ACCESS_DENIED` | 403 | 无权进入语音房 |
 | `VOICE_PUBLIC_CREATE_FORBIDDEN` | 403 | 非 Host/Cohost 创建公共或角色管理语音房 |
 

@@ -8,7 +8,6 @@ import { registerIdentity } from "../src/auth-registration-service.js";
 import { transaction, query } from "../src/db.js";
 import {
   clearTestEmailCapture,
-  clearTestResetCapture,
   peekTestResetUrl,
   peekTestVerifyUrl
 } from "../src/email.js";
@@ -347,7 +346,7 @@ test("password reset racing a login prevents an old password from creating a new
       payload: { email, displayName: "Login Reset Race", password: oldPassword }
     });
     assert.equal(registered.statusCode, 201, registered.body);
-    clearTestResetCapture();
+    clearTestEmailCapture();
     const forgot = await app.inject({
       method: "POST",
       url: "/api/auth/forgot-password",

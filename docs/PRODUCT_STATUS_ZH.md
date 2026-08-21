@@ -18,7 +18,6 @@
 
 详细评分见：[生产级 SaaS 评估](./PRODUCTION_SAAS_ASSESSMENT_ZH.md)。
 
-创始人原始产品问题与正式模块的对应关系见 [`灵感.doc` 产品输入追踪表](./PRODUCT_INPUT_TRACEABILITY_ZH.md)；原始文件保留不改写。
 
 ## 生产级 SaaS 评分
 

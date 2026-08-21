@@ -95,13 +95,13 @@ test("clues without an authored discovery path remain visibly incomplete", () =>
   assert.equal((html.match(/clue-flow-node[^\"]* orphan/g) || []).length, 2);
 });
 
-test("discovery paths include points, map locations, segments and deliberate roaming clues", () => {
+test("murder clue paths include investigation points, segments and deliberate roaming clues", () => {
   assert.equal(clueHasDiscoveryPath(clues[0], {
     investigationPoints: [{ clue_id: "clue-a" }]
   }), true);
-  assert.equal(clueHasDiscoveryPath({ id: "location", metadata: { locationId: "library" } }, {
+  assert.equal(clueHasDiscoveryPath({ id: "legacy-location", metadata: { locationId: "library" } }, {
     investigationPoints: []
-  }), true);
+  }), false);
   assert.equal(clueHasDiscoveryPath({ id: "segment", metadata: { segmentKey: "ch2" } }, {
     investigationPoints: []
   }), true);

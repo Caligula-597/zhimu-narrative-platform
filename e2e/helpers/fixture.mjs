@@ -75,10 +75,6 @@ export async function gotoHostConsole(page) {
   await waitForHostIdle(page);
 }
 
-export async function injectPlayerPreJoinContext(context) {
-  return injectDemoContext(context, { worldId: FIXTURE.worldId, roomId: null });
-}
-
 export async function injectVerifiedPlayContext(context) {
   await context.addInitScript(({ playerUserId }) => {
     localStorage.setItem("zhimuDemoMode", "true");
@@ -206,21 +202,6 @@ export async function goToView(page, view) {
   await navItem.waitFor({ state: "visible", timeout: 10_000 });
   await navItem.click();
   await page.waitForFunction((v) => window.zhimuState?.view === v, view, { timeout: 15_000 });
-}
-
-/** @param {Page} page — only use on the main app where the state bridge is active. */
-export async function joinRoomViaInviteUi(page, inviteCode = FIXTURE.inviteCode) {
-  await page.locator("#preview-btn").click();
-  await page.locator("#modal-backdrop.show").waitFor({ state: "visible", timeout: 10_000 });
-  await page.locator("[data-join-code]").fill(inviteCode);
-  await page.locator("[data-join-lookup]").click();
-  await page.waitForFunction(() => {
-    const select = document.querySelector("[data-join-role]");
-    return select && !select.disabled && select.value;
-  }, undefined, { timeout: 20_000 });
-  await page.locator("[data-join-submit]").click();
-  await page.waitForFunction(() => window.zhimuState?.view === "player", undefined, { timeout: 20_000 });
-  await waitForCloudReady(page);
 }
 
 /** @param {Page} page */

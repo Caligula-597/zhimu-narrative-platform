@@ -173,7 +173,7 @@ function fieldBody(context) {
       + `<label class="studio-check-row"><input type="checkbox" data-editor-checkbox="consumable" ${draft.consumable ? "checked" : ""}> 是否可消耗（使用后消失）</label>`
       + formSelect("主要动作", "actionKind", [{ id: "", name: "仅展示，不可主动使用" }, { id: "use", name: "使用" }, { id: "consume", name: "消耗" }, { id: "combine", name: "组合" }], draft.actionKind)
       + formField("玩家按钮文案", "actionLabel", "input", draft.actionLabel)
-      + formSelect("作用目标", "actionTargetType", [{ id: "none", name: "无需目标" }, { id: "role", name: "选择角色" }, { id: "location", name: "选择地点" }], draft.actionTargetType || "none")
+      + formSelect("作用目标", "actionTargetType", [{ id: "none", name: "无需目标" }, { id: "role", name: "选择角色" }], draft.actionTargetType || "none")
       + formSelect("组合物品", "combineItemId", [{ id: "", name: "不需要组合物" }, ...(data.items || [])], draft.combineItemId)
       + formField("完成提示", "actionResultText", "textarea", draft.actionResultText, { rows: 4 })
       + `<label class="studio-check-row"><input type="checkbox" data-editor-checkbox="requiresHostConfirmation" ${draft.requiresHostConfirmation ? "checked" : ""}> 需要主持人确认</label>`

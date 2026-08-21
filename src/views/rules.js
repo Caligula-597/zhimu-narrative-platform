@@ -38,7 +38,6 @@ import { htmlFragment, setHtml } from "../../shared/safe-dom.js";
   const taskAction = U.taskAction || (() => "");
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
-  const voiceOption = U.voiceOption || (() => "");
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
   const openRichModal = M.openRichModal || (() => {});
   const bindDynamic = R.bindDynamic || (() => {});

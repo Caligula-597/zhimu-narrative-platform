@@ -4,6 +4,7 @@ import {
   creatorTerms,
   legacyWorldModeForNarrativeProfile,
   narrativeProfileFromSettings,
+  narrativeProfileFromWorld,
   normalizeNarrativeProfile,
   normalizeNarrativeSettings,
   normalizeNarrativeSettingsPatch
@@ -80,4 +81,13 @@ test("board-game profile is first-class while keeping legacy mode compatibility"
   assert.equal(profile.roleMode, "player_created");
   assert.equal(profile.ruleset.mode, "custom");
   assert.equal(legacyWorldModeForNarrativeProfile(profile), "campaign");
+});
+
+test("lightweight world-list rows retain their projected product type", () => {
+  assert.equal(narrativeProfileFromWorld({ creation_type: "tabletop_rpg" }).creationType, "tabletop_rpg");
+  assert.equal(narrativeProfileFromWorld({ creationType: "board_game" }).creationType, "board_game");
+  assert.equal(narrativeProfileFromWorld({
+    creation_type: "board_game",
+    settings: { narrativeProfile: { creationType: "tabletop_rpg" } }
+  }).creationType, "tabletop_rpg");
 });

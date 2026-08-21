@@ -3,8 +3,27 @@ import { MINI_GAME_PROTOCOL_VERSION, normalizeMiniGameTemplate } from "../../sha
 import { throwErr } from "./api-errors.js";
 import { query } from "./db.js";
 
-function hashAnswer(answer) {
-  return createHash("sha256").update(String(answer ?? "").trim()).digest("hex");
+function normalizeAnswerForHash(answer, pluginKey = "zhimu_lock") {
+  const raw = String(answer ?? "").trim();
+  if (pluginKey === "zhimu_sequence") {
+    return raw
+      .replace(/[，、；;|/]+/g, ",")
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .slice(0, 12)
+      .join(",");
+  }
+  if (pluginKey === "zhimu_guess") {
+    return raw.replace(/\s+/g, "").toLowerCase().slice(0, 64);
+  }
+  return raw;
+}
+
+function hashAnswer(answer, pluginKey = "zhimu_lock") {
+  return createHash("sha256")
+    .update(normalizeAnswerForHash(answer, pluginKey))
+    .digest("hex");
 }
 
 function isoDeadline(timeoutSeconds, start = Date.now()) {
@@ -61,7 +80,7 @@ export function buildLockGameConfig(body = {}) {
       failure_text: template.failureText,
       recap_label: template.recapLabel,
     },
-    privateConfig: { answer_hash: hashAnswer(template.answer) },
+    privateConfig: { answer_hash: hashAnswer(template.answer, template.pluginKey) },
     state: {
       phase: "active",
       attempts_left: template.maxAttempts,
@@ -188,7 +207,8 @@ export async function submitMiniGameAnswer(client, {
   }
 
   const expected = row.private_config?.answer_hash || "";
-  const correct = Boolean(expected) && hashAnswer(answer) === expected;
+  const pluginKey = row.game_type || row.public_config?.pluginKey || "zhimu_lock";
+  const correct = Boolean(expected) && hashAnswer(answer, pluginKey) === expected;
   const state = row.state || {};
   const attemptsLeft = Math.max(0, Number(state.attempts_left ?? row.public_config?.max_attempts ?? 3));
   const nextState = {

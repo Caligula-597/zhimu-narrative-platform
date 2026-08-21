@@ -71,9 +71,7 @@ test("migrated public entry points do not bypass the audited HTML sink", () => {
   for (const file of [
     "src/components/creator-guide.js",
     "src/runtime/global-search.js",
-    "src/views/pipeline-wizard-open.js",
     "src/views/platform-runtime.js",
-    "src/views/player.js",
     "src/views/account.js",
     "src/views/archive.js",
     "src/views/settings.js",

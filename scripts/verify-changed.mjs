@@ -81,12 +81,8 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/routes/route-guards.js", ["test/permissions-matrix.test.js", "test/runtime-permissions.test.js"]],
   ["backend/src/world-publish-readiness", ["test/world-publish-readiness.test.js"]],
   ["backend/src/world-readiness-service", ["test/world-readiness-routes.test.js", "test/catalog-readiness-gate.test.js"]],
-  ["backend/src/routes/world-readiness-routes", ["test/world-readiness-routes.test.js"]],
+  ["backend/src/routes/world-readiness-routes", ["test/world-readiness-routes.test.js", "test/world-catalog.test.js"]],
   ["backend/src/import-guide", ["test/world-readiness-routes.test.js"]],
-  ["backend/src/wizard-automation-templates", ["test/world-wizard.test.js"]],
-  ["backend/src/world-wizard-bootstrap", ["test/world-wizard.test.js"]],
-  ["backend/src/world-templates", ["test/world-wizard.test.js"]],
-  ["backend/src/routes/world-wizard-routes", ["test/world-wizard.test.js"]],
   ["backend/src/catalog-review", ["test/world-catalog.test.js", "test/catalog-readiness-gate.test.js"]],
   ["backend/src/beta-apply", ["test/beta-apply.test.js", "test/platform-site.test.js"]],
   ["backend/src/email/support-templates", ["test/support-templates.test.js", "test/beta-apply.test.js"]],
@@ -110,6 +106,9 @@ const BACKEND_PREFIX_TESTS = [
   ["backend/src/repositories/host-player-management-repository", ["test/host-kick-player.test.js"]],
   ["backend/src/host-player-management-abuse-protection", ["test/host-player-management-abuse-protection.test.js"]],
   ["backend/src/routes/host-player-management-routes", ["test/host-kick-player.test.js"]],
+  ["backend/src/host-cohost-service", ["test/host-cohost.test.js"]],
+  ["backend/src/routes/host-cohost-routes", ["test/host-cohost.test.js"]],
+  ["backend/src/routes/schemas/host-cohost", ["test/host-cohost.test.js"]],
   ["backend/src/host-game-control-service", ["test/host-game-control-integrity.test.js", "test/mini-game.test.js", "test/rule-runtime.test.js", "test/world-settings.test.js"]],
   ["backend/src/repositories/host-game-control-repository", ["test/host-game-control-integrity.test.js", "test/world-settings.test.js"]],
   ["backend/src/routes/host-game-control-routes", ["test/host-game-control-integrity.test.js", "test/mini-game.test.js", "test/rule-runtime.test.js", "test/world-settings.test.js"]],
@@ -334,10 +333,6 @@ if (frontendChanged) {
 
 if (files.some((f) => f === "shared/secure-random.js" || f === "shared/api-fetch.js" || f.startsWith("host/src/runtime/host-"))) {
   run("secure random identifier tests", "npm run test:secure-random");
-}
-
-if (files.some((f) => /src\/views\/pipeline-|pipeline-wizard-session/.test(f))) {
-  run("test:pipeline-session", "npm run test:pipeline-session");
 }
 
 if (files.some((f) => /^scripts\/(format-helpers|modal-helpers)/.test(f))) {

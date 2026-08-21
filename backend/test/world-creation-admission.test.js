@@ -31,16 +31,6 @@ test("normal world creation enforces capability and final transactional quota ad
   ]);
 });
 
-test("wizard creation enforces capability and final transactional quota admission", async () => {
-  const body = functionBody(await source("world-wizard-bootstrap.js"), "bootstrapWorldFromWizard");
-  assertOrdered(body, [
-    'assertCapability(actorId, "world.create")',
-    "transaction(async (client)",
-    "admitWorldCreation(client, actorId)",
-    "INSERT INTO worlds"
-  ]);
-});
-
 test("script bundle creation rejects early and rechecks quota in its write transaction", async () => {
   const body = functionBody(await source("script-bundle-import.js"), "createWorldFromScriptBundle");
   assertOrdered(body, [

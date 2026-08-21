@@ -3,13 +3,14 @@ import fs from "node:fs";
 import test from "node:test";
 
 const appSource = fs.readFileSync(new URL("../app.js", import.meta.url), "utf8");
-const loaderSource = fs.readFileSync(new URL("../src/runtime/view-loader.js", import.meta.url), "utf8");
+const loaderSource = fs.readFileSync(new URL("../src/products/board-game/view-manifest.js", import.meta.url), "utf8");
 const boardViewSource = fs.readFileSync(new URL("../src/views/board-game.js", import.meta.url), "utf8");
 
 test("board-game editor remains a lazy-loaded product module", () => {
   assert.doesNotMatch(appSource, /views\/board-game(?:-playground)?\.js/u);
-  assert.match(loaderSource, /boardGame:\s*\[\s*\(\)\s*=>\s*import\("\.\.\/views\/board-game\.js"\)/u);
-  assert.match(loaderSource, /import\("\.\/actions-board-game\.js"\)/u);
+  assert.match(loaderSource, /import\("\.\/shell\.css"\)/u);
+  assert.match(loaderSource, /import\("\.\.\/\.\.\/views\/board-game\.js"\)/u);
+  assert.match(loaderSource, /import\("\.\.\/\.\.\/runtime\/actions-board-game\.js"\)/u);
 });
 
 test("board-game view does not import narrative authoring modules", () => {

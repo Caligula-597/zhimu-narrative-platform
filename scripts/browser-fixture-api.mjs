@@ -922,16 +922,25 @@ function browserPlayerHomeSocial(room) {
 
 const world = {
   id: worldId,
-  name: fixtureCreationType === "board_game" ? "浏览器验收桌游" : "浏览器验收剧本",
+  creation_type: fixtureCreationType,
+  name: fixtureCreationType === "board_game"
+    ? "浏览器验收桌游"
+    : fixtureCreationType === "tabletop_rpg"
+      ? "浏览器验收模组"
+      : "浏览器验收剧本",
   summary: "只存在于本机进程内的隔离验收数据",
   status: "testing",
   membership_role: "owner",
   content_revision: 8,
-  settings: {
+  settings: fixtureCreationType === "tabletop_rpg" ? {
+    narrativeProfile: { creationType: "tabletop_rpg" },
+    tabletopMapDesign: fixtureTabletopMapDesign
+  } : fixtureCreationType === "board_game" ? {
+    narrativeProfile: { creationType: "board_game" }
+  } : {
     narrativeProfile: {
-      creationType: fixtureCreationType
+      creationType: "murder_mystery"
     },
-    tabletopMapDesign: fixtureTabletopMapDesign,
     creativeConstitution: {
       version: 1,
       theme: "错误时间顺序如何制造偏见",
@@ -999,7 +1008,6 @@ const workspacePreview = {
       clueType: "text",
       grantMode: "auto",
       importance: "normal",
-      locationId: "review-room",
       segmentKey: "authorization-review"
     }
   }, {
@@ -1014,7 +1022,6 @@ const workspacePreview = {
       clueType: "text",
       grantMode: "manual",
       importance: "key",
-      locationId: "review-room",
       segmentKey: "authorization-review"
     }
   }, {
@@ -1337,6 +1344,11 @@ const server = http.createServer(async (request, response) => {
 
   if (request.method === "GET" && path === "/api/health") {
     return sendJson(response, 200, { ok: true, fixture: true });
+  }
+  if (request.method === "POST" && path === "/api/metrics/web-vitals") {
+    await readJson(request);
+    response.writeHead(204, { "cache-control": "no-store" });
+    return response.end();
   }
   if (request.method === "GET" && path === "/api/auth/config") {
     return sendJson(response, 200, verificationAuthFixture
@@ -1705,6 +1717,9 @@ const server = http.createServer(async (request, response) => {
   if (request.method === "GET" && path === "/api/worlds") {
     return sendJson(response, 200, visibleFixtureWorlds());
   }
+  if (request.method === "GET" && path === `/api/worlds/${worldId}`) {
+    return sendJson(response, 200, { ...world }, revisionHeaders());
+  }
   if (request.method === "POST" && path === "/api/worlds") {
     const body = await readJson(request);
     emptyAccountBootstrapped = true;
@@ -1767,7 +1782,7 @@ const server = http.createServer(async (request, response) => {
       updatedAt: "2026-07-23T00:00:00.000Z"
     });
   }
-  if (request.method === "POST" && path === `/api/worlds/${worldId}/story-assistant/deepseek/board-game/design-draft`) {
+  if (request.method === "POST" && path === `/api/worlds/${worldId}/board-game/ai/design-draft`) {
     const body = await readJson(request);
     const scope = ["patch", "missing", "current", "full"].includes(body.scope) ? body.scope : "missing";
     const currentSection = ["components", "seats", "mechanisms", "engine", "rulebook"].includes(body.currentSection) ? body.currentSection : "components";
@@ -1819,7 +1834,6 @@ const server = http.createServer(async (request, response) => {
       mechanism: "机制推理",
       narrative: "叙事诡计",
       open: "开放调查",
-      sandbox: "跑团沙盒"
     }[diagnosticStandard] || "本格公平";
     const rawConstitution = world.settings?.creativeConstitution;
     const constitution = normalizeCreativeConstitution(rawConstitution);
@@ -1922,20 +1936,6 @@ const server = http.createServer(async (request, response) => {
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/rooms`) {
     return sendJson(response, 200, rooms);
-  }
-  if (request.method === "POST" && path === "/api/worlds/wizard/bootstrap") {
-    const body = await readJson(request);
-    emptyAccountBootstrapped = true;
-    world.name = String(body.name || world.name);
-    world.summary = String(body.summary || world.summary);
-    world.settings = { ...(world.settings || {}), ...(body.settings || {}) };
-    dashboard.counts.rooms = rooms.length;
-    return sendJson(response, 201, {
-      world,
-      room: rooms[0],
-      inviteCode: rooms[0].invite_code,
-      rulesCreated: Object.values(body.automationTemplates || {}).filter(Boolean).length
-    }, revisionHeaders());
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/releases`) {
     return sendJson(response, 200, releases);
@@ -2534,7 +2534,9 @@ const server = http.createServer(async (request, response) => {
     const body = await readJson(request);
     if (Object.hasOwn(body, "name")) world.name = String(body.name || world.name);
     if (Object.hasOwn(body, "summary")) world.summary = String(body.summary || "");
-    if (body.settings && typeof body.settings === "object") world.settings = body.settings;
+    if (body.settings && typeof body.settings === "object") {
+      world.settings = { ...(world.settings || {}), ...body.settings };
+    }
     return sendJson(response, 200, bumpRevision({ ...world }), revisionHeaders());
   }
   if (request.method === "POST" && path === `/api/worlds/${worldId}/roles`) {

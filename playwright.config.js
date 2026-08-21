@@ -11,8 +11,8 @@ const appTestIgnore = [
   "**/play-portal-smoke.spec.js",
   "**/play-official-example.spec.js",
   "**/play-sync-chrome.spec.js",
-  "**/tabletop-map-zoom.spec.js",
-  "**/tabletop-runtime-flow.spec.js"
+  "**/product-domain-isolation.spec.js",
+  "**/tabletop-map-zoom.spec.js"
 ];
 
 /** @type {import('@playwright/test').PlaywrightTestConfig} */

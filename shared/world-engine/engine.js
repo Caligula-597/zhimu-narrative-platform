@@ -179,14 +179,12 @@ function applyOneAction(state, action) {
   if (type === "approve" || type === "deny" || type === "delay") {
     const permission = type === "delay" ? "hold_departure" : (type === "approve" ? "approve_delivery" : "kill_story");
     const fallback = type === "delay"
-      ? ["hold_departure", "stamp_departure"]
+      ? ["hold_departure", "stamp_departure", "hold_berth"]
       : type === "approve"
-        ? ["approve_delivery", "approve_comp", "stamp_departure", "release_vehicle"]
-        : ["kill_story", "hold_departure"];
-    if (!fallback.some((item) => hasPermission(state, actor.id, item) || permission === item && hasPermission(state, actor.id, permission))) {
-      if (!fallback.some((item) => hasPermission(state, actor.id, item))) {
-        return reject("没有对应批准权限");
-      }
+        ? ["approve_delivery", "approve_comp", "stamp_departure", "release_vehicle", "stamp_berth", "assign_crane", "open_warehouse", "stamp_clearance"]
+        : ["kill_story", "hold_departure", "hold_berth"];
+    if (!fallback.some((item) => hasPermission(state, actor.id, item))) {
+      return reject("没有对应批准权限");
     }
     return { ok: true };
   }
@@ -263,6 +261,7 @@ export function commitEvent(ledger, draft = {}) {
     version: 1,
     status: "canonical",
     t: list(ledger.eventLog).length + 1,
+    phase: draft.phase || "before_act",
     locationId: draft.locationId || characterById(ledger, draft.actions?.[0]?.actor)?.locationId || null,
     actions: list(draft.actions),
     edges: list(draft.edges),

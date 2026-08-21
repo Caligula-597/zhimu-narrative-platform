@@ -66,6 +66,14 @@ export function buildEpistemicSearchMessages(ledger, compiled) {
   return [{ role: "system", content: system }, { role: "user", content: user }];
 }
 
+export function buildNarrativeIrRenderMessages(payload) {
+  const system = `根据输入的 Narrative IR 写成该角色这一幕的私人正文。
+事实、信息来源、交谈形式和事件顺序已经确定，不得新增。
+只输出 JSON：{"text":"连续中文正文"}，不解释输入结构。`;
+  const user = untrustedUserPayload("Narrative IR", payload);
+  return [{ role: "system", content: system }, { role: "user", content: user }];
+}
+
 export function buildRenderMessages(query) {
   const system = `你正在写玩家私人角色本。
 当前事实、人物知识和可发生状态已经确定，不得新增或修改。
@@ -101,6 +109,16 @@ export async function searchEpistemicCandidates(ledger, { requestJson = requestD
     model: result.model,
     candidates: Array.isArray(result.value?.candidates) ? result.value.candidates.slice(0, 12) : []
   };
+}
+
+export async function renderFromNarrativeIr(payload, { requestJson = requestDeepseekJson } = {}) {
+  const result = await requestJson(buildNarrativeIrRenderMessages(payload), {
+    maxTokens: 2200,
+    temperature: 0.35
+  });
+  const text = String(result.value?.text || "").trim();
+  if (!text) return { ok: false, issues: ["正文为空"] };
+  return { ok: true, text, model: result.model };
 }
 
 export async function renderCharacterAct(ledger, characterId, actId = "ACT_1", { requestJson = requestDeepseekJson } = {}) {

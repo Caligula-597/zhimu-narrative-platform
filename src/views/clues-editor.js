@@ -26,7 +26,6 @@ function clueDraft(clue = null) {
     grantMode: meta.grantMode || "auto",
     clueType: meta.clueType || "text",
     clueKind: clue?.clue_kind || clue?.clueKind || "general",
-    locationId: meta.locationId || meta.location_id || "",
     segmentKey: meta.segmentKey || meta.segment_key || "",
     allowUnbound: meta.allowUnbound === true,
     assetId: meta.assetId || "",
@@ -79,14 +78,6 @@ export function renderClueEditorPanel() {
       name: `${segment.segmentKey || segment.segment_key || "未命名"} · ${segment.title || "未命名段落"}`
     }))
   ];
-  const mapLocations = studioStore.get().cloudStudio?.world?.settings?.tabletopMapDesign?.locations || [];
-  const locations = [
-    { id: "", name: "不绑定具体地图地点" },
-    ...mapLocations.map((location) => ({
-      id: location.id || "",
-      name: `${location.name || "未命名地点"}${location.segmentKey ? ` · ${location.segmentKey}` : ""}`
-    }))
-  ];
   const body =
     formField("线索名称", "name", "input", value.name) +
     formField("获得后可见内容", "publicText", "textarea", value.publicText, { rows: 7 }) +
@@ -101,8 +92,7 @@ export function renderClueEditorPanel() {
       { id: "host_confirm", name: "主持确认后发放" },
       { id: "explore", name: "探索调查获得" }
     ], value.grantMode) +
-    `<label class="check-label clue-path-decision"><input type="checkbox" data-editor-checkbox="allowUnbound"${value.allowUnbound ? " checked" : ""}><span>允许游离：这条普通线索刻意不绑定地点、调查点或段落</span></label>` +
-    formSelect("归属地图地点", "locationId", locations, value.locationId) +
+    `<label class="check-label clue-path-decision"><input type="checkbox" data-editor-checkbox="allowUnbound"${value.allowUnbound ? " checked" : ""}><span>允许游离：这条普通线索刻意不绑定调查点或剧情段</span></label>` +
     formSelect("剧情段定位", "segmentKey", segments, value.segmentKey) +
     formSelect("线索形态", "clueType", CLUE_TYPE_OPTIONS, value.clueType) +
     formSelect("线索类型", "clueKind", CLUE_KIND_OPTIONS, value.clueKind) +
@@ -140,13 +130,12 @@ export async function saveCluesEditor() {
     return;
   }
   const clue = currentClue();
-  const mapLocations = studioStore.get().cloudStudio?.world?.settings?.tabletopMapDesign?.locations || [];
-  const selectedLocation = mapLocations.find((location) => location.id === values.locationId);
-  const resolvedSegmentKey = values.segmentKey || selectedLocation?.segmentKey || null;
-  const allowUnbound = !values.locationId && !resolvedSegmentKey && clueEditorState.draft.allowUnbound === true;
+  const resolvedSegmentKey = values.segmentKey || null;
+  const allowUnbound = !resolvedSegmentKey && clueEditorState.draft.allowUnbound === true;
   setWorkspaceSaving(root, true);
   showWorkspaceErrors(root, []);
   try {
+    const { locationId: _legacyLocationId, location_id: _legacyLocationIdSnake, ...existingMetadata } = clue?.metadata || {};
     const payload = {
       name: values.name,
       publicText: values.publicText,
@@ -154,12 +143,11 @@ export async function saveCluesEditor() {
       visibility: values.visibility || "role",
       clueKind: values.clueKind || "general",
       metadata: {
-        ...(clue?.metadata || {}),
+        ...existingMetadata,
         clueType: values.clueType || "text",
         assetId: values.assetId || null,
         importance: values.importance || "normal",
         grantMode: values.grantMode || "auto",
-        locationId: values.locationId || null,
         segmentKey: resolvedSegmentKey,
         allowUnbound,
         triggerNote: values.triggerNote || ""

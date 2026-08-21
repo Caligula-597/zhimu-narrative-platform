@@ -34,7 +34,6 @@ import { describeSyncDiagnostics } from "../../shared/sync-diagnostics.js";
   const taskAction = U.taskAction || (() => "");
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
-  const voiceOption = U.voiceOption || (() => "");
   const showError = S.showError;
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -300,7 +299,6 @@ export function overview() {
           <p class="invite-hint">发给玩家：<a href="${escapeHtml(playJoinUrl)}" target="_blank" rel="noopener">${escapeHtml(playJoinUrl)}</a></p>
         </div>` : hasRooms && !hasActiveRoom ? `
         <p class="invite-hint">已建立 ${rooms.length} 个平行房。请点下方「管理运行房」选中房间，即可查看并复制邀请码。</p>` : "";
-  const showCatalogPromo = !loading && !studio && Boolean(window.zhimuSessionAuth?.isAuthenticated?.());
   const firstRunChooser = window.zhimuFirstRun?.renderFirstRunChooser?.() || "";
   const onboardingStrip = firstRunChooser ? "" : (window.zhimuOnboarding?.renderOnboardingStrip?.() || "");
   return `
@@ -308,7 +306,6 @@ export function overview() {
     ${firstRunChooser}
     ${onboardingStrip}
     ${studioEmptyBanner}
-    ${showCatalogPromo ? U.catalogPromoSection?.() || "" : ""}
     <section class="hero">
       <article class="hero-card">
         <p class="eyebrow">CURRENT WORLD · ONLINE</p>

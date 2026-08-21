@@ -1,14 +1,4 @@
 import { registerWorldRoutes } from "./routes/world-routes.js";
-import { registerWorldReadinessRoutes } from "./routes/world-readiness-routes.js";
-import { registerWorldWizardRoutes } from "./routes/world-wizard-routes.js";
-import { registerCreatorRoutes } from "./routes/creator-routes.js";
-import { registerScriptBundleRoutes } from "./routes/script-bundle-routes.js";
-import { registerRulesRoutes } from "./routes/rules-routes.js";
-import { registerContentPackageRoutes } from "./routes/content-package-routes.js";
-import { registerStudioRoutes } from "./routes/studio-routes.js";
-import { registerStoryManuscriptRoutes } from "./routes/story-manuscript-routes.js";
-import { registerStoryAssistantRoutes } from "./routes/story-assistant-routes.js";
-import { registerStudioGraphRoutes } from "./routes/studio-graph-routes.js";
 import { registerCheckpointRoutes } from "./routes/checkpoint-routes.js";
 import { registerRecapRoutes } from "./routes/recap-routes.js";
 import { registerRoomEventsRoutes } from "./routes/room-events-routes.js";
@@ -21,23 +11,16 @@ import { registerPhysicalTokenRoutes } from "./routes/physical-token-routes.js";
 import { registerSearchRoutes } from "./routes/search-routes.js";
 import { registerFeedbackRoutes } from "./routes/feedback-routes.js";
 import { registerBatchBRoutes } from "./routes/batch-b-routes.js";
-import { registerContentPlatformRoutes } from "./routes/content-platform-routes.js";
-import { registerCreatorBibleRoutes } from "./routes/creator-bible-routes.js";
-import { registerCreatorBootstrapRoutes } from "./routes/creator-bootstrap-routes.js";
 import { registerRuntimeProjectionRoutes } from "./routes/runtime-projection-routes.js";
+import { registerMurderMysteryProductRoutes } from "./routes/products/murder-mystery-routes.js";
+import { registerTabletopRpgProductRoutes } from "./routes/products/tabletop-rpg-routes.js";
+import { registerBoardGameProductRoutes } from "./routes/products/board-game-routes.js";
 
 export async function registerRoutes(app) {
   await registerWorldRoutes(app);
-  await registerWorldReadinessRoutes(app);
-  await registerWorldWizardRoutes(app);
-  await registerCreatorRoutes(app);
-  await registerScriptBundleRoutes(app);
-  await registerRulesRoutes(app);
-  await registerContentPackageRoutes(app);
-  await registerStudioRoutes(app);
-  await registerStoryManuscriptRoutes(app);
-  await registerStoryAssistantRoutes(app);
-  await registerStudioGraphRoutes(app);
+  await app.register(registerMurderMysteryProductRoutes);
+  await app.register(registerTabletopRpgProductRoutes);
+  await app.register(registerBoardGameProductRoutes);
   await registerSearchRoutes(app);
   await registerHostRoutes(app);
   await registerCheckpointRoutes(app);
@@ -51,7 +34,4 @@ export async function registerRoutes(app) {
   await registerPhysicalTokenRoutes(app);
   await registerFeedbackRoutes(app);
   await registerBatchBRoutes(app);
-  await registerContentPlatformRoutes(app);
-  await registerCreatorBibleRoutes(app);
-  await registerCreatorBootstrapRoutes(app);
 }

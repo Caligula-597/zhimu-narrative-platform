@@ -310,6 +310,47 @@ const contentVisibility = { type: "string", enum: ["author", "host", "role", "fa
 export const bibleRoleSlotParams = paramsSchema({ worldId: uuid, roleSlotId: uuid });
 export const bibleBeatIdParams = paramsSchema({ worldId: uuid, beatId: uuid });
 export const bibleEventIdParams = paramsSchema({ worldId: uuid, eventId: uuid });
+export const bibleBookletIdParams = paramsSchema({ worldId: uuid, bookletId: uuid });
+
+export const postMaterialBookletSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      kind: { type: "string", enum: ["diary", "catalog", "manual", "prop_book", "other"] },
+      title: { type: "string", maxLength: 200 },
+      summary: { type: "string", maxLength: 4000 },
+      ownerRoleSlotId: contentOptionalUuid,
+      phaseLabel: { type: "string", maxLength: 80 },
+      chapterId: contentOptionalUuid,
+      visibility: { type: "string", enum: ["host_only", "owner_role", "shared_roles", "public_table"] },
+      pages: {
+        type: "array",
+        maxItems: 80,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            pageLabel: { type: "string", maxLength: 80 },
+            title: { type: "string", maxLength: 200 },
+            body: { type: "string", maxLength: 12000 },
+            sequence: { type: "integer", minimum: 1, maximum: 999 }
+          }
+        }
+      },
+      linkedClueIds: { type: "array", maxItems: 48, items: uuid },
+      linkedRoleSlotIds: { type: "array", maxItems: 48, items: uuid },
+      sequence: { type: "integer", minimum: 1, maximum: 999 },
+      metadata: contentMetadataObject
+    }
+  }
+};
+
+export const patchMaterialBookletSchema = {
+  params: bibleBookletIdParams,
+  body: postMaterialBookletSchema.body
+};
 
 export const patchCoreTrickSchema = {
   params: worldIdParams,
@@ -345,6 +386,19 @@ export const patchRoleArchiveSchema = {
       arc: contentMetadataObject,
       lies: { type: "array", maxItems: 12, items: { type: "string", maxLength: 2000 } },
       actTasks: { type: "array", maxItems: 24, items: contentMetadataObject },
+      appearanceStates: {
+        type: "array",
+        maxItems: 48,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            phaseLabel: { type: "string", maxLength: 80 },
+            appearance: { type: "string", maxLength: 2000 },
+            notes: { type: "string", maxLength: 2000 }
+          }
+        }
+      },
       metadata: contentMetadataObject
     }
   }
@@ -498,7 +552,7 @@ export const startMiniGameSchema = {
     additionalProperties: false,
     required: ["answer"],
     properties: {
-      gameType: { type: "string", enum: ["zhimu_lock"] },
+      gameType: { type: "string", enum: ["zhimu_lock", "zhimu_sequence", "zhimu_guess"] },
       title: { type: "string", maxLength: 120 },
       prompt: { type: "string", maxLength: 500 },
       hint: { type: "string", maxLength: 500 },
@@ -507,7 +561,7 @@ export const startMiniGameSchema = {
       maxAttempts: { type: "integer", minimum: 1, maximum: 12 },
       max_attempts: { type: "integer", minimum: 1, maximum: 12 },
       protocolVersion: { type: "integer", enum: [1] },
-      pluginKey: { type: "string", enum: ["zhimu_lock"] },
+      pluginKey: { type: "string", enum: ["zhimu_lock", "zhimu_sequence", "zhimu_guess"] },
       timeoutSeconds: { type: "integer", minimum: 0, maximum: 86400 },
       allowRecovery: { type: "boolean" },
       successText: { type: "string", maxLength: 1000 },

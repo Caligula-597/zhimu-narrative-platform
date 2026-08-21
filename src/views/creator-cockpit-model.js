@@ -2,10 +2,6 @@
  * Creator cockpit — stage defs and factual item observations (no design judgment).
  */
 import { creativeConstitutionCoverage } from "../../shared/creative-constitution.js";
-import {
-  isStorySpineEmpty,
-  storySpineCoverage
-} from "../../shared/story-spine.js";
 
 export function creatorCockpitAccessMode(role = "") {
   if (role === "owner" || role === "editor" || !role) return "creator";
@@ -19,7 +15,6 @@ export const STAGE_DEFS = [
     short: "概念",
     subtitle: "故事总览、灵感、梗概、创作宪法、核心卖点、商业定位",
     items: [
-      { id: "story", title: "故事总览", link: { canvas: "story" } },
       { id: "spark", title: "灵感卡", link: { canvas: "inspiration" } },
       { id: "logline", title: "一句话梗概", link: { canvas: "logline", view: "settings", label: "世界设置" } },
       { id: "constitution", title: "创作宪法", link: { canvas: "constitution", view: "constitution", label: "创作宪法" } },
@@ -47,8 +42,7 @@ export const STAGE_DEFS = [
     items: [
       { id: "profiles", title: "角色与分幕", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } },
       { id: "arcs", title: "分幕与发布", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } },
-      { id: "foreshadow", title: "谜底与伏笔", link: { canvas: "profiles", view: "truth", label: "谜底与关系" } },
-      { id: "player-preview", title: "玩家视角", link: { canvas: "preview", action: "creator-preview", label: "预览私人分幕" } }
+      { id: "foreshadow", title: "谜底与伏笔", link: { canvas: "profiles", view: "truth", label: "谜底与关系" } }
     ]
   },
   {
@@ -79,10 +73,10 @@ export const STAGE_DEFS = [
     id: "launch",
     title: "测试与发布",
     short: "测试",
-    subtitle: "剧情诊断、AI 玩家试跑、运行房、系统检查、跑局数据",
+    subtitle: "结构诊断、机器压力测试、真人运行房、系统检查、跑局数据",
     items: [
       { id: "diagnostics", title: "作品诊断", link: { canvas: "diagnostics", view: "diagnostics", label: "作品诊断中心" } },
-      { id: "ai-playtest", title: "AI 玩家试跑", link: { canvas: "ai-playtest", view: "playtest", label: "玩家试跑实验室" } },
+      { id: "ai-playtest", title: "机器压力测试", link: { canvas: "ai-playtest", view: "playtest", label: "打开压力测试" } },
       { id: "test-room", title: "测试运行房", link: { canvas: "test", action: "world-rooms", label: "管理运行房" } },
       { id: "feedback", title: "跑局数据", link: { canvas: "feedback", view: "insights", label: "完整数据页" } },
       { id: "readiness", title: "系统检查", link: { canvas: "readiness", action: "creator-check", label: "刷新检查" } }
@@ -91,16 +85,15 @@ export const STAGE_DEFS = [
 ];
 
 export const CANVAS_MODES = {
-  concept: ["story", "inspiration", "logline", "constitution", "selling", "positioning", "overview"],
+  concept: ["inspiration", "logline", "constitution", "selling", "positioning", "overview"],
   architecture: ["trick", "relations", "timeline"],
-  characters: ["profiles", "arcs", "preview"],
+  characters: ["profiles", "arcs"],
   flow: ["beats", "matrix", "sandbox"],
   manuscript: ["writing", "cards", "package"],
   launch: ["diagnostics", "ai-playtest", "test", "feedback", "readiness"]
 };
 
 export const CANVAS_LABELS = {
-  story: "故事总览",
   inspiration: "灵感",
   logline: "梗概",
   constitution: "宪法",
@@ -112,7 +105,6 @@ export const CANVAS_LABELS = {
   timeline: "章节",
   profiles: "角色",
   arcs: "分幕",
-  preview: "视角",
   beats: "Segment",
   matrix: "线索矩阵",
   sandbox: "主持预演",
@@ -120,7 +112,7 @@ export const CANVAS_LABELS = {
   cards: "物料",
   package: "交付包",
   diagnostics: "作品诊断",
-  "ai-playtest": "AI 试跑",
+  "ai-playtest": "机器压力测试",
   test: "测试房",
   feedback: "跑局数据",
   readiness: "系统检查"
@@ -139,11 +131,8 @@ function itemPresence(id, ctx) {
     studio?.world?.settings?.creativeConstitution,
     studio?.roles || []
   );
-  const storySpine = studio?.world?.settings?.storySpine;
 
   switch (id) {
-    case "story":
-      return isStorySpineEmpty(storySpine) ? "empty" : "present";
     case "spark":
       return sparks.length ? "present" : "empty";
     case "logline":
@@ -168,8 +157,6 @@ function itemPresence(id, ctx) {
       return counts.sections > 0 ? (publishedSections > 0 ? "present" : "partial") : "empty";
     case "foreshadow":
       return truthClaims.length || relationships.length ? "present" : "empty";
-    case "player-preview":
-      return counts.sections > 0 ? "present" : "empty";
     case "beats":
       return segments.length ? "present" : counts.chapters > 0 ? "partial" : "empty";
     case "clue-matrix":
@@ -214,12 +201,8 @@ function itemObservation(id, ctx) {
     studio?.world?.settings?.creativeConstitution,
     studio?.roles || []
   );
-  const storyCoverage = storySpineCoverage(studio?.world?.settings?.storySpine);
 
   const map = {
-    story: storyCoverage.filled
-      ? `${storyCoverage.score}% 主干覆盖 · ${storyCoverage.confirmed} 项作者确认 · ${storyCoverage.unresolved} 项待决定`
-      : "尚未把已填写材料组装成整体故事",
     spark: sparks.length ? `${sparks.length} 张灵感卡` : "尚无灵感卡",
     logline: summary ? `${summary.length} 字 · 与世界简介同步` : "世界简介为空",
     constitution: constitutionCoverage.filled
@@ -236,7 +219,6 @@ function itemObservation(id, ctx) {
     profiles: `${counts.roles || 0} 角色 · ${counts.sections || 0} 分幕`,
     arcs: `${counts.sections || 0} 分幕 · ${pub} 非草稿发布态`,
     foreshadow: `${truthClaims.length} 断言 · ${relationships.length} 关系`,
-    "player-preview": `${counts.sections || 0} 分幕可预览`,
     beats: `${segments.length} Segment · ${segWithFlow} 含 runbook 字段`,
     "clue-matrix": `${counts.clues || 0} 线索 · ${counts.roles || 0} 角色`,
     mechanics: `${counts.enabledRules || 0} 条启用规则`,
@@ -250,7 +232,7 @@ function itemObservation(id, ctx) {
       : "尚未运行作品诊断",
     "ai-playtest": playtest
       ? `${playtest.report?.players?.length || 0} 个席位 · ${playtest.issueCount ?? playtest.report?.issues?.length ?? 0} 个问题`
-      : "尚未运行多 AI 玩家试跑",
+      : "尚未运行机器压力测试",
     "test-room": `${counts.rooms || 0} 个运行房`,
     feedback: "跑局完成率与线索命中统计",
     readiness: checks.length ? `系统检查 ${checks.length} 条 · error ${err} · warning ${warn}` : "尚未运行系统检查"
@@ -317,6 +299,7 @@ export function buildContentOverview(ctx) {
     ["真相 / 关系", `${bc.truthClaims ?? truthClaims.length} / ${bc.relationships ?? relationships.length}`],
     ["案件时间线", `${bc.timelineEvents ?? 0} 条`],
     ["伏笔", `${bc.foreshadowBeats ?? 0} 条`],
+    ["平行物料册", `${bc.materialBooklets ?? 0} 册`],
     ["角色档案", `${bc.roleArchivesFilled ?? 0} / ${bc.roleArchives ?? 0} 有内容`],
     ["角色 / 分幕", `${counts.roles || 0} / ${counts.sections || 0}`],
     ["章节 / 场景", `${counts.chapters || 0} / ${counts.scenes || 0}`],
@@ -369,9 +352,7 @@ export function defaultDraft(studio) {
     magicNote: brief.magicNote || "此处展示作品数据与内容预览，不对剧情设计作评判。",
     copilotQuery: "",
     lastAnalysis: null,
-    lastAiNote: "",
-    storySpineCandidate: null,
-    storySpineAssembling: false
+    lastAiNote: ""
   };
 }
 
@@ -386,9 +367,7 @@ export function mergeDraftFromSources(parsed, studio) {
     selectedSegmentId: parsed.selectedSegmentId ?? base.selectedSegmentId,
     copilotQuery: parsed.copilotQuery ?? base.copilotQuery,
     lastAnalysis: parsed.lastAnalysis ?? base.lastAnalysis,
-    lastAiNote: parsed.lastAiNote ?? base.lastAiNote,
-    storySpineCandidate: parsed.storySpineCandidate ?? base.storySpineCandidate,
-    storySpineAssembling: false
+    lastAiNote: parsed.lastAiNote ?? base.lastAiNote
   };
 }
 

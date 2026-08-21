@@ -13,7 +13,7 @@ import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
 import { callView } from "./src/runtime/view-registry.js";
 import { uiStore, studioStore, userStore, worldStore } from "./src/state/index.js";
 import { createContentRenderer, renderPageUpdated, renderStudioLoading, renderViewError, renderViewLoading } from "./src/bootstrap/render-shell.js";
-import { narrativeProfileFromSettings } from "./shared/narrative-profile.js";
+import { narrativeProfileFromWorld } from "./shared/narrative-profile.js";
 import { productAllowsShellView, productHomeView } from "./shared/product-capabilities.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
@@ -31,7 +31,7 @@ const appEntry = (function (window) {
     const previewWorld = cloudWorkspacePreview?.world?.id === activeWorldId ? cloudWorkspacePreview.world : null;
     const listedWorld = (cloudWorlds || []).find((world) => world.id === activeWorldId);
     const world = studioWorld || previewWorld || listedWorld;
-    return world ? narrativeProfileFromSettings(world.settings || {}) : null;
+    return world ? narrativeProfileFromWorld(world) : null;
   }
 
   function render() {

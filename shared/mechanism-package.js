@@ -5,6 +5,8 @@ import {
 } from "./mechanism-interactions.js";
 
 export const MECHANISM_PACKAGE_SCHEMA_VERSION = 1;
+/** Convention key for in-room economy stubs (auction / silver / tickets). */
+export const CURRENCY_RESOURCE_KEY = "currency";
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
 const asObject = (value) =>
@@ -14,6 +16,20 @@ const cleanKey = (value) =>
     .trim()
     .slice(0, 120);
 const clone = (value) => JSON.parse(JSON.stringify(value ?? null));
+
+export function ensureCurrencyResource(resources) {
+  const list = asArray(resources).map((row) => clone(row));
+  if (list.some((row) => cleanKey(row?.key) === CURRENCY_RESOURCE_KEY)) return list;
+  list.push({
+    key: CURRENCY_RESOURCE_KEY,
+    name: "货币",
+    valueType: "integer",
+    initialValue: 0,
+    minimum: 0,
+    maximum: null,
+  });
+  return list;
+}
 
 function uniqueByKey(rows, label) {
   const seen = new Set();
@@ -186,30 +202,44 @@ function compileActions(players) {
 }
 
 function compileInvestigationActions(evidenceRows) {
-  return asArray(evidenceRows).map((evidence) => ({
-    key: cleanKey(`investigate-${evidence?.key || "evidence"}`),
-    roundKey: cleanKey(evidence?.availableChapterKey),
-    evidenceKey: cleanKey(evidence?.key),
-    sourceOwnerRoleKey: cleanKey(evidence?.sourceOwnerRoleKey),
-    action: String(evidence?.obtainedBy ?? "").trim(),
-    operation: String(
-      evidence?.methodOperation ?? evidence?.collectionMethod ?? "",
-    ).trim(),
-    input: {
-      originRootKeys: asArray(evidence?.originRootKeys)
-        .map(cleanKey)
-        .filter(Boolean),
-      storageEntityKey: cleanKey(evidence?.storageEntityKey),
-      methodDomain: String(evidence?.methodDomain ?? "").trim(),
-    },
-    success: {
-      unlocksEvidenceKeys: cleanKey(evidence?.key)
-        ? [cleanKey(evidence.key)]
-        : [],
-      artifactProduced: String(evidence?.artifactProduced ?? "").trim(),
-    },
-    failure: null,
-  }));
+  return asArray(evidenceRows).map((evidence) => {
+    const costResourceKey = cleanKey(
+      evidence?.costResourceKey ?? evidence?.searchCostResourceKey,
+    );
+    const costAmount = Math.max(
+      0,
+      Number(evidence?.costAmount ?? evidence?.searchCostAmount) || 0,
+    );
+    return {
+      key: cleanKey(`investigate-${evidence?.key || "evidence"}`),
+      roundKey: cleanKey(evidence?.availableChapterKey),
+      evidenceKey: cleanKey(evidence?.key),
+      sourceOwnerRoleKey: cleanKey(evidence?.sourceOwnerRoleKey),
+      action: String(evidence?.obtainedBy ?? "").trim(),
+      operation: String(
+        evidence?.methodOperation ?? evidence?.collectionMethod ?? "",
+      ).trim(),
+      maxUses: Math.max(1, Math.min(99, Number(evidence?.maxUses) || 1)),
+      cost:
+        costResourceKey && costAmount > 0
+          ? { resourceKey: costResourceKey, amount: costAmount }
+          : null,
+      input: {
+        originRootKeys: asArray(evidence?.originRootKeys)
+          .map(cleanKey)
+          .filter(Boolean),
+        storageEntityKey: cleanKey(evidence?.storageEntityKey),
+        methodDomain: String(evidence?.methodDomain ?? "").trim(),
+      },
+      success: {
+        unlocksEvidenceKeys: cleanKey(evidence?.key)
+          ? [cleanKey(evidence.key)]
+          : [],
+        artifactProduced: String(evidence?.artifactProduced ?? "").trim(),
+      },
+      failure: null,
+    };
+  });
 }
 
 function compileBranchFragments(outline) {
@@ -294,7 +324,7 @@ export function compileMechanismPackage(
     ),
     eventLedger: clone(asArray(value.causalTimeline)),
     stateRegistry: clone(asArray(value.endingLogic?.stateVariables)),
-    resourceRegistry: clone(asArray(value.resources)),
+    resourceRegistry: ensureCurrencyResource(asArray(value.resources)),
     rounds: beats.map(compileRound),
     actions: compileActions(value.players),
     investigationActions: compileInvestigationActions(evidence),
@@ -547,6 +577,20 @@ export function assertMechanismPackage(packageValue) {
       throw new TypeError(
         `Investigation ${action.key} references unknown evidence ${action.evidenceKey}`,
       );
+    }
+    const maxUses = Math.max(1, Math.min(99, Number(action.maxUses) || 1));
+    action.maxUses = maxUses;
+    if (action.cost) {
+      const costKey = cleanKey(action.cost.resourceKey);
+      const costAmount = Math.max(0, Number(action.cost.amount) || 0);
+      if (!costKey || !resourceKeys.has(costKey)) {
+        throw new TypeError(
+          `Investigation ${action.key} cost references unknown resource ${costKey || "(empty)"}`,
+        );
+      }
+      action.cost = { resourceKey: costKey, amount: costAmount };
+    } else {
+      action.cost = null;
     }
     for (const [outcome, branch] of [
       ["success", action.success],

@@ -51,7 +51,7 @@ import { callView } from "./view-registry.js";
         callRuntime("deleteWorld", el?.dataset?.worldId, el?.dataset?.worldName);
         return true;
       case "world-rename":
-        callRuntime("openRenameWorldModal", el?.dataset?.worldId, el?.dataset?.worldName, el?.dataset?.worldSummary, true);
+        callRuntime("openRenameWorldModal", el?.dataset?.worldId, el?.dataset?.worldName, el?.dataset?.worldSummary, true, el?.dataset?.worldProduct);
         return true;
       case "room-select":
         callView("rooms", "selectParallelRoom", el?.dataset?.roomId);
@@ -136,9 +136,6 @@ import { callView } from "./view-registry.js";
       case "dismiss-first-run":
         window.zhimuFirstRun?.dismiss?.();
         render();
-        return true;
-      case "open-play-official":
-        window.open(window.zhimuFirstRun?.playOfficialUrl?.() || "https://play.getzhimu.com/?experience=official", "_blank", "noopener,noreferrer");
         return true;
       case "toggle-nav-advanced": {
         const panel = document.getElementById("nav-advanced");

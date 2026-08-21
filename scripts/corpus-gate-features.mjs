@@ -46,6 +46,33 @@ export const FEATURE_SPECS = [
   { key: "playable_object_per_10k", label: "可交换物提及 / 万字", format: "per10k" }
 ];
 
+export const FEATURE_OCR_SENSITIVITY = {
+  single_sentence_paragraph_ratio: "high",
+  short_paragraph_ratio: "high",
+  dialogue_char_ratio: "high",
+  max_consecutive_dialogue_turns: "high",
+  consecutive_qa_handoffs_per_10k: "medium",
+  quoted_new_token_ratio: "high",
+  cognition_verb_per_10k: "medium",
+  exact_clock_per_10k: "medium",
+  time_word_per_10k: "medium",
+  task_instruction_ratio: "low",
+  ending_ngram_overlap: "medium",
+  top_entity_centrality: "low",
+  top_entity_window10: "low",
+  solitude_span_ratio: "high",
+  pending_item_per_10k: "medium",
+  scene_summary_per_10k: "medium",
+  hideable_marker_per_10k: "medium",
+  resource_marker_per_10k: "low",
+  investigate_task_per_10k: "low",
+  work_process_per_10k: "low",
+  mean_paragraph_chars: "high",
+  mean_sentence_chars: "high",
+  question_per_10k: "medium",
+  playable_object_per_10k: "low"
+};
+
 function compact(value) {
   return String(value || "").replace(/\s+/gu, "");
 }
@@ -256,19 +283,19 @@ export function formatFeature(spec, value) {
 export function renderCorpusDashboard({ works, peerGroup = "role_book" }) {
   const groupNames = [...new Set(works.map((work) => work.peerGroup || peerGroup))];
   const lines = [
-    "# 真实剧本校准门禁（检测仪）",
+    "# 真实剧本校准（检测仪，不是门禁）",
     "",
-    "这不是评分表。区间只在同一玩法组内比较：机制本不跟情感本、推理本混成一个平均数。",
+    "暂停用单轴百分比报警。扫描本与电子本不同权；高 OCR 敏感指标只看 A/B 文本。发牌不再和交谈互斥。",
     "",
     `特征版本：${CORPUS_GATE_FEATURE_VERSION}`,
     "",
     "## 覆盖",
     "",
-    "| 作品 | 同行组 | 字数 | 来源 | 缓存命中 | 待识别 |",
+    "| 作品 | 可靠度 | 字数 | 来源 | 缓存命中 | 待识别 |",
     "|---|---|---:|---|---:|---:|"
   ];
   for (const work of works) {
-    lines.push(`| ${work.title} | ${work.peerGroup || ""} | ${work.features?.values?.chars || 0} | ${work.methods?.join("、") || ""} | ${work.cacheHits || 0} | ${work.pending || 0} |`);
+    lines.push(`| ${work.title} | ${work.reliability || ""} | ${work.features?.values?.chars || 0} | ${work.methods?.join("、") || ""} | ${work.cacheHits || 0} | ${work.pending || 0} |`);
   }
   for (const group of groupNames) {
     const peers = works.filter((work) => (work.peerGroup || peerGroup) === group && work.features);
@@ -282,25 +309,19 @@ export function renderCorpusDashboard({ works, peerGroup = "role_book" }) {
     for (const spec of FEATURE_SPECS) {
       const interval = peerInterval(peers.map((work) => work.features), spec.key);
       const range = interval ? `${formatFeature(spec, interval.p10)}–${formatFeature(spec, interval.p90)}` : "—";
-      const cells = peers.map((work) => {
-        const value = work.features.values[spec.key];
-        if (peers.length < 3) return formatFeature(spec, value);
-        const status = statusAgainstPeer(value, interval);
-        const mark = status === "extreme" ? "🔴" : status === "high" ? "🟠" : status === "in_range" ? "🟢" : "⚪";
-        return `${mark} ${formatFeature(spec, value)}`;
-      });
+      const cells = peers.map((work) => formatFeature(spec, work.features.values[spec.key]));
       lines.push(`| ${spec.label} | ${range} | ${cells.join(" | ")} |`);
     }
-    if (peers.length < 3) lines.push("", "样本不足 3 部，只列出数值，不标红。");
+    if (peers.length < 3) lines.push("", "样本不足，只列出数值。不设通过线。");
   }
   lines.push(
     "",
     "## 怎么读",
     "",
-    "- 引号统计只是启发式。种类占比以通读划分为准：模型只能打标签，不能改字。",
-    "- 先看覆盖：扫描件没识别完时，数字只代表已缓存页。",
-    "- 组内比较才有意义。机制本对白少、推理本问答链高，都可能是类型差，不是 AI 病。",
-    "- 大量真人样本都踩中的旧规则，降级成提示，不要当硬门禁。",
+    "- 引号、单句段、气氛比例对 OCR 高敏感，D/E 本不进这些基线。",
+    "- 实体中心度、金额、共现对 OCR 较不敏感，扫描本仍可参考。",
+    "- 样本太少，不设 conversation 20%–35% 这类通过线。",
+    "- v1「发牌」与交谈互斥，已停用。新事实怎么进来看四轴样本。",
     ""
   );
   return lines.join("\n");

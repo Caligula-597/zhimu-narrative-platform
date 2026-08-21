@@ -22,14 +22,14 @@ export default {
       command: "node scripts/browser-fixture-api.mjs",
       cwd: root,
       url: "http://127.0.0.1:4180/api/health",
-      reuseExistingServer: true,
+      reuseExistingServer: false,
       timeout: 120_000
     },
     {
-      command: "npm run dev -- --host 127.0.0.1 --port 4173",
+      command: "npm run dev -- --host 127.0.0.1 --port 4173 --strictPort",
       cwd: root,
       url: "http://127.0.0.1:4173/",
-      reuseExistingServer: true,
+      reuseExistingServer: false,
       timeout: 120_000
     }
   ]

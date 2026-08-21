@@ -64,6 +64,10 @@ test("board-game readiness describes the minimum playable prototype", () => {
   const mechanism = createBoardGameMechanism("resource_cost", [variable]);
   const component = createBoardGameComponent("board");
   const readiness = assessBoardGameReadiness({
+    seats: [
+      { id: "seat-1", name: "玩家 1", sequence: 1 },
+      { id: "seat-2", name: "玩家 2", sequence: 2 }
+    ],
     components: [component],
     variables: [variable],
     mechanisms: [mechanism],
@@ -81,7 +85,7 @@ test("board-game readiness describes the minimum playable prototype", () => {
       endCondition: "有人抵达终点",
       tieBreak: "剩余资源较多者胜"
     }
-  }, 6);
+  });
   assert.equal(readiness.ready, true);
   assert.equal(readiness.passed, readiness.total);
 });

@@ -24,12 +24,10 @@ test("unrelated studio errors retain their original identity", () => {
 test("bulk clue path binding requires one explicit discovery decision", () => {
   assert.deepEqual(normalizeCluePathBinding({
     clueIds: ["clue-1", "clue-1", "clue-2"],
-    locationId: "library",
     segmentKey: "ch2",
     allowUnbound: false
   }), {
     clueIds: ["clue-1", "clue-2"],
-    locationId: "library",
     segmentKey: "ch2",
     allowUnbound: false
   });
@@ -40,7 +38,7 @@ test("bulk clue path binding requires one explicit discovery decision", () => {
   assert.throws(
     () => normalizeCluePathBinding({
       clueIds: ["clue-1"],
-      locationId: "library",
+      segmentKey: "ch2",
       allowUnbound: true
     }),
     (error) => error.code === "CLUE_PATH_INVALID"

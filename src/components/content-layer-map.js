@@ -36,7 +36,7 @@ export function contentLayerMapHtml({ open = false } = {}) {
       <strong>内容层级</strong>
       <span class="content-layer-summary-hint">母稿 → 章节 → 私人分幕 → 剧情编排 → 运行段落 → 自动化规则</span>
     </summary>
-    <p class="content-layer-lede">它们是上下游，不是多套真相。日常写本走驾驶舱六阶段；需要啃某一层时再进对应精细编辑器。</p>
+    <p class="content-layer-lede">它们是上下游，不是多套真相。创作者可从任意已有材料进入；需要处理某一层时再进对应精细编辑器。</p>
     <ol class="content-layer-steps">${steps}</ol>
   </details>`;
 }

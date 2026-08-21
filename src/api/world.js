@@ -106,22 +106,6 @@ export function createWorld(payload) {
   return request("/worlds", { userId: demoContext.hostUserId, method: "POST", body: payload });
 }
 
-export function bootstrapWorldFromWizard(payload) {
-  return request("/worlds/wizard/bootstrap", { userId: demoContext.hostUserId, method: "POST", body: payload });
-}
-
-export function getWorldTemplates() {
-  return request("/platform/world-templates", { userId: demoContext.hostUserId });
-}
-
-export function createWorldFromTemplate(templateId, payload = {}) {
-  return request(`/worlds/from-template/${encodeURIComponent(templateId)}`, {
-    userId: demoContext.hostUserId,
-    method: "POST",
-    body: payload
-  });
-}
-
 /* ── Members / invites ── */
 
 export async function getWorldCollaborators(worldId = demoContext.worldId) {
@@ -291,6 +275,22 @@ export function patchForeshadowBeat(beatId, payload, worldId = demoContext.world
 
 export function deleteForeshadowBeat(beatId, worldId = demoContext.worldId) {
   return worldWrite(`/worlds/${worldId}/bible/foreshadow-beats/${beatId}`, { worldId, method: "DELETE" });
+}
+
+export function getMaterialBooklets(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/material-booklets`, { userId: demoContext.hostUserId });
+}
+
+export function createMaterialBooklet(payload, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/bible/material-booklets`, { worldId, method: "POST", body: payload });
+}
+
+export function patchMaterialBooklet(bookletId, payload, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/bible/material-booklets/${bookletId}`, { worldId, method: "PATCH", body: payload });
+}
+
+export function deleteMaterialBooklet(bookletId, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/bible/material-booklets/${bookletId}`, { worldId, method: "DELETE" });
 }
 
 export function getTimelineEvents(worldId = demoContext.worldId) {

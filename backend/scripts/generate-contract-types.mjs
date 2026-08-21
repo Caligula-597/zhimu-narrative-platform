@@ -13,6 +13,7 @@ import {
 } from "../src/routes/schemas/host-communication.js";
 import { hostPlayerNotesSchema } from "../src/routes/schemas/host-player-management.js";
 import {
+  hostGrantBookletSchema,
   hostGrantClueSchema,
   hostRelockSectionSchema,
   hostResendClueSchema,
@@ -71,7 +72,6 @@ import {
   creatorReviewReplySchema,
   creatorVersionCompareSchema
 } from "../src/routes/schemas/creator-review.js";
-import { deepseekPipelineSpecSchema } from "../src/routes/schemas/ai.js";
 import {
   createPhysicalTokensSchema,
   createPlazaPostSchema,
@@ -106,6 +106,7 @@ const contracts = [
   ["SectionProgressResponse", sectionProgressResponseSchema],
   ["ReadClueParams", readClueSchema.params],
   ["HostGrantClueBody", hostGrantClueSchema.body],
+  ["HostGrantBookletBody", hostGrantBookletSchema.body],
   ["HostRevokeClueBody", hostRevokeClueSchema.body],
   ["HostResendClueBody", hostResendClueSchema.body],
   ["HostUnlockSectionBody", hostUnlockSectionSchema.body],
@@ -155,7 +156,6 @@ const contracts = [
   ["CreatorVersionCompareQuery", creatorVersionCompareSchema.querystring],
   ["CreateRuleBody", createRuleSchema.body],
   ["UpdateRuleBody", updateRuleSchema.body],
-  ["DeepseekPipelineSpecBody", deepseekPipelineSpecSchema.body],
   ["CreatePhysicalTokensBody", createPhysicalTokensSchema.body],
   ["SubmitBetaApplicationBody", submitBetaApplicationSchema.body],
   ["CreatePlazaPostBody", createPlazaPostSchema.body],

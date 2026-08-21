@@ -5,15 +5,22 @@
 import { query, transaction } from "./db.js";
 import { throwErr } from "./api-errors.js";
 import { generateRoomInviteCode } from "./room-invite-code.js";
+import { narrativeProfileFromSettings } from "../../shared/narrative-profile.js";
 
 const PLAY_MEMBERSHIP_ROLE = "viewer";
 
 export async function joinPublicCatalogWorld(actorId, worldId) {
   const world = await query(
-    `SELECT id, name, catalog_public, status FROM worlds WHERE id = $1`,
+    `SELECT id, name, catalog_public, status, settings FROM worlds WHERE id = $1`,
     [worldId]
   );
   if (!world.rowCount) throwErr("WORLD_NOT_FOUND");
+  const creationType = narrativeProfileFromSettings(world.rows[0].settings || {}).creationType;
+  if (creationType !== "murder_mystery") {
+    throwErr("WORLD_PRODUCT_MISMATCH", "公开体验运行房只属于剧本杀项目", {
+      expected: ["murder_mystery"], actual: creationType
+    });
+  }
   if (!world.rows[0].catalog_public || world.rows[0].status === "archived") {
     throwErr("CATALOG_NOT_PUBLIC");
   }

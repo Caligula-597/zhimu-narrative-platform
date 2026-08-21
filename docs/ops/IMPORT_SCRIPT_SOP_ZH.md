@@ -53,14 +53,6 @@
 3. 复核 `GET /api/worlds/:id/publish-readiness`（创作者检查清单）
 4. 开测试房并记录 `invite_code` 到 PILOT_TRACKER
 
-### C. AI 辅助（整本悬疑 pipeline，可选）
-
-1. 主应用 writer → **AI 剧本创作** 五步向导
-2. 人工审校生成结果后再发布分幕（`publication_status: testing`）
-3. 禁止未经审校直接对玩家房发布
-
----
-
 ## 3. 开房与交付
 
 | 步骤 | 操作 |

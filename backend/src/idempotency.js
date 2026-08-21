@@ -171,22 +171,3 @@ export async function awaitIdempotentReplay(roomId, idempotencyKey, routeKey, re
   }
   throw conflictError("Idempotent request is still processing", "IDEMPOTENCY_IN_PROGRESS");
 }
-
-/** @deprecated Prefer claim/complete flow via withRoomIdempotency */
-export async function loadIdempotentResponse(roomId, idempotencyKey) {
-  const row = await loadIdempotencyRow(roomId, idempotencyKey);
-  if (!row || row.status !== "completed") return null;
-  return row.response ?? null;
-}
-
-/** @deprecated Prefer claim/complete flow via withRoomIdempotency */
-export async function storeIdempotentResponse(roomId, idempotencyKey, routeKey, response) {
-  if (!idempotencyKey) return;
-  await runIdempotencyQuery(
-    `INSERT INTO write_idempotency (room_id, idempotency_key, route_key, status, response, updated_at)
-     VALUES ($1, $2, $3, 'completed', $4::jsonb, now())
-     ON CONFLICT (room_id, idempotency_key) DO UPDATE
-       SET status = 'completed', response = EXCLUDED.response, route_key = EXCLUDED.route_key, updated_at = now()`,
-    [roomId, idempotencyKey, routeKey, JSON.stringify(response)]
-  );
-}

@@ -12,7 +12,7 @@ const itemAction = {
     key: { type: "string", pattern: "^[a-z][a-z0-9_]{1,63}$" },
     label: { type: "string", minLength: 1, maxLength: 120, pattern: "\\S" },
     kind: { type: "string", enum: ["use", "consume", "combine"] },
-    targetType: { type: "string", enum: ["none", "role", "location"] },
+    targetType: { type: "string", enum: ["none", "role"] },
     requiresHostConfirmation: { type: "boolean" },
     consumeQuantity: { type: "integer", minimum: 0, maximum: 99 },
     combineConsumeQuantity: { type: "integer", minimum: 0, maximum: 99 },

@@ -1,12 +1,10 @@
 /** Re-export — import from ./email/index.js in new code. */
 export {
   clearTestEmailCapture,
-  clearTestResetCapture,
   getEmailProvider,
   getPublicEmailServiceStatus,
   getEmailServiceStatus,
   isEmailConfigured,
-  isResendConfigured,
   peekTestResetUrl,
   peekTestVerificationCode,
   peekTestVerifyUrl,

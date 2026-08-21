@@ -74,9 +74,6 @@ CLI：`node backend/scripts/approve-catalog-world.mjs <worldId>`（需 pending �
 | GET | `/api/worlds/:worldId/publish-readiness` | 结构化检查项 + `readyForPlaytest` / `readyForCatalog` |
 | GET | `/api/worlds/:worldId/creator-checks` | 兼容旧前端；含 `checks` + `summary` |
 | GET | `/api/platform/import-guide` | 导入格式、模式、会/不会生成什么 |
-| GET | `/api/platform/world-templates` | 内置剧本骨架模板列表 |
-| POST | `/api/worlds/wizard/bootstrap` | 向导一键创建：世界+角色+分幕+规则+测试房 |
-| POST | `/api/worlds/from-template/:templateId` | 从模板创建世界（可覆盖 name/summary 等） |
 
 公开库申请（`POST /api/worlds/:id/catalog/request`）会在提交前校验 `readyForCatalog`；未通过时返回 `CATALOG_READINESS_BLOCKED` 及缺失项列表。
 

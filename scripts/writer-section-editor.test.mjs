@@ -14,7 +14,7 @@ function fixture(overrides = {}) {
     publication_status: "draft"
   };
   const data = {
-    world: { id: "world-1", name: "雾港回声" },
+    world: { id: "world-1", name: "测试世界" },
     roles: [role],
     sections: [section],
     chapters: [{ id: "chapter-1", title: "序章" }]

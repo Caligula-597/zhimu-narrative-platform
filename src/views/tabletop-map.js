@@ -3,7 +3,7 @@ import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
-import { studioStore, worldStore } from "../state/index.js";
+import { worldStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import { bindTabletopMapCanvas } from "./tabletop-map-canvas.js";
 import {
@@ -28,6 +28,7 @@ import {
   startTabletopCombat,
   tabletopCombatState
 } from "../../shared/tabletop-system.js";
+import { narrativeProfileFromSettings } from "../../shared/narrative-profile.js";
 
 const escapeHtml = F.escapeHtml || ((value = "") => String(value));
 const LOCAL_DRAFT_PREFIX = "zhimuTabletopMapDraft";
@@ -138,10 +139,16 @@ function timestamp(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
+function activeTabletopWorld() {
+  const preview = worldStore.get().cloudWorkspacePreview?.world;
+  if (preview?.id === zhimuApi.context.worldId) return preview;
+  return (worldStore.get().cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId) || null;
+}
+
 function initializeSession() {
   const worldId = zhimuApi.context.worldId || "prototype";
   if (mapSession?.worldId === worldId) return mapSession;
-  const settings = studioStore.get().cloudStudio?.world?.settings || {};
+  const settings = activeTabletopWorld()?.settings || {};
   const cloud = settings.tabletopMapDesign;
   const cloudDesign = cloud ? normalizeMapDesign(cloud, { system: settings.tabletopSystem }) : null;
   const localDesign = readLocalDraft(settings.tabletopSystem);
@@ -319,7 +326,7 @@ function locationInspector(session, location) {
     <label class="map-field"><span>对应运行段落 Key</span><input class="field" maxlength="120" placeholder="例如 ch1；主持切换此段时自动定位" value="${escapeHtml(location.segmentKey || "")}" data-map-location-field="segmentKey"></label>
     <label class="map-field"><span>玩家可见描述</span><textarea class="field" rows="3" maxlength="360" data-map-location-field="description">${escapeHtml(location.description)}</textarea></label>
     <div class="map-effect-editor map-discovery-copy-editor">
-      <div><strong>玩家端探索文案</strong><small>版式和交互保持统一，这些措辞可以随剧本题材替换；数量文案必须保留 {count}</small></div>
+      <div><strong>玩家端探索文案</strong><small>版式和交互保持统一，这些措辞可以随模组题材替换；数量文案必须保留 {count}</small></div>
       <label class="map-field"><span>扫描状态</span><input class="field" maxlength="48" value="${escapeHtml(location.discovery?.scanLabel || "")}" data-map-location-discovery-field="scanLabel"></label>
       <label class="map-field"><span>等待提示</span><input class="field" maxlength="80" value="${escapeHtml(location.discovery?.scanHint || "")}" data-map-location-discovery-field="scanHint"></label>
       <label class="map-field"><span>解锁状态</span><input class="field" maxlength="48" value="${escapeHtml(location.discovery?.unlockLabel || "")}" data-map-location-discovery-field="unlockLabel"></label>
@@ -558,8 +565,12 @@ function inspector(session) {
 }
 
 export function tabletopMap() {
+  const world = activeTabletopWorld();
+  if (world && narrativeProfileFromSettings(world.settings || {}).creationType !== "tabletop_rpg") {
+    return `<section class="card"><h3>工作区不匹配</h3><p>跑团地图、判定与遭遇只属于跑团项目。</p></section>`;
+  }
   const session = initializeSession();
-  const worldName = studioStore.get().cloudStudio?.world?.name || "当前剧本";
+  const worldName = world?.name || "当前模组";
   const savedLabel = session.design.savedAt
     ? `上次保存：${new Date(session.design.savedAt).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
     : "尚未保存到云端";
@@ -1551,8 +1562,7 @@ export function simulateMapLocation(locationId) {
 export async function saveTabletopMap() {
   if (saving) return;
   const session = initializeSession();
-  const studio = studioStore.get().cloudStudio;
-  const world = studio?.world;
+  const world = activeTabletopWorld();
   const savedAt = new Date().toISOString();
   const design = normalizeMapDesign({ ...session.design, savedAt, updatedAt: savedAt });
   if (!world || !zhimuApi.context.worldId) {
@@ -1566,27 +1576,23 @@ export async function saveTabletopMap() {
   saving = true;
   render();
   try {
-    const settings = {
-      ...(world.settings || {}),
-      tabletopSystem: design.system,
-      tabletopMapDesign: design
-    };
-    const updated = await zhimuApi.patchWorld({ settings }, zhimuApi.context.worldId, { revision: world.content_revision });
+    const settingsPatch = { tabletopSystem: design.system, tabletopMapDesign: design };
+    const updated = await zhimuApi.patchWorld({ settings: settingsPatch }, zhimuApi.context.worldId, { revision: world.content_revision });
     const nextWorld = {
       ...world,
-      settings: updated.settings || settings,
+      settings: updated.settings || { ...(world.settings || {}), ...settingsPatch },
       content_revision: updated.content_revision ?? world.content_revision
     };
-    studioStore.set({ cloudStudio: { ...studio, world: nextWorld } });
     worldStore.set({
       cloudWorlds: (worldStore.get().cloudWorlds || []).map((item) => item.id === zhimuApi.context.worldId
         ? { ...item, settings: nextWorld.settings, content_revision: nextWorld.content_revision }
-        : item)
+        : item),
+      cloudWorkspacePreview: { world: nextWorld }
     });
     session.design = normalizeMapDesign(nextWorld.settings.tabletopMapDesign || design);
     session.dirty = false;
     persistLocalDraft({ immediate: true });
-    showToast("跑团地图草稿已保存到当前剧本");
+    showToast("跑团地图草稿已保存到当前模组");
   } catch (error) {
     showToast(error?.message || "地图草稿保存失败，请稍后重试");
   } finally {

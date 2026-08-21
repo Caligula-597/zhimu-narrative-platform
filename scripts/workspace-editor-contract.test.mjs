@@ -60,9 +60,6 @@ test("long creator editors no longer depend on the global modal surface", () => 
     "src/views/writer-collaboration-model.js",
     "src/views/writer-collaboration-view.js",
     "src/views/writer-collaboration-workspace.js",
-    "src/views/writer-player-preview-model.js",
-    "src/views/writer-player-preview-view.js",
-    "src/views/writer-player-preview-workspace.js",
     "src/views/writer-story-assistant-model.js",
     "src/views/writer-story-assistant-view.js",
     "src/views/writer-story-assistant-workspace.js"
@@ -71,9 +68,9 @@ test("long creator editors no longer depend on the global modal surface", () => 
     assert.doesNotMatch(source, /\bstudioModal\b|\bmodalBackdrop\b|from\s+["']\.\.\/dom\.js["']/, file);
   }
   assert.match(read("src/views/clues-editor.js"), /clue-workspace-editor/);
-  assert.match(read("src/views/clues-editor.js"), /归属地图地点/);
-  assert.match(read("src/views/clues-editor.js"), /locationId: values\.locationId \|\| null/);
-  assert.match(read("src/views/clues-editor.js"), /const resolvedSegmentKey = values\.segmentKey \|\| selectedLocation\?\.segmentKey \|\| null/);
+  assert.doesNotMatch(read("src/views/clues-editor.js"), /归属地图地点|tabletopMapDesign|selectedLocation/);
+  assert.match(read("src/views/clues-editor.js"), /locationId: _legacyLocationId/);
+  assert.match(read("src/views/clues-editor.js"), /const resolvedSegmentKey = values\.segmentKey \|\| null/);
   assert.match(read("src/views/clues-editor.js"), /segmentKey: resolvedSegmentKey/);
   assert.match(read("src/views/clues-editor.js"), /allowUnbound/);
   assert.match(read("src/views/mini-games.js"), /mini-game-workspace-editor/);
@@ -117,7 +114,6 @@ test("writer heavy tools use guarded full-page sessions", () => {
   assert.match(tools, /snapshot:\s*\(\)\s*=>\s*import\("\.\/writer-snapshot-workspace\.js"\)/);
   assert.match(tools, /review:\s*\(\)\s*=>\s*import\("\.\/writer-review-workspace\.js"\)/);
   assert.match(tools, /collaboration:\s*\(\)\s*=>\s*import\("\.\/writer-collaboration-workspace\.js"\)/);
-  assert.match(tools, /preview:\s*\(\)\s*=>\s*import\("\.\/writer-player-preview-workspace\.js"\)/);
   assert.match(tools, /"story-assistant":\s*\(\)\s*=>\s*import\("\.\/writer-story-assistant-workspace\.js"\)/);
   assert.match(session, /activeSession === session/);
   assert.match(session, /zhimuApi\.context\.worldId === session\.worldId/);
@@ -220,20 +216,6 @@ test("collaboration access uses one guarded lazy workspace instead of the global
   assert.match(controller, /session\.confirmAction/);
 });
 
-test("player preview uses Player visibility predicates in a guarded lazy workspace", () => {
-  const writer = read("src/views/writer.js");
-  const model = read("src/views/writer-player-preview-model.js");
-  const view = read("src/views/writer-player-preview-view.js");
-  const controller = read("src/views/writer-player-preview-workspace.js");
-  assert.match(writer, /openCreatorPreview\(roleId=""\)\{\s*return openPlayerPreviewWorkspace\(roleId\)/);
-  assert.doesNotMatch(writer, /preview-modal|data-preview-body|creatorPreviewModalHtml/);
-  assert.match(model, /evaluatePublishImpact/);
-  assert.match(model, /PLAYER_PREVIEW_MEMBERSHIP_ROLES/);
-  assert.match(view, /writer-player-preview-workspace/);
-  assert.match(view, /escapeHtml\(section\.body/);
-  assert.match(controller, /beginWriterToolSession\("preview"/);
-});
-
 test("rule creation enters the routed editor without an informational modal", () => {
   const actions = read("src/runtime/actions-rules.js");
   assert.doesNotMatch(actions, /openModal|components\/modal/);
@@ -283,11 +265,11 @@ test("studio create flows keep the graph visible and use one guarded editor", ()
 
 test("room management is a routed workspace with stale response protection", () => {
   const resolver = read("src/bootstrap/view-resolver.js");
-  const loader = read("src/runtime/view-loader.js");
+  const sharedManifest = read("src/products/shared-infrastructure/view-manifest.js");
   const roomView = read("src/views/rooms.js");
   const authWorld = read("src/runtime/auth-world.js");
   assert.match(resolver, /case "rooms"/);
-  assert.match(loader, /views\/rooms\.js/);
+  assert.match(sharedManifest, /views\/rooms\.js/);
   assert.match(authWorld, /openWorldRooms\(\)\{go\("rooms"\)\}/);
   assert.doesNotMatch(authWorld, /export async function createParallelRoom/);
   assert.match(roomView, /sequence !== loadSequence/);

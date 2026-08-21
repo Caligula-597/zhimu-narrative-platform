@@ -48,7 +48,7 @@ export function assetsPanelHtml(){
    const coverBadge=isCover?`<span class="cloud-pill" style="margin-left:8px">封面</span>`:"";
    const coverActions=canEdit&&a.asset_kind==="image"?`${isCover?`<button class="secondary-btn" data-action="clear-world-cover">取消封面</button>`:`<button class="secondary-btn" data-action="set-world-cover" data-asset="${a.id}">设为封面</button>`}`:"";
    return `<div class="cloud-asset-row"><div><strong>${escapeHtml(a.original_filename)}${coverBadge}</strong><p>${escapeHtml(assetKindLabel(a.asset_kind))} · ${formatBytes(a.byte_size)}</p></div><div class="row">${coverActions}<button class="secondary-btn" data-action="download-asset" data-asset="${a.id}">下载</button><button class="danger-btn" data-action="delete-asset" data-asset="${a.id}">移入回收站</button></div></div>`;
-  }).join(""):`<div class="empty-state enriched-empty">${recycle?"回收站为空。":q||kind?"没有匹配的附件。":"<p><strong>当前世界还没有上传附件</strong></p><p>附件会存储在 Cloudflare R2，可在剧情编排中关联到场景或线索。</p><ul class=\"empty-hints\"><li>支持图片、音频、PDF 等格式</li><li>上传后在编排台节点面板中关联</li><li>删除后进入 14 天回收站，可恢复</li></ul><div class=\"row\"><button class=\"primary-btn\" data-action=\"upload-asset\">↑ 上传首个附件</button><button class=\"secondary-btn\" data-action=\"open-creator-guide\">查看上传说明</button></div>"}</div>`;
+  }).join(""):`<div class="empty-state enriched-empty">${recycle?"回收站为空。":q||kind?"没有匹配的附件。":"<p><strong>当前世界还没有上传附件</strong></p><p>附件会存储在 Cloudflare R2，可在剧情编排中关联到场景或线索。</p><ul class=\"empty-hints\"><li>支持图片、音频与 Word（.docx）</li><li>上传后在编排台节点面板中关联</li><li>删除后进入 14 天回收站，可恢复</li></ul><div class=\"row\"><button class=\"primary-btn\" data-action=\"upload-asset\">↑ 上传首个附件</button><button class=\"secondary-btn\" data-action=\"open-creator-guide\">查看上传说明</button></div>"}</div>`;
   return `<div class="asset-toolbar"><div class="search-box"><span>⌕</span><input id="asset-search-input" placeholder="搜索文件名…" value="${escapeHtml(q)}"></div><div class="row"><button class="secondary-btn" data-action="upload-asset" ${recycle?"disabled":""}>↑ 上传云端附件</button></div></div>
   <article class="card" style="margin-bottom:14px"><div class="section-head"><div><h3>${listTitle}</h3><p>${listHint}</p></div><span class="cloud-pill">R2 · PRIVATE</span></div>${!recycle?`<div class="usage-bar"><i style="width:${pct}%"></i></div><div class="status-meta"><span>${usage?formatBytes(usage.usedBytes):"读取中"} / ${usage?formatBytes(usage.maxBytes):"500 MB"}</span><span>${pct}%</span></div>`:""}<div class="cloud-asset-list">${rows}</div></article>
   <div class="tabs">${tabs}${recycleBtn}</div>`;
@@ -161,9 +161,9 @@ export function openAssetUpload(options = {}){
  const coverMode=Boolean(options.setAsCover);
  const title=coverMode?"上传剧本封面":"上传云端附件";
  const desc=coverMode?"上传成功后会自动设为当前剧本封面。":"浏览器只会获得短期上传地址，不会接触永久密钥。";
- const strong=coverMode?"选择一张封面图片":"选择线索图片、音频、PDF 或 Word 文档";
- const hint=coverMode?"支持 PNG / JPG / WebP，建议横图。":"图片 ≤ 10 MB，音频 ≤ 30 MB，文档 ≤ 20 MB";
- const accept=coverMode?"image/png,image/jpeg,image/webp":"image/png,image/jpeg,image/webp,audio/mpeg,audio/ogg,audio/wav,application/pdf,.docx";
+ const strong=coverMode?"选择一张封面图片":"选择线索图片、音频或 Word 文档";
+ const hint=coverMode?"支持 PNG / JPG / WebP，建议横图。":"图片 ≤ 10 MB，音频 ≤ 30 MB，Word ≤ 20 MB";
+ const accept=coverMode?"image/png,image/jpeg,image/webp":"image/png,image/jpeg,image/webp,audio/mpeg,audio/ogg,audio/wav,audio/mp4,.docx";
  const cta=coverMode?"上传并设为封面":"开始上传";
  modal.className="modal";
  modal.dataset.setAsCover=coverMode?"1":"";

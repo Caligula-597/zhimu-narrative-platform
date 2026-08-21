@@ -11,31 +11,30 @@ import {
 test("creator document text cannot exceed the import contract", () => {
   assert.throws(
     () => parseCreatorTextDocument({
-      filename: "oversized.txt",
+      filename: "oversized.docx",
       text: "x".repeat(MAX_DOCUMENT_TEXT_CHARACTERS + 1),
-      extraction: { method: "plain_text" }
+      extraction: { method: "docx" }
     }),
     (error) => error.code === "DOCUMENT_TEXT_TOO_LARGE"
   );
 });
 
-test("text document preview includes an evidence-based prose assessment", () => {
+test("docx text preview includes an evidence-based prose assessment", () => {
   const parsed = parseCreatorTextDocument({
-    filename: "player-script.txt",
+    filename: "player-script.docx",
     text: [
       "周敏把合同压在账本上。",
       "“先签。”她没有把笔递过来。",
       "你去抽合同，账本跟着滑到地上，夹着的两张欠条散在柜台里面。",
       "唐远弯腰去捡。周敏先踩住了其中一张：“这张不归你。”"
     ].join("\n"),
-    extraction: { method: "plain_text" }
+    extraction: { method: "docx" }
   });
-  assert.equal(typeof parsed.authorshipAssessment.score, "number");
-  assert.equal(parsed.authorshipAssessment.creationType, "murder_mystery");
-  assert.match(parsed.authorshipAssessment.disclaimer, /不是作者身份或 AI 使用情况的鉴定/u);
-  assert.ok(parsed.authorshipAssessment.dimensions.sceneGrounding > 0);
-  assert.ok(["pass", "manual_review"].includes(parsed.authorshipAssessment.gate.decision));
-  assert.equal(parsed.authorshipAssessment.gate.threshold, 65);
+  assert.equal(parsed.proseDiagnostics.method, "deterministic_evidence_only");
+  assert.equal(parsed.proseDiagnostics.creationType, "murder_mystery");
+  assert.match(parsed.proseDiagnostics.disclaimer, /不判断作者身份/u);
+  assert.equal(typeof parsed.proseDiagnostics.summary.chars, "number");
+  assert.ok(["manual_review", "no_anomaly_observed"].includes(parsed.proseDiagnostics.review.decision));
 });
 
 test("document base64 decoding rejects non-canonical and empty payloads", () => {
@@ -52,6 +51,23 @@ test("a generic ZIP archive cannot be parsed as DOCX", async () => {
     () => parseCreatorDocument({
       filename: "fake.docx",
       contentBase64: zip.toBuffer().toString("base64")
+    }),
+    (error) => error.code === "DOCUMENT_TYPE_UNSUPPORTED"
+  );
+});
+
+test("PDF and plain-text manuscripts are rejected from parse", async () => {
+  await assert.rejects(
+    () => parseCreatorDocument({
+      filename: "script.pdf",
+      contentBase64: Buffer.from("%PDF-1.4").toString("base64")
+    }),
+    (error) => error.code === "DOCUMENT_TYPE_UNSUPPORTED"
+  );
+  await assert.rejects(
+    () => parseCreatorDocument({
+      filename: "script.txt",
+      contentBase64: Buffer.from("hello").toString("base64")
     }),
     (error) => error.code === "DOCUMENT_TYPE_UNSUPPORTED"
   );

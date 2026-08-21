@@ -11,13 +11,11 @@ const dispatchers = [
   () => window.zhimuActionsCreativeConstitution?.handleCreativeConstitutionAction,
   () => window.zhimuActionsStoryDiagnostics?.handleStoryDiagnosticsAction,
   () => window.zhimuActionsAiPlaytest?.handleAiPlaytestAction,
-  () => window.zhimuActionsPipeline?.handlePipelineAction,
   () => window.zhimuActionsCreatorCockpit?.handleCreatorCockpitAction,
   () => window.zhimuActionsBible?.handleBibleAction,
   () => window.zhimuActionsWorkspace?.handleWorkspaceAction,
   () => window.zhimuActionsCreatorWorkspaces?.handleCreatorWorkspacesAction,
   () => window.zhimuActionsArchive?.handleArchiveAction,
-  () => window.zhimuActionsPlayer?.handlePlayerAction,
   () => window.zhimuActionsStudio?.handleStudioAction,
   () => window.zhimuActionsWriter?.handleWriterAction,
   () => window.zhimuActionsRules?.handleRulesAction,
@@ -46,7 +44,6 @@ export function bindDynamic() {
   if (view === "rules") callView("rules", "bindRuleEditor");
   if (view === "rooms") callView("rooms", "bindRoomWorkspace");
   if (view === "account") callView("accountHub", "bindAccountHubView");
-  if (view === "player") callView("player", "bindPlayerReader");
   if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
   if (view === "constitution") callView("creativeConstitution", "bindCreativeConstitutionForm");
   if (view === "playtest") callView("aiPlaytestLab", "bindAiPlaytestForm");

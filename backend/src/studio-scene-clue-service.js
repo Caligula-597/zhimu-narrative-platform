@@ -55,22 +55,15 @@ export function normalizeCluePathBinding(body = {}) {
   if (!clueIds.length || clueIds.length > 200) {
     throwErr("CLUE_PATH_INVALID", "clueIds must contain between 1 and 200 clues");
   }
-  const locationId = optionalPathKey(body.locationId, "locationId", 160);
   const segmentKey = optionalPathKey(body.segmentKey, "segmentKey", 120);
   const allowUnbound = body.allowUnbound === true;
-  if (allowUnbound && (locationId || segmentKey)) {
+  if (allowUnbound && segmentKey) {
     throwErr("CLUE_PATH_INVALID", "allowUnbound cannot be combined with a bound path");
   }
-  if (!allowUnbound && !locationId && !segmentKey) {
-    throwErr("CLUE_PATH_INVALID", "a location, segment or explicit allowUnbound decision is required");
+  if (!allowUnbound && !segmentKey) {
+    throwErr("CLUE_PATH_INVALID", "a segment or explicit allowUnbound decision is required");
   }
-  return { clueIds, locationId, segmentKey, allowUnbound };
-}
-
-function mapLocationExists(settings, locationId) {
-  if (!locationId) return true;
-  const locations = settings?.tabletopMapDesign?.locations;
-  return Array.isArray(locations) && locations.some((location) => location?.id === locationId);
+  return { clueIds, segmentKey, allowUnbound };
 }
 
 export async function addStudioScene({ request, reply, actorId, worldId, body }) {
@@ -177,9 +170,6 @@ export async function bindStudioCluePaths({ request, reply, actorId, worldId, bo
         segmentKey: binding.segmentKey
       });
       if (!references?.segment_exists) throwErr("CLUE_SEGMENT_NOT_FOUND");
-      if (!mapLocationExists(references?.settings, binding.locationId)) {
-        throwErr("CLUE_LOCATION_NOT_FOUND");
-      }
       const updated = await bulkUpdateStudioCluePaths(client, { worldId, ...binding });
       if (updated.length !== binding.clueIds.length) throwErr("CLUE_NOT_FOUND");
       return { clues: updated };

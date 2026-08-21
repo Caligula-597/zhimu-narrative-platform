@@ -49,4 +49,3 @@ npm run accept:clue-audit -- --login-email you@example.test --login-password 'yo
 ## 相关
 
 - `backend/src/clue-audit.js`
-- [08-L1验收更新.md](../../优化计划/08-L1验收更新.md) P1-04 / L2-04

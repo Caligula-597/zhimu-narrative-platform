@@ -2,12 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  diagnosePlayerFacingRoleDocument,
   diagnosePlayerScript,
+  diagnosePlayerTaskCard,
+  diagnoseTaskCardCollection,
   diagnoseScriptCollection,
   fingerprintScriptCollection,
-  assessHumanLikeProse
+  inspectPlayerProse
 } from "../../shared/prose-quality-gate.js";
-import { buildMatrixDeAiPassMessages } from "../src/prompts/matrix-player-script.js";
+import {
+  IMMEDIATE_CHARACTER_STATE_CONTRACT_BLOCK,
+  PLAYER_FACING_PROSE_CONTRACT_BLOCK
+} from "../../shared/player-facing-contract.js";
+import { analyzeNarrativeRhythm } from "../../shared/narrative-rhythm.js";
 
 const rejectedSample = `你没有签。
 
@@ -70,10 +77,10 @@ test("pov gate blocks narration switching between first and second person", () =
   assert.ok(second.issues.some((issue) => issue.code === "mixed_narrative_pov"));
 });
 
-test("conversation-shape gate blocks telegraphic question-answer ladders", () => {
-  const result = diagnosePlayerScript(compressedDialogueSample);
-  assert.equal(result.passed, false);
-  assert.ok(result.issues.some((issue) => issue.code === "compressed_dialogue_ladder"));
+test("narrative rhythm reports telegraphic question-answer ladders without grading prose", () => {
+  const result = diagnosePlayerScript(`${compressedDialogueSample}\n\n“哪天？”\n\n“十四号。”\n\n“几点？”\n\n“八点。”\n\n“确定？”\n\n“确定。”`);
+  assert.ok(result.rhythm.observations.some((item) => item.code === "dense_two_to_five_char_dialogue"));
+  assert.equal("score" in result, false);
 });
 
 test("reader-language gate blocks compressed pseudo-jargon and missing predicates", () => {
@@ -82,23 +89,28 @@ test("reader-language gate blocks compressed pseudo-jargon and missing predicate
   assert.ok(result.issues.some((issue) => issue.code === "compressed_trade_expression"));
 });
 
-test("paragraph-rhythm gate blocks six mechanically equal information blocks", () => {
-  const result = diagnosePlayerScript(`我把旧账册摊在桌上，先找去年留下的折角。窗外有人催门，我没应声。纸页仍压在杯底。
+test("narrative rhythm observes frequent single-sentence paragraphs without a quality score", () => {
+  const result = analyzeNarrativeRhythm(`我把旧账册摊在桌上。
 
-周敏进来以后先看账册，又去摸抽屉上的锁。她问钥匙是谁拿的，我说不记得。她没有继续追问。
+窗外有人敲门。
 
-门口的脚步停了一阵，很快又绕到后窗。我把杯子挪开，露出下面的名字。最后一笔墨还没有干。
+周敏摸了摸抽屉上的锁。
 
-周敏把名字念了一遍，又把声音压低。她说外面的人就是来找这个。我让她先把窗帘拉严。
+我把杯子挪开。
 
-抽屉里只有两张收据和一截红线，钥匙并不在里面。周敏拿起红线看了看。我没有告诉她认得这个结。
+门外的脚步绕到了后窗。
 
-后窗被敲了第三次，桌上的纸跟着震了一下。我把账册推给周敏，让她自己选。她却先问我准备去哪儿。`, { expectedPov: "first" });
-  assert.equal(result.passed, false);
-  assert.ok(result.issues.some((issue) => issue.code === "template_paragraph_cadence"));
+周敏把窗帘拉严。
+
+抽屉里只有两张收据。
+
+后窗又响了一次。`);
+  assert.ok(result.observations.some((item) => item.code === "frequent_single_sentence_paragraphs"));
+  assert.equal("score" in result, false);
+  assert.equal("passed" in result, false);
 });
 
-test("transition gate reports long prose that only hard-cuts between actions", () => {
+test("diagnostics do not prescribe a minimum number of transition words", () => {
   const result = diagnosePlayerScript(`我把账册摊在桌上，纸角压着一枚旧钥匙。门外有人敲了两次，我没有应声，只把钥匙收进袖口。
 
 周敏推门进来，鞋底带着院里的泥。她看见桌上的账册，伸手翻到最后一页，把其中一个名字圈了起来。
@@ -112,7 +124,7 @@ test("transition gate reports long prose that only hard-cuts between actions", (
 周敏蹲下来翻木箱，最底下只有两张收据。她把收据递给我，指着同一个名字，问我还准备瞒多久。
 
 我没有回答，把后窗推开一条缝。巷口停着一辆没见过的车，车上的人正朝院门走。`, { expectedPov: "first" });
-  assert.ok(result.issues.some((issue) => issue.code === "missing_transition_bridges"));
+  assert.ok(!result.issues.some((issue) => issue.code === "missing_transition_bridges"));
 });
 
 test("conversation-shape gate allows brief relational exchanges without field delivery", () => {
@@ -122,10 +134,10 @@ test("conversation-shape gate allows brief relational exchanges without field de
   assert.ok(!result.issues.some((issue) => issue.code === "manufactured_fragment_rhythm"));
 });
 
-test("conversation-shape gate blocks manufactured callback punchlines", () => {
+test("a local callback is not converted into an automatic literary verdict", () => {
   const result = diagnosePlayerScript(callbackSample);
-  assert.equal(result.passed, false);
-  assert.ok(result.issues.some((issue) => issue.code === "manufactured_callback_punchline"));
+  assert.ok(!result.issues.some((issue) => issue.code === "manufactured_callback_punchline"));
+  assert.equal("score" in result, false);
 });
 
 test("role-agency gate blocks strategy menus disguised as narration", () => {
@@ -168,28 +180,127 @@ test("script fingerprint is stable and changes after an edit", () => {
   assert.notEqual(fingerprintScriptCollection(left), fingerprintScriptCollection(edited));
 });
 
-test("repair prompt receives exact gate evidence and required action", () => {
-  const diagnostics = diagnosePlayerScript(rejectedSample);
-  const messages = buildMatrixDeAiPassMessages({
-    body: rejectedSample,
-    styleCard: {},
-    targetWords: 600,
-    repairFeedback: diagnostics.issues
-  });
-  const prompt = messages.map((message) => message.content).join("\n");
-  assert.match(prompt, /机械门禁命中（必须修复后再复检）/);
-  assert.match(prompt, /你一直这么告诉自己/);
-  assert.match(prompt, /不要只替换触发词/);
+test("upload inspection returns evidence without scores, levels or authorship claims", () => {
+  const rejected = inspectPlayerProse(rejectedSample, { sections: [{ title: "坏段", body: rejectedSample }] });
+  const sceneBased = inspectPlayerProse(sceneSample, { sections: [{ title: "场景", body: sceneSample }] });
+  assert.equal(rejected.review.decision, "manual_review");
+  assert.equal(rejected.review.required, true);
+  assert.equal(sceneBased.review.required, false);
+  assert.equal("score" in rejected, false);
+  assert.equal("level" in rejected, false);
+  assert.equal("dimensions" in rejected, false);
+  assert.match(rejected.disclaimer, /未调用 AI 评审/u);
 });
 
-test("upload assessment scores scene-based prose above self-explaining prose", () => {
-  const rejected = assessHumanLikeProse(rejectedSample, { sections: [{ title: "坏段", body: rejectedSample }] });
-  const sceneBased = assessHumanLikeProse(sceneSample, { sections: [{ title: "场景", body: sceneSample }] });
-  assert.ok(sceneBased.score > rejected.score);
-  assert.equal(rejected.level, "weak");
-  assert.equal(rejected.gate.decision, "manual_review");
-  assert.match(rejected.disclaimer, /不是作者身份或 AI 使用情况的鉴定/);
-  assert.equal(sceneBased.confidence, "low");
-  assert.equal(sceneBased.gate.decision, "manual_review");
-  assert.match(sceneBased.gate.reason, /样本过短/u);
+test("player-surface boundary blocks the leaked authoring template regression", () => {
+  const result = diagnosePlayerScript(`## 公开朗读
+
+你没有回避过自己和林渡的关系。
+
+### 与梁策
+
+你们不是朋友，而是互相欠债的人。
+
+## 第一幕
+
+- 时间：21:08
+- 原句：“我不会关门。”
+- 指定证据：E-08
+
+你现在可以公开：
+
+- 许栖改过校准时间。
+
+你暂时最想隐瞒：
+
+- 21:09 的关门命令来自你。
+
+### 第一幕行动建议
+
+- 如果有人把责任推给许栖，你可以强调“改期的人制造了危险”。`);
+
+  const codes = new Set(result.issues.map((issue) => issue.code));
+  assert.equal(result.passed, false);
+  assert.ok(codes.has("readaloud_instruction"));
+  assert.ok(codes.has("relationship_dossier"));
+  assert.ok(codes.has("relationship_verdict"));
+  assert.ok(codes.has("relationship_meta_summary"));
+  assert.ok(codes.has("prop_schema_leak"));
+  assert.ok(codes.has("internal_key_leak"));
+  assert.ok(codes.has("player_instruction_block"));
+  assert.ok(codes.has("player_strategy_directive"));
+});
+
+test("player-surface boundary allows time, intimacy and conflict inside a lived scene", () => {
+  const result = diagnosePlayerScript(`墙上的钟刚过九点八分，林渡把湿外套搭到椅背，水顺着袖口滴在你刚拖过的地上。
+
+“又去旧仓库了？”你把抹布丢进桶里。
+
+他没答，弯腰替你拧干抹布。小时候每逢父亲喝醉，他也是这样蹲在厨房门后，把摔碎的碗一片片捡进簸箕。后来他离开港口，你们有七年没在同一张桌上吃过饭。
+
+雨敲得窗玻璃发白。林渡从内袋里摸出一张受潮的纸，放到桌沿：“姐，爸当年没有喝酒。”
+
+你盯着他指甲缝里的黑泥，把抹布从他手里拿回来。`);
+  assert.equal(result.passed, true);
+  assert.ok(!result.issues.some((issue) => issue.category === "player_surface_boundary"));
+});
+
+test("complete role-document gate rejects an undersized public opening", () => {
+  const result = diagnosePlayerFacingRoleDocument({
+    publicBody: "雨夜里，你推开旧邮局的门。",
+    acts: [{ key: "act-1", body: sceneSample }]
+  }, { minimumPublicChars: 80, minimumActChars: 80 });
+  assert.equal(result.passed, false);
+  assert.ok(result.issues.some((issue) => issue.code === "public_body_too_short"));
+});
+
+test("shared generation contract permanently names every blocked leakage layer", () => {
+  assert.match(PLAYER_FACING_PROSE_CONTRACT_BLOCK, /知识矩阵/u);
+  assert.match(PLAYER_FACING_PROSE_CONTRACT_BLOCK, /证据编号/u);
+  assert.match(PLAYER_FACING_PROSE_CONTRACT_BLOCK, /关系必须通过共同经历/u);
+  assert.match(PLAYER_FACING_PROSE_CONTRACT_BLOCK, /行动建议/u);
+  assert.match(PLAYER_FACING_PROSE_CONTRACT_BLOCK, /主持人手册/u);
+});
+
+test("time-memory gate blocks a player paragraph that serializes the minute ledger", () => {
+  const result = diagnosePlayerScript(`七点四十二分，你离开前厅。七点五十分，你进了档案间。八点二十分，灯灭了。八点二十七分，灯又亮起。九点零二分，袁素推开分拣室的门。`);
+  assert.equal(result.passed, false);
+  assert.ok(result.issues.some((issue) => issue.code === "minute_grid_narration"));
+});
+
+test("time-memory gate allows one exact anchor among ordinary fuzzy recollection", () => {
+  const result = diagnosePlayerScript(`你到旧所时天刚擦黑，雨还没有落密。七点四十分前后，前厅的人逐渐散开。后来有人关过一次总闸，灯灭了约莫一袋烟的工夫。墙钟重新走起来后，你特意看了一眼：八点二十七分。再往后的脚步声隔着雨，谁也说不准相差几分钟。`);
+  assert.equal(result.passed, true);
+  assert.equal(result.metrics.exactMinuteMentions, 1);
+});
+
+test("prose gate blocks undefined concrete-to-abstract afterglow", () => {
+  const result = diagnosePlayerScript(`镇上的病人来来去去。你认得他们的旧伤，也认得他们进门时不愿说出的那一部分。`);
+  assert.equal(result.passed, false);
+  assert.ok(result.issues.some((issue) => issue.code === "undefined_abstract_afterglow"));
+});
+
+test("prose gate blocks the caregiving-silence subtext kit", () => {
+  const result = diagnosePlayerScript(`罗启川发烧住院那晚，忽然问你邮车是否去过南岸。你替他把被子拉高，没有回答。`);
+  assert.equal(result.passed, false);
+  assert.ok(result.issues.some((issue) => issue.code === "caregiving_silence_template"));
+});
+
+test("independent task cards allow outcomes but block player strategy", () => {
+  const accepted = diagnosePlayerTaskCard(`## 本幕任务\n\n- 确认赵善言的直接死因。\n- 还原停电前后进入分拣室的人。\n- 决定是否把旧诊疗簿交入共同调查。`);
+  const rejected = diagnosePlayerTaskCard(`## 本幕任务\n\n- 如果有人怀疑你，你可以先把责任推给罗启川。\n- 暂时不要公开九点十二分的诊疗记录。`);
+  assert.equal(accepted.passed, true);
+  assert.equal(rejected.passed, false);
+  assert.ok(rejected.issues.some((issue) => issue.code === "task_strategy_leak"));
+});
+
+test("task-card collection remains separate from role prose", () => {
+  const result = diagnoseTaskCardCollection({
+    role1: {
+      act1: `## 本幕任务\n\n- 查明分拣室格架是否造成致命伤。`,
+      act2: `## 本幕任务\n\n- 还原挂号信从北坡到邮电所的路线。`
+    }
+  });
+  assert.equal(result.passed, true);
+  assert.equal(result.cards.length, 2);
 });

@@ -143,6 +143,10 @@
 @container board-game (max-width:700px) {
   .board-game-header { align-items:stretch; flex-direction:column; gap:12px; }
   .board-game-header .primary-btn { width:100%; }
+  .board-ai-panel { grid-template-columns:1fr; }
+  .board-ai-controls { grid-template-columns:minmax(0,1fr); }
+  .board-ai-controls > .wide,.board-ai-controls > button,.board-ai-controls > .text-btn { grid-column:1; width:100%; }
+  .board-ai-controls label,.board-ai-controls .field { min-width:0; width:100%; }
   .board-game-brief { grid-template-columns:1fr 1fr; }
   .board-game-brief .wide { grid-column:1/-1; }
   .board-tabs button { flex:0 0 auto; min-width:108px; }

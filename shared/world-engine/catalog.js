@@ -6,14 +6,16 @@ export const VENUE_KEYS = Object.freeze([
   "photo_studio",
   "bus_station",
   "tv_station",
-  "hotel"
+  "hotel",
+  "freight_wharf"
 ]);
 
 export const VENUE_LABELS = Object.freeze({
   photo_studio: "婚纱影楼",
   bus_station: "汽车站",
   tv_station: "电视台",
-  hotel: "酒店"
+  hotel: "酒店",
+  freight_wharf: "临河货运码头"
 });
 
 export const ERA_KEYS = Object.freeze([

@@ -24,14 +24,14 @@ export function splitKindParagraphs(text) {
     .filter(Boolean);
 }
 
-export function chunkKindParagraphs(paragraphs, maxChars = 1600) {
+export function chunkKindParagraphs(paragraphs, maxChars = 1600, maxItems = Infinity) {
   const chunks = [];
   let buffer = [];
   let start = 0;
   let chars = 0;
   for (let index = 0; index < paragraphs.length; index += 1) {
     const row = paragraphs[index];
-    if (buffer.length && chars + row.length > maxChars) {
+    if (buffer.length && (chars + row.length > maxChars || buffer.length >= maxItems)) {
       chunks.push({ start, paragraphs: buffer });
       start = index;
       buffer = [];
@@ -108,7 +108,7 @@ export function renderKindDashboard(works) {
     "",
     "## 通读种类占比",
     "",
-    "这一表不看引号。模型通读原段落，只输出种类；原文缓存未改。",
+    "v1 单轴「发牌」已停用：新事实可藏在交谈/办事里，不能和 mode 互斥。",
     "",
     "| 种类 | " + labeled.map((work) => work.title).join(" | ") + " |",
     "|---|" + labeled.map(() => "---:").join("|") + "|"
@@ -132,5 +132,61 @@ export function renderKindDashboard(works) {
     lines.push(`| ${work.title} | ${work.kindMix.chars} | ${Math.round(coverage * 1000) / 10}% |`);
   }
   lines.push("");
+  return lines.join("\n");
+}
+
+function pct(value) {
+  return Number.isFinite(value) ? `${Math.round(value * 1000) / 10}%` : "—";
+}
+
+function num(value) {
+  return Number.isFinite(value) ? String(Math.round(value * 10) / 10) : "—";
+}
+
+export function renderNamedReport(works) {
+  const lines = [
+    "# 商业剧本检测结果",
+    "",
+    "按剧本列出。通读种类不看引号；模型只划分、不改字。扫描件 OCR 会有错字，种类仍比引号统计更接近正文在干什么。",
+    ""
+  ];
+  for (const work of (works || []).filter((row) => row.id !== "fanxiang" && !String(row.title || "").includes("反向审判"))) {
+    const values = work.features?.values;
+    if (!values?.chars) {
+      lines.push(`## ${work.title}`, "", "还没有可用正文。", "");
+      continue;
+    }
+    const bookChars = values.chars;
+    const mix = work.kindMix;
+    const coverage = mix?.chars && bookChars ? mix.chars / bookChars : 0;
+    lines.push(`## ${work.title}`, "");
+    lines.push(`识别正文 **${bookChars}** 字。来源：${(work.methods || []).join("、") || "未知"}。`);
+    if (mix?.chars) lines.push(`通读已划分 **${mix.chars}** 字（占已识别正文 ${Math.round(coverage * 1000) / 10}%）。`);
+    else lines.push("尚未通读划分种类。");
+    lines.push("");
+    if (mix?.chars) {
+      lines.push("| 通读种类 | 占比 |");
+      lines.push("|---|---:|");
+      for (const key of [...KIND_KEYS, "unlabeled"]) {
+        const ratio = mix.ratios?.[key] || 0;
+        if (ratio < 0.005 && key === "unlabeled") continue;
+        lines.push(`| ${KIND_LABELS[key] || "未划分"} | ${Math.round(ratio * 1000) / 10}% |`);
+      }
+      lines.push("");
+    }
+    lines.push("| 结构检测 | 结果 |");
+    lines.push("|---|---|");
+    lines.push(`| 单句自然段 | ${pct(values.single_sentence_paragraph_ratio)} |`);
+    lines.push(`| 短段 | ${pct(values.short_paragraph_ratio)} |`);
+    lines.push(`| 引号字占比（启发式，仅供对照） | ${pct(values.dialogue_char_ratio)} |`);
+    lines.push(`| 连续成功问答链 | ${num(values.consecutive_qa_handoffs_per_10k)} / 万字，最长 ${values.qa_max_streak || 0} 次 |`);
+    lines.push(`| 认知动词（你想起/你意识到等） | ${num(values.cognition_verb_per_10k)} / 万字 |`);
+    lines.push(`| 精确钟点 | ${num(values.exact_clock_per_10k)} / 万字 |`);
+    lines.push(`| 场景总结句 | ${num(values.scene_summary_per_10k)} / 万字 |`);
+    lines.push(`| 未完成事项提醒 | ${num(values.pending_item_per_10k)} / 万字 |`);
+    lines.push(`| 最大实体中心度 | ${pct(values.top_entity_centrality)}（${values.top_entity || "无"}） |`);
+    lines.push(`| 规则/任务字 | ${pct(values.task_instruction_ratio)} |`);
+    lines.push("");
+  }
   return lines.join("\n");
 }

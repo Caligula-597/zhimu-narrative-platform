@@ -30,12 +30,70 @@ async function withCatalogListed(worldId, run) {
 async function createCatalogReadyWorld(app, nameSuffix) {
   const created = await app.inject({
     method: "POST",
-    url: "/api/worlds/from-template/classic-script",
+    url: "/api/worlds",
     headers: { "x-user-id": hostUserId },
-    payload: { name: `审核就绪 ${nameSuffix}` }
+    payload: {
+      name: `审核就绪 ${nameSuffix}`,
+      settings: { creationType: "murder_mystery" }
+    }
   });
   assert.equal(created.statusCode, 201, created.body);
-  const worldId = created.json().world.id;
+  const worldId = created.json().id;
+  const chapter = await query(
+    `INSERT INTO chapters (world_id, title, summary, sequence, publication_status, metadata)
+     VALUES ($1, '测试公共幕', '用于公开库流程测试', 1, 'testing', '{"proposalKey":"ch1"}'::jsonb)
+     RETURNING id`,
+    [worldId]
+  );
+  const role = await query(
+    `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence)
+     VALUES ($1, '测试角色', '公开身份', '私人信息', 1) RETURNING id`,
+    [worldId]
+  );
+  const script = await query(
+    `INSERT INTO character_scripts (role_slot_id, title) VALUES ($1, '测试角色本') RETURNING id`,
+    [role.rows[0].id]
+  );
+  await query(
+    `INSERT INTO script_sections
+       (character_script_id, role_slot_id, chapter_id, title, body, sequence, publication_status, metadata)
+     VALUES ($1, $2, $3, '测试分幕', '这是一段可供玩家阅读和测试的完整正文。', 1, 'testing', '{"segmentKey":"ch1"}'::jsonb)`,
+    [script.rows[0].id, role.rows[0].id, chapter.rows[0].id]
+  );
+  const scene = await query(
+    `INSERT INTO scenes (world_id, chapter_id, name, public_text, host_text)
+     VALUES ($1, $2, '测试场景', '玩家可见场景', '主持说明') RETURNING id`,
+    [worldId, chapter.rows[0].id]
+  );
+  const clue = await query(
+    `INSERT INTO clues (world_id, name, public_text, host_text, visibility, metadata)
+     VALUES ($1, '测试线索', '玩家可见线索', '主持解释', 'public', '{"importance":"normal"}'::jsonb)
+     RETURNING id`,
+    [worldId]
+  );
+  await query(
+    `INSERT INTO investigation_points
+       (world_id, scene_id, name, description, interaction_text, result_text, clue_id, sequence)
+     VALUES ($1, $2, '测试调查点', '调查说明', '进行调查', '获得测试线索', $3, 1)`,
+    [worldId, scene.rows[0].id, clue.rows[0].id]
+  );
+  await query(
+    `INSERT INTO world_segments
+       (world_id, segment_key, title, sequence, chapter_id, story, operations)
+     VALUES ($1, 'ch1', '测试公共幕', 1, $2,
+       '{"beatPlan":{"goal":"完成测试","playerContent":"阅读正文","dmTasks":"推进场景","advanceCondition":"完成调查"}}'::jsonb,
+       $3::jsonb)`,
+    [worldId, chapter.rows[0].id, JSON.stringify({
+      flow: "主持依次开放场景和调查点。",
+      hostTruth: "用于公开库流程测试。",
+      clueGrants: [{ clueId: clue.rows[0].id, when: "调查完成", roleKey: "" }]
+    })]
+  );
+  await query(
+    `INSERT INTO rooms (world_id, host_user_id, name, invite_code, status)
+     VALUES ($1, $2, '公开库测试房', $3, 'testing')`,
+    [worldId, hostUserId, `CAT${String(nameSuffix).replace(/[^a-zA-Z0-9]/g, "").slice(-20)}${Date.now().toString(36)}`.slice(0, 32)]
+  );
   const readiness = await app.inject({
     method: "GET",
     url: `/api/worlds/${worldId}/publish-readiness`,

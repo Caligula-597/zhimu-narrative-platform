@@ -1,59 +1,16 @@
-import { normalizeCreationType } from "./narrative-profile.js";
+import { PRODUCT_DOMAINS, productDomainDefinition } from "./product-domains/registry.js";
 
-export const PRODUCT_TOOL_CAPABILITIES = Object.freeze({
-  murder_mystery: Object.freeze({
-    label: "剧本杀",
-    dedicated: Object.freeze(["writer", "truth", "studio", "clues", "miniGames"]),
-    shared: Object.freeze(["rules", "archive"]),
-    labels: Object.freeze({
-      writer: "角色私人剧本",
-      truth: "谜底与关系",
-      studio: "剧情编排图谱",
-      clues: "线索管理",
-      miniGames: "场内小游戏",
-      rules: "自动化规则",
-      archive: "存档与复盘"
-    })
-  }),
-  tabletop_rpg: Object.freeze({
-    label: "跑团",
-    dedicated: Object.freeze(["writer", "studio", "tabletopMap", "miniGames"]),
-    shared: Object.freeze(["rules", "archive"]),
-    labels: Object.freeze({
-      writer: "角色与 HO",
-      studio: "模组编排",
-      tabletopMap: "跑团地图与遭遇",
-      miniGames: "团内小游戏",
-      rules: "判定与自动化",
-      archive: "战役存档"
-    })
-  }),
-  board_game: Object.freeze({
-    label: "桌游",
-    dedicated: Object.freeze(["boardGame"]),
+export const PRODUCT_TOOL_CAPABILITIES = Object.freeze(Object.fromEntries(
+  Object.entries(PRODUCT_DOMAINS).map(([key, domain]) => [key, Object.freeze({
+    label: domain.label,
+    dedicated: domain.toolViews,
     shared: Object.freeze([]),
-    labels: Object.freeze({
-      boardGame: "桌游创作中心"
-    })
-  }),
-  interactive_story: Object.freeze({
-    label: "互动叙事（兼容）",
-    dedicated: Object.freeze(["writer", "truth", "studio", "clues", "miniGames"]),
-    shared: Object.freeze(["rules", "archive"]),
-    labels: Object.freeze({
-      writer: "角色内容",
-      truth: "设定与关系",
-      studio: "剧情编排图谱",
-      clues: "信息卡",
-      miniGames: "互动组件",
-      rules: "自动化规则",
-      archive: "存档与复盘"
-    })
-  })
-});
+    labels: domain.labels
+  })])
+));
 
 export function productToolCapabilities(value) {
-  return PRODUCT_TOOL_CAPABILITIES[normalizeCreationType(value)];
+  return PRODUCT_TOOL_CAPABILITIES[productDomainDefinition(value).key];
 }
 
 export function productToolViews(value) {
@@ -69,14 +26,10 @@ export function productToolLabel(value, view, fallback = "") {
   return productToolCapabilities(value).labels[view] || fallback || view;
 }
 
-const BOARD_GAME_SHELL_VIEWS = Object.freeze(["boardGame", "account", "ops"]);
-
 export function productHomeView(value) {
-  return normalizeCreationType(value) === "board_game" ? "boardGame" : "creatorCockpit";
+  return productDomainDefinition(value).homeView;
 }
 
 export function productAllowsShellView(value, view) {
-  const creationType = normalizeCreationType(value);
-  if (creationType === "board_game") return BOARD_GAME_SHELL_VIEWS.includes(view);
-  return view !== "boardGame";
+  return productDomainDefinition(value).allowedViews.includes(view);
 }

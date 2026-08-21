@@ -27,15 +27,16 @@ export function scriptBundleMaxUncompressedBytes() {
     : DEFAULT_MAX_UNCOMPRESSED_BYTES;
 }
 
+/** ZIP may contain Word manuscripts + media assets. PDF/TXT/MD are not accepted for parse. */
 export const SCRIPT_BUNDLE_ALLOWED_EXTENSIONS = new Set([
-  ".pdf",
   ".docx",
-  ".txt",
-  ".md",
-  ".markdown",
   ".jpg",
   ".jpeg",
   ".png",
   ".webp",
-  ".gif"
+  ".gif",
+  ".mp3",
+  ".wav",
+  ".ogg",
+  ".m4a"
 ]);

@@ -17,6 +17,21 @@ function unique(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
+export function extractFrontendAssetManifest(html) {
+  const source = String(html || "");
+  const assets = unique(
+    [...source.matchAll(/(?:src|href)=["']([^"']+\.(?:js|css))(?:[?#][^"']*)?["']/giu)]
+      .map((match) => canonicalAssetPath(match[1]))
+  ).sort();
+  if (!assets.some((asset) => asset.endsWith(".js"))) {
+    throw new Error("Frontend HTML does not reference a hashed JavaScript asset");
+  }
+  if (!assets.some((asset) => asset.endsWith(".css"))) {
+    throw new Error("Frontend HTML does not reference a hashed stylesheet asset");
+  }
+  return { assets };
+}
+
 export function extractCreatorAssetManifest(html) {
   const source = String(html || "");
   const scripts = [...source.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/giu)]
@@ -62,6 +77,19 @@ export function loadExpectedCreatorManifest({ root = process.cwd(), required = f
   return extractCreatorAssetManifest(fs.readFileSync(indexPath, "utf8"));
 }
 
+export function loadExpectedFrontendManifest({
+  root = process.cwd(),
+  directory = "",
+  required = false
+} = {}) {
+  const indexPath = path.join(root, directory, "dist", "index.html");
+  if (!fs.existsSync(indexPath)) {
+    if (required) throw new Error(`Expected frontend build is missing: ${indexPath}`);
+    return null;
+  }
+  return extractFrontendAssetManifest(fs.readFileSync(indexPath, "utf8"));
+}
+
 function assertManifestsMatch(actual, expected) {
   if (!expected) return;
   const actualStyles = actual.entryStyles.join(",");
@@ -70,6 +98,17 @@ function assertManifestsMatch(actual, expected) {
     throw new Error(
       `Creator frontend is stale: expected ${expected.entryScript} + ${expectedStyles}; `
       + `received ${actual.entryScript} + ${actualStyles}`
+    );
+  }
+}
+
+function assertFrontendManifestsMatch(actual, expected) {
+  if (!expected) return;
+  const actualAssets = actual.assets.join(",");
+  const expectedAssets = expected.assets.join(",");
+  if (actualAssets !== expectedAssets) {
+    throw new Error(
+      `Frontend is stale: expected ${expectedAssets}; received ${actualAssets}`
     );
   }
 }
@@ -92,6 +131,27 @@ function assertImmutable(response, assetPath) {
   if (!/\bimmutable\b/iu.test(cacheControl)) {
     throw new Error(`Hashed asset is not immutable: ${assetPath}`);
   }
+}
+
+export async function probeFrontendSync(baseUrl, {
+  expectedManifest = null,
+  fetchImpl = fetch,
+  timeoutMs = 20_000,
+  nonce = Date.now()
+} = {}) {
+  const base = String(baseUrl || "").replace(/\/$/u, "");
+  if (!base) throw new Error("Frontend base URL is required");
+
+  const htmlUrl = `${base}/?__zhimu_release_probe=${encodeURIComponent(nonce)}`;
+  const htmlResult = await fetchText(fetchImpl, htmlUrl, { html: true, timeoutMs });
+  const actualManifest = extractFrontendAssetManifest(htmlResult.body);
+  assertFrontendManifestsMatch(actualManifest, expectedManifest);
+
+  for (const asset of actualManifest.assets) {
+    await fetchText(fetchImpl, new URL(asset, `${base}/`).href, { timeoutMs });
+  }
+
+  return { base, manifest: actualManifest };
 }
 
 export async function probeCreatorFrontendSync(baseUrl, {

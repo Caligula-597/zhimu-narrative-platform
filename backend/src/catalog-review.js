@@ -4,6 +4,7 @@
 import { sendTransactionalEmail } from "./email/index.js";
 import { brandedEmailHtml } from "./email/templates.js";
 import { throwErr } from "./api-errors.js";
+import { narrativeProfileFromSettings } from "../../shared/narrative-profile.js";
 import { query } from "./db.js";
 import { enterpriseEmails } from "./enterprise-emails.js";
 import { loadWorldPublishReadiness } from "./world-readiness-service.js";
@@ -99,7 +100,7 @@ export async function submitCatalogReviewRequest(actorId, worldId, body) {
   if (!body?.agreed) throwErr("CATALOG_REVIEW_AGREEMENT_REQUIRED");
 
   const owner = await query(
-    `SELECT w.id, w.name, w.summary, w.catalog_public, w.catalog_review_status, w.status,
+    `SELECT w.id, w.name, w.summary, w.catalog_public, w.catalog_review_status, w.status, w.settings,
             (SELECT COUNT(*)::int FROM role_slots rs WHERE rs.world_id = w.id) AS role_count
      FROM worlds w
      WHERE w.id = $1 AND w.owner_user_id = $2`,
@@ -107,6 +108,12 @@ export async function submitCatalogReviewRequest(actorId, worldId, body) {
   );
   if (!owner.rowCount) throwErr("WORLD_OWNER_REQUIRED");
   const world = owner.rows[0];
+  const creationType = narrativeProfileFromSettings(world.settings || {}).creationType;
+  if (creationType !== "murder_mystery") {
+    throwErr("WORLD_PRODUCT_MISMATCH", "当前公开体验审核流程只属于剧本杀项目", {
+      expected: ["murder_mystery"], actual: creationType
+    });
+  }
   if (world.status === "archived") throwErr("BAD_REQUEST", "Cannot submit catalog review for an archived world");
   if (world.catalog_public || world.catalog_review_status === "approved") {
     throwErr("CATALOG_ALREADY_PUBLIC");

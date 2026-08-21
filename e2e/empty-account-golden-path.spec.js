@@ -17,6 +17,17 @@ test("zero-world account creates an empty board-game world with only type and na
   await expect(page.locator("[data-first-run-chooser]")).toBeVisible();
   await expect(page.getByRole("heading", { name: "先创建一个属于你的世界" })).toBeVisible();
   await expect(page.locator("[data-first-run-chooser]")).toContainText("选择类型 → 命名 → 进入工作区");
+  await expect(page.locator("#preview-btn")).toBeHidden();
+  await expect(page.locator("#run-btn")).toBeHidden();
+  await expect(page.locator("body")).toHaveAttribute("data-product-active", "0");
+  await expect(page.locator("body")).toHaveAttribute("data-product-mode", "");
+  await expect(page.locator("body")).toHaveAttribute("data-product-key", "");
+
+  await page.locator("#create-world-btn").click();
+  await expect(page.locator("[data-world-create-type]")).toHaveCount(3);
+  await expect(page.locator('[data-world-create-type][aria-pressed="true"]')).toHaveCount(0);
+  await expect(page.locator("[data-world-create-submit]")).toBeDisabled();
+  await page.locator("[data-world-create-cancel]").click();
 
   await page.getByRole("button", { name: "创建空白世界 →" }).click();
   await expect(page.locator(".world-create-shell")).toBeVisible();
@@ -27,6 +38,7 @@ test("zero-world account creates an empty board-game world with only type and na
   await expect(page.locator(".board-game-workbench")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("heading", { name: "空白桌游原型" })).toBeVisible();
   await expect(page.locator(".board-component-empty")).toContainText("还没有组件");
+  await expect(page.locator("#run-btn")).toBeVisible();
   await expect(page.locator("[data-wizard-invite-code]")).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });

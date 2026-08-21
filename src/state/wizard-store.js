@@ -4,6 +4,6 @@ import { createStore } from "./create-store.js";
 export const wizardStore = createStore({
   wizardDraft: {
     worldName: "",
-    creationType: "murder_mystery"
+    creationType: ""
   }
 });

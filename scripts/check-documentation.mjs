@@ -23,9 +23,12 @@ if (git.status !== 0) {
   process.exit(1);
 }
 
-const files = git.stdout.split(/\r?\n/).filter(Boolean).sort();
+const files = git.stdout
+  .split(/\r?\n/)
+  .filter(Boolean)
+  .filter((relativePath) => existsSync(join(root, relativePath)))
+  .sort();
 const errors = [];
-const warnings = [];
 const linkPattern = /!?\[[^\]]*]\(([^)\n]+)\)/g;
 
 function normalizeTarget(raw) {
@@ -75,24 +78,6 @@ if (!rootReadme.includes("docs/DOCUMENTATION_INDEX_ZH.md")) {
   errors.push("README.md: must link to docs/DOCUMENTATION_INDEX_ZH.md");
 }
 
-const currentTruthFiles = [
-  "README.md",
-  "ARCHITECTURE.md",
-  "DATABASE_SCHEMA.md",
-  "SECURITY_AND_TESTING.md",
-  "backend/README.md",
-  "docs/PROJECT_STATUS.md",
-  "docs/PRODUCT_STATUS_ZH.md",
-  "docs/DOCUMENTATION_INDEX_ZH.md",
-  "docs/ops/README.md"
-];
-for (const relativePath of currentTruthFiles) {
-  const source = readFileSync(join(root, relativePath), "utf8");
-  if (!source.includes("2026-07-24")) {
-    warnings.push(`${relativePath}: current-truth document does not carry the 2026-07-24 baseline date`);
-  }
-}
-
 const statusCheck = spawnSync(
   process.execPath,
   ["scripts/generate-project-status.mjs", "--check"],
@@ -111,10 +96,6 @@ if (indexCheck.status !== 0) {
   errors.push((indexCheck.stderr || indexCheck.stdout).trim());
 }
 
-if (warnings.length) {
-  console.warn(`documentation warnings (${warnings.length}):`);
-  warnings.forEach((warning) => console.warn(`  - ${warning}`));
-}
 if (errors.length) {
   console.error(`documentation errors (${errors.length}):`);
   errors.forEach((error) => console.error(`  - ${error}`));
@@ -122,5 +103,5 @@ if (errors.length) {
 }
 
 console.log(
-  `documentation audit passed: ${files.length} tracked Markdown files, relative links resolved, baseline current`
+  `documentation audit passed: ${files.length} existing Markdown files, relative links resolved`
 );

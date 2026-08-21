@@ -8,7 +8,7 @@ import {
 test("document parsing requires rights confirmation before processing local bytes", async () => {
   await assert.rejects(
     parseCreatorDocumentForWorld({
-      filename: "unauthorized.txt",
+      filename: "unauthorized.docx",
       contentBase64: Buffer.from("private manuscript").toString("base64")
     }),
     (error) => error.code === "IMPORT_RIGHTS_CONFIRMATION_REQUIRED"

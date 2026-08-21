@@ -27,9 +27,16 @@ test.beforeEach(async ({ request }) => {
 
 test("tabletop map zoom buttons and wheel redraw the canvas with visible feedback", async ({ page }) => {
   const failedResponses = [];
+  const runtimeErrors = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") runtimeErrors.push(message.text());
+  });
+  page.on("pageerror", (error) => runtimeErrors.push(error.message));
   page.on("response", (response) => {
-    if (response.status() >= 400 && !response.url().endsWith("/api/metrics/web-vitals")) {
-      failedResponses.push(`${response.status()} ${response.url()}`);
+    if (response.status() >= 400) {
+      failedResponses.push(
+        `${response.request().method()} ${response.status()} ${response.url()}`,
+      );
     }
   });
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -76,6 +83,7 @@ test("tabletop map zoom buttons and wheel redraw the canvas with visible feedbac
   await expect(panel).toHaveAttribute("data-map-pan-y", "0.000");
   await expect(panel).toHaveAttribute("data-map-rotation", "0");
   expect(failedResponses).toEqual([]);
+  expect(runtimeErrors).toEqual([]);
 });
 
 test("creator can add and author a location check template", async ({ page }) => {

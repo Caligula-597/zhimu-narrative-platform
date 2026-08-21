@@ -8,7 +8,7 @@ import { studioStore, worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { normalizeError } from "../components/status-ui.js";
 import { renderRelationshipGraph } from "./creator-cockpit-graph.js";
-import { ARC_STAGES, defaultRoleArc } from "../../shared/creator-bible-contract.js";
+import { ARC_STAGES, defaultRoleArc, MATERIAL_BOOKLET_KIND_LABELS } from "../../shared/creator-bible-contract.js";
 
 const showError = (error, fallback = "操作失败") => showToast(normalizeError(error, fallback));
 
@@ -17,6 +17,7 @@ const TABS = [
   { id: "core-trick", label: "核心谜底" },
   { id: "timeline", label: "案件时间线" },
   { id: "foreshadow", label: "伏笔" },
+  { id: "materials", label: "平行物料册" },
   { id: "relations", label: "角色关系" }
 ];
 
@@ -112,6 +113,42 @@ function renderForeshadowPanel(beats) {
     </div></article>`;
 }
 
+
+function renderMaterialsPanel(booklets, roles) {
+  const kindLabel = (kind) => MATERIAL_BOOKLET_KIND_LABELS[kind] || kind || "其他";
+  const rows = booklets?.length
+    ? booklets.map((b) => {
+        const pageCount = Array.isArray(b.pages) ? b.pages.length : 0;
+        const owner = roles.find((r) => r.id === b.ownerRoleSlotId);
+        return `<article class="host-current-item" data-booklet-id="${escapeHtml(b.id)}">
+          <strong>${escapeHtml(b.title || "未命名物料册")}</strong>
+          <p class="muted-note">${escapeHtml(kindLabel(b.kind))}${owner ? ` · 归属 ${escapeHtml(owner.name)}` : ""}${b.phaseLabel ? ` · ${escapeHtml(b.phaseLabel)}` : ""} · ${pageCount} 页</p>
+          <p>${escapeHtml(b.summary || "—")}</p>
+          <button type="button" class="text-btn danger-text" data-action="delete-material-booklet" data-booklet-id="${escapeHtml(b.id)}">删除</button>
+        </article>`;
+      }).join("")
+    : `<div class="empty-state">尚无平行物料册。日记、花草目录、镜目录等应建册，不要降级成线索。</div>`;
+  const kindOptions = Object.entries(MATERIAL_BOOKLET_KIND_LABELS)
+    .map(([id, label]) => `<option value="${escapeHtml(id)}">${escapeHtml(label)}</option>`)
+    .join("");
+  return `<article class="card">
+    <div class="section-head"><div><h3>平行物料册</h3>
+      <p>日记、目录、手册等完整册子；可挂归属角色与关联线索 ID，局内发放仍走线索/主持动作。</p></div></div>
+    <div class="host-current-list">${rows}</div>
+    <div class="form-group truth-add-form">
+      <label>新增物料册</label>
+      <select class="field" data-material-field="kind" aria-label="物料册类型">${kindOptions}</select>
+      <input class="field" data-material-field="title" placeholder="标题，例如：镜目录 / 绿野日记">
+      <select class="field" data-material-field="ownerRoleSlotId" aria-label="归属角色">
+        <option value="">无固定归属</option>${roleOptions(roles)}
+      </select>
+      <input class="field" data-material-field="phaseLabel" placeholder="阶段（可选，如 D1 / 第二幕）">
+      <textarea class="field" data-material-field="summary" rows="2" placeholder="册子用途说明"></textarea>
+      <textarea class="field" data-material-field="pageBody" rows="4" placeholder="首页正文（可先写一页，之后再扩页）"></textarea>
+      <button type="button" class="primary-btn" data-action="add-material-booklet">添加物料册</button>
+    </div></article>`;
+}
+
 function renderRelationsPanel(roles, relationships) {
   const relList = relationships?.length
     ? relationships.map((r) => `<article class="checkpoint-row" data-relationship-id="${escapeHtml(r.id)}"><div><strong>${escapeHtml(r.label || "未命名关系")}</strong><p class="muted-note">${escapeHtml(r.from_role_name || "")} → ${escapeHtml(r.to_role_name || "")}${Number.isInteger(r.strength) ? ` · 强度 ${r.strength}` : ""}</p></div><button type="button" class="text-btn danger-text" data-action="delete-relationship-inline" data-relationship-id="${escapeHtml(r.id)}">删除</button></article>`).join("")
@@ -141,6 +178,7 @@ export function renderTruthBiblePage() {
   else if (tab === "core-trick") body = renderCoreTrickPanel(ws.cloudCoreTrick, roles);
   else if (tab === "timeline") body = renderTimelinePanel(ws.cloudTimelineEvents);
   else if (tab === "foreshadow") body = renderForeshadowPanel(ws.cloudForeshadowBeats);
+  else if (tab === "materials") body = renderMaterialsPanel(ws.cloudMaterialBooklets, roles);
   else body = renderRelationsPanel(roles, ws.cloudRoleRelationships);
 
   const loaded = ws.cloudTruthClaims !== null;
@@ -176,6 +214,9 @@ export async function loadTruthBibleTab(tab) {
     } else if (tab === "foreshadow") {
       const payload = await zhimuApi.getForeshadowBeats(worldId);
       worldStore.set({ cloudForeshadowBeats: payload?.beats || [] });
+    } else if (tab === "materials") {
+      const payload = await zhimuApi.getMaterialBooklets(worldId);
+      worldStore.set({ cloudMaterialBooklets: payload?.booklets || [] });
     }
     render();
   } catch (error) {

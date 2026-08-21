@@ -1,4 +1,5 @@
 import { VENUE_LABELS } from "./catalog.js";
+import { FREIGHT_WHARF_TEMPLATE } from "./venues/freight-wharf.js";
 
 function loc(id, name, access, adjacent = []) {
   return { id, name, access, adjacent };
@@ -198,7 +199,8 @@ const TEMPLATES = {
       { id: "OBJ_003", type: "document", holder: "CHAR_001", locationId: "LOC_office", fields: { kind: "banquet_order" } },
       { id: "OBJ_004", type: "wine", holder: null, locationId: "LOC_banquet", fields: { color: "white" } }
     ]
-  }
+  },
+  freight_wharf: FREIGHT_WHARF_TEMPLATE
 };
 
 export function getVenueTemplate(venueKey) {

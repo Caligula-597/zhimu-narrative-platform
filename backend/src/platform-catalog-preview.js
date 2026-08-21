@@ -25,6 +25,7 @@ export async function listPublicCatalogPreview({ limit = 8 } = {}) {
      JOIN users u ON u.id = w.owner_user_id
      WHERE w.catalog_public = true
        AND w.status <> 'archived'
+       AND COALESCE(NULLIF(w.settings->'narrativeProfile'->>'creationType', ''), NULLIF(w.settings->>'creationType', ''), CASE WHEN w.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END) = 'murder_mystery'
        AND EXISTS (SELECT 1 FROM role_slots rs WHERE rs.world_id = w.id)
      ORDER BY w.updated_at DESC
      LIMIT $1`,

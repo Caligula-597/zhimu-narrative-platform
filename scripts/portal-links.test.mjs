@@ -28,7 +28,6 @@ test("Host accepts old Creator roomId links while preferring the canonical room 
 
 test("Creator and Host surfaces use the shared cross-portal contract", () => {
   const creatorLinks = fs.readFileSync(new URL("../src/runtime/invite-links.js", import.meta.url), "utf8");
-  const firstRun = fs.readFileSync(new URL("../src/components/first-run-chooser.js", import.meta.url), "utf8");
   const roomWorkspace = fs.readFileSync(new URL("../src/views/rooms.js", import.meta.url), "utf8");
   const hostLifecycle = fs.readFileSync(new URL("../host/src/runtime/host-lifecycle-controller.js", import.meta.url), "utf8");
   const hostHeader = fs.readFileSync(new URL("../host/src/components/header.js", import.meta.url), "utf8");
@@ -38,8 +37,6 @@ test("Creator and Host surfaces use the shared cross-portal contract", () => {
 
   assert.match(creatorLinks, /buildHostConsoleUrl\(base, id\)/);
   assert.doesNotMatch(creatorLinks, /\?roomId=/);
-  assert.match(firstRun, /playSiteOrigin/);
-  assert.doesNotMatch(firstRun, /playSiteUrl|playOrigin\?\./);
   assert.match(roomWorkspace, /data-action="open-player-portal"[\s\S]*?data-invite-code/);
   assert.match(roomWorkspace, /data-action="open-host-console"[\s\S]*?data-room-id/);
   assert.ok(

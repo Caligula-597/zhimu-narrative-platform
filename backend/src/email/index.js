@@ -41,11 +41,6 @@ export function clearTestEmailCapture() {
   testCaptures.worldInviteUrl = null;
 }
 
-/** @deprecated use clearTestEmailCapture */
-export function clearTestResetCapture() {
-  clearTestEmailCapture();
-}
-
 export function getEmailProvider() {
   return (process.env.EMAIL_PROVIDER || "resend").trim().toLowerCase();
 }
@@ -74,11 +69,6 @@ export function isEmailConfigured() {
     return isSmtpConfigured() && Boolean(publicAppUrl());
   }
   return false;
-}
-
-/** @deprecated */
-export function isResendConfigured() {
-  return isEmailConfigured() && (getEmailProvider() === "resend" || Boolean(process.env.RESEND_API_KEY?.trim()));
 }
 
 export function getEmailServiceStatus() {

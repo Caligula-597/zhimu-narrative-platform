@@ -45,4 +45,3 @@ npm run verify:changed               # 含 site build + test:play + test:host
 ## 相关
 
 - [PRODUCTION_SAAS_ASSESSMENT_ZH.md](../PRODUCTION_SAAS_ASSESSMENT_ZH.md)
-- [06-上市与运维准备路线图.md](../../优化计划/06-上市与运维准备路线图.md)

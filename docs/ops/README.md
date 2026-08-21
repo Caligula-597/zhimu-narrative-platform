@@ -28,7 +28,6 @@
 
 历史参考：
 
-- [RAILWAY_WEB.md](./RAILWAY_WEB.md)：旧双服务方案，当前不用。
 
 ## 生产验收
 

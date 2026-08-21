@@ -1,10 +1,11 @@
 import "./board-game.css";
 import * as zhimuApi from "../api/index.js";
+import { generateBoardGameAiDraft } from "../products/board-game/api.js";
 import { normalizeError } from "../components/status-ui.js";
 import { showToast } from "../components/toast.js";
 import { loadCloudData, render } from "../runtime/runtime-facade.js";
 import { registerView } from "../runtime/view-registry.js";
-import { studioStore, uiStore, worldStore } from "../state/index.js";
+import { uiStore, worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import {
@@ -25,6 +26,7 @@ import {
   boardGameComponentTypeLabel,
   createBoardGameComponent,
   createBoardGameMechanism,
+  createBoardGameSeat,
   createBoardGameVariable,
   createDefaultBoardGameDesign,
   initialBoardGameState,
@@ -72,15 +74,13 @@ const MECHANISM_NESTED_FIELDS = Object.freeze([
 let editorSession = null;
 
 function activeWorld() {
-  const studioWorld = studioStore.get().cloudStudio?.world;
-  if (studioWorld?.id === zhimuApi.context.worldId) return studioWorld;
   const previewWorld = worldStore.get().cloudWorkspacePreview?.world;
   if (previewWorld?.id === zhimuApi.context.worldId) return previewWorld;
   return (worldStore.get().cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId) || null;
 }
 
-function activeRoles() {
-  return (studioStore.get().cloudStudio?.roles || []).slice().sort((a, b) => Number(a.sequence || 0) - Number(b.sequence || 0));
+function activeSeats(session = editorSession) {
+  return (session?.design?.seats || []).slice().sort((a, b) => Number(a.sequence || 0) - Number(b.sequence || 0));
 }
 
 function initializeSession() {
@@ -98,7 +98,7 @@ function initializeSession() {
     selectedId: design.components[0]?.id || "",
     selectedMechanismId: design.mechanisms[0]?.id || "",
     simulationState: initialBoardGameState(design.variables),
-    playgroundState: createBoardGamePlaygroundState(design, activeRoles().length || design.playerCount.min),
+    playgroundState: createBoardGamePlaygroundState(design, design.seats.length || design.playerCount.min),
     assetUrls: {},
     seatDeleteArmedId: "",
     aiScope: design.components.length || design.engine.actions.length ? "patch" : "missing",
@@ -218,7 +218,7 @@ function componentInspector(component) {
     </div>
     <section class="board-state-section">
       <div class="board-section-head"><div><h3>视觉素材与自定义文件</h3><p>支持安全图片、PDF、Word；卡组和卡牌还可直接导入 JSON / CSV 卡表。</p></div><button type="button" class="secondary-btn" data-action="board-asset-open">＋ 上传 / 导入</button></div>
-      <input class="board-file-input" type="file" multiple data-board-asset-input accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.docx,.json,.csv">
+      <input class="board-file-input" type="file" multiple data-board-asset-input accept="image/png,image/jpeg,image/webp,image/gif,.docx,.json,.csv">
       <div class="board-assets-grid">${componentAssets(component)}</div>
     </section>
     ${acceptsEntries ? `<section class="board-state-section"><div class="board-section-head"><div><h3>卡牌条目</h3><p>结构化卡表会成为可继续编辑的数据，不会只作为附件躺在素材库里。</p></div><button type="button" class="secondary-btn" data-action="board-entry-add">＋ 添加卡牌</button></div><div class="board-entry-list">${componentEntries(component)}</div></section>` : ""}
@@ -234,7 +234,7 @@ function renderComponentsTab(session) {
 }
 
 function renderSeatsTab(session) {
-  const roles = activeRoles();
+  const roles = activeSeats(session);
   return `<section class="board-panel board-seats-panel">
     <div class="board-panel-head"><div><p class="section-kicker">PLAYER SEATS</p><h2>玩家席位</h2><p>在这里维护参与人数、席位名称和顺序；规则引用与试玩 Demo 会使用同一份席位名单。</p></div><div class="board-head-actions"><button type="button" class="secondary-btn" data-action="board-seat-add" ${session.busy ? "disabled" : ""}>＋ 增加 1 席</button><button type="button" class="primary-btn" data-action="board-seat-init-six" ${session.busy || roles.length >= 6 ? "disabled" : ""}>补齐为 6 人</button></div></div>
     <div class="board-seat-summary"><strong>${roles.length}</strong><span>个玩家席位</span><small>${roles.length ? `保存桌游时，人数会同步为 ${roles.length} 人` : "从这里直接建立试玩所需的席位"}</small></div>
@@ -364,8 +364,11 @@ function aiDraftPanel(session) {
 
 export function boardGame() {
   const world = activeWorld();
-  if (!world && studioStore.get().studioLoading) return `<div class="empty-state">正在读取桌游工作区…</div>`;
   if (!world) return `<div class="empty-state"><h3>请先选择一个桌游项目</h3><p>创建项目后，席位、组件、规则和可玩 Demo 都从这里逐步补齐。</p></div>`;
+  const creationType = world.settings?.narrativeProfile?.creationType || world.settings?.creationType;
+  if (creationType !== "board_game") {
+    return `<section class="card"><h3>工作区不匹配</h3><p>桌游编辑器只属于桌游项目。</p></section>`;
+  }
   const session = initializeSession();
   const requestedTab = uiStore.get().boardGameRequestedTab;
   if (TAB_LABELS[requestedTab]) {
@@ -374,13 +377,13 @@ export function boardGame() {
   }
   const tabContent = session.activeTab === "seats" ? renderSeatsTab(session)
     : session.activeTab === "mechanisms" ? renderMechanismsTab(session)
-      : session.activeTab === "playground" ? renderBoardGamePlayground(session.design, session.playgroundState, activeRoles())
+      : session.activeTab === "playground" ? renderBoardGamePlayground(session.design, session.playgroundState, activeSeats(session))
       : session.activeTab === "rulebook" ? renderRulebookTab(session)
         : renderComponentsTab(session);
   return `<div class="board-game-workbench" data-board-workbench>
     <header class="board-game-header"><div><p class="section-kicker">BOARD GAME WORKBENCH</p><h1>${escapeHtml(world.name)}</h1><p>桌游专属工作台：玩家席位、组件资产、状态规则与说明书在同一份数据里互相引用。</p></div><button type="button" class="primary-btn ${session.dirty ? "has-changes" : ""}" data-action="board-design-save" data-board-save ${session.saving ? "disabled" : ""}><span data-board-save-label>${session.saving ? "正在保存…" : session.dirty ? "保存更改" : "已保存"}</span></button></header>
     ${aiDraftPanel(session)}
-    <section class="board-game-brief"><label class="wide"><span>设计目标</span><input class="field" data-board-design-field="designGoal" maxlength="2400" value="${escapeHtml(session.design.designGoal)}" placeholder="这套规则围绕哪些对象、行动和状态变化运转？"></label><label><span>实际席位</span><input class="field" value="${activeRoles().length} 人" disabled></label><label><span>预计分钟</span><input class="field" data-board-design-field="playTimeMinutes" type="number" min="1" max="10080" value="${session.design.playTimeMinutes}"></label></section>
+    <section class="board-game-brief"><label class="wide"><span>设计目标</span><input class="field" data-board-design-field="designGoal" maxlength="2400" value="${escapeHtml(session.design.designGoal)}" placeholder="这套规则围绕哪些对象、行动和状态变化运转？"></label><label><span>实际席位</span><input class="field" value="${activeSeats(session).length} 人" disabled></label><label><span>预计分钟</span><input class="field" data-board-design-field="playTimeMinutes" type="number" min="1" max="10080" value="${session.design.playTimeMinutes}"></label></section>
     <nav class="board-tabs" aria-label="桌游设计模块">${Object.entries(TAB_LABELS).map(([key, label]) => `<button type="button" class="${session.activeTab === key ? "active" : ""}" data-action="board-tab-select" data-board-tab="${key}">${label}</button>`).join("")}</nav>
     ${tabContent}
   </div>`;
@@ -665,13 +668,14 @@ export function deleteBoardGameEntry(entryId) {
   render();
 }
 
-async function createSeat(sequence) {
-  return zhimuApi.createRole(initializeSession().worldId, {
-    name: `玩家席位 ${sequence}`,
-    publicProfile: "桌游玩家席位",
-    privateProfile: "",
-    sequence
-  });
+function createSeat(sequence) {
+  const session = initializeSession();
+  const seat = createBoardGameSeat(sequence - 1);
+  seat.sequence = sequence;
+  session.design.seats.push(seat);
+  session.design.playerCount = { min: session.design.seats.length, max: session.design.seats.length };
+  session.dirty = true;
+  return seat;
 }
 
 export async function addBoardGameSeat() {
@@ -680,8 +684,7 @@ export async function addBoardGameSeat() {
   session.busy = true;
   render();
   try {
-    await createSeat(activeRoles().length + 1);
-    await loadCloudData(false, true);
+    createSeat(activeSeats(session).length + 1);
     showToast("已增加玩家席位");
   } catch (error) {
     showToast(normalizeError(error, "玩家席位创建失败"));
@@ -694,13 +697,12 @@ export async function addBoardGameSeat() {
 export async function initializeSixBoardGameSeats() {
   const session = initializeSession();
   if (session.busy) return;
-  const existing = activeRoles().length;
+  const existing = activeSeats(session).length;
   if (existing >= 6) return;
   session.busy = true;
   render();
   try {
-    for (let sequence = existing + 1; sequence <= 6; sequence += 1) await createSeat(sequence);
-    await loadCloudData(false, true);
+    for (let sequence = existing + 1; sequence <= 6; sequence += 1) createSeat(sequence);
     showToast(`已补齐为 6 人桌游，新增 ${6 - existing} 个玩家席位`);
   } catch (error) {
     await loadCloudData(false, true);
@@ -712,22 +714,14 @@ export async function initializeSixBoardGameSeats() {
 }
 
 export async function renameBoardGameSeat(roleId, name) {
-  const role = activeRoles().find((item) => item.id === roleId);
+  const session = initializeSession();
+  const role = activeSeats(session).find((item) => item.id === roleId);
   const nextName = String(name || "").trim();
   if (!role || !nextName || nextName === role.name) return;
-  try {
-    await zhimuApi.updateRole(roleId, {
-      name: nextName,
-      publicProfile: role.public_profile || role.publicProfile || "桌游玩家席位",
-      privateProfile: role.private_profile || role.privateProfile || "",
-      sequence: Number(role.sequence || 1)
-    });
-    await loadCloudData(false, true);
-    showToast("席位名称已保存");
-  } catch (error) {
-    showToast(normalizeError(error, "席位名称保存失败"));
-    render();
-  }
+  role.name = nextName;
+  session.dirty = true;
+  render();
+  showToast("席位名称已写入桌游草稿");
 }
 
 export function saveBoardGameSeatName(roleId) {
@@ -748,10 +742,15 @@ export async function deleteBoardGameSeat(roleId) {
   session.busy = true;
   render();
   try {
-    await zhimuApi.deleteRole(roleId);
+    session.design.seats = session.design.seats
+      .filter((seat) => seat.id !== roleId)
+      .map((seat, index) => ({ ...seat, sequence: index + 1 }));
+    session.design.playerCount = session.design.seats.length
+      ? { min: session.design.seats.length, max: session.design.seats.length }
+      : session.design.playerCount;
+    session.dirty = true;
     session.seatDeleteArmedId = "";
-    await loadCloudData(false, true);
-    showToast("玩家席位及其关联数据已删除");
+    showToast("玩家席位已从桌游草稿删除");
   } catch (error) {
     session.seatDeleteArmedId = "";
     showToast(normalizeError(error, "玩家席位删除失败"));
@@ -876,7 +875,7 @@ export function advanceBoardGamePlaygroundRound() {
 
 export function resetBoardGamePlaygroundView() {
   const session = initializeSession();
-  session.playgroundState = resetPlaygroundState(session.design, activeRoles().length || session.design.playerCount.min);
+  session.playgroundState = resetPlaygroundState(session.design, activeSeats(session).length || session.design.playerCount.min);
   render();
 }
 
@@ -885,7 +884,7 @@ function replaceSessionDesign(session, value) {
   session.selectedId = session.design.components[0]?.id || "";
   session.selectedMechanismId = session.design.mechanisms[0]?.id || "";
   session.simulationState = initialBoardGameState(session.design.variables);
-  session.playgroundState = createBoardGamePlaygroundState(session.design, activeRoles().length || session.design.playerCount.min);
+  session.playgroundState = createBoardGamePlaygroundState(session.design, activeSeats(session).length || session.design.playerCount.min);
   session.dirty = true;
 }
 
@@ -894,9 +893,9 @@ export async function generateBoardGameDraft() {
   if (session.aiGenerating) return;
   session.aiGenerating = true; session.aiError = ""; session.aiDraft = null; session.aiDraftBase = structuredClone(session.design); render();
   try {
-    const roleCount = activeRoles().length;
-    const currentDesign = normalizeBoardGameDesign({ ...session.design, playerCount: roleCount ? { min: roleCount, max: roleCount } : session.design.playerCount });
-    const proposal = await zhimuApi.generateBoardGameAiDraft({
+    const seatCount = activeSeats(session).length;
+    const currentDesign = normalizeBoardGameDesign({ ...session.design, playerCount: seatCount ? { min: seatCount, max: seatCount } : session.design.playerCount });
+    const proposal = await generateBoardGameAiDraft({
       currentDesign, scope: session.aiScope, currentSection: session.activeTab === "playground" ? "engine" : session.activeTab,
       instructions: session.aiInstructions, seed: globalThis.crypto?.randomUUID?.() || `${Date.now()}`
     }, session.worldId);
@@ -923,25 +922,23 @@ export function undoBoardGameDraft() { const session = initializeSession(); if (
 
 export async function saveBoardGameDesign() {
   const session = initializeSession();
-  const studio = studioStore.get().cloudStudio;
   const world = activeWorld();
   if (!world || !zhimuApi.context.worldId || session.saving) return;
   session.saving = true;
   render();
   try {
-    const roleCount = activeRoles().length;
+    const seatCount = activeSeats(session).length;
     const boardGameDesign = normalizeBoardGameDesign({
       ...session.design,
-      playerCount: roleCount ? { min: roleCount, max: roleCount } : session.design.playerCount,
+      playerCount: seatCount ? { min: seatCount, max: seatCount } : session.design.playerCount,
       updatedAt: new Date().toISOString()
     }, { title: world.name });
-    const settings = { ...(world.settings || {}), boardGameDesign };
-    const updated = await zhimuApi.patchWorld({ settings }, world.id, { revision: world.content_revision });
-    const nextWorld = { ...world, ...updated, settings: updated.settings || settings, content_revision: updated.content_revision ?? world.content_revision };
-    if (studio) studioStore.set({ cloudStudio: { ...studio, world: nextWorld } });
+    const settingsPatch = { boardGameDesign };
+    const updated = await zhimuApi.patchWorld({ settings: settingsPatch }, world.id, { revision: world.content_revision });
+    const nextWorld = { ...world, ...updated, settings: updated.settings || { ...(world.settings || {}), ...settingsPatch }, content_revision: updated.content_revision ?? world.content_revision };
     worldStore.set({
       cloudWorlds: (worldStore.get().cloudWorlds || []).map((item) => item.id === world.id ? { ...item, ...nextWorld } : item),
-      cloudWorkspacePreview: worldStore.get().cloudWorkspacePreview?.world?.id === world.id ? { ...worldStore.get().cloudWorkspacePreview, world: nextWorld } : worldStore.get().cloudWorkspacePreview
+      cloudWorkspacePreview: { world: nextWorld }
     });
     session.design = boardGameDesign;
     session.dirty = false;

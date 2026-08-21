@@ -65,7 +65,6 @@ test("all Writer full-page tools consume the shared layout instead of rebuilding
     "src/views/writer-snapshot-workspace.js",
     "src/views/writer-story-assistant-view.js",
     "src/views/writer-review-view.js",
-    "src/views/writer-player-preview-view.js",
     "src/views/writer-collaboration-view.js",
     "src/views/writer-world-logs-view.js"
   ];
@@ -82,48 +81,4 @@ test("uploaded prose that misses the gate requires explicit human review before 
   assert.match(source, /data-document-check="proseReviewConfirmed"/u);
   assert.match(source, /未确认前不会写入/u);
   assert.match(source, /不代表稿件已达到发布或精品库标准/u);
-});
-
-test("creator production surfaces lazy-load the AI script pipeline launcher", () => {
-  const loader = read("src/runtime/view-loader.js");
-  const actions = read("src/runtime/actions.js");
-  const launcher = read("src/runtime/actions-pipeline.js");
-  const panels = read("src/views/creator-cockpit-panels.js");
-  const pipelineOpen = read("src/views/pipeline-wizard-open.js");
-  const browserFixture = read("scripts/browser-fixture-api.mjs");
-
-  assert.match(loader, /creatorCockpit:[\s\S]*actions-pipeline\.js/u);
-  assert.match(loader, /production:[\s\S]*actions-pipeline\.js/u);
-  assert.match(actions, /zhimuActionsPipeline\?\.handlePipelineAction/u);
-  assert.match(launcher, /action !== "deepseek-pipeline"/u);
-  assert.match(launcher, /writer\.openDeepseekPipeline\(\)/u);
-  assert.match(pipelineOpen, /\["setup", "truth", "characters", "clues", "matrix", "host", "scripts", "evaluate", "sync"\]/u);
-  assert.doesNotMatch(panels, /AI 悬疑创作/u);
-  assert.match(browserFixture, /story-manuscript/u);
-});
-
-test("pipeline evaluation surfaces local repair routing instead of writing every issue back to setup", () => {
-  const html = read("src/views/pipeline-wizard-html.js");
-  const open = read("src/views/pipeline-wizard-open.js");
-  const session = read("src/views/pipeline-wizard-session.js");
-  assert.match(html, /局部返工计划/u);
-  assert.match(html, /100 局策略压力测试/u);
-  assert.match(html, /关键真相整局还原/u);
-  assert.match(html, /精确对象/u);
-  assert.match(html, /strategy\.claimBoundary/u);
-  assert.match(html, /对抗性桌测/u);
-  assert.match(html, /前往最早返工层/u);
-  assert.match(open, /applyPipelineRepairPlan/u);
-  assert.match(open, /generationProvenance/u);
-  assert.match(session, /REPAIR_STAGE_TO_LAYER/u);
-  assert.match(session, /staleArtifacts/u);
-  assert.doesNotMatch(open, /已追加.*额外的矛盾冲突/u);
-});
-
-test("AI script pipeline becomes a single-column, horizontally navigable workspace on narrow screens", () => {
-  const styles = read("styles.css");
-  assert.match(styles, /@media\(max-width:820px\)[\s\S]*\.pipeline-wizard-title-row \{ flex-direction:column/u);
-  assert.match(styles, /\.pipeline-wizard-body \{ grid-template-columns:1fr; grid-template-rows:auto minmax\(0,1fr\)/u);
-  assert.match(styles, /\.pipeline-wizard-side \.pipeline-ladder \{ display:grid; grid-auto-flow:column/u);
-  assert.match(styles, /\.modal\.pipeline-wizard-modal \{ width:100%; max-width:none; height:calc\(100dvh - 12px\)/u);
 });

@@ -182,9 +182,9 @@ REQUIRE_EMAIL_VERIFICATION=true
 
 ---
 
-## 4. AI 剧本创作（用户自备 API）
+## 4. AI 体验验证与局部辅助（用户自备 API）
 
-普通创作请求不使用平台 Key。用户在账号设置中选择服务商、模型并填写自己的 API Key；
+需要模型的体验验证或局部辅助不使用平台 Key。用户在账号设置中选择服务商、模型并填写自己的 API Key；
 Key 经过 AES-256-GCM 加密后保存，调用费用由用户对应的服务商账户承担。
 
 当前预设支持 DeepSeek、OpenAI、OpenRouter、阿里云百炼（Qwen）、智谱（GLM）、硅基流动，

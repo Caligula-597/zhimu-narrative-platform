@@ -25,7 +25,7 @@ export function buildBoardGameAiDraftMessages({ currentDesign, scope, currentSec
 5. 运行必需但作者未说明的内容可以自由补全，并列入 assumptions。
 6. 只输出 JSON，不要 Markdown。
 能力：${capabilities}
-JSON 必须包含 summary、capabilityPlan 和 design。design 必须包含 title、designGoal、playerCount、playTimeMinutes、components、variables、mechanisms、engine、rulebook、updatedAt。
+JSON 必须包含 summary、capabilityPlan 和 design。design 必须包含 title、designGoal、playerCount、playTimeMinutes、seats、components、variables、mechanisms、engine、rulebook、updatedAt。seats 是桌游自己的席位数组，不得使用角色本或跑团角色数据。
 engine 格式：{"version":1,"maxRounds":6,"map":{"kind":"area_graph","nodes":[{"id":"a","label":"区域A","x":20,"y":30,"terrain":"plain","capacity":99,"scoreValue":0,"initialOwner":-1,"description":""}],"edges":[{"id":"a-b","from":"a","to":"b","cost":1,"blocked":false,"bidirectional":true,"label":""}]},"phases":[{"id":"phase","label":"阶段","mode":"sequential|simultaneous|reveal","actionIds":["action"],"description":""}],"actions":[{"id":"action","label":"行动","kind":"move|gain|pay|control|score|mechanism|pass","phaseId":"phase","target":"none|any_region|adjacent_region|own_region|opponent_region","resourceKey":"resource-id","cost":0,"amount":0,"mechanismId":"","description":""}],"setup":{"unitsPerSeat":1,"startingNodeIds":["a"]},"endCondition":{"type":"rounds|variable_threshold","variableKey":"","operator":"gte","value":6},"information":"public"}。`;
   const user = `生成标识：${seed}\n范围：${scopeInstruction(scope, currentSection)}\n作者要求：${instructions || "自由生成一份可运行原型。"}\n当前设计：${JSON.stringify(design)}`;
   return [{ role: "system", content: system }, { role: "user", content: user }];

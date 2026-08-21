@@ -1,6 +1,6 @@
 import { createDefaultBoardGameEngine, normalizeBoardGameEngine } from "./board-game-engine.js";
 
-export const BOARD_GAME_DESIGN_VERSION = 3;
+export const BOARD_GAME_DESIGN_VERSION = 4;
 
 export const BOARD_GAME_COMPONENT_TYPES = Object.freeze([
   "board",
@@ -73,6 +73,23 @@ function uniqueId(prefix, index = 0) {
 
 export function boardGameComponentTypeLabel(type) {
   return TYPE_LABELS[BOARD_GAME_COMPONENT_TYPES.includes(type) ? type : "custom"];
+}
+
+export function createBoardGameSeat(index = 0) {
+  return {
+    id: uniqueId("seat", index),
+    name: `玩家席位 ${index + 1}`,
+    sequence: index + 1
+  };
+}
+
+export function normalizeBoardGameSeat(value, index = 0) {
+  const source = record(value);
+  return {
+    id: identifier(source.id, `seat-${index + 1}`),
+    name: text(source.name, 120) || `玩家席位 ${index + 1}`,
+    sequence: integer(source.sequence, index + 1, 1, 99)
+  };
 }
 
 export function createBoardGameComponent(type = "custom", index = 0) {
@@ -236,6 +253,7 @@ export function createDefaultBoardGameDesign(title = "") {
     designGoal: "",
     playerCount: { min: 2, max: 6 },
     playTimeMinutes: 60,
+    seats: [],
     components: [],
     variables: [],
     mechanisms: [],
@@ -258,6 +276,7 @@ export function normalizeBoardGameDesign(value = {}, { title = "" } = {}) {
       max: integer(players.max, Math.max(6, minPlayers), minPlayers, 99)
     },
     playTimeMinutes: integer(source.playTimeMinutes, 60, 1, 10080),
+    seats: (Array.isArray(source.seats) ? source.seats : []).slice(0, 99).map(normalizeBoardGameSeat),
     components: (Array.isArray(source.components) ? source.components : []).slice(0, 300).map(normalizeBoardGameComponent),
     variables: (Array.isArray(source.variables) ? source.variables : []).slice(0, 300).map(normalizeBoardGameVariable),
     mechanisms: (Array.isArray(source.mechanisms) ? source.mechanisms : []).slice(0, 300).map(normalizeBoardGameMechanism),
@@ -322,10 +341,10 @@ export function initialBoardGameState(variables = []) {
   }));
 }
 
-export function assessBoardGameReadiness(design, roleCount = 0) {
+export function assessBoardGameReadiness(design) {
   const normalized = normalizeBoardGameDesign(design);
   const checks = [
-    { key: "players", label: "至少 2 个玩家席位", passed: roleCount >= 2 },
+    { key: "players", label: "至少 2 个玩家席位", passed: normalized.seats.length >= 2 },
     { key: "components", label: "至少 1 个桌面组件", passed: normalized.components.length >= 1 },
     { key: "objective", label: "写明目标与结束条件", passed: Boolean(normalized.rulebook.objective && normalized.rulebook.endCondition) },
     { key: "flow", label: "写明准备与回合流程", passed: Boolean(normalized.rulebook.setup && normalized.rulebook.turnStructure) },

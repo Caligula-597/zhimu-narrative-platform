@@ -12,7 +12,7 @@ test("creator item action contract is normalized once for all three portals", ()
     key: "unlock_archive",
     label: "组合钥匙",
     kind: "combine",
-    targetType: "location",
+    targetType: "role",
     requiresHostConfirmation: true,
     consumeQuantity: 1,
     combineConsumeQuantity: 1,

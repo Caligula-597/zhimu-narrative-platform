@@ -1,11 +1,11 @@
 /** Sidebar advanced nav expand/collapse + world switcher labels. */
 import * as zhimuApi from "../api/index.js";
 import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
-import { narrativeModeDefinition, narrativeProfileFromSettings } from "../../shared/narrative-profile.js";
-import { productSupportsView, productToolCapabilities, productToolLabel } from "../../shared/product-capabilities.js";
+import { narrativeProfileFromWorld } from "../../shared/narrative-profile.js";
+import { productAllowsShellView, productSupportsView, productToolCapabilities, productToolLabel } from "../../shared/product-capabilities.js";
+import { productModuleForWorld } from "../products/product-registry.js";
 (function (window) {
-  const ADVANCED_VIEWS = ["writer", "truth", "studio", "tabletopMap", "clues", "rules", "miniGames", "archive"];
-  let syncedProductMode = "";
+  const ADVANCED_VIEWS = ["writer", "truth", "studio", "clues", "rules", "miniGames", "archive"];
 
   function currentWorld() {
     const { cloudStudio } = studioStore.get();
@@ -36,32 +36,41 @@ import { productSupportsView, productToolCapabilities, productToolLabel } from "
 
   function syncProductShell() {
     const world = currentWorld();
-    const profile = world ? narrativeProfileFromSettings(world.settings || {}) : null;
-    const boardGameMode = profile?.creationType === "board_game";
-    const productMode = boardGameMode ? "board-game" : "narrative";
-    if (syncedProductMode === productMode) return;
-    syncedProductMode = productMode;
+    const profile = world ? narrativeProfileFromWorld(world) : null;
+    const hasWorld = Boolean(world?.id);
+    const product = world ? productModuleForWorld(world) : null;
+    const domain = product?.domain || null;
+    const creationType = profile?.creationType || "";
+    const productMode = domain?.shellMode || "";
     document.body.dataset.productMode = productMode;
-    document.querySelectorAll("[data-narrative-shell]").forEach((node) => { node.hidden = boardGameMode; });
-    document.querySelectorAll("[data-board-shell]").forEach((node) => { node.hidden = !boardGameMode; });
+    document.body.dataset.productKey = hasWorld ? domain.key : "";
+    document.body.dataset.productActive = hasWorld ? "1" : "0";
+    document.querySelectorAll("[data-product-shell]").forEach((node) => {
+      node.hidden = !hasWorld || node.dataset.productShell !== domain?.key;
+    });
+    document.querySelectorAll(".main-nav [data-view], .sidebar-bottom [data-view]").forEach((node) => {
+      node.hidden = hasWorld
+        ? !productAllowsShellView(creationType, node.dataset.view)
+        : !["account", "ops"].includes(node.dataset.view);
+    });
 
     const brandSubtitle = document.querySelector(".brand-subtitle");
-    if (brandSubtitle) brandSubtitle.textContent = boardGameMode ? "BOARD GAME CREATOR" : "NARRATIVE ENGINE";
+    if (brandSubtitle) brandSubtitle.textContent = hasWorld ? product.shell.brandSubtitle : "CREATOR PLATFORM";
     const mainNav = document.querySelector(".main-nav");
-    if (mainNav) mainNav.setAttribute("aria-label", boardGameMode ? "桌游创作导航" : "叙事创作导航");
+    if (mainNav) mainNav.setAttribute("aria-label", hasWorld ? `${domain.label}创作导航` : "项目创作导航");
     const sidebarActions = document.querySelector(".sidebar-actions");
-    if (sidebarActions) sidebarActions.setAttribute("aria-label", boardGameMode ? "桌游项目操作" : "创作项目操作");
+    if (sidebarActions) sidebarActions.setAttribute("aria-label", hasWorld ? `${domain.label}项目操作` : "项目操作");
 
     const createButton = document.querySelector("#create-world-btn");
     const createText = createButton?.querySelector(".sidebar-action-text");
-    const createLabel = boardGameMode ? "新建桌游" : "创建项目";
+    const createLabel = hasWorld ? `新建${domain.label}` : "创建项目";
     if (createText) createText.textContent = createLabel;
     if (createButton) {
       createButton.setAttribute("aria-label", createLabel);
       createButton.title = createLabel;
     }
     const catalogButton = document.querySelector("#catalog-world-btn");
-    if (catalogButton) catalogButton.hidden = boardGameMode;
+    if (catalogButton) catalogButton.hidden = !hasWorld || !product.library.catalogAvailable;
 
     const searchButton = document.querySelector("#search-btn");
     const notifyButton = document.querySelector("#notify-btn");
@@ -69,21 +78,23 @@ import { productSupportsView, productToolCapabilities, productToolLabel } from "
     const previewButton = document.querySelector("#preview-btn");
     const runButton = document.querySelector("#run-btn");
     [searchButton, notifyButton, topbarDivider, previewButton].forEach((node) => {
-      if (node) node.hidden = boardGameMode;
+      if (node) node.hidden = !hasWorld || !product.shell.showCreatorRuntimeControls;
     });
     if (runButton) {
-      runButton.textContent = boardGameMode ? "▶ 运行可玩 Demo" : "▶ 打开主持端";
-      runButton.setAttribute("aria-label", boardGameMode ? "运行桌游可玩 Demo" : "打开主持端");
+      const runLabel = hasWorld ? product.runtime.label : "";
+      runButton.hidden = !runLabel;
+      runButton.textContent = runLabel;
+      runButton.setAttribute("aria-label", runLabel.replace(/^▶\s*/u, ""));
     }
 
     const settingsButton = document.querySelector('[data-view="settings"]');
-    if (settingsButton) settingsButton.hidden = boardGameMode;
+    if (settingsButton) settingsButton.hidden = !hasWorld || !productAllowsShellView(creationType, "settings");
     const managementLabel = document.querySelector(".sidebar-bottom-label");
-    if (managementLabel) managementLabel.textContent = boardGameMode ? "平台" : "管理";
+    if (managementLabel) managementLabel.textContent = hasWorld && productAllowsShellView(creationType, "settings") ? "管理" : "平台";
     const authDescription = document.querySelector("[data-session-desc]");
-    if (authDescription) authDescription.textContent = boardGameMode
-      ? "登录后可保存桌游项目、素材和可执行 Demo。"
-      : "登录后可保存剧本、邀请协作并记录运行数据。";
+    if (authDescription) authDescription.textContent = hasWorld
+      ? product.shell.authDescription
+      : "登录后可创建并管理剧本杀、跑团或桌游项目。";
   }
 
   function syncWorldSwitcher() {
@@ -125,19 +136,12 @@ import { productSupportsView, productToolCapabilities, productToolLabel } from "
     }
     icon.textContent = worldName.slice(0, 1);
     strong.textContent = worldName;
-    const profile = narrativeProfileFromSettings((studioWorld || listedWorld)?.settings || {});
-    const definition = narrativeModeDefinition(profile.creationType);
-    const chapterCount = (cloudStudio || cloudWorkspacePreview)?.chapters?.length;
-    if (profile.creationType === "board_game") {
-      const componentCount = (studioWorld || listedWorld)?.settings?.boardGameDesign?.components?.length;
-      small.textContent = typeof componentCount === "number"
-        ? `${definition.label}创作 · ${componentCount} 类组件`
-        : `${definition.label}创作 · 空白项目`;
-    } else {
-      small.textContent = typeof chapterCount === "number"
-        ? `${definition.label}创作 · ${chapterCount} 个${definition.terminology.act}`
-        : `${definition.label}创作 · 正在同步内容`;
-    }
+    const world = studioWorld || listedWorld;
+    const product = productModuleForWorld(world);
+    small.textContent = product.shell.summarizeWorld({
+      world,
+      workspace: cloudStudio || cloudWorkspacePreview
+    });
   }
 
   function syncNavAdvanced(view = uiStore.get().view) {
@@ -147,28 +151,26 @@ import { productSupportsView, productToolCapabilities, productToolLabel } from "
     const label = toggle.querySelector("[data-nav-advanced-label]");
     const world = currentWorld();
     const reviewerMode = world?.membership_role === "reviewer";
-    const profile = narrativeProfileFromSettings(world?.settings || {});
-    const capabilities = productToolCapabilities(profile.creationType);
-    if (profile.creationType === "board_game") {
+    const product = productModuleForWorld(world);
+    if (!world || !product.shell.advancedNavigation) {
       panel.hidden = true;
       toggle.setAttribute("aria-expanded", "false");
       toggle.classList.remove("contains-active");
       return;
     }
+    const profile = narrativeProfileFromWorld(world);
+    const capabilities = productToolCapabilities(profile.creationType);
     const productScope = panel.querySelector("[data-nav-product-scope]");
     const sharedScope = panel.querySelector("[data-nav-shared-scope]");
     if (productScope) productScope.textContent = `${capabilities.label}专属工具`;
-    if (sharedScope) sharedScope.textContent = "共享底层 · 规则与运行";
+    if (sharedScope) sharedScope.textContent = product.shell.advancedSharedScopeLabel || "运行工具";
     panel.querySelectorAll("[data-view]").forEach((button) => {
       const productHidden = !productSupportsView(profile.creationType, button.dataset.view);
       button.hidden = productHidden || (reviewerMode && button.dataset.view !== "writer");
       relabelNav(button.dataset.view, productToolLabel(profile.creationType, button.dataset.view, button.querySelector(".nav-text")?.textContent));
     });
     if (productScope) productScope.hidden = reviewerMode;
-    if (sharedScope) sharedScope.hidden = reviewerMode || capabilities.shared.every((viewName) => {
-      const button = panel.querySelector(`[data-view="${viewName}"]`);
-      return !button || button.hidden;
-    });
+    if (sharedScope) sharedScope.hidden = reviewerMode;
     // Respect explicit collapse ("0"). Being on an advanced page must NOT force-reopen
     // after the user clicks 收起 — that caused UI stutter / snap-back.
     const stored = localStorage.getItem("zhimuNavAdvanced");

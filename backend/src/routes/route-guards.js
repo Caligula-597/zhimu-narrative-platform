@@ -1,5 +1,6 @@
 import { query } from "../db.js";
 import { throwErr } from "../api-errors.js";
+import { narrativeProfileFromSettings } from "../../../shared/narrative-profile.js";
 export { requireVoiceRoomAccess, resolveVoiceRoomAccess } from "./voice-access.js";
 
 async function healRoomHostMembership(roomId, actorId) {
@@ -53,6 +54,24 @@ export async function requireWorldRole(actorId, worldId, allowedRoles = WORLD_ED
   if (!result.rowCount) throwErr("WORLD_ACCESS_DENIED");
   if (!allowedRoles.includes(result.rows[0].role)) throwErr("WORLD_EDITOR_REQUIRED");
   return result.rows[0];
+}
+
+export async function requireWorldProduct(worldId, expectedProduct) {
+  const result = await query(`SELECT settings FROM worlds WHERE id = $1`, [worldId]);
+  if (!result.rowCount) throwErr("WORLD_NOT_FOUND");
+  const actualProduct = narrativeProfileFromSettings(result.rows[0].settings || {}).creationType;
+  const allowed = Array.isArray(expectedProduct) ? expectedProduct : [expectedProduct];
+  if (!allowed.includes(actualProduct)) {
+    throwErr("WORLD_PRODUCT_MISMATCH", undefined, { expected: allowed, actual: actualProduct });
+  }
+  return actualProduct;
+}
+
+export function createWorldProductPreHandler(expectedProduct) {
+  return async function worldProductPreHandler(request) {
+    const worldId = request.params?.worldId;
+    if (worldId) await requireWorldProduct(worldId, expectedProduct);
+  };
 }
 
 /** Read script / studio data (public catalog players, hosts, collaborators). */

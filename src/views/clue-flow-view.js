@@ -60,8 +60,6 @@ export function highlightQuery(text, query) {
     const metadata = clue?.metadata || {};
     return Boolean(
       linkedPoints(clue?.id, data).length ||
-      metadata.locationId ||
-      metadata.location_id ||
       metadata.segmentKey ||
       metadata.segment_key ||
       metadata.allowUnbound === true

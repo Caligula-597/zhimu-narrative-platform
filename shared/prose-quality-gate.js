@@ -6,8 +6,13 @@
  * scripts: the narrator explaining the character, thesis-shaped correction,
  * and task/design notes leaking into the prose.
  */
-export const PROSE_QUALITY_GATE_VERSION = "v1.6-transition-contract";
-export const UPLOAD_PROSE_REVIEW_THRESHOLD = 65;
+import {
+  DEFAULT_ROLE_DOCUMENT_LIMITS,
+  PLAYER_FACING_CONTRACT_VERSION,
+} from "./player-facing-contract.js";
+import { analyzeNarrativeRhythm } from "./narrative-rhythm.js";
+
+export const PROSE_QUALITY_GATE_VERSION = "v1.8-observation-without-scoring";
 
 const QUOTED_TEXT = /“[^”]*”|「[^」]*」|『[^』]*』|"[^"]*"|'[^']*'/gu;
 const HEADING = /^(?:#{1,6}\s*|【[^】]{1,40}】\s*$|第[一二三四五六七八九十\d]+幕)/u;
@@ -15,7 +20,6 @@ const VISIBLE_ACTION = /(?:拿|放|推|拉|敲|关|打开|走|站|坐|蹲|抬|�
 const INNER_EXPLANATION = /(?:觉得|以为|明白|知道|清楚|相信|认为|意识到|告诉自己|记得|忘了|希望|害怕|后悔|终于懂得)/u;
 const EXPLANATION_TRANSITION = /(?:这意味着|这说明|这就是为什么|说到底|归根结底|真正的|其实你|你其实|原来如此)/gu;
 const COMPRESSED_TRADE_EXPRESSION = /(?:换腕子|(?:断口|切口|皮边|纸边|木边)(?:毛|糙|硬|软|脆|湿|干|薄|厚|松|紧))(?=[，。！？!?]|$)/gu;
-const NATURAL_TRANSITION = /(?:后来|不过|但是|可是|可我|可他|可她|可这|所以|因此|于是|等到|等我|等他|等她|偏偏|接着|随后|再后来|当时|这时|这才|原先|本来|起先|结果|反倒|另一边|没过多久|(?:以后|之前|之后)[，。]|却(?:没|不|又|还是|已经|先|把|被|在|只)|才(?:发现|看见|知道|想起|听见|注意到))/gu;
 
 const RULES = [
   {
@@ -92,6 +96,105 @@ const RULES = [
   }
 ];
 
+const PLAYER_SURFACE_RULES = [
+  {
+    code: "readaloud_instruction",
+    severity: "high",
+    pattern: /(?:公开朗读|公开陈述|请(?:你|玩家)?朗读|朗读以下内容)/u,
+    message: "玩家正文出现公开朗读或公开陈述指令。",
+  },
+  {
+    code: "player_instruction_block",
+    severity: "high",
+    pattern:
+      /(?:行动建议|你的目标|你现在可以公开|你暂时最想隐瞒|你可以正式提交|你可以提交|你不能做的事|判断框架|最终提交|私人提交|本幕任务|玩家任务)/u,
+    message: "玩家正文泄漏任务、公开/隐瞒清单或行动建议。",
+  },
+  {
+    code: "knowledge_matrix_leak",
+    severity: "high",
+    pattern:
+      /(?:\bmustHide\b|\bcanDiscuss\b|\bchapterKnowledge\b|\bknows\b|可公开的信息|必须隐瞒|暂时隐瞒|可讨论信息|知识矩阵)/iu,
+    message: "玩家正文泄漏知识矩阵字段或其中文标签。",
+  },
+  {
+    code: "internal_key_leak",
+    severity: "high",
+    pattern:
+      /(?:\bE-\d{2,}\b|\bevidence-\d+\b|\bstate-\d+\b|\bresource-\d+\b|\brole-\d+\b|\bchapter-\d+\b)/iu,
+    message: "玩家正文泄漏内部证据、状态、资源、角色或章节编号。",
+  },
+  {
+    code: "prop_schema_leak",
+    severity: "high",
+    pattern: /(?:指定证据|证据编号|道具编号|原句\s*[：:].{0,80}(?:证据|编号))/u,
+    message: "玩家正文泄漏道具制作字段或证据挂接记录。",
+  },
+  {
+    code: "relationship_dossier",
+    severity: "high",
+    pattern:
+      /^(?:#{1,6}\s*)?(?:你和其他玩家|你与其他角色|你和[\p{Script=Han}·]{2,16}的关系|与[\p{Script=Han}·]{2,16}(?:的关系)?)(?:\s*[：:]\s*)?$/u,
+    message: "玩家正文出现关系档案式标题。关系必须由剧情呈现。",
+  },
+  {
+    code: "relationship_verdict",
+    severity: "high",
+    pattern:
+      /(?:你们(?:并)?不是[^。！？\n]{1,24}(?:，|,)?而是[^。！？\n]{1,32}|你们的关系(?:是|并非|不是)|你和[^。！？\n]{1,16}(?:属于|构成|是)(?:一种|一段)?[^。！？\n]{0,16}关系)/u,
+    message: "玩家正文出现作者替关系下结论的句子。",
+  },
+  {
+    code: "relationship_meta_summary",
+    severity: "high",
+    pattern:
+      /你(?:从未|没有|并未|一直没有|从来没有)回避过自己和[^。！？\n]{1,20}的关系/u,
+    message: "玩家正文用作者摘要说明角色是否回避一段关系，没有产生可经历的剧情。",
+  },
+  {
+    code: "undefined_abstract_afterglow",
+    severity: "high",
+    pattern:
+      /(?:知道|看见|记得|认得)[^。！？\n]{1,36}(?:，|,)?也(?:知道|看见|记得|认得)[^。！？\n]{0,36}(?:不愿说出的(?:那一部分|东西|话)|没有说出口的(?:那一部分|东西|话)|无人愿意提起的(?:名字|事情)|某种说不清的东西)/u,
+    message: "玩家正文用前实后虚的对称句制造没有指称对象的抽象余韵。",
+  },
+  {
+    code: "player_strategy_directive",
+    severity: "high",
+    pattern:
+      /(?:如果|若)[^。！？\n]{0,56}你可以(?:强调|要求|先查|暂时不|不必|质疑|主张|指出|承认|否认|提交|拒绝|选择)/u,
+    message: "玩家正文替玩家安排发言、调查、隐瞒或判断策略。",
+  },
+  {
+    code: "host_process_leak",
+    severity: "high",
+    pattern:
+      /(?:(?:告诉|交给|询问|通知)主持人|由主持人(?:发放|宣读|判断|宣布)|进入第[一二三四五六七八九十\d]+幕后(?:再)?阅读|听从主持人指令|不得阅读其他角色本)/u,
+    message: "玩家正文泄漏主持流程或阅读控制指令。",
+  },
+];
+
+const EXACT_MINUTE = /(?:[零〇一二三四五六七八九十两百\d]{1,4})(?:点|时)[零〇一二三四五六七八九十两\d]{1,3}分|(?:[01]?\d|2[0-3])[:：][0-5]\d/gu;
+const CARETAKING_SILENCE_TEMPLATE = /(?:发烧|高烧|病床|住院|输液|醉(?:了|酒)|受伤)[\s\S]{0,160}(?:问|提起|追问)[\s\S]{0,120}(?:拉高被子|掖(?:好)?被角|替[^。！？\n]{0,20}盖好|递(?:水|药)|把被子)[\s\S]{0,80}(?:没有回答|没有开口|沉默|不作声)/u;
+
+const TASK_ADVICE_RULES = [
+  /(?:如果|若)[^。！？\n]{0,64}你可以/u,
+  /(?:你可以|你应该|建议你|优先|先查|先问|暂时不要|适时|尽量|主动)(?:强调|要求|调查|询问|公开|隐瞒|承认|否认|质疑|指认|提交|说服|误导|撒谎|洗脱|掩盖|发言|沉默)/u,
+  /(?:不要让|别让)[^。！？\n]{0,32}(?:知道|发现|看见|怀疑)/u,
+  /(?:把|将)[^。！？\n]{0,24}(?:责任|嫌疑)(?:推给|引向)/u,
+];
+
+function exactMinuteMentions(text) {
+  return [...String(text || "").matchAll(new RegExp(EXACT_MINUTE.source, "gu"))].filter((match) => {
+    const tail = String(text || "").slice(Number(match.index || 0) + match[0].length, Number(match.index || 0) + match[0].length + 4);
+    if (!/^(?:前后|左右|上下)/u.test(tail)) return true;
+    const minuteText = match[0].match(/(?:点|时)([^分]+)分/u)?.[1] || "";
+    const roundedChineseMinute = /^(?:十|二十|三十|四十|五十)$/u.test(minuteText);
+    const roundedNumericMinute = /^(?:00|10|20|30|40|50)$/u.test(minuteText);
+    return !(roundedChineseMinute || roundedNumericMinute);
+  });
+}
+
 function normalizeText(value) {
   return String(value || "").replace(/\r\n?/g, "\n").trim();
 }
@@ -121,33 +224,6 @@ function dialogueRatio(text) {
   return quotedChars / raw.length;
 }
 
-function shortSentenceChain(paragraphs) {
-  let run = [];
-  for (const paragraph of paragraphs) {
-    // Speaker attributions around real dialogue are often short by necessity.
-    // Treat a dialogue paragraph as a rhythm boundary instead of masking the
-    // quote and accidentally diagnosing “我问 / 他答 / 她转身” as fake prose.
-    if (dialogueCount(paragraph.value) > 0) {
-      run = [];
-      continue;
-    }
-    const units = paragraph.value
-      .split(/[。！？!?]+/u)
-      .map((value) => value.replace(/[，、；：,.\s]/gu, "").trim())
-      .filter(Boolean)
-      .map((value) => ({ paragraph: paragraph.index, value }));
-    for (const unit of units) {
-      if (unit.value.length <= 11) {
-        run.push(unit);
-        if (run.length >= 3) return run.slice(-3);
-      } else {
-        run = [];
-      }
-    }
-  }
-  return [];
-}
-
 function compressedTradeExpressions(paragraphs) {
   const hits = [];
   for (const paragraph of paragraphs) {
@@ -163,91 +239,8 @@ function compressedTradeExpressions(paragraphs) {
   return hits;
 }
 
-function templateParagraphCadence(paragraphs) {
-  const content = paragraphs
-    .map((paragraph) => ({
-      paragraph: paragraph.index,
-      length: paragraph.value.replace(/\s+/gu, "").length,
-      sentences: paragraph.value.split(/[。！？!?]+/u).map((item) => item.trim()).filter(Boolean).length
-    }))
-    .filter((item) => item.length >= 35 && item.length <= 130);
-  if (content.length < 6) return null;
-  const mean = content.reduce((sum, item) => sum + item.length, 0) / content.length;
-  const deviation = Math.sqrt(content.reduce((sum, item) => sum + (item.length - mean) ** 2, 0) / content.length);
-  const coefficient = mean ? deviation / mean : 1;
-  const moldedCount = content.filter((item) => item.sentences >= 2 && item.sentences <= 5).length;
-  const moldedRatio = moldedCount / content.length;
-  if (coefficient > 0.17 || moldedRatio < 0.83) return null;
-  return {
-    paragraph: content[0].paragraph,
-    contentParagraphs: content.length,
-    coefficient: Number(coefficient.toFixed(3)),
-    moldedRatio: Number(moldedRatio.toFixed(3)),
-    lengths: content.map((item) => item.length)
-  };
-}
-
-function naturalTransitionCount(text) {
-  return [...maskDialogue(text).matchAll(new RegExp(NATURAL_TRANSITION.source, "gu"))].length;
-}
-
-function isolatedDialogueText(value) {
-  const match = String(value || "").trim().match(/^(?:“([^”]*)”|「([^」]*)」|『([^』]*)』|"([^"]*)")$/u);
-  return match ? String(match[1] ?? match[2] ?? match[3] ?? match[4] ?? "").trim() : "";
-}
-
 function dialogueCount(value) {
   return [...String(value || "").matchAll(new RegExp(QUOTED_TEXT.source, "gu"))].length;
-}
-
-function compressedDialogueLadders(paragraphs) {
-  const hits = [];
-  const hardFactPayload = /(?:\d|[零〇一二三四五六七八九十百千万两]{1,5}(?:年|月|天|元|万|人|份|个|成)|退休医疗|手术押金|账户|余额|期限|服务费|岗位|产权|担保)/u;
-  let lastEnd = -1;
-  for (let start = 0; start < paragraphs.length; start += 1) {
-    if (start <= lastEnd) continue;
-    const window = paragraphs.slice(start, start + 6);
-    const isolated = window
-      .map((paragraph, offset) => ({
-        paragraph: paragraph.index,
-        offset,
-        text: isolatedDialogueText(paragraph.value)
-      }))
-      .filter((item) => item.text && item.text.replace(/[，。！？!?、；：\s]/gu, "").length <= 18);
-    const quotes = window.reduce((sum, paragraph) => sum + dialogueCount(paragraph.value), 0);
-    const factDialogueCount = isolated.filter((item) => hardFactPayload.test(item.text)).length;
-    if (isolated.length < 3 || quotes < 4 || factDialogueCount < 2) continue;
-    const first = isolated[0];
-    const last = isolated[isolated.length - 1];
-    hits.push({
-      paragraph: first.paragraph,
-      excerpt: window.slice(first.offset, last.offset + 1).map((paragraph) => paragraph.value).join(" "),
-      isolatedCount: isolated.length,
-      quoteCount: quotes,
-      factDialogueCount
-    });
-    lastEnd = start + last.offset;
-  }
-  return hits;
-}
-
-function manufacturedCallbackPunchlines(paragraphs) {
-  const predicates = ["只认", "只看", "只算", "只留", "只听", "只要", "不认", "不算", "不留"];
-  const hits = [];
-  for (let index = 1; index < paragraphs.length; index += 1) {
-    const previous = paragraphs[index - 1];
-    const current = paragraphs[index];
-    const compact = current.value.replace(/[，。！？!?、；：\s]/gu, "");
-    if (compact.length > 22 || dialogueCount(current.value) > 0) continue;
-    const predicate = predicates.find((item) => previous.value.includes(item) && current.value.includes(`也${item}`));
-    if (!predicate || !/^(?:我|你|他|她|它|我的|你的|他的|她的|它的)/u.test(compact)) continue;
-    hits.push({
-      paragraph: current.index,
-      excerpt: `${previous.value} ${current.value}`,
-      predicate
-    });
-  }
-  return hits;
 }
 
 function matrixSerializationParagraphs(paragraphs) {
@@ -290,7 +283,10 @@ function addIssue(issues, issue) {
 }
 
 /** Diagnose one player-facing prose body. */
-export function diagnosePlayerScript(body, { expectedPov = "" } = {}) {
+export function diagnosePlayerScript(
+  body,
+  { expectedPov = "", maxExactMinuteMentions = 2 } = {}
+) {
   const text = normalizeText(body);
   const paragraphs = splitParagraphs(text);
   const proseParagraphs = paragraphs.filter((paragraph) => !HEADING.test(paragraph.value));
@@ -298,6 +294,58 @@ export function diagnosePlayerScript(body, { expectedPov = "" } = {}) {
   let sceneEvidenceParagraphs = 0;
   let explanatoryParagraphs = 0;
   let explanationTransitions = 0;
+
+  // Surface-boundary rules deliberately inspect headings and list items too.
+  // Those areas were previously excluded as formatting, which let authoring
+  // metadata and player instructions bypass the prose-only diagnostics.
+  for (const paragraph of paragraphs) {
+    const narration = maskDialogue(paragraph.value);
+    for (const rule of PLAYER_SURFACE_RULES) {
+      const match = narration.match(rule.pattern);
+      if (!match) continue;
+      addIssue(issues, {
+        code: rule.code,
+        category: "player_surface_boundary",
+        severity: rule.severity,
+        paragraph: paragraph.index,
+        excerpt: compactExcerpt(paragraph.value),
+        evidence: compactExcerpt(match[0], 72),
+        message: rule.message,
+        action: "从玩家正文移除该结构；把事实还原为角色亲历场景，或移入主持人手册、任务载体、道具文件。",
+        rewriteMode: "separate_authoring_layers"
+      });
+    }
+  }
+
+  const exactMinuteHits = exactMinuteMentions(text);
+  if (exactMinuteHits.length > maxExactMinuteMentions) {
+    addIssue(issues, {
+      code: "minute_grid_narration",
+      category: "player_time_memory",
+      severity: "high",
+      paragraph: 0,
+      excerpt: "",
+      evidence: `本节出现 ${exactMinuteHits.length} 处精确分钟：${exactMinuteHits.slice(0, 5).map((item) => item[0]).join("、")}`,
+      message: "人物叙事正在复述后台分钟表，超出自然记忆所需的关键时间锚点。",
+      action: "只保留角色有理由记住的关键分钟；其他时刻改为带感知依据的前后范围或事件顺序。",
+      rewriteMode: "restore_human_time_memory"
+    });
+  }
+
+  const caretakingSilence = text.match(CARETAKING_SILENCE_TEMPLATE);
+  if (caretakingSilence) {
+    addIssue(issues, {
+      code: "caregiving_silence_template",
+      category: "player_prose",
+      severity: "high",
+      paragraph: 0,
+      excerpt: compactExcerpt(caretakingSilence[0]),
+      evidence: "脆弱状态＋追问＋照顾动作＋沉默不答",
+      message: "正文使用大模型高频的克制文学套件代替具体冲突。",
+      action: "让人物明确回答、撒谎、转移、争吵或承担关系后果；照顾动作不能自动充当潜台词。",
+      rewriteMode: "rebuild_relationship_consequence"
+    });
+  }
 
   for (const paragraph of proseParagraphs) {
     const narration = maskDialogue(paragraph.value);
@@ -326,21 +374,6 @@ export function diagnosePlayerScript(body, { expectedPov = "" } = {}) {
     }
   }
 
-  const fragmentRun = shortSentenceChain(proseParagraphs);
-  if (fragmentRun.length) {
-    addIssue(issues, {
-      code: "manufactured_fragment_rhythm",
-      category: "player_prose",
-      severity: "medium",
-      paragraph: fragmentRun[0].paragraph,
-      excerpt: compactExcerpt(fragmentRun.map((item) => item.value).join("。")),
-      evidence: "连续三个短断句",
-      message: "连续短断句在制造统一的“伪文学”节拍。",
-      action: "按同一动作或同一次意识流合并句子；只有真实停顿才单独成段。",
-      rewriteMode: "merge"
-    });
-  }
-
   for (const hit of compressedTradeExpressions(proseParagraphs)) {
     addIssue(issues, {
       code: "compressed_trade_expression",
@@ -352,64 +385,6 @@ export function diagnosePlayerScript(body, { expectedPov = "" } = {}) {
       message: "叙述为了显得利落或有行当感，使用了缺少自然谓语或没有语境支撑的压缩词。",
       action: "改回角色会自然说出的完整动作；专业词若未在输入材料登记，删除或在第一次实际操作中让含义自行显现。",
       rewriteMode: "rewrite_for_reader_language"
-    });
-  }
-
-  const cadence = templateParagraphCadence(proseParagraphs);
-  if (cadence) {
-    addIssue(issues, {
-      code: "template_paragraph_cadence",
-      category: "player_prose",
-      severity: "high",
-      paragraph: cadence.paragraph,
-      excerpt: "",
-      evidence: `${cadence.contentParagraphs} 个主体段长度变异系数仅 ${cadence.coefficient}，其中 ${Math.round(cadence.moldedRatio * 100)}% 固定为 2～5 句`,
-      message: "正文段落被切成近似容量和近似句数，出现批量生成式整齐节拍。",
-      action: "不要随机增删字数；按动作是否连续、话题是否被打断和信息是否应当延迟，重新决定哪里并段、哪里停顿。",
-      rewriteMode: "rebuild_paragraph_rhythm"
-    });
-  }
-
-  const transitionCount = naturalTransitionCount(text);
-  if (text.length >= 250 && proseParagraphs.length >= 6 && transitionCount < 2) {
-    addIssue(issues, {
-      code: "missing_transition_bridges",
-      category: "player_prose",
-      severity: transitionCount === 0 ? "high" : "medium",
-      paragraph: 0,
-      excerpt: "",
-      evidence: `${text.length} 字、${proseParagraphs.length} 段，仅识别到 ${transitionCount} 处自然时间/因果/转折承接`,
-      message: "叙述几乎只靠动作硬切，时间推进、因果变化或预期落空缺少自然承接。",
-      action: "检查真实发生变化的位置，补入人物会使用的自然连接；不要每段机械轮换一枚书面连接词。",
-      rewriteMode: "restore_natural_transitions"
-    });
-  }
-
-  for (const hit of compressedDialogueLadders(proseParagraphs)) {
-    addIssue(issues, {
-      code: "compressed_dialogue_ladder",
-      category: "player_prose",
-      severity: "high",
-      paragraph: hit.paragraph,
-      excerpt: compactExcerpt(hit.excerpt),
-      evidence: `${hit.isolatedCount} 个短对白独立成段，窗口内共 ${hit.quoteCount} 句对白，其中 ${hit.factDialogueCount} 句承载数字或合同字段`,
-      message: "对话被剪成问一句、报一个数、再追问的电报式信息传送带。",
-      action: "重写整段交谈：让说话人带着关系、顾虑或误解回应，合并无真实停顿的独立短句；事实不能靠连续报数一次性交代完。",
-      rewriteMode: "rewrite_conversation"
-    });
-  }
-
-  for (const hit of manufacturedCallbackPunchlines(proseParagraphs)) {
-    addIssue(issues, {
-      code: "manufactured_callback_punchline",
-      category: "player_prose",
-      severity: "high",
-      paragraph: hit.paragraph,
-      excerpt: compactExcerpt(hit.excerpt),
-      evidence: `相邻段落重复“${hit.predicate}”，再用“我/我的……也……”收尾`,
-      message: "段尾正在用对称回扣制造可摘抄金句，人物声音被作者句法覆盖。",
-      action: "删除回扣句，停在尚未解决的动作或具体文件后果；不要把上一段意象换主语复述一遍。",
-      rewriteMode: "delete_callback"
     });
   }
 
@@ -478,12 +453,12 @@ export function diagnosePlayerScript(body, { expectedPov = "" } = {}) {
   const highCount = issues.filter((issue) => issue.severity === "high").length;
   const mediumCount = issues.filter((issue) => issue.severity === "medium").length;
   const lowCount = issues.filter((issue) => issue.severity === "low").length;
-  const score = Math.max(0, 100 - highCount * 24 - mediumCount * 8 - lowCount * 3);
+  const rhythm = analyzeNarrativeRhythm(text);
   return {
     version: PROSE_QUALITY_GATE_VERSION,
+    playerFacingContractVersion: PLAYER_FACING_CONTRACT_VERSION,
     passed: highCount === 0,
     blocked: highCount > 0,
-    score,
     summary: { high: highCount, medium: mediumCount, low: lowCount, total: issues.length },
     metrics: {
       chars: text.length,
@@ -497,15 +472,152 @@ export function diagnosePlayerScript(body, { expectedPov = "" } = {}) {
       expectedPov: expectedPov || null,
       firstPersonNarrationMarkers: povMarkers.first.length,
       secondPersonNarrationMarkers: povMarkers.second.length,
-      isolatedShortDialogueParagraphs: proseParagraphs.filter((paragraph) => {
-        const spoken = isolatedDialogueText(paragraph.value);
-        return spoken && spoken.replace(/[，。！？!?、；：\s]/gu, "").length <= 18;
-      }).length,
-      templateCadenceCoefficient: cadence?.coefficient ?? null,
       compressedTradeExpressions: compressedTradeExpressions(proseParagraphs).length,
-      naturalTransitionCount: transitionCount
+      exactMinuteMentions: exactMinuteHits.length
     },
+    rhythm,
     issues: issues.slice(0, 20)
+  };
+}
+
+/**
+ * Diagnose a complete player role document instead of a single prose cell.
+ * Public body and act bodies remain prose-only; task cards and props are not
+ * accepted as fields here by design.
+ */
+export function diagnosePlayerFacingRoleDocument(
+  roleDocument,
+  {
+    expectedPov = "",
+    minimumPublicChars = DEFAULT_ROLE_DOCUMENT_LIMITS.minimumPublicChars,
+    minimumActChars = DEFAULT_ROLE_DOCUMENT_LIMITS.minimumActChars,
+    maxExactMinuteMentions = 2
+  } = {}
+) {
+  const publicBody = normalizeText(roleDocument?.publicBody);
+  const acts = Array.isArray(roleDocument?.acts)
+    ? roleDocument.acts
+    : Object.values(roleDocument?.acts || {});
+  const sections = [
+    { key: "public", body: publicBody, minimumChars: minimumPublicChars },
+    ...acts.map((act, index) => ({
+      key: String(act?.key || `act-${index + 1}`),
+      body: normalizeText(act?.body ?? act),
+      minimumChars: minimumActChars
+    }))
+  ];
+  const structuralIssues = [];
+  const diagnostics = [];
+
+  for (const section of sections) {
+    if (section.body.length < section.minimumChars) {
+      structuralIssues.push({
+        code: section.key === "public" ? "public_body_too_short" : "act_body_too_short",
+        category: "player_document_structure",
+        severity: "high",
+        section: section.key,
+        evidence: `${section.body.length}/${section.minimumChars} 字`,
+        message: section.key === "public"
+          ? "公共开篇不足以建立人物生活、现场关系和当夜处境。"
+          : "分幕正文不足以承载完整场景与人物变化。"
+      });
+    }
+    if (section.body) {
+      diagnostics.push({
+        section: section.key,
+        ...diagnosePlayerScript(section.body, { expectedPov, maxExactMinuteMentions })
+      });
+    }
+  }
+
+  const surfaceIssues = diagnostics.flatMap((diagnostic) =>
+    diagnostic.issues.map((issue) => ({ section: diagnostic.section, ...issue }))
+  );
+  const issues = [...structuralIssues, ...surfaceIssues];
+  return {
+    version: PROSE_QUALITY_GATE_VERSION,
+    playerFacingContractVersion: PLAYER_FACING_CONTRACT_VERSION,
+    passed: structuralIssues.length === 0 && diagnostics.every((item) => item.passed),
+    blocked: structuralIssues.length > 0 || diagnostics.some((item) => item.blocked),
+    sections: diagnostics,
+    issues
+  };
+}
+
+/** Diagnose one independently distributed stage-task card. */
+export function diagnosePlayerTaskCard(body) {
+  const text = normalizeText(body);
+  const issues = [];
+  const objectiveLines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => /^[-*]\s+/u.test(line))
+    .map((line) => line.replace(/^[-*]\s+/u, "").trim());
+
+  if (!objectiveLines.length || objectiveLines.length > 4) {
+    issues.push({
+      code: "task_scope_invalid",
+      category: "player_task_card",
+      severity: "high",
+      evidence: `${objectiveLines.length} 条任务`,
+      message: "每张分幕任务卡需要一至四条可结束的阶段结果。"
+    });
+  }
+
+  for (const [index, objective] of objectiveLines.entries()) {
+    const advice = TASK_ADVICE_RULES.find((pattern) => pattern.test(objective));
+    if (advice) {
+      issues.push({
+        code: "task_strategy_leak",
+        category: "player_task_card",
+        severity: "high",
+        paragraph: index + 1,
+        excerpt: compactExcerpt(objective),
+        evidence: compactExcerpt(objective.match(advice)?.[0] || objective),
+        message: "任务卡正在替玩家安排话术、调查顺序、隐瞒或误导策略。"
+      });
+    }
+    if (/(?:可公开|暂时隐瞒|必须隐瞒|知识矩阵|指定证据|证据编号)/u.test(objective)) {
+      issues.push({
+        code: "task_matrix_leak",
+        category: "player_task_card",
+        severity: "high",
+        paragraph: index + 1,
+        excerpt: compactExcerpt(objective),
+        message: "任务卡复制了知识矩阵或制作字段。"
+      });
+    }
+  }
+
+  return {
+    version: PROSE_QUALITY_GATE_VERSION,
+    playerFacingContractVersion: PLAYER_FACING_CONTRACT_VERSION,
+    passed: issues.length === 0,
+    blocked: issues.length > 0,
+    objectiveCount: objectiveLines.length,
+    issues
+  };
+}
+
+/** Diagnose role × act task cards without mixing them into role prose. */
+export function diagnoseTaskCardCollection(taskCards) {
+  const cards = [];
+  for (const [roleKey, acts] of Object.entries(taskCards || {})) {
+    for (const [actKey, body] of Object.entries(acts || {})) {
+      const diagnostics = diagnosePlayerTaskCard(body?.body ?? body);
+      cards.push({ roleKey, actKey, ...diagnostics });
+    }
+  }
+  return {
+    version: PROSE_QUALITY_GATE_VERSION,
+    passed: cards.length > 0 && cards.every((card) => card.passed),
+    blocked: !cards.length || cards.some((card) => card.blocked),
+    cards,
+    issues: cards.flatMap((card) => card.issues.map((issue) => ({
+      roleKey: card.roleKey,
+      actKey: card.actKey,
+      ...issue
+    })))
   };
 }
 
@@ -523,15 +635,11 @@ export function diagnoseScriptCollection(scripts, { expectedPov = "" } = {}) {
   const issues = cells.flatMap((cell) =>
     cell.issues.map((issue) => ({ cell: cell.cell, roleKey: cell.roleKey, actKey: cell.actKey, ...issue }))
   );
-  const averageScore = cells.length
-    ? Math.round(cells.reduce((sum, cell) => sum + cell.score, 0) / cells.length)
-    : 100;
   return {
     version: PROSE_QUALITY_GATE_VERSION,
     passed: blockedCells.length === 0,
     blocked: blockedCells.length > 0,
     skipped: cells.length === 0,
-    score: averageScore,
     summary: {
       totalCells: cells.length,
       blockedCells: blockedCells.length,
@@ -561,16 +669,14 @@ export function fingerprintScriptCollection(scripts) {
   return `fnv1a-${(hash >>> 0).toString(16).padStart(8, "0")}-${text.length}`;
 }
 
-function clampScore(value) {
-  return Math.max(0, Math.min(100, Math.round(value)));
-}
-
 /**
- * Evidence-based authorship-style assessment for uploaded text.
- * This reports observable prose traits; it must never be presented as proof
- * that a person or a model wrote the document.
+ * Deterministic inspection for uploaded player-facing prose.
+ *
+ * There is intentionally no score, quality label, authorship probability, or
+ * automatic literary verdict. Hard boundary leaks and rhythm distributions are
+ * presented as separate evidence for a human editor.
  */
-export function assessHumanLikeProse(text, { sections = [], creationType = "murder_mystery" } = {}) {
+export function inspectPlayerProse(text, { sections = [], creationType = "murder_mystery" } = {}) {
   const whole = diagnosePlayerScript(text);
   const sectionReports = (sections || [])
     .filter((section) => section?.body?.trim())
@@ -586,71 +692,30 @@ export function assessHumanLikeProse(text, { sections = [], creationType = "murd
       ...issue
     }))
   );
-  const metrics = whole.metrics;
-  const taskLeaks = whole.issues.filter((issue) => ["task_wrapper", "analyst_brief", "strategy_menu_narration"].includes(issue.code)).length;
-  const fragmentHits = whole.issues.filter((issue) => issue.code === "manufactured_fragment_rhythm").length;
-  const conversationShapeHits = whole.issues.filter((issue) => ["compressed_dialogue_ladder", "manufactured_callback_punchline", "matrix_serialization"].includes(issue.code)).length;
-  const narrativeRestraint = clampScore(100 - whole.summary.high * 20 - whole.summary.medium * 7 - metrics.explanatoryRatio * 45);
-  const sceneGrounding = clampScore(42 + metrics.sceneEvidenceRatio * 68 + metrics.dialogueRatio * 24 - metrics.explanatoryRatio * 42);
-  const rhythmNaturalness = clampScore(96 - fragmentHits * 18 - conversationShapeHits * 22 - Math.min(30, metrics.explanationTransitions * 5));
-  const playerFacingIntegrity = clampScore(100 - taskLeaks * 30);
-  let score = clampScore(
-    narrativeRestraint * 0.38 +
-    sceneGrounding * 0.32 +
-    rhythmNaturalness * 0.16 +
-    playerFacingIntegrity * 0.14
-  );
-  if (whole.summary.high >= 2) score = Math.min(score, 54);
-  else if (whole.summary.high > 0) score = Math.min(score, 69);
-  const confidence = metrics.chars >= 3000 ? "high" : metrics.chars >= 800 ? "medium" : "low";
-  const level = score >= 80 ? "strong" : score >= 65 ? "mixed" : "weak";
-  const label = {
-    strong: "已知结构风险较低，仍须文学编辑",
-    mixed: "可观察写作风险混合，建议抽段复核",
-    weak: "解释性与模板结构明显，建议重审正文"
-  }[level];
-  const suggestions = [];
-  if (metrics.sceneEvidenceRatio < 0.28) suggestions.push("抽查长段落：是否存在正在发生的场景、可见动作、对话与即时后果。");
-  if (metrics.explanatoryRatio >= 0.2) suggestions.push("优先删除替人物下结论的心理解释，再检查删后是否损失可观察事实。");
-  if (taskLeaks) suggestions.push("把任务、利弊分析和执行说明移出玩家正文，放回独立机制字段。");
-  if (fragmentHits) suggestions.push("朗读连续短断句，合并并非真实停顿的“一句一段”。");
-  if (conversationShapeHits) suggestions.push("抽查信息交付：删除问答式报数、段尾回扣和一段式矩阵摘要，重写说话人的关系语气、回避与误解。");
-  const gatePassed = confidence !== "low" && score >= UPLOAD_PROSE_REVIEW_THRESHOLD && whole.summary.high === 0;
+  const rhythm = whole.rhythm || analyzeNarrativeRhythm(text);
+  const requiresReview = whole.blocked || rhythm.observations.length > 0;
   return {
     version: PROSE_QUALITY_GATE_VERSION,
-    score,
-    level,
-    label,
-    confidence,
+    method: "deterministic_evidence_only",
     creationType,
-    dimensions: {
-      narrativeRestraint,
-      sceneGrounding,
-      rhythmNaturalness,
-      playerFacingIntegrity
-    },
     summary: {
-      chars: metrics.chars,
+      chars: whole.metrics.chars,
       sections: sectionReports.length,
-      high: whole.summary.high,
-      medium: whole.summary.medium,
-      sceneEvidenceRatio: metrics.sceneEvidenceRatio,
-      explanatoryRatio: metrics.explanatoryRatio
+      hardBoundaryIssues: whole.summary.high,
+      reviewNotes: whole.summary.medium + whole.summary.low,
+      rhythmObservations: rhythm.observations.length,
     },
-    gate: {
-      passed: gatePassed,
-      decision: gatePassed ? "pass" : "manual_review",
-      threshold: UPLOAD_PROSE_REVIEW_THRESHOLD,
-      reason: gatePassed
-        ? "未命中高风险写法，且综合分达到自动准入线。"
-        : confidence === "low"
-          ? "有效正文不足 800 字，样本过短，不能自动准入。"
-          : whole.summary.high > 0
-          ? "命中高风险写法，须人工复核对应原文后再决定是否进入发布流程。"
-          : `综合分低于 ${UPLOAD_PROSE_REVIEW_THRESHOLD} 分，须人工复核后再决定是否进入发布流程。`
+    review: {
+      required: requiresReview,
+      decision: requiresReview ? "manual_review" : "no_anomaly_observed",
+      reason: whole.blocked
+        ? "命中玩家文本硬边界，须由作者检查原文；系统不提供文学分数或自动改写。"
+        : rhythm.observations.length
+          ? `叙事呼吸检测记录了 ${rhythm.observations.length} 组统计异常，交由作者判断是否符合本场需要。`
+          : "未发现已登记的硬边界或统计异常；这不等于对文学质量作出通过判断。"
     },
     issues: (locatedIssues.length ? locatedIssues : whole.issues).slice(0, 30),
-    suggestions: suggestions.slice(0, 6),
-    disclaimer: "这是对可观察写作特征的辅助评分，不是作者身份或 AI 使用情况的鉴定。"
+    rhythm,
+    disclaimer: "本报告未调用 AI 评审，不计算总分，不判断作者身份，也不替作者决定文本好坏；它只展示可定位的硬边界问题和统计分布。"
   };
 }

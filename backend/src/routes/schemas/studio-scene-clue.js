@@ -14,7 +14,7 @@ export const bindCluePathsSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["clueIds", "locationId", "segmentKey", "allowUnbound"],
+    required: ["clueIds", "segmentKey", "allowUnbound"],
     properties: {
       clueIds: {
         type: "array",
@@ -23,7 +23,6 @@ export const bindCluePathsSchema = {
         uniqueItems: true,
         items: uuid
       },
-      locationId: { anyOf: [{ type: "string", minLength: 1, maxLength: 160 }, { type: "null" }] },
       segmentKey: { anyOf: [{ type: "string", minLength: 1, maxLength: 120 }, { type: "null" }] },
       allowUnbound: { type: "boolean" }
     }

@@ -45,7 +45,7 @@ export function normalizeItemActions(value) {
     if (!/^[a-z][a-z0-9_]{1,63}$/.test(key) || keys.has(key) || !label || label.length > 120) {
       throwErr("ITEM_ACTION_CONTRACT_INVALID");
     }
-    if (!["use", "consume", "combine"].includes(kind) || !["none", "role", "location"].includes(targetType)) {
+    if (!["use", "consume", "combine"].includes(kind) || !["none", "role"].includes(targetType)) {
       throwErr("ITEM_ACTION_CONTRACT_INVALID");
     }
     keys.add(key);

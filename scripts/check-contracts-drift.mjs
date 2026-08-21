@@ -41,7 +41,8 @@ function handledRoomEvents(file) {
   );
 }
 
-// Creator authors mechanism packages but never operates room mechanism state.
+// Creator authors mechanism packages but never operates room mechanism state
+// or receives Player-only nudges and voice messages.
 // Advisory submission updates are intentionally host-only, so neither Creator
 // nor Player receives their payload (players get a cursor heartbeat instead).
 // Discovery updates expose progress counts to hosts only; the acting player
@@ -50,7 +51,12 @@ for (const [surface, file, exclusions = []] of [
   [
     "app",
     "../src/runtime/room-events.js",
-    ["room.mechanism_state_updated", "room.mechanism_submission_updated"],
+    [
+      "room.mechanism_state_updated",
+      "room.mechanism_submission_updated",
+      "room.host_nudge",
+      "room.voice_message_created",
+    ],
   ],
   ["host", "../host/src/runtime/room-events.js"],
   [

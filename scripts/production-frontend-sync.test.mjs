@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  extractFrontendAssetManifest,
   extractCreatorAssetManifest,
   extractRequiredChunkAssets,
+  probeFrontendSync,
   probeCreatorFrontendSync
 } from "./production-frontend-sync.mjs";
 
@@ -23,6 +25,23 @@ test("extracts the Creator entry asset fingerprint", () => {
     entryScript: "/assets/index-EXPECTED.js",
     entryStyles: ["/assets/index-EXPECTED.css"]
   });
+});
+
+test("extracts every hashed entry asset used by a Pages surface", () => {
+  assert.deepEqual(
+    extractFrontendAssetManifest(`<!doctype html><html><head>
+      <script type="module" src="/assets/main-EXPECTED.js"></script>
+      <link rel="modulepreload" href="/assets/shared-EXPECTED.js">
+      <link rel="stylesheet" href="/assets/main-EXPECTED.css">
+    </head></html>`),
+    {
+      assets: [
+        "/assets/main-EXPECTED.css",
+        "/assets/main-EXPECTED.js",
+        "/assets/shared-EXPECTED.js"
+      ]
+    }
+  );
 });
 
 test("extracts required lazy-loaded feature assets", () => {
@@ -97,5 +116,23 @@ test("production probe rejects a stale Creator entry", async () => {
       nonce: "test"
     }),
     /Creator frontend is stale/u
+  );
+});
+
+test("Pages probe rejects a live custom domain that still serves the previous build", async () => {
+  const expected = extractFrontendAssetManifest(html);
+  const staleHtml = html.replaceAll("EXPECTED", "STALE");
+  const fetchImpl = async (url) => {
+    const pathname = new URL(url).pathname;
+    if (pathname === "/") return response(staleHtml, "text/html; charset=utf-8");
+    return response("export{}", pathname.endsWith(".css") ? "text/css" : "text/javascript");
+  };
+  await assert.rejects(
+    probeFrontendSync("https://play.example.test", {
+      expectedManifest: expected,
+      fetchImpl,
+      nonce: "test"
+    }),
+    /Frontend is stale/u
   );
 });

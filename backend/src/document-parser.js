@@ -1,15 +1,9 @@
 import mammoth from "mammoth";
 import AdmZip from "adm-zip";
 import { throwErr } from "./api-errors.js";
-import {
-  detectPdfContentMode,
-  extractTextFromPdfBuffer,
-  renderPdfPreviewPage,
-  pdfPageImportMaxPages
-} from "./pdf-document.js";
 import { parseDocumentPayloadBase64 } from "./section-content.js";
 import { analyzeNarrativeStructure, normalizeCreationType } from "./document-structure.js";
-import { assessHumanLikeProse } from "../../shared/prose-quality-gate.js";
+import { inspectPlayerProse } from "../../shared/prose-quality-gate.js";
 
 export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 export const MAX_DOCUMENT_TEXT_CHARACTERS = 2_000_000;
@@ -18,7 +12,8 @@ export const DOCUMENT_JSON_BODY_LIMIT_BYTES = 8 * 1024 * 1024;
 const MAX_DOCX_ENTRIES = 2_000;
 const MAX_DOCX_UNCOMPRESSED_BYTES = 64 * 1024 * 1024;
 
-const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
+/** Manuscript text extraction only accepts Word .docx. Images/audio upload via assets; ZIP via script-bundle. */
+export const MANUSCRIPT_PARSE_EXTENSIONS = new Set([".docx"]);
 
 export function cleanText(value) {
   return String(value ?? "").replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
@@ -70,7 +65,7 @@ export function parseCreatorTextDocument({
   if (!cleaned) throwErr("DOCUMENT_EMPTY");
   const sections = splitSections(cleaned).slice(0, 80);
   const structure = analyzeNarrativeStructure(cleaned, { filename, creationType });
-  const authorshipAssessment = assessHumanLikeProse(cleaned, { sections, creationType });
+  const proseDiagnostics = inspectPlayerProse(cleaned, { sections, creationType });
   return {
     filename,
     contentMode: "text",
@@ -81,7 +76,7 @@ export function parseCreatorTextDocument({
     sectionCount: sections.length,
     extraction,
     structure,
-    authorshipAssessment,
+    proseDiagnostics,
     warnings: [...warnings, ...structure.warnings]
   };
 }
@@ -113,94 +108,40 @@ function fileExtension(filename) {
 
 export async function parseCreatorDocument(body) {
   const buffer = decodeDocumentBuffer(body);
-
   const filename = String(body?.filename ?? "");
   const extension = fileExtension(filename);
-  const parseMode = String(body?.parseMode ?? "auto");
-  const allowOcr = Boolean(body?.allowOcr);
   const creationType = normalizeCreationType(body?.creationType);
 
-  if (IMAGE_EXTENSIONS.has(extension)) {
-    return {
-      filename,
-      contentMode: "pages",
-      pageCount: 1,
-      text: "",
-      sections: [],
-      characterCount: 0,
-      sectionCount: 0,
-      extraction: { method: "image_file", pageCount: 1 },
-      structure: null,
-      previewImageBase64: buffer.toString("base64"),
-      warnings: ["图片将按页导入为分幕，玩家端会直接查看原图。"]
-    };
+  if (extension === ".doc") {
+    throwErr(
+      "DOCUMENT_TYPE_UNSUPPORTED",
+      "Legacy .doc is not supported; save as .docx, or put .docx files in a ZIP script bundle"
+    );
   }
 
-  if (extension === ".pdf") {
-    const detected = await detectPdfContentMode(buffer);
-    const usePages =
-      parseMode === "pages" || (parseMode === "auto" && detected.mode === "pages");
-
-    if (usePages) {
-      if (detected.pageCount > pdfPageImportMaxPages()) {
-        throwErr("PDF_PAGE_IMPORT_LIMIT", `PDF has ${detected.pageCount} pages; import limit is ${pdfPageImportMaxPages()}`);
-      }
-      const previewPng = await renderPdfPreviewPage(buffer, 1, 1.25);
-      return {
-        filename,
-        contentMode: "pages",
-        pageCount: detected.pageCount,
-        text: "",
-        sections: [],
-        characterCount: 0,
-        sectionCount: 0,
-        extraction: { method: "pdf_pages", pageCount: detected.pageCount },
-        structure: null,
-        previewImageBase64: previewPng.toString("base64"),
-        warnings: [
-          "图片型 PDF 将按页导入为分幕图片，玩家端会直接翻页阅读。",
-          "如需可编辑文字，可在导入时勾选“尝试 OCR 提取文字”。"
-        ]
-      };
-    }
-
-    const pdf = await extractTextFromPdfBuffer(buffer, { allowOcr });
-    const warnings =
-      pdf.extraction.method === "pdf_ocr"
-        ? ["图片型 PDF 已通过 OCR 识别，请人工复核错字与分段。"]
-        : [];
-    return parseCreatorTextDocument({
-      filename,
-      text: pdf.text,
-      pageCount: pdf.extraction.pageCount,
-      extraction: pdf.extraction,
-      creationType,
-      warnings
-    });
+  if (extension === ".pdf" || [".txt", ".md", ".markdown", ".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(extension)) {
+    throwErr(
+      "DOCUMENT_TYPE_UNSUPPORTED",
+      "Manuscript parse only accepts .docx (or a ZIP of .docx). Upload images and audio as assets without parsing."
+    );
   }
 
-  let text;
-  let extraction = { method: extension?.slice(1) ?? "unknown" };
-
-  if ([".txt", ".md", ".markdown"].includes(extension)) {
-    text = buffer.toString("utf8");
-    extraction = { method: "plain_text" };
-  } else if (extension === ".docx") {
-    assertSafeDocxArchive(buffer);
-    try {
-      text = (await mammoth.extractRawText({ buffer })).value;
-    } catch {
-      throwErr("DOCUMENT_TYPE_UNSUPPORTED", "The DOCX document cannot be read");
-    }
-    extraction = { method: "docx" };
-  } else {
+  if (extension !== ".docx") {
     throwErr("DOCUMENT_TYPE_UNSUPPORTED");
+  }
+
+  assertSafeDocxArchive(buffer);
+  let text;
+  try {
+    text = (await mammoth.extractRawText({ buffer })).value;
+  } catch {
+    throwErr("DOCUMENT_TYPE_UNSUPPORTED", "The DOCX document cannot be read");
   }
 
   return parseCreatorTextDocument({
     filename,
     text,
-    extraction,
+    extraction: { method: "docx" },
     creationType
   });
 }

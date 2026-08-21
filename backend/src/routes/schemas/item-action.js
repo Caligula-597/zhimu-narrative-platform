@@ -10,7 +10,7 @@ export const submitItemActionSchema = {
     required: ["actionKey", "targetType"],
     properties: {
       actionKey: { type: "string", pattern: "^[a-z][a-z0-9_]{1,63}$" },
-      targetType: { type: "string", enum: ["none", "role", "location"] },
+      targetType: { type: "string", enum: ["none", "role"] },
       targetId: { anyOf: [uuid, { type: "null" }] },
       combineItemId: { anyOf: [uuid, { type: "null" }] },
     },
