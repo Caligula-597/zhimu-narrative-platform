@@ -6,6 +6,8 @@ import {
   normalizeCoreTrickPatch,
   normalizeForeshadowBody,
   normalizeForeshadowPatch,
+  normalizeMaterialBookletBody,
+  normalizeMaterialBookletPatch,
   normalizeRoleArchiveBody,
   normalizeRoleArchivePatch,
   normalizeTimelineEventBody,
@@ -13,16 +15,20 @@ import {
 } from "../creator-bible-contract.js";
 import {
   createForeshadowBeat,
+  createMaterialBooklet,
   createTimelineEvent,
   deleteForeshadowBeat,
+  deleteMaterialBooklet,
   deleteTimelineEvent,
   getCoreTrick,
   getRoleArchive,
   listForeshadowBeats,
+  listMaterialBooklets,
   listRoleArchives,
   listTimelineEvents,
   loadBibleSummary,
   updateForeshadowBeat,
+  updateMaterialBooklet,
   updateTimelineEvent,
   upsertCoreTrick,
   upsertRoleArchive
@@ -33,12 +39,15 @@ import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js"
 import { runRevisionMutation } from "../world-revision.js";
 import {
   bibleBeatIdParams,
+  bibleBookletIdParams,
   bibleEventIdParams,
   bibleRoleSlotParams,
   patchCoreTrickSchema,
   patchRoleArchiveSchema,
   patchForeshadowBeatSchema,
+  patchMaterialBookletSchema,
   postForeshadowBeatSchema,
+  postMaterialBookletSchema,
   postTimelineEventSchema,
   patchTimelineEventSchema,
   worldIdParams
@@ -174,6 +183,47 @@ export async function registerCreatorBibleRoutes(app) {
     await requireWorldRole(actorId, worldId);
     return runRevisionMutation(request, reply, worldId, async (client) => {
       const ok = await deleteTimelineEvent(worldId, eventId, client);
+      if (!ok) throwErr("NOT_FOUND");
+      return { ok: true };
+    }, { sendErr });
+  });
+
+  app.get("/api/worlds/:worldId/bible/material-booklets", { schema: { params: worldIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
+    return { booklets: await listMaterialBooklets(worldId) };
+  });
+
+  app.post("/api/worlds/:worldId/bible/material-booklets", { schema: postMaterialBookletSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const body = normalizeMaterialBookletBody(request.body ?? {});
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const booklet = await createMaterialBooklet(worldId, body, client);
+      return { booklet };
+    }, { sendErr, statusCode: 201 });
+  });
+
+  app.patch("/api/worlds/:worldId/bible/material-booklets/:bookletId", { schema: patchMaterialBookletSchema }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, bookletId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const patch = normalizeMaterialBookletPatch(request.body ?? {});
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const booklet = await updateMaterialBooklet(worldId, bookletId, patch, client);
+      if (!booklet) throwErr("NOT_FOUND");
+      return { booklet };
+    }, { sendErr });
+  });
+
+  app.delete("/api/worlds/:worldId/bible/material-booklets/:bookletId", { schema: { params: bibleBookletIdParams } }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId, bookletId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const ok = await deleteMaterialBooklet(worldId, bookletId, client);
       if (!ok) throwErr("NOT_FOUND");
       return { ok: true };
     }, { sendErr });

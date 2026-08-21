@@ -1,6 +1,8 @@
 import {
   grantClueFromHost,
   grantItemFromHost,
+  grantMaterialBookletFromHost,
+  listMaterialBookletsForHost,
   relockSectionFromHost,
   resendClueFromHost,
   revokeClueFromHost,
@@ -12,8 +14,10 @@ import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { requireHostMembership } from "./host-route-guards.js";
 import {
+  hostGrantBookletSchema,
   hostGrantClueSchema,
   hostGrantItemSchema,
+  hostListMaterialBookletsSchema,
   hostRelockSectionSchema,
   hostResendClueSchema,
   hostRevokeClueSchema,
@@ -31,6 +35,24 @@ export async function registerHostContentActionRoutes(app) {
     await requireHostMembership(actorId, roomId);
     return withRoomIdempotency(roomId, request, "host.grant_clue", () => (
       grantClueFromHost({ roomId, actorId, targets, clueId, message })
+    ));
+  });
+
+  app.get("/api/rooms/:roomId/host/material-booklets", { schema: hostListMaterialBookletsSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireHostMembership(actorId, roomId);
+    return { booklets: await listMaterialBookletsForHost({ roomId, actorId }) };
+  });
+
+  app.post("/api/rooms/:roomId/host/grant-booklet", { schema: hostGrantBookletSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const { roleSlotId, roleSlotIds, bookletId, message } = request.body;
+    const targets = [...new Set([...(roleSlotIds ?? []), roleSlotId].filter(Boolean))];
+    await requireHostMembership(actorId, roomId);
+    return withRoomIdempotency(roomId, request, "host.grant_booklet", () => (
+      grantMaterialBookletFromHost({ roomId, actorId, targets, bookletId, message })
     ));
   });
 

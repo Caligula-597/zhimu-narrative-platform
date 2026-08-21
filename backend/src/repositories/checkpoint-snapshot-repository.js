@@ -211,6 +211,7 @@ export async function loadRoomCheckpointSnapshot(roomId, { client = null, includ
                   'events', mechanism.event_states,
                   'decisionStates', mechanism.decision_states,
                   'executedInvestigations', mechanism.executed_investigations,
+                  'investigationUseCounts', mechanism.investigation_use_counts,
                   'ending', mechanism.ending
                 )
               )

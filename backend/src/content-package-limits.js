@@ -21,7 +21,9 @@ export const CONTENT_PACKAGE_COLLECTION_LIMITS = Object.freeze({
   roleArchives: 1_000,
   foreshadowBeats: 12_000,
   timelineEvents: 12_000,
-  creatorReviews: 12_000
+  creatorReviews: 12_000,
+  materialBooklets: 1_000,
+  miniGameTemplates: 50
 });
 
 export function assertContentPackageWithinLimits(payload) {

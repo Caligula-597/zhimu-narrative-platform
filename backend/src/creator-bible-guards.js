@@ -103,3 +103,28 @@ export async function validateTimelinePatch(worldId, patch, client = null) {
 export async function validateCoreTrickRefs(worldId, body, client = null) {
   await assertRoleSlotInWorld(worldId, body.killerRoleSlotId, client);
 }
+
+export async function assertCluesInWorld(worldId, clueIds = [], client = null) {
+  const ids = [...new Set((clueIds || []).filter(Boolean))];
+  if (!ids.length) return;
+  const result = await run(
+    client,
+    `SELECT count(*)::int AS count FROM clues WHERE world_id = $1 AND id = ANY($2::uuid[])`,
+    [worldId, ids]
+  );
+  if (result.rows[0].count !== ids.length) throwErr("CLUE_WORLD_MISMATCH");
+}
+
+export async function validateMaterialBookletRefs(worldId, body, client = null) {
+  await assertRoleSlotInWorld(worldId, body.ownerRoleSlotId, client);
+  await assertChapterInWorld(worldId, body.chapterId, client);
+  await assertRoleSlotsInWorld(worldId, body.linkedRoleSlotIds, client);
+  await assertCluesInWorld(worldId, body.linkedClueIds, client);
+}
+
+export async function validateMaterialBookletPatch(worldId, patch, client = null) {
+  if (patch.ownerRoleSlotId !== undefined) await assertRoleSlotInWorld(worldId, patch.ownerRoleSlotId, client);
+  if (patch.chapterId !== undefined) await assertChapterInWorld(worldId, patch.chapterId, client);
+  if (patch.linkedRoleSlotIds !== undefined) await assertRoleSlotsInWorld(worldId, patch.linkedRoleSlotIds, client);
+  if (patch.linkedClueIds !== undefined) await assertCluesInWorld(worldId, patch.linkedClueIds, client);
+}

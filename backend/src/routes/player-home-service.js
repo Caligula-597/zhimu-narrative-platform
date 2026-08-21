@@ -12,7 +12,7 @@ import { loadPlayerHomeTasks, resolvePlayerHomeProgress } from "../services/play
 
 const EMPTY_SOCIAL = Object.freeze({
   notes: [], clues: [], sharedClues: [], roomMembers: [],
-  suspicions: [], testimonies: [], privateActions: []
+  suspicions: [], testimonies: [], privateActions: [], materialBooklets: []
 });
 const EMPTY_SESSION = Object.freeze({
   voiceRooms: [], inventory: [], hostConfirm: null, currentGame: null,

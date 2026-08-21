@@ -27,6 +27,36 @@ export async function findClueInRoomWorld(client, { roomId, clueId }) {
   return result.rows[0] ?? null;
 }
 
+export async function findBookletInRoomWorld(client, { roomId, bookletId }) {
+  const result = await client.query(
+    `SELECT b.id, b.title, b.kind, b.linked_clue_ids
+     FROM world_material_booklets b
+     JOIN rooms room ON room.world_id = b.world_id
+     WHERE b.id = $1 AND room.id = $2`,
+    [bookletId, roomId]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function grantBookletToRoles(client, {
+  roomId,
+  roleSlotIds,
+  bookletId,
+  actorId = null,
+  message = ""
+}) {
+  const result = await client.query(
+    `INSERT INTO room_material_booklet_grants
+       (room_id, role_slot_id, booklet_id, granted_by_user_id, message)
+     SELECT $1, target.role_slot_id, $3, $4, $5
+     FROM unnest($2::uuid[]) AS target(role_slot_id)
+     ON CONFLICT (room_id, role_slot_id, booklet_id) DO NOTHING
+     RETURNING role_slot_id`,
+    [roomId, roleSlotIds, bookletId, actorId, message || ""]
+  );
+  return result.rows.map((row) => row.role_slot_id);
+}
+
 export async function findRoleIdsInRoomWorld(client, { roomId, roleSlotIds }) {
   const result = await client.query(
     `SELECT role_slot.id

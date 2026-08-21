@@ -255,6 +255,7 @@ export const API_ERRORS = {
   CONCLUSION_IDEMPOTENCY_REQUIRED: { status: 400, message: "A conclusion idempotency key is required" },
   CONCLUSION_VERSION_CONFLICT: { status: 409, message: "Conclusion state changed; refresh before retrying" },
   CLUE_WORLD_MISMATCH: { status: 404, message: "Clue not found in room world" },
+  BOOKLET_WORLD_MISMATCH: { status: 404, message: "Material booklet not found in room world" },
   CLUE_NOT_OWNED: { status: 404, message: "Clue not owned" },
   CLUE_NOT_ACCESSIBLE: { status: 404, message: "Clue not accessible" },
   CLUE_OWNERSHIP_NOT_FOUND: { status: 404, message: "Clue ownership not found" },
@@ -418,7 +419,14 @@ export const API_ERRORS = {
   LLM_PROBE_FAILED: { status: 502, message: "AI 连接测试失败" },
   LLM_RESPONSE_TOO_LARGE: { status: 502, message: "AI provider response exceeds the safe processing limit" },
   DOCUMENT_SIZE_INVALID: { status: 413, message: "Document must contain between 1 byte and 5 MB" },
-  DOCUMENT_TYPE_UNSUPPORTED: { status: 415, message: "Only TXT, Markdown, DOCX, PDF and image documents can be parsed" },
+  DOCUMENT_TYPE_UNSUPPORTED: {
+    status: 415,
+    message: "Only Word .docx manuscripts can be parsed; upload images/audio as assets, or ZIP of .docx files"
+  },
+  COHOST_ALREADY_ASSIGNED: { status: 409, message: "User is already a host or cohost of this room" },
+  COHOST_TARGET_INVALID: { status: 400, message: "Cohost target must be a registered user who is not the primary host" },
+  COHOST_NOT_FOUND: { status: 404, message: "Cohost membership not found" },
+  COHOST_PRIMARY_REQUIRED: { status: 403, message: "Only the primary host can appoint or remove cohosts" },
   DOCUMENT_ARCHIVE_TOO_LARGE: { status: 413, message: "The DOCX archive expands beyond the safe processing limit" },
   DOCUMENT_TEXT_TOO_LARGE: { status: 413, message: "The extracted document text exceeds the import limit" },
   DOCUMENT_PROCESSING_BUSY: { status: 503, message: "Document processing is busy; retry shortly" },

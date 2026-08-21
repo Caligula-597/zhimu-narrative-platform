@@ -52,6 +52,19 @@ export type HostGrantClueBody = {
   message?: string;
 };
 
+export type HostGrantBookletBody = {
+  [k: string]: unknown;
+} & {
+  roleSlotId?: string;
+  /**
+   * @minItems 1
+   * @maxItems 20
+   */
+  roleSlotIds?: string[];
+  bookletId: string;
+  message?: string;
+};
+
 export interface HostRevokeClueBody {
   roleSlotId: string;
   clueId: string;
@@ -182,150 +195,6 @@ export interface UpdateWorldBody {
         requireIndependentPaths: boolean;
       };
     };
-    storySpine?: {
-      version: 1;
-      title: string;
-      logline: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      overview: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      openingState: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      incitingIncident: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      centralConflict: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      playerPremise: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      mechanismLoop: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      truthAndReversal: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      /**
-       * @maxItems 12
-       */
-      roleFunctions: {
-        roleId: string;
-        roleName: string;
-        storyFunction: string;
-        goal: string;
-        pressure: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      /**
-       * @maxItems 12
-       */
-      chapterArc: {
-        chapterId: string;
-        sequence: number;
-        title: string;
-        cause: string;
-        playerAction: string;
-        turn: string;
-        consequence: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      /**
-       * @maxItems 8
-       */
-      endingDirections: {
-        key: string;
-        title: string;
-        requirements: string;
-        consequence: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      /**
-       * @maxItems 20
-       */
-      unresolvedQuestions: {
-        key: string;
-        question: string;
-        whyItMatters: string;
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      /**
-       * @maxItems 20
-       */
-      assumptions: {
-        key: string;
-        text: string;
-        impact: string;
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      provenance: {
-        promptVersion: string;
-        model: string;
-        generatedAt: string;
-        sourceRevision: number | null;
-      };
-    };
     mechanismDesign?: {
       version: 1;
       interactionKind:
@@ -354,7 +223,7 @@ export interface UpdateWorldBody {
       updatedAt: string;
     };
     boardGameDesign?: {
-      version: 2;
+      version: 4;
       title: string;
       designGoal: string;
       playerCount: {
@@ -362,6 +231,14 @@ export interface UpdateWorldBody {
         max: number;
       };
       playTimeMinutes: number;
+      /**
+       * @maxItems 99
+       */
+      seats: {
+        id: string;
+        name: string;
+        sequence: number;
+      }[];
       /**
        * @maxItems 300
        */
@@ -473,8 +350,8 @@ export interface UpdateWorldBody {
     miniGameTemplates?: {
       id: string;
       protocolVersion: 1;
-      pluginKey: "zhimu_lock";
-      gameType: "zhimu_lock";
+      pluginKey: "zhimu_lock" | "zhimu_sequence" | "zhimu_guess";
+      gameType: "zhimu_lock" | "zhimu_sequence" | "zhimu_guess";
       title: string;
       prompt: string;
       hint: string;
@@ -722,150 +599,6 @@ export interface CreateWorldBody {
         requireIndependentPaths: boolean;
       };
     };
-    storySpine?: {
-      version: 1;
-      title: string;
-      logline: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      overview: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      openingState: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      incitingIncident: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      centralConflict: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      playerPremise: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      mechanismLoop: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      truthAndReversal: {
-        text: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      };
-      /**
-       * @maxItems 12
-       */
-      roleFunctions: {
-        roleId: string;
-        roleName: string;
-        storyFunction: string;
-        goal: string;
-        pressure: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      /**
-       * @maxItems 12
-       */
-      chapterArc: {
-        chapterId: string;
-        sequence: number;
-        title: string;
-        cause: string;
-        playerAction: string;
-        turn: string;
-        consequence: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      /**
-       * @maxItems 8
-       */
-      endingDirections: {
-        key: string;
-        title: string;
-        requirements: string;
-        consequence: string;
-        status: "author_confirmed" | "ai_draft" | "unresolved";
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      /**
-       * @maxItems 20
-       */
-      unresolvedQuestions: {
-        key: string;
-        question: string;
-        whyItMatters: string;
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      /**
-       * @maxItems 20
-       */
-      assumptions: {
-        key: string;
-        text: string;
-        impact: string;
-        /**
-         * @maxItems 30
-         */
-        sourceRefs: string[];
-      }[];
-      provenance: {
-        promptVersion: string;
-        model: string;
-        generatedAt: string;
-        sourceRevision: number | null;
-      };
-    };
     mechanismDesign?: {
       version: 1;
       interactionKind:
@@ -894,7 +627,7 @@ export interface CreateWorldBody {
       updatedAt: string;
     };
     boardGameDesign?: {
-      version: 2;
+      version: 4;
       title: string;
       designGoal: string;
       playerCount: {
@@ -902,6 +635,14 @@ export interface CreateWorldBody {
         max: number;
       };
       playTimeMinutes: number;
+      /**
+       * @maxItems 99
+       */
+      seats: {
+        id: string;
+        name: string;
+        sequence: number;
+      }[];
       /**
        * @maxItems 300
        */
@@ -1013,8 +754,8 @@ export interface CreateWorldBody {
     miniGameTemplates?: {
       id: string;
       protocolVersion: 1;
-      pluginKey: "zhimu_lock";
-      gameType: "zhimu_lock";
+      pluginKey: "zhimu_lock" | "zhimu_sequence" | "zhimu_guess";
+      gameType: "zhimu_lock" | "zhimu_sequence" | "zhimu_guess";
       title: string;
       prompt: string;
       hint: string;
@@ -1110,7 +851,7 @@ export interface CreateItemBody {
     key: string;
     label: string;
     kind: "use" | "consume" | "combine";
-    targetType: "none" | "role" | "location";
+    targetType: "none" | "role";
     requiresHostConfirmation?: boolean;
     consumeQuantity?: number;
     combineConsumeQuantity?: number;
@@ -1139,7 +880,7 @@ export interface PatchItemBody {
     key: string;
     label: string;
     kind: "use" | "consume" | "combine";
-    targetType: "none" | "role" | "location";
+    targetType: "none" | "role";
     requiresHostConfirmation?: boolean;
     consumeQuantity?: number;
     combineConsumeQuantity?: number;
@@ -1824,19 +1565,19 @@ export type ParseDocumentBody = {
   parseMode?: "auto" | "pages" | "text";
   allowOcr?: boolean;
   rightsConfirmed?: true;
-  creationType?: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
+  creationType: "murder_mystery";
 };
 
 export interface ParseFeishuDocumentBody {
   url: string;
   rightsConfirmed?: true;
-  creationType?: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
+  creationType: "murder_mystery";
 }
 
 export interface ImportDocumentBody {
   target: "manuscript" | "role_script" | "structured";
   roleSlotId?: string | null;
-  creationType?: "murder_mystery" | "tabletop_rpg" | "board_game" | "interactive_story";
+  creationType: "murder_mystery";
   rightsConfirmed?: true;
   document: {
     text: string;
@@ -2004,26 +1745,6 @@ export interface UpdateRuleBody {
   metadata?: {
     [k: string]: unknown;
   };
-}
-
-export interface DeepseekPipelineSpecBody {
-  title?: string;
-  premise?: string;
-  conflicts?: string;
-  wordsPerChapter?: number;
-  style?: string;
-  audience?: string;
-  requirements?: string;
-  roleRequirements?: string;
-  evaluationFocus?: string;
-  existingManuscript?: string;
-  playerCount?: number;
-  targetWordCount?: number;
-  chapterCount?: number;
-  sceneCount?: number;
-  investigationPointCount?: number;
-  clueCount?: number;
-  skipOutline?: boolean;
 }
 
 export interface CreatePhysicalTokensBody {
